@@ -1,4 +1,4 @@
-// $Id: FEA_dVectorT.h,v 1.5 2003-09-15 16:22:32 paklein Exp $
+// $Id: FEA_dVectorT.h,v 1.6 2003-09-15 19:27:57 raregue Exp $
 #ifndef _FEA_DVECTORT_H_
 #define _FEA_DVECTORT_H_
 
@@ -43,18 +43,18 @@ class FEA_dVectorT: public ArrayT <dArrayT>
 		void Projector  		(void);
 		void Orthog_Projector (void);
 */
-   	// vector-vector / vector-Tensor operations
+   		// vector-vector / vector-Tensor operations
    	
-   			void Magnitude  		(FEA_dScalarT &s);
+   		void Magnitude  (FEA_dScalarT &s);
 		
-    /** a.b = c <==> aTb = c  (1x3)(3x1) = (1x1) */  
+    	/** a.b = c <==> aTb = c  (1x3)(3x1) = (1x1) */  
 		void Dot (const FEA_dVectorT& b, FEA_dScalarT& c);  
 		
 		/** a.B = c <==>   aTB = cT  (1x3).(3x3) = (1x3) */
 		void Dot (const FEA_dMatrixT &B, const FEA_dVectorT &c); 
 
 		/** a.Bc = c <==>  aTBc (1x3).(3x3).(3x1) = (1x1) */
-    void Dot (const FEA_dMatrixT &B, const FEA_dVectorT &c, FEA_dScalarT& d); 
+    	void Dot (const FEA_dMatrixT &B, const FEA_dVectorT &c, FEA_dScalarT& d); 
 
 		/** a o b = C <==> abT (3x1)(1x3) = (3x3) */
 		void Outer 	 (const FEA_dVectorT& b, FEA_dMatrixT& C);  
