@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.9 2001-10-02 18:40:30 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.10 2001-10-03 15:34:26 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "vtkRenderer.h"
@@ -54,7 +54,7 @@ VTKConsoleT::VTKConsoleT(void)
   iAddCommand("Reset_to_Default_Values");
   iAddCommand("Save");
   iAddCommand("Show_Node_Numbers");
-  //iAddCommand("Hide_Node_Numbers");
+  iAddCommand("Hide_Node_Numbers");
   iAddCommand("Color_bar_on");
   iAddCommand("Color_bar_off");
   iAddCommand("X_axis_rotation");
@@ -336,13 +336,20 @@ double xRot, yRot, zRot;
     
   else if (command == "Reset_to_Default_Values")
     {
-      source_file = "../../example_files/heat/data_file1.vtk";
+      // source_file = "../../example_files/heat/data_file1.vtk";
       numColors = 256;
       hueRange1 = 0; hueRange2 = 0.6667;
       valRange1 = 1; valRange2 = 1;
       satRange1 = 1; satRange2 = 1;
       alphaRange1 = 1; alphaRange2 = 1;
       scalarRange1 = 6; scalarRange2 = 17;
+      ugridMapper->SetScalarRange(scalarRange1,scalarRange2);
+      lut->SetHueRange(hueRange1, hueRange2);
+      lut->SetSaturationRange(satRange1,satRange2);
+      lut->SetValueRange(valRange1,valRange2);
+      lut->SetAlphaRange(alphaRange1,alphaRange2);
+      lut->SetNumberOfColors(numColors);
+      
       renWin->Render();
       iren->Start();
       return true;
@@ -377,6 +384,7 @@ double xRot, yRot, zRot;
       // ldm->SetlabelFormat();
       ldm->SetLabelModeToLabelFieldData();
       pointLabels->SetMapper(ldm);
+      pointLabels->VisibilityOn();
       renderer->AddActor2D(pointLabels);
       renWin->Render();
       iren->Start();
@@ -541,33 +549,33 @@ double xRot, yRot, zRot;
       return true;
     }
 
-else if (command == "Select_frame_number")
-  {
-    int frameNum;
-    cout << "choose frame number from 0 to " << num_time_steps-1 <<" to be displayed: ";
-    cin >> frameNum;
-    char line[255];
-    cin.getline(line, 254);
-    ugrid->GetPointData()->SetScalars(scalars[frameNum]);
-    renWin->Render();
+  else if (command == "Select_frame_number")
+    {
+      int frameNum;
+      cout << "choose frame number from 0 to " << num_time_steps-1 <<" to be displayed: ";
+      cin >> frameNum;
+      char line[255];
+      cin.getline(line, 254);
+      ugrid->GetPointData()->SetScalars(scalars[frameNum]);
+      renWin->Render();
       iren->Start();
       return true;
+      
+    }
 
-  }
+   else if (command == "Hide_Node_Numbers")
 
-//    else if (command == "Hide_Node_Numbers")
-
-//     {
+    {
 
 // //       ids->PointIdsOff();
 // //       ids->Update();
-
+      pointLabels->VisibilityOff();
 //       renderer->removeActor((vtkActor)pointLabels);
-//       renWin->Render();
-//       iren->Start();
-//       return true;   
+      renWin->Render();
+      iren->Start();
+      return true;   
  
-//     }
+    }
 
   else
     /* drop through to inherited */
