@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.11 2002-06-08 20:20:17 paklein Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.12 2002-06-10 07:33:10 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -26,8 +26,8 @@ Tijssens2DT::Tijssens2DT(ifstreamT& in, const double& time_step):
 	in >> fDelta_n_ccr; if (fDelta_n_ccr < 0) throw eBadInputValue;
 
 	/* craze initiation parameters */
-	in >> fA_0; if (fA < 0) throw eBadInputValue;
-	in >> fB_0; if (fB < 0) throw eBadInputValue;
+	in >> fA_0; if (fA_0 < 0) throw eBadInputValue;
+	in >> fB_0; if (fB_0 < 0) throw eBadInputValue;
 	in >> fQ_A; if (fQ_A < 0) throw eBadInputValue;
 	in >> fQ_B; if (fQ_B < 0) throw eBadInputValue;
 	
