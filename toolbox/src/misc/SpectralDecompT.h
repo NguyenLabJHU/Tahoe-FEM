@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.h,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
+/* $Id: SpectralDecompT.h,v 1.2 2001-02-20 00:10:04 paklein Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
@@ -20,7 +20,7 @@ public:
 	SpectralDecompT(int nsd);
 		
 	/* compute spectral decomposition of rank2
-* NOTE: Repeated eigenvalues are NOT perturbed */
+     * NOTE: Repeated eigenvalues are NOT perturbed */
 	void SpectralDecomp(const dSymMatrixT& rank2, bool perturb_repeated);
 	void SpectralDecomp(const dSymMatrixT& rank2, const dArrayT& eigs, bool perturb_repeated);
 	void DecompAndModPrep(const dSymMatrixT& rank2, bool perturb_repeated); //before forming rank4's
@@ -34,6 +34,7 @@ public:
 	/* from last decomposition */
 	const dArrayT& Eigenvalues(void) const;
 	const ArrayT<dArrayT>& Eigenvectors(void) const;
+	const dMatrixT& Eigenmatrix(void) const; // eigenvectors in columns
 
 	/* rank-1 tensors of the principal stretches from last decomp */
 	const dSymMatrixT& Rank1_Principal(int A) const;
@@ -121,5 +122,6 @@ inline const dSymMatrixT& SpectralDecompT::Rank1_Principal(int A) const { return
 /* eigenvalues from last SpectralDecomp */
 inline const dArrayT& SpectralDecompT::Eigenvalues(void) const { return fEigs; }
 inline const ArrayT<dArrayT>& SpectralDecompT::Eigenvectors(void) const { return fEvecs; }
+inline const dMatrixT& SpectralDecompT::Eigenmatrix(void) const { return fEvecMatrix; }
 
 #endif /* _SPECTRAL_DECOMP_T_H_ */
