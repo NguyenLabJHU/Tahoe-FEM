@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.46 2004-12-09 09:19:45 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.47 2005-04-04 17:15:33 rjones Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -1175,5 +1175,39 @@ void ParticleT::SetRefNN(RaggedArray2DT<int> &NearestNeighbors,RaggedArray2DT<in
 	//cout << i << "   " << neighbors.Length() << endl;
    }
   }
+}
+
+
+void ParticleT::AtomicKineticEnergies(dArrayT& ke)
+{
+	const dArray2DT* velocities = NULL;
+	ke = 0.0;
+	double tke = 0.0;
+	double* pke = ke.Pointer();
+	if (Field().Order() > 0) {
+		velocities = &(Field()[1]);
+		/* check to see if the given array it the right size */
+		if (ke.Length() != velocities->MajorDim()) {
+			ExceptionT::SizeMismatch("ParticleT::AtomicKineticEnergies");
+			//cout << " ParticleT::AtomicKineticEnergies, size mismatch " << ke.Length() << " != " << velocities->MajorDim() << ", num nodes " << ElementSupport().NumNodes() << "\n";
+		}
+		int nsd = velocities->MinorDim();
+		int currType = fType[0];
+		double mass =  fParticleProperties[currType]->Mass();
+		for (int j = 0; j < velocities->MajorDim(); j++, pke++)
+		{
+			if (fType[j] != currType)
+			{
+				currType = fType[j];
+				mass = fParticleProperties[currType]->Mass();
+			}
+			const double* v_j = (*velocities)(j);
+			for (int i = 0; i < nsd; i++, v_j++) {
+				*pke += 0.5*mass*(*v_j)*(*v_j);
+				tke += 0.5*mass*(*v_j)*(*v_j);
+			}
+
+		}
+	}
 }
 
