@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.12 2004-01-27 15:32:57 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.13 2004-01-28 01:29:43 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -420,15 +420,14 @@ void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& atoms, iArrayT& ac
 
 /* initialize data for the driving field */
 void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& field, 
-	NodeManagerT& node_manager, bool make_inactive)
+	NodeManagerT& node_manager, bool make_inactive, dArrayT& mdmass)
 {
 	const char caller[] = "FEManagerT_bridging::SetExactSolution";
-
 	fMainOut << "\n Number of projection points . . . . . . . . . . = " << nodes.Length() << '\n';
 
 	/* initialize the projection (using reference coordinates) */
 	const dArray2DT& init_coords = node_manager.InitialCoordinates();
-	BridgingScale().InitProjection(nodes, &init_coords, NULL, fDrivenCellData);
+	BridgingScale().InitProjection(nodes, &init_coords, NULL, fDrivenCellData, mdmass);
 
 	/* get the associated field */
 	FieldT* the_field = fNodeManager->Field(field);
@@ -499,7 +498,7 @@ void FEManagerT_bridging::CoarseField(const StringT& field, const NodeManagerT& 
 
 /* project the point values onto the mesh */
 void FEManagerT_bridging::InitialProject(const StringT& field, NodeManagerT& node_manager, dArray2DT& projectedu,
-int order)
+int order, dArrayT& mdmass)
 {
 	const char caller[] = "FEManagerT_bridging::ProjectField";
 
@@ -509,7 +508,7 @@ int order)
 
 	/* compute the projection onto the mesh */
 	const dArray2DT& source_field_values = (*source_field)[0];
-	BridgingScale().InitialProject(field, fDrivenCellData, source_field_values, fProjection, projectedu);
+	BridgingScale().InitialProject(field, fDrivenCellData, source_field_values, fProjection, projectedu, mdmass);
 
 	/* write values into the field */
 	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
@@ -518,7 +517,7 @@ int order)
 
 /* calculate the fine scale part of MD solution as well as total displacement u */
 void FEManagerT_bridging::BridgingFields(const StringT& field, NodeManagerT& atom_node_manager, 
-	NodeManagerT& fem_node_manager, dArray2DT& totalu)
+	NodeManagerT& fem_node_manager, dArray2DT& totalu, dArrayT& mdmass)
 {
 	const char caller[] = "FEManagerT_bridging::ProjectField";
 
@@ -531,7 +530,7 @@ void FEManagerT_bridging::BridgingFields(const StringT& field, NodeManagerT& ato
 	/* compute the fine scale part of MD solution as well as total displacement u */
 	const dArray2DT& atom_values = (*atom_field)[0];
 	const dArray2DT& fem_values = (*fem_field)[0];
-	BridgingScale().BridgingFields(field, fDrivenCellData, atom_values, fem_values, fProjection, totalu);
+	BridgingScale().BridgingFields(field, fDrivenCellData, atom_values, fem_values, fProjection, totalu, mdmass);
 }
 
 /* set the reference error for the given group */
