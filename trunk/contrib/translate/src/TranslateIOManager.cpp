@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.36 2003-09-05 06:01:46 paklein Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.37 2003-09-05 20:35:49 paklein Exp $  */
 #include "TranslateIOManager.h"
 
 #include "ExceptionT.h"
@@ -27,6 +27,10 @@ TranslateIOManager::TranslateIOManager (ostream& out, istream& in, bool write) :
   fCoords (0),
   fEcho (false)
 {
+}
+TranslateIOManager::~TranslateIOManager(void)
+{
+  delete fOutput;
 }
 
 void TranslateIOManager::SetEcho (int s, const StringT& file)

@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.h,v 1.15 2003-09-05 06:01:46 paklein Exp $ */
+/* $Id: TranslateIOManager.h,v 1.16 2003-09-05 20:35:49 paklein Exp $ */
 #ifndef _TRANSLATE_IOMANAGER_H_
 #define _TRANSLATE_IOMANAGER_H_
 
@@ -21,7 +21,7 @@ class TranslateIOManager
 	TranslateIOManager(ostream& message, istream& in, bool write);
 
 	/** destructor */
-	virtual ~TranslateIOManager(void) {};
+	virtual ~TranslateIOManager(void);
 
 	/** set up to echo input parameters */
 	void SetEcho (int selection, const StringT& file);
