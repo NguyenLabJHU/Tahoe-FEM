@@ -1,11 +1,5 @@
-/* $Id: pArrayT.h,v 1.2 2002-02-18 08:48:43 paklein Exp $ */
-/* created: paklein (11/21/1996)                                          */
-/* This is the interface for a pointer array class.  The data in the      */
-/* array is of type (TYPE*).  The members of the array is deleted when    */
-/* the array is destructed.                                               */
-/* Note: This template cannot be instantiated for a non-pointer type.     */
-/* The memory management for the class calls delete for every             */
-/* member of the array.                                                   */
+/* $Id: pArrayT.h,v 1.3 2002-03-19 18:57:50 paklein Exp $ */
+/* created: paklein (11/21/1996) */
 
 #ifndef _P_ARRAY_T_H_
 #define _P_ARRAY_T_H_
@@ -16,15 +10,27 @@
 /* forward declarations */
 template <class TYPEPtr> class ProxyTYPEPtr;
 
+/** A class to help working with arrays of pointers. The data in the
+ * array is of type (TYPE*). The pointers should be allocated with
+ * operator new, not operator new []. The elements of the array are
+ * initialized to NULL when the arrays are dimensioned. delete is
+ * called for every element in the array in the class destructor. 
+ * delete is also called on elements of the array before they are
+ * over written with operator [].
+ * Note: This template cannot be instantiated for a non-pointer type.
+ * The memory management for the class calls delete for every
+ * member of the array. */
 template <class TYPEPtr>
 class pArrayT: public ArrayT<TYPEPtr>
 {
 public:
 
-	/* constructors */
+	/** constructor zero length array */
 	pArrayT(void);
-	pArrayT(int length);
-	pArrayT(const pArrayT& source);
+
+	/** construct an array of the given length. All element of the
+	 * array are initialized to NULL */
+	explicit pArrayT(int length);
 
 	/* destructor */
 	~pArrayT(void);
@@ -37,23 +43,25 @@ public:
 	/** \deprecated replaced by pArrayT::Dimension on 02/13/2002 */
 	void Allocate(int length) { Dimension(length); };
 
-	/* element accessor */
+	/** element accessor */
 	ProxyTYPEPtr<TYPEPtr> operator[](int index);
+
+	/** const element accessor */
 	ProxyTYPEPtr<TYPEPtr> operator[](int index) const;
 
 private:
 
-	/* no shallow copies */
+	/** call delete for all members of the array */
+	void DeleteAll(void);
+
+	/** no shallow copies */
 	void ShallowCopy(const pArrayT& RHS);
 
-	/* no assigment operator */	 			  	
+	/** no assigment operator */	 			  	
 	void operator=(const pArrayT& RHS);
 
-	/* no resizing */
+	/** no resizing */
 	void Resize(void);
-
-	/* delete all members of the array */
-	void DeleteAll(void);
 };
 
 /* proxy - for element accessor */
@@ -133,12 +141,6 @@ template <class TYPEPtr>
 pArrayT<TYPEPtr>::pArrayT(int length)
 {
 	Dimension(length); 
-}
-
-template <class TYPEPtr>
-pArrayT<TYPEPtr>::pArrayT(const pArrayT& source)
-{
-	operator=(source); 
 }
 
 /* destructor */
