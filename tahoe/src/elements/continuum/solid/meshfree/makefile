@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.11 2004-08-04 22:00:23 cjkimme Exp $
+# $Id: makefile,v 1.12 2005-01-25 02:42:30 cjkimme Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -90,16 +90,16 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (2) uncomment the subdir_driver macro
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
-#SUB_DIR = 
-#subdir_driver: subdir_loop
+SUB_DIR =  geometry
+subdir_driver: subdir_loop
 
 #
 # (4.2) If there are no sub-directories in this directory:
 #    (1) comment the SUB_DIR and subdir_driver in section (4.1)
 #    (2) uncomment the subdir_driver macro below
 #
-SUB_DIR =
-subdir_driver: 
+#SUB_DIR =
+#subdir_driver: 
 
 #####################
 
