@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.3 2001-12-14 17:37:40 paklein Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.4 2001-12-30 20:17:36 paklein Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -200,4 +200,3 @@ vtkScalarsToColors* VTKUGridT::GetLookupTable(void)
 {
 	return fMapper->GetLookupTable();
 }
- 
