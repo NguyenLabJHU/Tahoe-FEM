@@ -1,6 +1,6 @@
-/* $Id: InelasticDuctile2DT.h,v 1.9 2003-08-08 16:03:18 paklein Exp $ */
-#ifndef _INELASTIC_DUCTILE_2D_T_H_
-#define _INELASTIC_DUCTILE_2D_T_H_
+/* $Id: InelasticDuctile_RP2DT.h,v 1.1 2003-08-08 16:03:18 paklein Exp $ */
+#ifndef _INELASTIC_DUCTILE_RP_2D_T_H_
+#define _INELASTIC_DUCTILE_RP_2D_T_H_
 
 /* base class */
 #include "SurfacePotentialT.h"
@@ -16,14 +16,16 @@ class ifstreamT;
 
 /** Inelastic cohesive zone model for ductile fracture. A cohesive zone model
  * which is in complementary to the kinetic equations for the BCJ model, which
- * are implemented in BCJKineticEqn. */
-class InelasticDuctile2DT: public SurfacePotentialT, public TiedPotentialBaseT
+ * are implemented in BCJKineticEqn. Although the model is derived from 
+ * TiedPotentialBaseT, it enforces rigid constraints internally using a
+ * penalty formulation. */
+class InelasticDuctile_RP2DT: public SurfacePotentialT, public TiedPotentialBaseT
 {
 public:
 
 	/** constructor.
 	 * \param time_step reference to the current time step */
-	InelasticDuctile2DT(ifstreamT& in, const double& time_step);
+	InelasticDuctile_RP2DT(ifstreamT& in, const double& time_step);
 
 	/** return the number of state variables needed by the model */
 	int NumStateVariables(void) const;
@@ -73,7 +75,7 @@ public:
 
 	/** \name implementation of the TiedPotentialBaseT interface */
 	/*@{*/
-	/** true if nodal release depends on bulk element groups. InelasticDuctile2DT
+	/** true if nodal release depends on bulk element groups. InelasticDuctile_RP2DT
 	 * uses nodal information if bulk groups are specified. */
 	virtual bool NeedsNodalInfo(void) const { return iBulkGroups.Length() > 0; };
 	
@@ -84,7 +86,7 @@ public:
 	virtual bool RotateNodalQuantity(void) const { return false; };
 	
 	/** true if a nodal release condition is satisfied */
-	virtual bool InitiationQ(const nArrayT<double>& sigma) const;
+	virtual bool InitiationQ(const nArrayT<double>& sigma) const { return true; };
 
 	/** true if the tied potential may ask for nodes to be retied later */
 	virtual bool NodesMayRetie(void) const{ return false; };
@@ -106,32 +108,10 @@ protected:
 	/*@{*/
 	/** evaluate the rates */
 	void Rates(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
-		dArrayT& dD, dArrayT& dq);
+		dArrayT& dD, dArrayT& dq, ArrayT<bool>& dD_active, ArrayT<bool>& dq_active);
 
 	/** evaluate the Jacobian of the local iteration */
 	void Jacobian(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
-		const dArrayT& dq, dMatrixT& K);
-	/*@}*/
-
-	/** \name soft version */
-	/*@{*/
-	/** evaluate the rates */
-	void Rates_1(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
-		dArrayT& dD, dArrayT& dq);
-
-	/** evaluate the Jacobian of the local iteration */
-	void Jacobian_1(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
-		const dArrayT& dq, dMatrixT& K);
-	/*@}*/
-
-	/** \name old relations */
-	/*@{*/
-	/** evaluate the rates */
-	void Rates_2(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
-		dArrayT& dD, dArrayT& dq);
-
-	/** evaluate the Jacobian of the local iteration */
-	void Jacobian_2(const ArrayT<double>& q, const dArrayT& D, const dArrayT& T,
 		const dArrayT& dq, dMatrixT& K);
 	/*@}*/
 
@@ -153,6 +133,9 @@ private:
 
 	/** true if damage is reversible */
 	bool fReversible;
+
+	/** penalty stiffness for enforcing rigid behavior */
+	double fConstraintStiffness;
 	/*@}*/
 
 	/** \name BCJ model kinetic parameters */
@@ -175,6 +158,9 @@ private:
 	
 	dArrayT fR;
 	LAdMatrixT fK;
+
+	ArrayT<bool> fdD_active;
+	ArrayT<bool> fdq_active;
 	/*@}*/
 	
 	/** \name state variable data */
@@ -193,4 +179,4 @@ private:
 
 } /* namespace Tahoe */
 
-#endif /* _INELASTIC_DUCTILE_2D_T_H_ */
+#endif /* _INELASTIC_DUCTILE_RP_2D_T_H_ */
