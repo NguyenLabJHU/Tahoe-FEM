@@ -1,4 +1,4 @@
-/* $Id: nVariArray2DT.h,v 1.3 2001-05-01 22:53:01 paklein Exp $ */
+/* $Id: nVariArray2DT.h,v 1.4 2002-02-20 23:03:28 paklein Exp $ */
 /* created: paklein (04/18/1998)                                          */
 /* WRAPPER for nArray2DT<>'s to add dynamic re-sizing of the              */
 /* major dimension, using some headroom to cut down calls for             */
@@ -50,11 +50,18 @@ private:
 
 /* constructors */
 template <class nTYPE>
-nVariArray2DT<nTYPE>::nVariArray2DT(void): fWard(NULL) { }
+nVariArray2DT<nTYPE>::nVariArray2DT(void): 
+	fWard(NULL),
+	fMinorDim(0)
+{ 
+
+}
 
 template <class nTYPE>
 nVariArray2DT<nTYPE>::nVariArray2DT(int headroom,
-	nArray2DT<nTYPE>& ward, int minordim): fWard(NULL)
+	nArray2DT<nTYPE>& ward, int minordim): 
+	fWard(NULL),
+	fMinorDim(0)
 {
 	SetWard(headroom, ward, minordim);
 }
