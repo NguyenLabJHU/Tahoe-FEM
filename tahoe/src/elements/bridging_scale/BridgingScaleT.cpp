@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.16 2002-08-13 17:30:53 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.17 2002-08-14 02:30:33 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -29,6 +29,7 @@ BridgingScaleT::BridgingScaleT(const ElementSupportT& support,
 	fLocDisp(LocalArrayT::kDisp),
 	fDOFvec(NumDOF()),
 	fMass(ShapeFunction().ParentDomain().NumNodes()),
+	fConnect(solid.NumElements(), solid.NumElementNodes()),
 	//fWtemp(support.NumNodes(),ShapeFunction().ParentDomain().NumNodes()),
 	//fW(support.NumNodes(),ShapeFunction().ParentDomain().NumNodes())
 	fWtempU(ShapeFunction().ParentDomain().NumNodes(), NumDOF()),
@@ -69,6 +70,11 @@ void BridgingScaleT::Initialize(void)
 	iArrayT atoms_used, nodes_used;
 	fParticle.NodesUsed(atoms_used);
 	fSolid.NodesUsed(nodes_used);
+	iArrayT node1(nodes_used.Max() + 1); // +1 because starts from 0
+	node1 = -1;
+	for (int i = 0; i < nodes_used.Length(); i++)
+	    node1[nodes_used[i]] = i;
+
 	fTotalNodes = nodes_used.Length();
 	
 #if 0
@@ -92,7 +98,6 @@ void BridgingScaleT::Initialize(void)
 	LocalArrayT cell_coords(LocalArrayT::kCurrCoords, fSolid.NumElementNodes(), NumSD());
 	cell_coords.SetGlobal(curr_coords); // Sets address of cell_coords
 
-	// SetGlobal sets source for SetLocal which copies the relevant data 
 	iGridManagerT grid(10, 100, curr_coords, &atoms_used);
 	grid.Reset();
 	for (int i = 0; i < fSolid.NumElements(); i++) {
@@ -100,13 +105,22 @@ void BridgingScaleT::Initialize(void)
 			/* gives domain (global) nodal coordinates */
 	                cell_coords.SetLocal(fSolid.ElementCard(i).NodesX());
 
+			/* get global connectivity matrix */
+		        fConnect.SetRow(i,fSolid.ElementCard(i).NodesX());
+
+			/* inverse map from global node numbers to local node numbers */
+			for (int j = 0; j < fSolid.NumElementNodes(); j++)
+			{
+			    int x = fConnect(i,j);
+			    fConnect(i,j) = node1[x];
+			}
+
 			/* centroid and radius */
 			double radius = parent.AverageRadius(cell_coords, centroid);
+
 			/* candidate particles */
 			const AutoArrayT<iNodeT>& hits = grid.HitsInRegion(centroid.Pointer(), 1.01*radius);
-			//hits contains atom #'s of atoms within search region.  Atom #'s converted
-			//to coordinates below by x_atom.Set()
-			//cout << hits.Length() << endl; // returns all atoms currently...Exhaustive search?
+
 			for (int j = 0; j < hits.Length(); j++)
 			{
 				x_atom.Set(NumSD(), hits[j].Coords());
