@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.6 2003-05-22 00:48:40 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.7 2003-05-23 23:02:45 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -246,12 +246,9 @@ void FEManagerT_bridging::InitInterpolation(const iArrayT& nodes, const StringT&
 
 	fMainOut << "\n Number of interpolation points. . . . . . . . . = " << nodes.Length() << '\n';
 
-	/* map nodes into cells (using reference coordinates) */
+	/* compute interpolation data (using reference coordinates) */
 	const dArray2DT& init_coords = node_manager.InitialCoordinates();
-	BridgingScale().MaptoCells(nodes, &init_coords, NULL, fFollowerCellData);
-
-	/* compute interpolation data */
-	BridgingScale().InitInterpolation(nodes, fFollowerCellData);
+	BridgingScale().InitInterpolation(nodes, &init_coords, NULL, fFollowerCellData);
 }
 
 /* field interpolations */
@@ -373,19 +370,9 @@ void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& fi
 
 	fMainOut << "\n Number of projection points . . . . . . . . . . = " << nodes.Length() << '\n';
 
-	/* map nodes into cells (using reference coordinates) */
+	/* initialize the projection (using reference coordinates) */
 	const dArray2DT& init_coords = node_manager.InitialCoordinates();
-	BridgingScale().MaptoCells(nodes, &init_coords, NULL, fDrivenCellData);
-
-	/* compute interpolation data */
-	BridgingScale().InitInterpolation(nodes, fDrivenCellData);
-
-	/* collect nodes in non-empty cells and generate cell connectivities 
-	 * in local numbering*/
-	fDrivenCellData.GenerateCellConnectivities();
-
-	/* compute the mass matrix used for the projection */
-	BridgingScale().InitProjection(fDrivenCellData);
+	BridgingScale().InitProjection(nodes, &init_coords, NULL, fDrivenCellData);
 
 	/* get the associated field */
 	FieldT* the_field = fNodeManager->Field(field);
@@ -432,7 +419,7 @@ void FEManagerT_bridging::ProjectField(const StringT& field, NodeManagerT& node_
 
 	/* compute the projection onto the mesh */
 	const dArray2DT& source_field_values = (*source_field)[0];
-	BridgingScale().ProjectField(field, fDrivenCellData, source_field_values, fProjection);
+	BridgingScale().ProjectField(fDrivenCellData, source_field_values, fProjection);
 
 	/* write values into the field */
 	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
