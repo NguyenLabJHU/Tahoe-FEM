@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.3 2001-03-15 21:39:34 paklein Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.4 2002-07-01 17:50:38 creigh Exp $ */
 /* created: paklein (07/03/1996)                                          */
 
 #include "ParentDomainT.h"
@@ -205,6 +205,144 @@ jac.Rows() != nodal.MinorDim()) throw eSizeMismatch;
 	}
 }
 
+//---------------------------------------------------------------------------
+/* returns curl of a Vector T. Each of the dArrayT's are T at a given node */
+void ParentDomainT::Curl(const ArrayT<dArrayT>& T, const dArray2DT& DNa, dArrayT& curl) const
+{
+  #if __option(extended_errorcheck)
+  /* dimension check */
+  if (curl.Length() != 3) {
+    cout << "..ERROR >>  ParentDomainT::Curl : curl vector must be of size 3 \n";
+    throw eSizeMismatch;
+  }
+  #endif
+	double *pcurl = curl.Pointer();
+
+	int nnd   = T.Length(); 
+
+		double& c1 = *pcurl++;
+		double& c2 = *pcurl++;
+		double& c3 = *pcurl  ;
+	
+		c1 = c2 = c3 = 0.0;
+
+		double* dx1 = DNa(0);
+		double* dx2 = DNa(1);
+		double* dx3;
+
+		if (DNa.MajorDim() == 3) { // 3D Problem
+		  dx3 = DNa(2);
+		}
+		else if (DNa.MajorDim() == 2) { // 2D Problem
+                 dArrayT zero(nnd);
+		 zero = 0.0;
+		 dx3 = zero.Pointer(); 
+		}
+		else {
+                  cout << "..ERROR >>  ParentDomainT::Curl : DNa.MajorDim() = "
+		       << DNa.MajorDim() << " This != 2 or 3 \n";
+		  throw eSizeMismatch;
+		}
+
+		double *pT;
+
+		for (int i = 0; i < nnd; i++) {
+	
+		  pT  = T[i].Pointer();
+
+		  double& T1 = *pT++;
+		  double& T2 = *pT++;
+		  double& T3 = *pT;
+
+		  c1 +=  T3*(*dx2) - T2*(*dx3) ;
+		  c2 +=  T1*(*dx3) - T3*(*dx1) ;
+		  c3 +=  T2*(*dx1) - T1*(*dx2) ;
+
+		  dx1++; dx2++; dx3++;	
+		}
+
+}
+
+//---------------------------------------------------------------------------
+/* returns curl of a Tensor T. Each of the dMatrixT's are T at a given node */
+void ParentDomainT::Curl(const ArrayT<dMatrixT>& T, const dArray2DT& DNa, dMatrixT& curl) const
+{
+  #if __option(extended_errorcheck)
+  /* dimension check */
+  if (curl.Rows() != 3  || curl.Cols() != 3) {
+    cout << "..ERROR >>  ParentDomainT::Curl : curl_T must be 3x3 \n";
+    throw eSizeMismatch;
+  }
+  #endif
+	double *pcurl = curl.Pointer();
+
+	int nnd   = T.Length(); 
+
+		double& c11 = *pcurl++;
+		double& c21 = *pcurl++;
+		double& c31 = *pcurl++;
+		double& c12 = *pcurl++;
+		double& c22 = *pcurl++;
+		double& c32 = *pcurl++;
+		double& c13 = *pcurl++;
+		double& c23 = *pcurl++;
+		double& c33 = *pcurl  ;
+	
+		c11 = c21 = c31 = c12 = c22 = c32 = c13 = c23 = c33 = 0.0;
+
+		double* dx1 = DNa(0);
+		double* dx2 = DNa(1);
+		double* dx3;
+
+		if (DNa.MajorDim() == 3) { // 3D Problem
+		  dx3 = DNa(2);
+		}
+		else if (DNa.MajorDim() == 2) { // 2D Problem
+                 dArrayT zero(nnd);
+		 zero = 0.0;
+		 dx3 = zero.Pointer(); 
+		}
+		else {
+                  cout << "..ERROR >>  ParentDomainT::Curl : DNa.MajorDim() = "
+		       << DNa.MajorDim() << " This != 2 or 3 \n";
+		  throw eSizeMismatch;
+		}
+
+		double *pT;
+
+		for (int i = 0; i < nnd; i++) {
+	
+		  pT  = T[i].Pointer();
+
+		  double& T11 = *pT++;
+		  double& T21 = *pT++;
+		  double& T31 = *pT++;
+		  double& T12 = *pT++;
+		  double& T22 = *pT++;
+		  double& T32 = *pT++;
+		  double& T13 = *pT++;
+		  double& T23 = *pT++;
+		  double& T33 = *pT  ;
+
+		  c11 += ( T12*(*dx3) - T13*(*dx2) );
+		  c21 += ( T22*(*dx3) - T23*(*dx2) );
+		  c31 += ( T32*(*dx3) - T33*(*dx2) );
+
+		  c12 += ( T13*(*dx1) - T11*(*dx3) );
+		  c22 += ( T23*(*dx1) - T21*(*dx3) );
+		  c32 += ( T33*(*dx1) - T31*(*dx3) );
+
+		  c13 += ( T11*(*dx2) - T12*(*dx1) );
+		  c23 += ( T21*(*dx2) - T22*(*dx1) );
+		  c33 += ( T31*(*dx2) - T32*(*dx1) );
+			
+		  dx1++; dx2++; dx3++;	
+		}
+
+}
+
+
+//---------------------------------------------------------------------------
 /* jacobian of surface mapping */
 double ParentDomainT::SurfaceJacobian(const dMatrixT& jacobian) const
 {
