@@ -1,4 +1,4 @@
-/* $Id: PiecewiseLinearT.cpp,v 1.1 2004-01-27 19:07:23 paklein Exp $ */
+/* $Id: PiecewiseLinearT.cpp,v 1.2 2004-07-12 21:48:02 paklein Exp $ */
 #include "PiecewiseLinearT.h"
 #include "dArray2DT.h"
 
@@ -17,6 +17,9 @@ PiecewiseLinearT::PiecewiseLinearT(const dArray2DT& points):
 
 	fYPoints.Dimension(fXPoints.Length());
 	points.ColumnCopy(1, fYPoints);
+
+	/* check */
+	CheckKnots(fXPoints, fYPoints);
 }
 
 /* I/O */
@@ -102,6 +105,42 @@ void PiecewiseLinearT::SetAll(double x, dArrayT& data) const
 	all_functions(x, data[0], data[1], data[2]);
 }
 
+/* information about subordinate parameter lists */
+void PiecewiseLinearT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	C1FunctionT::DefineSubs(sub_list);
+	
+	/* spline points */
+	sub_list.AddSub("OrderedPair", ParameterListT::OnePlus);
+}
+
+/* accept parameter list */
+void PiecewiseLinearT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	C1FunctionT::TakeParameterList(list);
+
+	/* collect spline points */
+	dArray2DT points(list.NumLists("OrderedPair"), 2);
+	for (int i = 0; i < points.MajorDim(); i++)
+	{
+		const ParameterListT* knot = list.List("OrderedPair", i);
+		points(i,0) = knot->GetParameter("x");
+		points(i,1) = knot->GetParameter("y");
+	}
+
+	/* dimension internal data structures */
+	dArrayT x_points(points.MajorDim());
+	points.ColumnCopy(0, x_points);	
+	fXPoints.SetValues(x_points);
+	fYPoints.Dimension(fXPoints.Length());
+	points.ColumnCopy(1, fYPoints);	
+
+	/* check */
+	CheckKnots(fXPoints, fYPoints);
+}
+
 /**********************************************************************
  * protected
  **********************************************************************/
@@ -149,35 +188,12 @@ void PiecewiseLinearT::all_functions(double x, double& f, double& Df, double& DD
  * Private
  **********************************************************************/
 
-/* information about subordinate parameter lists */
-void PiecewiseLinearT::DefineSubs(SubListT& sub_list) const
+/* make sure knots are valid */
+void PiecewiseLinearT::CheckKnots(const dRangeArrayT& x, const dArrayT& y) const
 {
-	/* inherited */
-	C1FunctionT::DefineSubs(sub_list);
-	
-	/* spline points */
-	sub_list.AddSub("OrderedPair", ParameterListT::OnePlus);
-}
-
-/* accept parameter list */
-void PiecewiseLinearT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	C1FunctionT::TakeParameterList(list);
-
-	/* collect spline points */
-	dArray2DT points(list.NumLists("OrderedPair"), 2);
-	for (int i = 0; i < points.MajorDim(); i++)
-	{
-		const ParameterListT* knot = list.List("OrderedPair", i);
-		points(i,0) = knot->GetParameter("x");
-		points(i,1) = knot->GetParameter("y");
-	}
-
-	/* dimension internal data structures */
-	dArrayT x_points(points.MajorDim());
-	points.ColumnCopy(0, x_points);	
-	fXPoints.SetValues(x_points);
-	fYPoints.Dimension(fXPoints.Length());
-	points.ColumnCopy(1, fYPoints);	
+#pragma unused(y)
+	for (int i = 1; i < x.Length(); i++)
+		if (fabs(x[i] - x[i-1]) < kSmall)
+			ExceptionT::GeneralFail("PiecewiseLinearT::CheckKnots", "knots %d and %d are coincident at %g",
+				i, i+1, x[i]);
 }
