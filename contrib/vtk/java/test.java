@@ -1,4 +1,4 @@
-// $Id: test.java,v 1.11 2002-08-13 08:21:20 paklein Exp $
+// $Id: test.java,v 1.12 2002-08-13 10:11:20 paklein Exp $
 import java.io.*;
 import javax.swing.*;
 import java.awt.event.*;
@@ -32,11 +32,11 @@ public class test extends JPanel implements ActionListener, ChangeListener {
   protected JButton testButton, b2, flipBookButton, nextTimeButton, prevTimeButton, selectTimeButton, addButton, removeButton, clearButton;
   protected JTextField minScalarTF, selectTimeTF, panXTF, panYTF, rotateXTF, rotateYTF, rotateZTF, zoomTF, selectTimeTFF, panXTFF, panYTFF, rotateXTFF, rotateYTFF,  rotateZTFF, zoomTFF;
   protected JPanel leftPanel, leftRootPanel, leftFramePanel, leftBodyPanel;
-  protected JScrollPane leftFrameScrollPane, leftBodyScrollPane;
+  protected JScrollPane leftRootScrollPane, leftFrameScrollPane, leftBodyScrollPane;
   protected DynamicTree treePanel;
   protected JTabbedPane tabbedPane;
   protected JSlider selectTimeSlider, selectTimeSliderF;
-  protected JSplitPane splitPane, splitPane2;
+  protected JSplitPane /* splitPane, */ splitPane2;
   private boolean tabBool;
   protected JFrame parentFrame;
 
@@ -314,8 +314,7 @@ public class test extends JPanel implements ActionListener, ChangeListener {
                 
     });
     
-    
-
+   
     /* left root panel stuff */
 
 
@@ -384,6 +383,7 @@ public class test extends JPanel implements ActionListener, ChangeListener {
 // 	leftPanel.add(clearButton, gbc);
 
 	leftRootPanel = new JPanel();
+	leftRootScrollPane = new JScrollPane(leftRootPanel);
 	gbc.anchor = gbc.NORTHEAST;
 	gbc.insets=new Insets(4,4,4,4);
 	leftRootPanel.setLayout(new GridBagLayout());
@@ -438,10 +438,6 @@ public class test extends JPanel implements ActionListener, ChangeListener {
 	leftRootPanel.add(interactiveButton, gbc);
 	gbc.gridx=0; gbc.gridy = 14;
 	leftRootPanel.add(updateButton, gbc);
-
-
-
-
 
 	/* left frame panel stuff */
 	JButton panButtonF = new JButton("Pan");
@@ -839,10 +835,10 @@ public class test extends JPanel implements ActionListener, ChangeListener {
 	renderPic.setPreferredSize(new Dimension(700,850));
 
 //Create a split pane with the two scroll panes in it.
-            splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                                       leftRootPanel, renderPanel);
-            splitPane.setOneTouchExpandable(true);
-            splitPane.setDividerLocation(150);
+			//splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+            //                           leftRootPanel, renderPanel);
+            //splitPane.setOneTouchExpandable(true);
+            //splitPane.setDividerLocation(150);
 
             //Provide minimum sizes for the two components in the split pane
             Dimension minimumSize = new Dimension(150, 250);
@@ -851,21 +847,18 @@ public class test extends JPanel implements ActionListener, ChangeListener {
 
 //             splitPane2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
 //                                        splitPane, treePanel);
-	    splitPane2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftRootPanel, treePanel);
+
+//PAKLEIN
+//	    splitPane2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftRootPanel, treePanel);
+	    splitPane2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftRootScrollPane, treePanel);
             splitPane2.setOneTouchExpandable(true);
-            splitPane2.setDividerLocation(900);
+            splitPane2.setDividerLocation(400);
 
             //Provide minimum sizes for the two components in the split pane
             Dimension minimumSize2 = new Dimension(300, 250);
             treePanel.setMinimumSize(minimumSize);
-	    splitPane.setMinimumSize(minimumSize2);
+	    //splitPane.setMinimumSize(minimumSize2);
             //renderPanel.setMinimumSize(minimumSize);
-
-
-	    
-	
-
-
     //setLayout(new BorderLayout());
 	    //treePanel.setPreferredSize(new Dimension(150,150));
 	//add(treePanel);
@@ -993,30 +986,35 @@ public class test extends JPanel implements ActionListener, ChangeListener {
 
   }
 
+public void stateChanged(ChangeEvent e)
+{
+	if(e.getSource()==selectTimeSlider){
+		selectTimeTF.setText(Integer.toString((int)selectTimeSlider.getValue()));
+	}
+	else if(e.getSource()==selectTimeSliderF){
+		selectTimeTFF.setText(Integer.toString((int)selectTimeSliderF.getValue()));
+	}
 
+	else if (e.getSource()==tabbedPane){
+		if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals("Root Commands")){
 
-     public void stateChanged(ChangeEvent e){
-       if(e.getSource()==selectTimeSlider){
-	 selectTimeTF.setText(Integer.toString((int)selectTimeSlider.getValue()));
-       }
-       else if(e.getSource()==selectTimeSliderF){
-	 selectTimeTFF.setText(Integer.toString((int)selectTimeSliderF.getValue()));
-       }
-       else if (e.getSource()==tabbedPane){
-	 if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals("Root Commands")){
-	   /* for some reason this event occurs when the app is started */
-	   if (tabBool)
-	     splitPane2.setLeftComponent(leftRootPanel);
-	   else
-	     {tabBool=true;}
-	 }
-	 else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals("Frame Commands"))
-	   splitPane2.setLeftComponent(leftFrameScrollPane);
-	 else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals("Body Commands"))
-	   splitPane2.setLeftComponent(leftBodyScrollPane);
-	 updateUI();
-       }
-     }
+			/* for some reason this event occurs when the app is started */
+			if (tabBool)
+				splitPane2.setLeftComponent(leftRootScrollPane);
+			else { 
+				tabBool=true;
+				}
+	}
+
+	else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals("Root Commands"))
+		splitPane2.setLeftComponent(leftRootScrollPane);
+	else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals("Frame Commands"))
+		splitPane2.setLeftComponent(leftFrameScrollPane);
+	else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals("Body Commands"))
+		splitPane2.setLeftComponent(leftBodyScrollPane);
+		updateUI();
+	}
+}
   
   
     public void populateTree(DynamicTree treePanel) {

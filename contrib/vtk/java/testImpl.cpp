@@ -1,4 +1,4 @@
-// $Id: testImpl.cpp,v 1.11 2002-08-13 08:21:20 paklein Exp $
+// $Id: testImpl.cpp,v 1.12 2002-08-13 10:11:20 paklein Exp $
 #include "test.h"
 #include "testClass.h"
 // #include "vtkRenderWindow.h"
@@ -31,6 +31,7 @@ JNIEXPORT void JNICALL Java_test_InitCpp(JNIEnv * env, jobject obj)
 	test++;
 	cout << test.wrap(3) << endl;
 
+#if 0
 	iConsoleObjectT *a = new iConsoleObjectT;
 	iConsoleObjectT	*b = new iConsoleObjectT;
 	iConsoleObjectT	*c = new iConsoleObjectT;
@@ -43,6 +44,7 @@ JNIEXPORT void JNICALL Java_test_InitCpp(JNIEnv * env, jobject obj)
 	a->iAddSub(*b);
 	a->iAddSub(*c);
 	b->iAddSub(*d);
+#endif
 
 	StringT log_file = "testClass.log";
 	//iConsoleT* console = new  iConsoleT(log_file, *b, NULL, false);
@@ -58,6 +60,32 @@ JNIEXPORT void JNICALL Java_test_InitCpp(JNIEnv * env, jobject obj)
   	testClass* p = new testClass(val);
 	env->SetLongField(obj, fid, jlong(p));
 	env->SetLongField(obj, fid2, jlong(console)); 
+
+#if 1
+	/* call command of current console scope */
+	iConsoleObjectT& current_scope = console->Current();
+	cout << "current console object name: " << current_scope.iName() << endl;
+
+	/* try loading a body */
+	StringT empty_line;
+	StringT read_arguments = "billet.io0.geo";
+	const CommandSpecT* read_command = current_scope.iResolveCommand("AddBody", read_arguments);
+	if (read_command && current_scope.iDoCommand(*read_command, empty_line))
+		cout << " AddBody OK\n" << endl;
+	else
+		cout << " AddBody NOT OK\n" << endl;
+
+	read_arguments = "x 20";
+//	const CommandSpecT* rotate_command = current_scope.iResolveCommand("Interactive", empty_line);
+//	current_scope.iDoCommand(*rotate_command, empty_line);
+	const CommandSpecT* update_command = current_scope.iResolveCommand("Update", empty_line);
+
+	//const CommandSpecT* interact_command = current_scope.iResolveCommand("Interactive", empty_line);
+	if (update_command && current_scope.iDoCommand(*update_command, empty_line))
+		cout << " Update OK\n" << endl;
+	else
+		cout << " Update NOT OK\n" << endl;
+#endif
 }
 
 JNIEXPORT void JNICALL Java_test_Print(JNIEnv * env, jobject obj)
@@ -115,31 +143,6 @@ JNIEXPORT void JNICALL Java_test_Print(JNIEnv * env, jobject obj)
 		cout << " echo OK\n" << endl;
 	else
 		cout << " echo NOT OK\n" << endl;
-
-#if 1
-	/* call command of current console scope */
-	iConsoleObjectT& current_scope = p_console->Current();
-	cout << "current console object name: " << current_scope.iName() << endl;
-
-	/* try loading a body */
-	read_arguments = "billet.io0.geo";
-	read_command = current_scope.iResolveCommand("AddBody", read_arguments);
-	if (read_command && current_scope.iDoCommand(*read_command, empty_line))
-		cout << " AddBody OK\n" << endl;
-	else
-		cout << " AddBody NOT OK\n" << endl;
-
-	read_arguments = "x 20";
-//	const CommandSpecT* rotate_command = current_scope.iResolveCommand("Interactive", empty_line);
-//	current_scope.iDoCommand(*rotate_command, empty_line);
-	const CommandSpecT* update_command = current_scope.iResolveCommand("Update", empty_line);
-
-	//const CommandSpecT* interact_command = current_scope.iResolveCommand("Interactive", empty_line);
-	if (update_command && current_scope.iDoCommand(*update_command, empty_line))
-		cout << " Update OK\n" << endl;
-	else
-		cout << " Update NOT OK\n" << endl;
-#endif
 
 	return;
 }
