@@ -26,8 +26,11 @@ public class DynamicTree extends JPanel {
         tree.setShowsRootHandles(true);
 
         JScrollPane scrollPane = new JScrollPane(tree);
-        setLayout(new GridLayout(2,0));
-        add(scrollPane);
+	GridBagConstraints gbc = new GridBagConstraints();
+        setLayout(new GridBagLayout());
+	gbc.gridx=0; gbc.gridy=0; gbc.gridwidth=1; gbc.gridheight=3; gbc.weightx=1; gbc.weighty=1;
+	gbc.fill = GridBagConstraints.BOTH;
+        add(scrollPane, gbc);
     }
 
   public JTree getTree(){
