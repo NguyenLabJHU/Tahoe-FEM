@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.cpp,v 1.6.2.2 2004-07-07 15:28:11 paklein Exp $ */
+/* $Id: EAMFCC3D.cpp,v 1.6.2.3 2004-07-08 16:11:52 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D.h"
 
@@ -28,6 +28,7 @@ const int kEAMFCC3DNumAtomsPerCell	=  4;
 EAMFCC3D::EAMFCC3D(void):
 	FCCLatticeT(0), /* number of shells is not used by this class */
 	fEAM(NULL),
+	fEAM_particle(NULL),
 	fLatticeParameter(0.0),
 	fCellVolume(0.0)	
 {
@@ -72,7 +73,10 @@ EAMFCC3D::EAMFCC3D(ifstreamT& in, const dMatrixT& Q, int EAMcode, int nsd):
 #endif
 
 /* destructor */
-EAMFCC3D::~EAMFCC3D(void) { delete fEAM; }
+EAMFCC3D::~EAMFCC3D(void) { 
+	delete fEAM; 
+	delete fEAM_particle;	
+}
 
 /* strain energy density */
 double EAMFCC3D::EnergyDensity(const dSymMatrixT& strain)
@@ -252,13 +256,16 @@ ParameterInterfaceT* EAMFCC3D::NewSub(const StringT& list_name) const
 		ParameterContainerT EA_Al("Ercolessi-Adams_Al");
 		ParameterContainerT VC_Al("Voter-Chen_Al");
 		ParameterContainerT VC_Cu("Voter-Chen_Cu");
-		ParameterContainerT FBD("Paradyn_EAM");
+		ParameterContainerT FBD("Paradyn_EAM_glue");
 		FBD.AddParameter(ParameterT::Word, "parameter_file");
+		ParameterContainerT particle_Paradyn_EAM("particle_Paradyn_EAM_glue");
+		particle_Paradyn_EAM.AddParameter(ParameterT::Word, "parameter_file");
 
 		choice->AddSub(EA_Al);
 		choice->AddSub(VC_Al);
 		choice->AddSub(VC_Cu);
 		choice->AddSub(FBD);
+		choice->AddSub(particle_Paradyn_EAM);
 		
 		return choice;
 	}
@@ -290,18 +297,14 @@ void EAMFCC3D::TakeParameterList(const ParameterListT& list)
 		fEAM = new VoterChenAl(*this);
 	else if (glue.Name() == "Voter-Chen_Cu")
 		fEAM = new VoterChenCu(*this);
-	else if (glue.Name() == "Paradyn_EAM")
+	else if (glue.Name() == "Paradyn_EAM_glue")
 	{
 		/* data file */
 		StringT data_file = glue.GetParameter("parameter_file");
 		data_file.ToNativePathName();
 
-#if 0
 		/* path to source file */
-		StringT path;
-		path.FilePath(in.filename());
-		data_file.Prepend(path);
-#endif
+		data_file.Prepend(fstreamT::Root());
 
 		ifstreamT data(data_file);
 		if (!data.is_open())
@@ -309,17 +312,31 @@ void EAMFCC3D::TakeParameterList(const ParameterListT& list)
 
 		fEAM = new FBD_EAMGlue(*this, data);
 	}
+	else if (glue.Name() == "particle_Paradyn_EAM_glue")
+	{
+		/* data file */
+		StringT data_file = glue.GetParameter("parameter_file");
+		data_file.ToNativePathName();
+
+		/* path to source file */
+		data_file.Prepend(fstreamT::Root());
+
+		fEAM_particle = new EAM_particle(*this, data_file);
+	}
 	else
 		ExceptionT::GeneralFail(caller, "unrecognized glue function \"%s\"",
 			glue.Name().Pointer());
 
 	/* lattice parameter and cell volume */
-	fLatticeParameter = fEAM->LatticeParameter();
+	fLatticeParameter = (fEAM) ? fEAM->LatticeParameter() : fEAM_particle->LatticeParameter();
 	fCellVolume = fLatticeParameter*fLatticeParameter*fLatticeParameter;
 
 	/* inherited - lattice parameter needs to be set first */
 	FCCLatticeT::TakeParameterList(list);
 
 	/* initialize glue functions */
-	fEAM->Initialize(nsd, NumberOfBonds());
+	if (fEAM)
+		fEAM->Initialize(nsd, NumberOfBonds());
+	else
+		fEAM_particle->Initialize(nsd, NumberOfBonds());
 }

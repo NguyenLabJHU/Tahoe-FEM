@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.h,v 1.4.8.2 2004-07-08 07:50:18 paklein Exp $ */
+/* $Id: ParadynEAMT.h,v 1.4.8.3 2004-07-08 16:11:54 paklein Exp $ */
 #ifndef _PARADYN_EAM_T_H_
 #define _PARADYN_EAM_T_H_
 
@@ -13,7 +13,6 @@ namespace Tahoe {
 
 /* forward declarations */
 class dArrayT;
-class BasicSupportT;
 
 class ParadynEAMT: public EAMPropertyT
 {
@@ -23,8 +22,8 @@ public:
 	 * coefficients of a cubic spline through the evenly spaced
 	 * values of the potential,electron density read from the
 	 * file. */
-	ParadynEAMT(const BasicSupportT& support, const StringT& param_file);
-	ParadynEAMT(const BasicSupportT& support);
+	ParadynEAMT(const StringT& param_file);
+	ParadynEAMT(void);
 
 	/** \name return interaction functions */
 	/*@{*/
@@ -102,9 +101,6 @@ private:
 
 private:
 
-	/** host code support */
-	const BasicSupportT& fSupport;
-	
 	/** description from parameters file */
 	StringT fDescription;
 	
