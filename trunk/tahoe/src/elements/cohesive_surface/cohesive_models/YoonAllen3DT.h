@@ -1,4 +1,4 @@
-/* $Id: YoonAllen3DT.h,v 1.3 2002-10-23 00:18:03 cjkimme Exp $ */
+/* $Id: YoonAllen3DT.h,v 1.4 2002-11-01 19:46:07 cjkimme Exp $ */
 /* created: cjkimme (05/28/2002) */
 
 #ifndef _YOON_ALLEN_3D_T_H_
@@ -62,12 +62,6 @@ public:
 	 * \param destination of output values. Allocated by the host code */
 	virtual void ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
 		dArrayT& output);
-
-	virtual bool NeedsNodalInfo(void);
-	virtual int NodalQuantityNeeded(void);
-//        virtual double ComputeNodalValue(const dArrayT &);
-//	virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
-	virtual int ElementGroupNeeded(void);
 
 protected:
 
