@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.h,v 1.5 2003-08-27 03:47:17 thao Exp $ */
+/* $Id: RGVIB2D.h,v 1.6 2003-11-04 18:02:34 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #ifndef _RG_VIB_2D_H_
@@ -16,7 +16,7 @@ namespace Tahoe {
 /* forward declarations */
 class CirclePointsT;
 class FSMatSupportT;
-class DetCheckT;
+class DetCheckT2;
 class ofstreamT;
 
 /** 2D Isotropic ViscVIB using Ogden's spectral formulation */
@@ -100,7 +100,7 @@ class RGVIB2D: public RGBaseT, public ViscVIB
   private:  
 	/*check for loss of ellipticity*/
 	FSMatSupportT fSupport;
-	DetCheckT* fDetCheck;
+	DetCheckT2* fDetCheck;
 	dArrayT fNormal;
 	dArrayT fIPCoords;
 	ofstreamT fout;

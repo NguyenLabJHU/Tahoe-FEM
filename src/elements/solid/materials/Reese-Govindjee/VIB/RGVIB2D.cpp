@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.cpp,v 1.9 2003-08-27 23:43:45 paklein Exp $ */
+/* $Id: RGVIB2D.cpp,v 1.10 2003-11-04 18:02:34 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include <math.h>
@@ -12,7 +12,7 @@
 #include "VariViscT.h"
 #include "C1FunctionT.h"
 #include "ContinuumElementT.h"
-#include "DetCheckT.h"
+#include "DetCheckT2.h"
 
 /* point generator */
 #include "EvenSpacePtsT.h"
@@ -64,6 +64,7 @@ RGVIB2D::RGVIB2D(ifstreamT& in, const FSMatSupportT& support):
 
 	/* set tables */
 	Construct();
+
 	const StringT& input_file = in.filename();
 	foutfile.Root(input_file);
 	int rank = fSupport.Rank();
@@ -128,7 +129,7 @@ void RGVIB2D::Initialize(void)
         RGBaseT::Initialize();
 
 	/*initialize DetCheck class*/
-	fDetCheck = new DetCheckT(fStress, fModulus);
+	fDetCheck = new DetCheckT2(fStress, fModulus);
 
         /* initial modulus */
 
@@ -644,15 +645,18 @@ void RGVIB2D::ComputeEigs_e(const dArrayT& eigenstretch,
  ***********************************************************************/
 void RGVIB2D::Localized(void)
 {
+  int width = kPrecision+kDoubleExtra;
+
   if (fDetCheck->IsLocalized(fNormal) == 1)
   {
-    ContinuumElement().IP_Coords(fIPCoords);
+    const LocalArrayT& initcoords = ContinuumElement().InitialCoordinates();
+    initcoords.Average(fIPCoords);
     fout.open_append(foutfile);
-	fout << setw(kIntWidth) << fSupport.Time()
-	     << setw(kPrecision) << fIPCoords[0]
-	     << setw(kPrecision) << fIPCoords[1]
-	     << setw(kPrecision) << fNormal[0]
-	     << setw(kPrecision) << fNormal[1]
+	fout << setw(width) << fSupport.Time()
+	     << setw(width) << fIPCoords[0]
+	     << setw(width) << fIPCoords[1]
+	     << setw(width) << fNormal[0]
+	     << setw(width) << fNormal[1]
 	     << endl;
 
 	fout.close();    
