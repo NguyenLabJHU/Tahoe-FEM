@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: FE_ASCIIT.cpp,v 1.2 2001-04-27 10:46:15 paklein Exp $ */
 /* created: sawimme (05/20/1999)                                          */
 
 #include "FE_ASCIIT.h"
@@ -6,6 +6,7 @@
 #include "GeometryT.h"
 #include "OutputSetT.h"
 #include "ModelFileT.h"
+#include "ofstreamT.h"
 
 #include "iArrayT.h"
 #include "dArray2DT.h"
@@ -95,7 +96,7 @@ void FE_ASCIIT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 		geom_file.Append(".geo");
 
 		/* open stream */
-		ofstream out;
+		ofstreamT out;
 		SetStreamPrefs(out);
 		if (!fInitGeom)
 		{
@@ -107,7 +108,14 @@ void FE_ASCIIT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 			fInitGeom = true;
 		}
 		else /* re-open file */
-			out.open(geom_file, ios::app);
+			out.open_append(geom_file);
+
+		/* check */
+		if (!out.is_open())
+		{
+			cout << "\n FE_ASCIIT::WriteOutput: error opening file: " << geom_file << endl;
+			throw eGeneralFail;
+		}
 
 		/* ID information */
 		out << " Group number. . . . . . . . . . . . . . . . . . = "
@@ -132,7 +140,7 @@ void FE_ASCIIT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 	dat_file.Append(".run");
 
 	/* open stream */
-	ofstream out;
+	ofstreamT out;
 	SetStreamPrefs(out);
 	if (!fInitRun)
 	{
@@ -144,7 +152,14 @@ void FE_ASCIIT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 		fInitRun = true;
 	}
 	else /* re-open file */
-		out.open(dat_file, ios::app);
+		out.open_append(dat_file);
+
+	/* check */
+	if (!out.is_open())
+	{
+		cout << "\n FE_ASCIIT::WriteOutput: error opening file: " << dat_file << endl;
+		throw eGeneralFail;
+	}
 
 	/* print header */
 	out << "\n Group number. . . . . . . . . . . . . . . . . . = "
