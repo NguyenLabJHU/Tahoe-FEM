@@ -1,6 +1,5 @@
-/* $Id: Contact3DT.h,v 1.4 2002-07-05 22:28:01 paklein Exp $ */
+/* $Id: Contact3DT.h,v 1.5 2003-03-02 18:57:31 paklein Exp $ */
 /* created: paklein (07/17/1999) */
-
 #ifndef _CONTACT3D_T_H_
 #define _CONTACT3D_T_H_
 
@@ -16,6 +15,7 @@ namespace Tahoe {
 /* forward declarations */
 class iGridManager3DT;
 
+/** base class for 3D contact elements */
 class Contact3DT: public ContactT
 {
 public:
@@ -31,12 +31,26 @@ protected:
 	/* element data */
 	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
 
-	/* steps in setting contact configuration */
-	virtual bool SetActiveInteractions(void); // "internal" data
-	virtual void SetConnectivities(void); // "external" data - interface to FEManager
+	/** \name steps in setting contact configuration */
+	/*@{*/
+	/** set "internal" data */
+	virtual bool SetActiveInteractions(void);
+
+	/** set "external" data - interface to FEManager */
+	virtual void SetConnectivities(void);
+	/*@}*/
 
 	/* convert quad facets to tri's */
 	void ConvertQuadToTri(iArray2DT& surface) const;
+
+	/** set surface normal derivative matrix */
+	void Set_dn_du(const dArray2DT& curr_coords, dMatrixT& dn_du) const;
+
+	/** second variation of gap vector for 3-noded facet */
+	void DDg_tri_facet(
+		double* X1, double* X2, double* X3, double* pX,
+		double* d1, double* d2, double* d3, double* pd,
+		dMatrixT& K) const;
 
 private:
 

@@ -1,7 +1,5 @@
-
-/* $Id: Contact3DT.cpp,v 1.6 2003-01-29 07:34:30 paklein Exp $ */
+/* $Id: Contact3DT.cpp,v 1.7 2003-03-02 18:57:31 paklein Exp $ */
 /* created: paklein (07/17/1999) */
-
 #include "Contact3DT.h"
 
 #include <math.h>
@@ -14,10 +12,9 @@
 #include "Vector3T.h"
 #include "ElementSupportT.h"
 
-/* parameters */
-
 using namespace Tahoe;
 
+/* parameters */
 const int kNumFacetNodes = 3;
 const int kMaxNumGrid    = 50;
 
@@ -34,8 +31,8 @@ Contact3DT::Contact3DT(const ElementSupportT& support, const FieldT& field):
 Contact3DT::~Contact3DT(void) {	delete fGrid3D; }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 //TEMP - convert all contact surfaces to triangles
 void Contact3DT::EchoConnectivityData(ifstreamT& in, ostream& out)
@@ -176,9 +173,56 @@ void Contact3DT::SetConnectivities(void)
 	}
 }
 
+/* set surface normal derivative matrix */
+void Contact3DT::Set_dn_du(const dArray2DT& curr_coords,
+	dMatrixT& dn_du) const
+{
+	double* p = dn_du.Pointer();
+	double* x1 = curr_coords(0);
+	double* x2 = curr_coords(1);
+	double* x3 = curr_coords(2);
+
+	*p++ = 0;
+	*p++ =-x2[2] + x3[2];
+	*p++ = x2[1] - x3[1];
+	*p++ = x2[2] - x3[2];
+	*p++ = 0;
+	*p++ =-x2[0] + x3[0];
+	*p++ =-x2[1] + x3[1];
+	*p++ = x2[0] - x3[0];
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = x1[2] - x3[2];
+	*p++ =-x1[1] + x3[1];
+	*p++ =-x1[2] + x3[2];
+	*p++ = 0;
+	*p++ = x1[0] - x3[0];
+	*p++ = x1[1] - x3[1];
+	*p++ =-x1[0] + x3[0];
+	*p++ = 0;
+	*p++ = 0;
+	*p++ =-x1[2] + x2[2];
+	*p++ = x1[1] - x2[1];
+	*p++ = x1[2] - x2[2];
+	*p++ = 0;
+	*p++ =-x1[0] + x2[0];
+	*p++ =-x1[1] + x2[1];
+	*p++ = x1[0] - x2[0];
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p   = 0;
+}
+
 /***********************************************************************
-* Private
-***********************************************************************/
+ * Private
+ ***********************************************************************/
 
 /* sets active striker data (based on current bodies data) */
 void Contact3DT::SetActiveStrikers(void)
