@@ -1,10 +1,32 @@
-/* $Id: LimitT.cpp,v 1.4 2003-04-22 18:32:16 paklein Exp $ */
+/* $Id: LimitT.cpp,v 1.5 2003-04-22 22:11:31 paklein Exp $ */
 #include "LimitT.h"
 
 /* array behavior */
 namespace Tahoe {
 const bool ArrayT<LimitT>::fByteCopy = false;
+
+/* exceptions strings */
+const char* LimitT::fBoundStrings[7] = 
+{
+/* 0 */ "no",
+/* 1 */ "lower",
+/* 2 */ "upper",
+/* 3 */ "lower inclusive",
+/* 4 */ "upper inclusive",
+/* 5 */ "enumeration",
+/* 6 */ "undefined"
+};
+
+/* return exception string */
+const char* LimitT::ToString(BoundT bound)
+{
+	if (bound >= 0 && bound < 6)
+		return fBoundStrings[bound];
+	else
+		return fBoundStrings[6];
 }
+
+} /* namespace Tahoe */
 
 /* constructors */
 LimitT::LimitT(int a, BoundT bound):
@@ -53,6 +75,12 @@ bool LimitT::InBound(const ValueT& value) const
 		case Upper:
 			return CheckUpper(value);
 
+		case LowerInclusive:
+			return CheckLowerInclusive(value);
+
+		case UpperInclusive:
+			return CheckUpperInclusive(value);
+
 		case Only:
 			return CheckOnly(value);
 		
@@ -79,19 +107,19 @@ bool LimitT::CheckUpper(const ValueT& value) const
 		{
 			int a = value;
 			int b = *this;
-			return b <= a;
+			return b > a;
 		}
 		case Double:
 		{
 			double a = value;
 			double b = *this;
-			return b <= a;
+			return b > a;
 		}
 		case String:
 		{
 			const StringT& a = value;
 			const StringT& b = *this;
-			return (a == b || b < a);
+			return b > a;
 		}
 		default:
 			ExceptionT::GeneralFail(caller, "unrecognized type");
@@ -100,9 +128,9 @@ bool LimitT::CheckUpper(const ValueT& value) const
 	return false;
 }
 
-bool LimitT::CheckLower(const ValueT& value) const
+bool LimitT::CheckUpperInclusive(const ValueT& value) const
 {
-	const char caller[] = "LimitT::CheckLower";
+	const char caller[] = "LimitT::CheckUpperInclusive";
 	if (value.Type() != Type()) ExceptionT::GeneralFail(caller, "type mismatch");
 
 	switch (Type())
@@ -124,6 +152,70 @@ bool LimitT::CheckLower(const ValueT& value) const
 			const StringT& a = value;
 			const StringT& b = *this;
 			return (a == b || b > a);
+		}
+		default:
+			ExceptionT::GeneralFail(caller, "unrecognized type");
+	}
+	
+	return false;
+}
+
+bool LimitT::CheckLower(const ValueT& value) const
+{
+	const char caller[] = "LimitT::CheckLower";
+	if (value.Type() != Type()) ExceptionT::GeneralFail(caller, "type mismatch");
+
+	switch (Type())
+	{
+		case Integer:
+		{
+			int a = value;
+			int b = *this;
+			return b < a;
+		}
+		case Double:
+		{
+			double a = value;
+			double b = *this;
+			return b < a;
+		}
+		case String:
+		{
+			const StringT& a = value;
+			const StringT& b = *this;
+			return b < a;
+		}
+		default:
+			ExceptionT::GeneralFail(caller, "unrecognized type");
+	}
+	
+	return false;
+}
+
+bool LimitT::CheckLowerInclusive(const ValueT& value) const
+{
+	const char caller[] = "LimitT::CheckLowerInclusive";
+	if (value.Type() != Type()) ExceptionT::GeneralFail(caller, "type mismatch");
+
+	switch (Type())
+	{
+		case Integer:
+		{
+			int a = value;
+			int b = *this;
+			return b <= a;
+		}
+		case Double:
+		{
+			double a = value;
+			double b = *this;
+			return b <= a;
+		}
+		case String:
+		{
+			const StringT& a = value;
+			const StringT& b = *this;
+			return (a == b || b < a);
 		}
 		default:
 			ExceptionT::GeneralFail(caller, "unrecognized type");
