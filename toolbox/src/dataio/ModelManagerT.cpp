@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.8 2002-01-02 06:28:05 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.9 2002-01-03 02:53:33 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -54,14 +54,15 @@ void ModelManagerT::Initialize (ifstreamT& in, bool readonly)
   else
     database = "\0";
 
-  if (!readonly)
-    ScanModel (database);
+	fInputName = database;
+ 	if (!readonly) ScanModel(fInputName);
 }
 
 void ModelManagerT::Initialize (const IOBaseT::FileTypeT format, const StringT& database)
 {
-  fFormat = format;
-  ScanModel (database);
+	fFormat = format;
+	fInputName = database;
+	ScanModel(fInputName);
 }
 
 void ModelManagerT::Initialize (void)
@@ -78,7 +79,8 @@ void ModelManagerT::Initialize (void)
     }
   else
     database = "\0";
-  ScanModel (database);
+	fInputName = database;
+	ScanModel(fInputName);
 }
 
 void ModelManagerT::EchoData (ostream& o) const
@@ -1094,8 +1096,6 @@ void ModelManagerT::ScanModel (const StringT& database)
 	  fMessage << "\n\nModelManagerT::ScanModel: Error Registering SideSets.\n\n";
 	  throw eGeneralFail;
 	}
-
-      fInputName = database;
     }
 }
 
