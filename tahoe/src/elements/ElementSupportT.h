@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.30 2004-07-15 08:25:44 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.31 2005-03-12 08:41:43 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -78,6 +78,11 @@ public:
 	 * \param n_values nodal output values
 	 * \param e_values element output values */
 	void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const;
+
+	/** write results for a single output set
+	 * \param ID output set ID for the given data
+	 * \param n_values nodal output values */
+	void WriteOutput(int ID, const dArray2DT& n_values) const;
 
 	/** return true if output is going to be written for the current time step */
 	bool WriteOutput(void) const { return BasicSupportT::WriteOutput(); };

@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.cpp,v 1.5 2005-03-11 20:38:07 paklein Exp $ */
+/* $Id: BasicSupportT.cpp,v 1.6 2005-03-12 08:41:51 paklein Exp $ */
 #include "BasicSupportT.h"
 
 #include "dArray2DT.h"
@@ -449,6 +449,16 @@ void BasicSupportT::WriteOutput(int ID, const dArray2DT& n_values,
 #pragma unused(ID)
 #pragma unused(n_values)
 #pragma unused(e_values)
+#endif
+}
+
+void BasicSupportT::WriteOutput(int ID, const dArray2DT& n_values) const
+{
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+	FEManager().WriteOutput(ID, n_values);
+#else
+#pragma unused(ID)
+#pragma unused(n_values)
 #endif
 }
 

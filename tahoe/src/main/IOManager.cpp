@@ -1,4 +1,4 @@
-/* $Id: IOManager.cpp,v 1.23 2004-07-15 08:31:03 paklein Exp $ */
+/* $Id: IOManager.cpp,v 1.24 2005-03-12 08:41:35 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 #include "IOManager.h"
 
@@ -114,16 +114,18 @@ void IOManager::WriteGeometryFile(const StringT& file_name,
 	IOBaseT::FileTypeT format) const
 {
 	if (!fOutput)
-	{
-		cout << "\n IOManager::WriteGeometryFile: output must be configured" << endl;
-		throw ExceptionT::kGeneralFail;		
-	}
+		ExceptionT::GeneralFail("IOManager::WriteGeometryFile", 
+			"output must be configured");
 
 	fOutput->WriteGeometryFile(file_name, format);
 }
 
-void IOManager::WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values)
-{
+void IOManager::WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) {
+	fOutput->WriteOutput(fOutputTime, ID, n_values, e_values);
+}
+
+void IOManager::WriteOutput(int ID, const dArray2DT& n_values) {
+	dArray2DT e_values;
 	fOutput->WriteOutput(fOutputTime, ID, n_values, e_values);
 }
 

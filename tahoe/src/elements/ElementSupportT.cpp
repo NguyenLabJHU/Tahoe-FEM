@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.33 2004-07-15 08:25:44 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.34 2005-03-12 08:41:43 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 
@@ -337,6 +337,13 @@ void ElementSupportT::WriteOutput(int ID, const dArray2DT& n_values,
 #else
 	FEManager().WriteOutput(ID, n_values, e_values);
 #endif
+}
+
+/** write results for a single output set */
+void ElementSupportT::WriteOutput(int ID, const dArray2DT& n_values) const
+{
+	dArray2DT e_values;
+	WriteOutput(ID, n_values, e_values);
 }
 
 /* write a snapshot */

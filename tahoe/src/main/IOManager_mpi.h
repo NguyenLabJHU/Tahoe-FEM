@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.h,v 1.17 2004-07-15 08:31:03 paklein Exp $ */
+/* $Id: IOManager_mpi.h,v 1.18 2005-03-12 08:41:35 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 
 #ifndef _IOMANAGER_MPI_H_
@@ -39,6 +39,9 @@ public:
 
 	/** distribute/assemble/write output */
 	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
+
+	/** distribute/assemble/write output */
+	virtual void WriteOutput(int ID, const dArray2DT& n_values);
 
 	/** temporarily re-route output to a database with the given filename */
 	virtual void DivertOutput(const StringT& outfile);

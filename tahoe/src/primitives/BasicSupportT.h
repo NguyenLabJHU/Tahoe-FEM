@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.h,v 1.5 2005-03-11 20:38:07 paklein Exp $ */
+/* $Id: BasicSupportT.h,v 1.6 2005-03-12 08:41:51 paklein Exp $ */
 #ifndef _TAHOE_SUPPORT_T_H_
 #define _TAHOE_SUPPORT_T_H_
 
@@ -184,6 +184,11 @@ public:
 	 * \param n_values nodal output values
 	 * \param e_values element output values */
 	void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const;
+
+	/** write results for a single output set
+	 * \param ID output set ID for the given data
+	 * \param n_values nodal output values */
+	void WriteOutput(int ID, const dArray2DT& n_values) const;
 	
 	/** return true if output is going to be written for the current time step */
 	bool WriteOutput(void) const;

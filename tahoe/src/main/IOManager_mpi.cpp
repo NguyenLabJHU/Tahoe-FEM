@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.34 2004-11-19 22:54:11 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.35 2005-03-12 08:41:35 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 #include "IOManager_mpi.h"
 
@@ -320,6 +320,12 @@ IOManager_mpi::~IOManager_mpi(void)
 { 
 	delete fOutputGeometry;
 	fOutputGeometry = NULL;
+}
+
+/* distribute/assemble/write output */
+void IOManager_mpi::WriteOutput(int ID, const dArray2DT& n_values) {
+	dArray2DT e_values;
+	WriteOutput(ID, n_values, e_values);
 }
 
 /* distribute/assemble/write output */

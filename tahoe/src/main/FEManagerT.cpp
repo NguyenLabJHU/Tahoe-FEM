@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.90 2005-03-11 20:41:45 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.91 2005-03-12 08:41:35 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -762,6 +762,16 @@ void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values,
 	{
 		fIOManager->WriteOutput(ID, n_values, e_values);		
 	}
+}
+
+/* initiate the process of writing output from all output sets */
+void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values) const
+{
+	/* output assembly mode */
+	if(fExternIOManager)
+		fExternIOManager->WriteOutput(ID, n_values); /* distribute/assemble/write */
+	else
+		fIOManager->WriteOutput(ID, n_values); /* local IO */
 }
 
 /* write a snapshot */
