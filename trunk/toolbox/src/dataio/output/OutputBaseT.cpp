@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.7 2002-03-02 20:11:29 paklein Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.8 2002-03-04 06:31:06 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "OutputBaseT.h"
@@ -16,7 +16,7 @@
 OutputBaseT::OutputBaseT(ostream& out, const ArrayT<StringT>& out_strings):
 	IOBaseT(out),
 	fCoordinates(NULL),
-//	fNodeMap(NULL),
+	fNodeID(NULL),
 	fSequence(0)
 {
 	if (out_strings.Length() > 3)
@@ -62,11 +62,17 @@ void OutputBaseT::NextTimeSequence(int sequence_number)
 }
 
 /* set nodal coordinates */
-//void OutputBaseT::SetCoordinates(const dArray2DT& coordinates, const iArrayT* node_map)
-void OutputBaseT::SetCoordinates(const dArray2DT& coordinates)
+void OutputBaseT::SetCoordinates(const dArray2DT& coordinates, const iArrayT* node_id)
 {
 	fCoordinates = &coordinates;
-//	fNodeMap = node_map;
+	fNodeID = node_id;
+	
+	/* id list check */
+	if (fNodeID && fNodeID->Length() != fCoordinates->MajorDim()) {
+		cout << "\n OutputBaseT::SetCoordinates: id list length " << fNodeID->Length() << " doesn't\n"
+		     <<   "     match the number of nodes " << fCoordinates->MajorDim() << endl;
+		throw eSizeMismatch;
+	}
 }
 
 int OutputBaseT::AddElementSet(const OutputSetT& output_set)
@@ -215,6 +221,9 @@ void OutputBaseT::LocalConnectivity(const iArrayT& node_map,
 	/* sizes must match */
 	if (connects.MajorDim() != local_connects.MajorDim() ||
 	    connects.MinorDim() != local_connects.MinorDim()) throw eSizeMismatch;
+
+	/* quick exit - nothing to do */
+	if (connects.MajorDim() == 0) return;
 
 	/* compressed number range */
 	int max, shift;

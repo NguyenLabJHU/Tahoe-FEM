@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.h,v 1.7 2002-03-02 20:11:29 paklein Exp $ */
+/* $Id: OutputBaseT.h,v 1.8 2002-03-04 06:31:06 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #ifndef _OUTPUTBASE_T_H_
@@ -46,12 +46,17 @@ public:
 	/** increment sequence, create new output file series */
 	virtual void NextTimeSequence(int sequence_number);
 
-	/* set nodal coordinates - passing in map implies coordinates list is not
-	 * complete or compact */
-	virtual void SetCoordinates(const dArray2DT& coordinates);
-//	const iArrayT* NodeMap(void) const;
-//	virtual void SetCoordinates(const dArray2DT& coordinates, const iArrayT* node_map);
-//NOTE: node maps were never used
+	/** set nodal coordinates for the output set
+	 * \param coordinate array of nodal coordinates
+	 * \param node_id list of ids for the rows in the coordinate array, passing NULL
+	 *        implies the row number is the id. The number of ids must match the
+	 *        number of rows in the coordinate array */
+	virtual void SetCoordinates(const dArray2DT& coordinates, const iArrayT* node_id);
+
+	/** return the node id list
+	 * \return point to the id list. If NULL implies the row number in the coordinate
+	 *         array is the node id */
+	const iArrayT* NodeID(void) const;
 
 	/** return a reference to the coordinates */
 	const dArray2DT& Coordinates(void) const;
@@ -88,8 +93,7 @@ protected:
 
 	/* output data */
 	const dArray2DT* fCoordinates;
-//	const iArrayT*   fNodeMap;
-//NOTE: never used
+	const iArrayT*   fNodeID;
 
 	AutoArrayT<OutputSetT*> fElementSets;
 	
@@ -123,7 +127,6 @@ inline const dArray2DT& OutputBaseT::Coordinates(void) const
 	return *fCoordinates;
 }
 
-//NOTE: never used
-//inline const iArrayT* OutputBaseT::NodeMap(void) const { return fNodeMap; }
+inline const iArrayT* OutputBaseT::NodeID(void) const { return fNodeID; }
 
 #endif /* _OUTPUTMANAGER_H_ */
