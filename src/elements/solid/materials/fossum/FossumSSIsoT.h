@@ -184,9 +184,8 @@ protected:
 	void AllocateElement(ElementCardT& element);
 
 	enum InternalVariablesT {kkappa = 0,  // stress-like internal state variable
-							kstressnorm = 1,  // norm of stress
-							kdgamma = 2,  // consistency parameter
-							kftrial = 3}; // yield function value
+				 kdeltakappa = 1,  //increment of kappa 
+				 kdgamma = 2}; // consistency parameter
 							
 	/* element level data */
 	void Update(ElementCardT& element);
@@ -194,7 +193,8 @@ protected:
 
 	/* returns 1 if the trial elastic strain state lies outside of the 
 	* yield surface */
-	int PlasticLoading(const dSymMatrixT& trialstrain, ElementCardT& element, int ip);
+
+	//int PlasticLoading(const dSymMatrixT& trialstrain, ElementCardT& element, int ip);
 
 	/* computes the deviatoric stress corresponding to the given element
 	* and elastic strain.  The function returns a reference to the
@@ -225,7 +225,7 @@ private:
 	double fmu;
 	double flambda;
 	double fkappa;
-	double fDeltaKappa;
+	//double fDeltaKappa;
 	double fX_H;
 	double fX;
 	double fMeanStress;
@@ -253,6 +253,8 @@ private:
 	double fTimeFactor;
 	//dSymMatrixT fStressInviscid;
 
+	int &fKappaCapped;
+	int fKappaDummy;
         
 private:
 
