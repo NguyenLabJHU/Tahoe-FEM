@@ -1,4 +1,4 @@
-/* $Id: SSLinearVE2D.cpp,v 1.4.4.2 2005-04-04 18:50:27 thao Exp $ */
+/* $Id: SSLinearVE2D.cpp,v 1.4.4.3 2005-04-04 18:55:52 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSLinearVE2D.h"
 #include "SSMatSupportT.h"
@@ -198,7 +198,7 @@ const dSymMatrixT& SSLinearVE2D::s_ij(void)
 	
 	/*deviatoric part*/
 	fStress3D = fStrain3D;
-	fStress3D *= 2.0*mu
+	fStress3D *= 2.0*mu;
 
 	/*volumetric part*/
 	fStress3D[0] += kappa*I1;
