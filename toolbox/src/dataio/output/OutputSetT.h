@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.2 2001-02-27 00:16:27 paklein Exp $ */
+/* $Id: OutputSetT.h,v 1.3 2001-07-19 00:58:09 paklein Exp $ */
 /* created: paklein (03/07/2000)                                          */
 
 #ifndef _OUTPUTSET_T_H_
@@ -34,9 +34,12 @@ public:
 	GeometryT::CodeT Geometry(void) const;
 	const iArrayT& BlockID(void) const;
 	const iArray2DT& Connectivities(void) const;
-	const iArrayT& NodesUsed(void) const;
 	const ArrayT<StringT>& NodeOutputLabels(void) const;
 	const ArrayT<StringT>& ElementOutputLabels(void) const;
+
+	/** return the nodes used by the output set. If the geometry if
+	 * changing, the nodes used are recalculated with every call. */
+	const iArrayT& NodesUsed(void);
 
 	/* dimensions */
 	int NumNodes(void) const;
@@ -87,8 +90,9 @@ inline const iArray2DT& OutputSetT::Connectivities(void) const
 	return fConnectivities;
 }
 
-inline const iArrayT& OutputSetT::NodesUsed(void) const
+inline const iArrayT& OutputSetT::NodesUsed(void)
 {
+	if (fChanging) SetNodesUsed();
 	return fNodesUsed;
 }
 
