@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.cpp,v 1.6 2003-05-06 19:57:45 cjkimme Exp $ */
+/* $Id: ThermostatBaseT.cpp,v 1.7 2003-10-30 17:15:21 paklein Exp $ */
 #include "ThermostatBaseT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -18,13 +18,23 @@ using namespace Tahoe;
 /* constructor */
 ThermostatBaseT::ThermostatBaseT(ifstreamT& in, const int& nsd, 
 	const double& dt):
-	fNodes(),
+	ParameterInterfaceT("thermostat"),
 	fTemperature(-1.),
 	fSD(nsd),
 	fTimeStep(dt),
 	fTemperatureSchedule(NULL)
 {
 	in >> fBeta;
+}
+
+ThermostatBaseT::ThermostatBaseT(void):
+	ParameterInterfaceT("thermostat"),
+	fTemperature(0.0),
+	fSD(0.0),
+	fTimeStep(0.0),
+	fTemperatureSchedule(NULL)
+{
+	SetName("thermostat");
 }
 
 /* write properties to output */
@@ -173,6 +183,26 @@ void ThermostatBaseT::InitRegion(ifstreamT& in, const dArray2DT& coords,
 	/* get the nodes in the region */
 	NodesInRegion(coords, partition_nodes);
 }	
+
+/* describe the parameters needed by the interface */
+void ThermostatBaseT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	ParameterInterfaceT::DefineParameters(list);
+
+	ParameterT beta(fBeta, "beta");
+	beta.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(beta);
+}
+
+/* accept parameter list */
+void ThermostatBaseT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	fBeta = list.GetParameter("beta");
+}
 
 void ThermostatBaseT::NodesInRegion(const dArray2DT& coords,	
 					const ArrayT<int>* partition_nodes)

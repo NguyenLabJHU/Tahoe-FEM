@@ -1,4 +1,4 @@
-/* $Id: LangevinT.cpp,v 1.4 2003-04-29 23:09:36 cjkimme Exp $ */
+/* $Id: LangevinT.cpp,v 1.5 2003-10-30 17:15:21 paklein Exp $ */
 #include "LangevinT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -17,8 +17,14 @@ using namespace Tahoe;
 LangevinT::LangevinT(ifstreamT& in, const int& nsd, const double& dt):
 	ThermostatBaseT(in,nsd,dt)
 {
+	SetName("Langevin");
 //	in >> fTemperature;
 //	fAmp = sqrt(2.*fBeta*fkB*fTemperature/fTimeStep);
+}
+
+LangevinT::LangevinT(void)
+{
+	SetName("Langevin");
 }
 
 /* write properties to output */

@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.19 2003-10-28 23:31:48 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.20 2003-10-30 17:15:18 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -159,7 +159,17 @@ protected: /* for derived classes only */
 
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
 	/*@}*/
+
+	/** return a new pair property or NULL if the name is invalid */
+	ThermostatBaseT* New_Thermostat(const StringT& name, bool throw_on_fail) const;
 
 protected:
 
