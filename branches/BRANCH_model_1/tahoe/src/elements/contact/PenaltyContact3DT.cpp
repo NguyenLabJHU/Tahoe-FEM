@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.1.1.1.6.1 2001-10-26 15:46:43 sawimme Exp $ */
 /* created: paklein (02/09/2000)                                          */
 
 #include "PenaltyContact3DT.h"
@@ -130,16 +130,18 @@ void PenaltyContact3DT::LHSDriver(void)
 	fLHS.Identity(fK);
 	
 	/* loop over active elements */
-	iArrayT eqnos;
-	for (int i = 0; i < fConnectivities.MajorDim(); i++)
+	//iArrayT eqnos;
+	for (int i = 0; i < fNumElements; i++)
 	{
-		int* pelem = fConnectivities(i);
+	        const iArrayT& elemnodes = fElementCards[i].NodesX();
+		int* pelem = elemnodes.Pointer();
 
 		/* contact */
 		if (fDists[i] < 0.0)
 		{
 			/* get equation numbers */
-			fEqnos.RowAlias(i, eqnos);
+			const iArrayT& eqnos = fElementCards[i].Equations();
+			//fEqnos.RowAlias(i, eqnos);
 			
 			/* assemble */
 			fFEManager.AssembleLHS(fLHS, eqnos);
@@ -160,17 +162,18 @@ void PenaltyContact3DT::RHSDriver(void)
 
 	/* loop over active elements */
 	dArrayT c(3), n(3);
-	iArrayT eqnos;
+	//iArrayT eqnos;
 	double a[3], b[3];
 
 	/* reset tracking data */
 	fnum_contact = 0;
 	fh_max = 0.0;
 
-	fDists.Allocate(fConnectivities.MajorDim());
-	for (int i = 0; i < fConnectivities.MajorDim(); i++)
+	fDists.Allocate(fNumElements);
+	for (int i = 0; i < fNumElements; i++)
 	{
-		int* pelem = fConnectivities(i);
+	        const iArrayT& elemnodes = fElementCards[i].NodesX();
+		int* pelem = elemnodes.Pointer();
 
 		/* collect element configuration */
 		fElCoord.RowCollect(pelem, init_coords);
@@ -223,7 +226,8 @@ void PenaltyContact3DT::RHSDriver(void)
 			fRHS.AddScaled(-dphi/mag, fV1);
 								
 			/* get equation numbers */
-			fEqnos.RowAlias(i, eqnos);
+			const iArrayT& eqnos = fElementCards[i].Equations();
+			//fEqnos.RowAlias(i, eqnos);
 			
 			/* assemble */
 			fFEManager.AssembleRHS(fRHS, eqnos);
