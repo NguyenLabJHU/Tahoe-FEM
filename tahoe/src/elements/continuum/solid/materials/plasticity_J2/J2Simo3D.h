@@ -1,4 +1,4 @@
-/* $Id: J2Simo3D.h,v 1.5 2001-10-24 02:23:08 paklein Exp $ */
+/* $Id: J2Simo3D.h,v 1.5.2.1 2002-05-11 20:22:46 paklein Exp $ */
 /* created: paklein (04/30/2001) */
 
 #ifndef _J2_SIMO_3D_H_
@@ -38,6 +38,9 @@ public:
 	
 	/** stress */
 	virtual const dSymMatrixT& s_ij(void);
+
+	/** incremental heat generation */
+	virtual double IncrementalHeat(void);
 
 	/** returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void);
