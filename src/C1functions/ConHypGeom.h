@@ -1,7 +1,7 @@
-/* $Id: GreenwoodWilliamson.h,v 1.6 2002-07-11 17:57:16 dzeigle Exp $ */
+/* $Id: ConHypGeom.h,v 1.1 2002-07-11 17:57:16 dzeigle Exp $ */
 
-#ifndef _GREENWOOD_WILLIAMSON_H_
-#define _GREENWOOD_WILLIAMSON_H_
+#ifndef _CON_HYP_GEOM_H_
+#define _CON_HYP_GEOM_H_
 
 /* base class */
 #include "C1FunctionT.h"
@@ -9,19 +9,25 @@
 
 namespace Tahoe {
 
-class GreenwoodWilliamson: public C1FunctionT
+class ConHypGeom: public C1FunctionT
 {
 public:
 
 	/*
 	 * Constructor
 	 */
-	GreenwoodWilliamson(double POWER, double MU, double SIGMA);
+	ConHypGeom(double A, double B);
 	
 	/*
 	 * Destructor
 	 */
-	~GreenwoodWilliamson();
+	~ConHypGeom();
+	
+	/*
+	 * Methods
+	 */
+	double PochhammerRat(double numer, double denom, int index) const;
+	double PochhammerProd(double lhs, double rhs, int index) const;
 
 	/*
 	 * I/O
@@ -50,10 +56,12 @@ public:
 private:
 
 	/* potential parameters */
-	double fP;
-	double fM;
-	double fS;
+	double fA, fB;
+	
+	//could add more parameters
+
 };
 
 } // namespace Tahoe 
-#endif /* _GREENWOOD_WILLIAMSON_H_ */
+#endif /* _CON_HYP_GEOM_H_ */
+
