@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.25 2005-03-07 06:32:57 paklein Exp $
+# $Id: tahoe-manager,v 1.26 2005-03-07 06:44:17 paklein Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -578,6 +578,9 @@ sub build {
 
 	DIR: foreach my $dir (@tmp_modules) {
 		if (-e "$dir/makefile" && !defined($up_to_date_modules{$dir})) {
+
+			# expat is build during init
+			next DIR if ($dir =~ "expat"); 
 
 			chdir($dir);
 			print "\tmaking $dir...";
