@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2002-05-29 12:56:01 sawimme Exp $
+# $Id: makefile,v 1.8 2003-02-18 08:47:23 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -9,6 +9,7 @@ OBJ = \
 	TranslateIOManager.o \
 	ExtractIOManager.o \
 	ExtractNode.o \
+	ExtractElement.o \
 	ExtractQuad.o \
 	PointPlots.o \
 	MergeResults.o \
@@ -25,6 +26,7 @@ SRC = \
 	TranslateIOManager.cpp \
 	ExtractIOManager.cpp \
 	ExtractNode.cpp \
+	ExtractElement.cpp \
 	ExtractQuad.cpp \
 	PointPlots.cpp \
 	MergeResults.cpp \
@@ -35,6 +37,7 @@ HDR = \
 	TranslateIOManager.h \
 	ExtractIOManager.h \
 	ExtractNode.h \
+	ExtractElement.h \
 	ExtractQuad.h \
 	MergeResults.h \
 	PointPlots.h
