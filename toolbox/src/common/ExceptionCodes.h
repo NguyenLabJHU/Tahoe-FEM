@@ -1,11 +1,11 @@
-/* $Id: ExceptionCodes.h,v 1.1.1.1 2001-01-25 20:56:28 paklein Exp $ */
+/* $Id: ExceptionCodes.h,v 1.2 2001-08-22 19:57:05 sawimme Exp $ */
 /* created: paklein (06/04/1996)                                          */
 
 #ifndef _EXCEPTION_CODES_H_
 #define _EXCEPTION_CODES_H_
 
 /* number of exception codes */
-const int eNumExceptions	= 9;
+const int eNumExceptions	= 10;
 
 /* exception codes */
 const int eNoError          = 0; // no error
@@ -17,5 +17,6 @@ const int eSizeMismatch     = 5; // (array) dimension mismatch
 const int eBadInputValue    = 6; // bad input/construction parameter
 const int eBadJacobianDet	= 7; // ParentDomainT:bad jacobian determinant
 const int eMPIFail          = 8; // general error on MPI call
+const int eDatabaseFail     = 9; // general error reading/writing database
 
 #endif /* _EXCEPTION_CODES_H_ */
