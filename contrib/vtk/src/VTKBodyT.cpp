@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.42 2003-03-28 22:41:00 paklein Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.43 2003-11-25 19:55:49 paklein Exp $ */
 #include "VTKBodyT.h"
 
 /* tahoe toolbox headers */
@@ -310,7 +310,7 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 					VTKUGridT* ugrid = ugrids[i];
 
 					/* generate node id's */
-					fIDFilter[i]->SetPointMap(fBodyData->PointNumberMap().Pointer());
+					fIDFilter[i]->SetPointMap((int*) fBodyData->PointNumberMap().Pointer());
 					fIDFilter[i]->PointIdsOn();
 
 					/* label mapper */
@@ -452,7 +452,7 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 					VTKUGridT* ugrid = ugrids[i];
 
 					/* generate node id's */
-					fIDFilter[i]->SetCellMap(ugrid->CellNumberMap().Pointer());
+					fIDFilter[i]->SetCellMap((int*) ugrid->CellNumberMap().Pointer());
 					fIDFilter[i]->CellIdsOn();
 
 					/* label mapper */
