@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.19 2002-08-08 16:50:05 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.20 2002-08-13 08:14:40 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleT.h"
@@ -395,10 +395,6 @@ bool iConsoleT::iDoVariable(const StringT& variable, StringT& line)
 	}
 	return result;
 }
-
-/************************************************************************
-* Protected
-************************************************************************/
 
 /* main event loop */
 void iConsoleT::DoInteractive(void)
