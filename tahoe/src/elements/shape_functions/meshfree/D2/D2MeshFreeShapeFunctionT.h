@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeShapeFunctionT.h,v 1.6 2004-07-15 08:30:07 paklein Exp $ */
+/* $Id: D2MeshFreeShapeFunctionT.h,v 1.7 2004-08-14 00:09:54 raregue Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D2_MF_SHAPE_T_H_
 #define _D2_MF_SHAPE_T_H_
@@ -31,6 +31,10 @@ public:
 
 	/* 2nd order spatial gradients */
 	void GradGradU(const LocalArrayT& nodal, dMatrixT& gradgrad_U) const;
+	
+	/* 2nd derivatives of shape functions at IP */
+	const dArray2DT& DDerivatives_U(int ip) const { return fDDNaU[ip]; };
+	const dArray2DT& DDerivatives_U(void) const { return fDDNaU[fCurrIP]; };
 
 	/* reconstruct displacement field and all derivatives */
 	void NodalField(const dArray2DT& DOF, dArray2DT& field, dArray2DT& Dfield,
