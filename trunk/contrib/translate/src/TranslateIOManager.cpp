@@ -1,7 +1,7 @@
-/* $Id: TranslateIOManager.cpp,v 1.30 2002-10-26 00:09:41 paklein Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.31 2002-10-28 14:19:02 sawimme Exp $  */
 #include "TranslateIOManager.h"
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "IOBaseT.h"
 #include "OutputSetT.h"
 #include "AbaqusOutputT.h"
@@ -83,7 +83,7 @@ void TranslateIOManager::SetInput (void)
   else
     {
       cout << "\n Unable to initialize model file\n";
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
 }
 
@@ -146,10 +146,10 @@ void TranslateIOManager::SetOutput (const StringT& program_name, const StringT& 
     default:
       {
 	fMessage << "\n Unknown output format: " << outputformat << "\n";
-	throw eDatabaseFail;
+	throw ExceptionT::kDatabaseFail;
       }
     }
-  if (!fOutput) throw eOutOfMemory;
+  if (!fOutput) throw ExceptionT::kOutOfMemory;
 }
 
 void TranslateIOManager::InitializeVariables (void)
@@ -214,7 +214,7 @@ void TranslateIOManager::InitializeQuadVariables (void)
   if (fNumQV < 1)
     {
       fMessage << "\n No quadrature variables found.";
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
   //cout << fNumQV << " " << fQuadratureLabels[0] <<endl;
   VariableQuery (fQuadratureLabels, fQVUsed);
@@ -238,7 +238,7 @@ void TranslateIOManager::InitializeElements (int& group, StringT& groupname) con
       cout << "\n The number entered for an element group is invalid: "
 	   << group << "\n";
       cout << "Minimum limit is 1 and maximum is " << elemsetnames.Length() << endl;
-      throw eOutOfRange;
+      throw ExceptionT::kOutOfRange;
     }
   else
     cout << "\n Translating element group: " << group << " " << elemsetnames[group-1] << endl;
@@ -289,7 +289,7 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
 	      {
 		cout << " ExtractIOManager::InitializeNodePoints\n";
 		cout << " Node " << nodes[n] << " was not found.\n";
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	      }
 	    index [n] = dex;
 	  }
@@ -339,7 +339,7 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
 	break;
       }
     default:
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
 }
 
@@ -393,7 +393,7 @@ void TranslateIOManager::InitializeTime (void)
 		fIn >> fTimeIncs[i];
 		fTimeIncs[i]--;
 		if (fTimeIncs[i] < 0 || fTimeIncs[i] >= fTimeSteps.Length())
-		  throw eOutOfRange;
+		  throw ExceptionT::kOutOfRange;
 		temp[i] = fTimeSteps[fTimeIncs[i]];
 	      }
 	    fTimeSteps = temp;
@@ -412,8 +412,8 @@ void TranslateIOManager::InitializeTime (void)
 	      cout << " Enter the end increment: ";
 	    fIn >> stop;
 	    cout << "\n Translating time steps from " << start << " to " << stop << ".\n";
-	    if (stop < start) throw eGeneralFail;
-	    if (start < 1) throw eGeneralFail;
+	    if (stop < start) throw ExceptionT::kGeneralFail;
+	    if (start < 1) throw ExceptionT::kGeneralFail;
 	    fNumTS = stop-start+1;
 	    dArrayT temp (fNumTS);
 	    fTimeIncs.Dimension (fNumTS);
@@ -457,11 +457,11 @@ void TranslateIOManager::TranslateVariables(void)
 	if (!fOutput) 
 	  {
 	    cout << "\n TranslateIOManager::TranslateVariables: output not initialized" << endl;
-	    throw eGeneralFail;
+	    throw ExceptionT::kGeneralFail;
 	  }
 
 	const ArrayT<OutputSetT*>& output_sets = fOutput->ElementSets();
-	if (output_sets.Length() != fOutputID.Length()) throw eSizeMismatch;
+	if (output_sets.Length() != fOutputID.Length()) throw ExceptionT::kSizeMismatch;
 
 	const ArrayT<StringT>& names = fModel.ElementGroupIDs ();	
 
@@ -534,7 +534,7 @@ void TranslateIOManager::WriteNodes (void)
 	/* node map should not be empty */
 	if (fNodeMap.Length() == 0) {
 		cout << "\n TranslateIOManager::WriteNodes: node number map is empty" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 		}
   
 	/* do not need to do any mapping, fNodeMap is global and offset 
@@ -546,7 +546,7 @@ void TranslateIOManager::WriteNodes (void)
 	  fCoordinates.Dimension(max + 1, nsd);
 	  fCoordinates.Assemble(fNodeMap, fModel.Coordinates());
 	  fCoordinates.WriteNumbered (cout);
-	  throw eGeneralFail;
+	  throw ExceptionT::kGeneralFail;
 	  }
 	  else fCoordinates.Alias(fModel.Coordinates()); */
   
@@ -594,7 +594,7 @@ void TranslateIOManager::WriteElements(void)
 	if (num == 0) 
 	  {
 	    cout << "\n TranslateIOManager::WriteElements: no element sets" << endl;
-	    throw eGeneralFail;
+	    throw ExceptionT::kGeneralFail;
 	  }
 
 	// which to output

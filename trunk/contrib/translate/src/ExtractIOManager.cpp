@@ -1,7 +1,7 @@
-/* $Id: ExtractIOManager.cpp,v 1.11 2002-10-26 00:09:41 paklein Exp $ */
+/* $Id: ExtractIOManager.cpp,v 1.12 2002-10-28 14:19:02 sawimme Exp $ */
 #include "ExtractIOManager.h"
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "TecPlotT.h"
 #include <stdio.h>
 
@@ -150,7 +150,7 @@ void ExtractIOManager::WriteVarData (iArrayT& varsused, int ts) const
 	break;
       }
     default:
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
 }
 
@@ -175,7 +175,7 @@ void ExtractIOManager::OpenFile (ofstreamT& o, StringT& name, bool append) const
     {
       fMessage << "\nExtractIOManager::OpenFile cannot open file: "
 	       << filename << "\n\n";
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
 }
 

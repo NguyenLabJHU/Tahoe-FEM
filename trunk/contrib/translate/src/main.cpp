@@ -1,5 +1,5 @@
-/* $Id: main.cpp,v 1.14 2002-10-26 00:09:41 paklein Exp $ */
-#include "ExceptionCodes.h"
+/* $Id: main.cpp,v 1.15 2002-10-28 14:19:02 sawimme Exp $ */
+#include "ExceptionT.h"
 #include "TranslateIOManager.h"
 #include "ExtractNode.h"
 #include "ExtractQuad.h"
@@ -98,7 +98,7 @@ int main (int c, char* a [])
 		break;
 	      }
 	    default:
-	      throw eGeneralFail;
+	      throw ExceptionT::kGeneralFail;
 	    }
 	  dataio->Translate (program, version, program);
 	}
@@ -109,19 +109,19 @@ int main (int c, char* a [])
       cout << "\n\n Exiting due to error . . . ";
       switch (ErrorCode)
 	{
-	case eBadInputValue:
+	case ExceptionT::kBadInputValue:
 	  cout << " Bad Input Value\n";
 	  break;
-	case eOutOfRange:
+	case ExceptionT::kOutOfRange:
 	  cout << " Out of Range\n";
 	  break;
-	case eSizeMismatch:
+	case ExceptionT::kSizeMismatch:
 	  cout << " Size Mismatch\n";
 	  break;
-	case eOutOfMemory:
+	case ExceptionT::kOutOfMemory:
 	  cout << " Out of Memory\n";
 	  break;
-	case eDatabaseFail:
+	case ExceptionT::kDatabaseFail:
 	  cout << " Error with database\n";
 	  break;
 	}
@@ -156,7 +156,7 @@ void ReadArgs (char* a, AutoArrayT<StringT>& list)
     default:
       {
 	cout << "\n You must put either % or @ at the beginning of your input file.\n\n";
-	throw eBadInputValue;
+	throw ExceptionT::kBadInputValue;
       }
     }
 }
@@ -173,7 +173,7 @@ istream& Open (ifstreamT& tmp, const StringT& f)
       if (c != '%')
 	{
 	  cout << "\nExpecting % at the start of the input file.\n\n";
-	  throw eBadInputValue;
+	  throw ExceptionT::kBadInputValue;
 	}
       return tmp;
     }
