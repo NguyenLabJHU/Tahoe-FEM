@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.13 2004-07-22 08:27:07 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.14 2004-07-22 20:06:10 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -40,6 +40,10 @@ MultiManagerT::~MultiManagerT(void)
 	/* clear pointer because base class will free and this time manager is taken from
 	 * the coarse scale solver */
 	fTimeManager = NULL;
+
+	/* free subs */
+	delete fFine;
+	delete fCoarse;
 }
 
 /** (re-)set system to initial conditions */
