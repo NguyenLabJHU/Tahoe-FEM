@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.36.2.5 2003-02-12 02:48:54 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.36.2.6 2003-02-12 23:44:20 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -324,6 +324,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 			continuum.ReadRestart();
 
 			/* loop over time increments */
+			AutoArrayT<int> loop_count;
 			bool seq_OK = true;
 			while (seq_OK && 
 				atom_time->Step() &&
@@ -333,8 +334,8 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 				ExceptionT::CodeT error = ExceptionT::kNoError;		
 
 				/* initialize step */
-				if (error == ExceptionT::kNoError) error = atoms.InitStep();
-				if (error == ExceptionT::kNoError) error = continuum.InitStep();
+				if (1 || error == ExceptionT::kNoError) error = atoms.InitStep();
+				if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
 			
 				/* first exchange */
 				continuum.InterpolateField(bridging_field, field_at_ghosts);
@@ -342,37 +343,51 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 				continuum.ProjectField(bridging_field, *atoms.NodeManager());
 			
 				/* first solve */
-				if (error == ExceptionT::kNoError) error = atoms.SolveStep();
-				if (error == ExceptionT::kNoError) error = continuum.SolveStep();
+				if (1 || error == ExceptionT::kNoError) error = atoms.SolveStep();
+				if (1 || error == ExceptionT::kNoError) error = continuum.SolveStep();
 			
 				/* solver phase status */
 				const iArray2DT& atom_phase_status = atoms.SolverPhasesStatus();
-				const iArray2DT& continuum_phase_status = atoms.SolverPhasesStatus();
+				const iArray2DT& continuum_phase_status = continuum.SolverPhasesStatus();
 			
 				/* loop until both solved */
-				while (error == ExceptionT::kNoError &&
-					atom_phase_status(0, FEManagerT::kIteration) > 0 &&
+				int count = 0;
+				while ( atom_phase_status(0, FEManagerT::kIteration) > 0 ||
 					continuum_phase_status(0, FEManagerT::kIteration) > 0) //TEMP - assume just one phase
+
+//				while (1 || error == ExceptionT::kNoError &&
+//					(atom_phase_status(0, FEManagerT::kIteration) > 0 ||
+//					continuum_phase_status(0, FEManagerT::kIteration) > 0)) //TEMP - assume just one phase
 				{
+					count++;
+				
 					/* exchange */
 					continuum.InterpolateField(bridging_field, field_at_ghosts);
 					atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
 					continuum.ProjectField(bridging_field, *atoms.NodeManager());
 
 					/* solve */
-					if (error == ExceptionT::kNoError) error = atoms.SolveStep();
-					if (error == ExceptionT::kNoError) error = continuum.SolveStep();
+					if (1 || error == ExceptionT::kNoError) error = atoms.SolveStep();
+					if (1 || error == ExceptionT::kNoError) error = continuum.SolveStep();
 				}
+				
+				loop_count.Append(count);
 			
 				/* close step */
-				if (error == ExceptionT::kNoError) error = atoms.CloseStep();
-				if (error == ExceptionT::kNoError) error = continuum.CloseStep();
+				if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();
+				if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
 
 				/* check for error */
-				if (error != ExceptionT::kNoError)
+				if (0)
+//				if (error != ExceptionT::kNoError)
 					ExceptionT::GeneralFail(caller, "hit error %d", error);
 				//TEMP - no error recovery yet
 			}
+			
+			cout << "\n Number of bridging iterations:\n";
+			cout << setw(kIntWidth) << "step" << setw(kIntWidth) << "#" << '\n';
+			for (int i = 0; i < loop_count.Length(); i++)
+				cout << setw(kIntWidth) << i+1 << ": " << setw(kIntWidth) << loop_count[i] << '\n';
 		}
 
 		t2 = clock();
