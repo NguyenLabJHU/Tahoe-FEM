@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.69 2005-02-13 22:20:34 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.70 2005-02-25 15:38:17 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -6,6 +6,7 @@
 #include <math.h>
 
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"
 #include "eIntegratorT.h"
@@ -20,6 +21,10 @@
 
 /* exception codes */
 #include "ExceptionT.h"
+
+/* eigenvalue estimation */
+#include "CCSMatrixT.h"
+#include "NodeManagerT.h"
 
 using namespace Tahoe;
 
@@ -53,7 +58,8 @@ SolidElementT::SolidElementT(const ElementSupportT& support):
 	fLocTemp(NULL),
 	fLocTemp_last(NULL),
 	fStoreInternalForce(false),
-	fMassType(kAutomaticMass)
+	fMassType(kAutomaticMass),
+	fEigenvalueInc(0)
 {
 	SetName("solid_element");
 }
@@ -63,6 +69,22 @@ SolidElementT::~SolidElementT(void)
 {
 	delete fLocTemp;
 	delete fLocTemp_last;
+}
+
+/* close current time increment. Called if the integration over the
+ * current time increment was successful. */
+void SolidElementT::CloseStep(void)
+{
+	/* inherited */
+	ContinuumElementT::CloseStep();
+	
+	/* check eigenvalue */
+	if (fEigenvalueInc > 0 && ElementSupport().StepNumber() % fEigenvalueInc == 0)
+	{
+		/* get estimated max eigenvalue */
+		double max_eig = MaxEigenvalue();
+		ElementSupport().Output() << ElementSupport().StepNumber() << ": max_eig = " << max_eig << '\n';
+	}
 }
 
 /* solution calls */
@@ -298,6 +320,12 @@ void SolidElementT::DefineParameters(ParameterListT& list) const
     mass_type.AddEnumeration("lumped_mass", kLumpedMass);
     mass_type.SetDefault(fMassType);
 	list.AddParameter(mass_type);
+	
+	/* eigenvalue estimation increment */
+	ParameterT eig_inc(fEigenvalueInc, "eigenvalue_inc");
+	eig_inc.SetDefault(fEigenvalueInc);
+	eig_inc.AddLimit(0, LimitT::LowerInclusive);
+	list.AddParameter(eig_inc);
 }
 
 /* information about subordinate parameter lists */
@@ -373,6 +401,9 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 		else
 			fMassType = kLumpedMass;
 	}
+	
+	/* eigenvalue output increment */
+	fEigenvalueInc = list.GetParameter("eigenvalue_inc");
 
 	/* allocate work space */
 	fB.Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
@@ -472,6 +503,81 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 	/* work space for calculating integration point densities */
 	if (changing_density)
 		fDensity.Dimension(NumIP());
+}
+
+/* estimate the largest eigenvalue */
+double SolidElementT::MaxEigenvalue(void)
+{
+	/* check */
+	if (fMassType != kLumpedMass)
+		ExceptionT::GeneralFail("SolidElementT::MaxEigenvalue", "mass matrix must be lumped");
+
+	/* set up K */
+	CCSMatrixT K(ElementSupport().Output(), CCSMatrixT::kNoCheck);
+	
+	/* collection equation numbers */
+	AutoArrayT<const iArray2DT*> eq_1;
+	AutoArrayT<const RaggedArray2DT<int>*> eq_2;
+	Equations(eq_1, eq_2);
+	for (int i = 0; i < eq_1.Length(); i++)
+		K.AddEquationSet(*eq_1[i]);
+	for (int i = 0; i < eq_2.Length(); i++)
+		K.AddEquationSet(*eq_2[i]);
+	int num_eq = ElementSupport().NodeManager().NumEquations(Group());
+	K.Initialize(num_eq, num_eq, 1);
+	K.Clear();
+	
+	/* mass matrix */
+	dArrayT M(num_eq);
+	M = 0.0;
+
+	/* compute K, M */
+	bool axisymmetric = Axisymmetric();
+	Top();
+	while (NextElement())
+		if (CurrentElement().Flag() != ElementCardT::kOFF)
+		{
+			/* element equations */
+			const iArrayT& eqs = CurrentElement().Equations();
+		
+			/* set shape function derivatives */
+			SetGlobalShape();
+
+			/* assemble element stiffness */
+			fLHS = 0.0;
+			FormStiffness(1.0);	
+			K.Assemble(fLHS, eqs);
+
+			/* assemble element mass */
+			fLHS = 0.0;
+			if (!fCurrMaterial->HasChangingDensity())
+				FormMass(fMassType, fCurrMaterial->Density(), axisymmetric, NULL);
+			else
+			{
+				/* collect densities */
+				fShapes->TopIP();
+				while (fShapes->NextIP())
+					fDensity[fShapes->CurrIP()] = fCurrMaterial->Density();			
+				FormMass(fMassType, 1.0, axisymmetric, fDensity.Pointer());
+			}
+			for (int i = 0; i < eqs.Length(); i++)
+			{
+				int eq = eqs[i];
+				if (eq > 0) /* active equation */
+					M[eq-1] += fLHS(i,i);
+			}
+		}
+
+	/* estimate largest eigenvalue */
+	double max_eig = 0.0;
+	for (int i = 0; i < M.Length(); i++)
+		if (M[i] > kSmall) {
+			double abs_row_sum = K.AbsRowSum(i);
+			double eig = abs_row_sum/M[i];
+			max_eig = (eig > max_eig) ? eig : max_eig;
+		}
+
+	return max_eig;
 }
 
 /***********************************************************************
