@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.19 2005-02-04 22:01:54 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.20 2005-02-25 15:41:34 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 #include "FullMatrixT.h"
 #include <iostream.h>
@@ -37,13 +37,9 @@ void FullMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 
 	/* check */
 	if (tot_num_eq != loc_num_eq)
-	{
-		cout << "\n FullMatrixT::Initialize: expecting total number of equations\n"
-		     <<   "     " << tot_num_eq
-		     << " to be equal to the local number of equations " << loc_num_eq << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-	
+		ExceptionT::GeneralFail("FullMatrixT::Initialize",
+			"total equations %d != local equations %d", tot_num_eq, loc_num_eq);
+
 	/* allocate work space */
 	fMatrix.Dimension(fLocNumEQ);
 	fIsFactorized = false;

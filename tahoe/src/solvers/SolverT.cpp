@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.26 2005-01-07 02:13:47 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.27 2005-02-25 15:41:54 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -67,16 +67,16 @@ void SolverT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 		
 		/* set global equation matrix type */
 		fLHS->Initialize(tot_num_eq, loc_num_eq, start_eq);
+		
+		/* write information */
+		fLHS->Info(fFEManager.Output());
 	
 		/* output global equation number for each DOF */
 		if (fPrintEquationNumbers) fFEManager.WriteEquationNumbers(fGroup);
 	}	
 
-	catch (ExceptionT::CodeT error_code)
-	{
-		cout << "\n SolverT::Initialize: exception: "
-		     << ExceptionT::ToString(error_code) << endl;
-		throw error_code;
+	catch (ExceptionT::CodeT error_code) {
+		ExceptionT::Throw(error_code, "SolverT::Initialize");
 	}
 }
 
@@ -189,10 +189,7 @@ GlobalT::EquationNumberScopeT SolverT::EquationNumberScope(void) const
 {
 #if __option(extended_errorcheck)
 	if (!fLHS)
-	{
-		cout << "\n SolverT::EquationNumberScope: invalid LHS" << endl;
-		throw ExceptionT::kGeneralFail;	
-	}
+		ExceptionT::GeneralFail("SolverT::EquationNumberScope", "invalid LHS");
 #endif
 
 	return (GlobalT::EquationNumberScopeT) fLHS->EquationNumberScope();

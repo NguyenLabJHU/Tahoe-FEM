@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.h,v 1.18 2005-02-04 22:37:21 paklein Exp $ */
+/* $Id: CCSMatrixT.h,v 1.19 2005-02-25 15:41:34 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #ifndef _CCSMATRIX_T_H_
 #define _CCSMATRIX_T_H_
@@ -40,6 +40,10 @@ public:
 	 * NOTE: do not call Initialize() equation topology has been set
 	 * with AddEquationSet() for all equation sets */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
+
+	/** write information to output stream after CCSMatrixT::Initialize
+	 * has been called */
+	virtual void Info(ostream& out);
 	
 	/* set all matrix values to 0.0 */
 	virtual void Clear(void);
@@ -65,7 +69,7 @@ public:
 	
 	/* compute the sum of the elements on the prescribed row/col,
 	 * where rownum = 0...fNumEQ-1 */
-	double AbsRowSum(int rownum) const;
+	virtual double AbsRowSum(int rownum) const;
 
 	/* return the value of p_i K_ij p_j */
 	double pTKp(const dArrayT& p) const;
@@ -177,8 +181,12 @@ protected:
 	double* fMatrix;
 	/*@}*/
 	
-	/** runtime flag */
+	/** \name runtime info */
+	/*@{*/
 	bool fIsFactorized;
+	int fBand;
+	int fMeanBand;
+	/*@}*/
 };
 
 /* Returns the number of elements ABOVE the diagonal in col */

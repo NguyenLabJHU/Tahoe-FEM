@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.cpp,v 1.20 2005-01-07 21:23:14 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.21 2005-02-25 15:41:47 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 #include "AztecMatrixT.h"
 
@@ -59,24 +59,28 @@ void AztecMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 #ifndef __TAHOE_MPI__
 	/* check */
 	if (fTotNumEQ != fLocNumEQ)
-	{
-		cout << "\n AztecMatrixT::Initialize: no MPI: expecting the total number\n"
-		     <<   "     of equations " << fTotNumEQ
-		     << " to be equal to the local number of equations " << fLocNumEQ << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller,
+			"no MPI: total equations %d != local equations %d", fTotNumEQ, fLocNumEQ);
 #endif
 	
 	/* set-up Aztec matrix */
 	fAztec->Initialize(loc_num_eq, start_eq);
+}
+
+/* write information to output stream after GlobalMatrixT::Initialize
+ * has been called */
+void AztecMatrixT::Info(ostream& out)
+{
+	/* inherited */
+	GlobalMatrixT::Info(out);
 	
 	/* output statistics */
 	int nonzerovals = fAztec->NumNonZeroValues();
-	fOut << " Number of nonzero matrix values . . . . . . . . = ";
-	fOut << nonzerovals << '\n';
+	out << " Number of nonzero matrix values . . . . . . . . = ";
+	out << nonzerovals << '\n';
 
 	/* write Aztec options */
-	fAztec->WriteAztecOptions(fOut);		
+	fAztec->WriteAztecOptions(out);
 }
 
 /* set all matrix values to 0.0 */

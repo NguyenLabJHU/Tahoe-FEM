@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.24 2005-01-07 21:22:49 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.25 2005-02-25 15:41:34 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #include "CCNSMatrixT.h"
 
@@ -24,7 +24,9 @@ CCNSMatrixT::CCNSMatrixT(ostream& out, int check_code):
 	fNumberOfTerms(0),
 	fMatrix(NULL),
 	fu(NULL),
-	fIsFactorized(false)
+	fIsFactorized(false),
+	fBand(0),
+	fMeanBand(0)
 {
 
 }
@@ -39,7 +41,9 @@ CCNSMatrixT::CCNSMatrixT(const CCNSMatrixT& source):
 	fNumberOfTerms(0),
 	fMatrix(NULL),
 	fu(NULL),
-	fIsFactorized(false)
+	fIsFactorized(false),
+	fBand(0),
+	fMeanBand(0)
 {
 	CCNSMatrixT::operator=(source);
 }
@@ -56,17 +60,15 @@ CCNSMatrixT::~CCNSMatrixT(void)
 * with AddEquationSet() for all equation sets */
 void CCNSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 {
+	const char caller[] = "CCNSMatrixT::Initialize";
+
 	/* inherited */
 	GlobalMatrixT::Initialize(tot_num_eq, loc_num_eq, start_eq);
 
 	/* check */
 	if (tot_num_eq != loc_num_eq)
-	{
-		cout << "\n CCNSMatrixT::Initialize: expecting total number of equations\n"
-		     <<   "     " << tot_num_eq
-		     << " to be equal to the local number of equations " << loc_num_eq << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller,
+			"total equations %d != local equations %d", tot_num_eq, loc_num_eq);
 
 	/* allocate */	
 	if (famax != NULL) delete[] famax;
@@ -75,26 +77,12 @@ void CCNSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 		i_memory.Dimension(fLocNumEQ + 1);
 		i_memory.ReleasePointer(&famax);
 	}	
-	catch (ExceptionT::CodeT error)
-	{
-		if (error == ExceptionT::kOutOfMemory)
-		{
-			cout << "\n CCNSMatrixT::Initialize: not enough memory" << endl;
-			fOut << "\n CCNSMatrixT::Initialize: not enough memory" << endl;
-		}
-		throw error;
+	catch (ExceptionT::CodeT error) {
+		ExceptionT::Throw(error, caller);
 	}	
 
 	/* compute matrix structure and return dimensions */
-	int meanband;
-	int band;
-	ComputeSize(fNumberOfTerms, meanband, band);
-
-	/* output */
-	fOut << " Number of terms in global matrix. . . . . . . . = " << fNumberOfTerms << '\n';
-	fOut << " Mean half bandwidth . . . . . . . . . . . . . . = " << meanband << '\n';
-	fOut << " Bandwidth . . . . . . . . . . . . . . . . . . . = " << band     << '\n';
-
+	ComputeSize(fNumberOfTerms, fMeanBand, fBand);
 
 	/* allocate */	
 	if (fu != NULL) delete[] fu;
@@ -108,21 +96,38 @@ void CCNSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 		d_memory.Dimension(fNumberOfTerms);
 		d_memory.ReleasePointer(&fMatrix);
 	}	
-	catch (ExceptionT::CodeT error)
-	{
-		if (error == ExceptionT::kOutOfMemory)
-		{
-			cout << "\n CCNSMatrixT::Initialize: not enough memory" << endl;
-			fOut << "\n CCNSMatrixT::Initialize: not enough memory" << endl;
-		}
-		throw error;
+	catch (ExceptionT::CodeT error) {
+		ExceptionT::Throw(error, caller);
 	}	
 	
 	/* set pointers */
 	fKU = fMatrix;
 	fKL = fKU + famax[fLocNumEQ];
 	fKD = fKL + famax[fLocNumEQ];
+
+	/* clear stored equation sets in preparation for next time
+	 * matrix is configured */
+	fEqnos.Clear();
+	fRaggedEqnos.Clear();
 	
+	/* set flag */
+	fIsFactorized = false;
+}
+
+/* write information to output stream */
+void CCNSMatrixT::Info(ostream& out)
+{
+	/* inherited */
+	GlobalMatrixT::Info(out);
+
+	/* output */
+	out << " Number of terms in global matrix. . . . . . . . = " << fNumberOfTerms << '\n';
+	out << " Mean half bandwidth . . . . . . . . . . . . . . = " << fMeanBand << '\n';
+	out << " Bandwidth . . . . . . . . . . . . . . . . . . . = " << fBand     << '\n';
+
+#if 0
+//NOTE: since equation sets are cleared in Initialize, we can't
+//      compute fill-in here
 	int computefilledin = 1;
 	if (computefilledin)
 	{
@@ -131,18 +136,11 @@ void CCNSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 			(100.0*filledelements)/fNumberOfTerms : 
 			0.0;
 
-		fOut << " Storage efficiency (% non-zero) . . . . . . . . = ";
-		fOut << percent_fill << '\n';
+		out << " Storage efficiency (% non-zero) . . . . . . . . = ";
+		out << percent_fill << '\n';
 	}
-	/* flush stream */
-	fOut << endl;
-
-	/* clear stored equation sets */
-	fEqnos.Clear();
-	fRaggedEqnos.Clear();
-	
-	/* set flag */
-	fIsFactorized = false;
+#endif
+	out << endl;
 }
 
 /* set all matrix volues to 0.0 */
@@ -152,7 +150,7 @@ void CCNSMatrixT::Clear(void)
 	GlobalMatrixT::Clear();
 
 	/* byte set */
-	memset(fMatrix, 0, sizeof(double)*fNumberOfTerms);
+	if (fMatrix) memset(fMatrix, 0, sizeof(double)*fNumberOfTerms);
 	fIsFactorized = false;
 }
 
@@ -368,8 +366,10 @@ CCNSMatrixT& CCNSMatrixT::operator=(const CCNSMatrixT& rhs)
 	fKL = fKU + famax[fLocNumEQ];
 	fKD = fKL + famax[fLocNumEQ];
 
-	/* copy flag */
+	/* copy info */
 	fIsFactorized = rhs.fIsFactorized;
+	fBand = rhs.fBand;
+	fMeanBand = rhs.fMeanBand;
 
 	return *this;
 }
