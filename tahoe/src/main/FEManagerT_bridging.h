@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.4.2.2 2003-05-24 14:39:15 hspark Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.4.2.3 2003-05-25 00:23:59 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -60,6 +60,13 @@ public:
 	/*@{*/
 	/** initialize the ghost node information */
 	void InitGhostNodes(void);
+
+	/** prescribe the motion of ghost nodes. Generate KBC cards to control the
+	 * ghost node motion. Assumes all components of the ghost node motion are
+	 * prescribed, and that all are prescribed with the same KBC_CardT::CodeT. 
+	 * Ghost node information must be initialized by calling 
+	 * FEManagerT_bridging::InitGhostNodes first. */
+	void SetGhostNodeKBC(KBC_CardT::CodeT code, const dArray2DT& values);
 
 	/** return list of ghost nodes */
 	const iArrayT& GhostNodes(void) const { return fGhostNodes; };
