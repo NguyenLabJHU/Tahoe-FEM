@@ -38,23 +38,23 @@ public:
 
   /* ELEMENTS */
   virtual int  NumGlobalElements (void) const;
-  virtual int  NumElements (StringT& name);
-  virtual int  NumElementNodes (StringT& name);
-  virtual int  NumElementQuadPoints (StringT& name);
+  virtual int  NumElements (const StringT& name);
+  virtual int  NumElementNodes (const StringT& name);
+  virtual int  NumElementQuadPoints (const StringT& name);
   virtual void ReadAllElementMap (iArrayT& elemmap);
-  virtual void ReadGlobalElementMap (StringT& name, iArrayT& elemmap);
-  virtual void ReadGlobalElementSet (StringT& name, iArrayT& set);
-  virtual void ReadConnectivity (StringT& name, iArray2DT& connects);
-  virtual void ReadGeometryCode (StringT& name, GeometryT::CodeT& geocode);
+  virtual void ReadGlobalElementMap (const StringT& name, iArrayT& elemmap);
+  virtual void ReadGlobalElementSet (const StringT& name, iArrayT& set);
+  virtual void ReadConnectivity (const StringT& name, iArray2DT& connects);
+  virtual void ReadGeometryCode (const StringT& name, GeometryT::CodeT& geocode);
 
-  virtual int  NumNodesInSet (StringT& name);
-  virtual void ReadNodeSet (StringT& name, iArrayT& nodes);
+  virtual int  NumNodesInSet (const StringT& name);
+  virtual void ReadNodeSet (const StringT& name, iArrayT& nodes);
 
   virtual bool AreSideSetsLocal (void) const;
-  virtual int  NumSidesInSet (StringT& setname) const;
-  virtual StringT SideSetGroupName (StringT& setname) const;
-  virtual void ReadSideSetLocal (StringT& setname, iArray2DT& sides) const;
-  virtual void ReadSideSetGlobal (StringT& setname, iArray2DT& sides) const;
+  virtual int  NumSidesInSet (const StringT& setname) const;
+  virtual StringT SideSetGroupName (const StringT& setname) const;
+  virtual void ReadSideSetLocal (const StringT& setname, iArray2DT& sides) const;
+  virtual void ReadSideSetGlobal (const StringT& setname, iArray2DT& sides) const;
   
   /* record[0] = progname, record[1] = version, record[2] = date, record[3] = time */
   virtual void QARecords (ArrayT<StringT>& records);
@@ -67,9 +67,9 @@ public:
   virtual int  NumElementVariables (void) const;
   virtual int  NumQuadratureVariables (void) const;
 
-  virtual void NodeVariablesUsed (StringT& name, iArrayT& used);
-  virtual void ElementVariablesUsed (StringT& name, iArrayT& used);
-  virtual void QuadratureVariablesUsed (StringT& name, iArrayT& used);  
+  virtual void NodeVariablesUsed (const StringT& name, iArrayT& used);
+  virtual void ElementVariablesUsed (const StringT& name, iArrayT& used);
+  virtual void QuadratureVariablesUsed (const StringT& name, iArrayT& used);  
 
   virtual void ReadNodeLabels (ArrayT<StringT>& labels) const;
   virtual void ReadElementLabels (ArrayT<StringT>& elabels) const;
@@ -77,20 +77,20 @@ public:
 
   /* step starts at zero and increases by one */
   virtual void ReadAllNodeVariable (int step, int varindex, dArrayT& values);
-  virtual void ReadNodeVariable (int step, StringT& name, int varindex, dArrayT& values);
+  virtual void ReadNodeVariable (int step, const StringT& name, int varindex, dArrayT& values);
   virtual void ReadAllNodeVariables (int step, dArray2DT& nvalues);
-  virtual void ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues);
-  virtual void ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& nvalues);
+  virtual void ReadNodeVariables (int step, const StringT& name, dArray2DT& nvalues);
+  virtual void ReadNodeSetVariables (int step, const StringT& nsetname, dArray2DT& nvalues);
 
   virtual void ReadAllElementVariable (int step, int varindex, dArrayT& values);
-  virtual void ReadElementVariable (int step, StringT& name, int varindex, dArrayT& values);
+  virtual void ReadElementVariable (int step, const StringT& name, int varindex, dArrayT& values);
   virtual void ReadAllElementVariables (int step, dArray2DT& evalues);
-  virtual void ReadElementVariables (int step, StringT& name, dArray2DT& evalues);
+  virtual void ReadElementVariables (int step, const StringT& name, dArray2DT& evalues);
 
   virtual void ReadAllQuadratureVariable (int step, int varindex, dArrayT& values);
-  virtual void ReadQuadratureVariable (int step, StringT& name, int varindex, dArrayT& values);
+  virtual void ReadQuadratureVariable (int step, const StringT& name, int varindex, dArrayT& values);
   virtual void ReadAllQuadratureVariables (int step, dArray2DT& qvalues);
-  virtual void ReadQuadratureVariables (int step, StringT& name, dArray2DT& qvalues);
+  virtual void ReadQuadratureVariables (int step, const StringT& name, dArray2DT& qvalues);
 
  private:
   bool OpenFile (ifstreamT& in, const char *ext) const;
@@ -126,42 +126,42 @@ inline int InputFEASCIIT::NumNodes (void) const
 { return fNumNodes; }
 inline int InputFEASCIIT::NumDimensions (void) const
 { return fNumDOF; }
-inline int InputFEASCIIT::NumElementQuadPoints(StringT& name)
+inline int InputFEASCIIT::NumElementQuadPoints(const StringT& name)
 { 
 #pragma unused(name)
 	return 0; 
 }
 inline int InputFEASCIIT::NumGlobalElements (void) const
 { return fNumElements; }
-inline int InputFEASCIIT::NumNodesInSet (StringT& name)
+inline int InputFEASCIIT::NumNodesInSet (const StringT& name)
 {
 #pragma unused (name)
   return 0;
 }
-inline void InputFEASCIIT::ReadNodeSet (StringT& name, iArrayT& nodes)
+inline void InputFEASCIIT::ReadNodeSet (const StringT& name, iArrayT& nodes)
 {
 #pragma unused (name)
   nodes.Free();
 }
 inline bool InputFEASCIIT::AreSideSetsLocal (void) const
 { return true; }
-inline int InputFEASCIIT::NumSidesInSet (StringT& setname) const
+inline int InputFEASCIIT::NumSidesInSet (const StringT& setname) const
 { 
 #pragma unused (setname)
   return 0; 
 }
-inline StringT InputFEASCIIT::SideSetGroupName (StringT& setname) const
+inline StringT InputFEASCIIT::SideSetGroupName (const StringT& setname) const
 { 
 #pragma unused (setname)
   StringT s = "";
   return s;
 }
-inline void InputFEASCIIT::ReadSideSetLocal (StringT& setname, iArray2DT& sides) const
+inline void InputFEASCIIT::ReadSideSetLocal (const StringT& setname, iArray2DT& sides) const
 {
 #pragma unused (setname)
   sides.Free ();
 }
-inline void InputFEASCIIT::ReadSideSetGlobal (StringT& setname, iArray2DT& sides) const
+inline void InputFEASCIIT::ReadSideSetGlobal (const StringT& setname, iArray2DT& sides) const
 {
 #pragma unused (setname)
   sides.Free ();
@@ -178,14 +178,14 @@ inline int InputFEASCIIT::NumElementVariables (void) const
 { return fElementVariable.Length(); }
 inline int InputFEASCIIT::NumQuadratureVariables (void) const
 { return 0; }
-inline void InputFEASCIIT::QuadratureVariablesUsed (StringT& name, iArrayT& used)
+inline void InputFEASCIIT::QuadratureVariablesUsed (const StringT& name, iArrayT& used)
 {
 #pragma unused (name)
   used = 0;
 }
 inline void InputFEASCIIT::ReadQuadratureLabels (ArrayT<StringT>& qlabels) const
 { qlabels.Free(); }
-inline void InputFEASCIIT::ReadNodeSetVariables (int step, StringT& name, dArray2DT& nvalues)
+inline void InputFEASCIIT::ReadNodeSetVariables (int step, const StringT& name, dArray2DT& nvalues)
 {
 #pragma unused (step)
 #pragma unused (name)
@@ -197,7 +197,7 @@ inline void InputFEASCIIT::ReadAllQuadratureVariable (int step, int varindex, dA
 #pragma unused (varindex)
   values.Free();
 }
-inline void InputFEASCIIT::ReadQuadratureVariable (int step, StringT& name, int varindex, dArrayT& values)
+inline void InputFEASCIIT::ReadQuadratureVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
 #pragma unused (step)
 #pragma unused (name)
@@ -209,7 +209,7 @@ inline void InputFEASCIIT::ReadAllQuadratureVariables (int step, dArray2DT& vals
 #pragma unused (step)
   vals.Free();
 }
-inline void InputFEASCIIT::ReadQuadratureVariables (int step, StringT& name, dArray2DT& vals)
+inline void InputFEASCIIT::ReadQuadratureVariables (int step, const StringT& name, dArray2DT& vals)
 {
 #pragma unused (step)
 #pragma unused (name)

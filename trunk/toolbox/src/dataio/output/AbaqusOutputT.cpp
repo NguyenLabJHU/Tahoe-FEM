@@ -1,4 +1,4 @@
-/* $Id: AbaqusOutputT.cpp,v 1.3 2001-12-16 23:57:05 paklein Exp $ */
+/* $Id: AbaqusOutputT.cpp,v 1.4 2002-01-27 18:38:14 paklein Exp $ */
 /* created: sawimme (05/31/2000)                                          */
 
 #include "AbaqusOutputT.h"
@@ -85,11 +85,11 @@ const dArray2DT& e_values)
     }
 
   // break up variables by block
-  const iArrayT& blockids = fElementSets[ID]->BlockID();
+  const ArrayT<StringT>& blockids = fElementSets[ID]->BlockID();
   int elstart = 1;
   for (int ec=0; ec < fElementSets[ID]->NumBlocks(); ec++)
     {
-      const iArray2DT* connects = fElementSets[ID]->Connectivities(ec);
+      const iArray2DT* connects = fElementSets[ID]->Connectivities(blockids[ec]);
       int numelemnodes = connects->MinorDim();
       StringT setname = "Grp";
       setname.Append (blockids[ec]);
@@ -132,11 +132,11 @@ const dArray2DT& e_values)
 	  SetRecordKey (aba, e_labels, ekeys);
 	  
 	  // collect by block
-	  dArray2DT blockvals (fElementSets[ID]->NumBlockElements(ec), e_values.MinorDim());
+	  dArray2DT blockvals (fElementSets[ID]->NumBlockElements(blockids[ec]), e_values.MinorDim());
 	  ElementBlockValues (ID, ec, e_values, blockvals);
 
 	  // collect element IDs used
-	  iArrayT els_used (fElementSets[ID]->NumBlockElements(ec));
+	  iArrayT els_used (fElementSets[ID]->NumBlockElements(blockids[ec]));
 	  els_used.SetValueToPosition();
 	  els_used += elstart;
 
@@ -155,7 +155,7 @@ const dArray2DT& e_values)
 		}
 	    }
 	}
-      elstart += fElementSets[ID]->NumBlockElements(ec);
+      elstart += fElementSets[ID]->NumBlockElements(blockids[ec]);
     }
   
   // write end increment
@@ -208,12 +208,14 @@ void AbaqusOutputT::CreateResultsFile (int ID, AbaqusResultsT& aba)
   int numnodes = fElementSets[ID]->NumNodes();
   double elemsize = 1; // default for now
   aba.Create (filename, fBinary, numelems, numnodes, elemsize);
+
+  const ArrayT<StringT>& blockids = fElementSets[ID]->BlockID();
   
   // write element records
   int startnum = 1;
   for (int ic=0; ic < fElementSets[ID]->NumBlocks(); ic++)
     {
-      const iArray2DT* connects = fElementSets[ID]->Connectivities(ic);
+      const iArray2DT* connects = fElementSets[ID]->Connectivities(blockids[ic]);
       iArray2DT unoffset = *connects;
       unoffset++;
       aba.WriteConnectivity (fElementSets[ID]->Geometry(), startnum, unoffset);
@@ -230,10 +232,9 @@ void AbaqusOutputT::CreateResultsFile (int ID, AbaqusResultsT& aba)
   
   // write element sets
   startnum = 1;
-  const iArrayT& blockids = fElementSets[ID]->BlockID();
   for (int ec=0; ec < fElementSets[ID]->NumBlocks(); ec++)
     {
-      iArrayT elem_map (fElementSets[ID]->NumBlockElements (ec));
+      iArrayT elem_map (fElementSets[ID]->NumBlockElements(blockids[ec]));
       elem_map.SetValueToPosition ();
       elem_map += startnum;
       StringT name = "Grp";
@@ -246,7 +247,7 @@ void AbaqusOutputT::CreateResultsFile (int ID, AbaqusResultsT& aba)
   for (int nc=0; nc < fElementSets[ID]->NumBlocks(); nc++)
     {
       iArrayT nodemap;
-      nodemap.Alias(fElementSets[ID]->BlockNodesUsed(nc));
+      nodemap.Alias(fElementSets[ID]->BlockNodesUsed(blockids[nc]));
       nodemap++;
       StringT name = "Grp";
       name.Append (blockids[nc]);

@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.h,v 1.10 2002-01-23 20:01:58 sawimme Exp $ */
+/* $Id: AbaqusInputT.h,v 1.11 2002-01-27 18:38:11 paklein Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _ABAQUSINPUT_T_H_
@@ -41,23 +41,23 @@ class AbaqusInputT : public InputBaseT
   void ReadCoordinates (dArray2DT& coords, iArrayT& nodemap);
 
   int  NumGlobalElements (void) const;
-  int  NumElements (StringT& name);
-  int  NumElementNodes (StringT& name);
-  int  NumElementQuadPoints (StringT& name);
+  int  NumElements (const StringT& name);
+  int  NumElementNodes (const StringT& name);
+  int  NumElementQuadPoints (const StringT& name);
   void ReadAllElementMap (iArrayT& elemmap);
-  void ReadGlobalElementMap (StringT& name, iArrayT& elemmap);
-  void ReadGlobalElementSet (StringT& name, iArrayT& map);
-  void ReadConnectivity (StringT& name, iArray2DT& connects);
-  void ReadGeometryCode (StringT& name, GeometryT::CodeT& geocode);
+  void ReadGlobalElementMap (const StringT& name, iArrayT& elemmap);
+  void ReadGlobalElementSet (const StringT& name, iArrayT& map);
+  void ReadConnectivity (const StringT& name, iArray2DT& connects);
+  void ReadGeometryCode (const StringT& name, GeometryT::CodeT& geocode);
 
-  int  NumNodesInSet (StringT& name);
-  void ReadNodeSet (StringT& name, iArrayT& nodes);
+  int  NumNodesInSet (const StringT& name);
+  void ReadNodeSet (const StringT& name, iArrayT& nodes);
 
   bool AreSideSetsLocal (void) const;
-  int  NumSidesInSet (StringT& setname) const;
-  StringT SideSetGroupName (StringT& setname) const;
-  void ReadSideSetLocal (StringT& setname, iArray2DT& sides) const;
-  void ReadSideSetGlobal (StringT& setname, iArray2DT& sides) const;
+  int  NumSidesInSet (const StringT& setname) const;
+  StringT SideSetGroupName (const StringT& setname) const;
+  void ReadSideSetLocal (const StringT& setname, iArray2DT& sides) const;
+  void ReadSideSetGlobal (const StringT& setname, iArray2DT& sides) const;
 
   void QARecords (ArrayT<StringT>& records);
 
@@ -72,25 +72,25 @@ class AbaqusInputT : public InputBaseT
   void ReadElementLabels (ArrayT<StringT>& elabels) const;
   void ReadQuadratureLabels (ArrayT<StringT>& qlabels) const;  
 
-  void NodeVariablesUsed (StringT& name, iArrayT& used);
-  void ElementVariablesUsed (StringT& name, iArrayT& used);
-  void QuadratureVariablesUsed (StringT& name, iArrayT& used);  
+  void NodeVariablesUsed (const StringT& name, iArrayT& used);
+  void ElementVariablesUsed (const StringT& name, iArrayT& used);
+  void QuadratureVariablesUsed (const StringT& name, iArrayT& used);  
 
   void ReadAllNodeVariable (int step, int varindex, dArrayT& values);
-  void ReadNodeVariable (int step, StringT& name, int varindex, dArrayT& values);
+  void ReadNodeVariable (int step, const StringT& name, int varindex, dArrayT& values);
   void ReadAllNodeVariables (int step, dArray2DT& nvalues);
-  void ReadNodeVariables (int step, StringT& elsetname, dArray2DT& nvalues);
-  void ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& nvalues);
+  void ReadNodeVariables (int step, const StringT& elsetname, dArray2DT& nvalues);
+  void ReadNodeSetVariables (int step, const StringT& nsetname, dArray2DT& nvalues);
 
   void ReadAllElementVariable (int step, int varindex, dArrayT& values);
-  void ReadElementVariable (int step, StringT& name, int varindex, dArrayT& values);
+  void ReadElementVariable (int step, const StringT& name, int varindex, dArrayT& values);
   void ReadAllElementVariables (int step, dArray2DT& evalues);
-  void ReadElementVariables (int step, StringT& name, dArray2DT& evalues);
+  void ReadElementVariables (int step, const StringT& name, dArray2DT& evalues);
 
   void ReadAllQuadratureVariable (int step, int varindex, dArrayT& values);
-  void ReadQuadratureVariable (int step, StringT& name, int varindex, dArrayT& values);
+  void ReadQuadratureVariable (int step, const StringT& name, int varindex, dArrayT& values);
   void ReadAllQuadratureVariables (int step, dArray2DT& qvalues);
-  void ReadQuadratureVariables (int step, StringT& name, dArray2DT& qvalues);
+  void ReadQuadratureVariables (int step, const StringT& name, dArray2DT& qvalues);
 
 private:
   void SetLabelName (const iArrayT& key, const iArrayT& dims, ArrayT<StringT>& name) const;
@@ -113,37 +113,37 @@ inline int AbaqusInputT::NumNodeSets (void) const { return fData.NumNodeSets ();
 inline int AbaqusInputT::NumNodes (void) const { return fNumNodes; }
 inline int AbaqusInputT::NumGlobalElements (void) const { return fNumElements; }
 inline bool AbaqusInputT::AreSideSetsLocal (void) const { return false; }
-inline  int  AbaqusInputT::NumSidesInSet (StringT& setname)  const
+inline  int  AbaqusInputT::NumSidesInSet (const StringT& setname)  const
 { 
 #pragma unused (setname)
   return 0; 
 }
-inline  StringT AbaqusInputT::SideSetGroupName (StringT& setname)  const
+inline  StringT AbaqusInputT::SideSetGroupName (const StringT& setname)  const
 { 
 #pragma unused (setname)
   StringT name ("");
   return name; 
 }
-inline  void AbaqusInputT::ReadSideSetLocal (StringT& setname, iArray2DT& sides) const
+inline  void AbaqusInputT::ReadSideSetLocal (const StringT& setname, iArray2DT& sides) const
 {
 #pragma unused (setname)
   sides.Free();
 }
-inline  void AbaqusInputT::ReadSideSetGlobal (StringT& setname, iArray2DT& sides) const
+inline  void AbaqusInputT::ReadSideSetGlobal (const StringT& setname, iArray2DT& sides) const
 {
 #pragma unused (setname)
   sides.Free();
 }
 inline int AbaqusInputT::NumDimensions (void) const { return 3; }
-inline int AbaqusInputT::NumElements (StringT& name) { return fData.NumElements (name); }
-inline int AbaqusInputT::NumElementNodes (StringT& name) { return fData.NumElementNodes (name); }
-inline int AbaqusInputT::NumElementQuadPoints (StringT& name) { return fData.NumElementQuadPoints (name); }
+inline int AbaqusInputT::NumElements (const StringT& name) { return fData.NumElements (name); }
+inline int AbaqusInputT::NumElementNodes (const StringT& name) { return fData.NumElementNodes (name); }
+inline int AbaqusInputT::NumElementQuadPoints (const StringT& name) { return fData.NumElementQuadPoints (name); }
 inline int AbaqusInputT::NumQuadratureVariables (void) const { return fData.NumQuadratureVariables (); }
 inline int AbaqusInputT::NumNodeVariables (void) const { return fData.NumNodeVariables (); }
 inline int AbaqusInputT::NumElementVariables (void) const { return fData.NumElementVariables (); }
 inline int AbaqusInputT::NumTimeSteps (void) const { return (fNumModes > 0) ? fNumModes : fNumTimeSteps; }
-inline int AbaqusInputT::NumNodesInSet (StringT& name) { return fData.NumNodesInSet (name); }
-inline void AbaqusInputT::ReadGeometryCode (StringT& name, GeometryT::CodeT& geocode) { fData.GeometryCode (name, geocode); }
+inline int AbaqusInputT::NumNodesInSet (const StringT& name) { return fData.NumNodesInSet (name); }
+inline void AbaqusInputT::ReadGeometryCode (const StringT& name, GeometryT::CodeT& geocode) { fData.GeometryCode (name, geocode); }
 inline void AbaqusInputT::QARecords (ArrayT<StringT>& records) { fData.VersionNotes (records); }
 
 #endif

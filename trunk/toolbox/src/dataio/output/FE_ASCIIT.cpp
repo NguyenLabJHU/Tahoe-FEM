@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.cpp,v 1.4 2002-01-09 12:15:28 paklein Exp $ */
+/* $Id: FE_ASCIIT.cpp,v 1.5 2002-01-27 18:38:14 paklein Exp $ */
 /* created: sawimme (05/20/1999) */
 
 #include "FE_ASCIIT.h"
@@ -53,15 +53,15 @@ void FE_ASCIIT::WriteGeometry(void)
 	
 	for (int e=0; e < fElementSets.Length(); e++)
 	  {
-	    const iArrayT& blockIDs = fElementSets[e]->BlockID();
+	    const ArrayT<StringT>& blockIDs = fElementSets[e]->BlockID();
 	    for (int b=0; b < fElementSets[e]->NumBlocks(); b++)
 	      {
-		const iArray2DT* c = fElementSets[e]->Connectivities(b);
+		const iArray2DT* c = fElementSets[e]->Connectivities(blockIDs[b]);
 		iArray2DT conn = *c;
 		
 		iArrayT tmp(conn.Length(), conn.Pointer());
 		tmp++;
-		mf.PutElementSet (blockIDs[b], conn);
+		mf.PutElementSet(atoi(blockIDs[b]), conn);
 		tmp--;
 	      }
 	  }
@@ -78,7 +78,7 @@ void FE_ASCIIT::WriteGeometry(void)
 	  {
 	    iArray2DT& set = *((iArray2DT*) fSideSets[s]);
 	    set++;
-	    int block_ID = fElementSets[fSSGroupID[s]]->ID();
+	    int block_ID = atoi(fElementSets[fSSGroupID[s]]->ID()); //NOTE: output set ID used for side sets?
 	    mf.PutSideSet (fSideSetIDs[s], block_ID, set);
 	    set--;
 	  }
@@ -202,11 +202,11 @@ void FE_ASCIIT::WriteGeometryData(ostream& out, int ID)
 		coord_labels[i].Append(i+1);
 	}
 
-	const iArrayT& blockIDs = fElementSets[ID]->BlockID();
+	const ArrayT<StringT>& blockIDs = fElementSets[ID]->BlockID();
 	for (int b=0; b < fElementSets[ID]->NumBlocks(); b++)
 	  {
 	    /* write coordinates */
-	    const iArrayT& nodes_used = fElementSets[ID]->BlockNodesUsed(b);
+	    const iArrayT& nodes_used = fElementSets[ID]->BlockNodesUsed(blockIDs[b]);
 	    dArray2DT local_coordinates(nodes_used.Length(), nsd);
 	    local_coordinates.RowCollect(nodes_used, *fCoordinates);
 	
@@ -217,7 +217,7 @@ void FE_ASCIIT::WriteGeometryData(ostream& out, int ID)
 	    WriteNodeValues(out, nodes_used, local_coordinates);
 	
 	    /* write connectivities */
-	    const iArray2DT* c = fElementSets[ID]->Connectivities(b);
+	    const iArray2DT* c = fElementSets[ID]->Connectivities(blockIDs[b]);
 	    out << "\n Connectivities:\n";
 	    out << " Block number . . . .  . . . . . . . . . . . . . = "
 		<< blockIDs[b] << '\n';
@@ -245,7 +245,7 @@ void FE_ASCIIT::WriteGeometryData(ostream& out, int ID)
 void FE_ASCIIT::WriteOutputData(ostream& out, int ID, const dArray2DT& n_values,
 	const dArray2DT& e_values)
 {
-	const iArrayT& blockIDs = fElementSets[ID]->BlockID();
+	const ArrayT<StringT>& blockIDs = fElementSets[ID]->BlockID();
 	for (int b=0; b < fElementSets[ID]->NumBlocks(); b++)
 	  {
 	    /* write node header */
@@ -279,7 +279,7 @@ void FE_ASCIIT::WriteOutputData(ostream& out, int ID, const dArray2DT& n_values,
 	    if (e_values.MajorDim() > 0)
 		{
 			/* collect block values */
-			dArray2DT local_vals(fElementSets[ID]->NumBlockElements (b), e_values.MinorDim());
+			dArray2DT local_vals(fElementSets[ID]->NumBlockElements(blockIDs[b]), e_values.MinorDim());
 			ElementBlockValues(ID, b, e_values, local_vals);
 			
 			/* write */

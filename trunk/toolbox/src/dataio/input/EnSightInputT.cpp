@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.cpp,v 1.9 2002-01-23 20:01:59 sawimme Exp $ */
+/* $Id: EnSightInputT.cpp,v 1.10 2002-01-27 18:38:11 paklein Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #include "EnSightInputT.h"
@@ -186,7 +186,7 @@ int EnSightInputT::NumGlobalElements (void) const
   return num;
 }
 
-int EnSightInputT::NumElements (StringT& name)
+int EnSightInputT::NumElements (const StringT& name)
 {
   int part, ID = atoi (name.Pointer());
   cout << ID << endl;
@@ -196,7 +196,7 @@ int EnSightInputT::NumElements (StringT& name)
   return fPartDimensions (part, kNumElements);
 }
 
-int EnSightInputT::NumElementNodes (StringT& name)
+int EnSightInputT::NumElementNodes (const StringT& name)
 {
   int group = atoi (name.Pointer());
 
@@ -270,7 +270,7 @@ void EnSightInputT::ReadAllElementMap (iArrayT& elemmap)
     }
 }
 
-void EnSightInputT::ReadGlobalElementMap (StringT& name, iArrayT& elementmap)
+void EnSightInputT::ReadGlobalElementMap (const StringT& name, iArrayT& elementmap)
 {
   int group = atoi (name.Pointer());
   ScanGeometryFile();
@@ -309,13 +309,13 @@ void EnSightInputT::ReadGlobalElementMap (StringT& name, iArrayT& elementmap)
     }
 }
 
-void EnSightInputT::ReadGlobalElementSet (StringT& name, iArrayT& set)
+void EnSightInputT::ReadGlobalElementSet (const StringT& name, iArrayT& set)
 {
   ReadGlobalElementMap (name, set);
   set += -1;
 }
 
-void EnSightInputT::ReadConnectivity (StringT& name, iArray2DT& connects)
+void EnSightInputT::ReadConnectivity (const StringT& name, iArray2DT& connects)
 {
   int group = atoi (name.Pointer());
   ScanGeometryFile();
@@ -349,7 +349,7 @@ void EnSightInputT::ReadConnectivity (StringT& name, iArray2DT& connects)
   connects += offset - 1;
 }
 
-void EnSightInputT::ReadGeometryCode (StringT& name, GeometryT::CodeT& geocode)
+void EnSightInputT::ReadGeometryCode (const StringT& name, GeometryT::CodeT& geocode)
 {
   int group = atoi (name.Pointer());
   ScanGeometryFile();
@@ -460,7 +460,7 @@ void EnSightInputT::ReadElementLabels (ArrayT<StringT>& elabels) const
     elabels[j] = el[j];
 }
 
-void EnSightInputT::NodeVariablesUsed (StringT& name, iArrayT& used)
+void EnSightInputT::NodeVariablesUsed (const StringT& name, iArrayT& used)
 { 
   used = 0;
 
@@ -476,7 +476,7 @@ void EnSightInputT::NodeVariablesUsed (StringT& name, iArrayT& used)
   VariableUsed (name, used, nl, nvector, true);
 }
 
-void EnSightInputT::ElementVariablesUsed (StringT& name, iArrayT& used)
+void EnSightInputT::ElementVariablesUsed (const StringT& name, iArrayT& used)
 { 
   used = 0;
 
@@ -508,7 +508,7 @@ void EnSightInputT::ReadAllNodeVariable (int step, int varindex, dArrayT& values
     }
 }
 
-void EnSightInputT::ReadNodeVariable (int step, StringT& name, int varindex, dArrayT& values)
+void EnSightInputT::ReadNodeVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
   int group_id, currentinc;
   VarPrelims_Geo (step, name, group_id, currentinc);
@@ -546,7 +546,7 @@ void EnSightInputT::ReadAllNodeVariables (int step, dArray2DT& nvalues)
     }
 }
 
-void EnSightInputT::ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues)
+void EnSightInputT::ReadNodeVariables (int step, const StringT& name, dArray2DT& nvalues)
 {
   int group_id, currentinc;
   VarPrelims_Geo (step, name, group_id, currentinc);
@@ -583,7 +583,7 @@ void EnSightInputT::ReadAllElementVariable (int step, int varindex, dArrayT& val
     }
 }
 
-void EnSightInputT::ReadElementVariable (int step, StringT& name, int varindex, dArrayT& values)
+void EnSightInputT::ReadElementVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
   int group_id, currentinc;
   VarPrelims_Geo (step, name, group_id, currentinc);
@@ -621,7 +621,7 @@ void EnSightInputT::ReadAllElementVariables (int step, dArray2DT& evalues)
     }
 }
 
-void EnSightInputT::ReadElementVariables (int step, StringT& name, dArray2DT& evalues)
+void EnSightInputT::ReadElementVariables (int step, const StringT& name, dArray2DT& evalues)
 {
   int group_id, currentinc;
   VarPrelims_Geo (step, name, group_id, currentinc);
@@ -716,7 +716,7 @@ int EnSightInputT::ComponentIndex (int varindex, ArrayT<StringT>& labels) const
   return 0;
 }
 
-void EnSightInputT::VarPrelims_Geo (int step, StringT& name, int& group_id, int& currentinc)
+void EnSightInputT::VarPrelims_Geo (int step, const StringT& name, int& group_id, int& currentinc)
 {
   group_id = atoi (name.Pointer());
   // set fStartIncrement
@@ -746,7 +746,7 @@ void EnSightInputT::VarPrelims_Case (AutoArrayT<bool>& vector, AutoArrayT<String
     fData.ReadVariableSection (incase, templabel, labels, tempvector, vector, true);
 }
 
-void EnSightInputT::ReadOneVariableData (int component, StringT& label, int group_id, dArrayT& values, int currentinc, bool nodal) const
+void EnSightInputT::ReadOneVariableData (int component, const StringT& label, int group_id, dArrayT& values, int currentinc, bool nodal) const
 {
   StringT filename = CreateVariableFile (label, currentinc);
   ifstream in (filename);
@@ -849,7 +849,7 @@ void EnSightInputT::ReadVariableData (ArrayT<bool>& vector, ArrayT<StringT>& lab
     }
 }
 
-void EnSightInputT::VariableUsed (StringT& name, iArrayT& used, ArrayT<StringT>& labels, ArrayT<bool>& vector, bool nodal) const
+void EnSightInputT::VariableUsed (const StringT& name, iArrayT& used, ArrayT<StringT>& labels, ArrayT<bool>& vector, bool nodal) const
 {
   // examine each variable file for entries with this part
   int group_id = atoi (name.Pointer());

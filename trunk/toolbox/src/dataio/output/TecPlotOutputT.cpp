@@ -1,4 +1,4 @@
-/* $Id: TecPlotOutputT.cpp,v 1.2 2001-12-16 23:57:06 paklein Exp $ */
+/* $Id: TecPlotOutputT.cpp,v 1.3 2002-01-27 18:38:14 paklein Exp $ */
 /* created: sawimme (06/06/2000)                                          */
 
 #include "TecPlotOutputT.h"
@@ -37,18 +37,18 @@ void TecPlotOutputT::WriteGeometry(void)
   for (int e=0; e < fElementSets.Length(); e++)
     if (fElementSets[e]->NumNodes() > 0)
       {
-	const iArrayT& blockIDs = fElementSets[e]->BlockID();
+	const ArrayT<StringT>& blockIDs = fElementSets[e]->BlockID();
 	for (int b=0; b < fElementSets[e]->NumBlocks(); b++)
 	  {
 	    // nodes used by this block
-	    const iArrayT& nodes_used = fElementSets[e]->BlockNodesUsed(b);
+	    const iArrayT& nodes_used = fElementSets[e]->BlockNodesUsed(blockIDs[b]);
 
 	    // write zone header
 	    StringT zonetitle = "Grp ";
 	    zonetitle.Append (fElementSets[e]->ID());
 	    zonetitle.Append (".", blockIDs[b]);
 	    int numnodes = nodes_used.Length();
-	    int numelems = fElementSets[e]->NumBlockElements (b);
+	    int numelems = fElementSets[e]->NumBlockElements(blockIDs[b]);
 	    tec.WriteFEZone (out, zonetitle, numnodes, numelems, fElementSets[e]->Geometry(), true);
 	
 	    // write only the nodes used by that connectivity block
@@ -57,7 +57,7 @@ void TecPlotOutputT::WriteGeometry(void)
 	    tec.WriteData (out, local_coords);
 	
 	    // write the connectivity block
-	    const iArray2DT* c = fElementSets[e]->Connectivities(b);
+	    const iArray2DT* c = fElementSets[e]->Connectivities(blockIDs[b]);
 	    iArray2DT local_connects(c->MajorDim(), c->MinorDim());
 	    LocalConnectivity(nodes_used, *c, local_connects);
 	    local_connects++;
@@ -90,19 +90,19 @@ void TecPlotOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
   tec.WriteHeader (out, fTitle, vars);
   
   // one zone per block
-  const iArrayT& blockIDs = fElementSets[ID]->BlockID();
+  const ArrayT<StringT>& blockIDs = fElementSets[ID]->BlockID();
   for (int b=0; b < fElementSets[ID]->NumBlocks(); b++)
     {
       // nodes used by this block
-      const iArrayT& nodes_used = fElementSets[ID]->BlockNodesUsed(b);
-      const iArray2DT* c = fElementSets[ID]->Connectivities(b);
+      const iArrayT& nodes_used = fElementSets[ID]->BlockNodesUsed(blockIDs[b]);
+      const iArray2DT* c = fElementSets[ID]->Connectivities(blockIDs[b]);
 
       // write zone header
       StringT zonetitle = "Grp ";
       zonetitle.Append (fElementSets[ID]->ID());
       zonetitle.Append (".", blockIDs[b]);
       int numnodes = nodes_used.Length();
-      int numelems = fElementSets[ID]->NumBlockElements (b);
+      int numelems = fElementSets[ID]->NumBlockElements (blockIDs[b]);
       tec.WriteFEZone (out, zonetitle, numnodes, numelems, fElementSets[ID]->Geometry(), true);
   
       // write coordinates
