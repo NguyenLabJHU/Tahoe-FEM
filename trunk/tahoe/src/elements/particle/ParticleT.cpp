@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.42 2004-07-15 08:29:44 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.43 2004-07-22 08:23:04 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -44,7 +44,8 @@ ParticleT::ParticleT(const ElementSupportT& support):
 	fDmax(0),
 	fForce_man(fForce),
 	fActiveParticles(NULL),
-	fTypeMessageID(CommManagerT::kNULLMessageID)
+	fTypeMessageID(CommManagerT::kNULLMessageID),
+	fLatticeParameter(-1.0)
 {
 	SetName("particle");
 
@@ -700,7 +701,7 @@ ParameterInterfaceT* ParticleT::NewSub(const StringT& name) const
 
 		/* include all particles */
 		ParameterT all_particles(ParameterT::Boolean, "all_particles");
-		all_particles.SetDefault(false);
+		all_particles.SetDefault(true);
 		particle_type->AddParameter(all_particles, ParameterListT::ZeroOrOnce);
 		
 		/* specify by node set IDs */
