@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.10 2002-08-15 08:59:36 paklein Exp $ */
+/* $Id: main.cpp,v 1.11 2002-08-15 16:49:57 sawimme Exp $ */
 /* created: paklein (05/22/1996) */
 #include <iostream.h>
 #include <fstream.h>
@@ -28,7 +28,7 @@ static void ShutDown(CommunicatorT& comm);
 
 /* redirect of cout for parallel execution */
 ofstream console;
-#ifdef __DEC__
+#if defined (__DEC__) || defined (__SUN__)
 streambuf* cout_buff = NULL,*cerr_buff = NULL;
 #endif
 
@@ -57,7 +57,7 @@ void main(int argc, char* argv[])
 static void StartUp(int* argc, char*** argv, CommunicatorT& comm)
 {
 #if !defined(_MACOS_)
-#ifdef __DEC__
+#if defined (__DEC__) || defined (__SUN__)
 	/* redirect cout and cerr */
 	if (comm.Rank() > 0)
 	{
