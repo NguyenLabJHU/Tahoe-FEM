@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.11 2001-07-13 02:17:36 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.12 2001-07-13 20:47:22 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -325,7 +325,9 @@ void MeshFreeSupportT::SetSupportParameters(const iArrayT& node, const dArray2DT
 	if (node.Length() != fCoords.MajorDim())
 	{
 		cout << "\n MeshFreeSupportT::SetSupportParameters: must initialize field parameters\n"
-		     << " for ALL nodes" << endl;
+		     <<   "     for ALL nodes. Number of nodes is " << fCoords.MajorDim() 
+		     << ". Number of nodes in the\n"
+		     <<   "     parameters list is " << node.Length() << endl;
 		throw eGeneralFail;
 	}
 
