@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.4 2001-06-23 00:52:41 thao Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.5 2001-06-23 06:24:04 paklein Exp $ */
 /* created: paklein (03/03/1997)                                          */
 
 #include "dSymMatrixT.h"
@@ -250,17 +250,19 @@ void dSymMatrixT::Eigensystem(dArrayT& val, dMatrixT& vec, bool sort_descending)
 		vec[2] = cos;
 		vec[3] = -sin;
 	}
-			
-/*	double mean = 0.5*(fArray[0] + fArray[1]);
+
+	//TEMP - keep old version for a little while
+#if 0			
+	double mean = 0.5*(fArray[0] + fArray[1]);
 	double diff = 0.5*(fArray[0] - fArray[1]);
 	double r    = sqrt(fArray[2]*fArray[2] + diff*diff);
 
 		/* eigenvalues (sorted) */
-/*	val[0] = mean + r;
+	val[0] = mean + r;
 	val[1] = mean - r;
 	
 	/* eigenvectors */
-/*	double t;
+	double t;
 	if (fabs(val[0] - val[1]) < kSmall)
 		t = 0.0;
 	else
@@ -275,7 +277,8 @@ void dSymMatrixT::Eigensystem(dArrayT& val, dMatrixT& vec, bool sort_descending)
 		vec[1] = sin(t);
 		
 		vec[2] =-vec[1];
-		vec[3] = vec[0];*/
+		vec[3] = vec[0];
+#endif
 	}
 
 	else if (fNumSD == 3)
