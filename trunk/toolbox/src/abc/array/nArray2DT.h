@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: nArray2DT.h,v 1.2 2001-01-29 07:36:00 paklein Exp $ */
 /* created: paklein (07/09/1996)                                          */
 /* nArrayT with subdimension - row major storage                          */
 
@@ -361,9 +361,8 @@ void nArray2DT<nTYPE>::SetLocal(const ArrayT<int>& rows,
 		
 	for (int i = 0; i < sublength; i++)
 	{
-		nTYPE* parray = Pointer() + prows[i]*fMinorDim;
+		nTYPE* parray = (*this)(prows[i]);
 		nTYPE* psub	 = pSub;
-
 		for (int j = 0; j < fMinorDim; j++)
 		{
 			*psub = *parray++;
