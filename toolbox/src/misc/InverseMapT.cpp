@@ -1,4 +1,4 @@
-/* $Id: InverseMapT.cpp,v 1.2 2003-05-04 22:57:33 paklein Exp $ */
+/* $Id: InverseMapT.cpp,v 1.3 2004-02-24 19:05:45 paklein Exp $ */
 #include "InverseMapT.h"
 #include "nArrayT.h"
 
@@ -29,4 +29,17 @@ void InverseMapT::SetMap(const nArrayT<int>& forward)
 		for (int i = 0; i < dim; i++)
 			inv_map[forward[i] - fShift] = i;
 	}
+}
+
+/* recover the forward map */
+void InverseMapT::Forward(ArrayT<int>& forward) const
+{
+	iArrayT tmp;
+	tmp.Alias(*this);
+	int dim = tmp.Length() - tmp.Count(-1);
+
+	int dex = 0;
+	for (int i = 0; i < tmp.Length(); i++)
+		if (tmp[i] != -1)
+			forward[dex++] = i + fShift;
 }

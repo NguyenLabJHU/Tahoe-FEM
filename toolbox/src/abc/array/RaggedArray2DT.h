@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.16 2003-11-21 23:35:57 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.17 2004-02-24 19:05:43 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 #ifndef _RAGGED_ARRAY_2D_T_H_
 #define _RAGGED_ARRAY_2D_T_H_
@@ -127,6 +127,9 @@ public:
 	 *        assumed to be at least as long as the size of the
 	 *        specified row. */
 	void SetRow(int row, const TYPE* array);
+
+	/** write value to a row of the array */
+	void SetRow(int row, const TYPE& value);
 
 	/* write rows with numbers to the output stream */
 	void WriteNumbered(ostream& out) const;
@@ -654,6 +657,15 @@ inline void RaggedArray2DT<TYPE>::SetRow(int row, const ArrayT<TYPE>& array)
 
 	SetRow(row, array.Pointer());
 }
+
+template <class TYPE>
+inline void RaggedArray2DT<TYPE>::SetRow(int row, const TYPE& value)
+{
+	TYPE* prow = fPtrs[row];
+	int dim = MinorDim(row);
+	for (int i = 0; i < dim; i++)
+		*prow++ = value;
+}			
 
 /* write rows with numbers to the output stream */
 template <class TYPE>

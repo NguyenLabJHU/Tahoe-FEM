@@ -1,4 +1,4 @@
-/* $Id: InverseMapT.h,v 1.8 2003-11-21 22:41:57 paklein Exp $ */
+/* $Id: InverseMapT.h,v 1.9 2004-02-24 19:05:45 paklein Exp $ */
 #ifndef _INVERSE_MAP_T_H_
 #define _INVERSE_MAP_T_H_
 
@@ -35,6 +35,9 @@ public:
 	void SetMap(const nArrayT<int>& forward);
 	void SetMap(const ArrayT<int>& forward);
 	/*@}*/
+	
+	/** recover the forward map */
+	void Forward(ArrayT<int>& forward) const;
 	
 	/** set the flag for handling calls to InverseMapT::Map that
 	 * are out of range */
