@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.cpp,v 1.11 2004-09-14 18:18:12 paklein Exp $ */
+/* $Id: FBC_ControllerT.cpp,v 1.12 2004-09-16 16:49:31 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 #include "FBC_ControllerT.h"
 #include "ArrayT.h"
@@ -32,6 +32,8 @@ FBC_ControllerT::CodeT FBC_ControllerT::Code(const char* name)
 		return kPenaltyCylinder;
 	else if (strcmp("augmented_Lagrangian_KBC_meshfree", name) == 0)
 		return kMFAugLagMult;
+	else if (strcmp("cylinder_augmented_Lagrangian", name) == 0)
+		return kAugLagCylinder;
 	else
 		return kNone;
 }
