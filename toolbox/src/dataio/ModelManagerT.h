@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.16 2002-02-08 22:01:34 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.17 2002-02-18 09:09:39 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -27,6 +27,17 @@ template <class TYPE> class nVariArray2DT;
 class ModelManagerT
 {
  public:
+ 
+ 	/** class constants */
+ 	enum ConstantsT {
+ 		kNotFound =-1 /**< returned by element/node/set queries if ID not found */
+ 		};
+
+	/** side set scopes */
+	enum SideSetScopeT {
+		 kLocal = 0, /**< elements numbered within the element block */
+		kGlobal = 1  /**< elements numbered with respect to all elements */
+		};
 
   /** constructor.
    * \param message error messages ostream */
@@ -67,76 +78,39 @@ class ModelManagerT
   /** return the database file format */
   IOBaseT::FileTypeT DatabaseFormat(void) const { return fFormat; };
 
-  /** InputBaseT node registration.
-   * called by InputBaseT* to register data
-   * array data will be read later from model file, null array is allocated
-   * \param length number of node points
-   * \param dof spatial degrees of freedom  */
-  bool RegisterNodes (int length, int dof);
-
-  /** InputBaseT element registration.
-   * called by InputBaseT* to register data
-   * array data will be read later from model file, null array is allocated 
-   * \param ID ID value. Names should be the string form of the database-specific
-   *        element block identifiers. 
-   * \param numelems number of elements in connectivity set
-   * \param numelemnodes number of nodes per element in set
-   * \param code geometry code of elements in set */
-  bool RegisterElementGroup (const StringT& ID, int numelems, int numelemnodes, GeometryT::CodeT code);
-
-  /** InputBaseT nodeset registration.
-   * called by InputBaseT* to register data
-   * array data will be read later from model file, null array is allocated 
-   * \param ID ID value. Names should be the string form of the database-specific
-   *        node set identifiers.
-   * \param length number of nodes in the set */
-  bool RegisterNodeSet (const StringT& ID, int length); 
-
-  /** InputBaseT sideset registration.
-   * called by InputBaseT* to register data
-   * array data will be read later from model file, null array is allocated 
-   * \param ss_ID ID value. Names should be the string form of the database-specific
-   *        side set identifiers.
-   * \param length number of facets in the set
-   * \param local true if the side set elements are locally numbered within an element group
-   * \param element_ID element group ID which contains this side set, 
-   *        or an empty string for unknown globally numbered sets */
-  bool RegisterSideSet (const StringT& ss_ID, int length, bool local, const StringT& element_ID);
-
   /** external node registration.
    * register data not found in model file, data is copied into a storage array
-   * \param coords array of coordinates */
-  bool RegisterNodes (const dArray2DT& coords);
-
-  /** external element registration.
-   * register data not found in model file, data is copied into a storage array 
-   * \param ID ID value. Names should be the string form of the database-specific
-   *        element block identifiers.
-   * \param conn array of connectivities
-   * \param code geometry code of elements in set */
-  bool RegisterElementGroup (const StringT& ID, const iArray2DT& conn, GeometryT::CodeT code);
-
-  /** external node set registration. 
-   * register data not found in model file, data is copied into a storage array
-   * \param ID ID value. Names should be the string form of the database-specific
-   *        node set identifiers.
-   * \param set array of nodes */
-  bool RegisterNodeSet (const StringT& ID, const iArrayT& set);
-
-  /** external side set registration.
-   * register data not found in model file, data is copied into a storage array
-   * \param ss_ID ID value. Names should be the string form of the database-specific
-   *        side set identifiers.
-   * \param set array of facets
-   * \param local true if the side set elements are locally numbered within an element group
-   * \param element_ID element group ID which contains this side set, or -1 for unknown globally numbered sets */
-  bool RegisterSideSet (const StringT& ss_ID, const iArray2DT& set, bool local, const StringT& element_ID);
+   * \param coords array of coordinates 
+   * \param keep flag to control memory allocation. If keep is true and coords
+   *        is not an alias, the model manager will take ownership of the
+   *        memory in coords. coords will be passed back as an alias. Otherwise
+   *        the data in coords will be copied. */
+  bool RegisterNodes(dArray2DT& coords, bool keep);
 
   /** parameter file node registration.
    * called by functions that are reading the Tahoe parameter file, if the database format
    * is inline or external file data. Data is read into a storage array.
    * \param in stream containing data or external file name */
   bool RegisterNodes (ifstreamT& in);
+
+	/** number of nodes */
+	int NumNodes(void) const;
+
+	/** number of spatial dimensions */
+	int NumDimensions (void) const;
+
+  /** external element registration.
+   * register data not found in model file, data is copied into a storage array 
+   * \param ID ID value. Names should be the string form of the database-specific
+   *        element block identifiers.
+   * \param conn array of connectivities
+   * \param code geometry code of elements in set
+   * \param keep flag to control memory allocation. If keep is true and conn
+   *        is not an alias, the model manager will take ownership of the
+   *        memory in conn. conn will be passed back as an alias. Otherwise
+   *        the data in conn will be copied. */
+  bool RegisterElementGroup (const StringT& ID, iArray2DT& conn, GeometryT::CodeT code, 
+  	bool keep);
 
   /** parameter file element registration.
    * called by functions that are reading the Tahoe parameter file, if the database format
@@ -147,6 +121,17 @@ class ModelManagerT
    * \param code geometry code of elements in set */
   bool RegisterElementGroup (ifstreamT& in, const StringT& ID, GeometryT::CodeT code);
 
+  /** external node set registration. 
+   * register data not found in model file, data is copied into a storage array
+   * \param ID ID value. Names should be the string form of the database-specific
+   *        node set identifiers.
+   * \param set array of nodes
+   * \param keep flag to control memory allocation. If keep is true and set
+   *        is not an alias, the model manager will take ownership of the
+   *        memory in set. set will be passed back as an alias. Otherwise
+   *        the data in set will be copied. */
+  bool RegisterNodeSet (const StringT& ID, iArrayT& set, bool keep);
+
   /** parameter file node set registration.
    * called by functions that are reading the Tahoe parameter file, if the database format
    * is inline or external file data. Data is read into a storage array.
@@ -154,6 +139,20 @@ class ModelManagerT
    * \param ID ID value. Names should be the string form of the database-specific
    *        node set identifiers. */
   bool RegisterNodeSet (ifstreamT& in, const StringT& ID);
+  
+  /** external side set registration.
+   * register data not found in model file, data is copied into a storage array
+   * \param ss_ID ID value. Names should be the string form of the database-specific
+   *        side set identifiers.
+   * \param set array of facets
+   * \param local true if the side set elements are locally numbered within an element group
+   * \param element_ID element group ID which contains this side set, or -1 for unknown globally numbered sets
+   * \param keep flag to control memory allocation. If keep is true and set
+   *        is not an alias, the model manager will take ownership of the
+   *        memory in set. set will be passed back as an alias. Otherwise
+   *        the data in set will be copied. */
+  bool RegisterSideSet (const StringT& ss_ID, iArray2DT& set, SideSetScopeT scope, 
+  	const StringT& element_ID, bool keep);
 
   /** parameter file side set registration.
    * called by functions that are reading the Tahoe parameter file, if the database format
@@ -163,7 +162,8 @@ class ModelManagerT
    *        side set identifiers.
    * \param local true if the side set elements are locally numbered within an element group
    * \param element_ID element group ID which contains this side set, or -1 for unknown globally numbered sets */
-  bool RegisterSideSet (ifstreamT& in, const StringT& ss_ID, bool local, const StringT& element_ID);
+  bool RegisterSideSet (ifstreamT& in, const StringT& ss_ID, SideSetScopeT local, 
+  	const StringT& element_ID);
 
   /* reads from input file the coordinate dimensions and coords if inline database format
    * \param in stream containing data or external file name */
@@ -228,12 +228,6 @@ class ModelManagerT
    * \param localsides returned array of facets from model file or just one facet from inline text, locally numbered */
   void ReadTractionSideSet (ifstreamT& in, StringT& element_ID, iArray2DT& localsides);
 
-	/** number of nodes */
-	int NumNodes(void) const;
-
-	/** number of spatial dimensions */
-	int NumDimensions (void) const;
-
   /** access coordinate dimensions.
    * \param length returned number of nodes
    * \param dof returned spatial degree of freedom */
@@ -265,7 +259,12 @@ class ModelManagerT
    * identifiers. */
   const ArrayT<StringT>& ElementGroupIDs(void) const { return fElementNames; };
 
-  /** returns the index for the element group name */
+  /** return an unused element ID 
+   * \param prefix prefix for ID. The prefix can be empty. */
+  StringT FreeElementID(const StringT& prefix) const;
+
+  /** returns the index for the element group name.
+   * \return the element group index or ModelManagerT::kNotFound if ID is not found. */
   int ElementGroupIndex (const StringT& ID) const;
 
 	/** returns the dimensions for the element group */
@@ -287,11 +286,11 @@ class ModelManagerT
 
   /** access node map data
    * \note data is not offset and may not be continuous */
-  void AllNodeMap (iArrayT& map);
+  void AllNodeMap(iArrayT& map);
 
   /** access element map data
    * \note data is not offset and may not be continuous */
-  void AllElementMap (iArrayT& map);
+  void AllElementMap(iArrayT& map);
 
   /** access element map data for a given element group name. The names of the
    * element group are the string form of the database-specific element block
@@ -307,7 +306,8 @@ class ModelManagerT
    * identifiers. */
   const ArrayT<StringT>& NodeSetIDs(void) const { return fNodeSetNames; };
 
-  /** return index for the node set name */
+  /** return index for the node set name
+   * \return the node set index or ModelManagerT::kNotFound if ID is not found. */  
   int NodeSetIndex (const StringT& ID) const;
 
   /** return node set length */
@@ -332,7 +332,8 @@ class ModelManagerT
 
   /** returns index for the side set name. The names of the
    * side sets are the string form of the database-specific element block
-   * identifiers. */
+   * identifiers.
+   * \return the side set index or ModelManagerT::kNotFound if ID is not found. */  
   int SideSetIndex (const StringT& ID) const;
 
   /** returns side set length */
@@ -379,8 +380,13 @@ class ModelManagerT
 			     int numelemnodes, int headroom);
 
   /** call this function if the connectivity group/block/set is altered and replacement is needed
-   * the number of elements and element nodes is updated */
-  void UpdateConnectivity (const StringT& ID, const iArray2DT& connects);
+   * the number of elements and element nodes is updated
+   * \param conn updated connectivities
+   * \param keep flag to control memory allocation. If keep is true and conn
+   *        is not an alias, the model manager will take ownership of the
+   *        memory in conn. conn will be passed back as an alias. Otherwise
+   *        the data in conn will be copied. */
+  void UpdateConnectivity(const StringT& ID, iArray2DT& conn, bool keep);
 
   /** add elements to an element group array
    * \param index element group index
@@ -480,6 +486,10 @@ class ModelManagerT
 
  private:
  
+ 	/** return a reference to the input class. Throws eDataBaseFail if
+ 	 * the ModelMahagerT::fInput is NULL */
+ 	InputBaseT& Input(const char* caller = NULL) const;
+ 
  	/** return true of the ID's match */
  	bool ID_Match(const StringT& a, const StringT& b) const;
  
@@ -518,7 +528,7 @@ class ModelManagerT
   iAutoArrayT fElementNodes; /**< number of element nodes */
   iAutoArrayT fNodeSetDimensions; /**< number of nodes in set */
   iAutoArrayT fSideSetDimensions; /**< number of sides in set */
-  AutoArrayT<bool> fSideSetIsLocal; /**< flag for globally or locally numbered */
+  AutoArrayT<SideSetScopeT> fSideSetScope; /**< flag for globally or locally numbered */
   iAutoArrayT fSideSetGroupIndex; /**< -1 for globally numbered or element group that contains set */
 
   /* set parameters */
@@ -528,86 +538,142 @@ class ModelManagerT
   AutoArrayT<GeometryT::CodeT> fElementCodes; /** element group geometry codes */
 
   /* data */
-  int fNumElementSets; /**< number element groups registered */
-  int fNumNodeSets; /**< number of node sets registered */
-  int fNumSideSets; /**< number of side sets registered */
   dArray2DT fCoordinates; /**< coordinates */
-  AutoArrayT<iArray2DT> fElementSets; /**< connectivities */ 
-  AutoArrayT<iArrayT> fNodeSets; /**< node sets */
-  AutoArrayT<iArray2DT> fSideSets; /**< side sets */
+  AutoArrayT<iArray2DT*> fElementSets; /**< connectivities */ 
+  AutoArrayT<iArrayT*> fNodeSets; /**< node sets */
+  AutoArrayT<iArray2DT*> fSideSets; /**< side sets */
 };
 
-inline void ModelManagerT::Format (IOBaseT::FileTypeT& format, StringT& name) const
-{ 
+inline void ModelManagerT::Format (IOBaseT::FileTypeT& format, StringT& name) const { 
   format = fFormat;
   name = fInputName;
+}
+
+/* return a reference to the input class */
+inline InputBaseT& ModelManagerT::Input(const char* caller) const
+{
+	if (!fInput) {
+		if (caller)
+			cout << "\n ModelManagerT::" << caller << ": input source is not initialized" << endl;
+		else
+			cout << "\n ModelManagerT: input source is not initialized" << endl;
+		throw eDatabaseFail;
+	}
+	return *fInput;
 }
 
 inline int ModelManagerT::NumNodes(void) const { return fCoordinateDimensions[0]; };
 inline int ModelManagerT::NumDimensions (void) const { return fCoordinateDimensions[1]; };
 
-inline int ModelManagerT::NumElementGroups (void) const { return fNumElementSets; }
-inline int ModelManagerT::NumNodeSets (void) const { return fNumNodeSets; }
-inline int ModelManagerT::NumSideSets (void) const { return fNumSideSets; }
+inline int ModelManagerT::NumElementGroups (void) const { return fElementSets.Length(); }
+inline int ModelManagerT::NumNodeSets (void) const { return fNodeSets.Length(); }
+inline int ModelManagerT::NumSideSets (void) const { return fSideSets.Length(); }
 
-inline int ModelManagerT::NumTimeSteps (void) { return fInput->NumTimeSteps(); }
-inline void ModelManagerT::TimeSteps (dArrayT& steps) { fInput->ReadTimeSteps (steps); }
-
-inline int ModelManagerT::NumNodeVariables (void) { return fInput->NumNodeVariables (); }
-inline void ModelManagerT::NodeLabels (ArrayT<StringT>& labels) { fInput->ReadNodeLabels (labels); }
-inline void ModelManagerT::NodeVariablesUsed (const StringT& ID, iArrayT& used) { fInput->NodeVariablesUsed(ID, used); }
-inline void ModelManagerT::AllNodeVariable (int step, int varindex, dArrayT& values) { fInput->ReadAllNodeVariable (step, varindex, values); }
-inline void ModelManagerT::NodeVariable (int step, const StringT& ID, int varindex, dArrayT& values) 
-{ 
-	fInput->ReadNodeVariable(step, ID, varindex, values); 
-}
-inline void ModelManagerT::AllNodeVariables (int stepindex, dArray2DT& values) { fInput->ReadAllNodeVariables (stepindex, values); }
-inline void ModelManagerT::NodeVariables (int stepindex, const StringT& ID, dArray2DT& values) 
-{
-	fInput->ReadNodeVariables (stepindex, ID, values); 
-}
-inline void ModelManagerT::NodeSetVariables (int stepindex, const StringT& ID, dArray2DT& values) 
-{
-	fInput->ReadNodeSetVariables (stepindex, ID, values); 
+inline int ModelManagerT::NumTimeSteps(void) { 
+	return Input("NumTimeSteps").NumTimeSteps(); 
 }
 
-inline int ModelManagerT::NumElementVariables (void) { return fInput->NumElementVariables (); }
-inline void ModelManagerT::ElementLabels (ArrayT<StringT>& labels) { fInput->ReadElementLabels (labels); }
-inline void ModelManagerT::ElementVariablesUsed (const StringT& ID, iArrayT& used) 
-{
-	fInput->ElementVariablesUsed(ID, used); 
+inline void ModelManagerT::TimeSteps(dArrayT& steps) {
+	Input("TimeSteps").ReadTimeSteps(steps); 
+}
+
+inline int ModelManagerT::NumNodeVariables(void) { 
+	return Input("NumNodeVariables").NumNodeVariables (); 
+}
+
+inline void ModelManagerT::NodeLabels(ArrayT<StringT>& labels) { 
+	Input("NodeLabels").ReadNodeLabels (labels); 
+}
+
+inline void ModelManagerT::NodeVariablesUsed(const StringT& ID, iArrayT& used) { 
+	Input("NodeVariablesUsed").NodeVariablesUsed(ID, used); 
+}
+
+inline void ModelManagerT::AllNodeVariable(int step, int varindex, dArrayT& values) { 
+	Input("AllNodeVariable").ReadAllNodeVariable (step, varindex, values); 
+}
+
+inline void ModelManagerT::NodeVariable(int step, const StringT& ID, int varindex, dArrayT& values) { 
+	Input("NodeVariable").ReadNodeVariable(step, ID, varindex, values); 
+}
+
+inline void ModelManagerT::AllNodeVariables(int stepindex, dArray2DT& values) { 
+	Input("AllNodeVariables").ReadAllNodeVariables (stepindex, values); 
+}
+
+inline void ModelManagerT::NodeVariables(int stepindex, const StringT& ID, dArray2DT& values) {
+	Input("NodeVariables").ReadNodeVariables (stepindex, ID, values); 
+}
+
+inline void ModelManagerT::NodeSetVariables(int stepindex, const StringT& ID, dArray2DT& values) {
+	Input("NodeSetVariables").ReadNodeSetVariables (stepindex, ID, values); 
+}
+
+inline int ModelManagerT::NumElementVariables(void) { 
+	return Input("NumElementVariables").NumElementVariables (); 
+}
+
+inline void ModelManagerT::ElementLabels(ArrayT<StringT>& labels) { 
+	Input("ElementLabels").ReadElementLabels (labels); 
+}
+
+inline void ModelManagerT::ElementVariablesUsed(const StringT& ID, iArrayT& used) {
+	Input("ElementVariablesUsed").ElementVariablesUsed(ID, used); 
 }	
-inline void ModelManagerT::AllElementVariable (int step, int varindex, dArrayT& values) { fInput->ReadAllElementVariable (step, varindex, values); }
-inline void ModelManagerT::ElementVariable (int step, const StringT& ID, int varindex, dArrayT& values) 
-{
-	fInput->ReadElementVariable (step, ID, varindex, values); 
-}
-inline void ModelManagerT::AllElementVariables (int stepindex, dArray2DT& values) { fInput->ReadAllElementVariables (stepindex, values); }
-inline void ModelManagerT::ElementVariables (int stepindex, const StringT& ID, dArray2DT& values) 
-{
-	fInput->ReadElementVariables (stepindex, ID, values); 
-}
-inline int ModelManagerT::NumElementQuadPoints (const StringT& ID) { return fInput->NumElementQuadPoints(ID); }
-inline int ModelManagerT::NumQuadratureVariables (void) { return fInput->NumQuadratureVariables (); }
-inline void ModelManagerT::QuadratureLabels (ArrayT<StringT>& labels) { fInput->ReadQuadratureLabels (labels); }
-inline void ModelManagerT::QuadratureVariablesUsed (const StringT& ID, iArrayT& used) 
-{
-	fInput->QuadratureVariablesUsed (ID, used); 
-}
-inline void ModelManagerT::AllQuadratureVariable (int step, int varindex, dArrayT& values) { fInput->ReadAllQuadratureVariable (step, varindex, values); }
-inline void ModelManagerT::QuadratureVariable (int step, const StringT& ID, int varindex, dArrayT& values) 
-{
-	fInput->ReadQuadratureVariable (step, ID, varindex, values); 
-}
-inline void ModelManagerT::AllQuadratureVariables (int stepindex, dArray2DT& values) { fInput->ReadAllQuadratureVariables (stepindex, values); }
-inline void ModelManagerT::QuadratureVariables (int stepindex, const StringT& ID, dArray2DT& values) 
-{
-	fInput->ReadQuadratureVariables (stepindex, ID, values); 
-}
-inline void ModelManagerT::QARecords (ArrayT<StringT>& records) { fInput->QARecords(records); }
 
-inline const StringT& ModelManagerT::ElementGroupID(int index) const
-{
+inline void ModelManagerT::AllElementVariable(int step, int varindex, dArrayT& values) { 
+	Input("AllElementVariable").ReadAllElementVariable (step, varindex, values); 
+}
+
+inline void ModelManagerT::ElementVariable(int step, const StringT& ID, int varindex, dArrayT& values) {
+	Input("ElementVariable").ReadElementVariable (step, ID, varindex, values); 
+}
+
+inline void ModelManagerT::AllElementVariables (int stepindex, dArray2DT& values) { 
+	Input("AllElementVariables").ReadAllElementVariables (stepindex, values); 
+}
+
+inline void ModelManagerT::ElementVariables(int stepindex, const StringT& ID, dArray2DT& values) {
+	Input("ElementVariables").ReadElementVariables (stepindex, ID, values); 
+}
+
+inline int ModelManagerT::NumElementQuadPoints(const StringT& ID) { 
+	return Input("NumElementQuadPoints").NumElementQuadPoints(ID); 
+}
+
+inline int ModelManagerT::NumQuadratureVariables(void) { 
+	return Input("NumQuadratureVariables").NumQuadratureVariables (); 
+}
+
+inline void ModelManagerT::QuadratureLabels(ArrayT<StringT>& labels) { 
+	Input("QuadratureLabels").ReadQuadratureLabels (labels); 
+}
+
+inline void ModelManagerT::QuadratureVariablesUsed(const StringT& ID, iArrayT& used) {
+	Input("QuadratureVariablesUsed").QuadratureVariablesUsed (ID, used); 
+}
+
+inline void ModelManagerT::AllQuadratureVariable(int step, int varindex, dArrayT& values) { 
+	Input("AllQuadratureVariable").ReadAllQuadratureVariable (step, varindex, values); 
+}
+
+inline void ModelManagerT::QuadratureVariable(int step, const StringT& ID, int varindex, dArrayT& values) {
+	Input("QuadratureVariable").ReadQuadratureVariable (step, ID, varindex, values); 
+}
+
+inline void ModelManagerT::AllQuadratureVariables(int stepindex, dArray2DT& values) { 
+	Input("AllQuadratureVariables").ReadAllQuadratureVariables (stepindex, values); 
+}
+
+inline void ModelManagerT::QuadratureVariables(int stepindex, const StringT& ID, dArray2DT& values) {
+	Input("QuadratureVariables").ReadQuadratureVariables (stepindex, ID, values); 
+}
+
+inline void ModelManagerT::QARecords (ArrayT<StringT>& records) { 
+	Input("QuadratureVariables").QARecords(records); 
+}
+
+inline const StringT& ModelManagerT::ElementGroupID(int index) const {
 	if (index < 0 || index >= fElementNames.Length()) {
 		cout << "\n ModelManagerT::ElementGroupID: index " << index << " out of range {0," 
 		     << fElementNames.Length() - 1 << "}" << endl;
