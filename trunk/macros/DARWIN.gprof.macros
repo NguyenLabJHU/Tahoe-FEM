@@ -1,4 +1,4 @@
-# $Id: DARWIN.gprof.macros,v 1.1 2002-11-28 16:40:49 paklein Exp $
+# $Id: DARWIN.gprof.macros,v 1.2 2003-01-27 07:33:59 paklein Exp $
 # GNU
 MAKE        = make
 MAKE_DEPEND = /usr/X11R6/bin/makedepend
@@ -26,6 +26,7 @@ RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = ln -sf
 ECHO        = /usr/local/bin/echo -e
 CAT         = cat
+PERL        = perl -w
 
 # command needed build library
 BUILD_LIBRARY = BUILD_LIBRARY_RANLIB

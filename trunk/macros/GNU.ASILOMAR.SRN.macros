@@ -1,4 +1,4 @@
-# $Id: GNU.ASILOMAR.SRN.macros,v 1.4 2002-11-28 16:43:22 paklein Exp $
+# $Id: GNU.ASILOMAR.SRN.macros,v 1.5 2003-01-27 07:33:59 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpich -lgm
@@ -29,6 +29,7 @@ RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = ln -sf
 ECHO        = /bin/echo -e
 CAT         = cat
+PERL        = perl -w
 
 # command needed build library
 #BUILD_LIBRARY = BUILD_LIBRARY_RANLIB

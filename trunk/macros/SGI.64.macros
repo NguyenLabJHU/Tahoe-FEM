@@ -1,4 +1,4 @@
-# $Id: SGI.64.macros,v 1.3 2002-03-19 17:18:53 paklein Exp $
+# $Id: SGI.64.macros,v 1.4 2003-01-27 07:33:59 paklein Exp $
 
 MAKE        = make
 MAKE_DEPEND = makedepend
@@ -23,6 +23,8 @@ RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = ln -sf
 ECHO        = echo
 CAT         = cat
+PERL        = perl -w
+
 # parallel builds
 # env. var. PARALLEL controls concurrency (default = 2)
 
