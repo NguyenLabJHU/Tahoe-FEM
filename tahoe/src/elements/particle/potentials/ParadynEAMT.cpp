@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.cpp,v 1.8.20.2 2004-03-05 15:06:48 hspark Exp $ */
+/* $Id: ParadynEAMT.cpp,v 1.8.20.3 2004-03-18 18:27:33 paklein Exp $ */
 #include "ParadynEAMT.h"
 
 #include "toolboxConstants.h"
@@ -74,8 +74,7 @@ ParadynEAMT::ParadynEAMT(const StringT& param_file):
   in >> tmp;
   
   /* adjust units */
-  for (int j = 0; j < nr; j++)
-    tmp[j] *= sqrt(27.2*0.529);
+  tmp *= sqrt(27.2*0.529);
   
   f_inc = 1.0/dr;
 
