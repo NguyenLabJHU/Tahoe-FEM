@@ -19,8 +19,10 @@ static doublereal c_b17 = .5;
 /* Revision 3.0 1995/03/09 jlathrop */
 /* modified code to interface with jas3d or pronto3d */
 
-/* $Id: vumatadiab.c,v 1.1 2001-07-18 21:29:45 paklein Exp $ */
+/* $Id: vumatadiab.c,v 1.2 2001-07-18 21:53:37 paklein Exp $ */
 /* $Log: not supported by cvs2svn $ */
+/* Revision 1.1  2001/07/18 21:29:45  paklein */
+/* initial check in of ABAQUS/Explicit VUMAT interface */
 
 /* Revision 2.5  1993/05/07  17:06:57  fjmello */
 /* corrected typo in variable types Scalar */
