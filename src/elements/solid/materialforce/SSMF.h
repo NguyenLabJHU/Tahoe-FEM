@@ -1,4 +1,4 @@
-/* $Id: SSMF.h,v 1.2 2003-08-18 03:28:34 thao Exp $ */
+/* $Id: SSMF.h,v 1.3 2003-11-19 06:09:46 thao Exp $ */
 
 #ifndef _SSMF_H_
 #define _SSMF_H_
@@ -7,6 +7,7 @@
 #include "SmallStrainT.h"
 #include "MFSupportT.h"
 #include "ofstreamT.h"
+#include "RaggedArray2DT.h"
 namespace Tahoe {
 
 /* forward declarations */
@@ -35,11 +36,16 @@ class SSMF: public SmallStrainT, public MFSupportT
     /* send output */
     virtual void WriteOutput(void);
 
+    /*connectivities for parrallel computing*/
+    virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
+			   AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
+ 
  protected:
     /*material force evaluation*/
     void ComputeMatForce(dArray2DT& output);
     void MatForceVolMech(dArrayT& elem_val);
     void MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretch);
+    void MatForceDynamic(dArrayT& elem_val);
     void MatForceSurfMech(dArrayT& global_val);
 
     /*utility funtions*/
@@ -50,6 +56,9 @@ class SSMF: public SmallStrainT, public MFSupportT
 
     /*current material*/
     SSSolidMatT* fCurrSSMat;
+
+    /*connectivities*/
+    RaggedArray2DT<int> fXConnects;
 
  private:
     ArrayT<dMatrixT> fGradU_List;
@@ -62,7 +71,14 @@ class SSMF: public SmallStrainT, public MFSupportT
     /*material force */
     dArrayT fMatForce;
     dArrayT fDissipForce;
+    dArrayT fDynForce;
     dArrayT felem_rhs;
+
+    /*dynamic analysis variables*/
+    bool fdynamic;           /*flag for dynamic analysis*/
+    dArrayT fVel;             /*integration point velocity vector*/
+    dArrayT fAcc;             /*integration point acceleration vector*/
+    dMatrixT fGradVel;        /*integration point velocity gradient*/
 
     /*internal variables*/
     iArrayT fInternalDOF;
@@ -75,6 +91,18 @@ class SSMF: public SmallStrainT, public MFSupportT
     dArray2DT felem_val;
     
     dArray2DT fGradInternalStrain;
+
+    /*crack surface evaluation*/
+    LocalArrayT ftraction;    /*traction at element facet*/
+    LocalArrayT fsurf_disp;   /*displacement at element facet*/
+    LocalArrayT fsurf_coords; /*coordinates of element facet*/
+
+    dArrayT fsurf_val;        /*element force vector at facet*/
+    dArrayT fip_tract;        /*traction at element facet integration points*/
+    dMatrixT fgradU;          /*displacement gradient along facet direction at facet integration points*/
+    dMatrixT fjacobian;       /*surface jacobian mapping global to parent coordinate*/
+    dMatrixT fjac_loc;        /*surface jacobian mapping local to parent coordinates*/
+    dMatrixT fQ;              /*rotation from local to global coords*/
 };
 
 /* inlines */

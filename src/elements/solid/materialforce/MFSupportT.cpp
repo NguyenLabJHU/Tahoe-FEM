@@ -1,4 +1,4 @@
-/* $Id: MFSupportT.cpp,v 1.5 2003-11-12 19:21:19 thao Exp $ */
+/* $Id: MFSupportT.cpp,v 1.6 2003-11-19 06:09:46 thao Exp $ */
 #include "MFSupportT.h"
 
 #include "dArrayT.h"
@@ -24,6 +24,7 @@ MFSupportT::MFSupportT(const  ElementSupportT& support):
 
   /*does constitutive model have dissipation variables*/
   in >> fhas_dissipation;
+  out << "\nMaterial has dissipation: "<<fhas_dissipation;
   if (fhas_dissipation > 1  && fhas_dissipation < 0)
   {
     cout << "\nMFSupportT:: MFSupportT invalid input for dissipation flag: ";
@@ -55,6 +56,19 @@ MFSupportT::MFSupportT(const  ElementSupportT& support):
   for (int j = 0; j<fnumset; j++) out << "\n\tNodeset: "<<fNID[j];
   out <<'\n';
 
+  /*boundary node set*/
+  StringT name;
+  in >> name;
+
+  int index = model.NodeSetIndex(name);
+  if (index < 0)
+  {
+    cout << "\nMFSupport::MFSupportT: Node set "<< name << " is undefinded: ";
+    throw ExceptionT::kDatabaseFail;
+  }
+  else
+    fBoundID = nsetIDs[index];
+
   /*initialize fio boolean*/
   fopen = false;
 }
@@ -69,9 +83,10 @@ MFSupportT::~MFSupportT(void)
 void MFSupportT::MapOutput(void)
 {
   const iArrayT& nodes_used = fOutputSet->NodesUsed();
+  const iArrayT& bound_nodes = fSupport.Model().NodeSet(fBoundID);
+  //  cout << "\nboundary nodes: "<<bound_nodes;
   fNumGroupNodes = nodes_used.Length();
-
-  /*find maximum node number)]*/
+  /*find maximum node number*/
   int max=0;
   const int* pnode = nodes_used.Pointer(); 
   for (int i = 0; i<fNumGroupNodes; i++)
@@ -86,6 +101,13 @@ void MFSupportT::MapOutput(void)
   {
     fMap[nodes_used[i]]=i;
   }
+  fExclude.Dimension(fNumGroupNodes);
+  fExclude = 0;
+  for (int i = 0; i< bound_nodes.Length(); i++)
+  {
+    fExclude[fMap[bound_nodes[i]]] = 1;
+  }
+  //  cout << "\nExcluded nodes: "<<fExclude;
 }
 
 void MFSupportT::WriteSummary(dArray2DT& output)
@@ -97,7 +119,7 @@ void MFSupportT::WriteSummary(dArray2DT& output)
   /*write summary of MF results to external file*/  
   ModelManagerT& model = fSupport.Model();
   int numnset = model.NumNodeSets();
- 
+
   ifstreamT& in = fSupport.Input();
   const StringT& input_file = in.filename();
   fsummary_file.Root(input_file);
@@ -113,10 +135,12 @@ void MFSupportT::WriteSummary(dArray2DT& output)
     double* pFy = output.Pointer(1);
     double* pDFx = output.Pointer(2);
     double* pDFy = output.Pointer(3);
-   
+    double* pKFx = output.Pointer(4);
+    double* pKFy = output.Pointer(5);
+ 
     /*sum components of material force over a given nodeset*/ 
-    double MFx, MFy, DFx, DFy;  
-    MFx = MFy = DFx = DFy = 0.0;
+    double MFx, MFy, DFx, DFy, KFx, KFy;  
+    MFx = MFy = DFx = DFy = KFx = KFy = 0.0;
     for (int i = 0; i<fnumset; i++)
     {
       StringT& ID = fNID[i];
@@ -125,10 +149,12 @@ void MFSupportT::WriteSummary(dArray2DT& output)
       for (int j = 0; j<nlength; j++)
       {
         int index = fMap[nset[j]];
-        MFx += *(pFx+index*3*nsd);
-        MFy += *(pFy+index*3*nsd);
-        DFx += *(pDFx+index*3*nsd);
-        DFy += *(pDFy+index*3*nsd);
+        MFx += *(pFx+index*4*nsd);
+        MFy += *(pFy+index*4*nsd);
+        DFx += *(pDFx+index*4*nsd);
+        DFy += *(pDFy+index*4*nsd);
+	KFx += *(pKFx+index*4*nsd);
+	KFy += *(pKFy+index*4*nsd);
       }
     }
     
@@ -136,13 +162,14 @@ void MFSupportT::WriteSummary(dArray2DT& output)
     const iArrayT& nodes_used = fOutputSet->NodesUsed();
     double maxFx, maxFy;
     int nFx, nFy;
+    nFx = nFy = 0;
     maxFx = maxFy = 0.0;
     for (int i = 0; i<nnd; i++)
     {
-      if (fabs(maxFx) < fabs(*(pFx+i*3*nsd))) 
-        {maxFx = *(pFx+i*3*nsd); nFx = nodes_used[i];}
-      if (fabs(maxFy) < fabs(*(pFy+i*3*nsd))) 
-        {maxFy = *(pFy+i*3*nsd); nFy = nodes_used[i];}
+      if (fabs(maxFx) < fabs(*(pFx+i*4*nsd))) 
+        {maxFx = *(pFx+i*4*nsd); nFx = nodes_used[i];}
+      if (fabs(maxFy) < fabs(*(pFy+i*4*nsd))) 
+        {maxFy = *(pFy+i*4*nsd); nFy = nodes_used[i];}
     }
     
     /*write summary output file*/
@@ -160,8 +187,8 @@ void MFSupportT::WriteSummary(dArray2DT& output)
            <<"\n\t Summed y component . . . . . . . . . . . . . . . . F_Y"
            <<"\n\t Summed x component of dissipation contribution . . Fd_X"
            <<"\n\t Summed y component of dissipation contribution . . Fd_Y"   
-           <<"\n\t Maximum x component . . . . . . . . . . . . . . . . maxF_X"
-           <<"\n\t Maximum y component . . . . . . . . . . . . . . . . maxF_Y"
+           <<"\n\t Summed x component of dissipation contribution . . Fk_X"
+           <<"\n\t Summed y component of dissipation contribution . . Fk_Y"   
            <<endl<<endl<<endl;
 
       fout <<setw(intwidth) << "Time" 
@@ -169,10 +196,8 @@ void MFSupportT::WriteSummary(dArray2DT& output)
            <<setw(doublewidth) << "F_Y" 
            <<setw(doublewidth) << "Fd_X" 
            <<setw(doublewidth) << "Fd_Y" 
-           <<setw(doublewidth) << "Node" 
-           <<setw(doublewidth) << "(F_X)max" 
-           <<setw(doublewidth) << "Node" 
-           <<setw(doublewidth) << "(F_Y)max"
+           <<setw(doublewidth) << "Fk_X" 
+           <<setw(doublewidth) << "Fk_Y" 
            <<endl;        
     }
 
@@ -181,10 +206,8 @@ void MFSupportT::WriteSummary(dArray2DT& output)
          <<setw(doublewidth) << MFy 
          <<setw(doublewidth) << DFx 
          <<setw(doublewidth) << DFy 
-         <<setw(intwidth+2) << nFx+1 
-         <<setw(doublewidth+1) << maxFx 
-         <<setw(intwidth+6) << nFy+1
-         <<setw(doublewidth+2) << maxFy
+         <<setw(doublewidth) << KFx 
+         <<setw(doublewidth) << KFy 
          <<endl; 
        
     fout.close();

@@ -1,4 +1,4 @@
-/* $Id: SSMF.cpp,v 1.2 2003-08-12 17:03:48 thao Exp $ */
+/* $Id: SSMF.cpp,v 1.3 2003-11-19 06:09:46 thao Exp $ */
 #include "SSMF.h"
 
 #include "OutputSetT.h"
@@ -6,6 +6,8 @@
 #include "ScheduleT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
+#include "FEManagerT.h"
+#include "GraphT.h"
 #include "GeometryT.h"
 #include "ModelManagerT.h"
 #include "SSMatSupportT.h"
@@ -25,7 +27,11 @@ using namespace Tahoe;
 /* constructor */
 SSMF::SSMF(const ElementSupportT& support, const FieldT& field):
   SmallStrainT(support, field),
-  MFSupportT(support) {}
+  fdynamic(false),
+  MFSupportT(support),
+  ftraction(LocalArrayT::kUnspecified),
+  fsurf_disp(LocalArrayT::kDisp),
+  fsurf_coords(LocalArrayT::kInitCoords) {}
 
 void SSMF::Initialize(void)
 {
@@ -38,6 +44,9 @@ void SSMF::Initialize(void)
 
   fBodyForce.Dimension(NumSD()*NumElementNodes());
   fip_body.Dimension(NumSD());
+  fVel.Dimension(NumSD());
+  fAcc.Dimension(NumSD());
+  fGradVel.Dimension(NumSD());
     
   fGradU_List.Dimension(NumIP());
   for (int i = 0; i< NumIP(); i++)
@@ -58,11 +67,12 @@ void SSMF::RegisterOutput(void)
   /* inherited */
   SolidElementT::RegisterOutput();
 
-  ArrayT<StringT> n_labels(3*NumSD());
+  ArrayT<StringT> n_labels(4*NumSD());
   ArrayT<StringT> e_labels;
   
-  StringT mf_label = "mF";
-  StringT mfd_label = "mF_dissip";
+  StringT mf_label = "MF";
+  StringT mfd_label = "DF";
+  StringT mfdd_label = "KF";
   StringT disp_label = "D";
   const char* suffix[3] = {"_X", "_Y", "_Z"};
   int dex = 0;
@@ -70,6 +80,8 @@ void SSMF::RegisterOutput(void)
     n_labels[dex++].Append(mf_label, suffix[i]);
   for (int i = 0; i < NumSD(); i++)
     n_labels[dex++].Append(mfd_label, suffix[i]);
+  for (int i = 0; i < NumSD(); i++)
+    n_labels[dex++].Append(mfdd_label, suffix[i]);
   for (int i = 0; i < NumSD(); i++)
     n_labels[dex++].Append(disp_label, suffix[i]);
   
@@ -103,6 +115,54 @@ void SSMF::WriteOutput(void)
   ElementSupport().WriteOutput(fMatForceOutputID, n_values, e_values);
 }
 
+void SSMF::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
+			AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const
+{
+  /*inherrited function*/
+  ElementBaseT::ConnectsU(connects_1, connects_2);
+  const CommunicatorT& comm = ElementSupport().Communicator();
+  
+  /*check for parallel execution*/
+  /*make graph from element connectivities*/
+  bool verbose = true;
+  GraphT graph(true);
+  
+  for (int i = 0; i<fConnectivities.Length(); i++)
+    graph.AddGroup(*fConnectivities[i]);
+  graph.MakeGraph();
+  
+  int nnd = graph.NumNodes(); 
+  iArrayT first_edges;
+  AutoFill2DT<int> fill(nnd, 1, 5, 16);
+  for (int i = 0; i<nnd; i++)
+  {
+    graph.GetEdges(i, first_edges);
+    fill.Append(i,first_edges);
+    for (int j = 0; j<first_edges.Length(); j++)
+    {  
+      iArrayT second_edges;
+      graph.GetEdges(first_edges[j],second_edges);
+      /*Do we need to reorder the neighbor list so that the node number appears in the first entry?*/
+      fill.AppendUnique(i,second_edges);
+    }
+  }
+  
+  /* non-const this */
+  SSMF* non_const_this = (SSMF*) this; 
+  non_const_this->fXConnects.Copy(fill); 
+  
+  /*
+    iArrayT tmp(fXConnects.Length(), fXConnects.Pointer());
+    tmp++;
+    ofstreamT& out = ElementSupport().Output();
+    out << "\nextended connectivities: \n";
+    fXConnects.WriteNumbered(ElementSupport().Output());
+    tmp--;
+  */
+  
+  connects_2.Append(&fXConnects);
+}
+
 /**********************Material Force Driver**************/
 /*driver*/
 void SSMF::ComputeMatForce(dArray2DT& output)
@@ -115,17 +175,19 @@ void SSMF::ComputeMatForce(dArray2DT& output)
   int nmf = nnd*NumSD();
 
   /*dimension output array and workspace*/
-  output.Dimension(nnd,3*NumSD());
+  output.Dimension(nnd,4*NumSD());
   
   const dArray2DT& disp = Field()[0];
   if (disp.MajorDim() != output.MajorDim()) throw ExceptionT::kGeneralFail;
 
   fMatForce.Dimension(nmf);
   fDissipForce.Dimension(nmf);
+  fDynForce.Dimension(nmf);
   felem_rhs.Dimension(NumSD()*nen);  
 
   fMatForce = 0.0;
   fDissipForce = 0.0;
+  fDynForce = 0.0;
 
   /*if internal dissipation vars exists, extrapolate from element ip to nodes*/
   if (fhas_dissipation) { 
@@ -153,6 +215,14 @@ void SSMF::ComputeMatForce(dArray2DT& output)
     Extrapolate();
   }
 
+  /*check for dynamic analysis*/
+  int analysiscode = ElementSupport().FEManager().Analysis();
+  if (analysiscode ==  GlobalT::kLinExpDynamic  ||
+      analysiscode == GlobalT::kNLExpDynamic    ||
+      analysiscode == GlobalT::kVarNodeNLExpDyn ||
+      analysiscode == GlobalT::kPML)
+    fdynamic = true;
+
   /*evaluate volume contributions to material and dissipation force*/
   Top();
   while (NextElement())
@@ -163,6 +233,16 @@ void SSMF::ComputeMatForce(dArray2DT& output)
     
     /*Set Global Shape Functions for current element*/
     SetGlobalShape();
+
+    if (fdynamic)
+    {
+      SetLocalU(fLocAcc);
+      SetLocalU(fLocVel);
+      SetLocalU(fLocDisp);
+      MatForceDynamic(felem_rhs);
+      AssembleArray(felem_rhs, fDynForce, CurrentElement().NodesX());
+    }
+
     MatForceVolMech(felem_rhs);
     AssembleArray(felem_rhs, fMatForce, CurrentElement().NodesX());
     if (fhas_dissipation) 
@@ -180,9 +260,13 @@ void SSMF::ComputeMatForce(dArray2DT& output)
   /*assemble material forces and displacements into output array*/
   double* pout_force = output.Pointer();
   double* pout_dissip = output.Pointer(NumSD());
-  double* pout_disp = output.Pointer(2*NumSD());
+  double* pout_dyn = output.Pointer(2*NumSD());
+  double* pout_disp = output.Pointer(3*NumSD());
+
   double* pmat_force = fMatForce.Pointer();
   double* pmat_fdissip = fDissipForce.Pointer();
+  double* pmat_fdyn = fDynForce.Pointer();
+
   const iArray2DT& eqno = Field().Equations();
   for (int i = 0; i<nnd; i++)
   {
@@ -193,19 +277,23 @@ void SSMF::ComputeMatForce(dArray2DT& output)
       {
 	    *pout_force++ = 0.0;
 	    *pout_dissip++ = 0.0;
+	    *pout_dyn++ = 0.0;
 	    pmat_force++;
 	    pmat_fdissip++;
+	    pmat_fdyn++;
       }
       else
       {
-	    *pout_force++ = (*pmat_force++) + (*pmat_fdissip);
+	    *pout_force++ = (*pmat_force++) + (*pmat_fdissip) + (*pmat_fdyn);
 	    *pout_dissip++ = (*pmat_fdissip++);
+	    *pout_dyn++ = (*pmat_fdyn++);
       }
       *pout_disp++ = disp[i*NumSD()+j];
     }
-    pout_force += 2*NumSD();
-    pout_dissip += 2*NumSD();
-    pout_disp += 2*NumSD();
+    pout_force += 3*NumSD();
+    pout_dissip += 3*NumSD();
+    pout_dyn += 3*NumSD();
+    pout_disp += 3*NumSD();
   }
   WriteSummary(output);
 }
@@ -220,17 +308,8 @@ void SSMF::MatForceVolMech(dArrayT& elem_val)
   /*get density*/
   double density = fCurrSSMat->Density();
   
-  if (fLocAcc.IsRegistered())
-  {
-    SetLocalU(fLocAcc);
-    fLocAcc.ReturnTranspose(fBodyForce);
-  }  
-  else
-    fBodyForce = 0.0;
-  fBodyForce *= density;
-    
-  /*copy acceleration and body force data into body force vector*/
-  double* pbody = fBodyForce.Pointer();    
+  fBodyForce = 0.0;
+    double* pbody = fBodyForce.Pointer();    
   if (fBodySchedule)
   {
     double loadfactor = fBodySchedule->Value();
@@ -272,16 +351,24 @@ void SSMF::MatForceVolMech(dArrayT& elem_val)
       fEshelby(0,1) = gradU(0,0)*Cauchy(0,1) + gradU(1,0)*Cauchy(1,1);
       fEshelby(1,0) = gradU(0,1)*Cauchy(0,0) + gradU(1,1)*Cauchy(1,0);
       fEshelby(1,1) = gradU(0,1)*Cauchy(0,1) + gradU(1,1)*Cauchy(1,1) - energy;
+      
+      if (fdynamic)
+      {
+	fShapes->InterpolateU(fLocVel, fVel);
+	fEshelby(0,0) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]);
+	fEshelby(1,1) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]);
+      }
+
       double* pDQaX = DQa(0); 
       double* pDQaY = DQa(1);
       
       for (int j = 0; j<nen; j++)
       {
 	/*add nEshelby volume integral contribution*/
-       	*(pforce++) += (fEshelby[0]*(*pDQaX) + fEshelby[2]*(*pDQaY)
-	       + (gradU[0]*fip_body[0]+gradU[1]*fip_body[1])*(*pQa))*(*jac)*(*weight);
-	    *(pforce++) += (fEshelby[1]*(*pDQaX++) + fEshelby[3]*(*pDQaY++)
-	       + (gradU[2]*fip_body[0]+gradU[3]*fip_body[1])*(*pQa++))*(*jac)*(*weight); 
+       	*(pforce++) += (fEshelby(0,0)*(*pDQaX) + fEshelby(0,1)*(*pDQaY)
+               + (gradU(0,0)*fip_body[0]+gradU(1,0)*fip_body[1])*(*pQa))*(*jac)*(*weight);
+	*(pforce++) += (fEshelby(1,0)*(*pDQaX++) + fEshelby(1,1)*(*pDQaY++)
+	       + (gradU(0,1)*fip_body[0]+gradU(1,1)*fip_body[1])*(*pQa++))*(*jac)*(*weight); 
       }
     }
     else if (NumSD() ==3)
@@ -315,6 +402,17 @@ void SSMF::MatForceVolMech(dArrayT& elem_val)
         + gradU(2,2)*Cauchy(2,1);      
       fEshelby(2,2) = gradU(0,2)*Cauchy(0,2) + gradU(1,2)*Cauchy(1,2)
         + gradU(2,2)*Cauchy(2,2)-energy;
+
+      if (fdynamic)
+      {
+	fShapes->InterpolateU(fLocVel, fVel);
+	fEshelby(0,0) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]
+				      +fVel[2]*fVel[2]);
+	fEshelby(1,1) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]
+				      +fVel[2]*fVel[2]);
+	fEshelby(2,2) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]
+				      +fVel[2]*fVel[2]);
+      }
 
       double* pDQaX = DQa(0); 
       double* pDQaY = DQa(1);
@@ -434,243 +532,306 @@ void SSMF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretch)
   }
 }
 
+void SSMF::MatForceDynamic(dArrayT& elem_val)
+{
+  const char caller[] = "UpLagMF::MatForceDynamic";
+  int nen = NumElementNodes();
+  int elem = CurrElementNumber();
+  elem_val = 0;  
+
+  double density = fCurrSSMat->Density();
+
+  /*intialize shape function data*/
+  const double* jac = fShapes->IPDets();
+  const double* weight = fShapes->IPWeights();
+  /*  if (elem == 6) {
+    cout << "\nAcc: "<<fLocAcc;
+    cout << "\nVel: "<<fLocVel;
+      cout <<"\n fDisp: "<<fLocDisp;
+      }*/
+  fShapes->TopIP();
+  while(fShapes->NextIP())
+  {
+    /*get shape function and derivatives at integration point*/
+    const double* pQa = fShapes->IPShapeX();
+    const double* pQaU = fShapes->IPShapeU();
+    const dArray2DT& DQa = fShapes->Derivatives_X();
+
+    /*integration point values*/
+
+    const dMatrixT& gradU = DisplacementGradient();
+    fShapes->GradU(fLocVel,fGradVel); 
+    fShapes->InterpolateU(fLocVel, fVel);
+    fShapes->InterpolateU(fLocAcc, fAcc);
+    /*    if (elem == 6)
+    {
+      cout << "\nelem "<<elem<<" ip "<<CurrIP()<<endl; 
+      cout << "\nfGradVel: "<<fGradVel;
+      cout <<"\n F: "<< F;
+      cout <<"\n fVel: "<<fVel;
+      cout <<"\n fAcc: "<<fAcc;
+      }*/
+    double* pelem_val = elem_val.Pointer();
+    if (NumSD() ==2)
+    {
+      for (int i = 0; i<nen; i++)
+      {
+	double xval = density*(-fGradVel[0]*fVel[0]-fGradVel[1]*fVel[1]
+			       +gradU[0]*fAcc[0]+gradU[1]*fAcc[1]);
+	double yval = density*(-fGradVel[2]*fVel[0]-fGradVel[3]*fVel[1]
+			       +gradU[2]*fAcc[0]+gradU[3]*fAcc[1]);
+    	*pelem_val++ += xval*(*pQa)*(*jac)*(*weight);
+	*pelem_val++ += yval*(*pQa++)*(*jac)*(*weight);      
+      }
+      //      if (elem ==6) cout << "\n elem_val: "<<elem_val;
+    }
+    else if (NumSD() == 3)
+    {
+      for (int i = 0; i<nen; i++)
+      {
+	double xval = density*(-fGradVel(0,0)*fVel[0]-fGradVel(1,0)*fVel[1]
+			       -fGradVel(2,0)*fVel[2]
+			       +gradU(0,0)*fAcc[0]+gradU(1,0)*fAcc[1]+gradU(2,0)*fAcc[2]);
+	double yval = density*(-fGradVel(0,1)*fVel[0]-fGradVel(1,1)*fVel[1]
+			       -fGradVel(2,1)*fVel[2]
+			       +gradU(0,1)*fAcc[0]+gradU(1,1)*fAcc[1]+gradU(2,1)*fAcc[2]);
+	double zval = density*(-fGradVel(0,2)*fVel[0]-fGradVel(1,2)*fVel[1]
+			       -fGradVel(2,2)*fVel[2]
+			       +gradU(0,2)*fAcc[0]+gradU(1,2)*fAcc[1]+gradU(2,2)*fAcc[2]); 
+    	*pelem_val++ += xval*(*pQa)*(*jac)*(*weight);
+	*pelem_val++ += yval*(*pQa)*(*jac)*(*weight);      
+	*pelem_val++ += zval*(*pQa++)*(*jac)*(*weight);      
+      }
+    }
+    jac++;
+    weight++;
+  }
+  //  cout<<"\nElem: "<<elem;
+  //  cout<<elem_val;
+}
+
 void SSMF::MatForceSurfMech(dArrayT& global_val)
 {
 
   if (fTractionList.Length() > 0)
   {
     
+    /*dimensions*/
     int nen = NumElementNodes();
-    fGradInternalStrain = 0.0;
-    int numval = NumSD()*NumSD();
+    int nsd = NumSD();
+    const Traction_CardT& BC_card = fTractionList[0];
+    const iArrayT& surf_nodes = BC_card.Nodes();
+    int nfn = surf_nodes.Length();
 
-    /*initialize work space*/
-    dMatrixT ExtrapMatrix(nen);
-    dMatrixT jacobian(NumSD(),NumSD()-1);
-    dMatrixT Q(NumSD());
- 
+    /*dimension workspace for surface quantities*/
+    ftraction.Dimension(nfn,nsd);                
+    fsurf_disp.Dimension(nfn,nsd);               
+    Field().RegisterLocal(fsurf_disp);
+    fsurf_coords.Dimension(nfn, nsd);            
+    ElementSupport().RegisterCoordinates(fsurf_coords);
+
+    /*facet contribution to material force*/ 
+    fsurf_val.Dimension(nfn*nsd);                            
+
+    /*integration point values*/
+    fip_tract.Dimension(nsd);                                
+    fgradU.Dimension(nsd,nsd-1);                
+    fjacobian.Dimension(nsd, nsd-1);             
+    fjac_loc.Dimension(nsd-1);
+    fQ.Dimension(nsd);                           
+
     /*loop through traction card*/
     for (int k = 0; k<fTractionList.Length(); k++)
     {
+      /*retrieve information from traction card*/
       const Traction_CardT& BC_card = fTractionList[k];
       const iArrayT& surf_nodes = BC_card.Nodes();
-      int nfn = surf_nodes.Length();
       int elem, facet;
+
+      /*retrieve traction information*/
       BC_card.Destination(elem, facet);
+      BC_card.CurrentValue(ftraction);      
+      fsurf_coords.SetLocal(surf_nodes);
+      fsurf_disp.SetLocal(surf_nodes);
 
-      /*get traction*/
-      LocalArrayT tract(LocalArrayT::kUnspecified, nfn, NumSD());
-      BC_card.CurrentValue(tract);      
-
-      /*material force vector for facet*/
-      dArrayT elem_val(nfn*NumSD());
-
-      /*retrieve nodal coordinates of facets in local ordering*/
-      LocalArrayT surf_coords(LocalArrayT::kInitCoords, nfn, NumSD()); 
-      ElementSupport().RegisterCoordinates(surf_coords);
-      surf_coords.SetLocal(surf_nodes);    
-    
-      /*retrieve element information*/
-      const ElementCardT& elem_card = fElementCards[elem];
-      fElementCards.Current(elem);
-      SetGlobalShape();
-      ContinuumMaterialT* pmat = (*fMaterialList)[elem_card.MaterialNumber()];
-      fCurrSSMat = dynamic_cast<SSSolidMatT*>(pmat);
-      if (!fCurrSSMat) ExceptionT::GeneralFail();
- 
-      iArrayT loc_surf_nodes(nfn);
-      fShapes->NodesOnFacet(facet,loc_surf_nodes);
-
-      /*Set element shapefunctions*/
-      fShapes->SetDerivatives(); 
-      const double* jac = fShapes->IPDets();
-      const double* weight = fShapes->IPWeights();
-
-      /*project elem ip vals to elem nodal vals*/
-      nArrayT<dMatrixT> ExtrapGradU(nen);
-      for (int i = 0; i<nen; i++)
-      {
-        dMatrixT& pval = ExtrapGradU[i];
-        pval.Allocate(NumSD());
-        pval = 0;
-      }
-      dArrayT ExtrapEnergy(nen);
-      ExtrapEnergy = 0;
-      ExtrapMatrix = 0;      
-      fShapes->TopIP();
-      while(fShapes->NextIP())
-      {
-        double energy = fCurrSSMat->StrainEnergyDensity();
-        const dMatrixT& GradU = DisplacementGradient();
-        const double* pQbU = fShapes->IPShapeU();
-        for (int i = 0; i<nen; i++)
-        {
-          const double* pQaU = fShapes->IPShapeU();
-          for (int j = 0; j<nen; j++)
-	    ExtrapMatrix(i,j) += (*pQaU++)*(*pQbU)*(*jac)*(*weight);  
-          dMatrixT& pval = ExtrapGradU[i];
-          for (int cnt = 0; cnt <numval; cnt++)
-            pval[cnt] += (*pQbU)*(*jac)*(*weight)*GradU[cnt];
-          ExtrapEnergy[i] += (*pQbU++)*(*jac)*(*weight)*energy;
-        } 
-        jac++;
-        weight++;
-      }
-      ExtrapMatrix.Inverse();
-      nArrayT<dMatrixT> NodalGradU(nfn);
-      dArrayT NodalEnergy(nfn);
-      for (int i = 0; i<nfn; i++)
-      {
-        int loc_node=loc_surf_nodes[i];
-        dMatrixT& nval = NodalGradU[i];
-        nval.Allocate(NumSD());
-        nval = 0;
-        NodalEnergy[i] = 0;
-        for (int j = 0; j<nen; j++)
-        {
-          dMatrixT& pval = ExtrapGradU[j];
-          double M = ExtrapMatrix(loc_node, j);
-          for (int cnt = 0; cnt<numval; cnt++)
-            nval[cnt] += M*pval[cnt];
-          NodalEnergy[i] += M*ExtrapEnergy[j];
-        }
-      }
-      
+      //	cout << "\n Elem "<<elem<<" MatSurfVol";
       /*get surface shape function*/
-      const ParentDomainT& surf_shape = 
-      ShapeFunction().FacetShapeFunction(facet);
+      const ParentDomainT& surf_shape = ShapeFunction().FacetShapeFunction(facet);
       int nip = surf_shape.NumIP();
-      dArrayT ip_tract(NumSD());
-      dArrayT global_tract(NumSD());
-      dArrayT ip_eshelby(NumSD());     
-      dMatrixT ip_gradU(NumSD());
-      if (NumSD() == 2)
+      fsurf_val = 0.0;
+      const double* ip_w = surf_shape.Weight();
+      for (int j = 0; j<nip; j++)
       {
-        elem_val = 0.0;
-        double thickness = 1.0;
-        const double* ip_w = surf_shape.Weight();
-        for (int j = 0; j<nip; j++)
-        {
-	  surf_shape.DomainJacobian(surf_coords,j,jacobian);
-	  double detj = surf_shape.SurfaceJacobian(jacobian, Q);
-
-          /*interpolate to surface ip*/
-          double* ptract_X = tract(0);
-          double* ptract_Y = tract(1);
-          ip_gradU = 0;
-          ip_tract = 0;
-          double ip_energy = 0;
-          const double* pQaU = surf_shape.Shape(j);
-	  for (int i= 0; i<nfn; i++)
-	  {
-	    dMatrixT& nval = NodalGradU[i];
-	    ip_gradU[0] += *pQaU*nval[0];
-	    ip_gradU[1] += *pQaU*nval[1];
-	    ip_gradU[2] += *pQaU*nval[2];
-	    ip_gradU[3] += *pQaU*nval[3];
-	    ip_energy += *pQaU*NodalEnergy[i];
-	    ip_tract[0] += (*pQaU)*(*ptract_X++);
-	    ip_tract[1] += (*pQaU++)*(*ptract_Y++);
-	  }
-	  /*surface normal*/
-	  double* n = Q(1);
-	  if (BC_card.CoordSystem() == Traction_CardT::kLocal)
-	  {
-	    /*rotate traction from local to global coords*/
-	    global_tract[0] = Q[0]*ip_tract[0]+Q[2]*ip_tract[1];
-	    global_tract[1] = Q[1]*ip_tract[0]+Q[3]*ip_tract[1];
-	  }
-	  else if (BC_card.CoordSystem() == Traction_CardT::kCartesian)
-	  {
-	    global_tract[0] = ip_tract[0];
-	    global_tract[1] = ip_tract[1];
-	  }
-	  ip_eshelby[0] = (ip_energy*n[0]-ip_gradU[0]*global_tract[0]
-		          -ip_gradU[1]*global_tract[1])*thickness;
-	  ip_eshelby[1] = (ip_energy*n[1]-ip_gradU[2]*global_tract[0]
-	                  -ip_gradU[3]*global_tract[1])*thickness;
-	  /*integrate material force*/
-	  const double* pQa = surf_shape.Shape(j);
-	  double * pelem_val = elem_val.Pointer();
-	  for (int i = 0; i<nfn; i++)
-	  {
-	    (*pelem_val++) +=(*pQa)*ip_eshelby[0]*detj*(*ip_w);
-	    (*pelem_val++) +=(*pQa++)*ip_eshelby[1]*detj*(*ip_w);
-	  }
-	  ip_w++;
-        }
-      }
-      else if (NumSD() == 3)
-      { 
-        elem_val = 0.0;
-        const double* ip_w = surf_shape.Weight();
-        for (int j = 0; j<nip; j++)
-	    {
-	  surf_shape.DomainJacobian(surf_coords,j,jacobian);
-	  double detj = surf_shape.SurfaceJacobian(jacobian, Q);
+	/*calculate surface jacobian and jacobian determinant*/
+	surf_shape.DomainJacobian(fsurf_coords,j,fjacobian);
+	double detj = surf_shape.SurfaceJacobian(fjacobian, fQ);
+	if (nsd ==2)
+	{ 
+	  double* t = fQ(0);
+	  double* n = fQ(1);
+	  /*interpolate tractions to integration points*/
+	  surf_shape.Interpolate(ftraction, fip_tract,j);
 	  
-          /*interpolate to surface ip*/
-          double* ptract_X = tract(0);
-          double* ptract_Y = tract(1);
-          double* ptract_Z = tract(2);
-          ip_gradU = 0;
-          ip_tract = 0;
-          double ip_energy = 0;
-          const double* pQaU = surf_shape.Shape(j);
-	  for (int i= 0; i<nfn; i++)
+	  /*rotate tractions from global to local coordinates*/
+	  if (BC_card.CoordSystem() == Traction_CardT::kCartesian)
 	  {
-	    dMatrixT& nval = NodalGradU[i];
-	    ip_gradU[0] += *pQaU*nval[0];
-	    ip_gradU[1] += *pQaU*nval[1];
-	    ip_gradU[2] += *pQaU*nval[2];
-	    ip_gradU[3] += *pQaU*nval[3];
-	    ip_gradU[4] += *pQaU*nval[4];
-	    ip_gradU[5] += *pQaU*nval[5];
-	    ip_gradU[6] += *pQaU*nval[6];
-	    ip_gradU[7] += *pQaU*nval[7];
-	    ip_gradU[8] += *pQaU*nval[8];	        
-	    ip_energy +=  *pQaU*NodalEnergy[i];
-	    ip_tract[0] += (*pQaU)*(*ptract_X++);
-	    ip_tract[1] += (*pQaU)*(*ptract_Y++);
-	    ip_tract[2] += (*pQaU++)*(*ptract_Z++);
+	    double local_tract1 = t[0]*fip_tract[0]+t[1]*fip_tract[1];
+	    double local_tract2 = n[0]*fip_tract[0]+n[1]*fip_tract[1];
+	    fip_tract[0] = local_tract1;
+	    fip_tract[1] = local_tract2;
 	  }
-	  /*surface normal*/
-	  double* n = Q(2);
-	  if (BC_card.CoordSystem() == Traction_CardT::kLocal)
+	  //      	  cout <<"\nIP traction: "<<fip_tract;
+	  //	  cout <<"\nfjacobian: "<<fjacobian;
+	  //	  cout <<"\ntangent: ("<<t[0]<<", "<<t[1]<<")";
+	  /*get displacement gradient*/
+	  fgradU = 0;
+	  double& du1 = fgradU[0];
+	  double& du2 = fgradU[1];
+	  
+	  /*spatial derivative along the facet direction 1.0/(ds/dz)*/
+	  double jac = (t[0]*fjacobian[0]+t[1]*fjacobian[1]);
+	  if (jac <= 0.0)
 	  {
-	    /*rotate traction from local to global coords*/
-	    global_tract[0] = 
-Q[0]*ip_tract[0]+Q[3]*ip_tract[1]+Q[6]*ip_tract[2];
-	    global_tract[1] = 
-Q[1]*ip_tract[0]+Q[4]*ip_tract[1]+Q[7]*ip_tract[2];
-	    global_tract[2] = 
-Q[2]*ip_tract[0]+Q[5]*ip_tract[1]+Q[8]*ip_tract[2];
-     	  }
-	  else if (BC_card.CoordSystem() == Traction_CardT::kCartesian)
-	  {
-	    global_tract[0] = ip_tract[0];
-	    global_tract[1] = ip_tract[1];
-	    global_tract[2] = ip_tract[2];
+	    //	      cout <<"\nUplagMF::MatForceSurf"<<endl;
+	    throw ExceptionT::kBadJacobianDet;
 	  }
-	  ip_eshelby[0] = (ip_energy*n[0]-ip_gradU[0]*global_tract[0]
-			   -ip_gradU[1]*global_tract[1]-ip_gradU[2]*global_tract[2]);
-	  ip_eshelby[1] = (ip_energy*n[1]-ip_gradU[3]*global_tract[0]
-			   +ip_gradU[4]*global_tract[1]-ip_gradU[5]*global_tract[2]);
-	  ip_eshelby[2] = (ip_energy*n[2]-ip_gradU[6]*global_tract[0]
-			   +ip_gradU[7]*global_tract[1]-ip_gradU[8]*global_tract[2]);
-	  /*integrate material force*/
-	  const double* pQa = surf_shape.Shape(j);
-	  double * pelem_val = elem_val.Pointer();
+	  fjac_loc[0] = 1.0/jac;
+	  /*parent domain shape function derivatives*/
+	  const double* pdz = surf_shape.DShape(j,0);
+	  const double& j11 = fjac_loc[0];
+	  const double* pu1 = fsurf_disp(0);
+	  const double* pu2 = fsurf_disp(1);
+	    
+	  //       	  cout << "\n U "<< fsurf_disp;
+	  //       	  cout << "\n fjac_loc "<<fjac_loc[0];
 	  for (int i = 0; i<nfn; i++)
 	  {
-	    (*pelem_val++) +=(*pQa)*ip_eshelby[0]*detj*(*ip_w);
-	    (*pelem_val++) +=(*pQa)*ip_eshelby[1]*detj*(*ip_w);
-	    (*pelem_val++) +=(*pQa++)*ip_eshelby[2]*detj*(*ip_w);
+	    /*Rotate global displacement vector to local coordinates*/
+	    double local_u1 = t[0]*(*pu1)+t[1]*(*pu2);
+	    double local_u2 = n[0]*(*pu1)+n[1]*(*pu2);
+	    //       	    cout << "\n local disp: ("<<local_u1<<", "<<local_u2<<")";
+	    //       	    cout << "\n Dz: "<< *pdz;
+	    /*calculate displacement gradient along local direction*/
+	    du1 += (*pdz)*j11*(local_u1);
+	    du2 += (*pdz)*j11*(local_u2);
+	    pdz++; pu1++; pu2++;
+	  }
+	  //       	  cout << "\n GradU" <<fgradU;
+	  
+	  /*calculate material traction*/
+	  double mat_tract = -(fgradU[0])*fip_tract[0]-fgradU[1]*fip_tract[1];
+	  /*rotate material traction to global coordinates*/
+	  //       	  cout << "\n mat_tract: "<< mat_tract;
+	  
+	  double mat_tractx = t[0]*mat_tract;
+	  double mat_tracty = t[1]*mat_tract;
+	  //       	  cout << "\n mat_tractx: "<< mat_tractx;
+	  //       	  cout << "\n mat_tracty: "<< mat_tracty;
+	  
+	  /*integrate material force*/
+	  const double* pQa = surf_shape.Shape(j);
+	  double* psurf_val = fsurf_val.Pointer();
+	  for (int i = 0; i<nfn; i++)
+	  {
+	    (*psurf_val++) += (*pQa)*(mat_tractx)*detj*(*ip_w);
+	    (*psurf_val++) += (*pQa++)*(mat_tracty)*detj*(*ip_w);
 	  }
 	  ip_w++;
-        }
+	}
+	else if (NumSD() == 3)
+	{
+	  double* n1 = fQ(0);
+	  double* n2 = fQ(1);
+	  double* n3 = fQ(2);
+	  /*interpolate tractions to integration points*/
+	  surf_shape.Interpolate(ftraction, fip_tract,j);
+	  
+	  /*rotate tractions from global to local coordinates*/
+	  if (BC_card.CoordSystem() == Traction_CardT::kCartesian)
+	  {
+	    double local_tract1 = n1[0]*fip_tract[0]+n1[1]*fip_tract[1]+n1[2]*fip_tract[2];
+	    double local_tract2 = n2[0]*fip_tract[0]+n2[1]*fip_tract[1]+n2[2]*fip_tract[2];
+	    double local_tract3 = n3[0]*fip_tract[0]+n3[1]*fip_tract[1]+n2[2]*fip_tract[2];
+	    fip_tract[0] = local_tract1;
+	    fip_tract[1] = local_tract2;
+	    fip_tract[2] = local_tract3;
+	  }
+	  /*get displacement gradient*/
+	  fgradU = 0;
+	  double& du11 = fgradU[0];
+	  double& du21 = fgradU[1];
+	  double& du31 = fgradU[2];
+	  double& du12 = fgradU[3];
+	  double& du22 = fgradU[4];
+	  double& du32 = fgradU[5];
+	  
+	  /*spatial derivative along the facet direction 1.0/(ds/dz)*/
+	  fjac_loc[0] = (n1[0]*fjacobian[0]+n1[1]*fjacobian[1]+n1[2]*fjacobian[2]);
+	  fjac_loc[1] = (n2[0]*fjacobian[0]+n2[1]*fjacobian[1]+n2[2]*fjacobian[2]);
+	  fjac_loc[2] = (n1[0]*fjacobian[4]+n1[1]*fjacobian[5]+n1[2]*fjacobian[6]);
+	  fjac_loc[3] = (n2[0]*fjacobian[4]+n2[1]*fjacobian[5]+n2[2]*fjacobian[6]);
+	  double jac = fjac_loc.Det();
+	  if (jac <= 0.0)
+	  {
+	    cout <<"\nUplagMF::MatForceSurfMech";
+	    throw ExceptionT::kBadJacobianDet;
+	  }	  
+	  fjac_loc.Inverse();
+	  
+	  /*parent domain shape function derivatives*/
+	  const double* pdz = surf_shape.DShape(j,0);
+	  const double* pdn = surf_shape.DShape(j,1);
+	  
+	  const double& j11 = fjac_loc[0];
+	  const double& j21 = fjac_loc[1];
+	  const double& j12 = fjac_loc[2];
+	  const double& j22 = fjac_loc[3];
+	  
+	  const double* pu1 = fsurf_disp(0);
+	  const double* pu2 = fsurf_disp(1);
+	  const double* pu3 = fsurf_disp(2);
+	  
+	  for (int i = 0; i<nfn; i++)
+	  {
+	    /*Rotate global displacement vector to local coordinates*/
+	    double local_u1 = n1[0]*(*pu1)+n1[1]*(*pu2)+n1[2]*(*pu3);
+	    double local_u2 = n2[0]*(*pu1)+n2[1]*(*pu2)+n2[2]*(*pu3);
+	    double local_u3 = n3[0]*(*pu1)+n3[1]*(*pu2)+n3[2]*(*pu3);
+	    
+	    /*calculate displacement gradient along local direction*/
+	    du11 += (*pdz)*j11*(local_u1) + (*pdn)*j21*(local_u1);
+	    du21 += (*pdz)*j11*(local_u2) + (*pdn)*j21*(local_u2);
+	    du31 += (*pdz)*j11*(local_u3) + (*pdn)*j21*(local_u3);
+	    
+	    du12 += (*pdz)*j12*(local_u1) + (*pdn)*j22*(local_u1);
+	    du22 += (*pdz)*j12*(local_u2) + (*pdn)*j22*(local_u2);
+	    du32 += (*pdz)*j12*(local_u3) + (*pdn)*j22*(local_u3);
+	    
+	    pdz++; pdn++; pu1++; pu2++; pu3++;
+	  }
+	  /*calculate material traction*/
+	  double mat_tract1 = -(fgradU[0])*fip_tract[0]-fgradU[1]*fip_tract[1]+fgradU[2]*fip_tract[2];
+	  double mat_tract2 = -fgradU[3]*fip_tract[0]-(fgradU[4])*fip_tract[1]+fgradU[5]*fip_tract[2];
+	  
+	  /*rotate material traction to global coordinates*/
+	  double mat_tractx = n1[0]*mat_tract1 + n2[0]*mat_tract2;
+	  double mat_tracty = n1[1]*mat_tract1 + n2[1]*mat_tract2;
+	  double mat_tractz = n1[2]*mat_tract1 + n2[2]*mat_tract2;
+	  
+	  /*integrate material force*/
+	  const double* pQa = surf_shape.Shape(j);
+	  double* psurf_val = fsurf_val.Pointer();
+	  for (int i = 0; i<nfn; i++)
+	  {
+	    (*psurf_val++) += (*pQa)*(mat_tractx)*detj*(*ip_w);
+	    (*psurf_val++) += (*pQa)*(mat_tracty)*detj*(*ip_w);
+	    (*psurf_val++) += (*pQa++)*(mat_tractz)*detj*(*ip_w);
+	  }
+	  ip_w++;
+	}
       }
-      AssembleArray(elem_val, global_val, surf_nodes);
+      AssembleArray(fsurf_val, global_val, surf_nodes);
+      //      cout << "\nsurf_val: "<<fsurf_val;
     }
   }
 }

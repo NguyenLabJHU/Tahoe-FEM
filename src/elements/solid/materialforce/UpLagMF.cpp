@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.cpp,v 1.7 2003-11-14 22:56:12 thao Exp $ */
+/* $Id: UpLagMF.cpp,v 1.8 2003-11-19 06:09:46 thao Exp $ */
 #include <ctype.h>
 
 #include "UpLagMF.h"
@@ -11,6 +11,7 @@
 #include "ModelManagerT.h"
 #include "CommunicatorT.h"
 #include "GraphT.h"
+#include "FEManagerT.h"
 #include "ifstreamT.h"
 
 /* materials lists */
@@ -25,9 +26,11 @@ UpLagMF::UpLagMF(const ElementSupportT& support, const FieldT& field):
   UpdatedLagrangianT(support, field),
   MFSupportT(support),
   LocalizeT(support),
+  fdynamic(false),
   ftraction(LocalArrayT::kUnspecified),
   fsurf_disp(LocalArrayT::kDisp),
   fsurf_coords(LocalArrayT::kInitCoords){
+ 
 }
 
 void UpLagMF::Initialize(void)
@@ -70,7 +73,7 @@ void UpLagMF::Initialize(void)
 	pcheckflag[i] = 1;
     }
     //    cout << "\nList of blocks to check: "<<fBlockList;
-    //    cout << "\nCheckflags: "<< fLocCheckFlags;
+   //    cout << "\nCheckflags: "<< fLocCheckFlags;
   }
     
   /*dimension workspace for bulk quantities*/
@@ -78,11 +81,16 @@ void UpLagMF::Initialize(void)
   fC.Dimension(NumSD());
   fBodyForce.Dimension(NumSD()*NumElementNodes());
   fip_body.Dimension(NumSD());
+  fVel.Dimension(NumSD());
+  fAcc.Dimension(NumSD());
+  fGradVel.Dimension(NumSD());
 }
 
 void UpLagMF::SetGlobalShape(void)
 {
   UpdatedLagrangianT::SetGlobalShape();
+  if (fCheck == 1)
+    fip_loc.Dimension(fShapes->NumIP());
 }
 
 /***************************outputs managers***********************************/
@@ -92,11 +100,12 @@ void UpLagMF::RegisterOutput(void)
   /* inherited */
   SolidElementT::RegisterOutput();
 
-  ArrayT<StringT> n_labels(3*NumSD());
+  ArrayT<StringT> n_labels(4*NumSD());
   ArrayT<StringT> e_labels;
   
   StringT mf_label = "mF";
   StringT mfd_label = "mF_dissip";
+  StringT mfdd_label = "mF_dynamic";
   StringT disp_label = "D";
   const char* suffix[3] = {"_X", "_Y", "_Z"};
   int dex = 0;
@@ -104,6 +113,8 @@ void UpLagMF::RegisterOutput(void)
     n_labels[dex++].Append(mf_label, suffix[i]);
   for (int i = 0; i < NumSD(); i++)
     n_labels[dex++].Append(mfd_label, suffix[i]);
+  for (int i = 0; i < NumSD(); i++)
+    n_labels[dex++].Append(mfdd_label, suffix[i]);
   for (int i = 0; i < NumSD(); i++)
     n_labels[dex++].Append(disp_label, suffix[i]);
   
@@ -140,9 +151,9 @@ void UpLagMF::WriteOutput(void)
   ComputeMatForce(n_values);
 
   /* send to output */
-  const CommunicatorT& comm = ElementSupport().Communicator();
-  if (comm.Size() == 1)
-    WriteSummary(n_values);
+  //const CommunicatorT& comm = ElementSupport().Communicator();
+  //if (comm.Size() == 1)
+  //   WriteSummary(n_values);
 
   ElementSupport().WriteOutput(fMatForceOutputID, n_values, e_values);
 }
@@ -206,7 +217,7 @@ GlobalT::RelaxCodeT UpLagMF::RelaxSystem(void)
   int* plocflag = fLocCheckFlags(1);
 
   ostream& out = ElementSupport().Output();
-  out << "\nRelaxation: Localization Check";
+  out << "\nRelaxation: Localization Check\n";
   Top();
   while (NextElement() && fCheck == 1)
   {
@@ -215,6 +226,8 @@ GlobalT::RelaxCodeT UpLagMF::RelaxSystem(void)
     {
       SetGlobalShape();
       SetLocalX(fLocInitCoords);
+ 
+      fip_loc = 0; 
       fCurrShapes->TopIP();
       while (fCurrShapes->NextIP() && plocflag[elem] == 0)
       {
@@ -223,14 +236,27 @@ GlobalT::RelaxCodeT UpLagMF::RelaxSystem(void)
 	
 	int loc = CheckLocalizeFS(stress, modulus,fLocInitCoords);
 	//	out <<"\nElem "<<elem<<" Localize? "<<loc<<endl;
-	if (loc == 1)
-	{
+
+       	if (loc == 1)
+       	{
+	  fip_loc[CurrIP()] = 1;
+	  out << "Localization detected in element " << elem 
+	      << " IP " << CurrIP() << endl;
+	  out << fip_loc;
+	/********************
 	  plocflag[elem] = 1;
 	  felem_centers.SetRow(elem, LocalizedElemCenter());
 	  fnormals.SetRow(elem, LocalizedNormal());
-      	  out << "\nelem: "<<elem;
-	  //	  out <<"\n"<< modulus;
+      	  out << "\nelem: "<<elem;;
+      	  out <<"\n"<< modulus;
+	********************/
 	}
+      }
+      if (fip_loc.Sum() == NumIP())
+      {
+	  plocflag[elem] = 1;
+	  felem_centers.SetRow(elem, LocalizedElemCenter());
+	  fnormals.SetRow(elem, LocalizedNormal());
       }
     }
   }
@@ -248,17 +274,20 @@ void UpLagMF::ComputeMatForce(dArray2DT& output)
   int nmf = nnd*NumSD();
 
   /*dimension output array and workspace*/
-  output.Dimension(nnd,3*NumSD());
+  output.Dimension(nnd,4*NumSD());
+  output = 0.0;
   
   const dArray2DT& disp = Field()[0];
   if (disp.MajorDim() != output.MajorDim()) throw ExceptionT::kGeneralFail;
 
   fMatForce.Dimension(nmf);
   fDissipForce.Dimension(nmf);
+  fDynForce.Dimension(nmf);
   felem_rhs.Dimension(NumSD()*nen);  
 
   fMatForce = 0.0;
   fDissipForce = 0.0;
+  fDynForce = 0.0;
 
   /*if internal dissipation vars exists, extrapolate from element ip to nodes*/
   if (fhas_dissipation) {
@@ -292,6 +321,14 @@ void UpLagMF::ComputeMatForce(dArray2DT& output)
     Extrapolate();
   }
 
+  /*check for dynamic analysis*/
+  int analysiscode = ElementSupport().FEManager().Analysis();
+  if (analysiscode ==  GlobalT::kLinExpDynamic  ||
+      analysiscode == GlobalT::kNLExpDynamic    ||
+      analysiscode == GlobalT::kVarNodeNLExpDyn ||
+      analysiscode == GlobalT::kPML)
+    fdynamic = true;
+
   /*evaluate volume contributions to material and dissipation force*/
   Top();
   const int* plocflag = fLocCheckFlags(1);
@@ -308,6 +345,17 @@ void UpLagMF::ComputeMatForce(dArray2DT& output)
       
       /*Set Global Shape Functions for current element*/
       SetGlobalShape();
+
+      if (fdynamic)
+      {
+	SetLocalU(fLocAcc);
+	SetLocalU(fLocVel);
+	SetLocalU(fLocDisp);
+	MatForceDynamic(felem_rhs);
+	AssembleArray(felem_rhs, fDynForce, CurrentElement().NodesX());
+	//	cout << "\nfDynForce: "<<fDynForce;
+      }
+ 
       MatForceVolMech(felem_rhs);
       AssembleArray(felem_rhs, fMatForce, CurrentElement().NodesX());
       if (fhas_dissipation) 
@@ -322,36 +370,49 @@ void UpLagMF::ComputeMatForce(dArray2DT& output)
 
   /*add surface contribution*/
   MatForceSurfMech(fMatForce);
-
+  //  cout << "\nDynForce: "<<fDynForce;
+  //  cout << "\nMatForce: "<<fMatForce;
+  //  cout << "\nDissipForce: "<<fDissipForce;
   /*assemble material forces and displacements into output array*/
   double* pout_force = output.Pointer();
   double* pout_dissip = output.Pointer(NumSD());
-  double* pout_disp = output.Pointer(2*NumSD());
+  double* pout_dyn = output.Pointer(2*NumSD());
+  double* pout_disp = output.Pointer(3*NumSD());
+
   double* pmat_force = fMatForce.Pointer();
   double* pmat_fdissip = fDissipForce.Pointer();
-  const iArray2DT& eqno = Field().Equations();
+  double* pmat_fdyn = fDynForce.Pointer();
+
+  //  const iArray2DT& eqno = Field().Equations();
   for (int i = 0; i<nnd; i++)
   {
     for (int j = 0; j<NumSD(); j++)
     {
       /*material force set to zero for kinematically constrained nodes*/
-      if(eqno[i*NumSD()+j] < 1)
+      //      if(eqno[i*NumSD()+j] < 1)
+      if (fExclude[i] == 1)
       {
+	//            cout << "\n boundary node: "<<i<<" nsd: "<<j;
 	    *pout_force++ = 0.0;
 	    *pout_dissip++ = 0.0;
+	    *pout_dyn++ = 0.0;
 	    pmat_force++;
 	    pmat_fdissip++;
+	    pmat_fdyn++;
       }
       else
       {
-	    *pout_force++ = (*pmat_force++) + (*pmat_fdissip);
+	    *pout_force++ = (*pmat_force++) + (*pmat_fdissip) + (*pmat_fdyn);
 	    *pout_dissip++ = (*pmat_fdissip++);
+	    *pout_dyn++ = (*pmat_fdyn++);
       }
       *pout_disp++ = disp[i*NumSD()+j];
     }
-    pout_force += 2*NumSD();
-    pout_dissip += 2*NumSD();
-    pout_disp += 2*NumSD();
+    //    cout << "\noutput: "<<output;
+    pout_force += 3*NumSD();
+    pout_dissip += 3*NumSD();
+    pout_dyn += 3*NumSD();
+    pout_disp += 3*NumSD();
   }
 }
 
@@ -365,16 +426,7 @@ void UpLagMF::MatForceVolMech(dArrayT& elem_val)
   /*get density*/
   double density = fCurrFSMat->Density();
   
-  if (fLocAcc.IsRegistered())
-  {
-    SetLocalU(fLocAcc);
-    fLocAcc.ReturnTranspose(fBodyForce);
-  }  
-  else
-    fBodyForce = 0.0;
-  fBodyForce *= density;
-    
-  /*copy acceleration and body force data into body force vector*/
+  fBodyForce = 0.0;
   double* pbody = fBodyForce.Pointer();    
   if (fBodySchedule)
   {
@@ -383,7 +435,7 @@ void UpLagMF::MatForceVolMech(dArrayT& elem_val)
       for (int j = 0; j<NumSD(); j++)
         *pbody++ -= fBody[j]*loadfactor*density;
   }
-
+    
   /*intialize shape function data*/
   const double* jac = fShapes->IPDets();
   const double* weight = fShapes->IPWeights();
@@ -404,15 +456,16 @@ void UpLagMF::MatForceVolMech(dArrayT& elem_val)
 
     double* pbody = fBodyForce.Pointer();
     double* pforce = elem_val.Pointer(); 
+
     if (NumSD() == 2)
     {
       /*interpolate to ip*/
       fip_body = 0;
       for (int i= 0; i<nen; i++)
       {
-	    fip_body[0] += (*pQaU) * (*pbody++);
-	    fip_body[1] += (*pQaU++) * (*pbody++);
-      }	 
+	fip_body[0] += (*pQaU) * (*pbody++);
+	fip_body[1] += (*pQaU++) * (*pbody++);
+      }  
 
       /*form negative of Eshelby stress -SIG_IJ = C_IK S_KJ - Psi Delta_IJ*/
       fEshelby(0,0) = fC[0]*S[0] + fC[2]*S[2]- energy;
@@ -420,16 +473,34 @@ void UpLagMF::MatForceVolMech(dArrayT& elem_val)
       fEshelby(1,0) = fC[2]*S[0] + fC[1]*S[2];
       fEshelby(1,1) = fC[2]*S[2] + fC[1]*S[1] - energy;
 
+      if (elem == 0 && 0)
+      {
+	cout << "\nstress: "<<S;
+	cout << "\nenergy: "<<energy;
+	cout << "\nEshelby: "<< fEshelby;
+      }      //      if (elem == 6)
+      //	cout << "\nstatic eshelby: "<< fEshelby;
+
+      if (fdynamic)
+      {
+	fShapes->InterpolateU(fLocVel, fVel);
+	fEshelby(0,0) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]);
+	fEshelby(1,1) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]);
+      }
+
+      //      if (elem == 6)
+      //	cout << "\n dynamic eshelby: "<< fEshelby;
+
       double* pDQaX = DQa(0); 
       double* pDQaY = DQa(1);
       
       for (int j = 0; j<nen; j++)
       {
-	/*add nEshelby volume integral contribution*/
+	/*add negative of Eshelby stress and body force contribution*/
        	*(pforce++) += (fEshelby(0,0)*(*pDQaX) + fEshelby(0,1)*(*pDQaY)
-			+ (F(0,0)*fip_body[0]+F(1,0)*fip_body[1])*(*pQa))*(*jac)*(*weight);
+	  +(F(0,0)*fip_body[0]+F(1,0)*fip_body[1])*(*pQa))*(*jac)*(*weight);
 	*(pforce++) += (fEshelby(1,0)*(*pDQaX++) + fEshelby(1,1)*(*pDQaY++)
-			+ (F(0,1)*fip_body[0]+F(1,1)*fip_body[1])*(*pQa++))*(*jac)*(*weight); 
+	  +(F(0,1)*fip_body[0]+F(1,1)*fip_body[1])*(*pQa++))*(*jac)*(*weight); 
       }
     }
     else if (NumSD() ==3)
@@ -438,11 +509,11 @@ void UpLagMF::MatForceVolMech(dArrayT& elem_val)
       fip_body = 0;
       for (int i= 0; i<nen; i++)
       {
-         	fip_body[0] += (*pQaU) * (*pbody++);
-		fip_body[1] += (*pQaU) * (*pbody++);
-		fip_body[2] += (*pQaU++) * (*pbody++);
+	fip_body[0] += (*pQaU) * (*pbody++);
+	fip_body[1] += (*pQaU) * (*pbody++);
+	fip_body[2] += (*pQaU++) * (*pbody++);
       }
-	        
+
       /*form negative of Eshelby stress -SIG_IJ = C_IK S_KJ - Psi Delta_IJ*/
       fEshelby(0,0) = fC[0]*S[0] + fC[5]*S[5] + fC[4]*S[4] - energy;
       fEshelby(1,1) = fC[5]*S[5] + fC[1]*S[1] + fC[3]*S[3] - energy;
@@ -455,6 +526,17 @@ void UpLagMF::MatForceVolMech(dArrayT& elem_val)
       fEshelby(0,2) = fC[0]*S[4] + fC[5]*S[3] + fC[4]*S[2];
       fEshelby(1,2) = fC[5]*S[4] + fC[1]*S[3] + fC[3]*S[2];
 
+      if (fdynamic)
+      {
+	fShapes->InterpolateU(fLocVel, fVel);
+	fEshelby(0,0) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]
+				      +fVel[2]*fVel[2]);
+	fEshelby(1,1) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]
+				      +fVel[2]*fVel[2]);
+	fEshelby(2,2) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]
+				      +fVel[2]*fVel[2]);
+      }
+
       double* pDQaX = DQa(0); 
       double* pDQaY = DQa(1);
       double* pDQaZ = DQa(2);
@@ -462,23 +544,26 @@ void UpLagMF::MatForceVolMech(dArrayT& elem_val)
       for (int j = 0; j<nen; j++)
       {
 	/*add Eshelby volume integral contribution*/
-	*(pforce++) += (fEshelby(0,0)*(*pDQaX) + fEshelby(0,1)*(*pDQaY) + fEshelby(0,2)*(*pDQaZ) 
-			+(F(0,0)*fip_body[0] + F(1,0)*fip_body[1] + F(2,0)*fip_body[2])
-			*(*pQa) )*(*jac)*(*weight);
+	*(pforce++) += (fEshelby(0,0)*(*pDQaX) + fEshelby(0,1)*(*pDQaY) 
+	  + fEshelby(0,2)*(*pDQaZ) 
+	  +(F(0,0)*fip_body[0] + F(1,0)*fip_body[1] + F(2,0)*fip_body[2])
+	  *(*pQa) )*(*jac)*(*weight);
 	
-    	*(pforce++) += (fEshelby(1,0)*(*pDQaX) + fEshelby(1,1)*(*pDQaY) + fEshelby(1,2)*(*pDQaZ)
-			+(F(0,1)*fip_body[0] + F(1,1)*fip_body[1] + F(2,1)*fip_body[2])
-			*(*pQa) )*(*jac)*(*weight);
+    	*(pforce++) += (fEshelby(1,0)*(*pDQaX) + fEshelby(1,1)*(*pDQaY) 
+          + fEshelby(1,2)*(*pDQaZ)
+	  +(F(0,1)*fip_body[0] + F(1,1)*fip_body[1] + F(2,1)*fip_body[2])
+	  *(*pQa) )*(*jac)*(*weight);
 	
-	*(pforce++) += (fEshelby(2,0)*(*pDQaX++) + fEshelby(2,1)*(*pDQaY++) + fEshelby(2,2)*(*pDQaZ++) 
-			+(F(0,2)*fip_body[0]+F(1,2)*fip_body[1]+F(2,2)*fip_body[2])
-			*(*pQa++))*(*jac)*(*weight);
+	*(pforce++) += (fEshelby(2,0)*(*pDQaX++) + fEshelby(2,1)*(*pDQaY++) 
+          + fEshelby(2,2)*(*pDQaZ++) 
+	  +(F(0,2)*fip_body[0]+F(1,2)*fip_body[1]+F(2,2)*fip_body[2])
+	  *(*pQa++))*(*jac)*(*weight);
       }
     }
     weight++;
     jac++;
   }
-      //      cout<< "\nelem_val: "<<elem_val;
+  //  if (elem == 6)      cout<< "\nelem_val: "<<elem_val;
 }
 
 void UpLagMF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretch)
@@ -572,6 +657,83 @@ void UpLagMF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretch
     jac++;
     weight++;
   }
+}
+
+void UpLagMF::MatForceDynamic(dArrayT& elem_val)
+{
+  const char caller[] = "UpLagMF::MatForceDynamic";
+  int nen = NumElementNodes();
+  int elem = CurrElementNumber();
+  elem_val = 0;  
+
+  double density = fCurrFSMat->Density();
+
+  /*intialize shape function data*/
+  const double* jac = fShapes->IPDets();
+  const double* weight = fShapes->IPWeights();
+  /*  if (elem == 6) {
+    cout << "\nAcc: "<<fLocAcc;
+    cout << "\nVel: "<<fLocVel;
+      cout <<"\n fDisp: "<<fLocDisp;
+      }*/
+  fShapes->TopIP();
+  while(fShapes->NextIP())
+  {
+    /*get shape function and derivatives at integration point*/
+    const double* pQa = fShapes->IPShapeX();
+    const double* pQaU = fShapes->IPShapeU();
+    const dArray2DT& DQa = fShapes->Derivatives_X();
+
+    /*integration point values*/
+    const dMatrixT& F = fCurrFSMat->F_mechanical();
+    fShapes->GradU(fLocVel,fGradVel); 
+    fShapes->InterpolateU(fLocVel, fVel);
+    fShapes->InterpolateU(fLocAcc, fAcc);
+    /*    if (elem == 6)
+    {
+      cout << "\nelem "<<elem<<" ip "<<CurrIP()<<endl; 
+      cout << "\nfGradVel: "<<fGradVel;
+      cout <<"\n F: "<< F;
+      cout <<"\n fVel: "<<fVel;
+      cout <<"\n fAcc: "<<fAcc;
+      }*/
+    double* pelem_val = elem_val.Pointer();
+    if (NumSD() ==2)
+    {
+      for (int i = 0; i<nen; i++)
+      {
+	double xval = density*(-fGradVel[0]*fVel[0]-fGradVel[1]*fVel[1]
+			       +F[0]*fAcc[0]+F[1]*fAcc[1]);
+	double yval = density*(-fGradVel[2]*fVel[0]-fGradVel[3]*fVel[1]
+			       +F[2]*fAcc[0]+F[3]*fAcc[1]);
+    	*pelem_val++ += xval*(*pQa)*(*jac)*(*weight);
+	*pelem_val++ += yval*(*pQa++)*(*jac)*(*weight);      
+      }
+      //      if (elem ==6) cout << "\n elem_val: "<<elem_val;
+    }
+    else if (NumSD() == 3)
+    {
+      for (int i = 0; i<nen; i++)
+      {
+	double xval = density*(-fGradVel(0,0)*fVel[0]-fGradVel(1,0)*fVel[1]
+			       -fGradVel(2,0)*fVel[2]
+			       +F(0,0)*fAcc[0]+F(1,0)*fAcc[1]+F(2,0)*fAcc[2]);
+	double yval = density*(-fGradVel(0,1)*fVel[0]-fGradVel(1,1)*fVel[1]
+			       -fGradVel(2,1)*fVel[2]
+			       +F(0,1)*fAcc[0]+F(1,1)*fAcc[1]+F(2,1)*fAcc[2]);
+	double zval = density*(-fGradVel(0,2)*fVel[0]-fGradVel(1,2)*fVel[1]
+			       -fGradVel(2,2)*fVel[2]
+			       +F(0,2)*fAcc[0]+F(1,2)*fAcc[1]+F(2,2)*fAcc[2]); 
+    	*pelem_val++ += xval*(*pQa)*(*jac)*(*weight);
+	*pelem_val++ += yval*(*pQa)*(*jac)*(*weight);      
+	*pelem_val++ += zval*(*pQa++)*(*jac)*(*weight);      
+      }
+    }
+    jac++;
+    weight++;
+  }
+  //  cout<<"\nElem: "<<elem;
+  //  cout<<elem_val;
 }
 
 void UpLagMF::MatForceSurfMech(dArrayT& global_val)

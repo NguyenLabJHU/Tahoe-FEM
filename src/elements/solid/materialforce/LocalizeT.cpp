@@ -1,4 +1,4 @@
-/* $Id: LocalizeT.cpp,v 1.3 2003-11-14 22:56:12 thao Exp $ */
+/* $Id: LocalizeT.cpp,v 1.4 2003-11-19 06:09:46 thao Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "LocalizeT.h"
@@ -275,11 +275,11 @@ void LocalizeT::ComputeCoefficients(void)
 			+ s22*s22)/8;
 
 	/* phase shifts */
-       	if (fabs(c2t) < 1e-12 && fabs(s2t) < 1e-12)
+       	if (fabs(c2t) == 0.0 && fabs(s2t) == 0.0)
 	  fphi2 = fPi/4.0;
 	else fphi2 = atan2(c2t,s2t)/2.0;
 	
-	if (fabs(c4t) < 1e-12 && fabs(s4t) < 1e-12)
+	if (fabs(c4t) == 0.0 && fabs(s4t) == 0.0)
 	  fphi4 = fPi/8.0;
 	  else fphi4 = atan2(c4t,s4t)/4.0;
 

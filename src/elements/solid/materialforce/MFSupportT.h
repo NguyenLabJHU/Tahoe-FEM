@@ -1,4 +1,4 @@
-/* $Id: MFSupportT.h,v 1.3 2003-11-12 19:21:19 thao Exp $ */
+/* $Id: MFSupportT.h,v 1.4 2003-11-19 06:09:46 thao Exp $ */
 
 #ifndef _MFSupportT_
 #define _MFSupportT_
@@ -57,6 +57,9 @@ class MFSupportT
 
     ArrayT<StringT> fNID;
     int fnumset;
+
+    StringT fBoundID;
+    iArrayT fExclude;
 
     int fhas_dissipation;
 

@@ -1,4 +1,4 @@
-/* $Id: LocalizeT.h,v 1.2 2003-11-14 03:17:42 thao Exp $ */
+/* $Id: LocalizeT.h,v 1.3 2003-11-19 06:09:46 thao Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _LOCALIZET_H_
@@ -64,6 +64,7 @@ public:
 	/*check localization flag*/
 	int fCheck;	
 	iArrayT fBlockList;
+	iArrayT fip_loc;
  private:
 	
 	/*member data*/

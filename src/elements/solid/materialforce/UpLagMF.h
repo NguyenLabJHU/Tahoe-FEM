@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.h,v 1.5 2003-11-14 03:17:42 thao Exp $ */
+/* $Id: UpLagMF.h,v 1.6 2003-11-19 06:09:46 thao Exp $ */
 
 #ifndef _UpLagMF_H_
 #define _UpLagMF_H_
@@ -45,6 +45,7 @@ class UpLagMF: public UpdatedLagrangianT, public MFSupportT, public LocalizeT
     void ComputeMatForce(dArray2DT& output);
     void MatForceVolMech(dArrayT& elem_val);
     void MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretch);
+    void MatForceDynamic(dArrayT& elem_val);
     void MatForceSurfMech(dArrayT& global_val);
 
     /*utility funtions*/
@@ -67,16 +68,24 @@ class UpLagMF: public UpdatedLagrangianT, public MFSupportT, public LocalizeT
  private:
     dMatrixT fEshelby;        /*eshelby energy momentum tensor*/
     dSymMatrixT fC;
-    /*nodal and interpolated body force*/
-    dArrayT fBodyForce;       /*body and inertial force vector*/
-    dArrayT fip_body;         /*body force at integration point*/
-    
+
     /*material force*/
     dArrayT fMatForce;        /*nodal material force vector*/
     dArrayT fDissipForce;     /*nodal dissipation force vector*/
+    dArrayT fDynForce;
     dArrayT felem_rhs;        /*element force vector*/
 
-    /*internal variables*/
+    /*nodal and interpolated body force*/
+    dArrayT fBodyForce;       /*nodal body force vector*/
+    dArrayT fip_body;         /*body force at integration point*/
+ 
+    /*dynamic analysis variables*/
+    bool fdynamic;           /*flag for dynamic analysis*/
+    dArrayT fVel;             /*integration point velocity vector*/
+    dArrayT fAcc;             /*integration point acceleration vector*/
+    dMatrixT fGradVel;        /*integration point velocity gradient*/
+
+    /*internal variables for inelastic materials*/
     iArrayT fInternalDOF;     /*dof of internal variable tensors*/
     int fNumInternalVal;      /*total number of internal variables*/
 
@@ -88,7 +97,7 @@ class UpLagMF: public UpdatedLagrangianT, public MFSupportT, public LocalizeT
     
     dArray2DT fGradInternalStrain;  /*gradient of internal strains at ip*/
 
-    /*surface variables*/
+    /*crack surface evaluation*/
     LocalArrayT ftraction;    /*traction at element facet*/
     LocalArrayT fsurf_disp;   /*displacement at element facet*/
     LocalArrayT fsurf_coords; /*coordinates of element facet*/
