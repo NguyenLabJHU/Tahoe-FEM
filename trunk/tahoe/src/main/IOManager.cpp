@@ -1,6 +1,5 @@
-/* $Id: IOManager.cpp,v 1.10 2001-12-17 00:13:00 paklein Exp $ */
-/* created: sawimme (10/12/1999)                                          */
-/* this class creates InputBaseT and OutputBaseT pointers                 */
+/* $Id: IOManager.cpp,v 1.11 2002-01-09 18:28:50 paklein Exp $ */
+/* created: sawimme (10/12/1999) */
 
 #include "IOManager.h"
 
@@ -27,7 +26,7 @@ IOManager::IOManager(ostream& outfile, const StringT& program_name,
 	fOutput_tmp(NULL)
 {
 	/* construct output formatter */
-	fOutput = SetOutput(program_name, version, title, input_file, fOutputFormat);
+	fOutput = NewOutput(program_name, version, title, input_file, fOutputFormat, fLog);
 }
 
 IOManager::IOManager(ifstreamT& in, const IOManager& io_man):
@@ -39,9 +38,9 @@ IOManager::IOManager(ifstreamT& in, const IOManager& io_man):
 	fOutput_tmp(NULL)
 {
 	/* construct output formatter */
-	fOutput = SetOutput((io_man.fOutput)->CodeName(),
+	fOutput = NewOutput((io_man.fOutput)->CodeName(),
 				(io_man.fOutput)->Version(),
-				(io_man.fOutput)->Title(), in.filename(), fOutputFormat);
+				(io_man.fOutput)->Title(), in.filename(), fOutputFormat, fLog);
 }
 
 // constructor to use in conjunction with ReadParameters
@@ -145,8 +144,8 @@ void IOManager::DivertOutput(const StringT& outfile)
 		/* construct temporary output formatter */
 		StringT tmp(outfile);
 		tmp.Append(".ext"); //OutputBaseT takes root of name passed in
-		fOutput = SetOutput(fOutput_tmp->CodeName(), fOutput_tmp->Version(),
-			fOutput_tmp->Title(), tmp, fOutputFormat);
+		fOutput = NewOutput(fOutput_tmp->CodeName(), fOutput_tmp->Version(),
+			fOutput_tmp->Title(), tmp, fOutputFormat, fLog);
 		
 		/* add all output sets */
 		const ArrayT<OutputSetT*>& element_sets = fOutput_tmp->ElementSets();
@@ -176,14 +175,10 @@ const OutputSetT& IOManager::OutputSet(int ID) const
 	return fOutput->OutputSet(ID);
 }
 
-/************************************************************************
-* Private
-************************************************************************/
-
 /* construct and return new output formatter */
-OutputBaseT* IOManager::SetOutput(const StringT& program_name,
+OutputBaseT* IOManager::NewOutput(const StringT& program_name,
 	const StringT& version, const StringT& title, const StringT& input_file,
-	IOBaseT::FileTypeT output_format)
+	IOBaseT::FileTypeT output_format, ostream& log)
 {
 	ArrayT<StringT> outstrings (4);
 	outstrings[0] = input_file;
@@ -196,32 +191,32 @@ OutputBaseT* IOManager::SetOutput(const StringT& program_name,
 	switch (output_format)
 	  {
 	  case IOBaseT::kExodusII:
-	    output = new ExodusOutputT(fLog, outstrings);
+	    output = new ExodusOutputT(log, outstrings);
 	    break;
 	  case IOBaseT::kTahoe:
 	  case IOBaseT::kTahoeII:
-	    output = new FE_ASCIIT(fLog, true, outstrings);
+	    output = new FE_ASCIIT(log, true, outstrings);
 	    break;
 	  case IOBaseT::kEnSight:
-	    output = new EnSightOutputT (fLog, outstrings, kdigits, false);
+	    output = new EnSightOutputT(log, outstrings, kdigits, false);
 	    break;
 	  case IOBaseT::kEnSightBinary:
-	    output = new EnSightOutputT (fLog, outstrings, kdigits, true);
+	    output = new EnSightOutputT(log, outstrings, kdigits, true);
 	    break;
 	  case IOBaseT::kAbaqus:
-	    output = new AbaqusOutputT (fLog, outstrings, false);
+	    output = new AbaqusOutputT(log, outstrings, false);
 	    break;
 	  case IOBaseT::kAbaqusBinary:
-	    output = new AbaqusOutputT (fLog, outstrings, true);
+	    output = new AbaqusOutputT(log, outstrings, true);
 	    break;
 	  case IOBaseT::kTecPlot:
-	    output = new TecPlotOutputT (fLog, outstrings, kdigits);
+	    output = new TecPlotOutputT(log, outstrings, kdigits);
 	    break;
 	  default:
 	    {			
 	      cout << "\n IOManager::SetOutput unknown output format:"
 		   << output_format << endl;
-	      fLog  << "\n IOManager::SetOutput unknown output format:"
+	      log  << "\n IOManager::SetOutput unknown output format:"
 		    << output_format << endl;
 	      throw eBadInputValue;
 	    }

@@ -1,4 +1,4 @@
-/* $Id: IOManager.h,v 1.6 2001-12-17 00:13:00 paklein Exp $ */
+/* $Id: IOManager.h,v 1.7 2002-01-09 18:28:50 paklein Exp $ */
 /* created: sawimme (10/12/1999)                                          */
 
 #ifndef _IOMANAGER_H_
@@ -64,12 +64,10 @@ public:
 	/* accessors */
 	const OutputSetT& OutputSet(int ID) const;
 
-private:
-
 	/* return new output formatter */
-	OutputBaseT* SetOutput(const StringT& program_name, const StringT& version,
+	static OutputBaseT* NewOutput(const StringT& program_name, const StringT& version,
 		const StringT& title, const StringT& input_file,
-		IOBaseT::FileTypeT output_format);	
+		IOBaseT::FileTypeT output_format, ostream& log);	
 
 protected:
 
