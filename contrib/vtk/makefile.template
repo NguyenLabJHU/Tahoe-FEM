@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.14 2003-02-20 16:40:23 paklein Exp $
+# $Id: makefile.template,v 1.15 2004-01-02 04:26:50 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -11,30 +11,34 @@
 #     dependencies.
 # (6) "make build" to (re-)compiler binaries.
 
-# full path to current directory
+# full path to the top level of this module
 HOME_DIR =
 
+# build architecture - see macros directory for choices $(ARCH).macros
+ARCH =
+
+# destination for the build 
+BLD_DIR = $(HOME_DIR)
+
 # working directories:
-OBJ_DIR = $(HOME_DIR)/obj
 INC_DIR = $(HOME_DIR)/inc
 SRC_DIR = $(HOME_DIR)/src
-LIB_DIR = $(HOME_DIR)/lib
-
-# build architecture
-ARCH =
-# see macros directory for choices $(ARCH).macros
+OBJ_DIR = $(BLD_DIR)/obj
+BLD_SRC_DIR = $(BLD_DIR)/src-mirror
+LIB_DIR = $(BLD_DIR)/lib
 
 # default target name - root of library name or executable name
 TARGET  = vtk_console
-LIBRARY = $(HOME_DIR)/lib/lib$(TARGET).a
+LIBRARY = $(LIB_DIR)/lib$(TARGET).a
+PCH     = $(TARGET)Prefix.h
 
 # path to main, needed if primary target is an executable (not 
 # a library)
-MAIN    = $(SRC_DIR)/main.o
+MAIN = $(BLD_SRC_DIR)/main.o
 
 # target of "make build", i.e., the library $(LIBRARY) or
 # the executable $(TARGET)
-BUILD   = $(TARGET)
+BUILD = $(TARGET)
 
 # full path to compiler macros
 MACRO_DIR = $(HOME_DIR)/../../macros
@@ -42,11 +46,11 @@ MACRO_DIR = $(HOME_DIR)/../../macros
 ############################### build options ###########################
 # uncomment macros for installed models
 
-##### any additional user C, C++, fortran, or linker flags
-#MY_CFLAGS  =
-#MY_CCFLAGS = --load-pch $(HOME_DIR)/pch
-#MY_FFLAGS  =
-#MY_LFLAGS  =
+##### any additional C, C++, fortran, or linker flags specific to the module
+MOD_CFLAGS_C  =
+MOD_CFLAGS_CC =
+MOD_CFLAGS_F  =
+MOD_LFLAGS    =
 
 ##### toolbox
 TB_DIR      = $(HOME_DIR)/../../toolbox
@@ -64,33 +68,30 @@ TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 #METIS_LIB      = $(METIS_DIR)/lib/lib$(METIS_LIB_NAME).a
 #METIS_LFLAGS   = -L$(METIS_DIR)/lib -l$(METIS_LIB_NAME)
 
-#### VTK 3.2
-#VTK_DIR    = /scr/paklein/vtk3.2
-#VTK_INC    = $(X_INC_FLAGS) -I$(VTK_DIR)/common -I$(VTK_DIR) -I$(VTK_DIR)/graphics -I$(VTK_DIR)/imaging -I$(VTK_DIR)/contrib
-#VTK_CFLAGS = $(X_CFLAGS) $(THREAD_CFLAGS) $(VTK_INC) -D__VTK__
-#VTK_LFLAGS =  -L$(VTK_DIR)/contrib -lVTKContrib -L$(VTK_DIR)/patented -lVTKPatented -L$(VTK_DIR)/imaging -lVTKImaging -L$(VTK_DIR)/graphics -lVTKGraphics -L$(VTK_DIR)/common -lVTKCommon $(X_LIBS) $(THREAD_LFLAGS)
-
-#### VTK 4.0
-VTK_DIR    = /usr/local/src/VTK-4.0
+#### VTK 4.2.x
+VTK_DIR    = /usr/local/src/VTK
 VTK_INC    = $(X_INC_FLAGS) -I$(VTK_DIR) -I$(VTK_DIR)/Common -I$(VTK_DIR)/Graphics -I$(VTK_DIR)/Imaging -I$(VTK_DIR)/Filtering -I$(VTK_DIR)/IO -I$(VTK_DIR)/Rendering -I$(VTK_DIR)/Hybrid
 VTK_CFLAGS = $(X_CFLAGS) $(THREAD_CFLAGS) $(VTK_INC) -D__VTK__ -D__VTK_NEW__
-VTK_LFLAGS = -L$(VTK_DIR)/bin/ -L/usr/X11R6/lib -lpthread -lm -lvtkCommon -lvtkFiltering -lvtkGraphics -lvtkRendering -lvtkHybrid -lGL -lXt  -lSM -lICE  -L/usr/X11R6/lib -lX11 -lXext -lvtkImaging -lvtkGraphics -lvtkIO -lvtkFiltering -lvtkCommon -lvtkpng -lvtkzlib -lvtkjpeg -lpthread -lm -lvtkCommon -lvtkFiltering -lvtkGraphics -lvtkRendering -lvtkHybrid -lGL -lXt  -lSM -lICE  -L/usr/X11R6/lib -lX11 -lXext -lvtkImaging -lvtkGraphics -lvtkIO -lvtkFiltering -lvtkCommon -lvtkpng -lvtkzlib -lvtkjpeg
+VTK_LFLAGS = -L$(VTK_DIR)/bin/ -L/usr/X11R6/lib -lpthread -lm -lvtkCommon -lvtkFiltering -lvtkGraphics -lvtkRendering -lvtkHybrid -lGL -lXt  -lSM -lICE  -L/usr/X11R6/lib -lX11 -lXext -lvtkImaging -lvtkGraphics -lvtkIO -lvtkFiltering -lvtkCommon -lvtkpng -lvtkzlib -lvtkjpeg -lpthread -lm -lvtkCommon -lvtkFiltering -lvtkGraphics -lvtkRendering -lvtkHybrid -lGL -lXt  -lSM -lICE  -L/usr/X11R6/lib -lX11 -lXext -lvtkImaging -lvtkGraphics -lvtkIO -lvtkFiltering -lvtkCommon -lvtkpng -lvtkzlib -lvtkjpeg -lvtkftgl -lvtkfreetype
 
 ##### SEACAS/ACCESS software
-#AX_INC    = -I$(ACCESS)/inc
-#AX_CFLAGS = $(AX_INC) -D__ACCESS__
-#AX_LFLAGS = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
+#AX_INC     = -I$(ACCESS)/inc
+#AX_DEFINES = -D__ACCESS__
+#AX_CFLAGS  = $(AX_INC) $(AX_DEFINES)
+#AX_LFLAGS  = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
+
 ############################### build options ###########################
 
 # "make build" extras - target brought up to date before other makefile
 # targets associated with "make build"
-#MAKE_BUILD_XTRAS = make_build_extras
-make_build_extras:
-	@cd $(HOME_DIR)/pch; make \
-	"COMP_CC = $(COMP_CC)" \
-	"CFLAGS_CC = $(CFLAGS_CC) $(TB_CFLAGS) $(VTK_CFLAGS)" \
-	"INC_DIR = $(INC_DIR)" \
-	"TB_INC = $(TB_DIR)/inc"
+MOD_MAKE_INIT_XTRAS        = nothing
+MOD_MAKE_HEADERS_XTRAS     = nothing
+MOD_MAKE_DEPEND_INIT_XTRAS = nothing
+MOD_CLEAN_XTRAS            = nothing
+MOD_BUILD_XTRAS            = nothing
 
 # include common target definitions
 include $(MACRO_DIR)/make.targets
+
+# init extras target
+update_config: nothing
