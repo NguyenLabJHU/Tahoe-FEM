@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.h,v 1.6.22.1 2004-05-25 16:36:44 paklein Exp $ */
+/* $Id: ThermostatBaseT.h,v 1.6.22.2 2004-05-26 03:56:15 paklein Exp $ */
 #ifndef _THERMOSTAT_BASE_T_H_
 #define _THERMOSTAT_BASE_T_H_
 
@@ -72,10 +72,7 @@ public:
 	virtual void ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2DT* velocities,
 			dArray2DT& forces, AutoArrayT<int>& types,
 			ArrayT<ParticlePropertyT*>& particleProperties);
-			
-	/** receive temperature schedule */
-	void SetTemperatureSchedule(const ScheduleT* schedule, const double& value);
-			
+
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** describe the parameters needed by the interface */

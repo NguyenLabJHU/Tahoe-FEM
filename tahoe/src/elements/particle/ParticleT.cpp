@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.36.2.7 2004-04-21 07:38:16 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.36.2.8 2004-05-26 03:56:14 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -43,10 +43,7 @@ ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 	fReNeighborCounter(0),
 	fDmax(0),
 	fForce_man(0, fForce, field.NumDOF()),
-
-
 	fActiveParticles(NULL),
-	fRandom(NULL),
 	fTypeMessageID(CommManagerT::kNULLMessageID)
 {
 	SetName("particle");
@@ -79,7 +76,6 @@ ParticleT::ParticleT(const ElementSupportT& support):
 	fDmax(0),
 	fForce_man(fForce),
 	fActiveParticles(NULL),
-	fRandom(NULL),
 	fTypeMessageID(CommManagerT::kNULLMessageID)
 {
 	SetName("particle");
@@ -103,10 +99,6 @@ ParticleT::~ParticleT(void)
 	/* thermostats */
 	for (int i = 0; i < fThermostats.Length(); i++)
 		delete fThermostats[i];
-		
-	if (fRandom)
-		delete fRandom;
-	
 }
 
 /* form of tangent matrix */
@@ -262,9 +254,6 @@ void ParticleT::WriteRestart(ostream& out) const
 	/* write counter */
 	out << fReNeighborCounter << '\n';
 	
-	if (fRandom != NULL)
-		out << fRandom->RandSeed() << '\n';
-	
 	for (int i = 0; i < fThermostats.Length(); i++)
 		fThermostats[i]->WriteRestart(out);
 }
@@ -274,13 +263,6 @@ void ParticleT::ReadRestart(istream& in)
 {
 	/* read counter */
 	in >> fReNeighborCounter;
-	
-	if (fRandom != NULL)
-	{
-		long seed;
-		in >> seed;
-		fRandom->sRand(seed);
-	}
 	
 	for (int i = 0; i < fThermostats.Length(); i++)
 		fThermostats[i]->ReadRestart(in);
@@ -394,7 +376,7 @@ void ParticleT::LumpedMass(const iArrayT& nodes, dArrayT& mass) const
 
 void ParticleT::ApplyDamping(const RaggedArray2DT<int>& fNeighbors)
 {		
-	if (QisDamped)
+	if (fThermostats.Length() > 0)
 	{
 		const dArray2DT* velocities = NULL; 
      	if (Field().Order() > 0) // got velocities!
@@ -689,111 +671,44 @@ double ParticleT::MaxDisplacement(void) const
 	return sqrt(dmax2);
 }
 
-void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
+void ParticleT::SetDamping(const ParameterListT& list)
 {
+	const char caller[] = "ParticleT::SetDamping";
 
-#pragma unused(out)
+	AutoArrayT<ThermostatBaseT*> thermostats;
+	int count = 0;
+	const ParameterListT* thermostat_params = list.ResolveListChoice(*this, "thermostats", count);
+	while (thermostat_params) {
 	
-	const char caller[] = "ParticleT::EchoDamping";
+		/* construct new thermostat */
+		ThermostatBaseT* thermostat = New_Thermostat(thermostat_params->Name(), true);
 
-	/* default flag assuming no damping/thermostatting present */
-	QisDamped = false;
-	
-	/* flag for constructing a random number generator */
-	bool QisRandom = false;
-	
-	int num_thermostats;
-	in >> num_thermostats;
-	fThermostats.Dimension(num_thermostats);
-	fThermostats = NULL;
-	
-	CommManagerT& comm_manager = ElementSupport().CommManager();
+		/* initialize */
+		thermostat->TakeParameterList(*thermostat_params);
+		
+		/* store */
+		thermostats.Append(thermostat);
+		
+		/* look for another */	
+		thermostat_params = list.ResolveListChoice(*this, "thermostats", ++count);
+	}
+
+	/* free existing */
+	if (fThermostats.Length() > 0) {
+		for (int i = 0; i < fThermostats.Length(); i++)
+			delete fThermostats[i];
+		fThermostats.Dimension(0);
+	}
+
+	/* keep */
+	fThermostats.Swap(thermostats);
+
+#if 0
 	for (int i = 0; i < num_thermostats; i++)
 	{
 		bool QisLangevin = false;
-	
-		ThermostatBaseT::ThermostatT thermostat_i;
-		in >> thermostat_i;
-		switch (thermostat_i)
-		{
-			case ThermostatBaseT::kDamped:
-			{
-				QisDamped = true;
-				
-				fThermostats[i] = new ThermostatBaseT(in,
-					ElementSupport().NumSD(),ElementSupport().TimeStep());
-				
-				break;
-			}
-			case ThermostatBaseT::kLangevin:
-			{
-				QisRandom = QisLangevin = true;
-				QisDamped = true;
-				
-				fThermostats[i] = new LangevinT(in,
-					ElementSupport().NumSD(),ElementSupport().TimeStep());
-				
-				break;
-			}
-			case ThermostatBaseT::kNoseHoover:
-			{
-				QisDamped = true;
-				
-				fThermostats[i] = new NoseHooverT(in,
-					ElementSupport().NumSD(), ElementSupport().TimeStep());
-				
-				break;
-			}
-			case ThermostatBaseT::kGaussIsokinetic:
-			{
-				QisDamped = true;
-				
-				fThermostats[i] = new GaussIsokineticT(in,
-					ElementSupport().NumSD(), ElementSupport().TimeStep());
-				
-				break;
-			}
-			case ThermostatBaseT::kRampedDamping:
-			{
-				QisDamped = true;
-				
-				fThermostats[i] = new RampedDampingT(in,
-					ElementSupport().NumSD(), ElementSupport().TimeStep());
-				
-				break;
-			}
-			default:
-			{
-				ExceptionT::BadInputValue(caller,"Damping type does not exist or is not valid");
-			}
-		}
-		char peekahead = in.next_char();
-		int nodesOrRegion = atoi(&peekahead);
-		switch (nodesOrRegion)
-		{
-			case ThermostatBaseT::kNodes:
-			{
-				in >> nodesOrRegion; // read in what I didn't above
-				if (thermostat_i == ThermostatBaseT::kRampedDamping)
-					ExceptionT::BadInputValue(caller,"Ramped Damping requires spatial region");
-				
-				fThermostats[i]->InitNodeSets(in, ElementSupport().ModelManager());
-				
-				break;
-			}
-			case ThermostatBaseT::kRegion:
-			{
-				int nregions;
-				in >> nregions;
-				fThermostats[i]->InitRegion(in, ElementSupport().InitialCoordinates(),
-											comm_manager.PartitionNodes());
-				break;
-			}
-			default:
-			{
-				ExceptionT::BadInputValue(caller,"Thermostat control type invalid");
-			}
-		}
+
+
 		if (thermostat_i != ThermostatBaseT::kDamped)
 		{
 			int schedNum;
@@ -806,31 +721,9 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 				ExceptionT::GeneralFail(caller,"Unable to get temperature schedule");
 			fThermostats[i]->SetTemperatureSchedule(sched,schedVal);
 		}
-		if (QisLangevin)
-		{
-			if (fRandom == 0) // construct a singleton random number generator
-			{	
-				fRandom = new RandomNumberT(RandomNumberT::kParadynGaussian);
-			}
-			LangevinT* tmpPtr = TB_DYNAMIC_CAST(LangevinT*, fThermostats[i]); 
-			
-			if (!tmpPtr)
-				ExceptionT::GeneralFail(caller,"Cannot send random number gen to thermostat");
-			tmpPtr->SetRandNumGenerator(fRandom);
-		}
 	}
-	
-	if (QisRandom)
-	{
-		int randSeed;
-		in >> randSeed;
-		if (randSeed < -1) ExceptionT::BadInputValue(caller,"random seed must be >= -1");
-		if (randSeed == -1) 
-		{
-			ExceptionT::GeneralFail(caller,"No machine-generated random seed available yet");
-		}
-		fRandom->sRand(randSeed);
-	}
+#endif
+
 }
 
 
@@ -882,8 +775,9 @@ void ParticleT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& 
 	{
 		order = ParameterListT::Choice;
 		
+		sub_sub_list.AddSub("velocity_damping");
 		sub_sub_list.AddSub("ramped_damping");
-		sub_sub_list.AddSub("NoseHoover");
+		sub_sub_list.AddSub("Nose-Hoover");
 		sub_sub_list.AddSub("Gauss_isokinetic");
 		sub_sub_list.AddSub("Langevin");
 	}
@@ -1098,19 +992,24 @@ void ParticleT::TakeParameterList(const ParameterListT& list)
 
 	/* set the neighborlists */
 	SetConfiguration();
+	
+	/* construct thermostats */
+	SetDamping(list);
 }
 
 /* return a new pair property or NULL if the name is invalid */
 ThermostatBaseT* ParticleT::New_Thermostat(const StringT& name, bool throw_on_fail) const
 {
-	if (name == "ramped_damping")
-		return new RampedDampingT;
-	else if (name == "NoseHoover")
-		return new NoseHooverT;
+	if (name == "velocity_damping")
+		return new ThermostatBaseT(ElementSupport());
+	else if (name == "ramped_damping")
+		return new RampedDampingT(ElementSupport());
+	else if (name == "Nose-Hoover")
+		return new NoseHooverT(ElementSupport());
 	else if (name == "Gauss_isokinetic")
-		return new GaussIsokineticT;
+		return new GaussIsokineticT(ElementSupport());
 	else if (name == "Langevin")
-		return new LangevinT;
+		return new LangevinT(ElementSupport());
 	else if (throw_on_fail)
 		ExceptionT::GeneralFail("ParticleT::New_Thermostat",
 			"unrecognized thermostat \"%s\"", name.Pointer());

@@ -1,4 +1,4 @@
-/* $Id: LangevinT.cpp,v 1.6.20.1 2004-05-25 16:36:43 paklein Exp $ */
+/* $Id: LangevinT.cpp,v 1.6.20.2 2004-05-26 03:56:15 paklein Exp $ */
 #include "LangevinT.h"
 
 #include <math.h>
@@ -13,17 +13,8 @@ const double fkB = 0.00008617385;
 using namespace Tahoe;
 
 /* constructor */
-#if 0
-LangevinT::LangevinT(ifstreamT& in, const int& nsd, const double& dt):
-	ThermostatBaseT(in,nsd,dt)
-{
-	SetName("Langevin");
-//	in >> fTemperature;
-//	fAmp = sqrt(2.*fBeta*fkB*fTemperature/fTimeStep);
-}
-#endif
-
-LangevinT::LangevinT(const BasicSupportT& support)
+LangevinT::LangevinT(const BasicSupportT& support):
+	ThermostatBaseT(support)
 {
 	SetName("Langevin");
 }
@@ -33,22 +24,21 @@ void LangevinT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2
 			ArrayT<ParticlePropertyT*>& particleProperties)
 {
 	int nsd = fSupport.NumSD();
+	double dt = fSupport.TimeStep();
+	
 	dArrayT rArray(nsd); // random force
 	double* rf_i;
 	
 	fTemperature = fTemperatureSchedule->Value()*fTemperatureScale;
 	if (fTemperature < 0.)
 		ExceptionT::GeneralFail("LangevinT::ApplyDamping","schedule generated negative temperature");
-	double amp = sqrt(2.*fBeta*fkB*fTemperature/fTimeStep);
+	double amp_m = sqrt(2.*fBeta*fkB*fTemperature/dt);
 
 	if (fAllNodes)
-
-
-
 	{ // All the nodes are damped, use neighbors
 		int currType = types[*neighbors(0)];
 		double mass = particleProperties[currType]->Mass();
-		double amp = fAmp*sqrt(mass);
+		double amp = amp_m*sqrt(mass);
 		double beta = fBeta*mass;
 		for (int j = 0; j < neighbors.MajorDim(); j++) 
 		{
@@ -60,22 +50,22 @@ void LangevinT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2
 				currType = types[tag_j];
 				mass = particleProperties[currType]->Mass();
 				beta = fBeta*mass;
-				amp = fAmp*sqrt(mass);
+				amp = amp_m*sqrt(mass);
 			}
 				
-			fRandom->RandomArray(rArray);
+			fRandom.RandomArray(rArray);
 			rArray *= amp;
 			rf_i = rArray.Pointer();
 	    				
-			for (int i = 0; i < fSD; i++)
+			for (int i = 0; i < nsd; i++)
 				*f_j++ -= beta*(*v_j++) - *rf_i++;
 		}
 	}
-	else
+	else if (fNodes.Length() > 0)
 	{
 		int currType = types[fNodes[0]];
 		double mass = particleProperties[currType]->Mass();
-		double amp = fAmp*sqrt(mass);
+		double amp = amp_m*sqrt(mass);
 		double beta = fBeta*mass;
 		for (int j = 0; j < fNodes.Length(); j++)
 		{ 
@@ -87,15 +77,36 @@ void LangevinT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2
 				currType = types[tag_j];
 				mass = particleProperties[currType]->Mass();
 				beta = fBeta*mass;
-				amp = fAmp*sqrt(mass);
+				amp = amp_m*sqrt(mass);
 			}
 
-			fRandom->RandomArray(rArray).Pointer();
+			fRandom.RandomArray(rArray).Pointer();
 			rArray *= amp;
 			rf_i = rArray.Pointer();
 	    				
-			for (int i = 0; i < fSD; i++)
+			for (int i = 0; i < nsd; i++)
 				*f_j++ -= beta*(*v_j++) - *rf_i++;	
 	    }
 	}
 }			
+
+/* describe the parameters needed by the interface */
+void LangevinT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	ThermostatBaseT::DefineParameters(list);
+	
+	/* random number seed */
+	list.AddParameter(ParameterT::Integer, "random_seed");
+}
+
+/* accept parameter list */
+void LangevinT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ThermostatBaseT::TakeParameterList(list);
+
+	/* set the seed */
+	int seed = list.GetParameter("random_seed");
+	fRandom.sRand(seed);
+}

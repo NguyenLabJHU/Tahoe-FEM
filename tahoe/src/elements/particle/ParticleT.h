@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.27.2.4 2004-04-20 17:40:46 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.27.2.5 2004-05-26 03:56:14 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -205,7 +205,7 @@ protected: /* for derived classes only */
 
 	/** Read in damping and thermostatting paramters. Called from
 	 *  Initialize */
-	virtual void EchoDamping(ifstreamT& in, ofstreamT& out);
+	virtual void SetDamping(const ParameterListT& list);
 
 	/** return a new pair property or NULL if the name is invalid */
 	ThermostatBaseT* New_Thermostat(const StringT& name, bool throw_on_fail) const;
@@ -308,8 +308,8 @@ protected:
 	                    This value is computed during ParticleT::RelaxSystem. */
 
 	/* Damping, thermostatting variables */
-	bool QisDamped;
-	RandomNumberT* fRandom;
+//	bool QisDamped;
+//	RandomNumberT* fRandom;
 	ArrayT<ThermostatBaseT*> fThermostats;
 
 	/** \name workspace for ParticlePairT::RHSDriver. Used to accumulate the force for

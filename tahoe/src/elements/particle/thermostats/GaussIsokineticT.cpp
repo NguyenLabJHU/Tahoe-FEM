@@ -1,4 +1,4 @@
-/* $Id: GaussIsokineticT.cpp,v 1.8.20.1 2004-05-25 16:36:43 paklein Exp $ */
+/* $Id: GaussIsokineticT.cpp,v 1.8.20.2 2004-05-26 03:56:15 paklein Exp $ */
 #include "GaussIsokineticT.h"
 
 #include <math.h>
@@ -13,14 +13,6 @@ const double fkB = 0.00008617385;
 using namespace Tahoe;
 
 /* constructor */
-#if 0
-GaussIsokineticT::GaussIsokineticT(ifstreamT& in, const int& nsd, const double& dt):
-	ThermostatBaseT(in, nsd, dt)
-{
-	SetName("Gauss_isokinetic");
-}
-#endif
-
 GaussIsokineticT::GaussIsokineticT(const BasicSupportT& support):
 	ThermostatBaseT(support)
 {
