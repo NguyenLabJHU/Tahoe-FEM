@@ -1,4 +1,4 @@
-/* $Id: iArrayT.cpp,v 1.9 2002-02-27 16:47:11 paklein Exp $ */
+/* $Id: iArrayT.cpp,v 1.10 2002-03-06 02:04:46 paklein Exp $ */
 /* created: paklein (08/10/1996) */
 
 #include "iArrayT.h"
@@ -64,14 +64,6 @@ int iArrayT::HasValue(int value, int& index) const
 			return 1;
 		}
 	return 0;			
-}
-
-/* set array value to its position in the array */
-void iArrayT::SetValueToPosition(void)
-{
-	int* p = Pointer();
-	for (int i = 0; i < Length(); i++)
-		*p++ = i;
 }
 
 /* determine union of the given array */

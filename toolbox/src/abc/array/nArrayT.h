@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.8 2001-10-05 22:31:33 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.9 2002-03-06 02:04:46 paklein Exp $ */
 /* created: paklein (05/23/1997) */
 
 #ifndef _NARRAY_T_H_
@@ -103,7 +103,11 @@ public:
 	
 	/** set all values with an absolute value smaller than tolerance to 0.0 */
 	void Chop(double tolerance = kSmall);
-	
+
+	/** set array value to its offset from the beginning of the array, type cast
+	 * the number type of the array */
+	void SetValueToPosition(void);
+
 	/* sorting */
 	void SortAscending(void);
 	void SortAscending(ArrayT<int>& map);
@@ -721,6 +725,15 @@ void nArrayT<nTYPE>::Chop(double tolerance)
 	
 		pthis++;	
 	}
+}
+
+/* set array value to its position in the array */
+template <class nTYPE>
+void nArrayT<nTYPE>::SetValueToPosition(void)
+{
+	nTYPE* p = Pointer();
+	for (int i = 0; i < Length(); i++)
+		*p++ = nTYPE(i);
 }
 
 /* sorting */
