@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.31.4.2 2004-03-17 01:58:47 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.31.4.3 2004-04-17 04:45:02 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -74,6 +74,9 @@ public:
 		
 	/** indicate whether image nodes should be included in the projection */
 	virtual bool ProjectImagePoints(void) const { return false; };
+	
+	/** collect the cells without any free nodes */
+	virtual void CollectProjectedCells(const PointInCellDataT& cell_data, iArrayT& cells) const;
 	/*@}*/
 
 	/** Same as ProjectField, except that computes and returns total solution u 

@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.cpp,v 1.5.2.4 2004-04-06 00:59:20 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.cpp,v 1.5.2.5 2004-04-17 04:45:02 paklein Exp $ */
 #include "MeshfreeBridgingT.h"
 
 #include "ifstreamT.h"
@@ -322,6 +322,13 @@ void MeshfreeBridgingT::CoarseField(const PointInCellDataT& cell_data, const dAr
 		for (int j = 0; j < coarse.MinorDim(); j++)
 			coarse(i,j) = dArrayT::Dot(loc_values(j), weights);
 	}
+}
+
+/* collect the cells without any free nodes */
+void MeshfreeBridgingT::CollectProjectedCells(const PointInCellDataT& cell_data, iArrayT& cells) const
+{
+//TEMP - for now just assume a cell that contains any projecting points has no free nodes
+	BridgingScaleT::CollectProjectedCells(cell_data, cells);
 }
 
 /***********************************************************************

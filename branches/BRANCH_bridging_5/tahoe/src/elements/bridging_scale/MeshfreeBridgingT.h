@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.h,v 1.5.4.1 2004-03-20 16:43:13 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.h,v 1.5.4.2 2004-04-17 04:45:02 paklein Exp $ */
 #ifndef _MESHFREE_BRIDGING_SCALE_T_H_
 #define _MESHFREE_BRIDGING_SCALE_T_H_
 
@@ -47,6 +47,9 @@ public:
 
 	/** indicate whether image nodes should be included in the projection */
 	virtual bool ProjectImagePoints(void) const { return false; };
+
+	/** collect the cells without any free nodes */
+	virtual void CollectProjectedCells(const PointInCellDataT& cell_data, iArrayT& cells) const;
 	/*@}*/
 
 protected:
