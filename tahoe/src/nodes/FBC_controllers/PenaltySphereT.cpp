@@ -1,4 +1,4 @@
-/* $Id: PenaltySphereT.cpp,v 1.11 2004-07-15 08:31:15 paklein Exp $ */
+/* $Id: PenaltySphereT.cpp,v 1.12 2004-07-22 08:31:56 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltySphereT.h"
 #include "FieldT.h"
@@ -11,7 +11,8 @@ using namespace Tahoe;
 
 /* constructor */
 PenaltySphereT::PenaltySphereT(void):
-	fLHS(ElementMatrixT::kSymmetric)
+	fLHS(ElementMatrixT::kSymmetric),
+	fRadius(-1.0)
 {
 	SetName("sphere_penalty");
 }

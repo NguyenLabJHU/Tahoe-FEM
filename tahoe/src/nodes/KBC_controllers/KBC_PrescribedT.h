@@ -1,4 +1,4 @@
-/* $Id: KBC_PrescribedT.h,v 1.3 2004-07-15 08:31:21 paklein Exp $ */
+/* $Id: KBC_PrescribedT.h,v 1.4 2004-07-22 08:32:01 paklein Exp $ */
 #ifndef _KBC_PRESCRIBED_T_H_
 #define _KBC_PRESCRIBED_T_H_
 
@@ -7,7 +7,8 @@
 
 namespace Tahoe {
 
-/** controller to insert arbitrary kinematic boundary conditions */
+/** controller to insert arbitrary kinematic boundary conditions.
+ * Motion is prescribed by creating  */
 class KBC_PrescribedT: public KBC_ControllerT
 {
 public:
