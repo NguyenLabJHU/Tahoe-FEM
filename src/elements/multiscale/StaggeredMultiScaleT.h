@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.h,v 1.7 2002-12-13 02:40:49 paklein Exp $ */ 
+/* $Id: StaggeredMultiScaleT.h,v 1.8 2002-12-17 02:44:34 creigh Exp $ */ 
 #ifndef _STAGGERED_MULTISCALE_T_H_ 
 #define _STAGGERED_MULTISCALE_T_H_ 
 //DEVELOPMENT
@@ -115,7 +115,7 @@ private:
 	//VMS_VariableT n,np1; // <-- keep local scope in elmt loop for now 
 
 	/** Gradients with respect to reference coodinates */
-	FEA_dMatrixT fGRAD_ua, fGRAD_ua_n, fGRAD_ub, fGRAD_ub_n;
+	FEA_dMatrixT fGRAD_ua, fGRAD_ua_n, fGRAD_ub, fGRAD_ub_n, fSigma;
 
 	/** \name  values read from input in the constructor */
 	/*@{*/

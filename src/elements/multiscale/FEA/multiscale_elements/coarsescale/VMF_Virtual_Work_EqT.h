@@ -67,6 +67,8 @@ class VMF_Virtual_Work_EqT	: public CoarseScaleT
 		void 	Form_B_List 		( void );  // Strain Displacement Matricies
 		void 	Form_A_S_Lists 	( VMS_VariableT &np1, VMS_VariableT &n,int Integration_Scheme=FEA::kBackward_Euler ); // BCDE ---> A 
 
+		void 	Sigma ( FEA_dMatrixT &sigma) 		{ sigma = A[kSigma]; } 
+
 	protected:
 
   	FEA_dMatrix_ArrayT B; 

@@ -26,6 +26,7 @@ public:
 
 	virtual void Form_LHS_Ka_Kb	(	dMatrixT &Ka, dMatrixT &Kb,double delta_t=0.0	)	=0; 
   virtual void Form_RHS_F_int	(	dArrayT &F_int, double delta_t=0.0	) =0; 
+  virtual void Sigma 					(	FEA_dMatrixT &sigma ) =0; 
 	
 
 };

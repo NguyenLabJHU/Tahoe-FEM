@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.14 2002-12-17 00:21:29 creigh Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.15 2002-12-17 02:44:34 creigh Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -135,6 +135,8 @@ void StaggeredMultiScaleT::Initialize(void)
 	
 	/* FEA Allocation */
 
+	fSigma.FEA_Dimension 			(fNumIP,n_sd,n_sd);
+
 	fGRAD_ua.FEA_Dimension 		(fNumIP,n_sd,n_sd);
 	fGRAD_ub.FEA_Dimension 		(fNumIP,n_sd,n_sd);
 	fGRAD_ua_n.FEA_Dimension 	(fNumIP,n_sd,n_sd);
@@ -168,10 +170,10 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 #define FINE     3 
 #define ALL      4 
 
-#define DEBUG OFF 
+#define DEBUG COARSE 
 
 #if (DEBUG)
-	int debug_iteration=1;
+	int debug_iteration=41;
 	static int loop_num=0;
 	static int current_group=0;
 	//static ofstreamT myout("matrix");
@@ -252,6 +254,9 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 				cout << "  fKa_I = \n" << fKa_I << "\n\n";
 				cout << "  fKb_I = \n" << fKb_I << "\n\n";
 				cout << "  fFint_I = \n" << fFint_I << "\n\n";
+
+			  fEquation_I -> Sigma ( fSigma );
+				fSigma.Print("Sigma");
 			}
 
 #endif
