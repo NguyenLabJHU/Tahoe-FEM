@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.45.2.1 2004-01-28 01:34:12 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.45.2.2 2004-02-05 18:47:16 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -125,7 +125,7 @@ void NodeManagerT::Initialize(void)
 	out << "\n N o d a l   D a t a :\n\n";
 
 	/* echo nodal coordinate data */
-	EchoCoordinates(in, out);
+//	EchoCoordinates(in, out);
 
 	/* set fields */
 	EchoFields(in, out);
@@ -1220,7 +1220,7 @@ void NodeManagerT::DefineSubs(SubListT& sub_list) const
 	sub_list.AddSub("field", ParameterListT::OnePlus);
 	
 	/* list of history node ID's */
-	sub_list.AddSub("history_node_ID", ParameterListT::Any);
+	sub_list.AddSub("history_node_ID", ParameterListT::ZeroOrOnce);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
@@ -1229,7 +1229,7 @@ ParameterInterfaceT* NodeManagerT::NewSub(const StringT& list_name) const
 	if (list_name == "field")
 		return new FieldT(fFieldSupport);
 	else if (list_name == "history_node_ID")
-		return new IntegerListT("history_node_ID");
+		return new StringListT("history_node_ID");
 	else
 		return ParameterInterfaceT::NewSub(list_name);
 }
@@ -1241,6 +1241,26 @@ void NodeManagerT::TakeParameterList(const ParameterListT& list)
 
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
+
+	/* read coordinates information */
+	SetCoordinates();
+
+	/* relaxation flags */
+	fXDOFRelaxCodes.Dimension(fFEManager.NumGroups());
+	fXDOFRelaxCodes = GlobalT::kNoRelax;
+
+	/* collect history nodes */
+	const ParameterListT* history_nodes = list.List("history_node_ID");
+	if (history_nodes) {
+		int num_ID = list.NumLists("String");
+		fHistoryNodeSetIDs.Dimension(num_ID);
+		const ArrayT<ParameterListT>& IDs = list.Lists();
+		num_ID = 0;
+		for (int i = 0; i < IDs.Length(); i++) {
+			if (IDs[i].Name() == "String")
+				fHistoryNodeSetIDs[i] = IDs[i].GetParameter("value");
+		}
+	}
 
 	/* construct fields */
 	int num_fields = list.NumLists("field");
@@ -1255,12 +1275,8 @@ void NodeManagerT::TakeParameterList(const ParameterListT& list)
 		/* new field */			
 		FieldT* field = new FieldT(fFieldSupport);
 		field->TakeParameterList(*field_params);
-//		field->Initialize(name, ndof, *controller);
-//		field->SetLabels(labels);
-//		field->SetGroup(group_num);
 		field->Dimension(NumNodes(), false);
 		field->Clear();
-//		field->WriteParameters(out);
 
 		/* coordinate update field */
 		if (field->FieldName() == "displacement") {
@@ -1271,15 +1287,6 @@ void NodeManagerT::TakeParameterList(const ParameterListT& list)
 			fCurrentCoords_man.SetMajorDimension(NumNodes(), false);
 			(*fCurrentCoords) = InitialCoordinates();
 		}
-
-#if 0
-		/* echo initial/boundary conditions */
-		EchoInitialConditions(*field, in, out);
-		EchoKinematicBC(*field, in, out);
-		EchoKinematicBCControllers(*field, in, out);
-		EchoForceBC(*field, in, out);
-		EchoForceBCControllers(*field, in, out);
-#endif
 
 		/* store */
 		fFields[i] = field;
@@ -1293,16 +1300,13 @@ void NodeManagerT::TakeParameterList(const ParameterListT& list)
  * Protected
  **********************************************************************/
 
-void NodeManagerT::EchoCoordinates(ifstreamT& in, ostream& out)
+void NodeManagerT::SetCoordinates(void)
 {
 	/* model manager */
 	ModelManagerT* model = fFEManager.ModelManager();
 
 	/* read coordinates */
-	if (model->DatabaseFormat() == IOBaseT::kTahoe)
-		model->ReadInlineCoordinates (in);
-	else
-		model->ReadCoordinates();
+	model->ReadCoordinates();
 		
 	/* set pointer */	
 	fInitCoords = &(model->Coordinates());
@@ -1310,23 +1314,20 @@ void NodeManagerT::EchoCoordinates(ifstreamT& in, ostream& out)
 	/* check element groups to see if node data should be 
 	   adjusted to be 2D, some element groups require
 	   fNumSD == fNumDOF */
-	if (NumSD() == 3 && model->AreElements2D())
-	{
-		out << " Number of nodal points. . . . . . . . . . . . . = " << NumNodes() << '\n';
-		out << " Number of spatial dimensions. . . . . . . . . . = " << NumSD() << '\n';
-		out << "\n Adjusting nodal data to 2D" << endl;
+	if (NumSD() == 3 && model->AreElements2D()) {
 		cout << "\n NodeManagerT::EchoCoordinates: WARNING: Adjusting nodal data to 2D" << endl;
 		model->AdjustCoordinatesto2D();
 	}
 	  
-	/* print main header */
-	out << " Number of nodal points. . . . . . . . . . . . . = " << NumNodes() << '\n';
-	out << " Number of spatial dimensions. . . . . . . . . . = " << NumSD() << '\n';
-
 	/* verbose output */
 	if (fFEManager.PrintInput())
 	{
+		ofstreamT& out = fFEManager.Output();
 		int d_width = out.precision() + kDoubleExtra;
+
+		/* print main header */
+		out << " Number of nodal points. . . . . . . . . . . . . = " << NumNodes() << '\n';
+		out << " Number of spatial dimensions. . . . . . . . . . = " << NumSD() << '\n';
 	
 		/* write header */
 		out << setw(kIntWidth) << "node"

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.55 2004-01-05 07:26:33 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.55.2.1 2004-02-05 18:47:13 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -51,10 +51,6 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	
 	/* control parameters */
 	in >> fMassType;		
-	in >> fStrainDispOpt;
-	
-	if (fStrainDispOpt != kStandardB &&
-	    fStrainDispOpt != kMeanDilBbar) throw ExceptionT::kBadInputValue;
 
 	/* checks for dynamic analysis */
 	if (fIntegrator->Order() > 0 &&
@@ -340,31 +336,6 @@ void SolidElementT::DefineParameters(ParameterListT& list) const
  * Protected
  ***********************************************************************/
 
-namespace Tahoe {
-
-/* stream extraction operator */
-istream& operator>>(istream& in, SolidElementT::StrainOptionT& opt)
-{
-	int i_type;
-	in >> i_type;
-	switch (i_type)
-	{
-		case SolidElementT::kStandardB:
-			opt = SolidElementT::kStandardB;
-			break;
-		case SolidElementT::kMeanDilBbar:
-			opt = SolidElementT::kMeanDilBbar;
-			break;
-		default:
-			cout << "\n SolidElementT::StrainOptionT: unknown option: "
-			<< i_type<< endl;
-			throw ExceptionT::kBadInputValue;	
-	}
-	return in;
-}
-
-}
-
 /* construct list of materials from the input stream */
 void SolidElementT::ReadMaterialData(ifstreamT& in)
 {
@@ -401,9 +372,6 @@ void SolidElementT::PrintControlData(ostream& out) const
 	out << "    eq." << kNoMass			<< ", no mass matrix\n";
 	out << "    eq." << kConsistentMass	<< ", consistent mass matrix\n";
 	out << "    eq." << kLumpedMass		<< ", lumped mass matrix\n";
-	out << " Strain-displacement option. . . . . . . . . . . = " << fStrainDispOpt << '\n';
-	out << "    eq.0, standard\n";
-	out << "    eq.1, B-bar (mean dilatation)\n";
 }
 
 void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)

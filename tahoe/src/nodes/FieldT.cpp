@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.24.2.1 2004-01-28 01:34:12 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.24.2.2 2004-02-05 18:47:16 paklein Exp $ */
 #include "FieldT.h"
 
 #include "fstreamT.h"
@@ -8,6 +8,7 @@
 #include "RaggedArray2DT.h"
 #include "LocalArrayT.h"
 #include "FieldSupportT.h"
+#include "ParameterContainerT.h"
 
 using namespace Tahoe;
 
@@ -16,7 +17,7 @@ FieldT::FieldT(const FieldSupportT& field_support):
 	ParameterInterfaceT("field"),
 	fFieldSupport(field_support),
 	fIntegrator(NULL),	
-//	fnIntegrator(NULL),
+	fnIntegrator(NULL),
 	fEquationStart(0),
 	fNumEquations(0)
 {
@@ -713,6 +714,15 @@ void FieldT::DefineSubs(SubListT& sub_list) const
 	/* inherited */
 	ParameterInterfaceT::DefineSubs(sub_list);
 
+	/* initial conditions */
+	sub_list.AddSub("initial_condition", ParameterListT::Any);
+
+	/* kinematic boundary conditions */
+	sub_list.AddSub("kinematic_BC", ParameterListT::Any);
+	
+	/* force boundary conditions */
+	sub_list.AddSub("force_BC", ParameterListT::Any);
+	
 	/* KBC controllers */
 	sub_list.AddSub("KBC_controllers", ParameterListT::Any, true);
 	
@@ -767,7 +777,66 @@ ParameterInterfaceT* FieldT::NewSub(const StringT& list_name) const
 	FBC_ControllerT::CodeT FBC_code = FBC_ControllerT::Code(list_name);
 	if (FBC_code != FBC_ControllerT::kNone)
 		return fFieldSupport.NewFBC_Controller(*non_const_this, FBC_code);
+
+	if (list_name == "initial_condition")
+	{
+		ParameterContainerT* ic = new ParameterContainerT(list_name);
+		
+		ic->AddParameter(ParameterT::String, "node_ID");
+		ic->AddParameter(ParameterT::Integer, "dof");
+		ParameterT IC_type(ParameterT::Enumeration, "type");
+		IC_type.AddEnumeration("u", 0);
+		IC_type.AddEnumeration("D_u", 1);
+		IC_type.AddEnumeration("DD_u", 2);
+		IC_type.AddEnumeration("D3_u", 3);
+		IC_type.AddEnumeration("D4_u", 4);
+		IC_type.SetDefault(0);
+		ic->AddParameter(IC_type);
+		ParameterT value(ParameterT::Double, "value");
+		value.SetDefault(0.0);
+		ic->AddParameter(value);
 	
+		return ic;	
+	}
+	else if (list_name == "kinematic_BC")
+	{
+		ParameterContainerT* kbc = new ParameterContainerT(list_name);
+		
+		kbc->AddParameter(ParameterT::String, "node_ID");
+		kbc->AddParameter(ParameterT::Integer, "dof");
+		ParameterT BC_type(ParameterT::Enumeration, "type");
+		BC_type.AddEnumeration("fixed", -1);
+		BC_type.AddEnumeration("u", 0);
+		BC_type.AddEnumeration("D_u", 1);
+		BC_type.AddEnumeration("DD_u", 2);
+		BC_type.AddEnumeration("D3_u", 3);
+		BC_type.AddEnumeration("D4_u", 4);
+		BC_type.SetDefault(-1);
+		kbc->AddParameter(BC_type);
+		ParameterT schedule(ParameterT::Integer, "schedule");
+		schedule.SetDefault(0);
+		kbc->AddParameter(schedule);
+		ParameterT value(ParameterT::Double, "value");
+		value.SetDefault(0.0);
+		kbc->AddParameter(value);
+	
+		return kbc;
+	}
+	else if (list_name == "force_BC")
+	{
+		ParameterContainerT* fbc = new ParameterContainerT(list_name);
+		
+		fbc->AddParameter(ParameterT::String, "node_ID");
+		fbc->AddParameter(ParameterT::Integer, "dof");
+		ParameterT schedule(ParameterT::Integer, "schedule");
+		schedule.SetDefault(0);
+		fbc->AddParameter(schedule);
+		ParameterT value(ParameterT::Double, "value");
+		value.SetDefault(0.0);
+		fbc->AddParameter(value);
+	
+		return fbc;	
+	}
 	/* inherited */
 	return ParameterInterfaceT::NewSub(list_name);
 }
@@ -796,28 +865,98 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 	int order = fIntegrator->Order();
 	Initialize(field_name, ndof, order);
 	
-	/* construct KBC's and FBC's */
+	/* construct controllers and count numbers of IC, KBC, and FBC */
+	int num_IC = 0;
+	int num_KBC = 0;
+	int num_FBC = 0;
 	const ArrayT<ParameterListT>& subs = list.Lists();
 	for (int i = 0; i < subs.Length(); i++)
 	{
 		const StringT& name = subs[i].Name();
+		bool resolved = false;
 	
 		/* try KBC */
-		KBC_ControllerT::CodeT KBC_code = KBC_ControllerT::Code(name);
-		if (KBC_code != KBC_ControllerT::kNone)
-		{
-			KBC_ControllerT* KBC_controller = fFieldSupport.NewKBC_Controller(*this, KBC_code);
-			KBC_controller->TakeParameterList(subs[i]);
-			AddKBCController(KBC_controller);
+		if (!resolved) {
+			KBC_ControllerT::CodeT KBC_code = KBC_ControllerT::Code(name);
+			if (KBC_code != KBC_ControllerT::kNone) {
+				KBC_ControllerT* KBC_controller = fFieldSupport.NewKBC_Controller(*this, KBC_code);
+				KBC_controller->TakeParameterList(subs[i]);
+				AddKBCController(KBC_controller);
+				resolved = true;
+			}
 		}
-		else /* try FBC */
-		{
+			
+		/* try FBC */
+		if (!resolved) {
 			FBC_ControllerT::CodeT FBC_code = FBC_ControllerT::Code(name);
-			if (FBC_code != FBC_ControllerT::kNone)
-			{
+			if (FBC_code != FBC_ControllerT::kNone) {
 				FBC_ControllerT* FBC_controller = fFieldSupport.NewFBC_Controller(*this, FBC_code);
 				FBC_controller->TakeParameterList(subs[i]);
 				AddFBCController(FBC_controller);
+				resolved = true;
+			}
+		}
+		
+		/* look for other sublists */
+		if (!resolved) {
+			if (name == "initial_condition")
+				num_IC++;
+			else if (name == "kinematic_BC")
+				num_KBC++;
+			else if (name == "force_BC")
+				num_FBC++;
+		}
+	}
+
+	/* construct controllers and count numbers of IC, KBC, and FBC */
+	if (num_IC > 0 || num_KBC > 0 || num_FBC > 0)
+	{
+		fIC.Dimension(num_IC);
+		fKBC.Dimension(num_KBC);
+		fFBC.Dimension(num_FBC);
+		num_IC = num_KBC = num_FBC = 0;
+		for (int i = 0; i < subs.Length(); i++)
+		{
+			const ParameterListT& sub = subs[i];
+			const StringT& name = sub.Name();
+			if (name == "initial_condition") {
+
+				/* extract values */
+				const StringT& node_ID = sub.GetParameter("node_ID");
+				int node = atoi(node_ID);
+				int dof = sub.GetParameter("dof"); dof--;
+				int order = sub.GetParameter("type");
+				double value = sub.GetParameter("value");
+			
+				/* set card */
+				fIC[num_IC++].SetValues(node, dof, order, value);
+			}
+			else if (name == "kinematic_BC") {
+
+				/* extract values */
+				const StringT& node_ID = sub.GetParameter("node_ID");
+				int node = atoi(node_ID);
+				int dof = sub.GetParameter("dof"); dof--;
+				int typ = sub.GetParameter("type");
+				KBC_CardT::CodeT code = KBC_CardT::int_to_CodeT(typ + 1);
+				int schedule = sub.GetParameter("schedule"); schedule--;
+				double value = sub.GetParameter("value");
+
+				/* set card */
+				fKBC[num_KBC++].SetValues(node, dof, code, schedule, value);
+			}
+			else if (name == "force_BC") {
+		
+				/* extract values */
+				const StringT& node_ID = sub.GetParameter("node_ID");
+				int node = atoi(node_ID);
+				int dof = sub.GetParameter("dof"); dof--;
+				int schedule = sub.GetParameter("schedule"); schedule--;
+				double value = sub.GetParameter("value");
+		
+				/* set card */
+				const NodeManagerT& node_man = fFieldSupport.NodeManager();
+				fFBC[num_FBC++].SetValues(node_man, node, dof, schedule, value);
 			}
 		}
 	}

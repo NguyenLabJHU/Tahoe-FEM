@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.13.2.1 2004-01-21 19:09:58 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.13.2.2 2004-02-05 18:47:13 paklein Exp $ */
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
 
@@ -56,9 +56,16 @@ class SmallStrainT: public SolidElementT
 
 	/* return the description of the given inline subordinate parameter list */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
   protected:
+
+	/** strain-displacement options. */
+	enum StrainOptionT {kStandardB = 0, /**< standard strain-displacement matrix */
+	                  kMeanDilBbar = 1  /**< mean dilatation for near incompressibility */ };
 
 	/** construct a new material support and return a pointer. Recipient is responsible for
 	 * for freeing the pointer.
@@ -101,6 +108,9 @@ class SmallStrainT: public SolidElementT
 	/** offset to material needs */
 	int fNeedsOffset; //NOTE - better to have this or a separate array?
   
+	/** form of B matrix */
+  	StrainOptionT fStrainDispOpt;
+
   	/** \name return values */
 	/*@{*/
   	ArrayT<dSymMatrixT> fStrain_List;

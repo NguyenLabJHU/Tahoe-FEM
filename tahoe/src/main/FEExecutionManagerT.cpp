@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.53.2.1 2004-01-21 19:10:31 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.53.2.2 2004-02-05 18:47:15 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -1339,6 +1339,7 @@ void FEExecutionManagerT::RunJob_serial_XML(ifstreamT& in,
 			pp_format.InitParameterFile(out);
 			pp_format.WriteParameterList(out, valid_list);
 			pp_format.CloseParameterFile(out);
+			out << endl;
 
 			/* write validated XML */
 			StringT valid_path;

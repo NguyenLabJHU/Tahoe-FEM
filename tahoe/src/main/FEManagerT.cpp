@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.70.2.2 2004-01-28 01:34:11 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.70.2.3 2004-02-05 18:47:15 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -177,7 +177,7 @@ void FEManagerT::Initialize(InitCodeT init)
 	if (verbose) cout << "    FEManagerT::Initialize: nodal data" << endl;
 	
 	/* construct element groups */
-	SetElementGroups();
+	//SetElementGroups();
 	if (verbose) cout << "    FEManagerT::Initialize: element groups" << endl;
 
 	/* initial configuration of communication manager */
@@ -1238,6 +1238,7 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	/* set communication manager */
 	fCommManager = New_CommManager();
 	if (!fCommManager) ExceptionT::OutOfMemory(caller);
+	fCommManager->Configure();
 
 	/* construct solvers */
 	const ArrayT<ParameterListT>& lists = list.Lists();
@@ -1259,16 +1260,6 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	fTimeManager->TakeParameterList(*time_params);
 	iAddSub(*fTimeManager);	
 
-#if 0
-	/* set time integration integrator */
-	SetIntegrator();
-	if (verbose) cout << "    FEManagerT::Initialize: integrator" << endl;
-
-	/* initial configuration of communication manager */
-	if (fModelManager->DatabaseFormat() != IOBaseT::kTahoe)
-		fCommManager->Configure();
-#endif
-
 	/* set fields */
 	const ParameterListT* node_params = list.List("nodes");
 	if (!node_params) ExceptionT::BadInputValue(caller);
@@ -1277,26 +1268,14 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	iAddSub(*fNodeManager);
 	fCommManager->SetNodeManager(fNodeManager);
 
-#if 0	
 	/* construct element groups */
-	SetElementGroups();
-	if (verbose) cout << "    FEManagerT::Initialize: element groups" << endl;
-
-	/* initial configuration of communication manager */
-	if (0 && fModelManager->DatabaseFormat() == IOBaseT::kTahoe)
-	{
-		//TEMP
-		ExceptionT::Stop("FEManagerT::Initialize", "kTahoe format not supported");
-	
-		fCommManager->Configure();
-		//call to tell everything to reconfigure
-	}
+	fElementGroups = new ElementListT(*this);
+	fElementGroups->TakeParameterList(list.GetList("element_list"));
+	for (int i = 0; i < fElementGroups->Length(); i++)
+		iAddSub(*((*fElementGroups)[i])); /* set console */
 
 	/* set output manager */
 	SetOutput();
-	if (verbose) cout << "    FEManagerT::Initialize: io" << endl;
-	if (init == kAllButSolver) return;
-#endif
 }
 
 /* information about subordinate parameter lists */
@@ -1428,6 +1407,11 @@ void FEManagerT::WriteParameters(void) const
 	fMainOut << endl;
 }
 
+void FEManagerT::SetElementGroups(void)
+{
+	ExceptionT::GeneralFail("FEManagerT::SetElementGroups", "deprecated");
+}
+
 /* set the correct fNodeManager type */
 void FEManagerT::SetNodeManager(void)
 {
@@ -1445,24 +1429,6 @@ void FEManagerT::SetNodeManager(void)
 	catch (ExceptionT::CodeT code) {
 		ExceptionT::Throw(code, caller, "exception constructing node manager");
 	}
-}
-
-/* construct element groups */
-void FEManagerT::SetElementGroups(void)
-{
-	/* construct element list */
-	fElementGroups = new ElementListT(*this);
-
-	/* echo element data */
-	int num_groups;
-	fMainIn >> num_groups;
-	if (num_groups < 0) ExceptionT::BadInputValue("FEManagerT::SetElementGroups");
-	fElementGroups->Dimension(num_groups);
-	fElementGroups->EchoElementData(fMainIn, fMainOut);
-		
-	/* set console */
-	for (int i = 0; i < fElementGroups->Length(); i++)
-		iAddSub(*((*fElementGroups)[i]));
 }
 
 /* set the correct fSolutionDriver type */

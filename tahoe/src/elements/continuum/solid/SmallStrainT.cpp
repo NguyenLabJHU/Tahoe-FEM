@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.13.2.1 2004-01-21 19:09:58 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.13.2.2 2004-02-05 18:47:13 paklein Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -149,6 +149,47 @@ void SmallStrainT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrder
 	}
 	else /* inherited */
 		return SolidElementT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+void SmallStrainT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SolidElementT::TakeParameterList(list);
+	
+	/* strain displacement option */
+	int b = list.GetParameter("strain_displacement");
+	fStrainDispOpt = (b == kStandardB) ? kStandardB : kMeanDilBbar;
+	
+	/* construct the material list */
+	StringT mat_list_name = "small_strain_material_";
+//	mat_list_name.Append(NumSD(), "D");
+#pragma message("what to do here - 2D axi elements need 3D material list")
+
+	/* what's needed */
+	bool need_strain = false;
+	bool need_strain_last = false;
+	for (int i = 0; i < fMaterialNeeds.Length(); i++) {
+		const ArrayT<bool>& needs = fMaterialNeeds[i];
+		need_strain = need_strain || needs[fNeedsOffset + kstrain];
+		need_strain_last = need_strain_last || needs[fNeedsOffset + kstrain_last];
+	}
+
+	/* allocate strain list */
+	if (need_strain) {
+		fStrain_List.Dimension(NumIP());
+		for (int i = 0; i < NumIP(); i++)
+			fStrain_List[i].Dimension(NumSD());
+	}
+	
+	/* allocate "last" strain list */
+	if (need_strain_last) {
+		fStrain_last_List.Dimension(NumIP());
+		for (int i = 0; i < NumIP(); i++)
+			fStrain_last_List[i].Dimension(NumSD());
+	}
+
+//TEMP
+ExceptionT::GeneralFail("SmallStrainT::TakeParameterList", "under construction");
 }
 
 /***********************************************************************
