@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.15 2003-08-14 05:31:46 paklein Exp $ */
+/* $Id: SolverT.h,v 1.16 2003-10-28 07:33:11 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -119,6 +119,7 @@ public:
 	/** debugging */
 	int Check(void) const;
 	const dArrayT& RHS(void) const;
+	const GlobalMatrixT& LHS(void) const;
 
 	/* return the required equation numbering scope - local by default */
 	GlobalT::EquationNumberScopeT EquationNumberScope(void) const;
@@ -263,6 +264,10 @@ inline void SolverT::DisassembleLHSDiagonal(dArrayT& diagonals, const nArrayT<in
 /* debugging */
 inline int SolverT::Check(void) const { return fLHS->CheckCode(); }
 inline const dArrayT& SolverT::RHS(void) const { return fRHS; }
+inline const GlobalMatrixT& SolverT::LHS(void) const {
+	if (!fLHS) ExceptionT::GeneralFail("SolverT::LHS", "LHS not set");
+	return *fLHS; 
+}
 
 /* accessor */
 inline const int& SolverT::IterationNumber(void) const { return fNumIteration; }
