@@ -1,4 +1,4 @@
-/* $Id: NLSolver.h,v 1.10 2004-07-15 08:31:50 paklein Exp $ */
+/* $Id: NLSolver.h,v 1.11 2004-09-09 23:54:55 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #ifndef _NL_SOLVER_H_
@@ -62,9 +62,8 @@ protected:
 	 * iteration number, convergence tolerance, etc. */
 	SolutionStatusT ExitIteration(double error, int iteration);
 
-	/* form and solve the equation system - returns the magnitude of the
-	 * residual */
-	virtual double SolveAndForm(int& iteration);
+	/** do one iteration of the solution procedure */
+	virtual void Iterate(void);
 
 	/* divert output for iterations */
 	void InitIterationOutput(void);
@@ -81,6 +80,7 @@ protected:
 	/*@{*/
 	int    fMaxIterations;  /**< maximum number of iterations per step */
 	int    fMinIterations;  /**< minimum number of iterations per step */
+	int    fReformTangentIterations; /**< number of times to reuse factorized stiffness matrix */
 	double fZeroTolerance;  /**< absolute convergence tolerance */
 	double fTolerance;		/**< relative convergence tolerance */
 	double fDivTolerance;   /**< tolerance for a diverging solution */

@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.cpp,v 1.16 2004-07-15 08:31:51 paklein Exp $ */
+/* $Id: iNLSolver_LS.cpp,v 1.17 2004-09-09 23:54:55 paklein Exp $ */
 /* created: paklein (01/01/2001) */
 #include "iNLSolver_LS.h"
 
@@ -278,7 +278,21 @@ NLSolver::SolutionStatusT iNLSolver_LS::DoIterate(int max_count)
 			while (fIterationStatus == kContinue && count++ < max_count)
 			{
 				fLHS_update = (fNumIteration == 0) ? true : fFormTangent;
-				double error = SolveAndForm(fNumIteration);
+
+				/* recalculate */
+				if (fLHS_update) {
+					fLHS->Clear();
+					fFEManager.FormLHS(Group(), fLHS->MatrixType());
+				}
+
+				/* update solution */
+				Iterate();
+				fNumIteration++;
+
+				/* new error */
+				double error = Residual(fRHS);		
+
+				/* test for convergence */
 				fIterationStatus = ExitIteration(error, fNumIteration);
 			}
 		

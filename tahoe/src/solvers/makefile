@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.8 2004-07-15 08:31:51 paklein Exp $
+# $Id: makefile,v 1.9 2004-09-09 23:54:55 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -24,7 +24,6 @@ OBJ = \
 	ExpCD_DRSolver.o \
 	iNLSolver_LS.o \
 	LinearSolver.o \
-	NLK0Solver.o \
 	NLSolver.o \
 	NLSolver_LS.o \
 	NLSolver_LSX.o \
@@ -55,7 +54,6 @@ SRC = \
 	ExpCD_DRSolver.cpp \
 	iNLSolver_LS.cpp \
 	LinearSolver.cpp \
-	NLK0Solver.cpp \
 	NLSolver.cpp \
 	NLSolver_LS.cpp \
 	NLSolver_LSX.cpp \
@@ -79,7 +77,6 @@ HDR = \
 	ExpCD_DRSolver.h \
 	iNLSolver_LS.h \
 	LinearSolver.h \
-	NLK0Solver.h \
 	NLSolver.h \
 	NLSolver_LS.h \
 	NLSolver_LSX.h \

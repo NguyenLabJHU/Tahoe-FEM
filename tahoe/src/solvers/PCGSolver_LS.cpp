@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.21 2004-07-15 08:31:50 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.22 2004-09-09 23:54:55 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #include "PCGSolver_LS.h"
 
@@ -16,7 +16,10 @@ using namespace Tahoe;
 /* constructor */
 PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
 	NLSolver(fe_manager, group),
-	fRestart_count(-1)
+	fRestart_count(-1),
+	fSearchIterations(3),
+	fOrthogTolerance(0.25),
+	fMaxStepSize(2.5)
 {
 	SetName("PCG_solver");
 
@@ -52,18 +55,18 @@ void PCGSolver_LS::DefineParameters(ParameterListT& list) const
 	list.AddParameter(restart);
 
 	/* line search iterations */
-	ParameterT line_search_iterations(ParameterT::Integer, "line_search_iterations");
-	line_search_iterations.SetDefault(3);
+	ParameterT line_search_iterations(fSearchIterations, "line_search_iterations");
+	line_search_iterations.SetDefault(fSearchIterations);
 	list.AddParameter(line_search_iterations);
 
 	/* line search orthogonality tolerance */
-	ParameterT line_search_tolerance(ParameterT::Double, "line_search_tolerance");
-	line_search_tolerance.SetDefault(0.25);
+	ParameterT line_search_tolerance(fOrthogTolerance, "line_search_tolerance");
+	line_search_tolerance.SetDefault(fOrthogTolerance);
 	list.AddParameter(line_search_tolerance);
 
 	/* maximum step size */
-	ParameterT max_step(ParameterT::Double, "max_step");
-	max_step.SetDefault(2.5);
+	ParameterT max_step(fMaxStepSize, "max_step");
+	max_step.SetDefault(fMaxStepSize);
 	list.AddParameter(max_step);
 }
 
@@ -79,6 +82,9 @@ void PCGSolver_LS::TakeParameterList(const ParameterListT& list)
 	fOrthogTolerance = list.GetParameter("line_search_tolerance");
 	fMaxStepSize = list.GetParameter("max_step");
 
+	/* redefining inherited parameters */
+	fReformTangentIterations = fRestart;
+
 	/* allocate space for history */
 	fSearchData.Dimension(fSearchIterations, 2);
 }
@@ -87,15 +93,9 @@ void PCGSolver_LS::TakeParameterList(const ParameterListT& list)
  * Protected
  *************************************************************************/
 
-double PCGSolver_LS::SolveAndForm(int& iteration)
+/* do one iteration of the solution procedure */
+void PCGSolver_LS::Iterate(void)
 {
-	/* form the stiffness matrix (must be cleared previously) */
-	if (fLHS_update) {
-		fLHS_lock = kOpen;
-		fFEManager.FormLHS(Group(), fLHS->MatrixType());
-		fLHS_lock = kLocked;
-	}
-
 	/* get new search direction (in fRHS) */
 	fR = fRHS;
 	CGSearch();
@@ -105,23 +105,6 @@ double PCGSolver_LS::SolveAndForm(int& iteration)
 	fLHS_lock = kIgnore;
 	Update(fRHS, &fR);
 	fLHS_lock = kLocked;
-									
-	/* recalculate residual */
-	iteration++;
-	if (fLHS_update) {
-		fLHS->Clear();
-		fLHS_lock = kOpen; /* LHS open for assembly, too! */
-	}
-	else
-		fLHS_lock = kIgnore; /* ignore assembled values */
-	fRHS = 0.0;
-	fFEManager.FormRHS(Group());	
-	fLHS_lock = kLocked;
-	fRHS_lock = kLocked;
-	
-	/* could combine residual magnitude with update magnitude
-	 * e = a1 |R| + a2 |delta_d|  --> not implemented */	
-	return Residual(fRHS);
 }
 
 SolverT::SolutionStatusT PCGSolver_LS::Solve(int max_iterations)
