@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.35 2003-01-27 07:00:24 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.36 2003-01-28 22:35:25 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -44,7 +44,7 @@
 #include "BridgingScaleT.h"
 #endif
 
-#ifdef CONTACT_ELEMENT
+#ifdef DEV_CONTACT_ELEMENT
 #include "PenaltyContact2DT.h"
 #include "PenaltyContact3DT.h"
 #include "AugLagContact2DT.h"
@@ -365,7 +365,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			}
 			case ElementT::kPenaltyContact:
 			{
-#ifdef CONTACT_ELEMENT
+#ifdef DEV_CONTACT_ELEMENT
 				int nsd = fSupport.NumSD();
 				if (nsd == 2)
 					fArray[group] = new PenaltyContact2DT(fSupport, *field);
@@ -374,16 +374,16 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 					
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "DEV_CONTACT_ELEMENT not enabled: %d", code);
 #endif
 			}
 			case ElementT::kAugLagContact2D:
 			{
-#ifdef CONTACT_ELEMENT
+#ifdef DEV_CONTACT_ELEMENT
 				fArray[group] = new AugLagContact2DT(fSupport, *field);	
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "DEV_CONTACT_ELEMENT not enabled: %d", code);
 #endif
 			}
 			case ElementT::kBEMelement:
@@ -423,51 +423,51 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			}				
 			case ElementT::kACME_Contact:
 			{
-#ifdef CONTACT_ELEMENT
+#ifdef DEV_CONTACT_ELEMENT
 #ifdef __ACME__
 				fArray[group] = new ACME_Contact3DT(fSupport, *field);
 #else
 				ExceptionT::GeneralFail(caller, "ACME not installed");
 #endif /* __ACME__ */			
 				break;
-#else /* CONTACT_ELEMENT */
-				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
+#else /* DEV_CONTACT_ELEMENT */
+				ExceptionT::BadInputValue(caller, "DEV_CONTACT_ELEMENT not enabled: %d", code);
 #endif				
 			}
 			case ElementT::kMultiplierContact3D:
 			{
-#ifdef CONTACT_ELEMENT
+#ifdef DEV_CONTACT_ELEMENT
 				fArray[group] = new MultiplierContact3DT(fSupport, *field);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "DEV_CONTACT_ELEMENT not enabled: %d", code);
 #endif				
 			}
 			case ElementT::kMultiplierContactElement2D:
 			{
-#ifdef CONTACT_ELEMENT
+#ifdef DEV_CONTACT_ELEMENT
 				fArray[group] = new MultiplierContactElement2DT(fSupport, *field);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "DEV_CONTACT_ELEMENT not enabled: %d", code);
 #endif				
 			}
 			case ElementT::kPenaltyContactElement2D:
 			{
-#ifdef CONTACT_ELEMENT
+#ifdef DEV_CONTACT_ELEMENT
 				fArray[group] = new PenaltyContactElement2DT(fSupport, *field);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "DEV_CONTACT_ELEMENT not enabled: %d", code);
 #endif				
 			}
 			case ElementT::kPenaltyContactElement3D:
 			{
-#ifdef CONTACT_ELEMENT
+#ifdef DEV_CONTACT_ELEMENT
 				fArray[group] = new PenaltyContactElement3DT(fSupport, *field);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "DEV_CONTACT_ELEMENT not enabled: %d", code);
 #endif				
 			}
 		case ElementT::kBridgingScale:
@@ -544,15 +544,15 @@ bool ElementListT::HasContact(void) const
 	cout << "\n ElementListT::HasContact: needs RTTI: returning false" << endl;
 	return false; // safe default??
 #else /* __NO_RTTI__ */
-#ifdef CONTACT_ELEMENT
+#ifdef DEV_CONTACT_ELEMENT
 	for (int i = 0; i < Length(); i++)
 	{
 		ContactT* contact_elem = dynamic_cast<ContactT*>(fArray[i]);
 		if (contact_elem) return true;
 	}
 	return false;
-#else  /* CONTACT_ELEMENT */
+#else  /* DEV_CONTACT_ELEMENT */
 	return false;
-#endif /* CONTACT_ELEMENT */
+#endif /* DEV_CONTACT_ELEMENT */
 #endif /* __NO_RTTI__ */
 }

@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.27 2003-01-27 07:00:28 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.28 2003-01-28 22:35:29 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 #include "MaterialsConfig.h"
@@ -11,7 +11,6 @@
 #include "FDCubic2DT.h"
 #include "SimoIso2D.h"
 #include "QuadLog2D.h"
-#include "FossumSSIso2DT.h"
 #include "DPSSKStV2D.h"
 #include "LocalJ2SSNonlinHard2D.h"
 #include "GradJ2SSNonlinHard2D.h"
@@ -70,6 +69,10 @@
 #include "SV_NeoHookean2D.h"
 #include "SSSV_KStV2D.h"
 #include "FDSV_KStV2D.h"
+#endif
+
+#ifdef FOSSUM_MATERIAL
+#include "FossumSSIso2DT.h"
 #endif
 
 using namespace Tahoe;
@@ -332,12 +335,16 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			}
 		        case kFossumSSIso:
 			{
+#ifdef FOSSUM_MATERIAL
 				/* check */
 				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 			
 				fArray[matnum] = new FossumSSIso2DT(in, *fSSMatSupport);
 				fHasHistory = true;		       		      				
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "FOSSUM_MATERIAL not enabled: %d", matcode);
+#endif
 			}
 	
 			case kThermoViscoPlastic:

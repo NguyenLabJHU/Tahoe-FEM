@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.25 2003-01-27 07:00:28 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.26 2003-01-28 22:35:29 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 #include "MaterialsConfig.h"
@@ -13,7 +13,6 @@
 #include "SimoIso3D.h"
 #include "DPSSKStV.h"
 #include "QuadLogOgden3DT.h"
-#include "FossumSSIsoT.h"
 #include "tevp3D.h"
 #include "LocalJ2SSNonlinHard.h"
 #include "GradJ2SSNonlinHard.h"
@@ -69,6 +68,10 @@
 
 #ifdef ELASTICITY_CRYSTAL_MATERIAL
 #include "FDCrystalElast.h"
+#endif
+
+#ifdef FOSSUM_MATERIAL
+#include "FossumSSIsoT.h"
 #endif
 
 using namespace Tahoe;
@@ -293,12 +296,16 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 			}	
 			case kFossumSSIso:
 			{
+#ifdef FOSSUM_MATERIAL
 				/* check */
 				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 
 				fArray[matnum] = new FossumSSIsoT(in, *fSSMatSupport);
 				fHasHistory = true;
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "FOSSUM_MATERIAL not enabled: %d", matcode);
+#endif
 			}
 			case kThermoViscoPlastic:
 			{

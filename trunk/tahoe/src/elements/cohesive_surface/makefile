@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2002-06-08 20:20:16 paklein Exp $
+# $Id: makefile,v 1.6 2003-01-28 22:35:26 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -36,7 +36,8 @@ HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
 SUB_DIR = \
-	surface_potentials
+	cohesive_models
+
 subdir_driver: subdir_loop
 # SUB_DIR is empty
 #subdir_driver: 
