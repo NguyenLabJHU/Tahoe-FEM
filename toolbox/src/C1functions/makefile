@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2001-05-05 19:05:22 paklein Exp $
+# $Id: makefile,v 1.7 2001-06-11 01:55:49 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -13,7 +13,8 @@ OBJ = \
 	ParabolaT.o \
 	PhiSplineT.o \
 	SmithFerrante.o \
-	LinearExponentialT.o
+	LinearExponentialT.o \
+	Triantafyllidis.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -30,7 +31,8 @@ SRC = \
 	ParabolaT.cpp \
 	PhiSplineT.cpp \
 	SmithFerrante.cpp \
-	LinearExponentialT.cpp
+	LinearExponentialT.cpp \
+	Triantafyllidis.cpp
 
 # headers
 HDR = \
@@ -41,7 +43,8 @@ HDR = \
 	ParabolaT.h \
 	PhiSplineT.h \
 	SmithFerrante.h \
-	LinearExponentialT.h
+	LinearExponentialT.h \
+	Triantafyllidis.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
