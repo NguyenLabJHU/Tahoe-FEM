@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.10 2001-11-07 19:51:29 recampb Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.11 2001-11-09 20:11:13 recampb Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -8,7 +8,6 @@
 #include "vtkRenderWindowInteractor.h"
 #include "vtkPoints.h"
 #include "vtkUnstructuredGrid.h"
-#include "vtkUnstructuredGridReader.h"
 #include "vtkDataSetMapper.h"
 #include "vtkActor.h"
 #include "vtkScalarBarActor.h"
@@ -21,8 +20,6 @@
 #include "vtkSelectVisiblePoints.h"
 #include "vtkLabeledDataMapper.h"
 #include "vtkActor2D.h"
-#include "vtkFieldData.h"
-#include "vtkCamera.h"
 #include "vtkWarpVector.h"
 #include "vtkVectors.h"
 #include "vtkTextMapper.h"
@@ -57,6 +54,7 @@ VTKFrameT::VTKFrameT(void):
   iAddCommand("Y_axis_rotation");
   iAddCommand("Z_axis_rotation");
   iAddCommand("Change_background_color");
+  iAddCommand("ChangeDataColor");
   iAddCommand("Select_time_step");
   iAddCommand("Show_axes");
   iAddCommand("Hide_axes");
@@ -89,11 +87,17 @@ bool VTKFrameT::AddBody(VTKBodyT* body)
   if (bodies.AppendUnique(body))
     {
       renderer->AddActor(body->Actor());
-      renderer->AddActor(body->SBActor());
+      // renderer->AddActor(body->SBActor());
       // frame needs to keep track of the current visible scalar bar
       // so that at most one is visible and SBActors() can be exhanged
       // in renderer
       ResetView();
+      StringT name = "body";
+      int index = bodies.PositionOf(body);
+
+      name.Append(index);
+      bodies[index]->iSetName(name);
+      iAddSub(*bodies[index]);
       return true;
     }
   else
@@ -108,7 +112,7 @@ bool VTKFrameT::RemoveBody(VTKBodyT* body)
   else
     {
       VTKBodyT* body = bodies[index];
-      
+      iDeleteSub(*bodies[index]);
       /* remove from renderer */
       renderer->RemoveActor(body->Actor());
       renderer->RemoveActor(body->SBActor()); // if added to the renderer earlier
@@ -124,11 +128,11 @@ void VTKFrameT::ShowFrameNum(StringT Name)
 {
   vtkTextMapper* textMapper = vtkTextMapper::New();
   textMapper->SetInput(Name);
-  //textMapper->SetFontSize(16);
+  textMapper->SetFontSize(16);
   vtkActor2D* text = vtkActor2D::New();
   text->SetMapper(textMapper);
   text->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
-  text->GetPositionCoordinate()->SetValue(0.45,.95);
+  text->GetPositionCoordinate()->SetValue(0.4,.95);
   text->GetProperty()->SetColor(0,1,0);
   renderer->AddActor(text);
   fRenWin->Render();
@@ -286,51 +290,62 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
 //       return true;
 //     }
 
-//   else if (command == "Show_Node_Numbers")
-//     {
-//       //ids->SetInput(ugrid);
-//       //ids->PointIdsOn();
-//       //ids->CellIdsOn();
-//       //ids->FieldDataOn();
-//       //visPts->SetInput(ids->GetOutput());
-//       visPts->SetInput(warp->GetOutput());
-//       visPts->SetRenderer(renderer);
+  else if (command == "Show_Node_Numbers")
+    {
+      pointLabels = vtkActor2D::New();
+      visPts = vtkSelectVisiblePoints::New();
+      ldm = vtkLabeledDataMapper::New();
+      if (bodies[0]->num_node_variables > 0)
+	visPts->SetInput(bodies[0]->warp->GetOutput());
+      else
+	visPts->SetInput(bodies[0]->ugrid);
+      visPts->SetRenderer(renderer);
+      ldm->SetInput(visPts->GetOutput());
+      ldm->SetLabelModeToLabelIds();
+      ldm->ShadowOff();
+      // ldm->SetLabelModeToLabelFieldData();
+      pointLabels->SetMapper(ldm);
+      pointLabels->VisibilityOn();
+      renderer->AddActor2D(pointLabels);
+      fRenWin->Render();
+      return true;      
 
-//       //ldm->SetInput(warp->GetOutput());
-//       ldm->SetInput(visPts->GetOutput());
-//       //ldm->SetInput(ids->GetOutput());
-//       ldm->SetLabelModeToLabelIds();
-//       ldm->ShadowOff();
-//       // ldm->SetLabelModeToLabelFieldData();
-//       pointLabels->SetMapper(ldm);
-//       pointLabels->VisibilityOn();
-//       renderer->AddActor2D(pointLabels);
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       iren->Start();
-//       return true;      
+    }
 
-//     }
+  else if (command == "Hide_Node_Numbers")
+    {
+      pointLabels->VisibilityOff();
+      pointLabels->Delete();
+      visPts->Delete();
+      ldm->Delete();
+      fRenWin->Render();
+      return true;
+
+    }
 
 
-//   else if (command == "Color_bar_off")
-//     {
-//       renderer->RemoveActor(scalarBar);
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       iren->Start();
-//       return true;
-//     }
 
-//   else if (command == "Color_bar_on")
-//     {
-//       renderer->AddActor(scalarBar);
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       iren->Start();
-//       return true;
-//     }
+  else if (command == "Color_bar_off")
+    {
+      renderer->RemoveActor(bodies[0]->SBActor());
+      fRenWin->Render();
+      return true;
+    }
 
+  else if (command == "Color_bar_on")
+    {
+      renderer->AddActor(bodies[0]->SBActor());
+      fRenWin->Render();
+
+      return true;
+    }
+
+  else if (command == "ChangeDataColor")
+    {
+      bodies[0]->ChangeDataColor(0);
+      fRenWin->Render();
+      return true;
+    }
 
 //   else if (command == "X_axis_rotation")
 //     {
@@ -421,10 +436,11 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
       int step;
       cout << "choose frame number from 0 to " << bodies[0]->num_time_steps-1 <<" to be displayed: ";
       cin >> step;
-      bodies[0]->SelectTimeStep(step);
+      for (int i = 0; i < bodies.Length(); i++)
+	bodies[i]->SelectTimeStep(step);
       char line[255];
       cin.getline(line, 254);
-
+ 
      
       fRenWin->Render();
       cout << "type 'e' in the graphics window to exit interactive mode" << endl;

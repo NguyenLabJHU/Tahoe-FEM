@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.h,v 1.5 2001-11-06 02:39:51 recampb Exp $ */
+/* $Id: VTKBodyT.h,v 1.6 2001-11-09 20:11:13 recampb Exp $ */
 
 #ifndef _VTK_BODY_T_H_
 #define _VTK_BODY_T_H_
@@ -21,12 +21,11 @@ class vtkSelectVisiblePoints;
 class vtkLabeledDataMapper;
 class vtkActor2D;
 class vtkScalars;
-class vtkCamera;
 class vtkWarpVector;
 class vtkVectors;
 class vtkScalarBarActor;
 class ExodusT;
-class VTKBodyT
+class VTKBodyT: public iConsoleObjectT
 {
  public:
 
@@ -39,8 +38,9 @@ class VTKBodyT
   void SetLookupTable(void);
   void UpdateData(void);
   void DefaultValues(void);
-  void ChangeVars(const int);
-  void SelectTimeStep(const int);
+  void ChangeVars(int);
+  void SelectTimeStep(int);
+  void ChangeDataColor(int);
 
   /** return pointer to actor for the body */
   vtkActor* Actor(void) { return ugridActor; };
@@ -57,6 +57,8 @@ class VTKBodyT
 int num_time_steps;
   int currentVarNum;
   int currentStepNum;
+  vtkWarpVector *warp;
+vtkUnstructuredGrid *ugrid;
 
  private:
   
@@ -89,22 +91,11 @@ int num_time_steps;
   vtkLookupTable *lut;
   vtkDataSetMapper *ugridMapper;
   vtkActor *ugridActor;
-  vtkIdFilter *ids;//     //TEMP - construct one body
-//     try {
-//       VTKBodyT* body2 = new VTKBodyT(inFile);
-//       fBodies.Append(body2);
-//     }
-//     catch (int) {
-//       cout << "\n exception constructing body" << endl;
-//     }
 
-  vtkSelectVisiblePoints *visPts;
-  vtkLabeledDataMapper *ldm;
-  vtkActor2D *pointLabels;
-  vtkUnstructuredGrid *ugrid;
+  
   vtkScalars *scalars [100][20];
   vtkVectors *vectors [100][20];
-  vtkWarpVector *warp;
+ 
 /*   ExodusT exo; */
 };
 
