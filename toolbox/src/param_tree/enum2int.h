@@ -1,4 +1,4 @@
-/* $Id: enum2int.h,v 1.2 2003-05-04 22:59:53 paklein Exp $ */
+/* $Id: enum2int.h,v 1.3 2003-05-06 23:37:53 cjkimme Exp $ */
 #ifndef _ENUM_2_INT_H_
 #define _ENUM_2_INT_H_
 
@@ -37,3 +37,5 @@ enum2int<enum_TYPE>::enum2int(enum_TYPE& e):
 } /* namespace Tahoe */
 
 #endif /* _ENUM_PROXY_H_ */
+
+
