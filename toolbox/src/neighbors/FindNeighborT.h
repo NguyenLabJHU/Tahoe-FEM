@@ -1,4 +1,4 @@
-/* $Id: FindNeighborT.h,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: FindNeighborT.h,v 1.2 2002-06-29 22:21:12 hspark Exp $ */
 /* created: paklein (03/21/1997)                                          */
 /* FindNeighborT.h                                                        */
 
@@ -13,6 +13,7 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+class iGridManager1DT;
 class iGridManager2DT;
 class iGridManager3DT;
 
@@ -38,6 +39,7 @@ public:
 private:
 
 	/* Determine neighbors */
+	void FindNeighors1D(double tolerance);
 	void FindNeighors2D(double tolerance);
 	void FindNeighors3D(double tolerance);
 	
@@ -68,6 +70,7 @@ private:
 	const dArray2DT& fglCoords;	//all nodal coordinates
 	dArray2DT fCoords;			//searched nodal coordinates
 	
+	iGridManager1DT*        fGrid1D;        //search grid
 	iGridManager2DT*	fGrid2D;	//search grid
 	iGridManager3DT*	fGrid3D;	//search grid
 };
