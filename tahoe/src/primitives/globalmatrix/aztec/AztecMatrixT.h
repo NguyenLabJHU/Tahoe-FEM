@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.h,v 1.2 2001-05-01 23:22:58 paklein Exp $ */
+/* $Id: AztecMatrixT.h,v 1.3 2002-03-22 01:33:41 paklein Exp $ */
 /* created: paklein (08/10/1998)                                          */
 /* interface for using Aztec with fe++                                    */
 
@@ -52,9 +52,6 @@ public:
 	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 		const nArrayT<int>& col_eqnos);
 
-	/* assignment operator - not implemented */
-	virtual GlobalMatrixT& operator=(const GlobalMatrixT& RHS);
-
 	/* number scope and reordering */
 	virtual EquationNumberScopeT EquationNumberScope(void) const;
 	virtual bool RenumberEquations(void) const;
@@ -71,6 +68,14 @@ protected:
 	virtual void PrintAllPivots(void) const;
 	virtual void PrintZeroPivots(void) const;
 	virtual void PrintLHS(void) const;
+
+private:
+
+	/** no copy constructor */
+	AztecMatrixT(const AztecMatrixT&);
+	
+	/** no assignment operator */
+	const AztecMatrixT& operator=(const AztecMatrixT&);
 
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.5 2002-03-04 06:44:19 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.6 2002-03-22 01:33:40 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT_mpi.h"
@@ -20,15 +20,6 @@ SPOOLESMatrixT_mpi::SPOOLESMatrixT_mpi(ostream& out, int check_code,
 	SPOOLESMatrixT(out, check_code, symmetric, pivoting)
 {
 
-}
-
-/* assignment operator */
-GlobalMatrixT& SPOOLESMatrixT_mpi::operator=(const GlobalMatrixT& RHS)
-{
-#pragma unused(RHS)
-
-	cout << "\n SPOOLESMatrixT_mpi::operator=: not implemented" << endl;
-	throw eGeneralFail;
 }
 
 /*************************************************************************

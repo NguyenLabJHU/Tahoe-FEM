@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.cpp,v 1.2 2001-05-01 23:22:58 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.3 2002-03-22 01:33:41 paklein Exp $ */
 /* created: paklein (08/10/1998)                                          */
 /* interface using example Aztec example functions                        */
 
@@ -268,15 +268,6 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row
 			throw eGeneralFail;
 		}
 	}
-}
-
-/* assignment operator */
-GlobalMatrixT& AztecMatrixT::operator=(const GlobalMatrixT& RHS)
-{
-#pragma unused(RHS)
-
-	cout << "\n AztecMatrixT::operator=: not implemented" << endl;
-	throw eGeneralFail;
 }
 
 /* number scope and reordering */

@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.6 2002-01-06 06:58:43 cbhovey Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.7 2002-03-22 01:33:39 paklein Exp $ */
 /* created: paklein (05/29/1996)                                          */
 
 #include "CCSMatrixT.h"
@@ -26,6 +26,15 @@ CCSMatrixT::CCSMatrixT(ostream& out, int check_code):
 	fMatrix(NULL)
 {
 
+}
+
+CCSMatrixT::CCSMatrixT(const CCSMatrixT& source):
+	GlobalMatrixT(source),
+	fDiags(NULL),
+	fNumberOfTerms(0),
+	fMatrix(NULL)
+{
+	operator=(source);
 }
 
 CCSMatrixT::~CCSMatrixT(void)
@@ -398,51 +407,51 @@ int CCSMatrixT::HasNegativePivot(void) const
 }
 
 /* assignment operator */
-GlobalMatrixT& CCSMatrixT::operator=(const GlobalMatrixT& RHS)
+CCSMatrixT& CCSMatrixT::operator=(const CCSMatrixT& RHS)
 {
-#ifdef __NO_RTTI__
-	const CCSMatrixT* pRHS = (const CCSMatrixT*) (&RHS);
-#else
-	const CCSMatrixT* pRHS = dynamic_cast<const CCSMatrixT*>(&RHS);
-	if (!pRHS) throw eGeneralFail;
-#endif
-
-	/* equation sets */
-	fEqnos = pRHS->fEqnos;
-	fRaggedEqnos = pRHS->fRaggedEqnos;
+	/* no copies of self */
+	if (this != &RHS)
+	{
+		/* equation sets */
+		fEqnos = RHS.fEqnos;
+		fRaggedEqnos = RHS.fRaggedEqnos;
 	
-	/* sync memory */
-	if (fLocNumEQ != pRHS->fLocNumEQ)
-	{
-		/* free existing */
-		delete[] fDiags;
-			
-		/* reallocate */
-		fLocNumEQ = pRHS->fLocNumEQ;
-		fDiags = new int[fLocNumEQ];
-		if (!fDiags) throw(eOutOfMemory);
+		/* sync memory */
+		if (fLocNumEQ != RHS.fLocNumEQ)
+		{
+			/* free existing */
+			delete[] fDiags;
+				
+			/* reallocate */
+			fLocNumEQ = RHS.fLocNumEQ;
+			fDiags = new int[fLocNumEQ];
+			if (!fDiags) throw(eOutOfMemory);
+		}
+
+		/* copy bytes */	
+		memcpy(fDiags, RHS.fDiags, sizeof(int)*fLocNumEQ);	
+	
+		/* sync memory */
+		if (fNumberOfTerms != RHS.fNumberOfTerms)
+		{
+			/* free existing */
+			delete[] fMatrix;
+				
+			/* reallocate */
+			fNumberOfTerms = RHS.fNumberOfTerms;
+			fMatrix = new double[fNumberOfTerms];
+			if (!fMatrix) throw(eOutOfMemory);
+		}
+	
+		/* copy bytes */	
+		memcpy(fMatrix, RHS.fMatrix, sizeof(double)*fNumberOfTerms);	
+
+		/* inherited - do after since some dimensions are contained in
+		 * base class */
+		GlobalMatrixT::operator=(RHS);
 	}
-
-	/* copy bytes */	
-	memcpy(fDiags, pRHS->fDiags, sizeof(int)*fLocNumEQ);	
-
-	/* sync memory */
-	if (fNumberOfTerms != pRHS->fNumberOfTerms)
-	{
-		/* free existing */
-		delete[] fMatrix;
-			
-		/* reallocate */
-		fNumberOfTerms = pRHS->fNumberOfTerms;
-		fMatrix = new double[fNumberOfTerms];
-		if (!fMatrix) throw(eOutOfMemory);
-	}
-
-	/* copy bytes */	
-	memcpy(fMatrix, pRHS->fMatrix, sizeof(double)*fNumberOfTerms);	
-
-	/* inherited */
-	return GlobalMatrixT::operator=(RHS);
+	
+	return *this;
 }
 
 /* TESTING: write non-zero elements of matrix in Aztec readable

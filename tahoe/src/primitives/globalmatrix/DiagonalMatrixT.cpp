@@ -1,6 +1,5 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.4 2001-06-29 23:52:24 paklein Exp $ */
-/* created: paklein (03/23/1997)                                          */
-/* Virtual base class for all global matrix objects                       */
+/* $Id: DiagonalMatrixT.cpp,v 1.5 2002-03-22 01:33:39 paklein Exp $ */
+/* created: paklein (03/23/1997) */
 
 #include "DiagonalMatrixT.h"
 #include <iostream.h>
@@ -162,22 +161,6 @@ void DiagonalMatrixT::DisassembleDiagonal(dArrayT& diagonals,
 		else
 			diagonals[i] = 0.0;
 	}
-}
-
-/* assignment operator */
-GlobalMatrixT& DiagonalMatrixT::operator=(const GlobalMatrixT& RHS)
-{
-#ifdef __NO_RTTI__
-	const DiagonalMatrixT* pRHS = (const DiagonalMatrixT*) (&RHS);
-#else
-	const DiagonalMatrixT* pRHS = dynamic_cast<const DiagonalMatrixT*>(&RHS);
-	if (!pRHS) throw eGeneralFail;
-#endif
-
-	fMatrix = pRHS->fMatrix;
-
-	/* inherited */
-	return GlobalMatrixT::operator=(RHS);
 }
 
 /* number scope and reordering */

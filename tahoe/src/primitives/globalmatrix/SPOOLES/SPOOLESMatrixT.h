@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.h,v 1.4 2002-03-04 06:43:16 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.h,v 1.5 2002-03-22 01:33:40 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #ifndef _SPOOLES_MATRIX_T_H_
@@ -60,9 +60,6 @@ public:
 	virtual EquationNumberScopeT EquationNumberScope(void) const;
 	virtual bool RenumberEquations(void) const;
 
-	/* assignment operator - not implemented */
-	virtual GlobalMatrixT& operator=(const GlobalMatrixT& RHS);
-
 protected:
 
 	/* precondition matrix */
@@ -105,6 +102,12 @@ private:
 	int AZ_find_index(int key, int list[], int length);	
 	void AZ_init_quick_find(int list[], int length, int *shift, int *bins);
 	void AZ_sort(int list[], int N, int list2[], double list3[]);
+
+	/** no copy constructor */
+	SPOOLESMatrixT(const SPOOLESMatrixT&);
+	
+	/** no assignment operator */
+	const SPOOLESMatrixT& operator=(const SPOOLESMatrixT&);
 
 protected:
 

@@ -1,6 +1,5 @@
-/* $Id: FullMatrixT.cpp,v 1.3 2001-05-01 23:22:55 paklein Exp $ */
-/* created: paklein (03/07/1998)                                          */
-/* Virtual base class for all global matrix objects                       */
+/* $Id: FullMatrixT.cpp,v 1.4 2002-03-22 01:33:39 paklein Exp $ */
+/* created: paklein (03/07/1998) */
 
 #include "FullMatrixT.h"
 #include <iostream.h>
@@ -227,25 +226,6 @@ void FullMatrixT::DisassembleDiagonal(dArrayT& diagonals, const nArrayT<int>& eq
 		else
 			diagonals[i] = 0.0;
 	}
-}
-
-/* assignment operator */
-GlobalMatrixT& FullMatrixT::operator=(const GlobalMatrixT& RHS)
-{
-	/* inherited */
-	GlobalMatrixT::operator=(RHS);
-
-#ifdef __NO_RTTI__
-	const FullMatrixT* pRHS = (const FullMatrixT*) (&RHS);
-#else
-	const FullMatrixT* pRHS = dynamic_cast<const FullMatrixT*>(&RHS);
-	if (!pRHS) throw eGeneralFail;
-#endif
-
-	/* copy matrix */
-	fMatrix = pRHS->fMatrix;   	
-
-	return *this;
 }
 
 /* number scope and reordering */
