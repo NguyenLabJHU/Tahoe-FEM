@@ -1,6 +1,5 @@
-/* $Id: ContactT.cpp,v 1.8.4.1 2002-10-17 04:28:52 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.8.4.2 2002-10-19 17:53:13 paklein Exp $ */
 /* created: paklein (12/11/1997) */
-
 #include "ContactT.h"
 
 #include <math.h>
@@ -11,13 +10,10 @@
 #include "fstreamT.h"
 #include "IOBaseT.h"
 #include "iGridManager2DT.h"
-#include "ContinuumElementT.h" // For conversion of side sets to facets.
-// Do directly or add call to FEManagerT?
-
-/* constructor */
 
 using namespace Tahoe;
 
+/* constructor */
 ContactT::ContactT(const ElementSupportT& support, const FieldT& field, int numfacetnodes):
 	ElementBaseT(support, field),
 	fNumFacetNodes(numfacetnodes)
