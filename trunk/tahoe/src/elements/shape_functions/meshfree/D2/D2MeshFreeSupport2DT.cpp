@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupport2DT.cpp,v 1.9 2004-07-15 08:30:07 paklein Exp $ */
+/* $Id: D2MeshFreeSupport2DT.cpp,v 1.10 2004-12-24 20:32:45 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2MeshFreeSupport2DT.h"
 
@@ -19,9 +19,19 @@ static double Max(double a, double b) { return (a > b) ? a : b; };
 D2MeshFreeSupport2DT::D2MeshFreeSupport2DT(const ParentDomainT* domain,
 	const dArray2DT& coords, const iArray2DT& connects, const iArrayT& nongridnodes):
 	D2MeshFreeSupportT(domain, coords, connects, nongridnodes)
+//********************************************************//
+//kyonten
 {
-
+	SetName("D2meshfree_support_2D");
 }
+
+
+D2MeshFreeSupport2DT::D2MeshFreeSupport2DT(void) 
+{
+	SetName("D2meshfree_support_2D");
+}
+
+//********************************************************//
 
 /* cutting facet functions */
 void D2MeshFreeSupport2DT::SetCuttingFacets(const dArray2DT& facet_coords,
