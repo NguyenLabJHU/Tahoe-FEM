@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.20 2004-04-23 20:22:53 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.21 2004-05-06 18:47:37 cjkimme Exp $ */
 /* created: paklein (09/10/1998) */
 #ifndef _RAGGED_ARRAY_2D_T_H_
 #define _RAGGED_ARRAY_2D_T_H_
@@ -11,6 +11,7 @@
 #include "nArray2DT.h"
 #include "AutoFill2DT.h"
 #include "RowAutoFill2DT.h"
+#include "LinkedListT.h"
 
 namespace Tahoe {
 
@@ -83,6 +84,13 @@ public:
 	 * \param blocksize allocated space is rowcounts[i]*blocksize
 	 *        for each row. */
 	void Configure(const RaggedArray2DT& source, int blocksize = 1);
+	
+	/** configuration to be the scaled shape of the source.
+	 * Only the shape of the linked list is duplicated. No data is copied from the source array
+	 * \param source linkedlist providing its shape to this one.
+	 * \param blocksize allocated space is rowcounts[i]*blocksize
+	 *        for each row. */
+	void Configure(const ArrayT<LinkedListT<TYPE> >& source, int blocksize = 1);
 	/*@}*/
 
 	/** shallow copy */
@@ -424,6 +432,18 @@ void RaggedArray2DT<TYPE>::Configure(const RaggedArray2DT& source, int blocksize
 		pdata += blocksize*source.MinorDim(i);
 	}
 	fPtrs[fMajorDim] = pdata;
+}
+
+/* configuration to be the scaled shape of the source */
+template <class TYPE>
+void RaggedArray2DT<TYPE>::Configure(const ArrayT<LinkedListT<TYPE> >& source, int blocksize)
+{
+	ArrayT<int> rowCounts(source.Length());
+	
+	for (int i = 0; i < source.Length(); i++)
+		rowCounts[i] = source[i].Length();
+
+	Configure(rowCounts, blocksize);
 }
 
 /* shallow copy/conversion */
