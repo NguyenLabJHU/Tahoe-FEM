@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.41.2.8 2003-05-25 16:14:36 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.41.2.9 2003-05-25 19:26:53 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -399,6 +399,7 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 	    
 	/* configure ghost nodes */
 	int group = 0;
+	int order1 = 0;
 	StringT bridging_field = "displacement";
 	bool active = false;
 	atoms.InitGhostNodes();
@@ -485,7 +486,7 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 #endif
 					
 				/* apply solution to continuum */
-				continuum.ProjectField(bridging_field, *atoms.NodeManager());
+				continuum.ProjectField(bridging_field, *atoms.NodeManager(), order1);
 #if 0
 				K_CA.Multx(atoms.CumulativeUpdate(group_num), F_C);
 				F_C *= -1.0;
@@ -503,7 +504,7 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 				/* apply solution to atoms */
 				int order = 0;  // displacement only for static case
 				continuum.InterpolateField(bridging_field, order, field_at_ghosts);
-				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
+				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order, field_at_ghosts);
 #if 0
 				K_AC.Multx(continuum.CumulativeUpdate(group_num), F_A);
 				F_A *= -1.0;
@@ -608,7 +609,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		atoms.InitialCondition();
 		
 		/* calculate fine scale part of MD displacement and total displacement u */
-		continuum.InitialProject(bridging_field, *atoms.NodeManager(), projectedu);
+		continuum.InitialProject(bridging_field, *atoms.NodeManager(), projectedu, order1);
 		
 		/* solve for initial FEM force f(u) as function of fine scale + FEM */
 		/* use projected totalu instead of totalu for initial FEM displacements */
@@ -648,17 +649,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		badisp.RowCollect(batoms, boundghostdisp);
 		bavel.RowCollect(batoms, boundghostvel);
 		baacc.RowCollect(batoms, boundghostacc);
-		cout << "interpolated ga acceleration = " << gaacc << endl;
 
-		/* Write interpolated FEM values at MD ghost nodes into MD field such that these
-		   quantities are naturally integrated in time */
-		atoms.SetGhostNodeKBC(KBC_CardT::kDsp, gadisp);
-		atoms.SetGhostNodeKBC(KBC_CardT::kVel, gavel);
-		atoms.SetGhostNodeKBC(KBC_CardT::kAcc, gaacc);
-
-		FieldT* asdf = atoms.NodeManager()->Field(bridging_field);
-		dArray2DT asdf1 = (*asdf)[2];
-		cout << "MD acceleration after writing GA's into field = " << asdf1 << endl;
+		/* Write interpolated FEM values at MD ghost nodes into MD field - displacement only */
+		atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);
 		
 		/* INITIALIZE TIME HISTORY VARIABLES HERE */
 		
@@ -678,31 +671,29 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			for (int j = 0; j < ratio; j++)	// MD update first
 			{
 				atom_time->Step();	
-				FieldT* atomfield = atoms.NodeManager()->Field(bridging_field);
-				dArray2DT acc1 = (*atomfield)[2];
-				cout << "MD acc before step = " << acc1 << endl;
-				
+								
 				/* initialize step */
 				if (1 || error == ExceptionT::kNoError) error = atoms.InitStep();
 				
-				/* update FEM solution interpolated at boundary atoms assuming constant acceleration - 
-				   because of constant acceleration assumption, can call corrector immediately after predictor */
+				/* update FEM solution interpolated at boundary atoms and ghost atoms assuming constant 						   acceleration - because of constant acceleration assumption, can call corrector immediately
+				   after predictor */
 				atoms.BAPredictor(mddt, badisp, bavel, baacc);
+				atoms.BAPredictor(mddt, gadisp, gavel, gaacc);
 				atoms.BACorrector(mddt, bavel, baacc);
+				atoms.BACorrector(mddt, gavel, gaacc);
+				
+				/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
+				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);				
 				
 				/* UPDATE TIME HISTORY VARIABLES HERE */
-				
+								
 				/* solve MD equations of motion */
 				if (1 || error == ExceptionT::kNoError) {
 						atoms.ResetCumulativeUpdate(group);
 						error = atoms.SolveStep();
 				}
 				
-				dArray2DT mddisp = (*atomfield)[0];
-				dArray2DT fmd = InternalForce(mddisp, atoms);
-				dArray2DT mdacc = (*atomfield)[2];
-				//cout << "md disp after solve step = " << mddisp << endl;
-				cout << "md acc = " << mdacc << endl;
+				//dArray2DT fmd = InternalForce(dsp1, atoms);
 				//cout << "md force = " << fmd << endl;
 				
 				/* close  md step */
@@ -715,6 +706,14 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
             
 			/* calculate total displacement u = FE + fine scale here using updated FEM displacement */
 			continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu);
+			
+			FieldT* pfem = continuum.NodeManager()->Field(bridging_field);
+			dArray2DT fpdsp1 = (*pfem)[0];
+			dArray2DT fpvel1 = (*pfem)[1];
+			dArray2DT fpacc1 = (*pfem)[2];
+			cout << "fem disp = " << fpdsp1 << endl;
+			cout << "fem vel = " << fpvel1 << endl;
+			cout << "fem acc = " << fpacc1 << endl;
 			
 			/* calculate FE internal force as function of total displacement u here */
 			fubig = InternalForce(totalu, atoms);
@@ -732,11 +731,22 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 					continuum.ResetCumulativeUpdate(group);
 					error = continuum.SolveStep();
 			}
-                    
-			FieldT* femfield = continuum.NodeManager()->Field(bridging_field);
-			dArray2DT femacc = (*femfield)[2];
-			cout << "fem acc = " << femacc << endl;
-			
+                 
+			FieldT* atomfield = atoms.NodeManager()->Field(bridging_field);
+			FieldT* fem = continuum.NodeManager()->Field(bridging_field);
+			dArray2DT dsp1 = (*atomfield)[0];
+			dArray2DT vel1 = (*atomfield)[1];
+			dArray2DT acc1 = (*atomfield)[2];
+			dArray2DT fdsp1 = (*fem)[0];
+			dArray2DT fvel1 = (*fem)[1];
+			dArray2DT facc1 = (*fem)[2];
+			cout << "fem disp = " << fdsp1 << endl;
+			cout << "md disp = " << dsp1 << endl;
+			cout << "fem vel = " << fvel1 << endl;
+			cout << "md vel = " << vel1 << endl;
+			cout << "fem acc = " << facc1 << endl;
+			cout << "md acc = " << acc1 << endl;
+		
 			/* Interpolate FEM values to MD ghost nodes which will act as MD boundary conditions */
 			continuum.InterpolateField(bridging_field, order1, boundghostdisp);
 			continuum.InterpolateField(bridging_field, order2, boundghostvel);
@@ -750,11 +760,8 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			bavel.RowCollect(batoms, boundghostvel);
 			baacc.RowCollect(batoms, boundghostacc);
 			
-			/* Write interpolated FEM values at MD ghost nodes into MD field such that these
-		       quantities are naturally integrated in time */
-			atoms.SetGhostNodeKBC(KBC_CardT::kDsp, gadisp);
-			atoms.SetGhostNodeKBC(KBC_CardT::kVel, gavel);
-			atoms.SetGhostNodeKBC(KBC_CardT::kAcc, gaacc);
+			/* Write interpolated FEM values at MD ghost nodes into MD field - displacement only */
+			atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);
 			
 			/* close fe step */
 			if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
@@ -783,13 +790,14 @@ const dArray2DT& FEExecutionManagerT::InternalForce(dArray2DT& totalu, FEManager
 	nodes.SetValueToPosition();
 
 	/* now write total bridging scale displacement u into field */
-	atoms.SetFieldValues(bridging_field, nodes, totalu);
+	int order = 0;	// write displacement only
+	atoms.SetFieldValues(bridging_field, nodes, order, totalu);
 		
 	/* compute RHS - ParticlePairT fForce calculated by this call */
 	atoms.FormRHS(group);
 	
 	/* write actual MD displacements back into field */
-	atoms.SetFieldValues(bridging_field, nodes, mddisp);
+	atoms.SetFieldValues(bridging_field, nodes, order, mddisp);
 
 	/* get the internal force contribution associated with the last call to FormRHS */
 	return atoms.InternalForce(group);

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.5.2.5 2003-05-25 00:23:59 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.5.2.6 2003-05-25 19:26:53 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -243,7 +243,7 @@ void FEManagerT_bridging::Form_G_NG_Stiffness(const StringT& field, dSPMatrixT& 
 }
 
 /* set the field at the ghost nodes */
-void FEManagerT_bridging::SetFieldValues(const StringT& field, const iArrayT& nodes, 
+void FEManagerT_bridging::SetFieldValues(const StringT& field, const iArrayT& nodes, int order, 
 	const dArray2DT& values)
 {
 	const char caller[] = "FEManagerT_bridging::SetFieldValues";
@@ -257,10 +257,10 @@ void FEManagerT_bridging::SetFieldValues(const StringT& field, const iArrayT& no
 	FieldT* the_field = fNodeManager->Field(field);
 	if (!the_field) ExceptionT::GeneralFail(caller, "could not resolve field \"%s\"", field.Pointer());
 
-	/* assume we're writing into the displacement array */
-	dArray2DT& displacement = (*the_field)[0];
+	/* can write into any field due to order parameter */
+	dArray2DT& arbitraryfield = (*the_field)[order];
 	for (int i = 0; i < values.MajorDim(); i++)	
-		displacement.SetRow(nodes[i], values(i));
+		arbitraryfield.SetRow(nodes[i], values(i));
 
 	/* reset the current configuration */
 	fNodeManager->UpdateCurrentCoordinates();
@@ -452,7 +452,7 @@ void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& fi
 }
 
 /* project the point values onto the mesh */
-void FEManagerT_bridging::ProjectField(const StringT& field, NodeManagerT& node_manager)
+void FEManagerT_bridging::ProjectField(const StringT& field, NodeManagerT& node_manager, int order)
 {
 	const char caller[] = "FEManagerT_bridging::ProjectField";
 
@@ -466,11 +466,12 @@ void FEManagerT_bridging::ProjectField(const StringT& field, NodeManagerT& node_
 
 	/* write values into the field */
 	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
-	SetFieldValues(field, cell_nodes, fProjection);
+	SetFieldValues(field, cell_nodes, order, fProjection);
 }
 
 /* project the point values onto the mesh */
-void FEManagerT_bridging::InitialProject(const StringT& field, NodeManagerT& node_manager, dArray2DT& projectedu)
+void FEManagerT_bridging::InitialProject(const StringT& field, NodeManagerT& node_manager, dArray2DT& projectedu,
+int order)
 {
 	const char caller[] = "FEManagerT_bridging::ProjectField";
 
@@ -484,7 +485,7 @@ void FEManagerT_bridging::InitialProject(const StringT& field, NodeManagerT& nod
 
 	/* write values into the field */
 	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
-	SetFieldValues(field, cell_nodes, fProjection);
+	SetFieldValues(field, cell_nodes, order, fProjection);
 }
 
 /* calculate the fine scale part of MD solution as well as total displacement u */
