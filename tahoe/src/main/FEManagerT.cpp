@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.17.2.3 2001-10-16 22:16:40 sawimme Exp $ */
+/* $Id: FEManagerT.cpp,v 1.17.2.4 2001-10-29 00:07:05 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
@@ -23,8 +23,6 @@
 #include "FDNodeManager.h"
 #include "DynNodeManager.h"
 #include "FDDynNodeManagerT.h"
-//#include "VariFDNodesT.h"
-//#include "VariFDDynNodesT.h"
 #include "DuNodeManager.h"
 
 /* controllers */
@@ -47,7 +45,7 @@
 #include "iNLSolver_LS.h"
 
 /* File/Version Control */
-const char* kCurrentVersion = "v3.4.1"; //version marker
+const char* kCurrentVersion = "v3.5";
 const char* kProgramName    = "tahoe";
 
 /* exception strings */
@@ -85,7 +83,6 @@ FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output):
 
 	/* add console variables */
 	iAddVariable("title", *((const StringT*) &fTitle));
-	//iAddVariable("model_file", *((const StringT*) &fModelFile));
 	iAddVariable("restart_inc", fWriteRestart);
 	
 	/* console commands */
@@ -916,45 +913,24 @@ void FEManagerT::SetNodeManager(void)
 	{
 		case GlobalT::kLinStaticHeat:
 		case GlobalT::kLinStatic:
-
 			fNodeManager = new NodeManagerT(*this);
 			break;
-
 		case GlobalT::kLinTransHeat:
-		
 			fNodeManager = new DuNodeManager(*this);
 			break;
-
 		case GlobalT::kNLStatic:
 		case GlobalT::kDR:
-
 			fNodeManager = new FDNodeManager(*this);
 			break;
-
 		case GlobalT::kLinDynamic:
 		case GlobalT::kLinExpDynamic:
-
 			fNodeManager = new DynNodeManager(*this);
 			break;
-
 		case GlobalT::kNLDynamic:
 		case GlobalT::kNLExpDynamic:
-
 			fNodeManager = new FDDynNodeManagerT(*this);
 			break;
-
-			/*case GlobalT::kVarNodeNLStatic:
-		
-			fNodeManager = new VariFDNodesT(*this);
-			break;
-	
-		case GlobalT::kVarNodeNLExpDyn:
-		
-			fNodeManager = new VariFDDynNodesT(*this);
-			break;*/
-
 		default:
-
 			cout << "FEManagerT::SetNodeManager: unknown analysis type." << endl;
 			throw eBadInputValue;
 	}
