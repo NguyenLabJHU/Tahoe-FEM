@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LS.cpp,v 1.8 2002-11-28 17:30:31 paklein Exp $ */
+/* $Id: NLSolver_LS.cpp,v 1.9 2002-12-05 01:53:53 paklein Exp $ */
 /* created: paklein (08/18/1999) */
 
 #include "NLSolver_LS.h"
@@ -76,7 +76,7 @@ double NLSolver_LS::SolveAndForm(bool newtangent)
 	/* e = a1 |R| + a2 |delta_d|                        */
 	//not implemented!
 			
-	return fRHS.Magnitude();
+	return Residual(fRHS);
 }
 
 /* console */
