@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.4 2001-07-11 01:02:15 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.5 2001-07-19 01:05:24 paklein Exp $ */
 
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
@@ -64,9 +64,11 @@ class FiniteStrainT: public ElasticT
 
   protected:
 
-  	/* return values */
-  	ArrayT<dMatrixT> fF_List;
-  	ArrayT<dMatrixT> fF_last_List;
+  	/* work space  */
+  	ArrayT<dMatrixT> fF_List;      /**< deformation gradient */
+  	dArrayT          fF_all;       /**< grouped memory for all deformation gradients */
+  	ArrayT<dMatrixT> fF_last_List; /**< last deformation gradient */
+  	dArrayT          fF_last_all;  /**< grouped memory for all last deformation gradients */
   
   private:
   
