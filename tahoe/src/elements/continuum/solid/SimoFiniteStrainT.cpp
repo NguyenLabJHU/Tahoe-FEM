@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.25 2003-01-29 07:34:34 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.26 2003-03-31 23:17:53 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -844,6 +844,8 @@ void SimoFiniteStrainT::FormKd_staggered(double constK)
  * solution scheme */
 void SimoFiniteStrainT::FormKd_monolithic(double constK)
 {
+	const char caller[] = "SimoFiniteStrainT::FormKd_enhanced";
+
 	/* matrix alias to fTemp */
 	dMatrixT WP(NumSD(), fStressStiff_11.Rows(), fNEEvec.Pointer());
 	
@@ -865,11 +867,8 @@ void SimoFiniteStrainT::FormKd_monolithic(double constK)
 		/* F^(-1) */
 		fTempMat2 = DeformationGradient();
 		double J = fTempMat2.Det();
-		if (J <= 0.0)
-		{
-			cout << "\n SimoFiniteStrainT::FormKd_enhanced: negative jacobian determinant" << endl;
-			throw ExceptionT::kBadJacobianDet;
-		}
+		if (J <= 0.0) 
+			ExceptionT::BadJacobianDet(caller);
 		else
 			fTempMat2.Inverse();
 
@@ -902,19 +901,17 @@ void SimoFiniteStrainT::FormKd_monolithic(double constK)
 /* compute modified, enhanced deformation gradient */
 void SimoFiniteStrainT::ModifiedEnhancedDeformation(void)
 {
+	const char caller[] = "SimoFiniteStrainT::ModifiedEnhancedDeformation";
+
 	/* check */
-	if (NumSD() != 3)
-	{
-		cout << "\n SimoFiniteStrainT::ModifiedEnhancedDeformation: for 3D only" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (NumSD() != 3) ExceptionT::GeneralFail(caller, "3D only");
 	
 	/* skip base class implementation because the deformation gradient
 	 * modification are not simply additive */
 	SolidElementT::SetGlobalShape();
 	
-	cout << "\n SimoFiniteStrainT::ModifiedEnhancedDeformation: not done" << endl;
-	throw ExceptionT::kGeneralFail;
+	//TEMP
+	ExceptionT::GeneralFail(caller, "not implemented");
 }
 
 /* compute enhanced part of F and total F */
@@ -955,6 +952,8 @@ void SimoFiniteStrainT::ComputeEnhancedDeformation(bool need_F, bool need_F_last
 /* calculate the residual from the internal force */
 void SimoFiniteStrainT::FormKd_enhanced(ArrayT<dMatrixT>& PK1_list, dArrayT& RHS_enh)
 {
+	const char caller[] = "SimoFiniteStrainT::FormKd_enhanced";
+	
 	/* integration rule */
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
@@ -970,10 +969,7 @@ void SimoFiniteStrainT::FormKd_enhanced(ArrayT<dMatrixT>& PK1_list, dArrayT& RHS
 		fTempMat2 = DeformationGradient();
 		double J = fTempMat2.Det();
 		if (J <= 0.0)
-		{
-			cout << "\n SimoFiniteStrainT::FormKd_enhanced: negative jacobian determinant" << endl;
-			throw ExceptionT::kBadJacobianDet;
-		}
+			ExceptionT::BadJacobianDet(caller);
 		else
 			fTempMat2.Inverse();
 
