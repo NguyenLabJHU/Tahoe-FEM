@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_22.cpp,v 1.10 2005-02-18 02:37:21 paklein Exp $ */
+/* $Id: FEManagerT_bridging_22.cpp,v 1.11 2005-03-11 20:41:46 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -147,7 +147,7 @@ void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_nei
 	InverseMapT overlap_cell_all_map;
 	overlap_cell_all_map.SetOutOfRange(InverseMapT::MinusOne);	
 	overlap_cell_all_map.SetMap(overlap_cell_all);
-	if (fPrintInput) {
+	if (fLogging == GlobalT::kVerbose) {
 		fMainOut << "\n Bonds to interpolation points (self as leading neighbor):\n";
 		fMainOut << setw(kIntWidth) << "row" << "  n..." << '\n';
 		iArrayT tmp(ghost_neighbors_all.Length(), ghost_neighbors_all.Pointer());
@@ -231,7 +231,7 @@ void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_nei
 		
 		/* report */
 		cout << i+1 << '/' << bonds.MajorDim() << ": " << ghost_neighbors_i.Length() << " bonds\n";
-		if (fPrintInput) {
+		if (fLogging == GlobalT::kVerbose) {
 			iArrayT tmp;
 			
 			fMainOut << "overlap nodes for bond: " << i+1 << ": {" << R_i.no_wrap() << "}:\n";
@@ -297,7 +297,7 @@ void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_nei
 		
 		/* compute contribution from bonds terminating at "ghost" atoms */
 		ComputeSum_signR_Na(R_i, ghost_neighbors_i, point_coords, overlap_node_i_map, sum_R_N);
-		if (fPrintInput) {
+		if (fLogging == GlobalT::kVerbose) {
 			fMainOut << "ghost bond contritbution:\n";
 			fMainOut << "R.sum_R_N =\n" << sum_R_N << endl;
 		}
@@ -362,7 +362,7 @@ void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_nei
 			/* assemble constraints */
 			ddf_dpdp_i.Assemble(diagonal, bond_densities_i_eq);
 
-			if (false && fPrintInput) {
+			if (fLogging == GlobalT::kVerbose) {
 				fMainOut << "residual =\n" << df_dp_i << endl;
 			}
 
@@ -576,7 +576,7 @@ void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_nei
 	} /* solve for bond densities */
 	
 	/* write densities */
-	if (fPrintInput) {
+	if (fLogging != GlobalT::kSilent) {
 	
 		/* dimensions */
 		const NodeManagerT* node_manager = NodeManager();

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.31 2005-03-02 02:28:31 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.32 2005-03-11 20:41:46 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -282,7 +282,7 @@ void FEManagerT_bridging::InitGhostNodes(const StringT& field, const ArrayT<Stri
 	SetEquationSystem(the_field->Group());
 
 	/* echo ghost nodes */
-	if (fPrintInput) {
+	if (fLogging == GlobalT::kVerbose) {
 		fGhostNodes++;
 		fMainOut << "\n Ghost nodes: " << fGhostNodes.Length() << '\n';
 		fMainOut << fGhostNodes.wrap(5) << endl;
@@ -1036,7 +1036,7 @@ void FEManagerT_bridging::CollectOverlapRegion_free(iArrayT& overlap_cell, iArra
 		if (is_overlap_cell[i] == 't')
 			overlap_cell[num_overlap_cell++] = i;
 			
-	if (fPrintInput) {
+	if (fLogging == GlobalT::kVerbose) {
 		overlap_cell++;
 		fMainOut << "\n overlap cells: " << overlap_cell.Length() << '\n';
 		fMainOut << overlap_cell.wrap(5) << endl;
@@ -1072,7 +1072,7 @@ void FEManagerT_bridging::CollectOverlapRegion_free(iArrayT& overlap_cell, iArra
 		if (is_overlap_node[i] == 't')
 			overlap_node[num_overlap_node++] = i;
 
-	if (fPrintInput) {
+	if (fLogging == GlobalT::kVerbose) {
 		overlap_node++;
 		fMainOut << "\n overlap nodes: " << overlap_node.Length() << '\n';
 		fMainOut << overlap_node.wrap(5) << endl;
@@ -1746,7 +1746,7 @@ void FEManagerT_bridging::CountIPBonds(const ArrayT<int>& elements, iArray2DT& i
 	}
 
 	/* verbose */
-	if (fPrintInput) {
+	if (fLogging == GlobalT::kVerbose) {
 		fMainOut << "\n Count of bonds in integration point domains:\n";
 		fMainOut << ip_counts << '\n';
 		fMainOut.flush();

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_4.cpp,v 1.4 2004-07-22 08:32:55 paklein Exp $ */
+/* $Id: FEManagerT_bridging_4.cpp,v 1.5 2005-03-11 20:41:46 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -71,7 +71,7 @@ void FEManagerT_bridging::CorrectOverlap_4(const RaggedArray2DT<int>& point_neig
 	overlap_cell_all_map.SetOutOfRange(InverseMapT::MinusOne);	
 	GhostNodeBonds(point_neighbors, ghost_neighbors_all, overlap_cell_all);
 	overlap_cell_all_map.SetMap(overlap_cell_all);
-	if (fPrintInput) {
+	if (fLogging == GlobalT::kVerbose) {
 		fMainOut << "\n Bonds to interpolation points (self as leading neighbor):\n";
 		fMainOut << setw(kIntWidth) << "row" << "  n..." << '\n';
 		iArrayT tmp(ghost_neighbors_all.Length(), ghost_neighbors_all.Pointer());
@@ -182,7 +182,7 @@ void FEManagerT_bridging::CorrectOverlap_4(const RaggedArray2DT<int>& point_neig
 		GhostNodeBonds_4(shell_bond_length[i], point_coords, ghost_neighbors_all, ghost_neighbors_i, overlap_cell_i, overlap_node_i);
 		overlap_cell_i_map.SetMap(overlap_cell_i);
 		overlap_node_i_map.SetMap(overlap_node_i);
-		if (fPrintInput) {
+		if (fLogging == GlobalT::kVerbose) {
 			iArrayT tmp;
 			
 			fMainOut << "overlap nodes for shell: " << i+1 << ": " << shell_bond_length[i] << ":\n";
@@ -267,7 +267,7 @@ void FEManagerT_bridging::CorrectOverlap_4(const RaggedArray2DT<int>& point_neig
 
 		/* compute contribution from bonds terminating at "ghost" atoms */
 		ComputeSum_signR_Na_4(shell_bond_length[i], ghost_neighbors_i, point_coords, overlap_node_i_map, sum_R_N);
-		if (fPrintInput) {
+		if (fLogging == GlobalT::kVerbose) {
 			fMainOut << "ghost bond contritbution:\n";
 			fMainOut << "sum_R_N =\n" << sum_R_N << endl;
 		}
@@ -328,7 +328,7 @@ void FEManagerT_bridging::CorrectOverlap_4(const RaggedArray2DT<int>& point_neig
 			ddf_dpdp_i.Assemble(K_constraint, eqnos);
 		}
 			
-		if (fPrintInput) {
+		if (fLogging == GlobalT::kVerbose) {
 			fMainOut << "residual =\n" << df_dp_i << endl;
 		}
 
@@ -487,7 +487,7 @@ void FEManagerT_bridging::CorrectOverlap_4(const RaggedArray2DT<int>& point_neig
 	}
 	
 	/* write densities */
-	if (fPrintInput) {
+	if (fLogging != GlobalT::kSilent) {
 	
 		/* dimensions */
 		const NodeManagerT* node_manager = NodeManager();
@@ -825,7 +825,7 @@ void FEManagerT_bridging::Compute_df_dp_4(const dArray2DT& shell_bonds, double V
 				}
 			}			
 		}
-	if (fPrintInput) {
+	if (fLogging == GlobalT::kVerbose) {
 		fMainOut << "f_a =\n" << f_a << endl;
 	}
 

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.48 2005-02-13 22:16:25 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.49 2005-03-11 20:41:46 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -106,6 +106,7 @@ public:
 
 	/** returns true for verbose echo of input */
 	bool PrintInput(void) const;
+	GlobalT::LoggingT Logging(void) const { return fLogging; };
 
 	/** version number */
 	static const char* Version(void);
@@ -482,6 +483,7 @@ protected:
 	bool fReadRestart;
 	int  fWriteRestart;
 	bool fPrintInput;
+	GlobalT::LoggingT fLogging; /**< amount of runtim logging information */
 	bool fComputeInitialCondition;
 	/*@}*/
 	

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_1.cpp,v 1.5 2004-07-22 08:41:38 paklein Exp $ */
+/* $Id: FEManagerT_bridging_1.cpp,v 1.6 2005-03-11 20:41:46 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -73,7 +73,7 @@ void FEManagerT_bridging::CorrectOverlap_1(const RaggedArray2DT<int>& neighbors,
 	/* compute reduced connectivity list */
 	RaggedArray2DT<int> ghost_neighbors;
 	GhostNodeBonds(neighbors, ghost_neighbors, overlap_cell_map);
-	if (fPrintInput) {
+	if (fLogging == GlobalT::kVerbose) {
 		fMainOut << "\n Bonds to interpolation points (self as leading neighbor):\n";
 		fMainOut << setw(kIntWidth) << "row" << "  n..." << '\n';
 		iArrayT tmp(ghost_neighbors.Length(), ghost_neighbors.Pointer());
@@ -127,7 +127,7 @@ void FEManagerT_bridging::CorrectOverlap_1(const RaggedArray2DT<int>& neighbors,
 		
 		/* compute contribution from bonds to ghost atoms */
 		ComputeSum_signR_Na(R_i, ghost_neighbors, coords, overlap_node_map, sum_R_N, overlap_cell_i);
-		if (fPrintInput) /* debugging */ {
+		if (fLogging == GlobalT::kVerbose) /* debugging */ {
 			
 			/* coordinates */
 			const NodeManagerT* node_manager = NodeManager();
@@ -159,7 +159,7 @@ void FEManagerT_bridging::CorrectOverlap_1(const RaggedArray2DT<int>& neighbors,
 		Compute_df_dp_1(R_i, V_0, *coarse, overlap_cell_i, overlap_node_map, p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
 		double error_0 = sqrt(dArrayT::Dot(df_dp_i,df_dp_i));
 		cout << setw(kIntWidth) << i+1 << ": {" << R_i.no_wrap() << "}: " << error_0 << '\n';
-		if (fPrintInput) {
+		if (fLogging == GlobalT::kVerbose) {
 			fMainOut << "overlap cells for bond: " << ": {" << R_i.no_wrap() << "}:\n";
 			iArrayT tmp;
 			tmp.Alias(overlap_cell_i);
@@ -223,7 +223,7 @@ void FEManagerT_bridging::CorrectOverlap_1(const RaggedArray2DT<int>& neighbors,
 	}
 
 	/* write densities */
-	if (fPrintInput) {
+	if (fLogging != GlobalT::kSilent) {
 	
 		/* dimensions */
 		const NodeManagerT* node_manager = NodeManager();
