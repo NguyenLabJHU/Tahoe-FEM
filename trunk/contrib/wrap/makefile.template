@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.2 2004-01-02 04:09:04 paklein Exp $
+# $Id: makefile.template,v 1.3 2004-12-27 06:05:36 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -21,7 +21,7 @@ ARCH =
 BLD_DIR = $(HOME_DIR)
 
 # working directories:
-INC_DIR = $(HOME_DIR)/inc
+INC_DIR = $(BLD_DIR)/inc
 SRC_DIR = $(HOME_DIR)/src
 OBJ_DIR = $(BLD_DIR)/obj
 BLD_SRC_DIR = $(BLD_DIR)/src-mirror
