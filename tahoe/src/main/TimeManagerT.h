@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.h,v 1.11.6.1 2004-01-28 01:34:11 paklein Exp $ */
+/* $Id: TimeManagerT.h,v 1.11.6.2 2004-02-18 16:33:52 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _TIMEMANAGER_T_H_
 #define _TIMEMANAGER_T_H_
@@ -158,7 +158,8 @@ private:
 	
 	/** will be IntegratorT::kExplicit if all integrators are explicit
 	 * otherwise will be IntegratorT::kImplicit */
-	IntegratorT::ImpExpFlagT fImpExp;
+//	IntegratorT::ImpExpFlagT fImpExp;
+//DELETE ME
 
 /* functions for time shifters */
 private:

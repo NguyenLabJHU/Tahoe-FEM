@@ -1,9 +1,19 @@
-/* $Id: FieldSupportT.cpp,v 1.4 2003-08-18 03:46:37 paklein Exp $ */
+/* $Id: FieldSupportT.cpp,v 1.4.16.1 2004-02-18 16:33:54 paklein Exp $ */
 #include "FieldSupportT.h"
 #include "FEManagerT.h"
 #include "NodeManagerT.h"
 
 using namespace Tahoe;
+
+/* the model */
+ModelManagerT& FieldSupportT::ModelManager(void) const
+{
+	/* check pointer */
+	ModelManagerT* model = fFEManager.ModelManager();
+	if (!model)
+		ExceptionT::GeneralFail("FieldSupportT::ModelManager", "not defined");
+	return *model;
+}
 
 void FieldSupportT::AssembleLHS(int group, const ElementMatrixT& elMat, const nArrayT<int>& eqnos) const
 {

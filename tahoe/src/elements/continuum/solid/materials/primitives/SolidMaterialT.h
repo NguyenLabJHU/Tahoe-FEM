@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.13 2004-01-10 04:41:25 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.13.2.1 2004-02-18 16:33:51 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -136,6 +136,15 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 	
 private:

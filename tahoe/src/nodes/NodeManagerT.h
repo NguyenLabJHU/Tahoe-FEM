@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.23.2.2 2004-02-05 18:47:16 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.23.2.3 2004-02-18 16:33:54 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -83,7 +83,7 @@ public:
 	
 	/** the number of fields in the given group */
 	int NumFields(int group) const;
-	
+
 	/** return a const pointer to the field with the specified name. returns NULL
 	 * if a field with the given name is not found. */
 	const FieldT* Field(const char* name) const;
@@ -171,6 +171,9 @@ public:
 	/* returns true if the internal force has been changed since
 	 * the last time step */
 	virtual GlobalT::RelaxCodeT RelaxSystem(int group);
+
+	/** set the time step */
+	void SetTimeStep(double dt);
 
 	/** Set to initial conditions */
 	virtual void InitialCondition(void);

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.55.2.1 2004-02-05 18:47:13 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.55.2.2 2004-02-18 16:33:43 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -12,6 +12,7 @@
 #include "ShapeFunctionT.h"
 #include "eIntegratorT.h"
 #include "iAutoArrayT.h"
+#include "ParameterContainerT.h"
 
 /* materials */
 #include "SolidMaterialT.h"
@@ -27,7 +28,24 @@ using namespace Tahoe;
 
 /* initialize static data */
 const int SolidElementT::NumNodalOutputCodes = 7;
+static const char* NodalOutputNames[] = {
+	"coordinates",
+	"displacements",
+	"stress",
+	"principal_stress",
+	"strain_energy_density",
+	"wave_speeds",
+	"material_output"};
+
 const int SolidElementT::NumElementOutputCodes = 7;
+static const char* ElementOutputNames[] = {
+	"centroid",
+	"mass",
+	"strain_energy",
+	"kinetic_energy",
+	"linear_momentum",
+	"stress",
+	"material_output"};
 
 /* constructor */
 SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field):
@@ -330,6 +348,86 @@ void SolidElementT::DefineParameters(ParameterListT& list) const
     mass_type.AddEnumeration("lumped_mass", kLumpedMass);
     mass_type.SetDefault(kConsistentMass);
 	list.AddParameter(mass_type);
+}
+
+/* information about subordinate parameter lists */
+void SolidElementT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ContinuumElementT::DefineSubs(sub_list);
+
+	/* nodal output codes (optional) */
+	sub_list.AddSub("solid_element_nodal_output", ParameterListT::ZeroOrOnce);
+	sub_list.AddSub("solid_element_element_output", ParameterListT::ZeroOrOnce);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* SolidElementT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "solid_element_nodal_output")
+	{
+		ParameterContainerT* node_output = new ParameterContainerT(list_name);
+		
+		/* all false by default */
+		for (int i = 0; i < NumNodalOutputCodes; i++)
+			node_output->AddParameter(ParameterT::Boolean, NodalOutputNames[i], ParameterListT::ZeroOrOnce);
+
+		return node_output;
+	}
+	else if (list_name == "solid_element_element_output")
+	{
+		ParameterContainerT* element_output = new ParameterContainerT(list_name);
+		
+		/* all false by default */
+		for (int i = 0; i < NumElementOutputCodes; i++)
+			element_output->AddParameter(ParameterT::Boolean, ElementOutputNames[i], ParameterListT::ZeroOrOnce);
+
+		return element_output;	
+	}
+	else /* inherited */
+		return ContinuumElementT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void SolidElementT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ContinuumElementT::TakeParameterList(list);
+
+	/* set mass type */
+	list.GetParameter("mass_type", enum2int<ContinuumElementT::MassTypeT>(fMassType));
+	
+	/* nodal output codes */
+	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
+	fNodalOutputCodes = 0;
+	const ParameterListT* node_output = list.List("solid_element_nodal_output");
+	if (node_output)
+		for (int i = 0; i < NumNodalOutputCodes; i++)
+		{
+			/* look for entry */
+			const ParameterT* nodal_value = node_output->Parameter(NodalOutputNames[i]);
+			if (nodal_value) {
+				bool do_write = *nodal_value;
+				if (do_write)
+					fNodalOutputCodes[i] = 1;
+			}
+		}
+
+	/* nodal output codes */
+	fElementOutputCodes.Dimension(NumElementOutputCodes);
+	fElementOutputCodes = 0;
+	const ParameterListT* element_output = list.List("solid_element_element_output");
+	if (element_output)
+		for (int i = 0; i < NumElementOutputCodes; i++)
+		{
+			/* look for entry */
+			const ParameterT* element_value = element_output->Parameter(NodalOutputNames[i]);
+			if (element_value) {
+				bool do_write = *element_value;
+				if (do_write)
+					fElementOutputCodes[i] = 1;
+			}
+		}
 }
 
 /***********************************************************************

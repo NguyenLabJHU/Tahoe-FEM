@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.19.6.1 2004-01-28 01:34:11 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.19.6.2 2004-02-18 16:33:52 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "TimeManagerT.h"
 
@@ -102,10 +102,13 @@ bool TimeManagerT::NextSequence(void)
 		cout << fCurrentSequence + 1 << endl;
 		
 		/* see if all Integrators are explicit */
+#pragma message ("delete me")
+#if 0
 		fImpExp = IntegratorT::kExplicit;
 		for (int i = 0; fImpExp == IntegratorT::kExplicit && 
 			i < theBoss.NumIntegrators(); i++)
 			fImpExp = theBoss.Integrator(i)->ImplicitExplicit();
+#endif
 		
 		return true;
 	}
@@ -134,7 +137,8 @@ bool TimeManagerT::Step(void)
 		
 		/* print less often for explicit */
 		GlobalT::AnalysisCodeT analysiscode = theBoss.Analysis();
-		bool is_explicit = fImpExp == IntegratorT::kExplicit;
+		//bool is_explicit = fImpExp == IntegratorT::kExplicit;
+		bool is_explicit = (fNumSteps > 100);
 		
 		/* verbose flag */
 		bool write_header = !is_explicit     ||

@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.h,v 1.10 2003-01-29 07:35:01 paklein Exp $ */
+/* $Id: DPSSKStV.h,v 1.10.30.1 2004-02-18 16:33:49 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_H_
 #define _DP_SS_KSTV_H_
@@ -70,6 +70,18 @@ class DPSSKStV: public SSSolidMatT,
          * of the determinant is positive.
          */
 	 int IsLocalized(dArrayT& normal);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 

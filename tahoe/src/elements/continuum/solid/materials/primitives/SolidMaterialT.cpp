@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.10.2.1 2004-01-21 19:10:27 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.10.2.2 2004-02-18 16:33:51 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
@@ -8,6 +8,7 @@
 #include "dArrayT.h"
 #include "dSymMatrixT.h"
 #include "LocalArrayT.h"
+#include "ParameterContainerT.h"
 
 using namespace Tahoe;
 
@@ -16,6 +17,8 @@ SolidMaterialT::SolidMaterialT(ifstreamT& in, const MaterialSupportT& support):
 	ParameterInterfaceT("solid_material"),
 	ContinuumMaterialT(support)
 {
+#pragma unused(in)
+#if 0
 	in >> fMassDamp;	if (fMassDamp  <  0.0) throw ExceptionT::kBadInputValue;
 	in >> fStiffDamp;	if (fStiffDamp <  0.0) throw ExceptionT::kBadInputValue;
 	in >> fDensity;		if (fDensity   <= 0.0) throw ExceptionT::kBadInputValue;
@@ -23,6 +26,7 @@ SolidMaterialT::SolidMaterialT(ifstreamT& in, const MaterialSupportT& support):
 	if (!fThermal) throw ExceptionT::kOutOfMemory;
 
 	SetName("solid_material");
+#endif
 }
 
 SolidMaterialT::SolidMaterialT(void):
@@ -63,7 +67,7 @@ void SolidMaterialT::Print(ostream& out) const
 	out << " Stiffness damping coefficient . . . . . . . . . = " << fStiffDamp << '\n';
 	out << " Density . . . . . . . . . . . . . . . . . . . . = " << fDensity   << '\n';
 
-	fThermal->Print(out);
+//	fThermal->Print(out);
 }
 
 /* return the wave speeds */
@@ -161,4 +165,49 @@ void SolidMaterialT::DefineParameters(ParameterListT& list) const
 	ParameterT density(fDensity, "density");
 	density.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(density);
+}
+
+/* information about subordinate parameter lists */
+void SolidMaterialT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ContinuumMaterialT::DefineSubs(sub_list);
+	
+	/* thermal dilatation */
+	sub_list.AddSub("thermal_dilatation", ParameterListT::ZeroOrOnce);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* SolidMaterialT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "thermal_dilatation")
+	{
+		ParameterContainerT* thermal_dilatation = new ParameterContainerT(list_name);
+		
+		thermal_dilatation->AddParameter(ParameterT::Double, "percent_elongation");
+		thermal_dilatation->AddParameter(ParameterT::Integer, "schedule_number");
+		
+		return thermal_dilatation;
+	}
+	else /* inherited */
+		return ContinuumMaterialT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void SolidMaterialT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ContinuumMaterialT::TakeParameterList(list);
+
+	/* thermal dilatation */
+	if (!fThermal) fThermal = new ThermalDilatationT;
+	const ParameterListT* thermal = list.List("thermal_dilatation");
+	if (thermal) {
+		double elongation = thermal->GetParameter("percent_elongation");
+		int schedule = thermal->GetParameter("schedule_number");
+		schedule--;
+		
+		fThermal->SetPercentElongation(elongation);
+		fThermal->SetScheduleNum(schedule);
+	}
 }

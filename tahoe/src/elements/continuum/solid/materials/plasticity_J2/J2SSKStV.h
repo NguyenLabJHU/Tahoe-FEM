@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.h,v 1.8 2003-10-12 01:39:03 paklein Exp $ */
+/* $Id: J2SSKStV.h,v 1.8.8.1 2004-02-18 16:33:50 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #ifndef _J2_SS_KSTV_H_
 #define _J2_SS_KSTV_H_
@@ -56,6 +56,18 @@ public:
 	virtual int NumOutputVariables(void) const;
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
