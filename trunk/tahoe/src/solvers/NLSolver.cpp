@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.3 2001-03-14 03:20:00 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.4 2001-05-30 23:27:04 paklein Exp $ */
 /* created: paklein (07/09/1996)                                          */
 
 #include "NLSolver.h"
@@ -219,7 +219,7 @@ void NLSolver::InitIterationOutput(void)
 		root.Append("of", fFEManager.NumberOfSteps());
 
 		/* append processor designation */ 
-		if (fFEManager.Size() > 0) root.Append(".p", fFEManager.Rank());
+		if (fFEManager.Size() > 1) root.Append(".p", fFEManager.Rank());
 
 		/* set temporary output */
 		fFEManager.DivertOutput(root);
@@ -310,7 +310,7 @@ NLSolver::IterationStatusT NLSolver::ExitIteration(double error)
 	/* write convergence output */
 	if (++fIterationOutputCount == fIterationOutputIncrement)
 	{
-		fFEManager.WriteOutput(IOBaseT::kAtInc);
+		fFEManager.WriteOutput(double(fNumIteration), IOBaseT::kAtInc);
 		fIterationOutputCount = 0;
 	}
 	

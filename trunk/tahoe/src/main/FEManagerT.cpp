@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.11 2001-05-21 17:10:23 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.12 2001-05-30 23:27:02 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include "FEManagerT.h"
@@ -516,12 +516,15 @@ void FEManagerT::DisassembleRHS(dArrayT& elRes, const nArrayT<int>& eqnos) const
 }
 
 /* writing results */
-void FEManagerT::WriteOutput(IOBaseT::OutputModeT mode)
+void FEManagerT::WriteOutput(double time, IOBaseT::OutputModeT mode)
 {
 	try
 	{
 		/* state */
 		SetStatus(GlobalT::kWriteOutput);
+
+		/* set output time */
+		fIOManager->SetOutputTime(time);
 
 		/* nodes */
 		fNodeManager->WriteOutput(mode);
@@ -561,7 +564,7 @@ void FEManagerT::WriteOutput(IOBaseT::OutputModeT mode)
 void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values,
 	const dArray2DT& e_values)
 {
-	fIOManager->WriteOutput(Time(), ID, n_values, e_values);
+	fIOManager->WriteOutput(ID, n_values, e_values);
 }
 
 int FEManagerT::RegisterOutput(const OutputSetT& output_set)
@@ -874,7 +877,7 @@ bool FEManagerT::iDoCommand(const StringT& command, StringT& line)
 		}
 		else if (command == "WriteOutput")
 		{
-			WriteOutput(IOBaseT::kAtInc);			
+			WriteOutput(Time(), IOBaseT::kAtInc);			
 		}
 		else
 			/* inherited */

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.2 2001-04-27 10:50:11 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.3 2001-05-30 23:27:02 paklein Exp $ */
 /* created: paklein (01/12/2000)                                          */
 
 #include "FEManagerT_mpi.h"
@@ -288,7 +288,27 @@ void FEManagerT_mpi::WriteOutput(int ID, const dArray2DT& n_values,
 		FEManagerT::WriteOutput(ID, n_values, e_values);
 	else
 		/* distribute/assemble/write */
-		fExternIOManager->WriteOutput(Time(), ID, n_values, e_values);
+		fExternIOManager->SetOutputTime(Time());
+		fExternIOManager->WriteOutput(ID, n_values, e_values);
+}
+
+/* (temporarily) direct output away from main out */
+void FEManagerT_mpi::DivertOutput(const StringT& outfile)
+{
+	/* do local IO */
+	if (!fExternIOManager)
+		FEManagerT::DivertOutput(outfile);
+	else /* external I/O */
+		fExternIOManager->DivertOutput(outfile);
+}
+
+void FEManagerT_mpi::RestoreOutput(void)
+{
+	/* do local IO */
+	if (!fExternIOManager)
+		FEManagerT::RestoreOutput();
+	else /* external I/O */
+		fExternIOManager->RestoreOutput();
 }
 
 /* return list of ID's of external nodes */
