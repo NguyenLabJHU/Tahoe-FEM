@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.20 2003-08-18 03:48:18 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.21 2003-08-23 20:24:15 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -394,7 +394,7 @@ private:
 inline FieldT* NodeManagerT::Field(const char* name)
 {
 	/* const this */
-	const NodeManagerT* const this_ = (const NodeManagerT* const) this;
+	const NodeManagerT* this_ = (const NodeManagerT*) this;
 	const FieldT* field = this_->Field(name);
 	return (FieldT*) field;
 }
