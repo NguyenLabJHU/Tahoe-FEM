@@ -1,4 +1,4 @@
-/* $Id: EAM_particle.h,v 1.1.2.4 2004-02-26 14:20:47 hspark Exp $ */
+/* $Id: EAM_particle.h,v 1.1.2.5 2004-02-26 19:08:16 hspark Exp $ */
 /* created: hspark(02/25/2004) */
 #ifndef _EAM_PARTICLE_H_
 #define _EAM_PARTICLE_H_
@@ -13,7 +13,6 @@ namespace Tahoe {
 
 /* forward declarations */
 class CBLatticeT;
-class C1FunctionT;
 class iArrayT;
 class dSymMatrixT;
 
@@ -51,7 +50,7 @@ public:
 	void ComputeUnitModuli(dMatrixT& moduli); 	    	
 
 	/* unstressed lattice parameter */
-	 virtual double LatticeParameter(void) const = 0;
+	virtual double LatticeParameter(void) const;
 
 private:
 
@@ -102,6 +101,7 @@ private:
 	int		fNumSpatialDim;
 	int		fNumBonds;
 	int		fModuliDim;
+	double  fLatticeParameter;
 	
 	dMatrixT	fBondTensor4;
 	dMatrixT	fAmn; /* mixed derivative matrix */

@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.h,v 1.3 2002-07-05 22:28:10 paklein Exp $ */
+/* $Id: EAMFCC3D.h,v 1.3.42.1 2004-02-26 19:08:16 hspark Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAMFCC3D.h                                                             */
 
@@ -15,6 +15,7 @@ class ifstreamT;
 class dMatrixT;
 class dSymMatrixT;
 class EAM;
+class EAM_particle;
 
 /* bond parameters */
 const int kEAMFCC3DNumBonds			= 54;
@@ -29,7 +30,8 @@ public:
 	enum GlueTypeT {kErcolessiAdamsAl = 0,
                          kVoterChenAl = 1,
                          kVoterChenCu = 2,
-                     kFoilesBaskesDaw = 3};
+                     kFoilesBaskesDaw = 3,
+					     kEAMParticle = 4};
 
 	/* constructor */
 	EAMFCC3D(ifstreamT& in, int EAMcode, int numspatialdim,
@@ -68,9 +70,9 @@ protected:
 	double	fLatticeParameter;
 	double	fCellVolume;
 	
-	/* embedded atom solver */
+	/* embedded atom solvers */
 	EAM*	fEAM;
-	    	
+	EAM_particle* fEAM_particle;
 };
 
 } // namespace Tahoe 
