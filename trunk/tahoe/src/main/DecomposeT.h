@@ -1,4 +1,4 @@
-/* $Id: DecomposeT.h,v 1.2 2004-09-28 15:35:37 paklein Exp $ */
+/* $Id: DecomposeT.h,v 1.3 2004-09-28 16:08:05 paklein Exp $ */
 #ifndef _FE_DECOMPOSE_T_H_
 #define _FE_DECOMPOSE_T_H_
 
@@ -9,6 +9,7 @@ namespace Tahoe
 {
 
 /* forward declarations */
+template <class TYPE> class ArrayT;
 class StringT;
 class PartitionT;
 class ModelManagerT;
