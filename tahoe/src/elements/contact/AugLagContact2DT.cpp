@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.4.2.1 2001-10-25 20:25:15 sawimme Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.4.2.2 2001-10-26 18:59:58 sawimme Exp $ */
 /* created: paklein (05/31/1998) */
 
 #include "AugLagContact2DT.h"
@@ -115,26 +115,18 @@ void AugLagContact2DT::GenerateElementData(void)
 	/* resize work space */
 	fXDOFConnectivities_man.SetMajorDimension(num_active, false);
 	fXDOFEqnos_man.SetMajorDimension(num_active, false);
-
-	int count = 0;
-	for (int b=0; b < fBlockData.MajorDim(); b++)
-	  {
-	    const iArray2DT* conn = fConnectivities[b];
-	    int *pelem = conn->Pointer();
-	    for (int e=0; e < conn->MajorDim(); e++)
-	    {
-	        int* pxelem = fXDOFConnectivities(count);
+	for (int i = 0; i < num_active; i++)
+	{	
+	        const iArrayT& elemnodes = fElementCards[i].NodesX();
+		int* pelem = elemnodes.Pointer();
+		int* pxelem = fXDOFConnectivities(i);
 
 		/* XDOF element tags */
 		pxelem[0] = pelem[0]; // 1st facet node
 		pxelem[1] = pelem[1]; // 2nd facet node
 		pxelem[2] = pelem[2]; // striker node
-		pxelem[3] = fContactDOFtags[count]; // contact DOF tag
-
-		count++;
-		pelem += conn->MinorDim();
-	    }
-	  }
+		pxelem[3] = fContactDOFtags[i]; // contact DOF tag
+	}
 }
 
 /* return the contact elements */
