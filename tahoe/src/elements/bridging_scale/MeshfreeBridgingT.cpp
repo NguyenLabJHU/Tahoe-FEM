@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.cpp,v 1.5.2.1 2004-03-17 02:00:34 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.cpp,v 1.5.2.2 2004-03-18 18:04:56 paklein Exp $ */
 #include "MeshfreeBridgingT.h"
 
 #include "ifstreamT.h"
@@ -457,7 +457,11 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(CommManagerT& comm, const iArray
 		out << "\n Nodal neighborhoods:\n";
 		iArrayT tmp(nodal_neighbors.Length(), nodal_neighbors.Pointer());
 		tmp++;
-		nodal_neighbors.WriteNumbered(out);
+		iArrayT neighbors;
+		for (int i = 0; i < nodes_used.Length(); i++) {
+			nodal_neighbors.RowAlias(i, neighbors);
+			out << setw(kIntWidth) << nodes_used[i]+1 << ":" << neighbors.no_wrap() << '\n';
+		}
 		tmp--;
 		
 		/* support sizes for each source point */
