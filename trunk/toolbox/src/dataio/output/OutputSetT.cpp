@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.4 2001-12-16 23:57:06 paklein Exp $ */
+/* $Id: OutputSetT.cpp,v 1.5 2002-01-09 21:35:26 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 
 #include "OutputSetT.h"
@@ -27,12 +27,12 @@ OutputSetT::OutputSetT(int ID, GeometryT::CodeT geometry_code,
 	  {
 	    cout << "\n\nOutputSetT::OutputSetT size mismatch: \n";
 	    cout << " fConnectivities.Length = " << fConnectivities.Length();
-	    cout << "\n    fBlockID.Length = " << fBlockID.Length() << "\n\n";
+	    cout << "\n    fBlockID.Length = " << fBlockID.Length() << endl;
 	    throw eSizeMismatch;
 	  }
 
 	for (int i=0; i < fConnectivities.Length(); i++)
-	        fConnectivities[i] = connectivities[i];
+		fConnectivities[i] = connectivities[i];
 
 	fNodeOutputLabels.Allocate(n_labels.Length());
 	for (int i = 0; i < fNodeOutputLabels.Length(); i++)
@@ -137,37 +137,41 @@ const iArrayT& OutputSetT::BlockNodesUsed(int index)
 		{
 			/* determine nodes used by block */
 			SetNodesUsed(*fConnectivities[index], fBlockNodesUsed[index]);
-
-			/* block to set index map */
-			iArrayT& map = fBlockIndexToSetIndexMap[index];
-			iArrayT& used = fBlockNodesUsed[index];
-			map.Allocate(used.Length());
-		
-			/* range of nodes numbers */
-			int min, max;
-			fNodesUsed.MinMax(min, max);
-			int range = max - min + 1;
 			
-			/* nodes used sequence */
-			iArrayT sequence(range);
-			sequence = -1;
-			
-			/* mark sequence */
-			int dex = 0;
-			for (int i = 0; i < fNodesUsed.Length(); i++)
-				sequence[fNodesUsed[i] - min] = dex++;
-					
-			/* collect index list */
-			for (int i = 0; i < map.Length(); i++)
+			/* block could be empty */
+			if (fBlockNodesUsed[index].Length() > 0)
 			{
-				int dex = sequence[used[i] - min];
-				if (dex < 0) {
-					cout << "\n OutputSetT::BlockNodesUsed: ERROR: block node used " << used[i]+1 
-					     << " is not marked as used by the set" << endl;
-					throw eGeneralFail;
+				/* block to set index map */
+				iArrayT& map = fBlockIndexToSetIndexMap[index];
+				iArrayT& used = fBlockNodesUsed[index];
+				map.Allocate(used.Length());
+		
+				/* range of nodes numbers */
+				int min, max;
+				fNodesUsed.MinMax(min, max);
+				int range = max - min + 1;
+			
+				/* nodes used sequence */
+				iArrayT sequence(range);
+				sequence = -1;
+			
+				/* mark sequence */
+				int dex = 0;
+				for (int i = 0; i < fNodesUsed.Length(); i++)
+					sequence[fNodesUsed[i] - min] = dex++;
+					
+				/* collect index list */
+				for (int i = 0; i < map.Length(); i++)
+				{
+					int dex = sequence[used[i] - min];
+					if (dex < 0) {
+						cout << "\n OutputSetT::BlockNodesUsed: ERROR: block node used " << used[i]+1 
+						     << " is not marked as used by the set" << endl;
+						throw eGeneralFail;
+					}
+					else
+						map[i] = dex;
 				}
-				else
-					map[i] = dex;
 			}
 		}
 	}
