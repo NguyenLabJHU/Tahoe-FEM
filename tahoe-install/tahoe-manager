@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.29 2005-03-08 17:16:39 rjones Exp $
+# $Id: tahoe-manager,v 1.30 2005-03-08 19:06:01 rjones Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -154,7 +154,7 @@ foreach my $key (sort(keys %ENV)) {
 		if ($key =~ /$lib/ ) { 
 			my $loc = $ENV{$key};
 			print "* found system library $lib \@ $loc \n"; 
-			push(@syslibs,$syslib2module{$lib});
+			push(@syslibs,$lib);
 		}
 	}
 }
@@ -166,7 +166,7 @@ else                  { write_default_config();}
 # remove system libraries from @modules
 foreach my $lib (@syslibs) {
 	for (my $i = 0; $i < scalar(@modules) ; $i++) {
-		if($modules[$i] =~ /$lib/) {  splice (@modules,$i,1);}
+		if($modules[$i] =~ /$syslib2module{$lib}/) {  splice (@modules,$i,1);}
 	}
 }
 
