@@ -1,8 +1,7 @@
-/* $Id: MappedPeriodicT.cpp,v 1.7.50.2 2004-05-13 16:43:35 paklein Exp $ */
+/* $Id: MappedPeriodicT.cpp,v 1.7.50.3 2004-06-07 13:47:35 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 #include "MappedPeriodicT.h"
 
-#include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "fstreamT.h"
 #include "BasicFieldT.h"
@@ -16,8 +15,8 @@ const int kMaster = 0;
 const int kSlave  = 1;
 
 /* constructor */
-MappedPeriodicT::MappedPeriodicT(NodeManagerT& node_manager, BasicFieldT& field):
-	KBC_ControllerT(node_manager),
+MappedPeriodicT::MappedPeriodicT(const BasicSupportT& support, BasicFieldT& field):
+	KBC_ControllerT(support),
 	fField(field),
 	fSchedule(NULL),
 	fDummySchedule(1.0) //still need this?
@@ -34,7 +33,7 @@ void MappedPeriodicT::Initialize(ifstreamT& in)
 	/* schedule for fFperturb */
 	in >> fnumLTf; fnumLTf--;
 	if (fnumLTf < 0) throw ExceptionT::kBadInputValue;
-	fSchedule = fNodeManager.Schedule(fnumLTf);	
+	fSchedule = fSupport.Schedule(fnumLTf);	
 	if (!fSchedule) throw ExceptionT::kBadInputValue;
 
 	/* specified deformation gradient */
@@ -120,7 +119,7 @@ void MappedPeriodicT::WriteParameters(ostream& out) const
 void MappedPeriodicT::InitialCondition(void)
 {
 	/* reference coordinates */
-	const dArray2DT& init_coords = fNodeManager.InitialCoordinates();
+	const dArray2DT& init_coords = fSupport.InitialCoordinates();
 
 	/* compute mapping */
 	fF = fFperturb;
@@ -166,7 +165,7 @@ void MappedPeriodicT::InitStep(void)
 	else /* apply mapping */
 	{
 		/* nodal information */
-		const dArray2DT& init_coords = fNodeManager.InitialCoordinates();
+		const dArray2DT& init_coords = fSupport.InitialCoordinates();
 		const dArray2DT& disp = fField[0];	
 
 		/* compute F - 1  = fFperturb */
@@ -277,14 +276,14 @@ void MappedPeriodicT::TakeParameterList(const ParameterListT& list)
 	KBC_ControllerT::TakeParameterList(list);
 
 	/* dimension workspace */
-	int nsd = fNodeManager.NumSD();
+	int nsd = fSupport.NumSD();
 	fFperturb.Dimension(nsd);
 	fF.Dimension(nsd);
 	fD_sm.Dimension(nsd);
 
 	/* schedule */
 	int schedule = list.GetParameter("schedule");
-	fSchedule = fNodeManager.Schedule(--schedule);
+	fSchedule = fSupport.Schedule(--schedule);
 	if (!fSchedule) ExceptionT::GeneralFail(caller, "could not resolve schedule %d", schedule+1);
 	
 	/* perturbation matrix */

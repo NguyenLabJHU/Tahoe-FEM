@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.45.18.2 2004-05-13 16:43:34 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.45.18.3 2004-06-07 13:47:34 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -302,9 +302,6 @@ void NodeManagerT::RegisterCoordinates(LocalArrayT& array) const
 				"not a coordinate type: %d", array.Type());
 	}
 }
-
-/* the local node to home processor map */
-const ArrayT<int>* NodeManagerT::ProcessorMap(void) const { return fFEManager.ProcessorMap(); }
 
 CommManagerT& NodeManagerT::CommManager(void) const { return fCommManager; }
 
@@ -1381,7 +1378,7 @@ void NodeManagerT::SetCoordinates(void)
 		out << '\n';
 
 		/* arrays */
-		const ArrayT<int>* processor = ProcessorMap();
+		const ArrayT<int>* processor = fFEManager.ProcessorMap();
 		const dArray2DT& init_coords = InitialCoordinates();
 		const ArrayT<int>* node_map = fFEManager.NodeMap();
 		for (int i = 0; i < init_coords.MajorDim(); i++)
@@ -1890,42 +1887,42 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 	switch(code)
 	{
 		case KBC_ControllerT::kK_Field:
-			return new K_FieldT(*this);
+			return new K_FieldT(fFieldSupport);
 
 		case KBC_ControllerT::kBimaterialK_Field:	
-			return new BimaterialK_FieldT(*this);
+			return new BimaterialK_FieldT(fFieldSupport);
 
 		case KBC_ControllerT::kMappedPeriodic:	
-			return new MappedPeriodicT(*this, field);
+			return new MappedPeriodicT(fFieldSupport, field);
 
 		case KBC_ControllerT::kTiedNodes:
 		{
-			TiedNodesT* kbc = new TiedNodesT(*this, field);
+			TiedNodesT* kbc = new TiedNodesT(fFieldSupport, field);
 			return kbc;
 		}
 		case KBC_ControllerT::kPeriodicNodes:
 		{
-			PeriodicNodesT* kbc = new PeriodicNodesT(*this, field);
+			PeriodicNodesT* kbc = new PeriodicNodesT(fFieldSupport, field);
 			return kbc;
 		}
 		case KBC_ControllerT::kScaledVelocityNodes:
 		{
-			ScaledVelocityNodesT* kbc = new ScaledVelocityNodesT(*this, field);
+			ScaledVelocityNodesT* kbc = new ScaledVelocityNodesT(fFieldSupport, field);
 			return kbc;
 		}
 		case KBC_ControllerT::kSetOfNodesKBC:
 		{
-			SetOfNodesKBCT* kbc = new SetOfNodesKBCT(*this, field);
+			SetOfNodesKBCT* kbc = new SetOfNodesKBCT(fFieldSupport, field);
 			return kbc;
 		}
 		case KBC_ControllerT::kTorsion:
 		{
-			TorsionKBCT* kbc = new TorsionKBCT(*this, fFEManager.Time());
+			TorsionKBCT* kbc = new TorsionKBCT(fFieldSupport);
 			return kbc;
 		}
 		case KBC_ControllerT::kConyevor:
 		{
-			ConveyorT* kbc = new ConveyorT(*this, field);
+			ConveyorT* kbc = new ConveyorT(fFieldSupport, field);
 			return kbc;
 		}
 		default:
