@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.26 2005-01-25 02:23:58 cjkimme Exp $ */
+/* $Id: SCNIMFT.h,v 1.27 2005-01-25 23:10:01 paklein Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -183,7 +183,7 @@ protected:
 
 	/** coordinates of nodes */	
 	dArray2DT fNodalCoordinates;
-	
+
 	/** support class for nodal integration */
 	CellGeometryT* fCellGeometry;
 	
@@ -194,7 +194,6 @@ protected:
 	
 	/** The centroids of the nodal cells used to compute the mass matrix for the axisymmetric element. */
 	dArray2DT fCellCentroids;
-	/*@}*/
 
 	/** list of materials */
 	MaterialListT* fMaterialList;
