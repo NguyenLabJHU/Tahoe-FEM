@@ -1,4 +1,4 @@
-/* $Id: CBLatticeT.cpp,v 1.7 2004-07-15 08:26:42 paklein Exp $ */
+/* $Id: CBLatticeT.cpp,v 1.8 2005-02-13 22:24:25 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #include "CBLatticeT.h"
 
@@ -10,14 +10,13 @@ CBLatticeT::CBLatticeT(void) { }
 /* fetch bond component tensor (R_I R_J R_K R_L) in reduced index form */
 void CBLatticeT::BondComponentTensor4(int numbond, dMatrixT& matrix) const
 {
-	/* temp */
-	dArrayT temp;
-	fBonds.RowAlias(numbond, temp);
+	/* bond */
+	fBonds.RowAlias(numbond, (dArrayT&) fBondSh);
 
 	if (matrix.Rows() == 3) /* 3 stress components in 2D */
-		BondTensor4_2D(temp, matrix);
+		BondTensor4_2D(fBondSh, matrix);
 	else if (matrix.Rows() == 6) /* 6 stress components in 2D */
-		BondTensor4_3D(temp, matrix);
+		BondTensor4_3D(fBondSh, matrix);
 	else if (matrix.Rows() == 1) /* 1D */ {
 		double R = fBonds[numbond];
 		matrix[0] = R*R*R*R;
@@ -32,14 +31,13 @@ void CBLatticeT::BondComponentTensor4(int numbond, dMatrixT& matrix) const
 */
 void CBLatticeT::BondComponentTensor2(int numbond, dArrayT& vector) const
 {
-	/* temp */
-	dArrayT temp;
-	fBonds.RowAlias(numbond, temp);
+	/* bond */
+	fBonds.RowAlias(numbond, (dArrayT&) fBondSh);
 
 	if (vector.Length() == 3) /* 3 components in 2D */
-		BondTensor2_2D(temp, vector);
+		BondTensor2_2D(fBondSh, vector);
 	else if (vector.Length() == 6) /* 6 stress components in 2D */
-		BondTensor2_3D(temp, vector);
+		BondTensor2_3D(fBondSh, vector);
 	else if (vector.Length() == 1) /* 1D */{
 		double R = fBonds[numbond];
 		vector[0] = R*R;
