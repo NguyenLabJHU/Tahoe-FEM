@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.7 2002-11-26 01:55:37 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.8 2002-11-28 01:08:39 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -220,7 +220,7 @@ void ParticleT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	in >> all_or_some; 
 	if (all_or_some != 0 && all_or_some != 1) ExceptionT::BadInputValue(caller);
 	
-	if (all_or_some == 0)
+	if (all_or_some == 0) /* ALL */
 	{
 		fID.Dimension(1);
 		fID[0] = "ALL";
@@ -262,18 +262,32 @@ void ParticleT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	fType.Dimension(ElementSupport().NumNodes());
 	fType = -1;
 
-	/* read sets */
-	for (int i = 0; i < fNumTypes; i++)
+	in >> all_or_some; 
+	if (all_or_some != 0 && all_or_some != 1) ExceptionT::BadInputValue(caller);
+	if (fNumTypes > 1 && all_or_some == 0)
+		ExceptionT::BadInputValue(caller, "atom types must be listed explicitly if there is more than 1 type");
+
+	if (all_or_some == 0) /* ALL */
 	{
-		/* read node set ids */
-		ArrayT<StringT> ids;
-		model.NodeSetList(in, ids);
-		iArrayT tags;
-		model.ManyNodeSets(ids, tags);
+		/* mark particle tags with type 0 */
+		for (int i = 0; i < fGlobalTag.Length(); i++)
+			fType[fGlobalTag[i]] = 0;
+	}
+	else
+	{
+		/* read sets */
+		for (int i = 0; i < fNumTypes; i++)
+		{
+			/* read node set ids */
+			ArrayT<StringT> ids;
+			model.NodeSetList(in, ids);
+			iArrayT tags;
+			model.ManyNodeSets(ids, tags);
 	
-		/* mark map */
-		for (int j = 0; j < tags.Length(); j++)
-			fType[tags[j]] = i;
+			/* mark map */
+			for (int j = 0; j < tags.Length(); j++)
+				fType[tags[j]] = i;
+		}
 	}
 
 	/* check that all are typed */
