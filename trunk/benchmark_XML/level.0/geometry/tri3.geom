@@ -7,12 +7,13 @@ Translate
 2
 1 # number of element sets
 1      50       3
-5 # number of node sets
+6 # number of node sets
 1 20
 2 6
 3 6
 4 1
 5 1
+6 36
 0 # number of side sets
 *nodesets
 *set
@@ -29,6 +30,8 @@ tri3.geom.ns0
 *set
 1
 7
+*set
+tri3.geom.ns1
 *sidesets
 *elements
 *set
