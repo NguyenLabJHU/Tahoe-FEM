@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.11 2004-10-31 20:48:25 paklein Exp $
+# $Id: makefile,v 1.12 2004-11-03 01:20:55 raregue Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -102,6 +102,7 @@ HDR_LINK = $(HDR:.h=.h_link)
 SUB_DIR = \
 	basis \
 	D2 \
+	D3 \
 	windows
 
 subdir_driver: subdir_loop
