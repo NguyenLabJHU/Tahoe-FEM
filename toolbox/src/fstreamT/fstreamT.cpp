@@ -1,14 +1,13 @@
-/* $Id: fstreamT.cpp,v 1.8 2002-11-29 19:38:03 paklein Exp $ */
+/* $Id: fstreamT.cpp,v 1.9 2002-12-02 09:37:02 paklein Exp $ */
 
 #include "fstreamT.h"
 #include "Environment.h"
 #include "ExceptionT.h"
 #include "ifstreamT.h"
 
-/* temporary */
-
 using namespace Tahoe;
 
+/* temporary */
 void fstreamT::FixPath(const char* path_old, StringT& path)
 {
 	/* workaround for CW7.x bug */
@@ -68,4 +67,17 @@ bool fstreamT::Exists(const char* path)
 {
 	ifstreamT file(path);
 	return file.is_open() == 1;
+}
+
+/* clear input stream to the end of the line */
+int fstreamT::ClearLine(istream& in)
+{
+	/* clear to end of line */
+	int ct = 0;
+	char a = in.get();
+	while (in.good() && a != '\n') {
+		ct++;
+		a = in.get();
+	}
+	return ct;
 }
