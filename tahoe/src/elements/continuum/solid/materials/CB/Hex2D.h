@@ -1,4 +1,4 @@
-/* $Id: Hex2D.h,v 1.2.42.2 2004-06-09 23:17:30 paklein Exp $ */
+/* $Id: Hex2D.h,v 1.2.42.3 2004-06-14 04:56:32 paklein Exp $ */
 #ifndef _HEX_2D_H_
 #define _HEX_2D_H_
 
@@ -18,6 +18,7 @@ public:
 
 	/** constructor */
 	Hex2D(ifstreamT& in, const FSMatSupportT& support);
+	Hex2D(void);
 	
 	/** destructor */
 	~Hex2D(void);
@@ -26,6 +27,15 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:

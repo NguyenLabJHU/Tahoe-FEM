@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.16.2.2 2004-04-08 15:59:41 paklein Exp $ */
+/* $Id: ParticlePairT.h,v 1.16.2.3 2004-06-14 04:56:37 paklein Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -100,7 +100,7 @@ protected:
 	virtual void GenerateOutputLabels(ArrayT<StringT>& labels) const;
 
 	/** return a new pair property or NULL if the name is invalid */
-	PairPropertyT* New_PairProperty(const StringT& name, bool throw_on_fail) const;
+//	PairPropertyT* New_PairProperty(const StringT& name, bool throw_on_fail) const;
 
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.39.14.4 2004-06-09 23:16:37 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.39.14.5 2004-06-14 04:56:27 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -1279,7 +1279,7 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 /* construct a new material support and return a pointer */
 MaterialSupportT* ContinuumElementT::NewMaterialSupport(MaterialSupportT* p) const
 {
-	if (!p) p = new MaterialSupportT(NumSD(), NumDOF(), NumIP());
+	if (!p) p = new MaterialSupportT(NumDOF(), NumIP());
 
 	/* ContinuumElementT sources */
 	p->SetContinuumElement(this);
@@ -1288,14 +1288,14 @@ MaterialSupportT* ContinuumElementT::NewMaterialSupport(MaterialSupportT* p) con
 
 	/* ElementSupportT sources */
 	const ElementSupportT& e_support = ElementSupport();
-	p->SetRunState(e_support.RunState());
-	p->SetStepNumber(e_support.StepNumber());
+//	p->SetRunState(e_support.RunState());
+//	p->SetStepNumber(e_support.StepNumber());
 //	p->SetIterationNumber(e_support.IterationNumber(Group()));
 //TEMP - solvers not set up yet. For now, the source for the iteration number will
 //       be set in the InitialCondition call for the subclass.
-	p->SetTime(e_support.Time());                              
-	p->SetTimeStep(e_support.TimeStep());
-	p->SetNumberOfSteps(e_support.NumberOfSteps());
+//	p->SetTime(e_support.Time());                              
+//	p->SetTimeStep(e_support.TimeStep());
+//	p->SetNumberOfSteps(e_support.NumberOfSteps());
 
 	/* set pointer to local array */
 	p->SetLocalArray(fLocDisp);

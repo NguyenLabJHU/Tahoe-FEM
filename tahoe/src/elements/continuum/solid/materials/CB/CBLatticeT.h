@@ -1,7 +1,5 @@
-/* $Id: CBLatticeT.h,v 1.2 2002-07-02 19:55:33 cjkimme Exp $ */
-/* created: paklein (12/02/1996)                                          */
-/* CBLatticeT.h                                                           */
-
+/* $Id: CBLatticeT.h,v 1.2.56.1 2004-06-14 04:56:32 paklein Exp $ */
+/* created: paklein (12/02/1996)*/
 #ifndef _EAMLATTICET_H_
 #define _EAMLATTICET_H_
 
@@ -13,7 +11,6 @@
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "dMatrixT.h"
-
 
 namespace Tahoe {
 

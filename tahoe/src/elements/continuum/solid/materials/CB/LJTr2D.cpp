@@ -1,4 +1,4 @@
-/* $Id: LJTr2D.cpp,v 1.9.22.2 2004-06-09 23:17:30 paklein Exp $ */
+/* $Id: LJTr2D.cpp,v 1.9.22.3 2004-06-14 04:56:32 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "LJTr2D.h"
 
@@ -17,13 +17,15 @@ LJTr2D::LJTr2D(ifstreamT& in, const FSMatSupportT& support):
 	NL_E_MatT(in, support),
 	CBLatticeT(2,2,3)
 {
-	in >> feps;	if (feps < 0.0) throw ExceptionT::kBadInputValue;
+//	in >> feps;	if (feps < 0.0) throw ExceptionT::kBadInputValue;
 }
 
-void LJTr2D::Initialize(void) 
+LJTr2D::LJTr2D(void):
+	ParameterInterfaceT("LJ_triangular_2D"),
+	CBLatticeT(2,2,3),
+	feps(0.0)
 {
-	NL_E_MatT::Initialize();
-	CBLatticeT::Initialize();
+
 }
 
 /* describe the parameters needed by the interface */
@@ -35,6 +37,18 @@ void LJTr2D::DefineParameters(ParameterListT& list) const
 	/* 2D option must be plain stress */
 	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStress);
+
+	/* Lennard-Jones scaling */
+	list.AddParameter(feps, "epsilon");
+}
+
+/* accept parameter list */
+void LJTr2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	NL_E_MatT::TakeParameterList(list);
+	feps = list.GetParameter("epsilon");
+	CBLatticeT::Initialize();
 }
 
 /*************************************************************************
@@ -117,8 +131,8 @@ void LJTr2D::LoadBondTable(void)
 }
 
 /*************************************************************************
-* Private
-*************************************************************************/
+ * Private
+ *************************************************************************/
 
 /* second derivative of the Lennard-Jones 6/12 potential */
 double LJTr2D::ddU(double l) const

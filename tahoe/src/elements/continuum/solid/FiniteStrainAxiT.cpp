@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainAxiT.cpp,v 1.3.14.2 2004-05-11 03:59:45 paklein Exp $ */
+/* $Id: FiniteStrainAxiT.cpp,v 1.3.14.3 2004-06-14 04:56:30 paklein Exp $ */
 #include "FiniteStrainAxiT.h"
 
 #include "ShapeFunctionT.h"
@@ -148,7 +148,7 @@ void FiniteStrainAxiT::SetLocalArrays(void)
 MaterialSupportT* FiniteStrainAxiT::NewMaterialSupport(MaterialSupportT* p) const
 {
 	/* allocate */
-	if (!p) p = new FSMatSupportT(3, NumDOF(), NumIP());
+	if (!p) p = new FSMatSupportT(NumDOF(), NumIP());
 
 	/* inherited initializations */
 	FiniteStrainT::NewMaterialSupport(p);

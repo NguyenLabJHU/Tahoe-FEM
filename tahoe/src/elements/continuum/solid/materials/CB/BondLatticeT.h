@@ -1,7 +1,5 @@
-/* $Id: BondLatticeT.h,v 1.3 2003-03-31 23:14:38 paklein Exp $ */
-/* created: paklein (01/07/1997)                                          */
-/* BondLatticeT.h                                                         */
-
+/* $Id: BondLatticeT.h,v 1.3.42.1 2004-06-14 04:56:32 paklein Exp $ */
+/* created: paklein (01/07/1997) */
 #ifndef _BONDLATTICET_H_
 #define _BONDLATTICET_H_
 
@@ -11,7 +9,6 @@
 #include "dSymMatrixT.h"
 #include "dArray2DT.h"
 #include "dMatrixT.h"
-
 
 namespace Tahoe {
 

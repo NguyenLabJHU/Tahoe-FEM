@@ -1,4 +1,4 @@
-/* $Id: NL_E_MatT.h,v 1.6 2003-01-29 07:35:08 paklein Exp $ */
+/* $Id: NL_E_MatT.h,v 1.6.46.1 2004-06-14 04:56:36 paklein Exp $ */
 /* created: paklein (06/13/1997) */
 #ifndef _NL_E_MAT_T_H_
 #define _NL_E_MAT_T_H_
@@ -29,6 +29,7 @@ class NL_E_MatT: public FSSolidMatT
 
 	/** constructor */
 	NL_E_MatT(ifstreamT& in, const FSMatSupportT& support);
+	NL_E_MatT(void);
 	
 	/** \name spatial description */
 	/*@{*/
@@ -57,6 +58,12 @@ class NL_E_MatT: public FSSolidMatT
 	/** strain energy density */
 	virtual double StrainEnergyDensity(void);
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/* compute the symetric Cij reduced index matrix */
@@ -78,5 +85,6 @@ protected:
 	dMatrixT fModuli;
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _NL_E_MAT_T_H_ */

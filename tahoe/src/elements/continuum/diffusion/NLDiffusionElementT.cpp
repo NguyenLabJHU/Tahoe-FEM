@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.cpp,v 1.4.18.1 2004-04-08 07:32:31 paklein Exp $ */
+/* $Id: NLDiffusionElementT.cpp,v 1.4.18.2 2004-06-14 04:56:28 paklein Exp $ */
 #include "NLDiffusionElementT.h"
 
 #include <iostream.h>
@@ -385,7 +385,7 @@ void NLDiffusionElementT::FormStiffness(double constK)
 MaterialSupportT* NLDiffusionElementT::NewMaterialSupport(MaterialSupportT* p) const
 {
 	/* allocate */
-	if (!p) p = new DiffusionMatSupportT(NumSD(), NumDOF(), NumIP());
+	if (!p) p = new DiffusionMatSupportT(NumDOF(), NumIP());
 
 	/* inherited initializations */
 	DiffusionElementT::NewMaterialSupport(p);

@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.19.18.2 2004-04-09 05:25:47 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.19.18.3 2004-06-14 04:56:28 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -95,6 +95,7 @@ void DiffusionElementT::Initialize(void)
 	}
 }
 
+#if 0
 /* TEMPORARY */
 void DiffusionElementT::InitialCondition(void)
 {
@@ -104,6 +105,7 @@ void DiffusionElementT::InitialCondition(void)
 	/* set the source for the iteration number */
 	fDiffusionMatSupport->SetIterationNumber(ElementSupport().IterationNumber(Group()));
 }
+#endif
 
 /* compute nodal force */
 void DiffusionElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
@@ -501,7 +503,7 @@ void DiffusionElementT::FormKd(double constK)
 MaterialSupportT* DiffusionElementT::NewMaterialSupport(MaterialSupportT* p) const
 {
 	/* allocate */
-	if (!p) p = new DiffusionMatSupportT(NumSD(), NumDOF(), NumIP());
+	if (!p) p = new DiffusionMatSupportT(NumDOF(), NumIP());
 
 	/* inherited initializations */
 	ContinuumElementT::NewMaterialSupport(p);

@@ -1,8 +1,9 @@
-/* $Id: Hex2D.cpp,v 1.2.42.2 2004-06-09 23:17:30 paklein Exp $ */
+/* $Id: Hex2D.cpp,v 1.2.42.3 2004-06-14 04:56:32 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Hex2D.h"
 #include "ElementsConfig.h"
 #include "HexLattice2DT.h"
+#include "MaterialSupportT.h"
 
 #include <math.h>
 #include <iostream.h>
@@ -33,6 +34,7 @@ Hex2D::Hex2D(ifstreamT& in, const FSMatSupportT& support):
 	fBondTensor4(dSymMatrixT::NumValues(2)),
 	fBondTensor2(dSymMatrixT::NumValues(2))	
 {
+#if 0
 	const char caller[] = "Hex2D::Hex2D";
 
 	/* read the number of shells */
@@ -84,8 +86,21 @@ Hex2D::Hex2D(ifstreamT& in, const FSMatSupportT& support):
 	
 	/* reset the continuum density (2 atoms per unit cell) */
 	fDensity = 2*fPairProperty->Mass()/fCellVolume;
+#endif
 }
 
+Hex2D::Hex2D(void):
+	ParameterInterfaceT("hex_2D"),
+	fNearestNeighbor(-1),
+	fQ(2),
+	fHexLattice2D(NULL),
+	fPairProperty(NULL),
+	fBondTensor4(dSymMatrixT::NumValues(2)),
+	fBondTensor2(dSymMatrixT::NumValues(2))	
+{
+
+}
+	
 /* destructor */
 Hex2D::~Hex2D(void)
 {
@@ -102,6 +117,70 @@ void Hex2D::DefineParameters(ParameterListT& list) const
 	/* 2D option must be plain stress */
 	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStress);
+
+	/* number of neighbor shells */
+	ParameterT n_shells(ParameterT::Integer, "shells");
+	n_shells.AddLimit(1, LimitT::LowerInclusive);
+}
+
+/* information about subordinate parameter lists */
+void Hex2D::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	Hex2D::DefineSubs(sub_list);
+
+	/* pair potential choice */
+	sub_list.AddSub("pair_potential_choice", ParameterListT::Once, true);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* Hex2D::NewSub(const StringT& list_name) const
+{
+	/* try to construct pair property */
+	PairPropertyT* pair_prop = PairPropertyT::New(list_name, &(MaterialSupport()));
+	if (pair_prop)
+		return pair_prop;
+	else /* inherited */
+		return Hex2D::NewSub(list_name);
+}
+
+/* accept parameter list */
+void Hex2D::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "Hex2D::TakeParameterList";
+
+	/* inherited */
+	NL_E_MatT::TakeParameterList(list);
+
+	/* number of shells */
+	int nshells = list.GetParameter("shells");
+
+	/* construct pair property */
+	const ParameterListT* pair_prop = list.ResolveListChoice(*this, "pair_potential_choice");
+	if (!pair_prop) ExceptionT::GeneralFail(caller, "could not resolve \"pair_potential_choice\"");
+	fPairProperty = PairPropertyT::New(pair_prop->Name(), &(MaterialSupport()));
+	if (!fPairProperty) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", pair_prop->Name().Pointer());
+	fPairProperty->TakeParameterList(*pair_prop);
+
+	/* construct the bond tables */
+	fQ.Identity();
+	fHexLattice2D = new HexLattice2DT(fQ, nshells);
+	fHexLattice2D->Initialize();
+	
+	/* check */
+	if (fNearestNeighbor < kSmall)
+		ExceptionT::BadInputValue(caller, "nearest bond ! (%g > 0)", fNearestNeighbor);
+
+	/* compute the cell volume */
+	fCellVolume = fNearestNeighbor*fNearestNeighbor*sqrt3/2.0;
+
+	/* compute stress-free dilatation */
+	double stretch = ZeroStressStretch();
+	fNearestNeighbor *= stretch;
+	fCellVolume = fNearestNeighbor*fNearestNeighbor*sqrt3/2.0;
+	
+	/* reset the continuum density (2 atoms per unit cell) */
+	fDensity = 2*fPairProperty->Mass()/fCellVolume;
 }
 
 /*************************************************************************
