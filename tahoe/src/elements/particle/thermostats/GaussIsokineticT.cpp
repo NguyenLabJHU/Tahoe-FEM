@@ -1,4 +1,4 @@
-/* $Id: GaussIsokineticT.cpp,v 1.3 2003-04-24 20:43:20 cjkimme Exp $ */
+/* $Id: GaussIsokineticT.cpp,v 1.4 2003-04-29 23:09:36 cjkimme Exp $ */
 #include "GaussIsokineticT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -52,7 +52,7 @@ void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const 
 	double num = 0.;
 	double* v_j;
 	double* f_j;
-	int tag_j, currType;
+	int tag_j, currType, natoms;
 	double mass;
 	
 	/* calculate drag coefficient */
@@ -60,11 +60,12 @@ void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const 
 	{ // All the nodes are damped, use neighbors
 		currType = types[*neighbors(0)];
 		mass = particleProperties[currType]->Mass();
-		for (int j = 0; j < neighbors.MajorDim(); j++) 
+		natoms = neighbors.MajorDim();
+		for (int j = 0; j < natoms; j++) 
 		{
 			tag_j = *neighbors(j);
 	    	v_j = (*velocities)(tag_j);
-			f_j = forces(j);
+	 		f_j = forces(tag_j);
 			if (types[tag_j] != currType)
 			{
 				currType = types[tag_j];
@@ -73,8 +74,8 @@ void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const 
 				
 			for (int i = 0; i < fSD; i++)
 			{
-				denom += (*v_j)*(*v_j);
-				num += mass*(*f_j++)*(*v_j++);
+				denom += mass*(*v_j)*(*v_j);
+				num += (*f_j++)*(*v_j++);
 			}
 		}
 	}
@@ -82,21 +83,22 @@ void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const 
 	{
 		currType = types[fNodes[0]];
 		mass = particleProperties[currType]->Mass();
-		for (int j = 0; j < fNodes.Length(); j++)
+		natoms = fNodes.Length();
+		for (int j = 0; j < natoms; j++)
 		{ 
 			tag_j = fNodes[j];
 			v_j = (*velocities)(tag_j);
-			f_j = forces(j);
+			f_j = forces(tag_j);
 			if (types[tag_j] != currType)
 			{
 				currType = types[tag_j];
 				mass = particleProperties[currType]->Mass();
 			}
-			
+		
 			for (int i = 0; i < fSD; i++)
 			{
-				denom += (*v_j)*(*v_j); 	
-				num += mass*(*f_j++)*(*v_j++); 
+				denom += mass*(*v_j)*(*v_j); 	
+				num += (*f_j++)*(*v_j++); 
 			}
 	    }
 	}
@@ -106,6 +108,8 @@ void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const 
 		fBeta = num/denom;
 	else
 		fBeta = 0.; 
+
+//	cout <<" temp = "<< denom/fNodes.Length()/fSD/fkB<<"\n";
 	
 	ThermostatBaseT::ApplyDamping(neighbors,velocities,forces,
 							types,particleProperties);
