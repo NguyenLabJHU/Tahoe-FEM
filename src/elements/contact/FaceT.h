@@ -1,4 +1,4 @@
-/* $Id: FaceT.h,v 1.3 2001-04-11 14:48:58 rjones Exp $ */
+/* $Id: FaceT.h,v 1.4 2001-04-11 18:35:19 rjones Exp $ */
 
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
@@ -53,7 +53,7 @@ public:
 		{return fConnectivity.Length();}
 	inline GeometryT::CodeT GeometryType(void) const 
 		{return fGeometryType;}
- 	inline const iArrayT& Connectivity(void) const 
+ 	inline iArrayT& Connectivity(void) const 
 		{return fConnectivity;} 
 
 protected:

@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.2 2001-04-09 22:28:54 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.3 2001-04-11 18:35:19 rjones Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -34,8 +34,6 @@ public:
 	/* initialization after constructor */
 	virtual void Initialize(void);
 
-	void UpdateKinematicData();
-
 	/* solution calls */
 	virtual void AddNodalForce(int node, dArrayT& force); //not implemented
 
@@ -55,13 +53,20 @@ public:
 	virtual void ConnectsX(AutoArrayT<const iArray2DT*>& connects) const;
 		// returns no (NULL) geometry connectivies
 	 	
+        /* surface specification modes */
+        enum SearchParametersT { kGapTol = 0,
+				kXiTol ,
+				kNumParameters};
+
 protected:
 	/* contact surfaces */
 	ArrayT<ContactSurfaceT> fSurfaces; 
 
-        /* interaction parameters, symmetric matrices */
+        /* search interaction parameters, symmetric matrix */
         nMatrixT<dArrayT> fSearchParameters ;
-        nMatrixT<dArrayT> fEnforcementParameters ;
+
+	// this will have kPass, kPenalty etc
+//nMatrixT<dArrayT> fEnforcementParameters ;
 
 	/* print element group data */
 	virtual void PrintControlData(ostream& out) const;

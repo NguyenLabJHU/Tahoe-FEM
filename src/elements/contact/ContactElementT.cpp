@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.3 2001-04-11 14:48:57 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.4 2001-04-11 18:35:19 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -62,6 +62,8 @@ void ContactElementT::Initialize(void)
 		surface.Initialize(ElementBaseT::fNodes);
 	}
 	
+	/* create search object */
+
 	/* set initial contact configuration */
 	SetContactConfiguration();	
 	cout << "\nTHROWING EXCEPTION in ContactElementT::Initialize"
@@ -164,6 +166,46 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		}
 		surface.PrintData(out);
 	}
+
+	fSearchParameters.Allocate(num_surfaces);
+
+	int num_pairs;
+	in >> num_pairs;
+	out << " Number of surface pairs with data . . . . . . . . = "
+	    << num_pairs << '\n';
+	int s1, s2;
+	int num_param = kNumParameters;
+	for (int i = 0; i < num_pairs ; i++) 
+	{
+		in >> s1 >> s2;
+		s1--; s2--;
+		dArrayT& search_parameters = fSearchParameters(s1,s2);
+		search_parameters.Allocate(num_param);
+		for (int j = 0 ; j < num_param ; j++)
+		{
+			in >> search_parameters[j]; 
+		}
+	}
+	
+	fSearchParameters.CopySymmetric();
+
+	/* write out search parameter matrix */
+	for (int i = 0; i < num_surfaces ; i++) 
+        {
+                for (int j = 0 ; j < num_surfaces ; j++)
+                {
+			dArrayT& search_parameters = fSearchParameters(i,j);
+			out << "(" << i << "," << j << ")" ;
+			if (search_parameters.Length() == num_param) {
+			  for (int k = 0 ; k < num_param ; k++)
+			  {
+				out << search_parameters[k];
+			  }
+			}
+			out << '\n';
+                }
+        }
+
 }
 
 void ContactElementT::SetWorkSpace(void)
@@ -196,6 +238,7 @@ bool ContactElementT::SetContactConfiguration(void)
 //bool contact_changed = SetActiveInteractions();
 	if (contact_changed)
 	{
+
 	}
 	
 	return contact_changed;
