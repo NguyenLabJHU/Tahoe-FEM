@@ -1,4 +1,4 @@
-/* $Id: LocalJ2SSNonlinHard.cpp,v 1.7 2003-01-29 07:35:03 paklein Exp $ */
+/* $Id: LocalJ2SSNonlinHard.cpp,v 1.8 2003-05-15 22:39:47 rdorgan Exp $ */
 #include "LocalJ2SSNonlinHard.h"
 
 #include "iArrayT.h"
@@ -27,7 +27,7 @@ static const char* Labels[kNumOutput] = {
 
 /* constructor */
 LocalJ2SSNonlinHard::LocalJ2SSNonlinHard(ifstreamT& in, const SSMatSupportT& support):
-	SSSolidMatT (in, support),
+	SSSolidMatT  (in, support),
 	IsotropicT   (in),
 	HookeanMatT  (kNSD),
 	fNumIP       (NumIP()),
@@ -58,7 +58,7 @@ LocalJ2SSNonlinHard::LocalJ2SSNonlinHard(ifstreamT& in, const SSMatSupportT& sup
 	if (k1 < 0 || k2 < 0 || k3 < 0 || k4 <0)
 	{
 	        cout << "\n GradJ2SSNonlinHard: bad hardening parameter k1, k2, k3, or k4" << endl;
-		throw ExceptionT::kBadInputValue;
+/*		throw ExceptionT::kBadInputValue;  */
 	}
 }
 
@@ -429,8 +429,8 @@ void LocalJ2SSNonlinHard::IncrementPlasticParameter(double& varLambda)
 	double cnx = dMatrixT::Dot(fmatx1, fmatx3);
 
 	/* stiffness */
-	double dYieldCrt = (2*fmu+k1)*cnn - k1*k3*cnx
-			     + sqrt23*k2*(sqrt23-k4*fInternal_n[kIsotHard]);
+	double dYieldCrt = 2*fmu*cnn + (k1*cnn - k3*cnx)
+			     + sqrt23*(sqrt23*k2-k4*fInternal_n[kIsotHard]);
 
 	if (dYieldCrt < kSmall)
 	{
@@ -454,11 +454,11 @@ void LocalJ2SSNonlinHard::IncrementState(const double& varLambda)
 
 	/* increment kinematic hardening */
 	fsymmatx1.SetToScaled(k1*varLambda, fUnitNorm_n);
-	fsymmatx1.AddScaled(-1.0*k1*k3*varLambda, fKineHard_n);
+	fsymmatx1.AddScaled(-1.0*k3*varLambda, fKineHard_n);
 	fKineHard += fsymmatx1;
 
 	/* increment isotropic hardening */
-	fInternal[kIsotHard] += k2*varLambda*(sqrt23-k4*fInternal_n[kIsotHard]);
+	fInternal[kIsotHard] += varLambda*(k2*sqrt23-k4*fInternal_n[kIsotHard]);
 
 	/* increment plastic strain */
 	fsymmatx1.SetToScaled(varLambda, fUnitNorm_n);
@@ -493,7 +493,7 @@ void LocalJ2SSNonlinHard::TangentModuli()
 	double cnx = dMatrixT::Dot(fmatx1, fmatx3);
 
 	ftnsr1.Outer(fUnitNorm_n,fUnitNorm);
-	double h = 2.0*fmu*cnn + k1*(cnn - k3*cnx) + sqrt23*k2*(sqrt23 - k4*fInternal_n[kIsotHard]);
+	double h = 2.0*fmu*cnn + (k1*cnn - k3*cnx) + sqrt23*(k2*sqrt23 - k4*fInternal_n[kIsotHard]);
 	fModuliCorr.AddScaled(-4*fmu*fmu/h,ftnsr1);
 
 	/* make corrections to elastic moduli */
