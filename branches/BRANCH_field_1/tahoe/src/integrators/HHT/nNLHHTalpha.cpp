@@ -1,4 +1,4 @@
-/* $Id: nNLHHTalpha.cpp,v 1.4 2002-04-02 23:19:20 paklein Exp $ */
+/* $Id: nNLHHTalpha.cpp,v 1.4.2.1 2002-04-23 01:24:15 paklein Exp $ */
 /* created: paklein (10/17/1996) */
 
 #include "nNLHHTalpha.h"
@@ -100,7 +100,7 @@ void nNLHHTalpha::Predictor(void)
 
 /* correctors - map ACTIVE */
 void nNLHHTalpha::Corrector(const iArray2DT& eqnos, const dArrayT& update,
-	int eq_start, int eq_stop)
+	int eq_start, int num_eq)
 {
 #if __option (extended_errorcheck)
 	if (!fU[0] || !fU[1] || !fU[2])
@@ -124,7 +124,7 @@ void nNLHHTalpha::Corrector(const iArray2DT& eqnos, const dArrayT& update,
 	{
 		int eq = *peq++ - eq_start;
 		
-		if (eq > -1 && eq < eq_stop) /* active dof */
+		if (eq > -1 && eq < num_eq) /* active dof */
 		{
 			double da = update[eq];
 		
