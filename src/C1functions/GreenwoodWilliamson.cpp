@@ -1,4 +1,4 @@
-/* $Id: GreenwoodWilliamson.cpp,v 1.1 2002-01-28 18:41:37 dzeigle Exp $ */
+/* $Id: GreenwoodWilliamson.cpp,v 1.2 2002-01-30 16:40:13 dzeigle Exp $ */
 
 #include "GreenwoodWilliamson.h"
 #include <math.h>
@@ -13,8 +13,8 @@ const double PI = 2.0*acos(0.0);
 /*
 * constructors
 */
-GreenwoodWilliamson::GreenwoodWilliamson(double MU, double SIGMA, double PARAM):
-	fM(MU), fS(SIGMA), fP(PARAM) { }
+GreenwoodWilliamson::GreenwoodWilliamson(double MU, double SIGMA):
+	fM(MU), fS(SIGMA) { }
 
 /*
 * I/O
@@ -25,7 +25,6 @@ void GreenwoodWilliamson::Print(ostream& out) const
 	out << " Potential parameters:\n";
 	out << "      MU = " << fM << '\n';
 	out << "      SIGMA = " << fS << '\n';
-	out << "      PARAM = " << fP << '\n';
 }
 
 void GreenwoodWilliamson::PrintName(ostream& out) const
@@ -58,14 +57,14 @@ double GreenwoodWilliamson::DFunction(double x) const
 		
 		if (diff > 0)
 		{
-			f0 = fP*sqrt(fS*(x-fM))*exp(-xval);
+			f0 = sqrt(fS*(x-fM))*exp(-xval);
 			f1 = 2.0*(pow(x-fM,2.0) + 2.0*pow(fS,2.0))*k1.Function(xval);
 			f2 = -pow(x-fM,2.0)*(k3.Function(xval) + k5.Function(xval));
 	
 			yval = f0*(f1 + f2);
 		}
 		else if (diff == 0)
-			yval = 6.09752*fP*pow(fS,3.0); 
+			yval = 6.09752*pow(fS,3.0); 
 		else
 		{
 			cout << "\n*** Negative approach calculated in GreenwoodWilliamson.cpp\n";
@@ -92,11 +91,11 @@ double GreenwoodWilliamson::DDFunction(double x) const
 		
 		if (diff > 0)
 		{
-			f0 = fP*sqrt(fS*(x-fM))*exp(-xval);
+			f0 = sqrt(fS*(x-fM))*exp(-xval);
 			f1 = 2.0*(pow(x-fM,2.0) + 2.0*pow(fS,2.0))*k1.Function(xval);
 			f2 = -pow(x-fM,2.0)*(k3.Function(xval) + k5.Function(xval));
 			
-			df0 = -fP*exp(-xval)*(pow(x-fM,2.0)-pow(fS,2.0))/(2.0*pow(fS,1.5)*sqrt(x-fM));
+			df0 = -exp(-xval)*(pow(x-fM,2.0)-pow(fS,2.0))/(2.0*pow(fS,1.5)*sqrt(x-fM));
 			df1 = (x-fM)*(4.0*k1.Function(xval)-(2.0*xval+1.0)*(kn3.Function(xval)+k5.Function(xval)));
 			df2sum = kn1.Function(xval)+k1.Function(xval)+k7.Function(xval)+k9.Function(xval);
 			df2 = (x-fM)*(-2.0*(k3.Function(xval)+k5.Function(xval))+xval*df2sum);
@@ -162,14 +161,14 @@ dArrayT& GreenwoodWilliamson::MapDFunction(const dArrayT& in, dArrayT& out) cons
 		
 			if (diff > 0)
 			{
-				f0 = fP*sqrt(fS*(*pl++-fM))*exp(-xval);
+				f0 = sqrt(fS*(*pl++-fM))*exp(-xval);
 				f1 = 2.0*(pow(*pl++-fM,2.0) + 2.0*pow(fS,2.0))*k1.Function(xval);
 				f2 = -pow(*pl++-fM,2.0)*(k3.Function(xval) + k5.Function(xval));
 		
 				yval = f0*(f1 + f2);
 			}
 			else if (diff == 0)
-				yval = 6.09752*fP*pow(fS,3.0); 
+				yval = 6.09752*pow(fS,3.0); 
 			else
 			{
 				cout << "\n*** Negative approach calculated in GreenwoodWilliamson.cpp\n";
@@ -207,11 +206,11 @@ dArrayT& GreenwoodWilliamson::MapDDFunction(const dArrayT& in, dArrayT& out) con
 		
 			if (diff > 0)
 			{
-				f0 = fP*sqrt(fS*(*pl++-fM))*exp(-xval);
+				f0 = sqrt(fS*(*pl++-fM))*exp(-xval);
 				f1 = 2.0*(pow(*pl++-fM,2.0) + 2.0*pow(fS,2.0))*k1.Function(xval);
 				f2 = -pow(*pl++-fM,2.0)*(k3.Function(xval) + k5.Function(xval));
 			
-				df0 = -fP*exp(-xval)*(pow(*pl++-fM,2.0)-pow(fS,2.0))/(2.0*pow(fS,1.5)*sqrt(*pl++-fM));
+				df0 = -exp(-xval)*(pow(*pl++-fM,2.0)-pow(fS,2.0))/(2.0*pow(fS,1.5)*sqrt(*pl++-fM));
 				df1 = (*pl++-fM)*(4.0*k1.Function(xval)-(2.0*xval+1.0)*(kn3.Function(xval)+k5.Function(xval)));
 				df2sum = kn1.Function(xval)+k1.Function(xval)+k7.Function(xval)+k9.Function(xval);
 				df2 = (*pl++-fM)*(-2.0*(k3.Function(xval)+k5.Function(xval))+xval*df2sum);
@@ -232,5 +231,6 @@ dArrayT& GreenwoodWilliamson::MapDDFunction(const dArrayT& in, dArrayT& out) con
 	}
 	return(out);
 }
+
 
 

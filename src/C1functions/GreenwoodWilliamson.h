@@ -1,4 +1,4 @@
-/* $Id: GreenwoodWilliamson.h,v 1.1 2002-01-28 18:41:37 dzeigle Exp $ */
+/* $Id: GreenwoodWilliamson.h,v 1.2 2002-01-30 16:40:13 dzeigle Exp $ */
 
 #ifndef _GREENWOOD_WILLIAMSON_H_
 #define _GREENWOOD_WILLIAMSON_H_
@@ -13,7 +13,7 @@ public:
 	/*
 	 * Constructor
 	 */
-	GreenwoodWilliamson(double MU, double SIGMA, double PARAM);
+	GreenwoodWilliamson(double MU, double SIGMA);
 
 	/*
 	 * I/O
@@ -44,8 +44,8 @@ private:
 	/* potential parameters */
 	double fM;
 	double fS;
-	double fP; //equilibrium length
 };
 
 #endif /* _GREENWOOD_WILLIAMSON_H_ */
+
 
