@@ -117,7 +117,7 @@ void MakeCrystalT::Run() {
   int intformat = 0;
   in >> intformat;
   IOBaseT::FileTypeT kformat = IOBaseT::int_to_FileTypeT(intformat);
-  cout << "Output Format= " << kformat << "\n";
+  cout << "Output Format: " << kformat << "\n";
 
   iArrayT per(nsd);
   if (kformat == 12)
@@ -198,7 +198,7 @@ void MakeCrystalT::Run() {
   nb_atoms = mesh_atom.CreateMeshAtom();
   cout << nb_atoms << " atoms in mesh\n";
 
-  cout << "Final Lengths\n";
+  cout << "\nFinal Lengths\n";
   if(nsd==2) 
     {
       cout << "[" << mesh_atom.Length()(0,0) << "," << mesh_atom.Length()(0,1) << "]\n";
@@ -227,12 +227,12 @@ void MakeCrystalT::Run() {
       if(nsd==2)
 	{
 	  for (int j=0; j<nb_atoms; j++) 
-	    cout << j << " " << coords(j)[0] <<  "  " << coords(j)[1] <<  "\n";
+	    cout << coords(j)[0] <<  "  " << coords(j)[1] <<  "\n";
 	}
       else 
 	{
 	  for (int j=0; j<nb_atoms; j++) 
-	    cout << j << " " <<  coords(j)[0] <<  "  " << coords(j)[1] <<  "  " << coords(j)[2] << "\n";
+	    cout << coords(j)[0] <<  "  " << coords(j)[1] <<  "  " << coords(j)[2] << "\n";
 	}
     }
 

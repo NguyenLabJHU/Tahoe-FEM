@@ -56,7 +56,7 @@ class MeshAtom {
 	   dArray2DT mat_rot,double angle);
   
   // Destructor: not done yet. 
-  ~MeshAtom(){};
+  ~MeshAtom();
 
   // Create the mesh of atoms and return number of atoms.
   int CreateMeshAtom();

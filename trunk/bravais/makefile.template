@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.1.1.1 2002-02-28 02:13:08 jzimmer Exp $
+# $Id: makefile.template,v 1.2 2002-09-09 23:10:02 saubry Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -55,3 +55,9 @@ TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 
 # include common target definitions
 include $(MACRO_DIR)/make.targets
+
+##### SEACAS/ACCESS software
+#AX_INC    = -I$(ACCESS)/inc
+#AX_CFLAGS = $(AX_INC) -D__ACCESS__
+#AX_LFLAGS = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
+

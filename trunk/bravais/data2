@@ -1,11 +1,12 @@
 2
 0
-3 2
+3 3 
 FCC
 3.52
 BOX
-12
-1 1
+5
+ROT
+45
 #
 
 * nsd
@@ -15,14 +16,13 @@ BOX
 * alat
 * shape
 * format output (see below)
+     if 12,  enter periodic condition per(nsd)
 * either
-  if 12, enter periodic condition per(nsd)
-  or
-  ROT then rotation angle in degree
+     ROT then rotation angle in degree
   or 
-  #
+     #
 
-Test of coordinates in 2D (cells). 
+Test of rotation in 2D (cells). 
 
 
 		case 0:

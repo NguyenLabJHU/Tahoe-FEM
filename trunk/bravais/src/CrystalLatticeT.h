@@ -1,4 +1,4 @@
-/* $Id: CrystalLatticeT.h,v 1.6 2002-08-02 02:07:49 saubry Exp $ */
+/* $Id: CrystalLatticeT.h,v 1.7 2002-09-09 23:10:29 saubry Exp $ */
 
 #ifndef _CRYSTAL_LATTICE_T_H_
 #define _CRYSTAL_LATTICE_T_H_
@@ -16,11 +16,14 @@ class CrystalLatticeT {
 protected:
 
 	int nLSD, nUCA;
-	dArray2DT vBasis;
-	dArrayT vLatticeParameters;
+	dArray2DT vBasis;            // atoms in cell
+	dArrayT vLatticeParameters;  // lattice parameters
+	dArray2DT vAxis;             // Bravais vectors
+
 	dArray2DT matrix_rotation;
 	double angle_rotation;
 	dArrayT norm_vec;
+
 	double density;
 
 public:
@@ -41,15 +44,13 @@ public:
 
 	virtual const dArrayT& GetLatticeParameters() = 0;
 	virtual const dArray2DT& GetBasis() = 0;
+	virtual const dArray2DT& GetAxis() = 0;
 	
 
-	void CalculateDensity();
+	void   CalculateDensity();
 	double GetDensity();
 
-
-	dArray2DT BasisRotation(dArray2DT A);
-	//dArrayT AxisRotation(dArrayT vectorIN);
-
+	dArray2DT AxisRotation(dArray2DT A);
 };
 
 #endif
