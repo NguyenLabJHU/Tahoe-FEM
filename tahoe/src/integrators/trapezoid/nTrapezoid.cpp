@@ -1,4 +1,4 @@
-/* $Id: nTrapezoid.cpp,v 1.2.4.3 2002-05-07 07:27:46 paklein Exp $ */
+/* $Id: nTrapezoid.cpp,v 1.2.4.4 2002-05-13 07:59:31 paklein Exp $ */
 /* created: paklein (10/03/1999) */
 
 #include "nTrapezoid.h"
@@ -24,11 +24,6 @@ void nTrapezoid::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 	switch ( KBC.Code() )
 	{
 		case KBC_CardT::kFix: /* zero displacement */
-		{
-			d = 0.0;
-			v = 0.0;
-			break;
-		}
 		case KBC_CardT::kDsp: /* prescribed displacement */
 		{
 			double d_next = KBC.Value();
