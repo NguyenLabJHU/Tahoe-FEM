@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.6 2002-06-08 20:20:27 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.7 2002-06-27 22:16:19 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "RodT.h"
@@ -149,8 +149,13 @@ void RodT::SendOutput(int kincode)
 void RodT::LHSDriver(void)
 {
 	/* time integration dependent */
-	double constK;
-	if (!fController->FormK(constK)) return;
+	double constK = 0.0;
+	double constM = 0.0;
+	int formK = fController->FormK(constK);
+	int formM = fController->FormM(constM);
+	
+	/* particle mass */
+	double mass = 0.0; //fCurrMaterial->Mass();
 	
 	Top();
 	while ( NextElement() )
@@ -163,7 +168,10 @@ void RodT::LHSDriver(void)
 		SetLocalU(fLocDisp);
 		
 		/* form element stiffness */
-		ElementStiffness(constK);
+		if (formK) ElementStiffness(constK);
+	
+		/* mass contribution */
+		if (formM) fLHS.PlusIdentity(mass);
 	
 		/* add to global equations */
 		AssembleLHS();
