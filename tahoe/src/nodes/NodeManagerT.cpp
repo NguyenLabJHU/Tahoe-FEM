@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.45 2004-01-05 07:12:36 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.45.2.1 2004-01-28 01:34:12 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -1234,6 +1234,61 @@ ParameterInterfaceT* NodeManagerT::NewSub(const StringT& list_name) const
 		return ParameterInterfaceT::NewSub(list_name);
 }
 
+/* accept parameter list */
+void NodeManagerT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "NodeManagerT::TakeParameterList";
+
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	/* construct fields */
+	int num_fields = list.NumLists("field");
+	fFields.Dimension(num_fields);
+	fFields = NULL;
+	fMessageID.Dimension(num_fields);
+	for (int i = 0; i < fFields.Length(); i++)
+	{
+		/* parameters */
+		const ParameterListT* field_params = list.List("field", i);
+	
+		/* new field */			
+		FieldT* field = new FieldT(fFieldSupport);
+		field->TakeParameterList(*field_params);
+//		field->Initialize(name, ndof, *controller);
+//		field->SetLabels(labels);
+//		field->SetGroup(group_num);
+		field->Dimension(NumNodes(), false);
+		field->Clear();
+//		field->WriteParameters(out);
+
+		/* coordinate update field */
+		if (field->FieldName() == "displacement") {
+			if (fCoordUpdate) ExceptionT::BadInputValue(caller, "\"displacement\" field already set");
+			fCoordUpdate = field;
+			fCurrentCoords = new dArray2DT;
+			fCurrentCoords_man.SetWard(0, *fCurrentCoords, NumSD());
+			fCurrentCoords_man.SetMajorDimension(NumNodes(), false);
+			(*fCurrentCoords) = InitialCoordinates();
+		}
+
+#if 0
+		/* echo initial/boundary conditions */
+		EchoInitialConditions(*field, in, out);
+		EchoKinematicBC(*field, in, out);
+		EchoKinematicBCControllers(*field, in, out);
+		EchoForceBC(*field, in, out);
+		EchoForceBCControllers(*field, in, out);
+#endif
+
+		/* store */
+		fFields[i] = field;
+			
+		/* set up communication of field */
+		fMessageID[i] = fCommManager.Init_AllGather(fFields[i]->Update());	
+	}
+}
+
 /**********************************************************************
  * Protected
  **********************************************************************/
@@ -1305,8 +1360,10 @@ void NodeManagerT::EchoCoordinates(ifstreamT& in, ostream& out)
 }
 
 /* echo field data */
-void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
+void NodeManagerT::EchoFields(ifstreamT&, ostream&)
 {
+#pragma message("remove me")
+#if 0
 	const char caller[] = "NodeManagerT::EchoFields";
 
 	/* no predefined fields */
@@ -1470,6 +1527,8 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 		/* set up communication of field */
 		fMessageID[0] = fCommManager.Init_AllGather(fFields[0]->Update());
 	}
+#endif
+ExceptionT::GeneralFail("NodeManagerT::EchoFields", "remove me");
 }
 
 void NodeManagerT::EchoInitialConditions(FieldT& field, ifstreamT& in, ostream& out)

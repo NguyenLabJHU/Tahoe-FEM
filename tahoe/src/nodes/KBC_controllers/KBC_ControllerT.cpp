@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.cpp,v 1.11 2003-11-04 01:37:05 paklein Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.11.6.1 2004-01-28 01:34:14 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "KBC_ControllerT.h"
 
@@ -7,6 +7,8 @@
 #include "ModelManagerT.h"
 #include "fstreamT.h"
 
+#include <string.h>
+
 using namespace Tahoe;
 
 /* array behavior */
@@ -14,6 +16,17 @@ namespace Tahoe {
 DEFINE_TEMPLATE_STATIC const bool ArrayT<KBC_ControllerT>::fByteCopy = false;
 DEFINE_TEMPLATE_STATIC const bool ArrayT<KBC_ControllerT*>::fByteCopy = true;
 } /* namespace Tahoe */
+
+/* converts strings to KBC_ControllerT::CodeT */
+KBC_ControllerT::CodeT KBC_ControllerT::Code(const char* name)
+{
+	if (strcmp("K_field", name) == 0)
+		return kK_Field;
+	else if (strcmp("torsion", name) == 0)
+		return kTorsion;
+	else
+		return kNone;
+}
 
 /* constructor */
 KBC_ControllerT::KBC_ControllerT(NodeManagerT& node_manager):

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.23 2004-01-05 07:12:36 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.23.2.1 2004-01-28 01:34:12 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -288,6 +288,9 @@ public:
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:

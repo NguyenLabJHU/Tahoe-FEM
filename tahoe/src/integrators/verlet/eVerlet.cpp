@@ -1,7 +1,5 @@
+/* $Id: eVerlet.cpp,v 1.3.34.1 2004-01-28 01:34:10 paklein Exp $ */
 #include "eVerlet.h"
-
-#include "Environment.h"
-#include "ExceptionT.h"
 
 using namespace Tahoe;
 

@@ -1,3 +1,4 @@
+/* $Id: nGear6.h,v 1.7.30.1 2004-01-28 01:34:06 paklein Exp $ */
 #ifndef _N_GEAR_06_H_
 #define _N_GEAR_06_H_
 

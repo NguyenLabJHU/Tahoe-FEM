@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.cpp,v 1.9 2003-11-04 01:37:02 paklein Exp $ */
+/* $Id: FBC_ControllerT.cpp,v 1.9.6.1 2004-01-28 01:34:13 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 #include "FBC_ControllerT.h"
 #include "ArrayT.h"
@@ -12,6 +12,17 @@ namespace Tahoe {
 DEFINE_TEMPLATE_STATIC const bool ArrayT<FBC_ControllerT>::fByteCopy = false;
 DEFINE_TEMPLATE_STATIC const bool ArrayT<FBC_ControllerT*>::fByteCopy = true;
 } /* namespace Tahoe */
+
+/* converts strings to FBC_ControllerT::CodeT */
+FBC_ControllerT::CodeT FBC_ControllerT::Code(const char* name)
+{
+	if (strcmp("sphere_penalty", name) == 0)
+		return kPenaltySphere;
+	else if (strcmp("wall_penalty", name) == 0)
+		return kPenaltyWall;
+	else
+		return kNone;
+}
 
 /* constructor */
 FBC_ControllerT::FBC_ControllerT(FEManagerT& fe_manager, int group):

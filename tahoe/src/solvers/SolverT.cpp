@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.17 2003-10-31 20:55:16 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.17.6.1 2004-01-28 01:34:16 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -25,6 +25,12 @@
 #endif
 
 using namespace Tahoe;
+
+/* array behavior */
+namespace Tahoe {
+DEFINE_TEMPLATE_STATIC const bool ArrayT<SolverT>::fByteCopy = false;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<SolverT*>::fByteCopy = true;
+} /* namespace Tahoe */
 
 SolverT::SolverT(FEManagerT& fe_manager):
 	ParameterInterfaceT("solver"),
