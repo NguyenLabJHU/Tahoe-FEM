@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.32 2001-12-08 00:17:19 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.33 2001-12-10 12:44:08 paklein Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -26,7 +26,9 @@
 #include "ArgSpecT.h"
 
 VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
-  fArguments(arguments)
+  fArguments(arguments),
+  fBodyCount(0),
+  fRenderHold(false)
 {
   /* set console name */
   iSetName("vtk");
@@ -34,28 +36,95 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   /* add console commands */
   iAddCommand(CommandSpecT("Interactive"));
   iAddCommand(CommandSpecT("Update"));
-  iAddCommand(CommandSpecT("AddBody"));
-  iAddCommand(CommandSpecT("RemoveBody"));
-  iAddCommand(CommandSpecT("ResetView"));
-  iAddCommand(CommandSpecT("Layout"));
-  iAddCommand(CommandSpecT("Show_Frame_Numbers"));
-  iAddCommand(CommandSpecT("Save"));
-  iAddCommand(CommandSpecT("Large_Save"));
-  iAddCommand(CommandSpecT("Save_flip_book_images"));
-  iAddCommand(CommandSpecT("Flip_book"));
 
-  /* display objects */
-  renWin = vtkRenderWindow::New();
-  renWin->SetWindowName("VTK for Tahoe");
+  CommandSpecT addbody("AddBody");
+  ArgSpecT file(ArgSpecT::string_);
+  file.SetPrompt("path to database file");
+  addbody.AddArgument(file);
+  iAddCommand(addbody);
+
+  CommandSpecT removebody("RemoveBody");
+  ArgSpecT bodynum(ArgSpecT::int_);
+  bodynum.SetPrompt("body number to remove");
+  removebody.AddArgument(bodynum);
+  iAddCommand(removebody);
+  
+  CommandSpecT layout("Layout", false);
+  ArgSpecT nx(ArgSpecT::int_, "nx");
+  nx.SetPrompt("number of horizontal frames");
+  ArgSpecT ny(ArgSpecT::int_, "ny");
+  ny.SetPrompt("number of vertical frames");
+  layout.AddArgument(nx);
+  layout.AddArgument(ny);
+  iAddCommand(layout);
+  
+  iAddCommand(CommandSpecT("ShowFrameNumbers"));
+  iAddCommand(CommandSpecT("HideFrameNumbers"));
+
+  CommandSpecT save("Save");
+  ArgSpecT save_file(ArgSpecT::string_);
+  save_file.SetPrompt("image file name");
+  //ArgSpecT mag(ArgSpecT::int_, "mag");
+  //mag.SetDefault(1);
+  //mag.SetPrompt("magnification");
+  save.AddArgument(save_file);
+  //save.AddArgument(mag);
+  iAddCommand(save);
+
+  CommandSpecT save_flip("SaveFlipBook");
+  save_flip.AddArgument(save_file);
+  iAddCommand(save_flip);
+	
+	CommandSpecT flipbook("FlipBook");
+	ArgSpecT delay(ArgSpecT::double_);
+	delay.SetPrompt("frame delay in seconds");
+	flipbook.AddArgument(delay);
+	iAddCommand(flipbook);
+
+	CommandSpecT select_step("SelectTimeStep");
+	ArgSpecT step(ArgSpecT::int_);
+	step.SetPrompt("time step");
+	select_step.AddArgument(step);
+	iAddCommand(select_step);
+
+	/* display objects */
+	renWin = vtkRenderWindow::New();
+	renWin->SetWindowName("VTK for Tahoe");
 //  renWin->SetPosition(668, 0);
 //  renWin->SetSize(600,700);
-  iren = vtkRenderWindowInteractor::New();
-  iren->SetRenderWindow(renWin);
-  /* set up single frame */
-  SetFrameLayout(1,1);
+	iren = vtkRenderWindowInteractor::New();
+	iren->SetRenderWindow(renWin);
 
-  /* draw */
-  renWin->Render();
+	/* set up single frame */
+	SetFrameLayout(1,1);
+
+	/* borrow some console commands */
+	CommandSpecT* command;
+	command = fFrames[0]->iCommand("Rotate");
+	if (!command) throw eGeneralFail;
+	iAddCommand(*command);
+
+	command = fFrames[0]->iCommand("Zoom");
+	if (!command) throw eGeneralFail;
+	iAddCommand(*command);
+
+	command = fFrames[0]->iCommand("ResetView");
+	if (!command) throw eGeneralFail;
+	iAddCommand(*command);
+
+	/* look for command line options */
+	int index, start = 0;
+	while (CommandLineOption("-f", index, start))
+	{
+		StringT path = fArguments[index+1];
+		path.ToNativePathName();
+		if (!AddBody(path))
+			cout << "could not add body: " << path << endl;
+		start = index+1;
+	}
+
+	/* draw */
+	if (fBodies.Length() > 0) renWin->Render();
 }
 
 /* destructor*/
@@ -86,47 +155,85 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
       iren->Start();
       return true;
     }  
+  else if (command.Name() == "Update")
+	{
+		if (!fRenderHold)
+		{
+			for (int i = 0; i < fBodies.Length(); i++)
+				fBodies[i]->UpdateData();
+			renWin->Render();
+		}
+		return true;
+    }
+  else if (command.Name() == "Rotate" || command.Name() == "Zoom" || command.Name() == "ResetView")
+	{
+		/* hold rendering */
+		fRenderHold = true;
+	
+		/* rotate all frames */
+		bool OK = true;
+		for (int i = 0; OK && i < fFrames.Length(); i++)
+			OK = fFrames[i]->iDoCommand(command, line);
+			
+		/* render */
+		fRenderHold = false;
+		StringT tmp;
+		iDoCommand(*iCommand("Update"), tmp);
+		return OK;
+	}
+	else if (command.Name() == "SelectTimeStep")	
+	{
+		/* no bodies */
+		if (fBodies.Length() == 0)
+		{
+			cout << "no bodies" << endl;
+			return false;
+		}
+		else
+		{
+ 			fRenderHold = true;
+ 	 		int old_step = fBodies[0]->CurrentStepNumber();
+ 			int step;
+ 			command.Argument(0).GetValue(step);
+ 			bool OK = true;
+			for (int i = 0; OK && i < fBodies.Length(); i++)
+				OK = fBodies[i]->SelectTimeStep(step);
+ 			fRenderHold = false;
+	
+			if (OK)
+			{
+				StringT tmp;
+				iDoCommand(*iCommand("Update"), tmp);
+				return true;
+			}
+  			else
+  			{
+  				/* reset */
+				for (int i = 0; i < fBodies.Length(); i++)
+					fBodies[i]->SelectTimeStep(old_step);
+  				return false;
+  			}
+  		}
+  }
   else if (command.Name() == "Layout")
 	{
-	  int num_x = -1, num_y = -1;
-	  cout << "horizontal: ";
-	  cin >> num_x;
-	  cout << "vertical: ";
-	  cin >> num_y;
-	  Clean(cin);
-	  SetFrameLayout(num_x, num_y);
-	  return true;
-	}
-  else if (command.Name() == "Update")
-    {
-      for (int i = 0; i < fBodies.Length(); i++)
-	fBodies[i]->UpdateData();
-      renWin->Render();
-      return true;
-    }
-  else if (command.Name() == "ResetView")
-    {
-      for (int i = 0; i < fFrames.Length(); i++)
-	fFrames[i]->ResetView();
-      renWin->Render();
-      return true;
+		int nx, ny;
+		command.Argument("nx").GetValue(nx);	
+		command.Argument("ny").GetValue(ny);	
+	  	SetFrameLayout(nx, ny);
+	  	return true;
 	}
   else if (command.Name() == "AddBody")
     {
       StringT path;
-      cout << "path to data file: ";
-      cin >> path;
-      Clean(cin);
-      path.ToNativePathName();
-	  
+      command.Argument(0).GetValue(path);
+      path.ToNativePathName();	  
       return AddBody(path);
     }
   else if (command.Name() == "RemoveBody")
     {
       int index;
-      cout << "select body to remove (0," << fBodies.Length()-1 << "): ";
-      cin >> index;
-      Clean(cin);
+      command.Argument(0).GetValue(index);
       if (index < 0 && index >= fBodies.Length())
 	return false;
       else {
@@ -137,65 +244,45 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 	  if (fFrames[i]->RemoveBody(fBodies[index])) count++;
 	cout << "body " << index << " removed from " << count << " frames" << endl;
 	
-	/* free */
+	/* remove from base console */
+	iDeleteSub(*fBodies[index]);
+
+	/* free memory */
 	delete fBodies[index];
-	
+		
 	/* resize array */
 	fBodies.DeleteAt(index);
+
+	/* free */
 	return true;
       }
     }
-  else if (command.Name() == "Flip_book")
-    {
-      double timeStep;
-      cout << "Enter time step in seconds: ";
-      cin >> timeStep;
-	  Clean(cin);
-      cout << "Show images at: \n 1: current view\n 2: default view: ";
-     
-      int sfbTest;
-      cin >> sfbTest;
-      Clean(cin);
+  else if (command.Name() == "FlipBook")
+	{
+    	if (fBodies.Length() == 0) return false;
+    
+		double timeStep;
+		command.Argument(0).GetValue(timeStep);
       
-      /* if default camera desired */
-      if (sfbTest == 2) {
-	for (int i = 0; i < fFrames.Length(); i++)
-	  fFrames[i]->ResetView();
-	renWin->Render();
-      }	
-      
-      /* assume all the bodies have the same number of steps as body 0 */
-      for (int j = 0; j<fBodies[0]->num_time_steps; j++){
-        /* time delay */
-	clock_t start_time, cur_time;
-	start_time = clock();
-	while((clock() - start_time) < timeStep * CLOCKS_PER_SEC)
-	  {
-	  }
-	for (int i = 0; i < fBodies.Length(); i++)
-	  fBodies[i]->SelectTimeStep(j);
-	renWin->Render();
+		/* assume all the bodies have the same number of steps as body 0 */
+		for (int j = 0; j<fBodies[0]->NumTimeSteps(); j++){
+			/* time delay */
+			clock_t start_time, cur_time;
+			start_time = clock();
+			while((clock() - start_time) < timeStep * CLOCKS_PER_SEC) { }
+			for (int i = 0; i < fBodies.Length(); i++)
+				fBodies[i]->SelectTimeStep(j);
+			renWin->Render();
       }
       return true;
     }
-  else if (command.Name() == "Save_flip_book_images")
+  else if (command.Name() == "SaveFlipBook")
     {
-      StringT fbName;
-      cout << "Enter name for flipbook to be saved (without .tif extension): ";
-      cin >> fbName;
-      Clean(cin);
-      cout << "Save images at: \n 1: current view\n 2: default view: ";
-      int sfbTest;
-      cin >> sfbTest;
-      Clean(cin);
-      
-      /* if default camera desired */
-      if (sfbTest == 2) {
-	for (int i = 0; i < fFrames.Length(); i++)
-	  fFrames[i]->ResetView();
-	renWin->Render();
-      }	
-      
+    	if (fBodies.Length() == 0) return false;
+    
+      StringT name;
+      command.Argument(0).GetValue(name);
+            
       vtkRendererSource* image = vtkRendererSource::New();
       image->SetInput(fFrames[0]->Renderer());
       image->WholeWindowOn();
@@ -204,23 +291,20 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
       // vtkTIFFWriter* writer = vtkTIFFWriter::New();
       vtkPostScriptWriter* writer = vtkPostScriptWriter::New();
       writer->SetInput(image->GetOutput());
-
       
-      
-      /* assume all the bodies have the same number of steps as body 0 */
-      for (int j = 0; j<fBodies[0]->num_time_steps; j++){
+		/* assume all the bodies have the same number of steps as body 0 */
+		for (int j = 0; j < fBodies[0]->NumTimeSteps(); j++) {
 	
-	for (int i = 0; i < fBodies.Length(); i++)
-	  fBodies[i]->SelectTimeStep(j);
+			for (int i = 0; i < fBodies.Length(); i++)
+				fBodies[i]->SelectTimeStep(j);
 	
-	renWin->Render();  
-	StringT name = fbName;
-	name.Append(j,3); // pad to a width of 3 digits
-	//name.Append(".tif");
-	name.Append(".ps");
-	writer->SetFileName(name);
-	writer->Write();
-	cout << name << " has been saved" << endl;
+			renWin->Render();  
+			StringT frame_name = name;
+			frame_name.Append(j,3); // pad to a width of 3 digits
+			frame_name.Append(".tif");
+			writer->SetFileName(frame_name);
+			writer->Write();
+			cout << frame_name << " has been saved" << endl;
       }
       
       /* clean up */
@@ -231,51 +315,42 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
       renWin->Render();
       return true;
     }
-  
-  else if (command.Name() == "Show_Frame_Numbers")
-  {
-
-    for (int i = 0; i < fFrames.MajorDim(); i++)
-      for (int j = 0; j < fFrames.MinorDim(); j++)
+	else if (command.Name() == "ShowFrameNumbers")
 	{
-	  /* name */
-	  StringT name = "frame";
-	  name.Append(".",i);
-	  name.Append(".",j);
-	  
-	  fFrames(i,j)->ShowFrameNum(name);
+		fRenderHold = true;
+		for (int j = 0; j < fFrames.Length(); j++)	  
+			fFrames[j]->ShowFrameLabel(fFrames[j]->iName());
+
+		fRenderHold = false;
+		StringT tmp;
+		iDoCommand(*iCommand("Update"), tmp);
+		return true;
 	}
-    return true;
-  }
-  //  else if (command.Name() == "Reset_to_Default_Values")
-  //{
-  //  fBodies[0]->DefaultValues();
-  //  fBodies[0]->UpdateData();
-  //  renWin->Render();
-  //  // iren->Start();
-  //  return true;
-  //}
+	else if (command.Name() == "HideFrameNumbers")
+	{
+		fRenderHold = true;
+		for (int j = 0; j < fFrames.Length(); j++)	  
+			fFrames[j]->HideFrameLabel();
+
+		fRenderHold = false;
+		StringT tmp;
+		iDoCommand(*iCommand("Update"), tmp);
+		return true;
+	}
   else if (command.Name() == "Save")
     {
-      StringT fbName;
-      cout << "Enter name for image to be saved (without .tif extension): ";
-      cin >> fbName;
-      Clean(cin);
-      cout << "Save image at: \n 1: current view\n 2: default view: ";
-      int sfbTest;
-      cin >> sfbTest;
-      Clean(cin);
-      
-      /* if default camera desired */
-      if (sfbTest == 2) {
-	for (int i = 0; i < fFrames.Length(); i++)
-	  fFrames[i]->ResetView();
-	renWin->Render();
-      }	
+      /* arguments */
+      StringT name;
+	  command.Argument(0).GetValue(name);
+	  //int mag;
+	  //command.Argument("mag").GetValue(mag);
       
       /* window to image filter */
       vtkRendererSource* image = vtkRendererSource::New();
+      //vtkRenderLargeImage* image = vtkRenderLargeImage::New();
       image->SetInput(fFrames[0]->Renderer());
+      //image->SetMagnification(mag);
+      image->Update();
 	  image->WholeWindowOn();
       
       /* construct TIFF writer */
@@ -283,9 +358,9 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
       vtkPostScriptWriter* writer = vtkPostScriptWriter::New();
       writer->SetInput(image->GetOutput());
       
-      StringT name = fbName;
-      //name.Append(".tif");
-      name.Append(".ps");
+      StringT ext;
+      ext.Suffix(name, '.');
+      if (ext != ".tif") name.Append(".tif");
       writer->SetFileName(name);
       writer->Write();
       cout << name << " has been saved" << endl;
@@ -297,29 +372,28 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
       return true;
     }
 
-  else if (command.Name() == "Large_Save")
-    {
-
-      StringT Name;
-      cout << "Enter name for image to be saved (without .tif extension): ";
-      cin >> Name;
-      Clean(cin);
-      Name.Append(".tif");
-      vtkRenderLargeImage* renderLarge = vtkRenderLargeImage::New();
-      renderLarge->SetInput(fFrames[0]->Renderer());
-      renderLarge->SetMagnification(5);
-      renderLarge->Update();
-      vtkTIFFWriter* writer = vtkTIFFWriter::New();
-      writer->SetInput(renderLarge->GetOutput());
-      writer->SetFileName(Name);
-      writer->Write();
-      return true;
-
-    }
-
   else
     /* drop through to inherited */
     return iConsoleObjectT::iDoCommand(command, line);
+}
+
+/**********************************************************************
+* Protected
+**********************************************************************/
+
+/* write prompt for the specific argument of the command */
+void VTKConsoleT::ValuePrompt(const CommandSpecT& command, int index, 
+	ostream& out) const
+{
+	if (command.Name() == "SelectTimeStep")
+	{
+		if (fBodies.Length() > 0)
+			out << "range 0 to " << fBodies[0]->NumTimeSteps() - 1 << '\n';
+	}
+	else if (command.Name() == "RemoveBody")
+	{
+		out << "range 0 to " << fBodies.Length() - 1 << '\n';
+	}
 }
 
 /**********************************************************************
@@ -335,14 +409,21 @@ bool VTKConsoleT::AddBody(const StringT& file)
   /* try to construct body */
   try {
 	body = new VTKBodyDataT(file);
+	StringT name;
+	name.Append(fBodyCount++);
+	name.Append(".body");
+	body->iSetName(name);
 	fBodies.Append(body);
 
 	/* add bodies to frame 0 by default */
 	fFrames[0]->AddBody(body);
+	
+	/* add to base console */
+	iAddSub(*body);
   }
   catch (int) {
 	cout << "\n exception constructing body from file: " << file << endl;
-	delete body;
+//	delete body;
 	return false;
   }
   /* OK */
@@ -389,21 +470,18 @@ void VTKConsoleT::SetFrameLayout(int num_x, int num_y)
 	for (int j = 0; j < fFrames.MinorDim(); j++)
 	  {
 		/* need a new one */
-		if (fFrames(i,j) == NULL) fFrames(i,j) = new VTKFrameT;
+		if (fFrames(i,j) == NULL) fFrames(i,j) = new VTKFrameT(*this);
 
 		/* name */
-		StringT name = "frame";
-		name.Append(".",i);
-		name.Append(".",j);
+		StringT name;
+		name.Append(j);
+		name.Append(".", i);
+		name.Append(".frame");
 		fFrames(i,j)->iSetName(name);
 
-		/* connect */
-		fFrames(i,j)->setRenWin(renWin);
-		fFrames(i,j)->setIren(iren);
-		fFrames(i,j)->setConsole(this);
-
 		/* set port location/size */
-		fFrames(i,j)->Renderer()->SetViewport(j*dx, i*dy, (j+1)*dx, (i+1)*dy);
+		int ii = fFrames.MajorDim() - 1 - i;
+		fFrames(i,j)->Renderer()->SetViewport(j*dx, ii*dy, (j+1)*dx, (ii+1)*dy);
 
 		/* add to window */
 		renWin->AddRenderer(fFrames(i,j)->Renderer());
@@ -411,4 +489,21 @@ void VTKConsoleT::SetFrameLayout(int num_x, int num_y)
 		/* add to console */
 		iAddSub(*fFrames(i,j));
 	  }
+}
+
+/* returns the index of the requested option */
+bool VTKConsoleT::CommandLineOption(const char* str, int& index, int start) const
+{
+	int dex = -1;
+	for (int i = start; dex == -1 && i < fArguments.Length(); i++)
+		if (fArguments[i] == str)
+			dex = i;
+
+	if (dex == -1)
+		return false;
+	else
+	{
+		index = dex;
+		return true;
+	}
 }

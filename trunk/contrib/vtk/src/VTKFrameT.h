@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.h,v 1.14 2001-11-29 21:22:43 recampb Exp $ */
+/* $Id: VTKFrameT.h,v 1.15 2001-12-10 12:44:08 paklein Exp $ */
 
 #ifndef _VTK_FRAME_T_H_
 #define _VTK_FRAME_T_H_
@@ -16,10 +16,10 @@
 class vtkRenderer;
 class vtkRenderWindow;
 class vtkRenderWindowInteractor;
-class vtkActor2D;
-class vtkSelectVisisblePoints;
-class vtkLabeledDataMapper;
 class vtkCubeAxesActor2D;
+class vtkScalarBarActor;
+class vtkTextMapper;
+class vtkActor2D;
 
 /* forward declarations */
 class VTKBodyT;
@@ -31,7 +31,7 @@ class VTKFrameT: public iConsoleObjectT
  public:
 
   /** constructor */
-  VTKFrameT(void);
+  VTKFrameT(VTKConsoleT& console);
 
   /** destructor */
   ~VTKFrameT(void);
@@ -47,53 +47,65 @@ class VTKFrameT: public iConsoleObjectT
   /** delete body from the frame. returns true if body was found and
    * and removed, false otherwise. */
   bool RemoveBody(VTKBodyDataT* body);
-
-  vtkRenderer* getRen(void) {return renderer;};
-  //private:
   
   void ResetView(void);
 
-  void ShowFrameNum(StringT);
+	/** label in the frame */
+  	void ShowFrameLabel(const StringT& label);
+
+	/** remove the frame label */
+  	void HideFrameLabel(void);
 
   /** return a pointer to the frame's renderer */
-  vtkRenderer* Renderer(void) { return renderer; };
+  vtkRenderer* Renderer(void) { return fRenderer; };
 
-   virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
+	/** execute console command. \return true is executed normally */
+	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
    
    /** set controlling console object */
-   void setConsole(VTKConsoleT* console) { fConsole = console; };
+//   void setConsole(VTKConsoleT* console) { fConsole = console; };
 
    /** set the renderer window */
-   void setRenWin(vtkRenderWindow* renWin) { fRenWin = renWin; };
+//   void setRenWin(vtkRenderWindow* renWin) { fRenWin = renWin; };
    
    /** set the window interactor */
-   void setIren(vtkRenderWindowInteractor* iren) {fIren = iren; };
+//   void setIren(vtkRenderWindowInteractor* iren) {fIren = iren; };
 
-   StringT getName(void) {return bodies[0]->inFile;};
+//   const StringT& getName(void) const {return bodies[0]->SourceFile(); };
+//what was this for????
 
  protected:
+
+	/** call to re-render the window contents. Call goes through the console,
+	 * so all window contents will be brought up to date and re-drawn. */
+	void Render(void) const;
 
    /** write prompt for the specific argument of the command */
    virtual void ValuePrompt(const CommandSpecT& command, int index, ostream& out) const;  
 
  private:
 
-   /** controlling console object */
-   VTKConsoleT* fConsole;
+	/** controlling console object */
+	VTKConsoleT& fConsole;
   
-  vtkRenderer *renderer;
+  	/** renderer for this frame */
+	vtkRenderer *fRenderer;
+	
+	/** window where frame appears */
+//	vtkRenderWindow *fRenWin;
 
-  vtkRenderWindow *fRenWin;
-  vtkRenderWindowInteractor *fIren;
+	/** interactor for the window in which the frame appears */
+//	vtkRenderWindowInteractor *fIren;
 
-  AutoArrayT<VTKBodyT> bodies;
+	/** bodies appearing in the frame */
+	AutoArrayT<VTKBodyT> bodies;
 
-  vtkActor2D* pointLabels;
-  vtkSelectVisiblePoints* visPts;
-  vtkLabeledDataMapper* ldm;
-  vtkCubeAxesActor2D* axes;
-
-
+	/** scalar bar appearing in the frame */
+	vtkScalarBarActor* scalarBar;
+	
+	/** frame label */
+	vtkTextMapper* fLabelMapper;
+	vtkActor2D*    fLabelActor;
 };
 
 #endif

@@ -1,4 +1,5 @@
-/* $Id: VTKConsoleT.h,v 1.22 2001-11-29 21:22:43 recampb Exp $ */
+
+/* $Id: VTKConsoleT.h,v 1.23 2001-12-10 12:44:08 paklein Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -35,6 +36,11 @@ class VTKConsoleT: public iConsoleObjectT
   /** return the list of bodies */
   const ArrayT<VTKBodyDataT*> Bodies(void) const { return fBodies; };
 
+ protected:
+ 
+    /** write prompt for the specific argument of the command */
+   virtual void ValuePrompt(const CommandSpecT& command, int index, ostream& out) const;  
+
  private:
   
   /** construct body from the given file path. If successful,
@@ -48,6 +54,9 @@ class VTKConsoleT: public iConsoleObjectT
    * \param num_y number of frames in the vertical direction */
   void SetFrameLayout(int num_x, int num_y);
 
+  /** returns the index of the requested option */
+  bool CommandLineOption(const char* str, int& index, int start = 0) const;
+
  private:
 
   /** argument list passed into constructor */
@@ -55,6 +64,7 @@ class VTKConsoleT: public iConsoleObjectT
 
   /** the display window */
   vtkRenderWindow *renWin;
+  bool fRenderHold;
 
   /** interactor to rotate, translate, zoom, etc */
   vtkRenderWindowInteractor *iren;
@@ -63,6 +73,7 @@ class VTKConsoleT: public iConsoleObjectT
   Array2DT<VTKFrameT*> fFrames;
 
   /** list of display objects */
+  int fBodyCount;
   AutoArrayT<VTKBodyDataT*> fBodies;
 };
 
