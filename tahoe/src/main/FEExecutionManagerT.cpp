@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.55.2.5 2004-02-11 15:27:31 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.55.2.6 2004-02-12 19:38:00 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -811,7 +811,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		else
 		{
 			/* thkdisp = fine scale part of ghost atom displacement */
-			//thkdisp = atoms.THKDisp(badisp);
+			thkdisp = atoms.THKDisp(badisp);
 		}
 		
 		/* figure out timestep ratio between fem and md simulations */
@@ -838,7 +838,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				corrector are combined into one function */
 				atoms.BAPredictAndCorrect(mddt, badisp, bavel, baacc);
 				atoms.BAPredictAndCorrect(mddt, gadisp, gavel, gaacc);
-							
+
 				if (nsd == 2)
 				{
 					/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
@@ -850,7 +850,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				else
 				{
 					/* calculate fine scale part of MD ghost atom displacements */
-					//thkdisp = atoms.THKDisp(badisp);
+					thkdisp = atoms.THKDisp(badisp);
 				
 					/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
 					//totaldisp = gadisp;
