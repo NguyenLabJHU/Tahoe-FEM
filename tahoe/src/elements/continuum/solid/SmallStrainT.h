@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.13 2003-12-02 17:13:36 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.14 2004-01-31 07:20:48 paklein Exp $ */
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
 
@@ -60,6 +60,10 @@ class SmallStrainT: public SolidElementT
 
   protected:
 
+	/** indicies of elements in the list of material needs */
+	enum MaterialNeedsT {kstrain = 0,
+	                kstrain_last = 1};
+
 	/** construct a new material support and return a pointer. Recipient is responsible for
 	 * for freeing the pointer.
 	 * \param p an existing MaterialSupportT to be initialized. If NULL, allocate
@@ -89,10 +93,6 @@ class SmallStrainT: public SolidElementT
 
   private:
 
-	/** indicies of elements in the list of material needs */
-	enum MaterialNeedsT {kstrain = 0,
-	                kstrain_last = 1};
-
 	/** compute mean shape function gradient, Hughes (4.5.23) */
 	void SetMeanGradient(dArray2DT& mean_gradient) const;
 
@@ -114,7 +114,6 @@ class SmallStrainT: public SolidElementT
 	dArray2DT fMeanGradient;   /**< store mean shape function gradient */
   	/*@}*/
 
- private:
   	/** the material support used to construct materials lists. This pointer
   	 * is only set the first time SmallStrainT::NewMaterialList is called. */
 	SSMatSupportT* fSSMatSupport;
