@@ -1,18 +1,18 @@
-/* $Id: K_FieldT.cpp,v 1.17 2004-01-06 00:42:57 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.18 2004-04-02 16:48:27 jzimmer Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
+#include "fstreamT.h"
+
+#include "ElementsConfig.h"
+#ifdef CONTINUUM_ELEMENT
 #include "MaterialListT.h"
 #include "ContinuumMaterialT.h"
-#include "fstreamT.h"
+#include "ContinuumElementT.h"
 #include "IsotropicT.h"
 #include "Material2DT.h"
-#include "ElementsConfig.h"
-
-#ifdef CONTINUUM_ELEMENT
-#include "ContinuumElementT.h"
 #else
 #include "ElementBaseT.h"
 #endif
@@ -41,7 +41,7 @@ K_FieldT::K_FieldT(NodeManagerT& node_manager):
 	SetName("K_field");
 
 #ifndef CONTINUUM_ELEMENT
-	ExceptionT::BadInputValue("TiedNodesT::TiedNodesT", "CONTINUUM_ELEMENT not enabled");
+	ExceptionT::BadInputValue("K_FieldT::K_FieldT", "CONTINUUM_ELEMENT not enabled");
 #endif
 }
 
@@ -484,6 +484,7 @@ void K_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 		ResolveMaterialReference(fFarFieldGroupNum, fFarFieldMaterialNum,
 			&fIsotropic, &fMaterial2D);
 
+#ifdef CONTINUUM_ELEMENT
 	/* moduli */
 	double mu = fIsotropic->Mu();
 	double nu = fIsotropic->Poisson();	
@@ -494,6 +495,11 @@ void K_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 		if (fMaterial2D->ConstraintOption() == Material2DT::kPlaneStress)
 			kappa = (3.0 - nu)/(1.0 + nu);
 	}
+#else
+	double mu = 0.0;
+	double nu = 0.0;	
+	double kappa = 0.0;
+#endif
 
 	/* compute K-field displacement factors (Andersen Table 2.2): */
 	dArrayT coords;

@@ -1,15 +1,18 @@
-/* $Id: BimaterialK_FieldT.cpp,v 1.8 2002-10-20 22:49:29 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.cpp,v 1.9 2004-04-02 16:48:27 jzimmer Exp $ */
 /* created: paklein (09/05/2000) */
-
 #include "BimaterialK_FieldT.h"
 
 #include "NodeManagerT.h"
 #include "fstreamT.h"
+
+/* build options */
+#include "ElementsConfig.h"
+#ifdef CONTINUUM_ELEMENT
 #include "IsotropicT.h"
 #include "Material2DT.h"
+#endif
 
 /* parameters */
-
 using namespace Tahoe;
 
 const double Pi = acos(-1.0);
@@ -20,6 +23,9 @@ BimaterialK_FieldT::BimaterialK_FieldT(NodeManagerT& node_manager):
 	fIsotropic_2(NULL),
 	fMaterial2D_2(NULL)
 {
+#ifndef CONTINUUM_ELEMENT
+	ExceptionT::BadInputValue("BimaterialK_FieldT::BimaterialK_FieldT", "CONTINUUM_ELEMENT not enabled");
+#endif
 
 }
 
@@ -286,20 +292,26 @@ void BimaterialK_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 
 	/* moduli */
 	double G_1, nu_1, mu_1;
+#ifdef CONTINUUM_ELEMENT
 	if (fIsotropic)
 	{
 		G_1 = fIsotropic->Mu();
 		nu_1 = fIsotropic->Poisson();	
 		mu_1 = 3.0 - 4.0*nu_1;	
 	}
+#endif
+
 	double G_2, nu_2, mu_2;
+#ifdef CONTINUUM_ELEMENT
 	if (fIsotropic_2)
 	{
 		G_2 = fIsotropic_2->Mu();
 		nu_2 = fIsotropic_2->Poisson();	
 		mu_2 = 3.0 - 4.0*nu_2;
 	}
+#endif
 	
+#ifdef CONTINUUM_ELEMENT
 	if (fNodeManager.NumSD() == 2)
 	{
 		if (fMaterial2D && fMaterial2D->ConstraintOption() == Material2DT::kPlaneStress)
@@ -307,6 +319,7 @@ void BimaterialK_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 		if (fMaterial2D_2 && fMaterial2D_2->ConstraintOption() == Material2DT::kPlaneStress)
 			mu_2 = (3.0 - nu_2)/(1.0 + nu_2);
 	}
+#endif
 
 	if (fUHP == 1)
 	{

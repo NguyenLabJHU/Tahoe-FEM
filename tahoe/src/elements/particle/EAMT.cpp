@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.54 2004-03-16 06:58:51 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.55 2004-04-02 16:48:22 jzimmer Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -25,6 +25,7 @@ EAMT::EAMT(const ElementSupportT& support, const FieldT& field):
   ParticleT(support, field),
   fNeighbors(kMemoryHeadRoom),
   NearestNeighbors(kMemoryHeadRoom),
+  RefNearestNeighbors(kMemoryHeadRoom),
   fEqnos(kMemoryHeadRoom),
   fForce_list_man(0, fForce_list),
   fElectronDensity_man(kMemoryHeadRoom, fElectronDensity, 1),
@@ -39,6 +40,8 @@ EAMT::EAMT(const ElementSupportT& support, const FieldT& field):
 EAMT::EAMT(const ElementSupportT& support):
   ParticleT(support),
   fNeighbors(kMemoryHeadRoom),
+  NearestNeighbors(kMemoryHeadRoom),
+  RefNearestNeighbors(kMemoryHeadRoom),
   fEqnos(kMemoryHeadRoom),
   fForce_list_man(0, fForce_list),
   fElectronDensity_man(kMemoryHeadRoom, fElectronDensity, 1),
@@ -95,6 +98,8 @@ void EAMT::Initialize(void)
 
   /* inherited */
   ParticleT::Initialize();
+
+  ParticleT::SetRefNN(NearestNeighbors,RefNearestNeighbors);
 
   /* dimension */
   int ndof = NumDOF();
@@ -251,11 +256,6 @@ void EAMT::WriteOutput(void)
   iArrayT neighbors;
   dArrayT x_i, x_j, r_ij(ndof);
 
-#ifndef NO_PARTICLE_STRESS_OUTPUT
-	dArrayT SlipVector(ndof);
-	dMatrixT Strain(ndof);
-#endif /* NO_PARTICLE_STRESS_OUTPUT */
-
   int current_property_i = -1;
   int current_property_j = -1;
       
@@ -266,12 +266,6 @@ void EAMT::WriteOutput(void)
       fNeighbors.RowAlias(i, neighbors);
 
 #ifndef NO_PARTICLE_STRESS_OUTPUT
-      /*linked list for holding vector pair magnitudes*/
-      CSymmParamNode *CParamStart=new CSymmParamNode;
-      CParamStart->Next=NULL;
-      CParamStart->value=0.0;
-      Strain=0;
-      SlipVector=0.0;
       vs_i=0.0;
 #endif /* NO_PARTICLE_STRESS_OUTPUT */
 
@@ -395,28 +389,54 @@ void EAMT::WriteOutput(void)
 	}
 
 #ifndef NO_PARTICLE_STRESS_OUTPUT
-	/* calculate strain */
-	double J = 1.0;
-	CalcValues(i, coords, CParamStart, &Strain, &SlipVector, &NearestNeighbors, J);
-
-	/*copy stress into array*/
-	for (int cc = 0; cc < num_stresses; cc++) {
-		int ndex = ndof+2+cc;
-		values_i[ndex] += vs_i[cc]/V0;
+	          /* copy stress into array */
+	          for (int cc = 0; cc < num_stresses; cc++) {
+	            int ndex = ndof+2+cc;
+                values_i[ndex] += (vs_i[cc]/V0);
+	          }
+#endif
 	}
-	   
-	int valuep=0;
-	Strain /=2;
-	for(int n=0; n<ndof;n++)
-		for(int m=n;m<ndof;m++)
-			n_values(local_i,ndof+2+num_stresses+valuep++)=Strain(n,m);
-	for(int n=0; n<ndof; n++)
-		n_values(local_i, ndof+2+num_stresses+num_stresses+n)=SlipVector[n];
-      
-	/*given the list of vector pair magnitudes, returns first seven*/
-	n_values(local_i,num_output-1)=GenCSymmValue(CParamStart, ndof);
+
+#ifndef NO_PARTICLE_STRESS_OUTPUT
+    int num_s_vals = num_stresses+1+ndof+1;
+	dArray2DT s_values(non,num_s_vals);
+
+    /* flag for specifying Lagrangian (0) or Eulerian (1) strain */
+    const int kEulerLagr = 0;
+    /* calculate slip vector and strain */
+    Calc_Slip_and_Strain(non,num_s_vals,s_values,RefNearestNeighbors,kEulerLagr);
+    /* calculate centrosymmetry parameter */
+    Calc_CSP(non,num_s_vals,s_values, NearestNeighbors);
+
+    /* combine strain, slip vector and centrosymmetry parameter into n_values list */
+    for (int i = 0; i < fNeighbors.MajorDim(); i++)
+    {
+        /* row of neighbor list */
+        fNeighbors.RowAlias(i, neighbors);
+
+        /* tags */
+        int   tag_i = neighbors[0]; /* self is 1st spot */
+        int  type_i = fType[tag_i];
+        int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
+
+        int valuep = 0;
+        for (int is = 0; is < num_stresses; is++)
+        {
+            n_values(local_i,ndof+2+num_stresses+valuep++) = s_values(local_i,is);
+        }
+
+        /* recover J, the determinant of the deformation gradient, for atom i
+		 * and divide stress values by it */
+		double J = s_values(local_i,num_stresses);
+		for (int is = 0; is < num_stresses; is++) n_values(local_i,ndof+2+is) /= J;
+
+        for (int n = 0; n < ndof; n++)
+            n_values(local_i, ndof+2+num_stresses+num_stresses+n) = s_values(local_i,num_stresses+1+n);
+
+        n_values(local_i, num_output-1) = s_values(local_i,num_s_vals-1);
+    }
+
 #endif /* NO_PARTICLE_STRESS_OUTPUT */
-    }	
 
 	/* send */
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
