@@ -1,7 +1,7 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.1 2004-10-21 18:48:44 paklein Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.2 2004-10-31 17:06:31 paklein Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
-#include "FSSolidMixtureSupportT.h"
+//#include "FSSolidMixtureSupportT.h"
 #include "FieldT.h"
 
 /* stress functions */
