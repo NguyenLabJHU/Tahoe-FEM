@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.9 2002-02-18 19:09:42 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.10 2002-04-16 21:22:29 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #ifndef _CSE_ANISO_T_H_
@@ -105,8 +105,6 @@ protected:
 	/* Added by cjkimme 11/07/01 */
 	bool fCalcNodalInfo;
 	int fNodalInfoCode;
-        dArray2DT fNodalQuantities;
-	LocalArrayT fNodalValues;
 	int fBulkGroup;
 
 	/* change the time Step */

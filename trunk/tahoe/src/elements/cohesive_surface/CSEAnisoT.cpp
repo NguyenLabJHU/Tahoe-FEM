@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.15 2002-02-18 19:09:42 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.16 2002-04-16 21:22:29 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -22,6 +22,7 @@
 #include "ViscTvergHutch2DT.h"
 #include "Tijssens2DT.h"
 #include "RateDep2DT.h"
+#include "TiedPotentialT.h"
 
 /* constructor */
 CSEAnisoT::CSEAnisoT(FEManagerT& fe_manager, bool rotate):
@@ -158,6 +159,18 @@ void CSEAnisoT::Initialize(void)
 				}
 				break;
 			}
+			case SurfacePotentialT::kTiedPotential:
+			{	
+				if (fNumDOF == 2)
+					fSurfPots[num] = new TiedPotentialT(in,FEManager().TimeStep());
+				else
+				{
+					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code <<  endl;
+
+					throw eBadInputValue;
+				}
+				break;
+			}
 			default:
 				cout << "\n CSEAnisoT::Initialize: unknown potential code: " << code << endl;
 				throw eBadInputValue;
@@ -168,7 +181,6 @@ void CSEAnisoT::Initialize(void)
 		fNumStateVariables[num] = fSurfPots[num]->NumStateVariables();
 
 		/* Initialize things if a potential needs more info than the gap vector */
-		/* Added by cjkimme 11/07/01 */
 		if (fSurfPots[num]->NeedsNodalInfo()) 
 		{
 		    fCalcNodalInfo = true;
@@ -302,12 +314,13 @@ void CSEAnisoT::LHSDriver(void)
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 
+	dArray2DT fNodalQuantities;
 	if (fCalcNodalInfo) 
 	{
 	          ElementBaseT* surroundingGroup = fFEManager.ElementGroup(fBulkGroup);
 		  if (!surroundingGroup) 
 		  {
-		      cout << "\n CSEAnisoT::LHSDriver cannot get group number 1 \n";
+		    cout << "\n CSEAnisoT::LHSDriver cannot get group number " << fBulkGroup+1 << " \n";
 		      throw eGeneralFail;
 		  }
 		  surroundingGroup->SendOutput(fNodalInfoCode);
@@ -336,17 +349,24 @@ void CSEAnisoT::LHSDriver(void)
 		
 		/* initialize */
 		fLHS = 0.0;
-		
+
+		LocalArrayT fNodalValues(LocalArrayT::kUnspecified);
 		if (surfpot->NeedsNodalInfo()) 
 		{
-		  /* just scalars for now. MinorDim() will be changed */
-		  fNodalValues.Allocate(element.NodesX().Length(),1);
-		  dArrayT nodalRow(fNodalQuantities.MinorDim());
-		  for (int iIndex = 0; iIndex < element.NodesX().Length(); iIndex++) 
-		  {
-		    fNodalQuantities.RowCopy(element.NodesX()[iIndex],nodalRow);
-		    fNodalValues[iIndex] = surfpot->ComputeNodalValue(nodalRow);
-		  }
+		  int numNodes = element.NodesX().Length();
+		  dArray2DT elementVals(numNodes,fNodalQuantities.MinorDim());
+		  iArrayT ndIndices = element.NodesX();
+		  fNodalValues.Allocate(numNodes,fNodalQuantities.MinorDim());
+		  for (int iIndex = 0; iIndex < numNodes; iIndex++) 
+		    elementVals.RowCopy(iIndex,fNodalQuantities(ndIndices[iIndex]));
+		  ndIndices[0] = 3;ndIndices[3] = 0;ndIndices[1] = 2;ndIndices[2] =1;
+		  dArray2DT sbntma;
+		  sbntma = elementVals;
+		  elementVals.Accumulate(ndIndices,sbntma);
+		  fNodalValues.SetGlobal(elementVals);
+		  for (int i = 0;i < ndIndices.Length();i++) 
+		    ndIndices[i] = i;
+		  fNodalValues.SetLocal(ndIndices);
 		}
 
 		/* loop over integration points */
@@ -373,30 +393,37 @@ void CSEAnisoT::LHSDriver(void)
 
 			/* check */
 			if (j0 <= 0.0 || j <= 0.0) throw eBadJacobianDet;
-
-			/* Interpolate nodal info to IPs */
-			if (surfpot->NeedsNodalInfo()) 
-			{
-			  /* compute just a scalar at IP for now */
-			  dArrayT scalarIP(1);
-			  fShapes->Interpolate(fNodalValues,scalarIP);
-			  surfpot->UpdateStateVariables(scalarIP,state);
-			}
 		
 			/* gap vector and gradient (facet1 to facet2) */
 			const dArrayT&    delta = fShapes->InterpolateJumpU(fLocCurrCoords);
 			const dMatrixT& d_delta = fShapes->Grad_d();
 
-			/* stiffness in local frame */
-			fQ.MultTx(delta, fdelta);
-			const dMatrixT& K = surfpot->Stiffness(fdelta, state);
+			/* gap vector in local frame */
+			fQ.MultTx(delta, fdelta);			
 			
+			/* Interpolate nodal info to IPs */
+			dArrayT vectorIP(2);
+			if (surfpot->NeedsNodalInfo()) 
+			{
+			    dArrayT tensorIP(fNodalValues.MinorDim());
+			    fShapes->Interpolate(fNodalValues,tensorIP);
+			    double gapMag = sqrt(fdelta[0]*fdelta[0]+fdelta[1]*fdelta[1]);
+			    dArrayT wv = vectorIP;
+			    wv[0] = tensorIP[0]*fdelta[0]+tensorIP[1]*fdelta[1];
+			    wv[1] = tensorIP[1]*fdelta[0]+tensorIP[2]*fdelta[1];
+			    wv /= gapMag;
+			    fQ.MultTx(wv,vectorIP);
+			}
+			
+			/* stiffness in local frame */
+			const dMatrixT& K = surfpot->Stiffness(fdelta, state, vectorIP);
+
 			/* rotation */
 			if (fRotate)
 			{
 				/* traction in local frame */
 				state2 = state;
-				const dArrayT& T = surfpot->Traction(fdelta, state2);
+				const dArrayT& T = surfpot->Traction(fdelta, state2,vectorIP);
 
 				/* 1st term */
 				fT.SetToScaled(j0*w*constK, T);
@@ -443,12 +470,13 @@ void CSEAnisoT::RHSDriver(void)
 	fFractureArea = 0.0;
 	
 	/* If the potential needs info from the nodes, start to gather it now */
+	dArray2DT fNodalQuantities;
 	if (fCalcNodalInfo) 
 	{
 	          ElementBaseT* surroundingGroup = fFEManager.ElementGroup(fBulkGroup);
 		  if (!surroundingGroup) 
 		  {
-		      cout << "\n CSEAnisoT::RHSDriver cannot get group number 1 \n";
+		    cout << "\n CSEAnisoT::RHSDriver cannot get group number " << fBulkGroup +1 <<" \n";
 		      throw eGeneralFail;
 		  }
 		  surroundingGroup->SendOutput(fNodalInfoCode);
@@ -480,20 +508,26 @@ void CSEAnisoT::RHSDriver(void)
 	
 	  		/* initialize */
 	  		fRHS = 0.0;
-			
-			/* Get whatever nodal info the potential needs */
+
+			LocalArrayT fNodalValues(LocalArrayT::kUnspecified);
 			if (surfpot->NeedsNodalInfo()) 
 			{
-			    /* just scalars for now. MinorDim() will be changed */
-			    fNodalValues.Allocate(element.NodesX().Length(),1);
-			    dArrayT nodalRow(fNodalQuantities.MinorDim());
-			    for (int iIndex = 0; iIndex < element.NodesX().Length(); iIndex++) 
-			    {
-				fNodalQuantities.RowCopy(element.NodesX()[iIndex],nodalRow);
-				fNodalValues[iIndex] = surfpot->ComputeNodalValue(nodalRow);
-			    }
+			  int numNodes = element.NodesX().Length();
+			  dArray2DT elementVals(numNodes,fNodalQuantities.MinorDim());
+			  iArrayT ndIndices = element.NodesX();
+			  fNodalValues.Allocate(numNodes,fNodalQuantities.MinorDim());
+			  for (int iIndex = 0; iIndex < numNodes; iIndex++) 
+			    elementVals.RowCopy(iIndex,fNodalQuantities(ndIndices[iIndex]));
+			  ndIndices[0] = 3;ndIndices[3] = 0;ndIndices[1] = 2;ndIndices[2] =1;
+			  dArray2DT sbntma;
+			  sbntma = elementVals;
+			  elementVals.Accumulate(ndIndices,sbntma);
+			  fNodalValues.SetGlobal(elementVals);
+			  for (int i = 0;i < ndIndices.Length();i++) 
+			    ndIndices[i] = i;
+			  fNodalValues.SetLocal(ndIndices);
 			}
-
+			
 			/* loop over integration points */
 			double* pstate = fStateVariables(CurrElementNumber());
 			int all_failed = 1;
@@ -523,24 +557,13 @@ void CSEAnisoT::RHSDriver(void)
 					cout << "\n CSEAnisoT::RHSDriver: jacobian error" << endl;
 					throw eBadJacobianDet;
 				}
-
-				
-				/* Interpolate nodal info to IPs */
-				/* Added by cjkimme 11/07/01 */
-				if (surfpot->NeedsNodalInfo()) 
-				{
-				  /* compute just a scalar at IP for now */
-				  dArrayT scalarIP(1);
-				  fShapes->Interpolate(fNodalValues,scalarIP);
-				  surfpot->UpdateStateVariables(scalarIP,state);
-				}
 	
 				/* gap vector from facet1 to facet2 */
 				const dArrayT& delta = fShapes->InterpolateJumpU(fLocCurrCoords);
 	
-				/* gap -> traction, in/out of local frame */
+				/* gap vector in local frame */
 				fQ.MultTx(delta, fdelta);
-				fQ.Multx(surfpot->Traction(fdelta, state), fT);
+				
 		                /*if (surfpot->PotentialTimeChangeQ())
 				{
 				  if (!fNeedsNewTimeStep) 
@@ -552,6 +575,23 @@ void CSEAnisoT::RHSDriver(void)
 				    if (fNewTimeStep > surfpot->TimeStepRequested())
 				      fNewTimeStep = surfpot->TimeStepRequested();
 				}*/
+	
+				/* Interpolate nodal info to IPs */
+				dArrayT vectorIP(2);
+				if (surfpot->NeedsNodalInfo()) 
+				{
+				    dArrayT tensorIP(fNodalValues.MinorDim());
+				    fShapes->Interpolate(fNodalValues,tensorIP);
+				    double gapMag = sqrt(fdelta[0]*fdelta[0]+fdelta[1]*fdelta[1]);
+				    dArrayT wv = vectorIP;
+				    wv[0] = tensorIP[0]*fdelta[0]+tensorIP[1]*fdelta[1];
+				    wv[1] = tensorIP[1]*fdelta[0]+tensorIP[2]*fdelta[1];
+				    wv /= gapMag;
+				    fQ.MultTx(wv,vectorIP);
+				}
+
+				/* traction vector in/out of local frame */
+				fQ.Multx(surfpot->Traction(fdelta, state,vectorIP), fT);
 
 				/* expand */
 				fShapes->Grad_d().MultTx(fT, fNEEvec);
@@ -681,13 +721,13 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 
 	/* If the potential needs info from the nodes, start to gather it now */
+	dArray2DT fNodalQuantities;
 	if (fCalcNodalInfo) 
 	{
 	        ElementBaseT* surroundingGroup = fFEManager.ElementGroup(fBulkGroup);
 		if (!surroundingGroup) 
 		{
-		    cout << "\n CSEAnisoT::LHSDriver: can not get nodal group. group number "
-		   	<< "1";
+		  cout << "\n CSEAnisoT::ComputeOutput: can not get nodal groupnumber " << fBulkGroup + 1 << "\n";
 		    throw eGeneralFail;
 		}
 		surroundingGroup->SendOutput(fNodalInfoCode);
@@ -743,17 +783,23 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			if (e_codes[Centroid]) centroid = 0.0;
 			if (e_codes[Traction]) traction = 0.0;
 
-			/* Get whatever nodal info the potential needs */
+			LocalArrayT fNodalValues(LocalArrayT::kUnspecified);
 			if (surfpot->NeedsNodalInfo()) 
 			{
-			  /* just scalars for now. MinorDim() will be changed */
-			  fNodalValues.Allocate(element.NodesX().Length(),1);
-			  dArrayT nodalRow(fNodalQuantities.MinorDim());
-			  for (int iIndex = 0; iIndex < element.NodesX().Length(); iIndex++) 
-			  {
-			    fNodalQuantities.RowCopy(element.NodesX()[iIndex],nodalRow);
-			    fNodalValues[iIndex] = surfpot->ComputeNodalValue(nodalRow);
-			  }
+			  int numNodes = element.NodesX().Length();
+			  dArray2DT elementVals(numNodes,fNodalQuantities.MinorDim());
+			  iArrayT ndIndices = element.NodesX();
+			  fNodalValues.Allocate(numNodes,fNodalQuantities.MinorDim());
+			  for (int iIndex = 0; iIndex < numNodes; iIndex++) 
+			    elementVals.RowCopy(iIndex,fNodalQuantities(ndIndices[iIndex])); 
+			  ndIndices[0] = 3;ndIndices[3] = 0;ndIndices[1] = 2;ndIndices[2] =1;
+			  dArray2DT sbntma;
+			  sbntma = elementVals;
+			  elementVals.Accumulate(ndIndices,sbntma);
+			  fNodalValues.SetGlobal(elementVals);
+			  for (int i = 0;i < ndIndices.Length();i++) 
+			    ndIndices[i] = i;
+			  fNodalValues.SetLocal(ndIndices);
 			}
 
 			/* integrate */
@@ -776,25 +822,30 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
 				/* gap */				
 				if (n_codes[NodalDispJump])
-					fShapes->Extrapolate(fdelta, jump);				
-
-				/* Interpolate nodal info to IPs */
-				if (surfpot->NeedsNodalInfo()) 
-				{
-				  /* compute just a scalar at IP for now */
-				  dArrayT scalarIP(1);
-				  fShapes->Interpolate(fNodalValues,scalarIP);
-				  surfpot->UpdateStateVariables(scalarIP,state);
-				}
+					fShapes->Extrapolate(fdelta, jump);	     
 
 				/* traction */
 				if (n_codes[NodalTraction] || e_codes[Traction])
 				{
 					/* copy state variables (not integrated) */
 					state.Copy(pstate);
+
+					/* Interpolate nodal info to IPs */
+					dArrayT vectorIP(2);
+					if (surfpot->NeedsNodalInfo()) 
+					{
+					  dArrayT tensorIP(fNodalValues.MinorDim());
+					  fShapes->Interpolate(fNodalValues,tensorIP);
+					  double gapMag = sqrt(gap[0]*gap[0]+gap[1]*gap[1]);
+					  dArrayT wv = vectorIP;
+					  wv[0] = tensorIP[0]*gap[0]+tensorIP[1]*gap[1];
+					  wv[1] = tensorIP[1]*gap[0]+tensorIP[2]*gap[1];
+					  wv /= gapMag;
+					  fQ.MultTx(wv,vectorIP);
+					}
 				
 					/* compute traction in local frame */
-					const dArrayT& tract = surfpot->Traction(fdelta, state);
+					const dArrayT& tract = surfpot->Traction(fdelta, state,vectorIP);
 				       
 					/* project to nodes */
 					if (n_codes[NodalTraction])
