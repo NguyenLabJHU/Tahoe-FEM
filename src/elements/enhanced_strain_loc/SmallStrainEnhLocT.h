@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.15 2005-03-18 22:42:40 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.16 2005-03-21 20:22:43 raregue Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
@@ -254,6 +254,8 @@ protected:
 	int loc_flag, numedges;
 	dArrayT node_displ, node_coords, node_shape_deriv;
 	dArrayT start_surface_vect, start_surface_vect_read;
+	
+	int choose_normal;
 	
 	double fYieldTrial, residual_slip, K_zetazeta;
 	double DgammadeltaDzeta, DpsiDzeta, DPDzeta;

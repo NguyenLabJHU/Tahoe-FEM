@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.17 2005-03-19 00:29:53 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.18 2005-03-21 20:22:43 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -234,6 +234,7 @@ void SmallStrainEnhLocT::DefineParameters(ParameterListT& list) const
 	/* cohesive surface model constants */
 	double cohesion_r, cohesion_p, alpha_c, phi_r, phi_p, alpha_phi, psi_p, alpha_psi,
 			start1, start2, start3;
+	int choosenormal;
 	list.AddParameter(cohesion_r, "residual_cohesion");
 	list.AddParameter(cohesion_p, "peak_cohesion");
 	list.AddParameter(alpha_c, "cohesion_softening_coefficient");
@@ -246,7 +247,9 @@ void SmallStrainEnhLocT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(start2, "start_surface_vect_2");
 	//if (NumSD() == 3) list.AddParameter(start3, "start_surface_vect_3");
 	//hardcode for 3D
-	list.AddParameter(start3, "start_surface_vect_3");	
+	list.AddParameter(start3, "start_surface_vect_3");
+	
+	list.AddParameter(choosenormal, "choose_normal");	
 }
 
 /* information about subordinate parameter lists */
@@ -498,6 +501,8 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	//if (NumSD() == 3) start_surface_vect_read[2] = list.GetParameter("start_surface_vect_3");
 	//hardcode for 3D
 	start_surface_vect_read[2] = list.GetParameter("start_surface_vect_3");
+	
+	choose_normal = list.GetParameter("choose_normal");
 	
 	
 	/* create output file for debugging */
@@ -778,15 +783,15 @@ void SmallStrainEnhLocT::ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int& el
 	{
 		detAs_min.Next();
 		detA_tmp = detAs_min.Current();
+		slipdirs_min.Next();
+		tangents_min.Next();
+		psis_min.Next();
 		if (detA_tmp < detAmin)
 		{
 			detAmin = detA_tmp;
 			normal_chosen = normals_min.Current();
-			slipdirs_min.Next();
 			slipdir_chosen = slipdirs_min.Current();
-			tangents_min.Next();
 			tangent_chosen = tangents_min.Current();
-			psis_min.Next();
 			psi_chosen = psis_min.Current();
 		}
 	}
@@ -804,15 +809,15 @@ void SmallStrainEnhLocT::ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int& el
 	{
 		dissipations_fact_min.Next();
 		dissip_tmp = dissipations_fact_min.Current();
+		slipdirs_min.Next();
+		tangents_min.Next();
+		psis_min.Next();
 		if (dissip_tmp > dissip_max)
 		{
 			dissip_max = dissip_tmp;
 			normal_chosen = normals_min.Current();
-			slipdirs_min.Next();
 			slipdir_chosen = slipdirs_min.Current();
-			tangents_min.Next();
 			tangent_chosen = tangents_min.Current();
-			psis_min.Next();
 			psi_chosen = psis_min.Current();
 		}
 	}
@@ -881,15 +886,15 @@ void SmallStrainEnhLocT::ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int& el
 		sums.Next();
 		sum_tmp = sums.Current();
 		// this check works for shear localization, not for pure tension or compression
+		slipdirs_min.Next();
+		tangents_min.Next();
+		psis_min.Next();
 		if (sum_tmp < sum_min)
 		{
 			sum_min = sum_tmp;
 			normal_chosen = normals_min.Current();
-			slipdirs_min.Next();
 			slipdir_chosen = slipdirs_min.Current();
-			tangents_min.Next();
 			tangent_chosen = tangents_min.Current();
-			psis_min.Next();
 			psi_chosen = psis_min.Current();
 		}
 	}
@@ -907,18 +912,43 @@ void SmallStrainEnhLocT::ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int& el
 	{
 		grad_displ_mns_min.Next();
 		grad_displ_mn_tmp = grad_displ_mns_min.Current();
+		slipdirs_min.Next();
+		tangents_min.Next();
+		psis_min.Next();
 		if (grad_displ_mn_tmp > grad_displ_mn_max)
 		{
 			grad_displ_mn_max = grad_displ_mn_tmp;
 			normal_chosen = normals_min.Current();
-			slipdirs_min.Next();
 			slipdir_chosen = slipdirs_min.Current();
-			tangents_min.Next();
 			tangent_chosen = tangents_min.Current();
-			psis_min.Next();
 			psi_chosen = psis_min.Current();
 		}
 	}
+	
+	
+	/* determine normal based on arbitrary choice */
+	if (choose_normal > 0)
+	{
+		normals_min.Top();
+		slipdirs_min.Top();
+		tangents_min.Top();
+		psis_min.Top();
+		while (normals_min.Next())
+		{
+			int position = normals_min.Position() + 1;
+			slipdirs_min.Next();
+			tangents_min.Next();
+			psis_min.Next();
+			if (position == choose_normal)
+			{
+				normal_chosen = normals_min.Current();
+				slipdir_chosen = slipdirs_min.Current();
+				tangent_chosen = tangents_min.Current();
+				psi_chosen = psis_min.Current();
+			}
+		}
+	}
+	
 	
 	
 	
@@ -1048,7 +1078,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 			const int ip = fShapes->CurrIP();
 			// derivatives w.r.t natural or cartesian coordinates?
 			const dArray2DT& DNa = fShapes->Derivatives_U();
-
+				
 			/* loop through nodes and calculate enhancement function */
 			grad_enh_IP = 0.0;
 			for (int i=0; i < nen; i++)
@@ -1057,7 +1087,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 				if ( fElementLocNodesActive[NumElementNodes()*elem + i] == 1 )
 				{
 					grad_enh_IP += node_shape_deriv;
-				}		
+				}
 			}
 			fElementLocGradEnhIP.SetRow(ip, grad_enh_IP);
 			
@@ -1144,6 +1174,12 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 						<< setw(outputFileWidth) << "dilation (rad)"; 
 			ss_enh_out	<< endl << fElementLocInternalVars[kNUM_ISV_TERMS*elem + kCohesion] << setw(outputFileWidth) << fElementLocInternalVars[kNUM_ISV_TERMS*elem + kFriction] 
 						<< setw(outputFileWidth) << fElementLocInternalVars[kNUM_ISV_TERMS*elem + kDilation] << endl;		
+			
+			for (int i=0; i < NumElementNodes(); i++)
+			{		
+				ss_enh_out	<< endl << "activity of node " << i+1
+							<< setw(outputFileWidth)<< fElementLocNodesActive[NumElementNodes()*elem + i];
+			}			
 		}
 	}
 	
