@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.39.2.9 2003-05-09 08:48:24 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.39.2.10 2003-05-10 21:30:23 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -576,7 +576,8 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	TimeManagerT* atom_time = atoms.TimeManager();
 	TimeManagerT* continuum_time = continuum.TimeManager();
 
-	dArray2DT field_at_ghosts;
+	dArray2DT field_at_ghosts, totalu, fu;
+	dSPMatrixT ntf;
 	atom_time->Top();
 	continuum_time->Top();
 	int d_width = OutputWidth(log_out, field_at_ghosts.Pointer());
@@ -617,9 +618,13 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		continuum.ProjectField(bridging_field, *atoms.NodeManager());
 		
 		/* calculate fine scale part of MD displacement and total displacement u */
-		continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager());
+		continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu);
 		
 		/* solve for initial FEM force as function of fine scale + FEM */
+		fu = InternalForce(totalu, atoms);
+		
+		/* write f(u) into FEM global force vector here - need to get InterpolationMatrix working */
+		continuum.InterpolationMatrix(bridging_field, ntf);
 		
 		/* solve continuum for accelerations */
 		if (1 || error == ExceptionT::kNoError) {
@@ -643,7 +648,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				atoms.ResetCumulativeUpdate(group);
 				error = atoms.SolveStep();
 		}
-                        
+							
 		/* close  md step */
 		if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep(); 
 		
@@ -681,11 +686,15 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
             
 			/* calculate total displacement u = FE + fine scale here using updated FEM displacement */
-			continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager());
-			
+			continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu);
+						
 			/* integrate FEM displacement, fractional step velocities */
 			
 			/* calculate FE internal force as function of total displacement u here */
+			fu = InternalForce(totalu, atoms);
+			
+			/* add f(u) to global FEM force vector here */
+			//continuum.InterpolationMatrix(bridging_field, ntf);
 			
 			/* solve FE equation of motion for accelerations using internal force */
 			if (1 || error == ExceptionT::kNoError) {
@@ -713,19 +722,23 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 }
 
 /* calculate MD internal force as function of total bridging scale displacement u */
-const dArray2DT& FEExecutionManagerT::InternalForce(dArray2DT& totalu, FEManagerT_bridging atoms) const
+const dArray2DT& FEExecutionManagerT::InternalForce(dArray2DT& totalu, FEManagerT_bridging& atoms) const
 {
 	/* first obtain the MD displacement field */
 	StringT bridging_field = "displacement";
 	FieldT* atomfield = atoms.NodeManager()->Field(bridging_field);
-	dArray2DT mddisp = (*atomfield)[0];	// Permanent MD displacements
-	iArrayT nodes;	// how do you calculate this?
+	dArray2DT mddisp = (*atomfield)[0];	// temporarily store permanent MD displacements
 	int group = 0;	// assume particle group number = 0
 	
+	/* obtain atom node list - can calculate once and store... */
+	int nnd = totalu.MajorDim();
+	iArrayT nodes(nnd);
+	nodes.SetValueToPosition();
+
 	/* now write total bridging scale displacement u into field */
 	atoms.SetFieldValues(bridging_field, nodes, totalu);
-	
-	/* compute RHS */
+		
+	/* compute RHS - ParticlePairT fForce should be calculated by this call? */
 	atoms.FormRHS(group);
 			
 	/* write actual MD displacements back into field */
