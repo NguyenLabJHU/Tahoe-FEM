@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.8 2002-03-22 01:33:40 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.9 2002-03-28 16:42:46 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT.h"
@@ -28,6 +28,13 @@ SPOOLESMatrixT::SPOOLESMatrixT(ostream& out, int check_code,
 {
 	fMSRBuilder = new MSRBuilderT(fSymmetric);
 	if (!fMSRBuilder) throw eOutOfMemory;
+}
+
+SPOOLESMatrixT::SPOOLESMatrixT(const SPOOLESMatrixT& source):
+	GlobalMatrixT(source)
+{
+	cout << "\n SPOOLESMatrixT::SPOOLESMatrixT: not implemented" << endl;
+	throw eGeneralFail;
 }
 
 /* destructor */
@@ -322,6 +329,39 @@ GlobalMatrixT::EquationNumberScopeT SPOOLESMatrixT::EquationNumberScope(void) co
 }
 
 bool SPOOLESMatrixT::RenumberEquations(void) const { return false; }
+
+/* assignment operator */
+GlobalMatrixT& SPOOLESMatrixT::operator=(const SPOOLESMatrixT& rhs)
+{
+#pragma unused(rhs)
+
+	cout << "\n SPOOLESMatrixT::operator= : not implemented" << endl;
+	throw eGeneralFail;
+	return *this;
+}
+
+/* assignment operator */
+GlobalMatrixT& SPOOLESMatrixT::operator=(const GlobalMatrixT& rhs)
+{
+#ifdef __NO_RTTI__
+	cout << "\n SPOOLESMatrixT::operator= : requires RTTI" << endl;
+	throw eGeneralFail;
+#endif
+
+	const SPOOLESMatrixT* sp = dynamic_cast<const SPOOLESMatrixT*>(&rhs);
+	if (!sp) {
+		cout << "\n SPOOLESMatrixT::operator= : cast failed" << endl;
+		throw eGeneralFail;
+	}
+	return operator=(*sp);
+}
+
+/** return a clone of self */
+GlobalMatrixT* SPOOLESMatrixT::Clone(void) const
+{
+	SPOOLESMatrixT* new_mat = new SPOOLESMatrixT(*this);
+	return new_mat;
+}
 
 /*************************************************************************
 * Protected

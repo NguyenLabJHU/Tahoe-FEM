@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.h,v 1.4 2002-03-22 01:33:39 paklein Exp $ */
+/* $Id: DiagonalMatrixT.h,v 1.5 2002-03-28 16:42:45 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _DIAGONAL_MATRIX_H_
@@ -19,8 +19,11 @@ public:
 	                    kDiagOnly   = 1,
                         kAbsRowSum  = 2};
 
-	/* constructors */
+	/** constructors */
 	DiagonalMatrixT(ostream& out, int check_code, AssemblyModeT mode);
+
+	/** copy constructor */
+	DiagonalMatrixT(const DiagonalMatrixT& source);
 
 	/* set assemble mode */
 	void SetAssemblyMode(AssemblyModeT mode);
@@ -56,6 +59,23 @@ public:
 	/* number scope and reordering */
 	virtual EquationNumberScopeT EquationNumberScope(void) const;
 	virtual bool RenumberEquations(void) const;
+
+	/** assignment operator */
+	virtual GlobalMatrixT& operator=(const DiagonalMatrixT& rhs);
+
+	/** assignment operator */
+	virtual GlobalMatrixT& operator=(const GlobalMatrixT& rhs);
+	
+	/** return a clone of self. Caller is responsible for disposing of the matrix */
+	virtual GlobalMatrixT* Clone(void) const;
+
+	/** matrix-vector product. OK to call either before or after the matrix is
+	 * factorized */
+	virtual void Multx(const dArrayT& x, dArrayT& b) const;
+
+	/** Tranpose[matrix]-vector product. OK to call either before or after the matrix 
+	 * is factorized */
+	virtual void MultTx(const dArrayT& x, dArrayT& b) const;
 	
 protected:
 
@@ -69,14 +89,6 @@ protected:
 	virtual void PrintAllPivots(void) const;
 	virtual void PrintZeroPivots(void) const;
 	virtual void PrintLHS(void) const;
-
-private:
-
-	/** no copy constructor */
-	DiagonalMatrixT(const DiagonalMatrixT&);
-
-	/** no assignment operator */
-	DiagonalMatrixT& operator=(const DiagonalMatrixT&);
 	
 private:
 
@@ -93,5 +105,11 @@ inline dArrayT& DiagonalMatrixT::TheMatrix(void)
 {
 	return fMatrix;
 }
+
+/* Tranpose[matrix]-vector product */
+inline void DiagonalMatrixT::MultTx(const dArrayT& x, dArrayT& b) const 
+{ 
+	DiagonalMatrixT::Multx(x, b);
+}; 
 
 #endif /* _DIAGONAL_MATRIX_H_ */

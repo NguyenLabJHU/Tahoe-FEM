@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.h,v 1.4 2002-03-22 01:33:39 paklein Exp $ */
+/* $Id: FullMatrixT.h,v 1.5 2002-03-28 16:42:45 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 
 #ifndef _FULL_MATRIX_T_H_
@@ -15,8 +15,11 @@ class FullMatrixT: public GlobalMatrixT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	FullMatrixT(ostream& out, int check_code);
+
+	/** copy constructor */
+	FullMatrixT(const FullMatrixT& source);
 		
 	/* set the internal matrix structure.
 	 * NOTE: do not call Initialize() equation topology has been set
@@ -50,6 +53,22 @@ public:
 	/* number scope and reordering */
 	virtual EquationNumberScopeT EquationNumberScope(void) const;
 	virtual bool RenumberEquations(void) const;
+
+	/** assignment operator */
+	virtual GlobalMatrixT& operator=(const FullMatrixT& rhs);
+
+	/** assignment operator */
+	virtual GlobalMatrixT& operator=(const GlobalMatrixT& rhs);
+	
+	/** return a clone of self. Caller is responsible for disposing of the matrix */
+	virtual GlobalMatrixT* Clone(void) const;
+
+	/** matrix-vector product. Cannot be called after the matrix is factorized. */
+	virtual void Multx(const dArrayT& x, dArrayT& b) const;
+
+	/** Tranpose[matrix]-vector product. Cannot be called after the matrix is 
+	 * factorized. */
+	virtual void MultTx(const dArrayT& x, dArrayT& b) const;
 	
 protected:
 
@@ -64,14 +83,6 @@ protected:
 	virtual void PrintZeroPivots(void) const;
 	virtual void PrintLHS(void) const;
 
-private:
-
-	/** no copy constructor */
-	FullMatrixT(const FullMatrixT&);
-
-	/** no assignment operator */
-	FullMatrixT& operator=(const FullMatrixT&);
-	
 protected:
 
 	/* the matrix */

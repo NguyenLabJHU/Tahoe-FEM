@@ -1,5 +1,5 @@
-/* $Id: CCSMatrixT.cpp,v 1.7 2002-03-22 01:33:39 paklein Exp $ */
-/* created: paklein (05/29/1996)                                          */
+/* $Id: CCSMatrixT.cpp,v 1.8 2002-03-28 16:42:44 paklein Exp $ */
+/* created: paklein (05/29/1996) */
 
 #include "CCSMatrixT.h"
 
@@ -34,7 +34,7 @@ CCSMatrixT::CCSMatrixT(const CCSMatrixT& source):
 	fNumberOfTerms(0),
 	fMatrix(NULL)
 {
-	operator=(source);
+	CCSMatrixT::operator=(source);
 }
 
 CCSMatrixT::~CCSMatrixT(void)
@@ -407,7 +407,7 @@ int CCSMatrixT::HasNegativePivot(void) const
 }
 
 /* assignment operator */
-CCSMatrixT& CCSMatrixT::operator=(const CCSMatrixT& RHS)
+GlobalMatrixT& CCSMatrixT::operator=(const CCSMatrixT& RHS)
 {
 	/* no copies of self */
 	if (this != &RHS)
@@ -452,6 +452,28 @@ CCSMatrixT& CCSMatrixT::operator=(const CCSMatrixT& RHS)
 	}
 	
 	return *this;
+}
+
+GlobalMatrixT& CCSMatrixT::operator=(const GlobalMatrixT& rhs)
+{
+#ifdef __NO_RTTI__
+	cout << "\n CCSMatrixT::operator= : requires RTTI" << endl;
+	throw eGeneralFail;
+#endif
+
+	const CCSMatrixT* ccs = dynamic_cast<const CCSMatrixT*>(&rhs);
+	if (!ccs) {
+		cout << "\n CCSMatrixT::operator= : cast failed" << endl;
+		throw eGeneralFail;
+	}
+	return operator=(*ccs);
+}
+
+/* return a clone of self */
+GlobalMatrixT* CCSMatrixT::Clone(void) const
+{
+	CCSMatrixT* new_mat = new CCSMatrixT(*this);
+	return new_mat;
 }
 
 /* TESTING: write non-zero elements of matrix in Aztec readable

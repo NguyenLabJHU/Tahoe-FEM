@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.5 2002-03-22 01:33:39 paklein Exp $ */
+/* $Id: DiagonalMatrixT.cpp,v 1.6 2002-03-28 16:42:45 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #include "DiagonalMatrixT.h"
@@ -14,6 +14,16 @@ DiagonalMatrixT::DiagonalMatrixT(ostream& out, int check_code, AssemblyModeT mod
 {
 	try { SetAssemblyMode(mode); }
 	catch (int) { throw eBadInputValue; }
+}
+
+/* copy constructor */
+DiagonalMatrixT::DiagonalMatrixT(const DiagonalMatrixT& source):
+	GlobalMatrixT(source),
+	fMatrix(source.fMatrix),
+	fMode(source.fMode)
+{
+
+
 }
 
 /* set assemble mode */
@@ -170,6 +180,50 @@ GlobalMatrixT::EquationNumberScopeT DiagonalMatrixT::EquationNumberScope(void) c
 }
 
 bool DiagonalMatrixT::RenumberEquations(void) const { return false; }
+
+/* assignment operator */
+GlobalMatrixT& DiagonalMatrixT::operator=(const DiagonalMatrixT& rhs)
+{
+	/* inherited */
+	GlobalMatrixT::operator=(rhs);
+
+	fMatrix = rhs.fMatrix;
+	fMode   = rhs.fMode;
+	return *this;
+}
+
+/* assignment operator */
+GlobalMatrixT& DiagonalMatrixT::operator=(const GlobalMatrixT& rhs)
+{
+#ifdef __NO_RTTI__
+	cout << "\n DiagonalMatrixT::operator= : requires RTTI" << endl;
+	throw eGeneralFail;
+#endif
+
+	const DiagonalMatrixT* dmat = dynamic_cast<const DiagonalMatrixT*>(&rhs);
+	if (!dmat) {
+		cout << "\n DiagonalMatrixT::operator= : cast failed" << endl;
+		throw eGeneralFail;
+	}
+	return operator=(*dmat);
+}
+
+/** return a clone of self */
+GlobalMatrixT* DiagonalMatrixT::Clone(void) const
+{
+	DiagonalMatrixT* new_mat = new DiagonalMatrixT(*this);
+	return new_mat;
+}
+
+/* matrix-vector product */
+void DiagonalMatrixT::Multx(const dArrayT& x, dArrayT& b) const
+{
+	b = x;
+	if (fIsFactorized)
+		b /= fMatrix;
+	else
+		b *= fMatrix;
+}
 
 /**************************************************************************
 * Protected

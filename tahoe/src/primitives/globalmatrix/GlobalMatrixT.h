@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.h,v 1.4 2002-03-22 01:33:39 paklein Exp $ */
+/* $Id: GlobalMatrixT.h,v 1.5 2002-03-28 16:42:45 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _GLOBAL_MATRIX_H_
@@ -85,7 +85,26 @@ public:
 	int StartEquation(void) const;
 
 	/** assignment operator */
-	GlobalMatrixT& operator=(const GlobalMatrixT& RHS);
+	virtual GlobalMatrixT& operator=(const GlobalMatrixT& RHS);
+	
+	/** return a clone of self. Caller is responsible for disposing of the matrix */
+	virtual GlobalMatrixT* Clone(void) const = 0;
+
+	/** matrix-vector product. Derived classes may through exceptions if called
+	 * after the matrix has been factorized, depending on whether the implementation
+	 * allows the product to be calculated using only the factorized matrix 
+	 * \param x vector to use for calculating the product
+	 * \param b destination for the result */
+	virtual void Multx(const dArrayT& x, dArrayT& b) const;// = 0;
+	//TEMP - should be pure virtual
+
+	/** Tranpose[matrix]-vector product. Derived classes may through exceptions if called
+	 * after the matrix has been factorized, depending on whether the implementation
+	 * allows the product to be calculated using only the factorized matrix
+	 * \param x vector to use for calculating the product
+	 * \param b destination for the result */
+	virtual void MultTx(const dArrayT& x, dArrayT& b) const;// = 0;
+	//TEMP - should be pure virtual
 	
 protected:
 

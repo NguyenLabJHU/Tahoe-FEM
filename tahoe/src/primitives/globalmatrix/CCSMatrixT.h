@@ -1,5 +1,5 @@
-/* $Id: CCSMatrixT.h,v 1.4 2002-03-22 01:33:39 paklein Exp $ */
-/* created: paklein (05/29/1996)                                          */
+/* $Id: CCSMatrixT.h,v 1.5 2002-03-28 16:42:45 paklein Exp $ */
+/* created: paklein (05/29/1996) */
 /* This is the interface for a Symmetric matrix stored in                 */
 /* Compact Column form.                                                   */
 /* To initialize:                                                         */
@@ -89,7 +89,13 @@ public:
 	void FindMinMaxPivot(double& min, double& max, double& abs_min, double& abs_max) const;
 
 	/** assignment operator */
-	CCSMatrixT& operator=(const CCSMatrixT& source);
+	virtual GlobalMatrixT& operator=(const CCSMatrixT& rhs);
+
+	/** assignment operator */
+	virtual GlobalMatrixT& operator=(const GlobalMatrixT& rhs);
+	
+	/** return a clone of self. Caller is responsible for disposing of the matrix */
+	virtual GlobalMatrixT* Clone(void) const;
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.h,v 1.3 2002-03-22 01:33:41 paklein Exp $ */
+/* $Id: AztecMatrixT.h,v 1.4 2002-03-28 16:42:47 paklein Exp $ */
 /* created: paklein (08/10/1998)                                          */
 /* interface for using Aztec with fe++                                    */
 
@@ -26,6 +26,9 @@ public:
 	/* constuctor */
 	AztecMatrixT(ifstreamT& in, ostream& out, int check_code);
 
+	/** copy constructor */
+	AztecMatrixT(const AztecMatrixT& source);
+	
 	/* destuctor */
 	virtual ~AztecMatrixT(void);
 
@@ -56,6 +59,15 @@ public:
 	virtual EquationNumberScopeT EquationNumberScope(void) const;
 	virtual bool RenumberEquations(void) const;
 
+	/** assignment operator */
+	virtual GlobalMatrixT& operator=(const AztecMatrixT& rhs);
+
+	/** assignment operator */
+	virtual GlobalMatrixT& operator=(const GlobalMatrixT& rhs);
+	
+	/** return a clone of self. Caller is responsible for disposing of the matrix */
+	virtual GlobalMatrixT* Clone(void) const;
+
 protected:
 
 	/* precondition matrix */
@@ -68,14 +80,6 @@ protected:
 	virtual void PrintAllPivots(void) const;
 	virtual void PrintZeroPivots(void) const;
 	virtual void PrintLHS(void) const;
-
-private:
-
-	/** no copy constructor */
-	AztecMatrixT(const AztecMatrixT&);
-	
-	/** no assignment operator */
-	const AztecMatrixT& operator=(const AztecMatrixT&);
 
 private:
 
