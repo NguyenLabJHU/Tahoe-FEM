@@ -1,4 +1,4 @@
-/* $Id: LennardJones612.h,v 1.3 2004-03-17 17:55:41 paklein Exp $ */
+/* $Id: LennardJones612.h,v 1.4 2004-05-10 17:01:28 paklein Exp $ */
 /* created: paklein (10/30/1997) */
 #ifndef _LJ_612_H_
 #define _LJ_612_H_
@@ -8,7 +8,12 @@
 
 namespace Tahoe {
 
-/** Lennard-Jones 6/12 function */
+/** Lennard-Jones 6/12 function
+ \f[
+	f(x) = a (\frac{1}{2} (x/b)^{-12} - (x/b)^{-6})
+ \f]
+ *
+ * with parameters {a, b} */
 class LennardJones612: public C1FunctionT
 {
 public:
@@ -16,7 +21,7 @@ public:
 	/** \name constructors */
 	/*@{*/
 	LennardJones612(void);
-	LennardJones612(double A);
+	LennardJones612(double A, double B);
 	/*@}*/
 
 	/** \name I/O */
@@ -56,8 +61,11 @@ public:
 
 private:
 
-	/** potential parameters */
+	/** \name potential parameters */
+	/*@{*/
 	double fA;
+	double fB;
+	/*@}*/
 };
 
 } // namespace Tahoe 
