@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.12.2.2 2003-02-15 02:38:16 paklein Exp $ */
+/* $Id: SolverT.h,v 1.12.2.3 2003-02-27 07:55:14 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -110,6 +110,10 @@ public:
 	void DisassembleLHSDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const;
 
 	void AssembleRHS(const nArrayT<double>& elRes, const nArrayT<int>& eqnos);
+
+	/** assemble forces over the whole system.
+	 * \param elRes force vector with length the total number of unknowns */
+	void AssembleRHS(const nArrayT<double>& elRes);
 	void OverWriteRHS(const dArrayT& elRes, const nArrayT<int>& eqnos);
 	void DisassembleRHS(dArrayT& elRes, const nArrayT<int>& eqnos) const;
 	/*@}*/
@@ -192,6 +196,18 @@ protected:
 };
 
 /* inlines */
+
+/* assemble forces over the whole system */
+inline void SolverT::AssembleRHS(const nArrayT<double>& elRes)
+{
+	/* lock state */
+	if (fRHS_lock == kIgnore)
+		return;
+	else if (fRHS_lock == kLocked)
+		ExceptionT::GeneralFail("SolverT::AssembleRHS");
+	else
+		fRHS += elRes;
+}
 
 /* assembling the global equation system */
 inline void SolverT::AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& eqnos)

@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.13.2.1 2003-02-15 02:38:16 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.13.2.2 2003-02-27 07:55:13 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -153,7 +153,7 @@ void SolverT::AssembleRHS(const nArrayT<double>& elRes, const nArrayT<int>& eqno
 	const char caller[] = "SolverT::AssembleRHS";
 
 	/* consistency check */
-	if (elRes.Length() != eqnos.Length()) throw ExceptionT::kGeneralFail;
+	if (elRes.Length() != eqnos.Length()) ExceptionT::GeneralFail(caller);
 
 	/* lock state */
 	if (fRHS_lock == kIgnore)
