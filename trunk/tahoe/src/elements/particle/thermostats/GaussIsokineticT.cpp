@@ -1,4 +1,4 @@
-/* $Id: GaussIsokineticT.cpp,v 1.2 2003-04-22 01:23:16 cjkimme Exp $ */
+/* $Id: GaussIsokineticT.cpp,v 1.3 2003-04-24 20:43:20 cjkimme Exp $ */
 #include "GaussIsokineticT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -17,9 +17,7 @@ using namespace Tahoe;
 GaussIsokineticT::GaussIsokineticT(ifstreamT& in, const int& nsd, const double& dt):
 	ThermostatBaseT(in, nsd, dt)
 {
-	in >> fTemperature;
-	if (fTemperature < 0.)
-		ExceptionT::BadInputValue("GaussIsokineticT::GaussIsokineticT","Negative Absolute T");
+	
 }
 
 /* write properties to output */
@@ -45,6 +43,11 @@ void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const 
 			dArray2DT& forces, AutoArrayT<int>& types,
 			ArrayT<ParticlePropertyT*>& particleProperties)
 {
+	/* Get the temperature */
+	fTemperature = fTemperatureSchedule->Value()*fTemperatureScale;
+	if (fTemperature < 0.)
+		ExceptionT::GeneralFail("LangevinT::ApplyDamping","schedule generated negative temperature");
+
 	double denom = 0.;
 	double num = 0.;
 	double* v_j;
@@ -102,7 +105,7 @@ void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const 
 	if (abs(denom) > kSmall)
 		fBeta = num/denom;
 	else
-		fBeta = 0.; // turn it off for now. need IC's to fix it
+		fBeta = 0.; 
 	
 	ThermostatBaseT::ApplyDamping(neighbors,velocities,forces,
 							types,particleProperties);

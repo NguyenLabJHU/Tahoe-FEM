@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.cpp,v 1.3 2003-04-22 01:23:16 cjkimme Exp $ */
+/* $Id: ThermostatBaseT.cpp,v 1.4 2003-04-24 20:43:20 cjkimme Exp $ */
 #include "ThermostatBaseT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -96,7 +96,26 @@ void ThermostatBaseT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const d
 	    }
 	}
 }			
+
+void ThermostatBaseT::InitRegion(ifstreamT& in, const dArray2DT& coords,	
+					const ArrayT<int>* partition_nodes)
+{
+	fxmin.Dimension(fSD);
+	fxmax.Dimension(fSD);
+
+	in >> fxmin;
+	in >> fxmax;
+	in >> nIncs; 
+	if (nIncs < 0) 
+		ExceptionT::BadInputValue("ThermostatBaseT::InitRegion","Bad increment value");
+
+	for (int i = 0; i < fSD; i++)
+		if (fxmin[i] >= fxmax[i])
+			ExceptionT::BadInputValue("ThermostatBaseT::InitRegion","Bad bounding box coordinates");
 	
+	/* get the nodes in the region */
+	NodesInRegion(coords, partition_nodes);
+}	
 
 void ThermostatBaseT::NodesInRegion(const dArray2DT& coords,	
 					const ArrayT<int>* partition_nodes)
@@ -119,9 +138,9 @@ void ThermostatBaseT::NodesInRegion(const dArray2DT& coords,
 			x_i = coords(i);
 		else
 			x_i = coords((*partition_nodes)[i]);
-		for (int j = 0; inBox && j < fSD; i++)
+		for (int j = 0; inBox && j < fSD; j++)
 		{
-			inBox = (xmin[j] < *x_i) && (*x_i++ < xmax[j]);
+			inBox = (xmin[j] < x_i[j]) && (x_i[j] < xmax[j]);
 		}
 		if (inBox)
 		{
@@ -137,19 +156,7 @@ void ThermostatBaseT::SetTemperatureSchedule(const ScheduleT* schedule, const do
 {
 	fTemperatureSchedule = schedule;
 	fTemperatureScale = value;
-}
-
-void ThermostatBaseT::CreateVelocities(const RaggedArray2DT<int>& neighbors, dArray2DT* velocities,
-					AutoArrayT<int>& types,
-					ArrayT<ParticlePropertyT*>& particleProperties)
-{
-#pragma unused(neighbors)
-#pragma unused(velocities)
-#pragma unused(types)
-#pragma unused(particleProperties)
-	// Not implemented yet. Need to make a MB distribution? 
-}
-	
+}	
 
 namespace Tahoe {
 
