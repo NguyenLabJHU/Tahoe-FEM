@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.6.2.3 2003-01-05 23:44:04 paklein Exp $ */
+/* $Id: FieldT.h,v 1.6.2.4 2003-01-11 01:17:12 paklein Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -52,9 +52,6 @@ public:
 
 	/** set the group number */
 	void SetGroup(int group) { fGroup = group; };
-
-	/** set number of nodes. (Re-)allocates memory. */
-	void Dimension(int nnd);	
 	/*@}*/
 	
 	/** \name accessors */
@@ -116,11 +113,13 @@ public:
 
 	/** \name update array.
 	 * Updates are applied to the field by calling FieldT::Update. Values can be written
-	 * into the update array in two ways:
+	 * into the update array in three ways:
 	 * -# FieldT::AssembleUpdate overwrites values for the equations corresponding to 
 	 *    the parameters passed to FieldT::FinalizeEquations 
 	 * -# values can be written directly into the update array by accessing it
-	 *    with FieldT::Update */
+	 *    with FieldT::Update
+	 * Also, field values can be copied from node to node using FieldT::CopyNodeToNode 
+	 */
 	/*@{*/
 	/** read/write access to the update array */
 	dArray2DT& Update(void) { return fUpdate; };
@@ -132,6 +131,10 @@ public:
 	
 	/** apply the full update to the field */
 	void ApplyUpdate(void);
+
+	/** copy nodal information. Copy all field information from the source 
+	 * nodes to the targets. Equation are not copied. */
+	void CopyNodeToNode(const ArrayT<int>& source, const ArrayT<int>& target);
 	/*@}*/
 	
 	/** check for relaxation */
@@ -142,7 +145,6 @@ public:
 
 	/** reset displacements (and configuration to the last known solution) */
 	void ResetStep(void);
-	/*@}*/
 
 	/** \name equation numbers
 	 * FieldT assumes equation numbers will be assigned by the host. The array can be 

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.18.2.8 2003-01-05 23:44:04 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.18.2.9 2003-01-11 01:17:12 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -101,9 +101,6 @@ void NodeManagerT::Initialize(void)
 
 	/* set fields */
 	EchoFields(in, out);
-
-	/* external nodes (parallel execution) */
-//	EchoExternalNodes(out);
 
 	/* history nodes */
 	EchoHistoryNodes(in, out);
@@ -704,6 +701,53 @@ void NodeManagerT::WeightNodalCost(iArrayT& weight) const
 	}	
 }
 
+/* reset the number of nodes */
+void NodeManagerT::ResizeNodes(int num_nodes)
+{
+	/* reference coordinates */
+	fFEManager.ModelManager()->ResizeNodes(num_nodes);
+	
+	/* current coordinates */
+	if (fCurrentCoords) fCurrentCoords_man.SetMajorDimension(num_nodes, true);
+		
+	/* resize fields */
+	for (int i = 0; i < fFields.Length(); i++)
+		fFields[i]->Dimension(num_nodes, true);
+
+	/* averaging work space */
+	SetNumAverageRows(NumNodes());
+}
+
+/* copy nodal information */
+void NodeManagerT::CopyNodeToNode(const ArrayT<int>& source, 
+	const ArrayT<int>& target)
+{
+	/* check */
+	if (source.Length() != target.Length()) ExceptionT::SizeMismatch();
+
+	/* current coordinates */
+	if (fCurrentCoords)
+		for( int i = 0; i < source.Length(); i++ ) 
+			fCurrentCoords->CopyRowFromRow(target[i], source[i]) ;
+
+	/* copy fields */
+	for (int i = 0; i < fFields.Length(); i++)
+	{
+		/* the field */
+		FieldT& field = *(fFields[i]);
+
+		/* copy field data */
+		field.CopyNodeToNode(source, target);
+
+		/* gather/distribute external contribution */
+		for (int j = 0; j <= field.Order(); j++)
+			fCommManager.AllGather(fMessageID[i], field[j]);
+		
+		/* reset history */
+		field.CloseStep();
+	}
+}
+
 #if 0
 /* duplicate nodes */
 void NodeManagerT::DuplicateNodes(const iArrayT& nodes, 
@@ -1147,6 +1191,8 @@ void NodeManagerT::EchoCoordinates(ifstreamT& in, ostream& out)
 /* echo field data */
 void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 {
+	const char caller[] = "NodeManagerT::EchoFields";
+
 	/* no predefined fields */
 	if (fFEManager.Analysis() == GlobalT::kMultiField)
 	{
@@ -1173,11 +1219,8 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			index--;
 			group_num--;
 			cont_num--;
-			if (fFields[index] != NULL) {
-				cout << "\n NodeManagerT::EchoFields: field at index "
-				     << index+1 <<   "     is already set" << endl;
-				throw ExceptionT::kBadInputValue; 
-			}
+			if (fFields[index] != NULL)
+				ExceptionT::BadInputValue(caller, "field at index %d is already set", index+1);
 
 			/* check for field with same name */
 			if (Field(name)) {
@@ -1199,7 +1242,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			FieldT* field = new FieldT(name, ndof, *controller);
 			field->SetLabels(labels);
 			field->SetGroup(group_num);
-			field->Dimension(NumNodes());
+			field->Dimension(NumNodes(), false);
 			field->WriteParameters(out);
 
 			/* coordinate update field */
@@ -1209,7 +1252,10 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 					throw ExceptionT::kBadInputValue;
 				}
 				fCoordUpdate = field;
-				fCurrentCoords = new dArray2DT(InitialCoordinates());
+				fCurrentCoords = new dArray2DT;
+				fCurrentCoords_man.SetWard(0, *fCurrentCoords, NumSD());
+				fCurrentCoords_man.SetMajorDimension(NumNodes(), false);
+				(*fCurrentCoords) = InitialCoordinates();
 			}
 
 			/* echo initial/boundary conditions */
@@ -1289,7 +1335,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 		field->SetGroup(0);
 		
 		/* dimension */
-		field->Dimension(NumNodes());
+		field->Dimension(NumNodes(), false);
 		
 		/* clear all equation numbers */
 		field->Equations() = FieldT::kInit;
@@ -1460,32 +1506,6 @@ void NodeManagerT::EchoKinematicBC(FieldT& field, ifstreamT& in, ostream& out)
 			throw ExceptionT::kOutOfRange;
 		}
 }
-
-#if 0
-void NodeManagerT::EchoExternalNodes(ostream& out)
-{
-	/* get external nodes */
-	fFEManager.IncomingNodes(fExNodes);
-	
-	int num_ex = fExNodes.Length();
-	out << " Number of external nodes. . . . . . . . . . . . = " << num_ex << '\n';
-	if (num_ex > 0)
-	{
-		/* echo nodes */
-		if (fFEManager.PrintInput())
-		{
-			out << " External nodes:\n";
-			fExNodes++;
-			out << fExNodes.wrap(8) << '\n';
-			fExNodes--;
-		}
-
-		/* set up fields */
-		for (int i = 0; i < fFields.Length(); i++)
-			fFields[i]->InitExternalEquations(fExNodes);
-	}
-}
-#endif
 
 void NodeManagerT::EchoForceBC(FieldT& field, ifstreamT& in, ostream& out)
 {

@@ -1,4 +1,4 @@
-/* $Id: BasicFieldT.cpp,v 1.4.8.1 2002-12-16 09:16:55 paklein Exp $ */
+/* $Id: BasicFieldT.cpp,v 1.4.8.2 2003-01-11 01:17:12 paklein Exp $ */
 #include "BasicFieldT.h"
 #include "iArrayT.h"
 
@@ -8,12 +8,19 @@ using namespace Tahoe;
 BasicFieldT::BasicFieldT(const StringT& name, int ndof, int order):
 	fName(name),
 	fField(order+1),
-	fEqnos(0, ndof)
+	fEqnos(0, ndof),
+	fdArray2DGroup(0, false, ndof),
+	fiArray2DGroup(0, false, ndof)
 {
 	/* set default labels */
 	fLabels.Dimension(ndof);
 	for (int i = 0; i < fLabels.Length(); i++)
 		fLabels[i].Append("D_", i+1);
+
+	/* register arrays */
+	for (int i = 0; i < fField.Length(); i++)
+		RegisterArray2D(fField[i]);
+	RegisterArray2D(fEqnos);
 }
 
 /* set field labels */
@@ -23,17 +30,13 @@ void BasicFieldT::SetLabels(const ArrayT<StringT>& labels)
 }
 
 /* set number of nodes */
-void BasicFieldT::Dimension(int nnd)
+void BasicFieldT::Dimension(int nnd, bool copy_in)
 {
-	/* number of degrees of freedom */
-	int ndof = fEqnos.MinorDim();
-
-	/* dimension field */
-	for (int i = 0; i < fField.Length(); i++)
-		fField[i].Dimension(nnd, ndof);
-		
-	/* allocate equations array */
-	fEqnos.Dimension(nnd, ndof);
+	/* resize double arrays */
+	fdArray2DGroup.SetMajorDimension(nnd, copy_in);
+	
+	/* resize integer arrays */
+	fiArray2DGroup.SetMajorDimension(nnd, copy_in);
 }
 
 void BasicFieldT::WriteEquationNumbers(ostream& out, const ArrayT<int>* node_map) const

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.10.2.6 2003-01-05 23:44:05 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.10.2.7 2003-01-11 01:17:12 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -17,6 +17,7 @@
 #include "IOBaseT.h"
 #include "GlobalT.h"
 #include "ControllerT.h"
+#include "nVariArray2DT.h"
 
 namespace Tahoe {
 
@@ -166,7 +167,12 @@ public:
 	/** update the active degrees of freedom */
 	virtual void Update(int group, const dArrayT& update);
 
-	/** reset displacements (and configuration to the last known solution) */
+	/** copy nodal information. Copy all field information from the source 
+	 * nodes to the targets. The current coordinates are updated, but the
+	 * initial coordinates are not. These are owned by the ModelManagerT. */
+	void CopyNodeToNode(const ArrayT<int>& source, const ArrayT<int>& target);
+
+	/** reset fields (and configuration to the last known solution) */
 	virtual void ResetStep(int group);
 
 	/** return the current values of the active degrees of freedom 
@@ -198,11 +204,16 @@ public:
 	const ArrayT<int>* ProcessorMap(void) const;
 	/*@}*/
 
-	/** set the controller for the time integration algorithm */
-//	virtual void SetController(nControllerT* controller);
-
 	/* weight the computational effort of every node */
 	virtual void WeightNodalCost(iArrayT& weight) const;
+
+	/** \name dynamic transformations */
+	/*@{*/
+	/** reset the number of nodes. Resizes all coordinate and field arrays to
+	 * the new number of nodes. Excess nodes at the tail of all arrays are
+	 * discarded. Additional nodes added to all arrays is not initialized. */
+	void ResizeNodes(int num_nodes);
+	/*@}*/
 
 #if 0
 	/** duplicate nodes.
@@ -242,7 +253,6 @@ protected:
 	/*@{*/
 	virtual void EchoCoordinates(ifstreamT& in, ostream& out);
 	virtual void EchoFields(ifstreamT& in, ostream& out);
-//	virtual void EchoExternalNodes(ostream& out);
 	virtual void EchoHistoryNodes(ifstreamT& in, ostream &out);
 	/*@}*/
 
@@ -333,6 +343,7 @@ private:
 	/** current coordinates. NULL if the current coordinates are the same
 	 * as the initial coordinates. */
 	dArray2DT* fCurrentCoords;
+	nVariArray2DT<double> fCurrentCoords_man;
 	/*@}*/
 };
 
