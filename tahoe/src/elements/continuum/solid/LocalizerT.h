@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.h,v 1.8 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: LocalizerT.h,v 1.9 2005-01-29 01:30:45 raregue Exp $ */
 /* created: paklein (02/19/1998) */
 #ifndef _LOCALIZER_T_H_
 #define _LOCALIZER_T_H_
@@ -105,7 +105,8 @@ protected:
 	iArray2DT fNeighborList;
 	
 	/* work space */
-	dArrayT     fNormal;
+	//dArrayT     fNormal;
+	AutoArrayT <dArrayT> fNormals, fSlipDirs;
 	dSymMatrixT fAvgStretch;
 
 private: /* localization workspace */
