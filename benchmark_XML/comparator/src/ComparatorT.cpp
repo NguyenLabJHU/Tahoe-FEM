@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.7 2001-09-05 18:35:27 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.8 2001-09-05 18:40:56 paklein Exp $ */
 
 #include "ComparatorT.h"
 
@@ -53,6 +53,10 @@ void ComparatorT::Run(void)
 		{
 			/* second file */
 			StringT file_2(fCommandLineOptions[index + 1]);
+
+			/* (re-)set default tolerances */
+			fAbsTol = abs_tol;	
+			fRelTol = rel_tol;
 
 			/* compare */
 			PassOrFail(file_1, file_2);
