@@ -1,4 +1,4 @@
-/* $Id: psp_debug.c,v 1.5 2005-01-15 05:37:45 paklein Exp $ */
+/* $Id: psp_debug.c,v 1.6 2005-01-15 05:58:52 paklein Exp $ */
 #include <stdio.h>
 #include "pspases_f2c.h"
 #include "mpi.h"
@@ -54,13 +54,19 @@ void mydsyrk_(char *UL, char *NT, integer *N, integer *K,
 
 int myMPI_Isend(void* buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm, MPI_Request *request)
 {
+	int ret;
+
 	/* report values */
 	printf("MPI_Isend: count = %d, datatype = %s, dest = %d, tag = %d\n", 
 		count, t2s(datatype), dest, tag);
 	fflush(stdout);
 	
 	/* call */
-	return MPI_Isend(buf, count, datatype, dest, tag, comm, request);
+	ret = MPI_Isend(buf, count, datatype, dest, tag, comm, request);
+
+	printf("MPI_Isend: request = %x\n", *request);
+	
+	return ret;
 }
 
 int myMPI_Send(void* buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
