@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.h,v 1.11 2003-04-14 17:27:07 cjkimme Exp $ */
+/* $Id: TiedPotentialT.h,v 1.12 2003-04-17 20:11:33 cjkimme Exp $ */
 /* created: cjkimme (04/15/2002) */
 
 #ifndef _TIED_POTENTIAL_T_H_
@@ -28,6 +28,9 @@ public:
 
 	/** return the number of state variables needed by the model */
 	int NumStateVariables(void) const;
+	
+	/** initialize the state variable array. */
+	virtual void InitStateVariables(ArrayT<double>& state);
 
 	/** dissipated energy */
 	virtual double FractureEnergy(const ArrayT<double>& state);
