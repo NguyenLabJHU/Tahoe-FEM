@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.4 2003-04-22 01:14:35 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.5 2003-04-22 16:17:16 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -29,15 +29,6 @@ CommManagerT::CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager):
 		fProcessor.Dimension(fModelManager.NumNodes());
 		fProcessor = fComm.Rank();
 	}
-	
-	/* dimension */
-	int nsd = fModelManager.NumDimensions();
-	fIsPeriodic.Dimension(nsd);
-	fIsPeriodic = false;
-	fPeriodicBoundaries.Dimension(nsd, 2);
-	fPeriodicBoundaries = 0.0;
-	fPeriodicLength.Dimension(nsd);
-	fPeriodicLength = 0.0;
 }
 
 CommManagerT::~CommManagerT(void)
@@ -97,6 +88,15 @@ void CommManagerT::SetPartition(PartitionT* partition)
 void CommManagerT::SetNodeManager(NodeManagerT* node_manager)
 {
 	fNodeManager = node_manager;
+
+	/* dimension space for periodic BC */
+	int nsd = fModelManager.NumDimensions();
+	fIsPeriodic.Dimension(nsd);
+	fIsPeriodic = false;
+	fPeriodicBoundaries.Dimension(nsd, 2);
+	fPeriodicBoundaries = 0.0;
+	fPeriodicLength.Dimension(nsd);
+	fPeriodicLength = 0.0;
 }
 
 /* set boundaries */
@@ -597,9 +597,9 @@ void CommManagerT::FirstConfigure(void)
 	
 		/* number of nodes owned by this partition */
 		int npn = fPartition->NumPartitionNodes();
+		int nsd = fModelManager.NumDimensions();
 
 		/* total number of nodes */
-		int nsd = fModelManager.NumDimensions();
 		AllGatherT all_gather(fComm);
 		all_gather.Initialize(npn*nsd);
 		fNumRealNodes = all_gather.Total()/nsd;
