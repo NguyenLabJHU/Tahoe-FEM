@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.42 2003-03-11 07:19:12 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.43 2003-03-11 08:14:35 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -818,9 +818,6 @@ void SolidElementT::ElementLHSDriver(void)
 		if (fabs(constKe) > kSmall)
 			FormStiffness(constKe);
 
-//TEMP
-ElementSupport().Output() << '\n' << fLHS << '\n';
-	
 		/* add to global equations */
 		AssembleLHS();		
 	}
