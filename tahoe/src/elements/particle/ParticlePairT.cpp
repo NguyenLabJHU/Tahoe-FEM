@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.34 2004-04-09 02:03:01 hspark Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.35 2004-04-19 22:08:07 paklein Exp $ */
 
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
@@ -316,10 +316,10 @@ void ParticlePairT::WriteOutput(void)
     /* flag for specifying Lagrangian (0) or Eulerian (1) strain */ 
     const int kEulerLagr = 0;
 	/* calculate slip vector and strain */
-	Calc_Slip_and_Strain(non,num_s_vals,s_values,RefNearestNeighbors,kEulerLagr);
+	Calc_Slip_and_Strain(s_values,RefNearestNeighbors,kEulerLagr);
 
     /* calculate centrosymmetry parameter */
-	Calc_CSP(non,num_s_vals,s_values,NearestNeighbors);
+	Calc_CSP(s_values,NearestNeighbors);
 
 	/* combine strain, slip vector and centrosymmetry parameter into n_values list */
 	for (int i = 0; i < fNeighbors.MajorDim(); i++)

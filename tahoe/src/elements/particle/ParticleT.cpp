@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.36 2004-04-02 16:48:22 jzimmer Exp $ */
+/* $Id: ParticleT.cpp,v 1.37 2004-04-19 22:08:07 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -1038,8 +1038,10 @@ ThermostatBaseT* ParticleT::New_Thermostat(const StringT& name, bool throw_on_fa
 	return NULL;
 }
 
-void ParticleT::Calc_Slip_and_Strain(int non, int num_s_vals,dArray2DT &s_values, RaggedArray2DT<int> &RefNearestNeighbors, const int &kEulerLagr)
+void ParticleT::Calc_Slip_and_Strain(dArray2DT &s_values, RaggedArray2DT<int> &RefNearestNeighbors, const int &kEulerLagr)
 {
+  int non = s_values.MajorDim();
+  int num_s_vals = s_values.MinorDim();
   int ndof = NumDOF();
   int num_strains = num_s_vals - ndof - 1;
   iArrayT neighbors;
@@ -1183,8 +1185,10 @@ int ParticleT::Combination(int n,int k)
    return combo_nk;
   }
 
-void ParticleT::Calc_CSP(int non, int num_s_vals,dArray2DT &s_values, RaggedArray2DT<int> &NearestNeighbors)
+void ParticleT::Calc_CSP(dArray2DT &s_values, RaggedArray2DT<int> &NearestNeighbors)
 {
+  int non = s_values.MajorDim();
+  int num_s_vals = s_values.MinorDim();
   int ndof = NumDOF();
   iArrayT neighbors;
   dArrayT x_i(ndof), x_j(ndof), r_ij(ndof), rvec(ndof);  
