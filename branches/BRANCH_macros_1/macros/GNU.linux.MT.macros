@@ -1,0 +1,39 @@
+# $Id: GNU.linux.MT.macros,v 1.5 2003-02-08 17:33:14 paklein Exp $
+# GNU
+
+# additional flags for multithreaded code (spoolesMT in particular)
+# valid values are: __POSIX_THREADS__ __NO_THREADS__ and __SOLARIS_THREADS__
+
+MT_CFLAGS = -D__POSIX_THREADS__ -D__NUM_THREADS__="2"
+MT_LFLAGS = -lpthread
+
+
+MAKE        = make
+MAKE_DEPEND = makedepend
+DEPENDFLAGS = -I/usr/include/g++-3 -I/usr/include/g++-2
+COMP_C      = gcc
+COMP_CC     = g++
+COMP_F      = g77
+DEFINES     = -D__GNU__ -DNON_UNIX_STDIO 
+MORE_CFLAGS = -O3 -DNDEBUG
+#MORE_CFLAGS = -g
+#LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -Wunused -Wuninitialized
+LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) $(MT_CFLAGS)
+CFLAGS_C    = $(LOC_CFLAGS)
+CFLAGS_CC   = $(LOC_CFLAGS)
+CFLAGS_F    = $(LOC_CFLAGS)
+LINK        = $(COMP_CC)
+LFLAGS      = $(MT_LFLAGS) -lm 
+AR          = ar
+ARFLAGS     = -cruv
+MAKE_OPTS   = -s
+RM          = rm
+RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
+LN          = ln -sf
+ECHO        = /bin/echo -e
+CAT         = cat
+PERL        = perl -w
+
+# command needed build library
+#BUILD_LIBRARY = BUILD_LIBRARY_RANLIB
+BUILD_LIBRARY = BUILD_LIBRARY_AR

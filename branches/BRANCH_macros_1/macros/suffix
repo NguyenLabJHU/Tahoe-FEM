@@ -1,0 +1,65 @@
+# $Id: suffix,v 1.4 2003-02-08 17:37:06 paklein Exp $
+
+.SUFFIXES: .c .cpp .C .f .F .o .d .h .h_link
+
+# source file -> object file
+.c.o:
+	@ $(ECHO) "    $(COMP_C): "$<
+	$(COMP_C) $(OPT_CFLAGS) $(CFLAGS_C) $(MY_CFLAGS) $<
+	@$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
+	@$(ECHO) "#touch" > $(LIB_DIR)/lib.junk
+
+.cpp.o:
+	@ $(ECHO) "    $(COMP_CC): "$<
+	$(COMP_CC) $(OPT_CFLAGS) $(CFLAGS_CC) $(MY_CCFLAGS) $<
+	@$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
+	@$(ECHO) "#touch" > $(LIB_DIR)/lib.junk
+
+.C.o:
+	@ $(ECHO) "    $(COMP_CC): "$<
+	$(COMP_CC) $(OPT_CFLAGS) $(CFLAGS_CC) $(MY_CCFLAGS) $<
+	@$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
+	@$(ECHO) "#touch" > $(LIB_DIR)/lib.junk
+
+.f.o:
+	@ $(ECHO) "    $(COMP_F): "$<
+	$(COMP_F) $(OPT_CFLAGS) $(CFLAGS_F) $(MY_FFLAGS) $<
+	@$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
+	@$(ECHO) "#touch" > $(LIB_DIR)/lib.junk
+
+.F.o:
+	@ $(ECHO) "    $(COMP_F): "$<
+	$(COMP_F) $(OPT_CFLAGS) $(CFLAGS_F) $(MY_FFLAGS) $<
+	@$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
+	@$(ECHO) "#touch" > $(LIB_DIR)/lib.junk
+
+# header file -> symbolic link
+.h.h_link:
+	@ $(ECHO) "    $(LN): "$<; \
+	$(LN) $(CURR_DIR)/$< $(INC_DIR)/$<
+
+# source file -> list of dependencies
+.c.d:
+	@ $(ECHO) "    $(MAKE_DEPEND): "$<
+	@ $(ECHO) "" > $@
+	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
+
+.cpp.d:
+	@ $(ECHO) "    $(MAKE_DEPEND): "$<
+	@ $(ECHO) "# DO NOT DELETE" > $@
+	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
+
+.C.d:
+	@ $(ECHO) "    $(MAKE_DEPEND): "$<
+	@ $(ECHO) "# DO NOT DELETE" > $@
+	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
+
+.f.d:
+	@ $(ECHO) "    $(MAKE_DEPEND): "$<
+	@ $(ECHO) "# DO NOT DELETE" > $@
+	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
+
+.F.d:
+	@ $(ECHO) "    $(MAKE_DEPEND): "$<
+	@ $(ECHO) "# DO NOT DELETE" > $@
+	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
