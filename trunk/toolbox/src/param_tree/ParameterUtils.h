@@ -1,4 +1,4 @@
-/* $Id: ParameterUtils.h,v 1.9 2004-07-12 21:49:59 paklein Exp $ */
+/* $Id: ParameterUtils.h,v 1.10 2004-07-22 21:06:43 paklein Exp $ */
 #ifndef _PARAMETER_UTILS_H_
 #define _PARAMETER_UTILS_H_
 
@@ -271,13 +271,13 @@ public:
 
 	/** \name constructors */
 	/*@{*/
-	VectorParameterT(const StringT& name, char variable, int dim);
-	VectorParameterT(char variable, int dim);
+	VectorParameterT(const StringT& name, int dim, char variable = 'v');
+	VectorParameterT(int dim, char variable = 'v');
 	
 	/** construct extracting length from the name
 	 * \param name_N name of the vector parameter list where N is an integer
 	 *        defining the length of the list */
-	VectorParameterT(const StringT& name_N);
+	VectorParameterT(const StringT& name_N, char variable = 'v');
 	/*@}*/
 
 	/** \name implementation of the ParameterInterfaceT interface */
@@ -295,7 +295,7 @@ public:
 	operator const dArrayT&() const { return fVector; };
 
 	/** extract parameters to a dArrayT */
-	static void Extract(const ParameterListT& list, dArrayT& array);
+	static void Extract(const ParameterListT& list, dArrayT& array, char variable = 'v');
 
 protected:
 
@@ -313,13 +313,13 @@ public:
 
 	/** \name constructors */
 	/*@{*/
-	MatrixParameterT(const StringT& name, char variable, int row, int col);
-	MatrixParameterT(char variable, int row, int col);
+	MatrixParameterT(const StringT& name, int row, int col, char variable = 'A');
+	MatrixParameterT(int row, int col, char variable = 'A');
 
 	/** construct extracting dimensions from the name
 	 * \param name_NxM name of the matrix parameter list where N and M are the
 	 *        integers defining the number of rows and columns, respectively. */
-	MatrixParameterT(const StringT& name_NxM);
+	MatrixParameterT(const StringT& name_NxM, char variable = 'A');
 	/*@}*/
 
 	/** \name implementation of the ParameterInterfaceT interface */
@@ -337,12 +337,15 @@ public:
 	operator const dMatrixT&() const { return fMatrix; };
 
 	/** extract parameters to a dMatrixT */
-	static void Extract(const ParameterListT& list, dMatrixT& matrix);
+	static void Extract(const ParameterListT& list, dMatrixT& matrix, char variable = 'A');
 
 protected:
 
 	/** component names */
 	char fVariable;
+
+	/** copy values to symmetric positions during MatrixParameterT::TakeParameterList */
+	bool fCopySymmetric;
 
 	/** values */
 	dMatrixT fMatrix;
