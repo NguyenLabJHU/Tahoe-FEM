@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.20 2004-11-16 01:04:35 paklein Exp $ */
+/* $Id: main.cpp,v 1.21 2004-12-13 23:47:08 paklein Exp $ */
 #include "ExceptionT.h"
 
 #include "TranslateIOManager.h"
@@ -203,7 +203,7 @@ void ReadArgs (char* a, AutoArrayT<StringT>& list)
       }
     default:
       {
-	cout << "\n You must put either % or @ at the beginning of your input file.\n\n";
+	cout << "\n You must put either % or @ at the beginning of your input file \"" << s <<"\".\n\n";
 	throw ExceptionT::kBadInputValue;
       }
     }

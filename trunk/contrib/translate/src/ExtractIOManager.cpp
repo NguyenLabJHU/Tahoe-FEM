@@ -1,4 +1,4 @@
-/* $Id: ExtractIOManager.cpp,v 1.16 2003-11-21 22:45:27 paklein Exp $ */
+/* $Id: ExtractIOManager.cpp,v 1.17 2004-12-13 23:47:08 paklein Exp $ */
 #include "ExtractIOManager.h"
 
 #include "ExceptionT.h"
@@ -19,7 +19,7 @@ void ExtractIOManager::Translate (const StringT& program, const StringT& version
   
   cout << "\n" << setw (10) << fModel.NumNodeVariables () << " Node Variables\n";
   cout << setw (10) << fModel.NumElementVariables () << " Element Variables\n";
-  cout << setw (10) << fModel.NumQuadratureVariables () << " Quadrature Varaibles\n";
+  cout << setw (10) << fModel.NumQuadratureVariables () << " Quadrature Variables\n";
 
   // set output
   SetOutput (program, version, title);

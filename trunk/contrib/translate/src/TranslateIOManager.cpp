@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.41 2003-12-07 05:16:51 paklein Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.42 2004-12-13 23:47:08 paklein Exp $  */
 #include "TranslateIOManager.h"
 
 #include "ExceptionT.h"
@@ -235,6 +235,7 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
       cout << "1. List of nodes\n";
       cout << "2. Node Set\n";
       cout << "3. Every nth node\n";
+      cout << "4. Start node, end node, and increment\n";
       cout << "\n How do you want to define your list of nodes: ";
     }
   fIn >> selection;
@@ -318,7 +319,45 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
 	    index[n] = n*freq;
 	  }
 	break;
-      }
+	}
+	case 4: // {start, end, increment}
+	{
+		/* start */
+		int start;
+		if (fWrite) {
+	    	cout << "\n Number of Nodes: " << numnodes << "\n";
+	    	cout << "    Enter start node: ";
+		}
+		fIn >> start;
+		if (fEcho) fEchoOut << start << endl;
+
+		/* end */
+		int end;
+		if (fWrite) cout << "      Enter end node: ";
+		fIn >> end;
+		if (fEcho) fEchoOut << end << endl;
+
+		/* increment */
+		int incr;
+		if (fWrite) cout << "Enter node increment: ";
+		fIn >> incr;
+		if (fEcho) fEchoOut << incr << endl;
+
+		/* generate list of nodes */
+		cout << "\n Node list defined by {start, end, increment} = {" 
+		     << start << ",  " << end << ",  " << incr << "}\n";
+		numpoints = (end - start + 1)/incr;
+		nodes.Dimension (numpoints);
+		index.Dimension (numpoints);
+		int node = start;
+		for (int n = 0; n < numpoints; n++) {
+			nodes[n] = fNodeMap[node];
+			index[n] = node;
+			node += incr;
+		}
+
+		break;
+	}
     default:
       ExceptionT::GeneralFail("TranslateIOManager::InitializeNodePoints","Invalid node list type %i", selection);
     }
