@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.8 2001-05-16 03:29:48 hspark Exp $ */
+/* $Id: tevp2D.cpp,v 1.9 2001-05-26 16:31:54 hspark Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (04/04/2001) */
 /* Last Updated:  Harold Park (05/10/2001) */
@@ -29,7 +29,6 @@ tevp2D::tevp2D(ifstreamT& in, const ElasticT& element):
   /* initialize references */
   fRunState(ContinuumElement().RunState()),
   fDt(ContinuumElement().FEManager().TimeStep()),
-  fTime(ContinuumElement().FEManager().Time()),
   fStress(2),
   fModulus(kVoigt),
   fShapes(element.ShapeFunction()),
@@ -127,7 +126,7 @@ void tevp2D::UpdateHistory(void)
 void tevp2D::ResetHistory(void)
 {
   /* reset if plastic */
-  cout << "ResetHistory called" << endl;
+  //cout << "ResetHistory called" << endl;
   ElementCardT& element = CurrentElement();
   if (element.IsAllocated()) Reset(element);
 }
@@ -136,7 +135,7 @@ void tevp2D::ResetHistory(void)
 void tevp2D::Print(ostream& out) const
 {
   /* inherited */
-  cout << "Print called" << endl;
+  //cout << "Print called" << endl;
   FDStructMatT::Print(out);
   IsotropicT::Print(out);
   Material2DT::Print(out);
@@ -145,7 +144,7 @@ void tevp2D::Print(ostream& out) const
 void tevp2D::PrintName(ostream& out) const
 {
   /* inherited */
-  cout << "PrintName called" << endl;
+  //cout << "PrintName called" << endl;
   FDStructMatT::PrintName(out);
   out << "    Thermo-Elasto-Viscoplastic\n";
 }
@@ -181,34 +180,34 @@ const dMatrixT& tevp2D::c_ijkl(void)
   LoadData(element, ip);
   // Temporary work space arrays and matrices
   dMatrixT ata(kVoigt), lta(kVoigt);
-  dArrayT diagU(kVoigt);
+  dArrayT pp(kVoigt), diagU(kVoigt), smlp(kVoigt);
 
-  ComputeDmat();   // Gives original elastic coefficient tensor
+  fModulus = ComputeDmat();   // Gives original elastic coefficient tensor
   diagU[0] = diagU[1] = diagU[2] = 1.0;
   diagU[3] = 0.0;  
-  ComputeSmlp();   // Compute unnecessarily so can just access later..
+  smlp = ComputeSmlp();   // Compute unnecessarily so can just access later..
   //for (int i = 0; i < 4; i++)
   //  cout << "Smlp = " << smlp[i] << endl;
-  ComputePP();
+  pp = ComputePP();
   //for (int i = 0; i < 4; i++)
   //cout << "PP = " << pp[i] << endl;
+  const double sb = fInternal[kSb];
   //cout << "Sb = " << sb << endl;
-  //double xxii = ComputeXxii();
+  //const double xxii = ComputeXxii();
   //cout << "xxii = " << xxii << endl;
-  //double ctcon = ComputeCtcon();
+  //const double ctcon = ComputeCtcon();
   //cout << "ctcon = " << ctcon << endl;
-  //double ebtot = ComputeEbtot();
-  ComputeEbtotXxiiCtcon();
+  //const double ebtot = ComputeEbtot();
+  ComputeEbtotCtconXxii();
   //cout << "Ebtot = " << ebtot << endl;
   // Compute this only so that accessor functions can get it later....
 
   /* calculate the tangent modulus - based on Pierce, 1987 */
-  ata.Outer(fPP, fPP);
-  lta.Outer(fPP, diagU);
+  ata.Outer(pp, pp);
+  lta.Outer(pp, diagU);
 
-  double k = fCtcon * 3.0 * El_K * Alpha_T * Chi * Xi * fInternal[kSb];
-  fDmat.AddCombination(-fCtcon, ata, -k, lta);
-  fModulus = fDmat;
+  double k = fCtcon * 3.0 * El_K * Alpha_T * Chi * Xi * sb;
+  fModulus.AddCombination(-fCtcon, ata, -k, lta);
   return fModulus;
 }
 
@@ -222,7 +221,7 @@ const dSymMatrixT& tevp2D::s_ij(void)
      * to Cauchy when necessary */
     /* Allocate all state variable space on first timestep, ie time = 0 */
     //cout << "s_ij called" << endl;
-    //cout << "run state = " << run_state << '\n';	
+    //cout << "run state = " << run_state << '\n';      
     //cout << "***************** current element number = " <<  current_element << '\n';
     int ip = CurrIP();
     //cout << "CurrIP = " << ip << endl;
@@ -243,14 +242,13 @@ const dSymMatrixT& tevp2D::s_ij(void)
     int checkplastic = CheckIfPlastic(element, ip);
     //cout << "Check plastic = " << checkplastic << endl;
     //cout << "CriticalStrain = " << criticalstrain << endl;
-    ComputeGradients();
-
+ 
     if (criticalstrain == kFluid) {
       /* Fluid model part - if critical strain criteria is exceeded */
       //cout << "FAILURE MODEL SWITCH!!" << endl;
-      //ComputeGradients();   // Need determinant of deformation gradient
-      double J = fFtot.Det();  // Determinant of deformation gradient
-      double temp = fInternal[kTemp];   // Use the PREVIOUS temperature
+      ComputeGradients();   // Need determinant of deformation gradient
+      const double J = fFtot.Det();  // Determinant of deformation gradient
+      const double temp = fInternal[kTemp];   // Use the PREVIOUS temperature
       double cm = -Gamma_d * El_E * (1.0 - J + Alpha_T * (temp - Temp_0));
       cm /= (J * (1.0 - El_V));
       dMatrixT eye_cm(3), dtemp(3);
@@ -271,8 +269,8 @@ const dSymMatrixT& tevp2D::s_ij(void)
       dArrayT sig_jrate(kVoigt), dtot(kVoigt), sts_dot(kVoigt);
       sig_jrate = 0.0;
       c_ijkl();               // Need the tangent modulus
-      //ComputeGradients();
-      double J = fFtot.Det();   // Need to convert Kirchoff to Cauchy later
+      ComputeGradients();
+      const double J = fFtot.Det();   // Need to convert Kirchoff to Cauchy later
       //cout << "Jacobian = " << J << endl;
       /* Flatten out the Rate of Deformation tensor into Voigt notation */    
       dtot[0] = fDtot(0,0);
@@ -286,7 +284,7 @@ const dSymMatrixT& tevp2D::s_ij(void)
       //cout << "sig_jrate = \n" << sig_jrate << endl;
       /* Check if plasticity has occurred yet */
       if (checkplastic == kIsPlastic) 
-	sig_jrate -= ComputeEP_tan();
+        sig_jrate -= ComputeEP_tan();
       
       /* Add the objective part */
       //cout << "Objective part of stress starting to compute" << endl;
@@ -295,7 +293,6 @@ const dSymMatrixT& tevp2D::s_ij(void)
       sts_dot[2] = sig_jrate[2];
       sts_dot[3] = sig_jrate[3] - fSpin * (kirchoff_last(0,0) - kirchoff_last(1,1));
       //cout << "sts_dot = \n" << sts_dot << endl;
-      //cout << "dt = " << dt << endl;
       kirchoff_last(0,0) += sts_dot[0] * fDt;
       kirchoff_last(0,1) += sts_dot[3] * fDt;
       kirchoff_last(1,0) = kirchoff_last(0,1);
@@ -315,8 +312,8 @@ const dSymMatrixT& tevp2D::s_ij(void)
     //cout << "fTempCauchy = \n" << fTempCauchy << endl;
     /* Compute the state variables / output variables */
     fInternal[kSb] = ComputeEffectiveStress();
-    fInternal[kTemp] = ComputeTemperature();
-    fInternal[kEb] = ComputeEffectiveStrain();
+    fInternal[kTemp] = ComputeTemperature(element, ip);
+    fInternal[kEb] = ComputeEffectiveStrain(element, ip);
   }
   else
   {
@@ -359,11 +356,8 @@ void tevp2D::ComputeOutput(dArrayT& output)
   //int criticalstrain = CheckCriticalStrain(element, ip);
   //int checkplastic = CheckIfPlastic(element, ip);
   //ComputeGradients();
-  //double ebtot = GetEbtot();
-  //double xxii = GetXxii();
   //dArrayT smlp = GetSmlp();
   //dArrayT pp = GetPP();
-  //double ctcon = GetCtcon();
   LoadData(element, ip);
   output[0] = fInternal[kTemp];        // Temperature
   output[1] = fInternal[kEb];          // Effective strain
@@ -396,39 +390,46 @@ void tevp2D::ComputeGradients(void)
   /* Compute the deformation gradient, rate of deformation and spin */
   /* compute deformation gradient */
   //cout << "ComputeGradients called" << endl;
-  double& tempspin = fSpin;
-  dMatrixT& tempf = fFtot;
-  dMatrixT& tempd = fDtot;
-  tempf = tempd = 0.0;
-
+  //dMatrixT tD(3), tF(3);
+  //tD = tF = fDtot = fFtot = 0.0;
+  fDtot = fFtot = 0.0;
+  fSpin = 0.0;
+  //double* spin = &fSpin;
+  //dMatrixT* tempD = &fFtot;
+  //dMatrixT* tempF = &fDtot;
   fFtot_2D = F();        
-  tempf.Rank2ExpandFrom2D(fFtot_2D);
-  tempf(2,2) = 1.0;
+  //(*tempF).Rank2ExpandFrom2D(fFtot_2D);
+  //(*tempF)(2,2) = 1.0;
+  fFtot.Rank2ExpandFrom2D(fFtot_2D);
+  fFtot(2,2) = 1.0;
   //cout << "F = \n" << fFtot << endl;
   /* compute rate of deformation */
-  fF_temp.Inverse(tempf);         // Inverse of deformation gradient  
-  //cout << "fLocVel = \n" << fLocVel << '\n';
-  //cout << "Inverse of deformation gradient = \n" << fF_temp << '\n';
+  fF_temp.Inverse(fFtot);         // Inverse of deformation gradient  
+  //cout << "fLocVel = \n" << fLocVel << endl;
   fShapes.GradU(fLocVel, fGradV_2D);    // Velocity gradient
-  //cout << "Velocity Gradient = \n" << fGradV_2D << '\n';
+  //  cout << "Velocity Gradient = \n" << fGradV_2D << endl;
   fGradV.Rank2ExpandFrom2D(fGradV_2D);
-  //fDtot.MultAB(fGradV, fF_temp, 0);  // D = dv/dx*inv(F)
-  tempd(0,0) = fGradV(0,0) * fF_temp(0,0) + fGradV(0,1) * fF_temp(1,0);
-  tempd(1,1) = fGradV(1,0) * fF_temp(0,1) + fGradV(1,1) * fF_temp(1,1);
-  tempd(2,2) = tempd(1,2) = tempd(2,1) = 0.0;
-  tempd(0,1) = tempd(1,0) = fGradV(0,0) * fF_temp(0,1) + fGradV(0,1) * fF_temp(1,1) + fGradV(1,0) * fF_temp(0,0) + fGradV(1,1) * fF_temp(1,0);
-  tempd(0,1) *= .5;
-  tempd(1,0) *= .5;
-  //cout << "D = \n" << fDtot << '\n';
-  //cout << "fGradV = \n" << fGradV << '\n';
+  //(*tempD).MultAB(fGradV, fF_temp, 0);
+  //(*tempD).Symmetrize();
+  fDtot.MultAB(fGradV, fF_temp, 0);  // D = dv/dx*inv(F)
+  fDtot.Symmetrize();
+  //fDtot = 0.0;
+  //fDtot(0,0) = fGradV(0,0) * fF_temp(0,0) + fGradV(0,1) * fF_temp(1,0);
+  //fDtot(1,1) = fGradV(1,0) * fF_temp(0,1) + fGradV(1,1) * fF_temp(1,1);
+  //fDtot(2,2) = fDtot(1,2) = fDtot(2,1) = 0.0;
+  //fDtot(0,1) = fDtot(1,0) = fGradV(0,0) * fF_temp(0,1) + fGradV(0,1) * fF_temp(1,1) + fGradV(1,0) * fF_temp(0,0) + fGradV(1,1) * fF_temp(1,0);
+  //fDtot(0,1) *= .5;
+  //fDtot(1,0) *= .5;
+    //cout << "D = \n" << fDtot << endl;
+  //  cout << "fGradV = \n" << fGradV << endl;
   /* compute spin */
-  tempspin = fGradV(0,0) * fF_temp(0,1) + fGradV(0,1) * fF_temp(1,1);
-  tempspin = tempspin - fGradV(1,0) * fF_temp(0,0) - fGradV(1,1) * fF_temp(1,0);
-  tempspin *= .5;
-  //cout << "fSpin = " << fSpin << '\n';
+  fSpin = fGradV(0,0) * fF_temp(0,1) + fGradV(0,1) * fF_temp(1,1);
+  fSpin = fSpin - fGradV(1,0) * fF_temp(0,0) - fGradV(1,1) * fF_temp(1,0);
+  fSpin *= .5;
+  //cout << "fSpin = " << fSpin << endl;
 }
 
-double tevp2D::ComputeTemperature(void)
+double tevp2D::ComputeTemperature(const ElementCardT& element, int ip)
 {
   /* Compute the output temperature - 2 different methods of computing, 
    * which depends upon whether fluid model was used or not */
@@ -436,12 +437,13 @@ double tevp2D::ComputeTemperature(void)
   /* First check to see if critical strain criteria is met */
   //cout << "ComputeTemperature called" << endl;
   double temp_last = fInternal[kTemp];
-
-  if (fCriticalStrain == kFluid) {
+  double sb = fInternal[kSb];
+  int criticalstrain = CheckCriticalStrain(element, ip);
+  if (criticalstrain == kFluid) {
   /* Case where fluid model was used */
     dMatrixT temp_stress(3); 
     temp_stress = ArrayToMatrix(fTempKirchoff);
-    //ComputeGradients();
+    ComputeGradients();
     double wpdot = temp_stress(0,0) * fDtot(0,0) + temp_stress(1,1) * fDtot(1,1) + 2.0 * Mu_d * pow(fDtot(0,1), 2);
     double temp_rate = Chi * Xi * wpdot;
     fTemperature = temp_rate * fDt + temp_last;
@@ -451,7 +453,7 @@ double tevp2D::ComputeTemperature(void)
   }
   else {
   /* Case where fluid model was not used - viscoplasticity */
-    double temp_rate = Chi * Xi * fEbtot * fInternal[kSb];
+    double temp_rate = Chi * Xi * fEbtot * sb;
     fTemperature = temp_rate * fDt + temp_last;
     if (temp_rate < 0.0)
       cout << "NEGATIVE TEMPERATURE RATE:  VISCO" << '\n';
@@ -463,7 +465,7 @@ double tevp2D::ComputeTemperature(void)
   return fTemperature;
 }
 
-double tevp2D::ComputeEffectiveStrain(void)
+double tevp2D::ComputeEffectiveStrain(const ElementCardT& element, int ip)
 {
   /* Computes the effective strain - 2 different methods of computing,
    * which depends upon whether fluid model was used or not */
@@ -471,14 +473,16 @@ double tevp2D::ComputeEffectiveStrain(void)
   /* First check to see if critical strain criteria is met */
   //cout << "ComputeEffectiveStrain called" << endl;
   double eb_last = fInternal[kEb];
+  int criticalstrain = CheckCriticalStrain(element, ip);
 
-  if (fCriticalStrain == kFluid) {
+  if (criticalstrain == kFluid) {
   /* If fluid model is used (ie shear band has formed) */
-    //ComputeGradients();
+    ComputeGradients();
     double temp1 = pow(fDtot(0,0), 2);
     double temp2 = pow(fDtot(1,1), 2);
     double temp3 = pow(fDtot(0,1), 2);
-    double ebar = 2.0 * (temp1 + temp2) / 3.0 + 2.0 * temp3;  
+    //double ebar = 2.0 * (temp1 + temp2) / 3.0 + 2.0 * temp3;  
+    double ebar = 1.5 * (temp1 + temp2) + 2.0 * temp3;
     ebar = sqrt(ebar);
     fEb = ebar * fDt + eb_last;
     if (ebar < 0.0)
@@ -528,94 +532,108 @@ int tevp2D::CheckCriticalStrain(const ElementCardT& element, int ip)
    * has been met, and switch to fluid model happens next time step */
   //cout << "CheckCriticalStrain called" << endl;
   iArrayT& flags = element.IntegerData();
-  int& criticalstrain = fCriticalStrain;
+  double eb = fInternal[kEb];
   /* if already fluid, no need to check criterion */
   if (flags[ip + fNumIP] == kFluid)
   {
-    criticalstrain = 1;
-    return criticalstrain;
+    //cout << "Is there a problem?" << endl;
+    return 1;
   }
+  //double ebtot = GetEbtot();  
   double ebar_cr = Epsilon_1 + (Epsilon_2 - Epsilon_1) * Epsilon_rate;
   ebar_cr /= (Epsilon_rate + fEbtot);
-  if (fInternal[kEb] >= ebar_cr)
+  if (eb >= ebar_cr)
   {
     flags[ip + fNumIP] = kFluid;
-    criticalstrain = 1;        // Indicator to switch to fluid model
+    fCriticalStrain = 1;        // Indicator to switch to fluid model
   }
   else
   {
     flags[ip + fNumIP] = kTevp; 
-    criticalstrain = 0;
+    fCriticalStrain = 0;
   }
-  return criticalstrain;
+  return fCriticalStrain;
 }
 
-void tevp2D::ComputeEbtotXxiiCtcon(void)
+void tevp2D::ComputeEbtotCtconXxii(void)
 {
   /* compute Ctcon - implement the imperfection into the viscoplasticity
    * stress accumulate function and calculate the evolution function */
   //cout << "ComputeCtcon called" << endl;
-  double& ebtot = fEbtot;
-  double& xxii = fXxii;
-  double& ctcon = fCtcon;
+  double* ctcon = &fCtcon;
+  double* xxii = &fXxii;
+  double* ebtot = &fEbtot;
   double sb = fInternal[kSb];
   double eb = fInternal[kEb];
   double temp = fInternal[kTemp];
-			      
+                              
   if (sb <= kYieldTol)
   {
-    ebtot = 0.0;
-    xxii = 0.0;
-    ctcon = 0.0;
+    *ctcon = 0.0;
+    *ebtot = 0.0;
+    *xxii = 0.0;
   }
   else
   {
-    double pCp2 = dArrayT::Dot(fSmlp, fPP);
+    dArrayT pp, smlp;
+    smlp = GetSmlp();
+    pp = GetPP();
+    double pCp2 = dArrayT::Dot(smlp, pp);
     pCp2 += Pcp;
     double gsoft = Sb0 * pow(1.0 + eb/Eb0, BigN);
     gsoft *= (1.0 - Delta * (exp((temp - Temp_0)/Kappa) - 1.0));
     double reg = sb / gsoft;
-    ebtot = Eb0tot * pow(reg, Smm);
-    double pE_ptau = Smm * ebtot / sb;
+    *ebtot = Eb0tot * pow(reg, Smm);
+    double pE_ptau = Smm * (*ebtot) / sb;
     double dG_Eb = BigN * gsoft / (eb + Eb0);
     double dG_T = -(Sb0 * Delta / Kappa) * (pow(1.0 + eb / Eb0, BigN) * exp((temp - Temp_0) / Kappa));
     double pE_evt = -dG_Eb * (sb / gsoft);
     double pE_Tvt = -dG_T * (sb / gsoft);
     double hh = pCp2 - pE_evt - pE_Tvt * Chi * Xi * sb;
-    
-    xxii = Theta * fDt * hh * pE_ptau;
-    ctcon = xxii / ((1.0 + xxii) * hh);
+
+    *xxii = Theta * fDt * hh * pE_ptau;
+    *ctcon = *xxii / ((1.0 + (*xxii)) * hh);
   }
-  if (ctcon < 0.0)
+  if (*ctcon < 0.0)
     cout << "NEGATIVE CTCON!" << '\n';
 
+  //return fCtcon;
 }
 
-void tevp2D::ComputeSmlp(void)
+dArrayT& tevp2D::ComputeSmlp(void)
 {
   /* used in ComputePP */
   /* compute the deviatoric Kirchoff stress */
   //cout << "ComputeSmlp called" << endl;
-  dArrayT& smlp = fSmlp;
-  dMatrixT temp_stress(3); 
-  temp_stress = ArrayToMatrix(fTempKirchoff);
-  double trace_KH = temp_stress.Trace() / 3.0;
-  smlp[0] = temp_stress(0,0) - trace_KH;
-  smlp[1] = temp_stress(1,1) - trace_KH;
-  smlp[2] = temp_stress(2,2) - trace_KH;
-  smlp[3] = temp_stress(0,1);   // Stored in Voigt notation
-  if (fInternal[kSb] <= kYieldTol) 
-    smlp = 0.0;
+  fSmlp = 0.0;
+  double sb = fInternal[kSb];
+  if (sb <= kYieldTol) 
+    fSmlp = 0.0;
   else
-    smlp *= 1.5 / fInternal[kSb];
+  {
+    dMatrixT temp_stress(3); 
+    temp_stress = ArrayToMatrix(fTempKirchoff);
+    double trace_KH = temp_stress.Trace() / 3.0;
+    fSmlp[0] = temp_stress(0,0) - trace_KH;
+    fSmlp[1] = temp_stress(1,1) - trace_KH;
+    fSmlp[2] = temp_stress(2,2) - trace_KH;
+    fSmlp[3] = temp_stress(0,1);   // Stored in Voigt notation
+    fSmlp *= 1.5 / sb;
+  }
 
+  return fSmlp;
 }
 
-void tevp2D::ComputePP(void)
+dArrayT& tevp2D::ComputePP(void)
 {
   //cout << "ComputePP called" << endl;
-  dArrayT& pp = fPP;
-  fDmat.Multx(fSmlp, pp);
+  fPP = 0.0;
+  dArrayT smlp(kVoigt);
+  dMatrixT dmat(kVoigt);
+  smlp = GetSmlp();
+  dmat = GetDmat();
+  dmat.Multx(smlp, fPP);
+  return fPP;
 }
 
 double tevp2D::ComputeEcc(void)
@@ -623,35 +641,38 @@ double tevp2D::ComputeEcc(void)
   /* Access ecc */
   //cout << "ComputeEcc called" << endl;
   fEcc = 0.0;
-  //ComputeGradients();
   if (fInternal[kSb] <= kYieldTol)   // If hasn't yielded yet...
     fEcc = 0.0;
   else
-  { 
+  {
+    dArrayT pp(kVoigt);
+    pp = GetPP();
+    ComputeGradients();
     for (int i = 0; i < 3; i++) 
-      fEcc += fPP[i] * fDtot(i,i);
+      fEcc += pp[i] * fDtot(i,i);
 
-    fEcc += fPP[3] * fDtot(0,1);
+    fEcc += pp[3] * fDtot(0,1);
   }
   //if (fEcc < 0.0)
   //cout << "NEGATIVE ECC" << '\n';
   return fEcc;
 }
 
-void tevp2D::ComputeDmat(void)
+dMatrixT& tevp2D::ComputeDmat(void)
 {
   /* computes the original elastic coefficient tensor */
   //cout << "ComputeDmat called" << endl;
-  dMatrixT& dmat = fDmat;
+  fDmat = 0.0;
   double ed = El_E * (1.0 - El_V) / ((1.0 + El_V) * (1.0 - 2.0 * El_V));
   double es = El_E * El_V / ((1.0 + El_V) * (1.0 - 2.0 * El_V));
   double g0 = El_E / (1.0 + El_V);
-  dmat(0,0) = dmat(1,1) = dmat(2,2) = ed;
-  dmat(0,1) = dmat(1,0) = dmat(2,0) = dmat(2,1) = es;
-  dmat(0,2) = dmat(0,3) = dmat(1,2) = dmat(1,3) = 0.0;
-  dmat(2,3) = dmat(3,0) = dmat(3,1) = dmat(3,2) = 0.0;
-  dmat(3,3) = g0;
+  fDmat(0,0) = fDmat(1,1) = fDmat(2,2) = ed;
+  fDmat(0,1) = fDmat(1,0) = fDmat(2,0) = fDmat(2,1) = es;
+  fDmat(0,2) = fDmat(0,3) = fDmat(1,2) = fDmat(1,3) = 0.0;
+  fDmat(2,3) = fDmat(3,0) = fDmat(3,1) = fDmat(3,2) = 0.0;
+  fDmat(3,3) = g0;
 
+  return fDmat;
 }
 
 dArrayT& tevp2D::ComputeEP_tan(void)
@@ -659,13 +680,15 @@ dArrayT& tevp2D::ComputeEP_tan(void)
   /* computes the modulus correction if plasticity has occurred */
   //cout << "ComputeEP_tan called" << endl;
   fEP_tan = 0.0;
-  dArrayT diagU(kVoigt);
+  dArrayT pp(kVoigt), diagU(kVoigt);
+  pp = GetPP();
+  double sb = fInternal[kSb];
   diagU[0] = diagU[1] = diagU[2] = 1.0;
   diagU[3] = 0.0;  
 
   for (int i = 0; i < 4; i++) {
     /* EP_tan is the plastic corrector to the tangent modulus */
-    fEP_tan[i] = (fEbtot / (1.0 + fXxii)) * (fPP[i] + 3.0 * El_K * Alpha_T * Xi * Chi * fInternal[kSb] * diagU[i]);  
+    fEP_tan[i] = (fEbtot / (1.0 + fXxii)) * (pp[i] + 3.0 * El_K * Alpha_T * Xi * Chi * sb * diagU[i]);  
   }
 
   return fEP_tan;
@@ -806,6 +829,4 @@ dSymMatrixT& tevp2D::ArrayToSymMatrix2D(const dArrayT& StressArray)
 
   return fSymStress2D;
 }
-
-
 
