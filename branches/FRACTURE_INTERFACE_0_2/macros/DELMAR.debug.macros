@@ -1,0 +1,36 @@
+# $Id: DELMAR.debug.macros,v 1.5 2003-09-12 20:07:50 paklein Exp $
+# MPI
+MPI_CFLAGS = -D__TAHOE_MPI__  -DAZTEC_MPI
+MPI_LFLAGS = -lmpich -lgm
+
+# CA-CPLANT (DEC)
+MAKE        = make
+MAKE_DEPEND = makedepend
+DEPENDFLAGS = -I/usr/local/delmar/build/LINUX/ch_gm/include -I/usr/local/delmar/build/LINUX/ch_gm/include/c++ -I/usr/lib/compaq/cxx-6.5.9.28/alpha-linux/include/cxx
+COMP_C      = cxx
+COMP_CC     = cxx
+COMP_F      = f77
+LINK        = $(COMP_CC)
+TR          = $(MACRO_DIR)/cxx_repository
+MORE_CFLAGS = -g -D__USE_STD_IOSTREAM -arch ev6 -DNON_UNIX_STDIO
+DEFINES     = -D__DEC__ -D__CPLANT__ -D__CA_CPLANT__ -D__DELMAR__ -D__ALPHA_LINUX__
+LOC_CFLAGS  = -c -I$(INC_DIR) -I/usr/local/delmar/include -msg_display_number $(DEFINES) $(MORE_CFLAGS)
+CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS)
+CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -ptr $(TR) -msg_disable 161,111
+CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS)
+LINK        = $(COMP_CC)
+LFLAGS      = $(MPI_LFLAGS) -lm -ptr $(TR) -L/usr/local/delmar/lib
+AR          = ar
+ARFLAGS     = -cruv
+MAKE_OPTS   = -s
+RM          = rm
+RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
+LN          = ln -sf
+ECHO        = /bin/echo -e
+CAT         = cat
+PERL        = perl -w
+PRINTF      = printf
+
+# command needed build library
+#BUILD_LIBRARY = BUILD_LIBRARY_RANLIB
+BUILD_LIBRARY = BUILD_LIBRARY_AR
