@@ -1,4 +1,4 @@
-/* $Id: parsymb.c,v 1.2 2005-01-03 05:15:48 paklein Exp $ */
+/* $Id: parsymb.c,v 1.3 2005-01-04 18:19:34 paklein Exp $ */
 /* parsymb.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -61,7 +61,7 @@ static integer c__21 = 21;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: parsymb.c,v 1.2 2005-01-03 05:15:48 paklein Exp $ +/ */
+/* /+ $Id: parsymb.c,v 1.3 2005-01-04 18:19:34 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -110,7 +110,7 @@ static integer lbit_shift(integer a, integer b) {
     doublereal opxtra;
     integer suptop, supsiz, kidnode, mymaskc, /* mpistat[4], */ mymaskr, lbotsiz, 
 	    stakptr, nuptopl, nnzxtra;
-	MPI_Status mpistat[4];
+	MPI_Status mpistat;
 
 /*<       implicit none >*/
 /*<       include 'mpif.h' >*/
@@ -286,10 +286,10 @@ static integer lbit_shift(integer a, integer b) {
 		supinds[*supindsptr], n, &c__11, &ipartner, &c__1, comm, 
 		mpistat, &ierr); */
 	MPI_Sendrecv(&linds[scptr], lbotsiz, MPI_INT, ipartner, 1, 
-		      &supinds[*supindsptr], *n, MPI_INT, ipartner, 1, *comm, mpistat);
+		      &supinds[*supindsptr], *n, MPI_INT, ipartner, 1, *comm, &mpistat);
 
 /*<       call mpi_get_count(mpistat,MPI_INTEGER,recvcolsiz,ierr) >*/
-	MPI_Get_count(mpistat, MPI_INT, &recvcolsiz);
+	MPI_Get_count(&mpistat, MPI_INT, &recvcolsiz);
 
 /*<    >*/
 	mergelists_(&linds[scptr], &lbotsiz, &supinds[*supindsptr], &
@@ -534,10 +534,10 @@ static integer lbit_shift(integer a, integer b) {
 			c__1, &supinds[*supindsptr], n, &c__11, &ipartner, &
 			c__1, comm, mpistat, &ierr); */
 		MPI_Sendrecv(&supinds[scptr], lbotsiz, MPI_INT, ipartner, 1, 
-		             &supinds[*supindsptr], *n, MPI_INT, ipartner, 1, *comm, mpistat);
+		             &supinds[*supindsptr], *n, MPI_INT, ipartner, 1, *comm, &mpistat);
 
 /*<           call mpi_get_count(mpistat,MPI_INTEGER,recvcolsiz,ierr) >*/
-		MPI_Get_count(mpistat, MPI_INT, &recvcolsiz);
+		MPI_Get_count(&mpistat, MPI_INT, &recvcolsiz);
 		
 /*<    >*/
 		mergelists_(&supinds[scptr], &lbotsiz, &supinds[*supindsptr], 

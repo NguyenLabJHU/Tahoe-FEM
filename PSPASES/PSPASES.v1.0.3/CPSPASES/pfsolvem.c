@@ -1,4 +1,4 @@
-/* $Id: pfsolvem.c,v 1.2 2004-12-30 22:33:39 paklein Exp $ */
+/* $Id: pfsolvem.c,v 1.3 2005-01-04 18:19:34 paklein Exp $ */
 /* pfsolvem.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -62,7 +62,7 @@ static doublereal c_b58 = -1.;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: pfsolvem.c,v 1.2 2004-12-30 22:33:39 paklein Exp $ +/ */
+/* /+ $Id: pfsolvem.c,v 1.3 2005-01-04 18:19:34 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -119,8 +119,8 @@ static integer lbit_shift(integer a, integer b) {
 	    integer *, integer *, doublereal *, doublereal *);
     integer /* statall[20], */	/* was [4][5] */ pparbot, cmpsize, partner, mymaskh, 
 	    msizedp, /* mpistat[4],*/ myright, lbotsiz;
-	MPI_Status statall[20];
-	MPI_Status mpistat[4];
+	MPI_Status statall[5];
+	MPI_Status mpistat;
 
 /*<       implicit none >*/
 /*<       include 'mpif.h' >*/
@@ -372,14 +372,14 @@ static integer lbit_shift(integer a, integer b) {
 		    while(npending > 0) {
 /*<                 call mpi_waitany(2,req,mid,mpistat,ierr) >*/
 
-			MPI_Waitany(2, req, &mid, mpistat);
+			MPI_Waitany(2, req, &mid, &mpistat);
 /*			mpi_waitany__(&c__2, req, &mid, mpistat, &ierr); */
 
 /*<                 if(mid.eq.1) then >*/
 			if (mid == 1) {
 /*<                   call mpi_get_count(mpistat,MPI_INTEGER,usize,ierr) >*/
 
-			    MPI_Get_count(mpistat, MPI_INT, &usize);
+			    MPI_Get_count(&mpistat, MPI_INT, &usize);
 /*			    mpi_get_count__(mpistat, &c__11, &usize, &ierr); */
 
 /*<                 end if >*/
@@ -462,14 +462,14 @@ static integer lbit_shift(integer a, integer b) {
 		    while(npending > 0) {
 /*<                 call mpi_waitany(3,req,mid,mpistat,ierr) >*/
 
-			MPI_Waitany(3, req, &mid, mpistat);
+			MPI_Waitany(3, req, &mid, &mpistat);
 /*			mpi_waitany__(&c__3, req, &mid, mpistat, &ierr); */
 
 /*<                 if(mid.eq.1) then >*/
 			if (mid == 1) {
 /*<                   call mpi_get_count(mpistat,MPI_INTEGER,usize,ierr) >*/
 
-			    MPI_Get_count(mpistat, MPI_INT, &usize);
+			    MPI_Get_count(&mpistat, MPI_INT, &usize);
 /*			    mpi_get_count__(mpistat, &c__11, &usize, &ierr); */
 
 /*<                 end if >*/
@@ -486,7 +486,7 @@ static integer lbit_shift(integer a, integer b) {
 		} else {
 /*<               call mpi_wait(req(3),mpistat,ierr) >*/
 
-		    MPI_Wait(&req[2], mpistat);
+		    MPI_Wait(&req[2], &mpistat);
 /*		    mpi_wait__(&req[2], mpistat, &ierr); */
 
 /*<    >*/
@@ -533,7 +533,7 @@ static integer lbit_shift(integer a, integer b) {
 		while(npending > 0) {
 /*<               call mpi_waitany(2,req(4),mid,mpistat,ierr) >*/
 
-		    MPI_Waitany(2, &req[3], &mid, mpistat);
+		    MPI_Waitany(2, &req[3], &mid, &mpistat);
 /*		    mpi_waitany__(&c__2, &req[3], &mid, mpistat, &ierr); */
 
 /*<               npending = npending-1 >*/
@@ -563,22 +563,22 @@ static integer lbit_shift(integer a, integer b) {
 		MPI_Irecv(&recvec[1], msizedp, MPI_BYTE, partner, 1, *comm, &req[1]);
 /*		mpi_irecv__(&recvec[1], &msizedp, &c__5, &partner, &c__1, comm, &req[1], &ierr); */
 /*<             call mpi_wait(req(1),mpistat,ierr) >*/
-		MPI_Wait(req, mpistat);
+		MPI_Wait(req, &mpistat);
 /*		mpi_wait__(req, mpistat, &ierr); */
 /*<             call mpi_get_count(mpistat,MPI_INTEGER,usize,ierr) >*/
-		MPI_Get_count(mpistat, MPI_INT, &usize);
+		MPI_Get_count(&mpistat, MPI_INT, &usize);
 /*		mpi_get_count__(mpistat, &c__11, &usize, &ierr); */
 /*<             call mpi_wait(req(2),mpistat,ierr) >*/
-		MPI_Wait(&req[1], mpistat);
+		MPI_Wait(&req[1], &mpistat);
 /*		mpi_wait__(&req[1], mpistat, &ierr); */
 /*<    >*/
 		x10dad_(&uvec[1], &ldaup, &uvl[1], &ldauk, &recvec[1], &usize,
 			 nrhs, &linds[lppar], &linds[lpkid], &uinds[1]);
 /*<             call mpi_wait(req(4),mpistat,ierr) >*/
-		MPI_Wait(&req[3], mpistat);
+		MPI_Wait(&req[3], &mpistat);
 /*		mpi_wait__(&req[3], mpistat, &ierr); */
 /*<             call mpi_wait(req(5),mpistat,ierr) >*/
-		MPI_Wait(&req[4], mpistat);
+		MPI_Wait(&req[4], &mpistat);
 /*		mpi_wait__(&req[4], mpistat, &ierr); */
 /*<           end if >*/
 	    }
@@ -612,27 +612,27 @@ static integer lbit_shift(integer a, integer b) {
 		MPI_Isend(&hvbndry[bip], ldauk, MPI_INT, partner, 1, *comm, &req[4]);
 /*		mpi_isend__(&hvbndry[bip], &ldauk, &c__11, &partner, &c__1, comm, &req[4], &ierr); */
 /*<             call mpi_wait(req(3),mpistat,ierr) >*/
-		MPI_Wait(&req[2], mpistat);
+		MPI_Wait(&req[2], &mpistat);
 /*		mpi_wait__(&req[2], mpistat, &ierr); */
 /*<    >*/
 		MPI_Isend(&uvl[1], cbsize, MPI_BYTE, partner, 1, *comm, &req[3]);
 /*		mpi_isend__(&uvl[1], &cbsize, &c__5, &partner, &c__1, comm, &req[3], &ierr); */
 /*<             call mpi_wait(req(1),mpistat,ierr) >*/
-		MPI_Wait(req, mpistat);
+		MPI_Wait(req, &mpistat);
 /*		mpi_wait__(req, mpistat, &ierr); */
 /*<             call mpi_get_count(mpistat,MPI_INTEGER,usize,ierr) >*/
-		MPI_Get_count(mpistat, MPI_INT, &usize);
+		MPI_Get_count(&mpistat, MPI_INT, &usize);
 /*		mpi_get_count__(mpistat, &c__11, &usize, &ierr); */
 /*<             call mpi_wait(req(2),mpistat,ierr) >*/
-		MPI_Wait(&req[1], mpistat);
+		MPI_Wait(&req[1], &mpistat);
 /*		mpi_wait__(&req[1], mpistat, &ierr); */
 /*<    >*/
 		x10dad_(&uvec[1], &ldaup, &uvl[1], &ldauk, &recvec[1], &usize,
 			 nrhs, &linds[lppar], &hvbndry[bip], &uinds[1]);
 /*<             call mpi_wait(req(4),mpistat,ierr) >*/
-		MPI_Wait(&req[3], mpistat);
+		MPI_Wait(&req[3], &mpistat);
 /*<             call mpi_wait(req(5),mpistat,ierr) >*/
-		MPI_Wait(&req[4], mpistat);
+		MPI_Wait(&req[4], &mpistat);
 /*<           end if >*/
 	    }
 /*<           if(iamkid.eq.1 .and. iampar.eq.0) then >*/
@@ -654,7 +654,7 @@ static integer lbit_shift(integer a, integer b) {
 		MPI_Isend(&uvl[1], cbsize, MPI_BYTE, partner, 1, *comm, &req[2]);
 /*		mpi_isend__(&uvl[1], &cbsize, &c__5, &partner, &c__1, comm, &req[2], &ierr); */
 /*<             call mpi_wait(req(3),mpistat,ierr) >*/
-		MPI_Wait(&req[2], mpistat);
+		MPI_Wait(&req[2], &mpistat);
 /*<           end if >*/
 	    }
 /*<         end if >*/
@@ -819,7 +819,7 @@ L10:
 			    MPI_Irecv(&recvec[1], msizedp, MPI_BYTE, myleft, 1, *comm, req);
 /*			    mpi_irecv__(&recvec[1], &msizedp, &c__5, &myleft, &c__1, comm, req, &ierr); */
 /*<                 call mpi_wait(req(1),mpistat,ierr) >*/
-			    MPI_Wait(req, mpistat);
+			    MPI_Wait(req, &mpistat);
 /*<                 do j=0,nrhs-1 >*/
 			    i__2 = *nrhs - 1;
 			    for (j = 0; j <= i__2; ++j) {
@@ -898,7 +898,7 @@ L10:
 			if (flagr == 1) {
 /*<                 if(npending.eq.1) call mpi_wait(req(1),mpistat,ierr) >*/
 			    if (npending == 1) {
-				MPI_Wait(req, mpistat);
+				MPI_Wait(req, &mpistat);
 			    }
 /*<    >*/
 			    MPI_Irecv(&recvec[1], msizedp, MPI_BYTE, myleft, 1, *comm, req);
@@ -928,9 +928,9 @@ L10:
 /*<               if(npendings.eq.1) then >*/
 			if (npendings == 1) {
 /*<                 call mpi_wait(req(4),mpistat,ierr) >*/
-			    MPI_Wait(&req[3], mpistat);
+			    MPI_Wait(&req[3], &mpistat);
 /*<                 itag = mpistat(MPI_TAG) >*/
-			    itag = mpistat->MPI_TAG;
+			    itag = mpistat.MPI_TAG;
 /*<    >*/
 			    if (itag != mydown && ! (bvend == suptop && 
 				    lbotsiz == supsiz)) {
@@ -953,7 +953,7 @@ L10:
 /*<               if(flagr.eq.1) then >*/
 			if (flagr == 1) {
 /*<                 call mpi_wait(req(1),mpistat,ierr) >*/
-			    MPI_Wait(req, mpistat);
+			    MPI_Wait(req, &mpistat);
 /*<                 if(flags.eq.1) then >*/
 			    if (flags == 1) {
 /*<                   do j=0,nrhs-1 >*/
@@ -1009,7 +1009,7 @@ L10:
 			    if (flags == 1) {
 /*<                   if(npending.eq.1) call mpi_wait(req(1),mpistat,ierr) >*/
 				if (npending == 1) {
-				    MPI_Wait(req, mpistat);
+				    MPI_Wait(req, &mpistat);
 				}
 /*<                   do j=0,nrhs-1 >*/
 				i__2 = *nrhs - 1;
@@ -1101,9 +1101,9 @@ L30:
 			MPI_Irecv(&rhs[1], msizedp, MPI_BYTE, myup, itag, *comm, &req[3]);
 /*			mpi_irecv__(&rhs[1], &msizedp, &c__5, &myup, &itag, comm, &req[3], &ierr); */
 /*<                 call mpi_wait(req(4),mpistat,ierr) >*/
-			MPI_Wait(&req[3], mpistat);
+			MPI_Wait(&req[3], &mpistat);
 /*<                 itag = mpistat(MPI_TAG) >*/
-			itag = mpistat->MPI_TAG;
+			itag = mpistat.MPI_TAG;
 
 /*<                 call mpi_get_count(mpistat,MPI_BYTE,mpistat,ierr) >*/
 /*<                 itag = mpistat(MPI_TAG) >*/
@@ -1118,7 +1118,7 @@ L30:
 */
 
 /*<                 call mpi_get_count(mpistat,MPI_BYTE,nbrecv,ierr) >*/
-			MPI_Get_count(mpistat, MPI_BYTE, &nbrecv);
+			MPI_Get_count(&mpistat, MPI_BYTE, &nbrecv);
 /*<                 if(itag.ne.mydown) then >*/
 			if (itag != mydown) {
 /*<    >*/
@@ -1177,16 +1177,16 @@ L30:
 			if (flagr == 1) {
 /*<                   if(npending.eq.1) call mpi_wait(req(1),mpistat,ierr) >*/
 			    if (npending == 1) {
-				MPI_Wait(req, mpistat);
+				MPI_Wait(req, &mpistat);
 			    }
 /*<    >*/
 			    MPI_Irecv(&recvec[1], msizedp, MPI_BYTE, myleft, 1, *comm, req);
 /*			    mpi_irecv__(&recvec[1], &msizedp, &c__5, &myleft, &c__1, comm, req, &ierr); */
 
 /*<                   call mpi_wait(req(1),mpistat,ierr) >*/
-			    MPI_Wait(req, mpistat);
+			    MPI_Wait(req, &mpistat);
 /*<                   call mpi_get_count(mpistat,MPI_BYTE,nbrecv,ierr) >*/
-			    MPI_Get_count(mpistat, MPI_BYTE, &nbrecv);
+			    MPI_Get_count(&mpistat, MPI_BYTE, &nbrecv);
 /*<                   recvsize = ishft(nbrecv,-loglendp)/nrhs >*/
 			    recvsize = lbit_shift(nbrecv, (ftnlen)-3) / *nrhs;
 /*<                   do j=0,nrhs-1 >*/
@@ -1252,7 +1252,7 @@ L30:
 /*<                   if(npending.eq.1) call mpi_wait(req(1),mpistat,ierr) >*/
 			    if (npending == 1) {
 /*				mpi_wait__(req, mpistat, &ierr); */
-				MPI_Wait(req, mpistat);
+				MPI_Wait(req, &mpistat);
 			    }
 /*<                   do j=0,nrhs-1 >*/
 			    i__2 = *nrhs - 1;
@@ -1312,7 +1312,7 @@ L40:
 /*<           if(npendings2.eq.1) then >*/
 	    if (npendings2 == 1) {
 /*<             call mpi_wait(req(5),mpistat,ierr) >*/
-		MPI_Wait(&req[4], mpistat);
+		MPI_Wait(&req[4], &mpistat);
 /*<             npendings2 = 0 >*/
 		npendings2 = 0;
 /*<           end if >*/
@@ -1320,7 +1320,7 @@ L40:
 /*<           if(npending.eq.1) then >*/
 	    if (npending == 1) {
 /*<             call mpi_wait(req(1),mpistat,ierr)  >*/
-		MPI_Wait(req, mpistat);
+		MPI_Wait(req, &mpistat);
 /*<             npending = 0 >*/
 		npending = 0;
 /*<           end if >*/

@@ -1,4 +1,4 @@
-/* $Id: parfact1i.c,v 1.2 2005-01-04 17:43:02 paklein Exp $ */
+/* $Id: parfact1i.c,v 1.3 2005-01-04 18:19:34 paklein Exp $ */
 /* parfact1i.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -64,7 +64,7 @@ static integer c__2 = 2;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: parfact1i.c,v 1.2 2005-01-04 17:43:02 paklein Exp $ +/ */
+/* /+ $Id: parfact1i.c,v 1.3 2005-01-04 18:19:34 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -141,7 +141,7 @@ static integer min(integer a, integer b) {
     integer index_h__, dbuflen, ibuflen, dimstak[10], index_v__, iwspace, 
 	    ncols_u__, currdim, dbufptr, ibufptr, partner, /* mpistat[4], */
 	    msgsize, myright, stakptr, nrows_u__;
-	MPI_Status mpistat[4];
+	MPI_Status mpistat;
 
 /*<       integer KONSTANT >*/
 /*<       parameter(KONSTANT=100000) >*/
@@ -1095,12 +1095,12 @@ L120:
 		msgsize = ibuflen;
 /*<    >*/
 
-		MPI_Recv(&ibuf_r__[1], msgsize, MPI_INT, partner, 1, *comm, mpistat);
+		MPI_Recv(&ibuf_r__[1], msgsize, MPI_INT, partner, 1, *comm, &mpistat);
 
 /*<    >*/
 
 		i__1 = dbuflen << 3;
-		MPI_Recv(&dbuf_r__[1], i__1, MPI_BYTE, partner, 2, *comm, mpistat);
+		MPI_Recv(&dbuf_r__[1], i__1, MPI_BYTE, partner, 2, *comm, &mpistat);
 
 /*<           else >*/
 	    } else {
@@ -1108,12 +1108,12 @@ L120:
 		msgsize = ibuflen;
 /*<    >*/
 
-		MPI_Recv(&ibuf_r__[1], msgsize, MPI_INT, partner, 1, *comm, mpistat);
+		MPI_Recv(&ibuf_r__[1], msgsize, MPI_INT, partner, 1, *comm, &mpistat);
 
 /*<    >*/
 
 		i__1 = dbuflen << 3;
-		MPI_Recv(&dbuf_r__[1], i__1, MPI_BYTE, partner, 2, *comm, mpistat);
+		MPI_Recv(&dbuf_r__[1], i__1, MPI_BYTE, partner, 2, *comm, &mpistat);
 
 /*<             msgsize = ibufptr >*/
 		msgsize = ibufptr;
@@ -1495,12 +1495,12 @@ L270:
 		msgsize = ibuflen;
 /*<    >*/
 
-		MPI_Recv(&ibuf_r__[1], msgsize, MPI_INT, partner, 1, *comm, mpistat);
+		MPI_Recv(&ibuf_r__[1], msgsize, MPI_INT, partner, 1, *comm, &mpistat);
 
 /*<    >*/
 
 		i__1 = dbuflen << 3;
-		MPI_Recv(&dbuf_r__[1], i__1, MPI_BYTE, partner, 2, *comm, mpistat);
+		MPI_Recv(&dbuf_r__[1], i__1, MPI_BYTE, partner, 2, *comm, &mpistat);
 
 /*<           else >*/
 	    } else {
@@ -1508,12 +1508,12 @@ L270:
 		msgsize = ibuflen;
 /*<    >*/
 
-		MPI_Recv(&ibuf_r__[1], msgsize, MPI_INT, partner, 1, *comm, mpistat);
+		MPI_Recv(&ibuf_r__[1], msgsize, MPI_INT, partner, 1, *comm, &mpistat);
 
 /*<    >*/
 
 		i__1 = dbuflen << 3;
-		MPI_Recv(&dbuf_r__[1], i__1, MPI_BYTE, partner, 2, *comm, mpistat);
+		MPI_Recv(&dbuf_r__[1], i__1, MPI_BYTE, partner, 2, *comm, &mpistat);
 
 /*<             msgsize = ibufptr >*/
 		msgsize = ibufptr;
