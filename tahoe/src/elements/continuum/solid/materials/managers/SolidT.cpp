@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.12 2002-04-04 00:49:33 ebmarin Exp $ */
+/* $Id: SolidT.cpp,v 1.13 2002-05-31 07:09:51 thao Exp $ */
 /* created: paklein (03/10/2001)                                          */
 
 #include "SolidT.h"
@@ -123,6 +123,9 @@ istream& operator>>(istream& in, SolidT::SolidT& code)
 			break;
 		case SolidT::kFCCEAM:
 			code = SolidT::kFCCEAM;
+			break;
+		case SolidT::kOgdenViscVIBold:
+			code = SolidT::kOgdenViscVIBold;
 			break;
 		default:
 			cout << "\n operator>>SolidT::SolidT: unknown code: "
