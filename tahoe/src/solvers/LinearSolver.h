@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.h,v 1.1.1.1.8.2 2002-04-30 01:30:23 paklein Exp $ */
+/* $Id: LinearSolver.h,v 1.1.1.1.8.3 2002-06-05 09:18:32 paklein Exp $ */
 /* created: paklein (05/30/1996) */
 
 #ifndef _LINEAR_SOLVER_H_
@@ -18,8 +18,12 @@ public:
 	/* configure system */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
 	
-	/** solve the system over the current time increment */
-	virtual int Solve(void);	
+	/** solve the system over the current time increment.
+	 * \param num_iterations maximum number of iterations to execute. Hitting this limit
+	 *        does not signal a SolverT::kFailed status, unless solver's internal parameters
+	 *        also indicate the solution procedure has failed.
+	 * \return one of SolverT::IterationsStatusT */
+	virtual SolutionStatusT Solve(int num_iterations);
 	
 private:
 

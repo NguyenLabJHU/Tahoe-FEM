@@ -1,4 +1,4 @@
-/* $Id: DRSolver.cpp,v 1.2.2.3 2002-04-30 08:22:05 paklein Exp $ */
+/* $Id: DRSolver.cpp,v 1.2.2.4 2002-06-05 09:18:32 paklein Exp $ */
 /* created: PAK/CBH (10/03/1996) */
 
 #include "DRSolver.h"
@@ -39,7 +39,7 @@ void DRSolver::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 }
 
 /* generate the solution for the current time sequence */
-int DRSolver::Solve(void)
+SolverT::SolutionStatusT DRSolver::Solve(int num_iterations)
 {
 	try
 	{	  	
@@ -48,7 +48,9 @@ int DRSolver::Solve(void)
 	fRHS = 0.0;
 	fFEManager.FormRHS(Group());
 
-	while (!ExitIteration(fRHS.Magnitude()))
+	SolutionStatusT status = ExitIteration(fRHS.Magnitude());
+	while (status != kConverged &&
+		(num_iterations == -1 || IterationNumber() < num_iterations))
 	{
 		/* form the stiffness matrix */
 		fLHS->Clear();				
@@ -72,13 +74,17 @@ int DRSolver::Solve(void)
 		/* form the residual force vector */
 		fRHS = 0.0;
 		fFEManager.FormRHS(Group());
-	}  }
-	
-	 	
-	catch (int code) {  return code; }
+		
+		/* check status */
+		status = ExitIteration(fRHS.Magnitude());
+	}  
 
-	/* OK */
-	return eNoError;
+	/* normal */
+	return status;
+	
+	} /* end try */
+	
+	catch (int code) { return kFailed; }
 }
 
 /*************************************************************************

@@ -1,4 +1,4 @@
-/* $Id: DRSolver.h,v 1.1.1.1.8.3 2002-04-30 08:22:05 paklein Exp $ */
+/* $Id: DRSolver.h,v 1.1.1.1.8.4 2002-06-05 09:18:32 paklein Exp $ */
 /* created: PAK/CBH (10/03/1996) */
 
 #ifndef _DRSOLVER_H_
@@ -21,8 +21,12 @@ public:
 	/* configure the global equation system */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
 	
-	/** solve the system over the current time increment */
-	virtual int Solve(void);	
+	/** solve the system over the current time increment.
+	 * \param num_iterations maximum number of iterations to execute. Hitting this limit
+	 *        does not signal a SolverT::kFailed status, unless solver's internal parameters
+	 *        also indicate the solution procedure has failed.
+	 * \return one of SolverT::IterationsStatusT */
+	virtual SolutionStatusT Solve(int num_iterations);
 	
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.h,v 1.2.2.3 2002-04-30 08:22:06 paklein Exp $ */
+/* $Id: iNLSolver_LS.h,v 1.2.2.4 2002-06-05 09:18:33 paklein Exp $ */
 /* created: paklein (01/01/2001) */
 
 #ifndef _I_NL_SOLVER_LS_H_
@@ -18,8 +18,12 @@ public:
 	/* constructor */
 	iNLSolver_LS(FEManagerT& fe_manager, int group);
 
-	/** solve the system over the current time increment */
-	virtual int Solve(void);	
+	/** solve the system over the current time increment.
+	 * \param num_iterations maximum number of iterations to execute. Hitting this limit
+	 *        does not signal a SolverT::kFailed status, unless solver's internal parameters
+	 *        also indicate the solution procedure has failed.
+	 * \return one of SolverT::IterationsStatusT */
+	virtual SolutionStatusT Solve(int num_iterations);
 	
 	/* execute commands */
 	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
@@ -32,7 +36,7 @@ private:
 	/* commands */
 	bool DoStep(int max_steps);
 	bool DoInitStep(void);
-	IterationStatusT DoIterate(int max_count);
+	SolutionStatusT DoIterate(int max_count);
 	
 private:
 
@@ -41,7 +45,7 @@ private:
 	bool fLineSearch;	
 
 	/* solution states */
-	IterationStatusT fIterationStatus;
+	SolutionStatusT fIterationStatus;
 };
 
 #endif /* _I_NL_SOLVER_LS_H_ */

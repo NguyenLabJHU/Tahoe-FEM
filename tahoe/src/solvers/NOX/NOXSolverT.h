@@ -1,4 +1,4 @@
-/* $Id: NOXSolverT.h,v 1.2.2.3 2002-04-30 08:22:07 paklein Exp $ */
+/* $Id: NOXSolverT.h,v 1.2.2.4 2002-06-05 09:18:36 paklein Exp $ */
 #ifndef _NOX_SOLVER_T_H_
 #define _NOX_SOLVER_T_H_
 
@@ -37,8 +37,12 @@ public:
 	/** destructor */
 	virtual ~NOXSolverT(void);
 
-	/** solve the system over the current time increment */
-	virtual int Solve(void);	
+	/** solve the system over the current time increment.
+	 * \param num_iterations maximum number of iterations to execute. Hitting this limit
+	 *        does not signal a SolverT::kFailed status, unless solver's internal parameters
+	 *        also indicate the solution procedure has failed.
+	 * \return one of SolverT::IterationsStatusT */
+	virtual SolutionStatusT Solve(int num_iterations);
 
 	/** error handler */
 	virtual void ResetStep(void);
@@ -64,11 +68,6 @@ protected:
 
 private:
 
-	/** iteration status flags */
-	enum SolutionStatusT {kContinue = 0,
-                         kConverged = 1,
-                            kFailed = 2};
-                            
 	/** run solver */                            
 	SolutionStatusT Solve(NOX::Solver::Manager& nox);
 

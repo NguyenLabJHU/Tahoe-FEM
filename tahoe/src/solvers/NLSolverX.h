@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.h,v 1.1.1.1.8.3 2002-04-30 08:22:06 paklein Exp $ */
+/* $Id: NLSolverX.h,v 1.1.1.1.8.4 2002-06-05 09:18:33 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 
 #ifndef _NL_SOLVER_X_H_
@@ -19,8 +19,12 @@ public:
 	/* constructor */
 	NLSolverX(FEManagerT& fe_manager, int group);
 
-	/** solve the system over the current time increment */
-	virtual int Solve(void);	
+	/** solve the system over the current time increment.
+	 * \param num_iterations maximum number of iterations to execute. Hitting this limit
+	 *        does not signal a SolverT::kFailed status, unless solver's internal parameters
+	 *        also indicate the solution procedure has failed.
+	 * \return one of SolverT::IterationsStatusT */
+	virtual SolutionStatusT Solve(int num_iterations);
 
 	/* form and solve the equation system - returns the magnitude of the
 	 * residual */
@@ -32,10 +36,10 @@ public:
 protected:
 
 	/* relax system - reform tangent at newtancount intervals */
-	virtual IterationStatusT Relax(int newtancount = 1);  	
+	virtual SolutionStatusT Relax(int newtancount = 1);  	
 
 	/** things to do if the solver converges */
-	IterationStatusT DoConverged(void);
+	SolutionStatusT DoConverged(void);
 
 private:
 
