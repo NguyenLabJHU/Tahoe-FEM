@@ -1,4 +1,4 @@
-/* $Id: SSSimoViscoT.h,v 1.1 2003-03-19 19:03:18 thao Exp $ */
+/* $Id: SSSimoViscoT.h,v 1.2 2003-04-05 20:38:07 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_SIMO_VISCO_H_
 #define _SS_SIMO_VISCO_H_
@@ -44,10 +44,9 @@ class SSSimoViscoT: public SSSolidMatT
 	void Load(ElementCardT& element, int ip);
 	void Store(ElementCardT& element, int ip);
 
-	//compute output variables
-	virtual int NumOutputVariables() const;
-	virtual void OutputLabels(ArrayT<StringT>& labels) const;
-	virtual void ComputeOutput(dArrayT& output);
+	/*inquire if dissipation variables used in material force calculation are needed*/
+	virtual bool HasDissipVar(void) const {return true;}
+
 			
 	protected:
 	
@@ -60,33 +59,25 @@ class SSSimoViscoT: public SSSolidMatT
 	 *of the Maxwell element times the total strain*/
 
 	/*preceding values*/		 
-	/*deviatoric*/
-	dSymMatrixT   fDevOverStress_n;
-	dSymMatrixT   fDevInStress_n;
-	/*mean*/
-	dArrayT        fVolOverStress_n;
-	dArrayT        fVolInStress_n;
+	dSymMatrixT   fdevQ_n;
+	dSymMatrixT   fdevSin_n;
+	dArrayT        fmeanQ_n;
+	dArrayT        fmeanSin_n;
 	
 	/*current values*/
-	/*deviatoric*/
-	dSymMatrixT   fDevOverStress;
-	dSymMatrixT   fDevInStress;
-	/*mean*/
-	dArrayT   fVolOverStress;
-	dArrayT   fVolInStress;
+	dSymMatrixT   fdevQ;
+	dSymMatrixT   fdevSin;
+	dArrayT   fmeanQ;
+	dArrayT   fmeanSin;
 
-	/*number of state variables*/
-	int fnstatev;
+    /*viscous strains*/
+    dSymMatrixT   fViscStrain;
 
 	/* Internal state variables array*/
+	int fnstatev;
 	dArrayT fstatev;
 
-	/*modulus*/
-	dMatrixT fModulus;
-	/*stress*/
-	dSymMatrixT fStress;
-
- 	 /*relaxation times*/
+ 	/*relaxation times*/
 	double ftauS;
 	double ftauB;
 

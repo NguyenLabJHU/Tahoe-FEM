@@ -1,4 +1,4 @@
-/* $Id: FDSimoViscoBaseT.cpp,v 1.1 2003-03-19 19:03:18 thao Exp $ */
+/* $Id: FDSimoViscoBaseT.cpp,v 1.2 2003-04-05 20:38:07 thao Exp $ */
 /* created:   TDN (5/31/2001) */
 #include "FDSimoViscoBaseT.h"
 
@@ -33,22 +33,22 @@ FDSimoViscoBaseT::FDSimoViscoBaseT(ifstreamT& in,
 	double* pstatev = fstatev.Pointer();
 	/* assign pointers to current and preceding blocks of state variable array */
 	
-	fDevOverStress.Set(nsd, pstatev);        
+	fdevQ.Set(nsd, pstatev);        
 	pstatev += numstress;
-	fDevInStress.Set(nsd, pstatev);	
+	fdevSin.Set(nsd, pstatev);	
 	pstatev += numstress;
-	fVolOverStress.Set(1, pstatev);
+	fmeanQ.Set(1, pstatev);
 	pstatev ++;
-	fVolInStress.Set(1, pstatev);
+	fmeanSin.Set(1, pstatev);
 	pstatev ++;
 	
-	fDevOverStress_n.Set(nsd, pstatev);        
+	fdevQ_n.Set(nsd, pstatev);        
 	pstatev += numstress;
-	fDevInStress_n.Set(nsd, pstatev);	
+	fdevSin_n.Set(nsd, pstatev);	
 	pstatev += numstress;
-	fVolOverStress_n.Set(1, pstatev);
+	fmeanQ_n.Set(1, pstatev);
 	pstatev ++;
-	fVolInStress_n.Set(1, pstatev);
+	fmeanSin_n.Set(1, pstatev);
 }	
 
 void FDSimoViscoBaseT::Print(ostream& out) const
@@ -91,10 +91,10 @@ void FDSimoViscoBaseT::UpdateHistory(void)
 		Load(element, ip);
 	
 		/* assign "current" to "last" */	
-		fDevOverStress_n = fDevOverStress;
-		fDevInStress_n = fDevInStress;
-		fVolOverStress_n = fVolOverStress;
-		fVolInStress_n = fVolInStress;
+		fdevQ_n = fdevQ;
+		fdevSin_n = fdevSin;
+		fmeanQ_n = fmeanQ;
+		fmeanSin_n = fmeanSin;
 
 		/* write to storage */
 		Store(element, ip);
@@ -111,10 +111,10 @@ void FDSimoViscoBaseT::ResetHistory(void)
 		Load(element, ip);
 	
 		/* assign "last" to "current" */
-		fDevOverStress = fDevOverStress_n;
-		fDevInStress = fDevInStress_n;
-		fVolOverStress = fVolOverStress_n;
-		fVolInStress = fVolInStress_n;
+		fdevQ = fdevQ_n;
+		fdevSin = fdevSin_n;
+		fmeanQ = fmeanQ_n;
+		fmeanSin = fmeanSin_n;
 		
 		/* write to storage */
 		Store(element, ip);
@@ -163,26 +163,12 @@ void FDSimoViscoBaseT::ComputeOutput(dArrayT& output)
 	
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
-	double p_over = fVolOverStress[0];
-	double p_in = fVolInStress[0];
-	double s_over;
-	double s_in;
+	
+	output[0] = fmeanQ[0];
+
 	/*equivalent deviatoric stress*/
 	double third = 1.0/3.0;
-	s_over = sqrt(2.0*third*fDevOverStress.ScalarProduct());
-	s_in = sqrt(2.0*third*fDevInStress.ScalarProduct());
-
-	double r_dil = p_over/p_in;
-	double r_dev = s_over/s_in;
-
-	if (r_dil > 1 || r_dil <0) 
-	  r_dil = 0.0;
-
-	if (r_dev > 1 || r_dev <0) 
-	  r_dev = 0.0;
-
-	output[0] = r_dil;
-	output[1] = r_dev;
+	output[1] = sqrt(2.0*third*fdevQ.ScalarProduct());
 }	
 
 double FDSimoViscoBaseT::StrainEnergyDensity(void)

@@ -1,4 +1,4 @@
-/* $Id: FDSimoViscoBaseT.h,v 1.1 2003-03-19 19:03:18 thao Exp $ */
+/* $Id: FDSimoViscoBaseT.h,v 1.2 2003-04-05 20:38:07 thao Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #ifndef _FD_SIMO_VISCO_BASE_H_
@@ -65,20 +65,20 @@ class FDSimoViscoBaseT: public FSSolidMatT
 
 	/*preceding values*/		 
 	/*deviatoric*/
-	dSymMatrixT   fDevOverStress_n;
-	dSymMatrixT   fDevInStress_n;
+	dSymMatrixT   fdevQ_n;
+	dSymMatrixT   fdevSin_n;
 
 	/*mean*/
-	dArrayT        fVolOverStress_n;
-	dArrayT        fVolInStress_n;
+	dArrayT        fmeanQ_n;
+	dArrayT        fmeanSin_n;
 	
 	/*current values*/
 	/*deviatoric*/
-	dSymMatrixT   fDevOverStress;
-	dSymMatrixT   fDevInStress;
+	dSymMatrixT   fdevQ;
+	dSymMatrixT   fdevSin;
 	/*mean*/
-	dArrayT   fVolOverStress;
-	dArrayT   fVolInStress;
+	dArrayT   fmeanQ;
+	dArrayT   fmeanSin;
 
 };
 }

@@ -1,10 +1,9 @@
-/* $Id: SSSV_KStV2D.h,v 1.1 2003-03-19 19:03:19 thao Exp $ */
+/* $Id: SSSV_KStV2D.h,v 1.2 2003-04-05 20:38:08 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_SV_KStV_2D_H_
 #define _SS_SV_KStV_2D_H_
 
 #include "SSSimoViscoT.h"
-#include "Material2DT.h"
 
 namespace Tahoe {
 
@@ -14,7 +13,7 @@ class IsotropicT;
 
 /** base class for standard solid Kirchhoff St. Venant constitutive models 
  * constitutive law */
-class SSSV_KStV2D: public SSSimoViscoT, public Material2DT
+class SSSV_KStV2D: public SSSimoViscoT
 {
 	public:
 	
@@ -27,15 +26,20 @@ class SSSV_KStV2D: public SSSimoViscoT, public Material2DT
 
 	virtual double StrainEnergyDensity(void);
 
-        /* spatial description */ 
-        const dMatrixT& c_ijkl(void); // spatial tangent moduli 
-        const dSymMatrixT& s_ij(void); // Cauchy stress 
+    /* spatial description */ 
+    const dMatrixT& c_ijkl(void); // spatial tangent moduli 
+    const dSymMatrixT& s_ij(void); // Cauchy stress 
  
-        /* material description */ 
-        const dMatrixT& C_IJKL(void); // material tangent moduli 
-        const dSymMatrixT& S_IJ(void); // PK2 stress 
- 
-        protected: 
+    /* material description */ 
+    const dMatrixT& C_IJKL(void); // material tangent moduli 
+    const dSymMatrixT& S_IJ(void); // PK2 stress 
+
+	/*compute output variables*/
+	virtual int NumOutputVariables() const;
+	virtual void OutputLabels(ArrayT<StringT>& labels) const;
+	virtual void ComputeOutput(dArrayT& output);
+	 
+    protected: 
 	
 	/*1/3*/
 	const double fthird;
@@ -43,22 +47,24 @@ class SSSV_KStV2D: public SSSimoViscoT, public Material2DT
 	dArrayT fMu;
 	dArrayT fKappa;
 
-	/*strain*/
-	dSymMatrixT fE;
-
-        /*stress/modulus*/ 
-        dMatrixT fModulus; 
-        dSymMatrixT fStress; 
+    /*stress/modulus*/ 
+    dMatrixT fModulus; 
+    dSymMatrixT fStress;
+        
+    /*work spaces*/
+    dMatrixT fModMat; 
+	dSymMatrixT fStress3D;
+	dSymMatrixT fStrain3D;
  
 	/*relaxation times*/ 
-        double ftauS; 
-        double ftauB; 
+    double ftauS; 
+    double ftauB; 
 
-        /* exp(-a* dt/tau)*/ 
-        double falphaS; 
-        double falphaB; 
-        double fbetaS; 
-        double fbetaB; 
+    /* exp(-a* dt/tau)*/ 
+    double falphaS; 
+    double falphaB; 
+    double fbetaS; 
+    double fbetaB; 
 };
 }
 #endif  /* _SS_SV_KStV_2D_H_ */

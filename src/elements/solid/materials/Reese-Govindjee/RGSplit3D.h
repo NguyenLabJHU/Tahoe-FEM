@@ -66,16 +66,30 @@ class RGSplit3D: public RGBaseT
 	/* spectral operations */
 	SpectralDecompT fSpectralDecompSpat;
 	SpectralDecompT fSpectralDecompRef;
+	SpectralDecompT fSpectralDecompTrial;
 
 	/*work space*/
 	dSymMatrixT fb;
 	dSymMatrixT fb3D;
+	dSymMatrixT fbe;
+	dSymMatrixT fb_tr;
+	dMatrixT fF3D;
+
 	dArrayT     fEigs;
 	dArrayT     fEigs_e;
+	dArrayT     fEigs_bar;
+	dArrayT     fEigs_ebar;
+	dArrayT     fEigs_v;
+
 	dArrayT	    ftau_EQ;
-	dSymMatrixT fDtauDe_EQ;
 	dArrayT     ftau_NEQ;
+
+	dSymMatrixT fStress3D;
+	dSymMatrixT fDtauDe_EQ;
 	dSymMatrixT fDtauDe_NEQ;
+	dMatrixT fCalg;
+
+	dMatrixT    fModulus3D;
 	dMatrixT    fModMat;
   	dMatrixT    fiKAB;
 	

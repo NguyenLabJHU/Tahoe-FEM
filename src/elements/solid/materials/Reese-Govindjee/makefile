@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2003-03-27 00:56:22 thao Exp $
+# $Id: makefile,v 1.3 2003-04-05 20:38:05 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -65,8 +65,7 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (2) uncomment the subdir_driver macro
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
-SUB_DIR = VIB \
-	OgdenPotential  
+SUB_DIR = VIB 
 
 subdir_driver: subdir_loop
 

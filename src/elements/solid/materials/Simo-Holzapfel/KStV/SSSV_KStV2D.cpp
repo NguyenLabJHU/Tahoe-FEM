@@ -1,4 +1,4 @@
-/* $Id: SSSV_KStV2D.cpp,v 1.1 2003-03-19 19:03:19 thao Exp $ */
+/* $Id: SSSV_KStV2D.cpp,v 1.2 2003-04-05 20:38:08 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSSV_KStV2D.h"
 #include "SSMatSupportT.h"
@@ -10,18 +10,24 @@
 
 using namespace Tahoe;
 
+const int kNumOutputVar = 3;
+static const char* Labels[kNumOutputVar] = {"Dvisc","Iep_v", "IIe_v"};
+
 SSSV_KStV2D::SSSV_KStV2D(ifstreamT& in, const SSMatSupportT& support):
-	Material2DT(in),
 	SSSimoViscoT(in, support),
 	fStress(2),
 	fModulus(3),
+	fModMat(3),
+	fStrain3D(3),
+ 	fStress3D(3),
 	fMu(2),
 	fKappa(2),
 	fthird(1.0/3.0)
 {
-        double& mu_EQ = fMu[kEquilibrium];
-	double& mu_NEQ = fMu[kNonEquilibrium]; 
+    double& mu_EQ = fMu[kEquilibrium];
 	double& kappa_EQ = fKappa[kEquilibrium]; 
+
+	double& mu_NEQ = fMu[kNonEquilibrium]; 
 	double& kappa_NEQ = fKappa[kNonEquilibrium];
 
 	in >> ftauS;
@@ -38,22 +44,22 @@ void SSSV_KStV2D::Print(ostream& out) const
 {
 	/* inherited */
 	SSSimoViscoT::Print(out);
-	Material2DT::Print(out);
-	out << "Equilibrium Potential";
+	out << "Equilibrium Potential:\n";
 	out << "     Shear Modulus: "<<fMu[0]<<'\n';
 	out << "     Bulk Modulus: "<<fKappa[0]<<'\n';
-	out << "Non-Equilibrium Potential";
+	out << "Non-Equilibrium Potential:\n";
 	out << "     Shear Modulus: "<<fMu[1]<<'\n';
 	out << "     Bulk Modulus: "<<fKappa[1]<<'\n';
-	out<<"Constant relaxation time \n";
-	out<<"     Shear relaxation time: "<<ftauS<<'\n';
-	out<<"     Bulk relaxation time: "<<ftauB<<'\n';
+	out << "Relaxation time: \n";
+	out << "     Shear relaxation time: "<<ftauS<<'\n';
+	out << "     Bulk relaxation time: "<<ftauB<<'\n';
 }
 
 void SSSV_KStV2D::PrintName(ostream& out) const
 {
 	/* inherited */
 	SSSimoViscoT::PrintName(out);
+    out << "2D plane strain formulation\n";
 	out << "Equilibrium/Non-Equilibrium Potential:\n";
 	out << "Kirchoff St. Venant\n";
 	out << "Kirchoff St. Venant\n";
@@ -61,9 +67,57 @@ void SSSV_KStV2D::PrintName(ostream& out) const
 
 double SSSV_KStV2D::StrainEnergyDensity(void)
 {
-        const dSymMatrixT& strain = e();
-	const dSymMatrixT& stress = s_ij();
-	return (0.5*stress.ScalarProduct(strain));
+    const dSymMatrixT& strain = e();
+    fStrain3D = 0;
+    fStrain3D[0] = strain[0];
+    fStrain3D[1] = strain[1];
+    fStrain3D[5] = strain[2];
+	
+	/*equilibrium components*/
+	double mu = fMu[kEquilibrium];
+	double kappa = fKappa[kEquilibrium];
+
+	double I1 = strain[0]+strain[1]; 
+
+	fStrain3D[0] -= fthird*I1;
+	fStrain3D[1] -= fthird*I1;
+	fStrain3D[2] -= fthird*I1;
+	
+	/*deviatoric part*/
+	fStress3D = fStrain3D;
+	fStress3D *= 2.0*mu;
+
+	/*volumetric part*/
+	fStress3D[0] += kappa*I1;
+	fStress3D[1] += kappa*I1;
+    fStress3D[2] += kappa*I1;
+    
+    /*reduce to 2D*/
+    fStress[0] = fStress3D[0];
+    fStress[1] = fStress3D[1];
+    fStress[2] = fStress3D[5];
+
+    double energy = 0.5*fStress.ScalarProduct(e());
+
+	ElementCardT& element = CurrentElement();
+	Load(element, CurrIP());
+
+    mu = fMu[kNonEquilibrium];
+    kappa = fKappa[kNonEquilibrium];
+
+    fStrain3D = fdevQ;
+    fStrain3D /= 2.0*mu;
+    fStrain3D[0] += fmeanQ[0]/kappa*fthird;
+    fStrain3D[1] += fmeanQ[0]/kappa*fthird;
+    fStrain3D[2] += fmeanQ[0]/kappa*fthird;
+
+	fStress3D = fdevQ;
+	fStress3D[0] += fmeanQ[0];
+	fStress3D[1] += fmeanQ[0];
+	fStress3D[2] += fmeanQ[0];
+
+    energy += 0.5*fStress3D.ScalarProduct(fStrain3D);
+    return(energy);
 }
 
 const dMatrixT& SSSV_KStV2D::C_IJKL(void) 
@@ -78,49 +132,43 @@ const dSymMatrixT& SSSV_KStV2D::S_IJ(void)
 
 const dMatrixT& SSSV_KStV2D::c_ijkl(void)
 {        
-        /*equilibrium component*/
+ 	double dt = fSSMatSupport.TimeStep();
+	double taudtS = dt/ftauS;
+	double taudtB = dt/ftauB;
+
+	falphaS = exp(-0.5*taudtS);
+	falphaB = exp(-0.5*taudtB);
+
+    /*equilibrium component*/
 	double& mu = fMu[kEquilibrium];
 	double& kappa = fKappa[kEquilibrium];
-	double scale = 1.0;
 
-	if (fConstraintOption == Material2DT::kPlaneStress)
-	{
-	      scale *= 6.0*mu/(3*kappa -2 *mu);    
-	}
-        /*deviatoric part*/
-	dMatrixT IxI(3);
-	IxI.ReducedIndexII();
-	IxI *= scale*fthird;
-	fModulus.ReducedIndexI();
-	fModulus -= IxI;
-	fModulus *= 2.0*mu;
+    /*deviatoric part*/
+	fModulus = 0.0;
+	fModulus(0,0) = fModulus(1,1) = 2.0*mu*(1.0 - fthird);
+	fModulus(2,2) = mu;
+	fModulus(0,1) =	fModulus(1,0) = -2.0*mu*fthird;
 
-        /*volumetric part*/
-	IxI *= 3.0*kappa;
-	fModulus += IxI;
-
+    /*volumetric part*/
+	fModulus(0,0) += kappa; fModulus(1,1) += kappa; 
+	fModulus(0,1) += kappa; fModulus(1,0) += kappa; 
+	
 	/*non-equilibrium component*/
 	mu = fMu[kNonEquilibrium];
 	kappa = fKappa[kNonEquilibrium];
 
-	if (fConstraintOption == Material2DT::kPlaneStress)
-	{
-	      scale *= 6.0*mu/(3*kappa -2 *mu);    
-	}
-        /*deviatoric part*/
-	dMatrixT mod(3);
-	IxI.ReducedIndexII();
-	IxI *= scale*fthird;
-	mod.ReducedIndexI();
-	mod -= IxI;
-	mod *= 2.0*mu*falphaS;
-	fModulus += mod;
+	/*deviatoric part*/
+	fModMat = 0.0;
+	fModMat(0,0) = fModMat(1,1) = 2.0*mu*falphaS*(1.0 - fthird);
+	fModMat(2,2) = mu*falphaS;
+	fModMat(0,1) = fModMat(1,0) = -2.0*mu*falphaS*fthird;
 	
-        /*volumetric part*/
-	mod = IxI;
-	mod *= 3.0*kappa*falphaB;
-	fModulus += mod;
-
+    /*volumetric part*/
+	fModMat(0,0) += kappa*falphaB; fModMat(1,1) += kappa*falphaB; 
+	fModMat(0,1) += kappa*falphaB; fModMat(1,0) += kappa*falphaB; 
+	
+    fModulus += fModMat;
+    
 	return(fModulus);
 }
 
@@ -135,62 +183,105 @@ const dSymMatrixT& SSSV_KStV2D::s_ij(void)
 	fbetaS = exp(-taudtS);
 	fbetaB = exp(-taudtB);
 
-        dSymMatrixT strain = e();
+    const dSymMatrixT& strain = e();
+    fStrain3D = 0;
+    fStrain3D[0] = strain[0];
+    fStrain3D[1] = strain[1];
+    fStrain3D[5] = strain[2];
 	
 	/*equilibrium components*/
 	double& mu = fMu[kEquilibrium];
 	double& kappa = fKappa[kEquilibrium];
 
 	double I1 = strain[0]+strain[1]; 
-	dSymMatrixT dev_e = strain;
-	if (fConstraintOption == Material2DT::kPlaneStress)
-	{
-	          I1 -= (kappa+4.0*fthird*mu)/(kappa-2.0*fthird*mu);
-	}
-	dev_e[0] -= fthird*I1;
-	dev_e[1] -= fthird*I1;
+
+	fStrain3D[0] -= fthird*I1;
+	fStrain3D[1] -= fthird*I1;
+	fStrain3D[2] -= fthird*I1;
 	
 	/*deviatoric part*/
-	fStress = dev_e;
-	fStress *= 2.0*mu;
+	fStress3D = fStrain3D;
+	fStress3D *= 2.0*mu;
 
 	/*volumetric part*/
-	fStress.PlusIdentity(kappa*I1);
-
+	fStress3D[0] += kappa*I1;
+	fStress3D[1] += kappa*I1;
+    fStress3D[2] += kappa*I1;
 	/*non-equilibrium components*/
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
 
 	if(fSSMatSupport.RunState() == GlobalT::kFormRHS)
 	{
-	        mu = fMu[kNonEquilibrium];
-		kappa = fKappa[kEquilibrium];
-
-		I1 = strain[0]+strain[1]; 
-		dev_e = strain;
-		if (fConstraintOption == Material2DT::kPlaneStress)
-		{
-	                I1 -= (kappa+4.0*fthird*mu)/(kappa-2.0*fthird*mu);
-		}
-		dev_e[0] -= fthird*I1;
-		dev_e[1] -= fthird*I1;
+		mu = fMu[kNonEquilibrium];
+		kappa = fKappa[kNonEquilibrium];
 
 		/*deviatoric part*/       
-		fDevInStress = dev_e;
-		fDevInStress *= 2.0*mu;
-	        fDevOverStress.SetToCombination(fbetaS, fDevOverStress_n, 
-						falphaS, fDevInStress,
-						-falphaS, fDevInStress_n);
-
+		fdevSin = fStrain3D;
+		fdevSin *= 2.0*mu;
+		
+		fdevQ[0] = fbetaS*fdevQ_n[0] + falphaS*(fdevSin[0]-fdevSin_n[0]);
+		fdevQ[1] = fbetaS*fdevQ_n[1] + falphaS*(fdevSin[1]-fdevSin_n[1]);
+		fdevQ[2] = fbetaS*fdevQ_n[2] + falphaS*(fdevSin[2]-fdevSin_n[2]);
+		fdevQ[3] = fbetaS*fdevQ_n[3] + falphaS*(fdevSin[3]-fdevSin_n[3]);
+		fdevQ[4] = fbetaS*fdevQ_n[4] + falphaS*(fdevSin[4]-fdevSin_n[4]);
+		fdevQ[5] = fbetaS*fdevQ_n[5] + falphaS*(fdevSin[5]-fdevSin_n[5]);
+		
 		/*volumetric part*/
-		fVolInStress[0] = kappa*I1;
-		fVolOverStress[0] = fbetaB*fVolOverStress_n[0] + falphaB* 
-		                   (fVolInStress[0]-fVolInStress_n[0]);
+		fmeanSin[0] = kappa*I1;
+		fmeanQ[0] = fbetaB*fmeanQ_n[0] + falphaB * (fmeanSin[0]-fmeanSin_n[0]);
+        
+        /*evaluate viscous strains*/
+        fViscStrain = 0.0;
+		fViscStrain -= fdevQ;
+		fViscStrain /= 2.0*mu;
+        fViscStrain[0] -= fmeanQ[0]*fthird/kappa;
+        fViscStrain[1] -= fmeanQ[0]*fthird/kappa;
+        fViscStrain[2] -= fmeanQ[0]*fthird/kappa;
 
+        fViscStrain[0] += strain[0];                
+        fViscStrain[1] += strain[1];
+        fViscStrain[5] += strain[2];
+        
 		Store(element,CurrIP());
 	}
-	fStress += fDevOverStress;
-	fStress.PlusIdentity(fVolOverStress[0]);
+	fStress3D += fdevQ;
 
+	fStress3D[0] += fmeanQ[0];
+	fStress3D[1] += fmeanQ[0];
+	fStress3D[2] += fmeanQ[0];
+
+    fStress[0] = fStress3D[0];
+    fStress[1] = fStress3D[1];
+    fStress[2] = fStress3D[5];
 	return(fStress);
 }
+int SSSV_KStV2D::NumOutputVariables() const {return kNumOutputVar;}
+
+void SSSV_KStV2D::OutputLabels(ArrayT<StringT>& labels) const
+{
+	//allocates space for labels
+	labels.Dimension(kNumOutputVar);
+	
+	//copy labels
+	for (int i = 0; i< kNumOutputVar; i++)
+		labels[i] = Labels[i];
+}
+	
+void SSSV_KStV2D::ComputeOutput(dArrayT& output)
+{
+	/*non-equilibrium components*/
+	ElementCardT& element = CurrentElement();
+	Load(element, CurrIP());
+
+    double etaS = fMu[kNonEquilibrium]*ftauS;
+    double etaB = fKappa[kNonEquilibrium]*ftauB;
+
+    output[0] = 0.5*(0.5/etaS*fdevQ.ScalarProduct() + 1.0/etaB*fmeanQ[0]*fmeanQ[0]); 
+    double I1 = output[1] = fViscStrain[0]+fViscStrain[1]+fViscStrain[2];
+    I1 *= fthird;
+    output[2] = sqrt(2.0*fthird*((fViscStrain[0]-I1)*(fViscStrain[0]-I1)
+        +(fViscStrain[1]-I1)*(fViscStrain[1]-I1) + (fViscStrain[2]-I1)*(fViscStrain[2]-I1)
+        +2.0*fViscStrain[3]*fViscStrain[3]+2.0*fViscStrain[4]*fViscStrain[4]
+        +2.0*fViscStrain[5]*fViscStrain[5]));
+}	

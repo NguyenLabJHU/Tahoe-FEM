@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.h,v 1.3 2003-03-26 22:57:45 thao Exp $ */
+/* $Id: RGVIB2D.h,v 1.4 2003-04-05 20:38:06 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #ifndef _RG_VIB_2D_H_
@@ -29,50 +29,55 @@ class RGVIB2D: public RGBaseT, public ViscVIB
 	virtual void PrintName(ostream& out) const;
 
 	/* class specific initializations */ 
-    virtual void Initialize(void); 
+        virtual void Initialize(void); 
 
-    /*compute output variables*/ 
-    virtual int NumOutputVariables() const; 
-    virtual void OutputLabels(ArrayT<StringT>& labels) const; 
-    virtual void ComputeOutput(dArrayT& output); 
+        /*compute output variables*/ 
+        virtual int NumOutputVariables() const; 
+        virtual void OutputLabels(ArrayT<StringT>& labels) const; 
+        virtual void ComputeOutput(dArrayT& output); 
  
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
 
-    /* spatial description */ 
-    virtual const dMatrixT& c_ijkl(void); 
-    virtual const dSymMatrixT& s_ij(void); 
+        /* spatial description */ 
+        virtual const dMatrixT& c_ijkl(void); 
+        virtual const dSymMatrixT& s_ij(void); 
  
-    /* material description */ 
-    virtual const dMatrixT& C_IJKL(void); // material tangent moduli 
-    virtual const dSymMatrixT& S_IJ(void); // PK2 stress 
-
-    /*material inelastic stress measure*/
-	virtual bool HasDissipVar(void) const {return false;};
-
+        /* material description */ 
+        virtual const dMatrixT& C_IJKL(void); // material tangent moduli 
+        virtual const dSymMatrixT& S_IJ(void); // PK2 stress 
+	
   protected:
-    enum EnergyType {Inelastic=0, Elastic=1}; 
+  
+        enum EnergyType {Inelastic=0, Elastic=1}; 
 
 	/*principal elastic stretches*/
-	void ComputeEigs_e(const dArrayT& eigenstretch,dArrayT& eigenstretch_e, 
-			   dArrayT& eigenstress,dSymMatrixT& eigenmodulus);
+	virtual void ComputeEigs_e(const dArrayT& eigenstretch, 
+				   dArrayT& eigenstretch_e, 
+				   dArrayT& eigenstress, 
+				   dSymMatrixT& eigenmodulus);
   
 	/* stresses and moduli*/
-  	void dWdE(const dArrayT& eigenstretch, dArrayT& eigenstress,int etype);
+  	void dWdE(const dArrayT& eigenstretch, dArrayT& eigenstress, 
+			  int etype);
 
   	void ddWddE(const dArrayT& eigenstretch, 
-		        dArrayT& eigenstress, dSymMatrixT& eigenmodulus,int etype);
+				    dArrayT& eigenstress, dSymMatrixT& eigenmodulus, 
+				    int etype);
 
-  	void Calgorithm(const dArrayT& eigenstretch, const dArrayT& eigenstretch_e,
-			        dArrayT& eigenstress, dSymMatrixT& eigenmodulus,dMatrixT& Calg);
+  	void Calgorithm(const dArrayT& eigenstretch, 
+			const dArrayT& eigenstretch_e, dArrayT& eigenstress, 
+			dSymMatrixT& eigenmodulus, dMatrixT& calg);
 
 	/* return true of model is purely 2D, plain stress */
 	virtual bool PurePlaneStress(void) const { return true; };
 
+	virtual bool HasDissipVar(void) const{ return false;};
+
   private:
 
-	void ComputeiKAB(const double& J, const double& Je, const dArrayT& eigenstress, 
-			 const dSymMatrixT& eigenmodulus);
+	void ComputeiKAB(double& Jv, double& Je, dArrayT& eigenstress, 
+			 dSymMatrixT& eigenmodulus);
 
   	/* calculates "bond" lengths from Lagrangian stretch eigenvalues */
 	void ComputeLengths(const dArrayT& eigenstretch, int etype);
@@ -86,33 +91,40 @@ class RGVIB2D: public RGBaseT, public ViscVIB
   	CirclePointsT*	fCircle;  
  
   private:  
-	    /* spectral operations */
-	    SpectralDecompT fSpectralDecompSpat;
-	    SpectralDecompT fSpectralDecompRef;
+	SpectralDecompT fSpectralDecompSpat;
+	SpectralDecompT fSpectralDecompTrial;
+	SpectralDecompT fSpectralDecompRef;
 
         /* work space */ 
         dSymMatrixT fb; 
+	dSymMatrixT fb_tr;
         dArrayT     fEigs; 
-        dArrayT     fEigs_e; 
+        dArrayT     fEigs_e;
+	dArrayT     fEigs_v;
+
         dArrayT     ftau_E; 
-        dSymMatrixT fDtauDep_E; 
         dArrayT     ftau_I; 
+
+        dSymMatrixT fDtauDep_E; 
         dSymMatrixT fDtauDep_I; 
+
+        dMatrixT    fCalg; 
         dMatrixT    fModMat; 
-         
+
+  	dMatrixT fiKAB;
+	dMatrixT fGAB;
+	dMatrixT fDAB;
+
         /* return values */ 
         dMatrixT        fModulus; 
         dSymMatrixT     fStress; 
          
-  	/*inelastic moduli*/
-  	dMatrixT fiKAB;
-
 	/*inverse viscosities*/
 	double fietaS;
 	double fietaB;
 	
 	/*2D geometric constraint*/
-	const double fconst;  //fconst = 0.5 for 2D formulation.
+	double fconst;
 };
 }
 #endif /* _RG_VIB_2D_H_ */

@@ -1,4 +1,4 @@
-/* $Id: FDSV_KStV3D.h,v 1.1 2003-03-19 19:03:19 thao Exp $ */
+/* $Id: FDSV_KStV3D.h,v 1.2 2003-04-05 20:38:08 thao Exp $ */
 /* created:   TDN (5/31/2001) */
 #ifndef _FD_SV_KStV_3D_H_
 #define _FD_SV_KStV_3D_H_
@@ -46,6 +46,7 @@ class FDSV_KStV3D: public FDSimoViscoBaseT
 
         /*stress/modulus*/ 
         dMatrixT fModulus; 
+        dMatrixT fModMat;
         dSymMatrixT fStress; 
  
 	/*relaxation times*/ 
