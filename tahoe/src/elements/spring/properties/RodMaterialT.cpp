@@ -1,5 +1,5 @@
-/* $Id: RodMaterialT.cpp,v 1.2 2001-10-25 07:15:00 paklein Exp $ */
-/* created: paklein (11/20/1996)                                          */
+/* $Id: RodMaterialT.cpp,v 1.3 2001-12-17 00:12:01 paklein Exp $ */
+/* created: paklein (11/20/1996) */
 
 #include "RodMaterialT.h"
 #include <iostream.h>

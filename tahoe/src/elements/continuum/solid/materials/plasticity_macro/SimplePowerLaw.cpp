@@ -53,16 +53,25 @@ double SimplePowerLaw::DfDs(double sigma, double eqp)
 
 double SimplePowerLaw::h(double eqpdot, double kappa)
 {
+#pragma unused(eqpdot)
+#pragma unused(kappa)
+
   throw eGeneralFail;
 }
 
 double SimplePowerLaw::DhDeqpdot(double eqpdot, double kappa)
 {
+#pragma unused(eqpdot)
+#pragma unused(kappa)
+
   throw eGeneralFail;
 }
 
 double SimplePowerLaw::DhDs(double eqpdot, double kappa)
 {
+#pragma unused(eqpdot)
+#pragma unused(kappa)
+
   throw eGeneralFail;
 }
 

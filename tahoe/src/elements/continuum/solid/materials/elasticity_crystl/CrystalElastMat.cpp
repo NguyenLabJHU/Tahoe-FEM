@@ -1,4 +1,4 @@
-/* $Id: CrystalElastMat.cpp,v 1.3 2001-08-20 22:15:40 rdorgan Exp $ */
+/* $Id: CrystalElastMat.cpp,v 1.4 2001-12-17 00:11:57 paklein Exp $ */
 /*
   File: CrystalElastMat.cpp
 */
@@ -19,6 +19,7 @@
 
 CrystalElastMat::CrystalElastMat(CrystalElast& poly)
 {
+#pragma unused(poly)
   // initialize material coefficients
   fC11 = fC12 = fC44 = 0.;
 }
@@ -39,6 +40,9 @@ void CrystalElastMat::Print(ostream& out) const
 
 void CrystalElastMat::ElasticityProps(dArrayT& matprop, double Temp_DegC, int elem, int intpt)
 {
+#pragma unused(elem)
+#pragma unused(intpt)
+
   CalculateModuli(Temp_DegC);
 
   // material properties used in computations

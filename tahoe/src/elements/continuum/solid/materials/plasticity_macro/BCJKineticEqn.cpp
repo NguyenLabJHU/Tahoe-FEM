@@ -62,6 +62,8 @@ double BCJKineticEqn::h(double eqpdot, double kappa)
 
 double BCJKineticEqn::DhDeqpdot(double eqpdot, double kappa)
 {
+#pragma unused(kappa)
+
   // d(h)/d(eqpdot)
   double arg = eqpdot/fMatProp[2];
   return  fMatProp[0]/fMatProp[2]/sqrt(arg*arg+1.) ;
@@ -69,6 +71,9 @@ double BCJKineticEqn::DhDeqpdot(double eqpdot, double kappa)
 
 double BCJKineticEqn::DhDs(double eqpdot, double kappa)
 {
+#pragma unused(eqpdot)
+#pragma unused(kappa)
+
   // d(h)/d(kappa)
   return  1.0;
 }

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.7 2001-10-24 02:24:24 paklein Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.8 2001-12-17 00:11:58 paklein Exp $ */
 /*
   File: LocalCrystalPlast.cpp
 */
@@ -1307,7 +1307,11 @@ void LocalCrystalPlast::FFFFC_3D(dMatrixT& Co, dMatrixT& Ci, const dMatrixT& F)
 /* to be deleted */
 void LocalCrystalPlast::dTaudCe(const dMatrixT& Z, const dSymMatrixT& P,
                                 dSymMatrixT& symmatx)
-{ }
+{ 
+#pragma unused(Z)
+#pragma unused(P)
+#pragma unused(symmatx)
+}
 
 void LocalCrystalPlast::CrystalC_ijkl_Elastic() { }
 
