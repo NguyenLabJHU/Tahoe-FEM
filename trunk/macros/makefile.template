@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.12 2001-09-19 19:04:54 paklein Exp $
+# $Id: makefile.template,v 1.13 2001-10-29 23:04:23 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -27,13 +27,15 @@ ARCH =
 # default target name - root of library name or executable name
 TARGET  =
 LIBRARY = $(HOME_DIR)/lib/lib$(TARGET).a
+#RAN_LIBRARY = $(HOME_DIR)/lib/lib$(TARGET).a
 
 # path to main, needed if primary target is an executable (not 
 # a library)
 MAIN    = $(SRC_DIR)/main/main.o
 
-# target of "make build", i.e., the library $(LIBRARY) or
-# the executable $(TARGET)
+# target of "make build", i.e., the library $(LIBRARY),
+# $(RAN_LIBRARY) if the toc needs to be added in a separate
+# step, or the executable $(TARGET)
 BUILD   = $(TARGET)
 
 # full path to compiler macros

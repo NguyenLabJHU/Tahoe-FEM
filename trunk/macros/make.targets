@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.9 2001-09-19 19:10:29 paklein Exp $
+# $Id: make.targets,v 1.10 2001-10-29 23:04:23 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -81,14 +81,13 @@ help:
 # instructions
 build: objects $(BUILD)
 
-$(TARGET): $(OPT_LIB) $(LIBRARY)
+$(TARGET): $(OPT_LIB) $(LIBRARY) $(RAN_LIBRARY)
 	@ $(ECHO) " linking..."	
 	@ $(LINK) $(MAIN) -o $(TARGET) -L$(HOME_DIR)/lib -l$(TARGET) $(OPT_LFLAGS) $(LFLAGS)
 	@ $(ECHO) "    ...wrote $(TARGET)"; $(ECHO) " "
 
 # include object list and create archive
 $(LIBRARY): $(LIB_DIR)/lib.junk
-	@ $(ECHO) " building archive..."
 	@ $(MAKE) build_library \
 	"OBJECT_LIST = $(HOME_DIR)/object_list" \
 	"AR = $(AR)" \
@@ -96,9 +95,28 @@ $(LIBRARY): $(LIB_DIR)/lib.junk
 	"LIBRARY = $(LIBRARY)" \
 	"ECHO = $(ECHO)"
 
+# add a table of contents to the library
+$(RAN_LIBRARY): $(LIB_DIR)/lib.junk
+	@ $(MAKE) build_ran_library \
+	"OBJECT_LIST = $(HOME_DIR)/object_list" \
+	"AR = $(AR)" \
+	"ARFLAGS = $(ARFLAGS)" \
+	"RANLIB = $(RANLIB)" \
+	"RANLIBFLAGS = $(RANLIBFLAGS)" \
+	"LIBRARY = $(RAN_LIBRARY)" \
+	"ECHO = $(ECHO)"
+
 # create archive
 build_library:
+	@ $(ECHO) " building archive..."
 	@ cd $(OBJ_DIR); $(AR) $(ARFLAGS) $(LIBRARY) $(OBJ)	
+
+# create archive and table of contents
+build_ran_library:
+	@ $(ECHO) " building archive..."
+	@ cd $(OBJ_DIR); $(AR) $(ARFLAGS) $(LIBRARY) $(OBJ)	
+	@ $(ECHO) " adding TOC..."
+	@ $(RANLIB) $(RANLIBFLAGS) $(LIBRARY)
 
 # initialization
 init:
