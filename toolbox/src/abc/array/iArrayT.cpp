@@ -1,4 +1,4 @@
-/* $Id: iArrayT.cpp,v 1.16 2003-10-27 19:50:33 paklein Exp $ */
+/* $Id: iArrayT.cpp,v 1.17 2003-11-04 01:20:54 paklein Exp $ */
 /* created: paklein (08/10/1996) */
 #include "iArrayT.h"
 #include <iostream.h>
@@ -9,9 +9,9 @@ using namespace Tahoe;
 
 /* array behavior */
 namespace Tahoe {
-template<> const bool ArrayT<iArrayT*>::fByteCopy = true;
-template<> const bool ArrayT<const iArrayT*>::fByteCopy = true;
-template<> const bool ArrayT<iArrayT>::fByteCopy = false; 
+DEFINE_TEMPLATE_STATIC const bool ArrayT<iArrayT*>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<const iArrayT*>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<iArrayT>::fByteCopy = false; 
 } /* namespace Tahoe */
 
 /* constructor */

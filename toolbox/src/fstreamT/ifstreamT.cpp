@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.cpp,v 1.23 2003-10-27 19:50:51 paklein Exp $ */
+/* $Id: ifstreamT.cpp,v 1.24 2003-11-04 01:21:16 paklein Exp $ */
 /* created: paklein (03/03/1999) */
 #include "ifstreamT.h"
 
@@ -16,7 +16,7 @@ const int kLineLength = 255;
 
 /* static variables */
 namespace Tahoe {
-template<> const bool ArrayT<ifstreamT*>::fByteCopy = true; // array behavior
+DEFINE_TEMPLATE_STATIC const bool ArrayT<ifstreamT*>::fByteCopy = true; // array behavior
 } /* namespace Tahoe */
 
 /* constructors */

@@ -1,4 +1,4 @@
-/* $Id: EnSightT.cpp,v 1.13 2003-10-27 19:50:45 paklein Exp $ */
+/* $Id: EnSightT.cpp,v 1.14 2003-11-04 01:21:10 paklein Exp $ */
 /* created: sawimme (05/13/1999) */
 #include "EnSightT.h"
 
@@ -17,7 +17,7 @@ using namespace Tahoe;
 
 /* array behavior */
 namespace Tahoe {
-template<> const bool ArrayT<EnSightT::VariableTypeT>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<EnSightT::VariableTypeT>::fByteCopy = true;
 } /* namespace Tahoe */
 
 EnSightT::EnSightT (ostream& out, bool binary, int dof) :

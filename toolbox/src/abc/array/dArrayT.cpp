@@ -1,4 +1,4 @@
-/* $Id: dArrayT.cpp,v 1.8 2003-10-27 19:50:33 paklein Exp $ */
+/* $Id: dArrayT.cpp,v 1.9 2003-11-04 01:20:54 paklein Exp $ */
 /* created: paklein (08/11/1996) */
 #include "dArrayT.h"
 #include <iostream.h>
@@ -9,8 +9,8 @@
 using namespace Tahoe;
 
 namespace Tahoe {
-template<> const bool ArrayT<dArrayT*>::fByteCopy = true; 
-template<> const bool ArrayT<dArrayT>::fByteCopy = false; 
+DEFINE_TEMPLATE_STATIC const bool ArrayT<dArrayT*>::fByteCopy = true; 
+DEFINE_TEMPLATE_STATIC const bool ArrayT<dArrayT>::fByteCopy = false; 
 } /* namespace Tahoe */
 
 /* constructor */

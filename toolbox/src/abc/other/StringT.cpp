@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.34 2003-10-27 19:50:39 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.35 2003-11-04 01:21:01 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #include "StringT.h"
 #include "ifstreamT.h"
@@ -20,9 +20,9 @@ using namespace Tahoe;
 
 /* array behavior */
 namespace Tahoe {
-template<> const bool ArrayT<StringT>::fByteCopy = false;
-template<> const bool ArrayT<StringT*>::fByteCopy = true;
-template<> const bool ArrayT<const StringT*>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<StringT>::fByteCopy = false;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<StringT*>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<const StringT*>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* line length */

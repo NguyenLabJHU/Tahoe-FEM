@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.cpp,v 1.7 2003-11-01 21:08:51 paklein Exp $ */
+/* $Id: ParameterInterfaceT.cpp,v 1.8 2003-11-04 01:21:25 paklein Exp $ */
 #include "ParameterInterfaceT.h"
 #include "ParameterListT.h"
 #include "ParameterUtils.h"
@@ -7,9 +7,9 @@ using namespace Tahoe;
 
 /* array behavior */
 namespace Tahoe {
-template<> const bool ArrayT<ParameterInterfaceT*>::fByteCopy = true;
-template<> const bool ArrayT<const ParameterInterfaceT*>::fByteCopy = true;
-template<> const bool ArrayT<SubListDescriptionT>::fByteCopy = false;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<ParameterInterfaceT*>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<const ParameterInterfaceT*>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<SubListDescriptionT>::fByteCopy = false;
 }
 
 /* constructor */

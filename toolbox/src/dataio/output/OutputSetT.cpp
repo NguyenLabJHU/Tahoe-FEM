@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.18 2003-10-27 19:50:47 paklein Exp $ */
+/* $Id: OutputSetT.cpp,v 1.19 2003-11-04 01:21:12 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 #include "OutputSetT.h"
 #include "iArrayT.h"
@@ -8,7 +8,7 @@ using namespace Tahoe;
 
 namespace Tahoe {
 /* array behavior */
-template<> const bool ArrayT<OutputSetT*>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<OutputSetT*>::fByteCopy = true;
 }
 
 /* constructor */

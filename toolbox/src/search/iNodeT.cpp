@@ -1,4 +1,4 @@
-/* $Id: iNodeT.cpp,v 1.6 2003-10-27 19:51:01 paklein Exp $ */
+/* $Id: iNodeT.cpp,v 1.7 2003-11-04 01:21:27 paklein Exp $ */
 /* created: paklein (12/07/1997) */
 #include "iNodeT.h"
 #include "ArrayT.h"
@@ -7,7 +7,7 @@ using namespace Tahoe;
 
 /* array behavior */
 namespace Tahoe {
-template<> const bool ArrayT<iNodeT>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<iNodeT>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* constructors */
