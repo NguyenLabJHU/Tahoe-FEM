@@ -1,4 +1,4 @@
-/* $Id: MFSupportT.cpp,v 1.2 2003-08-11 01:20:57 thao Exp $ */
+/* $Id: MFSupportT.cpp,v 1.3 2003-08-25 20:37:22 thao Exp $ */
 #include "MFSupportT.h"
 
 #include "dArrayT.h"
@@ -186,7 +186,9 @@ void MFSupportT::WriteSummary(dArray2DT& output)
          <<setw(doublewidth+1) << maxFx 
          <<setw(intwidth+6) << nFy+1
          <<setw(doublewidth+2) << maxFy
-         <<endl;        
+         <<endl; 
+       
+    fout.close();
   }
   else if (nsd == 3)
   { 
@@ -279,6 +281,8 @@ void MFSupportT::WriteSummary(dArray2DT& output)
          <<setw(intwidth+6) << nFz+1
          <<setw(doublewidth+2) << maxFz
          <<endl;        
+
+    fout.close();
   }
 }
 
