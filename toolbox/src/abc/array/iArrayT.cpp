@@ -1,4 +1,4 @@
-/* $Id: iArrayT.cpp,v 1.3 2001-07-31 18:32:12 sawimme Exp $ */
+/* $Id: iArrayT.cpp,v 1.4 2001-12-17 00:00:52 paklein Exp $ */
 /* created: paklein (08/10/1996)                                          */
 
 #include "iArrayT.h"
@@ -72,4 +72,96 @@ void iArrayT::SetValueToPosition(void)
 	int* p = Pointer();
 	for (int i = 0; i < Length(); i++)
 		*p++ = i;
+}
+
+/* determine union of the given array */
+iArrayT& iArrayT::Union(const nArrayT<int>& source)
+{
+	/* quick exit */
+	if (source.Length() == 0)
+		Allocate(0);
+	else
+	{
+		/* range of data */
+		int min, max;
+		source.MinMax(min, max);
+		int range = max - min + 1;
+
+		/* local map */
+		iArrayT node_map(range);
+		node_map = 0;
+
+		/* mark nodes used */
+		int* p = source.Pointer();
+		for (int i = 0; i < source.Length(); i++)
+			node_map[*p++ - min] = 1;
+
+		/* collect list */
+		Allocate(node_map.Count(1));
+		int dex = 0;
+		p = node_map.Pointer();
+		int* pthis = Pointer();
+		for (int j = 0; j < node_map.Length(); j++)
+			if (*p++ == 1) pthis[dex++] = j + min;
+	}
+	return *this;
+}
+
+/* determine the union of the given arrays */
+iArrayT& iArrayT::Union(const ArrayT<const nArrayT<int>*>& source)
+{
+	/* quick exit */
+	if (source.Length() == 0)
+		Allocate(0);
+	else
+	{
+		/* skip empties */
+		iArrayT empty(source.Length());
+		empty = 1;
+		for (int i = 0; i < empty.Length(); i++)
+			if (source[i]->Length() > 0) empty = 0;
+	
+		/* range of data */
+		int count = empty.Count(0);
+		if (count == 0)
+			Allocate(0);
+		else
+		{
+			iArrayT mins(count), maxs(count);
+			int dex = 0;
+			for (int i = 0; i < source.Length(); i++)
+				if (!empty[i])
+				{
+					source[i]->MinMax(mins[dex], maxs[dex]);				
+					dex++;
+				}
+			int min = mins.Min();
+			int max = maxs.Max();
+		
+			/* node map */
+			int range = max - min + 1;
+			iArrayT node_map(range);
+			node_map = 0;
+	
+			/* mark nodes used */
+			for (int j = 0; j < source.Length(); j++)
+				if (!empty[j]) 
+				{
+					const nArrayT<int>& src = *source[j];
+					int* p = src.Pointer();
+					for (int i = 0; i < src.Length(); i++)
+						node_map[*p++ - min] = 1;
+				}
+
+			/* collect list */
+			Allocate(node_map.Count(1));
+			dex = 0;
+			int* p = node_map.Pointer();
+			int* pthis = Pointer();
+			for (int j = 0; j < node_map.Length(); j++)
+				if (*p++ == 1) pthis[dex++] = j + min;
+		}
+	}
+
+	return *this;
 }
