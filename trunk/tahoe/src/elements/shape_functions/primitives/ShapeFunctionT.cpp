@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.5 2001-08-21 01:10:32 paklein Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.6 2002-04-16 16:35:01 paklein Exp $ */
 /* created: paklein (06/26/1996)                                          */
 
 #include "ShapeFunctionT.h"
@@ -146,21 +146,13 @@ void ShapeFunctionT::B(const dArray2DT& DNa, dMatrixT& B_matrix) const
 			}
 		}
 	}
-	/* B-bar: mean dilatation */
+	/* B-bar: mean dilatation - using values calculated during the last
+	 * call to SetMeanDilatation */
 	else
 	{
-		/* non-const this */
-		ShapeFunctionT* non_const_this = (ShapeFunctionT*) this;
-	
-		/* compute mean dilatation, Hughes (4.5.23) */
-		non_const_this->SetMeanDilatation();
-	
 		/* 2D */
 		if (DNa.MajorDim() == 2)
 		{
-
-			//fB_workspace.Allocate(numsd, numUnodes);
-
 			double* pNax = DNa(0);
 			double* pNay = DNa(1);
 			
@@ -334,6 +326,29 @@ void ShapeFunctionT::Print(ostream& out) const
 			(*pDNaU)[i].WriteNumbered(out);
 }
 
+/* compute mean dilatation, Hughes (4.5.23) */
+const dArray2DT& ShapeFunctionT::SetMeanDilatation(void)
+{
+	/* volume */
+	const double* w = IPWeights();
+	double* det = fDet.Pointer();
+	double  vol = 0.0;
+	for (int i = 0; i < fNumIP; i++)
+		vol += (*w++)*(*det++);
+
+	/* initialize */
+	fB_workspace = 0.0;			
+
+	/* integrate */
+	w   = IPWeights();
+	det = fDet.Pointer();
+	for (int l = 0; l < fNumIP; l++)
+		fB_workspace.AddScaled((*w++)*(*det++)/vol, (*pDNaU)[l]);
+
+	/* return reference */
+	return fB_workspace;
+}
+
 /***********************************************************************
 * Protected
 ***********************************************************************/
@@ -395,24 +410,4 @@ void ShapeFunctionT::Construct(void)
 	/* work space */
 	fv1.Allocate(numsd);
 	fv2.Allocate(numsd);
-}
-
-/* compute mean dilatation, Hughes (4.5.23) */
-void ShapeFunctionT::SetMeanDilatation(void)
-{
-	/* volume */
-	const double* w = IPWeights();
-	double* det = fDet.Pointer();
-	double  vol = 0.0;
-	for (int i = 0; i < fNumIP; i++)
-		vol += (*w++)*(*det++);
-
-	/* initialize */
-	fB_workspace = 0.0;			
-
-	/* integrate */
-	w   = IPWeights();
-	det = fDet.Pointer();
-	for (int l = 0; l < fNumIP; l++)
-		fB_workspace.AddScaled((*w++)*(*det++)/vol, (*pDNaU)[l]);
 }
