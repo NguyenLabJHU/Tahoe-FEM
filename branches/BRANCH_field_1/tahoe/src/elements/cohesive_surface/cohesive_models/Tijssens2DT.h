@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.h,v 1.7 2002-04-16 21:19:33 cjkimme Exp $ */
+/* $Id: Tijssens2DT.h,v 1.7.2.1 2002-04-28 22:26:22 paklein Exp $ */
 
 #ifndef _TIJSSENS_2D_T_H_
 #define _TIJSSENS_2D_T_H_
@@ -8,9 +8,8 @@
 
 /* forward declarations */
 class ifstreamT;
-class FEManagerT;
 
-/**Rate dependence of traction as a function of the rate of change
+/** Rate dependence of traction as a function of the rate of change
  * of the gap vector as described by Tijssens, et. al in Mech. Mat. 32 19-35. 
  * Crazing of polymers is modeled by the state variables.
  */
@@ -20,7 +19,7 @@ public:
 
 	/** constructor.
 	 * \param time_step reference to the current time step */
-	Tijssens2DT(ifstreamT& in, double time_step,FEManagerT& FE_Manager);
+	Tijssens2DT(ifstreamT& in, const double& time_step);
 
 	/** return the number of state variables needed by the model.
 	 * Need to store the opening displacement from the previous
@@ -79,9 +78,8 @@ private:
 
 	//bool initiationQ(const ArrayT<double>&);
 
-	/** the time step */
-	double fTimeStep;
-	FEManagerT& fFEManager;
+	/** reference to the time step */
+	const double& fTimeStep;
 
 	/* traction rate parameters */
 	double fk_t0; /* initial tangential stiffness */

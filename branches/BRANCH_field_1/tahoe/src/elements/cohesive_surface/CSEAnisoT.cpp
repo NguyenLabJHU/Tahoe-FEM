@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.18 2002-04-17 15:42:31 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.18.2.1 2002-04-28 22:26:20 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -10,10 +10,9 @@
 #include "fstreamT.h"
 #include "Constants.h"
 #include "SurfaceShapeT.h"
-#include "FEManagerT.h"
-#include "NodeManagerT.h"
 #include "SurfacePotentialT.h"
 #include "eControllerT.h"
+#include "ElementSupportT.h"
 
 /* potential functions */
 #include "XuNeedleman2DT.h"
@@ -25,14 +24,14 @@
 #include "TiedPotentialT.h"
 
 /* constructor */
-CSEAnisoT::CSEAnisoT(FEManagerT& fe_manager, bool rotate):
-	CSEBaseT(fe_manager),
+CSEAnisoT::CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate):
+	CSEBaseT(support, field),
 	fRotate(rotate),
 	fCurrShapes(NULL),
-	fQ(fNumSD),
-	fdelta(fNumSD),
-	fT(fNumSD),
-	fddU(fNumSD)
+	fQ(NumSD()),
+	fdelta(NumSD()),
+	fT(NumSD()),
+	fddU(NumSD())
 {
 	/* reset format for the element stiffness matrix */
 	if (fRotate) fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
@@ -72,18 +71,18 @@ void CSEAnisoT::Initialize(void)
 		fCurrShapes->Initialize();
  		
 		/* allocate work space */
-		fnsd_nee_1.Allocate(fNumSD, fNumElemEqnos);
-		fnsd_nee_2.Allocate(fNumSD, fNumElemEqnos);
-		fdQ.Allocate(fNumSD);
-		for (int k = 0; k < fNumSD; k++)
-			fdQ[k].Allocate(fNumSD, fNumElemEqnos);
+		fnsd_nee_1.Allocate(NumSD(), fNumElemEqnos);
+		fnsd_nee_2.Allocate(NumSD(), fNumElemEqnos);
+		fdQ.Allocate(NumSD());
+		for (int k = 0; k < NumSD(); k++)
+			fdQ[k].Allocate(NumSD(), fNumElemEqnos);
 	}
 	else
 		fCurrShapes = fShapes;
 
 	/* streams */
-	ifstreamT& in = fFEManager.Input();
-	ostream&   out = fFEManager.Output();
+	ifstreamT& in = ElementSupport().Input();
+	ostream&   out = ElementSupport().Output();
 		
 	fCalcNodalInfo = false;
 
@@ -105,7 +104,7 @@ void CSEAnisoT::Initialize(void)
 		{
 			case SurfacePotentialT::kXuNeedleman:
 			{			
-				if (fNumDOF == 2)
+				if (NumDOF() == 2)
 					fSurfPots[num] = new XuNeedleman2DT(in);
 				else
 					fSurfPots[num] = new XuNeedleman3DT(in);
@@ -113,7 +112,7 @@ void CSEAnisoT::Initialize(void)
 			}
 			case SurfacePotentialT::kTvergaardHutchinson:
 			{
-				if (fNumDOF == 2)
+				if (NumDOF() == 2)
 					fSurfPots[num] = new TvergHutch2DT(in);
 				else
 				{
@@ -125,8 +124,8 @@ void CSEAnisoT::Initialize(void)
 			}
 			case SurfacePotentialT::kViscTvergaardHutchinson:
 			{
-				if (fNumDOF == 2)
-					fSurfPots[num] = new ViscTvergHutch2DT(in, FEManager().TimeStep());
+				if (NumDOF() == 2)
+					fSurfPots[num] = new ViscTvergHutch2DT(in, ElementSupport().TimeStep());
 				else
 				{
 					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: "
@@ -137,8 +136,8 @@ void CSEAnisoT::Initialize(void)
 			}
 			case SurfacePotentialT::kTijssens:
 			{	
-				if (fNumDOF == 2)
-					fSurfPots[num] = new Tijssens2DT(in,FEManager().TimeStep(),fFEManager);
+				if (NumDOF() == 2)
+					fSurfPots[num] = new Tijssens2DT(in, ElementSupport().TimeStep());
 				else
 				{
 					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code <<  endl;
@@ -149,8 +148,8 @@ void CSEAnisoT::Initialize(void)
 			}
 			case SurfacePotentialT::kRateDep:
 			{	
-				if (fNumDOF == 2)
-					fSurfPots[num] = new RateDep2DT(in,FEManager().TimeStep());
+				if (NumDOF() == 2)
+					fSurfPots[num] = new RateDep2DT(in, ElementSupport().TimeStep());
 				else
 				{
 					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code <<  endl;
@@ -161,8 +160,8 @@ void CSEAnisoT::Initialize(void)
 			}
 			case SurfacePotentialT::kTiedPotential:
 			{	
-				if (fNumDOF == 2)
-					fSurfPots[num] = new TiedPotentialT(in,FEManager().TimeStep());
+				if (NumDOF() == 2)
+					fSurfPots[num] = new TiedPotentialT(in, ElementSupport().TimeStep());
 				else
 				{
 					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code <<  endl;
@@ -317,14 +316,9 @@ void CSEAnisoT::LHSDriver(void)
 	dArray2DT fNodalQuantities;
 	if (fCalcNodalInfo) 
 	{
-	          ElementBaseT* surroundingGroup = fFEManager.ElementGroup(fBulkGroup);
-		  if (!surroundingGroup) 
-		  {
-		    cout << "\n CSEAnisoT::LHSDriver cannot get group number " << fBulkGroup+1 << " \n";
-		      throw eGeneralFail;
-		  }
-		  surroundingGroup->SendOutput(fNodalInfoCode);
-		  fNodalQuantities = fNodes->OutputAverage();
+		ElementBaseT& surroundingGroup = ElementSupport().ElementGroup(fBulkGroup);
+		surroundingGroup.SendOutput(fNodalInfoCode);
+		fNodalQuantities = ElementSupport().OutputAverage();
 	}
 
 	AutoArrayT<double> state2;
@@ -473,18 +467,13 @@ void CSEAnisoT::RHSDriver(void)
 	dArray2DT fNodalQuantities;
 	if (fCalcNodalInfo) 
 	{
-	          ElementBaseT* surroundingGroup = fFEManager.ElementGroup(fBulkGroup);
-		  if (!surroundingGroup) 
-		  {
-		    cout << "\n CSEAnisoT::RHSDriver cannot get group number " << fBulkGroup +1 <<" \n";
-		      throw eGeneralFail;
-		  }
-		  surroundingGroup->SendOutput(fNodalInfoCode);
-		  fNodalQuantities = fNodes->OutputAverage();
+		ElementBaseT& surroundingGroup = ElementSupport().ElementGroup(fBulkGroup);
+		surroundingGroup.SendOutput(fNodalInfoCode);
+		fNodalQuantities = ElementSupport().OutputAverage();
 	}
 
 	//fNeedsNewTimeStep = false;
-	//fFEManager.ClearCSEFlags();
+	//ElementSupport().ClearCSEFlags();
 	
 	dArrayT state;
 	Top();
@@ -628,7 +617,7 @@ void CSEAnisoT::RHSDriver(void)
 	}
 
 	//if (fNeedsNewTimeStep)
-	 // fFEManager.CSESendsTimeStep(fNewTimeStep);
+	 // ElementSupport().CSESendsTimeStep(fNewTimeStep);
 	  
 }
 
@@ -641,9 +630,9 @@ void CSEAnisoT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& fl
 
 	/* resize for vectors not magnitudes */
 	if (flags[NodalDispJump] == mode)
-		counts[NodalDispJump] = fNumDOF;	
+		counts[NodalDispJump] = NumDOF();	
 	if (flags[NodalTraction] == mode)
-		counts[NodalTraction] = fNumDOF;
+		counts[NodalTraction] = NumDOF();
 	if (flags[MaterialData] == mode)
 		counts[MaterialData] = fSurfPots[0]->NumOutputVariables();
 }
@@ -655,7 +644,7 @@ void CSEAnisoT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& 
 	CSEBaseT::SetElementOutputCodes(mode, flags, counts);
 	
 	/* resize for vectors not magnitudes */
-	if (flags[Traction] == mode) counts[Traction] = fNumDOF;
+	if (flags[Traction] == mode) counts[Traction] = NumDOF();
 }
 
 /* extrapolate the integration point stresses and strains and extrapolate */
@@ -670,33 +659,33 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	if (n_out == 0 && e_out == 0) return;
 
 	/* reset averaging workspace */
-	fNodes->ResetAverage(n_out);
+	ElementSupport().ResetAverage(n_out);
 
 	/* allocate element results space */
-	e_values.Allocate(fNumElements, e_out);
+	e_values.Allocate(NumElements(), e_out);
 	e_values = 0.0;
 
 	/* work arrays */
-	dArray2DT nodal_space(fNumElemNodes, n_out);
-	dArray2DT nodal_all(fNumElemNodes, n_out);
+	dArray2DT nodal_space(NumElementNodes(), n_out);
+	dArray2DT nodal_all(NumElementNodes(), n_out);
 	dArray2DT coords, disp;
 	dArray2DT jump, T;
 	dArray2DT matdat;	
 
 	/* ip values */
-	LocalArrayT loc_init_coords(LocalArrayT::kInitCoords, fNumElemNodes, fNumSD);
-	LocalArrayT loc_disp(LocalArrayT::kDisp, fNumElemNodes, fNumDOF);
-	fFEManager.RegisterLocal(loc_init_coords);
-	fFEManager.RegisterLocal(loc_disp);
+	LocalArrayT loc_init_coords(LocalArrayT::kInitCoords, NumElementNodes(), NumSD());
+	LocalArrayT loc_disp(LocalArrayT::kDisp, NumElementNodes(), NumDOF());
+	ElementSupport().RegisterCoordinates(loc_init_coords);
+	Field().RegisterLocal(loc_disp);
 	dArrayT ipmat(n_codes[MaterialData]);
 	
 	/* set shallow copies */
 	double* pall = nodal_space.Pointer();
-	coords.Set(fNumElemNodes, n_codes[NodalCoord], pall) ; pall += coords.Length();
-	disp.Set(fNumElemNodes, n_codes[NodalDisp], pall)    ; pall += disp.Length();
-	jump.Set(fNumElemNodes, n_codes[NodalDispJump], pall); pall += jump.Length();
-	T.Set(fNumElemNodes, n_codes[NodalTraction], pall)   ; pall += T.Length();
-	matdat.Set(fNumElemNodes, n_codes[MaterialData], pall);
+	coords.Set(NumElementNodes(), n_codes[NodalCoord], pall) ; pall += coords.Length();
+	disp.Set(NumElementNodes(), n_codes[NodalDisp], pall)    ; pall += disp.Length();
+	jump.Set(NumElementNodes(), n_codes[NodalDispJump], pall); pall += jump.Length();
+	T.Set(NumElementNodes(), n_codes[NodalTraction], pall)   ; pall += T.Length();
+	matdat.Set(NumElementNodes(), n_codes[MaterialData], pall);
 
 	/* element work arrays */
 	dArrayT element_values(e_values.MinorDim());
@@ -704,16 +693,16 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	dArrayT centroid;
 	if (e_codes[Centroid])
 	{
-		centroid.Set(fNumSD, pall); 
-		pall += fNumSD;
+		centroid.Set(NumSD(), pall); 
+		pall += NumSD();
 	}
 	double phi_tmp, area;
 	double& phi = (e_codes[CohesiveEnergy]) ? *pall++ : phi_tmp;
 	dArrayT traction;
 	if (e_codes[Traction])
 	{
-		traction.Set(fNumDOF, pall); 
-		pall += fNumDOF;
+		traction.Set(NumDOF(), pall); 
+		pall += NumDOF();
 	}
 
 	/* node map of facet 1 */
@@ -724,16 +713,11 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	dArray2DT fNodalQuantities;
 	if (fCalcNodalInfo) 
 	{
-	        ElementBaseT* surroundingGroup = fFEManager.ElementGroup(fBulkGroup);
-		if (!surroundingGroup) 
-		{
-		  cout << "\n CSEAnisoT::ComputeOutput: can not get nodal groupnumber " << fBulkGroup + 1 << "\n";
-		    throw eGeneralFail;
-		}
-		surroundingGroup->SendOutput(fNodalInfoCode);
-		fNodalQuantities = fNodes->OutputAverage();
+		ElementBaseT& surroundingGroup = ElementSupport().ElementGroup(fBulkGroup);
+		surroundingGroup.SendOutput(fNodalInfoCode);
+		fNodalQuantities = ElementSupport().OutputAverage();
 	}	
-	fNodes->ResetAverage(n_out);
+	ElementSupport().ResetAverage(n_out);
 	
 	AutoArrayT<double> state;
 	Top();
@@ -950,14 +934,14 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		nodal_all.BlockColumnCopyAt(matdat, colcount);
 
 		/* accumulate - extrapolation done from ip's to corners => X nodes */
-		fNodes->AssembleAverage(element.NodesX(), nodal_all);
+		ElementSupport().AssembleAverage(element.NodesX(), nodal_all);
 		
 		/* store results */
 		e_values.SetRow(CurrElementNumber(), element_values);	      
 	}
 
 	/* get nodally averaged values */
-	fNodes->OutputUsedAverage(n_values);
+	ElementSupport().OutputUsedAverage(n_values);
 }
 
 void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_labels,
@@ -971,16 +955,16 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 	int count = 0;
 	if (n_codes[NodalDisp])
 	{
-		if (fNumDOF > 3) throw eGeneralFail;
+		if (NumDOF() > 3) throw eGeneralFail;
 		const char* dlabels[3] = {"D_X", "D_Y", "D_Z"};
-		for (int i = 0; i < fNumDOF; i++)
+		for (int i = 0; i < NumDOF(); i++)
 			n_labels[count++] = dlabels[i];
 	}
 
 	if (n_codes[NodalCoord])
 	{
 		const char* xlabels[3] = {"x1", "x2", "x3"};
-		for (int i = 0; i < fNumSD; i++)
+		for (int i = 0; i < NumSD(); i++)
 			n_labels[count++] = xlabels[i];
 	}
 
@@ -989,14 +973,14 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 		const char* d_2D[2] = {"d_t", "d_n"};
 		const char* d_3D[3] = {"d_t1", "d_t2", "d_n"};
 		const char** dlabels;
-		if (fNumDOF == 2)
+		if (NumDOF() == 2)
 			dlabels = d_2D;
-		else if (fNumDOF == 3)
+		else if (NumDOF() == 3)
 			dlabels = d_3D;
 		else
 			throw eGeneralFail;
 
-		for (int i = 0; i < fNumDOF; i++)
+		for (int i = 0; i < NumDOF(); i++)
 			n_labels[count++] = dlabels[i];
 	}
 
@@ -1005,14 +989,14 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 		const char* t_2D[2] = {"T_t", "T_n"};
 		const char* t_3D[3] = {"T_t1", "T_t2", "T_n"};
 		const char** tlabels;
-		if (fNumDOF == 2)
+		if (NumDOF() == 2)
 			tlabels = t_2D;
-		else if (fNumDOF == 3)
+		else if (NumDOF() == 3)
 			tlabels = t_3D;
 		else
 			throw eGeneralFail;
 
-		for (int i = 0; i < fNumDOF; i++)
+		for (int i = 0; i < NumDOF(); i++)
 			n_labels[count++] = tlabels[i];
 	}
 
@@ -1031,7 +1015,7 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 	if (e_codes[Centroid])
 	{
 		const char* xlabels[] = {"xc_1", "xc_2", "xc_3"};
-		for (int i = 0; i < fNumSD; i++)
+		for (int i = 0; i < NumSD(); i++)
 			e_labels[count++] = xlabels[i];
 	}
 	if (e_codes[CohesiveEnergy]) e_labels[count++] = "phi";
@@ -1040,14 +1024,14 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 		const char* t_2D[2] = {"T_t", "T_n"};
 		const char* t_3D[3] = {"T_t1", "T_t2", "T_n"};
 		const char** tlabels;
-		if (fNumDOF == 2)
+		if (NumDOF() == 2)
 			tlabels = t_2D;
-		else if (fNumDOF == 3)
+		else if (NumDOF() == 3)
 			tlabels = t_3D;
 		else
 			throw eGeneralFail;
 
-		for (int i = 0; i < fNumDOF; i++)
+		for (int i = 0; i < NumDOF(); i++)
 			e_labels[count++] = tlabels[i];
 	}
 }

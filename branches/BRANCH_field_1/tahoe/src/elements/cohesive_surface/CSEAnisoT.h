@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.10 2002-04-16 21:22:29 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.10.2.1 2002-04-28 22:26:21 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #ifndef _CSE_ANISO_T_H_
@@ -22,7 +22,7 @@ class CSEAnisoT: public CSEBaseT
 public:
 
 	/* constructor */
-	CSEAnisoT(FEManagerT& fe_manager, bool rotate);
+	CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate);
 
 	/* destructor */
 	~CSEAnisoT(void);

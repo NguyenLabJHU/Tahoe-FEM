@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.1.2.1 2002-04-27 01:32:26 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.1.2.2 2002-04-28 22:26:17 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -91,13 +91,19 @@ public:
 	double Time(void) const;
 	
 	/** simulation step number */
-	int StepNumber(void) const;
+	const int& StepNumber(void) const;
+
+	/** total number of simulations steps at the current step size */
+	const int& NumberOfSteps(void) const;
 	
 	/** time increment */
-	double TimeStep(void) const;
+	const double& TimeStep(void) const;
 	
 	/** index of the element group in the list of elements */
 	int ElementGroupNumber(const ElementBaseT* element) const;
+
+	/** the element group at the specified index in the element list */
+	ElementBaseT& ElementGroup(int index) const;
 
 	/** geometry information */
 	ModelManagerT& Model(void) const;
@@ -143,6 +149,8 @@ public:
 	/** \name assembly functions */
 	/*@{*/
 	void AssembleLHS(int group, const ElementMatrixT& elMat, const nArrayT<int>& eqnos) const;
+	void AssembleLHS(int group, const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
+		const nArrayT<int>& col_eqnos) const;
 	void AssembleRHS(int group, const dArrayT& elRes, const nArrayT<int>& eqnos) const;
 	/*@}*/
 
@@ -155,6 +163,10 @@ public:
 	 * \param nodes list of nodes for the values being assembled: [nnd] 
 	 * \param vals values to be assembled: [nnd] x [nvals] */
 	void AssembleAverage(const iArrayT& nodes, const dArray2DT& vals) const;
+
+	/** average assembled values and return the array of averages 
+	 * values: [nnd] x [nvals] */
+	const dArray2DT& OutputAverage(void) const;
 
 	/** return averaged values for the nodes with assembled values. Returned
 	 * nodes are ordered by increasing node number */

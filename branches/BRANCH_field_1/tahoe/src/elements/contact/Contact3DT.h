@@ -1,5 +1,5 @@
-/* $Id: Contact3DT.h,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
-/* created: paklein (07/17/1999)                                          */
+/* $Id: Contact3DT.h,v 1.1.1.1.8.1 2002-04-28 22:26:18 paklein Exp $ */
+/* created: paklein (07/17/1999) */
 
 #ifndef _CONTACT3D_T_H_
 #define _CONTACT3D_T_H_
@@ -19,7 +19,7 @@ class Contact3DT: public ContactT
 public:
 
 	/* constructor */
-	Contact3DT(FEManagerT& fe_manager);
+	Contact3DT(const ElementSupportT& support, const FieldT& field);
 
 	/* destructor */
 	virtual ~Contact3DT(void);
