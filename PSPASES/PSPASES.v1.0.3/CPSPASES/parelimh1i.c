@@ -1,4 +1,4 @@
-/* $Id: parelimh1i.c,v 1.8 2005-01-15 05:37:45 paklein Exp $ */
+/* $Id: parelimh1i.c,v 1.9 2005-01-15 16:31:56 paklein Exp $ */
 /* parelimh1i.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -64,7 +64,7 @@ static integer c__27 = 27;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: parelimh1i.c,v 1.8 2005-01-15 05:37:45 paklein Exp $ +/ */
+/* /+ $Id: parelimh1i.c,v 1.9 2005-01-15 16:31:56 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -511,7 +511,7 @@ L135:
 	    msgtype = MPI_ANY_TAG;
 /*<    >*/
 
-	    MPI_Recv(&vbuf_r__[1], buflen, MPI_BYTE, *myup, msgtype, *comm, &mpistat);
+	    myMPI_Recv(&vbuf_r__[1], buflen, MPI_BYTE, *myup, msgtype, *comm, &mpistat);
 
 /*<           call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr) >*/
 	    myMPI_Get_count(&mpistat, MPI_BYTE, &nbytes);
@@ -540,7 +540,7 @@ L135:
 /*<           msgtype1 = MPI_ANY_TAG >*/
 	    msgtype1 = MPI_ANY_TAG;
 /*<    >*/
-	    MPI_Irecv(&vbuf_r__[1], buflen, MPI_BYTE, *myup, msgtype1, *comm, &req[1]);
+	    myMPI_Irecv(&vbuf_r__[1], buflen, MPI_BYTE, *myup, msgtype1, *comm, &req[1]);
 /*<           npending = 2 >*/
 	    npending = 2;
 /*<           nsent1 = 0 >*/
@@ -548,7 +548,7 @@ L135:
 /*<           do while (npending .gt. 0) >*/
 	    while(npending > 0) {
 /*<             call mpi_waitany(4,req,msgid,mpistat,ierr) >*/
-		MPI_Waitany(4, req, &msgid, &mpistat);
+		myMPI_Waitany(4, req, &msgid, &mpistat);
 		msgid++; /* FORTRAN requests numbered from 1 */
 
 /*<             call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr) >*/
@@ -717,7 +717,7 @@ L90:
 /*<           msgtype = MPI_ANY_TAG  >*/
 	    msgtype = MPI_ANY_TAG;
 /*<    >*/
-	    MPI_Recv(&hbuf_r__[1], buflen, MPI_BYTE, *myleft, msgtype, *comm, &mpistat);
+	    myMPI_Recv(&hbuf_r__[1], buflen, MPI_BYTE, *myleft, msgtype, *comm, &mpistat);
 	    
 /*<           call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr) >*/
 	    myMPI_Get_count(&mpistat, MPI_BYTE, &nbytes);
@@ -765,9 +765,9 @@ L90:
 /*<           msgtype2 = MPI_ANY_TAG >*/
 	    msgtype2 = MPI_ANY_TAG;
 /*<    >*/
-	    MPI_Irecv(&hbuf_r__[1], buflen, MPI_BYTE, *myleft, msgtype1, *comm, req);
+	    myMPI_Irecv(&hbuf_r__[1], buflen, MPI_BYTE, *myleft, msgtype1, *comm, req);
 /*<    >*/
-	    MPI_Irecv(&vbuf_r__[1], buflen, MPI_BYTE, *myup, msgtype2, *comm, &req[1]);
+	    myMPI_Irecv(&vbuf_r__[1], buflen, MPI_BYTE, *myup, msgtype2, *comm, &req[1]);
 /*<           npending = 2 >*/
 	    npending = 2;
 /*<         nsent1 = 0 >*/
@@ -777,7 +777,7 @@ L90:
 /*<           do while (npending .ne. 0) >*/
 	    while(npending != 0) {
 /*<             call mpi_waitany(4,req,msgid,mpistat,ierr) >*/
-		MPI_Waitany(4, req, &msgid, &mpistat);
+		myMPI_Waitany(4, req, &msgid, &mpistat);
 		msgid++; /* FORTRAN requests are indexed from 1 */		
 
 /*<             call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr) >*/
