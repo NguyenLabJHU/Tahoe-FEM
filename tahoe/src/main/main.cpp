@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.24 2004-07-25 06:44:12 paklein Exp $ */
+/* $Id: main.cpp,v 1.25 2004-08-08 20:40:10 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include <iostream.h>
 #include <fstream.h>
@@ -158,7 +158,7 @@ static void ShutDown(CommunicatorT& comm)
 
 void DumpLicense(void)
 {
-	const char version[] = "Tahoe 2.0";
+	const char version[] = "Tahoe 2.1";
 	cout << "\n " << version << "\n\n"
          << " Copyright 2003, Sandia Corporation.\n" 
 	     << " All rights reserved.\n\n"
