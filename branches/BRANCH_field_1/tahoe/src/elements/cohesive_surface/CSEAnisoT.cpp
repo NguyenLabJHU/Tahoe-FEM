@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.18.2.6 2002-05-10 00:06:07 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.18.2.7 2002-05-17 01:29:56 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -458,10 +458,27 @@ void CSEAnisoT::RHSDriver(void)
 
 	/* heat source if needed */
 	const FieldT* temperature = ElementSupport().Field("temperature");
-	dArray2DT incremental_heat;
+
+	/* initialize sources */
 	if (temperature) {
-		incremental_heat.Dimension(NumElements(), fShapes->NumIP());
-		incremental_heat = 0.0;
+	
+		if (fIncrementalHeat.Length() == 0) {
+
+			/* initialize heat source arrays */
+			fIncrementalHeat.Dimension(fBlockData.Length());
+			for (int i = 0; i < fIncrementalHeat.Length(); i++)
+			{
+				/* dimension */
+				fIncrementalHeat[i].Dimension(fBlockData[i].Dimension(), fShapes->NumIP());
+	
+				/* register */
+				temperature->RegisterSource(fBlockData[i].ID(), fIncrementalHeat[i]);
+			}
+		}
+		
+		/* clear sources */
+		for (int i = 0; i < fIncrementalHeat.Length(); i++)
+			fIncrementalHeat[i] = 0.0;
 	}
 	
 	/* set state to start of current step */
@@ -487,6 +504,7 @@ void CSEAnisoT::RHSDriver(void)
 	//fNeedsNewTimeStep = false;
 	//ElementSupport().ClearCSEFlags();
 	
+	int block_count = 0, block_dex = 0;
 	dArrayT state;
 	Top();
 	while (NextElement())
@@ -613,8 +631,8 @@ void CSEAnisoT::RHSDriver(void)
 					
 				/* incremental heat */
 				if (temperature) 
-					incremental_heat(CurrElementNumber(), fShapes->CurrIP()) = 
-					surfpot->IncrementalHeat(fdelta, state);
+					fIncrementalHeat[block_dex](block_count, fShapes->CurrIP()) = 
+						surfpot->IncrementalHeat(fdelta, state);
 			}
 
 			/* assemble */
@@ -634,26 +652,16 @@ void CSEAnisoT::RHSDriver(void)
 			while (fShapes->NextIP())
 				fFractureArea += (fShapes->Jacobian())*(fShapes->IPWeight());
 		}
+
+		/* next block */
+		if (++block_count == fBlockData[block_dex].Dimension()) {
+			block_count = 0;
+			block_dex++;
+		}
 	}
 
 	//if (fNeedsNewTimeStep)
 	 // ElementSupport().CSESendsTimeStep(fNewTimeStep);
-
-	/* set source to temperature field */
-	if (temperature) {
-
-		/* loop over blocks */
-		for (int i = 0; i < fBlockData.Length(); i++)
-		{
-			/* dimensions */
-			int start = fBlockData[i].StartNumber();
-			int size = fBlockData[i].Dimension();
-
-			/* block info */
-			dArray2DT tmp(size, incremental_heat.MinorDim(), incremental_heat(start));
-			temperature->AccumulateSource(fBlockData[i].ID(), tmp);
-		}
-	} 
 }
 
 /* nodal value calculations */

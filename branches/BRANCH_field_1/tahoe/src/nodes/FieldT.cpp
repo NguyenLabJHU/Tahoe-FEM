@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.1.2.8 2002-05-07 07:20:30 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.1.2.9 2002-05-17 01:29:57 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nControllerT.h"
@@ -21,8 +21,8 @@ FieldT::FieldT(const StringT& name, int ndof, nControllerT& controller):
 /* destructor */
 FieldT::~FieldT(void)
 { 
-	for (int i = 0; i < fSource.Length(); i++)
-		delete fSource[i];
+	for (int i = 0; i < fSourceOutput.Length(); i++)
+		delete fSourceOutput[i];
 }
 
 /* set number of nodes */
@@ -185,9 +185,6 @@ void FieldT::InitStep(void)
 		for (int i = 0; i < cards.Length(); i++)
 			fnController.ConsistentKBC(*this, cards[i]);
 	}
-	
-	/* clear source terms */
-	ClearSource();
 }
 
 /* assemble contributions to the residual */
@@ -496,27 +493,28 @@ void FieldT::WriteParameters(ostream& out) const
 }
 
 /* accumulate source terms */
-void FieldT::AccumulateSource(const StringT& ID, const dArray2DT& source) const
+void FieldT::RegisterSource(const StringT& ID, const dArray2DT& source) const
 {
 	/* search */
 	int dex = SourceIndex(ID);
-
+	
 	/* NOTE: need this function to be const else ElementBaseT cannot call it */
 	FieldT* non_const_this = const_cast<FieldT*>(this);
 
-	/* accumulate */
-	if (dex > -1) {
-		*(non_const_this->fSource[dex]) += source;
-	}
-	else /* add new */
+	/* add new */
+	if (dex == -1) 
 	{
 		/* add ID to list */
 		non_const_this->fID.Append(ID);
 	
 		/* source */
-		dArray2DT* new_source = new dArray2DT(source);
-		non_const_this->fSource.Append(new_source);
+		dArray2DT* new_source = new dArray2DT;
+		non_const_this->fSourceOutput.Append(new_source);
 	}
+
+	/* register sources */
+	non_const_this->fSourceID.Append(ID);
+	non_const_this->fSourceBlocks.Append(&source);
 }
 
 /* element source terms */
@@ -525,9 +523,27 @@ const dArray2DT* FieldT::Source(const StringT& ID) const
 	/* search */
 	int dex = SourceIndex(ID);
 
-	/* return */
-	if (dex > -1) 
-		return fSource[dex];
+	/* accmulate and return */
+	if (dex > -1) {
+	
+		/* return value */
+		dArray2DT& source = *(fSourceOutput[dex]);
+	
+		/* accumulate */
+		int count = 0;
+		for (int i = 0; i < fSourceID.Length(); i++)
+			if (fSourceID[i] == ID)
+			{
+				/* implied that all sources have the same dimension */
+				if (count == 0)
+					source = *(fSourceBlocks[i]);
+				else
+					source += *(fSourceBlocks[i]);
+				count++;
+			}
+			
+		return &source;
+	}
 	else
 		return NULL;
 }
@@ -546,14 +562,6 @@ int FieldT::SourceIndex(const StringT& ID) const
 
 	/* fail */
 	return -1;
-}
-
-/* clear the source terms */
-void FieldT::ClearSource(void)
-{
-	/* clear all */
-	for (int i = 0; i < fSource.Length(); i++)
-		*(fSource[i]) = 0.0;
 }
 
 void FieldT::Apply_IC(const IC_CardT& card)

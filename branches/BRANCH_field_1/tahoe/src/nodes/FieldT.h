@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.1.2.7 2002-05-07 07:20:30 paklein Exp $ */
+/* $Id: FieldT.h,v 1.1.2.8 2002-05-17 01:29:57 paklein Exp $ */
 
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
@@ -182,14 +182,27 @@ public:
 	dArray2DT& ExternalUpdate(void) { return fExUpdate; };
 	/*@}*/
 
-	/** \name source terms */
+	/** \name source terms 
+	 * Support multiple sources to the same block ID. The current
+	 * implementation assumes the contributors of source terms have
+	 * the same time increment as the users of the sources. That is,
+	 * the most recently calculated values in the source arrays are
+	 * assumed to be up to date. There is no separate accumulation
+	 * for sub-steps. 
+	 * \note Could add some information about the interval. This
+	 *       would allow contributors to decide whether or not
+	 *       source terms need to be accumulated or overwritten. */
 	/*@{*/
-	/** accumulate source terms */
-	void AccumulateSource(const StringT& ID, const dArray2DT& source) const;
-
+	/** register an array as source. Owner is responsible for keeping the
+	 * source array up to date. No assumptions are made on how many times
+	 * the same source array can be registered. Arrays registered more
+	 * that once will contribute more than once. */
+	void RegisterSource(const StringT& ID, const dArray2DT& source) const;
+	
 	/** element source terms. return a pointer to the source terms for the 
 	 * given element block ID, or NULL if no source terms exist for that
-	 * block */
+	 * block. This accumulates all source contributions to the given
+	 * block ID. */
 	const dArray2DT* Source(const StringT& ID) const;
 	/*@}*/
 
@@ -207,9 +220,6 @@ private:
 	/** return the index for the source of the given ID. Returns -1 if
 	 * if no source exists for given ID */
 	int SourceIndex(const StringT& ID) const;
-
-	/** clear the source terms for the given block */
-	void ClearSource(void); 
 
 private:
 
@@ -265,11 +275,21 @@ private:
 	
 	/** \name source terms */
 	/*@{*/
-	/** ID's for the elements blocks in source */
+	/** ID's for the elements blocks in fSource. This array is
+	 * a union of the ID's in FieldT::fSourceID. */
 	AutoArrayT<StringT> fID;
 
-	/** block source terms. Each entry is: [nen] x [nip*nval] */
-	AutoArrayT<dArray2DT*> fSource;
+	/** return values for sources. When FieldT::Source is called, all
+	 * contributions to the given block are accumulated and passed back.
+	 * Each entry is: [nen] x [nip*nval] */
+	AutoArrayT<dArray2DT*> fSourceOutput;
+	
+	/** ID's for the sources registerered with FieldT::RegisterSource */
+	AutoArrayT<StringT> fSourceID;
+	
+	/** block source terms registerered with FieldT::RegisterSource.
+	 * Each entry is: [nen] x [nip*nval] */
+	AutoArrayT<const dArray2DT*> fSourceBlocks;
 	/*@}*/
 };
 

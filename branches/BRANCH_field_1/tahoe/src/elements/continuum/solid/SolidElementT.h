@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.8.2.4 2002-05-11 20:47:10 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.8.2.5 2002-05-17 01:29:57 paklein Exp $ */
 /* created: paklein (05/28/1996) */
 
 #ifndef _ELASTIC_T_H_
@@ -161,6 +161,9 @@ protected:
 	/* run time */
 	StructuralMaterialT*  fCurrMaterial;
 	ArrayT<ArrayT<bool> > fMaterialNeeds;
+
+	/** incremental heat sources for each element block */
+	ArrayT<dArray2DT> fIncrementalHeat;
 
 	/** \name work space */
 	/*@{*/
