@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.h,v 1.11 2002-07-02 21:22:59 cjkimme Exp $ */
+/* $Id: TranslateIOManager.h,v 1.12 2002-08-13 08:17:29 paklein Exp $ */
 
 #ifndef _TRANSLATE_IOMANAGER_H_
 #define _TRANSLATE_IOMANAGER_H_
@@ -48,6 +48,8 @@ class TranslateIOManager
   void WriteSideSets (void);
 
   void VariableQuery (const ArrayT<StringT>& names, iArrayT& list);
+
+	void ReNameLabels(const StringT& data_type, ArrayT<StringT>& labels);
 
  protected:
   ostream& fMessage;

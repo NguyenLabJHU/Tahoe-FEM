@@ -38,7 +38,7 @@ void PointPlots::Translate (const StringT& program, const StringT& version, cons
 
       again = false;
       StringT answer;
-      if (write)
+      if (fWrite)
 	cout << "\n Do you want to extract more variables (y/n) ?";
       cin >> answer;
       if (answer[0] == 'Y' || answer[0] == 'y')
