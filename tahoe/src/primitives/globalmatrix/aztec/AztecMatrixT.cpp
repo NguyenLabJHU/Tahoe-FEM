@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.cpp,v 1.8 2002-10-20 22:49:35 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.9 2002-11-25 07:13:42 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 
 #include "AztecMatrixT.h"
@@ -280,6 +280,14 @@ void AztecMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row
 			throw ExceptionT::kGeneralFail;
 		}
 	}
+}
+
+void AztecMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)
+{
+#pragma unused(diagonal_elMat)
+#pragma unused(eqnos)
+
+	ExceptionT::GeneralFail("AztecMatrixT::Assemble", "not implemented");
 }
 
 /* number scope and reordering */

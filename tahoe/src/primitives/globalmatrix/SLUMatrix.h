@@ -1,4 +1,4 @@
-/* $Id: SLUMatrix.h,v 1.5 2002-07-05 22:28:34 paklein Exp $ */
+/* $Id: SLUMatrix.h,v 1.6 2002-11-25 07:13:40 paklein Exp $ */
 /* created: rbridson (06/30/2000) */
 
 #ifndef _SLU_MATRIX_H_
@@ -53,6 +53,7 @@ public:
 	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
 	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 		const nArrayT<int>& col_eqnos);
+	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos);
 	
 	/* element accessor - READ ONLY */
 	double Element(int row, int col) const;

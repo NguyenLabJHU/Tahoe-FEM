@@ -1,6 +1,5 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.10 2002-10-20 22:49:33 paklein Exp $ */
+/* $Id: DiagonalMatrixT.cpp,v 1.11 2002-11-25 07:13:40 paklein Exp $ */
 /* created: paklein (03/23/1997) */
-
 #include "DiagonalMatrixT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -8,10 +7,9 @@
 #include "iArrayT.h"
 #include "ElementMatrixT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 DiagonalMatrixT::DiagonalMatrixT(ostream& out, int check_code, AssemblyModeT mode):
 	GlobalMatrixT(out, check_code)
 {
@@ -154,6 +152,21 @@ void DiagonalMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& 
 
 	cout << "\n DiagonalMatrixT::Assemble(m,r,c): not implemented" << endl;
 	throw ExceptionT::kGeneralFail;
+}
+
+void DiagonalMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)
+{
+#if __option(extended_errorcheck)
+	/* dimension check */
+	if (diagonal_elMat.Length() != eqnos.Length()) throw ExceptionT::kSizeMismatch;
+#endif
+
+	for (int i = 0; i < eqnos.Length(); i++)
+	{
+		int eqno = eqnos[i] - 1;
+		if (eqno > -1)
+			fMatrix[eqno] += diagonal_elMat[i];
+	}
 }
 
 /* fetch values */

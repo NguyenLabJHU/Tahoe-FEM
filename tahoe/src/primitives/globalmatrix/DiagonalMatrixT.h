@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.h,v 1.9 2002-10-20 22:49:33 paklein Exp $ */
+/* $Id: DiagonalMatrixT.h,v 1.10 2002-11-25 07:13:40 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _DIAGONAL_MATRIX_H_
@@ -55,6 +55,7 @@ public:
 	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
 	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 		const nArrayT<int>& col_eqnos);
+	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos);
 
 	/* fetch values */
 	virtual void DisassembleDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const;

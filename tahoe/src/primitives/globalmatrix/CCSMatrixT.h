@@ -1,14 +1,5 @@
-/* $Id: CCSMatrixT.h,v 1.8 2002-10-20 22:49:33 paklein Exp $ */
+/* $Id: CCSMatrixT.h,v 1.9 2002-11-25 07:13:40 paklein Exp $ */
 /* created: paklein (05/29/1996) */
-/* This is the interface for a Symmetric matrix stored in                 */
-/* Compact Column form.                                                   */
-/* To initialize:                                                         */
-/* 			(1) call constructor with system dimension dim                */
-/* 			(2) set the ColumnHeight for column = 0...dim-1               */
-/* 			(3) call Initialize() to allocate space for the               */
-/* matrix and set the diagonal position array.                            */
-/* Note: assembly positions (equation numbers) = 1...fNumEQ               */
-
 #ifndef _CCSMATRIX_T_H_
 #define _CCSMATRIX_T_H_
 
@@ -24,6 +15,14 @@
 
 namespace Tahoe {
 
+/** This is the interface for a Symmetric matrix stored in
+ * Compact Column form.
+ * To initialize:
+ * -# call constructor with system dimension dim
+ * -# set the ColumnHeight for column = 0...dim-1
+ * -# call Initialize() to allocate space for the matrix and set the diagonal position array.
+ * Note: assembly positions (equation numbers) = 1...fNumEQ
+ */
 class CCSMatrixT: public GlobalMatrixT
 {
 public:
@@ -58,6 +57,7 @@ public:
 	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
 	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 		const nArrayT<int>& col_eqnos);
+	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos);
 	
 	/* compute the diagonal weighted residual norm - no check as
 	 * to whether the matrix is factorized or not */
