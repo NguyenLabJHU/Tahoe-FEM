@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.16.2.5 2002-12-27 23:12:09 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.16.2.6 2003-01-07 18:52:57 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #ifndef _FE_MANAGER_MPI_H_
 #define _FE_MANAGER_MPI_H_
@@ -9,6 +9,7 @@
 /* direct members */
 #include "PartitionT.h"
 #include "dArray2DT.h"
+#include "ofstreamT.h"
 
 namespace Tahoe {
 
