@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.55.2.13 2004-03-18 18:27:37 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.55.2.14 2004-03-21 16:41:29 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -727,16 +727,18 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	//atoms.LumpedMass(atoms.NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
 	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive, (atoms.GhostNodes()).Length());	
 	wavedisp.Dimension((atoms.NonGhostNodes()).Length(), nsd);
-	nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
-	//nMatrixT<int> ghostonmap(5), ghostoffmap(5);  // for fracture problem
+	//nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
+	nMatrixT<int> ghostonmap(5), ghostoffmap(5);  // for fracture problem
 	//nMatrixT<int> ghostonmap(4), ghostoffmap(4);    // for planar wave propagation problem
+	//nMatrixT<int> ghostonmap(7), ghostoffmap(7);	// 3D fracture problem
 	ghostonmap = 0;
 	ghostoffmap = 0;
-	ghostoffmap(1,0) = ghostoffmap(0,1) = 1;  // for wave propagation problem
-	//ghostoffmap(4,0) = ghostoffmap(0,4) = ghostoffmap(4,1) = ghostoffmap(1,4) = 1;  // center MD crack
-	//ghostoffmap(4,2) = ghostoffmap(2,4) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
-	//ghostoffmap(4,3) = ghostoffmap(3,4) = 1;
-	//ghostonmap(2,3) = ghostonmap(3,2) = 1;
+	//ghostonmap(4,5) = ghostonmap(5,4) = 1;
+	//ghostoffmap(1,0) = ghostoffmap(0,1) = 1;  // for wave propagation problem
+	ghostoffmap(4,0) = ghostoffmap(0,4) = ghostoffmap(4,1) = ghostoffmap(1,4) = 1;  // center MD crack
+	ghostoffmap(4,2) = ghostoffmap(2,4) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
+	ghostoffmap(4,3) = ghostoffmap(3,4) = 1;
+	ghostonmap(2,3) = ghostonmap(3,2) = 1;
 	//ghostoffmap(1,0) = ghostoffmap(0,1) = ghostoffmap(3,0) = ghostoffmap(0,3) = 1; // left edge MD crack
 	//ghostoffmap(1,3) = ghostoffmap(3,1) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
 	//ghostonmap(1,0) = ghostonmap(0,1) = 1;
@@ -758,11 +760,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	int d_width = OutputWidth(log_out, field_at_ghosts.Pointer());
 	
 	while (atom_time->NextSequence() && continuum_time->NextSequence())
-	{	
-		/* temporary to test 3D wave */
-		//wavedisp = atoms.ThreeDWave(atoms.NonGhostNodes());
-		//atoms.SetFieldValues(bridging_field, atoms.NonGhostNodes(), order1, wavedisp);
-	
+	{		
 		/* set to initial condition */
 		atoms.InitialCondition();
 		
@@ -969,7 +967,7 @@ const dArray2DT& FEExecutionManagerT::InternalForce(dArray2DT& totalu, FEManager
 	int nnd = totalu.MajorDim();
 	iArrayT nodes(nnd);
 	nodes.SetValueToPosition();
-
+		
 	/* now write total bridging scale displacement u into field */
 	int order = 0;	// write displacement only
 	atoms.SetFieldValues(bridging_field, nodes, order, totalu);

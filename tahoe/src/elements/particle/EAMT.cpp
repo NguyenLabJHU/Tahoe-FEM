@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.52.2.4 2004-03-18 18:27:32 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.52.2.5 2004-03-21 16:41:28 hspark Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -294,7 +294,7 @@ void EAMT::WriteOutput(void)
 
       /* Embedding Energy: E_i(rho_i) */
       if(iEmb == 1) values_i[ndof] += fEmbeddingEnergy(tag_i,0);
-      
+      	  
       for (int j = 1; j < neighbors.Length(); j++)
 	{
 	  /* tags */
@@ -310,7 +310,7 @@ void EAMT::WriteOutput(void)
 	      ed_force_i    = fEAMProperties[property_i]->getElecDensForce();
 	      current_property_i = property_i;
 	    }
-	  
+	 
 	  int property_j = fPropertiesMap(type_j, type_i);
 	  if (property_j != current_property_j)
 	    {
@@ -1495,7 +1495,7 @@ void EAMT::RHSDriver3D(void)
 
 	/* communication */
 	CommManagerT& comm_manager = support.CommManager();
-  
+
   if(iEmb == 1)
     {
       /* get electron density */
@@ -1511,13 +1511,14 @@ void EAMT::RHSDriver3D(void)
 			fElectronDensity.SetRow((*fExternalElecDensityNodes)[i], asdf);
 		}
 	  }
-		
+
       /* exchange electron density information */
       comm_manager.AllGather(fElectronDensityMessageID, fElectronDensity);
-	  
+
       /* get embedding force */
       fEmbeddingForce = 0.0;
       GetEmbForce(coords,fElectronDensity,fEmbeddingForce);
+	  
 	  if (fExternalEmbedForce)
 	  {
 		dArrayT asdf(1);
@@ -1547,7 +1548,7 @@ void EAMT::RHSDriver3D(void)
 
   iArrayT neighbors;
   fForce = 0.0;
-
+	
   /* Loop i : run through neighbor list */
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
     {
@@ -1568,7 +1569,7 @@ void EAMT::RHSDriver3D(void)
 	  int  type_j = fType[tag_j];
 	  double* f_j = fForce(tag_j);
 	  const double* x_j = coords(tag_j);
-
+		
 	  /* set EAM property (if not already set) */
 	  int property_i = fPropertiesMap(type_i, type_j);
 	  if (property_i != current_property_i)
@@ -1579,7 +1580,7 @@ void EAMT::RHSDriver3D(void)
 
 	      current_property_i = property_i;
 	    }
-
+		
 	  int property_j = fPropertiesMap(type_j, type_i);
 	  if (property_j != current_property_j)
 	    {
@@ -1955,19 +1956,25 @@ void EAMT::GetEmbForce(const dArray2DT& coords,const dArray2DT rho,
 {
 #pragma unused(coords)
 
+  int current_property = -1;
   EAMPropertyT::EmbedForceFunction emb_force = NULL;
   iArrayT neighbors;
   Emb = 0.0;
   
-  /* CURRENTLY DOES NOT LOOP OVER GHOST ATOMS!! */
-  for (int i = 0; i < fNeighbors.MajorDim(); i++)
+    for (int i = 0; i < fNeighbors.MajorDim(); i++)
     {
       fNeighbors.RowAlias(i, neighbors);
       
       int   tag_i = neighbors[0]; 
       int  type_i = fType[tag_i];
-
-      emb_force  = fEAMProperties[type_i]->getEmbedForce();
+	  
+	  int property = fPropertiesMap(type_i, type_i);
+      if (property != current_property)
+	  {
+		emb_force  = fEAMProperties[property]->getEmbedForce();
+		current_property = property;
+	  }
+      //emb_force  = fEAMProperties[type_i]->getEmbedForce();
       Emb(tag_i,0) = emb_force(rho(tag_i,0),NULL,NULL); 
     }  
 }
