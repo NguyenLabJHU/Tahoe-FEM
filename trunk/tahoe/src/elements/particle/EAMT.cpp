@@ -173,8 +173,7 @@ void EAMT::WriteOutput(void)
 	  int   tag_j = neighbors[j];
 	  int  type_j = fType[tag_j];		
 			
-	  /* set electron density (if not already set) */
-	  int property_j = fPropertiesMap(type_j, type_i);  // rho_j <=> potential j, type j
+	  int property_j = fPropertiesMap(type_j, type_i); 
 	  if (property_j != current_property_j)
 	    {
 	      ed_energy_j = fEAMProperties[property_j]->getElecDensEnergy();
@@ -190,20 +189,25 @@ void EAMT::WriteOutput(void)
 	  
 	  rho_i += ed_energy_j(r,NULL,NULL);
 	}
-
+      
       /* Get embedding energy */
       double E_i = 0.0;
       int property_i = fPropertiesMap(type_i, type_i); 
-      embed_energy_i = fEAMProperties[property_i]->getEmbedEnergy();
+      if (property_i != current_property_i)
+	{
+	  embed_energy_i = fEAMProperties[property_i]->getEmbedEnergy();
+	  current_property_i = property_i;
+	}
       E_i = embed_energy_i(rho_i,NULL,NULL); 
-      // do not save current_property because needs to be used with pair.
 
+
+      current_property_i = -1;
+      current_property_j = -1;
+
+      /* Get Energy */
       values_i[ndof] = E_i;
       n_values(local_i, ndof) = E_i;
 
-      /* Get pair energy */
-      /* run though neighbors for one atom - first neighbor is self
-       * to compute potential energy */
       for (int j = 1; j < neighbors.Length(); j++)
 	{
 	  /* tags */
@@ -266,11 +270,6 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
   /* global coordinates */
   const dArray2DT& coords = support.CurrentCoordinates();
 
-  /* pair properties function pointers */
-  int current_property = -1;
-  EAMPropertyT::PairForceFunction pair_force = NULL;
-  EAMPropertyT::PairStiffnessFunction pair_stiffness = NULL;
-
   /* work space */
   dArrayT r_ij(NumDOF(), fRHS.Pointer());
   dArrayT r_ji(NumDOF(), fRHS.Pointer() + NumDOF());
@@ -280,6 +279,189 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
   iArrayT row_eqnos, col_eqnos; 
   iArrayT neighbors;
   dArrayT x_i, x_j;
+
+  /* EAM properties function pointers */
+  int current_property = -1;      
+  EAMPropertyT::EDEnergyFunction ed_energy = NULL;
+
+  /* Get rho = \sum_{k=1,neighbor(i)} rho_k (r_ik) */
+  dArrayT rho(fNeighbors.MajorDim());      
+  rho = 0.0;
+
+  /* Loop i : run through neighbor list */
+  for (int i = 0; i < fNeighbors.MajorDim(); i++)
+    {
+      /* row of neighbor list */
+      fNeighbors.RowAlias(i, neighbors);
+
+      /* type */
+      int  tag_i = neighbors[0]; /* self is 1st spot */
+      int type_i = fType[tag_i];
+		
+      /* particle equations */
+      field_eqnos.RowAlias(tag_i, row_eqnos);
+
+      coords.RowAlias(tag_i, x_i);
+      for (int j = 1; j < neighbors.Length(); j++)
+	{
+	  /* global tag */
+	  int tag_j = neighbors[j];
+			
+	  /* particle is a target column */
+	  int col_eq_index = col_to_col_eq_row_map.Map(tag_j);
+	  if (col_eq_index != -1)
+	    {
+	      /* more particle info */
+	      int type_j = fType[tag_j];
+
+	      /* particle equations */
+	      col_eq.RowAlias(col_eq_index, col_eqnos);
+
+	      int property = fPropertiesMap(type_i, type_j);
+	      if (property != current_property)
+		{
+		  ed_energy = fEAMProperties[property]->getElecDensEnergy();
+		  current_property = property;
+		}
+
+	      /* global coordinates */
+	      coords.RowAlias(tag_j, x_j);
+
+	      /* connecting vector */
+	      r_ij.DiffOf(x_j, x_i);
+	      double r = r_ij.Magnitude();
+
+	      rho[i] += ed_energy(r,NULL,NULL);	      
+	    }
+	}
+    }
+ 
+  current_property = -1;
+  
+  int current_property_i = -1;
+  int current_property_j = -1;
+  int current_property_k = -1;
+  
+  dArrayT x_k;
+  dArrayT r_ik(NumDOF());
+  dArrayT r_kj(NumDOF());
+
+  EAMPropertyT::EDForceFunction ed_force_i = NULL,ed_force_j = NULL;
+  EAMPropertyT::EmbedStiffnessFunction embed_stiffness_k = NULL;
+  
+  /* Get \sum_{k} [rho(r_ik)]' r_ik/r */
+  dArray2DT rhop_r(fNeighbors.MajorDim(),ndof);
+  rhop_r = 0.0;
+
+  /* Get \sum_{k} [rho_i(r_ik)]'[rho_j(r_kj)]' F_k'' r_ik/r r_kj/r */
+  dArray2DT rhop_rhop_Epp_r_r_0(fNeighbors.MajorDim(),fNeighbors.MajorDim());
+  rhop_rhop_Epp_r_r_0 = 0.0;
+  dArray2DT rhop_rhop_Epp_r_r_1(fNeighbors.MajorDim(),fNeighbors.MajorDim());
+  rhop_rhop_Epp_r_r_1 = 0.0;
+  dArray2DT rhop_rhop_Epp_r_r_2(fNeighbors.MajorDim(),fNeighbors.MajorDim());
+  rhop_rhop_Epp_r_r_2 = 0.0;
+  /* Loop i : run through neighbor list */
+  for (int i = 0; i < fNeighbors.MajorDim(); i++)
+    {
+      /* row of neighbor list */
+      fNeighbors.RowAlias(i, neighbors);
+
+      /* type */
+      int  tag_i = neighbors[0]; /* self is 1st spot */
+      int type_i = fType[tag_i];
+		
+      /* particle equations */
+      field_eqnos.RowAlias(tag_i, row_eqnos);
+
+      coords.RowAlias(tag_i, x_i);
+      for (int j = 1; j < neighbors.Length(); j++)
+	{
+	  /* global tag */
+	  int tag_j = neighbors[j];
+			
+	  /* particle is a target column */
+	  int col_eq_index = col_to_col_eq_row_map.Map(tag_j);
+	  if (col_eq_index != -1)
+	    {
+	      /* more particle info */
+	      int type_j = fType[tag_j];
+
+	      /* particle equations */
+	      col_eq.RowAlias(col_eq_index, col_eqnos);
+
+	      /* global coordinates */
+	      coords.RowAlias(tag_j, x_j);
+
+	      for (int k = 1; k < neighbors.Length(); k++)
+		{
+		  int  tag_k = neighbors[k];
+		  int type_k = fType[tag_k];
+		  
+		  /* global coordinates */
+		  coords.RowAlias(tag_k, x_k);
+
+		  /* connecting vectors */
+		  r_ik.DiffOf(x_k,x_i);
+		  double r_i = r_ik.Magnitude();
+		  r_kj.DiffOf(x_j,x_k);
+		  double r_j = r_kj.Magnitude();
+ 
+
+		  int property_i = fPropertiesMap(type_i, type_k); 
+		  if (property_i != current_property_i)
+		    {
+		      ed_force_i = fEAMProperties[property_i]->getElecDensStiffness();
+		      current_property_i = property_i;
+		    }
+
+		  int property_j = fPropertiesMap(type_j, type_k); 
+		  if (property_j != current_property_j)
+		    {
+		      ed_force_j = fEAMProperties[property_j]->getElecDensForce();
+		      current_property_j = property_j;
+		    }
+
+		  int property_k = fPropertiesMap(type_k, type_j); 
+		  if (property_k != current_property_k)
+		    {
+		      embed_stiffness_k=fEAMProperties[property_k]->getEmbedStiffness();
+		      current_property_k = property_k;
+		    }
+
+		  double Epp    = embed_stiffness_k(rho[k],NULL,NULL);
+		  double rhop_i = ed_force_i(r_i,NULL,NULL);
+		  double rhop_j = ed_force_j(r_j,NULL,NULL);
+
+
+		  for (int k = 0; k < ndof; k++)
+		    rhop_r(i,k) = rhop_i * r_ij[k];
+
+		  double Coeff = rhop_j * rhop_i * Epp / (r_i * r_j);
+
+		  rhop_rhop_Epp_r_r_0(i,j) += Coeff * r_ik[0] * r_kj[0]; // sum over k
+		  rhop_rhop_Epp_r_r_1(i,j) += Coeff * r_ik[1] * r_kj[1];
+		  if(ndof == 3) 
+		    rhop_rhop_Epp_r_r_2(i,j) += Coeff * r_ik[2] * r_kj[2];
+		}
+	    }
+	}
+    }
+      
+  current_property_i = -1;
+  current_property_j = -1;
+  current_property_k = -1;
+
+  EAMPropertyT::PairForceFunction pair_force = NULL;
+  EAMPropertyT::PairStiffnessFunction pair_stiffness = NULL;
+  
+  EAMPropertyT::EmbedForceFunction embed_force_i = NULL,embed_force_j = NULL;
+  EAMPropertyT::EmbedStiffnessFunction embed_stiffness_i = NULL, 
+                                       embed_stiffness_j = NULL;
+  
+  EAMPropertyT::EDStiffnessFunction ed_stiffness_i = NULL, ed_stiffness_j = NULL;
+  
+
+  /* Loop i : run through neighbor list */
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
     {
       /* row of neighbor list */
@@ -309,14 +491,33 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 	      /* particle equations */
 	      col_eq.RowAlias(col_eq_index, col_eqnos);
 
-	      /* set pair property (if not already set) */
-	      int property = fPropertiesMap(type_i, type_j);
-	      if (property != current_property)
+	      int property_i = fPropertiesMap(type_i, type_j);
+	      if (property_i != current_property_i)
 		{
-		  pair_force = fEAMProperties[property]->getPairForce();
-		  pair_stiffness = fEAMProperties[property]->getPairStiffness();
-		  current_property = property;
+		  pair_force     = fEAMProperties[property_i]->getPairForce();
+		  pair_stiffness = fEAMProperties[property_i]->getPairStiffness();
+
+		  embed_force_i    = fEAMProperties[property_i]->getEmbedForce();
+		  embed_stiffness_i= fEAMProperties[property_i]->getEmbedStiffness();
+
+		  ed_force_i       = fEAMProperties[property_i]->getElecDensForce();
+		  ed_stiffness_i   = fEAMProperties[property_i]->getElecDensStiffness();
+
+		  current_property_i = property_i;
 		}
+
+	      int property_j = fPropertiesMap(type_j, type_i);
+	      if (property_j != current_property_j)
+		{
+		  embed_force_j    = fEAMProperties[property_j]->getEmbedForce();
+		  embed_stiffness_j= fEAMProperties[property_j]->getEmbedStiffness();
+
+		  ed_force_j       = fEAMProperties[property_j]->getElecDensForce();
+		  ed_stiffness_j   = fEAMProperties[property_j]->getElecDensStiffness();
+
+		  current_property_j = property_j;
+		}
+
 
 	      /* global coordinates */
 	      coords.RowAlias(tag_j, x_j);
@@ -326,7 +527,7 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 	      double r = r_ij.Magnitude();
 	      r_ji.SetToScaled(-1.0, r_ij);
 
-	      /* interaction functions */
+	      /* Component of force coming from Pair potential */
 	      double F = pair_force(r, NULL, NULL);
 	      double K = pair_stiffness(r, NULL, NULL);
 	      double Fbyr = F/r;
@@ -336,6 +537,64 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 
 	      /* 2nd term */				
 	      fLHS.AddScaled(Fbyr, fOneOne);
+
+	      /* Component of force coming from Embedding Energy */
+	      double Ep_i = embed_force_i(rho[j],NULL,NULL);
+	      double Ep_j = embed_force_j(rho[i],NULL,NULL);
+
+	      double Epp_i = embed_stiffness_i(rho[i],NULL,NULL);
+	      double Epp_j = embed_stiffness_j(rho[j],NULL,NULL);
+
+	      double rhop_i = ed_force_i(r,NULL,NULL);
+	      double rhop_j = ed_force_j(r,NULL,NULL);
+
+	      double rhopp_i = ed_stiffness_i(r,NULL,NULL);
+	      double rhopp_j = ed_stiffness_j(r,NULL,NULL);
+
+	      F = rhop_i * Ep_j + rhop_j * Ep_i;
+	      Fbyr = F/r;
+	      K = rhopp_i * Epp_j + rhopp_j * Epp_i;
+
+
+	      double K2_1 = rhopp_j * Epp_i - rhopp_i * Epp_j;
+
+	      dArrayT rhopr(2*ndof);
+	      for (int k = 0; k < ndof; k++)
+		rhopr[k] = rhop_r(i,k);
+	      for (int k = ndof; k < 2*ndof; k++)
+		rhopr[k] =-rhop_r(i,k-ndof);
+
+	      dArrayT K2_2(2*ndof);
+	      if(ndof == 3)
+		{
+		  K2_2[0] = rhop_rhop_Epp_r_r_0(i,j);
+		  K2_2[1] = rhop_rhop_Epp_r_r_1(i,j);
+		  K2_2[2] = rhop_rhop_Epp_r_r_2(i,j);
+
+		  K2_2[3] =-rhop_rhop_Epp_r_r_0(i,j);
+		  K2_2[4] =-rhop_rhop_Epp_r_r_1(i,j);
+		  K2_2[5] =-rhop_rhop_Epp_r_r_2(i,j);
+
+		}
+	      else if (ndof == 2)
+		{
+		  K2_2[0] = rhop_rhop_Epp_r_r_0(i,j);
+		  K2_2[1] = rhop_rhop_Epp_r_r_1(i,j);
+
+		  K2_2[2] =-rhop_rhop_Epp_r_r_0(i,j);
+		  K2_2[3] =-rhop_rhop_Epp_r_r_1(i,j);
+		}
+
+	      /* 1st term */
+	      fLHS.Outer(fRHS, fRHS, (K - Fbyr)/r/r);
+		
+	      /* 2nd term */
+	      fLHS.AddScaled(Fbyr, fOneOne);
+
+	      /* last terms */
+	      fLHS.Outer(rhopr,fRHS,K2_1);
+	      for (int k = 0; k < 2*ndof; k++)
+		fLHS[k] += K2_2[k];
 
 	      /* assemble */
 	      for (int p = 0; p < row_eqnos.Length(); p++)
@@ -714,7 +973,7 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		      current_property_k = property_k;
 		    }
 
-		  double Epp = embed_stiffness_k(rho[k],NULL,NULL);
+		  double Epp    = embed_stiffness_k(rho[k],NULL,NULL);
 		  double rhop_i = ed_force_i(r_i,NULL,NULL);
 		  double rhop_j = ed_force_j(r_j,NULL,NULL);
 
@@ -746,7 +1005,7 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 
       EAMPropertyT::EDStiffnessFunction ed_stiffness_i = NULL, ed_stiffness_j = NULL;
 
-      // Loop i : run through neighbor list */
+      /* Loop i : run through neighbor list */
       for (int i = 0; i < fNeighbors.MajorDim(); i++)
 	{
 	  /* row of neighbor list */
@@ -868,7 +1127,7 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	      /* last terms */
 	      fLHS.Outer(rhopr,fRHS,K2_1);
 	      for (int k = 0; k < 2*ndof; k++)
-		fLHS(i,j) += K2_2[k];
+		fLHS[k] += K2_2[k];
 
 				
 	      /* assemble */
@@ -1013,7 +1272,6 @@ void EAMT::RHSDriver2D(void)
 	  int property_i = fPropertiesMap(type_i, type_j);
 	  if (property_i != current_property_i)
 	    {
-	      pair_force    = fEAMProperties[property_i]->getPairForce();
 	      embed_force_i = fEAMProperties[property_i]->getEmbedForce();
 	      ed_force_i    = fEAMProperties[property_i]->getElecDensForce();
 
@@ -1023,6 +1281,8 @@ void EAMT::RHSDriver2D(void)
 	  int property_j = fPropertiesMap(type_j, type_i);
 	  if (property_j != current_property_j)
 	    {
+	      pair_force = fEAMProperties[property_j]->getPairForce();
+
 	      embed_force_j = fEAMProperties[property_j]->getEmbedForce();
 	      ed_force_j   = fEAMProperties[property_j]->getElecDensForce();
 
@@ -1035,7 +1295,7 @@ void EAMT::RHSDriver2D(void)
 	  double r      = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
 			
 	  /* Component of force coming from Pair potential */
-	  double F = pair_force(r, NULL, NULL);
+	  double F = pair_force(r,NULL,NULL);
 	  double Fbyr = formKd*F/r;
 
 	  r_ij_0 *= Fbyr;
@@ -1064,9 +1324,6 @@ void EAMT::RHSDriver2D(void)
 	  f_j[1] +=-r_ij_1;
 	}
     }
-
-    /* assemble */
-    support.AssembleRHS(group, fForce, Field().Equations());
 }
 
 void EAMT::RHSDriver3D(void)
