@@ -1,4 +1,4 @@
-/* $Id: nExplicitCD.cpp,v 1.3 2002-06-08 20:20:11 paklein Exp $ */
+/* $Id: nExplicitCD.cpp,v 1.4 2002-06-29 01:13:15 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #include "nExplicitCD.h"
@@ -34,7 +34,8 @@ void nExplicitCD::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		case KBC_CardT::kDsp: /* prescribed displacement */
 		{
 			d = KBC.Value();
-			a = 0.0; //correct?	
+			a = 0.0; //NOTE: there is only one equation here to determine both a and v
+                     //      so we'll just make this zero.
 			break;
 		}
 		
