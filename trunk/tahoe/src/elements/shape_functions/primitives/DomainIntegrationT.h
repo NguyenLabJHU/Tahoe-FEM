@@ -1,11 +1,5 @@
-/* $Id: DomainIntegrationT.h,v 1.2 2001-03-15 17:48:46 paklein Exp $ */
-/* created: paklein (09/04/1998)                                          */
-/* class to manage the parent domain including construction for           */
-/* shared parent domains, integration point iterations, and some          */
-/* basic access to integration domain information. "copy" constructor     */
-/* creates "linked" objects which (i) share the same parent domain and    */
-/* (ii) are synchronized in integration through the current integration   */
-/* point reference.                                                       */
+/* $Id: DomainIntegrationT.h,v 1.3 2001-07-11 01:03:30 paklein Exp $ */
+/* created: paklein (09/04/1998) */
 
 #ifndef _DOMAIN_INTEGRATION_T_H_
 #define _DOMAIN_INTEGRATION_T_H_
@@ -14,90 +8,116 @@
 #include "ParentDomainT.h" // needed for inlines and geometry codes
 #include "iArrayT.h"
 
+/** class to manage the parent domain. Includes construction for
+ * shared parent domains, integration point iterations, and some
+ * basic access to integration domain information. "copy" constructor
+ * creates "linked" objects which (i) share the same parent domain and
+ * (ii) are synchronized in integration through the current integration
+ * point reference. */
 class DomainIntegrationT
 {
 public:
 
-	/* constructors */
+	/** constructor. 
+	 * \param geometry_code geometry of the parent domain
+	 * \param numIP number of integration points 
+	 * \param numnodes number of domain nodes */
 	DomainIntegrationT(GeometryT::CodeT geometry_code, int numIP, int numnodes);
-	DomainIntegrationT(const DomainIntegrationT& link);
-		// synch-ed integration domains with shared ParentDomainT
 
-	/* destructor */
+	/** constructor. 
+	 * \param link shared parent domain and "synch-ed" CurrIP */
+	DomainIntegrationT(const DomainIntegrationT& link);
+
+	/** destructor */
 	virtual ~DomainIntegrationT(void);
 
-	/* class-dependent initializations */
+	/** class-dependent initializations */
 	virtual void Initialize(void);
 
-	/* weights for all the integration points */
-const double* IPWeights(void) const;
+	/** weights for all the integration points */
+	const double* IPWeights(void) const;
 
 	/* accessors */
-	int NumSD(void) const;	
-	int NumIP(void) const;
+	int NumSD(void) const; /**< number of spatial dimensions */
+	int NumIP(void) const; /**< number of integration points */
 
-	/* integration management */
-	void TopIP(void);
-	int  NextIP(void);
-	const int& CurrIP(void) const;
-	void SetIP(int ip);
+	/* integration control */
+	void TopIP(void);   /**< restart loop over integration points */
+	int  NextIP(void);  /**< next integration point. \return 0 when after last ip */
+	void SetIP(int ip); /**< move to specified integration point */
+	const int& CurrIP(void) const; /**< reference to the "current" integration point number */
 
-/**** data for the current integration point ****/
-	const double* IPShape(void) const; // nodalshape functions
-	double IPWeight(void) const;       // integration point weight
-/************************************************/
+	/** array nodal shape functions at the "current" integration point */
+	const double* IPShape(void) const;
 
-	/* print shape functions and derivatives */
+	/** integration weight of the "current" integration point */
+	double IPWeight(void) const;
+
+	/** extrapolate values from the "current" integration point to the nodes.
+	 * \param IPvalues values from the integration point: [nval] 
+	 * \param nodalvalues extrapolated values: [nnd] x [nval] */
+	void Extrapolate(const dArrayT& IPvalues, dArray2DT& nodalvalues) const;
+
+	/** print shape functions and derivatives to out */
 	virtual void Print(ostream& out) const;
 
-	/* return the local node numbers for each facet of the element
-	 * numbered to produce at outward normal in the order: vertex
-	 * nodes, mid-edge nodes, mid-face nodes */
+	/** return the number of domain facets */
 	int  NumFacets(void) const;
-	void NodesOnFacet(int facet, iArrayT& facetnodes) const;
-	void NumNodesOnFacets(iArrayT& num_nodes) const;
 
-	/* return geometry and number of nodes on each facet */
+	/** list of number of nodes on each domain facet */ 
+	void NumNodesOnFacets(iArrayT& num_nodes) const;
+	
+	/** local node numbering over facets.
+	 * \param facet cannonical domain facet number
+	 * \param facetnodes list of number of nodes on each facet 
+	 * \note facetnodes does not need to be dimensioned */
+	void NodesOnFacet(int facet, iArrayT& facetnodes) const;
+
+	/** geometry and number of nodes on each facet */
 	void FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geom,
 		iArrayT& facet_nodes) const;
 
-	/* returns the nodes on each facet needed to determine neighbors
-	 * across facets */
+	/** the nodes on each facet needed to determine neighbors
+	 * across facets. \note this list is generally shorter
+	 * than the lists returned by NodesOnFacet */
 	void NeighborNodeMap(iArray2DT& facetnodes) const;
 
-	/* return shapefunctions for the specified element facet */
+	/** shape functions for the specified face */
 	const ParentDomainT& FacetShapeFunction(int facet) const;
 	
-	/* reference to the parent domain */
+	/** reference to the parent domain */
 	const ParentDomainT& ParentDomain(void) const;
 
 protected:
 
-	/* access to domain shape functions */
+	/** access to domain shape functions */
 	const dArray2DT& Na(void) const;
 
 private:
 
-	/* set surface shapefunctions */
+	/** set surface shapefunctions */
 	void SetSurfaceShapes(void);
 
 protected:
 
 	/* integration management */
-int  fNumIP;  // number of integration points
-	int& fCurrIP; // current integration point
+	int  fNumIP;  /**< number of integration points */
+	int& fCurrIP; /**< current integration point number */
 	
-	/* parent geometry */
+	/** parent geometry */
 	ParentDomainT* fDomain;
 	
-	/* surface shapefunctions */
+	/** face shapefunctions */
 	ArrayT<ParentDomainT*> fSurfShapes;
+
+	/** flags to make duplicated face shape functions */
 	iArrayT fDelete;
 
 private:
 
+	/* flags used to "link" domain to another */
 	int fDeleteDomain;
-	int frefCurrIP; // for synching domains
+	int frefCurrIP;
 };
 
 /* inlines */
@@ -133,18 +153,24 @@ inline void DomainIntegrationT::SetIP(int ip)
 /* data for the current integration point */
 inline const double* DomainIntegrationT::IPShape(void) const
 {
-return fDomain->Shape(fCurrIP);
+	return fDomain->Shape(fCurrIP);
 }
 
 inline double DomainIntegrationT::IPWeight(void) const
 {
 #if __option(extended_errorcheck)
-/* range checking */
-if (fCurrIP < 0 || fCurrIP >= fNumIP) throw eOutOfRange;
+	/* range checking */
+	if (fCurrIP < 0 || fCurrIP >= fNumIP) throw eOutOfRange;
 #endif
-
-return *(fDomain->Weight() + fCurrIP);
+	return *(fDomain->Weight() + fCurrIP);
 }
+
+/* extrapolate integration point values */
+inline void DomainIntegrationT::Extrapolate(const dArrayT& IPvalues,
+	dArray2DT& nodalvalues) const
+{
+	fDomain->NodalValues(IPvalues, nodalvalues, CurrIP());
+}	
 
 /* return the local node numbers for each facet of the element
 * numbered to produce at outward normal in the order: vertex
