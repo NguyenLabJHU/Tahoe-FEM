@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.41.2.2 2003-05-24 04:05:46 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.41.2.3 2003-05-24 14:39:15 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -496,7 +496,8 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 				}
 				
 				/* apply solution to atoms */
-				continuum.InterpolateField(bridging_field, field_at_ghosts);
+				int order = 0;  // displacement only for static case
+				continuum.InterpolateField(bridging_field, order, field_at_ghosts);
 				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
 #if 0
 				K_AC.Multx(continuum.CumulativeUpdate(group_num), F_A);
@@ -564,6 +565,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	
 	/* configure ghost nodes */
 	int group = 0;
+	int order1 = 0;	// For interpolate field, 3 calls to obtain displacement/velocity/acceleration
+	int order2 = 1;
+	int order3 = 2;
 	StringT bridging_field = "displacement";
 	atoms.InitGhostNodes();
 	bool makeinactive = false;	
@@ -595,7 +599,6 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		/* calculate global interpolation matrix ntf */
 		continuum.Ntf(ntf, atoms.NonGhostNodes(), activefenodes);
 		cout << "ntf = " << ntf << endl;
-		cout << "fu = " << fu << endl;
 		
 		/* compute FEM RHS force as product of ntf and fu */
 		dArrayT fx(ntf.Rows()), fy(ntf.Rows()), tempx(ntf.Cols()), tempy(ntf.Cols());
@@ -617,16 +620,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 
 		/* set ghost atom displacements/velocities as BC's for MD simulation - need to integrate
 		 * these ghost atom displacements through time during MD time loop assuming
-		 * constant coarse scale acceleration */
-		continuum.InterpolateField(bridging_field, field_at_ghosts);
+		 * constant coarse scale acceleration.  3 calls to InterpolateField needed */
+		continuum.InterpolateField(bridging_field, order1, field_at_ghosts);
 		atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
-
-		FieldT* atomfield = atoms.NodeManager()->Field(bridging_field);
-		FieldT* femfield = continuum.NodeManager()->Field(bridging_field);
-		dArray2DT mdacc = (*atomfield)[2];
-		dArray2DT femacc = (*femfield)[2];
-		cout << "md acc = " << mdacc << endl;
-		cout << "fem acc = " << femacc << endl;
 		
 		/* figure out timestep ratio between fem and md simulations */
 		int nfesteps = continuum_time->NumberOfSteps();
@@ -634,7 +630,6 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		double fedt = continuum_time->TimeStep();
 		double d_ratio = fedt/mddt;		
 		int ratio = int((2.0*d_ratio + 1.0)/2.0);
-		cout << "time step ratio = " << ratio << endl;
 		
 		/* running status flag */
 		ExceptionT::CodeT error = ExceptionT::kNoError;	
@@ -658,6 +653,13 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 						error = atoms.SolveStep();
 				}
 				
+				FieldT* atomfield = atoms.NodeManager()->Field(bridging_field);
+				dArray2DT mddisp = (*atomfield)[0];
+				dArray2DT fmd = InternalForce(mddisp, atoms);
+				dArray2DT mdacc = (*atomfield)[2];
+				cout << "md acc = " << mdacc << endl;
+				cout << "md force = " << fmd << endl;
+				
 				/* update MD integer step velocities */
 				
 				/* close  md step */
@@ -669,6 +671,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
             
 			/* calculate total displacement u = FE + fine scale here using updated FEM displacement */
+			/* has FEM displacement been updated here yet */
 			continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu);
 			
 			/* calculate FE internal force as function of total displacement u here */
@@ -679,6 +682,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			fu.ColumnCopy(1,tempy);
 			ntf.Multx(tempy,fy);
 			ntfproduct.SetColumn(1,fy);	// SetExternalForce updated via pointer
+			cout << "fem force = " << ntfproduct << endl;
 			
 			/* solve FE equation of motion using internal force just calculated */
 			if (1 || error == ExceptionT::kNoError) {
@@ -686,9 +690,14 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 					error = continuum.SolveStep();
 			}
                     
-			/* interpolate coarse scale displacements/velocities to MD ghost atoms/boundary 
-			 * atom for next MD timesteps */
+			FieldT* femfield = continuum.NodeManager()->Field(bridging_field);
+			dArray2DT femacc = (*femfield)[2];
+			cout << "fem acc = " << femacc << endl;
 			
+			/* interpolate coarse scale displacements/velocities to MD ghost atoms/boundary 
+			 * atom for next MD timesteps.  3 calls to InterpolateField needed */
+			continuum.InterpolateField(bridging_field, order1, field_at_ghosts);
+			atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
 			
 			/* close fe step */
 			if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
