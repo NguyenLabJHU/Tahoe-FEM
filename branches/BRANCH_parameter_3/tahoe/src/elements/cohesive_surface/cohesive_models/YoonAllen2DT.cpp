@@ -1,4 +1,4 @@
-/* $Id: YoonAllen2DT.cpp,v 1.13.20.1 2004-06-23 00:51:58 paklein Exp $ */
+/* $Id: YoonAllen2DT.cpp,v 1.13.20.2 2004-06-24 04:56:17 paklein Exp $ */
 #include "YoonAllen2DT.h"
 
 #include <iostream.h>
@@ -81,7 +81,8 @@ YoonAllen2DT::YoonAllen2DT(void):
 	fpenalty(0.0),
 	
 	/* damage flag */
-	idamage(-1)
+	idamage(-1),
+	fCurrentTimeStep(-1.0)
 {
 	SetName("Yoon-Allen_2D");
 }
@@ -633,7 +634,7 @@ ParameterInterfaceT* YoonAllen2DT::NewSub(const StringT& list_name) const
 		prony_pair.AddParameter(E_t);
 		prony_pair.AddParameter(tau);
 
-		prony->AddSub(prony_pair);
+		prony->AddSub(prony_pair, ParameterListT::OnePlus);
 
 		return prony;
 	}

@@ -1,4 +1,4 @@
-/* $Id: TvergHutch3DT.h,v 1.8.34.1 2004-06-23 00:51:58 paklein Exp $ */
+/* $Id: TvergHutch3DT.h,v 1.8.34.2 2004-06-24 04:56:17 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 
 #ifndef _TVERG_HUTCH_3D_T_H_
@@ -24,6 +24,7 @@ public:
 	TvergHutch3DT(ifstreamT& in);
 #endif
 	TvergHutch3DT(dArrayT& params);
+	TvergHutch3DT(void);	
 
 	/** return the number of state variables needed by the model */
 	int NumStateVariables(void) const { return 0; };
@@ -56,6 +57,15 @@ public:
 	 * \param destination of output values. Allocated by the host code */
 	virtual void ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
 		dArrayT& output);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters  */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: YoonAllen3DT.h,v 1.10.34.1 2004-06-23 00:51:58 paklein Exp $ */
+/* $Id: YoonAllen3DT.h,v 1.10.34.2 2004-06-24 04:56:17 paklein Exp $ */
 /* created: cjkimme (05/28/2002) */
 
 #ifndef _YOON_ALLEN_3D_T_H_
@@ -24,6 +24,10 @@ public:
 	YoonAllen3DT(ifstreamT& in, const double &fTimeStep);
 #endif
 	YoonAllen3DT(dArrayT& fparams, iArrayT& iparams, const double &fTimeStep);
+	YoonAllen3DT(void);	
+
+	/** set the source of the time step */
+	virtual void SetTimeStep(const double& time_step) { fTimeStep = &time_step; };
 
 	virtual void InitStateVariables(ArrayT<double>& state);
 
@@ -59,6 +63,21 @@ public:
 	virtual void ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
 		dArrayT& output);
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/** return true if the potential has compatible (type and sequence)
@@ -74,7 +93,6 @@ private:
 	
 	/* moduli */
 	double fE_infty; /**< Asymptotic modulus of cohesive zone */
-	int iNumRelaxTimes;
 	dArrayT fE_t; /**< transient modulus with exponential time decay*/
 	dArrayT ftau; /**< time constant for decay */
 	dArrayT fexp_tau; /**< exponentiations of the timestep over the time constants */
@@ -88,7 +106,8 @@ private:
 	double fpenalty; /**< stiffening multiplier */
 	double fK;       /**< penetration stiffness calculated as a function of penalty
 	                  * and the initial stiffness of the cohesive potential */
-	const double& fTimeStep;
+	const double* fTimeStep;
+	double fCurrentTimeStep; /**< time increment used to compute fexp_tau */
 };
 
 } // namespace Tahoe 
