@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.36 2004-07-15 08:31:03 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.37 2004-07-22 08:32:55 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -337,7 +337,7 @@ ExceptionT::CodeT FEManagerT_mpi::InitialCondition(void)
 	
 	/* set I/O */
 	if (error == ExceptionT::kNoError && fExternIOManager) 
-		fExternIOManager->NextTimeSequence(SequenceNumber());
+		fExternIOManager->NextTimeSequence(0);
 		
 	return error;
 }

@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.67 2004-07-15 08:31:03 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.68 2004-07-22 08:32:54 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -35,7 +35,6 @@
 #include "ParameterTreeT.h"
 #include "XML_Attribute_FormatterT.h"
 #include "DotLine_FormatterT.h"
-#include "expat_ParseT.h"
 
 /* needed for bridging calculations FEExecutionManagerT::RunBridging */
 #ifdef BRIDGING_ELEMENT
@@ -121,14 +120,7 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 		{
 			if (fComm.Size() == 1) {
 				cout << "\n RunJob_serial: " << in.filename() << endl;
-				StringT ext;
-				ext.Suffix(in.filename());
-				ext.ToLower();
-				bool run_XML = (ext == ".xml");
-				if (run_XML)
-					RunJob_serial_XML(in.filename(), status);
-				else
-					ExceptionT::GeneralFail(caller, "expecting file extension \".xml\": %s", ext.Pointer());
+				RunJob_serial(in.filename(), status);
 			} else {
 				cout << "\n RunJob_parallel: " << in.filename() << endl;
 				RunJob_parallel(in.filename(), status);
@@ -167,6 +159,8 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 			fComm.Barrier();
 			break;
 		}
+#pragma message("delete me")
+#if 0
 		case kBridging:
 		{
 			cout << "\n RunBridging: " << in.filename() << endl;
@@ -175,6 +169,7 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 			RunBridging(in, status);
 			break;
 		}
+#endif
 		case kTHK:
 		{
 #ifdef __DEVELOPMENT__
@@ -296,502 +291,7 @@ bool FEExecutionManagerT::RemoveCommandLineOption(const char* str)
  * Private
  **********************************************************************/
 
-/* parse input file and valid */
-void FEExecutionManagerT::ParseInput(const StringT& path, ParameterListT& params, bool validate,
-	bool echo_input, bool echo_valid) const
-{
-	/* construct parser */
-	expat_ParseT parser;
-
-	/* read values */
-	ParameterListT tmp_list;
-	ParameterListT& raw_list = (validate) ? tmp_list : params;
-	raw_list.SetDuplicateListNames(true);
-	parser.Parse(path, raw_list);
-
-	/* parameter source */
-	//TEMP - parameters currently needed to construct an FEManagerT
-	ofstreamT output;
-	CommunicatorT comm;
-	//TEMP
-	FEManagerT fe_man(path, output, comm, fCommandLineOptions);
-
-	/* list input to Tahoe */
-	ParameterListT* input_list = raw_list.List(fe_man.Name().Pointer());
-	if (!input_list)
-		ExceptionT::GeneralFail("FEExecutionManagerT::ParseInput", "list \"%s\" not found", 
-			fe_man.Name().Pointer());
-
-	/* echo to XML */
-	if (echo_input)  {	
-		StringT echo_path;
-		echo_path.Root(path);
-		echo_path.Append(".echo.xml");
-		ofstreamT echo_out(echo_path);
-		XML_Attribute_FormatterT att_format(XML_Attribute_FormatterT::DTD);
-		att_format.InitParameterFile(echo_out);
-		att_format.WriteParameterList(echo_out, *input_list);
-		att_format.CloseParameterFile(echo_out);
-	}
-
-	/* build validated parameter list */
-	if (validate) {
-		ParameterTreeT tree;
-		tree.Validate(fe_man, *input_list, params);	
-	}
-
-	/* write validated XML */
-	if (echo_valid) {
-		StringT valid_path;
-		valid_path.Root(path);
-		valid_path.Append(".valid.xml");
-		ofstreamT valid_out(valid_path);
-		XML_Attribute_FormatterT att_format(XML_Attribute_FormatterT::DTD);
-		att_format.InitParameterFile(valid_out);
-		att_format.WriteParameterList(valid_out, params);
-		att_format.CloseParameterFile(valid_out);
-	}
-}
-
 #ifdef BRIDGING_ELEMENT
-
-/* Tahoe bridging calculation */
-void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
-{
-	const char caller[] = "FEExecutionManagerT::RunBridging";
-	StringT path;
-	path.FilePath(in.filename());
-
-	/* read atomistic and continuum source files */
-	StringT atom_file, bridge_atom_file;
-	in >> atom_file
-	   >> bridge_atom_file;
-	   
-	StringT continuum_file, bridge_continuum_file;
-	in >> continuum_file
-	   >> bridge_continuum_file;
-
-	/* streams for atomistic Tahoe */
-	atom_file.ToNativePathName();
-	atom_file.Prepend(path);
-	ifstreamT atom_in('#', atom_file);
-	if (atom_in.is_open())
-		cout << " atomistic parameters file: " << atom_file << endl;
-	else
-		ExceptionT::BadInputValue(caller, "file not found: %s", atom_file.Pointer());
-	StringT atom_out_file;
-	atom_out_file.Root(atom_in.filename());
-	atom_out_file.Append(".out");
-	ofstreamT atom_out;
-	atom_out.open(atom_out_file);
-
-	bridge_atom_file.ToNativePathName();
-	bridge_atom_file.Prepend(path);
-	ifstreamT bridge_atom_in('#', bridge_atom_file);
-	if (bridge_atom_in.is_open())
-		cout << " atomistic bridging parameters file: " << bridge_atom_file << endl;
-	else
-		ExceptionT::BadInputValue(caller, "file not found: %s", bridge_atom_file.Pointer());
-
-	/* streams for continuum Tahoe */
-	continuum_file.ToNativePathName();
-	continuum_file.Prepend(path);
-	ifstreamT continuum_in('#', continuum_file);
-	if (continuum_in.is_open())
-		cout << " continuum parameters file: " << continuum_file << endl;
-	else
-		ExceptionT::BadInputValue(caller, "file not found: %s", continuum_file.Pointer());
-	StringT continuum_out_file;
-	continuum_out_file.Root(continuum_in.filename());
-	continuum_out_file.Append(".out");
-	ofstreamT continuum_out;
-	continuum_out.open(continuum_out_file);
-
-	bridge_continuum_file.ToNativePathName();
-	bridge_continuum_file.Prepend(path);
-	ifstreamT bridge_continuum_in('#', bridge_continuum_file);
-	if (bridge_continuum_in.is_open())
-		cout << " continuum bridging parameters file: " << bridge_continuum_file << endl;
-	else
-		ExceptionT::BadInputValue(caller, "file not found: %s", bridge_continuum_file.Pointer());
-
-	/* brigding solver log file */
-	StringT log_file;
-	log_file.Root(in.filename());
-	log_file.Append(".log");
-	ofstreamT log_out;
-	log_out.open(log_file);
-
-	clock_t t0 = 0, t1 = 0, t2 = 0;
-
-	/* start day/date info */
-	time_t starttime;
-	time(&starttime);
-
-	int phase; // job phase
-	try
-	{
-		t0 = clock();
-
-		/* construction */
-		phase = 0;
-		char job_char;
-
-		/* construct continuum solver */
-		continuum_in >> job_char;
-		FEManagerT_bridging continuum(continuum_in.filename(), continuum_out, fComm, fCommandLineOptions, bridge_continuum_in);
-//		continuum.Initialize();
-ExceptionT::Stop(caller, "not updated");
-
-		/* split here depending on whether integrators are explicit or implicit
-		 * check only one integrator assuming they both are the same */
-//		const IntegratorT* mdintegrate = continuum.Integrator(0);
-		const IntegratorT* mdintegrate = NULL;
-#pragma message("get integrator")
-
-		IntegratorT::ImpExpFlagT impexp = mdintegrate->ImplicitExplicit();
-
-		if (impexp == IntegratorT::kImplicit)
-		{
-			/* construct atomistic solver */
-			atom_in >> job_char;
-			FEManagerT_bridging atoms(atom_in.filename(), atom_out, fComm, fCommandLineOptions, bridge_atom_in);
-//			atoms.Initialize();
-ExceptionT::Stop(caller, "not updated");
-
-			t1 = clock();
-			phase = 1;
-			
-			/* check for multi solver */
-			int multi = -99;
-			in >> multi;
-			if (multi == 0)
-				RunStaticBridging_staggered(continuum, atoms, log_out);	
-			else if (multi == 1)
-				RunStaticBridging_monolithic(in.filename(), continuum, atoms, log_out);	
-			else
-				ExceptionT::BadInputValue(caller, "expecting 1|0 for multi-solver: %d", multi);
-		}
-		else if (impexp == IntegratorT::kExplicit)
-		{
-#ifdef __DEVELOPMENT__
-			/* initialize FEManager_THK using atom values */
-			atom_in >> job_char;
-			FEManagerT_THK atoms(atom_in.filename(), atom_out, fComm, fCommandLineOptions, bridge_atom_in);
-			atoms.Initialize();
-		
-			t1 = clock();
-			phase = 1;
-			RunDynamicBridging(continuum, atoms, log_out, atom_in);
-#else
-			ExceptionT::GeneralFail(caller, "dynamic bridging requires the DEVELOPMENT module");
-#endif
-		}
-		else
-			ExceptionT::GeneralFail(caller, "unknown integrator type %d", impexp);
-
-		t2 = clock();
-	}
-        
-	/* job failure */
-	catch (ExceptionT::CodeT code)
-	{
-		status << "\n \"" << in.filename() << "\" exit on exception during the\n";
-		if (phase == 0)
-		{
-			status << " construction phase. Check the input file for errors." << endl;
-		
-			/* echo some lines from input */
-			if (code == ExceptionT::kBadInputValue) Rewind(in, status);
-		}
-		else
-			status << " solution phase.";
-		
-		/* fix clock values */
-		if (t1 == 0) t1 = clock();
-		if (t2 == 0) t2 = clock();		
-
-		atom_out << endl;
-		continuum_out << endl;
-	}
-	/* stop day/date info */
-	time_t stoptime;
-	time(&stoptime);
-
-	/* output timing */
-	status << "\n     Filename: " << in.filename() << '\n';
-	status <<   "   Start time: " << ctime(&starttime);
-	status <<   " Construction: " << double(t1 - t0)/CLOCKS_PER_SEC << " sec.\n";
-	status <<   "     Solution: " << double(t2 - t1)/CLOCKS_PER_SEC << " sec.\n";
-	status << "    Stop time: " << ctime(&stoptime);
-	status << "\n End Execution\n" << endl;
-}
-
-void FEExecutionManagerT::RunStaticBridging_staggered(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms, ofstream& log_out) const
-{
-	const char caller[] = "FEExecutionManagerT::RunStaticBridging_staggered";
-	    
-	/* configure ghost nodes */
-	int group = 0;
-	int order1 = 0;
-	StringT bridging_field = "displacement";
-	bool make_inactive = true;
-	atoms.InitGhostNodes(continuum.ProjectImagePoints());
-	continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
-	//dArrayT mdmass;
-	//atoms.LumpedMass(atoms.NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
-	continuum.InitProjection(*atoms.CommManager(), atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), make_inactive);
-	
-#undef DO_COUPLING
-
-#ifdef DO_COUPLING
-	/* cross coupling matricies */
-	int neq_A = atoms.NodeManager()->Field(bridging_field)->NumEquations();
-	int neq_C = continuum.NodeManager()->Field(bridging_field)->NumEquations();
-	dSPMatrixT K_AC(neq_A, neq_C, 0), K_G_NG;
-	dSPMatrixT K_CA(neq_C, neq_A, 0), G_Interpolation;
-	dArrayT F_A(neq_A), F_C(neq_C);
-	continuum.InterpolationMatrix(bridging_field, G_Interpolation);
-#endif
-
-	/* time managers */
-	TimeManagerT* atom_time = atoms.TimeManager();
-	TimeManagerT* continuum_time = continuum.TimeManager();
- 
-	dArray2DT field_at_ghosts;
-	atom_time->Top();
-	continuum_time->Top();
-	int d_width = OutputWidth(log_out, field_at_ghosts.Pointer());
-	while (atom_time->NextSequence() && continuum_time->NextSequence())
-	{	
-		/* set to initial condition */
-		atoms.InitialCondition();
-		continuum.InitialCondition();
-
-		/* loop over time increments */
-		AutoArrayT<int> loop_count, atom_iter_count, continuum_iter_count;
-		bool seq_OK = true;
-		while (seq_OK && 
-			atom_time->Step() &&
-			continuum_time->Step()) //TEMP - same clock
-		{
-			log_out << "\n Step = " << atom_time->StepNumber() << '\n'
-				<< " Time = " << atom_time->Time() << endl;
-			
-			/* running status flag */
-			ExceptionT::CodeT error = ExceptionT::kNoError;		
-
-			/* initialize step */
-			if (error == ExceptionT::kNoError) error = atoms.InitStep();
-			if (error == ExceptionT::kNoError) error = continuum.InitStep();
-			
-			/* solver phase status */
-			const iArray2DT& atom_phase_status = atoms.SolverPhasesStatus();
-			const iArray2DT& continuum_phase_status = continuum.SolverPhasesStatus();
-
-#ifdef DO_COUPLING
-			/* set cross-coupling */
-			atoms.Form_G_NG_Stiffness(bridging_field, 0, K_G_NG);
-			K_AC.MultAB(K_G_NG, G_Interpolation);
-			K_CA.Transpose(K_AC);
-#endif
-
-			/* loop until both solved */
-			int group_num = 0;
-			double atoms_res, continuum_res, combined_res_0 = 0.0;
-			int count = 0;
-			int atom_last_iter, atom_iter, continuum_last_iter, continuum_iter;
-			atom_last_iter = atom_iter = continuum_last_iter = continuum_iter = 0;
-			while (count == 0 || (atom_iter > 0 || continuum_iter > 0)) //TEMP - assume just one phase
-
-//			while (1 || error == ExceptionT::kNoError &&
-//			(atom_phase_status(0, FEManagerT::kIteration) > 0 ||
-//			continuum_phase_status(0, FEManagerT::kIteration) > 0)) //TEMP - assume just one phase
-			{
-				count++;
-
-				/* solve atoms */
-				if (1 || error == ExceptionT::kNoError) {
-					atoms.ResetCumulativeUpdate(group);
-					error = atoms.SolveStep();
-				}
-
-#ifdef DO_COUPLING
-				/* set cross-coupling */
-				atoms.Form_G_NG_Stiffness(bridging_field, 0, K_G_NG);
-				K_AC.MultAB(K_G_NG, G_Interpolation);
-				K_CA.Transpose(K_AC);
-#endif
-					
-				/* apply solution to continuum */
-				continuum.ProjectField(bridging_field, *atoms.NodeManager(), order1);
-#ifdef DO_COUPLING
-				K_CA.Multx(atoms.CumulativeUpdate(group_num), F_C);
-				F_C *= -1.0;
-				continuum.SetExternalForce(group_num, F_C);
-#endif
-				continuum.FormRHS(group_num);
-				continuum_res = continuum.RHS(group_num).Magnitude(); //serial
-					
-				/* solve continuum */
-				if (1 || error == ExceptionT::kNoError) {
-					continuum.ResetCumulativeUpdate(group);
-					error = continuum.SolveStep();
-				}
-				
-				/* apply solution to atoms */
-				int order = 0;  // displacement only for static case
-				continuum.InterpolateField(bridging_field, order, field_at_ghosts);
-				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order, field_at_ghosts);
-#ifdef DO_COUPLING
-				K_AC.Multx(continuum.CumulativeUpdate(group_num), F_A);
-				F_A *= -1.0;
-				atoms.SetExternalForce(group_num, F_A);
-#endif
-				atoms.FormRHS(group_num);
-				atoms_res = atoms.RHS(group_num).Magnitude(); //serial
-
-				/* reset the reference errors */
-				if (count == 1) {
-					combined_res_0 = atoms_res + continuum_res;
-					atoms.SetReferenceError(group_num, combined_res_0);
-					continuum.SetReferenceError(group_num, combined_res_0);
-				}
-					
-				/* log residual */
-				double tot_rel_error = (fabs(combined_res_0) > kSmall) ? 
-					(atoms_res + continuum_res)/combined_res_0 : 0.0;
-				    log_out << setw(kIntWidth) << count << ": "
-					<< setw(d_width) << atoms_res << " (A) | "
-					<< setw(d_width) << continuum_res << " (C) | "
-					<< setw(d_width) << tot_rel_error << endl;
-
-				/* number of interations in last pass */
-				int atom_total_iter = atom_phase_status(0, FEManagerT::kIteration);
-				int continuum_total_iter = continuum_phase_status(0, FEManagerT::kIteration);
-				atom_iter = atom_total_iter - atom_last_iter;
-				continuum_iter = continuum_total_iter - continuum_last_iter;
-				atom_last_iter = atom_total_iter;
-				continuum_last_iter = continuum_total_iter;
-			}
-				
-			loop_count.Append(count);
-			atom_iter_count.Append(atom_last_iter);
-			continuum_iter_count.Append(continuum_last_iter);
-			
-			/* close step */
-			if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();
-			if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
-
-			/* check for error */
-			if (0)
-//		if (error != ExceptionT::kNoError)
-				ExceptionT::GeneralFail(caller, "hit error %d", error);
-			//TEMP - no error recovery yet
-		}
-		cout << "\n Number of bridging iterations:\n";
-		cout << setw(kIntWidth) << "step" 
-			<< setw(kIntWidth) << "cycles" 
-			<< setw(kIntWidth) << "a-its."
-			<< setw(kIntWidth) << "c-its."<< '\n';
-		for (int i = 0; i < loop_count.Length(); i++)
-			cout << setw(kIntWidth) << i+1
-				<< setw(kIntWidth) << loop_count[i]
-				<< setw(kIntWidth) << atom_iter_count[i]
-				<< setw(kIntWidth) << continuum_iter_count[i] << '\n';
-	}
-}
-
-void FEExecutionManagerT::RunStaticBridging_monolithic(const StringT& input_file, FEManagerT_bridging& continuum, FEManagerT_bridging& atoms, ofstream& log_out) const
-{
-	const char caller[] = "FEExecutionManagerT::RunStaticBridging_monolithic";
-	    
-	/* manager for multiple FEManagerT's */
-	CommunicatorT multi_comm;
-	StringT multi_out_file;
-	multi_out_file.Root(input_file);
-	multi_out_file.Append(".out");
-	ofstreamT multi_out;
-	multi_out.open(multi_out_file);
-	MultiManagerT multi_manager(input_file, multi_out, multi_comm, &atoms, &continuum);
-	multi_manager.Initialize();
-
-	/* time managers */
-	TimeManagerT* atom_time = atoms.TimeManager();
-	TimeManagerT* continuum_time = continuum.TimeManager();
- 
-	dArray2DT field_at_ghosts;
-	atom_time->Top();
-	continuum_time->Top();
-	int d_width = OutputWidth(log_out, field_at_ghosts.Pointer());
-	while (atom_time->NextSequence() && continuum_time->NextSequence())
-	{
-		/* check consistency between time managers */
-		if (atom_time->NumberOfSteps() - continuum_time->NumberOfSteps() != 0) 
-			ExceptionT::GeneralFail(caller, "coarse/fine number of steps mismatch: %d != %d",
-				atom_time->NumberOfSteps(), continuum_time->NumberOfSteps());
-	
-		/* set to initial condition */
-		atoms.InitialCondition();
-		continuum.InitialCondition();
-
-		/* loop over time increments */
-		AutoArrayT<int> loop_count, atom_iter_count, continuum_iter_count;
-		bool seq_OK = true;
-		while (seq_OK && 
-			atom_time->Step() &&
-			continuum_time->Step()) //TEMP - same clock
-		{
-			/* consistency check */
-			if (fabs(atom_time->TimeStep() - continuum_time->TimeStep()) > kSmall)
-				ExceptionT::GeneralFail(caller, "coarse/fine time step mismatch: %g != %g", 
-					atom_time->TimeStep(), continuum_time->TimeStep());
-
-			/* running status flag */
-			ExceptionT::CodeT error = ExceptionT::kNoError;		
-
-			/* initialize the current time step */
-			if (error == ExceptionT::kNoError) 
-				error = multi_manager.InitStep();
-
-			/* solve the current time step */
-			if (error == ExceptionT::kNoError) 
-				error = multi_manager.SolveStep();
-			
-			/* close the current time step */
-			if (error == ExceptionT::kNoError)
-				error = multi_manager.CloseStep();
-				
-			/* handle errors */
-			switch (error)
-			{
-				case ExceptionT::kNoError:
-					/* nothing to do */
-					break;
-				case ExceptionT::kGeneralFail:					
-				case ExceptionT::kBadJacobianDet:
-				{
-					cout << '\n' << caller << ": trying to recover from error: " << ExceptionT::ToString(error) << endl;
-				
-					/* reset system configuration */
-					error = multi_manager.ResetStep();
-					
-					/* cut time step */
-					if (error == ExceptionT::kNoError) {
-						if (!multi_manager.DecreaseLoadStep())
-							ExceptionT::GeneralFail(caller, "could not decrease load step");
-					}
-					else
-						ExceptionT::GeneralFail(caller, "could not reset step");
-					break;
-				}
-				default: 
-					ExceptionT::GeneralFail(caller, "no recovery from \"%s\"", ExceptionT::ToString(error));
-			}
-		}
-	}
-}
-
 #ifdef __DEVELOPMENT__
 void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_THK& atoms, ofstream& log_out, ifstreamT& in) const
 {
@@ -809,7 +309,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	dSPMatrixT ntf;
 	iArrayT activefenodes, boundaryghostatoms;
 	StringT bridging_field = "displacement";
-	atoms.InitGhostNodes(continuum.ProjectImagePoints());
+//	atoms.InitGhostNodes(continuum.ProjectImagePoints());
+#pragma message("fix me")
+
 	bool makeinactive = false;	
 	/* figure out boundary atoms for use with THK boundary conditions, 
 	   ghost atoms for usage with MD force calculations */
@@ -829,10 +331,10 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	boundatoms.CopyPart(0, boundaryghostatoms, numgatoms, numbatoms);
 	//elecdens.Dimension(gatoms.Length(), 1);
 	//embforce.Dimension(gatoms.Length(), 1);
-	continuum.InitInterpolation(boundaryghostatoms, bridging_field, *atoms.NodeManager());
+	continuum.InitInterpolation(bridging_field, boundaryghostatoms, *atoms.NodeManager());
 	//dArrayT mdmass;
 	//atoms.LumpedMass(atoms.NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
-	continuum.InitProjection(*atoms.CommManager(), atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive);		
+	continuum.InitProjection(bridging_field, *atoms.CommManager(), atoms.NonGhostNodes(), *atoms.NodeManager(), makeinactive);		
 
 	/* nodes to include/exclude in calculation of the atomistic displacements. Dimension
 	 * of these matricies is the number atom types */
@@ -868,12 +370,12 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	TimeManagerT* atom_time = atoms.TimeManager();
 	TimeManagerT* continuum_time = continuum.TimeManager();
 
-	atom_time->Top();
-	continuum_time->Top();
+//	atom_time->Top();
+//	continuum_time->Top();
 	int d_width = OutputWidth(log_out, field_at_ghosts.Pointer());
 	
-	while (atom_time->NextSequence() && continuum_time->NextSequence())
-	{		
+//	while (atom_time->NextSequence() && continuum_time->NextSequence())
+//	{		
 		/* set to initial condition */
 		atoms.InitialCondition();
 		
@@ -1063,7 +565,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		if (0)
 			ExceptionT::GeneralFail(caller, "hit error %d", error);
                 
-	}
+//	}
 }
 #endif
 
@@ -1220,13 +722,15 @@ void FEExecutionManagerT::RunWriteDescription(int doc_type) const
 	CommunicatorT comm;
 //TEMP
 
-	/* parameter source */
-	FEManagerT fe_man(input, output, comm, fCommandLineOptions);
-
 	/* collect parameters */
 	cout << " collecting parameters..." << endl;
 	ParameterTreeT tree;
-	tree.BuildDescription(fe_man);
+	FEManagerT fe(input, output, comm, fCommandLineOptions);
+	tree.BuildDescription(fe);
+#ifdef BRIDGING_ELEMENT
+	MultiManagerT multi(input, output, comm, fCommandLineOptions);
+	tree.BuildDescription(multi);
+#endif
 
 	/* write description */
 	cout << " writing description..." << endl;
@@ -1277,7 +781,7 @@ void FEExecutionManagerT::JobOrBatch(ifstreamT& in, ostream& status)
 		ExecutionManagerT::JobOrBatch(in, status);
 }
 
-void FEExecutionManagerT::RunJob_serial_XML(const StringT& input_file, ostream& status) const
+void FEExecutionManagerT::RunJob_serial(const StringT& input_file, ostream& status) const
 {
 	const char* caller = "FEExecutionManagerT::RunJob_serial_XML";
 
@@ -1309,7 +813,7 @@ void FEExecutionManagerT::RunJob_serial_XML(const StringT& input_file, ostream& 
 
 		/* generate validated parameter list */
 		ParameterListT valid_list;
-		ParseInput(input_file, valid_list, true, true, true);
+		FEManagerT::ParseInput(input_file, valid_list, true, true, true, fCommandLineOptions);
 
 		/* write the validated list as formatted text */
 		if (true) {
@@ -1320,27 +824,56 @@ void FEExecutionManagerT::RunJob_serial_XML(const StringT& input_file, ostream& 
 			pp_format.CloseParameterFile(out);
 			out << endl;
 		}
-
-		/* construction */
-		FEManagerT analysis1(input_file, out, fComm, fCommandLineOptions);
-		analysis1.TakeParameterList(valid_list);
-		t1 = clock();
+		
+		/* analysis type */
+		if (valid_list.Name() == "tahoe")
+		{
+			/* construction */
+			FEManagerT analysis1(input_file, out, fComm, fCommandLineOptions);
+			analysis1.TakeParameterList(valid_list);
+			t1 = clock();
 
 #if defined(__MWERKS__) && __option(profile)
-		/* start recording profiler information */
-		ProfilerSetStatus(1);
+			/* start recording profiler information */
+			ProfilerSetStatus(1);
 #endif
 		
-		/* solution */
-		phase = 1;
-		analysis1.Solve();
+			/* solution */
+			phase = 1;
+			analysis1.Solve();
 
 #if defined(__MWERKS__) && __option(profile)
-		/* stop recording profiler information */
-		ProfilerSetStatus(0);
+			/* stop recording profiler information */
+			ProfilerSetStatus(0);
 #endif
+			t2 = clock();
+		}
+#ifdef BRIDGING_ELEMENT
+		else if (valid_list.Name() == "tahoe_multi")
+		{
+			/* construction */
+			MultiManagerT analysis1(input_file, out, fComm, fCommandLineOptions);
+			analysis1.TakeParameterList(valid_list);
+			t1 = clock();
 
-		t2 = clock();
+#if defined(__MWERKS__) && __option(profile)
+			/* start recording profiler information */
+			ProfilerSetStatus(1);
+#endif
+		
+			/* solution */
+			phase = 1;
+			analysis1.Solve();
+
+#if defined(__MWERKS__) && __option(profile)
+			/* stop recording profiler information */
+			ProfilerSetStatus(0);
+#endif
+			t2 = clock();
+		}
+#endif
+		else
+			ExceptionT::GeneralFail(caller, "unexpected parameter list \"%s\"", valid_list.Name().Pointer());
 	}
 
 	/* job failure */
@@ -1464,7 +997,7 @@ void FEExecutionManagerT::RunDecomp_serial(const StringT& input_file, ostream& s
 		
 		/* generate validated parameter list */
 		ParameterListT valid_list;
-		ParseInput(input_file, valid_list, true, false, false);
+		FEManagerT::ParseInput(input_file, valid_list, true, false, false, fCommandLineOptions);
 		
 		/* extract model file and file format */
 		int i_format = valid_list.GetParameter("geometry_format");
@@ -1517,7 +1050,7 @@ void FEExecutionManagerT::RunJoin_serial(const StringT& input_file, ostream& sta
 
 		/* generate validated parameter list */
 		ParameterListT valid_list;
-		ParseInput(input_file, valid_list, true, false, false);
+		FEManagerT::ParseInput(input_file, valid_list, true, false, false, fCommandLineOptions);
 		
 		/* model file parameters */
 		int i_format = valid_list.GetParameter("geometry_format");
@@ -1627,7 +1160,7 @@ void FEExecutionManagerT::RunJob_parallel(const StringT& input_file, ostream& st
 	
 	/* generate validated parameter list */
 	ParameterListT valid_list;
-	ParseInput(input_file, valid_list, true, false, false);
+	FEManagerT::ParseInput(input_file, valid_list, true, false, false, fCommandLineOptions);
 	if (true) /* write the validated list as formatted text */ {
 		DotLine_FormatterT pp_format;
 		pp_format.SetTabWidth(4);
@@ -2033,7 +1566,7 @@ void FEExecutionManagerT::Decompose_graph(const StringT& input_file, int size,
 		
 		/* generate validated parameter list */
 		ParameterListT valid_list;
-		ParseInput(input_file, valid_list, true, false, false);
+		FEManagerT::ParseInput(input_file, valid_list, true, false, false, fCommandLineOptions);
 
 		/* construct global problem */
 		FEManagerT_mpi global_FEman(input_file, decomp_out, comm, fCommandLineOptions, NULL, FEManagerT_mpi::kDecompose);

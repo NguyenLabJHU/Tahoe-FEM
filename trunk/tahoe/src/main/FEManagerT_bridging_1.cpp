@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_1.cpp,v 1.3 2004-07-15 08:31:03 paklein Exp $ */
+/* $Id: FEManagerT_bridging_1.cpp,v 1.4 2004-07-22 08:32:55 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -22,6 +22,7 @@
 #include "ElementSupportT.h"
 
 /* headers needed to compute the correction for overlap */
+#include "ContinuumElementT.h"
 #include "SolidMatListT.h"
 #include "FCC3D.h"
 #include "Hex2D.h"

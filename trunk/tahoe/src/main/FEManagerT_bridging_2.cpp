@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_2.cpp,v 1.3 2004-07-15 08:31:03 paklein Exp $ */
+/* $Id: FEManagerT_bridging_2.cpp,v 1.4 2004-07-22 08:32:55 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -22,6 +22,7 @@
 #include "ElementSupportT.h"
 
 /* headers needed to compute the correction for overlap */
+#include "ContinuumElementT.h"
 #include "SolidMatListT.h"
 #include "FCC3D.h"
 #include "Hex2D.h"
@@ -51,20 +52,12 @@ const char p_x = 'c'; /* unknown: 0 < bond density < 1 */
 using namespace Tahoe;
 
 void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neighbors, const dArray2DT& point_coords, 
-	double smoothing, double k2, double k_r, int nip)
+	double smoothing, double k2, double k_r, double bound_0, int nip)
 {
 	const char caller[] = "FEManagerT_bridging::CorrectOverlap_2";
 
-//TEMP
-ifstreamT param('#', "opti.dat");
-double bound_0 = 0.5;
-int do_line_search = 0;
-if (param.is_open()) {
-	cout << "\n Reading parameters from \"" << param.filename() << "\"" << endl;
-	param >> do_line_search;
-	param >> bound_0;
-	bound_0 = (bound_0 < 0.5) ? 0.5 : bound_0;
-}
+	//TEMP - currently unused
+	int do_line_search = 0;
 
 	/* finding free vs projected nodes */
 	int nnd = fNodeManager->NumNodes();
@@ -100,7 +93,9 @@ if (param.is_open()) {
 	/* coarse scale element group */
 	const ContinuumElementT* coarse = fFollowerCellData.ContinuumElement();
 	int nel = coarse->NumElements();
-	if (nip != 1 && nip != coarse->NumIP())
+	if (nip == -1)
+		nip = coarse->NumIP();
+	else if (nip != 1)
 		ExceptionT::GeneralFail(caller, "number of integration points needs to be 1 or %d: %d",
 			coarse->NumIP(), nip);
 
@@ -959,7 +954,6 @@ void FEManagerT_bridging::Compute_df_dp_2(const dArrayT& R, double V_0, const Ar
 			df_dp.RowAlias(overlap_cell_index, element_force);
 			rho.RowAlias(overlap_cell_index, element_rho);		
 			ATA_int.Multx(element_rho, element_force, 1.0, dMatrixT::kAccumulate);
-#pragma message("something not right here for CorrectOverlap_3")
 
 			/* penalty regularization */
 			ATA_int += ddp_i_dpdp;

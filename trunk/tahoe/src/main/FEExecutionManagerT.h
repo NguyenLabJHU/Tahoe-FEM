@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.25 2004-07-15 08:31:03 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.26 2004-07-22 08:32:55 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #ifndef _FE_EXECMAN_T_H_
 #define _FE_EXECMAN_T_H_
@@ -66,10 +66,6 @@ protected:
 
 private:
 
-	/** parse input file and valid */
-	void ParseInput(const StringT& path, ParameterListT& params, bool validate, 
-		bool echo_input, bool echo_valid) const;
-
 	/** \name execution modes */
 	/*@{*/
 	/** enum for execution modes */
@@ -82,8 +78,8 @@ private:
         kDTD = 5
 	};
 
-	/** TEMP - serial driver for XMl input */
-	void RunJob_serial_XML(const StringT& input_file, ostream& status) const;
+	/** TEMP - serial driver for XML input */
+	void RunJob_serial(const StringT& input_file, ostream& status) const;
 	
 	/** parallel driver */
 	void RunJob_parallel(const StringT& input_file, ostream& status) const;
@@ -93,9 +89,6 @@ private:
 
 	/** join parallel results files */
 	void RunJoin_serial(const StringT& input_file, ostream& status, int size = -1) const;
-
-	/** multi-Tahoe, bridging scale test */
-	void RunBridging(ifstreamT& in, ostream& status) const;
 
 #ifdef __DEVELOPMENT__
 	/** time history kernel tests */
@@ -109,14 +102,6 @@ private:
 #ifdef BRIDGING_ELEMENT
 	/** \name bridging scale with different integrators */
 	/*@{*/
-	/** quasistatic multi-Tahoe bridging scale using a staggered solution strategy */
-	void RunStaticBridging_staggered(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms,
-		ofstream& log_out) const;
-
-	/** quasistatic multi-Tahoe bridging scale using a monolithic solution strategy */
-	void RunStaticBridging_monolithic(const StringT& input_file, FEManagerT_bridging& continuum, FEManagerT_bridging& atoms,
-		ofstream& log_out) const;
-        
 #ifdef __DEVELOPMENT__
 	/** dynamic multi-Tahoe bridging scale */
 	void RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_THK& atoms,
