@@ -1,6 +1,5 @@
-/* $Id: EnSightInputT.cpp,v 1.14 2003-11-10 22:14:22 cjkimme Exp $ */
-/* created: sawimme (05/18/1998)                                          */
-
+/* $Id: EnSightInputT.cpp,v 1.15 2003-11-25 19:49:43 paklein Exp $ */
+/* created: sawimme (05/18/1998) */
 #include "EnSightInputT.h"
 #include "ios_fwd_decl.h"
 #include "fstreamT.h"
@@ -10,7 +9,6 @@
 #include "iArrayT.h"
 #include "iArray2DT.h"
 
-
 using namespace Tahoe;
 
 const int kDOF = 3; // all files are always written in 3D
@@ -18,13 +16,17 @@ const int kDOF = 3; // all files are always written in 3D
 EnSightInputT::EnSightInputT (ostream& out, bool binary) :
   InputBaseT (out),
   fData (out, binary, kDOF),
-  fPartDimensions (0,0)
+  fPartDimensions (0,0),
+  fStartIncrement(-1),
+  fIncrement(-1)
 {
+
 }
 
 bool EnSightInputT::Open (const StringT& file)
 {
 	fCaseFile = file;
+	fCaseFile.ToNativePathName();
 	ifstreamT in ('#', fCaseFile);
 	if (!in.is_open()) {
 		cout << "\n EnSightInputT::Open: error opening case file: " << in.filename() << endl;	
@@ -42,7 +44,9 @@ bool EnSightInputT::Open (const StringT& file)
 
 void EnSightInputT::ElementGroupNames (ArrayT<StringT>& groupnames) const
 {
-  ifstream in (fGeometryFile);
+	ifstreamT in;
+	OpenRelative(in, fGeometryFile, fCaseFile);
+
 //  int id = -1;
   bool nodemap, elementmap;
   int numnodes, numelems, numelemnodes;
@@ -62,7 +66,8 @@ void EnSightInputT::ElementGroupNames (ArrayT<StringT>& groupnames) const
 
 int EnSightInputT::NumElementGroups (void) const
 {
-  ifstream in (fGeometryFile);
+	ifstreamT in;
+	OpenRelative(in, fGeometryFile, fCaseFile);
   bool nodemap, elementmap;
   fData.ReadGeometryHeader(in, nodemap, elementmap);
   return fPartDimensions.MajorDim();
@@ -84,7 +89,9 @@ void EnSightInputT::ReadNodeID(iArrayT& node_id)
 
   int id;
   bool nodemapgiven, elemmapgiven;
-  ifstream in (fGeometryFile);
+
+	ifstreamT in;
+	OpenRelative(in, fGeometryFile, fCaseFile);
   fData.ReadGeometryHeader(in, nodemapgiven, elemmapgiven);
 
   if (nodemapgiven)
@@ -119,7 +126,8 @@ void EnSightInputT::ReadCoordinates (dArray2DT& coords)
   
   int id;
   bool nodemapgiven, elemmapgiven;
-  ifstream in (fGeometryFile);
+	ifstreamT in;
+	OpenRelative(in, fGeometryFile, fCaseFile);
   fData.ReadGeometryHeader(in, nodemapgiven, elemmapgiven);
   
   if (coords.MajorDim() != NumNodes() ||
@@ -151,7 +159,8 @@ void EnSightInputT::ReadCoordinates (dArray2DT& coords, iArrayT& nodemap)
   
   int id;
   bool nodemapgiven, elemmapgiven;
-  ifstream in (fGeometryFile);
+	ifstreamT in;
+	OpenRelative(in, fGeometryFile, fCaseFile);
   fData.ReadGeometryHeader(in, nodemapgiven, elemmapgiven);
   
   int num = 0;
@@ -192,10 +201,8 @@ int EnSightInputT::NumGlobalElements (void) const
 int EnSightInputT::NumElements (const StringT& name)
 {
   int part, ID = atoi (name.Pointer());
-  cout << ID << endl;
-  fPartDimensions.WriteNumbered (cout);
+  //fPartDimensions.WriteNumbered (cout);
   fPartDimensions.ColumnHasValue (kPartID, ID, part); 
-  cout << part << " " << fPartDimensions (part, kNumElements) << endl;
   return fPartDimensions (part, kNumElements);
 }
 
@@ -204,7 +211,8 @@ int EnSightInputT::NumElementNodes (const StringT& name)
   int group = atoi (name.Pointer());
 
   ScanGeometryFile();
-  ifstream in (fGeometryFile);
+	ifstreamT in;
+	OpenRelative(in, fGeometryFile, fCaseFile);
   int id = -1;
 
   // read header
@@ -239,7 +247,8 @@ void EnSightInputT::ReadAllElementMap (iArrayT& elemmap)
   if (elemmap.Length() != NumGlobalElements()) throw ExceptionT::kSizeMismatch;
 
   ScanGeometryFile();
-  ifstream in (fGeometryFile);
+	ifstreamT in;
+	OpenRelative(in, fGeometryFile, fCaseFile);
   int id = -1;
 
   // read header
@@ -277,7 +286,8 @@ void EnSightInputT::ReadGlobalElementMap (const StringT& name, iArrayT& elementm
 {
   int group = atoi (name.Pointer());
   ScanGeometryFile();
-  ifstream in (fGeometryFile);
+	ifstreamT in;
+	OpenRelative(in, fGeometryFile, fCaseFile);
   int id = -1;
   
   // read header
@@ -322,7 +332,8 @@ void EnSightInputT::ReadConnectivity (const StringT& name, iArray2DT& connects)
 {
   int group = atoi (name.Pointer());
   ScanGeometryFile();
-  ifstream in (fGeometryFile);
+	ifstreamT in;
+	OpenRelative(in, fGeometryFile, fCaseFile);
   int id = -1;
   
   // read header
@@ -356,7 +367,8 @@ void EnSightInputT::ReadGeometryCode (const StringT& name, GeometryT::CodeT& geo
 {
   int group = atoi (name.Pointer());
   ScanGeometryFile();
-  ifstream in (fGeometryFile);
+	ifstreamT in;
+	OpenRelative(in, fGeometryFile, fCaseFile);
   int id = -1;
   
   // read header
@@ -553,7 +565,7 @@ void EnSightInputT::ReadNodeVariables (int step, const StringT& name, dArray2DT&
 {
   int group_id, currentinc;
   VarPrelims_Geo (step, name, group_id, currentinc);
-  
+
   // make sure variables exist and read filenames
   nvalues.Allocate (0,0);
   AutoArrayT<bool> nvector;
@@ -671,7 +683,8 @@ void EnSightInputT::ScanGeometryFile (void)
   int numnodes, numelems, numelemnodes;
   if (fPartDimensions.Length() == 0)
     {
-      ifstream in (fGeometryFile);
+      ifstreamT in;
+      OpenRelative(in, fGeometryFile, fCaseFile);
       fData.ReadGeometryHeader (in, nm, em);
       while (fData.ReadPart (in, partID))
 	{
@@ -703,9 +716,9 @@ StringT EnSightInputT::CreateVariableFile (const StringT& old, int inc) const
   
   StringT fileinc;
   fileinc.Append (inc, numwild);
-  
   StringT filename = old;
   filename.CopyPart (index, fileinc, 0, numwild);
+
   return filename;
 }
 
@@ -727,9 +740,13 @@ void EnSightInputT::VarPrelims_Geo (int step, const StringT& name, int& group_id
     {
       dArrayT temp;
       ReadTimeSteps (temp);
-      if (temp.Length() == 0) return;
+      if (temp.Length() == 0) {
+      	currentinc = 0;
+      	return;
+      }
     }
   currentinc = fStartIncrement + fIncrement*step;
+
   // set fPartDimensions
   ScanGeometryFile();  
 }
@@ -751,13 +768,9 @@ void EnSightInputT::VarPrelims_Case (AutoArrayT<bool>& vector, AutoArrayT<String
 
 void EnSightInputT::ReadOneVariableData (int component, const StringT& label, int group_id, dArrayT& values, int currentinc, bool nodal) const
 {
-  StringT filename = CreateVariableFile (label, currentinc);
-  ifstream in (filename);
-  if (!in)
-    {
-      cout << "\n\nEnSightInputT::ReadVariableData Unable to open: "
-	   << filename << endl;
-    }
+	StringT filename = CreateVariableFile (label, currentinc);
+	ifstreamT in;
+	OpenRelative(in, filename, fCaseFile);
 
   // read variable file header
   StringT header;
@@ -805,14 +818,9 @@ void EnSightInputT::ReadVariableData (ArrayT<bool>& vector, ArrayT<StringT>& lab
 {
   for (int i=0; i < labels.Length(); i++)
     {
-      StringT filename = CreateVariableFile (labels[i], currentinc);
-      ifstream in (filename);
-      
-      if (!in)
-	{
-	  cout << "\n\nEnSightInputT::ReadVariableData Unable to open: "
-	       << filename << endl;
-	}
+		StringT filename = CreateVariableFile (labels[i], currentinc);
+		ifstreamT in;
+		OpenRelative(in, filename, fCaseFile);
 
       // read variable file header
       StringT header;
@@ -858,14 +866,9 @@ void EnSightInputT::VariableUsed (const StringT& name, iArrayT& used, ArrayT<Str
   int group_id = atoi (name.Pointer());
   for (int i=0; i < labels.Length(); i++)
     {
-      StringT filename = CreateVariableFile (labels[i], 0);
-      ifstream in (filename);
-      
-      if (!in)
-	{
-	  cout << "\n\nEnSightInputT::VariablesUsed Unable to open: "
-	       << filename << endl;
-	}
+		StringT filename = CreateVariableFile (labels[i], 0);
+		ifstreamT in;
+		OpenRelative(in, filename, fCaseFile);
 
       // read variable file header
       StringT header;
