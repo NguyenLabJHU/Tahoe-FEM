@@ -1,9 +1,10 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.7 2003-09-06 08:43:49 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.h,v 1.7.2.1 2003-11-22 22:23:51 paklein Exp $ */
 /* created: paklein (05/09/2000) */
 #ifndef _ABAQUS_UMAT_BASE_T_H_
 #define _ABAQUS_UMAT_BASE_T_H_
 
-/* base class */
+/* base classes */
+#include "ABAQUS_BaseT.h"
 #include "FSSolidMatT.h"
 
 /* library support options */
@@ -25,7 +26,7 @@ namespace Tahoe {
 /* forward declarations */
 class SpectralDecompT;
 
-class ABAQUS_UMAT_BaseT: public FSSolidMatT
+class ABAQUS_UMAT_BaseT: protected ABAQUS_BaseT, public FSSolidMatT
 {
 public:
 
@@ -95,11 +96,6 @@ protected:
 
 private:
 
-	/* conversion functions */
-	void dMatrixT_to_ABAQUS(const dMatrixT& A, nMatrixT<doublereal>& B) const;
-	void ABAQUS_to_dSymMatrixT(const doublereal* pA, dSymMatrixT& B) const;
-	void dSymMatrixT_to_ABAQUS(const dSymMatrixT& A, doublereal* pB) const;
-
 	/* load element data for the specified integration point */
 	void Load(ElementCardT& element, int ip);
 	void Store(ElementCardT& element, int ip);
@@ -121,13 +117,6 @@ private:
 		doublereal*, doublereal*, doublereal*, doublereal*,
 		integer*, integer*, integer*, integer*, integer*,
 		integer*, ftnlen) = 0;
-
-	/* read ABAQUS-format input */
-	void Read_ABAQUS_Input(ifstreamT& in);
-	bool Next_ABAQUS_Keyword(ifstreamT& in) const;
-	bool Skip_ABAQUS_Symbol(ifstreamT& in, char c) const; // returns true if c is next non-whitespace
-	void Skip_ABAQUS_Comments(ifstreamT& in);
-	void Read_ABAQUS_Word(ifstreamT& in, StringT& word, bool to_upper = true) const;
 	
 private:
 
