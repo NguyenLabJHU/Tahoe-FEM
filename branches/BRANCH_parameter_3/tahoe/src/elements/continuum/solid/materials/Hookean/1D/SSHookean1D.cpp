@@ -1,4 +1,4 @@
-/* $Id: SSHookean1D.cpp,v 1.6.18.3 2004-06-19 23:28:00 paklein Exp $ */
+/* $Id: SSHookean1D.cpp,v 1.6.18.4 2004-06-23 00:52:59 paklein Exp $ */
 #include "SSHookean1D.h"
 
 using namespace Tahoe;
@@ -42,8 +42,8 @@ ParameterInterfaceT* SSHookean1D::NewSub(const StringT& list_name) const
 void SSHookean1D::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
+	IsotropicT::TakeParameterList(list); /* need to extract moduli before initializing Hookean material */
 	SSHookeanMatT::TakeParameterList(list);
-	IsotropicT::TakeParameterList(list);
 }
 
 /*************************************************************************
