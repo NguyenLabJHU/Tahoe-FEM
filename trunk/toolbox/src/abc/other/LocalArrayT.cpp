@@ -1,5 +1,5 @@
-/* $Id: LocalArrayT.cpp,v 1.2 2001-03-08 00:18:58 paklein Exp $ */
-/* created: paklein (07/10/1996)                                          */
+/* $Id: LocalArrayT.cpp,v 1.3 2001-09-04 06:45:35 paklein Exp $ */
+/* created: paklein (07/10/1996) */
 
 #include "LocalArrayT.h"
 #include "dArray2DT.h"
@@ -9,6 +9,15 @@
 const bool ArrayT<LocalArrayT::TypeT>::fByteCopy = true;
 
 /* cconstructors */
+LocalArrayT::LocalArrayT(void):
+	fType(kUnspecified),
+	fNumNodes(0),
+	fMinorDim(0),
+	fGlobal(NULL)
+{
+
+}
+
 LocalArrayT::LocalArrayT(TypeT type):
 	fType(type),
 	fNumNodes(0),
@@ -96,6 +105,25 @@ void LocalArrayT::FromTranspose(const nArrayT<double>& transpose)
 		for (int j = 0; j < fMinorDim; j++)
 		{
 			*pthis = *ptrans++;
+			pthis += fNumNodes;
+		}
+	}
+}
+
+void LocalArrayT::AddScaledTranspose(double scale, const nArrayT<double>& transpose)
+{
+#if __option (extended_errorcheck)
+	/* dimension check */
+	if(fLength != transpose.Length()) throw eSizeMismatch;
+#endif
+
+	double* ptrans = transpose.Pointer();
+	for (int i = 0; i < fNumNodes; i++)
+	{
+		double* pthis = fArray + i;	
+		for (int j = 0; j < fMinorDim; j++)
+		{
+			*pthis += scale*(*ptrans++);
 			pthis += fNumNodes;
 		}
 	}

@@ -1,5 +1,5 @@
-/* $Id: LocalArrayT.h,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
-/* created: paklein (07/10/1996)                                          */
+/* $Id: LocalArrayT.h,v 1.2 2001-09-04 06:45:35 paklein Exp $ */
+/* created: paklein (07/10/1996) */
 
 #ifndef _LOCALARRAY_T_H_
 #define _LOCALARRAY_T_H_
@@ -10,64 +10,114 @@
 /* forward declarations */
 class dArray2DT;
 
+/** array class to facilitate working with subsets of a dArray2DT. The
+ * principal function of this class is to gather data from specified rows
+ * of a dArray2DT using LocalArrayT::SetLocal. The source dArray2DT must 
+ * first be set using LocalArrayT::SetLocal. The data is transposed in the
+ * process of being gathered, meaning that the nth row of a LocalArrayT
+ * contains the data from the nth column of the source dArray2DT. The
+ * data in the LocalArrayT is stored in row-major ordering. */
 class LocalArrayT: public dArrayT
 {	
 public:
 
-	/* array types */
-	enum TypeT {kUnspecified,
-	             kInitCoords,
-                       kDisp,
-                        kVel,
-                        kAcc,
-                 kCurrCoords,
-                   kLastDisp,
-                    kLastVel,
-                   kLastAcc};		
+	/** array data types. Used by the node and element classes to 
+	 * resolve the source for the array data. */
+	enum TypeT {kUnspecified, /**< unspecified data type */
+	             kInitCoords, /**< initial coordinates */
+                       kDisp, /**< displacements */
+                        kVel, /**< velocities */
+                        kAcc, /**< accelerations */
+                 kCurrCoords, /**< current coordinates */
+                   kLastDisp, /**< displacements from the previous time step */
+                    kLastVel, /**< velocities from the previous time step */
+                   kLastAcc   /**< accelerations from the previous time step */
+                   };
 
-	/* constructors */
-	LocalArrayT(TypeT type);
+	/** default constructor. Constructs an array of zero length with type
+	 * LocalArrayT::kUnspecified. */
+	LocalArrayT(void);
+
+	/** constructor. Constructs an array of zero length with the 
+	 * specified type. */
+	explicit LocalArrayT(TypeT type);
+
+	/** constructor */
 	LocalArrayT(TypeT type, int numnodes, int minordim);
+
+	/** copy constructor */
 	LocalArrayT(const LocalArrayT& source);
 
-	/* allocating */
+	/** allocation */
 	void Allocate(int numnodes, int minordim);
+
+	/** create a shallow array */
 	void Set(int numnodes, int minordim, double*p);
+
+	/** set the array type */
 	void SetType(TypeT type);
 		
-	/* accessors */
+	/** array type */
 	TypeT Type(void) const;
+
+	/** major dimension of the array */
 	int NumberOfNodes(void) const;
+
+	/** minor dimension of the array */
 	int MinorDim(void) const;
 	
-	/* element accessors */
+	/** element accessor */
 	double& operator()(int majordim, int minordim) const;
-	double* operator()(int minordim) const; //pointer to row
 
-	/* assignment operator - does not set Type */
+	/** return a pointer to the specified row */
+	double* operator()(int minordim) const;
+
+	/** assignment operator. This operator re-dimensions the array as
+	 * needed and sets the source dArray2DT. The type of this array
+	 * is not changed. */
 	LocalArrayT& operator=(const LocalArrayT& RHS);
+
+	/** assignment operator. Set all elements in the array to value */
 	LocalArrayT& operator=(const double value);
+
+	/** create an alias to the source array */
 	void Alias(const LocalArrayT& source);
+
+	/** return 1 if a source matrix has been set with LocalArrayT::SetGlobal,
+	 * 0 otherwise. */
+	int IsRegistered(void) const;
+
+	/** set the source dArray2DT.
+	 * \param global source for data collected with LocalArrayT::SetLocal.
+	 *        The source must have the same MinorDim as this array. */
+	void SetGlobal(const dArray2DT& global);
+
+	/** gather values from the source dArray2DT. Values are collected from
+	 * the rows of the source dArray2DT, being transposed in the process.
+	 * \param keys list rows to gather. The length of keys must be the same
+	 *        as the NumberOfNodes of this array. */
+	void SetLocal(const ArrayT<int>& keys);
+	
+	/** return the vector with transposed indexing */
+	void ReturnTranspose(nArrayT<double>& transpose) const;
+	
+	/** construct array with local ordering by transposing source */
+	void FromTranspose(const nArrayT<double>& transpose);
+
+	/** scale and accumulate in local ordering by transposing source */
+	void AddScaledTranspose(double scale, const nArrayT<double>& transpose);
 
 	/* combining arrays - inserts all of source at start_node */
 	void BlockCopyAt(const LocalArrayT& source, int start_node);
-	
-	/* return the vector with transposed indexing */
-	void ReturnTranspose(nArrayT<double>& transpose) const;
-	void FromTranspose(const nArrayT<double>& transpose);
-
-	/* for registered arrays - preset source for SetLocal */
-	int IsRegistered(void) const;
-	void SetGlobal(const dArray2DT& global);
-	void SetLocal(const ArrayT<int>& keys);
 
 private:
 
-	TypeT fType;
-	int   fNumNodes;
-	int   fMinorDim;
+	/* parameters */
+	TypeT fType;     /**< type designator for the data on the array */
+	int   fNumNodes; /**< major dimension */
+	int   fMinorDim; /**< minor dimension */
 	
-	/* source for SetLocal */
+	/** source for LocalArrayT::SetLocal */
 	const dArray2DT* fGlobal;
 };
 
