@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.55.2.1 2004-04-08 07:33:28 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.55.2.2 2004-04-14 17:35:38 paklein Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -8,6 +8,7 @@
 #include "dSPMatrixT.h"
 #include "dSymMatrixT.h"
 #include "dArray2DT.h"
+#include "ParameterContainerT.h"
 
 /* EAM potentials */
 #include "ParadynEAMT.h"
@@ -24,8 +25,8 @@ const int kMemoryHeadRoom = 15; /* percent */
 EAMT::EAMT(const ElementSupportT& support, const FieldT& field):
   ParticleT(support, field),
   fNeighbors(kMemoryHeadRoom),
-  NearestNeighbors(kMemoryHeadRoom),
-  RefNearestNeighbors(kMemoryHeadRoom),
+  fNearestNeighbors(kMemoryHeadRoom),
+  fRefNearestNeighbors(kMemoryHeadRoom),
   fEqnos(kMemoryHeadRoom),
   fForce_list_man(0, fForce_list),
   fElectronDensity_man(kMemoryHeadRoom, fElectronDensity, 1),
@@ -34,14 +35,14 @@ EAMT::EAMT(const ElementSupportT& support, const FieldT& field):
   fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1),
   frhop_r_man(kMemoryHeadRoom, frhop_r,NumDOF())
 {
-	SetName("particle_eam");
+	SetName("particle_EAM");
 }
 
 EAMT::EAMT(const ElementSupportT& support):
   ParticleT(support),
   fNeighbors(kMemoryHeadRoom),
-  NearestNeighbors(kMemoryHeadRoom),
-  RefNearestNeighbors(kMemoryHeadRoom),
+  fNearestNeighbors(kMemoryHeadRoom),
+  fRefNearestNeighbors(kMemoryHeadRoom),
   fEqnos(kMemoryHeadRoom),
   fForce_list_man(0, fForce_list),
   fElectronDensity_man(kMemoryHeadRoom, fElectronDensity, 1),
@@ -49,7 +50,7 @@ EAMT::EAMT(const ElementSupportT& support):
   fEmbeddingForce_man(kMemoryHeadRoom, fEmbeddingForce, 1),
   fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1)
 {
-	SetName("particle_eam");
+	SetName("particle_EAM");
 }
 
 /* collecting element group equation numbers */
@@ -66,55 +67,6 @@ void EAMT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 
   /* add to list of equation numbers */
   eq_2.Append(&fEqnos);
-}
-
-/* class initialization */
-void EAMT::Initialize(void)
-{
-  cout << "Initialization Phase\n";
-  
-	/* muli-processor information */
-	CommManagerT& comm_manager = ElementSupport().CommManager();
-
-  /* set up communication of electron density information */
-  fElectronDensityMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
-  fElectronDensity_man.SetMajorDimension(ElementSupport().NumNodes(), false);
-
-  /* set up communication of embedding energy information */
-  fEmbeddingEnergyMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
-  fEmbeddingEnergy_man.SetMajorDimension(ElementSupport().NumNodes(), false);
-
-  /* set up communication of embedding force information */
-  fEmbeddingForceMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
-  fEmbeddingForce_man.SetMajorDimension(ElementSupport().NumNodes(), false);
-
-  /* set up communication of embedding stiffness information */
-  fEmbeddingStiffMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
-  fEmbeddingStiff_man.SetMajorDimension(ElementSupport().NumNodes(), false);
-
-  /* set up communication of rhop * r information */
-  frhop_rMessageID = comm_manager.Init_AllGather(MessageT::Double, NumDOF());
-  frhop_r_man.SetMajorDimension(ElementSupport().NumNodes(), false);
-
-  /* inherited */
-  ParticleT::Initialize();
-
-  ParticleT::SetRefNN(NearestNeighbors,RefNearestNeighbors);
-
-  /* dimension */
-  int ndof = NumDOF();
-  fLHS.Dimension(2*ndof);
-  fRHS.Dimension(2*ndof);
-
-  /* constant matrix needed to calculate stiffness */
-  fOneOne.Dimension(fLHS);
-  dMatrixT one(ndof);
-  one.Identity();
-  fOneOne.SetBlock(0, 0, one);
-  fOneOne.SetBlock(ndof, ndof, one);
-  one *= -1;
-  fOneOne.SetBlock(0, ndof, one);
-  fOneOne.SetBlock(ndof, 0, one);
 }
 
 /* collecting element geometry connectivities */
@@ -405,9 +357,9 @@ void EAMT::WriteOutput(void)
     /* flag for specifying Lagrangian (0) or Eulerian (1) strain */
     const int kEulerLagr = 0;
     /* calculate slip vector and strain */
-    Calc_Slip_and_Strain(non,num_s_vals,s_values,RefNearestNeighbors,kEulerLagr);
+    Calc_Slip_and_Strain(non, num_s_vals, s_values, fRefNearestNeighbors, kEulerLagr);
     /* calculate centrosymmetry parameter */
-    Calc_CSP(non,num_s_vals,s_values, NearestNeighbors);
+    Calc_CSP(non, num_s_vals, s_values, fNearestNeighbors);
 
     /* combine strain, slip vector and centrosymmetry parameter into n_values list */
     for (int i = 0; i < fNeighbors.MajorDim(); i++)
@@ -764,11 +716,101 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
     }
 }
 
-/* describe the parameters needed by the interface */
-void EAMT::DefineParameters(ParameterListT& list) const
+/* information about subordinate parameter lists */
+void EAMT::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
-	ParticleT::DefineParameters(list);
+	ParticleT::DefineSubs(sub_list);
+
+	/* interactions */
+	sub_list.AddSub("EAM_particle_interaction", ParameterListT::OnePlus);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void EAMT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	if (sub == "EAM_property_choice")
+	{
+		order = ParameterListT::Choice;
+		
+		/* EAM potentials reading Paradyn parameters tables */
+		sub_sub_list.AddSub("Paradyn_EAM");
+	}
+	else /* inherited */
+		ParticleT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* EAMT::NewSub(const StringT& list_name) const
+{
+	/* try to construct potential */
+	EAMPropertyT* EAM_property = New_EAMProperty(list_name, false);
+	if (EAM_property)
+		return EAM_property;
+	else if (list_name == "EAM_particle_interaction")
+	{
+		ParameterContainerT* interactions = new ParameterContainerT(list_name);
+		interactions->SetSubSource(this);
+
+		/* particle type labels */
+		interactions->AddParameter(ParameterT::Word, "label_1");
+		interactions->AddParameter(ParameterT::Word, "label_2");
+	
+		/* properties choice list */
+		interactions->AddSub("EAM_property_choice", ParameterListT::Once, true);
+
+		return interactions;
+	}	
+	else /* inherited */
+		return ParticleT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void EAMT::TakeParameterList(const ParameterListT& list)
+{
+	CommManagerT& comm_manager = ElementSupport().CommManager();
+
+	/* set up communication of electron density information */
+	fElectronDensityMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
+	fElectronDensity_man.SetMajorDimension(ElementSupport().NumNodes(), false);
+
+	/* set up communication of embedding energy information */
+	fEmbeddingEnergyMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
+	fEmbeddingEnergy_man.SetMajorDimension(ElementSupport().NumNodes(), false);
+
+	/* set up communication of embedding force information */
+	fEmbeddingForceMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
+	fEmbeddingForce_man.SetMajorDimension(ElementSupport().NumNodes(), false);
+
+	/* set up communication of embedding stiffness information */
+	fEmbeddingStiffMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
+	fEmbeddingStiff_man.SetMajorDimension(ElementSupport().NumNodes(), false);
+
+	/* set up communication of rhop * r information */
+	frhop_rMessageID = comm_manager.Init_AllGather(MessageT::Double, NumDOF());
+	frhop_r_man.SetMajorDimension(ElementSupport().NumNodes(), false);
+
+	/* inherited */
+	ParticleT::TakeParameterList(list);
+
+	/* set the list of reference nearest neighbors */
+	SetRefNN(fNearestNeighbors, fRefNearestNeighbors);
+
+	/* dimension */
+	int ndof = NumDOF();
+	fLHS.Dimension(2*ndof);
+	fRHS.Dimension(2*ndof);
+
+	/* constant matrix needed to calculate stiffness */
+	fOneOne.Dimension(fLHS);
+	dMatrixT one(ndof);
+	one.Identity();
+	fOneOne.SetBlock(0, 0, one);
+	fOneOne.SetBlock(ndof, ndof, one);
+	one *= -1;
+	fOneOne.SetBlock(0, ndof, one);
+	fOneOne.SetBlock(ndof, 0, one);
 }
 
 /***********************************************************************
@@ -852,6 +894,18 @@ void EAMT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 	  labels[dex++]=SV[i];
 	labels[dex++]= "CS";
 #endif /* NO_PARTICLE_STRESS_OUTPUT */
+}
+
+/* return a new EAM property or NULL if the name is invalid */
+EAMPropertyT* EAMT::New_EAMProperty(const StringT& name, bool throw_on_fail) const
+{
+	if (name == "Paradyn_EAM")
+		return new ParadynEAMT(ElementSupport());
+	else if (throw_on_fail) 
+		ExceptionT::GeneralFail("EAMT::New_EAMProperty",
+			"unrecognized potential \"%s\"", name.Pointer());
+
+	return NULL;
 }
 
 /* form group contribution to the stiffness matrix */
@@ -1659,7 +1713,7 @@ void EAMT::SetConfiguration(void)
   const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
   if (fActiveParticles) 
     part_nodes = fActiveParticles;
-  GenerateNeighborList(part_nodes, 0.8*fLatticeParameter, NearestNeighbors, true, true);
+  GenerateNeighborList(part_nodes, fNearestNeighborDistance, fNearestNeighbors, true, true);
   GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
 	
   ofstreamT& out = ElementSupport().Output();
@@ -1727,7 +1781,56 @@ void EAMT::SetConfiguration(void)
 void EAMT::ExtractProperties(const ParameterListT& list, const ArrayT<StringT>& type_names,
 	ArrayT<ParticlePropertyT*>& properties, nMatrixT<int>& properties_map)
 {
-ExceptionT::GeneralFail("EAMT::ExtractProperties", "not implemented");
+	const char caller[] = "EAMT::ExtractProperties";
+
+	/* check number of interactions */
+	int num_props = list.NumLists("pair_particle_interaction");
+	int dim = 0;
+	for (int i = 0; i < properties_map.Rows(); i++)
+		dim += properties_map.Rows() - i;
+	if (dim != num_props)
+		ExceptionT::GeneralFail(caller, "%d types requires %d \"pair_particle_interaction\"",
+			properties_map.Rows(), dim);
+
+	/* read properties */
+	fEAMProperties.Dimension(num_props);
+	for (int i = 0; i < num_props; i++) {
+
+		const ParameterListT& interaction = list.GetList("pair_particle_interaction", i);
+		
+		/* type names */
+		const StringT& label_1 = interaction.GetParameter("label_1");
+		const StringT& label_2 = interaction.GetParameter("label_2");
+		
+		/* resolve index */
+		int index_1 = -1, index_2 = -1;
+		for (int j = 0; index_1 == -1 && j < type_names.Length(); j++)
+			if (type_names[j] == label_1) index_1 = j;
+		if (index_1 == -1) ExceptionT::GeneralFail(caller, "could not resolve index of \"%s\"", label_1.Pointer());
+
+		for (int j = 0; index_2 == -1 && j < type_names.Length(); j++)
+			if (type_names[j] == label_2) index_2 = j;
+		if (index_2 == -1) ExceptionT::GeneralFail(caller, "could not resolve index of \"%s\"", label_2.Pointer());
+		
+		/* set properies map */
+		if (properties_map(index_1, index_2) != -1)
+			ExceptionT::GeneralFail(caller, "%s-%s interaction is already defined",
+				label_1.Pointer(), label_2.Pointer());
+		properties_map(index_1, index_2) = properties_map(index_2, index_1) = i; /* symmetric */
+		
+		/* read property */
+		const ParameterListT* property = interaction.ResolveListChoice(*this, "pair_property_choice");
+		if (!property)
+			ExceptionT::GeneralFail(caller, "could not resolve \"pair_property_choice\"");
+		EAMPropertyT* EAM_prop = New_EAMProperty(property->Name(), true);
+		EAM_prop->TakeParameterList(*property);
+		fEAMProperties[i] = EAM_prop;
+	}
+	
+	/* copy */
+	properties.Dimension(fEAMProperties.Length());
+	for (int i = 0; i < properties.Length(); i++)
+		properties[i] = fEAMProperties[i];
 }
 
 /* construct the list of properties from the given input stream */
@@ -1753,7 +1856,7 @@ void EAMT::EchoProperties(ifstreamT& in, ofstreamT& out)
       path.FilePath(in.filename());	
       file.Prepend(path);
       
-      fEAMProperties[i] = new ParadynEAMT(file);
+      fEAMProperties[i] = new ParadynEAMT(ElementSupport(), file);
     }
 
 
