@@ -1,7 +1,7 @@
-# $Id: GNU.troi.purify.macros,v 1.4 2004-01-02 01:37:20 paklein Exp $
+# $Id: GNU.troi.purify.macros,v 1.5 2004-01-04 20:17:37 paklein Exp $
 # GNU
 MAKE        = make
-DEFINES     = -D__GNU__ -D__SUN__
+DEFINES     = -D__GNU__ -D__SUN__ -D__NO_RTTI__
 MAKEDEPEND = makedepend
 MAKEDEPEND_OUTPUT = -f
 MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/local/include/g++-3 -I/usr/include/g++-2 -I/usr/include -I/usr/local/sparc-sun-solaris2.7/include $(DEFINES)
