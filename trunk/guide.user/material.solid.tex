@@ -1,7 +1,7 @@
 %&LaTeX
-% $Id: material.solid.tex,v 1.7 2002-04-24 22:44:52 dzeigle Exp $
-
+% $Id: material.solid.tex,v 1.8 2002-10-30 00:34:02 paklein Exp $
 \section{Constitutive models for solid mechanics}
+\label{sect.model.solids}
 This section of the guide describes the constitutive models available 
 for analysis of displacements and stresses. A separate section is 
 dedicated to each material model. Each section provides some 
@@ -15,13 +15,8 @@ Newton-type, nonlinear solution algorithms
 As will be noted in the sections that follow, some models only provide 
 approximate tangents that will result in
 slower convergence rates with Newton-type solvers.
-
-\begin{table}[h]
-\caption{\label{tab.mat.solid} Materials for analysis of 
-displacements and stress.}
-\begin{center}
-	
 \begin{longtable}[c]{|c|c|}
+\caption{\label{tab.mat.solid} Materials for analysis of displacements and stress.}\\
 \hline
  \parbox[c]{0.75in}{\centering \textbf{code}}
 &\parbox[c]{4.5in}{\raggedright \textbf{description}}\\
@@ -70,11 +65,45 @@ Internal Bond model (Ogden)}\\
 19 & \parbox[c]{4.5in}{\raggedright isotropic Virtual 
 Internal Bond model with $J_{2}$ plasticity}\\
 \hline
+30 & \parbox[c]{4.5in}{\raggedright Thermo-viscoplastic model}\\
+\hline
+31 & \parbox[c]{4.5in}{\raggedright Thermo-viscoplastic model}\\
+\hline
+40 & \parbox[c]{4.5in}{\raggedright Finite strain viscoplastic model}\\
+\hline
+45 & \parbox[c]{4.5in}{\raggedright BCJ model}\\
+\hline
+46 & \parbox[c]{4.5in}{\raggedright BCJ model with damage}\\
+\hline
+47 & \parbox[c]{4.5in}{\raggedright BCJ model with damage}\\
+\hline
+49 & \parbox[c]{4.5in}{\raggedright Finite strain crystal elasticity}\\
+\hline
+50 & \parbox[c]{4.5in}{\raggedright Crystal plasticity model}\\
+\hline
+51 & \parbox[c]{4.5in}{\raggedright Crystal plasticity model}\\
+\hline
+52 & \parbox[c]{4.5in}{\raggedright Gradient crystal plasticity model}\\
+\hline
+55 & \parbox[c]{4.5in}{\raggedright Crystal plasticity model}\\
+\hline
+56 & \parbox[c]{4.5in}{\raggedright Crystal plasticity model}\\
+\hline
+57 & \parbox[c]{4.5in}{\raggedright Gradient crystal plasticity model}\\
+\hline
+61 & \parbox[c]{4.5in}{\raggedright Neo-Hookean viscoelastic model}\\
+\hline
+62 & \parbox[c]{4.5in}{\raggedright Neo-Hookean viscoelastic model}\\
+\hline
+63 & \parbox[c]{4.5in}{\raggedright Finite strain viscoelastic Kirchhoff-St.Venant}\\
+\hline
+64 & \parbox[c]{4.5in}{\raggedright Small strain viscoelastic Kirchhoff-St.Venant}\\
+\hline
 80 & \parbox[c]{4.5in}{\raggedright \textsf{ABAQUS/Standard~\cite{ABAQUSv56} UMAT} BCJ}\\
 \hline
+90 & \parbox[c]{4.5in}{\raggedright \textsf{ABAQUS/Explicit VUMAT} BCJ}\\
+\hline
 \end{longtable}
-\end{center}
-\end{table}
 
 \subsubsection{Common input parameters}
 \label{sect.material.solid.common}

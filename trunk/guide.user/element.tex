@@ -1,6 +1,5 @@
 %&LaTeX
-% $Id: element.tex,v 1.6 2002-04-13 02:17:29 paklein Exp $
-
+% $Id: element.tex,v 1.7 2002-10-30 00:34:02 paklein Exp $
 \section{Element types}
 Within the structure of \tahoe, any formulation that relates nodal 
 unknowns to the corresponding conjugate forces falls into the category 
@@ -23,12 +22,16 @@ schemes are discussed in this chapter.
 &\parbox[b]{0.75in}{\centering \textbf{sub-code}}\\
 \hline
 % finite element continuum
-\multirow{4}{1.5in}{\centering finite element continuum} & small deformation & 2 &
-\multirow{4}{0.75in}{\centering N/A}\\
+\multirow{6}{1.5in}{\centering finite element continuum} & small deformation & 2 &
+\multirow{6}{0.75in}{\centering N/A}\\
 \hhline{~--~}
 & updated Lagrangian & 3 & \\
 \hhline{~--~}
 & total Lagrangian & 17 & \\
+\hhline{~--~}
+& updated Lagrangian AES~\cite{Simo1993} & 29 & \\
+\hhline{~--~}
+& updated Lagrangian Q1P0~\cite{Simo1985} & 36 & \\
 \hhline{~--~}
 & linear diffusion & 21 & \\
 \hline
@@ -51,6 +54,9 @@ schemes are discussed in this chapter.
 % meshfree cohesive surface elements
 meshfree cohesive surface & 
 anisotropic with rotating frame & 22 & N/A\\
+\hline
+% thermal surface elements
+{\centering thermal contact conducting surface} & rotating frame & 12 & N/A\\
 \hline
 % contact
 \multirow{3}{1.5in}{\centering contact} & penalty & 14& 
@@ -76,6 +82,9 @@ anisotropic with rotating frame & 22 & N/A\\
 & mixed Stillinger-Weber & 7 & \\
 \hhline{~--~}
 & 6 with periodic BC's & 10 & \\
+\hline
+% surface adhesion
+{\centering surface-surface interaction} & two-point potential & 37 & N/A\\
 \hline
 \end{tabular}
 \end{center}
@@ -519,6 +528,19 @@ tractions.
 (3) order of completeness for polynomial basis functions}
 
 \subsection{Solid deformation}
+This section describes the elements available for performing analysis of stress and deformation in solids. The material models available for these elements are described in Section~\ref{sect.model.solids}.
+
+\subsubsection{Element 29: finite strain element with enhanced modes}
+This element formulation is due to Simo, Armero, and Taylor~\cite{Simo1993}. The element incorporates internal element modes of deformation to improve performance under bending and under nearly incompressible states of deformation.
+
+\subsubsection{Element 36: finite strain mixed element}
+The formulation is due to Simo, Taylor, and Pister~\cite{Simo1985}. The basic idea behind the formulation is to represent the pressure and dilatation $\Theta$ as separate fields from the displacement. For the continuous case, the determinant of the deformation gradient \begin{equation}
+       J = \det \mathbf{F}          = \mathbf{1} + \frac{\partial \mathbf{u}}{\partial \mathbf{X}} \end{equation}
+is equal to the dilatation. However, when the displacement field $\mathbf{u}$ is restricted to a finite dimensional representation, it may not contain enough degrees of freedom to represent nearly incompressible deformations without making the response overly stiff. Therefore, the dilatation and pressure are represented as separate fields. The modified deformation gradient is given by\begin{equation}
+       \bar{\mathbf{F}} = \left( \frac{\Theta}{J} \right)^{1/3} \mathbf{F}.\end{equation}
+The remainder of the formulation results as a consequence. For Q1P0, the (2D) bi- or (3D) trilinear displacement field (Q1) is combined with piecewise constant (P0) pressure and dilatation fields. Since the space for these fields is restricted to within element domains, these degrees of freedom can be determined analytically at the element level and substituted into the remaining element equations to results in a purely displacement-based formulation.
+
+Note that several errors appear in the derivation of the consistent tangent in the CMAME paper. Therefore, the implementation of the tangent here does not match the published formulation.
 
 \subsubsection{Output variables}
 The values that can be written to output as nodal or element 
@@ -991,4 +1013,21 @@ formulation by Heegaard and Curnier~\cite{Heegaard1993}.
 \subsection{Pair-potential}
 
 \subsection{Two- and three-body potential}
+
+\subsection{Surface-surface interactions}
+\subsubsection{Element 37: two-point surface interactions}
+The formulation of surface-surface interactions is similar to what is described by Argento \etal~\cite{Jagota1997}. The interaction energy of two surfaces $S_1$ and $S_2$ is given by the double-integral
+\begin{equation}
+U\farg{S_1,S_2,t} = \alpha_{12}\farg{t} \int_{S_1} \int_{S_2} u\farg{\left| \mathbf{g} \right|} dS_1 dS_2,
+\end{equation}
+where $u$ is a potential function and $\mathbf{g}$ is a vector connecting a point on $S_1$ with a point on $S_2$. The function $\alpha_{12}\farg{t}$ is introduced to allow the interaction forces to scale with simulation time. Two of differential elements $dS_1$ and $dS_2$ interact if
+\begin{equation}
+\mathbf{n}_1 \cdot \mathbf{g} > 0 
+\quad \textrm{and} \quad 
+\mathbf{n}_2 \cdot \mathbf{g} < 0,
+\end{equation}
+where $\mathbf{n}_1$ and $\mathbf{n}_2$ are the normals to $dS_1$ and $dS_2$, respectively. The interaction force is then given by
+\begin{equation}
+\mathbf{f} = -\dbyd{U}{\mathbf{g}}.
+\end{equation}
 

@@ -1,10 +1,13 @@
 %&LaTeX
-% $Id: tahoe.user.tex,v 1.9 2002-04-13 02:17:29 paklein Exp $
+% $Id: tahoe.user.tex,v 1.10 2002-10-30 00:34:02 paklein Exp $
 \documentclass[12pt]{article}
 %\usepackage[mtbold]{mathtime} %-- Times fonts
 \usepackage{amsmath} %-- good stuff for math
 \usepackage{bm} %-- bold math
-\usepackage{ulem}\usepackage{color}
+
+\usepackage{ulem}
+\usepackage{color}
+
 \usepackage{alltt}
 \usepackage{xspace}
 %\usepackage{array}
@@ -20,7 +23,8 @@
 	colorlinks=true,%
 	bookmarksnumbered=true]{hyperref}
 
-%--------------------------- pdf -----------------------\newif\ifpdf
+%--------------------------- pdf -----------------------
+\newif\ifpdf
 \ifx\pdfoutput\undefined
 \pdffalse % we are not running PDFLaTeX
 \else
@@ -35,13 +39,24 @@
 \fi
 %--------------------------- pdf -----------------------
 
+
 %-------------------------- macros ----------------------
 %\newcommand{\eqref}[1]{(\ref{#1})} %-- defined in amsmath
 \newcommand{\mathvec}[1]{\mbox{\boldmath $#1$}}
 \newcommand{\labeleq}[2]{\begin{equation} \label{#1} #2 \end{equation}}
-\newcommand{\rbrkt}[1]{\left(#1\right)}\newcommand{\sbrkt}[1]{\left[#1\right]}\newcommand{\cbrkt}[1]{\left\{#1\right\}}\newcommand{\abrkt}[1]{\left<#1\right>}\newcommand{\farg}[1]{\hspace{-0.2em}\rbrkt{#1}}\newcommand{\etal}[0]{\textit{et al.}\@ }\newcommand{\dbyd}[2]{\frac{\partial#1}{\partial#2}}\newcommand{\ddbydd}[3]{\frac{\partial^{2}#1}{\partial#2\partial#3}}
-\newcommand{\textscript}[1]{\scriptsize{\textrm{#1}}}\renewcommand{\thefootnote}{\fnsymbol{footnote}}
-\newcommand{\invar}[1]{\textrm{[\textit{#1}]}}%-------------------------- macros ----------------------
+\newcommand{\rbrkt}[1]{\left(#1\right)}
+\newcommand{\sbrkt}[1]{\left[#1\right]}
+\newcommand{\cbrkt}[1]{\left\{#1\right\}}
+\newcommand{\abrkt}[1]{\left<#1\right>}
+\newcommand{\farg}[1]{\hspace{-0.2em}\rbrkt{#1}}
+\newcommand{\etal}[0]{\textit{et al.}\@ }
+\newcommand{\dbyd}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\ddbydd}[3]{\frac{\partial^{2}#1}{\partial#2\partial#3}}
+\newcommand{\textscript}[1]{\scriptsize{\textrm{#1}}}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\newcommand{\invar}[1]{\textrm{[\textit{#1}]}}
+%-------------------------- macros ----------------------
+
 
 %----------------------- environments -------------------
 % inputfile: requires the package alltt because the 
@@ -80,9 +95,13 @@
 %---------------------- table macros --------------------
 
 %---------------------- editing macros ------------------
-%-- requires package color\newcommand{\todo}[1]{\textcolor{red}{\textit{[To do: #1]}}}
-\newcommand{\temp}[1]{\textcolor{red}{[\textit{author's note: #1}]}}%-- requires package color and ulem
-\newcommand{\strike}[1]{\textcolor{red}{\sout{#1}}}%---------------------- editing macros ------------------
+%-- requires package color
+\newcommand{\todo}[1]{\textcolor{red}{\textit{[To do: #1]}}}
+\newcommand{\temp}[1]{\textcolor{red}{[\textit{author's note: #1}]}}
+%-- requires package color and ulem
+\newcommand{\strike}[1]{\textcolor{red}{\sout{#1}}}
+%---------------------- editing macros ------------------
+
 
 %----------------------- figure path --------------------
 \newcommand{\figpath}{fig.color}
@@ -102,6 +121,7 @@
 %----------------- platform dependent macros ------------
 
 %------------------------ page layout -------------------
+
 \setlength{\headsep}{20pt}
 \setlength{\topmargin}{0pt}
 \setlength{\headheight}{14pt}
@@ -112,6 +132,7 @@
 \setlength{\evensidemargin}{0.0in}
 \setlength{\oddsidemargin}{0.0in}
 %------------------------ page layout -------------------
+
 
 %------------------ selective typesetting ---------------
 %\includeonly{\filepath{input}, \filepath{files}, \filepath{ICandBC}}
