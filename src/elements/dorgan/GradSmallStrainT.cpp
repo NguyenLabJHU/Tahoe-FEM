@@ -102,14 +102,6 @@ void GradSmallStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		const iArray2DT& connects_lambda = fConnectivities_PMultiplier[i];
 		int fNumElements = connects.MajorDim();
 
-#if 0
-	cout << "  fNumElements: " << fNumElements << endl;
-	cout << "  fNumElementNodes_Disp: " << fNumElementNodes_Disp << endl;
-	cout << "  fNumElementNodes_PMultiplier: " << fNumElementNodes_PMultiplier << endl;
-	cout << "  fNumDOF_Disp: " << fNumDOF_Disp << endl;
-	cout << "  fNumDOF_PMultiplier: " << fNumDOF_PMultiplier << endl;
-	cout << "  fNumEQ_Total: " << fNumEQ_Total << endl;
-#endif	
 		/* dimension */
 		fEqnos[i].Dimension   (fNumElements, fNumEQ_Total);
 		iArray2DT fEqnos_Disp (fNumElements, fNumElementNodes_Disp *fNumDOF_Disp );
@@ -481,10 +473,6 @@ void GradSmallStrainT::SetLocalArrays(void)
 	/* register local arrays */
 	fPMultiplier->RegisterLocal(fLocPMultiplier);
 	fPMultiplier->RegisterLocal(fLocLastPMultiplier);
-
-	//	cout << "NumElementNodes(): " << NumElementNodes() << endl;
-	//	cout << "fPMultiplier->NumDOF(): " << fPMultiplier->NumDOF() << endl;
-	//	cout << "fLocPMultiplier.Length(): " << fLocPMultiplier.Length() << endl;
 }
 
 /* initialization functions */
@@ -522,9 +510,6 @@ void GradSmallStrainT::SetGlobalShape(void)
 
 	/* inherited */
 	SmallStrainT::SetGlobalShape();
-
-	cout << "fNodesPMultiplier.Length(): " << fNodesPMultiplier.Length() << endl;
-	cout << "fLocPMultiplier.Length(): " << fLocPMultiplier.Length() << endl;
 
 	/* collect element values of PMultiplier */
 	fConnectivities_All.RowAlias(CurrElementNumber(), fNodesPMultiplier);
