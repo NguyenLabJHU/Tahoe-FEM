@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.44 2005-01-29 18:31:29 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.45 2005-03-04 19:21:31 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #include "StringT.h"
 #include "ifstreamT.h"
@@ -570,8 +570,8 @@ StringT& StringT::Prepend(const char* s1, const char* s2)
 StringT& StringT::Drop(int n)
 {
 	/* check */
-	if ((size_t) fabs(double(n)) > strlen(*this)) ExceptionT::OutOfRange();
-	//NOTE - SUNWspro 5.0 doesn't like int(fabs(n))
+	int abs_n = (n > 0) ? n : -n;
+	if (abs_n > strlen(*this)) ExceptionT::OutOfRange("StringT::Drop");
 	
 	if (n > 0)
 	{
@@ -611,7 +611,7 @@ StringT& StringT::Take(const StringT& source, int n)
 	else
 	{
 		/* check */
-		size_t size = (n < 0) ? -n : n;
+		int size = (n < 0) ? -n : n;
 		if (size > strlen(source)) ExceptionT::OutOfRange();
 
 		/* allocate */
