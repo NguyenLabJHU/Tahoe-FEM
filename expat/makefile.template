@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.1.1.1 2004-07-12 17:22:36 paklein Exp $
+# $Id: makefile.template,v 1.2 2004-07-12 17:44:04 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # NOTE: this is makefile just wraps the configure/build system
@@ -47,7 +47,7 @@ help:
 	@ printf "   help - display this list\n"
 
 init:
-	cd expat; gunzip $(EXPAT_CURRENT).tar.gz; tar xvf $(EXPAT_CURRENT).tar
+	cd expat; gunzip $(EXPAT_CURRENT).tar.gz; tar xvf $(EXPAT_CURRENT).tar; gzip $(EXPAT_CURRENT).tar
 	cd expat/$(EXPAT_CURRENT); configure --prefix=$(HOME_DIR) --disable-shared
 	
 build:
