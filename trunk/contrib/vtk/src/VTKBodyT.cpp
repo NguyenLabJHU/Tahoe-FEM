@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.24 2002-06-10 18:55:10 recampb Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.25 2002-06-13 22:47:24 recampb Exp $ */
 
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
@@ -87,6 +87,14 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	if (!command) throw eGeneralFail;
 	iAddCommand(*command);
 
+	command = fBodyData->iCommand("ShowCuttingPlane");
+	if (!command) throw eGeneralFail;
+	iAddCommand(*command);
+
+	command = fBodyData->iCommand("HideCuttingPlane");
+	if (!command) throw eGeneralFail;
+	iAddCommand(*command);
+
 }
 
 /* destructor */
@@ -169,6 +177,11 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 	else if (command.Name() == "ShowContours")
 		return fBodyData->iDoCommand(command, line);
 	else if (command.Name() == "HideContours")
+		return fBodyData->iDoCommand(command, line);
+
+	else if (command.Name() == "ShowCuttingPlane")
+		return fBodyData->iDoCommand(command, line);
+	else if (command.Name() == "HideCuttingPlane")
 		return fBodyData->iDoCommand(command, line);
 
 	else if (command.Name() == "ShowNodeNumbers")

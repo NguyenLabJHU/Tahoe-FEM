@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.49 2002-06-12 19:04:08 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.50 2002-06-13 22:47:24 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -197,6 +197,8 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   	iAddCommand(CommandSpecT("Point"));
 	iAddCommand(CommandSpecT("ShowContours"));
 	iAddCommand(CommandSpecT("HideContours"));
+// 	iAddCommand(CommandSpecT("ShowCuttingPlane"));
+// 	iAddCommand(CommandSpecT("HideCuttingPlane"));
 
 	/* look for command line options */
 	int index, start = 0;
@@ -236,19 +238,21 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 {
   if (command.Name() == "Interactive")
     {
-      vtkRendererCollection* renderers = renWin->GetRenderers();
-      renderers->InitTraversal();
-      vtkRenderer* temp = renderers->GetNextItem();
-      for (int j = 0; j < renderers->GetNumberOfItems(); j++){
-	for (int i =0; i< pickedPoints.Length(); i++){
-	  temp->RemoveActor(pickedPoints[i]);
-	}      
-	renderers->GetNextItem();
+      if (pickedPoints.Length()>0){
+	vtkRendererCollection* renderers = renWin->GetRenderers();
+	renderers->InitTraversal();
+	vtkRenderer* temp = renderers->GetNextItem();
+	for (int j = 0; j < renderers->GetNumberOfItems(); j++){
+	  for (int i =0; i< pickedPoints.Length(); i++){
+	    temp->RemoveActor(pickedPoints[i]);
+	  }      
+	  renderers->GetNextItem();
+	}
       }
-      
       //for (int i = 0; i < pickedPoints.Length(); i++)
       //pickedPoints[i]->Delete();
-	
+
+
       renWin->Render();
       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
       cout << "pick point with mouse and type 'p' to display scalar value" << endl;
@@ -450,6 +454,30 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
   	}
   	return OK;
   }
+
+//   else if (command.Name() == "ShowCuttingPlane")
+//   {
+// 	bool OK = true;
+//   	for (int i = 0; OK && i < fBodies.Length(); i++)
+//   	{
+//   		const CommandSpecT* comm = fBodies[i]->iResolveCommand(command.Name(), line);
+//   		if (!comm) return false;
+//   		OK = fBodies[i]->iDoCommand(*comm, line);
+//   	}
+//   	return OK;
+//   }
+
+//   else if (command.Name() == "HideCuttingPlane")
+//   {
+// 	bool OK = true;
+//   	for (int i = 0; OK && i < fBodies.Length(); i++)
+//   	{
+//   		const CommandSpecT* comm = fBodies[i]->iResolveCommand(command.Name(), line);
+//   		if (!comm) return false;
+//   		OK = fBodies[i]->iDoCommand(*comm, line);
+//   	}
+//   	return OK;
+//   }
 
 
   else if (command.Name() == "Layout")

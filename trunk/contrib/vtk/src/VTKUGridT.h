@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.h,v 1.8 2002-06-10 18:55:11 recampb Exp $ */
+/* $Id: VTKUGridT.h,v 1.9 2002-06-13 22:47:24 recampb Exp $ */
 #ifndef _VTK_U_GRID_T_H_
 #define _VTK_U_GRID_T_H_
 
@@ -24,6 +24,10 @@ class vtkPolyDataMapper;
 class vtkOutlineFilter;
 class vtkExtractEdges;
 class vtkLODActor;
+class vtkPlane;
+class vtkCutter;
+class vtkSmoothPolyDataFilter;
+class vtkDataSetToPolyDataFilter;
 
 
 /* toolbox forward declarations */
@@ -71,6 +75,10 @@ class VTKUGridT
 	
 	/** remove contours */
 	void HideContours(vtkFloatArray* scalars);
+
+	void CuttingPlane(vtkFloatArray* scalars, double oX, double oY, double oZ, double nX, double nY, double nZ);
+
+	void HideCuttingPlane(void);
 
 	/** set the scalar data range */
 	void SetScalarRange(double min, double max);
@@ -169,6 +177,8 @@ class VTKUGridT
 	vtkPolyDataMapper* fContourMapper;
 	vtkActor* fContourActor;
 	bool contours;
+	vtkSmoothPolyDataFilter* smoother;
+	vtkDataSetToPolyDataFilter* dsToPd;
 	
 	/** bounding box outline */
 	vtkOutlineFilter* outline;
@@ -184,6 +194,11 @@ class VTKUGridT
 	/** bounding semi-transparent volume */
 	vtkDataSetMapper* boundBoxMapper;
 	vtkActor* boundBoxActor;
+
+	vtkPlane* plane;
+	vtkCutter* cutter;
+	vtkActor* cut;
+	vtkPolyDataMapper* cutterMapper;
 	
 	
       
