@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.32 2003-02-20 02:30:06 paklein Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.33 2003-11-21 19:37:11 paklein Exp $ */
 #include "VTKFrameT.h"
 
 /* ANSI headers */
@@ -96,13 +96,13 @@ VTKFrameT::VTKFrameT(VTKConsoleT& console):
 	iAddCommand(CommandSpecT("HideTime"));
 
   CommandSpecT show_color_bar("ShowColorBar");
-  ArgSpecT body(ArgSpecT::string_);
-  body.SetDefault("<DEFAULT>");
-  show_color_bar.AddArgument(body);
   ArgSpecT location(ArgSpecT::string_, "location");
   location.SetDefault("L");
   location.SetPrompt("color bar position, where T/t = top, L/l = left, B/b = bottom, R/r = right");
   show_color_bar.AddArgument(location);
+  ArgSpecT body(ArgSpecT::string_);
+  body.SetDefault("<DEFAULT>");
+  show_color_bar.AddArgument(body);
   iAddCommand(show_color_bar);
   
   iAddCommand(CommandSpecT("HideColorBar"));
@@ -419,8 +419,8 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
   	{
   		StringT body;
 		StringT location;
-		command.Argument(0).GetValue(body);
 		command.Argument("location").GetValue(location);
+		command.Argument(1).GetValue(body);
 
   		/* use default */
   		VTKBodyDataT* body_data = NULL;
