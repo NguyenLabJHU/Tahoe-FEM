@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: IsotropicT.cpp,v 1.2 2001-02-20 00:23:20 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "IsotropicT.h"
@@ -32,50 +32,41 @@ void IsotropicT::Set_E_nu(double E, double nu)
 	/* checks */
 	if (fYoung < 0.0) throw eGeneralFail;
 	if (fPoisson > 0.5 || fPoisson < -1.0) throw eGeneralFail;
+	
+	/* compute remaining moduli */
+	fMu     = 0.5*fYoung/(1.0 + fPoisson);
+	fLambda = 2.0*fMu*fPoisson/(1.0 - 2.0*fPoisson);
+	fKappa  = fLambda + 2.0/3.0*fMu;
 }
 
 void IsotropicT::Set_mu_kappa(double mu, double kappa)
 {
+	fMu = mu;
+	fKappa = kappa;
+
 	/* checks */
-	if (mu < 0.0 || kappa < 0.0) throw eGeneralFail;
+	if (fMu < 0.0 || fKappa < 0.0) throw eGeneralFail;
 
 	/* set moduli */
-	fYoung = (9.0*kappa*mu)/(3.0*kappa + mu);
-	fPoisson = (3.0*kappa - 2.0*mu)/(6.0*kappa + 2.0*mu);
-}
-
-/* accessors */
-double IsotropicT::Young(void) const { return fYoung; }
-double IsotropicT::Poisson(void) const { return fPoisson; }
-
-/* returns the Lame constants (calculated from E, nu) */
-void IsotropicT::Lame(double& mu, double& lambda) const
-{
-	mu     = 0.5*fYoung/(1.0 + fPoisson);
-	lambda = 2.0*mu*fPoisson/(1.0 - 2.0*fPoisson);
-}
-
-/* shear and bulk moduli */
-void IsotropicT::MuAndKappa(double& mu, double& kappa) const
-{
-	mu    = Mu();
-	kappa = fYoung/(3.0*(1.0 - 2.0*fPoisson));
+	fYoung = (9.0*fKappa*fMu)/(3.0*fKappa + fMu);
+	fPoisson = (3.0*fKappa - 2.0*fMu)/(6.0*fKappa + 2.0*fMu);
+	fLambda = 2.0*fMu*fPoisson/(1.0 - 2.0*fPoisson);
 }
 
 /* I/O operators */
 void IsotropicT::Print(ostream& out) const
 {
-	out << " Young's modulus . . . . . . . . . . . . . . . . = " << fYoung     << '\n';
-	out << " Poisson's ratio . . . . . . . . . . . . . . . . = " << fPoisson   << '\n';
+	out << " Young's modulus . . . . . . . . . . . . . . . . = " << fYoung   << '\n';
+	out << " Poisson's ratio . . . . . . . . . . . . . . . . = " << fPoisson << '\n';
+	out << " Shear modulus . . . . . . . . . . . . . . . . . = " << fMu      << '\n';
+	out << " Bulk modulus. . . . . . . . . . . . . . . . . . = " << fKappa   << '\n';
 }
 
 /*************************************************************************
 * Protected
 *************************************************************************/
 
-/*
-* Compute the symetric Cij reduced index matrix.
-*/
+/* compute the symetric Cij reduced index matrix */
 void IsotropicT::ComputeModuli(dMatrixT& moduli, double mu, double lambda) const
 {
 	moduli = 0.0;
