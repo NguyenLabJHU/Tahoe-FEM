@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.19 2004-03-06 17:29:11 paklein Exp $ */
+/* $Id: ArrayT.h,v 1.20 2004-04-21 07:34:52 paklein Exp $ */
 /* created: paklein (06/19/1996) */
 #ifndef _ARRAY_T_H_
 #define _ARRAY_T_H_
@@ -396,9 +396,6 @@ inline void ArrayT<TYPE>::Set(int length, TYPE* TYPEPtr) { Alias(length, TYPEPtr
 template <class TYPE>
 void ArrayT<TYPE>::Dimension(int length)
 {
-	/* abort on negative lengths */
-	if (length < 0) throw ExceptionT::kGeneralFail;
-
 	/* do nothing if the correct length already */
 	if (length != fLength)
 	{
