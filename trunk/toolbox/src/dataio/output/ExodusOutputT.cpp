@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.cpp,v 1.6 2002-02-18 08:57:39 paklein Exp $ */
+/* $Id: ExodusOutputT.cpp,v 1.7 2002-03-02 19:43:46 paklein Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #include "ExodusOutputT.h"
@@ -240,15 +240,17 @@ void ExodusOutputT::WriteCoordinates (ExodusT& exo, iArrayT& nodes_used)
 
 void ExodusOutputT::WriteConnectivity (int ID, ExodusT& exo, const iArrayT& nodes_used)
 {
-	iArray2DT connects;
+	iArray2DT local_connects;
 	const ArrayT<StringT>& blockIDs = fElementSets[ID]->BlockID();
 	for (int i = 0; i < fElementSets[ID]->NumBlocks(); i++)
     {
-		const iArray2DT* c = fElementSets[ID]->Connectivities(blockIDs[i]);
-		connects.Alias(*c);
+		const iArray2DT& connects = *(fElementSets[ID]->Connectivities(blockIDs[i]));
 
-		connects++;
-		exo.WriteConnectivities(atoi(blockIDs[i]), fElementSets[ID]->Geometry(), connects);
-		connects--;
+		/* generate connectivities in block-local numbering */
+		local_connects.Dimension(connects.MajorDim(), connects.MinorDim());
+		LocalConnectivity(nodes_used, connects, local_connects);
+
+		local_connects++;
+		exo.WriteConnectivities(atoi(blockIDs[i]), fElementSets[ID]->Geometry(), local_connects);
     }
 }
