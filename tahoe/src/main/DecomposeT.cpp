@@ -1,4 +1,4 @@
-/* $Id: DecomposeT.cpp,v 1.6 2004-11-19 09:19:27 paklein Exp $ */
+/* $Id: DecomposeT.cpp,v 1.7 2004-11-19 22:51:39 paklein Exp $ */
 #include "DecomposeT.h"
 
 #include "ofstreamT.h"
@@ -398,7 +398,7 @@ void DecomposeT::Decompose_graph(const StringT& input_file, int size,
 /* use METIS by default */
 #ifdef __METIS__
 			method = 1;
-			for (int i = 0; method == 0 && i < commandlineoptions.Length(); i++)
+			for (int i = 0; method == 1 && i < commandlineoptions.Length(); i++)
 				if (commandlineoptions[i] == "-no_metis")
 					method = 0;
 
