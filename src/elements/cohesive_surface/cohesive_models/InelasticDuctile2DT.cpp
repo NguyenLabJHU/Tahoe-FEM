@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile2DT.cpp,v 1.3 2003-02-03 04:40:17 paklein Exp $  */
+/* $Id: InelasticDuctile2DT.cpp,v 1.4 2003-02-05 09:56:12 paklein Exp $  */
 #include "InelasticDuctile2DT.h"
 #include "ifstreamT.h"
 #include "dArrayT.h"
@@ -70,6 +70,18 @@ InelasticDuctile2DT::InelasticDuctile2DT(ifstreamT& in, const double& time_step)
 /* return the number of state variables needed by the model */
 int InelasticDuctile2DT::NumStateVariables(void) const { return kNumState; }
 
+/* initialize the state variable array. By default, initialization
+ * involves only setting the array to zero. */
+void InelasticDuctile2DT::InitStateVariables(ArrayT<double>& state)
+{
+	state = 0.0;
+
+#pragma message("InelasticDuctile2DT::InitStateVariables: using temporary values")
+	state[k_dex_phi]   = 0.05;
+	state[k_dex_phi_s] = 0.05;
+	state[k_dex_kappa] = 1.0;
+}
+
 /* incremental heat */
 double InelasticDuctile2DT::IncrementalHeat(const dArrayT& jump, const ArrayT<double>& state)
 {
@@ -115,6 +127,7 @@ const dArrayT& InelasticDuctile2DT::Traction(const dArrayT& jump_u, ArrayT<doubl
 	double error, error0;
 	error = error0 = fR.Magnitude();
 	int count = 0;
+	double phi_s_in = fphi_s;
 	while (count++ < max_iter && error > abs_tol && error/error0 > rel_tol) 
 	{
 		/* compute Jacobian */
@@ -127,7 +140,10 @@ const dArrayT& InelasticDuctile2DT::Traction(const dArrayT& jump_u, ArrayT<doubl
 		fTraction[0] += fR[0];
 		fTraction[1] += fR[1];
 		fphi += fR[2];
-		if (fReversible || fdq[0] > 0.0) fphi_s += fR[2];
+		if (fReversible || fphi > phi_s_in) 
+			fphi_s = fphi;
+		else
+			fphi_s = phi_s_in;
 		
 		/* max damage */
 		if (fphi_s > phi_max)
@@ -165,23 +181,40 @@ const dArrayT& InelasticDuctile2DT::Traction(const dArrayT& jump_u, ArrayT<doubl
 	fDelta = jump_u;
 	state = fState;
 
+//TEMP
+//cout << "T: fdq = " << fdq.no_wrap() << '\n';
+
 	return fTraction;
 }
 
 /* potential stiffness */
-const dMatrixT& InelasticDuctile2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
+const dMatrixT& InelasticDuctile2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, 
+	const dArrayT& sigma)
 {
 	const char caller[] = "InelasticDuctile2DT::Stiffness";
 
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) ExceptionT::SizeMismatch(caller);
-	if (state.Length() != NumStateVariables()) ExceptionT::GeneralFail(caller);
+	if (state.Length() != NumStateVariables()) ExceptionT::SizeMismatch(caller);
 #endif
 
-//TEMP
-ExceptionT::Stop(caller, "not implemented");
+	/* compute rates and traction */
+	Rates(state, jump_u, fTraction, fdD, fdq);
 
+//TEMP
+//cout << "K: fdq = " << fdq.no_wrap() << '\n';
+
+	/* compute Jacobian of local problem */
+	Jacobian(state, jump_u, fTraction, fdq, fK);		
+
+	/* pull values from Jacobian */
+	fStiffness(0,0) = fTimeStep*(fK(0,0) - (fK(0,2)*fK(2,0))/fK(2,2));
+	fStiffness(0,1) = fTimeStep*(fK(0,1) - (fK(0,2)*fK(2,1))/fK(2,2));
+	fStiffness(1,0) = fTimeStep*(fK(1,0) - (fK(1,2)*fK(2,0))/fK(2,2));
+	fStiffness(1,1) = fTimeStep*(fK(1,1) - (fK(1,2)*fK(2,1))/fK(2,2));
+	fStiffness.Inverse();
+	
 	return fStiffness;
 }
 
