@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.21 2002-03-11 16:30:02 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.22 2002-05-19 17:45:42 paklein Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -99,7 +99,7 @@ void TranslateIOManager::SetOutput (const StringT& program_name, const StringT& 
   if (fWrite)
     cout << "\n Enter the root of the output files: ";
   fIn >> fOutputName;
-  cout << "\n Output format: " << outputformat << " File: " << fOutputName << endl;
+  cout << "\n Output format: " << outputformat << "\n File: " << fOutputName << endl;
 
   fOutputName.ToNativePathName();
   fOutputName.Append(".ext"); //trimmed off by fOutput

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2001-11-08 13:36:13 sawimme Exp $
+# $Id: makefile,v 1.6 2002-05-19 17:45:42 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -11,7 +11,9 @@ OBJ = \
 	ExtractNode.o \
 	ExtractQuad.o \
 	PointPlots.o \
+	MergeResults.o \	
 	main.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -25,6 +27,7 @@ SRC = \
 	ExtractNode.cpp \
 	ExtractQuad.cpp \
 	PointPlots.cpp \
+	MergeResults.cpp \
 	main.cpp
 
 # headers
@@ -33,6 +36,7 @@ HDR = \
 	ExtractIOManager.h \
 	ExtractNode.h \
 	ExtractQuad.h \
+	MergeResults.h \
 	PointPlots.h
 
 HDR_LINK = $(HDR:.h=.h_link)
