@@ -1,11 +1,12 @@
-/* $Id: TiedPotentialT.h,v 1.9 2003-03-19 00:53:27 cjkimme Exp $ */
+/* $Id: TiedPotentialT.h,v 1.10 2003-03-26 20:00:08 cjkimme Exp $ */
 /* created: cjkimme (04/15/2002) */
 
 #ifndef _TIED_POTENTIAL_T_H_
 #define _TIED_POTENTIAL_T_H_
 
-/* base class */
+/* base classes */
 #include "SurfacePotentialT.h"
+#include "TiedPotentialBaseT.h"
 
 namespace Tahoe {
 
@@ -16,14 +17,14 @@ class dArray2DT;
 /** cohesive potential from Tvergaard and Hutchinson. This model is
  * described in JMPS v41, n6, 1995, 1119-1135. See SurfacePotentialT
  * for more information about the */
-class TiedPotentialT: public SurfacePotentialT
+class TiedPotentialT: public SurfacePotentialT, public TiedPotentialBaseT
 {
 public:
 	
 	enum sbntmaT {kAverageCode = 2};
 
 	/** constructor */
-	TiedPotentialT(ifstreamT& in, const double &fTimeStep);
+	TiedPotentialT(ifstreamT& in);
 
 	/** return the number of state variables needed by the model */
 	int NumStateVariables(void) const;
@@ -67,11 +68,8 @@ public:
 	virtual int NodalQuantityNeeded(void);
 	//        virtual double ComputeNodalValue(const dArrayT &);
 	//        virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
-	virtual int ElementGroupNeeded(void);
 	
-	static bool InitiationQ(const double* sigma);
-
-	static iArrayT& BulkGroups(void);
+	virtual bool InitiationQ(const double* sigma);
 	
 protected:
 
@@ -80,9 +78,6 @@ protected:
 	virtual bool CompatibleOutput(const SurfacePotentialT& potential) const;
 		
 private:
-
-	/** the time step */
-	const double& fTimeStep;
 
 	/* traction potential parameters */
 	int qTv;
@@ -93,10 +88,9 @@ private:
 	double r_fail; 
 	double fsigma, fL_0, fL_1, fL_2;
 	
-	static double fnvec1, fnvec2; /*components of direction
+	double fnvec1, fnvec2; /*components of direction
 	  in which to sample the stress for freeing nodes */
-	static double fsigma_critical; /* Initiation traction */
-    static iArrayT iBulkGroups;
+	double fsigma_critical; /* Initiation traction */
 };
 
 } // namespace Tahoe 

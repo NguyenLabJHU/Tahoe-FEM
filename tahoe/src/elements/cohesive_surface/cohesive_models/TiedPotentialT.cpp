@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.12 2003-03-19 00:53:27 cjkimme Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.13 2003-03-26 20:00:08 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -18,19 +18,10 @@ using namespace Tahoe;
 const int    knumDOF = 2;
 const double kExpMax = 100;
 
-/* initialize static variables */
-iArrayT TiedPotentialT::iBulkGroups = iArrayT();
-double TiedPotentialT::fsigma_critical = 0.;
-double TiedPotentialT::fnvec1 = 0.;
-double TiedPotentialT::fnvec2 = 0.;
-
 /* constructor */
-TiedPotentialT::TiedPotentialT(ifstreamT& in, const double& time_step): 
-	SurfacePotentialT(knumDOF),
-	fTimeStep(time_step)
+TiedPotentialT::TiedPotentialT(ifstreamT& in): 
+	SurfacePotentialT(knumDOF), TiedPotentialBaseT()
 {
-#pragma unused(time_step)
-
     in >> fnvec1; /* read in direction to sample stress state at */
     in >> fnvec2;
  
@@ -333,6 +324,7 @@ void TiedPotentialT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& 
 	dArrayT& output)
 {
 #pragma unused(jump_u)
+#pragma unused(state) 
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif	
@@ -347,21 +339,6 @@ int TiedPotentialT::NodalQuantityNeeded(void)
         return kAverageCode; /*get stress tensor from bulk */ 
 }
 
-/*double TiedPotentialT::ComputeNodalValue(const dArrayT& nodalRow) 
-{
-       return (nodalRow[0]+nodalRow[1])/3;
-}
-
-void TiedPotentialT::UpdateStateVariables(const dArrayT& IPdata, ArrayT<double>& state)
-{
-  //state[7] = IPdata[0];
-}
-*/
-int TiedPotentialT::ElementGroupNeeded(void) 
-{
-	return 0;
-}
-
 bool TiedPotentialT::InitiationQ(const double* sigma) 
 {
 	double t1 = sigma[0]*fnvec1+sigma[2]*fnvec2;
@@ -369,18 +346,6 @@ bool TiedPotentialT::InitiationQ(const double* sigma)
 	
 	return t1*t1 + t2*t2 >= fsigma_critical;
 }
-
-iArrayT& TiedPotentialT::BulkGroups(void)
-{
-  return iBulkGroups;
-}
-
-/*void TiedPotentialT::AllocateSpace(int MajorDim, int MinorDim) 
-{
-  	
-  	nodal_stresses.Dimension(MajorDim,MinorDim);
-  	
-}*/
 
 bool TiedPotentialT::CompatibleOutput(const SurfacePotentialT& potential) const
 {

@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.21 2003-03-19 00:53:25 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.22 2003-03-26 20:00:06 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -17,6 +17,9 @@ namespace Tahoe {
 
 /* forward declarations */
 class SurfacePotentialT;
+#ifndef _SIERRA_TEST_
+class TiedPotentialBaseT;
+#endif
 
 /** Cohesive surface elements with vector argument cohesive relations. */
 class CSEAnisoT: public CSEBaseT
@@ -100,6 +103,10 @@ protected:
 	/* cohesive surface potentials */
 	iArrayT fNumStateVariables;
 	pArrayT<SurfacePotentialT*> fSurfPots;
+#ifndef _SIERRA_TEST_
+	pArrayT<TiedPotentialBaseT**> fTiedPots;
+	TiedPotentialBaseT* tiedpot;
+#endif
 
 #ifndef _SIERRA_TEST_
 	/** state variable storage array. 
@@ -139,14 +146,10 @@ protected:
 	bool fCalcNodalInfo;
 	int fNodalInfoCode;
 	dArray2DT fNodalQuantities;
-	int iBulkGroup;
+	iArrayT iBulkGroups;
 	
 	/* if nodes are tied, keep track of free nodes per element */
 	Array2DT<bool> freeNodeQ, freeNodeQ_last;
-	
-	/* if nodes are constrained by symmetry, so be it */
-	static bool fModeIQ;
-	
 	
 };
 
