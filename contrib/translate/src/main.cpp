@@ -1,9 +1,10 @@
-/* $Id: main.cpp,v 1.9 2002-03-04 07:03:45 paklein Exp $ */
+/* $Id: main.cpp,v 1.10 2002-05-19 17:45:42 paklein Exp $ */
 
 #include "TranslateIOManager.h"
 #include "ExtractNode.h"
 #include "ExtractQuad.h"
 #include "PointPlots.h"
+#include "MergeResults.h"
 #include "ifstreamT.h"
 #include "StringT.h"
 
@@ -24,6 +25,7 @@ int main (int c, char* a [])
 	  cout << "2. Nodal Data Extraction to XY Data \n";
 	  cout << "3. Quadrature Data Extraction to XY Data \n";
 	  cout << "4. Quadrature Data Extraction for Point Plots \n";
+	  cout << "5. Merge Results Files \n";
 	  cout << "\n Select type of translation: ";
 	}
       in >> selection;
@@ -63,6 +65,14 @@ int main (int c, char* a [])
 	    program = "PointPlot";
 	    version = "v1.0";
 	    dataio = new PointPlots (cout, in, write);
+	    break;
+	  }
+	case 5:
+	  {
+	    cout << " Merge data from multiple files.\n\n";
+	    program = "Merge";
+	    version = "v1.0";
+	    dataio = new MergeResults (cout, in, write);
 	    break;
 	  }
 	default:
