@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.38 2002-01-03 00:33:57 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.39 2002-01-21 03:29:26 paklein Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -13,9 +13,6 @@
 #include "vtkTIFFWriter.h"
 #include "vtkJPEGWriter.h"
 #include "vtkWindowToImageFilter.h"
-//#include "vtkPostScriptWriter.h"
-//#include "vtkDataSetMapper.h"
-//#include "vtkRenderLargeImage.h"
 
 /* generating PostScript from OpenGL */
 #include "gl2ps.h"

@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.20 2002-01-16 00:33:57 cjkimme Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.21 2002-01-21 03:29:26 paklein Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -10,15 +10,9 @@
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkPoints.h"
-//#include "vtkUnstructuredGrid.h"
-//#include "vtkDataSetMapper.h"
 #include "vtkActor.h"
 #include "vtkScalarBarActor.h"
-//#include "vtkCubeAxesActor2D.h"
-//#include "vtkRendererSource.h"
-#include "vtkLookupTable.h"
-//#include "vtkWarpVector.h"
-//#include "vtkVectors.h"
+//#include "vtkLookupTable.h"
 #include "vtkTextMapper.h"
 
 #include <iostream.h>
@@ -115,12 +109,10 @@ VTKFrameT::VTKFrameT(VTKConsoleT& console):
   change_bg.AddArgument(bg_color);
   iAddCommand(change_bg);
 
-//  iAddCommand(CommandSpecT("ChangeDataColor"));
-
   CommandSpecT choosevar("ChooseVariable");
   choosevar.SetPrompter(this);
-  ArgSpecT varnum(ArgSpecT::int_);
-  varnum.SetPrompt("variable number");
+  ArgSpecT varnum(ArgSpecT::string_);
+  varnum.SetPrompt("variable label");
   choosevar.AddArgument(varnum);
   iAddCommand(choosevar);
 
@@ -475,20 +467,6 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 			return true;
     	}    
 	}
-  else if (command.Name() == "ChangeDataColor")
-    {
-    	cout << "not updated" << endl;
-#if 0
-      int color;
-      char line[255];
-      cout << "Choose color: \n 1: Red\n 2: Green\n 3: Blue: ";
-      cin >> color;
-      cin.getline(line, 254);
-      bodies[0]->ChangeDataColor(color);
-      Render();
-#endif
-      return true;
-    }
 	else if (command.Name() == "Rotate")
 	{
 		double x, y, z;
@@ -598,19 +576,18 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 	}
   else if (command.Name() == "ChooseVariable")
 	{
-		int varNum;
-		command.Argument(0).GetValue(varNum);
-		const StringT& var = (bodies[0]->BodyData()->NodeLabels())[varNum];
+		bool changed = false;
+		StringT var;
+		command.Argument(0).GetValue(var);
 		for (int i = 0; i < bodies.Length(); i++)
-			bodies[i]->ChangeVars(var); // will not return true if body does not have the var
-		
-		/* reset color bar name */
-		if (scalarBar)	
-		{
-  			VTKBodyDataT* body_data = bodies[0]->BodyData();
-			const StringT& var_name = (body_data->NodeLabels())[body_data->CurrentVariableNumber()];
-			scalarBar->SetTitle(var_name);
+			changed = changed || bodies[i]->ChangeVars(var);
+			
+		/* none found */
+		if (!changed) {
+			cout << "variable not found: " << var << endl;
 		}
+		/* reset color bar name */
+		else if (scalarBar) scalarBar->SetTitle(var);
 			
 		Render();
 		return true;
@@ -636,9 +613,16 @@ void VTKFrameT::ValuePrompt(const CommandSpecT& command, int index, ostream& out
     }
   else if (command.Name() == "ChooseVariable")
     {
-		const ArrayT<StringT>& labels = bodies[0]->BodyData()->NodeLabels();
-		for (int i = 0; i < labels.Length(); i++)
-			out << setw(5) << i << ": " << labels[i] << '\n';
+    	if (bodies.Length() > 0) {
+			/* build list of variable labels */
+			AutoArrayT<StringT> labels = bodies[0]->BodyData()->NodeLabels();
+			for (int i = 1; i < bodies.Length(); i++)
+				labels.AppendUnique(bodies[i]->BodyData()->NodeLabels());
+
+			/* write */
+			for (int i = 0; i < labels.Length(); i++)
+				out << setw(5) << i << ": " << labels[i] << '\n';
+		}
     }
   else if (command.Name() == "ChangeBackgroundColor")
   {
