@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.8.2.1 2003-04-27 22:15:24 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.8.2.2 2003-04-28 08:41:12 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -50,7 +50,7 @@ public:
 	ListOrderT ListOrder(void) const { return fListOrder; };
 
 	/** set/change the list order */
-	void SetListOrder(ListOrderT list_order);
+	void SetListOrder(ListOrderT list_order) { fListOrder = list_order; };
 	
 	bool Inline(void) const { return fInline; };
 	
@@ -122,6 +122,7 @@ public:
 	void GetParameter(const StringT& name, int& a) const;
 	void GetParameter(const StringT& name, double& a) const;
 	void GetParameter(const StringT& name, StringT& a) const;
+	void GetParameter(const StringT& name, bool& a) const;
 	/*@}*/	
 
 	/** \name description */
