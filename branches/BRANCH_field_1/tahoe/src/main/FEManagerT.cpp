@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.32.2.8 2002-05-03 09:57:32 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.32.2.9 2002-05-05 23:42:20 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -238,19 +238,6 @@ const ScheduleT* FEManagerT::Schedule(int num) const
 	return fTimeManager->Schedule(num);
 }
 
-#pragma message("FEManagerT::LoadFactor - need this??")
-#if 0
-double FEManagerT::LoadFactor(int nLTf) const
-{
-	return fTimeManager->LoadFactor(nLTf);
-}
-
-int FEManagerT::NumberOfLTf(void) const
-{
-	return fTimeManager->NumberOfLTf();
-}
-#endif
-
 GlobalT::AnalysisCodeT FEManagerT::Analysis(void) const { return fAnalysisCode; }
 bool FEManagerT::PrintInput(void) const { return fPrintInput; }
 
@@ -459,8 +446,9 @@ int FEManagerT::SolveStep(void)
 
 		/* one solver after the next */
 		for (int i = 0; error == eNoError && i < fSolvers.Length(); i++)
+		{
 			error = fSolvers[i]->Solve(); 
-
+		}
 	}
 
 	catch (int exc) {
@@ -1238,7 +1226,6 @@ void FEManagerT::SetController(void)
 			}
 			case GlobalT::kNLStatic:
 			case GlobalT::kNLStaticKfield:
-			case GlobalT::kVarNodeNLStatic:
 			case GlobalT::kLinStaticHeat:
 			{
 				controller = fTimeManager->New_Controller(TimeManagerT::kStatic);
@@ -1261,7 +1248,6 @@ void FEManagerT::SetController(void)
 			}
 			case GlobalT::kLinExpDynamic:
 			case GlobalT::kNLExpDynamic:
-			case GlobalT::kVarNodeNLExpDyn:
 			case GlobalT::kNLExpDynKfield:
 			case GlobalT::kPML:
 			{
