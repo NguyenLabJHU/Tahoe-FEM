@@ -1,7 +1,5 @@
-/*
-   CREATED: S. Wimmer 9 Nov 2000
-
-*/
+/* $Id: AbaqusResultsT.cpp,v 1.6 2002-01-03 23:07:02 paklein Exp $ */
+/* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
 #include <time.h>
@@ -1589,7 +1587,7 @@ bool AbaqusResultsT::Read (int& i)
       char c = fBuffer [fBufferDone++];
       if (c != 'I') return false;
 
-      char w [3];
+      char w[3] = {'\0', '\0', '\0'};
       strncpy (&w[0], fBuffer.Pointer (fBufferDone), 2);
       fBufferDone += 2;
       int width = (int) atof (&w[0]);
