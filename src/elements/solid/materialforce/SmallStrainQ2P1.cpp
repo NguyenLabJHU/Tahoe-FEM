@@ -1,4 +1,4 @@
-/* $Id: SmallStrainQ2P1.cpp,v 1.2 2003-08-08 22:57:27 thao Exp $ */
+/* $Id: SmallStrainQ2P1.cpp,v 1.3 2003-08-12 17:03:48 thao Exp $ */
 #include "SmallStrainQ2P1.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -166,7 +166,6 @@ void SmallStrainQ2P1::SetGlobalShape(void)
     fH_inv.Outer(fGamma,fGamma, (*W++)*(*jac++), dMatrixT::kAccumulate);
   }
   fH_inv.Inverse();
-  //  cout << "\nH_inv: "<<fH_inv;
   /*set shape function gradients for mixed dilation*/
   Set_Gradbar();
   
@@ -185,8 +184,6 @@ void SmallStrainQ2P1::SetGlobalShape(void)
 	fBbar.Multx(fLocDispTranspose, strain);
 	strain.ScaleOffDiagonal(0.5);
 	*ptheta++ = strain.Trace();
-	//	cout << "\ndisp: "<<fLocDispTranspose;
-	//      cout << "\nstrain: "<< strain;
       }
 
       /* "last" deformation gradient */
@@ -218,8 +215,6 @@ void SmallStrainQ2P1::Set_Gradbar(void)
       const dArray2DT& DNa = fShapes->Derivatives_U();	       
       fMShapes.RowCopy(CurrIP(),fGamma);
       DNa.ColumnCopy(a,fGradTranspose);
-      //      cout << "\nGamma: "<<fGamma;
-      //      cout <<"\nDNa: "<<fGradTranspose;
       fAMat.Outer(fGamma, fGradTranspose, scale, dMatrixT::kAccumulate);
     }
     fBMat.MultAB(fH_inv, fAMat, dMatrixT::kWhole);
@@ -234,8 +229,6 @@ void SmallStrainQ2P1::Set_Gradbar(void)
 void SmallStrainQ2P1::Set_Bbar(const dArray2DT& DNa, const dArray2DT& DNabar, 
 			       dMatrixT& Bbar,dMatrixT& B_dev, dMatrixT& Bbar_dil)
 {
-  //  cout <<"\n"<<CurrIP()<<") DNa: "<<DNa;
-  //  cout <<"\n"<<CurrIP()<<") DNabar: "<<DNabar;
   double* pBdev = B_dev.Pointer();
   double* pBdil = Bbar_dil.Pointer();
 
@@ -294,38 +287,12 @@ void SmallStrainQ2P1::Set_Bbar(const dArray2DT& DNa, const dArray2DT& DNabar,
 
   Bbar = B_dev;
   Bbar += Bbar_dil;
-  //  cout << "\nBbar: "<<Bbar;
 }
-
-void SmallStrainQ2P1::CalcPressure(void)
-{
-  int elem = CurrElementNumber();
-  double* ppres_bar = fPressure_List(elem);
-
-  fAVec = 0.0;
-  const double* Det    = fShapes->IPDets();
-  const double* Weight = fShapes->IPWeights();
-  fShapes->TopIP();
-  
-  while (fShapes->NextIP()) {
-    double pres = fCurrMaterial->Pressure();
-    fMShapes.RowCopy(CurrIP(),fGamma);
-    fAVec.AddScaled(pres*(*Weight++)*(*Det++),fGamma);
-  }	
-	
-  for (int i = 0; i<NumIP(); i++)  {
-    fMShapes.RowCopy(i,fGamma);
-    ppres_bar[i] = fH_inv.MultmBn(fGamma,fAVec);;
-  }
-} 
 
 /* calculate the internal force contribution ("-k*d") */
 void SmallStrainQ2P1::FormKd(double constK)
 {
-  
-  /*calculate mixed pressure field for current element*/
-  CalcPressure();
-  
+  fAVec = 0.0;  
   const double* Det    = fShapes->IPDets();
   const double* Weight = fShapes->IPWeights();
   
@@ -333,11 +300,22 @@ void SmallStrainQ2P1::FormKd(double constK)
   while (fShapes->NextIP())  {
     Set_Bbar(fShapes->Derivatives_U(), fGradbar[CurrIP()],fBbar, fB_dev, fBbar_dil);
     const dSymMatrixT& stress = fCurrMaterial->s_ij();
-    //    cout << "\nstress: "<<stress;
-    fBbar.MultTx(stress, fNEEvec);
-    
-    /* accumulate */
-    fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);			}	
+ 
+   /*calculate pressure*/
+    double pressure = fthird*stress.Trace();
+    fMShapes.RowCopy(CurrIP(),fGamma);
+    fAVec.AddScaled(pressure*(*Weight)*(*Det),fGamma);
+
+    /*internal force*/
+    fBbar.MultTx(stress, fNEEvec);    
+    fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);		
+  }	
+
+  int elem = CurrElementNumber();  
+  for (int ip = 0; ip<NumIP(); ip++)  {
+    fMShapes.RowCopy(ip,fGamma);
+    fPressure_List(elem,ip) = fH_inv.MultmBn(fGamma,fAVec);
+  }
 }
 
 void SmallStrainQ2P1::FormStiffness(double constK)
@@ -359,7 +337,6 @@ void SmallStrainQ2P1::FormStiffness(double constK)
     
     /* get D matrix */
     const dMatrixT& modulus = fCurrMaterial->c_ijkl();
-    //    cout << "\n modulus: "<<modulus;
     fD.SetToScaled(scale, modulus);
     
     /* multiply b(transpose) * db, taking account of symmetry, */

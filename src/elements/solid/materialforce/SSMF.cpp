@@ -1,4 +1,4 @@
-/* $Id: SSMF.cpp,v 1.1 2003-08-11 00:22:10 thao Exp $ */
+/* $Id: SSMF.cpp,v 1.2 2003-08-12 17:03:48 thao Exp $ */
 #include "SSMF.h"
 
 #include "OutputSetT.h"
@@ -254,9 +254,7 @@ void SSMF::MatForceVolMech(dArrayT& elem_val)
     double energy = fCurrSSMat->StrainEnergyDensity();
  
     const dSymMatrixT& Cauchy = fCurrSSMat->s_ij();
- 
     const dMatrixT& gradU = DisplacementGradient();
-
     double* pbody = fBodyForce.Pointer();
     double* pforce = elem_val.Pointer(); 
     if (NumSD() == 2)
@@ -274,7 +272,6 @@ void SSMF::MatForceVolMech(dArrayT& elem_val)
       fEshelby(0,1) = gradU(0,0)*Cauchy(0,1) + gradU(1,0)*Cauchy(1,1);
       fEshelby(1,0) = gradU(0,1)*Cauchy(0,0) + gradU(1,1)*Cauchy(1,0);
       fEshelby(1,1) = gradU(0,1)*Cauchy(0,1) + gradU(1,1)*Cauchy(1,1) - energy;
-
       double* pDQaX = DQa(0); 
       double* pDQaY = DQa(1);
       
@@ -384,7 +381,6 @@ void SSMF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretch)
       /*integrate material force*/
       const dArrayT& internalstress = fCurrSSMat->InternalStressVars();
       double* pstress = internalstress.Pointer();
-
       double xval = ScalarProduct(pstress, pGradX, fInternalDOF);
       double yval = ScalarProduct(pstress, pGradY, fInternalDOF);
 

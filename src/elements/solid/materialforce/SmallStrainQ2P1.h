@@ -1,4 +1,4 @@
-/* $Id: SmallStrainQ2P1.h,v 1.3 2003-08-10 23:27:27 thao Exp $ */
+/* $Id: SmallStrainQ2P1.h,v 1.4 2003-08-12 17:03:48 thao Exp $ */
 #ifndef _SMALL_STRAIN_Q2P1_H_
 #define _SMALL_STRAIN_Q2P1_H_
 
@@ -40,8 +40,6 @@ class SmallStrainQ2P1: public SmallStrainT
 	/** Form Bbar */
 	void Set_Bbar(const dArray2DT& DNa, const dArray2DT& DNabar, 
 		      dMatrixT& Bbar, dMatrixT& B_dev, dMatrixT& Bbar_dil);
-
-	void CalcPressure(void);
 
 	/** calculate the internal force contribution ("-k*d") */
 	void FormKd(double constK);

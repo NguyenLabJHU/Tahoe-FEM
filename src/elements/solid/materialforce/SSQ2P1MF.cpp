@@ -1,4 +1,4 @@
-/* $Id: SSQ2P1MF.cpp,v 1.1 2003-08-10 23:30:41 thao Exp $ */
+/* $Id: SSQ2P1MF.cpp,v 1.2 2003-08-12 17:03:48 thao Exp $ */
 #include "SSQ2P1MF.h"
 
 #include "OutputSetT.h"
@@ -172,9 +172,8 @@ void SSQ2P1MF::ComputeMatForce(dArray2DT& output)
 
   /*if internal dissipation vars exists, extrapolate from element ip to nodes*/
   if (fhas_dissipation) { 
-    Top();  
     /*assume all materials within elemblock have the same internal dissipation variables*/
-    ContinuumMaterialT* pmat0 = (*fMaterialList)[CurrentElement().MaterialNumber()];
+    ContinuumMaterialT* pmat0 = (*fMaterialList)[ElementCard(0).MaterialNumber()];
     fCurrSSMat = dynamic_cast<SSSolidMatT*>(pmat0);
     if (!fCurrSSMat) throw ExceptionT::kGeneralFail;
 
@@ -296,13 +295,17 @@ void SSQ2P1MF::MatForceVolMech(dArrayT& elem_val)
 
     /*gather material data*/
     double energy = fCurrSSMat->StrainEnergyDensity();
- 
     fCauchy = fCurrSSMat->s_ij();
-    double corr = fPressure_List(elem, CurrIP()) - fCauchy.Trace()*fthird;
-    fCauchy.PlusIdentity(corr);
- 
-    const dMatrixT& gradU = DisplacementGradient();
 
+    /*corrections*/
+    double pressure = fPressure_List(elem,CurrIP());
+    double theta = fTheta_List(elem,CurrIP());
+    double meanstress = fCauchy.Trace()*fthird;
+    double dilation = fStrain_List[CurrIP()].Trace();
+    energy += 0.5*(pressure*theta- meanstress*dilation);
+    fCauchy.PlusIdentity(pressure-meanstress); 
+
+    const dMatrixT& gradU = DisplacementGradient();
     double* pbody = fBodyForce.Pointer();
     double* pforce = elem_val.Pointer(); 
     if (NumSD() == 2)
@@ -316,10 +319,13 @@ void SSQ2P1MF::MatForceVolMech(dArrayT& elem_val)
       }	 
 
       /*form negative of Eshelby stress -SIG_IJ = C_IK S_KJ - Psi Delta_IJ*/
+     
       fEshelby(0,0) = gradU(0,0)*fCauchy(0,0) + gradU(1,0)*fCauchy(1,0) - energy;
       fEshelby(0,1) = gradU(0,0)*fCauchy(0,1) + gradU(1,0)*fCauchy(1,1);
       fEshelby(1,0) = gradU(0,1)*fCauchy(0,0) + gradU(1,1)*fCauchy(1,0);
       fEshelby(1,1) = gradU(0,1)*fCauchy(0,1) + gradU(1,1)*fCauchy(1,1) - energy;
+
+      //      cout <<"\nfEshelby: "<<fEshelby;
 
       double* pDQaX = DQa(0); 
       double* pDQaY = DQa(1);
@@ -427,13 +433,15 @@ void SSQ2P1MF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretc
     	pDQaX++;
     	pDQaY++;
       }
-
+      //      cout << "\nfGradInternalStrain: "<<fGradInternalStrain;
       /*integrate material force*/
       const dArrayT& internalstress = fCurrSSMat->InternalStressVars();
       double* pstress = internalstress.Pointer();
-
+      //      cout << "\ninternalstress: "<<internalstress;
       double xval = ScalarProduct(pstress, pGradX, fInternalDOF);
       double yval = ScalarProduct(pstress, pGradY, fInternalDOF);
+      //      cout << "\nxval: "<<xval;
+      //      cout << "\nyval: "<<yval;
 
       double* pelem_val = elem_val.Pointer();
       for (int i = 0; i<nen; i++)
@@ -731,6 +739,7 @@ void SSQ2P1MF::Extrapolate(void)
 {
   const char caller[] = "SSQ2P1MF::Extrapolate";   
   
+  Top();
   while (NextElement())
   {
     ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
@@ -746,10 +755,11 @@ void SSQ2P1MF::Extrapolate(void)
     fShapes->TopIP();
     while(fShapes->NextIP())
     {
-	    const dArrayT& internalstrains = fCurrSSMat->InternalStrainVars();
+	const dArrayT& internalstrains = fCurrSSMat->InternalStrainVars();
+	//	cout << "\n internalstrains: "<< internalstrains<<endl;
         const double* pQbU = fShapes->IPShapeU();
 	
-	    for (int i=0; i<NumElementNodes(); i++)
+	for (int i=0; i<NumElementNodes(); i++)
         {
             const double* pQaU = fShapes->IPShapeU();
 
@@ -772,5 +782,6 @@ void SSQ2P1MF::Extrapolate(void)
   for (int i = 0; i< fNumGroupNodes; i++)
     for (int j = 0; j< fNumInternalVal; j++)
         fGlobalVal(i,j) /= fGlobalMass[i];
+  //  cout << "\nfGlobalVal: "<<fGlobalVal;
 }
 
