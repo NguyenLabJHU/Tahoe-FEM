@@ -1,4 +1,4 @@
-/* $Id: iGridManagerT.cpp,v 1.7 2002-11-22 01:53:12 paklein Exp $ */
+/* $Id: iGridManagerT.cpp,v 1.7.2.1 2002-12-16 09:03:00 paklein Exp $ */
 /* created: paklein (09/13/1998) */
 #include "iGridManagerT.h"
 #include "iGridManager1DT.h"
@@ -10,7 +10,7 @@ using namespace Tahoe;
 
 /* constructor */
 iGridManagerT::iGridManagerT(const iArrayT& n_grid, const dArray2DT& coords,
-	const iArrayT* nodes_used):
+	const ArrayT<int>* nodes_used):
 	fGrid1D(NULL),
 	fGrid2D(NULL),
 	fGrid3D(NULL)
@@ -38,7 +38,7 @@ iGridManagerT::iGridManagerT(const iArrayT& n_grid, const dArray2DT& coords,
 
 /* constructor */
 iGridManagerT::iGridManagerT(int avg_cell_nodes, int max_cells, const dArray2DT& coords,
-	const iArrayT* nodes_used):
+	const ArrayT<int>* nodes_used):
 	fGrid1D(NULL),
 	fGrid2D(NULL),
 	fGrid3D(NULL)
