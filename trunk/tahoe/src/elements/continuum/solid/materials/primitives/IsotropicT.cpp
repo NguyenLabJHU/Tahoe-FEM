@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.cpp,v 1.8 2003-07-11 16:46:00 hspark Exp $ */
+/* $Id: IsotropicT.cpp,v 1.9 2003-08-16 01:31:48 rdorgan Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "IsotropicT.h"
@@ -132,6 +132,18 @@ void IsotropicT::ComputeModuli2D(dMatrixT& moduli,
 		moduli(2,2) = mu;
 	}
 	else 
+		throw ExceptionT::kSizeMismatch;
+}
+
+void IsotropicT::ComputeModuli1D(dMatrixT& moduli) const
+{
+	if (moduli.Rows() == 1)
+	{
+		double young = Young();
+		moduli = 0.0;
+		moduli(0,0) = young;
+	}
+	else
 		throw ExceptionT::kSizeMismatch;
 }
 
