@@ -1,7 +1,5 @@
-/* $Id: nExplicitCD.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
-/* created: paklein (03/23/1997)                                          */
-/* Node controller for an explicit 2nd order                              */
-/* accurate, central difference time-stepping algorithm.                  */
+/* $Id: nExplicitCD.cpp,v 1.2 2001-08-27 17:12:13 paklein Exp $ */
+/* created: paklein (03/23/1997) */
 
 #include "nExplicitCD.h"
 #include "iArrayT.h"
@@ -11,13 +9,15 @@
 #include "KBC_CardT.h"
 
 /* constructor */
-nExplicitCD::nExplicitCD(void) { }
+nExplicitCD::nExplicitCD(void):nControllerT(2) { }
 
 /* consistent BC's - updates predictors and acceleration only */
 void nExplicitCD::ConsistentKBC(const KBC_CardT& KBC)
 {
 #if __option(extended_errorcheck)
-	if (!fU || !fdU || !fddU)
+	if (fU[0] == NULL ||
+	    fU[1] == NULL ||
+	    fU[2] == NULL)
 	{
 		cout << "\n nExplicitCD::ConsistentKBC: field arrays not set" << endl;
 		throw eGeneralFail;
@@ -27,9 +27,9 @@ void nExplicitCD::ConsistentKBC(const KBC_CardT& KBC)
 	/* destinations */
 	int node = KBC.Node();
 	int dof  = KBC.DOF();
-	double& d = (*fU)(node, dof);
-	double& v = (*fdU)(node, dof);
-	double& a = (*fddU)(node, dof);
+	double& d = (*fU[0])(node, dof);
+	double& v = (*fU[1])(node, dof);
+	double& a = (*fU[2])(node, dof);
 
 	switch ( KBC.Code() )
 	{
@@ -74,50 +74,54 @@ void nExplicitCD::ConsistentKBC(const KBC_CardT& KBC)
 void nExplicitCD::Predictor(void)
 {
 #if __option (extended_errorcheck)
-	if (!fU || !fdU || !fddU)
+	if (fU[0] == NULL ||
+	    fU[1] == NULL ||
+	    fU[2] == NULL)
 	{
 		cout << "\n nExplicitCD::Predictor: field arrays not set" << endl;
 		throw eGeneralFail;
 	}
-	if (fU->Length() != fdU->Length() ||
-	   fdU->Length() != fddU->Length()) throw eGeneralFail;
+	if (fU[0]->Length() != fU[1]->Length() ||
+	    fU[1]->Length() != fU[2]->Length()) throw eGeneralFail;
 #endif
 
 	/* displacement predictor */
-	fU->AddCombination(dpred_v, *fdU, dpred_a, *fddU);	
+	fU[0]->AddCombination(dpred_v, *fU[1], dpred_a, *fU[2]);	
 
 	/* velocity predictor */
-	fdU->AddScaled(vpred_a, *fddU);
+	fU[1]->AddScaled(vpred_a, *fU[2]);
 }		
 
 /* correctors - map ACTIVE */
-void nExplicitCD::Corrector(const iArray2DT& eqnos, const dArrayT& update)
+void nExplicitCD::Corrector(const iArray2DT& eqnos, const dArrayT& update,
+	int eq_start, int eq_stop)
 {
 #if __option (extended_errorcheck)
-	if (!fU || !fdU || !fddU)
+	if (fU[0] == NULL ||
+	    fU[1] == NULL ||
+	    fU[2] == NULL)
 	{
 		cout << "\n nExplicitCD::Corrector: field arrays not set" << endl;
 		throw eGeneralFail;
 	}
-	if (eqnos.Length() != fU->Length() ||
-	      fU->Length() != fdU->Length()  ||
-	     fdU->Length() != fddU->Length()) throw eGeneralFail;		
-	//NOTE: no check on length of update.  could make numequations
-	//      a field in ControllerT.
+	if (eqnos.Length() != fU[0]->Length() ||
+	   fU[0]->Length() != fU[1]->Length()  ||
+	   fU[1]->Length() != fU[2]->Length()) throw eGeneralFail;		
+	//NOTE: no check on length of update.
 #endif
 
 	/* add update - assumes that fEqnos maps directly into dva */
 	int    *peq = eqnos.Pointer();
-	double *pv  = fdU->Pointer();
-	double *pa  = fddU->Pointer();
+	double *pv  = fU[1]->Pointer();
+	double *pa  = fU[2]->Pointer();
 	for (int i = 0; i < eqnos.Length(); i++)
 	{
-		int eq = *peq++;
+		int eq = *peq++ - eq_start;
 		
 		/* active dof */
-		if (eq > 0)
+		if (eq > -1 && eq < eq_stop)
 		{
-			double a = update[--eq]; //OFFSET
+			double a = update[eq];
 			*pv += vcorr_a*a;
 			*pa = a;
 		}
@@ -127,10 +131,12 @@ void nExplicitCD::Corrector(const iArray2DT& eqnos, const dArrayT& update)
 }
 
 void nExplicitCD::MappedCorrector(const iArrayT& map, const iArray2DT& flags,
-	const dArray2DT& update)
+	const dArray2DT& update, int eq_start, int eq_stop)
 {
 #if __option (extended_errorcheck)
-	if (!fU || !fdU || !fddU)
+	if (fU[0] == NULL ||
+	    fU[1] == NULL ||
+	    fU[2] == NULL)
 	{
 		cout << "\n nExplicitCD::MappedCorrector: field arrays not set" << endl;
 		throw eGeneralFail;
@@ -141,7 +147,7 @@ void nExplicitCD::MappedCorrector(const iArrayT& map, const iArray2DT& flags,
 	if (flags.MajorDim() != map.Length() ||
 	    flags.MajorDim() != update.MajorDim() ||
 	    flags.MinorDim() != update.MinorDim() ||
-	    flags.MinorDim() != fdU->MinorDim()) throw eSizeMismatch;
+	    flags.MinorDim() != fU[1]->MinorDim()) throw eSizeMismatch;
 
 	/* run through map */
 	int minordim = flags.MinorDim();
@@ -152,12 +158,12 @@ void nExplicitCD::MappedCorrector(const iArrayT& map, const iArray2DT& flags,
 		int row = map[i];
 		int* pflags = flags(i);
 
-		double* pv = (*fdU)(row);
-		double* pa = (*fddU)(row);
+		double* pv = (*fU[1])(row);
+		double* pa = (*fU[2])(row);
 		for (int j = 0; j < minordim; j++)
 		{
 			/* active */
-			if (*pflag++ > 0)
+			if (*pflag >= eq_start && *pflag <= eq_stop)
 			{
 				double a = *pupdate;
 				*pv += vcorr_a*a;
@@ -165,9 +171,23 @@ void nExplicitCD::MappedCorrector(const iArrayT& map, const iArray2DT& flags,
 			}
 			
 			/* next */
-			pupdate++; pv++; pa++;
+			pflag++; pupdate++; pv++; pa++;
 		}
 	}
+}
+
+/* return the field array needed by nControllerT::MappedCorrector. */
+const dArray2DT& nExplicitCD::MappedCorrectorField(void) const
+{
+#if __option (extended_errorcheck)
+	if (fU[2] == NULL)
+	{
+		cout << "\n nExplicitCD::MappedCorrectorField: field arrays not set" << endl;
+		throw eGeneralFail;
+	}
+#endif
+
+	return *fU[2];
 }
 
 /* pseudo-boundary conditions for external nodes */
