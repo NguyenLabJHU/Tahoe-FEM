@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.32.2.7 2002-05-03 07:17:13 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.32.2.8 2002-05-03 09:57:32 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1002,6 +1002,7 @@ void FEManagerT::WriteParameters(void) const
 	fMainOut << "    eq. " << GlobalT::kLinExpDynamic   << ", linear explicit dynamic\n";   	
 	fMainOut << "    eq. " << GlobalT::kNLExpDynamic    << ", nonlinear explicit dynamic\n";   	
 	fMainOut << "    eq. " << GlobalT::kPML             << ", perfectly matched layer (PML)\n";   	
+	fMainOut << "    eq. " << GlobalT::kMultiField      << ", general multiple field problem\n";   	
 
 	fModelManager->EchoData (fMainOut);
 	IOBaseT temp (fMainOut);
@@ -1017,6 +1018,7 @@ void FEManagerT::WriteParameters(void) const
 	fMainOut << " Input data print code . . . . . . . . . . . . . = " << fPrintInput << '\n';
 	fMainOut << "    eq. 0, non verbose echo of input data\n";
 	fMainOut << "    eq. 1, echo all input data\n";
+	fMainOut << " Number of solver groups . . . . . . . . . . . . = " << fSolvers.Length()  << '\n';
 	fMainOut << endl;
 }
 
