@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.12 2002-02-04 22:57:33 paklein Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.13 2002-02-11 23:48:58 paklein Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -74,6 +74,7 @@ void TranslateIOManager::SetOutput (const StringT& program_name, const StringT& 
     }
   cout << "\n Enter the root of the output files: ";
   cin >> fOutputName;
+  fOutputName.ToNativePathName();
   fOutputName.Append(".ext"); //trimmed off by fOutput
 
   ArrayT<StringT> outstrings (4);
@@ -456,8 +457,10 @@ void TranslateIOManager::WriteNodeSets (void)
 	  cin >> answer;
 	}
       
-      if (answer [0] == 'y' || answer[0] == 'Y')
-	fOutput->AddNodeSet (fModel.NodeSet(names[i]), i+1);
+		if (answer [0] == 'y' || answer[0] == 'Y') {
+			int ID = atoi(names[i]);
+			fOutput->AddNodeSet (fModel.NodeSet(names[i]), ID);
+		}
     }
 }
  
@@ -492,7 +495,7 @@ void TranslateIOManager::WriteElements (void)
 	  conn[0] = fModel.ElementGroupPointer (names[e]);
 	  fModel.ReadConnectivity (names[e]);
 
-	  if (conn[0]->Length() > 0)
+	  if (true || conn[0]->Length() > 0)
 	    {
 	    	ArrayT<StringT> block_ID(1);
 	    	block_ID[0] = names[e];
@@ -522,6 +525,7 @@ void TranslateIOManager::WriteSideSets (void)
   cout << "\n1. Translate All\n";
   cout << "2. Translate Some\n";
   cout << "3. Translate None\n";
+  cout << "\n selection: ";
   cin >> selection;
 
   if (selection == 3) return;
@@ -538,11 +542,10 @@ void TranslateIOManager::WriteSideSets (void)
 	{
 	  fGlobalSideSets[i] = fModel.SideSet (names[i]);
 	  const StringT& g = fModel.SideSetGroupID(names[i]);
-	  if (fModel.IsSideSetLocal (names[i]))
-	    fModel.SideSetLocalToGlobal (g, fGlobalSideSets[i], fGlobalSideSets[i]);
 	    
 	  int g_int = atoi(g);
-	  fOutput->AddSideSet (fGlobalSideSets [i], i+1, g_int);
+	  int ID = atoi(names[i]);
+	  fOutput->AddSideSet (fGlobalSideSets [i], ID, g_int);
 	}
     }
 }
