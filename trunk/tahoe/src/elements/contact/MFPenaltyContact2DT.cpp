@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.10 2004-07-15 08:26:08 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.11 2005-01-19 09:01:34 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
@@ -18,6 +18,9 @@
 #include "MeshFreeFSSolidAxiT.h"
 #include "MeshFreeSupportT.h"
 
+/* meshless methods usinf SCNI */
+#include "SCNIMFT.h"
+
 /* parameters (duplicated from Contact2DT) */
 const int kNumFacetNodes = 2;
 const int kMaxNumGrid    = 75;
@@ -29,6 +32,7 @@ MFPenaltyContact2DT::MFPenaltyContact2DT(const ElementSupportT& support):
 	PenaltyContact2DT(support),
 	fElementGroup(NULL),
 	fMeshFreeSupport(NULL),
+	fSCNI(NULL),
 	fdvT_man(0, true),
 	fRHS_man(0, fRHS)
 {
@@ -48,6 +52,12 @@ void MFPenaltyContact2DT::DefineParameters(ParameterListT& list) const
 /* accept parameter list */
 void MFPenaltyContact2DT::TakeParameterList(const ParameterListT& list)
 {
+	const char caller[] = "MFPenaltyContact2DT::TakeParameterList";
+
+#ifdef __NO_RTTI__
+	ExceptionT::GeneralFail(caller, "requires RTTI");
+#endif
+
 	/* NOTE: fMeshFreeSupport must be resolved before calling PenaltyContact2DT::TakeParameterList
 	 *       because it is needed during MFPenaltyContact2DT:: ExtractContactGeometry */
 
@@ -61,15 +71,15 @@ void MFPenaltyContact2DT::TakeParameterList(const ParameterListT& list)
 	const MeshFreeSSSolidT* mf_ss_solid = dynamic_cast<const MeshFreeSSSolidT*>(fElementGroup);
 	const MeshFreeFSSolidT* mf_fs_solid = dynamic_cast<const MeshFreeFSSolidT*>(fElementGroup);
 	const MeshFreeFSSolidAxiT* mf_fs_axi_solid = dynamic_cast<const MeshFreeFSSolidAxiT*>(fElementGroup);
+	fSCNI = dynamic_cast<const SCNIMFT*>(fElementGroup);
 	if (mf_ss_solid)
 		fMeshFreeSupport = &(mf_ss_solid->MeshFreeSupport());	
 	else if (mf_fs_solid)
 		fMeshFreeSupport = &(mf_fs_solid->MeshFreeSupport());	
 	else if (mf_fs_axi_solid)
 		fMeshFreeSupport = &(mf_fs_axi_solid->MeshFreeSupport());	
-	else
-		ExceptionT::GeneralFail("MFPenaltyContact2DT::TakeParameterList",
-			"element group %d is not meshfree", group+1);
+	else if (!fSCNI)
+		ExceptionT::GeneralFail(caller, "element group %d is not meshfree", group+1);
 
 	/* register arrays with memory manager */
 	fStrikerCoords_man.SetWard(0, fStrikerCoords, NumSD());
@@ -77,7 +87,8 @@ void MFPenaltyContact2DT::TakeParameterList(const ParameterListT& list)
 	fdvT_man.Register(fdv2T);
 
 	/* set map of node ID to meshfree point index */
-	fNodeToMeshFreePoint.SetMap(fMeshFreeSupport->NodesUsed());
+	if (fMeshFreeSupport)
+		fNodeToMeshFreePoint.SetMap(fMeshFreeSupport->NodesUsed());
 
 	/* inherited */
 	PenaltyContact2DT::TakeParameterList(list);
@@ -98,6 +109,8 @@ void MFPenaltyContact2DT::LHSDriver(GlobalT::SystemTypeT)
 
 void MFPenaltyContact2DT::RHSDriver(void)
 {
+	const char caller[] = "MFPenaltyContact2DT::RHSDriver";
+
 	/* time integration parameters */
 	double constKd = 0.0;
 	int     formKd = fIntegrator->FormKd(constKd);
@@ -107,15 +120,15 @@ void MFPenaltyContact2DT::RHSDriver(void)
 	const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
 	const dArray2DT& disp = Field()[0]; /* displacements */
 
-	/* striker neighbors */
-	const RaggedArray2DT<int>& striker_neighbors = fMeshFreeSupport->NodeNeighbors();
-
 	/* compute current configuration of active strikers */
 	ComputeStrikerCoordinates(fActiveStrikers);
 
 	/* reset tracking data */
 	int num_contact = 0;
 	double h_max = 0.0;
+
+	/* check */
+	if (!fSCNI && !fMeshFreeSupport) ExceptionT::GeneralFail(caller, "no meshless support");
 
 	/* loop over active elements */
 	int nsd = NumSD();
@@ -149,7 +162,12 @@ void MFPenaltyContact2DT::RHSDriver(void)
 		fStrikerCoords.RowAlias(striker_active_index, fStriker);
 
 		/* striker neighborhood */
-		fMeshFreeSupport->LoadNodalData(striker_node, neighbors, Na, DNa);
+		if (fMeshFreeSupport)
+			fMeshFreeSupport->LoadNodalData(striker_node, neighbors, Na, DNa);
+		else /* SCNI */ {
+			fSCNI_Support.RowAlias(striker_node, neighbors);
+			fSCNI_Phi.RowAlias(striker_node, Na);
+		}	
 		SetDerivativeArrays(Na);
 
 		/* penetration vectors */
@@ -300,13 +318,19 @@ void MFPenaltyContact2DT::ExtractContactGeometry(const ParameterListT& list)
 	else if (striker_spec.Name() == "all_surface_nodes")
 		StrikersFromSurfaces();
 	else if (striker_spec.Name() == "all_nodes_as_strikers")
+	{
+		//TEMP
+		if (fSCNI) ExceptionT::GeneralFail(caller, "\"all_nodes_as_strikers\" not supported with SCNI");
+	
 		fStrikerTags.Alias(fMeshFreeSupport->NodesUsed());
+	}
 	else
 		ExceptionT::GeneralFail(caller, "unrecognized contact node specification \"\"",
 			striker_spec.Name().Pointer());
 
-	/* check to see that all strikers are meshfree */
-	if (striker_spec.Name() != "all_nodes_as_strikers") {
+	/* check to see that all strikers are meshfree - only apply check with meshless methods
+	 * using fMeshFreeSupport. The SCNI classes do this check later. */
+	if (striker_spec.Name() != "all_nodes_as_strikers" && fMeshFreeSupport) {
 		InverseMapT map;
 		map.SetOutOfRange(InverseMapT::MinusOne);
 		map.SetMap(fMeshFreeSupport->NodesUsed());
@@ -321,6 +345,21 @@ void MFPenaltyContact2DT::ExtractContactGeometry(const ParameterListT& list)
 		fStrikerTags++;
 		out << fStrikerTags.wrap(8) << '\n';
 		fStrikerTags--;	
+	}
+
+	/* collect SCNI data for all striker tags */
+	if (fSCNI)
+	{
+		/* set map of node ID to meshfree point index */
+		fNodeToMeshFreePoint.SetMap(fStrikerTags);
+
+		/* map global ID to local numbering */
+		fSCNI_LocalID = fStrikerTags;
+		if (!fSCNI->GlobalToLocalNumbering(fSCNI_LocalID))
+			ExceptionT::GeneralFail(caller, "SCNI global->local failed");
+	
+		/* collect nodal neighbors and shape functions */
+		fSCNI->NodalSupportAndPhi(fSCNI_LocalID, fSCNI_Support, fSCNI_Phi);
 	}
 
 	/* set connectivity name */
@@ -401,9 +440,13 @@ void MFPenaltyContact2DT::ComputeStrikerCoordinates(const ArrayT<int>& strikers)
 	if (strikers.Length() > 0) {
 	
 		/* reconstruct displacement field */
-		iArrayT tmp;
-		tmp.Alias(strikers);
-		fElementGroup->NodalDOFs(tmp, fStrikerCoords);
+		if (fSCNI)
+			fSCNI->InterpolatedFieldAtNodes(fSCNI_LocalID, fStrikerCoords);
+		else {
+			iArrayT tmp;
+			tmp.Alias(strikers);
+			fElementGroup->NodalDOFs(tmp, fStrikerCoords);
+		}
 
 		/* compute current coordinates */
 		const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
