@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.cpp,v 1.9 2001-07-27 01:23:05 paklein Exp $ */
+/* $Id: DPSSLinHardT.cpp,v 1.10 2001-08-10 19:09:46 paklein Exp $ */
 /* created: myip (06/01/1999)                                        */
 /*
  * Interface for Drucker-Prager, nonassociative, small strain,
@@ -15,7 +15,7 @@
 #include "StringT.h"
 
 /* class constants */
-const int    kNumInternal = 4; // number of internal state variables
+const int    kNumInternal = 6; // number of internal state variables
 const double sqrt23       = sqrt(2.0/3.0);
 const double sqrt32       = sqrt(3.0/2.0);
 const double kYieldTol    = 1.0e-10;

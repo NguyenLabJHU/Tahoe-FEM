@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.h,v 1.5 2001-07-25 01:45:31 cfoster Exp $ */
+/* $Id: DPSSLinHardT.h,v 1.6 2001-08-10 19:09:46 paklein Exp $ */
 /* created: myip (06/01/1999)                                      */
 /*  
  * Interface for Druker-Prager, nonassociative, small strain,
@@ -65,7 +65,9 @@ class DPSSLinHardT: public DPPrimitiveT
 	enum InternalVariablesT {    kalpha = 0,  // stress-like internal state variable
 	                        kstressnorm = 1,  // norm of stress
 	       	                    kdgamma = 2,  // consistency parameter
-				    kftrial = 3}; // yield function value
+				                kftrial = 3,  // yield function value
+				              kLocCheck = 4,
+				          kLocCheckDisc = 5}; 
 	                        
 	/* element level data */
 	void Update(ElementCardT& element);
@@ -89,7 +91,7 @@ class DPSSLinHardT: public DPPrimitiveT
 		const ElementCardT& element);
 	
 
-  private:
+//  private:
 
 	/* load element data for the specified integration point */
 	void LoadData(const ElementCardT& element, int ip);
