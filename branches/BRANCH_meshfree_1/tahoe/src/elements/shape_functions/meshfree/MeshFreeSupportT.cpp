@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.1.1.1.4.4 2001-06-19 20:23:23 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.1.1.1.4.5 2001-06-19 23:05:31 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -41,6 +41,7 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 	const dArray2DT& coords, const iArray2DT& connects, const iArrayT& nongridnodes, 
 	ifstreamT& in):
 	fDomain(domain),
+	fDextra(0.0),
 	fEFG(NULL),
 	fRKPM(NULL),
 	fGrid(NULL),
@@ -113,9 +114,10 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 			case kGaussian:
 			{
 				/* 2-parameters */
-				window_params.Allocate(2);
+				window_params.Allocate(3);
 				in >> window_params[0]; // support size scaling
 				in >> window_params[1]; // sharpening factor
+				in >> window_params[2]; // cut-off factor
 				break;
 			}
 			default:
@@ -132,7 +134,7 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT& domain,
 		fRKPM->Initialize();
 		
 		/* dimension nodal field parameter */
-		fnodal_param_man.SetMinorDimension(fRKPM->NumberOfNodalParameters());
+		fnodal_param_man.SetMinorDimension(fRKPM->NumberOfSupportParameters());
 	}
 	else
 	{
@@ -158,6 +160,7 @@ MeshFreeSupportT::~MeshFreeSupportT(void)
 void MeshFreeSupportT::WriteParameters(ostream& out) const
 {
 	/* common parameters */
+	out << "\n Meshfree support parameters:\n";
 	out << " Store shape functions . . . . . . . . . . . . . = " << ((fStoreShape) ? "TRUE" : "FALSE") << '\n';
 	out << " Meshfree formulation. . . . . . . . . . . . . . = " << fMeshfreeType << '\n';
 	out << "    [" << kEFG << "]: Element-free Galerkin (EFG)\n";
@@ -173,6 +176,7 @@ void MeshFreeSupportT::WriteParameters(ostream& out) const
 		fRKPM->WriteParameters(out);
 	}
 	else throw eGeneralFail;
+	out << '\n';
 }
 
 /* steps to initialization - modifications to the support size must
@@ -240,14 +244,14 @@ void MeshFreeSupportT::SetSkipElements(const iArrayT& skip_elements)
 }
 
 /* synchronize Dmax with another set (of active EFG nodes) */
-void MeshFreeSupportT::SynchronizeNodalParameters(dArray2DT& nodal_params)
+void MeshFreeSupportT::SynchronizeSupportParameters(dArray2DT& nodal_params)
 {
 	if (fMeshfreeType == kEFG)
 	{
 		/* should be over the same global node set (marked by length) */
 		if (fNodalParameters.Length() != nodal_params.Length())
 		{
-			cout << "\n MeshFreeSupportT::SynchronizeNodalParameters: list of nodal\n"
+			cout << "\n MeshFreeSupportT::SynchronizeSupportParameters: list of nodal\n"
 			     << " parameters must the same length over the global node set" << endl;
 			throw eSizeMismatch;
 		}
@@ -264,7 +268,7 @@ void MeshFreeSupportT::SynchronizeNodalParameters(dArray2DT& nodal_params)
 	}
 	else if (fMeshfreeType == kRKPM)
 		/* handled by the MLS solver */
-		fRKPM->SynchronizeNodalParameters(fNodalParameters, nodal_params);
+		fRKPM->SynchronizeSupportParameters(fNodalParameters, nodal_params);
 	else throw eGeneralFail;
 }
 
@@ -295,7 +299,7 @@ void MeshFreeSupportT::SetNodalParameters(const iArrayT& node, const dArray2DT& 
 			fNodalParameters.Allocate(fCoords.MajorDim(), 1);
 		else if  (fMeshfreeType == kRKPM)
 		{
-			fNodalParameters.Allocate(fCoords.MajorDim(), fRKPM->NumberOfNodalParameters());
+			fNodalParameters.Allocate(fCoords.MajorDim(), fRKPM->NumberOfSupportParameters());
 			
 			/* additional parameters */	
 			fVolume.Allocate(fCoords.MajorDim());
@@ -581,7 +585,7 @@ int MeshFreeSupportT::SetFieldUsing(const dArrayT& x, const ArrayT<int>& nodes)
 	
 		/* dimension */
 		fcoords_man.SetMajorDimension(fneighbors.Length(), false);	
-		fnodal_param_man.Dimension(fneighbors.Length(), false);
+		fnodal_param_man.SetMajorDimension(fneighbors.Length(), false);
 	
 		/* collect local lists */
 		fcoords.RowCollect(fneighbors, fCoords);
@@ -794,6 +798,21 @@ void MeshFreeSupportT::SetNodeNeighborData(const dArray2DT& coords)
 	iArray2DT* pthis = &a1;
 	iArray2DT* pnext = &a2;
 
+	/* determine search type */
+	WindowT::SearchTypeT search_type = WindowT::kNone;
+	if (fMeshfreeType == kEFG)
+		search_type = WindowT::kSpherical;
+	else if (fMeshfreeType == kRKPM)
+		search_type = fRKPM->SearchType();
+	
+	/* check */
+	if (search_type == WindowT::kNone)
+	{
+		cout << "\n MeshFreeSupportT::SetNodeNeighborData: could not determine\n" 
+		     <<   "     search type" << endl;
+		throw eGeneralFail;
+	}
+
 	/* loop over "active" nodes */
 	dArrayT nodal_params;
 	AutoArrayT<int> neighbors;
@@ -803,15 +822,13 @@ void MeshFreeSupportT::SetNodeNeighborData(const dArray2DT& coords)
 		double* target = coords(i);
 		
 		/* find nodes in neighborhood */
-		if (fMeshfreeType == kEFG)
+		if (search_type == WindowT::kSpherical)
 			fGrid->Neighbors(i, fNodalParameters(i,0), neighbors);
-		else if (fMeshfreeType == kRKPM)
+		else
 		{
 			fNodalParameters.RowAlias(i, nodal_params);
 			fGrid->Neighbors(i, nodal_params, neighbors);
 		}		
-		else 
-			throw eGeneralFail;
 
 		/* add self to the list */
 		neighbors.Append(i);
@@ -1128,7 +1145,7 @@ void MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 	int nen = fConnects.MinorDim();
 
 	/* set dimensions */
-	fnodal_param_man.Dimension(nnd, false);
+	fnodal_param_man.SetMajorDimension(nnd, false);
 	fcoords_man.SetMajorDimension(nnd, false);
 	fvolume_man.SetLength(nnd, false);
 
@@ -1222,7 +1239,7 @@ void MeshFreeSupportT::ComputeNodalData(int node, const iArrayT& neighbors,
 	
 	/* set dimensions */
 	int count = neighbors.Length();
-	fnodal_param_man.Dimension(count, false);
+	fnodal_param_man.SetMajorDimension(count, false);
 	fcoords_man.SetMajorDimension(count, false);
 	
 	/* collect local lists */
@@ -1249,7 +1266,11 @@ void MeshFreeSupportT::ComputeNodalData(int node, const iArrayT& neighbors,
 	}
 	else
 	{
+		/* dimension */
+		fvolume_man.SetLength(count, false);
 		fvolume.Collect(neighbors, fVolume);
+		
+		/* set field */
 		OK = fRKPM->SetField(fcoords, fnodal_param, fvolume, x_node, 1);
 		
 		/* copy field data */
@@ -1299,10 +1320,10 @@ void MeshFreeSupportT::SetSupport_Spherical_Search(void)
 		fVolume = 1.0;
 		
 		/* check */
-		if (fRKPM->NumberOfNodalParameters() != 1)
+		if (fRKPM->NumberOfSupportParameters() != 1)
 		{
 			cout << "\n MeshFreeSupportT::SetSupport_Spherical_Search: expecting only 1\n" 
-			     <<   "     nodal support size parameter:" << fRKPM->NumberOfNodalParameters() 
+			     <<   "     nodal support size parameter:" << fRKPM->NumberOfSupportParameters() 
 			     << endl;
 			throw eGeneralFail;
 		}
@@ -1469,7 +1490,7 @@ void MeshFreeSupportT::SetSupport_Spherical_Search(void)
 	if (fMeshfreeType == kEFG)
 		fNodalParameters *= fDextra; /* scale neighborhoods */
 	else if (fMeshfreeType == kRKPM)
-		fRKPM->ModifyNodalParameters(fNodalParameters);
+		fRKPM->ModifySupportParameters(fNodalParameters);
 	else throw eGeneralFail;
 }
 

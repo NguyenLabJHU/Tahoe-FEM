@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.h,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.h,v 1.1.1.1.4.1 2001-06-19 23:05:29 paklein Exp $ */
 /* created: paklein (11/12/1999)                                          */
 
 #ifndef _MFREE_SUPPORT_T_H_
@@ -78,11 +78,7 @@ private:
 protected:
 
 	/* mesh-free parameters */
-	MeshFreeT::FormulationT fMeshFreeCode;  // meshfree formulation
-	double fd_max;      // domain of influence scale factor
-	int fComplete;      // order of completeness, i.e. 1 => "linear basis"
-	int fStoreShape;    // compute/store all MLS shape functions/derivatives
-	int fAutoBorder;    // 1 => make all "surface" nodes exact
+	int fAutoBorder; // 1 => make all "surface" nodes exact
 
 	/* mesh-free shape functions */
 	MeshFreeShapeFunctionT* fMFShapes;

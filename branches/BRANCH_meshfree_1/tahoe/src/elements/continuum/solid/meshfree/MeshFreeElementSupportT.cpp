@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.1.1.1.4.1 2001-06-19 18:27:47 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.1.1.1.4.2 2001-06-19 23:05:29 paklein Exp $ */
 /* created: paklein (11/12/1999)                                          */
 
 #include "MeshFreeElementSupportT.h"
@@ -34,16 +34,9 @@ MeshFreeElementSupportT::MeshFreeElementSupportT(ifstreamT& in):
 	fMapShift(-1)
 {
 	/* read */
-	in >> fMeshFreeCode;
-	in >> fd_max;
-	in >> fComplete;
-	in >> fStoreShape;
 	in >> fAutoBorder;
 
 	/* check values */
-	if (fd_max < 1.0) throw eBadInputValue;
-	if (fComplete < 1) throw eBadInputValue;
-	if (fStoreShape != 0 && fStoreShape != 1) throw eBadInputValue;
 	if (fAutoBorder != 0 && fAutoBorder != 1) throw eBadInputValue;
 
 #ifdef __MPI__
@@ -69,12 +62,6 @@ MeshFreeSupportT& MeshFreeElementSupportT::MeshFreeSupport(void) const
 void MeshFreeElementSupportT::PrintControlData(ostream& out) const
 {
 	/* echo */
-	out << " Mesh-free formulation . . . . . . . . . . . . . = " << fMeshFreeCode << '\n';
-	out << "    eq. " << MeshFreeSupportT::kEFG  << ", EFG\n";
-	out << "    eq. " << MeshFreeSupportT::kRKPM << ", RKPM\n";
-	out << " Domain of influence scale factor (d_max). . . . = " << fd_max        << '\n';
-	out << " Order of completeness of basis functions. . . . = " << fComplete     << '\n';
-	out << " Store all shape functions and derivatives . . . = " << fStoreShape   << '\n';
 	out << " Auto selection/generation of border transition. = " << fAutoBorder;
 	out << ((fAutoBorder == 1) ? " (ACTIVE)" : " (INACTIVE)") << '\n';
 	out.flush();

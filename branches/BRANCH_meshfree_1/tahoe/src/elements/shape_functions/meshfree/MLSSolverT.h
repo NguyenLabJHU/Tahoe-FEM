@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.h,v 1.1.1.1.4.4 2001-06-19 20:24:11 paklein Exp $ */
+/* $Id: MLSSolverT.h,v 1.1.1.1.4.5 2001-06-19 23:05:30 paklein Exp $ */
 /* created: paklein (12/08/1999)                                          */
 /* base class for moving least squares, interpolants                      */
 
@@ -77,13 +77,13 @@ public:
 	int BasisDimension(void) const;
 	
 	/** number of nodal field parameters */
-	int NumberOfNodalParameters(void) const;
+	int NumberOfSupportParameters(void) const;
 	
 	/** "synchronization" of nodal field parameters */
-	void SynchronizeNodalParameters(dArray2DT& params_1, dArray2DT& params_2);
+	void SynchronizeSupportParameters(dArray2DT& params_1, dArray2DT& params_2);
 
 	/** modify nodal shape function parameters */
-	void ModifyNodalParameters(dArray2DT& nodal_params) const;
+	void ModifySupportParameters(dArray2DT& nodal_params) const;
 
 	//TEMP: debugging functions
 	
@@ -192,12 +192,12 @@ private:
 /* inlines */
 
 /* number of nodal field parameters */
-inline int MLSSolverT::NumberOfNodalParameters(void) const
+inline int MLSSolverT::NumberOfSupportParameters(void) const
 {
 #if __option(extended_errorcheck)
 	if (!fWindow) throw eGeneralFail;
 #endif
-	return fWindow->NumberOfNodalParameters();
+	return fWindow->NumberOfSupportParameters();
 }
 
 /* coverage test */
@@ -220,9 +220,9 @@ inline WindowT::SearchTypeT MLSSolverT::SearchType(void) const
 }
 
 /* modify nodal shape function parameters */
-inline void MLSSolverT::ModifyNodalParameters(dArray2DT& nodal_params) const
+inline void MLSSolverT::ModifySupportParameters(dArray2DT& nodal_params) const
 {
-	fWindow->ModifyNodalParameters(nodal_params); 
+	fWindow->ModifySupportParameters(nodal_params); 
 };
 
 /* return field value and derivatives */

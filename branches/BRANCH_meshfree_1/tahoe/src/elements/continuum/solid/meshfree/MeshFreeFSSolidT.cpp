@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.2.4.1 2001-06-19 18:27:47 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.2.4.2 2001-06-19 23:05:29 paklein Exp $ */
 /* created: paklein (09/16/1998)                                          */
 /* large deformation elasticity with MLS shapefunctions for the           */
 /* field (displacement) representation                                    */
@@ -42,12 +42,12 @@ MeshFreeFSSolidT::MeshFreeFSSolidT(FEManagerT& fe_manager):
 /* data initialization */
 void MeshFreeFSSolidT::Initialize(void)
 {
-/* inherited */
-TotLag_FSSolidT::Initialize();
+	/* inherited */
+	TotLag_FSSolidT::Initialize();
 
-/* free memory associated with "other" eqnos */
-fEqnos.Free(); // is this OK ? can't be freed earlier b/c of
-// base class initializations
+	/* free memory associated with "other" eqnos */
+	fEqnos.Free(); // is this OK ? can't be freed earlier b/c of
+	               // base class initializations
 
 	/* register dynamic local arrays */
 	fLocGroup.Register(fLocDisp);     // ContinuumElementT
@@ -314,12 +314,14 @@ void MeshFreeFSSolidT::PrintControlData(ostream& out) const
 /* initialization functions */
 void MeshFreeFSSolidT::SetShape(void)
 {
-/* constructors */
+	/* constructors */
 	fMFShapes = new MeshFreeShapeFunctionT(fGeometryCode, fNumIP,
 		fLocInitCoords, fNodes->InitialCoordinates(), fConnectivities, fOffGridNodes,
 		fElementCards.Position(), fFEManager.Input());
-
 	if (!fMFShapes) throw eOutOfMemory;
+
+	/* echo parameters */
+	fMFShapes->WriteParameters(fFEManager.Output());
 	
 	/* initialize (set internal database) */
 	fMFShapes->Initialize();
