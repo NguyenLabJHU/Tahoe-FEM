@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.9 2001-09-10 16:36:49 hspark Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.10 2001-09-15 01:20:34 paklein Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList2DT.h"
@@ -439,10 +439,10 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 		if (!pmat) throw eOutOfMemory;
 		
 		/* set thermal LTf pointer */
-		int LTfnum = pmat->ThermalLTfNumber();
+		int LTfnum = pmat->ThermalStrainSchedule();
 		if (LTfnum > -1)
 		{
-			pmat->SetThermalLTfPtr(fElementGroup.GetLTfPtr(LTfnum));
+			pmat->SetThermalSchedule(fElementGroup.GetLTfPtr(LTfnum));
 			
 			/* set flag */
 			fHasThermal = true;
