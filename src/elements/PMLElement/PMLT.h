@@ -1,4 +1,4 @@
-/* $Id: PMLT.h,v 1.4 2002-07-02 19:55:14 cjkimme Exp $ */
+/* $Id: PMLT.h,v 1.5 2002-07-05 17:51:41 paklein Exp $ */
 #ifndef _PML_T_H_
 #define _PML_T_H_
 
@@ -136,7 +136,6 @@ inline const dMatrixT& PMLT::GradU(void) const
 		     << " did not specify this need" << endl;
 		throw eGeneralFail;
 	}
-} // namespace Tahoe 
 #endif
 
 	return fGradU_List[CurrIP()];
@@ -154,7 +153,6 @@ inline const dMatrixT& PMLT::GradU(int ip) const
 		     << " did not specify this need" << endl;
 		throw eGeneralFail;
 	}
-} // namespace Tahoe 
 #endif
 
 	return fGradU_List[ip];
@@ -172,7 +170,6 @@ inline const dMatrixT& PMLT::GradU_last(void) const
 		     << " did not specify this need" << endl;
 		throw eGeneralFail;
 	}
-} // namespace Tahoe 
 #endif
 
 	return fGradU_last_List[CurrIP()];
@@ -190,12 +187,10 @@ inline const dMatrixT& PMLT::GradU_last(int ip) const
 		     << " did not specify this need" << endl;
 		throw eGeneralFail;
 	}
-} // namespace Tahoe 
 #endif
 
 	return fGradU_last_List[ip];
 }
-
 
 } // namespace Tahoe 
 #endif /* _PML_T_H_ */
