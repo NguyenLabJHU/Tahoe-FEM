@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.10 2002-03-04 06:48:35 paklein Exp $ */
+/* $Id: SolidT.cpp,v 1.11 2002-03-27 00:57:25 ebmarin Exp $ */
 /* created: paklein (03/10/2001)                                          */
 
 #include "SolidT.h"
@@ -79,9 +79,15 @@ istream& operator>>(istream& in, SolidT::SolidT& code)
 		case SolidT::kBCJHypo:
 			code = SolidT::kBCJHypo;
 			break;
-		case SolidT::kFDXtalElast:
-			code = SolidT::kFDXtalElast;
+		case SolidT::kBCJHypoIsoDmgKE:
+			code = SolidT::kBCJHypoIsoDmgKE;
 			break;
+		case SolidT::kBCJHypoIsoDmgYC:
+			code = SolidT::kBCJHypoIsoDmgYC;
+			break;
+                case SolidT::kFDXtalElast:
+                        code = SolidT::kFDXtalElast;
+                        break;
 		case SolidT::kLocXtalPlast:
 			code = SolidT::kLocXtalPlast;
 			break;

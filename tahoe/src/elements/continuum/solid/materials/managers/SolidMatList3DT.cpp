@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.13 2002-01-31 19:01:43 ebmarin Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.14 2002-03-27 00:57:25 ebmarin Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList3DT.h"
@@ -29,6 +29,8 @@
 #include "SKStVT3D.h"
 #include "HyperEVP3D.h"
 #include "BCJHypo3D.h"
+#include "BCJHypoIsoDamageKE3D.h"
+#include "BCJHypoIsoDamageYC3D.h"
 #include "FDCrystalElast.h"
 #include "LocalCrystalPlast.h"
 #include "LocalCrystalPlast_C.h"
@@ -290,6 +292,24 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
 
 				fArray[matnum] = new BCJHypo3D(in, *fFiniteStrain);
+				fHasHistory = true;
+				break;
+			}
+			case kBCJHypoIsoDmgKE:
+			{
+				/* check */
+				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new BCJHypoIsoDamageKE3D(in, *fFiniteStrain);
+				fHasHistory = true;
+				break;
+			}
+			case kBCJHypoIsoDmgYC:
+			{
+				/* check */
+				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new BCJHypoIsoDamageYC3D(in, *fFiniteStrain);
 				fHasHistory = true;
 				break;
 			}
