@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.2 2004-04-12 16:51:47 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.3 2004-05-14 23:08:41 cjkimme Exp $ */
 #include "FS_SCNIMFT.h"
 
 //#define VERIFY_B
@@ -308,7 +308,7 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		iArrayT row_eqnos(ndof); 
 		iArrayT col_eqnos(ndof);
 		dMatrixT BJ(fSD*fSD, ndof), BK(fSD*fSD, ndof), FTs(fSD), fStress(fSD);
-		dMatrixT Tijkl(fSD*fSD), BJTCijkl(fSD, fSD == 2 ? 3 : 6), K_JK;
+		dMatrixT Tijkl(fSD*fSD), BJTCijkl(fSD, fSD*fSD), K_JK;
 		K_JK.Alias(fLHS);
 		LinkedListT<dArrayT> bVectors_j;
 		LinkedListT<int> nodeSupport_j;
@@ -316,16 +316,17 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		{	
 			double w_i = fVoronoiCellVolumes[i]*constK; // integration weights
 			
+			int n_supp = nodalCellSupports.MinorDim(i);
+			
 			// Compute smoothed deformation gradient
 			Fdef = 0.0;
-			LinkedListT<dArrayT>& bVectors_i = facetWorkSpace[i];
-			LinkedListT<int>& nodeSupport_i = nodeWorkSpace[i];
-			nodeSupport_i.Top(); bVectors_i.Top();
-			while (nodeSupport_i.Next() && bVectors_i.Next())
-			{
-				bVectorToMatrix(bVectors_i.CurrentValue()->Pointer(), BJ);
-				BJ.Multx(u(*(nodeSupport_i.CurrentValue())), Fdef.Pointer(), 1.0, 1);
-			}	
+			dArrayT* bVec_i = bVectorArray(i);
+			int* supp_i = nodalCellSupports(i);
+			for (int j = 0; j < n_supp; j++) { 
+				bVectorToMatrix(bVec_i->Pointer(), BJ);
+				bVec_i++;
+				BJ.Multx(u(*supp_i++), Fdef.Pointer(), 1.0, 1);
+			}
 			Fdef.PlusIdentity(); // convert to F
 			fFSMatSupport->SetDeformationGradient(&Flist);
 		
@@ -357,21 +358,24 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			Tijkl.Last() += cijkl[4]; // += C_22
 			
 			// sum over pairs to get contribution to stiffness
-			nodeSupport_i.Top(); bVectors_i.Top();
-			while (nodeSupport_i.Next() && bVectors_i.Next())
+			supp_i = nodalCellSupports(i);
+			bVec_i = bVectorArray(i);
+			for (int j = 0; j < n_supp; j++, supp_i++, bVec_i++)
 			{
-				bVectorToMatrix(bVectors_i.CurrentValue()->Pointer(), BJ);
-				//BJTCijkl.MultATB(BJ, cijkl, 0); // material stiffness alone
+				bVectorToMatrix(bVec_i->Pointer(), BJ);
+				//BJTCijkl.MultATB(BJ, cijkl, 0);
 				
 				/* simultanesouly compute material and stress stiffnesses */
-				BJTCijkl.MultATB(BJ, Tijkl, 1); // accumulate stress stiffness
-				col_eqnos.Copy(field_eqnos(*(nodeSupport_i.CurrentValue())));
+				BJTCijkl.MultATB(BJ, Tijkl, 0); // accumulate stress stiffness
 				
-				bVectors_j.Alias(bVectors_i);
-				nodeSupport_j.Alias(nodeSupport_i);
-				do // this is do..while to calculate the i == j term before advancing to the next node
+				col_eqnos.Copy(field_eqnos(*supp_i));
+				
+				dArrayT* bVec_j = bVectorArray(i);
+				int* supp_j = nodalCellSupports(i);
+				for (int k = 1; k < n_supp; k++)
 				{
-					bVectorToMatrix(bVectors_j.CurrentValue()->Pointer(), BK);
+					bVectorToMatrix(bVec_j->Pointer(), BK);
+					bVec_j++;
 					
 					// K_JK = BT_J x Cijkl x B_K 
 					K_JK.MultAB(BJTCijkl, BK, 0);
@@ -379,9 +383,9 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					K_JK *= w_i*constK;
 					
 					/* assemble */
-					row_eqnos.Copy(field_eqnos(*(nodeSupport_j.CurrentValue())));
+					row_eqnos.Copy(field_eqnos(*supp_j++));
 					support.AssembleLHS(group, fLHS, row_eqnos, col_eqnos);
-				} while (nodeSupport_j.Next() && bVectors_j.Next());
+				}
 			}	
 		}
 	}
@@ -443,30 +447,31 @@ void FS_SCNIMFT::RHSDriver(void)
 	for (int i = 0; i < nNodes; i++)
 	{
 		double w_i = fVoronoiCellVolumes[i]; // integration weight
+		
+		int n_supp = nodalCellSupports.MinorDim(i);
 
 		// Compute smoothed deformation gradient
 		Fdef = 0.0;
-		LinkedListT<dArrayT>& bVectors_i = facetWorkSpace[i];
-		LinkedListT<int>& nodeSupport_i = nodeWorkSpace[i];
-		nodeSupport_i.Top(); bVectors_i.Top();
-		int jcount = 0;
-		while (nodeSupport_i.Next() && bVectors_i.Next())
-		{
-			bVectorToMatrix(bVectors_i.CurrentValue()->Pointer(), BJ);
-			BJ.Multx(u(*(nodeSupport_i.CurrentValue())), Fdef.Pointer(), 1.0, 1);
+		dArrayT* bVec_i = bVectorArray(i);
+		int* supp_i = nodalCellSupports(i);
+		for (int j = 0; j < n_supp; j++) { 
+			bVectorToMatrix(bVec_i->Pointer(), BJ);
+			bVec_i++;
+			BJ.Multx(u(*supp_i++), Fdef.Pointer(), 1.0, 1);
 		}
 		Fdef.PlusIdentity(); // convert to F 	
 		fFSMatSupport->SetDeformationGradient(&Flist);
 		
 		fCurrMaterial->s_ij().ToMatrix(fStress);
 		
-		nodeSupport_i.Top(); bVectors_i.Top();
-		while (nodeSupport_i.Next() && bVectors_i.Next())
-		{
-			bVectorToMatrix(bVectors_i.CurrentValue()->Pointer(), BJ);
-			double* fint = fForce(*(nodeSupport_i.CurrentValue()));
-			BJ.MultTx(fStress.Pointer(), fint, w_i, 1);      
-		}	
+		supp_i = nodalCellSupports(i);
+		bVec_i = bVectorArray(i);
+		for (int j = 0; j < n_supp; j++) { 
+			bVectorToMatrix(bVec_i->Pointer(), BJ);
+			bVec_i++;
+			double* fint = fForce(*supp_i++);
+			BJ.MultTx(fStress.Pointer(), fint, w_i, 1);
+		}
 	}
 	
 	fForce *= -constKd;
