@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.22 2002-03-02 20:15:17 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.23 2002-03-04 06:37:17 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -698,12 +698,18 @@ void ModelManagerT::AllNodeIDs (iArrayT& ids)
 	else
 	{
 		InputBaseT& input = Input("AllNodeIDs");
-		if (ids.Length() != input.NumNodes()) {
+
+		/* dimension (check) */
+		if (ids.Length() == 0)
+			ids.Dimension(input.NumNodes());		
+		else if (ids.Length() != input.NumNodes()) {
     		cout << "\n ModelManagerT::AllNodeIDs: ids array is length " << ids.Length()
     	         << ", expecting length " << input.NumNodes() << endl;
 			throw eSizeMismatch;	
 		}
-		input.ReadNodeMap(ids);
+		
+		/* read */
+		input.ReadNodeID(ids);
 	}
 }
 

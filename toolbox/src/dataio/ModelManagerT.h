@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.18 2002-02-28 16:27:52 sawimme Exp $ */
+/* $Id: ModelManagerT.h,v 1.19 2002-03-04 06:37:17 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -246,8 +246,11 @@ class ModelManagerT
    * Patran, Abaqus, EnSight, etc. always store coordinates in 3D */
   bool AreElements2D (void) const;
 
-  /** returns the number of element groups/blocks/sets */
-  int NumElementGroups (void) const;
+  /** returns the number of element groups */
+  int NumElementGroups(void) const;
+
+  /** returns the total number of elements in groups */
+  int NumElements(void) const;
 
   /** return the ID of the element group at the given index. The name of the
    * element group is the string form of the database-specific element block
@@ -578,6 +581,11 @@ inline int ModelManagerT::NumDimensions (void) const { return fCoordinateDimensi
 inline int ModelManagerT::NumElementGroups (void) const { return fElementSets.Length(); }
 inline int ModelManagerT::NumNodeSets (void) const { return fNodeSets.Length(); }
 inline int ModelManagerT::NumSideSets (void) const { return fSideSets.Length(); }
+
+inline int ModelManagerT::NumElements(void) const
+{
+	return Input("NumTimeSteps").NumGlobalElements();
+}
 
 inline int ModelManagerT::NumTimeSteps(void) { 
 	return Input("NumTimeSteps").NumTimeSteps(); 
