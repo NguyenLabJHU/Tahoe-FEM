@@ -41,6 +41,10 @@ public:
 	// FossumSSIsoT(ifstreamT& in, const SmallStrainT& element, int num_ip, double mu, double lambda);
 	FossumSSIsoT(ifstreamT& in, const SSMatSupportT& support);
 
+
+	/* required parameter flags */
+	virtual bool Need_Strain_last(void) const {return true;};
+
 	/* destructor */
 	virtual ~FossumSSIsoT(void);
 
@@ -74,7 +78,8 @@ protected:
 
 	double fPsi;       // Ratio of failure strength in tension to f. s. in compr.
 	double fN;         // offset from initial yield to failure
-	double fFossumDebug;
+        double fFluidity;   //fluidity parameter, relation time = fFluidity/(2*fmu)
+	bool fFossumDebug;
 
 	/* initialization */
 	virtual void Initialize(void);
@@ -237,6 +242,9 @@ private:
 
 	dMatrixT fTensorTemp;
 	dSymMatrixT One;  
+	double fTimeFactor;
+	//dSymMatrixT fStressInviscid;
+
         
 private:
 
