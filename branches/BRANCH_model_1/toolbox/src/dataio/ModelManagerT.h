@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.4.2.12 2001-11-06 15:46:49 sawimme Exp $ */
+/* $Id: ModelManagerT.h,v 1.4.2.13 2001-11-07 12:49:15 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -16,6 +16,7 @@
 /* forward */
 #include "ios_fwd_decl.h"
 class ifstreamT;
+template <class TYPE> class nVariArray2DT;
 
 /** Interface for any code to input data. Data types: Coordinates, Element 
  * Connectivity, NodeSets and SideSets are stored. Node and Element Maps 
@@ -290,7 +291,13 @@ class ModelManagerT
   /** adjust the DOF of the coordinate array from 3D to 2D by dropping the 3rd coordiante value */
   void AdjustCoordinatesto2D (void);
 
-  /** call this function if the connectivity group/block/set is altered through the element group pointer
+  /** call this function to register an element group that will be managed by nVariArray2DT 
+   * use this registration method with caution. The values for the element set fElementLength
+   * and fElementNodes will not be up to date 
+   * The nVariArray2DT<int>::SetWard function is called */
+  bool RegisterVariElements (const StringT& name, nVariArray2DT<int>& conn, GeometryT::CodeT code, 
+			     int numelemnodes, int headroom);
+  /** call this function if the connectivity group/block/set is altered and replacement is needed
    * the number of elements and element nodes is updated */
   void UpdateConnectivity (int index, const iArray2DT& connects);
   /** add elements to an element group array
