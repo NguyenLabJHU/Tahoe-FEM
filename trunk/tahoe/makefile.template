@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.20 2003-03-08 04:55:52 paklein Exp $
+# $Id: makefile.template,v 1.21 2003-03-31 23:21:06 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -76,7 +76,7 @@ TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 #FOSSUM_LFLAGS   = -L$(FOSSUM_DIR)/lib -l$(FOSSUM_LIB_NAME)
 
 ##### F2C 1.4.3
-#F2C_DIR      = $(HOME_DIR)/../../tahoe/f2c
+#F2C_DIR      = $(HOME_DIR)/../f2c
 #F2C_INC      = -I$(F2C_DIR)/inc
 #F2C_DEFINES  = -D__F2C__
 #F2C_CFLAGS   = $(F2C_INC) $(F2C_DEFINES)
