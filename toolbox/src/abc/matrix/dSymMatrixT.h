@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.h,v 1.10 2003-04-09 22:29:17 paklein Exp $ */
+/* $Id: dSymMatrixT.h,v 1.11 2003-08-05 18:33:07 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _DSYM_MATRIX_T_H_
@@ -18,26 +18,44 @@ class dSymMatrixT: public dArrayT
 {
 public:
 
-	/* constructors */
+	/** enumerated type to indicate matrix dimension */
+	enum DimensionT {
+		kNone = 0,
+		k1D = 1,
+		k2D = 2,
+		k3D = 3,
+		k3D_plane = 4 /**< 2D plane components, plus axial out-of-plane component */
+	};
+
+	/** integer to dSymMatrixT::DimensionT type conversion operator. Needed
+	 * for backward compatibility with code written before the enum was defined */
+	static DimensionT int2DimensionT(int i) {
+		if (i < kNone || i > k3D_plane) ExceptionT::OutOfRange("dSymMatrixT::int2DimensionT");
+		DimensionT dims[5] = {kNone, k1D, k2D, k3D, k3D_plane};
+		return dims[i];
+	};
+
+	/** \name constructors */
+	/*@{*/
 	dSymMatrixT(void);
-	explicit dSymMatrixT(int nsd);
-	dSymMatrixT(int nsd, double* array);
+	explicit dSymMatrixT(DimensionT nsd);
 	dSymMatrixT(const dSymMatrixT& source);
+	dSymMatrixT(DimensionT nsd, double* array);
+	/*@}*/
 
 	/** dimension the matrix for the number of spatial dimensions. No change 
 	 * occurs if the array is already the specified length. The previous contents 
 	 * of the array is not preserved. */
-	void Dimension(int nsd);
+	void Dimension(DimensionT nsd);
 
-	/** \deprecated replaced by dSymMatrixT::Dimension on 02/13/2002 */
-	void Allocate(int nsd) { Dimension(nsd); };
+	/** set fields */
+	void Set(DimensionT nsd, double* array);
 
-	/* set fields */
-	void Set(int nsd, double* array);
-
-	/* assignment operators */
+	/** \name assignment operators */
+	/*@{*/
 	dSymMatrixT& operator=(const dSymMatrixT& RHS);
 	dSymMatrixT& operator=(const double value);
+	/*@}*/
 
 	/* accessor */
 	double& operator()(int row, int col) const;
@@ -45,8 +63,8 @@ public:
 	/* returns the number of dimensions in the reduced
 	 * index symmetric matrix vectors given the number of spatial
 	 * dimensions.  nsd can only be 2 or 3. */
-	static int NumValues(int nsd);
-	static void ExpandIndex(int nsd, int dex, int& dex_1, int& dex_2);
+	static int NumValues(DimensionT nsd);
+	static void ExpandIndex(DimensionT nsd, int dex, int& dex_1, int& dex_2);
 
 	/* dimensions */
 	int Rows(void) const;
@@ -139,6 +157,17 @@ public:
 	/** scale off-diagonal value by the given factor */
 	void ScaleOffDiagonal(double factor);
 
+	/** \name deprecated methods */
+	/*@{*/
+	explicit dSymMatrixT(int nsd) ;
+	dSymMatrixT(int nsd, double* array);
+	void Dimension(int nsd) { Dimension(int2DimensionT(nsd)); };
+	void Allocate(int nsd) { Dimension(nsd); };
+	void Set(int nsd, double* array) { Set(int2DimensionT(nsd), array); };
+	static int NumValues(int nsd) { return NumValues(int2DimensionT(nsd)); };
+	static void ExpandIndex(int nsd, int dex, int& dex_1, int& dex_2) { return ExpandIndex(int2DimensionT(nsd), dex, dex_1, dex_2); };
+	/*@}*/
+
 private:
 
 	/* iterative eigensystem routines */
@@ -151,16 +180,16 @@ private:
 	
 private:
 
-	int fNumSD;	
+	DimensionT fNumSD;	
 };
 
 /* inlines */
 
 /* dimensions */
-inline int dSymMatrixT::NumValues(int nsd)
+inline int dSymMatrixT::NumValues(DimensionT nsd)
 {
-	if (nsd < 1 || nsd > 3) ExceptionT::OutOfRange("dSymMatrixT::NumValues");
-	int map[4] = {0, 1, 3, 6};
+	if (nsd < kNone || nsd > k3D_plane) ExceptionT::OutOfRange("dSymMatrixT::NumValues");
+	int map[5] = {0, 1, 3, 6, 4};
 	return map[nsd];	
 }
 
