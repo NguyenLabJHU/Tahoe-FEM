@@ -1,4 +1,4 @@
-/* $Id: PatranT.h,v 1.12 2002-07-25 19:47:28 sawimme Exp $ */
+/* $Id: PatranT.h,v 1.13 2003-02-10 20:20:37 sawimme Exp $ */
 /* created: sawimme (05/17/2001)  */
 
 #ifndef _PATRAN_T_H_
@@ -69,7 +69,9 @@ class PatranT
   /* write geometry file */
   bool WriteHeader (ostream& out, int numnodes, int numelems, const StringT& title) const;
   bool WriteCoordinates (ostream& out, const dArray2DT& coords, int firstnodeID) const;
+  bool WriteCoordinates (ostream& out, const dArray2DT& coords, const iArrayT& map) const;
   bool WriteElements (ostream& out, const iArray2DT& elems, const ArrayT<PatranT::ElementTypes>& elemtypes, int firstelemID) const;
+  bool WriteElements (ostream& out, const iArray2DT& elems, const ArrayT<PatranT::ElementTypes>& elemtypes, const iArrayT& map) const;
   bool WriteNamedComponent (ostream& out, const StringT& name, int ID, const iArray2DT& comps) const;
   bool WriteGeometryPoints (ostream& out, const dArray2DT& points, int firstptiD) const;
   bool WritePairPointCurve (ostream& out, int curveID, int ID1, int ID2, const dArrayT& coord1, const dArrayT& coord2) const;

@@ -1,4 +1,4 @@
-/* $Id: PatranT.cpp,v 1.17 2002-10-20 22:36:53 paklein Exp $ */
+/* $Id: PatranT.cpp,v 1.18 2003-02-10 20:20:37 sawimme Exp $ */
 /* created sawimme (05/17/2001) */
 
 #include "PatranT.h"
@@ -506,6 +506,14 @@ bool PatranT::WriteHeader (ostream& out, int numnodes, int numelems, const Strin
 
 bool PatranT::WriteCoordinates (ostream& out, const dArray2DT& coords, int firstnodeID) const
 {
+  iArrayT map (coords.MajorDim());
+  map.SetValueToPosition ();
+  map += firstnodeID;
+  return true;
+}
+
+bool PatranT::WriteCoordinates (ostream& out, const dArray2DT& coords, const iArrayT& map) const
+{
   iArrayT n (5);
   n = 0;
   int p = out.precision ();
@@ -513,7 +521,7 @@ bool PatranT::WriteCoordinates (ostream& out, const dArray2DT& coords, int first
   out.setf (ios::scientific);
   for (int k=0; k < coords.MajorDim(); k++)
     {
-      if (!WritePacketHeader(out, kNode, firstnodeID + k, 0, 2, n)) 
+      if (!WritePacketHeader(out, kNode, map[k], 0, 2, n)) 
 	return false;
       for (int i=0; i < coords.MinorDim(); i++)
 	out << setw (cwidth) << coords (k, i);
@@ -544,15 +552,23 @@ bool PatranT::WriteCoordinates (ostream& out, const dArray2DT& coords, int first
 
 bool PatranT::WriteElements (ostream& out, const iArray2DT& elems, const ArrayT<PatranT::ElementTypes>& elemtypes, int firstelemID) const
 {
+  iArrayT map (elems.MajorDim());
+  map.SetValueToPosition ();
+  map += firstelemID;
+  return true;
+}
+
+bool PatranT::WriteElements (ostream& out, const iArray2DT& elems, const ArrayT<PatranT::ElementTypes>& elemtypes, const iArrayT& map) const
+{
   iArrayT n (5);
   n = 0;
-  int KC = 1 + (elems.MinorDim() + 9) / 10;
   int p = out.precision ();
+  int KC = 1 + (elems.MinorDim() + 9) / 10;
   out.precision (prec);
   for (int e=0; e < elems.MajorDim(); e++)
     {
       int shape = elemtypes[e];
-      if (!WritePacketHeader (out, kElement, firstelemID + e, shape, KC, n))
+      if (!WritePacketHeader (out, kElement, map[e], shape, KC, n))
 	return false;
       
       int config = 0; // element configuration (use with Element Properties)
