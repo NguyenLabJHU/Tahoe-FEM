@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.cpp,v 1.7 2003-03-19 17:09:03 thao Exp $ */
+/* $Id: IsotropicT.cpp,v 1.7.8.1 2003-05-27 21:02:18 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "IsotropicT.h"
@@ -115,8 +115,16 @@ void IsotropicT::ComputeModuli2D(dMatrixT& moduli,
 		double lambda = Lambda();
 
 		/* plane stress correction */
-		if (constraint == Material2DT::kPlaneStress) 
-			lambda *= 2.0*mu/(lambda + 2.0*mu);	
+		if (constraint == Material2DT::kPlaneStress) {
+		
+			double lam_2_mu = lambda + 2.0*mu;
+			if (fabs(lam_2_mu) < kSmall) {
+				if (fabs(mu) > kSmall)
+					ExceptionT::GeneralFail("IsotropicT::ComputeModuli2D", "bad plane stress modulus");
+			}
+			else
+				lambda *= 2.0*mu/lam_2_mu;
+		}
 		
 		moduli = 0.0;
 		moduli(1,1) = moduli(0,0) = lambda + 2.0*mu;
