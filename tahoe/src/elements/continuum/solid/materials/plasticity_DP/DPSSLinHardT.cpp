@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.cpp,v 1.6 2001-07-25 01:45:31 cfoster Exp $ */
+/* $Id: DPSSLinHardT.cpp,v 1.7 2001-07-25 08:13:33 paklein Exp $ */
 /* created: myip (06/01/1999)                                        */
 /*
  * Interface for Drucker-Prager, nonassociative, small strain,
@@ -257,22 +257,30 @@ void DPSSLinHardT::Update(ElementCardT& element)
 
 	/* update plastic variables */
 	for (int ip = 0; ip < fNumIP; ip++)
-	{
-	/* fetch element data */
-		LoadData(element, ip);
-	
-	/* plastic increment */
-		double& dgamma = fInternal[kdgamma];
-		//cout << fInternal[kdgamma] << endl;
-		
-	/* internal state variable */
-		fInternal[kalpha] -= fH_prime*dgamma;
+		if (Flags[ip] == kIsPlastic) /* plastic update */
+		{
+			/* do not repeat if called again. */
+			Flags[ip] = kIsElastic;
+			/* NOTE: ComputeOutput writes the updated internal variables
+			 *       for output even during iteration output, which is
+			 *       called before UpdateHistory */
 
-	/* dev plastic strain increment	*/
-		fPlasticStrain.AddScaled( sqrt32*dgamma, fUnitNorm );
-        /* vol plastic strain increment	*/
-		fPlasticStrain.AddScaled( fdilation*dgamma/sqrt(3.0), One );
-	}
+			/* fetch element data */
+			LoadData(element, ip);
+	
+			/* plastic increment */
+			double& dgamma = fInternal[kdgamma];
+			//cout << fInternal[kdgamma] << endl;
+		
+			/* internal state variable */
+			fInternal[kalpha] -= fH_prime*dgamma;
+
+			/* dev plastic strain increment	*/
+			fPlasticStrain.AddScaled( sqrt32*dgamma, fUnitNorm );
+        	
+        	/* vol plastic strain increment	*/
+			fPlasticStrain.AddScaled( fdilation*dgamma/sqrt(3.0), One );
+		}
 }
 
 /* resets to the last converged solution */
