@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.14 2003-10-20 23:53:29 cjkimme Exp $
+# $Id: makefile,v 1.15 2004-07-22 08:42:46 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -26,7 +26,6 @@ OBJ = \
 	MappedPeriodicT.o \
 	TiedNodesT.o \
 	PeriodicNodesT.o \
-	KBC_PrescribedT.o \
 	ScaledVelocityNodesT.o \
 	SetOfNodesKBCT.o \
 	TorsionKBCT.o \
@@ -56,7 +55,6 @@ SRC = \
 	MappedPeriodicT.cpp \
 	TiedNodesT.cpp \
 	PeriodicNodesT.cpp \
-	KBC_PrescribedT.cpp \
 	ScaledVelocityNodesT.cpp \
 	SetOfNodesKBCT.cpp \
 	TorsionKBCT.cpp \
@@ -78,7 +76,6 @@ HDR = \
 	MappedPeriodicT.h \
 	TiedNodesT.h \
 	PeriodicNodesT.h \
-	KBC_PrescribedT.h \
 	ScaledVelocityNodesT.h \
 	SetOfNodesKBCT.h \
 	TorsionKBCT.h \
