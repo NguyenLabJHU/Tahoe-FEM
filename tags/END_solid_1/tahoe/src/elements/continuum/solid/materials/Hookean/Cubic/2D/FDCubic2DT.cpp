@@ -1,0 +1,62 @@
+/* $Id: FDCubic2DT.cpp,v 1.2 2001-07-03 01:35:08 paklein Exp $ */
+/* created: paklein (06/11/1997)                                          */
+
+#include "FDCubic2DT.h"
+#include "ThermalDilatationT.h"
+
+/* constructor */
+FDCubic2DT::FDCubic2DT(ifstreamT& in, const FiniteStrainT& element):
+	FDCubicT(in, element),
+	Anisotropic2DT(in),
+	Material2DT(in)
+{
+	/* account for thickness */
+	fDensity *= fThickness;
+}
+
+/* print parameters */
+void FDCubic2DT::Print(ostream& out) const
+{
+	/* inherited */
+	FDCubicT::Print(out);
+	Anisotropic2DT::Print(out);
+	Material2DT::Print(out);
+}
+
+/*************************************************************************
+* Protected
+*************************************************************************/
+
+/* set (material) tangent modulus */
+void FDCubic2DT::SetModulus(dMatrixT& modulus)
+{
+	/* compute modulus in crystal coordinates */
+	CubicT::ComputeModuli2D(modulus, fConstraintOption);
+	modulus *= fThickness;
+	
+	/* transform modulus into global coords */
+	TransformOut(modulus);
+}
+
+/*************************************************************************
+* Private
+*************************************************************************/
+
+/* set inverse of thermal transformation - return true if active */
+bool FDCubic2DT::SetInverseThermalTransformation(dMatrixT& F_trans_inv)
+{
+	if (fThermal->IsActive())
+	{
+		double factor = CubicT::DilatationFactor2D(fConstraintOption);
+
+		/* assuming isotropic expansion */
+		double Fii_inv = 1.0/(1.0 + factor*fThermal->PercentElongation());
+		F_trans_inv.Identity(Fii_inv);
+		return true;
+	}
+	else
+	{
+		F_trans_inv.Identity(1.0);
+		return false;
+	}
+}
