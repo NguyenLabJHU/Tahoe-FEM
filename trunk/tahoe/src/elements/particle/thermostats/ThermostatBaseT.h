@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.h,v 1.4 2003-04-24 20:43:20 cjkimme Exp $ */
+/* $Id: ThermostatBaseT.h,v 1.5 2003-05-06 19:57:45 cjkimme Exp $ */
 #ifndef _THERMOSTAT_BASE_T_H_
 #define _THERMOSTAT_BASE_T_H_
 
@@ -18,6 +18,7 @@ namespace Tahoe {
 class ifstreamT;
 class dArray2DT;
 class ParticlePropertyT;
+class ModelManagerT;
 
 /** base class for thermostatting and damping */
 class ThermostatBaseT
@@ -73,6 +74,10 @@ public:
 	/** receive temperature schedule */
 	void SetTemperatureSchedule(const ScheduleT* schedule, const double& value);
 			
+	/** Initialize nodes to thermostat by NodeSet */		
+	virtual void InitNodeSets(ifstreamT& in, ModelManagerT& model);
+	
+	/** Initialize nodes to thermostat by spatial coords */
 	virtual void InitRegion(ifstreamT& in, const dArray2DT& coords,	
 					const ArrayT<int>* partition_nodes);
 

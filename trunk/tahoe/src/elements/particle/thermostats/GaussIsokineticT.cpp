@@ -1,4 +1,4 @@
-/* $Id: GaussIsokineticT.cpp,v 1.5 2003-04-30 00:06:15 cjkimme Exp $ */
+/* $Id: GaussIsokineticT.cpp,v 1.6 2003-05-06 19:57:45 cjkimme Exp $ */
 #include "GaussIsokineticT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -109,7 +109,7 @@ void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const 
 	else
 		fBeta = 0.; 
 
-//	cout <<" temp = "<< denom/fNodes.Length()/fSD/fkB<<"\n";
+//	cout <<" temp = "<< denom/natoms/fSD/fkB<<"\n";
 	
 	ThermostatBaseT::ApplyDamping(neighbors,velocities,forces,
 							types,particleProperties);
