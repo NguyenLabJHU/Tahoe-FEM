@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.22.4.1 2004-03-18 18:03:31 paklein Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.22.4.2 2004-04-06 06:55:03 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -89,8 +89,8 @@ void ParentDomainT::Jacobian(const LocalArrayT& nodal, const dArray2DT& DNa,
 #if __option(extended_errorcheck)
 	/* dimension check */
 	if (DNa.MinorDim() != nodal.NumberOfNodes() ||
-DNa.MajorDim() != jac.Cols()            ||
-jac.Rows() != nodal.MinorDim()) throw ExceptionT::kSizeMismatch;
+        DNa.MajorDim() != jac.Cols()            ||
+            jac.Rows() != nodal.MinorDim()) ExceptionT::SizeMismatch("ParentDomainT::Jacobian");
 #endif
 
 	double *pjac = jac.Pointer();
