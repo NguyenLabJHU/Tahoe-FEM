@@ -1,4 +1,4 @@
-/* $Id: tevp3D.cpp,v 1.10 2002-07-02 19:56:25 cjkimme Exp $ */
+/* $Id: tevp3D.cpp,v 1.11 2002-07-17 00:20:01 paklein Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (06/25/2001) */
 
@@ -337,7 +337,7 @@ void tevp3D::ComputeD(void)
   dSymMatrixT* smalld = &fDtot;
   dSymMatrixT tempd(3);
   dMatrixT yada(3);
-  FiniteStrain().ComputeGradient(fLocVel, fGradV);  
+  FiniteStrain().ComputeGradient_reference(fLocVel, fGradV);  
   yada.MultAB(fGradV, fF_temp, 0);
   (*smalld) = tempd.Symmetrize(yada);
 }
@@ -346,7 +346,7 @@ dMatrixT& tevp3D::ComputeSpin(void)
 {
   /* Compute the spin tensor */
   fSpin = 0.0;
-  FiniteStrain().ComputeGradient(fLocVel, fGradV);
+  FiniteStrain().ComputeGradient_reference(fLocVel, fGradV);
   dMatrixT yada(3);
   yada.MultAB(fGradV, fF_temp, 0);
   double temp1 = .5 * (yada(0,1) - yada(1,0));

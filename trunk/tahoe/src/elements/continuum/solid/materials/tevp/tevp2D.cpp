@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.24 2002-07-02 19:56:25 cjkimme Exp $ */
+/* $Id: tevp2D.cpp,v 1.25 2002-07-17 00:20:01 paklein Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (04/04/2001) */
 
@@ -361,7 +361,7 @@ void tevp2D::ComputeD(void)
   /* Compute rate of deformation */
   fDtot = 0.0;
   dMatrixT* tempd = &fDtot;
-  FiniteStrain().ComputeGradient(fLocVel, fGradV_2D);
+  FiniteStrain().ComputeGradient_reference(fLocVel, fGradV_2D);
   fGradV.Rank2ExpandFrom2D(fGradV_2D);
   (*tempd).MultAB(fGradV, fF_temp, 0);
   (*tempd).Symmetrize();
@@ -371,7 +371,7 @@ double tevp2D::ComputeSpin(void)
 {
   /* Compute the spin scalar */
   fSpin = 0.0;
-  FiniteStrain().ComputeGradient(fLocVel, fGradV_2D);
+  FiniteStrain().ComputeGradient_reference(fLocVel, fGradV_2D);
   fGradV.Rank2ExpandFrom2D(fGradV_2D);
   fSpin = fGradV(0,0) * fF_temp(0,1) + fGradV(0,1) * fF_temp(1,1);
   fSpin = fSpin - fGradV(1,0) * fF_temp(0,0) - fGradV(1,1) * fF_temp(1,0);
