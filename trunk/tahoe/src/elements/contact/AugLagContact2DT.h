@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.h,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: AugLagContact2DT.h,v 1.2 2001-08-15 18:37:10 paklein Exp $ */
 /* created: paklein (05/31/1998)                                          */
 
 #ifndef _AUGLAG_CONTACT2D_T_H_
@@ -30,23 +30,17 @@ public:
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 	
 	/* returns the array for the DOF tags needed for the current config */
-	virtual iArrayT& SetDOFTags(void);
-	virtual const iArrayT& DOFTags(void) const;
+	virtual void SetDOFTags(void);
+	virtual iArrayT& DOFTags(int tag_set);
 
 	/* generate nodal connectivities */
 	virtual void GenerateElementData(void);
-	// NOTE: since the sequence of setting global equation
-	//       number is controlled externally, responsibility
-	//       for calling the element group to (self-) configure
-	//       is also left to calls from the outside. otherwise
-	//       it's tough to say whether data requested by the group
-	//       is current.
 
 	/* return the contact elements */
-	virtual const iArray2DT& DOFConnects(void) const;
+	virtual const iArray2DT& DOFConnects(int tag_set) const;
 
 	/* restore the DOF values to the last converged solution */
-	virtual void ResetDOF(dArray2DT& DOF) const;
+	virtual void ResetDOF(dArray2DT& DOF, int tag_set) const;
 
 	/* returns 1 if group needs to reconfigure DOF's, else 0 */
 	virtual int Reconfigure(void);
