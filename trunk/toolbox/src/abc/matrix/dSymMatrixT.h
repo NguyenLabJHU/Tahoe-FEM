@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.h,v 1.17 2004-01-31 07:19:11 paklein Exp $ */
+/* $Id: dSymMatrixT.h,v 1.18 2004-03-01 02:41:01 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _DSYM_MATRIX_T_H_
 #define _DSYM_MATRIX_T_H_
@@ -148,8 +148,8 @@ public:
 	/** ? <-> ? translations */
 	dSymMatrixT& Translate(const dSymMatrixT& matrix);
 
-	/* outer product */
-	void Outer(const dArrayT& v);
+	/** outer product */
+	void Outer(const dArrayT& v, double scale = 1.0);
 
 	/* matrix-matrix multiplication */
 	void MultAB(const dSymMatrixT& A, const dSymMatrixT& B); /* A and B must commute */
