@@ -1,14 +1,16 @@
-# $Id: makefile,v 1.3 2004-04-04 03:00:42 paklein Exp $
+# $Id: makefile,v 1.1 2004-04-04 03:00:43 paklein Exp $
 #
 # type "make clean" to remove test results
 #
 
-# list of subdirectories
-SUB_DIR = level.0 level.2
+# list of sub-directories
+# NOTE: if list is empty, set SUB_DIR = NONE
+SUB_DIR = \
+	force.controller
 
 all:
 	@echo "make clean to remove test results"
-	
+
 clean:
 	@ for n in $(SUB_DIR); do \
 		if test -d $$n; then \
@@ -19,5 +21,4 @@ clean:
 		elif test "$$n" != "NONE"; then \
 			echo "*** WARNING: missing directory: $(CURR_DIR)/$$n"; \
 			fi; \
-	done    
-	-@ rm tahoe.xsd tahoe.dtd
+	done
