@@ -1,4 +1,4 @@
-/* $Id: PointInCellDataT.cpp,v 1.1.2.1 2003-02-10 02:16:42 paklein Exp $ */
+/* $Id: PointInCellDataT.cpp,v 1.1.2.2 2003-02-10 09:25:37 paklein Exp $ */
 #include "PointInCellDataT.h"
 
 #include "ContinuumElementT.h"
@@ -30,5 +30,6 @@ void PointInCellDataT::CollectCellNodes(iArrayT& cell_nodes) const
 	cell_nodes.Dimension(nodes_used.Count(1));
 	int dex = 0;
 	for (int i = 0; i < nodes_used.Length(); i++)
-		cell_nodes[dex++] = i;
+		if (nodes_used[i] == 1)
+			cell_nodes[dex++] = i;
 }
