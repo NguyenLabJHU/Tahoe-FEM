@@ -1,4 +1,4 @@
-/* $Id: EnSightOutputT.cpp,v 1.3.2.2 2001-10-31 20:59:39 sawimme Exp $ */
+/* $Id: EnSightOutputT.cpp,v 1.3.2.3 2001-11-01 18:47:45 sawimme Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #include "EnSightOutputT.h"
@@ -232,6 +232,7 @@ void EnSightOutputT::WriteVariable (EnSightT& ens, bool nodal, int ID,
   int dof = fCoordinates->MinorDim();
   for (int n=0; n < values.MinorDim(); n++)
     {
+
       // determine variable name
       StringT extension;
       bool vector = IsVector (labels, n, extension, dof);
@@ -246,7 +247,6 @@ void EnSightOutputT::WriteVariable (EnSightT& ens, bool nodal, int ID,
 	files.Append (varfile);
       else
 	files.Append (varcase);
-      //cout << "********" << varfile << endl;
       
       // open file
       ofstream var (varfile);
@@ -270,22 +270,26 @@ void EnSightOutputT::WriteVariable (EnSightT& ens, bool nodal, int ID,
 
 	  // write values
 	  if (vector)
-	    {
-	      ens.WriteVector (var, blockvalues[block], n);
-	      n += dof - 1;
-	      if (nodal)
-		vtypes.Append (EnSightT::kVectorNodal);
-	      else
-		vtypes.Append (EnSightT::kVectorElemental);
-	    }
+	    ens.WriteVector (var, blockvalues[block], n);
 	  else
-	    {
-	      ens.WriteScalar (var, blockvalues[block], n);
-	      if (nodal)
-		vtypes.Append (EnSightT::kScalarNodal);
-	      else
-		vtypes.Append (EnSightT::kScalarElemental);
-	    }
+	    ens.WriteScalar (var, blockvalues[block], n);
+	}
+
+      /* save variable types for case file and increment n if vector */
+      if (vector)
+	{
+	  n += dof - 1;
+	  if (nodal)
+	    vtypes.Append (EnSightT::kVectorNodal);
+	  else
+	    vtypes.Append (EnSightT::kVectorElemental);
+	}
+      else
+	{
+	  if (nodal)
+	    vtypes.Append (EnSightT::kScalarNodal);
+	  else
+	    vtypes.Append (EnSightT::kScalarElemental);
 	}
     }
 }
@@ -294,12 +298,12 @@ bool EnSightOutputT::IsVector (const ArrayT<StringT>& inlabels, int index, Strin
 {
 	extension = inlabels[index];
 
+	// weed out scalar variables
 	if ((strstr ((const char*) inlabels[index], "_x")) == NULL &&
-        (strstr ((const char*) inlabels[index], "_X")) == NULL)
-		return false;
-	else
-		extension.Drop(-2);
+	    (strstr ((const char*) inlabels[index], "_X")) == NULL)
+	  return false;
 
+	// ensure that 2D and 3D variables have a Y component
 	if (dof >= 2)
 	  {
 	    if (inlabels.Length() < index+1)
@@ -308,6 +312,8 @@ bool EnSightOutputT::IsVector (const ArrayT<StringT>& inlabels, int index, Strin
 		 (strstr ((const char*) inlabels[index+1], "_Y")) == NULL)
 	      return false;
 	  }
+
+	// ensure that 3D variables have a Z component
 	if (dof == 3)
 	  {
 	    if (inlabels.Length() < index+2)
@@ -316,16 +322,9 @@ bool EnSightOutputT::IsVector (const ArrayT<StringT>& inlabels, int index, Strin
 		 (strstr ((const char*) inlabels[index+2], "_Z")) == NULL)
 	      return false;
 	  }
-	
-	//DEPRECATRED
-#if 0
-	// create vector extension
-	if ( (strstr ((const char*) inlabels[index], "_x")) != NULL)
-	  extension.DefaultName (inlabels[index], "_x", "", -1);
-	else
-	  extension.DefaultName (inlabels[index], "_X", "", -1);
-#endif
-	
+
+	// we have a vector, now create the proper extension
+	extension.Drop(-2);
 	return true;
 }
 
