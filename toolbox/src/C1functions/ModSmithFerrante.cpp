@@ -5,7 +5,7 @@
 #include "ModSmithFerrante.h"
 #include <math.h>
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dArrayT.h"
 
 /*
@@ -61,7 +61,7 @@ double ModSmithFerrante::DDFunction(double x) const
 dArrayT& ModSmithFerrante::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl = in.Pointer();
 	double* pU = out.Pointer();
@@ -78,7 +78,7 @@ dArrayT& ModSmithFerrante::MapFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& ModSmithFerrante::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
@@ -95,7 +95,7 @@ dArrayT& ModSmithFerrante::MapDFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& ModSmithFerrante::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl   = in.Pointer();
 	double* pddU = out.Pointer();

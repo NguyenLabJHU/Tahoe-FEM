@@ -1,10 +1,10 @@
-/* $Id: LinearExponentialT.cpp,v 1.2 2002-07-02 19:56:31 cjkimme Exp $ */
+/* $Id: LinearExponentialT.cpp,v 1.2.2.1 2002-10-17 01:46:10 paklein Exp $ */
 /* created: paklein (10/30/1997)                                          */
 
 #include "LinearExponentialT.h"
 #include <math.h>
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dArrayT.h"
 
 /** constructor */
@@ -17,7 +17,7 @@ LinearExponentialT::LinearExponentialT(double a, double b, double c, double d):
 	fc(c),
 	fd(d)
 {
-	if (fabs(fd) < kSmall) throw eBadInputValue;
+	if (fabs(fd) < kSmall) throw ExceptionT::kBadInputValue;
 }
 
 /** print parameters */
@@ -63,7 +63,7 @@ double LinearExponentialT::DDFunction(double x) const
 dArrayT& LinearExponentialT::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	int length = in.Length();
 	double* y = out.Pointer();
@@ -80,7 +80,7 @@ dArrayT& LinearExponentialT::MapFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& LinearExponentialT::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	int length = in.Length();
 	double* y = out.Pointer();
@@ -94,7 +94,7 @@ dArrayT& LinearExponentialT::MapDFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& LinearExponentialT::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	int length = in.Length();
 	double* y = out.Pointer();
