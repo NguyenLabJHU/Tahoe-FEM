@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.3 2001-05-30 23:27:03 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.4 2001-10-24 02:00:07 paklein Exp $ */
 /* created: paklein (05/23/1996)                                          */
 
 #include "TimeManagerT.h"
@@ -349,6 +349,9 @@ void TimeManagerT::EchoLoadTime(ifstreamT& in, ostream& out)
 		fLTf[LTfnum]->Read(in);
 		fLTf[LTfnum]->Write(out);
 		out << '\n';
+		
+		/* initialize time */
+		fLTf[LTfnum]->SetLoadFactor(0.0);
 	}
 }
 
