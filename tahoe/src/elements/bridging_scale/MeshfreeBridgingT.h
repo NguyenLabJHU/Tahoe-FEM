@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.h,v 1.2 2003-05-23 22:57:45 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.h,v 1.2.12.1 2003-10-16 12:51:29 paklein Exp $ */
 #ifndef _MESHFREE_BRIDGING_SCALE_T_H_
 #define _MESHFREE_BRIDGING_SCALE_T_H_
 
@@ -62,7 +62,7 @@ private:
 	/** moving least squares solver */
 	MLSSolverT* fMLS;
 	
-	/** support size of each atom */
+	/** support size of each atom in the crystal, not just the points in cells */
 	dArray2DT fSupport;
 };
 
