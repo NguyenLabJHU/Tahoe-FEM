@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.h,v 1.5 2002-08-15 08:59:35 paklein Exp $ */
+/* $Id: ExecutionManagerT.h,v 1.6 2003-01-27 23:14:24 paklein Exp $ */
 /* created: paklein (08/27/1997) */
 
 #ifndef _EXECMAN_T_H_
@@ -44,11 +44,7 @@ public:
 
 protected:
 
-	/* run function */
-	void Run_serial(void);
-	void Run_parallel(void);
-
-	/* MUST be overloaded */
+	/** MUST be overloaded */
 	virtual void RunJob(ifstreamT& in, ostream& status) = 0;
 
 	/* returns the index of the requested option */
@@ -70,15 +66,9 @@ private:
 	
 	/* Batch file processing */
 	void RunBatch(ifstreamT& in, ostream& status);
-	
-	/** open stream with prompt. Input names starting with '-' will be
-	 * treated as options that will be handled with ExecutionManagerT::AddCommandLineOption.
-	 * \param prompt prompt that will appear on command line
-	 * \param skipname signal to exit loop to find string 
-	 * \param defaultname name returned if an empty string is given 
-	 * \param in stream to open. */
-	int OpenWithPrompt(const char* prompt, const char* skipname,
-		const char* defaultname, ifstreamT& in);
+
+	/** prompt user for input */
+	void Prompt(const char* prompt, const char* default_input, StringT& line) const;
 		
 protected:
 
