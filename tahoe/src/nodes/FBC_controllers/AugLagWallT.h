@@ -1,5 +1,4 @@
-/* $Id: AugLagWallT.h,v 1.7 2003-04-07 17:25:48 cjkimme Exp $ */
-
+/* $Id: AugLagWallT.h,v 1.8 2003-10-04 19:14:05 paklein Exp $ */
 #ifndef _AUGLAG_WALL_T_H_
 #define _AUGLAG_WALL_T_H_
 
@@ -21,7 +20,7 @@ public:
 
 	/* constructor */
 	AugLagWallT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes, const FieldT& field,
-		const dArray2DT& coords);
+		const dArray2DT& coords, const dArray2DT& disp);
 
 	/* initialize data */
 	virtual void Initialize(void);

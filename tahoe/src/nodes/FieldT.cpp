@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.20 2003-09-12 18:10:19 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.21 2003-10-04 19:14:01 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nIntegratorT.h"
@@ -582,6 +582,14 @@ void FieldT::WriteRestart(ofstreamT& out, const ArrayT<int>* nodes) const
 	/* FBC controllers */
 	for (int i = 0; i < fFBC_Controllers.Length(); i++)
 		fFBC_Controllers[i]->WriteRestart(out);
+}
+
+/* register results for output */
+void FieldT::RegisterOutput(void)
+{
+	/* FBC controllers */
+	for (int i = 0; i < fFBC_Controllers.Length(); i++)
+		fFBC_Controllers[i]->RegisterOutput();
 }
 
 /* write output data */

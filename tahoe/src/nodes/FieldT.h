@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.14 2003-08-18 03:49:16 paklein Exp $ */
+/* $Id: FieldT.h,v 1.15 2003-10-04 19:14:01 paklein Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -238,6 +238,9 @@ public:
 	void WriteRestart(ofstreamT& out, const ArrayT<int>* nodes) const;
 	void ReadRestart(ifstreamT& in, const ArrayT<int>* nodes);
 	/*@}*/ 
+
+	/** register results for output */
+	void RegisterOutput(void);
 
 	/** write output data */
 	void WriteOutput(ostream& out) const;

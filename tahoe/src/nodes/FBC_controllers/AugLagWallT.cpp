@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.cpp,v 1.10 2003-04-07 17:25:48 cjkimme Exp $ */
+/* $Id: AugLagWallT.cpp,v 1.11 2003-10-04 19:14:05 paklein Exp $ */
 #include "AugLagWallT.h"
 
 #include <iostream.h>
@@ -10,19 +10,19 @@
 #include "eIntegratorT.h"
 #include "FieldT.h"
 
-/* parameters */
-
 using namespace Tahoe;
 
+/* parameters */
 const int kNumAugLagDOF = 1;
 
 /* constructor */
 AugLagWallT::AugLagWallT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes,
-	const FieldT& field, const dArray2DT& coords):
+	const FieldT& field, const dArray2DT& coords, const dArray2DT& disp):
 	PenaltyWallT(fe_manager, 
 		field.Group(),
 		field.Equations(), 
-		coords, 
+		coords,
+		disp,
 		(field.Order() > 0) ? &(field[1]): NULL),
 	fXDOF_Nodes(XDOF_nodes),
 	fField(field)
@@ -286,7 +286,6 @@ void AugLagWallT::ComputeContactForce(double kforce)
 		fp_i.AddToRowScaled(j, -1.0, fx);
 
 	dArrayT f_u;
-	fh_max = 0;
 	for (int i = 0; i < fNumContactNodes; i++)
 	{
 		/* displacement DOF's */
@@ -299,9 +298,6 @@ void AugLagWallT::ComputeContactForce(double kforce)
 		/* contact */
 		if (g <= 0.0)
 		{
-			/* store max penetration */
-			fh_max = (-h > fh_max) ? -h : fh_max;
-		
 			/* displace DOF's */
 			f_u.SetToScaled(-g*kforce, fnormal);
 
@@ -317,5 +313,8 @@ void AugLagWallT::ComputeContactForce(double kforce)
 			/* augmented Lagrangian DOF */
 			fContactForce2D(i, ndof - 1) = force[i]*kforce/fk;			
 		}
+		
+		/* store gap */
+		fGap[i] = h;
 	}
 }

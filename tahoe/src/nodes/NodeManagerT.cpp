@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.37 2003-09-12 18:10:19 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.38 2003-10-04 19:14:01 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -137,6 +137,10 @@ void NodeManagerT::Initialize(void)
 /* register data for output */
 void NodeManagerT::RegisterOutput(void)
 {
+	/* register output from fields */
+	for (int j = 0; j < fFields.Length(); j++)
+		fFields[j]->RegisterOutput();
+
 	/* configure output for history node sets */
 	int num_sets = fHistoryNodeSetIDs.Length();
 	if (num_sets > 0)
@@ -1815,6 +1819,9 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 
 FBC_ControllerT* NodeManagerT::NewFBC_Controller(FieldT& field, int code)
 {
+	/* displacement field */
+	const dArray2DT& disp = field[0];
+
 	/* velocity field */
 	dArray2DT* velocity = NULL;
 	if (field.Order() > 0)
@@ -1830,27 +1837,27 @@ FBC_ControllerT* NodeManagerT::NewFBC_Controller(FieldT& field, int code)
 	switch(code)
 	{
 		case FBC_ControllerT::kPenaltyWall:
-			fbc = new PenaltyWallT(fFEManager, field.Group(), eqnos, coords, velocity);
+			fbc = new PenaltyWallT(fFEManager, field.Group(), eqnos, coords, disp, velocity);
 			break;
 
 		case FBC_ControllerT::kAugLagWall:
-			fbc = new AugLagWallT(fFEManager, this, field, coords);
+			fbc = new AugLagWallT(fFEManager, this, field, coords, disp);
 			break;
 
 		case FBC_ControllerT::kPenaltySphere:	
-			fbc = new PenaltySphereT(fFEManager, field.Group(), eqnos, coords, velocity);
+			fbc = new PenaltySphereT(fFEManager, field.Group(), eqnos, coords, disp, velocity);
 			break;
 
 		case FBC_ControllerT::kPenaltyCylinder:	
-			fbc = new PenaltyCylinderT(fFEManager, field.Group(), eqnos, coords, velocity);
+			fbc = new PenaltyCylinderT(fFEManager, field.Group(), eqnos, coords, disp, velocity);
 			break;
 
 		case FBC_ControllerT::kAugLagSphere:	
-			fbc = new AugLagSphereT(fFEManager, this, field, coords);
+			fbc = new AugLagSphereT(fFEManager, this, field, coords, disp);
 			break;
 
 		case FBC_ControllerT::kMFPenaltySphere:	
-			fbc = new MFPenaltySphereT(fFEManager, field.Group(), eqnos, coords, velocity);
+			fbc = new MFPenaltySphereT(fFEManager, field.Group(), eqnos, coords, disp, velocity);
 			break;
 
 		default:

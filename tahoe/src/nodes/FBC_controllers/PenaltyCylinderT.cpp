@@ -1,4 +1,4 @@
-/* $Id: PenaltyCylinderT.cpp,v 1.1 2003-09-12 18:10:22 paklein Exp $ */
+/* $Id: PenaltyCylinderT.cpp,v 1.2 2003-10-04 19:14:05 paklein Exp $ */
 #include "PenaltyCylinderT.h"
 
 #include <iostream.h>
@@ -16,8 +16,9 @@ PenaltyCylinderT::PenaltyCylinderT(FEManagerT& fe_manager,
 	int group,
 	const iArray2DT& eqnos,
 	const dArray2DT& coords,
+	const dArray2DT& disp,
 	const dArray2DT* vels):
-	PenaltyRegionT(fe_manager, group, eqnos, coords, vels),
+	PenaltyRegionT(fe_manager, group, eqnos, coords, disp, vels),
 	fDirection(rCoords.MinorDim()),
 	fR(rCoords.MinorDim()),
 	fv_OP(rCoords.MinorDim()),
@@ -41,17 +42,6 @@ void PenaltyCylinderT::EchoData(ifstreamT& in, ostream& out)
 	out << " Cylinder direction. . . . . . . . . . . . . . . . =\n" << fDirection << '\n';
 }
 
-/* initialize data */
-void PenaltyCylinderT::Initialize(void)
-{
-	/* inherited */
-	PenaltyRegionT::Initialize();
-	
-	/* memory for distances */
-	fDistances.Dimension(fNumContactNodes);
-}
-
-
 /* form of tangent matrix */
 GlobalT::SystemTypeT PenaltyCylinderT::TangentType(void) const
 {
@@ -71,8 +61,8 @@ void PenaltyCylinderT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 	/* node by node */
 	for (int i = 0; i < fNumContactNodes; i++)
 	{
-		double dist = fDistances[i];
-		double gap  = dist - fRadius;
+		double gap  = fGap[i];
+		double dist = gap + fRadius;
 
 		/* active */
 		if (gap < 0.0)
@@ -109,7 +99,6 @@ void PenaltyCylinderT::DefineParameters(ParameterListT& list) const
 void PenaltyCylinderT::ComputeContactForce(double kforce)
 {
 	/* loop over strikers */
-	fh_max = 0.0;
 	fContactForce2D = 0.0;	
 	for (int i = 0; i < fNumContactNodes; i++)
 	{
@@ -122,20 +111,17 @@ void PenaltyCylinderT::ComputeContactForce(double kforce)
 		
 		/* penetration */
 		double dist = fR.Magnitude();
-		double pen  = fRadius - dist;
-		if (pen > 0.0)
+		double pen  = dist - fRadius;
+		if (pen < 0.0)
 		{
-			/* store max penetration */
-			fh_max = (pen > fh_max) ? pen : fh_max;
-		
 			/* convert to force*outward normal */
-			fR *= (pen*fk*kforce/dist);
+			fR *= (-pen*fk*kforce/dist);
 		
 			/* accumulate */
 			fContactForce2D.SetRow(i, fR);
 		}
 
 		/* store */
-		fDistances[i] = dist;
+		fGap[i] = pen;
 	}
 }

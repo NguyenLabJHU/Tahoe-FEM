@@ -1,6 +1,5 @@
-/* $Id: PenaltySphereT.cpp,v 1.8 2003-08-18 03:44:36 paklein Exp $ */
+/* $Id: PenaltySphereT.cpp,v 1.9 2003-10-04 19:14:05 paklein Exp $ */
 /* created: paklein (04/30/1998) */
-
 #include "PenaltySphereT.h"
 
 #include <iostream.h>
@@ -11,16 +10,16 @@
 #include "fstreamT.h"
 #include "eIntegratorT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 PenaltySphereT::PenaltySphereT(FEManagerT& fe_manager,
 	int group,
 	const iArray2DT& eqnos,
 	const dArray2DT& coords,
+	const dArray2DT& disp,
 	const dArray2DT* vels):
-	PenaltyRegionT(fe_manager, group, eqnos, coords, vels),
+	PenaltyRegionT(fe_manager, group, eqnos, coords, disp, vels),
 	fv_OP(rCoords.MinorDim()),
 	fLHS(eqnos.MinorDim(),ElementMatrixT::kSymmetric)
 {
@@ -38,17 +37,6 @@ void PenaltySphereT::EchoData(ifstreamT& in, ostream& out)
 
 	out << " Sphere radius . . . . . . . . . . . . . . . . . = " << fRadius << '\n';
 }
-
-/* initialize data */
-void PenaltySphereT::Initialize(void)
-{
-	/* inherited */
-	PenaltyRegionT::Initialize();
-	
-	/* memory for distances */
-	fDistances.Dimension(fNumContactNodes);
-}
-
 
 /* form of tangent matrix */
 GlobalT::SystemTypeT PenaltySphereT::TangentType(void) const
@@ -69,8 +57,8 @@ void PenaltySphereT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 	/* node by node */
 	for (int i = 0; i < fNumContactNodes; i++)
 	{
-		double dist = fDistances[i];
-		double gap  = dist - fRadius;
+		double gap  = fGap[i];
+		double dist = gap + fRadius;
 
 		/* active */
 		if (gap < 0.0)
@@ -108,7 +96,6 @@ void PenaltySphereT::DefineParameters(ParameterListT& list) const
 void PenaltySphereT::ComputeContactForce(double kforce)
 {
 	/* loop over strikers */
-	fh_max = 0.0;
 	fContactForce2D = 0.0;	
 	for (int i = 0; i < fNumContactNodes; i++)
 	{
@@ -118,20 +105,17 @@ void PenaltySphereT::ComputeContactForce(double kforce)
 		
 		/* penetration */
 		double dist = fv_OP.Magnitude();
-		double pen  = fRadius - dist;
-		if (pen > 0.0)
+		double pen  = dist - fRadius;
+		if (pen < 0.0)
 		{
-			/* store max penetration */
-			fh_max = (pen > fh_max) ? pen : fh_max;
-		
 			/* convert to force*outward normal */
-			fv_OP *= (pen*fk*kforce/dist);
+			fv_OP *= (-pen*fk*kforce/dist);
 		
 			/* accumulate */
 			fContactForce2D.SetRow(i, fv_OP);
 		}
 
 		/* store */
-		fDistances[i] = dist;
+		fGap[i] = pen;
 	}
 }

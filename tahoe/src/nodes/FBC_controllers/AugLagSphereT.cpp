@@ -1,6 +1,5 @@
-/* $Id: AugLagSphereT.cpp,v 1.10 2003-04-07 17:25:48 cjkimme Exp $ */
+/* $Id: AugLagSphereT.cpp,v 1.11 2003-10-04 19:14:05 paklein Exp $ */
 /* created: paklein (03/24/1999) */
-
 #include "AugLagSphereT.h"
 
 #include <iostream.h>
@@ -12,19 +11,19 @@
 #include "eIntegratorT.h"
 #include "FieldT.h"
 
-/* parameters */
-
 using namespace Tahoe;
 
+/* parameters */
 const int kNumAugLagDOF = 1;
 
 /* constructor */
 AugLagSphereT::AugLagSphereT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes,
-	const FieldT& field, const dArray2DT& coords):
+	const FieldT& field, const dArray2DT& coords, const dArray2DT& disp):
 	PenaltySphereT(fe_manager,
 		field.Group(),
 		field.Equations(), 
-		coords, 
+		coords,
+		disp,
 		(field.Order() > 0) ? &(field[1]): NULL),
 	fXDOF_Nodes(XDOF_nodes),
 	fField(field)
@@ -170,8 +169,8 @@ void AugLagSphereT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 		fLHS = 0.0;
 	
 		/* gap and augmented Lagrangian */
-		double v = fDistances[i];
-		double h = v - fRadius;
+		double h = fGap[i];
+		double v = h + fRadius;
 		double g = force[i] + fk*h;
 
 		/* contact */
@@ -308,6 +307,6 @@ void AugLagSphereT::ComputeContactForce(double kforce)
 		//      force in Heegaard.
 
 		/* store */
-		fDistances[i] = v;
+		fGap[i] = h;
 	}
 }
