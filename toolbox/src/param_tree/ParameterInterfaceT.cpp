@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.cpp,v 1.13 2004-01-31 07:15:57 paklein Exp $ */
+/* $Id: ParameterInterfaceT.cpp,v 1.14 2004-03-24 17:21:51 paklein Exp $ */
 #include "ParameterInterfaceT.h"
 #include "ParameterListT.h"
 #include "ParameterUtils.h"
@@ -183,11 +183,30 @@ void ParameterInterfaceT::DefineSubs(SubListT& sub_list) const
 void ParameterInterfaceT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order,
 	SubListT& sub_sub_list) const
 {
-#ifdef __MWERKS__
-#pragma unused(sub)
-#endif
-	order = ParameterListT::Sequence;
-	sub_sub_list.Dimension(0);
+	/* check for definition in NewSub */
+	ParameterInterfaceT* inline_sub = NewSub(sub);
+	if (inline_sub) /* define inline sub */ {
+	
+		/* set sequence or choice */
+		order = inline_sub->ListOrder();
+		
+		/* there should be no parameters */
+		ParameterListT params(inline_sub->Name());
+		inline_sub->DefineParameters(params);
+		if (params.NumParameters() > 0)
+			ExceptionT::GeneralFail("ParameterInterfaceT::DefineInlineSub", 
+				"%d parameters not allowed in inline sub \"%s\"", params.NumParameters(), sub.Pointer());
+		
+		/* get subs */
+		inline_sub->DefineSubs(sub_sub_list);
+		
+		/* clean up */
+		delete inline_sub;
+	}
+	else /* class must override DefineInlineSub to define the sub */ {
+		order = ParameterListT::Sequence;
+		sub_sub_list.Dimension(0);
+	}
 }
 
 /* return a pointer to the ParameterInterfaceT */
