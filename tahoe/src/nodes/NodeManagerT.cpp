@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.24 2003-03-31 23:05:20 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.25 2003-04-07 17:25:46 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -212,12 +212,13 @@ void NodeManagerT::Equations(int group, AutoArrayT<const iArray2DT*>& eq_1,
 
 void NodeManagerT::ConnectsU(int group, 
 	AutoArrayT<const iArray2DT*>& connects_1,
-	AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const
+	AutoArrayT<const RaggedArray2DT<int>*>& connects_2,
+	AutoArrayT<const iArray2DT*>& equivalent_nodes) const
 {
 	/* from fields */
 	for (int i = 0; i < fFields.Length(); i++)
 		if (fFields[i]->Group() == group)
-			fFields[i]->Connectivities(connects_1, connects_2);
+			fFields[i]->Connectivities(connects_1, connects_2, equivalent_nodes);
 }
 
 /* return the implicit-explicit flag for the given group */
