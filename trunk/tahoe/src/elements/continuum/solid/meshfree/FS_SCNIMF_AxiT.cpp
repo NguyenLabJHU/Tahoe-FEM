@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.13 2005-01-20 00:42:57 cjkimme Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.14 2005-01-24 18:34:33 cjkimme Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 //#define VERIFY_B
@@ -648,9 +648,9 @@ void FS_SCNIMF_AxiT::RHSDriver(void)
 	dMatrixT F2D(2);
 
 //TEMP
-iArrayT tmp(1);
-tmp[0] = 617;
-GlobalToLocalNumbering(tmp);
+//iArrayT tmp(1);
+//tmp[0] = 617;
+//GlobalToLocalNumbering(tmp);
 
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
@@ -716,9 +716,9 @@ GlobalToLocalNumbering(tmp);
 		S_33 = fStress3D(2,2);
 
 //TEMP
-if (i == tmp[0]) {
-	int a = 0;
-}
+//if (i == tmp[0]) {
+//	int a = 0;
+//}
 
 		supp_i = nodalCellSupports(i);
 		bVec_i = bVectorArray(i); b_33 = circumferential_B(i);
