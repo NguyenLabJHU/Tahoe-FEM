@@ -1,4 +1,4 @@
-/* $Id: SmallStrainQ1P0.cpp,v 1.3 2003-11-21 22:54:46 paklein Exp $ */
+/* $Id: SmallStrainQ1P0.cpp,v 1.4 2004-01-05 08:26:37 paklein Exp $ */
 #include "SmallStrainQ1P0.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -86,11 +86,12 @@ void SmallStrainQ1P0::CloseStep(void)
   fTheta_List_last = fTheta_List;
 }
 
-void SmallStrainQ1P0::ResetStep(void)
+GlobalT::RelaxCodeT SmallStrainQ1P0::ResetStep(void)
 {
-  /*inherited*/
-  ContinuumElementT::ResetStep();
-  fTheta_List = fTheta_List_last;
+	fTheta_List = fTheta_List_last;
+	
+	/* inherited */
+	return ContinuumElementT::ResetStep();
 }
 
 void SmallStrainQ1P0::ReadRestart(istream& in)

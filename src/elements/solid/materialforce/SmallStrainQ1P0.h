@@ -1,4 +1,4 @@
-/* $Id: SmallStrainQ1P0.h,v 1.2 2003-08-30 03:31:24 thao Exp $ */
+/* $Id: SmallStrainQ1P0.h,v 1.3 2004-01-05 08:26:37 paklein Exp $ */
 #ifndef _SMALL_STRAIN_Q1P0_H_
 #define _SMALL_STRAIN_Q1P0_H_
 
@@ -22,7 +22,7 @@ class SmallStrainQ1P0: public SmallStrainT
 	virtual void Initialize(void);
 
 	virtual void CloseStep(void);
-	virtual void ResetStep(void);
+	virtual GlobalT::RelaxCodeT ResetStep(void);
 	virtual void ReadRestart(istream& in);
 	virtual void WriteRestart(ostream& out) const;
 
