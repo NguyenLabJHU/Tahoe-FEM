@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.41 2004-07-22 21:10:04 paklein Exp $ */
+/* $Id: SolidT.h,v 1.42 2005-01-07 21:23:16 kyonten Exp $ */
 /* created: paklein (03/10/2001) */
 #ifndef _MATERIAL_T_H_
 #define _MATERIAL_T_H_
@@ -52,7 +52,7 @@ kBCJHypoIsoDmgYC = 47,
 kLocXtalPlastFp_C = 56,
  kGrdXtalPlastFp = 57,
           kRGVIB = 60,
-	kRGSplit = 61,
+		kRGSplit = 61,
        kFDSVKStV = 63,
        kSSSVKStV = 64,
        kOgdenMat = 65,
@@ -65,6 +65,7 @@ kLocXtalPlastFp_C = 56,
      kABAQUS_BCJ = 80, /**< explicit integration */
  kABAQUS_BCJ_ISO = 81, /**< implicit integration */
 kABAQUS_VUMAT_BCJ = 90,
+kGRAD_MRSSKStV = 108, /* mfgp material */
 kSIERRA_Hypoelastic = 110,
  kSIERRA_Iso_Geomat = 111
 };
