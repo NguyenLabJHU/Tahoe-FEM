@@ -1,4 +1,4 @@
-/* $Id: RodT.h,v 1.13 2002-07-05 22:28:06 paklein Exp $ */
+/* $Id: RodT.h,v 1.14 2002-08-05 22:22:30 hspark Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _ROD_T_H_
@@ -10,6 +10,7 @@
 /* direct members */
 #include "RodMaterialT.h"
 #include "LocalArrayT.h"
+#include "dSymMatrixT.h"
 /* templates */
 #include "pArrayT.h"
 
@@ -95,6 +96,10 @@ private: /* MD related computational functions */
 	void ComputeAvgPressure(void);
 	int PrintMDToFile(void);
 
+	/* Hardy-related functions */
+	void ComputeHardyStress(void);
+	void ComputeHardyHeatFlux(void);
+
 protected:
 
 	/** reference ID for sending output */
@@ -132,6 +137,9 @@ private:
 	double fSumKE, fSumPE, fSumTotalE, fSumTemp, fSumPressure;
 	LocalArrayT fLocVel;
 	const int& fStepNumber;
+	dMatrixT fHardyStress;
+	dArrayT fHardyHeatFlux;
+
 };
 
 } // namespace Tahoe 

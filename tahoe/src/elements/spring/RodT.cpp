@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.19 2002-07-05 18:18:54 hspark Exp $ */
+/* $Id: RodT.cpp,v 1.20 2002-08-05 22:22:30 hspark Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -40,6 +40,8 @@ RodT::RodT(const ElementSupportT& support, const FieldT& field):
 	fSumTemp(0.0),
 	fSumPressure(0.0),
 	fStepNumber(support.StepNumber()),
+	fHardyStress(NumSD()),
+	fHardyHeatFlux(NumSD()),
 	fLocVel(LocalArrayT::kVel)
 {
 	/* set matrix format */
@@ -206,6 +208,7 @@ void RodT::CloseStep(void)
   Top();
   const FieldT& field = Field();
   while (NextElement()) {
+    ComputeHardyStress();
     if (field.Order() > 0)
       {
      	/* get velocities */
@@ -424,6 +427,78 @@ void RodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 /***********************************************************************
 * Private
 ***********************************************************************/
+
+/* Below are functions implementing Hardy ideas deriving continuum 
+ * measures from MD notions */
+
+void RodT::ComputeHardyStress(void)
+{
+  double constKd = 0.0;
+	
+  /* components dicated by the algorithm */
+  int formKd = fController->FormKd(constKd);
+  
+  /* coordinates arrays */
+  const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
+  const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
+  
+  /* point forces */
+  dArrayT f0(NumDOF(), fRHS.Pointer());
+  dArrayT f1(NumDOF(), fRHS.Pointer() + NumDOF());
+  
+  /* node numbers */
+  const iArrayT& nodes = CurrentElement().NodesX();
+  int n0 = nodes[0];
+  int n1 = nodes[1];
+	
+  /* reference bond */
+  fBond0.DiffOf(init_coords(n1), init_coords(n0));
+  double l0 = fBond0.Magnitude();
+
+  /* current bond */
+  fBond.DiffOf(curr_coords(n1), curr_coords(n0));
+  double l = fBond.Magnitude();
+		
+  /* bond force magnitude */
+  double dU = fCurrMaterial->DPotential(l, l0);
+	
+  /* particle forces */
+  f0.SetToScaled(constKd*dU/l, fBond);
+
+  /* Potential part of Hardy stress */
+  fHardyStress.Outer(fBond,f0);
+  fHardyStress *= -.5;
+
+  /* Kinetic part of Hardy stress */
+  const FieldT& field = Field();
+  if (field.Order() > 0) {
+   
+    dArrayT vel;
+    dMatrixT kinstress(NumSD());
+    const dArray2DT& velocities = field[1];
+    for (int i = 0; i < fGroupNodes.Length(); i++)
+      {
+	velocities.RowAlias(fGroupNodes[i], vel);
+	kinstress.Outer(vel,vel);
+	kinstress *= .5;
+	kinstress *= fCurrMaterial->Mass();
+	fHardyStress += kinstress;
+	cout << "Kinetic Hardy Stress = \n" << kinstress << endl;
+      }
+  }
+  cout << "Hardy Stress = \n" << fHardyStress << endl;
+}
+
+void RodT::ComputeHardyHeatFlux(void)
+{
+
+
+
+
+
+}
+
+
 /* Below are MD related computational functions */
 
 void RodT::ComputeInstKE(void)
