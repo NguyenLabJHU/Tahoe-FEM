@@ -1,4 +1,4 @@
-/* $Id: PenaltyCylinderT.cpp,v 1.4 2004-07-15 08:31:15 paklein Exp $ */
+/* $Id: PenaltyCylinderT.cpp,v 1.5 2004-07-22 08:31:56 paklein Exp $ */
 #include "PenaltyCylinderT.h"
 #include "FieldT.h"
 #include "eIntegratorT.h"
@@ -10,7 +10,8 @@ using namespace Tahoe;
 
 /* constructor */
 PenaltyCylinderT::PenaltyCylinderT(void):
-	fLHS(ElementMatrixT::kSymmetric)
+	fLHS(ElementMatrixT::kSymmetric),
+	fRadius(-1.0)
 {
 	SetName("cylinder_penalty");
 }

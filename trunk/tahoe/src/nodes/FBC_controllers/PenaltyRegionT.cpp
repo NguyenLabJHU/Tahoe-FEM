@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.17 2004-07-15 08:31:15 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.18 2004-07-22 08:31:56 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltyRegionT.h"
 
@@ -30,7 +30,8 @@ const double Pi = acos(-1.0);
 PenaltyRegionT::PenaltyRegionT(void):
 	fMass(0.0),
 	fLTf(NULL),
-	fOutputID(-1)
+	fOutputID(-1),
+	fk(-1.0)
 {
 
 }
