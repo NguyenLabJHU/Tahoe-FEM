@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2003-03-31 23:14:38 paklein Exp $
+# $Id: makefile,v 1.6.34.1 2004-04-15 21:10:19 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -29,7 +29,9 @@ OBJ = \
 	LJTr2D.o \
 	SWDiamond100.o \
 	SWDiamond110.o \
-	SWMaterial2D.o
+	SWMaterial2D.o \
+	Chain1D.o \
+	Lattice1DT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -58,7 +60,9 @@ SRC = \
 	LJTr2D.cpp \
 	SWDiamond100.cpp \
 	SWDiamond110.cpp \
-	SWMaterial2D.cpp
+	SWMaterial2D.cpp \
+	Chain1D.cpp \
+	Lattice1DT.cpp
 
 ##################### (3) headers
 #
@@ -79,7 +83,9 @@ HDR = \
 	LJTr2D.h \
 	SWDiamond100.h \
 	SWDiamond110.h \
-	SWMaterial2D.h
+	SWMaterial2D.h \
+	Chain1D.h \
+	Lattice1DT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
