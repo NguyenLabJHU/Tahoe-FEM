@@ -1,4 +1,4 @@
-/* $Id: least_square.cpp,v 1.3 2005-02-02 22:21:08 paklein Exp $ */
+/* $Id: least_square.cpp,v 1.4 2005-02-06 04:59:38 paklein Exp $ */
 #include "PiecewiseLinearT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -169,10 +169,11 @@ double squared_difference(const dArray2DT& pts1, const dArray2DT& pts2)
 		double dx = pts2(i,0) - pts2(i-1,0);
 		dx2_min = (dx < dx2_min) ? dx : dx2_min;
 	}
+	double small = (dx2_min < dx1_min) ? dx2_min : dx1_min;
 	dx1_min /= dx1_avg;
 	dx2_min /= dx2_avg;	
-	double small = (dx2_min < dx1_min) ? dx2_min : dx1_min;
-	if (small < 1.0e-12)
+	double test = (dx2_min < dx1_min) ? dx2_min : dx1_min;
+	if (test < 1.0e-12)
 		ExceptionT::GeneralFail(caller, "intervals too small");
 		
 	/* bounds of the integral - the overlap */
