@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.25 2003-02-07 21:50:50 cjkimme Exp $ */
+/* $Id: ElementBaseT.h,v 1.26 2003-02-21 22:31:28 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -224,6 +224,7 @@ public:
 	/** prepare for a sequence of time steps */
 	virtual void InitialCondition(void);
 
+#ifndef _SIERRA_TEST_
 	/** \name restart functions */
 	/*@{*/
 	/** write restart data to the output stream. Should be paired with
@@ -234,6 +235,11 @@ public:
 	 * the corresponding ElementBaseT::WriteRestart implementation. */
 	virtual void ReadRestart(istream& in);
 	/*@}*/
+#else
+	virtual void WriteRestart(double* outgoingData) const;
+
+	virtual void ReadRestart(double* incomingData);
+#endif
 
 	/** \name element card data */
 	/*@{*/

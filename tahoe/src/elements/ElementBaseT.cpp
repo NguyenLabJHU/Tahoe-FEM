@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.33 2003-02-07 21:50:50 cjkimme Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.34 2003-02-21 22:31:28 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -234,6 +234,7 @@ void ElementBaseT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 	ConnectsX(connects_1);
 }
 
+#ifndef _SIERRA_TEST_
 void ElementBaseT::ReadRestart(istream& in)
 {
 	/* stream check */
@@ -245,6 +246,17 @@ void ElementBaseT::WriteRestart(ostream& out) const
 	/* stream check */
 	if (!out.good()) throw ExceptionT::kGeneralFail;
 }
+#else
+void ElementBaseT::ReadRestart(double* incomingData)
+{
+	// Do nothing
+}
+
+void ElementBaseT::WriteRestart(double* outgoingData) const
+{
+	// Do nothing
+}
+#endif
 
 /* returns 1 if DOF's are interpolants of the nodal values */
 int ElementBaseT::InterpolantDOFs(void) const { return 1; }

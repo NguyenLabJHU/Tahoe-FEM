@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.36 2003-02-05 02:38:08 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.37 2003-02-21 22:32:20 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -381,35 +381,30 @@ void CSEAnisoT::CloseStep(void)
 	/* inherited */
 	CSEBaseT::CloseStep();
 
+#ifndef _SIERRA_TEST_
 	/* reset state variables from history */
 	fStateVariables_last = fStateVariables;
 
 	if (freeNodeQ.IsAllocated())
 		freeNodeQ_last = freeNodeQ;
+#endif
 }
 
+#ifndef _SIERRA_TEST_
 /* write restart data to the output stream. */
 void CSEAnisoT::WriteRestart(ostream& out) const
 {
-#ifndef _SIERRA_TEST_
 	/* inherited */
 	CSEBaseT::WriteRestart(out);
 	
 	/* write state variable data */
 	fStateVariables.WriteData(out);
 	out << '\n';
-#else
-#pragma unused(out)
-#pragma message("Implement WriteRestart")
-	cout << "CSEAnisoT::WriteRestart: IO not implemented\n";
-	throw ExceptionT::kGeneralFail;
-#endif
 }
 
 /* read restart data to the output stream */
 void CSEAnisoT::ReadRestart(istream& in)
 {
-#ifndef _SIERRA_TEST_
 	/* inherited */
 	CSEBaseT::ReadRestart(in);
 
@@ -420,13 +415,38 @@ void CSEAnisoT::ReadRestart(istream& in)
 	fStateVariables_last = fStateVariables;
 	if (freeNodeQ.IsAllocated()) //This is useless
 		freeNodeQ_last = freeNodeQ;
-#else
-#pragma unused(in)
-#pragma message("Implement ReadRestart")
-	cout << "CSEAnisoT::ReadRestart: IO not implemented\n";
-	throw ExceptionT::kGeneralFail;
-#endif
 }
+
+#else
+
+void CSEAnisoT::WriteRestart(double* outgoingData) const
+{
+	/* inherited */
+	CSEBaseT::WriteRestart(outgoingData);
+
+	// Nothing to do here right now since Sierra controls state variables	
+	/* write state variable data */
+//	fStateVariables.WriteData(out);
+
+}
+
+/* read restart data to the output stream */
+void CSEAnisoT::ReadRestart(double* incomingData)
+{
+	/* inherited */
+	CSEBaseT::ReadRestart(incomingData);
+
+	// Nothing to do here right now since Sierra controls state variables	
+	
+	/* read state variable data */
+//	fStateVariables.ReadData(in);
+
+	/* set history */
+//	fStateVariables_last = fStateVariables;
+//	if (freeNodeQ.IsAllocated()) //This is useless
+//		freeNodeQ_last = freeNodeQ;
+}
+#endif
 
 /***********************************************************************
 * Protected
