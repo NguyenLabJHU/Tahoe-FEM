@@ -1,29 +1,16 @@
-
+/* $Id: Traction_and_Body_Force.cpp,v 1.2 2003-03-29 00:30:57 paklein Exp $ */
 #include "StaggeredMultiScaleT.h"
-
-#include <iostream.h>
-#include <iomanip.h>
 
 #include "fstreamT.h"
 #include "ModelManagerT.h"
-#include "SolidMaterialT.h"
 #include "ShapeFunctionT.h"
-#include "eIntegratorT.h"
 #include "Traction_CardT.h"
 #include "iAutoArrayT.h"
-#include "OutputSetT.h"
 #include "ScheduleT.h"
 
-//TEMP: all this for general traction BC implementation?
 #include "VariArrayT.h"
 #include "nVariArray2DT.h"
 #include "VariLocalArrayT.h"
-
-/* materials lists */
-//#include "MaterialSupportT.h"
-//#include "MaterialListT.h"
-//#include "Material2DT.h"
-
 
 //##################################################################################
 //###### Traciton B.C. Methods (Cut and Paste from StaggeredMultiScaleT) ##############
@@ -33,7 +20,7 @@
 
 void StaggeredMultiScaleT::EchoTractionBC(ifstreamT& in, ostream& out)
 {
-	out << "\n Traction boundary conditions:\n";
+	const char caller[] = "StaggeredMultiScaleT::EchoTractionBC";
 	
 	/* read data from parameter file */
 	int numlines, numsets;
@@ -90,12 +77,10 @@ void StaggeredMultiScaleT::EchoTractionBC(ifstreamT& in, ostream& out)
 			int min, max;
 			elems.MinMax (min, max);
 			if (min < 0 || max > block_data.Dimension())
-			  {
-			    cout << "\n StaggeredMultiScaleT::EchoTractionBC_TahoeII: node numbers\n";
-			    cout <<   "     {"<< min << "," << max << "} are out of range in ";
-			    cout << " dataline " << line << endl;
-			    throw ExceptionT::kBadInputValue;
-			  }
+				ExceptionT::BadInputValue(caller, 
+					"node numbers {%d,%d} are out of range in dataline %d",
+					min, max, line);
+
 			/* shift */
 			elems += block_data.StartNumber();
 			side_set.SetColumn (0, elems);
@@ -104,24 +89,17 @@ void StaggeredMultiScaleT::EchoTractionBC(ifstreamT& in, ostream& out)
 			num_nodes = num_facet_nodes [side_set (0,1)];
 			for (int f=0; f < num_sides; f++)
 			  if (num_facet_nodes[side_set(f,1)] != num_nodes)
-			    {
-			      cout << "\n StaggeredMultiScaleT::EchoTractionBC_TahoeII: sides specified\n";
-			      cout <<   "     in line " << line << " have differing numbers of nodes";
-			      cout << endl;
-			      throw ExceptionT::kBadInputValue;
-			    }
+			  	ExceptionT::BadInputValue(caller,
+			  		"sides specified in line %d have differing numbers of nodes", line);
 		      }
 		    else
 		      {
-			/* still check numbef of facet nodes */
+			/* still check number of facet nodes */
 			int min, max;
 			num_facet_nodes.MinMax (min, max);
 			if (min != max)
-			  {
-			    cout << "\n StaggeredMultiScaleT::EchoTractionBC_TahoeII: cannot determine number of\n"
-				 <<   "     facet nodes for empty side set at line " << line << endl;
-			    throw ExceptionT::kBadInputValue;
-			  }
+				ExceptionT::BadInputValue(caller,
+					"cannot determine number of facet nodes for empty side set at line %d", line);
 			else
 			  num_nodes = min;
 		      }
@@ -227,7 +205,7 @@ void StaggeredMultiScaleT::SetTractionBC(void)
 		/* get from node manager */
 		nd_tmp.Set(1, nnd, nodes.Pointer());
 		eq_tmp.Set(1, ndof*nnd, eqnos.Pointer());
-		Field().SetLocalEqnos(nd_tmp, eq_tmp);
+		fCoarse.SetLocalEqnos(nd_tmp, eq_tmp);
 	}
 
 	/* set flag */
@@ -291,27 +269,8 @@ void StaggeredMultiScaleT::ApplyTractionBC(void)
 			int elem, facet;
 			BC_card.Destination(elem, facet);
 			
-#ifdef __NO_RTTI__
 			/* default thickness */
 			double thick = 1.0;
-#else
-
-			//-- use thickness for 2D solid deformation elements 
-			double thick = 1.0;
-
-			/* // VMS_BCJT Material Data Handled differently for now
-			if (ndof == 2 && ndof == 2) //better to do this once elsewhere?
-			{
-				//-- get material pointer 
-				const ElementCardT& elem_card = fElementCards[elem];
-				ContinuumMaterialT* pmat = (*fMaterialList)[elem_card.MaterialNumber()];
-			
-				//-- thickness from 2D material 
-				Material2DT* pmat2D = dynamic_cast<Material2DT*>(pmat);
-				if (pmat2D) thick = pmat2D->Thickness();
-			}
-			*/
-#endif
 			
 			/* boundary shape functions */
 			const ParentDomainT& surf_shape = ShapeFunction().FacetShapeFunction(facet);
@@ -395,8 +354,8 @@ void StaggeredMultiScaleT::ApplyTractionBC(void)
 			else
 				throw ExceptionT::kGeneralFail;
 
-			/* assemble */
-			ElementSupport().AssembleRHS(Group(), rhs, BC_card.Eqnos());
+			/* assemble into coarse scale equations */
+			ElementSupport().AssembleRHS(fCoarse.Group(), rhs, BC_card.Eqnos());
 		}
 	}
 }
@@ -409,6 +368,8 @@ void StaggeredMultiScaleT::ApplyTractionBC(void)
 
 void StaggeredMultiScaleT::EchoBodyForce(ifstreamT& in, ostream& out)
 {
+	const char caller[] = "StaggeredMultiScaleT::EchoBodyForce";
+
 	/* schedule number and body force vector */
 	int n_sched;
 	in >> n_sched >> fBody;		
@@ -420,11 +381,8 @@ void StaggeredMultiScaleT::EchoBodyForce(ifstreamT& in, ostream& out)
 	else
 	{
 		fBodySchedule = ElementSupport().Schedule(n_sched);
-		if (!fBodySchedule) {
-			cout << "\n StaggeredMultiScaleT::EchoBodyForce: could not resolve schedule " 
-			     << n_sched + 1 << endl;
-			throw ExceptionT::kBadInputValue;
-		}	
+		if (!fBodySchedule)
+			ExceptionT::BadInputValue(caller, "could not resolve schedule %d", n_sched + 1);
 	}
 	
 	out << "\n Body force vector:\n";
@@ -475,6 +433,8 @@ void StaggeredMultiScaleT::FormMa(MassTypeT mass_type, double constM,
 	const LocalArrayT* nodal_values,
 	const dArray2DT* ip_values)
 {
+	const char caller[] = "StaggeredMultiScaleT::FormMa";
+
 	/* quick exit */
 	if (!nodal_values && !ip_values) return;
 
@@ -482,12 +442,12 @@ void StaggeredMultiScaleT::FormMa(MassTypeT mass_type, double constM,
 	/* dimension checks */
 	if (nodal_values && 
 		fRHS.Length() != nodal_values->Length()) 
-		throw ExceptionT::kSizeMismatch;
+		ExceptionT::SizeMismatch(caller);
 
 	if (ip_values &&
 		(ip_values->MajorDim() != fShapes->NumIP() ||
 		 ip_values->MinorDim() != NumDOF()))
-		throw ExceptionT::kSizeMismatch;
+		ExceptionT::SizeMismatch(caller);
 #endif
 
 	switch (mass_type)
@@ -529,36 +489,7 @@ void StaggeredMultiScaleT::FormMa(MassTypeT mass_type, double constM,
 		}	
 		case kLumpedMass:
 		{
-			cout << "StaggeredMultiScaleT::FormMa(): Lumped mass not currently available. \n";
-#if 0
-			fLHS = 0.0; //hope there's nothing in there!
-			FormMass(kLumpedMass, constM);
-
-			/* init nodal values */
-			if (nodal_values)
-				nodal_values->ReturnTranspose(fNEEvec);
-			else {
-				cout << "\n StaggeredMultiScaleT::FormMa: expecting nodal values for lumped mass" << endl;
-				throw ExceptionT::kGeneralFail;
-			}
-				
-			//TEMP - what to do with ip values?
-			if (ip_values) {
-				cout << "\n StaggeredMultiScaleT::FormMa: lumped mass not implemented for ip sources" << endl;
-				throw ExceptionT::kGeneralFail;
-			}
-
-			double* pAcc = fNEEvec.Pointer();
-			double* pRes = fRHS.Pointer();
-			int     massdex = 0;
-			
-			int nee = nodal_values->Length();
-			for (int i = 0; i < nee; i++)
-			{
-				*pRes++ += (*pAcc++)*fLHS(massdex,massdex);
-				massdex++;
-			}
-#endif
+			ExceptionT::GeneralFail(caller, "no lumped mass");
 			break;
 		}
 	}
