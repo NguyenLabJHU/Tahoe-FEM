@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.6 2002-11-25 07:19:45 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.7 2002-11-26 01:55:37 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -7,6 +7,7 @@
 
 /* direct members */
 #include "nVariArray2DT.h"
+#include "InverseMapT.h"
 
 namespace Tahoe {
 
@@ -20,8 +21,8 @@ public:
 
 	/** enum for particle property types */
 	enum PropertyT {
-        kHarmonicPair, /**< harmonic pair potential */
-    kLennardJonesPair  /**< Jennard-Jones 6/12 pair potential */
+        kHarmonicPair = 0, /**< harmonic pair potential */
+    kLennardJonesPair = 1  /**< Jennard-Jones 6/12 pair potential */
 	};
 	
 	/** stream extraction operator */
@@ -39,14 +40,20 @@ public:
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
-	/* NOT implemented. Returns an zero force vector */
+	/** NOT implemented. Returns an zero force vector */
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
 			
-	/* returns the energy as defined by the derived class types */
+	/** returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void) { return 0.0; };
 	
-	/* writing output */
+	/** resgiter for writing output. Uses the uses sub-class implementations
+	 * of ParticleT::GenerateOutputLabels to register the particle group for
+	 * output. Sub-classes also need to implemented the WriteOutput method. */
 	virtual void RegisterOutput(void);
+
+	/** write output. ParticleT::WriteOutput only writes search grid statistics.
+	 * Sub-classes are responsible for writing data for each particle, given the
+	 * variables names returned by ParticleT::GenerateOutputLabels. */
 	virtual void WriteOutput(void);
 
 	/* compute specified output parameter and send for smoothing */
@@ -73,7 +80,7 @@ protected: /* for derived classes only */
 	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
 	
 	/** generate labels for output data */
-	virtual void GenerateOutputLabels(ArrayT<StringT>& labels) const;
+	virtual void GenerateOutputLabels(ArrayT<StringT>& labels) const = 0;
 
 	/** return true if connectivities are changing */
 	virtual bool ChangingGeometry(void) const;
@@ -128,18 +135,7 @@ protected:
 	int fReNeighborIncr;
 
 	/** \name map from global tag to local tag */
-	/*@{*/
-	/** index shift in ParticleT::fGlobalToLocal. The index shift allows some
-	 * saving in memory since global tags less than the shift are not stored
-	 * in the map. */
-	int fGlobalToLocal_shift;
-
-	/** local number of global tag
-	 * The local index of the global tag is recovered as\n
-	 * local = fGlobalToLocal[global - fGlobalToLocal_shift]\n
-	 * The map is set using ElementBaseT::GlobalToLocalMap. */
-	iArrayT fGlobalToLocal;
-	/*@}*/
+	InverseMapT fGlobalToLocal;
 
 	/** \name particle properties */
 	/*@{*/

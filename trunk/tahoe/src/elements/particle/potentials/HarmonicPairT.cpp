@@ -1,4 +1,4 @@
-/* $Id: HarmonicPairT.cpp,v 1.1 2002-11-25 07:19:46 paklein Exp $ */
+/* $Id: HarmonicPairT.cpp,v 1.2 2002-11-26 01:55:37 paklein Exp $ */
 #include "HarmonicPairT.h"
 
 using namespace Tahoe;
@@ -8,12 +8,13 @@ double HarmonicPairT::sR0 = 0.0;
 double HarmonicPairT::sK = 0.0;
 
 /* constructor */
-HarmonicPairT::HarmonicPairT(double R0, double K):
+HarmonicPairT::HarmonicPairT(double mass, double R0, double K):
 	fR0(R0),
 	fK(K)
 {
 	/* assume nearest neighbor - 10% of equilibrium spacing */
 	SetRange(1.1*fR0);
+	SetMass(mass);
 }
 
 /* return a pointer to the energy function */

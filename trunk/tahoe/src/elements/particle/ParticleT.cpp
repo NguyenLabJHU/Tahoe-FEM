@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.6 2002-11-25 07:19:45 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.7 2002-11-26 01:55:37 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -89,6 +89,7 @@ void ParticleT::Initialize(void)
 	{
 		int a, b, pot_num;
 		in >> a >> b >> pot_num;
+		a--; b--; /* offset */
 		if (fPropertiesMap(a,b) != -1) 
 			ExceptionT::BadInputValue(caller, "potential map(%d,%d) is already assigned to %d", a, b, fPropertiesMap(a,b));
 		else if (pot_num < 1 && pot_num > fNumTypes)
@@ -139,23 +140,6 @@ void ParticleT::RegisterOutput(void)
 
 void ParticleT::WriteOutput(void)
 {
-//TEMP
-ExceptionT::Stop("ParticleT::WriteOutput", "not implemented");
-
-	/* get list of nodes used by the group */
-	iArrayT nodes_used;
-	NodesUsed(nodes_used);
-
-	/* temp space for group displacements */
-	dArray2DT disp(nodes_used.Length(), NumDOF());
-	
-	/* collect group displacements */
-	disp.RowCollect(nodes_used, Field()[0]);
-
-	/* send */
-	dArray2DT e_values;
-	ElementSupport().WriteOutput(fOutputID, disp, e_values);
-	
 	/* write the search grid statistics */
 	if (fGrid) {
 		ofstreamT& out = ElementSupport().Output();
@@ -177,7 +161,8 @@ GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
 	GlobalT::RelaxCodeT relax = ElementBaseT::RelaxSystem();
 
 	/* generate contact element data */
-	if (++fReNeighborCounter >= fReNeighborIncr)
+	fReNeighborCounter++;
+	if (fReNeighborIncr != 0 && fReNeighborCounter >= fReNeighborIncr)
 	{
 		/* (re-)set the neighborlists */
 		SetConfiguration();
@@ -260,6 +245,9 @@ void ParticleT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	/* "point connectivities" needed for output */
 	fPointConnectivities.Set(fGlobalTag.Length(), 1, fGlobalTag.Pointer());
 	
+	/* set inverse map */
+	fGlobalToLocal.SetMap(fGlobalTag);
+	
 	/* write connectivity info */
 	out << " Number of particles . . . . . . . . . . . . . . = " << fGlobalTag.Length();
 	if (all_or_some == 0) out << " (ALL)";
@@ -294,26 +282,6 @@ void ParticleT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		if (fType[fGlobalTag[i]] == -1) not_marked_count++;
 	if (not_marked_count != 0)
 		ExceptionT::BadInputValue(caller, "%d atoms not typed", not_marked_count);
-}
-
-/* generate labels for output data */
-void ParticleT::GenerateOutputLabels(ArrayT<StringT>& labels) const
-{
-	if (NumDOF() > 0) ExceptionT::GeneralFail("ParticleT::GenerateOutputLabels");
-
-	/* displacement labels */
-	const char* disp[3] = {"D_X", "D_Y", "D_Z"};
-	
-	int num_labels =
-		NumDOF() // displacements
-		+ 2;     // PE and KE
-
-	labels.Dimension(num_labels);
-	int dex = 0;
-	for (dex = 0; dex < NumDOF(); dex++)
-		labels[dex] = disp[dex];
-	labels[dex++] = "PE";
-	labels[dex++] = "KE";
 }
 
 /* generate neighborlist */
@@ -374,7 +342,7 @@ void ParticleT::GenerateNeighborList(const iArrayT& particle_tags,
 			}
 		}
 	}
-	
+
 	/* copy/compress into return array */
 	neighbors.Copy(auto_neighbors);
 }

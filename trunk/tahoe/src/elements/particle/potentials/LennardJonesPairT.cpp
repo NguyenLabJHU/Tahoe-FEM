@@ -1,4 +1,4 @@
-/* $Id: LennardJonesPairT.cpp,v 1.1 2002-11-25 07:19:46 paklein Exp $ */
+/* $Id: LennardJonesPairT.cpp,v 1.2 2002-11-26 01:55:37 paklein Exp $ */
 #include "LennardJonesPairT.h"
 
 using namespace Tahoe;
@@ -9,12 +9,13 @@ double LennardJonesPairT::s_sigma = 1.0;
 double LennardJonesPairT::s_cut = 1.0;
 
 /* constructor */
-LennardJonesPairT::LennardJonesPairT(double eps, double sigma, double cut_off):
+LennardJonesPairT::LennardJonesPairT(double mass, double eps, double sigma, double cut_off):
 	f_eps(eps),
 	f_sigma(sigma),
 	f_cut(cut_off)
 {
 	SetRange(f_cut);
+	SetMass(mass);
 }
 
 /* return a pointer to the energy function */

@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.4 2002-11-25 07:19:45 paklein Exp $ */
+/* $Id: ParticlePairT.h,v 1.5 2002-11-26 01:55:36 paklein Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -7,6 +7,7 @@
 
 /* direct members */
 #include "RaggedArray2DT.h"
+#include "VariArrayT.h"
 
 namespace Tahoe {
 
@@ -24,9 +25,6 @@ public:
 	/** destructor */
 	~ParticlePairT(void);
 
-	/** initialization */
-	virtual void Initialize(void);
-
 	/** collecting element group equation numbers */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
@@ -42,6 +40,11 @@ public:
 	virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 	             AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
 	/*@}*/
+
+	/** write output. Writes output data for all tags listed in
+	 * ParticleT::fGlobalTag. The values per node are those specified
+	 * by ParticlePairT::GenerateOutputLabels. */
+	virtual void WriteOutput(void);
 
 protected:
 
@@ -62,6 +65,9 @@ protected:
 	/** construct the list of properties from the given input stream */
 	virtual void EchoProperties(ifstreamT& in, ofstreamT& out);
 
+	/** generate labels for output data */
+	virtual void GenerateOutputLabels(ArrayT<StringT>& labels) const;
+
 private:
 
 	/** neighbor cut-off distance */
@@ -76,9 +82,12 @@ private:
 	/** equation numbers */
 	RaggedArray2DT<int> fEqnos;
 
-	/** workspace for ParticlePairT::RHSDriver. Used to accumulate the force for
+	/** \name workspace for ParticlePairT::RHSDriver. Used to accumulate the force for
 	 * a single row of ParticlePairT::fNeighbors. */
-	AutoArrayT<double> fForce;
+	/*@{*/
+	dArrayT fForce;
+	VariArrayT<double> fForce_man;
+	/*@}*/
 };
 
 } /* namespace Tahoe */
