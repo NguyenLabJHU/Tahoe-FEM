@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.h,v 1.1.2.1 2002-10-17 04:24:24 paklein Exp $ */
+/* $Id: AdhesionT.h,v 1.1.2.2 2002-10-18 01:26:41 paklein Exp $ */
 #ifndef _ADHESION_T_H_
 #define _ADHESION_T_H_
 
@@ -12,11 +12,16 @@
 #include "nVariArray2DT.h"
 #include "iGridManagerT.h"
 #include "GeometryT.h"
+#include "RaggedArray2DT.h"
+#include "nArrayGroupT.h"
+#include "nVariMatrixT.h"
+#include "nArray2DGroupT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
 class SurfaceShapeT;
+class C1FunctionT;
 
 /** class to calculate surface adhesion forces between bodies */
 class AdhesionT: public ElementBaseT
@@ -57,13 +62,27 @@ public:
 		AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
 	virtual void ConnectsX(AutoArrayT<const iArray2DT*>& connects) const;
 	/*@}*/
-	 	
+
+	/** collecting element group equation numbers. See ElementBaseT::Equations
+	 * for more documentation. */
+	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
+		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
+
 protected:
 
 	/** surface specification modes */
 	enum SurfaceSpecModeT {kNodesOnFacet = 0,
                                kSideSets = 1,
                            kBodyBoundary = 2};
+
+	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
+	/*@{*/
+	/** form group contribution to the stiffness matrix */
+	virtual void LHSDriver(void);
+
+	/** form group contribution to the residual */
+	virtual void RHSDriver(void);
+	/*@}*/
 
 	/** print element group data */
 	virtual void PrintControlData(ostream& out) const;
@@ -140,21 +159,62 @@ protected:
 	/*@}*/
 	
 	/** \name interacting faces
-	 * Faces at matching indecies of the two arrays are interacting.
-	 * Due to the searching scheme the index of the surface for the
-	 * face in the AdhesionT::Surface1 array will always be less than or equal
-	 * the index of the matching surface in AdhesionT::Surface2. */
+	 * Faces at matching indecies of the two arrays, AdhesionT::Surface1 and
+	 * AdhesionT::Surface2, are interacting. Due to the searching scheme the 
+	 * index of the surface for the face in the AdhesionT::Surface1 array will 
+	 * always be less than or equal the index of the matching surface in 
+	 * AdhesionT::Surface2. */
 	/*@{*/
 	AutoArrayT<int> fSurface1;
 	AutoArrayT<int> fSurface2;
+	
+	/** face-pair connectivies */
+	RaggedArray2DT<int> fFaceConnectivities;
+
+	/** face-pair equation numbers */
+	RaggedArray2DT<int> fFaceEquations;
 	/*@}*/
 	
 	/** search grid */
 	iGridManagerT fGrid;
+	
+	/** \name surface interaction */
+	/*@{*/
+	double fCutOff;
+	C1FunctionT* fAdhesion;
+	/*@}*/
+	
+	/** \name work space */
+	/*@{*/
+	/** matrix of jump gradients (see SurfaceShapeT::Grad_d): [nen] x [nsd] */
+	dMatrixT fGrad_d;
+
+	/** integration point coordinates: [nip] x [nsd] */
+	dArray2DT fIPCoords2;
+
+	/** normal vectors at the integration points: [nip] x [nsd] */
+	dArray2DT fIPNorm2;
+	
+	/** work space vector: [element DOF] */
+	dArrayT fNEEvec; 
+	/*@}*/
+
+	/** \name dynamic resizing */
+	/*@{*/
+	/** manager of vectors length number element equations */
+	nArrayGroupT<double> fNEE_vec_man;
+	
+	/** memory manager for AdhesionT::fGrad_d */
+	nVariMatrixT<double> fGrad_d_man;
+	
+	/** manager of data from the face that is in the inner loop
+	 * of the integration of quantities over a face pair. */
+	nArray2DGroupT<double> fFace2_man;
+	/*@}*/
 
 	/** link surfaces in ConnectsU - for graph */
 	iArray2DT fSurfaceLinks;
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
 #endif /* _ADHESION_T_H_ */

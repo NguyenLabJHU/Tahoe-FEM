@@ -1,10 +1,16 @@
-/* $Id: AdhesionT.cpp,v 1.1.2.1 2002-10-17 04:24:24 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.1.2.2 2002-10-18 01:26:41 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
 #include "ifstreamT.h"
 #include "SurfaceShapeT.h"
 #include "iArrayT.h"
+#include "iNodeT.h"
+#include "eControllerT.h"
+
+/* interaction functions */
+#include "LennardJones612.h"
+#include "SmithFerrante.h"
 
 using namespace Tahoe;
 
@@ -13,9 +19,18 @@ const int kAvgCellNodes = 10;
 /* constructor */
 AdhesionT::AdhesionT(const ElementSupportT& support, const FieldT& field):
 	ElementBaseT(support, field),
-	fGrid(kAvgCellNodes, -1, fFaceCentroids, NULL)
+	fGrid(kAvgCellNodes, -1, fFaceCentroids, NULL),
+	fAdhesion(NULL),
+	fNEE_vec_man(0),
+	fFace2_man(0, NumSD()),
+	fGrad_d_man(0, fGrad_d)
 {
+	/* register dynamically resized arrays */
+	fNEE_vec_man.Register(fRHS);
+	fNEE_vec_man.Register(fNEEvec);
 
+	fFace2_man.Register(fIPCoords2);
+	fFace2_man.Register(fIPNorm2);
 }
 
 /* destructor */
@@ -23,6 +38,7 @@ AdhesionT::~AdhesionT(void)
 {
 	for (int i = 0; i < fShapes.Length(); i++)
 		delete fShapes[i];
+	delete fAdhesion;
 }
 
 /* element level reconfiguration for the current solution */
@@ -46,6 +62,31 @@ void AdhesionT::Initialize(void)
 {
 	/* inherited */
 	ElementBaseT::Initialize();
+
+	/* set adhesion function */
+	ifstreamT& in = ElementSupport().Input();
+	int code;
+	in >> code;
+	switch (code)
+	{
+		case C1FunctionT::kLennardJones:
+		{	
+			double A;
+			in >> A;
+			fAdhesion = new LennardJones612(A);
+			break;
+		}	
+		case C1FunctionT::kSmithFerrante:
+		{
+			double A, B;
+			in >> A >> B;
+			fAdhesion = new SmithFerrante(A,B,0.0);
+			break;
+		}
+		default:
+			cout << "\n AdhesionT::Initialize: unrecognized function: " << code << endl;
+			throw ExceptionT::kBadInputValue;	
+	}
 
 	/* set up work space */
 	SetWorkSpace();
@@ -91,6 +132,9 @@ void AdhesionT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 {
 	/* inherited */
 	ElementBaseT::ConnectsU(connects_1, connects_2);
+	
+	/* append face-pair connectivities */
+	connects_2.Append(&fFaceConnectivities);
 }
 
 /* returns no (NULL) geometry connectivies */
@@ -99,9 +143,143 @@ void AdhesionT::ConnectsX(AutoArrayT<const iArray2DT*>& connects) const
 #pragma unused (connects)
 }
 
+/* collecting element group equation numbers */
+void AdhesionT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
+	AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
+{
+	/* inherited */
+	ElementBaseT::Equations(eq_1, eq_2);
+	
+	/* collect equations */
+	Field().SetLocalEqnos(fFaceConnectivities, fFaceEquations);
+
+	/* add equations to the array */
+	eq_2.Append(&fFaceEquations);
+}
+
 /***********************************************************************
 * Protected
 ***********************************************************************/
+
+/* form group contribution to the stiffness matrix */
+void AdhesionT::LHSDriver(void)
+{
+
+}
+
+/* form group contribution to the residual */
+void AdhesionT::RHSDriver(void)
+{
+	/* time-stepping parameters */
+	double constKd = 0.0;
+	int     formKd = fController->FormKd(constKd);
+	if (!formKd) return;
+	
+	/* dimensions */
+	int nsd = NumSD();
+
+	/* work space */
+	iArrayT nodes1, nodes2, equations;
+	dArrayT ipx1, ipx2, v_12(nsd);
+	dArrayT n1, n2;
+	dMatrixT Q1(nsd), Q2(nsd), shNaMat;
+	AutoArrayT<double> j2w2_list, jump;
+
+	/* loop over active face pairs */
+	for (int i = 0; i < fSurface1.Length(); i++)
+	{
+		/* surface index */
+		int s1 = fFaceIndex(fSurface1[i], kSurface);
+		int s2 = fFaceIndex(fSurface2[i], kSurface);
+	
+		/* local face index */
+		int i1 = fFaceIndex(fSurface1[i], kLocalIndex);
+		int i2 = fFaceIndex(fSurface2[i], kLocalIndex);
+		
+		/* face node numbers */
+		fSurfaces[s1].RowAlias(i1, nodes1);
+		fSurfaces[s2].RowAlias(i2, nodes2);
+
+		/* local coordinate arrays */
+		LocalArrayT& coords1 = fLocCurrCoords[s1];	
+		LocalArrayT& coords2 = fLocCurrCoords[s2];
+		coords1.SetLocal(nodes1);	
+		coords2.SetLocal(nodes2);	
+	
+		/* surface shape functions */
+		SurfaceShapeT& shape1 = *fShapes[s1];
+		SurfaceShapeT& shape2 = *fShapes[s2];
+
+		/* resize working arrays for the pair */
+		fNEE_vec_man.Dimension(fFaceEquations.MinorDim(i), false);
+		fRHS = 0.0;
+		jump.Dimension(fFaceConnectivities.MinorDim(i));
+		fGrad_d_man.SetDimensions(jump.Length(), nsd);
+
+		/* resize working arrays for face 2 */
+		int nip2 = shape2.NumIP();
+		j2w2_list.Dimension(nip2);
+		fFace2_man.SetMajorDimension(nip2, false);
+
+		/* double-loop over integration points */
+		shape1.TopIP();
+		while (shape1.NextIP())
+		{
+			/* integration point coordinates */
+			ipx1 = shape1.IPCoords();
+			double j1w1 = shape1.Jacobian(Q1)*shape1.IPWeight();
+			Q1.ColumnAlias(nsd-1, n1);
+			
+			/* face 1 shape functions */
+			//jump
+
+			shape2.TopIP();
+			while (shape2.NextIP())
+			{
+				/* data for face 2 */
+				int ip2 = shape2.CurrIP();
+				fIPCoords2.RowAlias(ip2, ipx2);
+				fIPNorm2.RowAlias(ip2, n2);
+				double& j2w2 = j2w2_list[ip2];
+			
+				/* calculate once and store */
+				if (ip2 == 0)
+				{
+					ipx2 = shape2.IPCoords();
+					j2w2 = shape2.Jacobian(Q2)*shape2.IPWeight();
+					Q2.ColumnAlias(nsd-1, n2);
+				}
+			
+				/* gap vector from face 1 to face 2 */
+				v_12.DiffOf(ipx2, ipx1);
+				double d = v_12.Magnitude();
+			
+				if (fabs(d) > kSmall &&
+				    dArrayT::Dot(v_12, ipx1) > 0.0 &&
+				    dArrayT::Dot(v_12, ipx2) < 0.0)
+				{
+					/* adhesive force */
+					double dphi =-j1w1*j2w2*constKd*(fAdhesion->DFunction(d));
+					
+					/* face 2 shape functions */
+					//jump
+					
+					/* form d_jump/du */
+					shNaMat.Set(1, jump.Length(), jump.Pointer());
+					fGrad_d.Expand(shNaMat, nsd);
+				
+					/* accumulate */
+					fGrad_d.MultTx(v_12, fNEEvec);
+					fRHS.AddScaled(dphi/d, fNEEvec);
+				}
+			}
+		}
+		
+		/* assemble */
+		fFaceEquations.RowAlias(i, equations);
+		ElementSupport().AssembleRHS(Group(), fRHS, equations);
+	}
+}
 
 /* print element group data */
 void AdhesionT::PrintControlData(ostream& out) const
@@ -109,6 +287,12 @@ void AdhesionT::PrintControlData(ostream& out) const
 	/* inherited */
 	ElementBaseT::PrintControlData(out);
 
+	/* adhesive force information */
+	out << " Adhesive interaction. . . . . . . . . . . . . . =\n";
+	fAdhesion->PrintName(out);
+	out << " Parameters:\n";
+	fAdhesion->Print(out);
+	out << " Interaction cut-off distance. . . . . . . . . . = " << fCutOff << endl;
 }
 
 /* echo contact bodies and striker nodes */
@@ -268,17 +452,26 @@ void AdhesionT::SetWorkSpace(void)
 * changed since the last call */
 bool AdhesionT::SetConfiguration(void)
 {
-	/* compute the face "centroids" */
+	/* set all shape functions to the first ip */
+	for (int i = 0; i < fShapes.Length(); i++)
+		fShapes[i]->SetIP(0);
+
+	/* compute the face "centroids" a normal */
+	dArray2DT normals(fFaceIndex.MajorDim(), NumSD());
+	dMatrixT Q(NumSD());
+	int n_index = NumSD() - 1;
+	dArrayT normal;
 	iArrayT face_nodes;
 	dArrayT centroid;
 	const ElementSupportT& support = ElementSupport();
 	for (int i = 0; i < fFaceIndex.MajorDim(); i++)
 	{
 		/* current facet information */
-		int surface_index = fFaceIndex(i,kSurface);
+		int surface_index = fFaceIndex(i, kSurface);
 		const iArray2DT& surface = fSurfaces[surface_index];
+		SurfaceShapeT& shape = *fShapes[surface_index];
 		LocalArrayT& coords = fLocCurrCoords[surface_index];
-		int local_index = fFaceIndex(i,kLocalIndex);
+		int local_index = fFaceIndex(i, kLocalIndex);
 		surface.RowAlias(local_index, face_nodes);
 		fFaceCentroids.RowAlias(i, centroid);
 		
@@ -287,33 +480,91 @@ bool AdhesionT::SetConfiguration(void)
 	
 		/* compute average coordinates */
 		coords.Average(centroid);
+		
+		/* local surface axes */
+		normals.RowCopy(i, normal);		
+		shape.Jacobian(Q);
+		Q.CopyColumn(n_index, normal);
 	}
 	
 	/* reset the search grids */
 	fGrid.Reset();
 
+	/* store old configuration */
+	ArrayT<int> s1_last(fSurface1);
+	ArrayT<int> s2_last(fSurface2);
+
 	/* search for interacting faces */
-
-#if 0
-	bool contact_changed = SetActiveInteractions();
-	if (contact_changed)
+	dArrayT vec_ij(NumSD());
+	for (int i = 0; i < fFaceIndex.MajorDim(); i++)
 	{
-		/* resize */
-		int nel = fActiveStrikers.Length();
-		fConnectivities_man.SetMajorDimension(nel, false);
-		fEqnos_man.SetMajorDimension(nel, false);
-
-		/* generate connectivities */
-		SetConnectivities();	
-
-		/* update dimensions */
-		ElementBlockDataT& block = fBlockData[0];
-		block.Set(block.ID(), block.StartNumber(), fConnectivities[0]->MinorDim(), block.MaterialID());
+		int i_surface = fFaceIndex(i, kSurface);
+	
+		/* get potential interactions */
+		const AutoArrayT<iNodeT>& hits = fGrid.HitsInRegion(fFaceCentroids(i), 2.0*fCutOff);
+		for (int jj = 0; jj < hits.Length(); jj++)
+		{
+			int j = hits[jj].Tag();
+			int j_surface = fFaceIndex(j, kSurface);
+			
+			/* filter on index info first */
+			if (i_surface < j_surface || /* different surfaces */
+				(i_surface == j_surface && i < j)) /* same surface */
+			{
+				/* vector from centroids of i to j */
+				vec_ij.DiffOf(fFaceCentroids(j), fFaceCentroids(i));
+			
+				/* surfaces "facing" each other */
+				if (normals.DotRow(i,vec_ij) > 0.0 &&
+					normals.DotRow(j,vec_ij) < 0.0)
+				{
+					fSurface1.Append(i);
+					fSurface2.Append(j);
+				}
+			}
+		}
 	}
 	
-	return contact_changed;
-#endif
-	return false;
+	/* count nodes in each face pair */
+	iArrayT node_counts(fSurface1.Length());
+	for (int i = 0; i < node_counts.Length(); i++)
+	{
+		int s1 = fFaceIndex(fSurface1[i], kSurface);
+		int s2 = fFaceIndex(fSurface2[i], kSurface);
+	
+		node_counts[i]  = fSurfaces[s1].MinorDim();
+		node_counts[i] += fSurfaces[s2].MinorDim();
+	}
+
+	/* generate connectivities */
+	iArrayT elem, surf1, surf2;
+	fFaceConnectivities.Configure(node_counts);
+	for (int i = 0; i < fFaceConnectivities.MajorDim(); i++)
+	{
+		/* surface index */
+		int s1 = fFaceIndex(fSurface1[i], kSurface);
+		int s2 = fFaceIndex(fSurface2[i], kSurface);
+	
+		/* local face index */
+		int i1 = fFaceIndex(fSurface1[i], kLocalIndex);
+		int i2 = fFaceIndex(fSurface2[i], kLocalIndex);
+	
+		/* set aliases */
+		fSurfaces[s1].RowAlias(i1, surf1);
+		fSurfaces[s2].RowAlias(i2, surf2);
+		fFaceConnectivities.RowAlias(i, elem);
+		
+		/* copy in */
+		elem.CopyIn(0, surf1);
+		elem.CopyIn(surf1.Length(), surf2);
+	}
+	
+	/* allocate equations array */
+	fFaceEquations.Configure(node_counts, NumDOF());
+	fFaceEquations = -1;
+
+	/* true if changed */
+	return (s1_last != fSurface1) || (s2_last != fSurface2);
 }
 
 /***********************************************************************
