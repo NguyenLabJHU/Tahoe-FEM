@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2002-01-09 17:13:41 paklein Exp $
+# $Id: makefile,v 1.7 2002-01-27 18:43:14 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -14,7 +14,9 @@ OBJ = \
 	LoadTime.o \
 	SWDataT.o \
 	TimeSequence.o \
-	Traction_CardT.o
+	Traction_CardT.o \
+	ElementBlockDataT.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -31,7 +33,8 @@ SRC = \
 	LoadTime.cpp \
 	SWDataT.cpp \
 	TimeSequence.cpp \
-	Traction_CardT.cpp
+	Traction_CardT.cpp \
+	ElementBlockDataT.cpp
 
 # headers
 HDR = \
@@ -43,7 +46,9 @@ HDR = \
 	LoadTime.h \
 	SWDataT.h \
 	TimeSequence.h \
-	Traction_CardT.h
+	Traction_CardT.h \
+	ElementBlockDataT.h 
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
