@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.2 2001-01-29 19:48:21 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.3 2001-02-20 00:04:44 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -19,8 +19,8 @@
 #include "exodusII.h"
 
 /* constructor for opening input or output file */
-ExodusT::ExodusT(ostream& out, int float_size):
-	fOut(out),
+ExodusT::ExodusT(ostream& message_out, int float_size):
+	fOut(message_out),
 	exoid(-1),
 	comp_ws(float_size),
 	io_ws(0)
@@ -1125,11 +1125,26 @@ ExodusT::ExodusT(ostream& out, int float_size):
 	io_ws(0)
 { }
 ExodusT::~ExodusT(void) { }
-bool ExodusT::OpenRead(const StringT& filename) { return false; }
-bool ExodusT::OpenWrite(const StringT& filename) { return false; }
+bool ExodusT::OpenRead(const StringT& filename) 
+{
+  cout << "\n ExodusT::OpenRead: file format not available" << endl;
+  throw eGeneralFail;
+  return false; 
+}
+bool ExodusT::OpenWrite(const StringT& filename)
+{
+  cout << "\n ExodusT::OpenWrite: file format not available" << endl;
+  throw eGeneralFail;
+  return false; 
+}
 bool ExodusT::Create(const StringT& filename, const StringT& title,
 		ArrayT<StringT>& info, ArrayT<StringT>& QA, int dim, int nodes,
-		int elem, int num_blks, int node_sets, int side_sets) { return false; }
+		int elem, int num_blks, int node_sets, int side_sets)
+{
+  cout << "\n ExodusT::OpenCreate: file format not available" << endl;
+  throw eGeneralFail;
+  return false; 
+}
 void ExodusT::Close(void) { throw eGeneralFail; }
 void ExodusT::ElementBlockID(iArrayT& ID) const { throw eGeneralFail; }
 void ExodusT::NodeSetID(iArrayT& ID) const { throw eGeneralFail; }
