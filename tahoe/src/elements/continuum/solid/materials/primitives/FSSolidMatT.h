@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.1.1.1.2.6 2001-06-29 01:21:18 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.1.1.1.2.7 2001-07-02 16:12:05 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 /* Defines the interface large strain materials which account             */
 /* for thermal strains with the multiplicative split:                     */
@@ -66,10 +66,10 @@ public:
 protected:
 
 	/** left stretch tensor. \param b return value */
-	void Compute_b(dSymMatrixT& b) const { b.MultAAT(F()); };
+	void Compute_b(dSymMatrixT& b) const;
 
-	/** right stretch tensor. \param b return value */
-	void Compute_C(dSymMatrixT& C) const { C.MultATA(F()); };
+	/** right stretch tensor. \param C return value */
+	void Compute_C(dSymMatrixT& C) const;
 
 	/** Green-Lagrangian strain. \param E return value */
 	void Compute_E(dSymMatrixT& E) const;

@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.1.1.1.2.4 2001-06-22 14:18:29 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.1.1.1.2.5 2001-07-02 16:12:04 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 
 #include "FSSolidMatT.h"
@@ -123,13 +123,106 @@ const dMatrixT& FSSolidMatT::F_last(int ip) const
 * Protected
 ***********************************************************************/
 
-/** Green-Lagrangian strain. \param E return value */
+/* left stretch tensor. \param b return value */
+void FSSolidMatT::Compute_b(dSymMatrixT& b) const
+{
+	int nsd = NumSD();
+	if (nsd == 2)
+	{
+		double* f = fFiniteStrain.DeformationGradient().Pointer();
+		double* a = b.Pointer();
+		
+		/* unrolled */
+		a[0] = f[0]*f[0] + f[1]*f[1];
+		a[1] = f[2]*f[2] + f[3]*f[3];
+		a[2] = f[0]*f[2] + f[1]*f[3];
+	}
+	else if (nsd == 3)
+	{
+		double* f = fFiniteStrain.DeformationGradient().Pointer();
+		double* a = b.Pointer();
+	
+		/* unrolled */
+		a[0] = f[0]*f[0] + f[1]*f[1] + f[2]*f[2];
+		a[1] = f[3]*f[3] + f[4]*f[4] + f[5]*f[5];
+		a[2] = f[6]*f[6] + f[7]*f[7] + f[8]*f[8];
+		a[3] = f[3]*f[6] + f[4]*f[7] + f[5]*f[8];
+		a[4] = f[0]*f[6] + f[1]*f[7] + f[2]*f[8];
+		a[5] = f[0]*f[3] + f[1]*f[4] + f[2]*f[5];
+	}
+	else
+	{
+		cout << "\n FSSolidMatT::Compute_b: unsupported dimension: " << nsd << endl;
+		throw eGeneralFail;
+	}
+}
+
+/* right stretch tensor. \param b return value */
+void FSSolidMatT::Compute_C(dSymMatrixT& C) const
+{
+	int nsd = NumSD();
+	if (nsd == 2)
+	{
+		double* f = fFiniteStrain.DeformationGradient().Pointer();
+		double* c = C.Pointer();
+		
+		/* unrolled */
+		c[0] = f[0]*f[0] + f[2]*f[2];
+		c[1] = f[1]*f[1] + f[3]*f[3];
+		c[2] = f[0]*f[1] + f[2]*f[3];
+	}
+	else if (nsd == 3)
+	{
+		double* f = fFiniteStrain.DeformationGradient().Pointer();
+		double* c = C.Pointer();
+	
+		/* unrolled */
+		c[0] = f[0]*f[0] + f[3]*f[3] + f[6]*f[6];
+		c[1] = f[1]*f[1] + f[4]*f[4] + f[7]*f[7];
+		c[2] = f[2]*f[2] + f[5]*f[5] + f[8]*f[8];
+		c[3] = f[1]*f[2] + f[4]*f[5] + f[7]*f[8];
+		c[4] = f[0]*f[2] + f[3]*f[5] + f[6]*f[8];
+		c[5] = f[0]*f[1] + f[3]*f[4] + f[6]*f[7];
+	}
+	else
+	{
+		cout << "\n FSSolidMatT::Compute_C: unsupported dimension: " << nsd << endl;
+		throw eGeneralFail;
+	}
+}
+
+/* Green-Lagrangian strain. \param E return value */
 void FSSolidMatT::Compute_E(dSymMatrixT& E) const
 {
-	/* could optimize */
-	E.MultATA(F());
-	E.PlusIdentity(-1.0);
-	E *= 0.5;
+	int nsd = NumSD();
+	if (nsd == 2)
+	{
+		double* f = fFiniteStrain.DeformationGradient().Pointer();
+		double* e = E.Pointer();
+		
+		/* unrolled */
+		e[0] = (f[0]*f[0] + f[2]*f[2] - 1.0)*0.5;
+		e[1] = (f[1]*f[1] + f[3]*f[3] - 1.0)*0.5;
+		e[2] = (f[0]*f[1] + f[2]*f[3])*0.5;
+	}
+	else if (nsd == 3)
+	{
+		double* f = fFiniteStrain.DeformationGradient().Pointer();
+		double* e = E.Pointer();
+	
+		/* unrolled */
+		e[0] = (f[0]*f[0] + f[3]*f[3] + f[6]*f[6] - 1.0)*0.5;
+		e[1] = (f[1]*f[1] + f[4]*f[4] + f[7]*f[7] - 1.0)*0.5;
+		e[2] = (f[2]*f[2] + f[5]*f[5] + f[8]*f[8] - 1.0)*0.5;
+		e[3] = (f[1]*f[2] + f[4]*f[5] + f[7]*f[8])*0.5;
+		e[4] = (f[0]*f[2] + f[3]*f[5] + f[6]*f[8])*0.5;
+		e[5] = (f[0]*f[1] + f[3]*f[4] + f[6]*f[7])*0.5;
+	}
+	else
+	{
+		cout << "\n FSSolidMatT::Compute_E: unsupported dimension: " << nsd << endl;
+		throw eGeneralFail;
+	}
 }
 
 //DEV
