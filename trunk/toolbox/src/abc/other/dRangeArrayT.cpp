@@ -1,4 +1,4 @@
-/* $Id: dRangeArrayT.cpp,v 1.5 2002-10-20 22:38:55 paklein Exp $ */
+/* $Id: dRangeArrayT.cpp,v 1.6 2002-12-05 08:23:03 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 
 #include "dRangeArrayT.h"
@@ -25,10 +25,8 @@ dRangeArrayT::dRangeArrayT(int colnum, const dArray2DT& values2D)
 
 	/* check */
 	if (!IsSequential())
-	{
-		cout << "\n dRangeArrayT::dRangeArrayT: array values must be sorted in ascending order" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("dRangeArrayT::dRangeArrayT", 
+			"array values must be sorted in ascending order"); 
 }
 
 namespace Tahoe {
@@ -48,10 +46,8 @@ void dRangeArrayT::SetValues(const dArrayT& values)
 {
 	dArrayT::operator=(values);
 	if (!IsSequential())
-	{
-		cout << "\n dRangeArrayT::SetValues: array values must be sorted in ascending order" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("dRangeArrayT::SetValues", 
+			"array values must be sorted in ascending order"); 
 }
 
 /*

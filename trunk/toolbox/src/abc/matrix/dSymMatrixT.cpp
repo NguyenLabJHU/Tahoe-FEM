@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.16 2002-10-20 22:38:54 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.17 2002-12-05 08:23:02 paklein Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
@@ -89,11 +89,8 @@ void dSymMatrixT::ExpandIndex(int nsd, int dex, int& dex_1, int& dex_2)
 	if (dex >= NumValues(nsd)) throw ExceptionT::kOutOfRange;
 #endif	
 	
-        if (nsd == 1)
-	{
-	        cout << "\n dSymMatrixT::ExpandIndex not implemented yet for 1D" << endl;
-	        throw ExceptionT::kGeneralFail;
-	}
+	if (nsd == 1) ExceptionT::GeneralFail("dSymMatrixT::ExpandIndex", "not implemented yet for 1D");
+
 	int  map_2D[6] = {0,0,1,1,0,1};
 	int map_3D[18] = {0,0,1,1,2,2,
 	                  1,2,0,2,0,1};
@@ -934,11 +931,7 @@ void dSymMatrixT::MultQBQT(const dMatrixT& Q, const dSymMatrixT& B)
 #endif
 
 	/* no transforms of self */
-	if (B.Pointer() == Pointer())
-	{
-		cout << "\n dSymMatrixT::MultQBQT: no transforms of self" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (B.Pointer() == Pointer()) ExceptionT::GeneralFail("dSymMatrixT::MultQBQT", "no transforms of self");
 
 	double* b = B.Pointer();
 	double* q = Q.Pointer();
@@ -1191,13 +1184,10 @@ evals.Length() != 3) throw ExceptionT::kSizeMismatch;
 	}
 
 	/* check convergence */
-	if (iterations >= max_iterations)
-	{
-		cout << "\n dSymMatrixT::Eigenvalues3D: failed to converge after "
-		     << max_iterations << " iterations\n"
-		     <<   "     Sum of off-diagonal terms = " << small << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (iterations >= max_iterations) 
+		ExceptionT::GeneralFail("dSymMatrixT::Eigenvalues3D", 
+			"failed to converge after %d iterations. Sum of off-diagonals = %e", 
+			max_iterations, small);
 	
 	if (sort_descending)
 	{
@@ -1238,11 +1228,7 @@ evecs.Rows() != 3) throw ExceptionT::kSizeMismatch;
 #endif
 
 //TEMP
-if (sort_descending)
-{
-	cout << "\n dSymMatrixT::Eigensystem3D: sort_descending not implemented" << endl;
-	throw ExceptionT::kGeneralFail;
-}
+if (sort_descending) ExceptionT::GeneralFail("dSymMatrixT::Eigensystem3D", "sort_descending not implemented");
 
 	double a[3], b[3], z[3];
 	double* d = evals.Pointer();
@@ -1365,12 +1351,9 @@ if (sort_descending)
 
 	/* check convergence */
 	if (iterations >= max_iterations)
-	{
-		cout << "\n dSymMatrixT::Eigensystem3D: failed to converge after "
-		     << max_iterations << " iterations\n"
-		     <<   "     Sum of off-diagonal terms = " << small << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("dSymMatrixT::Eigensystem3D", 
+			"failed to converge after %d iterations. Sum of off-diagonals = %e", 
+			max_iterations, small);
 
 	/* transpose matrix */
 	double tmp;
