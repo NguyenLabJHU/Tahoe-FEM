@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.19 2002-03-02 20:19:59 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.20 2002-03-11 20:14:52 sawimme Exp $ */
 /* created: paklein (09/21/1997) */
 
 #include "FEExecutionManagerT.h"
@@ -970,7 +970,7 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 				labels[0] = "part";
 				labels[1] = "inex";
 				labels[2] = "degree";
-				exo.WriteNodeLabels(labels);
+				exo.WriteLabels(labels, ExodusT::kNode);
 				exo.WriteTime(1, 0.0);
 				exo.WriteNodalVariable(1, 1, part);
 				exo.WriteNodalVariable(1, 2, inex);
