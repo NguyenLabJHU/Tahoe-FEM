@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.h,v 1.7 2002-07-17 00:02:10 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.h,v 1.8 2002-10-10 01:38:22 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 
 #ifndef _UPDATED_LAGRANGIAN_T_H_
@@ -43,15 +43,15 @@ protected:
 
 protected:
 
-	dMatrixT fCauchyStress;	// symmetric Cauchy stress tensor
-	dMatrixT fStressStiff;	// compact stress stiffness contribution
-	dMatrixT fGradNa;       // shape function gradients matrix
+	/** \name work space */
+	/*@{*/
+	dMatrixT fCauchyStress;	/**< matrix for Cauchy stress tensor: [nsd] x [nsd] */
+	dMatrixT fStressStiff;	/**< "compact" stress stiffness contribution: [nen] x [nen] */
+	dMatrixT fGradNa;       /**< shape function gradients matrix: [nsd] x [nen] */
+	/*@}*/
 	
-	/* arrays with local ordering */
-	LocalArrayT fLocCurrCoords;	// current coords with local ordering
-		
-	/* workspace */
-	dArrayT fTemp2;
+	/** current coords with local ordering */
+	LocalArrayT fLocCurrCoords;	
 };
 
 } // namespace Tahoe 
