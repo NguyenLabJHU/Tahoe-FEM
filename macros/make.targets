@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.24 2003-03-15 16:54:31 paklein Exp $
+# $Id: make.targets,v 1.25 2003-04-22 18:34:35 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -13,6 +13,7 @@ OPT_CFLAGS = \
 	$(DEV_CFLAGS) \
 	$(FOSSUM_CFLAGS) \
 	$(TB_CFLAGS) \
+	$(EXPAT_CFLAGS) \
 	$(NOX_CFLAGS) \
 	$(T_CFLAGS) \
 	$(ACME_CFLAGS) \
@@ -30,6 +31,7 @@ OPT_LFLAGS = \
 	$(DEV_LFLAGS) \
 	$(FOSSUM_LFLAGS) \
 	$(TB_LFLAGS) \
+	$(EXPAT_LFLAGS) \
 	$(NOX_LFLAGS) \
 	$(T_LFLAGS) \
 	$(ACME_LFLAGS) \
@@ -47,6 +49,7 @@ OPT_LIB = \
 	$(DEV_LIB) \
 	$(FOSSUM_LIB) \
 	$(TB_LIB) \
+	$(EXPAT_LIB) \
 	$(NOX_LIB) \
 	$(T_LIB) \
 	$(F2C_LIB) \
@@ -64,6 +67,7 @@ OPT_INC = \
 	$(FOSSUM_INC) \
 	$(NOX_INC) \
 	$(TB_INC) \
+	$(EXPAT_INC) \
 	$(T_INC) \
 	$(F2C_INC) \
 	$(BLAS_INC) \
@@ -80,6 +84,7 @@ OPT_DEFINES = \
 	$(DEV_DEFINES) \
 	$(FOSSUM_DEFINES) \
 	$(TB_DEFINES) \
+	$(EXPAT_DEFINES) \
 	$(NOX_DEFINES) \
 	$(T_DEFINES) \
 	$(ACME_DEFINES) \

@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.21 2003-03-31 23:21:06 paklein Exp $
+# $Id: makefile.template,v 1.22 2003-04-22 18:35:26 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -56,6 +56,14 @@ TB_CFLAGS   = $(TB_INC) $(TB_DEFINES)
 TB_LIB_NAME = toolbox
 TB_LIB      = $(TB_DIR)/lib/lib$(TB_LIB_NAME).a
 TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
+
+##### expat XML parsing library
+#EXPAT_DEFINES  = -D__EXPAT__
+#EXPAT_INC      = -I/usr/local/include
+#EXPAT_CFLAGS   = $(EXPAT_INC) $(EXPAT_DEFINES)
+#EXPAT_LIB_NAME = expat
+#EXPAT_LIB      = /usr/local/lib/lib$(EXPAT_LIB_NAME).a
+#EXPAT_LFLAGS   = -L/usr/local/lib -l$(EXPAT_LIB_NAME)
 
 ##### development
 #DEV_DIR      = $(HOME_DIR)/../development
