@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.21 2002-10-04 05:21:59 paklein Exp $
+# $Id: makefile,v 1.22 2002-10-04 20:51:05 thao Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -24,8 +24,8 @@ OBJ = \
 	LinearT.o \
 	GaoVicky.o \
 	GaoJi.o \
-	GaoJi2.o
-
+	GaoJi2.o \
+	SF2.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -52,8 +52,8 @@ SRC = \
 	LinearT.cpp \
 	GaoVicky.cpp \
 	GaoJi.cpp \
-	GaoJi2.cpp
-
+	GaoJi2.cpp \
+	SF2.cpp
 # headers
 HDR = \
 	CubicSplineT.h \
@@ -74,7 +74,8 @@ HDR = \
 	LinearT.h \
 	GaoVicky.h \
 	GaoJi.h \
-	GaoJi2.h
+	GaoJi2.h \
+	SF2.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
