@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.13 2002-02-28 16:27:58 sawimme Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.14 2002-03-04 07:05:53 paklein Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -61,11 +61,7 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
     
     /* read the node numbering map */
     fPointNumberMap.Allocate(coords.MajorDim());
-	model.AllNodeMap(fPointNumberMap);
-	fPointNumberMap++; // modelmanagerT offsets map to zero
-
-	//TEMP
-	//cout << "node number map:\n" << fPointNumberMap.wrap(10) << endl;
+	model.AllNodeIDs(fPointNumberMap);
 
 //TEMP
 	if (fPointNumberMap.Length() != coords.MajorDim()) {
@@ -81,7 +77,7 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
   	//fPoints->SetNumberOfPoints(num_nodes + 1);
   	for (int i=0; i < num_nodes; i++) 
 //		fPoints->InsertPoint(i+1, coords(i));
-  	fPoints->InsertPoint(i, coords(i)); //SHIFT
+		fPoints->InsertPoint(i, coords(i)); //SHIFT
 #endif
 
 #if 0
@@ -113,7 +109,7 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 		/* read connectivities */
 		GeometryT::CodeT geom_code = model.ElementGroupGeometry(elem_ID[i]);
 		const iArray2DT& connectivities = model.ElementGroup(elem_ID[i]);
-		//connectivities[i]--; //SHIFT
+		//connectivities[i]--; // shifted by the model manager
 
 #if __option(extended_errorcheck)
 		cout << "VTKBodyDataT::VTKBodyDataT: reading element block: " 
@@ -122,7 +118,7 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 
 		/* element numbering map */
 		iArrayT map(connectivities.MajorDim());
-		model.ElementMap(elem_ID[i], map);
+		model.ElementIDs(elem_ID[i], map);
 		
 		//TEMP
 		//cout << "element number map:\n" << map.wrap(10) << endl;
