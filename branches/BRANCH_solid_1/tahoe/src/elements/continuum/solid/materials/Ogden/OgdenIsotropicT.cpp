@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.cpp,v 1.4 2001-05-04 19:16:48 paklein Exp $ */
+/* $Id: OgdenIsotropicT.cpp,v 1.4.2.1 2001-06-06 16:24:14 paklein Exp $ */
 /* created: paklein (10/01/2000)                                          */
 /* base class for large deformation isotropic material following          */
 /* Ogden's formulation.                                                   */
@@ -16,7 +16,8 @@ OgdenIsotropicT::OgdenIsotropicT(ifstreamT& in, const ElasticT& element):
 	fdWdE(NumSD()),
 	fddWddE(NumSD()),
 	fModMat(dSymMatrixT::NumValues(NumSD())),
-	fModulus(dSymMatrixT::NumValues(NumSD()))
+	fModulus(dSymMatrixT::NumValues(NumSD())),
+	fStress(NumSD())
 {
 
 }
@@ -67,16 +68,26 @@ void OgdenIsotropicT::Initialize(void)
 /* modulus */
 const dMatrixT& OgdenIsotropicT::c_ijkl(void)
 {
-	//TEMP - compute directly in spatial representation
-	return C_to_c(OgdenIsotropicT::C_IJKL());
-}
+	/* deformation gradient */
+	const dMatrixT& Fmat = F();
+	
+	/* transform */
+	fModulus.SetToScaled(1.0/Fmat.Det(), PushForward(Fmat, OgdenIsotropicT::C_IJKL()));
+	return fModulus;
+} 
+/**< \todo compute directly in spatial representation rather than transforming */
 	
 /* stresses */
 const dSymMatrixT& OgdenIsotropicT::s_ij(void)
 {
-	//TEMP - compute directly in spatial representation
-	return S_to_s(OgdenIsotropicT::S_IJ());
+	/* deformation gradient */
+	const dMatrixT& Fmat = F();
+	
+	/* transform */
+	fStress.SetToScaled(1.0/Fmat.Det(), PushForward(Fmat, OgdenIsotropicT::S_IJ()));
+	return fStress;
 }
+/**< \todo compute directly in spatial representation rather than transforming */
 
 /* material description */
 const dMatrixT& OgdenIsotropicT::C_IJKL(void)

@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.h,v 1.2 2001-02-20 00:26:51 paklein Exp $ */
+/* $Id: OgdenIsotropicT.h,v 1.2.2.1 2001-06-06 16:24:14 paklein Exp $ */
 /* created: paklein (10/01/2000)                                          */
 /* base class for large deformation isotropic material following          */
 /* Ogden's formulation.                                                   */
@@ -65,8 +65,9 @@ protected:
 	dSymMatrixT fddWddE;
 	dMatrixT    fModMat;
 	
-	/* return value */
-	dMatrixT fModulus;
+	/* return values */
+	dMatrixT    fModulus;
+	dSymMatrixT fStress;
 };
 
 #endif /* _OGDEN_ISOTROPIC_T_H_ */
