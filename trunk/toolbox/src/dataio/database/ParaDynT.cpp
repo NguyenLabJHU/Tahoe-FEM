@@ -15,7 +15,9 @@
 
 using namespace Tahoe;
 
-namespace Tahoe {
+namespace Tahoe 
+{
+
 const bool ArrayT<ParaDynT::VariableTypeT>::fByteCopy = true;
 } /* namespace Tahoe */
 
@@ -38,6 +40,9 @@ void ParaDynT::WriteCoordinates (ostream& fgeo,
 				 const dArray2DT& coords,
 				 const iArrayT& types) const
 {
+  if(coords.MajorDim() != types.Length()) 
+    throw ExceptionT::kSizeMismatch;
+
   if(coords.MinorDim()==2)
     { 
       for (int i=0; i < coords.MajorDim(); i++)
@@ -115,6 +120,8 @@ void ParaDynT::WriteBounds (ostream& fgeo, const dArray2DT& bounds) const
 	     << float(bounds(i)[2]) << "\n";
     }
   else
-    throw ExceptionT::kBadInputValue;
-    
+    {
+      cout << "Error: ParaDynT::WriteBounds\n";
+      throw ExceptionT::kBadInputValue;
+    }
 }

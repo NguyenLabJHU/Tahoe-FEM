@@ -18,13 +18,11 @@
 #include "dArray2DT.h"
 
 #include "CrystalLatticeT.h"
-#include "FCCT.h"
-#include "BCCT.h"
+
 #include "VolumeT.h"
 #include "BoxT.h"
 #include "OutputSetT.h"
 #include "OutPutLatticeT.h"
-
 
 namespace Tahoe {
 
@@ -66,7 +64,7 @@ class MeshAtom {
   double Volume_of_Mesh();
   dArray2DT Length();
 
-  iArrayT* ReturnAtomID();
+  iArrayT*   ReturnAtomID();
   dArray2DT* ReturnCoordinates();
   iArray2DT* ReturnConnectivities();
   dArray2DT* ReturnBounds();

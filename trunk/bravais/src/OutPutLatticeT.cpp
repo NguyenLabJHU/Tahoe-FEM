@@ -87,7 +87,7 @@ OutputBaseT* OutPutLatticeT::NewOutput(const StringT& program_name,
 	    output = new TecPlotOutputT(log, outstrings, kdigits);
 	    break;
 	  case IOBaseT::kParaDyn:
-	    output = new ParaDynOutputT(log, outstrings,bounds,type);
+	    output = new ParaDynOutputT(log, outstrings);
 	    break;
 	  default:
 	    {			
@@ -125,7 +125,15 @@ void OutPutLatticeT::SetCoordinates(const dArray2DT& coordinates, const iArrayT*
 	fOutput->SetCoordinates(coordinates, node_id); 
 }
 
+void OutPutLatticeT::SetBounds(const dArray2DT& bounds)
+{
+	fOutput->SetBounds(bounds); 
+}
 
+void OutPutLatticeT::SetTypes(const iArrayT& types)
+{
+	fOutput->SetTypes(types); 
+}
 
 /* register the output for an element set. returns the output ID */
 int OutPutLatticeT::AddElementSet(const OutputSetT& output_set)

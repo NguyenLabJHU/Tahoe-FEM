@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.h,v 1.14 2002-12-02 09:39:10 paklein Exp $ */
+/* $Id: OutputBaseT.h,v 1.15 2003-04-18 23:46:45 saubry Exp $ */
 /* created: sawimme (05/18/1999) */
 #ifndef _OUTPUTBASE_T_H_
 #define _OUTPUTBASE_T_H_
@@ -57,6 +57,10 @@ public:
 	 *        implies the row number is the id. The number of ids must match the
 	 *        number of rows in the coordinate array */
 	virtual void SetCoordinates(const dArray2DT& coordinates, const iArrayT* node_id);
+
+	virtual void SetBounds(const dArray2DT& bounds);
+	virtual void SetTypes(const iArrayT& types);
+
 
 	/** return the node id list
 	 * \return point to the id list. If NULL implies the row number in the coordinate
@@ -119,6 +123,9 @@ protected:
 	/* output data */
 	const dArray2DT* fCoordinates; /**< pointer to coordinates */
 	const iArrayT*   fNodeID; /**< list of node IDs */
+
+	const dArray2DT* fBounds; /**< pointer to bounds, paradyn format */
+	const iArrayT* fTypes; /**< pointer to types, paradyn format */
 
 	AutoArrayT<OutputSetT*> fElementSets; /**< list of output groups */
 	ArrayT<iArrayT> fElementBlockIDs; /**< integer blocks IDs created from string IDs */

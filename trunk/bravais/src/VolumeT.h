@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: VolumeT.h,v 1.7 2002-11-14 01:47:33 saubry Exp $ */
+/* $Id: VolumeT.h,v 1.8 2003-04-18 23:46:05 saubry Exp $ */
 
 #ifndef _VOLUME_T_H_
 #define _VOLUME_T_H_
@@ -54,12 +54,12 @@ public:
 	virtual iArrayT GetNCells() = 0;
         virtual dArray2DT GetLength() = 0; 
 
-	StringT* GetAtomNames();
-	iArrayT* GetAtomID();
+	StringT*   GetAtomNames();
+	iArrayT*   GetAtomID();
 	dArray2DT* GetAtomCoordinates();
 	iArray2DT* GetAtomConnectivities();
 	dArray2DT* GetAtomBounds();
-	iArrayT* GetAtomType();
+	iArrayT*   GetAtomTypes();
 };
 
 }

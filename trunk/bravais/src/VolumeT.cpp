@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: VolumeT.cpp,v 1.6 2002-11-14 01:47:33 saubry Exp $ */
+/* $Id: VolumeT.cpp,v 1.7 2003-04-18 23:46:05 saubry Exp $ */
 #include "VolumeT.h"
 
 VolumeT::VolumeT(int n) 
@@ -59,7 +59,7 @@ dArray2DT* VolumeT::GetAtomBounds()
   return &atom_bounds;
 }
 
-iArrayT* VolumeT::GetAtomType()
+iArrayT* VolumeT::GetAtomTypes()
 {
   return &atom_types;
 }

@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.cpp,v 1.10 2002-10-20 22:36:52 paklein Exp $ */
+/* $Id: IOBaseT.cpp,v 1.11 2003-04-18 23:46:42 saubry Exp $ */
 /* created: sawimme (09/28/1999) */
 #include "IOBaseT.h"
 
@@ -23,6 +23,7 @@
 #include "EnSightOutputT.h"
 #include "AbaqusOutputT.h"
 #include "TecPlotOutputT.h"
+#include "ParaDynOutputT.h"
 
 using namespace Tahoe;
 
@@ -86,21 +87,21 @@ void IOBaseT::InputFormats (ostream& log) const
 {
   log << "    eq. " << setw (2) << IOBaseT::kTahoe         << ". Tahoe\n";
   log << "    eq. " << setw (2) << IOBaseT::kTahoeII       << ". Tahoe II\n";
-  //log << "    eq. " << setw (2) << IOBaseT::kTecPlot       << ". TecPlot 7.5\n";
+//log << "    eq. " << setw (2) << IOBaseT::kTecPlot       << ". TecPlot 7.5\n";
   log << "    eq. " << setw (2) << IOBaseT::kEnSight       << ". Ensight 6 Gold ASCII\n";
   log << "    eq. " << setw (2) << IOBaseT::kEnSightBinary << ". Ensight 6 Gold Binary\n";
   log << "    eq. " << setw (2) << IOBaseT::kExodusII      << ". Exodus II\n";
   log << "    eq. " << setw (2) << IOBaseT::kAbaqus        << ". ABAQUS ASCII (.fin)\n";
   log << "    eq. " << setw (2) << IOBaseT::kAbaqusBinary  << ". ABAQUS Binary (.fil)\n";
-  //log << "    eq. " << setw (2) << IOBaseT::kAVS           << ". AVS UCD ASCII\n";
-  //log << "    eq. " << setw (2) << IOBaseT::kAVSBinary     << ". AVS UCD Binary\n";
+//log << "    eq. " << setw (2) << IOBaseT::kAVS           << ". AVS UCD ASCII\n";
+//log << "    eq. " << setw (2) << IOBaseT::kAVSBinary     << ". AVS UCD Binary\n";
   log << "    eq. " << setw (2) << IOBaseT::kPatranNeutral << ". PATRAN Neutral\n";
   log << "    eq. " << setw (2) << IOBaseT::kTahoeResults  << ". Tahoe Results (.geo/.run)\n";
 }
 
 void IOBaseT::OutputFormats (ostream& log) const
 {
-  //log << "    eq. " << setw (2) << IOBaseT::kTahoe         << ". Tahoe\n";
+//log << "    eq. " << setw (2) << IOBaseT::kTahoe         << ". Tahoe\n";
   log << "    eq. " << setw (2) << IOBaseT::kTahoeII       << ". Tahoe II\n";
   log << "    eq. " << setw (2) << IOBaseT::kTecPlot       << ". TecPlot 7.5\n";
   log << "    eq. " << setw (2) << IOBaseT::kEnSight       << ". Ensight 6 Gold ASCII\n";
@@ -109,9 +110,9 @@ void IOBaseT::OutputFormats (ostream& log) const
   log << "    eq. " << setw (2) << IOBaseT::kAbaqus        << ". ABAQUS ASCII (.fin)\n";
   log << "    eq. " << setw (2) << IOBaseT::kAbaqusBinary  << ". ABAQUS Binary (.fil)\n";
   log << "    eq. " << setw (2) << IOBaseT::kAVS           << ". AVS UCD ASCII\n";
-  //log << "    eq. " << setw (2) << IOBaseT::kAVSBinary     << ". AVS UCD Binary\n";
+//log << "    eq. " << setw (2) << IOBaseT::kAVSBinary     << ". AVS UCD Binary\n";
   log << "    eq. " << setw (2) << IOBaseT::kPatranNeutral << ". PATRAN Neutral\n";
-  log << "    eq. " << setw (2) << IOBaseT::kParaDyn << ". PARADYN\n";
+  log << "    eq. " << setw (2) << IOBaseT::kParaDyn       << ". PARADYN\n";
 }
 
 /* try to guess the file format based on the file extension */
@@ -236,6 +237,9 @@ OutputBaseT* IOBaseT::NewOutput(const StringT& program_name,
 	    break;
 	  case IOBaseT::kTecPlot:
 	    output = new TecPlotOutputT(log, outstrings, kdigits);
+	    break;	  
+	  case IOBaseT::kParaDyn:
+	    output = new ParaDynOutputT(log, outstrings);
 	    break;
 	  default:
 	    {			

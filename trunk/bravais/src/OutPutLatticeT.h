@@ -47,6 +47,9 @@ public:
 
 	/* output functions */
 	void SetCoordinates(const dArray2DT& coordinates, const iArrayT* node_id);
+	void SetBounds(const dArray2DT& bounds);
+	void SetTypes(const iArrayT& types);
+
 	void WriteGeometryFile(const StringT& file_name, 
 			       IOBaseT::FileTypeT format) const;
 	void WriteGeometry(void);

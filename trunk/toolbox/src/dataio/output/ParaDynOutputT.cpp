@@ -13,17 +13,10 @@
 using namespace Tahoe;
 
 ParaDynOutputT::ParaDynOutputT (ostream& out, 
-				const ArrayT<StringT>& out_strings,
-				dArray2DT bounds,iArrayT types) :
+				const ArrayT<StringT>& out_strings) :
   OutputBaseT (out, out_strings)
 {
-  fBounds.Dimension(bounds.MajorDim(),bounds.MinorDim());
-  fBounds = bounds;
-
-  fTypes.Dimension(types.Length());
-  fTypes = types;
 }
-
 
 void ParaDynOutputT::WriteGeometry (void)
 {
@@ -73,8 +66,13 @@ StringT ParaDynOutputT::CreateFileName (const StringT& Label) const
 
 void ParaDynOutputT::WriteBounds (ostream& geo, const ParaDynT& par) const
 {
+  dArray2DT local (fBounds->MajorDim(), fBounds->MinorDim());
+  for (int i=0; i < local.MajorDim(); i++)
+    for (int j=0; j < local.MinorDim(); j++)
+      local(i,j) = (*fBounds)(i,j);
+
   par.WriteBoundHeader(geo);
-  par.WriteBounds(geo,fBounds);
+  par.WriteBounds(geo,local);
 }
 
 
@@ -91,12 +89,19 @@ void ParaDynOutputT::WritePart (ostream& geo, ParaDynT& par,int index) const
     }
 }
 
-void ParaDynOutputT::WriteCoordinates (ostream& geo, ParaDynT& par, const iArrayT& nodes) const
+void ParaDynOutputT::WriteCoordinates (ostream& geo, ParaDynT& par, 
+				       const iArrayT& nodes) const
 {
   dArray2DT local (nodes.Length(), fCoordinates->MinorDim());
   for (int i=0; i < nodes.Length(); i++)
     local.SetRow (i, (*fCoordinates)(nodes[i]));
 
+  iArrayT tmp (fTypes->Length());
+  for (int i=0; i < fTypes->Length(); i++)
+    tmp[i] = (*fTypes)[i];
+
   par.WriteCoordinateHeader (geo);
-  par.WriteCoordinates (geo, local,fTypes);
+  par.WriteCoordinates (geo, local, tmp);
 }
+
+
