@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.14.2.3 2003-02-20 01:58:39 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.14.2.4 2003-02-21 20:13:44 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -40,6 +40,28 @@ void ParticlePairT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 
 	/* add to list of equation numbers */
 	eq_2.Append(&fEqnos);
+}
+
+/* class initialization */
+void ParticlePairT::Initialize(void)
+{
+	/* inherited */
+	ParticleT::Initialize();
+
+	/* dimension */
+	int ndof = NumDOF();
+	fLHS.Dimension(2*ndof);
+	fRHS.Dimension(2*ndof);
+
+	/* constant matrix needed to calculate stiffness */
+	fOneOne.Dimension(fLHS);
+	dMatrixT one(ndof);
+	one.Identity();
+	fOneOne.SetBlock(0, 0, one);
+	fOneOne.SetBlock(ndof, ndof, one);
+	one *= -1;
+	fOneOne.SetBlock(0, ndof, one);
+	fOneOne.SetBlock(ndof, 0, one);
 }
 
 /* collecting element geometry connectivities */
@@ -222,12 +244,9 @@ void ParticlePairT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		AssembleParticleMass(mass);
 	}
 	
-	/* assemble stiffness */
-	if (formK)
+	/* assemble diagonal stiffness */
+	if (formK && sys_type == GlobalT::kDiagonal)
 	{
-		if (sys_type != GlobalT::kDiagonal && ElementSupport().IterationNumber() == 1)
-			cout << "\n ParticlePairT::LHSDriver: WARNING: LHS matrix is a diagonal approximation" << endl;
-	
 		/* assembly information */
 		const ElementSupportT& support = ElementSupport();
 		int group = Group();
@@ -298,6 +317,87 @@ void ParticlePairT::LHSDriver(GlobalT::SystemTypeT sys_type)
 
 		/* assemble */
 		support.AssembleLHS(group, fForce, Field().Equations());
+	}
+	else if (formK)
+	{
+		/* assembly information */
+		const ElementSupportT& support = ElementSupport();
+		int group = Group();
+		int ndof = NumDOF();
+		fLHS.Dimension(2*ndof);
+		
+		/* global coordinates */
+		const dArray2DT& coords = support.CurrentCoordinates();
+
+		/* pair properties function pointers */
+		int current_property = -1;
+		PairPropertyT::ForceFunction force_function = NULL;
+		PairPropertyT::StiffnessFunction stiffness_function = NULL;
+
+		/* work space */
+		dArrayT r_ij(NumDOF(), fRHS.Pointer());
+		dArrayT r_ji(NumDOF(), fRHS.Pointer() + NumDOF());
+
+		/* run through neighbor list */
+		const iArray2DT& field_eqnos = Field().Equations();
+		iArray2DT pair_eqnos(2, ndof); 
+		iArrayT pair(2);
+		iArrayT neighbors;
+		dArrayT x_i, x_j;
+		for (int i = 0; i < fNeighbors.MajorDim(); i++)
+		{
+			/* row of neighbor list */
+			fNeighbors.RowAlias(i, neighbors);
+
+			/* type */
+			int  tag_i = neighbors[0]; /* self is 1st spot */
+			int type_i = fType[tag_i];
+			double* k_i = fForce(tag_i);
+			pair[0] = tag_i;
+		
+			/* run though neighbors for one atom - first neighbor is self */
+			coords.RowAlias(tag_i, x_i);
+			for (int j = 1; j < neighbors.Length(); j++)
+			{
+				/* global tag */
+				int  tag_j = neighbors[j];
+				int type_j = fType[tag_j];
+				double* k_j = fForce(tag_j);
+				pair[1] = tag_j;
+			
+				/* set pair property (if not already set) */
+				int property = fPropertiesMap(type_i, type_j);
+				if (property != current_property)
+				{
+					force_function = fPairProperties[property]->getForceFunction();
+					stiffness_function = fPairProperties[property]->getStiffnessFunction();
+					current_property = property;
+				}
+		
+				/* global coordinates */
+				coords.RowAlias(tag_j, x_j);
+		
+				/* connecting vector */
+				r_ij.DiffOf(x_j, x_i);
+				double r = r_ij.Magnitude();
+				r_ji.SetToScaled(-1.0, r_ij);
+			
+				/* interaction functions */
+				double F = constK*force_function(r, NULL, NULL);
+				double K = constK*stiffness_function(r, NULL, NULL);
+				double Fbyr = F/r;
+
+				/* 1st term */
+				fLHS.Outer(fRHS, fRHS, (K - Fbyr)/r/r);
+		
+				/* 2nd term */
+				fLHS.AddScaled(Fbyr, fOneOne);
+				
+				/* assemble */
+				pair_eqnos.RowCollect(pair, field_eqnos);
+				support.AssembleLHS(group, fLHS, pair_eqnos);
+			}
+		}
 	}
 }
 

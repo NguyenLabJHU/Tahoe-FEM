@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.8 2003-01-27 07:00:26 paklein Exp $ */
+/* $Id: ParticlePairT.h,v 1.8.2.1 2003-02-21 20:13:44 paklein Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -25,6 +25,10 @@ public:
 	/** collecting element group equation numbers */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
+
+	/** class initialization. Among other things, element work space
+	 * is allocated and connectivities are read. */
+	virtual void Initialize(void);
 
 	/** \name connectivities.
 	 * See ElementBaseT::ConnectsX and ElementBaseT::ConnectsU for more
@@ -83,6 +87,9 @@ private:
 	/*@{*/
 	dArrayT fForce_list;
 	VariArrayT<double> fForce_list_man;
+
+	/** constant matrix needed to compute the stiffness */
+	dMatrixT fOneOne;
 	/*@}*/
 };
 
