@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_Interface.h,v 1.1 2003-03-05 02:27:52 paklein Exp $ */
+/* $Id: SIERRA_Material_Interface.h,v 1.2 2003-03-06 17:23:31 paklein Exp $ */
 #ifndef __SIERRA_MAT_INTERFACE_H__
 #define __SIERRA_MAT_INTERFACE_H__
 
@@ -64,29 +64,28 @@ typedef void (*Sierra_function_material_init)(int* nelem, double* dt, int* nsv,
  * \param modulus_flag  0/1 = dont/do complete elastic constants
  * \param material_name name for material model
 */
-void register_material(int* XML_command_id, Sierra_function_param_check check_func, 
+extern void register_material(int* XML_command_id, Sierra_function_param_check check_func, 
 	int* modulus_flag, const char* material_name);
 
 /** register function to do material computations */
-void register_process_func(Sierra_function_material_calc calc_func, const char* material_name);
+extern void register_process_func(Sierra_function_material_calc calc_func, const char* material_name);
 
 /** register function to do material initialization */
-void register_init_func(Sierra_function_material_init init_func, const char* material_name);
+extern void register_init_func(Sierra_function_material_init init_func, const char* material_name);
 
 /** register the number of state variables */
-void register_num_state_vars(int* nsv, const char* material_name);
+extern void register_num_state_vars(int* nsv, const char* material_name);
 
 /** register the data that the material model needs from the element in
  * order to do its computations */
-void call register_input_var(const char* variable_name, const char* material_name);
+extern void register_input_var(const char* variable_name, const char* material_name);
 
 /** register the XML commands that specify material parameters */
-void register_parser_line(int* XML_command_id, const char* material_name);
+extern void register_parser_line(int* XML_command_id, const char* material_name);
 /*@}*/
 
 #ifdef __cplusplus 
 }
-
 #endif
 
 #endif /* __SIERRA_MAT_INTERFACE_H__ */
