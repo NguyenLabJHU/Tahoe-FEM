@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.cpp,v 1.7 2002-12-13 02:42:55 paklein Exp $ */
+/* $Id: LinearSolver.cpp,v 1.8 2003-05-20 10:18:09 paklein Exp $ */
 /* created: paklein (05/30/1996) */
 
 #include "LinearSolver.h"
@@ -86,4 +86,14 @@ SolverT::SolutionStatusT LinearSolver::Solve(int)
 		     << ExceptionT::ToString(exception) << endl;
 		return kFailed;
 	}
+}
+
+/* signal time step change */
+void LinearSolver::SetTimeStep(double dt)
+{
+	/* inherited */
+	SolverT::SetTimeStep(dt);
+	
+	/* reform LHS matrix */
+	fFormLHS = 1;
 }
