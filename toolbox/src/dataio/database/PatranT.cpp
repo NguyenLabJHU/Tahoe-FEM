@@ -1,4 +1,5 @@
-/* created sawimme (05/17/2001)  */
+/* $Id: PatranT.cpp,v 1.3 2001-08-07 23:11:53 paklein Exp $ */
+/* created sawimme (05/17/2001) */
 
 #include "PatranT.h"
 #include "ifstreamT.h"
@@ -34,6 +35,7 @@ bool PatranT::OpenRead (const StringT& filename)
 
 bool PatranT::OpenWrite (const StringT& filename)
 {
+#pragma unused(filename)
   fOut << "PatranT::OpenWrite, not programed for writing\n";
   return false;
 }
@@ -78,7 +80,7 @@ int PatranT::NumNamedComponents (void) const
 
 int PatranT::NumDimensions (void) const
 {
-  int ID, IV, KC, num_dims;
+  int ID, IV, KC;
   ifstream in (file_name);
   if (!AdvanceTo (in, kElement, ID, IV, KC))   
     {
@@ -228,7 +230,7 @@ bool PatranT::ReadCoordinates (dArray2DT& coords, int dof) const
 
 bool PatranT::ReadElementBlockDims (const StringT& title, int& num_elems, int& num_elem_nodes) const
 {
-  int ID, IV, KC, num_nodes, code;
+  int ID, IV, KC, code;
   iArrayT elems;
   if (!ReadElementSet (title, code, elems))
     {
@@ -457,6 +459,7 @@ bool PatranT::ReadNodeSets (const ArrayT<StringT>& title, iArrayT& nodes) const
       nodes.CopyPart (k, nt, 0, count[j]);
       k += count[j];
     }
+    return true;
 }
 
 /**************************************************************************

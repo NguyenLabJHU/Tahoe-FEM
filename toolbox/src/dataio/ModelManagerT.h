@@ -1,6 +1,4 @@
-/* still need to add global node and element maps
-   assume for now that side sets are globally numbered */
-
+/* $Id: ModelManagerT.h,v 1.2 2001-08-07 23:11:52 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -19,6 +17,8 @@
 #include "ios_fwd_decl.h"
 class ifstreamT;
 
+/** still need to add global node and element maps
+ * assume for now that side sets are globally numbered */
 class ModelManagerT
 {
  public:

@@ -1,26 +1,5 @@
-/* $Id: InputBaseT.h,v 1.2 2001-08-03 19:16:43 sawimme Exp $ */
-/* created: sawimme (08/12/1999)                                          */
-
-/* A derived classes must
-   1. offset connectivity to start node numbering at zero 
-   2. consecutively number elements within a group
-   3. consecutively number coordinates
-   4. offset node sets to start node numbering at zero
-   5. offset side sets to start element and facet numbering at zero
-   6. side sets use offset global element numbers and offset local facets
-   7. Node and Element Maps are not offset to start at zero and are global.
-   8. Connectivity uses offset global consecutive node numbering.
-   9. The derived class must check dimension arrays before setting arrays.
-  10. ReadVariable functions return node values for all nodes
-          not just nodes used by a particular element group.
-  11. ReadVariable functions return only elements in group for element
-          and quadrature data.
-  12. For ReadVariable functions, the step is an integer starting at zero,
-          increasing consecutively.
-
-   Most functions are not const due to the fact that databases like 
-   ABAQUS need to keep track of the size of the buffer read. 
-*/
+/* $Id: InputBaseT.h,v 1.3 2001-08-07 23:11:54 paklein Exp $ */
+/* created: sawimme (08/12/1999) */
 
 #ifndef _INPUTBASE_T_H_
 #define _INPUTBASE_T_H_
@@ -39,6 +18,25 @@ class StringT;
 template <class TYPE> class ArrayT;
 class ModelManagerT;
 
+/** derived classes must:\n
+ * 1. offset connectivity to start node numbering at zero\n
+ * 2. consecutively number elements within a group\n
+ * 3. consecutively number coordinates\n
+ * 4. offset node sets to start node numbering at zero\n
+ * 5. offset side sets to start element and facet numbering at zero\n
+ * 6. side sets use offset global element numbers and offset local facets\n
+ * 7. Node and Element Maps are not offset to start at zero and are global.\n
+ * 8. Connectivity uses offset global consecutive node numbering.\n
+ * 9. The derived class must check dimension arrays before setting arrays.\n
+ *10. ReadVariable functions return node values for all nodes
+ *        not just nodes used by a particular element group.\n
+ *11. ReadVariable functions return only elements in group for element
+ *        and quadrature data.\n
+ *12. For ReadVariable functions, the step is an integer starting at zero,
+ *        increasing consecutively.\n
+ *
+ * Most functions are not const due to the fact that databases like 
+ * ABAQUS need to keep track of the size of the buffer read. */
 class InputBaseT : public IOBaseT
 {
 public:

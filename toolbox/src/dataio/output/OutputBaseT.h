@@ -1,9 +1,5 @@
-/* $Id: OutputBaseT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
-/* created: sawimme (05/18/1999)                                          */
-/* initialization:                                                        */
-/* 1. construct                                                           */
-/* 2. SetCoordinates                                                      */
-/* 3. AddElementSet                                                       */
+/* $Id: OutputBaseT.h,v 1.2 2001-08-07 23:11:56 paklein Exp $ */
+/* created: sawimme (05/18/1999) */
 
 #ifndef _OUTPUTBASE_T_H_
 #define _OUTPUTBASE_T_H_
@@ -22,6 +18,10 @@ class dArray2DT;
 class iArray2DT;
 class OutputSetT;
 
+/** initialization:\n
+ * 1. construct\n
+ * 2. SetCoordinates\n
+ * 3. AddElementSet */
 class OutputBaseT: public IOBaseT
 {
 public:

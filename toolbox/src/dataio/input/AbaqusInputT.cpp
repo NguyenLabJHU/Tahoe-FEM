@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: AbaqusInputT.cpp,v 1.2 2001-08-07 23:11:54 paklein Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #include "AbaqusInputT.h"
@@ -24,14 +24,14 @@ if (fNumElements > 0) ReadElementSets ();
 if (fNumNodes > 0) ReadNodeSets ();
 }
 
-int AbaqusInputT::NumElementGroups (void) const
+int AbaqusInputT::NumElementGroups (void)
 {
 iArrayT temp;
 GroupNumbers (temp);
 return temp.Length();
 }
 
-int AbaqusInputT::NumNodeSets (void) const
+int AbaqusInputT::NumNodeSets (void)
 {
 iArrayT ids;
 NodeSetNumbers (ids);
@@ -141,7 +141,7 @@ void AbaqusInputT::Close (void)
 {
 }
 
-void AbaqusInputT::QARecords (ArrayT<StringT>& records) const
+void AbaqusInputT::QARecords (ArrayT<StringT>& records)
 {
 records.Allocate (4);
 records[0] = "Abaqus";

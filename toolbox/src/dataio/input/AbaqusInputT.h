@@ -1,6 +1,5 @@
-/* $Id: AbaqusInputT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: AbaqusInputT.h,v 1.2 2001-08-07 23:11:54 paklein Exp $ */
 /* created: sawimme (05/18/1998)                                          */
-/* If SetLabelName does not have a case for the variable being read, a default variable name is used. As new variables are added to AbaqusT::VariableKey, they should also be added to SetLabelName */
 
 #ifndef _ABAQUSINPUT_T_H_
 #define _ABAQUSINPUT_T_H_
@@ -16,15 +15,18 @@
 /* forward declarations */
 #include "ios_fwd_decl.h"
 
+/** If SetLabelName does not have a case for the variable being read, 
+ * a default variable name is used. As new variables are added to 
+ * AbaqusT::VariableKey, they should also be added to SetLabelName */
 class AbaqusInputT : public InputBaseT
 {
 public:
 AbaqusInputT (ostream& out, bool binary, const char* filename);
 
 /* virtual with InputManager base class */
-virtual int  NumElementGroups (void) const;
-virtual int  NumSideSets (void) const;
-virtual int  NumNodeSets (void) const;
+virtual int  NumElementGroups (void);
+virtual int  NumSideSets (void);
+virtual int  NumNodeSets (void);
 virtual void GroupNumbers (iArrayT& groupnums) const;
 virtual void SideSetNumbers (iArrayT& sidenums) const;
 virtual void NodeSetNumbers (iArrayT& nodenums) const;
@@ -35,7 +37,7 @@ virtual void ReadNodeSet (int set_num, iArrayT& nodes) const;
 virtual void ReadSideSet (int set_num, iArray2DT& sides) const;
 virtual void ReadSideSetGlobal (int set_num, iArray2DT& sides) const;
 virtual void Close (void);
-virtual void QARecords (ArrayT<StringT>& records) const;
+virtual void QARecords (ArrayT<StringT>& records);
 virtual void ReadTimeSteps (dArrayT& steps);
 virtual void ReadLabels (ArrayT<StringT>& nlabels, ArrayT<StringT>& elabels, int group_id);
 virtual void ReadVariables (int step, int group_id, dArray2DT& nvalues, dArray2DT& evalues);
@@ -65,7 +67,7 @@ bool fEnergyData;
 };
 
 // Abaqus does not stores side sets
-inline int AbaqusInputT::NumSideSets (void) const { return 0; }
+inline int AbaqusInputT::NumSideSets (void) { return 0; }
 inline void AbaqusInputT::SideSetNumbers (iArrayT& sidenums) const
 { sidenums.Allocate (0);}
 inline void AbaqusInputT::ReadSideSet (int set_num, iArray2DT& sides) const
