@@ -1,4 +1,4 @@
-/* $Id: SmithFerrante.h,v 1.3 2004-03-17 17:55:41 paklein Exp $ */
+/* $Id: SmithFerrante.h,v 1.4 2004-04-27 07:22:19 paklein Exp $ */
 /* created: paklein (10/30/1997) */
 #ifndef _SMITH_FERRANTE_H_
 #define _SMITH_FERRANTE_H_
@@ -56,7 +56,7 @@ public:
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
-	/*@{*/
+	/*@}*/
 
 private:
 

@@ -1,53 +1,61 @@
-/* $Id $ */
-
+/* $Id: ModSmithFerrante.h,v 1.3 2004-04-27 07:22:19 paklein Exp $ */
 #ifndef _MOD_SMITH_FERRANTE_H_
 #define _MOD_SMITH_FERRANTE_H_
 
 /* base class */
 #include "C1FunctionT.h"
 
-
 namespace Tahoe {
 
+/** SmithFerrante potential modified with a quadratic response for x < 0 */
 class ModSmithFerrante: public C1FunctionT
 {
 public:
 
-	/*
-	 * Constructor
-	 */
+	/** \name constructors */
+	/*@{*/
+	ModSmithFerrante(void);
 	ModSmithFerrante(double A, double B);
+	/*@}*/
 
-	/*
-	 * I/O
-	 */
+	/** \name I/O */
+	/*@{*/
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
+	/*@}*/
 	
-	/*
-	 * Returning values
-	 */
+	/** \name returning values
+	/*@{*/
 	virtual double Function(double x) const;
 	virtual double DFunction(double x) const;
 	virtual double DDFunction(double x) const;
+	/*@}*/
 
-	/*
-	 * Returning values in groups - derived classes should define
-	 * their own non-virtual function called within this functon
-	 * which maps in to out w/o requiring a virtual function call
-	 * everytime. Default behavior is just to map the virtual functions
-	 * above.
-	 */
+	/** \name returning values in groups */
+	/*@{*/
 	virtual dArrayT& MapFunction(const dArrayT& in, dArrayT& out) const;
 	virtual dArrayT& MapDFunction(const dArrayT& in, dArrayT& out) const;
 	virtual dArrayT& MapDDFunction(const dArrayT& in, dArrayT& out) const;
+	/*@}*/
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 private:
 
-	/* potential parameters */
+	/** \name potential parameters */
+	/*@{*/
 	double fA;
 	double fB;
+	/*@}*/
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _MOD_SMITH_FERRANTE_H_ */
