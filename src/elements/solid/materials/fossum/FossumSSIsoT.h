@@ -248,6 +248,7 @@ protected:
 	double YieldFnFf(double I1);
 
 	bool ResidualIsConverged(dArrayT& residual, dArrayT& residual0);
+	dArrayT CapKappa(const dArrayT &residual, const LAdMatrixT &dRdX, const double kappa);
 	double ElasticConstant(int i, int j);	
 	double Galpha(dSymMatrixT workingStress, double J2);
 	double KappaHardening(double I1, double kappa);

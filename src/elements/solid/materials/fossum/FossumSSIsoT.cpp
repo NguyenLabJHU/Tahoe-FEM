@@ -630,10 +630,10 @@ int FossumSSIsoT::HeavisideFn(double arg)
 
 double FossumSSIsoT::Lfn(const double kappa)
 {
-  if (kappa < fKappa0)
+  //if (kappa < fKappa0)
   	return kappa;
-  else
-    return fKappa0;
+	//else
+	//return fKappa0;
   //return HeavisideFn(fKappa0 - kappa) * kappa;
 }
 
@@ -720,7 +720,7 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 
 	iterationVars = 0.0;
 	residual = 0.0;
-	residual [6] = initialYieldCheck;
+	residual [6] = initialYieldCheck;// 4.720200e+02;//
 	residual0 = residual;
 	
 	if (ip == 0)
@@ -734,6 +734,7 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 	workingKappa = fKappa0;
 
 	principalEqStress = spectre.Eigenvalues();
+	//cout << " principalEqStress = \n" << principalEqStress << endl;
 
 	for (i = 0; i < kNSD; i++)
 	  I1 += principalEqStress[i];
@@ -759,16 +760,16 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 	    dRdX = FormdRdX(I1, J2, J3, principalEqStress, workingKappa, workingStress, iterationVars [6], m);
       
        
-	    /*    if (ip == 0)
+	        if (ip == 0)
 	      {
-		cout << "residual =\n" << residual << endl;
-		cout << "iterationVars = " << iterationVars << endl;
-		cout << "dRdX = \n" << dRdX << endl << flush;
+		//cout << "residual =\n" << residual << endl;
+		//cout << "iterationVars = " << iterationVars << endl;
+		//cout << "dRdX = \n" << dRdX << endl << flush;
 	      }
-	    */
+	    
 
 		/* break down for static condensation */
-		dArrayT U(6), V(6), Rtilde(6);
+		/*	dArrayT U(6), V(6), Rtilde(6);
 		LAdMatrixT A(6);
 		
 		for (i = 0; i < 6; i++)
@@ -778,28 +779,47 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 			U[i] = -dRdX(i,6);	
 			V[i] = dRdX(6,i);
 			Rtilde [i] = residual [i];
-		}	
+			}	*/
 		
 	    /*solve for dx*/
-	    //dRdX.LinearSolve(residual);
-	    //iterationVarsIncr = residual;
+		iterationVarsIncr.Copy(residual.Pointer());
+		iterationVarsIncr*=-1.0;
+		LAdMatrixT dRdXCopy(dRdX);
+		//dRdXCopy.Copy(dRdX.Pointer());
+		dRdXCopy.LinearSolve(iterationVarsIncr);
+		//iterationVarsIncr = residual;
 
-		dArrayT AinvU(6), AinvRtilde(6);
+	    /*	dArrayT AinvU(6), AinvRtilde(6);
 		AinvU.Copy(U.Pointer());
 		AinvRtilde.Copy(Rtilde.Pointer());
-		
-		A.LinearSolve(AinvU);
-		A.LinearSolve(AinvRtilde);
+		LAdMatrixT Acopy(6), Acopy2(6);
+		Acopy.Copy(A.Pointer());
+		Acopy2.Copy(A.Pointer());
 
-		iterationVarsIncr[6] = (residual[6] + V.Dot(V, AinvRtilde))/V.Dot(V, AinvU);		
-		Rtilde.AddScaled(-iterationVarsIncr[6], U);	
-		A.LinearSolve(Rtilde);
+		//cout << "U = \n" << AinvU << endl;
+		//cout << "Rtilde = \n" << AinvRtilde << endl;
+
+		//cout << "A = \n" << A << endl;
+		Acopy.LinearSolve(AinvU);
+		//cout << "A = \n" << A << endl;
+		A.LinearSolve(AinvRtilde);
+		//cout << "A = \n" << A << endl;
+
+		//cout << "AinvU = \n" << AinvU << endl;
+		//cout << "AinvRtilde = \n" << AinvRtilde << endl;
+
+		cout << "V = \n" << V << endl;
+		iterationVarsIncr[6] = (residual[6] + V.Dot(V, AinvRtilde))/V.Dot(V, AinvU);
+		cout << "V = \n" << V << endl;
+		Rtilde.AddScaled(-iterationVarsIncr[6], U);
+		//Rtilde*=-1;
+		Acopy2.LinearSolve(Rtilde); */
 
     	/* If kappa = kappa0 and kappa wants to increase, hardening is 0 and resolve*/
 		
 		
 		/* !!!!!!!!!!!!!!!!!!!!!!!!!!!! undo this to work on capping kappa */
-			
+		/*	
 			if ( workingKappa - fKappa0 > -1.0e-10*fKappa0 && Rtilde[5] >= 0.0 )
 				{ 
 				
@@ -831,10 +851,12 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 		A.LinearSolve(Rtilde);
 
 		}
-        
+		*/
 		
         /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
-        
+			/* and this too */
+
+			/*		
 	if (workingKappa + Rtilde[5] > fKappa0)
         {
         	double kappaIncr = fKappa0 - workingKappa;
@@ -850,7 +872,7 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 				V[i] = dRdX(6,i);
 				Rtilde [i] = residual [i] + dRdX(i,5)*kappaIncr;
 			}	
-			//cout << "A=\n" << A << endl;
+			cout << "A=\n" << A << endl;
 			
 			AinvU.Copy(U.Pointer());
 			AinvRtilde.Copy(Rtilde.Pointer());	
@@ -867,11 +889,11 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 			Rtilde[5] = kappaIncr;			
 
 	}
+			*/
         
         
-        
-		for (i = 0; i < 6; i++)
-			iterationVarsIncr[i] = Rtilde[i];
+		//		for (i = 0; i < 6; i++)
+		//	iterationVarsIncr[i] = Rtilde[i];
 		
 		/*
 		 if (newtonCounter > 2)
@@ -883,7 +905,11 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 		dRdX.LinearSolve(residual);
 		iterationVarsIncr = residual;
 		*/	
-			
+	
+		//Do not allow kappa to exceed kappa0
+		//	if (workingKappa + iterationVarsIncr[5] > fKappa0)
+		//  iterationVarsIncr = CapKappa(residual, dRdX, workingKappa); 
+		
 	    /*incr x = x + dx */
 	    iterationVars += iterationVarsIncr;
 
@@ -929,19 +955,20 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 	      {
 		residual [i] = iterationVars [6] *fCalpha * Galpha(workingStress, J2) * dfdDevStressA (I1, J2, J3, principalEqStress [i - kNSD]);
 		residual [i] -= iterationVars [i];
-	      }
+	      } 
 
-	     if ( workingKappa - fKappa0 > -1.0e-12*fabs(fKappa0) && Rtilde[5] >= 0.0 )
-	      residual [5] = 0.0;
-	    else	   
-	    	residual [5] = iterationVars [6] * KappaHardening(I1, workingKappa) - iterationVars [5];
+	    	     if ( workingKappa == fKappa0)
+	    residual [5] = 0.0;
+	         else   
+ 
+	      	residual [5] = iterationVars [6] * KappaHardening(I1, workingKappa) - iterationVars [5];
 	    residual [6] = YieldFn(I1, J2, J3, workingKappa);
 
 	    if (ip == 0)
 	      {
+		//cout << "dRdX = \n" << dRdX << endl << flush;
+		//cout << "iterationVars = \n" << iterationVars << endl;
 		cout << "\nresidual =\n" << residual << endl;
-		cout << "iterationVars = \n" << iterationVars << endl;
-		cout << "dRdX = \n" << dRdX << endl << flush;
 	      }
 	  }
 
@@ -957,26 +984,79 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
 	fInternal[kkappa] += iterationVars[5];
 	fInternal[kdgamma] = iterationVars[6];
 
+	fKappa0 = fInternal[kkappa];
+
+	cout << "fStress = \n" << fStress << endl;
+	/*cout << "fStress [0] = " << fStress [0] << endl;
+	cout << "fStress [1] = " << fStress [1] << endl;
+	cout << "fStress [2] = " << fStress [2] << endl;
+	cout << "fStress [3] = " << fStress [3] << endl;
+	cout << "fStress [4] = " << fStress [4] << endl;
+	cout << "fStress [5] = " << fStress [5] << endl;
+	*/
 	return fStress;
 }
 
 bool FossumSSIsoT::ResidualIsConverged(dArrayT& residual, dArrayT& residual0)
 {
-	double yieldFnTol = 1.0e-8, stressTol = 1.0e-8;
+	double yieldFnTol = 1.0e-10, stressTol = 1.0e-10;
 	int i;
 
 	for (i = 0; i < 6; i++)
 	  if (residual0 [i] == 0.0)
-	    residual0 [i] = residual [i];
+	    residual0 [i] = fabs(residual [i]);
 
 	for (i = 0; i < 6; i++)	
-	  if (residual [i] > stressTol && residual [i] > stressTol*residual0 [i])
+	  if (fabs(residual [i]) > stressTol && fabs(residual [i]) > stressTol*residual0 [i])
 	    return false;
 
-	if (residual [6] > stressTol && residual [6] > stressTol*residual0 [6])
+	if (fabs(residual [6]) > stressTol && fabs(residual [6]) > stressTol*residual0 [6])
 	  return false;
 
 	return true;
+}
+
+dArrayT FossumSSIsoT::CapKappa(const dArrayT &residual, const LAdMatrixT &dRdX, const double kappa)
+{
+  dArrayT iterationVarsIncr(7);
+  iterationVarsIncr[5] = fKappa0 - kappa;
+
+  LAdMatrixT modified_dRdX(6); 
+  modified_dRdX = 0.0;
+
+  dArrayT modified_residual(6), B(6);
+  //dArrayT modified_dX(6);
+
+  for (int i=0; i<5; i++)
+    {
+      modified_residual[i] = residual [i];
+      B[i] = dRdX(i,5);
+      for (int j=0; j<5; j++)
+	modified_dRdX(i,j) = dRdX(i,j);
+      modified_dRdX(i,5) = dRdX(i,6);
+      modified_dRdX(5,i) = dRdX(6,i);
+    }
+
+  modified_residual[5] = residual[6];
+  B[5] = dRdX(6,5);
+
+  //cout << "modified_residual = \n" << modified_residual << endl;
+  //cout << "B = \n" << B << endl;
+  //cout << "modified_dRdX = \n" << modified_dRdX << endl;
+
+  modified_residual.AddScaled(-iterationVarsIncr[5],B);
+  modified_residual *= -1;
+
+  modified_dRdX.LinearSolve(modified_residual);
+  
+  for (int i=0; i<5; i++)
+    iterationVarsIncr[i] = modified_residual[i];
+
+  iterationVarsIncr[6] = modified_residual[5];
+
+  //cout << "iterationVarsIncr = \n" << iterationVarsIncr << endl;
+
+  return iterationVarsIncr;
 }
 
 double FossumSSIsoT::ElasticConstant(int i, int j)
@@ -996,31 +1076,50 @@ double FossumSSIsoT::Galpha(dSymMatrixT workingStress, double J2)
 	return 0.0;
 	
   dSymMatrixT devStress;
-  double pressure = (workingStress [1] + workingStress [2] + workingStress [3])/3.0;
+  double meanStress = workingStress.Trace()/3.0;
 
   devStress = workingStress;
-  devStress.PlusIdentity(-pressure);
+  devStress.PlusIdentity(-meanStress);
+
+  //cout << " devStress = \n" << devStress << endl;
+  //cout << " J2 = \n" << J2 << endl; 
 
   return 1- (sqrt(.5 * devStress.ScalarProduct()) - sqrt(J2))/fN;
 }
 
 double FossumSSIsoT::KappaHardening(double I1, double kappa)
 {
+
+  //cout << "dPlasticVolStraindX = " << dPlasticVolStraindX(kappa) << endl;
+  //cout << "dXdKappa = " << dXdKappa(kappa) << endl;
+
 return 3 * dfdI1 (I1, kappa) / (dPlasticVolStraindX(kappa) * dXdKappa(kappa));
 }
 
 double FossumSSIsoT::dfdDevStressA (double I1, double J2, double J3, double sigmaA)
 {
+  // cout << dfdJ2(J2, J3) << endl;
+  //cout << (sigmaA - I1/3.0) << endl;
+  //cout << dfdJ3(J2, J3) << endl;
+  //cout <<  ((sigmaA - I1/3.0) * (sigmaA - I1/3.0) - 2.0 * J2 / 3.0) << endl << endl;
+
+
  return dfdJ2(J2, J3) * (sigmaA - I1/3.0) + dfdJ3(J2, J3) * ((sigmaA - I1/3.0) * (sigmaA - I1/3.0) - 2.0 * J2 / 3.0);
 }
 
 double FossumSSIsoT::dfdSigmaA(double I1, double J2, double J3, double sigmaA, double kappa)
 {
+  //cout << dfdI1(I1, kappa) << endl;
+  //cout << dfdDevStressA(I1, J2, J3, sigmaA) << endl <<  endl;
+
   return dfdI1(I1, kappa) + dfdDevStressA(I1, J2, J3, sigmaA);
 }
 
 double FossumSSIsoT::dfdI1(double I1, double kappa)
 {
+  //cout << dFfdI1(I1) << endl;
+  //cout << dFcdI1(I1, kappa) << endl << endl;
+
   return -2*YieldFnFfMinusN(I1)*YieldFnFc(I1, kappa)*dFfdI1(I1) - YieldFnFfMinusN(I1) * YieldFnFfMinusN(I1) * dFcdI1(I1, kappa);
 }
 
@@ -1031,6 +1130,11 @@ double FossumSSIsoT::dFfdI1(double I1)
 
 double FossumSSIsoT::dFcdI1(double I1, double kappa)
 {
+  //cout << I1 << endl;
+  //cout << Lfn(kappa) << endl;
+  //cout << Xfn(kappa) << endl << endl;
+
+
   return HeavisideFn(Lfn(kappa) - I1) * -2 * (I1 - Lfn(kappa)) / ((Xfn(kappa) - Lfn(kappa))*(Xfn(kappa) - Lfn(kappa)));
 }
 
@@ -1085,22 +1189,24 @@ LAdMatrixT FossumSSIsoT::FormdRdX(double I1, double J2, double J3, dArrayT princ
       for (C = 0; C < kNSD; C++)
 	dRdX (A, B + kNSD) += dGamma * ElasticConstant(A,C) * (- d2fdSigmaBdSigmaC (I1, J2, J3, principalEqStress[B], principalEqStress[C], B, C, workingKappa) 
 	                                                       + d2fdSigmaBdSigmaC (I1, J2, J3, principalEqStress[C], principalEqStress[2], C, 2, workingKappa));
-  
+ 
  for (A = 0; A < kNSD; A++)
       for (C = 0; C < kNSD; C++)
 	{
-	  //dRdX (A,5) = 0.0; //for debugging only, no kappa hardening 
-	  dRdX (A,5) += dGamma * ElasticConstant(A,C) * d2fdSigmaCdKappa (I1, workingKappa); 
+	   dRdX (A,5) += dGamma * ElasticConstant(A,C) * d2fdSigmaCdKappa (I1, workingKappa); 
 	  dRdX (A, 6) += ElasticConstant(A,C)*dfdSigmaA(I1, J2, J3, principalEqStress [C], workingKappa);
 	}
       
  /* ------ */
  //dR(alpha A)/d(dSigma B)
-
+ 
  for (A = 0; A < kNSD - 1; A++)
    for (B = 0; B < kNSD; B++)
      { 
-       dRdX (A + kNSD, B) = Galpha(workingStress, J2) * d2fdDevStressdSigmaB (I1, J2, J3, principalEqStress[A], principalEqStress[B], A, B) + dGalphadSigmaB (workingStress, m[B], principalEqStress[B], I1, J2) * dfdDevStressA(I1, J2, J3, principalEqStress[B]);
+       //cout << "d2fdDevStressdSigmaB = " << d2fdDevStressdSigmaB (I1, J2, J3, principalEqStress[A], principalEqStress[B], A, B) << endl;
+       //cout << "dGalphadSigmaB = " <<  dGalphadSigmaB (workingStress, m[B], principalEqStress[B], I1, J2) << endl;
+
+       dRdX (A + kNSD, B) = Galpha(workingStress, J2) * d2fdDevStressdSigmaB (I1, J2, J3, principalEqStress[A], principalEqStress[B], A, B) + dGalphadSigmaB (workingStress, m[B], principalEqStress[B], I1, J2) * dfdDevStressA(I1, J2, J3, principalEqStress[A]);
        dRdX (A + kNSD, B) *= fCalpha * dGamma; 
      }
 
@@ -1108,6 +1214,8 @@ LAdMatrixT FossumSSIsoT::FormdRdX(double I1, double J2, double J3, dArrayT princ
  for (A = 0; A < kNSD - 1; A++)
    for (B = 0; B < kNSD -1 ; B++)
      { 
+       //cout << "dGalphadAlphaB = " << dGalphadAlphaB (J2, principalEqStress[B], principalEqStress[2]) << endl;
+
        dRdX (A + kNSD, B + kNSD) = - Galpha(workingStress, J2) * d2fdDevStressdSigmaB (I1, J2, J3, principalEqStress[A], principalEqStress[B], A, B); 
        dRdX (A + kNSD, B + kNSD) +=  Galpha(workingStress, J2) * d2fdDevStressdSigmaB (I1, J2, J3, principalEqStress[A], principalEqStress[2], A, 2);
        dRdX (A + kNSD, B + kNSD) +=  dGalphadAlphaB (J2, principalEqStress[B], principalEqStress[2]) * dfdDevStressA(I1, J2, J3, principalEqStress[A]);
@@ -1119,12 +1227,15 @@ LAdMatrixT FossumSSIsoT::FormdRdX(double I1, double J2, double J3, dArrayT princ
 
  //dR(alpha A)/d(dGamma B)
  for (A = 0; A < kNSD - 1; A++)
+   {
+     //cout << "Galpha =\n" << Galpha(workingStress, J2) << endl;
+     //cout << "dfdDevStressA = \n" << dfdDevStressA(I1, J2, J3, principalEqStress[A]);
    dRdX (A + kNSD, 6) = fCalpha * Galpha(workingStress, J2) *
                         dfdDevStressA(I1, J2, J3, principalEqStress[A]);
+   }
+ // ------------ 
 
- /* ------------ */
-
-
+ 
  for ( A = 0; A < kNSD; A++)
    dRdX (5, A) = 3 * dGamma * d2fdI1dI1(I1, workingKappa) 
                  / (dPlasticVolStraindX( workingKappa) * dXdKappa (workingKappa));
@@ -1145,18 +1256,29 @@ LAdMatrixT FossumSSIsoT::FormdRdX(double I1, double J2, double J3, dArrayT princ
  dRdX (5, 5) -= 1;
  
  dRdX (5, 6) = KappaHardening(I1, workingKappa);
-
+ 
 
   /*------------- */
+
+ //cout << "principalEqStress =\n" << principalEqStress << endl;
 
  for ( A = 0; A < kNSD; A++)
    dRdX (6, A) = dfdSigmaA(I1, J2, J3, principalEqStress[A], workingKappa);
 
+ 
  for ( A = 0; A < kNSD - 1; A++)
    dRdX (6, A + kNSD) = -dfdSigmaA (I1, J2, J3, principalEqStress[A], workingKappa)
                         + dfdSigmaA (I1, J2, J3, principalEqStress[2], workingKappa);
-  //dRdX (6,5) = 0.0; //for debug only
+ 
+ 
  dRdX (6, 5) = dfdKappa(I1, workingKappa);
+ 
+
+ //for elastic-perfectly plastic only
+ //dRdX(3,3) = -1;
+ //dRdX(4,4) = -1;
+ //dRdX(5,5) = -1;
+
 
  return dRdX;
 }
@@ -1256,7 +1378,11 @@ double FossumSSIsoT::d2fdSigmaCdKappa (double I1, double kappa)
   double c1 = dFfdI1(I1);
   double c2 = dFcdKappa(I1, kappa);
   double c3 = d2FcdI1dKappa(I1, kappa);
-
+  /*
+  cout << FfMinusN << " " << dFfdI1(I1) << " " << dFcdKappa(I1, kappa) << " "
+       << d2FcdI1dKappa(I1, kappa) << " " <<
+    -2 * FfMinusN * dFfdI1(I1) * dFcdKappa(I1, kappa) - FfMinusN * FfMinusN * d2FcdI1dKappa(I1, kappa) << endl;
+  */
   return -2 * FfMinusN * dFfdI1(I1) * dFcdKappa(I1, kappa)
          - FfMinusN * FfMinusN * d2FcdI1dKappa(I1, kappa); //was - - 
 }
@@ -1265,6 +1391,11 @@ double FossumSSIsoT::d2FcdI1dKappa(double I1, double kappa)
 {
   double L = Lfn(kappa);
   double X = Xfn(kappa);
+  /*
+  cout << X << " " << L << " " << kappa << endl << X - L << " " << I1 - L << " " << exp(fB * L) << " " <<  2 * HeavisideFn(L - I1) * dLdKappa(kappa) 
+         * ((X-L) + 2 * fR * (I1 - L) * (fB * fC * exp (fB * L) + fTheta  ))
+	    / ((X-L) * (X-L) * (X-L)) <<  endl;
+  */
 
   return 2 * HeavisideFn(L - I1) * dLdKappa(kappa) 
          * ((X-L) + 2 * fR * (I1 - L) * (fB * fC * exp (fB * L) + fTheta  ))
@@ -1280,7 +1411,7 @@ double FossumSSIsoT::dGalphadSigmaB (dSymMatrixT workingStress, dSymMatrixT prin
   dSymMatrixT workingDevStress(3);
   workingDevStress.Deviatoric(workingStress);
 
-  return ( InnerProduct(workingDevStress, principalDirectionB)/sqrt(.5*workingStress.ScalarProduct()) - (principalEqStressB - I1/3.0)/sqrt(J2))/(-2*fN);
+  return ( InnerProduct(workingDevStress, principalDirectionB)/sqrt(.5*workingDevStress.ScalarProduct()) - (principalEqStressB - I1/3.0)/sqrt(J2))/(-2*fN);
 }
 
 double FossumSSIsoT::dGalphadAlphaB (double J2, double principalEqStressB, double principalEqStress3)
@@ -1290,7 +1421,7 @@ double FossumSSIsoT::dGalphadAlphaB (double J2, double principalEqStressB, doubl
 	if (fN == 0)
 		return 0;
 
-  return (principalEqStressB - principalEqStress3)/(fN*2*sqrt(J2));
+  return (principalEqStress3 - principalEqStressB)/(fN*2*sqrt(J2));
 }
 
 double FossumSSIsoT::d2fdI1dKappa (double I1, double kappa)
@@ -1326,21 +1457,32 @@ double work = fD1 - 2*fD2*XminusX0;
 
 double FossumSSIsoT::dfdKappa(double I1, double kappa)
 {
-  double Ff =YieldFnFf(I1);
+  double FfMinusN =YieldFnFf(I1) - fN;
 
-  return -Ff*Ff*dFcdKappa(I1, kappa);
+  return -FfMinusN*FfMinusN*dFcdKappa(I1, kappa);
 }
 
 double FossumSSIsoT::InnerProduct(dSymMatrixT A, dSymMatrixT B)
 {
  double returnValue = 0.0;
- int i;
-
+ int i, j;
+ 
  for (i = 0; i < kNSD; i++)
    returnValue += A[i]*B[i];
  
  for (i = kNSD; i < 2 * kNSD; i++)
    returnValue += 2*A[i]*B[i];
+ 
+ /* cout << returnValue << " ";
+returnValue = 0.0;
+
+for (i = 0; i < kNSD; i++)
+  for (j = 0; j < kNSD; j++)
+    {
+      returnValue += A(i,j)*B(i,j);
+    }
+
+    cout << returnValue << endl;*/
 
  return returnValue;
 }
@@ -1355,7 +1497,7 @@ const dMatrixT& FossumSSIsoT::c_ijkl(void)
   // ModuliCorrection(CurrentElement(), CurrIP()));
   int i,j;
   dMatrixT elasticModulus(6), elasticCompliance(6);
-  dMatrixT generalizedModulus(13), generalizedCompliance(13);
+  dMatrixT generalizedModulus(14), generalizedCompliance(14);
   dMatrixT d2fdSigmadSigma(6), d2fdqdq(7), dhdq(7);
   dMatrixT  d2fdSigmadq(6,7), dhdSigma(7,6);
   dMatrixT Ce = HookeanMatT::Modulus();
@@ -1455,12 +1597,9 @@ const dMatrixT& FossumSSIsoT::c_ijkl(void)
 	   generalizedCompliance(i,j) = 
 	     -KroneckerDelta(i,j) + fInternal[kdgamma]*dhdq(i - 6, j - 6);
 
-       //generalized elastic consistent tangent
-       generalizedModulus = generalizedCompliance.Inverse();
-
+ 
 		//cout << "Generalized Elastic Modulus =\n" << generalizedModulus << endl;
 
-       // form vector df
        dArrayT df(13), dr(13), hardeningFns(7);
        dSymMatrixT dfdSigma(3), dfdAlpha(3);
 
@@ -1472,39 +1611,31 @@ const dMatrixT& FossumSSIsoT::c_ijkl(void)
 
        for (i=0; i<6; i++)
 	 {
-	   df[i] = dfdSigma[i];
-	   df[i+6] = dfdAlpha [i];
-	   dr[i] = dfdSigma [i];
+	   generalizedCompliance(13, i) = dfdSigma[i];
+	   generalizedCompliance(13,i+6) = dfdAlpha [i];
+	   generalizedCompliance(i, 13) = dfdSigma[i];
 	 }
+        generalizedCompliance(13,12) = 0.0;
+        if (fInternal[kkappa] == fKappa0)
+         generalizedCompliance(13,12) = dfdKappa(I1, fInternal[kkappa]);
+
+
 
        for (i=0; i<7; i++)
-          dr[i+6] = hardeningFns [i];
+          generalizedCompliance(i+6, 13) = -1* hardeningFns [i];
 
-       /*double shear components */    
+       /*
+       //double shear components   
        for (i=3; i<6; i++)
 	 {
-	   df[i] += dfdSigma[i];
+	   //df[i] += dfdSigma[i];
 	   //df[i+6] += dfdAlpha [i];
 	 }
-       
-        // comment out for perfect plasticity     ??
-        //df [12] = 0.0;
-        //if (kappa - fKappa0 < -10e-12 * fKappa0)
-         df [12] = dfdKappa(I1, fInternal[kkappa]);
-		//cout << "df =\n" << df << endl << flush; 
+       */
 
 
-       /* A = A - A:df @ A:df / df:A:df */
-       //rename work, 3 places
-       dMatrixT work (13);
-       dArrayT dftimesA (13);
-       dArrayT Atimesdr (13);
-
-       generalizedModulus.Multx(df, dftimesA);
-       generalizedModulus.MultTx(dr, Atimesdr);
-       work.Outer(Atimesdr, dftimesA);
-
-       generalizedModulus.AddScaled(-1/(generalizedModulus.MultmBn(df, dr)), work);
+      //generalized elastic consistent tangent
+       generalizedModulus = generalizedCompliance.Inverse();
 
 	 /* pull out modulus */
        for (i=0; i<6; i++)
@@ -1577,7 +1708,8 @@ dMatrixT FossumSSIsoT::D2fdSigmadq(double I1, double J2, double J3, double kappa
  for (A=0; A<3; A++)
     for (B=0; B<2; B++)
       {
-	d2 = d2fdDevStressdSigmaB(I1, J2, J3, principalEqStress[A], principalEqStress[B], A, B);
+	d2 = -d2fdDevStressdSigmaB(I1, J2, J3, principalEqStress[A], principalEqStress[B], A, B);
+	d2 += d2fdDevStressdSigmaB(I1, J2, J3, principalEqStress[A], principalEqStress[2], A, 2);
 	for (i=0; i<6; i++)
 	  for (j=0; j<6; j++)
 	      d2fdSigmadq(i,j) += d2 * (m[A]) [i] * (n[B]) [j];	     
@@ -1724,12 +1856,15 @@ dArrayT FossumSSIsoT::Hardening(double I1, double J2, double J3, double kappa, d
 {
   int i;
   dArrayT hardening(7);
-  dSymMatrixT alphaHardening(3);
+  dSymMatrixT dfdDevStress(3);
   
-  alphaHardening =  DfdAlpha(I1,J2,J3, fInternal[kkappa], principalEqStress, m);
+  dfdDevStress = 0.0;
+  
+for (int A = 0; A < kNSD; A++)
+  dfdDevStress.AddScaled(dfdDevStressA(I1, J2, J3, principalEqStress[A]), m[A]) ;
   
   for (i=0; i<6; i++)
-    hardening [i] = fCalpha * Galpha(stress, J2) * alphaHardening [i];
+    hardening [i] = fCalpha * Galpha(stress, J2) * dfdDevStress [i];
     
   hardening [6] = KappaHardening(I1, kappa);
 
@@ -1744,26 +1879,30 @@ dMatrixT FossumSSIsoT::DhdSigma(double I1, double J2, double J3, double kappa, d
   double d2;	
 	
   dhdSigma = 0.0;	
-	
+
+  /*	
   for (i = 0; i < 2; i++)
   {
 	n[i].Allocate(kNSD);
   	n[i].DiffOf( m[i], m[2]);
   }
-  
+  */  
+
   for (A=0; A<3; A++)
-    for (B=0; B<2; B++)
+    for (B=0; B<3; B++)
       {
 	d2 = fCalpha * Galpha(stress, J2) * d2fdDevStressdSigmaB(I1, J2, J3, principalEqStress[A], principalEqStress[B], A, B);
-	d2 += dGalphadSigmaB (stress, m[B], principalEqStress[B], I1, J2) * dfdDevStressA(I1, J2, J3, principalEqStress[B]); //check A, B, in dRdX, too
+	d2 += fCalpha * dfdDevStressA(I1, J2, J3, principalEqStress[A])
+	  * dGalphadSigmaB (stress, m[B], principalEqStress[B], I1, J2);
 	for (i=0; i<6; i++)
 	  for (j=0; j<6; j++)
-	      dhdSigma(i,j) += d2 * (m[A]) [i] * (n[B]) [j];	     
+	      dhdSigma(i,j) += d2 * (m[A]) [i] * (m[B]) [j];	     
       
+      }
 
   for (i=0; i<3; i++)  //only volumetric stresses affect
      dhdSigma(6,i) =  3.0 * d2fdI1dI1(I1, kappa) / (dPlasticVolStraindX( kappa) * dXdKappa ( kappa));
-       }
+      
   
   return dhdSigma;
 }
@@ -1775,13 +1914,37 @@ dMatrixT FossumSSIsoT::Dhdq(double I1, double J2, double J3, double kappa, dArra
   int i,j;
   dMatrixT dhdq (7);
   dMatrixT d2fdSigmadq = D2fdSigmadq(I1, J2, J3, fInternal[kkappa], principalEqStress, m);
- 
+  ArrayT<dSymMatrixT> n(2); 
+
   dhdq = 0.0;
+
+  for (i = 0; i < 2; i++)
+  {
+	n[i].Allocate(kNSD);
+  	n[i].DiffOf( m[i], m[2]);
+  }
  
+dSymMatrixT dfdDevStress;
+dfdDevStress = 0.0;
+  
+for (int A = 0; A < kNSD; A++)
+  dfdDevStress.AddScaled(dfdDevStressA(I1, J2, J3, principalEqStress[A]), m[A]) ;
+
+dSymMatrixT dGalphadAlpha;
+dGalphadAlpha = 0.0;
+
+for (int B = 0; B < 2; B++)
+  dGalphadAlpha.AddScaled(dGalphadAlphaB (J2, principalEqStress[B], principalEqStress[2]),n[B]);
+
+
   for (i=0; i<6; i++)
-  	 for (j=0; j<7; j++) 
-  		dhdq(i,j)  = fCalpha * Galpha(stress, J2) * d2fdSigmadq(i,j);
+  	 for (j=0; j<6; j++) 
+  		dhdq(i,j)  = fCalpha * (Galpha(stress, J2) * d2fdSigmadq(i,j)
+	   + dfdDevStress[i] * dGalphadAlpha [j]);
  
+
+
+
   dhdq(6,6) = dPlasticVolStraindX(kappa) * dXdKappa(kappa) * d2fdI1dKappa (I1, kappa);
   dhdq(6,6) -= dfdI1(I1, kappa) * dPlasticVolStraindX(kappa) * d2XdKappadKappa(kappa);
   dhdq(6,6) -= dfdI1(I1, kappa) * dXdKappa(kappa) * dXdKappa(kappa) * d2PlasticVolStraindXdX(kappa);
