@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.21.2.1 2003-02-10 02:15:18 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.21.2.2 2003-02-12 23:40:58 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -368,18 +368,26 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 		}
 
 	/* update current configurations */
-	if (fCoordUpdate && fCoordUpdate->Group() == group)
+	if (fCoordUpdate->Group() == group)
+		UpdateCurrentCoordinates();
+	
+	/* inherited - update external DOF */
+	XDOF_ManagerT::Update(group, update);
+}
+
+/* update the current configuration. This is called by NodeManagerT::Update
+	 * and does not usually need to be called explicitly. */
+void NodeManagerT::UpdateCurrentCoordinates(void)
+{
+	if (fCoordUpdate)
 	{
 		/* should be allocated */
 		if (!fCurrentCoords)
-			ExceptionT::GeneralFail("NodeManagerT::Update", "current coords not initialized");
+			ExceptionT::GeneralFail("NodeManagerT::UpdateCurrentCoordinates", "current coords not initialized");
 	
 		/* update */
 		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
 	}	
-	
-	/* inherited - update external DOF */
-	XDOF_ManagerT::Update(group, update);
 }
 
 /* update history */
