@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.18 2002-03-18 19:24:07 rjones Exp $ */
+/* $Id: ElementListT.cpp,v 1.19 2002-03-21 22:36:32 creigh Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
@@ -26,6 +26,9 @@
 #include "CSEAnisoT.h"
 #include "GeometryT.h"
 #include "SimoFiniteStrainT.h"
+#include "MultiScaleT.h"
+#include "CourseScaleT.h"
+#include "FinePhestT.h"
 
 /* contact */
 #include "PenaltyContact2DT.h"
@@ -94,6 +97,9 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 		out << "    eq. " << ElementT::kD2MeshFreeFDElastic << ", hyperelastic MLS (total Lagrangian)\n";
 		out << "    eq. " << ElementT::kLinearDiffusion    << ", linear diffusion element\n";
 		out << "    eq. " << ElementT::kMFCohesiveSurface  << ", meshfree cohesive surface element\n";
+		out << "    eq. " << ElementT::kMultiScale              << ", Variational Multi-Scale (VMS) Element \n";
+		out << "    eq. " << ElementT::kCourseScale             << ", Course Scale Element (for VMS) \n";
+		out << "    eq. " << ElementT::kFinePhest               << ", Fine Sclale Phenomenological Str. Grad\n";
 
 		out << "    eq. " << ElementT::kACME_Contact       << ", 3D contact using ACME\n";
 		out << "    eq. " << ElementT::kMultiplierContact3D       << ", 3D contact using Lagrange multipliers\n";
@@ -135,6 +141,18 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 
 			case ElementT::kSimoFiniteStrain:
 				fArray[group] = new SimoFiniteStrainT(fFEManager);
+				break;
+
+			case ElementT::kMultiScale:
+				fArray[group] = new MultiScaleT(fFEManager);
+				break;
+
+			case ElementT::kCourseScale:
+				fArray[group] = new CourseScaleT(fFEManager);
+				break;
+
+			case ElementT::kFinePhest:
+				fArray[group] = new FinePhestT(fFEManager);
 				break;
 
 			case ElementT::kMeshFreeFDElastic:
