@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.h,v 1.9 2002-10-20 22:38:54 paklein Exp $ */
+/* $Id: dSymMatrixT.h,v 1.10 2003-04-09 22:29:17 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _DSYM_MATRIX_T_H_
@@ -159,7 +159,7 @@ private:
 /* dimensions */
 inline int dSymMatrixT::NumValues(int nsd)
 {
-	if (nsd < 1 || nsd > 3) throw ExceptionT::kGeneralFail;
+	if (nsd < 1 || nsd > 3) ExceptionT::OutOfRange("dSymMatrixT::NumValues");
 	int map[4] = {0, 1, 3, 6};
 	return map[nsd];	
 }
@@ -169,7 +169,7 @@ inline dSymMatrixT& dSymMatrixT::operator=(const dSymMatrixT& RHS)
 {
 	/* must be same dimension or nsd must be zero */
 	if (fNumSD != 0 && fNumSD != RHS.fNumSD)
-		throw ExceptionT::kSizeMismatch;
+		ExceptionT::SizeMismatch("dSymMatrixT::operator=");
 	else
 		fNumSD = RHS.fNumSD;
 
