@@ -32,6 +32,9 @@ void FEA_FormatT::Gradiants (	ShapeFunctionT *fShapes,LocalArrayT &u_np1,LocalAr
 
 void FEA_FormatT::Displacements ( LocalArrayT &u_mat, dArrayT &u_vec ) 
 {
-	u_vec.Set( u_mat.Length(), u_mat.Pointer() ); // Can do this since LocalArrayT is row major
+	int i,j,k=0, n_en=u_mat.NumberOfNodes(), n_dof=u_mat.MinorDim();
+	for (i=0; i<n_en; i++)
+		for (j=0; j<n_dof; j++)
+			u_vec[k++] = u_mat(i,j); 
 }
 
