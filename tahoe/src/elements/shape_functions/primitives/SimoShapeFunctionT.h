@@ -1,4 +1,4 @@
-/* $Id: SimoShapeFunctionT.h,v 1.1 2001-07-11 01:03:31 paklein Exp $ */
+/* $Id: SimoShapeFunctionT.h,v 1.2 2001-07-13 02:19:10 paklein Exp $ */
 
 #ifndef _SIMO_SHAPE_FUNCTION_T_H_
 #define _SIMO_SHAPE_FUNCTION_T_H_
@@ -35,12 +35,13 @@ private:
 
 	/** element modes */
 	const dArray2DT& fElementModes;
+	bool fHas3DIncompressibleMode;
 
 	/** gradients of the enhanced bubble modes */
 	ArrayT<dArray2DT> fDNaX_bubble;
 
 	/** gradients of the enhanced incompressible modes (3D only) */
-	ArrayT<dArray2DT> fDNaX_inc;
+	dArray2DT fDNaX_inc;
 };
 
 /* inlines */
