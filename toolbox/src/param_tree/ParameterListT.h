@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.19 2004-03-02 17:32:50 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.20 2004-03-24 19:21:17 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -163,6 +163,7 @@ public:
 
 	/** return the non-const pointer to the given parameter or NULL if the list is not found */
 	ParameterT* Parameter(const char* name);
+
 	/*@}*/
 
 	/** access to a specific occurrence of a list. Method throws an exception of the
@@ -182,6 +183,11 @@ public:
 
 	/** return the given parameter. Throws an exception of the parameter is not present */
 	ParameterT& GetParameter(const char* name);
+
+	/** search for parameter by name. Returns a pointer to the nth parameter whose name contains
+	 * the given search string or NULL if the parameter is not found or the instance is out 
+	 * of range. */
+	const ParameterT* FindParameter(const char* search_name, int instance = 0) const;
 	/*@}*/	
 
 	/** \name description */
