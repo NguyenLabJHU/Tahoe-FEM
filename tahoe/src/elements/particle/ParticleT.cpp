@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.29 2003-10-31 20:52:21 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.30 2003-11-07 21:22:55 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -249,11 +249,17 @@ void ParticleT::WriteOutput(void)
 	/* max distance traveled since last reneighboring */
 	ofstreamT& out = ElementSupport().Output();
 	out << "\n Maximum displacement since last re-neighboring. = " << fDmax << '\n';
+
+	/* info about periodic boundaries */
+	CommManagerT& comm_manager = ElementSupport().CommManager();
+	const dArray2DT& periodic_bounds = comm_manager.PeriodicBoundaries();
+	out << " Periodic bounds:\n";
+	for (int i = 0; i < periodic_bounds.MajorDim(); i++)
+		out << i+1 << ": {" << periodic_bounds(i,0) << ", " << periodic_bounds(i,1) << "}\n";
 	
 	/* reset connectivities */
 	if (ChangingGeometry())
 	{
-		CommManagerT& comm_manager = ElementSupport().CommManager();
 		const ArrayT<int>* parition_nodes = comm_manager.PartitionNodes();
 		if (parition_nodes)
 		{
