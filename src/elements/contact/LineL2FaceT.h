@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.h,v 1.7 2001-04-24 00:33:22 rjones Exp $ */
+/* $Id: LineL2FaceT.h,v 1.8 2001-04-24 16:57:40 rjones Exp $ */
 
 #ifndef _LINEL2_FACE_T_H_
 #define _LINEL2_FACE_T_H_
@@ -32,18 +32,19 @@ public:
         void Initialize(void);
 
         /* geometric computation */
-        void ComputeCentroid(double& centroid); 
-	double ComputeRadius();
-        void ComputeNormal(dArrayT& local_coordinates, double& normal); 
-        void NodeNormal(int local_node_number, double& normal); 
+        void ComputeCentroid(double& centroid) const; 
+	double ComputeRadius(void) const;
+        void ComputeNormal(dArrayT& local_coordinates, double& normal) const; 
+        void NodeNormal(int local_node_number, double& normal) const; 
 	void FaceNormal(void);
-	void LocalBasis(double* normal, double* tangent1, double* tangent2);
+	void LocalBasis
+		(double* normal, double* tangent1, double* tangent2) const;
 	void ComputeShapeFunctions
-		(dArrayT& local_coordinates, dArrayT& shape_functions);
+		(dArrayT& local_coordinates, dArrayT& shape_functions) const;
 	void ComputeShapeFunctions
-		(dArrayT& local_coordinates, dMatrixT& shape_functions);
-	double ComputeJacobian (dArrayT& local_coordinates);
-        bool Projection (ContactNodeT* node, dArrayT& parameters) ;
+		(dArrayT& local_coordinates, dMatrixT& shape_functions) const;
+	double ComputeJacobian (dArrayT& local_coordinates) const;
+        bool Projection (ContactNodeT* node, dArrayT& parameters) const ;
 protected:
 
 private:

@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.h,v 1.7 2001-04-24 00:33:22 rjones Exp $ */
+/* $Id: QuadL4FaceT.h,v 1.8 2001-04-24 16:57:41 rjones Exp $ */
 
 #ifndef _QUADL4_FACE_T_H_
 #define _QUADL4_FACE_T_H_
@@ -34,22 +34,21 @@ public:
         void Initialize(void);
 
         /* geometric computation */
-        void ComputeCentroid(double& centroid); 
-	double ComputeRadius();
-        void ComputeNormal(dArrayT& local_coordinates, double& normal);
-        void NodeNormal(int local_node_number, double& normal);
+        void ComputeCentroid(double& centroid) const; 
+	double ComputeRadius() const;
+        void ComputeNormal(dArrayT& local_coordinates, double& normal) const;
+        void NodeNormal(int local_node_number, double& normal) const;
         void FaceNormal(void);
 	void LocalBasis 
-		(double* normal, double* tangent1, double* tangent2);
-
+		(double* normal, double* tangent1, double* tangent2) const;
         void ComputeShapeFunctions
-                (dArrayT& local_coordinates, dArrayT& shape_functions);
+                (dArrayT& local_coordinates, dArrayT& shape_functions) const;
         void ComputeShapeFunctions
-                (dArrayT& local_coordinates, dMatrixT& shape_functions);
-        double ComputeJacobian (dArrayT& local_coordinates);
-        bool Projection (ContactNodeT* node, dArrayT& parameters) ;
-
-	inline void Polynomial (double* a, double* b, double* c, double* d) ;
+                (dArrayT& local_coordinates, dMatrixT& shape_functions) const;
+        double ComputeJacobian (dArrayT& local_coordinates) const;
+        bool Projection (ContactNodeT* node, dArrayT& parameters)  const;
+	inline void Polynomial 
+		(double* a, double* b, double* c, double* d) const ;
 
 protected:
 
@@ -57,15 +56,11 @@ private:
         /* nodal coordinates */
         double* fx[4];
 	/* workspace */
-	double a[3], b[3], c[3], d[3];
-	double xi[2];
-
-
 };
 
 inline void
 QuadL4FaceT::Polynomial
-(double* a, double* b, double* c, double* d) 
+(double* a, double* b, double* c, double* d) const
 {	/* const term */
         a[0] = 0.25*( fx[0][0]+fx[1][0]+fx[2][0]+fx[3][0]);
         a[1] = 0.25*( fx[0][1]+fx[1][1]+fx[2][1]+fx[3][1]);

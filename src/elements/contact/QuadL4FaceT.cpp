@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.cpp,v 1.9 2001-04-24 00:33:22 rjones Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.10 2001-04-24 16:57:40 rjones Exp $ */
 
 #include "QuadL4FaceT.h"
 #include "FaceT.h"
@@ -37,13 +37,13 @@ QuadL4FaceT::Initialize(void)
 }
 
 void
-QuadL4FaceT::ComputeCentroid(double& centroid)
+QuadL4FaceT::ComputeCentroid(double& centroid) const
 {
 	Ave(fx[0],fx[1],fx[2],fx[3],&centroid);
 }
 
 double
-QuadL4FaceT::ComputeRadius(void)
+QuadL4FaceT::ComputeRadius(void) const
 {
 	double diagonal[3];
 	Diff (fx[0],fx[2],diagonal);
@@ -52,11 +52,12 @@ QuadL4FaceT::ComputeRadius(void)
 }
 
 void
-QuadL4FaceT::NodeNormal(int local_node_number,double& normal)
+QuadL4FaceT::NodeNormal(int local_node_number,double& normal) const
 { /* computes (unnormalized) outward normal at vertex node */
 	int curr = local_node_number;
 	int prev = Prev(local_node_number);	
 	int next = Next(local_node_number);	
+	double t1[3], t2[3];
 	Diff(fx[next],fx[curr],t1);
 	Diff(fx[prev],fx[curr],t2);
 	Cross(t1,t2,&normal); 
@@ -77,13 +78,13 @@ QuadL4FaceT::FaceNormal(void)
 }
 
 void
-QuadL4FaceT::ComputeNormal(dArrayT& local_coordinates,double& normal)
+QuadL4FaceT::ComputeNormal(dArrayT& local_coordinates,double& normal) const
 {
 }
 
 void
-QuadL4FaceT::ComputeShapeFunctions
-(dArrayT& local_coordinates, dArrayT& shape_functions)
+QuadL4FaceT::ComputeShapeFunctions 
+(dArrayT& local_coordinates, dArrayT& shape_functions) const
 {
 	double xi  = local_coordinates[0];
 	double eta = local_coordinates[1];
@@ -95,7 +96,7 @@ QuadL4FaceT::ComputeShapeFunctions
 
 void
 QuadL4FaceT::ComputeShapeFunctions
-(dArrayT& local_coordinates, dMatrixT& shape_functions)
+(dArrayT& local_coordinates, dMatrixT& shape_functions) const
 {
 	dArrayT shape_f;
 	ComputeShapeFunctions(local_coordinates, shape_f);
@@ -103,7 +104,7 @@ QuadL4FaceT::ComputeShapeFunctions
 }
 
 double
-QuadL4FaceT::ComputeJacobian (dArrayT& local_coordinates)
+QuadL4FaceT::ComputeJacobian (dArrayT& local_coordinates) const
 {
 	//HACK
 	return 1.0;
@@ -111,7 +112,7 @@ QuadL4FaceT::ComputeJacobian (dArrayT& local_coordinates)
 
 bool
 QuadL4FaceT::Projection 
-(ContactNodeT* node,dArrayT& parameters) 
+(ContactNodeT* node,dArrayT& parameters)  const
 {
 	double tol_g  = parameters[ContactElementT::kGapTol];
 	double tol_xi = parameters[ContactElementT::kXiTol];
@@ -121,6 +122,7 @@ QuadL4FaceT::Projection
 	if ( Dot(nm,fnormal) < 0.0 ) {
 	  const double* x0 = node->Position();
 	  /* compute local coordinates */
+	  double a[3], b[3], c[3], d[3];
 	  Polynomial(a,b,c,d);
 	  /* components */
 	  double a1,b1,c1,d1,a2,b2,c2,d2,x1,x2;
@@ -141,6 +143,7 @@ QuadL4FaceT::Projection
 	  double qua = p3*m1 - p1*m3;
 	  double lin = p2*m1 - p1*m2 + p3*m0 - p0*m3;
 	  double con = p2*m0 - p0*m2;
+	  double xi[2];
 	  if (fabs(qua) < kTol_Quad) { xi[0] = -con/lin; }
 	  else {
 		double b2a = 0.5*lin/qua;
@@ -179,7 +182,7 @@ QuadL4FaceT::Projection
 
 void
 QuadL4FaceT::LocalBasis  
-(double* normal, double* tangent1, double* tangent2)
+(double* normal, double* tangent1, double* tangent2) const
 {
 	double t2[3];
 	/* calculate (approx) face tangent */

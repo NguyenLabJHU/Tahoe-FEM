@@ -1,4 +1,4 @@
-/* $Id: FaceT.h,v 1.9 2001-04-24 00:33:21 rjones Exp $ */
+/* $Id: FaceT.h,v 1.10 2001-04-24 16:57:40 rjones Exp $ */
 
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
@@ -35,55 +35,53 @@ public:
 	virtual void Initialize(void)=0;
 
 	/* geometric computation */
-        virtual void ComputeCentroid(double& centroid) =0; 
-	virtual double ComputeRadius(void)=0;
+        virtual void ComputeCentroid(double& centroid) const =0; 
+	virtual double ComputeRadius(void) const =0;
         virtual void ComputeNormal
-		(dArrayT& local_coordinates,double& normal)=0; 
-        virtual void NodeNormal(int local_node_number,double& normal)=0; 
+		(dArrayT& local_coordinates,double& normal) const =0; 
+        virtual void NodeNormal(int local_node_number,double& normal) const =0; 
 	virtual void FaceNormal(void)=0; 
 	virtual void LocalBasis
-		(double* normal, double* tangent1, double* tangent2)=0;
+		(double* normal, double* tangent1, double* tangent2) const=0;
 #if 0
         void ComputeTangents // ?????????
                 (double& local_coordinates, double& tangent1,double& tangent2);
 #endif
 
 	virtual void ComputeShapeFunctions
-		(dArrayT& local_coordinates, dArrayT& shape_functions)=0;
+		(dArrayT& local_coordinates, dArrayT& shape_functions) const =0;
 	virtual void ComputeShapeFunctions
-		(dArrayT& local_coordinates, dMatrixT& shape_functions)=0;
+		(dArrayT& local_coordinates, dMatrixT& shape_functions) const=0;
 #if 0
         void ComputeShapeFunctionDerivatives
-                (ArrayT& local_coordinates, ArrayT& shape_derivatives);
+                (ArrayT& local_coordinates, ArrayT& shape_derivatives) const;
         void ComputeShapeFunctionDerivatives
-                (ArrayT& local_coordinates, MatrixT& shape_derivatives);
+                (ArrayT& local_coordinates, MatrixT& shape_derivatives) const;
 #endif
 
 	virtual double ComputeJacobian 
-		(dArrayT& local_coordinates)=0;
+		(dArrayT& local_coordinates) const =0;
         virtual bool Projection 
-		(ContactNodeT* node, dArrayT& parameters) =0; 
+		(ContactNodeT* node, dArrayT& parameters) const =0; 
 
 	/* access functions */
 	inline const int NumNodes(void) const 
 		{return fConnectivity.Length();}
 	inline const GeometryT::CodeT GeometryType(void) const 
 		{return fGeometryType;}
- 	inline const iArrayT& Connectivity(void) const 
-		{return fConnectivity;} 
-	inline const int NumVertexNodes(void) 
-		{return fNumVertexNodes;}
-	inline const int Next(int i) {return (i + 1)%fNumVertexNodes;}
-	inline const int Prev(int i) {return (i - 1)%fNumVertexNodes;}
-	inline const int LocalNodeNumber(int node_num)
+ 	inline const iArrayT& Connectivity(void) const {return fConnectivity;} 
+	inline const int NumVertexNodes(void) const {return fNumVertexNodes;}
+	inline const int Next(int i) const {return (i + 1)%fNumVertexNodes;}
+	inline const int Prev(int i) const {return (i - 1)%fNumVertexNodes;}
+	inline const int LocalNodeNumber(int node_num) const
 	  {for (int i = 0; i < fConnectivity.Length(); i++) {
 		if (node_num == fConnectivity[i]) return i ; } return -1; }
 
 	/* check functions */  
-	inline bool CheckLocalCoordinates(double* xi, double tol_xi)
+	inline bool CheckLocalCoordinates(double* xi, double tol_xi) const
 		{return xi[0] < 1.0 + tol_xi && xi[0] >-1.0 - tol_xi
 		   &&   xi[1] < 1.0 + tol_xi && xi[1] >-1.0 - tol_xi ; }
-	inline bool CheckGap(double gap, double tol_g)
+	inline bool CheckGap(double gap, double tol_g) const
 		{ return gap < tol_g ? 1 : 0 ;}
 		
 
@@ -105,8 +103,6 @@ protected:
 
 	double fnormal[3] ; // face normal
 	/* workspace */
-	double x_proj[3], t1[3], t2[3] ;
-
 private:
 };
 

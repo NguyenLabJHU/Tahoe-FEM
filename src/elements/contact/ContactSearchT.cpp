@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.cpp,v 1.6 2001-04-24 00:33:21 rjones Exp $ */
+/* $Id: ContactSearchT.cpp,v 1.7 2001-04-24 16:57:40 rjones Exp $ */
 
 #include "ContactSearchT.h"
 
@@ -23,7 +23,7 @@ nMatrixT<dArrayT>& search_parameters):
 }
 
 /* destructor */
-ContactSearchT::~ContactSearchT(void) {	delete fGrid; }
+ContactSearchT::~ContactSearchT(void) {	}
 
 /* generate contact element data */
 bool ContactSearchT::SetInteractions(void)
@@ -50,6 +50,7 @@ bool ContactSearchT::SetInteractions(void)
 	grid_nodes.SetValueToPosition();
 	iArrayT n_grid(surface1.NumSD());
 	n_grid = ngrid;
+	/* not optimized for thin bodies */
 	fGrid = new iGridManagerT (n_grid, coordinates, &grid_nodes);
 	if (!fGrid) throw eOutOfMemory;
 	
@@ -99,11 +100,7 @@ void ContactSearchT::Initialize(void)
 
 	/* update face normals */
 	ArrayT<FaceT*>& faces = surface.Faces();
-	for (j = 0; j < faces.Length(); j++) {
-		//const FaceT* face = faces[j];
-		FaceT* face = faces[j];
-		face->FaceNormal();
-	}
+	for (j = 0; j < faces.Length(); j++) { faces[j]->FaceNormal(); }
   }
 
   bool found = 0;
@@ -118,9 +115,8 @@ void ContactSearchT::Initialize(void)
  		if (osurface) {
 			tag = osurface->Tag();	
 			dArrayT& parameters = fSearchParameters(i,tag);
-			// FaceT* face = node->OpposingFace() ;
-			FaceT* face = node->OpposingFace() ;
-			found = face->Projection(node,parameters);
+			found = 
+			  node->OpposingFace()->Projection(node,parameters);
 			if (!found) node->ClearOpposing();
 		}
 		else {
@@ -139,12 +135,11 @@ dArrayT& parameters)
   ArrayT<FaceT*>&        faces = face_surface.Faces();
   ArrayT<ContactNodeT*>& nodes = node_surface.ContactNodes();
   for (int i = 0; i < face_surface.NumFaces(); i++) {
-	//const FaceT* face = faces[i];
-	FaceT* face = faces[i];
+	const FaceT* face = faces[i];
 	/* face centroid*/
         face->ComputeCentroid(*centroid);
         /* face "radius"*/
-        radius = kFaceTolerance*(face->ComputeRadius());
+        radius = kFaceTolerance * (face->ComputeRadius());
 	/* get nodes in neighborhood */
         const AutoArrayT<iNodeT>&
           close_nodes = fGrid->HitsInRegion(centroid, radius);
@@ -174,9 +169,8 @@ bool ContactSearchT::UpdateProjection (void)
                 if (osurface) {
                         tag = osurface->Tag();
                         dArrayT& parameters = fSearchParameters(i,tag);
-                        //const FaceT* face = node->OpposingFace() ;
-                        FaceT* face = node->OpposingFace() ;
-                        found = face->Projection(node,parameters);
+                        found = 
+			  node->OpposingFace()->Projection(node,parameters);
                         if (!found) {
 #if 0
 			  neigbor_faces = opposing_face->NeighborFaces();

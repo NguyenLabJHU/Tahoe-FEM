@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.8 2001-04-24 00:33:22 rjones Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.9 2001-04-24 16:57:40 rjones Exp $ */
 
 #include "LineL2FaceT.h"
 #include "FaceT.h"
@@ -32,13 +32,13 @@ LineL2FaceT::Initialize(void)
 
 
 void
-LineL2FaceT::ComputeCentroid(double& centroid)
+LineL2FaceT::ComputeCentroid(double& centroid) const
 {
 	Ave(fx[0],fx[1],&centroid); 
 }
 
 double
-LineL2FaceT::ComputeRadius(void)
+LineL2FaceT::ComputeRadius(void) const
 {
 	double diagonal[2];
 	Diff (fx[0],fx[1],diagonal);
@@ -47,11 +47,12 @@ LineL2FaceT::ComputeRadius(void)
 }
 
 void
-LineL2FaceT::NodeNormal(int local_node_number, double& normal)
+LineL2FaceT::NodeNormal(int local_node_number, double& normal) const
 {
 	int curr = local_node_number;
 	int next = Next(curr);
 	/* get sense of left and right */
+	double t1[2];
 	if (next > curr) {
 		Diff(fx[next],fx[curr],t1);
 	}
@@ -65,14 +66,16 @@ void
 LineL2FaceT::FaceNormal(void)
 {
         /* right to left */
+	double t1[2];
         Diff(fx[0],fx[1],t1);
         RCross(t1,fnormal);
 }
 
 
 void
-LineL2FaceT::ComputeNormal(dArrayT& local_coordinates, double& normal)
+LineL2FaceT::ComputeNormal(dArrayT& local_coordinates, double& normal) const
 {
+	double t1[2];
 	Diff(fx[0],fx[1],t1);
 	/* this assumes a CW parameterization of the boundary */
 	RCross(t1,&normal);
@@ -81,7 +84,7 @@ LineL2FaceT::ComputeNormal(dArrayT& local_coordinates, double& normal)
 
 void
 LineL2FaceT::ComputeShapeFunctions
-(dArrayT& local_coordinates, dArrayT& shape_functions)
+(dArrayT& local_coordinates, dArrayT& shape_functions) const
 {
 	double xi  = local_coordinates[0];
 	shape_functions[0] = 0.5 * (1.0 - xi );
@@ -90,7 +93,7 @@ LineL2FaceT::ComputeShapeFunctions
 
 void
 LineL2FaceT::ComputeShapeFunctions
-(dArrayT& local_coordinates, dMatrixT& shape_functions)
+(dArrayT& local_coordinates, dMatrixT& shape_functions) const
 {
 	dArrayT shape_f;
 	ComputeShapeFunctions(local_coordinates, shape_f);
@@ -113,7 +116,7 @@ LineL2FaceT::InterpolateVector
 
 
 double
-LineL2FaceT::ComputeJacobian (dArrayT& local_coordinates)
+LineL2FaceT::ComputeJacobian (dArrayT& local_coordinates) const
 {
 	//HACK
 	return 1.0;
@@ -121,7 +124,7 @@ LineL2FaceT::ComputeJacobian (dArrayT& local_coordinates)
 
 bool
 LineL2FaceT::Projection 
-(ContactNodeT* node, dArrayT& parameters) 
+(ContactNodeT* node, dArrayT& parameters)  const
 {
 	//HACK
 	return 0;
@@ -129,6 +132,6 @@ LineL2FaceT::Projection
 
 void
 LineL2FaceT::LocalBasis
-(double* normal, double* tangent1, double* tangent2)
+(double* normal, double* tangent1, double* tangent2) const
 {
 }
