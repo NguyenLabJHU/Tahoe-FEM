@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.2 2002-04-10 21:20:54 paklein Exp $ */
+/* $Id: TiedNodesT.h,v 1.3 2002-04-13 15:40:31 paklein Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -14,6 +14,7 @@
 
 /* forward declarations */
 class dArray2DT;
+class FEManagerT;
 
 /** class to tie nodes together and release them under specified conditions.
  * The class accomplishes this in the following way, most of which rely on the
@@ -138,6 +139,8 @@ protected:
 	
 	/** needed to generate KBC_ControllerT::fKBC_Cards */
 	LoadTime fDummySchedule;	
+
+	const FEManagerT& fFEManager;
 };
 
 #endif /* _TIED_NODES_T_H_ */
