@@ -1,4 +1,4 @@
-/* $Id: XML_Atomic_FormatterT.h,v 1.2 2002-11-18 09:59:03 paklein Exp $ */
+/* $Id: XML_Atomic_FormatterT.h,v 1.3 2002-11-21 01:08:37 paklein Exp $ */
 #ifndef _XML_ATOMIC_FORMATTER_T_H_
 #define _XML_ATOMIC_FORMATTER_T_H_
 
@@ -23,7 +23,7 @@ public:
 	XML_Atomic_FormatterT(void);
 	
 	/** DTD settings */
-	void SetDTD(const StringT& dtd_path, const StringT& doc_root);
+	void SetDTD(const StringT& doc_root, const StringT& dtd_path);
 	
 	/** \name writing parameters
 	 * All methods return true if successful. */	
