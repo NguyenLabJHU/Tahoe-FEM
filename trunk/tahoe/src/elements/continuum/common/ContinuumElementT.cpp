@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.3 2001-02-27 00:16:13 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.4 2001-03-15 17:47:24 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 
 #include "ContinuumElementT.h"
@@ -291,7 +291,7 @@ void ContinuumElementT::WriteOutput(IOBaseT::OutputModeT mode)
 
 /* side set to nodes on facets data */
 void ContinuumElementT::SideSetToFacets(int block_ID, const iArray2DT& sideset,
-	iArray2DT& facets)
+	iArray2DT& facets) const
 {
 	/* checks */
 	if (sideset.MinorDim() != 2) throw eGeneralFail;
@@ -320,7 +320,7 @@ void ContinuumElementT::SideSetToFacets(int block_ID, const iArray2DT& sideset,
 		/* get facet node map */
 		fShapes->NodesOnFacet(nft, facet_nodes);
 		
-		/* dimension/check */
+		/* dimension check */
 		if (i == 0)
 			facets.Allocate(sideset.MajorDim(), facet_nodes.Length());
 		else if (facets.MinorDim() != facet_nodes.Length())
@@ -329,11 +329,21 @@ void ContinuumElementT::SideSetToFacets(int block_ID, const iArray2DT& sideset,
 			     <<   "     the same number of nodes in element block" << block_ID << endl;
 			throw eGeneralFail;
 		}
+		
+		/* shape check */
 
 		/* get node numbers */
 		facets.RowAlias(i, facet_tmp);
 		facet_tmp.Collect(facet_nodes, fElementCards[nel].NodesX());
 	}
+}
+
+/* return geometry and number of nodes on each facet */
+void ContinuumElementT::FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry, 
+	iArrayT& num_facet_nodes) const
+{
+	/* from integration domain */
+	fShapes->FacetGeometry(facet_geometry, num_facet_nodes);
 }
 
 /* initial condition/restart functions (per time sequence) */
