@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.13 2003-05-06 17:33:46 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.13.2.1 2003-05-12 16:27:12 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -13,7 +13,7 @@
 
 namespace Tahoe {
 
-/** forward declarations */
+/* forward declarations */
 class iGridManagerT;
 class CommManagerT;
 class ParticlePropertyT;
@@ -92,6 +92,11 @@ public:
 	/** compute the part of the stiffness matrix */
 	virtual void FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 		const iArray2DT& col_eq, dSPMatrixT& stiffness) = 0;
+
+	/** contribution to the nodal residual forces. Return the contribution of this element
+	 * group to the residual for the given solver group. ParticleT::InternalForce 
+	 * returns the internal force calculated with the latest call to ElementBaseT::FormRHS. */
+	virtual const dArray2DT& InternalForce(int group);
 
 protected: /* for derived classes only */
 
