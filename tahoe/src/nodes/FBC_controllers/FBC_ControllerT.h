@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.h,v 1.14 2004-07-15 08:31:15 paklein Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.15 2004-09-14 18:18:12 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 #ifndef _FBC_CONTROLLER_T_H_
 #define _FBC_CONTROLLER_T_H_
@@ -80,6 +80,10 @@ public:
 	 *        system type that is actually needed. */
 	virtual void ApplyLHS(GlobalT::SystemTypeT sys_type) = 0;
 	virtual void ApplyRHS(void) = 0;
+
+	/** returns true if the internal force has been changed since
+	 * the last time step */
+	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 	/*@}*/
 
 	/* initialize/finalize step */
