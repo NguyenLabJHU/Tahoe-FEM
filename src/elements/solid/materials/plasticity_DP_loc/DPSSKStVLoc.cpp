@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.14 2005-03-07 18:39:36 raregue Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.15 2005-03-08 16:10:03 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 #include "SSMatSupportT.h"
@@ -125,7 +125,8 @@ const dSymMatrixT& DPSSKStVLoc::s_ij(void)
 */
 
 //#if 0
-bool DPSSKStVLoc::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
+//bool DPSSKStVLoc::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
+bool DPSSKStVLoc::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &detA)
 {
 	/* stress tensor */
 	const dSymMatrixT& stress = s_ij();
@@ -142,8 +143,8 @@ bool DPSSKStVLoc::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT
 	DetCheckT checker(stress, modulus, modulus_e);
 	normals.Dimension(NumSD());
 	slipdirs.Dimension(NumSD());
-	double dummyDetA = 0.0;
-	return checker.IsLocalized_SS(normals,slipdirs,dummyDetA);
+	//double dummyDetA = 0.0;
+	return checker.IsLocalized_SS(normals,slipdirs,detA);
 }
 //#endif
 

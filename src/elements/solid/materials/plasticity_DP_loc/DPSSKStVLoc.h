@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.h,v 1.10 2005-03-07 18:39:36 raregue Exp $ */
+/* $Id: DPSSKStVLoc.h,v 1.11 2005-03-08 16:10:03 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_LOC_H_
 #define _DP_SS_KSTV_LOC_H_
@@ -74,7 +74,8 @@ public:
 	* determinant of the acoustic tensor is negative and returns
 	* the normals and slipdirs. Returns false if the determinant is positive.
 	*/
-	bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
+	//bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
+	bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double &detA);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
