@@ -1,8 +1,6 @@
-/* $Id: SSSolidMatList3DT.cpp,v 1.4 2004-07-22 00:37:01 raregue Exp $ */
+/* $Id: SSSolidMatList3DT.cpp,v 1.5 2004-07-22 21:10:04 paklein Exp $ */
 #include "SSSolidMatList3DT.h"
 #include "SSMatSupportT.h"
-
-
 #include "SolidMaterialsConfig.h"
 
 #ifdef __DEVELOPMENT__
@@ -86,6 +84,7 @@ void SSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 	{
 		order = ParameterListT::Choice;
 	
+		sub_lists.AddSub("small_strain_Hookean");
 		sub_lists.AddSub("small_strain_cubic");
 		sub_lists.AddSub("small_strain_StVenant");
 
@@ -159,7 +158,9 @@ SSSolidMatT* SSSolidMatList3DT::NewSSSolidMat(const StringT& name) const
 {
 	SSSolidMatT* mat = NULL;
 
-	if (name == "small_strain_cubic")
+	if (name == "small_strain_Hookean")
+		mat = new SSHookeanMatT;
+	else if (name == "small_strain_cubic")
 		mat = new SSCubicT;
 	else if (name == "small_strain_StVenant")
 		mat = new SSKStV;

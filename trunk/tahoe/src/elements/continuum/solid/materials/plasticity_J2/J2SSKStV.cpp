@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.cpp,v 1.10 2004-07-15 08:28:54 paklein Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.11 2004-07-22 21:10:13 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV.h"
 #include "SSMatSupportT.h"
@@ -25,13 +25,6 @@ J2SSKStV::J2SSKStV(void):
 	fModulus(dSymMatrixT::NumValues(3))
 {
 
-}
-
-/* initialization */
-void J2SSKStV::Initialize(void)
-{
-	/* inherited */
-	HookeanMatT::Initialize();
 }
 
 /* update internal variables */
@@ -133,7 +126,23 @@ void J2SSKStV::DefineSubs(SubListT& sub_list) const
 	/* inherited */
 	SSSolidMatT::DefineSubs(sub_list);
 	IsotropicT::DefineSubs(sub_list);
+	HookeanMatT::DefineSubs(sub_list);
 	J2SSC0HardeningT::DefineSubs(sub_list);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void J2SSKStV::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
+{
+	/* inherited */
+	if (sub_lists.Length() == 0)
+		SSSolidMatT::DefineInlineSub(name, order, sub_lists);
+	if (sub_lists.Length() == 0)
+		IsotropicT::DefineInlineSub(name, order, sub_lists);
+	if (sub_lists.Length() == 0)
+		HookeanMatT::DefineInlineSub(name, order, sub_lists);
+	if (sub_lists.Length() == 0)
+		J2SSC0HardeningT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
@@ -147,6 +156,9 @@ ParameterInterfaceT* J2SSKStV::NewSub(const StringT& name) const
 
 	sub = IsotropicT::NewSub(name);
 	if (sub) return sub;
+
+	sub = HookeanMatT::NewSub(name);
+	if (sub) return sub;
 	
 	return J2SSC0HardeningT::NewSub(name);
 }
@@ -158,9 +170,7 @@ void J2SSKStV::TakeParameterList(const ParameterListT& list)
 	SSSolidMatT::TakeParameterList(list);
 	IsotropicT::TakeParameterList(list);
 	J2SSC0HardeningT::TakeParameterList(list);
-	
-	/* initialize modulus */
-	HookeanMatT::Initialize();
+	HookeanMatT::TakeParameterList(list);
 }
 
 /*************************************************************************

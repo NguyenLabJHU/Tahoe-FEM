@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList2DT.cpp,v 1.4 2004-07-22 00:37:01 raregue Exp $ */
+/* $Id: SSSolidMatList2DT.cpp,v 1.5 2004-07-22 21:10:04 paklein Exp $ */
 #include "SSSolidMatList2DT.h"
 #include "SSMatSupportT.h"
 
@@ -9,6 +9,7 @@
 #include "DevelopmentMaterialsConfig.h"
 #endif
 
+#include "SSHookeanMat2DT.h"
 #include "SSKStV2D.h"
 #include "SSCubic2DT.h"
 
@@ -123,6 +124,7 @@ void SSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 	{
 		order = ParameterListT::Choice;
 	
+		sub_lists.AddSub("small_strain_Hookean_2D");
 		sub_lists.AddSub("small_strain_cubic_2D");
 		sub_lists.AddSub("small_strain_StVenant_2D");
 
@@ -200,7 +202,9 @@ SSSolidMatT* SSSolidMatList2DT::NewSSSolidMat(const StringT& name) const
 {
 	SSSolidMatT* mat = NULL;
 
-	if (name == "small_strain_cubic_2D")
+	if (name == "small_strain_Hookean_2D")
+		mat = new SSHookeanMat2DT;
+	else if (name == "small_strain_cubic_2D")
 		mat = new SSCubic2DT;
 	else if (name == "small_strain_StVenant_2D")
 		mat = new SSKStV2D;

@@ -1,4 +1,4 @@
-/* $Id: LocalJ2SSNonlinHard.h,v 1.8 2004-07-15 08:29:01 paklein Exp $ */
+/* $Id: LocalJ2SSNonlinHard.h,v 1.9 2004-07-22 21:10:18 paklein Exp $ */
 #ifndef _LOCAL_J2_SS_NONLIN_HARD_H_
 #define _LOCAL_J2_SS_NONLIN_HARD_H_
 
@@ -24,9 +24,6 @@ public:
 
 	/* constructor */
 	LocalJ2SSNonlinHard(ifstreamT& in, const SSMatSupportT& support);
-
-	/* initialization */
-	virtual void Initialize(void);
 
 	/* form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -59,6 +56,18 @@ public:
 	virtual int NumOutputVariables(void) const;
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 

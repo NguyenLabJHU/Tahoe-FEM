@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.38 2004-07-20 23:21:30 rdorgan Exp $ */
+/* $Id: SolidT.cpp,v 1.39 2004-07-22 21:10:04 paklein Exp $ */
 /* created: paklein (03/10/2001) */
 #include "SolidT.h"
 #include "ExceptionT.h"
@@ -78,6 +78,12 @@ SolidT::TypeT SolidT::int2TypeT(int i)
 
 		case SolidT::kChain1D:
 			return SolidT::kChain1D;
+
+		case SolidT::kFSHookean:
+			return SolidT::kFSHookean;
+
+		case SolidT::kSSHookean:
+			return SolidT::kSSHookean;
 
 		case SolidT::kFossumSSIso:
 			return SolidT::kFossumSSIso;

@@ -1,4 +1,4 @@
-/* $Id: LocalJ2SSNonlinHard.cpp,v 1.11 2004-07-15 08:29:01 paklein Exp $ */
+/* $Id: LocalJ2SSNonlinHard.cpp,v 1.12 2004-07-22 21:10:18 paklein Exp $ */
 #include "LocalJ2SSNonlinHard.h"
 
 #include "ifstreamT.h"
@@ -60,16 +60,6 @@ LocalJ2SSNonlinHard::LocalJ2SSNonlinHard(ifstreamT& in, const SSMatSupportT& sup
 	        cout << "\n GradJ2SSNonlinHard: bad hardening parameter k1, k2, k3, or k4" << endl;
 /*		throw ExceptionT::kBadInputValue;  */
 	}
-}
-
-/* initialization */
-void LocalJ2SSNonlinHard::Initialize(void)
-{
-	/* void */
-	HookeanMatT::Initialize();
-
-	// allocate space for all elements
-	AllocateAllElements();
 }
 
 /* form of tangent matrix (symmetric by default) */
@@ -225,6 +215,35 @@ void LocalJ2SSNonlinHard::ComputeOutput(dArrayT& output)
 
 	/* isotropic hardening */
 	output[5] = fInternal[kIsotHard];
+}
+
+/* information about subordinate parameter lists */
+void LocalJ2SSNonlinHard::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	 SSIsotropicMatT::DefineSubs(sub_list);
+	 HookeanMatT::DefineSubs(sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* LocalJ2SSNonlinHard::NewSub(const StringT& name) const
+{
+	ParameterInterfaceT* sub = SSIsotropicMatT::NewSub(name);
+	if (sub)
+		return sub;
+	else
+		return HookeanMatT::NewSub(name);
+}
+
+/* accept parameter list */
+void LocalJ2SSNonlinHard::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	 SSIsotropicMatT::TakeParameterList(list);
+	 HookeanMatT::TakeParameterList(list);
+
+	/* allocate space for all elements */
+	AllocateAllElements();
 }
 
 /*************************************************************************

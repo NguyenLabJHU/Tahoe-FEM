@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.2 2004-07-15 08:28:28 paklein Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.3 2004-07-22 21:10:04 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -123,6 +123,7 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 	{
 		order = ParameterListT::Choice;
 	
+		sub_lists.AddSub("large_strain_Hookean");
 		sub_lists.AddSub("large_strain_cubic");
 		sub_lists.AddSub("large_strain_StVenant");
 		sub_lists.AddSub("Simo_isotropic");
@@ -203,7 +204,9 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 {
 	FSSolidMatT* mat = NULL;
 
-	if (name == "large_strain_cubic")
+	if (name == "large_strain_Hookean")
+		mat = new FDHookeanMatT;
+	else if (name == "large_strain_cubic")
 		mat = new FDCubicT;
 	else if (name == "large_strain_StVenant")
 		mat = new FDKStV;
