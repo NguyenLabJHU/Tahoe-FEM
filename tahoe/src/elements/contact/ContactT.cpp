@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.16.18.2 2004-04-20 17:41:46 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.16.18.3 2004-04-21 07:37:34 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -148,8 +148,10 @@ ParameterInterfaceT* ContactT::NewSub(const StringT& list_name) const
 		ParameterContainerT* contact_surface = new ParameterContainerT(list_name);
 		contact_surface->SetListOrder(ParameterListT::Choice);
 		
-		/* surfaces from side sets */
-		contact_surface->AddSub("side_set_ID_list");
+		/* surface from side set  */
+		ParameterContainerT surface_side_set("surface_side_set");
+		surface_side_set.AddParameter(ParameterT::Word, "side_set_ID");
+		contact_surface->AddSub(surface_side_set);
 	
 		/* surfaces from body boundary */
 		ParameterContainerT body_boundary("body_boundary");
@@ -186,6 +188,11 @@ void ContactT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
 	ElementBaseT::TakeParameterList(list);
+
+	/* dimension */
+	int neq = (fNumFacetNodes + 1)*NumDOF();
+	fLHS.Dimension(neq);	
+	fRHS.Dimension(neq);
 
 	/* extract contact geometry from the list */
 	ExtractContactGeometry(list);
@@ -231,7 +238,7 @@ void ContactT::ExtractContactGeometry(const ParameterListT& list)
 		const ParameterListT* surface_spec = list.ResolveListChoice(*this, "contact_surface", i);
 		if (!surface_spec) ExceptionT::GeneralFail(caller, "could not find \"contact_surface\" %d", i+1);
 
-		if (surface_spec->Name() == "side_set_ID_list")
+		if (surface_spec->Name() == "surface_side_set")
 			InputSideSets(*surface_spec, fSurfaces[i]);
 		else if (surface_spec->Name() == "body_boundary") 
 		{
@@ -245,7 +252,6 @@ void ContactT::ExtractContactGeometry(const ParameterListT& list)
 	}
 	
 	/* echo data and correct numbering offset */
-	int surface_count = 0;	
 	if (print_input) {	
 		out << " Contact surfaces:\n";
 		out << setw(kIntWidth) << "surface"
@@ -267,11 +273,14 @@ void ContactT::ExtractContactGeometry(const ParameterListT& list)
 	  			surface--;
 	  			out << '\n';
 	  		}
-	  	
-	  		/* count non-empty */
-	  		if (surface.MajorDim() > 0) surface_count++;
 		}	
 	}
+
+	/* look for empty surfaces */
+	int surface_count = 0;	
+	for (int j = 0; j < fSurfaces.Length(); j++)
+		if (fSurfaces[j].MajorDim() > 0)
+			surface_count++;
 
 	/* remove empty surfaces */
 	if (surface_count != fSurfaces.Length())
@@ -296,9 +305,9 @@ void ContactT::ExtractContactGeometry(const ParameterListT& list)
 	const ParameterListT* striker_spec = list.ResolveListChoice(*this, "contact_nodes");
 	if (!striker_spec) ExceptionT::GeneralFail(caller, "\"contact_nodes\" not found");
 	if (striker_spec->Name() == "node_ID_list")
-		StrikersFromNodeSets(list);
+		StrikersFromNodeSets(*striker_spec);
 	else if (striker_spec->Name() == "side_set_ID_list")
-		StrikersFromSideSets(list);
+		StrikersFromSideSets(*striker_spec);
 	else if (striker_spec->Name() == "all_surface_nodes")
 		StrikersFromSurfaces();
 	else if (striker_spec->Name() == "all_nodes_as_strikers") 
@@ -456,19 +465,14 @@ void ContactT::InputSideSets(const ParameterListT& list, iArray2DT& facets)
 	const char caller[] = "ContactT::InputSideSets";
 
 	/* extract side set ID */
-	ArrayT<StringT> ss_ID;
-	StringListT::Extract(list, ss_ID);
-
-	/* only single side set for now */
-	if (ss_ID.Length () != 1) 
-		ExceptionT::BadInputValue(caller, "side set list restricted to length 1: %d", 
-			ss_ID.Length ());
+	StringT ss_ID;
+	ss_ID = list.GetParameter("side_set_ID");
 
 	/* read side set faces */
 	ModelManagerT& model = ElementSupport().ModelManager();
 	ArrayT<GeometryT::CodeT> facet_geom;
 	iArrayT facet_nodes;
-	model.SideSet(ss_ID[0], facet_geom, facet_nodes, facets);
+	model.SideSet(ss_ID, facet_geom, facet_nodes, facets);
 }
 
 void ContactT::InputBodyBoundary(const ParameterListT& list, ArrayT<iArray2DT>& surfaces,
