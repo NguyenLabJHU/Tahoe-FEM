@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.15 2002-04-24 19:25:01 dzeigle Exp $
+# $Id: makefile,v 1.16 2002-05-28 06:55:01 bhji Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -23,7 +23,10 @@ OBJ = \
 	Triantafyllidis.o \
 	LinearDecreaseT.o \
 	Linear.o \
-	QuadraticDecreaseT.o 
+	QuadraticDecreaseT.o \
+	GaoVicky.o \
+	GaoJi.o \
+	GaoJi2.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -50,7 +53,10 @@ SRC = \
 	Triantafyllidis.cpp \
 	LinearDecreaseT.cpp \
 	Linear.cpp \
-	QuadraticDecreaseT.cpp 
+	QuadraticDecreaseT.cpp \
+	GaoVicky.cpp \
+	GaoJi.cpp \
+	GaoJi2.cpp
 
 # headers
 HDR = \
@@ -71,7 +77,10 @@ HDR = \
 	Triantafyllidis.h \
 	LinearDecreaseT.h \
 	Linear.h \
-	QuadraticDecreaseT.h 
+	QuadraticDecreaseT.h \
+	GaoVicky.h \
+	GaoJi.h \
+	GaoJi2.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
