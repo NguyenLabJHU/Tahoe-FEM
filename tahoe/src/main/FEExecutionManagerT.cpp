@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.65 2004-06-28 22:41:51 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.66 2004-07-14 00:32:25 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -759,6 +759,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	//dArrayT mdmass;
 	//atoms.LumpedMass(atoms.NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
 	continuum.InitProjection(*atoms.CommManager(), atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive);		
+
+	/* nodes to include/exclude in calculation of the atomistic displacements. Dimension
+	 * of these matricies is the number atom types */
 	nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // 3D wave propagation
 	//nMatrixT<int> ghostonmap(5), ghostoffmap(5);  // for 2D fracture problem
 	//nMatrixT<int> ghostonmap(4), ghostoffmap(4);    // for planar wave propagation problem
