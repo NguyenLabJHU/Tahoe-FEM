@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.16 2001-07-03 01:35:44 paklein Exp $ */
+/* $Id: tevp2D.cpp,v 1.17 2001-07-13 16:27:20 paklein Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (04/04/2001) */
 /* Last Updated:  Harold Park (06/12/2001) */
@@ -7,6 +7,7 @@
 
 #include <iostream.h>
 #include <math.h>
+#include "ifstreamT.h"
 #include "FiniteStrainT.h"
 #include "FEManagerT.h"
 #include "ElementCardT.h"
@@ -63,6 +64,16 @@ tevp2D::tevp2D(ifstreamT& in, const FiniteStrainT& element):
   fJ(0.0)
   
 {
+	/* read parameters from input stream */
+	in >> Mu_d;
+	
+	/* check values */
+	if (Mu_d < 0.0) 
+	{
+		cout << "\n tevp2D::tevp2D: Mu must be > 0: " << Mu_d << endl;
+		throw eBadInputValue;
+	}
+
   /* initialize material constants */
   El_E = 2.0E11;
   El_V = .30;
@@ -90,7 +101,7 @@ tevp2D::tevp2D(ifstreamT& in, const FiniteStrainT& element):
   Epsilon_2 = .3;
   Epsilon_rate = 4.0E4;
   Gamma_d = .002;
-  Mu_d = 500.0;
+  //Mu_d = 500.0;
   SigCr = 6.0 * Sb0;
 
   /* used in temperature update */
