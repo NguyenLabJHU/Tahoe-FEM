@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.23 2002-05-14 23:05:56 cjkimme Exp $ */
+/* $Id: SolidElementT.cpp,v 1.24 2002-05-16 22:22:34 cjkimme Exp $ */
 /* created: paklein (05/28/1996) */
 
 #include "SolidElementT.h"
@@ -1051,10 +1051,10 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			dArray2DT Na_X_ip_w;
 			if (qUseSimo || qNoExtrap)
 			{
+			  Na_X_ip_w.Allocate(fNumElemNodes,1);
 			  if (qUseSimo)
 			    {
 				const double* Na_X = fShapes->IPShapeX();
-				Na_X_ip_w.Allocate(fNumElemNodes,1);
 				Na_X_ip_w = ip_w;
 				for (int k = 0;k<fNumElemNodes;k++)
 				{
