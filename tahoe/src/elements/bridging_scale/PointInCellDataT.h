@@ -1,4 +1,4 @@
-/* $Id: PointInCellDataT.h,v 1.1.2.4 2003-02-13 01:12:25 paklein Exp $ */
+/* $Id: PointInCellDataT.h,v 1.1.2.5 2003-02-23 02:39:28 paklein Exp $ */
 #ifndef _POINT_IN_CELL_DATA_T_H_
 #define _POINT_IN_CELL_DATA_T_H_
 
@@ -25,7 +25,7 @@ public:
 	/** \name associated element group */
 	/*@{*/
 	void SetContinuumElement(const ContinuumElementT& element) { fContinuumElement = &element; };
-	const ContinuumElementT* ContinuumElement(void) { return fContinuumElement; };
+	const ContinuumElementT* ContinuumElement(void) const { return fContinuumElement; };
 	/*@}*/
 
 	/** \name particle in cell data */
