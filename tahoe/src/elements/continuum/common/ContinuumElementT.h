@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.27 2004-07-15 08:26:13 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.28 2004-07-22 08:20:55 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -140,11 +140,6 @@ protected:
 
 	/** stream extraction operator */
 	friend istream& operator>>(istream& in, ContinuumElementT::MassTypeT& type);
-
-	/** echo element connectivity data. Calls the inherited ElementBaseT::ElementBaseT
-	 * and then constructs the communicator for the processes with non-zero numbers
-	 * of elements in this group */
-	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
 
 	/** allocate and initialize local arrays */
 	virtual void SetLocalArrays(void);
