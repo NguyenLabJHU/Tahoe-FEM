@@ -1,7 +1,0 @@
-# $Id: SUN.macros,v 1.1 2002-07-20 01:59:39 paklein Exp $
-# macros for Sun (troi)
-COMP_CC = CC
-CC_FLAGS = -c -I/usr/java/include -I/usr/java/include/solaris
-LD       = ld
-LD_FLAGS = -G
-DSO_EXT  = so
