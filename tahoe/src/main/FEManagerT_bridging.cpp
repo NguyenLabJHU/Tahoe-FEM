@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.1.2.10 2003-02-19 19:56:07 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.1.2.11 2003-02-23 02:41:23 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #include "ModelManagerT.h"
 #include "NodeManagerT.h"
@@ -9,6 +9,7 @@
 
 #include "BridgingScaleT.h"
 #include "ParticleT.h"
+#include "dSPMatrixT.h"
 
 /* constructor */
 FEManagerT_bridging::FEManagerT_bridging(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
@@ -92,17 +93,53 @@ void FEManagerT_bridging::InitGhostNodes(void)
 			fNonGhostNodes[dex++] = i;
 }
 
+/* compute the ghost-nonghost part of the stiffness matrix */
+void FEManagerT_bridging::Form_G_NG_Stiffness(const StringT& field, dSPMatrixT& K_G_NG)
+{
+	const char caller[] = "FEManagerT_bridging::Form_G_NG_Stiffness";
+
+	/* get the field */
+	FieldT* the_field = fNodeManager->Field(field);
+	if (!the_field) ExceptionT::GeneralFail(caller, "could not resolve field \"%s\"", field.Pointer());
+
+	/* redimension if needed */
+	int row_eq = the_field->NumEquations();
+	int col_eq = fGhostNodes.Length()*the_field->NumDOF();
+	if (K_G_NG.Rows() != row_eq || K_G_NG.Cols() != col_eq) {
+		K_G_NG.Dimension(row_eq, col_eq, 0);
+	}
+
+	/* dimension pseudo equations array and map */
+	if (fGhostNodesEquations.MajorDim() != fGhostNodes.Length() ||
+	    fGhostNodesEquations.MinorDim() != the_field->NumDOF()) {
+		fGhostNodesEquations.Dimension(fGhostNodes.Length(), the_field->NumDOF());
+		fGhostNodesEquations.SetValueToPosition();
+		fGhostNodesEquations += 1;
+		
+		fGhostIdToIndex.SetMap(fGhostNodes);
+	}
+
+	/* clear values */
+	K_G_NG = 0.0;
+
+	/* form matrix */
+	Particle().FormStiffness(fGhostIdToIndex, fGhostNodesEquations, K_G_NG);
+}
+
 /* set the field at the ghost nodes */
 void FEManagerT_bridging::SetFieldValues(const StringT& field, const iArrayT& nodes, 
 	const dArray2DT& values)
 {
+	const char caller[] = "FEManagerT_bridging::SetFieldValues";
+
 #if __option(extended_errorcheck)
 	if (nodes.Length() != values.MajorDim())
-		ExceptionT::SizeMismatch("FEManagerT_bridging::SetGhostNodeField");
+		ExceptionT::SizeMismatch(caller);
 #endif
 
 	/* get the associated field */
 	FieldT* the_field = fNodeManager->Field(field);
+	if (!the_field) ExceptionT::GeneralFail(caller, "could not resolve field \"%s\"", field.Pointer());
 
 	/* assume we're writing into the displacement array */
 	dArray2DT& displacement = (*the_field)[0];
@@ -136,6 +173,65 @@ void FEManagerT_bridging::InterpolateField(const StringT& field, dArray2DT& noda
 {
 	/* interpolate in bridging scale element */
 	BridgingScale().InterpolateField(field, fFollowerCellData, nodal_values);
+}
+
+/* return the interpolation matrix associated with the active degrees
+ * of freedom */
+void FEManagerT_bridging::InterpolationMatrix(const StringT& field, dSPMatrixT& G_Interpolation) const
+{
+	const char caller[] = "FEManagerT_bridging::InterpolationMatrix";
+
+	/* get the associated field */
+	FieldT* the_field = fNodeManager->Field(field);
+	if (!the_field) ExceptionT::GeneralFail(caller, "could not resolve field \"%s\"", field.Pointer());
+
+	/* the shape functions values at the interpolating point */
+	const dArray2DT& weights = fFollowerCellData.InterpolationWeights();
+
+	/* redimension matrix if needed */
+	int   ndof = the_field->NumDOF();
+	int row_eq = weights.MajorDim()*ndof;
+	int col_eq = the_field->NumEquations();
+	if (G_Interpolation.Rows() != row_eq || G_Interpolation.Cols() != col_eq)
+		G_Interpolation.Dimension(row_eq, col_eq, 0);
+
+	/* clear */
+	G_Interpolation = 0.0;
+
+	/* element group information */
+	const ContinuumElementT* continuum = fFollowerCellData.ContinuumElement();
+	const iArrayT& cell = fFollowerCellData.InterpolatingCell();
+
+	/* fill by rows - active DOF's only */
+	row_eq = 0;
+	for (int i = 0; i < weights.MajorDim(); i++)
+	{
+		/* element info */
+		const ElementCardT& element_card = continuum->ElementCard(cell[i]);
+		const iArrayT& eqnos = element_card.Equations();
+		const iArrayT& nodes = element_card.NodesU();
+
+		/* shape functions at the interpolation point */
+		double* Na = weights(i);
+		
+		/* expand row dof's */
+		for (int j = 0; j < ndof; j++) {
+		
+			/* expand col dof's */
+			int eq_dex = 0;
+			for (int k = 0; k < ndof; k++)
+				for (int l = 0; l < nodes.Length(); l++) /* element nodes */
+				{
+					/* active value */
+					int col_eq = eqnos[eq_dex++] - 1;
+					if (col_eq > 0) /* write in */
+						G_Interpolation.SetElement(row_eq, col_eq, Na[l]);
+				}
+		
+			/* next row dof */
+			row_eq++;
+		}
+	}
 }
 
 /* initialize data for the driving field */
