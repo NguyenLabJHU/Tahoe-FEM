@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.44 2003-08-14 07:52:26 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.45 2003-08-20 23:15:31 pgandhi Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -232,7 +232,7 @@ void EAMT::WriteOutput(void)
       int  type_i = fType[tag_i];		
       int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
       double* f_i = fForce(tag_i);
-      vs_i.SetToScaled(0.0,vs_i);
+      vs_i=0.0;
 
       /* values for particle i */
       n_values.RowAlias(local_i, values_i);		
@@ -699,7 +699,6 @@ void EAMT::GenerateOutputLabels(ArrayT<StringT>& labels) const
   int num_labels =
     ndof // displacements
     + 2;     // PE and KE
-	///////////////////////////////////////////////////////////
 	int num_stress=0;
 	const char* stress[6];
 	if (ndof==3){
@@ -722,7 +721,6 @@ void EAMT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 	  stress[0] = "s11";
 	  }
 	num_labels+=num_stress;
-	/////////////////////////////////////////////////
 
   labels.Dimension(num_labels);
   int dex = 0;
@@ -731,10 +729,8 @@ void EAMT::GenerateOutputLabels(ArrayT<StringT>& labels) const
   labels[dex++] = "PE";
   labels[dex++] = "KE";
 
-	////////////////////////////////////////////////////////////
 	for (int ns =0 ; ns<num_stress; ns++)
 	  labels[dex++]=stress[ns];
-	//////////////////////////////////////////////////////////
 }
 
 /* form group contribution to the stiffness matrix */
