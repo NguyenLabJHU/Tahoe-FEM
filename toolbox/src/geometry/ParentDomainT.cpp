@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.18 2003-04-05 20:24:10 thao Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.18.6.1 2003-06-12 18:00:47 hspark Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -705,7 +705,7 @@ bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& 
 	else if (dim == 2)
 	{
 		/* convergence tolerance */
-		double tol = 1.0e-14;
+	        double tol = 1.0e-10;  // originally 10-14;
 	
 		/* initial guess */
 		mapped[0] = 0.0;
