@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.76.2.8 2004-08-09 20:57:37 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.76.2.9 2004-08-11 01:09:42 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -98,13 +98,6 @@ FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output,
 		if (fTask == kRun)
 		{
 			const char caller[] = "FEManagerT::FEManagerT";// perhaps differentiate from serial??
-	
-			/* revise input file name */
-			StringT suffix;
-			suffix.Suffix(fInputFile);
-			fInputFile.Root();
-			fInputFile.Append(".p", Rank());
-			fInputFile.Append(suffix);
 		
 			/* log file */			
 			StringT log_file;
@@ -120,49 +113,6 @@ FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output,
 		}
 	}
 }
-
-/* constructor, parallel, formerly in FEManagerT.h DEF 28 July 04 */
-/* constructor - partition can be NULL for decomposition */
-/*FEManagerT::FEManagerT(const StringT& input, ofstreamT& output, 
-	CommunicatorT& comm, const ArrayT<StringT>& argv, PartitionT* partition, TaskT task):
-	FEManagerT(input, output, comm, argv),
-	fPartition(partition),
-	fTask(task),
-	fExternIOManager(NULL)
-{	
-	if (fTask == kRun)
-	{
-		const char caller[] = "FEManagerT::FEManagerT";// perhaps differentiate from serial??
-
-		// revise input file name
-		StringT suffix;
-		suffix.Suffix(fInputFile);
-		fInputFile.Root();
-		fInputFile.Append(".p", Rank());
-		fInputFile.Append(suffix);
-
-		// checks
-		if (!fPartition)
-			ExceptionT::BadInputValue(caller, "partition information required for task %d", kRun);
-		else if (fPartition->ID() != Rank())
-			ExceptionT::MPIFail(caller, "partition ID %d does not match process rank %d",
-				fPartition->ID(), Rank());
-		
-		StringT log_file;
-		log_file.Root(fInputFile);
-		log_file.Append(".log");
-		flog.open(log_file);
-		
-		// redirect log messages
-		fComm.SetLog(flog);
-
-		// log
-		TimeStamp(caller);
-	}
-	else if (fTask == kDecompose)
-		fInitCode = kAllButSolver;
-}*/
-
 
 /* destructor */
 FEManagerT::~FEManagerT(void)
@@ -182,16 +132,6 @@ FEManagerT::~FEManagerT(void)
 	
 	fStatus = GlobalT::kNone;	
 }
-/* destructor (needed??, how differentiate between serial/parallel)*/
-/*FEManagerT_mpi::~FEManagerT_mpi(void)
- {
- 	// log
- 	TimeStamp("FEManagerT_mpi::~FEManagerT_mpi");
- 
- 	// restore log messages
- 	if (fTask == kRun) fComm.SetLog(cout);
- }
- */
 
 /* solve all the time sequences */
 void FEManagerT::Solve(void)
@@ -1338,6 +1278,14 @@ void FEManagerT::DefineParameters(ParameterListT& list) const
 	/* geometry file */
 	list.AddParameter(ParameterT(ParameterT::Word, "geometry_file"));
 
+	/* decomposition method */
+	ParameterT decomp_method(ParameterT::Enumeration, "decomposition_method");
+	decomp_method.AddEnumeration("graph", PartitionT::kGraph);
+	decomp_method.AddEnumeration("atom", PartitionT::kAtom);
+	decomp_method.AddEnumeration("spatial", PartitionT::kSpatial);
+	decomp_method.SetDefault(PartitionT::kGraph);
+	list.AddParameter(decomp_method, ParameterListT::ZeroOrOnce);
+
 	/* output format */
 	ParameterT output_format(ParameterT::Enumeration, "output_format");
 	output_format.AddEnumeration("Tahoe", IOBaseT::kTahoe);
@@ -1396,12 +1344,108 @@ cout << caller << ": START" << endl;
 	database.ToNativePathName();      
 	database.Prepend(path);
 	if (Size() > 1) /* decomposed geometry file */ {
+
+		int token = 1;
+
+		// generate decompose instance
+		FEDecomposeT decompose;
+		if (decompose.NeedDecomposition(database, Size()))
+		{
+			/* 'serial' communicator */
+			int rank = fComm.Rank();
+			CommunicatorT comm(fComm, (rank == 0) ? rank : CommunicatorT::kNoColor);
+			
+			/* decompose on rank 0 */
+			if (rank == 0) {
+				try {
+				
+					/* resolve decomposition method */
+					const ParameterT* decomp_method = list.Parameter("decomposition_method");
+					int method = PartitionT::kGraph;
+					if (!decomp_method) {
+					
+						/* look for command line option */
+						int index = 0;
+						if (CommandLineOption("-decomp_method", index))
+						{
+							const char* opt = fArgv[index+1];
+							if (strlen(opt) > 1 && isdigit(opt[1]))
+							method = atoi(opt+1); /* opt[0] = '-' */
+						}
+						else
+							ExceptionT::GeneralFail(caller, "\"decomposition_method\" or \"-decomp_method -[0,1,2]\" required for multiprocessor calculations");
+					}
+					else
+						method = (*decomp_method);
+
+					/* do decomposition */
+					decompose.CheckDecompose(fInputFile, fComm.Size(), method, comm, database, format, fArgv);
+				}
+				catch (ExceptionT::CodeT error) {
+					cout << "\n " << caller << ": exception: " << ExceptionT::ToString(error) << endl;
+					token = 0;
+				}
+			}
+
+			/* synch and check */
+			if (fComm.Sum(token) != Size()) ExceptionT::GeneralFail(caller, "error decomposing geometry");
+		}	
+
+		/* open stream */
+		StringT part_file;
+		part_file.Root(database); /* drop extension */
+		part_file.Append(".n", Size());
+		part_file.Append(".part", Rank());
+		ifstreamT part_in('#', part_file);
+		if (!part_in.is_open()) {
+			cout << "\n " << caller << ": could not open file: " << part_file << endl;
+			token = 0;	
+		}
+
+		/* synch and check */
+		if (fComm.Sum(token) != Size()) ExceptionT::GeneralFail(caller, "error reading parition files");
+		
+		/* read partition information */
+		fPartition = new PartitionT;
+		part_in >> (*fPartition);
+		if (fPartition->ID() != Rank()) {
+			cout << "\n " << caller << "partition ID " << fPartition->ID() << " does not match process rank " << Rank() << endl;
+			token = 0;
+		}
+
+		/* synch and check */
+		if (fComm.Sum(token) != Size()) ExceptionT::GeneralFail(caller, "parition file error");
+
+		/* rename file */
 		StringT suffix;
 		suffix.Suffix(database);
 		database.Root();
 		database.Append(".n", Size());
 		database.Append(".p", Rank());
 		database.Append(suffix);
+		if (decompose.NeedModelFile(database, format))
+		{
+			/* original model file */
+			ModelManagerT model_ALL(cout);
+			if (!model_ALL.Initialize(format, database, true))
+				ExceptionT::GeneralFail(caller, 
+					"error opening file: %s", (const char*) database);
+		
+			cout << "\n " << caller << ": writing partial geometry file: " << database << endl;
+			decompose.EchoPartialGeometry(*fPartition, model_ALL, database, format);
+			cout << " " << caller << ": writing partial geometry file: partial_file: "
+				 << database << ": DONE" << endl;
+		}	
+
+		/* revise input file name */
+		suffix;
+		suffix.Suffix(fInputFile);
+		fInputFile.Root();
+		fInputFile.Append(".p", Rank());
+		fInputFile.Append(suffix);
+
+		/* synch */
+		fComm.Barrier();
 	}
 
 	/* output format */
@@ -1432,29 +1476,8 @@ cout << caller << ": START" << endl;
 	if (!fModelManager->Initialize(format, database, true)) /* conditions under which to scan model */
 		ExceptionT::BadInputValue(caller, "error initializing model manager");
 
-	/* read partition information */
-	if (Size() > 1)
-	{
-		/* open stream */
-		StringT part_file;
-		part_file.Root(database); /* drop extension */
-		part_file.Root();         /* drop ".pN" */
-		part_file.Append(".part", Rank());
-		ifstreamT part_in('#', part_file);
-		if (!part_in.is_open())
-			ExceptionT::GeneralFail(caller, "could not open file \"%s\"", part_file.Pointer());
-
-		/* read partition information */
-		fPartition = new PartitionT;
-		part_in >> (*fPartition);
-		if (fPartition->ID() != Rank())
-			ExceptionT::MPIFail(caller, "partition ID %d does not match process rank %d",
-				fPartition->ID(), Rank());
-	}
-
 	/* construct IO manager - configure in SetOutput below */
-	StringT file_name(fInputFile);
-	fIOManager = new IOManager(fMainOut, kProgramName, kCurrentVersion, fTitle, file_name, fOutputFormat);	
+	fIOManager = new IOManager(fMainOut, kProgramName, kCurrentVersion, fTitle, fInputFile, fOutputFormat);	
 	if (!fIOManager) ExceptionT::OutOfMemory(caller);
 
 	/* set communication manager */
