@@ -1,4 +1,4 @@
-/* $Id: Hex2D.cpp,v 1.1.2.1 2003-02-19 01:12:59 paklein Exp $ */
+/* $Id: Hex2D.cpp,v 1.1.2.2 2003-02-21 01:16:52 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Hex2D.h"
 #include "ElementsConfig.h"
@@ -63,6 +63,9 @@ Hex2D::Hex2D(ifstreamT& in, const FSMatSupportT& support):
 		
 	/* compute the cell volume */
 	fCellVolume = fNearestNeighbor*fNearestNeighbor*sqrt3/2.0;
+	
+	/* reset the continuum density (2 atoms per unit cell) */
+	fDensity = 2*fPairProperty->Mass()/fCellVolume;
 }
 
 /* destructor */
@@ -87,8 +90,10 @@ void Hex2D::Print(ostream& out) const
 	/* lattice parameters */
 	out << " Number of neighbor shells . . . . . . . . . . . = " << fHexLattice2D->NumShells() << '\n';
 	out << " Number of neighbors . . . . . . . . . . . . . . = " << fHexLattice2D->NumberOfBonds() << '\n';
+	out << " Nearest neighbor distance . . . . . . . . . . . = " << fNearestNeighbor << '\n';
 
 	/* write pair properties to output */
+	out << " Interaction potential parameters:\n";
 	fPairProperty->Write(out);
 }
 
@@ -107,12 +112,13 @@ void Hex2D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 	
 	moduli = 0.0; 
 	int nb = fHexLattice2D->NumberOfBonds();
+	double R4byV = fNearestNeighbor*fNearestNeighbor*fNearestNeighbor*fNearestNeighbor/fCellVolume;
 	for (int i = 0; i < nb; i++)
 	{
 		double ri = bond_length[i]*fNearestNeighbor;
 		double coeff = (stiffness(ri, NULL, NULL) - force(ri, NULL, NULL)/ri)/ri/ri;
 		fHexLattice2D->BondComponentTensor4(i, fBondTensor4);
-		moduli.AddScaled(coeff/fCellVolume, fBondTensor4);
+		moduli.AddScaled(R4byV*coeff, fBondTensor4);
 	}
 	
 	/* symmetric */
@@ -130,12 +136,13 @@ void Hex2D::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
 	
 	PK2 = 0.0;
 	int nb = fHexLattice2D->NumberOfBonds();
+	double R2byV = fNearestNeighbor*fNearestNeighbor/fCellVolume;
 	for (int i = 0; i < nb; i++)
 	{
 		double ri = bond_length[i]*fNearestNeighbor;
 		double coeff = force(ri, NULL, NULL)/ri;
 		fHexLattice2D->BondComponentTensor2(i, fBondTensor2);
-		PK2.AddScaled(coeff/fCellVolume, fBondTensor2);
+		PK2.AddScaled(R2byV*coeff, fBondTensor2);
 	}
 }
 
