@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.2 2001-09-11 06:00:49 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.3 2001-12-17 00:09:18 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltyRegionT.h"
@@ -11,8 +11,6 @@
 #include "Constants.h"
 #include "GlobalT.h"
 #include "FEManagerT.h"
-#include "ExodusT.h"
-#include "ModelFileT.h"
 #include "fstreamT.h"
 #include "LoadTime.h"
 #include "eControllerT.h"
@@ -87,86 +85,19 @@ void PenaltyRegionT::EchoData(ifstreamT& in, ostream &out)
 	if (fSlow == kImpulse && fMass <= 0.0) throw eBadInputValue;
 		
 	/* read contact nodes */
-	switch (fFEManager.InputFormat())
-	{
-		case IOBaseT::kTahoe:
-		{
-			ifstreamT tmp;
-			ifstreamT& in2 = fFEManager.OpenExternal(in, tmp, out, true,
-				"PenaltyRegionT::EchoData: could not open file");
+	ModelManagerT* model = fFEManager.ModelManager ();
 
-			in2 >> fNumContactNodes;
-			fContactNodes.Allocate(fNumContactNodes);
-			in2 >> fContactNodes;
-			break;
-		}
-		case IOBaseT::kTahoeII:
-		{
-			/* number of node sets */
-			int num_sets;
-			in >> num_sets;
-			out << " Number of node set ID's: " << num_sets << endl;
-			if (num_sets > 0)
-			{
-				/* open database */
-				ModelFileT model_file;
-				model_file.OpenRead(fFEManager.ModelFile());
+	/* read node set indexes */
+	iArrayT indexes;
+	model->NodeSetList (in, indexes);
 
-				/* echo set ID's */
-				iArrayT ID_list(num_sets);
-				in >> ID_list;
-				out << ID_list.wrap(10) << '\n';
-				
-				/* collect */
-				if (model_file.GetNodeSets(ID_list, fContactNodes) !=
-				    ModelFileT::kOK) throw eBadInputValue;
-				
-				/* dimension */
-				fNumContactNodes = fContactNodes.Length();
-				
-			}
-			else
-				fNumContactNodes = 0;
-				
-			break;
-		}
-		case IOBaseT::kExodusII:
-		{
-			/* number of node sets */
-			int num_sets;
-			in >> num_sets;
-			out << " Number of node set ID's: " << num_sets << endl;
-			if (num_sets > 0)
-			{
-				/* echo set ID's */
-				iArrayT ID_list(num_sets);
-				in >> ID_list;
-				out << ID_list.wrap(10) << '\n';
-
-				/* open database */
-				ExodusT database(out);
-				database.OpenRead(fFEManager.ModelFile());
-				
-				/* read collect all nodes in sets */
-				database.ReadNodeSets(ID_list, fContactNodes);
-				
-				/* dimension */
-				fNumContactNodes = fContactNodes.Length();				
-			}
-			else
-				fNumContactNodes = 0;
-				
-			break;
-		}
-		default:
-
-			cout << "\n PenaltyRegionT::EchoData: unsupported input format: ";
-			cout << fFEManager.InputFormat() << endl;
-			throw eGeneralFail;
-	}
-
-	/* internal numbering */
-	fContactNodes--;
+	if (indexes.Length() > 0)
+	  {
+	    model->ManyNodeSets (indexes, fContactNodes);
+	    fNumContactNodes = fContactNodes.Length();
+	  }
+	else
+	  fNumContactNodes = 0;
 	
 	/* remove "external" nodes */
 	iArrayT nodes_in;

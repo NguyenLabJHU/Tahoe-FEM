@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.cpp,v 1.2 2001-11-02 19:35:43 cjkimme Exp $ */
+/* $Id: ViscTvergHutch2DT.cpp,v 1.3 2001-12-17 00:15:51 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "ViscTvergHutch2DT.h"
@@ -44,7 +44,9 @@ int ViscTvergHutch2DT::NumStateVariables(void) const { return knumDOF; }
 
 /* surface potential */
 double ViscTvergHutch2DT::FractureEnergy(const ArrayT<double>& state)
-{ 
+{
+#pragma unused(state)
+
 	return fd_c_n*fsigma_max*0.5*(1 - fL_1 + fL_2); 
 }
 

@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.1 2001-08-20 06:45:05 paklein Exp $ */
+/* $Id: ElementT.cpp,v 1.2 2001-12-17 00:15:49 paklein Exp $ */
 
 #include "ElementT.h"
 
@@ -25,8 +25,12 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			type = ElementT::kLocalizing;
 			break;
 		case ElementT::kVariTri:
-			type = ElementT::kVariTri;
-			break;
+		{
+			cout << "\n operator>>ElementT::TypeT: element type is not longer\n"
+			     <<   "     supported. Support for changing number of elements is being re-\n"
+			     <<   "     written: " << i_type << endl;
+			throw eBadInputValue;
+		}
 		case ElementT::kSWDiamond:
 			type = ElementT::kSWDiamond;
 			break;

@@ -1,12 +1,10 @@
-/* $Id: KBC_ControllerT.cpp,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.2 2001-12-17 00:09:19 paklein Exp $ */
 /* created: paklein (09/05/2000)                                          */
 
 #include "KBC_ControllerT.h"
 
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
-#include "ModelFileT.h"
-#include "ExodusT.h"
 #include "fstreamT.h"
 
 /* constructor */
@@ -63,71 +61,14 @@ void KBC_ControllerT::ReadNodes(ifstreamT& in, iArrayT& id_list,
 {
 	/* top level */
 	const FEManagerT& fe_man = fNodeManager.FEManager();
+	ModelManagerT* model = fe_man.ModelManager();
 
-	/* resolve format */
-	IOBaseT::FileTypeT type = fe_man.InputFormat();
-	switch (type)
-	{
-		case IOBaseT::kTahoe:
-		{
-			ifstreamT tmp;
-			ifstreamT& in2 = fe_man.OpenExternal(in, tmp, cout, true,
-				"KBC_ControllerT::ReadNodes: could not open file");
+	/* read node set indexes */
+	model->NodeSetList (in, id_list);
 
-			int num_nodes;
-			in2 >> num_nodes;
-			nodes.Allocate(num_nodes);
-			in2 >> nodes;
-			break;
-		}
-		case IOBaseT::kTahoeII:
-		{
-			/* number of node sets */
-			int num_sets;
-			in >> num_sets;
-			if (num_sets > 0)
-			{
-				/* open database */
-				ModelFileT model_file;
-				model_file.OpenRead(fe_man.ModelFile());
+	/* collect sets */
+	model->ManyNodeSets (id_list, nodes);
 
-				/* echo set ID's */
-				id_list.Allocate(num_sets);
-				in >> id_list;
-				
-				/* collect */
-				if (model_file.GetNodeSets(id_list, nodes) !=
-				    ModelFileT::kOK) throw eBadInputValue;
-			}
-			break;
-		}
-		case IOBaseT::kExodusII:
-		{
-			/* number of node sets */
-			int num_sets;
-			in >> num_sets;
-			if (num_sets > 0)
-			{
-				/* echo set ID's */
-				id_list.Allocate(num_sets);
-				in >> id_list;
-
-				/* open database */
-				ExodusT database(cout);
-				database.OpenRead(fe_man.ModelFile());
-				
-				/* read collect all nodes in sets */
-				database.ReadNodeSets(id_list, nodes);
-			}
-			break;
-		}
-		default:
-
-			cout << "\n KBC_ControllerT::ReadNodes: unsupported input format: ";
-			cout << type << endl;
-			throw eGeneralFail;
-	}
-
-	/* internal numbering */
-	nodes--;
+	/* offset to make ID's from indexes */
+	id_list ++;
 }

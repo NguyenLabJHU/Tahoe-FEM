@@ -1,4 +1,4 @@
-/* $Id: Contact2DT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: Contact2DT.cpp,v 1.2 2001-12-17 00:15:53 paklein Exp $ */
 /* created: paklein (05/26/1999)                                          */
 
 #include "Contact2DT.h"
@@ -204,23 +204,24 @@ void Contact2DT::SetActiveStrikers(void)
 void Contact2DT::SetConnectivities(void)
 {
 	/* check */
-	if (fConnectivities.MajorDim() != fActiveStrikers.Length())
+	if (fConnectivities[0]->MajorDim() != fActiveStrikers.Length())
 	{
 		cout << "\n Contact2DT::SetConnectivities: expecting the number of contact\n"
-		     <<   "    connectivities " << fConnectivities.MajorDim()
+		     <<   "    connectivities " << fConnectivities[0]->MajorDim()
 		     << " to equal the number of active strikers "
 		     << fActiveStrikers.Length() << endl;
 		throw eGeneralFail;
 	}
 
 	/* set interacting nodes */
-	for (int i = 0; i < fConnectivities.MajorDim(); i++)
+	int* pelem = fConnectivities[0]->Pointer();
+	int rowlength = fConnectivities[0]->MinorDim();
+	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{
 		const iArray2DT& surface = fSurfaces[fHitSurface[i]];
 		
 		int   facet = fHitFacets[i];
 		int* pfacet = surface(facet);
-		int*  pelem = fConnectivities(i);
 
 		/* all element tags */
 		pelem[0] = pfacet[0]; // 1st facet node

@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.cpp,v 1.5 2001-11-02 19:35:43 cjkimme Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.6 2001-12-17 00:15:51 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch2DT.h"
@@ -36,7 +36,9 @@ TvergHutch2DT::TvergHutch2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 
 /* surface potential */
 double TvergHutch2DT::FractureEnergy(const ArrayT<double>& state)
-{ 
+{
+#pragma unused(state)
+
 	return fd_c_n*fsigma_max*0.5*(1 - fL_1 + fL_2); 
 }
 

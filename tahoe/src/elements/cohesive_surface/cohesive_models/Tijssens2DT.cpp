@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.5 2001-11-16 00:22:42 cjkimme Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.6 2001-12-17 00:15:51 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -61,6 +61,8 @@ double Tijssens2DT::FractureEnergy(const ArrayT<double>& state)
 
 double Tijssens2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
 {
+#pragma unused(jump_u)
+
         return state[6];
 }
 	
@@ -191,6 +193,7 @@ const dMatrixT& Tijssens2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doubl
 SurfacePotentialT::StatusT Tijssens2DT::Status(const dArrayT& jump_u, 
 	const ArrayT<double>& state)
 {
+#pragma unused(jump_u)
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
 #endif
@@ -244,6 +247,7 @@ void Tijssens2DT::OutputLabels(ArrayT<StringT>& labels) const
 void Tijssens2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
 	dArrayT& output)
 {
+#pragma unused(jump_u)
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
 #endif	

@@ -1,4 +1,4 @@
-/* $Id: IOManager.cpp,v 1.9 2001-09-28 01:32:12 paklein Exp $ */
+/* $Id: IOManager.cpp,v 1.10 2001-12-17 00:13:00 paklein Exp $ */
 /* created: sawimme (10/12/1999)                                          */
 /* this class creates InputBaseT and OutputBaseT pointers                 */
 
@@ -22,8 +22,6 @@ IOManager::IOManager(ostream& outfile, const StringT& program_name,
 	fLog(outfile),
 	fOutputFormat(output_format),
 	fOutput(NULL),
-	fInputFormat(IOBaseT::kTahoe),
-	fModel(NULL),
 	fEcho (false),
 	fOutputTime(0.0),
 	fOutput_tmp(NULL)
@@ -36,8 +34,6 @@ IOManager::IOManager(ifstreamT& in, const IOManager& io_man):
 	fLog(io_man.fLog),
 	fOutputFormat(io_man.fOutputFormat),
 	fOutput(NULL),
-	fInputFormat(io_man.fInputFormat),
-	fModel(NULL),
 	fEcho (false),
 	fOutputTime(0.0),
 	fOutput_tmp(NULL)
@@ -52,9 +48,7 @@ IOManager::IOManager(ifstreamT& in, const IOManager& io_man):
 IOManager::IOManager (ostream& out) :
 	fLog (out),
 	fOutput(NULL),
-	fModel(NULL),
 	fOutputFormat (IOBaseT::kExodusII),
-	fInputFormat (IOBaseT::kTahoe),
 	fEcho (false)
 {
 
@@ -62,14 +56,18 @@ IOManager::IOManager (ostream& out) :
 
 IOManager::~IOManager(void)
 {
-  delete fModel;
-  fModel = NULL;
-
 	/* in case output is diverted */
 	RestoreOutput();
 	
 	delete fOutput;
 	fOutput = NULL;
+}
+
+void IOManager::EchoData (ostream& o) const
+{
+  IOBaseT temp (o);
+  o << " Output format . . . . . . . . . . . . . . . . . = " << fOutputFormat  << '\n';
+  temp.OutputFormats (o);
 }
 
 /*********** OUTPUT **************/
@@ -177,19 +175,6 @@ const OutputSetT& IOManager::OutputSet(int ID) const
 {
 	return fOutput->OutputSet(ID);
 }
-
-/*********** INPUT **************/
-
-void IOManager::SetInput (ifstreamT& in)
-{
-  fModel->Initialize (in);
-}
-
-void IOManager::SetInput (const IOBaseT::FileTypeT format, const StringT& database)
-{
-  fModel->Initialize (format, database);
-}
-
 
 /************************************************************************
 * Private

@@ -1,12 +1,5 @@
-/* $Id: RodT.cpp,v 1.2 2001-10-25 07:16:43 paklein Exp $ */
-/* created: paklein (10/22/1996)                                          */
-/* NOTE: the RodT class doesn't provide complete support for the          */
-/* different time integration schemes implemented using the               */
-/* controller classes. need to add something like the                     */
-/* ComputeEffectiveDVA functions from the continuum element               */
-/* classes to provide contributions to the global equations               */
-/* which are consistent with the time integration algorithm.              */
-/* PAK (05/30/1999)                                                       */
+/* $Id: RodT.cpp,v 1.3 2001-12-17 00:15:58 paklein Exp $ */
+/* created: paklein (10/22/1996) */
 
 #include "RodT.h"
 

@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact2DT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: PenaltyContact2DT.cpp,v 1.2 2001-12-17 00:15:53 paklein Exp $ */
 /* created: paklein (12/11/1997)                                          */
 
 #include "PenaltyContact2DT.h"
@@ -70,10 +70,10 @@ void PenaltyContact2DT::LHSDriver(void)
 	/* loop over active elements */
 	dArrayT tangent(fNumSD);
 	iArrayT eqnos;
-	for (int i = 0; i < fConnectivities.MajorDim(); i++)
+	int* pelem = fConnectivities[0]->Pointer();
+	int rowlength = fConnectivities[0]->MinorDim();
+	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{
-		int* pelem = fConnectivities(i);
-	
 		/* get facet and striker coords */
 		coords.RowAlias(pelem[0], fx1);
 		coords.RowAlias(pelem[1], fx2);
@@ -141,7 +141,7 @@ void PenaltyContact2DT::LHSDriver(void)
 			fLHS.AddScaled(-fK*h*h/(magtan*magtan), fNEEmat);
 
 			/* get equation numbers */
-			fEqnos.RowAlias(i, eqnos);
+			fEqnos[0].RowAlias(i, eqnos);
 			
 			/* time integration factor */
 			fLHS *= constK;
@@ -170,10 +170,10 @@ void PenaltyContact2DT::RHSDriver(void)
 	/* loop over active elements */
 	dArrayT tangent(fNumSD);
 	iArrayT eqnos;
-	for (int i = 0; i < fConnectivities.MajorDim(); i++)
+	int* pelem = fConnectivities[0]->Pointer();
+	int rowlength = fConnectivities[0]->MinorDim();
+	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{
-		int* pelem = fConnectivities(i);
-
 		/* collect element configuration */
 		fElCoord.RowCollect(pelem, init_coords);
 		fElDisp.RowCollect(pelem, disp);
@@ -227,7 +227,7 @@ void PenaltyContact2DT::RHSDriver(void)
 				                dphi*fv1[1]/magtan, fColtemp2);
 					
 			/* get equation numbers */
-			fEqnos.RowAlias(i, eqnos);
+			fEqnos[0].RowAlias(i, eqnos);
 			
 			/* assemble */
 			fFEManager.AssembleRHS(fRHS, eqnos);

@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.6 2001-04-04 22:17:23 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.7 2001-12-17 00:15:50 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 
 #include "CSEBaseT.h"
@@ -486,7 +486,8 @@ void CSEBaseT::CloseSurfaces(void) const
 	{			
 		int* pfacet1 = facetnodes(0);
 		int* pfacet2 = facetnodes(1);
-		int*   nodes = fConnectivities(i);
+	        const iArrayT& elemnodes = fElementCards[i].NodesX();
+		int* nodes = elemnodes.Pointer();
 
 		for (int j = 0; j < facetnodes.MinorDim(); j++)
 		{

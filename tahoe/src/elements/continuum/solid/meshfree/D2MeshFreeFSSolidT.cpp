@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.3 2001-07-03 01:34:55 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.4 2001-12-17 00:15:56 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeFSSolidT.h"
@@ -145,11 +145,18 @@ void D2MeshFreeFSSolidT::ElementRHSDriver(void)
 /* initialization functions */
 void D2MeshFreeFSSolidT::SetShape(void)
 {
-/* constructors */
-	fD2MFShapes = new D2MeshFreeShapeFunctionT(fGeometryCode, fNumIP,
-		fLocInitCoords, fNodes->InitialCoordinates(), fConnectivities, fOffGridNodes,
-		fElementCards.Position(), fFEManager.Input());
+	/* only support single list of integration cells for now */
+	if (fConnectivities.Length() > 1) {
+		cout << "\n D2MeshFreeFSSolidT::SetShape: multiple element blocks within an"
+		     <<   "     element group not supported. Number of blocks: " 
+		     << fConnectivities.Length() << endl;
+		throw eGeneralFail;
+	}
 
+	/* constructors */
+	fD2MFShapes = new D2MeshFreeShapeFunctionT(fGeometryCode, fNumIP,
+		fLocInitCoords, fNodes->InitialCoordinates(), *fConnectivities[0], fOffGridNodes,
+		fElementCards.Position(), fFEManager.Input());
 	if (!fD2MFShapes) throw eOutOfMemory;
 	
 	/* initialize (set internal database) */
