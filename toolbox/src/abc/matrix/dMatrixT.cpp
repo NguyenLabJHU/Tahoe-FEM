@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.cpp,v 1.12.2.1 2002-10-17 01:51:25 paklein Exp $ */
+/* $Id: dMatrixT.cpp,v 1.12.2.2 2002-10-19 03:10:42 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "dMatrixT.h"
@@ -523,13 +523,16 @@ dMatrixT&  dMatrixT::DyadAB(const dSymMatrixT& A, const dSymMatrixT& B)
 }
 
 /* expand into block diagonal submatrices if dimension factor */
-void dMatrixT::Expand(const dMatrixT& B, int factor)
+void dMatrixT::Expand(const dMatrixT& B, int factor, AssemblyModeT mode)
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)
 	if (fRows != factor*B.fRows ||
 	    fCols != factor*B.fCols) throw ExceptionT::kSizeMismatch;
 #endif
+
+	/* initialize */
+	if (mode == kOverwrite) *this = 0.0;
 
 	double*	pCol  = Pointer();
 	double* pBCol = B.Pointer();
