@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardLocT.h,v 1.2 2004-06-09 17:27:39 raregue Exp $ */
+/* $Id: DPSSLinHardLocT.h,v 1.3 2004-07-21 20:52:46 raregue Exp $ */
 /* created: myip (06/01/1999)                                      */
 
 /*  
@@ -30,12 +30,7 @@ class DPSSLinHardLocT: public DPPrimitiveLocT
 public:
 
 	/* constructor */
-	DPSSLinHardLocT(ifstreamT& in, int num_ip, double mu, double lambda);
-
-  	/* output name */
-	virtual void PrintName(ostream& out) const;
-
-protected:
+	DPSSLinHardLocT(int num_ip, double mu, double lambda);
 
 	/* status flags */
 	enum LoadingStatusT {kIsPlastic = 0,
@@ -71,6 +66,10 @@ protected:
                             kdgamma = 2,  // consistency parameter
                             kftrial = 3, // yield function value
 			    			kdgamma2 = 4}; // 2nd consistency par. at vertex
+	
+	/** internal variables */
+	dArrayT& Internal(void) { return fInternal; };
+	
 	/* element level data */
 	void Update(ElementCardT& element);
 	void Reset(ElementCardT& element);
@@ -88,23 +87,16 @@ protected:
 	/* computes the hydrostatic (mean) stress. */
 	double MeanStress(const dSymMatrixT& trialstrain, const ElementCardT& element);
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+	
 private:
 
 	/* load element data for the specified integration point */
 	void LoadData(const ElementCardT& element, int ip);
-
-	/* returns 1 if the trial elastic strain state lies outside of the 
-	 * yield surface */
-	//	int PlasticLoading(const dSymMatrixT& trialstrain, ElementCardT& element, int ip);
-
-	/* computes the deviatoric stress corresponding to the given element
-	 * and elastic strain.  The functions returns a reference to the
-	 * stress in fDevStress */
-	//	dSymMatrixT& DeviatoricStress(const dSymMatrixT& totalstrain, 
-	//		const ElementCardT& element);
-
-	/* computes the hydrostatic (mean) stress. */  
-	//	double& MeanStress(const dSymMatrixT& totalstrain, const ElementCardT& element);
 
 protected:
 

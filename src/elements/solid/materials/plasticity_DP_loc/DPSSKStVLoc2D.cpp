@@ -1,33 +1,17 @@
-/* $Id: DPSSKStVLoc2D.cpp,v 1.3 2004-07-15 08:28:56 paklein Exp $ */
+/* $Id: DPSSKStVLoc2D.cpp,v 1.4 2004-07-21 20:52:46 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc2D.h"
 #include "ElementCardT.h"
 #include "StringT.h"
+#include "DPSSLinHardLocT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-DPSSKStVLoc2D::DPSSKStVLoc2D(ifstreamT& in, const SSMatSupportT& support):
-	ParameterInterfaceT("DPSSKStVLoc2D::DPSSKStVLoc2D"),
-	DPSSKStVLoc(in, support),
-//	Material2DT(in, kPlaneStrain),
-	fStress2D(2),
-	fModulus2D(dSymMatrixT::NumValues(2)),
-	fModulusPerfPlas2D(dSymMatrixT::NumValues(2)),
-	fTotalStrain3D(3)
+DPSSKStVLoc2D::DPSSKStVLoc2D(void):
+	ParameterInterfaceT("small_strain_StVenant_DP_Loc_2D")
 {
-	/* account for thickness */
-//	fDensity *= fThickness;
-}
 
-/* initialization */
-void DPSSKStVLoc2D::Initialize(void)
-{
-ExceptionT::GeneralFail("DPSSKStVLoc2D::Initialize", "out of date");
-#if 0
-	/* inherited */
-	HookeanMatT::Initialize();
-#endif
 }
 
 /* returns elastic strain (3D) */
@@ -39,7 +23,6 @@ const dSymMatrixT& DPSSKStVLoc2D::ElasticStrain(const dSymMatrixT& totalstrain,
 
 	/* inherited */
 	return DPSSKStVLoc::ElasticStrain(fTotalStrain3D, element, ip);
-
 }
 
 /* moduli */
@@ -69,8 +52,26 @@ const dSymMatrixT& DPSSKStVLoc2D::s_ij(void)
 	return fStress2D;
 }
 
-/* returns the strain energy density for the specified strain */
-double DPSSKStVLoc2D::StrainEnergyDensity(void)
+/* describe the parameters needed by the interface */
+void DPSSKStVLoc2D::DefineParameters(ParameterListT& list) const
 {
-	return DPSSKStVLoc::StrainEnergyDensity();
+	/* inherited */
+	DPSSKStVLoc::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStrain);
+}
+
+/* accept parameter list */
+void DPSSKStVLoc2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	DPSSKStVLoc::TakeParameterList(list);
+
+	/* dimension work space */
+	fStress2D.Dimension(2);
+	fModulus2D.Dimension(dSymMatrixT::NumValues(2));
+	fModulusPerfPlas2D.Dimension(dSymMatrixT::NumValues(2));
+	fTotalStrain3D.Dimension(3);
 }

@@ -1,23 +1,19 @@
-/* $Id: DPSSKStVLoc2D.h,v 1.3 2004-07-15 08:28:56 paklein Exp $ */
+/* $Id: DPSSKStVLoc2D.h,v 1.4 2004-07-21 20:52:46 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_LOC_2D_H_
 #define _DP_SS_KSTV_LOC_2D_H_
 
 /* base class */
-//#include "Material2DT.h"
 #include "DPSSKStVLoc.h"
 
 namespace Tahoe {
 
-class DPSSKStVLoc2D: public DPSSKStVLoc//, public Material2DT
+class DPSSKStVLoc2D: public DPSSKStVLoc
 {
 public:
 
 	/* constructor */
-	DPSSKStVLoc2D(ifstreamT& in, const SSMatSupportT& support);
-
-	/* initialization */
-	virtual void Initialize(void);
+	DPSSKStVLoc2D(void);
 
 	/* returns elastic strain (3D) */
 	virtual const dSymMatrixT& ElasticStrain(
@@ -31,8 +27,14 @@ public:
 	/* stress */
 	virtual const dSymMatrixT& s_ij(void);
 
-	/* returns the strain energy density for the specified strain */
-	virtual double StrainEnergyDensity(void);
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
   private:
   

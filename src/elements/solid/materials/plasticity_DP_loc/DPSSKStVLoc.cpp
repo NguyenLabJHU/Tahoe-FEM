@@ -1,8 +1,9 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.4 2004-07-15 08:28:56 paklein Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.5 2004-07-21 20:52:46 raregue Exp $ */
 /* created: myip (06/01/1999) */
 
 #include "DPSSKStVLoc.h"
 #include "SSMatSupportT.h"
+#include "DPSSLinHardLocT.h"
 
 #include "ElementCardT.h"
 #include "StringT.h"
@@ -25,28 +26,16 @@ static const char* Labels[kNumOutput] = {
 // need to store the normals somewhere.  as ISVs?
 
 /* constructor */
-DPSSKStVLoc::DPSSKStVLoc(ifstreamT& in, const SSMatSupportT& support):
-	ParameterInterfaceT("DPSSKStVLoc"),
-//	SSSolidMatT(in, support),
-	IsotropicT(in),
+DPSSKStVLoc::DPSSKStVLoc(void):
+	ParameterInterfaceT("small_strain_StVenant_DP_Loc"),
 	HookeanMatT(3),
-	DPSSLinHardLocT(in, NumIP(), Mu(), Lambda()),
-	fStress(3),
-	fModulus(dSymMatrixT::NumValues(3)),
-	fModulusPerfPlas(dSymMatrixT::NumValues(3))
+	fDP(NULL)
 {
  
 }
 
-/* initialization */
-void DPSSKStVLoc::Initialize(void)
-{
-ExceptionT::GeneralFail("DPSSKStVLoc::Initialize", "out of date");
-#if 0
-	/* inherited */
-	HookeanMatT::Initialize();
-#endif
-}
+/* destructor */
+DPSSKStVLoc::~DPSSKStVLoc(void) { delete fDP; }
 
 /* form of tangent matrix (symmetric by default) */
 GlobalT::SystemTypeT DPSSKStVLoc::TangentType(void) const { return GlobalT::kNonSymmetric; }
@@ -56,7 +45,7 @@ void DPSSKStVLoc::UpdateHistory(void)
 {
 	/* update if plastic */
 	ElementCardT& element = CurrentElement();
-	if (element.IsAllocated()) Update(element);
+	if (element.IsAllocated()) fDP->Update(element);
 }
 
 /* reset internal variables to last converged solution */
@@ -64,14 +53,18 @@ void DPSSKStVLoc::ResetHistory(void)
 {
 	/* reset if plastic */
 	ElementCardT& element = CurrentElement();
-	if (element.IsAllocated()) Reset(element);
+	if (element.IsAllocated()) fDP->Reset(element);
+}
+
+const dSymMatrixT& DPSSKStVLoc::ElasticStrain(const dSymMatrixT& totalstrain, const ElementCardT& element, int ip) {
+	return fDP->ElasticStrain(totalstrain, element, ip);
 }
 
 /* modulus */
 const dMatrixT& DPSSKStVLoc::c_ijkl(void)
 {
 	fModulus.SumOf(HookeanMatT::Modulus(),
-	ModuliCorrection(CurrentElement(), CurrIP()));
+	fDP->ModuliCorrection(CurrentElement(), CurrIP()));
 
 	return fModulus;
 }
@@ -81,7 +74,8 @@ const dMatrixT& DPSSKStVLoc::c_perfplas_ijkl(void)
 {
 	/* elastoplastic correction */
 	fModulusPerfPlas.SumOf(HookeanMatT::Modulus(),
-	ModuliCorrPerfPlas(CurrentElement(), CurrIP()));
+	fDP->ModuliCorrPerfPlas(CurrentElement(), CurrIP()));
+	
 	return fModulusPerfPlas;
 }
 
@@ -97,7 +91,7 @@ const dSymMatrixT& DPSSKStVLoc::s_ij(void)
 	HookeanStress(e_els, fStress);
 
 	/* modify Cauchy stress (return mapping) */
-	fStress += StressCorrection(e_els, element, ip);
+	fStress += fDP->StressCorrection(e_els, element, ip);
 	return fStress;	
 }
 
@@ -124,7 +118,7 @@ int DPSSKStVLoc::IsLocalized(dArrayT& normal)
 /* returns the strain energy density for the specified strain */
 double DPSSKStVLoc::StrainEnergyDensity(void)
 {
-	return HookeanEnergy(ElasticStrain(e(), CurrentElement(), CurrIP()));
+	return HookeanEnergy(fDP->ElasticStrain(e(), CurrentElement(), CurrIP()));
 }
 
 /* returns the number of variables computed for nodal extrapolation
@@ -161,11 +155,12 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 	const ElementCardT& element = CurrentElement();
 	if (element.IsAllocated())
 	{
-		output[0] = fInternal[kalpha];
+		dArrayT& internal = fDP->Internal();
+		output[0] = internal[DPSSLinHardLocT::kalpha];
 		const iArrayT& flags = element.IntegerData();
-		if (flags[CurrIP()] == kIsPlastic)
+		if (flags[CurrIP()] == DPSSLinHardLocT::kIsPlastic)
 		{
-			output[0] -= fH_prime*fInternal[kdgamma];
+			output[0] -= fDP->H_prime()*internal[DPSSLinHardLocT::kdgamma];
 			
 			// check for localization
 			// compute modulus 
@@ -189,23 +184,39 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 
 }
 
+/* describe the parameters needed by the interface */
+void DPSSKStVLoc::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	SSSolidMatT::DefineParameters(list);
+	IsotropicT::DefineParameters(list);
+}
+
 /* information about subordinate parameter lists */
 void DPSSKStVLoc::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
 	IsotropicT::DefineSubs(sub_list);
 	SSSolidMatT::DefineSubs(sub_list);
+	
+	/* parameters for Drucker-Prager plasticity with localization */
+	sub_list.AddSub("DP_Loc_SS_linear_hardening");
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* DPSSKStVLoc::NewSub(const StringT& name) const
 {
-	/* inherited */
-	ParameterInterfaceT* sub = IsotropicT::NewSub(name);
-	if (sub)
-		return sub;
+	if (name == "DP_Loc_SS_linear_hardening")
+		return new DPSSLinHardLocT(0, 0.0, 0.0);
 	else
-		return SSSolidMatT::NewSub(name);
+	{
+		/* inherited */
+		ParameterInterfaceT* params = SSSolidMatT::NewSub(name);
+		if (params) 
+			return params;
+		else
+			return IsotropicT::NewSub(name);
+	}
 }
 
 /* accept parameter list */
@@ -214,6 +225,18 @@ void DPSSKStVLoc::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	IsotropicT::TakeParameterList(list);
 	SSSolidMatT::TakeParameterList(list);
+	
+	fStress.Dimension(3);
+	fModulus.Dimension(dSymMatrixT::NumValues(3));
+	fModulusCe.Dimension(dSymMatrixT::NumValues(3));
+	fModulusPerfPlas.Dimension(dSymMatrixT::NumValues(3));
+
+	/* set modulus */
+	HookeanMatT::Initialize();
+
+	/* construct Drucker-Prager solver */
+	fDP = new DPSSLinHardLocT(NumIP(), Mu(), Lambda());
+	fDP->TakeParameterList(list.GetList("DP_Loc_SS_linear_hardening"));
 }
 
 /*************************************************************************

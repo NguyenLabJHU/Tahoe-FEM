@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardLocT.cpp,v 1.3 2004-06-09 17:27:39 raregue Exp $ */
+/* $Id: DPSSLinHardLocT.cpp,v 1.4 2004-07-21 20:52:46 raregue Exp $ */
 /* created: myip (06/01/1999)                                        */
 
 /*
@@ -27,27 +27,14 @@ const double kYieldTol    = 1.0e-10;
 const int    kNSD         = 3;
 
 /* constructor */
-DPSSLinHardLocT::DPSSLinHardLocT(ifstreamT& in, int num_ip, double mu, double lambda):
-	DPPrimitiveLocT(in),
+DPSSLinHardLocT::DPSSLinHardLocT(int num_ip, double mu, double lambda):
 	fNumIP(num_ip),
 	fmu(mu),
 	flambda(lambda),
 	fkappa(flambda + (2.0/3.0*fmu)),
-	fX_H(3.0*(fmu+ffriction*fdilation*fkappa) + fH_prime),
-    fX(3.0*(fmu+ffriction*fdilation*fkappa)), //for perfectly plastic bifurcation check
-	fElasticStrain(kNSD),
-	fStressCorr(kNSD),
-	fModuliCorr(dSymMatrixT::NumValues(kNSD)),
-	fModuliCorrPerfPlas(dSymMatrixT::NumValues(kNSD)), //for disc check
-	fDevStress(kNSD),
-	fMeanStress(0.0),
-	fDevStrain(kNSD), 
-	fTensorTemp(dSymMatrixT::NumValues(kNSD)),
-	IdentityTensor2(kNSD),
-	One(kNSD)
+	fMeanStress(0.0)
 {
-	/* initialize constant tensor */
-	One.Identity();
+	SetName("DP_Loc_SS_linear_hardening");
 }
 
 /* returns elastic strain */
@@ -221,7 +208,6 @@ const dMatrixT& DPSSLinHardLocT::ModuliCorrection(const ElementCardT& element, i
 			fTensorTemp.ReducedIndexI();
 			fModuliCorr.AddScaled(2.0*c2, fTensorTemp);
 		      
-
 			//cout << "fModuliCorr = " << fModuliCorr << endl;
 	
 			//fTensorTemp.Outer(fUnitNorm,fUnitNorm);
@@ -301,17 +287,36 @@ void DPSSLinHardLocT::AllocateElement(ElementCardT& element)
 	element.DoubleData()  = 0.0;  // initialize all double types to 0.0
 }
 
+/* accept parameter list */
+void DPSSLinHardLocT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	DPPrimitiveLocT::TakeParameterList(list);
+
+	/* dimension work space */
+	fElasticStrain.Dimension(kNSD);
+	fStressCorr.Dimension(kNSD);
+	fModuliCorr.Dimension(dSymMatrixT::NumValues(kNSD));
+	fModuliCorrPerfPlas.Dimension(dSymMatrixT::NumValues(kNSD));
+	fDevStress.Dimension(kNSD);
+	fDevStrain.Dimension(kNSD); 
+	fTensorTemp.Dimension(dSymMatrixT::NumValues(kNSD));
+	IdentityTensor2.Dimension(kNSD);
+	One.Dimension(kNSD);
+
+	/* constants */
+	fX_H = 3.0*(fmu+ffriction*fdilation*fkappa) + fH_prime;
+	//for perfectly plastic bifurcation check
+    fX = 3.0*(fmu+ffriction*fdilation*fkappa);
+    
+	/* initialize constant tensor */
+	One.Identity();
+}
+
+
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-void DPSSLinHardLocT::PrintName(ostream& out) const
-{
-	/* inherited */
-	DPPrimitiveLocT::PrintName(out);
-
-	out << "    Small Strain\n";
-}
 
 /* element level data */
 void DPSSLinHardLocT::Update(ElementCardT& element)

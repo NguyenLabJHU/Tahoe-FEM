@@ -1,5 +1,5 @@
 
-/* $Id: DPPrimitiveLocT.cpp,v 1.3 2004-07-15 08:28:56 paklein Exp $ */
+/* $Id: DPPrimitiveLocT.cpp,v 1.4 2004-07-21 20:52:46 raregue Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 /* Base class for Druker-Prager, nonassociative, small strain,
@@ -8,11 +8,8 @@
    */
 #include "DPPrimitiveLocT.h"
 
-#include <iostream.h>
-#include <math.h>
-
-#include "ifstreamT.h"
 #include "dSymMatrixT.h"
+#include <math.h>
 
 using namespace Tahoe;
 
@@ -20,43 +17,55 @@ const double sqrt23 = sqrt(2.0/3.0);
 const double sqrt32 = sqrt(3.0/2.0);
 
 /* constructor */
-DPPrimitiveLocT::DPPrimitiveLocT(ifstreamT& in): 
+DPPrimitiveLocT::DPPrimitiveLocT(void): 
+	ParameterInterfaceT("DP_Loc_primitive"),
 	falpha_bar(-1.0),
 	ffriction(-1.0),
 	fdilation(-1.0),
 	fH_prime(0.0),
 	fH_delta(1.0)
 {
-	/* read parameters */
-	in >> falpha_bar;  if (falpha_bar < 0.0 ) throw ExceptionT::kBadInputValue;
-	in >> ffriction;   if (ffriction < 0.0 ) throw ExceptionT::kBadInputValue;
-	in >> fdilation;
-	in >> fH_prime;
-	in >> fH_delta;    if (fH_delta > 0.0 ) throw ExceptionT::kBadInputValue;
+
 }
 
 /* destructor */
 DPPrimitiveLocT::~DPPrimitiveLocT(void) { }
 
-/* write parameters */
-void DPPrimitiveLocT::Print(ostream& out) const
+/* describe the parameters needed by the interface */
+void DPPrimitiveLocT::DefineParameters(ParameterListT& list) const
 {
-	out << " Cohesion-like strength parameter. . . . . . = " << falpha_bar << '\n';
-	out << " Friction-like parameter . . . . . . . . . . = " << ffriction  << '\n';
-	out << " Dilation parameter. . . . . . . . . . . . . = " << fdilation  << '\n';
-	out << " Deviatoric hardening parameter. . . . . . . = " << fH_prime   << '\n';
-	out << " Localized deviatoric hardening parameter. . = " << fH_delta   << '\n';
+	/* inherited */
+	ParameterInterfaceT::DefineParameters(list);
+
+	ParameterT alpha_bar(falpha_bar, "alpha_bar");
+	alpha_bar.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(alpha_bar);
+
+	ParameterT friction(ffriction, "friction");
+	friction.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(friction);
+
+	list.AddParameter(fdilation, "dilation");
+	list.AddParameter(fH_prime, "H_prime");
+	list.AddParameter(fH_delta, "H_delta");
+}
+
+/* accept parameter list */
+void DPPrimitiveLocT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	falpha_bar = list.GetParameter("alpha_bar");
+	ffriction = list.GetParameter("friction");
+	fdilation = list.GetParameter("dilation");
+	fH_prime = list.GetParameter("H_prime");
+	fH_delta = list.GetParameter("H_delta");
 }
 
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-void DPPrimitiveLocT::PrintName(ostream& out) const
-{
-	out << " Nonassociative Drucker-Prager, Pressure-Dependent, Small Strain,  \n";
-	out << " Plasticity Model with Linear Isotropic Hardening and Localization \n";
-}
 
 /*
  * Returns the value of the yield function given the

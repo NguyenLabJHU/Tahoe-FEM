@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.h,v 1.4 2004-07-15 08:28:56 paklein Exp $ */
+/* $Id: DPSSKStVLoc.h,v 1.5 2004-07-21 20:52:46 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_LOC_H_
 #define _DP_SS_KSTV_LOC_H_
@@ -7,31 +7,40 @@
 #include "SSSolidMatT.h"
 #include "IsotropicT.h"
 #include "HookeanMatT.h"
-#include "DPSSLinHardLocT.h"
 
 namespace Tahoe {
 
+/* forward declarations */
+class DPSSLinHardLocT;
+
 class DPSSKStVLoc: public SSSolidMatT,
 				public IsotropicT,
-				public HookeanMatT,
-				public DPSSLinHardLocT
+				public HookeanMatT
 {
 public:
 
 	/* constructor */
-	DPSSKStVLoc(ifstreamT& in, const SSMatSupportT& support);
-
-	/* initialization */
-	virtual void Initialize(void);
+	DPSSKStVLoc(void);
+	
+	/* destructor */
+	~DPSSKStVLoc(void);
 
 	/* form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
+	/** model has history variables */
+	virtual bool HasHistory(void) const { return true; };
+	
 	/* update internal variables */
 	virtual void UpdateHistory(void);
 
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
+	
+	/** returns elastic strain (3D) */
+	virtual const dSymMatrixT& ElasticStrain(
+                const dSymMatrixT& totalstrain, 
+				const ElementCardT& element, int ip);
 
 	/** \name spatial description */
 	/*@{*/
@@ -69,6 +78,9 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
@@ -86,6 +98,9 @@ protected:
 	int loccheck;
  
 private:
+
+	/** Drucker-Prager plasticity with linear hardening and localization*/
+	DPSSLinHardLocT* fDP;
   
 	/* return values */
 	dSymMatrixT	fStress;
