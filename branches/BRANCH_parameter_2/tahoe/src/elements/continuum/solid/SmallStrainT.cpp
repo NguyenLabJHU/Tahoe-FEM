@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.13.2.7 2004-02-24 19:09:37 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.13.2.8 2004-03-03 16:18:08 paklein Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -109,7 +109,7 @@ ParameterInterfaceT* SmallStrainT::NewSub(const StringT& list_name) const
 {
 	if (list_name == "small_strain_element_block")
 	{
-		ParameterContainerT* block = new ParameterContainerT("small_strain_element_block");
+		ParameterContainerT* block = new ParameterContainerT(list_name);
 		
 		/* list of element block ID's (defined by ElementBaseT) */
 		block->AddSub("block_ID_list", ParameterListT::Once);
