@@ -1,13 +1,14 @@
-/* $Id: ElementListT.cpp,v 1.20 2002-03-25 19:50:02 creigh Exp $ */
+/* $Id: ElementListT.cpp,v 1.20.2.1 2002-04-29 02:45:09 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
 #include <iostream.h>
 #include "fstreamT.h"
-#include "FEManagerT.h"
-#include "NodeManagerT.h"
+//#include "FEManagerT.h"
+//#include "NodeManagerT.h"
 #include "StringT.h"
 #include "ElementT.h"
+#include "ElementSupportT.h"
 
 /* elements */
 #include "ElementBaseT.h"
@@ -54,8 +55,8 @@
 #include "UpLagr_ExternalFieldT.h"
 
 /* constructors */
-ElementListT::ElementListT(FEManagerT& fe_manager):
-	fFEManager(fe_manager)
+ElementListT::ElementListT(const ElementSupportT& support):
+	fSupport(support)
 {
 
 }
@@ -76,6 +77,56 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 		ElementT::TypeT code;
 		in >> group >> code;
 		group--;
+		
+		/* no predefined field names */
+		const FieldT* field = NULL;
+		if (fSupport.Analysis() == GlobalT::kMultiField)
+		{
+			StringT name;
+			in >> name;
+			field = fSupport.Field(name);
+			break;
+		}
+		else /* legacy - field set by analysis code */
+		{
+			switch (fSupport.Analysis())
+			{
+				case GlobalT::kPML:
+				{
+					cout << "\n ElementListT::EchoElementData: PML not fully implemented" << endl;
+					throw eGeneralFail;
+				}
+				case GlobalT::kLinStaticHeat:
+				case GlobalT::kLinTransHeat:
+				{
+					field = fSupport.Field("temperature");
+					break;
+				}
+				case GlobalT::kLinStatic:
+				case GlobalT::kLinDynamic:
+				case GlobalT::kLinExpDynamic:
+				case GlobalT::kNLExpDynamic:
+				case GlobalT::kNLExpDynKfield:
+				case GlobalT::kDR:
+				case GlobalT::kNLStatic:
+				case GlobalT::kNLDynamic:
+				case GlobalT::kNLStaticKfield:
+				{
+					field = fSupport.Field("displacement");
+					break;
+				}
+				default:
+					cout << "\n ElementListT::EchoElementData: recognized analysis type: "
+					     << fSupport.Analysis() << endl;
+					throw eBadInputValue;
+			}
+		}
+		
+		/* check field */
+		if (!field) {
+			cout << "\n ElementListT::EchoElementData: could not resolve field" << endl;
+			throw eGeneralFail;
+		}
 
 		out << "\n Group number. . . . . . . . . . . . . . . . . . = " << group + 1 << '\n';
 		out <<   " Element type code . . . . . . . . . . . . . . . = " <<      code << '\n';
@@ -119,72 +170,72 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 		switch (code)
 		{
 			case ElementT::kRod:
-
-				fArray[group] = new RodT(fFEManager);
+			{
+				fArray[group] = new RodT(fSupport, *field);
 				break;
-
+			}
 			case ElementT::kElastic:
-				fArray[group] = new SmallStrainT(fFEManager);
+				fArray[group] = new SmallStrainT(fSupport, *field);
 				break;
 
 			case ElementT::kMeshFreeElastic:
-				fArray[group] = new MeshFreeElasticT(fFEManager);
+				fArray[group] = new MeshFreeElasticT(fSupport, *field);
 				break;
 
 			case ElementT::kHyperElastic:
-				fArray[group] = new UpdatedLagrangianT(fFEManager);
+				fArray[group] = new UpdatedLagrangianT(fSupport, *field);
 				break;
 
 			case ElementT::kTotLagHyperElastic:
-				fArray[group] = new TotalLagrangianT(fFEManager);
+				fArray[group] = new TotalLagrangianT(fSupport, *field);
 				break;
 
 			case ElementT::kSimoFiniteStrain:
-				fArray[group] = new SimoFiniteStrainT(fFEManager);
+				fArray[group] = new SimoFiniteStrainT(fSupport, *field);
 				break;
 
 			case ElementT::kMultiScale:
-				fArray[group] = new MultiScaleT(fFEManager);
+				fArray[group] = new MultiScaleT(fSupport, *field);
 				break;
 
 			case ElementT::kCoarseScale:
-				fArray[group] = new CoarseScaleT(fFEManager);
+				fArray[group] = new CoarseScaleT(fSupport, *field);
 				break;
 
 			case ElementT::kFinePhest:
-				fArray[group] = new FinePhestT(fFEManager);
+				fArray[group] = new FinePhestT(fSupport, *field);
 				break;
 
 			case ElementT::kMeshFreeFDElastic:
-				fArray[group] = new MeshFreeFDElasticT(fFEManager);
+				fArray[group] = new MeshFreeFDElasticT(fSupport, *field);
 				break;
 
 			case ElementT::kD2MeshFreeFDElastic:
-				fArray[group] = new D2MeshFreeFDElasticT(fFEManager);
+				fArray[group] = new D2MeshFreeFDElasticT(fSupport, *field);
 				break;
 
 			case ElementT::kLocalizing:
-				fArray[group] = new LocalizerT(fFEManager);
+				fArray[group] = new LocalizerT(fSupport, *field);
 				break;
 
 			case ElementT::kSWDiamond:
-				fArray[group] = new SWDiamondT(fFEManager);
+				fArray[group] = new SWDiamondT(fSupport, *field);
 				break;
 				
 			case ElementT::kMixedSWDiamond:
-				fArray[group] = new MixedSWDiamondT(fFEManager);
+				fArray[group] = new MixedSWDiamondT(fSupport, *field);
 				break;
 
 			case ElementT::kUnConnectedRod:
-				fArray[group] = new UnConnectedRodT(fFEManager);
+				fArray[group] = new UnConnectedRodT(fSupport, *field);
 				break;
 			
 			case ElementT::kVirtualRod:
-				fArray[group] = new VirtualRodT(fFEManager);
+				fArray[group] = new VirtualRodT(fSupport, *field);
 				break;
 
 			case ElementT::kVirtualSWDC:
-				fArray[group] = new VirtualSWDC(fFEManager);
+				fArray[group] = new VirtualSWDC(fSupport, *field);
 				break;
 
 			case ElementT::kCohesiveSurface:
@@ -197,11 +248,11 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 				out << "    eq. " << CSEBaseT::NoRotateAnisotropic << ", fixed-frame anisotropic\n";
 
 				if (CSEcode == CSEBaseT::Isotropic)
-					fArray[group] = new CSEIsoT(fFEManager);	
+					fArray[group] = new CSEIsoT(fSupport, *field);	
 				else if (CSEcode == CSEBaseT::Anisotropic)
-					fArray[group] = new CSEAnisoT(fFEManager, true);
+					fArray[group] = new CSEAnisoT(fSupport, *field, true);
 				else if (CSEcode == CSEBaseT::NoRotateAnisotropic)
-					fArray[group] = new CSEAnisoT(fFEManager, false);
+					fArray[group] = new CSEAnisoT(fSupport, *field, false);
 				else
 				{
 					cout << "\n ElementListT::EchoElementData: unknown CSE formulation: ";
@@ -212,17 +263,17 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 			}
 			case ElementT::kPenaltyContact:
 			{
-				int nsd = (fFEManager.NodeManager())->NumSD();
+				int nsd = fSupport.NumSD();
 				if (nsd == 2)
-					fArray[group] = new PenaltyContact2DT(fFEManager);
+					fArray[group] = new PenaltyContact2DT(fSupport, *field);
 				else
-					fArray[group] = new PenaltyContact3DT(fFEManager);
+					fArray[group] = new PenaltyContact3DT(fSupport, *field);
 					
 				break;
 			}
 			case ElementT::kAugLagContact2D:
 			{
-				fArray[group] = new AugLagContact2DT(fFEManager);	
+				fArray[group] = new AugLagContact2DT(fSupport, *field);	
 				break;
 			}
 			case ElementT::kBEMelement:
@@ -230,30 +281,23 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 				StringT BEMfilename;
 				in >> BEMfilename;
 			
-				fArray[group] = new BEMelement(fFEManager, BEMfilename);	
+				fArray[group] = new BEMelement(fSupport, *field, BEMfilename);	
 				break;
 			}
 			case ElementT::kLinearDiffusion:
-				fArray[group] = new DiffusionT(fFEManager);
+				fArray[group] = new DiffusionT(fSupport, *field);
 				break;
 
 			case ElementT::kMFCohesiveSurface:
-				fArray[group] = new MeshFreeCSEAnisoT(fFEManager);
+				fArray[group] = new MeshFreeCSEAnisoT(fSupport, *field);
 				break;
 
 			case ElementT::kTotLagrExternalField:
-				fArray[group] = new UpLagr_ExternalFieldT(fFEManager);
+				fArray[group] = new UpLagr_ExternalFieldT(fSupport, *field);
 				break;
-
-#if 0
-			case ElementT::kNonsingularContinuum:
-				fArray[group] = new NonsingularContinuumT(fFEManager);
-				break;
-#endif
-
 			case ElementT::kACME_Contact:
 #ifdef __ACME__
-				fArray[group] = new ACME_Contact3DT(fFEManager);
+				fArray[group] = new ACME_Contact3DT(fSupport, *field);
 #else
 				cout << "\n ElementListT::EchoElementData: ACME not installed.";
 				throw eGeneralFail;					
@@ -261,38 +305,19 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 				break;
 
 			case ElementT::kMultiplierContact3D:
-				fArray[group] = new MultiplierContact3DT(fFEManager);
+				fArray[group] = new MultiplierContact3DT(fSupport, *field);
 				break;
 
 			case ElementT::kMultiplierContactElement2D:
 			{
-#ifdef __NO_RTTI__
-				if (fFEManager.Analysis() != GlobalT::kAugLagStatic) throw eGeneralFail;
-				XDOF_ManagerT* XDOF_man	= (XDOF_ManagerT*) fFEManager.NodeManager();
-#else
-				XDOF_ManagerT* XDOF_man = dynamic_cast<XDOF_ManagerT*>(fFEManager.NodeManager());
-				if (!XDOF_man)
-				{
-				cout<< "\n ElementListT::EchoElementData: "
-				      << "failed to cast node manager to "
-			              << "XDOF_ManagerT\n"
-				      << "     as needed with analysis code: " 
-				      << ElementT::kMultiplierContactElement2D << endl;
-				throw eBadInputValue;
-				}
-#endif /* __NO_RTTI__ */
-
-				fArray[group]
-				= new MultiplierContactElement2DT
-				          (fFEManager,XDOF_man);
+				fArray[group] = new MultiplierContactElement2DT(fSupport, *field);
 				break;
 			}
-
             case ElementT::kPenaltyContactElement2D:
-                fArray[group] = new PenaltyContactElement2DT(fFEManager);
+            {
+                fArray[group] = new PenaltyContactElement2DT(fSupport, *field);
                 break;
-
-
+			}
 			default:
 			
 				cout << "\n ElementListT::EchoElementData: unknown element type:" << code << endl;
@@ -300,7 +325,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 		}
 		
 		if (!fArray[group]) throw eOutOfMemory;
-		fArray[group]->SetController(e_controller); //TEMP: this is dangerous. should pass
+//		fArray[group]->SetController(e_controller); //TEMP: this is dangerous. should pass
 		fArray[group]->Initialize();                //      controller in during construction
 	}
 }

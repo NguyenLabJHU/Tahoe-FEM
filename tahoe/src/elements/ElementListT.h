@@ -1,4 +1,4 @@
-/* $Id: ElementListT.h,v 1.1.1.1.8.1 2002-04-26 02:24:16 paklein Exp $ */
+/* $Id: ElementListT.h,v 1.1.1.1.8.2 2002-04-29 02:45:09 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 
 #ifndef _ELEMENTLIST_T_H_
@@ -11,17 +11,19 @@
 /* forward declarations */
 #include "ios_fwd_decl.h"
 class ifstreamT;
-class FEManagerT;
 class ElementBaseT;
 class eControllerT;
 class StringT;
+class ElementSupportT;
 
+/** list of elements. Constructs list of element objects and
+ * provides some attributes. */
 class ElementListT: public pArrayT<ElementBaseT*>
 {
 public:
 
 	/* constructor */
-	ElementListT(FEManagerT& fe_manager);
+	ElementListT(const ElementSupportT& support);
 	
 	/* echo data from the I/O streams */
 	void EchoElementData(ifstreamT& in, ostream& out,
@@ -36,7 +38,7 @@ public:
 private:
 
 	/* data needed for element contructors */
-	FEManagerT& fFEManager;
+	const ElementSupportT& fSupport;
 };
 
 #endif /* _ELEMENTLIST_T_H_ */

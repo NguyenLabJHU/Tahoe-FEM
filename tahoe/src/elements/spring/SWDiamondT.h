@@ -1,5 +1,5 @@
-/* $Id: SWDiamondT.h,v 1.3 2001-12-17 00:15:57 paklein Exp $ */
-/* created: paklein (03/19/1997)                                          */
+/* $Id: SWDiamondT.h,v 1.3.2.1 2002-04-29 02:45:11 paklein Exp $ */
+/* created: paklein (03/19/1997) */
 
 #ifndef _SWDIAMOND_T_H_
 #define _SWDIAMOND_T_H_
@@ -19,7 +19,7 @@ class SWDiamondT: public ElementBaseT
 public:
 
 	/* constructor */
-	SWDiamondT(FEManagerT& fe_manager);
+	SWDiamondT(const ElementSupportT& support, const FieldT& field);
 
 	/* initialization */
 	virtual void Initialize(void);
