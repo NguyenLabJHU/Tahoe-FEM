@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.33 2003-12-28 08:23:07 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.34 2004-01-05 07:31:03 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -228,10 +228,10 @@ void ContinuumElementT::CloseStep(void)
 }
 
 /* resets to the last converged solution */
-void ContinuumElementT::ResetStep(void)
+GlobalT::RelaxCodeT ContinuumElementT::ResetStep(void)
 {
 	/* inherited */
-	ElementBaseT::ResetStep();
+	GlobalT::RelaxCodeT relax = ElementBaseT::ResetStep();
 
 	/* update material internal variables */
 	if (fMaterialList->HasHistoryMaterials())
@@ -249,6 +249,8 @@ void ContinuumElementT::ResetStep(void)
 			}
 		}
 	}
+
+	return relax;
 }
 
 /* restart operations */
@@ -838,25 +840,22 @@ void ContinuumElementT::PrintControlData(ostream& out) const
 
 void ContinuumElementT::ReadMaterialData(ifstreamT& in)
 {
+	const char caller[] = "ContinuumElementT::ReadMaterialData";
+
 	/* construct material list */
 	int size;
 	in >> size;
 	fMaterialList = NewMaterialList(NumSD(), size);
-	if (!fMaterialList) throw ExceptionT::kOutOfMemory;
+	if (!fMaterialList) ExceptionT::OutOfMemory(caller);
 
 	/* read */
 	fMaterialList->ReadMaterialData(in);
 	
 	/* check range */
 	for (int i = 0; i < fBlockData.Length(); i++)
-		if (fBlockData[i].MaterialID() < 0 ||
-		    fBlockData[i].MaterialID() >= size)
-		{
-			cout << "\n ContinuumElementT::ReadMaterialData: material number "
-			     << fBlockData[i].MaterialID() + 1 << '\n';
-			cout<<    "     for element block " << i + 1 << " is out of range" << endl;
-			throw ExceptionT::kBadInputValue;
-		}
+		if (fBlockData[i].MaterialID() < 0 || fBlockData[i].MaterialID() >= size)
+			ExceptionT::BadInputValue(caller, "material number %d for element block %d is out of range",
+				fBlockData[i].MaterialID()+1, i+1);
 }
 
 /* use in conjunction with ReadMaterialData */
@@ -881,11 +880,9 @@ void ContinuumElementT::EchoBodyForce(ifstreamT& in, ostream& out)
 	else
 	{
 		fBodySchedule = ElementSupport().Schedule(n_sched);
-		if (!fBodySchedule) {
-			cout << "\n ContinuumElementT::EchoBodyForce: could not resolve schedule " 
-			     << n_sched + 1 << endl;
-			throw ExceptionT::kBadInputValue;
-		}	
+		if (!fBodySchedule)
+			ExceptionT::BadInputValue("ContinuumElementT::EchoBodyForce", 
+				"could not resolve schedule %d", n_sched+1);
 	}
 	
 	out << "\n Body force vector:\n";
