@@ -1,5 +1,8 @@
-/* $Id: MultiManagerT.cpp,v 1.2 2003-10-28 07:35:00 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.3 2003-11-04 01:13:16 paklein Exp $ */
 #include "MultiManagerT.h"
+
+#ifdef BRIDGING_ELEMENT
+
 #include "SolverT.h"
 #include "DiagonalMatrixT.h"
 #include "FEManagerT_bridging.h"
@@ -311,3 +314,5 @@ void MultiManagerT::WriteOutput(double time)
 	}
 	
 }
+
+#endif /* BRIDGING_ELEMENT */

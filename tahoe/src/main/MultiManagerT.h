@@ -1,6 +1,10 @@
-/* $Id: MultiManagerT.h,v 1.2 2003-10-28 07:35:00 paklein Exp $ */
+/* $Id: MultiManagerT.h,v 1.3 2003-11-04 01:13:16 paklein Exp $ */
 #ifndef _MULTI_MANAGER_H_
 #define _MULTI_MANAGER_H_
+
+/* element configuration header */
+#include "ElementsConfig.h"
+#ifdef BRIDGING_ELEMENT
 
 /* base class  */
 #include "FEManagerT.h"
@@ -94,4 +98,5 @@ private:
 
 } /* namespace Tahoe */
 
+#endif /* BRIDGING_ELEMENT */
 #endif /* _MULTI_MANAGER_H_ */
