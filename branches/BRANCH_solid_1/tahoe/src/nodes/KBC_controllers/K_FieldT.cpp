@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.2 2001-03-19 22:39:38 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.2.2.1 2001-06-06 16:59:55 paklein Exp $ */
 /* created: paklein (09/05/2000)                                          */
 
 #include "K_FieldT.h"
@@ -214,33 +214,14 @@ GlobalT::RelaxCodeT K_FieldT::RelaxSystem(void)
 
 	/* no fracture path group */
 	if (fNearTipGroupNum == -1) return relax;
-	
-	/* near tip element group */
-	const FEManagerT& fe_man = fNodeManager.FEManager();
-	ElementBaseT* neartip_group = fe_man.ElementGroup(fNearTipGroupNum);
-	if (!neartip_group)
-	{
-		cout << "\n K_FieldT::RelaxSystem: could not resolve near tip element\n"
-		     <<   "    group number:" << fNearTipGroupNum+1 << endl;
-		throw eGeneralFail;
-	}
-
-	/* signal to accumulate nodal values */
-	neartip_group->SendOutput(fNearTipOutputCode);
-	
-	/* find the node with max opening stress */
-	int maxrow;
-	double maxval;
-	fNodeManager.MaxInColumn(fTipColumnNum, maxrow, maxval);
-	if (maxrow == -1) throw eGeneralFail;	
 		
-	/* assume positive x-direction translation ONLY */
-	dArrayT coords;
-	fNodeManager.InitialCoordinates().RowAlias(maxrow, coords);
+	/* new tip coordinates */
+	dArrayT tip_coords(fTipCoords.Length());
+	GetNewTipCoordinates(tip_coords);
 	
 	/* extension vector/distance */
 	dArrayT extension(fTipCoords.Length());
-	extension.DiffOf(coords, fTipCoords);
+	extension.DiffOf(tip_coords, fTipCoords);
 	double advance = dArrayT::Dot(fGrowthDirection, extension);
 
 	/* sizable move */
@@ -299,6 +280,32 @@ void K_FieldT::WriteOutput(ostream& out) const
 /**********************************************************************
 * Protected
 **********************************************************************/
+
+/* determine the new tip coordinates */
+void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
+{
+	/* near tip element group */
+	const FEManagerT& fe_man = fNodeManager.FEManager();
+	ElementBaseT* neartip_group = fe_man.ElementGroup(fNearTipGroupNum);
+	if (!neartip_group)
+	{
+		cout << "\n K_FieldT::GetNewTipCoordinates: could not resolve near tip element\n"
+		     <<   "    group number:" << fNearTipGroupNum+1 << endl;
+		throw eGeneralFail;
+	}
+
+	/* signal to accumulate nodal values */
+	neartip_group->SendOutput(fNearTipOutputCode);
+	
+	/* find the node with max opening stress */
+	int maxrow;
+	double maxval;
+	fNodeManager.MaxInColumn(fTipColumnNum, maxrow, maxval);
+	if (maxrow == -1) throw eGeneralFail;	
+		
+	/* get new tip coordinates */
+	fNodeManager.InitialCoordinates().RowAlias(maxrow, tip_coords);
+}
 
 /* resolve element info to isotropic material */
 void K_FieldT::ResolveMaterialReference(int element_group,
