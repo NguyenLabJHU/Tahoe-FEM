@@ -1,10 +1,11 @@
-/* $Id: BoxT.cpp,v 1.5 2002-08-02 02:07:49 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.6 2002-09-09 23:10:29 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
 #include <iostream>
 #include <fstream>
 
+#include "ExceptionCodes.h"
 #include "ifstreamT.h"
 #include "iArrayT.h"
 #include "iArray2DT.h"
@@ -79,91 +80,133 @@ BoxT::BoxT(const BoxT& source) : VolumeT(source.nSD)
 
 void BoxT::CreateLattice(CrystalLatticeT* pcl) 
 {
+  int nlsd = pcl->GetNLSD();
   int nuca = pcl->GetNUCA();
   const dArrayT& vLP = pcl->GetLatticeParameters();
   const dArray2DT& vB = pcl->GetBasis();
-  int p,q,r,a = 0;
-  
-  if (nSD==2) nATOMS = nuca*ncells[0]*ncells[1];
-  if (nSD==3) nATOMS = nuca*ncells[0]*ncells[1]*ncells[2];
+  const dArray2DT& vA = pcl->GetAxis();
 
-  if(nATOMS == 0) 
-    {
-      cout << "number of atoms is zero\n";
-      throw eBadInputValue;
-    }
-  
-  atom_ID.Dimension(nATOMS);
-  atom_coord.Dimension(nATOMS,nSD);
-  atom_connectivities.Dimension(nATOMS,1);
+  int natoms,a = 0;
+  int temp_nat=0;
+  dArray2DT temp_atom;
+  double x,y,z;
+  double eps = 1.e-6;
 
-  if (nSD==2) 
+  // Define a slightly shorter box
+  double l00,l01,l10,l11;
+  if(length(0,0) >= 0.0) l00 = length(0,0) + eps; else l00 = length(0,0) - eps;
+  if(length(0,1) >= 0.0) l01 = length(0,1) + eps; else l01 = length(0,1) - eps;
+  if(length(1,0) >= 0.0) l10 = length(1,0) + eps; else l10 = length(1,0) - eps;
+  if(length(1,1) >= 0.0) l11 = length(1,1) + eps; else l11 = length(1,1) - eps;
+
+  if (nlsd==2) temp_nat = 16*nuca*ncells[0]*ncells[1];
+  if (nlsd==3) temp_nat = 64*nuca*ncells[0]*ncells[1]*ncells[2];
+
+  temp_atom.Dimension(temp_nat,nlsd);
+
+  if (nlsd==2) 
     {
-      for (p=0;p<ncells[1];p++) 
-	for (q=0;q<ncells[0];q++)    
+      // Rotate coordinates
+      for (int p=-2*ncells[1];p<2*ncells[1];p++) 
+      	for (int q=-2*ncells[0];q<2*ncells[0];q++)    
 	  {
+	    dArrayT c(nlsd);
+	    c[0] = (double)q; c[1] = (double)p;
 	    for (int m=0;m<nuca;m++) 
 	      {
-		if (a > nATOMS) {cout << "nATOMS wrong\n";throw eSizeMismatch;}
+		if (a >= temp_nat) {throw eSizeMismatch;}
 		
-		atom_coord(a)[0] = length(0,0) + ((double) q + vB(0,m))*vLP[0];
-		atom_coord(a)[1] = length(1,0) + ((double) p + vB(1,m))*vLP[1];
+		x = length(0,0);
+		y = length(1,0);
 		
-		a++;
+		for (int k=0;k<nlsd;k++) 
+		  {
+		    x += (c[k] + vB(k,m))*vA(k,0);
+		    y += (c[k] + vB(k,m))*vA(k,1);
+		  }
+
+		//		cout << x << "  " << y << "\n";
+
+		if(x >= l00 && x <= l01 && y >= l10 && y <= l11 )
+		  {
+		    temp_atom(a)[0] = x;
+		    temp_atom(a)[1] = y;
+		    a++;
+		  }
 	      }
 	  }
     }
-  else if (nSD==3) 
+  else if (nlsd==3) 
     {
-      for (p=0;p<ncells[2];p++) 
-	for (q=0;q<ncells[1];q++)    
-	  for (r=0;r<ncells[0];r++) 		
-	    for (int m=0;m<nuca;m++) 
-	      {
-		if (a > nATOMS) {cout << "nATOMS wrong\n";throw eSizeMismatch;}
-		
-		atom_coord(a)[0] = length(0,0) + ((double) r + vB(0,m))*vLP[0];
-		atom_coord(a)[1] = length(1,0) + ((double) q + vB(1,m))*vLP[1];
-		atom_coord(a)[2] = length(2,0) + ((double) p + vB(2,m))*vLP[2];
-		
-		a++;                     
-	      }
+      double l20,l21;
+      if(length(2,0) >= 0.0) l20 = length(2,0) + eps; else l20 = length(2,0) - eps;
+      if(length(2,1) >= 0.0) l21 = length(2,1) + eps; else l21 = length(2,1) - eps;
+
+      // Rotate coordinates
+      for (int p=-2*ncells[2];p<2*ncells[2];p++) 
+	for (int q=-2*ncells[1];q<2*ncells[1];q++)    
+	  for (int r=-2*ncells[0];r<2*ncells[0];r++) 
+	    {
+	      dArrayT c(nlsd);
+	      c[0] = (double)r; c[1] = (double)q; c[2] = (double)p;
+	      for (int m=0;m<nuca;m++) 
+		{
+		  if (a > temp_nat) {throw eSizeMismatch;}
+
+		  x = length(0,0);
+		  y = length(1,0);
+		  z = length(2,0);
+		  
+		  for (int k=0;k<nlsd;k++) 
+		    {
+		      x += (c[k] + vB(k,m))*vA(k,0);
+		      y += (c[k] + vB(k,m))*vA(k,1);
+		      z += (c[k] + vB(k,m))*vA(k,2);
+		    }
+		  
+		  if(x >= l00 && x <= l01 && y >= l10 && y <= l11 &&
+		     z >= l20 && z <= l21)
+		    {
+		      temp_atom(a)[0] = x;
+		      temp_atom(a)[1] = y;
+		      temp_atom(a)[2] = z;
+		      a++;                     
+		    }
+		}
+	    }
+    }
+
+  // Get atoms coordinates
+  nATOMS = a;
+  atom_ID.Dimension(nATOMS);
+  atom_coord.Dimension(nATOMS,nlsd);
+  atom_connectivities.Dimension(nATOMS,1);
+
+  for(int m=0; m < nATOMS ; m++) 
+    {
+      for (int k=0;k< nlsd;k++)
+	atom_coord(m)[k] = temp_atom(m)[k];
     }
   
   atom_names = "Box";
-  for (p=0;p<nATOMS;p++)
+  for (int p=0;p<nATOMS;p++)
     {
       atom_ID[p] = p;
       atom_connectivities(p)[0] = p;
     }
 
-
-  // Rotate coordinates:
-  atom_coord = pcl->BasisRotation(atom_coord);
-
-  // Rotate Axis
-  cout << "Previous Lengths\n";
-  if(nSD==2) 
-    {
-      cout << "[" << length(0,0) << "," << length(0,1) << "]\n";
-      cout << "[" << length(1,0) << "," << length(1,1) << "]\n";
-    }
-  else if (nSD==3)
-    {
-      cout << "[" << length(0,0) << "," << length(0,1) << "]\n";
-      cout << "[" << length(1,0) << "," << length(1,1) << "]\n";
-      cout << "[" << length(2,0) << "," << length(2,1) << "]\n";
-    }
-
+  // Update lengths
   length = ComputeMinMax();
 
   //Calculate volume here
-  switch(nSD) {
+  switch(nlsd) {
   case 2:
     volume = (length(0,1)-length(0,0))*(length(1,1)-length(1,0));
     break;
   case 3:
-    volume = (length(0,1)-length(0,0))*(length(1,1)-length(1,0))*(length(2,1)-length(2,0));
+    volume = (length(0,1)-length(0,0))*         
+             (length(1,1)-length(1,0))*
+             (length(2,1)-length(2,0));
     break;
   }
 }
@@ -230,12 +273,14 @@ dArray2DT BoxT::ComputeMinMax()
 	}
 
   for (int i=0; i < nSD; i++)
-    if(minmax(i,0) > minmax(i,1)) 
-      {
-	double temp = minmax(i,0);
-	minmax(i,0) = minmax(i,1);
-	minmax(i,1) = temp;
-      }
+    {
+      if(minmax(i,0) > minmax(i,1)) 
+	{
+	  double temp = minmax(i,0);
+	  minmax(i,0) = minmax(i,1);
+	  minmax(i,1) = temp;
+	}
+    }
 
   return minmax;  
 }

@@ -20,6 +20,7 @@ public:
 
         const dArrayT& GetLatticeParameters();
         const dArray2DT& GetBasis();
+	const dArray2DT& GetAxis();
 };
 
 #endif

@@ -50,8 +50,18 @@ MeshAtom::MeshAtom(StringT which_latticetype,int nsd,int nuca,
       cout << "Shape can only be BOX and not: " << which_shape << "\n";
       throw eBadInputValue;
     }
-  
+  Set = 0;
+  IOLattice = 0;
 }
+
+MeshAtom:: ~MeshAtom()
+{
+  delete Crystal;
+  delete Shape;
+  if(Set != 0) delete Set;
+  if(IOLattice != 0) delete IOLattice;
+}
+
 
 int MeshAtom::CreateMeshAtom()
 {
@@ -99,13 +109,16 @@ void MeshAtom::BuildIOFile(StringT& program_name,
   Shape->CalculateBounds(per,Crystal);
   Shape->CalculateType();
 
+  if(IOLattice != 0) delete IOLattice;
+
   IOLattice = new OutPutLatticeT(cout,program_name,version,title,
 				 input_file,output_format,
 				 *(Shape->GetAtomBounds()),
 				 *(Shape->GetAtomType()));
-  
   ArrayT<StringT> n_labels(1);
   n_labels[0] = "Atom";
+
+  if(Set != 0) delete Set;
 
   Set=new OutputSetT(*(Shape->GetAtomNames()), GeometryT::kPoint, 
 		     *(Shape->GetAtomConnectivities()), n_labels);
@@ -113,6 +126,7 @@ void MeshAtom::BuildIOFile(StringT& program_name,
   IOLattice->SetCoordinates(*(Shape->GetAtomCoordinates()),(Shape->GetAtomID()));
   IOLattice->AddElementSet(*Set);
   
+  cout << "Writing geometry...\n";
   IOLattice->WriteGeometry();
 }
 

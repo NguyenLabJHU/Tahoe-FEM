@@ -102,8 +102,7 @@ OutputBaseT* OutPutLatticeT::NewOutput(const StringT& program_name,
 
 void OutPutLatticeT::WriteGeometry (void)
 {
-	fOutput->WriteGeometry();
-
+  fOutput->WriteGeometry();
 }
 
 void OutPutLatticeT::WriteGeometryFile(const StringT& file_name,

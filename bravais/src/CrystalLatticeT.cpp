@@ -1,4 +1,4 @@
-/* $Id: CrystalLatticeT.cpp,v 1.6 2002-08-02 02:07:49 saubry Exp $ */
+/* $Id: CrystalLatticeT.cpp,v 1.7 2002-09-09 23:10:29 saubry Exp $ */
 #include "CrystalLatticeT.h"
 
 #include <iostream>
@@ -20,7 +20,9 @@ CrystalLatticeT::CrystalLatticeT(int nlsd, int nuca,
 	nUCA = nuca;
         vBasis.Dimension(nLSD,nUCA);
         vLatticeParameters.Dimension(nLSD);
+        vAxis.Dimension(nLSD,nLSD);
 
+	// Define rotation
 	if(nLSD == 3)
 	  {
 	    // Directions in 3D only
@@ -38,8 +40,6 @@ CrystalLatticeT::CrystalLatticeT(int nlsd, int nuca,
 		norm_vec[j] = sqrt(norm_vec[j]);
 	      }
 
-
-
 	    for (int j=0; j<nLSD; j++)
 	      {	
 		if(norm_vec[j] != 0) 
@@ -51,9 +51,12 @@ CrystalLatticeT::CrystalLatticeT(int nlsd, int nuca,
 	      }
 
 	    // check input matrix
-	    double yz =matrix_rotation(1,0)*matrix_rotation(2,1)-matrix_rotation(1,1)*matrix_rotation(2,0);
-	    double xz =matrix_rotation(0,1)*matrix_rotation(2,0)-matrix_rotation(0,0)*matrix_rotation(2,1); 
-	    double xy =matrix_rotation(0,0)*matrix_rotation(1,1)-matrix_rotation(0,1)*matrix_rotation(1,0);  
+	    double yz = matrix_rotation(1,0)*matrix_rotation(2,1)-
+                        matrix_rotation(1,1)*matrix_rotation(2,0);
+	    double xz = matrix_rotation(0,1)*matrix_rotation(2,0)-
+                        matrix_rotation(0,0)*matrix_rotation(2,1); 
+	    double xy = matrix_rotation(0,0)*matrix_rotation(1,1)-
+	                matrix_rotation(0,1)*matrix_rotation(1,0);  
 	    if ( fabs(yz-matrix_rotation(0,2)) <= 1.e-5 ||
 		 fabs(xz-matrix_rotation(1,2)) <= 1.e-5 ||
 		 fabs(xy-matrix_rotation(2,2)) <= 1.e-5 ) 
@@ -73,12 +76,11 @@ CrystalLatticeT::CrystalLatticeT(int nlsd, int nuca,
 		matrix_rotation(2,2) = xy;
 	      }
 
-
 	    angle_rotation = 0;
 	  }
 	else if(nLSD == 2)  
 	  {
-	    // Assumed here that the angle is in degree
+	    // input angle has to be in degrees
 	    angle_rotation = angle;
 	  }
 }
@@ -112,166 +114,57 @@ double CrystalLatticeT::GetDensity()
 	return density;
 }
 
-/*
-dArray2DT  CrystalLatticeT::BasisRotation(dArray2DT A)
+dArray2DT  CrystalLatticeT::AxisRotation(dArray2DT A)
 {
-  int im = A.MajorDim();
-  int jm = A.MinorDim();
+  if(A.MajorDim() != nLSD || A.MinorDim() != nLSD) 
+    throw eSizeMismatch;
 
-  cout << "im=" << im << "\n";
-  cout << "jm=" << jm << "\n";
+  dArray2DT B(nLSD,nLSD);
+  dMatrixT Q(nLSD,nLSD);
 
-  if(im != nLSD) throw eSizeMismatch;
-
-  dArrayT vectorIN(jm);
-  dArrayT vectorOUT(jm);
-  dArray2DT B(im,jm);
-
-  if(im==2)
+  if(nLSD==2)
     {
       if(fabs(angle_rotation) <= 1.e-5) return A;
       Rotate2DT R(angle_rotation);
-      
-      for (int j=0; j<jm; j++)
-	{
-	  for (int i=0; i<im; i++)  vectorIN[i] = A(i,j);
-	  vectorOUT = R.RotateVectorIn(vectorIN);
-	  for (int i=0; i<im; i++) 
-	    B(i,j) = vectorOUT[i];
-	}
-    }
-  else if(im==3)
-    {
-      double norm = norm_vec[0] + norm_vec[1] + norm_vec[2];
-      if (norm < 1.e-5) return A;
-
-      Rotate3DT R;
-      R.GiveTransfoMatrix(matrix_rotation);
-      for (int j=0; j<jm; j++)
-	{
-	  for (int i=0; i<im; i++)  vectorIN[i] = A(i,j);
-	  vectorOUT = R.RotateVectorIn(vectorIN);
-	  for (int i=0; i<im; i++) 
-	    B(i,j) = vectorOUT[i];
-	}
-    }
-
-  return B;
-}
-*/
-
-dArray2DT  CrystalLatticeT::BasisRotation(dArray2DT A)
-{
-  int im = A.MajorDim();
-  int jm = A.MinorDim();
-
-  dMatrixT Q(jm,jm);
-
-  if(jm != nLSD) throw eSizeMismatch;
-
-  dArrayT vectorIN(jm);
-  dArrayT vectorOUT(jm);
-  dArray2DT B(im,jm);
-
-  if(jm==2)
-    {
-      if(fabs(angle_rotation) <= 1.e-5) return A;
-      Rotate2DT R(angle_rotation);
-      
-      for (int i=0; i<im; i++)
-	{
-	  for (int j=0; j<jm; j++)  vectorIN[j] = A(i,j);
-	  vectorOUT = R.RotateVectorOut(vectorIN);
-	  for (int j=0; j<jm; j++) 
-	    B(i,j) = vectorOUT[j];
-	}
-    }
-  else if(jm==3)
-    {
-      double norm = norm_vec[0] + norm_vec[1] + norm_vec[2];
-      if (norm < 1.e-5) return A;
-      Rotate3DT R;
-      R.GiveTransfoMatrix(matrix_rotation);
-
-      /*
       Q = R.Q();
-      cout << Q(0,0) << "  " << Q(1,0) << "  " << Q(2,0) << "\n";
-      cout << Q(0,1) << "  " << Q(1,1) << "  " << Q(2,1) << "\n";
-      cout << Q(0,2) << "  " << Q(1,2) << "  " << Q(2,2) << "\n\n";
 
-      vectorIN[0]=vectorIN[1]=0;vectorIN[2] = 1;
-      Rotate3DT R2(vectorIN,45);
-      Q = R2.Q();
-      cout << Q(0,0) << "  " << Q(1,0) << "  " << Q(2,0) << "\n";
-      cout << Q(0,1) << "  " << Q(1,1) << "  " << Q(2,1) << "\n";
-      cout << Q(0,2) << "  " << Q(1,2) << "  " << Q(2,2) << "\n";
-      */
+      for (int i=0; i<nLSD; i++)
+	for (int j=0; j<nLSD; j++)
+	  B(i,j) = 0.0;
+
+      cout << "Q:\n";
+      cout << Q(0,0) << "  " << Q(1,0) << "\n";
+      cout << Q(0,1) << "  " << Q(1,1) << "\n\n";
+
+      for (int i=0; i<nLSD; i++)
+	for (int j=0; j<nLSD; j++)
+	  {
+	    for (int k=0; k<nLSD; k++)
+	      B(i,j) += Q(i,k)*A(k,j);
+	  }
       
+      
+    }
+  else if(nLSD==3)
+    {
+      double norm = norm_vec[0] + norm_vec[1] + norm_vec[2];
+      if (norm < 1.e-5) return A;
 
-
-      for (int i=0; i<im; i++)
-	{
-	  for (int j=0; j<jm; j++)  vectorIN[j] = A(i,j);
-	  vectorOUT = R.RotateVectorOut(vectorIN);
-	  for (int j=0; j<jm; j++) 
-	    B(i,j) = vectorOUT[j];
-	}
+      Rotate3DT R;
+      R.GiveTransfoMatrix(matrix_rotation);
+      Q = R.Q();
+      
+      for (int i=0; i<nLSD; i++)
+	for (int j=0; j<nLSD; j++)
+	  B(i,j) = 0.0;
+      
+      for (int i=0; i<nLSD; i++)
+	for (int j=0; j<nLSD; j++)
+	  {
+	    for (int k=0; k<nLSD; k++)
+	      B(i,j) += Q(i,k)*A(k,j);
+	  }
     }
 
   return B;
 }
-
-/*
-dArray2DT CrystalLatticeT::AxisRotation(dArrayT len)
-{
-  int jm = len.Length();
-  dArrayT vectorIn(jm);
-  dArrayT vectorOut(jm);
-
-  dArrayT rotatelen(jm); 
-
-  if(jm==2)
-    {
-      if(fabs(angle_rotation) <= 1.e-5) return len;
-      Rotate2DT R(angle_rotation);    
-
-      vectorIn[0] = len[0];
-      vectorIn[1] = 0.0;
-      vectorOut = R.RotateVectorOut(vectorIn);
-      rotatelen[0] = fabs(vectorOut[1]);
-
-      vectorIn[0] = 0.0;
-      vectorIn[1] = len[1];
-      vectorOut = R.RotateVectorOut(vectorIn);
-      rotatelen[1] = fabs(vectorOut[1]);
-
-      return rotatelen;
-    }
-  else if(jm==3)
-    {
-      double norm = norm_vec[0] + norm_vec[1] + norm_vec[2];
-      if (norm < 1.e-5) return len;
-
-      Rotate3DT R;
-      R.GiveTransfoMatrix(matrix_rotation);
-
-      vectorIn[0] = len[0];
-      vectorIn[1] = vectorIn[2] = 0.0;
-      vectorOut = R.RotateVectorOut(vectorIn);
-      rotatelen[0] = vectorOut[0];
-
-      vectorIn[1] = len[1];
-      vectorIn[0] = vectorIn[2] = 0.0;
-      vectorOut = R.RotateVectorOut(vectorIn);
-      rotatelen[1] = vectorOut[1];
-
-      vectorIn[2] = len[2];
-      vectorIn[0] = vectorIn[1] = 0.0;
-      vectorOut = R.RotateVectorOut(vectorIn);
-      rotatelen[2] = vectorOut[2];
-
-      return rotatelen;
-    }
-}
-*/
-
