@@ -1,4 +1,4 @@
-/* $Id: IOManager.h,v 1.16 2003-08-08 00:38:38 paklein Exp $ */
+/* $Id: IOManager.h,v 1.16.10.1 2003-10-28 05:45:41 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 
 #ifndef _IOMANAGER_H_
@@ -104,7 +104,7 @@ public:
 	const iArrayT& NodesUsed(int ID) const;
 
 	/** temporarily re-route output to a database with the given filename */
-	void DivertOutput(const StringT& outfile);
+	virtual void DivertOutput(const StringT& outfile);
 
 	/** restore output to the default stream */
 	void RestoreOutput(void);
