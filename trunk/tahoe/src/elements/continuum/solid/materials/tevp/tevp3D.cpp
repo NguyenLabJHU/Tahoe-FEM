@@ -1,4 +1,4 @@
-/* $Id: tevp3D.cpp,v 1.7 2001-07-23 01:38:48 hspark Exp $ */
+/* $Id: tevp3D.cpp,v 1.8 2001-10-03 22:16:46 hspark Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (06/25/2001) */
 
@@ -233,14 +233,6 @@ const dSymMatrixT& tevp3D::s_ij(void)
       fInternal[kTemp] = ComputeFluidTemperature();
       fInternal[kEb] = ComputeFluidEffectiveStrain();
     }  
-    else if (flags[ip + fNumIP] == kCrack) {
-      fStress = 0.0;
-      fInternal[kSb] = 0.0;
-      fInternal[kTemp] = Temp_0;
-      fInternal[kEb] = 0.0;
-      fTempKirchoff = 0.0;
-      fTempCauchy = 0.0;
-    }
     else {
       /* Incremental stress update part - if critical strain criteria not
        * exceeded */
@@ -279,12 +271,6 @@ const dSymMatrixT& tevp3D::s_ij(void)
     /* store cauchy stress here */
     fTempCauchy = fStress;
     CheckCriticalCriteria(element, ip);
-    if (flags[ip + fNumIP] == kCrack)
-    {
-      fStress = 0.0;
-      fTempCauchy = 0.0;
-      fTempKirchoff = 0.0;
-    }
   }
   else
   {
@@ -463,19 +449,10 @@ void tevp3D::CheckCriticalCriteria(const ElementCardT& element, int ip)
     const double eb = fInternal[kEb];
     double ebar_cr = Epsilon_1 + (Epsilon_2 - Epsilon_1) * Epsilon_rate;
     ebar_cr /= (Epsilon_rate + fEbtot);
-    double RR = .25 * (pow((fTempKirchoff[0] - fTempKirchoff[1]), 2)) + pow(fTempKirchoff[5], 2);
-    RR = sqrt(RR);
-    double sigmax = RR + .5 * (fTempKirchoff[0] + fTempKirchoff[1]);
     if (eb >= ebar_cr)
     {
       flags[ip + fNumIP] = kFluid;
       *criticalstrain = 1;        // Indicator to switch to fluid model
-    }
-    else if (sigmax >= SigCr)
-    {
-      /* check for ductile to brittle criteria */
-      flags[ip + fNumIP] = kCrack;
-      *criticalstrain = 2;
     }
     else
     {
