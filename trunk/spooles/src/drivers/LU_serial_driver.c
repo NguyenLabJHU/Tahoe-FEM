@@ -253,8 +253,12 @@ if ( msglvl > 0 ) {
 if (matrix_type == SPOOLES_REAL)
 {
 	for (irow = 0 ; irow < neqns ; irow++) 
-		DenseMtx_realEntry(mtxX, irow, 0, rhs2out + irow);
 		/* NOTE: there is no function to copy a column into a vector */
+		if (DenseMtx_realEntry(mtxX, irow, 0, rhs2out + irow) != 1)
+		{
+			fprintf(msgFile, "\n error permuting solution to original ordering\n") ;
+			return -1;
+		}		
 }
 else
 {
