@@ -1,4 +1,4 @@
-/* $Id: premovea.c,v 1.3 2004-12-30 00:15:46 paklein Exp $ */
+/* $Id: premovea.c,v 1.4 2004-12-30 00:19:54 paklein Exp $ */
 /* premovea.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -60,7 +60,7 @@ static integer c__0 = 0;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: premovea.c,v 1.3 2004-12-30 00:15:46 paklein Exp $ +/ */
+/* /+ $Id: premovea.c,v 1.4 2004-12-30 00:19:54 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 static int max(int a, int b) {
 	return (a > b) ? a : b;
@@ -418,7 +418,7 @@ static integer lbit_shift(integer a, integer b) {
      +                    comm,ierr) */
 /*    mpi_allgatherv__(order, mynnodes, &c__11, gorder, wrkint, rowdist, &c__11,
 	     comm, &ierr); */
-	MPI_Allgatherv(order, mynnodes, MPI_INT, 
+	MPI_Allgatherv(order, *mynnodes, MPI_INT, 
 	              gorder, wrkint, rowdist, MPI_INT, *comm);
 	     	     
 /*<       do i=0,N-1 >*/
@@ -859,5 +859,3 @@ static integer lbit_shift(integer a, integer b) {
 /*<       end >*/
     return 0;
 } /* premovea_ */
-
-
