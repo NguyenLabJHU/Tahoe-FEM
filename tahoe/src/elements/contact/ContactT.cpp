@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.16 2003-12-29 04:54:44 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.16.16.1 2004-04-27 07:27:32 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -134,6 +134,8 @@ void ContactT::PrintControlData(ostream& out) const
 /* echo contact bodies and striker nodes */
 void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 {
+	const char caller[] = "ContactT::EchoConnectivityData";
+
 	int num_surfaces;
 	in >> num_surfaces;
 	out << " Number of contact surfaces. . . . . . . . . . . = "
@@ -163,9 +165,8 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 				break;
 		
 			default:
-				cout << "\n ContactT::EchoConnectivityData: unknown surface specification\n";
-				cout <<   "     mode " << spec_mode << " for surface " << i+1 << '\n';
-				throw ExceptionT::kBadInputValue;
+				ExceptionT::BadInputValue(caller, "unknown surface specification mode %d for surface %d",
+					spec_mode, i+1);
 		}
 	}
 	
@@ -236,8 +237,7 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 			out << "\n Striker nodes: ALL\n";	
 
 			//TEMP			
-			ExceptionT::GeneralFail("ContactT::EchoConnectivityData", 
-				"all nodes as strikers not tested");
+			ExceptionT::GeneralFail(caller, "all nodes as strikers not tested");
 			
 			break;
 
@@ -245,10 +245,8 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 			StrikersFromSideSets(in, out);
 			break;
 	
-		default:
-			cout << "\n ContactT::EchoConnectivityData: unknown striker specification\n";
-			cout <<   "     mode " << striker_spec_mode << '\n';
-			throw ExceptionT::kBadInputValue;
+		default:		
+			ExceptionT::BadInputValue(caller, "unknown striker specification mode %d", striker_spec_mode);
 	}
 
 	/* echo */
@@ -270,8 +268,8 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 
 	/* register with the model manager and let it set the ward */
 	int nen = fNumFacetNodes + 1; /* facet nodes + 1 striker */
-	if (!model.RegisterVariElements (name, fConnectivities_man, GeometryT::kLine, nen, 0)) 
-		throw ExceptionT::kGeneralFail;
+	if (!model.RegisterElementGroup(name, GeometryT::kLine, nen)) 
+		ExceptionT::GeneralFail(caller, "could not register contact facets");
 
 	/* set up fConnectivities */
 	fConnectivities.Dimension(1);
@@ -356,15 +354,18 @@ bool ContactT::SetContactConfiguration(void)
 		int nel = fActiveStrikers.Length();
 		fActiveStrikersForce.Dimension(nel);
 		fActiveStrikersForce = 0.0;
-		fConnectivities_man.SetMajorDimension(nel, false);
 		fEqnos_man.SetMajorDimension(nel, false);
-
-		/* generate connectivities */
-		SetConnectivities();	
 
 		/* update dimensions */
 		ElementBlockDataT& block = fBlockData[0];
 		block.Set(block.ID(), block.StartNumber(), fConnectivities[0]->MinorDim(), block.MaterialID());
+		
+		/* reset the model manager */
+		ModelManagerT& model = ElementSupport().Model();
+		model.ResizeElementGroup(block.ID(), nel);
+
+		/* generate connectivities */
+		SetConnectivities();
 	}
 
 	/* write list of active strikers */
