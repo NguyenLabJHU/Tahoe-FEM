@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.16 2003-04-07 17:25:50 cjkimme Exp $ */
+/* $Id: TiedNodesT.h,v 1.17 2003-04-07 23:39:41 cjkimme Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -116,7 +116,8 @@ protected:
 		kFree = 0,  /**< nodes are independent */
 		kChangeF = 2, /**< follower node is external and should be deleted */
 		kChangeL = 3, /**< leader node is external and should be deleted*/
-	        kTiedExt = 4 /**< pair is external and musn't be released*/};
+	  	kTiedExt = 4 /**< pair is external and musn't be released*/
+	};
 
 	/** generate boundary condition card for each degree of freedom
 	 * of follower nodes with TiedNodesT::kTied status */
@@ -164,16 +165,6 @@ protected:
 	iArrayT fPairStatus_last;
 	/*@}*/
 	
-	/** workspaces for evaluating release conditions */
-	dArray2DT fPairSpace;
-	iArrayT iPairSpace;
-	
-	/** equations numbers of the global system */
-//	iArray2DT* fEqnos;
-
-	/** list of kinematics for the nodes */
-//	AutoArrayT<dArray2DT*> fKinematics;
-	
 	/** needed to generate KBC_ControllerT::fKBC_Cards */
 	ScheduleT fDummySchedule;	
 	
@@ -183,9 +174,8 @@ protected:
 	 * to determine release condition
 	 */
 	bool qNoTiedPotential;
-	
-	SurfacePotentialT* fSurfPot;
-	TiedPotentialBaseT* fTiedPot;
+	/** Element Groups to get updated list of free nodes from */
+	iArrayT iElemGroups;
 
 };
 
