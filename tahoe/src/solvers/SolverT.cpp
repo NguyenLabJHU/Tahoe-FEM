@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.22 2004-07-15 08:31:51 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.23 2004-09-13 18:41:12 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -251,7 +251,14 @@ ParameterInterfaceT* SolverT::NewSub(const StringT& name) const
 #endif
 
 #ifdef __SPOOLES__
-		choice->AddSub(ParameterContainerT("SPOOLES_matrix"));
+		ParameterContainerT SPOOLES("SPOOLES_matrix");
+		ParameterT enable_pivoting(ParameterT::Boolean, "enable_pivoting");
+		enable_pivoting.SetDefault(true);
+		SPOOLES.AddParameter(enable_pivoting);
+		ParameterT always_symmetric(ParameterT::Boolean, "always_symmetric");
+		always_symmetric.SetDefault(false);
+		SPOOLES.AddParameter(always_symmetric);
+		choice->AddSub(SPOOLES);
 #endif
 
 #ifdef __PSPASES__
@@ -529,15 +536,23 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 		GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
 
 		/* solver options */
-		bool pivoting = true; //NOTE: SPOOLES v2.2 does not seem to solve non-symmetric
-			                      //      systems correctly in parallel if pivoting is disabled
+		bool pivoting = params.GetParameter("enable_pivoting");
+		bool always_symmetric = params.GetParameter("always_symmetric");
 		bool symmetric;
-		if (type == GlobalT::kDiagonal || type == GlobalT::kSymmetric)
+		if (always_symmetric)
+			symmetric = true;
+		else if (type == GlobalT::kDiagonal || type == GlobalT::kSymmetric)
 			symmetric = true;
 		else if (type == GlobalT::kNonSymmetric)
 			symmetric = false;
 		else
 			ExceptionT::GeneralFail(caller, "unexpected system type: %d", type);
+		
+		/* check */
+		if (!symmetric && !pivoting)
+			ExceptionT::GeneralFail(caller, "pivoting required with non-symmetric matricies");
+		// NOTE: SPOOLES v2.2 does not seem to solve non-symmetric
+		//      systems correctly in parallel if pivoting is disabled
 
 #ifdef __TAHOE_MPI__
 		/* constuctor */
