@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.21 2002-06-08 20:20:13 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.22 2002-06-17 17:15:06 rjones Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
@@ -39,6 +39,7 @@
 #include "MultiplierContact3DT.h"
 #include "MultiplierContactElement2DT.h"
 #include "PenaltyContactElement2DT.h"
+#include "PenaltyContactElement3DT.h"
 
 //TEMP
 #include "MeshFreeElasticT.h"
@@ -161,6 +162,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		out << "    eq. " << ElementT::kMultiplierContact3D       << ", 3D contact using Lagrange multipliers\n";
 		out << "    eq. " << ElementT::kMultiplierContactElement2D       << ", 2D Lagrange multiplier contact elements\n";
 		out << "    eq. " << ElementT::kPenaltyContactElement2D       << ", 2D penalty contact elements\n";
+		out << "    eq. " << ElementT::kPenaltyContactElement3D       << ", 3D penalty contact elements\n";
 		
 		/* check */
 		if (group < 0 || group >= Length())
@@ -327,6 +329,13 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
             {
                 fArray[group] = new PenaltyContactElement2DT(fSupport, *field);
                 break;
+            }
+            case ElementT::kPenaltyContactElement3D:
+			{
+                fArray[group] = new PenaltyContactElement3DT(fSupport, *field);
+                break;
+
+
 			}
 			default:
 			
