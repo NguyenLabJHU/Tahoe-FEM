@@ -245,6 +245,10 @@ protected:
 	/** workspaces for strain smoothing */
 	ArrayT< LinkedListT<int> > nodeWorkSpace;
 	ArrayT< LinkedListT<dArrayT> > facetWorkSpace;
+	
+	/** workspace for nodal shape functions */
+	ArrayT< LinkedListT<double> > fNodalPhi;
+	ArrayT< LinkedListT<int> > fNodalSupports;
 	  	
 	/* body force vector */
 	const ScheduleT* fBodySchedule; /**< body force schedule */
