@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.24 2005-02-17 22:56:09 cjkimme Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.25 2005-02-27 00:02:00 paklein Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 #include "ArrayT.h"
@@ -179,7 +179,7 @@ void FS_SCNIMF_AxiT::WriteOutput(void)
 			const dArray2DT& u = Field()(-1,0);
 
 			/* destination */
-			dMatrixT& F3D = fF_list[0];
+			dMatrixT& F3D = fF_last_list[0];
 
 			F2D = 0.0; F_33 = 0.;
 			dArrayT* bVec_i = bVectorArray(i);
@@ -414,7 +414,7 @@ void FS_SCNIMF_AxiT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				const dArray2DT& u = Field()(-1,0);
 
 				/* destination */
-				dMatrixT& F3D = fF_list[0];
+				dMatrixT& F3D = fF_last_list[0];
 
 				F2D = 0.0; F_33 = 0.;
 				dArrayT* bVec_i = bVectorArray(i);
