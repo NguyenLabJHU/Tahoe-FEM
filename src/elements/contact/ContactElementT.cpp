@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.40 2003-02-03 04:40:18 paklein Exp $ */
+/* $Id: ContactElementT.cpp,v 1.41 2003-06-30 22:07:27 rjones Exp $ */
 #include "ContactElementT.h"
 
 #include <math.h>
@@ -34,6 +34,13 @@ ContactElementT::ContactElementT
 {
     fNumEnfParameters = num_enf_params;
     fNumMultipliers = 0;
+
+	fNumMaterialModelParameters[kDefault] = 0;
+	fNumMaterialModelParameters[kModSmithFerrante] = knSF;
+	fNumMaterialModelParameters[kGreenwoodWilliamson] = knGW;
+	fNumMaterialModelParameters[kMajumdarBhushan] = knMB;
+	fNumMaterialModelParameters[kGWPlastic] = knGP;
+
     ReadControlData();
 }
 
@@ -73,13 +80,6 @@ void ContactElementT::Initialize(void)
 	for (int i = 0; i < fSurfaces.Length(); i++) {
 		fSurfaces[i].Initialize(ElementSupport(), fNumMultipliers);
 	}
-
-    for (int i = 0; i < fSurfaces.Length(); i++) {
-    	ArrayT<ContactNodeT*>& nodes = fSurfaces[i].ContactNodes();
-    	for(int n = 0; n < nodes.Length(); n++){
-			nodes[n]->EnforcementStatus() = -10;
-		}
-    }
 
 #if 0
         /* set console access */
@@ -430,6 +430,7 @@ void ContactElementT::ReadControlData(void)
 	    << fNumEnfParameters << '\n';
     fSearchParameters.Dimension(num_surfaces);
     fEnforcementParameters.Dimension(num_surfaces);
+    fMaterialParameters.Dimension(num_surfaces);
     int s1, s2;
     for (int i = 0; i < num_pairs ; i++)
     {
@@ -439,21 +440,36 @@ void ContactElementT::ReadControlData(void)
         dArrayT& search_parameters = fSearchParameters(s1,s2);
         /* general parameters for search */
         search_parameters.Allocate (kSearchNumParameters);
-
-        dArrayT& enf_parameters    = fEnforcementParameters(s1,s2);
-        /* parameters specific to enforcement */
-        enf_parameters.Allocate (fNumEnfParameters);
         for (int j = 0 ; j < search_parameters.Length() ; j++)
         {
             in >> search_parameters[j];
         }
+
+        dArrayT& enf_parameters    = fEnforcementParameters(s1,s2);
+        /* parameters specific to enforcement */
+        enf_parameters.Allocate (fNumEnfParameters);
         for (int j = 0 ; j < enf_parameters.Length() ; j++)
         {
             in >> enf_parameters[j];
         }
+
+		// read material parameters
+		int material_code = (int) enf_parameters[enf_parameters.Length()-1];
+
+		int NumMatParameters = Num_of_Parameters(material_code);
+		if (NumMatParameters) {
+          dArrayT& mat_parameters    = fMaterialParameters(s1,s2);
+          /* parameters specific to enforcement */
+          mat_parameters.Allocate (NumMatParameters);
+          for (int j = 0 ; j < mat_parameters.Length() ; j++)
+          {
+            in >> mat_parameters[j];
+          }
+		}
     }
     fSearchParameters.CopySymmetric();
     fEnforcementParameters.CopySymmetric();
+    fMaterialParameters.CopySymmetric();
 
 }
 
@@ -503,7 +519,7 @@ bool ContactElementT::SetContactConfiguration(void)
 {
 	bool changed = fContactSearch->SetInteractions();
 	
-        if (changed) { 
+	if (changed) { 
 		/* form potential connectivity for step */
   		for (int i = 0; i < fSurfaces.Length(); i++) {
 			fSurfaces[i].SetPotentialConnectivity();

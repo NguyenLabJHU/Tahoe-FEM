@@ -1,10 +1,12 @@
-/* $Id: PolyDistributionT.cpp,v 1.1 2003-06-03 16:32:12 rjones Exp $ */
+/* $Id: PolyDistributionT.cpp,v 1.2 2003-06-30 22:07:25 rjones Exp $ */
 
 #include "PolyDistributionT.h"
 #include <iostream.h>
 #include <math.h>
 #include "ExceptionT.h"
 #include "dArrayT.h"
+
+static const double Pi = 4.0*atan(1.0);
 
 /* constructors */
 
@@ -17,8 +19,12 @@ fPower(p), fMean(m), fWidth(w)
 		cout << "\n*** Bad POWER value in PolyDistribution.cpp.\n";
 		throw ExceptionT::kBadInputValue;
 	}
-	if (fWidth==0) {
+	if (!(fWidth>0)) {
 		cout << "\n*** Bad WIDTH value in PolyDistribution.cpp.\n";
+		throw ExceptionT::kBadInputValue;
+	}
+	if (!(fWidth+fMean>0)) {
+		cout << "\n*** WIDTH+MEAN must be positive in PolyDistribution.cpp.\n";
 		throw ExceptionT::kBadInputValue;
 	}
 }
@@ -37,133 +43,36 @@ void PolyDistributionT::PrintName(ostream& out) const
 	out << "    Polynominal distribution function\n";
 }
 
-double PolyDistributionT::Mom0(const double x, const double d) const
-{
-		double value =(
-		((15*pow(fMean,4) - 30*pow(fMean,2)*pow(fWidth,2) + 15*pow(fWidth,4))*x)
-		+ ((-30*pow(fMean,3) + 30*fMean*pow(fWidth,2))*pow(x,2))
-		+ ((30*pow(fMean,2) - 10*pow(fWidth,2))*pow(x,3))
-		+ (3*pow(x,5))
-		) /(16.*pow(fWidth,5));
-		return value;
-}
-
-double PolyDistributionT::dMom0dx(const double x, const double d) const
-{
-		double value = (
-		(15*(pow(fMean,4) - 2*pow(fMean,2)*pow(fWidth,2) + pow(fWidth,4)))
-		+ (15*(-4*pow(fMean,3) + 4*fMean*pow(fWidth,2))*x)
-		+ (15*(6*pow(fMean,2) - 2*pow(fWidth,2))*pow(x,2))
-		- (60*fMean*pow(x,3))
-		+ (15*pow(x,4))
-		)/(16.*pow(fWidth,5));
-		return value;
-}
-
-double PolyDistributionT::Mom1(const double x, const double d) const
-{
-		double value =(
-		((-30*d*pow(fMean,4) + 60*d*pow(fMean,2)*pow(fWidth,2) 
-			- 30*d*pow(fWidth,4))*x)
-		+ ((60*d*pow(fMean,3) + 15*pow(fMean,4) - 60*d*fMean*pow(fWidth,2) 
-			- 30*pow(fMean,2)*pow(fWidth,2) + 15*pow(fWidth,4))*pow(x,2))
-		+ ((-60*d*pow(fMean,2) - 40*pow(fMean,3) + 20*d*pow(fWidth,2) 
-			+ 40*fMean*pow(fWidth,2))*pow(x,3))
-		+ ((30*d*fMean + 45*pow(fMean,2) - 15*pow(fWidth,2))*pow(x,4))
-		+ ((-6*d - 24*fMean)*pow(x,5))
-		+ (5*pow(x,6))
-		)/(32.*pow(fWidth,5));
-		return value;
-}
-
-double PolyDistributionT::dMom1dx(const double x, const double d) const
-{
-		double value =(
-		(-15*(d*pow(fMean,4) - 2*d*pow(fMean,2)*pow(fWidth,2) + d*pow(fWidth,4)))
-		- (15*(-4*d*pow(fMean,3) - pow(fMean,4) + 4*d*fMean*pow(fWidth,2) 
-		+ 2*pow(fMean,2)*pow(fWidth,2) - pow(fWidth,4))*x)
-		- (15*(6*d*pow(fMean,2) + 4*pow(fMean,3) - 2*d*pow(fWidth,2) 
-		- 4*fMean*pow(fWidth,2))*pow(x,2))
-		- (15*(-4*d*fMean - 6*pow(fMean,2) + 2*pow(fWidth,2))*pow(x,3))
-		- (15*(d + 4*fMean)*pow(x,4))
-		+ (15*pow(x,5))
-		)/(16.*pow(fWidth,5));
-		return value;
-}
-
-double PolyDistributionT::dMom1dd(const double x, const double d) const
-{
-		double value =(
-		(-15*d*pow(pow(fMean,2) - pow(fWidth,2) - 2*fMean*x + pow(x,2),2))
-		+ (15*x*pow(pow(fMean,2) - pow(fWidth,2) - 2*fMean*x + pow(x,2),2))
-		)/(16.*pow(fWidth,5));
-		return value;
-}
-
-double PolyDistributionT::Mom1_5(const double x, const double d) const
-{
-		double value =(
-		((384*pow(d,4) - 2496*pow(d,3)*fMean + 6864*pow(d,2)*pow(fMean,2) 
-		- 10296*d*pow(fMean,3) + 9009*pow(fMean,4) - 2288*pow(d,2)*pow(fWidth,2) 
-		+ 10296*d*fMean*pow(fWidth,2) - 18018*pow(fMean,2)*pow(fWidth,2) 
-		+ 9009*pow(fWidth,4))*pow(-d + x,2.5))
-		+ ((960*pow(d,3) - 6240*pow(d,2)*fMean + 17160*d*pow(fMean,2) 
-		- 25740*pow(fMean,3) - 5720*d*pow(fWidth,2) 
-		+ 25740*fMean*pow(fWidth,2))*x*pow(-d + x,2.5))
-		+ ((1680*pow(d,2) - 10920*d*fMean + 30030*pow(fMean,2) 
-		- 10010*pow(fWidth,2))*pow(x,2)*pow(-d + x,2.5))
-		+ ((2520*d - 16380*fMean)*pow(x,3)*pow(-d + x,2.5))
-		)/(24024.*pow(fWidth,5)) 
-		+ (15*pow(x,4)*pow(-d + x,2.5))/(104.*pow(fWidth,5));
-		return value;
-}
-
-double PolyDistributionT::dMom1_5dx(const double x, const double d) const
-{
-		double value =(
-		(15*(pow(fMean,4) - 2*pow(fMean,2)*pow(fWidth,2) + pow(fWidth,4))*pow(-d + x,1.5))
-		+ (15*(-4*pow(fMean,3) + 4*fMean*pow(fWidth,2))*x*pow(-d + x,1.5))
-		+ (15*(6*pow(fMean,2) - 2*pow(fWidth,2))*pow(x,2)*pow(-d + x,1.5))
-		- 4.*(15*fMean*pow(x,3)*pow(-d + x,1.5))
-		+ (15*pow(x,4)*pow(-d + x,1.5))
-		)/(16.*pow(fWidth,5));
-		return value;
-}
-
-double PolyDistributionT::dMom1_5dd(const double x, const double d) const
-{
-		double value =(
-		(15*pow(-d + x,1.5)*pow(pow(fMean,2) - pow(fWidth,2) - 2*fMean*x + pow(x,2),2))
-		)/(16.*pow(fWidth,5));
-		return value;
-}
-
 /*
 * Returning values
 */
 double PolyDistributionT::Function(double d) const
-// Returns the area value (p = 1) ONLY.
 {
 	double value=0.0;
 
-	if (fPower==0.0) {
-		double uplimit= (d > fMean+fWidth) ? 0.0      : Mom0(fMean+fWidth,d);
-		double lolimit= (d > fMean-fWidth) ? Mom0(d,d): Mom0(fMean-fWidth,d); 
-		value = uplimit - lolimit;
-	}
-	else if (fPower==1.0) {
-		double uplimit= (d > fMean+fWidth) ? 0.0      : Mom1(fMean+fWidth,d);
-		double lolimit= (d > fMean-fWidth) ? Mom1(d,d): Mom1(fMean-fWidth,d); 
-		value = uplimit - lolimit;
-	}
-	else if (fPower==1.5) {
-		double uplimit= (d > fMean+fWidth) ? 0.0        : Mom1_5(fMean+fWidth,d);
-		double lolimit= (d > fMean-fWidth) ? Mom1_5(d,d): Mom1_5(fMean-fWidth,d); 
-		value = uplimit - lolimit;
-	}
-	else {
-		cout << "*** ERROR! PolyDistribution p="<<fPower<<"  potential unavailable.";
-		throw ExceptionT::kBadInputValue;
+	if ( d < fMean+fWidth ) {
+		if (fPower==0.0) {
+			if (d > fMean-fWidth) {
+				value = -(pow(d - fMean - fWidth,3)*(3*pow(d,2) - 6*d*fMean + 3*pow(fMean,2) + 9*d*fWidth - 9*fMean*fWidth + 8*pow(fWidth,2)))/(16.*pow(fWidth,5)) ;
+			} else { value = 1.0; }
+		}
+		else if (fPower==1.0) {
+			if (d > fMean-fWidth) {
+				value = (pow(-d + fMean + fWidth,4)*(pow(d,2) - 2*d*fMean + pow(fMean,2) + 4*d*fWidth - 4*fMean*fWidth + 5*pow(fWidth,2)))/(32.*pow(fWidth,5));
+			} else { value = fWidth ;}
+		}
+		else if (fPower==1.5) {
+			if (d > fMean-fWidth) {
+				value = (45*pow(d,1.5)*sqrt(Pi)*((8*pow(fMean,4)*pow(-d + fMean + fWidth,2.5))/(15.*pow(d,1.5)*sqrt(Pi)) - (16*pow(fMean,2)*pow(fWidth,2)*pow(-d + fMean + fWidth,2.5))/(15.*pow(d,1.5)*sqrt(Pi)) + (8*pow(fWidth,4)*pow(-d + fMean + fWidth,2.5))/(15.*pow(d,1.5)*sqrt(Pi)) - (32*pow(fMean,3)*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(2*d + 5*fMean + 5*fWidth)*sqrt(1 - d/(fMean + fWidth)))/(105.*pow(d,1.5)*sqrt(Pi)) + (32*fMean*pow(fWidth,2)*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(2*d + 5*fMean + 5*fWidth)*sqrt(1 - d/(fMean + fWidth)))/(105.*pow(d,1.5)*sqrt(Pi)) + (16*pow(fMean,2)*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(8*pow(d,2) + 20*d*fMean + 35*pow(fMean,2) + 20*d*fWidth + 70*fMean*fWidth + 35*pow(fWidth,2))*sqrt(1 - d/(fMean + fWidth)))/(315.*pow(d,1.5)*sqrt(Pi)) - (16*pow(fWidth,2)*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(8*pow(d,2) + 20*d*fMean + 35*pow(fMean,2) + 20*d*fWidth + 70*fMean*fWidth + 35*pow(fWidth,2))*sqrt(1 - d/(fMean + fWidth)))/(945.*pow(d,1.5)*sqrt(Pi)) - (32*fMean*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(16*pow(d,3) + 40*pow(d,2)*fMean + 70*d*pow(fMean,2) + 105*pow(fMean,3) + 40*pow(d,2)*fWidth + 140*d*fMean*fWidth + 315*pow(fMean,2)*fWidth + 70*d*pow(fWidth,2) + 315*fMean*pow(fWidth,2) + 105*pow(fWidth,3))*sqrt(1 - d/(fMean + fWidth)))/(3465.*pow(d,1.5)*sqrt(Pi)) + (8*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(128*pow(d,4) + 320*pow(d,3)*fMean + 560*pow(d,2)*pow(fMean,2) + 840*d*pow(fMean,3) + 1155*pow(fMean,4) + 320*pow(d,3)*fWidth + 1120*pow(d,2)*fMean*fWidth + 2520*d*pow(fMean,2)*fWidth + 4620*pow(fMean,3)*fWidth + 560*pow(d,2)*pow(fWidth,2) + 2520*d*fMean*pow(fWidth,2) + 6930*pow(fMean,2)*pow(fWidth,2) + 840*d*pow(fWidth,3) + 4620*fMean*pow(fWidth,3) + 1155*pow(fWidth,4))*sqrt(1 - d/(fMean + fWidth)))/(45045.*pow(d,1.5)*sqrt(Pi))))/(64.*pow(fWidth,5));
+			} else { 
+				value = (1287*pow(fMean,4)*sqrt(fWidth) - 2574*pow(fMean,2)*pow(fWidth,2.5) + 1287*pow(fWidth,4.5) - 1287*pow(fMean,4)*sqrt(fWidth/(fMean + fWidth))*sqrt(fMean + fWidth) - 647*pow(fWidth,4)*sqrt(fWidth/(fMean + fWidth))*sqrt(fMean + fWidth) + 2574*pow(fMean,2)*pow(fWidth/(fMean + fWidth),2.5)*pow(fMean + fWidth,2.5))/(429.*sqrt(2.0)*pow(fWidth,3));
+			}
+		}
+		else {
+			cout << "*** ERROR! PolyDistribution p="<<fPower
+					<<"  potential unavailable.";
+			throw ExceptionT::kBadInputValue;
+		}
 	}
 	
 	return value;
@@ -172,21 +81,33 @@ double PolyDistributionT::Function(double d) const
 double PolyDistributionT::DFunction(double d) const
 {
 	double value=0.0;
-	
-	if (fPower==0.0) {
-	}
-	else if (fPower==1.0) {
-	}
-	if (fPower==1.5) {
-	}
-	else {
-		cout << "*** ERROR! PolyDistribution p="<<fPower<<"  gradient unavailable.";
-		throw ExceptionT::kBadInputValue;
+
+	if ( d < fMean+fWidth ) {
+		if (fPower==0.0) {
+			if (d > fMean-fWidth) {
+				value =-(pow(d - fMean - fWidth,3)*(6*d - 6*fMean + 9*fWidth))/(16.*pow(fWidth,5)) - (3*pow(d - fMean - fWidth,2)*(3*pow(d,2) - 6*d*fMean + 3*pow(fMean,2) + 9*d*fWidth - 9*fMean*fWidth + 8*pow(fWidth,2)))/(16.*pow(fWidth,5));
+			} else { value = 0.0; }
+		}
+		else if (fPower==1.0) {
+			if (d > fMean-fWidth) {
+				value = (pow(-d + fMean + fWidth,4)*(2*d - 2*fMean + 4*fWidth))/(32.*pow(fWidth,5)) - (pow(-d + fMean + fWidth,3)*(pow(d,2) - 2*d*fMean + pow(fMean,2) + 4*d*fWidth - 4*fMean*fWidth + 5*pow(fWidth,2)))/(8.*pow(fWidth,5));
+			} else { value = 0.0 ;}
+		}
+		else if (fPower==1.5) {
+			if (d > fMean-fWidth) {
+
+
+				value = (45*pow(d,1.5)*sqrt(Pi)*((-4*pow(fMean,4)*pow(-d + fMean + fWidth,1.5))/(3.*pow(d,1.5)*sqrt(Pi)) + (8*pow(fMean,2)*pow(fWidth,2)*pow(-d + fMean + fWidth,1.5))/(3.*pow(d,1.5)*sqrt(Pi)) - (4*pow(fWidth,4)*pow(-d + fMean + fWidth,1.5))/(3.*pow(d,1.5)*sqrt(Pi)) - (4*pow(fMean,4)*pow(-d + fMean + fWidth,2.5))/(5.*pow(d,2.5)*sqrt(Pi)) + (8*pow(fMean,2)*pow(fWidth,2)*pow(-d + fMean + fWidth,2.5))/(5.*pow(d,2.5)*sqrt(Pi)) - (4*pow(fWidth,4)*pow(-d + fMean + fWidth,2.5))/(5.*pow(d,2.5)*sqrt(Pi)) + (16*pow(fMean,3)*pow(-d + fMean + fWidth,2)*(2*d + 5*fMean + 5*fWidth))/(105.*pow(d,1.5)*sqrt(Pi)*sqrt(fMean + fWidth)*sqrt(1 - d/(fMean + fWidth))) - (16*fMean*pow(fWidth,2)*pow(-d + fMean + fWidth,2)*(2*d + 5*fMean + 5*fWidth))/(105.*pow(d,1.5)*sqrt(Pi)*sqrt(fMean + fWidth)*sqrt(1 - d/(fMean + fWidth))) - (8*pow(fMean,2)*pow(-d + fMean + fWidth,2)*(8*pow(d,2) + 20*d*fMean + 35*pow(fMean,2) + 20*d*fWidth + 70*fMean*fWidth + 35*pow(fWidth,2)))/(315.*pow(d,1.5)*sqrt(Pi)*sqrt(fMean + fWidth)*sqrt(1 - d/(fMean + fWidth))) + (8*pow(fWidth,2)*pow(-d + fMean + fWidth,2)*(8*pow(d,2) + 20*d*fMean + 35*pow(fMean,2) + 20*d*fWidth + 70*fMean*fWidth + 35*pow(fWidth,2)))/(945.*pow(d,1.5)*sqrt(Pi)*sqrt(fMean + fWidth)*sqrt(1 - d/(fMean + fWidth))) + (16*fMean*pow(-d + fMean + fWidth,2)*(16*pow(d,3) + 40*pow(d,2)*fMean + 70*d*pow(fMean,2) + 105*pow(fMean,3) + 40*pow(d,2)*fWidth + 140*d*fMean*fWidth + 315*pow(fMean,2)*fWidth + 70*d*pow(fWidth,2) + 315*fMean*pow(fWidth,2) + 105*pow(fWidth,3)))/(3465.*pow(d,1.5)*sqrt(Pi)*sqrt(fMean + fWidth)*sqrt(1 - d/(fMean + fWidth))) - (4*pow(-d + fMean + fWidth,2)*(128*pow(d,4) + 320*pow(d,3)*fMean + 560*pow(d,2)*pow(fMean,2) + 840*d*pow(fMean,3) + 1155*pow(fMean,4) + 320*pow(d,3)*fWidth + 1120*pow(d,2)*fMean*fWidth + 2520*d*pow(fMean,2)*fWidth + 4620*pow(fMean,3)*fWidth + 560*pow(d,2)*pow(fWidth,2) + 2520*d*fMean*pow(fWidth,2) + 6930*pow(fMean,2)*pow(fWidth,2) + 840*d*pow(fWidth,3) + 4620*fMean*pow(fWidth,3) + 1155*pow(fWidth,4)))/(45045.*pow(d,1.5)*sqrt(Pi)*sqrt(fMean + fWidth)*sqrt(1 - d/(fMean + fWidth))) - (64*pow(fMean,3)*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*sqrt(1 - d/(fMean + fWidth)))/(105.*pow(d,1.5)*sqrt(Pi)) + (64*fMean*pow(fWidth,2)*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*sqrt(1 - d/(fMean + fWidth)))/(105.*pow(d,1.5)*sqrt(Pi)) + (64*pow(fMean,3)*sqrt(fMean + fWidth)*(-d + fMean + fWidth)*(2*d + 5*fMean + 5*fWidth)*sqrt(1 - d/(fMean + fWidth)))/(105.*pow(d,1.5)*sqrt(Pi)) - (64*fMean*pow(fWidth,2)*sqrt(fMean + fWidth)*(-d + fMean + fWidth)*(2*d + 5*fMean + 5*fWidth)*sqrt(1 - d/(fMean + fWidth)))/(105.*pow(d,1.5)*sqrt(Pi)) + (16*pow(fMean,3)*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(2*d + 5*fMean + 5*fWidth)*sqrt(1 - d/(fMean + fWidth)))/(35.*pow(d,2.5)*sqrt(Pi)) - (16*fMean*pow(fWidth,2)*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(2*d + 5*fMean + 5*fWidth)*sqrt(1 - d/(fMean + fWidth)))/(35.*pow(d,2.5)*sqrt(Pi)) + (16*pow(fMean,2)*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(16*d + 20*fMean + 20*fWidth)*sqrt(1 - d/(fMean + fWidth)))/(315.*pow(d,1.5)*sqrt(Pi)) - (16*pow(fWidth,2)*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(16*d + 20*fMean + 20*fWidth)*sqrt(1 - d/(fMean + fWidth)))/(945.*pow(d,1.5)*sqrt(Pi)) - (32*pow(fMean,2)*sqrt(fMean + fWidth)*(-d + fMean + fWidth)*(8*pow(d,2) + 20*d*fMean + 35*pow(fMean,2) + 20*d*fWidth + 70*fMean*fWidth + 35*pow(fWidth,2))*sqrt(1 - d/(fMean + fWidth)))/(315.*pow(d,1.5)*sqrt(Pi)) + (32*pow(fWidth,2)*sqrt(fMean + fWidth)*(-d + fMean + fWidth)*(8*pow(d,2) + 20*d*fMean + 35*pow(fMean,2) + 20*d*fWidth + 70*fMean*fWidth + 35*pow(fWidth,2))*sqrt(1 - d/(fMean + fWidth)))/(945.*pow(d,1.5)*sqrt(Pi)) - (8*pow(fMean,2)*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(8*pow(d,2) + 20*d*fMean + 35*pow(fMean,2) + 20*d*fWidth + 70*fMean*fWidth + 35*pow(fWidth,2))*sqrt(1 - d/(fMean + fWidth)))/(105.*pow(d,2.5)*sqrt(Pi)) + (8*pow(fWidth,2)*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(8*pow(d,2) + 20*d*fMean + 35*pow(fMean,2) + 20*d*fWidth + 70*fMean*fWidth + 35*pow(fWidth,2))*sqrt(1 - d/(fMean + fWidth)))/(315.*pow(d,2.5)*sqrt(Pi)) - (32*fMean*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(48*pow(d,2) + 80*d*fMean + 70*pow(fMean,2) + 80*d*fWidth + 140*fMean*fWidth + 70*pow(fWidth,2))*sqrt(1 - d/(fMean + fWidth)))/(3465.*pow(d,1.5)*sqrt(Pi)) + (64*fMean*sqrt(fMean + fWidth)*(-d + fMean + fWidth)*(16*pow(d,3) + 40*pow(d,2)*fMean + 70*d*pow(fMean,2) + 105*pow(fMean,3) + 40*pow(d,2)*fWidth + 140*d*fMean*fWidth + 315*pow(fMean,2)*fWidth + 70*d*pow(fWidth,2) + 315*fMean*pow(fWidth,2) + 105*pow(fWidth,3))*sqrt(1 - d/(fMean + fWidth)))/(3465.*pow(d,1.5)*sqrt(Pi)) + (16*fMean*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(16*pow(d,3) + 40*pow(d,2)*fMean + 70*d*pow(fMean,2) + 105*pow(fMean,3) + 40*pow(d,2)*fWidth + 140*d*fMean*fWidth + 315*pow(fMean,2)*fWidth + 70*d*pow(fWidth,2) + 315*fMean*pow(fWidth,2) + 105*pow(fWidth,3))*sqrt(1 - d/(fMean + fWidth)))/(1155.*pow(d,2.5)*sqrt(Pi)) + (8*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(512*pow(d,3) + 960*pow(d,2)*fMean + 1120*d*pow(fMean,2) + 840*pow(fMean,3) + 960*pow(d,2)*fWidth + 2240*d*fMean*fWidth + 2520*pow(fMean,2)*fWidth + 1120*d*pow(fWidth,2) + 2520*fMean*pow(fWidth,2) + 840*pow(fWidth,3))*sqrt(1 - d/(fMean + fWidth)))/(45045.*pow(d,1.5)*sqrt(Pi)) - (16*sqrt(fMean + fWidth)*(-d + fMean + fWidth)*(128*pow(d,4) + 320*pow(d,3)*fMean + 560*pow(d,2)*pow(fMean,2) + 840*d*pow(fMean,3) + 1155*pow(fMean,4) + 320*pow(d,3)*fWidth + 1120*pow(d,2)*fMean*fWidth + 2520*d*pow(fMean,2)*fWidth + 4620*pow(fMean,3)*fWidth + 560*pow(d,2)*pow(fWidth,2) + 2520*d*fMean*pow(fWidth,2) + 6930*pow(fMean,2)*pow(fWidth,2) + 840*d*pow(fWidth,3) + 4620*fMean*pow(fWidth,3) + 1155*pow(fWidth,4))*sqrt(1 - d/(fMean + fWidth)))/(45045.*pow(d,1.5)*sqrt(Pi)) - (4*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(128*pow(d,4) + 320*pow(d,3)*fMean + 560*pow(d,2)*pow(fMean,2) + 840*d*pow(fMean,3) + 1155*pow(fMean,4) + 320*pow(d,3)*fWidth + 1120*pow(d,2)*fMean*fWidth + 2520*d*pow(fMean,2)*fWidth + 4620*pow(fMean,3)*fWidth + 560*pow(d,2)*pow(fWidth,2) + 2520*d*fMean*pow(fWidth,2) + 6930*pow(fMean,2)*pow(fWidth,2) + 840*d*pow(fWidth,3) + 4620*fMean*pow(fWidth,3) + 1155*pow(fWidth,4))*sqrt(1 - d/(fMean + fWidth)))/(15015.*pow(d,2.5)*sqrt(Pi))))/(64.*pow(fWidth,5)) + (135*sqrt(d)*sqrt(Pi)*((8*pow(fMean,4)*pow(-d + fMean + fWidth,2.5))/(15.*pow(d,1.5)*sqrt(Pi)) - (16*pow(fMean,2)*pow(fWidth,2)*pow(-d + fMean + fWidth,2.5))/(15.*pow(d,1.5)*sqrt(Pi)) + (8*pow(fWidth,4)*pow(-d + fMean + fWidth,2.5))/(15.*pow(d,1.5)*sqrt(Pi)) - (32*pow(fMean,3)*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(2*d + 5*fMean + 5*fWidth)*sqrt(1 - d/(fMean + fWidth)))/(105.*pow(d,1.5)*sqrt(Pi)) + (32*fMean*pow(fWidth,2)*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(2*d + 5*fMean + 5*fWidth)*sqrt(1 - d/(fMean + fWidth)))/(105.*pow(d,1.5)*sqrt(Pi)) + (16*pow(fMean,2)*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(8*pow(d,2) + 20*d*fMean + 35*pow(fMean,2) + 20*d*fWidth + 70*fMean*fWidth + 35*pow(fWidth,2))*sqrt(1 - d/(fMean + fWidth)))/(315.*pow(d,1.5)*sqrt(Pi)) - (16*pow(fWidth,2)*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(8*pow(d,2) + 20*d*fMean + 35*pow(fMean,2) + 20*d*fWidth + 70*fMean*fWidth + 35*pow(fWidth,2))*sqrt(1 - d/(fMean + fWidth)))/(945.*pow(d,1.5)*sqrt(Pi)) - (32*fMean*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(16*pow(d,3) + 40*pow(d,2)*fMean + 70*d*pow(fMean,2) + 105*pow(fMean,3) + 40*pow(d,2)*fWidth + 140*d*fMean*fWidth + 315*pow(fMean,2)*fWidth + 70*d*pow(fWidth,2) + 315*fMean*pow(fWidth,2) + 105*pow(fWidth,3))*sqrt(1 - d/(fMean + fWidth)))/(3465.*pow(d,1.5)*sqrt(Pi)) + (8*sqrt(fMean + fWidth)*pow(-d + fMean + fWidth,2)*(128*pow(d,4) + 320*pow(d,3)*fMean + 560*pow(d,2)*pow(fMean,2) + 840*d*pow(fMean,3) + 1155*pow(fMean,4) + 320*pow(d,3)*fWidth + 1120*pow(d,2)*fMean*fWidth + 2520*d*pow(fMean,2)*fWidth + 4620*pow(fMean,3)*fWidth + 560*pow(d,2)*pow(fWidth,2) + 2520*d*fMean*pow(fWidth,2) + 6930*pow(fMean,2)*pow(fWidth,2) + 840*d*pow(fWidth,3) + 4620*fMean*pow(fWidth,3) + 1155*pow(fWidth,4))*sqrt(1 - d/(fMean + fWidth)))/(45045.*pow(d,1.5)*sqrt(Pi))))/(128.*pow(fWidth,5));
+			} else { value = 0.0 ;}
+		}
+		else {
+			cout << "*** ERROR! PolyDistribution p="<<fPower
+					<<"  potential unavailable.";
+			throw ExceptionT::kBadInputValue;
+		}
 	}
 	
 	return value;
-
-
 }
 
 double PolyDistributionT::DDFunction(double d) const
@@ -216,6 +137,7 @@ double PolyDistributionT::DDFunction(double d) const
 */
 dArrayT& PolyDistributionT::MapFunction(const dArrayT& in, dArrayT& out) const
 {
+throw ExceptionT::kGeneralFail;
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
@@ -225,26 +147,18 @@ dArrayT& PolyDistributionT::MapFunction(const dArrayT& in, dArrayT& out) const
 	if (fPower==0.0) {
 		for (int i = 0; i < in.Length(); i++) {
 			x = *pin++;
-			double uplimit= (x > fMean+fWidth) ? 0.0      : Mom0(fMean+fWidth,x);
-			double lolimit= (x > fMean-fWidth) ? Mom0(x,x): Mom0(fMean-fWidth,x); 
-			value = uplimit - lolimit;
 			*pout++ = value;
 		}
 	}
 	else if (fPower==1.0) {
 		for (int i = 0; i < in.Length(); i++) {
 			x = *pin++;
-			double uplimit= (x > fMean+fWidth) ? 0.0      : Mom1(fMean+fWidth,x);
-			double lolimit= (x > fMean-fWidth) ? Mom1(x,x): Mom1(fMean-fWidth,x); 
-			value = uplimit - lolimit;
+			*pout++ = value;
 		}
 	}
 	else if (fPower==1.5) {
 		for (int i = 0; i < in.Length(); i++) {
 			x = *pin++;
-			double uplimit= (x > fMean+fWidth) ? 0.0        : Mom1_5(fMean+fWidth,x);
-			double lolimit= (x > fMean-fWidth) ? Mom1_5(x,x): Mom1_5(fMean-fWidth,x); 
-			value = uplimit - lolimit;
 			*pout++ = value;
 		}
 	}
@@ -258,6 +172,7 @@ dArrayT& PolyDistributionT::MapFunction(const dArrayT& in, dArrayT& out) const
 
 dArrayT& PolyDistributionT::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
+throw ExceptionT::kGeneralFail;
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
@@ -292,6 +207,7 @@ dArrayT& PolyDistributionT::MapDFunction(const dArrayT& in, dArrayT& out) const
 
 dArrayT& PolyDistributionT::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
+throw ExceptionT::kGeneralFail;
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 

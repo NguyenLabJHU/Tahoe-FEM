@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement3DT.cpp,v 1.10 2003-02-03 04:40:18 paklein Exp $ */
+/* $Id: PenaltyContactElement3DT.cpp,v 1.11 2003-06-30 22:07:28 rjones Exp $ */
 #include "PenaltyContactElement3DT.h"
 
 #include <math.h>
@@ -39,11 +39,12 @@ void PenaltyContactElement3DT::Initialize(void)
     {
         for (int j = 0 ; j < num_surfaces ; j++)
         {
-          dArrayT& parameters = fEnforcementParameters(i,j);
-		  if (parameters.Length()) {
-			switch ((int) parameters[kPenaltyType]) 
+          dArrayT& enf_parameters = fEnforcementParameters(i,j);
+		  if (enf_parameters.Length()) {
+            dArrayT& parameters = fEnforcementParameters(i,j);
+			switch ((int) enf_parameters[kMaterialType]) 
 			{
-			case PenaltyContactElement3DT::kLinear:
+			case PenaltyContactElement3DT::kDefault:
 				// Macauley bracket:  <-x> ???
 				fPenaltyFunctions[LookUp(i,j,num_surfaces)] = new ParabolaT(1.0);
 				break;
@@ -89,7 +90,7 @@ void PenaltyContactElement3DT::WriteOutput(void)
 	ContactElementT::WriteOutput();
 	
 	if (fOutputFlags[kArea] ) 
-//  (parameters[kPenaltyType]==PenaltyContactElement3DT::kGreenwoodWilliamson))
+//  (parameters[kMaterialType]==PenaltyContactElement3DT::kGreenwoodWilliamson))
 	{
 		cout << "\n";
 		for (int i=0; i<fSurfaces.Length(); i++)
@@ -129,17 +130,17 @@ void PenaltyContactElement3DT::PrintControlData(ostream& out) const
 			  out << "  penalty :         "
 					<< enf_parameters[kPenalty] << '\n';
 			  out << "  penalty types:\n"
-				  << "     Linear              " 
- 				  << PenaltyContactElement3DT::kLinear << "\n"
+				  << "     Default (linear)    " 
+ 				  << PenaltyContactElement3DT::kDefault << "\n"
 				  << "     ModSmithFerrante    " 
 				  << PenaltyContactElement3DT::kModSmithFerrante << "\n"
 				  << "     GreenwoodWilliamson " 
 			      << PenaltyContactElement3DT::kGreenwoodWilliamson << "\n";
 			  out << "  penalty Type :         "
-					<< (int) enf_parameters[kPenaltyType] << '\n';
-			  switch ((int) enf_parameters[kPenaltyType]) 
+					<< (int) enf_parameters[kMaterialType] << '\n';
+			  switch ((int) enf_parameters[kMaterialType]) 
 			  {
-			  case kLinear: // no other parameters
+			  case kDefault: // no other parameters
 			    out << "  <no parameters> \n";
 				break;	
 			  case kModSmithFerrante:
@@ -226,7 +227,7 @@ void PenaltyContactElement3DT::RHSDriver(void)
 
 
 		  /* real area computation */
-		  if (parameters[kPenaltyType] 
+		  if (parameters[kMaterialType] 
 				== PenaltyContactElement3DT::kGreenwoodWilliamson) {
 			double gw_m = parameters[kAsperityHeightMean];
 			double gw_s = parameters[kAsperityHeightStandardDeviation];

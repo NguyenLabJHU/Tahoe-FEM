@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.30 2003-02-03 04:40:18 paklein Exp $ */
+/* $Id: ContactElementT.h,v 1.31 2003-06-30 22:07:27 rjones Exp $ */
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
 
@@ -78,20 +78,6 @@ public:
 	/* returns no (NULL) geometry connectivies */
 	virtual void ConnectsX(AutoArrayT<const iArray2DT*>& connects) const;
 	 	
-	/* surface specification modes */
-	enum SearchParametersT { 	kGapTol = 0,
-								kXiTol ,
-								kPass,
-								kSearchNumParameters};
-	int fNumEnfParameters;
-
-	iArrayT fOutputFlags;
-	enum OutputFlagsT {kGaps = 0,
-			kNormals,
-			kStatus,
-			kMultipliers,
-			kArea,
-			kNumOutputFlags};
 
 	/** \name implementation of the DOFElementT interface */
 	/*@{*/
@@ -121,21 +107,91 @@ public:
 
 	inline bool HasMultipliers (void) {return fXDOF_Nodes;}
 
+
+	iArrayT fOutputFlags;
+	enum OutputFlagsT {kGaps = 0,
+			kNormals,
+			kStatus,
+			kMultipliers,
+			kArea,
+			kNumOutputFlags};
+
+	enum SearchParametersT { 	kGapTol = 0,
+								kXiTol ,
+								kPass,
+								kSearchNumParameters};
+	int fNumEnfParameters;
+
     enum PassTypeT {kSymmetric = 0,
                     kPrimary,
                     kSecondary,
                     kDeformable,
                     kRigid};
 
+
+	enum MaterialTypes {
+								kDefault = 0,
+								kModSmithFerrante,
+								kGreenwoodWilliamson,
+								kMajumdarBhushan,
+								kGWPlastic,
+								kNumMaterialTypes};
+	
+// material constants for the various penalty types
+	enum SFParametersT {
+								kSmithFerranteA=0,
+								kSmithFerranteB,
+								knSF
+						};
+	
+	enum GWParametersT {
+                                kAsperityHeightMean=0,
+                                kAsperityHeightStandardDeviation,
+                               	kAsperityDensity,
+                               	kAsperityTipRadius,
+                               	kHertzianModulus,
+							  	knGW	
+						};
+						
+	enum MBParametersT {
+								kSigma=0,
+								kFractalDimension,
+								kRoughnessScale,
+								kEPrime,
+								kAreaFraction,
+								knMB
+						};
+	 	
+	enum GPParametersT {
+                                kMean=0,
+                                kStandardDeviation,
+                               	kDensity,
+                               	kModulus,
+                               	kYield,
+							  	kLength,
+								kAsperityArea,
+								knGP
+						};
+
+	int fNumMaterialModelParameters[kNumMaterialTypes]; 
+
+	inline int Num_of_Parameters(int type)
+			{return fNumMaterialModelParameters[type];}
+	
 protected:
 
 	/* contact surfaces */
 	ArrayT<ContactSurfaceT> fSurfaces; 
 
-	/* search interaction parameters, symmetric matrix */
+	/* interaction parameters, symmetric matrix */
   	nMatrixT<dArrayT> fSearchParameters ;
-
 	nMatrixT<dArrayT> fEnforcementParameters ;
+	nMatrixT<dArrayT> fMaterialParameters ;
+
+	/* look-up for symmetric matrix stored as a vector */
+	inline int LookUp (int s1,int s2,int n)
+		{return (s1>s2) ? (n*s2+s1) : (n*s1+s2);}
+
 
 	/* read element group data */
 	void ReadControlData(void);

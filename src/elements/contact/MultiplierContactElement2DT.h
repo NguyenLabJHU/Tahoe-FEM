@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.h,v 1.8 2003-02-03 04:40:18 paklein Exp $ */
+/* $Id: MultiplierContactElement2DT.h,v 1.9 2003-06-30 22:07:28 rjones Exp $ */
 // created by : rjones 2001
 #ifndef _MULTIPLIER_CONTACT_ELEMENT_2D_T_H_
 #define _MULTIPLIER_CONTACT_ELEMENT_2D_T_H_
@@ -21,6 +21,7 @@ class MultiplierContactElement2DT: public ContactElementT
 								kGScale,
 								kPScale,
 								kTolP,
+								kMaterialType,
                                 kNumEnfParameters};
 
 	enum StatusT {	kNoP = -1,	

@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.33 2003-02-03 04:40:18 paklein Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.34 2003-06-30 22:07:28 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
@@ -35,6 +35,10 @@ ContactSurfaceT::Initialize
 	fContactNodes.Dimension(fGlobalNodes.Length());
 	for(int i = 0; i < fContactNodes.Length(); i++){
 		fContactNodes[i] = new ContactNodeT(*this,i);
+	}
+
+	for(int i = 0; i < fContactNodes.Length(); i++){
+            fContactNodes[i]->Initialize();
 	}
 
 	if (fNumMultipliers) {

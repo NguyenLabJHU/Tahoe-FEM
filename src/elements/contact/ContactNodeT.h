@@ -1,4 +1,4 @@
-/* $Id: ContactNodeT.h,v 1.16 2003-02-03 04:40:18 paklein Exp $ */
+/* $Id: ContactNodeT.h,v 1.17 2003-06-30 22:07:28 rjones Exp $ */
 #ifndef _CONTACT_NODE_T_H_
 #define _CONTACT_NODE_T_H_
 
@@ -21,6 +21,9 @@ class ContactNodeT
 
 	/* constructor */
 	~ContactNodeT(void);
+
+	/* initialize data */
+	void Initialize(void);
 
 	/* print data */
 	void PrintData(ostream& out);
@@ -58,6 +61,8 @@ class ContactNodeT
 	const FaceT*     fOpposingFace ; 
 	double     fxi[2] ;
 	double     fGap ;
+	double     fLastGap ;
+	double     fMinGap ;
 	int	   fStatus;
 	int	   fOriginalStatus;
 	int	   fEnforcementStatus;
@@ -100,6 +105,12 @@ class ContactNodeT
 		{return fOriginalStatus;}
 	inline int& EnforcementStatus(void) 
 		{return fEnforcementStatus;}
+	inline double& LastGap(void) 
+		{return fLastGap;}
+	inline double& MinGap(void) 
+		{return fMinGap;}
+	inline void LastGap(double value) 
+		{fLastGap = value; if (fLastGap < fMinGap )  fMinGap=fLastGap  ;}
 
   private:
 

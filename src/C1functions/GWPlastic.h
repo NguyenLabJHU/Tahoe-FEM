@@ -1,4 +1,4 @@
-/* $Id: GWPlastic.h,v 1.1 2003-06-03 16:32:12 rjones Exp $ */
+/* $Id: GWPlastic.h,v 1.2 2003-06-30 22:07:25 rjones Exp $ */
 #ifndef _GW_PLASTIC_H_
 #define _GW_PLASTIC_H_
 
@@ -14,7 +14,8 @@ public:
 	/*
 	 * Constructor
 	 */
-	GWPlastic(double POWER, double MU, double SIGMA);
+	GWPlastic( double MU, double SIGMA,
+	double MODULUS, double YIELD, double LENGTHSCALE, double ASPERITYAREA); 
 	
 	/*
 	 * Destructor
@@ -24,7 +25,7 @@ public:
 	/*
 	 * Reset parameters
 	 */
-	void ResetParameters(double POWER, double MU, double SIGMA);
+	void ResetParameters(double DMIN, double DDOT);
 
 	/*
 	 * I/O
@@ -51,11 +52,21 @@ public:
 	virtual dArrayT& MapDDFunction(const dArrayT& in, dArrayT& out) const;
 
 private:
+	/* moment function */
+	C1FunctionT *fmoment0, *fmoment1;
 
-	/* potential parameters */
-	double fP;
-	double fM;
-	double fS;
+	/* parameters */
+	double fE; // elastic modulus
+	double fY; // yield value
+	double fL; // lengthscale
+	double fa0; // asperity area
+	double fM; // mean
+	double fS; // standard deviation
+	double fdmin; // mininum approach
+	double fddot; // loading direction
+	double fdc; // critical approach
+	double fAe; // elastic area
+	double fAp; // plastic area
 };
 
 } // namespace Tahoe 

@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement3DT.h,v 1.6 2003-02-03 04:40:18 paklein Exp $ */
+/* $Id: PenaltyContactElement3DT.h,v 1.7 2003-06-30 22:07:28 rjones Exp $ */
 // created by : rjones 2002
 #ifndef _PENALTY_CONTACT_ELEMENT_3D_T_H_
 #define _PENALTY_CONTACT_ELEMENT_3D_T_H_
@@ -28,37 +28,11 @@ class PenaltyContactElement3DT: public ContactElementT
     enum EnforcementParametersT { 
                                 kConsistentTangent = 0 ,
                                 kPenalty ,
-                                kPenaltyType ,
-			kNumEnfParameters=8}; //this has to the max of all the Penalty types
+                                kMaterialType ,
+								kNumEnfParameters};
 
-	enum PenaltyTypesT {
-								kLinear = 0,
-								kModSmithFerrante,
-								kGreenwoodWilliamson,
-		kNumPenaltyTypes};
-	
-// material constants for the various penalty types
-	enum LinParametersT { 
-						};
-								
-	enum SFParametersT {
-								kSmithFerranteA=3,
-								kSmithFerranteB
-						};
-	
-	enum GWParametersT {
-                                kAsperityHeightMean=3,
-                                kAsperityHeightStandardDeviation,
-                               	kAsperityDensity,
-                               	kAsperityTipRadius,
-                               	kHertzianModulus  
-						};
 	 	
   protected:
-	/* look-up for symmetric matrix stored as a vector */
-	inline int LookUp (int s1,int s2,int n) 
-		{return (s1>s2) ? (n*s2+s1) : (n*s1+s2);} 
-
 	/* print element group data */
 	virtual void PrintControlData(ostream& out) const;
 		 	

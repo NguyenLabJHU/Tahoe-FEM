@@ -1,4 +1,4 @@
-/* $Id: PolyDistributionT.h,v 1.1 2003-06-03 16:32:12 rjones Exp $ */
+/* $Id: PolyDistributionT.h,v 1.2 2003-06-30 22:07:25 rjones Exp $ */
 
 #ifndef _POLYDISTRIBUTION_T_H_
 #define _POLYDISTRIBUTION_T_H_
@@ -31,15 +31,6 @@ public:
 	virtual dArrayT& MapDDFunction(const dArrayT& in, dArrayT& out) const;
 
 private:
-	double Mom0  (const double x, const double d) const;
-	double Mom1  (const double x, const double d) const;
-	double Mom1_5(const double x, const double d) const;
-	double dMom0dx  (const double x, const double d) const;
-	double dMom1dx  (const double x, const double d) const;
-	double dMom1dd  (const double x, const double d) const;
-	double dMom1_5dx(const double x, const double d) const;
-	double dMom1_5dd(const double x, const double d) const;
-
 	/* parameters */
 	double fPower;
 	double fMean;
