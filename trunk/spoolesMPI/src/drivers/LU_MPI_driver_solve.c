@@ -1,13 +1,15 @@
-/*  allInOneMPI.c  */
+/* $Id: LU_MPI_driver_solve.c,v 1.1 2004-09-07 06:41:58 paklein Exp $ */
+#include "LU_MPI_driver_int.h"
 
-/* SPOOLES headers */
-#include "MPI.spoolesMPI.h"
-#include "timings.h"
-
-/* MPI driver provided by in SPOOLES documentation */
+#if 0
 int LU_MPI_driver(int msg_lvl, const char* message_file, int matrix_type,
 	int symmetry_flag, int pivoting_flag, int rand_seed, int num_eq, int num_row,
 	int* r_rhs, double* rhs2out, int num_entries, int* r, int* c, double* v, 
+	MPI_Comm* comm)
+#endif
+/* solve linear system */
+int LU_MPI_driver_solve(int msg_lvl, const char* message_file,
+	int* r_rhs, double* rhs2out, void** ppLU_dat,
 	MPI_Comm* comm)
 {
 /*
@@ -34,14 +36,20 @@ int LU_MPI_driver(int msg_lvl, const char* message_file, int matrix_type,
    created -- 98jun13, cca
    ------------------------------------------------------------
 */
+
+/*--------------------------------------------------------------------*/
+/* resolve pointer to the solver data */
+LU_MPI_driver_data* pLU_dat = (LU_MPI_driver_data*)(*ppLU_dat);
+/*--------------------------------------------------------------------*/
+
 /*--------------------------------------------------------------------*/
 char            buffer[128] ;
-Chv             *rootchv ;
-ChvManager      *chvmanager ;
+/* Chv             *rootchv ; */
+/* ChvManager      *chvmanager ; */
 DenseMtx        *mtxX, *mtxY, *newY;
-SubMtxManager   *mtxmanager, *solvemanager;
+SubMtxManager   /* *mtxmanager, */ *solvemanager;
 FrontMtx        *frontmtx ;
-InpMtx          *mtxA, *newA ;
+/* InpMtx          *mtxA, *newA ; */
 double          cutoff, droptol = 0.0, minops, tau = 100. ;
 double          cpus[20] ;
 double          *opcounts ;
@@ -56,7 +64,7 @@ int             stats[20] ;
 int             *rowind ;
 IV              *oldToNewIV, *ownedColumnsIV, *ownersIV, 
                 *newToOldIV, *vtxmapIV ;
-IVL             *adjIVL, *symbfacIVL ;
+/* IVL             *adjIVL, *symbfacIVL ; */
 SolveMap        *solvemap ;
 
 /* PAK - needed to return solution to local processors */
@@ -90,10 +98,36 @@ if ( (msgFile = fopen(message_file, "a")) == NULL ) {
 	return(-1);
    }
 msglvl = msg_lvl;
+#if 0
 matrixtype = matrix_type;
 symmetryflag = symmetry_flag;
 pivotingflag = pivoting_flag;
 seed = rand_seed;
+#endif
+
+if (!pLU_dat) {
+	fprintf(stderr, "\n SPOOLES:LU_MPI_driver_solve: pLU_dat is NULL\n",
+	message_file) ;
+   	return -1;
+}
+else {
+
+	/* data structures computed during factorization */
+	frontmtx = pLU_dat->frontmtx;
+	solvemap = pLU_dat->solvemap;
+	vtxmapIV = pLU_dat->vtxmapIV;
+	frontETree = pLU_dat->frontETree;
+	oldToNewIV = pLU_dat->oldToNewIV;
+	newToOldIV = pLU_dat->newToOldIV;
+	ownersIV = pLU_dat->ownersIV;
+
+	/* flags and dimensions */
+	matrixtype = pLU_dat->matrix_type;
+	symmetryflag = pLU_dat->symmetry_flag;
+	pivotingflag = pLU_dat->pivoting_flag;
+	seed = pLU_dat->rand_seed;
+}
+
 IVzero(20, stats) ;
 DVzero(20, cpus) ;
 if (msglvl > 0) {
@@ -124,10 +158,13 @@ fscanf(inputFile, "%d %d %d", &neqns, &neqns, &nent) ;
 MPI_Barrier(*comm) ;
 #endif
 
-neqns = num_eq;
+neqns = pLU_dat->num_eq;
+
+#if 0
 nent = num_entries;
 mtxA = InpMtx_new() ;
 InpMtx_init(mtxA, INPMTX_BY_ROWS, matrixtype, nent, 0) ;
+#endif
 
 #if 0
 if ( matrixtype == SPOOLES_REAL ) {
@@ -145,6 +182,8 @@ if ( matrixtype == SPOOLES_REAL ) {
 }
 fclose(inputFile) ;
 #endif
+
+#if 0
 if (matrixtype == SPOOLES_REAL)
 	/* enter all {row, column, value} triples */
 	InpMtx_inputRealTriples(mtxA, num_entries, r, c, v);
@@ -160,6 +199,7 @@ if ( msglvl > 2 ) {
    InpMtx_writeForHumanEye(mtxA, msgFile) ;
    fflush(msgFile) ;
 }
+#endif
 /*--------------------------------------------------------------------*/
 /*
    ----------------------------------------------------
@@ -173,7 +213,7 @@ sprintf(buffer, "rhs.%d.input", myid) ;
 inputFile = fopen(buffer, "r") ;
 fscanf(inputFile, "%d %d", &nrow, &nrhs) ;
 #endif
-nrow = num_row;
+nrow = pLU_dat->num_row;
 nrhs = 1;
 
 mtxY = DenseMtx_new() ;
@@ -233,6 +273,7 @@ if ( msglvl > 2 ) {
        and broadcast that front tree object
    -------------------------------------------------------
 */
+#if 0
 graph = Graph_new() ;
 adjIVL = InpMtx_MPI_fullAdjacency(mtxA, stats, 
                                   msglvl, msgFile, *comm) ;
@@ -264,6 +305,7 @@ if ( msglvl > 2 ) {
    ETree_writeForHumanEye(frontETree, msgFile) ;
    fflush(msgFile) ;
 }
+#endif
 /*--------------------------------------------------------------------*/
 /*
    -------------------------------------------------------
@@ -271,6 +313,7 @@ if ( msglvl > 2 ) {
            permute the matrix and right hand side.
    -------------------------------------------------------
 */
+#if 0
 oldToNewIV = ETree_oldToNewVtxPerm(frontETree) ;
 newToOldIV = ETree_newToOldVtxPerm(frontETree) ;
 ETree_permuteVertices(frontETree, oldToNewIV) ;
@@ -281,6 +324,7 @@ if (  symmetryflag == SPOOLES_SYMMETRIC
 }
 InpMtx_changeCoordType(mtxA, INPMTX_BY_CHEVRONS) ;
 InpMtx_changeStorageMode(mtxA, INPMTX_BY_VECTORS) ;
+#endif
 DenseMtx_permuteRows(mtxY, oldToNewIV) ;
 if ( msglvl > 2 ) {
    fprintf(msgFile, "\n\n rhs matrix in new ordering") ;
@@ -294,6 +338,7 @@ if ( msglvl > 2 ) {
            and the map from vertices to owners
    -------------------------------------------
 */
+#if 0
 cutoff   = 1./(2*nproc) ;
 cumopsDV = DV_new() ;
 DV_init(cumopsDV, nproc, NULL) ;
@@ -311,6 +356,7 @@ if ( msglvl > 2 ) {
    IV_writeForHumanEye(vtxmapIV, msgFile) ;
    fflush(msgFile) ;
 }
+#endif
 #if 0
 if ( myid == 0 ) {
    IV_writeToFile(ownersIV, "../../Tree/drivers/haggar.ivf") ;
@@ -323,9 +369,12 @@ if ( myid == 0 ) {
    ---------------------------------------------------
 */
 firsttag = 0 ;
+#if 0
 newA = InpMtx_MPI_split(mtxA, vtxmapIV, stats, 
                         msglvl, msgFile, firsttag, *comm) ;
+#endif
 firsttag++ ;
+#if 0
 InpMtx_free(mtxA) ;
 mtxA = newA ;
 InpMtx_changeStorageMode(mtxA, INPMTX_BY_VECTORS) ;
@@ -334,6 +383,7 @@ if ( msglvl > 2 ) {
    InpMtx_writeForHumanEye(mtxA, msgFile) ;
    fflush(msgFile) ;
 }
+#endif
 newY = DenseMtx_MPI_splitByRows(mtxY, vtxmapIV, stats, msglvl, 
                                 msgFile, firsttag, *comm) ;
 DenseMtx_free(mtxY) ;
@@ -350,39 +400,48 @@ if ( msglvl > 2 ) {
    STEP 6: compute the symbolic factorization
    ------------------------------------------
 */
+#if 0
 symbfacIVL = SymbFac_MPI_initFromInpMtx(frontETree, ownersIV, mtxA,
                      stats, msglvl, msgFile, firsttag, *comm) ;
+#endif
 firsttag += frontETree->nfront ;
+#if 0
 if ( msglvl > 2 ) {
    fprintf(msgFile, "\n\n local symbolic factorization") ;
    IVL_writeForHumanEye(symbfacIVL, msgFile) ;
    fflush(msgFile) ;
 }
+#endif
 /*--------------------------------------------------------------------*/
 /*
    -----------------------------------
    STEP 7: initialize the front matrix
    -----------------------------------
 */
+#if 0
 mtxmanager = SubMtxManager_new() ;
 SubMtxManager_init(mtxmanager, NO_LOCK, 0) ;
 frontmtx = FrontMtx_new() ;
 FrontMtx_init(frontmtx, frontETree, symbfacIVL, matrixtype, symmetryflag,
               FRONTMTX_DENSE_FRONTS, pivotingflag, NO_LOCK, myid,
               ownersIV, mtxmanager, msglvl, msgFile) ;
+#endif
 /*--------------------------------------------------------------------*/
 /*
    ---------------------------------
    STEP 8: compute the factorization
    ---------------------------------
 */
+#if 0
 chvmanager = ChvManager_new() ;
 ChvManager_init(chvmanager, NO_LOCK, 0) ;
 rootchv = FrontMtx_MPI_factorInpMtx(frontmtx, mtxA, tau, droptol,
                      chvmanager, ownersIV, lookahead, &error, cpus, 
                      stats, msglvl, msgFile, firsttag, *comm) ;
 ChvManager_free(chvmanager) ;
+#endif
 firsttag += 3*frontETree->nfront + 2 ;
+#if 0
 if ( msglvl > 2 ) {
    fprintf(msgFile, "\n\n numeric factorization") ;
    FrontMtx_writeForHumanEye(frontmtx, msgFile) ;
@@ -394,6 +453,7 @@ if ( error >= 0 ) {
    /* MPI_Finalize() ; */
    return -1;
 }
+#endif
 /*--------------------------------------------------------------------*/
 /*
    ------------------------------------------------
@@ -401,20 +461,25 @@ if ( error >= 0 ) {
    the factor matrices into submatrices 
    ------------------------------------------------
 */
+#if 0
 FrontMtx_MPI_postProcess(frontmtx, ownersIV, stats, msglvl,
                          msgFile, firsttag, *comm) ;
+#endif
 firsttag += 5*nproc ;
+#if 0
 if ( msglvl > 2 ) {
    fprintf(msgFile, "\n\n numeric factorization after post-processing");
    FrontMtx_writeForHumanEye(frontmtx, msgFile) ;
    fflush(msgFile) ;
 }
+#endif
 /*--------------------------------------------------------------------*/
 /*
    -----------------------------------
    STEP 10: create the solve map object
    -----------------------------------
 */
+#if 0
 solvemap = SolveMap_new() ;
 SolveMap_ddMap(solvemap, frontmtx->symmetryflag, 
                FrontMtx_upperBlockIVL(frontmtx),
@@ -425,12 +490,14 @@ if ( msglvl > 2 ) {
    SolveMap_writeForHumanEye(solvemap, msgFile) ;
    fflush(msgFile) ;
 }
+#endif
 /*--------------------------------------------------------------------*/
 /*
    ----------------------------------------------------
    STEP 11: redistribute the submatrices of the factors
    ----------------------------------------------------
 */
+#if 0
 FrontMtx_MPI_split(frontmtx, solvemap, 
                    stats, msglvl, msgFile, firsttag, *comm) ;
 if ( msglvl > 2 ) {
@@ -438,6 +505,7 @@ if ( msglvl > 2 ) {
    FrontMtx_writeForHumanEye(frontmtx, msgFile) ;
    fflush(msgFile) ;
 }
+#endif
 /*--------------------------------------------------------------------*/
 /*
    ------------------------------------------------
@@ -512,9 +580,9 @@ if ( msglvl > 2 ) {
 /* PAK - collect map of originating processors */
 row_counts = (int *) malloc(nproc*sizeof(int));
 disp_vec = (int *) malloc(nproc*sizeof(int));
-row_map = (int *) malloc(num_eq*sizeof(int));
+row_map = (int *) malloc(pLU_dat->num_eq*sizeof(int));
 if (!row_counts || !disp_vec || !row_map) return -1;
-MPI_return = MPI_Allgather(&num_row, 1, MPI_INT,
+MPI_return = MPI_Allgather(&(pLU_dat->num_row), 1, MPI_INT,
 	row_counts, 1, MPI_INT, *comm);
 if (msglvl > 2) {
    fprintf(msgFile, "\n\n MPI_ERROR = %d", MPI_return);
@@ -526,13 +594,13 @@ for (i = 0; i < nproc; i++)
 	disp_vec[i] = eq_sum;
 	eq_sum += row_counts[i];
 }
-if (eq_sum != num_eq) {
+if (eq_sum != pLU_dat->num_eq) {
 	fprintf(msgFile, "\n\n sum of equations from proc's %d does not equal total %d",
-		eq_sum, num_eq);
+		eq_sum, pLU_dat->num_eq);
 	return -1;
 }
 /* collect rows-by-processor */
-MPI_return = MPI_Allgatherv(r_rhs, num_row, MPI_INT, row_map,
+MPI_return = MPI_Allgatherv(r_rhs, pLU_dat->num_row, MPI_INT, row_map,
 	row_counts, disp_vec, MPI_INT, *comm);
 if (msglvl > 2) {
    fprintf(msgFile, "\n\n MPI_ERROR = %d", MPI_return);
@@ -540,7 +608,7 @@ if (msglvl > 2) {
 }
 /* set row-to-processor map */
 pmap = IV_entries(vtxmapIV);
-for (i = 0; i < num_eq; i++)
+for (i = 0; i < pLU_dat->num_eq; i++)
 	pmap[i] = -1;
 for (i = 0; i < nproc; i++)
 {
@@ -582,7 +650,7 @@ if (msglvl > 0) {
 /* PAK - extract data */
 if (matrixtype == SPOOLES_REAL)
 {
-	for (irow = 0 ; irow < num_row; irow++) 
+	for (irow = 0 ; irow < pLU_dat->num_row; irow++) 
 		if (DenseMtx_realEntry(mtxX, irow, 0, rhs2out + irow) != 1)
 		/* NOTE: there is no function to copy a column into a vector */
 		{
@@ -601,18 +669,17 @@ else
 /* Chv_free(rootchv); */
 DenseMtx_free(mtxX);
 DenseMtx_free(mtxY);
-SubMtxManager_free(mtxmanager);
-FrontMtx_free(frontmtx);
-InpMtx_free(mtxA);
-ETree_free(frontETree);
-IV_free(oldToNewIV);
+/* SubMtxManager_free(mtxmanager); */
+/* FrontMtx_free(frontmtx); */
+/* InpMtx_free(mtxA); */
+/* ETree_free(frontETree); */
+/* IV_free(oldToNewIV); */
 IV_free(ownedColumnsIV);
-IV_free(ownersIV);
-IV_free(newToOldIV);
-IV_free(vtxmapIV);
-/* IVL_free(adjIVL); */
-IVL_free(symbfacIVL);
-SolveMap_free(solvemap);
+/* IV_free(ownersIV); */
+/* IV_free(newToOldIV); */
+/* IV_free(vtxmapIV); */
+/* IVL_free(symbfacIVL); */
+/* SolveMap_free(solvemap); */
 /* PAK - end */
 /*--------------------------------------------------------------------*/
 /* MPI_Finalize() ; */
