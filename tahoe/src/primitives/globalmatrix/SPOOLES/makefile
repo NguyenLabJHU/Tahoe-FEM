@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2003-03-04 07:38:21 paklein Exp $
+# $Id: makefile,v 1.6 2005-04-05 16:08:59 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,7 +21,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = \
 	SPOOLESMatrixT.o \
-	SPOOLESMatrixT_mpi.o
+	SPOOLESMatrixT_mpi.o \
+	SPOOLESMatrixT_MT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -42,7 +43,8 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 	SPOOLESMatrixT.cpp \
-	SPOOLESMatrixT_mpi.cpp
+	SPOOLESMatrixT_mpi.cpp \
+	SPOOLESMatrixT_MT.cpp
 
 ##################### (3) headers
 #
@@ -55,7 +57,8 @@ SRC = \
 #
 HDR = \
 	SPOOLESMatrixT.h \
-	SPOOLESMatrixT_mpi.h
+	SPOOLESMatrixT_mpi.h \
+	SPOOLESMatrixT_MT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
