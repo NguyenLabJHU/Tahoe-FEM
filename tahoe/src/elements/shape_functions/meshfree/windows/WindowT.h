@@ -1,5 +1,4 @@
-/* $Id: WindowT.h,v 1.8 2002-07-05 22:28:39 paklein Exp $ */
-
+/* $Id: WindowT.h,v 1.8.48.1 2004-03-20 16:41:55 paklein Exp $ */
 #ifndef _WINDOW_T_H_
 #define _WINDOW_T_H_
 
@@ -23,7 +22,8 @@ class WindowT
 	/** constants to identify the required neighbor search type */
 	enum SearchTypeT {kNone = 0,
 	             kSpherical = 1,
-	          kConnectivity = 2};
+	           kRectangular = 2,
+	          kConnectivity = 3};
 
 	/** constructor */
 	WindowT(void) { };  
@@ -46,10 +46,8 @@ class WindowT
 	 * \param params_1 nodal field parameters from pass 1
 	 * \param params_2 nodal field parameters from pass 2 */
 	virtual void SynchronizeSupportParameters(dArray2DT& params_1, 
-		dArray2DT& params_2) const = 0;
-
-	/** modify nodal shape function parameters */
-	virtual void ModifySupportParameters(dArray2DT& nodal_params) const = 0;
+		dArray2DT& params_2) const = 0;	
+	/*@}*/
 
 	/** window function name */
 	virtual const char* Name(void) const = 0;
@@ -57,8 +55,8 @@ class WindowT
 	/** write parameters to output stream */
 	virtual void WriteParameters(ostream& out) const;
 
-	/* single point evaluations */
-	
+	/** \name single point evaluations */
+	/*@{*/
 	/** window function evaluation.
 	 * \param x_n center of the window function
 	 * \param param_n array of window function parameters associated with x_n
@@ -71,8 +69,26 @@ class WindowT
 	virtual bool Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
 		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw) = 0;
 
-	/* multi-point evaluations */
+	/** coverage test.
+	 * \return true if the window function centered at x_n covers the
+	 * point x. */
+	virtual bool Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT& param_n) const = 0;
+
+	/** \name spherical upport size
+	 * transform the nodal parameters into a size scale that circumscribes
+	 * the support of the nodal support */
+	/*@{*/
+	virtual double SphericalSupportSize(const dArrayT& param_n) const = 0;
+
+	/** \name rectangular support size
+	 * transform the nodal parameters into rectangular dimensions that circumscribes
+	 * the support of the nodal support */
+	/*@{*/
+	virtual const dArrayT& RectangularSupportSize(const dArrayT& param_n) const = 0;
+	/*@}*/
 	
+	/** \name multi-point evaluations */
+	/*@{*/
 	/** window function evaluation. 
 	 * \param x_n array of window function centers: [npts] x [nsd]
 	 * \param param_n array of window function parameters: [npts] x [nparam]
@@ -84,19 +100,33 @@ class WindowT
 	 * \return the number of points covered by the window function */
 	virtual int Window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
 		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw) = 0;	
-	
-	/** coverage test.
-	 * \return true if the window function centered at x_n covers the
-	 * point x. */
-	virtual bool Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT& param_n) const = 0;
 
-	/** coverage test for multiple points.
+	/** coverage test.
 	 * \param x_n array of window function centers: [npts] x [nsd]
 	 * \param x field point of evaluation
 	 * \param covers array of coverage test results: [npts] 
 	 * \return the number of points covering x */
 	virtual int Covers(const dArray2DT& x_n, const dArrayT& x, 
 			    const dArray2DT& param_n, ArrayT<bool>& covers) const = 0;
+
+	/** compute spherical support size in batch. Default implementation uses the relies on the
+	 * purely virtual method WindowT::SupportSize to evaluate the support size over
+	 * collection of nodal support parameters. Sub-classes should override this method
+	 * for higher efficiency.
+	 * \param param_n nodal support parameters for many nodes
+	 * \param support_size returns with the support size for associated with the parameters
+	 *        in each row of param_n */
+	virtual void SphericalSupportSize(const dArray2DT& param_n, ArrayT<double>& support_size) const;
+
+	/** compute rectangular support size in batch. Default implementation uses the relies on the
+	 * purely virtual method WindowT::SupportSize to evaluate the support size over
+	 * collection of nodal support parameters. Sub-classes should override this method
+	 * for higher efficiency.
+	 * \param param_n nodal support parameters for many nodes
+	 * \param support_size returns with the support size for associated with the parameters
+	 *        in each row of param_n */
+	virtual void RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const;
+	/*@}*/
 };
 
 /* write parameters to output stream */
