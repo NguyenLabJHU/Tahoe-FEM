@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.17 2004-09-22 06:12:57 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.18 2004-10-21 18:51:00 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -121,7 +121,7 @@ public:
 	double ThermalElongation(void) const;
 	 	
 	/** \return mass density */
-	double Density(void) const;
+	virtual double Density(void);
 
 	/** test for localization. check for bifurcation using current
 	 * Cauchy stress and the spatial tangent moduli.
@@ -177,7 +177,7 @@ protected:
 inline double SolidMaterialT::IncrementalHeat(void) { return 0.0; }
 
 /* returns the density */
-inline double SolidMaterialT::Density(void) const { return fDensity; }
+inline double SolidMaterialT::Density(void) { return fDensity; }
 
 /* imposed thermal strains */
 inline int SolidMaterialT::HasThermalStrain(void) const { return fThermal->IsActive(); }
