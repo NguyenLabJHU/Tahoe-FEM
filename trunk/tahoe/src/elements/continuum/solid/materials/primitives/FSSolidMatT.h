@@ -1,10 +1,5 @@
-/* $Id: FSSolidMatT.h,v 1.2 2001-07-03 01:35:41 paklein Exp $ */
-/* created: paklein (06/09/1997)                                          */
-/* Defines the interface large strain materials which account             */
-/* for thermal strains with the multiplicative split:                     */
-/* F_tot = F_(the rest)*F_thermal                                         */
-/* Note: At this point, no optimizations are added to compute             */
-/* the inverse of F_thermal only once per time step.                      */
+/* $Id: FSSolidMatT.h,v 1.3 2001-09-15 01:18:58 paklein Exp $ */
+/* created: paklein (06/09/1997) */
 
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -16,7 +11,17 @@
 /* forward declarations */
 class FiniteStrainT;
 
-/** base class for finite deformation constitutive models */
+/** base class for finite deformation constitutive models. The interface
+ * provides access to the element-computed deformation as well as
+ * functions to compute the Green Lagragian strain tensor \b E
+ * and the stretch tensors \b C and \b b. The class provides support
+ * for a multiplicative thermal strain:\n
+ * F_total = F_mechanical F_thermal\n
+ * where the total deformation gradient is available through
+ * FSSolidMatT::F_total, the "mechanical" part of the deformation
+ * gradient is available through FSSolidMatT::F_total, and the
+ * \a inverse of the thermal deformation gradient is available
+ * through FSSolidMatT::F_thermal_inverse. */
 class FSSolidMatT: public StructuralMaterialT, protected TensorTransformT
 {
 public:
@@ -26,9 +31,6 @@ public:
 
 	/** write name to output stream */
 	virtual void PrintName(ostream& out) const;
-
-	/** initialization. call immediately after constructor */
-	virtual void Initialize(void);
 	
 	/** test for localization. check for bifurvation using current
 	 * Cauchy stress and the spatial tangent moduli.
@@ -44,28 +46,73 @@ public:
 	virtual bool Need_F(void) const { return true; };
 	virtual bool Need_F_last(void) const { return false; };
 
-	/** deformation gradient */
+	/** total deformation gradient. \note This function is on its
+	 * way out. Use FSSolidMatT::F_total */
 	const dMatrixT& F(void) const; 
-
-	/** deformation gradient at the given integration point */
+	/** total deformation gradient at the given integration point. \note This 
+	 * function is on its way out. Use FSSolidMatT::F_total */
 	const dMatrixT& F(int ip) const; 
 
-	/** deformation gradient from end of previous step */
+	/** total deformation gradient */
+	const dMatrixT& F_total(void) const; 
+
+	/** total deformation gradient at the given integration point */
+	const dMatrixT& F_total(int ip) const;
+
+	/** mechanical part of the deformation gradient. The part of the
+	 * deformation gradient not associated with an imposed thermal
+	 * strain. */
+	const dMatrixT& F_mechanical(void); 
+
+	/** mechanical part of the deformation gradient at the given integration
+	 * point. The part of the deformation gradient not associated with an 
+	 * imposed thermal strain. */
+	const dMatrixT& F_mechanical(int ip);
+
+	/** total deformation gradient from end of previous step */
 	const dMatrixT& F_last(void) const; 
 
-	/** deformation gradient at the given integration point 
+	/** total deformation gradient at the given integration point 
 	 * from end of previous step */
-	const dMatrixT& F_last(int ip) const; 
+	const dMatrixT& F_last(int ip) const;
+	
+	/** inverse of the deformation gradient associated with the
+	 * imposed thermal strain */
+	const dMatrixT& F_thermal_inverse(void) const { return fF_therm_inv; };
 	
 protected:
 
-	/** left stretch tensor. \param b return value */
+	/** left stretch tensor.
+	 * \param F the deformation gradient
+	 * \param b return value */
+	void Compute_b(const dMatrixT& F, dSymMatrixT& b) const;
+
+	/** right stretch tensor. 
+	 * \param F the deformation gradient
+	 * \param C return value */
+	void Compute_C(const dMatrixT& F, dSymMatrixT& C) const;
+
+	/** Green-Lagrangian strain.
+	 * \param F the deformation gradient
+	 * \param E return value */
+	void Compute_E(const dMatrixT& F, dSymMatrixT& E) const;
+
+	/** left stretch tensor.
+	 * \note this version is being removed. Use the version
+	 * which requires the deformation to be passed in
+	 * \param b return value */
 	void Compute_b(dSymMatrixT& b) const;
 
-	/** right stretch tensor. \param C return value */
+	/** right stretch tensor. 
+	 * \note this version of is being removed. Use the version
+	 * which requires the deformation to be passed in
+	 * \param C return value */
 	void Compute_C(dSymMatrixT& C) const;
 
-	/** Green-Lagrangian strain. \param E return value */
+	/** Green-Lagrangian strain. 
+	 * \note this version is being removed. Use the version
+	 * which requires the deformation to be passed in
+	 * \param E return value */
 	void Compute_E(dSymMatrixT& E) const;
 
 	/** acoustical tensor.
@@ -107,11 +154,16 @@ private:
 	/** reference to finite deformation element group */
 	const FiniteStrainT& fFiniteStrain;
 
-	/* work space */
-	dSymMatrixT fQ;  /**< return value */
+	/** return value for FSSolidMatT::AcousticalTensor */
+	dSymMatrixT fQ;  
 
-	/* multiplicative thermal dilatation F */
-	dMatrixT fFtherminverse;		
+	/** inverse of the multiplicative thermal deformation gradient */
+	dMatrixT fF_therm_inv;
+	
+	/** return value. Used as the return value of the mechanical part
+	 * of the deformation gradient, if there are thermal strain. Otherwise,
+	 * is unused. */
+	dMatrixT fF_mechanical;
 };
 
 #endif /* _FD_STRUCT_MAT_T_H_ */
