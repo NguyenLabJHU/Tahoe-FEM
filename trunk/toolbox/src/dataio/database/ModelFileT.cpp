@@ -1,4 +1,4 @@
-/* $Id: ModelFileT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: ModelFileT.cpp,v 1.2 2001-04-27 10:46:58 paklein Exp $ */
 /* created: paklein (12/15/1999)                                          */
 
 #include "ModelFileT.h"
@@ -855,13 +855,18 @@ ifstreamT& ModelFileT::OpenExternal(ifstreamT& in,  ifstreamT& in2,
 		return in;
 	else
 	{
-		/* open external file */
+		/* external file name */
 		StringT file;
 		in >> file;
 		if (verbose) out << " external file: " << file << '\n';
+		file.ToNativePathName();
+		
+		/* path to source file */
+		StringT path;
+		path.FilePath(in.filename());
+		file.Prepend(path);
 			
 		/* open stream */
-		file.ToNativePathName();
 		in2.open(file);
 		if (!in2.is_open())
 		{
