@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.26 2002-06-26 18:00:21 recampb Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.27 2002-07-02 21:23:00 cjkimme Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -28,6 +28,8 @@
 
 //DEBUG
 #include "vtkUnstructuredGrid.h"
+
+using namespace Tahoe;
 
 /* constructor */
 VTKFrameT::VTKFrameT(VTKConsoleT& console):

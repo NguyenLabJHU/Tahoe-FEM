@@ -1,6 +1,8 @@
 
 #include "ExtractQuad.h"
 
+using namespace Tahoe;
+
 ExtractQuad::ExtractQuad (ostream& out, istream& in, bool write) :
   ExtractIOManager (out, in, write)
 {

@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.26 2002-06-30 03:10:02 paklein Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.27 2002-07-02 21:23:00 cjkimme Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -21,6 +21,8 @@
 #include "StringT.h"
 #include "CommandSpecT.h"
 #include "ArgSpecT.h"
+
+using namespace Tahoe;
 
 /* array behavior */
 const bool ArrayT<VTKBodyDataT*>::fByteCopy = true;

@@ -5,6 +5,8 @@
 #include "TranslateIOManager.h"
 #include "ofstreamT.h"
 
+namespace Tahoe {
+
 class PointPlots : public TranslateIOManager
 {
  public:
@@ -19,5 +21,7 @@ class PointPlots : public TranslateIOManager
  private:
   int fElementGroup;
 };
+
+} // namespace Tahoe
 
 #endif

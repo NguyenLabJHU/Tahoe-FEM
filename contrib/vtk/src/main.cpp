@@ -1,7 +1,9 @@
-/* $Id: main.cpp,v 1.7 2002-06-05 18:51:32 recampb Exp $ */
+/* $Id: main.cpp,v 1.8 2002-07-02 21:23:00 cjkimme Exp $ */
 
 #include "VTKConsoleT.h"
 #include "iConsoleT.h"
+
+using namespace Tahoe;
 
 int main (int argc, char* argv[])
 {

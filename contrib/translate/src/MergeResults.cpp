@@ -1,6 +1,8 @@
-/* $Id: MergeResults.cpp,v 1.2 2002-06-21 23:47:31 paklein Exp $  */
+/* $Id: MergeResults.cpp,v 1.3 2002-07-02 21:22:59 cjkimme Exp $  */
 #include "MergeResults.h"
 #include "OutputSetT.h"
+
+using namespace Tahoe;
 
 MergeResults::MergeResults(ostream& out, istream& in, bool write):
 	TranslateIOManager(out, in, write)

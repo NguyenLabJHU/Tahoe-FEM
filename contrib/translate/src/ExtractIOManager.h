@@ -5,6 +5,8 @@
 #include "TranslateIOManager.h"
 #include "ofstreamT.h"
 
+namespace Tahoe {
+
 class ExtractIOManager : public TranslateIOManager
 {
  public:
@@ -35,5 +37,7 @@ class ExtractIOManager : public TranslateIOManager
   int fNumDigits;
   StringT fOutfileExtension;
 };
+
+} // namespace Tahoe
 
 #endif

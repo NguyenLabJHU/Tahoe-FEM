@@ -1,5 +1,5 @@
 
-/* $Id: VTKConsoleT.h,v 1.29 2002-06-26 18:00:21 recampb Exp $ */
+/* $Id: VTKConsoleT.h,v 1.30 2002-07-02 21:23:00 cjkimme Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -15,6 +15,8 @@
 #include "StringT.h"
 #include "AutoArrayT.h"
 #include "Array2DT.h"
+
+using namespace Tahoe; 
 
 /* forward declarations */
 class VTKBodyT;
