@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.43 2004-09-09 16:17:57 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.44 2004-10-20 21:24:56 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -41,7 +41,6 @@ ContinuumElementT::ContinuumElementT(const ElementSupportT& support):
 	fLocInitCoords(LocalArrayT::kInitCoords),
 	fLocDisp(LocalArrayT::kDisp),
 	fNumIP(0),
-	fOutputID(),
 	fGeometryCode(GeometryT::kNone)
 {
 	SetName("continuum_element");
@@ -120,12 +119,15 @@ GlobalT::SystemTypeT ContinuumElementT::TangentType(void) const
 	/* initialize to lowest precedence */
 	GlobalT::SystemTypeT type = GlobalT::kDiagonal;
 
-	for (int i = 0; i < fMaterialList->Length(); i++)
+	if (fMaterialList) 
 	{
-		GlobalT::SystemTypeT e_type = (*fMaterialList)[i]->TangentType();
+		for (int i = 0; i < fMaterialList->Length(); i++)
+		{
+			GlobalT::SystemTypeT e_type = (*fMaterialList)[i]->TangentType();
 	
-		/* using type precedence */
-		type = (e_type > type) ? e_type : type;
+			/* using type precedence */
+			type = (e_type > type) ? e_type : type;
+		}
 	}
 	
 	return type;
@@ -138,7 +140,7 @@ void ContinuumElementT::InitStep(void)
 	ElementBaseT::InitStep();
 
 	/* set material variables */
-	fMaterialList->InitStep();
+	if (fMaterialList)  fMaterialList->InitStep();
 }
 
 /* initialize/finalize step */
@@ -147,22 +149,25 @@ void ContinuumElementT::CloseStep(void)
 	/* inherited */
 	ElementBaseT::CloseStep();
 
-	/* set material variables */
-	fMaterialList->CloseStep();
-
-	/* update element level internal variables */
-	if (fMaterialList->HasHistoryMaterials())
+	if (fMaterialList) 
 	{
-		Top();
-		while (NextElement())
+		/* set material variables */
+		fMaterialList->CloseStep();
+
+		/* update element level internal variables */
+		if (fMaterialList->HasHistoryMaterials())
 		{
-			const ElementCardT& element = CurrentElement();
-			if (element.IsAllocated())
+			Top();
+			while (NextElement())
 			{
-				ContinuumMaterialT* pmat = (*fMaterialList)[element.MaterialNumber()];
+				const ElementCardT& element = CurrentElement();
+				if (element.IsAllocated())
+				{
+					ContinuumMaterialT* pmat = (*fMaterialList)[element.MaterialNumber()];
 
 				/* material update function */
-				pmat->UpdateHistory();
+					pmat->UpdateHistory();
+				}
 			}
 		}
 	}
@@ -175,7 +180,7 @@ GlobalT::RelaxCodeT ContinuumElementT::ResetStep(void)
 	GlobalT::RelaxCodeT relax = ElementBaseT::ResetStep();
 
 	/* update material internal variables */
-	if (fMaterialList->HasHistoryMaterials())
+	if (fMaterialList && fMaterialList->HasHistoryMaterials())
 	{
 		Top();
 		while (NextElement())
@@ -201,7 +206,7 @@ void ContinuumElementT::ReadRestart(istream& in)
 	ElementBaseT::ReadRestart(in);
 
 	/* update element level internal variables */
-	if (fMaterialList->HasHistoryMaterials())
+	if (fMaterialList && fMaterialList->HasHistoryMaterials())
 	{
 		for (int i = 0; i < fElementCards.Length(); i++)
 		{
@@ -218,7 +223,7 @@ void ContinuumElementT::WriteRestart(ostream& out) const
 	ElementBaseT::WriteRestart(out);
 
 	/* update element level internal variables */
-	if (fMaterialList->HasHistoryMaterials())
+	if (fMaterialList && fMaterialList->HasHistoryMaterials())
 	{
 		for (int i = 0; i < fElementCards.Length(); i++)
 		{
@@ -243,20 +248,28 @@ void ContinuumElementT::RegisterOutput(void)
 	/* element output */
 	iArrayT e_counts;
 	SetElementOutputCodes(IOBaseT::kAtInc, fElementOutputCodes, e_counts);
-	ArrayT<StringT> block_ID(fBlockData.Length());
-	for (int i = 0; i < block_ID.Length(); i++)
-		block_ID[i] = fBlockData[i].ID();
 
-	/* collect variable labels */
-	ArrayT<StringT> n_labels(n_counts.Sum());
-	ArrayT<StringT> e_labels(e_counts.Sum());
-	GenerateOutputLabels(n_counts, n_labels, e_counts, e_labels);
+	/* inherited */
+	if (n_counts.Length() == 0 && e_counts.Length() == 0)
+		ElementBaseT::RegisterOutput();
+	else
+	{
+		/* collect variable labels */
+		ArrayT<StringT> n_labels(n_counts.Sum());
+		ArrayT<StringT> e_labels(e_counts.Sum());
+		GenerateOutputLabels(n_counts, n_labels, e_counts, e_labels);
 
-	/* set output specifier */
-	OutputSetT output_set(fGeometryCode, block_ID, fConnectivities, n_labels, e_labels, false);
+		/* block ID's used by the group */
+		ArrayT<StringT> block_ID(fBlockData.Length());
+		for (int i = 0; i < block_ID.Length(); i++)
+			block_ID[i] = fBlockData[i].ID();
+
+		/* set output specifier */
+		OutputSetT output_set(fGeometryCode, block_ID, fConnectivities, n_labels, e_labels, false);
 		
-	/* register and get output ID */
-	fOutputID = ElementSupport().RegisterOutput(output_set);
+		/* register and get output ID */
+		fOutputID = ElementSupport().RegisterOutput(output_set);
+	}
 }
 
 //NOTE - this function is/was identical to CSEBaseT::WriteOutput
@@ -271,13 +284,19 @@ void ContinuumElementT::WriteOutput(void)
 	iArrayT e_counts;
 	SetElementOutputCodes(mode, fElementOutputCodes, e_counts);
 
-	/* calculate output values */
-	dArray2DT n_values;
-	dArray2DT e_values;
-	ComputeOutput(n_counts, n_values, e_counts, e_values);
+	/* inherited */
+	if (n_counts.Length() == 0 && e_counts.Length() == 0)
+		ElementBaseT::WriteOutput();
+	else
+	{
+		/* calculate output values */
+		dArray2DT n_values;
+		dArray2DT e_values;
+		ComputeOutput(n_counts, n_values, e_counts, e_values);
 
-	/* send to output */
-	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
+		/* send to output */
+		ElementSupport().WriteOutput(fOutputID, n_values, e_values);
+	}
 }
 
 /* resolve the output variable label into the output code and offset within the output */
@@ -325,30 +344,33 @@ void ContinuumElementT::InitialCondition(void)
 	/* inherited */
 	ElementBaseT::InitialCondition();
 	
-	/* check for initialization materials */
-	bool need_init = false;
-	for (int i = 0; i < fMaterialList->Length() && !need_init; i++)
-		need_init = (*fMaterialList)[i]->NeedsPointInitialization();
-
-	/* initialize materials */
-	if (need_init)
+	if (fMaterialList)
 	{
-		/* loop over elements */
-		Top();
-		while (NextElement())
+		/* check for initialization materials */
+		bool need_init = false;
+		for (int i = 0; i < fMaterialList->Length() && !need_init; i++)
+			need_init = (*fMaterialList)[i]->NeedsPointInitialization();
+
+		/* initialize materials */
+		if (need_init)
 		{
-			/* material pointer */
-			ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
-		
-			if (pmat->NeedsPointInitialization())
+			/* loop over elements */
+			Top();
+			while (NextElement())
 			{
-				/* global shape function values */
-				SetGlobalShape();
+				/* material pointer */
+				ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
+		
+				if (pmat->NeedsPointInitialization())
+				{
+					/* global shape function values */
+					SetGlobalShape();
 			
 				/* loop over integration points */
-				fShapes->TopIP();
-				while (fShapes->NextIP())
-					pmat->PointInitialize();
+					fShapes->TopIP();
+					while (fShapes->NextIP())
+						pmat->PointInitialize();
+				}
 			}
 		}
 	}
@@ -358,6 +380,8 @@ void ContinuumElementT::InitialCondition(void)
  * Protected
  ***********************************************************************/
 
+#pragma message("delete me")
+#if 0
 namespace Tahoe {
 
 /* stream extraction operator */
@@ -384,6 +408,42 @@ istream& operator>>(istream& in, ContinuumElementT::MassTypeT& mtype)
 	return in;
 }
 
+}
+#endif
+
+
+void ContinuumElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+	iArrayT& counts) const
+{
+#pragma unused(mode)
+#pragma unused(flags)
+	counts.Dimension(0);
+}
+
+void ContinuumElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+	iArrayT& counts) const
+{
+#pragma unused(mode)
+#pragma unused(flags)
+	counts.Dimension(0);
+}
+
+void ContinuumElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+	const iArrayT& e_codes, dArray2DT& e_values)
+{
+#pragma unused(n_codes)
+#pragma unused(e_codes)
+	n_values.Dimension(0, n_values.MinorDim());
+	e_values.Dimension(0, e_values.MinorDim());
+}
+
+void ContinuumElementT::GenerateOutputLabels( const iArrayT& n_codes, 
+	ArrayT<StringT>& n_labels, const iArrayT& e_codes, ArrayT<StringT>& e_labels) const
+{
+#pragma unused(n_codes)
+#pragma unused(e_codes)
+	n_labels.Dimension(0);
+	e_labels.Dimension(0);
 }
 
 /* initialize local arrays */
@@ -877,35 +937,6 @@ if (ip_values)
 	}
 }
 
-void ContinuumElementT::EchoBodyForce(ifstreamT& in, ostream& out)
-{
-	/* schedule number and body force vector */
-	int n_sched;
-	in >> n_sched >> fBody;		
-	n_sched--;
-
-	/* no LTf => no body force */
-	if (n_sched < 0) 
-		fBody = 0.0;
-	else
-	{
-		fBodySchedule = ElementSupport().Schedule(n_sched);
-		if (!fBodySchedule)
-			ExceptionT::BadInputValue("ContinuumElementT::EchoBodyForce", 
-				"could not resolve schedule %d", n_sched+1);
-	}
-	
-	out << "\n Body force vector:\n";
-	out << " Body force load-time function number. . . . . . = " << n_sched + 1<< '\n';
-	out << " Body force vector components:\n";
-	for (int j = 0 ; j < NumDOF(); j++)
-	{
-		out << "   x[" << j+1 << "] direction. . . . . . . . . . . . . . . . = ";
-		out << fBody[j] << '\n';
-	}
-	out.flush();   	   	
-}
-
 /* extract natural boundary condition information */
 void ContinuumElementT::TakeNaturalBC(const ParameterListT& list)
 {
@@ -1037,6 +1068,14 @@ void ContinuumElementT::TakeNaturalBC(const ParameterListT& list)
 	}
 }
 
+/* return a pointer to a new material list */
+MaterialListT* ContinuumElementT::NewMaterialList(const StringT& name, int size)
+{
+#pragma unused(name)
+#pragma unused(size)
+	return NULL;
+}
+
 /* construct a new material support and return a pointer */
 MaterialSupportT* ContinuumElementT::NewMaterialSupport(MaterialSupportT* p) const
 {
@@ -1088,7 +1127,7 @@ void ContinuumElementT::CurrElementInfo(ostream& out) const
 bool ContinuumElementT::CheckMaterialOutput(void) const
 {
 	/* check compatibility of output */
-	if (fMaterialList->Length() > 1)
+	if (fMaterialList && fMaterialList->Length() > 1)
 	{
 		/* check compatibility of material outputs */
 		bool OK = true;
@@ -1241,10 +1280,13 @@ void ContinuumElementT::TakeParameterList(const ParameterListT& list)
 	/* construct material list */
 	ParameterListT mat_params;
 	CollectMaterialInfo(list, mat_params);
-	fMaterialList = NewMaterialList(mat_params.Name(), mat_params.NumLists());
-	if (!fMaterialList) ExceptionT::GeneralFail(caller, "could not construct material list \"%s\"", 
-		mat_params.Name().Pointer());
-	fMaterialList->TakeParameterList(mat_params);
+	if (mat_params.NumLists() > 0)
+	{
+		fMaterialList = NewMaterialList(mat_params.Name(), mat_params.NumLists());
+		if (!fMaterialList) ExceptionT::GeneralFail(caller, "could not construct material list \"%s\"", 
+			mat_params.Name().Pointer());
+		fMaterialList->TakeParameterList(mat_params);
+	}
 
 	/* get form of tangent */
 	GlobalT::SystemTypeT type = TangentType();
