@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BaseT.h,v 1.1.2.2 2003-11-24 17:54:28 paklein Exp $ */
+/* $Id: ABAQUS_BaseT.h,v 1.1.2.3 2003-11-24 19:17:09 paklein Exp $ */
 #ifndef _ABAQUS_BASE_T_H_
 #define _ABAQUS_BASE_T_H_
 
@@ -6,14 +6,20 @@
 #ifdef __F2C__
 
 /* f2c */
+#include "ExceptionT.h"
 #include "f2c.h"
+//MIPSpro 7.2.1 chokes on f2c.h unless some C++ headers are read first
 
 namespace Tahoe {
 
 /* forward declarations */
+class ifstreamT;
+template <class nTYPE> class nMatrixT;
 class dMatrixT;
 class dSymMatrixT;
 class ElementCardT;
+class StringT;
+template <class nTYPE> class nArrayT;
 
 /** some ABAQUS basics */
 class ABAQUS_BaseT
