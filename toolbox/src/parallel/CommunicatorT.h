@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.h,v 1.12 2004-03-16 05:35:51 paklein Exp $ */
+/* $Id: CommunicatorT.h,v 1.13 2004-10-14 19:02:54 paklein Exp $ */
 #ifndef _COMMUNICATOR_T_H_
 #define _COMMUNICATOR_T_H_
 
@@ -220,12 +220,21 @@ class CommunicatorT
 
 	/** post non-blocking receive int data */
 	void PostReceive(nArrayT<int>& data, int source, int tag, MPI_Request& request) const;
+
+	/** post non-blocking receive for single double */
+	void PostReceive(double& a, int source, int tag, MPI_Request& request) const;
+
+	/** post non-blocking receive for single double */
+	void PostReceive(int& a, int source, int tag, MPI_Request& request) const;
 	
 	/** return the index the next receive. Call blocks until the next message is received.
 	 * \param requests list of requests previously posted with CommunicatorT::PostReceive 
 	 * \return index in requests of the next received message*/
 	void WaitReceive(const ArrayT<MPI_Request>& requests, int& index, int& source) const;
-	
+
+	/** complete a specific nonblocking send or receive */
+	void Wait(MPI_Request& request) const;
+
 	/** block until all sends posted with CommunicatorT::PostSend have completed */
 	void WaitSends(const ArrayT<MPI_Request>& requests);
 	/*@}*/
@@ -245,11 +254,23 @@ class CommunicatorT
 	/** post blocking send for an array of ints */
 	void Send(const nArrayT<int>& data, int destination, int tag) const;
 
+	/** post blocking send for a single double */
+	void Send(double a, int destination, int tag) const;
+
+	/** post blocking send for a single int */
+	void Send(int a, int destination, int tag) const;
+
 	/** post blocking receive for an array of doubles */
 	void Receive(nArrayT<double>& data, int source, int tag) const;
 
 	/** post blocking receive for an array ints */
 	void Receive(nArrayT<int>& data, int source, int tag) const;
+
+	/** post blocking receive for a single double */
+	void Receive(double& a, int source, int tag) const;
+
+	/** post blocking receive for a single int */
+	void Receive(int& a, int source, int tag) const;
 	/*@}*/
 
   private:
