@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.cpp,v 1.6 2002-07-02 19:55:17 cjkimme Exp $ */
+/* $Id: ViscTvergHutch2DT.cpp,v 1.7 2002-08-05 19:27:55 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "ViscTvergHutch2DT.h"
@@ -29,15 +29,14 @@ ViscTvergHutch2DT::ViscTvergHutch2DT(ifstreamT& in, const double& time_step):
 	/* non-dimensional opening parameters */
 	in >> fL_1; if (fL_1 < 0 || fL_1 > 1) throw eBadInputValue;
 	in >> fL_2; if (fL_2 < fL_1 || fL_2 > 1) throw eBadInputValue;
-	in >> fL_fail;
-	if (fL_fail < 1.0) fL_fail = 1.0;
+	in >> fL_fail; if (fL_fail < 1.0) fL_fail = 1.0;
 	
 	/* damping parameter */
 	in >> feta0; if (feta0 < 0) throw eBadInputValue;
-
+	
 	/* stiffness multiplier */
 	in >> fpenalty; if (fpenalty < 0) throw eBadInputValue;
-
+	
 	/* penetration stiffness */
 	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
 }
@@ -103,8 +102,10 @@ const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
 	if (fTimeStep <= 0.0) {
+#ifndef _TAHOE_FRACTURE_INTERFACE_	
 		cout << "\n ViscTvergHutch2DT::Traction: expecting positive time increment: "
 		     << fTimeStep << endl;
+#endif		     
 		throw eBadInputValue;
 	}
 #endif
@@ -346,12 +347,15 @@ SurfacePotentialT::StatusT ViscTvergHutch2DT::Status(const dArrayT& jump_u,
 
 void ViscTvergHutch2DT::PrintName(ostream& out) const
 {
+#ifndef _TAHOE_FRACTURE_INTERFACE_
 	out << "    Tvergaard-Hutchinson 2D with viscous damping\n";
+#endif
 }
 
 /* print parameters to the output stream */
 void ViscTvergHutch2DT::Print(ostream& out) const
 {
+#ifndef _TAHOE_FRACTURE_INTERFACE_
 	out << " Cohesive stress . . . . . . . . . . . . . . . . = " << fsigma_max << '\n';
 	out << " Normal opening to failure . . . . . . . . . . . = " << fd_c_n     << '\n';
 	out << " Tangential opening to failure . . . . . . . . . = " << fd_c_t     << '\n';
@@ -360,6 +364,7 @@ void ViscTvergHutch2DT::Print(ostream& out) const
 	out << " Non-dimensional opening to failure. . . . . . . = " << fL_fail    << '\n';
 	out << " Damping parameter . . . . . . . . . . . . . . . = " << feta0      << '\n';
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fpenalty   << '\n';
+#endif
 }
 
 /* returns the number of variables computed for nodal extrapolation

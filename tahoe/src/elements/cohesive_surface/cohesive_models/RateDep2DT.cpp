@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.cpp,v 1.8 2002-07-02 19:55:16 cjkimme Exp $  */
+/* $Id: RateDep2DT.cpp,v 1.9 2002-08-05 19:27:55 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "RateDep2DT.h"
@@ -30,8 +30,7 @@ RateDep2DT::RateDep2DT(ifstreamT& in, const double& time_step):
 	/* non-dimensional opening parameters */
 	in >> fL_1; if (fL_1 < 0 || fL_1 > 1) throw eBadInputValue;
 	in >> fL_2; if (fL_2 < fL_1 || fL_2 > 1) throw eBadInputValue;
-	in >> fL_fail;
-	if (fL_fail < 1.0) fL_fail = 1.0;
+	in >> fL_fail; if (fL_fail < 1.0) fL_fail = 1.0;
 
 	/* stiffness multiplier */
 	in >> fpenalty; if (fpenalty < 0) throw eBadInputValue;
@@ -50,8 +49,10 @@ void RateDep2DT::InitStateVariables(ArrayT<double>& state)
   	int num_state = NumStateVariables();
 	if (state.Length() != num_state) 
 	{
+#ifndef _TAHOE_FRACTURE_INTERFACE_	
 	  	cout << "\n SurfacePotentialT::InitStateVariables: expecting state variable array\n"
 		     <<   "     length " << num_state << ", found length " << state.Length() << endl;
+#endif
 		throw eSizeMismatch;
 	}
 
@@ -129,8 +130,10 @@ const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
 	if (fTimeStep <= 0.0) {
+#ifndef _TAHOE_FRACTURE_INTERFACE_	
 		cout << "\n RateDep2DT::Traction: expecting positive time increment: "
 		     << fTimeStep << endl;
+#endif
 		throw eBadInputValue;
 	}
 #endif
@@ -163,7 +166,9 @@ const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state
 	        	sigbyL = state[4]*(1+fslope*(L-state[0]))/L;
 				if (state[6] < u_n || state[6] < fd_c_n*fL_1)
 				{
-		  			cout <<  "\n RateDep2DT::Traction: rate-dependent length scale " << state[6] << " " << fTimeStep << " is incompatible with rate-independent one. Check input parameters. \n ";
+#ifndef _TAHOE_FRACTURE_INTERFACE_
+		  			cout <<  "\n RateDep2DT::Traction: rate-dependent length scale " << state[6] << " is incompatible with rate-independent one. Check input parameters. \n ";
+#endif
 	          		state[6] = fd_c_n;
 	          		state[2] = state[0]; /* start unloading now */
 	          		r_n = u_n/state[6];
@@ -337,12 +342,15 @@ SurfacePotentialT::StatusT RateDep2DT::Status(const dArrayT& jump_u,
 
 void RateDep2DT::PrintName(ostream& out) const
 {
+#ifndef _TAHOE_FRACTURE_INTERFACE_
 	out << "    RateDep 2D \n";
+#endif
 }
 
 /* print parameters to the output stream */
 void RateDep2DT::Print(ostream& out) const
 {
+#ifndef _TAHOE_FRACTURE_INTERFACE_
 	out << " Cohesive stress . . . . . . . . . . . . . . . . = " << fsigma_max << '\n';
 	out << " Normal opening to failure . . . . . . . . . . . = " << fd_c_n     << '\n';
 	out << " Tangential opening to failure . . . . . . . . . = " << fd_c_t     << '\n';
@@ -350,6 +358,7 @@ void RateDep2DT::Print(ostream& out) const
 	out << " Non-dimensional opening to declining traction . = " << fL_2       << '\n';
 	out << " Non-dimensional opening to failure. . . . . . . = " << fL_fail    << '\n';
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fpenalty   << '\n';
+#endif
 }
 
 /* returns the number of variables computed for nodal extrapolation

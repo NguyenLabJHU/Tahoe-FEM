@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.13 2002-07-02 19:55:16 cjkimme Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.14 2002-08-05 19:27:55 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -76,8 +76,10 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
 	if (fTimeStep <= 0.0) {
+#ifndef _TAHOE_FRACTURE_INTERFACE_
 		cout << "\n Tijssens2DT::Traction: expecting positive time increment: "
 		     << fTimeStep << endl;
+#endif
 		throw eBadInputValue;
 	}
 #endif
@@ -136,8 +138,9 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 
 	      state[0] += fk_t*(du_t-fTimeStep*fGamma_0*(exp(-fastar*(ftau_c-Tnp1))-exp(-fastar*(ftau_c+Tnp1))));*/
 
-	    /*if a craze will fail, request a smaller timestep*/
-
+	    	/*if a craze will fail, request a smaller timestep*/
+			/*not implemented */
+		
 		 	double dw_t = fk_t0*exp(-fc_1*state[5]/fDelta_n_ccr)*du_t;
 		 	state[0] += dw_t;
 	   	 	state[6] += state[0]*du_t;
@@ -197,7 +200,7 @@ const dMatrixT& Tijssens2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doubl
 	    
 	      	if (state[1] < 1.01*fsigma_c && du_n > kSmall)
 	      	{ 
-		//RequestNewTimeStep((1.01*fsigma_c/fk_n - state[3])/du_n*fTimeStep);
+				//RequestNewTimeStep((1.01*fsigma_c/fk_n - state[3])/du_n*fTimeStep);
 				fStiffness[3] = (Tnp1-state[1])/(jump_u[1]-state[3]);
 	      
 	      	}
@@ -251,12 +254,15 @@ SurfacePotentialT::StatusT Tijssens2DT::Status(const dArrayT& jump_u,
 
 void Tijssens2DT::PrintName(ostream& out) const
 {
+#ifndef _TAHOE_FRACTURE_INTERFACE_
 	out << "    Tijssens 2D \n";
+#endif
 }
 
 /* print parameters to the output stream */
 void Tijssens2DT::Print(ostream& out) const
 {
+#ifndef _TAHOE_FRACTURE_INTERFACE_
 	out << " Initial tangential stiffness. . . . . . . . . . = " << fk_t0 << '\n';
 	out << " Normal stiffness . . . .  . . . . . . . . . . . = " << fk_n     << '\n';
 	out << " Tangential stiffness rate constant. . . . . . . = " << fDelta_n_ccr*fc_1     << '\n';
@@ -269,6 +275,7 @@ void Tijssens2DT::Print(ostream& out) const
 	out << " Critical normal traction for crazing. . . . . . = " << fsigma_c  << '\n';
 	out << " Material parameter. . . . . . . . . . . . . . . = " << fastar*ftemp   << '\n';
 	out << " Temperature . . . . . . . . . . . . . . . . . . = " << ftemp   << '\n';
+#endif
 }
 
 /* returns the number of variables computed for nodal extrapolation
@@ -292,7 +299,6 @@ void Tijssens2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& sta
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
 #endif	
-	//output[0] = state[7];
 	output[0] = (jump_u[1]-state[3])/fTimeStep;
 	output[1] = state[4];
 	output[2] = state[5];

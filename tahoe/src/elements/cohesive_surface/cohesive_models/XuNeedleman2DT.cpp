@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman2DT.cpp,v 1.10 2002-07-02 19:55:17 cjkimme Exp $ */
+/* $Id: XuNeedleman2DT.cpp,v 1.11 2002-08-05 19:27:55 cjkimme Exp $ */
 /* created: paklein (11/14/1997) */
 
 #include "XuNeedleman2DT.h"
@@ -29,10 +29,8 @@ XuNeedleman2DT::XuNeedleman2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 	
 	in >> phi_n; // mode I work to fracture
 	if (phi_n < 0.0) throw eBadInputValue;
-
 	in >> r_fail; // d/d_(n/t) for which surface is considered failed
 	if (r_fail < 1.0) throw eBadInputValue;
-
 	in >> fKratio; // stiffening ratio
 	if (fKratio < 0.0) throw eBadInputValue;
 	fK = fKratio*phi_n/(d_n*d_n);
@@ -110,7 +108,7 @@ const dArrayT& XuNeedleman2DT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 	z5 = -r;
 	z6 = u_t*u_t;
 	z7 = -u_n*z1;
-	z8 = u_n*z1;
+	z8 = -z7;
 	z9 = 1. + z3;
 	z3 = r + z3;
 	z4 = 1./z4;
@@ -119,7 +117,9 @@ const dArrayT& XuNeedleman2DT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 	// limit compressive deformation
 	if (z7 > kExpMax)
 	{
+#ifndef _TAHOE_FRACTURE_INTERFACE_	
 		cout << "\n XuNeedleman2DT::Traction: exp(x): x = " << z7 << " > kExpMax" << endl;
+#endif		
 		throw eBadJacobianDet;
 	}
 	z11 = exp(z7);
@@ -237,12 +237,15 @@ SurfacePotentialT::StatusT XuNeedleman2DT::Status(const dArrayT& jump_u, const A
 
 void XuNeedleman2DT::PrintName(ostream& out) const
 {
+#ifndef _TAHOE_FRACTURE_INTERFACE_
 	out << "    Xu-Needleman 2D\n";
+#endif
 }
 
 /* print parameters to the output stream */
 void XuNeedleman2DT::Print(ostream& out) const
 {
+#ifndef _TAHOE_FRACTURE_INTERFACE_
 	out << " Surface energy ratio (phi_t/phi_n). . . . . . . = " << q       << '\n';
 	out << " Critical opening ratio (delta_n* /d_n). . . . . = " << r       << '\n';
 	out << " Characteristic normal opening to failure. . . . = " << d_n     << '\n';
@@ -250,4 +253,5 @@ void XuNeedleman2DT::Print(ostream& out) const
 	out << " Mode I work to fracture (phi_n) . . . . . . . . = " << phi_n   << '\n';
 	out << " Failure ratio (d_n/delta_n or d_t/delta_t). . . = " << r_fail   << '\n';
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fKratio << '\n';
+#endif
 }
