@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.62 2003-02-20 02:30:06 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.63 2003-03-28 22:39:32 paklein Exp $ */
 #include "VTKConsoleT.h"
 
 /* ANSI headers */
@@ -942,7 +942,7 @@ void VTKConsoleT::PickPoints(void *arg)
   vtkSphereSource *sphere = vtkSphereSource::New();
   sphere->SetThetaResolution(8); sphere->SetPhiResolution(8);
   float* bounds = pointPicker->GetDataSet()->GetBounds();
-  sphere->SetRadius(.008*(bounds[1]-bounds[0]));
+  sphere->SetRadius(.01*(bounds[1]-bounds[0]));
   sphereMapper->SetInput(sphere->GetOutput());
   sphereActor->SetMapper(sphereMapper);
   sphereActor->GetProperty()->SetColor(1,1,1);
