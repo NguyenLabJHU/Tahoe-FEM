@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.76.2.6 2004-08-07 18:44:06 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.76.2.7 2004-08-09 16:46:04 d-farrell2 Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -69,7 +69,7 @@ FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output,
 	fGlobalNumEquations(0),
 	fCurrentGroup(-1),
 	fInitCode(kFull),
-	fPartition(NULL),
+	fPartition(NULL),// problem calling NULL??
 	fTask(task),
 	fExternIOManager(NULL)
 {
@@ -1549,6 +1549,10 @@ cout << caller << ": set output" << endl;
 	/* check that all solvers hit at least once */
 	if (solver_list.Length() != fSolvers.Length())
 		ExceptionT::BadInputValue(caller, "must have at least one phase per solver");
+// DEBUG
+cout << caller << ": fInitCode = " << fInitCode << endl;
+cout << caller << ": kAllButSolver = "<< kAllButSolver << endl;
+cout << caller << ": kFull = " << kFull << endl;
 
 //TEMP - don't allocate the global equation system
 if (fInitCode == kAllButSolver) return;
@@ -2111,7 +2115,7 @@ cout << "FEManagerT::SetEquationSystem: START" << endl;
 		fActiveEquationStart[group]);
 
 //DEBUG
-cout << "FEManagerT::SetEquationSystem: START" << endl;
+cout << "FEManagerT::SetEquationSystem: END" << endl;
 }
 
 void FEManagerT::SendEqnsToSolver(int group) const

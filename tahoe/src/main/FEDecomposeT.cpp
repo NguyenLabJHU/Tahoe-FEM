@@ -1,4 +1,4 @@
-/* $Id: FEDecomposeT.cpp,v 1.1.2.3 2004-08-07 18:43:23 paklein Exp $ */
+/* $Id: FEDecomposeT.cpp,v 1.1.2.4 2004-08-09 16:46:04 d-farrell2 Exp $ */
 /* created: d-farrell2 (08/03/2004) */
 #include "FEDecomposeT.h"
 
@@ -400,7 +400,8 @@ void FEDecomposeT::Decompose_graph(const StringT& input_file, int size,
 		/* generate validated parameter list */
 		ParameterListT valid_list;
 		FEManagerT::ParseInput(input_file, valid_list, true, false, false, commandlineoptions);
-
+// DEBUG
+cout << "\n" << caller << " Prepare to construct global problem \n" << endl;
 		/* construct global problem */
 		FEManagerT global_FEman(input_file, decomp_out, comm, commandlineoptions, FEManagerT::kDecompose);
 		try { 
@@ -431,7 +432,7 @@ void FEDecomposeT::Decompose_graph(const StringT& input_file, int size,
 			GraphT graph;	
 			try {
 				cout << "\n Decomposing: " << model_file << endl;
-				Decompose(partition, graph, true, method, global_FEman); // have to create FEDecomposeT object, pass it the needed information then run Decompose
+				Decompose(partition, graph, true, method, global_FEman); //*** have to create FEDecomposeT object, pass it the needed information then run Decompose
 				cout << " Decomposing: " << model_file << ": DONE"<< endl;
 			}
 			catch (ExceptionT::CodeT code) {
