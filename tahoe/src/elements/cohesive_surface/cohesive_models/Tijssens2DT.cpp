@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.2 2001-10-29 19:30:00 cjkimme Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.3 2001-11-02 19:35:43 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -37,6 +37,7 @@ Tijssens2DT::Tijssens2DT(ifstreamT& in, const double& time_step):
         in >> ftau_c; if (ftau_c < 0) throw eBadInputValue;
 	in >> fastar; if (fastar < 0) throw eBadInputValue;
         in >> ftemp; if (ftemp < 0) throw eBadInputValue;
+        in >> fY; if (fY < 0) throw eBadInputValue;
 
 	fA = fA_0/2.*exp(fQ_A/ftemp);
 	fB = fB_0/6.*exp(fQ_B/ftemp);
@@ -47,11 +48,10 @@ Tijssens2DT::Tijssens2DT(ifstreamT& in, const double& time_step):
 /* return the number of state variables needed by the model */
 int Tijssens2DT::NumStateVariables(void) const { return 3*knumDOF+1; }
 
-/* surface potential */
-double Tijssens2DT::FractureEnergy(void) 
+/* surface potential */ 
+double Tijssens2DT::FractureEnergy(const ArrayT<double>& state) 
 {
-  return 0.0;
-  //	return state[6]; 
+   	return state[6]; 
 }
 
 double Tijssens2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
@@ -78,7 +78,9 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 	// I need the trace of the stress tensor
 	/* see if crazing has been initiated */
 	double delta_tc, delta_nc;
-	if ((1.5*sigma_m - fA + fB/sigma_m - state[1]) > 0.)
+	//	if ((1.5*sigma_m - fA + fB/sigma_m - state[1]) > kSmall)
+	// Use a criterium only on the normal traction
+	if (state[1]/fY < .5) 
         {
 	        delta_tc = 0.;
 		delta_nc = 0.;
@@ -160,12 +162,13 @@ SurfacePotentialT::StatusT Tijssens2DT::Status(const dArrayT& jump_u,
 #endif
 	double sigma_m = state[1];
 
-	if ((1.5*sigma_m - fA + fB/sigma_m - state[1]) > 0.)
+	if ((1.5*sigma_m - fA + fB/sigma_m - state[1]) > kSmall)
 	         return Precritical;
 	else 
-	         if (state[5] > fDelta_n_ccr) 
-		        return Failed;
-		 else
+	  //	         if (state[5] > fDelta_n_ccr) 
+	  //        return Failed;
+	  // else
+	  // Don't let it fail yet
 		        return Critical;
 
 }
@@ -191,7 +194,8 @@ void Tijssens2DT::Print(ostream& out) const
 	out << " Critical normal traction for crazing. . . . . . = " << fsigma_c  << '\n';
 	out << " Critical tangential traction for crazing. . . . = " << ftau_c   << '\n';
 	out << " Material parameter. . . . . . . . . . . . . . . = " << fastar   << '\n';
-	out << " Temperature. . . . . . . . . . .. . . . . . . . = " << ftemp   << '\n';
+	out << " Temperature . . . . . . . . . . . . . . . . . . = " << ftemp   << '\n';
+	out << " Bulk Yield Stress . . . . . . . . . . . . . . . = " << fY << '\n';
 }
 
 /* returns the number of variables computed for nodal extrapolation

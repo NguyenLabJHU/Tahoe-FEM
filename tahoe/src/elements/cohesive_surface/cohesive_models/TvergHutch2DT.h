@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.h,v 1.4 2001-10-11 23:19:51 paklein Exp $ */
+/* $Id: TvergHutch2DT.h,v 1.5 2001-11-02 19:35:43 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #ifndef _TVERG_HUTCH_2D_T_H_
@@ -24,7 +24,7 @@ public:
 	int NumStateVariables(void) const { return 0; };
 
 	/** dissipated energy */
-	virtual double FractureEnergy(void);
+	virtual double FractureEnergy(const ArrayT<double>& state);
 
 	/** potential energy */
 	virtual double Potential(const dArrayT& jump_u, const ArrayT<double>& state);
