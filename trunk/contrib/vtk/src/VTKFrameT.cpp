@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.9 2001-11-07 02:34:45 paklein Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.10 2001-11-07 19:51:29 recampb Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -25,6 +25,7 @@
 #include "vtkCamera.h"
 #include "vtkWarpVector.h"
 #include "vtkVectors.h"
+#include "vtkTextMapper.h"
 
 #include <iostream.h>
 #include <iomanip.h>
@@ -117,6 +118,21 @@ bool VTKFrameT::RemoveBody(VTKBodyT* body)
       bodies.DeleteAt(index);
       return true;
     }
+}
+
+void VTKFrameT::ShowFrameNum(StringT Name)
+{
+  vtkTextMapper* textMapper = vtkTextMapper::New();
+  textMapper->SetInput(Name);
+  //textMapper->SetFontSize(16);
+  vtkActor2D* text = vtkActor2D::New();
+  text->SetMapper(textMapper);
+  text->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
+  text->GetPositionCoordinate()->SetValue(0.45,.95);
+  text->GetProperty()->SetColor(0,1,0);
+  renderer->AddActor(text);
+  fRenWin->Render();
+  
 }
 
 /* execute given command - returns false on fail */

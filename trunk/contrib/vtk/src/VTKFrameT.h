@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.h,v 1.9 2001-11-07 02:34:45 paklein Exp $ */
+/* $Id: VTKFrameT.h,v 1.10 2001-11-07 19:51:29 recampb Exp $ */
 
 #ifndef _VTK_FRAME_T_H_
 #define _VTK_FRAME_T_H_
@@ -46,6 +46,8 @@ class VTKFrameT: public iConsoleObjectT
   //private:
   
   void ResetView(void);
+
+  void ShowFrameNum(StringT);
 
   /** return a pointer to the frame's renderer */
   vtkRenderer* Renderer(void) { return renderer; };
