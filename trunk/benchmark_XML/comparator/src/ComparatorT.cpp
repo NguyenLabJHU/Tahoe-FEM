@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.2 2001-06-12 02:53:58 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.3 2001-06-12 03:25:24 paklein Exp $ */
 
 #include "ComparatorT.h"
 
@@ -15,8 +15,9 @@
 
 const char kBenchmarkDirectory[] = "benchmark";
 
-const double abs_tol = 1.0e-10;
-const double rel_tol = 1.0e-08;
+/* default tolerances */
+double abs_tol = 1.0e-10;
+double rel_tol = 1.0e-08;
 
 /* constructor */
 ComparatorT::ComparatorT(int argc, char* argv[], char job_char, char batch_char,
@@ -30,12 +31,12 @@ ComparatorT::ComparatorT(int argc, char* argv[], char job_char, char batch_char,
 	if (CommandLineOption("-abs_tol", index))
 	{
 		istrstream in((const char *) fCommandLineOptions[index + 1]);
-		in >> fAbsTol;
+		in >> abs_tol;
 	}
 	if (CommandLineOption("-rel_tol", index))
 	{
 		istrstream in((const char *) fCommandLineOptions[index + 1]);
-		in >> fRelTol;
+		in >> rel_tol;
 	}
 }
 
@@ -116,11 +117,40 @@ void ComparatorT::RunBatch(ifstreamT& in, ostream& status)
 **********************************************************************/
 
 /* compare results against benchmarks */
-bool ComparatorT::PassOrFail(ifstreamT& in) const
+bool ComparatorT::PassOrFail(ifstreamT& in) //const
 {
 	/* path to the current directory */
 	StringT path;
 	path.FilePath(in.filename());
+
+	/* reset default tolerances */
+	fAbsTol = abs_tol;	
+	fRelTol = rel_tol;
+
+	/* look for local tolerance file */
+	StringT tol_file = "compare.tol";
+	tol_file.ToNativePathName();
+	tol_file.Prepend(path);
+	ifstreamT tol_in(in.comment_marker(), tol_file);
+	if (tol_in.is_open())
+	{
+		cout << "found local tolerance file: " << tol_file << '\n';
+		StringT key;
+		tol_in >> key;
+		while (tol_in.good())
+		{
+			if (key == "abs_tol")
+				tol_in >> fAbsTol;
+			else if (key == "rel_tol")
+				tol_in >> fRelTol;
+			tol_in >> key;
+		}
+	}
+	else
+		cout << "did not find local tolerance file: " << tol_file << '\n';
+	cout << "using tolerances:\n"
+	     << "    abs_tol = " << fAbsTol << '\n'
+	     << "    rel_tol = " << fRelTol << '\n';
 	
 	/* job file name */
 	StringT file_root = in.filename();
@@ -387,15 +417,19 @@ bool ComparatorT::CompareDataBlocks(const ArrayT<StringT>& labels_1, const dArra
 	}
 
 	/* assess results */
-	if (fabs(max_abs_error) > fAbsTol) cout << "absolute error exceeds tolerance " << fAbsTol << ": " << max_abs_error << '\n';
-	if (fabs(max_rel_error) > fRelTol) cout << "relative error exceeds tolerance " << fRelTol << ": " << max_rel_error << '\n';
-//	if (fabs(max_abs_error) > fAbsTol || fabs(max_rel_error) > fRelTol)
+	if (fabs(max_abs_error) > fAbsTol)
+		cout << "absolute error exceeds tolerance " << fAbsTol << ": " << max_abs_error << '\n';
+	else
+		cout << "absolute error within tolerance " << fAbsTol << ": " << max_abs_error << '\n';
+	
+	if (fabs(max_rel_error) > fRelTol) 
+		cout << "relative error exceeds tolerance " << fRelTol << ": " << max_rel_error << ": IGNORED\n";
+	else
+		cout << "relative error within tolerance " << fRelTol << ": " << max_rel_error << '\n';
+
+	/* return */
 	if (fabs(max_abs_error) > fAbsTol)
 		return false;
 	else
-	{
-		cout << "absolute error within tolerance " << fAbsTol << ": " << max_abs_error << '\n';
-		cout << "relative error within tolerance " << fRelTol << ": " << max_rel_error << '\n';
 		return true;
-	}
 }

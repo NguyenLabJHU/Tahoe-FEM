@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.h,v 1.1 2001-06-11 02:10:12 paklein Exp $ */
+/* $Id: ComparatorT.h,v 1.2 2001-06-12 03:25:24 paklein Exp $ */
 
 #ifndef _COMPARATOR_T_H_
 #define _COMPARATOR_T_H_
@@ -40,7 +40,8 @@ protected:
 private:
 
 	/* compare results against benchmarks */
-	bool PassOrFail(ifstreamT& in) const;
+	bool PassOrFail(ifstreamT& in); //const;
+	// cannot be const until since tolerances are class data that can change
 
 	/* read data block header */
 	bool ReadDataBlockInfo(ifstreamT& in, int& group, double& time) const;
