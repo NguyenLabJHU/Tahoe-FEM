@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.13 2002-02-18 08:53:22 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.14 2002-03-11 20:14:44 sawimme Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -397,12 +397,12 @@ int ExodusT::NumNodesInSet(int set_ID) const
 	if (exoid < 0) throw eGeneralFail;
 
 	/* read set parameters */
-	int num_nodes, num_dist;
+	int num_set_nodes, num_dist;
 	Try("ExodusT::NumNodesInSet",
-		ex_get_node_set_param(exoid, set_ID, &num_nodes, &num_dist),
+		ex_get_node_set_param(exoid, set_ID, &num_set_nodes, &num_dist),
 		true);
 	
-	return num_nodes;
+	return num_set_nodes;
 }
 
 void ExodusT::ReadNodeSet(int set_ID, nArrayT<int>& nodes) const
@@ -425,12 +425,12 @@ void ExodusT::ReadNodeSet(int set_ID, nArrayT<int>& nodes) const
 void ExodusT::ReadNodeSets(const nArrayT<int>& set_ID, nArrayT<int>& nodes) const
 {
 	/* get total number of nodes */
-	int num_nodes = 0;
+	int num_set_nodes = 0;
 	for (int i = 0; i < set_ID.Length(); i++)
-		num_nodes += NumNodesInSet(set_ID[i]);
+		num_set_nodes += NumNodesInSet(set_ID[i]);
 
 	/* allocate */
-	nodes.Allocate(num_nodes);
+	nodes.Allocate(num_set_nodes);
 
 	/* read */
 	int count = 0;
@@ -557,20 +557,32 @@ void ExodusT::WriteSideSet(int set_ID, int block_ID, const iArray2DT& sides) con
 }
 
 /* variable results */
-void ExodusT::WriteNodeLabels(const ArrayT<StringT>& labels) const
+void ExodusT::WriteLabels(const ArrayT<StringT>& labels, ExodusT::VariableTypeT t) const
 {
-	WriteLabels(labels, "n");
-}
+	if (exoid < 0) throw eGeneralFail;
 
-void ExodusT::WriteElementLabels(const ArrayT<StringT>& labels) const
-{
-	WriteLabels(labels, "e");
-}
+	const char vartypes [3] = { 'n', 'e', 'g' };
+	char type = vartypes[t];
 
-void ExodusT::WriteGlobalLabels(const ArrayT<StringT>& labels) const
-{
-	WriteLabels(labels, "g");
-}
+	/* type = "n" or "e" or "g" for nodal, element or global */
+	if (labels.Length() > 0)
+	{
+		/* write number of variables */
+		Try("ExodusT::WriteLabels: ex_put_var_param",
+			ex_put_var_param(exoid, &type, labels.Length()),
+			true);
+
+		/* change array of strings to array of char* */
+		ArrayT<char*> var_names(labels.Length());
+		for (int i = 0; i < labels.Length(); i++)
+			var_names[i] = labels[i].Pointer();
+
+		/* write variable names */
+		Try("ExodusT::WriteLabels: ex_put_var_names",
+			ex_put_var_names(exoid, &type, labels.Length(), var_names.Pointer()),
+			true);
+	}
+}	
 
 void ExodusT::WriteTime(int step, double time) const
 {
@@ -626,20 +638,45 @@ void ExodusT::WriteGlobalVariable(int step, const dArrayT& fValues) const
 }
 
 /* read results data */
-void ExodusT::ReadNodeLabels(ArrayT<StringT>& labels) const
+void ExodusT::ReadLabels(ArrayT<StringT>& labels, ExodusT::VariableTypeT t) const
 {
-	ReadLabels(labels, "n");
-}
+	if (exoid < 0) throw eGeneralFail;
 
-void ExodusT::ReadElementLabels(ArrayT<StringT>& labels) const
-{
-	ReadLabels(labels, "e");
-}
+	const char vartypes [3] = { 'n', 'e', 'g' };
+	char type = vartypes[t];
 
-void ExodusT::ReadGlobalLabels(ArrayT<StringT>& labels) const
-{
-	ReadLabels(labels, "g");
-}
+	/* read number of variables */
+	int num_labels;
+	Try("ExodusT::ReadLabels: ex_get_var_param",
+		ex_get_var_param(exoid, &type, &num_labels),
+		true);
+
+	/* type = "n" or "e" or "g" for nodal, element or global */
+	if (num_labels > 0)
+	{
+		/* allocate array of char* */
+		pArrayT<char*> var_names(num_labels);
+		for (int i = 0; i < num_labels; i++)
+		{
+			char* str = new char[MAX_STR_LENGTH];
+			if (!str) throw eOutOfMemory;
+			var_names[i] = str;
+		}
+
+		/* read variable names */
+		Try("ExodusT::ReadLabels: ex_get_var_names",
+			ex_get_var_names(exoid, &type, var_names.Length(), var_names.Pointer()),
+			true);
+			
+		/* copy in */
+		labels.Allocate(num_labels);
+		for (int j = 0; j < num_labels; j++)
+		{	
+			char* str = var_names[j];
+			labels[j] = str;
+		}
+	}
+}	
 
 int ExodusT::NumTimeSteps(void) const
 {
@@ -668,29 +705,13 @@ void ExodusT::ReadTime(int step, double& time) const
 		true);
 }
 
-int ExodusT::NumNodeVariables (void) const
+int ExodusT::NumVariables (ExodusT::VariableTypeT t) const
 {
+	const char vartypes [3] = { 'n', 'e', 'g' };
+	char type = vartypes[t];
 	int num_labels;
 	Try("ExodusT::NumNodeVariables: ex_get_var_param",
-		ex_get_var_param(exoid, "n", &num_labels),
-		true);
-	return num_labels;
-}
-
-int ExodusT::NumElementVariables (void) const
-{
-	int num_labels;
-	Try("ExodusT::NumElementVariables: ex_get_var_param",
-		ex_get_var_param(exoid, "e", &num_labels),
-		true);
-	return num_labels;
-}
-
-int ExodusT::NumGlobalVariables (void) const
-{
-	int num_labels;
-	Try("ExodusT::NumGlobalVariables: ex_get_var_param",
-		ex_get_var_param(exoid, "g", &num_labels),
+		ex_get_var_param(exoid, &type, &num_labels),
 		true);
 	return num_labels;
 }
@@ -972,7 +993,7 @@ void ExodusT::GetElementName(int elemnodes, GeometryT::CodeT code,
 /* return the geometry code for the given element name */
 GeometryT::CodeT ExodusT::ToGeometryCode(const StringT& elem_name) const
 {
-	char *elem_names[7] = {
+	const char *elem_names[7] = {
 		"CIRCLE",
 		"SPHERE",
 		"TRIANGLE",
@@ -1090,68 +1111,6 @@ for (int i=0; i < conn.MajorDim(); i++)
 }
 }
 
-/* labels */
-void ExodusT::WriteLabels(const ArrayT<StringT>& labels, const char *type) const
-{
-	if (exoid < 0) throw eGeneralFail;
-
-	/* type = "n" or "e" or "g" for nodal, element or global */
-	if (labels.Length() > 0)
-	{
-		/* write number of variables */
-		Try("ExodusT::WriteLabels: ex_put_var_param",
-			ex_put_var_param(exoid, type, labels.Length()),
-			true);
-
-		/* change array of strings to array of char* */
-		ArrayT<char*> var_names(labels.Length());
-		for (int i = 0; i < labels.Length(); i++)
-			var_names[i] = labels[i].Pointer();
-
-		/* write variable names */
-		Try("ExodusT::WriteLabels: ex_put_var_names",
-			ex_put_var_names(exoid, type, labels.Length(), var_names.Pointer()),
-			true);
-	}
-}	
-
-void ExodusT::ReadLabels(ArrayT<StringT>& labels, char *type) const
-{
-	if (exoid < 0) throw eGeneralFail;
-
-	/* read number of variables */
-	int num_labels;
-	Try("ExodusT::ReadLabels: ex_get_var_param",
-		ex_get_var_param(exoid, type, &num_labels),
-		true);
-
-	/* type = "n" or "e" or "g" for nodal, element or global */
-	if (num_labels > 0)
-	{
-		/* allocate array of char* */
-		pArrayT<char*> var_names(num_labels);
-		for (int i = 0; i < num_labels; i++)
-		{
-			char* str = new char[MAX_STR_LENGTH];
-			if (!str) throw eOutOfMemory;
-			var_names[i] = str;
-		}
-
-		/* read variable names */
-		Try("ExodusT::ReadLabels: ex_get_var_names",
-			ex_get_var_names(exoid, type, var_names.Length(), var_names.Pointer()),
-			true);
-			
-		/* copy in */
-		labels.Allocate(num_labels);
-		for (int j = 0; j < num_labels; j++)
-		{	
-			char* str = var_names[j];
-			labels[j] = str;
-		}
-	}
-}	
-
 /* clear all parameter data */
 void ExodusT::Clear(void)
 {
@@ -1233,21 +1192,14 @@ void ExodusT::WriteNodeSet(int set_ID, const nArrayT<int>& nodes) const { throw 
 int ExodusT::NumSidesInSet(int set_ID) const { return 0; }
 void ExodusT::ReadSideSet(int set_ID, int& block_ID, iArray2DT& sides) const { throw eGeneralFail; }
 void ExodusT::WriteSideSet(int set_ID, int block_ID, const iArray2DT& sides) const { throw eGeneralFail; }
-void ExodusT::WriteNodeLabels(const ArrayT<StringT>& labels) const { throw eGeneralFail; }
-void ExodusT::WriteElementLabels(const ArrayT<StringT>& labels) const { throw eGeneralFail; }
-void ExodusT::WriteGlobalLabels(const ArrayT<StringT>& labels) const { throw eGeneralFail; }
 void ExodusT::WriteTime(int step, double time) const { throw eGeneralFail; }
 void ExodusT::WriteNodalVariable(int step, int index, const dArrayT& fValues) const { throw eGeneralFail; }
 void ExodusT::WriteElementVariable(int step, int block_ID, int index, const dArrayT& fValues) const { throw eGeneralFail; }
 void ExodusT::WriteGlobalVariable(int step, const dArrayT& fValues) const { throw eGeneralFail; }
-void ExodusT::ReadNodeLabels(ArrayT<StringT>& labels) const { throw eGeneralFail; }
-void ExodusT::ReadElementLabels(ArrayT<StringT>& labels) const { throw eGeneralFail; }
-void ExodusT::ReadGlobalLabels(ArrayT<StringT>& labels) const { throw eGeneralFail; }
+void ExodusT::ReadLabels(ArrayT<StringT>& labels, ExodusT::VariableT t) const { throw eGeneralFail; }
 int ExodusT::NumTimeSteps(void) const { return 0; }
 void ExodusT::ReadTime(int step, double& time) const { throw eGeneralFail; }
-int ExodusT::NumNodeVariables (void) const { return 0; }
-int ExodusT::NumElementVariables (void) const {	return 0; }
-int ExodusT::NumGlobalVariables (void) const { return 0; }
+int ExodusT::NumVariables (ExodusT::VariableT t) const { return 0; }
 void ExodusT::ReadNodalVariable(int step, int index, dArrayT& fValues) const { throw eGeneralFail; }
 void ExodusT::ReadElementVariable(int step, int block_ID, int index, dArrayT& fValues) const { throw eGeneralFail; }
 void ExodusT::ReadGlobalVariable(int step, dArrayT& fValues) const { throw eGeneralFail; }

@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.cpp,v 1.8 2002-03-04 06:33:36 paklein Exp $ */
+/* $Id: ExodusOutputT.cpp,v 1.9 2002-03-11 20:14:45 sawimme Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "ExodusOutputT.h"
@@ -148,11 +148,11 @@ void ExodusOutputT::CreateResultsFile(int ID, ExodusT& exo)
 
 	/* write nodal variable labels */
 	const ArrayT<StringT>& node_labels = fElementSets[ID]->NodeOutputLabels();
-	exo.WriteNodeLabels(node_labels);
+	exo.WriteLabels(node_labels, ExodusT::kNode);
 
 	/* write element variable labels */
 	const ArrayT<StringT>& elem_labels = fElementSets[ID]->ElementOutputLabels();
-	exo.WriteElementLabels(elem_labels);
+	exo.WriteLabels(elem_labels, ExodusT::kElement);
 }
 
 void ExodusOutputT::CreateGeometryFile(ExodusT& exo)

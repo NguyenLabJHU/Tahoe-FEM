@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.cpp,v 1.12 2002-03-04 06:26:33 paklein Exp $ */
+/* $Id: ExodusInputT.cpp,v 1.13 2002-03-11 20:14:45 sawimme Exp $ */
 /* created: sawimme (12/04/1998) */
 
 #include "ExodusInputT.h"
@@ -352,7 +352,13 @@ void ExodusInputT::ReadAllElementVariables (int step, dArray2DT& values)
   if (values.MajorDim() != NumGlobalElements () ||
       num != NumElementVariables ()) throw eSizeMismatch;
   dArray2DT vt (num, values.MajorDim());
-  
+
+  if (num ==0)
+    {
+      values = 0;
+      return;
+    }
+
   int ng = NumElementGroups ();
   iArrayT ids (ng);
   fData.ElementBlockID (ids);
@@ -378,6 +384,12 @@ void ExodusInputT::ReadElementVariables (int step, const StringT& name, dArray2D
 {
   int group_id = atoi (name.Pointer());
   int num = NumElementVariables ();
+
+  if (num ==0)
+    {
+      evalues = 0;
+      return;
+    }
 
   int numelems, dim;
   fData.ReadElementBlockDims (group_id, numelems, dim);
