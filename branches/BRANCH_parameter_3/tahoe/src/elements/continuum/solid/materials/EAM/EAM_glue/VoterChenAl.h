@@ -1,7 +1,5 @@
-/* $Id: VoterChenAl.h,v 1.2 2002-07-02 19:55:37 cjkimme Exp $ */
-/* created: paklein (12/04/1996)                                          */
-/* VoterChenAl.h                                                          */
-
+/* $Id: VoterChenAl.h,v 1.2.56.1 2004-06-16 00:31:53 paklein Exp $ */
+/* created: paklein (12/04/1996) */
 #ifndef _VOTERCHEN_AL_H_
 #define _VOTERCHEN_AL_H_
 
@@ -10,12 +8,13 @@
 
 namespace Tahoe {
 
+/** Voter and Chen EAM aluminum */
 class VoterChenAl: public EAM
 {
 public:
 
 	/* constructor */
-	VoterChenAl(CBLatticeT& lattice);
+	VoterChenAl(CBLatticeT& lattice, int nsd);
 
 	/* unstressed lattice parameter */
 	 virtual double LatticeParameter(void) const;

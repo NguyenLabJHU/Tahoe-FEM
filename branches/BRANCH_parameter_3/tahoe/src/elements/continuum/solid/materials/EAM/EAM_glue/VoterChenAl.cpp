@@ -1,21 +1,18 @@
-/* $Id: VoterChenAl.cpp,v 1.4 2003-11-21 22:46:22 paklein Exp $ */
-/* created: paklein (12/04/1996)                                          */
-/* VoterChenAl.cpp                                                        */
-
+/* $Id: VoterChenAl.cpp,v 1.4.20.1 2004-06-16 00:31:53 paklein Exp $ */
+/* created: paklein (12/04/1996) */
 #include "VoterChenAl.h"
 #include <math.h>
 #include "CubicSplineT.h"
 
-/* lattice parameters */
-
 using namespace Tahoe;
 
+/* lattice parameters */
 const double kLatticeParameterAl = 4.05; /* angstrom */
 const double kCutoffRadiusAl 	 = 5.5550; /* angstrom */
 
 /* constructor */
-VoterChenAl::VoterChenAl(CBLatticeT& lattice):
-	EAM(lattice)
+VoterChenAl::VoterChenAl(CBLatticeT& lattice, int nsd):
+	EAM(lattice, nsd)
 {
 
 }

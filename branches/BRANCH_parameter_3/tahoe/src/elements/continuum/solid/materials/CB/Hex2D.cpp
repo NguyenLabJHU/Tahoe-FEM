@@ -1,4 +1,4 @@
-/* $Id: Hex2D.cpp,v 1.2.42.3 2004-06-14 04:56:32 paklein Exp $ */
+/* $Id: Hex2D.cpp,v 1.2.42.4 2004-06-16 00:31:50 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Hex2D.h"
 #include "ElementsConfig.h"
@@ -121,13 +121,14 @@ void Hex2D::DefineParameters(ParameterListT& list) const
 	/* number of neighbor shells */
 	ParameterT n_shells(ParameterT::Integer, "shells");
 	n_shells.AddLimit(1, LimitT::LowerInclusive);
+	list.AddParameter(n_shells);
 }
 
 /* information about subordinate parameter lists */
 void Hex2D::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
-	Hex2D::DefineSubs(sub_list);
+	NL_E_MatT::DefineSubs(sub_list);
 
 	/* pair potential choice */
 	sub_list.AddSub("pair_potential_choice", ParameterListT::Once, true);
@@ -137,11 +138,29 @@ void Hex2D::DefineSubs(SubListT& sub_list) const
 ParameterInterfaceT* Hex2D::NewSub(const StringT& list_name) const
 {
 	/* try to construct pair property */
-	PairPropertyT* pair_prop = PairPropertyT::New(list_name, &(MaterialSupport()));
+	PairPropertyT* pair_prop = PairPropertyT::New(list_name, fMaterialSupport);
 	if (pair_prop)
 		return pair_prop;
 	else /* inherited */
-		return Hex2D::NewSub(list_name);
+		return NL_E_MatT::NewSub(list_name);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void Hex2D::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	if (sub == "pair_potential_choice")
+	{
+		order = ParameterListT::Choice;
+
+		/* choice of potentials */
+		sub_sub_list.AddSub("harmonic");
+		sub_sub_list.AddSub("Lennard_Jones");
+		sub_sub_list.AddSub("Paradyn_pair");
+		sub_sub_list.AddSub("Matsui");
+	}
+	else /* inherited */
+		NL_E_MatT::DefineInlineSub(sub, order, sub_sub_list);
 }
 
 /* accept parameter list */
@@ -163,9 +182,9 @@ void Hex2D::TakeParameterList(const ParameterListT& list)
 	fPairProperty->TakeParameterList(*pair_prop);
 
 	/* construct the bond tables */
-	fQ.Identity();
-	fHexLattice2D = new HexLattice2DT(fQ, nshells);
+	fHexLattice2D = new HexLattice2DT(nshells);
 	fHexLattice2D->Initialize();
+	fNearestNeighbor = fPairProperty->NearestNeighbor();
 	
 	/* check */
 	if (fNearestNeighbor < kSmall)

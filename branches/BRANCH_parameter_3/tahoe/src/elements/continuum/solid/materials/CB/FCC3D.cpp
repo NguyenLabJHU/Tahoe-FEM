@@ -1,4 +1,4 @@
-/* $Id: FCC3D.cpp,v 1.3.12.2 2004-06-09 23:17:30 paklein Exp $ */
+/* $Id: FCC3D.cpp,v 1.3.12.3 2004-06-16 00:31:50 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D.h"
 #include "ElementsConfig.h"
@@ -38,6 +38,7 @@ FCC3D::FCC3D(ifstreamT& in, const FSMatSupportT& support):
 	int nshells;
 	in >> nshells;
 
+#if 0
 	/* construct pair property */
 	ParticlePropertyT::TypeT property;
 	in >> property;
@@ -63,11 +64,12 @@ FCC3D::FCC3D(ifstreamT& in, const FSMatSupportT& support):
 		default:
 			ExceptionT::BadInputValue(caller, "unrecognized property type %d", property);
 	}
-	
+
 	/* construct the bond tables */
 	fQ.Identity();
 	fFCCLattice = new FCCLatticeT(fQ, nshells);
 	fFCCLattice->Initialize();
+#endif
 	
 	/* check */
 	if (fNearestNeighbor < kSmall)

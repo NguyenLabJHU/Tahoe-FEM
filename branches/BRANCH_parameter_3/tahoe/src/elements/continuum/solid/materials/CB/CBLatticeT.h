@@ -1,4 +1,4 @@
-/* $Id: CBLatticeT.h,v 1.2.56.1 2004-06-14 04:56:32 paklein Exp $ */
+/* $Id: CBLatticeT.h,v 1.2.56.2 2004-06-16 00:31:50 paklein Exp $ */
 /* created: paklein (12/02/1996)*/
 #ifndef _EAMLATTICET_H_
 #define _EAMLATTICET_H_
@@ -14,31 +14,19 @@
 
 namespace Tahoe {
 
+/** bond vector information needed for Cauchy-Born calculations */
 class CBLatticeT: public BondLatticeT
 {
 public:
 
-	/* constructor */
-	CBLatticeT(int numlatticedim, int numspatialdim, int numbonds);
-	
-	/* the Q matrix passed into this constructor is used to rotate the
-	 * bond vectors into the orientation prescribed by Q.  No check is
-	 * performed on the orthogonality of Q, only its dimensions.  Q is
-	 * deep copied.  Q is defined as:
-	 *
-	 *			Q = d x_natural / d x_global
-	 *
-	 * So that the vectors are transformed by:
-	 *
-	 *			r_global = Transpose[Q].r_natural
-	 */
-	CBLatticeT(const dMatrixT& Q, int numspatialdim, int numbonds);
-			
-	/* fetch bond component tensor (R_I R_J R_K R_L) in reduced index
+	/** constructor */
+	CBLatticeT(void);
+
+	/** fetch bond component tensor (R_I R_J R_K R_L) in reduced index
 	 * form */
 	void BondComponentTensor4(int numbond, dMatrixT& matrix) const;
 
-	/* fetch bond component tensor (R_I R_J) */
+	/** fetch bond component tensor (R_I R_J) */
 	void BondComponentTensor2(int numbond, dArrayT& vector) const;
 	void BatchBondComponentTensor2(dArray2DT& comptable) const;
 	  		

@@ -1,4 +1,4 @@
-/* $Id: LJTr2D.cpp,v 1.9.22.3 2004-06-14 04:56:32 paklein Exp $ */
+/* $Id: LJTr2D.cpp,v 1.9.22.4 2004-06-16 00:31:50 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "LJTr2D.h"
 
@@ -15,14 +15,15 @@ const double sqrt3 = sqrt(3.0);
 LJTr2D::LJTr2D(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("LJ_triangular_2D"),
 	NL_E_MatT(in, support),
-	CBLatticeT(2,2,3)
+//	CBLatticeT(2,2,3)
+	feps(0.0)
 {
 //	in >> feps;	if (feps < 0.0) throw ExceptionT::kBadInputValue;
 }
 
 LJTr2D::LJTr2D(void):
 	ParameterInterfaceT("LJ_triangular_2D"),
-	CBLatticeT(2,2,3),
+//	CBLatticeT(2,2,3),
 	feps(0.0)
 {
 
@@ -61,8 +62,9 @@ void LJTr2D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 	
 	dMatrixT fBondTensor4(3);
 	fBondTensor4 = 0;
-	moduli = 0.; 
-	for (int i = 0; i < fNumBonds; i++)
+	moduli = 0.;
+	int nb = NumberOfBonds();
+	for (int i = 0; i < nb; i++)
 	{
 		double ri = fDefLength[i];
 		double coeff = 2./sqrt3*(ddU(ri)-dUlj(ri)/ri)/ri/ri;
@@ -77,12 +79,12 @@ void LJTr2D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 /* 2nd Piola-Kirchhoff stress vector */
 void LJTr2D::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
 {
-	
 	ComputeDeformedLengths(E);
 	
 	dArrayT fBondTensor2(3);
 	PK2 = 0.; 
-	for (int i = 0; i < fNumBonds; i++)
+	int nb = NumberOfBonds();
+	for (int i = 0; i < nb; i++)
 	{
 		double ri = fDefLength[i];
 		double coeff = dUlj(ri)*2./sqrt3/ri;
@@ -97,8 +99,8 @@ double LJTr2D::ComputeEnergyDensity(const dSymMatrixT& E)
 	ComputeDeformedLengths(E);
 	
 	double tmpSum  = 0.;
-	
-	for (int i = 0; i < fNumBonds; i++)
+	int nb = NumberOfBonds();	
+	for (int i = 0; i < nb; i++)
 	{
 		double r = fDefLength[i];
 		tmpSum += Ulj(r);
@@ -110,8 +112,15 @@ double LJTr2D::ComputeEnergyDensity(const dSymMatrixT& E)
 
 void LJTr2D::LoadBondTable(void)
 {
+	/* dimension work space */
+	fBondCounts.Dimension(3);
+	fDefLength.Dimension(3);
+	fBonds.Dimension(3,2);
+
+	/* all bonds appear once */
   	fBondCounts = 1;
 
+	/* clear deformed lengths for now */
   	fDefLength = 0.0; 
   
   	double bonddata[3][2] = {
@@ -119,10 +128,8 @@ void LJTr2D::LoadBondTable(void)
   		{0.5,-sqrt3/2.0},
   		{0.5,sqrt3/2.0}};
  
-  	if (fBonds.MajorDim() != fNumBonds ||
-     	fBonds.MinorDim() != 2) throw ExceptionT::kGeneralFail;
-
-	for (int i = 0; i < fNumBonds; i++)
+	int nb = NumberOfBonds();
+	for (int i = 0; i < nb; i++)
     	for (int j = 0; j < 2; j++)
       		fBonds(i,j) = bonddata[i][j];
 
