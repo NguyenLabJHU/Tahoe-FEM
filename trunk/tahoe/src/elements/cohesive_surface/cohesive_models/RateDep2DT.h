@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.h,v 1.5 2002-07-05 22:27:59 paklein Exp $ */
+/* $Id: RateDep2DT.h,v 1.6 2002-10-23 00:18:03 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #ifndef _RATE_DEP_2D_T_H_
@@ -62,11 +62,11 @@ public:
 	virtual void ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
 		dArrayT& output);
 
-	virtual bool NeedsNodalInfo(void);
-	virtual int NodalQuantityNeeded(void);
+//	virtual bool NeedsNodalInfo(void);
+//	virtual int NodalQuantityNeeded(void);
 //        virtual double ComputeNodalValue(const dArrayT &);
 //	virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
-	virtual int ElementGroupNeeded(void);
+//	virtual int ElementGroupNeeded(void);
 
 protected:
 

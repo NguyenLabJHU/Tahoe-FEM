@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.cpp,v 1.12 2002-10-20 22:48:18 paklein Exp $ */
+/* $Id: XuNeedleman3DT.cpp,v 1.13 2002-10-23 00:18:03 cjkimme Exp $ */
 /* created: paklein (06/23/1999)*/
 
 #include "XuNeedleman3DT.h"
@@ -132,35 +132,30 @@ const dArrayT& XuNeedleman3DT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 	double u_t1 = jump_u[0];
 	double u_t2 = jump_u[1];
 	double u_n  = jump_u[2];
-
+	
 	z1 = 1./d_n;
 	z2 = 1./(d_t*d_t);
 	z3 = r-q;
 	z4 = 1./(-1. + r);
 	z5 = 1 - r;
-//	z7 = u_t2*u_t2;
 	z6 = -z2*(u_t1*u_t1 + u_t2*u_t2);
 	z8 = -u_n*z1;
 	z9 = -z8;
 	z10 = 1. - q;
-//	z3 += r;
-//	z4 = 1./z4;
-//	z6 += z7;
+	
 	// limit compressive deformation
 	if (z8 > kExpMax)
 	{
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 		cout << "\n XuNeedleman2DT::Traction: exp(x): x = " << z8 << " > kExpMax" << endl;
 #endif
 		throw ExceptionT::kBadJacobianDet;
 	}	
 	z7 = exp(z8);
 	z11 = z1*z10*z4;
-//	z6 *= -z2;
 	z12 = z3*z4*z9 + q;
 	z5 += z9;
 	z9 = exp(z6); //don't limit shear opening
-//	z12 += q;
 	z5 *= z10*z4;
 	z6 += z8; // since (z6 < 0), (z6' < z8) and z8 is checked above
 	z6 = exp(z6);
@@ -169,19 +164,17 @@ const dArrayT& XuNeedleman3DT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 	z4 = z12*z8 + z5;
 	z2 *= 2.*phi_n*z12*z6;
 	z3 += z11;
-//	z4 += z5;
 	z5 = u_t1*z2;
 	z2 *= u_t2;
 	z6 = phi_n*z7;
 	z3 *= z6;
 	z1 *= -z4*z6;
 	z1 += z3;
-	//z1 = List(z5,z2,z1);
 	
 	fTraction[0] = z5;
 	fTraction[1] = z2;
 	fTraction[2] = z1;
-
+	
 	/* penetration */
 	if (u_n < 0.0) fTraction[2] += u_n*fK;
 
@@ -307,20 +300,24 @@ SurfacePotentialT::StatusT XuNeedleman3DT::Status(const dArrayT& jump_u, const A
 	
 void XuNeedleman3DT::PrintName(ostream& out) const
 {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	out << "    Xu-Needleman 3D\n";
+#else
+#pragma unused(out)
 #endif
 }
 
 /* print parameters to the output stream */
 void XuNeedleman3DT::Print(ostream& out) const
 {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	out << " Surface energy ratio (phi_t/phi_n). . . . . . . = " << q       << '\n';
 	out << " Critical opening ratio (delta_n* /d_n). . . . . = " << r       << '\n';
 	out << " Characteristic normal opening to failure. . . . = " << d_n     << '\n';
 	out << " Characteristic tangential opening to failure. . = " << d_t     << '\n';
 	out << " Mode I work to fracture (phi_n) . . . . . . . . = " << phi_n   << '\n';
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fKratio << '\n';
+#else
+#pragma unused(out)
 #endif
 }

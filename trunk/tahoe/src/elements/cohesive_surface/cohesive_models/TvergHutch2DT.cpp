@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.cpp,v 1.13 2002-10-20 22:48:18 paklein Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.14 2002-10-23 00:18:03 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch2DT.h"
@@ -9,6 +9,7 @@
 #include "ExceptionT.h"
 #include "fstreamT.h"
 #include "StringT.h"
+#include "SymmetricNodesT.h"
 
 /* class parameters */
 
@@ -125,15 +126,14 @@ const dMatrixT& TvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif
-
-	/*double u_t = jump_u[0];*/
+	
 	double u_t = jump_u[0];
 	double u_n = jump_u[1];
 
-	double dtm1 = 1./fd_c_t/fd_c_t;
-	double dnm1 = 1./fd_c_n/fd_c_n;
-	double L = sqrt(u_t*u_t*dtm1 + u_n*u_n*dnm1);
-
+	double dtm2 = 1./fd_c_t/fd_c_t;
+	double dnm2 = 1./fd_c_n/fd_c_n;
+	double L = sqrt(u_t*u_t*dtm2 + u_n*u_n*dnm2);
+	
 	if (L < fL_1) // K1
 	{
 		fStiffness[0] = (fd_c_n/fd_c_t)*fsigma_max/(fL_1*fd_c_t);
@@ -143,56 +143,44 @@ const dMatrixT& TvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 	}
 	else 
 	{
-		double lt_0 = jump_u[0]*dtm1;
-		double lt_2 = jump_u[1]*dnm1;
+		double lt_0 = u_t*dtm2;
+		double lt_2 = u_n*dnm2;
 		
 		if (L < fL_2) // K2
 		{
 			double dijTerm = fsigma_max/L*fd_c_n;
 			
-			fStiffness[0] = dijTerm*dtm1;
-			fStiffness[3] = dijTerm*dnm1;
+			fStiffness[0] = dijTerm*dtm2;
+			fStiffness[3] = dijTerm*dnm2;
 			dijTerm /= -L*L;
 			fStiffness[0] += dijTerm*lt_0*lt_0;
 			fStiffness[2] = fStiffness[1] = dijTerm*lt_0*lt_2;
 			fStiffness[3] += dijTerm*lt_2*lt_2;
-	
-/*		Keeping tangent stiffness 
-		
-		if (fabs(z1) < kSmall)
-			fStiffness[0] = (fd_c_n/fd_c_t)*fsigma_max/(L*fd_c_t); // secant stiffness
-		else
-			fStiffness[0] = z1;
-
-		if (fabs(z3) < kSmall)
-			fStiffness[3] = fsigma_max/(L*fd_c_n); // secant stiffness
-		else
-			fStiffness[3] = z3;  */
-	}
-	else 
-		if (L < fL_fail) // K3
-		{
-			double dijTerm = fsigma_max*(1./L-1.)/(1.-fL_2)*fd_c_n;
+		}
+		else 
+			if (L < fL_fail) // K3
+			{
+				double dijTerm = fsigma_max*(1./L-1.)/(1.-fL_2)*fd_c_n;
 			
-			fStiffness[0] = dijTerm*dtm1;
-			fStiffness[3] = dijTerm*dnm1;
-			dijTerm = -fsigma_max/(1.-fL_2)*fd_c_n/L/L/L;
-			fStiffness[0] += dijTerm*lt_0*lt_0;
-			fStiffness[3] += dijTerm*lt_2*lt_2;
-			fStiffness[1] = fStiffness[2] = dijTerm*lt_0*lt_2;
-		}
-		else
-		{
-			fStiffness[0] = 0.0;
-			fStiffness[1] = 0.0;
-			fStiffness[2] = 0.0;
-			fStiffness[3] = 0.0;	
-		}
+				fStiffness[0] = dijTerm*dtm2;
+				fStiffness[3] = dijTerm*dnm2;
+				dijTerm = -fsigma_max/(1.-fL_2)*fd_c_n/L/L/L;
+				fStiffness[0] += dijTerm*lt_0*lt_0;
+				fStiffness[3] += dijTerm*lt_2*lt_2;
+				fStiffness[1] = fStiffness[2] = dijTerm*lt_0*lt_2;
+			}
+			else
+			{
+				fStiffness[0] = 0.0;
+				fStiffness[1] = 0.0;
+				fStiffness[2] = 0.0;
+				fStiffness[3] = 0.0;	
+			}
 	}
 
 	/* penetration */
 	if (u_n < 0) fStiffness[3] += fK;
-
+	
 	return fStiffness;
 }
 
@@ -222,7 +210,7 @@ SurfacePotentialT::StatusT TvergHutch2DT::Status(const dArrayT& jump_u,
 
 void TvergHutch2DT::PrintName(ostream& out) const
 {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	out << "    Tvergaard-Hutchinson 2D\n";
 #endif
 }
@@ -230,7 +218,7 @@ void TvergHutch2DT::PrintName(ostream& out) const
 /* print parameters to the output stream */
 void TvergHutch2DT::Print(ostream& out) const
 {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	out << " Cohesive stress . . . . . . . . . . . . . . . . = " << fsigma_max << '\n';
 	out << " Normal opening to failure . . . . . . . . . . . = " << fd_c_n     << '\n';
 	out << " Tangential opening to failure . . . . . . . . . = " << fd_c_t     << '\n';

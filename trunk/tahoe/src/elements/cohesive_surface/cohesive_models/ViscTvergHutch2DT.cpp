@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.cpp,v 1.8 2002-10-20 22:48:18 paklein Exp $ */
+/* $Id: ViscTvergHutch2DT.cpp,v 1.9 2002-10-23 00:18:03 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "ViscTvergHutch2DT.h"
@@ -102,7 +102,7 @@ const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 	if (fTimeStep <= 0.0) {
-#ifndef _TAHOE_FRACTURE_INTERFACE_	
+#ifndef _SIERRA_TEST_	
 		cout << "\n ViscTvergHutch2DT::Traction: expecting positive time increment: "
 		     << fTimeStep << endl;
 #endif		     
@@ -347,7 +347,7 @@ SurfacePotentialT::StatusT ViscTvergHutch2DT::Status(const dArrayT& jump_u,
 
 void ViscTvergHutch2DT::PrintName(ostream& out) const
 {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	out << "    Tvergaard-Hutchinson 2D with viscous damping\n";
 #endif
 }
@@ -355,7 +355,7 @@ void ViscTvergHutch2DT::PrintName(ostream& out) const
 /* print parameters to the output stream */
 void ViscTvergHutch2DT::Print(ostream& out) const
 {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	out << " Cohesive stress . . . . . . . . . . . . . . . . = " << fsigma_max << '\n';
 	out << " Normal opening to failure . . . . . . . . . . . = " << fd_c_n     << '\n';
 	out << " Tangential opening to failure . . . . . . . . . = " << fd_c_t     << '\n';

@@ -1,5 +1,4 @@
-/* $Id: YoonAllen2DT.cpp,v 1.6 2002-10-20 22:48:18 paklein Exp $ */
-
+/* $Id: YoonAllen2DT.cpp,v 1.7 2002-10-23 00:18:03 cjkimme Exp $ */
 #include "YoonAllen2DT.h"
 
 #include <iostream.h>
@@ -70,7 +69,7 @@ void YoonAllen2DT::InitStateVariables(ArrayT<double>& state)
  	int num_state = NumStateVariables();
 	if (state.Length() != num_state) 
 	{
-#ifndef _TAHOE_FRACTURE_INTERFACE_	
+#ifndef _SIERRA_TEST_	
 	  	cout << "\n SurfacePotentialT::InitStateVariables: expecting state variable array\n"
 		     <<   "     length " << num_state << ", found length " << state.Length() << endl;
 #endif
@@ -116,7 +115,7 @@ double YoonAllen2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& stat
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
 
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	cout << "YoonAllen2DT::Potential is not implemented. It's viscoelastic \n";
 #endif
 	return 0.;
@@ -130,7 +129,7 @@ const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 	if (fTimeStep <= 0.0) {
-#ifndef _TAHOE_FRACTURE_INTERFACE_	
+#ifndef _SIERRA_TEST_	
 		cout << "\n YoonAllen2DT::Traction: expecting positive time increment: "
 		     << fTimeStep << endl;
 #endif		     
@@ -422,7 +421,7 @@ SurfacePotentialT::StatusT YoonAllen2DT::Status(const dArrayT& jump_u,
 
 void YoonAllen2DT::PrintName(ostream& out) const
 {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	out << " Yoon-Allen 2D \n";
 #endif
 }
@@ -430,7 +429,7 @@ void YoonAllen2DT::PrintName(ostream& out) const
 /* print parameters to the output stream */
 void YoonAllen2DT::Print(ostream& out) const
 {
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 	out << " Cohesive stress . . . . . . . . . . . . . . . . = " << fsigma_0   << '\n';
 	out << " Normal length scale . . . . . . . . . . . . . . = " << fd_c_n     << '\n';
 	out << " Tangential length scale . . . . . . . . . . . . = " << fd_c_t     << '\n';
@@ -471,7 +470,7 @@ void YoonAllen2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& st
 	dArrayT& output)
 {
 #pragma unused(jump_u)
-#ifndef _TAHOE_FRACTURE_INTERFACE_
+#ifndef _SIERRA_TEST_
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif	

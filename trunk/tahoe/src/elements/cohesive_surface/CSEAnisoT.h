@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.15 2002-08-22 23:56:39 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.16 2002-10-23 00:18:02 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -13,9 +13,6 @@
 #include "Array2DT.h"
 #include "LocalArrayT.h"
 
-/* friends and well-wishers */
-//#include "SymmetricNodesT.h"
-
 namespace Tahoe {
 
 /* forward declarations */
@@ -26,9 +23,13 @@ class CSEAnisoT: public CSEBaseT
 {
 public:
 
-	/* constructor */
+	/* constructors */
+#ifndef _SIERRA_TEST_
 	CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate);
-
+#else
+	CSEAnisoT(const ElementSupportT& support, bool rotate);
+#endif
+	
 	/* destructor */
 	~CSEAnisoT(void);
 
@@ -46,6 +47,11 @@ public:
 
 	/** read restart data to the output stream. */
 	virtual void ReadRestart(istream& in);
+	
+#ifdef _SIERRA_TEST_	
+	/* Initialize fields passed in from the outside */
+	virtual void InitStep(void);
+#endif
 
 protected:
 

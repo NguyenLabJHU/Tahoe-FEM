@@ -1,10 +1,11 @@
-/* $Id: SurfacePotentialT.h,v 1.15 2002-08-05 19:27:55 cjkimme Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.16 2002-10-23 00:18:03 cjkimme Exp $ */
 /* created: paklein (06/20/1999) */
 
 #ifndef _SURFACE_POTENTIAL_T_H_
 #define _SURFACE_POTENTIAL_T_H_
 
 /* direct members */
+#include "iArrayT.h"
 #include "dArrayT.h"
 #include "dMatrixT.h"
 
