@@ -13,6 +13,8 @@
 #include "CORUNT.h"
 
 #include "nArrayT.h"
+#include "Rotate3DT.h"
+#include "Rotate2DT.h"
 #include "ifstreamT.h"
 
    using namespace Tahoe;
@@ -35,7 +37,7 @@
       PolyT(int dim, dArray2DT len, dArrayT lattice_parameter,
        iArrayT which_sort, StringT slt, iArrayT per, int NumberofGrains);
    
-	PolyT(int dim, iArrayT cel, dArrayT lattice_parameter,
+      PolyT(int dim, iArrayT cel, dArrayT lattice_parameter,
        iArrayT which_sort, StringT slt, iArrayT per, int NumberofGrains);
    
    //Destructor
@@ -46,8 +48,12 @@
    
       void CreateLattice(CrystalLatticeT* templateLattice); 
    
-  protected:
+   protected:
       CrystalLatticeT* GenerateLattice(CrystalLatticeT* templateLattice);
+   	dArrayT GenerateRotation();
+   	dArrayT GetAtom(Rotate3DT rotationMatrix, dArrayT grainCenter, int AtomNumber);
+   	dArrayT GetAtom(Rotate2DT rotationMatrix, dArrayT grainCenter, int AtomNumber);
+		void MakeGrains(dArrayT lattice_parameter);
    };
 
 
