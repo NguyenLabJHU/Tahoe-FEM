@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.18.2.11 2003-01-13 19:55:32 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.18.2.12 2003-01-14 15:41:42 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -725,7 +725,7 @@ void NodeManagerT::ResizeNodes(int num_nodes)
 	
 	/* current coordinates */
 	if (fCurrentCoords) fCurrentCoords_man.SetMajorDimension(num_nodes, true);
-		
+
 	/* resize fields */
 	for (int i = 0; i < fFields.Length(); i++)
 		fFields[i]->Dimension(num_nodes, true);
@@ -760,16 +760,7 @@ void NodeManagerT::CopyNodeToNode(const ArrayT<int>& source,
 
 	/* reset current coordinates */
 	if (fCurrentCoords)
-	{
-		const dArray2DT& d = (*fCoordUpdate)[0];
-		const dArray2DT& X = InitialCoordinates();
-		for (int i = 0; i < target.Length(); i++)
-		{
-			int nd = target[i];
-			for (int j = 0; j < d.MinorDim(); j++)
-				(*fCurrentCoords)(nd,j) = X(nd,j) + d(nd,j);
-		}
-	}
+		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);	
 }
 
 #if 0
@@ -1267,6 +1258,8 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			field->SetLabels(labels);
 			field->SetGroup(group_num);
 			field->Dimension(NumNodes(), false);
+			for (int j = 0; j <= field->Order(); j++)
+				(*field)[j] = 0.0;
 			field->WriteParameters(out);
 
 			/* coordinate update field */
