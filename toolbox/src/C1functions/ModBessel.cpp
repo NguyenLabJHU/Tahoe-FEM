@@ -1,4 +1,4 @@
-/* $Id: ModBessel.cpp,v 1.1 2002-01-28 18:39:47 dzeigle Exp $ */
+/* $Id: ModBessel.cpp,v 1.2 2002-02-04 15:06:06 dzeigle Exp $ */
 /* created: dzeigle (10/30/1997)                                          */
 
 #include "ModBessel.h"
@@ -1537,13 +1537,13 @@ double ModBessel::Function(double x) const
 double ModBessel::DFunction(double x) const
 {
 	cout << "\n Derivative of the Bessel Function of the 3rd Kind not tabulated!\n";
-	return 0.0;
+	return 0.0*x;
 }
 
 double ModBessel::DDFunction(double x) const
 {
 	cout << "\n Second derivative of the Bessel Function of the 3rd Kind not tabulated!\n";
-	return 0.0;
+	return 0.0*x;
 }
 
 /*
