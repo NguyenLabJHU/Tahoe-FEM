@@ -1,4 +1,4 @@
-/* $Id: ValueT.h,v 1.5.2.2 2003-05-03 09:06:52 paklein Exp $ */
+/* $Id: ValueT.h,v 1.5.2.3 2003-05-03 18:48:51 paklein Exp $ */
 #ifndef _VALUE_T_H_
 #define _VALUE_T_H_
 
@@ -60,6 +60,7 @@ public:
 	ValueT& operator=(double x);
 	ValueT& operator=(bool b);
 	ValueT& operator=(const char* s);
+	ValueT& operator=(const StringT& s);
 	ValueT& operator=(const ValueT& rhs);
 
 	/** extract value from string, performing required type conversion */
@@ -90,6 +91,12 @@ protected:
 	bool fBoolean;
 	/*@}*/
 };
+
+/* inlines */
+inline ValueT& ValueT::operator=(const StringT& s)
+{
+	return operator=(s.Pointer());
+}
 
 } /* namespace Tahoe */
 
