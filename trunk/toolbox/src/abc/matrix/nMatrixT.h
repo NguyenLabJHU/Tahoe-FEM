@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.28 2004-01-31 07:19:11 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.29 2004-04-22 17:08:07 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _NMATRIX_T_H_
 #define _NMATRIX_T_H_
@@ -1406,7 +1406,7 @@ void nMatrixT<nTYPE>::MultQTBQ(const nMatrixT& q,
 	  b.fCols != q.fRows) throw ExceptionT::kSizeMismatch;
 #endif
 
-	if (fRows == 3 && fCols == 3)
+	if (fRows == 3 && fCols == 3 && b.fCols == 3)
 	{
 		nTYPE* A = Pointer();
 		const nTYPE* Q = q.Pointer();
