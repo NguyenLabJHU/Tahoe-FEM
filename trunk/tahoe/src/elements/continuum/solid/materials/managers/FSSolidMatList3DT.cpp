@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.8 2004-08-08 02:06:32 paklein Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.9 2004-08-13 21:06:00 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -92,6 +92,7 @@
 
 #ifdef __SIERRA__
 #include "SIERRA_BCJ.h"
+#include "SIERRA_EMMI.h"
 #endif /* __SIERRA__ */
 
 #endif /* SIERRA_MATERIAL */
@@ -179,6 +180,7 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef __SIERRA__
 		sub_lists.AddSub("SIERRA_BCJ");
+		sub_lists.AddSub("SIERRA_EMMI");
 #endif /* __SIERRA__ */
 
 #endif
@@ -301,6 +303,8 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #ifdef __SIERRA__
 	else if (name == "SIERRA_BCJ")
 		mat= new SIERRA_BCJ;
+	else if (name == "SIERRA_EMMI")
+		mat= new SIERRA_EMMI;
 #endif /* __SIERRA__ */
 
 #endif
