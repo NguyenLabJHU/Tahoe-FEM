@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.107 2004-12-27 20:17:11 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.108 2005-03-02 21:31:32 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -137,13 +137,7 @@
 
 #ifdef SOLID_ELEMENT_DEV
 #ifdef MATERIAL_FORCE_ELEMENT_DEV
-#include "SmallStrainQ2P1.h"
-#include "UpLagMF.h"
-#include "SmallStrainMF.h"
 #include "SSMF.h"
-#include "SSQ2P1MF.h"
-#include "SmallStrainQ1P0.h"
-#include "SSQ1P0MF.h"
 #endif /* MATERIAL_FORCE_ELEMENT_DEV */
 
 #ifdef SPLIT_INTEGRATION_DEV
@@ -332,6 +326,10 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 
 #ifdef ENHANCED_STRAIN_LOC_DEV_CRAIG
 		sub_lists.AddSub("small_strain_enh_loc_craig");
+#endif
+
+#if defined(MATERIAL_FORCE_ELEMENT_DEV) && defined(MATERIAL_FORCE_ELEMENT_DEV)
+		sub_lists.AddSub("small_strain_material_force");
 #endif
 
 #ifdef MIXTURE_THEORY_DEV
@@ -534,6 +532,11 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 		return new UpdatedLagMixtureT(fSupport);
 	else if (name == "mixture_species")
 		return new MixtureSpeciesT(fSupport);
+#endif
+
+#if defined(MATERIAL_FORCE_ELEMENT_DEV) && defined(MATERIAL_FORCE_ELEMENT_DEV)
+	else if (name == "small_strain_material_force")
+		return new SSMF(fSupport);
 #endif
 
 	/* default */	
