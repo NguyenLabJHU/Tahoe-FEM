@@ -1,4 +1,4 @@
-/* $Id: least_square.cpp,v 1.2 2005-02-01 16:55:29 paklein Exp $ */
+/* $Id: least_square.cpp,v 1.3 2005-02-02 22:21:08 paklein Exp $ */
 #include "PiecewiseLinearT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -156,18 +156,22 @@ double squared_difference(const dArray2DT& pts1, const dArray2DT& pts2)
 	
 	/* smallest intervals */
 	double dx1_min = pts1(n1-1,0) - pts1(0,0);
+	double dx1_avg = dx1_min/(pts1.MajorDim() - 1);
 	for (int i = 1; i < pts1.MajorDim(); i++)
 	{
 		double dx = pts1(i,0) - pts1(i-1,0);
 		dx1_min = (dx < dx1_min) ? dx : dx1_min;
 	}
 	double dx2_min = pts2(n2-1,0) - pts2(0,0);
+	double dx2_avg = dx2_min/(pts2.MajorDim() - 1);
 	for (int i = 1; i < pts2.MajorDim(); i++)
 	{
 		double dx = pts2(i,0) - pts2(i-1,0);
 		dx2_min = (dx < dx2_min) ? dx : dx2_min;
 	}
-	double small = ((dx2_min < dx1_min) ? dx2_min : dx1_min)/10.0;
+	dx1_min /= dx1_avg;
+	dx2_min /= dx2_avg;	
+	double small = (dx2_min < dx1_min) ? dx2_min : dx1_min;
 	if (small < 1.0e-12)
 		ExceptionT::GeneralFail(caller, "intervals too small");
 		
@@ -264,8 +268,11 @@ double squared_difference(const dArray2DT& pts1, const dArray2DT& pts2)
 /* add zero function extensions to read given bounds */
 void set_lower_bound(double x_lower, dArray2DT& points)
 {
-	/* nothing to do */
-	if (fabs(points(0,0) - x_lower) < kSmall) 
+	/* average interval */
+	double dx_avg = (points(points.MajorDim()-1,0) - points(0,0))/(points.MajorDim()-1);
+
+	/* less than an interval */
+	if (fabs(points(0,0) - x_lower) < dx_avg) 
 		return;
 	else if (x_lower < points(0,0))
 	{
@@ -319,8 +326,11 @@ void set_lower_bound(double x_lower, dArray2DT& points)
 
 void set_upper_bound(double x_upper, dArray2DT& points)
 {
+	/* average interval */
+	double dx_avg = (points(points.MajorDim()-1,0) - points(0,0))/(points.MajorDim()-1);
+
 	/* nothing to do */
-	if (fabs(points(points.MajorDim()-1,0) - x_upper) < kSmall)
+	if (fabs(points(points.MajorDim()-1,0) - x_upper) < dx_avg)
 		return;
 	else if (x_upper > points(points.MajorDim()-1,0))
 	{
