@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.4 2001-03-08 00:52:14 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.5 2001-03-08 17:22:12 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 /* Cohesive surface elements with scalar traction potentials,             */
 /* i.e., the traction potential is a function of the gap magnitude,       */
@@ -543,6 +543,9 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					phi += potential*ip_w;
 				}
 			}
+			
+			/* element values */
+			if (e_codes[Centroid]) centroid /= area;
 		}
 
 		/* copy in the cols (in sequence of output) */
@@ -555,9 +558,6 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
 		/* accumulate - extrapolation done from ip's to corners => X nodes */
 		fNodes->AssembleAverage(element.NodesX(), nodal_all);
-		
-		/* element values */
-		if (e_codes[Centroid]) centroid /= area;
 		
 		/* store results */
 		e_values.SetRow(CurrElementNumber(), element_values);		
