@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.7 2003-04-26 02:07:36 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.8 2003-04-26 19:11:32 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -69,7 +69,7 @@ public:
 	/** add a reference. Returns true of there where no conflicts with
 	 * existing references. The names of reference cannot be repeated.
 	 * By default, the ParameterListT::OccurrenceT is ParameterListT::Once. */
-	bool AddReference(const StringT& ref, OccurrenceT occur = Once); 
+	bool AddReference(const StringT& ref, OccurrenceT occur = Once);
 	/*@}*/
 
 	/** \name access to the list entries and occurrences */

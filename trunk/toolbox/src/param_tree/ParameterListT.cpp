@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.cpp,v 1.5 2003-04-22 22:12:31 paklein Exp $ */
+/* $Id: ParameterListT.cpp,v 1.6 2003-04-26 19:11:32 paklein Exp $ */
 #include "ParameterListT.h"
 
 using namespace Tahoe;
@@ -123,8 +123,9 @@ void ParameterListT::Validate(const ParameterListT& source, const ParameterListT
 		ExceptionT::BadInputValue(caller, "source list \"%s\" should be \"%s\"",
 			source.Name().Pointer(), description.Name().Pointer());
 
-	/* set name */
+	/* set name and description */
 	SetName(source.Name());
+	SetDescription(source.Description());
 
 	/* parameter lists */
 	const ArrayT<ParameterT>& source_parameters = source.Parameters();
@@ -151,6 +152,7 @@ void ParameterListT::Validate(const ParameterListT& source, const ParameterListT
 									
 				/* get value */
 				ParameterT new_parameter(parameter.Type(), parameter.Name());
+				new_parameter.SetDescription(parameter.Description());
 				if (source_parameters[j].Type() == parameter.Type())
 					new_parameter = source_parameters[j];
 				else if (source_parameters[j].Type() == ParameterT::String)
@@ -181,6 +183,7 @@ void ParameterListT::Validate(const ParameterListT& source, const ParameterListT
 			const ValueT* default_value = parameter.Default();
 			if (default_value) {
 				ParameterT new_parameter(parameter.Type(), parameter.Name());
+				new_parameter.SetDescription(parameter.Description());
 				new_parameter = *default_value;
 
 				/* check limits */
