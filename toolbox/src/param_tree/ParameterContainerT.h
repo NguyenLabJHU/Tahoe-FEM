@@ -1,4 +1,4 @@
-/* $Id: ParameterContainerT.h,v 1.6 2004-04-28 15:41:35 paklein Exp $ */
+/* $Id: ParameterContainerT.h,v 1.7 2004-06-23 00:51:04 paklein Exp $ */
 #ifndef _PARAMETER_CONTAINER_T_H_
 #define _PARAMETER_CONTAINER_T_H_
 
@@ -77,20 +77,12 @@ public:
 
 	/** set/change the list order */
 	void SetListOrder(ParameterListT::ListOrderT list_order);
-
-#if 0
-	/** return true if the interface is inline */
-	virtual bool Inline(void) const;
-
-	/** set/change inlining flag */
-	void SetInline(bool is_inline);
-#endif
+	/*@}*/
 
 	/** \name description */
 	/*@{*/
 	void SetDescription(const char* description) { fDescription = description; };
 	const StringT& Description(void) const { return fDescription; };
-	/*@}*/
 	/*@}*/
 
 protected:
