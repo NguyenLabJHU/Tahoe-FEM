@@ -1,4 +1,4 @@
-// $Id: MakeCSE_FEManager.cpp,v 1.8 2003-09-05 23:11:47 paklein Exp $
+// $Id: MakeCSE_FEManager.cpp,v 1.9 2003-09-10 21:31:30 paklein Exp $
 // created: 11/10/99 SAW
 #include "MakeCSE_FEManager.h"
 #include "ExceptionT.h"
@@ -9,13 +9,7 @@
 #include "ifstreamT.h"
 #include "sArrayT.h"
 
-#include "ExodusOutputT.h"
-#include "FE_ASCIIT.h"
-#include "EnSightOutputT.h"
-#include "AbaqusOutputT.h"
-#include "TecPlotOutputT.h"
-#include "PatranOutputT.h"
-#include "AVSOutputT.h"
+#include "IOBaseT.h"
 
 using namespace Tahoe;
 
@@ -92,49 +86,9 @@ void MakeCSE_FEManager::InitializeOutput (const StringT& title, const StringT& p
   name.ToNativePathName();
   name.Append(".ext"); //trimmed off by fOutput
 
-  sArrayT outstrings (4);
-  outstrings[0] = name;
-  outstrings[1] = title;
-  outstrings[2] = program_name;
-  outstrings[3] = version;
-
-  switch (format)
-    {
-    case IOBaseT::kExodusII:
-      fOutput = new ExodusOutputT (fMainOut, outstrings);
-      break;
-    case IOBaseT::kTahoeII:
-      fOutput = new FE_ASCIIT (fMainOut, true, outstrings);
-      break;
-    case IOBaseT::kEnSight:
-      fOutput = new EnSightOutputT (fMainOut, outstrings, 4, false);
-      break;
-    case IOBaseT::kEnSightBinary:
-      fOutput = new EnSightOutputT (fMainOut, outstrings, 4, true);
-      break;
-    case IOBaseT::kAbaqus:
-      fOutput = new AbaqusOutputT (fMainOut, outstrings, false);
-      break;
-    case IOBaseT::kAbaqusBinary:
-      fOutput = new AbaqusOutputT (fMainOut, outstrings, true);
-      break;
-    case IOBaseT::kTecPlot:
-      fOutput = new TecPlotOutputT (fMainOut, outstrings, 4);
-      break;
-      case IOBaseT::kPatranNeutral:
-	fOutput = new PatranOutputT (fMainOut, outstrings, false);
-	break;
-    case IOBaseT::kAVS:
-    case IOBaseT::kAVSBinary:
-      fOutput = new AVSOutputT (fMainOut, outstrings, false);
-      break;
-    default:
-      {
-	fMainOut << "\n Unknown output format: " << format << "\n";
-	throw ExceptionT::kDatabaseFail;
-      }
-    }
-  if (!fOutput) throw ExceptionT::kOutOfMemory;  
+	/* construct output formatter */
+	fOutput = IOBaseT::NewOutput(program_name, version, title, name, format, cout);
+	if (!fOutput) ExceptionT::OutOfMemory("MakeCSE_FEManager::InitializeOutput");
   
   // echo to log file
   IOBaseT temp (fMainOut);
