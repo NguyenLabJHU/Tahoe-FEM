@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.h,v 1.2 2001-06-14 17:18:36 hspark Exp $ */
+/* $Id: GaussianWindowT.h,v 1.3 2001-06-15 14:45:47 hspark Exp $ */
 
 #ifndef _GAUSSIAN_WINDOW_T_H_
 #define _GAUSSIAN_WINDOW_T_H_
@@ -28,27 +28,19 @@ class GaussianWindowT
 	virtual void WriteParameters(ostream& out) const;
 
 	/* single point evaluations */
-	virtual void window(const dArrayT& x_0, const dArrayT& param, const dArrayT& x,
-		double& w);
-	virtual void Dwindow(const dArrayT& x_0, const dArrayT& param, const dArrayT& x,
-		dArrayT& Dw);
-	virtual void DDwindow(const dArrayT& x_0, const dArrayT& param, const dArrayT& x,
-		dArrayT& DDw);	
+	virtual void window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
+		int order, double& w, dArrayT& Dw, dArrayT& DDw);
 
 	/* multiple point evaluations */
-	virtual void window(const dArrayT& x_0, const dArray2DT& param, const dArray2DT& x,
-		dArrayT& w);	
-	virtual void Dwindow(const dArrayT& x_0, const dArray2DT& param, const dArray2DT& x,
-		dArray2DT& Dw);
-	virtual void DDwindow(const dArrayT& x_0, const dArray2DT& param, const dArray2DT& x,
-		dArray2DT& DDw);
+	virtual int window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
+		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw);
 
 	/* coverage tests */
 	/* single point */
-	virtual bool Covers(const dArrayT& x_0, const dArrayT& x);
+	virtual bool Covers(const dArrayT& x_n, const dArrayT& x);
 
 	/* multiple points */
-	virtual void Covers(const dArrayT& x_0, const dArray2DT& x, const ArrayT<bool>& covers);
+	virtual void Covers(const dArray2DT& x_n, const dArrayT& x, const ArrayT<bool>& covers);
 	
 	//etc...
 	
