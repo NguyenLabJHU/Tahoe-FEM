@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.11.4.2 2004-03-17 18:37:05 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.11.4.3 2004-04-03 03:18:39 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -16,7 +16,7 @@
 namespace Tahoe {
 
 /* forward declarations */
-class ParticleT;
+class ParticlePairT;
 class BridgingScaleT;
 class KBC_PrescribedT;
 class dSPMatrixT;
@@ -164,6 +164,9 @@ public:
 	/** projection data */
 	const PointInCellDataT& ProjectionData(void) { return fDrivenCellData; };
 	/*@}*/
+	
+	/** compute internal correction for the overlap region */
+	void CorrectOverlap(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords);
 
 	/** (re-)set the equation number for the given group */
 	virtual void SetEquationSystem(int group, int start_eq_shift = 0);
@@ -179,6 +182,9 @@ public:
 	 * a particle type; otherwise, an exception will be thrown. */
 	nMatrixT<int>& PropertiesMap(int element_group);
 
+	/** return the given instance of the ParticlePairT element group or NULL if not found */
+	const ParticlePairT* ParticlePair(int instance = 0) const;
+
 protected:
 
 	/** initialize solver information */
@@ -191,6 +197,9 @@ protected:
 
 	/** the bridging scale element group */
 	BridgingScaleT& BridgingScale(void) const;
+
+	/** collect nodes and cells in the overlap region */
+	void CollectOverlapRegion(iArrayT& overlap_cell, iArrayT& overlap_node) const;
 
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.16.4.2 2004-03-17 18:37:05 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.16.4.3 2004-04-03 03:18:39 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -13,7 +13,14 @@
 
 #include "BridgingScaleT.h"
 #include "ParticleT.h"
+#include "ParticlePairT.h"
 #include "dSPMatrixT.h"
+
+/* headers needed to compute the correction for overlap */
+#include "SolidMatListT.h"
+#include "FCC3D.h"
+#include "Hex2D.h"
+#include "BondLatticeT.h"
 
 using namespace Tahoe;
 
@@ -72,6 +79,43 @@ void FEManagerT_bridging::ResetCumulativeUpdate(int group)
 {
 	fCumulativeUpdate[group].Dimension(fNodeManager->NumEquations(group));
 	fCumulativeUpdate[group] = 0.0;
+}
+
+/* compute internal correction for the overlap region */
+void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords)
+{
+	const char caller[] = "FEManagerT_bridging::CorrectOverlap";
+
+	/* collect nodes and cells in the overlap region */
+	iArrayT overlap_cell;
+	iArrayT overlap_node;
+	CollectOverlapRegion(overlap_cell, overlap_node);
+	if (overlap_node.Length() == 0) return;
+
+	/* Cauchy-Born constitutive model */
+	const ContinuumElementT* coarse = fFollowerCellData.ContinuumElement();
+	const MaterialListT& mat_list = coarse->MaterialsList();
+	if (mat_list.Length() > 2) ExceptionT::GeneralFail(caller, "expecting at most 2 materials, not %d", mat_list.Length());
+
+	ContinuumMaterialT* cont_mat = mat_list[0];
+	Hex2D* hex_2D = dynamic_cast<Hex2D*>(cont_mat);
+	FCC3D* fcc_3D = dynamic_cast<FCC3D*>(cont_mat);
+	if (!hex_2D && !fcc_3D) ExceptionT::GeneralFail(caller, "could not resolve C-B material");
+
+	const BondLatticeT& bond_lattice = (hex_2D) ? hex_2D->BondLattice() : fcc_3D->BondLattice();
+	const dArray2DT& bonds = bond_lattice.Bonds();
+	double cell_volume = (hex_2D) ? hex_2D->CellVolume() : fcc_3D->CellVolume();
+
+	/* initialize unknowns */
+	dArray2DT bond_densities(overlap_cell.Length(), coarse->NumIP()*bonds.MajorDim());
+	bond_densities = 1.0;
+
+	/* solve unkowns */
+
+	/* change overlap element material numbers */
+
+	/* write unknowns into the state variable space */
+	
 }
 
 /* (re-)set the equation number for the given group */
@@ -734,6 +778,132 @@ void FEManagerT_bridging::SetSolver(void)
 
 	/* inherited */
 	FEManagerT::SetSolver();
+}
+
+void FEManagerT_bridging::CollectOverlapRegion(iArrayT& overlap_cell, iArrayT& overlap_node) const
+{
+	const char caller[] = "FEManagerT_bridging::CollectOverlapRegion";
+
+	/* the continuum element solving the coarse scale */
+	const ContinuumElementT* coarse = fFollowerCellData.ContinuumElement();
+	if (!coarse) ExceptionT::GeneralFail(caller, "interpolation data not set");
+
+	/* dimensions */
+	int nnd = fNodeManager->NumNodes();
+	int nel = coarse->NumElements();
+	int nen = coarse->NumElementNodes();
+
+	/* mark nodes that aren't active */
+	ArrayT<char> is_overlap_node(nnd);
+	is_overlap_node = 't';
+	const iArrayT& projected_nodes = fDrivenCellData.CellNodes();
+	for (int i = 0; i < projected_nodes.Length(); i++) 
+		is_overlap_node[projected_nodes[i]] = 'f';
+
+	/* find cells in overlap region */
+	const RaggedArray2DT<int>& point_in_cell = fFollowerCellData.PointInCell();
+	const InverseMapT& follower_point_map = fFollowerCellData.GlobalToLocal();
+	ArrayT<char> is_overlap_cell(nel);
+	is_overlap_cell = 'f';
+	int num_overlap_cell = 0;
+	iArrayT cell_point;
+	for (int i = 0; i < nel; i++) /* cells must contain follower points bonded to free points */
+		if (point_in_cell.MinorDim(i) > 0) {
+			point_in_cell.RowAlias(i, cell_point);
+			bool has_follower = false;
+			for (int j = 0; !has_follower && j < cell_point.Length(); j++) /* find a follower point */
+				if (follower_point_map.Map(cell_point[j]) > -1) {
+					has_follower = true;
+					is_overlap_cell[i] = 't';
+					num_overlap_cell++;
+				}		
+		}
+	
+	for (int i = 0; i < nel; i++) /* cells must contain at least one active node */
+		if (is_overlap_cell[i] == 't') {
+		
+			/* check cell nodes */
+			const iArrayT& nodes = coarse->ElementCard(i).NodesU();
+			bool OK = false;
+			for (int j = 0; !OK && j < nen; j++)
+				if (is_overlap_node[nodes[j]] == 't')
+					OK = true;
+			
+			/* remove cell */
+			if (!OK) {
+				is_overlap_cell[i] = 'f';
+				num_overlap_cell--;			
+			}	
+		}
+		
+	overlap_cell.Dimension(num_overlap_cell);
+	num_overlap_cell = 0;
+	for (int i = 0; i < nel; i++)
+		if (is_overlap_cell[i] == 't')
+			overlap_cell[num_overlap_cell++] = i;
+			
+	if (fPrintInput) {
+		overlap_cell++;
+		fMainOut << "\n overlap cells: " << overlap_cell.Length() << '\n';
+		fMainOut << overlap_cell.wrap(5) << '\n';
+		overlap_cell--;	
+	}
+	
+	/* find nodes in overlap region */
+	is_overlap_node = 'f';
+	num_overlap_cell = overlap_cell.Length();
+	int num_overlap_node = 0;
+	for (int i = 0; i < num_overlap_cell; i++) /* support must include overlap cells */ {
+		const iArrayT& nodes = coarse->ElementCard(overlap_cell[i]).NodesU();
+		for (int j = 0; j < nen; j++) {
+			char& t_f = is_overlap_node[nodes[j]];
+			if (t_f == 'f') {
+				t_f = 't';
+				num_overlap_node++;
+			}		
+		}	
+	}
+	
+	for (int i = 0; i < projected_nodes.Length(); i++) /* must be a free node */ {
+		char& t_f = is_overlap_node[projected_nodes[i]];
+		if (t_f == 't') /* remove node */ {
+			t_f = 'f';
+			num_overlap_node--;
+		}
+	}
+
+	overlap_node.Dimension(num_overlap_node);
+	num_overlap_node = 0;
+	for (int i = 0; i < nnd; i++)
+		if (is_overlap_node[i] == 't')
+			overlap_node[num_overlap_node++] = i;
+
+	if (fPrintInput) {
+		overlap_node++;
+		fMainOut << "\n overlap nodes: " << overlap_node.Length() << '\n';
+		fMainOut << overlap_node.wrap(5) << '\n';
+		overlap_node--;	
+	}	
+}
+
+/* return the given instance of the ParticlePairT element group or NULL if not found */
+const ParticlePairT* FEManagerT_bridging::ParticlePair(int instance) const
+{
+	/* search through element groups for particles */
+	int count = 0;
+	for (int i = 0; i < fElementGroups->Length(); i++)
+	{
+		/* pointer to element group */
+		ElementBaseT* element_base = (*fElementGroups)[i];
+		
+		/* attempt cast to particle type */
+		ParticlePairT* particle_pair = dynamic_cast<ParticlePairT*>(particle_pair);
+		if (particle_pair && count++ == instance)
+			return particle_pair;
+	}
+
+	/* fall through */
+	return NULL;
 }
 
 /*************************************************************************
