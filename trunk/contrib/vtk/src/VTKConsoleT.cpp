@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.46 2002-06-05 18:51:32 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.47 2002-06-05 20:37:07 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -832,10 +832,10 @@ void VTKConsoleT::PickPoints(void *arg)
   vtkRenderWindowInteractor *iren = (vtkRenderWindowInteractor *)arg;
   vtkPointPicker *picker = (vtkPointPicker *)iren->GetPicker();
 
-  cout <<"Point: " << picker->GetPointId() << endl;
-  //cout <<"Value: " <<picker->GetDataSet()->GetPointData()->GetScalars()[picker->GetPointId()] << endl;
- 
-  cout <<"Value: " << (picker->GetDataSet()->GetPointData()->GetScalars()->GetComponent(picker->GetPointId(), 0)) << endl;
+  cout <<"Point: " << picker->GetPointId()+1 << endl;
+  
+  if (picker->GetPointId() != -1)
+    cout <<"Value: " << (picker->GetDataSet()->GetPointData()->GetScalars()->GetComponent(picker->GetPointId(), 0)) << endl;
 }
 
 /* returns the index of the requested option */
