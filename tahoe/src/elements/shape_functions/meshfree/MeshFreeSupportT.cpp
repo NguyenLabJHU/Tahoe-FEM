@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.7 2001-07-06 19:30:19 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.8 2001-07-07 17:31:28 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -8,7 +8,7 @@
 #include "ExceptionCodes.h"
 #include "Constants.h"
 #include "dArray2DT.h"
-#include "ifstreamT.h"
+#include "fstreamT.h"
 
 /* variable length memory managers */
 #include "nVariArray2DT.h"
@@ -27,6 +27,9 @@
 /* element integration domain operations */
 #include "ParentDomainT.h"
 #include "LocalArrayT.h"
+
+/* use disk to reduce memory usage */
+#define _USE_DISK_
 
 /* parameters */
 const int kMaxNumGrid   = 100;
@@ -983,16 +986,58 @@ void MeshFreeSupportT::SetNodeNeighborData_2(const dArray2DT& coords)
 		allocator.ReleasePointer(pointers.Pointer(i));
 	}					
 
-	/* configure node neighbor data */
-	fnNeighborData.Configure(fnNeighborCount);
-	
-	/* copy data in */
-	for (int j = 0; j < numnodes; j++)
-		fnNeighborData.SetRow(j, pointers[j]);
+	/* use disk for bigger problems */
+#if defined(_USE_DISK_) && !defined(__CPLANT__)
+	bool use_disk = (numnodes > 250000);
+#else
+	bool use_disk = false;
+#endif
 
-	/* free all temp space */
-	for (int k = 0; k < numnodes; k++)
-		delete[] pointers[k];
+	/* write data to disk before allocating new memory */
+	if (use_disk)
+	{
+		StringT file = "nodesupport.tmp";
+		cout << "\n MeshFreeSupportT::SetNodeNeighborData_2: system is big. flushing\n"
+		     <<   "     node neighbor data to disk file: \"" << file << '\"' << endl;
+
+		/* write data to disk */
+		ArrayT<int> dump;
+		ofstreamT tmp_out(file);
+		if (!tmp_out.is_open()) throw eGeneralFail;
+		for (int j = 0; j < numnodes; j++)
+		{
+			dump.Set(fnNeighborCount[j], pointers[j]);
+			dump.WriteBinary(tmp_out);
+		}
+		tmp_out.close();
+
+		/* free all temp space */
+		for (int k = 0; k < numnodes; k++)
+			delete[] pointers[k];
+		pointers.Free();
+
+		/* configure node neighbor data */
+		fnNeighborData.Configure(fnNeighborCount);
+
+		/* read contents of */
+		ifstreamT tmp_in(file);
+		if (!tmp_in.is_open()) throw eGeneralFail;
+		fnNeighborData.ReadDataBinary(tmp_in);
+		tmp_in.close();
+	}
+	else
+	{
+		/* configure node neighbor data */
+		fnNeighborData.Configure(fnNeighborCount);
+	
+		/* copy data in */
+		for (int j = 0; j < numnodes; j++)
+			fnNeighborData.SetRow(j, pointers[j]);
+
+		/* free all temp space */
+		for (int k = 0; k < numnodes; k++)
+			delete[] pointers[k];
+	}
 		
 	/* space for nodal calculations */
 	int maxsize = fnNeighborData.MaxMinorDim();
@@ -1253,16 +1298,58 @@ void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 		allocator.ReleasePointer(pointers.Pointer(i));
 	}
 
-	/* configure element neighbor data */
-	feNeighborData.Configure(feNeighborCount);
+	/* use disk for bigger problems */
+#if defined(_USE_DISK_) && !defined(__CPLANT__)
+	bool use_disk = (numelems > 250000);
+#else
+	bool use_disk = false;
+#endif
 
-	/* copy data in */
-	for (int j = 0; j < numelems; j++)
-		feNeighborData.SetRow(j, pointers[j]);
+	/* write data to disk before allocating new memory */
+	if (use_disk)
+	{
+		StringT file = "elemsupport.tmp";
+		cout << "\n MeshFreeSupportT::SetElementNeighborData_2: system is big. flushing\n"
+		     <<   "     element neighbor data to disk file: \"" << file << '\"' << endl;
+
+		/* write data to disk */
+		ArrayT<int> dump;
+		ofstreamT tmp_out(file);
+		if (!tmp_out.is_open()) throw eGeneralFail;
+		for (int j = 0; j < numelems; j++)
+		{
+			dump.Set(feNeighborCount[j], pointers[j]);
+			dump.WriteBinary(tmp_out);
+		}
+		tmp_out.close();
+
+		/* free all temp space */
+		for (int k = 0; k < numelems; k++)
+			delete[] pointers[k];
+		pointers.Free();
+
+		/* configure element neighbor data */
+		feNeighborData.Configure(feNeighborCount);
+
+		/* read contents of */
+		ifstreamT tmp_in(file);
+		if (!tmp_in.is_open()) throw eGeneralFail;
+		feNeighborData.ReadDataBinary(tmp_in);
+		tmp_in.close();
+	}
+	else
+	{
+		/* configure element neighbor data */
+		feNeighborData.Configure(feNeighborCount);
+
+		/* copy data in */
+		for (int j = 0; j < numelems; j++)
+			feNeighborData.SetRow(j, pointers[j]);
 		
-	/* free all temp space */
-	for (int k = 0; k < numelems; k++)
-		delete[] pointers[k];
+		/* free all temp space */
+		for (int k = 0; k < numelems; k++)
+			delete[] pointers[k];
+	}
 		
 	/* space element calculation */
 	int maxsize = feNeighborData.MaxMinorDim();
