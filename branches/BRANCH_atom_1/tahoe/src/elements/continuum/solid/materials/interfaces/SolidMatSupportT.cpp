@@ -1,4 +1,4 @@
-/* $Id: SolidMatSupportT.cpp,v 1.2.2.1 2002-12-10 17:06:03 paklein Exp $ */
+/* $Id: SolidMatSupportT.cpp,v 1.2.2.2 2003-01-07 17:27:08 paklein Exp $ */
 #include "SolidMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -71,6 +71,6 @@ void SolidMatSupportT::SetLocalArray(const LocalArrayT& array)
 
 		default:
 			/* inherited */
-			return MaterialSupportT::SetLocalArray(array);
+			MaterialSupportT::SetLocalArray(array);
 	}
 }
