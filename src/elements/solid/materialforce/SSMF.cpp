@@ -1,4 +1,4 @@
-/* $Id: SSMF.cpp,v 1.3 2003-11-19 06:09:46 thao Exp $ */
+/* $Id: SSMF.cpp,v 1.4 2003-11-19 21:37:55 thao Exp $ */
 #include "SSMF.h"
 
 #include "OutputSetT.h"
@@ -10,6 +10,7 @@
 #include "GraphT.h"
 #include "GeometryT.h"
 #include "ModelManagerT.h"
+#include "CommunicatorT.h"
 #include "SSMatSupportT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -110,7 +111,11 @@ void SSMF::WriteOutput(void)
   
   MapOutput();
   ComputeMatForce(n_values);
-  
+   /* send to output */
+  const CommunicatorT& comm = ElementSupport().Communicator();
+  if (comm.Size() == 1)
+     WriteSummary(n_values);
+ 
   /* send to output */
   ElementSupport().WriteOutput(fMatForceOutputID, n_values, e_values);
 }
@@ -176,7 +181,8 @@ void SSMF::ComputeMatForce(dArray2DT& output)
 
   /*dimension output array and workspace*/
   output.Dimension(nnd,4*NumSD());
-  
+  output = 0.0;
+
   const dArray2DT& disp = Field()[0];
   if (disp.MajorDim() != output.MajorDim()) throw ExceptionT::kGeneralFail;
 
@@ -267,13 +273,14 @@ void SSMF::ComputeMatForce(dArray2DT& output)
   double* pmat_fdissip = fDissipForce.Pointer();
   double* pmat_fdyn = fDynForce.Pointer();
 
-  const iArray2DT& eqno = Field().Equations();
+  //  const iArray2DT& eqno = Field().Equations();
   for (int i = 0; i<nnd; i++)
   {
     for (int j = 0; j<NumSD(); j++)
     {
       /*material force set to zero for kinematically constrained nodes*/
-      if(eqno[i*NumSD()+j] < 1)
+      //      if(eqno[i*NumSD()+j] < 1)
+      if (fExclude[i] == 1)
       {
 	    *pout_force++ = 0.0;
 	    *pout_dissip++ = 0.0;
@@ -287,7 +294,7 @@ void SSMF::ComputeMatForce(dArray2DT& output)
 	    *pout_force++ = (*pmat_force++) + (*pmat_fdissip) + (*pmat_fdyn);
 	    *pout_dissip++ = (*pmat_fdissip++);
 	    *pout_dyn++ = (*pmat_fdyn++);
-      }
+      } 
       *pout_disp++ = disp[i*NumSD()+j];
     }
     pout_force += 3*NumSD();
@@ -295,7 +302,6 @@ void SSMF::ComputeMatForce(dArray2DT& output)
     pout_dyn += 3*NumSD();
     pout_disp += 3*NumSD();
   }
-  WriteSummary(output);
 }
 
 void SSMF::MatForceVolMech(dArrayT& elem_val)
@@ -357,6 +363,7 @@ void SSMF::MatForceVolMech(dArrayT& elem_val)
 	fShapes->InterpolateU(fLocVel, fVel);
 	fEshelby(0,0) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]);
 	fEshelby(1,1) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]);
+	if (elem == 302) cout << "\nfVel: "<<fVel;
       }
 
       double* pDQaX = DQa(0); 
@@ -544,11 +551,11 @@ void SSMF::MatForceDynamic(dArrayT& elem_val)
   /*intialize shape function data*/
   const double* jac = fShapes->IPDets();
   const double* weight = fShapes->IPWeights();
-  /*  if (elem == 6) {
+    if (elem == 302) {
     cout << "\nAcc: "<<fLocAcc;
     cout << "\nVel: "<<fLocVel;
       cout <<"\n fDisp: "<<fLocDisp;
-      }*/
+      }
   fShapes->TopIP();
   while(fShapes->NextIP())
   {
