@@ -1,4 +1,4 @@
-/* $Id: PatranT.h,v 1.10 2002-07-23 11:39:12 sawimme Exp $ */
+/* $Id: PatranT.h,v 1.11 2002-07-23 15:35:26 sawimme Exp $ */
 /* created: sawimme (05/17/2001)  */
 
 #ifndef _PATRAN_T_H_
@@ -130,6 +130,7 @@ class PatranT
   void ClearPackets (ifstream &in, int KC) const;
 
   bool WritePacketHeader (ostream& out, int tag, int ID, int IV, int KC, iArrayT n) const;
+  int ElementTypeToShapeType (int elemtype) const;
 
  private:
   StringT file_name;
@@ -139,7 +140,9 @@ class PatranT
   ArrayT<iArray2DT> fNamedComponentsData; /**< Named Component Data: Type, ID */
 };
 
-inline const StringT& PatranT::Filename (void) const { return file_name; }
+ inline const StringT& PatranT::Filename (void) const { return file_name; }
+ inline int PatranT::NumNamedComponents (void) const { return fNamedComponents.Length(); }
+ inline int PatranT::NumDimensions (void) const { return 3; }
 
 } // namespace Tahoe 
 #endif

@@ -1,4 +1,4 @@
-/* $Id: PatranT.cpp,v 1.14 2002-07-23 11:39:12 sawimme Exp $ */
+/* $Id: PatranT.cpp,v 1.15 2002-07-23 15:35:26 sawimme Exp $ */
 /* created sawimme (05/17/2001) */
 
 #include "PatranT.h"
@@ -74,39 +74,6 @@ int PatranT::NumElements (void) const
     }
   in >> num_nodes >> num_elements;
   return num_elements;
-}
-
-int PatranT::NumNamedComponents (void) const
-{
-  return fNamedComponents.Length();
-}
-
-int PatranT::NumDimensions (void) const
-{
-  /*int ID, IV, KC;
-    ifstream in (file_name);
-    if (!AdvanceTo (in, kElement, ID, IV, KC))   
-    {
-    fMessage << "PatranT::NumDimensions, no elements found\n";
-    return -1;
-    }
-    switch (IV)
-    {
-    case kBarShape:
-    case kTriShape:
-    case kQuadShape:
-    return 2;
-    break;
-    case kTetShape:
-    case kWedgeShape:
-    case kHexShape:
-    return 3;
-    break;
-    }
-    fMessage << "\n PatranT::NumDimensions: Unknown element shape ID=" << ID
-    << " shape= " << IV << "\n";
-    return -1;*/
-  return 3;
 }
 
 bool PatranT::NamedComponents (ArrayT<StringT>& names) const
@@ -582,13 +549,14 @@ bool PatranT::WriteElements (ostream& out, const iArray2DT& elems, const iArrayT
   out.precision (prec);
   for (int e=0; e < elems.MajorDim(); e++)
     {
-      if (!WritePacketHeader (out, kElement, firstelemID + e, elemtypes[e], KC, n))
+      int shape = ElementTypeToShapeType (elemtypes[e]);
+      if (!WritePacketHeader (out, kElement, firstelemID + e, shape, KC, n))
 	return false;
       
-      int config = 0;
-      int PID = 0;
-      int CEID = 0;
-      dArrayT theta (3);
+      int config = 0; // element configuration (use with Element Properties)
+      int PID = 0; // property id
+      int CEID = 0; // congruent element id
+      dArrayT theta (3); // material orientation angles
       theta = 0;
       out << setw (hwidth) << elems.MinorDim();
       out << setw (hwidth) << config;
@@ -598,12 +566,7 @@ bool PatranT::WriteElements (ostream& out, const iArray2DT& elems, const iArrayT
 	out << setw (16) << theta[t];
       out << "\n";
 
-      for (int i=0; i < elems.MinorDim(); i++)
-	{
-	  out << setw (hwidth) << elems (e, i);
-	  if ( (i+1) % 10 || i == elems.MinorDim() - 1) 
-	    out << "\n";
-	}
+      elems.WriteWithFormat (out, hwidth, 0, 10, 0);
 
       // if (n[0] > 0) write associated data
     }
@@ -865,4 +828,18 @@ bool PatranT::WritePacketHeader (ostream& out, int tag, int ID, int IV, int KC, 
     out << setw (hwidth) << n[i];
   out << "\n";
   return true;
+}
+
+int PatranT::ElementTypeToShapeType (int elemtype) const
+{
+  switch (elemtype)
+    {
+    case kNCLine:      return kBarShape;
+    case kNCQuad:      return kQuadShape;
+    case kNCTriangle:  return kTriShape;
+    case kNCHex:       return kHexShape;
+    case kNCTet:       return kTetShape;
+    case kNCWedge:     return kWedgeShape;
+    }
+  return -1;
 }
