@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.60 2003-01-09 00:45:45 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.61 2003-02-10 01:08:25 paklein Exp $ */
 #include "VTKConsoleT.h"
 
 /* ANSI headers */
@@ -924,7 +924,6 @@ void VTKConsoleT::PickCells(void *arg)
 /* prints out picked point and scalar value */
 void VTKConsoleT::PickPoints(void *arg)
 {
-
   vtkRenderWindowInteractor *iren = (vtkRenderWindowInteractor *)arg;
   vtkPointPicker *pointPicker = (vtkPointPicker *)iren->GetPicker();
   vtkPolyDataMapper* sphereMapper = vtkPolyDataMapper::New();
@@ -938,46 +937,35 @@ void VTKConsoleT::PickPoints(void *arg)
   sphereActor->GetProperty()->SetColor(1,1,1);
   sphereActor->VisibilityOn();
   sphereActor->PickableOff();
-  
-  
-  if (pointPicker->GetPointId() != -1){
-    if (pointPicker->GetDataSet() != NULL ){
-      float* values = pointPicker->GetDataSet()->GetPointData()->GetScalars()->GetTuple(pointPicker->GetPointId()); 
-      float* coords = pointPicker->GetDataSet()->GetPoint(pointPicker->GetPointId());
-      int num_values = pointPicker->GetDataSet()->GetPointData()->GetScalars()->GetNumberOfComponents(); 
-    
-      sphereActor->SetPosition(coords);
-      pointPicker->GetRenderer()->AddActor(sphereActor);
-      pickedPoints.Append(sphereActor);
-      iren->GetRenderWindow()->Render();
- 
-		
-      cout <<"Point: " << pointPicker->GetPointId()+1 << endl;
-      cout <<"Coordinates: " << "(" << coords[0] << ", " << coords[1] << ", " << coords[2] << ")" << endl;
-      cout <<"Value: " << (pointPicker->GetDataSet()->GetPointData()->GetScalars()->GetComponent(pointPicker->GetPointId(), 0)) << endl;
-      
-    }
-    
-    else
-      cout <<"Point: " << pointPicker->GetPointId()+1 << endl;
-     
 
-//     cout << "Value: ";
-//     for (int i = 0; i < num_values; i++) {
-//       if (i = num_values-1)
-// 	cout << values[i] << endl; 
-//       else
-// 	cout << values[i] << '\n';
-//     }
-//   }
-//   else
-//     cout << "Invalid Point" << endl;
-     
-  }
-  else
-    cout << "Invalid Point" << endl;
-  
-  cout << endl;
+  	if (pointPicker->GetPointId() != -1) {
+  		
+  		vtkDataSet* data_set = pointPicker->GetDataSet();
+		if (data_set != NULL ) 
+		{
+      		float* coords = data_set->GetPoint(pointPicker->GetPointId());
+			sphereActor->SetPosition(coords);
+			pointPicker->GetRenderer()->AddActor(sphereActor);
+			pickedPoints.Append(sphereActor);
+			iren->GetRenderWindow()->Render();
+    
+ 			/* report id and coordinates */
+			cout << "      Point: " << pointPicker->GetPointId()+1 << '\n';
+			cout << "Coordinates: " << "(" << coords[0] << ", " << coords[1] << ", " << coords[2] << ")" << '\n';
+
+			vtkDataArray* scalars = data_set->GetPointData()->GetScalars();
+			if (scalars != NULL)
+			{
+      			float* values = scalars->GetTuple(pointPicker->GetPointId()); 
+				int num_values = scalars->GetNumberOfComponents(); 
+				cout << "      Value: " << (scalars->GetComponent(pointPicker->GetPointId(), 0)) << '\n';
+			}
+		}
+		else cout << "      Point: " << pointPicker->GetPointId()+1 << '\n';
+	}
+	else cout << "Invalid Point" << '\n';  
+
+	cout << endl;
 }
 
 /* returns the index of the requested option */
