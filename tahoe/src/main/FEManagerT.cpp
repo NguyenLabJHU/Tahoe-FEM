@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.70.2.3 2004-02-05 18:47:15 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.70.2.4 2004-02-12 17:19:14 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1276,6 +1276,9 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 
 	/* set output manager */
 	SetOutput();
+
+	//end with 'initialize' - meaning all parameters have been read now finish up
+	//anything else that needs to be allocated/initialized based on those dimensions
 }
 
 /* information about subordinate parameter lists */

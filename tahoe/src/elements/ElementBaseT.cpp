@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.43.2.2 2004-02-11 16:38:57 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.43.2.3 2004-02-12 17:19:11 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -428,11 +428,32 @@ void ElementBaseT::TakeParameterList(const ParameterListT& list)
 	fField = ElementSupport().Field(field_name);
 	if (!fField)
 		ExceptionT::GeneralFail(caller, "could not resolve \"%s\" field", field_name.Pointer());
+
+	/* get the integrator */
+	fIntegrator = &(fField->Integrator().eIntegrator());
+
+	/* try to load connectivities */
+	ArrayT<StringT> block_ID;
+	ArrayT<int> mat_index;
+	CollectBlockInfo(list, block_ID,  mat_index); /* 'look ahead' in parameter list */
+	DefineElements(block_ID, mat_index);
+
+	/* dimension */
+	int neq = NumElementNodes()*NumDOF();
+	fLHS.Dimension(neq);	
+	fRHS.Dimension(neq);
 }
 
 /***********************************************************************
  * Protected
  ***********************************************************************/
+
+void ElementBaseT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  ArrayT<int>& mat_index) const
+{
+#pragma unused(list)
+	block_ID.Dimension(0);
+	mat_index.Dimension(0);
+}
 
 /* map the element numbers from block to group numbering */
 void ElementBaseT::BlockToGroupElementNumbers(iArrayT& elems, const StringT& block_ID) const

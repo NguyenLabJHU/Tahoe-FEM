@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.13.2.4 2004-02-11 16:39:00 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.13.2.5 2004-02-12 17:19:13 paklein Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -154,49 +154,6 @@ void SmallStrainT::TakeParameterList(const ParameterListT& list)
 	int b = list.GetParameter("strain_displacement");
 	fStrainDispOpt = (b == kStandardB) ? kStandardB : kMeanDilBbar;
 
-	/* model manager */
-	ModelManagerT& model_manager = ElementSupport().Model();
-
-	/* collect {block_ID, material_index} pairs */
-	int num_blocks = list.NumLists("small_strain_element_block");
-	AutoArrayT<StringT> block_ID;
-	AutoArrayT<int> block_mat;
-	ParameterListT material_list; /* collected material parameters */
-	for (int i = 0; i < num_blocks; i++) {
-
-		/* block information */	
-		const ParameterListT& block = list.GetList("small_strain_element_block", i);
-
-		/* collect block ID's */
-		const ArrayT<ParameterListT>& IDs = block.GetList("block_ID_list").Lists();
-		for (int j = 0; j < IDs.Length(); j++) {
-			block_ID.Append(IDs[j].GetParameter("value"));
-			block_mat.Append(i);
-		}
-		
-		/* resolve material list name */
-		if (i == 0) {
-			const ParameterListT* mat_list_params = block.FindList("small_strain_material_");
-			if (mat_list_params)
-				material_list.SetName(mat_list_params->Name());
-			else
-				ExceptionT::GeneralFail(caller, "could resolve material list");
-		}
-		
-		/* collect material parameters */
-		const ParameterListT& mat_list = block.GetList(material_list.Name());
-		const ArrayT<ParameterListT>& mat_params = mat_list.Lists();
-		material_list.AddList(mat_params[0]);
-	}
-
-	/* define connectivities */
-	DefineElements(block_ID, block_mat);
-
-	/* construct materials */
-	if (fMaterialList) ExceptionT::GeneralFail(caller, "material list already set");
-	fMaterialList = NewMaterialList(material_list.Name(), material_list.NumLists());
-	fMaterialList->TakeParameterList(material_list);
-
 	/* what's needed */
 	bool need_strain = false;
 	bool need_strain_last = false;
@@ -218,6 +175,63 @@ void SmallStrainT::TakeParameterList(const ParameterListT& list)
 		fStrain_last_List.Dimension(NumIP());
 		for (int i = 0; i < NumIP(); i++)
 			fStrain_last_List[i].Dimension(NumSD());
+	}
+}
+
+/* extract element block info from parameter list */
+void SmallStrainT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  ArrayT<int>& mat_index) const
+{
+	/* collect {block_ID, material_index} pairs */
+	int num_blocks = list.NumLists("small_strain_element_block");
+	AutoArrayT<StringT> block_ID_tmp;
+	AutoArrayT<int> mat_index_tmp;
+	ParameterListT material_list; /* collected material parameters */
+	for (int i = 0; i < num_blocks; i++) {
+
+		/* block information */	
+		const ParameterListT& block = list.GetList("small_strain_element_block", i);
+
+		/* collect block ID's */
+		const ArrayT<ParameterListT>& IDs = block.GetList("block_ID_list").Lists();
+		for (int j = 0; j < IDs.Length(); j++) {
+			block_ID_tmp.Append(IDs[j].GetParameter("value"));
+			mat_index_tmp.Append(i);
+		}
+	}
+	
+	/* transfer */
+	block_ID.Swap(block_ID_tmp);
+	mat_index.Swap(mat_index_tmp);
+}
+
+/* extract the list of material parameters */
+void SmallStrainT::CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const
+{
+	const char caller[] = "SmallStrainT::CollectMaterialInfo";
+	
+	/* initialize */
+	mat_params.Clear();
+	
+	/* collected material parameters */
+	int num_blocks = all_params.NumLists("small_strain_element_block");
+	for (int i = 0; i < num_blocks; i++) {
+
+		/* block information */	
+		const ParameterListT& block = all_params.GetList("small_strain_element_block", i);
+		
+		/* resolve material list name */
+		if (i == 0) {
+			const ParameterListT* mat_list_params = block.ResolveListChoice(*this, "small_strain_material_choice");
+			if (mat_list_params)
+				mat_params.SetName(mat_list_params->Name());
+			else
+				ExceptionT::GeneralFail(caller, "could resolve material list");
+		}
+		
+		/* collect material parameters */
+		const ParameterListT& mat_list = block.GetList(mat_params.Name());
+		const ArrayT<ParameterListT>& mat = mat_list.Lists();
+		mat_params.AddList(mat[0]);
 	}
 }
 

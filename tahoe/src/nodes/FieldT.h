@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.18.2.1 2004-01-28 01:34:12 paklein Exp $ */
+/* $Id: FieldT.h,v 1.18.2.2 2004-02-12 17:19:15 paklein Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -79,6 +79,8 @@ public:
 	
 	/** \name time integrator */
 	/*@{*/
+	const IntegratorT& Integrator() const;
+
 	nIntegratorT& nIntegrator(void);
 	const nIntegratorT& nIntegrator(void) const;
 	/*@}*/
@@ -415,6 +417,11 @@ inline void FieldT::SetLocalEqnos(const ArrayT<int>& tags,
 }
 
 /* time integrator */
+inline const IntegratorT& FieldT::Integrator(void) const {
+	if (!fIntegrator) ExceptionT::GeneralFail("FieldT::Integrator");
+	return *fIntegrator;
+}
+
 inline const nIntegratorT& FieldT::nIntegrator(void) const {
 	if (!fnIntegrator) ExceptionT::GeneralFail("FieldT::nIntegrator");
 	return *fnIntegrator;

@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.h,v 1.8.2.1 2004-01-21 19:09:56 paklein Exp $ */
+/* $Id: ContinuumMaterialT.h,v 1.8.2.2 2004-02-12 17:19:12 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _CONTINUUM_MATERIAL_T_H_
 #define _CONTINUUM_MATERIAL_T_H_
@@ -35,6 +35,9 @@ public:
 
 	/** destructor */
 	virtual ~ContinuumMaterialT(void);
+
+	/** set the material support or pass NULL to clear */
+	virtual void SetMaterialSupport(const MaterialSupportT* support);
 
 	/** form of tangent matrix. \return symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
