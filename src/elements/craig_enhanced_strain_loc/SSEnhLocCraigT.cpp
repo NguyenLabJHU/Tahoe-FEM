@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.1 2004-08-31 16:41:19 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.2 2004-09-24 00:52:12 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -19,14 +19,17 @@ using namespace Tahoe;
 /* constructor */
 SSEnhLocCraigT::SSEnhLocCraigT(const ElementSupportT& support):
 	SmallStrainT(support),
-	HookeanMatT(NumDOF()),
-	ParameterInterfaceT("element_base"),
+	//	HookeanMatT(NumDOF()),
+	//ParameterInterfaceT("element_base"), //only needed for MI w/HookeanMatT
 	isLocalized(false),
-	fBand(NULL)
+	isLocalizedTemp(false),
+	fBand(NULL),
+	fInitialModulus(1)
   //fNeedsOffset(-1),
   //fSSMatSupport(NULL)
 {
 	SmallStrainT::SetName("small_strain_enh_loc_craig");
+	//	HookeanMatT::Dimension(NumDOF());
 }
 
 /* destructor */
@@ -128,6 +131,9 @@ void SSEnhLocCraigT::TakeParameterList(const ParameterListT& list)
 	fLocalizedFrictionCoeff = list.GetParameter("Localized_Friction_Coefficient");
 
 	/* "INITIALIZE" PARAMETERS */
+	//fInitialModulus = fCurrMaterial->c_ijkl();
+	//can't initialize this here fCurrMaterial not set
+	fInitialModulus = 0.0;
 
 #if 0
 
@@ -321,12 +327,16 @@ MaterialListT* SSEnhLocCraigT::NewMaterialList(const StringT& name, int size)
 void SSEnhLocCraigT::FormKd(double constK)
 {
 
-  if (isLocalized)
+  if (fInitialModulus == 0.0)
     {
-
+      fInitialModulus.Dimension(NumDOF());
+      fInitialModulus = fCurrMaterial->c_ijkl();
     }
-  else
+
     SmallStrainT::FormKd(constK);
+
+
+    cout << "fRHS =\n" << fRHS <<endl;
 
 #if 0
 	const double* Det    = fShapes->IPDets();
@@ -362,6 +372,10 @@ void SSEnhLocCraigT::FormKd(double constK)
 /* form the element stiffness matrix */
 void SSEnhLocCraigT::FormStiffness(double constK)
 {
+
+
+
+
   if (fStrainDispOpt == kMeanDilBbar)
     cout << "Warning SSEnhLocCraigT::FormStiffness, b-bar integration not implemented for enhanced strain element, postlocalization results may be garbage.";
 
@@ -370,13 +384,13 @@ void SSEnhLocCraigT::FormStiffness(double constK)
     /* form stiffness in standard way */
     SmallStrainT::FormStiffness(constK);
 
-      /* check for localization - flag for next time step -moved */
-    /*
+      /* check for localization */
+    
     if (IsElementLocalized())
-      isLocalized = true;
+      isLocalizedTemp = true;
     else
-      isLocalized = false;
-    */
+      isLocalizedTemp = false;
+    
 
     }
   else //if already localized, use localized stiffness routine
@@ -395,7 +409,8 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 	double k_zeta_zeta, area = 0.0;
 	dArrayT k_d_zeta(nedof), k_zeta_d(nedof);
 	dSymMatrixT gradActiveTensorFlowDir(ndof), dGdSigma(ndof);
-	dMatrixT fLHSWork(nedof), fDfB((HookeanMatT::Modulus().Rows()),nedof);
+	dMatrixT fLHSWork(nedof),// fDfB((HookeanMatT::Modulus().Rows()),nedof);
+	  fDfB((fInitialModulus.Rows()),nedof);
 
 	dGdSigma = FormdGdSigma(ndof);
 
@@ -414,14 +429,15 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 			Set_B(fShapes->Derivatives_U(), fB);
 
 		/* get D matrix */
-		fD.SetToScaled(scale, HookeanMatT::Modulus());
+		//fD.SetToScaled(scale, HookeanMatT::Modulus());
+		fD.SetToScaled(scale, fInitialModulus);
 							
 		/* multiply b(transpose) * db, taking account of symmetry, */
 		/* and accumulate in elstif */
 		fDfB.MultAB(fD, fB);
-		fLHSWork.MultATB(fB, fD);
+		fLHSWork.MultATB(fB, fDfB);
 		fLHS +=fLHSWork;
-		/* update nMatrix to get rid of fLHSwork */
+		/* update nMatrixT to get rid of fLHSwork */
                 //fLHS.MultATB(fB, fD, format, dMatrixT::kAccumulate);	
 
 		//form k_d_zeta
@@ -437,13 +453,24 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 		
 	}
 
+
+	//cout << "area =" << area << endl;
+
 	k_d_zeta *= 1.0/area;
 
 	k_zeta_zeta *= 1.0/area;
 	k_zeta_zeta += fH_Delta;
+	/*
+	cout << "gradActiveTensorFlowDir =\n" << gradActiveTensorFlowDir << endl;
+	cout << "dGdSigma =\n" << dGdSigma << endl;
+	cout << "k_d_zeta =\n" << k_d_zeta << endl;
+	cout << "k_zeta_zeta =\n" << k_zeta_zeta << endl;
+	cout << "k_zeta_d =\n" << k_zeta_d << endl;
+	*/
+
 
 	fLHS.Outer(k_d_zeta, k_zeta_d, -1.0*k_zeta_zeta, dMatrixT::kAccumulate);
-
+	cout << "fLHS =\n" << fLHS << endl;
     }
 
 
@@ -507,10 +534,16 @@ void SSEnhLocCraigT::SetGlobalShape(void)
 	    int material_number = CurrentElement().MaterialNumber();
 	    const ArrayT<bool>& needs = fMaterialNeeds[material_number];
 
-	    double ndof = NumDOF();
+	    int ndof = NumDOF();
 	    dSymMatrixT dGdSigma = FormdGdSigma(ndof);
 	    dSymMatrixT gradActiveTensorFlowDir(ndof);
-	    fD.SetToScaled(1.0, HookeanMatT::Modulus());
+
+	    //cout << "fInitialModulus =\n" << fInitialModulus << endl;
+	    //cout << "fD =\n" << fD << endl;
+
+
+	    //fD.SetToScaled(1.0, HookeanMatT::Modulus());
+	    fD.SetToScaled(1.0, fInitialModulus);
 	    dArrayT dGfD(fD.Rows());
 	    fD.MultTx(dGdSigma, dGfD);
 
@@ -525,20 +558,21 @@ void SSEnhLocCraigT::SetGlobalShape(void)
 		{
 		  area += (*Det)*(*Weight);
 		  double scale = (*Det++)*(*Weight++);
-		  dSymMatrixT tempStrain = fStrain_List [i];
-		  tempStrain.ScaleOffDiagonal(2.0);
+		  dSymMatrixT strainIncr = fStrain_List [i];
+		  strainIncr -= fStrain_last_List [i];
+		  strainIncr.ScaleOffDiagonal(2.0);
 
 		  gradActiveTensorFlowDir = FormGradActiveTensorFlowDir(ndof);
 
-		  fJumpIncrement += scale * tempStrain.Dot(dGfD, tempStrain);
-		  jumpWork += gradActiveTensorFlowDir.Dot(dGfD,gradActiveTensorFlowDir);
+		  fJumpIncrement += scale * strainIncr.Dot(dGfD, strainIncr);
+		  jumpWork += scale * gradActiveTensorFlowDir.Dot(dGfD,gradActiveTensorFlowDir);
 		  
 		}
 		fJumpIncrement /= area;
 		fJumpIncrement += fBand->Jump()*jumpWork;
 		fJumpIncrement /= (jumpWork + fH_Delta);
 
-
+		cout << "fJumpIncrement = " << fJumpIncrement << endl <<endl;
 
 		/* loop over integration points again */
 		for (int i = 0; i < NumIP(); i++)
@@ -553,13 +587,13 @@ void SSEnhLocCraigT::SetGlobalShape(void)
 			if (needs[fNeedsOffset + kstrain])
 			  {			    
 
-				 fStrain_List[i].AddScaled(fBand->Jump() + fJumpIncrement, gradActiveTensorFlowDir);
+				 fStrain_List[i].AddScaled(-(fBand->Jump() + fJumpIncrement), gradActiveTensorFlowDir);
 			  }
 
 			/* "last" deformation gradient */
 			if (needs[fNeedsOffset + kstrain_last])
 			{
-				 fStrain_List[i].AddScaled(fBand->Jump(), gradActiveTensorFlowDir);
+				 fStrain_last_List[i].AddScaled(-(fBand->Jump()), gradActiveTensorFlowDir);
 			}
 		}
 
@@ -653,16 +687,19 @@ void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			   const iArrayT& e_codes, dArray2DT& e_values)
 {
 
-  SolidElementT::ComputeOutput(n_codes, n_values, e_codes, e_values);
-
   /* If element has not localized yet, check */
   if (!isLocalized)
     {
-      if(IsElementLocalized())
+      if (isLocalizedTemp)
 	isLocalized = true;
     }
   else
     fBand->IncrementJump(fJumpIncrement);
+
+
+  SolidElementT::ComputeOutput(n_codes, n_values, e_codes, e_values);
+
+
 
 
 }
@@ -708,14 +745,17 @@ void SSEnhLocCraigT::SetMeanGradient(dArray2DT& mean_gradient) const
  ***********************************************************************/
 
 //move to surface mat model?
-dSymMatrixT SSEnhLocCraigT::FormdGdSigma(double ndof)
+dSymMatrixT SSEnhLocCraigT::FormdGdSigma(int ndof)
 {
   dSymMatrixT dGdSigma(ndof), work(ndof);
   dMatrixT dGNonSym(ndof);
 
-  dGNonSym.Outer(fNormal, fBand->PerpSlipDir());
+  //cout << "normal =\n" << normal << endl;
+  //cout << "slipdir =\n" <<  
+
+  dGNonSym.Outer(fBand->Normal(), fBand->PerpSlipDir());
   dGdSigma.Symmetrize(dGNonSym);
-  work.Outer(fNormal);
+  work.Outer(fBand->Normal());
   dGdSigma.AddScaled(fLocalizedFrictionCoeff, work);
 
   /* use vector values for mult */
@@ -726,24 +766,32 @@ dSymMatrixT SSEnhLocCraigT::FormdGdSigma(double ndof)
 
 
 
-dSymMatrixT SSEnhLocCraigT::FormGradActiveTensorFlowDir(double ndof)
+dSymMatrixT SSEnhLocCraigT::FormGradActiveTensorFlowDir(int ndof)
 {
   dSymMatrixT G(ndof);
   dMatrixT G_NonSym(ndof);
   iAutoArrayT activeNodes = fBand->ActiveNodes();
   int A;
   dArrayT grad_f(ndof);
+  grad_f = 0.0;
 
   for (int i=0; i<ndof; i++)
     {
       activeNodes.Top();
-      do
+
+      while(activeNodes.Next())      
 	{
 	  A = activeNodes.Current();  
-	  grad_f[i] += fB(i, (A-1)*ndof +i);
+	  //grad_f[i] += fB(i, (A-1)*ndof +i);
+	  grad_f[i] += fB(i, (A)*ndof +i);
+
+	  //cout << "A =\n" << A << endl;
+	  //cout << "grad_f =\n" << grad_f << endl;
 	}
-      while(activeNodes.Next());
+
     }
+
+  //cout << "SlipDir =\n" << fBand->SlipDir() << endl;
 
   G_NonSym.Outer(grad_f, fBand->SlipDir());
   G.Symmetrize(G_NonSym);
@@ -764,12 +812,18 @@ bool SSEnhLocCraigT::IsElementLocalized()
       AutoArrayT <dArrayT> bestNormals;
       AutoArrayT <dArrayT> bestSlipDirs;
 
+      //cannot reach element card during ComputeOutput
+
+
   /* loop over integration points */
-  for (int i = 0; i < NumIP(); i++)
+      fShapes->TopIP();
+      while ( fShapes->NextIP() )
     {
 
-      DetCheckT checker(fCurrMaterial->s_ij(), fCurrMaterial->c_ijkl(), HookeanMatT::Modulus());
+      //DetCheckT checker(fCurrMaterial->s_ij(), fCurrMaterial->c_ijkl(), HookeanMatT::Modulus());
+      DetCheckT checker(fCurrMaterial->s_ij(), fCurrMaterial->c_ijkl(), fInitialModulus);
       
+
       /*is this necessary? */
       checker.SetfStructuralMatSupport(*fSSMatSupport);
       if (checker.IsLocalized_SS(normals, slipDirs, detA))
@@ -778,14 +832,22 @@ bool SSEnhLocCraigT::IsElementLocalized()
 	  if (detA < detAMin)
 	    {
 	      detAMin = detA;
+	      bestNormals.Dimension(normals);
 	      normals.CopyInto(bestNormals);
+	      bestSlipDirs.Dimension(slipDirs);
 	      slipDirs.CopyInto(bestSlipDirs);
 	    }
 	}
+      //normals.Free();
+      //slipDirs.Free();
     }
 
+
+
   if (locCheck)
-    ChooseNormals(bestNormals, bestSlipDirs);
+    ChooseNormals(normals, slipDirs);
+
+
 
   return locCheck;
 }
@@ -795,6 +857,9 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
 
   normals.Top();
   slipDirs.Top();
+
+  normals.Next();
+  slipDirs.Next();
 
   // implement how to choose
   dArrayT normal = normals.Current();
@@ -814,10 +879,20 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
   //later this can be point on edge if neighboring element is localized
   dArrayT centroid = Centroid();
 
-
-
+  //temp
+  slipDir *= -1.0;
+  perpSlipDir *= -1.0;
 
   fBand = new BandT(normal, slipDir, perpSlipDir, centroid, this);
+  //fBand = new BandT(slipDir, normal, normal, centroid, this);
+
+  
+  cout << fBand->Normal() << endl << endl;
+  cout << fBand->SlipDir() << endl << endl;
+  cout << fBand->PerpSlipDir() << endl << endl;
+  cout << centroid << endl << endl;
+  cout << fBand->Jump() << endl << endl;
+  
 
 }
 

@@ -67,7 +67,7 @@ void BandT::ActivateNodes(dArrayT& coord)
   LocalArrayT nodalCoords = currentElement->InitialCoordinates();
   int nen = currentElement->NumElementNodes();
 
-  dArrayT nodalCoord;
+  dArrayT nodalCoord(kNSD);
 
   for (int i = 0; i < nen; i++)
     {
@@ -77,8 +77,10 @@ void BandT::ActivateNodes(dArrayT& coord)
       nodalCoord -= coord;
       // if dot product is greater than one, then nodes
       if (nodalCoord.Dot(nodalCoord, fNormal) > 0.0)
-	fActiveNodes.Append(i);
-
+	{
+	  fActiveNodes.Append(i);
+	  cout << "node " << i << " is active.Coords =\n" << nodalCoord << endl; 
+	}
     }
 
 }

@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.h,v 1.1 2004-08-31 16:41:19 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.h,v 1.2 2004-09-24 00:52:12 cfoster Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_CF_T_H_
 #define _SMALL_STRAIN_ENH_LOC_CF_T_H_
 
@@ -15,7 +15,7 @@ namespace Tahoe {
 class SSMatSupportT;
 
 /** Interface for linear strain deformation and field gradients */
-class SSEnhLocCraigT: public SmallStrainT, public HookeanMatT
+ class SSEnhLocCraigT: public SmallStrainT //, public HookeanMatT
 {
   public:
       
@@ -27,14 +27,14 @@ class SSEnhLocCraigT: public SmallStrainT, public HookeanMatT
 
 	/** \name total strain */
 	/*@{*/
-	const dSymMatrixT& LinearStrain(void) const;
-	const dSymMatrixT& LinearStrain(int ip) const;
+	//	const dSymMatrixT& LinearStrain(void) const;
+	//	const dSymMatrixT& LinearStrain(int ip) const;
 	/*@}*/
 
 	/** total strain from the end of the previous time step */
 	/*@{*/
-	const dSymMatrixT& LinearStrain_last(void) const;
-	const dSymMatrixT& LinearStrain_last(int ip) const;
+	//	const dSymMatrixT& LinearStrain_last(void) const;
+	//	const dSymMatrixT& LinearStrain_last(int ip) const;
 	/*@}*/
 
 	/** \name implementation of the ParameterInterfaceT interface */
@@ -98,12 +98,15 @@ protected:
 
   protected:
     
+	bool isLocalizedTemp;
 	bool isLocalized;
 	BandT *fBand;
 	double fH_Delta;
 	bool fNoBandDilation;
 	double fLocalizedFrictionCoeff;
 	double fJumpIncrement;
+	dMatrixT fInitialModulus;
+
 
 	/** driver for calculating output values */
 	/* Used to check localization - is there a more appropriate fn? */
@@ -111,8 +114,8 @@ protected:
 				   const iArrayT& e_codes, dArray2DT& e_values);
 
 //move to surface mat model?
-	dSymMatrixT FormdGdSigma(double ndof);
-	dSymMatrixT FormGradActiveTensorFlowDir(double ndof);
+	dSymMatrixT FormdGdSigma(int ndof);
+	dSymMatrixT FormGradActiveTensorFlowDir(int ndof);
 	bool IsElementLocalized();
 	void ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipDirs);
 	dArrayT Centroid();
@@ -144,6 +147,8 @@ protected:
 #endif
 
 };
+
+#if 0
 
 /* inlines */
 
@@ -206,6 +211,8 @@ inline const dSymMatrixT& SSEnhLocCraigT::LinearStrain_last(int ip) const
 
 	return fStrain_last_List[ip];
 }
+
+#endif
 
 } // namespace Tahoe 
 
