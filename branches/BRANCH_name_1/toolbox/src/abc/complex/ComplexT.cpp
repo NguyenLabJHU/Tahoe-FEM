@@ -1,4 +1,4 @@
-/* $Id: ComplexT.cpp,v 1.7.4.1 2002-06-27 18:00:46 cjkimme Exp $ */
+/* $Id: ComplexT.cpp,v 1.7.4.2 2002-07-02 16:40:22 cjkimme Exp $ */
 /* created: PAK/AFLP (05/19/1997) */
 
 #include "ComplexT.h"
@@ -93,7 +93,10 @@ ComplexT log(const ComplexT& z)
 
 ComplexT& ComplexT::log_of(const ComplexT& z)
 {
-	fRe = std::log( z.Magnitude() );
+
+	extern double log(double);
+
+	fRe = /*std::*/log( z.Magnitude() );
 	fIm = z.Angle();
 
 	return (*this);
