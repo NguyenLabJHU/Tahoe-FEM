@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: EnSightInputT.h,v 1.2 2001-08-03 19:16:43 sawimme Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #ifndef _ENSIGHTINPUT_T_H_
@@ -9,76 +9,76 @@
 /* direct members */
 #include "EnSightT.h"
 #include "StringT.h"
-#include "iArrayT.h"
 #include "iArray2DT.h"
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
 template <class TYPE> class ArrayT;
 class dArray2DT;
-class ifstreamT;
+class iArray2DT;
 
 class EnSightInputT : public InputBaseT
 {
 public:
-EnSightInputT (ostream& out, bool binary, const char* filename);
+  EnSightInputT (ostream& out, bool binary);
 
-/* virtual with InputManager base class */
-virtual int  NumElementGroups (void) const;
-virtual int  NumSideSets (void) const;
-virtual int  NumNodeSets (void) const;
-virtual void GroupNumbers (iArrayT& groupnums) const;
-virtual void SideSetNumbers (iArrayT& sidenums) const;
-virtual void NodeSetNumbers (iArrayT& nodenums) const;
+  virtual void Open (const StringT& file);
+  virtual void Close (void);
 
-virtual void ReadCoordinates (dArray2DT& coords, iArrayT& nodemap);
-virtual void ReadConnectivity (int group, GeometryT::CodeT& geocode, iArray2DT& connects, iArrayT& elementmap);
-virtual void ReadNodeSet (int set_num, iArrayT& nodes) const;
-virtual void ReadSideSet (int set_num, iArray2DT& sides) const;
-virtual void ReadSideSetGlobal (int set_num, iArray2DT& sides) const;
-virtual void Close (void);
-virtual void QARecords (ArrayT<StringT>& records) const;
-virtual void ReadTimeSteps (dArrayT& steps);
-virtual void ReadLabels (ArrayT<StringT>& nlabels, ArrayT<StringT>& elabels, int group_id);
-virtual void ReadVariables (int step, int group_id, dArray2DT& nvalues, dArray2DT& evalues);
+  /* virtual with InputManager base class */
+  virtual int  NumElementGroups (void);
+  virtual int  NumSideSets (void);
+  virtual int  NumNodeSets (void);
 
-private:
-bool AdvanceStream (istream& in, const char* key) const;
-void ScanGeometryFile (void);
+  virtual int  NumNodes (void);
+  virtual int  NumDimensions (void);
+  virtual void ReadNodeMap (iArrayT& nodemap);
+  virtual void ReadCoordinates (dArray2DT& coords);
+  virtual void ReadCoordinates (dArray2DT& coords, iArrayT& nodemap);
 
-StringT CreateVariableFile (const StringT& old, int inc) const;
-void ReadVariableData (ArrayT<bool>& vector, ArrayT<StringT>& labels, int group_id, dArray2DT& values, int currentinc, bool nodal) const;
+  virtual bool AreSideSetsLocal (void);
 
-private:
-EnSightT fData;
-StringT fGeometryFile;
-StringT fCaseFile;
-iArray2DT fPartDimensions; // num_nodes, num_elems, partID
-int fStartIncrement;
-int fIncrement;
+  virtual int  NumGlobalElements (void);
+  virtual void ReadAllElementMap (iArrayT& elemmap);
+
+  virtual int  NumTimeSteps (void);
+  virtual void ReadTimeSteps (dArrayT& steps);
+
+  virtual int  NumNodeVariables (void);
+  virtual int  NumElementVariables (void);
+  
+ protected:
+  virtual void ElementGroupIDs (iArrayT& groupnums);
+  
+  virtual int NumElements_ID (int ID);
+  virtual int NumElementNodes_ID (int ID);
+  virtual void ReadGlobalElementMap_ID (int ID, iArrayT& elemmap);
+  virtual void ReadConnectivity_ID (int ID, iArray2DT& connects);
+  virtual void ReadGeometryCode_ID (int ID, GeometryT::CodeT& code);
+
+  virtual void ReadElementLabels_ID (int ID, ArrayT<StringT>& elabels);
+  virtual void ReadElementVariables_ID (int step, int ID, dArray2DT& evalues);
+
+ private:
+  bool AdvanceStream (istream& in, const char* key) const;
+  void ScanGeometryFile (void);
+  
+  StringT CreateVariableFile (const StringT& old, int inc) const;
+  void ReadVariableData (ArrayT<bool>& vector, ArrayT<StringT>& labels, int group_id, dArray2DT& values, int currentinc, bool nodal) const;
+  
+ private:
+  EnSightT fData;
+  StringT fGeometryFile;
+  StringT fCaseFile;
+  iArray2DT fPartDimensions; // num_nodes, num_elems, partID
+  int fStartIncrement;
+  int fIncrement;
 };
 
-// EnSight does not stores side or node sets
-inline int EnSightInputT::NumSideSets (void) const { return 0; }
-inline int EnSightInputT::NumNodeSets (void) const { return 0; }
-inline void EnSightInputT::SideSetNumbers (iArrayT& sidenums) const
-{ sidenums.Allocate (0);}
-inline void EnSightInputT::NodeSetNumbers (iArrayT& nodenums) const
-{ nodenums.Allocate (0); }
-inline void EnSightInputT::ReadNodeSet (int set_num, iArrayT& nodes) const
-{
-#pragma unused (set_num)
-#pragma unused (nodes)
-}
-inline void EnSightInputT::ReadSideSet (int set_num, iArray2DT& sides) const
-{
-#pragma unused (set_num)
-#pragma unused (sides)
-}
-inline void EnSightInputT::ReadSideSetGlobal (int set_num, iArray2DT& sides) const
-{
-#pragma unused (set_num)
-#pragma unused (sides)
-}
+inline void EnSightInputT::Close (void) { }
+inline int EnSightInputT::NumSideSets (void) { return 0; }
+inline int EnSightInputT::NumNodeSets (void) { return 0; }
+inline int EnSightInputT::NumDimensions (void) { return 3; }
+inline bool EnSightInputT::AreSideSetsLocal (void) { return true; }
 
 #endif
