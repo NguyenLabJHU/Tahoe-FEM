@@ -1,4 +1,4 @@
-/* $Id: AutoFill2DT.h,v 1.6 2002-11-25 07:05:50 paklein Exp $ */
+/* $Id: AutoFill2DT.h,v 1.6.2.1 2002-12-27 23:06:51 paklein Exp $ */
 /* created: paklein (01/19/1999) */
 #ifndef _AUTO_ARRAY2D_T_H_
 #define _AUTO_ARRAY2D_T_H_
@@ -149,6 +149,7 @@ template <class TYPE>
 inline void AutoFill2DT<TYPE>::Chunk(int row, int& chunk, int& chunk_row) const
 {
 	chunk = row/fChunkMajorDim;
+	chunk = (chunk == fChunkMinorDim.Length()) ? chunk-1 : chunk; /* last chunk catches overflow */
 	chunk_row = row - chunk*fChunkMajorDim;
 }
 
@@ -347,7 +348,8 @@ void AutoFill2DT<TYPE>::Copy(const AutoFill2DT<TYPE>& source)
 
 /* adding values to rows */
 template <class TYPE>
-inline void AutoFill2DT<TYPE>::Append(int row, const TYPE& value)
+inline 
+void AutoFill2DT<TYPE>::Append(int row, const TYPE& value)
 {
 #if __option(extended_errorcheck)
 	if (row < 0 || row >= fMajorDim) ExceptionT::OutOfRange();
