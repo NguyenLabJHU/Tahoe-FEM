@@ -1,5 +1,5 @@
-/* $Id: nTrapezoid.cpp,v 1.2 2001-08-27 17:12:17 paklein Exp $ */
-/* created: paklein (10/03/1999)                                          */
+/* $Id: nTrapezoid.cpp,v 1.2.4.5 2002-06-05 09:25:31 paklein Exp $ */
+/* created: paklein (10/03/1999) */
 
 #include "nTrapezoid.h"
 #include "dArrayT.h"
@@ -7,36 +7,23 @@
 #include "iArray2DT.h"
 #include "dArray2DT.h"
 #include "KBC_CardT.h"
+#include "BasicFieldT.h"
 
 /* constructor */
-nTrapezoid::nTrapezoid(void): nControllerT(1) { }
+nTrapezoid::nTrapezoid(void) { }
 
 /* consistent BC's */
-void nTrapezoid::ConsistentKBC(const KBC_CardT& KBC)
+void nTrapezoid::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 {
-#if __option(extended_errorcheck)
-	if (fU[0] == NULL ||
-	    fU[1] == NULL)
-	{
-		cout << "\n nTrapezoid::ConsistentKBC: field arrays not set" << endl;
-		throw eGeneralFail;
-	}
-#endif
-
 	/* destinations */
 	int node = KBC.Node();
 	int dof  = KBC.DOF();
-	double& d = (*fU[0])(node, dof);
-	double& v = (*fU[1])(node, dof);
+	double& d = (field[0])(node, dof);
+	double& v = (field[1])(node, dof);
 	
 	switch ( KBC.Code() )
 	{
 		case KBC_CardT::kFix: /* zero displacement */
-		{
-			d = 0.0;
-			v = 0.0;
-			break;
-		}
 		case KBC_CardT::kDsp: /* prescribed displacement */
 		{
 			double d_next = KBC.Value();
@@ -57,47 +44,30 @@ void nTrapezoid::ConsistentKBC(const KBC_CardT& KBC)
 }		
 
 /* predictors - map ALL */
-void nTrapezoid::Predictor(void)
+void nTrapezoid::Predictor(BasicFieldT& field)
 {
-#if __option (extended_errorcheck)
-	if (fU[0] == NULL ||
-	    fU[1] == NULL)
-	{
-		cout << "\n nTrapezoid::Predictor: field arrays not set" << endl;
-		throw eGeneralFail;
-	}
-	if (fU[0]->Length() != fU[1]->Length()) throw eSizeMismatch;
-#endif
-	
 	/* displacement predictor */
-	fU[0]->AddScaled(dpred_v, *fU[1]);
+	field[0].AddScaled(dpred_v, field[1]);
+	
+	/* velocity predictor */
+	field[1] = 0.0;
 }		
 
 /* correctors - map ACTIVE */
-void nTrapezoid::Corrector(const iArray2DT& eqnos, const dArrayT& update,
-	int eq_start, int eq_stop)
+void nTrapezoid::Corrector(BasicFieldT& field, const dArrayT& update, 
+	int eq_start, int num_eq)
 {
-#if __option (extended_errorcheck)
-	if (fU[0] == NULL ||
-	    fU[1] == NULL)
-	{
-		cout << "\n nTrapezoid::Corrector: field arrays not set" << endl;
-		throw eGeneralFail;
-	}
-	if (eqnos.Length() != fU[0]->Length()   ||
-	   fU[0]->Length() != fU[1]->Length()) throw eSizeMismatch;		
-	//NOTE: no check on length of update.
-#endif
+	const iArray2DT& eqnos = field.Equations();
 
 	/* add update - assumes that fEqnos maps directly into dva */
 	int    *peq = eqnos.Pointer();
-	double *pd  = fU[0]->Pointer();
-	double *pv  = fU[1]->Pointer();
+	double *pd  = field[0].Pointer();
+	double *pv  = field[1].Pointer();
 	for (int i = 0; i < eqnos.Length(); i++)
 	{
 		int eq = *peq++ - eq_start;
 		/* active dof */
-		if (eq > -1 && eq < eq_stop)
+		if (eq > -1 && eq < num_eq)
 		{
 			double v = update[eq];
 			*pd += dcorr_v*v;
@@ -108,24 +78,9 @@ void nTrapezoid::Corrector(const iArray2DT& eqnos, const dArrayT& update,
 	}
 }
 
-void nTrapezoid::MappedCorrector(const iArrayT& map, const iArray2DT& flags,
-	const dArray2DT& update, int eq_start, int eq_stop)
+void nTrapezoid::MappedCorrector(BasicFieldT& field, const iArrayT& map, 
+	const iArray2DT& flags, const dArray2DT& update)
 {
-#if __option (extended_errorcheck)
-	if (fU[0] == NULL ||
-	    fU[1] == NULL)
-	{
-		cout << "\n nTrapezoid::MappedCorrector: field arrays not set" << endl;
-		throw eGeneralFail;
-	}
-#endif
-
-	/* checks */
-	if (flags.MajorDim() != map.Length() ||
-	    flags.MajorDim() != update.MajorDim() ||
-	    flags.MinorDim() != update.MinorDim() ||
-	    flags.MinorDim() != fU[0]->MinorDim()) throw eSizeMismatch;
-
 	/* run through map */
 	int minordim = flags.MinorDim();
 	const int* pflag = flags.Pointer();
@@ -135,16 +90,25 @@ void nTrapezoid::MappedCorrector(const iArrayT& map, const iArray2DT& flags,
 		int row = map[i];
 		int* pflags = flags(i);
 
-		double* pd = (*fU[0])(row);
-		double* pv = (*fU[1])(row);
+		double* pd = (field[0])(row);
+		double* pv = (field[1])(row);
 		for (int j = 0; j < minordim; j++)
 		{
 			/* active */
-			if (*pflag >= eq_start && *pflag <= eq_stop)
+			if (*pflag > 0)
 			{
-				double v = *pupdate;
-				*pd += dcorr_v*v;
-				*pv += v;
+				double dv = *pupdate - *pv; 
+/* NOTE: update is the total v_n+1, so we need to recover dv, the velocity
+ *       increment. Due to truncation errors, this will not match the update
+ *       applied in nTrapezoid::Corrector exactly. Therefore, ghosted nodes
+ *       will not have exactly the same trajectory as their images. The solution
+ *       would be to expand da to the full field, and send it. Otherwise, we
+ *       could develop maps from the update vector to each communicated outgoing
+ *       packet. Or {d,v} could be recalculated from t_n here and in Corrector,
+ *       though this would require the data from t_n. */
+
+				*pd += dcorr_v*dv;
+				*pv  = *pupdate; /* a_n+1 matches exactly */
 			}
 			
 			/* next */
@@ -154,17 +118,9 @@ void nTrapezoid::MappedCorrector(const iArrayT& map, const iArray2DT& flags,
 }
 
 /* return the field array needed by nControllerT::MappedCorrector. */
-const dArray2DT& nTrapezoid::MappedCorrectorField(void) const
+const dArray2DT& nTrapezoid::MappedCorrectorField(BasicFieldT& field) const
 {
-#if __option (extended_errorcheck)
-	if (fU[1] == NULL)
-	{
-		cout << "\n nTrapezoid::MappedCorrectorField: field arrays not set" << endl;
-		throw eGeneralFail;
-	}
-#endif
-
-	return *fU[1];
+	return field[1];
 }
 
 /* pseudo-boundary conditions for external nodes */

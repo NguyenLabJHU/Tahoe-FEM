@@ -1,4 +1,4 @@
-/* $Id: NOXSolverT.cpp,v 1.2 2002-04-02 23:30:55 paklein Exp $ */
+/* $Id: NOXSolverT.cpp,v 1.2.2.3 2002-06-05 09:18:36 paklein Exp $ */
 #include "NOXSolverT.h"
 
 /* optional */
@@ -6,7 +6,6 @@
 
 #include "fstreamT.h"
 #include "FEManagerT.h"
-#include "ControllerT.h"
 #include "NOX_Solver_Manager.H"
 #include "NOX_Tahoe_Group.h"
 #include "dArrayT.h"
@@ -28,8 +27,9 @@ inline static double Min(double a, double b) { return (a < b) ? a : b; };
 inline static double Max(double a, double b) { return (a > b) ? a : b; };
 
 /* constructor */
-NOXSolverT::NOXSolverT(FEManagerT& fe_manager):
-	SolverT(fe_manager),
+NOXSolverT::NOXSolverT(FEManagerT& fe_manager, int group, int unknowns_order):
+	SolverT(fe_manager, group),
+	fUnknownsOrder(unknowns_order),
 	fNOXParameters(NULL),
 	fMaxIterations(-1),
 	fAbsResidual(1.1),
@@ -175,11 +175,9 @@ NOXSolverT::~NOXSolverT(void)
 }
 
 /* generate the solution for the current time sequence */
-void NOXSolverT::Run(void)
+SolverT::SolutionStatusT NOXSolverT::Solve(int num_iterations)
 {
-	/* time integrator */
-	const ControllerT* controller = fFEManager.Controller();
-	if (!controller) throw eGeneralFail;
+	try {
 
 	/* check */
 	if (!fLHS) {
@@ -187,99 +185,90 @@ void NOXSolverT::Run(void)
 		throw eGeneralFail;
 	}	
 
-	/* solve load sequence */
-	while (Step())
-	{			
-		/* residual loop */
-		try
-		{
-			/* apply boundary conditions */
-			fFEManager.InitStep();
+	/* open iteration output */
+	InitIterationOutput();
 
-			/* open iteration output */
-			InitIterationOutput();
-
-			/* set up group */
-			dArrayT u(fRHS.Length());
-			fFEManager.GetUnknowns(controller->OrderOfUnknown(), u);
-			NOX::Tahoe::Group group(*this, u, *fLHS);
-			fLastSolution = u;
+	/* set up group */
+	dArrayT u(fRHS.Length());
+	fFEManager.GetUnknowns(fGroup, fUnknownsOrder, u);
+	NOX::Tahoe::Group group(*this, u, *fLHS);
+	fLastSolution = u;
 			
-			/* compute initial residual */
-			if (!group.computeRHS()) {
-				cout << "\n NOXSolverT::Run: unable to compute initial residual" << endl;
-				throw eGeneralFail;
-			}
-			double error0 = group.getNormRHS();
-			cout << " Error = " << error0 << endl;
+	/* compute initial residual */
+	if (!group.computeRHS()) {
+		cout << "\n NOXSolverT::Run: unable to compute initial residual" << endl;
+		throw eGeneralFail;
+	}
+	double error0 = group.getNormRHS();
+	cout << " Error = " << error0 << endl;
 			
-			/* construct combination stopping criteria */
-			NOX::Status::AbsResid abs_resid(fAbsResidual);
-			NOX::Status::RelResid rel_resid(error0, fRelResidual);
-			NOX::Status::MaxIters max_iters(fMaxIterations);
-			NOX::Status::Combo combo(NOX::Status::Combo::OR);
-			combo.addTest(abs_resid);
-			combo.addTest(rel_resid);
-			combo.addTest(max_iters);
+	/* construct combination stopping criteria */
+	NOX::Status::AbsResid abs_resid(fAbsResidual);
+	NOX::Status::RelResid rel_resid(error0, fRelResidual);
+	NOX::Status::MaxIters max_iters(fMaxIterations);
+	NOX::Status::Combo combo(NOX::Status::Combo::OR);
+	combo.addTest(abs_resid);
+	combo.addTest(rel_resid);
+	combo.addTest(max_iters);
 
-			/* set solver */
-			NOX::Solver::Manager nox(group, combo, *fNOXParameters);
+	/* set solver */
+	NOX::Solver::Manager nox(group, combo, *fNOXParameters);
 
-			/* solve */
-			NOX::Status::StatusType nox_status;
-			try {
-				nox_status = nox.iterate();
-				while (nox_status == NOX::Status::Unconverged) {
-					cout << '\t' << group.getNormRHS()/error0 << endl;
-					nox_status = nox.iterate();
-				}
-				cout << '\t' << group.getNormRHS()/error0 << endl;
-			}
-			catch (int error) { /* Tahoe throws int's */
-				cout << "\n NOXSolverT::Run: exception during solve: " 
-				     << fFEManager.Exception(error) << endl;
-				throw error;
-			}
-			catch (const char* error) { /* NOX throws strings */
-				cout << "\n NOXSolverT::Run: exception during solve: " << error << endl;
-				throw eGeneralFail;
-			}
+	/* solve */
+	NOX::Status::StatusType nox_status;
+	fNumIteration = -1;
+	try {
+		nox_status = nox.iterate(); 
+		fNumIteration++;
+		while (nox_status == NOX::Status::Unconverged &&
+			(num_iterations == -1 || fNumIteration < num_iterations)) {
+			cout << '\t' << group.getNormRHS()/error0 << endl;
+			nox_status = nox.iterate();
+			fNumIteration++;
+		}
+		cout << '\t' << group.getNormRHS()/error0 << endl;
+	}
+	catch (int error) { /* Tahoe throws int's */
+		cout << "\n NOXSolverT::Run: exception during solve: " 
+	         << fFEManager.Exception(error) << endl;
+		throw error;
+	}
+	catch (const char* error) { /* NOX throws strings */
+		cout << "\n NOXSolverT::Run: exception during solve: " << error << endl;
+		throw eGeneralFail;
+	}
 
-			/* what to do next */
-			SolutionStatusT status = kFailed;
-			switch (nox_status) {				
-				case NOX::Status::Converged:
-					status = DoConverged(); /* "relax" */
-					break;
+	/* what to do next */
+	SolutionStatusT status = kFailed;
+	switch (nox_status) {				
+		case NOX::Status::Converged:
+			status = kConverged; /* "relax"? */
+		break;
 					
-				case NOX::Status::Unconverged:
-				case NOX::Status::Failed:
-					status = kFailed;
-					break;
+		case NOX::Status::Unconverged:
+		case NOX::Status::Failed:
+			status = kFailed;
+			break;
 			
-				default:
-					cout << "\n NOXSolverT::Run: unrecognized exit status: " << status << endl;
-					throw eGeneralFail;
-			}
+		default:
+			cout << "\n NOXSolverT::Run: unrecognized exit status: " << status << endl;
+			throw eGeneralFail;
+	}
 				
-			/* close iteration output */	
-			CloseIterationOutput();
+	/* close iteration output */	
+	CloseIterationOutput();
 			
-			/* close step */
-			if (status == kConverged)
-				fFEManager.CloseStep();
-			/* solution procedure failed */
-			else
-				DoNotConverged();
-		}
+	/* close step */
+	return status;
+	} /* end try */
 		
-		catch (int code)
-		{
-			cout << "\n NOXSolverT::Run: exception at step number "
-			     << fFEManager.StepNumber() << " with step "
-			     << fFEManager.TimeStep() << endl;
-			fFEManager.HandleException(code);
-		}
+	/* exception */
+	catch (int code)
+	{
+		cout << "\n NOXSolverT::Run: exception at step number "
+			 << fFEManager.StepNumber() << " with step "
+			 << fFEManager.TimeStep() << endl;
+		return kFailed;
 	}
 }
 
@@ -305,7 +294,7 @@ bool NOXSolverT::computeRHS(const dArrayT& x, dArrayT& rhs)
 	/* compute the update vector and apply */
 	dArrayT update(x.Length());
 	update.DiffOf(x, fLastSolution);
-	fFEManager.Update(update);
+	fFEManager.Update(Group(), update);
 	update.Free();
 	
 	/* store new configuration */
@@ -317,7 +306,7 @@ bool NOXSolverT::computeRHS(const dArrayT& x, dArrayT& rhs)
 	/* calculate */
 	try {
 		fRHS = 0.0;
-		fFEManager.FormRHS();	
+		fFEManager.FormRHS(Group());	
 	}
 	catch (int exception) {
 		cout << "\n NOXSolverT::computeRHS: exception: "
@@ -341,7 +330,7 @@ bool NOXSolverT::computeJacobian(GlobalMatrixT& jacobian)
 	/* calculate */
 	try {
 		fLHS->Clear();
-		fFEManager.FormLHS();	
+		fFEManager.FormLHS(Group());	
 	}
 	catch (int exception) {
 		cout << "\n NOXSolverT::computeJacobian: exception: "
@@ -358,26 +347,6 @@ bool NOXSolverT::computeJacobian(GlobalMatrixT& jacobian)
 /*************************************************************************
 * Private
 *************************************************************************/
-
-/* success */
-NOXSolverT::SolutionStatusT NOXSolverT::DoConverged(void)
-{
-//TEMP - nothing yet. Need to add "relax" like NLSolver.
-	return kConverged;
-}
-
-/* solution failed */
-void NOXSolverT::DoNotConverged(void)
-{
-	/* message */
-	cout << "\n NOXSolverT::DoNotConverged: resetting step, cutting load set" << endl;
-
-	/* step back to last converged */
-	fFEManager.ResetStep();
-	
-	/* cut load increment */
-	fFEManager.DecreaseLoadStep();
-}
 
 /* divert output for iterations */
 void NOXSolverT::InitIterationOutput(void)

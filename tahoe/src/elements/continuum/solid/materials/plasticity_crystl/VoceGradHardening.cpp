@@ -9,7 +9,7 @@
 #include "ifstreamT.h"
 
 // number of material properties for hard model 
-const int kNumMatProp    = 9;
+const int kNumMatProp    = 7;
 const int kNumInitValues = 1;
 const int kNumInternal   = 4;
 
@@ -54,16 +54,8 @@ VoceGradHardening::VoceGradHardening(PolyCrystalMatT& poly):
   in >> fMatProp[2];   // tauSsat
   in >> fMatProp[3];   // c_s
   in >> fMatProp[4];   // c_x
-  in >> fMatProp[5];   // lentgh scale l
-  in >> fMatProp[6];   // burger's vector b
-  in >> fMatProp[7];   // c_2
-  // in >> fMatProp[8];   // c_1 (computed here)
-
-  // reference to elastic material properties
-  const dArrayT& elasProps = poly.MaterialProperties();
-
-  // material constant c_1
-  fMatProp[8] = 2.*fMatProp[0]/(fMatProp[3]*elasProps[0]*fMatProp[6]);
+  in >> fMatProp[5];   // burger's vector b
+  in >> fMatProp[6];   // factor beta
 
   // input initial value of statistically stored dislocation
   in >> fInitHardValues[0];
@@ -130,7 +122,7 @@ void VoceGradHardening::ExplicitUpdateHard()
   //scale /= fMatProp[0];
   //double scale = 100.0*fMatProp[3]*fMatProp[3]/(2.*fMatProp[4]); // mu*c_s^2/(2*c_x)
   //double beta = 3.125e4;
-  double beta = fMatProp[7]/fMatProp[8]*fMatProp[6]/fMatProp[5];
+  double beta = fMatProp[6];
   double scale = beta*fMatProp[3]/fMatProp[4];
 
   double c   = fdt * fMatProp[0];
@@ -156,7 +148,7 @@ void VoceGradHardening::ImplicitUpdateHard()
   //scale /= fMatProp[0];
   //double scale = 100.0*fMatProp[3]*fMatProp[3]/(2.*fMatProp[4]); // mu*c_s^2/(2*c_x)
   //double beta = 3.125e4;
-  double beta = fMatProp[7]/fMatProp[8]*fMatProp[6]/fMatProp[5];
+  double beta = fMatProp[6];
   double scale = beta*fMatProp[3]/fMatProp[4];
 
   double c   = 0.5 * fdt * fMatProp[0];
@@ -196,7 +188,7 @@ void VoceGradHardening::ImplicitSolveHard()
   //scale /= fMatProp[0];
   //double scale = 100.0*fMatProp[3]*fMatProp[3]/(2.*fMatProp[4]); // mu*c_s^2/(2*c_x)
   //double beta = 3.125e4;
-  double beta = fMatProp[7]/fMatProp[8]*fMatProp[6]/fMatProp[5];
+  double beta = fMatProp[6];
   double scale = beta*fMatProp[3]/fMatProp[4];
 
   double c   = fdt * fMatProp[0];
@@ -258,10 +250,8 @@ void VoceGradHardening::Print(ostream& out) const
   out << "       Saturation hardness (tauSsat) . . . . . . = " << fMatProp[2] << "\n";
   out << "       c_s . . . . . . . . . . . . . . . . . . . = " << fMatProp[3] << "\n";
   out << "       c_x . . . . . . . . . . . . . . . . . . . = " << fMatProp[4] << "\n";
-  out << "       length scale (l). . . . . . . . . . . . . = " << fMatProp[5] << "\n";
-  out << "       burger's vector (b) . . . . . . . . . . . = " << fMatProp[6] << "\n";
-  out << "       c_2 . . . . . . . . . . . . . . . . . . . = " << fMatProp[7] << "\n";
-  out << "       c_1 (computed). . . . . . . . . . . . . . = " << fMatProp[8] << "\n";
+  out << "       burger's vector (b) . . . . . . . . . . . = " << fMatProp[5] << "\n";
+  out << "       factor beta . . . . . . . . . . . . . . . = " << fMatProp[6] << "\n";
 
   // print hardening solver control data
   fSolver->Print(out);

@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.h,v 1.2 2001-09-11 23:43:48 paklein Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.2.4.3 2002-05-03 07:13:37 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 
 #ifndef _FBC_CONTROLLER_T_H_
@@ -31,17 +31,16 @@ public:
                  kAugLagWall = 4}; //sphere for meshfree
 
 	/* constructor */
-	FBC_ControllerT(FEManagerT& fe_manager);
+	FBC_ControllerT(FEManagerT& fe_manager, int group);
 
 	/* destructor */
 	virtual ~FBC_ControllerT(void);
 
 	/* set the controller */
-	virtual void SetController(eControllerT* controller);
+	virtual void SetController(const eControllerT* controller);
 
 	/* initialize data - called immediately after construction */
 	virtual void Initialize(void) = 0;
-	virtual void Reinitialize(void) = 0;
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const = 0;
@@ -81,10 +80,14 @@ public:
 	
 protected:
 
+	/** the Boss */
 	FEManagerT& fFEManager;
 
+	/** equation group */
+	int fGroup;
+
 	/* element controller */
-	eControllerT* fController;
+	const eControllerT* fController;
 };
 
 #endif /* _FBC_CONTROLLER_T_H_ */

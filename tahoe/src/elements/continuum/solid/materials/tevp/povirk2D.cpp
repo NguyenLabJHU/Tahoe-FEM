@@ -1,3 +1,4 @@
+/* $Id: povirk2D.cpp,v 1.1.4.1 2002-04-29 17:22:17 paklein Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (09/10/2001) */
 
@@ -7,7 +8,6 @@
 #include <math.h>
 #include "ifstreamT.h"
 #include "FiniteStrainT.h"
-#include "FEManagerT.h"
 #include "ElementCardT.h"
 
 /* element output data */
@@ -28,7 +28,7 @@ povirk2D::povirk2D(ifstreamT& in, const FiniteStrainT& element):
   Material2DT(in),        // Currently reads in plane strain from file...
   /* initialize references */
   fRunState(ContinuumElement().RunState()),
-  fDt(ContinuumElement().FEManager().TimeStep()),
+  fDt(ContinuumElement().ElementSupport().TimeStep()),
   fStress(2),
   fModulus(kVoigt),
   fLocVel(element.Velocities()),

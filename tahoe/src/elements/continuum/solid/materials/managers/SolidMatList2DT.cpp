@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.17 2002-06-01 17:03:32 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.15.2.2 2002-05-17 01:23:27 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 
 #include "SolidMatList2DT.h"
@@ -51,11 +51,9 @@
 #include "LocalCrystalPlastFp2D.h"
 #include "GradCrystalPlastFp2D.h"
 
-//#include "OgdenViscVIB2Dold.h"
-
 /* constructor */
 SolidMatList2DT::SolidMatList2DT(int length, const ElasticT& element_group):
-	SolidMatListT(length),
+	StructuralMatListT(length),
 	fElementGroup(element_group)
 {
 #ifdef __NO_RTTI__
@@ -488,17 +486,6 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 
 #endif //TEMP
 
-#if 0
-			case kOgdenViscVIBold:
-			{
-				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
-
-				fArray[matnum] = new OgdenViscVIB2Dold(in, *fFiniteStrain);
-				fHasHistory = true;
-				break;
-			}
-#endif
 			default:
 			
 				cout << "\n SolidMatList2DT::ReadMaterialData: unknown material code: ";
@@ -516,7 +503,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 		int LTfnum = pmat->ThermalStrainSchedule();
 		if (LTfnum > -1)
 		{
-			pmat->SetThermalSchedule(fElementGroup.GetLTfPtr(LTfnum));
+			pmat->SetThermalSchedule(fElementGroup.Schedule(LTfnum));
 			
 			/* set flag */
 			fHasThermal = true;

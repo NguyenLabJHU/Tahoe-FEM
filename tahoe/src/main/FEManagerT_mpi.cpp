@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.14 2002-03-22 02:25:48 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.14.2.2 2002-04-30 08:22:02 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 
 #include "FEManagerT_mpi.h"
@@ -141,6 +141,7 @@ FEManagerT_mpi::~FEManagerT_mpi(void)
 #endif /* __MPI__ */
 }
 
+#if 0
 /* exception handling */
 void FEManagerT_mpi::HandleException(int exception)
 {
@@ -188,7 +189,9 @@ void FEManagerT_mpi::HandleException(int exception)
 	/* inherited */
 	FEManagerT::HandleException(exception);
 }
+#endif
 
+#if 0
 /* time sequence messaging */
 bool FEManagerT_mpi::Step(void)
 {
@@ -214,18 +217,21 @@ bool FEManagerT_mpi::Step(void)
 
 	return result;
 }
+#endif
 
-void FEManagerT_mpi::InitStep(void) const
+int FEManagerT_mpi::InitStep(void)
 {
-	/* inherited */
-	FEManagerT::InitStep();
+//NOTE - check for errors on other processors
 
 	/* set default output time stamp */
 	if (fExternIOManager) fExternIOManager->SetOutputTime(Time());
+
+	/* inherited */
+	return FEManagerT::InitStep();
 }
 
 /* solution update */
-void FEManagerT_mpi::Update(const dArrayT& update)
+void FEManagerT_mpi::Update(int group, const dArrayT& update)
 {
 	//TEMP
 	TimeStamp("FEManagerT_mpi::Update");
@@ -236,17 +242,17 @@ void FEManagerT_mpi::Update(const dArrayT& update)
 #endif
 
 	/* inherited */
-	FEManagerT::Update(update);
+	FEManagerT::Update(group, update);
 }
 
 /* system relaxation */
-GlobalT::RelaxCodeT FEManagerT_mpi::RelaxSystem(void) const
+GlobalT::RelaxCodeT FEManagerT_mpi::RelaxSystem(int group) const
 {
 	//TEMP
 	//TimeStamp("FEManagerT_mpi::RelaxSystem");
 
 	/* inherited */
-	GlobalT::RelaxCodeT relax = FEManagerT::RelaxSystem();
+	GlobalT::RelaxCodeT relax = FEManagerT::RelaxSystem(group);
 	
 #ifdef __MPI__
 	/* gather all codes */
@@ -892,11 +898,11 @@ int FEManagerT_mpi::AllReduce(MPI_Op operation, int value)
 }
 
 /* global number of first local equation */
-int FEManagerT_mpi::GetGlobalEquationStart(void) const
+int FEManagerT_mpi::GetGlobalEquationStart(int group) const
 {
 #ifdef __MPI__
 	/* number of local equations */
-	int num_eq = fNodeManager->NumEquations();
+	int num_eq = fNodeManager->NumEquations(group);
 
 	/* collect from all */
 	int size = Size();
@@ -913,21 +919,21 @@ int FEManagerT_mpi::GetGlobalEquationStart(void) const
 	return offset + 1; //OFFSET
 
 #else
-	return FEManagerT::GetGlobalEquationStart();
+	return FEManagerT::GetGlobalEquationStart(group);
 #endif /* __MPI__ */
 }
 
-int FEManagerT_mpi::GetGlobalNumEquations(void) const
+int FEManagerT_mpi::GetGlobalNumEquations(int group) const
 {
 #ifdef __MPI__
-	int loc_num_eq = fNodeManager->NumEquations();
+	int loc_num_eq = fNodeManager->NumEquations(group);
 	iArrayT all_num_eq(Size());
 	if (MPI_Allgather(&loc_num_eq, 1, MPI_INT, all_num_eq.Pointer(), 1,
 		MPI_INT, MPI_COMM_WORLD) != MPI_SUCCESS) throw eMPIFail;
 	return all_num_eq.Sum();
 #else
 	/* inherited */
-	return FEManagerT::GetGlobalNumEquations();
+	return FEManagerT::GetGlobalNumEquations(group);
 #endif /* __MPI__ */
 }
 

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.17 2002-05-31 07:17:13 thao Exp $
+# $Id: makefile,v 1.12 2002-03-18 19:16:55 rjones Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -8,11 +8,11 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	CubicSplineT.o \
 	C1FunctionT.o \
+	ConHyperGeom.o \
 	ErrorFunc.o \
 	GaoKlein.o \
-	Gamma.o \
+	GenHyperGeom.o \
 	GreenwoodWilliamson.o \
-	Kummer.o \
 	LennardJones612.o \
 	ModBessel.o \
 	ParabolaT.o \
@@ -21,16 +21,9 @@ OBJ = \
 	ModSmithFerrante.o \
 	LinearExponentialT.o \
 	Triantafyllidis.o \
+	LinearDecreaseT.o \
 	Linear.o \
-	LinearT.o \
-	QuadraticT.o \
-	ConstantT.o \
-	BiQuadraticT.o \
-	ConstQuadT.o \
-	QuadraticDecreaseT.o \
-	GaoVicky.o \
-	GaoJi.o \
-	GaoJi2.o
+	QuadraticDecreaseT.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -42,11 +35,11 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	CubicSplineT.cpp \
 	C1FunctionT.cpp \
+	CONHyperGeom.cpp \
 	ErrorFunc.cpp \
-	Gamma.cpp \
 	GaoKlein.cpp \
+	GenHyperGeom.cpp \
 	GreenwoodWilliamson.cpp \
-	Kummer.cpp \
 	LennardJones612.cpp \
 	ModBessel.cpp \
 	ParabolaT.cpp \
@@ -55,26 +48,19 @@ SRC = \
 	ModSmithFerrante.cpp \
 	LinearExponentialT.cpp \
 	Triantafyllidis.cpp \
+	LinearDecreaseT.cpp \
 	Linear.cpp \
-	LinearT.cpp \
-	QuadraticT.cpp \
-	ConstantT.cpp \
-	BiQuadraticT.cpp \
-	ConstQuadT.cpp \
-	QuadraticDecreaseT.cpp \
-	GaoVicky.cpp \
-	GaoJi.cpp \
-	GaoJi2.cpp
+	QuadraticDecreaseT.cpp 
 
 # headers
 HDR = \
 	CubicSplineT.h \
 	C1FunctionT.h \
+	ConHyperGeom.h \
 	ErrorFunc.h \
-	Gamma.h \
 	GaoKlein.h \
+	GenHyperGeom.h \
 	GreenwoodWilliamson.h \
-	Kummer.h \
 	LennardJones612.h \
 	ModBessel.h \
 	ParabolaT.h \
@@ -83,16 +69,9 @@ HDR = \
 	ModSmithFerrante.h \
 	LinearExponentialT.h \
 	Triantafyllidis.h \
+	LinearDecreaseT.h \
 	Linear.h \
-	LinearT.h \
-	QuadraticT.h \
-	ConstantT.h \
-	BiQuadraticT.h \
-	ConstQuadT.h \
-	QuadraticDecreaseT.h \
-	GaoVicky.h \
-	GaoJi.h \
-	GaoJi2.h
+	QuadraticDecreaseT.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 

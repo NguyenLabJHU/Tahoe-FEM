@@ -1,7 +1,4 @@
-/*
-  File: GradCrystalPlastFp.cpp
-*/
-
+/* $Id: GradCrystalPlastFp.cpp,v 1.7.2.1 2002-04-29 17:22:14 paklein Exp $ */
 #include "GradCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -11,7 +8,6 @@
 #include "VoceGradHardening.h"
 #include "Utils.h"
 
-#include "FEManagerT.h"
 #include "ElementCardT.h"
 #include "ifstreamT.h"
 #include "ContinuumElementT.h"
@@ -118,12 +114,12 @@ const dSymMatrixT& GradCrystalPlastFp::s_ij()
   int igrn = 0;
 
   // time step
-  fdt = ContinuumElement().FEManager().TimeStep();
+  fdt = ContinuumElement().ElementSupport().TimeStep();
 
   // compute crystal stresses (all IPs at once - elastic predictor at first iter)
   if (fStatus == GlobalT::kFormRHS && CurrIP() == 0)
     {
-       if (fContinuumElement.FEManager().IterationNumber() <= -1)
+       if (ContinuumElement().ElementSupport().IterationNumber(ContinuumElement().Group()) <= -1)
          {
            for (int intpt = 0; intpt < NumIP(); intpt++)
              {
@@ -204,7 +200,7 @@ const dMatrixT& GradCrystalPlastFp::c_ijkl()
   else
         fElasticity->ComputeModuli(fcBar_ijkl);
 
-  if (fContinuumElement.FEManager().IterationNumber() <= 0)
+  if (ContinuumElement().ElementSupport().IterationNumber(ContinuumElement().Group()) <= 0)
     {
       // elastic crystal stiffness
       FFFFC_3D(fc_ijkl, fcBar_ijkl, fFe);
@@ -302,7 +298,7 @@ void GradCrystalPlastFp::ComputeOutput(dArrayT& output)
   if (elem == 0 && intpt == 0) fAvgStress = 0.0;
   fAvgStress.AddScaled(1./(NumIP()*NumElements()), fs_ij);
   if (elem == (NumElements()-1) && intpt == (NumIP()-1))
-     cerr << " step # " << ContinuumElement().FEManager().StepNumber()
+     cerr << " step # " << ContinuumElement().ElementSupport().StepNumber()
           << "    S_eq_avg = " 
           << sqrt(fSymMatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23
           << "    Savg_12 = " << fAvgStress(0,1) << endl; 
@@ -312,8 +308,8 @@ void GradCrystalPlastFp::ComputeOutput(dArrayT& output)
   output[2] = fIterState;
 
   // compute euler angles
-  const int& step = ContinuumElement().FEManager().StepNumber();
-  const int& nsteps = ContinuumElement().FEManager().NumberOfSteps();
+  const int& step = ContinuumElement().ElementSupport().StepNumber();
+  const int& nsteps = ContinuumElement().ElementSupport().NumberOfSteps();
 
   if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
   {

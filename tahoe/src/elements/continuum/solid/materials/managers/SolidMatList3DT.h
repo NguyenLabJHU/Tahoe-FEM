@@ -1,11 +1,11 @@
-/* $Id: SolidMatList3DT.h,v 1.3 2001-07-03 01:35:28 paklein Exp $ */
-/* created: paklein (02/14/1997)                                          */
+/* $Id: SolidMatList3DT.h,v 1.3.4.1 2002-05-17 01:23:27 paklein Exp $ */
+/* created: paklein (02/14/1997) */
 
 #ifndef _MATLIST_3D_T_H_
 #define _MATLIST_3D_T_H_
 
 /* base class */
-#include "SolidMatListT.h"
+#include "StructuralMatListT.h"
 #include "MaterialT.h"
 
 /* forward declaration */
@@ -13,7 +13,7 @@ class ElasticT;
 class SmallStrainT;
 class FiniteStrainT;
 
-class SolidMatList3DT: public SolidMatListT, public MaterialT
+class SolidMatList3DT: public StructuralMatListT, public MaterialT
 {
 public:
 

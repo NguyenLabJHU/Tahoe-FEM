@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.7 2001-09-15 01:13:32 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.7.4.1 2002-04-26 02:24:18 paklein Exp $ */
 
 #include "FiniteStrainT.h"
 #include "ShapeFunctionT.h"
@@ -7,8 +7,8 @@
 #include "MaterialList3DT.h"
 
 /* constructor */
-FiniteStrainT::FiniteStrainT(FEManagerT& fe_manager):
-	ElasticT(fe_manager),
+FiniteStrainT::FiniteStrainT(const ElementSupportT& support, const FieldT& field):
+	ElasticT(support, field),
 	fNeedsOffset(-1)
 {
 
@@ -94,9 +94,9 @@ void FiniteStrainT::ComputeGradient_reference(const LocalArrayT& u, dMatrixT& gr
 /* construct materials manager and read data */
 MaterialListT* FiniteStrainT::NewMaterialList(int size) const
 {
-	if (fNumSD == 2)
+	if (NumSD() == 2)
 		return new MaterialList2DT(size, *this);
-	else if (fNumSD == 3)
+	else if (NumSD() == 3)
 		return new MaterialList3DT(size, *this);
 	else
 		return NULL;			

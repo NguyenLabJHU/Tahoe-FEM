@@ -1,6 +1,5 @@
-/* $Id: Traction_CardT.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
-/* created: paklein (05/29/1996)                                          */
-
+/* $Id: Traction_CardT.cpp,v 1.1.1.1.8.2 2002-04-26 02:24:25 paklein Exp $ */
+/* created: paklein (05/29/1996) */
 #include "Traction_CardT.h"
 
 #include <iostream.h>
@@ -10,9 +9,9 @@
 
 #include "fstreamT.h"
 #include "dArray2DT.h"
-#include "LoadTime.h"
+#include "ScheduleT.h"
 #include "DomainIntegrationT.h"
-#include "FEManagerT.h"
+#include "ElementSupportT.h"
 
 /* constructor */
 Traction_CardT::Traction_CardT(void):
@@ -26,7 +25,7 @@ Traction_CardT::Traction_CardT(void):
 }	
 
 /* modifiers */
-void Traction_CardT::EchoValues(const FEManagerT& theBoss, const DomainIntegrationT& domain,
+void Traction_CardT::EchoValues(const ElementSupportT& support, const DomainIntegrationT& domain,
 	int elem, int ndof, ifstreamT& in, ostream& out)
 {
 	/* parameters */
@@ -50,10 +49,10 @@ void Traction_CardT::EchoValues(const FEManagerT& theBoss, const DomainIntegrati
 	in >> valuesT;
 	
 	/* set and echo */
-	EchoValues(theBoss, elem, facet, nLTf, coord_sys, fLocNodeNums, valuesT, out);
+	EchoValues(support, elem, facet, nLTf, coord_sys, fLocNodeNums, valuesT, out);
 }	
 
-void Traction_CardT::EchoValues(const FEManagerT& theBoss, int elem, int facet,
+void Traction_CardT::EchoValues(const ElementSupportT& support, int elem, int facet,
 	int nLTf, CoordSystemT coord_sys, const iArrayT& locnodenums,
 	const dArray2DT& valuesT, ostream& out)
 {	
@@ -79,13 +78,13 @@ void Traction_CardT::EchoValues(const FEManagerT& theBoss, int elem, int facet,
 	}
 
 	/* resolve the pointer to the LTf */
-	fLTfPtr = theBoss.GetLTfPtr(nLTf);
+	fLTfPtr = support.Schedule(nLTf);
 }	
 
 /* return the traction value: (ndof x nnd) */
 void Traction_CardT::CurrentValue(LocalArrayT& traction) const
 {
-	traction.SetToScaled(fLTfPtr->LoadFactor(), fValues);
+	traction.SetToScaled(fLTfPtr->Value(), fValues);
 }
 
 /* write the standard header */

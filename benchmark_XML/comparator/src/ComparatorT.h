@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.h,v 1.10 2002-06-04 01:05:54 paklein Exp $ */
+/* $Id: ComparatorT.h,v 1.9 2002-03-04 06:59:07 paklein Exp $ */
 
 #ifndef _COMPARATOR_T_H_
 #define _COMPARATOR_T_H_
@@ -32,9 +32,6 @@ public:
 	virtual void Run(void);
 
 protected:
-
-	/** handle batch file command */
-	virtual void BatchFileCommand(const StringT& command, ifstreamT& batch);
 
 	/* MUST be overloaded */
 	virtual void RunJob(ifstreamT& in, ostream& status);
@@ -78,14 +75,6 @@ private:
 	/* tolerances */
 	double fAbsTol;	
 	double fRelTol;
-
-	/** \name tolerances passed in the batch file
-	 * These value will be different from -1.0 if tolerances were
-	 * passed as command in the batch file. */
-	/*@{*/
-	double fAbsTol_batch;
-	double fRelTol_batch;
-	/*@}*/
 
 	/* history */
 	bool    fIsRoot;

@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.h,v 1.5 2001-10-24 02:23:08 paklein Exp $ */
+/* $Id: J2Simo2D.h,v 1.5.2.2 2002-05-17 01:25:22 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 
 #ifndef _J2_SIMO_2D_H_
@@ -41,6 +41,12 @@ public:
 
 	/** returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void);
+
+	/** incremental heat generation */
+	virtual double IncrementalHeat(void);
+
+	/** this model does generate heat */
+	virtual bool HasIncrementalHeat(void) const { return true; };
 	 	 	
 	/** required parameter flags */
 	virtual bool Need_F_last(void) const { return true; };

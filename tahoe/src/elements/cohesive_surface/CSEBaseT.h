@@ -1,6 +1,5 @@
-/* $Id: CSEBaseT.h,v 1.4 2001-04-04 22:13:24 paklein Exp $ */
-/* created: paklein (11/19/1997)                                          */
-/* Base class for cohesive surface elements                               */
+/* $Id: CSEBaseT.h,v 1.4.8.3 2002-05-16 19:36:35 paklein Exp $ */
+/* created: paklein (11/19/1997) */
 
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -18,6 +17,7 @@
 class SurfaceShapeT;
 class StringT;
 
+/** base class for cohesive surface elements */
 class CSEBaseT: public ElementBaseT
 {
 public:
@@ -27,20 +27,22 @@ public:
 	                 Anisotropic = 1, 
 	         NoRotateAnisotropic = 2};
 
+	/** indicies for nodal output */
 	enum NodalOutputCodeT {
-	                  NodalCoord = 0,  // (reference) coordinates
-                       NodalDisp = 1,  // displacements
-                   NodalDispJump = 2,  // opening displacements
-                   NodalTraction = 3,  // traction
-                    MaterialData = 4}; // output from constitutive relations
+	                  NodalCoord = 0, /**< reference coordinates */
+                       NodalDisp = 1, /**< displacements */
+                   NodalDispJump = 2, /**< opening displacements */
+                   NodalTraction = 3, /**< traction */
+                    MaterialData = 4  /**< output from constitutive relations */ };
 
+	/** indicies for element output */
 	enum ElementOutputCodeT {
-	             Centroid = 0,  // (reference) coordinates
-           CohesiveEnergy = 1,  // dissipated energy
-                 Traction = 2}; // element-averaged traction
+	             Centroid = 0, /**< reference coordinates of centroid */
+           CohesiveEnergy = 1, /**< dissipated energy */
+                 Traction = 2  /**< element-averaged traction */ };
 
 	/* constructor */
-	CSEBaseT(FEManagerT& fe_manager);
+	CSEBaseT(const ElementSupportT& support, const FieldT& field);
 
 	/* destructor */
 	~CSEBaseT(void);
@@ -58,7 +60,7 @@ public:
 	virtual void ResetStep(void);
 
 	/* solution calls */
-	virtual void AddNodalForce(int node, dArrayT& force);
+	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
 
 	/* returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void); //not implemented
@@ -70,17 +72,27 @@ public:
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
 
-protected: /* for derived classes only */
+protected:
 
-	/* element status flags */
+	/** element status flags */
 	enum StatusT {kOFF = 0,
                    kON = 1,
                kMarked = 2};
 
-	/* print element group data */
+	/** print element group data */
 	virtual void PrintControlData(ostream& out) const;
 
-	/* nodal value calculations */
+	/** read element connectivity data. Cohesive elements with higher order
+	 * elements may need to revise the connectivity read from the geometry
+	 * file. The problem is that the element topologies resulting from
+	 * cohesive elements with higher order interpolations are not supported
+	 * by some database types and post-processors. Therefore, a second set
+	 * of connectivities is generated for the element calculations, while
+	 * output is written to the original connectivities. */
+	virtual void ReadConnectivity(ifstreamT& in, ostream& out);
+
+	/** \name output data */
+	/*@{*/
 	virtual void SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 		iArrayT& counts) const;
 	virtual void SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
@@ -88,9 +100,10 @@ protected: /* for derived classes only */
 	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		const iArrayT& e_codes, dArray2DT& e_values) = 0;
 
-	/* construct output labels array */
+	/** set output labels array */
 	virtual void GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_labels,
 		const iArrayT& e_codes, ArrayT<StringT>& e_labels) const;
+	/*@}*/
 
 	/* write current element information to the output */
 	void CurrElementInfo(ostream& out) const;
@@ -139,6 +152,13 @@ protected:
 	/* parameters */
 	static const int NumNodalOutputCodes;
 	static const int NumElementOutputCodes;
+	
+	/** output connectivities. For low-order element types, there will
+	 * be the same as ElementBaseT::fConnectivities. These will be
+	 * different if the connectivities needed for the element calculations
+	 * is not compatible with the element topologies supported by
+	 * most database types or post-processors */
+	ArrayT<const iArray2DT*> fOutput_Connectivities;
 };
 
 #endif /* _CSE_BASE_T_H_ */

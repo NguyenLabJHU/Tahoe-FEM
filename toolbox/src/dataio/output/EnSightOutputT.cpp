@@ -1,4 +1,4 @@
-/* $Id: EnSightOutputT.cpp,v 1.8 2002-05-31 07:22:13 thao Exp $ */
+/* $Id: EnSightOutputT.cpp,v 1.7 2002-03-28 16:10:40 sawimme Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "EnSightOutputT.h"
@@ -74,13 +74,11 @@ void EnSightOutputT::WriteOutput (double time, int ID, const dArray2DT& n_values
   AutoArrayT<StringT> names (20), files (20);
   AutoArrayT<EnSightT::VariableTypeT> vtypes;
   const ArrayT<StringT>& n_labels = fElementSets[ID]->NodeOutputLabels();
-  /* Original:  const ArrayT<StringT>& e_labels = fElementSets[ID]->ElementOutputLabels();
-     changed by TDN: 5/30/2002*/
-  const ArrayT<StringT>& e_labels = fElementSets[ID]->ElementOutputLabels();
+  const ArrayT<StringT>& e_labels = fElementSets[ID]->NodeOutputLabels();
   if (n_values.MajorDim() > 0)
     WriteVariable (ens, true, ID, n_values, n_labels, names, files, vtypes);
   if (e_values.MajorDim() > 0)
-    WriteVariable (ens, false, ID, e_values, e_labels, names, files, vtypes);
+  WriteVariable (ens, false, ID, e_values, e_labels, names, files, vtypes);
   
   // write case file
   StringT label = "case";

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:16 paklein Exp $
+# $Id: makefile,v 1.4.8.1 2002-05-04 20:22:03 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,6 +6,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
+	ThermalSurfaceT.o \
 	CSEAnisoT.o \
 	CSEBaseT.o \
 	CSEIsoT.o \
@@ -18,6 +19,7 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
+	ThermalSurfaceT.cpp \
 	CSEAnisoT.cpp \
 	CSEBaseT.cpp \
 	CSEIsoT.cpp \
@@ -25,6 +27,7 @@ SRC = \
 
 # headers
 HDR = \
+	ThermalSurfaceT.h \
 	CSEAnisoT.h \
 	CSEBaseT.h \
 	CSEIsoT.h \

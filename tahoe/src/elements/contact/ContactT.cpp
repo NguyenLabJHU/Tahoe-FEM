@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.6 2002-01-27 23:06:34 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.6.2.4 2002-06-02 20:29:15 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 
 #include "ContactT.h"
@@ -10,21 +10,16 @@
 #include "ModelManagerT.h"
 #include "fstreamT.h"
 #include "IOBaseT.h"
-#include "FEManagerT.h"
-#include "NodeManagerT.h"
 #include "iGridManager2DT.h"
 #include "ContinuumElementT.h" // For conversion of side sets to facets.
 // Do directly or add call to FEManagerT?
 
 /* constructor */
-ContactT::ContactT(FEManagerT& fe_manager, int numfacetnodes):
-	ElementBaseT(fe_manager),
+ContactT::ContactT(const ElementSupportT& support, const FieldT& field, int numfacetnodes):
+	ElementBaseT(support, field),
 	fNumFacetNodes(numfacetnodes)
 {
-	/* override base class parameters */
-	fNumElemNodes = fNumFacetNodes + 1; // facet nodes + 1 striker for each
-	      fNumDOF = fNumSD;             // contact interaction
-	fNumElemEqnos = fNumElemNodes*fNumDOF;
+
 }
 
 /* destructor */
@@ -66,8 +61,9 @@ void ContactT::Initialize(void)
 }
 
 /* solution calls */
-void ContactT::AddNodalForce(int node, dArrayT& force)
+void ContactT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
+#pragma unused(field)
 #pragma unused(node)
 #pragma unused(force)
 //not implemented
@@ -86,9 +82,9 @@ void ContactT::WriteOutput(IOBaseT::OutputModeT mode)
 {
 #pragma unused(mode)
 	/* contact statistics */
-	ostream& out = fFEManager.Output();
-	out << "\n Contact tracking: group " << fFEManager.ElementGroupNumber(this) + 1 << '\n';
-	out << " Time                           = " << fFEManager.Time() << '\n';
+	ostream& out = ElementSupport().Output();
+	out << "\n Contact tracking: group " << ElementSupport().ElementGroupNumber(this) + 1 << '\n';
+	out << " Time                           = " << ElementSupport().Time() << '\n';
 	out << " Active strikers                = " << fActiveStrikers.Length() << '\n';
 	if (fActiveStrikers.Length() > 0)
 	{
@@ -204,7 +200,7 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	  	    << setw(kIntWidth) << surface.MinorDim() << "\n\n";
 	  	
 	  	/* set offset for output */
-	  	if (fFEManager.PrintInput())
+	  	if (ElementSupport().PrintInput())
 	  	{
 	  		surface++;
 	  		surface.WriteNumbered(out);
@@ -249,7 +245,7 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 			break;
 	
 		case kAllStrikers:  /* shallow striker coords */
-			fStrikerCoords.Alias(fNodes->CurrentCoordinates());
+			fStrikerCoords.Alias(ElementSupport().CurrentCoordinates());
 			out << "\n Striker nodes: ALL\n";	
 			break;
 	
@@ -260,7 +256,7 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	}
 
 	/* echo */
-	if (fFEManager.PrintInput())
+	if (ElementSupport().PrintInput())
 	{
 		out << "\n Striker nodes:\n";
 		fStrikerTags++;
@@ -269,27 +265,21 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	}
 	
 	/* allocate striker coords */
-	fStrikerCoords.Allocate(fStrikerTags.Length(),fNumSD);
-}
-
-void ContactT::SetWorkSpace(void)
-{
-	/* allocate map to active strikers data */
-	fActiveMap.Allocate(fStrikerCoords.MajorDim());
-	fActiveMap = -1;
-
+	fStrikerCoords.Allocate(fStrikerTags.Length(), NumSD());
+	
 	/* set connectivity name */
-	ModelManagerT* model = fFEManager.ModelManager();
+	ModelManagerT& model = ElementSupport().Model();
 	StringT name ("Contact");
-	name.Append (fFEManager.ElementGroupNumber(this) + 1);
+	name.Append (ElementSupport().ElementGroupNumber(this) + 1);
 
 	/* register with the model manager and let it set the ward */
-	if (!model->RegisterVariElements (name, fConnectivities_man, GeometryT::kLine, fNumElemNodes, 0)) 
+	int nen = fNumFacetNodes + 1; /* facet nodes + 1 striker */
+	if (!model.RegisterVariElements (name, fConnectivities_man, GeometryT::kLine, nen, 0)) 
 		throw eGeneralFail;
 
 	/* set up fConnectivities */
 	fConnectivities.Allocate(1);
-	fConnectivities[0] = model->ElementGroupPointer(name);
+	fConnectivities[0] = model.ElementGroupPointer(name);
 
 	/* set up fBlockData to store block ID */
 	fBlockData.Allocate(1);
@@ -297,7 +287,14 @@ void ContactT::SetWorkSpace(void)
 
 	/* set managed equation numbers array */
 	fEqnos.Allocate(1);
-	fEqnos_man.SetWard(0, fEqnos[0], fNumElemEqnos);
+	fEqnos_man.SetWard(0, fEqnos[0], nen*NumDOF());
+}
+
+void ContactT::SetWorkSpace(void)
+{
+	/* allocate map to active strikers data */
+	fActiveMap.Allocate(fStrikerCoords.MajorDim());
+	fActiveMap = -1;
 
 	/* make pseudo-element list to link surfaces in case
 	 * bodies are not otherwise interacting (for the bandwidth
@@ -322,9 +319,9 @@ bool ContactT::SetContactConfiguration(void)
 	if (contact_changed)
 	{
 		/* resize */
-		fNumElements = fActiveStrikers.Length();
-		fConnectivities_man.SetMajorDimension(fNumElements, false);
-		fEqnos_man.SetMajorDimension(fNumElements, false);
+		int nel = fActiveStrikers.Length();
+		fConnectivities_man.SetMajorDimension(nel, false);
+		fEqnos_man.SetMajorDimension(nel, false);
 
 		/* generate connectivities */
 		SetConnectivities();	
@@ -332,8 +329,6 @@ bool ContactT::SetContactConfiguration(void)
 		/* update dimensions */
 		ElementBlockDataT& block = fBlockData[0];
 		block.Set(block.ID(), block.StartNumber(), fConnectivities[0]->MinorDim(), block.MaterialID());
-		
-		fNumElements = fConnectivities[0]->MinorDim();
 	}
 	
 	return contact_changed;
@@ -372,8 +367,8 @@ void ContactT::InputSideSets(ifstreamT& in, ostream& out, iArray2DT& facets)
 	int elem_group;
 	in >> elem_group;
 	elem_group--;
-	ContinuumElementT* pelem_group =
-		dynamic_cast<ContinuumElementT*>(fFEManager.ElementGroup(elem_group));
+	const ContinuumElementT* pelem_group =
+		dynamic_cast<const ContinuumElementT*>(&ElementSupport().ElementGroup(elem_group));
 
 	/* checks */
 	if (!pelem_group)
@@ -386,8 +381,8 @@ void ContactT::InputSideSets(ifstreamT& in, ostream& out, iArray2DT& facets)
 	/* read data from parameter file */
 	ArrayT<StringT> ss_ID;
 	bool multidatabasesets = false; /* change to positive and the parameter file format changes */
-	ModelManagerT* model = fFEManager.ModelManager();
-	model->SideSetList (in, ss_ID, multidatabasesets);
+	ModelManagerT& model = ElementSupport().Model();
+	model.SideSetList (in, ss_ID, multidatabasesets);
 
 	if (ss_ID.Length () != 1) 
 	  {
@@ -397,12 +392,12 @@ void ContactT::InputSideSets(ifstreamT& in, ostream& out, iArray2DT& facets)
 
 	/* read side set */
 	StringT elem_ID;
-	iArray2DT side_set = model->SideSet(ss_ID[0]);
-	if (side_set.MajorDim() > 0 && model->IsSideSetLocal(ss_ID[0]))
-	    elem_ID = model->SideSetGroupID(ss_ID[0]);
+	iArray2DT side_set = model.SideSet(ss_ID[0]);
+	if (side_set.MajorDim() > 0 && model.IsSideSetLocal(ss_ID[0]))
+	    elem_ID = model.SideSetGroupID(ss_ID[0]);
 	else {
 		iArray2DT temp = side_set;
-		model->SideSetGlobalToLocal(temp, side_set, elem_ID);
+		model.SideSetGlobalToLocal(temp, side_set, elem_ID);
 	}
 
 	/* numbers from element group */
@@ -423,8 +418,8 @@ void ContactT::InputBodyBoundary(ifstreamT& in, ArrayT<iArray2DT>& surfaces,
 	in >> elem_group;
 	elem_group--;
 	
-	ContinuumElementT* pelem_group =
-		dynamic_cast<ContinuumElementT*>(fFEManager.ElementGroup(elem_group));
+	const ContinuumElementT* pelem_group =
+		dynamic_cast<const ContinuumElementT*>(&ElementSupport().ElementGroup(elem_group));
 
 	/* checks */
 	if (!pelem_group)
@@ -464,7 +459,7 @@ void ContactT::InputBodyBoundary(ifstreamT& in, ArrayT<iArray2DT>& surfaces,
 void ContactT::StrikersFromSurfaces(void)
 {
 	//TEMP just make big for now
-	int num_nodes = (fFEManager.NodeManager())->NumNodes();
+	int num_nodes = ElementSupport().NumNodes();
 	iArrayT counts(num_nodes);
 	counts = 0;
 
@@ -501,12 +496,12 @@ void ContactT::ReadStrikers(ifstreamT& in, ostream& out)
 {
 #pragma unused(out)
 
-  ModelManagerT* model = fFEManager.ModelManager();
+  ModelManagerT& model = ElementSupport().Model();
 
   /* read list of node set id indexes */
   ArrayT<StringT> ns_ID;
-  model->NodeSetList(in, ns_ID);
+  model.NodeSetList(in, ns_ID);
 
   /* collect nodes from those indexes */
-  model->ManyNodeSets(ns_ID, fStrikerTags);
+  model.ManyNodeSets(ns_ID, fStrikerTags);
 }

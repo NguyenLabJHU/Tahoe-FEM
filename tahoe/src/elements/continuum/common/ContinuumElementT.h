@@ -1,9 +1,5 @@
-/* $Id: ContinuumElementT.h,v 1.8 2002-01-27 18:51:04 paklein Exp $ */
-/* created: paklein (10/22/1996)                                          */
-/* Interface for a general continuum element type, meaning the presence   */
-/* of shape functions, and the implied presence of a continuum mechanics  */
-/* object, although no member exists since the continuum specifics are too */
-/* dependent on derived class specifics.                                  */
+/* $Id: ContinuumElementT.h,v 1.8.2.4 2002-05-11 20:56:53 paklein Exp $ */
+/* created: paklein (10/22/1996) */
 
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -25,15 +21,15 @@ class StringT;
 class ContinuumElementT: public ElementBaseT
 {
 public:
-	/** constructor.
-	 * \param fe_manager used for system parameters */
-	ContinuumElementT(FEManagerT& fe_manager);
+
+	/** constructor */
+	ContinuumElementT(const ElementSupportT& support, const FieldT& field);
 
 	/** destructor */
 	virtual ~ContinuumElementT(void);
 		
 	/** number of element integration points */
-	int NumIP(void) const;
+	int NumIP(void) const { return fNumIP;} ;
 	
 	/** reference to element shape functions */
 	const ShapeFunctionT& ShapeFunction(void) const;
@@ -46,6 +42,9 @@ public:
 
 	/** interpolate the nodal field values to the current integration point */
     void IP_Interpolate(const LocalArrayT& nodal_u, dArrayT& ip_u) const;
+
+	/** interpolate the nodal field values to the specified integration point */
+    void IP_Interpolate(const LocalArrayT& nodal_u, dArrayT& ip_u, int ip) const;
 
 	/** field gradients.
 	 * compute the gradient of the field at the current integration point 
@@ -64,8 +63,12 @@ public:
 	/** initialization. called immediately after constructor */
 	virtual void Initialize(void);
 
-	/* set element group for new global equations numbers */
-	virtual void Reinitialize(void);
+	/** collecting element group equation numbers. This call from the FEManagerT
+	 * is a signal to the element group that the equation system is up to date
+	 * for the current time increment. See ElementBaseT::Equations for more
+	 * information. */
+	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
+		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
 	/* form of tangent matrix - symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -122,10 +125,13 @@ public:
 	
 protected:
 
-	/* mass types */
+	/** mass types */
 	enum MassTypeT {kNoMass = 0, /**< do not compute mass matrix */
             kConsistentMass = 1, /**< variationally consistent mass matrix */
                 kLumpedMass = 2  /**< diagonally lumped mass */ };
+
+	/** stream extraction operator */
+	friend istream& operator>>(istream& in, ContinuumElementT::MassTypeT& type);
 
 	/** allocate and initialize local arrays */
 	virtual void SetLocalArrays(void);
@@ -150,8 +156,15 @@ protected:
 	/** add contribution from the body force */
 	void AddBodyForce(LocalArrayT& body_force) const;
 	
-	/** element body force contribution */
-	void FormMa(int mass_type, double constM, const LocalArrayT& body_force);
+	/** element body force contribution 
+	 * \param mass_type mass matrix type of ContinuumElementT::MassTypeT
+	 * \param constM pre-factor for the element integral
+	 * \param nodal nodal values. Pass NULL for no nodal values: [nen] x [ndof]
+	 * \param ip_values integration point source terms. Pass NULL for no integration
+	 *        point values : [nip] x [ndof] */
+	void FormMa(MassTypeT mass_type, double constM, 
+		const LocalArrayT* nodal_values,
+		const dArray2DT* ip_values);
 	 		
 	/** write element group parameters to out */
 	virtual void PrintControlData(ostream& out) const;
@@ -191,7 +204,8 @@ protected:
 private:
 
 	/* construct output labels array */
-	virtual void GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_labels, 
+	virtual void GenerateOutputLabels(
+		const iArrayT& n_codes, ArrayT<StringT>& n_labels, 
 		const iArrayT& e_codes, ArrayT<StringT>& e_labels) const = 0;
 
 	/** update traction BC data */
@@ -205,11 +219,6 @@ private:
 
 protected:
 
-	/* control data */
-	GeometryT::CodeT fGeometryCode;
-	int	fNumIP;
-	int fOutputID;
-
 	/* materials */
 	MaterialListT* fMaterialList;  /**< list of materials */
 	
@@ -218,8 +227,8 @@ protected:
 	iArrayT	fElementOutputCodes;
 	  	
 	/* body force vector */
-	int	    fBodyForceLTf; /**< body force schedule */
-	dArrayT fBody;	  	   /**< body force vector   */
+	const ScheduleT* fBodySchedule; /**< body force schedule */
+	dArrayT fBody; /**< body force vector   */
 
 	/* traction data */
 	ArrayT<Traction_CardT> fTractionList;
@@ -235,7 +244,18 @@ protected:
 	/* work space */
 	dArrayT fNEEvec; /**< work space vector: [element DOF] */
 	dArrayT fDOFvec; /**< work space vector: [nodal DOF]   */
-	dArrayT fNSDvec; /**< work space vector: [nodal dim]   */
+//	dArrayT fNSDvec; /**< work space vector: [nodal dim]   */
+
+private:
+
+	/** number of integration points */
+	int	fNumIP;
+
+	/** output ID */
+	int fOutputID;
+
+	/* control data */
+	GeometryT::CodeT fGeometryCode;
 };
 
 /* inlines */
@@ -245,8 +265,6 @@ inline GeometryT::CodeT ContinuumElementT::GeometryCode(void) const
 { return fGeometryCode; }
 
 /* accessors */
-inline int ContinuumElementT::NumIP(void) const { return fNumIP; }
-
 inline const ShapeFunctionT& ContinuumElementT::ShapeFunction(void) const
 {
 #if __option(extended_errorcheck)

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.13 2002-06-01 17:03:27 paklein Exp $
+# $Id: makefile,v 1.11 2001-08-20 15:09:41 rdorgan Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix

@@ -1,5 +1,5 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.4 2001-12-17 00:15:56 paklein Exp $ */
-/* created: paklein (10/23/1999)                                          */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.4.2.2 2002-04-27 01:32:29 paklein Exp $ */
+/* created: paklein (10/23/1999) */
 
 #include "D2MeshFreeFSSolidT.h"
 
@@ -11,8 +11,6 @@
 #include "Constants.h"
 #include "ExceptionCodes.h"
 #include "D2MeshFreeShapeFunctionT.h"
-#include "FEManagerT.h"
-#include "NodeManagerT.h"
 
 //TEMP
 #include "MaterialListT.h"
@@ -22,13 +20,13 @@
 #include "eControllerT.h"
 
 /* constructor */
-D2MeshFreeFSSolidT::D2MeshFreeFSSolidT(FEManagerT& fe_manager):
-	MeshFreeFSSolidT(fe_manager),
+D2MeshFreeFSSolidT::D2MeshFreeFSSolidT(const ElementSupportT& support, const FieldT& field):
+	MeshFreeFSSolidT(support, field),
 	fD2MFShapes(NULL),
 
 	/* work space */
-	fDW(fNumSD),
-	fDDW(fNumSD, dSymMatrixT::NumValues(fNumSD)),
+	fDW(NumSD()),
+	fDDW(NumSD(), dSymMatrixT::NumValues(NumSD())),
 	fD2GradNa(dSymMatrixT::NumValues(NumSD()), 0), // need rows, but is dynamic
 	fD2GradNa_wrap(10, fD2GradNa)
 {
@@ -154,9 +152,9 @@ void D2MeshFreeFSSolidT::SetShape(void)
 	}
 
 	/* constructors */
-	fD2MFShapes = new D2MeshFreeShapeFunctionT(fGeometryCode, fNumIP,
-		fLocInitCoords, fNodes->InitialCoordinates(), *fConnectivities[0], fOffGridNodes,
-		fElementCards.Position(), fFEManager.Input());
+	fD2MFShapes = new D2MeshFreeShapeFunctionT(GeometryCode(), NumIP(),
+		fLocInitCoords, ElementSupport().InitialCoordinates(), *fConnectivities[0], fOffGridNodes,
+		fElementCards.Position(), ElementSupport().Input());
 	if (!fD2MFShapes) throw eOutOfMemory;
 	
 	/* initialize (set internal database) */
@@ -174,7 +172,7 @@ bool D2MeshFreeFSSolidT::NextElement(void)
 	int OK = MeshFreeFSSolidT::NextElement();
 	
 	/* resize */
-	fD2GradNa_wrap.SetDimensions(fD2GradNa.Rows(), NumElementNodes());
+	fD2GradNa_wrap.SetDimensions(fD2GradNa.Rows(), MeshFreeElementSupportT::NumElementNodes());
 
 	/* set material pointer (cast checked above) */
 	if (OK) pD2VIB2D = (D2VIB2D*) fCurrMaterial;
@@ -186,7 +184,7 @@ bool D2MeshFreeFSSolidT::NextElement(void)
 void D2MeshFreeFSSolidT::FormKd(double constK)
 {
 	/* set work space */
-	dMatrixT fWP(fNumDOF, fStressStiff.Rows(), fNEEvec.Pointer());
+	dMatrixT fWP(NumDOF(), fStressStiff.Rows(), fNEEvec.Pointer());
 
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
@@ -234,7 +232,7 @@ void D2MeshFreeFSSolidT::A_ijk_B_jkl(const dMatrixT& A, const dMatrixT& B,
 
 	double scale_2D[3] = {1.0, 1.0, 2.0};
 	double scale_3D[6] = {1.0, 1.0, 1.0, 2.0, 2.0, 2.0};
-	double* scale = (fNumSD == 2) ? scale_2D : scale_3D;
+	double* scale = (NumSD() == 2) ? scale_2D : scale_3D;
 
 	int        rows = C.Rows();
 	int        cols = C.Cols();
@@ -270,7 +268,7 @@ void D2MeshFreeFSSolidT::WriteField(void)
 {
 	cout << "\n D2MeshFreeFSSolidT::WriteField: writing full field" << endl;
 	
-	const dArray2DT& DOFs = fNodes->Displacements();
+	const dArray2DT& DOFs = Field()[0]; /* displacements */
 	
 	/* reconstruct displacement field and all derivatives */
 	dArray2DT u;
@@ -280,7 +278,7 @@ void D2MeshFreeFSSolidT::WriteField(void)
 	fD2MFShapes->NodalField(DOFs, u, Du, DDu, nodes);
 
 	/* write data */
-	ifstreamT& in = fFEManager.Input();
+	ifstreamT& in = ElementSupport().Input();
 	
 	/* output filenames */
 	StringT s_u, s_Du, s_DDu;
@@ -288,9 +286,9 @@ void D2MeshFreeFSSolidT::WriteField(void)
 	s_Du.Root(in.filename());
 	s_DDu.Root(in.filename());
 	
-	s_u.Append(".u.", fFEManager.StepNumber());
-	s_Du.Append(".Du.", fFEManager.StepNumber());
-	s_DDu.Append(".DDu.", fFEManager.StepNumber());
+	s_u.Append(".u.", ElementSupport().StepNumber());
+	s_Du.Append(".Du.", ElementSupport().StepNumber());
+	s_DDu.Append(".DDu.", ElementSupport().StepNumber());
 	
 	/* open output streams */
 	ofstreamT out_u(s_u), out_Du(s_Du), out_DDu(s_DDu);

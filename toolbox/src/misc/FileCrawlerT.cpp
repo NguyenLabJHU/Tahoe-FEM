@@ -1,4 +1,4 @@
-/* $Id: FileCrawlerT.cpp,v 1.3 2002-06-04 00:44:05 paklein Exp $ */
+/* $Id: FileCrawlerT.cpp,v 1.2 2001-06-14 20:44:18 paklein Exp $ */
 
 #include "FileCrawlerT.h"
 
@@ -113,30 +113,22 @@ void FileCrawlerT::RunBatch(ifstreamT& in, ostream& status)
 	/* repeat to end of file */
 	while (in.good())
 	{
-		/* command in batch file */
-		if (nextinfilename[0] == '-')
-		{
-			BatchFileCommand(nextinfilename, in);
-		}
-		else
-		{
-			/* file path format */
-			nextinfilename.ToNativePathName();
+		/* file path format */
+		nextinfilename.ToNativePathName();
+
+		/* path to source file */
+		StringT path;
+		path.FilePath(in.filename());
 	
-			/* path to source file */
-			StringT path;
-			path.FilePath(in.filename());
-		
-			/* open new input stream */
-			nextinfilename.Prepend(path);
-			ifstreamT nextin('#', nextinfilename);
-		
-			/* process if valid */
-			if (nextin.is_open())
-				JobOrBatch(nextin, cout);
-			else
-				cout << " File not found: " << nextinfilename << '\n';
-		}
+		/* open new input stream */
+		nextinfilename.Prepend(path);
+		ifstreamT nextin('#', nextinfilename);
+	
+		/* process if valid */
+		if (nextin.is_open())
+			JobOrBatch(nextin, cout);
+		else
+			cout << " File not found: " << nextinfilename << '\n';
 			
 		/* get next entry */
 		in >> nextinfilename;

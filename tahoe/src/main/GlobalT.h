@@ -1,4 +1,4 @@
-/* $Id: GlobalT.h,v 1.5 2002-01-22 02:14:22 paklein Exp $ */
+/* $Id: GlobalT.h,v 1.5.2.3 2002-04-26 02:24:21 paklein Exp $ */
 /* created: paklein (02/03/1999) */
 
 #ifndef _GLOBAL_T_H_
@@ -14,6 +14,7 @@ public:
 
 	/** types of analysis */
 	enum AnalysisCodeT {
+	         kNoAnalysis = 0,
 		      kLinStatic = 1,
 		     kLinDynamic = 2,
 		       kNLStatic = 3,
@@ -23,7 +24,8 @@ public:
 		   kNLExpDynamic = 7,
 		  kLinStaticHeat = 19, /**< linear static heat conduction */
 		   kLinTransHeat = 20, /**< linear transient heat conduction */
-		            kPML = 30  /**< perfectly matched layer formulation */
+		            kPML = 30, /**< perfectly matched layer formulation */
+			 kMultiField = 99  /**< generalized analysis code */
 		   };
 		
 	/** stream extraction operator */
@@ -33,7 +35,7 @@ public:
 	enum OldAnalysisCodeT {
 		kVarNodeNLStatic = 15, /**< variables nodes supported through ModelManagerT */
 		kVarNodeNLExpDyn = 16, /**< variables nodes supported through ModelManagerT */
-		        kCBStatic = 8, /**< converted to KBC controller: PAK (12/10/2000) */
+		       kCBStatic = 8, /**< converted to KBC controller: PAK (12/10/2000) */
 		   kAugLagStatic = 17, /**< moved to general support of element DOF: PAK (08/22/2001) */
 	     kNLStaticKfield = 11, /**< converted to KBC controller: PAK (09/10/2000) */
 		 kNLExpDynKfield = 18  /**< converted to KBC controller: PAK (09/10/2000) */
@@ -65,9 +67,13 @@ public:
 	/** global system types, ordered so n_1 > n_2 implies that n_1 is a
 	 * superset of n_2. */
 	enum SystemTypeT {
+	       kUndefined =-1,
 		    kDiagonal = 0,
 		   kSymmetric = 1,
 		kNonSymmetric = 2};
+
+	/** returns the type with higher restrictions */
+	static SystemTypeT MaxPrecedence(SystemTypeT code1, SystemTypeT code2);
 
 	/** relaxation level */
 	enum RelaxCodeT {
@@ -84,5 +90,11 @@ public:
 		kLocal  = 0, /**< equations numbered per processor */
 		kGlobal = 1  /**< equations numbered over entire system */};
 };
+
+/* inlines */
+inline GlobalT::SystemTypeT GlobalT::MaxPrecedence(SystemTypeT code1, SystemTypeT code2)
+{
+	return (code1 > code2) ? code1 : code2;
+}
 
 #endif // _GLOBAL_T_H_

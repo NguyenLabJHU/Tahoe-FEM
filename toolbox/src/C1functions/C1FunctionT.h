@@ -1,5 +1,7 @@
-/* $Id: C1FunctionT.h,v 1.5 2002-05-31 07:17:12 thao Exp $ */
-/* created: paklein (12/04/1996) */
+/* $Id: C1FunctionT.h,v 1.3 2001-06-11 01:55:49 paklein Exp $ */
+/* created: paklein (12/04/1996)                                          */
+/* C1FunctionT.h                                                          */
+/* Interface for a twice differentiable function.                         */
 
 #ifndef _C2_FUNCTION_T_H_
 #define _C2_FUNCTION_T_H_
@@ -10,7 +12,6 @@
 #include "ios_fwd_decl.h"
 class dArrayT;
 
-/** interface for a twice differentiable function */
 class C1FunctionT
 {
 public:
@@ -22,13 +23,7 @@ public:
 	                kQuadratic = 3,
 	              kCubicSpline = 4,
 	        kLinearExponential = 5,
-	          kTriantafyllidis = 6,
-		         kConstant = 7,
-       		        kConstQuad = 8,
-		     kBiQuadratic = 9,
-                        kGaoJi = 10,
-                       kGaoJi2 = 11,
-	                 kGaoVicky = 12};
+	          kTriantafyllidis = 6};
 
 	/* constructor */
 	C1FunctionT(void);

@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.4 2002-03-28 16:38:46 paklein Exp $ */
+/* $Id: SolverT.h,v 1.4.2.5 2002-06-05 09:18:33 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _SOLVER_H_
@@ -33,7 +33,7 @@ class SolverT: public iConsoleObjectT
 {
 public:
 
-	/* nonlinear solver codes */
+	/** nonlinear solver codes */
 	enum SolverTypeT {kNewtonSolver = 0, /**< standard Newton solver */
                    kK0_NewtonSolver = 1, /**< initial tangent, Newton solver */
                    kModNewtonSolver = 2, /**< modified Newton solver (development) */
@@ -41,37 +41,51 @@ public:
                    kNewtonSolver_LS = 4, /**< Newton solver with line search */
                       kPCGSolver_LS = 5, /**< preconditioned, nonlinear conjugate gradient */
                   kiNewtonSolver_LS = 6, /**< interactive Newton solver (with line search) */
-                               kNOX = 7  /**< NOX library solver */
+                               kNOX = 7, /**< NOX library solver */
+                            kLinear = 8, /**< linear problems */
+                                kDR = 9  /**< dynamic relaxation */                               
                                };
 
-	/* global matrix types */
+	/** global matrix types */
 	enum MatrixTypeT {kDiagonalMatrix = 0, /**< diagonal matrix for "matrix-free" methods */
 	                   kProfileSolver = 1, /**< symmetric and nonsymmetric profile solvers */
 	                      kFullMatrix = 2, /**< full matrix with pivoting */
 					           kAztec = 3, /**< sparse, iterative solver */
 			            kSparseDirect = 4, /**< sparse, direct solver: SuperLU */
-			                 kSPOOLES = 5};/**< sparse, direct solver: symbolic factorization */
+			                 kSPOOLES = 5  /**< sparse, direct solver: symbolic factorization */
+			                 };
 
-	/* constructor */
-	SolverT(FEManagerT& fe_manager);
+	/** solution status */
+	enum SolutionStatusT {kContinue = 0, /**< solution not found after the most recent iteration */
+                          kConverged = 1, /**< solution found */
+                             kFailed = 2  /**< solution procedure has failed */
+                             };
 
-	/* destructor */
+	/** constructor */
+	SolverT(FEManagerT& fe_manager, int group);
+
+	/** destructor */
 	virtual ~SolverT(void);
 
-	/* (re-)configure the global equation system */
+	/** (re-)configure the global equation system */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
 
 	/* process element group equation data to configure matrix */
 	void ReceiveEqns(const iArray2DT& equations) const;
 	void ReceiveEqns(const RaggedArray2DT<int>& equations) const;
 
-	/* Generate the solution for the current time sequence */
-	virtual void Run(void) = 0;
+	/** solve the system over the current time increment.
+	 * \param num_iterations maximum number of iterations to execute. Hitting this limit
+	 *        does not signal a SolverT::kFailed status, unless solver's internal parameters
+	 *        also indicate the solution procedure has failed.
+	 * \return one of SolverT::IterationsStatusT */
+	virtual SolutionStatusT Solve(int num_iterations) = 0;
 
 	/* error handler */
 	virtual void ResetStep(void);
 	
-	/* assembling the global equation system */
+	/** \name assembling the global equation system */
+	/*@{*/
 	void AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
 	void AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 		const nArrayT<int>& col_eqnos);
@@ -82,30 +96,30 @@ public:
 	void AssembleRHS(const dArrayT& elRes, const nArrayT<int>& eqnos);
 	void OverWriteRHS(const dArrayT& elRes, const nArrayT<int>& eqnos);
 	void DisassembleRHS(dArrayT& elRes, const nArrayT<int>& eqnos) const;
+	/*@}*/
 
 	/* accessor */
 	const int& IterationNumber(void) const;
 
-	/* debugging */
+	/** debugging */
 	int Check(void) const;
 	const dArrayT& RHS(void) const;
 
 	/* return the required equation numbering scope - local by default */
 	GlobalT::EquationNumberScopeT EquationNumberScope(void) const;
 
-	/* returns true if solver prefers reordered equations */
+	/** returns true if solver prefers reordered equations */
 	bool RenumberEquations(void);
+	
+	/** my group */
+	int Group(void) const { return fGroup; };
 
 protected:
 
-	/* advance to next load step. Returns 0 if there are no more
-	 * steps. Overload to add class dependent initializations */
-	virtual int Step(void);
-
-	/* return the magnitude of the residual force */
+	/** return the magnitude of the residual force */
 	double Residual(const dArrayT& force) const;
 
-	/* inner product */	
+	/** inner product */	
 	double InnerProduct(const dArrayT& v1, const dArrayT& v2) const;
 
 private:
@@ -118,18 +132,24 @@ private:
 	void SetGlobalMatrix(int matrix_type, int check_code);
 		 	
 protected:
-	
+
+	/** the Boss */	
 	FEManagerT& fFEManager;
+
+	/** equation group number */
+	int fGroup;
 
 	/* flags */
 	int fMatrixType;
 	int fPrintEquationNumbers;
 	
-	/* global equation system */
+	/** global equation system */
+	/*@{*/
 	GlobalMatrixT* fLHS;	
 	dArrayT        fRHS;
+	/*@}*/
 
-	/* runtime data */
+	/** runtime data */
 	int fNumIteration;
 };
 

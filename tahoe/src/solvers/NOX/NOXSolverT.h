@@ -1,4 +1,4 @@
-/* $Id: NOXSolverT.h,v 1.2 2002-04-02 23:30:55 paklein Exp $ */
+/* $Id: NOXSolverT.h,v 1.2.2.4 2002-06-05 09:18:36 paklein Exp $ */
 #ifndef _NOX_SOLVER_T_H_
 #define _NOX_SOLVER_T_H_
 
@@ -29,14 +29,20 @@ class NOXSolverT: public SolverT, protected SolverInterfaceT
 {
 public:
 
-	/** constructor */
-	NOXSolverT(FEManagerT& fe_manager);
+	/** constructor 
+	 * \param unknowns_order the time derivative of the field that is
+	 *        treated as the unknown field by the solver */
+	NOXSolverT(FEManagerT& fe_manager, int group, int unknowns_order);
 
 	/** destructor */
 	virtual ~NOXSolverT(void);
 
-	/** generate the solution for the current time sequence */
-	virtual void Run(void);
+	/** solve the system over the current time increment.
+	 * \param num_iterations maximum number of iterations to execute. Hitting this limit
+	 *        does not signal a SolverT::kFailed status, unless solver's internal parameters
+	 *        also indicate the solution procedure has failed.
+	 * \return one of SolverT::IterationsStatusT */
+	virtual SolutionStatusT Solve(int num_iterations);
 
 	/** error handler */
 	virtual void ResetStep(void);
@@ -62,22 +68,8 @@ protected:
 
 private:
 
-	/** iteration status flags */
-	enum SolutionStatusT {kContinue = 0,
-                         kConverged = 1,
-                            kFailed = 2};
-                            
 	/** run solver */                            
 	SolutionStatusT Solve(NOX::Solver::Manager& nox);
-	
-	/** handle situation if solution for the current time increment
-	 * is successfully determined.
-	 * \return true if step is ready to be closed */
-	SolutionStatusT DoConverged(void);
-
-	/** handle situation if solution for the current time increment
-	 * could not be determined */
-	void DoNotConverged(void);
 
 	/** divert output for iterations */
 	void InitIterationOutput(void);
@@ -102,6 +94,9 @@ protected:
 	NOX::Parameter::List* fNOXParameters;
 	
 private:
+
+	/** order of the field solved by the solver */
+	int fUnknownsOrder;
 
 	/** \name stopping criteria */
 	/*@{*/

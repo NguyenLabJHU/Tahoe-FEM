@@ -1,5 +1,5 @@
-/* $Id: CSEBaseT.cpp,v 1.8 2002-01-27 18:51:02 paklein Exp $ */
-/* created: paklein (11/19/1997)                                          */
+/* $Id: CSEBaseT.cpp,v 1.8.2.6 2002-05-18 01:33:44 paklein Exp $ */
+/* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
 
@@ -9,26 +9,26 @@
 
 #include "fstreamT.h"
 #include "Constants.h"
-#include "FEManagerT.h"
 #include "SurfaceShapeT.h"
-#include "NodeManagerT.h"
 #include "iAutoArrayT.h"
 #include "OutputSetT.h"
+#include "ElementSupportT.h"
+#include "ModelManagerT.h"
 
 /* initialize static data */
 const int CSEBaseT::NumNodalOutputCodes = 5;
 const int CSEBaseT::NumElementOutputCodes = 3;
 
 /* constructor */
-CSEBaseT::CSEBaseT(FEManagerT& fe_manager):
-	ElementBaseT(fe_manager),
+CSEBaseT::CSEBaseT(const ElementSupportT& support, const FieldT& field):
+	ElementBaseT(support, field),
 	fLocInitCoords1(LocalArrayT::kInitCoords),
 	fLocCurrCoords(LocalArrayT::kCurrCoords),
 	fFractureArea(0.0),
 	fShapes(NULL)
 {
 	/* read control parameters */
-	ifstreamT& in = fFEManager.Input();
+	ifstreamT& in = ElementSupport().Input();
 
 	in >> fGeometryCode;
 	in >> fNumIntPts;
@@ -36,13 +36,13 @@ CSEBaseT::CSEBaseT(FEManagerT& fe_manager):
 	in >> fOutputArea;
 
 	/* checks */
-	if (fNumSD == 2 && fGeometryCode != GeometryT::kLine)
+	if (NumSD() == 2 && fGeometryCode != GeometryT::kLine)
 	{
 		cout << "\n CSEBaseT::CSEBaseT: expecting geometry code "
 		     << GeometryT::kLine<< " for 2D: " << fGeometryCode << endl;
 		throw eBadInputValue;
 	}
-	else if (fNumSD == 3 &&
+	else if (NumSD() == 3 &&
 	         fGeometryCode != GeometryT::kQuadrilateral &&
 	         fGeometryCode != GeometryT::kTriangle)
 	{
@@ -72,29 +72,30 @@ void CSEBaseT::Initialize(void)
 	ElementBaseT::Initialize();
 
 	/* dimensions */
-	int num_facet_nodes = fNumElemNodes/2;
+	int num_facet_nodes = NumElementNodes()/2;
 
 	/* initialize local arrays */
-	fLocInitCoords1.Allocate(num_facet_nodes, fNumSD);
-	fLocCurrCoords.Allocate(fNumElemNodes, fNumSD);
-	fFEManager.RegisterLocal(fLocInitCoords1);
-	fFEManager.RegisterLocal(fLocCurrCoords);
+	fLocInitCoords1.Allocate(num_facet_nodes, NumSD());
+	fLocCurrCoords.Allocate(NumElementNodes(), NumSD());
+	ElementSupport().RegisterCoordinates(fLocInitCoords1);
+	ElementSupport().RegisterCoordinates(fLocCurrCoords);
 
 	/* construct surface shape functions */
-	fShapes = new SurfaceShapeT(fGeometryCode, fNumIntPts, fNumElemNodes, fNumDOF,
+	fShapes = new SurfaceShapeT(fGeometryCode, fNumIntPts, NumElementNodes(), NumDOF(),
 		fLocInitCoords1);
 	if (!fShapes) throw eOutOfMemory;
 	fShapes->Initialize();
 
 	/* work space */
 	fNodes1.Allocate(num_facet_nodes);
-	fNEEvec.Allocate(fNumElemEqnos);
-	fNEEmat.Allocate(fNumElemEqnos);
+	int nee = NumElementNodes()*NumDOF();
+	fNEEvec.Allocate(nee);
+	fNEEmat.Allocate(nee);
 
 	/* echo output codes (one at a time to allow comments) */
 	fNodalOutputCodes.Allocate(NumNodalOutputCodes);
-	ifstreamT& in = fFEManager.Input();
-	ostream&   out = fFEManager.Output();
+	ifstreamT& in = ElementSupport().Input();
+	ostream&   out = ElementSupport().Output();
 	for (int i = 0; i < fNodalOutputCodes.Length(); i++)
 	{
 		in >> fNodalOutputCodes[i];
@@ -120,7 +121,7 @@ void CSEBaseT::Initialize(void)
 	fElementOutputCodes = IOBaseT::kAtNever;
 
 //TEMP - backward compatibility
-	if (StringT::versioncmp(fFEManager.Version(), "v3.01") < 1)
+	if (StringT::versioncmp(ElementSupport().Version(), "v3.01") < 1)
 	{
 		/* message */
 		cout << "\n CSEBaseT::Initialize: use input file version newer than v3.01\n" 
@@ -132,7 +133,7 @@ void CSEBaseT::Initialize(void)
 	{
 //TEMP - BACK
 		int num_codes = fElementOutputCodes.Length();
-		if (StringT::versioncmp(fFEManager.Version(), "v3.02") < 1)
+		if (StringT::versioncmp(ElementSupport().Version(), "v3.02") < 1)
 		{
 			cout << "\n CSEBaseT::Initialize: use input file version newer than v3.02\n"
 		         <<   "     to enable output control of element averaged traction" << endl;
@@ -169,9 +170,9 @@ void CSEBaseT::Initialize(void)
 	if (fOutputArea == 1)
 	{
 		/* generate file name */
-		StringT name = (fFEManager.Input()).filename();
+		StringT name = (ElementSupport().Input()).filename();
 		name.Root();
-		name.Append(".grp", fFEManager.ElementGroupNumber(this) + 1);
+		name.Append(".grp", ElementSupport().ElementGroupNumber(this) + 1);
 		name.Append(".fracture");
 		
 		/* open stream */
@@ -186,7 +187,8 @@ void CSEBaseT::InitialCondition(void)
 	ElementBaseT::InitialCondition();
 
 	/* initialize element status flags */
-	for (int i = 0; i < fNumElements; i++)
+	int nel = NumElements();
+	for (int i = 0; i < nel; i++)
 		fElementCards[i].Flag() = kON;
 }
 
@@ -197,7 +199,8 @@ void CSEBaseT::CloseStep(void)
 	ElementBaseT::CloseStep();
 
 	/* deactivate marked elements */
-	for (int i = 0; i < fNumElements; i++)
+	int nel = NumElements();
+	for (int i = 0; i < nel; i++)
 	{
 		int& flag = fElementCards[i].Flag();
 		flag = (flag == kMarked) ? kOFF : flag;
@@ -211,7 +214,8 @@ void CSEBaseT::ResetStep(void)
 	ElementBaseT::ResetStep();
 
 	/* unset marks */
-	for (int i = 0; i < fNumElements; i++)
+	int nel = NumElements();
+	for (int i = 0; i < nel; i++)
 	{
 		int& flag = fElementCards[i].Flag();
 		flag = (flag == kMarked) ? kON : flag;
@@ -219,9 +223,10 @@ void CSEBaseT::ResetStep(void)
 }
 
 /* solution calls */
-void CSEBaseT::AddNodalForce(int node, dArrayT& force)
+void CSEBaseT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
 //TEMP
+#pragma unused(field)
 #pragma unused(node)
 #pragma unused(force)
 	//not implemented
@@ -279,12 +284,12 @@ void CSEBaseT::RegisterOutput(void)
 
 	/* set output specifier */
 	StringT set_ID;
-	set_ID.Append(fFEManager.ElementGroupNumber(this) + 1);
-	OutputSetT output_set(set_ID, geo_code, block_ID, fConnectivities, n_labels, 
-		e_labels, false);
+	set_ID.Append(ElementSupport().ElementGroupNumber(this) + 1);
+	OutputSetT output_set(set_ID, geo_code, block_ID, fOutput_Connectivities, 
+		n_labels, e_labels, false);
 		
 	/* register and get output ID */
-	fOutputID = fFEManager.RegisterOutput(output_set);
+	fOutputID = ElementSupport().RegisterOutput(output_set);
 }
 
 //NOTE - this function is identical to ContinuumElementT::WriteOutput
@@ -301,7 +306,7 @@ void CSEBaseT::WriteOutput(IOBaseT::OutputModeT mode)
 	/* fracture area */
 	if (fOutputArea)
 	{
-		farea_out << setw(kDoubleWidth) << fFEManager.Time();
+		farea_out << setw(kDoubleWidth) << ElementSupport().Time();
 		farea_out << setw(kDoubleWidth) << fFractureArea << endl;
 	}
 
@@ -317,7 +322,7 @@ void CSEBaseT::WriteOutput(IOBaseT::OutputModeT mode)
 	ComputeOutput(n_counts, n_values, e_counts, e_values);
 
 	/* send to output */
-	fFEManager.WriteOutput(fOutputID, n_values, e_values);
+	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
 }
 
 /* compute specified output parameter and send for smoothing */
@@ -331,7 +336,7 @@ void CSEBaseT::SendOutput(int kincode)
 	switch (kincode)
 	{
 		case NodalDisp:
-		    flags[NodalDisp] = fNumDOF;
+		    flags[NodalDisp] = NumDOF();
 			break;
 		case NodalDispJump:
 		    flags[NodalDispJump] = 1;
@@ -349,7 +354,7 @@ void CSEBaseT::SendOutput(int kincode)
 	SetNodalOutputCodes(IOBaseT::kAtInc, flags, n_counts);
 
 	/* reset averaging workspace */
-	fNodes->ResetAverage(n_counts.Sum());
+	ElementSupport().ResetAverage(n_counts.Sum());
 
 	/* set flags for no element output */
 	iArrayT e_counts(fElementOutputCodes.Length());
@@ -380,6 +385,93 @@ void CSEBaseT::PrintControlData(ostream& out) const
 	out << " Output fracture surface area. . . . . . . . . . = " << fOutputArea    << '\n';
 }
 
+/* read element connectivity data */
+void CSEBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
+{
+	/* inherited */
+	ElementBaseT::ReadConnectivity(in, out);
+
+	/* write output over the original connectivities */
+	fOutput_Connectivities = fConnectivities;
+	
+	/* check for higher order elements */
+	int nsd = NumSD();
+	int nen = NumElementNodes();
+	if ((nsd == 2 && nen != 4 && nen != 6) || 
+	    (nsd == 3 && nen != 8 && nen != 16))
+	{
+		/* message */
+		ostream& out = ElementSupport().Output();
+		cout << "\n CSEBaseT::ReadConnectivity: detected higher order elements\n";
+		out  << "\n CSEBaseT::ReadConnectivity: detected higher order elements\n";
+
+		/* the geometry manager */
+		ModelManagerT& model = ElementSupport().Model();
+
+		/* nen: 8 -> 6 */
+		int map_2D[] = {0, 1, 2, 3, 4, 6}; 
+
+		/* nen: 20 -> 16 */
+		int map_3D[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}; 
+
+		/* node map */
+		iArrayT map((nsd == 2) ? 6 : 16, (nsd == 2) ? map_2D : map_3D); 
+
+		/* loop over connectivity blocks */
+		for (int b = 0; b < fBlockData.Length(); b++)
+		{
+			/* send new connectivities to model manager */
+			ElementBlockDataT& block_data = fBlockData[b];
+			const StringT& id = block_data.ID();
+			StringT new_id = id;
+			new_id.Append(b+1, 3);
+			
+			/* see if new_id is already present */
+			int new_dex = model.ElementGroupIndex(new_id);
+			if (new_dex == ModelManagerT::kNotFound)
+			{
+				/* message */
+		     	cout << "     translating element block ID " << id << endl;
+		     	out  << "     translating element block ID " << id << endl;
+
+				/* translate */
+				const iArray2DT& source = *(fOutput_Connectivities[b]);
+				iArray2DT dest(source.MajorDim(), map.Length());
+				for (int i = 0; i < dest.MajorDim(); i++)
+				{
+					int* a = dest(i);
+					int* b = source(i);
+					for (int j = 0; j < map.Length(); j++)
+						*a++ = b[map[j]];	
+				}
+
+				/* send new connectivities to model manager */
+				ElementBlockDataT& block_data = fBlockData[b];
+				const StringT& id = block_data.ID();
+				StringT new_id = id;
+				new_id.Append(b+1, 3);
+				if (!model.RegisterElementGroup (new_id, dest, GeometryT::kNone, true)) {
+					cout << "\n CSEBaseT::ReadConnectivity: could not register element block ID: " << new_id << endl;
+					throw eGeneralFail;
+				}
+			}
+
+			/* message */
+			cout << "     block ID " << id << " replaced by ID " << new_id << endl;
+			out  << "     block ID " << id << " replaced by ID " << new_id << endl;
+
+			/* set pointer to connectivity list */
+			fConnectivities[b] = model.ElementGroupPointer(new_id);
+			
+			/* reset block data */
+			int start = block_data.StartNumber();
+			int dim = block_data.Dimension();
+			int material = block_data.MaterialID();
+			block_data.Set(new_id, start, dim, material);
+		}
+	}
+}
+
 void CSEBaseT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 		iArrayT& counts) const
 {
@@ -388,9 +480,9 @@ void CSEBaseT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& fla
 	counts = 0;
 	
 	if (flags[NodalCoord] == mode)
-		counts[NodalCoord] = fNumSD;
+		counts[NodalCoord] = NumSD();
 	if (flags[NodalDisp] == mode)
-		counts[NodalDisp] = fNumDOF;
+		counts[NodalDisp] = NumDOF();
 	if (flags[NodalDispJump] == mode)
 		counts[NodalDispJump] = 1;
 	if (flags[NodalTraction] == mode)
@@ -405,7 +497,7 @@ void CSEBaseT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& f
 	counts = 0;
 
 	if (flags[Centroid] == mode)
-		counts[Centroid] = fNumSD;
+		counts[Centroid] = NumSD();
 	if (flags[CohesiveEnergy] == mode)
 		counts[CohesiveEnergy] = 1;
 	if (flags[Traction] == mode)
@@ -422,17 +514,16 @@ void CSEBaseT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_l
 	int count = 0;
 	if (n_codes[NodalDisp])
 	{
-		if (fNumDOF > 3) throw eGeneralFail;
-		const char* dlabels[3] = {"D_X", "D_Y", "D_Z"};
-
-		for (int i = 0; i < fNumDOF; i++)
-			n_labels[count++] = dlabels[i];
+		/* labels from the field */
+		const ArrayT<StringT>& labels = Field().Labels();
+		for (int i = 0; i < labels.Length(); i++)
+			n_labels[count++] = labels[i];
 	}
 
 	if (n_codes[NodalCoord])
 	{
 		const char* xlabels[] = {"x1", "x2", "x3"};
-		for (int i = 0; i < fNumSD; i++)
+		for (int i = 0; i < NumSD(); i++)
 			n_labels[count++] = xlabels[i];
 	}
 
@@ -445,7 +536,7 @@ void CSEBaseT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_l
 	if (e_codes[Centroid])
 	{
 		const char* xlabels[] = {"xc_1", "xc_2", "xc_3"};
-		for (int i = 0; i < fNumSD; i++)
+		for (int i = 0; i < NumSD(); i++)
 			e_labels[count++] = xlabels[i];
 	}
 	if (e_codes[CohesiveEnergy]) e_labels[count++] = "phi";
@@ -478,13 +569,14 @@ void CSEBaseT::CurrElementInfo(ostream& out) const
 void CSEBaseT::CloseSurfaces(void) const
 {
 	/* get coordinates */
-	const dArray2DT& init_coords = fNodes->InitialCoordinates();
+	const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
 
 	/* local nodes numbers on each facet */
 	const iArray2DT& facetnodes = fShapes->NodesOnFacets();
 		
 	/* collapse elements */
-	for (int i = 0; i < fNumElements; i++)
+	int nel = NumElements();
+	for (int i = 0; i < nel; i++)
 	{			
 		int* pfacet1 = facetnodes(0);
 		int* pfacet2 = facetnodes(1);
@@ -497,7 +589,7 @@ void CSEBaseT::CloseSurfaces(void) const
 			double* px1 = init_coords(nodes[*pfacet1++]);
 			double* px2 = init_coords(nodes[*pfacet2++]);
 				
-			for (int k = 0; k < fNumSD; k++)
+			for (int k = 0; k < NumSD(); k++)
 			{
 				double x_mid = 0.5*(*px1 + *px2);
 				*px1++ = x_mid;

@@ -1,14 +1,12 @@
-/* $Id: UpLagr_ExternalFieldT.cpp,v 1.3 2002-03-11 20:15:47 sawimme Exp $ */
+/* $Id: UpLagr_ExternalFieldT.cpp,v 1.3.2.1 2002-04-26 02:24:18 paklein Exp $ */
 
 #include "UpLagr_ExternalFieldT.h"
 #include "fstreamT.h"
-#include "FEManagerT.h"
-#include "NodeManagerT.h"
 #include "ExodusT.h"
 
 /* constructor */
-UpLagr_ExternalFieldT::UpLagr_ExternalFieldT(FEManagerT& fe_manager):
-	UpdatedLagrangianT(fe_manager),
+UpLagr_ExternalFieldT::UpLagr_ExternalFieldT(const ElementSupportT& support, const FieldT& field):
+	UpdatedLagrangianT(support, field),
 	fLocExternalField(LocalArrayT::kUnspecified)
 {
 
@@ -21,8 +19,8 @@ void UpLagr_ExternalFieldT::Initialize(void)
 	UpdatedLagrangianT::Initialize();
 
 	/* streams */
-	ifstreamT&  in = FEManager().Input();
-	ofstreamT& out = FEManager().Output();
+	ifstreamT&  in = ElementSupport().Input();
+	ofstreamT& out = ElementSupport().Output();
 	
 	/* external file */
 	in >> fExternalFieldFormat;
@@ -108,14 +106,14 @@ void UpLagr_ExternalFieldT::Initialize(void)
 	fNodeMap--; /* offset to internal numbering */
 
 	/* allocate global assembly array */
-	fExternalField.Allocate(fNodes->NumNodes(), fExternalFieldLabels.Length());
+	fExternalField.Allocate(ElementSupport().NumNodes(), fExternalFieldLabels.Length());
 //NOTE: This is going to be a big waste of space if this element group
 //      only involves a small fraction of the total number of nodes in
 //      the model, but it makes it much easier to retrieve the values
 //      like other field variables.
 
 	/* allocate local array */
-	fLocExternalField.Allocate(fNumElemNodes, fExternalFieldLabels.Length());
+	fLocExternalField.Allocate(NumElementNodes(), fExternalFieldLabels.Length());
 	fLocExternalField.SetGlobal(fExternalField);
 	
 	/* allocate space for reading nodal values */
@@ -129,7 +127,7 @@ void UpLagr_ExternalFieldT::InitStep(void)
 	UpdatedLagrangianT::InitStep();
 	
 	/* interval containing current time */
-	double time = FEManager().Time();
+	double time = ElementSupport().Time();
 	int i_1 = fTimeSteps.Range(time);
 	
 	/* interpolate database to current time */

@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.25 2002-05-18 17:40:32 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.24.2.1 2002-04-25 01:23:15 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -500,10 +500,13 @@ void ModelManagerT::CoordinateDimensions (int& length, int& dof) const
 	dof = fCoordinateDimensions[1];
 }
 
+#pragma message("ModelManagerT::CoordinateReference: delete me")
+#if 0
 const dArray2DT& ModelManagerT::CoordinateReference (void) const
 {
   return fCoordinates;
 }
+#endif
 
 const dArray2DT& ModelManagerT::Coordinates (void)
 {
@@ -1362,16 +1365,8 @@ bool ModelManagerT::ScanSideSets (void)
 			if (fSideSetScope[i] == kLocal && 
 			    fSideSetDimensions[i] > 0) /* don't try this with an empty set */
 			{
-				/* reads side set */
-				try {
-					const StringT& name = fInput->SideSetGroupName(fSideSetNames[i]);
-					fSideSetGroupIndex[i] = ElementGroupIndex(name);
-				}
-				catch (int exception) {
-					cout << "\n ModelManagerT::ScanSideSets: error scanning side set "
-					     << fSideSetNames[i] << endl;				
-					fSideSetGroupIndex[i] = -1;
-				}
+				const StringT& name = fInput->SideSetGroupName(fSideSetNames[i]);
+				fSideSetGroupIndex[i] = ElementGroupIndex(name);
 			}
 			
 			/* create empty set */

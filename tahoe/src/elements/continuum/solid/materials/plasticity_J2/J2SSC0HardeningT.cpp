@@ -1,4 +1,4 @@
-/* $Id: J2SSC0HardeningT.cpp,v 1.2 2002-04-21 19:43:54 paklein Exp $ */
+/* $Id: J2SSC0HardeningT.cpp,v 1.1 2002-04-17 23:58:17 paklein Exp $ */
 #include "J2SSC0HardeningT.h"
 
 #include <iostream.h>
@@ -36,9 +36,6 @@ J2SSC0HardeningT::J2SSC0HardeningT(ifstreamT& in, int num_ip, double mu):
 	/* construct hardening function from stream */
 	ConstructHardeningFunction(in);
 }
-
-/* destructor */
-J2SSC0HardeningT::~J2SSC0HardeningT(void) { delete fK; };
 
 /* returns elastic strain */
 const dSymMatrixT& J2SSC0HardeningT::ElasticStrain(const dSymMatrixT& totalstrain,

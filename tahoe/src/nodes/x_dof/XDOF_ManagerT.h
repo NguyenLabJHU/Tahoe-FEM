@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.h,v 1.4 2001-08-29 07:08:22 paklein Exp $ */
+/* $Id: XDOF_ManagerT.h,v 1.4.4.4 2002-05-03 07:13:38 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 
 #ifndef _XDOF_MANAGER_T_H_
@@ -14,6 +14,7 @@ class DOFElementT;
 class iArray2DT;
 class dArray2DT;
 class iArrayT;
+template <class TYPE> class RaggedArray2DT;
 
 /** mix-in class for manager of degrees of freedom requested
  * by DOFElementT's. Element groups must be derived from the
@@ -50,34 +51,75 @@ public:
 	 * \param tag_set set number with the DOFElementT */
 	virtual const dArray2DT& XDOF(const DOFElementT* group, int tag_set) const;
 
+	/** \name collecting equation numbers 
+	 * These methods foresee the need to collect equation numbers using connectivities
+	 * that contain both XDOF tags and node numbers */
+	/*@{*/
+	/** collection equation numbers for mixed connectivity. Connectivity
+	 * can be either node numbers of tag numbers obtained through the
+	 * inherited XDOF_ManagerT interface. For tags that are nodes, all
+	 * equations for that node across all fields in the group.
+	 * \param group equation group number
+	 * \param nodes element connectivity: [nen]
+	 * \param eqnos destination for equation numbers: [nen] x [ndof_i] */
+	virtual void XDOF_SetLocalEqnos(int group, const iArrayT& nodes, iArray2DT& eqnos) = 0;
+
+	/** collection equation numbers for mixed connectivities. Connectivities
+	 * can be either node numbers of tag numbers obtained through the
+	 * inherited XDOF_ManagerT interface. For tags that are nodes, all
+	 * equations for that node across all fields in the group.
+	 * \param group equation group number
+	 * \param nodes element connectivities: [nel] x [nen]
+	 * \param eqnos destination for equation numbers: [nel] x [nen*ndof_j] */
+	virtual void XDOF_SetLocalEqnos(int group, const iArray2DT& nodes, iArray2DT& eqnos) const = 0;
+
+	/** collection equation numbers for mixed connectivities. Connectivities
+	 * can be either node numbers of tag numbers obtained through the
+	 * inherited XDOF_ManagerT interface. Connectivities are passed in
+	 * a RaggedArray2DT, which allows an arbitrary number of nodes per
+	 * element. For tags that are nodes, all
+	 * equations for that node across all fields in the group.
+	 * \param group equation group number
+	 * \param nodes element connectivities: [nel] x [nen_i]
+	 * \param eqnos destination for equation numbers: [nel] x [nen_i*ndof_j] */
+	virtual void XDOF_SetLocalEqnos(int group, const RaggedArray2DT<int>& nodes, 
+		RaggedArray2DT<int>& eqnos) const = 0;
+	/*@}*/
+
 protected:
+
+	/** return the number of XDOF equations in the specified group */
+	int NumEquations(int group) const;
 
 	/** set the start tag */
 	void SetStartTag(int start_tag) { fStartTag = start_tag; };
 
-	/** prompt element groups to reset tags.
-	 * \param tag_start first to number to assign
+	/** prompt elements in the specified group to reset tags.
 	 * \return true if tags have been reset */
-	bool ResetTags(void);
+	bool ResetTags(int group);
 
 	/** return the total number of tag sets */
 	int NumTagSets(void) const { return fXDOF_Eqnos.Length(); };
 
-	/** call groups to reset external DOF's */
-	void Reset(void);
+	/** call elements in specified group the to reset external DOF's */
+	void Reset(int group);
 
-	/** update DOF's using the global update vector */
-	void Update(const dArrayT& update);
+	/** update DOF's in the specified group using the global 
+	 * update vector */
+	void Update(int group, const dArrayT& update);
 
 	/** (self-)configure element group */
 	void ConfigureElementGroup(int group_number, int& tag_num);
 
 	/** assign equation numbers */
-	void SetEquations(int& num_eq);
+	void SetEquations(int group, int& num_eq);
 
 	/** remove external DOF's from first slot of each row */
 	void CheckEquationNumbers(ostream& out, iArray2DT& eqnos);
 
+	/** append equation numbers for the tags sets in the specified group */
+	void EquationNumbers(int group, AutoArrayT<iArray2DT*>& equationsets);
+	
 	/** resolve index of the tag set.
 	 * \param group pointer to the DOFElementT
 	 * \param tag_set set number for the element 
@@ -93,7 +135,7 @@ protected:
 	 * \note The alorithm to determine the tag set assumes the tags are
 	 *       assigned in the order the sets appear in XDOF_ManagerT::fXDOF_Eqnos
 	 *       and XDOF_ManagerT::fXDOF. */
-	bool ResolveTagSet(int tag, int& tag_set, int& tag_set_start);
+	bool ResolveTagSet(int tag, int& tag_set, int& tag_set_start) const;
 
 protected:
 

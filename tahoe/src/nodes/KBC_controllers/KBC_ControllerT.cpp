@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.cpp,v 1.5 2002-04-10 16:48:24 paklein Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.5.2.4 2002-05-11 19:47:08 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #include "KBC_ControllerT.h"

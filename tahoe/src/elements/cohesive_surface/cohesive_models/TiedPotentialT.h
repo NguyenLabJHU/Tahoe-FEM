@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.h,v 1.1 2002-04-17 15:40:13 cjkimme Exp $ */
+/* $Id: TiedPotentialT.h,v 1.1.2.3 2002-05-29 00:22:48 cjkimme Exp $ */
 /* created: cjkimme (04/15/2002) */
 
 #ifndef _TIED_POTENTIAL_T_H_
@@ -9,6 +9,7 @@
 
 /* forward declarations */
 class ifstreamT;
+class dArray2DT;
 
 /** cohesive potential from Tvergaard and Hutchinson. This model is
  * described in JMPS v41, n6, 1995, 1119-1135. See SurfacePotentialT
@@ -16,6 +17,8 @@ class ifstreamT;
 class TiedPotentialT: public SurfacePotentialT
 {
 public:
+	
+	enum sbntmaT {kAverageCode = 2};
 
 	/** constructor */
 	TiedPotentialT(ifstreamT& in, const double &fTimeStep);
@@ -65,35 +68,36 @@ public:
 	//        virtual double ComputeNodalValue(const dArrayT &);
 	//        virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
 	virtual int ElementGroupNeeded(void);
-
+	
+	static bool InitiationQ(const double* sigma);
+	
 protected:
 
 	/** return true if the potential has compatible (type and sequence)
 	 * nodal output - FALSE by default */
 	virtual bool CompatibleOutput(const SurfacePotentialT& potential) const;
-	
+		
 private:
 
-	/* traction potential parameters */
-	double fsigma_max; /**< cohesive stress */
-	double fd_c_n;     /**< characteristic normal opening to failure */
-	double fd_c_t;     /**< characteristic tangential opening to failure */
-	
-	/* non-dimensional opening parameters */
-	double fL_1;    /**< non-dimensional opening to initial peak traction */
-	double fL_2;    /**< non-dimensional opening to final peak traction */
-	double fL_fail; /**< non-dimensional opening to irreversible failure */
-
-	/* penetration stiffness */
-	double fpenalty; /**< stiffening multiplier */
-	double fK;       /**< penetration stiffness calculated as a function of penalty
-	                  * and the initial stiffness of the cohesive potential */
+	/** the time step */
 	const double& fTimeStep;
-	int fGroup;
-	//bool initiationQ;
-	double L_2_b, L_2_m;/* fitting constants for rate dependence of L_2 */
-	double fslope; /*slope of the 'plateau' of the Tverg-Hutch potential in units of fsigma_max */
+
+	/* traction potential parameters */
+	double q;     // phi_t/phi_n
+	double r;     // delta_n* /d_n
+	
+	double d_n;   // characteristic normal opening
+	double d_t;   // characteristic tangent opening  	
+	double phi_n; // mode I work to fracture
+
+	double r_fail; // d/d_(n/t) for which surface is considered failed
+
+/* additional penetration stiffness */
+	double fKratio; // stiffening ratio
+	double fK;
 	double fu_t0, fu_n0; /* Offsets of gap vector when nodes are untied */
+
+	static double fsigma_critical;
 };
 
 #endif /* _TIED_POTENTIAL_T_H_ */

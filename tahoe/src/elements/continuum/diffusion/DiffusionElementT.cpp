@@ -1,6 +1,5 @@
-/* $Id: DiffusionElementT.cpp,v 1.3 2001-03-19 22:31:17 paklein Exp $ */
-/* created: paklein (10/02/1999)                                          */
-
+/* $Id: DiffusionElementT.cpp,v 1.3.8.10 2002-06-05 09:27:16 paklein Exp $ */
+/* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
 #include <iostream.h>
@@ -10,8 +9,6 @@
 #include "Constants.h"
 
 #include "fstreamT.h"
-#include "FEManagerT.h"
-#include "NodeManagerT.h"
 #include "DiffusionMaterialT.h"
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"
@@ -30,14 +27,14 @@ const int DiffusionElementT::NumOutputCodes = 3;
 const int kDiffusionNDOF = 1;
 
 /* constructor */
-DiffusionElementT::DiffusionElementT(FEManagerT& fe_manager):
-	ContinuumElementT(fe_manager),
+DiffusionElementT::DiffusionElementT(const ElementSupportT& support, const FieldT& field):
+	ContinuumElementT(support, field),
 	fLocVel(LocalArrayT::kVel),
-	fD(fNumSD),
-	fq(fNumSD)
+	fD(NumSD()),
+	fq(NumSD())
 {
 	/* check base class initializations */
-	if (fNumDOF != kDiffusionNDOF) throw eGeneralFail;
+	if (NumDOF() != kDiffusionNDOF) throw eGeneralFail;
 }
 
 /* data initialization */
@@ -47,7 +44,7 @@ void DiffusionElementT::Initialize(void)
 	ContinuumElementT::Initialize();
 
 	/* allocate */
-	fB.Allocate(fNumSD, fNumElemNodes);
+	fB.Allocate(NumSD(), NumElementNodes());
 
 	/* setup for material output */
 	if (fNodalOutputCodes[iMaterialData])
@@ -68,19 +65,11 @@ void DiffusionElementT::Initialize(void)
 	}
 }
 
-/* set the controller */
-void DiffusionElementT::SetController(eControllerT* controller)
-{
-	/* inherited */
-	ContinuumElementT::SetController(controller);
-
-	//should check the controller for compatibility
-}
-
 /* compute nodal force */
-void DiffusionElementT::AddNodalForce(int node, dArrayT& force)
+void DiffusionElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
 	//not implemented
+#pragma unused(field)
 #pragma unused(node)
 #pragma unused(force)
 }
@@ -129,7 +118,7 @@ void DiffusionElementT::SendOutput(int kincode)
 	switch (kincode)
 	{
 		case iNodalDisp:
-		    flags[iNodalDisp] = fNumDOF;
+		    flags[iNodalDisp] = NumDOF();
 			break;
 		default:
 			cout << "\n DiffusionElementT::SendKinematic: invalid output code: ";
@@ -141,7 +130,7 @@ void DiffusionElementT::SendOutput(int kincode)
 	SetNodalOutputCodes(IOBaseT::kAtInc, flags, n_counts);
 
 	/* reset averaging workspace */
-	fNodes->ResetAverage(n_counts.Sum());
+	ElementSupport().ResetAverage(n_counts.Sum());
 
 	/* no element output */
 	iArrayT e_counts(fElementOutputCodes.Length());
@@ -184,11 +173,6 @@ void DiffusionElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 	if (fNodalOutputCodes.Min() < IOBaseT::kAtFail ||
 	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw eBadInputValue;
 
-	/* default behavior with output formats */
-//	fNodalOutputCodes[iNodalCoord] = IOBaseT::kAtNever;
-//	fNodalOutputCodes[iNodalDisp ] = IOBaseT::kAtNever;
-// what to do about default behavior
-
 	/* control parameters */
 	out << " Number of nodal output codes. . . . . . . . . . = " << NumOutputCodes << '\n';
 	out << "    [" << fNodalOutputCodes[iNodalCoord   ] << "]: initial nodal coordinates\n";
@@ -202,11 +186,12 @@ void DiffusionElementT::SetLocalArrays(void)
 	/* inherited */
 	ContinuumElementT::SetLocalArrays();
 
-	/* dimension */
-	fLocVel.Allocate(fNumElemNodes, fNumDOF);
-	
-	/* set source */
-	fFEManager.RegisterLocal(fLocVel);
+	/* allocate */
+	fLocVel.Allocate(NumElementNodes(), NumDOF());
+
+	/* nodal velocities */
+	if (fController->Order() == 1)
+		Field().RegisterLocal(fLocVel);
 }
 
 /* construct output labels array */
@@ -218,9 +203,9 @@ void DiffusionElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iAr
 	counts = 0;
 
 	if (flags[iNodalCoord] == mode)
-		counts[iNodalCoord] = fNumSD;
+		counts[iNodalCoord] = NumSD();
 	if (flags[iNodalDisp] == mode)
-		counts[iNodalDisp] = fNumDOF;
+		counts[iNodalDisp] = NumDOF();
 	if (flags[iMaterialData] == mode)
 		counts[iMaterialData ] = (*fMaterialList)[0]->NumOutputVariables();
 }
@@ -240,7 +225,7 @@ void DiffusionElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const i
 /* set the correct shape functions */
 void DiffusionElementT::SetShape(void)
 {
-	fShapes = new ShapeFunctionT(fGeometryCode, fNumIP,
+	fShapes = new ShapeFunctionT(GeometryCode(), NumIP(),
 		fLocInitCoords, ShapeFunctionT::kStandardB);
 	if (!fShapes ) throw eOutOfMemory;
 	fShapes->Initialize();
@@ -295,52 +280,64 @@ void DiffusionElementT::RHSDriver(void)
 
 	/* body forces */
 	int formBody = 0;
-	if (fBodyForceLTf > -1 && fBody.Magnitude() > kSmall)
+	if (fBodySchedule && fBody.Magnitude() > kSmall)
 	{	
 		formBody = 1;
 		if (!formCv) constCv = 1.0; // correct value ??
 	}
 
+	/* block info - needed for source terms */
+	int block_dex = 0;
+	const ElementBlockDataT* block_data = fBlockData.Pointer(block_dex);
+	const dArray2DT* block_source = Field().Source(block_data->ID());
+	dArray2DT ip_source;
+	if (block_source) ip_source.Dimension(NumIP(), 1);
+	int block_count = 0;
+
 	Top();
 	while (NextElement())
 	{
-		/* nodal temperature */
-		if (formKd)
+		/* reset block info */
+		if (block_count == block_data->Dimension()) {
+			block_data = fBlockData.Pointer(++block_dex);
+			block_source = Field().Source(block_data->ID());
+			block_count = 0;
+		}
+		
+		/* convert heat increment/volume to rate */
+		if (block_source) {
+			block_source->RowCopy(block_count, ip_source);
+			ip_source /= ElementSupport().TimeStep();
+		}
+		block_count++;
+		
+		/* initialize */
+		fRHS = 0.0;
+
+		/* global shape function values */
+		SetGlobalShape();
+
+		/* conduction term */
+		if (formKd) 
 		{
 			SetLocalU(fLocDisp);
-			fLocDisp *= constKd;
+			FormKd(-constKd);
 		}
-		else
-			fLocDisp = 0.0;
 
-		/* nodal temperature rate */
-		fLocVel = 0.0;
-		if (formBody)
+		/* capacity term */
+		if (formCv || formBody)
 		{
-			AddBodyForce(fLocVel);
-			fLocVel *= constCv/fCurrMaterial->SpecificHeat();
-		}
+			if (formCv) SetLocalU(fLocVel);
+			else fLocVel = 0.0;
+			if (formBody) AddBodyForce(fLocVel);
 
-		/* last check w/ effective v and d - override controller */
-		int eformCv = fLocVel.AbsMax() > 0.0;
-		int eformKd = fLocDisp.AbsMax() > 0.0;
-		if (eformCv || eformKd)
-		{
-			/* initialize */
-			fRHS = 0.0;
-		
-			/* global shape function values */
-			SetGlobalShape();
-			
-			/* internal force contribution */	
-			if (eformKd) FormKd(-1.0);
-
-			/* inertia forces */
-			if (eformCv) FormMa(kConsistentMass, -fCurrMaterial->Capacity(), fLocVel);			  		
-								
-			/* assemble */
-			AssembleRHS();
+			FormMa(kConsistentMass, -constCv*fCurrMaterial->Capacity(), 
+				&fLocVel,
+				(block_source) ? &ip_source : NULL);			  		
 		}
+				
+		/* assemble */
+		AssembleRHS();
 	}
 }
 
@@ -440,28 +437,32 @@ if (e_out > 0)
 	throw eGeneralFail;
 }
 
+	/* dimensions */
+	int nen = NumElementNodes();
+	int nsd = NumSD();
+
 	/* reset averaging workspace */
-	fNodes->ResetAverage(n_out);
+	ElementSupport().ResetAverage(n_out);
 
 	/* work arrays */
-	dArray2DT nodal_space(fNumElemNodes, n_out);
-	dArray2DT nodal_all(fNumElemNodes, n_out);
+	dArray2DT nodal_space(nen, n_out);
+	dArray2DT nodal_all(nen, n_out);
 	dArray2DT coords, disp;
 	dArray2DT nodalstress, princstress, matdat;
 	dArray2DT energy, speed;
 
 	/* ip values */
-	dSymMatrixT cauchy(fNumSD);
+	dSymMatrixT cauchy(nsd);
 	dArrayT ipmat(n_codes[iMaterialData]), ipenergy(1);
-	dArrayT ipspeed(fNumSD), ipprincipal(fNumSD);
+	dArrayT ipspeed(nsd), ipprincipal(nsd);
 
 	/* set shallow copies */
 	double* pall = nodal_space.Pointer();
-	coords.Set(fNumElemNodes, n_codes[iNodalCoord], pall);
+	coords.Set(nen, n_codes[iNodalCoord], pall);
 	pall += coords.Length();
-	disp.Set(fNumElemNodes, n_codes[iNodalDisp], pall);
+	disp.Set(nen, n_codes[iNodalDisp], pall);
 	pall += disp.Length();
-	matdat.Set(fNumElemNodes, n_codes[iMaterialData], pall);
+	matdat.Set(nen, n_codes[iMaterialData], pall);
 
 	Top();
 	while (NextElement())
@@ -496,14 +497,14 @@ if (e_out > 0)
 		nodal_all.BlockColumnCopyAt(matdat, colcount);
 
 		/* accumulate - extrapolation done from ip's to corners => X nodes */
-		fNodes->AssembleAverage(CurrentElement().NodesX(), nodal_all);
+		ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_all);
 	}
 	
 	/* get nodally averaged values */
 	//was:
 	//const iArrayT& node_used = fFEManager.OutputSet(fOutputID).NodesUsed();
 	//fNodes->OutputAverage(node_used, n_values);
-	fNodes->OutputUsedAverage(n_values);
+	ElementSupport().OutputUsedAverage(n_values);
 }
 
 /***********************************************************************
@@ -521,16 +522,16 @@ void DiffusionElementT::GenerateOutputLabels(const iArrayT& n_codes,
 
 	if (n_codes[iNodalDisp])
 	{
-		if (fNumDOF > 6) throw eGeneralFail;
-		const char* dlabels[] = {"d1", "d2", "d3", "d4", "d5", "d6"};
-		for (int i = 0; i < fNumDOF; i++)
-			n_labels[count++] = dlabels[i];
+		/* labels from the field */
+		const ArrayT<StringT>& labels = Field().Labels();
+		for (int i = 0; i < labels.Length(); i++)
+			n_labels[count++] = labels[i];
 	}
 
 	if (n_codes[iNodalCoord])
 	{
 		const char* xlabels[] = {"x1", "x2", "x3"};
-		for (int i = 0; i < fNumSD; i++)
+		for (int i = 0; i < NumSD(); i++)
 			n_labels[count++] = xlabels[i];
 	}
 

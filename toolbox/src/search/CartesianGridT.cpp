@@ -1,14 +1,11 @@
-/* $Id: CartesianGridT.cpp,v 1.3 2002-05-03 09:44:23 paklein Exp $ */
-/* created: paklein (11/10/2000) */
+/* $Id: CartesianGridT.cpp,v 1.2 2002-02-22 19:30:27 xiang Exp $ */
+/* created: paklein (11/10/2000)                                          */
 
 #include "CartesianGridT.h"
 #include <math.h>
 #include "GraphT.h"
 
 static int to_integer(double a) { return int((2.0*a + 1.0)/2.0); };
-
-/* array behavior */
-const bool ArrayT<CartesianGridT::BoundaryConditionT>::fByteCopy = true;
 
 /* constructor */
 CartesianGridT::CartesianGridT(void)
@@ -115,12 +112,7 @@ void CartesianGridT::PartitionGrid(int num_parts, const iArrayT& cell_weight)
 		/* partition and balance */
 		iArrayT config(1);
 		config = num_parts;
-#ifndef __METIS__
 		graph.Partition(config, cell_weight, fCellMap, true);
-#else
-		int volume_or_edgecut = 1;
-		graph.Partition_METIS(config[0], cell_weight, fCellMap, volume_or_edgecut);
-#endif
 	}
 }
 

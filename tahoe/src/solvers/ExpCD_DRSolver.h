@@ -1,7 +1,5 @@
-/* $Id: ExpCD_DRSolver.h,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
-/* created: paklein (08/19/1998)                                          */
-/* quasi-static solver using dynamic relaxation with                      */
-/* explicit central difference pseudo-dynamics                            */
+/* $Id: ExpCD_DRSolver.h,v 1.1.1.1.8.4 2002-06-05 09:18:32 paklein Exp $ */
+/* created: paklein (08/19/1998) */
 
 #ifndef _EXPCD_DRSOLVER_H_
 #define _EXPCD_DRSOLVER_H_
@@ -12,30 +10,32 @@
 /* direct members */
 #include "fstreamT.h"
 
+/** nonlinear solver using dynamic relaxation with
+ * explicit central difference pseudo-dynamics */
 class ExpCD_DRSolver: public SolverT
 {
 public:
 
 	/* constructor */
-	ExpCD_DRSolver(FEManagerT& fe_manager);
+	ExpCD_DRSolver(FEManagerT& fe_manager, int group);
 
 	/* (re-)configure the global equation system */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
 	
-	/* generate the solution for the current time sequence */
-	 virtual void Run(void);
+	/** solve the system over the current time increment.
+	 * \param num_iterations maximum number of iterations to execute. Hitting this limit
+	 *        does not signal a SolverT::kFailed status, unless solver's internal parameters
+	 *        also indicate the solution procedure has failed.
+	 * \return one of SolverT::IterationsStatusT */
+	virtual SolutionStatusT Solve(int num_iterations);
 
 protected:
-
-	/* advance to next load step. Returns 0 if there are no more
-	 * steps. Overload to add class dependent initializations */
-	virtual int Step(void);
 
 	/* returns the appropriate iteration status flag for
 	 * the given error measurement, based on the current
 	 * iteration number, convergence tolerance, etc */
-	int ExitIteration(double error);
-	int ExitRelaxation(double error);
+	SolutionStatusT ExitIteration(double error);
+	SolutionStatusT ExitRelaxation(double error);
 
 	/* form and solve the equation system - returns the magnitude of the
 	 * residual */

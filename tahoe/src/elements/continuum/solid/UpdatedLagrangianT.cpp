@@ -1,5 +1,5 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.3 2001-07-10 07:29:55 paklein Exp $ */
-/* created: paklein (07/03/1996)                                          */
+/* $Id: UpdatedLagrangianT.cpp,v 1.3.4.3 2002-05-17 01:27:22 paklein Exp $ */
+/* created: paklein (07/03/1996) */
 
 #include "UpdatedLagrangianT.h"
 
@@ -9,15 +9,14 @@
 
 #include "fstreamT.h"
 #include "Constants.h"
-#include "FEManagerT.h"
 #include "StructuralMaterialT.h"
 #include "ShapeFunctionT.h"
 
 /* constructor */
-UpdatedLagrangianT::UpdatedLagrangianT(FEManagerT& fe_manager):
-	FiniteStrainT(fe_manager),
+UpdatedLagrangianT::UpdatedLagrangianT(const ElementSupportT& support, const FieldT& field):
+	FiniteStrainT(support, field),
 	fCurrShapes(NULL),
-	fCauchyStress(fNumSD),
+	fCauchyStress(NumSD()),
 	fLocCurrCoords(LocalArrayT::kCurrCoords)
 {
 	/* disable any strain-displacement options */
@@ -28,8 +27,8 @@ UpdatedLagrangianT::UpdatedLagrangianT(FEManagerT& fe_manager):
 	}
 
 	/* consistency check */
-	if (fAnalysisCode == GlobalT::kLinStatic ||
-	    fAnalysisCode == GlobalT::kLinDynamic)
+	if (ElementSupport().Analysis() == GlobalT::kLinStatic ||
+	    ElementSupport().Analysis() == GlobalT::kLinDynamic)
 	{
 		cout << "\nUpLag_FDElasticT::UpdatedLagrangianT: no current coordinates required\n" << endl;
 		fLocCurrCoords.SetType(LocalArrayT::kInitCoords);
@@ -50,9 +49,9 @@ void UpdatedLagrangianT::Initialize(void)
 	FiniteStrainT::Initialize();
 
 	/* dimension */
-	fGradNa.Allocate(fNumSD, fNumElemNodes);
-	fStressStiff.Allocate(fNumElemNodes);
-	fTemp2.Allocate(fNumElemNodes*fNumDOF);
+	fGradNa.Allocate(NumSD(), NumElementNodes());
+	fStressStiff.Allocate(NumElementNodes());
+	fTemp2.Allocate(NumElementNodes()*NumDOF());
 }
 
 /***********************************************************************
@@ -66,8 +65,8 @@ void UpdatedLagrangianT::SetLocalArrays(void)
 	FiniteStrainT::SetLocalArrays();
 
 	/* allocate and set source */
-	fLocCurrCoords.Allocate(fNumElemNodes, fNumSD);
-	fFEManager.RegisterLocal(fLocCurrCoords);
+	fLocCurrCoords.Allocate(NumElementNodes(), NumSD());
+	ElementSupport().RegisterCoordinates(fLocCurrCoords);
 }
 
 /* initialization functions */
@@ -142,78 +141,17 @@ void UpdatedLagrangianT::FormStiffness(double constK)
 	}
 						
 	/* stress stiffness into fLHS */
-	fLHS.Expand(fStressStiff, fNumDOF);
+	fLHS.Expand(fStressStiff, NumDOF());
 }
-
-//DEV - Rayleigh damping should be added to the constitutive level
-#if 0
-/*
-* Compute the effective acceleration and velocities based
-* on the algorithmic flags formXx and the given constants
-* constXx.
-*
-*      acc_eff  = constMa acc  + constCv a vel
-*      vel_eff  = constCv b vel;
-*      disp_eff = constKd disp
-*
-* where a and b are the Rayleigh damping coefficients.
-*
-*        ***The effective displacement does not include
-*           velocity since the internal force is a nonlinear
-*           function of the displacements
-*/
-void UpdatedLagrangianT::ComputeEffectiveDVA(int formBody,
-	int formMa, double constMa, int formCv, double constCv,
-	int formKd, double constKd)
-{
-//DEV - same as Total Lagrangian -> move to base class
-
-	/* acceleration */
-	if (formMa || formBody)
-	{
-		if (formMa)
-			SetLocalU(fLocAcc);
-		else
-			fLocAcc = 0.0;
-		
-		if (formBody) AddBodyForce(fLocAcc);
-
-		fLocAcc *= constMa;	
-	}
-	else
-		fLocAcc = 0.0;
-	
-	/* displacement */
-	if (formKd)
-	{
-		SetLocalU(fLocDisp);
-		fLocDisp *= constKd;	
-	}
-	else
-		fLocDisp = 0.0;
-	
-	/* Rayleigh damping */
-	if (formCv)
-	{
-		SetLocalU(fLocVel);
-		fLocVel *= constCv;
-		
-		/* effective a */
-		fLocAcc.AddScaled(fCurrMaterial->MassDamping(), fLocVel);
-		
-		/* effective v */
-		fLocVel *= fCurrMaterial->StiffnessDamping();
-	}
-	else
-		fLocVel = 0.0;
-}	
-#endif
 
 /* calculate the internal force contribution ("-k*d") */
 void UpdatedLagrangianT::FormKd(double constK)
 {
 	const double* Det    = fCurrShapes->IPDets();
 	const double* Weight = fCurrShapes->IPWeights();
+
+	/* collect incremental heat */
+	bool need_heat = fElementHeat.Length() == fShapes->NumIP();
 
 	fCurrShapes->TopIP();
 	while ( fCurrShapes->NextIP() )
@@ -226,5 +164,9 @@ void UpdatedLagrangianT::FormKd(double constK)
 
 		/* accumulate */
 		fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);
+
+		/* incremental heat generation */
+		if (need_heat) 
+			fElementHeat[fShapes->CurrIP()] += fCurrMaterial->IncrementalHeat();
 	}	
 }

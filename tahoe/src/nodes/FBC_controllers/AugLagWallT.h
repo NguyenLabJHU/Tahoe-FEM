@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.h,v 1.2 2002-04-19 17:22:21 paklein Exp $ */
+/* $Id: AugLagWallT.h,v 1.2.2.1 2002-04-25 01:32:44 paklein Exp $ */
 
 #ifndef _AUGLAG_WALL_T_H_
 #define _AUGLAG_WALL_T_H_
@@ -9,6 +9,7 @@
 
 /* forward declarations */
 class XDOF_ManagerT;
+class FieldT;
 
 /** rigid barrier with augmented Lagrangian enforcement of
  * non-interpenetration */
@@ -17,8 +18,8 @@ class AugLagWallT: public PenaltyWallT, public DOFElementT
 public:
 
 	/* constructor */
-	AugLagWallT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes, const iArray2DT& eqnos,
-		const dArray2DT& coords, const dArray2DT* vels);
+	AugLagWallT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes, const FieldT& field,
+		const dArray2DT& coords);
 
 	/* initialize data */
 	virtual void Initialize(void);
@@ -55,7 +56,11 @@ public:
 
 	/* returns 1 if group needs to reconfigure DOF's, else 0 */
 	virtual int Reconfigure(void);
-	
+
+	/** return the equation group to which the generate degrees of
+	 * freedom belong. */
+	virtual int Group(void) const;	
+
 private:
 
 	/* accumulate the contact force vector fContactForce */
@@ -65,6 +70,9 @@ private:
 
 	/** nodemanager */
 	XDOF_ManagerT* fXDOF_Nodes;
+	
+	/** the field */
+	const FieldT& fField;
 	
 	/* contact equation sets (shallow copy of contact node equs) */
 	iArray2DT fContactEqnos2D;

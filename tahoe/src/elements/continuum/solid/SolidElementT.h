@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.10 2002-05-14 23:05:56 cjkimme Exp $ */
+/* $Id: SolidElementT.h,v 1.8.2.6 2002-06-04 16:30:38 cjkimme Exp $ */
 /* created: paklein (05/28/1996) */
 
 #ifndef _ELASTIC_T_H_
@@ -30,7 +30,7 @@ public:
          iPrincipal = 3, /**< extrapolated principal stresses */
      iEnergyDensity = 4, /**< extrapolated strain energy density */
         iWaveSpeeds = 5, /**< extrapolated local wave speeds */
-      iMaterialData = 6  /**< extrapolated  model output */
+      iMaterialData = 6 /**< extrapolated model output */
 		};
 	
 	/** list/index of element outputs */
@@ -41,28 +41,37 @@ public:
 	 iKineticEnergy = 3, /**< integrated kinetic energy */
     iLinearMomentum = 4, /**< integrated linear momentum */
           iIPStress = 5, /**< integration point stresses */
-    iIPMaterialData = 6  /**< integration point material model output */
+    iIPMaterialData = 6, /**< integration point material model output */
       	};
 
 	/** constructor */
-	SolidElementT(FEManagerT& fe_manager);
+	SolidElementT(const ElementSupportT& support, const FieldT& field);
 
-	/* accessors */
+	/** destructor */
+	~SolidElementT(void);
+
+	/** \name access to nodal values */
+	/*@{*/
 	const LocalArrayT& LastDisplacements(void) const;
 	const LocalArrayT& Velocities(void) const;
 	const LocalArrayT& Accelerations(void) const;
+
+	/** nodal temperatures. Returns NULL if not available */
+	const LocalArrayT* Temperatures(void) const { return fLocTemp; };
+
+	/** nodal temperatures from the last time step. Returns NULL if 
+	 * not available */
+	const LocalArrayT* LastTemperatures(void) const { return fLocTemp_last; };
+	/*@}*/
 	
 	/** initialization. called immediately after constructor */
 	virtual void Initialize(void);
-
-	/** set the controller */
-	virtual void SetController(eControllerT* controller);
 
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
 	/* solution calls */
-	virtual void AddNodalForce(int node, dArrayT& force);
+	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
 	virtual void AddLinearMomentum(dArrayT& momentum);
 	
 	/* returns the energy as defined by the derived class types */
@@ -116,7 +125,7 @@ protected:
 	/* driver for calculating output values */
 	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	                           const iArrayT& e_codes, dArray2DT& e_values);
-
+	
 	/** indicies of elements in the list of material needs */
 	enum MaterialNeedsT {kNeedDisp = 0,
 	                     kNeedVel  = 1,
@@ -133,31 +142,42 @@ protected:
 protected:
 
 	/* control data */
-	int	fMassType;	
+	MassTypeT fMassType;	
 	int	fStrainDispOpt;
 
 	/* propagation direction for wave speeds */
 	dArrayT fNormal;
 	
-	/* arrays with local ordering */
+	/** \name arrays with local ordering */
+	/*@{*/
 	LocalArrayT fLocLastDisp; /**< last converged displacements */
 	LocalArrayT fLocVel;      /**< nodal velocities */
 	LocalArrayT fLocAcc;      /**< nodal accelerations */
+
+	LocalArrayT* fLocTemp;      /**< (optional) nodal temperatures */
+	LocalArrayT* fLocTemp_last; /**< (optional) last nodal temperatures */
+	/*@}*/
 
 	/* run time */
 	StructuralMaterialT*  fCurrMaterial;
 	ArrayT<ArrayT<bool> > fMaterialNeeds;
 
-	/* work space */
-	dMatrixT    fD;      /**< constitutive matrix        */
-	dMatrixT    fB;      /**< strain-displacement matrix */
-	dSymMatrixT fStress; /**< stress vector              */	
+	/** incremental heat sources for each element block */
+	ArrayT<dArray2DT> fIncrementalHeat;
+
+	/** \name work space */
+	/*@{*/
+	dArrayT fElementHeat; /**< destination for heat generation. If not length nip, heat not needed */
+	dMatrixT    fD; /**< constitutive matrix */
+	dMatrixT    fB; /**< strain-displacement matrix */
+	dSymMatrixT fStress; /**< stress vector */	
+	/*@}*/
 
 	/* parameters */
 	static const int NumNodalOutputCodes;
 	static const int NumElementOutputCodes;
-
-	/* flags for stress smoothing */
+	
+	/* additional smoothing flags */
 	bool qUseSimo, qNoExtrap;
 };
 

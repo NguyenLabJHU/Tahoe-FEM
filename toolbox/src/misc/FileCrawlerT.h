@@ -1,4 +1,4 @@
-/* $Id: FileCrawlerT.h,v 1.3 2002-06-04 00:44:05 paklein Exp $ */
+/* $Id: FileCrawlerT.h,v 1.2 2001-06-14 20:44:18 paklein Exp $ */
 
 #ifndef _FILE_CRAWLER_T_H_
 #define _FILE_CRAWLER_T_H_
@@ -14,43 +14,35 @@
 class ifstreamT;
 class StringT;
 
-/** run one file or a tree of files. Gives console prompt
- * for a file name which can be either a "job" file or a "batch"
- * file depending on the leading character. Lines beginning with
- * '-' are assumed to be application specific commands, which
- * are passed to derived classes for handling. */
 class FileCrawlerT
 {
 public:
 
-	/** constructor */
+	/* constructor */
 	FileCrawlerT(int argc, char* argv[], char job_char, char batch_char);
 
-	/** destructor */
+	/* destructor */
 	virtual ~FileCrawlerT(void);
 
-	/** prompt input files until "quit" */
+	/* prompt input files until "quit" */
 	virtual void Run(void);
 
 protected:
 
-	/** application-specific job execution */
+	/* MUST be overloaded */
 	virtual void RunJob(ifstreamT& in, ostream& status) = 0;
 
-	/** handle batch file command */
-	virtual void BatchFileCommand(const StringT& command, ifstreamT& batch) = 0;
-
-	/** batch file processing */
+	/* batch file processing */
 	virtual void RunBatch(ifstreamT& in, ostream& status);
 
-	/** returns the index of the requested option */
+	/* returns the index of the requested option */
 	bool CommandLineOption(const char* str) const;
 	bool CommandLineOption(const char* str, int& index) const;
 	void AddCommandLineOption(const char* str);
 
 private:
 
-	/** recursive dispatch */
+	/* recursive dispatch */
 	virtual void JobOrBatch(ifstreamT& in, ostream& status);
 	
 protected:

@@ -1,4 +1,4 @@
-/* $Id: ModBessel.cpp,v 1.6 2002-04-22 16:06:44 dzeigle Exp $ */
+/* $Id: ModBessel.cpp,v 1.5 2002-04-19 19:55:40 dzeigle Exp $ */
 /* created: dzeigle (4/18/2002) */
 
 #include "ModBessel.h"
@@ -25,7 +25,7 @@ ModBessel::ModBessel(double p)
 }
 
 /*
-* Destructor
+* Destructors
 */
 ModBessel::~ModBessel()
 {
@@ -117,6 +117,7 @@ dArrayT& ModBessel::MapDFunction(const dArrayT& in,  dArrayT& out) const
 	double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
 	
+	cout << "\n Derivative of the Bessel Function of the 3rd Kind not tabulated!\n";
 	for (int i = 0; i < in.Length(); i++)
 	{
 		double r = *pl++;					
@@ -308,5 +309,4 @@ void ModBessel::bessk(double x, double xnu, double *rk, double *rkp) const
     *rk = rkmu;
     *rkp = xnu*xi*rkmu-rk1;
 }
-
 

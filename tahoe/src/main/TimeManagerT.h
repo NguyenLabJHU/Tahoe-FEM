@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.h,v 1.2 2002-04-21 07:16:32 paklein Exp $ */
+/* $Id: TimeManagerT.h,v 1.2.2.2 2002-04-24 01:29:24 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _TIMEMANAGER_T_H_
@@ -10,7 +10,7 @@
 /* direct members */
 #include "StringT.h"
 #include "pArrayT.h"
-#include "LoadTime.h"
+#include "ScheduleT.h"
 #include "iAutoArrayT.h"
 #include "IOBaseT.h"
 #include "TimeSequence.h"
@@ -41,6 +41,9 @@ public:
 		  kExplicitCD = 5
 	};
 
+	/** stream extraction operator */
+	friend istream& operator>>(istream& in, TimeManagerT::CodeT& code);
+
 	/* constructor */
 	TimeManagerT(FEManagerT& FEM);
 
@@ -60,12 +63,16 @@ public:
 	bool DecreaseLoadStep(void);
 	bool IncreaseLoadStep(void);
 	
-	/* return a pointer to the specified LoadTime function */
-	LoadTime* GetLTf(int num) const;
-	double LoadFactor(int nLTf) const;
+	/* return a pointer to the specified ScheduleT function */
+
+	/** \name schedule information */
+	/*@{*/
+	int NumSchedule(void) const;
+	ScheduleT* Schedule(int num) const;
+	double ScheduleValue(int num) const;
+	/*@}*/
 
 	/* accessors */
-	int NumberOfLTf(void) const;
 	int SequenceNumber(void) const;
 	int NumSequences(void) const;
 			
@@ -85,10 +92,15 @@ public:
 	ControllerT* New_Controller(CodeT type) const;
 
 private:	
+
+	/** step cut status flags */
+	enum StatusT { kDecreaseStep =-1,
+                       kSameStep = 0,
+                   kIncreaseStep = 1};
 	
 	/* output functions */
 	void EchoTimeSequences(ifstreamT& in, ostream& out);
-	void EchoLoadTime(ifstreamT& in, ostream& out);
+	void EchoSchedule(ifstreamT& in, ostream& out);
 
 	/* increment the time and reset the load factors */
 	void IncrementTime(double dt);
@@ -105,7 +117,7 @@ private:
 	FEManagerT& theBoss;
 	
 	ArrayT<TimeSequence> fSequences;
-	pArrayT<LoadTime*>   fLTf;
+	pArrayT<ScheduleT*>  fSchedule;
 
 	/* copied from current sequence */
 	int	   fNumSteps;
@@ -143,7 +155,7 @@ inline const double& TimeManagerT::TimeStep(void) const { return fTimeStep; }
 inline const int& TimeManagerT::StepNumber(void) const { return fStepNum; }
 inline const int& TimeManagerT::NumberOfSteps(void) const { return fNumSteps; }
 
-inline int TimeManagerT::NumberOfLTf(void) const { return fLTf.Length() ; }
+inline int TimeManagerT::NumSchedule(void) const { return fSchedule.Length() ; }
 inline int TimeManagerT::SequenceNumber(void) const { return fCurrentSequence; }
 inline int TimeManagerT::NumSequences(void) const { return fSequences.Length(); }
 #endif /* _TIMEMANAGER_T_H_ */

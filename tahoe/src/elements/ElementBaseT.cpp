@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.15 2002-04-17 23:55:55 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.15.2.8 2002-06-02 20:28:47 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -10,54 +10,56 @@
 #include "ModelManagerT.h"
 #include "fstreamT.h"
 #include "Constants.h"
-#include "FEManagerT.h"
-#include "NodeManagerT.h"
+#include "FieldT.h"
 #include "LocalArrayT.h"
+#include "eControllerT.h"
 
 /* array behavior */
 const bool ArrayT<const RaggedArray2DT<int>*>::fByteCopy = true;
 
 /* constructor */
-ElementBaseT::ElementBaseT(FEManagerT& fe_manager):
-	fFEManager(fe_manager),
-	fNodes(NULL),
+ElementBaseT::ElementBaseT(const ElementSupportT& support, const FieldT& field):
+//	fFEManager(fe),
+	fSupport(support),
+	fField(field),
+//	fNodes(NULL),
 	fController(NULL),
-	fNumElemNodes(0),
-	fNumElemEqnos(0),
-	fNumElements(0),
+//	fNumElemNodes(0),
+//	fNumElemEqnos(0),
+//	fNumElements(0),
 	fElementCards(0),
 	fLHS(ElementMatrixT::kSymmetric)
 {
 	/* get pointer to the node manager */
-	fNodes  = fFEManager.NodeManager();
-	fNumSD  = fNodes->NumSD();
-	fNumDOF = fNodes->NumDOF(); // NOTE: won't be good for multi-physics
+//	fNodes  = fFEManager.NodeManager();
+//	fNumSD  = fNodes->NumSD();
+//	fNumDOF = fField.NumDOF(); // NOTE: won't be good for multi-physics
+//	fAnalysisCode = fFEManager.Analysis();
 
-	fAnalysisCode = fFEManager.Analysis();
+	/* just cast it */
+	fController = fSupport.eController(field);
 }
 
 /* destructor */
 ElementBaseT::~ElementBaseT(void) {	}
 
 /* run status */
-const GlobalT::StateT& ElementBaseT::RunState(void) const
-{ return fFEManager.RunState(); }
+//const GlobalT::StateT& ElementBaseT::RunState(void) const
+//{ return fFEManager.RunState(); }
 
 /* allocates space and reads connectivity data */
 void ElementBaseT::Initialize(void)
 {
 	/* set console variables */
-	int index = fFEManager.ElementGroupNumber(this) + 1;
+	int index = fSupport.ElementGroupNumber(this) + 1;
 	StringT name;
 	name.Append(index);
 	name.Append("_element_group");
 	iSetName(name);
-	iAddVariable("num_elements", *((const int*) &fNumElements));
-	iAddVariable("num_element_nodes", *((const int*) &fNumElemNodes));
 
 	/* streams */
-	ifstreamT& in = fFEManager.Input();
-	ostream&   out = fFEManager.Output();
+	ifstreamT& in = fSupport.Input();
+	ostream&   out = fSupport.Output();
 
 	/* control data */
 	PrintControlData(out);
@@ -66,32 +68,28 @@ void ElementBaseT::Initialize(void)
 	EchoConnectivityData(in, out);
 
 	/* dimension */
-	fLHS.Allocate(fNumElemEqnos);	
-	fRHS.Allocate(fNumElemEqnos);
+	int neq = NumElementNodes()*NumDOF();
+	fLHS.Allocate(neq);	
+	fRHS.Allocate(neq);
 }
 
-/*
-* Re-initialize: signal to element group that the global
-* equations numbers are going to be reset so that the group
-* has the opportunity to reconnect and should reinitialize
-* an dependencies on global equation numbers obtained from the
-* NodeManagerT.
+/* initial condition/restart functions
 *
-* NOTE: any memory allocated after initial construction (or since
-* the last Reinitialize) should be "shuffled down" at this point, ie.
-* reallocated and copied, to make room for the global stiffness
-* matrix.
-*/
-void ElementBaseT::Reinitialize(void)
+* Set to initial conditions.  The restart functions
+* should read/write any data that overrides the default
+* values */
+void ElementBaseT::InitialCondition(void)
 {
-	/* do nothing by default */
+	//do nothing
 }
 
 /* set the controller */
+#if 0
 void ElementBaseT::SetController(eControllerT* controller)
 {
 	fController = controller;
 }
+#endif
 
 /* form of tangent matrix - symmetric by default */
 GlobalT::SystemTypeT ElementBaseT::TangentType(void) const
@@ -102,7 +100,7 @@ GlobalT::SystemTypeT ElementBaseT::TangentType(void) const
 /* the iteration number for the current time increment */
 const int& ElementBaseT::IterationNumber(void) const
 {
-	return fFEManager.IterationNumber();
+	return ElementSupport().IterationNumber(Group());
 }
 
 /* solution calls */
@@ -111,19 +109,19 @@ void ElementBaseT::FormLHS(void)
 	try { LHSDriver(); }
 	catch (int error)
 	{
-		cout << "\n ElementBaseT::FormLHS: " << fFEManager.Exception(error);
+		cout << "\n ElementBaseT::FormLHS: " << fSupport.Exception(error);
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
-		cout << fFEManager.ElementGroupNumber(this) + 1 << ".\n";
+		cout << fSupport.ElementGroupNumber(this) + 1 << ".\n";
 		
 		if (fElementCards.InRange())
 		{
-			ostream& out = fFEManager.Output();
+			ostream& out = fSupport.Output();
 		
 			/* header */
 			out << "\n ElementBaseT::FormLHS: caught exception " << error << '\n';
-			out <<   "      Time: " << fFEManager.Time() << '\n';
-			out <<   "      Step: " << fFEManager.StepNumber() << '\n';
-			out <<   " Time step: " << fFEManager.TimeStep() << '\n';
+			out <<   "      Time: " << fSupport.Time() << '\n';
+			out <<   "      Step: " << fSupport.StepNumber() << '\n';
+			out <<   " Time step: " << fSupport.TimeStep() << '\n';
 		
 			/* write current element information to main out */
 			CurrElementInfo(out);
@@ -141,19 +139,19 @@ void ElementBaseT::FormRHS(void)
 	try { RHSDriver(); }
 	catch (int error)
 	{
-		cout << "\n ElementBaseT::FormRHS: " << fFEManager.Exception(error);
+		cout << "\n ElementBaseT::FormRHS: " << fSupport.Exception(error);
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
-		cout << fFEManager.ElementGroupNumber(this) + 1 << ".\n";
+		cout << fSupport.ElementGroupNumber(this) + 1 << ".\n";
 		
 		if (fElementCards.InRange())
 		{
-			ostream& out = fFEManager.Output();
+			ostream& out = fSupport.Output();
 		
 			/* header */
 			out << "\n ElementBaseT::FormRHS: caught exception " << error << '\n';
-			out <<   "      Time: " << fFEManager.Time() << '\n';
-			out <<   "      Step: " << fFEManager.StepNumber() << '\n';
-			out <<   " Time step: " << fFEManager.TimeStep() << '\n';
+			out <<   "      Time: " << fSupport.Time() << '\n';
+			out <<   "      Step: " << fSupport.StepNumber() << '\n';
+			out <<   " Time step: " << fSupport.TimeStep() << '\n';
 		
 			/* write current element information to main out */
 			CurrElementInfo(out);
@@ -169,12 +167,7 @@ void ElementBaseT::FormRHS(void)
 /* initialize/finalize time increment */
 void ElementBaseT::InitStep(void) { }
 void ElementBaseT::CloseStep(void) { }
-
-/* resets to the last converged solution */
-void ElementBaseT::ResetStep(void)
-{
-	/* do nothing by default */
-}
+void ElementBaseT::ResetStep(void) { }
 
 /* element level reconfiguration for the current solution */
 GlobalT::RelaxCodeT ElementBaseT::RelaxSystem(void)
@@ -197,7 +190,7 @@ void ElementBaseT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	for (int i = 0; i < fEqnos.Length(); i++)
 	{
 		/* get local equations numbers */
-		fNodes->SetLocalEqnos(*fConnectivities[i], fEqnos[i]);
+		fField.SetLocalEqnos(*fConnectivities[i], fEqnos[i]);
 
 		/* add to list of equation numbers */
 		eq_1.Append(&fEqnos[i]);
@@ -220,21 +213,13 @@ void ElementBaseT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 	ConnectsX(connects_1);
 }
 
+#if 0
 /* returns a pointer to the specified LoadTime function */
-LoadTime* ElementBaseT::GetLTfPtr(int num) const
+const ScheduleT* ElementBaseT::Schedule(int num) const
 {
-	return fFEManager.GetLTfPtr(num);
+	return fFEManager.Schedule(num);
 }
-
-/* initial condition/restart functions
-*
-* Set to initial conditions.  The restart functions
-* should read/write any data that overrides the default
-* values */
-void ElementBaseT::InitialCondition(void)
-{
-	//do nothing
-}
+#endif
 
 void ElementBaseT::ReadRestart(istream& in)
 {
@@ -255,11 +240,11 @@ void ElementBaseT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 {
 #if __option(extended_errorcheck)
 	if (nodes.Length() != DOFs.MajorDim() ||
-	    DOFs.MinorDim() != fNumDOF) throw eSizeMismatch;
+	    DOFs.MinorDim() != NumDOF()) throw eSizeMismatch;
 
 #endif
 
-	const dArray2DT& all_DOFs = fNodes->Displacements();
+	const dArray2DT& all_DOFs = fField[0]; // displacements
 	DOFs.RowCollect(nodes, all_DOFs); // no check of nodes used
 
 //NOTE - This function is added only for completeness. If the
@@ -270,9 +255,9 @@ void ElementBaseT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 /* block ID for the specified element */
 const StringT& ElementBaseT::ElementBlockID(int element) const
 {
-	if (element < 0 || element >= fNumElements) {
+	if (element < 0 || element >= NumElements()) {
 		cout << "\n ElementBaseT::ElementBlockID: element number " << element << " is out of range {0,"
-		    << fNumElements - 1 << "}" << endl;
+		    << NumElements() - 1 << "}" << endl;
 		throw eOutOfRange;
 	}
 	
@@ -294,15 +279,15 @@ const StringT& ElementBaseT::ElementBlockID(int element) const
 void ElementBaseT::WeightNodalCost(iArrayT& weight) const
 {
 	int base_weight = 1;
-
-	for (int i=0; i < fNumElements; i++)
-	  {
-	    const iArrayT& elemnodes = fElementCards[i].NodesX();
-	    int* p = elemnodes.Pointer();
-	    for (int n=0; n < elemnodes.Length(); n++)
-	      if (weight[*p] < base_weight) 
-		weight[*p] = base_weight;
-	  }
+	int nel = NumElements();
+	for (int i=0; i < nel; i++)
+	{
+		const iArrayT& elemnodes = fElementCards[i].NodesX();
+		int* p = elemnodes.Pointer();
+		for (int n=0; n < elemnodes.Length(); n++)
+			if (weight[*p] < base_weight) 
+				weight[*p] = base_weight;
+	}
 }
 
 /***********************************************************************
@@ -326,12 +311,12 @@ const LocalArrayT& ElementBaseT::SetLocalU(LocalArrayT& localarray)
 /* assembling the left and right hand sides */
 void ElementBaseT::AssembleRHS(void) const
 {
-	fFEManager.AssembleRHS(fRHS, CurrentElement().Equations());
+	fSupport.AssembleRHS(fField.Group(), fRHS, CurrentElement().Equations());
 }
 
 void ElementBaseT::AssembleLHS(void) const
 {
-	fFEManager.AssembleLHS(fLHS, CurrentElement().Equations());
+	fSupport.AssembleLHS(fField.Group(), fLHS, CurrentElement().Equations());
 }
 
 /* print element group data */
@@ -349,6 +334,18 @@ void ElementBaseT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	/* read */
 	ReadConnectivity(in, out);
 
+	/* derived dimensions */
+	int neq = NumElementNodes()*NumDOF();
+	fEqnos.Allocate(fBlockData.Length());
+	for (int be=0; be < fEqnos.Length(); be++)
+	  {
+	    int numblockelems = fConnectivities[be]->MajorDim();
+	    fEqnos[be].Allocate(numblockelems, neq);
+	  }
+
+	/* set pointers in element cards */
+	SetElementCards();
+
 	/* write */
 	WriteConnectivity(out);
 }
@@ -361,8 +358,8 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 	/* read from parameter file */
 	ArrayT<StringT> elem_ID;
 	iArrayT matnums;
-	ModelManagerT* model = fFEManager.ModelManager();
-	model->ElementBlockList(in, elem_ID, matnums);
+	ModelManagerT& model = fSupport.Model();
+	model.ElementBlockList(in, elem_ID, matnums);
 
 	/* allocate block map */
 	int num_blocks = elem_ID.Length();
@@ -376,7 +373,7 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 	{
 	    /* check number of nodes */
 	    int num_elems, num_nodes;
-	    model->ElementGroupDimensions(elem_ID[b], num_elems, num_nodes);
+	    model.ElementGroupDimensions(elem_ID[b], num_elems, num_nodes);
 	    
 	    /* set if unset */
 	    if (nen == 0) nen = num_nodes;
@@ -398,44 +395,39 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 	    elem_count += num_elems;
 
 	    /* load connectivity from database into model manager */
-	    model->ReadConnectivity(elem_ID[b]);
+	    model.ReadConnectivity(elem_ID[b]);
 
 	    /* set pointer to connectivity list */
-	    fConnectivities[b] = model->ElementGroupPointer(elem_ID[b]);
+	    fConnectivities[b] = model.ElementGroupPointer(elem_ID[b]);
 	}
+
+	/* connectivities came back empty */
+	if (nen == 0) nen = DefaultNumElemNodes();
+	for (int i = 0; i < fConnectivities.Length(); i++)
+		if (fConnectivities[i]->MinorDim() == 0)
+		{
+			/* not really violating const-ness */
+			iArray2DT* connects = const_cast<iArray2DT*>(fConnectivities[i]);
+			connects->Dimension(0, nen);
+		}
 	  
 	/* set dimensions */
-	fNumElements  = elem_count;
-	fNumElemNodes = nen;
-	
-	/* connectivity returned empty */
-	if (fNumElemNodes == 0) fNumElemNodes = DefaultNumElemNodes();
-
-	/* derived dimensions */	
-	fNumElemEqnos = fNumElemNodes*fNumDOF;
-	fEqnos.Allocate (num_blocks);
-	for (int be=0; be < num_blocks; be++)
-	  {
-	    int numblockelems = fConnectivities[be]->MajorDim();
-	    fEqnos[be].Allocate(numblockelems, fNumElemEqnos);
-	  }
-
-	/* set pointers in element cards */
-	SetElementCards();
+	fElementCards.Allocate(elem_count);
 }
 
 /* resolve output formats */
 void ElementBaseT::WriteConnectivity(ostream& out) const
 {	
-	out << " Number of elements. . . . . . . . . . . . . . . = " << fNumElements  << '\n';
+	out << " Number of elements. . . . . . . . . . . . . . . = " << NumElements() << '\n';
 
 	/* verbose output */
-	if (fFEManager.PrintInput())
+	if (fSupport.PrintInput())
 	{
 		/* write header */
 		out << setw(kIntWidth) << "no.";
 		out << setw(kIntWidth) << "mat.";
-		for (int j = 1; j <= ((fNumElemNodes < 9) ? fNumElemNodes : 8); j++)
+		int nen = NumElementNodes();
+		for (int j = 1; j <= ((nen < 9) ? nen : 8); j++)
 		{
 			int numwidth = (j < 10) ? 1 : ((j < 100) ? 2 : 3);		
 			out << setw(kIntWidth - (numwidth + 1)) << "n[";
@@ -444,8 +436,8 @@ void ElementBaseT::WriteConnectivity(ostream& out) const
 		out << endl;
 				
 		/* write material number and connectivity */
-		iArrayT nodesX(fNumElemNodes);
-		for (int i = 0; i < fNumElements; i++)
+		iArrayT nodesX(nen);
+		for (int i = 0; i < NumElements(); i++)
 		{
 			const ElementCardT& elcard = fElementCards[i];
 		
@@ -466,15 +458,15 @@ void ElementBaseT::WriteConnectivity(ostream& out) const
 * returns the number of nodes used by the element group */
 int ElementBaseT::MakeLocalConnects(iArray2DT& localconnects)
 {
-       int num_blocks = fBlockData.Length();
+	int num_blocks = fBlockData.Length();
 
-       iArrayT mins (num_blocks);
-       iArrayT maxes (num_blocks);
-       for (int i=0; i < fBlockData.Length(); i++)
-	 {
-	   mins[i] = fConnectivities[i]->Min();
-	   maxes[i] = fConnectivities[i]->Max();
-	 }
+	iArrayT mins (num_blocks);
+	iArrayT maxes (num_blocks);
+	for (int i=0; i < fBlockData.Length(); i++)
+	{
+		mins[i] = fConnectivities[i]->Min();
+		maxes[i] = fConnectivities[i]->Max();
+	}
 
 	/* compressed number range */
 	int min   = mins.Min();
@@ -486,12 +478,12 @@ int ElementBaseT::MakeLocalConnects(iArray2DT& localconnects)
 	/* determine used nodes */
 	node_map = 0;
 	for (int b=0; b < num_blocks; b++)
-	  {
-	    const iArray2DT* conn = fConnectivities[b];
-	    int *pc = conn->Pointer();
-	    for (int i = 0; i < conn->Length(); i++)
-	      node_map[*pc++ - min] = 1;
-	  }
+	{
+		const iArray2DT* conn = fConnectivities[b];
+		int *pc = conn->Pointer();
+		for (int i = 0; i < conn->Length(); i++)
+			node_map[*pc++ - min] = 1;
+	}
 
 	/* set node map */
 	int localnum = 0;
@@ -500,15 +492,15 @@ int ElementBaseT::MakeLocalConnects(iArray2DT& localconnects)
 		    node_map[j] = localnum++;
 
 	/* connectivities with local node numbering */
-	localconnects.Allocate(fNumElements, fNumElemNodes);
+	localconnects.Allocate(NumElements(), NumElementNodes());
 	int *plocal = localconnects.Pointer();
 	for (int b=0; b < num_blocks; b++)
-	  {
-	    const iArray2DT* conn = fConnectivities[b];
-	    int *pc = conn->Pointer();
-	    for (int i = 0; i < conn->Length(); i++)
-	      *plocal++ = node_map [*pc++ - min];
-	  }
+	{
+		const iArray2DT* conn = fConnectivities[b];
+		int *pc = conn->Pointer();
+		for (int i = 0; i < conn->Length(); i++)
+			*plocal++ = node_map [*pc++ - min];
+	}
 
 	return localnum;
 }
@@ -563,7 +555,7 @@ const ElementBlockDataT& ElementBaseT::BlockData(const StringT& block_ID) const
 	{
 		cout << "\n ElementBaseT::BlockData: block ID ";
 		cout << block_ID << " not found in\n";
-		cout <<   "     element group " << fFEManager.ElementGroupNumber(this) + 1;
+		cout <<   "     element group " << fSupport.ElementGroupNumber(this) + 1;
 		cout << ". Block data:\n";
 		cout << setw(12) << "ID"
 		     << setw(kIntWidth) << "start"
@@ -589,7 +581,7 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 {
 	if (!fElementCards.InRange()) return;
 	
-	out << "\n element group: " << fFEManager.ElementGroupNumber(this) + 1 << '\n';
+	out << "\n element group: " << fSupport.ElementGroupNumber(this) + 1 << '\n';
 	out << "\n element (in group): " << fElementCards.Position() + 1 << '\n';
 
 	/* block data */
@@ -597,12 +589,12 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 	const ElementBlockDataT& block_data = BlockData(block_ID);
 
 	/* model manager - block processor number */
-	ModelManagerT* model = fFEManager.ModelManager();
+	ModelManagerT& model = fSupport.Model();
 	iArrayT elem_map(block_data.Dimension());
-	model->ElementMap(block_ID, elem_map);
+	model.ElementMap(block_ID, elem_map);
 
 	/* block global number */
-	const iArrayT* global_map = fFEManager.ElementMap(block_ID);
+	const iArrayT* global_map = fSupport.ElementMap(block_ID);
 
 	/* report */
 	out << "\n element (in partition block): " << elem_map[fElementCards.Position()] << '\n';
@@ -612,7 +604,7 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 		out << " element (in global block): " << elem_map[fElementCards.Position()] << '\n';
 
 	/* node number map */
-	const iArrayT* node_map = fFEManager.NodeMap();
+	const iArrayT* node_map = fSupport.NodeMap();
 	iArrayT temp;
 
 	out <<   "\n connectivity(x):\n";
@@ -651,17 +643,17 @@ void ElementBaseT::SetElementCards(void)
   if (fConnectivities.Length() != fEqnos.Length())
     {
       cout << "ElementBaseT::SetElementCards length mismatch ";
-      cout << "\n           element group: " << fFEManager.ElementGroupNumber(this) + 1;      
+      cout << "\n           element group: " << fSupport.ElementGroupNumber(this) + 1;      
       cout << "\n fConnectivities length = " << fConnectivities.Length();
       cout << "\n          fEqnos length = " << fEqnos.Length() << endl;
       throw eSizeMismatch;
     }
 
 	/* allocate */
-	fElementCards.Allocate(fNumElements);
+	//fElementCards.Allocate(fNumElements);
 
 	/* loop over blocks to set pointers */
-	int numberofnodes = fNodes->NumNodes();
+	int numberofnodes = fField.NumNodes();
 	int count = 0;
 	for (int i = 0; i < fBlockData.Length(); i++)
 	{
@@ -673,7 +665,7 @@ void ElementBaseT::SetElementCards(void)
 		if (blockconn->MajorDim() != blockeqnos.MajorDim())
 		  {
 		    cout << "ElementBaseT::SetElementCards length mismatch ";
-		    cout << "\n   element group: " << fFEManager.ElementGroupNumber(this) + 1; 
+		    cout << "\n   element group: " << fSupport.ElementGroupNumber(this) + 1; 
 		    cout << "\n           block: " << i+1;
 		    cout << "\n  blockconn dim = " << blockconn->MajorDim() << " " << blockconn->MinorDim();
 		    cout << "\n blockeqnos dim = " << blockeqnos.MajorDim() << " " << blockeqnos.MinorDim() << endl;
@@ -700,7 +692,7 @@ void ElementBaseT::SetElementCards(void)
 				cout << "\n ElementBaseT::SetElementCards: nodes {" << min + 1
 				     << "," << max + 1 << "} in element " << dim + 1 << "\n";
 				cout <<   "     (" << j + 1 << " in block " <<  i + 1 << ") of group "
-				     << fFEManager.ElementGroupNumber(this) + 1 << " are out of range" << endl;
+				     << fSupport.ElementGroupNumber(this) + 1 << " are out of range" << endl;
 				throw eBadInputValue;
 			}
 

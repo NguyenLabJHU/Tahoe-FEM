@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.3 2001-09-15 01:18:15 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.3.4.3 2002-05-17 01:25:22 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 
 #ifndef _STRUCTURAL_MATERIALT_H_
@@ -18,7 +18,7 @@ class ifstreamT;
 class ElementBaseT;
 class dMatrixT;
 class ThermalDilatationT;
-class LoadTime;
+class ScheduleT;
 class dSymMatrixT;
 class LocalArrayT;
 class ElasticT;
@@ -50,6 +50,14 @@ public:
 	virtual const dMatrixT& C_IJKL(void) = 0;  /**< material tangent moduli */
 	virtual const dSymMatrixT& S_IJ(void) = 0; /**< 2nd Piola-Kirchhoff stress */
 
+	/** incremental heat generation. Associated with the stress calculated with the
+	 * most recent call to SolidMaterialT::s_ij or SolidMaterialT::S_IJ */
+	virtual double IncrementalHeat(void);
+	
+	/** return true if the material generates heat. The returns false unless 
+	 * overridden. */
+	virtual bool HasIncrementalHeat(void) const;
+
 	/** strain energy density */
 	virtual double StrainEnergyDensity(void) = 0;
 
@@ -76,7 +84,7 @@ public:
 	int ThermalStrainSchedule(void) const;
 
 	/** set the schedule for the prescribed temperature */
-	void SetThermalSchedule(const LoadTime* LTfPtr);
+	void SetThermalSchedule(const ScheduleT* LTfPtr);
 	
 	/** return the thermal expansion rate as a percentage */
 	double ThermalElongation(void) const;
@@ -115,8 +123,11 @@ private:
 
 	double fMassDamp;
 	double fStiffDamp;
-	
 };
+
+/* incremental heat generation */
+inline double SolidMaterialT::IncrementalHeat(void) { return 0.0; }
+inline bool SolidMaterialT::HasIncrementalHeat(void) const { return false; }
 
 /* returns the density */
 inline double SolidMaterialT::Density(void) const { return fDensity; }
@@ -127,8 +138,8 @@ inline double SolidMaterialT::StiffnessDamping(void) const { return fStiffDamp;}
 
 /* imposed thermal strains */
 inline int SolidMaterialT::HasThermalStrain(void) const { return fThermal->IsActive(); }
-inline int SolidMaterialT::ThermalStrainSchedule(void) const { return fThermal->LTfNumber(); }
-inline void SolidMaterialT::SetThermalSchedule(const LoadTime* LTfPtr) { fThermal->SetLTfPtr(LTfPtr); }
+inline int SolidMaterialT::ThermalStrainSchedule(void) const { return fThermal->ScheduleNum(); }
+inline void SolidMaterialT::SetThermalSchedule(const ScheduleT* LTfPtr) { fThermal->SetSchedule(LTfPtr); }
 inline double SolidMaterialT::ThermalElongation(void) const { return fThermal->PercentElongation(); }
 
 #endif /* _STRUCTURAL_MATERIALT_H_ */

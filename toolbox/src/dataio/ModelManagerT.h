@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.19 2002-03-04 06:37:17 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.19.2.1 2002-04-25 01:23:15 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -234,10 +234,11 @@ class ModelManagerT
   void CoordinateDimensions (int& length, int& dof) const;
 
   /** return a reference to the coordinate array, whether it is filled or empty */
-  const dArray2DT& CoordinateReference (void) const;
+//  const dArray2DT& CoordinateReference (void) const;
+//TEMP - this is not a good idea
 
   /** read the coordinate array if not yet read from the model file and returns a reference to the array */
-  const dArray2DT& Coordinates (void);
+  const dArray2DT& Coordinates(void);
   
   /** reads the coordinate array if not yet read from the model file, no return accessor */
   void ReadCoordinates (void);

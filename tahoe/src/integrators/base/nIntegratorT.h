@@ -1,4 +1,4 @@
-/* $Id: nIntegratorT.h,v 1.3 2002-04-02 23:19:22 paklein Exp $ */
+/* $Id: nIntegratorT.h,v 1.3.2.2 2002-04-24 01:29:21 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _N_CONTROLLERT_H_
@@ -12,6 +12,7 @@
 #include "ArrayT.h"
 
 /* forward declarations */
+class BasicFieldT;
 class dArray2DT;
 class iArray2DT;
 class dArrayT;
@@ -27,11 +28,8 @@ class nIntegratorT: virtual public IntegratorT
 {
 public:
 
-	/** constructor.
-	 * \param order number of time derivatives needed for the field.
-	 *        order must be >= 0. The zero-th order field is always
-	 *        assumed to exist. */
-	nIntegratorT(int order);
+	/** constructor */
+	nIntegratorT(void);
 
 	/** destructor */
 	virtual ~nIntegratorT(void);
@@ -42,47 +40,35 @@ public:
 	 * degrees of freeom from the local "active" set. */
 	virtual KBC_CardT::CodeT ExternalNodeCondition(void) const = 0;
 
-	/** register field array.
-	 * \param field array of field variables
-	 * \param order specifies which order time derivative is being
-	 *        registered. */
-	void RegisterField(dArray2DT& field, int order);
-
 	/** predictor. Maps ALL degrees of freedom forward. */
-	virtual void Predictor(void) = 0;
+	virtual void Predictor(BasicFieldT& field) = 0;
 
 	/** corrector. Maps only the ACTIVE degrees of freedom forward.
 	 * \param eqnos equations for the degrees of freedom of every node
 	 * \param update vector of updates to the active degrees of freedom 
-	 * \param eq_start lowest equation number to consider \a active.
-	 * \param eq_stop highest equation number to consider \a active. */
-	virtual void Corrector(const iArray2DT& eqnos, const dArrayT& update,
-		int eq_start, int eq_stop) = 0;
+	 * \param eq_start lowest equation number to consider \a active
+	 * \param num_eq number of \a active equations beginning with eq_start */
+	virtual void Corrector(BasicFieldT& field, const dArrayT& update, int eq_start, 
+		int num_eq) = 0;
 
 	/** apply corrector to active equations with a node number map.
 	 * \param map list of nodes corresponding to the rows of eqnos and update 
-	 * \param eqnos equations for the degrees of freedom of every node
-	 * \param update updates to the nodal field data
-	 * \param eq_start lowest equation number to consider \a active.
-	 * \param eq_stop highest equation number to consider \a active. */
-	virtual void MappedCorrector(const iArrayT& map, const iArray2DT& eqnos,
-		const dArray2DT& update, int eq_start, int eq_stop) = 0;
+	 * \param flags flags marking the active equations of every node in \e map.
+	 *        flags > 0 are considered active.
+	 * \param update updates to the nodal field data */
+	virtual void MappedCorrector(BasicFieldT& field, const iArrayT& map, 
+		const iArray2DT& flags, const dArray2DT& update) = 0;
 
 	/** return the field array needed by nIntegratorT::MappedCorrector. */
-	virtual const dArray2DT& MappedCorrectorField(void) const = 0;
+	virtual const dArray2DT& MappedCorrectorField(BasicFieldT& field) const = 0;
 	
 	/** prescribe the field and derivatives consistent BC's */
-	virtual void ConsistentKBC(const KBC_CardT& KBC) = 0;
+	virtual void ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC) = 0;
 
 protected:  	
 	
 	/** recalculate time stepping constants */
 	virtual void nComputeParameters(void) = 0;
-	
-protected:
-
-	/** field data and derivatives */
-	ArrayT<dArray2DT*> fU;
 };
 
 #endif /* _N_CONTROLLERT_H_ */

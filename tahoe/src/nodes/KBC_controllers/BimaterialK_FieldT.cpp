@@ -1,4 +1,4 @@
-/* $Id: BimaterialK_FieldT.cpp,v 1.5 2002-02-11 18:48:20 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.cpp,v 1.5.2.3 2002-04-30 01:30:21 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #include "BimaterialK_FieldT.h"
@@ -33,12 +33,12 @@ void BimaterialK_FieldT::Initialize(ifstreamT& in)
 
 	/* K1 */
 	in >> fnumLTf1 >> fK1; fnumLTf1--;
-	fLTf1 = fNodeManager.GetLTfPtr(fnumLTf1);	
+	fLTf1 = fNodeManager.Schedule(fnumLTf1);	
 	if (!fLTf1) throw eBadInputValue;
 
 	/* K2 */
 	in >> fnumLTf2 >> fK2; fnumLTf2--;
-	fLTf2 = fNodeManager.GetLTfPtr(fnumLTf2);	
+	fLTf2 = fNodeManager.Schedule(fnumLTf2);	
 	if (!fLTf2) throw eBadInputValue;
 
 	/* coordinates of the crack tip */

@@ -1,7 +1,4 @@
-/* $Id: CrystalElast.cpp,v 1.4 2002-03-26 17:48:16 paklein Exp $ */
-/*
-  File: CrystalElast.cpp
-*/
+/* $Id: CrystalElast.cpp,v 1.4.2.1 2002-04-29 17:22:12 paklein Exp $ */
 
 #include "CrystalElast.h"
 #include "CrystalElastMat.h"
@@ -9,7 +6,6 @@
 #include "Utils.h"
 
 #include "FDStructMatT.h"
-#include "FEManagerT.h"
 #include "FiniteStrainT.h"
 #include "StringT.h"
 

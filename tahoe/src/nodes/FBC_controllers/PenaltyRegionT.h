@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.h,v 1.2 2001-09-11 06:00:49 paklein Exp $ */
+/* $Id: PenaltyRegionT.h,v 1.2.4.3 2002-04-26 02:24:24 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #ifndef _PENALTY_REGION_T_H_
@@ -15,7 +15,7 @@
 #include "dMatrixT.h"
 
 /* forward declarations */
-class LoadTime;
+class ScheduleT;
 
 /** base class for moving rigid, penalty regions. contact nodes
  * that enter the region are expelled by a quadratic penetration
@@ -34,7 +34,7 @@ public:
 			};
 
 	/* constructor */
-	PenaltyRegionT(FEManagerT& fe_manager, const iArray2DT& eqnos,
+	PenaltyRegionT(FEManagerT& fe_manager, int group, const iArray2DT& eqnos,
 		const dArray2DT& coords, const dArray2DT* vels);
 
 	/* input processing */
@@ -42,7 +42,6 @@ public:
 
 	/* initialize data */
 	virtual void Initialize(void);
-	virtual void Reinitialize(void);
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -80,35 +79,41 @@ private:
 
 protected:
 
-	/* references to NodeManagerT data */
+	/** \name references to NodeManagerT data */
+	/*@{*/
 	const iArray2DT& rEqnos;  /**< nodal equation numbers */
 	const dArray2DT& rCoords; /**< nodal coordinates */
 	const dArray2DT* pVels;   /**< nodal velocities */
+	/*@}*/
 
-	/* wall input parameters */
-	dArrayT fx0;             // initial position
-	dArrayT fv0;             // initial velocity
-	double fk;               // penalty stiffness
-	int	   fSlow;            // 1 if the region slows from collisions
-	double fMass;            // mass of the region
-	LoadTime* fLTf;          // NULL if there is no time dependence
-	int    fNumContactNodes; // number of contact nodes
+	/** \name wall input parameters */
+	/*@{*/
+	dArrayT fx0;             /**< initial position */
+	dArrayT fv0;             /**< initial velocity */
+	double fk;               /**< penalty stiffness */
+	int	   fSlow;            /**< 1 if the region slows from collisions */
+	double fMass;            /**< mass of the region */
+	const ScheduleT* fLTf;   /**< NULL if there is no time dependence */
+	int    fNumContactNodes; /**< number of contact nodes */
+	/*@}*/
 
-	/* state variables */
-	double  fh_max; // maximum penetration distance
-	dArrayT fx;     // position
-	dArrayT fv;     // velocity
-	dArrayT fxlast; // last converged position
-	dArrayT fvlast; // last converged velocity
+	/** \name state variables */
+	/*@{*/
+	double  fh_max; /**< maximum penetration distance */
+	dArrayT fx;     /**< position */
+	dArrayT fv;     /**< velocity */
+	dArrayT fxlast; /**< last converged position */
+	dArrayT fvlast; /**< last converged velocity */
+	/*@}*/
 
-	/* contact force node and equation numbers */
+	/** \name contact force node and equation numbers */
+	/*@{*/
 	iArrayT fContactNodes;
 	iArrayT fContactEqnos;
-	dArrayT fContactForce; // shallow version of fContactForce2D
+	dArrayT fContactForce;     /**< shallow version of fContactForce2D */
+	dArray2DT fContactForce2D; /**< dArray2DT copy of the force */
+	/*@}*/
 
-	/* dArray2DT copy of the force */
-	dArray2DT fContactForce2D;
-	
 	/* workspace */
 	dArrayT fTempNumNodes; // temp space length = fNumContactNodes
 };

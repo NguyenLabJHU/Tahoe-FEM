@@ -1,17 +1,16 @@
-/* $Id: ACME_Contact3DT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
-/* created: paklein (10/15/2000)                                          */
+/* $Id: ACME_Contact3DT.cpp,v 1.1.1.1.8.1 2002-04-29 17:20:43 paklein Exp $ */
+/* created: paklein (10/15/2000) */
 
 #include "ACME_Contact3DT.h"
+#include "ElementSupportT.h"
 
 /* library support options */
 #ifdef __ACME__
-#include "FEManagerT.h"
-#include "NodeManagerT.h"
 #include "fstreamT.h"
 
 /* constructor */
-ACME_Contact3DT::ACME_Contact3DT(FEManagerT& fe_manager):
-	PenaltyContact3DT(fe_manager),
+ACME_Contact3DT::ACME_Contact3DT(const ElementSupportT& support, const FieldT& field):
+	PenaltyContact3DT(support, field),
 	fContactSearch(NULL)
 {
 
@@ -30,7 +29,7 @@ void ACME_Contact3DT::Initialize(void)
 	PenaltyContact3DT::Initialize();
 
 	/* write ACME version to output */
-	ostream& out = fFEManager.Output();
+	ostream& out = ElementSupport().Output();
 	out << " ACME version number . . . . . . . . . . . . . . = "
 	    << fContactSearch->Version() << '\n';
 }
@@ -126,7 +125,7 @@ void ACME_Contact3DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	StrikersFromSurfaces();
 
 	/* echo */
-	if (fFEManager.PrintInput())
+	if (ElementSupport().PrintInput())
 	{
 		out << "\n Striker nodes:\n";
 		fStrikerTags++;
