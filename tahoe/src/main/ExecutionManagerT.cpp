@@ -1,7 +1,5 @@
-/* $Id: ExecutionManagerT.cpp,v 1.3 2001-05-16 23:02:57 paklein Exp $ */
-/* created: paklein (08/27/1997)                                          */
-/* Manages input file driven jobs.                                        */
-/* MUST overload private:RunJob().                                        */
+/* $Id: ExecutionManagerT.cpp,v 1.4 2002-01-03 19:10:28 paklein Exp $ */
+/* created: paklein (08/27/1997) */
 
 #include "ExecutionManagerT.h"
 
@@ -112,7 +110,7 @@ void ExecutionManagerT::Run_serial(void)
 		{
 			/* prompt for input filename and open stream */
 			ifstreamT input('#');
-			if (!input.open("Enter input file name", "quit", lastfilename)) break;
+			if (!OpenWithPrompt("Enter input file name or command line option", "quit", lastfilename, input)) break;
 			
 			/* keep last file name */
 			lastfilename = input.filename();
@@ -207,24 +205,30 @@ bool ExecutionManagerT::CommandLineOption(const char* str, int& index) const
 	return false;
 }
 
-void ExecutionManagerT::AddCommandLineOption(const char* str)
+bool ExecutionManagerT::AddCommandLineOption(const char* str)
 {
 	/* only if not present */
 	int index;
 	if (!CommandLineOption(str, index))
 	{
-		int num_options = fCommandLineOptions.Length();
-	
-		ArrayT<StringT> temp(num_options + 1);
-		for (int i = 0; i < num_options; i++)
-			temp[i] = fCommandLineOptions[i];
-	
-		/* add new */
-		temp[num_options] = str;
-		
-		/* exhange data */
-		fCommandLineOptions.Swap(temp);
+		/* append */
+		fCommandLineOptions.Append(str);
+		return true;
 	}
+	else return false;
+}
+
+bool ExecutionManagerT::RemoveCommandLineOption(const char* str)
+{
+	/* only if not present */
+	int index;
+	if (CommandLineOption(str, index))
+	{
+		/* append */
+		fCommandLineOptions.DeleteAt(index);
+		return true;
+	}
+	else return false;
 }
 
 /**********************************************************************
@@ -321,4 +325,86 @@ void ExecutionManagerT::RunBatch(ifstreamT& in, ostream& status)
 	time(&stoptime);
 	cout << "\n Batch start time  : " << ctime(&starttime);
 	cout <<   " Batch stop time   : " << ctime(&stoptime);
+}
+
+/* open stream with prompt - return 1 if successful */
+int ExecutionManagerT::OpenWithPrompt(const char* prompt, const char* skipname,
+	const char* defaultname, ifstreamT& in)
+{
+	StringT newfilename;
+	int maxtry = 20;
+	int count  = 0;
+	while (1)
+	{
+		cout << '\n' << prompt << "\n(\"" << skipname << "\" to exit";
+
+		/* default */
+		if (defaultname != NULL && strlen(defaultname) > 0)
+		{
+			cout << ", <RETURN> for \"" << defaultname << "\"): ";
+#ifdef __SGI__
+			cout.flush();
+#endif
+			
+			/* new filename */
+			char test = cin.peek();
+			if (test != '\n')
+			{
+				/* take first word */
+				cin >> newfilename;
+			}
+			else
+			{
+				/* copy default */
+				newfilename = defaultname;
+			}				
+		}
+		else
+		{
+			cout << "): ";
+#ifdef __SGI__
+			cout.flush();
+#endif					
+			cin >> newfilename;
+		}
+		
+		/* clear to end of line */
+		char line[255];
+		cin.getline(line, 254);
+
+		/* check exit */
+		if (strcmp(newfilename, skipname) == 0)
+			return 0;
+		/* check program option */
+		else if (newfilename[0] == '-')
+		{
+			AddCommandLineOption(newfilename);
+		}	
+		/* attempt open file */
+		else
+		{
+			/* convert to native path */
+			newfilename.ToNativePathName();
+		
+			/* attempt open */
+			in.open(newfilename);
+			
+			/* check file open */
+			if (in.is_open())
+				return 1;	
+			else
+			{
+				cout << "\nError: filename: " << newfilename << " not found\n";
+				in.clear();
+			}
+			
+			/* could not find file */
+			if (++count == maxtry)
+			{
+				cout << "\n ExecutionManagerT::OpenInputStream: could not find file after ";
+				cout << maxtry << " iterations" << endl;
+				throw eGeneralFail;
+			}
+		}
+	}	
 }

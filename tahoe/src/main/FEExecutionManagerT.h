@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.2 2001-07-19 06:48:06 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.3 2002-01-03 19:10:28 paklein Exp $ */
 /* created: paklein (09/21/1997)                                          */
 /* Manager for file driven finite element simulations                     */
 
@@ -31,57 +31,61 @@ public:
 
 protected:
 
-	/* overloaded */
+	/** add the command line option to the list. \returns true if the option was
+	 * added, false otherwise. */
+	virtual bool AddCommandLineOption(const char* str);
+
+	/** overloaded */
 	virtual void RunJob(ifstreamT& in, ostream& status);
 
 private:
 
-	/* standard serial driver */
+	/** standard serial driver */
 	void RunJob_serial(ifstreamT& in, ostream& status) const;
 	
-	/* parallel driver */
+	/** parallel driver */
 	void RunJob_parallel(ifstreamT& in, ostream& status) const;
 
-	/* generate decomposition files */
+	/** generate decomposition files */
 	void RunDecomp_serial(ifstreamT& in, ostream& status) const;
 
-	/* join parallel results files */
+	/** join parallel results files */
 	void RunJoin_serial(ifstreamT& in, ostream& status) const;
 
-	/* print message on exception */
+	/** print message on exception */
 	void Rewind(ifstreamT& in, ostream& status) const;
 
-	/* extract the model file name from the stream */
+	/** extract the model file name from the stream */
 	void GetModelFile(ifstreamT& in, StringT& model_file,
 		IOBaseT::FileTypeT& format) const;
 
-	/* generate decomposition data */
+	/** generate decomposition data */
 	void Decompose(ifstreamT& in, int size, const StringT& model_file,
 		const StringT& global_model_file, IOBaseT::FileTypeT format,
-		const StringT& output_map_file, int method) const;
+		const StringT& output_map_file) const;
 
-	/* returns true if a new decomposition is needed */
+	/** returns true if a new decomposition is needed */
 	bool NeedDecomposition(ifstreamT& in, const StringT& model_file,
 		int size) const;
 
-	/* returns true if the global output model file is not found */
+	/** returns true if the global output model file is not found */
 	bool NeedModelFile(const StringT& model_file, IOBaseT::FileTypeT format) const;
 
-	/* returns true if a new decomposition is needed */
+	/** returns true if a new decomposition is needed */
 	bool NeedOutputMap(ifstreamT& in, const StringT& map_file,
 		int size) const;
 	void ReadOutputMap(ifstreamT& in, const StringT& map_file,
 		iArrayT& map) const;
 
-	/* set output map based on length of map */
+	/** set output map based on length of map */
 	void SetOutputMap(const ArrayT<OutputSetT*>& output_sets,
 		iArrayT& output_map, int size) const;
 
-	/* construct and return the local IOManager */
+	/** construct and return the local IOManager */
 	IOManager* NewLocalIOManager(const FEManagerT* global_FEman,
 		const iArrayT& output_map) const;
 		
-	/* write partial geometry files */
+	/** write partial geometry files */
 	void EchoPartialGeometry(const PartitionT& partition, const StringT& model_file,
 		const StringT& partial_file, IOBaseT::FileTypeT format) const;
 	void EchoPartialGeometry_ExodusII(const PartitionT& partition,
