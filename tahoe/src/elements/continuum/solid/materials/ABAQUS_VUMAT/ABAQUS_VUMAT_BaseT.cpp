@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.10 2002-06-27 22:39:47 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.11 2002-06-27 23:38:13 paklein Exp $ */
 
 #include "ABAQUS_VUMAT_BaseT.h"
 
@@ -12,6 +12,8 @@
 
 #include "SpectralDecompT.h"
 #include "ThermalDilatationT.h"
+
+#define VUMAT_DEBUG 0
 
 /* constructor */
 ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FiniteStrainT& element):
@@ -116,7 +118,7 @@ ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FiniteStrainT& elem
 	if (!fDecomp) throw eOutOfMemory;
 
 //DEBUG
-#if 1
+#if VUMAT_DEBUG
 flog.open("VUMAT.log");
 flog.precision(DBL_DIG);
 flog.setf(ios::showpoint);
@@ -829,10 +831,8 @@ void ABAQUS_VUMAT_BaseT::Call_VUMAT(double t, double dt, int step, int iter)
 	doublereal* statevnew = fstatv.Pointer();           // o: This is the state variable array to be updated
 
 //DEBUG
+#if VUMAT_DEBUG
 int d_width = OutputWidth(flog, fstress.Pointer());
-if (true)
-//if (CurrIP() == 0 && (step == 1 || step == 26))
-{
 flog << " THE INPUT\n";
 flog << setw(10) << "time:" << setw(d_width) << time[0]  << '\n';
 flog << setw(10) << " stress: " << fstress.no_wrap() << '\n';
@@ -840,7 +840,7 @@ flog << setw(10) << " strain: " << fstrain.no_wrap() << '\n';
 flog << setw(10) << "dstrain: " << fdstran.no_wrap() << '\n';
 flog << setw(10) << "  state:\n";
 flog << fstatv.wrap(5) << '\n';
-}
+#endif
 //DEBUG
 
 	/* call VUMAT wrapper */
@@ -850,14 +850,12 @@ flog << fstatv.wrap(5) << '\n';
        &enerInternNew, &enerInelasNew);
  
 //DEBUG
-if (true)
-//if (false && CurrIP() == 0 && (step == 1 || step == 26))
-{
+#if VUMAT_DEBUG
 flog << " THE OUTPUT\n";
 flog << setw(10) << " stress: " << fstress.no_wrap() << '\n';
 flog << setw(10) << " state:\n" << '\n';
 flog << fstatv.wrap(5) << endl;
-}
+#endif
 //DEBUG
 
 	/* update strain */
