@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.19 2004-02-17 18:00:50 cjkimme Exp $ */
+/* $Id: FieldT.h,v 1.20 2004-05-06 18:54:44 cjkimme Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -226,9 +226,17 @@ public:
 	/** collect equation numbers. Connectivities are passed in a RaggedArray2DT, 
 	 * which allows an arbitrary number of nodes per element.
 	 * \param nodes element connectivities: [nel] x [nen_i]
-	 * \param eqnos destination for equation numbers: [nel] x [nen_i*ndof] */
+	 * \param eqnos destination for equation numbers: [nel] x [nen_i*n_dof] */
 	void SetLocalEqnos(const RaggedArray2DT<int>& nodes, RaggedArray2DT<int>& eqnos) const;
-
+	
+	/** collect equation numbers for specific dofs specified for each row of the array. 
+	 * Connectivities are passed in a RaggedArray2DT, 
+	 * which allows an arbitrary number of nodes per element.
+	 * \param nodes element connectivities: [nel] x [nen_i]
+	 * \param eqnos destination for equation numbers: [nel] x [nen_i] */
+	void SetLocalEqnos(const RaggedArray2DT<int>& nodes, RaggedArray2DT<int>& eqnos, const iArrayT& which_dofs) const;
+	
+	
 	/** collect equation numbers. Connectivities are passed in a LinkedListT
 	 * which allows an arbitrary number of nodes per element. 
 	 * \param nodes element connectivities: [nel] x [nen_i]
