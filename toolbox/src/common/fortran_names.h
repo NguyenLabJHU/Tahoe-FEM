@@ -1,4 +1,4 @@
-/* $Id: fortran_names.h,v 1.7 2004-11-12 20:58:32 paklein Exp $ */
+/* $Id: fortran_names.h,v 1.8 2004-12-19 17:48:19 paklein Exp $ */
 #ifndef _FORTRAN_NAMES_H_
 #define _FORTRAN_NAMES_H_
 /*
@@ -34,8 +34,8 @@
 #elif defined(__DEC__)
 #define FORTRAN_NAME(n_)	n_ ## _
 
-/* AIX - no mangling */
-#elif defined(__AIX__)
+/* IBM XL compilers - no mangling */
+#elif defined(__AIX__) || defined(__XL__)
 #define FORTRAN_NAME(n_)	n_
 
 /* Intel compilers */
