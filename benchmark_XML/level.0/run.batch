@@ -1,7 +1,8 @@
 @
-# $Id: run.batch,v 1.5 2004-03-28 09:41:14 paklein Exp $
+# $Id: run.batch,v 1.6 2004-03-30 07:40:41 paklein Exp $
 2D.elastostatic/run.batch
 2D.elastodynamic/run.batch
 3D.elastostatic/run.batch
 3D.elastodynamic/run.batch
 diffusion/run.batch
+coupled/run.batch
