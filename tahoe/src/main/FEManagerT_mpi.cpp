@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.20 2002-08-21 22:32:11 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.21 2002-09-10 13:43:56 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -502,6 +502,58 @@ void FEManagerT_mpi::SendRecvExternalData(const iArray2DT& all_out_data,
 		}
 	}
 #endif
+}
+
+/* return the local node to processor map */
+void FEManagerT_mpi::NodeToProcessorMap(const iArrayT& node, iArrayT& processor) const
+{
+	/* initialize */
+	processor.Dimension(node);
+	processor = -1;
+	
+	/* empty list */
+	if (node.Length() == 0) return;
+	
+	/* no parition data */
+	if (!fPartition) {
+		processor = Rank();
+		return;
+	}
+	
+	/* range of node numbers */
+	int shift, max;
+	node.MinMax(shift, max);
+	int range = max - shift + 1;
+
+	/* node to index-in-node-array map */
+	iArrayT index(range);
+	index = -1;
+	for (int i = 0; i < range; i++)
+		index[node[i] - shift] = i;
+	
+	/* mark external */
+	const iArrayT& comm_ID = Partition().CommID();
+	for (int i = 0; i < comm_ID.Length(); i++)
+	{	
+		int proc = comm_ID[i];
+		const iArrayT* comm_nodes = Partition().NodesIn(proc);
+		if (!comm_nodes) throw eGeneralFail;
+		for (int j = 0; j < comm_nodes->Length(); j++)
+		{
+			int nd = (*comm_nodes)[j] - shift;
+			if (nd > -1 && nd < range) /* in the list range */
+			{
+				int dex = index[nd];
+				if (dex != -1) /* in the list */
+					processor[dex] = proc;
+			}
+		}
+	}
+	
+	/* assume all others are from this proc */
+	int rank = Rank();
+	for (int i = 0; i < range; i++)
+		if (processor[i] == -1) processor[i] = rank;
 }
 
 void FEManagerT_mpi::Wait(void)
