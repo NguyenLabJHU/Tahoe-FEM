@@ -1,6 +1,8 @@
-/* $Id: MFGP_SSSolidMatList3DT.cpp,v 1.1 2004-10-28 06:02:45 raregue Exp $ */
+/* $Id: MFGP_SSSolidMatList3DT.cpp,v 1.2 2004-10-29 01:32:37 paklein Exp $ */
 #include "MFGP_SSSolidMatList3DT.h"
 #include "SSMatSupportT.h"
+
+#include "DevelopmentMaterialsConfig.h"
 
 #include "SSKStV.h"
 #include "SSCubicT.h"
