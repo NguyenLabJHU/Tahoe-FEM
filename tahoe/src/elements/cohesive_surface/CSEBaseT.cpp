@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.3 2001-02-27 00:09:54 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.4 2001-03-19 22:25:43 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 
 #include "CSEBaseT.h"
@@ -338,8 +338,11 @@ void CSEBaseT::SendOutput(int kincode)
 	/* reset averaging workspace */
 	fNodes->ResetAverage(n_counts.Sum());
 
+	/* set flags for no element output */
+	iArrayT e_counts(fElementOutputCodes.Length());
+	e_counts = 0;
+
 	/* generate nodal values */
-	iArrayT e_counts;
 	dArray2DT e_values, n_values;
 	ComputeOutput(n_counts, n_values, e_counts, e_values);
 }
