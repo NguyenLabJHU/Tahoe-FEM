@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:08 paklein Exp $
+# $Id: makefile,v 1.5 2002-06-27 23:54:30 hspark Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -25,6 +25,7 @@ SUB_DIR = \
 	explicitCD \
 	HHT \
 	static \
+	verlet \
 	trapezoid
 subdir_driver: subdir_loop
 # SUB_DIR is empty
