@@ -1,4 +1,4 @@
-/* $Id: ParameterUtils.h,v 1.7 2004-04-07 15:31:47 paklein Exp $ */
+/* $Id: ParameterUtils.h,v 1.8 2004-05-21 19:45:01 paklein Exp $ */
 #ifndef _PARAMETER_UTILS_H_
 #define _PARAMETER_UTILS_H_
 
@@ -271,8 +271,8 @@ public:
 
 	/** \name constructors */
 	/*@{*/
-	VectorParameterT(const StringT& name, int dim);
-	VectorParameterT(int dim = 0);
+	VectorParameterT(const StringT& name, char variable, int dim);
+	VectorParameterT(char variable, int dim);
 	
 	/** construct extracting length from the name
 	 * \param name_N name of the vector parameter list where N is an integer
@@ -299,6 +299,9 @@ public:
 
 protected:
 
+	/** component names */
+	char fVariable;
+
 	/** values */
 	dArrayT fVector;
 };
@@ -310,8 +313,8 @@ public:
 
 	/** \name constructors */
 	/*@{*/
-	MatrixParameterT(const StringT& name, int row, int col);
-	MatrixParameterT(int row, int col);
+	MatrixParameterT(const StringT& name, char variable, int row, int col);
+	MatrixParameterT(char variable, int row, int col);
 
 	/** construct extracting dimensions from the name
 	 * \param name_NxM name of the matrix parameter list where N and M are the
@@ -337,6 +340,9 @@ public:
 	static void Extract(const ParameterListT& list, dMatrixT& matrix);
 
 protected:
+
+	/** component names */
+	char fVariable;
 
 	/** values */
 	dMatrixT fMatrix;
