@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.cpp,v 1.14 2004-03-04 08:54:29 paklein Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.14.12.1 2004-05-13 16:41:46 paklein Exp $ */
 /* created: paklein (12/08/1999) */
 #include "MLSSolverT.h"
 
@@ -74,18 +74,32 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 		}
 		case MeshFreeT::kBrick:
 		{
-			dArrayT scalings(fNumSD, window_params.Pointer());
-			double sharpening_factor = window_params[fNumSD];
-			double cut_off_factor = window_params[fNumSD+1];
+			/* one per direction */
+			dArrayT scalings(fNumSD);
+			for (int i = 0; i < fNumSD; i++)
+				scalings[i] = window_params[i*3];
+
+			/* same for all directions */
+			double sharpening_factor = window_params[1];
+			double    cut_off_factor = window_params[2];
+
+			/* construct window function */
 			fWindow = new RectGaussianWindowT(scalings, sharpening_factor, cut_off_factor);
 			if (!fWindow) throw ExceptionT::kGeneralFail;
 			break;
 		}
 		case MeshFreeT::kRectCubicSpline:
 		{
-			dArrayT scalings(fNumSD, window_params.Pointer());
-			double sharpening_factor = window_params[fNumSD];
-			double cut_off_factor = window_params[fNumSD+1];
+			/* one per direction */
+			dArrayT scalings(fNumSD);
+			for (int i = 0; i < fNumSD; i++)
+				scalings[i] = window_params[i*3];
+
+			/* same for all directions */
+			double sharpening_factor = window_params[1];
+			double    cut_off_factor = window_params[2];
+
+			/* construct window function */
 			fWindow = new RectCubicSplineWindowT(scalings, sharpening_factor, cut_off_factor);
 			if (!fWindow) throw ExceptionT::kGeneralFail;
 			break;
