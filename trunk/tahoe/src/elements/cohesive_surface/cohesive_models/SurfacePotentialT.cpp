@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.cpp,v 1.5 2001-11-14 00:55:29 cjkimme Exp $ */
+/* $Id: SurfacePotentialT.cpp,v 1.6 2001-11-14 02:14:32 paklein Exp $ */
 /* created: paklein (06/20/1999) */
 
 #include "SurfacePotentialT.h"
@@ -69,11 +69,13 @@ int SurfacePotentialT::NodalQuantityNeeded(void)
 double SurfacePotentialT::ComputeNodalValue(const dArrayT& nodalRow)
 {
 #pragma unused(nodalRow)
+	return 0.0;
 }
 
 void SurfacePotentialT::UpdateStateVariables(const dArrayT& IPdata, ArrayT<double>& state)
 {
-#pragma unused(IPdatastate);
+#pragma unused(IPdata)
+#pragma unused(state)
 }
 
 
