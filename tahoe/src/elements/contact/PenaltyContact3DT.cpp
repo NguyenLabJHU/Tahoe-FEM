@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.13 2004-07-15 08:26:08 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.14 2005-03-12 08:38:09 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 #include "PenaltyContact3DT.h"
 
@@ -221,6 +221,9 @@ void PenaltyContact3DT::RHSDriver(void)
 	int num_contact = 0;
 	double h_max = 0.0;
 
+	/* clear force */
+	fStrikerForce2D = 0.0;
+
 	const int* pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
 	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
@@ -281,11 +284,12 @@ void PenaltyContact3DT::RHSDriver(void)
 			/* assemble */
 			ElementSupport().AssembleRHS(Group(), fRHS, eqnos);
 
-			/* store for output */
-			fActiveStrikersForce[i] = dphi;
+			/* store force vector for output */
+			int index = fStrikerTags_map.Map(pelem[3]);
+			fStrikerForce2D(index,0) = dphi*n[0];
+			fStrikerForce2D(index,1) = dphi*n[1];
+			fStrikerForce2D(index,2) = dphi*n[2];
 		}
-		else /* zero force */
-			fActiveStrikersForce[i] = 0.0;
 	}
 
 	/* set tracking */

@@ -1,4 +1,4 @@
-/* $Id: AugLagContact3DT.cpp,v 1.5 2004-07-15 08:26:08 paklein Exp $ */
+/* $Id: AugLagContact3DT.cpp,v 1.6 2005-03-12 08:38:08 paklein Exp $ */
 #include "AugLagContact3DT.h"
 
 #include <math.h>
@@ -359,8 +359,11 @@ void AugLagContact3DT::RHSDriver(void)
 		/* augmented Lagrangian */
 		double g = force[i] + fr*h;
 
-		/* store for output */
-		fActiveStrikersForce[i] = force[i];
+		/* store force vector for output */
+		int index = fStrikerTags_map.Map(pelem[3]);
+		fStrikerForce2D(index,0) = -force[i]*n[0];
+		fStrikerForce2D(index,1) = -force[i]*n[1];
+		fStrikerForce2D(index,2) = -force[i]*n[2];
 		
 		/* contact */
 		if (g < 0.0)
