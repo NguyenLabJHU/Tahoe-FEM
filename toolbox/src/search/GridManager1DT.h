@@ -1,4 +1,4 @@
-/* $Id: GridManager1DT.h,v 1.10 2003-11-21 22:42:07 paklein Exp $ */
+/* $Id: GridManager1DT.h,v 1.11 2004-03-18 01:15:39 paklein Exp $ */
 #ifndef _GRIDMANAGER1D_T_H_
 #define _GRIDMANAGER1D_T_H_
 
@@ -51,6 +51,9 @@ public:
 
 	/* grid statistics */
 	void WriteStatistics(ostream& out) const;
+
+	/** the grid */
+	const ArrayT<AutoArrayT<sTYPE>*>& Grid(void) const { return fGrid; };
 
 protected:
 

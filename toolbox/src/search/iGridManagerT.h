@@ -1,4 +1,4 @@
-/* $Id: iGridManagerT.h,v 1.10 2003-01-27 06:42:48 paklein Exp $ */
+/* $Id: iGridManagerT.h,v 1.11 2004-03-18 01:15:39 paklein Exp $ */
 /* created: paklein (09/13/1998) */
 #ifndef _I_GRIDMANAGER_T_H_
 #define _I_GRIDMANAGER_T_H_
@@ -81,6 +81,9 @@ public:
 
 	/** write grid statistics to the output stream */
 	void WriteStatistics(ostream& out) const;
+
+	/** dump grid contents to output stream */
+	void DumpGrid(ostream& out) const;	
 
 private:
 
