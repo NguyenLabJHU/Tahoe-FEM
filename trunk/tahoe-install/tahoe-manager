@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.32 2005-03-09 09:25:55 paklein Exp $
+# $Id: tahoe-manager,v 1.33 2005-03-09 19:10:10 paklein Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -163,7 +163,7 @@ else                  { write_default_config();}
 # remove system libraries from @modules
 foreach my $lib (@syslibs) {
 	for (my $i = 0; $i < scalar(@modules) ; $i++) {
-		if($modules[$i] =~ /^$syslib2module{$lib}$/) {  splice (@modules,$i,1);}
+		if($modules[$i] eq $syslib2module{$lib}) {  splice (@modules,$i,1);}
 	}
 }
 
@@ -295,7 +295,7 @@ foreach my $key (sort(keys %ENV)) {
 		$cvs_rsh = $value; }
 	
 	# get user name on local machine
-	if ($key =~ /^USER$/) {
+	if ($key eq USER) {
 		$tahoe_name = $value;
 		# the builtin function getlogin() sometimes returns the wrong name
 	}
@@ -594,7 +594,7 @@ sub build {
 	init(@init_modules) if (scalar(@init_modules) > 0);
 
 	# need to sort modules based on dependencies
-	my @tmp_modules = sort_by_depend(@run_modules);
+	my @tmp_modules = sort by_depend(@run_modules);
 	if (scalar(@tmp_modules) > 1 )  {
 		print "($count) building: @tmp_modules, at $time\n";}
 
@@ -652,7 +652,7 @@ sub init {
 	}
 	
 	# need to sort modules based on dependencies
-	my @tmp_modules = sort_by_depend(@run_modules);
+	my @tmp_modules = sort by_depend(@run_modules);
 	print "($count) initializing: @tmp_modules, at $time\n";	
 
 	foreach my $dir (@tmp_modules) {
@@ -828,9 +828,10 @@ sub by_depend {
 		}
 	}
 
-	#print " $a $a_on_b $b $b_on_a \n";
+#	my $comp = ($a_on_b <=> $b_on_a) || ($a cmp $b);
+#	print " $a $a_on_b $b $b_on_a : $comp\n";
 
-	($a_on_b <=> $b_on_a);
+	($a_on_b <=> $b_on_a) || ($a cmp $b);
 }
 
 ##############################################################################
@@ -1098,7 +1099,7 @@ sub remove_optional_modules {
 		my @modules_tmp = @modules;
 		@modules = ();
 		foreach $module (@modules_tmp) {
-			if ($module !~ /^$curr_optionalmodules[$choice]$/) {
+			if ($module cmp $curr_optionalmodules[$choice]) {
 				push(@modules, $module);
 			}
 		}
@@ -1373,27 +1374,6 @@ sub get_arch {
 }
 
 ##############################################################################
-sub sort_by_depend {
-	my @list_a = @_;
-	my @list_b = sort by_depend @list_a;
-	while (same_order(\@list_a, \@list_b) != 1) {
-		@list_a = @list_b;
-		@list_b = sort by_depend @list_a;
-	}
-	return @list_a;
-}
-
-sub same_order {
-	my ($aref, $bref) = @_;
-	my $i = 0;
-	while ($i < scalar(@$aref)) {
-		return 0 if (@$aref[$i] !~ @$bref[$i]);
-		$i++;
-	}
-	return 1;
-}
-
-##############################################################################
 sub get_missing_modules {
 
 	# collect omitted modules
@@ -1426,7 +1406,7 @@ sub complement {
 	foreach my $all_i (@$all) {
 		my $found = 0;
 		LOOK: foreach my $some_i (@$some) {
-			if ($some_i =~ /^$all_i$/) {
+			if ($some_i eq $all_i) {
 				$found = 1;
 				last LOOK;
 			}
@@ -1442,7 +1422,7 @@ sub intersection {
 	my @complement = ();
 	foreach my $all_i (@$all) {
 		LOOK: foreach my $some_i (@$some) {
-			if ($some_i =~ /^$all_i$/) {
+			if ($some_i eq $all_i) {
 				push(@complement, $all_i);
 				last LOOK;
 			}
