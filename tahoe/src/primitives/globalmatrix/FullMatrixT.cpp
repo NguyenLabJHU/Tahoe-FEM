@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.5 2002-03-28 16:42:45 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.6 2002-04-02 23:38:43 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 
 #include "FullMatrixT.h"
@@ -278,28 +278,30 @@ GlobalMatrixT* FullMatrixT::Clone(void) const
 	return new_mat;
 }
 
-void FullMatrixT::Multx(const dArrayT& x, dArrayT& b) const
+bool FullMatrixT::Multx(const dArrayT& x, dArrayT& b) const
 {
 	/* already factorized */
 	if (fIsFactorized) {
 		cout << "\n FullMatrixT::Multx: cannot calculate product with factorized matrix" << endl;
-		throw eGeneralFail;
+		return false;
+	} else {
+		/* calculate product */
+		fMatrix.Multx(x, b);
+		return true;
 	}
-	
-	/* calculate product */
-	fMatrix.Multx(x, b);
 }
 
-void FullMatrixT::MultTx(const dArrayT& x, dArrayT& b) const
+bool FullMatrixT::MultTx(const dArrayT& x, dArrayT& b) const
 {
 	/* already factorized */
 	if (fIsFactorized) {
 		cout << "\n FullMatrixT::MultTx: cannot calculate product with factorized matrix" << endl;
-		throw eGeneralFail;
+		return false;
+	} else {
+		/* calculate product */
+		fMatrix.MultTx(x, b);
+		return true;
 	}
-	
-	/* calculate product */
-	fMatrix.MultTx(x, b);
 }
 
 /**************************************************************************

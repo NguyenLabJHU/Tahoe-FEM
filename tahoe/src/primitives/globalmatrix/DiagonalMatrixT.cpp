@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.6 2002-03-28 16:42:45 paklein Exp $ */
+/* $Id: DiagonalMatrixT.cpp,v 1.7 2002-04-02 23:38:43 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #include "DiagonalMatrixT.h"
@@ -216,13 +216,14 @@ GlobalMatrixT* DiagonalMatrixT::Clone(void) const
 }
 
 /* matrix-vector product */
-void DiagonalMatrixT::Multx(const dArrayT& x, dArrayT& b) const
+bool DiagonalMatrixT::Multx(const dArrayT& x, dArrayT& b) const
 {
 	b = x;
 	if (fIsFactorized)
 		b /= fMatrix;
 	else
 		b *= fMatrix;
+	return true;
 }
 
 /**************************************************************************

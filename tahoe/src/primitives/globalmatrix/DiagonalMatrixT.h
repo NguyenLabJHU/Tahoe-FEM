@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.h,v 1.5 2002-03-28 16:42:45 paklein Exp $ */
+/* $Id: DiagonalMatrixT.h,v 1.6 2002-04-02 23:38:43 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _DIAGONAL_MATRIX_H_
@@ -15,15 +15,19 @@ class DiagonalMatrixT: public GlobalMatrixT
 {
 public:
 
-	enum AssemblyModeT {kNoAssembly = 0,
-	                    kDiagOnly   = 1,
-                        kAbsRowSum  = 2};
+	/** enum to signal how to assemble non-diagonal contributions to the matrix */
+	enum AssemblyModeT {kNoAssembly = 0, /**< do not assemble, throw exception */ 
+	                    kDiagOnly   = 1, /**< assemble the diagonal values only */
+                        kAbsRowSum  = 2  /**< assemble the L1 norm of the row */};
 
 	/** constructors */
 	DiagonalMatrixT(ostream& out, int check_code, AssemblyModeT mode);
 
 	/** copy constructor */
 	DiagonalMatrixT(const DiagonalMatrixT& source);
+
+	/** DiagonalMatrixT::Solve does preserve the data in the matrix */
+	virtual bool SolvePreservesData(void) const { return true; };	  
 
 	/* set assemble mode */
 	void SetAssemblyMode(AssemblyModeT mode);
@@ -71,11 +75,11 @@ public:
 
 	/** matrix-vector product. OK to call either before or after the matrix is
 	 * factorized */
-	virtual void Multx(const dArrayT& x, dArrayT& b) const;
+	virtual bool Multx(const dArrayT& x, dArrayT& b) const;
 
 	/** Tranpose[matrix]-vector product. OK to call either before or after the matrix 
 	 * is factorized */
-	virtual void MultTx(const dArrayT& x, dArrayT& b) const;
+	virtual bool MultTx(const dArrayT& x, dArrayT& b) const;
 	
 protected:
 
@@ -107,9 +111,9 @@ inline dArrayT& DiagonalMatrixT::TheMatrix(void)
 }
 
 /* Tranpose[matrix]-vector product */
-inline void DiagonalMatrixT::MultTx(const dArrayT& x, dArrayT& b) const 
+inline bool DiagonalMatrixT::MultTx(const dArrayT& x, dArrayT& b) const 
 { 
-	DiagonalMatrixT::Multx(x, b);
+	return DiagonalMatrixT::Multx(x, b);
 }; 
 
 #endif /* _DIAGONAL_MATRIX_H_ */

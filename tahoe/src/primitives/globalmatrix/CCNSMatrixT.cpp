@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.7 2002-03-28 16:42:44 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.8 2002-04-02 23:38:43 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 
 #include "CCNSMatrixT.h"
@@ -335,6 +335,22 @@ GlobalMatrixT* CCNSMatrixT::Clone(void) const
 {
 	CCNSMatrixT* new_mat = new CCNSMatrixT(*this);
 	return new_mat;
+}
+
+/* return the values along the diagonal of the matrix */
+bool CCNSMatrixT::CopyDiagonal(dArrayT& diags) const
+{
+	/* cannot be factorized */
+	if (fIsFactorized)
+		return false;
+	else
+	{
+		/* copy */
+		dArrayT tmp(fLocNumEQ, fKD);
+		diags = tmp;
+
+		return true;		
+	}
 }
 
 /**************************************************************************
