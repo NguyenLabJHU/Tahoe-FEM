@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.16.2.1 2002-12-10 17:13:02 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.16.2.2 2002-12-16 09:23:51 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #ifndef _FE_MANAGER_MPI_H_
 #define _FE_MANAGER_MPI_H_
@@ -88,7 +88,6 @@ public:
 	void SetExternalIO(IOManager_mpi* externIO);
 
 	/* debugging */
-	virtual const iArrayT* NodeMap(void) const;
 	virtual const iArrayT* ElementMap(const StringT& block_ID) const;
 
 protected:
@@ -180,17 +179,6 @@ inline void FEManagerT_mpi::SetExternalIO(IOManager_mpi* externIO)
 }
 
 /* debugging */
-inline const iArrayT* FEManagerT_mpi::NodeMap(void) const
-{
-	if (fTask == kDecompose)
-		return NULL; // assume no map
-	else
-	{
-		if (!fPartition) throw ExceptionT::kGeneralFail;
-		return &(fPartition->NodeMap());
-	}
-}
-
 inline const iArrayT* FEManagerT_mpi::ElementMap(const StringT& block_ID) const
 {
 	if (fTask == kDecompose)

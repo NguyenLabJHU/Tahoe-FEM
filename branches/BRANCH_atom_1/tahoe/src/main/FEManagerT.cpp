@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.50.2.2 2002-12-10 17:13:02 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.50.2.3 2002-12-16 09:23:51 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -155,7 +155,11 @@ void FEManagerT::Initialize(InitCodeT init)
 
 	/* initial configuration of communication manager */
 	if (fModelManager->DatabaseFormat() != IOBaseT::kTahoe)
+	{
+		fComm.SetLog(cout);
 		fCommManager->Configure();
+	}
+
 //TEMP
 else ExceptionT::Stop("FEManagerT::Initialize", "kTahoe format not supported");
 
@@ -749,9 +753,19 @@ int FEManagerT::GlobalEquationNumber(int nodenum, int dofnum) const
 int FEManagerT::Rank(void) const { return fComm.Rank(); }
 int FEManagerT::Size(void) const { return fComm.Size(); }
 
-const iArrayT& FEManagerT::ProcessorMap(void) const
+const ArrayT<int>* FEManagerT::ProcessorMap(void) const
 {
 	return fCommManager->ProcessorMap();
+}
+
+const ArrayT<int>* FEManagerT::NodeMap(void) const
+{
+	return fCommManager->NodeMap();
+}
+
+const ArrayT<int>* FEManagerT::PartitionNodes(void) const
+{
+	return fCommManager->PartitionNodes();
 }
 
 void FEManagerT::IncomingNodes(iArrayT& nodes_in ) const {  nodes_in.Free(); }
@@ -850,7 +864,7 @@ void FEManagerT::WriteSystemConfig(ostream& out, int group) const
 	out.precision(DBL_DIG);
 	
 	/* node map */
-	const iArrayT* node_map = NodeMap();
+	const ArrayT<int>* node_map = NodeMap();
 
 	/* nodal data */
 	const dArray2DT& coords = fNodeManager->InitialCoordinates();
