@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.cpp,v 1.17 2001-09-19 15:27:15 rjones Exp $ */
+/* $Id: ContactSearchT.cpp,v 1.18 2002-01-06 06:58:36 cbhovey Exp $ */
 
 #include "ContactSearchT.h"
 
@@ -39,7 +39,7 @@ bool ContactSearchT::SetInteractions(void)
 	ContactSurfaceT& surface1 = fSurfaces[i]; // "node" surface
 	/* construct search grid */
 	/* with roughly 10 nodes per grid cell */
-	int ngrid = int( pow(surface1.NumNodes()/kNumPerGridCell,
+	int ngrid = int(pow(double(surface1.NumNodes())/kNumPerGridCell,
 		      1.0/surface1.NumNodesPerFace()) ) + 1;
 
 	ngrid = (ngrid < 2) ? 2 : ngrid;
