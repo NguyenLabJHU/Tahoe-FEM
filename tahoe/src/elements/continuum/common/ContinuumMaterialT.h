@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: ContinuumMaterialT.h,v 1.2 2001-02-20 00:23:20 paklein Exp $ */
 /* created: paklein (11/20/1996)                                          */
 /* Defines the interface for continuum materials.                         */
 
@@ -69,6 +69,9 @@ public:
 	virtual int NumOutputVariables(void) const; // 0 by default
 	virtual void OutputLabels(ArrayT<StringT>& labels) const; // none by default
 	virtual void ComputeOutput(dArrayT& output);
+
+	/* returns true if two materials have compatible output variables */
+	static bool CompatibleOutput(const ContinuumMaterialT& m1, const ContinuumMaterialT& m2);
 	
 protected:
 
