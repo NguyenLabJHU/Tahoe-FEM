@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.11 2003-11-21 22:47:52 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.12 2004-01-27 15:32:57 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -283,6 +283,18 @@ void FEManagerT_bridging::SetFieldValues(const StringT& field, const iArrayT& no
 	fNodeManager->UpdateCurrentCoordinates();
 
 	//NOTE: write the values into the KBC controller as well?
+}
+
+/* return the "lumped" (scalar) mass associated with the given nodes */
+void FEManagerT_bridging::LumpedMass(const iArrayT& nodes, dArrayT& mass) const
+{
+	/* initialize */
+	mass.Dimension(nodes.Length());
+	mass = 0.0;
+
+	/* accumulate element contribution */
+	for (int i = 0 ; i < fElementGroups->Length(); i++)
+		(*fElementGroups)[i]->LumpedMass(nodes, mass);
 }
 
 /* initialize nodes that follow the field computed by this instance */
