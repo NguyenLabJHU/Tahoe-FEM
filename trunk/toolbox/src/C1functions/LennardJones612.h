@@ -1,4 +1,4 @@
-/* $Id: LennardJones612.h,v 1.4 2004-05-10 17:01:28 paklein Exp $ */
+/* $Id: LennardJones612.h,v 1.5 2004-06-07 21:37:33 paklein Exp $ */
 /* created: paklein (10/30/1997) */
 #ifndef _LJ_612_H_
 #define _LJ_612_H_
@@ -30,7 +30,7 @@ public:
 	virtual void PrintName(ostream& out) const;
 	/*@}*/
 	
-	/** \name returning values
+	/** \name returning values */
 	/*@{*/
 	virtual double Function(double x) const;
 	virtual double DFunction(double x) const;

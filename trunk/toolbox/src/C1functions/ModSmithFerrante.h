@@ -1,4 +1,4 @@
-/* $Id: ModSmithFerrante.h,v 1.3 2004-04-27 07:22:19 paklein Exp $ */
+/* $Id: ModSmithFerrante.h,v 1.4 2004-06-07 21:37:33 paklein Exp $ */
 #ifndef _MOD_SMITH_FERRANTE_H_
 #define _MOD_SMITH_FERRANTE_H_
 
@@ -24,7 +24,7 @@ public:
 	virtual void PrintName(ostream& out) const;
 	/*@}*/
 	
-	/** \name returning values
+	/** \name returning values */
 	/*@{*/
 	virtual double Function(double x) const;
 	virtual double DFunction(double x) const;

@@ -1,4 +1,4 @@
-/* $Id: SmithFerrante.h,v 1.4 2004-04-27 07:22:19 paklein Exp $ */
+/* $Id: SmithFerrante.h,v 1.5 2004-06-07 21:37:33 paklein Exp $ */
 /* created: paklein (10/30/1997) */
 #ifndef _SMITH_FERRANTE_H_
 #define _SMITH_FERRANTE_H_
@@ -30,7 +30,7 @@ public:
 	virtual void PrintName(ostream& out) const;
 	/*@}*/
 	
-	/** \name returning values
+	/** \name returning values */
 	/*@{*/
 	virtual double Function(double x) const;
 	virtual double DFunction(double x) const;
