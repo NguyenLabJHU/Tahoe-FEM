@@ -1,6 +1,5 @@
-/* $Id: MLSSolverT.h,v 1.3 2004-08-25 17:42:05 raregue Exp $ */
+/* $Id: MLSSolverT.h,v 1.4 2004-09-13 23:33:44 raregue Exp $ */
 /* created: paklein (12/08/1999) */
-
 #ifndef _MLS_SOLVER_T_H_
 #define _MLS_SOLVER_T_H_
 
@@ -24,7 +23,6 @@ class BasisT;
 /** class to calculate MLS shape functions and derivatives. Before
  * MLSSolverT::SetField can used to calculate MLS functions, MLSSolverT::Initialize
  * must be called to initialize some internal work space */
- 
 class MLSSolverT
 {
 public:
@@ -115,7 +113,7 @@ public:
 	const dArrayT& b(void) const;	
 	const dArrayT& Db(int component) const;	
 	const dArrayT& DDb(int component) const;
-	const dArrayT& DDDb(int component) const;//	kyonten
+	const dArrayT& DDDb(int component) const; // kyonten
 
 	/* correction function */
 	const dArrayT& C(void) const;

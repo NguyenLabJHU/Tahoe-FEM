@@ -1,17 +1,11 @@
-/* $Id: MLSSolverT.cpp,v 1.3 2004-08-25 17:42:05 raregue Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.4 2004-09-13 23:33:44 raregue Exp $ */
 /* created: paklein (12/08/1999) */
 #include "MLSSolverT.h"
 
 #include "ExceptionT.h"
 #include "dSymMatrixT.h"
 
-#ifdef __DEVELOPMENT__
-#include "DevelopmentElementsConfig.h"
-#endif
-
-#ifdef MESHFREE_GRAD_PLAST_DEV
 #include "MF_dMatrixT.h"  //kyonten
-#endif
 
 /* basis functions */
 #include "PolyBasis1DT.h"
@@ -70,11 +64,9 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 			fBasis = new PolyBasis3DT(fComplete);
 			break;
 		default:
-			cout << "\n MLSSolverT::MLSSolverT: unsupported spatial dimensions "
-			     << fNumSD << endl;
-			throw ExceptionT::kBadInputValue;
+			ExceptionT::BadInputValue(caller, " unsupported spatial dimensions %d", fNumSD);
 	}
-	if (!fBasis) throw ExceptionT::kOutOfMemory;
+	if (!fBasis) ExceptionT::OutOfMemory(caller);
 
 	/* construct window function */
 	switch (fWindowType)
