@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.19 2003-08-18 03:49:16 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.19.2.1 2003-09-28 09:19:03 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nIntegratorT.h"
@@ -359,7 +359,7 @@ GlobalT::RelaxCodeT FieldT::RelaxSystem(void)
 }
 
 /* reset displacements (and configuration to the last known solution) */
-void FieldT::ResetStep(void)
+GlobalT::RelaxCodeT FieldT::ResetStep(void)
 {
 	/* reset field */
 	fField = fField_last;
@@ -371,6 +371,8 @@ void FieldT::ResetStep(void)
 	/* FBC controllers */
 	for (int i = 0; i < fFBC_Controllers.Length(); i++)
 		fFBC_Controllers[i]->Reset();
+		
+	return GlobalT::kNoRelax;
 }
 
 /* mark prescribed equations */

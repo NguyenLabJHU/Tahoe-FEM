@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.36 2003-08-18 03:48:54 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.36.2.1 2003-09-28 09:19:03 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -131,6 +131,10 @@ void NodeManagerT::Initialize(void)
 
 	/* history nodes */
 	EchoHistoryNodes(in, out);
+
+	/* relaxation flags */
+	fXDOFRelaxCodes.Dimension(fFEManager.NumGroups());
+	fXDOFRelaxCodes = GlobalT::kNoRelax;
 }
 
 /* register data for output */
@@ -330,6 +334,9 @@ void NodeManagerT::InitStep(int group)
 	/* update current configurations */
 	if (fCoordUpdate && fCoordUpdate->Group() == group)
 		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
+
+	/* clear history of relaxation over tbe last step */
+	fXDOFRelaxCodes[group] = GlobalT::kNoRelax;
 }
 
 /* compute the nodal contribution to the tangent */
@@ -481,15 +488,24 @@ void NodeManagerT::WriteRestart(ofstreamT& out) const
 }
 
 /* reset displacements (and configuration to the last known solution) */
-void NodeManagerT::ResetStep(int group)
+GlobalT::RelaxCodeT NodeManagerT::ResetStep(int group)
 {
+	/* initialize return value */
+	GlobalT::RelaxCodeT relax = GlobalT::kNoRelax;
+
 	/* reset fields */
 	for (int i = 0; i < fFields.Length(); i++)
 		if (fFields[i]->Group() == group)
-			fFields[i]->ResetStep();
+			relax = GlobalT::MaxPrecedence(relax, fFields[i]->ResetStep());
+
+	/* reset the XDOF elements */
+	XDOF_ManagerT::ResetState(group);
 
 	/* inherited - reset external DOF */
-	XDOF_ManagerT::Reset(group);
+	return GlobalT::MaxPrecedence(relax, XDOF_ManagerT::ResetTags(group));
+
+	/* history of XDOF changes over the step */
+	//return GlobalT::MaxPrecedence(relax, fXDOFRelaxCodes[group]);
 }
 
 void NodeManagerT::WriteOutput(void)

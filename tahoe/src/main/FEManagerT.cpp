@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.63.2.1 2003-09-27 08:25:50 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.63.2.2 2003-09-28 09:19:02 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -292,27 +292,38 @@ ExceptionT::CodeT FEManagerT::ResetStep(void)
 {
 	ExceptionT::CodeT error = ExceptionT::kNoError;
 	try{
-	/* state */
-	fStatus = GlobalT::kResetStep;	
+		/* state */
+		fStatus = GlobalT::kResetStep;	
 
-	/* time */
-	fTimeManager->ResetStep();
+		/* time */
+		fTimeManager->ResetStep();
 	
-	/* check group flag */
-	if (fCurrentGroup != -1) throw;
+		/* check group flag */
+		if (fCurrentGroup != -1) throw;
 
-	/* nodes - ALL groups */
-	for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
-		fNodeManager->ResetStep(fCurrentGroup);
-	fCurrentGroup = -1;
+		/* do group-by-group */
+		for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
+		{
+			/* relaxation code */
+			GlobalT::RelaxCodeT relax = GlobalT::kNoRelax;
 	
-	/* elements */
-	for (int i = 0 ; i < fElementGroups->Length(); i++)
-		(*fElementGroups)[i]->ResetStep();
+			/* node manager */
+			relax = GlobalT::MaxPrecedence(relax, fNodeManager->ResetStep(fCurrentGroup));
+	
+			/* elements */
+			for (int i = 0 ; i < fElementGroups->Length(); i++)
+				if ((*fElementGroups)[i]->InGroup(fCurrentGroup))
+					relax = GlobalT::MaxPrecedence(relax, (*fElementGroups)[i]->ResetStep());
+	
+			/* solver */
+			fSolvers[fCurrentGroup]->ResetStep();
 		
-	/* solver - ALL groups */
-	for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
-		fSolvers[fCurrentGroup]->ResetStep();
+			/* check to see if the equation system needs to be reset */
+			if (relax == GlobalT::kReEQ)
+				SetEquationSystem(fCurrentGroup);
+			else if (relax != GlobalT::kNoRelax)
+				ExceptionT::GeneralFail("FEManagerT::ResetStep", "unsupported relaxation code %d", relax);
+		}
 	}
 	
 	catch (ExceptionT::CodeT exc) {
