@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.23.2.4 2003-10-10 21:27:35 bsun Exp $ */
+/* $Id: ParticleT.cpp,v 1.23.2.5 2003-10-10 22:10:14 bsun Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -870,8 +870,8 @@ void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CPara
   int ndof = NumDOF();
   /* run through neighbor list */
   iArrayT neighbors;
-  dArrayT x_i, x_j, x_k, r_ij(ndof), r_ik(ndof), DispVector(ndof), deltaX(ndof), X_i(ndof), X_j(ndof);  
-  dMatrixT Omega(ndof), Eta(ndof), OmegaTemp(ndof), EtaTemp(ndof), b_ij(ndof), F_iI(ndof), SlipVectorTemp(ndof) ;
+  dArrayT x_i, x_j, x_k, r_ij(ndof), r_ik(ndof), DispVector(ndof), deltaX(ndof), X_i(ndof), X_j(ndof),SlipVectorTemp(ndof);  
+  dMatrixT Omega(ndof), Eta(ndof), OmegaTemp(ndof), EtaTemp(ndof), b_ij(ndof), F_iI(ndof) ;
   /* row of neighbor list */
   NearestNeighbors->RowAlias(i, neighbors);
   const dArray2DT&  refcoords = ElementSupport().InitialCoordinates();
@@ -885,7 +885,7 @@ void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CPara
     { //run through j
       /* tags */
       int   tag_j = neighbors[j];
-      ofstreamT& out = ElementSupport().Output();
+   
       
       /* global coordinates */
       coords.RowAlias(tag_j, x_j);
@@ -902,9 +902,7 @@ void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CPara
       EtaTemp.Outer(deltaX, deltaX);
       Omega+=OmegaTemp;
       Eta+=EtaTemp;
-      out<<"delta:"<<deltaX<<"\n";
-      
-      out<<"r:"<<r_ji<<"\n";  
+     
 
       SlipVectorTemp.DiffOf(deltaX, r_ji);
       *SlipVector+=SlipVectorTemp;
