@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.h,v 1.11 2003-08-05 18:33:07 paklein Exp $ */
+/* $Id: dSymMatrixT.h,v 1.12 2003-08-06 00:04:07 thao Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _DSYM_MATRIX_T_H_
@@ -165,7 +165,8 @@ public:
 	void Allocate(int nsd) { Dimension(nsd); };
 	void Set(int nsd, double* array) { Set(int2DimensionT(nsd), array); };
 	static int NumValues(int nsd) { return NumValues(int2DimensionT(nsd)); };
-	static void ExpandIndex(int nsd, int dex, int& dex_1, int& dex_2) { return ExpandIndex(int2DimensionT(nsd), dex, dex_1, dex_2); };
+	static void ExpandIndex(int nsd, int dex, int& dex_1, int& dex_2) { 
+	  ExpandIndex(int2DimensionT(nsd), dex, dex_1, dex_2); };
 	/*@}*/
 
 private:
@@ -215,15 +216,19 @@ inline dSymMatrixT& dSymMatrixT::operator=(const double value)
 }
 
 /* dimensions */
-inline int dSymMatrixT::Rows(void) const { return fNumSD; }
-inline int dSymMatrixT::Cols(void) const { return fNumSD; }
+inline int dSymMatrixT::Rows(void) const { 
+  return (fNumSD<3) ? fNumSD:3; 
+}
+inline int dSymMatrixT::Cols(void) const { 
+return (fNumSD<3) ? fNumSD:3; 
+}
 inline dSymMatrixT& dSymMatrixT::Deviatoric(void) { return Deviatoric(*this); }
 inline dSymMatrixT& dSymMatrixT::Inverse(void) { return Inverse(*this); }
 
 /* scale off-diagonal value by the given factor */
 inline void dSymMatrixT::ScaleOffDiagonal(double factor)
 {
-	if (fNumSD == 2)
+	if (fNumSD == 2 || fNumSD == dSymMatrixT::k3D_plane)
 		fArray[2] *= factor;
 	else if (fNumSD == 3) {
 		fArray[3] *= factor;
