@@ -1,4 +1,6 @@
+// $Id: InteractiveIOManagerT.cpp,v 1.3 2002-10-25 21:02:59 paklein Exp $
 #include "InteractiveIOManagerT.h"
+#include "ExceptionCodes.h"
 
 using namespace Tahoe;
 

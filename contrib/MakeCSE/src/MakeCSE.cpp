@@ -11,6 +11,8 @@
 //#define _PRINT_DEBUG_
 
 #include "MakeCSE.h"
+
+#include "ExceptionCodes.h"
 #include "MakeCSE_IOManager.h"
 #include "MakeCSE_FEManager.h"
 

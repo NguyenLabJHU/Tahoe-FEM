@@ -1,6 +1,8 @@
-// $Id: MakeCSE_CSEBaseT.cpp,v 1.3 2002-10-09 13:20:36 sawimme Exp $
+// $Id: MakeCSE_CSEBaseT.cpp,v 1.4 2002-10-25 21:02:59 paklein Exp $
 // created: SAW 5/2/2000
 #include "MakeCSE_CSEBaseT.h"
+
+#include "ExceptionCodes.h"
 #include "MakeCSE_FEManager.h"
 #include "MakeCSE_IOManager.h"
 #include "CSEConstants.h"

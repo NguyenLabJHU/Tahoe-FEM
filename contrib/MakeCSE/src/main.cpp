@@ -1,10 +1,9 @@
-// main.cpp
-
+// $Id: main.cpp,v 1.7 2002-10-25 21:02:59 paklein Exp $
 // created: 6 Oct 1999 by S. A. Wimmer
-
 // program reads input file, runs MakeCSE, writes output file
 
 #include "MakeCSE_FEManager.h"
+#include "ExceptionCodes.h"
 #include "ifstreamT.h"
 
 using namespace Tahoe;

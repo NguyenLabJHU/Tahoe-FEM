@@ -1,4 +1,6 @@
+/* $Id: MakeCSE_IOManager.cpp,v 1.2 2002-10-25 21:02:59 paklein Exp $ */
 #include "MakeCSE_IOManager.h"
+#include "ExceptionCodes.h"
 #include "ifstreamT.h"
 
 using namespace Tahoe;

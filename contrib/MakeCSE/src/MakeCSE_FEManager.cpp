@@ -1,10 +1,7 @@
-// file: FEManager.cpp
-
-// MakeCSE version
-
+// $Id: MakeCSE_FEManager.cpp,v 1.3 2002-10-25 21:02:59 paklein Exp $
 // created: 11/10/99 SAW
-
 #include "MakeCSE_FEManager.h"
+#include "ExceptionCodes.h"
 #include "Quad2Tri.h"
 #include "MakeCSE_CSEBaseT.h"
 #include "InteractiveIOManagerT.h"
@@ -48,7 +45,8 @@ void MakeCSE_FEManager::InitializeInput (ifstreamT& in, bool interactive)
       fParameters = new InteractiveIOManagerT ();
       fParameters->Initialize ();
       fModel.Initialize ();
-      fModel.Format(format, name);
+      format = fModel.DatabaseFormat();
+      name = fModel.DatabaseName();
       fParameters->InputFormat (format, name); // echo the format
     }
   else 
