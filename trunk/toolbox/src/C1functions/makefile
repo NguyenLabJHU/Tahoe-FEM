@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2001-06-11 01:55:49 paklein Exp $
+# $Id: makefile,v 1.8 2001-12-20 02:42:46 thao Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -14,7 +14,9 @@ OBJ = \
 	PhiSplineT.o \
 	SmithFerrante.o \
 	LinearExponentialT.o \
-	Triantafyllidis.o
+	Triantafyllidis.o \
+	LinearDecreaseT.o \
+	QuadraticDecreaseT.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -32,7 +34,9 @@ SRC = \
 	PhiSplineT.cpp \
 	SmithFerrante.cpp \
 	LinearExponentialT.cpp \
-	Triantafyllidis.cpp
+	Triantafyllidis.cpp \
+	LinearDecreaseT.cpp \
+	QuadraticDecreaseT.cpp 
 
 # headers
 HDR = \
@@ -44,7 +48,9 @@ HDR = \
 	PhiSplineT.h \
 	SmithFerrante.h \
 	LinearExponentialT.h \
-	Triantafyllidis.h
+	Triantafyllidis.h \
+	LinearDecreaseT.h \
+	QuadraticDecreaseT.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 
