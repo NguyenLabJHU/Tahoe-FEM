@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.h,v 1.6 2005-01-28 02:45:12 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.h,v 1.7 2005-03-12 10:05:42 paklein Exp $ */
 #ifndef _MF_PENALTY_CONTACT2D_T_H_
 #define _MF_PENALTY_CONTACT2D_T_H_
 
@@ -121,7 +121,7 @@ protected:
 	/*@{*/
 	int fOutputID;
 	bool fOutputForce;
-	iArray2DT fNodesUsed2D;
+	iArray2DT fNodesUsed;
 	dArray2DT fForce;
 	InverseMapT fNodesUsed_inv;
 	/*@}*/
