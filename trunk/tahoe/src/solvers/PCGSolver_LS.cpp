@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.23 2004-11-19 23:40:31 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.24 2004-11-19 23:43:04 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #include "PCGSolver_LS.h"
 
@@ -60,6 +60,7 @@ void PCGSolver_LS::DefineParameters(ParameterListT& list) const
 	output_flag.AddEnumeration("all_iterations", kAllIterations);
 	output_flag.AddEnumeration("at_restart", kAtRestart);
 	output_flag.SetDefault(fOutputFlag);
+	list.AddParameter(output_flag);
 
 	/* line search iterations */
 	ParameterT line_search_iterations(fSearchIterations, "line_search_iterations");
