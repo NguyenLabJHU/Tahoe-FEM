@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.cpp,v 1.2.2.2 2003-04-28 08:39:47 paklein Exp $ */
+/* $Id: ParameterInterfaceT.cpp,v 1.2.2.3 2003-04-28 17:05:30 paklein Exp $ */
 #include "ParameterInterfaceT.h"
 #include "ParameterListT.h"
 
@@ -42,7 +42,18 @@ void ParameterInterfaceT::SubNames(ArrayT<StringT>& names, ArrayT<ParameterListT
 	occur.Dimension(0);
 	is_inline.Dimension(0);
 }
-	
+
+void ParameterInterfaceT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order,
+	ArrayT<StringT>& names, ArrayT<ParameterListT::OccurrenceT>& occur, 
+	ArrayT<bool>& is_inline) const
+{
+#pragma unused(sub)
+	order = ParameterListT::Sequence;
+	names.Dimension(0);
+	occur.Dimension(0);
+	is_inline.Dimension(0);
+}
+
 /* return a pointer to the ParameterInterfaceT */
 ParameterInterfaceT* ParameterInterfaceT::NewSub(const StringT& list_name) const
 {

@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.h,v 1.2.2.2 2003-04-28 08:40:14 paklein Exp $ */
+/* $Id: ParameterInterfaceT.h,v 1.2.2.3 2003-04-28 17:05:30 paklein Exp $ */
 #ifndef _PARAMETER_INTERFACE_T_H_
 #define _PARAMETER_INTERFACE_T_H_
 
@@ -33,7 +33,10 @@ public:
 	virtual void DefineParameters(ParameterListT& list) const;
 	/*@}*/
 
-	/** \name subordinates that define parameters lists */
+	/** \name subordinates that define parameters lists
+	 * There are two types of subordinate lists, inlined and non-inlined. Non-inlined
+	 * subordinates are returned with a call to ParameterInterfaceT::NewSub. Inlined
+	 * subordinates are defined by the call to ParameterInterfaceT::DefineInlineSub. */
 	/*@{*/
 	/** information about subordinate parameter lists
 	 * \param names list of subordinate list names
@@ -41,7 +44,18 @@ public:
 	 * \param is_inline flag indicating if list is inline */
 	virtual void SubNames(ArrayT<StringT>& names, ArrayT<ParameterListT::OccurrenceT>& occur,
 		ArrayT<bool>& is_inline) const;
-	
+
+	/** return the description of the given inline subordinate parameter list.
+	 * Method will be called for each subordinate defined as inline by ParameterInterfaceT::SubNames
+	 * or defined recursively by ParameterInterfaceT::DefineInlineSub.
+	 * \param sub name of the inlined subordinate list
+	 * \param order defines whether list is a sequence or choice.
+	 * \param names list of subordinate list names
+	 * \param occur occurrence specifier of subordinate list names 
+	 * \param is_inline flag indicating if list is inline */
+	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, ArrayT<StringT>& names, 
+		ArrayT<ParameterListT::OccurrenceT>& occur, ArrayT<bool>& is_inline) const;
+
 	/** a pointer to the ParameterInterfaceT of the given subordinate
 	 * or NULL if the name is invalid. Responsibility for deleteting instantiations
 	 * resides with the client who requested them. */
