@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.cpp,v 1.9.30.3 2004-03-04 06:45:28 paklein Exp $ */
+/* $Id: SimoIso2D.cpp,v 1.9.30.4 2004-03-24 02:01:51 paklein Exp $ */
 /* created: paklein (03/04/1997) */
 #include "SimoIso2D.h"
 #include <math.h>
@@ -13,6 +13,12 @@ SimoIso2D::SimoIso2D(ifstreamT& in, const FSMatSupportT& support):
 	fStress2D(2),
 	fModulus2D(dSymMatrixT::NumValues(2)),
 	fb_2D(2)
+{
+
+}
+
+SimoIso2D::SimoIso2D(void):
+	ParameterInterfaceT("Simo_isotropic_2D")
 {
 
 }
@@ -107,6 +113,18 @@ void SimoIso2D::DefineParameters(ParameterListT& list) const
 	/* 2D option must be plain stress */
 	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStrain);
+}
+
+/* accept parameter list */
+void SimoIso2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SimoIso3D::TakeParameterList(list);
+	
+	/* dimension work space */
+	fStress2D.Dimension(2);
+	fModulus2D.Dimension(dSymMatrixT::NumValues(2));
+	fb_2D.Dimension(2);	
 }
 
 /*************************************************************************

@@ -1,4 +1,4 @@
-/* $Id: SimoIso3D.h,v 1.9.30.2 2004-02-19 19:59:52 paklein Exp $ */
+/* $Id: SimoIso3D.h,v 1.9.30.3 2004-03-24 02:01:51 paklein Exp $ */
 /* created: paklein (03/02/1997) */
 #ifndef _SIMO_ISO_3D_H_
 #define _SIMO_ISO_3D_H_
@@ -18,6 +18,7 @@ public:
 
 	/* constructor */
 	SimoIso3D(ifstreamT& in, const FSMatSupportT& support);
+	SimoIso3D(void);
 	
 	/* print parameters */
 	virtual void Print(ostream& out) const;
@@ -45,6 +46,12 @@ public:
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 	
 protected:
 	
