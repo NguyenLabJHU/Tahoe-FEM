@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.58 2004-02-16 19:30:55 rdorgan Exp $ */
+/* $Id: SolidElementT.cpp,v 1.58.12.1 2004-04-09 00:33:47 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -1116,9 +1116,9 @@ const SolidMatListT& SolidElementT::StructuralMaterialList(void) const
 void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         const iArrayT& e_codes, dArray2DT& e_values)
 {
-        /* number of output values */
-        int n_out = n_codes.Sum();
-        int e_out = e_codes.Sum();
+	/* number of output values */
+	int n_out = n_codes.Sum();
+	int e_out = e_codes.Sum();
         
         int n_simo, n_extrap;
         if (qUseSimo)
@@ -1204,6 +1204,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         dArrayT element_values(e_values.MinorDim());
         pall = element_values.Pointer();
         dArrayT centroid, ip_centroid, ip_mass;
+        dArrayT ip_coords(nsd);
         if (e_codes[iCentroid])
         {
                 centroid.Set(nsd, pall); pall += nsd;
@@ -1242,15 +1243,17 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
         /* check that degrees are displacements */
         int interpolant_DOF = InterpolantDOFs();
 
-        Top();
-        while (NextElement())
-        if (CurrentElement().Flag() != kOFF)
-        {
+	bool is_axi = Axisymmetric();
+	double Pi2 = 2.0*acos(-1.0);
+	Top();
+	while (NextElement())
+		if (CurrentElement().Flag() != kOFF)
+		{
 			/* initialize */
-            nodal_space = 0.0;
-            simo_space = 0.;
-            simo_all = 0.;
-            simoNa_bar = 0.;
+			nodal_space = 0.0;
+			simo_space = 0.;
+			simo_all = 0.;
+			simoNa_bar = 0.;
 
 			/* global shape function values */
 			SetGlobalShape();
@@ -1277,13 +1280,18 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
                 const double* w = fShapes->IPWeights();
                 double density = fCurrMaterial->Density();
 
-                /* integrate */
-                dArray2DT Na_X_ip_w;
-                fShapes->TopIP();
-                while (fShapes->NextIP())
-                {
-                        /* element integration weight */
-                        double ip_w = (*j++)*(*w++);
+			/* integrate */
+			dArray2DT Na_X_ip_w;
+			fShapes->TopIP();
+			while (fShapes->NextIP())
+			{
+				/* element integration weight */
+				double ip_w = (*j++)*(*w++);
+				if (is_axi) {
+					fShapes->IPCoords(ip_coords);
+					ip_w *= Pi2*ip_coords[0]; /* radius is the x1 coordinate */
+				}
+                        
                         if (qUseSimo || qNoExtrap)
                         {
                           Na_X_ip_w.Dimension(nen,1);
