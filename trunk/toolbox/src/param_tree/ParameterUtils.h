@@ -1,9 +1,11 @@
-/* $Id: ParameterUtils.h,v 1.5 2004-03-27 04:10:11 paklein Exp $ */
+/* $Id: ParameterUtils.h,v 1.6 2004-03-27 16:55:55 paklein Exp $ */
 #ifndef _PARAMETER_UTILS_H_
 #define _PARAMETER_UTILS_H_
 
 /* direct members */
 #include "ParameterInterfaceT.h"
+#include "dArrayT.h"
+#include "dMatrixT.h"
 
 namespace Tahoe {
 
