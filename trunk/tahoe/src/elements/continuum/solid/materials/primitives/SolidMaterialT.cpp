@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.20 2005-03-09 19:25:48 raregue Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.21 2005-03-11 20:32:15 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
@@ -12,6 +12,19 @@ using namespace Tahoe;
 /* dummy return values */
 iArrayT ijunk;
 dArrayT djunk;
+
+SolidMaterialT::ConstraintT SolidMaterialT::int2ConstraintT(int i)
+{
+	if (i == kNoConstraint)
+		return kNoConstraint;
+	else if (i == kPlaneStress)
+		return kPlaneStress;
+	else if (i == kPlaneStrain)
+		return kPlaneStrain;
+	else
+		ExceptionT::GeneralFail("SolidMaterialT::int2ConstraintT",
+			"could not translate %d", i);
+}
 
 /* constructor */
 SolidMaterialT::SolidMaterialT(void):
@@ -192,7 +205,9 @@ void SolidMaterialT::TakeParameterList(const ParameterListT& list)
 	fDensity = list.GetParameter("density");
 
 	/* 2D constraint - default to plane strain for 2D materials */
-	list.GetParameter("constraint_2D", enum2int<ConstraintT>(fConstraint));
+	int constraint = list.GetParameter("constraint_2D");
+	fConstraint = int2ConstraintT(constraint);
+	
 	if (NumSD() == 3)
 		fConstraint = kNoConstraint;
 	else if (NumSD() == 2 && fConstraint == kNoConstraint)
