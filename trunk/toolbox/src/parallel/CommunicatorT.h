@@ -1,5 +1,4 @@
-/* $Id: CommunicatorT.h,v 1.3 2002-07-05 22:26:32 paklein Exp $ */
-
+/* $Id: CommunicatorT.h,v 1.4 2002-08-15 08:56:31 paklein Exp $ */
 #ifndef _COMMUNICATOR_T_H_
 #define _COMMUNICATOR_T_H_
 
@@ -25,16 +24,23 @@ class CommunicatorT
 {
   public:
 
-	/** logging level */
-	enum LogLevelT {kSilent = 0, /**< serious error messages only */
-	               kAddress = 1, /**< log destination/source */
-	                   kAll = 2  /**< log everything including message data */ };
-
+	/** \name constructor */
+	/*@{*/
 	/** create communicator including all processes */
 	CommunicatorT(void); 
 	
 	/** copy constructor */
 	CommunicatorT(const CommunicatorT& source); 
+	/*@}*/
+
+	/** destructor */
+	~CommunicatorT(void);
+	
+	/** (optionally) set argc and argv to pass command line arguments */
+	static void SetArgv(int* argc, char*** argv) {
+			fargc = argc;
+			fargv = argv;
+		};
 
 	/** communicator size */
 	int Size(void) const { return fSize; };
@@ -44,6 +50,19 @@ class CommunicatorT
 
 	/** return the raw MPI_Comm */
 	const MPI_Comm& Comm(void) const { return fComm; };
+
+	/** type conversion operator */
+	operator const MPI_Comm() const { return Comm(); };
+	
+	/** returns true if an MP environment is active */
+	static bool ActiveMP(void);
+
+	/** \name logging */
+	/*@{*/
+	/** logging level */
+	enum LogLevelT {kSilent = 0, /**< serious error messages only */
+	               kAddress = 1, /**< log destination/source */
+	                   kAll = 2  /**< log everything including message data */ };
 
 	/** write message to log 
 	 * \param caller the calling subroutine 
@@ -62,6 +81,7 @@ class CommunicatorT
 
 	/** (re-)set logging level */
 	void SetLogLevel(LogLevelT log_level) { fLogLevel = log_level; };
+	/*@}*/
 	
 	/** maximum over single integers returned to all */
 	int Max(int a) const;
@@ -89,6 +109,9 @@ class CommunicatorT
 
 	/** gather single integer to all processes. */
 	void AllGather(int a, ArrayT<int>& gather) const;
+
+	/** broadcast character array */
+	void Broadcast(ArrayT<char>& data);
 	
 	/** synchronize all processes */
 	void Barrier(void) const;
@@ -100,18 +123,45 @@ class CommunicatorT
 
 	/** write log header */
 	ostream& LogHead(const char* caller) const;
-	
+
   private:
   
-  	/* MPI parameters */
+  	/** \name initialize/finalize MPI environment */
+  	/*@{*/
+	void Init(void);
+	void Finalize(void);
+  	/*@}*/
+  	
+  private:
+  
+  	/** \name MPI parameters */
+  	/*@{*/
   	MPI_Comm fComm; /**< MPI communicator */
   	int fSize;      /**< communicator size */
   	int fRank;      /**< rank of this process */
+  	/*@}*/
   	
-  	/* logging */
+  	/** \name logging */
+  	/*@{*/
   	LogLevelT fLogLevel;
   	ostream*  fLog;
+  	/*@}*/
+  	
+	/** count of communicators */
+	static int fCount;
+	static int*    fargc;
+	static char*** fargv;
 };
+
+/* returns true if an MP environment is active */
+inline bool CommunicatorT::ActiveMP(void)
+{
+#ifdef __MPI__
+	return true;
+#else
+	return false;
+#endif
+}
 
 } // namespace Tahoe 
 #endif /* _COMMUNICATOR_T_H_ */
