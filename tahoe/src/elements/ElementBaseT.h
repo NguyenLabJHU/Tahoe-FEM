@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.14.6.1 2002-10-17 04:28:47 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.14.6.2 2002-10-18 01:25:15 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -218,13 +218,21 @@ protected: /* for derived classes only */
 	/** get local element data, X for geometry, U for
 	 * field variables */
 	/*@{*/
-	const LocalArrayT& SetLocalX(LocalArrayT& localarray); // the geometry
-	const LocalArrayT& SetLocalU(LocalArrayT& localarray); // the degrees of freedom
+	/** nodes defining the geometry. Collect node in local ordering
+	 * using the connectivities from the current element. */
+	const LocalArrayT& SetLocalX(LocalArrayT& localarray);
+
+	/** nodes defining the field. Collect node in local ordering
+	 * using the connectivities from the current element. */
+	const LocalArrayT& SetLocalU(LocalArrayT& localarray);
 	/*@}*/
 
-	/** \name drivers called by FormRHS and FormLHS */
+	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
 	/*@{*/
+	/** form group contribution to the stiffness matrix */
 	virtual void LHSDriver(void) = 0;
+
+	/** form group contribution to the residual */
 	virtual void RHSDriver(void) = 0;
 	/*@}*/
 
