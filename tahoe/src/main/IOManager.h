@@ -1,4 +1,4 @@
-/* $Id: IOManager.h,v 1.14 2002-07-05 22:28:07 paklein Exp $ */
+/* $Id: IOManager.h,v 1.14.4.1 2002-10-17 04:54:07 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 
 #ifndef _IOMANAGER_H_
@@ -102,11 +102,6 @@ public:
 	/** return the output set with the given ID
 	 * \param ID set ID returned from the call to IOManager::AddElementSet */
 	const OutputSetT& OutputSet(int ID) const;
-
-	/** construct a new output formatter */
-	static OutputBaseT* NewOutput(const StringT& program_name, const StringT& version,
-		const StringT& title, const StringT& input_file,
-		IOBaseT::FileTypeT output_format, ostream& log);	
 
 protected:
 
