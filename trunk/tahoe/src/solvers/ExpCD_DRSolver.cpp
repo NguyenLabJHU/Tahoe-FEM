@@ -1,4 +1,4 @@
-/* $Id: ExpCD_DRSolver.cpp,v 1.11 2004-07-15 08:31:50 paklein Exp $ */
+/* $Id: ExpCD_DRSolver.cpp,v 1.12 2004-10-14 20:25:07 paklein Exp $ */
 /* created: paklein (08/19/1998) */
 #include "ExpCD_DRSolver.h"
 
@@ -190,7 +190,7 @@ SolverT::SolutionStatusT ExpCD_DRSolver::ExitIteration(double error)
 {
 	/* CONVERGENCE MOVIES */
 //TEMP
-//	if (fKinePrintInc > 0 && fmod(fNumIteration+1,fKinePrintInc) == 0)
+//	if (fKinePrintInc > 0 && (fNumIteration+1)%fKinePrintInc == 0)
 //		fFEManager.PrintKinematic(fOutput,fTime);
 
 	++fNumIteration;

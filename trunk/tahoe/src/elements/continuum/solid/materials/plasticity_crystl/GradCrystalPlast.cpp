@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlast.cpp,v 1.12 2004-07-15 08:29:06 paklein Exp $ */
+/* $Id: GradCrystalPlast.cpp,v 1.13 2004-10-14 20:24:51 paklein Exp $ */
 #include "GradCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -297,7 +297,7 @@ void GradCrystalPlast::ComputeOutput(dArrayT& output)
   int step   = fFSMatSupport->StepNumber();
   int nsteps = fFSMatSupport->NumberOfSteps();
 
-  if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
+  if (step % fODFOutInc == 0 || step == nsteps)
   {
     // elastic deformation gradient
     DeltaFPInverse(fDGamma);

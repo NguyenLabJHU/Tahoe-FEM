@@ -1,4 +1,4 @@
-/* $Id: AugLagCylinderT.cpp,v 1.2 2004-09-16 16:49:31 paklein Exp $ */
+/* $Id: AugLagCylinderT.cpp,v 1.3 2004-10-14 20:25:02 paklein Exp $ */
 #include "AugLagCylinderT.h"
 #include "FieldT.h"
 #include "eIntegratorT.h"
@@ -400,7 +400,7 @@ void AugLagCylinderT::ComputeContactForce(double kforce)
 	{
 		/* check for update */
 		int iter = FieldSupport().IterationNumber();
-		if (!fRecomputeForce && (iter != -1 && fabs(fmod(double(iter+1), fPrimalIterations)) > kSmall)) return;
+		if (!fRecomputeForce && (iter != -1 && (iter+1)%fPrimalIterations != 0)) return;
 		fRecomputeForce = false;
 	
 		/* dimensions */
