@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_2.cpp,v 1.1.2.3 2004-05-25 23:45:18 paklein Exp $ */
+/* $Id: FEManagerT_bridging_2.cpp,v 1.1.2.4 2004-05-26 05:58:53 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -30,8 +30,10 @@
 #include "nArrayGroupT.h"
 #include "nVariMatrixT.h"
 
-#include "LAdMatrixT.h" //TEMP
 #include "CCSMatrixT.h"
+#ifdef __SPOOLES__
+#include "SPOOLESMatrixT.h"
+#endif
 
 /* debugging */
 #define __DEBUG__ 1
@@ -110,8 +112,12 @@ void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neig
 	bond_densities = 1.0;
 
 	/* works space that changes for each bond family */
+#ifdef __SPOOLES__
+	SPOOLESMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kZeroPivots, true, true);
+#else
 	CCSMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kZeroPivots);
-	
+#endif	
+
 	dArray2DT p_i, dp_i, df_dp_i;
 	nArray2DGroupT<double> ip_unknown_group(0, false, nip);
 	ip_unknown_group.Register(p_i);
