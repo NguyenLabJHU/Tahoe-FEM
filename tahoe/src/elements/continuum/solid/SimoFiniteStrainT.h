@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.h,v 1.11 2001-11-14 21:52:09 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.h,v 1.10 2001-09-15 01:16:39 paklein Exp $ */
 
 #ifndef _SIMO_FINITE_STRAIN_T_H_
 #define _SIMO_FINITE_STRAIN_T_H_
@@ -224,7 +224,6 @@ protected:
 	dMatrixT fStressMat;      /**< space for a stress tensor */
 	dMatrixT fStressStiff_11; /**< compact stress stiffness contribution */
 	dMatrixT fStressStiff_12; /**< compact stress stiffness contribution */
-	dMatrixT fStressStiff_21; /**< compact stress stiffness contribution */
 	dMatrixT fStressStiff_22; /**< compact stress stiffness contribution */
 	dMatrixT fGradNa;         /**< shape function gradients matrix */
 	
@@ -237,7 +236,7 @@ protected:
 	dArrayT  fRHS_enh;
 	dMatrixT fB_enh;
 	LAdMatrixT fK22;	
-	dMatrixT fK12, fK11, fK21;
+	dMatrixT   fK12, fK11;
 };
 
 #endif /* _SIMO_FINITE_STRAIN_T_H_ */

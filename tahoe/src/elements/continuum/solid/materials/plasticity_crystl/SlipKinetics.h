@@ -56,15 +56,6 @@ class SlipKinetics
   virtual void Print(ostream& out) const = 0;
   virtual void PrintName(ostream& out) const = 0;
 
-  // continuation method using the rate sensitivity exponent
-  virtual void SetUpRateSensitivity();
-  virtual void ComputeRateSensitivity();
-  virtual bool IsMaxRateSensitivity();
-
- protected:
-  // power
-  double Power(const double &x, const double &y);
-
  protected:
   // reference to hardening object
   SlipHardening& fHard;

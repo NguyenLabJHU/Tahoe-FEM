@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.2 2001-10-25 07:16:43 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 /* NOTE: the RodT class doesn't provide complete support for the          */
 /* different time integration schemes implemented using the               */
@@ -12,16 +12,20 @@
 
 #include <math.h>
 
-#include "NodeManagerT.h"
 #include "fstreamT.h"
 #include "FEManagerT.h"
 #include "eControllerT.h"
-#include "OutputSetT.h"
-#include "dArray2DT.h"
 
 /* material types */
 #include "LinearSpringT.h"
 #include "LJSpringT.h"
+
+/* material type codes */
+const int	kQuad		 = 1;	/* quadratic potential - linear spring */
+const int	kLJ612       = 2;	/* Lennard-Jones 6-12 potential */
+
+const int	kMaterialMin = 1;
+const int	kMaterialMax = 2;
 
 /* constructors */
 RodT::RodT(FEManagerT& fe_manager):
@@ -30,15 +34,8 @@ RodT::RodT(FEManagerT& fe_manager):
 	fLocInitCoords(LocalArrayT::kInitCoords),
 	fLocDisp(LocalArrayT::kDisp)
 {
-	//TEMP - only 2D for now. need to rewrite force and stiffness calculations
-	if (NumSD() != 2) {
-		cout << "\n RodT::RodT: only 2D" << endl;
-		throw eGeneralFail;
-	}
-
-	/* dimensions */
-	fNumElemNodes = 2;
-	fNumElemEqnos = fNumElemNodes*fNumDOF;
+	/* check base class initializations */
+	if (fNumElemNodes != 2) throw eGeneralFail;
 
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
@@ -96,48 +93,13 @@ double RodT::InternalEnergy(void)
 /* writing output */
 void RodT::RegisterOutput(void)
 {
-	/* block ID's */
-	iArrayT block_ID(fBlockData.MajorDim());
-	fBlockData.ColumnCopy(kID, block_ID);
-
-	/* variable labels */
-	ArrayT<StringT> n_labels(2);
-	n_labels[0] = "D_X";
-	n_labels[1] = "D_Y";
-	ArrayT<StringT> e_labels;
-
-	/* set output specifier */
-	int ID = fFEManager.ElementGroupNumber(this) + 1;
-	OutputSetT output_set(ID, GeometryT::kLine, block_ID, fConnectivities, n_labels, e_labels, 
-		ChangingGeometry());
-		
-	/* register and get output ID */
-	fOutputID = fFEManager.RegisterOutput(output_set);
+	//nothing for now
 }
 
 void RodT::WriteOutput(IOBaseT::OutputModeT mode)
 {
-//TEMP - not handling general output modes yet
-	if (mode != IOBaseT::kAtInc)
-	{
-		cout << "\n ContinuumElementT::WriteOutput: only handling \"at increment\"\n"
-		     <<   "     print mode. SKIPPING." << endl;
-		return;
-	}
-
-	/* get list of nodes used by the group */
-	iArrayT nodes_used;
-	NodesUsed(nodes_used);
-
-	/* temp space for group displacements */
-	dArray2DT disp(nodes_used.Length(), 2);
-	
-	/* collect group displacements */
-	disp.RowCollect(nodes_used, fNodes->Displacements());
-
-	/* send */
-	dArray2DT e_values;
-	fFEManager.WriteOutput(fOutputID, disp, e_values);
+#pragma unused(mode)
+	//nothing for now
 }
 
 /* compute specified output parameter and send for smoothing */
@@ -198,7 +160,7 @@ void RodT::RHSDriver(void)
 			SetLocalX(fLocInitCoords);
 
 			/* form element force */
-			ElementForce(-1.0);
+			ElementForce(constKd);
 	
 			/* add to global equations */
 			AssembleRHS();
@@ -232,15 +194,19 @@ void RodT::ReadMaterialData(ifstreamT& in)
 		int matnum, matcode;
 		in >> matnum;
 		in >> matcode;	
+		if (matcode < kMaterialMin ||
+		    matcode > kMaterialMax) throw eBadInputValue;
 		
 		/* add to the list of materials */
 		switch (matcode)
 		{
-			case kQuad:			
+			case kQuad:
+			
 				fMaterialsList[--matnum] = new LinearSpringT(in);
 				break;
 				
 			case kLJ612:
+			
 				fMaterialsList[--matnum] = new LJSpringT(in);
 				break;
 

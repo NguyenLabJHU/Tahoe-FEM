@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.18 2001-11-28 22:08:45 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.17.2.4 2001-10-29 00:07:05 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
@@ -17,16 +17,12 @@
 #include "ElementBaseT.h"
 #include "IOManager.h"
 #include "OutputSetT.h"
-#include "CommandSpecT.h"
-#include "ArgSpecT.h"
 
 /* nodes */
 #include "NodeManagerT.h"
 #include "FDNodeManager.h"
 #include "DynNodeManager.h"
 #include "FDDynNodeManagerT.h"
-#include "VariFDNodesT.h"
-#include "VariFDDynNodesT.h"
 #include "DuNodeManager.h"
 
 /* controllers */
@@ -49,7 +45,7 @@
 #include "iNLSolver_LS.h"
 
 /* File/Version Control */
-const char* kCurrentVersion = "v3.4.1"; //version marker
+const char* kCurrentVersion = "v3.5";
 const char* kProgramName    = "tahoe";
 
 /* exception strings */
@@ -63,7 +59,8 @@ const char* eExceptionStrings[] = {
 /* 6 */ "invalid value read from input",
 /* 7 */ "zero or negative jacobian",
 /* 8 */ "MPI message passing error",
-/* 9 */ "unknown"};	
+/* 9 */ "database read failure",
+/*10 */ "unknown"};	
 
 /* constructor */
 FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output):
@@ -86,22 +83,12 @@ FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output):
 
 	/* add console variables */
 	iAddVariable("title", *((const StringT*) &fTitle));
-	iAddVariable("model_file", *((const StringT*) &fModelFile));
 	iAddVariable("restart_inc", fWriteRestart);
 	
 	/* console commands */
-	ArgSpecT rs_file(ArgSpecT::string_);
-	rs_file.SetPrompt("restart file");
-
-	CommandSpecT read_rs("ReadRestart");
-	read_rs.AddArgument(rs_file);
-	iAddCommand(read_rs);
-
-	CommandSpecT write_rs("WriteRestart");
-	write_rs.AddArgument(rs_file);
-	iAddCommand(write_rs);
-	
-	iAddCommand(CommandSpecT("WriteOutput"));
+	iAddCommand("ReadRestart");
+	iAddCommand("WriteRestart");
+	iAddCommand("WriteOutput");
 }
 
 /* destructor */
@@ -113,6 +100,7 @@ FEManagerT::~FEManagerT(void)
 	delete fSolutionDriver;
 	delete fController;
 	delete fIOManager;
+	delete fModelManager;
 	fStatus = GlobalT::kNone;	
 }
 
@@ -135,8 +123,13 @@ void FEManagerT::Initialize(InitCodeT init)
 	fTitle.GetLineFromStream(fMainIn);
 	cout << "\n Title: " << fTitle << endl;
 	
+	/* set model manager */
+	fModelManager = new ModelManagerT (fMainOut);
+	if (!fModelManager) throw eOutOfMemory;
+	if (verbose) cout << "    FEManagerT::Initialize: input" << endl;
+
 	/* main parameters */
-	ReadParameters();
+	ReadParameters(init);
 	if (init == kParametersOnly) return;
 	WriteParameters();
 	if (verbose) cout << "    FEManagerT::Initialize: execution parameters" << endl;
@@ -159,8 +152,8 @@ void FEManagerT::Initialize(InitCodeT init)
 	SetElementGroups();
 	if (verbose) cout << "    FEManagerT::Initialize: element groups" << endl;
 
-	/* set I/O manager */
-	SetIO();
+	/* set output manager */
+	SetOutput();
 	if (verbose) cout << "    FEManagerT::Initialize: io" << endl;
 	if (init == kAllButSolver) return;
 
@@ -201,41 +194,6 @@ void FEManagerT::Reinitialize(void)
 
 	/* reset equation structure */
 	SetEquationSystem();		
-}
-
-ifstreamT& FEManagerT::OpenExternal(ifstreamT& in,  ifstreamT& in2, ostream& out,
-	bool verbose, const char* fail) const
-{
-	/* check for external file */
-	char nextchar = in.next_char();
-	if (isdigit(nextchar))
-		return in;
-	else
-	{
-		/* open external file */
-		StringT file;
-		in >> file;
-		if (verbose) out << " external file: " << file << '\n';
-		file.ToNativePathName();
-
-		/* path to source file */
-		StringT path;
-		path.FilePath(in.filename());
-		file.Prepend(path);
-			
-		/* open stream */
-		in2.open(file);
-		if (!in2.is_open())
-		{
-			if (verbose && fail) cout << "\n " << fail << ": " << file << endl;
-			throw eBadInputValue;
-		}
-
-		/* set comments */
-		if (in.skip_comments()) in2.set_marker(in.comment_marker());
-
-		return in2;
-	}
 }
 
 /* manager messaging */
@@ -727,7 +685,7 @@ int FEManagerT::AddNode(const ArrayT<LocalArrayT::TypeT>& types,
 	//could use RTTI here
 	switch (fAnalysisCode)
 	{
-		case GlobalT::kVarNodeNLStatic:
+	  /*case GlobalT::kVarNodeNLStatic:
 		{
 			VariFDNodesT* pnodes = (VariFDNodesT*) fNodeManager;
 			return  pnodes->AddNode(types,values);
@@ -738,7 +696,7 @@ int FEManagerT::AddNode(const ArrayT<LocalArrayT::TypeT>& types,
 			VariFDDynNodesT* pnodes = (VariFDDynNodesT*) fNodeManager;
 			return pnodes->AddNode(types,values);
 			break;
-		}
+			}*/
 		default:
 		
 			cout << "\n FEManagerT::AddNode: incorrect analysis code: ";
@@ -838,23 +796,33 @@ void FEManagerT::WriteSystemConfig(ostream& out) const
 }
 
 /* interactive */
-bool FEManagerT::iDoCommand(const CommandSpecT& command, StringT& line)
+bool FEManagerT::iDoCommand(const StringT& command, StringT& line)
 {
 	try
 	{
-		if (command.Name() == "ReadRestart")
+		if (command == "ReadRestart")
 		{
 			StringT file_name;
-			command.Argument(0).GetValue(file_name);
-			ReadRestart(&file_name);
+			if (ResolveArgument(line, file_name, NULL))
+				ReadRestart(&file_name);
+			else
+			{
+				cout << "could not resolve file name from \"" << line
+				     << '\"'<< endl;
+			}
 		}
-		else if (command.Name() == "WriteRestart")
+		else if (command == "WriteRestart")
 		{
 			StringT file_name;
-			command.Argument(0).GetValue(file_name);
-			WriteRestart(&file_name);
+			if (ResolveArgument(line, file_name, NULL))
+				WriteRestart(&file_name);
+			else
+			{
+				cout << "could not resolve file name from \"" << line
+				     << '\"'<< endl;
+			}
 		}
-		else if (command.Name() == "WriteOutput")
+		else if (command == "WriteOutput")
 		{
 			WriteOutput(Time(), IOBaseT::kAtInc);			
 		}
@@ -920,20 +888,12 @@ void FEManagerT::WriteParameters(void) const
 	fMainOut << "    eq. " << GlobalT::kDR              << ", dynamic relaxation\n";   	
 	fMainOut << "    eq. " << GlobalT::kLinExpDynamic   << ", linear explicit dynamic\n";   	
 	fMainOut << "    eq. " << GlobalT::kNLExpDynamic    << ", nonlinear explicit dynamic\n";   	
-	fMainOut << " Input format. . . . . . . . . . . . . . . . . . = " << fInputFormat  << '\n';
-	fMainOut << "    eq. " << IOBaseT::kTahoe         << ", standard ASCII\n";
-	fMainOut << "    eq. " << IOBaseT::kTahoeII       << ", random access ASCII\n";
-	fMainOut << "    eq. " << IOBaseT::kExodusII      << ", ExodusII\n";
-	if (fInputFormat == IOBaseT::kTahoeII || fInputFormat == IOBaseT::kExodusII)
-		fMainOut << " Geometry file . . . . . . . . . . . . . . . . . = " << fModelFile  << '\n';
-	fMainOut << " Output format . . . . . . . . . . . . . . . . . = " << fOutputFormat << '\n';
-	fMainOut << "    eq. " << IOBaseT::kTahoe         << ", standard ASCII\n";
-	fMainOut << "    eq. " << IOBaseT::kTecPlot       << ", TecPlot\n";
-	fMainOut << "    eq. " << IOBaseT::kEnSight       << ", Ensight 6 ASCII\n";
-	fMainOut << "    eq. " << IOBaseT::kEnSightBinary << ", Ensight 6 binary\n";
-	fMainOut << "    eq. " << IOBaseT::kExodusII      << ", ExodusII\n";
-	fMainOut << "    eq. " << IOBaseT::kAbaqus        << ", ABAQUS ASCII\n";
-	fMainOut << "    eq. " << IOBaseT::kAbaqusBinary  << ", ABAQUS binary\n";
+
+	fModelManager->EchoData (fMainOut);
+	IOBaseT temp (fMainOut);
+	fMainOut << " Output format . . . . . . . . . . . . . . . . . = " << fOutputFormat  << '\n';
+	temp.OutputFormats (fMainOut);
+
 	fMainOut << " Read restart file code  . . . . . . . . . . . . = " << fReadRestart << '\n';
 	fMainOut << "    eq. 0, do not read restart file\n";
 	fMainOut << "    eq. 1, read restart file\n";
@@ -953,45 +913,24 @@ void FEManagerT::SetNodeManager(void)
 	{
 		case GlobalT::kLinStaticHeat:
 		case GlobalT::kLinStatic:
-
 			fNodeManager = new NodeManagerT(*this);
 			break;
-
 		case GlobalT::kLinTransHeat:
-		
 			fNodeManager = new DuNodeManager(*this);
 			break;
-
 		case GlobalT::kNLStatic:
 		case GlobalT::kDR:
-
 			fNodeManager = new FDNodeManager(*this);
 			break;
-
 		case GlobalT::kLinDynamic:
 		case GlobalT::kLinExpDynamic:
-
 			fNodeManager = new DynNodeManager(*this);
 			break;
-
 		case GlobalT::kNLDynamic:
 		case GlobalT::kNLExpDynamic:
-
 			fNodeManager = new FDDynNodeManagerT(*this);
 			break;
-
-		case GlobalT::kVarNodeNLStatic:
-		
-			fNodeManager = new VariFDNodesT(*this);
-			break;
-	
-		case GlobalT::kVarNodeNLExpDyn:
-		
-			fNodeManager = new VariFDDynNodesT(*this);
-			break;
-
 		default:
-
 			cout << "FEManagerT::SetNodeManager: unknown analysis type." << endl;
 			throw eBadInputValue;
 	}
@@ -1124,24 +1063,16 @@ void FEManagerT::SetSolver(void)
 	iAddSub(*fSolutionDriver);
 }
 
-void FEManagerT::ReadParameters(void)
+void FEManagerT::ReadParameters(InitCodeT init)
 {
 	/* read */
 	fMainIn >> fAnalysisCode;
-	fMainIn >> fInputFormat;
-	if (fInputFormat == IOBaseT::kTahoeII ||
-	    fInputFormat == IOBaseT::kExodusII)
-	{	    
-	    fMainIn >> fModelFile;
-	    fModelFile.ToNativePathName();
-	    
-	    /* path from input file */
-	    StringT path;
-	    path.FilePath(fMainIn.filename());
-	    
-	    /* prepend path */
-	    fModelFile.Prepend(path);
-	}
+	
+	if (init == kFull)
+	  fModelManager->Initialize (fMainIn, false);
+	else
+	  fModelManager->Initialize (fMainIn, true);
+
 	fMainIn >> fOutputFormat;
 	fMainIn >> fReadRestart;
 	if (fReadRestart == 1)
@@ -1160,19 +1091,11 @@ void FEManagerT::ReadParameters(void)
 	fMainIn >> fPrintInput;
 
 	/* check */
-	if (fInputFormat  != IOBaseT::kTahoe   &&
-	    fInputFormat  != IOBaseT::kTahoeII &&
-	    fInputFormat  != IOBaseT::kExodusII) throw eBadInputValue;
-	if (fOutputFormat != IOBaseT::kTahoe  &&
-	    fOutputFormat != IOBaseT::kTecPlot   &&
-	    fOutputFormat != IOBaseT::kEnSight   &&
-	    fOutputFormat != IOBaseT::kEnSightBinary &&
-	    fOutputFormat != IOBaseT::kExodusII  &&
-	    fOutputFormat != IOBaseT::kAbaqus  &&
-	    fOutputFormat != IOBaseT::kAbaqusBinary) throw eBadInputValue;
 	if (fReadRestart  != 0 && fReadRestart  != 1) throw eBadInputValue;
 	if (fWriteRestart < 0) throw eBadInputValue;
-	if (fPrintInput   != 0 && fPrintInput   != 1) throw eBadInputValue;	
+	if (fPrintInput   != 0 && fPrintInput   != 1) throw eBadInputValue;
+
+	/* i/o format checks are done my IOManagerT and ModelManagerT */
 }
 
 /* set the execution controller and send to nodes and elements.
@@ -1233,8 +1156,8 @@ void FEManagerT::SetController(void)
 	if (!fController) throw eOutOfMemory;
 }
 
-/* construct I/O */
-void FEManagerT::SetIO(void)
+/* construct output */
+void FEManagerT::SetOutput(void)
 {
 	StringT file_name(fMainIn.filename());
 	fIOManager = new IOManager(fMainOut, kProgramName, kCurrentVersion, fTitle,

@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.h,v 1.6 2001-10-15 17:48:55 sawimme Exp $ */
+/* $Id: ExodusInputT.h,v 1.5.2.2 2001-11-13 20:56:00 sawimme Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #ifndef _EXODUSINPUT_T_H_
@@ -64,8 +64,11 @@ public:
 
   virtual int  NumNodeVariables (void) const;
   virtual int  NumElementVariables (void) const;
-
   virtual int  NumQuadratureVariables (void) const;
+
+  virtual void NodeVariablesUsed (StringT& name, iArrayT& used);
+  virtual void ElementVariablesUsed (StringT& name, iArrayT& used);
+  virtual void QuadratureVariablesUsed (StringT& name, iArrayT& used);  
 
   virtual void ReadNodeLabels (ArrayT<StringT>& labels) const;
   virtual void ReadElementLabels (ArrayT<StringT>& elabels) const;
@@ -140,6 +143,12 @@ inline int ExodusInputT::NumElementVariables (void) const
 
 inline int ExodusInputT::NumQuadratureVariables (void) const
 { return 0; }
+
+inline void ExodusInputT::QuadratureVariablesUsed (StringT& name, iArrayT& used)
+{
+#pragma unused (name)
+  used = 0;
+}
 
 inline void ExodusInputT::ReadNodeLabels (ArrayT<StringT>& labels) const
 { fData.ReadNodeLabels (labels); }

@@ -1,5 +1,6 @@
-/* $Id: dMatrixEXT.h,v 1.3 2001-10-05 18:54:47 paklein Exp $ */
-/* created: paklein (03/06/1998) */
+/* $Id: dMatrixEXT.h,v 1.2 2001-09-20 23:52:05 cfoster Exp $ */
+/* created: paklein (03/06/1998)                                          */
+/* dMatrixT plus special matrix functions                                 */
 
 #ifndef _DMATRIXEX_T_H_
 #define _DMATRIXEX_T_H_
@@ -11,7 +12,6 @@
 #include "dArrayT.h"
 #include "iArrayT.h"
 
-/** interface for dMatrixT plus special matrix functions */
 class dMatrixEXT: public dMatrixT
 {
 public:
@@ -40,24 +40,6 @@ public:
 	void eigenvector3x3(dMatrixEXT& J, double value, int numvector,  dArrayT& vector, dArrayT& vector2, dArrayT& vector3);
         /*forms acoustic tensor from rank 4 tangent modulus, normal */
 	void formacoustictensor(dMatrixEXT& A, double C [3] [3] [3] [3], dArrayT& normal);
-
-	/** generate singular value decomposition of *this = U*W*V^T. 
-	 * \param U return matrix: [n_rows] x [n_cols]
-	 * \param W diagonal matrix of singular values: [n_cols]
-	 * \param V square return matrix: [n_cols] x [n_cols] 
-	 * \param threshold for singular values allows to be nonzero, i.e., upper bound relative
-	 *        to the maximum singular value
-	 * \param max_its maximum number of iterations, 30 by default */
-	void Compute_SVD(dMatrixT& U, dArrayT& W, dMatrixT& V, double threshold, int max_its = 30) const;
-
-	/** back substitute given a decomposition computed with dMatrixEXT::Compute_SVD.
-	 * \param U return matrix: [n_rows] x [n_cols]
-	 * \param W diagonal matrix of singular values: [n_cols]
-	 * \param V square return matrix: [n_cols] x [n_cols] 
-	 * \param RHS goes in as the RHS vector and returns as the solution
- 	 * \note Aside from dimension checks, this function doesn't really involve
- 	 *       the matrix stored in *this. */
-	void BackSubstitute_SVD(const dMatrixT& U, const dArrayT& W, const dMatrixT& V, dArrayT& RHS) const;
 
 private:
 
@@ -101,22 +83,19 @@ private:
 	void PullUpTri(int i, int length);
 
 	/* Numerical Recipies */
-	double pythag(double a, double b) const;
+	double pythag(double a, double b);
 	int tqli(double d[], double e[], int n);
 
 	/* Numerical recipe, puts general matrix in Hessian form */
 	void elmhes(dMatrixEXT& a,int n);
 
-	/* numerical recipe, finds eigenvalues of Hessian matrix
+        /* numerical recipe, finds eigenvalues of Hessian matrix
 	 *real part of each value is in wr, imaginary in wi */
 	void hqr(dMatrixEXT& a, int n, dArrayT& wr, dArrayT& wi);
 
-	/** compute SVD */
-	int svdcmp(double* a, int m, int n, double* w, double* v, double* rv1, int max_its) const;
 
-	/** back substitute SVD */
-	void svbksb(double* u, double* w, double* v, int m, int n, double* b, double* x, double* tmp) const;
 
+	//int rankcheck3x3 (dMatrixEXT& matrix, double det);
 private:
 
 	/* work vectors length fRows (== fCols) */

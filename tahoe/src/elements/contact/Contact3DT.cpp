@@ -1,4 +1,4 @@
-/* $Id: Contact3DT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: Contact3DT.cpp,v 1.1.1.1.6.4 2001-11-06 20:31:57 sawimme Exp $ */
 /* created: paklein (07/17/1999)                                          */
 
 #include "Contact3DT.h"
@@ -141,22 +141,23 @@ bool Contact3DT::SetActiveInteractions(void)
 void Contact3DT::SetConnectivities(void)
 {
 	/* check */
-	if (fConnectivities.MajorDim() != fActiveStrikers.Length())
+	if (fConnectivities[0]->MajorDim() != fActiveStrikers.Length())
 	{
 		cout << "\n Contact3DT::SetConnectivities: expecting the number of contact\n"
-		     <<   "    connectivities " << fConnectivities.MajorDim()
+		     <<   "    connectivities " << fConnectivities[0]->MajorDim()
 		     << " to equal the number of active strikers "
 		     << fActiveStrikers.Length() << endl;
 		throw eGeneralFail;
 	}
 
-	for (int i = 0; i < fConnectivities.MajorDim(); i++)
+	int* pelem = fConnectivities[0]->Pointer();
+	int rowlength = fConnectivities[0]->MinorDim();
+	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{
 		const iArray2DT& surface = fSurfaces[fHitSurface[i]];
 		
 		int   facet = fHitFacets[i];
 		int* pfacet = surface(facet);
-		int*  pelem = fConnectivities(i);
 
 		/* all element tags */
 		pelem[0] = pfacet[0]; // 1st facet node

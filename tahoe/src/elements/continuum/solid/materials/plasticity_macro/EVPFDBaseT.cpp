@@ -1,4 +1,4 @@
-/* $Id: EVPFDBaseT.cpp,v 1.5 2001-10-24 02:24:25 paklein Exp $ */
+/* $Id: EVPFDBaseT.cpp,v 1.4 2001-07-03 01:35:38 paklein Exp $ */
 /*
   File: EVPFDBaseT.cpp
 */
@@ -158,11 +158,11 @@ void EVPFDBaseT::Compute_Ftot_last_3D(dMatrixT& F_3D) const
 {
 	int nsd = NumSD();
 	if (nsd == 3)
-		F_3D = F_total_last();
+		F_3D = F_last();
 	else if (nsd == 2)
 	{
 		// expand total deformation gradient: 2D -> 3D (plane strain)
-		F_3D.Rank2ExpandFrom2D(F_total_last());
+		F_3D.Rank2ExpandFrom2D(F_last());
 		F_3D(2, 2) = 1.0;
 	}
 	else 

@@ -1,5 +1,6 @@
-/* $Id: SurfacePotentialT.h,v 1.8 2001-11-16 00:22:42 cjkimme Exp $ */
-/* created: paklein (06/20/1999) */
+/* $Id: SurfacePotentialT.h,v 1.2 2001-04-04 22:11:19 paklein Exp $ */
+/* created: paklein (06/20/1999)                                          */
+/* base class for surface potential with jump vector arguments            */
 
 #ifndef _SURFACE_POTENTIAL_T_H_
 #define _SURFACE_POTENTIAL_T_H_
@@ -12,98 +13,64 @@
 #include "ios_fwd_decl.h"
 class StringT;
 
-/** base class for surface potential. The traction evolves in the local
- * frame as a function of the current opening displacement, the rate of
- * opening displacement, and a vector state variables. The "needs" of the
- * model are probed by the host code. The state variables are integrated
- * over the current time step during the call to SurfacePotentialT::Traction. 
- * during all other calls, the state variable array is not modified. */
 class SurfacePotentialT
 {
 public:
 
-	/** surface potential types - derived classes */
-	enum CodeT {kXuNeedleman = 0, /**< elastic potential developed by Xu and Needleman */
-	    kTvergaardHutchinson = 1, /**< tri-linear potential */
-	           kLinearDamage = 2, /**< irreversible linear decay */
-	kViscTvergaardHutchinson = 3, /**< T-H with viscous dissipation */
-	               kTijssens = 4  /**< */};
+	/* surface potential types - derived classes */
+	enum CodeT {kXuNeedleman = 0,
+	    kTvergaardHutchinson = 1,
+	           kLinearDamage = 2};
 
-	/** surface element status codes */
-	enum StatusT {Precritical = 0, /**< loading phase */
-	                 Critical = 1, /**< unloading phase */
-	                   Failed = 2  /**< beyond zero-traction opening */};
+	/* status codes */
+	enum StatusT {Precritical = 0,
+	                 Critical = 1,
+	                   Failed = 2};
 
-	/** constructor */
+	/* constructor */
 	SurfacePotentialT(int ndof);
 
-	/** destructor */
+	/* destructor */
 	virtual ~SurfacePotentialT(void);
-
-	/** return the number of state variables needed by the model */
-	virtual int NumStateVariables(void) const = 0;
-
-	/** initialize the state variable array. By default, initialization
-	 * involves only setting the array to zero. */
-	virtual void InitStateVariables(ArrayT<double>& state);
 	
-	/** dissipated energy */
-	virtual double FractureEnergy(const ArrayT<double>& state) = 0;
-
-	/** potential energy */
-	virtual double Potential(const dArrayT& jump, const ArrayT<double>& state) = 0;
+	/* surface potential */
+	virtual double FractureEnergy(void) = 0;
+	virtual double Potential(const dArrayT& jump_u) = 0;
 	
-	/** surface traction. Internal variables are integrated over the current
-	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump, ArrayT<double>& state) = 0;
+	/* traction vector given displacement jump vector */	
+	virtual const dArrayT& Traction(const dArrayT& jump_u) = 0;
 
-	/** tangent stiffness */
-	virtual const dMatrixT& Stiffness(const dArrayT& jump, const ArrayT<double>& state) = 0;
+	/* potential stiffness */
+	virtual const dMatrixT& Stiffness(const dArrayT& jump_u) = 0;
 
-	/** surface status */
-	virtual StatusT Status(const dArrayT& jump, const ArrayT<double>& state) = 0;
+	/* surface status */
+	virtual StatusT Status(const dArrayT& jump_u) = 0;
 	
-	/** write model name to output */
+	/* print parameters to the output stream */
 	virtual void PrintName(ostream& out) const = 0;
-
-	/** write model parameters */
 	virtual void Print(ostream& out) const = 0;
 
-	/** return the number of output variables */
-	virtual int NumOutputVariables(void) const;
-
-	/** return labels for the output variables.
-	 * \param labels returns with the labels for the output variables. Space is
-	 *        allocate by the function. Returns empty by default. */
-	virtual void OutputLabels(ArrayT<StringT>& labels) const;
-
-	/** compute the output variables.
-	 * \param destination of output values. Allocated by the host code */
-	virtual void ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
-		dArrayT& output);
-
-	/** returns true if the potential needs access to physical quantities
-at the nodes. Returns false by default. */
-	virtual bool NeedsNodalInfo(void);
-	virtual int NodalQuantityNeeded(void);
-	virtual double ComputeNodalValue(const dArrayT &); 
-        virtual void UpdateStateVariables(const dArrayT & IPdata, ArrayT<double> &);
-	virtual int ElementGroupNeeded(void);
-
-	/** returns true if two materials have compatible nodal outputs */
+	/* returns true if two materials have compatible nodal outputs */
 	static bool CompatibleOutput(const SurfacePotentialT&, const SurfacePotentialT&);
+
+	/* returns the number of variables computed for nodal extrapolation
+	 * during for element output, ie. internal variables. Returns 0
+	 * by default */
+	virtual int NumOutputVariables(void) const; // 0 by default
+	virtual void OutputLabels(ArrayT<StringT>& labels) const; // none by default
+	virtual void ComputeOutput(const dArrayT& jump_u, dArrayT& output);
 
 protected:
 
-	/** return true if the potential has compatible (type and sequence)
-	 * nodal output, returns false by default */
+	/* return true if the potential has compatible (type and sequence)
+	 * nodal output - FALSE by default */
 	virtual bool CompatibleOutput(const SurfacePotentialT& potential) const;
 
 protected:
 
 	/* return values */
-	dArrayT  fTraction;  /**< traction return value */
-	dMatrixT fStiffness; /**< stiffness return value */
+	dArrayT  fTraction;
+	dMatrixT fStiffness;
 };
 
 #endif /* _SURFACE_POTENTIAL_T_H_ */

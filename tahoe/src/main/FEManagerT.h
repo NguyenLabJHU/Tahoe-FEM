@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.6 2001-11-28 22:08:45 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.5.6.2 2001-10-16 22:16:40 sawimme Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #ifndef _FE_MANAGER_H_
@@ -15,6 +15,7 @@
 #include "ElementListT.h"
 #include "LocalArrayT.h"
 #include "IOBaseT.h"
+#include "ModelManagerT.h"
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
@@ -70,10 +71,6 @@ public:
 	GlobalT::SystemTypeT GlobalSystemType(void) const;
 	const GlobalT::StateT& RunState(void) const;
 
-	/* stream utils */
-	ifstreamT& OpenExternal(ifstreamT& in,  ifstreamT& in2, ostream& out,
-		bool echo_name, const char* fail) const;
-
 	/* functions of time */
 	LoadTime* GetLTfPtr(int num) const;
 	double LoadFactor(int nLTf) const;
@@ -112,9 +109,8 @@ public:
 
 	/* I/O info */
 	const StringT& Version(void) const;
-	IOBaseT::FileTypeT InputFormat(void) const;
 	IOBaseT::FileTypeT OutputFormat(void) const;
-	const StringT& ModelFile(void) const;
+	ModelManagerT* ModelManager (void) const;
 
 	/* local reordering */
 	void SetLocalEqnos(const iArray2DT& nodes, iArray2DT& eqnos) const;
@@ -204,7 +200,7 @@ public:
 	virtual int Size(void) const { return 1; }
 
 	/* interactive */
-	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
+	virtual bool iDoCommand(const StringT& command, StringT& line);
 
 protected:
 
@@ -215,13 +211,13 @@ protected:
 	void CheckInputFile(void);
 
 	/* initialization functions */
-	virtual void ReadParameters(void);
+	virtual void ReadParameters(InitCodeT init);
 	void WriteParameters(void) const;
 	void SetController(void);
 	virtual void SetNodeManager(void);
 	virtual void SetElementGroups(void);
 	void SetSolver(void);
-	virtual void SetIO(void);
+	virtual void SetOutput(void);
 
 	/* (re-)set system to initial conditions */
 	virtual void InitialCondition(void);
@@ -259,7 +255,6 @@ protected:
 	/* I/O streams */
 	ifstreamT&  fMainIn;
 	StringT     fVersion;
-	StringT     fModelFile;
 	ofstreamT& 	fMainOut;
 	StringT		fTitle;
 	StringT     fRestartFile;
@@ -269,7 +264,6 @@ protected:
 	
 	/* execution parameters */
 	GlobalT::AnalysisCodeT fAnalysisCode;
-	IOBaseT::FileTypeT  fInputFormat;
 	IOBaseT::FileTypeT  fOutputFormat;
 	bool fReadRestart;
 	int  fWriteRestart;
@@ -282,6 +276,7 @@ protected:
 	SolverT*      fSolutionDriver;
 	ControllerT*  fController;
 	IOManager*    fIOManager;
+	ModelManagerT* fModelManager;
 	
 	/* restart file counter */
 	int fRestartCount;
@@ -295,10 +290,8 @@ inline const StringT& FEManagerT::Version(void) const { return fVersion; }
 inline ifstreamT& FEManagerT::Input(void) const { return fMainIn;  }
 inline ofstreamT& FEManagerT::Output(void) const { return fMainOut; }
 inline const GlobalT::StateT& FEManagerT::RunState(void) const { return fStatus; }
-inline IOBaseT::FileTypeT FEManagerT::InputFormat(void) const { return fInputFormat; }
 inline IOBaseT::FileTypeT FEManagerT::OutputFormat(void) const { return fOutputFormat; }
-inline const StringT& FEManagerT::ModelFile(void) const { return fModelFile; }
-
+inline ModelManagerT* FEManagerT::ModelManager (void) const { return fModelManager; }
 inline NodeManagerT* FEManagerT::NodeManager(void) const { return fNodeManager; }
 inline IOManager* FEManagerT::OutputManager(void) const { return fIOManager; }
 inline const iArrayT* FEManagerT::ElementMap(int blockID) const

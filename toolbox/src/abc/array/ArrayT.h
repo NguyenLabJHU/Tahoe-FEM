@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.5 2001-10-05 22:31:33 paklein Exp $ */
+/* $Id: ArrayT.h,v 1.3 2001-06-20 22:49:57 paklein Exp $ */
 /* created: paklein (06/19/1996)                                          */
 /* Base class for handling memory allocation for arrays of TYPE           */
 
@@ -62,7 +62,6 @@ public:
 	/* assignment operators */
 	ArrayT<TYPE>& operator=(const TYPE& value);
 	ArrayT<TYPE>& operator=(const ArrayT<TYPE>& RHS);
-	void Copy(const TYPE* pRHS);
 
 	/* shallow copy/conversion */
 	void Alias(const ArrayT<TYPE>& RHS);
@@ -377,7 +376,7 @@ inline TYPE& ArrayT<TYPE>::Last(void) const
 
 /* assignment operators */
 template <class TYPE>
-inline ArrayT<TYPE>& ArrayT<TYPE>::operator=(const TYPE& value)
+ArrayT<TYPE>& ArrayT<TYPE>::operator=(const TYPE& value)
 {
 	TYPE* p = fArray;
 	for (int i = 0; i < fLength; i++)
@@ -386,7 +385,7 @@ inline ArrayT<TYPE>& ArrayT<TYPE>::operator=(const TYPE& value)
 }
 
 template <class TYPE>
-inline ArrayT<TYPE>& ArrayT<TYPE>::operator=(const ArrayT<TYPE>& RHS)
+ArrayT<TYPE>& ArrayT<TYPE>::operator=(const ArrayT<TYPE>& RHS)
 {
 	/* no copies to self */
 	if (fArray != RHS.fArray)
@@ -398,13 +397,6 @@ inline ArrayT<TYPE>& ArrayT<TYPE>::operator=(const ArrayT<TYPE>& RHS)
 		MemCopy(fArray, RHS.fArray, fLength);	
 	}
 	return *this;
-}
-
-template <class TYPE>
-inline void ArrayT<TYPE>::Copy(const TYPE* pRHS)
-{
-	/* no copies to self */
-	if (fArray != pRHS) MemCopy(fArray, pRHS, fLength);	
 }
 
 /* copy length elements of source beginning at start */

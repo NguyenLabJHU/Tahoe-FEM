@@ -1,5 +1,6 @@
-/* $Id: iConsoleT.h,v 1.5 2001-11-28 22:05:45 paklein Exp $ */
-/* created: paklein (12/21/2000) */
+/* $Id: iConsoleT.h,v 1.3 2001-02-13 17:48:35 paklein Exp $ */
+/* created: paklein (12/21/2000)                                          */
+/* iConsoleT.h                                                            */
 
 #ifndef _I_CONSOLE_T_H_
 #define _I_CONSOLE_T_H_
@@ -13,11 +14,9 @@
 /* forward declaration */
 class iConsoleObjectT;
 
-/** base class for interactive consoles */
 class iConsoleT: public iConsoleBaseT
 {
-  public:
-
+public:
 	/* constructor */
 	iConsoleT(const StringT& log_file, iConsoleObjectT& current);
 
@@ -25,7 +24,7 @@ class iConsoleT: public iConsoleBaseT
 	~iConsoleT(void);
 
 	/* execute given command - returns false on fail */
-	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
+	virtual bool iDoCommand(const StringT& command, StringT& line);
 
 	/* operate on given variable */
 	virtual bool iDoVariable(const StringT& variable, StringT& line);
@@ -38,7 +37,7 @@ class iConsoleT: public iConsoleBaseT
 	          kScopeVariable = 4,
 	                  kAlias = 5};
 
-  private:
+private:
 
 	/* main event loop */
 	void DoInteractive(void);
@@ -56,7 +55,7 @@ class iConsoleT: public iConsoleBaseT
 	 * a command from the console or current scope, or returns
 	 * kNone if the word could not be resolved */
 	CommandScope ResolveNextWord(StringT& line, StringT& command) const;
-	CommandScope ResolveCommandName(StringT& command) const;
+	CommandScope ResolveCommand(StringT& command) const;
 	
 	/* reset dictionary - scope_only sets only scope commands
 	 * and variables */
@@ -66,6 +65,7 @@ private:
 
 	/* commands */
 	void ListCommand(ostream& out) const;
+	bool HistoryCommand(StringT& line);
 	
 	/* flush the command line and all input streams */
 	void FlushInput(StringT& line);
@@ -102,8 +102,8 @@ private:
 	
 
 	/* dictionary */
-	AutoArrayT<const StringT*> fWord;
-	AutoArrayT<CommandScope>   fWordScope;
+	AutoArrayT<StringT*>     fWord;
+	AutoArrayT<CommandScope> fWordScope;
 	
 	/* aliases */
 	AutoArrayT<StringT> fAlias;

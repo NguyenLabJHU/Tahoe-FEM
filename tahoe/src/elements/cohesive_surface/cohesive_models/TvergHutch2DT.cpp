@@ -1,5 +1,7 @@
-/* $Id: TvergHutch2DT.cpp,v 1.5 2001-11-02 19:35:43 cjkimme Exp $ */
-/* created: paklein (02/05/2000) */
+/* $Id: TvergHutch2DT.cpp,v 1.2 2001-04-04 22:11:19 paklein Exp $ */
+/* created: paklein (02/05/2000)                                          */
+/* cohesive potential from Tvergaard and Hutchinson,                      */
+/* JMPS v41, n6, 1995, 1119-1135.                                         */
 
 #include "TvergHutch2DT.h"
 
@@ -35,16 +37,15 @@ TvergHutch2DT::TvergHutch2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 }
 
 /* surface potential */
-double TvergHutch2DT::FractureEnergy(const ArrayT<double>& state)
+double TvergHutch2DT::FractureEnergy(void)
 { 
 	return fd_c_n*fsigma_max*0.5*(1 - fL_1 + fL_2); 
 }
 
-double TvergHutch2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
+double TvergHutch2DT::Potential(const dArrayT& jump_u)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
 #endif
 
 	double u_t = jump_u[0];
@@ -75,11 +76,10 @@ double TvergHutch2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& sta
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& TvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state)
+const dArrayT& TvergHutch2DT::Traction(const dArrayT& jump_u)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
 #endif
 
 	double u_t = jump_u[0];
@@ -109,11 +109,10 @@ const dArrayT& TvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 }
 
 /* potential stiffness */
-const dMatrixT& TvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state)
+const dMatrixT& TvergHutch2DT::Stiffness(const dArrayT& jump_u)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
 #endif
 
 	double u_t = jump_u[0];
@@ -235,13 +234,8 @@ const dMatrixT& TvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 }
 
 /* surface status */
-SurfacePotentialT::StatusT TvergHutch2DT::Status(const dArrayT& jump_u, 
-	const ArrayT<double>& state)
+SurfacePotentialT::StatusT TvergHutch2DT::Status(const dArrayT& jump_u)
 {
-#if __option(extended_errorcheck)
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
-#endif
-
 	double u_t = jump_u[0];
 	double u_n = jump_u[1];
 
@@ -284,13 +278,8 @@ void TvergHutch2DT::OutputLabels(ArrayT<StringT>& labels) const
 	labels[0] = "lambda";
 }
 
-void TvergHutch2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
-	dArrayT& output)
+void TvergHutch2DT::ComputeOutput(const dArrayT& jump_u, dArrayT& output)
 {
-#if __option(extended_errorcheck)
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
-#endif
-
 	double u_t = jump_u[0];
 	double u_n = jump_u[1];
 

@@ -1,4 +1,4 @@
-/* $Id: ComplexT.h,v 1.6 2001-12-10 23:38:10 paklein Exp $ */
+/* $Id: ComplexT.h,v 1.5 2001-03-01 01:17:49 hspark Exp $ */
 /* created: PAK/AFLP (05/19/1997)                                         */
 /* 	                                                                      */
 
@@ -38,9 +38,10 @@ public:
 	/*
 	 * Real and Imaginary parts of arrays - must be dimensioned BEFORE call
 	 */
-	static void z_to_Re(const nArrayT<ComplexT>& z, nArrayT<double>& d);
-	static void z_to_Im(const nArrayT<ComplexT>& z, nArrayT<double>& d);
-	static void ReIm_to_z(const nArrayT<double>& re, const nArrayT<double>& im, nArrayT<ComplexT>& z);
+	friend void z_to_Re(const nArrayT<ComplexT>& z, nArrayT<double>& d);
+	friend void z_to_Im(const nArrayT<ComplexT>& z, nArrayT<double>& d);
+	friend void ReIm_to_z(const nArrayT<double>& re,
+		const nArrayT<double>& im, nArrayT<ComplexT>& z);
 	
 	/* Polar components */
 	double Magnitude() const;

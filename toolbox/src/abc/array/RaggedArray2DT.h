@@ -1,5 +1,8 @@
-/* $Id: RaggedArray2DT.h,v 1.7 2001-10-24 01:57:18 paklein Exp $ */
-/* created: paklein (09/10/1998) */
+/* $Id: RaggedArray2DT.h,v 1.5 2001-07-19 06:45:57 paklein Exp $ */
+/* created: paklein (09/10/1998)                                          */
+/* 2D array with arbitrary "row" lengths. NO functions are provided       */
+/* for data retrieval. derived classes should use RowAlias()              */
+/* to retrieve data and return an appropriate array type.                 */
 
 #ifndef _RAGGED_ARRAY_2D_T_H_
 #define _RAGGED_ARRAY_2D_T_H_
@@ -13,171 +16,81 @@
 #include "AutoFill2DT.h"
 #include "RowAutoFill2DT.h"
 
-/** 2D array with arbitrary "row" lengths. operator()'s provided
- * for data retrieval. */
 template <class TYPE>
 class RaggedArray2DT
 {
 public:
 
-	/** constructor. Constructs empty array */
+	/* constructors */
 	RaggedArray2DT(void);
-	
-	/** constructor. Construct array with the same dimensions for
-	 * every row. */
 	RaggedArray2DT(int majordim, int minordim, int blocksize = 1);
-
-	/** allocate array with fixed row dimensions */
-	void Allocate(int majordim, int minordim);
-
-	/** return the dimension of the data block */		
-	int Length(void) const;
-	
-	/** return the number of rows */
+		// equal row sizes
+		
+	/* dimensions */
+	int Length(void) const;      // length of the data block
 	int MajorDim(void) const;
-	
-	/** return the length of the specified row */
 	int MinorDim(int row) const;
-	
-	/** retrieve the dimensions of all the rows */
-	void MinorDim(ArrayT<int>& minordim) const;
-
-	/** return the length of the longest row */
-	int MaxMinorDim(void) const;
-
-	/** return the smallest minor dimension.
-	 * \param floor values smaller than floor are ignored when determining the smallest
-	 *        row length */
-	int MinMinorDim(int floor) const;
-
-	/** return the smallest minor dimension and its location.
-	 * \param dex returns with the location of the longest row
-	 * \param floor values smaller than floor are ignored when determining the smallest
-	 *        row length */
+	void MinorDim(ArrayT<int>& minordim) const; // all minor dim's
+	int MaxMinorDim(void) const;          // largest  minor dimension
+	int MinMinorDim(int floor) const; // smallest minor dimension ( > floor)
 	int MinMinorDim(int& dex, int floor) const; // smallest minor dimension ( > floor)
 
-	/** configuration the array
-	 * \param rowcounts array containing the length of each row
-	 * \param blocksize allocated space is rowcounts[i]*blocksize
-	 *        for each row. */
+	/* configuration functions */
 	void Configure(const ArrayT<int>& rowcounts, int blocksize = 1);
 
-	/** shallow copy */
+	/* shallow copy */
 	void Alias(const RaggedArray2DT& source);
+	void Alias(const nArray2DT<TYPE>& source); // equal row sizes
 
-	/** shallow copy from nArray2DT */
-	void Alias(const nArray2DT<TYPE>& source);
-
-	/** assigment operator from another RaggedArray2DT */
+	/* assigment */
 	RaggedArray2DT<TYPE>& operator=(const RaggedArray2DT& source);
-
-	/** configure and construct using a AutoFill2DT */
 	void Copy(const AutoFill2DT<TYPE>& source);
-
-	/** configure and construct using a RowAutoFill2DT */
 	void Copy(const RowAutoFill2DT<TYPE>& source);
-
-	/** configure and construct using raw data.
-	 * \param rowcounts array of number of entries per row
-	 * \param data array of pointers to the row data */
 	void Copy(const ArrayT<int>& rowcounts, const ArrayT<TYPE*>& data);
+	void CopyCompressed(const AutoFill2DT<TYPE>& source); // removes empty rows
 
-	/** configure and construct using a AutoFill2DT. Empty
-	 * rows are removed. */
-	void CopyCompressed(const AutoFill2DT<TYPE>& source);
-
-	/** generate adjacency offset vector */
+	/* generate adjacency offset vector */
 	void GenerateOffsetVector(ArrayT<int>& offsets) const;
 
-	/** write data to a row of the array. Dimension of the source
-	 * must match the allocated size of the specified row.
-	 * \param row destination row
-	 * \param array source of data */
+	/* write data */
 	void SetRow(int row, const ArrayT<TYPE>& array);
-
-	/** write data to a row of the array.
-	 * \param row destination row
-	 * \param array source of data. The length of this array is
-	 *        assumed to be at least as long as the size of the
-	 *        specified row. */
 	void SetRow(int row, const TYPE* array);
 
 	/* write rows with numbers to the output stream */
 	void WriteNumbered(ostream& out) const;
 
-	/** shallow copy of a row.
-	 * \param row row number to alias
-	 * \param array array to alias to the row data */
+	/* data retrieval */
 	void RowAlias(int row, ArrayT<TYPE>& rowdata) const;
-
-	/** return a pointer to first element in the specified row */
 	TYPE* operator()(int row) const;
-	
-	/** return a pointer to the first element in the data array */
-	TYPE* Pointer(void) const;
+	TYPE* Pointer(void) const; // pointer to the first data element
 
-	/** free memory */
+	/* free memory (if allocated) */
 	void Free(void);
 
-	/** configure from stream. Read the data for the array from the stream.
-	 * This data includes information about the internal structure of the
-	 * array. This is the complement to RaggedArray2DT::Write. */
+	/* I/O */
 	void Read(istream& in);
-
-	/** write to stream. Write the data for the array to the stream.
-	 * This data includes information about the internal structure of the
-	 * array. This is the complement to RaggedArray2DT::Read. */
 	void Write(ostream& out) const;
 	
-	/** binary input of the data array. Read only the data portion of
-	 * the array from the input stream. The structure of the array
-	 * must be set previously. This is the complement to 
-	 * RaggedArray2DT::WriteDataBinary. */
+	/* binary I/O of data (not offsets) */
 	void ReadDataBinary(istream& in) { fData.ReadBinary(in); };
-
-	/** binary output of the data array. Write only the data portion of
-	 * the array from the input stream. Information about the structure 
-	 * of the array is not included in the output. Hence, arrays that read
-	 * this data must be configured previously. This is the complement 
-	 * to RaggedArray2DT::ReadDataBinary. */
 	void WriteDataBinary(ostream& out) const { fData.WriteBinary(out); };
-
-	/** text input of the data array. Read only the data portion of
-	 * the array from the input stream. The structure of the array
-	 * must be set previously. This is the complement to 
-	 * RaggedArray2DT::WriteData. */
-	void ReadData(istream& in);
-
-	/** text output of the data array. Write only the data portion of
-	 * the array from the input stream. Information about the structure 
-	 * of the array is not included in the output. Hence, arrays that read
-	 * this data must be configured previously. This is the complement 
-	 * to RaggedArray2DT::ReadDataBinary. */
-	void WriteData(ostream& out) const;
 
 private:
 
-	/** setting pointers for equal row sizes */
+	/* setting pointers for equal row sizes */
 	void SetEvenPointers(int minordim);
 
-	/** disallowed */
+	/* disallowed */
 	RaggedArray2DT(const RaggedArray2DT& source);
 	  	
 protected:
 
-	/** number of rows */
+	/* number of rows */
 	int fMajorDim;
-
-	/** smallest row dimension */
-	int fMinMinorDim;
-
-	/** largest row dimension */
 	int fMaxMinorDim;
 
-	/** pointers to the data array. Length is majordim + 1 */
-	ArrayT<TYPE*> fPtrs;
-
-	/** data array */
+	/* data pointers */
+	ArrayT<TYPE*> fPtrs; // length is majordim + 1
 	ArrayT<TYPE>  fData;
 };
 
@@ -189,33 +102,20 @@ protected:
 template <class TYPE>
 inline RaggedArray2DT<TYPE>::RaggedArray2DT(void):
 	fMajorDim(0),
-	fMinMinorDim(0),
 	fMaxMinorDim(0)
 {
 
 }
 
 template <class TYPE>
-RaggedArray2DT<TYPE>::RaggedArray2DT(int majordim, int minordim, int blocksize)
+RaggedArray2DT<TYPE>::RaggedArray2DT(int majordim, int minordim, int blocksize):
+	fMajorDim(majordim),
+	fMaxMinorDim(fMajorDim),
+	fPtrs(fMajorDim + 1),
+	fData(fMajorDim*minordim*blocksize)
 {
-	/* configure */
-	Allocate(majordim, minordim*blocksize);
-}
-
-/* allocate array with fixed row dimensions */
-template <class TYPE>
-void RaggedArray2DT<TYPE>::Allocate(int majordim, int minordim)
-{
-	/* set dimensions */
-	fMajorDim = majordim;
-	fMinMinorDim = fMaxMinorDim = minordim;
-
-	/* allocate space */
-	fPtrs.Allocate(fMajorDim + 1);
-	fData.Allocate(fMajorDim*minordim);
-
 	/* set pointers */
-	SetEvenPointers(minordim);
+	SetEvenPointers(minordim*blocksize);
 }
 
 /* dimensions */
@@ -317,26 +217,21 @@ void RaggedArray2DT<TYPE>::Configure(const ArrayT<int>& rowcounts, int blocksize
 
 	/* set pointers */
 	pcount = rowcounts.Pointer();
-	fMinMinorDim = (rowcounts.Length() > 0) ? rowcounts[0] : 0;
 	fMaxMinorDim = 0;
 	
 	TYPE*  pdata  = fData.Pointer();
 	TYPE** p      = fPtrs.Pointer();	
 	for (int i = 0; i < fMajorDim; i++)
 	{
-		/* track dimensions */
-		if (*pcount < fMinMinorDim)
-			fMinMinorDim = *pcount;
-		else if (*pcount > fMaxMinorDim)
-			fMaxMinorDim = *pcount;
+		/* keep max dimension */
+		fMaxMinorDim = (*pcount > fMaxMinorDim) ? *pcount : fMaxMinorDim;
 	
 		*p++   = pdata;
 		pdata += blocksize*(*pcount++);
 	}
-	fPtrs[fMajorDim] = pdata;
+	fPtrs[fMajorDim] = pdata; // set outside to keep pcount in range
 
 	/* adjust for block size */
-	fMinMinorDim *= blocksize;
 	fMaxMinorDim *= blocksize;
 }
 
@@ -346,7 +241,6 @@ inline void RaggedArray2DT<TYPE>::Alias(const RaggedArray2DT& source)
 {
 	/* dimensions */
 	fMajorDim = source.fMajorDim;
-	fMinMinorDim = source.fMinMinorDim;
 	fMaxMinorDim = source.fMaxMinorDim;
 	
 	/* data */
@@ -359,7 +253,7 @@ void RaggedArray2DT<TYPE>::Alias(const nArray2DT<TYPE>& source)
 {
 	/* dimensions */
 	fMajorDim    = source.MajorDim();
-	fMinMinorDim = fMaxMinorDim = source.MinorDim;
+	fMaxMinorDim = source.MinorDim;
 	
 	/* configure memory */
 	fPtrs.Allocate(fMajorDim + 1);
@@ -373,44 +267,23 @@ void RaggedArray2DT<TYPE>::Alias(const nArray2DT<TYPE>& source)
 template <class TYPE>
 RaggedArray2DT<TYPE>& RaggedArray2DT<TYPE>::operator=(const RaggedArray2DT& source)
 {
-	/* quick copy for repeated, even-spaced copies */
-	if (source.fMinMinorDim == source.fMaxMinorDim &&
-	    fMinMinorDim == fMaxMinorDim &&
-	    fMinMinorDim == source.fMinMinorDim &&
-	    fMajorDim == source.fMajorDim)
-	{
-		/* copy data */
-		fData = source.fData;
-	}
-	else
-	{
-		/* (re-)dimension */
-		fMajorDim    = source.fMajorDim;
-		fMaxMinorDim = source.fMaxMinorDim;
-		fMinMinorDim = source.fMinMinorDim;
+	/* dimension */
+	fMajorDim    = source.fMajorDim;
+	fMaxMinorDim = source.fMaxMinorDim;
 	
-		/* data */
-		fData = source.fData;
-		
-		/* allocate space for data pointers */
-		fPtrs.Allocate(source.fPtrs.Length());
+	/* data */
+	fData = source.fData;
+	fPtrs = source.fPtrs;
+
+	/* shift */
+	TYPE* shift = fData.Pointer() - (source.fData).Pointer();
+	TYPE** p    = fPtrs.Pointer();	
+	for (int i = 0; i < fMajorDim; i++)
+		*p++ += shift;
 	
-		/* quick set */
-		if (fMinMinorDim == fMaxMinorDim)
-			SetEvenPointers(fMinMinorDim);
-		else
-		{
-			/* set pointers */
-			TYPE* ptr = fData.Pointer();
-			for (int i = 0; i < fMajorDim; i++)
-			{
-				fPtrs[i] = ptr;
-				ptr += source.MinorDim(i);
-			}
-		}
-	}
 	return *this;
 }
+
 
 template <class TYPE>
 void RaggedArray2DT<TYPE>::Copy(const AutoFill2DT<TYPE>& source)
@@ -420,7 +293,6 @@ void RaggedArray2DT<TYPE>::Copy(const AutoFill2DT<TYPE>& source)
 	fPtrs.Allocate(fMajorDim + 1);
 	fData.Allocate(source.LogicalSize());
 
-	fMinMinorDim = (fMajorDim > 0) ? source.MinorDim(0) : 0;
 	fMaxMinorDim = 0;
 	TYPE** pptrs = fPtrs.Pointer();
 	TYPE*  pdata = fData.Pointer();
@@ -428,13 +300,13 @@ void RaggedArray2DT<TYPE>::Copy(const AutoFill2DT<TYPE>& source)
 	{
 		/* copy data */
 		int length = source.MinorDim(i);
-		if (length > 0) memcpy(pdata, source(i), sizeof(TYPE)*length);
-
-		/* track dimensions */
-		if (length < fMinMinorDim)
-			fMinMinorDim = length;
-		else if (length > fMaxMinorDim)
-			fMaxMinorDim = length;
+		if (length > 0)
+		{
+			memcpy(pdata, source(i), sizeof(TYPE)*length);
+	
+			/* track size */
+			fMaxMinorDim = (length > fMaxMinorDim) ? length : fMaxMinorDim;
+		}		
 		
 		/* set pointer */
 		*pptrs = pdata;			
@@ -462,7 +334,6 @@ void RaggedArray2DT<TYPE>::Copy(const RowAutoFill2DT<TYPE>& source)
 	fPtrs.Allocate(fMajorDim + 1);
 	fData.Allocate(source.LogicalSize());
 
-	fMinMinorDim = (fMajorDim > 0) ? source.MinorDim(0) : 0;
 	fMaxMinorDim = 0;
 	TYPE** pptrs = fPtrs.Pointer();
 	TYPE*  pdata = fData.Pointer();
@@ -470,13 +341,13 @@ void RaggedArray2DT<TYPE>::Copy(const RowAutoFill2DT<TYPE>& source)
 	{
 		/* copy data */
 		int length = source.MinorDim(i);
-		if (length > 0) memcpy(pdata, source(i), sizeof(TYPE)*length);
-
-		/* track dimensions */
-		if (length < fMinMinorDim)
-			fMinMinorDim = length;
-		else if (length > fMaxMinorDim)
-			fMaxMinorDim = length;
+		if (length > 0)
+		{
+			memcpy(pdata, source(i), sizeof(TYPE)*length);
+	
+			/* track size */
+			fMaxMinorDim = (length > fMaxMinorDim) ? length : fMaxMinorDim;
+		}		
 		
 		/* set pointer */
 		*pptrs = pdata;			
@@ -533,16 +404,12 @@ void RaggedArray2DT<TYPE>::CopyCompressed(const AutoFill2DT<TYPE>& source) // re
 			/* set pointer */
 			*pptrs = pdata;
 
-			/* next */		
+			/* track size */
+			fMaxMinorDim = (length > fMaxMinorDim) ? length : fMaxMinorDim;
+		
 			pptrs++;
 			pdata += length;
 		}
-		
-		/* track dimensions */
-		if (length < fMinMinorDim)
-			fMinMinorDim = length;
-		else if (length > fMaxMinorDim)
-			fMaxMinorDim = length;
 	}
 	
 	/* set trailing pointer */
@@ -631,7 +498,6 @@ template <class TYPE>
 inline void RaggedArray2DT<TYPE>::Free(void)
 {
 	fMajorDim = 0;
-	fMinMinorDim = 0;
 	fMaxMinorDim = 0;
 	fPtrs.Free();
 	fData.Free();
@@ -665,35 +531,6 @@ void RaggedArray2DT<TYPE>::Write(ostream& out) const
 		out << fData[j] << '\n';
 }
 
-template <class TYPE>
-void RaggedArray2DT<TYPE>::ReadData(istream& in)
-{ 
-	/* read */
-	for (int j = 0; j < fData.Length(); j++)
-		 in >> fData[j];
-}
-
-template <class TYPE>
-void RaggedArray2DT<TYPE>::WriteData(ostream& out) const
-{
-	const int wrap = 5;
-	int count = 0;
-	for (int i = 0; i < fData.Length(); i++)
-	{
-		/* wrap */
-		if (count == wrap)
-		{
-			out << '\n';
-			count = 0;
-		}
-		else if (count > 0)
-			out << " ";
-		count++;
-
-		out << fData[i];		
-	}
-}
-
 /*************************************************************************
 * Private
 *************************************************************************/
@@ -705,6 +542,7 @@ void RaggedArray2DT<TYPE>::SetEvenPointers(int minordim)
 	/* set pointers */
 	TYPE*  pdata = fData.Pointer();
 	TYPE** p     = fPtrs.Pointer();
+	
 	for (int i = 0; i <= fMajorDim; i++)
 	{
 		*p++   = pdata;

@@ -1,4 +1,4 @@
-/* $Id: dArrayT.h,v 1.4 2001-10-05 22:31:33 paklein Exp $ */
+/* $Id: dArrayT.h,v 1.2 2001-06-20 22:49:57 paklein Exp $ */
 /* created: paklein (08/11/1996)                                          */
 
 #ifndef _DARRAY_T_H_

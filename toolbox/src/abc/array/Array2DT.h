@@ -1,4 +1,4 @@
-/* $Id: Array2DT.h,v 1.3 2001-11-07 02:32:56 paklein Exp $ */
+/* $Id: Array2DT.h,v 1.2 2001-04-27 10:45:02 paklein Exp $ */
 /* created: paklein (11/02/1998)                                          */
 
 #ifndef _ARRAY2D_T_H_
@@ -31,9 +31,6 @@ public:
 	 * extra space is initialized by specifying the fill. */
 	void Resize(int new_majordim);
 	void Resize(int new_majordim, const TYPE& fill);
-
-	/* exchange data */
-	void Swap(Array2DT<TYPE>& source);
 
 	/* free memory (if allocated) and set size to zero */
 	void Free(void);
@@ -167,23 +164,6 @@ inline void Array2DT<TYPE>::Resize(int new_majordim, const TYPE& fill)
 
 	/* new dimension */
 	fMajorDim = new_majordim;
-}
-
-/* exchange data */
-template <class TYPE>
-inline void Array2DT<TYPE>::Swap(Array2DT<TYPE>& source)
-{
-	/* inherited */
-	ArrayT<TYPE>::Swap(source);
-
-	/* dimensions */
-	int tmp = fMajorDim;
-	fMajorDim = source.fMajorDim;
-	source.fMajorDim = tmp;
-
-	tmp = fMinorDim;
-	fMinorDim = source.fMinorDim;
-	source.fMinorDim = tmp;
 }
 
 /* dimensions */

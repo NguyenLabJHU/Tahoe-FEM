@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.16 2001-11-16 00:03:36 cjkimme Exp $ */
+/* $Id: SolidElementT.cpp,v 1.15.2.1 2001-10-26 18:42:57 sawimme Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #include "SolidElementT.h"
@@ -120,7 +120,10 @@ void SolidElementT::SetController(eControllerT* controller)
 void SolidElementT::AddNodalForce(int node, dArrayT& force)
 {
 	/* quick exit */
-	if (!fConnectivities.HasValue(node)) return;
+        bool hasnode = false;
+	for (int i=0; i < fBlockData.MajorDim() && !hasnode; i++)
+	  if (fConnectivities[i]->HasValue(node)) hasnode = true;
+	if (!hasnode) return;
 
 	/* set components and weights */
 	double constMa = 0.0;
@@ -269,7 +272,7 @@ void SolidElementT::SendOutput(int kincode)
 		    flags[iNodalDisp] = fNumDOF;
 			break;
 		case iNodalStress:
-		    flags[iNodalStress] = 1;
+		    flags[iNodalStress] = dSymMatrixT::NumValues(fNumSD);
 			break;
 		case iEnergyDensity:
 		    flags[iEnergyDensity] = 1;
@@ -288,7 +291,7 @@ void SolidElementT::SendOutput(int kincode)
 
 	/* reset averaging workspace */
 	fNodes->ResetAverage(n_counts.Sum());
-      
+
 	/* no element output */
 	iArrayT e_counts(fElementOutputCodes.Length());
 	e_counts = 0;
@@ -297,7 +300,6 @@ void SolidElementT::SendOutput(int kincode)
 	dArray2DT n_values, e_values;
 	ComputeOutput(n_counts, n_values, e_counts, e_values);
 }
-
 
 /***********************************************************************
 * Protected

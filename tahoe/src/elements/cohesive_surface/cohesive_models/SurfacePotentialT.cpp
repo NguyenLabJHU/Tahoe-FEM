@@ -1,5 +1,6 @@
-/* $Id: SurfacePotentialT.cpp,v 1.7 2001-11-16 00:22:42 cjkimme Exp $ */
-/* created: paklein (06/20/1999) */
+/* $Id: SurfacePotentialT.cpp,v 1.2 2001-02-20 00:42:12 paklein Exp $ */
+/* created: paklein (06/20/1999)                                          */
+/* base class for surface potential with jump vector arguments            */
 
 #include "SurfacePotentialT.h"
 
@@ -13,20 +14,6 @@ SurfacePotentialT::SurfacePotentialT(int ndof):
 
 /* destructor */
 SurfacePotentialT::~SurfacePotentialT(void) { }
-
-/* initialize the state variable array */
-void SurfacePotentialT::InitStateVariables(ArrayT<double>& state)
-{
-	int num_state = NumStateVariables();
-	if (state.Length() != num_state) {
-		cout << "\n SurfacePotentialT::InitStateVariables: expecting state variable array\n"
-		     <<   "     length " << num_state << ", found length " << state.Length() << endl;
-		throw eSizeMismatch;
-	}
-
-	/* clear */
-	if (num_state > 0) state = 0.0;
-}
 
 /* returns true if two materials have compatible nodal outputs */
 bool SurfacePotentialT::CompatibleOutput(const SurfacePotentialT& pot1,
@@ -48,41 +35,11 @@ void SurfacePotentialT::OutputLabels(ArrayT<StringT>& labels) const
 #pragma unused(labels)
 }
 
-void SurfacePotentialT::ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
-	dArrayT& output)
+void SurfacePotentialT::ComputeOutput(const dArrayT& jump_u, dArrayT& output)
 {
-#pragma unused(jump)
-#pragma unused(state)
+#pragma unused(jump_u)
 #pragma unused(output)
 }
-
-bool SurfacePotentialT::NeedsNodalInfo(void)
-{
-        return false;
-}
-
-int SurfacePotentialT::NodalQuantityNeeded(void) 
-{
-	return 0;
-}
-
-double SurfacePotentialT::ComputeNodalValue(const dArrayT& nodalRow)
-{
-#pragma unused(nodalRow)
-	return 0.0;
-}
-
-void SurfacePotentialT::UpdateStateVariables(const dArrayT& IPdata, ArrayT<double>& state)
-{
-#pragma unused(IPdata)
-#pragma unused(state)
-}
-
-int SurfacePotentialT::ElementGroupNeeded(void)
-{
-	return -1;
-}
-
 
 /*************************************************************************
 * Protected

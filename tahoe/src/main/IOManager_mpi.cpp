@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.5 2001-07-19 18:12:25 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.5.2.1 2001-10-29 00:08:27 paklein Exp $ */
 /* created: paklein (03/14/2000)                                          */
 
 #include "IOManager_mpi.h"
@@ -36,7 +36,9 @@ IOManager_mpi::IOManager_mpi(ifstreamT& in, const iArrayT& io_map,
 		if (fIO_map[i] == Rank())
 		{		
 			/* construct global set */
-			OutputSetT global_set(set.ID(), set.Geometry(), set.BlockID(), fConnectivities[i],
+			ArrayT<const iArray2DT*> connect_list(1);
+			connect_list[0] = &fConnectivities[i];
+			OutputSetT global_set(set.ID(), set.Geometry(), set.BlockID(), connect_list,
 				set.NodeOutputLabels(), set.ElementOutputLabels(), set.Changing());
 
 			/* register */
@@ -55,10 +57,12 @@ IOManager_mpi::IOManager_mpi(ifstreamT& in, const iArrayT& io_map,
 		{
 			/* dummy stuff */
 			iArray2DT connects;
+			ArrayT<const iArray2DT*> connects_list(1);
+			connects_list[0] = &connects;
 			ArrayT<StringT> no_labels;
 		
 			/* construct dummy set */
-			OutputSetT dummy_set(set.ID(), set.Geometry(), set.BlockID(), connects,
+			OutputSetT dummy_set(set.ID(), set.Geometry(), set.BlockID(), connects_list,
 				no_labels, no_labels, false);
 				
 			/* register */

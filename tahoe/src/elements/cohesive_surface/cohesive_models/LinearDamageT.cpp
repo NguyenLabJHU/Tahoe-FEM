@@ -1,5 +1,5 @@
-/* $Id: LinearDamageT.cpp,v 1.5 2001-11-02 19:35:43 cjkimme Exp $ */
-/* created: paklein (08/21/2000) */
+/* $Id: LinearDamageT.cpp,v 1.2 2001-04-04 22:11:18 paklein Exp $ */
+/* created: paklein (08/21/2000)                                          */
 
 #include "LinearDamageT.h"
 
@@ -15,8 +15,9 @@ const int kTrialOpening = 1;
 const int kInitTraction = 2;
 
 /* constructor */
-LinearDamageT::LinearDamageT(ifstreamT& in, const dArrayT& init_traction):
-	SurfacePotentialT(init_traction.Length()),
+LinearDamageT::LinearDamageT(ifstreamT& in, const dArrayT& init_traction,
+	iArrayT& i_store, dArrayT& d_store):
+	DecohesionLawT(init_traction.Length(), i_store, d_store),
 	fInitTraction(init_traction)
 {
 	/* traction potential parameters */
@@ -31,47 +32,25 @@ LinearDamageT::LinearDamageT(ifstreamT& in, const dArrayT& init_traction):
 //TEMP: decide on penalty stiffness
 }
 
-/* return the number of state variables */
-int LinearDamageT::NumStateVariables(void) const
-{
-	return fInitTraction.Length() + // initiation traction
-	       1 +                      // max opening
-	       1;                       // trial max opening
-}
-
-/* initialize the state variable array */
-void LinearDamageT::InitStateVariables(ArrayT<double>& state)
-{
-	/* initialization traction */
-	double* ptraction = state.Pointer(kInitTraction);
-	for (int i = 0; i < fInitTraction.Length(); i++)
-		*ptraction++ = fInitTraction[i];
-
-	state[  kMaxOpening] = 0.0; // max opening
-	state[kTrialOpening] = 0.0; // trial opening	
-}
-
 /* surface potential */
-double LinearDamageT::FractureEnergy(const ArrayT<double>& state)
+double LinearDamageT::FractureEnergy(void)
 {
 	return 0.5*fInitTraction.Magnitude()*fd_c_n;
 }
 
-double LinearDamageT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
+double LinearDamageT::Potential(const dArrayT& jump_u)
 {
 #pragma unused(jump_u)
-#pragma unused(state)
 	
 	/* not meaningful to define this quantity */
 	return 0.0;
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u, ArrayT<double>& state)
+const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != fTraction.Length()) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
 #endif
 
 	double u_n = jump_u.Last();
@@ -83,12 +62,12 @@ const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		r_t2 = jump_u[0]*jump_u[0]/fd_c_t/fd_c_t;
 	else
 		r_t2 = (jump_u[0]*jump_u[0] + jump_u[1]*jump_u[1])/fd_c_t/fd_c_t;
-	double L = state[kTrialOpening] = sqrt(r_t2 + r_n*r_n);
+	double L = fd_store[kTrialOpening] = sqrt(r_t2 + r_n*r_n);
 
 	if (L > kSmall)
 	{
 		/* damage law */
-		double L_max = state[kMaxOpening];
+		double L_max = fd_store[kMaxOpening];
 		double f;
 		if (L > 1.0)
 			f = 0.0;     // failed
@@ -98,7 +77,7 @@ const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 			f = L*(1.0 - L_max)/L_max; // unloading to origin
 
 		/* traction */
-		double* init_traction = state.Pointer(kInitTraction);
+		double* init_traction = fd_store.Pointer(kInitTraction);
 		fTraction[0] = f*(*init_traction++);
 		fTraction[1] = f*(*init_traction++);
 		if (jump_u.Length() == 3) fTraction[2] = f*(*init_traction);
@@ -109,19 +88,14 @@ const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 	/* penetration */
 	if (u_n < 0) fTraction.Last() += fK*u_n;
 
-	/* update state variables (in place) */
-	if (state[kTrialOpening] > state[kMaxOpening])
-		state[kMaxOpening] = state[kTrialOpening];
-
 	return fTraction;
 }
 
 /* potential stiffness */
-const dMatrixT& LinearDamageT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state)
+const dMatrixT& LinearDamageT::Stiffness(const dArrayT& jump_u)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != fTraction.Length()) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
 #endif
 
 	int nsd = jump_u.Length();
@@ -134,12 +108,12 @@ const dMatrixT& LinearDamageT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 		r_t2 = jump_u[0]*jump_u[0]/fd_c_t/fd_c_t;
 	else
 		r_t2 = (jump_u[0]*jump_u[0] + jump_u[1]*jump_u[1])/fd_c_t/fd_c_t;
-	double L = state[kTrialOpening] = sqrt(r_t2 + r_n*r_n);
+	double L = fd_store[kTrialOpening] = sqrt(r_t2 + r_n*r_n);
 
 	if (L > kSmall)
 	{
 		/* damage law */
-		double L_max = state[kMaxOpening];
+		double L_max = fd_store[kMaxOpening];
 		double Df;
 		if (L > 1.0)
 			Df = 0.0;     // failed
@@ -148,7 +122,7 @@ const dMatrixT& LinearDamageT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 		else
 			Df = (1.0 - L_max)/L_max; // unloading
 			
-		double* init_traction = state.Pointer(kInitTraction);
+		double* init_traction = fd_store.Pointer(kInitTraction);
 		double DfbyL = Df/L;
 		if (nsd == 2)
 		{
@@ -186,11 +160,8 @@ const dMatrixT& LinearDamageT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 }
 
 /* surface status */
-SurfacePotentialT::StatusT LinearDamageT::Status(const dArrayT& jump_u, 
-	const ArrayT<double>& state)
+SurfacePotentialT::StatusT LinearDamageT::Status(const dArrayT& jump_u)
 {
-#pragma unused(state)
-
 	double u_t = jump_u[0];
 	double u_n = jump_u[1];
 
@@ -217,4 +188,40 @@ void LinearDamageT::Print(ostream& out) const
 	out << " Normal opening to failure . . . . . . . . . . . = " << fd_c_n     << '\n';
 	out << " Tangential opening to failure . . . . . . . . . = " << fd_c_t     << '\n';
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fpenalty   << '\n';
+}
+
+/* storage dimensions */
+int LinearDamageT::IntegerStorage(void) const
+{
+	return 0;
+}
+int LinearDamageT::DoubleStorage(void) const
+{
+	return fInitTraction.Length() + // initiation traction
+	       1 +                      // max opening
+	       1;                       // trial max opening
+}
+
+/* initialize surface */
+void LinearDamageT::InitializeFacet(void) // facet at a time
+{
+	/* initialization traction */
+	double* ptraction = fd_store.Pointer(kInitTraction);
+	for (int i = 0; i < fInitTraction.Length(); i++)
+		*ptraction++ = fInitTraction[i];
+
+	fd_store[  kMaxOpening] = 0.0; // max opening
+	fd_store[kTrialOpening] = 0.0; // trial opening	
+}
+
+/* update/reset internal variables */
+void LinearDamageT::UpdateHistory(void) // facet at a time
+{
+	if (fd_store[kTrialOpening] > fd_store[kMaxOpening])
+		fd_store[kMaxOpening] = fd_store[kTrialOpening];
+}
+
+void LinearDamageT::ResetHistory(void)  // facet at a time
+{
+	// nothing to do
 }

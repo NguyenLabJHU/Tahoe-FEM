@@ -1,4 +1,4 @@
-/* $Id: J2QL2DLinHardT.cpp,v 1.7 2001-10-24 02:22:28 paklein Exp $ */
+/* $Id: J2QL2DLinHardT.cpp,v 1.6 2001-07-25 08:13:34 paklein Exp $ */
 /* created: paklein (06/29/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -486,7 +486,7 @@ void J2QL2DLinHardT::ComputeGradients(void)
 {
 	/* compute relative displacement */
 	fFtot_2D = F();
-	fF_temp.Inverse(F_total_last());
+	fF_temp.Inverse(F_last());
 	ffrel_2D.MultAB(fFtot_2D,fF_temp);
 
 	/* 2D -> 3D */

@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.11 2001-12-10 23:57:03 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.9 2001-06-11 02:00:12 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #include "StringT.h"
@@ -18,7 +18,6 @@
 /* array behavior */
 const bool ArrayT<StringT>::fByteCopy = false;
 const bool ArrayT<StringT*>::fByteCopy = true;
-const bool ArrayT<const StringT*>::fByteCopy = true;
 
 /* line length */
 const int kLineLength = 254;
@@ -480,20 +479,6 @@ StringT& StringT::Drop(int n)
 	return *this;
 }
 
-/* delete characters from the string from start to end inclusive */
-StringT& StringT::Delete(int start, int end)
-{
-#if __option(extended_errorcheck)
-	if (end < start || start < 0 || end >= strlen(*this))
-		throw eOutOfRange;
-#endif
-
-	char* str = *this;
-	memmove(str + start, str + end + 1, strlen(str) - end);
-
-	return *this;
-}
-
 /* take n characters from the source from the start (n > 0) or
 * from the end (n < 0) */
 StringT& StringT::Take(const StringT& source, int n)
@@ -584,37 +569,11 @@ StringT& StringT::FirstWord(const StringT& source, int& count, bool C_word_only)
 		}
 		else
 		{
-			/* return quoted strings as one word */
-			if (*str == '"')
+			while (count < length && !isspace(*str))
 			{
-				/* skip forward */
 				str++;
-				start++;
 				count++;
-				
-				/* bound whole quoted string */
-				while (count < length && *str != '"')
-				{
-					str++;
-					count++;
-					word_count++;
-				}
-				
-				/* skip trailing quote (if present) */
-				if (*str == '"')
-				{
-					str++;
-					count++;
-				}
-			}
-			else
-			{
-				while (count < length && !isspace(*str))
-				{
-					str++;
-					count++;
-					word_count++;
-				}
+				word_count++;
 			}
 		}
 		

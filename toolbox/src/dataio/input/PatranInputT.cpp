@@ -1,4 +1,4 @@
-/* $Id: PatranInputT.cpp,v 1.5 2001-10-15 17:48:55 sawimme Exp $ */
+/* $Id: PatranInputT.cpp,v 1.4.2.1 2001-10-15 19:01:28 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "PatranInputT.h"

@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.8 2001-12-10 23:57:03 paklein Exp $ */
+/* $Id: StringT.h,v 1.7 2001-06-11 02:00:12 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #ifndef _STRING_T_H_
@@ -98,18 +98,10 @@ public:
 	/** drop n characters from the string from the start (n > 0) or
 	 * from the end (n < 0) */
 	StringT& Drop(int n);
-
-	/** delete characters from the string from start to end, inclusive. */
-	StringT& Delete(int start, int end);
-
-	/** delete the specified character from the string. */
-	StringT& Delete(int position) { return Delete(position, position); };
 	
 	/** take n characters from the source from the start (n > 0) or
 	 * from the end (n < 0) */
 	StringT& Take(const StringT& source, int n);
-
-	/** copy a section of the source string */
 	StringT& Take(const StringT& source, int start, int end);
 	
 	/** copy the first word from the source and return number of characters scanned */
@@ -117,8 +109,6 @@ public:
 
 	/** drop leading white space */
 	StringT& DropLeadingSpace(void);
-
-	/** drop trailing white space */
 	StringT& DropTrailingSpace(void);
 
 	/** convert string to native, relative file path */

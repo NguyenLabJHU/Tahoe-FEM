@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.3 2001-10-24 02:24:22 paklein Exp $ */
+/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.2 2001-07-03 01:35:17 paklein Exp $ */
 /* created: paklein (10/18/1998)                                          */
 /* VIB plus principal stretch elasticity                                  */
 /* Interface for a elastoplastic material that is linearly                */
@@ -506,7 +506,7 @@ void J2IsoVIB2DLinHardT::ComputeGradients(void)
 {
 	/* compute relative displacement */
 	fFtot_2D = F();
-	fF_temp.Inverse(F_total_last());
+	fF_temp.Inverse(F_last());
 	ffrel_2D.MultAB(fFtot_2D,fF_temp);
 
 	/* 2D -> 3D */

@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.cpp,v 1.4 2001-10-15 17:48:55 sawimme Exp $ */
+/* $Id: ExodusInputT.cpp,v 1.3.2.2 2001-11-13 20:56:00 sawimme Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusInputT.h"
@@ -210,6 +210,18 @@ void ExodusInputT::ReadTimeSteps (dArrayT& steps)
   if (steps.Length() != NumTimeSteps()) throw eSizeMismatch;
   for (int i=0; i < steps.Length(); i++)
     fData.ReadTime (i+1, steps[i]);
+}
+
+void ExodusInputT::NodeVariablesUsed (StringT& name, iArrayT& used)
+{ 
+  // TEMP
+  used = 1;
+}
+
+void ExodusInputT::ElementVariablesUsed (StringT& name, iArrayT& used)
+{ 
+  // TEMP: I think there is a variable table that could be used ???
+  used = 1;
 }
 
 void ExodusInputT::ReadAllNodeVariables (int step, dArray2DT& values)

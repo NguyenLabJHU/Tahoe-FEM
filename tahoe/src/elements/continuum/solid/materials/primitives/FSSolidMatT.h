@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.4 2001-10-24 02:13:20 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.3 2001-09-15 01:18:58 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 
 #ifndef _FD_STRUCT_MAT_T_H_
@@ -29,10 +29,6 @@ public:
 	/** constructor */
 	FSSolidMatT(ifstreamT& in, const FiniteStrainT& element);
 
-	/** initialization. If active, initialize the history of
-	 * prescribed thermal strains. */
-	virtual void Initialize(void);
-
 	/** write name to output stream */
 	virtual void PrintName(ostream& out) const;
 	
@@ -43,26 +39,16 @@ public:
 	 * or 0 if the determinant is positive. */
 	virtual int IsLocalized(dArrayT& normal);
 
-	/** initialize current step. compute thermal dilatation */
+	/** initialize step. compute thermal dilatation */
 	virtual void InitStep(void);
 
-	/** close current step. store thermal dilatation */
-	virtual void CloseStep(void);
-
-	/** required parameter flag. Indicates whether the constitutive model
-	 * requires calculation of the deformation gradient.
-	 * \return true by default. */
+	/** required parameter flags */
 	virtual bool Need_F(void) const { return true; };
-
-	/** required parameter flag. Indicates whether the constitutive model
-	 * requires the deformation gradient from the previous time increment.
-	 * \return false by default. */
 	virtual bool Need_F_last(void) const { return false; };
 
 	/** total deformation gradient. \note This function is on its
 	 * way out. Use FSSolidMatT::F_total */
 	const dMatrixT& F(void) const; 
-
 	/** total deformation gradient at the given integration point. \note This 
 	 * function is on its way out. Use FSSolidMatT::F_total */
 	const dMatrixT& F(int ip) const; 
@@ -84,30 +70,15 @@ public:
 	const dMatrixT& F_mechanical(int ip);
 
 	/** total deformation gradient from end of previous step */
-	const dMatrixT& F_total_last(void) const; 
+	const dMatrixT& F_last(void) const; 
 
 	/** total deformation gradient at the given integration point 
 	 * from end of previous step */
-	const dMatrixT& F_total_last(int ip) const;
+	const dMatrixT& F_last(int ip) const;
 	
 	/** inverse of the deformation gradient associated with the
 	 * imposed thermal strain */
 	const dMatrixT& F_thermal_inverse(void) const { return fF_therm_inv; };
-
-	/** inverse of the deformation gradient associated with the
-	 * imposed thermal strain from the previous time increment. */
-	const dMatrixT& F_thermal_inverse_last(void) const { return fF_therm_inv_last; };
-
-	/** mechanical part of the deformation gradient from the previous
-	 * time increment. The part of the deformation gradient not associated 
-	 * with an imposed thermal strain. */
-	const dMatrixT& F_mechanical_last(void); 
-
-	/** mechanical part of the deformation gradient from the previous
-	 * time increment at the given integration point. The part of the 
-	 * deformation gradient not associated 
-	 * with an imposed thermal strain. */
-	const dMatrixT& F_mechanical_last(int ip);
 	
 protected:
 
@@ -188,10 +159,6 @@ private:
 
 	/** inverse of the multiplicative thermal deformation gradient */
 	dMatrixT fF_therm_inv;
-
-	/** inverse of the multiplicative thermal deformation gradient
-	 * from the previous time increment. */
-	dMatrixT fF_therm_inv_last;
 	
 	/** return value. Used as the return value of the mechanical part
 	 * of the deformation gradient, if there are thermal strain. Otherwise,

@@ -1,4 +1,4 @@
-/* $Id: PatranInputT.h,v 1.5 2001-10-15 17:48:55 sawimme Exp $ */
+/* $Id: PatranInputT.h,v 1.4.2.2 2001-11-13 20:56:01 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _PATRANINPUT_T_H_
@@ -8,6 +8,7 @@
 #include "PatranT.h"
 #include "dArrayT.h"
 #include "dArray2DT.h"
+#include "iArrayT.h"
 
 class PatranInputT : public InputBaseT
 {
@@ -62,6 +63,10 @@ class PatranInputT : public InputBaseT
   virtual void ReadElementLabels (ArrayT<StringT>& elabels) const;
   virtual void ReadQuadratureLabels (ArrayT<StringT>& qlabels) const;  
 
+  virtual void NodeVariablesUsed (StringT& name, iArrayT& used);
+  virtual void ElementVariablesUsed (StringT& name, iArrayT& used);
+  virtual void QuadratureVariablesUsed (StringT& name, iArrayT& used);  
+
   virtual void ReadAllNodeVariables (int step, dArray2DT& nvalues);
   virtual void ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues);
   virtual void ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& nvalues); 
@@ -110,6 +115,21 @@ inline int  PatranInputT::NumElementVariables (void) const
 { return 0; }
 inline int  PatranInputT::NumQuadratureVariables (void) const
 { return 0; }
+inline void PatranInputT::NodeVariablesUsed (StringT& name, iArrayT& used)
+{
+#pragma unused (name)
+  used = 0;
+}
+inline void PatranInputT::ElementVariablesUsed (StringT& name, iArrayT& used)
+{
+#pragma unused (name)
+  used = 0;
+}
+inline void PatranInputT::QuadratureVariablesUsed (StringT& name, iArrayT& used)
+{
+#pragma unused (name)
+  used = 0;
+}
 inline void PatranInputT::ReadNodeLabels (ArrayT<StringT>& nlabels) const
 { nlabels.Free (); }
 inline void PatranInputT::ReadElementLabels (ArrayT<StringT>& elabels) const

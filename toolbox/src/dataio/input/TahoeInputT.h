@@ -1,4 +1,4 @@
-/* $Id: TahoeInputT.h,v 1.6 2001-10-15 17:48:55 sawimme Exp $ */
+/* $Id: TahoeInputT.h,v 1.5.2.2 2001-11-13 20:56:01 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _TAHOEINPUT_T_H_
@@ -60,6 +60,9 @@ class TahoeInputT : public InputBaseT
   virtual void ReadNodeLabels (ArrayT<StringT>& nlabels) const;
   virtual void ReadElementLabels (ArrayT<StringT>& elabels) const;
   virtual void ReadQuadratureLabels (ArrayT<StringT>& qlabels) const;  
+  virtual void NodeVariablesUsed (StringT& name, iArrayT& used);
+  virtual void ElementVariablesUsed (StringT& name, iArrayT& used);
+  virtual void QuadratureVariablesUsed (StringT& name, iArrayT& used);  
   virtual void ReadAllNodeVariables (int step, dArray2DT& nvalues);
   virtual void ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues);
   virtual void ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& nvalues);
@@ -100,6 +103,21 @@ inline int  TahoeInputT::NumElementVariables (void) const
 { return 0; }
 inline int  TahoeInputT::NumQuadratureVariables (void) const
 { return 0; }
+inline void TahoeInputT::NodeVariablesUsed (StringT& name, iArrayT& used)
+{
+#pragma unused (name)
+  used = 0;
+}
+inline void TahoeInputT::ElementVariablesUsed (StringT& name, iArrayT& used)
+{
+#pragma unused (name)
+  used = 0;
+}
+inline void TahoeInputT::QuadratureVariablesUsed (StringT& name, iArrayT& used)
+{
+#pragma unused (name)
+  used = 0;
+}
 inline void TahoeInputT::ReadNodeLabels (ArrayT<StringT>& nlabels) const
 { nlabels.Free (); }
 inline void TahoeInputT::ReadElementLabels (ArrayT<StringT>& elabels) const

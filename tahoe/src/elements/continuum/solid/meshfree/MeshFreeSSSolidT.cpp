@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.4 2001-07-05 20:32:00 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.4.2.3 2001-10-29 21:48:10 sawimme Exp $ */
 /* created: paklein (09/11/1998)                                          */
 /* small strain elasticity with MLS shapefunctions for the                */
 /* field (displacement) representation                                    */
@@ -88,7 +88,7 @@ void MeshFreeSSSolidT::Initialize(void)
 	if (fAutoBorder) SurfaceNodes(surface_nodes);
 	MeshFreeFractureSupportT::InitSupport(fFEManager.Input(), fFEManager.Output(),
 		fElementCards, surface_nodes, NumDOF(), fNodes->NumNodes(),
-		fFEManager.ModelFile(), fFEManager.InputFormat());
+		fFEManager.ModelManager());
 	
 	/* final MLS initializations */
 	fMFShapes->SetExactNodes(fAllFENodes);
@@ -311,9 +311,17 @@ void MeshFreeSSSolidT::PrintControlData(ostream& out) const
 /* initialization functions */
 void MeshFreeSSSolidT::SetShape(void)
 {
+	/* only support single list of integration cells for now */
+	if (fConnectivities.Length() > 1) {
+		cout << "\n MeshFreeSSSolidT::SetShape: multiple element blocks within an"
+		     <<   "     element group not supported. Number of blocks: " 
+		     << fConnectivities.Length() << endl;
+		throw eGeneralFail;
+	}
+
 	/* constructors */
 	fMFShapes = new MeshFreeShapeFunctionT(fGeometryCode, fNumIP,
-		fLocInitCoords, fNodes->InitialCoordinates(), fConnectivities, fOffGridNodes,
+		fLocInitCoords, fNodes->InitialCoordinates(), *fConnectivities[0], fOffGridNodes,
 		fElementCards.Position(), fFEManager.Input());
 	if (!fMFShapes) throw eOutOfMemory;
 	

@@ -1,4 +1,4 @@
-/* $Id: J2SimoLinHardT.cpp,v 1.7 2001-10-24 02:21:58 paklein Exp $ */
+/* $Id: J2SimoLinHardT.cpp,v 1.6 2001-09-25 00:51:55 paklein Exp $ */
 /* created: paklein (06/19/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -397,16 +397,9 @@ int J2SimoLinHardT::PlasticLoading(const dMatrixT& F_total,
 		/* initialize intermediate state */
 		if (Flags[ip] == kNotInit)
 		{
-			cout << "\n J2SimoLinHardT::PlasticLoading: should not arrive here\n"
-			     <<   "     with uninitialized state" << endl;
-			throw eGeneralFail;
-		}
-#if 0
-		{
 			InitIntermediate(F_total, f_relative);
 			Flags[ip] = kIsElastic;
 		}
-#endif
 	
 		/* set internal variables */		
 		fInternal[kftrial]     = YieldCondition(fRelStress, fInternal[kalpha]);

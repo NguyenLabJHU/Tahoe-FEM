@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.22 2001-10-03 18:22:37 hspark Exp $ */
+/* $Id: tevp2D.cpp,v 1.21 2001-08-14 01:22:32 hspark Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (04/04/2001) */
 /* Last Updated:  Harold Park (06/12/2001) */
@@ -333,6 +333,7 @@ void tevp2D::ComputeOutput(dArrayT& output)
   output[0] = fInternal[kTemp];        // Temperature
   output[1] = fInternal[kEb];          // Effective strain
   output[2] = fInternal[kSb];          // Effective stress
+  cout << fEffectiveStrainRate << '\n';
   output[3] = fEffectiveStrainRate;
 }
 

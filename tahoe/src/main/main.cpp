@@ -1,5 +1,5 @@
-/* $Id: main.cpp,v 1.7 2001-10-12 16:46:51 paklein Exp $ */
-/* created: paklein (05/22/1996) */
+/* $Id: main.cpp,v 1.4 2001-05-31 21:15:49 paklein Exp $ */
+/* created: paklein (05/22/1996)                                          */
 
 #include <iostream.h>
 #include <fstream.h>
@@ -28,9 +28,6 @@ static void ShutDown(void);
 
 /* redirect of cout for parallel execution */
 ofstream console;
-#ifdef __DEC__
-streambuf* cout_buff = NULL,*cerr_buff = NULL;
-#endif
 
 /* f2c library global variables */
 int xargc;
@@ -68,24 +65,7 @@ static void StartUp(int* argc, char*** argv)
 	if (MPI_Comm_rank(MPI_COMM_WORLD, &rank) != MPI_SUCCESS)
 		throw eMPIFail;
 	
-#if !defined(_MACOS_)
-#ifdef __DEC__
-	/* redirect cout and cerr */
-	if (rank > 0)
-	{
-		StringT console_file("console");
-		console_file.Append(rank);
-		console.open(console_file, ios::app);
-
-		/* keep buffers from cout and cerr */
-		cout_buff = cout.rdbuf();
-		cerr_buff = cerr.rdbuf();
-
-		/* redirect */
-		cout.rdbuf(console.rdbuf());
-		cerr.rdbuf(console.rdbuf());
-	}
-#else
+#if !defined(_MACOS_) && !(defined(__DEC__) && defined (__USE_STD_IOSTREAM))
 	/* redirect cout and cerr */
 	if (rank > 0)
 	{
@@ -95,7 +75,6 @@ static void StartUp(int* argc, char*** argv)
 		cout = console;
 		cerr = console;
 	}
-#endif /* __DEC__ */
 #endif /* __MACOS__ */
 
 	/* output build date and time */
@@ -148,15 +127,6 @@ static void ShutDown(void)
 	if (MPI_Finalize() != MPI_SUCCESS)
 		cout << "\n MPI_Finalize: error" << endl;
 
-	if (rank > 0)
-	{
-#ifdef __DEC__
-		/* restore cout and cerr */
-		cout.rdbuf(cout_buff);
-		cerr.rdbuf(cerr_buff);
-#endif
-		/* close console file */
-		console.close();
-	}
+	if (rank > 0) console.close();
 #endif /* __MPI__ */
 }

@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.h,v 1.7 2001-10-15 17:48:55 sawimme Exp $ */
+/* $Id: AbaqusInputT.h,v 1.6.2.3 2001-11-13 20:56:00 sawimme Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #ifndef _ABAQUSINPUT_T_H_
@@ -72,6 +72,10 @@ class AbaqusInputT : public InputBaseT
   void ReadElementLabels (ArrayT<StringT>& elabels) const;
   void ReadQuadratureLabels (ArrayT<StringT>& qlabels) const;  
 
+  void NodeVariablesUsed (StringT& name, iArrayT& used);
+  void ElementVariablesUsed (StringT& name, iArrayT& used);
+  void QuadratureVariablesUsed (StringT& name, iArrayT& used);  
+
   void ReadAllNodeVariables (int step, dArray2DT& nvalues);
   void ReadNodeVariables (int step, StringT& elsetname, dArray2DT& nvalues);
   void ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& nvalues);
@@ -83,7 +87,7 @@ class AbaqusInputT : public InputBaseT
   void ReadQuadratureVariables (int step, StringT& name, dArray2DT& qvalues);
 
 private:
-  void SetLabelName (const ArrayT<AbaqusResultsT::VariableKeyT>& key, const iArrayT& dims, ArrayT<StringT>& name) const;
+  void SetLabelName (const iArrayT& key, const iArrayT& dims, ArrayT<StringT>& name) const;
   void MapOffset (ArrayT<int>& set, const iArrayT& map) const;
   void NodesUsed (const nArrayT<int>& connects, iArrayT& nodesused) const;
 

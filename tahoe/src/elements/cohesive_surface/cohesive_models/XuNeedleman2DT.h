@@ -1,5 +1,6 @@
-/* $Id: XuNeedleman2DT.h,v 1.5 2001-11-02 19:35:44 cjkimme Exp $ */
-/* created: paklein (11/14/1997) */
+/* $Id: XuNeedleman2DT.h,v 1.2 2001-04-04 22:11:19 paklein Exp $ */
+/* created: paklein (11/14/1997)                                          */
+/* Xu-Needleman 2D cohesive surface potential                             */
 
 #ifndef _XU_NEEDLE_2D_T_H_
 #define _XU_NEEDLE_2D_T_H_
@@ -10,37 +11,28 @@
 /* forward declarations */
 class ifstreamT;
 
-/** Xu-Needleman 2D cohesive surface potential */
 class XuNeedleman2DT: public SurfacePotentialT
 {
 public:
 
-	/** constructor */
+	/* constructor */
 	XuNeedleman2DT(ifstreamT& in);
 
-	/** return the number of state variables needed by the model */
-	int NumStateVariables(void) const { return 0; };
-
-	/** dissipated energy */
-	virtual double FractureEnergy(const ArrayT<double>& state);
-
-	/** potential energy */
-	virtual double Potential(const dArrayT& jump_u, const ArrayT<double>& state);
+	/* surface potential */
+	virtual double FractureEnergy(void);	
+	virtual double Potential(const dArrayT& jump_u);
 	
-	/** surface traction. Internal variables are integrated over the current
-	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state);
+	/* traction vector given displacement jump vector */	
+	virtual const dArrayT& Traction(const dArrayT& jump_u);
 
-	/** tangent stiffness */
-	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state);
+	/* potential stiffness */
+	virtual const dMatrixT& Stiffness(const dArrayT& jump_u);
 
-	/** surface status */
-	virtual StatusT Status(const dArrayT& jump_u, const ArrayT<double>& state);
+	/* surface status */
+	virtual StatusT Status(const dArrayT& jump_u);
 
-	/** write model name to output */
+	/* print parameters to the output stream */
 	virtual void PrintName(ostream& out) const;
-
-	/** write model parameters */
 	virtual void Print(ostream& out) const;
 	
 private:

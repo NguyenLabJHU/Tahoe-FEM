@@ -4,8 +4,6 @@
 
 #include "NLCSolver_LS.h"
 #include "Utils.h"
-#include "math_utils.h"
-#include "ExceptionCodes.h"
 
 NLCSolver_LS::NLCSolver_LS(const int dim, const NewtonMethodBase& method)
   : NLCSolver(dim, method), 
@@ -33,7 +31,7 @@ void NLCSolver_LS::SetAlpha(double alpha)
 
 void NLCSolver_LS::ComputeTrialPoint(dArrayT& X)
 {
-  double tempLambda = 0.e0;
+  double tempLambda;
 
   // get newton step, if needed
   NLCSolver::ComputeTrialPoint(X);
@@ -80,32 +78,6 @@ void NLCSolver_LS::ComputeTrialPoint(dArrayT& X)
        	cout << "NLCSolver_LS::ComputeTrialPoint: doing cubic backtrack " << endl;
 	cout << "  lambda = " << tempLambda << endl;
       }
-    }
-
-  // check if value of tempLambda is NaN or <= 1.e-150 
-  if ( is_NaN(tempLambda) || (fabs(tempLambda) <= 1.e-150 && fRejectionCount > 0) )
-  //if ( is_NaN(tempLambda) )
-    {
-      writeMessage("NLCSolver_LS::ComputeTrialPoint: lambda is NaN or < 1.e-150");
-      //writeMessage("NLCSolver_LS::ComputeTrialPoint: lambda = NaN");
-      if (NLCS_MESSAGES) {
-         cout << "* tempLambda = * = " << tempLambda << endl
-              << "  fLambda        = " << fLambda   << endl
-              << "  fPrevLambda    = " << fPrevLambda << endl
-              << "  fF             = " << fF        << endl
-              << "  fPrevF         = " << fPrevF        << endl
-              << "  fLastAcceptedF = " << fLastAcceptedF << endl
-              << "  fSlope         = " << fSlope    << endl
-              << "  fTypF          = " << fTypF     << endl
-              << "  fNewtonStep    = " << endl << fNewtonStep << endl 
-              << "  fGradF         = " << endl << fGradF      << endl
-              << "  X              = " << endl << X           << endl
-              << "  fLastAcceptedX = " << endl << fLastAcceptedX << endl
-              << "  fTypX          = " << endl << fTypX       << endl
-              << "  fRHS           = " << endl << fRHS        << endl
-              << "  fLHS           = " << endl << fLHS        << endl;
-      }
-      throw eGeneralFail;
     }
 
   // after first backtrack, be prepared for cubic backtrack

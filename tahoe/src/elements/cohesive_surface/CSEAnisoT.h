@@ -1,5 +1,7 @@
-/* $Id: CSEAnisoT.h,v 1.8 2001-11-16 00:22:41 cjkimme Exp $ */
-/* created: paklein (11/19/1997) */
+/* $Id: CSEAnisoT.h,v 1.4 2001-04-04 22:13:24 paklein Exp $ */
+/* created: paklein (11/19/1997)                                          */
+/* Cohesive surface elements with vector traction potentials,             */
+/* i.e., like Xu-Needleman's potential.                                   */
 
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -9,14 +11,10 @@
 
 /* direct members */
 #include "pArrayT.h"
-#include "RaggedArray2DT.h"
-#include "dArray2DT.h"
-#include "LocalArrayT.h"
 
 /* forward declarations */
 class SurfacePotentialT;
 
-/* Cohesive surface elements with vector argument cohesive relations. */
 class CSEAnisoT: public CSEBaseT
 {
 public:
@@ -30,17 +28,8 @@ public:
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
-	/** initialize class data */
+	/* initialize class data */
 	virtual void Initialize(void);
-
-	/** close current time increment */
-	virtual void CloseStep(void);
-
-	/** write restart data to the output stream. */
-	virtual void WriteRestart(ostream& out) const;
-
-	/** read restart data to the output stream. */
-	virtual void ReadRestart(istream& in);
 
 protected:
 
@@ -81,13 +70,7 @@ protected:
 	SurfaceShapeT* fCurrShapes;
 
 	/* cohesive surface potentials */
-	iArrayT fNumStateVariables;
 	pArrayT<SurfacePotentialT*> fSurfPots;
-
-	/** state variable storage array. 
-	 * Array has dimensions: [nel] x [nip * nvar] */
-	RaggedArray2DT<double> fStateVariables;
-	RaggedArray2DT<double> fStateVariables_last;
 	
 	/* coordinate transformation */
 	dMatrixT fQ;     // t'_i = Q_ji t_j, where t' is in the local frame
@@ -100,14 +83,6 @@ protected:
 	/* work space (for tangent) */
 	dMatrixT fnsd_nee_1;
 	dMatrixT fnsd_nee_2;
-
-	/* variables for calculating nodal info */
-	/* Added by cjkimme 11/07/01 */
-	bool fCalcNodalInfo;
-	int fNodalInfoCode;
-        dArray2DT fNodalQuantities;
-	LocalArrayT fNodalValues;
-	int fBulkGroup;
 };
 
 #endif /* _CSE_ANISO_T_H_ */

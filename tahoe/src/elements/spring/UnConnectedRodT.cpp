@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.2 2001-10-25 07:16:43 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.1.1.1.6.3 2001-11-06 20:26:10 sawimme Exp $ */
 /* created: paklein (04/05/1997)                                          */
 
 #include "UnConnectedRodT.h"
@@ -60,14 +60,18 @@ GlobalT::RelaxCodeT UnConnectedRodT::RelaxSystem(void)
 			//so cannot reconnect.	 	
 	
 		/* re-connect - more neighbors and greater distance */
+		iArray2DT rodconnects;
 		FindNeighborT Connector(fNodes->CurrentCoordinates(), fMaxNeighborCount);
-		Connector.GetNeighors(fConnectivities, fNeighborDist);
+		Connector.GetNeighors(rodconnects, fNeighborDist);
+		
+		/* update model manager */
+		ModelManagerT* model = fFEManager.ModelManager ();
+		model->UpdateConnectivity (fBlockData (0, kID) - 1, rodconnects);
+		fBlockData (0, kBlockDim) = rodconnects.MajorDim();
+		fNumElements = rodconnects.MajorDim();
 
 		/* reset local equation number lists */	
 		ConfigureElementData();
-
-		/* set block data */
-		fBlockData(0, kBlockDim) = fConnectivities.MajorDim();
 		
 		/* reset count */
 		fReconnectCount = 0;
@@ -114,6 +118,9 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	in >> fNumNodesUsed;
 	if (fNumNodesUsed != -1 && fNumNodesUsed < 1) throw eBadInputValue;
 
+	/* temp space */
+	iArray2DT rodconnects;
+
 	/* read nodes used */
 	if (fNumNodesUsed == -1) //use ALL nodes
 	{
@@ -121,7 +128,7 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		FindNeighborT Connector(fNodes->CurrentCoordinates(), fMaxNeighborCount);
 	
 		/* connect nodes - dimensions lists */
-		Connector.GetNeighors(fConnectivities, fNeighborDist);
+		Connector.GetNeighors(rodconnects, fNeighborDist);
 	}
 	else                      //only use specified nodes
 	{
@@ -141,20 +148,37 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 							    fMaxNeighborCount);
 	
 		/* connect nodes - dimensions lists */
-		Connector.GetNeighors(fConnectivities, fNeighborDist);		
+		Connector.GetNeighors(rodconnects, fNeighborDist);		
 	}
-			
+
+	/* send connectivity data to ModelManagerT */
+	ModelManagerT* model = fFEManager.ModelManager();
+	StringT name ("URod");
+	name.Append (fFEManager.ElementGroupNumber(this) + 1);
+	GeometryT::CodeT code = GeometryT::kLine;
+	model->RegisterElementGroup (name, rodconnects, code);
+	int index = model->ElementGroupIndex(name);
+
+	/* set up fBlockData to store block ID */
+	fBlockData.Allocate (1, ElementBaseT::kBlockDataSize);
+	fBlockData (0, kID) = index + 1;
+	fBlockData (0, kStartNum) = 0;
+	fBlockData (0, kBlockDim) = rodconnects.MajorDim();
+	fBlockData (0, kBlockMat) = -1;
+	fNumElements = rodconnects.MajorDim();
+
+	/* set up fConnectivities */
+	fConnectivities.Allocate (1);
+	fConnectivities[0] = model->ElementGroupPointer (index);
+	
+	/* set up base class equations array */
+	fEqnos.Allocate(1);
+
 	/* set element equation and node lists */
 	ConfigureElementData();
 
-	/* set block data */
-	fBlockData.Allocate(1, kBlockDataSize);
-	fBlockData(0, kStartNum) = 0;
-	fBlockData(0, kBlockDim) = fConnectivities.MajorDim();
-	fBlockData(0, kBlockMat) = 0;
-
 	/* print connectivity data */
-	WriteConnectivity(out);
+	PrintConnectivityData(out);
 }
 
 /***********************************************************************
@@ -164,20 +188,38 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 /* call AFTER 2 and 3 body node lists are set */
 void UnConnectedRodT::ConfigureElementData(void)
 {
-	fNumElements = fConnectivities.MajorDim();
+	/* base class equations arrays */
+        const iArray2DT* connects = fConnectivities[0];
+	iArray2DT& rod_eqnos = fEqnos[0];
 
 	/* allocate memory */
+	fNumElements = connects->MajorDim();
 	fElementCards.Allocate(fNumElements);
-	fEqnos.Allocate(fNumElements, fNumElemEqnos);
+	rod_eqnos.Allocate(fNumElements, fNumElemEqnos);
 
 	/* set 2 body element data */
 	for (int i = 0; i < fNumElements; i++)	
 	{
 		/* node and equation numbers */			
-		(fElementCards[i].NodesX()).Set(fNumElemNodes, fConnectivities(i) );		
-		(fElementCards[i].Equations()).Set(fNumElemEqnos, fEqnos(i) );
-		
-		/* all have same material number */
-		fElementCards[i].SetMaterialNumber(0);
+		(fElementCards[i].NodesX()).Set(fNumElemNodes, (*connects)(i) );
+		(fElementCards[i].Equations()).Set(fNumElemEqnos, rod_eqnos(i) );
 	}
 }
+
+/* print connectivity element data */
+void UnConnectedRodT::PrintConnectivityData(ostream& out)
+{
+	out << " Number of 2 body interactions . . . . . . . . . = " 
+	    << fConnectivities[0]->MajorDim() << '\n';
+
+	/* 2-body connectivities */
+	out << "\n Connectivities:\n\n";
+	out << setw(kIntWidth) << "no."; 
+	for (int i = 1; i <= 2; i++)
+	{
+		out << setw(kIntWidth - 2) << "n[";
+		out << i << "]";
+	}
+	out << '\n';
+	fConnectivities[0]->WriteNumbered(out);
+}	

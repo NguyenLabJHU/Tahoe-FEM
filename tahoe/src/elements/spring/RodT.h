@@ -1,5 +1,5 @@
-/* $Id: RodT.h,v 1.2 2001-10-25 07:16:43 paklein Exp $ */
-/* created: paklein (10/22/1996) */
+/* $Id: RodT.h,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* created: paklein (10/22/1996)                                          */
 
 #ifndef _ROD_T_H_
 #define _ROD_T_H_
@@ -18,19 +18,13 @@ class RodT: public ElementBaseT
 {
 public:
 
-	/** spring potential types */
-	enum PotentialCodeT {
-        kQuad = 1, /**< linear spring */
-       kLJ612 = 2 /**< Lennard-Jones 6-12 potential */
-		};
-
-	/** constructor */
+	/* constructor */
 	RodT(FEManagerT& fe_manager);
 	
-	/** initialization */
+	/* initialization */
 	virtual void Initialize(void);
 
-	/** form of tangent matrix */
+	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
 	/* NOT implemented. Returns an zero force vector */
@@ -45,6 +39,7 @@ public:
 
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
+		//TEMP: for now, does nothing
 
 	/* Element type parameters */
 	static const int kRodTndof = 2; /* number of degrees of freedom per node */
@@ -68,13 +63,7 @@ protected: /* for derived classes only */
 	void ElementForce(double constKd);
 	void ElementStiffness(double constK);
 
-	/** return true if connectivities are changing */
-	virtual bool ChangingGeometry(void) const { return false; };
-
 protected:
-
-	/** reference ID for sending output */
-	int fOutputID;
 
 	/* material data */
 	pArrayT<RodMaterialT*> fMaterialsList; 	
@@ -82,6 +71,7 @@ protected:
 
 	LocalArrayT	fLocInitCoords; /* refcoords with local ordering */
 	LocalArrayT fLocDisp;       /* displacements with local ordering */
+
 };
 
 #endif /* _ROD_T_H_ */

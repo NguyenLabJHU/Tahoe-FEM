@@ -1,5 +1,5 @@
-/* $Id: MeshFreeCSEAnisoT.h,v 1.3 2001-10-11 00:54:28 paklein Exp $ */
-/* created: paklein (06/08/2000) */
+/* $Id: MeshFreeCSEAnisoT.h,v 1.2 2001-02-08 00:11:23 ebmarin Exp $ */
+/* created: paklein (06/08/2000)                                          */
 
 #ifndef _MF_CSE_ANISO_T_H_
 #define _MF_CSE_ANISO_T_H_
@@ -23,9 +23,6 @@ class MeshFreeFractureSupportT;
 class MeshFreeSurfaceShapeT;
 class SurfacePotentialT;
 
-/** cohesive surfaces in a meshfree domain. Surfaces are
-* added adaptively during the MeshFreeCSEAnisoT::RelaxSystem
-* through communication with a MeshFreeFractureSupportT */
 class MeshFreeCSEAnisoT: public ElementBaseT
 {
 public:
@@ -130,12 +127,13 @@ protected:
 
 	/* cohesive surface potentials */
 	SurfacePotentialT* fSurfacePotential;
+	bool fIsDecohesion; //TEMP - use flag instead of RTTI
 
 	/* local arrays */
 	LocalArrayT fLocDisp;
 
 	/* work space */
-	double   fFractureArea;
+	double fFractureArea;
 	dMatrixT fNEEmat;
 	dArrayT  fNEEvec;	
 
@@ -167,10 +165,12 @@ protected:
 	dArrayT fInitTraction;
 
 	/* cohesive law variable storage */
-	dArray2DT fd_Storage;      // [nel] x [nip] : [n_state]
-	dArray2DT fd_Storage_last; // [nel] x [nip] : [n_state]
-	nVariArray2DT<double> fd_Storage_man;      // [nel] x [nip] : [n_state]
-	nVariArray2DT<double> fd_Storage_last_man; // [nel] x [nip] : [n_state]
+	iArray2DT fi_Storage; // [nel] x [nip] : [n_int]
+	iArrayT   fi_vec;     // [n_int]
+	nVariArray2DT<int> fi_StorageMan; // [nel] x [nip] : [n_int]
+	dArray2DT fd_Storage; // [nel] x [nip] : [n_double]
+	dArrayT   fd_vec;     // [n_double]
+	nVariArray2DT<double> fd_StorageMan; // [nel] x [nip] : [n_double]
 };
 
 #endif /* _MF_CSE_ANISO_T_H_ */

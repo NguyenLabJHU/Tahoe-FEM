@@ -1,4 +1,4 @@
-/* $Id: ios_fwd_decl.h,v 1.6 2001-10-22 18:21:08 paklein Exp $ */
+/* $Id: ios_fwd_decl.h,v 1.4 2001-09-25 00:53:45 paklein Exp $ */
 /* created: paklein (08/11/1999)                                          */
 /* iosfwd.h                                                               */
 /* include this header instead of writing forward declarations            */
@@ -10,7 +10,7 @@
 
 #include "Environment.h"
 
-#ifdef _MW_MSL_ // Metrowerks Standard Library
+#ifdef __MWERKS__ // Metrowerks Standard Library
 #include <iosfwd.h> //MSL C++ header
 #elif defined(__SUNPRO_CC) 
 // SUNWspro 5.0

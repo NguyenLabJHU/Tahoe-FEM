@@ -1,4 +1,4 @@
-/* $Id: IC_CardT.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: IC_CardT.h,v 1.1.1.1.6.1 2001-10-05 20:37:42 sawimme Exp $ */
 /* created: paklein (07/16/1997)                                          */
 /* Container class for kinematic initial condition data.                  */
 /* Handles mainly I/O and provides access to data via                     */
@@ -40,6 +40,7 @@ public:
 	void WriteValues(ostream& out) const;
 	
 	/* input operator for codes */
+	static CodeT int_to_CodeT(int i);
 	friend istream& operator>>(istream& in, IC_CardT::CodeT& code);
 	
 private:

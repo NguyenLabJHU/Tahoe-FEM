@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.4 2001-08-29 07:41:13 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.4.2.5 2001-11-06 20:31:56 sawimme Exp $ */
 /* created: paklein (05/31/1998) */
 
 #include "AugLagContact2DT.h"
@@ -110,14 +110,15 @@ void AugLagContact2DT::GenerateElementData(void)
 	Contact2DT::SetConnectivities();
 
 	/* dimension */
-	int num_active = fConnectivities.MajorDim();
+	int num_active = fConnectivities[0]->MajorDim();
 
 	/* resize work space */
 	fXDOFConnectivities_man.SetMajorDimension(num_active, false);
 	fXDOFEqnos_man.SetMajorDimension(num_active, false);
-	for (int i = 0; i < num_active; i++)
+	int *pelem = fConnectivities[0]->Pointer();
+	int rowlength = fConnectivities[0]->MinorDim();
+	for (int i = 0; i < num_active; i++, pelem += rowlength)
 	{	
-		int*  pelem = fConnectivities(i);
 		int* pxelem = fXDOFConnectivities(i);
 
 		/* XDOF element tags */
@@ -199,7 +200,7 @@ void AugLagContact2DT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 	/* replace contact connects */
 	bool found = false;
 	for (int i = connects_1.Length() - 1; i > -1 && !found; i--)
-		if (connects_1[i] == &fConnectivities)
+		if (connects_1[i] == fConnectivities[0])
 		{
 			connects_1[i] = &fXDOFConnectivities;
 			found = true;

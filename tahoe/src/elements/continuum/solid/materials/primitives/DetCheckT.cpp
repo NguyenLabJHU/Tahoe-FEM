@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.9 2001-11-28 21:37:53 dzeigle Exp $ */
+/* $Id: DetCheckT.cpp,v 1.8 2001-09-20 23:48:22 cfoster Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "DetCheckT.h"
@@ -788,7 +788,8 @@ int DetCheckT::SPINLOC_localize(double *c__, double *thetan, int *loccheck)
     double capa, capb, half, fmin, temp, xmin, temp2, temp3, a, b, 
 	    f;
     int i__, n;
-    double p, q, r__, x[3], theta, third, a0, a1, a2, a3, a4, qq, rad;
+    double p, q, r__, x[3], theta, third, a0, a1, a2, a3, a4, pi, 
+	    qq, rad;
 
     /* Parameter adjustments */
     c__ -= 4;
@@ -797,6 +798,8 @@ int DetCheckT::SPINLOC_localize(double *c__, double *thetan, int *loccheck)
     half = one / two;
     third = one / three;
     rad = four * atan(one) / 180.;
+    pi = four * atan(one);
+
 
 
     //  cout << "c__=\n";

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2001-09-04 14:39:47 sawimme Exp $
+# $Id: makefile,v 1.7.2.2 2001-11-06 14:29:35 sawimme Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,7 +7,6 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	AVST.o \
-	AbaqusT.o \
 	AbaqusResultsT.o \
 	EnSightT.o \
 	ExodusT.o \
@@ -23,7 +22,6 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	AVST.cpp \
-	AbaqusT.cpp \
 	AbaqusResultsT.cpp \
 	EnSightT.cpp \
 	ExodusT.cpp \
@@ -34,8 +32,8 @@ SRC = \
 # headers
 HDR = \
 	AVST.h \
-	AbaqusT.h \
 	AbaqusResultsT.h \
+	AbaqusVariablesT.h \
 	EnSightT.h \
 	ExodusT.h \
 	ModelFileT.h \

@@ -1,5 +1,5 @@
-/* $Id: XuNeedleman2DT.cpp,v 1.6 2001-11-02 19:35:43 cjkimme Exp $ */
-/* created: paklein (11/14/1997) */
+/* $Id: XuNeedleman2DT.cpp,v 1.3 2001-08-23 21:26:30 jwfoulk Exp $ */
+/* created: paklein (11/14/1997)                                          */
 
 #include "XuNeedleman2DT.h"
 
@@ -36,13 +36,12 @@ XuNeedleman2DT::XuNeedleman2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 }
 
 /* surface potential */
-double XuNeedleman2DT::FractureEnergy(const ArrayT<double>& state) { return phi_n; }
+double XuNeedleman2DT::FractureEnergy(void) { return phi_n; }
 
-double XuNeedleman2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
+double XuNeedleman2DT::Potential(const dArrayT& jump_u)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
 #endif
 
 	double z1, z2, z3, z4, z5, z6, z7, z8;
@@ -80,11 +79,10 @@ double XuNeedleman2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& st
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& XuNeedleman2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state)
+const dArrayT& XuNeedleman2DT::Traction(const dArrayT& jump_u)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
 #endif
 
 	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11;
@@ -140,11 +138,10 @@ const dArrayT& XuNeedleman2DT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 }
 
 /* potential stiffness */
-const dMatrixT& XuNeedleman2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state)
+const dMatrixT& XuNeedleman2DT::Stiffness(const dArrayT& jump_u)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
 #endif
 
 	double z1, z2, z3, z4, z5, z6, z7, z8, z9, z10, z11, z12;
@@ -203,12 +200,8 @@ const dMatrixT& XuNeedleman2DT::Stiffness(const dArrayT& jump_u, const ArrayT<do
 }
 
 /* surface status */
-SurfacePotentialT::StatusT XuNeedleman2DT::Status(const dArrayT& jump_u, const ArrayT<double>& state)
+SurfacePotentialT::StatusT XuNeedleman2DT::Status(const dArrayT& jump_u)
 {
-#if __option(extended_errorcheck)
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
-#endif
-
 	double u_t1 = jump_u[0];
 	double u_t  = sqrt(u_t1*u_t1);
 	double u_n  = jump_u[1];

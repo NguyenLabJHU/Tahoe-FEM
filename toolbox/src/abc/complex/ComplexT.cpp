@@ -1,4 +1,4 @@
-/* $Id: ComplexT.cpp,v 1.5 2001-12-10 23:38:10 paklein Exp $ */
+/* $Id: ComplexT.cpp,v 1.4 2001-02-01 18:22:28 paklein Exp $ */
 /* created: PAK/AFLP (05/19/1997)                                         */
 /* 	                                                                      */
 
@@ -17,7 +17,7 @@ const bool ArrayT<ComplexT>::fByteCopy = true;
 /*
 * Real and Imaginary parts of arrays - must be dimensioned BEFORE call
 */
-void ComplexT::z_to_Re(const nArrayT<ComplexT>& z, nArrayT<double>& d)
+void z_to_Re(const nArrayT<ComplexT>& z, nArrayT<double>& d)
 {
 	/* dimension check */
 	if ( z.Length() != d.Length() ) throw(eGeneralFail);
@@ -29,7 +29,7 @@ void ComplexT::z_to_Re(const nArrayT<ComplexT>& z, nArrayT<double>& d)
 		*pd++ = (*pz++).Re();
 }
 
-void ComplexT::z_to_Im(const nArrayT<ComplexT>& z, nArrayT<double>& d)
+void z_to_Im(const nArrayT<ComplexT>& z, nArrayT<double>& d)
 {
 	/* dimension check */
 	if ( z.Length() != d.Length() ) throw(eGeneralFail);
@@ -41,7 +41,7 @@ void ComplexT::z_to_Im(const nArrayT<ComplexT>& z, nArrayT<double>& d)
 		*pd++ = (*pz++).Im();
 }
 
-void ComplexT::ReIm_to_z(const nArrayT<double>& re, const nArrayT<double>& im,
+void ReIm_to_z(const nArrayT<double>& re, const nArrayT<double>& im,
 	nArrayT<ComplexT>& z)	
 {
 	/* dimension check */
