@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.14 2003-11-21 22:47:24 paklein Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.15 2004-08-10 23:13:08 raregue Exp $ */
 /* created: paklein (06/26/1996) */
 
 #include "ShapeFunctionT.h"
@@ -132,6 +132,24 @@ void ShapeFunctionT::GradNa(const dArray2DT& DNa, dMatrixT& grad_Na) const
 				grad_Na(i,a) = DNa(i,a);
 	}
 }
+
+
+/* laplacian of field at current ip */
+/*
+void ShapeFunctionT::LaplaceU(const LocalArrayT& field, dArrayT& laplacian) const
+{
+	
+}
+*/
+
+/* laplacian of strain at current ip */
+/*
+void ShapeFunctionT::LaplaceStrain(const dSymMatrixT& strain, dSymMatrixT& laplacian) const
+{
+	
+}
+*/
+	
 
 /********************************************************************************/
 
