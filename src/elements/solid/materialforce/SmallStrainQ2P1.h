@@ -1,4 +1,4 @@
-/* $Id: SmallStrainQ2P1.h,v 1.1 2003-06-28 00:40:29 thao Exp $ */
+/* $Id: SmallStrainQ2P1.h,v 1.2 2003-08-08 22:57:28 thao Exp $ */
 #ifndef _SMALL_STRAIN_Q2P1_H_
 #define _SMALL_STRAIN_Q2P1_H_
 
@@ -26,8 +26,22 @@ class SmallStrainQ2P1: public SmallStrainT
 	virtual void ReadRestart(istream& in);
 	virtual void WriteRestart(ostream& out) const;
 
+ protected:
+
+	/** set local arrays */
+	virtual void SetLocalArrays(void);
+
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);
+
+	/** Set modified shape functions */
+	void Set_Gradbar(void);
+	
+	/** Form Bbar */
+	void Set_Bbar(const dArray2DT& DNa, const dArray2DT& DNabar, 
+		      dMatrixT& Bbar, dMatrixT& B_dev, dMatrixT& Bbar_dil);
+
+	void CalcPressure(void);
 
 	/** calculate the internal force contribution ("-k*d") */
 	void FormKd(double constK);
@@ -47,27 +61,23 @@ class SmallStrainQ2P1: public SmallStrainT
 	dArray2DT fPressure_List;  /*Dilation at each ip for each element*/ 
 	
 
-	const int fpdof;                /*pressure dof*/
-	ArrayT<dArray2DT> fMShapes; /*shape function for pressure dof*/
-	ArrayT<dSymMatrixT> fH_inv; /*Mass matrix from fGamma*/
+	const int fpdof;            /*pressure dof*/
+       	dArray2DT fMShapes; /*shape function for pressure dof*/
+	dMatrixT fH_inv;    /*Mass matrix from fGamma*/
 
 	/*workspace*/
 	dArrayT fip_coords;
 	dArrayT fGamma;
-	dSymMatrixT fH_i;
-	dSymMatrixT fStress;
+	dArrayT fAVec;
+	dMatrixT fAMat;
+	dMatrixT fBMat;
 
-	dArray2DT fbabar;
-	dMatrixT fMixMat;
-	dArrayT fGradNa;
-
-	dMatrixT fModulus;
-	dMatrixT fPdev;
-	dArrayT fOne;
-
-	dArrayT fMEArray;
-	dArrayT fNEArray;
-	
+	/*Bbar*/
+	dMatrixT fBbar;
+	dMatrixT fB_dev;
+	dMatrixT fBbar_dil;
+	dArrayT fGradTranspose;
+	ArrayT<dArray2DT> fGradbar;
 
 	const double fthird;
   	/*@}*/

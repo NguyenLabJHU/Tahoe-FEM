@@ -1,4 +1,4 @@
-/* $Id: SmallStrainQ2P1.cpp,v 1.1 2003-06-28 00:40:29 thao Exp $ */
+/* $Id: SmallStrainQ2P1.cpp,v 1.2 2003-08-08 22:57:27 thao Exp $ */
 #include "SmallStrainQ2P1.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -13,310 +13,358 @@ using namespace Tahoe;
 
 /* constructor */
 SmallStrainQ2P1::SmallStrainQ2P1(const ElementSupportT& support, const FieldT& field):
-	SmallStrainT(support, field),
-	fpdof(NumSD()+1),
-	fStress(NumSD()),
-	fModulus(dSymMatrixT::NumValues(NumSD())),
-	fPdev(dSymMatrixT::NumValues(NumSD())),
-	fOne(dSymMatrixT::NumValues(NumSD())),XS
-	fthird(1.0/3.0)
-{
-        fMEArray.Dimension(fpdof);
-	fMEArray = 0.0;
-}
+  SmallStrainT(support, field),
+  fpdof(NumSD()+1),
+  fthird(1.0/3.0)
+{}
 
 /* called immediately after constructor */
 void SmallStrainQ2P1::Initialize(void)
 {
-	/* inherited */
-	SmallStrainT::Initialize();
+  /* inherited */
+  SolidElementT::Initialize();
+  
+  int nsd = (NumSD()==2) ?4:NumSD();
+  int nel = NumElements();
+  int nen = NumElementNodes();
+  int nip = NumIP();
+  
+  /* check geometry code and number of element nodes -> Q1 */
+  if (GeometryCode() == GeometryT::kQuadrilateral) {
+    if (nen < 9 ) {
+      cout << "\n SmallStrainQ2P1::Initialize: expecting 9 node quad: " 
+	   << NumElementNodes() << endl;
+      throw ExceptionT::kBadInputValue;
+    }   
+  }
+  else {
+    cout << "\n SmallStrainQ2P1::Initialize: expecting quad geometry:"
+	 << GeometryCode() << endl;
+    throw ExceptionT::kBadInputValue;
+  }	
+  if (nsd ==4)
+    fD.Dimension(nsd);
+
+  /*initializes Bbar and utility tensors*/	
+  fBbar.Dimension(dSymMatrixT::NumValues(nsd), NumSD()*nen);
+  fB_dev.Dimension(dSymMatrixT::NumValues(nsd), NumSD()*nen);
+  fBbar_dil.Dimension(dSymMatrixT::NumValues(nsd), NumSD()*nen);
+  fGradbar.Dimension(nip);
+  for (int i=0; i<nip; i++)
+    fGradbar[i].Dimension(NumSD(),nen);
+  fGradTranspose.Dimension(NumSD());
+  /* what's needed */
+  bool need_strain = false;
+  bool need_strain_last = false;
+  for (int i = 0; i < fMaterialNeeds.Length(); i++){
+    const ArrayT<bool>& needs = fMaterialNeeds[i];
+    need_strain = need_strain || needs[fNeedsOffset + kstrain];
+    need_strain_last = need_strain_last || needs[fNeedsOffset + kstrain_last];
+  }
+
+  /* allocate deformation gradient list */
+  if (need_strain) {
+    fStrain_List.Dimension(NumIP());
+    for (int i = 0; i < NumIP(); i++)
+      fStrain_List[i].Dimension(nsd);
+    fTheta_List.Dimension(nel,nip);
+    fTheta_List = 0.0;
+  }
 	
-	int nsd = NumSD();
-	int nel = NumElements();
-	int nen = NumElementNodes();
-	int nip = NumIP();
-
-        /* check geometry code and number of element nodes -> Q1 */
-        if (GeometryCode() == GeometryT::kQuadrilateral) {
-	     if (nen < 9 ) {
-                  cout << "\n SmallStrainQ2P1::Initialize: expecting 9 node quad: " 
-		       << NumElementNodes() << endl;
-		  throw ExceptionT::kBadInputValue;
-	     }   
-        }
-        else {
-	     cout << "\n SimoQ1P0::Initialize: expecting quad geometry: "
-		  << GeometryCode() << endl;
-	     throw ExceptionT::kBadInputValue;
-        }	
-
-	/*initializes utility tensors*/
-	if (nsd != 2){
-	  cout << "\n SmallStrainQ2P1::Initialize: for now expects 2D plane strain geometry.";
-	  throw ExceptionT::kBGeneralFail;
-	}
-	else {
-	  fOne[0] = fOne[1] = 1.0; fOne[2] = 0.0;
-
-	  fPdev = 0.0
-	  fPdev(0,0) = fPdev(1,1) = 2.0*fthird;
-	  fPdev(0,1) = fPdev(1,0) = fthird;
-	  fPdev(2,2) = 1.0;
-	}
-
-	fTheta_List.Dimension(nel,nip);
-	fTheta_List_last.Dimension(nel,nip);
-	fPressure_List.Dimension(nel,nip);
-
-	fTheta_List = 0.0;
-	fTheta_List_last = 0.0;
-	fPressure_List = 0.0;
-
-	fMShapes.Dimension(nel);
-	fH_inv.Dimension(nel);
-	for (int i = 0; i < nel; i++)
-	{
-	     fMShapes[i].Dimension(nip, fpdof);
-	     fH_inv[i].Dimension(fpdof);
-	}
-	fH_i.Dimension(fpdof);
-	fbabar.Dimensions(nsd,nen);
-	fGradNa.Dimension(nsd);
-	fMixMat.Dimension(fpdof,nsd);
-	fMixMat = 0.0;
+  /* allocate "last" deformation gradient list */
+  if (need_strain_last) {
+    fStrain_last_List.Dimension(NumIP());
+    for (int i = 0; i < NumIP(); i++)
+      fStrain_last_List[i].Dimension(nsd);
+    fTheta_List_last.Dimension(nel,nip);
+    fTheta_List_last = 0.0;
+  }
+  
+  fPressure_List.Dimension(nel,nip);
+  fPressure_List = 0.0;
+  
+  fMShapes.Dimension(nip,fpdof);
+  fGamma.Dimension(fpdof);
+  fip_coords.Dimension(NumSD());
+  fH_inv.Dimension(fpdof);
+  fAVec.Dimension(fpdof);
+  fAMat.Dimension(fpdof,NumSD());
+  fBMat.Dimension(fpdof,NumSD());
 }
 
 void SmallStrainQ2P1::CloseStep(void)
 {
-        /*inherited*/
-        ContinuumElementT::CloseStep();
-	fTheta_List_last = fTheta_List;
+  /*inherited*/
+  ContinuumElementT::CloseStep();
+  fTheta_List_last = fTheta_List;
 }
 
 void SmallStrainQ2P1::ResetStep(void)
 {
-        /*inherited*/
-        ContinuumElementT::ResetStep();
-	fTheta_List = fTheta_List_last;
+  /*inherited*/
+  ContinuumElementT::ResetStep();
+  fTheta_List = fTheta_List_last;
 }
 
 void SmallStrainQ2P1::ReadRestart(istream& in)
 {
-        /*inherited*/
-        ContinuumElementT::ReadRestart(in);
-	in >> fTheta_List;
-	fTheta_List_last = fTheta_List;
+  /*inherited*/
+  ContinuumElementT::ReadRestart(in);
+  in >> fTheta_List;
+  fTheta_List_last = fTheta_List;
 }
 
 void SmallStrainQ2P1::WriteRestart(ostream& out) const
 {
-        /*inherited*/
-        ContinuumElementT::WriteRestart(out);
-	out << fTheta_List; 
+  /*inherited*/
+  ContinuumElementT::WriteRestart(out);
+  out << fTheta_List; 
 }
 
 
 /***********************************************************************
 * Protected
 ***********************************************************************/
+void SmallStrainQ2P1::SetLocalArrays(void)
+{
+  /*inherited*/
+  SmallStrainT::SetLocalArrays();
+  fLocDispTranspose.Dimension(fLocDisp.Length());
+}
+/* compute the measures of strain/deformation over the element */
+void SmallStrainQ2P1::SetGlobalShape(void)
+{
+  /* inherited */
+  SolidElementT::SetGlobalShape();
+  
+  /* material information */
+  int matnum = CurrentElement().MaterialNumber();
+  const ArrayT<bool>& needs = fMaterialNeeds[matnum];
+  
+  /* element information */
+  int nen = NumElementNodes();
+  int nsd = (NumSD()==2)? 4: NumSD();
+  int nip = fShapes->NumIP();
+  int elem = CurrElementNumber();
+  
+  const double* jac = fShapes->IPDets();
+  const double* W = fShapes->IPWeights();  
+  fH_inv = 0.0;
+  
+  double *pshapes = fMShapes.Pointer();
+  fShapes->TopIP();
+  while (fShapes->NextIP()) {
+    /* pressure shape functions */
+    *pshapes++ = 1.0;
+    fGamma[0] = 1.0;
+    IP_Coords(fip_coords);
+    for (int i = 0; i<fip_coords.Length(); i++) {
+      *pshapes++ = fip_coords[i];
+      fGamma[i+1] = fip_coords[i];
+    }
+    /* mass matrix formed from pressure shape functions */
+    fH_inv.Outer(fGamma,fGamma, (*W++)*(*jac++), dMatrixT::kAccumulate);
+  }
+  fH_inv.Inverse();
+  //  cout << "\nH_inv: "<<fH_inv;
+  /*set shape function gradients for mixed dilation*/
+  Set_Gradbar();
+  
+  /* set mixed strains */
+  double* ptheta = fTheta_List(elem);
+  double* ptheta_last = fTheta_List_last(elem);
+  for(int ip = 0; ip < nip; ip++){	
+      Set_Bbar(fShapes->Derivatives_U(ip), fGradbar[ip], fBbar, fB_dev, fBbar_dil);
+      /* deformation gradient */
+      if (needs[fNeedsOffset + kstrain]) {
+	/* transpose displacement array */
+	fLocDisp.ReturnTranspose(fLocDispTranspose);
+
+	/*compute strain using Bbar*/
+	dSymMatrixT& strain = fStrain_List[ip];
+	fBbar.Multx(fLocDispTranspose, strain);
+	strain.ScaleOffDiagonal(0.5);
+	*ptheta++ = strain.Trace();
+	//	cout << "\ndisp: "<<fLocDispTranspose;
+	//      cout << "\nstrain: "<< strain;
+      }
+
+      /* "last" deformation gradient */
+      if (needs[fNeedsOffset + kstrain_last]) {
+	  /* transpose displacement array */
+	  fLocLastDisp.ReturnTranspose(fLocDispTranspose);
+		 
+	  /*compute strain using Bbar*/
+	  dSymMatrixT& strain = fStrain_last_List[ip];
+	  fBbar.Multx(fLocDispTranspose, strain);
+	  strain.ScaleOffDiagonal(0.5);
+	  *ptheta_last++ = strain.Trace();
+      }
+  }	      
+}
+
+void SmallStrainQ2P1::Set_Gradbar(void)
+{
+  int nsd = (NumSD()==2)?4:3;
+  for (int a = 0; a<NumElementNodes(); a++) {
+    const double* jac = fShapes->IPDets();
+    const double* W = fShapes->IPWeights();  
+    fAMat = 0.0;
+    fBMat = 0.0;
+
+    fShapes->TopIP();
+    while (fShapes->NextIP()) {
+      double scale = (*jac++)*(*W++); 
+      const dArray2DT& DNa = fShapes->Derivatives_U();	       
+      fMShapes.RowCopy(CurrIP(),fGamma);
+      DNa.ColumnCopy(a,fGradTranspose);
+      //      cout << "\nGamma: "<<fGamma;
+      //      cout <<"\nDNa: "<<fGradTranspose;
+      fAMat.Outer(fGamma, fGradTranspose, scale, dMatrixT::kAccumulate);
+    }
+    fBMat.MultAB(fH_inv, fAMat, dMatrixT::kWhole);
+     for (int i = 0; i<NumIP(); i++)  {
+       fMShapes.RowCopy(i,fGamma);
+       fBMat.MultTx(fGamma, fGradTranspose);
+       fGradbar[i].SetColumn(a, fGradTranspose);
+     }
+  }
+}
+
+void SmallStrainQ2P1::Set_Bbar(const dArray2DT& DNa, const dArray2DT& DNabar, 
+			       dMatrixT& Bbar,dMatrixT& B_dev, dMatrixT& Bbar_dil)
+{
+  //  cout <<"\n"<<CurrIP()<<") DNa: "<<DNa;
+  //  cout <<"\n"<<CurrIP()<<") DNabar: "<<DNabar;
+  double* pBdev = B_dev.Pointer();
+  double* pBdil = Bbar_dil.Pointer();
+
+  if (DNabar.MajorDim()==2){
+    double* pDx = DNa(0); double* pDbx = DNabar(0); 
+    double* pDy = DNa(1); double* pDby = DNabar(1);  
+  
+   for (int a = 0; a<NumElementNodes(); a++) {
+       *pBdil++ = *pDbx*fthird; *pBdev++ = *pDx*2.0*fthird;
+      *pBdil++ = *pDbx*fthird; *pBdev++ = *pDx*(-fthird);
+      *pBdil++ = 0.0;          *pBdev++ = *pDy;
+      *pBdil++ = *pDbx*fthird; *pBdev++ = *pDx*(-fthird);
+      
+      *pBdil++ = *pDby*fthird; *pBdev++ = *pDy*(-fthird);
+      *pBdil++ = *pDby*fthird; *pBdev++ = *pDy*2.0*fthird;
+      *pBdil++ = 0.0;          *pBdev++ = *pDx;
+      *pBdil++ = *pDby*fthird; *pBdev++ = *pDy*(-fthird);
+    
+      pDx++;  pDbx++; 
+      pDy++;  pDby++;
+    }
+  }
+  else if (DNabar.MajorDim() == 3) {
+    double* pDx = DNa(0); double* pDbx = DNabar(0); 
+    double* pDy = DNa(1); double* pDby = DNabar(1);  
+    double* pDz = DNa(2); double* pDbz = DNabar(2);
+
+    for (int a = 0; a<NumElementNodes(); a++) {
+      *pBdil++ = *pDbx*fthird; *pBdev++ = *pDx*2.0*fthird; 
+      *pBdil++ = *pDbx*fthird; *pBdev++ = *pDx*(-fthird);
+      *pBdil++ = *pDbx*fthird; *pBdev++ = *pDx*(-fthird);
+      *pBdil++ = 0.0;          *pBdev++ = *pDz;
+      *pBdil++ = 0.0;          *pBdev++ = 0.0;
+      *pBdil++ = 0.0;          *pBdev++ = *pDy;
+      
+      *pBdil++ = *pDby*fthird; *pBdev++ = *pDy*(-fthird);
+      *pBdil++ = *pDby*fthird; *pBdev++ = *pDy*2.0*fthird;
+      *pBdil++ = *pDby*fthird; *pBdev++ = *pDy*(-fthird);
+      *pBdil++ = 0.0;          *pBdev++ = 0.0;
+      *pBdil++ = 0.0;          *pBdev++ = *pDz;
+      *pBdil++ = 0.0;          *pBdev++ = *pDx;
+      
+      *pBdil++ = *pDbz*fthird; *pBdev++ = *pDz*(-fthird);
+      *pBdil++ = *pDbz*fthird; *pBdev++ = *pDz*(-fthird);
+      *pBdil++ = *pDbz*fthird; *pBdev++ = *pDy*(2.0*fthird);
+      *pBdil++ = 0.0;          *pBdev++ = *pDx;
+      *pBdil++ = 0.0;          *pBdev++ = *pDy;
+      *pBdil++ = 0.0;          *pBdev++ = 0.0;
+      
+      pDx++;  pDbx++; 
+      pDy++;  pDby++;
+      pDz++;  pDbz++;
+    }
+  }
+  else ExceptionT::OutOfRange("SmallStrainQ2P1::Set_Bbar");
+
+  Bbar = B_dev;
+  Bbar += Bbar_dil;
+  //  cout << "\nBbar: "<<Bbar;
+}
+
+void SmallStrainQ2P1::CalcPressure(void)
+{
+  int elem = CurrElementNumber();
+  double* ppres_bar = fPressure_List(elem);
+
+  fAVec = 0.0;
+  const double* Det    = fShapes->IPDets();
+  const double* Weight = fShapes->IPWeights();
+  fShapes->TopIP();
+  
+  while (fShapes->NextIP()) {
+    double pres = fCurrMaterial->Pressure();
+    fMShapes.RowCopy(CurrIP(),fGamma);
+    fAVec.AddScaled(pres*(*Weight++)*(*Det++),fGamma);
+  }	
+	
+  for (int i = 0; i<NumIP(); i++)  {
+    fMShapes.RowCopy(i,fGamma);
+    ppres_bar[i] = fH_inv.MultmBn(fGamma,fAVec);;
+  }
+} 
 
 /* calculate the internal force contribution ("-k*d") */
 void SmallStrainQ2P1::FormKd(double constK)
 {
-        int elem = CurrElementNumber();
-
-	const double* Det    = fShapes->IPDets();
-	const double* Weight = fShapes->IPWeights();
-	
-	/********DEBUG*******/
-	bool print = false; 
-	int pos = fElementCards.Position(); 
-	if (pos == 1&&0)  
-	  print = true; 
-	/*******************/
-	
-	/* mixed pressure*/
-	fShapes->TopIP();
-	fMEArray = 0.0;
-	
-	while (fShapes->NextIP())
-	{
-		/* Deviatoric Cauchy stress */
-		double p = fCurrMaterial->mPressure();
-
-		fMShapes[elem].RowCopy(CurrIP(),fGamma);
-		fMEArray.AddScaled(p*(*Weight++)*(*Det++),fGamma);
-	}	
-		
-	Det = fShapes->IPDets();
-	Weight = fShapes->IPWeights();	
-	double* ppres = fPressure_List(elem);
-	fShapes->TopIP();
-	while (fShapes->NextIP())
-	{
-	        Set_B(fShapes->Derivatives_U(), fB);
-		fGamma.Set(fpdof, fMShapes[elem](CurrIP()));
-
-		fStress = fCurrMaterial->s_ij();
-		double p = fCurrMaterial->mPressure();
-		*ppres = fH_inv[elem].MultmBn(fGamma,fMEArray);;
-
-		fStress.PlusIdentity((*ppres++)-p);
-		fB.MultTx(fStress, fNEEvec);
-
-		if (print) cout << "\nstress: "<<fStress;
-		
-		/* accumulate */
-		fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);			}	
+  
+  /*calculate mixed pressure field for current element*/
+  CalcPressure();
+  
+  const double* Det    = fShapes->IPDets();
+  const double* Weight = fShapes->IPWeights();
+  
+  fShapes->TopIP();
+  while (fShapes->NextIP())  {
+    Set_Bbar(fShapes->Derivatives_U(), fGradbar[CurrIP()],fBbar, fB_dev, fBbar_dil);
+    const dSymMatrixT& stress = fCurrMaterial->s_ij();
+    //    cout << "\nstress: "<<stress;
+    fBbar.MultTx(stress, fNEEvec);
+    
+    /* accumulate */
+    fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);			}	
 }
 
 void SmallStrainQ2P1::FormStiffness(double constK)
 {
-        /* matrix format */
-        dMatrixT::SymmetryFlagT format =
-                (fLHS.Format() == ElementMatrixT::kNonSymmetric) ?
-                dMatrixT::kWhole :
-                dMatrixT::kUpperOnly;
-
-        /********DEBUG*******/
-        bool print = false; 
-        int pos = fElementCards.Position(); 
-        if (pos == 1&&0)  
-          print = true; 
-        /*******************/
-	
-	int nen = NumElementNodes();
-	int elem = CurrElementNumber();
-
-	for (int i = 0; i < nen; i++)
-	{
-	     /*set babar functions*/		    
-	     const double* Det    = fShapes->IPDets();
-	     const double* Weight = fShapes->IPWeights();
-
-	     fShapes->TopIP();
-	     while ( fShapes->NextIP() )
-	     {
-	           const dArray2DT& DQa = fShapes->Derivatives_U();
-		   fMShapes[elem].RowCopy(CurrIP(),fGamma);
-		   DQa.ColumCopy(i, fGradNa);
-		   fMixMat.Outer(fGamma,fGradNa,(*Det++)*(*Weight++),nMatrixT::kAccumulate); 
-	     }
-	     fMixMat.MultAB(fH_inv[elem], fMixMat, nMatrixT::kWhole);
-	}
-
-        /* integrate element stiffness */
-        Det    = fShapes->IPDets();
-        Weight = fShapes->IPWeights();
-
-        fShapes->TopIP();
-        while ( fShapes->NextIP() )
-        {
-
-                double scale = constK*(*Det++)*(*Weight++);
-        
-		Set_B(fShapes->Derivatives_U(), fB);
-
-                /* get D matrix */
-		fModulus = fCurrMaterial->c_ijkl();
-		
-                fD.SetToScaled(scale, fCurrMaterial->c_ijkl());
-
-                if (print) cout << "\nmodulus: "<<fCurrMaterial->c_ijkl();
-                                                        
-                /* multiply b(transpose) * db, taking account of symmetry, */
-                /* and accumulate in elstif */
-                fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);   
-        }
- 
-} 
-
-/* compute the measures of strain/deformation over the element */
-void SmallStrainQ2P1::SetGlobalShape(void)
-{
-	/* inherited */
-	SolidElementT::SetGlobalShape();
-
-	/* material information */
-	int material_number = CurrentElement().MaterialNumber();
-	const ArrayT<bool>& needs = fMaterialNeeds[material_number];
-
-	/* element information */
-	int nen = NumElementNodes();
-	int nsd = NumSD();
-	int nip = fShapes->NumIP();
-	int elem = CurrElementNumber();
-
-	const double* jac = fShapes->IPDets();
-	const double* W = fShapes->IPWeights();  
-	fH_inv[elem] = 0.0;
-	fShapes->TopIP();
-	while (fShapes->NextIP())
-	{
-	       int ip = CurrIP();
-
-	       /* pressure shape functions */
-	       fGamma.Set(fpdof, fMShapes[elem](ip));
-	       fip_coords.Set(nsd,fGamma.Pointer(1));
-	       fGamma[0] = 1.0;
-	       IP_Coords(fip_coords);
-	       
-	       /* mass matrix formed from pressure shape functions */
-	       fH_i.Outer(fGamma);
-	       fH_inv[elem].AddScaled((*W)*(*jac),fH_i);
-	       
-	       /* deformation gradient */
-	       if (needs[fNeedsOffset + kstrain])
-	       {
-		      /* displacement gradient */
-		      fShapes->GradU(fLocDisp, fGradU, ip);
-
-		      /* symmetric part */
-		      fStrain_List[ip].Symmetrize(fGradU);
-	       }
-
-	       /* "last" deformation gradient */
-	       if (needs[fNeedsOffset + kstrain_last])
-	       {
-		      /* displacement gradient */
-		      fShapes->GradU(fLocLastDisp, fGradU, ip);
-
-		      /* symmetric part */
-		      fStrain_last_List[ip].Symmetrize(fGradU);
-	       }      
-
-	       /* evaluate dilation field*/
-	       double dil = fStrain_List[ip].Trace();
-	       for (int i = 0; i<fpdof; i++)
-		      fMEArray[i] += fGamma[i]*dil*(*W++)*(*jac++);
-	}
-	fH_inv[elem].Inverse();
-
-	/* set mixed strains */
-	double* ptheta = fTheta_List(elem);
-	double* ptheta_last = fTheta_List_last(elem);
-	for(int i = 0; i < nip; i++)
-	{	   
-	       /* dilation field*/
-	       fMShapes[elem].RowCopy(i,fGamma);
-	       *ptheta = fH_inv[elem].MultmBn(fGamma,fMEArray);
-
-	       /* deformation gradient */
-	       if (needs[fNeedsOffset + kstrain])
-	       {
-		      /* correct for mixed field */
-		      double dil = fStrain_List[i].Trace();
-		      fStrain_List[i].PlusIdentity(fthird*( (*ptheta++)-dil));
-	       }
-
-	       /* "last" deformation gradient */
-	       if (needs[fNeedsOffset + kstrain_last])
-	       {
-		      /*correct for mixed field*/
-		      double dil = fStrain_last_List[i].Trace();
-		      fStrain_last_List[i].PlusIdentity(fthird*( (*ptheta_last++)-dil));
-	       }
-	}
-	      
+  /* matrix format */
+  dMatrixT::SymmetryFlagT format =
+    (fLHS.Format() == ElementMatrixT::kNonSymmetric) ?
+    dMatrixT::kWhole :
+    dMatrixT::kUpperOnly;
+  
+  /* integrate element stiffness */
+  const double* Det    = fShapes->IPDets();
+  const double* Weight = fShapes->IPWeights();
+  
+  fShapes->TopIP();
+  while ( fShapes->NextIP() ) {
+    double scale = constK*(*Det++)*(*Weight++);
+    Set_Bbar(fShapes->Derivatives_U(), fGradbar[CurrIP()],fBbar, fB_dev, fBbar_dil);
+    
+    /* get D matrix */
+    const dMatrixT& modulus = fCurrMaterial->c_ijkl();
+    //    cout << "\n modulus: "<<modulus;
+    fD.SetToScaled(scale, modulus);
+    
+    /* multiply b(transpose) * db, taking account of symmetry, */
+    /* and accumulate in elstif */
+    fLHS.MultQTBQ(fBbar, fD, format, dMatrixT::kAccumulate);
+  }
 }
 
