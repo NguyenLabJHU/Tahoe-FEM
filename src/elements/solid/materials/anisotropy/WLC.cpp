@@ -240,7 +240,7 @@ const dMatrixT& WLC::C_IJKL(void)
       fModulus[8] = fModulus3D[35];
     }
     else fModulus = fModulus3D; 
-//	cout<< "\nfModulus3D: "<<fModulus3D<<endl;
+    //	cout<< "\nfModulus3D: "<<fModulus3D<<endl;
     return fModulus;
 }
 
@@ -266,7 +266,7 @@ const dSymMatrixT& WLC::S_IJ(void)
 	/*entropic part*/
 	Compute_R(fR, fStretch);
 	
-//	cout << "\nfR: "<<fR<<endl;
+	//	cout << "\nfR: "<<fR<<endl;
 	
 	double p0 = 0.25*fN*fk*fT/fA;
 	for (int i = 0; i < fn; i++) {
@@ -276,8 +276,8 @@ const dSymMatrixT& WLC::S_IJ(void)
 		fStress3D.AddScaled(p0*p2*fR0*fR0/r, M);
 	}
 	/*repulsion part*/
-	Compute_eigs(fEigs, fStretch);
-//	cout << "\nfEigs: "<<fEigs<<endl;
+       	Compute_eigs(fEigs, fStretch);
+	//	cout << "\nfEigs: "<<fEigs<<endl;
 	double p1 = sqrt(2.0*fA/fL);
 	double p2 = -0.25*fN*fk*fT/(fA*fA*sqrt(2.0*fL/fA)) * (p1 - 0.25 + 0.25/((1-p1)*(1-p1)));
 	double p5 = p2*(fl1*fl1/fEigs[0]);
@@ -294,7 +294,6 @@ const dSymMatrixT& WLC::S_IJ(void)
 	bulk *= -pow(I3, -fbeta);
 	bulk.PlusIdentity(1.0);
 	fStress3D.AddScaled(2.0*fgamma, bulk);
-//	cout << "\nfStress3D: "<<fStress3D<<endl;
 	
     if (NumSD() == 2)
     {
@@ -304,6 +303,7 @@ const dSymMatrixT& WLC::S_IJ(void)
     }
     else fStress = fStress3D;
 
+    //          cout << "\nfStress3D: "<<fStress3D<<endl;
 	return fStress;
 }
 
@@ -427,9 +427,9 @@ void WLC::TakeParameterList(const ParameterListT& list)
 	f_e2[2] = list.GetParameter("unit_cell_orientation_b_z");
 
 	fl3 = list.GetParameter("unit_cell_dimension_l3");
-	f_e3[0] = list.GetParameter("unit_cell_orientation_b_x");
-	f_e3[1] = list.GetParameter("unit_cell_orientation_b_y");
-	f_e3[2] = list.GetParameter("unit_cell_orientation_b_z");
+	f_e3[0] = list.GetParameter("unit_cell_orientation_c_x");
+	f_e3[1] = list.GetParameter("unit_cell_orientation_c_y");
+	f_e3[2] = list.GetParameter("unit_cell_orientation_c_z");
 
 	fR0 = sqrt(fl1*fl1+fl2*fl2+fl3*fl3)*0.5;
 	fL = fR0*fR0/(2*fA);
@@ -463,6 +463,19 @@ void WLC::TakeParameterList(const ParameterListT& list)
 	fM[4].Outer(f_e1, 1.0);
 	fM[5].Outer(f_e2, 1.0);
 	fM[6].Outer(f_e3, 1.0);
+
+
+	/*	cout << "\nfA: "<<fA
+	     << "\nfL: "<<fL
+	     << "\nfR0: "<<fR0
+	     << "\nfM1: "<<fM[1]
+	     << "\nfM2: "<<fM[2]
+	     << "\nfM3: "<<fM[3]
+	     << "\nfM4: "<<fM[4]
+	     << "\nfM5: "<<fM[5]
+	     << "\nfM6: "<<fM[6]; */
+
+
 }
 
 /***********************************************************************
