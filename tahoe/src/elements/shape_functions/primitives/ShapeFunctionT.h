@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.11 2002-07-01 17:51:19 creigh Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.10 2002-06-08 20:20:54 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -35,9 +35,6 @@ public:
 	 * \param coords array of nodal coordinates in local ordering */
 	ShapeFunctionT(const ShapeFunctionT& link, const LocalArrayT& coords);
 
-        /* Allow stand-alone use of class ShapeFunctionT */
-        //void InitializeParentDomain(void) { fDomain->Initialize(); }
-
 	/** type of the domain coordinates */
 	LocalArrayT::TypeT DomainCoordType(void) const;
 
@@ -67,9 +64,6 @@ public:
 	 * \param ip integration point number */
 	void InterpolateU(const LocalArrayT& nodal, dArrayT& u, int ip) const;
 	
-	 /* Allow stand-alone use of class ShapeFunctionT */
-        void InitializeDomain(void) const;
-	
 	/** array of shape function values defining the geometry */
 	const double* IPShapeX(void) const;
 
@@ -92,22 +86,6 @@ public:
 	 * \param grad_U field gradient matrix: [nu] x [nsd] 
 	 * \param coord coordinates in the parent domain */
 	void GradU(const LocalArrayT& nodal, dMatrixT& grad_U, const dArrayT& coord) const;
-
-	/** compute the curl of a vector that is of dimension 3x1
-	 *  Values for vector at the node points must be provided 
-	 *  T is of dimension num_nodes x (3x1) -- an array of vectors
-	 *  For 2D case, put zero's in the 3 components of T, and use 2D DNa
-	 *  of dimension 2 x num_nodes.
-	 *  Note: Return curl(T) will be 3x1 */
-        void CurlU(const ArrayT<dArrayT>& T, dArrayT& curl_T, int IPnumber) const;
-
-	/** compute the curl of a tensor that is of dimension 3x3
-	 *  Values for tensor at the node points must be provided 
-	 *  T is of dimension num_nodes x (3x3) -- an array of tensors
-	 *  For 2D case, put zero's in the 3 components of T, and use 2D DNa
-	 *  of dimension 2 x num_nodes.
-	 *  Note: Return curl(T) will be 3x3 */
-        void CurlU(const ArrayT<dMatrixT>& T, dMatrixT& curl_T, int IPnumber) const;
 
 	/** convert derivatives of the enhanced modes by applying a chain rule
 	 * transformation:
@@ -229,11 +207,6 @@ if (fCurrIP < 0 || fCurrIP >= fNumIP) throw eOutOfRange;
 }
 #endif
 
-inline void ShapeFunctionT::InitializeDomain(void) const
-{
-	fDomain->Initialize();
-}
-
 /* data for the current integration point */
 inline const double* ShapeFunctionT::IPShapeX(void) const
 {
@@ -264,18 +237,6 @@ inline void ShapeFunctionT::GradU(const LocalArrayT& nodal,
         dMatrixT& grad_U, int IPnumber) const
 {
         fDomain->Jacobian(nodal, (*pDNaU)[IPnumber], grad_U);
-}
-
-inline void ShapeFunctionT::CurlU(const ArrayT<dArrayT>& T,
-        dArrayT& curl_T, int IPnumber) const
-{
-        fDomain->Curl(T, (*pDNaU)[IPnumber], curl_T);
-}
-
-inline void ShapeFunctionT::CurlU(const ArrayT<dMatrixT>& T,
-        dMatrixT& curl_T, int IPnumber) const
-{
-        fDomain->Curl(T, (*pDNaU)[IPnumber], curl_T);
 }
 
 inline void ShapeFunctionT::B(dMatrixT& B_matrix) const

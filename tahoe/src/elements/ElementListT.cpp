@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.23 2002-07-01 17:35:22 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.22 2002-06-17 17:15:06 rjones Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
@@ -169,12 +169,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		{
 			cout << "\n ElementListT::EchoElementData: Element group number is out of\n";
 			cout <<   "     range: " << group + 1 << endl;
-			throw eBadInputValue;
-		}
-
-		/* no over-writing existing groups */
-		if (fArray[group]) {
-			cout << "\n ElementListT::EchoElementData: group already exists" << group + 1 << endl;
 			throw eBadInputValue;
 		}
 

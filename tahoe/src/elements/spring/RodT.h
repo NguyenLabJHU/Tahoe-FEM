@@ -1,4 +1,4 @@
-/* $Id: RodT.h,v 1.7 2002-07-02 16:21:38 hspark Exp $ */
+/* $Id: RodT.h,v 1.6 2002-06-29 16:16:05 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _ROD_T_H_
@@ -9,7 +9,7 @@
 
 /* direct members */
 #include "RodMaterialT.h"
-#include "LocalArrayT.h"
+
 /* templates */
 #include "pArrayT.h"
 
@@ -52,10 +52,6 @@ public:
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
 
-	/* initialize/finalize time increment */
-	virtual void InitStep(void);
-	virtual void CloseStep(void);
-
 	/* Element type parameters */
 	static const int kRodTndof; /* number of degrees of freedom per node */
 	static const int  kRodTnsd; /* number of spatial dimensions */
@@ -75,14 +71,6 @@ protected: /* for derived classes only */
 
 	/** return true if connectivities are changing */
 	virtual bool ChangingGeometry(void) const { return false; };
-
-private: /* MD related computational functions */
-
-	void ComputeKE(void);
-	void ComputePE(void);
-	void ComputeTotalE(void);
-	void ComputeTemperature(void);
-	void ComputePressure(void);
 
 protected:
 
@@ -109,14 +97,6 @@ private:
 	/** current coordinates for one pair bond */
 //	dArray2DT fPairCoords;
 	/*@}*/
-
-	/* MD related variables */
-	double fKb;
-	double fKE, fPE, fTotalE;
-	double fTemp;
-	double fPressure;
-	LocalArrayT fLocVel;
-
 };
 
 #endif /* _ROD_T_H_ */
