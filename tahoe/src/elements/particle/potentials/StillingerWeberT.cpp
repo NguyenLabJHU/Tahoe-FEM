@@ -1,4 +1,4 @@
-/* $Id: StillingerWeberT.cpp,v 1.2 2004-11-23 01:55:38 cjkimme Exp $ */
+/* $Id: StillingerWeberT.cpp,v 1.3 2004-12-01 02:19:38 cjkimme Exp $ */
 #include "StillingerWeberT.h"
 #include <iostream.h>
 #include <math.h>
@@ -128,15 +128,19 @@ ThreeBodyPropertyT::StiffnessFunction StillingerWeberT::getThreeBodyStiffnessFun
 void StillingerWeberT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	PairPropertyT::DefineParameters(list);
+	ParameterInterfaceT::DefineParameters(list);
+
+	ParameterT mass(fMass, "mass");
+	mass.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(mass, ParameterListT::ZeroOrOnce);
 
 	ParameterT eps(f_eps, "energy_scale");
 	eps.AddLimit(0.0, LimitT::LowerInclusive);
-	list.AddParameter(eps);
+	list.AddParameter(eps, ParameterListT::ZeroOrOnce);
 
 	ParameterT sigma(f_sigma, "length_scale");
 	sigma.AddLimit(0.0, LimitT::Lower);
-	list.AddParameter(sigma);
+	list.AddParameter(sigma, ParameterListT::ZeroOrOnce);
 
 	ParameterT b(f_b, "cut_off_distance");
 	b.AddLimit(0.0, LimitT::Lower);
@@ -175,19 +179,24 @@ void StillingerWeberT::DefineParameters(ParameterListT& list) const
 void StillingerWeberT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	PairPropertyT::TakeParameterList(list);
+	ParameterInterfaceT::TakeParameterList(list);
 
 	/* all parameters default to Si unless specified */
-	const ParameterT* opt_param = list.Parameter("energy_scale");
+	const ParameterT* opt_param = list.Parameter("mass");
+	if (opt_param)
+		fMass = *opt_param;
+	else
+		fMass = 28.09;
+	opt_param = list.Parameter("energy_scale");
 	if (opt_param)
 		f_eps = *opt_param;
 	else
-		f_eps = 209.2; 
+		f_eps = 209.2; // eV
 	opt_param = list.Parameter("length_scale");
 	if (opt_param)
 		f_sigma = *opt_param;
 	else
-		f_sigma = 2.0951; //eV
+		f_sigma = 2.0951; // Angstroms
 	opt_param = list.Parameter("cut_off_distance");
 	if (opt_param) 
 		f_b = *opt_param;
@@ -281,7 +290,7 @@ double StillingerWeberT::TwoBodyForce(double r_ab, double* data_a, double* data_
 	  		double r_5 = -4.0*r*r_4;
 	  		r = exp(rms);
 	  
-	  		return s_A/s_sigma*r*(r_5 + (r_4 - 1.)*rms*rms);
+	  		return s_A/s_sigma*r*(r_5 - (r_4 - 1.)*rms*rms);
 	  	}
 	}
 }
