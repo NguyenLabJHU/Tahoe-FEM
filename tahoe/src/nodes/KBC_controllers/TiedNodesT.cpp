@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.19 2003-03-26 20:03:03 cjkimme Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.20 2003-03-31 23:28:43 cjkimme Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -7,6 +7,10 @@
 #include "FEManagerT.h"
 #include "ElementsConfig.h"
 #include "SolidElementT.h"
+
+#ifdef __DEVELOPMENT__
+#include "DevelopmentElementsConfig.h"
+#endif
 
 #ifdef COHESIVE_SURFACE_ELEMENT
 #include "SurfacePotentialT.h"
