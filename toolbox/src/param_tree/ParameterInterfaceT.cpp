@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.cpp,v 1.16 2004-04-07 15:31:24 paklein Exp $ */
+/* $Id: ParameterInterfaceT.cpp,v 1.17 2004-06-06 22:36:33 paklein Exp $ */
 #include "ParameterInterfaceT.h"
 #include "ParameterListT.h"
 #include "ParameterUtils.h"
@@ -177,7 +177,9 @@ ParameterListT::ListOrderT ParameterInterfaceT::ListOrder(void) const
 /* return the list of subordinate names */
 void ParameterInterfaceT::DefineSubs(SubListT& sub_list) const
 {
-	sub_list.Dimension(0);
+//	sub_list.Dimension(0);
+//NOTE: clearing the list causes classes which inherit ParameterInterfaceT more than once
+//      to have an incomplete list of subs.
 }
 
 void ParameterInterfaceT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order,
