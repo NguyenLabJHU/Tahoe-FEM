@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LS.h,v 1.6 2003-03-31 22:59:32 paklein Exp $ */
+/* $Id: NLSolver_LS.h,v 1.6.10.1 2003-12-09 21:43:29 paklein Exp $ */
 /* created: paklein (08/18/1999) */
 
 #ifndef _NL_SOLVER_LS_H_
@@ -22,7 +22,7 @@ public:
 
 	/* form and solve the equation system - returns the magnitude of the
 	 * residual */
-	virtual double SolveAndForm(void);
+	virtual double SolveAndForm(int& iteration);
 
 	/* console */
 	virtual bool iDoVariable(const StringT& variable, StringT& line);

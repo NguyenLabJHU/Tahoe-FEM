@@ -1,4 +1,4 @@
-/* $Id: DRSolver.cpp,v 1.7 2002-11-28 17:30:31 paklein Exp $ */
+/* $Id: DRSolver.cpp,v 1.7.16.1 2003-12-09 21:43:29 paklein Exp $ */
 /* created: PAK/CBH (10/03/1996) */
 
 #include "DRSolver.h"
@@ -51,7 +51,7 @@ SolverT::SolutionStatusT DRSolver::Solve(int num_iterations)
 	fRHS = 0.0;
 	fFEManager.FormRHS(Group());
 
-	SolutionStatusT status = ExitIteration(fRHS.Magnitude());
+	SolutionStatusT status = ExitIteration(fRHS.Magnitude(), fNumIteration);
 	while (status != kConverged &&
 		(num_iterations == -1 || IterationNumber() < num_iterations))
 	{
@@ -79,7 +79,7 @@ SolverT::SolutionStatusT DRSolver::Solve(int num_iterations)
 		fFEManager.FormRHS(Group());
 		
 		/* check status */
-		status = ExitIteration(fRHS.Magnitude());
+		status = ExitIteration(fRHS.Magnitude(), fNumIteration);
 	}  
 
 	/* normal */
