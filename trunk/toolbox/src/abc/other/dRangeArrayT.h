@@ -1,4 +1,4 @@
-/* $Id: dRangeArrayT.h,v 1.4 2002-07-05 22:26:20 paklein Exp $ */
+/* $Id: dRangeArrayT.h,v 1.5 2004-12-27 06:09:46 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 
 #ifndef _DRANGEARRAY_T_H_
@@ -27,8 +27,12 @@ public:
 	/** output operator */
 	friend ostream& operator<<(ostream& out, const dRangeArrayT& array);
 
-	/** set values. \param values array of points defining subintervals */
+	/** \name set values. 
+	 *\param values array of points defining subintervals */
+	/*@{*/
 	void SetValues(const dArrayT& values);
+	void SetValues(int colnum, const dArray2DT& values2D);
+	/*@}*/
 
 	/** find the interval containing the given value. The Range is
 	 * an integer { 0...Length() }, where 0 means the value is less

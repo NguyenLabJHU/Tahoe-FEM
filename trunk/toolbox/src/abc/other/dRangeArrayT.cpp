@@ -1,4 +1,4 @@
-/* $Id: dRangeArrayT.cpp,v 1.6 2002-12-05 08:23:03 paklein Exp $ */
+/* $Id: dRangeArrayT.cpp,v 1.7 2004-12-27 06:09:46 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 
 #include "dRangeArrayT.h"
@@ -15,18 +15,8 @@ dRangeArrayT::dRangeArrayT(const dArrayT& values)
 	SetValues(values);
 }
 
-dRangeArrayT::dRangeArrayT(int colnum, const dArray2DT& values2D)
-{
-	/* allocate space */
-	Dimension(values2D.MajorDim());
-	
-	/* copy values */
-	values2D.ColumnCopy(colnum,*this);
-
-	/* check */
-	if (!IsSequential())
-		ExceptionT::GeneralFail("dRangeArrayT::dRangeArrayT", 
-			"array values must be sorted in ascending order"); 
+dRangeArrayT::dRangeArrayT(int colnum, const dArray2DT& values2D) {
+	SetValues(colnum, values2D);
 }
 
 namespace Tahoe {
@@ -48,6 +38,20 @@ void dRangeArrayT::SetValues(const dArrayT& values)
 	if (!IsSequential())
 		ExceptionT::GeneralFail("dRangeArrayT::SetValues", 
 			"array values must be sorted in ascending order"); 
+}
+
+void dRangeArrayT::SetValues(int colnum, const dArray2DT& values2D)
+{
+	/* allocate space */
+	Dimension(values2D.MajorDim());
+	
+	/* copy values */
+	values2D.ColumnCopy(colnum,*this);
+
+	/* check */
+	if (!IsSequential())
+		ExceptionT::GeneralFail("dRangeArrayT::dRangeArrayT", 
+			"array values must be sorted in ascending order");
 }
 
 /*
