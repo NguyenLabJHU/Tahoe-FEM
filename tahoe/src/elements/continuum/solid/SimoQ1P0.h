@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.h,v 1.3 2002-10-05 20:10:45 paklein Exp $ */
+/* $Id: SimoQ1P0.h,v 1.4 2002-10-10 01:40:56 paklein Exp $ */
 #ifndef _SIMO_Q1_P0_H_
 #define _SIMO_Q1_P0_H_
 
@@ -13,17 +13,16 @@ namespace Tahoe {
  * dimensions; however, both hexahedral and quadrilateral
  * element geometries are allowed. In two dimensions, plane
  * strain is assumed, i.e., the out-of-plane stretch is assumed
- * to be unity. \note current implementation does not
- * implement the full consistent tangent. */
+ * to be unity. \note Several errors appear in the derivation
+ * of the consistent tangent in the CMAME paper. Therefore,
+ * the implementation of the tangent here does not match the 
+ * published formulation. */
 class SimoQ1P0: public UpdatedLagrangianT
 {
 public:
 
 	/** constructor */
 	SimoQ1P0(const ElementSupportT& support, const FieldT& field);
-
-	/** destructor */
-	~SimoQ1P0(void);
 
 	/** data initialization */
 	virtual void Initialize(void);
@@ -45,9 +44,7 @@ protected:
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);
 
-	/** form the element stiffness matrix. \note this is not the
-	 * consistent linearization of SimoQ1P0::FormKd. Only B is
-	 * replaced with B-bar. */
+	/** form the element stiffness matrix */
 	virtual void FormStiffness(double constK);
 
 	/** calculate the internal force contribution ("-k*d") */
@@ -63,7 +60,11 @@ private:
 	 * current element volume, equation (2.20) */
 	void SetMeanGradient(dArray2DT& mean_gradient, double& H, double& v) const;
 	
-	/** */
+	/** special mixed index term in the tangent. Needed to compute
+	 * the term in the tangent resulting from
+	 * \f[
+	 *        \nabla \mathbf{n} \textrm{:} \left( \nabla \boldsymbol{\eta} \right)^T
+	 * \f] */
 	void bSp_bRq_to_KSqRp(const dMatrixT& b, dMatrixT& K) const;
 	
 protected:
@@ -83,6 +84,9 @@ protected:
 	/** element pressure. Calculated during SimoQ1P0::FormKd. */
 	dArrayT fPressure;
 
+	/** determinant of the deformation gradient for the current element */
+	dArrayT fJacobian;
+
 	/** \name work space */
 	/*@{*/
 	dArray2DT fMeanGradient; /**< mean gradient over element */
@@ -91,7 +95,6 @@ protected:
 	dMatrixT fdiff_b;
 	dMatrixT fb_bar;
 	dMatrixT fb_sig;
-	dMatrixT fStressStiff2;
 	/*@}*/
 };
 

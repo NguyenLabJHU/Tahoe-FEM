@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.cpp,v 1.3 2002-10-05 20:10:45 paklein Exp $ */
+/* $Id: SimoQ1P0.cpp,v 1.4 2002-10-10 01:40:56 paklein Exp $ */
 #include "SimoQ1P0.h"
 
 #include "ShapeFunctionT.h"
@@ -59,13 +59,16 @@ void SimoQ1P0::Initialize(void)
 	fPressure.Dimension(NumElements());
 	fPressure = 0.0;
 	
+	/* determinant of the deformation gradient */
+	fJacobian.Dimension(NumIP());
+	fJacobian = 1.0;
+	
 	/* dimension work space */
 	fMeanGradient.Dimension(NumSD(), NumElementNodes());
 	fNEEmat.Dimension(fLHS);
 	fdiff_b.Dimension(fGradNa);
 	fb_bar.Dimension(fGradNa);
 	fb_sig.Dimension(fGradNa);
-	fStressStiff2.Dimension(fStressStiff);
 }
 
 /* finalize current step - step is solved */
@@ -120,17 +123,20 @@ void SimoQ1P0::WriteRestart(ostream& out) const
 /* form shape functions and derivatives */
 void SimoQ1P0::SetGlobalShape(void)
 {
+	/* current element number */
+	int elem = CurrElementNumber();
+
 	/* inherited - computes gradients and standard 
 	 * deformation gradients */
 	UpdatedLagrangianT::SetGlobalShape();
 
 	/* compute mean of shape function gradients */
 	double H; /* reference volume */
-	double& v = fElementVolume[CurrElementNumber()];
+	double& v = fElementVolume[elem];
 	SetMeanGradient(fMeanGradient, H, v);
 	
 	/* last deformed volume */
-	double& v_last = fElementVolume_last[CurrElementNumber()];
+	double& v_last = fElementVolume_last[elem];
 	if (!fLastVolumeInit) v_last = v;
 
 	/* what needs to get computed */
@@ -151,6 +157,9 @@ void SimoQ1P0::SetGlobalShape(void)
 			double tmp = v/(H*J);
 			
 			F *= pow(v/(H*J), 1.0/3.0);
+			
+			/* store Jacobian */
+			fJacobian[i] = J;
 		}
 
 		/* "last" deformation gradient */
@@ -166,7 +175,7 @@ void SimoQ1P0::SetGlobalShape(void)
 
 /* form the element stiffness matrix */
 void SimoQ1P0::FormStiffness(double constK)
-{		
+{
 	/* matrix format */
 	dMatrixT::SymmetryFlagT format =
 		(fLHS.Format() == ElementMatrixT::kNonSymmetric) ?
@@ -184,21 +193,6 @@ void SimoQ1P0::FormStiffness(double constK)
 
 	/* initialize */
 	fStressStiff = 0.0;
-	
-	//TEMP
-	dMatrixT One(NumSD());
-	
-	//TEMP
-#if 0	
-	dMatrixT tmp_1(fNEEmat);
-	dMatrixT tmp_2(fNEEmat);
-	dMatrixT tmp_3(fNEEmat);
-	dMatrixT tmp_4(fStressStiff);
-	tmp_1 = 0.0;
-	tmp_2 = 0.0;
-	tmp_3 = 0.0;
-	tmp_4 = 0.0;
-#endif
 
 	fCurrShapes->GradNa(fMeanGradient, fb_bar);	
 	fShapes->TopIP();
@@ -211,7 +205,16 @@ void SimoQ1P0::FormStiffness(double constK)
 		/* compute Cauchy stress */
 		const dSymMatrixT& cauchy = fCurrMaterial->s_ij();
 		cauchy.ToMatrix(fCauchyStress);
-		double p = fCurrMaterial->Pressure();
+		
+		/* determinant of modified deformation gradient */
+		double J_bar = DeformationGradient().Det();
+		
+		/* detF correction */
+		double J_correction = J_bar/fJacobian[CurrIP()];
+
+		//double p = fCurrMaterial->Pressure()*J_correction;
+		double p = J_correction*cauchy.Trace()/3.0;
+		fCauchyStress *= J_correction;
 
 		/* get shape function gradients matrix */
 		fCurrShapes->GradNa(fGradNa);
@@ -230,7 +233,7 @@ void SimoQ1P0::FormStiffness(double constK)
 		Set_B_bar(fCurrShapes->Derivatives_U(), fMeanGradient, fB);
 
 		/* get D matrix */
-		fD.SetToScaled(scale, fCurrMaterial->c_ijkl());
+		fD.SetToScaled(scale*J_correction, fCurrMaterial->c_ijkl());
 						
 		/* accumulate */
 		fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);
@@ -238,29 +241,17 @@ void SimoQ1P0::FormStiffness(double constK)
 		/* $div div$ term */	
 		fNEEmat.Outer(fGradNa, fGradNa);
 		fLHS.AddScaled(p_bar*scale, fNEEmat);
-		
-//		tmp_1.AddScaled(p_bar*scale, fNEEmat);
-		
+
 		fdiff_b.DiffOf(fGradNa, fb_bar);
 		fNEEmat.Outer(fdiff_b, fdiff_b);
 		fLHS.AddScaled(scale*2.0*p/3.0, fNEEmat);
-		
-//		tmp_2.AddScaled(scale*2.0*p/3.0, fNEEmat);
 		
 		fNEEmat.Outer(fb_sig, fdiff_b);
 		fNEEmat.Symmetrize();
 		fLHS.AddScaled(-scale*4.0/3.0, fNEEmat);
 
-//		tmp_3.AddScaled(-scale*4.0/3.0, fNEEmat);
-		
-//		One.Identity(scale*(p - p_bar));
-//		fStressStiff.MultQTBQ(fGradNa, One,
-//			format, dMatrixT::kAccumulate);
 		bSp_bRq_to_KSqRp(fGradNa, fNEEmat);
 		fLHS.AddScaled(scale*(p - p_bar), fNEEmat);
-
-//		tmp_4.MultQTBQ(fGradNa, One,
-//			format, dMatrixT::kAccumulate);
 	}
 						
 	/* stress stiffness into fLHS */
@@ -269,16 +260,6 @@ void SimoQ1P0::FormStiffness(double constK)
 	/* $\bar{div}\bar{div}$ term */
 	fNEEmat.Outer(fb_bar, fb_bar);
 	fLHS.AddScaled(-p_bar*v, fNEEmat);
-
-//	tmp_1.AddScaled(-p_bar*v, fNEEmat);
-
-#if 0	
-	cout << "||tmp_1|| = " << tmp_1.ScalarProduct() << '\n';
-	cout << "||tmp_2|| = " << tmp_2.ScalarProduct() << '\n';
-	cout << "||tmp_3|| = " << tmp_3.ScalarProduct() << '\n';
-	cout << "||tmp_4|| = " << tmp_4.ScalarProduct() << '\n';
-	cout << endl;
-#endif
 }
 
 /* calculate the internal force contribution ("-k*d") */
@@ -290,8 +271,11 @@ void SimoQ1P0::FormKd(double constK)
 	/* collect incremental heat */
 	bool need_heat = fElementHeat.Length() == fShapes->NumIP();
 
+	/* current element number */
+	int elem = CurrElementNumber();
+
 	/* constant pressure */
-	double& p_bar = fPressure[CurrElementNumber()];
+	double& p_bar = fPressure[elem];
 	p_bar = 0.0;
 
 	fCurrShapes->TopIP();
@@ -301,11 +285,21 @@ void SimoQ1P0::FormKd(double constK)
 		Set_B_bar(fCurrShapes->Derivatives_U(), fMeanGradient, fB);
 
 		/* B^T * Cauchy stress */
-		fB.MultTx(fCurrMaterial->s_ij(), fNEEvec);
-		p_bar += (*Weight)*(*Det)*fCurrMaterial->Pressure();
-
+		const dSymMatrixT& cauchy = fCurrMaterial->s_ij();
+		fB.MultTx(cauchy, fNEEvec);
+		
+		/* determinant of modified deformation gradient */
+		double J_bar = DeformationGradient().Det();
+		
+		/* detF correction */
+		double J_correction = J_bar/fJacobian[CurrIP()];
+		
+		/* integrate pressure */
+		//p_bar += (*Weight)*(*Det)*fCurrMaterial->Pressure()*J_correction;
+		p_bar += (*Weight)*(*Det)*J_correction*cauchy.Trace()/3.0;
+		
 		/* accumulate */
-		fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);
+		fRHS.AddScaled(constK*(*Weight++)*(*Det++)*J_correction, fNEEvec);
 
 		/* incremental heat generation */
 		if (need_heat) 
