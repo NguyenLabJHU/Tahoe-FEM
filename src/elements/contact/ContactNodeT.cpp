@@ -1,4 +1,4 @@
-/*  $Id: ContactNodeT.cpp,v 1.5 2001-04-24 18:17:37 rjones Exp $ */
+/*  $Id: ContactNodeT.cpp,v 1.6 2001-04-25 17:26:43 rjones Exp $ */
 #include "ContactNodeT.h"
 
 #include "SurfaceT.h"
@@ -24,8 +24,8 @@ ContactNodeT::~ContactNodeT(void)
 void
 ContactNodeT::PrintData(ostream& out)
 {
-	out << "gap " << fGap << '\n';
-	out << "xi " << fxi[0] << " " << fxi[1] << '\n';
+	out << fNodeTag << " gap " << fGap 
+	    << " xi " << fxi[0] << " " << fxi[1] << '\n';
 }
 
 bool

@@ -1,8 +1,9 @@
-/* $Id: LineL2FaceT.cpp,v 1.10 2001-04-24 18:17:38 rjones Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.11 2001-04-25 17:26:44 rjones Exp $ */
 
 #include "LineL2FaceT.h"
 #include "FaceT.h"
 
+#include "ContactElementT.h"
 #include "dArrayT.h"
 #include "dMatrixT.h"
 
@@ -49,16 +50,11 @@ LineL2FaceT::ComputeRadius(void) const
 void
 LineL2FaceT::NodeNormal(int local_node_number, double& normal) const
 {
-	int curr = local_node_number;
-	int next = Next(curr);
-	/* get sense of left and right */
+	int c = local_node_number;
+	int n = Next(c);
 	double t1[2];
-	if (next > curr) {
-		Diff(fx[next],fx[curr],t1);
-	}
-	else {
-		Diff(fx[curr],fx[next],t1);
-	}
+	/* get sense of left and right */
+	(n > c) ? Diff(fx[c],fx[n],t1) : Diff(fx[n],fx[c],t1);
 	RCross(t1,&normal);
 }
 
@@ -102,14 +98,24 @@ LineL2FaceT::ComputeShapeFunctions
 
 #if 0
 void
+LineL2FaceT::Interpolate
+(dArrayT& local_coordinates, dArrayT& nodal_values, double value);
+{
+        ComputeShapeFunctions
+                (dArrayT& local_coordinates, dArrayT& shape_functions);
+        value     = shape_function[0]*nodal_value[0]
+                  + shape_function[1]*nodal_value[1];
+}
+
+void
 LineL2FaceT::InterpolateVector
 (dArrayT& local_coordinates, dArray2DT& nodal_vectors, double& vector);
 {
 	ComputeShapeFunctions
 		(dArrayT& local_coordinates, dArrayT& shape_functions);
-	vector[0] = shape_function[0]*nodal_vector[0][0];
+	vector[0] = shape_function[0]*nodal_vector[0][0] 
 	          + shape_function[1]*nodal_vector[1][0];
-	vector[1] = shape_function[0]*nodal_vector[0][1];
+	vector[1] = shape_function[0]*nodal_vector[0][1] 
 	          + shape_function[1]*nodal_vector[1][1];
 }
 #endif
@@ -126,12 +132,51 @@ bool
 LineL2FaceT::Projection 
 (ContactNodeT* node, dArrayT& parameters)  const
 {
-	//HACK
-	return 0;
+        double tol_g  = parameters[ContactElementT::kGapTol];
+        double tol_xi = parameters[ContactElementT::kXiTol];
+
+        const double* nm = node->Normal();
+        /* check normal opposition */
+        if ( Dot(nm,fnormal) < 0.0 ) {
+          const double* x0 = node->Position();
+          /* compute local coordinates */
+          double a[3], b[3];
+          Polynomial(a,b);
+          /* components */
+          double a1,b1,x1;
+          const double* t1 = node->Tangent1();
+          x1 = Dot(x0,t1);
+          a1 = Dot(a,t1); b1 = Dot(b,t1);
+	  double xi[2];
+	  xi[0] = (x1 - a1)/b1;
+	  xi[1] = 0.0; // this is for 3D compatibility
+          if( CheckLocalCoordinates(xi,tol_xi) ) {
+            double x3 = Dot(x0,nm);
+            double a3 = Dot(a,nm);
+            double b3 = Dot(b,nm);
+            /* compute gap */
+            double g =  a3 + b3*xi[0] - x3;
+            if (CheckGap(g,tol_g) ) {
+                /*assign opposite (chooses closest)*/
+                bool isbetter = node->AssignOpposing(fSurface,*this,xi,g);
+                return isbetter;
+            }
+          }
+        }
+        return 0;
+
+
 }
 
 void
 LineL2FaceT::LocalBasis
 (double* normal, double* tangent1, double* tangent2) const
 {
+	/* calculate face tangent */
+        Diff(fx[0],fx[1],tangent1);
+        Proj(tangent1, normal, tangent1);
+        Normalize(tangent1);
+	
+ 	/* NOTE: nothing is done with tangent2 (NULL) */
+
 }

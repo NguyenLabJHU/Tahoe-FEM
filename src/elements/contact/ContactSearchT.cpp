@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.cpp,v 1.8 2001-04-24 18:17:38 rjones Exp $ */
+/* $Id: ContactSearchT.cpp,v 1.9 2001-04-25 17:26:44 rjones Exp $ */
 
 #include "ContactSearchT.h"
 
@@ -61,9 +61,9 @@ bool ContactSearchT::SetInteractions(void)
 		ContactSurfaceT& surface2  = fSurfaces[j]; // "face" surface
 		dArrayT& parameters = fSearchParameters(i,j);
 		/* set node-face data */
+if (parameters.Length() != 0) cout << " searching surface " << i << " with " << j << '\n';
 		if (parameters.Length() != 0) 
 			NodeFaceSearch(surface1,surface2,parameters);
-if (parameters.Length() != 0) cout << " searching surface " << i << " with " << j << '\n';
  	}
 	delete fGrid;
   }

@@ -1,4 +1,4 @@
-/* $Id: SurfaceT.h,v 1.9 2001-04-24 18:17:38 rjones Exp $ */
+/* $Id: SurfaceT.h,v 1.10 2001-04-25 17:26:44 rjones Exp $ */
 
 #ifndef _SURFACE_T_H_
 #define _SURFACE_T_H_
@@ -94,9 +94,6 @@ class SurfaceT
 	int fTag;
 
 	void ComputeNeighbors(void);
-	void ComputeNeighbors2D(void);
-	void ComputeNeighbors3D(void);
-
 	void ComputeSurfaceBasis(void);
 
 	const NodeManagerT* kNodeManager;

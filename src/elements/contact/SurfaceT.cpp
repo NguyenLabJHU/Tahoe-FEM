@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.11 2001-04-24 18:17:38 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.12 2001-04-25 17:26:44 rjones Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -293,32 +293,38 @@ void SurfaceT::InputSideSets
 			fFaces[i] = 
 			  new LineQ3FaceT(*this,fCoordinates, 
 			  number_of_face_nodes,faces_tmp(i) );
+			break;
 #endif
 			default:               
 			cout << "\n SurfaceT::InputSideSets:" 
-			     << " no " << face_geometry_code 
-			     << number_of_face_nodes << endl;
+			     << " no LineFace " << face_geometry_code 
+			     << " with " << number_of_face_nodes 
+			     << " face nodes \n" ;
 			throw eGeneralFail;
 
 		  }
-#if 0
+		  break;
 		case GeometryT::kTriangle :
 		  switch (number_of_face_nodes)
 	 	  { 
+#if 0
                         case 3:
                         fFaces[i] =
                           new TriaL3FaceT(*this,fCoordinates, 
 			  number_of_face_nodes,faces_tmp(i) );
                         break;
+#endif
 
                         default:
                         cout << "\n SurfaceT::InputSideSets:"
-                             << " no " << face_geometry_code
-                             << number_of_face_nodes << endl;
+                             << " no TriangleFace " << face_geometry_code
+                             << " with " << number_of_face_nodes 
+                             << " face nodes \n" ;
+
                         throw eGeneralFail;
 
 		  }
-#endif
+		  break;
 		case GeometryT::kQuadrilateral :
 		  switch (number_of_face_nodes)
 	 	  { 
@@ -331,10 +337,17 @@ void SurfaceT::InputSideSets
 
 			default:
 			cout << "\n SurfaceT::InputSideSets:"
-			     << " no " << face_geometry_code
-			     << number_of_face_nodes << endl;
+			     << " no QuadFace " << face_geometry_code
+                             << " with " << number_of_face_nodes 
+                             << " face nodes \n" ;
+
 			throw eGeneralFail;                    
 		  }
+		  break;
+		default:
+		   cout << "\n SurfaceT::InputSideSets:"
+			<< " unknown face type \n";
+		   throw eGeneralFail;                    
 	  }
 	}
 
@@ -379,50 +392,9 @@ void SurfaceT::UpdateConfiguration ()
   PrintKinematicData(cout);
 }
 
-void SurfaceT::ComputeNeighbors (void)
-{ 
-
-  switch(fNumSD) {
-     case 2:
-	ComputeNeighbors2D();
-	break;
-     case 3:
-	ComputeNeighbors3D();
-	break;
-     default:
-	cout << "\n SurfaceT::ComputeNeighbors, not 2D nor 3D geometry \n";
-  }
-
-}
-
-void SurfaceT::ComputeNeighbors2D()
-{// assume vertex nodes are ordered LR and first in connectivity lists
-#if 0
-        //ComputeNeighbors2D();
-        // need left/right sense
-        for (i = 0; i < fFaces.Length() ; i++) {
-                face = fFace[i];
-                conn = face.Connectivity();
-                for (j = 0; j < conn.Length(); j++) {
-                        Inface
-                        NeighborNode[conn[1],0] = conn[0]; /left -> right
-                        NeighborNode[conn[0],1] = conn[1]; /right <- left
-                }
-        }
-        for (i = 0; i < fFaces.Length() ; i++) {
-                face = fFace[i];
-                conn = face.Connectivity();
-                for (j = 0; j < conn.Length(); j++) {
-                       FaceNeighbor.Insert() = InFace[conn[j]];
-                }
-        }
-
-
-#endif
-}
-
-void SurfaceT::ComputeNeighbors3D()
-{// assume vertex nodes are ordered CCW and first in connectivity lists
+void SurfaceT::ComputeNeighbors(void)
+{// 3D: assume vertex nodes are ordered CCW and first in connectivity lists
+ // 2D: assume vertex nodes are ordered LR  and first in connectivity lists
 	int i,j,k;
 	int num_surf_nodes =  fGlobalNodes.Length();
 	int num_faces      =  fFaces.Length();
@@ -491,7 +463,7 @@ void SurfaceT::ComputeSurfaceBasis(void)
 	  Normalize(normal,fNumSD);
 	  /* compute tangents */
 	  double* tangent1 = fTangent1s(i);
-	  double* tangent2 = fTangent2s(i); // 2D ??
+	  double* tangent2 = (fNumSD ==3) ? fTangent2s(i) : NULL; 
 	  FaceT* face = fNodeNeighbors(i)[0];
 	  face->LocalBasis(normal,tangent1,tangent2);
         }

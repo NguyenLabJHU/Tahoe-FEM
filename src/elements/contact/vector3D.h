@@ -1,4 +1,4 @@
-/* $Id: vector3D.h,v 1.1 2001-04-16 17:30:52 rjones Exp $ */
+/* $Id: vector3D.h,v 1.2 2001-04-25 17:26:44 rjones Exp $ */
 
 #ifndef _VECTOR_3D_H_
 #define _VECTOR_3D_H_
@@ -55,6 +55,15 @@ inline static double TripleProduct(double* v1,double* v2, double* v3)
         return    v1[1]*v2[2]*v3[0] - v1[2]*v2[1]*v3[0]
                +  v1[2]*v2[0]*v3[1] - v1[0]*v2[2]*v3[1]
                +  v1[0]*v2[1]*v3[2] - v1[1]*v2[0]*v3[2];
+};
+
+inline static void Proj(double* v,double* n, double* proj_v)
+{
+        double dot = v[0]*n[0] + v[1]*n[1] + v[2]*n[2];
+        proj_v[0] = proj_v[0] - dot * n[0] ;
+        proj_v[1] = proj_v[1] - dot * n[1] ;
+        proj_v[2] = proj_v[2] - dot * n[2] ;
+
 };
 
 #endif /* _VECTOR_3D_H_ */
