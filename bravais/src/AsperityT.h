@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: AsperityT.h,v 1.6 2003-07-25 18:18:34 jzimmer Exp $ */
+/* $Id: AsperityT.h,v 1.7 2003-08-01 23:40:31 saubry Exp $ */
 
 #ifndef _ASPERITY_T_H_
 #define _ASPERITY_T_H_
@@ -22,7 +22,9 @@ class AsperityT : public VolumeT
   iArrayT WhichSort;
   iArrayT pbc;
 
- protected:
+ private:
+
+  iArray2DT type1,type2;
 
   double fRadius;
   dArrayT fCenterPlus;
@@ -32,9 +34,9 @@ class AsperityT : public VolumeT
   
   //Constructor
   AsperityT(int dim, dArray2DT len, dArrayT lattice_parameter,
-       iArrayT which_sort, iArrayT per);
+       iArrayT which_sort, StringT slt, iArrayT per);
   AsperityT(int dim, iArrayT cel, dArrayT lattice_parameter,
-       iArrayT which_sort, iArrayT per);
+       iArrayT which_sort, StringT slt, iArrayT per);
   
   //Destructor
   ~AsperityT(){};
@@ -54,9 +56,11 @@ class AsperityT : public VolumeT
 
     dArray2DT ComputeMinMax(); 
     int RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
-			iArrayT* temp_parts, int temp_nat);
+			iArrayT* temp_type, iArrayT* temp_parts,
+			int temp_nat);
     int RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,
-			iArrayT* temp_parts, int temp_nat);
+			iArrayT* temp_type, iArrayT* temp_parts, 
+			int temp_nat);
 
     double ComputeCircleParameters();
 };

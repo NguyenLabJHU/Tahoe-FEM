@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.35 2003-08-01 22:56:35 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.36 2003-08-01 23:40:31 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -79,7 +79,7 @@ BoxT::BoxT(int dim, dArray2DT len,
           length(i,0) = -dist;
           length(i,1) = length(i,0) + (dist - length(i,0));
         }
-     }
+    }
 }
 
 BoxT::BoxT(int dim, iArrayT cel,
@@ -136,7 +136,7 @@ BoxT::BoxT(int dim, iArrayT cel,
           length(i,0) = -dist;
           length(i,1) = length(i,0) + (dist - length(i,0));
         }
-     }
+    }
 }
 
 BoxT::BoxT(const BoxT& source) : VolumeT(source.nSD) 

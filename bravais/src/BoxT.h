@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.h,v 1.15 2003-08-01 22:54:39 saubry Exp $ */
+/* $Id: BoxT.h,v 1.16 2003-08-01 23:40:31 saubry Exp $ */
 
 #ifndef _BOX_T_H_
 #define _BOX_T_H_
@@ -21,6 +21,10 @@ class BoxT : public VolumeT
   dArray2DT length; // lower and upper bounds
   iArrayT WhichSort;
   iArrayT pbc;
+
+ private:
+  
+  iArray2DT type1,type2;
 
  public:
   
@@ -45,9 +49,6 @@ class BoxT : public VolumeT
   dArray2DT GetLength();
 
  private:
-
-    iArray2DT type1,type2;
-
 
     dArray2DT ComputeMinMax(); 
     int RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,iArrayT* temp_type,int temp_nat);
