@@ -1,9 +1,7 @@
-/* $Id: BasicSupportT.cpp,v 1.2 2004-07-15 08:31:36 paklein Exp $ */
+/* $Id: BasicSupportT.cpp,v 1.3 2004-07-22 08:31:06 paklein Exp $ */
 #include "BasicSupportT.h"
 
 #include "dArray2DT.h"
-
-
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 #include "FEManagerT.h"
@@ -33,7 +31,6 @@ BasicSupportT::BasicSupportT(void):
 	fModelManager(NULL),
 	fCommManager(NULL),
 	fCommunicator(NULL),
-	fAnalysis(GlobalT::kNoAnalysis),
 	fRunState(NULL),
 	fNumSD(-1)
 {
@@ -55,7 +52,6 @@ void BasicSupportT::SetFEManager(const FEManagerT* fe)
 	fFEManager = fe;
 	if (!fe)
 	{
-		fAnalysis = GlobalT::kNoAnalysis;
 		fRunState = NULL;
 
 		/* clear nodal information */
@@ -70,7 +66,6 @@ void BasicSupportT::SetFEManager(const FEManagerT* fe)
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	else
 	{
-		fAnalysis = fFEManager->Analysis();
 		fRunState = &(fFEManager->RunState());
 
 		/* set nodal information */

@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.h,v 1.2 2004-07-15 08:31:36 paklein Exp $ */
+/* $Id: BasicSupportT.h,v 1.3 2004-07-22 08:31:06 paklein Exp $ */
 #ifndef _TAHOE_SUPPORT_T_H_
 #define _TAHOE_SUPPORT_T_H_
 
@@ -79,9 +79,6 @@ public:
 
 	/** register the local coordinate array with its source */
 	void RegisterCoordinates(LocalArrayT& array) const;
-
-	/** global analysis type */
-	GlobalT::AnalysisCodeT Analysis(void) const { return fAnalysis; };
 
 	/** return a const reference to the run state flag */
 	const GlobalT::StateT& RunState(void) const;
@@ -236,7 +233,6 @@ private:
 	
 	/** \name cached data */
 	/*@{*/
-	GlobalT::AnalysisCodeT fAnalysis;
 	const GlobalT::StateT* fRunState;
 
 	/** number of spatial dimensions */
