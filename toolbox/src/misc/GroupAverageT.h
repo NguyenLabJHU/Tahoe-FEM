@@ -1,4 +1,4 @@
-/* $Id: GroupAverageT.h,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
+/* $Id: GroupAverageT.h,v 1.2 2001-06-11 02:03:38 paklein Exp $ */
 /* created: paklein (10/03/1996)                                          */
 
 #ifndef _GROUPAVERAGE_T_H_
@@ -30,7 +30,7 @@ public:
 	/* accumulate the values in the data */
 	void AssembleAverage(const iArrayT& nums, const dArray2DT& vals);
 	
-	/* output the averaged values to the output stream (triggers averaging) */
+	/* output the averaged values */
 	const dArray2DT& OutputAverage(void);                        // for all nodes
 	void OutputAverage(const iArrayT& rows, dArray2DT& average); // requested rows only
 	void OutputUsedAverage(dArray2DT& average); // active rows only
@@ -44,12 +44,15 @@ public:
 	int NextAverageRow(dArrayT& values);
 	
 	/* return value and position of largest (active) average value */
-	void MaxInColumn(int column, int& maxrow, double& maxval); //triggers averging
+	void MaxInColumn(int column, int& maxrow, double& maxval); //triggers averaging
 
 	/* returns the row numbers which where used by the current averaging
 	 * calculation */
 	void RowsUsed(iArrayT& rowsused) const;
 	int NumRowsUsed(void) const;
+
+	/* clear the specified row numbers */
+	void ClearRows(const ArrayT<int>& rows);
 
 protected:
 

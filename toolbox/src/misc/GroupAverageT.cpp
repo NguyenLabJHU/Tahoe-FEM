@@ -1,4 +1,4 @@
-/* $Id: GroupAverageT.cpp,v 1.2 2001-02-13 17:49:37 paklein Exp $ */
+/* $Id: GroupAverageT.cpp,v 1.3 2001-06-11 02:03:38 paklein Exp $ */
 /* created: paklein (10/03/1996)                                          */
 
 #include "GroupAverageT.h"
@@ -172,6 +172,13 @@ int GroupAverageT::NumRowsUsed(void) const
 		if (*pcount++ > 0) count++;
 
 	return count;
+}
+
+/* clear the specified row numbers */
+void GroupAverageT::ClearRows(const ArrayT<int>& rows)
+{
+	for (int i = 0; i < rows.Length(); i++)
+		fCounts[rows[i]] = 0;
 }
 
 /**********************************************************************
