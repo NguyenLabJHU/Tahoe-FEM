@@ -1,4 +1,4 @@
-/* $Id: ValueT.h,v 1.3 2002-11-18 09:59:03 paklein Exp $ */
+/* $Id: ValueT.h,v 1.4 2003-03-08 01:57:27 paklein Exp $ */
 #ifndef _VALUE_T_H_
 #define _VALUE_T_H_
 
@@ -58,6 +58,13 @@ public:
 	/** assignment operator */
 //	const ValueT& operator=(const ValueT& rhs);
 	
+	/** \name type conversion operators not lvalues */
+	/*@{*/
+	operator const int&() const;
+	operator const double&() const;
+	operator const StringT&() const;
+	/*@}*/
+
 protected:
 
 	/** value type */
