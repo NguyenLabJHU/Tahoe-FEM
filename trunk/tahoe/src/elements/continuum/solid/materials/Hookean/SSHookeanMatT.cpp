@@ -1,4 +1,4 @@
-/* $Id: SSHookeanMatT.cpp,v 1.9 2004-07-22 21:09:32 paklein Exp $ */
+/* $Id: SSHookeanMatT.cpp,v 1.10 2004-08-05 23:17:48 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "SSHookeanMatT.h"
 
@@ -55,10 +55,8 @@ void SSHookeanMatT::DefineInlineSub(const StringT& name, ParameterListT::ListOrd
 	SubListT& sub_lists) const
 {
 	/* inherited */
-	if (sub_lists.Length() == 0)
-		SSSolidMatT::DefineInlineSub(name, order, sub_lists);
-	if (sub_lists.Length() == 0)
-		HookeanMatT::DefineInlineSub(name, order, sub_lists);
+	SSSolidMatT::DefineInlineSub(name, order, sub_lists);
+	HookeanMatT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
