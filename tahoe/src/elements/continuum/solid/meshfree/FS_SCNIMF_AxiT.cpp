@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.2 2004-07-15 08:29:39 paklein Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.3 2004-07-29 23:42:06 cjkimme Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 //#define VERIFY_B
@@ -21,7 +21,7 @@
 #include "SolidMatSupportT.h"
 
 /* materials list */
-#include "FSSolidMatList3DT.h"
+#include "FSSolidMatList2DT.h"
 
 using namespace Tahoe;
 
@@ -572,10 +572,10 @@ void FS_SCNIMF_AxiT::bVectorToMatrix(double *bVector, dMatrixT& BJ)
 	}
 }
 
-void FS_SCNIMF_AxiT::ReadMaterialData(ifstreamT& in)
+void FS_SCNIMF_AxiT::ReadMaterialData()
 {
 	/* base class */
-	SCNIMFT::ReadMaterialData(in);
+	SCNIMFT::ReadMaterialData();
 
 	/* offset to class needs flags */
 	fNeedsOffset = fMaterialNeeds[0].Length();
@@ -604,23 +604,34 @@ void FS_SCNIMF_AxiT::ReadMaterialData(ifstreamT& in)
 }
 
 /* return a pointer to a new material list */
-MaterialListT* FS_SCNIMF_AxiT::NewMaterialList(int nsd, int size)
+MaterialListT* FS_SCNIMF_AxiT::NewMaterialList(const StringT& name, int size)
 {
-#pragma unused(nsd)
+	/* resolve number of spatial dimensions */
+	int nsd = -1;
+	if (name == "large_strain_material_2D")
+		nsd = 2;
+	
+	/* no match */
+	if (nsd == -1) return NULL;
 
-	/* full list */
-	if (size > 0)
-	{
-		/* material support */
-		if (!fFSMatSupport) {
-			fFSMatSupport = new FSMatSupportT(NumDOF(), 1);
-			fFSMatSupport->SetNumSD(3);
-		}
+	if (size > 0) {
+		 /* material support */
+		 if (!fFSMatSupport) {
+		 	fFSMatSupport = new FSMatSupportT(nsd, 1);      
+		 	if (!fFSMatSupport)
+		 		ExceptionT::GeneralFail("FS_SCNIMFT::NewMaterialList","Could not instantiate material support\n");
+		 }
 
-		return new FSSolidMatList3DT(size, *fFSMatSupport);
+		if (nsd == 2)
+			return new FSSolidMatList2DT(size, *fFSMatSupport);
 	}
-	else
-		return new FSSolidMatList3DT;
+	else {
+	 	if (nsd == 2)
+			return new FSSolidMatList2DT;
+	}
+	
+	/* no match */
+	return NULL;
 }
 
 void FS_SCNIMF_AxiT::ComputeBMatrices(void)
@@ -995,8 +1006,13 @@ void FS_SCNIMF_AxiT::DefineSubs(SubListT& sub_list) const
 void FS_SCNIMF_AxiT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
 	SubListT& sub_lists) const
 {
-	/* inherited */
-	ElementBaseT::DefineInlineSub(name, order, sub_lists);
+	if (name == "large_strain_material_choice") {
+		order = ParameterListT::Choice;
+		
+		/* list of choices */
+		sub_lists.AddSub("large_strain_material_2D");
+	} else /* inherited */
+		SCNIMFT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */

@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.18 2004-07-15 08:29:39 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.19 2004-07-29 23:42:06 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -17,6 +17,7 @@
 #include "CommunicatorT.h"
 #include "BasicFieldT.h"
 
+#include "MeshFreeSupport2DT.h"
 #include "MeshFreeNodalShapeFunctionT.h"
 #include "ContinuumMaterialT.h"
 #include "SolidMaterialT.h"
@@ -71,13 +72,20 @@ SCNIMFT::~SCNIMFT(void)
 }
 
 /* initialization */
-void SCNIMFT::Initialize(void)
+void SCNIMFT::TakeParameterList(const ParameterListT& list)
 {
-	const char caller[] = "SCNIMFT::Initialize";
-ExceptionT::GeneralFail(caller, "out of date");
-#if 0
+	const char caller[] = "SCNIMFT::TakeParameterList";
+	
+	/* construct meshfree support before calling inherited method because
+	 * support class needed to construct shape functions */
+	fMFSupport = new MeshFreeSupport2DT;
+	fMFSupport->TakeParameterList(list.GetList("meshfree_support_2D"));
+
+	/* get parameters needed to construct shape functions */
+	fMeshfreeParameters = list.List("meshfree_support_2D");
+	
 	/* inherited */
-	ElementBaseT::Initialize();
+	ElementBaseT::TakeParameterList(list);
 
 	/* re-dimension "element" force and stiffness contributions */
 	fLHS.Dimension(fSD);
@@ -86,19 +94,12 @@ ExceptionT::GeneralFail(caller, "out of date");
 	fForce_man.SetMajorDimension(ElementSupport().NumNodes(), false);
 
 	/* write parameters */
-//	ifstreamT& in = ElementSupport().Input();
-	ifstreamT in;
 	ostream& out = ElementSupport().Output();
 
-	int qComputeVoronoiCell;
-	in >> qComputeVoronoiCell;
-
-	if (qComputeVoronoiCell)
-	{
+	if (qComputeVoronoiCell) {
 #ifndef __QHULL__
 	        ExceptionT::GeneralFail(caller,"Requires the QHull library\n");
 #else 
-
 		// Do the heavy lifting for the Voronoi Diagram now
 		fVoronoi = new CompGeomT(fDeloneVertices);
 		fVoronoi->ComputeVoronoiDiagram();
@@ -125,25 +126,16 @@ ExceptionT::GeneralFail(caller, "out of date");
 
 	
   		// Write output to file
-		StringT vCellFile;
-		in >> vCellFile;
-		
 		ofstreamT vout(vCellFile);
 
-		if (vout.is_open())	
-		{
+		if (vout.is_open())	 {
 			VoronoiDiagramToFile(vout);
 			vout.close();
-		}
-		else 
+		} else 
   			cout  << " Unable to save data to file " << vCellFile << ". Ignoring error \n"; 
 #endif
 	} 
-	else 
-	{	// read in Voronoi information from a file
-	  	StringT vCellFile;
-		in >> vCellFile;
-	    
+	else  {	// read in Voronoi information from a file
 		ifstreamT vin('#', vCellFile);
 
 		if (!vin.is_open())
@@ -163,22 +155,19 @@ ExceptionT::GeneralFail(caller, "out of date");
 	/* construct shape functions */
 	fNodalShapes = new MeshFreeNodalShapeFunctionT(ElementSupport().NumSD(),
 		ElementSupport().InitialCoordinates(), *fElementConnectivities[0], 
-		fVoronoiVertices, ElementSupport().Input());
+		fVoronoiVertices, *fMeshfreeParameters);
 	if (!fNodalShapes) throw ExceptionT::kOutOfMemory;
 	
 	/* echo parameters */
 	fNodalShapes->WriteParameters(ElementSupport().Output());
-	
-	/* initialize */
-//	fNodalShapes->Initialize();
 
 	/* MLS stuff */
 	fNodalShapes->SetSupportSize();
 
 	/* exchange nodal parameters (only Dmax for now) */
 	const ArrayT<int>* p_nodes_in = ElementSupport().ExternalNodes();
-	if (p_nodes_in)
-	{
+	if (p_nodes_in) {
+
 		/* skip MLS fit at external nodes */
 		iArrayT nodes_in;
 		nodes_in.Alias(*p_nodes_in);
@@ -202,24 +191,6 @@ ExceptionT::GeneralFail(caller, "out of date");
 	
 	/* set nodal neighborhoods */
 	fNodalShapes->SetNeighborData();
-
-	/* initialize support data */
-/*	iArrayT surface_nodes;
-	if (fAutoBorder) {
-		ArrayT<StringT> IDs;
-		ElementBlockIDs(IDs);
-		ElementSupport().Model().SurfaceNodes(IDs, surface_nodes,
-			fFakeGeometry);
-	}
-	MeshFreeFractureSupportT::InitSupport(
-		ElementSupport().Input(), 
-		ElementSupport().Output(),
-		fElementCards, 
-		surface_nodes, 
-		NumDOF(), 
-		ElementSupport().NumNodes(),
-		&ElementSupport().Model()
-	);*/
 	
 	//dArray2DT params(fNodes.Length(), 3);
 	//params.SetColumn(0,0.);
@@ -238,12 +209,11 @@ ExceptionT::GeneralFail(caller, "out of date");
 	dArrayT nodalCoords;
 	fNodalPhi.Dimension(nNodes);
 	fNodalSupports.Dimension(nNodes);
-	for (int i = 0; i < nNodes; i++)
-	{
+	for (int i = 0; i < nNodes; i++) {
 		nodalCoords.Set(fSD, fDeloneVertices(fNodes[i]));
 	
 		if (!fNodalShapes->SetFieldAt(nodalCoords, NULL)) // shift = 0 or not ?
-			ExceptionT::GeneralFail("SCNIMFT::Initialize","Shape Function evaluation"
+			ExceptionT::GeneralFail("SCNIMFT::TakeParameterList","Shape Function evaluation"
 				"failed at Delone edge %d\n",fNodes[i]);		
 		
 		fNodalPhi[i].AppendArray(fNodalShapes->FieldAt().Length(),
@@ -253,7 +223,7 @@ ExceptionT::GeneralFail(caller, "out of date");
 	}
 	
 	/** Material Data */
-	ReadMaterialData(in);
+	ReadMaterialData();
 	
 	//TEMP - only works for one material right now, else would have to check
 	//       for the material active within the integration cell (element)
@@ -263,54 +233,6 @@ ExceptionT::GeneralFail(caller, "out of date");
 		cout <<   "     with active cracks" << endl;
 		throw ExceptionT::kBadInputValue;
 	}*/
-
-//TEMP - write nodal parameters
-#if 0
-	ostream& out = FEManager().Output();
-	out << "\n MeshFreeFDSolidT::Initialize: d_max:\n";
-	const dArray2DT& nodal_params = fMFShapes->NodalParameters();
-	const iArrayT* node_map = FEManager().NodeMap();
-	int d_width = out.precision() + kDoubleExtra;
-	out << setw(kIntWidth) << "node"
-	<< setw(nodal_params.MinorDim()*d_width) << "d_max" << '\n';
-	if (node_map)
-		for (int i = 0; i < nodal_params.MajorDim(); i++)
-		{
-			out << setw(kIntWidth) << (*node_map)[i] + 1;
-			nodal_params.PrintRow(i, out);
-			out << '\n';
-		}
-	else
-		for (int j = 0; j < nodal_params.MajorDim(); j++)
-		{
-			out << setw(kIntWidth) << j + 1;
-			nodal_params.PrintRow(j, out);
-			out << '\n';
-		}
-#endif
-
-//TEMP - U connectivities
-#if 0
-	out << "\n MeshFreeFDSolidT::Initialize: connects U: 0, 1,...\n";
-	fElemNodesEX->WriteNumbered(out);
-	out.flush();
-#endif
-
-//TEMP - trace node
-#if 0
-	int rank, size;
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-		
-	int hit_node = -1;
-	if (size == 1)
-		hit_node = 13607 - 1;
-	else if (size == 2 && rank == 0)
-		hit_node = 5420 - 1;
-	if (hit_node > 0) TraceNode(ElementSupport().Output(), hit_node, *this);
-#endif
-
-#endif
 }
 
 /* form of tangent matrix */
@@ -333,13 +255,11 @@ void SCNIMFT::RegisterOutput(void)
 	/* "point connectivities" needed for output */
 	CommManagerT& comm_manager = ElementSupport().CommManager();
 	const ArrayT<int>* parition_nodes = comm_manager.PartitionNodes();
-	if (parition_nodes)
-	{
+	if (parition_nodes) {
 		int num_nodes = parition_nodes->Length();
 		fPointConnectivities.Alias(num_nodes, 1, parition_nodes->Pointer());
 	}
-	else /* ALL nodes */
-	{
+	else { /* ALL nodes */
 		fPointConnectivities.Dimension(ElementSupport().NumNodes(), 1);
 		iArrayT tmp;
 		tmp.Alias(fPointConnectivities);
@@ -384,8 +304,7 @@ void SCNIMFT::GenerateOutputLabels(ArrayT<StringT>& labels)
 	strain[1] = "e22";
 	num_stress = 3;
 	
-	if (fSD == 3)
-	{
+	if (fSD == 3) {
 		num_stress=6;
 		stress[2] = "s33";
 	  	stress[3] = "s23";
@@ -397,8 +316,7 @@ void SCNIMFT::GenerateOutputLabels(ArrayT<StringT>& labels)
 	  	strain[5] = "e12";
 	} 
 	
-	if (fSD == 2) 
-	{
+	if (fSD == 2) {
 	  	stress[2] = "s12";
 	  	strain[2] = "e12";
 	}
@@ -548,8 +466,7 @@ void SCNIMFT::AssembleParticleMass(const double rho)
 	double* m = fForce.Pointer();
 	int* nodes = fNodes.Pointer();
 	double* volume = fVoronoiCellVolumes.Pointer();
-	for (int i = 0; i < fNodes.Length(); i++)
-	{
+	for (int i = 0; i < fNodes.Length(); i++) {
 		for (int j = 0; j < fSD; j++)
 			*m++ = *volume;
 		volume++;
@@ -560,22 +477,21 @@ void SCNIMFT::AssembleParticleMass(const double rho)
 	ElementSupport().AssembleLHS(Group(), fForce, Field().Equations());
 }
 
-void SCNIMFT::ReadMaterialData(ifstreamT& in)
+void SCNIMFT::ReadMaterialData()
 {
 	const char caller[] = "SCNIMFT::ReadMaterialData";
 
 	/* construct material list */
-	int size;
-	in >> size;
-	fMaterialList = NewMaterialList(NumSD(), size);
+	ParameterListT mat_params;
+	mat_params.Clear();
+	fMaterialList = NewMaterialList(mat_params.Name(), mat_params.NumLists());
 	if (!fMaterialList) ExceptionT::OutOfMemory(caller);
 
 	/* read */
-//	fMaterialList->ReadMaterialData(in);
+	fMaterialList->TakeParameterList(mat_params);
 	
 	fMaterialNeeds.Dimension(fMaterialList->Length());
-	for (int i = 0; i < fMaterialNeeds.Length(); i++)
-	{
+	for (int i = 0; i < fMaterialNeeds.Length(); i++) {
 		/* allocate */
 		ArrayT<bool>& needs = fMaterialNeeds[i];
 		needs.Dimension(3);
@@ -661,8 +577,7 @@ void SCNIMFT::InterpolatedFieldAtNodes(const iArrayT& nodes, dArray2DT& fieldAtN
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
 	dArrayT vec, values_i;
-	for (int i = 0; i < nodes.Length(); i++) 
-	{
+	for (int i = 0; i < nodes.Length(); i++) {
 		/* copy in */
 		vec.Set(fSD, fieldAtNodes.Pointer() + i*fSD);
 		vec = 0.;	
@@ -739,8 +654,7 @@ void SCNIMFT::ComputeBMatrices(void)
 	
 	dArrayT zeroFacet(3);
 	zeroFacet = 0.0;
-	for (int i = 0; i < nNodes; i++)
-	{
+	for (int i = 0; i < nNodes; i++) {
 		int l_supp_i = nodeSupport.MinorDim(i);
 		iArrayT supp_i(l_supp_i);
 		supp_i.Copy(nodeSupport(i));
@@ -754,8 +668,7 @@ void SCNIMFT::ComputeBMatrices(void)
 	int n_0, n_1;
 	bool traverseQ_0, traverseQ_1;
 	int *next_0, *next_1;
-	for (int i = 0; i < fDeloneEdges.MajorDim(); i++)
-	{
+	for (int i = 0; i < fDeloneEdges.MajorDim(); i++) {
 		facetCentroid = 0.; 
 		n_0 = fDeloneEdges(i,0);
 		n_1 = fDeloneEdges(i,1);
@@ -794,8 +707,8 @@ void SCNIMFT::ComputeBMatrices(void)
 		supp_1.Top(); bVectors_1.Top();
 		next_0 = supp_0.CurrentValue();
 		next_1 = supp_1.CurrentValue();
-		for (int j = 0; j < n_centroid_cover; j++, c++, c_j++)
-		{
+		for (int j = 0; j < n_centroid_cover; j++, c++, c_j++) {
+		
 			facetIntegral = facetNormal;
 			facetIntegral *= fDualAreas[i]*phiValues[*c_j];	
 			
@@ -805,8 +718,7 @@ void SCNIMFT::ComputeBMatrices(void)
 				traverseQ_0 = false;
 					
 			// advance supp_0 and supp_1 until they are greater than or equal to current node
-			while (traverseQ_0 && supp_0.Next(s_0) && bVectors_0.Next())
-			{
+			while (traverseQ_0 && supp_0.Next(s_0) && bVectors_0.Next()) {
 				next_0 = supp_0.PeekAhead(); 
 				if (!next_0)
 					traverseQ_0 = false;
@@ -815,13 +727,11 @@ void SCNIMFT::ComputeBMatrices(void)
 						traverseQ_0 = false;
 			}
 				
-			if (s_0 != *c) // means we're not at the end of the linked list
-			{
+			if (s_0 != *c) { // means we're not at the end of the linked list
 				supp_0.InsertAtCurrent(*c);
 				bVectors_0.InsertAtCurrent(zeroFacet);
 				s_0 = *c;
-				if (supp_0.AtTop()) // if we're inserting at the front, LinkedListT's behavior requires more work
-				{
+				if (supp_0.AtTop()) { // if we're inserting at the front, LinkedListT's behavior requires more work
 					supp_0.Next(); 
 					bVectors_0.Next();
 				}
@@ -838,8 +748,7 @@ void SCNIMFT::ComputeBMatrices(void)
 				traverseQ_1 = false;
 				
 			// advance supp_0 and supp_1 until they are greater than or equal to current node
-			while (traverseQ_1 && supp_1.Next(s_1) && bVectors_1.Next())
-			{
+			while (traverseQ_1 && supp_1.Next(s_1) && bVectors_1.Next()) {
 				next_1 = supp_1.PeekAhead(); 
 				if (!next_1)
 					traverseQ_1 = false;
@@ -848,13 +757,11 @@ void SCNIMFT::ComputeBMatrices(void)
 						traverseQ_1 = false;
 			}		
 								
-			if (s_1 != *c)
-			{
+			if (s_1 != *c) {
 				supp_1.InsertAtCurrent(*c);
 				bVectors_1.InsertAtCurrent(zeroFacet);
 				s_1 = *c;
-				if (supp_1.AtTop()) // if we're inserting at the front, LinkedListT's behavior requires more work
-				{
+				if (supp_1.AtTop()) { // if we're inserting at the front, LinkedListT's behavior requires more work
 					supp_1.Next(); 
 					bVectors_1.Next();
 				}
@@ -868,8 +775,7 @@ void SCNIMFT::ComputeBMatrices(void)
 	}
 	
 	/** Loop over remaining edges */
-	for (int i = 0; i < fNonDeloneEdges.Length(); i++)
-	{
+	for (int i = 0; i < fNonDeloneEdges.Length(); i++) {
 		facetCentroid = 0.; 
 		n_0 = fNonDeloneEdges[i];
 		facetCentroid.Set(fSD, fNonDeloneCentroids(i)); 
@@ -899,8 +805,7 @@ void SCNIMFT::ComputeBMatrices(void)
 		
 		supp_0.Top(); bVectors_0.Top();
 		next_0 = supp_0.CurrentValue();
-		for (int j = 0; j < n_centroid_cover; j++, c++, c_j++)
-		{
+		for (int j = 0; j < n_centroid_cover; j++, c++, c_j++) {
 			facetIntegral = facetNormal;
 			facetIntegral *= fBoundaryIntegrationWeights[i]*phiValues[*c_j];		
 		
@@ -910,8 +815,7 @@ void SCNIMFT::ComputeBMatrices(void)
 				traverseQ_0 = false;
 					
 			// advance supp_0 and supp_1 until they are greater than or equal to current node
-			while (traverseQ_0 && supp_0.Next(s_0) && bVectors_0.Next())
-			{
+			while (traverseQ_0 && supp_0.Next(s_0) && bVectors_0.Next()) {
 				next_0 = supp_0.PeekAhead(); 
 				if (!next_0)
 					traverseQ_0 = false;
@@ -920,13 +824,11 @@ void SCNIMFT::ComputeBMatrices(void)
 						traverseQ_0 = false;
 			}
 				
-			if (s_0 != *c) // means we're not at the end of the linked list
-			{
+			if (s_0 != *c) { // means we're not at the end of the linked list
 				supp_0.InsertAtCurrent(*c);
 				bVectors_0.InsertAtCurrent(zeroFacet);
 				s_0 = *c;
-				if (supp_0.AtTop()) // if we're inserting at the front, LinkedListT's behavior requires more work
-				{
+				if (supp_0.AtTop()) { // if we're inserting at the front, LinkedListT's behavior requires more work
 					supp_0.Next(); 
 					bVectors_0.Next();
 				}
@@ -941,8 +843,7 @@ void SCNIMFT::ComputeBMatrices(void)
 	
 	// scale integrals by volumes of Voronoi cells
 	dArrayT* currFacetIntegral;
-	for (int i = 0; i < nNodes; i++)
-	{
+	for (int i = 0; i < nNodes; i++) {
 		LinkedListT<dArrayT>& bVectors_i = facetWorkSpace[i];
 		LinkedListT<int>& nodes_i = nodeWorkSpace[i];
 		bVectors_i.Top(); nodes_i.Top();
@@ -978,16 +879,14 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
     vout << nVertices << "\n";
 
     // write out vertices of the VoronoiDiagram
-    for (int i = 0; i < nVertices; i++)
-    {
+    for (int i = 0; i < nVertices; i++) {
       	for (int j = 0; j < nSD; j++)
 			vout << fVoronoiVertices(i,j) << " "; 
       	vout << "\n";
     }
     
     // write out Voronoi cells for each node
-    for (int i = 0; i < fNodes.Length(); i++)
-    {
+    for (int i = 0; i < fNodes.Length(); i++) {
 		vout << i <<"\n";
 
 		// number of vertices on its boundary
@@ -1000,8 +899,7 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
 		vout << fVoronoiFacetIndices[i].Length() << "\n";
 		
 		// data for each facet
-		for (int j = 0; j < fVoronoiFacetIndices[i].Length(); j++)
-	  	{
+		for (int j = 0; j < fVoronoiFacetIndices[i].Length(); j++) {
 	   		vout << j << " " << fVoronoiFacetIndices[i][j].Length() << " ";
 	    	for (int k = 0; k < fVoronoiFacetIndices[i][j].Length(); k++)
 	      		vout << fVoronoiFacetIndices[i][j][k] << " ";
@@ -1022,8 +920,7 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
     // write out Delone edge information
     int nDelone = fDeloneEdges.MajorDim();
     vout << nDelone << "\n"; // number of Delone edges
-    for (int i = 0; i < nDelone; i++)
-    {
+    for (int i = 0; i < nDelone; i++) {
     	vout << fDeloneEdges(i,0) << " " << fDeloneEdges(i,1) << "\n";
     }
 
@@ -1035,8 +932,7 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
     fDualAreas.Dimension(nDelone);
     fDualFacetCentroids.Dimension(nDelone, fSD);
     double *v1, *v2;
-    for (int i = 0; i < fDualFacets.MajorDim(); i++) 
-    {
+    for (int i = 0; i < fDualFacets.MajorDim(); i++) {
     	v1 = fVoronoiVertices(fDualFacets(i,0));
     	v2 = fVoronoiVertices(fDualFacets(i,1));
     	fDualAreas[i] = sqrt((v1[0]-v2[0])*(v1[0]-v2[0])+(v1[1]-v2[1])*(v1[1]-v2[1]));
@@ -1056,8 +952,7 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
     vout << fNumSelfDuals << "\n";
     int ctr = 0;
     for (int i = 0; i < fSelfDuals.Length(); i++)
-    	for (int j = 0; j < fSelfDuals[i].Length(); j++) 
-    	{
+    	for (int j = 0; j < fSelfDuals[i].Length(); j++) {
 			vout << fBoundaryNodes[i] << " ";
 			fNonDeloneEdges[ctr++] = fBoundaryNodes[i];
     	}
@@ -1071,20 +966,17 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
     
     ctr = 0;
     for (int i = 0; i < fSelfDuals.Length(); i++)
-    	for (int j = 0; j < fSelfDuals[i].Length(); j++) 
-    	{
+    	for (int j = 0; j < fSelfDuals[i].Length(); j++) {
 			thisFacet = &fVoronoiFacetIndices[fBoundaryNodes[i]][fSelfDuals[i][j]];
 			thisFacetLength = thisFacet->Length();
 			for (int l = 0; l < fSD; l++)
 	 	 		pt[l] = 0.;
-			for (int k = 0; k < thisFacetLength; k++) 
-			{
+			for (int k = 0; k < thisFacetLength; k++) {
 	  			v1 = fVoronoiVertices(fVoronoiCells[fBoundaryNodes[i]][(*thisFacet)[k]]);
 	  			for (int l = 0; l < fSD; l++)
 	    			pt[l] += v1[l];
 			}
-			for (int l = 0; l < fSD; l++) 
-			{
+			for (int l = 0; l < fSD; l++) {
 	  			pt[l] /= thisFacetLength;
 	  			vout << pt[l] << " ";
 	  			fNonDeloneCentroids(ctr,l) = pt[l];
@@ -1096,10 +988,8 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
     // list of normals of self-dual facets
     ctr = 0;
     for (int i = 0; i < fSelfDuals.Length(); i++)
-    	for (int j = 0; j < fSelfDuals[i].Length(); j++) 
-    	{
-			for (int k = 0; k < fSD; k++) 
-			{
+    	for (int j = 0; j < fSelfDuals[i].Length(); j++) {
+			for (int k = 0; k < fSD; k++) {
 	  			fNonDeloneNormals(ctr,k) =  fVoronoiFacetNormals[fBoundaryNodes[i]](fSelfDuals[i][j],k);
 	  			vout << fNonDeloneNormals(ctr,k) << " ";
 			}
@@ -1110,8 +1000,7 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
     // list of areas of self-dual facets
     ctr = 0;
     for (int i = 0; i < fSelfDuals.Length(); i++)
-    	for (int j = 0; j < fSelfDuals[i].Length(); j++) 
-    	{
+    	for (int j = 0; j < fSelfDuals[i].Length(); j++) {
 			fBoundaryIntegrationWeights[ctr] =  fVoronoiFacetAreas[fBoundaryNodes[i]][fSelfDuals[i][j]];
 			vout << fBoundaryIntegrationWeights[ctr++] << "\n";
       	}
@@ -1125,15 +1014,13 @@ void SCNIMFT::VoronoiDiagramFromFile(ifstreamT& vin)
     vin >> nNodes;
     
     /* minor consistency checks */
-    if (nNodes != fNodes.Length())
-    {
+    if (nNodes != fNodes.Length()) {
 		vin.close();
 		ExceptionT::GeneralFail(caller,"Input Voronoi file does not match node number\n");
     }
     
     vin >> nSD;
-    if (nSD != 2 )
-    {
+    if (nSD != 2 ) {
 		vin.close();
 		ExceptionT::GeneralFail(caller,"Input Voronoi file does not match SD\n");
     }
@@ -1152,8 +1039,7 @@ void SCNIMFT::VoronoiDiagramFromFile(ifstreamT& vin)
     	for (int j = 0; j < nSD; j++)
 	  		vin >> fVoronoiVertices(i,j);
 
-    for (int i = 0; i < nNodes; i++)
-    {
+    for (int i = 0; i < nNodes; i++) {
 		int itmp;
 		vin >> itmp;
 		if (itmp != i)
@@ -1171,8 +1057,7 @@ void SCNIMFT::VoronoiDiagramFromFile(ifstreamT& vin)
 		fVoronoiFacetIndices[i].Dimension(nFacets);
 		fVoronoiFacetAreas[i].Dimension(nFacets);
 		fVoronoiFacetNormals[i].Dimension(nFacets, nSD);
-		for (int j = 0; j < nFacets; j++)
-	  	{
+		for (int j = 0; j < nFacets; j++) {
 	    	vin >> itmp;
 	    	if (itmp != j)
 	      		ExceptionT::GeneralFail(caller,"Bad Input Voronoi File\n");
@@ -1240,6 +1125,13 @@ void SCNIMFT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	ElementBaseT::DefineParameters(list);
 
+	ParameterT compute_voronoi(qComputeVoronoiCell, "compute_voronoi");
+	compute_voronoi.SetDefault(false);
+	list.AddParameter(compute_voronoi);
+	
+	ParameterT voronoi_file(vCellFile, "voronoi_file");
+	voronoi_file.SetDefault("vcell.out");
+	list.AddParameter(voronoi_file);
 }
 
 /* information about subordinate parameter lists */
@@ -1247,6 +1139,9 @@ void SCNIMFT::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
 	ElementBaseT::DefineSubs(sub_list);
+	
+	/* parameters for the meshfree support */
+	sub_list.AddSub("meshfree_support_2D");
 
 }
 
@@ -1261,6 +1156,8 @@ void SCNIMFT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& o
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* SCNIMFT::NewSub(const StringT& name) const
 {
-	/* inherited */
-	return ElementBaseT::NewSub(name);
+	if (name == "meshfree_support_2D")
+		return new MeshFreeSupport2DT;	
+	else /* inherited */
+		return ElementBaseT::NewSub(name);
 }

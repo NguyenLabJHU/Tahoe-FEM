@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.6 2004-07-15 08:29:39 paklein Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.7 2004-07-29 23:42:06 cjkimme Exp $ */
 #include "FS_SCNIMFT.h"
 
 //#define VERIFY_B
@@ -67,8 +67,7 @@ void FS_SCNIMFT::GenerateOutputLabels(ArrayT<StringT>& labels)
 	strain[1] = "E22";
 	num_stress = 3;
 	
-	if (fSD == 3)
-	{
+	if (fSD == 3) {
 		num_stress=6;
 		stress[2] = "s33";
 	  	stress[3] = "s23";
@@ -80,8 +79,7 @@ void FS_SCNIMFT::GenerateOutputLabels(ArrayT<StringT>& labels)
 	  	strain[5] = "E12";
 	} 
 	
-	if (fSD == 2) 
-	{
+	if (fSD == 2) {
 	  	stress[2] = "s12";
 	  	strain[2] = "E12";
 	}
@@ -143,9 +141,7 @@ void FS_SCNIMFT::WriteOutput(void)
 	ContinuumMaterialT *mat = (*fMaterialList)[0];
 	SolidMaterialT* fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
 	if (!fCurrMaterial)
-	{
 		ExceptionT::GeneralFail("FS_SCNIMFT::RHSDriver","Cannot get material\n");
-	}
 	
 	int nNodes = fNodes.Length();
 
@@ -163,8 +159,7 @@ void FS_SCNIMFT::WriteOutput(void)
 
 	/* collect displacements */
 	dArrayT vec, values_i;
-	for (int i = 0; i < nNodes; i++) 
-	{
+	for (int i = 0; i < nNodes; i++) {
 		int   tag_i = (partition_nodes) ? (*partition_nodes)[i] : i;
 		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
 
@@ -181,9 +176,7 @@ void FS_SCNIMFT::WriteOutput(void)
 		LinkedListT<double>& phi_i = fNodalPhi[i];
 		nodal_supp.Top(); phi_i.Top();
 		while (nodal_supp.Next() && phi_i.Next()) 
-		{
 			vec.AddScaled(*(phi_i.CurrentValue()), u(*(nodal_supp.CurrentValue())));
-		}
 		
 		// Compute smoothed deformation gradient
 		Fdef = 0.0;
@@ -219,14 +212,12 @@ void FS_SCNIMFT::WriteOutput(void)
 		//	*inp_val++ = E[j];
 		*inp_val++ = E[0];
 		*inp_val++ = E[fSD+1];
-		if (fSD == 3)
-		{
+		if (fSD == 3) {
 			*inp_val++ = E.Last();
 			*inp_val++ = E[fSD];
 			*inp_val++ = E[2*fSD];
 			*inp_val++ = E[2*fSD+1];
-		}
-		else
+		} else
 			*inp_val++ = E[fSD];	
 		for (int j = 0; j < num_stress; j++)
 			*inp_val++ = stress[j]; 
@@ -267,16 +258,6 @@ void FS_SCNIMFT::ReadRestart(istream& in)
 	ElementBaseT::ReadRestart(in);
 }
 
-/* contribution to the nodal residual forces */
-//const dArray2DT& FS_SCNIMFT::InternalForce(int group)
-//{
-	/* check */
-//	if (group != Group())
-//		ExceptionT::GeneralFail("FS_SCNIMFT::InternalForce", 
-//			"expecting solver group %d not %d", Group(), group);
-//	return fForce;
-//}
-
 /***********************************************************************
  * Protected
  ***********************************************************************/
@@ -303,15 +284,12 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		ContinuumMaterialT *mat = (*fMaterialList)[0];
 		SolidMaterialT* fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
 		if (!fCurrMaterial)
-		{
 			ExceptionT::GeneralFail("FS_SCNIMFT::LHSDriver","Cannot get material\n");
-		}
 	
 		AssembleParticleMass(fCurrMaterial->Density());
 	}
 	
-	if (formK)
-	{
+	if (formK) {
 		/* hold the smoothed strain */
 		ArrayT<dMatrixT> Flist(1);
 		Flist[0].Dimension(fSD);
@@ -324,9 +302,7 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		ContinuumMaterialT *mat = (*fMaterialList)[0];
 		SolidMaterialT* fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
 		if (!fCurrMaterial)
-		{
 			ExceptionT::GeneralFail("FS_SCNIMFT::LHSDriver","Cannot get material\n");
-		}
 
 		int nNodes = fNodes.Length();
 
@@ -344,8 +320,7 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		K_JK.Alias(fLHS);
 		LinkedListT<dArrayT> bVectors_j;
 		LinkedListT<int> nodeSupport_j;
-		for (int i = 0; i < nNodes; i++)
-		{	
+		for (int i = 0; i < nNodes; i++) {	
 			double w_i = fVoronoiCellVolumes[i]*constK; // integration weights
 			
 			int n_supp = nodalCellSupports.MinorDim(i);
@@ -395,8 +370,7 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			// sum over pairs to get contribution to stiffness
 			supp_i = nodalCellSupports(i);
 			bVec_i = bVectorArray(i);
-			for (int j = 0; j < n_supp; j++, supp_i++, bVec_i++)
-			{
+			for (int j = 0; j < n_supp; j++, supp_i++, bVec_i++) {
 				bVectorToMatrix(bVec_i->Pointer(), BJ);
 				//BJTCijkl.MultATB(BJ, cijkl, 0);
 				
@@ -407,8 +381,7 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				
 				dArrayT* bVec_j = bVectorArray(i);
 				int* supp_j = nodalCellSupports(i);
-				for (int k = 0; k < n_supp; k++)
-				{
+				for (int k = 0; k < n_supp; k++) {
 					bVectorToMatrix(bVec_j->Pointer(), BK);
 					bVec_j++;
 					
@@ -444,14 +417,11 @@ void FS_SCNIMFT::RHSDriver(void)
 	ContinuumMaterialT *mat = (*fMaterialList)[0];
 	SolidMaterialT* fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
 	if (!fCurrMaterial)
-	{
 		ExceptionT::GeneralFail("FS_SCNIMFT::RHSDriver","Cannot get material\n");
-	}
 	
 	int nNodes = fNodes.Length();
 
-	if (formMa) 
-	{
+	if (formMa) {
 		if (Field().Order() < 2)
 			ExceptionT::GeneralFail(caller,"Field's Order does not have accelerations\n");
 	
@@ -461,8 +431,7 @@ void FS_SCNIMFT::RHSDriver(void)
 		const double* acc;
 		int* nodes = fNodes.Pointer();
 		double* volume = fVoronoiCellVolumes.Pointer();
-		for (int i = 0; i < nNodes; i++)
-		{
+		for (int i = 0; i < nNodes; i++) {
 			acc = a(*nodes++);
 			for (int j = 0; j < fSD; j++)
 				*ma++ = *volume * *acc++;
@@ -480,8 +449,7 @@ void FS_SCNIMFT::RHSDriver(void)
 	
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
-	for (int i = 0; i < nNodes; i++)
-	{
+	for (int i = 0; i < nNodes; i++) {
 		double w_i = fVoronoiCellVolumes[i]; // integration weight
 		
 		int n_supp = nodalCellSupports.MinorDim(i);
@@ -536,14 +504,12 @@ void FS_SCNIMFT::bVectorToMatrix(double *bVector, dMatrixT& BJ)
 	
 	BJ = 0.;
 	Bptr[0] = *bVector;
-	if (fSD == 2)
-	{
+	if (fSD == 2) {
 		Bptr[5] = *bVector++;
 		Bptr[2] = *bVector;
 		Bptr[7] = *bVector;
-	}
-	else // fSD == 3
-	{   // I haven't changed this yet
+	} else { // fSD == 3
+	    // I haven't changed this yet
 		Bptr[11] = Bptr[16] = *bVector++;
 		Bptr[7] = *bVector;
 		Bptr[5] = Bptr[15] = *bVector++;
@@ -552,17 +518,16 @@ void FS_SCNIMFT::bVectorToMatrix(double *bVector, dMatrixT& BJ)
 	}
 }
 
-void FS_SCNIMFT::ReadMaterialData(ifstreamT& in)
+void FS_SCNIMFT::ReadMaterialData(void)
 {
 	/* base class */
-	SCNIMFT::ReadMaterialData(in);
+	SCNIMFT::ReadMaterialData();
 
 	/* offset to class needs flags */
 	fNeedsOffset = fMaterialNeeds[0].Length();
 	
 	/* set material needs */
-	for (int i = 0; i < fMaterialNeeds.Length(); i++)
-	{
+	for (int i = 0; i < fMaterialNeeds.Length(); i++) {
 		/* needs array */
 		ArrayT<bool>& needs = fMaterialNeeds[i];
 
@@ -584,39 +549,39 @@ void FS_SCNIMFT::ReadMaterialData(ifstreamT& in)
 }
 
 /* return a pointer to a new material list */
-MaterialListT* FS_SCNIMFT::NewMaterialList(int nsd, int size)
+MaterialListT* FS_SCNIMFT::NewMaterialList(const StringT& name, int size)
 {
-	/* full list */
-	if (size > 0)
-	{
-		/* material support */
-		if (!fFSMatSupport) {
-			fFSMatSupport = new FSMatSupportT(fSD, 1);
-			
-			if (!fFSMatSupport)
-				ExceptionT::GeneralFail("FS_SCNIMFT::NewMaterialList","Could not instantiate material support\n");
-		}
+	/* resolve number of spatial dimensions */
+	int nsd = -1;
+	if (name == "large_strain_material_2D")
+		nsd = 2;
+	else if (name == "large_strain_material_3D")
+		nsd = 3;
+	
+	/* no match */
+	if (nsd == -1) return NULL;
 
-		if (nsd == 1)
-			return new FSSolidMatList1DT(size, *fFSMatSupport);
-		else if (nsd == 2)
+	if (size > 0) {
+		 /* material support */
+		 if (!fFSMatSupport) {
+		 	fFSMatSupport = new FSMatSupportT(nsd, 1);      
+		 	if (!fFSMatSupport)
+		 		ExceptionT::GeneralFail("FS_SCNIMFT::NewMaterialList","Could not instantiate material support\n");
+		 }
+
+		if (nsd == 2)
 			return new FSSolidMatList2DT(size, *fFSMatSupport);
 		else if (nsd == 3)
 			return new FSSolidMatList3DT(size, *fFSMatSupport);
-		else
-			return NULL;
-	}
-	else
-	{
-		if (nsd == 1)
-			return new FSSolidMatList1DT;
-		else if (nsd == 2)
+	} else {
+	 	if (nsd == 2)
 			return new FSSolidMatList2DT;
 		else if (nsd == 3)
 			return new FSSolidMatList3DT;
-		else
-			return NULL;
-	}	
+	}
+	
+	/* no match */
+	return NULL;
 }
 	
 // XML stuff below
@@ -625,7 +590,7 @@ MaterialListT* FS_SCNIMFT::NewMaterialList(int nsd, int size)
 void FS_SCNIMFT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	ElementBaseT::DefineParameters(list);
+	SCNIMFT::DefineParameters(list);
 
 }
 
@@ -633,7 +598,7 @@ void FS_SCNIMFT::DefineParameters(ParameterListT& list) const
 void FS_SCNIMFT::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
-	ElementBaseT::DefineSubs(sub_list);
+	SCNIMFT::DefineSubs(sub_list);
 
 }
 
@@ -641,8 +606,14 @@ void FS_SCNIMFT::DefineSubs(SubListT& sub_list) const
 void FS_SCNIMFT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
 	SubListT& sub_lists) const
 {
-	/* inherited */
-	ElementBaseT::DefineInlineSub(name, order, sub_lists);
+	if (name == "large_strain_material_choice") {
+		order = ParameterListT::Choice;
+		
+		/* list of choices */
+		sub_lists.AddSub("large_strain_material_2D");
+		sub_lists.AddSub("large_strain_material_3D");
+	} else /* inherited */
+		SCNIMFT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */

@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.12 2004-07-15 08:29:39 paklein Exp $ */
+/* $Id: SCNIMFT.h,v 1.13 2004-07-29 23:42:06 cjkimme Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -34,7 +34,7 @@ class dSPMatrixT; //TEMP
 class InverseMapT;
 class ifstreamT;
 class ofstreamT;
-
+class MeshFreeSupportT;
 /** base class for particle types */
 class SCNIMFT: public ElementBaseT
 {
@@ -47,9 +47,6 @@ public:
 	/** destructor */
 	~SCNIMFT(void);
 	
-	/** initialization */
-	virtual void Initialize(void);
-
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
@@ -126,6 +123,25 @@ public:
         typedef ArrayT< ConvexHullMap > VoronoiDiagramMap;
 #endif
 	/*@}*/
+	
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+	
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 
 protected: /* for derived classes only */
 
@@ -133,8 +149,8 @@ protected: /* for derived classes only */
 	 * which nodes belong to this ParticleT group. */
 	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
 	
-	virtual void ReadMaterialData(ifstreamT& in);
-	virtual MaterialListT* NewMaterialList(int nsd, int size) = 0;
+	virtual void ReadMaterialData();
+	virtual MaterialListT* NewMaterialList(const StringT& name, int size) = 0;
 	
 	/** generate labels for output data */
 	virtual void GenerateOutputLabels(ArrayT<StringT>& labels);
@@ -154,23 +170,12 @@ protected: /* for derived classes only */
 	/** read in Voronoi diagram data */
 	void VoronoiDiagramFromFile(ifstreamT& vin);
 	
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
-		SubListT& sub_lists) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
-	/*@}*/
-
 protected:
+
+	MeshFreeSupportT* fMFSupport;
+	
+	/** pointer to list parameters needed to construct shape functions */
+	const ParameterListT* fMeshfreeParameters;
 
 	/** reference ID for sending output */
 	int fOutputID;
@@ -246,6 +251,8 @@ protected:
 	ConvexHullMap fVoronoiCells; // Tag for Deletion
 	VoronoiDiagramMap fVoronoiFacetIndices; // Tag for Deletion
 #endif
+	bool qComputeVoronoiCell;
+	StringT vCellFile;
 
 	ArrayT<dArrayT> fVoronoiFacetAreas; // Tag for Deletion
 	ArrayT<dArray2DT> fVoronoiFacetNormals; // Tag for Deletion
