@@ -1,6 +1,5 @@
-/* $Id: CCSMatrixT.cpp,v 1.13 2002-10-20 22:49:32 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.14 2002-11-25 07:13:40 paklein Exp $ */
 /* created: paklein (05/29/1996) */
-
 #include "CCSMatrixT.h"
 
 #include <math.h>
@@ -18,10 +17,9 @@
 #include "RaggedArray2DT.h"
 #include "ElementMatrixT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 CCSMatrixT::CCSMatrixT(ostream& out, int check_code):
 	GlobalMatrixT(out, check_code),
 	fDiags(NULL),
@@ -250,6 +248,22 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_e
 	{
 		cout << "\n CCSMatrixT::Assemble(m, r, c): cannot assemble symmetric matrix" << endl;
 		throw ExceptionT::kGeneralFail;
+	}
+}
+
+void CCSMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)
+{
+#if __option(extended_errorcheck)
+	/* dimension check */
+	if (diagonal_elMat.Length() != eqnos.Length()) throw ExceptionT::kSizeMismatch;
+#endif
+
+	/* assemble */
+	for (int j = 0; j < eqnos.Length(); j++)
+	{
+		int eqno = eqnos[j] - 1;
+		if (eqno > -1)
+			fMatrix[eqno] += diagonal_elMat[j];
 	}
 }
 

@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.11 2002-10-20 22:49:34 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.12 2002-11-25 07:13:41 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT.h"
@@ -320,6 +320,14 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& r
 			}
 		}
 	}
+}
+
+void SPOOLESMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)
+{
+#pragma unused(diagonal_elMat)
+#pragma unused(eqnos)
+
+	ExceptionT::GeneralFail("SPOOLESMatrixT::Assemble", "not implemented");
 }
 
 /* set all matrix values to 0.0 */

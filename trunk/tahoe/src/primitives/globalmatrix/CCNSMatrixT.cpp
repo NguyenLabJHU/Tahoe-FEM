@@ -1,6 +1,5 @@
-/* $Id: CCNSMatrixT.cpp,v 1.11 2002-10-20 22:49:32 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.12 2002-11-25 07:13:40 paklein Exp $ */
 /* created: paklein (03/04/1998) */
-
 #include "CCNSMatrixT.h"
 
 #include <math.h>
@@ -16,10 +15,9 @@
 #include "RaggedArray2DT.h"
 #include "ElementMatrixT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 CCNSMatrixT::CCNSMatrixT(ostream& out, int check_code):
 	GlobalMatrixT(out, check_code),
 	famax(NULL),
@@ -257,6 +255,21 @@ void CCNSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_
 						(*this)(reqno,ceqno) += elMat(row,col);
 				}
 		}
+	}
+}
+
+void CCNSMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)
+{
+#if __option(extended_errorcheck)
+	/* dimension check */
+	if (diagonal_elMat.Length() != eqnos.Length()) throw ExceptionT::kSizeMismatch;
+#endif
+
+	for (int i = 0; i < eqnos.Length(); i++)
+	{
+		int eqno = eqnos[i] - 1;
+		if (eqno > -1)
+			fKD[eqno] += diagonal_elMat[i];
 	}
 }
 

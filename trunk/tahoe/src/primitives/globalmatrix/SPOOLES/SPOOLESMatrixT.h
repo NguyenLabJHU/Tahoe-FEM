@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.h,v 1.9 2002-07-05 22:28:35 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.h,v 1.10 2002-11-25 07:13:41 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #ifndef _SPOOLES_MATRIX_T_H_
@@ -57,6 +57,7 @@ public:
 	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
 	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 		const nArrayT<int>& col_eqnos);
+	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos);
 
 	/* set all matrix values to 0.0 */
 	void Clear(void);

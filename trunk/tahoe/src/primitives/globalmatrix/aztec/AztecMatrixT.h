@@ -1,7 +1,5 @@
-/* $Id: AztecMatrixT.h,v 1.6 2002-07-05 22:28:35 paklein Exp $ */
-/* created: paklein (08/10/1998)                                          */
-/* interface for using Aztec with fe++                                    */
-
+/* $Id: AztecMatrixT.h,v 1.7 2002-11-25 07:13:42 paklein Exp $ */
+/* created: paklein (08/10/1998) */
 #ifndef _AZTEC_MATRIX_T_H_
 #define _AZTEC_MATRIX_T_H_
 
@@ -21,6 +19,7 @@ namespace Tahoe {
 class Aztec_fe;
 class ifstreamT;
 
+/** interface for Aztec linear solver library */
 class AztecMatrixT: public GlobalMatrixT
 {
 public:
@@ -56,6 +55,7 @@ public:
 	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
 	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 		const nArrayT<int>& col_eqnos);
+	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos);
 
 	/* number scope and reordering */
 	virtual EquationNumberScopeT EquationNumberScope(void) const;

@@ -1,7 +1,5 @@
-/* $Id: SLUMatrix.cpp,v 1.5 2002-10-20 22:49:33 paklein Exp $ */
-/* created: rbridson (06/30/2000)                                         */
-/* Implementation of interface to SuperLU solver library.                 */
-
+/* $Id: SLUMatrix.cpp,v 1.6 2002-11-25 07:13:40 paklein Exp $ */
+/* created: rbridson (06/30/2000) */
 #include "SLUMatrix.h"
 
 /* library support */
@@ -254,6 +252,14 @@ void SLUMatrix::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eq
 
 	cout << "\n SLUMatrix::Assemble(m,r,c): not implemented" << endl;
 	throw ExceptionT::kGeneralFail;
+}
+
+void SLUMatrix::Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)
+{
+#pragma unused(diagonal_elMat)
+#pragma unused(eqnos)
+
+	ExceptionT::GeneralFail("SLUMatrix::Assemble", "not implemented");
 }
 
 /* assignment operator */

@@ -1,37 +1,5 @@
-/* $Id: CCNSMatrixT.h,v 1.8 2002-10-20 22:49:32 paklein Exp $ */
-/* created: paklein (03/04/1998)                                          */
-/* This is the interface for a non-symmetric matrix stored in             */
-/* Compact Column form.                                                   */
-/* To initialize:                                                         */
-/* 			(1) call constructor with system dimension dim                */
-/* 			(2) set the ColumnHeight for column = 0...dim-1               */
-/* 			(3) call Initialize() to allocate space for the               */
-/* matrix and set the diagonal position array.                            */
-/* Note: assembly positions (equation numbers) = 1...fNumEQ               */
-/* Note: source code for factorization and back substitution provided     */
-/* by Gonzalo Feijoo.                                                     */
-/* SolNonSymSkyLine - March, 1990                                         */
-/* SOLves NON-SYMmetric system stored in SKY-LINE form.                   */
-/* Gonzalo Raul Feijoo                                                    */
-/* Performs solution of linear system with coefficients                   */
-/* stored in descending sky-line form.                                    */
-/* This function decomposes the matrix, which coefficients are stored     */
-/* in KS, KI, KD vectors in LU form. Then it solves (if asked) the lower  */
-/* triangular system Lu' = F and the upper triangular system U u = u'.    */
-/* Entries:                                                               */
-/* KS, KI, KD      system matrix: upper, lower and diagonal part          */
-/* F               independent term                                       */
-/* maxa            contains position in vector KS or KI of first non-zero */
-/* coefficient of column or line.                                         */
-/* neq             number of equations in the system                      */
-/* solve           if 1 solves the system                                 */
-/* eps             the 0.0                                                */
-/* Output:                                                                */
-/* KS, KI, KD      matrix decomposed in LU form                           */
-/* u               solution of linear system (if solve == 1)              */
-/* Errors:         returns 1 if there were no problems, 0 otherwise.      */
-/* ATTENTION:      vector F is modified by the algorithm if solve == 1.   */
-
+/* $Id: CCNSMatrixT.h,v 1.9 2002-11-25 07:13:40 paklein Exp $ */
+/* created: paklein (03/04/1998) */
 #ifndef _CCNSMATRIX_T_H_
 #define _CCNSMATRIX_T_H_
 
@@ -47,6 +15,38 @@
 
 namespace Tahoe {
 
+/** This is the interface for a non-symmetric matrix stored in
+ * Compact Column form.
+ * To initialize:
+ * -# call constructor with system dimension dim
+ * -# set the ColumnHeight for column = 0...dim-1
+ * -# call Initialize() to allocate space for the
+ * matrix and set the diagonal position array.
+ * Note: assembly positions (equation numbers) = 1...fNumEQ
+ * Note: source code for factorization and back substitution provided
+ * by Gonzalo Feijoo.
+ * SolNonSymSkyLine - March, 1990
+ * SOLves NON-SYMmetric system stored in SKY-LINE form.
+ * Gonzalo Raul Feijoo
+ * Performs solution of linear system with coefficients
+ * stored in descending sky-line form.
+ * This function decomposes the matrix, which coefficients are stored
+ * in KS, KI, KD vectors in LU form. Then it solves (if asked) the lower
+ * triangular system Lu' = F and the upper triangular system U u = u'.
+ * Entries:
+ * - KS, KI, KD      system matrix: upper, lower and diagonal part
+ * - F               independent term
+ * - maxa            contains position in vector KS or KI of first non-zero
+ * - coefficient of column or line.
+ * - neq             number of equations in the system
+ * - solve           if 1 solves the system
+ * - eps             the 0.0
+ * Output:
+ * - KS, KI, KD      matrix decomposed in LU form
+ * - u               solution of linear system (if solve == 1)
+ * - Errors:         returns 1 if there were no problems, 0 otherwise.
+ * ATTENTION:      vector F is modified by the algorithm if solve == 1.
+ */
 class CCNSMatrixT: public GlobalMatrixT
 {
 public:
@@ -81,7 +81,8 @@ public:
 	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
 	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 		const nArrayT<int>& col_eqnos);
-	
+	virtual void Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos);
+
 	/* returns 1 if the factorized matrix contains a negative
 	 * pivot.  Matrix MUST be factorized.  Otherwise function
 	 * returns 0 */
