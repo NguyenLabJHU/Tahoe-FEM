@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.2 2001-02-20 00:28:22 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.3 2001-04-27 10:53:29 paklein Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList3DT.h"
@@ -27,32 +27,6 @@
 
 #include "ABAQUS_BCJ.h"
 
-/* 3D material type codes */
-const int kSSKStV       = 1;
-const int kFDKStV       = 2;
-const int kSSCubic	    = 3;			
-const int kFDCubic	    = 4;			
-const int kVIB	        = 5;			
-const int kIsoVIB       = 6;			
-const int kQuadLog	    = 7;			
-const int kIsoVIB_X	    = 8;			
-const int kIsoVIB_J2    = 9;
-const int kmodCBDC      = 10;
-const int kCBDC         = 11; // no internal DOF
-const int kEAM_FCC      = 12;
-const int kSimoIso3D    = 13;
-const int kJ2SSKStV     = 14;
-const int kDPSSKStV     = 15;
-const int kOgdenIsoVIB  = 16;			
-const int kJ2QL         = 18;
-
-const int kQuadLogOgden = 24;
-
-const int kABAQUS_BCJ   = 80;
-
-const int kMaterialMin = 1;
-const int kMaterialMax = 100;
-
 /* constructors */
 SolidMatList3DT::SolidMatList3DT(int length, const ElasticT& element_group):
 	SolidMatListT(length),
@@ -64,7 +38,8 @@ SolidMatList3DT::SolidMatList3DT(int length, const ElasticT& element_group):
 /* read material data from the input stream */
 void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 {
-	int i, matnum, matcode;
+	int i, matnum;
+	MaterialT::SolidT matcode;
 	try {
 
 	/* read material data */
@@ -75,8 +50,6 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		
 		/* checks */
 		if (matnum < 0  || matnum >= fLength) throw eBadInputValue;
-		if (matcode < kMaterialMin ||
-		    matcode > kMaterialMax) throw eBadInputValue;
 
 		/* repeated material number */
 		if (fArray[matnum] != NULL)
@@ -89,6 +62,13 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		/* add to the list of materials */
 		switch (matcode)
 		{
+			case kJ2Simo:
+			case kLJTr2D:
+			case kLJFCC111:
+				cout << "\n SolidMatList3DT::ReadMaterialData: model " << matcode
+				     << " is not implemented in 3D" << endl;
+				throw eBadInputValue;
+
 			case kSSKStV:
 				fArray[matnum] = new SSKStV(in, fElementGroup);
 				break;
@@ -105,55 +85,16 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				fArray[matnum] = new FDCubicT(in, fElementGroup);
 				break;
 
+			case kSimoIso:
+				fArray[matnum] = new SimoIso3D(in, fElementGroup);
+				break;
+
 			case kQuadLog:
 				fArray[matnum] = new QuadLog3D(in, fElementGroup);
 				break;
 
-			case kSimoIso3D:
-				fArray[matnum] = new SimoIso3D(in, fElementGroup);
-				break;
-				
-			case kVIB:
-				fArray[matnum] = new VIB3D(in, fElementGroup);
-				fHasLocalizers = true;
-				break;
-
-			case kIsoVIB:
-				fArray[matnum] = new IsoVIB3D(in, fElementGroup);
-				fHasLocalizers = true;
-				break;
-
-			case kOgdenIsoVIB:
-				fArray[matnum] = new OgdenIsoVIB3D(in, fElementGroup);
-				fHasLocalizers = true;
-				break;
-
-			case kIsoVIB_X:
-				fArray[matnum] = new IsoVIB3D_X(in, fElementGroup);
-				fHasLocalizers = true;
-				break;
-
-			case kIsoVIB_J2:
-				fArray[matnum] = new J2IsoVIB3DLinHardT(in, fElementGroup);
-				fHasLocalizers = true;
-				fHasHistory = true;
-				break;
-
-			case kmodCBDC:
-				fArray[matnum] = new ModCB3DT(in, fElementGroup, true);
-				break;
-
-			case kCBDC:
-				fArray[matnum] = new ModCB3DT(in, fElementGroup, true);
-				break;
-
-			case kEAM_FCC:
-				fArray[matnum] = new EAMFCC3DMatT(in, fElementGroup);
-				break;
-
-			case kDPSSKStV:
-				fArray[matnum] = new DPSSKStV(in, fElementGroup);
-				fHasHistory = true;															
+			case kQuadLogOgden:
+				fArray[matnum] = new QuadLogOgden3DT(in, fElementGroup);												
 				break;
 
 			case kJ2SSKStV:
@@ -166,8 +107,38 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;														
 				break;
 
-			case kQuadLogOgden:
-				fArray[matnum] = new QuadLogOgden3DT(in, fElementGroup);												
+			case kDPSSKStV:
+				fArray[matnum] = new DPSSKStV(in, fElementGroup);
+				fHasHistory = true;															
+				break;
+
+			case kFCCEAM:
+				fArray[matnum] = new EAMFCC3DMatT(in, fElementGroup);
+				break;
+
+			case kmodCauchyBornDC:
+				fArray[matnum] = new ModCB3DT(in, fElementGroup, true);
+				break;
+
+			case kVIB:
+				fArray[matnum] = new VIB3D(in, fElementGroup);
+				fHasLocalizers = true;
+				break;
+
+			case kIsoVIBSimo:
+				fArray[matnum] = new IsoVIB3D(in, fElementGroup);
+				fHasLocalizers = true;
+				break;
+
+			case kIsoVIBOgden:
+				fArray[matnum] = new OgdenIsoVIB3D(in, fElementGroup);
+				fHasLocalizers = true;
+				break;				
+
+			case kIsoVIBSimoJ2:
+				fArray[matnum] = new J2IsoVIB3DLinHardT(in, fElementGroup);
+				fHasLocalizers = true;
+				fHasHistory = true;
 				break;
 
 			case kABAQUS_BCJ:
@@ -180,6 +151,16 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				throw eBadInputValue;
 #endif /* __F2C__ */
 				break;
+
+//TEMP
+#if 0
+
+			case kIsoVIB_X:
+				fArray[matnum] = new IsoVIB3D_X(in, fElementGroup);
+				fHasLocalizers = true;
+				break;
+
+#endif //TEMP
 
 			default:
 			
