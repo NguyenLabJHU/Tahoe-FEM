@@ -1,4 +1,4 @@
-/* $Id: iGridManagerT.cpp,v 1.6 2002-10-20 22:39:13 paklein Exp $ */
+/* $Id: iGridManagerT.cpp,v 1.7 2002-11-22 01:53:12 paklein Exp $ */
 /* created: paklein (09/13/1998) */
 #include "iGridManagerT.h"
 #include "iGridManager1DT.h"
@@ -116,7 +116,7 @@ void iGridManagerT::Neighbors(int n, const ArrayT<double>& tol_xyz, AutoArrayT<i
 }
 
 /* return list of data falling within the defined region */
-const AutoArrayT<iNodeT>& iGridManagerT::HitsInRegion(double* coords,
+const AutoArrayT<iNodeT>& iGridManagerT::HitsInRegion(const double* coords,
 	double distance)
 {
         if (fGrid1D)
@@ -127,7 +127,7 @@ const AutoArrayT<iNodeT>& iGridManagerT::HitsInRegion(double* coords,
 		return fGrid3D->HitsInRegion(coords, distance);
 }
 
-const AutoArrayT<iNodeT>& iGridManagerT::HitsInRegion(double* coords,
+const AutoArrayT<iNodeT>& iGridManagerT::HitsInRegion(const double* coords,
 	int cell_span)
 {
         if (fGrid1D)
@@ -138,7 +138,7 @@ const AutoArrayT<iNodeT>& iGridManagerT::HitsInRegion(double* coords,
 		return fGrid3D->HitsInRegion(coords, cell_span);
 }
 
-const AutoArrayT<iNodeT>& iGridManagerT::HitsInRegion(double* coords,
+const AutoArrayT<iNodeT>& iGridManagerT::HitsInRegion(const double* coords,
 	const ArrayT<double>& tol_xyz)
 {
         if (fGrid1D)

@@ -1,4 +1,4 @@
-/* $Id: iGridManagerT.h,v 1.8 2002-10-20 22:39:13 paklein Exp $ */
+/* $Id: iGridManagerT.h,v 1.9 2002-11-22 01:53:12 paklein Exp $ */
 /* created: paklein (09/13/1998) */
 #ifndef _I_GRIDMANAGER_T_H_
 #define _I_GRIDMANAGER_T_H_
@@ -52,33 +52,41 @@ public:
 	/* destructor */
 	~iGridManagerT(void);	 	
 	
-	/* reconfigure grid with stored coordinate data */
+	/** reconfigure grid with stored coordinate data */
 	void Reset(void);
 	//void Reset(const dArray2DT& coords, const iArrayT* nodes_used);
 	//TODO - add version that allows you to change the coordinate data
 	//       but use the same grid allocation?
 
-	/* neighbors - returns neighbors coords(n) (SELF not included) */
+	/** \name neighbors
+	 * returns neighbors coords(n) (SELF not included) */
+	/*@{*/
 	void Neighbors(int n, double tol, AutoArrayT<int>& neighbors);
 	void Neighbors(int n, const ArrayT<double>& tol_xyz, AutoArrayT<int>& neighbors);
+	/*@}*/
 
-	/* return list of data falling within the defined region */
-	const AutoArrayT<iNodeT>& HitsInRegion(double* coords, double distance);
-	const AutoArrayT<iNodeT>& HitsInRegion(double* coords, int cell_span);
-	const AutoArrayT<iNodeT>& HitsInRegion(double* coords, const ArrayT<double>& tol_xyz);
+	/** \name hits in the neighborhood
+	 * return list of data falling within the defined region */
+	/*@{*/
+	const AutoArrayT<iNodeT>& HitsInRegion(const double* coords, double distance);
+	const AutoArrayT<iNodeT>& HitsInRegion(const double* coords, int cell_span);
+	const AutoArrayT<iNodeT>& HitsInRegion(const double* coords, const ArrayT<double>& tol_xyz);
+	/*@}*/
 
-	/* the distance covered by the given cell span */
+	/** the distance covered by the given cell span */
 	double CellSpan(int cell_span) const;
 
-	/* grid statistics */
+	/** write grid statistics to the output stream */
 	void WriteStatistics(ostream& out) const;
 
 private:
 
-	/* 1D/2D/3D search grids */
+	/** \name 1D/2D/3D search grids */
+	/*@{*/
 	iGridManager1DT* fGrid1D;
 	iGridManager2DT* fGrid2D;
 	iGridManager3DT* fGrid3D;
+	/*@}*/
 };
 
 } // namespace Tahoe 
