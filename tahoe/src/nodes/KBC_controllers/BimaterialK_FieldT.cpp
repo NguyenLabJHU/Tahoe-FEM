@@ -1,15 +1,16 @@
-/* $Id: BimaterialK_FieldT.cpp,v 1.12 2004-11-18 16:36:47 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.cpp,v 1.11 2004-07-15 08:31:21 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "BimaterialK_FieldT.h"
-
-#ifdef CONTINUUM_ELEMENT
 
 #include "NodeManagerT.h"
 #include "ParameterUtils.h"
 #include "ParameterContainerT.h"
 
 /* build options */
+#include "ElementsConfig.h"
+#ifdef CONTINUUM_ELEMENT
 #include "IsotropicT.h"
+#endif
 
 /* parameters */
 using namespace Tahoe;
@@ -418,5 +419,3 @@ int BimaterialK_FieldT::UpperHalfPlane(void) const
 			return 1;
 	}
 }
-
-#endif /* CONTINUUM_ELEMENT */

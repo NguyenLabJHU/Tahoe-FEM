@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.23 2004-12-22 22:38:58 cjkimme Exp $ */
+/* $Id: SCNIMFT.h,v 1.16 2004-09-29 18:26:52 cjkimme Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -159,27 +159,15 @@ protected: /* for derived classes only */
 	virtual bool ChangingGeometry(void) const;
 
 	/** assemble particle mass matrix into LHS of global equation system */
-	virtual void AssembleParticleMass(const double rho);
-
-	/** transfers data from QHULL and computes new data structures. This function 
-		initializes fNonDeloneEdges, fNonDeloneNormals, fSelfDualFacets, fBoundaryIntegrationWeights,
-		and fVoronoiCellCentroids. If qhull is not used, these data structures are
-		read in by VoronoiDiagramFromFile */
-	void InitializeVoronoiData(void);
+	void AssembleParticleMass(const double rho);
 	
 	/** compute B matrices for strain smoothing/nodal integration */
 	virtual void ComputeBMatrices(void);
 	
-	/** write out Voronoi diagram data. This function is only called when qhull is used
-		to compute the clipped Voronoi diagram. */
+	/** write out Voronoi diagram data */
 	void VoronoiDiagramToFile(ofstreamT& vout);
 	
-	/** read in Voronoi diagram data. This function reads in data structures when qhull
-		is not used to create them. It initializes fVoronoiVertices, fVoronoiCellVolumes,
-		fDeloneEdges, fDualFacets, fNonDeloneEdges, fNonDeloneNormals, fSelfDualFacets, 
-		fBoundaryIntegrationWeights, and fVoronoiCellCentroids. If qhull is used, these
-		data structures are either gotten directly from qhull or created in 
-		InitializeVoronoiData. */
+	/** read in Voronoi diagram data */
 	void VoronoiDiagramFromFile(ifstreamT& vin);
 	
 protected:
@@ -209,93 +197,92 @@ protected:
 	/** the coordinates of the nodes */
 	dArray2DT fDeloneVertices;
 	
-	/** \name Data Structures for Voronoi Decomposition */
+	/** \name Geometrical Data Structures */
 	/*@{*/
 	
-	/** these are dual to Voronoi facets. They have minor dimension of 2 . 
-	     Difference in the two points is parallel to the normal vector of the 
-	     Voronoi facet dual to the Delone edge. This data structure is created
-	     by qhull or read in from a text file. */
+	/** these are dual to Voronoi facets. They have minor dimension of 2 . Difference in the two points is parallel to the normal vector of the dual facet. */
 	iArray2DT fDeloneEdges;
 
-	/** Voronoi facets dual to the Delone Edges -- This data structure is currently
-		a list of vertices of the facets. In 2D, all facets are simplicial and this
-		is fine. In 3D, it will change. */
-	RaggedArray2DT<int> fDualFacets; 
-	
-	/** boundary facets. See qhull/CompGeomT.h for a definition of the self-dual
-		terminology -- this data structure is 
-		created in InitializeVoronoiData based on qhull's clipped Voronoi diagram. It is then
-		written to the geometry text file. This is essentially a flattened version of
-		qhulls selfDual data structure */
+	/** Voronoi facets dual to the Delone Edges */
+	iArray2DT fDualFacets; // Tag for Deletion
 	iArray2DT fSelfDualFacets; 
+
+	/** Self-dual facet information. I.E. facets that contribute only to one integral over one boundary node's cell */
+#ifdef __QHULL__
+	CompGeomT::ConvexHullMap fSelfDuals;
+#else
+	ConvexHullMap fSelfDuals; // Tag for Deletion
+#endif
+	int fNumSelfDuals;
+	int fNumClippedFacets;
 
 	/** connectivity of boundary nodes. Currently determined from an underlying 
 	    element connectivity */
-	iArray2DT fBoundaryConnectivity; 
+	iArray2DT fBoundaryConnectivity; // Tag for Deletion
 	
 	/** union of nodes in fBoundaryConnectivity */
-	iArrayT fBoundaryNodes; 
+	iArrayT fBoundaryNodes; // Tag for Deletion
 	
 	/** true if boundary connectivity is simplicial */
-	bool fBoundaryIsTriangulated; 
+	bool fBoundaryIsTriangulated; // Tag for Deletion
 	
-	/** additional edges associated only with one node -- this data structure is 
-		created in InitializeVoronoiData based on qhull's clipped Voronoi diagram. It is then
-		written to the geometry text file. Since these facets are self dual, there is only
-		one Delone vertex per facet, and this vertex is the boundary vertex. The list of
-		boundary vertices for each self-dual facet is contained in this array of integers. */
-	iArrayT fNonDeloneEdges; 
+	/** centroids of the facets dual to Delone edges */
+	dArray2DT fDualFacetCentroids;
 	
-	/** normal vectors of the facets for those edges -- this data structure is 
-		created in InitializeVoronoiData based on qhull's clipped Voronoi diagram. It is then
-		written to the geometry text file.*/
+	/** additional edges associated only with one node */
+	iArrayT fNonDeloneEdges; // Tag for Deletion
+	
+	/** centroids of the facets for those edges */
+	dArray2DT fNonDeloneCentroids;
 	dArray2DT fNonDeloneNormals;
 	
-	/** areas of boundary facets -- this data structure is 
-		created in InitializeVoronoiData based on qhull's clipped Voronoi diagram. It is then
-		written to the geometry text file. */
+	/** dual of the Delone Edges -- areas of Voronoi Facets */
+	dArrayT fDualAreas;
+	
+	/** areas of boundary facets */
 	dArrayT fBoundaryIntegrationWeights;
 
-	/** Compute or read the Voronoi Diagram -- these data structures are created by qhull */	
+	/** Compute or read the Voronoi Diagram */	
 #ifdef __QHULL__	
 	CompGeomT* fVoronoi;
+	CompGeomT::ConvexHullMap fVoronoiCells;
+	CompGeomT::VoronoiDiagramMap fVoronoiFacetIndices;
 #else
 	void* fVoronoi;
+	ConvexHullMap fVoronoiCells; // Tag for Deletion
+	VoronoiDiagramMap fVoronoiFacetIndices; // Tag for Deletion
 #endif
 	bool qComputeVoronoiCell;
 	StringT vCellFile;
 	
 	int fNumIP;
 
+	ArrayT<dArrayT> fVoronoiFacetAreas; // Tag for Deletion
+	ArrayT<dArray2DT> fVoronoiFacetNormals; // Tag for Deletion
+
 	/** Volume associated with each node -- integration weight for nodal integration */
 	dArrayT fVoronoiCellVolumes;
-	/** The coordinates of the Voronoi diagram after it has been clipped by the body boundary */
-	dArray2DT fVoronoiVertices; 
-	/** The centroids of the clipped Voronoi cells. This data structure is created in 
-		InitializeVoronoiData or read in from a text file. The centroids are used to 
-		compute the mass matrix for the axisymmetric element. */
-	dArray2DT fVoronoiCellCentroids;
+	dArray2DT fVoronoiVertices; // Tag for Deletion
 	/*@}*/
 
 	/** list of materials */
 	MaterialListT* fMaterialList;
+	ArrayT<ArrayT<bool> > fMaterialNeeds;
 	
 	/** workspaces for strain smoothing */
 	ArrayT< LinkedListT<int> > nodeWorkSpace; // should be local?
 	ArrayT< LinkedListT<dArrayT> > facetWorkSpace; // should be local?
 
-	/** These are the actual data structures used for force and stiffness computations */
 	RaggedArray2DT<int> nodalCellSupports;
 	RaggedArray2DT<dArrayT> bVectorArray;
 	
 	/** workspace for nodal shape functions */
-	RaggedArray2DT<double> fNodalPhi, fBoundaryPhi;
-	RaggedArray2DT<int> fNodalSupports, fBoundarySupports;
+	RaggedArray2DT<double> fNodalPhi;
+	RaggedArray2DT<int> fNodalSupports;
 	  	
 	/* body force vector */
 	const ScheduleT* fBodySchedule; /**< body force schedule */
-	dArrayT fBody; /**< body force vector */
+	dArrayT fBody; /**< body force vector   */
 	
 	/** shape functions */
 	MeshFreeNodalShapeFunctionT* fNodalShapes;

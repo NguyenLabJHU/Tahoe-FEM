@@ -1,4 +1,4 @@
-/* $Id: AugLagCylinderT.h,v 1.2 2004-12-20 01:23:25 paklein Exp $ */
+/* $Id: AugLagCylinderT.h,v 1.1 2004-09-15 15:38:41 paklein Exp $ */
 #ifndef _AUGLAG_CYLINDER_T_H_
 #define _AUGLAG_CYLINDER_T_H_
 
@@ -117,14 +117,6 @@ protected:
 
 	/** augmented multiplier (only used for Uzawa) */
 	dArrayT fDOF;
-
-	/** augmented multiplier from previous iteration. With line searching, the current
-	 * value of the multplier should depend on the value from the previous iteration not
-	 * on values calculated while performing the line search. Only used for Uzawa. */
-	dArrayT fDOFi;
-	
-	/** iteration number associated with AugLagSphereT::fDOFi */
-	int fIterationi;
 	
 	/** runtime flag */
 	bool fRecomputeForce;

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.25 2004-10-14 20:24:17 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.24.4.3 2004-11-25 00:53:14 d-farrell2 Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -192,18 +192,6 @@ public:
 	 * initial coordinates are not. These are owned by the ModelManagerT. */
 	void CopyNodeToNode(const ArrayT<int>& source, const ArrayT<int>& target);
 
-	/** \name packing up all nodal information */
-	/*@{*/
-	/** size of the nodal package */
-	int PackSize(void) const;
-	
-	/** copy field information into the array */
-	void Pack(int node, dArrayT& values) const;
-
-	/** write information from the array into the fields */
-	void Unpack(int node, dArrayT& values);
-	/*@}*/
-
 	/** reset fields (and configuration to the last known solution) */
 	virtual GlobalT::RelaxCodeT ResetStep(int group);
 
@@ -343,6 +331,9 @@ protected:
 
 	/** ID for the field exchange obtained from NodeManagerT::fCommManager */
 	iArrayT fMessageID;
+	
+	/** ID for the Current Coordinate Exchange */
+	int fMessageCurrCoordsID;
 	/*@}*/
 
 	/** \name history nodes information */
@@ -360,6 +351,11 @@ protected:
 	 *    the "connectivitities" associated with the set. */
 	iArray2DT fHistoryOutputID;
 	/*@}*/
+	
+	// some more information, needed for the index decomposition
+	int fCommSize;
+	int fDecomp_Type; // this will be the integer, have to check it against PartitionT::kInex
+	int fPartFieldStart, fPartFieldEnd ;
 	
 private:
 

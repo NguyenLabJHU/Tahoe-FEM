@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.23 2004-10-20 21:43:15 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.22 2004-08-14 05:19:19 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -135,7 +135,7 @@ void DiffusionElementT::SetLocalArrays(void)
 	fLocVel.Dimension(NumElementNodes(), NumDOF());
 
 	/* nodal velocities */
-	if (fIntegrator->Order() > 0)
+	if (fIntegrator->Order() == 1)
 		Field().RegisterLocal(fLocVel);
 }
 
@@ -161,7 +161,10 @@ void DiffusionElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const i
 #pragma unused(mode)
 #pragma unused(flags)
 	if (counts.Sum() != 0)
-		ExceptionT::BadInputValue("DiffusionElementT::SetElementOutputCodes", "not implemented");
+	{
+		cout << "\n DiffusionElementT::SetElementOutputCodes: not yet supported" << endl;
+		throw ExceptionT::kBadInputValue;
+	}
 }
 
 /* set the correct shape functions */

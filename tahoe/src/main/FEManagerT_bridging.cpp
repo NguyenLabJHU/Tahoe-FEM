@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.28 2004-11-06 01:49:49 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.27.2.1 2004-12-26 06:23:15 d-farrell2 Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -153,10 +153,10 @@ void FEManagerT_bridging::SetEquationSystem(int group, int start_eq_shift)
 	/* inherited */
 	FEManagerT::SetEquationSystem(group, start_eq_shift);
 
-	//NOTE: this is going to break if the equation numbers has changed since the force was set
-	if (fExternalForce2D[group])
-		ExceptionT::GeneralFail("FEManagerT_bridging::SetEquationSystem",
-			"group %d has external force so equations cannot be reset", group+1);
+//	//NOTE: this is going to break if the equation numbers has changed since the force was set
+//	if (fExternalForce2D[group])
+//		ExceptionT::GeneralFail("FEManagerT_bridging::SetEquationSystem",
+//			"group %d has external force so equations cannot be reset", group+1);
 }
 
 /* set pointer to an external force vector */
@@ -402,15 +402,16 @@ void FEManagerT_bridging::LumpedMass(const iArrayT& nodes, dArrayT& mass) const
 }
 
 /* initialize nodes that follow the field computed by this instance */
-void FEManagerT_bridging::InitInterpolation(const StringT& field, const iArrayT& nodes,
-	const dArray2DT& coordinates)
+void FEManagerT_bridging::InitInterpolation(const StringT& field, const iArrayT& nodes, 
+	NodeManagerT& node_manager)
 {
 #pragma unused(field)
 
 	fMainOut << "\n Number of interpolation points. . . . . . . . . = " << nodes.Length() << '\n';
 
-	/* compute interpolation data */
-	BridgingScale().InitInterpolation(nodes, &coordinates, NULL, fFollowerCellData);
+	/* compute interpolation data (using reference coordinates) */
+	const dArray2DT& init_coords = node_manager.InitialCoordinates();
+	BridgingScale().InitInterpolation(nodes, &init_coords, NULL, fFollowerCellData);
 }
 
 /* field interpolations */

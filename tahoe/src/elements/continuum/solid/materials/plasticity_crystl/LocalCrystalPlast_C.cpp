@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast_C.cpp,v 1.12 2004-10-14 20:24:51 paklein Exp $ */
+/* $Id: LocalCrystalPlast_C.cpp,v 1.11 2004-07-15 08:29:07 paklein Exp $ */
 #include "LocalCrystalPlast_C.h"
 #include "LatticeOrient.h"
 #include "VoceHardening.h"
@@ -215,7 +215,7 @@ void LocalCrystalPlast_C::ComputeOutput(dArrayT& output)
 	int step = fFSMatSupport->StepNumber();
 	int nsteps = fFSMatSupport->NumberOfSteps();
 
-      if (step % fODFOutInc == 0 || step == nsteps)
+      if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
 	{
 	  for (int igrn = 0; igrn < fNumGrain; igrn++)
 	    {

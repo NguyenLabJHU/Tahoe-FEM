@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.74 2004-11-17 23:39:12 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.71.2.1 2004-10-28 00:38:14 d-farrell2 Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -138,7 +138,7 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 			CommunicatorT comm(fComm, (rank == 0) ? rank : CommunicatorT::kNoColor);
 			
 			/* decompose on rank 0 */
-			if (rank == 0) RunDecomp_serial(in.filename(), status, comm, fComm.Size());
+			if (rank == 0) RunDecomp_serial(in.filename(), status, comm);
 
 			/* synch */
 			fComm.Barrier();
@@ -580,10 +580,8 @@ void FEExecutionManagerT::RunJob_analysis(const StringT& input_file, ostream& st
 }	
 
 /* generate decomposition files */
-void FEExecutionManagerT::RunDecomp_serial(const StringT& input_file, ostream& status, CommunicatorT& comm, int size) const
+void FEExecutionManagerT::RunDecomp_serial(const StringT& input_file, ostream& status,CommunicatorT& comm, int size) const
 {
-	const char caller[] = "FEExecutionManagerT::RunDecomp_serial";
-
 	/* look for size */
 	int index;
 	if (CommandLineOption("-decomp", index) && fCommandLineOptions.Length() > index+1) {
@@ -605,7 +603,7 @@ void FEExecutionManagerT::RunDecomp_serial(const StringT& input_file, ostream& s
 	}
 	
 	/* prompt for size */
-	if (size < 2) 
+	if (size == -1) 
 	{
 		/* prompt for decomp size */
 		int count = 0;
@@ -633,7 +631,7 @@ void FEExecutionManagerT::RunDecomp_serial(const StringT& input_file, ostream& s
 	{
 		cout << "\n Select partitioning method:\n"
 		     << '\t' << PartitionT::kGraph   << ": graph\n"
-		     << '\t' << PartitionT::kIndex    << ": index\n"
+		     << '\t' << PartitionT::kIndex    << ": atom\n"
 		     << '\t' << PartitionT::kSpatial << ": spatial\n";
 		cout << "\n method: "; 
 #if (defined __SGI__ && defined __TAHOE_MPI__)
@@ -644,16 +642,6 @@ void FEExecutionManagerT::RunDecomp_serial(const StringT& input_file, ostream& s
 		/* clear to end of line */
 		fstreamT::ClearLine(cin);
 	}
-
-	ParameterListT decomp_method;
-	if (method == PartitionT::kGraph)
-		decomp_method.SetName("graph_decomposition");
-	else if (method == PartitionT::kIndex)
-		decomp_method.SetName("index_decomposition");
-	else if (method == PartitionT::kSpatial)
-		decomp_method.SetName("spatial_decomposition");
-	else
-		ExceptionT::GeneralFail(caller, "unsupported decomposition method");
 
 	/* time markers */
 	clock_t t0 = 0, t1 = 0;
@@ -681,39 +669,10 @@ void FEExecutionManagerT::RunDecomp_serial(const StringT& input_file, ostream& s
 		/* name translation */
 		model_file.ToNativePathName();      
 		model_file.Prepend(path);
-
-		/* more parameters for spatial decomposition */
-		if (decomp_method.Name() == "spatial_decomposition")
-		{
-			/* model manager */
-			ModelManagerT model(cout);
-			if (!model.Initialize(format, model_file, true))
-				ExceptionT::BadInputValue(caller, "could not open model file: %s", (const char*) model_file);
-			int nsd = model.NumDimensions();
 		
-			/* get grid dimensions */
-			for (int i = 0; i < nsd; i++) {
-				int count = 0;
-				int n_grid = -1;
-				while (count++ < 10 && n_grid < 1) {
-					cout << " number of grid cells in direction " << i+1 << '/' << nsd << ": ";
-					cin >> n_grid;
-				}
-				if (count == 10) ExceptionT::GeneralFail(caller);
-
-				/* clear to end of line */
-				fstreamT::ClearLine(cin);
-				
-				/* add to parameters */
-				StringT label = "n_";
-				label.Append(i+1);
-				decomp_method.AddParameter(n_grid, label);
-			}
-		}
-
 		/* set output map and and generate decomposition */
 		DecomposeT decompose;
-		decompose.CheckDecompose(input_file, size, decomp_method, comm, model_file, format, fCommandLineOptions);
+		decompose.CheckDecompose(input_file, size, method, comm, model_file, format, fCommandLineOptions);
 
 		t1 = clock();
 	}

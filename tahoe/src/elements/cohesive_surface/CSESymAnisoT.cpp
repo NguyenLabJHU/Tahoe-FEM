@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.cpp,v 1.10 2004-11-19 22:50:56 paklein Exp $ */
+/* $Id: CSESymAnisoT.cpp,v 1.9 2004-09-10 21:40:05 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSESymAnisoT.h"
 
@@ -873,13 +873,12 @@ void CSESymAnisoT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>&
 		new_id.Append(model.NumElementGroups()+1);
 		new_id = model.FreeElementID(new_id);
 		block_ID[b] = new_id;
-
-//NOTE: see note in documentation of ModelManagerT::RegisterElementGroup
-
+	
 		/* register side set as element block */
 		if (!model.RegisterElementGroup(new_id, faces, facet_geom[0], true))
 			ExceptionT::GeneralFail(caller, "could not reguster side set \"%s\" as element block \"%s\"",
 				fSideSet_ID[b].Pointer(), new_id.Pointer());
+
 	}
 
 	/* connectivities came back empty */
@@ -971,7 +970,7 @@ void CSESymAnisoT::ReadConnectivity(void)
 		StringT new_id;
 		new_id.Append(model.NumElementGroups()+1);
 		new_id = model.FreeElementID(new_id);
-
+	    
 	    /* store block data  ASSUMING bth block is material number b*/
 	    fBlockData[b].Set(new_id, elem_count, num_elems, b); 
 

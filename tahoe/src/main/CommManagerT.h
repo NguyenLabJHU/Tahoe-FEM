@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.11 2004-11-18 16:41:01 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.6.2.1 2004-11-08 02:16:06 d-farrell2 Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -9,8 +9,6 @@
 #include "InverseMapT.h"
 #include "MessageT.h" /* message enum's */
 #include "dArrayT.h"
-#include "nVariArray2DT.h"
-#include "Array2DT.h"
 
 namespace Tahoe {
 
@@ -44,12 +42,6 @@ public:
 	/** rank of this process */
 	int Rank(void) const { return fRank; };
 
-	/** width of the communication skin */
-	double Skin(void) const { return fSkin; };
-
-	/** set the width of the communication skin */
-	void SetSkin(double skin) { fSkin = skin; };
-
 	/** set or clear partition information. Needs to be set before calling 
 	 * CommManagerT::Configure. */
 	void SetPartition(PartitionT* partition);
@@ -68,8 +60,11 @@ public:
 	/** accessor */
 	const dArray2DT& PeriodicBoundaries(void) { return fPeriodicBoundaries; };
 	
-	/** enforce the periodic boundary conditions */
-	void EnforcePeriodicBoundaries(void);
+	/** enforce the periodic boundary conditions.
+	 * Enforcement involves the following steps:
+	 * -# reset the ghost nodes
+	 * \param field field which provides the displacements of the nodes */
+	void EnforcePeriodicBoundaries(double skin);
 
 	/** return the number of real nodes */
 	int NumRealNodes(void) const { return fNumRealNodes; };
@@ -164,13 +159,14 @@ public:
 	void AllGather(int id, nArray2DT<int>& values);
 	/*@}*/
 
+	// some accessors
+	int GetPartStartNum(void) { return fPartStartNum;};
+	int GetPartEndNum(void) { return fPartEndNum;};
+	int GetPartFieldStart(void) { return fPartFieldStart;};
+	int GetPartFieldEnd(void) { return fPartFieldEnd;};
+	
+
 private:
-
-	/** return the partition or throw an exception if it's not set */
-	PartitionT& Partition(void) const;	
-
-	/** return the node manager or throw an exception if it's not set */
-	NodeManagerT& NodeManager(void) const;
 
 	/** collect partition nodes */
 	void CollectPartitionNodes(const ArrayT<int>& n2p_map, int part, 
@@ -179,32 +175,11 @@ private:
 	/** perform actions needed the first time CommManagerT::Configure is called. */
 	void FirstConfigure(void);
 
-	/** \name methods for configuring computation with a spatial decomposition */
-	/*@{*/
-	/** init data needed for reconfiguring across processors */
-	void InitConfigure(iArray2DT& i_values, nVariArray2DT<int>& i_values_man, 
-		dArray2DT& new_init_coords, nVariArray2DT<double>& new_init_coords_man,
-		dArray2DT& new_curr_coords, nVariArray2DT<double>& new_curr_coords_man);
-	
-	/** distribute nodes on spatial grid */
-	void Distribute(iArray2DT& i_values, nVariArray2DT<int>& i_values_man, 
-		dArray2DT& new_init_coords, nVariArray2DT<double>& new_init_coords_man,
-		dArray2DT& new_curr_coords, nVariArray2DT<double>& new_curr_coords_man);
-	
-	/** set border information */
-	void SetExchange(iArray2DT& i_values, nVariArray2DT<int>& i_values_man, 
-		dArray2DT& new_init_coords, nVariArray2DT<double>& new_init_coords_man,
-		dArray2DT& new_curr_coords, nVariArray2DT<double>& new_curr_coords_man);
-
-	/** finalize configuration */
-	void CloseConfigure(iArray2DT& i_values, dArray2DT& new_init_coords);
-	/*@}*/
-
-	/** determine the coordinate bounds of this processor
+	/** determine the local coordinate bounds 
 	 * \param coords coordinate list
-	 * \param bounds returns with the bounds
-	 * \param adjacent_ID ranks of the adjacent processors along each coordinate direction */
-	void GetProcessorBounds(const dArray2DT& coords, dArray2DT& bounds, iArray2DT& adjacent_ID) const;
+	 * \param local rows of coords to use in determining bounds
+	 * \param bounds returns with the bounds of the given points */
+	void GetBounds(const dArray2DT& coords, const iArrayT& local, dArray2DT& bounds) const;
 
 	/** \name not allowed */
 	/*@{*/
@@ -225,9 +200,6 @@ private:
 
 	int fSize;
 	int fRank;
-
-	/** width of communication layer for non-graph based decompositions */
-	double fSkin;
 
 	/** \name periodic boundaries */
 	/*@{*/
@@ -290,32 +262,16 @@ private:
 	/** communications for ghost nodes associated with the communications
 	 * in CommManagerT::fCommunications */
 	AutoArrayT<MessageT*> fGhostCommunications;
-	/*@}*/
+	
+	/** dummy array for double exchanges */
+	dArray2DT fdExchange;
 
-	/** \name communication buffers */
-	/*@{*/
-	dArray2DT fd_send_buffer;
-	dArray2DT fd_recv_buffer;
-	nVariArray2DT<double> fd_send_buffer_man;
-	nVariArray2DT<double> fd_recv_buffer_man;
-
-	iArray2DT fi_send_buffer;
-	iArray2DT fi_recv_buffer;
-	nVariArray2DT<int> fi_send_buffer_man;
-	nVariArray2DT<int> fi_recv_buffer_man;
-	/*@}*/
-
-	/** \name spatial decomposition */
-	/*@{*/
-	/** ID of surrounding processors needed for spatial decomposition only */
-	iArray2DT fAdjacentCommID; /* [nsd] x {low, high} */
-
-	/** communication patterns for shift: {+x, +y, +z,..., -x, -y, -z,...}*/
-	iArray2DT fSwap;
-
-	/** send nodes for each phase of shift */
-	ArrayT<AutoArrayT<int> > fSendNodes;
-	ArrayT<AutoArrayT<int> > fRecvNodes;
+	/** dummy array for double exchanges */
+	iArray2DT fiExchange;
+	
+	// some 'constants' for the index decomposition
+	int fPartStartNum, fPartEndNum, fPartFieldStart, fPartFieldEnd;
+	
 	/*@}*/
 };
 
@@ -378,18 +334,6 @@ inline const ArrayT<int>* CommManagerT::GhostNodes(void) const
 		return &fPBCNodes_ghost;
 	else
 		return NULL;
-}
-
-/* return the partition or throw an exception if it's not set */
-inline PartitionT& CommManagerT::Partition(void) const {
-	if (!fPartition) ExceptionT::GeneralFail("CommManagerT::Partition", "partition not set");
-	return *fPartition;
-}
-
-/* return the node manager or throw an exception if it's not set */
-inline NodeManagerT& CommManagerT::NodeManager(void) const {
-	if (!fNodeManager) ExceptionT::GeneralFail("CommManagerT::NodeManager", "nodes not set");
-	return *fNodeManager;
 }
 
 inline int CommManagerT::Init_AllGather(const nArray2DT<int>& values)

@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.30 2004-12-09 09:19:45 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.29 2004-07-15 08:29:44 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -319,8 +319,7 @@ protected:
 
 	int Combination(int n, int k);
 
-	/* compute the centrosymmetry parameter */
-	void Calc_CSP(const RaggedArray2DT<int>& NearestNeighbors, dArrayT& csp);
+	void Calc_CSP(dArray2DT &s_values, RaggedArray2DT<int> &NearestNeighbors);
     
 	void SetRefNN(RaggedArray2DT<int> &NearestNeighbors,RaggedArray2DT<int> &RefNearestNeighbors);
 

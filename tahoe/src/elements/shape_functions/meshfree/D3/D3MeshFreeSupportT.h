@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeSupportT.h,v 1.3 2004-12-24 20:33:55 kyonten Exp $ */
+/* $Id: D3MeshFreeSupportT.h,v 1.1 2004-08-13 23:59:55 raregue Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D3_MF_SUPPORT_T_H_
 #define _D3_MF_SUPPORT_T_H_
@@ -24,13 +24,6 @@ public:
 	D3MeshFreeSupportT(const ParentDomainT* domain, const dArray2DT& coords,
 		const iArray2DT& connects, const iArrayT& nongridnodes);
 
-	//************************************************************************************//
-	// kyonten
-	/** construct object sufficient for calling methods inherited from ParameterInterfaceT
-	 * to collect the class parameters, but not for doing any meshfree calculations */
-	D3MeshFreeSupportT(void);
-	//************************************************************************************//
-	
 	/** determine nodal support parameters based window function parameters */
 	virtual void InitNeighborData(void);
 
@@ -41,7 +34,7 @@ public:
 	 * \param phi returns with the shape function values of neighbors at node: [nnd]
 	 * \param Dphi returns with neighbors shape function derivatives at node: [nsd] x [nnd]
 	 * \param DDphi returns with neighbors shape function second derivatives at node: [nstr] x [nnd]
-	 * \param DDDphi returns with neighbors shape function second derivatives at node: [nsd*nsd] x [nnd] */	
+	 * \param DDDphi returns with neighbors shape function second derivatives at node: [?nstr] x [nnd] */	
 	void LoadNodalData(int node, iArrayT& neighbors, dArrayT& phi,
 		dArray2DT& Dphi, dArray2DT& DDphi, dArray2DT& DDDphi);
 
@@ -52,7 +45,7 @@ public:
 	 * \param phi returns with the shape function values of neighbors at the integration points: [nip] x [nnd]
 	 * \param Dphi returns with neighbor shape function derivatives: [nip] x [nsd] x [nnd]
 	 * \param DDphi returns with neighbor shape function second derivatives: [nip] x [nstr] x [nnd]
-	 * \param DDDphi returns with neighbor shape function third derivatives: [nip] x [nsd*nsd] x [nnd] */
+	 * \param DDDphi returns with neighbor shape function second derivatives: [nip] x [?nstr] x [nnd] */
 	void LoadElementData(int element, iArrayT& neighbors,
 		dArray2DT& phi, ArrayT<dArray2DT>& Dphi, ArrayT<dArray2DT>& DDphi, ArrayT<dArray2DT>& DDDphi);
 
@@ -66,26 +59,8 @@ public:
 
 	/** shape function third derivatives for NeighborsAt the last call to 
 	 * SetFieldAt or SetFieldUsing
-	 * \return 2D array dimension: [nsd*nsd] x [nnd] */
+	 * \return 2D array dimension: [nstr] x [nnd] */
 	const dArray2DT& DDDFieldAt(void) const;
-	
-	//*****************************************************************//
-	// kyonten: to inherit the ParameterInterfaceT from D2MeshFreeSupportT
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
-	//*****************************************************************//
 
 protected:
 

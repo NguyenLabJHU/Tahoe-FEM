@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.cpp,v 1.17 2004-12-20 01:23:25 paklein Exp $ */
+/* $Id: AugLagWallT.cpp,v 1.15 2004-09-15 15:37:07 paklein Exp $ */
 #include "AugLagWallT.h"
 #include "FieldT.h"
 #include "eIntegratorT.h"
@@ -17,8 +17,7 @@ AugLagWallT::AugLagWallT(void):
 	fUzawa(false),
 	fPrimalIterations(-1),
 	fPenetrationTolerance(-1.0),
-	fRecomputeForce(false),
-	fIterationi(-2)
+	fRecomputeForce(false)
 {
 	SetName("wall_augmented_Lagrangian");
 }
@@ -121,10 +120,7 @@ void AugLagWallT::InitStep(void)
 	PenaltyWallT::InitStep();
 
 	/* store solution */
-	if (fUzawa) {
-		fLastDOF = fDOF;
-		fIterationi = -2;
-	}
+	if (fUzawa) fLastDOF = fDOF;
 }
 
 void AugLagWallT::CloseStep(void)
@@ -392,14 +388,8 @@ void AugLagWallT::ComputeContactForce(double kforce)
 	{
 		/* check for update */
 		int iter = FieldSupport().IterationNumber();
-		if (!fRecomputeForce && (iter != -1 && (iter+1)%fPrimalIterations != 0)) return;
+		if (!fRecomputeForce && (iter != -1 && fabs(fmod(double(iter+1), fPrimalIterations)) > kSmall)) return;
 		fRecomputeForce = false;
-
-		/* store last iterate */
-		if (fIterationi != iter) {
-			fIterationi = iter;
-			fDOFi = fDOF;
-		}
 	
 		/* dimensions */
 		int ndof = Field().NumDOF();
@@ -421,7 +411,7 @@ void AugLagWallT::ComputeContactForce(double kforce)
 	
 			/* augmented Lagrangian multiplier */
 			double h = fp_i.DotRow(i, fnormal);
-			double g = fDOFi[i] + fk*h;
+			double g = fDOF[i] + fk*h;
 	
 			/* contact */
 			if (g <= 0.0) {

@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.31 2004-12-21 17:21:55 thao Exp $ */
+/* $Id: ContinuumElementT.h,v 1.29 2004-09-09 16:17:57 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -113,10 +113,7 @@ public:
 	void FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry, iArrayT& num_facet_nodes) const;
 	
 	/** return the geometry code */
-	virtual GeometryT::CodeT GeometryCode(void) const;
-
-        /*set active elements*/
-        virtual void SetStatus(const ArrayT<StatusT>& status);
+	GeometryT::CodeT GeometryCode(void) const;
 
 	/** initial condition/restart functions (per time sequence) */
 	virtual void InitialCondition(void);
@@ -148,7 +145,7 @@ public:
 protected:
 
 	/** stream extraction operator */
-//	friend istream& operator>>(istream& in, ContinuumElementT::MassTypeT& type);
+	friend istream& operator>>(istream& in, ContinuumElementT::MassTypeT& type);
 
 	/** allocate and initialize local arrays */
 	virtual void SetLocalArrays(void);
@@ -184,24 +181,17 @@ protected:
 		const LocalArrayT* nodal_values,
 		const dArray2DT* ip_values);
 
+	/* element data */
+	void EchoBodyForce(ifstreamT& in, ostream& out);
+
 	/** extract natural boundary condition information */
 	void TakeNaturalBC(const ParameterListT& list);
-
-	/** \name materials list methods
-	 * These methods should be overridden to enable features derived from support
-	 * for the MaterialListT data member ContinuumElementT::fMaterialList. To
-	 * construct the material list, derived classes must override ContinuumElementT::CollectMaterialInfo
-	 * to extract material parameters from the class parameters. These are then passed
-	 * to ContinuumElementT::NewMaterialList to construct the materials list. */
-	/*@{*/
-	/** extract the list of material parameters */
-	virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;
 
 	/** return a pointer to a new material list. Recipient is responsible for freeing 
 	 * the pointer. 
 	 * \param name list identifier
 	 * \param size length of the list */
-	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
+	virtual MaterialListT* NewMaterialList(const StringT& name, int size) = 0;
 
 	/** construct a new material support and return a pointer. Recipient is responsible for
 	 * for freeing the pointer.
@@ -209,42 +199,33 @@ protected:
 	 *        a new MaterialSupportT and initialize it. */
 	virtual MaterialSupportT* NewMaterialSupport(MaterialSupportT* p = NULL) const;
 
-	/** check consistency of material outputs.
-	 * \return true if output variables of all materials for the group matches */
-	virtual bool CheckMaterialOutput(void) const;
-	/*@}*/
-
-	/** \name output methods 
-	 * These methods should be overridden to enable output using the ContinuumElementT
-	 * conventions. These methods are used during ContinuumElementT::RegisterOutput
-	 * and ContinuumElementT::WriteOutput to send data for output. Two methods must
-	 * be overridden to avoid execution of the methods inherited from ElementBaseT.
-	 * -# ContinuumElementT::GenerateOutputLabels is used to create list of
-	 *    output labels if given a non-empty list of output codes by ContinuumElementT::SetNodalOutputCodes
-	 *    or ContinuumElementT::SetElementOutputCodes.
-	 * -# ContinuumElementT::ComputeOutput is used to compute nodal and
-	 *    element output data if given a non-empty list of output codes by ContinuumElementT::SetNodalOutputCodes
-	 *    or ContinuumElementT::SetElementOutputCodes. */
-	/*@{*/
-	virtual void SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
-		iArrayT& counts) const;
-	virtual void SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
-		iArrayT& counts) const;
-
-	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
-	                           const iArrayT& e_codes, dArray2DT& e_values);
-
-	/** construct output labels array */
-	virtual void GenerateOutputLabels(
-		const iArrayT& n_codes, ArrayT<StringT>& n_labels, 
-		const iArrayT& e_codes, ArrayT<StringT>& e_labels) const;
-	/*@}*/
-
 	/** write all current element information to the stream. used to generate
 	 * debugging information after runtime errors */
 	virtual void CurrElementInfo(ostream& out) const;
 
+	/** \name calculating output values */
+	/*@{*/
+	virtual void SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+		iArrayT& counts) const = 0;
+	virtual void SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+		iArrayT& counts) const = 0;
+	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+	                           const iArrayT& e_codes, dArray2DT& e_values) = 0;
+	/*@}*/
+
+	/** check consistency of material outputs.
+	 * \return true if output variables of all materials for the group matches */
+	virtual bool CheckMaterialOutput(void) const;
+
+	/** extract the list of material parameters */
+	virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;
+
 private:
+
+	/** construct output labels array */
+	virtual void GenerateOutputLabels(
+		const iArrayT& n_codes, ArrayT<StringT>& n_labels, 
+		const iArrayT& e_codes, ArrayT<StringT>& e_labels) const = 0;
 
 	/** update traction BC data */
 	void SetTractionBC(void);
@@ -294,6 +275,9 @@ private:
 
 	/** number of integration points */
 	int	fNumIP;
+
+	/** output ID */
+	int fOutputID;
 
 	/** element parameter */
 	GeometryT::CodeT fGeometryCode;

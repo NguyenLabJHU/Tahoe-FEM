@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.15 2004-11-18 16:41:01 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.9.32.4 2004-11-24 15:06:34 d-farrell2 Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -6,7 +6,6 @@
 #include "PartitionT.h"
 #include "InverseMapT.h"
 #include "FieldT.h"
-#include "SpatialGridT.h"
 #include <float.h>
 
 /* message types */
@@ -20,18 +19,11 @@ CommManagerT::CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager):
 	fModelManager(model_manager),
 	fSize(fComm.Size()),
 	fRank(fComm.Rank()),
-	fSkin(0.0),
 	fPartition(NULL),
 	fNodeManager(NULL),
 	fFirstConfigure(true),
-	fNumRealNodes(0),
-	fd_send_buffer_man(fd_send_buffer),
-	fd_recv_buffer_man(fd_recv_buffer),
-	fi_send_buffer_man(fi_send_buffer),
-	fi_recv_buffer_man(fi_recv_buffer)
+	fNumRealNodes(0)
 {
-//no map needed for serial calculations
-#if 0
 	//TEMP - with inline coordinate information (serial) this map
 	//       need to be set ASAP
 	if (fComm.Size() == 1)
@@ -39,7 +31,6 @@ CommManagerT::CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager):
 		fProcessor.Dimension(fModelManager.NumNodes());
 		fProcessor = fComm.Rank();
 	}
-#endif
 }
 
 CommManagerT::~CommManagerT(void)
@@ -124,7 +115,7 @@ void CommManagerT::SetPeriodicBoundaries(int i, double x_i_min, double x_i_max)
 void CommManagerT::ClearPeriodicBoundaries(int i) { fIsPeriodic[i] = false; }
 
 /* enforce the periodic boundary conditions */
-void CommManagerT::EnforcePeriodicBoundaries(void)
+void CommManagerT::EnforcePeriodicBoundaries(double skin)
 {
 	const char caller[] = "CommManagerT::EnforcePeriodicBoundaries";
 	if (!fNodeManager) ExceptionT::GeneralFail(caller, "node manager node set");
@@ -146,9 +137,6 @@ void CommManagerT::EnforcePeriodicBoundaries(void)
 
 	/* current number of "ghost" nodes */
 	int ngn = fComm.Sum(fPBCNodes.Length());
-
-	/* width of the communication layer */
-	double skin = fSkin;
 
 	/* reset ghost nodes */
 	fPBCNodes.Dimension(0);
@@ -331,54 +319,13 @@ void CommManagerT::EnforcePeriodicBoundaries(void)
 void CommManagerT::Configure(void)
 {
 	/* first time through */
-	if (fFirstConfigure) FirstConfigure();
-
-	/* nothing else to do */
-	if (!fPartition) {
+	if (fFirstConfigure) {
+		FirstConfigure();
 		fFirstConfigure = false;
-		return;
 	}
 
-	PartitionT::DecompTypeT decomp_type = fPartition->DecompType();
-	if (decomp_type == PartitionT::kSpatial)
-	{
-		/* work space */
-		iArray2DT i_values;
-		nVariArray2DT<int> i_values_man;
-		dArray2DT new_init_coords;
-		nVariArray2DT<double> new_init_coords_man;
-		dArray2DT new_curr_coords;
-		nVariArray2DT<double> new_curr_coords_man;
-
-#pragma message("reset grid dimensions?")
-#if 0
-if (!fFirstConfigure && reset grid dimensions?)
-	GetProcessorBounds(const dArray2DT& coords, dArray2DT& bounds, iArray2DT& adjacent_ID)
-#endif 
-
-		/* wrap in try block */
-		int token = 1;
-		try {
-			/* init data needed for reconfiguring across processors */
-			InitConfigure(i_values, i_values_man, new_init_coords, new_init_coords_man, new_curr_coords, new_curr_coords_man);
-	
-			/* distribute nodes over the spatial grid */
-			Distribute(i_values, i_values_man, new_init_coords, new_init_coords_man, new_curr_coords, new_curr_coords_man);
-			
-			/* exchange border nodes */
-			SetExchange(i_values, i_values_man, new_init_coords, new_init_coords_man, new_curr_coords, new_curr_coords_man);
-	
-			/* finalize configuration */
-			CloseConfigure(i_values, new_init_coords);
-		}		
-		catch (ExceptionT::CodeT error) { token = 0; }
-		
-		/* synch and check */
-		if (fComm.Sum(token) != Size()) ExceptionT::GeneralFail("CommManagerT::Configure");
-	}
-	
-	/* set flag */
-	fFirstConfigure = false;
+	/* determine the current processor bounds */
+	//GetBounds(current_coords, , fBounds);
 }
 
 /* return true if the list of partition nodes may be changing */
@@ -456,7 +403,7 @@ int CommManagerT::Init_AllGather(MessageT::TypeT t, int num_vals)
 		/* store */
 		fGhostCommunications.Append(ghost_all_gather);
 	}
-	else if (decomp_type == PartitionT::kSpatial) /* shifts */
+	else if (decomp_type == PartitionT::kIndex) /* shifts */
 	{
 		ExceptionT::GeneralFail(caller, "not implemented yet");
 	}
@@ -523,9 +470,8 @@ void CommManagerT::AllGather(int id, nArray2DT<double>& values)
 		if (!all_gather) ExceptionT::GeneralFail(caller);
 		
 		/* exchange */
-		dArray2DT exchange;
-		exchange.Alias(fNumRealNodes, values.MinorDim(), values(0));
-		all_gather->AllGather(exchange);
+		fdExchange.Set(fNumRealNodes, values.MinorDim(), values(0));
+		all_gather->AllGather(fdExchange);
 
 		/* ghost nodes */
 		if (fModelManager.NumNodes() > fNumRealNodes) {
@@ -540,8 +486,8 @@ void CommManagerT::AllGather(int id, nArray2DT<double>& values)
 			if (!all_gather) ExceptionT::GeneralFail(caller);
 
 			/* exchange */
-			exchange.Alias(fModelManager.NumNodes() - fNumRealNodes, values.MinorDim(), values(fNumRealNodes));
-			all_gather->AllGather(exchange);
+			fdExchange.Set(fModelManager.NumNodes() - fNumRealNodes, values.MinorDim(), values(fNumRealNodes));
+			all_gather->AllGather(fdExchange);
 		}		
 	}
 	else if (decomp_type == PartitionT::kSpatial) /* shifts */
@@ -585,9 +531,8 @@ void CommManagerT::AllGather(int id, nArray2DT<int>& values)
 		if (!all_gather) ExceptionT::GeneralFail(caller);
 		
 		/* exchange */
-		iArray2DT exchange;
-		exchange.Alias(fNumRealNodes, values.MinorDim(), values(0));
-		all_gather->AllGather(exchange);
+		fiExchange.Set(fNumRealNodes, values.MinorDim(), values(0));
+		all_gather->AllGather(fiExchange);
 		
 		/* ghost nodes */
 		if (fModelManager.NumNodes() > fNumRealNodes) {
@@ -602,8 +547,8 @@ void CommManagerT::AllGather(int id, nArray2DT<int>& values)
 			if (!all_gather) ExceptionT::GeneralFail(caller);
 
 			/* exchange */
-			exchange.Alias(fModelManager.NumNodes() - fNumRealNodes, values.MinorDim(), values(fNumRealNodes));
-			all_gather->AllGather(exchange);
+			fiExchange.Set(fModelManager.NumNodes() - fNumRealNodes, values.MinorDim(), values(fNumRealNodes));
+			all_gather->AllGather(fiExchange);
 		}		
 	}
 	else if (decomp_type == PartitionT::kSpatial) /* shifts */
@@ -641,8 +586,6 @@ void CommManagerT::CollectPartitionNodes(const ArrayT<int>& n2p_map, int part,
 /* perform actions needed the first time CommManagerT::Configure is called. */
 void CommManagerT::FirstConfigure(void)
 {
-	const char caller[] = "CommManagerT::FirstConfigure";
-
 	/* serial */
 	if (!fPartition) {
 		fNumRealNodes = fModelManager.NumNodes();
@@ -654,7 +597,8 @@ void CommManagerT::FirstConfigure(void)
 	/* graph decomposition - nothing to do? */
 	if (fPartition->DecompType() == PartitionT::kGraph)
 		return;
-	else if (fPartition->DecompType() == PartitionT::kIndex)
+	
+	if (fPartition->DecompType() == PartitionT::kIndex)
 	{
 		/* change the numbering scope of partition data to global */
 		fPartition->SetScope(PartitionT::kGlobal);
@@ -757,465 +701,94 @@ void CommManagerT::FirstConfigure(void)
 			fExternalNodes[dex++] = i;
 		for (int i = upper+1; i < fNumRealNodes; i++)
 			fExternalNodes[dex++] = i;
-	}
-	else if (fPartition->DecompType() == PartitionT::kSpatial)
-	{
-		int nsd = fModelManager.NumDimensions();
-
-		/* determine the bounds and neighbors of this processor - (reference coordinates) */
-		fBounds.Dimension(nsd, 2);         /* [nsd] x {low, high} */
-		fAdjacentCommID.Dimension(nsd, 2); /* [nsd] x {low, high} */
-		GetProcessorBounds(fModelManager.Coordinates(), fBounds, fAdjacentCommID);
-
-		/* swap pattern {+x, +y, +z,..., -x, -y, -z,...} */
-		fSwap.Dimension(2*nsd, 2);
-		for (int i = 0; i < nsd; i++)
-		{
-			/* forward */
-			fSwap(i,0) = i; /* direction {x, y, z,...} */
-			fSwap(i,1) = 1; /* sign +/- */
-	
-			/* back */
-			fSwap(i+nsd,0) = i; /* direction {x, y, z,...} */
-			fSwap(i+nsd,0) = 0; /* sign +/- */
+			
+		// get the first node owned by this partition (for start/end points of AddScaled/AddCombination
+		if (fPartitionNodes.Length() > 0) {
+			fPartStartNum = fPartitionNodes.First();
+			fPartEndNum = fPartitionNodes.Last();
+			fPartFieldStart = (nsd*fPartStartNum); // start point in field arrays
+			fPartFieldEnd = (nsd*fPartEndNum)+(nsd - 1); // end point in field arrays
+			
+			// check that (End - Start) + 1 is the same as the number of nodes in partition
+			if ((fPartEndNum - fPartStartNum + 1) != npn )
+			{
+				cout << "\n problem with partition bounds \n" << endl; 
+			}
 		}
-		
-		/* dimension the swapping node lists */
-		fSendNodes.Dimension(2*nsd);
-		fRecvNodes.Dimension(2*nsd);
+	}
+}
+
+/** determine the local coordinate bounds */
+void CommManagerT::GetBounds(const dArray2DT& coords_all, const iArrayT& local, 
+	dArray2DT& bounds) const
+{
+	/* dimensions */
+	int nsd = coords_all.MinorDim();
+	bounds.Dimension(nsd, 2);
+
+	/* initialize */
+	if (local.Length() == 0)
+	{
+		bounds = 0.0;
+		return;
 	}
 	else
-		ExceptionT::GeneralFail("CommManagerT::FirstConfigure", 
-			"unrecognized decomposition type %d", fPartition->DecompType());
-}
-
-/* init data needed for reconfiguring across processors */
-void CommManagerT::InitConfigure(iArray2DT& i_values, nVariArray2DT<int>& i_values_man, 
-	dArray2DT& new_init_coords, nVariArray2DT<double>& new_init_coords_man,
-	dArray2DT& new_curr_coords, nVariArray2DT<double>& new_curr_coords_man)
-{
-	/* current number of nodes owned by this partition */
-	int npn = fPartitionNodes.Length();
-
-	/* size of integer data per node */
-	int r = int(sizeof(int)/sizeof(char));
-	int nns = fModelManager.NumNodeSets();
-	int nsd = fModelManager.NumDimensions();
-	int i_size = 1 + int(ceil(double(nns)/r)); /* {global ID, (char) {0|1)}} */
-
-	/* initialize integer data per node */
-	i_values_man.SetWard(10, i_values, i_size);
-	i_values_man.SetMajorDimension(npn, false);
-	i_values = 0; /* initialize */
-	i_values.SetColumn(0, fNodeMap.Pointer()); /* 0: global ID */
-	const ArrayT<StringT>& ns_ID = fModelManager.NodeSetIDs();
-	for (int i = 0; i < nns; i++) /* mark node set participation */
 	{
-		const iArrayT& ns = fModelManager.NodeSet(ns_ID[i]);
-		for (int j = 0; j < ns.Length(); j++) {
-			int node = ns[j];
-			char* ns_flag = (char*)(i_values(node) + 1); /* field beyond int ID */
-			ns_flag[i] = 1; /* node is member */
-		}
+		bounds.SetColumn(0, DBL_MAX);
+		bounds.SetColumn(1, DBL_MIN);
 	}
 
-	/* size of double data per node */
-	int pack_size = NodeManager().PackSize();
-	int d_size = nsd + nsd + pack_size; /* {X, x, {kinematic data}} */
-
-	/* work space for collecting processor coordinates */
-	new_init_coords_man.SetWard(10, new_init_coords, nsd);
-	new_init_coords_man.SetMajorDimension(npn, false);
-	new_init_coords.BlockRowCopyAt(NodeManager().InitialCoordinates(), 0, npn);
-
-	new_curr_coords_man.SetWard(10, new_curr_coords, nsd);
-	new_curr_coords_man.SetMajorDimension(npn, false);
-	new_curr_coords.BlockRowCopyAt(NodeManager().CurrentCoordinates(), 0, npn);
-
-	/* initialize exchange buffers - 10% of atoms */
-	fd_send_buffer_man.Dimension(npn/10, d_size);
-	fd_recv_buffer_man.Dimension(npn/10, d_size);
-	fi_send_buffer_man.Dimension(npn/10, i_size);
-	fi_recv_buffer_man.Dimension(npn/10, i_size);
-
-	/* initialize dimension of exchange node lists */
-	for (int i = 0; i < fSendNodes.Length(); i++) {
-		fSendNodes[i].SetHeadRoom(10);
-		fSendNodes[i].Dimension(npn/10);
-		fRecvNodes[i].SetHeadRoom(10);
-		fRecvNodes[i].Dimension(npn/10);		
-	}
-}
-
-/* finalize configuration */
-void CommManagerT::CloseConfigure(iArray2DT& i_values, dArray2DT& new_init_coords)
-{
-	/* dimensions */
-	int npn = new_init_coords.MajorDim();
-	int nns = fModelManager.NumNodeSets();
-	
-	/* reset model geometry */
-	fModelManager.UpdateNodes(new_init_coords, false);
-
-	/* reset node map */
-	fNodeMap.Dimension(i_values.MajorDim());
-	i_values.ColumnCopy(0, fNodeMap.Pointer());
-
-	// reset fPartitionNodes and fPartitionNodes_inv?
-
-	/* reset node sets */
-	AutoArrayT<int> ns_tmp;
-	iArrayT ns;
-	const ArrayT<StringT>& ns_ID = fModelManager.NodeSetIDs();
-	for (int i = 0; i < nns; i++) /* mark node set participation */
+	/* resolve by spatial dimension */
+	if (nsd == 1)
 	{
-		/* count numbers of set nodes */
-		int count = 0;
-		for (int j = 0; j < npn; j++) {
-			char* ns_flag = (char*)(i_values(j) + 1); /* field beyond int ID */
-			if (ns_flag[i] == 1) /* node is member */
-				count++;
-		}
-	
-		/* collect nodes */
-		ns_tmp.Dimension(count);
-		count = 0;
-		for (int j = 0; j < npn; j++) {
-			char* ns_flag = (char*)(i_values(j) + 1); /* field beyond int ID */
-			if (ns_flag[i] == 1) /* node is member */
-				ns_tmp[count++] = j;
-		}			
-
-		/* reset model */
-		ns.Alias(ns_tmp);
-		fModelManager.UpdateNodeSet(ns_ID[i], ns, false);
-	}
-}
-
-/* distribute nodes on spatial grid */
-void CommManagerT::Distribute(iArray2DT& i_values, nVariArray2DT<int>& i_values_man, 
-	dArray2DT& new_init_coords, nVariArray2DT<double>& new_init_coords_man,
-	dArray2DT& new_curr_coords, nVariArray2DT<double>& new_curr_coords_man)
-{
-	/* dimensions */
-	int pack_size = fNodeManager->PackSize();
-	int npn = new_init_coords.MajorDim();
-	int nsd = new_init_coords.MinorDim();
-
-	/* exhange nodes that are out of bounds */
-	dArrayT pack(pack_size), d_alias;
-	MPI_Request request;
-	int normal[2] = {-1, 1};
-	for (int i = 0 ; i < nsd; i++)
-		for (int j = 0; j < 2; j++) /* shift low and high */
+		const int* p_i = local.Pointer();
+		double& x_min = bounds(0,0);
+		double& x_max = bounds(0,1);
+		for (int i = 0; i < local.Length(); i++)
 		{
-			/* neighboring process ID's */
-			int ID_s = fAdjacentCommID(i,j);
-			int ID_r = fAdjacentCommID(i,1-j);
-			
-			/* has neighboring processes different from self */
-			bool do_send = (ID_s != -1 && ID_s != Rank());
-			bool do_recv = (ID_r != -1 && ID_r != Rank());
-
-			/* message tags */
-			int tag_s = Rank();
-			int tag_r = ID_r;
-
-			/* number of nodes to exchange */
-			int n_s = 0;
-			int n_r = 0;
-		
-			/* post receive */
-			if (do_recv) fComm.PostReceive(n_r, ID_r, tag_r, request);
-		
-			/* collect outgoing */
-			if (do_send) 
-			{
-				/* reset outgoing buffer size */
-				fi_send_buffer_man.SetMajorDimension(0, false);
-				fd_send_buffer_man.SetMajorDimension(0, false);
-		
-				/* loop over (current) processor nodes */
-				double bound = fBounds(i,j);
-				int k = 0;
-				while (k < npn)
-				{
-					double dx = new_curr_coords(k,i) - bound;
-					if (dx*normal[j] > 0) /* out of bounds */
-					{
-						/* copy into send buffers */
-						n_s++;
-						fi_send_buffer_man.SetMajorDimension(n_s, true);
-						fi_send_buffer.SetRow(n_s - 1, i_values(k));
-
-						fd_send_buffer_man.SetMajorDimension(n_s, true);
-						new_init_coords.RowCopy(k, fd_send_buffer(n_s - 1));
-						new_curr_coords.RowCopy(k, fd_send_buffer(n_s - 1) + nsd);
-						d_alias.Alias(pack_size, fd_send_buffer(n_s - 1) + 2*nsd);
-						fNodeManager->Pack(k, d_alias);
-
-						/* remove node from local database (shuffle down) */
-						npn--;
-						i_values.CopyRowFromRow(k, npn);
-						new_init_coords.CopyRowFromRow(k, npn);
-						new_curr_coords.CopyRowFromRow(k, npn);
-						fNodeManager->Pack(npn, pack);
-						fNodeManager->Unpack(k, pack);
-					}
-					else
-						k++; /* next node */
-				}
-				
-				/* send size */
-				fComm.Send(n_s, ID_s, tag_s);
-				
-				/* set flag */
-				do_send = (n_s > 0); 
-			}
-			
-			/* complete and post next receive */
-			if (do_recv) 
-			{
-				/* complete receive */
-				fComm.Wait(request);
-			
-				/* post receive for integer data */
-				if (n_r > 0)
-				{
-					/* reset incoming buffer size */
-					fi_recv_buffer_man.SetMajorDimension(n_r, false);
-
-					/* post receive */
-					fComm.PostReceive(fi_recv_buffer, ID_r, tag_r, request);
-				}
-				else /* set flag */
-					do_recv = false;					
-			}
-			
-			/* send integer data */
-			if (do_send) fComm.Send(fi_send_buffer, ID_s, tag_s);
-
-			/* complete and post next receive */
-			if (do_recv) 
-			{
-				/* complete receive */
-				fComm.Wait(request);
-
-				/* reset outgoing buffer size */
-				fd_recv_buffer_man.SetMajorDimension(n_r, false);
-
-				/* post receive */
-				fComm.PostReceive(fd_recv_buffer, ID_r, tag_r, request);
-			}
-
-			/* send double data */
-			if (do_send) fComm.Send(fd_send_buffer, ID_s, tag_s);
-
-			/* process incoming */
-			if (do_recv)
-			{				
-				/* complete receive */
-				fComm.Wait(request);
-
-				/* flags */
-				i_values_man.SetMajorDimension(npn + n_r, true);
-				i_values.BlockRowCopyAt(fi_recv_buffer, npn, n_r);
-
-				/* coordinates and kinematic data */
-				new_init_coords_man.SetMajorDimension(npn + n_r, true);
-				new_curr_coords_man.SetMajorDimension(npn + n_r, true);
-				fNodeManager->ResizeNodes(npn + n_r);
-				for (int k = 0; k < n_r; k++) {
-					new_init_coords.SetRow(npn + k, fd_recv_buffer(k));
-					new_curr_coords.SetRow(npn + k, fd_recv_buffer(k) + nsd);
-					d_alias.Alias(pack_size, fd_recv_buffer(k) + 2*nsd);
-					fNodeManager->Unpack(npn + k, d_alias);
-				}	
-			}
-		}		
-}
-
-/* set border information */
-void CommManagerT::SetExchange(iArray2DT& i_values, nVariArray2DT<int>& i_values_man, 
-	dArray2DT& new_init_coords, nVariArray2DT<double>& new_init_coords_man,
-	dArray2DT& new_curr_coords, nVariArray2DT<double>& new_curr_coords_man)
-{
-	/* dimensions */
-	int pack_size = fNodeManager->PackSize();
-	int npn = new_init_coords.MajorDim();
-	int nsd = new_init_coords.MinorDim();
-
-	/* reset buffer sizes */
-	fi_send_buffer_man.SetMajorDimension(0, false);
-	fd_send_buffer_man.SetMajorDimension(0, false);
-	fi_recv_buffer_man.SetMajorDimension(0, false);
-	fd_recv_buffer_man.SetMajorDimension(0, false);
-
-	/* exhange nodes involved with swaps */
-	dArrayT pack(pack_size), d_alias;
-	MPI_Request request;
-	for (int i = 0; fSwap.MajorDim(); i++)
+			const double* x = coords_all(*p_i++);
+			x_min = (*x < x_min) ? *x : x_min;
+			x_max = (*x > x_max) ? *x : x_max;
+		}
+	}
+	else if (nsd == 2)
 	{
-		/* swap info */
-		int dir = fSwap(i,0);
-		int sgn = fSwap(i,1);
-
-		/* neighboring process ID's */
-		int ID_s = fAdjacentCommID(dir,sgn);
-		int ID_r = fAdjacentCommID(dir,1-sgn);
-			
-		/* has neighboring processes different from self */
-		bool do_send = (ID_s != -1 && ID_s != Rank());
-		bool do_recv = (ID_r != -1 && ID_r != Rank());
-
-		/* message tags */
-		int tag_s = Rank();
-		int tag_r = ID_r;
-
-		/* number of nodes to exchange */
-		int n_s = 0;
-		int n_r = 0;
-
-		/* exchange lists */
-		AutoArrayT<int>& send_nodes = fSendNodes[i];
-		AutoArrayT<int>& recv_nodes = fRecvNodes[i];
-		send_nodes.Dimension(0);
-		recv_nodes.Dimension(0);
-
-		/* post receive of incoming dimension */
-		if (do_recv) fComm.PostReceive(n_r, ID_r, tag_r, request);
-
-		/* collect nodes */
-		if (do_send)
+		const int* p_i = local.Pointer();
+		double& x_min = bounds(0,0);
+		double& x_max = bounds(0,1);
+		double& y_min = bounds(1,0);
+		double& y_max = bounds(1,1);
+		for (int i = 0; i < local.Length(); i++)
 		{
-			double bound = fBounds(dir,sgn);
-			for (int k = 0; k < npn; k++)
-			{
-				double dx = fabs(new_curr_coords(k,dir) - bound);
-				if (dx < fSkin)
-				{
-					/* copy into send buffers */
-					n_s++;
-					fi_send_buffer_man.SetMajorDimension(n_s, true);
-					fi_send_buffer.SetRow(n_s - 1, i_values(k));
-
-					fd_send_buffer_man.SetMajorDimension(n_s, true);
-					new_init_coords.RowCopy(k, fd_send_buffer(n_s - 1));
-					new_curr_coords.RowCopy(k, fd_send_buffer(n_s - 1) + nsd);
-					d_alias.Alias(pack_size, fd_send_buffer(n_s - 1) + 2*nsd);
-					fNodeManager->Pack(k, d_alias);
-					
-					/* add to list */
-					send_nodes.Append(k);
-				}
-			}
-
-			/* send size */
-			fComm.Send(n_s, ID_s, tag_s);
-				
-			/* set flag */
-			do_send = (n_s > 0);
-		}
-
-		/* receive dimension and post next receive */
-		if (do_recv)
-		{
-			/* complete receive */
-			fComm.Wait(request);
-		
-			/* post receive for the integer data */
-			if (n_r > 0)
-			{
-				/* reset incoming buffer size */
-				fi_recv_buffer_man.SetMajorDimension(n_r, false);
-
-				/* post receive */
-				fComm.PostReceive(fi_recv_buffer, ID_r, tag_r, request);
-			}
-			else /* set flag */
-				do_recv = false;
-		}
-
-		/* send integer data */
-		if (do_send) fComm.Send(fi_send_buffer, ID_s, tag_s);
-
-		/* complete and post next receive */
-		if (do_recv) 
-		{
-			/* complete receive */
-			fComm.Wait(request);
-
-			/* reset outgoing buffer size */
-			fd_recv_buffer_man.SetMajorDimension(n_r, false);
-
-			/* post receive */
-			fComm.PostReceive(fd_recv_buffer, ID_r, tag_r, request);
-		}
-
-		/* send double data */
-		if (do_send) fComm.Send(fd_send_buffer, ID_s, tag_s);
-
-		/* process incoming */
-		if (do_recv)
-		{				
-			/* complete receive */
-			fComm.Wait(request);
-
-			/* flags */
-			i_values_man.SetMajorDimension(npn + n_r, true);
-			i_values.BlockRowCopyAt(fi_recv_buffer, npn, n_r);
-			
-			/* coordinates and kinematic data */
-			new_init_coords_man.SetMajorDimension(npn + n_r, true);
-			new_curr_coords_man.SetMajorDimension(npn + n_r, true);
-			fNodeManager->ResizeNodes(npn + n_r);
-			recv_nodes.Dimension(n_r);
-			for (int k = 0; k < n_r; k++) {
-				new_init_coords.SetRow(npn + k, fd_recv_buffer(k));
-				new_curr_coords.SetRow(npn + k, fd_recv_buffer(k) + nsd);
-				d_alias.Alias(pack_size, fd_recv_buffer(k) + 2*nsd);
-				fNodeManager->Unpack(npn + k, d_alias);
-				
-				/* add to incoming list */
-				recv_nodes[k] = npn + k;
-			}
-			
-			/* nodes on processor */
-			npn += n_r;
+			const double* x = coords_all(*p_i++);
+			x_min = (*x < x_min) ? *x : x_min;
+			x_max = (*x > x_max) ? *x : x_max;
+			x++;
+			y_min = (*x < y_min) ? *x : y_min;
+			y_max = (*x > y_max) ? *x : y_max;
 		}
 	}
-}
-
-/* determine the coordinate bounds of this processor */
-void CommManagerT::GetProcessorBounds(const dArray2DT& coords, dArray2DT& bounds, iArray2DT& adjacent_ID) const
-{
-	const char caller[] = "CommManagerT::GetProcessorBounds";
-
-	/* dimensions */
-	int nsd = coords.MinorDim();
-	bounds.Dimension(nsd, 2);
-	adjacent_ID.Dimension(nsd, 2);
-
-	/* spatial grid */
-	SpatialGridT grid;
-	grid.Dimension(Partition().GridDimensions());
-
-	/* determine global bounds */
-	grid.SetBounds(fComm, coords, NULL);
-	
-	/* grid position of this processor */
-	iArrayT grid_pos = fPartition->GridPosition();
-
-	/* bounds of this grid */
-	grid.GridBounds(grid_pos, bounds);
-
-	/* ID's of surrounding processors */
-	for (int i = 0; i < nsd; i++) {
-		int& cell = grid_pos[i];
-		cell--; /* low side */
-		adjacent_ID(0,0) = grid.Grid2Processor(grid_pos);
-		cell += 2; /* high side */
-		adjacent_ID(0,1) = grid.Grid2Processor(grid_pos);
-		cell--; /* restore */
+	else if (nsd == 3)
+	{
+		const int* p_i = local.Pointer();
+		double& x_min = bounds(0,0);
+		double& x_max = bounds(0,1);
+		double& y_min = bounds(1,0);
+		double& y_max = bounds(1,1);
+		double& z_min = bounds(2,0);
+		double& z_max = bounds(2,1);
+		for (int i = 0; i < local.Length(); i++)
+		{
+			const double* x = coords_all(*p_i++);
+			x_min = (*x < x_min) ? *x : x_min;
+			x_max = (*x > x_max) ? *x : x_max;
+			x++;
+			y_min = (*x < y_min) ? *x : y_min;
+			y_max = (*x > y_max) ? *x : y_max;
+			x++;
+			z_min = (*x < z_min) ? *x : z_min;
+			z_max = (*x > z_max) ? *x : z_max;
+		}
 	}
+	else ExceptionT::OutOfRange("CommManagerT::SetBounds");
 }

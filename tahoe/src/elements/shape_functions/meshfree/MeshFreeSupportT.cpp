@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.32 2004-10-14 20:24:56 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.30 2004-09-03 20:23:59 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #include "MeshFreeSupportT.h"
 
@@ -675,9 +675,9 @@ void MeshFreeSupportT::WriteStatistics(ostream& out) const
 		out << setw(d_width) << min
 	        << setw(d_width) << max;
 		if (fNodalParameters.MajorDim() > 0)
-			out << setw(d_width) << ((count > 0) ? sum/count : 0.0);
+			out << setw(d_width) << ((count > 0) ? sum/count : 0.0) << '\n';
 		else
-			out << setw(d_width) << 0.0;
+			out << setw(d_width) << 0.0 << '\n';
 		out << '\n';
 	}
 
@@ -1296,7 +1296,7 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 	for (int i = 0; i < numelems; i++)
 	{
 		/* "big" system */
-		if (big_system && ((i + 1) % big) == 0)
+		if (big_system && fmod(i + 1.0, big) == 0)
 		{
 			cout << setw(2*kIntWidth) << i + 1
 			     << setw(kIntWidth) << min_count
@@ -1437,7 +1437,7 @@ void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 	for (int i = 0; i < numelems; i++)
 	{
 		/* "big" system */
-		if (big_system && ((i + 1) % big) == 0)
+		if (big_system && fmod(i + 1.0, big) == 0)
 		{
 			cout << setw(2*kIntWidth) << i + 1
 			     << setw(kIntWidth) << min_count
@@ -1920,7 +1920,7 @@ void MeshFreeSupportT::SetSupport_Spherical_Search(void)
 	for (int ndex = 0; ndex < fNodesUsed.Length(); ndex++)
 	{
 		/* "big" system */
-		if (big_system && ((ndex + 1) % big) == 0)
+		if (big_system && fmod(ndex + 1.0, big) == 0)
 		{
 			cout << setw(2*kIntWidth) << ndex + 1
 			     << setw(kIntWidth) << min_count

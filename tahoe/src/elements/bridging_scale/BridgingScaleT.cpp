@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.49 2004-07-22 13:31:26 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.49.4.1 2004-12-26 06:23:14 d-farrell2 Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -130,7 +130,12 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 		tmp--;
 		out.flush();
 	}
-
+//DEF added
+	if (point_in_cell.Length() < points_used.Length()) {
+		cout << '\n' << caller << ": WARNING: number of particles in cells " 
+		     << point_in_cell.Length() << " is less than\n" 
+		     <<   "     the total number of particles " << points_used.Length() << endl;
+	}
 	if (point_in_cell.Length() > points_used.Length()) {
 		cout << '\n' << caller << ": WARNING: number of particles in cells " 
 		     << point_in_cell.Length() << " exceeds\n" 

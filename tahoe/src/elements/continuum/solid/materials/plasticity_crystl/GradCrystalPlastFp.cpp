@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp.cpp,v 1.18 2004-10-14 20:24:51 paklein Exp $ */
+/* $Id: GradCrystalPlastFp.cpp,v 1.17 2004-07-15 08:29:07 paklein Exp $ */
 #include "GradCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -320,7 +320,7 @@ void GradCrystalPlastFp::ComputeOutput(dArrayT& output)
   int step = fFSMatSupport->StepNumber();
   int nsteps = fFSMatSupport->NumberOfSteps();
 
-  if (step % fODFOutInc == 0 || step == nsteps)
+  if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
   {
     // texture: rotation tensor from fFe
     fSpecD.PolarDecomp(fFe, fRe, fUe, false);

@@ -1,4 +1,4 @@
-/* $Id: PolyBasis3DT.cpp,v 1.7 2004-11-03 16:09:48 raregue Exp $ */
+/* $Id: PolyBasis3DT.cpp,v 1.4 2003-11-21 22:47:21 paklein Exp $ */
 /* created: paklein (04/19/2000)                                          */
 
 #include "PolyBasis3DT.h"
@@ -28,8 +28,6 @@ int PolyBasis3DT::BasisDimension(void) const
 			return 4;
 		case 2:
 			return 10;
-		case 3:
-			return 10; 
 		default:
 			throw ExceptionT::kOutOfRange;
 	}
@@ -42,7 +40,7 @@ void PolyBasis3DT::SetBasis(const dArray2DT& coords, int order)
 #if __option(extended_errorcheck)
 	/* dimension checking */
 	if (coords.MinorDim() != fNumSD) throw ExceptionT::kGeneralFail;
-	if (order > 3) throw ExceptionT::kOutOfRange; //kyonten (order increased to 3)
+	if (order > 2) throw ExceptionT::kOutOfRange;
 #endif
 
 	/* dimensions */
@@ -68,18 +66,6 @@ void PolyBasis3DT::SetBasis(const dArray2DT& coords, int order)
 					fDDP[3] = 0.0;
 					fDDP[4] = 0.0;
 					fDDP[5] = 0.0;
-					if (order > 2) // kyonten
-					{
-						fDDDP[0] = 0.0;
-						fDDDP[1] = 0.0;
-						fDDDP[2] = 0.0;
-						fDDDP[3] = 0.0;
-						fDDDP[4] = 0.0;
-						fDDDP[5] = 0.0;
-						fDDDP[6] = 0.0;
-						fDDDP[7] = 0.0;
-						fDDDP[8] = 0.0;
-					}
 				}
 			}
 			break;
@@ -140,18 +126,6 @@ void PolyBasis3DT::SetBasis(const dArray2DT& coords, int order)
 				fDDP[3] = 0.0;
 				fDDP[4] = 0.0;
 				fDDP[5] = 0.0;
-			}
-			if (order > 2) // kyonten
-			{
-				fDDDP[0] = 0.0;
-				fDDDP[1] = 0.0;
-				fDDDP[2] = 0.0;
-				fDDDP[3] = 0.0;
-				fDDDP[4] = 0.0;
-				fDDDP[5] = 0.0;
-				fDDDP[6] = 0.0;
-				fDDDP[7] = 0.0;
-				fDDDP[8] = 0.0;
 			}
 			break;
 		}

@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.cpp,v 1.12 2004-10-21 18:50:04 paklein Exp $ */
+/* $Id: ContinuumMaterialT.cpp,v 1.11 2004-08-08 02:04:11 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "ContinuumMaterialT.h"
 #include "MaterialSupportT.h"
@@ -41,12 +41,6 @@ void ContinuumMaterialT::SetMaterialSupport(const MaterialSupportT* support)
 
 /* destructor */
 ContinuumMaterialT::~ContinuumMaterialT(void) { }
-
-/* number of element nodes in the host element group */
-int ContinuumMaterialT::NumElementNodes() const {
-	ElementCardT& card = ElementCard(0);
-	return card.NodesU().Length();
-}
 
 /* element card data */
 int ContinuumMaterialT::NumElements(void) const

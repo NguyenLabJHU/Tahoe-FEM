@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.25 2004-10-14 20:20:06 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.24 2004-07-22 08:41:39 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "TimeManagerT.h"
 
@@ -76,7 +76,7 @@ bool TimeManagerT::Step(void)
 		bool write_header = !is_explicit     ||
 		                    fOutputInc == -1 ||
 		                    fOutputInc == 0  ||
-		                    fStepNum % fOutputInc == 0;
+		                    fmod(double(fStepNum), fOutputInc) == 0;
 
 		
 		/* step header */
@@ -214,8 +214,8 @@ bool TimeManagerT::WriteOutput(void) const
 {
 	if (fabs(fTimeStep) > kSmall && /* no output if clock is not running */
 		fOutputInc != 0 &&
-	   		(fStepNum % fOutputInc == 0 || /* at increment */
-	    	 fStepNum == fNumSteps) /* at end */
+	   		(fmod(double(fStepNum), fOutputInc) == 0 || /* at increment */
+	    	fStepNum == fNumSteps) /* at end */
 	)
 		return true;
 	else
@@ -322,7 +322,7 @@ void TimeManagerT::IncrementTime(double dt)
 /* returns 1 if the number is even, otherwise returns 0	*/
 int TimeManagerT::IsEven(int number) const
 {
-	return int(number % 2 == 0);
+	return (fmod(double(number),2) < 0.5) ? 1 : 0;
 }
 
 /* adjust time stepping parameters */

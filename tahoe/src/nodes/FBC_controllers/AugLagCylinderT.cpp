@@ -1,4 +1,4 @@
-/* $Id: AugLagCylinderT.cpp,v 1.5 2004-12-20 01:23:25 paklein Exp $ */
+/* $Id: AugLagCylinderT.cpp,v 1.2 2004-09-16 16:49:31 paklein Exp $ */
 #include "AugLagCylinderT.h"
 #include "FieldT.h"
 #include "eIntegratorT.h"
@@ -20,8 +20,7 @@ AugLagCylinderT::AugLagCylinderT(void):
 	fUzawa(false),
 	fPrimalIterations(-1),
 	fPenetrationTolerance(-1.0),
-	fRecomputeForce(false),
-	fIterationi(-2)
+	fRecomputeForce(false)
 {
 	SetName("cylinder_augmented_Lagrangian");
 }
@@ -36,6 +35,8 @@ void AugLagCylinderT::SetEquationNumbers(void)
 void AugLagCylinderT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
 {
+#pragma unused(eq_2)
+
 	/* Uzawa algorithm has local update */
 	if (fUzawa)
 		/* inherited */
@@ -122,10 +123,7 @@ void AugLagCylinderT::InitStep(void)
 	PenaltyCylinderT::InitStep();
 
 	/* store solution */
-	if (fUzawa) {
-		fLastDOF = fDOF;
-		fIterationi = -2;
-	}
+	if (fUzawa) fLastDOF = fDOF;
 }
 
 void AugLagCylinderT::CloseStep(void)
@@ -345,6 +343,8 @@ ParameterInterfaceT* AugLagCylinderT::NewSub(const StringT& name) const
 /* accept parameter list */
 void AugLagCylinderT::TakeParameterList(const ParameterListT& list)
 {
+	const char caller[] = "AugLagCylinderT::TakeParameterList";
+
 	/* inherited */
 	PenaltyCylinderT::TakeParameterList(list);
 
@@ -400,14 +400,8 @@ void AugLagCylinderT::ComputeContactForce(double kforce)
 	{
 		/* check for update */
 		int iter = FieldSupport().IterationNumber();
-		if (!fRecomputeForce && (iter != -1 && (iter+1)%fPrimalIterations != 0)) return;
+		if (!fRecomputeForce && (iter != -1 && fabs(fmod(double(iter+1), fPrimalIterations)) > kSmall)) return;
 		fRecomputeForce = false;
-
-		/* store last iterate */
-		if (fIterationi != iter) {
-			fIterationi = iter;
-			fDOFi = fDOF;
-		}
 	
 		/* dimensions */
 		int ndof = Field().NumDOF();
@@ -433,7 +427,7 @@ void AugLagCylinderT::ComputeContactForce(double kforce)
 			/* penetration */
 			double dist = fR.Magnitude();
 			double pen  = dist - fRadius;
-			double g = fDOFi[i] + fk*pen;			
+			double g = fDOF[i] + fk*pen;			
 			if (g <= 0.0) {
 				f_u.SetToScaled(-g*kforce/dist, fR);
 				fDOF[i] = g;

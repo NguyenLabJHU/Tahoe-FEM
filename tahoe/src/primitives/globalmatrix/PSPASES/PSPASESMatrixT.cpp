@@ -1,4 +1,4 @@
-/* $Id: PSPASESMatrixT.cpp,v 1.13 2004-11-19 08:30:12 paklein Exp $ */
+/* $Id: PSPASESMatrixT.cpp,v 1.11 2004-10-04 18:40:57 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "PSPASESMatrixT.h"
 
@@ -32,6 +32,16 @@ PSPASESMatrixT::PSPASESMatrixT(ostream& out, int check_code, CommunicatorT& comm
 	fIsNumFactorized(false)
 {
 	const char caller[] = "PSPASESMatrixT::PSPASESMatrixT";
+
+	/* verify that number of processes is power of 2 */
+	int size = fComm.Size();
+	int power2 = 2;
+	while (size != power2) {
+		if (power2 > size)
+			ExceptionT::GeneralFail(caller, "PSPACES requires nproc as 2^n with n >= 1");
+		power2 *= 2;
+	}
+
 	fBuilder = new MSRBuilderT(false);
 	if (!fBuilder) ExceptionT::OutOfMemory(caller);
 }
@@ -65,15 +75,6 @@ void PSPASESMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 {
 	/* inherited - initialize MSR data */
 	GlobalMatrixT::Initialize(tot_num_eq, loc_num_eq, start_eq);
-
-	/* verify that number of processes is power of 2 */
-	int size = fComm.Size();
-	int power2 = 2;
-	while (size != power2) {
-		if (power2 > size)
-			ExceptionT::GeneralFail("PSPASESMatrixT::Initialize", "PSPACES requires nproc as 2^n with n >= 1");
-		power2 *= 2;
-	}
 
 	/* free space */
 	int option_0 = 0;
@@ -229,7 +230,7 @@ GlobalMatrixT& PSPASESMatrixT::operator=(const GlobalMatrixT& rhs)
 
 	const PSPASESMatrixT* sp = TB_DYNAMIC_CAST(const PSPASESMatrixT*, &rhs);
 	if (!sp)  ExceptionT::GeneralFail(caller, "cast const PSPASESMatrixT* failed");
-	return *this;
+	return operator=(*sp);
 }
 
 /** return a clone of self */

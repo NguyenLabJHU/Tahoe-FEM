@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.25 2004-12-20 02:21:15 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.22 2004-09-09 23:54:55 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #include "PCGSolver_LS.h"
 
@@ -17,7 +17,6 @@ using namespace Tahoe;
 PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
 	NLSolver(fe_manager, group),
 	fRestart_count(-1),
-	fOutputFlag(kAtRestart),
 	fSearchIterations(3),
 	fOrthogTolerance(0.25),
 	fMaxStepSize(2.5)
@@ -55,13 +54,6 @@ void PCGSolver_LS::DefineParameters(ParameterListT& list) const
 	restart.AddLimit(0, LimitT::LowerInclusive);
 	list.AddParameter(restart);
 
-	/* output flag */
-	ParameterT output_flag(ParameterT::Enumeration, "output_flag");
-	output_flag.AddEnumeration("all_iterations", kAllIterations);
-	output_flag.AddEnumeration("at_restart", kAtRestart);
-	output_flag.SetDefault(fOutputFlag);
-	list.AddParameter(output_flag);
-
 	/* line search iterations */
 	ParameterT line_search_iterations(fSearchIterations, "line_search_iterations");
 	line_search_iterations.SetDefault(fSearchIterations);
@@ -89,8 +81,6 @@ void PCGSolver_LS::TakeParameterList(const ParameterListT& list)
 	fSearchIterations = list.GetParameter("line_search_iterations");
 	fOrthogTolerance = list.GetParameter("line_search_tolerance");
 	fMaxStepSize = list.GetParameter("max_step");
-	int output_flag = list.GetParameter("output_flag");
-	fOutputFlag = (output_flag == kAllIterations) ? kAllIterations : kAtRestart;
 
 	/* redefining inherited parameters */
 	fReformTangentIterations = fRestart;
@@ -117,18 +107,6 @@ void PCGSolver_LS::Iterate(void)
 	fLHS_lock = kLocked;
 }
 
-#if 0
-/* relax system */
-SolverT::SolutionStatusT PCGSolver_LS::Relax(int newtancount)
-{
-	/* begin in steepest */
-	fRestart_count = -1;
-
-	/* inherited */
-	return NLSolver::Solve(newtancount);
-}
-#endif
-
 SolverT::SolutionStatusT PCGSolver_LS::Solve(int max_iterations)
 {
 	fRestart_count = -1;
@@ -147,12 +125,9 @@ void PCGSolver_LS::CGSearch(void)
 	const char caller[] = "PCGSolver_LS::CGSearch";
 
 	/* restart */
-	bool start_relaxation = fRestartIteration == IterationNumber();
 	fRestart_count++;
-	if (fRestart_count == 0 || fRestart_count == fRestart || start_relaxation) 
-	{
-		/* steepest descent direction */
-		fR_last = fRHS;		
+	if (fRestart_count == 0 || fRestart_count == fRestart) {
+		fR_last = fRHS;
 		if (!fLHS->Solve(fRHS)) ExceptionT::BadJacobianDet(caller);
 		fu_last = fRHS;
 		fRestart_count = 0;
@@ -199,9 +174,6 @@ void PCGSolver_LS::CGSearch(void)
 		/* output control */
 		fVerbose = 0;
 	}
-
-	/* override */
-	if (fOutputFlag == kAllIterations) fVerbose = 1;
 
 	/* check recalculation of LHS */
 	if (fRestart_count == (fRestart - 1))

@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.35 2004-12-20 02:21:15 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.34 2004-09-14 18:16:10 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -26,8 +26,7 @@ NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 	fVerbose(1),
 	fQuickSolveTol(6),
 	fQuickSeriesTol(3),
-	fIterationOutputIncrement(0),
-	fRestartIteration(0)
+	fIterationOutputIncrement(0)
 {
 	SetName("nonlinear_solver");
 
@@ -48,9 +47,6 @@ void NLSolver::InitStep(void)
 
 	/* open iteration output */
 	InitIterationOutput();
-	
-	/* reset marker */
-	fRestartIteration = IterationNumber();
 }
 
 /* generate the solution for the current time sequence */
@@ -91,16 +87,13 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 	/* check for relaxation */
 	if (solutionflag == kConverged) {
 		GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
-
+		
 		/* reset global equations */
 		if (relaxcode == GlobalT::kReEQ || relaxcode == GlobalT::kReEQRelax)
 			fFEManager.SetEquationSystem(Group());
 			
 		/* recompute force and continue iterating */
 		if (relaxcode == GlobalT::kRelax || relaxcode == GlobalT::kReEQRelax) {
-
-			/* set marker */
-			fRestartIteration = IterationNumber();
 
 			/* tangent reformed next iteration? */
 			if (tan_iterations + 1 == fReformTangentIterations)
@@ -197,9 +190,6 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 			
 			/* recompute force and continue iterating */
 			if (relaxcode == GlobalT::kRelax || relaxcode == GlobalT::kReEQRelax) {
-
-				/* set marker */
-				fRestartIteration = IterationNumber();
 
 				/* tangent reformed next iteration? */
 				if (tan_iterations + 1 == fReformTangentIterations)
@@ -408,7 +398,6 @@ void NLSolver::Update(const dArrayT& update, const dArrayT* residual)
 	fFEManager.Update(Group(), update);
 }
 
-#if 0
 /* relax system */
 NLSolver::SolutionStatusT NLSolver::Relax(int newtancount)
 {
@@ -428,7 +417,6 @@ NLSolver::SolutionStatusT NLSolver::Relax(int newtancount)
 
 	return status;
 }
-#endif
 
 /* returns 1 if the iteration loop should be left, otherwise
 * returns 0.  The iteration loop can be exited for the

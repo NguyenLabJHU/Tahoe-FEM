@@ -1,7 +1,5 @@
-/* $Id: MFAugLagMultT.cpp,v 1.6 2004-11-18 16:36:40 paklein Exp $ */
+/* $Id: MFAugLagMultT.cpp,v 1.4 2004-07-15 08:31:15 paklein Exp $ */
 #include "MFAugLagMultT.h"
-
-#ifdef CONTINUUM_ELEMENT
 
 #include <iostream.h>
 #include <iomanip.h>
@@ -13,10 +11,10 @@
 #include "XDOF_ManagerT.h"
 #include "eIntegratorT.h"
 #include "FieldT.h"
+#include "SCNIMFT.h"
 #include "dMatrixT.h"
 #include "ifstreamT.h"
 #include "OutputSetT.h"
-#include "SCNIMFT.h"
 
 using namespace Tahoe;
 
@@ -276,67 +274,41 @@ void MFAugLagMultT::RegisterOutput(void)
 	fRHS_wrapper.SetLength(max_support, false);
 	
 	/* output labels */
-	int num_output = 2*Field().NumDOF();     /* force, contrained value, actual value */
+	int num_output = 2;     /* force, contrained value, actual value */
 	ArrayT<StringT> n_labels(num_output);
-	if (num_output == 4) {
-		n_labels[0] = "LAMBDA[1]";
-		n_labels[1] = "LAMBDA[2]";
-		n_labels[2] = "h[1]";
-		n_labels[3] = "h[2]";
-	} else { // 3d
-		n_labels[0] = "LAMBDA[1]";
-		n_labels[1] = "LAMBDA[2]";
-		n_labels[2] = "LAMBDA[3]";
-		n_labels[3] = "h[1]";
-		n_labels[4] = "h[2]";
-		n_labels[5] = "h[3]";
-	}
+	n_labels[0] = "LAMBDA";
+	n_labels[1] = "h";
 	
 	/* register output */
-	fUnionOfNodes.Union(fFlattenedNodeSets);
 	OutputSetT output_set(GeometryT::kPoint, fFlattenedNodeSets, n_labels);
 	fOutputID = field_support.RegisterOutput(output_set);
-	
-	fKey.Dimension(fFlattenedNodeSets.MajorDim());
-	
-	// ouch! N^2 search
-	for (int i = 0; i < fUnionOfNodes.Length(); i++) {
-		int val_i = fUnionOfNodes[i];
-		int* val_j = fFlattenedNodeSets.Pointer();
-		for (int j = 0; j < fFlattenedNodeSets.MajorDim(); j++) 
-			if (*val_j++ == val_i)
-				fKey[j] = i;
-	}
 }
 
 void MFAugLagMultT::WriteOutput(ostream& out) const
 {
 	out << "\n M F  A u g  L a g  M u l t   D a t a :\n\n";
 	
-	const FieldT& field = Field();
-	int ndof = field.NumDOF();
-	int num_output = 2*ndof;
-	// compute union of fSupportSizes 
-	dArray2DT n_values(fUnionOfNodes.Length(), num_output);
+	int num_output = 2;
+	dArray2DT n_values(fSupportSizes.Length(), num_output);
 	n_values = 0.;
 
 	/* sources */
+	const FieldT& field = Field();
 	const FieldSupportT& field_support = FieldSupport();
 	XDOF_ManagerT& xdof_manager = field_support.XDOF_Manager();
 	
 	/* get current values of constraints */
 	const dArray2DT& constr = xdof_manager.XDOF(this, 0);
-	//dArray2DT us(n_values.MajorDim(), field.NumDOF());
-	//mfElemGroup->InterpolatedFieldAtNodes(fLocalFlatNodes, us);
+	dArray2DT us(n_values.MajorDim(), field.NumDOF());
+	mfElemGroup->InterpolatedFieldAtNodes(fLocalFlatNodes, us);
 	
 	int ctr = 0;
-	n_values = 0.;
 	double *nptr = n_values.Pointer();
 	for (int i = 0; i < fNodeSetIDs.Length(); i++)	{
 		int which_dof = fConstrainedDOFs[i];
 		for (int j = 0; j < fLocallyNumberedNodeSets.MinorDim(i); j++, ctr++) {
-			n_values(fKey[ctr],which_dof) = constr(ctr,0);
-			n_values(fKey[ctr],which_dof + ndof) = fConstraintValues[ctr];
+			*nptr++ = constr(ctr,0);
+			*nptr++ = fConstraintValues[ctr];
 			//*nptr++ = us(ctr, which_dof);
 		}
 	}
@@ -567,4 +539,3 @@ void MFAugLagMultT::ChatWithElementGroup(void) {
 
 }
 
-#endif /* CONTINUUM_ELEMENT */

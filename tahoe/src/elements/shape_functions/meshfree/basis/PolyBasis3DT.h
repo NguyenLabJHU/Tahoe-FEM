@@ -1,4 +1,4 @@
-/* $Id: PolyBasis3DT.h,v 1.5 2004-11-03 16:09:48 raregue Exp $ */
+/* $Id: PolyBasis3DT.h,v 1.2 2002-07-02 19:57:05 cjkimme Exp $ */
 /* created: paklein (04/19/2000)                                          */
 
 #ifndef _POLYBASIS_3D_T_H_

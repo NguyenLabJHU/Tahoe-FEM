@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.50 2004-10-20 21:22:23 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.49 2004-09-09 16:15:49 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -10,7 +10,6 @@
 #include "ModelManagerT.h"
 #include "LocalArrayT.h"
 #include "ParameterUtils.h"
-#include "OutputSetT.h"
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 #include "FieldT.h"
@@ -27,8 +26,7 @@ ElementBaseT::ElementBaseT(const ElementSupportT& support):
 	fField(NULL),
 	fIntegrator(NULL),
 	fElementCards(0),
-	fLHS(ElementMatrixT::kSymmetric),
-	fOutputID(-1)
+	fLHS(ElementMatrixT::kSymmetric)
 {
 
 }
@@ -38,8 +36,7 @@ ElementBaseT::ElementBaseT(ElementSupportT& support):
 	fSupport(support),
 	fIntegrator(NULL),
 	fElementCards(0),
-	fLHS(ElementMatrixT::kSymmetric),
-	fOutputID(-1)	
+	fLHS(ElementMatrixT::kSymmetric)
 {
 	/* do nothing */
 }
@@ -207,60 +204,6 @@ void ElementBaseT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 #else
 #pragma unused(eq_1)
 #endif
-}
-
-/* register element for output */
-void ElementBaseT::RegisterOutput(void)
-{
-	/* geometry */
-	GeometryT::CodeT code = GeometryCode();
-
-	/* block data */
-	ArrayT<StringT> block_ID(fBlockData.Length());
-	for (int i = 0; i < block_ID.Length(); i++)
-		block_ID[i] = fBlockData[i].ID();
-
-	/* output labels - nodal values only */
-	const ArrayT<StringT>& n_labels = Field().Labels();
-	ArrayT<StringT> e_labels;
-
-	/* set output specifier */
-	OutputSetT output_set(code, block_ID, fConnectivities, n_labels, e_labels, false);
-		
-	/* register and get output ID */
-	fOutputID = ElementSupport().RegisterOutput(output_set);
-}
-
-/* write element output */
-void ElementBaseT::WriteOutput(void)
-{
-	/* dimensions */
-	const FieldT& field = Field();
-	int ndof = field.NumDOF();
-	const dArray2DT& u = field[0]; /* displacement */
-
-	/* reset averaging workspace */
-	ElementSupport().ResetAverage(ndof);
-
-	/* collect nodal values */
-	dArray2DT u_e(NumElementNodes(), ndof);
-	Top();
-	while (NextElement())
-	{
-		/* collect field over element nodes */
-		u_e.RowCollect(CurrentElement().NodesU(), u);
-
-		/* accumulate */
-		ElementSupport().AssembleAverage(CurrentElement().NodesU(), u_e);
-	}
-	
-	/* get nodally averaged values */
-	dArray2DT n_values;
-	ElementSupport().OutputUsedAverage(n_values);
-
-	/* send to output */
-	dArray2DT e_values;
-	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
 }
 
 /* resolve the output variable label into the output code and offset within the output */

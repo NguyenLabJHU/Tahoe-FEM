@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.10 2004-11-23 01:43:20 cjkimme Exp $
+# $Id: makefile,v 1.9 2004-07-15 08:29:49 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -28,10 +28,7 @@ OBJ = \
 	EAMPropertyT.o \
 	ParadynEAMT.o \
 	MatsuiPairT.o \
-	PairPropertyT_factory.o \
-	ThreeBodyPropertyT.o \
-	ThreeBodyPropertyT_factory.o \
-	StillingerWeberT.o
+	PairPropertyT_factory.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -59,10 +56,7 @@ SRC = \
 	EAMPropertyT.cpp \
 	ParadynEAMT.cpp \
 	MatsuiPairT.cpp \
-	PairPropertyT_factory.cpp \
-	ThreeBodyPropertyT.cpp \
-	ThreeBodyPropertyT_factory.cpp \
-	StillingerWeberT.cpp
+	PairPropertyT_factory.cpp
 
 ##################### (3) headers
 #
@@ -81,9 +75,7 @@ HDR = \
 	ParadynPairT.h \
 	EAMPropertyT.h \
 	ParadynEAMT.h \
-	MatsuiPairT.h \
-	ThreeBodyPropertyT.h \
-	StillingerWeberT.h
+	MatsuiPairT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

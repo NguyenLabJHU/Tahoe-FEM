@@ -1,4 +1,4 @@
-/* $Id: DecomposeT.cpp,v 1.7 2004-11-19 22:51:39 paklein Exp $ */
+/* $Id: DecomposeT.cpp,v 1.3.2.1 2004-10-28 00:38:14 d-farrell2 Exp $ */
 #include "DecomposeT.h"
 
 #include "ofstreamT.h"
@@ -12,12 +12,11 @@
 #include "FEManagerT.h"
 #include "GraphT.h"
 #include "StringT.h"
-#include "SpatialGridT.h"
-#include "ParameterListT.h"
 
 #include <time.h>
 
 using namespace Tahoe;
+#pragma message("clear out unneeded headers")
 
 /* constructor */
 DecomposeT::DecomposeT()
@@ -99,65 +98,37 @@ bool DecomposeT::NeedDecomposition(const StringT& model_file,
 }
  
  
-void DecomposeT::CheckDecompose(const StringT& input_file, int size, const ParameterListT& decomp_parameters, 
-	CommunicatorT& comm, const StringT& model_file, IOBaseT::FileTypeT format, const ArrayT<StringT>& commandlineoptions) const
-{
-	const char caller[] = "DecomposeT::CheckDecompose";
-
+void DecomposeT::CheckDecompose(const StringT& input_file, int size, int decomp_type, CommunicatorT& comm,
+	const StringT& model_file, IOBaseT::FileTypeT format, const ArrayT<StringT>& commandlineoptions) const
+{	
 	/* dispatch */
-	if (decomp_parameters.Name() == "graph_decomposition")
-		Decompose_graph(input_file, size, comm, model_file, format, commandlineoptions);
-	else if (decomp_parameters.Name() == "index_decomposition")
-		Decompose_index(input_file, size, model_file, format, commandlineoptions);
-	else if (decomp_parameters.Name() == "spatial_decomposition")
+	switch (decomp_type)
 	{
-		/* model manager */
-		ModelManagerT model(cout);
-		if (!model.Initialize(format, model_file, true))
-			ExceptionT::BadInputValue(caller, "could not open model file: %s", (const char*) model_file);
-		int nsd = model.NumDimensions();
-		
-		/* extract grid dimensions */
-		iArrayT grid_dims(nsd);
-		const char *names[] = {"n_1", "n_2", "n_3"};		
-		for (int i = 0; i < nsd; i++)
-			grid_dims[i] = decomp_parameters.GetParameter(names[i]);
-		if (grid_dims.Product() != size)
-			ExceptionT::GeneralFail(caller, "product of grid dimensions %d != %d",
-				grid_dims.Product(), size);
+		case PartitionT::kGraph:
+			Decompose_graph(input_file, size, comm, model_file, format, commandlineoptions);
+			break;
 
-		/* get grid bounds */
-		dArray2DT min_max(nsd, 2);
-		const dArray2DT& coordinates = model.Coordinates();
-		dArrayT x(coordinates.MajorDim());
-		for (int i = 0; i < coordinates.MinorDim(); i++) {
-			double min, max;
-			coordinates.ColumnCopy(i, x);
-			x.MinMax(min, max);
-			min_max(i,0) = min;	
-			min_max(i,1) = max;	
-		}
-		x.Free();
-
-		/* decompose */
-		Decompose_spatial(input_file, grid_dims, min_max, model_file, format);	
+		case PartitionT::kIndex:
+			Decompose_atom(input_file, size, model_file, format, commandlineoptions);
+			break;
+			
+		case PartitionT::kSpatial:
+			cout << "\n DecomposeT::Decompose: spatial decomposition not implemented yet" << endl;
+			break;
+						
+		default:
+			cout << "\n DecomposeT::Decompose: unrecognized method: " << decomp_type << endl;
 	}
-	else
-		ExceptionT::GeneralFail("DecomposeT::CheckDecompose", "unrecognized method \"%s\"",
-			decomp_parameters.Name().Pointer());
 }
 
 /**********************************************************************
  * Private
  **********************************************************************/
-
-void DecomposeT::Decompose_index(const StringT& input_file, int size,
+ void DecomposeT::Decompose_atom(const StringT& input_file, int size,
 	const StringT& model_file, IOBaseT::FileTypeT format, const ArrayT<StringT>& commandlineoptions) const
 {
 #pragma unused(input_file)
-#pragma unused(commandlineoptions)
-
-	const char caller[] = "FEExecutionManagerT::Decompose_index";
+	const char caller[] = "FEExecutionManagerT::Decompose_atom";
 
 	/* files exist */
 	bool need_decomp = NeedDecomposition(model_file, size);
@@ -255,107 +226,14 @@ void DecomposeT::Decompose_index(const StringT& input_file, int size,
 	}
 }
 
-void DecomposeT::Decompose_spatial(const StringT& input_file, const iArrayT& grid_dims, const dArray2DT& min_max,
+void DecomposeT::Decompose_spatial(const StringT& input_file, int size,
 	const StringT& model_file, IOBaseT::FileTypeT format) const
 {
 #pragma unused(input_file)
-	const char caller[] = "FEExecutionManagerT::Decompose_spatial";
-
-	/* files exist */
-	int size = grid_dims.Product();
-	bool need_decomp = NeedDecomposition(model_file, size);
-	if (!need_decomp) {
-		cout << "\n " << caller <<": decomposition files exist" << endl;
-		return;
-	}
-
-	/* model manager */
-	ModelManagerT model(cout);
-	if (!model.Initialize(format, model_file, true))
-		ExceptionT::BadInputValue(caller, "could not open model file: %s", (const char*) model_file);
-	const dArray2DT& coordinates = model.Coordinates();
-
-	/* dimensions */
-	int nnd = model.NumNodes();
-	int nsd = model.NumDimensions();
-	if (grid_dims.Length() != nsd || min_max.MajorDim() != nsd)
-		ExceptionT::SizeMismatch(caller);
-
-	/* node-to-partition map */
-	iArrayT part_map(nnd);
-	part_map = -1;
-
-	/* label nodes */
-	SpatialGridT grid(SpatialGridT::kExtended);
-	grid.Dimension(grid_dims);
-	grid.SetBounds(min_max);
-	iArrayT bin_counts(size);
-	grid.Bin(coordinates, part_map, bin_counts, NULL);
-
-	/* get pointers to all blocks */
-	const ArrayT<StringT>& IDs = model.ElementGroupIDs();
-	ArrayT<const iArray2DT*> connects_1(IDs.Length());
-	model.ElementGroupPointers(IDs, connects_1);
-	ArrayT<const RaggedArray2DT<int>*> connects_2;
-
-	/* set partition information and write partial geometry files */
-	iArrayT grid_pos(nsd);
-	for (int i = 0; i < size; i++)
-	{
-		/* partition data */
-		PartitionT partition;
-
-		/* mark nodes */
-		partition.Set(size, i, part_map, connects_1, connects_2);
-		
-		/* set elements */
-		const ArrayT<StringT>& elem_ID = model.ElementGroupIDs();
-		partition.InitElementBlocks(elem_ID);
-		for (int j = 0; j < elem_ID.Length(); j++)
-		{
-			const iArray2DT& elems = model.ElementGroup(elem_ID[j]);
-			partition.SetElements(elem_ID[j], elems);
-		}
-
-		/* set to local scope */
-		partition.SetScope(PartitionT::kLocal);
-		
-		/* set decomposition type */
-		partition.SetDecompType(PartitionT::kSpatial);
-	
-		/* set grid dimensions */
-		partition.SetGridDimensions(grid_dims);
-		
-		/* grid grid position */
-		grid.Processor2Grid(i, grid_pos);
-		partition.SetGridPosition(grid_pos);
-	
-		/* output file name */
-		StringT geom_file, suffix;
-		suffix.Suffix(model_file);
-		geom_file.Root(model_file);
-		geom_file.Append(".n", size);
-		geom_file.Append(".p", i);
-		geom_file.Append(suffix);
-				
-		cout << "     Writing partial model file: " << geom_file << endl;
-		try { EchoPartialGeometry(partition, model, geom_file, format); }
-		catch (ExceptionT::CodeT error)
-		{
-			ExceptionT::Throw(error, caller, "exception writing file: %s", (const char*) geom_file);
-		}
-		
-		/* partition information */
-		StringT part_file;
-		part_file.Root(model_file);
-		part_file.Append(".n", size);
-		part_file.Append(".part", i);
-
-		ofstream part_out(part_file);
-		part_out << "# data for partition: " << i << '\n';
-		part_out << partition << '\n';
-		part_out.close();
-	}
+#pragma unused(size)
+#pragma unused(model_file)
+#pragma unused(format)
+	cout << "\n DecomposeT::Decompose_spatial: not implemented" << endl;
 }
 
 /* graph-based decomposition */
@@ -398,7 +276,7 @@ void DecomposeT::Decompose_graph(const StringT& input_file, int size,
 /* use METIS by default */
 #ifdef __METIS__
 			method = 1;
-			for (int i = 0; method == 1 && i < commandlineoptions.Length(); i++)
+			for (int i = 0; method = 0 && i < commandlineoptions.Length(); i++)
 				if (commandlineoptions[i] == "-no_metis")
 					method = 0;
 

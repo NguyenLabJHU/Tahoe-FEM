@@ -1,4 +1,4 @@
-/* $Id: PolyBasis2DT.cpp,v 1.7 2004-11-03 16:09:48 raregue Exp $ */
+/* $Id: PolyBasis2DT.cpp,v 1.4 2003-11-21 22:47:21 paklein Exp $ */
 /* created: paklein (12/13/1999)                                          */
 
 #include "PolyBasis2DT.h"
@@ -43,7 +43,7 @@ void PolyBasis2DT::SetBasis(const dArray2DT& coords, int order)
 #if __option(extended_errorcheck)
 	/* dimension checking */
 	if (coords.MinorDim() != fNumSD) throw ExceptionT::kGeneralFail;
-	if (order > 3) throw ExceptionT::kOutOfRange; //kyonten (order increase to 3)
+	if (order > 2) throw ExceptionT::kOutOfRange;
 #endif
 
 	/* dimensions */
@@ -66,13 +66,6 @@ void PolyBasis2DT::SetBasis(const dArray2DT& coords, int order)
 					fDDP[0] = 0.0;
 					fDDP[1] = 0.0;
 					fDDP[2] = 0.0;
-					if (order > 2) // kyonten
-					{
-						fDDDP[0] = 0.0;
-						fDDDP[1] = 0.0;
-						fDDDP[2] = 0.0;
-						fDDDP[3] = 0.0;
-					}
 				}
 			}
 			break;
@@ -114,13 +107,6 @@ void PolyBasis2DT::SetBasis(const dArray2DT& coords, int order)
 				fDDP[0] = 0.0;
 				fDDP[1] = 0.0;
 				fDDP[2] = 0.0;
-			}
-			if (order > 2) // kyonten
-			{
-				fDDDP[0] = 0.0;
-				fDDDP[1] = 0.0;
-				fDDDP[2] = 0.0;
-				fDDDP[3] = 0.0;
 			}
 			break;
 		}

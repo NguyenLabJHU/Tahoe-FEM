@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.h,v 1.11 2004-12-20 02:21:15 paklein Exp $ */
+/* $Id: PCGSolver_LS.h,v 1.9 2004-09-09 23:54:55 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #ifndef _PCG_SOLVER_LS_H_
 #define _PCG_SOLVER_LS_H_
@@ -35,17 +35,8 @@ public:
 
 protected:
 
-	/** increments at which residual is written to console */
-	enum OutputFlagT {
-		kAllIterations,
-		kAtRestart
-	};
-
 	/** apply system update (socket for line searching) */
 	virtual void Update(const dArrayT& update, const dArrayT* residual);
-
-	/** relax system */
-//	virtual SolutionStatusT Relax(int newtancount = 1);
 
 	/** do one iteration of the solution procedure */
 	virtual void Iterate(void);
@@ -64,11 +55,8 @@ private:
 private:
 
 	/** \name conjugate gradient parameters */
-	/*@{*/
 	int fRestart;
 	int fRestart_count;
-	OutputFlagT fOutputFlag;
-	/*@}*/
 
 	/** line search parameters */
 	/*@{*/

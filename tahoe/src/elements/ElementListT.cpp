@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.106 2004-11-23 01:43:08 cjkimme Exp $ */
+/* $Id: ElementListT.cpp,v 1.103 2004-08-23 16:37:29 cfoster Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -49,7 +49,6 @@
 #include "SimoQ1P0Axi_inv.h"
 #include "DiffusionElementT.h"
 #include "NLDiffusionElementT.h"
-#include "HyperbolicDiffusionElementT.h"
 #include "MeshFreeSSSolidT.h"
 #include "MeshFreeFSSolidT.h"
 #include "MeshFreeFSSolidAxiT.h"
@@ -84,7 +83,6 @@
 #ifdef PARTICLE_ELEMENT
 #include "ParticlePairT.h"
 #include "EAMT.h"
-#include "ParticleThreeBodyT.h"
 #endif
 
 #ifdef SPRING_ELEMENT
@@ -149,11 +147,6 @@
 #ifdef SPLIT_INTEGRATION_DEV
 #include "SplitIntegrationT.h"
 #endif
-#endif
-
-#ifdef MIXTURE_THEORY_DEV
-#include "MixtureSpeciesT.h"
-#include "UpdatedLagMixtureT.h"
 #endif
 
 using namespace Tahoe;
@@ -272,13 +265,11 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 #ifdef PARTICLE_ELEMENT
 		sub_lists.AddSub("particle_pair");
 		sub_lists.AddSub("particle_EAM");
-		sub_lists.AddSub("particle_three_body");
 #endif
 
 #ifdef CONTINUUM_ELEMENT
 		sub_lists.AddSub("diffusion");
 		sub_lists.AddSub("nonlinear_diffusion");
-		sub_lists.AddSub("hyperbolic_diffusion");
 		sub_lists.AddSub("small_strain");
 		sub_lists.AddSub("updated_lagrangian");
 		sub_lists.AddSub("updated_lagrangian_Q1P0");
@@ -336,10 +327,6 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("small_strain_enh_loc_craig");
 #endif
 
-#ifdef MIXTURE_THEORY_DEV
-		sub_lists.AddSub("updated_lagrangian_mixture");
-		sub_lists.AddSub("mixture_species");
-#endif
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
@@ -438,8 +425,6 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 		return new ParticlePairT(fSupport);
 	else if (name == "particle_EAM")
 		return new EAMT(fSupport);
-	else if (name == "particle_three_body")
-		return new ParticleThreeBodyT(fSupport);
 #endif
 
 #ifdef CONTINUUM_ELEMENT
@@ -447,10 +432,8 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 		return new DiffusionElementT(fSupport);
 	else if (name == "nonlinear_diffusion")
 		return new NLDiffusionElementT(fSupport);
-	else if (name == "hyperbolic_diffusion")
-		return new HyperbolicDiffusionElementT(fSupport);
 	else if (name == "small_strain")
-		return new SmallStrainT(fSupport);	
+		return new SmallStrainT(fSupport);
 	else if (name == "updated_lagrangian")
 		return new UpdatedLagrangianT(fSupport);
 	else if (name == "updated_lagrangian_Q1P0")
@@ -529,13 +512,6 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 #ifdef ENHANCED_STRAIN_LOC_DEV_CRAIG
 	else if (name == "small_strain_enh_loc_craig")
 		return new SSEnhLocCraigT(fSupport);
-#endif
-
-#ifdef MIXTURE_THEORY_DEV
-	else if (name == "updated_lagrangian_mixture")
-		return new UpdatedLagMixtureT(fSupport);
-	else if (name == "mixture_species")
-		return new MixtureSpeciesT(fSupport);
 #endif
 
 	/* default */	

@@ -1,4 +1,4 @@
-/* $Id: PolyBasis1DT.cpp,v 1.7 2004-11-03 16:09:48 raregue Exp $ */
+/* $Id: PolyBasis1DT.cpp,v 1.4 2003-11-21 22:47:21 paklein Exp $ */
 /* created: paklein (12/11/1999)                                          */
 /* base class for basis functions                                         */
 
@@ -30,7 +30,7 @@ void PolyBasis1DT::SetBasis(const dArray2DT& coords, int order)
 #if __option(extended_errorcheck)
 	/* dimension checking */
 	if (coords.MinorDim() != fNumSD) throw ExceptionT::kGeneralFail;
-	if (order > 3) throw ExceptionT::kOutOfRange; //kyonten (order increased to 3)
+	if (order > 2) throw ExceptionT::kOutOfRange;
 #endif
 
 	/* dimensions */
@@ -48,13 +48,7 @@ void PolyBasis1DT::SetBasis(const dArray2DT& coords, int order)
 			{
 				fDP[0] = 0.0;
 				if (order > 1)
-				{
 					fDDP[0] = 0.0;
-					if (order > 2) // kyonten (third derivative)
-					{
-						fDDDP[0] = 0.0;
-					}
-				}
 			}
 			break;
 		}
@@ -77,7 +71,6 @@ void PolyBasis1DT::SetBasis(const dArray2DT& coords, int order)
 			}
 			
 			if (order > 1) fDDP[0] = 0.0;
-			if (order > 2) fDDDP[0] = 0.0; // kyonten
 			break;
 		}
 	}

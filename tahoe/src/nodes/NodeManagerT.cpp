@@ -1,7 +1,6 @@
-/* $Id: NodeManagerT.cpp,v 1.56 2004-12-22 00:48:28 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.52.2.8 2004-12-26 06:23:16 d-farrell2 Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
-#include "ElementsConfig.h"
 
 #include <iostream.h>
 #include <iomanip.h>
@@ -31,8 +30,8 @@
 #include "AugLagSphereT.h"
 #include "MFPenaltySphereT.h"
 #include "PenaltyCylinderT.h"
-#include "AugLagCylinderT.h"
 #include "MFAugLagMultT.h"
+#include "AugLagCylinderT.h"
 
 /* kinematic BC controllers */
 #include "K_FieldT.h"
@@ -44,7 +43,6 @@
 #include "SetOfNodesKBCT.h"
 #include "TorsionKBCT.h"
 #include "ConveyorT.h"
-//#include "ConveyorSymT.h"
 
 using namespace Tahoe;
 
@@ -64,6 +62,10 @@ NodeManagerT::NodeManagerT(FEManagerT& fe_manager, CommManagerT& comm_manager):
 	/* init support */
 	fFieldSupport.SetFEManager(&fe_manager);
 	fFieldSupport.SetNodeManager(this);
+	
+	// initialize the partition ends to everything
+	fPartFieldStart = 0;
+	fPartFieldEnd = - 1;
 }
 
 /* destructor */
@@ -309,18 +311,53 @@ GlobalT::SystemTypeT NodeManagerT::TangentType(int group) const
 			type = GlobalT::MaxPrecedence(type, fFields[i]->SystemType());
 	return type;
 }
-
+#pragma message("clean up the redundancy here when works")
 /* apply kinematic boundary conditions */
 void NodeManagerT::InitStep(int group)
 {
 	/* apply to fields */
 	for (int i = 0; i < fFields.Length(); i++)
+	{
 		if (fFields[i]->Group() == group)
-			fFields[i]->InitStep();
+		{
+			if (fPartFieldEnd != -1)
+			{
+				fFields[i]->InitStep(fPartFieldStart, fPartFieldEnd);
+			}
+			else if(fPartFieldEnd == -1)
+			{
+				fFields[i]->InitStep();
+			}
+			else
+			{
+			ExceptionT::GeneralFail("NodeManagerT::InitStep, apply to fields","fPartFieldEnd does not fit expected values");
+			}
+		}
+		
+	}
 
 	/* update current configurations */
 	if (fCoordUpdate && fCoordUpdate->Group() == group)
-		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
+	{
+		if (fPartFieldEnd != -1)
+		{
+			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0], fPartFieldStart, fPartFieldEnd);
+			
+			// communicate the updated coords
+			fCommManager.AllGather(fMessageCurrCoordsID, *fCurrentCoords);
+		}
+		else if (fPartFieldEnd == -1)
+		{
+			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
+		}
+		else
+		{
+			ExceptionT::GeneralFail("NodeManagerT::InitStep, update current config","fPartFieldEnd does not fit expected values");
+		}
+	}
+	
+	// Need to comunicate the update to ensure uniformity
+#pragma message("NodeManagerT::InitStep, need to put in all gather on updated coords")
 
 	/* clear history of relaxation over tbe last step */
 	fXDOFRelaxCodes[group] = GlobalT::kNoRelax;
@@ -375,6 +412,7 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 {
 	/* update fields */
 	for (int i = 0; i < fFields.Length(); i++)
+	{
 		if (fFields[i]->Group() == group)
 		{
 			/* assemble contribution from local solver */
@@ -383,9 +421,12 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 			/* gather/distribute external contribution */
 			fCommManager.AllGather(fMessageID[i], fFields[i]->Update());
 			
-			/* apply the update */
-			fFields[i]->ApplyUpdate();
+//			/* apply the update */
+//			fFields[i]->ApplyUpdate();
+			// apply the update to owned nodes
+			fFields[i]->ApplyUpdate(fPartFieldStart, fPartFieldEnd);
 		}
+	}
 
 	/* update current configurations */
 	if (fCoordUpdate && fCoordUpdate->Group() == group)
@@ -407,7 +448,21 @@ void NodeManagerT::UpdateCurrentCoordinates(void)
 	
 		/* simple update assuming displacement degrees of freedom are the
 		 * nodal values */
-		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
+		if (fPartFieldEnd != -1)
+		{
+			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0], fPartFieldStart, fPartFieldEnd);
+			
+			// communicate the updated coords
+			fCommManager.AllGather(fMessageCurrCoordsID, *fCurrentCoords);
+		}
+		else if (fPartFieldEnd == -1)
+		{
+			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
+		}
+		else
+		{
+			ExceptionT::GeneralFail("NodeManagerT::InitStep, update current config","fPartFieldEnd does not fit expected values");
+		}
 	}	
 }
 
@@ -439,9 +494,56 @@ void NodeManagerT::InitialCondition(void)
 		for (int j = 0; j <= field.Order(); j++)
 			fCommManager.AllGather(fMessageID[i], field[j]);
 	}
+	
+	// get some information from the FEManager, to be used in the solution
+	fCommSize = fCommManager.Size();
+	const PartitionT* part = fFEManager.Partition();
+	if (part)
+	{
+		fDecomp_Type = part->DecompType();
+		if (fDecomp_Type == PartitionT::kIndex) 
+		{
+			// get the limits for the field
+			fPartFieldStart = fCommManager.GetPartFieldStart();
+			fPartFieldEnd = fCommManager.GetPartFieldEnd();			
+		}
+		else // set the start/end to the default values of 0, - 1 (full array) for any other decomposition
+		{
+			fPartFieldStart = 0;
+			fPartFieldEnd = - 1;
+		}
+	}
+	else // set the start/end to the default values of 0, - 1 (full array)
+	{
+//DEBUG
+//cout << "NodeManagerT::InitialCondition: no partition information" << endl;
+
+		fPartFieldStart = 0;
+		fPartFieldEnd = - 1;
+	}
+	
+//DEBUG
+//cout << "fPartFieldStart = " << fPartFieldStart << endl;
+//cout << "fPartFieldEnd = " << fPartFieldEnd << endl;
 
 	/* update current configurations */
-	if (fCoordUpdate) fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
+	if (fCoordUpdate)
+	{
+		if (fPartFieldEnd != -1 && fDecomp_Type == PartitionT::kIndex)
+		{
+			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0], fPartFieldStart, fPartFieldEnd);
+//DEBUG
+//cout << "NodeManagerT::InitialCondition, preparing to do AllGather" << endl;			
+			// communicate the updated coords
+			fCommManager.AllGather(fMessageCurrCoordsID, *fCurrentCoords); // I see a problem here, should only send part of the array, that which was updated		
+//DEBUG
+//cout << "NodeManagerT::InitialCondition, after AllGather" << endl;		
+		}
+		else
+		{
+			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
+		}
+	}
 }
 
 void NodeManagerT::ReadRestart(ifstreamT& in)
@@ -781,8 +883,7 @@ void NodeManagerT::ResizeNodes(int num_nodes)
 {
 	/* reference coordinates */
 	fFEManager.ModelManager()->ResizeNodes(num_nodes);
-#pragma message("resize reference coords here or require separate call?")
-
+	
 	/* current coordinates */
 	if (fCurrentCoords) fCurrentCoords_man.SetMajorDimension(num_nodes, true);
 
@@ -799,8 +900,7 @@ void NodeManagerT::CopyNodeToNode(const ArrayT<int>& source,
 	const ArrayT<int>& target)
 {
 	/* check */
-	if (source.Length() != target.Length()) 
-		ExceptionT::SizeMismatch("NodeManagerT::CopyNodeToNode");
+	if (source.Length() != target.Length()) ExceptionT::SizeMismatch();
 
 	/* copy fields */
 	for (int i = 0; i < fFields.Length(); i++)
@@ -824,81 +924,15 @@ void NodeManagerT::CopyNodeToNode(const ArrayT<int>& source,
 		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);	
 }
 
-/* size of the nodal package */
-int NodeManagerT::PackSize(void) const
-{
-	int size = 0;
-	for (int i = 0; i < fFields.Length(); i++) {
-		FieldT& field = *(fFields[i]);
-		size += 2*field.NumDOF()*(field.Order() + 1);
-	}
-	return size;
-}
-
-/* copy field information into the array */
-void NodeManagerT::Pack(int node, dArrayT& values) const
-{
-	int index = 0;
-	for (int i = 0; i < fFields.Length(); i++) /* loop over fields */
-	{
-		FieldT& field = *(fFields[i]);
-		int order = field.Order();
-		int ndof  = field.NumDOF();
-		if (values.Length() >= index + 2*ndof*(order + 1))
-			ExceptionT::SizeMismatch("NodeManagerT::Pack");
-	
-			/* loop over time derivatives */
-			for (int i = 0; i < order+1; i++) 
-			{
-				dArray2DT& f = field(0,i);
-				dArray2DT& f_last = field(-1,i); /* values from last step */
-
-				/* values at current time */
-				field(0,i).RowCopy(node, values.Pointer(index));
-				index += ndof;
-
-				/* values from the last time step */
-				field(-1,i).RowCopy(node, values.Pointer(index));
-				index += ndof;
-			}	
-	}
-}
-
-/* write information from the array into the fields */
-void NodeManagerT::Unpack(int node, dArrayT& values)
-{
-	int index = 0;
-	for (int i = 0; i < fFields.Length(); i++) /* loop over fields */
-	{
-		FieldT& field = *(fFields[i]);
-		int order = field.Order();
-		int ndof  = field.NumDOF();
-		if (values.Length() >= index + 2*ndof*(order + 1))
-			ExceptionT::SizeMismatch("NodeManagerT::Unpack");
-	
-			/* loop over time derivatives */
-			for (int i = 0; i < order+1; i++) 
-			{
-				dArray2DT& f = field(0,i);
-				dArray2DT& f_last = field(-1,i); /* values from last step */
-
-				/* values at current time */
-				field(0,i).SetRow(node, values.Pointer(index));
-				index += ndof;
-
-				/* values from the last time step */
-				field(-1,i).SetRow(node, values.Pointer(index));
-				index += ndof;
-			}	
-	}
-}
-
 //TEMP - trap parallel execution with XDOF
 void NodeManagerT::XDOF_Register(DOFElementT* group, const iArrayT& numDOF)
 {
 	//TEMP - parallel execution not yet supported
 	if (fFEManager.Size() > 1)
-		ExceptionT::GeneralFail("NodeManagerT::XDOF_Register", "not for parallel execution");
+	{
+		cout << "\n NodeManagerT::NodeManagerT: not for parallel execution" << endl;
+		throw ExceptionT::kGeneralFail;
+	}
 //NOTE: to parallelize XDOF:
 // (1) analyze external nodes to see if they interact with any element-generated DOF's
 // (2) collect and send these tags/equation numbers separate from primary variables	
@@ -911,13 +945,14 @@ void NodeManagerT::XDOF_Register(DOFElementT* group, const iArrayT& numDOF)
 void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArrayT& nodes, 
 	iArray2DT& eqnos)
 {
-	const char caller[] = "NodeManagerT::XDOF_SetLocalEqnos";
-
 	/* collect fields in the group */
 	ArrayT<FieldT*> fields;
 	CollectFields(group, fields);
-	if (fields.Length() == 0)
-		ExceptionT::GeneralFail(caller, "group %d has no fields", group);
+	if (fields.Length() == 0) {
+		cout << "\n NodeManagerT::XDOF_SetLocalEqnos: group has not fields: " 
+		     << group << endl;
+		throw ExceptionT::kGeneralFail;
+	}
 
 	/* dimensions */
 	int nnd = NumNodes();
@@ -958,7 +993,11 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArrayT& nodes,
 				/* resolve tag into its set */
 				int tag_set;
 				if (!ResolveTagSet(tag, tag_set, tag_offset))
-					ExceptionT::GeneralFail(caller, "could not resolve tag into set %d", tag);
+				{
+					cout << "\n NodeManagerT::XDOF_SetLocalEqnos: could not resolve tag into set: " 
+					     << tag << endl;
+					throw ExceptionT::kGeneralFail;
+				}
 
 				/* equations from tag set */
 				eqnos_source = fXDOF_Eqnos[tag_set];
@@ -970,7 +1009,10 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArrayT& nodes,
 
 			/* check number of assigned equations */
 			if (eq_count > neq)
-				ExceptionT::SizeMismatch(caller, "error assigning equations");
+			{
+				cout << "\n NodeManagerT::XDOF_SetLocalEqnos: error assigning equations" << endl;
+				throw ExceptionT::kSizeMismatch;
+			}
 		
 			/* copy equations */
 			eqnos_source->RowCopy(tag - tag_offset, peq);
@@ -1288,10 +1330,17 @@ void NodeManagerT::TakeParameterList(const ParameterListT& list)
 			fCurrentCoords_man.SetWard(0, *fCurrentCoords, NumSD());
 			fCurrentCoords_man.SetMajorDimension(NumNodes(), false);
 			(*fCurrentCoords) = InitialCoordinates();
+//DEBUG
+cout << "NodeManagerT::TakeParameterList, before InitAllGather" << endl;
+			// set up communication of the current coordinates
+			fMessageCurrCoordsID = fCommManager.Init_AllGather(*fCurrentCoords);
+#pragma message("need another ID for the updated coords communication??")
 		}
 			
 		/* set up communication of field */
-		fMessageID[i] = fCommManager.Init_AllGather(fFields[i]->Update());	
+		fMessageID[i] = fCommManager.Init_AllGather(fFields[i]->Update());
+//DEBUG
+cout << "NodeManagerT::TakeParameterList, after InitAllGather" << endl;			
 	}
 }
 
@@ -1401,13 +1450,11 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 		case KBC_ControllerT::kPrescribed:
 			return new KBC_ControllerT(fFieldSupport);
 	
-#ifdef CONTINUUM_ELEMENT
 		case KBC_ControllerT::kK_Field:
 			return new K_FieldT(fFieldSupport);
 
 		case KBC_ControllerT::kBimaterialK_Field:	
 			return new BimaterialK_FieldT(fFieldSupport);
-#endif
 
 		case KBC_ControllerT::kMappedPeriodic:	
 			return new MappedPeriodicT(fFieldSupport, field);
@@ -1437,18 +1484,11 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 			TorsionKBCT* kbc = new TorsionKBCT(fFieldSupport);
 			return kbc;
 		}
-		case KBC_ControllerT::kConveyor:
+		case KBC_ControllerT::kConyevor:
 		{
 			ConveyorT* kbc = new ConveyorT(fFieldSupport, field);
 			return kbc;
 		}
-#if 0
-                case KBC_ControllerT::kConveyorSym:
-                {
-                        ConveyorSymT* kbc = new ConveyorSymT(fFieldSupport, field);
-                        return kbc;
-                }
-#endif
 		default:
 			ExceptionT::BadInputValue("NodeManagerT::NewKBC_Controller", 
 				"KBC controller code %d is not supported", code);
@@ -1487,11 +1527,9 @@ FBC_ControllerT* NodeManagerT::NewFBC_Controller(int code)
 			fbc = new MFPenaltySphereT;
 			break;
 
-#ifdef CONTINUUM_ELEMENT
 	    case FBC_ControllerT::kMFAugLagMult:
 	    	fbc = new MFAugLagMultT;
 	    	break;
-#endif
 
 	    case FBC_ControllerT::kAugLagCylinder:
 	    	fbc = new AugLagCylinderT;

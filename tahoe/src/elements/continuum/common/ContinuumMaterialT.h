@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.h,v 1.10 2004-10-21 18:50:04 paklein Exp $ */
+/* $Id: ContinuumMaterialT.h,v 1.9 2004-07-15 08:26:13 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _CONTINUUM_MATERIAL_T_H_
 #define _CONTINUUM_MATERIAL_T_H_
@@ -43,9 +43,6 @@ public:
 
 	/** reference to the host element */
 	const ContinuumElementT& ContinuumElement(void) const;
-
-	/** number of element nodes in the host element group */
-	int NumElementNodes() const;
 
 	/** number of degrees of freedom (per node) in the host
 	 * element group. */

@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeSupport2DT.h,v 1.3 2004-12-24 20:33:55 kyonten Exp $ */
+/* $Id: D3MeshFreeSupport2DT.h,v 1.1 2004-08-13 23:59:55 raregue Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D3_MF_SUPPORT_2D_T_H_
 #define _D3_MF_SUPPORT_2D_T_H_
@@ -24,13 +24,6 @@ public:
 	D3MeshFreeSupport2DT(const ParentDomainT* domain, const dArray2DT& coords,
 		const iArray2DT& connects, const iArrayT& nongridnodes);
 
-	//************************************************************************************//
-	// kyonten
-	/** construct object sufficient for calling methods inherited from ParameterInterfaceT
-	 * to collect the class parameters, but not for doing any meshfree calculations */
-	D3MeshFreeSupport2DT(void);
-	//************************************************************************************//
-	
 	/** set cutting field facets. 
 	 * \param facet_coords list of coordinate for each facet: [nfacets] x [num_facet_nodes*nsd] 
 	 * \param num_facet_nodes number of nodes defining each facet */

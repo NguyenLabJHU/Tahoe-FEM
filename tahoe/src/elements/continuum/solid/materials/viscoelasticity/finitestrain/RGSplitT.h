@@ -1,4 +1,4 @@
-/* $Id: RGSplitT.h,v 1.3 2004-12-01 17:50:21 thao Exp $ */
+/* $Id: RGSplitT.h,v 1.2 2004-07-15 08:29:30 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 #ifndef _RGSplitT_
 #define _RGSplitT_
@@ -62,20 +62,22 @@ class RGSplitT: public RGViscoelasticityT
    private:  
 	/* spectral operations */
 	SpectralDecompT fSpectralDecompSpat;
+	SpectralDecompT fSpectralDecompRef;
+	SpectralDecompT fSpectralDecompTrial;
 
 	/*work space*/
-	dSymMatrixT fStretch;
+	dSymMatrixT fb;
 	dSymMatrixT fb3D;
 	dSymMatrixT fbe;
 	dSymMatrixT fb_tr;
 	dMatrixT fF3D;
-	dSymMatrixT fInverse;
+	dSymMatrixT fC_v_2D;
 	
 	dArrayT     fEigs;
 	dArrayT     fEigs_e;
-	dArrayT     fEigs_tr;
+	dArrayT     fEigs_bar;
+	dArrayT     fEigs_ebar;
 	dArrayT     fEigs_v;
-	dArrayT     fEigs_dev;
 
 	dArrayT	    ftau_EQ;
 	dArrayT     ftau_NEQ;

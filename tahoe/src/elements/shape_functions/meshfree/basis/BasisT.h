@@ -1,4 +1,4 @@
-/* $Id: BasisT.h,v 1.7 2004-11-03 16:09:48 raregue Exp $ */
+/* $Id: BasisT.h,v 1.4 2003-12-28 23:37:31 paklein Exp $ */
 /* created: paklein (12/10/1999)                                          */
 /* base class for basis functions                                         */
 
@@ -35,7 +35,6 @@ public:
 	const dArray2DT& P(void) const;
 	const dArray2DT& DP(int component) const;
 	const dArray2DT& DDP(int component) const;
-	const dArray2DT& DDDP(int component) const; // kyonten
 
 protected:
 
@@ -50,7 +49,6 @@ protected:
 	dArray2DT fP;           // [nbasis] x [nnd]
 	ArrayT<dArray2DT> fDP;  // [nsd] x [nbasis] x [nnd]
 	ArrayT<dArray2DT> fDDP; // [nstr] x [nbasis] x [nnd]
-	ArrayT<dArray2DT> fDDDP; // [nsd*nsd] x [nbasis] x [nnd] // kyonten 
 
 	/* dynamic workspace manager */
 	nArray2DGroupT<double> fArray2DGroup1; // [nbasis] x [nnd]
@@ -70,11 +68,6 @@ inline const dArray2DT& BasisT::DP(int component) const
 inline const dArray2DT& BasisT::DDP(int component) const
 {
 	return fDDP[component];
-}
-
-inline const dArray2DT& BasisT::DDDP(int component) const // kyonten
-{
-	return fDDDP[component];
 }
 
 } // namespace Tahoe 

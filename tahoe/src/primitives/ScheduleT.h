@@ -1,4 +1,4 @@
-/* $Id: ScheduleT.h,v 1.7 2004-10-20 21:21:02 paklein Exp $ */
+/* $Id: ScheduleT.h,v 1.6 2004-07-15 08:31:36 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _SCHEDULE_T_H_
 #define _SCHEDULE_T_H_
@@ -42,9 +42,6 @@ public:
 	
 	/** the internal time */
 	double Time(void) const { return fCurrentTime; };
-
-	double Rate(void) const;
-	double Rate(double time) const;
 	/*@}*/
 
 	/** \name implementation of the ParameterInterfaceT interface */

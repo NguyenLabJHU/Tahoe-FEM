@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.46 2004-12-09 09:19:45 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.44 2004-09-28 15:35:31 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -16,7 +16,6 @@
 #include "CommunicatorT.h"
 #include "ParameterContainerT.h"
 #include "ParameterUtils.h"
-#include "dSymMatrixT.h"
 
 /* Thermostatting stuff */
 #include "RandomNumberT.h"
@@ -288,8 +287,7 @@ void ParticleT::SetConfiguration(void)
 {
 	/* set periodic boundary conditions */
 	CommManagerT& comm_manager = ElementSupport().CommManager();
-	comm_manager.SetSkin(fPeriodicSkin);
-	comm_manager.EnforcePeriodicBoundaries();
+	comm_manager.EnforcePeriodicBoundaries(fPeriodicSkin);
 	
 	/* reset the types array */
 	int nnd = ElementSupport().NumNodes();
@@ -914,11 +912,10 @@ ThermostatBaseT* ParticleT::New_Thermostat(const StringT& name, bool throw_on_fa
 
 void ParticleT::Calc_Slip_and_Strain(dArray2DT &s_values, RaggedArray2DT<int> &RefNearestNeighbors, const int &kEulerLagr)
 {
-	/* dimensions */
-	int non = s_values.MajorDim();
-	int ndof = NumDOF();
-	int num_strains = dSymMatrixT::NumValues(ndof);
-
+  int non = s_values.MajorDim();
+  int num_s_vals = s_values.MinorDim();
+  int ndof = NumDOF();
+  int num_strains = num_s_vals - ndof - 1;
   iArrayT neighbors;
   dArrayT x_i(ndof), x_j(ndof), r_ij(ndof), R_ij(ndof), X_i(ndof), X_j(ndof);  
   dArrayT slipvector(ndof), svtemp(ndof);
@@ -1053,10 +1050,11 @@ int ParticleT::Combination(int n,int k)
    return combo_nk;
   }
 
-void ParticleT::Calc_CSP(const RaggedArray2DT<int> &NearestNeighbors, dArrayT& csp)
+void ParticleT::Calc_CSP(dArray2DT &s_values, RaggedArray2DT<int> &NearestNeighbors)
 {
 	const char caller[] = "ParticleT::Calc_CSP";
 
+  int num_s_vals = s_values.MinorDim();
   int ndof = NumDOF();
   iArrayT neighbors;
   dArrayT x_i(ndof), x_j(ndof), r_ij(ndof), rvec(ndof);  
@@ -1125,15 +1123,16 @@ void ParticleT::Calc_CSP(const RaggedArray2DT<int> &NearestNeighbors, dArrayT& c
    } /* end of j looop */
    if (icombos != ncombos) ExceptionT::SizeMismatch(caller);
    ndsum.SortAscending();
-   double csp_i = 0.0;
+   double csp = 0.0;
    if (ncspairs >= ncombos) ncspairs = ncombos;
-   for (int m = 0; m < ncspairs; m++) csp_i += ndsum[m];
-   if (fabs(fLatticeParameter) > kSmall) csp_i /= fLatticeParameter*fLatticeParameter;  
+   for (int m = 0; m < ncspairs; m++) csp += ndsum[m];
+   if (fabs(fLatticeParameter) > kSmall) csp /= pow(fLatticeParameter,2);  
 
    /* put centrosymmetry parameter into global s_values array */
-   csp[local_i] = csp_i;
+   s_values(local_i, num_s_vals-1) = csp;
   //cout << i << "   " << csp << endl;
   } /* end of i loop */
+ 
 }
 
 void ParticleT::SetRefNN(RaggedArray2DT<int> &NearestNeighbors,RaggedArray2DT<int> &RefNearestNeighbors)

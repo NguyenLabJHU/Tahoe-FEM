@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.h,v 1.15 2004-11-03 16:09:41 raregue Exp $ */
+/* $Id: MLSSolverT.h,v 1.11 2004-09-03 20:24:26 paklein Exp $ */
 /* created: paklein (12/08/1999) */
 #ifndef _MLS_SOLVER_T_H_
 #define _MLS_SOLVER_T_H_
@@ -23,7 +23,6 @@ class BasisT;
 /** class to calculate MLS shape functions and derivatives. Before
  * MLSSolverT::SetField can used to calculate MLS functions, MLSSolverT::Initialize
  * must be called to initialize some internal work space */
- 
 class MLSSolverT
 {
 public:
@@ -45,7 +44,7 @@ public:
 	/** class dependent initializations */
 	void Initialize(void);
 	
-	/** compute shape function and derivatives. 
+	/** computevshape function and derivatives. 
 	 * \param coords coordinates of the neighborhood nodes: [nnd] x [nsd]
 	 * \param nodal_params support parameters for each node: [nnd] x [nparam] 
 	 * \param volume array of nodal volumes 
@@ -68,16 +67,6 @@ public:
 	/** shape function second derivatives.
 	 * \return array of shape functions second derivatives: [nstr] x [nnd] */
 	const dArray2DT& DDphi(void) const;	
-	
-	/** shape function third derivatives.
-	    DDDphi is a [nsd]x[nsd]x[nsd] or [nsd]x[nsd*nsd] matrix. 
-	  	using symmetry it reduces to [nsd]x[nstr]
-	  	only the first three (3D) or two (2D) columns (contribution from diagonal 
-	  	terms) of the [nsd]x[nstr] matrix are needed for calculation of the 
-	  	Laplacian of the strain tensor
-	  	DDDphi, thus, becomes a [nsd]x[nsd] unsymmetric matrix 
-	 * \return array of shape functions third derivatives: [nsd*nsd] x [nnd] */
-	const dArray2DT& DDDphi(void) const;	//kyonten
 		
 	/** neighbor search type needed by the window function */
 	WindowT::SearchTypeT SearchType(void) const;
@@ -107,32 +96,30 @@ public:
 	virtual void RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const;
 	/*@}*/
 
-	/* name debugging methods */
-	
+	/** \name debugging methods */	
+	/*@{*/
 	/* return field value and derivatives - valid AFTER SetField() */
 	/* the weight function */
 	const dArrayT& w(void) const;	
 	const dArray2DT& Dw(void) const;	
-	const dArray2DT& DDw(void) const;
-	const dArray2DT& DDDw(void) const;	// kyonten
+	const dArray2DT& DDw(void) const;	
 
 	/* correction function coefficients */
 	const dArrayT& b(void) const;	
 	const dArrayT& Db(int component) const;	
-	const dArrayT& DDb(int component) const;
-	const dArrayT& DDDb(int component) const; // kyonten
+	const dArrayT& DDb(int component) const;	
 
 	/* correction function */
 	const dArrayT& C(void) const;
 	const dArray2DT& DC(void) const;	
-	const dArray2DT& DDC(void) const;
-	const dArray2DT& DDDC(void) const; // kyonten
+	const dArray2DT& DDC(void) const;	
+	/*@}*/
 
 private:
 
 	/** error checking accessor to the window function */
 	WindowT& Window(void) const;
-	
+
 	/* configure solver for current number of neighbors */
 	void Dimension(void);
 
@@ -141,7 +128,6 @@ private:
 	void ComputeM(const dArrayT& volume);
 	void ComputeDM(const dArrayT& volume);
 	void ComputeDDM(const dArrayT& volume);
-	void ComputeDDDM(const dArrayT& volume); // kyonten
 
 	/* set correction function coefficients */
 	void SetCorrectionCoefficient(void);
@@ -183,41 +169,31 @@ protected:
 	dArrayT   fw;   /**< values of window function at the current field point: [nnd] */
 	dArray2DT fDw;  /**< values of window function gradient at the current field point: [nsd] x [nnd] */
 	dArray2DT fDDw; /**< second gradient of window functions at the current field point: [nstr] x [nnd] */
-	dArray2DT fDDDw; /**< third gradient of window functions at the current field point: [nsd*nsd] x [nnd] */
-						//kyonten
-	
+
 	/* correction function coefficients */
 	dArrayT fb;           /**< correction function coefficients at the current field point: [nbasis] */
 	ArrayT<dArrayT> fDb;  /**< gradient of correction function coefficients: [nsd] x [nbasis] */
 	ArrayT<dArrayT> fDDb; /**< second gradient of correction function coefficient: [nstr] x [nbasis] */
-	ArrayT<dArrayT> fDDDb; /**< third gradient of correction function coefficient: [nsd*nsd] x [nbasis] */
-							//kyonten
-	
+
 	/* inverse of moment matrix */
 	dMatrixT fMinv;        /**< moment matrix at the current field point: [nbasis] x [nbasis] */
 	ArrayT<dMatrixT> fDM;  /**< gradient of moment matrix: [nsd] x [nbasis] x [nbasis] */
 	ArrayT<dMatrixT> fDDM; /**< second gradient of moment matrix: [nstr] x [nbasis] x [nbasis] */
-	ArrayT<dMatrixT> fDDDM; /**< third gradient of moment matrix: [nsd*nsd] x [nbasis] x [nbasis] */
-								//kyonten
+	
 	/* correction function */
 	dArrayT   fC;   /**< correction function at the current field point: [nnd] */
 	dArray2DT fDC;  /**< gradient of the correction function: [nsd] x [nnd] */
 	dArray2DT fDDC; /**< second gradient of the correction function: [nstr] x [nnd] */
-	dArray2DT fDDDC; /**< third gradient of the correction function: [nsd*nsd] x [nnd] */
-						//kyonten
 	
 	/* return values of all nodes at field pt */
 	dArrayT   fphi;   /**< nodal shape functions at the current field point: [nnd] */
 	dArray2DT fDphi;  /**< nodal shape function gradients at the current field point: [nsd] x [nnd] */
 	dArray2DT fDDphi; /**< second gradient of nodal shape functions: [nstr] x [nnd] */
-	dArray2DT fDDDphi; /**< third gradient of nodal shape functions: [nsd*nsd] x [nnd] */
-						//kyonten
 	
 	/* variable memory managers */
 	nArrayGroupT<double>   fArrayGroup;    /**< variable memory manager for arrays length [nnd] */
 	nArray2DGroupT<double> fArray2DGroup2; /**< variable memory manager for 2D arrays length [nsd] x [nnd] */
 	nArray2DGroupT<double> fArray2DGroup3; /**< variable memory manager for 2D arrays length [nstr] x [nnd]	*/
-	nArray2DGroupT<double> fArray2DGroup4; /**< variable memory manager for 2D arrays length [nsd*nsd] x [nnd]	*/
 	nVariArray2DT<double>  fLocCoords_man; /**< variable memory manager for local coordinates array */
 
 private:
@@ -226,7 +202,6 @@ private:
 	dSymMatrixT fNSDsym;
 	dMatrixT    fMtemp;
 	dArrayT     fbtemp1, fbtemp2, fbtemp3, fbtemp4;
-	dArrayT     fbtemp5, fbtemp6, fbtemp7, fbtemp8, fbtemp9, fbtemp10;// kyonten (DDDb)
 };
 
 /* inlines */
@@ -274,26 +249,23 @@ inline void MLSSolverT::RectangularSupportSize(const dArray2DT& param_n, dArray2
 }
 
 /* return field value and derivatives */
-inline const dArrayT&   MLSSolverT::phi(void) const { return fphi; }
+inline const dArrayT& MLSSolverT::phi(void) const { return fphi; }
 inline const dArray2DT& MLSSolverT::Dphi(void) const { return fDphi; }
 inline const dArray2DT& MLSSolverT::DDphi(void) const { return fDDphi; }
-inline const dArray2DT& MLSSolverT::DDDphi(void) const { return fDDDphi; }// kyonten
 
 inline const dArrayT&   MLSSolverT::w(void) const { return fw; }
 inline const dArray2DT& MLSSolverT::Dw(void) const { return fDw; }
 inline const dArray2DT& MLSSolverT::DDw(void) const { return fDDw; }
-inline const dArray2DT& MLSSolverT::DDDw(void) const { return fDDDw; }// kyonten
 
-inline const dArrayT&   MLSSolverT::C(void) const { return fC; }	
+inline const dArrayT& MLSSolverT::C(void) const { return fC; }	
 inline const dArray2DT& MLSSolverT::DC(void) const { return fDC; }
 inline const dArray2DT& MLSSolverT::DDC(void) const { return fDDC; }
-inline const dArray2DT& MLSSolverT::DDDC(void) const { return fDDDC; }// kyonten
 
 /* correction function coefficients */
 inline const dArrayT& MLSSolverT::b(void) const { return fb; }
-inline const dArrayT& MLSSolverT::Db(int component) const{ return fDb[component];}
-inline const dArrayT& MLSSolverT::DDb(int component) const{	return fDDb[component];}
-inline const dArrayT& MLSSolverT::DDDb(int component) const{ return fDDDb[component];} //kyonten
+inline const dArrayT& MLSSolverT::Db(int component) const { return fDb[component]; }
+inline const dArrayT& MLSSolverT::DDb(int component) const { return fDDb[component]; }
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _MLS_SOLVER_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.18 2004-11-06 01:49:49 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.17.2.2 2004-10-18 22:52:21 d-farrell2 Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -59,6 +59,13 @@ public:
 	/** set pointer to an external force vector or pass NULL to clear. The array
 	 * the length of the number of unknowns for the given group. */
 	void SetExternalForce(int group, const dArrayT& external_force);
+	
+	//DEF added this because I couldn't get the null pointer passed in right - clears the coupling forces
+	void ClearExternalForce(int group);
+	
+	//DEF added to return the pointers to the external force array
+	const dArrayT* GetExternalForce(int group) const { return fExternalForce[group]; };
+	const dArray2DT* GetExternalForce2D(int group) const { return fExternalForce2D[group]; };
 
 	/** set pointer to an external force vector for the given field */
 	void SetExternalForce(const StringT& field, const dArray2DT& external_force, const iArrayT& activefenodes);
@@ -105,7 +112,7 @@ public:
 	 * field values to the given list of points. Requires that this FEManagerT has
 	 * a BridgingScaleT in its element list. */
 	void InitInterpolation(const StringT& field, const iArrayT& nodes,
-		const dArray2DT& coordinates);
+		NodeManagerT& node_manager);
 
 	/** field interpolations. Interpolate the field to the nodes initialized
 	 * with the latest call to FEManagerT_bridging::InitInterpolation. */
@@ -408,6 +415,13 @@ private:
 inline void FEManagerT_bridging::SetExternalForce(int group, const dArrayT& external_force)
 {
 	fExternalForce[group] = &external_force;
+}
+
+// clear pointers to external (coupling) force
+inline void FEManagerT_bridging::ClearExternalForce(int group)
+{
+	fExternalForce[group] = NULL;
+	fExternalForce2D[group] = NULL;
 }
 
 } /* namespace Tahoe */

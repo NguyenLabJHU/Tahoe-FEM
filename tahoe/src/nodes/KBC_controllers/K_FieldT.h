@@ -1,10 +1,7 @@
-/* $Id: K_FieldT.h,v 1.11 2004-11-18 16:36:47 paklein Exp $ */
+/* $Id: K_FieldT.h,v 1.10 2004-09-09 16:20:25 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #ifndef _K_FIELD_T_H_
 #define _K_FIELD_T_H_
-
-#include "ElementsConfig.h"
-#ifdef CONTINUUM_ELEMENT
 
 /* base class */
 #include "KBC_ControllerT.h"
@@ -162,5 +159,4 @@ protected:
 
 } /* namespace Tahoe */
 
-#endif /* CONTINUUM_ELEMENT */
 #endif /* _K_FIELD_T_H_ */

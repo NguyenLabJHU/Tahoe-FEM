@@ -1,9 +1,6 @@
-/* $Id: MFAugLagMultT.h,v 1.5 2004-11-18 16:36:40 paklein Exp $ */
+/* $Id: MFAugLagMultT.h,v 1.3 2004-07-15 08:31:15 paklein Exp $ */
 #ifndef _MF_AUG_LAG_MULT_T_H_
 #define _MF_AUG_LAG_MULT_T_H_
-
-#include "ElementsConfig.h"
-#ifdef CONTINUUM_ELEMENT
 
 /* base classes */
 #include "FBC_ControllerT.h"
@@ -193,8 +190,6 @@ private:
 	RaggedArray2DT<int> fLocallyNumberedNodeSets;
 	iArray2DT fFlattenedNodeSets;
 	iArrayT fLocalFlatNodes;
-	iArrayT fUnionOfNodes;
-	iArrayT fKey;
 	dArrayT fScales;
 	ArrayT<KBC_CardT::CodeT> fCodes;
 	/*@}*/
@@ -222,7 +217,4 @@ private:
 };
 
 } // namespace Tahoe 
-
-#endif /* CONTINUUM_ELEMENT */
-
 #endif /* _MF_AUG_LAG_MULT_T_H_ */

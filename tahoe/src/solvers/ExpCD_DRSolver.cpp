@@ -1,4 +1,4 @@
-/* $Id: ExpCD_DRSolver.cpp,v 1.13 2004-12-20 02:20:14 paklein Exp $ */
+/* $Id: ExpCD_DRSolver.cpp,v 1.11 2004-07-15 08:31:50 paklein Exp $ */
 /* created: paklein (08/19/1998) */
 #include "ExpCD_DRSolver.h"
 
@@ -160,8 +160,7 @@ SolverT::SolutionStatusT ExpCD_DRSolver::Solve(int num_iterations)
 		/* new equilibrium */					
 		if (relaxcode == GlobalT::kRelax ||
 			relaxcode == GlobalT::kReEQRelax)
-			ExceptionT::Stop();
-//			Relax();
+			Relax();
 	} 
 			
 	return solutionflag;
@@ -191,7 +190,7 @@ SolverT::SolutionStatusT ExpCD_DRSolver::ExitIteration(double error)
 {
 	/* CONVERGENCE MOVIES */
 //TEMP
-//	if (fKinePrintInc > 0 && (fNumIteration+1)%fKinePrintInc == 0)
+//	if (fKinePrintInc > 0 && fmod(fNumIteration+1,fKinePrintInc) == 0)
 //		fFEManager.PrintKinematic(fOutput,fTime);
 
 	++fNumIteration;
@@ -332,7 +331,6 @@ double ExpCD_DRSolver::SolveAndForm(void)
 	return fRHS.Magnitude();
 }
 
-#if 0
 /* relax system */
 void ExpCD_DRSolver::Relax(int newtancount)
 {	
@@ -365,7 +363,6 @@ void ExpCD_DRSolver::Relax(int newtancount)
 		throw ExceptionT::kGeneralFail;
 	}
 }
-#endif
 
 /*************************************************************************
 * Private

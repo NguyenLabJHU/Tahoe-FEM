@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.h,v 1.14 2004-10-26 22:03:20 paklein Exp $ */
+/* $Id: MaterialSupportT.h,v 1.13 2004-08-01 20:38:14 paklein Exp $ */
 #ifndef _MATERIAL_SUPPORT_T_H_
 #define _MATERIAL_SUPPORT_T_H_
 
@@ -149,7 +149,7 @@ inline const ContinuumElementT* MaterialSupportT::ContinuumElement(void) const
 
 /* solver iteration number for the group set with MaterialSupportT::SetGroup */
 inline const int& MaterialSupportT::GroupIterationNumber(void) const {
-	if (fGroup == -1) ExceptionT::GeneralFail("MaterialSupportT::GroupIterationNumber", "solver group not set");
+	if (fGroup == -1) ExceptionT::GeneralFail("", "solver group not set");
 	return IterationNumber(fGroup); /* inherited */
 }
 

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.44 2004-11-07 17:07:30 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.42 2004-09-09 16:15:49 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -9,7 +9,6 @@
 
 /* direct members */
 #include "GlobalT.h"
-#include "GeometryT.h"
 #include "iArray2DT.h"
 #include "ElementMatrixT.h"
 #include "dMatrixT.h"
@@ -198,15 +197,13 @@ public:
 	/** register element for output. An interface to indicate the element group
 	 * must create an OutputSetT and register it with FEManagerT::RegisterOutput
 	 * to obtain an output ID that is used to write data to the current
-	 * output destination. By default, the ElementBaseT::RegisterOutput registers 
-	 * output of the nodal field values over the elements defined in fConnectivities. */
-	virtual void RegisterOutput(void);
+	 * output destination. */
+	virtual void RegisterOutput(void) = 0;
 
 	/** write element output. An interface to indicate the element group
 	 * gather nodal and element data and send it for output with
-	 * FEManagerT::WriteOutput. By default, the ElementBaseT::WriteOutput writes
-	 * the nodal field values over the elements defined in fConnectivities. */
-	virtual void WriteOutput(void);
+	 * FEManagerT::WriteOutput */
+	virtual void WriteOutput(void) = 0;
 
 	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode) = 0;
@@ -236,9 +233,6 @@ public:
 	 * \em append them to the AutoArrayT that is passed in. */
 	virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 	             AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
-
-	/** return the geometry code */
-	virtual GeometryT::CodeT GeometryCode(void) const { return GeometryT::kPoint; };
 	/*@}*/
 		
 	/** prepare for a sequence of time steps */
@@ -394,7 +388,7 @@ protected: /* for derived classes only */
 	/** \name element loop operations */
 	/*@{*/
 	/** reset loop */
-	virtual void Top(void);
+	void Top(void);
 	
 	/** advance to next element. \return true if there is another element, 
 	 * false otherwise */ 
@@ -450,9 +444,6 @@ protected:
 	 * information for a block of connectivities. The content of each
 	 * row is set by ElementBaseT::BlockIndexT. */
 	ArrayT<ElementBlockDataT> fBlockData;
-
-	/** ID obtained during ElementBaseT::RegisterOutput */
-	int fOutputID;
 
 private:
 

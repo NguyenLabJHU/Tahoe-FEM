@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.cpp,v 1.12 2004-12-24 20:32:45 kyonten Exp $ */
+/* $Id: D2MeshFreeSupportT.cpp,v 1.11 2004-07-15 08:30:07 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupportT.h"
@@ -30,7 +30,6 @@ D2MeshFreeSupportT::D2MeshFreeSupportT(const ParentDomainT* domain, const dArray
 	MeshFreeSupportT(domain, coords, connects, nongridnodes),
 	fD2EFG(NULL)
 {
-	SetName("D2_meshfree_support"); //kyonten
 	/* only EFG solver is different for D2 */
 	if (fMeshfreeType == kEFG)
 	{
@@ -52,34 +51,6 @@ D2MeshFreeSupportT::D2MeshFreeSupportT(const ParentDomainT* domain, const dArray
 		fEFG = fD2EFG;
 	}
 }
-
-//*********************************************//
-// kyonten
-D2MeshFreeSupportT::D2MeshFreeSupportT(void) 
-{
-	SetName("D2_meshfree_support_2D");
-	/* only EFG solver is different for D2 */
-	if (fMeshfreeType == kEFG)
-	{
-		/* construct D2 MLS solver */
-		if (fCoords->MinorDim() == 2)
-			fD2EFG = new D2OrthoMLS2DT(fEFG->Completeness());
-		else
-		{
-			cout << "\n D2MeshFreeSupportT::D2MeshFreeSupportT: no 3D yet" << endl;
-			throw ExceptionT::kBadInputValue;
-		}
-		if (!fD2EFG) throw ExceptionT::kOutOfMemory;	
-		fD2EFG->Initialize();
-	
-	//TEMP - this will be better later
-	
-		/* set inherited */
-		delete fEFG;
-		fEFG = fD2EFG;
-	}
-}
-//*********************************************//
 
 /* steps to initialization - modifications to the support size must
 * occur before setting the neighbor data */
@@ -313,36 +284,7 @@ const dArray2DT& D2MeshFreeSupportT::DDFieldAt(void) const
 {	
 	return (fD2EFG) ? fD2EFG->DDphi() : fRKPM->DDphi();
 }
-//*****************************************************************//
-// kyonten
-/* describe the parameters needed by the interface */
-void D2MeshFreeSupportT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	MeshFreeSupportT::DefineParameters(list);
-}
 
-/* information about subordinate parameter lists */
-void D2MeshFreeSupportT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	MeshFreeSupportT::DefineSubs(sub_list);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* D2MeshFreeSupportT::NewSub(const StringT& name) const
-{
-	/* inherited */
-	return MeshFreeSupportT::NewSub(name);
-}
-
-/* accept parameter list */
-void D2MeshFreeSupportT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	MeshFreeSupportT::TakeParameterList(list);
-}
-//*****************************************************************//
 /*************************************************************************
 * Protected
 *************************************************************************/

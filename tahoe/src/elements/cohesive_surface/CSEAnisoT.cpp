@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.66 2004-10-13 06:36:05 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.65 2004-09-10 21:39:25 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -535,9 +535,6 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 	{
 		/* current element */
 		const ElementCardT& element = CurrentElement();
-		
-		if (element.Flag() != kOFF)
-		{
 	
 		/* surface potential */
 		SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
@@ -634,8 +631,6 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 
 		/* assemble */
 		AssembleLHS();
-		
-		} /* element.Flag() != kOFF */
 	}
 }
 

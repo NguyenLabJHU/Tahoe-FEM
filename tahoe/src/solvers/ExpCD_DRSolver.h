@@ -1,4 +1,4 @@
-/* $Id: ExpCD_DRSolver.h,v 1.7 2004-12-20 02:20:14 paklein Exp $ */
+/* $Id: ExpCD_DRSolver.h,v 1.6 2004-07-15 08:31:50 paklein Exp $ */
 /* created: paklein (08/19/1998) */
 
 #ifndef _EXPCD_DRSOLVER_H_
@@ -45,7 +45,7 @@ protected:
 		// need this function ??????
 	
 	/* relax system - reform tangent at newtancount intervals */
-//	void Relax(int newtancount = 1);
+	void Relax(int newtancount = 1);
 
 private:
 

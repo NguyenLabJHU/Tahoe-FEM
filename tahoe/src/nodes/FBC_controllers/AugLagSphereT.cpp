@@ -1,4 +1,4 @@
-/* $Id: AugLagSphereT.cpp,v 1.16 2004-12-20 01:23:25 paklein Exp $ */
+/* $Id: AugLagSphereT.cpp,v 1.14 2004-09-16 16:49:57 paklein Exp $ */
 /* created: paklein (03/24/1999) */
 #include "AugLagSphereT.h"
 #include "FieldT.h"
@@ -7,7 +7,6 @@
 #include "ParameterContainerT.h"
 #include "ParameterUtils.h"
 #include "XDOF_ManagerT.h"
-#include "AugLagWallT.h"
 
 using namespace Tahoe;
 
@@ -15,12 +14,7 @@ using namespace Tahoe;
 const int kNumAugLagDOF = 1;
 
 /* constructor */
-AugLagSphereT::AugLagSphereT(void):
-	fUzawa(false),
-	fPrimalIterations(-1),
-	fPenetrationTolerance(-1.0),
-	fRecomputeForce(false),
-	fIterationi(-2)
+AugLagSphereT::AugLagSphereT(void)
 {
 	SetName("sphere_augmented_Lagrangian");
 }
@@ -35,40 +29,35 @@ void AugLagSphereT::SetEquationNumbers(void)
 void AugLagSphereT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
 {
-	/* Uzawa algorithm has local update */
-	if (fUzawa)
-		/* inherited */
-		PenaltySphereT::Equations(eq_1, eq_2);
-	else
+#pragma unused(eq_2)
+
+	/* dimensions */
+	int ndof_u = Field().NumDOF();
+
+	/* collect displacement DOF's */
+	iArray2DT disp_eq(fContactNodes.Length(), ndof_u);
+	Field().SetLocalEqnos(fContactNodes, disp_eq);
+
+	int eq_col = 0;
+	iArrayT eq_temp(fContactNodes.Length());
+
+	/* displacement equations */
+	for (int i = 0; i < ndof_u; i++)
 	{
-		/* dimensions */
-		int ndof_u = Field().NumDOF();
-
-		/* collect displacement DOF's */
-		iArray2DT disp_eq(fContactNodes.Length(), ndof_u);
-		Field().SetLocalEqnos(fContactNodes, disp_eq);
-
-		int eq_col = 0;
-		iArrayT eq_temp(fContactNodes.Length());
-
-		/* displacement equations */
-		for (int i = 0; i < ndof_u; i++)
-		{
-			disp_eq.ColumnCopy(i, eq_temp);
-			fContactEqnos2D.SetColumn(eq_col++, eq_temp);
-		}
-
-		/* constraint equations */
-		const iArray2DT& auglageqs = FieldSupport().XDOF_Manager().XDOF_Eqnos(this, 0);
-		for (int j = 0; j < auglageqs.MinorDim(); j++)
-		{
-			auglageqs.ColumnCopy(j, eq_temp);
-			fContactEqnos2D.SetColumn(eq_col++, eq_temp);
-		}
-
-		/* send to solver */
-		eq_1.Append(&fContactEqnos2D);
+		disp_eq.ColumnCopy(i, eq_temp);
+		fContactEqnos2D.SetColumn(eq_col++, eq_temp);
 	}
+
+	/* constraint equations */
+	const iArray2DT& auglageqs = FieldSupport().XDOF_Manager().XDOF_Eqnos(this, 0);
+	for (int j = 0; j < auglageqs.MinorDim(); j++)
+	{
+		auglageqs.ColumnCopy(j, eq_temp);
+		fContactEqnos2D.SetColumn(eq_col++, eq_temp);
+	}
+
+	/* send to solver */
+	eq_1.Append(&fContactEqnos2D);
 }
 
 void AugLagSphereT::Connectivities(AutoArrayT<const iArray2DT*>& connects_1,
@@ -85,11 +74,7 @@ void AugLagSphereT::ReadRestart(istream& in)
 	/* inherited */
 	PenaltySphereT::ReadRestart(in);
 
-	/* previous solution */
-	if (fUzawa)
-		in >> fDOF;
-	else
-		in >> fLastDOF;
+	in >> fLastDOF; // previous solution
 }
 
 void AugLagSphereT::WriteRestart(ostream& out) const
@@ -97,23 +82,7 @@ void AugLagSphereT::WriteRestart(ostream& out) const
 	/* inherited */
 	PenaltySphereT::WriteRestart(out);
 
-	/* previous solution */
-	if (fUzawa)
-		out << fDOF;
-	else
-		out << fLastDOF;
-}
-
-void AugLagSphereT::InitStep(void)
-{
-	/* inherited */
-	PenaltySphereT::InitStep();
-
-	/* store solution */
-	if (fUzawa) {
-		fLastDOF = fDOF;
-		fIterationi = -2;
-	}
+	out << fLastDOF; // previous solution
 }
 
 void AugLagSphereT::CloseStep(void)
@@ -122,57 +91,9 @@ void AugLagSphereT::CloseStep(void)
 	PenaltySphereT::CloseStep();
 
 	/* store last converged DOF array */
-	if (!fUzawa) {
-		dArrayT constraints;
-		constraints.Alias(FieldSupport().XDOF_Manager().XDOF(this, 0));
-		fLastDOF = constraints;
-	}
-}
-
-/* update constrain forces */
-GlobalT::RelaxCodeT AugLagSphereT::RelaxSystem(void)
-{
-	GlobalT::RelaxCodeT relax = PenaltySphereT::RelaxSystem();
-	
-	/* check penetration tolerance */
-	if (fUzawa)
-	{
-		/* evaluate constraints */
-		const dArray2DT& coords = FieldSupport().CurrentCoordinates();
-		double penetration_norm = 0.0;
-		for (int i = 0; i < fNumContactNodes; i++)
-		{
-			/* center to striker */
-			coords.RowCopy(fContactNodes[i], fv_OP);
-			fv_OP -= fx;
-
-			/* center to striker */
-			coords.RowCopy(fContactNodes[i], fv_OP);
-			fv_OP -= fx;
-		
-			/* augmented Lagrangian multiplier */
-			double v = fv_OP.Magnitude();
-			double h = v - fRadius;
-			double g = fDOF[i] + fk*h;
-	
-			/* contact */
-			if (g <= 0.0) penetration_norm += h*h;
-
-			/* update stored gap */
-			fGap[i] = h;
-		}
-		
-		/* check convergence */
-		if (sqrt(penetration_norm) > fPenetrationTolerance) {
-			relax = GlobalT::MaxPrecedence(relax, GlobalT::kRelax);
-			fRecomputeForce = true;
-		}
-		else
-			relax = GlobalT::MaxPrecedence(relax, GlobalT::kNoRelax);
-	}
-
-	/* return */
-	return relax;
+	dArrayT constraints;
+	constraints.Alias(FieldSupport().XDOF_Manager().XDOF(this, 0));
+	fLastDOF = constraints;
 }
 
 /* restore the DOF values to the last converged solution */
@@ -189,9 +110,6 @@ void AugLagSphereT::ResetDOF(dArray2DT& DOF, int tag_set) const
 void AugLagSphereT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 {
 #pragma unused(sys_type)
-
-	/* no stiffness contribution with Uzawa */
-	if (fUzawa) return;
 
 	/* time integration */
 	double constK = 0.0;
@@ -297,71 +215,29 @@ int AugLagSphereT::Reconfigure(void) { return 0; }
 /* return the equation group */
 int AugLagSphereT::Group(void) const { return Field().Group(); };
 
-/* information about subordinate parameter lists */
-void AugLagSphereT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	PenaltySphereT::DefineSubs(sub_list);
-
-	/* direction */
-	sub_list.AddSub("Uzawa_method", ParameterListT::ZeroOrOnce);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* AugLagSphereT::NewSub(const StringT& name) const
-{
-	if (name == "Uzawa_method")
-	{
-		/* parameters defined by wall */
-		AugLagWallT wall;
-		return wall.NewSub(name);
-	}
-	else /* inherited */
-		return PenaltySphereT::NewSub(name);
-}
-
 /* accept parameter list */
 void AugLagSphereT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
 	PenaltySphereT::TakeParameterList(list);
 
-	/* look for Uzawa parameters */
-	const ParameterListT* Uzawa = list.List("Uzawa_method");
-	if (Uzawa)
-	{
-		fUzawa = true;
-		fPrimalIterations = Uzawa->GetParameter("primal_iterations");
-		fPenetrationTolerance = Uzawa->GetParameter("penetration_tolerance");
-	}
-	else
-		fUzawa = false;
+	/* (re-)dimension the tangent matrix */
+	int ndof = Field().NumDOF() + 1; // additional DOF
+	fLHS.Dimension(ndof); 
 
-	/* do Uzawa iterations or solve concurrently */
-	if (!fUzawa)
-	{
-		/* (re-)dimension the tangent matrix */
-		int ndof = Field().NumDOF() + 1; // additional DOF
-		fLHS.Dimension(ndof); 
-
-		/* set dimensions */
-		fContactEqnos.Dimension(fNumContactNodes*ndof);
-		fContactEqnos2D.Set(fNumContactNodes, ndof, fContactEqnos.Pointer());
+	/* set dimensions */
+	fContactEqnos.Dimension(fNumContactNodes*ndof);
+	fContactEqnos2D.Set(fNumContactNodes, ndof, fContactEqnos.Pointer());
 	
-		/* allocate memory for force vector */
-		fContactForce2D.Dimension(fNumContactNodes, ndof);
-		fContactForce.Set(fNumContactNodes*ndof, fContactForce2D.Pointer());
-		fContactForce2D = 0.0;
+	/* allocate memory for force vector */
+	fContactForce2D.Dimension(fNumContactNodes, ndof);
+	fContactForce.Set(fNumContactNodes*ndof, fContactForce2D.Pointer());
+	fContactForce2D = 0.0;
 
-		/* register with node manager - sets initial fContactDOFtags */
-		iArrayT set_dims(1);
-		set_dims = kNumAugLagDOF;
-		FieldSupport().XDOF_Manager().XDOF_Register(this, set_dims);	
-	}
-	else /* allocated space for multipliers */ {
-		fDOF.Dimension(fNumContactNodes);
-		fDOF = 0.0;
-	}
+	/* register with node manager - sets initial fContactDOFtags */
+	iArrayT set_dims(1);
+	set_dims = kNumAugLagDOF;
+	FieldSupport().XDOF_Manager().XDOF_Register(this, set_dims);	
 }
 
 /**********************************************************************
@@ -371,110 +247,56 @@ void AugLagSphereT::TakeParameterList(const ParameterListT& list)
 /* accumulate the contact force vector fContactForce */
 void AugLagSphereT::ComputeContactForce(double kforce)
 {
-	/* Uzawa */
-	if (fUzawa)
+	/* dimensions */
+	int ndof_u = Field().NumDOF();
+	int ndof   = fContactForce2D.MinorDim();
+
+	/* initialize */
+	fContactForce2D = 0.0;	
+
+	/* get current values of constraints */
+	const dArray2DT& constr = FieldSupport().XDOF_Manager().XDOF(this, 0);
+	const dArrayT force(constr.MajorDim(), constr.Pointer());
+
+	const dArray2DT& coords = FieldSupport().CurrentCoordinates();
+	dArrayT f_u;
+	for (int i = 0; i < fNumContactNodes; i++)
 	{
-		/* check for update */
-		int iter = FieldSupport().IterationNumber();
-		if (!fRecomputeForce && (iter != -1 && (iter+1)%fPrimalIterations != 0)) return;
-		fRecomputeForce = false;
+		/* displacement DOF's */
+		f_u.Set(ndof_u, fContactForce2D(i));
 	
-		/* store last iterate */
-		if (fIterationi != iter) {
-			fIterationi = iter;
-			fDOFi = fDOF;
-		}
-	
-		/* dimensions */
-		int ndof = Field().NumDOF();
-
-		/* initialize */
-		fContactForce2D = 0.0;	
-
-		/* loop over strikers */
-		const dArray2DT& coords = FieldSupport().CurrentCoordinates();
-		dArrayT f_u;
-		for (int i = 0; i < fNumContactNodes; i++)
-		{
-			/* displacement DOF's */
-			f_u.Set(ndof, fContactForce2D(i));
-	
-			/* center to striker */
-			coords.RowCopy(fContactNodes[i], fv_OP);
-			fv_OP -= fx;
+		/* center to striker */
+		coords.RowCopy(fContactNodes[i], fv_OP);
+		fv_OP -= fx;
 		
-			/* augmented Lagrangian multiplier */
-			double v = fv_OP.Magnitude();
-			double h = v - fRadius;
-			double g = fDOFi[i] + fk*h;
+		/* augmented Lagrangian multiplier */
+		double v = fv_OP.Magnitude();
+		double h = v - fRadius;
+		double g = force[i] + fk*h;
 	
-			/* contact */
-			if (g <= 0.0) {
-				f_u.SetToScaled(-g*kforce/v, fv_OP);
-				fDOF[i] = g;
-			}
-			/* no contact */
-			else
-				fDOF[i] = 0.0;
-
-			/* store */
-			fGap[i] = h;
-		}
-
-	}
-	else /* solve primal and dual simultaneously */
-	{
-		/* dimensions */
-		int ndof_u = Field().NumDOF();
-		int ndof   = fContactForce2D.MinorDim();
-
-		/* initialize */
-		fContactForce2D = 0.0;	
-
-		/* get current values of constraints */
-		const dArray2DT& constr = FieldSupport().XDOF_Manager().XDOF(this, 0);
-		const dArrayT force(constr.MajorDim(), constr.Pointer());
-
-		const dArray2DT& coords = FieldSupport().CurrentCoordinates();
-		dArrayT f_u;
-		for (int i = 0; i < fNumContactNodes; i++)
+		/* contact */
+		if (g <= 0.0)
 		{
-			/* displacement DOF's */
-			f_u.Set(ndof_u, fContactForce2D(i));
-	
-			/* center to striker */
-			coords.RowCopy(fContactNodes[i], fv_OP);
-			fv_OP -= fx;
-		
-			/* augmented Lagrangian multiplier */
-			double v = fv_OP.Magnitude();
-			double h = v - fRadius;
-			double g = force[i] + fk*h;
-	
-			/* contact */
-			if (g <= 0.0)
-			{
-				/* displace DOF's */
-				f_u.SetToScaled(-g*kforce/v, fv_OP);
+			/* displace DOF's */
+			f_u.SetToScaled(-g*kforce/v, fv_OP);
 
-				/* augmented Lagrangian DOF */
-				fContactForce2D(i, ndof - 1) = -h*kforce;
-			}
-			/* no contact */
-			else
-			{
-				/* grad_disp contribution */
-				f_u = 0.0;
-
-				/* augmented Lagrangian DOF */
-				fContactForce2D(i, ndof - 1) = force[i]*kforce/fk;			
-			}
-
-			//NOTE: This contact force is the negative of the element
-			//      force in Heegaard.
-
-			/* store */
-			fGap[i] = h;
+			/* augmented Lagrangian DOF */
+			fContactForce2D(i, ndof - 1) = -h*kforce;
 		}
+		/* no contact */
+		else
+		{
+			/* grad_disp contribution */
+			f_u = 0.0;
+
+			/* augmented Lagrangian DOF */
+			fContactForce2D(i, ndof - 1) = force[i]*kforce/fk;			
+		}
+
+		//NOTE: This contact force is the negative of the element
+		//      force in Heegaard.
+
+		/* store */
+		fGap[i] = h;
 	}
 }

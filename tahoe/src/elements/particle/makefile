@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2004-11-23 01:43:15 cjkimme Exp $
+# $Id: makefile,v 1.4 2003-04-16 18:15:49 cjkimme Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,8 +22,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	ParticlePairT.o \
 	EAMT.o \
-	ParticleT.o \
-	ParticleThreeBodyT.o
+	ParticleT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -45,8 +44,7 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	ParticlePairT.cpp \
 	EAMT.cpp \
-	ParticleT.cpp \
-	ParticleThreeBodyT.cpp
+	ParticleT.cpp
 
 ##################### (3) headers
 #
@@ -60,8 +58,7 @@ SRC = \
 HDR = \
 	ParticlePairT.h \
 	EAMT.h \
-	ParticleT.h \
-	ParticleThreeBodyT.h
+	ParticleT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.cpp,v 1.15 2004-11-03 16:09:54 raregue Exp $ */
+/* $Id: GaussianWindowT.cpp,v 1.10 2004-06-26 06:11:13 paklein Exp $ */
 #include "GaussianWindowT.h"
 #include "ExceptionT.h"
 #include <math.h>
@@ -16,7 +16,7 @@ GaussianWindowT::GaussianWindowT(double dilation_scaling, double sharpening_fact
 	fCutOffFactor(cut_off_factor)
 {
 	if (fDilationScaling < 0.0 || fSharpeningFactor < 0.0 || fCutOffFactor < 1.0)
-		ExceptionT::BadInputValue("GaussianWindowT::GaussianWindowT");
+		throw ExceptionT::kBadInputValue;
 }
 
 /* "synchronization" of nodal field parameters. */
@@ -50,7 +50,7 @@ void GaussianWindowT::WriteParameters(ostream& out) const
 
 /* Single point evaluations */
 bool GaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
-		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dMatrixT& DDDw) //kyonten
+		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw)
 {
 	/* check out of influence range */
 	if (!GaussianWindowT::Covers(x_n, x, param_n))
@@ -60,11 +60,7 @@ bool GaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const d
 		{
 			Dw = 0.0;
 			if (order > 1)
-			{
 				DDw = 0.0;
-				if (order > 2) // kyonten
-					DDDw = 0.0;
-			}
     	}
     	
     	/* no cover */
@@ -89,43 +85,6 @@ bool GaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const d
 	  			DDw.Outer(Dw);
 	  			DDw *= 4.0 * w / (adm2 * adm2);
 	  			DDw.PlusIdentity(-2.0 * w / adm2);
-	  			if (order > 2) // kyonten
-	  			{
-					int nsd = x.Length();
-					/* work space */
-	  				dSymMatrixT DDDw1(nsd);
-	  				dMatrixT DDDw2(nsd,nsd);
-	  				dMatrixT DDDw3(nsd,nsd);
-	  				dArrayT DDDw1_vec(nsd), I(nsd);
-	  				/*  DDDw is a [nsd]x[nsd]x[nsd] or [nsd]x[nsd*nsd] matrix. 
-	  				    using symmetry it reduces to [nsd]x[nstr]
-	  					only the first three (3D) or two (2D) columns (contribution from 
-	  					diagonal terms) of the [nsd]x[nstr] matrix are needed for the
-	  					calculation of the Laplacian of strain tensor
-	  					DDDw, thus, becomes a [nsd]x[nsd] unsymmetric matrix 
-	  				*/
-	  				DDDw1.Outer(Dw);
-	  				for (int i = 0; i < nsd; i++)
-	  				{
-	  					for (int j = 0; i < nsd; j++)
-	  					{
-	  						if (i == j)
-	  						{
-	  							DDDw1_vec[j] = DDDw1(i,j); //collect diagonal terms
-	  							I[j] = 1.0;
-	  						}
-	  					}
-	  				}
-	  				DDDw.Outer(Dw,DDDw1_vec);
-	  				DDDw *= -8.0*w/(adm2*adm2*adm2);
-	  				DDDw2.Outer(Dw,I);
-	  				DDDw2 += DDDw2;
-	  				DDDw2 *= 4.0*w/(adm2*adm2);
-	  				DDDw += DDDw2;
-	  				DDDw3.Outer(Dw,I); 
-	  				DDDw3 *= 4.0*w/(adm2*adm2);
-	  				DDDw += DDDw3;
-	  			} // (order > 2)
       		}
       		
       		/* set first derivative */
@@ -139,13 +98,12 @@ bool GaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const d
 
 /* multiple point calculations */
 int GaussianWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, 
-	const dArrayT& x, int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw, dArray2DT& DDDw) //kyonten
+	const dArrayT& x, int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw)
 {
 	/* allocate */
 	int nsd = x.Length();
 	fNSD.Dimension(nsd);
 	fNSDsym.Dimension(nsd);
-	fNSDunsym.Dimension(nsd,nsd);
 	
 	/* work space */
 	dArrayT x_node, param_node;
@@ -159,7 +117,7 @@ int GaussianWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n,
 		param_n.RowAlias(i, param_node);
 	
 		/* single point evaluation (override virtual) */
-		if (GaussianWindowT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym, fNSDunsym))
+		if (GaussianWindowT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym))
 			count++;
 			
 		/* store derivatives */
@@ -167,11 +125,7 @@ int GaussianWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n,
 		{
 			Dw.SetColumn(i, fNSD);
 			if (order > 1)
-			{
 				DDw.SetColumn(i, fNSDsym);
-				if (order > 2) //kyonten
-					DDDw.SetColumn(i, fNSDunsym);
-			}
 		}
 	}
 	return count;
@@ -217,10 +171,10 @@ double GaussianWindowT::SphericalSupportSize(const dArrayT& param_n) const
 }
 
 /* rectangular support size */
-void GaussianWindowT::RectangularSupportSize(const dArrayT& param_n, dArrayT& support_size) const
+const dArrayT& GaussianWindowT::RectangularSupportSize(const dArrayT& param_n) const 
 {
-	/* same in all dimensions */
-	support_size = SphericalSupportSize(param_n);
+	ExceptionT::GeneralFail("GaussianWindowT::RectangularSupportSize");
+	return param_n; /* dummy */
 }
 
 /* spherical support sizes in batch */
@@ -235,4 +189,12 @@ void GaussianWindowT::SphericalSupportSize(const dArray2DT& param_n, ArrayT<doub
 	dArrayT tmp;
 	tmp.Alias(support_size);
 	tmp.SetToScaled(fCutOffFactor*fDilationScaling, param_n);
+}
+
+/* rectangular support sizes in batch */
+void GaussianWindowT::RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const
+{
+#pragma unused(param_n)
+#pragma unused(support_size)
+	ExceptionT::GeneralFail("GaussianWindowT::RectangularSupportSize");
 }
