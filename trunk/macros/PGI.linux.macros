@@ -1,6 +1,6 @@
-# $Id: PGI.linux.macros,v 1.4 2002-03-19 17:18:53 paklein Exp $
+# $Id: PGI.linux.macros,v 1.5 2002-11-28 16:43:22 paklein Exp $
 # linux with Portland Group compilers
-MPI_CFLAGS = -D__MPI__
+MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpich
 
 MAKE        = make

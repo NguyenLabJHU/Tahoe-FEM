@@ -1,4 +1,4 @@
-/* $Id: fstreamT.cpp,v 1.6 2002-10-20 22:39:00 paklein Exp $ */
+/* $Id: fstreamT.cpp,v 1.7 2002-11-28 16:43:40 paklein Exp $ */
 
 #include "fstreamT.h"
 #include "Environment.h"
@@ -56,7 +56,8 @@ else if(__MWERKS__ <= 0x2407)
 else /* stop */
 {
 	cout << "ifstreamT::need_MW_workaround: __MWERKS__ > 0x2407. Still need fix?" << endl;
-	throw ExceptionT::kStop;
+//	throw ExceptionT::kStop;
+	return true;
 }
 #else
 	return false;

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.26 2002-11-28 01:14:06 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.27 2002-11-28 16:44:18 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -164,9 +164,23 @@ public:
 	 * if no group is current. */
 	int IterationNumber(void) const;
 
-	/* solution messaging */
-	void FormLHS(int group) const;
+	/** \name solution messaging 
+	 * Methods called by the solver during the solution process. Either can be called
+	 * an arbitrary number of times per time increment. However, FEManagerT::FormRHS
+	 * must be called before the corresponding call to FEManagerT::FormLHS during a
+	 * given iteration. */
+	/*@{*/
+	/** compute LHS-side matrix and assemble to solver.
+	 * \param group equation group to solve
+	 * \param sys_type "maximum" LHS matrix type needed by the solver. The GlobalT::SystemTypeT
+	 *        enum is ordered by generality. The solver should indicate the most general
+	 *        system type that is actually needed. */
+	void FormLHS(int group, GlobalT::SystemTypeT sys_type) const;
+
+	/** compute RHS-side, residual force vector and assemble to solver
+	 * \param group equation group to solve */
 	void FormRHS(int group) const;
+	/*@}*/
 
 	/** send update of the solution to the NodeManagerT */
 	virtual void Update(int group, const dArrayT& update);

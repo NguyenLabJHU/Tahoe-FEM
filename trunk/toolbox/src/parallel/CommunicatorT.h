@@ -1,10 +1,10 @@
-/* $Id: CommunicatorT.h,v 1.5 2002-08-21 07:19:29 paklein Exp $ */
+/* $Id: CommunicatorT.h,v 1.6 2002-11-28 16:43:41 paklein Exp $ */
 #ifndef _COMMUNICATOR_T_H_
 #define _COMMUNICATOR_T_H_
 
 #include "Environment.h"
 
-#ifdef __MPI__
+#ifdef __TAHOE_MPI__
 #include "mpi.h"
 #else
 #define MPI_Comm long

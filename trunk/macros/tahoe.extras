@@ -1,4 +1,4 @@
-# $Id: tahoe.extras,v 1.5 2002-04-03 00:20:57 paklein Exp $
+# $Id: tahoe.extras,v 1.6 2002-11-28 16:43:22 paklein Exp $
 #
 # additional make commands for the tahoe module
 #
@@ -18,11 +18,13 @@ default:
 touch_spooles:
 	@ $(ECHO) "removing object files depending on SPOOLES"
 	-@ $(RM) $(SRC_DIR)/solvers/SolverT.o
+	-@ $(RM) $(SRC_DIR)/solvers/NLSolver.o
 	-@ $(RM) $(SRC_DIR)/primitives/globalmatrix/SPOOLES/*.o
 
 touch_Aztec:
 	@ $(ECHO) "removing object files depending on Aztec"
 	-@ $(RM) $(SRC_DIR)/solvers/SolverT.o
+	-@ $(RM) $(SRC_DIR)/solvers/NLSolver.o
 	-@ $(RM) $(SRC_DIR)/primitives/globalmatrix/aztec/*.o
 
 touch_f2c:
@@ -39,6 +41,7 @@ touch_SEACAS:
 touch_MPI:
 	@ $(ECHO) "removing object files depending on MPI"
 	-@ $(RM) $(SRC_DIR)/main/*.o
+	-@ $(RM) $(SRC_DIR)/elements/continuum/meshfree/MeshFreeElementSupportT.o
 	-@ $(MAKE) touch_spooles touch_Aztec
 	@ $(ECHO) "NOTE: toolbox must also be up to date"
 	

@@ -1,6 +1,6 @@
-# $Id: DEC.mpi.macros,v 1.10 2002-03-22 00:44:56 paklein Exp $
+# $Id: DEC.mpi.macros,v 1.11 2002-11-28 16:43:22 paklein Exp $
 # MPI
-MPI_CFLAGS = -D__MPI__
+MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpi
 
 # DEC

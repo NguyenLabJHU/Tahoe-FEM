@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.11 2002-10-20 22:49:29 paklein Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.12 2002-11-28 16:44:21 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #ifndef _KBC_CONTROLLER_T_H_
@@ -75,7 +75,7 @@ public:
 	virtual void FormRHS(void) { };
 
 	/** computing tangent */
-	virtual void FormLHS(void) { };
+	virtual void FormLHS(GlobalT::SystemTypeT) { };
 	
 	/** apply the update to the solution. Does nothing by default. */
 	virtual void Update(const dArrayT& update);
