@@ -326,7 +326,9 @@ void MakeCrystalT::Run()
 
   out_coord.close();
 
+  */
+
   out << "\nWriting geometry in specified format file...\n";
   mesh_atom.BuildIOFile(program,version,title,input,kformat,per);
-  */
+
 }
