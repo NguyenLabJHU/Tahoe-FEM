@@ -1,4 +1,4 @@
-/* $Id: nNLHHTalpha.h,v 1.2 2001-08-27 17:12:11 paklein Exp $ */
+/* $Id: nNLHHTalpha.h,v 1.3 2002-03-25 16:42:26 paklein Exp $ */
 /* created: paklein (10/17/1996) */
 
 #ifndef _N_NL_HHT_A_H_
@@ -53,7 +53,6 @@ private:
 	/* corrector/consistent BC */
 	double	dcorr_a;
 	double	vcorr_a;
-	
 };
 
 #endif /* _N_NL_HHT_A_H_ */

@@ -1,4 +1,4 @@
-/* $Id: nNLHHTalpha.cpp,v 1.2 2001-08-27 17:12:11 paklein Exp $ */
+/* $Id: nNLHHTalpha.cpp,v 1.3 2002-03-25 16:42:26 paklein Exp $ */
 /* created: paklein (10/17/1996)                                          */
 
 #include "nNLHHTalpha.h"
@@ -173,11 +173,19 @@ void nNLHHTalpha::MappedCorrector(const iArrayT& map, const iArray2DT& flags,
 			/* active */
 			if (*pflag >= eq_start && *pflag <= eq_stop)
 			{
-				double da = *pupdate;
+				double da = *pupdate - *pa; 
+/* NOTE: update is the total a_n+1, so we need to recover da, the acceleration
+ *       increment. Due to truncation errors, this will not match the update
+ *       applied in nNLHHTalpha::Corrector exactly. Therefore, ghosted nodes
+ *       will not have exactly the same trajectory as their images. The solution
+ *       would be to expand da to the full field, and send it. Otherwise, we
+ *       could develop maps from the update vector to each communicated outgoing
+ *       packet. Or {d,v,a} could be recalculated from t_n here and in Corrector,
+ *       though this would require the data from t_n. */
 			
 				*pd += dcorr_a*da;
 				*pv += vcorr_a*da;
-				*pa += da;
+				*pa  = *pupdate; /* a_n+1 matches exactly */
 			}
 			
 			/* next */
