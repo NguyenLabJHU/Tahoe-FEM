@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.h,v 1.6 2003-06-09 06:54:30 paklein Exp $ */
+/* $Id: DiffusionMaterialT.h,v 1.7 2003-12-10 07:14:28 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSION_MATERIALT_H_
 #define _DIFFUSION_MATERIALT_H_
@@ -24,6 +24,7 @@ public:
 
 	/** constructor */
 	DiffusionMaterialT(ifstreamT& in, const DiffusionMatSupportT& support);
+	DiffusionMaterialT(void);
 
 	/** \name print parameters */
 	/*@{*/
@@ -39,23 +40,43 @@ public:
 	/** heat flux */
 	virtual const dArrayT& q_i(void);
 
+	/** change in heat flux with temperature */
+	virtual const dArrayT& dq_i_dT(void) { return fdq_i; };
+
 	double Density(void) const;
 	virtual double SpecificHeat(void) const;
 	double Capacity(void) const;
+
+	/** change in capacity with temperature */
+	virtual double dCapacity_dT(void) const { return 0; };
+	/*@}*/
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
 	/*@}*/
 
 protected:
 
 	/** support for diffusion materials */
-	const DiffusionMatSupportT& fDiffusionMatSupport;
+	const DiffusionMatSupportT* fDiffusionMatSupport;
 
-	/* parameters */
+	/** \name parameters */
+	/*@{*/
 	double   fDensity;
 	double   fSpecificHeat;
-	dMatrixT fConductivity;	// always symmetric?
+	dMatrixT fConductivity;
+	/*@}*/
 
+	/** \name return values */
+	/*@{*/
 	/** heat flux return value */
 	dArrayT fq_i;  
+
+	/** heat flux variation return value */
+	dArrayT fdq_i;  
+	/*@}*/
 };
 
 /* returns the density */

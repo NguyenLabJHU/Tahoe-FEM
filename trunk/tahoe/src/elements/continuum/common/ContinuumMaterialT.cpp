@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.cpp,v 1.8 2003-11-21 22:46:00 paklein Exp $ */
+/* $Id: ContinuumMaterialT.cpp,v 1.9 2003-12-10 07:14:21 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "ContinuumMaterialT.h"
 #include "MaterialSupportT.h"
@@ -9,10 +9,21 @@ using namespace Tahoe;
 
 /* constructor */
 ContinuumMaterialT::ContinuumMaterialT(const MaterialSupportT& support):
-	fMaterialSupport(support),
+	ParameterInterfaceT("continuum_material"),
+	fMaterialSupport(&support),
 	fNumDOF(support.NumDOF()),
 	fNumSD(support.NumSD()),
 	fNumIP(support.NumIP())
+{
+
+}
+
+ContinuumMaterialT::ContinuumMaterialT(void):
+	ParameterInterfaceT("continuum_material"),
+	fMaterialSupport(NULL),
+	fNumDOF(0),
+	fNumSD(0),
+	fNumIP(0)
 {
 
 }
@@ -23,24 +34,24 @@ ContinuumMaterialT::~ContinuumMaterialT(void) { }
 /* element card data */
 int ContinuumMaterialT::NumElements(void) const
 {
-	return fMaterialSupport.NumElements();
+	return MaterialSupport().NumElements();
 }
 
 int ContinuumMaterialT::CurrElementNumber(void) const
 {
-	return fMaterialSupport.CurrElementNumber();
+	return MaterialSupport().CurrElementNumber();
 }
 
 ElementCardT& ContinuumMaterialT::ElementCard(int card) const
 {
-	ElementCardT* the_card = fMaterialSupport.ElementCard(card);
+	ElementCardT* the_card = MaterialSupport().ElementCard(card);
 	if (!the_card) ExceptionT::GeneralFail("ContinuumMaterialT::ElementCard");
 	return *the_card;
 }
 
 ElementCardT& ContinuumMaterialT::CurrentElement(void) const
 {
-	ElementCardT* the_card = fMaterialSupport.CurrentElement();
+	ElementCardT* the_card = MaterialSupport().CurrentElement();
 	if (!the_card) ExceptionT::GeneralFail("ContinuumMaterialT::CurrentElement");
 	return *the_card;
 }

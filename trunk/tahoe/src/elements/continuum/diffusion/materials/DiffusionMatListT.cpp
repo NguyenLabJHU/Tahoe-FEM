@@ -1,4 +1,4 @@
-/* $Id: DiffusionMatListT.cpp,v 1.6 2003-12-02 17:14:57 paklein Exp $ */
+/* $Id: DiffusionMatListT.cpp,v 1.7 2003-12-10 07:14:28 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "DiffusionMatListT.h"
 #include "DiffusionMatSupportT.h"
@@ -64,3 +64,26 @@ void DiffusionMatListT::ReadMaterialData(ifstreamT& in)
 		if (!fArray[matnum]) ExceptionT::OutOfMemory(caller);
 	}
 }
+
+/* information about subordinate parameter lists */
+void DiffusionMatListT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	MaterialListT::DefineSubs(sub_list);
+
+	/* diffusion materials */
+	sub_list.AddSub("linear_diffusion");
+	sub_list.AddSub("nonlinear_diffusion");
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* DiffusionMatListT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "linear_diffusion")
+		return new DiffusionMaterialT;	
+	else if (list_name == "nonlinear_diffusion")
+		return new NLDiffusionMaterialT;
+	else /* inherited */
+		return MaterialListT::NewSub(list_name);
+}
+
