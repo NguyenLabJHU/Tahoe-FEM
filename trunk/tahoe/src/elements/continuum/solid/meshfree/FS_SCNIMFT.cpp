@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.19 2005-02-03 19:53:42 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.20 2005-02-04 01:29:14 cjkimme Exp $ */
 #include "FS_SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -639,6 +639,8 @@ MaterialListT* FS_SCNIMFT::NewMaterialList(const StringT& name, int size)
 		 /* material support */
 		 if (!fFSMatSupport) {
 		 	fFSMatSupport = new FSMatSupportT(nsd, 1);      
+			if (qIsAxisymmetric)
+				fFSMatSupport->SetNumSD(3);
 		 	if (!fFSMatSupport)
 		 		ExceptionT::GeneralFail("FS_SCNIMFT::NewMaterialList","Could not instantiate material support\n");
 
