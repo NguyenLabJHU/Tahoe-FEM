@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.5 2002-07-02 19:55:24 cjkimme Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.6 2002-07-17 00:00:49 paklein Exp $ */
 
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
@@ -48,45 +48,6 @@ void SmallStrainT::Initialize(void)
 		for (int i = 0; i < NumIP(); i++)
 			fStrain_last_List[i].Allocate(NumSD());
 	}
-}
-
-/* compute field gradients */
-void SmallStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u) const
-{
-#pragma unused(u)
-#pragma unused(grad_u)
-	cout << "\n SmallStrainT::ComputeGradient: not implemented" << endl;
-	throw;
-}
-
-/* compute field gradients */
-void SmallStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u, int ip) const
-{
-#pragma unused(u)
-#pragma unused(grad_u)
-#pragma unused(ip)
-	cout << "\n SmallStrainT::ComputeGradient: not implemented" << endl;
-	throw;
-}
-
-/* compute field gradients from the end of the previous time step */
-void SmallStrainT::ComputeGradient_last(const LocalArrayT& u, dMatrixT& grad_u) const
-{
-#pragma unused(u)
-#pragma unused(grad_u)
-	cout << "\n SmallStrainT::ComputeGradient_last: not implemented" << endl;
-	throw;
-}
-
-/* compute field gradients from the end of the previous time step */
-void SmallStrainT::ComputeGradient_last(const LocalArrayT& u, dMatrixT& grad_u, 
-	int ip) const
-{
-#pragma unused(u)
-#pragma unused(grad_u)
-#pragma unused(ip)
-	cout << "\n SmallStrainT::ComputeGradient_last: not implemented" << endl;
-	throw;
 }
 
 /***********************************************************************

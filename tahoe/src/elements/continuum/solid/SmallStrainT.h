@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.6 2002-07-05 22:28:02 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.7 2002-07-17 00:00:49 paklein Exp $ */
 
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
@@ -26,14 +26,6 @@ class SmallStrainT: public ElasticT
 	/** total strain from the end of the previous time step */
 	const dSymMatrixT& LinearStrain_last(void) const;
 	const dSymMatrixT& LinearStrain_last(int ip) const;
-
-	/** compute field gradients */
-	void ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u) const;
-	void ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u, int ip) const;
-
-	/** compute field gradients from the end of the previous time step */
-	void ComputeGradient_last(const LocalArrayT& u, dMatrixT& grad_u) const;
-	void ComputeGradient_last(const LocalArrayT& u, dMatrixT& grad_u, int ip) const;
 
   protected:
 
