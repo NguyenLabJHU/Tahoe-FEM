@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.46.2.5 2004-08-09 20:57:37 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.46.2.6 2004-08-11 01:10:23 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -87,7 +87,7 @@ public:
 	//void Decompose(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose, int method); moved to FEDecomposeT.h
 	
 	/* return reference to partition data, formerly in FEManagerT_mpi.h, DEF 28 July 04 */
-	const PartitionT& Partition(void) const;
+	const PartitionT* Partition(void) const;
 	
 	/* set the external IOManager, formerly in FEManagerT_mpi.h, DEF 28 July 04 (needed??) */
 	void SetExternalIO(IOManager_mpi* externIO);
@@ -619,10 +619,9 @@ inline int FEManagerT::GlobalNumEquations(int group) const { return fGlobalNumEq
 
 // inserted inlines formerly in FEManagerT_mpi.h, DEF 28 July 04
 /* return reference to partition data */
-inline const PartitionT& FEManagerT::Partition(void) const
+inline const PartitionT* FEManagerT::Partition(void) const
 {
-	if (!fPartition) throw ExceptionT::kGeneralFail;
-	return *fPartition;
+	return fPartition;
 }
 
 /* set the external IOManager */
