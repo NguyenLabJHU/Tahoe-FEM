@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.36.2.4 2004-04-14 22:38:46 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.36.2.5 2004-04-16 18:11:35 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -930,6 +930,9 @@ ParameterInterfaceT* ParticleT::NewSub(const StringT& list_name) const
 		
 		/* specify by node set IDs */
 		particle_type->AddSub("node_ID_list", ParameterListT::ZeroOrOnce);
+
+		/* specify by element block IDs */
+		particle_type->AddSub("block_ID_list", ParameterListT::ZeroOrOnce);
 		
 		return particle_type;
 	}
@@ -1058,7 +1061,34 @@ void ParticleT::TakeParameterList(const ParameterListT& list)
 			for (int j = 0; j < tags.Length(); j++)
 				fType[tags[j]] = i;			
 		}
-		else if (!all) /* nothing declared */
+
+		/* look for block ID list */
+		const ParameterListT* block_ID_list = particle_type.List("block_ID_list");
+		if (block_ID_list) {
+		
+			/* collect id's */
+			ArrayT<StringT> id_list;
+			StringListT::Extract(*block_ID_list, id_list);
+			if (all && id_list.Length() > 0)
+				ExceptionT::GeneralFail(caller, "label \"%s\" is \"all\" and cannot include %d block ID's",
+					fTypeNames[i].Pointer(), id_list.Length());
+
+			/* access to the model database */
+			ModelManagerT& model = ElementSupport().ModelManager();
+			
+			/* read block information */
+			for (int k = 0; k < id_list.Length(); k++) {
+			
+				const iArray2DT& tags = model.ElementGroup(id_list[k]);
+
+				/* mark map - connectivities treated as 1D list */
+				for (int j = 0; j < tags.Length(); j++)
+					fType[tags[j]] = i;
+			}
+		}
+		
+		/* nothing declared */
+		if (!all && !node_ID_list && !block_ID_list)
 			ExceptionT::GeneralFail(caller, "label \"%s\" is empty", fTypeNames[i].Pointer());
 	}
 
