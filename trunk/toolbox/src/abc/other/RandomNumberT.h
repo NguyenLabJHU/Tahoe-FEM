@@ -1,5 +1,4 @@
-/* $Id: RandomNumberT.h,v 1.1 2003-03-14 00:45:49 cjkimme Exp $ */
-/* created: paklein (08/01/1996) */
+/* $Id: RandomNumberT.h,v 1.2 2003-03-14 16:31:06 paklein Exp $ */
 #ifndef _RANDOM_NUMBER_T_H_
 #define _RANDOM_NUMBER_T_H_
 
@@ -31,7 +30,7 @@ public:
 	/*@}*/
 
 	/*@{*/
-	RandomNumberT(ifstreamT in);
+	RandomNumberT(ifstreamT& in);
 	/*@}*/
 	
  public:

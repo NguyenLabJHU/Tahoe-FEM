@@ -1,5 +1,4 @@
-/* $Id: RandomNumberT.cpp,v 1.1 2003-03-14 00:45:49 cjkimme Exp $ */
-/* created: paklein (08/01/1996) */
+/* $Id: RandomNumberT.cpp,v 1.2 2003-03-14 16:31:06 paklein Exp $ */
 #include "RandomNumberT.h"
 #include "ifstreamT.h"
 #include <math.h>
@@ -10,7 +9,7 @@ using namespace Tahoe;
 /* line length */
 const int kLineLength = 254;
 
-RandomNumberT::RandomNumberT(ifstreamT in)
+RandomNumberT::RandomNumberT(ifstreamT& in)
 {
   ExceptionT::GeneralFail("RandomNumberT::RandomNumberT","not implemented yet");
 }
