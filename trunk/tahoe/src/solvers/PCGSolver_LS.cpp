@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.12 2003-03-31 22:59:32 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.13 2003-04-08 22:59:24 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #include "PCGSolver_LS.h"
 
@@ -108,7 +108,9 @@ double PCGSolver_LS::SolveAndForm(void)
 
 	/* apply update to system */
 	fRHS_lock = kOpen;
+	fLHS_lock = kIgnore;
 	Update(fRHS, &fR);
+	fLHS_lock = kLocked;
 									
 	/* recalculate residual */
 	fNumIteration++;
