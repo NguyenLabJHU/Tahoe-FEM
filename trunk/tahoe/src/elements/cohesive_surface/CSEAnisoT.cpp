@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.31 2002-12-03 19:13:37 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.32 2002-12-05 00:58:53 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -843,10 +843,6 @@ void CSEAnisoT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& 
 void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	const iArrayT& e_codes, dArray2DT& e_values)
 {      
-#pragma unused(n_codes)
-#pragma unused(n_values)
-#pragma unused(e_codes)
-#pragma unused(e_values)
 #ifndef _SIERRA_TEST_
 	/* number of output values */
 	int n_out = n_codes.Sum();
@@ -1141,6 +1137,10 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	/* get nodally averaged values */
 	ElementSupport().OutputUsedAverage(n_values);
 #else
+#pragma unused(n_codes)
+#pragma unused(n_values)
+#pragma unused(e_codes)
+#pragma unused(e_values)
 	cout << "CSEAnisoT::ComputeOuput: IO not implemented\n";
 	throw ExceptionT::kGeneralFail;
 #endif
