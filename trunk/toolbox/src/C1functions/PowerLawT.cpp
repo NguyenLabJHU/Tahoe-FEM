@@ -1,4 +1,4 @@
-/* $Id: PowerLawT.cpp,v 1.1 2004-01-27 19:07:23 paklein Exp $ */
+/* $Id: PowerLawT.cpp,v 1.2 2005-03-11 20:26:05 paklein Exp $ */
 #include "PowerLawT.h"
 #include "dArrayT.h"
 #include <math.h>
@@ -6,9 +6,10 @@
 using namespace Tahoe;
 
 /* constructor */
-PowerLawT::PowerLawT(double a, double b, double n):
+PowerLawT::PowerLawT(double a, double b, double c, double n):
 	fa(a),
 	fb(b),
+	fc(c),
 	fn(n)
 {
 	SetName("power_law");
@@ -17,6 +18,7 @@ PowerLawT::PowerLawT(double a, double b, double n):
 PowerLawT::PowerLawT(void):
 	fa(0.0),
 	fb(0.0),
+	fc(0.0),
 	fn(0.0)
 {
 	SetName("power_law");
@@ -25,19 +27,19 @@ PowerLawT::PowerLawT(void):
 /** evaluate function */
 double PowerLawT::Function(double x) const
 {
-	return fa*pow(1.0 + fb*x, fn);
+	return fa*pow(fb + fc*x, fn);
 }
 
 /** evaluate first derivative function */
 double PowerLawT::DFunction(double x) const
 {
-	return fa*fb*fn*pow(1.0 + fb*x, fn - 1.0);
+	return fa*fc*fn*pow(fb + fc*x, fn - 1.0);
 }
 
 /** evaluate second derivative function */
 double PowerLawT::DDFunction(double x) const
 {
-	return fa*fb*fb*fn*(fn - 1.0)*pow(1.0 + fb*x, fn - 2.0);
+	return fa*fc*fc*fn*(fn - 1.0)*pow(fb + fc*x, fn - 2.0);
 }
 
 /* Returning values in groups */
@@ -54,7 +56,7 @@ dArrayT& PowerLawT::MapFunction(const dArrayT& in, dArrayT& out) const
 	double* y = out.Pointer();
 	const double* x = in.Pointer();
 	for (int i = 0; i < length; i++)
-		*y++ = fa*pow(1.0 + fb*(*x++), fn);
+		*y++ = fa*pow(fb + fc*(*x++), fn);
 
 	return out;
 }
@@ -71,7 +73,7 @@ dArrayT& PowerLawT::MapDFunction(const dArrayT& in, dArrayT& out) const
 	double* y = out.Pointer();
 	const double* x = in.Pointer();
 	for (int i = 0; i < length; i++)
-		*y++ = fa*fb*fn*pow(1.0 + fb*(*x++), fn - 1.0);
+		*y++ = fa*fc*fn*pow(fb + fc*(*x++), fn - 1.0);
 
 	return out;
 }
@@ -88,7 +90,7 @@ dArrayT& PowerLawT::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	double* y = out.Pointer();
 	const double* x = in.Pointer();
 	for (int i = 0; i < length; i++)
-		*y++ = fa*fb*fb*fn*(fn - 1.0)*pow(1.0 + fb*(*x++), fn - 2.0);
+		*y++ = fa*fc*fc*fn*(fn - 1.0)*pow(fb + fc*(*x++), fn - 2.0);
 
 	return out;
 }
@@ -101,10 +103,11 @@ void PowerLawT::DefineParameters(ParameterListT& list) const
 	
 	list.AddParameter(fa, "a");
 	list.AddParameter(fb, "b");
+	list.AddParameter(fc, "c");
 	list.AddParameter(fn, "n");
 	
 	/* set the description */
-	list.SetDescription("f(x) = a*(1 + b*x)^n");
+	list.SetDescription("f(x) = a*(b + c*x)^n");
 }
 
 /* accept parameter list */
@@ -115,5 +118,6 @@ void PowerLawT::TakeParameterList(const ParameterListT& list)
 	
 	fa = list.GetParameter("a");
 	fb = list.GetParameter("b");
+	fc = list.GetParameter("c");
 	fn = list.GetParameter("n");
 }
