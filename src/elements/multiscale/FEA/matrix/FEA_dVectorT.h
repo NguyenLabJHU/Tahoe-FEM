@@ -1,4 +1,4 @@
-// $Id: FEA_dVectorT.h,v 1.3 2003-03-07 22:24:01 creigh Exp $
+// $Id: FEA_dVectorT.h,v 1.4 2003-09-15 15:17:51 raregue Exp $
 #ifndef _FEA_DVECTORT_H_
 #define _FEA_DVECTORT_H_
 
@@ -44,6 +44,8 @@ class FEA_dVectorT: public ArrayT <dArrayT>
 		void Orthog_Projector (void);
 */
    	// vector-vector / vector-Tensor operations
+   	
+   			void Magnitude  		(FEA_dScalarT &s);
 		
     /** a.b = c <==> aTb = c  (1x3)(3x1) = (1x1) */  
 		void Dot (const FEA_dVectorT& b, FEA_dScalarT& c);  
@@ -66,10 +68,10 @@ class FEA_dVectorT: public ArrayT <dArrayT>
 
 		// overloaded operators   NOTE: no way to do C=A*B or C=A+B w/o an extra deep copy (slower)
 	
-	  void operator  =  (const FEA_dVectorT &a); 
+	  	void operator  =  (const FEA_dVectorT &a); 
 		void operator +=  (const FEA_dVectorT &a); 
 		void operator -=  (const FEA_dVectorT &a); 
-	  void operator  =  (const double &a);   
+	  	void operator  =  (const double &a);   
 		void operator *=  (const double &a);   
 		void operator /=  (const double &a);
 

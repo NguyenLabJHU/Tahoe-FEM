@@ -1,4 +1,4 @@
-// $Id: FEA_dMatrixT.cpp,v 1.9 2003-04-23 23:34:22 creigh Exp $
+// $Id: FEA_dMatrixT.cpp,v 1.10 2003-09-15 15:17:51 raregue Exp $
 #include "FEA.h"
 
 using namespace Tahoe; 
@@ -460,6 +460,16 @@ void FEA_dMatrixT::MultATBT (const FEA_dMatrixT &a, const FEA_dMatrixT &b) {
     (*this)[i].MultATBT (a[i], b[i]); 
      
 }
+
+//----------------------------------------------------
+void FEA_dMatrixT::Outer (const FEA_dVectorT &a, const FEA_dVectorT &b) {
+				
+  if (fLength==0) FEA_Dimension (a);
+	for (int i=0; i<fLength; i++)
+    (*this)[i].Outer (a[i], b[i]); 
+}
+
+//----------------------------------------------------
 
 //------------- Matrix-Matrix-Matrix Operations ------
 

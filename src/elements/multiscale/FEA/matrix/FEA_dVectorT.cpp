@@ -1,4 +1,4 @@
-// $Id: FEA_dVectorT.cpp,v 1.3 2003-03-07 22:24:01 creigh Exp $
+// $Id: FEA_dVectorT.cpp,v 1.4 2003-09-15 15:17:51 raregue Exp $
 #include "FEA.h"
 
 using namespace Tahoe; 
@@ -71,6 +71,15 @@ void FEA_dVectorT::Print(char *c) { // overload << later
 }
 
 //------------ Vector Operations ----------------------
+
+//----------------------------------------------------
+
+void FEA_dVectorT::Magnitude (FEA_dScalarT &s)
+{
+	for (int l=0; l<n_ip; l++) 
+		s[l] = (*this)[l].Magnitude(); 
+}
+
  
 void FEA_dVectorT::Dot (const FEA_dVectorT& b, FEA_dScalarT& c) 
 {

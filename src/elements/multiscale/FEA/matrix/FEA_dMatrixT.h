@@ -1,4 +1,4 @@
-// $Id: FEA_dMatrixT.h,v 1.8 2003-04-23 23:34:22 creigh Exp $
+// $Id: FEA_dMatrixT.h,v 1.9 2003-09-15 15:17:51 raregue Exp $
 #ifndef _FEA_DMATRIXT_H_
 #define _FEA_DMATRIXT_H_
 
@@ -85,9 +85,11 @@ class FEA_dMatrixT: public ArrayT <dMatrixT>
 		void MultAB   		(const FEA_dMatrixT &a, const FEA_dMatrixT &b, 	int upper=0);
 		void MultAB   		(const dMatrixT &a, 		const FEA_dMatrixT &b, 	int upper=0);
 		void MultAB   		(const FEA_dMatrixT &a, const dMatrixT &b, 			int upper=0);
-    void MultATB  		(const FEA_dMatrixT &a, const FEA_dMatrixT &b, 	int upper=0);
+    	void MultATB  		(const FEA_dMatrixT &a, const FEA_dMatrixT &b, 	int upper=0);
 		void MultABT  		(const FEA_dMatrixT &a, const FEA_dMatrixT &b, 	int upper=0);
 		void MultATBT 		(const FEA_dMatrixT &a, const FEA_dMatrixT &b);
+		
+		void Outer 			(const FEA_dVectorT &a, const FEA_dVectorT &b);
 
    	// matrix-matrix-matrix operations 
 		
@@ -100,12 +102,12 @@ class FEA_dMatrixT: public ArrayT <dMatrixT>
 
 		// overloaded operators   NOTE: no way to do C=A*B or C=A+B w/o an extra deep copy (slower)
 	
-	  void operator  =  (const FEA_dMatrixT &a); 
+		void operator  =  (const FEA_dMatrixT &a); 
 		void operator +=  (const FEA_dMatrixT &a); 
 		void operator -=  (const FEA_dMatrixT &a); 
 		//void operator *=  (const FEA_dMatrixT &a); 
 		// Not implemented because Tahoe's A *= B is a component by component multiplication 
-	  void operator  =  (const double &a); 
+	  	void operator  =  (const double &a); 
 		void operator +=  (const double &a);   
 		void operator -=  (const double &a); 
 		void operator *=  (const double &a);   
@@ -114,23 +116,23 @@ class FEA_dMatrixT: public ArrayT <dMatrixT>
 		void operator *=  (const FEA_dScalarT &s);   
 		void operator /=  (const FEA_dScalarT &s);  
 
-    FEA_EquateT& operator () (const int p, const int q);
+    	FEA_EquateT& operator () (const int p, const int q);
 
 		// special operations
 		
-	  /** rc:  FEA::kRow or FEA::kCol, it indicates whether a row or column is selected for dotting. */
+	  	/** rc:  FEA::kRow or FEA::kCol, it indicates whether a row or column is selected for dotting. */
 		/** ij:  i or j. parameter is the "index" specifying which row i or column j is desired for dotting. */
 
-	  FEA_EquateT&       Dot (int rc,int ij,const FEA_dMatrixT &a,int a_rc,int a_ij); 
+	  	FEA_EquateT&       Dot (int rc,int ij,const FEA_dMatrixT &a,int a_rc,int a_ij); 
 		FEA_EquateT&   Dot_Aij (int rc,int ij,const FEA_dMatrixT &a,int a_rc,int a_ij, FEA_dMatrixT &c,int i,int j); 
 		FEA_EquateT&  ij_x_Aij (int i, int  j,const FEA_dMatrixT &a,int   ii,int  jj); 
 
 		void ij_EQ_Akl_x_Bmn (int i,int j,FEA_dMatrixT &A,int k,int l,FEA_dMatrixT &B,int m,int n)
 				{ for (int ip=0; ip<n_ip; ip++) (*this)[ip](i,j) = A[ip](k,l)*B[ip](m,n); }
 
-	//protected:
+		//protected:
 
-    int n_ip, n_rows, n_cols, n_rows_x_n_cols, n_ip_x_n_rows_x_n_cols;
+    	int n_ip, n_rows, n_cols, n_rows_x_n_cols, n_ip_x_n_rows_x_n_cols;
 		
 		dArrayT  Block_Memory; // Can use in-lieu-of FEA_Pointer() 
 
