@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: regression.csh.template,v 1.8 2002-03-22 17:29:06 paklein Exp $
+# $Id: regression.csh.template,v 1.9 2003-02-03 20:19:42 paklein Exp $
 
 # username on Tahoe server
 set TAHOE_USER =
@@ -16,76 +16,111 @@ set ECHO = 'echo'
 # SEACAS - Sandia-only, ignore otherwise  
 setenv ACCESS 
 
+# installed modules
+set MODULES = (macros toolbox tahoe benchmark)
+#set MODULES= (macros toolbox tahoe benchmark development)
+
+# build modules (in build order)
+set BUILD_MODULES = (toolbox tahoe)
+
 ######### hopefully no changes will be required below #########
 
 # set path
 set path=(${W_DIR}/benchmark/scripts /bin /usr/bin /usr/local/bin /usr/ccs/bin /usr/sbin /usr/local/ssh /usr/ucb /etc /usr/openwin/bin /project/local/bin $path)
 
 # CVS
-setenv CVSROOT ${TAHOE_USER}@tahoe.ca.sandia.gov:/usr/local/cvsrep
 setenv CVS_RSH ssh
 
-# remove toolbox library
-if (-e ${W_DIR}/toolbox/lib/libtoolbox.a) then
-	/bin/rm ${W_DIR}/toolbox/lib/libtoolbox.a
+# name of the Tahoe executable
+set TAHOE = tahoe
+
+###################### regression test ########################
+# clear log files
+cd ${W_DIR}
+if (-e make.stderr) rm make.stderr
+if (-e make.stdout) rm make.stdout
+#
+# get latest files from the CVS repository
+#
+${ECHO} "updating source from CVS repository..."
+foreach mod ($MODULES)
+	${ECHO} "updating macros $mod..."
+	cd ${W_DIR}/$mod
+	(cvs -q update -Pd >>! ${W_DIR}/make.stdout) >>&! ${W_DIR}/make.stderr
+end
+#
+# remove libraries and executables
+#
+${ECHO} "removing object code..."
+foreach mod ($BUILD_MODULES)
+	cd ${W_DIR}/$mod
+	if (-e ./lib/lib$mod.a) then
+		rm ./lib/lib$mod.a
+	endif
+end
+if (-e ${W_DIR}/tahoe/${TAHOE}) then
+	rm ${W_DIR}/tahoe/${TAHOE}
 endif
-#        remove tahoe
-if (-e ${W_DIR}/tahoe/tahoe) then
-	/bin/rm ${W_DIR}/tahoe/tahoe
-endif
-#        update macros
-${ECHO} "updating MACROS"
-cd ${W_DIR}/macros; cvs -q update -Pd
-#        update and build toolbox
-${ECHO} "checking out and building TOOLBOX"
-cd ${W_DIR}/toolbox; cvs -q update -Pd ; make -s init ; \
- (make -s build >!  ../make.stdout) >&! ../make.stderr
-#        update and build tahoe
-if (-e ${W_DIR}/toolbox/lib/libtoolbox.a) then
-	${ECHO} "checking out and building TAHOE"
-	cd ${W_DIR}/tahoe;   cvs -q update -Pd ; make -s init ; \
- 	(make -s build >>! ../make.stdout) >>&! ../make.stderr
-endif
-#        update and build comparator
-if (-e ${W_DIR}/toolbox/lib/libtoolbox.a) then
-	${ECHO} "checking out and building COMPARATOR"
-	cd ${W_DIR}/benchmark/comparator;   cvs -q update -Pd ; make -s init ; \
- 	(make -s build >>! ../../make.stdout) >>&! ../../make.stderr
-endif
-#        update and run regression tests
-if (-e ${W_DIR}/tahoe/tahoe && -e ${W_DIR}/benchmark/comparator/compare) then
-    ${ECHO}  "running BENCHMARKs"
-    cd ${W_DIR}/benchmark; \
-	cvs -q update -Pd ; \
-	make -s clean; \
+#
+# rebuild libraries and executables
+#
+${ECHO} "rebuilding object code..."
+foreach mod ($BUILD_MODULES)
+	cd ${W_DIR}/$mod
+	(make -s init build >>! ${W_DIR}/make.stdout) >>&! ${W_DIR}/make.stderr
+end
+#
+# update comparator
+#
+${ECHO} "rebuilding comparator..."
+cd ${W_DIR}/benchmark/comparator
+(make -s init build >>! ${W_DIR}/make.stdout) >>&! ${W_DIR}/make.stderr
+#
+# run tests
+#
+if (-x ${W_DIR}/tahoe/${TAHOE} && -x ${W_DIR}/benchmark/comparator/compare) then
+
+    cd ${W_DIR}/benchmark
+	
+	# run benchmarks
+    ${ECHO}  "running BENCHMARKs..."
+	make -s clean
 	${W_DIR}/tahoe/tahoe -f ${W_DIR}/benchmark/run.batch >&! test.stdout
-    ${ECHO}  "running COMPARATOR"
-    cd ${W_DIR}/benchmark; \
-    rm compare.summary compare.console; \
+
+	# test results 
+    ${ECHO}  "running COMPARATOR..."
+	if (-e compare.summary) rm compare.summary
+	if (-e compare.console) rm compare.console
     ${W_DIR}/benchmark/comparator/compare -f run.batch >&! compare.console
-    if(! -e ${W_DIR}/benchmark/compare.summary) then
-#       test/s failed - did not complete
-	${ECHO} "BENCHMARKs failed"
+
+	# assess results
+    if (! -e ${W_DIR}/benchmark/compare.summary) then
+    	# benchmarks did not run
+		${ECHO} "BENCHMARKs failed"
 		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}\nTAHOE regression FAIL:" `date` > ${W_DIR}/benchmark/tmp
 		cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.console > ${W_DIR}/benchmark/tmp_mail
-    else if(`grep -c "FAIL" ${W_DIR}/benchmark/compare.summary` ) then
-#       test/s failed
-	${ECHO} "BENCHMARKs failed"
+	else if (`grep -c "FAIL" ${W_DIR}/benchmark/compare.summary` ) then
+		# test/s failed
+		${ECHO} "BENCHMARKs failed"
 		${ECHO} "Subject: TAHOE: regression FAIL ${HOST}\nTAHOE regression FAIL:" `date` > ${W_DIR}/benchmark/tmp
 		cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.summary > ${W_DIR}/benchmark/tmp_mail
     else
-	${ECHO} "BENCHMARKs passed"
+    	# tests passed
+		${ECHO} "BENCHMARKs passed"
 		${ECHO} "Subject: TAHOE: regression PASS ${HOST}\nTAHOE regression PASS:" `date` > ${W_DIR}/benchmark/tmp
 		cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.summary > ${W_DIR}/benchmark/tmp_mail
 	endif
+	
+# build failed
 else
-#       make failed
-		${ECHO} "Subject: TAHOE: build FAIL ${HOST}\nTAHOE build FAIL:" `date` > ${W_DIR}/benchmark/tmp
-		cat ${W_DIR}/benchmark/tmp ${W_DIR}/make.stderr > ${W_DIR}/benchmark/tmp_mail
+	${ECHO} "Subject: TAHOE: build FAIL ${HOST}\nTAHOE build FAIL:" `date` > ${W_DIR}/benchmark/tmp
+	cat ${W_DIR}/benchmark/tmp ${W_DIR}/make.stderr > ${W_DIR}/benchmark/tmp_mail
 endif
-
+#
 # send it
-scp ${W_DIR}/benchmark/tmp_mail ${TAHOE_USER}@tahoe.ca.sandia.gov:/home/paklein/admin/distribute/mail.${HOST}
-
+#
+scp ${W_DIR}/benchmark/tmp_mail ${TAHOE_USER}@tahoe.ca.sandia.gov:/incoming/benchmark/mail.${HOST}
+#
 # run additional tests
+#
 # cd ${W_DIR}/benchmark/scripts; csh -f parallel.csh >& parallel.LOG
