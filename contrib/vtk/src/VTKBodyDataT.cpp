@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.24 2002-06-23 03:39:34 paklein Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.25 2002-06-26 18:00:20 recampb Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -43,6 +43,12 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 	}
 	cout << "initialized database file: " << fInFile << endl;
   
+
+// 	/* read coordinates */
+// 	dArray2DT coords;
+// 	coords.Alias(model.Coordinates());
+// 	if (coords.MinorDim() == 2) /* fill to 3D */
+
 	/* read and store coordinates */
 	fCoords = model.Coordinates();
 	if (fCoords.MinorDim() == 2) /* fill to 3D */
@@ -237,8 +243,8 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
   	iAddCommand(CommandSpecT("Wire"));
   	iAddCommand(CommandSpecT("Surface"));
   	iAddCommand(CommandSpecT("Point"));
-	iAddCommand(CommandSpecT("ShowContours"));
-	iAddCommand(CommandSpecT("HideContours"));
+// 	iAddCommand(CommandSpecT("ShowContours"));
+// 	iAddCommand(CommandSpecT("HideContours"));
 // 	iAddCommand(CommandSpecT("ShowGlyphs"));
 	iAddCommand(CommandSpecT("HideGlyphs"));
 
@@ -281,7 +287,7 @@ void VTKBodyDataT::AddToRenderer(vtkRenderer* renderer) const
   for (int i = 0; i < fUGrids.Length(); i++){
 		renderer->AddActor(fUGrids[i]->Actor());
 		//renderer->AddActor(fUGrids[i]->OutlineActor());
-		renderer->AddActor(fUGrids[i]->BoundBoxActor());
+		//renderer->AddActor(fUGrids[i]->BoundBoxActor());
 		renderer->AddActor(fUGrids[i]->SpikeActor());
   }
 }
@@ -293,7 +299,7 @@ void VTKBodyDataT::RemoveFromRenderer(vtkRenderer* renderer) const
   for (int i = 0; i < fUGrids.Length(); i++){
 		renderer->RemoveActor(fUGrids[i]->Actor());
 		//renderer->RemoveActor(fUGrids[i]->OutlineActor());
-		renderer->RemoveActor(fUGrids[i]->BoundBoxActor());
+		//renderer->RemoveActor(fUGrids[i]->BoundBoxActor());
 		renderer->RemoveActor(fUGrids[i]->SpikeActor());
   }
 		
@@ -318,7 +324,7 @@ void VTKBodyDataT::UpdateData(void)
 				fUGrids[i]->SetNumberOfColors(numColors);
 			  
 				if (fUGrids[i]->GetContoursBool()){
-				  fUGrids[i]->ShowContours(fScalars(currentStepNum, currentVarNum), numContours,scalarRange1[currentVarNum],scalarRange2[currentVarNum]);
+				  fUGrids[i]->ShowContours(fScalars(currentStepNum, currentVarNum), numContours,scalarRange1[currentVarNum],scalarRange2[currentVarNum], bodyDataRenderer);
 				  fUGrids[i]->SetBoundingOpacity(boundingOpacity);
 				}
 				//fUGrids[i]->SetNumberOfColorBarLabels(numColorBarLabels);
@@ -379,10 +385,12 @@ bool VTKBodyDataT::SelectTimeStep(int stepNum)
 				}
 	
 	  			/* displaced shape */
+
 	  			int disp_dex = VectorFieldNumber("D");
 				if (disp_dex > -1) {
 					if (!fVectorFields(stepNum,disp_dex)) throw eGeneralFail;
-		  			fUGrids[i]->SetWarpVectors(fVectorFields(stepNum,disp_dex), fCoords);
+		  			fUGrids[i]->SetWarpVectors(fVectorFields(stepNum,disp_dex));
+
 		  		}
 	  		}
 			currentStepNum = stepNum;
@@ -397,6 +405,31 @@ bool VTKBodyDataT::SelectTimeStep(int stepNum)
   	else /* no history */
   		return true;
 }
+
+
+void VTKBodyDataT::ShowContours(vtkRenderer* renderer)
+{
+  if (fScalars.MinorDim() > 0){
+    bodyDataRenderer = renderer;
+    for (int i = 0; i < fUGrids.Length(); i++)
+      {
+	fUGrids[i]->ShowContours(fScalars(currentStepNum, currentVarNum), numContours, scalarRange1[currentVarNum], scalarRange2[currentVarNum], renderer);
+	
+      }
+  }
+  
+}
+
+void VTKBodyDataT::HideContours(vtkRenderer* renderer)
+{
+  for (int i = 0; i < fUGrids.Length(); i++)
+    {
+      fUGrids[i]->HideContours(fScalars(currentStepNum, currentVarNum), renderer);
+      
+    }
+  
+}
+
 
 /* execute console command. \return true is executed normally */
 bool VTKBodyDataT::iDoCommand(const CommandSpecT& command, StringT& line)
@@ -424,30 +457,30 @@ bool VTKBodyDataT::iDoCommand(const CommandSpecT& command, StringT& line)
 	}
 
 
-	else if (command.Name() == "ShowContours")
-	  {
-	     if (fScalars.MinorDim() > 0){
-	       for (int i = 0; i < fUGrids.Length(); i++)
-		 {
-		   fUGrids[i]->ShowContours(fScalars(currentStepNum, currentVarNum), numContours, scalarRange1[currentVarNum], scalarRange2[currentVarNum]);
+// 	else if (command.Name() == "ShowContours")
+// 	  {
+// 	     if (fScalars.MinorDim() > 0){
+// 	       for (int i = 0; i < fUGrids.Length(); i++)
+// 		 {
+// 		   fUGrids[i]->ShowContours(fScalars(currentStepNum, currentVarNum), numContours, scalarRange1[currentVarNum], scalarRange2[currentVarNum]);
 
-		 }
-	     }
-	     return true;
-	  }
+// 		 }
+// 	     }
+// 	     return true;
+// 	  }
 
 
-	else if (command.Name() == "HideContours")
-	  {
-	     if (fScalars.MinorDim() > 0){
-	       for (int i = 0; i < fUGrids.Length(); i++)
-		 {
-		   fUGrids[i]->HideContours(fScalars(currentStepNum, currentVarNum));
+// 	else if (command.Name() == "HideContours")
+// 	  {
+// 	     if (fScalars.MinorDim() > 0){
+// 	       for (int i = 0; i < fUGrids.Length(); i++)
+// 		 {
+// 		   fUGrids[i]->HideContours(fScalars(currentStepNum, currentVarNum));
 
-		 }
-	     }
-	     return true;
-	  }
+// 		 }
+// 	     }
+// 	     return true;
+// 	  }
 
 // 	else if (command.Name() == "ShowGlyphs")
 // 	  {

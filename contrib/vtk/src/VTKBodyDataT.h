@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.h,v 1.16 2002-06-23 03:39:34 paklein Exp $ */
+/* $Id: VTKBodyDataT.h,v 1.17 2002-06-26 18:00:20 recampb Exp $ */
 #ifndef _VTK_BODY_DATA_T_H_
 #define _VTK_BODY_DATA_T_H_
 
@@ -18,6 +18,7 @@ class vtkPoints;
 class vtkRenderer;
 class VTKUGridT;
 class vtkFloatArray;
+class vtkRenderer;
 
 /** interface for model data. A single VTKBodyDataT is constructed
  * for each body (unless loaded more than once). This data may appear
@@ -67,6 +68,11 @@ public:
 	/** return tbe number of nodal variables */
 	int NumNodeVariables(void) const { return fScalars.MinorDim(); };
 
+/* 	int NumContours(void) { return numContours;}; */
+
+/* 	int CurrentScalarRange1(void) { return scalarRange1[currentVarNum];}; */
+/* 	int CurrentScalarRange2(void) { return scalarRange2[currentVarNum];}; */
+
 //	int NumVectors(void) const {return fVectors.Length();};
 	
 	/** return a reference to the nodal labels */
@@ -86,6 +92,13 @@ public:
 	/** specified vector field for the current step number. Returns NULL if
 	 * the vector field does not exist */
 	vtkFloatArray* VectorField(const char* name);
+
+	Array2DT<vtkFloatArray*> getScalars(void) const {return fScalars;};
+
+	vtkPoints* GetPoints(void) {return fPoints;};
+
+	void ShowContours(vtkRenderer* renderer);
+	void HideContours(vtkRenderer* renderer);
 
 protected:
 
@@ -123,8 +136,8 @@ protected:
 
 	/** source file */
 	const StringT fInFile;
-  
-  	/** body coordinates */
+
+	/** body coordinates */
 	dArray2DT fCoords;
 	
 	/** point coordinates */
@@ -160,6 +173,7 @@ protected:
 	/** array of unstructured grid displays */
 	ArrayT<VTKUGridT*> fUGrids;
 
+	vtkRenderer* bodyDataRenderer;
 	/* runtime data */
   	int currentStepNum; /**< current time step on display */
   	int currentVarNum;  /**< current display variable */
