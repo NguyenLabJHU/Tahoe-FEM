@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.25 2002-09-12 17:49:56 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.25.2.1 2002-09-22 23:08:18 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -321,7 +321,17 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status) const
 		
 			/* clear to end of line */
 			char line[255];
+#ifdef __GCC_3__
+			int ct = 0;
+			line[ct] = cin.get();
+			while (cin.good() && ct < 254 && line[ct] != '\n') {
+				ct++;
+				line[ct] = cin.get();
+			}
+			line[ct] = '\0';
+#else
 			cin.getline(line, 254);
+#endif
 			if (size == 0) break;
 		}
 	}
@@ -429,7 +439,17 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 
 			/* clear to end of line */
 			char line[255];
+#ifdef __GCC_3__
+			int ct = 0;
+			line[ct] = cin.get();
+			while (cin.good() && ct < 254 && line[ct] != '\n') {
+				ct++;
+				line[ct] = cin.get();
+			}
+			line[ct] = '\0';
+#else
 			cin.getline(line, 254);
+#endif
 		}
 
 		if (size < 2) return;
