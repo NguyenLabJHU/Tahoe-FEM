@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.16.4.15 2004-04-21 08:07:58 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.16.4.16 2004-04-23 20:25:59 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -102,18 +102,14 @@ void FEManagerT_bridging::ResetCumulativeUpdate(int group)
 void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& point_neighbors, const dArray2DT& point_coords, double smoothing, double k2)
 {
 	const char caller[] = "FEManagerT_bridging::CorrectOverlap";
-		
-	/* map describing whether nodes are free or projected - assumes all nodes in cells 
-	 * containing points are driven. Otherwise, would have to look at the nodes actually
-	 * appear in the projection data which is represented differently for L2 versus
-	 * meshfree 'projection' */
+
+	/* finding free vs projected nodes */
 	int nnd = fNodeManager->NumNodes();
 	ArrayT<char> node_type(nnd);
 	node_type = free_;
-	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
-	for (int i = 0; i < cell_nodes.Length(); i++)
-		node_type[cell_nodes[i]] = not_free_;
-	
+	for (int i = 0; i < fProjectedNodes.Length(); i++) /* mark projected nodes */
+		node_type[fProjectedNodes[i]] = not_free_;
+
 	/* map describing free or ghost points */
 	ArrayT<char> point_type(point_coords.MajorDim());
 	point_type = free_;
@@ -1098,21 +1094,29 @@ void FEManagerT_bridging::InitProjection(CommManagerT& comm, const iArrayT& node
 		the_field->AddKBCController(fSolutionDriver);
 	}
 
+	/* collect list of projected nodes */
+	const InterpolationDataT& point_to_node = fDrivenCellData.PointToNode();
+	if (point_to_node.Neighbors().MajorDim() > 0) /* check for meshless bridging */ {
+		const InverseMapT& driven_node_map = point_to_node.Map();
+		driven_node_map.Forward(fProjectedNodes);
+	}
+	else
+		fProjectedNodes.Alias(fDrivenCellData.CellNodes());
+	
 	/* generate KBC cards - all degrees of freedom */
-	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
 	int ndof = the_field->NumDOF();
 	if (make_inactive)
 	{
 		ArrayT<KBC_CardT>& KBC_cards = fSolutionDriver->KBC_Cards();
-		KBC_cards.Dimension(cell_nodes.Length()*ndof);
+		KBC_cards.Dimension(fProjectedNodes.Length()*ndof);
 		int dex = 0;
 		for (int j = 0; j < ndof; j++)
-			for (int i = 0; i < cell_nodes.Length(); i++)
-				KBC_cards[dex++].SetValues(cell_nodes[i], j, KBC_CardT::kDsp, 0, 0.0);
+			for (int i = 0; i < fProjectedNodes.Length(); i++)
+				KBC_cards[dex++].SetValues(fProjectedNodes[i], j, KBC_CardT::kDsp, 0, 0.0);
 	}
 
 	/* dimension work space */
-	fProjection.Dimension(cell_nodes.Length(), ndof);
+	fProjection.Dimension(fProjectedNodes.Length(), ndof);
 	
 	/* reset the group equations numbers */
 	SetEquationSystem(the_field->Group());
@@ -1138,8 +1142,7 @@ void FEManagerT_bridging::ProjectField(const StringT& field, const NodeManagerT&
 	BridgingScale().ProjectField(fDrivenCellData, source_field_values, fProjection);
 
 	/* write values into the field */
-	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
-	SetFieldValues(field, cell_nodes, order, fProjection);
+	SetFieldValues(field, fProjectedNodes, order, fProjection);
 }
 
 /* compute the coarse scale projection at the source points */
@@ -1172,8 +1175,7 @@ int order)
 	BridgingScale().InitialProject(field, fDrivenCellData, source_field_values, fProjection, projectedu);
 
 	/* write values into the field */
-	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
-	SetFieldValues(field, cell_nodes, order, fProjection);
+	SetFieldValues(field, fProjectedNodes, order, fProjection);
 }
 
 /* calculate the fine scale part of MD solution as well as total displacement u */
@@ -1306,9 +1308,8 @@ void FEManagerT_bridging::CollectOverlapRegion_free(iArrayT& overlap_cell, iArra
 	/* mark nodes that aren't active */
 	ArrayT<char> is_overlap_node(nnd);
 	is_overlap_node = 't';
-	const iArrayT& projected_nodes = fDrivenCellData.CellNodes();
-	for (int i = 0; i < projected_nodes.Length(); i++) 
-		is_overlap_node[projected_nodes[i]] = 'f';
+	for (int i = 0; i < fProjectedNodes.Length(); i++) 
+		is_overlap_node[fProjectedNodes[i]] = 'f';
 
 	/* find cells in overlap region */
 	const RaggedArray2DT<int>& point_in_cell = fFollowerCellData.PointInCell();
@@ -1372,8 +1373,8 @@ void FEManagerT_bridging::CollectOverlapRegion_free(iArrayT& overlap_cell, iArra
 		}	
 	}
 	
-	for (int i = 0; i < projected_nodes.Length(); i++) /* must be a free node */ {
-		char& t_f = is_overlap_node[projected_nodes[i]];
+	for (int i = 0; i < fProjectedNodes.Length(); i++) /* must be a free node */ {
+		char& t_f = is_overlap_node[fProjectedNodes[i]];
 		if (t_f == 't') /* remove node */ {
 			t_f = 'f';
 			num_overlap_node--;
@@ -1884,7 +1885,7 @@ void FEManagerT_bridging::Compute_df_dp(const dArrayT& R, double V_0,
 		{
 			/* index within list of overlap cells */
 			int overlap_cell_index = overlap_cell_map.Map(i);
-			if (overlap_cell_index) ExceptionT::GeneralFail(caller);
+			if (overlap_cell_index == -1) ExceptionT::GeneralFail(caller);
 		
 			/* set element information */
 			const iArrayT& nodesX = coarse->ElementCard(i).NodesX();

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.11.4.13 2004-04-21 08:07:58 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.11.4.14 2004-04-23 20:25:59 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -320,6 +320,9 @@ private:
 	
 	/** map data of driver points into the mesh */
 	PointInCellDataT fDrivenCellData;
+	
+	/** list of projected nodes */
+	iArrayT fProjectedNodes;
 	
 	/** projected solution */
 	dArray2DT fProjection;
