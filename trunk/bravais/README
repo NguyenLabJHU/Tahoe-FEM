@@ -1,0 +1,8 @@
+bravais:
+creation of a mesh of atoms with output to format 
+independent files such as ensight, exodus, paradyn 
+etc.
+
+File MakeCrystal.cpp is a good example of how to use
+bravais.
+
