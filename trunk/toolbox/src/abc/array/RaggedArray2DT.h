@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.4 2001-07-19 01:02:13 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.5 2001-07-19 06:45:57 paklein Exp $ */
 /* created: paklein (09/10/1998)                                          */
 /* 2D array with arbitrary "row" lengths. NO functions are provided       */
 /* for data retrieval. derived classes should use RowAlias()              */
@@ -434,7 +434,7 @@ void RaggedArray2DT<TYPE>::GenerateOffsetVector(ArrayT<int>& offsets) const
 	TYPE* base = fData.Pointer();
 	int length = offsets.Length();
 	for (int i = 0; i < length; i++)
-		offsets = fPtrs[i] - base;
+		offsets[i] = fPtrs[i] - base;
 }
 
 /* write data */
