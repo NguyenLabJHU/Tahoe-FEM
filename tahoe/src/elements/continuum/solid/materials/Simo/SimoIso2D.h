@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.h,v 1.7.46.2 2004-06-09 23:17:41 paklein Exp $ */
+/* $Id: SimoIso2D.h,v 1.7.46.3 2004-06-25 01:30:22 paklein Exp $ */
 /* created: paklein (03/04/1997) */
 #ifndef _SIMO_ISO_2D_H_
 #define _SIMO_ISO_2D_H_
@@ -14,7 +14,6 @@ class SimoIso2D: public SimoIso3D
 public:
 
 	/** constructor */
-	SimoIso2D(ifstreamT& in, const FSMatSupportT& support);
 	SimoIso2D(void);
 
 	/** initialize step. Verify that the thermal dilatation deformation

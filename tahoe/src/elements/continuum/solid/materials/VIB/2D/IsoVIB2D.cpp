@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.cpp,v 1.9.20.3 2004-06-19 23:28:02 paklein Exp $ */
+/* $Id: IsoVIB2D.cpp,v 1.9.20.4 2004-06-25 01:30:23 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoVIB2D.h"
 
@@ -14,27 +14,6 @@
 using namespace Tahoe;
 
 /* constructors */
-IsoVIB2D::IsoVIB2D(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("isotropic_VIB_2D"),
-	FSSolidMatT(in, support),
-	VIB(2, 2, 3),
-	fCircle(NULL),
-	fEigs(2),
-	fEigmods(2),
-	fSpectral(2),
-	fb(2),
-	fModulus(dSymMatrixT::NumValues(2)),
-	fStress(2)
-{
-#if 0
-	/* point generator */
-	fCircle = new EvenSpacePtsT(in);
-
-	/* set tables */
-	Construct();
-#endif
-}
-
 IsoVIB2D::IsoVIB2D(void):
 	ParameterInterfaceT("isotropic_VIB_2D"),
 	VIB(2, 2, 3),

@@ -1,4 +1,4 @@
-/* $Id: NL_E_RotMat2DT.cpp,v 1.6.46.2 2004-06-09 23:18:07 paklein Exp $ */
+/* $Id: NL_E_RotMat2DT.cpp,v 1.6.46.3 2004-06-25 01:30:35 paklein Exp $ */
 /* created: paklein (06/13/1997) */
 #include "NL_E_RotMat2DT.h"
 
@@ -7,10 +7,10 @@ using namespace Tahoe;
 /* constructor */
 NL_E_RotMat2DT::NL_E_RotMat2DT(ifstreamT& in, const FSMatSupportT& support, ConstraintT constraint):
 	ParameterInterfaceT("large_strain_E_material_2D"),
-	NL_E_MatT(in, support),
+//	NL_E_MatT(in, support),
 	Anisotropic2DT(in)
 {
-
+ExceptionT::Stop("NL_E_RotMat2DT::NL_E_RotMat2DT", "out of date");
 }
 
 /* modulus */

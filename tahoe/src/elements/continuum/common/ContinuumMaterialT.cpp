@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.cpp,v 1.9.18.2 2004-06-09 23:16:37 paklein Exp $ */
+/* $Id: ContinuumMaterialT.cpp,v 1.9.18.3 2004-06-25 01:30:04 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "ContinuumMaterialT.h"
 #include "MaterialSupportT.h"
@@ -70,12 +70,6 @@ ElementCardT& ContinuumMaterialT::CurrentElement(void) const
 	ElementCardT* the_card = MaterialSupport().CurrentElement();
 	if (!the_card) ExceptionT::GeneralFail("ContinuumMaterialT::CurrentElement");
 	return *the_card;
-}
-
-/* initialization */
-void ContinuumMaterialT::Initialize(void)
-{
-/* do nothing */
 }
 
 /* storage initialization */

@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.9.20.3 2004-06-11 01:38:13 paklein Exp $ */
+/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.9.20.4 2004-06-25 01:30:23 paklein Exp $ */
 /* created: paklein (10/18/1998) */
 #include "J2IsoVIB2DLinHardT.h"
 
@@ -52,7 +52,7 @@ static const char* Labels[kNumOutput] = {"s_max", "s_min", "VM stress", "alpha"}
 /* constructor */
 J2IsoVIB2DLinHardT::J2IsoVIB2DLinHardT(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("isotropic_VIB_J2_2D"),
-	IsoVIB3D(in, support),
+//	IsoVIB3D(in, support),
 //	J2PrimitiveT(in),
 
 //TEMP
@@ -80,7 +80,7 @@ J2IsoVIB2DLinHardT::J2IsoVIB2DLinHardT(ifstreamT& in, const FSMatSupportT& suppo
 	fStress2D(2),
 	fb_2D(2)
 {
-
+ExceptionT::GeneralFail("J2IsoVIB2DLinHardT:;J2IsoVIB2DLinHardT", "out of date");
 }
 
 /* update internal variables */

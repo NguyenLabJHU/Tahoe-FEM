@@ -1,4 +1,4 @@
-/* $Id: povirk2D.cpp,v 1.9.20.2 2004-06-09 23:18:09 paklein Exp $ */
+/* $Id: povirk2D.cpp,v 1.9.20.3 2004-06-25 01:30:37 paklein Exp $ */
 /* Created:  Harold Park (09/10/2001) */
 #include "povirk2D.h"
 
@@ -63,7 +63,6 @@ povirk2D::povirk2D(ifstreamT& in, const FSMatSupportT& support):
   fJ(0.0)
   
 {
-
   /* initialize material constants */
   El_E = 2.0E11;
   El_V = .30;

@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.13.18.2 2004-06-09 23:18:07 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.13.18.3 2004-06-25 01:30:35 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -36,16 +36,10 @@ public:
 		kPlaneStrain = 2  /**< plane strain */};
 
 	/** constructor */
-	SolidMaterialT(ifstreamT& in, const MaterialSupportT& support);
 	SolidMaterialT(void);
 
 	/** destructor */
 	~SolidMaterialT(void);
-
-	/** initialization called immediately after constructor. This function
-	 * checks if thermal strain are being imposed and if the material
-	 * supports thermal strain, using SolidMaterialT::SupportsThermalStrain. */
-	virtual void Initialize(void);
 
 	/** \name spatial description */
 	/*@{*/
@@ -146,7 +140,9 @@ public:
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
 
-	/** accept parameter list */
+	/** accept parameter list. This function also checks if thermal strain are 
+	 * being imposed and if the material supports thermal strain, using 
+	 * SolidMaterialT::SupportsThermalStrain. */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 	

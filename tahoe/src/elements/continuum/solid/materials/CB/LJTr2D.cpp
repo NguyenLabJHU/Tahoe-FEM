@@ -1,29 +1,16 @@
-/* $Id: LJTr2D.cpp,v 1.9.22.4 2004-06-16 00:31:50 paklein Exp $ */
+/* $Id: LJTr2D.cpp,v 1.9.22.5 2004-06-25 01:30:06 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "LJTr2D.h"
 
 #include <math.h>
-#include <iostream.h>
-
-#include "fstreamT.h"
 
 using namespace Tahoe;
 
 const double sqrt3 = sqrt(3.0);
 
 /* constructor */
-LJTr2D::LJTr2D(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("LJ_triangular_2D"),
-	NL_E_MatT(in, support),
-//	CBLatticeT(2,2,3)
-	feps(0.0)
-{
-//	in >> feps;	if (feps < 0.0) throw ExceptionT::kBadInputValue;
-}
-
 LJTr2D::LJTr2D(void):
 	ParameterInterfaceT("LJ_triangular_2D"),
-//	CBLatticeT(2,2,3),
 	feps(0.0)
 {
 

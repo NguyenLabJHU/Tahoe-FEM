@@ -1,4 +1,4 @@
-/* $Id: Hex2D.h,v 1.2.42.4 2004-06-16 00:31:50 paklein Exp $ */
+/* $Id: Hex2D.h,v 1.2.42.5 2004-06-25 01:30:06 paklein Exp $ */
 #ifndef _HEX_2D_H_
 #define _HEX_2D_H_
 
@@ -17,7 +17,6 @@ class Hex2D: public NL_E_MatT
 public:
 
 	/** constructor */
-	Hex2D(ifstreamT& in, const FSMatSupportT& support);
 	Hex2D(void);
 	
 	/** destructor */

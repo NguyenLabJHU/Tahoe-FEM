@@ -1,4 +1,4 @@
-/* $Id: CubicT.h,v 1.4.56.2 2004-06-07 13:48:13 paklein Exp $ */
+/* $Id: CubicT.h,v 1.4.56.3 2004-06-25 01:30:11 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #ifndef _CUBIC_T_H_
 #define _CUBIC_T_H_
@@ -12,7 +12,6 @@
 namespace Tahoe {
 
 /* forward declarations */
-class ifstreamT;
 class dMatrixT;
 
 class CubicT: virtual public ParameterInterfaceT
@@ -20,12 +19,7 @@ class CubicT: virtual public ParameterInterfaceT
 public:
 
 	/** constructor */
-	CubicT(ifstreamT& in);
 	CubicT(void);
-		
-	/* print parameters */
-	void Print(ostream& out) const;
-	void PrintName(ostream& out) const;
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

@@ -1,4 +1,4 @@
-/* $Id: EVPFDBaseT.cpp,v 1.11.46.2 2004-06-09 23:18:05 paklein Exp $ */
+/* $Id: EVPFDBaseT.cpp,v 1.11.46.3 2004-06-25 01:30:34 paklein Exp $ */
 #include "EVPFDBaseT.h"
 #include "NLCSolver.h"
 #include "NLCSolver_LS.h"
@@ -18,7 +18,7 @@ const int kNSD = 3;
 
 EVPFDBaseT::EVPFDBaseT(ifstreamT& in, const FSMatSupportT& support) :
 	ParameterInterfaceT("EVPFDBase"),
-  FDHookeanMatT(in, support),
+//  FDHookeanMatT(in, support),
   IsotropicT  (in),
   //fdt         (element.FEManager().TimeStep()),
   //ftime       (element.ElementSupport().Time()),
@@ -32,6 +32,8 @@ EVPFDBaseT::EVPFDBaseT(ifstreamT& in, const FSMatSupportT& support) :
   fs_ij       (kNSD),
   fc_ijkl     (dSymMatrixT::NumValues(kNSD))
 {
+ExceptionT::GeneralFail("EVPFDBaseT::EVPFDBaseT", "out of date");
+
   // input file
   StringT filename;
   in >> filename;

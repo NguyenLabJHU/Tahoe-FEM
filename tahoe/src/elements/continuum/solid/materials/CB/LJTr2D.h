@@ -1,4 +1,4 @@
-/* $Id: LJTr2D.h,v 1.7.46.3 2004-06-14 04:56:32 paklein Exp $ */
+/* $Id: LJTr2D.h,v 1.7.46.4 2004-06-25 01:30:06 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #ifndef _LJTR2D_H_
 #define _LJTR2D_H_
@@ -18,7 +18,6 @@ namespace Tahoe {
 public:
 
 	/** constructor */
-	LJTr2D(ifstreamT& in, const FSMatSupportT& support);
 	LJTr2D(void);
 
 	/** \name implementation of the ParameterInterfaceT interface */

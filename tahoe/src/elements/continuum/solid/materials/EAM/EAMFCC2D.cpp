@@ -1,15 +1,11 @@
-/* $Id: EAMFCC2D.cpp,v 1.8.46.5 2004-06-17 07:54:23 paklein Exp $ */
+/* $Id: EAMFCC2D.cpp,v 1.8.46.6 2004-06-25 01:30:07 paklein Exp $ */
 /* created: paklein (12/09/1996) */
 #include "EAMFCC2D.h"
 
-#include <math.h>
-#include <iostream.h>
-
-#include "toolboxConstants.h"
-
-#include "fstreamT.h"
 #include "EAMFCC3DSym.h"
 #include "dMatrixT.h"
+
+#include <math.h>
 
 using namespace Tahoe;
 
@@ -20,14 +16,6 @@ const int knsd = 2;
 #pragma message("rename me")
 
 /* constructor */
-EAMFCC2D::EAMFCC2D(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("FCC_EAM_2D"),
-	NL_E_MatT(in, support),
-	fEAM(NULL)
-{
-
-}
-
 EAMFCC2D::EAMFCC2D(void):
 	ParameterInterfaceT("FCC_EAM_2D"),
 	fEAM(NULL)

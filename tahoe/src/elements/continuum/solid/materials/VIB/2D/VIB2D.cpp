@@ -1,4 +1,4 @@
-/* $Id: VIB2D.cpp,v 1.8.20.3 2004-06-19 23:28:02 paklein Exp $ */
+/* $Id: VIB2D.cpp,v 1.8.20.4 2004-06-25 01:30:23 paklein Exp $ */
 /* created: paklein (04/09/1997) */
 #include "VIB2D.h"
 
@@ -23,41 +23,7 @@ using namespace Tahoe;
 /* constants */
 const double Pi = acos(-1.0);
 
-/* constructors */
-VIB2D::VIB2D(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("VIB_2D"),
-	NL_E_MatT(in, support),
-	VIB_E_MatT(2),
-	fCircle(NULL)
-{
-#if 0
-	/* construct point generator */
-	int pointcode;
-	in >> pointcode;
-	switch(pointcode)
-	{
-		case kEvenSpace:
-		
-			fCircle = new EvenSpacePtsT(in);
-			break;
-			
-		case KGaussRule:
-		
-			fCircle = new GaussPtsT(in);
-			break;
-	
-		default:
-		
-			throw ExceptionT::kBadInputValue;
-	}
-	
-	if (!fCircle) throw ExceptionT::kOutOfMemory;
-	
-	/* default construction */
-	SetAngle(0.0);
-#endif
-}
-
+/* constructor */
 VIB2D::VIB2D(void):
 	ParameterInterfaceT("VIB_2D"),
 	VIB_E_MatT(2),

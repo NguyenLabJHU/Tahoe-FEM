@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.12.20.2 2004-06-09 23:17:39 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.12.20.3 2004-06-25 01:30:20 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -77,7 +77,7 @@ void SIERRA_Material_BaseT::Initialize(void)
 	const char caller[] = "SIERRA_Material_BaseT::Initialize";
 
 	/* inherited */
-	FSSolidMatT::Initialize();
+	//FSSolidMatT::Initialize();
 
 	/* call SIERRA registration function */
 	Register_SIERRA_Material();

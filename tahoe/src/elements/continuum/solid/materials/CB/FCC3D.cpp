@@ -1,13 +1,10 @@
-/* $Id: FCC3D.cpp,v 1.3.12.4 2004-06-19 23:27:58 paklein Exp $ */
+/* $Id: FCC3D.cpp,v 1.3.12.5 2004-06-25 01:30:06 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D.h"
+
 #include "ElementsConfig.h"
 #include "FCCLatticeT.h"
-
 #include <math.h>
-#include <iostream.h>
-
-#include "fstreamT.h"
 
 /* pair properties */
 #ifdef PARTICLE_ELEMENT
@@ -21,73 +18,6 @@
 using namespace Tahoe;
 
 /* constructor */
-FCC3D::FCC3D(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("FCC_3D"),
-	NL_E_MatT(in, support),
-	fNearestNeighbor(-1),
-	fFCCLattice(NULL),
-	fPairProperty(NULL),
-	fAtomicVolume(0),
-	fBondTensor4(dSymMatrixT::NumValues(3)),
-	fBondTensor2(dSymMatrixT::NumValues(3))	
-{
-#if 0
-	const char caller[] = "FCC3D::FCC3D";
-
-	/* read the number of shells */
-	int nshells;
-	in >> nshells;
-
-	/* construct pair property */
-	ParticlePropertyT::TypeT property;
-	in >> property;
-	switch (property)
-	{
-		case ParticlePropertyT::kHarmonicPair:
-		{
-			double mass, K;
-			in >> mass >> fNearestNeighbor >> K;
-			fPairProperty = new HarmonicPairT(mass, fNearestNeighbor, K);
-			break;
-		}
-		case ParticlePropertyT::kLennardJonesPair:
-		{
-			double mass, eps, sigma, alpha;
-			in >> mass >> eps >> sigma >> alpha;
-			fPairProperty = new LennardJonesPairT(mass, eps, sigma, alpha);
-
-			/* equilibrium length of a single unmodified LJ bond */
-			fNearestNeighbor = pow(2.0,1.0/6.0)*sigma;
-			break;
-		}
-		default:
-			ExceptionT::BadInputValue(caller, "unrecognized property type %d", property);
-	}
-
-	/* construct the bond tables */
-	fQ.Identity();
-	fFCCLattice = new FCCLatticeT(fQ, nshells);
-	fFCCLattice->Initialize();
-	
-	/* check */
-	if (fNearestNeighbor < kSmall)
-		ExceptionT::BadInputValue(caller, "nearest bond ! (%g > 0)", fNearestNeighbor);
-		
-	/* compute the (approx) cell volume */
-	double cube_edge = fNearestNeighbor*sqrt(2.0);
-	fAtomicVolume = cube_edge*cube_edge*cube_edge/4.0;
-
-	/* compute stress-free dilatation */
-	double stretch = ZeroStressStretch();
-	fNearestNeighbor *= stretch;
-	cube_edge = fNearestNeighbor*sqrt(2.0);
-	fAtomicVolume = cube_edge*cube_edge*cube_edge/4.0;
-
-	/* reset the continuum density (4 atoms per unit cell) */
-	fDensity = fPairProperty->Mass()/fAtomicVolume;
-#endif
-}
-
 FCC3D::FCC3D(void):
 	ParameterInterfaceT("FCC_3D"),
 	fNearestNeighbor(-1),

@@ -1,24 +1,11 @@
-/* $Id: QuadLogOgden2DT.cpp,v 1.5.46.3 2004-06-09 23:17:38 paklein Exp $ */
+/* $Id: QuadLogOgden2DT.cpp,v 1.5.46.4 2004-06-25 01:30:17 paklein Exp $ */
 /* created: paklein (02/18/2001) */
 #include "QuadLogOgden2DT.h"
 #include <math.h>
-#include <iostream.h>
-#include "fstreamT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-QuadLogOgden2DT::QuadLogOgden2DT(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("quad_log_Ogden_2D"),
-	OgdenIsotropicT(in, support),
-	flogE(2)
-{
-	/* read modulus */
-	double E, nu;
-	in >> E >> nu;
-	IsotropicT::Set_E_nu(E, nu);
-}
-
 QuadLogOgden2DT::QuadLogOgden2DT(void):
 	ParameterInterfaceT("quad_log_Ogden_2D"),
 	flogE(2)

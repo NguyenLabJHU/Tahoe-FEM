@@ -1,35 +1,11 @@
-/* $Id: SimoIso3D.cpp,v 1.9.46.2 2004-06-09 23:17:41 paklein Exp $ */
+/* $Id: SimoIso3D.cpp,v 1.9.46.3 2004-06-25 01:30:22 paklein Exp $ */
 /* created: paklein (03/02/1997) */
 #include "SimoIso3D.h"
-#include <iostream.h>
 #include <math.h>
 
 using namespace Tahoe;
 
 /* constructor */
-SimoIso3D::SimoIso3D(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("Simo_isotropic"),
-	fStress(3),
-	fModulus(dSymMatrixT::NumValues(3)),
-	
-	/* work space */
-	fb(3),
-	fb_bar(3),
-	frank4(dSymMatrixT::NumValues(3)),
-	
-	/* fixed forms */
-	fIdentity(3),
-	fIcrossI(dSymMatrixT::NumValues(3)),
-	fIdentity4(dSymMatrixT::NumValues(3)),
-	fDevOp4(dSymMatrixT::NumValues(3))
-{	
-	/* initialize work matricies */
-	fIdentity.Identity();
-	fIcrossI.Outer(fIdentity, fIdentity);
-	fIdentity4.ReducedIndexI();	
-	fDevOp4.ReducedIndexDeviatoric();
-}
-
 SimoIso3D::SimoIso3D(void):
 	ParameterInterfaceT("Simo_isotropic")
 {	
@@ -79,17 +55,13 @@ const dSymMatrixT& SimoIso3D::s_ij(void)
 /* material description */
 const dMatrixT& SimoIso3D::C_IJKL(void)
 {
-	cout << "\n SimoIso3D::C_IJKL: use updated Lagrangian formulation" << endl;
-	throw ExceptionT::kGeneralFail;
-
+	 ExceptionT::GeneralFail("SimoIso3D::C_IJKL", "use updated Lagrangian formulation");
 	return fModulus; // dummy
 }
 
 const dSymMatrixT& SimoIso3D::S_IJ(void)
 {
-	cout << "\n SimoIso3D::S_IJ: use updated Lagrangian formulation" << endl;
-	throw ExceptionT::kGeneralFail;
-
+	ExceptionT::GeneralFail("SimoIso3D::S_IJ: use updated Lagrangian formulation");
 	return fStress; // dummy
 }
 

@@ -1,4 +1,4 @@
-/* $Id: NL_E_MatT.h,v 1.6.46.1 2004-06-14 04:56:36 paklein Exp $ */
+/* $Id: NL_E_MatT.h,v 1.6.46.2 2004-06-25 01:30:35 paklein Exp $ */
 /* created: paklein (06/13/1997) */
 #ifndef _NL_E_MAT_T_H_
 #define _NL_E_MAT_T_H_
@@ -28,7 +28,6 @@ class NL_E_MatT: public FSSolidMatT
   public:
 
 	/** constructor */
-	NL_E_MatT(ifstreamT& in, const FSMatSupportT& support);
 	NL_E_MatT(void);
 	
 	/** \name spatial description */

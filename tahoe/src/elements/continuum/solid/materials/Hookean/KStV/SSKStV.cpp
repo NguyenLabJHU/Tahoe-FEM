@@ -1,18 +1,10 @@
-/* $Id: SSKStV.cpp,v 1.4.48.2 2004-06-09 23:17:37 paklein Exp $ */
+/* $Id: SSKStV.cpp,v 1.4.48.3 2004-06-25 01:30:14 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "SSKStV.h"
 
 using namespace Tahoe;
 
 /* constructor */
-SSKStV::SSKStV(ifstreamT& in, const SSMatSupportT& support):
-	ParameterInterfaceT("small_strain_StVenant"),
-	SSHookeanMatT(in, support),
-	IsotropicT(in)
-{
-
-}
-
 SSKStV::SSKStV(void):
 	ParameterInterfaceT("small_strain_StVenant")
 {

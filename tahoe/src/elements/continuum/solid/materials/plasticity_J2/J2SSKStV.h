@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.h,v 1.8.24.4 2004-06-09 06:25:37 paklein Exp $ */
+/* $Id: J2SSKStV.h,v 1.8.24.5 2004-06-25 01:30:31 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #ifndef _J2_SS_KSTV_H_
 #define _J2_SS_KSTV_H_
@@ -20,7 +20,6 @@ class J2SSKStV: public SSSolidMatT,
 public:
 
 	/** constructor */
-	J2SSKStV(ifstreamT& in, const SSMatSupportT& support);
 	J2SSKStV(void);
 
 	/* initialization */

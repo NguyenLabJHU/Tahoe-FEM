@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.10.20.3 2004-06-19 23:28:10 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.10.20.4 2004-06-25 01:30:35 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
 #include "FSMatSupportT.h"
@@ -13,25 +13,6 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<FSSolidMatT*>::fByteCopy = true;
 } /* namespace Tahoe */
 
 /* constructor */
-FSSolidMatT::FSSolidMatT(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("large_strain_material"),
-	SolidMaterialT(in, support),
-	TensorTransformT(NumSD()),
-	fFSMatSupport(&support),
-	fQ(NumSD()),
-	fF_therm_inv(NumSD()),
-	fF_therm_inv_last(NumSD()),
-	fF_mechanical(NumSD()),
-	fTemperatureField(false)
-{
-	/* no thermal strain */
-	fF_therm_inv.Identity();
-	fF_therm_inv_last.Identity();
-	
-	/* initialize */
-	fF_mechanical.Identity();
-}
-
 FSSolidMatT::FSSolidMatT(void):
 	ParameterInterfaceT("large_strain_material"),
 	fFSMatSupport(NULL),
@@ -60,30 +41,6 @@ void FSSolidMatT::SetFSMatSupport(const FSMatSupportT* support)
 	fF_therm_inv.Identity();
 	fF_therm_inv_last.Identity();	
 	fF_mechanical.Identity();
-}
-
-/* initialization */
-void FSSolidMatT::Initialize(void)
-{
-	/* inherited */
-	SolidMaterialT::Initialize();
-
-	/* set multiplicative thermal transformation */
-	SetInverseThermalTransformation(fF_therm_inv);
-	fF_therm_inv_last = fF_therm_inv;
-	
-	/* check for temperature field */
-	if (fFSMatSupport->Temperatures() && fFSMatSupport->LastTemperatures()) {
-
-		/* set flag */
-		fTemperatureField = true;
-		
-		/* work space */
-		fTemperature.Dimension(fFSMatSupport->Temperatures()->MinorDim());
-		
-		/* disable prescribed dilatation */
-		fThermal->SetSchedule(NULL);
-	}
 }
 
 /* test for localization using "current" values for Cauchy
@@ -287,8 +244,8 @@ void FSSolidMatT::TakeParameterList(const ParameterListT& list)
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* left stretch tensor */
 void FSSolidMatT::Compute_b(dSymMatrixT& b) const

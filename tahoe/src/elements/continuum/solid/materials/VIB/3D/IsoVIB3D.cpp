@@ -1,4 +1,4 @@
-/* $Id: IsoVIB3D.cpp,v 1.9.20.3 2004-06-19 23:28:03 paklein Exp $ */
+/* $Id: IsoVIB3D.cpp,v 1.9.20.4 2004-06-25 01:30:24 paklein Exp $ */
 /* created: paklein (03/15/1998) */
 #include "IsoVIB3D.h"
 
@@ -18,43 +18,7 @@
 
 using namespace Tahoe;
 
-/* constructors */
-IsoVIB3D::IsoVIB3D(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("isotropic_VIB"),
-	FSSolidMatT(in, support),
-	VIB(3, 3, 6),
-	fEigs(3),
-	fEigmods(3),
-	fSpectral(3),
-	fb(3),
-	fSphere(NULL),
-	fModulus(dSymMatrixT::NumValues(3)),
-	fStress(3)
-{	
-#if 0
-	/* construct point generator */
-	int gencode;
-	in >> gencode;
-	switch (gencode)
-	{
-		case SpherePointsT::kLatLong:
-			fSphere = new LatLongPtsT(in);
-			break;
-	
-		case SpherePointsT::kIcosahedral:
-			fSphere = new IcosahedralPtsT(in);
-			break;
-			
-		default:
-			throw ExceptionT::kBadInputValue;
-	}
-	if (!fSphere) throw ExceptionT::kOutOfMemory;
-
-	/* set tables */
-	Construct();
-#endif
-}
-
+/* constructor */
 IsoVIB3D::IsoVIB3D(void):
 	ParameterInterfaceT("isotropic_VIB"),
 	VIB(3, 3, 6),

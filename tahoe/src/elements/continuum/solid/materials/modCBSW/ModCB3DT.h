@@ -1,4 +1,4 @@
-/* $Id: ModCB3DT.h,v 1.6.46.2 2004-06-17 07:54:25 paklein Exp $ */
+/* $Id: ModCB3DT.h,v 1.6.46.3 2004-06-25 01:30:28 paklein Exp $ */
 /* created: paklein (10/14/1998) */
 #ifndef _MODCB_3D_T_H_
 #define _MODCB_3D_T_H_
@@ -16,7 +16,6 @@ class ModCB3DT: public NL_E_MatT
 public:
 
 	/** constructor */
-	ModCB3DT(ifstreamT& in, const FSMatSupportT& support, bool equilibrate);
 	ModCB3DT(void);
 
 	/* destructor */

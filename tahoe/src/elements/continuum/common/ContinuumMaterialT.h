@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.h,v 1.8.18.3 2004-06-09 23:16:37 paklein Exp $ */
+/* $Id: ContinuumMaterialT.h,v 1.8.18.4 2004-06-25 01:30:04 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _CONTINUUM_MATERIAL_T_H_
 #define _CONTINUUM_MATERIAL_T_H_
@@ -75,10 +75,6 @@ public:
 	/** reference to the ElementCardT for the current element of
 	 * evaluation */
 	ElementCardT& CurrentElement(void) const;
-
-	/** initialization. Called immediately after constructor to allow
-	 * class specific initializations. */
-	virtual void Initialize(void);
 
 	/** apply pre-conditions at the current time step. Called once for
 	 * the model at the beginning of a time increment */

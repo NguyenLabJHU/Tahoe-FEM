@@ -1,4 +1,4 @@
-/* $Id: FDHookeanMatT.h,v 1.7.46.1 2004-04-08 07:32:43 paklein Exp $ */
+/* $Id: FDHookeanMatT.h,v 1.7.46.2 2004-06-25 01:30:09 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #ifndef _FD_HOOKEAN_MAT_H_
 #define _FD_HOOKEAN_MAT_H_
@@ -14,11 +14,7 @@ class FDHookeanMatT: public FSSolidMatT, public HookeanMatT
 public:
 
 	/** constructor */
-	FDHookeanMatT(ifstreamT& in, const FSMatSupportT& support);
 	FDHookeanMatT(void);
-
-	/** initialization */
-	virtual void Initialize(void);
 
 	/** set the material support or pass NULL to clear */
 	virtual void SetFSMatSupport(const FSMatSupportT* support);

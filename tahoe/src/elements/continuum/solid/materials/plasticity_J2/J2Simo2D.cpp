@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.cpp,v 1.13.20.5 2004-06-16 00:29:30 paklein Exp $ */
+/* $Id: J2Simo2D.cpp,v 1.13.20.6 2004-06-25 01:30:31 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 #include "J2Simo2D.h"
 #include "StringT.h"
@@ -10,19 +10,6 @@ using namespace Tahoe;
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* constructor */
-J2Simo2D::J2Simo2D(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("Simo_J2_2D"),
-	SimoIso2D(in, support),
-//	J2SimoC0HardeningT(in, NumIP(), Mu()),
-	fFmech(3),
-	ffrel(3),
-	fF_temp(2),
-	fFmech_2D(2),
-	ffrel_2D(2)	
-{
-
-}
-
 J2Simo2D::J2Simo2D(void):
 	ParameterInterfaceT("Simo_J2_2D")
 {

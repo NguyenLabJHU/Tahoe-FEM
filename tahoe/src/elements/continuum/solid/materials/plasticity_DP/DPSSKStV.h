@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.h,v 1.11.4.3 2004-06-11 01:38:16 paklein Exp $ */
+/* $Id: DPSSKStV.h,v 1.11.4.4 2004-06-25 01:30:30 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_H_
 #define _DP_SS_KSTV_H_
@@ -20,7 +20,6 @@ class DPSSKStV: public SSSolidMatT,
   public:
 
 	/** constructor */
-	DPSSKStV(ifstreamT& in, const SSMatSupportT& support);
 	DPSSKStV(void);
 
 	/** constructor */

@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.h,v 1.8.46.3 2004-06-09 23:17:38 paklein Exp $ */
+/* $Id: OgdenIsotropicT.h,v 1.8.46.4 2004-06-25 01:30:17 paklein Exp $ */
 /* created: paklein (10/01/2000) */
 #ifndef _OGDEN_ISOTROPIC_T_H_
 #define _OGDEN_ISOTROPIC_T_H_
@@ -22,14 +22,10 @@ class OgdenIsotropicT: public FSIsotropicMatT
 public:
 
 	/** constructor */
-	OgdenIsotropicT(ifstreamT& in, const FSMatSupportT& support);
 	OgdenIsotropicT(void);
 
 	/** destructor */
 	virtual ~OgdenIsotropicT(void);
-	
-	/* class specific initializations */
-	virtual void Initialize(void);
 
 	/** \name spatial description */
 	/*@{*/

@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.14.20.2 2004-06-09 23:18:07 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.14.20.3 2004-06-25 01:30:35 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -31,12 +31,7 @@ class FSSolidMatT: public SolidMaterialT, protected TensorTransformT
 public:
 
 	/** constructor */
-	FSSolidMatT(ifstreamT& in, const FSMatSupportT& support);
 	FSSolidMatT(void);
-
-	/** initialization. If active, initialize the history of
-	 * prescribed thermal strains. */
-	virtual void Initialize(void);
 
 	/** set the material support or pass NULL to clear */
 	virtual void SetFSMatSupport(const FSMatSupportT* support);

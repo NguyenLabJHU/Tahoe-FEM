@@ -1,20 +1,10 @@
-/* $Id: NL_E_MatT.cpp,v 1.6.46.2 2004-06-14 04:56:36 paklein Exp $ */
+/* $Id: NL_E_MatT.cpp,v 1.6.46.3 2004-06-25 01:30:35 paklein Exp $ */
 /* created: paklein (06/13/1997) */
 #include "NL_E_MatT.h"
 
 using namespace Tahoe;
 
 /* constructors */
-NL_E_MatT::NL_E_MatT(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("large_strain_E_material"),
-	FSSolidMatT(in, support),
-	fE(NumSD()),
-	fPK2(NumSD()),
-	fModuli(dSymMatrixT::NumValues(NumSD()))
-{
-
-}
-
 NL_E_MatT::NL_E_MatT(void):
 	ParameterInterfaceT("large_strain_E_material")
 {

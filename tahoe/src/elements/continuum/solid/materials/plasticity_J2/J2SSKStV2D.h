@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV2D.h,v 1.4.48.3 2004-06-09 06:25:37 paklein Exp $ */
+/* $Id: J2SSKStV2D.h,v 1.4.48.4 2004-06-25 01:30:31 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #ifndef _J2_SS_KSTV_2D_H_
 #define _J2_SS_KSTV_2D_H_
@@ -13,7 +13,6 @@ class J2SSKStV2D: public J2SSKStV
 public:
 
 	/** constructor */
-	J2SSKStV2D(ifstreamT& in, const SSMatSupportT& support);
 	J2SSKStV2D(void);
 
 	/** returns elastic strain (3D) */

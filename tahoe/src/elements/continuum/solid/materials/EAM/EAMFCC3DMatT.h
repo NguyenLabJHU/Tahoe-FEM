@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT.h,v 1.6.46.3 2004-06-16 07:13:35 paklein Exp $ */
+/* $Id: EAMFCC3DMatT.h,v 1.6.46.4 2004-06-25 01:30:07 paklein Exp $ */
 /* created: paklein (10/25/1998) */
 #ifndef _EAMFCC3DMatT_H_
 #define _EAMFCC3DMatT_H_
@@ -17,7 +17,6 @@ class EAMFCC3DMatT: public NL_E_MatT
 public:
 
 	/* constructor */
-	EAMFCC3DMatT(ifstreamT& in, const FSMatSupportT& support);
 	EAMFCC3DMatT(void);
 
 	/* destructor */

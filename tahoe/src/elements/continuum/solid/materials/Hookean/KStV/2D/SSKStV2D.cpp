@@ -1,4 +1,4 @@
-/* $Id: SSKStV2D.cpp,v 1.5.48.1 2004-04-08 07:32:51 paklein Exp $ */
+/* $Id: SSKStV2D.cpp,v 1.5.48.2 2004-06-25 01:30:16 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "SSKStV2D.h"
 #include "StringT.h"
@@ -11,13 +11,6 @@ const int kNumOutput = 3;
 static const char* Labels[kNumOutput] = {"phi", "J2_dev", "p"};
 
 /* constructor */
-SSKStV2D::SSKStV2D(ifstreamT& in, const SSMatSupportT& support):
-	ParameterInterfaceT("small_strain_StVenant_2D"),
-	SSKStV(in, support)
-{
-
-}
-
 SSKStV2D::SSKStV2D(void):
 	ParameterInterfaceT("small_strain_StVenant_2D")
 {

@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.8.18.3 2004-06-19 23:28:10 paklein Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.8.18.4 2004-06-25 01:30:35 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "SSSolidMatT.h"
 #include "SSMatSupportT.h"
@@ -17,19 +17,6 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<SSSolidMatT*>::fByteCopy = true;
 const double strain_perturbation = 1.0e-08;
 
 /* constructor */
-SSSolidMatT::SSSolidMatT(ifstreamT& in,const SSMatSupportT& support):
-	ParameterInterfaceT("small_strain_material"),
-	SolidMaterialT(in, support),
-	fSSMatSupport(&support),
-	fModulus(dSymMatrixT::NumValues(NumSD())),
-	fStrainTemp(NumSD()),
-	fQ(NumSD()),
-	fThermalStrain(NumSD()),
-	fHasThermalStrain(false)
-{
-
-}
-
 SSSolidMatT::SSSolidMatT(void):
 	ParameterInterfaceT("small_strain_material"),
 	fSSMatSupport(NULL),

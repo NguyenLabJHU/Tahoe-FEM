@@ -1,4 +1,4 @@
-/* $Id: SSCubic2DT.h,v 1.6.46.1 2004-04-08 07:32:48 paklein Exp $ */
+/* $Id: SSCubic2DT.h,v 1.6.46.2 2004-06-25 01:30:13 paklein Exp $ */
 /* created: paklein (06/11/97) */
 #ifndef _SS_CUBIC_2D_T_H_
 #define _SS_CUBIC_2D_T_H_
@@ -14,11 +14,7 @@ class SSCubic2DT: public SSCubicT, public Anisotropic2DT
 public:
 
 	/** constructor */
-	SSCubic2DT(ifstreamT& in, const SSMatSupportT& support);
 	SSCubic2DT(void);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
 
 	/** return the pressure associated with the last call to 
 	 * SolidMaterialT::s_ij. See SolidMaterialT::Pressure

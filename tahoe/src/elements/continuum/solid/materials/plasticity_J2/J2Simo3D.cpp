@@ -1,4 +1,4 @@
-/* $Id: J2Simo3D.cpp,v 1.14.24.4 2004-06-16 00:29:30 paklein Exp $ */
+/* $Id: J2Simo3D.cpp,v 1.14.24.5 2004-06-25 01:30:31 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 #include "J2Simo3D.h"
 #include "ElementCardT.h"
@@ -9,17 +9,6 @@ using namespace Tahoe;
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* constructor */
-J2Simo3D::J2Simo3D(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("Simo_J2"),
-	SimoIso3D(in, support),
-//	J2SimoC0HardeningT(in, NumIP(), Mu()),
-	fFmech(3),
-	ffrel(3),
-	fF_temp(3)
-{
-
-}
-
 J2Simo3D::J2Simo3D(void):
 	ParameterInterfaceT("Simo_J2")
 {

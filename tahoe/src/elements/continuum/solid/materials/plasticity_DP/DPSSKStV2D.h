@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV2D.h,v 1.9.4.3 2004-06-11 01:38:16 paklein Exp $ */
+/* $Id: DPSSKStV2D.h,v 1.9.4.4 2004-06-25 01:30:30 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_2D_H_
 #define _DP_SS_KSTV_2D_H_
@@ -13,7 +13,6 @@ class DPSSKStV2D: public DPSSKStV
   public:
 
 	/** constructor */
-	DPSSKStV2D(ifstreamT& in, const SSMatSupportT& support);
 	DPSSKStV2D(void);
 
 	/* returns elastic strain (3D) */

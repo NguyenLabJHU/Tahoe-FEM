@@ -1,4 +1,4 @@
-/* $Id: SSKStV2D.h,v 1.4.48.1 2004-04-08 07:32:51 paklein Exp $ */
+/* $Id: SSKStV2D.h,v 1.4.48.2 2004-06-25 01:30:16 paklein Exp $ */
 /* created: paklein (06/10/97) */
 #ifndef _SS_KSTV_2D_H_
 #define _SS_KSTV_2D_H_
@@ -13,7 +13,6 @@ class SSKStV2D: public SSKStV
 public:
 
 	/** constructor */
-	SSKStV2D(ifstreamT& in, const SSMatSupportT& support);
 	SSKStV2D(void);
 	
 	/* returns the number of variables computed for nodal extrapolation

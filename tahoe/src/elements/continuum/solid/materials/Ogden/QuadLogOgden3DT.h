@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden3DT.h,v 1.5.46.2 2004-06-09 23:17:38 paklein Exp $ */
+/* $Id: QuadLogOgden3DT.h,v 1.5.46.3 2004-06-25 01:30:18 paklein Exp $ */
 /* created: paklein (02/17/2001) */
 #ifndef _QUAD_LOG_ISO_3D_T_H_
 #define _QUAD_LOG_ISO_3D_T_H_
@@ -13,11 +13,10 @@ class QuadLogOgden3DT: public OgdenIsotropicT
 {
 public:
 
-	/* constructor */
-	QuadLogOgden3DT(ifstreamT& in, const FSMatSupportT& support);
+	/** constructor */
 	QuadLogOgden3DT(void);
 	
-	/* strain energy density */
+	/** strain energy density */
 	virtual double StrainEnergyDensity(void);
 
 protected:
