@@ -1,4 +1,4 @@
-/* $Id: LJTr2D.cpp,v 1.8 2003-01-29 07:34:37 paklein Exp $ */
+/* $Id: LJTr2D.cpp,v 1.9 2003-10-15 23:03:41 cjkimme Exp $ */
 /* created: paklein (07/01/1996) */
 #include "LJTr2D.h"
 
@@ -145,3 +145,5 @@ double LJTr2D::Ulj(double r) const
 	double a = pow(1.0 + ThermalElongation(),6);
 	return feps*a*(a*pow(r,-12)/2.-pow(r,-6));
 }
+
+
