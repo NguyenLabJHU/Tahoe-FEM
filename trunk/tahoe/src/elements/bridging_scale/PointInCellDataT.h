@@ -1,4 +1,4 @@
-/* $Id: PointInCellDataT.h,v 1.6 2004-06-26 05:53:20 paklein Exp $ */
+/* $Id: PointInCellDataT.h,v 1.7 2005-03-11 20:35:21 paklein Exp $ */
 #ifndef _POINT_IN_CELL_DATA_T_H_
 #define _POINT_IN_CELL_DATA_T_H_
 
@@ -21,7 +21,7 @@ class PointInCellDataT
 public:
 
 	/** constructor */
-	PointInCellDataT(void) { };
+	PointInCellDataT(void);
 	
 	/** \name associated element group */
 	/*@{*/

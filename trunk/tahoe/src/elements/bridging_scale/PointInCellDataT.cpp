@@ -1,9 +1,16 @@
-/* $Id: PointInCellDataT.cpp,v 1.6 2004-06-26 05:53:20 paklein Exp $ */
+/* $Id: PointInCellDataT.cpp,v 1.7 2005-03-11 20:35:21 paklein Exp $ */
 #include "PointInCellDataT.h"
 #include "ContinuumElementT.h"
 #include "InverseMapT.h"
 
 using namespace Tahoe;
+
+/* constructor */
+PointInCellDataT::PointInCellDataT(void):
+	fContinuumElement(NULL)
+{
+
+}
 
 /* collect the list of nodes in cells containing points */
 int PointInCellDataT::CollectCellNodes(void)
