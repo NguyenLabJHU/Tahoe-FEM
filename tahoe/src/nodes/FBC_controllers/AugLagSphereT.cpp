@@ -1,4 +1,4 @@
-/* $Id: AugLagSphereT.cpp,v 1.2 2001-08-15 18:37:48 paklein Exp $ */
+/* $Id: AugLagSphereT.cpp,v 1.3 2001-08-29 07:10:52 paklein Exp $ */
 /* created: paklein (03/24/1999)                                          */
 
 #include "AugLagSphereT.h"
@@ -46,7 +46,7 @@ void AugLagSphereT::Initialize(void)
 	/* register with node manager - sets initial fContactDOFtags */
 	iArrayT set_dims(1);
 	set_dims = kNumAugLagDOF;
-	fXDOF_Nodes->Register(this, set_dims);	
+	fXDOF_Nodes->XDOF_Register(this, set_dims);	
 }
 
 void AugLagSphereT::SetEquationNumbers(void)
