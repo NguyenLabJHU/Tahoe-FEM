@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.15 2002-02-04 19:25:19 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.16 2002-02-08 22:01:34 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -604,16 +604,13 @@ bool ModelManagerT::AreElements2D (void) const
 
 int ModelManagerT::ElementGroupIndex (const StringT& ID) const
 {
-  // account for space padding at end of name
-  int length1 = ID.Length();
-  for (int i=0; i < fNumElementSets; i++)
-    {
-      int length2 = fElementNames[i].Length();
-      int length = (length1 < length2) ? length1 : length2;
-      if (strncmp (ID.Pointer(), fElementNames[i].Pointer(), length-1) == 0)
-	return i;
-    }
-  return -1;
+	/* scan element names */
+  	for (int i=0; i < fNumElementSets; i++)
+		if (ID_Match(ID, fElementNames[i]))
+			return i;
+	
+	/* not found */
+	return -1;
 }
 
 void ModelManagerT::ElementGroupDimensions (const StringT& ID, int& numelems, int& numelemnodes) const
@@ -792,16 +789,13 @@ void ModelManagerT::ElementMap (const StringT& ID, iArrayT& map)
 
 int ModelManagerT::NodeSetIndex (const StringT& ID) const
 {
-  // account for space padding at end of name
-  int length1 = ID.Length();
-  for (int i=0; i < fNumNodeSets; i++)
-    {
-      int length2 = fNodeSetNames[i].Length();
-      int length = (length1 < length2) ? length1 : length2;
-      if (strncmp (ID.Pointer(), fNodeSetNames[i].Pointer(), length-1) == 0)
-	return i;
-    }
-  return -1;
+	/* scan node set names */ 
+  	for (int i = 0; i < fNumNodeSets; i++)
+  		if (ID_Match(ID, fNodeSetNames[i]))
+  			return i;
+  			
+  	/* not found */
+  	return -1;
 }
 
 int ModelManagerT::NodeSetLength (const StringT& ID) const
@@ -858,16 +852,13 @@ void ModelManagerT::ManyNodeSets (const ArrayT<StringT>& ID, iArrayT& nodes)
 
 int ModelManagerT::SideSetIndex (const StringT& ID) const
 {
-  // account for space padding at end of name
-  int length1 = ID.Length();
-  for (int i=0; i < fNumSideSets; i++)
-    {
-      int length2 = fSideSetNames[i].Length();
-      int length = (length1 < length2) ? length1 : length2;
-      if (strncmp (ID.Pointer(), fSideSetNames[i].Pointer(), length-1) == 0)
-	return i;
-    }
-  return -1;
+	/* scan side set names */
+	for (int i = 0; i < fNumSideSets; i++)
+		if (ID_Match(ID, fSideSetNames[i]))
+			return i;
+
+	/* not found */
+	return -1;
 }
 
 int ModelManagerT::SideSetLength (const StringT& ID) const
@@ -1154,6 +1145,28 @@ ifstreamT& ModelManagerT::OpenExternal (ifstreamT& in, ifstreamT& in2, ostream& 
 * Private
 *************************************************************************/
 
+/** return true of the ID's match */
+bool ModelManagerT::ID_Match(const StringT& a, const StringT& b) const
+{
+	int la = ID_Length(a);
+	int lb = ID_Length(b);
+	if (la != lb)
+		return false;
+	else
+		return strncmp(a, b, la) == 0;
+}
+
+/** return the length of the ID string not including any trailing white-space */
+int ModelManagerT::ID_Length(const StringT& ID) const
+{
+	const char* str = ID.Pointer();
+	int count = 0;
+	int length = strlen(str);
+	while (count < length && !isspace(*str++)) 
+		count++;
+	return count;
+}
+
 bool ModelManagerT::ScanModel (const StringT& database)
 {
   switch (fFormat)
@@ -1315,25 +1328,20 @@ bool ModelManagerT::ScanSideSets (void)
 
 bool ModelManagerT::CheckID (const ArrayT<StringT>& list, const StringT& ID, const char *type) const
 {
-  // account for space padding at end of name
-  int l1 = ID.Length();
+	for (int i=0; i < list.Length(); i++)
+		if (ID_Match(ID, list[i]))
+		{
+	  		fMessage << "\n ModelManagerT::CheckID\n";
+			fMessage << "   " << type << " already has a registered set called " << ID << "\n\n";
+			fMessage << "  Sets: \n";
+			for (int j=0; j < list.Length(); j++)
+				fMessage << "       " << list[i] << "\n";
+			fMessage << "\n";
+			return false;
+		}
 
-  for (int i=0; i < list.Length(); i++)
-    {
-      int l2 = list[i].Length();
-      int l = (l1 < l2) ? l1 : l2;
-      if (strncmp (list[i].Pointer(), ID.Pointer(), l-1) == 0)
-	{
-	  fMessage << "\nModelManagerT::CheckID\n";
-	  fMessage << "   " << type << " already has a registered set called " << ID << "\n\n";
-	  fMessage << "  Sets: \n";
-	  for (int j=0; j < list.Length(); j++)
-	    fMessage << "       " << list[i] << "\n";
-	  fMessage << "\n";
-	  return false;
-	}
-    }
-  return true;
+	/* OK */
+	return true;
 }
 
 /* clear database parameters */
