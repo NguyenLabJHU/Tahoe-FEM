@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeShapeFunctionT.cpp,v 1.1 2004-08-13 23:59:55 raregue Exp $ */
+/* $Id: D3MeshFreeShapeFunctionT.cpp,v 1.2 2004-10-30 20:51:19 raregue Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D3MeshFreeShapeFunctionT.h"
 #include "D3MeshFreeSupport2DT.h"
@@ -100,7 +100,7 @@ void D3MeshFreeShapeFunctionT::NodalField(const dArray2DT& DOF, dArray2DT& field
 	field.Dimension(nnd, ndf);
 	Dfield.Dimension(nnd, ndf*nsd);
 	DDfield.Dimension(nnd, ndf*nxx);
-	//DDDfield.Dimension(nnd, ??ndf*nxx);
+	DDDfield.Dimension(nnd, ndf*(nsd*nsd));  //kyonten (uncommented)
 
 	/* MLS nodal data */
 	iArrayT   neighbors;
@@ -135,7 +135,7 @@ void D3MeshFreeShapeFunctionT::NodalField(const dArray2DT& DOF, dArray2DT& field
 		/* compute nodal values */
 		Du.Set(ndf, nsd, Dfield(i));
 		DDu.Set(ndf, nxx, DDfield(i));
-		DDDu.Set(ndf, nxx, DDDfield(i));
+		DDDu.Set(ndf, nsd*nsd, DDDfield(i)); //kyonten
 		for (int j = 0; j < ndf; j++)
 		{
 			dof.Set(len, locdisp(j));
@@ -158,7 +158,7 @@ void D3MeshFreeShapeFunctionT::NodalField(const dArray2DT& DOF, dArray2DT& field
 			}
 			
 			/* third derivatives */
-			for (int l = 0; l < nxx; l++)
+			for (int l = 0; l < nsd*nsd; l++)  //kyonten
 			{
 				DDDphi.RowAlias(l, tmp);
 				DDDu(j, l) = dArrayT::Dot(dof, tmp);

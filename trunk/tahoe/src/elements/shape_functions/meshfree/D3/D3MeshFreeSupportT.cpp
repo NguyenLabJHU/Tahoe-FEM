@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeSupportT.cpp,v 1.2 2004-08-23 00:17:14 raregue Exp $ */
+/* $Id: D3MeshFreeSupportT.cpp,v 1.3 2004-10-30 20:51:19 raregue Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D3MeshFreeSupportT.h"
@@ -95,7 +95,7 @@ void D3MeshFreeSupportT::LoadNodalData(int node, iArrayT& neighbors, dArrayT& ph
 		fnPhiData.RowAlias(tag, phi);
 		Dphi.Set(nsd, nnd, fnDPhiData(tag));
 		DDphi.Set(nst, nnd, fnDDPhiData(tag));
-		//DDDphi.Set(?nst, nnd, fnDDDPhiData(tag));
+		DDDphi.Set(nsd*nsd, nnd, fnDDDPhiData(tag)); //kyonten
 	}
 	else
 	{
@@ -110,7 +110,7 @@ void D3MeshFreeSupportT::LoadNodalData(int node, iArrayT& neighbors, dArrayT& ph
 		DDphi.Set(nst, nnd, pdata);
 		pdata += DDphi.Length();
 		
-		DDDphi.Set(nst, nnd, pdata);
+		DDDphi.Set(nsd*nsd, nnd, pdata); //kyonten
 	
 		/* compute */
 		ComputeNodalData(node, neighbors, phi, Dphi, DDphi, DDDphi);
@@ -162,8 +162,8 @@ void D3MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 			DDphi_ptr += DDphi[i].Length();
 			
 			/* 3rd derivatives */
-			//DDDphi[i].Set(nst?, nnd, DDDphi_ptr);
-			//DDDphi_ptr += DDDphi[i].Length();
+			DDDphi[i].Set(nsd*nsd, nnd, DDDphi_ptr); //kyonten
+			DDDphi_ptr += DDDphi[i].Length();
 		}
 	}
 	else
@@ -185,8 +185,8 @@ void D3MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 			pelspace += DDphi[i].Length();
 			
 			/* pointers for 3rd derivatives */
-			//DDDphi[i].Set(nst?, nnd, pelspace);
-			//pelspace += DDDphi[i].Length();
+			DDDphi[i].Set(nsd*nsd, nnd, pelspace); //kyonten
+			pelspace += DDDphi[i].Length();
 		}
 		
 		/* compute */
@@ -198,7 +198,7 @@ void D3MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 /* return values */
 const dArray2DT& D3MeshFreeSupportT::DDDFieldAt(void) const
 {	
-	//return fRKPM->DDDphi();
+	return fRKPM->DDDphi();  //kyonten (uncommented)
 }
 
 /*************************************************************************
@@ -320,7 +320,7 @@ void D3MeshFreeSupportT::ComputeNodalData(int node, const iArrayT& neighbors,
 		phi   = fRKPM->phi();
 		Dphi  = fRKPM->Dphi();
 		DDphi = fRKPM->DDphi();
-		//DDDphi = fRKPM->DDDphi();
+		DDDphi = fRKPM->DDDphi(); //kyonten (uncommented)
 	}
 }
 
@@ -379,7 +379,7 @@ void D3MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 			phi.SetRow(i, fRKPM->phi());
 			Dphi[i]  = fRKPM->Dphi();
 			DDphi[i] = fRKPM->DDphi();
-			//DDDphi[i] = fRKPM->DDDphi();
+			DDDphi[i] = fRKPM->DDDphi();  //kyonten (uncommented) 
 		}
 	}
 }
@@ -392,9 +392,10 @@ void D3MeshFreeSupportT::InitNodalShapeData(void)
 
 	/* dimensions */
 	int nst = dSymMatrixT::NumValues(fCoords->MinorDim());
+	int nsd = fCoords->MinorDim(); //kyonten
 
 	/* configure nodal storage */
-	//fnDDDPhiData.Configure(fnNeighborCount, ?nst);	
+	fnDDDPhiData.Configure(fnNeighborCount, nsd*nsd); //kyonten	
 }
 
 void D3MeshFreeSupportT::InitElementShapeData(void)
@@ -404,8 +405,9 @@ void D3MeshFreeSupportT::InitElementShapeData(void)
 
 	/* dimensions */
 	int nst = dSymMatrixT::NumValues(fCoords->MinorDim());
+	int nsd = fCoords->MinorDim(); //kyonten
 	int nip = fDomain->NumIP();
 
 	/* configure element storage */
-	//feDDDPhiData.Configure(feNeighborCount, nip*?nst);
+	feDDDPhiData.Configure(feNeighborCount, nip*(nsd*nsd)); //kyonten
 }
