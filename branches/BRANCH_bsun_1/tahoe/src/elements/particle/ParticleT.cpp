@@ -1,5 +1,5 @@
 
-/* $Id: ParticleT.cpp,v 1.23.2.6 2003-10-15 22:18:25 bsun Exp $ */
+/* $Id: ParticleT.cpp,v 1.23.2.7 2003-10-27 21:49:04 bsun Exp $ */
 
 #include "ParticleT.h"
 
@@ -131,6 +131,17 @@ void ParticleT::Initialize(void)
 	
 	/* read properties information */
 	EchoProperties(in, out);
+
+
+	StringT key;
+	in>>key;
+	if (key =="lattice") in >> latticeParameter;
+	else
+	  {
+	    in.rewind();
+	    latticeParameter = 4.08; //defaults to gold
+	  }
+	NearestNeighborDistance = latticeParameter*.79;
 
 	/* set up communication of type information */
 	fTypeMessageID = ElementSupport().CommManager().Init_AllGather(MessageT::Integer, 1);
@@ -934,7 +945,6 @@ void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CPara
 	Id=0;
 	for(int i=0; i<ndof;i++) Id(i,i)=1;
 	Strain->DiffOf(Id,b_ij.Inverse());
-
       }
     }
   *SlipVector /= neighbors.Length()-1;
