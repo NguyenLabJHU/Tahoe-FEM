@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.22 2003-08-06 00:04:07 thao Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.23 2003-08-12 18:51:03 thao Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
@@ -409,6 +409,11 @@ double dSymMatrixT::Invariant2(void) const
 			   fArray[0]*fArray[1] -
 			   fArray[1]*fArray[2] -
 			   fArray[2]*fArray[0];
+	else if (fNumSD == dSymMatrixT::k3D_plane)
+		return fArray[2]*fArray[2] -
+			   fArray[0]*fArray[1] -
+			   fArray[1]*fArray[3] -
+			   fArray[3]*fArray[0];	       
 	else
 		return 0.0;
 }
