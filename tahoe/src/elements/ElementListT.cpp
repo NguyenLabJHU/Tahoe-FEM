@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.7 2001-07-14 01:16:39 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.8 2001-07-17 00:18:12 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
@@ -48,6 +48,9 @@
 /* class to read external field from file */
 #include "UpLagr_ExternalFieldT.h"
 
+/* rrsettg element */
+#include "NonsingularContinuumT.h"
+
 /* Element Types */
 const int kRod                = 1;
 const int kElastic            = 2;
@@ -79,6 +82,7 @@ const int kMultiplierContact3D= 24;
 const int kMultiplierContact2D= 25;
 
 const int kTotLagrExternalField = 26; //experimental and temporary
+const int kNonsingularContinuum = 27; //nonsingular continuum element
 
 /* constructors */
 ElementListT::ElementListT(FEManagerT& fe_manager):
@@ -267,6 +271,10 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 
 			case kTotLagrExternalField:
 				fArray[group] = new UpLagr_ExternalFieldT(fFEManager);
+				break;
+
+			case kNonsingularContinuum:
+				fArray[group] = new NonsingularContinuumT(fFEManager);
 				break;
 
 			case kACME_Contact:
