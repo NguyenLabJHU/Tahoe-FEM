@@ -1,4 +1,4 @@
-/* $Id: GraphBaseT.cpp,v 1.15 2003-11-21 22:41:54 paklein Exp $ */
+/* $Id: GraphBaseT.cpp,v 1.16 2003-11-21 23:32:11 paklein Exp $ */
 /* created: paklein (04/13/1999) */
 #include "GraphBaseT.h"
 
@@ -251,11 +251,11 @@ void GraphBaseT::Partition_METIS(int num_partitions, const iArrayT& weight,
 	/* partitioning method */
 	starttimer(METISTmr);
 	if (volume_or_edgecut == 0)
-		METIS_WPartGraphVKway(&num_vertices, offsets.Pointer(), fEdgeList.Pointer(), weight.Pointer(), 
+		METIS_WPartGraphVKway(&num_vertices, offsets.Pointer(), fEdgeList.Pointer(), (int*) weight.Pointer(), 
 			adjwgt, &weight_flag, &num_flag, &num_partitions, 
 			tpwgts.Pointer(), options.Pointer(), &edgecut, partition.Pointer());
 	else if (volume_or_edgecut == 1)
-		METIS_WPartGraphKway(&num_vertices, offsets.Pointer(), fEdgeList.Pointer(), weight.Pointer(), 
+		METIS_WPartGraphKway(&num_vertices, offsets.Pointer(), fEdgeList.Pointer(), (int*) weight.Pointer(), 
 			adjwgt, &weight_flag, &num_flag, &num_partitions, 
 			tpwgts.Pointer(), options.Pointer(), &edgecut, partition.Pointer());
 	else throw;
@@ -265,7 +265,7 @@ void GraphBaseT::Partition_METIS(int num_partitions, const iArrayT& weight,
 	GraphType* graph = CreateGraph();
 	int ncon = 1; /* just 1 constraint per vertex - the weight */
 	SetUpGraph(graph, OP_KMETIS, num_vertices, ncon, offsets.Pointer(), fEdgeList.Pointer(), 
-		weight.Pointer(), NULL, 2);	
+		(int*) weight.Pointer(), NULL, 2);	
 	ComputePartitionInfo(graph, num_partitions, partition.Pointer());
   	FreeGraph(graph);
 

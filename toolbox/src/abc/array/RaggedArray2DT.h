@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.14 2003-11-21 22:41:30 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.15 2003-11-21 23:31:56 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 #ifndef _RAGGED_ARRAY_2D_T_H_
 #define _RAGGED_ARRAY_2D_T_H_
@@ -632,7 +632,7 @@ void RaggedArray2DT<TYPE>::GenerateOffsetVector(ArrayT<int>& offsets) const
 	offsets.Dimension(fPtrs.Length());
 
 	/* pointer to base address */
-	TYPE* base = fData.Pointer();
+	const TYPE* base = fData.Pointer();
 	int length = offsets.Length();
 	for (int i = 0; i < length; i++)
 		offsets[i] = fPtrs[i] - base;
