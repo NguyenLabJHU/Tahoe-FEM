@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.8 2002-01-09 12:03:44 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.9 2002-01-09 18:29:17 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -110,6 +110,7 @@ public:
 	const StringT& Version(void) const;
 	IOBaseT::FileTypeT OutputFormat(void) const;
 	ModelManagerT* ModelManager (void) const;
+	const StringT& Title(void) const { return fTitle; };
 
 	/* local reordering */
 	void SetLocalEqnos(const iArray2DT& nodes, iArray2DT& eqnos) const;
