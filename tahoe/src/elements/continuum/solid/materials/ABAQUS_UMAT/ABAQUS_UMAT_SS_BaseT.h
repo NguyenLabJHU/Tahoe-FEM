@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.1.2.5 2003-12-05 19:07:47 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.1.2.6 2003-12-09 19:54:58 paklein Exp $ */
 #ifndef _ABAQUS_UMAT_SS_BASE_T_H_
 #define _ABAQUS_UMAT_SS_BASE_T_H_
 
@@ -128,6 +128,9 @@ private:
 	/** set to true if modulus should be computed using the finite
 	 * difference approximation */
 	bool fApproxModulus;
+
+	/** number of "elastic" iterations */
+	int fNumElasticIterations;
 
 	/* material name */
 	StringT fUMAT_name;
