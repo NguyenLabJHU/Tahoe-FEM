@@ -20,8 +20,7 @@ macros	NODEFINE
 $config_file = "./.tahoe_config";
 if(-e "$config_file") { read_config();}
 else                  { write_default_config();}
-#print ">  architecture: $arch \n";
-#print ">  modules: @modules \n";
+print "> architecture: $arch \n"; 
 $script_status = 0;
 
 # loop through arguments and options
@@ -29,16 +28,12 @@ if (@ARGV < 1) {usage(); exit 0;}
 ARG: while (@ARGV) {
 	OPT: for (shift@ARGV) {
 		$count = @ARGV;
-		if ($script_status > 0 ){ failed();}
-		if (/^-/) {
-			if (/clean/i)             { clean(); next ARG; }
-			if (/c|checkout/i)        { checkout(); next ARG; }
-			if (/u|update/i)          { update(); next ARG; }
-			if (/r|rebuild/i)         { rebuild(); next ARG; }
-			if (/b|build/i)           { build(); next ARG; }
-			if (/t|test/i)            { test(); next ARG; }
-			if (/u|usage|help|h/i)           { usage();}
-		}
+		if ($script_status > 0 )   { failed();}
+		if (/^u|update/i)          { update(); next ARG; }
+		if (/^r|rebuild/i)         { rebuild(); next ARG; }
+		if (/^b|build/i)           { build(); next ARG; }
+		if (/^t|test/i)            { test(); next ARG; }
+		if (/^u|usage|help|^h/i)   { usage();}
 		print "ERROR: unknown option: $_ \n"; usage();
 	}
 }
@@ -95,19 +90,20 @@ print CONFIG  "# EOF";
 close(CONFIG);
 }
 
-sub checkout{
-	$time = localtime();
-	print "($count) checking out: @modules, at $time\n";
-	unlink("cvs.log");
-	system("cvs -d $username\@$cvsrep checkout @modules > cvs.log 2>&1");
-}
-
 sub update{
 	$time = localtime();
 	print "($count) updating: @modules, at $time\n";
 	unlink("cvs.log");
 	foreach $dir (@modules) {
-		system("cd $dir; cvs update -Pd > ../cvs.log 2>&1");
+		if(-d $dir) {
+			print "\tupdating $dir";
+			system("cd $dir; cvs update -Pd > ../cvs.log 2>&1");
+			print " ...done\n";
+		} else {
+			print "\tchecking out $dir";
+			system("cvs -d $username\@$cvsrep checkout $dir > cvs.log 2>&1");
+			print " ...done\n";
+		}
 	}
 }
 
@@ -117,10 +113,12 @@ sub rebuild{
 # winnow out "static" modules??
 	foreach $dir (@modules) {
 		chdir $dir;
-		if (-e "makefile" && !(-e "static")) {
+		if (-e "makefile") {
+			print "\tmaking $dir";
 			unlink("build.log");
 			system("make build > build.log 2>&1");
 		# check build log for errors	
+			print " ...done\n";
 		}
 		chdir "..";
 	}
@@ -133,9 +131,11 @@ sub build{
 		chdir $dir;
 		if (-e "makefile.template") {
 			fillin_makefile();
+			print "\tmaking $dir";
 			unlink("build.log");
+			system("rm -rf src-mirror obj object_list");
 			system("make init build > build.log 2>&1");
-			
+			print " ...done\n";
 		}
 		chdir "..";
 	}
@@ -152,28 +152,22 @@ sub test{
 		system("cd benchmark; cvs update -Pd > cvs.log 2>&1");
 	}
 	chdir("benchmark/comparator");
+	print("\tbuilding comparator");
 	fillin_makefile(); system("make init build > build.log 2>&1");
+	print(" ...done\n");
 	chdir("..");
-	#print("running benchmarks\n");
+	print("\trunning benchmarks");
 	system("../tahoe/tahoe -f run.batch > run.out 2>&1");
-	#print("comparing benchmarks\n");
+	print(" ...done\n");
+	print("\tcomparing benchmarks");
 	system("./comparator/compare -f run.batch > compare.out 2>&1");
+	print(" ...done\n");
 	open(IN,"compare.summary");
 	<IN>; 
 	$_ = <IN>; chomp(); s/^\s+//; s/\s+$//; $pass = $_;   
 	$_ = <IN>; chomp(); s/^\s+//; s/\s+$//; $fail = $_;   
 	# $path = cwd();
-	print "$pass $fail, see compare.summary for more details\n";
-}
-
-sub clean{
-	$time = localtime();
-	print "($count) cleaning: @modules, at $time\n";
-	foreach $dir (@modules) {
-		chdir $dir; 
-		system("rm -rf src-mirror obj object_list");
-		chdir ".."; 
-	}
+	print "* $pass $fail, see compare.summary for more details\n";
 }
 
 sub failed{
@@ -183,12 +177,10 @@ sub failed{
 
 sub usage{
 	print "\nusage: tahoe-manager [list of keywords and options]\n";
-	print "       checkout: checks out\n";
-	print "       update  : updates\n";
-	print "       build   : builds \n";
-	print "       rebuild : rebuilds \n";
+	print "       update  : updates or checks out modules\n";
+	print "       build   : builds modules \n";
+	print "       rebuild : rebuilds modules \n";
 	print "       test    : runs regression tests\n";
-	print "       clean   : cleans \n";
 	exit 1;
 }
 
