@@ -1,20 +1,30 @@
-/* $Id: SmallStrainT.cpp,v 1.8 2002-10-20 22:48:23 paklein Exp $ */
-
+/* $Id: SmallStrainT.cpp,v 1.8.2.1 2002-11-13 08:40:42 paklein Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSStructMatT.h"
-#include "MaterialListT.h"
 
-/* constructor */
+/* materials lists */
+#include "MaterialList1DT.h"
+#include "MaterialList2DT.h"
+#include "MaterialList3DT.h"
+#include "SSMatSupportT.h"
 
 using namespace Tahoe;
 
+/* constructor */
 SmallStrainT::SmallStrainT(const ElementSupportT& support, const FieldT& field):
 	ElasticT(support, field),
 	fNeedsOffset(-1),
-	fGradU(NumSD())
+	fGradU(NumSD()),
+	fSSMatSupport(NULL)
 {
 
+}
+
+/* destructor */
+SmallStrainT::~SmallStrainT(void)
+{
+	delete fSSMatSupport;
 }
 
 /* called immediately after constructor */
@@ -50,9 +60,57 @@ void SmallStrainT::Initialize(void)
 	}
 }
 
+/* TEMPORARY */
+void SmallStrainT::InitialCondition(void)
+{
+	/* inherited */
+	ElasticT::InitialCondition();
+	
+	/* set the source for the iteration number */
+	fSSMatSupport->SetIterationNumber(ElementSupport().IterationNumber(Group()));
+}
+
 /***********************************************************************
 * Protected
 ***********************************************************************/
+
+/* construct a new material support and return a pointer */
+MaterialSupportT* SmallStrainT::NewMaterialSupport(MaterialSupportT* p) const
+{
+	/* allocate */
+	if (!p) p = new SSMatSupportT(NumSD(), NumDOF(), NumIP());
+
+	/* inherited initializations */
+	ElasticT::NewMaterialSupport(p);
+	
+	/* set StructuralMatSupportT fields */
+	SSMatSupportT* ps = dynamic_cast<SSMatSupportT*>(p);
+	if (ps) {
+		ps->SetLinearStrain(&fStrain_List);
+		ps->SetLinearStrain_last(&fStrain_last_List);
+	}
+
+	return p;
+}
+
+/* return a pointer to a new material list */
+MaterialListT* SmallStrainT::NewMaterialList(int size)
+{
+	/* material support */
+	if (!fSSMatSupport) {
+		fSSMatSupport = dynamic_cast<SSMatSupportT*>(NewMaterialSupport());
+		if (!fSSMatSupport) throw ExceptionT::kGeneralFail;
+	}
+
+	if (NumSD() == 1)
+		return new MaterialList1DT(size, *fSSMatSupport);
+	else if (NumSD() == 2)
+		return new MaterialList2DT(size, *fSSMatSupport);
+	else if (NumSD() == 3)
+		return new MaterialList3DT(size, *fSSMatSupport);
+	else
+		return NULL;		
+}
 
 /* construct list of materials from the input stream */
 void SmallStrainT::ReadMaterialData(ifstreamT& in)

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.35 2002-10-20 22:48:23 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.35.2.1 2002-11-13 08:40:42 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -11,18 +11,15 @@
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"
 #include "eControllerT.h"
-#include "StructuralMaterialT.h"
-#include "MaterialListT.h"
 #include "iAutoArrayT.h"
 
-/* materials lists */
-#include "MaterialList1DT.h"
-#include "MaterialList2DT.h"
-#include "MaterialList3DT.h"
+/* materials */
+#include "StructuralMaterialT.h"
+#include "StructuralMatSupportT.h"
+#include "StructuralMatListT.h"
 
 /* exception codes */
 #include "ExceptionT.h"
-
 
 using namespace Tahoe;
 
@@ -575,6 +572,18 @@ void SolidElementT::SetGlobalShape(void)
 	if (fLocTemp_last) SetLocalU(*fLocTemp_last);
 }
 
+/* construct a new material support and return a pointer */
+MaterialSupportT* SolidElementT::NewMaterialSupport(MaterialSupportT* p) const
+{
+	/* allocate */
+	if (!p) p = new StructuralMatSupportT(NumSD(), NumDOF(), NumIP());
+
+	/* inherited initializations */
+	ContinuumElementT::NewMaterialSupport(p);
+
+	return p;
+}
+
 /* set the \e B matrix using the given shape function derivatives */
 void SolidElementT::Set_B(const dArray2DT& DNa, dMatrixT& B) const
 {
@@ -924,20 +933,6 @@ GlobalT::SystemTypeT SolidElementT::TangentType(void) const
 	else
 		/* inherited */
 		return ContinuumElementT::TangentType();
-}
-
-/* return a pointer to a new material list */
-MaterialListT* SolidElementT::NewMaterialList(int size) const
-{
-	/* allocate - 1D added by HSP 6-26-02 */
-	if (NumSD() == 1)
-                return new MaterialList1DT(size, *this);
-        else if (NumSD() == 2)
-		return new MaterialList2DT(size, *this);
-	else if (NumSD() == 3)
-		return new MaterialList3DT(size, *this);
-	else
-		return NULL;		
 }
 
 /* return the materials list */

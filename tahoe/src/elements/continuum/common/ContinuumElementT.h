@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.16 2002-10-20 22:40:46 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.16.2.1 2002-11-13 08:40:42 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _CONTINUUM_ELEMENT_T_H_
@@ -15,6 +15,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class MaterialListT;
+class MaterialSupportT;
 class ShapeFunctionT;
 class Traction_CardT;
 class StringT;
@@ -170,8 +171,15 @@ protected:
 	// shared but the output of what each code means is class-dependent
 	void EchoTractionBC(ifstreamT& in, ostream& out);
 
-	/** construct a new material list and return a pointer */
-	virtual MaterialListT* NewMaterialList(int size) const = 0;
+	/** construct a new material list and return a pointer. Recipient is responsible for
+	 * for freeing the pointer. */
+	virtual MaterialListT* NewMaterialList(int size) = 0;
+
+	/** construct a new material support and return a pointer. Recipient is responsible for
+	 * for freeing the pointer.
+	 * \param p an existing MaterialSupportT to be initialized. If NULL, allocate
+	 *        a new MaterialSupportT and initialize it. */
+	virtual MaterialSupportT* NewMaterialSupport(MaterialSupportT* p = NULL) const;
 
 	/** write all current element information to the stream. used to generate
 	 * debugging information after runtime errors */
@@ -209,8 +217,8 @@ private:
 
 protected:
 
-	/* materials */
-	MaterialListT* fMaterialList;  /**< list of materials */
+	/** list of materials */
+	MaterialListT* fMaterialList;
 	
 	/* output control */
 	iArrayT	fNodalOutputCodes;
