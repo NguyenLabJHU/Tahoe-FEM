@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.cpp,v 1.1.2.4 2002-05-11 20:48:09 paklein Exp $ */
+/* $Id: ThermalSurfaceT.cpp,v 1.1.2.5 2002-05-16 19:35:10 paklein Exp $ */
 #include "ThermalSurfaceT.h"
 
 #include <math.h>
@@ -156,17 +156,26 @@ void ThermalSurfaceT::RHSDriver(void)
 	int block_dex = 0;
 	const ElementBlockDataT* block_data = fBlockData.Pointer(block_dex);
 	const dArray2DT* block_source = Field().Source(block_data->ID());
+	dArrayT ip_source;
+	if (block_source) ip_source.Dimension(fShapes->NumIP());
 	int block_count = 0;
 	
 	Top();
 	while (NextElement())
 	{
 		/* reset block info */
-		if (block_count++ == block_data->Dimension()) {
+		if (block_count == block_data->Dimension()) {
 			block_data = fBlockData.Pointer(++block_dex);
 			block_source = Field().Source(block_data->ID());
 			block_count = 0;
 		}
+
+		/* convert heat increment/volume to rate */
+		if (block_source) {
+			block_source->RowCopy(block_count, ip_source);
+			ip_source /= ElementSupport().TimeStep();
+		}
+		block_count++;
 	
 		/* current element */
 		const ElementCardT& element = CurrentElement();
@@ -217,12 +226,8 @@ void ThermalSurfaceT::RHSDriver(void)
 				/* integration point shape functions */
 				fShapes->Shapes(Na);
 			
-				/* incremental line source (rate) */
-				double d_heat = (*block_source)(CurrElementNumber(), fShapes->CurrIP())/
-								ElementSupport().TimeStep();
-
 				/* accumulate - split heat half onto each face */
-				fRHS.AddScaled(0.5*j*w*constKd*d_heat, Na);			
+				fRHS.AddScaled(0.5*j*w*constKd*ip_source[fShapes->CurrIP()], Na);			
 			}
 		}
 									
