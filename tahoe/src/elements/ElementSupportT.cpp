@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.15 2002-12-01 19:52:18 paklein Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.16 2002-12-03 19:15:04 cjkimme Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -154,7 +154,6 @@ int ElementSupportT::IterationNumber(void) const
 #ifndef _SIERRA_TEST_
 	return FEManager().IterationNumber(); 
 #else
-#pragma unused(group)
 	return fItNum;
 #endif
 }
@@ -328,6 +327,9 @@ void ElementSupportT::SetCurrentCoordinates(double *currentCoords)
 		*fcurr++ = *currentCoords++;
 }
 
+/* This function isn't currently being used. Don't know if it needs to
+ * stay around.
+ */
 void ElementSupportT::UpdateCurrentCoordinates(double *displacements)
 {
 	double *fcurr = fCurrentCoordinates->Pointer();
@@ -368,19 +370,18 @@ void ElementSupportT::SetEqnos(int *conn, const int& nElem, const int& nElemNode
 	fStiffness->Dimension(fNumSD*nNodes);
 }
 
-void ElementSupportT::SetInput(map<string,double>& inputParams)
+void ElementSupportT::SetInput(double *inputFloats, int length)
 {
-	fparams = new double[7];
+	fparams = new dArrayT();
+	fparams->Dimension(length);
 	
-	fparams[0] = inputParams["FRACTURE ENERGY RATIO"];
-	fparams[1] = inputParams["DELTA_N STAR"];
-	fparams[2] = inputParams["DELTA_N"];
-	fparams[3] = inputParams["DELTA_T"];
-	fparams[4] = inputParams["PHI_N"];
-	fparams[5] = inputParams["FAILURE RATIO"];
-	fparams[6] = inputParams["STIFFNESS PENALTY MULTIPLIER"];
+	double *ftmp = fparams->Pointer();
+	for (int i = 0; i < length; i++)
+		*ftmp++ = *inputFloats++;
+	
 }
 
+/* Do I really want to copy these?  */
 void ElementSupportT::Setfmap(map<string,double>& inputDoubles)
 {
 	fmap = inputDoubles;

@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.30 2002-11-30 16:41:25 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.31 2002-12-03 19:13:37 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -158,8 +158,8 @@ void CSEAnisoT::Initialize(void)
 #ifndef _SIERRA_TEST_
 					fSurfPots[num] = new XuNeedleman3DT(in);
 #else
-					double *params = ElementSupport().FloatInput();
-					fSurfPots[num] = new XuNeedleman3DT(params);
+					dArrayT *params = nonConstEST->FloatInput();
+					fSurfPots[num] = new XuNeedleman3DT(*params);
 #endif
 				}
 				break;
@@ -179,8 +179,8 @@ void CSEAnisoT::Initialize(void)
 #ifndef _SIERRA_TEST_
 					fSurfPots[num] = new TvergHutch3DT(in);
 #else
-					double *params = ElementSupport().FloatInput();
-					fSurfPots[num] = new TvergHutch3DT(params);				
+					dArrayT *params = nonConstEST->FloatInput();
+					fSurfPots[num] = new TvergHutch3DT(*params);				
 #endif
 				}
 				break;
@@ -255,9 +255,9 @@ void CSEAnisoT::Initialize(void)
 #ifndef _SIERRA_TEST_
 					fSurfPots[num] = new YoonAllen3DT(in, ElementSupport().TimeStep());
 #else
-					double *fparams = ElementSupport().FloatInput();
+					dArrayT *fparams = nonConstEST->FloatInput();
 					int *iparams = ElementSupport().IntInput();
-					fSurfPots[num] = new YoonAllen3DT(fparams,iparams,ElementSupport().TimeStep());
+					fSurfPots[num] = new YoonAllen3DT(*fparams,iparams,ElementSupport().TimeStep());
 #endif
 				}	
 				break;
