@@ -1,4 +1,4 @@
-/* $Id: SSCubicT.cpp,v 1.4.48.1 2004-04-08 07:32:46 paklein Exp $ */
+/* $Id: SSCubicT.cpp,v 1.4.48.2 2004-06-07 13:48:13 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #include "SSCubicT.h"
 
@@ -41,6 +41,14 @@ void SSCubicT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	SSHookeanMatT::DefineParameters(list);
 	CubicT::DefineParameters(list);
+}
+
+/* information about subordinate parameter lists */
+void SSCubicT:: TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	CubicT::TakeParameterList(list); /* cubic parameters must be extracted first */
+	SSHookeanMatT::TakeParameterList(list);
 }
 
 /*************************************************************************

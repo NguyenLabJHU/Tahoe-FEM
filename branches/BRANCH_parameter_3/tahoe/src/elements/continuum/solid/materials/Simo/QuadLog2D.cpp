@@ -1,4 +1,4 @@
-/* $Id: QuadLog2D.cpp,v 1.5.46.1 2004-04-08 07:32:55 paklein Exp $ */
+/* $Id: QuadLog2D.cpp,v 1.5.46.2 2004-06-07 13:48:15 paklein Exp $ */
 /* created: paklein (06/28/1997) */
 #include "QuadLog2D.h"
 #include <math.h>
@@ -16,6 +16,8 @@ QuadLog2D::QuadLog2D(ifstreamT& in, const FSMatSupportT& support):
 {
 
 }
+
+QuadLog2D::QuadLog2D(void): ParameterInterfaceT("quad_log_2D") { }
 
 /* modulus */
 const dMatrixT& QuadLog2D::c_ijkl(void)
@@ -80,6 +82,17 @@ void QuadLog2D::DefineParameters(ParameterListT& list) const
 	/* 2D option must be plain stress */
 	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStrain);
+}
+
+/* accept parameter list */
+void QuadLog2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	QuadLog3D::TakeParameterList(list);
+
+	fb_2D.Dimension(2);
+	fStress2D.Dimension(2);
+	fModulus2D.Dimension(dSymMatrixT::NumValues(2));
 }
 
 /*************************************************************************
