@@ -11,17 +11,12 @@
 //#define _PRINT_DEBUG_
 
 #include "MakeCSE.h"
-
-#include "FEManager.h"
-#include "NodeManagerPrimitive.h"
-#include "ElementBaseT.h"
 #include "MakeCSEIOManager.h"
-#include "GlobalEdgeFinderT.h"
-#include "GeometryT.h"
-#include "IOBaseT.h"
-#include "StringT.h"
+#include "FEManager.h"
 
 const int kPrint = 40000;
+
+using namespace Tahoe;
 
 /* constructor */
 MakeCSE::MakeCSE (ostream& log, GlobalEdgeFinderT& Edger) :
@@ -41,7 +36,7 @@ MakeCSE::~MakeCSE (void)
 {
 }
 
-void MakeCSE::Initialize (IOManager& theInput, FEManager& FEM, int comments)
+void MakeCSE::Initialize (MakeCSEIOManager& theInput, FEManager& FEM, int comments)
 {
   if (comments == 1) fPrintUpdate = true;
   fNumStartElements = theEdger->TotalElements();
@@ -106,7 +101,7 @@ void MakeCSE::SetFE (FEManager& FEM)
   fNumStartNodes = theNodes->NumNodes();
 }
 
-void MakeCSE::SetInput (IOManager& theInput)
+void MakeCSE::SetInput (MakeCSEIOManager& theInput)
 {
   // grab input data, collect individual facets later
   out << "\n M a k e   C S E   D a t a :\n" << '\n';
@@ -138,7 +133,7 @@ void MakeCSE::SetInput (IOManager& theInput)
   out.flush ();
 }
 
-void MakeCSE::InitializeContact (IOManager& theInput)
+void MakeCSE::InitializeContact (MakeCSEIOManager& theInput)
 {
   theInput.InputData (fContact, MakeCSEIOManager::kContactData);
 
@@ -161,10 +156,10 @@ void MakeCSE::InitializeContact (IOManager& theInput)
 
   out << " CSE Block ID's to prep for contact surfaces . . = "
       << fContact.Length() << '\n';
-  fContact.PrintWithFormat (out, 8, 0, 5);
+  fContact.WriteWrapped (out, 5);
 }
 
-void MakeCSE::CollectFacets (IOManager& theInput, const iArrayT& facetdata)
+void MakeCSE::CollectFacets (MakeCSEIOManager& theInput, const iArrayT& facetdata)
 {
   cout << "\n Collecting Facet Data . . ." << endl;
   out << " Side Sets Specified by user. .  . . . . . . . . = "
@@ -172,7 +167,7 @@ void MakeCSE::CollectFacets (IOManager& theInput, const iArrayT& facetdata)
   if (fPrintUpdate)
     {
       out << " SideSet   Facet   CSEID\n";
-      facetdata.PrintWithFormat (out, 8, 0, 3);
+      facetdata.WriteWrapped (out, 3);
     }
 
   iArray2DT set;
@@ -186,7 +181,14 @@ void MakeCSE::CollectFacets (IOManager& theInput, const iArrayT& facetdata)
 
       // read data, read as local, change to my global, 
       // which might differ depending on the order of element block storage
-      theInput.ReadSideSet (facetdata[i], set, 0);
+      StringT sid;
+      sid.Append (facetdata[i]);
+      const iArray2DT temp = theInput.SideSet (sid);
+      bool local = theInput.IsSideSetLocal (sid);
+      if (local)
+	theInput.SideSetLocalToGlobal (sid, temp, set);
+      else
+	set = temp;
 
       // check set validity
       if (!theElements[group]->CheckSideSet (set))
@@ -218,7 +220,7 @@ void MakeCSE::CollectFacets (IOManager& theInput, const iArrayT& facetdata)
     }
 }
 
-void MakeCSE::CollectSingleNodes (IOManager& theInput)
+void MakeCSE::CollectSingleNodes (MakeCSEIOManager& theInput)
 {
   iArrayT setids;
   theInput.InputData (setids, MakeCSEIOManager::kSingleNodes);
@@ -226,7 +228,9 @@ void MakeCSE::CollectSingleNodes (IOManager& theInput)
   iArrayT nodeset;
   for (int i=0; i < setids.Length(); i++)
     {
-      theInput.ReadNodeSet (setids[i], nodeset);
+      StringT sids;
+      sids.Append (setids[i]);
+      nodeset = theInput.NodeSet (sids);
       nodes.AppendUnique (nodeset);
     }
   out << " Nodes specified by user not to be split . . . . = "
@@ -244,7 +248,7 @@ void MakeCSE::CollectSingleNodes (IOManager& theInput)
   RemoveSingleNodes (nodes);
 }
 
-void MakeCSE::CollectZones (IOManager& theInput, const iArrayT& zonedata)
+void MakeCSE::CollectZones (MakeCSEIOManager& theInput, const iArrayT& zonedata)
 {
   cout << "\n Collecting Zone Data . . ." << endl;
   out << " Element Group Zones . . . . . . . . . . . . . . = "
@@ -252,7 +256,7 @@ void MakeCSE::CollectZones (IOManager& theInput, const iArrayT& zonedata)
   if (fPrintUpdate)
     {
       out << "  BlockID OutputID\n";
-      zonedata.PrintWithFormat (out, 8, 0, 2);
+      zonedata.WriteWrapped (out, 2);
     }
 
   iArrayT elemids (zonedata.Length()/2), cseids (zonedata.Length()/2);
@@ -299,16 +303,18 @@ void MakeCSE::CollectZones (IOManager& theInput, const iArrayT& zonedata)
   switch (zoneedgetype)
     {
     case kSingleZE: break; // don't modify boundary node list
-    case kDoubleZE: boundarynodes.Reset(); break; // remove all nodes from list
+    case kDoubleZE: boundarynodes.Free(); break; // remove all nodes from list
     case kMixSingZE:
       {
-	boundarynodes.Reset();
+	boundarynodes.Free();
 	iArrayT nodesets;
 	theInput.InputData (nodesets, MakeCSEIOManager::kZoneEdgeNSets);
 	for (int i=0; i < nodesets.Length(); i++)
 	  {
 	    iArrayT temp;
-	    theInput.ReadNodeSet (nodesets[i], temp);
+	    StringT sids;
+	    sids.Append (nodesets[i]);
+	    temp = theInput.NodeSet (sids);
 	    boundarynodes.AppendUnique (temp);
 	  }
 	out << " Zone Edge Node Sets not to be Split . . . . . . = "
@@ -322,7 +328,9 @@ void MakeCSE::CollectZones (IOManager& theInput, const iArrayT& zonedata)
 	for (int i=0; i < nodesets.Length(); i++)
 	  {
 	    iArrayT temp;
-	    theInput.ReadNodeSet (nodesets[i], temp);
+	    StringT sids;
+	    sids.Append (nodesets[i]);
+	    temp = theInput.NodeSet (sids);
 	    out << " Zone Edge Node Sets to be Split . . . . . . . . . = "
 		<< nodesets << "\n";
 
@@ -363,7 +371,7 @@ void MakeCSE::CollectBoundaries (const iArrayT& boundarydata)
   if (fPrintUpdate)
     {
       out << "  BlockID1 BlkID2Min BlkID2Max  OutputID\n";
-      boundarydata.PrintWithFormat (out, 10, 0, 4);
+      boundarydata.WriteWrapped (out, 4);
     }
 
   iArray2DT set;
@@ -410,11 +418,11 @@ void MakeCSE::CollectBoundaries (const iArrayT& boundarydata)
 void MakeCSE::InitializeSet (int group, int cselemgroup)
 {
   // has the group been initialized ?
-  GeometryT::GeometryCode cgeocode = theCSEs[cselemgroup]->GeometryCode();
+  GeometryT::CodeT cgeocode = theCSEs[cselemgroup]->GeometryCode();
   if (cgeocode == GeometryT::kNone)
     {
       int numfacenodes = theElements[group]->NumFaceNodes (0);
-      GeometryT::GeometryCode code = theElements[group]->GeometryCode();
+      GeometryT::CodeT code = theElements[group]->GeometryCode();
       theCSEs[cselemgroup]->Initialize (code, numfacenodes);
     }
 }
@@ -582,8 +590,8 @@ void MakeCSE::FindNeighbors (int elm, int face, int node, iAutoArrayT& elemneigh
 void MakeCSE::CheckNeighbor (int eglobal, int face, int node, iAutoArrayT& nelems, iAutoArrayT& nfaces)
 {
   iArrayT facenodes, faces;
-  nelems.Reset();
-  nfaces.Reset();
+  nelems.Free();
+  nfaces.Free();
 
   int elocal = FEManager::kNotSet, g = FEManager::kNotSet;
   int e3global = FEManager::kNotSet;

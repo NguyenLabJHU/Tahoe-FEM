@@ -3,19 +3,16 @@
 // created: SAW 10/06/99
 
 #include "ElementBaseT.h"
-
 #include "FEManager.h"
-#include "MakeCSEIOManager.h"
-
+#include "OutputSetT.h"
+#include "GeometryBaseT.h"
 #include "TriT.h"
 #include "QuadT.h"
 #include "HexahedronT.h"
 #include "TetrahedronT.h"
 #include "PentahedronT.h"
-#include "GeometryBaseT.h"
-#include "OutputSetT.h"
 
-#include "IOBaseT.h"
+using namespace Tahoe;
 
 ElementBaseT::ElementBaseT (ostream& fMainOut, int ID) :
   out (fMainOut),
@@ -31,13 +28,13 @@ ElementBaseT::~ElementBaseT (void)
 }
 
 // use this initialize for preexisting data
-void ElementBaseT::Initialize (IOManager& theInput)
+void ElementBaseT::Initialize (MakeCSEIOManager& theInput)
 {
   EchoConnectivity (theInput);
   EchoSideSets (theInput);
 }
 
-void ElementBaseT::Initialize (GeometryT::GeometryCode geocode, int numnodes)
+void ElementBaseT::Initialize (GeometryT::CodeT geocode, int numnodes)
 {
   fGeometryCode = geocode;
   fNumElemNodes = numnodes;
@@ -59,7 +56,7 @@ void ElementBaseT::AddElements (int numelems)
       fNodeNums = FEManager::kNotSet;
     }
   else
-    fNodeNums.Resize (num + numelems, FEManager::kNotSet, true);
+    fNodeNums.Resize (num + numelems, FEManager::kNotSet);
 }
 
 void ElementBaseT::SetNodes (int e1local, const iArrayT& nodes)
@@ -72,7 +69,7 @@ void ElementBaseT::SetNodes (int e1local, const iArrayT& nodes)
     }
 
   if (!IsElementValid (e1local)) throw eSizeMismatch;
-  fNodeNums.WriteRow (e1local, nodes);
+  fNodeNums.SetRow (e1local, nodes);
 }
 
 void ElementBaseT::FacesWithNode (int e1local, int node, iArrayT& faces) const
@@ -214,14 +211,14 @@ void ElementBaseT::AddSideSet (int setID, const iArray2DT& sides)
     {
       int length = fSideSetData[dex].MajorDim();
       int num = sides.MajorDim();
-      fSideSetData[dex].Resize (length + num, FEManager::kNotSet, true);
+      fSideSetData[dex].Resize (length + num, FEManager::kNotSet);
       fSideSetData[dex].BlockRowCopyAt (sides, length);
     }
   else
     {
       int length = fSideSetID.Length();
-      fSideSetData.Resize (length + 1, true, false);
-      fSideSetID.Resize (length + 1, FEManager::kNotSet, true, false);
+      fSideSetData.Resize (length + 1);
+      fSideSetID.Resize (length + 1, FEManager::kNotSet);
       fSideSetData[length] = sides;
       fSideSetID[length] = setID;
       out << "\n  Element Group ID . . . . . . . . . . . . . . . = " 
@@ -273,23 +270,23 @@ void ElementBaseT::NodesUsed (iArrayT& nodes_used) const
 		if (*p++ == 1) nodes_used[dex++] = j + min;
 }
 
-void ElementBaseT::RegisterOutput (IOManager& theIO)
+void ElementBaseT::RegisterOutput (MakeCSEIOManager& theIO)
 {
   ArrayT<StringT> n_labels;
   ArrayT<StringT> e_labels;
   //GenerateOutputLabels (codes, n_labels, e_labels);
 
   bool changing = false;
-  OutputSetT output_set (fGroupID, fGeometryCode, fNodeNums,
-			 n_labels, e_labels, changing);
+  //OutputSetT output_set (fGroupID, fGeometryCode, fNodeNums,
+  //			 n_labels, e_labels, changing);
 
-  fOutputID = theIO.AddElementSet (output_set);
+  //fOutputID = theIO.AddElementSet (output_set);
   
-  for (int s=0; s < fSideSetData.Length(); s++)
-    theIO.AddSideSet (fSideSetData[s], fSideSetID[s], fOutputID);
+  //for (int s=0; s < fSideSetData.Length(); s++)
+    //theIO.AddSideSet (fSideSetData[s], fSideSetID[s], fOutputID);
 }
 
-void ElementBaseT::WriteOutput (IOManager& theIO, IOBaseT::OutputMode mode) const
+void ElementBaseT::WriteOutput (MakeCSEIOManager& theIO, IOBaseT::OutputModeT mode) const
 {
   // send variable data
   /*iArrayT codes;
@@ -335,16 +332,20 @@ bool ElementBaseT::IsFaceValid (int face) const
 
 // *********** PROTECTED *************
 
-void ElementBaseT::EchoConnectivity (IOManager& theInput)
+void ElementBaseT::EchoConnectivity (MakeCSEIOManager& theInput)
 {
   ReadConnectivity (theInput, fGeometryCode, fNodeNums);
   InitializeConnectivity ();
 }
 
-void ElementBaseT::ReadConnectivity (IOManager& theInput, GeometryT::GeometryCode& geocode, iArray2DT& conn) const
+void ElementBaseT::ReadConnectivity (MakeCSEIOManager& theInput, GeometryT::CodeT& geocode, iArray2DT& conn) const
 {
   iArrayT map;
-  theInput.ReadConnectivity (fGroupID, geocode, conn, map);
+  StringT id;
+  id.Append (fGroupID);
+  geocode = theInput.ElementGroupGeometry (id);
+  conn = theInput.ElementGroup (id);
+  theInput.ElementIDs (id, map);
 }
 
 void ElementBaseT::InitializeConnectivity (void)
@@ -357,13 +358,13 @@ void ElementBaseT::InitializeConnectivity (void)
   PrintControlData ();
 }
 
-void ElementBaseT::EchoSideSets (IOManager& theInput)
+void ElementBaseT::EchoSideSets (MakeCSEIOManager& theInput)
 {
   ReadSideSetData (theInput, fSideSetData);
   CheckAllSideSets ();
 }
 
-void ElementBaseT::ReadSideSetData (IOManager& theInput, ArrayT<iArray2DT>& Data)
+void ElementBaseT::ReadSideSetData (MakeCSEIOManager& theInput, ArrayT<iArray2DT>& Data)
 {
   /* read in side sets that are to be transferred */
   iArrayT sides;
@@ -385,7 +386,14 @@ void ElementBaseT::ReadSideSetData (IOManager& theInput, ArrayT<iArray2DT>& Data
   /* read side sets */
   for (int i=0; i < Data.Length(); i++)
     {
-      theInput.ReadSideSet (ids[i], Data[i], 0);
+      StringT sid;
+      sid.Append (ids[i]);
+      const iArray2DT temp = theInput.SideSet (sid);
+      bool local = theInput.IsSideSetLocal (sid);
+      if (local)
+	theInput.SideSetLocalToGlobal (sid, temp, Data[i]);
+      else
+	Data[i] = temp;
       out << "    Side Set . . . . . . . . . . . . . . . . . . = " 
 	  << ids[i] << '\n';
       out << "     Number of Facets in Set . . . . . . . . . . = "
@@ -444,7 +452,7 @@ void ElementBaseT::SetFace (void)
   
   // determine number of nodes on each facet and facet geometry codes
   iArrayT num_nodes;
-  ArrayT<GeometryT::GeometryCode> fFacetCodes;
+  ArrayT<GeometryT::CodeT> fFacetCodes;
   geo->FacetGeometry (fFacetCodes, num_nodes);
        
   // create fFaceNodes, map between element nodes and face nodes

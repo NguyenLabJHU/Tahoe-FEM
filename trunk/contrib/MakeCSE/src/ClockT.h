@@ -4,8 +4,12 @@
 #define _SAWCLOCK_H_
 
 #include <time.h>
+#include "ios_fwd_decl.h"
+#include <iomanip.h>
 #include "ArrayT.h"
 #include "StringT.h"
+
+using namespace Tahoe;
 
 class ClockT
 {

@@ -5,17 +5,12 @@
 // created: 11/10/99 SAW
 
 #include "FEManager.h"
-
-#include "iosfwd.h"
-#include "MakeCSEIOManager.h"
-#include "NodeManagerPrimitive.h"
-#include "ElementBaseT.h"
-#include "CSEBaseT.h"
-#include "GeometryT.h"
 #include "Quad2Tri.h"
-#include "IOBaseT.h"
+#include "CSEBaseT.h"
 
-FEManager::FEManager (ostream& out, IOManager& theIO) :
+using namespace Tahoe;
+
+FEManager::FEManager (ostream& out, MakeCSEIOManager& theIO) :
   fMainOut (out),
   fEdger (out),
   fCSEMakerBoss (out, fEdger)
@@ -74,7 +69,7 @@ void FEManager::NodesUsed (int groupID, iArrayT& nodes) const
   if (g > -1) fElementGroups[g]->NodesUsed (nodes);
 }
 
-void FEManager::SetIO (IOManager& theIO)
+void FEManager::SetIO (MakeCSEIOManager& theIO)
 {
   fNodeBoss->RegisterOutput (theIO);
 
@@ -82,7 +77,7 @@ void FEManager::SetIO (IOManager& theIO)
     fElementGroups[i]->RegisterOutput (theIO);
 }
 
-void FEManager::WriteOutput (IOManager& theIO, IOBaseT::OutputMode mode) const
+void FEManager::WriteOutput (MakeCSEIOManager& theIO, IOBaseT::OutputModeT mode) const
 {
   for (int i = 0; i < fElementGroups.Length(); i++)
     fElementGroups[i]->WriteOutput (theIO, mode);
@@ -90,19 +85,21 @@ void FEManager::WriteOutput (IOManager& theIO, IOBaseT::OutputMode mode) const
 
 //************** PRIVATE *******************
 
-void FEManager::SetNodeManager (IOManager& theIO)
+void FEManager::SetNodeManager (MakeCSEIOManager& theIO)
 {
   fMainOut << "\n N o d a l   D a t a :\n\n";
   fNodeBoss = new NodeManagerPrimitive (fMainOut, fPrintInput, *this);
   fNodeBoss->Initialize (theIO);
 }
 
-void FEManager::SetElementGroups (IOManager& theIO)
+void FEManager::SetElementGroups (MakeCSEIOManager& theIO)
 {
   // determine number of regular element groups 
   fNumRegular = theIO.NumElementGroups ();
-  iArrayT ids;
-  theIO.GroupNumbers (ids);
+  const ArrayT<StringT> sids = theIO.ElementGroupIDs ();
+  iArrayT ids (sids.Length());
+  for (int g=0; g < sids.Length(); g++)
+    ids[g] = atoi (sids[g]);
 
   // determine number of ppossible CSE element groups
   iArrayT facets, zones, boundaries;
@@ -122,7 +119,7 @@ void FEManager::SetElementGroups (IOManager& theIO)
   fMainOut << "\n E l e m e n t   D a t a :\n\n";
   fMainOut << " Number of regular element groups. . . . . . . . = "
 	   << fNumRegular << '\n';
-  ids.PrintWithFormat (fMainOut, 8, 5, 6);
+  ids.WriteWrapped (fMainOut, 6);
   fMainOut << " Number of CSE element group . . . . . . . . . . = " 
 	   << fNumCSE << '\n' << CSEids;
 

@@ -7,21 +7,18 @@
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
 
-/*direct members */
-#include "iosfwd.h"
-#include "MakeCSE.h"
+#include "ArrayT.h"
+#include "MakeCSEIOManager.h"
 #include "GlobalEdgeFinderT.h"
-#include "IOBaseT.h"
+#include "NodeManagerPrimitive.h"
+#include "MakeCSE.h"
 
-/* forward declarations */
-class IOManager;
-class ElementBaseT;
-class NodeManagerPrimitive;
+using namespace Tahoe;
 
 class FEManager
 {
  public:
-  FEManager (ostream& out, IOManager& theIO);
+  FEManager (ostream& out, MakeCSEIOManager& theIO);
   ~FEManager (void);
 
   void CreateCSE (void);
@@ -41,12 +38,12 @@ class FEManager
 
   void NodesUsed (int groupID, iArrayT& nodes) const;
 
-  void SetIO (IOManager& theIO);
-  void WriteOutput (IOManager& theIO, IOBaseT::OutputMode mode) const;
+  void SetIO (MakeCSEIOManager& theIO);
+  void WriteOutput (MakeCSEIOManager& theIO, IOBaseT::OutputModeT mode) const;
 
  private:
-  void SetNodeManager (IOManager& theIO);
-  void SetElementGroups (IOManager& theIO);
+  void SetNodeManager (MakeCSEIOManager& theIO);
+  void SetElementGroups (MakeCSEIOManager& theIO);
 
  private:
   ostream& fMainOut;

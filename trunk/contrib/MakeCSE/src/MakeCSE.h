@@ -11,18 +11,14 @@
 #ifndef _MAKECSEPRIMITIVE_H_
 #define _MAKECSEPRIMITIVE_H_
 
-#include "iosfwd.h"
-#include "ArrayT.h"
-#include "iArray2DT.h"
-#include "iArrayT.h"
-#include "iAutoArrayT.h"
 #include "ClockT.h"
+#include "NodeManagerPrimitive.h"
+#include "GlobalEdgeFinderT.h"
+#include "ElementBaseT.h"
 
-class IOManager;
 class FEManager;
-class ElementBaseT;
-class NodeManagerPrimitive;
-class GlobalEdgeFinderT;
+
+using namespace Tahoe;
 
 class MakeCSE
 {
@@ -36,18 +32,18 @@ class MakeCSE
   MakeCSE (ostream& log, GlobalEdgeFinderT& Edger);
   ~MakeCSE (void);
 
-  void Initialize (IOManager& theInput, FEManager& FEM, int comments);
+  void Initialize (MakeCSEIOManager& theInput, FEManager& FEM, int comments);
   void Create (void);
 
  private:
 
   // gather and initialze data
   void SetFE (FEManager& FEM);
-  void SetInput (IOManager& theInput);
-  void InitializeContact (IOManager& theInput);
-  void CollectFacets (IOManager& theInput, const iArrayT& facetdata);
-  void CollectSingleNodes (IOManager& theInput);
-  void CollectZones (IOManager& theInput, const iArrayT& zonedata);
+  void SetInput (MakeCSEIOManager& theInput);
+  void InitializeContact (MakeCSEIOManager& theInput);
+  void CollectFacets (MakeCSEIOManager& theInput, const iArrayT& facetdata);
+  void CollectSingleNodes (MakeCSEIOManager& theInput);
+  void CollectZones (MakeCSEIOManager& theInput, const iArrayT& zonedata);
   void CollectBoundaries (const iArrayT& boundarydata);
 
   void InitializeSet (int group, int CSEgroup);
