@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.3.2.6 2003-05-10 21:30:23 hspark Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.3.2.7 2003-05-11 21:01:08 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -228,12 +228,12 @@ void FEManagerT_bridging::InterpolationMatrix(const StringT& field, dSPMatrixT& 
 	if (!the_field) ExceptionT::GeneralFail(caller, "could not resolve field \"%s\"", field.Pointer());
 
 	/* the shape functions values at the interpolating point */
-	const dArray2DT& weights = fFollowerCellData.InterpolationWeights();
+	const dArray2DT& weights = fFollowerCellData.InterpolationWeights(); 
 
 	/* redimension matrix if needed */
 	int   ndof = the_field->NumDOF();
-	int row_eq = weights.MajorDim()*ndof;
-	int col_eq = the_field->NumEquations();
+	int row_eq = weights.MajorDim()*ndof;	
+	int col_eq = the_field->NumEquations();	
 	if (G_Interpolation.Rows() != row_eq || G_Interpolation.Cols() != col_eq)
 		G_Interpolation.Dimension(row_eq, col_eq, 0);
 
@@ -273,6 +273,46 @@ void FEManagerT_bridging::InterpolationMatrix(const StringT& field, dSPMatrixT& 
 			/* next row dof */
 			row_eq++;
 		}
+	}
+}
+
+/* compute global interpolation matrix for all nodes whose support intersects MD region */
+void FEManagerT_bridging::Ntf(dSPMatrixT& ntf) const
+{
+	/* obtain actual node numbers of nodes whose support intersects MD */
+	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
+	int numactivenodes = cell_nodes.Length();
+
+	/* the shape functions values at the interpolating point 
+	   assume given from atom 0 to natom? */
+	const dArray2DT& weights = fDrivenCellData.InterpolationWeights(); 
+
+	/* redimension matrix if needed */
+	int row_eq = numactivenodes;	// the number of projected nodes
+	int col_eq = weights.MajorDim();	// total number of atoms
+	if (ntf.Rows() != row_eq || ntf.Cols() != col_eq)
+		ntf.Dimension(row_eq, col_eq, 0);
+
+	/* clear */
+	ntf = 0.0;
+	
+	/* element group information */
+	const ContinuumElementT* continuum = fDrivenCellData.ContinuumElement();
+	const iArrayT& cell = fDrivenCellData.InterpolatingCell();
+	
+	/* first loop over all atoms - assume goes from atom 0 to atom natom - may be incorrect */
+	for (int i = 0; i < col_eq; i++)
+	{
+		/* element info */
+		const ElementCardT& element_card = continuum->ElementCard(cell[i]);
+		const iArrayT& nodes = element_card.NodesU();
+		
+		/* put shape functions for nodes evaluated at each atom into global interpolation matrix */
+		/* writes rows using global row numbers - could lead to a wide spread in generalized case */
+		/* look into a global-local map for coarse scale nodes whose support intersects MD */
+		for (int j = 0; j < weights.MinorDim(); j++)
+			ntf.SetElement(nodes[j], i, weights(i,j));
+		
 	}
 }
 
