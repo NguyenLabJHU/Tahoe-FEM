@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.11 2005-03-08 16:09:24 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.12 2005-03-09 19:27:51 raregue Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
@@ -21,6 +21,7 @@ public:
 	enum fElementLocScalars_T {
 							kLocFlag,
 							kdetAmin,
+							kdissip_max,
 							kJumpDispl,
 							kgamma_delta,
 							kQ,
@@ -233,9 +234,18 @@ protected:
 	
 	dArrayT fCohesiveSurface_Params;
 	
-	double detAmin;
+	double detAmin, detA_tmp;
+	double dissip_max, dissip_tmp;
 	AutoArrayT <dArrayT> normals;
 	AutoArrayT <dArrayT> slipdirs;
+	AutoArrayT <dArrayT> tangents;
+	AutoArrayT <double> detAs;
+	AutoArrayT <double> dissipations_fact;
+	AutoArrayT <dArrayT> normals_min;
+	AutoArrayT <dArrayT> slipdirs_min;
+	AutoArrayT <dArrayT> tangents_min;
+	AutoArrayT <double> detAs_min;
+	AutoArrayT <double> dissipations_fact_min;
 	dArrayT grad_enh, mu_dir;
 	dArrayT normal1, normal2, normal3, normal_chosen;
 	dArrayT slipdir1, slipdir2, slipdir3, slipdir_chosen;
