@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.14 2002-08-05 19:28:33 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.15 2002-08-22 23:56:39 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -12,6 +12,9 @@
 #include "dArray2DT.h"
 #include "Array2DT.h"
 #include "LocalArrayT.h"
+
+/* friends and well-wishers */
+//#include "SymmetricNodesT.h"
 
 namespace Tahoe {
 
@@ -110,11 +113,14 @@ protected:
 	/* Added by cjkimme 11/07/01 */
 	bool fCalcNodalInfo;
 	int fNodalInfoCode;
-	int fBulkGroup;
 	dArray2DT fNodalQuantities;
+	int iBulkGroup;
 	
 	/* if nodes are tied, keep track of free nodes per element */
 	Array2DT<bool> freeNodeQ, freeNodeQ_last;
+	
+	/* if nodes are constrained by symmetry, so be it */
+	static bool fModeIQ;
 };
 
 } // namespace Tahoe 
