@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.15 2002-04-12 01:42:09 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.16 2002-04-19 17:18:43 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleT.h"
@@ -520,7 +520,7 @@ void iConsoleT::DoInteractive(void)
 					SetScope(*scope);
 				
 					/* log (but not if read from external) */
-					if (do_log) flog << fScope << '\n';
+					if (do_log) flog << ':' << fScope << '\n';
 				}
 				else
 					line_OK = false;
@@ -855,9 +855,22 @@ iConsoleObjectT* iConsoleT::GetScope(iConsoleObjectT& start,
 		/* no match */
 		else
 		{
-			cout << "could not resolve scope: \""
-			     << line << "\"" << endl;
-			return NULL;
+			/* try root */
+			iConsoleObjectT* scope = &start;
+			while (scope->iSuper() != NULL)
+				scope = scope->iSuper();
+			if (strncmp(line, scope->iName(), length) == 0)
+			{
+				line.Drop(length);
+				line.Prepend(":root");
+				return GetScope(start, line);
+			}
+			else /* failed to find any matches */ 
+			{
+				cout << "could not resolve scope: \""
+				     << line << "\"" << endl;
+				return NULL;
+			}
 		}
 	}
 }
