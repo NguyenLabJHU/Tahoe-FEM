@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.12 2002-11-30 16:41:25 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.13 2002-12-05 00:58:53 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
@@ -11,7 +11,9 @@
 #include "toolboxConstants.h"
 #include "SurfaceShapeT.h"
 #include "C1FunctionT.h"
+#ifndef _SIERRA_TEST_
 #include "eControllerT.h"
+#endif
 
 /* potential functions */
 #include "LennardJones612.h"
@@ -125,8 +127,10 @@ void CSEIsoT::LHSDriver(GlobalT::SystemTypeT)
 {
 	/* time-stepping parameters */
 	double constK = 0.0;
+#ifndef _SIERRA_TEST_
 	int     formK = fController->FormK(constK);
 	if (!formK) return;
+#endif
 
 	/* node map of facet 1 */
 	iArrayT facet1;
@@ -191,8 +195,10 @@ void CSEIsoT::RHSDriver(void)
 {
 	/* time-stepping parameters */
 	double constKd = 0.0;
+#ifndef _SIERRA_TEST_
 	int     formKd = fController->FormKd(constKd);
 	if (!formKd) return;
+#endif
 	
 	/* node map of facet 1 */
 	iArrayT facet1;
@@ -246,6 +252,7 @@ void CSEIsoT::RHSDriver(void)
 void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	const iArrayT& e_codes, dArray2DT& e_values)
 {
+#ifndef _SIERRA_TEST_
 	/* number of nodally smoothed values */
 	int n_out = n_codes.Sum();
 	int e_out = e_codes.Sum();
@@ -456,4 +463,10 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
 	/* get nodally averaged values */
 	ElementSupport().OutputUsedAverage(n_values);
+#else
+#pragma unused(n_codes)
+#pragma unused(n_values)
+#pragma unused(e_codes)
+#pragma unused(e_values)
+#endif
 }
