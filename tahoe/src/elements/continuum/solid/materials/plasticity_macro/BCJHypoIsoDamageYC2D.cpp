@@ -1,6 +1,5 @@
-/* $Id: BCJHypoIsoDamageYC2D.cpp,v 1.5 2004-07-15 08:29:14 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageYC2D.cpp,v 1.6 2004-09-10 22:39:48 paklein Exp $ */
 #include "BCJHypoIsoDamageYC2D.h"
-
 #include "Utils.h"
 
 using namespace Tahoe;
@@ -14,7 +13,8 @@ BCJHypoIsoDamageYC2D::BCJHypoIsoDamageYC2D(ifstreamT& in, const FSMatSupportT& s
   f2Ds_ij   (kNSD),
   f2Dc_ijkl (dSymMatrixT::NumValues(kNSD))
 {
-
+	/* reset default value */
+	fConstraint = kPlaneStrain;
 }
 
 const dSymMatrixT& BCJHypoIsoDamageYC2D::s_ij()
@@ -37,15 +37,4 @@ const dMatrixT& BCJHypoIsoDamageYC2D::c_ijkl()
   f2Dc_ijkl.Rank4ReduceFrom3D(cijkl);
 
   return f2Dc_ijkl;
-}
-
-/* describe the parameters needed by the interface */
-void BCJHypoIsoDamageYC2D::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	BCJHypoIsoDamageYC3D::DefineParameters(list);
-	
-	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("constraint_2D");
-	constraint.SetDefault(kPlaneStrain);
 }

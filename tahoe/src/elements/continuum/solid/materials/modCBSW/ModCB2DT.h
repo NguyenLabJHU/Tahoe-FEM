@@ -1,4 +1,4 @@
-/* $Id: ModCB2DT.h,v 1.8 2004-07-15 08:28:36 paklein Exp $ */
+/* $Id: ModCB2DT.h,v 1.9 2004-09-10 22:39:22 paklein Exp $ */
 /* created: paklein (05/31/1997) */
 #ifndef _MODCB_2DT_H_
 #define _MODCB_2DT_H_
@@ -23,9 +23,6 @@ public:
 	
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
  	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 

@@ -1,4 +1,4 @@
-/* $Id: SSKStV2D.cpp,v 1.6 2004-07-15 08:27:18 paklein Exp $ */
+/* $Id: SSKStV2D.cpp,v 1.7 2004-09-10 22:39:02 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "SSKStV2D.h"
 #include "StringT.h"
@@ -14,7 +14,8 @@ static const char* Labels[kNumOutput] = {"phi", "J2_dev", "p"};
 SSKStV2D::SSKStV2D(void):
 	ParameterInterfaceT("small_strain_StVenant_2D")
 {
-
+	/* reset default value */
+	fConstraint = kPlaneStress;
 }
 
 /* returns the number of variables computed for nodal extrapolation
@@ -55,17 +56,6 @@ void SSKStV2D::ComputeOutput(dArrayT& output)
 	/* deviator J2 */
 	cauchy_3D.Deviatoric();
 	output[1] = cauchy_3D.Invariant2();
-}
-
-/* describe the parameters needed by the interface */
-void SSKStV2D::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	SSKStV::DefineParameters(list);
-	
-	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("constraint_2D");
-	constraint.SetDefault(kPlaneStress);
 }
 
 /*************************************************************************

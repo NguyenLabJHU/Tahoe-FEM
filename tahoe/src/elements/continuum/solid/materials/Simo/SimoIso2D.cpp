@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.cpp,v 1.10 2004-07-15 08:27:35 paklein Exp $ */
+/* $Id: SimoIso2D.cpp,v 1.11 2004-09-10 22:39:12 paklein Exp $ */
 /* created: paklein (03/04/1997) */
 #include "SimoIso2D.h"
 #include <math.h>
@@ -9,7 +9,8 @@ using namespace Tahoe;
 SimoIso2D::SimoIso2D(void):
 	ParameterInterfaceT("Simo_isotropic_2D")
 {
-
+	/* set default value */
+	fConstraint = kPlaneStrain;
 }
 
 /* initialize step */
@@ -87,17 +88,6 @@ double SimoIso2D::StrainEnergyDensity(void)
 	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
 
 	return ComputeEnergy(J, fb);
-}
-
-/* describe the parameters needed by the interface */
-void SimoIso2D::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	SimoIso3D::DefineParameters(list);
-	
-	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("constraint_2D");
-	constraint.SetDefault(kPlaneStrain);
 }
 
 /* accept parameter list */

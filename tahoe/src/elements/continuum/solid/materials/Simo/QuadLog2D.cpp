@@ -1,4 +1,4 @@
-/* $Id: QuadLog2D.cpp,v 1.6 2004-07-15 08:27:35 paklein Exp $ */
+/* $Id: QuadLog2D.cpp,v 1.7 2004-09-10 22:39:12 paklein Exp $ */
 /* created: paklein (06/28/1997) */
 #include "QuadLog2D.h"
 #include <math.h>
@@ -7,7 +7,11 @@
 using namespace Tahoe;
 
 /* constructor */
-QuadLog2D::QuadLog2D(void): ParameterInterfaceT("quad_log_2D") { }
+QuadLog2D::QuadLog2D(void): ParameterInterfaceT("quad_log_2D")
+{ 
+	/* reset default value */
+	fConstraint = kPlaneStrain;	
+}
 
 /* modulus */
 const dMatrixT& QuadLog2D::c_ijkl(void)
@@ -61,17 +65,6 @@ double QuadLog2D::StrainEnergyDensity(void)
 	LogStretches(fEigs);
 
 	return ComputeEnergy(floge);
-}
-
-/* describe the parameters needed by the interface */
-void QuadLog2D::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	QuadLog3D::DefineParameters(list);
-	
-	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("constraint_2D");
-	constraint.SetDefault(kPlaneStrain);
 }
 
 /* accept parameter list */

@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV2D.h,v 1.10 2004-07-15 08:28:48 paklein Exp $ */
+/* $Id: DPSSKStV2D.h,v 1.11 2004-09-10 22:39:27 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_2D_H_
 #define _DP_SS_KSTV_2D_H_
@@ -28,9 +28,6 @@ class DPSSKStV2D: public DPSSKStV
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/

@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden2DT.h,v 1.6 2004-07-15 08:27:22 paklein Exp $ */
+/* $Id: QuadLogOgden2DT.h,v 1.7 2004-09-10 22:39:07 paklein Exp $ */
 /* created: paklein (02/18/2001) */
 #ifndef _QUAD_LOG_ISO_2D_T_H_
 #define _QUAD_LOG_ISO_2D_T_H_
@@ -18,12 +18,6 @@ public:
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-	/*@}*/
 
 protected:
 

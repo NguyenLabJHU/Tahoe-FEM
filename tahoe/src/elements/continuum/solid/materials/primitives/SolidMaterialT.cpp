@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.13 2004-08-01 00:54:59 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.14 2004-09-10 22:39:54 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
@@ -128,12 +128,12 @@ void SolidMaterialT::DefineParameters(ParameterListT& list) const
 	constraint.AddEnumeration("none", kNoConstraint);
 	constraint.AddEnumeration("plane_stress", kPlaneStress);
 	constraint.AddEnumeration("plane_strain", kPlaneStrain);
-	constraint.SetDefault(kNoConstraint);
+	constraint.SetDefault(fConstraint);
 	list.AddParameter(constraint);
 	
 	/* coefficient of thermal expansion */
 	ParameterT CTE(fCTE, "CTE");
-	CTE.SetDefault(0.0);
+	CTE.SetDefault(fCTE);
 	list.AddParameter(CTE);
 }
 

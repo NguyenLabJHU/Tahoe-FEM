@@ -1,4 +1,4 @@
-/* $Id: SSHookeanMat2DT.h,v 1.1 2004-07-22 21:09:37 paklein Exp $ */
+/* $Id: SSHookeanMat2DT.h,v 1.2 2004-09-10 22:38:57 paklein Exp $ */
 #ifndef _SS_HOOKEAN_MAT_2D_H_
 #define _SS_HOOKEAN_MAT_2D_H_
 
@@ -17,9 +17,6 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/

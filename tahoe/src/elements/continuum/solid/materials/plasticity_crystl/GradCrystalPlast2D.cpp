@@ -1,8 +1,6 @@
-/* $Id: GradCrystalPlast2D.cpp,v 1.6 2004-07-15 08:29:06 paklein Exp $ */
+/* $Id: GradCrystalPlast2D.cpp,v 1.7 2004-09-10 22:39:43 paklein Exp $ */
 #include "GradCrystalPlast2D.h"
 #include "Utils.h"
-
-
 
 using namespace Tahoe;
 
@@ -15,7 +13,8 @@ GradCrystalPlast2D::GradCrystalPlast2D(ifstreamT& in, const FSMatSupportT& suppo
   f2Ds_ij    (kNSD),
   f2Dc_ijkl  (dSymMatrixT::NumValues(kNSD))
 {
-
+	/* reset default value */
+	fConstraint = kPlaneStrain;
 }
 
 const dSymMatrixT& GradCrystalPlast2D::s_ij()
@@ -38,15 +37,4 @@ const dMatrixT& GradCrystalPlast2D::c_ijkl()
   f2Dc_ijkl.Rank4ReduceFrom3D(c_ijkl);
 
   return f2Dc_ijkl;
-}
-
-/* describe the parameters needed by the interface */
-void GradCrystalPlast2D::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	GradCrystalPlast::DefineParameters(list);
-	
-	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("constraint_2D");
-	constraint.SetDefault(kPlaneStrain);
 }

@@ -1,4 +1,4 @@
-/* $Id: ModCB2DT.cpp,v 1.9 2004-07-15 08:28:36 paklein Exp $ */
+/* $Id: ModCB2DT.cpp,v 1.10 2004-09-10 22:39:22 paklein Exp $ */
 /* created: paklein (05/31/1997) */
 #include "ModCB2DT.h"
 
@@ -15,22 +15,12 @@ ModCB2DT::ModCB2DT(void):
 	ParameterInterfaceT("Cauchy-Born_diamond_2D"),
 	fModCBSolver(NULL)
 {
-
+	/* reset default values */
+	fConstraint = kPlaneStrain;
 }
 
 /* destructor */
 ModCB2DT::~ModCB2DT(void) { delete fModCBSolver; }
-
-/* describe the parameters needed by the interface */
-void ModCB2DT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	NL_E_MatT::DefineParameters(list);
-	
-	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("constraint_2D");
-	constraint.SetDefault(kPlaneStrain);
-}
 
 /* information about subordinate parameter lists */
 void ModCB2DT::DefineSubs(SubListT& sub_list) const

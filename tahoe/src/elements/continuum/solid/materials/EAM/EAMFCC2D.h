@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.h,v 1.8 2004-07-15 08:26:47 paklein Exp $ */
+/* $Id: EAMFCC2D.h,v 1.9 2004-09-10 22:38:52 paklein Exp $ */
 /* created: paklein (12/09/1996) */
 #ifndef _EAMFCC2D_H_
 #define _EAMFCC2D_H_
@@ -24,9 +24,6 @@ public:
 	
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	/** describe the parameters needed by the interface */
-	void DefineParameters(ParameterListT& list) const;
-	
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 

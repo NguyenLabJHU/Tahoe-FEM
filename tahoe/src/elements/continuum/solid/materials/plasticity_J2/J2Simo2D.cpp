@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.cpp,v 1.14 2004-07-15 08:28:54 paklein Exp $ */
+/* $Id: J2Simo2D.cpp,v 1.15 2004-09-10 22:39:32 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 #include "J2Simo2D.h"
 #include "StringT.h"
@@ -13,7 +13,8 @@ const double sqrt23 = sqrt(2.0/3.0);
 J2Simo2D::J2Simo2D(void):
 	ParameterInterfaceT("Simo_J2_2D")
 {
-
+	/* reset default value */
+	fConstraint = kPlaneStrain;
 }
 
 /* form of tangent matrix (symmetric by default) */
@@ -215,10 +216,6 @@ void J2Simo2D::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	SimoIso2D::DefineParameters(list);
 	J2SimoC0HardeningT::DefineParameters(list);
-	
-	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("constraint_2D");
-	constraint.SetDefault(kPlaneStrain);
 }
 
 /* information about subordinate parameter lists */

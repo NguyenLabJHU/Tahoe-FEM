@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.10 2004-07-15 08:27:45 paklein Exp $ */
+/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.11 2004-09-10 22:39:17 paklein Exp $ */
 /* created: paklein (10/18/1998) */
 #include "J2IsoVIB2DLinHardT.h"
 
@@ -80,7 +80,10 @@ J2IsoVIB2DLinHardT::J2IsoVIB2DLinHardT(void):
 	fStress2D(2),
 	fb_2D(2)
 {
-ExceptionT::GeneralFail("J2IsoVIB2DLinHardT:;J2IsoVIB2DLinHardT", "out of date");
+	ExceptionT::GeneralFail("J2IsoVIB2DLinHardT:;J2IsoVIB2DLinHardT", "out of date");
+	
+	/* set default value */
+	fConstraint = kPlaneStrain;
 }
 
 /* update internal variables */
@@ -283,10 +286,7 @@ void J2IsoVIB2DLinHardT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
 	IsoVIB3D::DefineParameters(list);
-	
-	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("constraint_2D");
-	constraint.SetDefault(kPlaneStrain);
+	J2PrimitiveT::DefineParameters(list);
 }
 
 /* accept parameter list */

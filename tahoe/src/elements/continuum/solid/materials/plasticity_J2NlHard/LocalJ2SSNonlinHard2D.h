@@ -1,4 +1,4 @@
-/* $Id: LocalJ2SSNonlinHard2D.h,v 1.3 2004-07-15 08:29:01 paklein Exp $ */
+/* $Id: LocalJ2SSNonlinHard2D.h,v 1.4 2004-09-10 22:39:38 paklein Exp $ */
 #ifndef _LOCAL_J2_SS_NONLIN_HARD_2D_H_
 #define _LOCAL_J2_SS_NONLIN_HARD_2D_H_
 
@@ -23,12 +23,6 @@ public:
 	
 	/* stress */
 	virtual const dSymMatrixT& s_ij(void);
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-	/*@}*/
 
 private:
 
