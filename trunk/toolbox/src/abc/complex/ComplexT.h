@@ -1,7 +1,5 @@
-/* $Id: ComplexT.h,v 1.7 2002-07-02 19:56:42 cjkimme Exp $ */
-/* created: PAK/AFLP (05/19/1997)                                         */
-/* 	                                                                      */
-
+/* $Id: ComplexT.h,v 1.8 2002-09-12 16:35:36 paklein Exp $ */
+/* created: PAK/AFLP (05/19/1997) */
 #ifndef _COMPLEX_T_H_
 #define _COMPLEX_T_H_
 
@@ -15,76 +13,94 @@ namespace Tahoe {
 
 template <class nTYPE> class nArrayT;
 
+/** complex number class */
 class ComplexT
 {
 public:
 
-	/* Constructors */
-	ComplexT(void);  				//default needed to making arrays
-	ComplexT(int i);                //type conversion: int -> ComplexT
-	ComplexT(double re);			//type conversion: double -> ComplexT
+	/** \name constructors */
+	/*@{*/
+	ComplexT(void);  				/**< default needed to making arrays     */
+	ComplexT(int i);                /**< type conversion: int -> ComplexT    */
+	ComplexT(double re);			/**< type conversion: double -> ComplexT */
 	ComplexT(double re, double im);
+	/*@}*/
 
-	/*
-	 * Real and Imaginary parts
-	 */
+	/** \name Real and Imaginary parts */
+	/*@{*/
 	double Re(void) const;
 	double Im(void) const;
-	ComplexT& toZ(double re, double im); //returns reference to this
+	ComplexT& toZ(double re, double im); /**< returns reference to this */
+	/*@}*/
 	
-	/*
-	 * Conjugate
-	 */
+	/** \name Conjugate */
+	/*@{*/
 	ComplexT& Conjugate(const ComplexT& z);
 	ComplexT& Conjugate(void) ;
+	/*@}*/
 	
-	/*
-	 * Real and Imaginary parts of arrays - must be dimensioned BEFORE call
-	 */
+	/** \name Real and Imaginary parts of arrays
+	 * must be dimensioned BEFORE call */
+	/*@{*/
 	static void z_to_Re(const nArrayT<ComplexT>& z, nArrayT<double>& d);
 	static void z_to_Im(const nArrayT<ComplexT>& z, nArrayT<double>& d);
 	static void ReIm_to_z(const nArrayT<double>& re, const nArrayT<double>& im, nArrayT<ComplexT>& z);
+	/*@}*/
 	
-	/* Polar components */
+	/** \name Polar components */
+	/*@{*/
 	double Magnitude() const;
 	double Angle() const;
+	/*@}*/
 
-	/* Assignment operators */
+	/** \name Assignment operators */
+	/*@{*/
 	ComplexT& operator=(const ComplexT& zRHS);
 	ComplexT& operator=(double re);
 	ComplexT& operator=(int i);
+	/*@}*/
 
-
-	/* Addition */
+	/** \name Addition */
+	/*@{*/
 	friend ComplexT operator+(const ComplexT& z1 , const ComplexT& z2) ;
 	friend ComplexT operator+(double re1, const ComplexT& z2);
 	ComplexT& operator+=(const ComplexT& zRHS);
+	/*@}*/
 
-	/* Subtraction */
+	/** \name Subtraction */
+	/*@{*/
 	friend ComplexT operator-(const ComplexT& z1, const ComplexT& z2) ;
 	friend ComplexT operator-(double re1, const ComplexT& z2);
 	ComplexT& operator-=(const ComplexT& zRHS);
+	/*@}*/
 
-
-	/* Multiplication */
+	/** \name Multiplication */
+	/*@{*/
 	friend ComplexT operator*(const ComplexT& z1, const ComplexT& z2);
 	friend ComplexT operator*(double re1, const ComplexT& z2);
 	friend ComplexT operator*(const ComplexT& z2,double re1);
-ComplexT& operator*=(const ComplexT& zRHS);
+	ComplexT& operator*=(const ComplexT& zRHS);
+	/*@}*/
 
-	/* Division */
+	/** \name Division */
+	/*@{*/
 	friend ComplexT operator/(const ComplexT& z1, const ComplexT& z2);
 	friend ComplexT operator/(double re1, const ComplexT& z2);
 	friend ComplexT operator/(const ComplexT& z2,double re1);
 	ComplexT& operator/=(const ComplexT& zRHS);
+	/*@}*/
 	
-	/* I/O */
+	/** \name I/O */
+	/*@{*/
 	friend ostream& operator<<(ostream& out, const ComplexT& z);
 	friend istream& operator>>(istream&  in, ComplexT& z);
+	/*@}*/
 
-	/* other Math functions */
+	/** \name other Math functions */
+	/*@{*/
 	friend ComplexT log(const ComplexT& z);
 	ComplexT& log_of(const ComplexT& z);
+	/*@}*/
 	
 private:
 
@@ -92,10 +108,6 @@ private:
 	double fIm;
 
 };
-
-//} // namespace Tahoe
-
-//using namespace Tahoe;
 
 /* inline functions */
 
