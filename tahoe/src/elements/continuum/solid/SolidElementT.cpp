@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.55.2.4 2004-03-09 09:00:00 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.55.2.5 2004-03-15 03:27:16 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -424,7 +424,7 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 	    		}
 	    		else if (!qNoExtrap && do_write == 2) {
 	    			qNoExtrap = true;
-	    			fNodalOutputCodes[i] == 2;
+	    			fNodalOutputCodes[i] = 2;
 	    		}
 	    		else if (do_write == 1)
 	    			fNodalOutputCodes[i] = 1;
