@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.41.2.6 2003-05-24 23:34:56 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.41.2.7 2003-05-25 00:23:22 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -575,14 +575,14 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	int order3 = 2;
 	dArray2DT field_at_ghosts, totalu, fubig, fu, projectedu, boundghostdisp, boundghostvel, boundghostacc;
 	dSPMatrixT ntf;
-	iArrayT activefenodes, boundaryghostatoms;
+	iArrayT activefenodes;
 	StringT bridging_field = "displacement";
 	atoms.InitGhostNodes();
 	bool makeinactive = false;	
 	
 	/* figure out boundary atoms for use with THK boundary conditions, 
 	   ghost atoms for usage with MD force calculations */
-	atoms.InterpolationNodes(atoms.NonGhostNodes(), atoms.GhostNodes(), boundaryghostatoms);
+	const iArrayT& boundaryghostatoms = atoms.InterpolationNodes();
 	continuum.InitInterpolation(boundaryghostatoms, bridging_field, *atoms.NodeManager());
 	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive);
 	
@@ -633,8 +633,10 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		continuum.InterpolateField(bridging_field, order1, boundghostdisp);
 		continuum.InterpolateField(bridging_field, order2, boundghostvel);
 		continuum.InterpolateField(bridging_field, order3, boundghostacc);
-		//atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
-		
+
+		/* prescribe acceleration of ghost nodes */
+		//atom.SetGhostNodeKBC(KBC_CardT::kAcc, const dArray2DT& ghostacc);
+
 		/* initialize time history variables here */
 		
 		/* figure out timestep ratio between fem and md simulations */
