@@ -22,7 +22,7 @@ class	FEA_FormatT {
 								LocalArrayT& volume_coords, ShapeFunctionT& shapes,
 								LocalArrayT &u_np1,LocalArrayT &u_n, 
 								FEA_dMatrixT &GRAD_u_np1, FEA_dMatrixT &GRAD_u_n,
-								LocalArrayT& face_gamma_p, FEA_dVectorT& fgamma_p_surf   );
+								LocalArrayT& face_gamma_p, FEA_dVectorT& fgamma_p_surf, iArrayT& face_nodes   );
 		void Na					(	int n_en, ShapeFunctionT *fShapes, FEA_ShapeFunctionT &FEA_Shapes 		);
 		void Gradients 			(	ShapeFunctionT*,LocalArrayT&,LocalArrayT&,FEA_dMatrixT&,FEA_dMatrixT&	);
 		//void GradientSurface 	(	ShapeFunctionT*, const ParentDomainT& ,LocalArrayT&,LocalArrayT&,FEA_dMatrixT&,FEA_dMatrixT&	);

@@ -1,4 +1,4 @@
-// $Id: FEA_FormatT.cpp,v 1.22 2003-10-10 22:08:11 raregue Exp $
+// $Id: FEA_FormatT.cpp,v 1.23 2003-10-11 01:30:22 raregue Exp $
 #include "FEA_FormatT.h"
 
 using namespace Tahoe;
@@ -26,7 +26,7 @@ void FEA_FormatT::SurfShapeGradient	(int n_en, const ParentDomainT& surf_shapes,
 								ShapeFunctionT& shapes,
 								LocalArrayT &u_np1,LocalArrayT &u_n, 
 								FEA_dMatrixT &GRAD_u_np1, FEA_dMatrixT &GRAD_u_n,
-								LocalArrayT& face_gamma_p, FEA_dVectorT& fgamma_p_surf )
+								LocalArrayT& face_gamma_p, FEA_dVectorT& fgamma_p_surf, iArrayT& face_nodes )
 {
 	dMatrixT face_jacobian(2, 1);
 	dMatrixT face_Q(2);
@@ -36,7 +36,7 @@ void FEA_FormatT::SurfShapeGradient	(int n_en, const ParentDomainT& surf_shapes,
 	
 	//fNormal.Dimension ( n_sd );
 	
-	dArrayT interp_ip, interp_ip_mapped;
+	dArrayT interp_ip(2), interp_ip_mapped(2);
 	bool ismapped;
 	dArrayT Na;
 	dArray2DT DNa;
@@ -57,20 +57,35 @@ void FEA_FormatT::SurfShapeGradient	(int n_en, const ParentDomainT& surf_shapes,
 		shapes.GradU	( u_n, 		GRAD_u_n[l], interp_ip_mapped, Na, DNa);
 		shapes.GradU 	( u_np1, 	GRAD_u_np1[l], interp_ip_mapped, Na, DNa );
 		
+		//use face_nodes?
+		for (int a=0; a<n_en; a++) 
+		{
+			dMatrixT& dN_dx = FEA_SurfShapes.dNdx[l];
+			dN_dx(0,a) = DNa(0,face_nodes[a]);
+			dN_dx(1,a) = DNa(1,face_nodes[a]);
+
+			dArrayT& N = FEA_SurfShapes.N[l];
+			N[a] = Na[face_nodes[a]];
+		}	
+		
 		surf_shapes.Interpolate(face_gamma_p, fgamma_p_surf[l], l);
 		
-		const double* DNa_x = surf_shapes.DShape(l,0);
-		const double* DNa_y = surf_shapes.DShape(l,1);
+		/*
+		const double* DNa = surf_shapes.DShape(l,0);
+		//const double* DNa_x = surf_shapes.DShape(l,0);
+		//const double* DNa_y = surf_shapes.DShape(l,1);
 		const double* Na = surf_shapes.Shape(l); 
 		for (int a=0; a<n_en; a++) 
 		{
 			dMatrixT& dN_dx = FEA_SurfShapes.dNdx[l];
-			dN_dx(0,a) = DNa_x[a];
-			dN_dx(1,a) = DNa_y[a];
+			dN_dx(0,a) = DNa[a];
+			//dN_dx(0,a) = DNa_x[a];
+			//dN_dx(1,a) = DNa_y[a];
 
 			dArrayT& N = FEA_SurfShapes.N[l];
 			N[a] = Na[a];
 		}
+		*/
 		
 //		FEA_SurfShapes.N[l] = surf_shapes.Shape(l); 
 //		FEA_SurfShapes.dNdx[l].SetRow(0, surf_shapes.DShape(l,0));
