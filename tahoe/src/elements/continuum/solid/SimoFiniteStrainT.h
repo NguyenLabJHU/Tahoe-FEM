@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.h,v 1.6 2001-09-05 00:26:55 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.h,v 1.7 2001-09-05 07:12:15 paklein Exp $ */
 
 #ifndef _SIMO_FINITE_STRAIN_T_H_
 #define _SIMO_FINITE_STRAIN_T_H_
@@ -100,16 +100,10 @@ protected:
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);
 
-	/** form the element stiffness matrix. \note This function is very
-	 * similar to TotalLagrangianT::FormStiffness, except that the stress
-	 * and material tangent are retrieved from fPK1_list and fc_ijkl_list,
-	 * respectively instead of being calculated in place. */
+	/** form the element stiffness matrix */
 	virtual void FormStiffness(double constK);
 
-	/** calculate the internal force contribution ("-k*d"). Uses the
-	 * stored values of the stress tensor calculated during solution
-	 * of the internal modes in order to spare evaluations of the
-	 * stress. */
+	/** calculate the internal force contribution ("-k*d") */
 	virtual void FormKd(double constK);
 
 private:
@@ -126,8 +120,9 @@ private:
 	/** compute enhanced part of F and total F */
 	void ComputeEnhancedDeformation(bool need_F, bool need_F_last);
 
-	/** calculate the residual from the internal force */
-	void FormKd_enhanced(ArrayT<dMatrixT>& PK1_list, dArrayT& RHS_enh);
+	/** form the contribution to the stiffness associated with the Galerkin
+	 * part of the deformation gradient */
+	void FormStiffness_Galerkin(double constK);
 
 	/** form the stiffness associated with the enhanced modes
 	 * \param K_22 destination for the 2,2 block of the stiffness matrix
@@ -135,13 +130,20 @@ private:
 	 *        the stiffness matrix. Passing NULL skips calculation */
 	void FormStiffness_enhanced(dMatrixT& K_22, dMatrixT* K_12);
 
+	/** compute and assemble the element stiffness for the monolithic
+	 * solution scheme */
+	void FormStiffness_monolithic(double constK);
+
+	/** form the contribution to the the residual force associated with the 
+	 * Galerkin part of the deformation gradient */
+	void FormKd_Galerkin(double constK);
+
 	/** compute and assemble the residual force for the monolithic
 	 * solution scheme */
 	void FormKd_monolithic(double constK);
 
-	/** compute and assemble the element stiffness for the monolithic
-	 * solution scheme */
-	void FormStiffness_monolithic(double constK);
+	/** calculate the residual from the internal force */
+	void FormKd_enhanced(ArrayT<dMatrixT>& PK1_list, dArrayT& RHS_enh);
 	
 protected:
 
@@ -227,7 +229,7 @@ protected:
 	dArrayT  fRHS_enh;
 	dMatrixT fB_enh;
 	LAdMatrixT fK22;	
-	dMatrixT   fK12;
+	dMatrixT   fK12, fK11;
 };
 
 #endif /* _SIMO_FINITE_STRAIN_T_H_ */
