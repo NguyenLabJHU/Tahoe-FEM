@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.12 2002-12-13 02:42:56 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.13 2003-01-27 07:00:31 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -446,7 +446,7 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 			if (fFEManager.Size() > 1)
 			{
 #ifdef __SPOOLES_MPI__
-				fLHS = new SPOOLESMatrixT_mpi(out, check_code, symmetric, pivoting);
+				fLHS = new SPOOLESMatrixT_mpi(out, check_code, symmetric, pivoting, fFEManager.Communicator());
 #else
 				cout << "\n SolverT::SetGlobalMatrix: SPOOLES MPI not installed: ";
 				cout << matrix_type << endl;

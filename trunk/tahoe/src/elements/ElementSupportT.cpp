@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.20 2003-01-24 18:01:30 cjkimme Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.21 2003-01-27 07:00:24 paklein Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -6,6 +6,7 @@
 
 #ifndef _SIERRA_TEST_
 #include "FEManagerT.h"
+#include "CommManagerT.h"
 #include "NodeManagerT.h"
 #include "eControllerT.h"
 #include "nControllerT.h"
@@ -22,7 +23,9 @@
 using namespace Tahoe;
 
 /* constructor */
-ElementSupportT::ElementSupportT(void)
+ElementSupportT::ElementSupportT(void):
+	fCurrentCoordinates(NULL),
+	fInitialCoordinates(NULL)
 {
 #ifndef _SIERRA_TEST_
 	/* clear */
@@ -31,8 +34,6 @@ ElementSupportT::ElementSupportT(void)
 	fNumSD = 3;
 	fTimeStep = 0.;
 	fItNum = 0;
-	fCurrentCoordinates = NULL;
-	fInitialCoordinates = NULL;
 	ieqnos = NULL;
 	iparams = NULL;
 	fparams = NULL;
@@ -52,6 +53,12 @@ void ElementSupportT::SetFEManager(FEManagerT* fe)
 
 		/* set nodal information */
 		SetNodes(fe->NodeManager());
+
+		/* set model manager */
+		fModelManager = fe->ModelManager();
+
+		/* set comm manager */
+		fCommManager = fe->CommManager();
 	}
 	else
 	{
@@ -60,22 +67,28 @@ void ElementSupportT::SetFEManager(FEManagerT* fe)
 
 		/* clear nodal information */
 		SetNodes(NULL);
+
+		/* clear model manager */
+		fModelManager = NULL;
+
+		/* clear comm manager */
+		fCommManager = NULL;
 	}
 }
 
 /* (re-)set the NodeManagerT */
 void ElementSupportT::SetNodes(NodeManagerT* nodes)
 {
-
 	fNodes = nodes;
 	if (nodes)
 	{
-		fNumSD = nodes->NumSD();
-		fNumNodes = nodes->NumNodes();
+		fInitialCoordinates = &(nodes->InitialCoordinates());
+		fCurrentCoordinates = &(nodes->CurrentCoordinates());
 	}
 	else
-	{	
-		fNumSD = fNumNodes = 0;
+	{
+		fInitialCoordinates = NULL;
+		fCurrentCoordinates = NULL;
 	}		
 }
 
@@ -239,19 +252,6 @@ ElementBaseT& ElementSupportT::ElementGroup(int index) const
 }
 #endif
 
-/* geometry information */
-ModelManagerT& ElementSupportT::Model(void) const
-{
-#ifndef _SIERRA_TEST_
-	ModelManagerT* model = FEManager().ModelManager();
-	if (!model) throw ExceptionT::kGeneralFail;
-	return *model;
-#else
-	if (!fModelManager) throw ExceptionT::kGeneralFail;
-	return *fModelManager;
-#endif
-}
-
 #ifndef _SIERRA_TEST_
 /* XDOF support */
 XDOF_ManagerT& ElementSupportT::XDOF_Manager(void) const
@@ -261,7 +261,7 @@ XDOF_ManagerT& ElementSupportT::XDOF_Manager(void) const
 #endif
 
 /* node number map. returns NULL if there is not a map */
-const iArrayT* ElementSupportT::NodeMap(void) const
+const ArrayT<int>* ElementSupportT::NodeMap(void) const
 {
 #ifndef _SIERRA_TEST_
 	return FEManager().NodeMap();
@@ -481,42 +481,29 @@ int ElementSupportT::Rank(void) const
 #endif 
 }
 
-void ElementSupportT::IncomingNodes(iArrayT& nodes_in) const
+const ArrayT<int>* ElementSupportT::ExternalNodes(void) const
 {
 #ifndef _SIERRA_TEST_
-	FEManager().IncomingNodes(nodes_in);
+	if (fCommManager)
+		return fCommManager->ExternalNodes();
+	else
+		return NULL;
 #else
-#pragma unused(nodes_in)
+	return NULL;
 #endif
 }
 
-void ElementSupportT::OutgoingNodes(iArrayT& nodes_out) const
+const ArrayT<int>* ElementSupportT::BorderNodes(void) const
 {
 #ifndef _SIERRA_TEST_
-	FEManager().OutgoingNodes(nodes_out);
+	if (fCommManager)
+		return fCommManager->BorderNodes();
+	else
+		return NULL;
 #else
-#pragma unused(nodes_out)
+	return NULL;
 #endif
 }
-
-void ElementSupportT::SendExternalData(const dArray2DT& all_out_data) const
-{
-#ifndef _SIERRA_TEST_
-	FEManager().SendExternalData(all_out_data);
-#else
-#pragma unused(all_out_data)
-#endif
-}
-
-void ElementSupportT::RecvExternalData(dArray2DT& external_data) const
-{
-#ifndef _SIERRA_TEST_
-	FEManager().RecvExternalData(external_data);
-#else
-#pragma unused(external_data)
-#endif
-}
-
 #endif
 
 void ElementSupportT::AssembleLHS(int group, const ElementMatrixT& elMat, 

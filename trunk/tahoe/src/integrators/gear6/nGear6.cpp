@@ -55,7 +55,7 @@ void nGear6::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		
 		case KBC_CardT::kVel: /* prescribed velocity */
 		{
-			double v_next = KBC.Value();
+			v = KBC.Value();
 			// NEED ACTUAL, NOT PREDICTED ACCELERATION TO DEFINE
 			// THIS KBC!!! (update array?)
 			break;
@@ -63,7 +63,7 @@ void nGear6::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		
 		case KBC_CardT::kAcc: /* prescribed acceleration */
 		{
-		        double a_next  = KBC.Value();
+			double a_next  = KBC.Value();
 			v -= F12 * (a - a_next);
 			d -= F02 * (a - a_next);
 			a = a_next;
@@ -82,9 +82,6 @@ void nGear6::Predictor(BasicFieldT& field)
 	if (field.Order() != 5)
 		ExceptionT::GeneralFail("nGear6::Predictor", "field must be order 6: %d", field.Order());
 
-	/* unknowns */
-	const iArray2DT& eqnos = field.Equations();
-
 	/* fetch pointers */
 	double* p0 = field[0].Pointer(); 
 	double* p1 = field[1].Pointer();
@@ -93,7 +90,9 @@ void nGear6::Predictor(BasicFieldT& field)
 	double* p4 = field[4].Pointer();
 	double* p5 = field[5].Pointer();
 
-	for (int i = 0; i < eqnos.Length(); i++)
+	/* run through arrays */
+	int len = field[0].Length();
+	for (int i = 0; i < len; i++)
 	{
 		(*p0++) += fdt*(*p1) + fdt2*(*p2) + fdt3*(*p3) + fdt4*(*p4) + fdt5*(*p5);
 		(*p1++) += fdt*(*p2) + fdt2*(*p3) + fdt3*(*p4) + fdt4*(*p5);
@@ -102,6 +101,40 @@ void nGear6::Predictor(BasicFieldT& field)
 		(*p4++) += fdt*(*p5++);
 	}
 }		
+
+/* corrector. Maps ALL degrees of freedom forward. */
+void nGear6::Corrector(BasicFieldT& field, const dArray2DT& update)
+{
+	/* check */
+	if (field.Order() != 5)
+		ExceptionT::GeneralFail("nGear6::Corrector", "field must be order 6: %d", field.Order());
+	
+	/* fetch pointers */
+	double* p0 = field[0].Pointer(); 
+	double* p1 = field[1].Pointer();
+	double* p2 = field[2].Pointer();
+	double* p3 = field[3].Pointer();
+	double* p4 = field[4].Pointer();
+	double* p5 = field[5].Pointer();
+	double* pu = update.Pointer();
+
+	/* run through arrays */
+	int len = field[0].Length();
+	for (int i = 0; i < len; i++)
+	{		
+		double error = ((*p2) - (*pu++))*fdt2;
+
+		*p0 -= (error*F02);
+		*p1 -= (error*F12)/fdt;
+		*p2 -= (error*F22)/fdt2;
+		*p3 -= (error*F32)/fdt3; 
+		*p4 -= (error*F42)/fdt4;
+		*p5 -= (error*F52)/fdt5;
+		
+		/* next */
+		p0++; p1++; p2++; p3++; p4++; p5++;
+	}
+}
 
 /* correctors - map ACTIVE */
 void nGear6::Corrector(BasicFieldT& field, const dArrayT& update, 

@@ -69,7 +69,22 @@ void nVerlet::Predictor(BasicFieldT& field)
 
 	/* velocity predictor */
 	field[1].AddScaled(vpred_a, field[2]);
+
+	/* acceleratior predictor */
+	field[2] = 0.0;
 }		
+
+/* correctors - map ALL */
+void nVerlet::Corrector(BasicFieldT& field, const dArray2DT& update)
+{
+	/* no displacement corrector */
+
+	/* velocity corrector */
+	field[1].AddScaled(vcorr_a, update);
+
+	/* acceleration corrector */
+	field[2] += update;
+}
 
 /* correctors - map ACTIVE */
 void nVerlet::Corrector(BasicFieldT& field, const dArrayT& update, 

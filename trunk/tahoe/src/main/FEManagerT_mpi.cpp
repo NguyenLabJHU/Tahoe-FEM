@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.27 2003-01-03 03:31:04 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.28 2003-01-27 07:00:27 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -32,23 +32,15 @@ FEManagerT_mpi::FEManagerT_mpi(ifstreamT& input, ofstreamT& output,
 {	
 	if (fTask == kRun)
 	{
+		const char caller[] = "FEManagerT_mpi::FEManagerT_mpi";
+	
 		/* checks */
 		if (!fPartition)
-		{
-			cout << "\n FEManagerT_mpi::FEManagerT_mpi: partition information required if task is "
-			     << kRun << endl;
-			throw ExceptionT::kBadInputValue;
-		}
+			ExceptionT::BadInputValue(caller, "partition information required for task %d", kRun);
 		else if (fPartition->ID() != Rank())
-		{
-			cout << "\n FEManagerT_mpi::FEManagerT_mpi: partition ID " << fPartition->ID()
-			     << " does not match process rank " << Rank() << endl;
-			throw ExceptionT::kMPIFail;
-		}
+			ExceptionT::MPIFail(caller, "partition ID %d does not match process rank %d",
+				fPartition->ID(), Rank());
 		
-		/* initial time */
-		flast_time = clock();
-
 		StringT log_file;
 		log_file.Root(input.filename());
 		log_file.Append(".p", Rank());
@@ -57,27 +49,24 @@ FEManagerT_mpi::FEManagerT_mpi(ifstreamT& input, ofstreamT& output,
 		
 		/* redirect log messages */
 		fComm.SetLog(flog);
-		
-		//TEMP
-		TimeStamp("FEManagerT_mpi::FEManagerT_mpi");
+
+		/* log */
+		TimeStamp(caller);
 	}
 }
 
 /* destructor */
 FEManagerT_mpi::~FEManagerT_mpi(void)
 {
-	//TEMP
+	/* log */
 	TimeStamp("FEManagerT_mpi::~FEManagerT_mpi");
 
 	/* restore log messages */
-	fComm.SetLog(cout);
+	if (fTask == kRun) fComm.SetLog(cout);
 }
 
 ExceptionT::CodeT FEManagerT_mpi::InitStep(void)
 {
-	/* give heartbeat */
-	fComm.Log("FEManagerT_mpi::InitStep", "init", true);
-
 	/* set default output time stamp */
 	if (fExternIOManager) fExternIOManager->SetOutputTime(Time());
 
@@ -106,7 +95,7 @@ GlobalT::RelaxCodeT FEManagerT_mpi::RelaxSystem(int group) const
 	GlobalT::RelaxCodeT relax = FEManagerT::RelaxSystem(group);
 
 	/* gather codes */
-	ArrayT<int> all_relax(Size());
+	iArrayT all_relax(Size());
 	fComm.AllGather(relax, all_relax);
 
 	/* code precedence */
@@ -133,24 +122,19 @@ GlobalT::RelaxCodeT FEManagerT_mpi::RelaxSystem(int group) const
 /* update solution */
 void FEManagerT_mpi::Update(int group, const dArrayT& update)
 {
-	//TEMP
-	TimeStamp("FEManagerT_mpi::Update");
+	/* give a heart beat */
+	const char caller[] = "FEManagerT_mpi::Update";
+
+	/* give heartbeat */
+	TimeStamp(caller);
 	
 	/* check sum */
 	if (fComm.Sum(ExceptionT::kNoError) != 0) 
-		throw ExceptionT::kBadHeartBeat; /* must trigger try block in FEManagerT::SolveStep */
+		ExceptionT::BadHeartBeat(caller); /* must trigger try block in FEManagerT::SolveStep */
 
 	/* inherited */
 	FEManagerT::Update(group, update);
 }
-
-#if 0
-/* writing results */
-const dArray2DT& FEManagerT_mpi::Coordinates(void) const
-{
-	return fNodeManager->InitialCoordinates();
-}
-#endif
 
 /* initiate the process of writing output from all output sets */
 void FEManagerT_mpi::WriteOutput(double time)
@@ -197,321 +181,6 @@ void FEManagerT_mpi::RestoreOutput(void)
 		FEManagerT::RestoreOutput();
 	else /* external I/O */
 		fExternIOManager->RestoreOutput();
-}
-
-/* return list of ID's of external nodes */
-void FEManagerT_mpi::IncomingNodes(iArrayT& nodes_in) const
-{
-	if (fTask == kRun)
-	{
-		if (!fPartition) throw ExceptionT::kGeneralFail;
-		nodes_in = fPartition->Nodes_External();
-	}
-}
-
-void FEManagerT_mpi::OutgoingNodes(iArrayT& nodes_out) const
-{
-	if (fTask == kRun)
-	{
-		if (!fPartition) throw ExceptionT::kGeneralFail;
-		nodes_out = fPartition->Nodes_Border();
-	}
-}
-
-/* get external nodal values */
-void FEManagerT_mpi::RecvExternalData(dArray2DT& external_data)
-{
-#ifdef __TAHOE_MPI__
-	//TEMP
-	//TimeStamp("FEManagerT_mpi::RecvExternalData");
-
-	int shift = 0;
-	const iArrayT& nodes_ex = fPartition->Nodes_External();
-	if (nodes_ex.Length() > 0) shift = nodes_ex[0];
-	//NOTE - mapping from local node number to incoming
-	//       node sequence assumes sequential numbering of
-	//       incoming node numbers starting at in_nodes[0]
-	//NOTE - really shouldn't be communicating if the number of
-	//       external nodes is zero, but right now the communicator
-	//       may include processes that aren't involved
-	
-	/* loop until all receives completed */
-	const iArrayT& commID = fPartition->CommID();
-	for (int i = 0; i < commID.Length(); i++)
-	{
-		/* grab completed receive */
-		int index;
-		MPI_Status status;
-		if (MPI_Waitany(fRecvRequest.Length(), fRecvRequest.Pointer(),
-			&index, &status) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
-		
-		/* process receive */
-		if (status.MPI_ERROR == MPI_SUCCESS)
-		{
-			const iArrayT& in_nodes = *(fPartition->NodesIn(commID[index]));
-			const dArray2DT&   recv = fRecvBuffer[index];
-
-			//TEMP
-			//flog << "\n incoming from: " << commID[index] << '\n';
-			//flog << " number of values = " << recv.MajorDim() << '\n';
-			//recv.WriteNumbered(flog);
-			//flog.flush();
-
-			/* incoming nodes are always highest numbered */
-			int num_nodes = in_nodes.Length();
-			for (int j = 0; j < num_nodes; j++)
-				external_data.SetRow(in_nodes[j] - shift, recv(j));
-		}
-		else
-			throw ExceptionT::kMPIFail;
-	}
-	
-	//TEMP
-	//flog << " all external data:\n";
-	//external_data.WriteNumbered(flog);
-
-	/* complete all sends */
-	for (int ii = 0; ii < commID.Length(); ii++)
-	{
-		/* grab completed receive */
-		int index;
-		MPI_Status status;
-		if (MPI_Waitany(fSendRequest.Length(), fSendRequest.Pointer(),
-			&index, &status) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
-			
-		if (0 && status.MPI_ERROR != MPI_SUCCESS)
-		{
-			flog << "\n FEManagerT_mpi::RecvExternalData: error completing send\n"
-			     <<   "     from " << Rank() << " to " << commID[ii] << endl;
-			throw ExceptionT::kMPIFail;
-		}
-	}
-#else
-if (external_data.Length() > 0)
-{
-	cout << "\n FEManagerT_mpi::RecvExternalData: invalid request for external data" << endl;
-	throw ExceptionT::kGeneralFail;
-}
-#endif /* __TAHOE_MPI__ */
-}
-
-/* send external data */
-void FEManagerT_mpi::SendExternalData(const dArray2DT& all_out_data)
-{
-#ifdef __TAHOE_MPI__
-	//TEMP
-	//TimeStamp("FEManagerT_mpi::SendExternalData");
-
-	/* check */
-	if (all_out_data.MajorDim() != fNodeManager->NumNodes())
-	{
-		cout << "\n FEManagerT_mpi::SendExternalData: expecting outgoing array with\n"
-		     <<   "    major dimension (number of nodes) " << fNodeManager->NumNodes() << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-
-	/* allocate communication buffers */
-	AllocateBuffers(all_out_data.MinorDim(), fRecvBuffer, fSendBuffer);
-
-	/* communication list */
-	const iArrayT& commID = fPartition->CommID();
-
-	/* post non-blocking receives */
-	for (int j = 0; j < commID.Length(); j++)
-		if (MPI_Irecv(fRecvBuffer[j].Pointer(), fRecvBuffer[j].Length(),
-			MPI_DOUBLE, commID[j], MPI_ANY_TAG, fComm, &fRecvRequest[j])
-			!= MPI_SUCCESS) throw ExceptionT::kMPIFail;
-
-	/* post non-blocking sends */
-	for (int i = 0; i < commID.Length(); i++)
-	{
-		/* outgoing nodes */
-		const iArrayT& out_nodes = *(fPartition->NodesOut(commID[i]));
-	
-		/* outgoing data */
-		fSendBuffer[i].RowCollect(out_nodes, all_out_data);
-
-		//TEMP
-		//flog << "\n sending to: " << commID[i] << '\n';
-		//flog << " number of values = " << fSendBuffer[i].MajorDim() << '\n';
-		//fSendBuffer[i].WriteNumbered(flog);
-		//flog.flush();
-					
-		/* post send */
-		if (MPI_Isend(fSendBuffer[i].Pointer(), fSendBuffer[i].Length(),
-			MPI_DOUBLE, commID[i], Rank(), fComm, &fSendRequest[i])
-			!= MPI_SUCCESS) throw ExceptionT::kMPIFail;		
-	}
-#else
-	if (all_out_data.Length() > 0)
-	{
-		cout << "\n FEManagerT_mpi::SendExternalData: invalid send of external data" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-#endif /* __TAHOE_MPI__ */
-}
-
-void FEManagerT_mpi::SendRecvExternalData(const iArray2DT& all_out_data,
-	iArray2DT& external_data)
-{
-#ifndef __TAHOE_MPI__
-#pragma unused(all_out_data)
-#pragma unused(external_data)
-	cout << "\n FEManagerT_mpi::SendRecvExternalData: invalid exchange of external data" << endl;
-	throw ExceptionT::kGeneralFail;
-#else
-
-	/* checks */
-	if (!fPartition)
-	{
-		cout << "\n FEManagerT_mpi::SendRecvExternalData: invalid pointer to partition data" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-
-	if (all_out_data.MajorDim() != fNodeManager->NumNodes())
-	{
-		cout << "\n FEManagerT_mpi::SendRecvExternalData: expecting outgoing array with\n"
-		     <<   "    major dimension (number of nodes) " << fNodeManager->NumNodes() << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-
-	/* communication list */
-	const iArrayT& commID = fPartition->CommID();
-
-	/* requests */
-	ArrayT<MPI_Request> recv_request(commID.Length());
-	ArrayT<MPI_Request> send_request(commID.Length());
-
-	/* allocate communication buffers */
-	ArrayT<iArray2DT> recv;
-	ArrayT<iArray2DT> send;
-	AllocateBuffers(all_out_data.MinorDim(), recv, send);
-
-	/* post non-blocking receives */
-	for (int j = 0; j < commID.Length(); j++)
-		if (MPI_Irecv(recv[j].Pointer(), recv[j].Length(),
-			MPI_INT, commID[j], MPI_ANY_TAG, fComm, &recv_request[j])
-			!= MPI_SUCCESS) throw ExceptionT::kMPIFail;
-
-	/* post non-blocking sends */
-	for (int k = 0; k < commID.Length(); k++)
-	{
-		/* outgoing nodes */
-		const iArrayT& out_nodes = *(fPartition->NodesOut(commID[k]));
-	
-		/* outgoing data */
-		send[k].RowCollect(out_nodes, all_out_data);
-					
-		/* post send */
-		if (MPI_Isend(send[k].Pointer(), send[k].Length(),
-			MPI_INT, commID[k], Rank(), fComm, &send_request[k])
-			!= MPI_SUCCESS) throw ExceptionT::kMPIFail;		
-	}
-
-	int shift = (fPartition->Nodes_External())[0];
-	//NOTE - mapping from local node number to incoming
-	//       node sequence assumes sequential numbering of
-	//       incoming node numbers starting at in_nodes[0]
-	
-	/* loop until all receives completed */
-	for (int i = 0; i < commID.Length(); i++)
-	{
-		/* grab completed receive */
-		int index;
-		MPI_Status status;
-		if (MPI_Waitany(recv_request.Length(), recv_request.Pointer(),
-			&index, &status) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
-		
-		/* process receive */
-		if (status.MPI_ERROR == MPI_SUCCESS)
-		{
-			const iArrayT& in_nodes = *(fPartition->NodesIn(commID[index]));
-			const iArray2DT& incoming = recv[index];
-
-			/* incoming nodes are always highest numbered */
-			int num_nodes = in_nodes.Length();
-			for (int j = 0; j < num_nodes; j++)
-				external_data.SetRow(in_nodes[j] - shift, incoming(j));
-		}
-		else
-			throw ExceptionT::kMPIFail;
-	}
-	
-	/* complete all sends */
-	for (int ii = 0; ii < commID.Length(); ii++)
-	{
-		/* grab completed receive */
-		int index;
-		MPI_Status status;
-		if (MPI_Waitany(send_request.Length(), send_request.Pointer(),
-			&index, &status) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
-			
-		if (0 && status.MPI_ERROR != MPI_SUCCESS)
-		{
-			flog << "\n FEManagerT_mpi::RecvExternalData: error completing send\n"
-			     <<   "     from " << Rank() << " to " << commID[ii] << endl;
-			throw ExceptionT::kMPIFail;
-		}
-	}
-#endif
-}
-
-/* return the local node to processor map */
-void FEManagerT_mpi::NodeToProcessorMap(const iArrayT& node, iArrayT& processor) const
-{
-	/* initialize */
-	processor.Dimension(node);
-	processor = -1;
-	
-	/* empty list */
-	if (node.Length() == 0) return;
-	
-	/* no parition data */
-	if (!fPartition) {
-		processor = Rank();
-		return;
-	}
-	
-	/* range of node numbers */
-	int shift, max;
-	node.MinMax(shift, max);
-	int range = max - shift + 1;
-
-	/* node to index-in-node-array map */
-	iArrayT index(range);
-	index = -1;
-	for (int i = 0; i < range; i++)
-		index[node[i] - shift] = i;
-	
-	/* mark external */
-	const iArrayT& comm_ID = Partition().CommID();
-	for (int i = 0; i < comm_ID.Length(); i++)
-	{	
-		int proc = comm_ID[i];
-		const iArrayT* comm_nodes = Partition().NodesIn(proc);
-		if (!comm_nodes) throw ExceptionT::kGeneralFail;
-		for (int j = 0; j < comm_nodes->Length(); j++)
-		{
-			int nd = (*comm_nodes)[j] - shift;
-			if (nd > -1 && nd < range) /* in the list range */
-			{
-				int dex = index[nd];
-				if (dex != -1) /* in the list */
-					processor[dex] = proc;
-			}
-		}
-	}
-	
-	/* assume all others are from this proc */
-	int rank = Rank();
-	for (int i = 0; i < range; i++)
-		if (processor[i] == -1) processor[i] = rank;
-}
-
-void FEManagerT_mpi::Wait(void)
-{
-	/* synchronize */
-	fComm.Barrier();
 }
 
 /* domain decomposition */
@@ -621,7 +290,7 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 
 void FEManagerT_mpi::ReadParameters(InitCodeT init)
 {
-	//TEMP
+	/* log */
 	TimeStamp("FEManagerT_mpi::ReadParameters");
 
 	/* inherited */
@@ -667,29 +336,6 @@ void FEManagerT_mpi::ReadParameters(InitCodeT init)
 	}
 }
 
-void FEManagerT_mpi::SetNodeManager(void)
-{
-	//TEMP
-	TimeStamp("FEManagerT_mpi::SetNodeManager");
-
-	/* inherited */
-	FEManagerT::SetNodeManager();
-
-#ifdef __TAHOE_MPI__
-	/* set for parallel execution */
-	if (fTask == kRun)
-	{
-		/* check */
-		if (fPartition->ID() < 0) throw ExceptionT::kGeneralFail;
-	
-		/* communication ID list */
-		const iArrayT& commID = fPartition->CommID();
-		fRecvRequest.Dimension(commID.Length());
-		fSendRequest.Dimension(commID.Length());
-	}
-#endif /* __TAHOE_MPI__ */
-}
-
 void FEManagerT_mpi::SetElementGroups(void)
 {
 	/* inherited */
@@ -710,24 +356,6 @@ void FEManagerT_mpi::InitialCondition(void)
 	/* set I/O */
 	if (fExternIOManager) fExternIOManager->NextTimeSequence(SequenceNumber());
 }
-
-#if 0
-/* reduce single value */
-int FEManagerT_mpi::AllReduce(MPI_Op operation, int value)
-{
-#ifndef __TAHOE_MPI__
-#pragma unused(operation)
-#pragma unused(value)
-	cout << "\n FEManagerT_mpi::AllReduce: illegal request to reduce value" << endl;
-	throw ExceptionT::kGeneralFail;
-#else
-	int reduction = 0;
-	if (MPI_Allreduce(&value, &reduction, 1, MPI_INT, operation, fComm)
-		!= MPI_SUCCESS) throw ExceptionT::kMPIFail;
-	return reduction;
-#endif
-}
-#endif
 
 /* global number of first local equation */
 int FEManagerT_mpi::GetGlobalEquationStart(int group) const
@@ -783,84 +411,6 @@ CommManagerT* FEManagerT_mpi::New_CommManager(void) const
  * Private
  *************************************************************************/
 
-void FEManagerT_mpi::AllocateBuffers(int minor_dim, ArrayT<dArray2DT>& recv,
-	ArrayT<dArray2DT>& send)
-{
-	/* check */
-	if (!fPartition)
-	{
-		cout << "\n FEManagerT_mpi::AllocateBuffers: invalid pointer to partition" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-
-	/* communication list */
-	const iArrayT& commID = fPartition->CommID();
-
-	/* check */
-	bool exit = true;
-	if (recv.Length() != commID.Length() ||
-	    send.Length() != commID.Length()) exit = false;
-	for (int j = 0; j < commID.Length() && exit; j++)
-		if (recv[j].MinorDim() != minor_dim ||
-		    send[j].MinorDim() != minor_dim) exit = false;
-	if (exit) return;
-
-	/* free any existing */
-	recv.Free();
-	send.Free();
-
-	/* allocate buffers */
-	recv.Dimension(commID.Length());
-	send.Dimension(commID.Length());
-	for (int i = 0; i < commID.Length(); i++)
-	{
-		const iArrayT& nodes_in = *(fPartition->NodesIn(commID[i]));
-		recv[i].Dimension(nodes_in.Length(), minor_dim);
-		
-		const iArrayT& nodes_out = *(fPartition->NodesOut(commID[i]));
-		send[i].Dimension(nodes_out.Length(), minor_dim);
-	}
-}
-
-void FEManagerT_mpi::AllocateBuffers(int minor_dim, ArrayT<iArray2DT>& recv,
-	ArrayT<iArray2DT>& send)
-{
-	/* check */
-	if (!fPartition)
-	{
-		cout << "\n FEManagerT_mpi::AllocateBuffers: invalid pointer to partition" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-
-	/* communication list */
-	const iArrayT& commID = fPartition->CommID();
-
-	/* check */
-	bool exit = true;
-	if (recv.Length() != commID.Length() ||
-	    send.Length() != commID.Length()) exit = false;
-	for (int j = 0; j < commID.Length() && exit; j++)
-		if (recv[j].MinorDim() != minor_dim ||
-		    send[j].MinorDim() != minor_dim) exit = false;
-	if (exit) return;
-
-	/* free any existing */
-	recv.Free();
-	send.Free();
-
-	/* allocate buffers */
-	recv.Dimension(commID.Length());
-	send.Dimension(commID.Length());
-	for (int i = 0; i < commID.Length(); i++)
-	{
-		const iArrayT& nodes_in = *(fPartition->NodesIn(commID[i]));
-		recv[i].Dimension(nodes_in.Length(), minor_dim);
-		
-		const iArrayT& nodes_out = *(fPartition->NodesOut(commID[i]));
-		send[i].Dimension(nodes_out.Length(), minor_dim);
-	}
-}
-
 /* collect computation effort for each node */
 void FEManagerT_mpi::WeightNodalCost(iArrayT& weight) const
 {
@@ -872,34 +422,10 @@ void FEManagerT_mpi::WeightNodalCost(iArrayT& weight) const
 }
 
 /* write time stamp to log file */
-void FEManagerT_mpi::TimeStamp(const char* message, bool flush_stream) const
+void FEManagerT_mpi::TimeStamp(const char* message) const
 {
-	/* get elasped time */
-	clock_t t = clock();
-	double elasped_time = double(t - flast_time)/CLOCKS_PER_SEC;
-
-	/* cast away const-ness */
-	FEManagerT_mpi* tmp = (FEManagerT_mpi*) this;
-
-	tmp->flog << " " << message << ": " << WallTime();
-	tmp->flog << " elapsed time: " << elasped_time << " sec.\n\n";
-
-#if __option(extended_errorcheck)
-	if (flush_stream) tmp->flog.flush();
-#else
-#pragma unused(flush_stream)	
-#endif
-
-	/* store last */
-	tmp->flast_time = t;
-}
-
-/* returns the time string */
-const char* FEManagerT_mpi::WallTime(void) const
-{
-	time_t t;
-	time(&t);
-	return ctime(&t);
+	/* log */
+	fComm.Log(CommunicatorT::kUrgent, message);
 }
 
 /* decomposition methods */

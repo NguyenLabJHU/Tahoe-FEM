@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.13 2002-06-17 17:15:07 rjones Exp $
+# $Id: makefile,v 1.14 2003-01-27 07:00:25 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -25,7 +25,6 @@ OBJ = \
 	ContactT.o \
 	Contact2DT.o \
 	Contact3DT.o \
-	DOFElementT.o \
 	PenaltyContact2DT.o \
 	PenaltyContact3DT.o
 OBJ_LINK = $(OBJ)
@@ -55,7 +54,6 @@ SRC = \
 	ContactT.cpp \
 	Contact2DT.cpp \
 	Contact3DT.cpp \
-	DOFElementT.cpp \
 	PenaltyContact2DT.cpp \
 	PenaltyContact3DT.cpp
 
@@ -83,7 +81,6 @@ HDR = \
 	ContactT.h \
 	Contact2DT.h \
 	Contact3DT.h \
-	DOFElementT.h \
 	PenaltyContact2DT.h \
 	PenaltyContact3DT.h
 HDR_LINK = $(HDR:.h=.h_link)

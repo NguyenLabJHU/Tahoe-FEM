@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.5 2002-10-20 22:49:41 paklein Exp $ */
+/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.6 2003-01-27 07:00:30 paklein Exp $ */
 /* created: paklein (06/03/2000)                                          */
 
 #include "MeshFreeSurfaceShapeT.h"
@@ -35,12 +35,12 @@ MeshFreeSurfaceShapeT::MeshFreeSurfaceShapeT(GeometryT::CodeT geometry_code,
 	fCurrIP(fRefSurfaceShape.CurrIP()),
 
 	/* dynamics work space managers */
-	fDphi_man(0),
-	fMatrixManager_1(0),
-	fMatrixManager_2(0),
+	fDphi_man(0, true),
+	fMatrixManager_1(0, true),
+	fMatrixManager_2(0, true),
 
-	fVectorManager_2(0),
-	fMatrixManager_3(0)
+	fVectorManager_2(0, true),
+	fMatrixManager_3(0, true)
 {
 	/* meshfree surface support */
 	fMFSurfaceSupport = new MeshFreeSurfaceSupportT(mf_support,

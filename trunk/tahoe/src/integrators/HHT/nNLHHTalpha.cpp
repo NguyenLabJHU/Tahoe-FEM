@@ -1,6 +1,5 @@
-/* $Id: nNLHHTalpha.cpp,v 1.7 2002-10-20 22:48:08 paklein Exp $ */
+/* $Id: nNLHHTalpha.cpp,v 1.8 2003-01-27 07:00:22 paklein Exp $ */
 /* created: paklein (10/17/1996) */
-
 #include "nNLHHTalpha.h"
 #include "dArrayT.h"
 #include "iArrayT.h"
@@ -9,10 +8,9 @@
 #include "KBC_CardT.h"
 #include "BasicFieldT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 nNLHHTalpha::nNLHHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder):
 	HHTalpha(in, out, auto2ndorder)
 {
@@ -42,7 +40,6 @@ void nNLHHTalpha::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		
 			break;
 		}
-		
 		case KBC_CardT::kVel: /* prescribed velocity */
 		{
 			double temp = KBC.Value();
@@ -53,7 +50,6 @@ void nNLHHTalpha::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 	
 			break;
 		}
-		
 		case KBC_CardT::kAcc: /* prescribed acceleration */
 		{
 			a  = KBC.Value();
@@ -62,11 +58,9 @@ void nNLHHTalpha::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 
 			break;
 		}
-		
 		default:
-		
-			cout << "\nnNLHHTalpha::ConsistentKBC:unknown BC code\n" << endl;
-			throw ExceptionT::kBadInputValue;
+			ExceptionT::BadInputValue("nNLHHTalpha::ConsistentKBC", 
+				"unknown BC code: %d", KBC.Code());
 	}
 }		
 
@@ -82,6 +76,19 @@ void nNLHHTalpha::Predictor(BasicFieldT& field)
 	/* acceleration predictor */
 	field[2] = 0.0;
 }		
+
+/* corrector. Maps ALL degrees of freedom forward. */
+void nNLHHTalpha::Corrector(BasicFieldT& field, const dArray2DT& update)
+{
+	/* displacement corrector */
+	field[0].AddScaled(dcorr_a, update);
+
+	/* velocity corrector */
+	field[1].AddScaled(vcorr_a, update);
+	
+	/* acceleration corrector */
+	field[2] += update;
+}
 
 /* correctors - map ACTIVE */
 void nNLHHTalpha::Corrector(BasicFieldT& field, const dArrayT& update, 

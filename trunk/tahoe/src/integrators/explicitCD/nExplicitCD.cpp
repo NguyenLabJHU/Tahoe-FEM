@@ -1,6 +1,5 @@
-/* $Id: nExplicitCD.cpp,v 1.6 2002-10-20 22:48:10 paklein Exp $ */
+/* $Id: nExplicitCD.cpp,v 1.7 2003-01-27 07:00:23 paklein Exp $ */
 /* created: paklein (03/23/1997) */
-
 #include "nExplicitCD.h"
 #include "iArrayT.h"
 #include "dArrayT.h"
@@ -9,10 +8,9 @@
 #include "KBC_CardT.h"
 #include "BasicFieldT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 nExplicitCD::nExplicitCD(void) { }
 
 /* consistent BC's - updates predictors and acceleration only */
@@ -73,6 +71,26 @@ void nExplicitCD::Predictor(BasicFieldT& field)
 
 	/* velocity predictor */
 	field[1].AddScaled(vpred_a, field[2]);
+	
+	/* acceleratior predictor */
+	field[2] = 0.0;
+}		
+
+void nExplicitCD::Corrector(BasicFieldT& field, const dArray2DT& update)
+{
+#if __option(extended_errorcheck)
+	if (update.MajorDim() != field.NumNodes() ||
+	    update.MinorDim() != field.NumDOF())
+	    ExceptionT::SizeMismatch("nExplicitCD::Corrector");
+#endif
+
+	/* no displacement corrector */
+
+	/* velocity corrector */
+	field[1].AddScaled(vcorr_a, update);
+
+	/* acceleration corrector */
+	field[2] += update;
 }		
 
 /* correctors - map ACTIVE */

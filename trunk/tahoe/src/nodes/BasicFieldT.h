@@ -1,5 +1,4 @@
-/* $Id: BasicFieldT.h,v 1.4 2002-07-05 22:28:30 paklein Exp $ */
-
+/* $Id: BasicFieldT.h,v 1.5 2003-01-27 07:00:29 paklein Exp $ */
 #ifndef _BASIC_FIELD_T_H_
 #define _BASIC_FIELD_T_H_
 
@@ -7,6 +6,7 @@
 #include "StringT.h"
 #include "dArray2DT.h"
 #include "iArray2DT.h"
+#include "nArray2DGroupT.h"
 
 namespace Tahoe {
 
@@ -26,8 +26,13 @@ public:
 	/** set field labels */
 	void SetLabels(const ArrayT<StringT>& labels);
 
-	/** set number of nodes. (Re-)allocates memory. */
-	void Dimension(int nnd);
+	/** set number of nodes. Resizes all arrays to the new number of nodes. 
+	 * Excess nodes at the tail of all arrays are discarded. Additional nodes 
+	 * added to all arrays is not initialized.
+	 * \param nnd number of nodes 
+	 * \param copy_in if true, values that fit are copied in. Otherwise,
+	 *        new array is unititalized */
+	void Dimension(int nnd, bool copy_in);
 	/*@}*/
 	
 	/** \name accessors */
@@ -66,7 +71,19 @@ public:
 	iArray2DT& Equations(void) { return fEqnos; };
 
 	/** write field equation numbers to the output stream */
-	void WriteEquationNumbers(ostream& out, const iArrayT* node_map) const;
+	void WriteEquationNumbers(ostream& out, const ArrayT<int>* node_map) const;
+	/*@}*/
+
+protected:
+
+	/** \name array registration
+	 * Register arrays with the dynamic memory managers */
+	/*@{*/
+	/** register an double array */
+	void RegisterArray2D(nArray2DT<double>& array2D);
+
+	/** register an integer array */
+	void RegisterArray2D(nArray2DT<int>& array2D);
 	/*@}*/
 
 protected:
@@ -82,7 +99,28 @@ protected:
 
 	/** equation array: [nnd] x [ndof] */
 	iArray2DT fEqnos;
+
+private:
+
+	/** \name dynamic memory managers
+	 * Handle dynamic resizing of arrays with dimension: [nnd] x [ndof] */
+	/*@{*/
+	nArray2DGroupT<double> fdArray2DGroup;
+	nArray2DGroupT<int>    fiArray2DGroup;
+	/*@}*/	
 };
+
+/* register an double array */
+inline void BasicFieldT::RegisterArray2D(nArray2DT<double>& array2D)
+{
+	fdArray2DGroup.Register(array2D);
+}
+
+/* register an integer array */
+inline void BasicFieldT::RegisterArray2D(nArray2DT<int>& array2D)
+{
+	fiArray2DGroup.Register(array2D);
+}
 
 } // namespace Tahoe 
 #endif /* _BASIC_FIELD_T_H_ */

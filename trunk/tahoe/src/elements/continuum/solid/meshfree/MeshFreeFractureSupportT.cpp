@@ -1,6 +1,5 @@
-/* $Id: MeshFreeFractureSupportT.cpp,v 1.7 2002-10-20 22:48:24 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.cpp,v 1.8 2003-01-27 07:00:26 paklein Exp $ */
 /* created: paklein (02/15/2000) */
-
 #include "MeshFreeFractureSupportT.h"
 
 #include "StringT.h"
@@ -15,10 +14,9 @@
 #include "FrontNodeT.h"
 #include "SamplingSurfaceT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 MeshFreeFractureSupportT::MeshFreeFractureSupportT(ifstreamT& in):
 	MeshFreeElementSupportT(in),
 	fCriterion(kNoCriterion)

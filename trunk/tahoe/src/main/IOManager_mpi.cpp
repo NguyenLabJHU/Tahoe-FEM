@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.25 2002-11-28 17:06:31 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.26 2003-01-27 07:00:27 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 #include "IOManager_mpi.h"
 
@@ -21,6 +21,8 @@ IOManager_mpi::IOManager_mpi(ifstreamT& in, CommunicatorT& comm,
 	fPartition(partition),
 	fOutputGeometry(NULL)
 {
+	const char caller[] = "IOManager_mpi::IOManager_mpi";
+
 	if (io_map.Length() != local_IO.ElementSets().Length()) {
 		cout << "\n IOManager_mpi::IOManager_mpi: length of the io_map (" 
 		     << io_map.Length() << ") does not\n" 
@@ -35,7 +37,7 @@ IOManager_mpi::IOManager_mpi(ifstreamT& in, CommunicatorT& comm,
 	/* load global geometry */
 	if (fIO_map.HasValue(fComm.Rank())) ReadOutputGeometry(model_file, element_sets, format);
 
-//cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: constructing output sets" << endl;
+	fComm.Log(CommunicatorT::kModerate, caller, "constructing output sets");
 
 	/* construct global output sets - all of them to preserve ID's */
 	for (int i = 0; i < element_sets.Length(); i++)
@@ -84,18 +86,11 @@ IOManager_mpi::IOManager_mpi(ifstreamT& in, CommunicatorT& comm,
 			}
 			else /* construct free set */
 			{
-#ifndef __TAHOE_MPI__
-cout << fComm.Rank() << ": skipping output set " << set.ID() << ": global free set requires MPI" << endl;
-IO_ID = i;
-#else /* __TAHOE_MPI__ */
-			
 //cout << fComm.Rank() << ": constructing free set here: " << i << endl;			
 			
 				/* collect number of elements from each processor */
 				iArrayT elem_count(fComm.Size());
-				elem_count[fComm.Rank()] = set.NumElements();
-				if (MPI_Gather(elem_count.Pointer(fComm.Rank()), 1, MPI_INT, 
-					elem_count.Pointer(), 1, MPI_INT, fComm.Rank(), fComm) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
+				fComm.Gather(set.NumElements(), elem_count);
 
 //cout << fComm.Rank() << ": counts:\n" << elem_count.wrap(5) << endl;			
 
@@ -130,10 +125,8 @@ IO_ID = i;
 				for (int j = 1; j < displ.Length(); j++)
 					displ[j] = displ[j-1] + elem_count[j-1];
 
-				/* collect all */
-				if (MPI_Gatherv(send.Pointer(), send.Length(), MPI_INT, 
-					connects.Pointer(), elem_count.Pointer(), displ.Pointer(), MPI_INT,
-					fComm.Rank(), fComm) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
+				/* collect from all */
+				fComm.Gather(send, connects, elem_count, displ);
 
 //cout << fComm.Rank() << ": incoming:\n" << connects.wrap(5) << endl;
 
@@ -154,7 +147,6 @@ IO_ID = i;
 
 				/* register */
 				IO_ID = AddElementSet(global_set);
-#endif /* __TAHOE_MPI__ */
 			}
 
 			/* check */
@@ -181,16 +173,10 @@ IO_ID = i;
 			/* construct a free set */
 			if (set.Mode() == OutputSetT::kFreeSet)
 			{
-#ifndef __TAHOE_MPI__
-cout << fComm.Rank() << ": skipping output set " << set.ID() << ": global free set requires MPI" << endl;
-#else /* __TAHOE_MPI__ */			
 //cout << fComm.Rank() << ": sending free set" << endl;			
 			
 				/* collect number of elements from each processor */
-				int* dummy;
-				int count = set.NumElements();
-				if (MPI_Gather(&count, 1, MPI_INT, dummy, 1, MPI_INT, fIO_map[i], fComm) 
-					!= MPI_SUCCESS) throw ExceptionT::kMPIFail;
+				fComm.Gather(set.NumElements(), fIO_map[i]);
 
 				/* local connects */
 				const iArray2DT& my_connects = *(set.Connectivities(set.ID()));
@@ -209,9 +195,7 @@ cout << fComm.Rank() << ": skipping output set " << set.ID() << ": global free s
 				}
 					
 				/* gather to processor that will write */
-				if (MPI_Gatherv(send.Pointer(), send.Length(), MPI_INT, 
-					NULL, NULL, NULL, MPI_INT, fIO_map[i], fComm) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
-#endif
+				fComm.Gather(send, fIO_map[i]);
 			}
 		}
 	}
@@ -232,22 +216,17 @@ IOManager_mpi::~IOManager_mpi(void)
 	fOutputGeometry = NULL;
 }
 
-#ifdef __TAHOE_MPI__
 /* distribute/assemble/write output */
 void IOManager_mpi::WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values)
 {
-#pragma message("IOManager_mpi::WriteOutput: fix me")
+	const char caller [] = "IOManager_mpi::WriteOutput";
 
-//cout << fComm.Rank() << ": IOManager_mpi::WriteOutput" << endl;
-	
 	/* define message tag */
 	int message_tag = 0;
 
 	/* assembling here */
 	if (fIO_map[ID] == fComm.Rank())
 	{
-//cout << fComm.Rank() << ": collecting ID " << ID << endl;
-
 		/* global output set */
 		const OutputSetT& set = *((fOutput->ElementSets())[ID]);
 
@@ -259,13 +238,12 @@ void IOManager_mpi::WriteOutput(int ID, const dArray2DT& n_values, const dArray2
 /*********************************
  ***** assemble nodal values *****
  *********************************/
-//cout << fComm.Rank() << ": assembling nodal values" << endl;
+ 
+		fComm.Log(CommunicatorT::kModerate, caller, "assembling nodal values");
 
 		/* loop over source processors to assemble global nodal output */
 		for (int i = 0; i < fComm.Size(); i++)
 		{
-//cout << fComm.Rank() << ": working processor " << i << endl;
-
 			/* assembly map */
 			const iArrayT& n_map = assembly_maps.NodeMap(i);
 			if (i == fComm.Rank())
@@ -275,24 +253,11 @@ void IOManager_mpi::WriteOutput(int ID, const dArray2DT& n_values, const dArray2
 				/* incoming nodes buffer */
 				dArray2DT n_values_in(n_map.Length(), all_n_values.MinorDim());		
 
-//cout << fComm.Rank() << ": posting receive for " << n_values_in.MajorDim() << "x"
-//     << n_values_in.MinorDim()  << " from " << i << endl;
-		
 				/* receive nodes */
-				MPI_Status status;
-				if (MPI_Recv(n_values_in.Pointer(), n_values_in.Length(), MPI_DOUBLE,
-					i, message_tag, fComm, &status) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
-
-//cout << fComm.Rank() << ": posting received" << endl;
-//cout << n_values_in << endl;
+				fComm.Receive(n_values_in, i, message_tag);
 
 				/* assemble nodes */
-				if (status.MPI_ERROR == MPI_SUCCESS)
-					all_n_values.Assemble(n_map, n_values_in);
-				else {
-					WriteStatus(cout, "IOManager_mpi::WriteOutput", status);
-					throw ExceptionT::kMPIFail;
-				}
+				all_n_values.Assemble(n_map, n_values_in);
 			}
 		}
 /*********************************
@@ -300,13 +265,12 @@ void IOManager_mpi::WriteOutput(int ID, const dArray2DT& n_values, const dArray2
  *********************************/
 
 		/* synchronize */
-		if (MPI_Barrier(fComm) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
+		fComm.Barrier();
 
 /*********************************
  **** assemble element values ****
  *********************************/
-
-//cout << fComm.Rank() << ": assembling element values" << endl;
+		fComm.Log(CommunicatorT::kModerate, caller, "assembling element values");
 
 		/* loop over source processors to assemble global nodal output */
 		for (int i = 0; i < fComm.Size(); i++)
@@ -320,25 +284,11 @@ void IOManager_mpi::WriteOutput(int ID, const dArray2DT& n_values, const dArray2
 				/* incoming nodes buffer */
 				dArray2DT e_values_in(e_map.Length(), all_e_values.MinorDim());		
 
-//cout << fComm.Rank() << ": posting receive for " << e_values_in.MajorDim() << "x"
-//     << e_values_in.MinorDim()  << " from " << i <<  endl;
-		
 				/* receive nodes */
-				MPI_Status status;
-				if (MPI_Recv(e_values_in.Pointer(), e_values_in.Length(), MPI_DOUBLE,
-					i, message_tag, fComm, &status) !=
-					MPI_SUCCESS) throw ExceptionT::kMPIFail;
-
-//cout << fComm.Rank() << ": posting received:" << endl;
-//cout << e_values_in << endl;
+				fComm.Receive(e_values_in, i, message_tag);
 
 				/* assemble nodes */
-				if (status.MPI_ERROR == MPI_SUCCESS)
-					all_e_values.Assemble(e_map, e_values_in);
-				else {
-					WriteStatus(cout, "IOManager_mpi::WriteOutput", status);
-					throw ExceptionT::kMPIFail;
-				}
+				all_e_values.Assemble(e_map, e_values_in);
 			}
 /*********************************
  **** assemble element values ****
@@ -354,51 +304,32 @@ void IOManager_mpi::WriteOutput(int ID, const dArray2DT& n_values, const dArray2
 		if (fOutNodeCounts[ID] > 0) /* assumes ID is the same as the output set index */
 		{
 			/* check */
-			if (fOutNodeCounts[ID] > n_values.MajorDim()) throw ExceptionT::kSizeMismatch;
+			if (fOutNodeCounts[ID] > n_values.MajorDim()) ExceptionT::SizeMismatch(caller);
 
 			/* send only values for resident nodes (assume first in sequence) */
 			dArray2DT out_n_values(fOutNodeCounts[ID], n_values.MinorDim(), n_values.Pointer());
 
-//cout << fComm.Rank() << ": sending nodal data" << endl;
-//cout << fComm.Rank() << ": sending ID " << ID << endl;
-//cout << fComm.Rank() << ": posting send for " << out_n_values.MajorDim() << "x"
-//     << out_n_values.MinorDim() << " to " << fIO_map[ID] << ':' << endl;
-//cout << out_n_values << endl;
-
 			/* send nodes */
-			if (MPI_Send(out_n_values.Pointer(), out_n_values.Length(), MPI_DOUBLE,
-				fIO_map[ID], message_tag, fComm) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
-
-//cout << fComm.Rank() << ": send received" << endl;
+			fComm.Send(out_n_values, fIO_map[ID], message_tag);
 		}
 		
 		/* synchronize */
-		if (MPI_Barrier(fComm) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
+		fComm.Barrier();
 
 		/* send element values */
 		if (fElementCounts(fComm.Rank(), ID) > 0) /* assumes ID is the same as the output set index */
 		{
 			/* check */
-			if (fElementCounts(fComm.Rank(), ID) > e_values.MajorDim()) throw ExceptionT::kSizeMismatch;
-
-//cout << fComm.Rank() << ": sending element data" << endl;
-//cout << fComm.Rank() << ": sending ID " << ID << endl;
-//cout << fComm.Rank() << ": posting send for " << e_values.MajorDim() << "x"
-//     << e_values.MinorDim() << " to " << fIO_map[ID] << ':' << endl;
-//cout << e_values << endl;
+			if (fElementCounts(fComm.Rank(), ID) > e_values.MajorDim()) ExceptionT::SizeMismatch(caller);
 
 			/* send nodes */
-			if (MPI_Send(e_values.Pointer(), e_values.Length(), MPI_DOUBLE,
-				fIO_map[ID], message_tag, fComm) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
-
-//cout << fComm.Rank() << ": send received" << endl;
+			fComm.Send(e_values, fIO_map[ID], message_tag);
 		}
 	}
 	
 	/* synchronize */
-	if (MPI_Barrier(fComm) != MPI_SUCCESS) throw ExceptionT::kMPIFail;
+	fComm.Barrier();
 }
-#endif
 	
 /************************************************************************
 * Private
@@ -427,7 +358,6 @@ void IOManager_mpi::WriteMaps(ostream& out) const
 
 /* communicate output counts */
 void IOManager_mpi::SetCommunication(const IOManager& local_IO)
-#ifdef __TAHOE_MPI__
 {
 //cout << fComm.Rank() << ": IOManager_mpi::SetCommunication: start" << endl;
 
@@ -474,21 +404,11 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 		
 	/* gather number of commumicated nodes in each set for each processor */
 	fNodeCounts.Dimension(num_proc, num_sets);
-	if (MPI_Allgather(fOutNodeCounts.Pointer(), num_sets, MPI_INT,
-	                     fNodeCounts.Pointer(), num_sets, MPI_INT, fComm)
-		!= MPI_SUCCESS) throw ExceptionT::kMPIFail;
-
-//cout << fComm.Rank() << ": IOManager_mpi::SetCommunication: communicated nodes counts:\n" 
-//     << fNodeCounts << endl;
+	fComm.AllGather(fOutNodeCounts, fNodeCounts);
 
 	/* gather number of commumicated elements in each set for each processor */
 	fElementCounts.Dimension(num_proc, num_sets);
-	if (MPI_Allgather(elem_counts.Pointer(), num_sets, MPI_INT,
-                   fElementCounts.Pointer(), num_sets, MPI_INT, fComm)
-		!= MPI_SUCCESS) throw ExceptionT::kMPIFail;
-
-//cout << fComm.Rank() << ": IOManager_mpi::SetCommunication: communicated element counts:\n" 
-//     << fElementCounts << endl;
+	fComm.AllGather(elem_counts, fElementCounts);
 
 	/* allocate map sets */
 	fMapSets.Dimension(num_sets);
@@ -538,9 +458,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 					buffer[i].Dimension(num_incoming);
 				
 					/* post non-blocking receives */
-					if (MPI_Irecv(buffer[i].Pointer(), buffer[i].Length(),
-						MPI_INT, i, k, fComm, r_requ.Pointer(in_count++)) !=
-						MPI_SUCCESS) throw ExceptionT::kMPIFail;
+					fComm.PostReceive(buffer[i], i, k, r_requ[in_count++]);
 				}
 			}
 #endif // __SGI__
@@ -568,28 +486,12 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 			/* generate maps for incoming */
 			for (int j = 0; j < in_count; j++)
 			{
-				/* grab completed receive */
-				int index;
-				MPI_Status status;
-				if (MPI_Waitany(r_requ.Length(), r_requ.Pointer(), &index, &status) !=
-					MPI_SUCCESS) throw ExceptionT::kMPIFail;
+				/* grab next completed receive */
+				int index, source;
+				fComm.WaitReceive(r_requ, index, source);
 
 				/* process receive */
-				if (status.MPI_ERROR == MPI_SUCCESS)
-				{
-//cout << fComm.Rank() << ": IOManager_mpi::SetCommunication: received from: " << status.MPI_SOURCE << endl;
-
-					int source = status.MPI_SOURCE;
-					SetAssemblyMap(inv_global, shift, buffer[source], map_set.NodeMap(source));
-
-//cout << fComm.Rank() << ": IOManager_mpi::SetCommunication:  set assembly map" << endl;
-				}
-				else
-				{
-					cout << "\n IOManager_mpi::SetCommunication: Waitany error setting node maps: "
-					     << status.MPI_ERROR << " from " << status.MPI_SOURCE << endl;
-					throw ExceptionT::kMPIFail;
-				}				
+				SetAssemblyMap(inv_global, shift, buffer[source], map_set.NodeMap(source));				
 			}
 #endif // __SGI__
 // using NON-blocking receives
@@ -608,10 +510,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 					buffer[j].Dimension(num_incoming);
 
 					/* post non-blocking receives */
-					MPI_Status status;
-					if (MPI_Recv(buffer[j].Pointer(), buffer[j].Length(),
-						MPI_INT, j, k, fComm, &status) !=
-						MPI_SUCCESS) throw ExceptionT::kMPIFail;
+					fComm.Receive(buffer[j], j, k);
 				
 					/* process receive */
 					SetAssemblyMap(inv_global, shift, buffer[j], map_set.NodeMap(j));
@@ -627,12 +526,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 
 			int num_outgoing = nodes[k].Length();
 			if (num_outgoing > 0)
-			{
-				/* post blocking send */
-				if (MPI_Send(nodes[k].Pointer(), nodes[k].Length(),
-					MPI_INT, fIO_map[k], k, fComm) != MPI_SUCCESS)
-					throw ExceptionT::kMPIFail;			
-			}
+				fComm.Send(nodes[k], fIO_map[k], k);
 		}
 
 //###########################################################
@@ -674,9 +568,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 					buffer[i].Dimension(block_ID.Length() + num_incoming);
 
 					/* post non-blocking receives */
-					if (MPI_Irecv(buffer[i].Pointer(), buffer[i].Length(),
-						MPI_INT, i, k, fComm, r_requ.Pointer(in_count++)) !=
-						MPI_SUCCESS) throw ExceptionT::kMPIFail;
+					fComm.PostReceive(buffer[i], i, k, r_requ[in_count++]);
 				}
 			}
 #endif // __SGI__
@@ -706,42 +598,25 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 			for (int j = 0; j < in_count; j++)
 			{
 				/* grab completed receive */
-				int index;
-				MPI_Status status;
-				if (MPI_Waitany(r_requ.Length(), r_requ.Pointer(), &index, &status) !=
-					MPI_SUCCESS) throw ExceptionT::kMPIFail;
+				int index, source;
+				fComm.WaitReceive(r_requ, index, source);
 
-				/* process receive */
-				if (status.MPI_ERROR == MPI_SUCCESS)
+				/* process a block at a time */
+				const iArrayT& rbuff = buffer[source];
+				iArrayT& assem_map = map_set.ElementMap(source);
+				assem_map.Dimension(fElementCounts(source, k));
+				assem_map = -1;					
+				iArrayT elem_map, block_assem_map;
+				int offset = 0; 
+				for (int i = 0; i < block_ID.Length(); i++)
 				{
-//cout << fComm.Rank() << ": IOManager_mpi::SetCommunication: received from: " << status.MPI_SOURCE 
-//     << '\n' << buffer[status.MPI_SOURCE].wrap(5) << endl;
-
-					int source = status.MPI_SOURCE;
-					const iArrayT& rbuff = buffer[source];
-					
-					/* process a block at a time */
-					iArrayT& assem_map = map_set.ElementMap(source);
-					assem_map.Dimension(fElementCounts(source, k));
-					assem_map = -1;					
-					iArrayT elem_map, block_assem_map;
-					int offset = 0; 
-					for (int i = 0; i < block_ID.Length(); i++)
-					{
-						elem_map.Set(rbuff[i], rbuff.Pointer(offset + block_ID.Length())); /* skip over list of block dimensions */
-						block_assem_map.Set(elem_map.Length(), assem_map.Pointer(offset));
-						BuildElementAssemblyMap(k, block_ID[i], elem_map, block_assem_map);
-						
-						/* next */
-						offset += elem_map.Length();
-					}
+					elem_map.Set(rbuff[i], rbuff.Pointer(offset + block_ID.Length())); /* skip over list of block dimensions */
+					block_assem_map.Set(elem_map.Length(), assem_map.Pointer(offset));
+					BuildElementAssemblyMap(k, block_ID[i], elem_map, block_assem_map);
+				
+					/* next */
+					offset += elem_map.Length();
 				}
-				else
-				{
-					cout << "\n IOManager_mpi::SetCommunication: Waitany error setting element maps: "
-					     << status.MPI_ERROR << " from " << status.MPI_SOURCE << endl;
-					throw ExceptionT::kMPIFail;
-				}				
 			}
 #endif // __SGI__
 // using NON-blocking receives
@@ -759,14 +634,8 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 					/* allocate receive buffer */
 					buffer[j].Dimension(block_ID.Length() + num_incoming);
 
-					/* post non-blocking receives */
-					MPI_Status status;
-					if (MPI_Recv(buffer[j].Pointer(), buffer[j].Length(),
-						MPI_INT, j, k, fComm, &status) !=
-						MPI_SUCCESS) throw ExceptionT::kMPIFail;
-
-//cout << fComm.Rank() << ": IOManager_mpi::SetCommunication: receiving from " << buffer[j].Length() << " from " << j << '\n'
-//     << buffer[j].wrap(10) << endl;
+					/* post blocking receives */
+					fComm.Receive(buffer[j], j, k);
 
 					/* process a block at a time */
 					const iArrayT& rbuff = buffer[j];
@@ -825,13 +694,8 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 					offset += map.Length();
 				}
 
-//cout << fComm.Rank() << ": IOManager_mpi::SetCommunication: sending to " << sbuff.Length() << " to " 
-//     << fIO_map[k] << '\n' << sbuff.wrap(10) << endl;
-
 				/* post blocking send */
-				if (MPI_Send(sbuff.Pointer(), sbuff.Length(),
-					MPI_INT, fIO_map[k], k, fComm) != MPI_SUCCESS)
-					throw ExceptionT::kMPIFail;			
+				fComm.Send(sbuff, fIO_map[k], k);
 			}
 		}
 //###########################################################
@@ -839,23 +703,12 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 //###########################################################
 		
 		/* synchronize */
-		if (MPI_Barrier(fComm) != MPI_SUCCESS) throw ExceptionT::kMPIFail;		
+		fComm.Barrier();
 	}
 
-//cout << fComm.Rank() << ": IOManager_mpi::SetCommunication: checking maps" << endl;
-	
 	/* check maps */
 	CheckAssemblyMaps();
-
-//cout << fComm.Rank() << ": IOManager_mpi::SetCommunication: done" << endl;
 }
-#else
-{
-#pragma unused(local_IO)
-	cout << "\n IOManager_mpi::SetCommunication: invalid call" << endl;
-	throw;
-}
-#endif
 
 /* return the global node numbers of the set nodes residing
 * on the current partition */
@@ -975,44 +828,6 @@ void IOManager_mpi::BuildElementAssemblyMap(int set, const StringT& block_ID,
 	for (int i = 0; i < block_map.Length(); i++)
 		map[i] = block_map[i] + offset;
 }
-
-#ifdef __TAHOE_MPI__
-/* clear all outstanding requests - returns 1 of all OK */
-int IOManager_mpi::Clear(ArrayT<MPI_Request>& requests)
-{
-	int OK = 1;
-	for (int i = 0; i < requests.Length(); i++)
-		if (requests[i] != MPI_REQUEST_NULL)
-		{
-			cout << " IOManager_mpi::Clear: cancelling request" << '\n';
-				
-			/* cancel request */
-			MPI_Cancel(&requests[i]);
-			MPI_Status status;
-			MPI_Wait(&requests[i], &status);
-			int flag;
-			MPI_Test_cancelled(&status, &flag);
-			if (flag == true)
-				cout << " IOManager_mpi::Clear: cancelling request: DONE" << endl;
-			else	
-			{
-				cout << " IOManager_mpi::Clear: cancelling request: FAIL" << endl;
-				OK = 0;
-			}
-		}
-	return OK;
-}
-
-/* write status information */
-void IOManager_mpi::WriteStatus(ostream& out, const char* caller, 
-	const MPI_Status& status) const
-{
-	out << "\n " << caller << ": MPI status returned with error\n"
-        <<   "     status.MPI_SOURCE: " << status.MPI_SOURCE << '\n'
-        <<   "        status.MPI_TAG: " << status.MPI_TAG << '\n'
-        <<   "      status.MPI_ERROR: " << status.MPI_ERROR << endl;
-}
-#endif
 
 /* check that assembly maps are compact and complete */
 void IOManager_mpi::CheckAssemblyMaps(void)

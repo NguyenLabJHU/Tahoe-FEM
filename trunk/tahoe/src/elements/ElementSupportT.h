@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.19 2003-01-22 01:09:30 cjkimme Exp $ */
+/* $Id: ElementSupportT.h,v 1.20 2003-01-27 07:00:24 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -41,7 +41,7 @@ class ScheduleT;
 class StringT;
 class OutputSetT;
 class LocalArrayT;
-
+class CommManagerT;
 
 /** support for the ElementBaseT class hierarchy. A limited interface to get 
  * information in and out of an ElementBaseT */
@@ -151,10 +151,10 @@ public:
 #endif // def _SIERRA_TEST_
 
 	/** number of nodes */
-	int NumNodes(void) const { return fNumNodes; };
+	int NumNodes(void) const;
 	
 	/** number of spatial dimensions */
-	int NumSD(void) const { return fNumSD; };
+	int NumSD(void) const;
 
 	/** initial coordinates */
 	const dArray2DT& InitialCoordinates(void) const;
@@ -227,29 +227,25 @@ public:
 	/** rank of this process */
 	int Rank(void) const;
 
-	/** the nodes not native to this processor */
-	void IncomingNodes(iArrayT& nodes_in) const;
+	/** the nodes not native to this processor. Returns NULL if there is no 
+	 * list, indicating \e all nodes are owned by this partition */
+	const ArrayT<int>* ExternalNodes(void) const;
 
-	/** the nodes native to this processor that appear on other processors */
-	void OutgoingNodes(iArrayT& nodes_out) const;
-
-	/** send data out.
-	 * \param all_out_data outgoing data for \e every node on this processor: [nnd] x [nvals] */
-	void SendExternalData(const dArray2DT& all_out_data) const;
-
-	/** receive incoming data.
-	 * \param external_data data from other processors for each node in 
-	 *        the ElementSupport::IncomingNodes array */
-	void RecvExternalData(dArray2DT& external_data) const;
-	/*@}*/
-	
+	/** the nodes native to this processor that appear on other processors.
+	 * Returns NULL if there is no list, indicating \e all nodes are owned by 
+	 * this partition */
+	const ArrayT<int>* BorderNodes(void) const;
+	/*@}*/	
 #endif
 	
 	/** geometry information */
 	ModelManagerT& Model(void) const;
 
+	/** comm information */
+	CommManagerT& CommManager(void) const;
+
 	/** node number map. returns NULL if there is not map */
-	const iArrayT* NodeMap(void) const;
+	const ArrayT<int>* NodeMap(void) const;
 	
 	/** element number map for the given block ID */
 	const iArrayT* ElementMap(const StringT& block_ID) const;
@@ -312,8 +308,8 @@ public:
 	/*@}*/
 
 private:
-#ifndef _SIERRA_TEST_
 
+#ifndef _SIERRA_TEST_
  	/** \name verified access 
 	 * Use these if you don't want to keep checking that the pointers
 	 * have been initialized. */
@@ -324,31 +320,36 @@ private:
 	/** the nodes */
 	NodeManagerT& Nodes(void) const;
 	/*@}*/
+#endif
 
+private:
+
+	/** \name managers */
+	/*@{*/
 	/** the boss */
 	FEManagerT* fFEManager;
 	
 	/** the nodes */
 	NodeManagerT* fNodes;
 
-#endif
+	/** the model manager */
+ 	ModelManagerT* fModelManager;	
+
+	/** the communication manager */
+	CommManagerT* fCommManager;
+	/*@}*/
 	
 	/** \name cached parameters
 	 * Pre-set to allow fast access */
 	/*@{*/
 	GlobalT::AnalysisCodeT fAnalysis;
 	const GlobalT::StateT* fRunState;
+	const dArray2DT *fInitialCoordinates;
+	const dArray2DT *fCurrentCoordinates;
 	/*@}*/
-
-	int fNumSD, fNumNodes;
 
 #ifdef _SIERRA_TEST_	
  
- 	ModelManagerT* fModelManager;
- 	
- 	GroupAverageT*fGroupAverage;
-
-	dArray2DT *fInitialCoordinates, *fCurrentCoordinates;
 	dArrayT *fResidual;
 	dMatrixT *fStiffness;
 
@@ -378,20 +379,16 @@ private:
 /* the top-level manager */
 inline FEManagerT& ElementSupportT::FEManager(void) const
 {
-	if (!fFEManager) {
-		cout << "\n ElementSupportT::FEManager: pointer not set" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (!fFEManager)
+		ExceptionT::GeneralFail("ElementSupportT::FEManager", "pointer not set");
 	return *fFEManager;
 }
 
 /* the nodes */
 inline NodeManagerT& ElementSupportT::Nodes(void) const
 {
-	if (!fNodes) {
-		cout << "\n ElementSupportT::Nodes: pointer not set" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (!fNodes) 
+		ExceptionT::GeneralFail("ElementSupportT::Nodes", "pointer not set");
 	return *fNodes;
 }
 #else
@@ -403,11 +400,45 @@ inline iArrayT *ElementSupportT::IntInput(void) const { return iparams; }
 /* return a const reference to the run state flag */
 inline const GlobalT::StateT& ElementSupportT::RunState(void) const
 {
-	if (!fRunState) {
-		cout << "\n ElementSupportT::RunState: not set" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (!fRunState)
+		ExceptionT::GeneralFail("ElementSupportT::RunState", "not set");
 	return *fRunState;
+}
+
+/* geometry information */
+inline ModelManagerT& ElementSupportT::Model(void) const
+{
+	if (!fModelManager) 
+		ExceptionT::GeneralFail("ElementSupportT::Model", "pointer not set");
+	return *fModelManager;
+}
+
+/* comm information */
+inline CommManagerT& ElementSupportT::CommManager(void) const
+{
+	if (!fCommManager) 
+		ExceptionT::GeneralFail("ElementSupportT::CommManager", "pointer not set");
+	return *fCommManager;
+}
+
+/* number of nodes */
+inline int ElementSupportT::NumNodes(void) const
+{
+#if __option(extended_errorcheck)
+	if (!fInitialCoordinates) ExceptionT::GeneralFail("ElementSupportT::NumNodes", 
+		"no initial coordinates");
+#endif
+	return fInitialCoordinates->MajorDim();
+}
+	
+/* number of spatial dimensions */
+inline int ElementSupportT::NumSD(void) const
+{
+#if __option(extended_errorcheck)
+	if (!fInitialCoordinates) ExceptionT::GeneralFail("ElementSupportT::NumSD", 
+		"no initial coordinates");
+#endif
+	return fInitialCoordinates->MinorDim();
 }
 
 } // namespace Tahoe 

@@ -1,6 +1,10 @@
-/* $Id: FSMatSupportT.cpp,v 1.2 2002-11-14 17:06:21 paklein Exp $ */
+/* $Id: FSMatSupportT.cpp,v 1.3 2003-01-27 07:00:28 paklein Exp $ */
 #include "FSMatSupportT.h"
+#include "ElementsConfig.h"
+
+#ifdef CONTINUUM_ELEMENT
 #include "FiniteStrainT.h"
+#endif
 
 using namespace Tahoe;
 
@@ -55,45 +59,71 @@ void FSMatSupportT::SetDeformationGradient_last(const ArrayT<dMatrixT>* F_last_L
 /* compute field gradients with respect to current coordinates */
 bool FSMatSupportT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u) const
 {
+#ifdef CONTINUUM_ELEMENT
 	if (fFiniteStrain) {
 		fFiniteStrain->ComputeGradient(u, grad_u);
 		return true;
 	}
 	else
 		return false;
+#else
+#pragma unused(u)
+#pragma unused(grad_u)
+	return false;
+#endif
 }
 
 /* compute field gradients with respect to current coordinates */
 bool FSMatSupportT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u, int ip) const
 {
+#ifdef CONTINUUM_ELEMENT
 	if (fFiniteStrain) {
 		fFiniteStrain->ComputeGradient(u, grad_u, ip);
 		return true;
 	}
 	else
 		return false;
+#else
+#pragma unused(u)
+#pragma unused(grad_u)
+#pragma unused(ip)
+	return false;
+#endif
 }
 
 /* compute field gradients with respect to reference coordinates */	
 bool FSMatSupportT::ComputeGradient_reference(const LocalArrayT& u, dMatrixT& grad_u) const
 {
+#ifdef CONTINUUM_ELEMENT
 	if (fFiniteStrain) {
 		fFiniteStrain->ComputeGradient_reference(u, grad_u);
 		return true;
 	}
 	else
 		return false;
+#else
+#pragma unused(u)
+#pragma unused(grad_u)
+	return false;
+#endif
 }
 
 /* compute field gradients with respect to reference coordinates */
 bool FSMatSupportT::ComputeGradient_reference(const LocalArrayT& u, dMatrixT& grad_u, int ip) const
 {	
+#ifdef CONTINUUM_ELEMENT
 	if (fFiniteStrain) {
 		fFiniteStrain->ComputeGradient_reference(u, grad_u, ip);
 		return true;
 	}
 	else
 		return false;
+#else
+#pragma unused(u)
+#pragma unused(grad_u)
+#pragma unused(ip)
+	return false;
+#endif
 }
 
 /* set the element group pointer */
@@ -102,6 +132,8 @@ void FSMatSupportT::SetContinuumElement(const ContinuumElementT* p)
 	/* inherited */
 	StructuralMatSupportT::SetContinuumElement(p);
 
+#ifdef CONTINUUM_ELEMENT
 	/* cast to finite strain pointer */
 	fFiniteStrain = dynamic_cast<const FiniteStrainT*>(p);
+#endif
 }

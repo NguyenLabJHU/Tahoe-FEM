@@ -1,6 +1,10 @@
-/* $Id: SSMatSupportT.cpp,v 1.2 2002-11-14 17:06:21 paklein Exp $ */
+/* $Id: SSMatSupportT.cpp,v 1.3 2003-01-27 07:00:28 paklein Exp $ */
 #include "SSMatSupportT.h"
+#include "ElementsConfig.h"
+
+#ifdef CONTINUUM_ELEMENT
 #include "SmallStrainT.h"
+#endif
 
 using namespace Tahoe;
 
@@ -60,6 +64,8 @@ void SSMatSupportT::SetContinuumElement(const ContinuumElementT* p)
 	/* inherited */
 	StructuralMatSupportT::SetContinuumElement(p);
 
+#ifdef CONTINUUM_ELEMENT
 	/* cast to small strain pointer */
 	fSmallStrain = dynamic_cast<const SmallStrainT*>(p);
+#endif
 }

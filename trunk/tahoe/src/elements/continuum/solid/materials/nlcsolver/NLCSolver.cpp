@@ -1,13 +1,14 @@
-/*
-  File: NLCSolver.cpp
-*/
+/* $Id: NLCSolver.cpp,v 1.6 2003-01-27 07:00:28 paklein Exp $ */
+#include "NLCSolver.h"
 
 #include <iostream.h>
-
-#include "NLCSolver.h"
 #include "NLCSolverWrapperPtr.h"
-#include "Utils.h"
 
+// some macros
+#ifndef max
+static int max(int i1, int i2) {return i1 >= i2 ? i1 : i2;};
+static double max(double d1, double d2) {return d1 >= d2 ? d1 : d2;};
+#endif
 
 using namespace Tahoe;
 
@@ -182,14 +183,14 @@ void NLCSolver::SetDefaultTypValues(const dArrayT& X)
 
 void NLCSolver::SetTypicalX(const dArrayT& typX)
 {
-  if (typX.Length() != fDim) 
-    throwRunTimeError("NLCSolver::SetTypicalX: Dim(typX) != fDim");
+	const char caller[] = "NLCSolver::SetTypicalX";
+
+  if (typX.Length() != fDim) ExceptionT::GeneralFail(caller, "Dim(typX) != fDim");
 
   fTypX = typX;
   for (int i = 0; i < fDim; i++)
     {
-      if (typX[i] <= 0.) 
-	throwRunTimeError("NLCSolver::SetTypicalX: typX_i < 0");
+      if (typX[i] <= 0.) ExceptionT::GeneralFail(caller, "typX_i < 0");
       fInvTypX[i] = 1./typX[i];
     }
 }
@@ -433,8 +434,7 @@ void NLCSolver::FormLocalJacobian(NLCSolverWrapperPtr theModel, dArrayT& X)
       break;
 
     default:
-      throwRunTimeError("NLCSolver::FormLocalJacobian: Bad fJacCode");
-      break;
+		ExceptionT::GeneralFail("NLCSolver::FormLocalJacobian", "Bad fJacCode: %d", fJacCode);
     }
 
   // compute gradient of F: GradF
