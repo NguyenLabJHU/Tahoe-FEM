@@ -1,9 +1,10 @@
-/* $Id: CommManagerT.cpp,v 1.1.2.2 2002-12-10 17:13:02 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.1.2.3 2002-12-16 09:22:16 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
 #include "PartitionT.h"
 #include "AllGatherT.h"
+#include "InverseMapT.h"
 #include <float.h>
 
 using namespace Tahoe;
@@ -27,6 +28,34 @@ fComm.SetLogLevel(CommunicatorT::kLow);
 		fProcessor.Dimension(fModelManager.NumNodes());
 		fProcessor = fComm.Rank();
 	}
+}
+
+/* set or clear partition information */
+void CommManagerT::SetPartition(PartitionT* partition)
+{
+	/* pointer to the partition info */
+	fPartition = partition; 
+	
+	/* fetch partition information */
+	if (fPartition)
+	{
+		/* node map */
+		fNodeMap.Alias(fPartition->NodeMap());
+		
+		/* nodes owned by this processor */
+		CollectPartitionNodes(fNodeMap, fComm.Rank(), fPartitionNodes);
+	}
+	else /* clear partition information */
+	{
+		/* node map */
+		fNodeMap.Dimension(0);
+		
+		/* nodes owned by this processor */
+		fPartitionNodes.Dimension(0);
+	}
+	
+	/* clear the inverse map */
+	fPartitionNodes_inv.ClearMap();
 }
 
 /* set boundaries */
@@ -73,6 +102,59 @@ void CommManagerT::Configure(void)
 
 	/* determine the current processor bounds */
 	//GetBounds(current_coords, , fBounds);
+}
+
+/* return true if the list of partition nodes may be changing */
+bool CommManagerT::PartitionNodesChanging(void) const
+{
+	if (fPartition && fPartition->DecompType() == PartitionT::kSpatial)
+		return true;
+	else
+		return false;
+}
+
+/* inverse of fPartitionNodes list */
+const InverseMapT* CommManagerT::PartitionNodes_inv(void) const
+{
+	const ArrayT<int>* nodes = PartitionNodes();
+	if (!nodes)
+		return NULL;
+	else
+	{
+		/* cast away const-ness */
+		CommManagerT* non_const_this = (CommManagerT*) this;
+	
+		/* set inverse map */
+		nArrayT<int> nd;
+		nd.Alias(*nodes);
+		non_const_this->fPartitionNodes_inv.SetMap(nd);
+		
+		return &fPartitionNodes_inv;
+	}
+}
+
+/*************************************************************************
+ * Private
+ *************************************************************************/
+
+/* collect partition nodes */
+void CommManagerT::CollectPartitionNodes(const ArrayT<int>& n2p_map, int part, 
+	AutoArrayT<int>& part_nodes) const
+{
+	int count = 0;
+	int* p = n2p_map.Pointer();
+	int len = n2p_map.Length();
+	for (int i = 0; i < len; i++)
+		if (*p++ == part)
+			count++;
+			
+	part_nodes.Dimension(count);
+	int* pn = part_nodes.Pointer();
+	p = n2p_map.Pointer();
+	count = 0;
+	for (int i = 0; i < len; i++)
+		if (*p++ == part)
+			*pn++ = i;
 }
 
 /* perform actions needed the first time CommManagerT::Configure is called. */
@@ -129,18 +211,24 @@ void CommManagerT::FirstConfigure(void)
 			fModelManager.UpdateElementGroup(el_id[i], elems, true);
 		}
 
-		/* translate node sets to global numbering */
+		/* translate node sets to global numbering and all gather */
 		const ArrayT<StringT>& nd_id = fModelManager.NodeSetIDs();
 		for (int i = 0; i < nd_id.Length(); i++)
 		{
-			/* copy existing connectivities */
-			iArrayT nodes = fModelManager.NodeSet(nd_id[i]);
+			/* copy node set */
+			iArrayT partial_nodes = fModelManager.NodeSet(nd_id[i]);
 
-			/* map scope of nodes in connectivities */
-			fPartition->SetNodeScope(PartitionT::kGlobal, nodes);
+			/* map scope of nodes in the node set */
+			fPartition->SetNodeScope(PartitionT::kGlobal, partial_nodes);
 			
-			/* re-set the connectivities */
-			fModelManager.UpdateNodeSet(nd_id[i], nodes, true);		
+			/* collect all */
+			AllGatherT gather_node_set(fComm);
+			gather_node_set.Initialize(partial_nodes.Length());
+			iArrayT all_nodes(gather_node_set.Total());
+			gather_node_set.AllGather(partial_nodes, all_nodes);
+			
+			/* re-set the node set */
+			fModelManager.UpdateNodeSet(nd_id[i], all_nodes, true);		
 		}
 
 		/* translate side sets to global numbering */	
@@ -160,66 +248,17 @@ void CommManagerT::FirstConfigure(void)
 				*p++ = proc;
 			proc++;
 		}
+		
+		/* clear the node numbering map - each processor knows about all nodes */
+		fNodeMap.Dimension(0);
+		
+		/* collect partition nodes (general algorithm) */
+		CollectPartitionNodes(fProcessor, fComm.Rank(), fPartitionNodes);
+		
+		/* clear the inverse map */
+		fPartitionNodes_inv.ClearMap();
 	}
 }
-
-/*************************************************************************
- * Protected
- *************************************************************************/
-
-#if 0
-/* return the local node to processor map */
-void FEManagerT_mpi::NodeToProcessorMap(const iArrayT& node, iArrayT& processor) const
-{
-	/* initialize */
-	processor.Dimension(node);
-	processor = -1;
-	
-	/* empty list */
-	if (node.Length() == 0) return;
-	
-	/* no parition data */
-	if (!fPartition) {
-		processor = Rank();
-		return;
-	}
-	
-	/* range of node numbers */
-	int shift, max;
-	node.MinMax(shift, max);
-	int range = max - shift + 1;
-
-	/* node to index-in-node-array map */
-	iArrayT index(range);
-	index = -1;
-	for (int i = 0; i < range; i++)
-		index[node[i] - shift] = i;
-	
-	/* mark external */
-	const iArrayT& comm_ID = Partition().CommID();
-	for (int i = 0; i < comm_ID.Length(); i++)
-	{	
-		int proc = comm_ID[i];
-		const iArrayT* comm_nodes = Partition().NodesIn(proc);
-		if (!comm_nodes) throw ExceptionT::kGeneralFail;
-		for (int j = 0; j < comm_nodes->Length(); j++)
-		{
-			int nd = (*comm_nodes)[j] - shift;
-			if (nd > -1 && nd < range) /* in the list range */
-			{
-				int dex = index[nd];
-				if (dex != -1) /* in the list */
-					processor[dex] = proc;
-			}
-		}
-	}
-	
-	/* assume all others are from this proc */
-	int rank = Rank();
-	for (int i = 0; i < range; i++)
-		if (processor[i] == -1) processor[i] = rank;
-}
-#endif
 
 /** determine the local coordinate bounds */
 void CommManagerT::GetBounds(const dArray2DT& coords_all, const iArrayT& local, 
@@ -295,3 +334,57 @@ void CommManagerT::GetBounds(const dArray2DT& coords_all, const iArrayT& local,
 	}
 	else ExceptionT::OutOfRange("CommManagerT::SetBounds");
 }
+
+#if 0
+/* return the local node to processor map */
+void FEManagerT_mpi::NodeToProcessorMap(const iArrayT& node, iArrayT& processor) const
+{
+	/* initialize */
+	processor.Dimension(node);
+	processor = -1;
+	
+	/* empty list */
+	if (node.Length() == 0) return;
+	
+	/* no parition data */
+	if (!fPartition) {
+		processor = Rank();
+		return;
+	}
+	
+	/* range of node numbers */
+	int shift, max;
+	node.MinMax(shift, max);
+	int range = max - shift + 1;
+
+	/* node to index-in-node-array map */
+	iArrayT index(range);
+	index = -1;
+	for (int i = 0; i < range; i++)
+		index[node[i] - shift] = i;
+	
+	/* mark external */
+	const iArrayT& comm_ID = Partition().CommID();
+	for (int i = 0; i < comm_ID.Length(); i++)
+	{	
+		int proc = comm_ID[i];
+		const iArrayT* comm_nodes = Partition().NodesIn(proc);
+		if (!comm_nodes) throw ExceptionT::kGeneralFail;
+		for (int j = 0; j < comm_nodes->Length(); j++)
+		{
+			int nd = (*comm_nodes)[j] - shift;
+			if (nd > -1 && nd < range) /* in the list range */
+			{
+				int dex = index[nd];
+				if (dex != -1) /* in the list */
+					processor[dex] = proc;
+			}
+		}
+	}
+	
+	/* assume all others are from this proc */
+	int rank = Rank();
+	for (int i = 0; i < range; i++)
+		if (processor[i] == -1) processor[i] = rank;
+}
+#endif
