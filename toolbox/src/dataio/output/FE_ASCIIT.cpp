@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.cpp,v 1.10 2002-03-04 06:32:03 paklein Exp $ */
+/* $Id: FE_ASCIIT.cpp,v 1.11 2002-03-11 16:24:53 sawimme Exp $ */
 /* created: sawimme (05/20/1999) */
 
 #include "FE_ASCIIT.h"
@@ -60,17 +60,18 @@ void FE_ASCIIT::WriteGeometry(void)
 	mf.PutTitle (fTitle);
 	mf.PutCoordinates (*fCoordinates);
 	
-	for (int e=0; e < fElementSets.Length(); e++)
+	for (int e=0, s=0; e < fElementSets.Length(); e++)
 	  {
 	    const ArrayT<StringT>& blockIDs = fElementSets[e]->BlockID();
-	    for (int b=0; b < fElementSets[e]->NumBlocks(); b++)
+	    for (int b=0; b < fElementSets[e]->NumBlocks(); b++, s++)
 	      {
 		const iArray2DT* c = fElementSets[e]->Connectivities(blockIDs[b]);
 		iArray2DT conn = *c;
 		
 		iArrayT tmp(conn.Length(), conn.Pointer());
 		tmp++;
-		mf.PutElementSet(atoi(blockIDs[b]), conn);
+		mf.PutElementSet (s+1, conn);
+		//mf.PutElementSet(atoi(blockIDs[b]), conn);
 		tmp--;
 	      }
 	  }
