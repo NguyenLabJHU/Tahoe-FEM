@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.11 2002-01-19 03:03:31 paklein Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.12 2002-02-01 18:08:39 paklein Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -35,7 +35,7 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 	ModelManagerT model(cout);
 
 	/* read exodus file */
-	try { model.Initialize(fFormat, fInFile); }
+	try { model.Initialize(fFormat, fInFile, true); }
 	catch (int error) {
 		cout << " EXCEPTION: caught exception " << error << " reading file: " << fInFile << endl;
 		throw eDatabaseFail;
@@ -58,6 +58,20 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 		coords.Free();
 		tmp.Swap(coords); 
     }
+    
+    /* read the node numbering map */
+    fPointNumberMap.Allocate(coords.MajorDim());
+	model.AllNodeMap(fPointNumberMap);
+
+	//TEMP
+	//cout << "node number map:\n" << fPointNumberMap.wrap(10) << endl;
+
+//TEMP
+	if (fPointNumberMap.Length() != coords.MajorDim()) {
+		cout << "VTKBodyDataT: no node number map?" << endl;
+		throw eGeneralFail;
+	}
+    
 
 #if 1
 	/* set up points */
@@ -90,35 +104,43 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 	int num_elem_blocks = model.NumElementGroups();
 	int num_node_sets = model.NumNodeSets();
 	fUGrids.Allocate(num_elem_blocks + num_node_sets);	
-	//fUGrids.Allocate(num_elem_blocks);
   
 	/* load element connectivities */
+	const ArrayT<StringT>& elem_ID = model.ElementGroupIDs();
 	for (int i = 0 ; i < num_elem_blocks; i++)
     {
 		/* read connectivities */
-		GeometryT::CodeT geom_code = model.ElementGroupGeometry(i);
-		const iArray2DT& connectivities = model.ElementGroup(i);
+		GeometryT::CodeT geom_code = model.ElementGroupGeometry(elem_ID[i]);
+		const iArray2DT& connectivities = model.ElementGroup(elem_ID[i]);
 		//connectivities[i]--; //SHIFT
 
 #if __option(extended_errorcheck)
 		cout << "VTKBodyDataT::VTKBodyDataT: reading element block: " 
 		     << connectivities.MajorDim() << " x " << connectivities.MinorDim() << endl;
 #endif
+
+		/* element numbering map */
+		iArrayT map(connectivities.MajorDim());
+		model.ElementMap(elem_ID[i], map);
+		
+		//TEMP
+		//cout << "element number map:\n" << map.wrap(10) << endl;
 	
 		/* construct VTK grid */
 		fUGrids[i] = new VTKUGridT(VTKUGridT::kElementSet, i, model.NumDimensions());
 		fUGrids[i]->SetPoints(fPoints);
 		fUGrids[i]->SetConnectivities(geom_code, connectivities);
+		fUGrids[i]->SetCellNumberMap(map);
 	}    
     cout << "read element blocks" << endl;
 
 	/* load node sets */
-#if 1
+	const ArrayT<StringT>& node_ID = model.NodeSetIDs();
 	for (int i = 0; i < num_node_sets; i++)
     {
 		/* read nodes */
 		GeometryT::CodeT geom_code = GeometryT::kPoint;
-		const iArrayT& nodes = model.NodeSet(i);
+		const iArrayT& nodes = model.NodeSet(node_ID[i]);
 		
 		iArray2DT connectivities(nodes.Length(), 1, nodes.Pointer());
 	
@@ -134,7 +156,6 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 		fUGrids[ii]->SetConnectivities(geom_code, connectivities);
 	}    
     cout << "read node sets" << endl;
-#endif
   
 	/* number of results sets */
 	int num_time_steps = model.NumTimeSteps();
@@ -361,21 +382,6 @@ bool VTKBodyDataT::SelectTimeStep(int stepNum)
   		return true;
 }
 
-#if 0
-void VTKBodyDataT::ChangeDataColor(int color)
-{
-  ugridMapper->ScalarVisibilityOff();
-  if (color ==1)
-    ugridActor->GetProperty()->SetColor(1,0,0);
-  else if (color==2)
-    ugridActor->GetProperty()->SetColor(0,1,0);
-  else if (color==3)
-    ugridActor->GetProperty()->SetColor(0,0,1);
-  else
-    cout << "invalid color";
-}
-#endif
-
 /* execute console command. \return true is executed normally */
 bool VTKBodyDataT::iDoCommand(const CommandSpecT& command, StringT& line)
 {
@@ -457,7 +463,7 @@ void VTKBodyDataT::LoadData(int step)
 				ModelManagerT model(cout);
 
 				/* read exodus file */
-				try { model.Initialize(fFormat, fInFile); }
+				try { model.Initialize(fFormat, fInFile, true); }
 				catch (int error) {
 					cout << " EXCEPTION: caught exception " << error << " reading file: " << fInFile << endl;
 					throw eDatabaseFail;;
