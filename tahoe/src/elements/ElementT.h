@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.40 2004-02-03 08:24:48 paklein Exp $ */
+/* $Id: ElementT.h,v 1.41 2004-02-26 22:13:59 cjkimme Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -64,7 +64,8 @@ kPenaltyContactElement3D = 34,
 			   kSSQ1P0MF = 67,
 				kAPSgrad = 68,	     
       kGradC0SmallStrain = 69,      
-				 kSCNIMF = 70, /**< stabilized, conforming nodally-integrated Galerkin MF */
+			  kSS_SCNIMF = 70, /**< small strain stabilized, conforming nodally-integrated Galerkin MF */
+			  kFS_SCNIMF = 71, /**< finite deformation ditto */
             kElasticAxi = 102, /**< small strain axisymmetric solid */
        kHyperElasticAxi = 103, /**<  updated Lagrangian, large strain axisymmetric solid */
  kTotLagHyperElasticAxi = 104, /**<  total Lagrangian, large strain axisymmetric solid */
