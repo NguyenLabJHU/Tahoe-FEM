@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.35 2003-08-14 05:34:21 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.36 2003-08-18 03:48:54 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -22,7 +22,6 @@
 #include "OutputSetT.h"
 #include "ParameterUtils.h"
 
-#include "FieldSupportT.h"
 #include "FieldT.h"
 
 /* force BC controllers */
@@ -48,9 +47,10 @@ using namespace Tahoe;
 
 /* constructor */
 NodeManagerT::NodeManagerT(FEManagerT& fe_manager, CommManagerT& comm_manager):
+	ParameterInterfaceT("nodes"),
 	fFEManager(fe_manager),
 	fCommManager(comm_manager),
-	ParameterInterfaceT("nodes"),
+	fFieldSupport(fe_manager, *this),
 	fInitCoords(NULL),
 	fCoordUpdate(NULL),
 	fCurrentCoords(NULL)
@@ -345,20 +345,18 @@ void NodeManagerT::FormLHS(int group, GlobalT::SystemTypeT sys_type)
 	    analysiscode != GlobalT::kVarNodeNLExpDyn &&
 	    analysiscode != GlobalT::kPML)
 	{
-		FieldSupportT support(fFEManager);
 		for (int i = 0; i < fFields.Length(); i++)
 			if (fFields[i]->Group() == group)
-				fFields[i]->FormLHS(support, sys_type);
+				fFields[i]->FormLHS(sys_type);
 	}
 }
 	
 /* compute the nodal contribution to the residual force vector */
 void NodeManagerT::FormRHS(int group)
 {
-	FieldSupportT support(fFEManager);
 	for (int i = 0; i < fFields.Length(); i++)
 		if (fFields[i]->Group() == group)
-			fFields[i]->FormRHS(support);
+			fFields[i]->FormRHS();
 }
 
 /* returns true if the internal force has been changed since
@@ -1208,7 +1206,7 @@ void NodeManagerT::DefineSubs(SubListT& sub_list) const
 ParameterInterfaceT* NodeManagerT::NewSub(const StringT& list_name) const
 {
 	if (list_name == "field")
-		return new FieldT;
+		return new FieldT(fFieldSupport);
 	else if (list_name == "history_node_ID")
 		return new IntegerListT("history_node_ID");
 	else
@@ -1333,7 +1331,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			if (!controller) ExceptionT::GeneralFail(caller);
 
 			/* new field */			
-			FieldT* field = new FieldT;
+			FieldT* field = new FieldT(fFieldSupport);
 			field->Initialize(name, ndof, *controller);
 			field->SetLabels(labels);
 			field->SetGroup(group_num);
@@ -1387,7 +1385,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			case GlobalT::kNLStaticKfield:
 			case GlobalT::kLinStatic:
 			{
-				field = new FieldT;
+				field = new FieldT(fFieldSupport);
 				field->Initialize("displacement", NumSD(), *controller);
 
 				/* label list */
@@ -1405,7 +1403,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			case GlobalT::kNLStaticHeat:
 			case GlobalT::kNLTransHeat:
 			{
-				field = new FieldT;
+				field = new FieldT(fFieldSupport);
 				field->Initialize("temperature", 1, *controller);
 
 				/* set labels */
