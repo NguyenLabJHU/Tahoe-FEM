@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="./geometry/point.geom" title="explicit dynamics with prescribed velocity">
+    <time num_steps="5" output_inc="1" time_step="1.0">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="1.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement" integrator="central_difference">
+            <dof_labels>
+                <String value="D_X"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="1" schedule="1" type="D_u" value="1.0"/>
+        </field>
+        <history_node_ID_list>
+            <String value="1"/>
+        </history_node_ID_list>
+    </nodes>
+    <linear_solver><diagonal_matrix/></linear_solver>
+</tahoe>

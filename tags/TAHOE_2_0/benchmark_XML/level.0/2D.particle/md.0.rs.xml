@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="geometry/hex_lattice.5x5.geom" restart_file="md.0.rs500of1000" title="small hex lattce - restart">
+    <time num_steps="500" output_inc="250" time_step="0.125">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="1.0"/>
+                <OrderedPair x="50.0" y="1.0"/>
+                <OrderedPair x="50.0001" y="0.0"/>
+                <OrderedPair x="51.0" y="0.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement" integrator="Gear6">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="1"/>
+            <kinematic_BC dof="2" node_ID="1"/>
+            <kinematic_BC dof="1" node_ID="2"/>
+            <force_BC dof="2" node_ID="2" schedule="1" value="0.1"/>
+        </field>
+    </nodes>
+    <element_list>
+        <particle_pair field_name="displacement" lattice_parameter="1.0" max_neighbor_distance="1.1" re-neighbor_displacement="1.0" re-neighbor_increment="0">
+            <particle_type label="A">
+                <node_ID_list>
+                    <String value="3"/>
+                </node_ID_list>
+            </particle_type>
+            <pair_particle_interaction label_1="A" label_2="A">
+                <harmonic mass="1.0" rest_length="1.0" stiffness="1.0"/>
+            </pair_particle_interaction>
+        </particle_pair>
+    </element_list>
+    <linear_solver><diagonal_matrix/></linear_solver>
+</tahoe>

@@ -1,0 +1,22 @@
+%
+*boundary
+1 2 8
+
+*mapnodesets
+# [set ID] [transfer method]
+10 2
+20 2
+*copysidesets
+# [set ID] [element group ID]
+11 1
+12 2
+3 1
+4 2
+*splitelement
+1-2 0
+*VERBOSE 1
+*OUTPUT 1
+*input 1 ../geometry/quad4sidesn.geom
+
+
+*EOF

@@ -1,0 +1,89 @@
+# $Id: Makefile.template,v 1.9 2002-09-22 18:13:29 paklein Exp $
+.SUFFIXES: .cpp .h .java .class .o .sig
+
+# choose platform specific macros file
+ARCH = SGI
+include ./macros/$(ARCH).macros
+
+# Java sources
+JAVA_SRC = test.java app.java
+JAVA_OBJ = $(JAVA_SRC:.java=.class)
+JAVA_SIG = $(JAVA_SRC:.java=.sig)
+JAVA_JNI_HDR = test.h
+
+# C++ sources
+CPP_SRC = testClass.cpp testImpl.cpp
+CPP_OBJ = $(CPP_SRC:.cpp=.o)
+CPP_DSO = libtestClass.$(DSO_EXT)
+
+############################### build options ###########################
+# uncomment macros for installed options
+
+##### toolbox
+TB_DIR      = ../../../toolbox
+TB_INC      = -I$(TB_DIR)/inc
+TB_CFLAGS   = $(TB_INC)
+TB_LIB_NAME = toolbox
+TB_LIB      = $(TB_DIR)/lib/lib$(TB_LIB_NAME).a
+TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
+
+#### VTK 4.0.x
+VTK_DIR    = /scr/paklein/local/src/VTK
+VTK_INC    = $(X_INC_FLAGS) -I$(VTK_DIR) -I$(VTK_DIR)/Common -I$(VTK_DIR)/Graphics -I$(VTK_DIR)/Imaging -I$(VTK_DIR)/Filtering -I$(VTK_DIR)/IO -I$(VTK_DIR)/Rendering
+VTK_CFLAGS = $(X_CFLAGS) $(THREAD_CFLAGS) $(VTK_INC) -D__VTK__ -D__VTK_NEW__
+VTK_LFLAGS = -L$(VTK_DIR)/bin/ -L/usr/X11R6/lib -lpthread -lm \
+	-lvtkCommon -lvtkFiltering -lvtkGraphics -lvtkRendering -lvtkHybrid \
+	-lGL -lXt  -lSM -lICE  -L/usr/X11R6/lib -lX11 -lXext \
+	-lvtkImaging -lvtkGraphics -lvtkIO -lvtkFiltering -lvtkCommon \
+	-lvtkpng -lvtkzlib -lvtkjpeg -lpthread -lm \
+	-lvtkCommon -lvtkFiltering -lvtkGraphics -lvtkRendering -lvtkHybrid \
+	-lGL -lXt  -lSM -lICE  -L/usr/X11R6/lib -lX11 -lXext \
+	-lvtkImaging -lvtkGraphics -lvtkIO -lvtkFiltering -lvtkCommon \
+	-lvtkpng -lvtkzlib -lvtkjpeg
+
+##### SEACAS/ACCESS software
+#AX_INC    = -I$(ACCESS)/inc
+#AX_CFLAGS = $(AX_INC) -D__ACCESS__
+#AX_LFLAGS = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
+############################### build options ###########################
+
+# collect all compiler and linker flags
+CC_FLAGS_ALL = \
+	-I../inc \
+	$(TB_CFLAGS) \
+	$(VTK_CFLAGS) \
+	$(AX_CFLAGS) \
+	$(CC_FLAGS)
+
+L_FLAGS_ALL = \
+	-L../lib -lvtk_console \
+	$(TB_LFLAGS) \
+	$(VTK_LFLAGS) \
+	$(AX_LFLAGS)
+
+all: $(JAVA_OBJ) $(JAVA_JNI_HDR) $(CPP_DSO)
+
+$(CPP_DSO): $(CPP_OBJ) $(TB_LIB)
+	$(LD) $(LD_FLAGS) -o libtestClass.$(DSO_EXT) $(CPP_OBJ) $(L_FLAGS_ALL)
+
+run:
+	java app
+
+sig: $(JAVA_SIG)
+
+clean:
+	rm $(JAVA_OBJ) $(JAVA_JNI_HDR) $(CPP_OBJ) $(CPP_DSO) $(ARCH_JUNK)
+
+############ SUFFIX rules
+
+.java.class:
+	javac $<
+
+.cpp.o:
+	$(COMP_CC) $(CC_FLAGS_ALL) $<
+
+.java.h:
+	javah $*
+
+.java.sig:
+	javap -s -p $*

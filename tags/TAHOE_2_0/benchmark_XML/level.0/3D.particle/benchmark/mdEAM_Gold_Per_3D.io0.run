@@ -1,0 +1,38 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 0
+ Output ID . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodal values. . . . . . . . . . . . . = 21
+ Labels:
+	D_X
+	D_Y
+	D_Z
+	PE
+	KE
+	s11
+	s22
+	s33
+	s23
+	s13
+	s12
+	e11
+	e12
+	e13
+	e22
+	e23
+	e33
+	SV_X
+	SV_Y
+	SV_Z
+	CS
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodes . . . . . . . . . . . . . . . . = 864
+ Number of elements. . . . . . . . . . . . . . . = 864
+
+ O U T P U T   D A T A :  T O C
+mdEAM_Gold_Per_3D.io0.run.ps0000

@@ -1,0 +1,47 @@
+# $Id: XJANUS.macros,v 1.4 2004-01-26 19:44:00 cjkimme Exp $
+MPI_CFLAGS = -D__TAHOE_MPI__
+MPI_LFLAGS = -lmpi
+
+# ASCI Red - JANUS (sasn100, sasn101)
+MAKE        = make -r
+DEFINES     = -D__TAHOE_MPI__ -D__JANUS__ -D__ROGUE_STL__ 
+XCDIR       = /usr/local/x-comp/intel/tflop/current/tflops
+MAKEDEPEND = makedepend
+MAKEDEPEND_OUTPUT = -f
+MAKEDEPENDFLAGS = -I$(INC_DIR) -I$(XCDIR)/include -I$(XCDIR)/include/CC/RW $(DEFINES)
+COMP_C      = $(XCDIR)/bin.solaris/icc
+COMP_CC     = $(XCDIR)/bin.solaris/iCC
+COMP_F      = $(XCDIR)/bin.solaris/if77
+MORE_CFLAGS = -rwstl -O2 -DNDEBUG
+#--no_using_std
+#MORE_CFLAGS = -g
+LOC_CFLAGS = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
+CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS) 
+CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -cougar -Wc,-tlocal --display_error_number --diag_suppress 815 
+CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS)
+LINK        = $(COMP_CC)
+LFLAGS      = $(MPI_LFLAGS) -L$(XCDIR)/lib/RW -lstd
+AR          = /usr/local/x-comp/intel/tflop/current/tflops/bin.solaris/xar
+ARFLAGS     = -cruv
+RANLIB      = echo
+RANLIBFLAGS =
+MAKEOPTS    = 
+RM          = rm
+RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
+LN          = ln -sf
+ECHO        = echo
+CAT         = cat
+PERL        = perl -w
+PRINTF      = printf
+GREP        = grep
+XARGS       = xargs
+
+# target-specific extras
+MAKE_INIT_XTRAS        =
+MAKE_HEADERS_XTRAS     =
+MAKE_DEPEND_INIT_XTRAS =
+MAKE_CLEAN_XTRAS       =
+MAKE_BUILD_XTRAS       = 
+
+#TFLOPS_XDEV = $(XCDIR)
+#export TFLOPS_XDEV

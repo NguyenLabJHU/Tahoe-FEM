@@ -1,0 +1,40 @@
+# $Id: GNU.troi.purecoverage.macros,v 1.4 2004-01-02 01:37:20 paklein Exp $
+# GNU
+MAKE        = make
+DEFINES     = -D__GNU__ -D__SUN__ -D__NO_RTTI__
+MAKEDEPEND = makedepend
+MAKEDEPEND_OUTPUT = -f
+MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/local/include/g++-3 -I/usr/include/g++-2 -I/usr/include -I/usr/local/sparc-sun-solaris2.7/include $(DEFINES)
+COMP_C      = gcc
+COMP_CC     = g++
+COMP_F      = g77
+MORE_CFLAGS = -g
+LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
+CFLAGS_C    = $(LOC_CFLAGS)
+CFLAGS_CC   = $(LOC_CFLAGS)
+CFLAGS_F    = $(LOC_CFLAGS)
+PURIFY      = /scr2/local/Rational/releases/purify.sol.2001a.04.00/purify 
+PURECOV     = /scr2/local/Rational/releases/purecov.sol.2001a.04.00/purecov
+LINK        = $(PURECOV) -log-file=%v.purecov.log -counts-file=%v.pcv $(COMP_CC)
+LFLAGS      = -static
+AR          = ar
+ARFLAGS     = -cruv
+RANLIB      = echo
+RANLIBFLAGS =
+MAKE_OPTS   = -s
+RM          = rm
+RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
+LN          = /home/paklein/bin/ln -sf
+ECHO        = echo
+CAT         = cat
+PERL        = perl
+PRINTF      = printf
+GREP        = grep
+XARGS       = xargs
+
+# target-specific extras
+MAKE_INIT_XTRAS        =
+MAKE_HEADERS_XTRAS     =
+MAKE_DEPEND_INIT_XTRAS =
+MAKE_CLEAN_XTRAS       =
+MAKE_BUILD_XTRAS       =

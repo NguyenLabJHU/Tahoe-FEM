@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="./geometry/fcc_Per_3D.geom" title="3D EAM with periodic bc's">
+    <time num_steps="1" output_inc="1" time_step="0.001">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="1.0" y="1.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement" integrator="Gear6">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+                <String value="D_Z"/>
+            </dof_labels>
+        </field>
+    </nodes>
+    <element_list>
+        <particle_EAM field_name="displacement" lattice_parameter="3.52" max_neighbor_distance="5.00" re-neighbor_displacement="1.0">
+            <periodic_bc direction="1" x_max="10.56" x_min="-10.56"/>
+            <periodic_bc direction="2" x_max="10.56" x_min="-10.56"/>
+            <periodic_bc direction="3" x_max="10.56" x_min="-10.56"/>
+            <particle_type all_particles="true" label="Ni"/>
+            <EAM_particle_interaction label_1="Ni" label_2="Ni">
+                <Paradyn_EAM mass="1.0" parameter_file="./FCN/niu3"/>
+            </EAM_particle_interaction>
+        </particle_EAM>
+    </element_list>
+    <linear_solver><diagonal_matrix/></linear_solver>
+</tahoe>

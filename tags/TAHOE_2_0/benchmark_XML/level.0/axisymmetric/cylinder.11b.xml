@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="../geometry/rect.5x1.geom" title="2D Q1P0 (inverse), axisymmetric explicit dynamic test">
+    <time num_steps="100" output_inc="20" time_step="0.01">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="1.0"/>
+                <OrderedPair x="10.0" y="0.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement" integrator="central_difference">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+            <kinematic_BC dof="2" node_ID="1"/>
+            <force_BC dof="1" node_ID="3" schedule="1" value="10.0"/>
+        </field>
+    </nodes>
+    <element_list>
+        <updated_lagrangian_Q1P0_inv_axi field_name="displacement" mass_type="lumped_mass">
+            <quadrilateral/>
+            <solid_element_nodal_output displacements="1" stress="1"/>
+            <large_strain_axi_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <large_strain_material_3D>
+                    <large_strain_StVenant density="1.0">
+                        <E_and_nu Poisson_ratio="0.33" Young_modulus="100.0"/>
+                    </large_strain_StVenant>
+                </large_strain_material_3D>
+            </large_strain_axi_element_block>
+        </updated_lagrangian_Q1P0_inv_axi>
+    </element_list>
+    <linear_solver><diagonal_matrix/></linear_solver>
+</tahoe>

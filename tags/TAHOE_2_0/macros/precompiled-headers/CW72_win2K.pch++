@@ -1,0 +1,81 @@
+/* Metrowerks Standard Library
+ * Copyright © 1995-2001 Metrowerks Corporation.  All rights reserved.
+ *
+ *  $Date: 2003-12-15 20:29:53 $ 
+ *  $Revision: 1.2 $ 
+ */
+
+/*	This file contains the code that gets precompiled.	*/
+
+#if macintosh
+	/*	option 1
+	 *	to have ansi_prefix not include MacHeaders set MSL_USE_PRECOMPILED_HEADERS to something other than 0 or 1
+	 *	uncommenting the following line will achieve this.
+	 */
+
+	/*	#define MSL_USE_PRECOMPILED_HEADERS 2 */
+
+	/* 	option 2
+	 *	to generate MacHeaders as part of the MSL pch leave everything as is.
+	 */
+
+	#ifndef MSL_USE_PRECOMPILED_HEADERS
+	#define MSL_USE_PRECOMPILED_HEADERS 1	
+	#endif
+	
+	#include <ansi_prefix.mac.h>
+
+#elif __MACH__
+
+	#include <ansi_prefix.mach.h>
+
+#elif __INTEL__ && !__BEOS__
+
+	#include <ansi_prefix.win32.h>
+
+#else
+	#error "OS currently unsupported"
+#endif
+
+#pragma precompile_target "CW72_win2K.mch"
+
+#include <iosfwd>
+// Support
+#include <exception>
+#include <new>
+#include <limits>
+#include <typeinfo>
+// Diagnostics
+#include <stdexcept>
+// Iterators
+#include <iterator>
+// Utilities
+#include <functional>
+#include <memory>
+#include <utility>
+// Algorithms
+#include <algorithm>
+// Strings
+#include <string>
+// Containers
+#include <bitset>
+
+// Localization
+#include <locale>
+// Input/Output
+#include <ios>
+#include <streambuf>
+#include <istream>
+#include <ostream>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <sstream>
+
+#ifndef __USE_CONSTANT_SUFFIX__
+#define __USE_CONSTANT_SUFFIX__
+#endif
+
+#ifndef __DEVELOPMENT__
+#define __DEVELOPMENT__
+#endif

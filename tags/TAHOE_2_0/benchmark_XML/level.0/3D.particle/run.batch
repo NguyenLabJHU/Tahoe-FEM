@@ -1,0 +1,17 @@
+@
+# $Id: run.batch,v 1.2 2004-04-16 18:14:03 paklein Exp $
+mdEAM_Fix_3D.xml
+mdEAM_Gold_Per_3D.xml
+mdEAM_Per_3D.xml
+mdLJ2_Gold_Free_3D.xml
+mdLJ2_Gold_Per_3D.xml
+mdLJ_Gold_Free_3D.xml
+mdLJ_Gold_Per_3D.xml
+qsEAM_Fix_3D.xml
+qsEAM_Gold_Free_3D.xml
+qsEAM_Per_3D.xml
+qsLJ2_Gold_Free_3D.xml
+qsLJ2_Gold_Per_3D.xml
+qsLJ_Gold_Free_3D.xml
+#qsMatsui2_Al2O3_Per_3D.xml
+

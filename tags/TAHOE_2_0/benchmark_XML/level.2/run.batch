@@ -1,0 +1,7 @@
+@
+# $Id: run.batch,v 1.5 2004-05-26 17:52:30 paklein Exp $
+force.controller/run.batch
+contact_simple/run.batch
+torsion/run.batch 
+K.field/run.batch
+thermostats/run.batch

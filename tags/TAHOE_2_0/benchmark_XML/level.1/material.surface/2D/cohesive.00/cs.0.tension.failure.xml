@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="../geometry/cs_regress_db.geom" title="cs regression test for Xu-Needleman (shear-failure)">
+    <time num_steps="50" output_inc="1" time_step="0.4">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="20.0" y="0.001"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="2"/>
+            <kinematic_BC dof="2" node_ID="2" schedule="1" type="u" value="-1.0"/>
+            <kinematic_BC dof="1" node_ID="3"/>
+            <kinematic_BC dof="2" node_ID="3" schedule="1" type="u" value="1.0"/>
+            <kinematic_BC dof="1" node_ID="5"/>
+            <kinematic_BC dof="2" node_ID="5" schedule="1" type="u" value="1.0"/>
+            <kinematic_BC dof="1" node_ID="6"/>
+            <kinematic_BC dof="2" node_ID="6" schedule="1" type="u" value="-1.0"/>
+        </field>
+    </nodes>
+    <element_list>
+        <updated_lagrangian field_name="displacement">
+            <quadrilateral/>
+            <large_strain_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                    <String value="2"/>
+                </block_ID_list>
+                <large_strain_material_2D>
+                    <Simo_isotropic_2D density="1.0">
+                        <E_and_nu Poisson_ratio="0.25" Young_modulus="1.0e+07"/>
+                    </Simo_isotropic_2D>
+                </large_strain_material_2D>
+            </large_strain_element_block>
+        </updated_lagrangian>
+        <anisotropic_CSE field_name="displacement">
+            <line/>
+            <surface_element_nodal_output displacement_jump="1" traction="1"/>
+            <anisotropic_CSE_element_block>
+                <block_ID_list>
+                    <String value="3"/>
+                </block_ID_list>
+                <cohesive_relation_2D>
+                    <Xu-Needleman_2D K_ratio="0.0" d_n="0.001" d_t="0.001" phi_n="10.0" r_fail="1.0"/>
+                </cohesive_relation_2D>
+            </anisotropic_CSE_element_block>
+        </anisotropic_CSE>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+01" max_iterations="10" rel_tolerance="1.0e-10"><profile_matrix/></nonlinear_solver>
+</tahoe>

@@ -1,0 +1,10 @@
+# $Id: development.extras,v 1.1 2004-01-02 01:17:40 paklein Exp $
+#
+# additional make commands for the development module
+#
+
+default:
+	@ $(MAKE) help
+	@ $(PRINTF) "\n additional targets for configuration:\n"
+	@ $(PRINTF) "   update_config - update config files in src/config\n"
+	@ $(PRINTF) "    clean_config - remove config files in src/config\n"
