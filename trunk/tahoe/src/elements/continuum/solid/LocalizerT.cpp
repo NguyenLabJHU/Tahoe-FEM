@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.cpp,v 1.12 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: LocalizerT.cpp,v 1.13 2005-01-29 01:30:45 raregue Exp $ */
 /* created: paklein (02/19/1998) */
 #include "LocalizerT.h"
 
@@ -653,7 +653,8 @@ int LocalizerT::CheckLocalization(ostream& out)
 		const dMatrixT& cijkl = fCurrMaterial->c_ijkl();
 		
 		/* localization check */
-		if (fCurrMaterial->IsLocalized(fNormal))
+		//if (fCurrMaterial->IsLocalized(fNormal))
+		if (fCurrMaterial->IsLocalized(fNormals,fSlipDirs))
 		{
 			numloc++;
 			fShapes->IPCoords(vec);
