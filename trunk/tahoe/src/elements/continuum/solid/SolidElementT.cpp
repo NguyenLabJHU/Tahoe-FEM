@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.57 2004-02-04 07:37:52 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.58 2004-02-16 19:30:55 rdorgan Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -1534,12 +1534,15 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 
 	if (n_codes[iNodalStress])
 	{
+		const char* slabels1D[] = {"s11"};
 		const char* slabels2D[] = {"s11", "s22", "s12"};
 		const char* slabels2D_axi[] = {"srr", "szz", "srz", "stt"};
 		const char* slabels3D[] = {"s11", "s22", "s33", "s23", "s13", "s12"};
 		int nstrs = fB.Rows();
 		const char** slabels = NULL;
-		if (nstrs == 3)
+		if (nstrs == 1)
+			slabels = slabels1D;
+		else if (nstrs == 3)
 			slabels = slabels2D;
 		else if (nstrs == 4)
 			slabels = slabels2D_axi;
@@ -1609,12 +1612,15 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 	}
 	if (e_codes[iIPStress])
 	{
+		const char* slabels1D[] = {"s11", "e11"};
 		const char* slabels2D[] = {"s11", "s22", "s12","e11", "e22", "e12"};
 		const char* slabels2D_axi[] = {"srr", "szz", "srz", "stt", "err", "ezz", "erz", "ett"};
 		const char* slabels3D[] = {"s11", "s22", "s33", "s23", "s13", "s12", "e11", "e22", "e33", "e23", "e13", "e12"};
 		int nstrs = fB.Rows();
 		const char** slabels = NULL;
-		if (nstrs == 3)
+		if (nstrs == 1)
+			slabels = slabels1D;
+		else if (nstrs == 3)
 			slabels = slabels2D;
 		else if (nstrs == 4)
 			slabels = slabels2D_axi;
