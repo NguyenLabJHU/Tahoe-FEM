@@ -1,18 +1,18 @@
-/* $Id: SmallStrainMF.h,v 1.2 2003-04-05 20:39:11 thao Exp $ */
+/* $Id: SmallStrainMF.h,v 1.3 2003-04-10 22:03:07 thao Exp $ */
 
 #ifndef _SMALL_STRAIN_MF_H_
 #define _SMALL_STRAIN_MF_H_
 
 /* base class */
 #include "SmallStrainT.h"
-
+#include "ofstreamT.h"
 namespace Tahoe {
 
 /* forward declarations */
 class SSMatSupportT;
 class SSSolidMatT;
 class OutputSetT;
-
+class StringT;
 
 /** Interface for linear strain deformation and field gradients */
 class SmallStrainMF: public SmallStrainT
@@ -61,6 +61,13 @@ class SmallStrainMF: public SmallStrainT
     OutputSetT* fOutputSet;
     int fNumGroupNodes;
     iArrayT fMap;
+
+    ArrayT<StringT> fNID;
+    int fnumset;
+
+    bool fopen;
+    ofstreamT fout;
+    StringT fsummary_file;
 
  private:
     ArrayT<dMatrixT> fGradU_List;

@@ -1,4 +1,4 @@
-/* $Id: SmallStrainMF.cpp,v 1.5 2003-04-09 22:19:46 thao Exp $ */
+/* $Id: SmallStrainMF.cpp,v 1.6 2003-04-10 22:03:07 thao Exp $ */
 #include "SmallStrainMF.h"
 
 #include "OutputSetT.h"
@@ -9,19 +9,53 @@
 #include "GeometryT.h"
 #include "ModelManagerT.h"
 #include "SSMatSupportT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 
 /* materials lists */
 #include "SolidMatList1DT.h"
 #include "SolidMatList2DT.h"
 #include "SolidMatList3DT.h"
 
+#include <iostream.h>
+#include <iomanip.h>
+#include <stdlib.h>
 using namespace Tahoe;
 
 /* constructor */
 SmallStrainMF::SmallStrainMF(const ElementSupportT& support, const FieldT& field):
 	SmallStrainT(support, field),
 	fNumGroupNodes(0),
-	fMatForceOutputID(-1){}
+	fMatForceOutputID(-1)
+{
+	ifstreamT& in = ElementSupport().Input();
+    ostream&  out = ElementSupport().Output();
+
+    ModelManagerT& model = ElementSupport().Model();
+    const ArrayT<StringT>& nsetIDs = model.NodeSetIDs();
+    in >> fnumset;
+    fNID.Dimension (fnumset);
+    
+    for (int i=0; i < fnumset; i++)
+	{
+	  StringT name;
+	  in >> name;
+	  int index = model.NodeSetIndex(name);
+	  if (index < 0) 
+	  {
+	  	cout << "\nSmallStrainMF2::SmallStrainMF \n Node set " << name << " is undefined: ";
+	  	throw ExceptionT::kDatabaseFail;
+	  }
+      else
+      {
+       fNID[i] = nsetIDs[index];
+      }
+    }
+    out << "\n Number of nodesets for summing material force: "<<fnumset;
+    for (int j = 0; j<fnumset; j++) out << "\n\tNodeset: "<<fNID[j];
+    out <<'\n';
+    fopen = false;
+}
 	
 SmallStrainMF::~SmallStrainMF(void)
 {
@@ -167,6 +201,194 @@ void SmallStrainMF::ComputeMatForce(dArray2DT& output)
     pout_force += 2*nsd;
     pout_dissip += 2*nsd;
     pout_disp += 2*nsd;
+  }
+
+  /*write summary of MF results to external file*/  
+  ModelManagerT& model = ElementSupport().Model();
+  int numnset = model.NumNodeSets();
+ 
+  ifstreamT& in = ElementSupport().Input();
+  const StringT& input_file = in.filename();
+  fsummary_file.Root(input_file);
+  fsummary_file.Append(".sum");
+ 
+  double time = ElementSupport().Time();
+  int precision = 6;
+  int doublewidth = kPrecision+kDoubleExtra;
+  int intwidth = kIntWidth;
+  
+  if (nsd == 2)
+  { 
+    double* pFx = output.Pointer();
+    double* pFy = output.Pointer(1);
+    double* pDFx = output.Pointer(2);
+    double* pDFy = output.Pointer(3);
+
+    /*sum components of material force over a given nodeset*/ 
+    double MFx, MFy, DFx, DFy;  
+    MFx = MFy = DFx = DFy = 0.0;
+
+    for (int i = 0; i<fnumset; i++)
+    {
+      StringT& ID = fNID[i];
+      const int nlength = model.NodeSetLength(ID);
+      const iArrayT& nset = model.NodeSet(ID);
+      for (int j = 0; j<nlength; j++)
+      {
+        int index = fMap[nset[j]];
+        MFx += *(pFx+index*3*nsd);
+        MFy += *(pFy+index*3*nsd);
+        DFx += *(pDFx+index*3*nsd);
+        DFy += *(pDFy+index*3*nsd);
+      }
+    }
+    
+    /*find maximum material force*/
+    const iArrayT& nodes_used = fOutputSet->NodesUsed();
+    double maxFx, maxFy;
+    int nFx, nFy;
+    maxFx = maxFy = 0.0;
+    for (int i = 0; i<nnd; i++)
+    {
+      if (fabs(maxFx) < fabs(*(pFx+i*3*nsd))) 
+        {maxFx = *(pFx+i*3*nsd); nFx = nodes_used[i];}
+      if (fabs(maxFy) < fabs(*(pFy+i*3*nsd))) 
+        {maxFy = *(pFy+i*3*nsd); nFy = nodes_used[i];}
+    }
+    
+    /*write summary output file*/
+    if (fopen)
+    {
+      fout.open_append(fsummary_file);
+    }  
+    else
+    {
+      fout.open(fsummary_file);
+      fopen = true;
+      
+      fout <<"\nSummary of material force results:"
+           <<"\n\t Summed x component . . . . . . . . . . . . . . . . F_X"
+           <<"\n\t Summed y component . . . . . . . . . . . . . . . . F_Y"
+           <<"\n\t Summed x component of dissipation contribution . . Fd_X"
+           <<"\n\t Summed y component of dissipation contribution . . Fd_Y"   
+           <<"\n\t Maximum x component . . . . . . . . . . . . . . . . maxF_X"
+           <<"\n\t Maximum y component . . . . . . . . . . . . . . . . maxF_Y"
+           <<endl<<endl<<endl;
+
+      fout <<setw(intwidth) << "Time" 
+           <<setw(doublewidth) << "F_X" 
+           <<setw(doublewidth) << "F_Y" 
+           <<setw(doublewidth) << "Fd_X" 
+           <<setw(doublewidth) << "Fd_Y" 
+           <<setw(doublewidth) << "Node" 
+           <<setw(doublewidth) << "(F_X)max" 
+           <<setw(doublewidth) << "Node" 
+           <<setw(doublewidth) << "(F_Y)max"
+           <<endl;        
+    }
+
+    fout <<setw(intwidth) << time 
+         <<setw(doublewidth) << MFx 
+         <<setw(doublewidth) << MFy 
+         <<setw(doublewidth) << DFx 
+         <<setw(doublewidth) << DFy 
+         <<setw(intwidth+2) << nFx+1 
+         <<setw(doublewidth+1) << maxFx 
+         <<setw(intwidth+6) << nFy+1
+         <<setw(doublewidth+2) << maxFy
+         <<endl;        
+  }
+  else if (nsd == 3)
+  { 
+    double* pFx = output.Pointer();
+    double* pFy = output.Pointer(1);
+    double* pFz = output.Pointer(2);
+    double* pDFx = output.Pointer(3);
+    double* pDFy = output.Pointer(4);
+    double* pDFz = output.Pointer(5);
+     
+    double MFx,MFy, MFz, DFx, DFy, DFz;  
+    MFx = MFy = MFz = DFx = DFy = DFz = 0.0;
+ 
+    for (int i = 0; i<fnumset; i++)
+    {
+      StringT& ID = fNID[i];
+      const int nlength = model.NodeSetLength(ID);
+      const iArrayT& nset = model.NodeSet(ID);
+      for (int j = 0; j<nlength; j++)
+      {
+        int index = fMap[nset[j]];
+        MFx += *(pFx+index*3*nsd);
+        MFy += *(pFy+index*3*nsd);
+        MFz += *(pFz+index*3*nsd);
+        DFx += *(pDFx+index*3*nsd);
+        DFy += *(pDFy+index*3*nsd);
+        DFz += *(pDFz+index*3*nsd);
+      }
+    }
+    /*find maximum material force*/
+    const iArrayT& nodes_used = fOutputSet->NodesUsed();
+    double maxFx, maxFy, maxFz;
+    int nFx, nFy, nFz;
+    maxFx = maxFy = maxFz = 0.0;
+    for (int i = 0; i<nnd; i++)
+    {
+      if (maxFx < *(pFx+i*3*nsd)) {maxFx = *(pFx+i*3*nsd); nFx = nodes_used[i];}
+      if (maxFy < *(pFy+i*3*nsd)) {maxFy = *(pFy+i*3*nsd); nFy = nodes_used[i];}
+      if (maxFz < *(pFz+i*3*nsd)) {maxFz = *(pFz+i*3*nsd); nFz = nodes_used[i];}
+    }
+    /*write summary output file*/
+    if (fopen)
+    {
+      fout.open_append(fsummary_file);
+    }  
+    else
+    {
+      fout.open(fsummary_file);
+      fopen = true;
+      
+      fout <<"\nSummary of material force results:"
+           <<"\n\t Summed x component . . . . . . . . . . . . . . . . F_X"
+           <<"\n\t Summed y component . . . . . . . . . . . . . . . . F_Y"
+           <<"\n\t Summed z component . . . . . . . . . . . . . . . . F_Z"
+           <<"\n\t Summed x component of dissipation contribution . . Fd_X"
+           <<"\n\t Summed y component of dissipation contribution . . Fd_Y"   
+           <<"\n\t Summed z component of dissipation contribution . . Fd_Z"   
+           <<"\n\t Maximum x component . . . . . . . . . . . . . . . . maxF_X"
+           <<"\n\t Maximum y component . . . . . . . . . . . . . . . . maxF_Y"
+           <<"\n\t Maximum z component . . . . . . . . . . . . . . . . maxF_Z"
+           <<endl<<endl<<endl;
+
+      fout <<setw(intwidth) << "Time" 
+           <<setw(doublewidth) << "F_X" 
+           <<setw(doublewidth) << "F_Y" 
+           <<setw(doublewidth) << "F_Z" 
+           <<setw(doublewidth) << "Fd_X" 
+           <<setw(doublewidth) << "Fd_Y" 
+           <<setw(doublewidth) << "Fd_Z" 
+           <<setw(doublewidth) << "Node" 
+           <<setw(doublewidth) << "(F_X)max" 
+           <<setw(doublewidth) << "Node" 
+           <<setw(doublewidth) << "(F_Y)max"
+           <<setw(doublewidth) << "Node" 
+           <<setw(doublewidth) << "(F_Z)max"
+           <<endl;        
+    }
+
+    fout <<setw(intwidth) << time 
+         <<setw(doublewidth) << MFx 
+         <<setw(doublewidth) << MFy 
+         <<setw(doublewidth) << MFz 
+         <<setw(doublewidth) << DFx 
+         <<setw(doublewidth) << DFy 
+         <<setw(doublewidth) << DFz 
+         <<setw(intwidth+2) << nFx+1 
+         <<setw(doublewidth+1) << maxFx 
+         <<setw(intwidth+6) << nFy+1
+         <<setw(doublewidth+2) << maxFy
+         <<setw(intwidth+6) << nFz+1
+         <<setw(doublewidth+2) << maxFz
+         <<endl;        
   }
 }
 
