@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.45 2003-07-12 08:07:42 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.46 2003-07-12 08:23:38 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -585,6 +585,7 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 	}
 }
 
+#ifdef __DEVELOPMENT__
 void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_THK& atoms, ofstream& log_out) const
 {
 	const char caller[] = "FEExecutionManagerT::RunDynamicBridging";
@@ -781,6 +782,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
                 
 	}
 }
+#endif
 
 /* calculate MD internal force as function of total bridging scale displacement u */
 const dArray2DT& FEExecutionManagerT::InternalForce(dArray2DT& totalu, FEManagerT_bridging& atoms) const
