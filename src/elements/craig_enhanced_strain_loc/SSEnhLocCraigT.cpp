@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.6 2005-03-04 04:14:12 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.7 2005-03-04 23:15:03 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -653,11 +653,11 @@ bool SSEnhLocCraigT::IsElementLocalized()
       fShapes->TopIP();
       while ( fShapes->NextIP() )
     {
-      //DetCheckT checker(fCurrMaterial->s_ij(), fCurrMaterial->c_ijkl(), HookeanMatT::Modulus());
-      DetCheckT checker(fCurrMaterial->s_ij(), fCurrMaterial->c_ijkl(), fInitialModulus);
+
+      // DetCheckT checker(fCurrMaterial->s_ij(), fCurrMaterial->c_ijkl(), fInitialModulus);
       
       /*is this necessary? */
-      checker.SetfStructuralMatSupport(*fSSMatSupport);
+      //checker.SetfStructuralMatSupport(*fSSMatSupport);
       if (fCurrMaterial->IsLocalized(normals, slipDirs, detA))
 	{
 	  locCheck = true;
