@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList1DT.cpp,v 1.1.2.1 2004-01-21 19:10:18 paklein Exp $ */
+/* $Id: SSSolidMatList1DT.cpp,v 1.1.2.2 2004-02-10 07:17:54 paklein Exp $ */
 #include "SSSolidMatList1DT.h"
 #include "SSMatSupportT.h"
 #include "fstreamT.h"
@@ -24,6 +24,7 @@ SSSolidMatList1DT::SSSolidMatList1DT(int length, const SSMatSupportT& support):
 	fSSMatSupport(&support),
 	fGradSSMatSupport(NULL)
 {
+#pragma message("check spatial dimension of material support")
 	SetName("small_strain_material_1D");
 
 #ifdef GRAD_SMALL_STRAIN_DEV

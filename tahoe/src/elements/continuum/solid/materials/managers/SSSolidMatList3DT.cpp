@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList3DT.cpp,v 1.1.2.1 2004-01-21 19:10:18 paklein Exp $ */
+/* $Id: SSSolidMatList3DT.cpp,v 1.1.2.2 2004-02-10 07:17:54 paklein Exp $ */
 #include "SSSolidMatList3DT.h"
 #include "SSMatSupportT.h"
 
@@ -55,6 +55,7 @@ SSSolidMatList3DT::SSSolidMatList3DT(int length, const SSMatSupportT& support):
 	SolidMatListT(length, support),
 	fSSMatSupport(&support)
 {
+#pragma message("check spatial dimension of material support")
 	SetName("small_strain_material_3D");
 }
 

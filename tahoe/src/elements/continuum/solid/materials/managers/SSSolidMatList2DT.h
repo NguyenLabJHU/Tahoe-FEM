@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList2DT.h,v 1.1.2.1 2004-01-21 19:10:18 paklein Exp $ */
+/* $Id: SSSolidMatList2DT.h,v 1.1.2.2 2004-02-10 07:17:54 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #ifndef _SS_MATLIST_2D_T_H_
 #define _SS_MATLIST_2D_T_H_
@@ -8,6 +8,9 @@
 #include "SolidT.h"
 
 namespace Tahoe {
+
+/* forward declaration */
+class SSSolidMatT;
 
 /** small strain materials list for 2D structural analysis */
 class SSSolidMatList2DT: public SolidMatListT, public SolidT
@@ -35,7 +38,15 @@ public:
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
+
+protected:
+
+	/** construct the specified material or NULL if the request cannot be completed */
+	SSSolidMatT* NewSSSolidMat(const StringT& list_name) const;
 
 private:
 
