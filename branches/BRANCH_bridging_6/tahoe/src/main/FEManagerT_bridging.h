@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.12.4.9 2004-05-25 23:45:18 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.12.4.10 2004-06-07 13:56:41 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -180,8 +180,13 @@ public:
 	 * extending into the coarse scale region */
 	void CorrectOverlap_1(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2);
 
-	/** solve bond densities one at a time */
+	/** solve bond densities one at a time enforcing constraints on bond densities using augmented
+	 * Lagrange multipliers */
 	void CorrectOverlap_2(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2, double k_r, int nip);
+
+	/** solve bond densities one at a time enforcing constraints on bond densities using a
+	 * penalty method */
+	void CorrectOverlap_22(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2, double k_r, int nip);
 
 	/** solve bond densities one at a time activating unknowns at integration points only if
 	 * the associated domain contains the terminus of a ghost node bond. */

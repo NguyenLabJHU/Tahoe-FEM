@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_2.cpp,v 1.1.2.10 2004-05-28 03:14:31 paklein Exp $ */
+/* $Id: FEManagerT_bridging_2.cpp,v 1.1.2.11 2004-06-07 13:56:41 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -888,7 +888,7 @@ void FEManagerT_bridging::Compute_df_dp_2(const dArrayT& R, double V_0, const Ar
 				}
 			}
 		}
-	if (fPrintInput) {
+	if (false && fPrintInput) {
 		fMainOut << "f_a =\n" << f_a << endl;
 	}
 
