@@ -13,12 +13,12 @@ COPTIONS =
 
 ## for MPICH (Useful for network of workstations, which do not have
 ##            special compiler support for MPI libraries)
-#PCC = mpicc
-#PFC = mpif90
+PCC = mpicc
+PFC = mpif90
 
 ## for IBM
-PCC = mpcc
-PFC = mpxlf
+#PCC = mpcc
+#PFC = mpxlf
 
 ## for T3E and Origin
 #PCC = cc
@@ -31,12 +31,12 @@ PFC = mpxlf
 #----------------- Compile Flags for MPI code    ----------------
 
 ## for SGI (default code) and SUN
-#PFFLAGS = -O3
-#PCFLAGS = -DUNDERSCORE -O3
+PFFLAGS = -O3
+PCFLAGS = -O3 -DUNDERSCORE
 
 ## for IBM
-PFFLAGS = -qnosave -O3 -qtune=auto
-PCFLAGS = -O3 -qtune=auto
+#PFFLAGS = -qnosave -O3 -qtune=auto
+#PCFLAGS = -O3 -qtune=auto
 
 ## for T3E
 #PFFLAGS = -O3 

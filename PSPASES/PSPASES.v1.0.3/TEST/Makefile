@@ -1,12 +1,12 @@
 # --------------------- Compilers and Linkers -------------------------
 ## for MPICH (Useful for network of workstations, which do not have
 ##            special compiler support for MPI libraries)
-#CC = mpicc
-#FC = mpif90
+CC = mpicc
+FC = mpif90
 
 ## for IBM
-CC = mpcc
-FC = mpxlf 
+#CC = mpcc
+#FC = mpxlf 
 
 ## for Cray and Origin
 #CC = cc 
@@ -20,12 +20,19 @@ FLINKER = $(FC)
 CLINKER = $(CC) 
 
 # --------------------- BLAS Selection        -------------------------
+
+## for Intel's Math Kernel Library (MKL)
+BLAS = -L/apps/blas -lblas
+#BLAS = /apps/blas/mkl_libblas.a
+#BLAS = -L/apps/intel/mkl/lib/32 -lmkl_lapack -lmkl_ia32 lib/libaux32_intel.a
+#BLAS = -L/apps/intel/mkl/lib/32 -lmkl -lmkl_lapack32 -lmkl_def
+
 ## for native SGI BLAS
-# BLAS = -lblas
+#BLAS = -lblas
 
 ## for native IBM BLAS (use esslp2 for POWER2 architecture. if thread-safe 
 ##                      compilers are used then esslsmp or essl_r can be used.)
- BLAS = -lessl
+# BLAS = -lessl
 
 ## for Cray, SciLib is automatically linked. if not, uncomment the following.
 # BLAS = -lsci
@@ -42,8 +49,8 @@ CLINKER = $(CC)
 # --------------------- Driver Related Selection ----------------------
 
 ## for IBM
- FLFL = 
- CLFL = -lxlf90 
+# FLFL = 
+# CLFL = -lxlf90 
 
 ## for Cray
 # PSTOBJS = craydep.o
