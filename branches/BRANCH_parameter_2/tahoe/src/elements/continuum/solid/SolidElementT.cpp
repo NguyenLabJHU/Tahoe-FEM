@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.55.2.3 2004-02-24 19:09:37 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.55.2.4 2004-03-09 09:00:00 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -370,7 +370,7 @@ ParameterInterfaceT* SolidElementT::NewSub(const StringT& list_name) const
 		
 		/* all false by default */
 		for (int i = 0; i < NumNodalOutputCodes; i++)
-			node_output->AddParameter(ParameterT::Boolean, NodalOutputNames[i], ParameterListT::ZeroOrOnce);
+			node_output->AddParameter(ParameterT::Integer, NodalOutputNames[i], ParameterListT::ZeroOrOnce);
 
 		return node_output;
 	}
@@ -380,7 +380,7 @@ ParameterInterfaceT* SolidElementT::NewSub(const StringT& list_name) const
 		
 		/* all false by default */
 		for (int i = 0; i < NumElementOutputCodes; i++)
-			element_output->AddParameter(ParameterT::Boolean, ElementOutputNames[i], ParameterListT::ZeroOrOnce);
+			element_output->AddParameter(ParameterT::Integer, ElementOutputNames[i], ParameterListT::ZeroOrOnce);
 
 		return element_output;	
 	}
@@ -407,6 +407,7 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 	/* nodal output codes */
 	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
 	fNodalOutputCodes = 0;
+	qUseSimo = qNoExtrap = false;	
 	const ParameterListT* node_output = list.List("solid_element_nodal_output");
 	if (node_output)
 		for (int i = 0; i < NumNodalOutputCodes; i++)
@@ -414,9 +415,19 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 			/* look for entry */
 			const ParameterT* nodal_value = node_output->Parameter(NodalOutputNames[i]);
 			if (nodal_value) {
-				bool do_write = *nodal_value;
-				if (do_write)
-					fNodalOutputCodes[i] = 1;
+				int do_write = *nodal_value;
+
+				/* Additional smoothing flags */
+				if (!qUseSimo && do_write == 3) {
+	    			qUseSimo = qNoExtrap = true;
+	    			fNodalOutputCodes[i] = 3;
+	    		}
+	    		else if (!qNoExtrap && do_write == 2) {
+	    			qNoExtrap = true;
+	    			fNodalOutputCodes[i] == 2;
+	    		}
+	    		else if (do_write == 1)
+	    			fNodalOutputCodes[i] = 1;
 			}
 		}
 
@@ -428,10 +439,10 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 		for (int i = 0; i < NumElementOutputCodes; i++)
 		{
 			/* look for entry */
-			const ParameterT* element_value = element_output->Parameter(NodalOutputNames[i]);
+			const ParameterT* element_value = element_output->Parameter(ElementOutputNames[i]);
 			if (element_value) {
-				bool do_write = *element_value;
-				if (do_write)
+				int do_write = *element_value;
+				if (do_write == 1)
 					fElementOutputCodes[i] = 1;
 			}
 		}
