@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.cpp,v 1.14 2004-04-13 20:37:32 ebmarin Exp $ */
+/* $Id: PolyCrystalMatT.cpp,v 1.15 2004-04-27 00:33:41 ebmarin Exp $ */
 #include "PolyCrystalMatT.h"
 #include "CrystalElasticity.h"
 #include "SlipGeometry.h"
@@ -101,6 +101,9 @@ void PolyCrystalMatT::Initialize()
 
   // set kinetics of slip
   SetSlipKinetics();
+
+  // close crystal input file
+  fInput.close();
 }
 
 bool PolyCrystalMatT::NeedsPointInitialization() const { return true; }
