@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.h,v 1.8 2002-07-05 22:26:25 paklein Exp $ */
+/* $Id: IOBaseT.h,v 1.9 2002-08-01 16:32:56 saubry Exp $ */
 /* created: sawimme (09/28/1999) */
 
 #ifndef _IOBASE_T_H_
@@ -33,7 +33,8 @@ public:
                           kAVS = 8,
                     kAVSBinary = 9,
   	        kPatranNeutral = 10,
-                 kTahoeResults = 11 };
+                 kTahoeResults = 11,
+                      kParaDyn = 12 };
 	
 	/* constructor */
 	IOBaseT(ostream& out);
