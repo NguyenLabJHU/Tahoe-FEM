@@ -1,10 +1,11 @@
-/* $Id: GaussianWindowT.cpp,v 1.6 2001-06-18 18:21:27 paklein Exp $ */
+/* $Id: GaussianWindowT.cpp,v 1.6.2.1 2001-06-19 00:54:48 paklein Exp $ */
 
 #include "GaussianWindowT.h"
 #include "ExceptionCodes.h"
 #include <math.h>
 
 const double sqrtPi = sqrt(acos(-1.0));
+static double Max(double a, double b) { return (a > b) ? a : b; };
 
 /* constructor */
 GaussianWindowT::GaussianWindowT(double dilation_scaling, double sharpening_factor):
@@ -15,6 +16,31 @@ GaussianWindowT::GaussianWindowT(double dilation_scaling, double sharpening_fact
 		throw eBadInputValue;
 }
 
+/* "synchronization" of nodal field parameters. */
+void GaussianWindowT::SynchronizeNodalParameters(dArray2DT& params_1, 
+	dArray2DT& params_2) const
+{
+	/* should be over the same global node set (marked by length) */
+	if (params_1.Length() != params_2.Length() ||
+	    params_1.MinorDim() != NumberOfNodalParameters() ||
+	    params_2.MinorDim() != NumberOfNodalParameters())
+	{
+		cout << "\n GaussianWindowT::SynchronizeNodalParameters: nodal\n"
+		     << " parameters dimension mismatch" << endl;
+		throw eSizeMismatch;
+	}
+		
+	/* "synchronize" means take max of dmax */
+	double* p1 = params_1.Pointer();
+	double* p2 = params_2.Pointer();
+	int length = params_1.Length();
+	for (int i = 0; i < length; i++)
+	{
+		*p1 = *p2 = Max(*p1, *p2);
+		p1++; p2++;
+	}
+}
+
 void GaussianWindowT::WriteParameters(ostream& out) const
 {
 	/* Not sure what to do here */
@@ -23,8 +49,8 @@ void GaussianWindowT::WriteParameters(ostream& out) const
 }
 
 /* Single point evaluations */
-void GaussianWindowT::window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
-		int order, double& w, dArrayT& Dw, dArrayT& DDw)
+void GaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
+		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw)
 {
   /* Compute second derivative of the window function */
   dArrayT dx(x.Length());
@@ -64,7 +90,7 @@ void GaussianWindowT::window(const dArrayT& x_n, const dArrayT& param_n, const d
 }
 
 /* multiple point calculations */
-int GaussianWindowT::window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
+int GaussianWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
 		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw)
 {
   /* compute window function and derivatives for multiple field points */
@@ -115,7 +141,7 @@ int GaussianWindowT::window(const dArray2DT& x_n, const dArray2DT& param_n, cons
   return count;
 }
 
-bool GaussianWindowT::Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT& param_n)
+bool GaussianWindowT::Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT& param_n) const
 {
   /* is this necessary? */
   dArrayT dx(x.Length());
@@ -128,7 +154,7 @@ bool GaussianWindowT::Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT
 }
 
 void GaussianWindowT::Covers(const dArray2DT& x_n, const dArrayT& x, 
-			     const dArray2DT& param_n, ArrayT<bool>& covers)
+	const dArray2DT& param_n, ArrayT<bool>& covers) const
 {
   int count = 0;    // # of point covered...
   int numwindows = x_n.MinorDim();        // Could be MajorDim!
