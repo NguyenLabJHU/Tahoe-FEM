@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.6 2001-07-19 17:57:46 paklein Exp $
+# $Id: make.targets,v 1.7 2001-07-30 16:52:54 strohban Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -13,6 +13,7 @@ OPT_CFLAGS = \
 	$(TB_CFLAGS) \
 	$(ACME_CFLAGS) \
 	$(SPOOLESMPI_CFLAGS) \
+	$(SPOOLESMT_CFLAGS) \
 	$(SPOOLES_CFLAGS) \
 	$(AZ_CFLAGS) \
 	$(BLAS_CFLAGS) \
@@ -24,6 +25,7 @@ OPT_LFLAGS = \
 	$(TB_LFLAGS) \
 	$(ACME_LFLAGS) \
 	$(SPOOLESMPI_LFLAGS) \
+	$(SPOOLESMT_LFLAGS) \
 	$(SPOOLES_LFLAGS) \
 	$(AZ_LFLAGS) \
 	$(BLAS_LFLAGS) \
@@ -39,6 +41,7 @@ OPT_LIB = \
 	$(METIS_LIB) \
 	$(SPOOLES_LIB) \
 	$(SPOOLESMPI_LIB) \
+	$(SPOOLESMT_LIB) \
 	$(ACME_LIB)
 
 OPT_INC = \
@@ -49,6 +52,7 @@ OPT_INC = \
 	$(METIS_INC) \
 	$(SPOOLES_INC) \
 	$(SPOOLESMPI_INC) \
+	$(SPOOLESMT_INC) \
 	$(ACME_INC) \
 	$(AX_INC)
 #########################################################################
@@ -155,3 +159,10 @@ objects:
 	"CURR_DIR = $(SRC_DIR)"
 
 FORCE:
+
+
+
+
+
+
+
