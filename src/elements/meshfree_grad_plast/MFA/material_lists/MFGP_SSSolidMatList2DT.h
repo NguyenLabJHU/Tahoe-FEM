@@ -1,26 +1,26 @@
-/* $Id: MFGP_SSSolidMatList2DT.h,v 1.2 2004-10-30 00:39:16 raregue Exp $ */
+/* $Id: MFGP_SSSolidMatList2DT.h,v 1.3 2004-10-30 00:50:12 raregue Exp $ */
 /* created: paklein (02/14/1997) */
 #ifndef _MFGP_SS_MATLIST_2D_T_H_
 #define _MFGP_SS_MATLIST_2D_T_H_
 
 /* base classes */
-#include "MFGP_SolidMatListT.h"
+#include "SolidMatListT.h"
 #include "SolidT.h"
 
-#include "MFGP_SSMatSupportT.h"
+#include "SSMatSupportT.h"
 
 namespace Tahoe {
 
 /* forward declaration */
-class MFGP_SSSolidMatT;
+class SSSolidMatT;
 
 /** small strain materials list for 2D structural analysis in gradient plasticity */
-class MFGP_SSSolidMatList2DT: public MFGP_SolidMatListT, public SolidT
+class MFGP_SSSolidMatList2DT: public SolidMatListT, public SolidT
 {
 public:
 
 	/** constructor */
-	MFGP_SSSolidMatList2DT(int length, const MFGP_SSMatSupportT& support);
+	MFGP_SSSolidMatList2DT(int length, const SSMatSupportT& support);
 	MFGP_SSSolidMatList2DT(void);
 
 	/** return true if the list contains plane stress models */
@@ -43,12 +43,12 @@ public:
 	/*@}*/
 
 	/** construct the specified material or NULL if the request cannot be completed */
-	MFGP_SSSolidMatT* NewSSSolidMat(const StringT& name) const;
+	SSSolidMatT* NewSSSolidMat(const StringT& name) const;
 
 private:
 
 	/** support for small strain materials */
-	const MFGP_SSMatSupportT* fSSMatSupport;
+	const SSMatSupportT* fSSMatSupport;
 
 };
 

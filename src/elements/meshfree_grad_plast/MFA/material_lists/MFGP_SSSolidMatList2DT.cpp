@@ -1,6 +1,6 @@
-/* $Id: MFGP_SSSolidMatList2DT.cpp,v 1.3 2004-10-30 00:39:16 raregue Exp $ */
+/* $Id: MFGP_SSSolidMatList2DT.cpp,v 1.4 2004-10-30 00:50:11 raregue Exp $ */
 #include "MFGP_SSSolidMatList2DT.h"
-#include "MFGP_SSMatSupportT.h"
+#include "SSMatSupportT.h"
 
 #include "DevelopmentMaterialsConfig.h"
 
@@ -17,8 +17,8 @@
 using namespace Tahoe;
 
 /* constructor */
-MFGP_SSSolidMatList2DT::MFGP_SSSolidMatList2DT(int length, const MFGP_SSMatSupportT& support):
-	MFGP_SolidMatListT(length, support),
+MFGP_SSSolidMatList2DT::MFGP_SSSolidMatList2DT(int length, const SSMatSupportT& support):
+	SolidMatListT(length, support),
 	fSSMatSupport(&support)
 {
 	SetName("mfgp_small_strain_material_2D");
@@ -64,7 +64,7 @@ bool MFGP_SSSolidMatList2DT::HasPlaneStress(void) const
 void MFGP_SSSolidMatList2DT::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
-	MFGP_SolidMatListT::DefineSubs(sub_list);
+	SolidMatListT::DefineSubs(sub_list);
 	
 	/* choice of 2D materials */
 	sub_list.AddSub("mfgp_ss_material_list_2D", ParameterListT::Once, true);
@@ -84,25 +84,25 @@ void MFGP_SSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT
 
 	}
 	else /* inherited */
-		MFGP_SolidMatListT::DefineInlineSub(name, order, sub_lists);
+		SolidMatListT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* MFGP_SSSolidMatList2DT::NewSub(const StringT& name) const
 {
 	/* try to construct material */
-	MFGP_SSSolidMatT* ss_solid_mat = NewSSSolidMat(name);
+	SSSolidMatT* ss_solid_mat = NewSSSolidMat(name);
 	if (ss_solid_mat)
 		return ss_solid_mat;
 	else /* inherited */
-		return MFGP_SolidMatListT::NewSub(name);
+		return SolidMatListT::NewSub(name);
 }
 
 /* accept parameter list */
 void MFGP_SSSolidMatList2DT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	MFGP_SolidMatListT::TakeParameterList(list);
+	SolidMatListT::TakeParameterList(list);
 
 	/* construct materials - NOTE: subs have been defined as a choice, but
 	 * here we construct as many materials as are passed in */
@@ -110,7 +110,7 @@ void MFGP_SSSolidMatList2DT::TakeParameterList(const ParameterListT& list)
 	int count = 0;
 	for (int i = 0; i < subs.Length(); i++) {
 		const ParameterListT& sub = subs[i];
-		MFGP_SSSolidMatT* mat = NewSSSolidMat(sub.Name());
+		SSSolidMatT* mat = NewSSSolidMat(sub.Name());
 		if (mat) {
 			
 			/* store pointer */
@@ -132,9 +132,9 @@ void MFGP_SSSolidMatList2DT::TakeParameterList(const ParameterListT& list)
  ***********************************************************************/
 
 /* construct the specified material or NULL if the request cannot be completed */
-MFGP_SSSolidMatT* MFGP_SSSolidMatList2DT::NewSSSolidMat(const StringT& name) const
+SSSolidMatT* MFGP_SSSolidMatList2DT::NewSSSolidMat(const StringT& name) const
 {
-	MFGP_SSSolidMatT* mat = NULL;
+	SSSolidMatT* mat = NULL;
 
 #ifdef GRAD_PLASTICITY_MR_MATERIAL_DEV
 	if (name == "small_strain_StVenant_MR_grad_2D")
