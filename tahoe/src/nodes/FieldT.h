@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.21 2004-07-15 08:31:10 paklein Exp $ */
+/* $Id: FieldT.h,v 1.21.4.1 2004-10-18 22:52:23 d-farrell2 Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -324,6 +324,10 @@ public:
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
+	// some accessors to the external FBC information
+	const dArrayT GetfFBCValues(void);
+	const iArrayT GetfFBCEqnos(void);
+
 private:
 
 	/** apply the IC_CardT to the field. Return false if any initial conditions where
@@ -458,6 +462,9 @@ inline nIntegratorT& FieldT::nIntegrator(void) {
 	if (!fnIntegrator) ExceptionT::GeneralFail("FieldT::nIntegrator");
 	return const_cast<nIntegratorT&>(*fnIntegrator);
 }
+// DEF added these - undefined in implementation though.. not sure why
+inline const dArrayT FieldT::GetfFBCValues(void) { return fFBCValues ; };
+inline const iArrayT FieldT::GetfFBCEqnos(void) { return fFBCEqnos ; };
 
 
 } /* namespace Tahoe */
