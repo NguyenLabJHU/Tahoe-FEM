@@ -1,4 +1,4 @@
-/* $Id: SW3BodyT.h,v 1.3 2002-07-05 22:28:22 paklein Exp $ */
+/* $Id: SW3BodyT.h,v 1.4 2003-12-28 23:37:12 paklein Exp $ */
 /* created: paklein (05/22/1997)                                          */
 
 #ifndef _SW3_BODY_T_H_
@@ -16,10 +16,13 @@ class SW3BodyT: public ThreeBodyT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	SW3BodyT(const dArrayT& lengths, const dArrayT& angles,
 		const iArray2DT& bondpairs, const ThermalDilatationT* thermal,
 		const SWDataT& SW);
+
+	/** destructor */
+	~SW3BodyT(void) { };
 
 	/* triggers recomputation */
 	virtual void Set(void);

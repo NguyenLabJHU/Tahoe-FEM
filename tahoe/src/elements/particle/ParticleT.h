@@ -1,4 +1,4 @@
-
+/* $Id: ParticleT.h,v 1.22 2003-12-28 23:37:24 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -270,7 +270,6 @@ protected:
 	/** constant matrix needed to compute the stiffness */
 	dMatrixT fOneOne;
 	/*@}*/
-	
 
 	/*linked list node for holding elements of the centrosymmetry parameter*/
 	struct CSymmParamNode {
@@ -288,17 +287,12 @@ protected:
 	double GenCSymmValue (CSymmParamNode *CSymmParam, int ndof);
 	void CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CParamStart, dMatrixT *Strain, dArrayT *SlipVector, RaggedArray2DT<int> *NearestNeighbors);
 
-
-
 private:
 
 	/** count between resetting neighbor lists */
 	int fReNeighborCounter;
 	int fhas_periodic;
 	dArrayT fPeriodicLengths;
-
-
-
 };
 
 } /* namespace Tahoe */

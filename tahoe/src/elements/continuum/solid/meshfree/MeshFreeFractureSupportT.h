@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.h,v 1.7 2003-01-29 07:35:11 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.h,v 1.8 2003-12-28 23:37:20 paklein Exp $ */
 /* created: paklein (02/15/2000)                                          */
 
 #ifndef _MESHFREE_FRACTURE_T_H_
@@ -30,11 +30,11 @@ public:
 	friend istream& operator>>(istream& in,
 		MeshFreeFractureSupportT::FractureCriterionT& criterion);
 
-	/* constructor */
+	/** constructor */
 	MeshFreeFractureSupportT(ifstreamT& in);
 
-	/* destructor */
-	~MeshFreeFractureSupportT(void);
+	/** destructor */
+	virtual ~MeshFreeFractureSupportT(void);
 
 	/* cutting facets */
 	int NumFacetNodes(void) const;

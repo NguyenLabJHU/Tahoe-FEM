@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.h,v 1.8 2003-01-27 07:00:26 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.h,v 1.9 2003-12-28 23:37:20 paklein Exp $ */
 /* created: paklein (11/12/1999) */
 
 #ifndef _MFREE_SUPPORT_T_H_
@@ -29,9 +29,12 @@ class MeshFreeElementSupportT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	MeshFreeElementSupportT(ifstreamT& in);
 
+	/** destructor */
+	virtual ~MeshFreeElementSupportT(void) { };
+	
 	/* accessors */
 	MeshFreeSupportT& MeshFreeSupport(void) const;
 

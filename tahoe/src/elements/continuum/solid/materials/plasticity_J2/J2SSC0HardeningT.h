@@ -1,4 +1,4 @@
-/* $Id: J2SSC0HardeningT.h,v 1.5 2003-11-21 22:46:48 paklein Exp $ */
+/* $Id: J2SSC0HardeningT.h,v 1.6 2003-12-28 23:37:16 paklein Exp $ */
 
 #ifndef _J2_SS_C0_HARD_T_H_
 #define _J2_SS_C0_HARD_T_H_
@@ -25,7 +25,7 @@ public:
 	J2SSC0HardeningT(ifstreamT& in, int num_ip, double mu);
 
 	/* destructor */
-	~J2SSC0HardeningT(void);
+	virtual ~J2SSC0HardeningT(void);
 
 	/* output name */
 	virtual void Print(ostream& out) const;

@@ -1,4 +1,4 @@
-/* $Id: ThreeBodyT.h,v 1.3 2002-07-05 22:28:22 paklein Exp $ */
+/* $Id: ThreeBodyT.h,v 1.4 2003-12-28 23:37:12 paklein Exp $ */
 /* created: paklein (10/11/1997)                                          */
 /* Base class for the 3 body contribution to the strain energy density    */
 
@@ -20,9 +20,12 @@ class ThreeBodyT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	ThreeBodyT(const dArrayT& lengths, const dArrayT& angles,
 		const iArray2DT& bondpairs, const ThermalDilatationT* thermal);
+
+	/** destructor */
+	virtual ~ThreeBodyT(void) { };
 
 	/* triggers recomputation */
 	virtual void Set(void) = 0;
