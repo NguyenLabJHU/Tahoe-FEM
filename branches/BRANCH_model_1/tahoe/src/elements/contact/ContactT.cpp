@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.1.1.1.6.1 2001-10-16 22:20:03 sawimme Exp $ */
+/* $Id: ContactT.cpp,v 1.1.1.1.6.2 2001-10-29 00:01:43 paklein Exp $ */
 /* created: paklein (12/11/1997)                                          */
 
 #include "ContactT.h"
@@ -277,9 +277,14 @@ void ContactT::SetWorkSpace(void)
 	fActiveMap.Allocate(fStrikerCoords.MajorDim());
 	fActiveMap = -1;
 
-	/* set the managed array - can only be set once */
-	fConnectivities_man.SetWard(0, fConnectivities, fNumElemNodes);
-	fEqnos_man.SetWard(0, fEqnos, fNumElemEqnos);
+	/* set the managed connectivities array */
+	fConnectivities_man.SetWard(0, fContactConnectivities, fNumElemNodes);
+	fConnectivities.Allocate(1);
+	fConnectivities[0] = &fContactConnectivities;
+
+	/* set managed equation numbers array */
+	fEqnos.Allocate(1);
+	fEqnos_man.SetWard(0, fEqnos[0], fNumElemEqnos);
 
 	/* make pseudo-element list to link surfaces in case
 	 * bodies are not otherwise interacting (for the bandwidth
