@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.6 2004-09-09 16:19:03 paklein Exp $ */
+/* $Id: ConveyorT.cpp,v 1.7 2004-10-13 06:39:07 paklein Exp $ */
 #include "ConveyorT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -805,15 +805,15 @@ void ConveyorT::CreatePrecrack(void)
 		curr_coords.SetLocal(card.NodesX());
 			
 		/* element lies "behind" the initial tip position */
-		bool X_check_OK = true;
+		bool X_check_OK = false;
 		bool Y_check_OK = true;
 		const double* px = curr_coords(0);
 		const double* py = curr_coords(1);
-		for (int k = 0; X_check_OK && Y_check_OK && k < nen; k++) {
-
+		for (int k = 0; Y_check_OK && k < nen; k++) {
+		
 			/* "behind" tip */
-			X_check_OK = *px++ < fTipX_0;
-			Y_check_OK = fabs(*py++ - fTipY_0) < kSmall;
+			X_check_OK = (*px++ < fTipX_0) ? true : X_check_OK; /* just one node needed */
+			Y_check_OK = fabs(*py++ - fTipY_0) < kSmall; /* all nodes needed */
 		}
 			
 		/* goes end to end */
