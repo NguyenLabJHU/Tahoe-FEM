@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.cpp,v 1.3.12.2 2004-03-01 19:07:13 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.cpp,v 1.3.12.3 2004-03-04 07:05:05 paklein Exp $ */
 #include "MeshfreeBridgingT.h"
 
 #include "PointInCellDataT.h"
@@ -115,29 +115,69 @@ void MeshfreeBridgingT::InitProjection(CommManagerT& comm, const iArrayT& points
 		/* compute MLS fit */
 		if (!fMLS->SetField(neighbor_coords, neighbor_support, neighbor_volume, x_node, 0)) {
 
-			StringT junk = "N/A";
-			StringT file;
-			file.Root(ElementSupport().Input().filename());
-			file.Append(".MLS", cell_nodes[i]+1);
-			file.Append(".out");
+			/* write support size of the neighborhood nodes */
+			bool write_support_size = true;
+			if (write_support_size)
+			{
+				StringT junk = "N/A";
+				StringT file;
+				file.Root(ElementSupport().Input().filename());
+				file.Append(".MLS", cell_nodes[i]+1);
+				file.Append(".out");
 
-			dArray2DT coords_used(neighbor_coords.MajorDim()+1, neighbor_coords.MinorDim());
-			coords_used.SetRow(0, x_node);
-			coords_used.BlockRowCopyAt(neighbor_coords, 1);
+				dArray2DT coords_used(neighbor_coords.MajorDim()+1, neighbor_coords.MinorDim());
+				coords_used.SetRow(0, x_node);
+				coords_used.BlockRowCopyAt(neighbor_coords, 1);
 
-			iArrayT points_used(neighbor_coords.MajorDim()+1);
-			points_used[0] = cell_nodes[i];
-			points_used.CopyIn(1, neighbors);
+				iArrayT points_used(neighbor_coords.MajorDim()+1);
+				points_used[0] = cell_nodes[i];
+				points_used.CopyIn(1, neighbors);
 
-			ArrayT<StringT> labels(1);
-			labels[0] = "r";
+				ArrayT<StringT> labels(1);
+				labels[0] = "r";
 
-			dArray2DT n_values(coords_used.MajorDim(), 1);
-			n_values[0];
-			n_values.BlockRowCopyAt(neighbor_support, 1);
+				dArray2DT n_values(coords_used.MajorDim(), 1);
+				n_values[0];
+				n_values.BlockRowCopyAt(neighbor_support, 1);
 
-			ElementSupport().WriteOutput(file, coords_used, points_used, n_values, labels);
+				ElementSupport().WriteOutput(file, coords_used, points_used, n_values, labels);
+			}
+			
+			bool write_node_connectivities = true;
+			if (write_node_connectivities)
+			{
+				/* stream */
+				ostream& out = ElementSupport().Output();
+				int node = cell_nodes[i];
+				out << "elements containing node: " << node+1 << '\n';
+			
+				/* the element group */
+				const ContinuumElementT* element_group = cell_data.ContinuumElement();
 
+				/* point in cell information */
+				RaggedArray2DT<int>& point_in_cell = cell_data.PointInCell();
+			
+				/* elements containing the node */
+				iArrayT connects_tmp, points_tmp;
+				for (int i = 0; i < element_group->NumElements(); i++) {
+					const iArrayT& connects = element_group->ElementCard(i).NodesX();
+					if (connects.HasValue(node)) {
+						point_in_cell.RowAlias(i, points_tmp);
+						if (points_tmp.Length() > 0) {
+							connects_tmp.Alias(connects);
+							connects_tmp++;
+							out << "element " << i+1 << ": " << connects_tmp.no_wrap() << '\n';
+							connects_tmp--;
+							
+							points_tmp++;
+							out << "points: " << points_tmp.no_wrap() << '\n';
+							points_tmp--;
+						}
+					}
+				}
+			}
+
+			/* throw */
 			ExceptionT::GeneralFail(caller, "could not compute MLS fit for node %d", cell_nodes[i]+1);
 		}
 	
@@ -411,22 +451,48 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(CommManagerT& comm, const iArray
 		nodal_neighbors.WriteNumbered(out);
 		tmp--;
 		
-		/* support sizes for each point */
-		StringT junk = "N/A";
-		StringT file;
-		file.Root(ElementSupport().Input().filename());
-		file.Append(".support.out");
+		/* support sizes for each source point */
+		bool write_support_size = true;
+		if (write_support_size) {
+			StringT junk = "N/A";
+			StringT file;
+			file.Root(ElementSupport().Input().filename());
+			file.Append(".support.out");
 
-		dArray2DT coords_used(points_used.Length(), point_coordinates.MinorDim());
-		coords_used.RowCollect(points_used, point_coordinates);
+			dArray2DT coords_used(points_used.Length(), point_coordinates.MinorDim());
+			coords_used.RowCollect(points_used, point_coordinates);
 
-		ArrayT<StringT> labels(1);
-		labels[0] = "r";
+			ArrayT<StringT> labels(1);
+			labels[0] = "r";
 
-		dArray2DT n_values(points_used.Length(), 1);
-		n_values.Collect(points_used, fSupport);
+			dArray2DT n_values(points_used.Length(), 1);
+			n_values.Collect(points_used, fSupport);
 		
-		ElementSupport().WriteOutput(file, coords_used, points_used, n_values, labels);
+			ElementSupport().WriteOutput(file, coords_used, points_used, n_values, labels);			
+		}
+
+		/* number of neighbors for each projected node */
+		bool write_num_neighbors = true;
+		if (write_num_neighbors) {
+			StringT junk = "N/A";
+			StringT file;
+			file.Root(ElementSupport().Input().filename());
+			file.Append(".neighbors.out");
+
+			/* nodal coordinates */
+			const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
+			dArray2DT coords_used(nodes_used.Length(), init_coords.MinorDim());
+			coords_used.RowCollect(nodes_used, init_coords);
+
+			ArrayT<StringT> labels(1);
+			labels[0] = "n";
+
+			dArray2DT n_values(nodes_used.Length(), 1);
+			for (int i = 0; i < n_values.MajorDim(); i++)
+				n_values[i] = double(nodal_neighbors.MinorDim(i));
+		
+			ElementSupport().WriteOutput(file, coords_used, nodes_used, n_values, labels);
+		}
 	}
 }
 
