@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.45.2.6 2004-03-22 18:40:53 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.45.2.7 2004-03-24 02:00:33 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -1258,13 +1258,49 @@ void NodeManagerT::TakeParameterList(const ParameterListT& list)
 	/* collect history nodes */
 	const ParameterListT* history_nodes = list.List("history_node_ID");
 	if (history_nodes) {
-		int num_ID = list.NumLists("String");
+	
+		/* model database */
+		ModelManagerT* model = fFEManager.ModelManager();
+	
+		/* external nodes - no output written */
+		const ArrayT<int>* p_ex_nodes = fCommManager.ExternalNodes();
+		iArrayT ex_nodes;
+		if (p_ex_nodes) ex_nodes.Alias(*p_ex_nodes);
+
+		int num_ID = history_nodes->NumLists("String");
 		fHistoryNodeSetIDs.Dimension(num_ID);
-		const ArrayT<ParameterListT>& IDs = list.Lists();
-		num_ID = 0;
-		for (int i = 0; i < IDs.Length(); i++) {
-			if (IDs[i].Name() == "String")
-				fHistoryNodeSetIDs[i] = IDs[i].GetParameter("value");
+		for (int i = 0; i < num_ID; i++) {
+		
+			/* read node set */
+			const StringT& node_set_ID = history_nodes->GetList("String", i).GetParameter("value");		
+			const iArrayT& node_set = model->NodeSet(node_set_ID);
+		
+			/* slow-but-steady way */
+			ArrayT<bool> is_external(node_set.Length());
+			is_external = true;
+			int count = 0;
+			for (int j = 0; j < node_set.Length(); j++)
+				if (!ex_nodes.HasValue(node_set[j])) {
+					is_external[j] = false;
+					count++;
+				}
+		
+			/* collect non-external nodes */
+			iArray2DT set(count, 1);
+			count = 0;
+			for (int j = 0; j < node_set.Length(); j++)
+				if (!is_external[j])
+					set[count++] = node_set[j];
+
+			/* register the set with the model manager */
+			StringT ID = "55";
+			ID = model->FreeElementID(ID);
+			if (!model->RegisterElementGroup(ID, set, GeometryT::kPoint, true))
+				ExceptionT::BadInputValue(caller, "error initializing node set %d as model element ID %d", 
+					node_set_ID.Pointer(), ID.Pointer());
+
+			/* store generated ID */
+			fHistoryNodeSetIDs[i] = ID;
 		}
 	}
 
