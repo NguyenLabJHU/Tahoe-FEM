@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: OgdenIsotropicT.h,v 1.2 2001-02-20 00:26:51 paklein Exp $ */
 /* created: paklein (10/01/2000)                                          */
 /* base class for large deformation isotropic material following          */
 /* Ogden's formulation.                                                   */
@@ -37,9 +37,10 @@ public:
 
 protected:
 
-	/* principal values given principal stretches */
-	virtual void dWdE(const dArrayT& eigenstretch, dArrayT& eigenstress) = 0;
-	virtual void ddWddE(const dArrayT& eigenstretch, dArrayT& eigenstress,
+	/* principal values given principal values of the stretch tensors,
+	 * i.e., the principal stretches squared */
+	virtual void dWdE(const dArrayT& eigenstretch2, dArrayT& eigenstress) = 0;
+	virtual void ddWddE(const dArrayT& eigenstretch2, dArrayT& eigenstress,
 		dSymMatrixT& eigenmod) = 0;
 
 	/* return true of model is purely 2D, plain stress */

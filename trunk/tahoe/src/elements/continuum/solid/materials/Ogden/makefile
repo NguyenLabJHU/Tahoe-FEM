@@ -1,11 +1,14 @@
-# $Id: makefile,v 1.3 2001-02-06 03:13:09 paklein Exp $
+# $Id: makefile,v 1.4 2001-02-20 00:26:51 paklein Exp $
 # object directory makefile - compilation instructions
 
 .SUFFIXES: .c .cpp .C .f .F .o .d .h .h_link
 
 # objects
 OBJ = \
-	OgdenIsotropicT.o
+	OgdenIsotropicT.o \
+	QuadLogOgden2DT.o \
+	QuadLogOgden3DT.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -14,11 +17,15 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	OgdenIsotropicT.cpp
+	OgdenIsotropicT.cpp \
+	QuadLogOgden3DT.cpp \
+	QuadLogOgden2DT.cpp
 
 # headers
 HDR = \
-	OgdenIsotropicT.h
+	OgdenIsotropicT.h \
+	QuadLogOgden3DT.h \
+	QuadLogOgden2DT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
