@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1.2.1 2003-04-28 08:36:39 paklein Exp $
+# $Id: makefile,v 1.1.2.2 2003-05-03 09:08:27 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,14 +6,19 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	TranslateIOManager.o \
-	ExtractIOManager.o \
-	ExtractNode.o \
-	ExtractElement.o \
-	ExtractQuad.o \
-	PointPlots.o \
-	MergeResults.o \
-	main.o
+	basement.o \
+	bedroom.o \
+	closet.o \
+	crawl_space.o \
+	driveway.o \
+	garage.o \
+	house.o \
+	lawn.o \
+	main.o \
+	roof.o \
+	room.o \
+	storm_shelter.o \
+	window.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -23,24 +28,34 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	TranslateIOManager.cpp \
-	ExtractIOManager.cpp \
-	ExtractNode.cpp \
-	ExtractElement.cpp \
-	ExtractQuad.cpp \
-	PointPlots.cpp \
-	MergeResults.cpp \
-	main.cpp
+	basement.cpp \
+	bedroom.cpp \
+	closet.cpp \
+	crawl_space.cpp \
+	driveway.cpp \
+	garage.cpp \
+	house.cpp \
+	lawn.cpp \
+	main.cpp \
+	roof.cpp \
+	room.cpp \
+	storm_shelter.cpp \
+	window.cpp
 
 # headers
 HDR = \
-	TranslateIOManager.h \
-	ExtractIOManager.h \
-	ExtractNode.h \
-	ExtractElement.h \
-	ExtractQuad.h \
-	MergeResults.h \
-	PointPlots.h
+	basement.h \
+	bedroom.h \
+	closet.h \
+	crawl_space.h \
+	driveway.h \
+	garage.h \
+	house.h \
+	lawn.h \
+	roof.h \
+	room.h \
+	storm_shelter.h \
+	window.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

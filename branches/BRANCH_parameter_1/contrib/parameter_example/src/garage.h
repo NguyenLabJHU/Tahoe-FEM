@@ -1,24 +1,22 @@
-/* $Id: bedroom.h,v 1.1.2.2 2003-05-03 09:08:27 paklein Exp $ */
-#ifndef _BEDROOM_H_
-#define _BEDROOM_H_
+/* $Id: garage.h,v 1.1.2.1 2003-05-03 09:08:27 paklein Exp $ */
+#ifndef _GARAGE_H_
+#define _GARAGE_H_
 
 /* base class */
-#include "room.h"
+#include "ParameterInterfaceT.h"
 
 /* forward declarations */
 class window;
 
 using namespace Tahoe;
 
-class bedroom: public room
+class garage: public ParameterInterfaceT
 {
 public:
 
-	/** constructor */
-	bedroom(void);
+	garage(void);
 
-	/** destructor */
-	~bedroom(void);
+	~garage(void);
 
 	/** \name implementation of ParameterInterfaceT */
 	/*@{*/
@@ -31,10 +29,11 @@ public:
 
 private:
 
-	int floor;
+	bool opener_;
+	double length_;
+	double width_;
 	
-	/** windows */
-	ArrayT<window*> windows_;
+	window* window_;
 };
 
-#endif /* _BEDROOM_H_ */
+#endif /* _GARAGE_H_ */
