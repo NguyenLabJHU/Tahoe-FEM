@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.16 2002-11-26 00:34:20 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.17 2002-11-28 01:12:54 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -1110,6 +1110,7 @@ void NodeManagerT::EchoCoordinates(ifstreamT& in, ostream& out)
 		out << " Number of nodal points. . . . . . . . . . . . . = " << NumNodes() << '\n';
 		out << " Number of spatial dimensions. . . . . . . . . . = " << NumSD() << '\n';
 		out << "\n Adjusting nodal data to 2D" << endl;
+		cout << "\n NodeManagerT::EchoCoordinates: WARNING: Adjusting nodal data to 2D" << endl;
 		model->AdjustCoordinatesto2D();
 	}
 	  
