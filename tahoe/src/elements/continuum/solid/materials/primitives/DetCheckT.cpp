@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.4 2001-07-25 10:12:45 paklein Exp $ */
+/* $Id: DetCheckT.cpp,v 1.5 2001-07-27 01:32:50 cfoster Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "DetCheckT.h"
@@ -47,9 +47,11 @@ int DetCheckT::IsLocalized(dArrayT& normal)
 	if (fs_jl.Rows() == 2)
 		return DetCheck2D(normal);
 	else
-		//TEMP - not implemented
-		return 0;
+
+	//TEMP - not implemented
+		return 5;
 }
+
 
 /* check ellipticity of tangent modulus using closed form algorithm
  * taken from R.A.Regueiro's SPINLOC. */
@@ -70,8 +72,9 @@ int DetCheckT::IsLocalized_SPINLOC(dArrayT& normal)
 	}
 	else
 		//TEMP - not implemented
-		return 0;
+		return 5;
 }
+
 
 /**********************************************************************
 * Private
@@ -253,6 +256,14 @@ int DetCheckT::SPINLOC_localize(double *c__, double *thetan, int *loccheck)
     third = one / three;
     rad = four * atan(one) / 180.;
     pi = four * atan(one);
+
+
+
+    //  cout << "c__=\n";
+    //  cout << c__[4] << ' ' <<  c__[7] << ' ' << c__[10] << '\n';
+    //  cout << c__[5] << ' ' <<  c__[8] << ' ' << c__[11] << '\n';
+    //  cout << c__[6] << ' ' <<  c__[9] << ' ' << c__[12] << '\n';
+
 
     a0 = c__[4] * c__[12] - c__[10] * c__[6];
     a1 = c__[4] * (c__[9] + c__[11]) - c__[10] * c__[5] - c__[6] * c__[7];
