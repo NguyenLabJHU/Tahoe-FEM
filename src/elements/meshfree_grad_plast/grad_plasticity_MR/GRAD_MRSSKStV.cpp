@@ -1,6 +1,10 @@
-/* created: Majid T. Manzari (04/16/2001) */
+/* created: Karma Yonten (03/04/2004)                   
+   MR version modified to incorporate gradient plasticity 
+   theory.
+*/
 #include "GRAD_MRSSKStV.h"
-#include "SSMatSupportT.h"  
+#include "SSMatSupportT.h"
+#include "GRAD_MRSSNLHardT.h"  
 
 #include "ElementCardT.h"
 #include "StringT.h"
@@ -13,7 +17,7 @@ using namespace Tahoe;
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
-const int kNumOutput = 14;
+const int kNumOutput = 7;
 static const char* Labels[kNumOutput] = {
 	    "chi",
 	    "cohesion",
@@ -21,38 +25,21 @@ static const char* Labels[kNumOutput] = {
 	    "Dilation Angle",
 	    "VM",  // Von Mises stress
 	    "press", // pressurefmo
-	    "loccheck",
-	    "loccheckd", // localization check
-	    "n1", // x1 component of normal n for contbif
-	    "n2", // x2 component of normal n for contbif
-	    "n3", // x3 component of normal n for contbif
-	    "nd1", // x1 component of normal n for discbif	
-	    "nd2", // x2 component of normal n for discbif	
-	    "nd3"}; // x3 component of normal n for discbif	    
+	    "loccheck"}; //	localization check    
 
 /* constructor */
-GRAD_MRSSKStV::GRAD_MRSSKStV(ifstreamT& in, const SSMatSupportT& support):
-	SSSolidMatT(in, support),
-	IsotropicT(in),
+GRAD_MRSSKStV::GRAD_MRSSKStV(void):
+	ParameterInterfaceT("small_strain_StVenant_GRAD_MR"),
 	HookeanMatT(3),
-	GRAD_MRSSNLHardT(in, NumIP(), Mu(), Lambda()),
-	fStress(3),
-	fFailureFunction, // kyonten
-	fModulus(dSymMatrixT::NumValues(3)),
-	fModulusdisc(dSymMatrixT::NumValues(3))
+	fGRAD_MR(NULL),
+	fYieldFunction(0.0)
+	
 {
 
 }
 
-/* initialization */
-void GRAD_MRSSKStV::Initialize(void)
-{
-ExceptionT::GeneralFail("GRAD_MRSSKStV::Initialize", "out of date");
-#if 0
-	/* inherited */
-	HookeanMatT::Initialize();
-#endif
-}
+/* destructor */
+GRAD_MRSSKStV::~GRAD_MRSSKStV(void) { delete fGRAD_MR; }
 
 /* form of tangent matrix (symmetric by default) */
 GlobalT::SystemTypeT GRAD_MRSSKStV::TangentType(void) const { return GlobalT::kNonSymmetric; }
@@ -62,7 +49,7 @@ void GRAD_MRSSKStV::UpdateHistory(void)
 {
 	/* update if plastic */
 	ElementCardT& element = CurrentElement();
-	if (element.IsAllocated()) Update(element);
+	if (element.IsAllocated()) fGRAD_MR->Update(element);
 }
 
 /* reset internal variables to last converged solution */
@@ -70,48 +57,41 @@ void GRAD_MRSSKStV::ResetHistory(void)
 {
 	/* reset if plastic */
 	ElementCardT& element = CurrentElement();
-	if (element.IsAllocated()) Reset(element);
+	if (element.IsAllocated()) fGRAD_MR->Reset(element);
 }
 
-/* print parameters */
-void GRAD_MRSSKStV::Print(ostream& out) const
+const dSymMatrixT& GRAD_MRSSKStV::ElasticStrain(const dSymMatrixT& totalstrain, const ElementCardT& element, int ip) 
 {
-	/* inherited */
-	SSSolidMatT::Print(out);
-	IsotropicT::Print(out);
-	GRAD_MRSSNLHardT::Print(out);
+	return fGRAD_MR->ElasticStrain(totalstrain, element, ip);
 }
 
-/* print name */
-void GRAD_MRSSKStV::PrintName(ostream& out) const
+const dSymMatrixT& GRAD_MRSSKStV::LapElasticStrain(const dSymMatrixT& lap_totalstrain, const ElementCardT& element, int ip) 
 {
-	/* inherited */
-	SSSolidMatT::PrintName(out);
-	GRAD_MRSSNLHardT::PrintName(out);
-	out << "    Kirchhoff-St.Venant\n";
+	return fGRAD_MR->LapElasticStrain(lap_totalstrain, element, ip);
 }
+
 
 /* modulus */
 const dMatrixT& GRAD_MRSSKStV::c_ijkl(void)
 {
 
-	fModulus =	Moduli(CurrentElement(), CurrIP());
+	fModulus =	fGRAD_MR->Moduli(CurrentElement(), CurrIP());
 	return fModulus;
 }
 
-/*discontinuous modulus */
-const dMatrixT& GRAD_MRSSKStV::cdisc_ijkl(void)
+/*perfectly plastic modulus */
+const dMatrixT& GRAD_MRSSKStV::c_perfplas_ijkl(void)
 {
 	/* elastoplastic correction */
-	fModulusdisc =	ModuliDisc(CurrentElement(), CurrIP());
-	return fModulusdisc;
+	fModulusPerfPlas =	fGRAD_MR->ModuliPerfPlas(CurrentElement(), CurrIP());
+	return fModulusPerfPlas;
 }
 
 /* yield function */
-const double& GRAD_MRSSKStV::YieldFunction(void)
+const double& GRAD_MRSSKStV::YieldF(void)
 {
 
-	fYieldFunction = YieldFunction(CurrentElement(), CurrIP());
+	fYieldFunction = fGRAD_MR->YieldFunction(CurrentElement(), CurrIP());
 	return fYieldFunction;
 }
 
@@ -120,33 +100,19 @@ const dSymMatrixT& GRAD_MRSSKStV::s_ij(void)
 {
 	int ip = CurrIP();
 	ElementCardT& element = CurrentElement();
-	const dSymMatrixT& e_tot = e();
+	const double& dlam = CurrentDLam();           // passed from the global level
+	const double& lap_dlam = CurrentLap_DLam(); // passed from the global level
+	const dSymMatrixT& e_tot = e();          //remove thermal strain ??
 	const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
-	
-	/* elastic stress */
-	/*HookeanStress(e_els, fStress);*/
-
+	const dSymMatrixT& lap_e_tot = lap_e(); // lap_e??
+	const dSymMatrixT& lap_e_els = LapElasticStrain(lap_etot, element, ip);
+// Note:  This part of the code is incomplete.  Basically, the
+// laplacians of the strain and the plastic multiplier need
+// to be passed from the higher level to the consititutive 
+// routine
 	/* Updated Cauchy stress (return mapping) */
-	fStress = StressCorrection(e_els, element, ip);
+	fStress = fGRAD_MR->StressCorrection(e_els, lap_e_els, dlam, lap_dlam, element, ip);
 	return fStress;	
-}
-
-
-
-/*
-* Test for localization using "current" values for Cauchy
-* stress and the spatial tangent moduli. Returns 1 if the
-* determinant of the acoustic tensor is negative and returns
-* the normal for which the determinant is minimum. Returns 0
-* if the determinant is positive.
-*/
-int GRAD_MRSSKStV::IsLocalized(dArrayT& normal)
-{
-        DetCheckT checker(fStress, fModulus);
-        checker.SetfStructuralMatSupport(*fSSMatSupport);
-
-        int loccheck= checker.IsLocalized(normal);
-        return loccheck;
 }
 
 
@@ -172,6 +138,7 @@ void GRAD_MRSSKStV::OutputLabels(ArrayT<StringT>& labels) const
 
 void GRAD_MRSSKStV::ComputeOutput(dArrayT& output)
 {
+	dMatrixT Ce = HookeanMatT::Modulus();
 	
 	/* stress tensor (load state) */
 	const dSymMatrixT& stress = s_ij();
@@ -189,33 +156,88 @@ void GRAD_MRSSKStV::ComputeOutput(dArrayT& output)
 	const ElementCardT& element = CurrentElement();
 	if (element.IsAllocated())
 	{
-		output[0] = fInternal[kchi];
-		output[1] = fInternal[kc];
-		output[2] = fInternal[ktanphi];
-		output[3] = fInternal[ktanpsi];
-		output[6] = fInternal[26];
-		output[7] = 0.0;
-		output[8] = 0.0;
-		output[9] = 0.0;
-		output[10] = 0.0;
-		output[11] = 0.0;
-		output[12] = 0.0;
-		output[13] = 0.0;
+		
+		dArrayT& internal = fGRAD_MR->Internal();
+		output[0] = internal[GRAD_MRSSNLHardT::kchi];
+		output[1] = internal[GRAD_MRSSNLHardT::kc];
+		output[2] = internal[GRAD_MRSSNLHardT::ktanphi];
+		output[3] = internal[GRAD_MRSSNLHardT::ktanpsi];
+		
+		// check for localization
+		// compute modulus 
+		const dMatrixT& modulus = c_ijkl();
+		// perfectly plastic modulus not implemented yet
+		//const dMatrixT& modulus = c_perfplas_ijkl();
+
+		/* localization condition checker */
+		DetCheckT checker(stress, modulus, Ce);
+		AutoArrayT <dArrayT> normals;
+		AutoArrayT <dArrayT> slipdirs;
+		normals.Dimension(3);
+		slipdirs.Dimension(3);
+		output[6] = checker.IsLocalized_SS(normals,slipdirs);
 	}	
 	else
 	{
 		output[6] = 0.0;
-		output[7] = 0.0;
-		output[8] = 0.0;
-		output[9] = 0.0;
-		output[10] = 0.0;
-		output[11] = 0.0;
-		output[12] = 0.0;
-		output[13] = 0.0;
 	}
 
 	
 }
+
+/* describe the parameters needed by the interface */
+void GRAD_MRSSKStV::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	SSIsotropicMatT::DefineParameters(list);
+	HookeanMatT::DefineParameters(list);
+}
+
+/* information about subordinate parameter lists */
+void GRAD_MRSSKStV::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	SSIsotropicMatT::DefineSubs(sub_list);
+	HookeanMatT::DefineSubs(sub_list);
+	
+	/* parameters for pressure sensitive plasticity with localization */
+	sub_list.AddSub("GRAD_MR_SS_nonlinear_hardening");
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* GRAD_MRSSKStV::NewSub(const StringT& name) const
+{
+	if (name == "GRAD_MR_SS_nonlinear_hardening")
+		return new GRAD_MRSSNLHardT(0, 0.0, 0.0);
+	else
+	{
+		/* inherited */
+		ParameterInterfaceT* params = SSIsotropicMatT::NewSub(name);
+		if (params) 
+			return params;
+		else
+			return HookeanMatT::NewSub(name);
+	}
+}
+
+/* accept parameter list */
+void GRAD_MRSSKStV::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SSIsotropicMatT::TakeParameterList(list);
+	HookeanMatT::TakeParameterList(list);
+	
+	fStress.Dimension(3);
+	fModulus.Dimension(dSymMatrixT::NumValues(3));
+	fModulusCe.Dimension(dSymMatrixT::NumValues(3));
+	fModulusPerfPlas.Dimension(dSymMatrixT::NumValues(3));
+	//fYieldFunction(0.0); // kyonten
+
+	/* construct GRAD_MR solver */
+	fGRAD_MR = new GRAD_MRSSNLHardT(NumIP(), Mu(), Lambda());
+	fGRAD_MR->TakeParameterList(list.GetList("GRAD_MR_SS_nonlinear_hardening"));
+}
+
 
 /*************************************************************************
 * Protected
