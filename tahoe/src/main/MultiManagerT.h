@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.h,v 1.3.16.1 2004-03-17 01:58:03 paklein Exp $ */
+/* $Id: MultiManagerT.h,v 1.3.16.2 2004-03-20 16:48:49 paklein Exp $ */
 #ifndef _MULTI_MANAGER_H_
 #define _MULTI_MANAGER_H_
 
@@ -106,6 +106,12 @@ private:
 	
 	const FieldT* fFineField;
 	const FieldT* fCoarseField;
+	/*@}*/
+	
+	/** \name keep/omit cross terms */
+	/*@{*/
+	bool fFineToCoarse; /**< fine scale contribution to coarse scale equations */ 
+	bool fCoarseToFine; /**< coarse scale contribution to fine scale equations */ 
 	/*@}*/
 };
 
