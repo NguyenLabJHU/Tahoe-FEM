@@ -1,4 +1,4 @@
-/* $Id: ParameterT.cpp,v 1.5 2003-04-22 18:32:16 paklein Exp $ */
+/* $Id: ParameterT.cpp,v 1.6 2003-04-22 22:13:35 paklein Exp $ */
 #include "ParameterT.h"
 
 /* array behavior */
@@ -63,6 +63,50 @@ void ParameterT::AddLimit(const LimitT& limit)
 			"limits on enumerations must be type \"only\"");
 
 	fLimits.Append(limit);
+}
+
+/* assess if the value satisties all limits */
+bool ParameterT::InBounds(const ValueT& value, bool verbose) const
+{
+	/* quick exit */
+	if (fLimits.Length() == 0) return true;
+
+	const char caller[] = "ParameterT::InBounds";
+	
+	/* flags for enumeration constraints */
+	bool has_only = false;
+	bool is_only = false;
+	
+	/* run through limits */
+	for (int i = 0; i < fLimits.Length(); i++) {
+	
+		const LimitT& limit = fLimits[i];
+		if (limit.Bound() == LimitT::Only) {
+			has_only = true;
+			if (!is_only) is_only = limit.InBound(value);
+		}
+		else if (!limit.InBound(value)) {
+
+			if (verbose)
+				cout << "\n " << caller << ": value " << value << " does not satisfy " 
+					<< LimitT::ToString(limit.Bound()) << " bound " << limit << endl;
+
+			return false;
+		}
+	}
+	
+	/* check enumeration limits */
+	if (has_only) {
+		
+		/* message */
+		if (!is_only && verbose)
+			cout << "\n " << caller << ": value " << value << " does not satisfy " 
+			     << LimitT::ToString(LimitT::Only) << " bounds" << endl;
+	
+		return is_only;	
+	}
+	else
+		return true;
 }
 
 void ParameterT::SetDefault(int a)
