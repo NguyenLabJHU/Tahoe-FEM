@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.30 2004-02-18 16:27:50 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.31 2004-03-01 02:41:01 paklein Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
@@ -980,7 +980,7 @@ pB[2]*(pA[12]*pB[0] + pA[13]*pB[1] + pA[14]*pB[2] +
 }
 
 /* outer product */
-void dSymMatrixT::Outer(const dArrayT& v)
+void dSymMatrixT::Outer(const dArrayT& v, double scale)
 {
 #if __option (extended_errorcheck)
 	/* dimension checks */
@@ -991,22 +991,22 @@ void dSymMatrixT::Outer(const dArrayT& v)
 	const double *pv = v.Pointer();
 	if (fNumSD == 2)
 	{
-		*pthis++ = pv[0]*pv[0];
-		*pthis++ = pv[1]*pv[1];
-		*pthis   = pv[0]*pv[1];
+		*pthis++ = scale*pv[0]*pv[0];
+		*pthis++ = scale*pv[1]*pv[1];
+		*pthis   = scale*pv[0]*pv[1];
 	}
 	else if (fNumSD == 3)
 	{	
-		*pthis++ = pv[0]*pv[0];
-		*pthis++ = pv[1]*pv[1];
-		*pthis++ = pv[2]*pv[2];
+		*pthis++ = scale*pv[0]*pv[0];
+		*pthis++ = scale*pv[1]*pv[1];
+		*pthis++ = scale*pv[2]*pv[2];
 		
-		*pthis++ = pv[1]*pv[2];
-		*pthis++ = pv[0]*pv[2];
-		*pthis   = pv[0]*pv[1];
+		*pthis++ = scale*pv[1]*pv[2];
+		*pthis++ = scale*pv[0]*pv[2];
+		*pthis   = scale*pv[0]*pv[1];
 	}
 	else
-		*pthis = pv[0]*pv[0];
+		*pthis = scale*pv[0]*pv[0];
 }
 
 /* matrix-matrix multiplication */
