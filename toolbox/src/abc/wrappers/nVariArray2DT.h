@@ -1,4 +1,4 @@
-/* $Id: nVariArray2DT.h,v 1.9 2003-11-10 22:14:10 cjkimme Exp $ */
+/* $Id: nVariArray2DT.h,v 1.10 2004-05-12 17:21:01 paklein Exp $ */
 /* created: paklein (04/18/1998) */
 #ifndef _N_VARI_ARRAY2D_T_H_
 #define _N_VARI_ARRAY2D_T_H_
@@ -98,6 +98,8 @@ template <class nTYPE>
 void nVariArray2DT<nTYPE>::SetWard(int headroom, nArray2DT<nTYPE>& ward,
 	int minordim)
 {
+	const char caller[] = "nVariArray2DT<nTYPE>::SetWard";
+	
 	/* inherited */
 	SetHeadRoom(headroom);
 
@@ -109,14 +111,14 @@ void nVariArray2DT<nTYPE>::SetWard(int headroom, nArray2DT<nTYPE>& ward,
 		if (fWard->MinorDim() > 0)
 		{
 			/* consistency check */
-			if (fWard->MinorDim() != fMinorDim) throw ExceptionT::kSizeMismatch;
+			if (fWard->MinorDim() != fMinorDim) ExceptionT::SizeMismatch(caller);
 		}
 		else
 			/* set minor dimension */
 			fWard->Set(0, fMinorDim, NULL);
 	}
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller, "ward already set");
 }
 	
 /* set length of the ward, fill extra space if specified */
@@ -134,7 +136,7 @@ template <class nTYPE>
 inline void nVariArray2DT<nTYPE>::SetMajorDimension(int majordim, bool copy_in)
 {
 	/* ward must be set */
-	if (!fWard) throw ExceptionT::kGeneralFail;
+	if (!fWard) ExceptionT::GeneralFail("nVariArray2DT<nTYPE>::SetMajorDimension", "ward not set");
 
 	/* update ArrayT data */
 	SetAlias(*fWard, majordim*fMinorDim, copy_in);
@@ -148,7 +150,7 @@ inline void nVariArray2DT<nTYPE>::SetMajorDimension(int majordim,
 	const nTYPE& fill, bool copy_in)
 {
 	/* ward must be set */
-	if (!fWard) throw ExceptionT::kGeneralFail;
+	if (!fWard) ExceptionT::GeneralFail("nVariArray2DT<nTYPE>::SetMajorDimension", "ward not set");
 
 	/* update ArrayT data */
 	SetAlias(*fWard, majordim*fMinorDim, fill, copy_in);
@@ -162,7 +164,7 @@ template <class nTYPE>
 void nVariArray2DT<nTYPE>::Swap(nArray2DT<nTYPE>& source)
 {
 	/* ward must be set */
-	if (!fWard) throw ExceptionT::kGeneralFail;
+	if (!fWard) ExceptionT::GeneralFail("nVariArray2DT<nTYPE>::Swap", "ward not set");
 
 	/* current dimensions */
 	int major_dim = source.MajorDim();
@@ -187,7 +189,7 @@ template <class nTYPE>
 inline int nVariArray2DT<nTYPE>::MajorDim(void) const
 {
 	/* ward must be set */
-	if (!fWard) throw ExceptionT::kGeneralFail;
+	if (!fWard) ExceptionT::GeneralFail("nVariArray2DT<nTYPE>::MajorDim", "ward not set");
 
 	return(fWard->MajorDim());
 }
@@ -196,7 +198,7 @@ template <class nTYPE>
 inline int nVariArray2DT<nTYPE>::MinorDim(void) const
 {
 	/* ward must be set */
-	if (!fWard) throw ExceptionT::kGeneralFail;
+	if (!fWard) ExceptionT::GeneralFail("nVariArray2DT<nTYPE>::MinorDim", "ward not set");
 
 	return(fWard->MinorDim());
 }
@@ -206,7 +208,7 @@ template <class nTYPE>
 const nArray2DT<nTYPE>& nVariArray2DT<nTYPE>::TheWard(void) const
 {
 	/* ward must be set */
-	if (!fWard) throw ExceptionT::kGeneralFail;
+	if (!fWard) ExceptionT::GeneralFail("nVariArray2DT<nTYPE>::TheWard", "ward not set");
 
 	return(*fWard);
 }
