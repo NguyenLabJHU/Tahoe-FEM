@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.h,v 1.3 2003-04-22 01:23:16 cjkimme Exp $ */
+/* $Id: ThermostatBaseT.h,v 1.4 2003-04-24 20:43:20 cjkimme Exp $ */
 #ifndef _THERMOSTAT_BASE_T_H_
 #define _THERMOSTAT_BASE_T_H_
 
@@ -69,16 +69,18 @@ public:
 	virtual void ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2DT* velocities,
 			dArray2DT& forces, AutoArrayT<int>& types,
 			ArrayT<ParticlePropertyT*>& particleProperties);
-	
-	void NodesInRegion(const dArray2DT& coords,	
-					const ArrayT<int>* partition_nodes);
-
+			
 	/** receive temperature schedule */
 	void SetTemperatureSchedule(const ScheduleT* schedule, const double& value);
+			
+	virtual void InitRegion(ifstreamT& in, const dArray2DT& coords,	
+					const ArrayT<int>* partition_nodes);
 
-	void CreateVelocities(const RaggedArray2DT<int>& neighbors, dArray2DT* velocities,
-					AutoArrayT<int>& types,
-					ArrayT<ParticlePropertyT*>& particleProperties);
+protected:
+	
+	/* Generate a node set based on spatial region */
+	void NodesInRegion(const dArray2DT& coords,	
+					const ArrayT<int>* partition_nodes);
 	
 protected:
 
