@@ -1,4 +1,4 @@
-/* $Id: SSHookeanMatT.h,v 1.8 2004-07-15 08:26:56 paklein Exp $ */
+/* $Id: SSHookeanMatT.h,v 1.9 2004-07-22 21:09:32 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #ifndef _SS_HOOKEAN_MAT_H_
 #define _SS_HOOKEAN_MAT_H_
@@ -43,6 +43,16 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
+
+	/** information about subordinate parameter lists */
+	void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/

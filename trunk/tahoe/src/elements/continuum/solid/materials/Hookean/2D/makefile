@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2004-07-22 21:09:32 paklein Exp $
+# $Id: makefile,v 1.1 2004-07-22 21:09:37 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,9 +20,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-	FDHookeanMatT.o \
-	HookeanMatT.o \
-	SSHookeanMatT.o
+	FDHookeanMat2DT.o \
+	SSHookeanMat2DT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -42,9 +41,8 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	FDHookeanMatT.cpp \
-	HookeanMatT.cpp \
-	SSHookeanMatT.cpp
+	FDHookeanMat2DT.cpp \
+	SSHookeanMat2DT.cpp
 
 ##################### (3) headers
 #
@@ -56,9 +54,8 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	FDHookeanMatT.h \
-	HookeanMatT.h \
-	SSHookeanMatT.h
+	FDHookeanMat2DT.h \
+	SSHookeanMat2DT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
@@ -69,21 +66,16 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (2) uncomment the subdir_driver macro
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
-SUB_DIR = \
-	Cubic \
-	1D \
-	2D \
-	KStV
-
-subdir_driver: subdir_loop
+#SUB_DIR = 
+#subdir_driver: subdir_loop
 
 #
 # (4.2) If there are no sub-directories in this directory:
 #    (1) comment the SUB_DIR and subdir_driver in section (4.1)
 #    (2) uncomment the subdir_driver macro below
 #
-#SUB_DIR =
-#subdir_driver: 
+SUB_DIR =
+subdir_driver: 
 
 #####################
 
