@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: EAMFCC3D.cpp,v 1.2 2002-03-04 06:51:06 paklein Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAMFCC3D.cpp                                                           */
 
@@ -204,6 +204,13 @@ void EAMFCC3D::SetGlueFunctions(ifstreamT& in)
 			/* data file */
 			StringT data_file;
 			in >> data_file;
+			data_file.ToNativePathName();
+
+			/* path to source file */
+			StringT path;
+			path.FilePath(in.filename());
+			data_file.Prepend(path);
+
 			ifstreamT data(data_file);
 			if (!data.is_open())
 			{
