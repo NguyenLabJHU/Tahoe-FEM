@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.h,v 1.5 2003-09-19 00:47:04 raregue Exp $
+// $Id: APS_Bal_EqT.h,v 1.6 2003-09-21 22:14:40 raregue Exp $
 #ifndef _APS_BALEQ_T_H_ 
 #define _APS_BALEQ_T_H_ 
 
@@ -34,6 +34,8 @@ class APS_Bal_EqT	: public BalLinMomT
 	enum V_T {
 								knueps,
 								keps,
+								kgrad_u,
+								kgammap,
 								kV_Temp1,
 	             				kNUM_V_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
 	             				
@@ -58,16 +60,14 @@ class APS_Bal_EqT	: public BalLinMomT
 								int &fTime_Step, double fdelta_t = 0.0, int Integration_Scheme=FEA::kBackward_Euler); 
 
   		void 	Form_LHS_Keps_Kd	( dMatrixT &Keps, dMatrixT &Kd ); // add delta_t for dynamics
-  		void 	Form_RHS_F_int		( dArrayT  &F_int ); 
+  		void 	Form_RHS_F_int		( dArrayT  &F_int, APS_VariableT &npt ); 
 		void 	Form_B_List 		( void );  // Strain Displacement Matricies
 		void 	Form_VB_List 		( void );  // Strain Matricies
-		void 	Form_V_S_List 		( void );  // vectors
+		void 	Form_V_S_List 		( APS_VariableT &npt );  // vectors
  		void 	Form_C_List 		( APS_MaterialT *Shear_Matl );  // Constant List
 
-		void  	Get ( StringT &Name, FEA_dMatrixT &tensor );
+		void  	Get ( StringT &Name, FEA_dVectorT &vector );
 		void  	Get ( StringT &Name, FEA_dScalarT &scalar );
-		
-		//TEMP - not needed?
 		//void 	Get ( int scalar_code, FEA_dScalarT &scalar  ) { scalar = S[scalar_code]; } 
 
 	protected:
@@ -85,7 +85,8 @@ class APS_Bal_EqT	: public BalLinMomT
 		double delta_t;
 		int time_step;
 
-		int n_ip, n_rows, n_cols, n_sd, n_en, n_sd_x_n_sd, n_sd_x_n_en, Time_Integration_Scheme;
+		int n_ip, n_rows_vector, n_rows_matrix, n_cols_matrix, n_sd, n_en, n_sd_x_n_sd, 
+			n_sd_x_n_en, Time_Integration_Scheme;
   
 };
 

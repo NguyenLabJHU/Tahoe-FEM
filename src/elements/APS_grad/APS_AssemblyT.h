@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.5 2003-09-19 00:47:00 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.6 2003-09-21 22:14:36 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -144,10 +144,11 @@ protected:
 private:
 
 	/** Data at time steps n and n+1 used by both Coarse and Fine */
-	//VMS_VariableT n,np1; // <-- keep local scope in elmt loop for now 
+	//APS_VariableT n,np1; // <-- keep local scope in elmt loop for now 
 
 	/** Gradients with respect to reference coodinates */
-	FEA_dMatrixT fGRAD_u, fGRAD_u_n, fGRAD_gamma_p, fGRAD_gamma_p_n, fVar;
+	FEA_dMatrixT fgrad_gamma_p, fgrad_gamma_p_n, fVars_matrix;
+	FEA_dVectorT fgrad_u, fgrad_u_n, fgamma_p, fgamma_p_n, fVars_vector;
 
 	/** \name  values read from input in the constructor */
 	/*@{*/

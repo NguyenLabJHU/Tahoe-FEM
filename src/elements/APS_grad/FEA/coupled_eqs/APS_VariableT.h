@@ -1,4 +1,4 @@
-// $Id: APS_VariableT.h,v 1.3 2003-09-19 00:47:02 raregue Exp $
+// $Id: APS_VariableT.h,v 1.4 2003-09-21 22:14:38 raregue Exp $
 #ifndef _APS_VARIABLE_T_H_ 
 #define _APS_VARIABLE_T_H_ 
 
@@ -17,10 +17,10 @@ class APS_VariableT
 
 		/** constructor */
 		APS_VariableT 	(void) { }
-		APS_VariableT 	(const FEA_dMatrixT& grad_u, const FEA_dMatrixT& grad_gammap);
+		APS_VariableT 	(const FEA_dVectorT& grad_u, const FEA_dVectorT& gammap, const FEA_dMatrixT& grad_gammap);
 
 		/** data initialization */
-		void Construct 	(const FEA_dMatrixT& grad_u, const FEA_dMatrixT& grad_gammap);
+		void Construct 	(const FEA_dVectorT& grad_u, const FEA_dVectorT& gammap, const FEA_dMatrixT& grad_gammap);
 
 		/** delete variables */
 		void Delete_Vars	( void );
@@ -28,9 +28,14 @@ class APS_VariableT
 		/** Print Routine */
 		void Print  (void);
 		void Print  (char*);
+		
+		/** Compute and store ... : recursive routine */ 
+ 	 	void Allocate_and_Compute_Variables(APS::VarT_vector kVariable);
+ 	 	void Allocate_and_Compute_Variables(APS::VarT_matrix kVariable);
 
  	 	/** Retrieve either grad_u, gammap from class workspace **/
-		//const FEA_dVectorT& Get(APS::VarT variable); 
+		const FEA_dVectorT& Get(APS::VarT_vector variable); 
+		const FEA_dMatrixT& Get(APS::VarT_matrix variable); 
 
 		/** Fill (*this) with a+b */
 		void SumOf (APS_VariableT &a, APS_VariableT &b); 
@@ -42,11 +47,12 @@ class APS_VariableT
 
  		//protected:
 
-    	ArrayT <FEA_dMatrixT> fVars;         /** Variables : grad_u, grad_gammap stored here */
+    	ArrayT <FEA_dVectorT> fVars_vector; //Variables : grad_u, gammap stored here
+    	ArrayT <FEA_dMatrixT> fVars_matrix; //Variables : grad_gammap stored here
 
 	private:
 
-		int n_vars;
+		int n_vars_vector, n_vars_matrix;
 };
 
 //---------------------------------------------------------------------

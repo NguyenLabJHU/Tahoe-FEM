@@ -1,4 +1,4 @@
-// $Id: PlastT.h,v 1.2 2003-09-02 23:57:57 raregue Exp $
+// $Id: PlastT.h,v 1.3 2003-09-21 22:14:41 raregue Exp $
 #ifndef _PLAST_T_H_ 
 #define _PLAST_T_H_ 
 
@@ -31,8 +31,9 @@ public:
 	virtual void Initialize	(	int &in_ip, int &in_sd, int &in_en, int Initial_Time_Step ) = 0;
 
 	virtual void Get ( StringT &Name, FEA_dMatrixT &tensor ) =0;
+	virtual void Get ( StringT &Name, FEA_dVectorT &vector ) =0;
 	virtual void Get ( StringT &Name, FEA_dScalarT &scalar ) =0;
-  	virtual void Get ( int scalar_code, FEA_dScalarT &scalar ) =0; 
+  	//virtual void Get ( int scalar_code, FEA_dScalarT &scalar ) =0; 
 
 };
 } // namespace Tahoe 

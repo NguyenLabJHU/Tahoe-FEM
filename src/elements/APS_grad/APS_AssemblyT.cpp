@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.5 2003-09-19 00:47:00 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.6 2003-09-21 22:14:36 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -206,10 +206,12 @@ void APS_AssemblyT::Initialize(void)
 	// these dimensions should be different since want to use quadratic interp for u
 	// and linear interp for gamma_p
 	
-	fGRAD_u.FEA_Dimension 			( fNumIP, n_sd );
-	fGRAD_gamma_p.FEA_Dimension 	( fNumIP, n_sd,n_sd );
-	fGRAD_u_n.FEA_Dimension 		( fNumIP, n_sd );
-	fGRAD_gamma_p_n.FEA_Dimension 	( fNumIP, n_sd,n_sd );
+	fgrad_u.FEA_Dimension 			( fNumIP, n_sd );
+	fgamma_p.FEA_Dimension 			( fNumIP, n_sd );
+	fgrad_gamma_p.FEA_Dimension 	( fNumIP, n_sd,n_sd );
+	fgrad_u_n.FEA_Dimension 		( fNumIP, n_sd );
+	fgamma_p_n.FEA_Dimension 		( fNumIP, n_sd );
+	fgrad_gamma_p_n.FEA_Dimension 	( fNumIP, n_sd,n_sd );
 
 //check these dims
 	fKdd.Dimension 			( n_en_x_n_df, n_en_x_n_df );
@@ -364,8 +366,8 @@ void APS_AssemblyT::RHSDriver_staggered(void)	// LHS too!	This was original RHSD
 		
 		// ?????
 		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradiants 		( fShapes, 	u, u_n, fGRAD_u, fGRAD_u_n );
-		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n, fGRAD_gamma_p, fGRAD_gamma_p_n );
+		Convert.Gradiants 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
+		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
@@ -377,8 +379,8 @@ void APS_AssemblyT::RHSDriver_staggered(void)	// LHS too!	This was original RHSD
 		 *  Note: n is last time step (known data), no subscript, np1 or (n+1) is the 
 		 *  next time step (what were solving for)   */
 		 
-		APS_VariableT np1(	fGRAD_u, 	fGRAD_gamma_p 	 ); // Many variables at time-step n+1
-		APS_VariableT   n(	fGRAD_u_n, fGRAD_gamma_p_n );	// Many variables at time-step n		 
+		APS_VariableT np1(	fgrad_u, fgamma_p, fgrad_gamma_p 	 ); // Many variables at time-step n+1
+		APS_VariableT   n(	fgrad_u_n, fgamma_p_n, fgrad_gamma_p_n );	// Many variables at time-step n		 
 		
 		/* which field */
 	  //SolverGroup 1 (gets field 1) <-- u (obtained by a rearranged Equation I)
@@ -633,8 +635,8 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		
 		// ?????
 		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradiants 		( fShapes, 	u, u_n, fGRAD_u, fGRAD_u_n );
-		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n, fGRAD_gamma_p, fGRAD_gamma_p_n );
+		Convert.Gradiants 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
+		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
@@ -646,8 +648,8 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		 *  Note: n is last time step (known data), no subscript, np1 or (n+1) is the 
 		 *  next time step (what were solving for)   */
 		 
-		APS_VariableT np1(	fGRAD_u, 	fGRAD_gamma_p 	 ); // Many variables at time-step n+1
-		APS_VariableT   n(	fGRAD_u_n, fGRAD_gamma_p_n );	// Many variables at time-step n		 
+		APS_VariableT np1(	fgrad_u, fgamma_p, fgrad_gamma_p 	 ); // Many variables at time-step n+1
+		APS_VariableT   n(	fgrad_u_n, fgamma_p_n, fgrad_gamma_p_n );	// Many variables at time-step n		 
 
 			/* calculate coarse scale nodal force */
 			if (is_coarse)
@@ -950,15 +952,15 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 		
 		// ?????
 		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradiants 		( fShapes, 	u, u_n, fGRAD_u, fGRAD_u_n );
-		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n, fGRAD_gamma_p, fGRAD_gamma_p_n );
+		Convert.Gradiants 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
+		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
 		Convert.Na				(	n_en, fShapes, 	fFEA_Shapes );
 		
-		APS_VariableT np1(	fGRAD_u, 	fGRAD_gamma_p 	 ); // Many variables at time-step n+1
-		APS_VariableT   n(	fGRAD_u_n, fGRAD_gamma_p_n );	// Many variables at time-step n
+		APS_VariableT np1(	fgrad_u, fgamma_p, fgrad_gamma_p 	 ); // Many variables at time-step n+1
+		APS_VariableT   n(	fgrad_u_n, fgamma_p_n, fgrad_gamma_p_n );	// Many variables at time-step n
 		
 		/* which field */
 	  //SolverGroup 1 (gets field 1) <-- u (obtained by a rearranged Equation I)
@@ -1087,15 +1089,15 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		fShapes->SetDerivatives(); 
 		
 		/* repackage data to forms compatible with FEA classes (very little cost in big picture) */
-		Convert.Gradiants 		( fShapes, 	u, u_n, fGRAD_u, fGRAD_u_n );
-		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n, fGRAD_gamma_p, fGRAD_gamma_p_n );
+		Convert.Gradiants 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
+		Convert.Gradiants 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
 		Convert.Na				(	n_en, fShapes, 	fFEA_Shapes );
 		
-		APS_VariableT np1(	fGRAD_u, 	fGRAD_gamma_p 	 ); // Many variables at time-step n+1
-		APS_VariableT   n(	fGRAD_u_n, fGRAD_gamma_p_n );	// Many variables at time-step n
+		APS_VariableT np1(	fgrad_u, fgamma_p, fgrad_gamma_p 	 ); // Many variables at time-step n+1
+		APS_VariableT   n(	fgrad_u_n, fgamma_p_n, fgrad_gamma_p_n );	// Many variables at time-step n
 
 		if (bStep_Complete) { 
 		//nothing done
