@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.4 2003-11-07 21:22:25 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.4.20.1 2004-04-14 22:38:33 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -26,6 +26,9 @@ class MessageT;
 class CommManagerT
 {
 public:
+
+	/** enum */
+	enum CodesT { kNULLMessageID = -99 };
 
 	/** constructor */
 	CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager);
