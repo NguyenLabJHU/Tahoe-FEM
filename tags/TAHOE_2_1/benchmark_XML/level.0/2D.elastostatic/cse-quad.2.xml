@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" geometry_file="./geometry/cse.8.geom">
+    <time max_step_cuts="10" num_steps="10" output_inc="2" time_step="0.1">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="1.0" y="1.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="3" schedule="1" type="u" value="1.0"/>
+            <kinematic_BC dof="2" node_ID="3"/>
+            <kinematic_BC dof="1" node_ID="1"/>
+            <kinematic_BC dof="2" node_ID="1"/>
+        </field>
+        <history_node_ID_list>
+            <String value="3"/>
+        </history_node_ID_list>
+    </nodes>
+    <element_list>
+        <updated_lagrangian field_name="displacement">
+            <quadrilateral num_ip="9"/>
+            <solid_element_nodal_output displacements="1" stress="1"/>
+            <large_strain_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                    <String value="2"/>
+                </block_ID_list>
+                <large_strain_material_2D>
+                    <Simo_isotropic_2D constraint_2D="plane_strain" density="1.0">
+                        <E_and_nu Poisson_ratio="0.3" Young_modulus="100.0"/>
+                    </Simo_isotropic_2D>
+                </large_strain_material_2D>
+            </large_strain_element_block>
+        </updated_lagrangian>
+        <anisotropic_CSE field_name="displacement">
+            <line num_ip="3"/>
+            <surface_element_nodal_output coordinates="1" displacement_jump="1" displacements="1" material_output="1" traction="1"/>
+            <anisotropic_CSE_element_block>
+                <block_ID_list>
+                    <String value="3"/>
+                </block_ID_list>
+                <cohesive_relation_2D>
+                    <Tvergaard-Hutchinson_2D L_1="0.1" L_2="0.7" L_fail="1.0" d_c_n="0.1" d_c_t="0.1" penalty="0.0" sigma_max="5.0"/>
+                </cohesive_relation_2D>
+            </anisotropic_CSE_element_block>
+        </anisotropic_CSE>
+    </element_list>
+    <PCG_solver abs_tolerance="1.000000e-12" divergence_tolerance="1.000000e+01" line_search_iterations="10" line_search_tolerance="0.1" max_iterations="300" max_step="2.5" min_iterations="0" quick_solve_count="3" quick_solve_iter="100" rel_tolerance="1.000000e-12" restart="50"><diagonal_matrix/></PCG_solver>
+</tahoe>

@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="../geometry/beams.1.geom" title="bi-material K-field test">
+    <time num_steps="2" output_inc="1" time_step="0.5">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="1.0" y="1.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+            <bi-material_K-field>
+                <K_I K="0.01" schedule="1"/>
+                <initial_tip_coordinates x_1="-1.0" x_2="0.0"/>
+                <crack_extension_direction x_1="1.0" x_2="0.0"/>
+                <boundary_region_1>
+                    <far_field_element_group group_number="1" material_number="1"/>
+                    <node_ID_list>
+                        <String value="1"/>
+                    </node_ID_list>
+                </boundary_region_1>
+            </bi-material_K-field>
+        </field>
+    </nodes>
+    <element_list>
+        <updated_lagrangian field_name="displacement">
+            <quadrilateral/>
+            <solid_element_nodal_output displacements="1" material_output="1" stress="1"/>
+            <large_strain_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <large_strain_material_2D>
+                    <large_strain_StVenant_2D constraint_2D="plane_strain" density="1.0">
+                        <E_and_nu Poisson_ratio="0.25" Young_modulus="100"/>
+                    </large_strain_StVenant_2D>
+                </large_strain_material_2D>
+            </large_strain_element_block>
+        </updated_lagrangian>
+        <updated_lagrangian field_name="displacement">
+            <quadrilateral/>
+            <solid_element_nodal_output displacements="1" material_output="1" stress="1"/>
+            <large_strain_element_block>
+                <block_ID_list>
+                    <String value="2"/>
+                </block_ID_list>
+                <large_strain_material_2D>
+                    <large_strain_StVenant_2D constraint_2D="plane_strain" density="1.0">
+                        <E_and_nu Poisson_ratio="0.25" Young_modulus="100"/>
+                    </large_strain_StVenant_2D>
+                </large_strain_material_2D>
+            </large_strain_element_block>
+        </updated_lagrangian>
+        <anisotropic_CSE field_name="displacement">
+            <line/>
+            <surface_element_nodal_output displacement_jump="1" displacements="1" material_output="1" traction="1"/>
+            <anisotropic_CSE_element_block>
+                <block_ID_list>
+                    <String value="3"/>
+                </block_ID_list>
+                <cohesive_relation_2D>
+                    <Tvergaard-Hutchinson_2D L_1="0.15" L_2="0.15" L_fail="1.01" d_c_n="0.05" d_c_t="0.05" penalty="10.0" sigma_max="5.0"/>
+                </cohesive_relation_2D>
+            </anisotropic_CSE_element_block>
+        </anisotropic_CSE>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+01" max_iterations="10" rel_tolerance="1.0e-12"><profile_matrix/></nonlinear_solver>
+</tahoe>

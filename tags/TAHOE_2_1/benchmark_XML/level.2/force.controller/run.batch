@@ -1,0 +1,7 @@
+@
+# $Id: run.batch,v 1.2 2004-04-05 00:32:07 paklein Exp $
+AL.indent2D.0.xml
+AL.wall2D.0.xml
+cylinder.0.xml
+indent2D.0.xml
+wall2D.0.xml

@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="../geometry/five-atoms.geom" title="5 atoms with periodic boundary conditions in x only">
+    <time num_steps="5000" output_inc="250" time_step="0.06125"/>
+    <nodes>
+        <field field_name="displacement" integrator="Gear6">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+            <initial_condition dof="1" node_ID="1" type="D_u" value="-2.00e-02"/>
+            <initial_condition dof="2" node_ID="1" type="D_u" value="-3.00e-02"/>
+            <initial_condition dof="1" node_ID="2" type="D_u" value="-2.00e-02"/>
+            <initial_condition dof="2" node_ID="2" type="D_u" value="1.50e-02"/>
+        </field>
+    </nodes>
+    <element_list>
+        <particle_pair field_name="displacement" lattice_parameter="0.5" max_neighbor_distance="0.6" re-neighbor_displacement="0.01">
+            <periodic_bc direction="1" x_max="1.0" x_min="-1.0"/>
+            <particle_type all_particles="true" label="A"/>
+            <pair_particle_interaction label_1="A" label_2="A">
+                <Lennard_Jones cut_off_distance="2.244924096618746" energy_scaling="0.00017361111111111128" length_scaling="0.22272467953508482" mass="1.0"/>
+            </pair_particle_interaction>
+        </particle_pair>
+    </element_list>
+    <linear_solver><diagonal_matrix/></linear_solver>
+</tahoe>

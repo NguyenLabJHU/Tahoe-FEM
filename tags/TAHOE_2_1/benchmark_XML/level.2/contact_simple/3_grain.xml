@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="../geometry/square.2.geom" title="3 blocks with surfaces from body boundaries">
+    <time num_steps="500" output_inc="250" time_step="0.0010">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="5.0"/>
+                <OrderedPair x="1.0" y="5.0"/>
+                <OrderedPair x="1.000001" y="0.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement" integrator="central_difference">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+            </dof_labels>
+        </field>
+    </nodes>
+    <element_list>
+        <updated_lagrangian field_name="displacement" mass_type="lumped_mass">
+            <quadrilateral/>
+            <natural_bc coordinate_system="local" schedule="1" side_set_ID="1">
+                <DoubleList>
+                    <Double value="0.0"/>
+                    <Double value="-1.0"/>
+                </DoubleList>
+            </natural_bc>
+            <solid_element_nodal_output displacements="1" material_output="1" stress="1"/>
+            <solid_element_element_output linear_momentum="1"/>
+            <large_strain_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                    <String value="2"/>
+                    <String value="3"/>
+                </block_ID_list>
+                <large_strain_material_2D>
+                    <Simo_isotropic_2D density="1.0">
+                        <E_and_nu Poisson_ratio="0.25" Young_modulus="100.0"/>
+                    </Simo_isotropic_2D>
+                </large_strain_material_2D>
+            </large_strain_element_block>
+        </updated_lagrangian>
+        <anisotropic_CSE field_name="displacement">
+            <line/>
+            <surface_element_nodal_output displacement_jump="1" displacements="1" traction="1"/>
+            <anisotropic_CSE_element_block>
+                <block_ID_list>
+                    <String value="4"/>
+                </block_ID_list>
+                <cohesive_relation_2D>
+                    <Xu-Needleman_2D K_ratio="0.0" d_n="0.05" d_t="0.05" phi_n="0.25" r_fail="2.5"/>
+                </cohesive_relation_2D>
+            </anisotropic_CSE_element_block>
+        </anisotropic_CSE>
+        <contact_2D_penalty field_name="displacement" penalty_stiffness="100.0">
+            <contact_surface>
+                <body_boundary body_element_group="1"/>
+            </contact_surface>
+            <contact_nodes>
+                <all_surface_nodes/>
+            </contact_nodes>
+        </contact_2D_penalty>
+    </element_list>
+    <linear_solver><diagonal_matrix/></linear_solver>
+</tahoe>

@@ -1,0 +1,25 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 1
+ Output ID . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodal values. . . . . . . . . . . . . = 5
+ Labels:
+	D_X
+	D_Y
+	s11
+	s22
+	s12
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 2
+ Number of nodes . . . . . . . . . . . . . . . . = 4
+ Number of elements. . . . . . . . . . . . . . . = 1
+
+ O U T P U T   D A T A :  T O C
+RKPM.2D.contact.0.io1.run.ps0000
+RKPM.2D.contact.0.io1.run.ps0001
+RKPM.2D.contact.0.io1.run.ps0002
+RKPM.2D.contact.0.io1.run.ps0003

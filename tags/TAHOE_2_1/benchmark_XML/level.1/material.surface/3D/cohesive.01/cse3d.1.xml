@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="../geometry/CSE.3D.geom" title="3D cohesive element test">
+    <time num_steps="20" output_inc="1" time_step="0.05">
+        <schedule_function>
+            <piecewise_linear>
+                <OrderedPair x="0.0" y="0.0"/>
+                <OrderedPair x="10.0" y="1.0"/>
+            </piecewise_linear>
+        </schedule_function>
+    </time>
+    <nodes>
+        <field field_name="displacement">
+            <dof_labels>
+                <String value="D_X"/>
+                <String value="D_Y"/>
+                <String value="D_Z"/>
+            </dof_labels>
+            <kinematic_BC dof="1" node_ID="3" schedule="1" type="u" value="-0.05"/>
+            <kinematic_BC dof="1" node_ID="4" schedule="1" type="u" value="0.05"/>
+        </field>
+    </nodes>
+    <element_list>
+        <small_strain field_name="displacement">
+            <hexahedron/>
+            <solid_element_nodal_output displacements="1" stress="1"/>
+            <small_strain_element_block>
+                <block_ID_list>
+                    <String value="1"/>
+                </block_ID_list>
+                <small_strain_material_3D>
+                    <small_strain_StVenant density="1.0">
+                        <E_and_nu Poisson_ratio="0.25" Young_modulus="100.0"/>
+                    </small_strain_StVenant>
+                </small_strain_material_3D>
+            </small_strain_element_block>
+        </small_strain>
+        <anisotropic_CSE field_name="displacement">
+            <quadrilateral/>
+            <surface_element_nodal_output displacement_jump="1" displacements="1" material_output="1" traction="1"/>
+            <anisotropic_CSE_element_block>
+                <block_ID_list>
+                    <String value="2"/>
+                </block_ID_list>
+                <cohesive_relation_3D>
+                    <Tvergaard-Hutchinson_3D L_1="0.25" L_2="0.5" L_fail="1.0" d_c_n="0.01" d_c_t="0.01" penalty="0.0" sigma_max="1.0"/>
+                </cohesive_relation_3D>
+            </anisotropic_CSE_element_block>
+        </anisotropic_CSE>
+    </element_list>
+    <nonlinear_solver abs_tolerance="1.0e-10" divergence_tolerance="1.0e+01" max_iterations="10" rel_tolerance="1.0e-12"><profile_matrix/></nonlinear_solver>
+</tahoe>

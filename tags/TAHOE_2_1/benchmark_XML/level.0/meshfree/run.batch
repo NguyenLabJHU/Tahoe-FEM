@@ -1,0 +1,17 @@
+@
+# $Id: run.batch,v 1.6 2004-08-05 01:06:17 cjkimme Exp $
+RKPM.2D.0.xml
+#RKPM.2D.1.xml
+RKPM.2D.2.xml
+RKPM.2D.3.xml
+RKPM.2D.4.xml
+RKPM.2D.5.xml
+RKPM.2D.expdyn.xml
+RKPM.2D.expdyn.rs.xml
+RKPM.2D.impdyn.xml
+RKPM.2D.contact.0.xml
+RKPM.2D.contact.1.xml
+RKPM.2D.contact.1.rs.xml
+ss_mfparticle.xml
+fd_mfparticle.xml
+

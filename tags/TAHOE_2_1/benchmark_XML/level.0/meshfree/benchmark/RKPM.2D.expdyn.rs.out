@@ -1,0 +1,371 @@
+
+ Input file version: v3.4.1
+
+ T i t l e : 2D finite deformation RKPM example - explicit dynamics
+
+ E x e c u t i o n   C o n t r o l   I n f o r m a t i o n :
+
+ Analysis code . . . . . . . . . . . . . . . . . = 7
+    eq. 1, linear elastostatic
+    eq. 2, linear elastodynamic
+    eq. 3, nonlinear elastostatic
+    eq. 4, nonlinear elastodynamic
+    eq. 5, dynamic relaxation
+    eq. 6, linear explicit dynamic
+    eq. 7, nonlinear explicit dynamic
+    eq. 30, perfectly matched layer (PML)
+    eq. 99, general multiple field problem
+ Input format. . . . . . . . . . . . . . . . . . = 1
+    eq.  0. Tahoe
+    eq.  1. Tahoe II
+    eq.  3. Ensight 6 Gold ASCII
+    eq.  4. Ensight 6 Gold Binary
+    eq.  5. Exodus II
+    eq.  6. ABAQUS ASCII (.fin)
+    eq.  7. ABAQUS Binary (.fil)
+    eq. 10. PATRAN Neutral
+    eq. 11. Tahoe Results (.geo/.run)
+ Geometry file . . . . . . . . . . . . . . . . . = ../geometry/square.1.geom
+ Output format . . . . . . . . . . . . . . . . . = 0
+    eq.  1. Tahoe II
+    eq.  2. TecPlot 7.5
+    eq.  3. Ensight 6 Gold ASCII
+    eq.  4. Ensight 6 Gold Binary
+    eq.  5. Exodus II
+    eq.  6. ABAQUS ASCII (.fin)
+    eq.  7. ABAQUS Binary (.fil)
+    eq.  8. AVS UCD ASCII
+    eq. 10. PATRAN Neutral
+    eq. 12. PARADYN
+ Read restart file code  . . . . . . . . . . . . = 1
+    eq. 0, do not read restart file
+    eq. 1, read restart file
+ Restart file. . . . . . . . . . . . . . . . . . = RKPM.2D.expdyn.rs50of100
+ Restart file increment (at current step size) . = 0
+ Input data print code . . . . . . . . . . . . . = 0
+    eq. 0, non verbose echo of input data
+    eq. 1, echo all input data
+ Number of solver groups . . . . . . . . . . . . = 1
+
+
+ T i m e   S e q u e n c e   D a t a :
+
+ Number of time sequences  . . . . . . . . . . . = 1
+
+ Sequence number . . . . . . . . . . . . . . . . = 1
+ Number of time steps. . . . . . . . . . . . . . = 50
+ Output print increment (< 0: current step size) = 50
+ Maximum number of load step cuts. . . . . . . . = 0
+ Time step . . . . . . . . . . . . . . . . . . . = 2.000000e-02
+
+
+ L o a d - T i m e   F u n c t i o n   D a t a :
+
+ Number of load-time functions . . . . . . . . . = 1
+ Loadtime function number. . . . . . . . . . . . = 1
+
+           time         factor
+   0.000000e+00   1.000000e+00
+
+
+ T i m e   I n t e g r a t o r s:
+
+ Explicit central-difference parameters: NONE
+
+ N o d a l   D a t a :
+
+ Number of nodal points. . . . . . . . . . . . . = 36
+ Number of spatial dimensions. . . . . . . . . . = 2
+
+ Initial conditions:
+
+ Number of initial condition cards . . . . . . . = 0
+
+
+ Kinematic boundary conditions:
+
+ Number of node sets . . . . . . . . . . . . . . = 3
+
+ Node Set Name . . . . . . . . . . . . . . . . . = 1
+ Number of cards . . . . . . . . . . . . . . . . = 6
+ Node Set Name . . . . . . . . . . . . . . . . . = 5
+ Number of cards . . . . . . . . . . . . . . . . = 1
+ Node Set Name . . . . . . . . . . . . . . . . . = 8
+ Number of cards . . . . . . . . . . . . . . . . = 1
+
+ Number of kinematic boundary condition cards. . = 8
+
+
+ K i n e m a t i c   B C   C o n t r o l l e r s :
+
+ Number of controllers . . . . . . . . . . . . . = 0
+
+
+ Force boundary conditions:
+
+ Number of node sets . . . . . . . . . . . . . . = 1
+
+ Node Set Name . . . . . . . . . . . . . . . . . = 3
+ Number of cards . . . . . . . . . . . . . . . . = 6
+ Number of nodal force cards . . . . . . . . . . = 6
+
+
+ N o d a l   F o r c e   C o n t r o l l e r s :
+
+ Number of controllers . . . . . . . . . . . . . = 0
+
+
+ N o d a l   H i s t o r i e s :
+
+
+ E l e m e n t   G r o u p   D a t a :
+
+ Number of element groups. . . . . . . . . . . . = 1
+
+ Group number. . . . . . . . . . . . . . . . . . = 1
+ Element type code . . . . . . . . . . . . . . . = 19
+    eq. 1, rod
+    eq. 2, elastic
+    eq. 3, hyperelastic
+    eq. 4, hyperelastic with localization
+    eq. 6, diamond cubic lattice
+    eq. 7, diamond cubic lattice with evolving params
+    eq. 8, self-connecting rods
+    eq. 9, self-connecting rods with periodic BC's
+    eq. 10, diamond cubic lattice with periodic BC's
+    eq. 11, cohesive surface element
+    eq. 12, thermal surface element
+    eq. 14, penalty contact
+    eq. 16, augmented Lagrangian contact
+    eq. 17, hyperelastic (total Lagrangian)
+    eq. 18, elastic with MLS displacements
+    eq. 19, hyperelastic MLS (total Lagrangian)
+    eq. 20, hyperelastic MLS (total Lagrangian)
+    eq. 21, linear diffusion element
+    eq. 22, meshfree cohesive surface element
+    eq. 31, Staggered MultiScale Element (for VMS) 
+    eq. 68, Strict Anti-plane Shear gradient plasticity 
+    eq. 85, Meshfree gradient plasticity 
+    eq. 90, Enhanced strain embedded discontinuity 
+    eq. 70, Small Strain Stabilized, Conforming Nodally-Integrated Galerkin Mesh-free 
+    eq. 71, Finite Strain Stabilized Conforming Nodally-Integrated Galerkin Mesh-free 
+    eq. 23, 3D contact using ACME
+    eq. 24, 3D contact using Lagrange multipliers
+    eq. 28, 2D Lagrange multiplier contact elements
+    eq. 30, 2D penalty contact elements
+    eq. 34, 3D penalty contact elements
+    eq. 35, Bridging Scale
+    eq. 36, Q1P0 mixed element
+    eq. 37, surface adhesion
+    eq. 38, Pair Potential
+    eq. 39, EAM Potential
+ Associated field. . . . . . . . . . . . . . . . = "displacement"
+ Element geometry code . . . . . . . . . . . . . = 1
+    eq.-1, point
+    eq.0, line
+    eq.1, quadrilateral
+    eq.2, triangle
+    eq.3, hexahedron
+    eq.4, tetrahedron
+ Number of integration points. . . . . . . . . . = 16
+ Mass type code. . . . . . . . . . . . . . . . . = 2
+    eq.0, no mass matrix
+    eq.1, consistent mass matrix
+    eq.2, lumped mass matrix
+ Strain-displacement option. . . . . . . . . . . = 0
+    eq.0, standard
+    eq.1, B-bar (mean dilatation)
+ Auto selection/generation of border transition. = 0 (INACTIVE)
+
+ Element Connectivity:
+ Number of connectivity data blocks. . . . . . . = 1
+                   material number: 1
+                element block name: 1
+ Number of elements. . . . . . . . . . . . . . . = 25
+ Block dimensions:
+      ID    size
+       1      25
+
+
+ Meshfree support parameters:
+ Store shape functions . . . . . . . . . . . . . = TRUE
+ Meshfree formulation. . . . . . . . . . . . . . = 1
+    [0]: Element-free Galerkin (EFG)
+    [1]: Reproducing Kernel Particle Method (RPKM)
+ Order of completeness . . . . . . . . . . . . . = 1
+ Window function type. . . . . . . . . . . . . . = 0
+ Window function name. . . . . . . . . . . . . . = Gaussian
+ Window function parameters:
+ Dilation scaling factor . . . . . . . . . . . . = 1.500000e+00
+ Window function sharpening factor . . . . . . . = 4.000000e-01
+ Neighbor cutoff factor. . . . . . . . . . . . . = 2.000000e+00
+
+ Number of nodal output codes. . . . . . . . . . = 7
+    [0]: initial nodal coordinates
+    [1]: nodal displacements
+    [1]: nodal stresses
+    [0]: nodal principal stresses
+    [0]: nodal strain energy density
+    [0]: wave speeds
+    [0]: nodal material output parameters
+ Number of element output codes. . . . . . . . . = 7
+    [0]: reference centroid
+    [0]: ip mass
+    [0]: strain energy
+    [0]: kinetic energy
+    [0]: linear momentum
+    [0]: ip stresses and strains
+    [0]: ip material output parameters
+
+ Body force vector:
+ Body force load-time function number. . . . . . = 0
+ Body force vector components:
+   x[1] direction. . . . . . . . . . . . . . . . = 0.000000e+00
+   x[2] direction. . . . . . . . . . . . . . . . = 0.000000e+00
+
+ Traction boundary conditions:
+ Number of traction BC side sets . . . . . . . . = 0
+
+
+ Material Data:
+ Number of materials . . . . . . . . . . . . . . = 1
+
+ Material number . . . . . . . . . . . . . . . . = 1
+ Material name:
+    Large strain
+    Kirchhoff-St.Venant
+ Mass damping coefficient. . . . . . . . . . . . = 0.000000e+00
+ Stiffness damping coefficient . . . . . . . . . = 0.000000e+00
+ Density . . . . . . . . . . . . . . . . . . . . = 1.000000e+00
+ Dilatation LTf. . . . . . . . . . . . . . . . . = 0
+ Percent elongation. . . . . . . . . . . . . . . = 0.000000e+00
+ Young's modulus . . . . . . . . . . . . . . . . = 1.000000e+02
+ Poisson's ratio . . . . . . . . . . . . . . . . = 2.500000e-01
+ Shear modulus . . . . . . . . . . . . . . . . . = 4.000000e+01
+ Bulk modulus. . . . . . . . . . . . . . . . . . = 6.666667e+01
+ Lame modulus  . . . . . . . . . . . . . . . . . = 4.000000e+01
+ Thickness . . . . . . . . . . . . . . . . . . . = 1.000000e+00
+ 2D constraint option. . . . . . . . . . . . . . = 1
+    eq.1, plane stress
+    eq.2, plane strain
+
+ Number of nodes off the integration grid. . . . = 0
+ Node Set Name . . . . . . . . . . . . . . . . . = 1
+ Node Set Index. . . . . . . . . . . . . . . . . = 0
+ Node Set Length . . . . . . . . . . . . . . . . = 6
+ Node Set Name . . . . . . . . . . . . . . . . . = 3
+ Node Set Index. . . . . . . . . . . . . . . . . = 2
+ Node Set Length . . . . . . . . . . . . . . . . = 6
+ Number of interpolant shape function nodes. . . = 12
+ Number of pure EFG shape function nodes . . . . = 0
+ Final number of interpolant nodes . . . . . . . = 12
+       1       6       7      12      13      18
+      19      24      25      30      31      36
+ Number of cutting facets. . . . . . . . . . . . = 0
+ Number of sampling surfaces . . . . . . . . . . = 0
+
+ MLS shape function data:
+ Minimum number of nodal neighbors . . . . . . . = 17
+ Maximum number of nodal neighbors . . . . . . . = 31
+ Average number of nodal neighbors . . . . . . . = 22
+ Nodal neighbor number distribution:
+  number   count
+       0       0
+       1       0
+       2       0
+       3       0
+       4       0
+       5       0
+       6       0
+       7       0
+       8       0
+       9       0
+      10       0
+      11       0
+      12       0
+      13       0
+      14       0
+      15       0
+      16       0
+      17       8
+      18       0
+      19       0
+      20       4
+      21       0
+      22       8
+      23       0
+      24       0
+      25       8
+      26       0
+      27       4
+      28       0
+      29       0
+      30       0
+      31       4
+ Support size distribution:
+            min            max            avg
+   1.010000e+00   1.428356e+00   1.195936e+00
+
+ MLS storage requirements:
+ Total number of nodal neighbors . . . . . . . . = 824
+ Nodal shape function storage. . . . . . . . . . = 6592 bytes
+ Nodal shape function derivatives storage. . . . = 13184 bytes
+ Total number of integration point neighbors . . = 680
+ i.p. shape function storage . . . . . . . . . . = 87040 bytes
+ i.p. shape function derivatives storage . . . . = 174080 bytes
+
+ Search grid statistics:
+ Number of grid cells. . . . . . . . . . . . . . = 4
+     dx = 2.500500e+00 (2)
+     dy = 2.500500e+00 (2)
+ Number of NULL or empty cells . . . . . . . . . = 0
+ Minimum number of occupants per cell. . . . . . = 9
+ Maximum number of occupants per cell. . . . . . = 9
+ Average number of occupants per cell. . . . . . = 9
+
+ S o l v e r   p a r a m e t e r s:
+
+ Group . . . . . . . . . . . . . . . . . . . . . = 0
+ Global equation type. . . . . . . . . . . . . . = 0
+    eq. 0, diagonal matrix
+    eq. 1, profile solver (symmetric and nonsymmetric)
+    eq. 2, full matrix (most general)
+    eq. 3, NOT AVAILABLE
+    eq. 4, NOT AVAILABLE
+    eq. 5, sparse matrix with direct solver: SPOOLES
+ Output global equation numbers. . . . . . . . . = 0
+ Check code. . . . . . . . . . . . . . . . . . . = 0
+    eq. 0, no check
+    eq. 1, print zero/negative pivots
+    eq. 2, print all pivots
+    eq. 3, print LHS matrix
+    eq. 4, print RHS vector
+    eq. 5, print vector
+    eq. 6, check LHS matrix
+
+ Multi-solver parameters: 1
+    rank   group       loop its.       pass its.
+       1       0              -1              -1
+ Maximum number of solver loops. . . . . . . . . = 1
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 64
+ Total number of equations . . . . . . . . . . . = 64
+
+ T i m e   S e q u e n c e : 1
+
+
+ Time = 2.000000e+00
+ Step 50 of 50
+
+ time = 2.000000e+00
+ Crack path data:
+
+   Start time: Fri Jun 25 19:51:33 2004
+ Construction: 0.000000e+00 sec.
+     Solution: 3.300000e-01 sec.
+    Stop time: Fri Jun 25 19:51:34 2004
+
+ End Execution
+

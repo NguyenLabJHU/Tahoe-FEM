@@ -1,0 +1,405 @@
+
+ Input file version: v3.4.1
+
+ T i t l e : assumed, enhanced strain test: simply supported beam
+
+ E x e c u t i o n   C o n t r o l   I n f o r m a t i o n :
+
+ Analysis code . . . . . . . . . . . . . . . . . = 3
+    eq. 1, linear elastostatic
+    eq. 2, linear elastodynamic
+    eq. 3, nonlinear elastostatic
+    eq. 4, nonlinear elastodynamic
+    eq. 5, dynamic relaxation
+    eq. 6, linear explicit dynamic
+    eq. 7, nonlinear explicit dynamic
+    eq. 30, perfectly matched layer (PML)
+ Input format. . . . . . . . . . . . . . . . . . = 1
+    eq.  0. Tahoe
+    eq.  1. Tahoe II
+    eq.  3. Ensight 6 Gold ASCII
+    eq.  4. Ensight 6 Gold Binary
+    eq.  5. Exodus II
+    eq.  6. ABAQUS ASCII (.fin)
+    eq.  7. ABAQUS Binary (.fil)
+    eq. 10. PATRAN Neutral
+    eq. 11. Tahoe Results (.geo/.run)
+ Geometry file . . . . . . . . . . . . . . . . . = level.0/enhanced.strain/../geometry/beam.0.geom
+ Output format . . . . . . . . . . . . . . . . . = 0
+    eq.  1. Tahoe II
+    eq.  2. TecPlot 7.5
+    eq.  3. Ensight 6 Gold ASCII
+    eq.  4. Ensight 6 Gold Binary
+    eq.  5. Exodus II
+    eq.  6. ABAQUS ASCII (.fin)
+    eq.  7. ABAQUS Binary (.fil)
+    eq.  8. AVS UCD ASCII
+ Read restart file code  . . . . . . . . . . . . = 0
+    eq. 0, do not read restart file
+    eq. 1, read restart file
+ Restart file increment (at current step size) . = 0
+ Input data print code . . . . . . . . . . . . . = 1
+    eq. 0, non verbose echo of input data
+    eq. 1, echo all input data
+
+
+ T i m e   S e q u e n c e   D a t a :
+
+ Number of time sequences  . . . . . . . . . . . = 1
+
+ Sequence number . . . . . . . . . . . . . . . . = 1
+ Number of time steps. . . . . . . . . . . . . . = 5
+ Output print increment (< 0: current step size) = 1
+ Maximum number of load step cuts. . . . . . . . = 0
+ Time step . . . . . . . . . . . . . . . . . . . = 2.000000e-01
+
+
+ L o a d - T i m e   F u n c t i o n   D a t a :
+
+ Number of load-time functions . . . . . . . . . = 1
+ Loadtime function number. . . . . . . . . . . . = 1
+
+           time         factor
+   0.000000e+00   0.000000e+00
+   1.000000e+00   1.000000e+00
+
+
+ T i m e   I n t e g r a t i o n   C o n t r o l l e r:
+
+ Static controller parameters: NONE
+
+ N o d a l   D a t a :
+
+ Number of nodal points. . . . . . . . . . . . . = 12
+ Number of spatial dimensions. . . . . . . . . . = 2
+ Number of nodal degrees of freedom. . . . . . . = 2
+
+    node           x[1]           x[2]
+       1   0.000000e+00   0.000000e+00
+       2   1.000000e+00   0.000000e+00
+       3   2.000000e+00   0.000000e+00
+       4   3.000000e+00   0.000000e+00
+       5   4.000000e+00   0.000000e+00
+       6   5.000000e+00   0.000000e+00
+       7   0.000000e+00   1.000000e+00
+       8   1.000000e+00   1.000000e+00
+       9   2.000000e+00   1.000000e+00
+      10   3.000000e+00   1.000000e+00
+      11   4.000000e+00   1.000000e+00
+      12   5.000000e+00   1.000000e+00
+
+
+ I n i t i a l   C o n d i t i o n s :
+
+ Number of initial condition cards . . . . . . . = 0
+
+
+ K i n e m a t i c   B o u n d a r y   C o n d i t i o n s :
+
+ Number of node sets . . . . . . . . . . . . . . = 2
+
+ Node Set Name . . . . . . . . . . . . . . . . . = 1
+ Number of cards . . . . . . . . . . . . . . . . = 2
+ Node Set Name . . . . . . . . . . . . . . . . . = 1
+ Number of cards . . . . . . . . . . . . . . . . = 2
+
+ Number of kinematic boundary condition cards. . = 4
+
+    node     dof    code     LTf          value
+       1       1       0       1   0.000000e+00
+       7       1       0       1   0.000000e+00
+       1       2       0       1   0.000000e+00
+       7       2       0       1   0.000000e+00
+
+ K i n e m a t i c   B C   C o n t r o l l e r s :
+
+ Number of controllers . . . . . . . . . . . . . = 0
+
+
+ F o r c e   B o u n d a r y   C o n d i t i o n s :
+
+ Number of node sets . . . . . . . . . . . . . . = 1
+
+ Node Set Name . . . . . . . . . . . . . . . . . = 2
+ Number of cards . . . . . . . . . . . . . . . . = 1
+ Number of nodal force cards . . . . . . . . . . = 1
+
+    node     dof     LTf          value
+      12       2       1   2.000000e-01
+
+ N o d a l   F o r c e   C o n t r o l l e r s :
+
+ Number of controllers . . . . . . . . . . . . . = 0
+
+
+ N o d a l   H i s t o r i e s :
+
+
+ E l e m e n t   G r o u p   D a t a :
+
+ Number of element groups. . . . . . . . . . . . = 1
+
+ Group number. . . . . . . . . . . . . . . . . . = 1
+ Element type code . . . . . . . . . . . . . . . = 29
+    eq. 1, rod
+    eq. 2, elastic
+    eq. 3, hyperelastic
+    eq. 4, hyperelastic with localization
+    eq. 6, diamond cubic lattice
+    eq. 7, diamond cubic lattice with evolving params
+    eq. 8, self-connecting rods
+    eq. 9, self-connecting rods with periodic BC's
+    eq. 10, diamond cubic lattice with periodic BC's
+    eq. 11, cohesive surface element
+    eq. 14, penalty contact
+    eq. 16, augmented Lagrangian contact
+    eq. 17, hyperelastic (total Lagrangian)
+    eq. 18, elastic with MLS displacements
+    eq. 19, hyperelastic MLS (total Lagrangian)
+    eq. 20, hyperelastic MLS (total Lagrangian)
+    eq. 21, linear diffusion element
+    eq. 22, meshfree cohesive surface element
+    eq. 23, 3D contact using ACME
+    eq. 24, 3D contact using Lagrange multipliers
+    eq. 25, 2D adhesion contact elements
+    eq. 30, 2D penalty contact elements
+    eq. 28, 2D contact using Lagrange multipliers
+ Element geometry code . . . . . . . . . . . . . = 1
+    eq.-1, point
+    eq.0, line
+    eq.1, quadrilateral
+    eq.2, triangle
+    eq.3, hexahedron
+    eq.4, tetrahedron
+ Number of integration points. . . . . . . . . . = 5
+ Mass type code. . . . . . . . . . . . . . . . . = 1
+    eq.0, no mass matrix
+    eq.1, consistent mass matrix
+    eq.2, lumped mass matrix
+ Strain-displacement option. . . . . . . . . . . = 0
+    eq.0, standard
+    eq.1, B-bar (mean dilatation)
+ Include incompressible mode . . . . . . . . . . = 0
+    Number of enhanced mode shapes = 2
+ Solution method for enhanced element modes. . . = 0
+    eq.0, monolithic
+    eq.1, static condensation
+    eq.2, staggered, local iteration
+
+ Element Connectivity:
+ Number of connectivity data blocks. . . . . . . = 1
+                   material number: 1
+                element block name: 1
+ Number of elements. . . . . . . . . . . . . . . = 5
+     no.    mat.    n[1]    n[2]    n[3]    n[4]
+       1       1       1       2       8       7
+       2       1       2       3       9       8
+       3       1       3       4      10       9
+       4       1       4       5      11      10
+       5       1       5       6      12      11
+
+ Number of nodal output codes. . . . . . . . . . = 7
+    [0]: initial nodal coordinates
+    [1]: nodal displacements
+    [1]: nodal stresses
+    [0]: nodal principal stresses
+    [0]: nodal strain energy density
+    [0]: wave speeds
+    [0]: nodal material output parameters
+ Number of element output codes. . . . . . . . . = 7
+    [0]: reference centroid
+    [0]: ip mass
+    [0]: strain energy
+    [0]: kinetic energy
+    [0]: linear momentum
+    [0]: ip stresses
+    [0]: ip material output parameters
+
+ Body force vector:
+ Body force load-time function number. . . . . . = 0
+ Body force vector components:
+   x[1] direction. . . . . . . . . . . . . . . . = 0.000000e+00
+   x[2] direction. . . . . . . . . . . . . . . . = 0.000000e+00
+
+ Traction boundary conditions:
+ Number of traction BC side sets . . . . . . . . = 0
+
+
+ Material Data:
+ Number of materials . . . . . . . . . . . . . . = 1
+
+ Material number . . . . . . . . . . . . . . . . = 1
+ Material name:
+    Large strain
+    Kirchhoff-St.Venant
+ Mass damping coefficient. . . . . . . . . . . . = 0.000000e+00
+ Stiffness damping coefficient . . . . . . . . . = 0.000000e+00
+ Density . . . . . . . . . . . . . . . . . . . . = 1.000000e+00
+ Dilatation LTf. . . . . . . . . . . . . . . . . = 0
+ Percent elongation. . . . . . . . . . . . . . . = 0.000000e+00
+ Young's modulus . . . . . . . . . . . . . . . . = 1.000000e+02
+ Poisson's ratio . . . . . . . . . . . . . . . . = 4.999000e-01
+ Shear modulus . . . . . . . . . . . . . . . . . = 3.333556e+01
+ Bulk modulus. . . . . . . . . . . . . . . . . . = 1.666667e+05
+ Thickness . . . . . . . . . . . . . . . . . . . = 1.000000e+00
+ 2D constraint option. . . . . . . . . . . . . . = 2
+    eq.1, plane stress
+    eq.2, plane strain
+
+ S o l v e r   p a r a m e t e r s:
+
+ Global equation type. . . . . . . . . . . . . . = 1
+    eq. 0, diagonal matrix
+    eq. 1, profile solver (symmetric and nonsymmetric)
+    eq. 2, full matrix (most general)
+    eq. 3, Aztec-based, sparse matrix with iterative solvers
+    eq. 4, NOT AVAILABLE
+    eq. 5, sparse matrix with direct solver: SPOOLES
+ Output global equation numbers. . . . . . . . . = 0
+ Check code. . . . . . . . . . . . . . . . . . . = 0
+    eq. 0, do not perform rank check
+    eq. 1, zero/negative pivots
+    eq. 2, all pivots
+    eq. 3, entire LHS matrix
+    eq. 4, entire RHS vector
+    eq. 5, solution vector
+
+ O p t i m i z a t i o n   P a r a m e t e r s :
+
+ Maximum number of iterations. . . . . . . . . . = 300
+ Absolute convergence tolerance. . . . . . . . . = 1.000000e-10
+ Relative convergence tolerance. . . . . . . . . = 1.000000e-12
+ Divergence tolerance. . . . . . . . . . . . . . = 1.000000e+06
+ Quick solution iteration count. (-1 to disable) = 6
+ Number of quick solutions before step increase. = 3
+ Iteration output print increment. . . . . . . . = 0
+
+ XDOF_ManagerT::CheckEquationNumbers: swapped node/tag's:
+
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 40
+ Total number of equations . . . . . . . . . . . = 40
+ Number of terms in global matrix. . . . . . . . = 308
+ Mean half bandwidth . . . . . . . . . . . . . . = 8
+ Bandwidth . . . . . . . . . . . . . . . . . . . = 16
+ Number of non-zero values (pre-factorization) . = 308
+ Storage efficiency (% non-zero) . . . . . . . . = 1.000000e+02
+
+
+ T i m e   S e q u e n c e : 1
+
+
+ Converged at time = 2.000000e-01
+
+ E l e m e n t   d e g r e e s   o f   f r e e d o m :
+
+ Number of element equation groups . . . . . . . = 1
+
+ Group 1:
+ Set 1:
+
+ Element degrees of freedom :
+
+ Number of nodal points. . . . . . . . . . . . . = 5
+ Number of nodal degrees of freedom. . . . . . . = 4
+
+    node           d[1]           d[2]           d[3]           d[4]
+      12  -2.785881e-05   3.170017e-03  -2.575409e-05   3.578459e-03
+      13  -5.265463e-05   2.659414e-03  -5.534844e-05   2.885820e-03
+      14  -7.224329e-05   2.032625e-03  -7.052877e-05   2.128195e-03
+      15  -6.873418e-06   1.284057e-03  -1.016745e-05   1.306720e-03
+      16  -1.794609e-04   4.207965e-04  -1.771663e-04   4.224326e-04
+
+ Converged at time = 4.000000e-01
+
+ E l e m e n t   d e g r e e s   o f   f r e e d o m :
+
+ Number of element equation groups . . . . . . . = 1
+
+ Group 1:
+ Set 1:
+
+ Element degrees of freedom :
+
+ Number of nodal points. . . . . . . . . . . . . = 5
+ Number of nodal degrees of freedom. . . . . . . = 4
+
+    node           d[1]           d[2]           d[3]           d[4]
+      12  -6.701203e-05   4.494489e-03  -7.043648e-05   6.052359e-03
+      13  -1.415193e-04   4.040056e-03  -1.702381e-04   5.035270e-03
+      14  -1.925753e-04   3.355991e-03  -2.035904e-04   3.857782e-03
+      15  -8.045820e-05   2.324133e-03  -1.074358e-04   2.469652e-03
+      16  -3.709894e-04   7.851816e-04  -3.570873e-04   7.971948e-04
+
+ Converged at time = 6.000000e-01
+
+ E l e m e n t   d e g r e e s   o f   f r e e d o m :
+
+ Number of element equation groups . . . . . . . = 1
+
+ Group 1:
+ Set 1:
+
+ Element degrees of freedom :
+
+ Number of nodal points. . . . . . . . . . . . . = 5
+ Number of nodal degrees of freedom. . . . . . . = 4
+
+    node           d[1]           d[2]           d[3]           d[4]
+      12  -9.856320e-05   5.041562e-03  -1.187228e-04   7.899932e-03
+      13  -2.200443e-04   4.715912e-03  -2.985495e-04   6.684728e-03
+      14  -3.069473e-04   4.138277e-03  -3.591862e-04   5.244582e-03
+      15  -1.777091e-04   3.096189e-03  -2.528861e-04   3.471690e-03
+      16  -5.611354e-04   1.098287e-03  -5.232155e-04   1.134076e-03
+
+ Converged at time = 8.000000e-01
+
+ E l e m e n t   d e g r e e s   o f   f r e e d o m :
+
+ Number of element equation groups . . . . . . . = 1
+
+ Group 1:
+ Set 1:
+
+ Element degrees of freedom :
+
+ Number of nodal points. . . . . . . . . . . . . = 5
+ Number of nodal degrees of freedom. . . . . . . = 4
+
+    node           d[1]           d[2]           d[3]           d[4]
+      12  -1.226597e-04   5.275684e-03  -1.680586e-04   9.388675e-03
+      13  -2.841826e-04   5.062956e-03  -4.286464e-04   8.029086e-03
+      14  -4.055410e-04   4.610756e-03  -5.234135e-04   6.396876e-03
+      15  -2.783641e-04   3.658408e-03  -4.202873e-04   4.337993e-03
+      16  -7.452511e-04   1.365204e-03  -6.709976e-04   1.439697e-03
+
+ Converged at time = 1.000000e+00
+
+ E l e m e n t   d e g r e e s   o f   f r e e d o m :
+
+ Number of element equation groups . . . . . . . = 1
+
+ Group 1:
+ Set 1:
+
+ Element degrees of freedom :
+
+ Number of nodal points. . . . . . . . . . . . . = 5
+ Number of nodal degrees of freedom. . . . . . . = 4
+
+    node           d[1]           d[2]           d[3]           d[4]
+      12  -1.409397e-04   5.365653e-03  -2.176854e-04   1.064402e-02
+      13  -3.363438e-04   5.242494e-03  -5.572277e-04   9.169622e-03
+      14  -4.890971e-04   4.903746e-03  -6.900372e-04   7.384535e-03
+      15  -3.747283e-04   4.070446e-03  -5.958711e-04   5.097374e-03
+      16  -9.216291e-04   1.591313e-03  -8.002903e-04   1.719099e-03
+
+   Start time: Sun Mar  3 14:36:15 2002
+ Construction: 1.000000e-02 sec.
+     Solution: 1.600000e-01 sec.
+    Stop time: Sun Mar  3 14:36:15 2002
+
+ End Execution
+

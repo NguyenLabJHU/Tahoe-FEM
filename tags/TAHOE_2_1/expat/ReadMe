@@ -1,0 +1,7 @@
+$Id: ReadMe,v 1.1 2004-07-12 17:48:27 paklein Exp $
+
+This is module just wraps the configure/build system included with 
+expat (http://expat.sourceforge.net/). Many Linux systems include
+expat in the standard paths, i.e., in /usr/include and /usr/lib. For
+installation instructions for expat within this module see 
+makefile.template.

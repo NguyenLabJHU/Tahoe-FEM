@@ -1,0 +1,16 @@
+%
+*VERBOSE 
+1
+
+*OUTPUT
+1
+
+*input
+1 ../geometry/hex8simple.4.geom
+
+*facet
+1 1 5
+
+
+
+*EOF

@@ -1,0 +1,9 @@
+@
+interpolate/run.batch
+interpolate.meshfree.1/run.batch
+interpolate.meshfree.2/run.batch
+projection/run.batch
+#edge/run.batch
+meshfree/run.batch
+meshfree.1/run.batch
+meshfree.2/run.batch

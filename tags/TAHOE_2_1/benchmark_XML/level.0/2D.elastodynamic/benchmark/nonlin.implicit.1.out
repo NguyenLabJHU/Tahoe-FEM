@@ -1,0 +1,314 @@
+
+ Input file version: v3.4.1
+
+ T i t l e : 2D implicit dynamics
+
+ E x e c u t i o n   C o n t r o l   I n f o r m a t i o n :
+
+ Analysis code . . . . . . . . . . . . . . . . . = 4
+    eq. 1, linear elastostatic
+    eq. 2, linear elastodynamic
+    eq. 3, nonlinear elastostatic
+    eq. 4, nonlinear elastodynamic
+    eq. 5, dynamic relaxation
+    eq. 6, linear explicit dynamic
+    eq. 7, nonlinear explicit dynamic
+    eq. 30, perfectly matched layer (PML)
+    eq. 99, general multiple field problem
+ Input format. . . . . . . . . . . . . . . . . . = 1
+    eq.  0. Tahoe
+    eq.  1. Tahoe II
+    eq.  3. Ensight 6 Gold ASCII
+    eq.  4. Ensight 6 Gold Binary
+    eq.  5. Exodus II
+    eq.  6. ABAQUS ASCII (.fin)
+    eq.  7. ABAQUS Binary (.fil)
+    eq. 10. PATRAN Neutral
+    eq. 11. Tahoe Results (.geo/.run)
+ Geometry file . . . . . . . . . . . . . . . . . = ../geometry/beam.0.geom
+ Output format . . . . . . . . . . . . . . . . . = 0
+    eq.  1. Tahoe II
+    eq.  2. TecPlot 7.5
+    eq.  3. Ensight 6 Gold ASCII
+    eq.  4. Ensight 6 Gold Binary
+    eq.  5. Exodus II
+    eq.  6. ABAQUS ASCII (.fin)
+    eq.  7. ABAQUS Binary (.fil)
+    eq.  8. AVS UCD ASCII
+    eq. 10. PATRAN Neutral
+    eq. 12. PARADYN
+ Read restart file code  . . . . . . . . . . . . = 0
+    eq. 0, do not read restart file
+    eq. 1, read restart file
+ Restart file increment (at current step size) . = 0
+ Input data print code . . . . . . . . . . . . . = 0
+    eq. 0, non verbose echo of input data
+    eq. 1, echo all input data
+ Number of solver groups . . . . . . . . . . . . = 1
+
+
+ T i m e   S e q u e n c e   D a t a :
+
+ Number of time sequences  . . . . . . . . . . . = 1
+
+ Sequence number . . . . . . . . . . . . . . . . = 1
+ Number of time steps. . . . . . . . . . . . . . = 10
+ Output print increment (< 0: current step size) = 5
+ Maximum number of load step cuts. . . . . . . . = 0
+ Time step . . . . . . . . . . . . . . . . . . . = 5.000000e-01
+
+
+ L o a d - T i m e   F u n c t i o n   D a t a :
+
+ Number of load-time functions . . . . . . . . . = 1
+ Loadtime function number. . . . . . . . . . . . = 1
+
+           time         factor
+   0.000000e+00   1.000000e+00
+
+
+ T i m e   I n t e g r a t o r s:
+ HHT-alpha time integration parameters:
+
+ gamma . . . . . . . . . . . . . . . . . . . . . = 5.000000e-01
+ beta. . . . . . . . . . . . . . . . . . . . . . = 2.500000e-01
+ alpha . . . . . . . . . . . . . . . . . . . . . = 0.000000e+00
+
+ N o d a l   D a t a :
+
+ Number of nodal points. . . . . . . . . . . . . = 12
+ Number of spatial dimensions. . . . . . . . . . = 2
+
+ Initial conditions:
+
+ Number of initial condition cards . . . . . . . = 0
+
+
+ Kinematic boundary conditions:
+
+ Number of node sets . . . . . . . . . . . . . . = 2
+
+ Node Set Name . . . . . . . . . . . . . . . . . = 1
+ Number of cards . . . . . . . . . . . . . . . . = 2
+ Node Set Name . . . . . . . . . . . . . . . . . = 1
+ Number of cards . . . . . . . . . . . . . . . . = 2
+
+ Number of kinematic boundary condition cards. . = 4
+
+
+ K i n e m a t i c   B C   C o n t r o l l e r s :
+
+ Number of controllers . . . . . . . . . . . . . = 0
+
+
+ Force boundary conditions:
+
+ Number of node sets . . . . . . . . . . . . . . = 1
+
+ Node Set Name . . . . . . . . . . . . . . . . . = 2
+ Number of cards . . . . . . . . . . . . . . . . = 1
+ Number of nodal force cards . . . . . . . . . . = 1
+
+
+ N o d a l   F o r c e   C o n t r o l l e r s :
+
+ Number of controllers . . . . . . . . . . . . . = 0
+
+
+ N o d a l   H i s t o r i e s :
+
+
+ E l e m e n t   G r o u p   D a t a :
+
+ Number of element groups. . . . . . . . . . . . = 1
+
+ Group number. . . . . . . . . . . . . . . . . . = 1
+ Element type code . . . . . . . . . . . . . . . = 3
+    eq. 1, rod
+    eq. 2, elastic
+    eq. 3, hyperelastic
+    eq. 4, hyperelastic with localization
+    eq. 6, diamond cubic lattice
+    eq. 7, diamond cubic lattice with evolving params
+    eq. 8, self-connecting rods
+    eq. 9, self-connecting rods with periodic BC's
+    eq. 10, diamond cubic lattice with periodic BC's
+    eq. 11, cohesive surface element
+    eq. 12, thermal surface element
+    eq. 14, penalty contact
+    eq. 16, augmented Lagrangian contact
+    eq. 17, hyperelastic (total Lagrangian)
+    eq. 18, elastic with MLS displacements
+    eq. 19, hyperelastic MLS (total Lagrangian)
+    eq. 20, hyperelastic MLS (total Lagrangian)
+    eq. 21, linear diffusion element
+    eq. 22, meshfree cohesive surface element
+    eq. 31, Staggered MultiScale Element (for VMS) 
+    eq. 23, 3D contact using ACME
+    eq. 24, 3D contact using Lagrange multipliers
+    eq. 28, 2D Lagrange multiplier contact elements
+    eq. 30, 2D penalty contact elements
+    eq. 34, 3D penalty contact elements
+    eq. 35, Bridging Scale
+    eq. 36, Q1P0 mixed element
+    eq. 37, surface adhesion
+    eq. 38, Pair Potential
+    eq. 39, EAM Potential
+ Associated field. . . . . . . . . . . . . . . . = "displacement"
+ Element geometry code . . . . . . . . . . . . . = 1
+    eq.-1, point
+    eq.0, line
+    eq.1, quadrilateral
+    eq.2, triangle
+    eq.3, hexahedron
+    eq.4, tetrahedron
+ Number of integration points. . . . . . . . . . = 4
+ Mass type code. . . . . . . . . . . . . . . . . = 1
+    eq.0, no mass matrix
+    eq.1, consistent mass matrix
+    eq.2, lumped mass matrix
+ Strain-displacement option. . . . . . . . . . . = 0
+    eq.0, standard
+    eq.1, B-bar (mean dilatation)
+
+ Element Connectivity:
+ Number of connectivity data blocks. . . . . . . = 1
+                   material number: 1
+                element block name: 1
+ Number of elements. . . . . . . . . . . . . . . = 5
+ Block dimensions:
+      ID    size
+       1       5
+
+ Number of nodal output codes. . . . . . . . . . = 7
+    [0]: initial nodal coordinates
+    [1]: nodal displacements
+    [1]: nodal stresses
+    [0]: nodal principal stresses
+    [0]: nodal strain energy density
+    [0]: wave speeds
+    [1]: nodal material output parameters
+ Number of element output codes. . . . . . . . . = 7
+    [0]: reference centroid
+    [0]: ip mass
+    [0]: strain energy
+    [0]: kinetic energy
+    [1]: linear momentum
+    [0]: ip stresses and strains
+    [0]: ip material output parameters
+
+ Body force vector:
+ Body force load-time function number. . . . . . = 0
+ Body force vector components:
+   x[1] direction. . . . . . . . . . . . . . . . = 0.000000e+00
+   x[2] direction. . . . . . . . . . . . . . . . = 0.000000e+00
+
+ Traction boundary conditions:
+ Number of traction BC side sets . . . . . . . . = 0
+
+
+ Material Data:
+ Number of materials . . . . . . . . . . . . . . = 1
+
+ Material number . . . . . . . . . . . . . . . . = 1
+ Material name:
+    Large strain
+    Kirchhoff-St.Venant
+ Mass damping coefficient. . . . . . . . . . . . = 0.000000e+00
+ Stiffness damping coefficient . . . . . . . . . = 0.000000e+00
+ Density . . . . . . . . . . . . . . . . . . . . = 1.000000e+00
+ Dilatation LTf. . . . . . . . . . . . . . . . . = 0
+ Percent elongation. . . . . . . . . . . . . . . = 0.000000e+00
+ Young's modulus . . . . . . . . . . . . . . . . = 1.000000e+02
+ Poisson's ratio . . . . . . . . . . . . . . . . = 2.500000e-01
+ Shear modulus . . . . . . . . . . . . . . . . . = 4.000000e+01
+ Bulk modulus. . . . . . . . . . . . . . . . . . = 6.666667e+01
+ Lame modulus  . . . . . . . . . . . . . . . . . = 4.000000e+01
+ Thickness . . . . . . . . . . . . . . . . . . . = 1.000000e+00
+ 2D constraint option. . . . . . . . . . . . . . = 1
+    eq.1, plane stress
+    eq.2, plane strain
+
+ S o l v e r   p a r a m e t e r s:
+
+ Group . . . . . . . . . . . . . . . . . . . . . = 0
+ Global equation type. . . . . . . . . . . . . . = 1
+    eq. 0, diagonal matrix
+    eq. 1, profile solver (symmetric and nonsymmetric)
+    eq. 2, full matrix (most general)
+    eq. 3, Aztec-based, sparse matrix with iterative solvers
+    eq. 4, NOT AVAILABLE
+    eq. 5, sparse matrix with direct solver: SPOOLES
+ Output global equation numbers. . . . . . . . . = 0
+ Check code. . . . . . . . . . . . . . . . . . . = 0
+    eq. 0, do not perform rank check
+    eq. 1, zero/negative pivots
+    eq. 2, all pivots
+    eq. 3, entire LHS matrix
+    eq. 4, entire RHS vector
+    eq. 5, solution vector
+
+ O p t i m i z a t i o n   P a r a m e t e r s :
+
+ Maximum number of iterations. . . . . . . . . . = 10
+ Absolute convergence tolerance. . . . . . . . . = 1.000000e-10
+ Relative convergence tolerance. . . . . . . . . = 1.000000e-12
+ Divergence tolerance. . . . . . . . . . . . . . = 1.000000e+01
+ Quick solution iteration count. (-1 to disable) = 6
+ Number of quick solutions before step increase. = 3
+ Iteration output print increment. . . . . . . . = 0
+
+ Multi-solver parameters: 1
+    rank   group       loop its.       pass its.
+       1       0              -1              -1
+ Maximum number of solver loops. . . . . . . . . = 1
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 20
+ Total number of equations . . . . . . . . . . . = 20
+ Number of terms in global matrix. . . . . . . . = 114
+ Mean half bandwidth . . . . . . . . . . . . . . = 6
+ Bandwidth . . . . . . . . . . . . . . . . . . . = 8
+ Number of non-zero values (pre-factorization) . = 114
+ Storage efficiency (% non-zero) . . . . . . . . = 1.000000e+02
+
+
+ T i m e   S e q u e n c e : 1
+
+
+ Converged at time = 0.000000e+00
+
+ Converged at time = 5.000000e-01
+
+ Converged at time = 1.000000e+00
+
+ Converged at time = 1.500000e+00
+
+ Converged at time = 2.000000e+00
+
+ Converged at time = 2.500000e+00
+
+ Time = 2.500000e+00
+ Step 5 of 10
+
+ Converged at time = 3.000000e+00
+
+ Converged at time = 3.500000e+00
+
+ Converged at time = 4.000000e+00
+
+ Converged at time = 4.500000e+00
+
+ Converged at time = 5.000000e+00
+
+ Time = 5.000000e+00
+ Step 10 of 10
+
+   Start time: Sun May 18 17:05:41 2003
+ Construction: 2.000000e-02 sec.
+     Solution: 1.300000e-01 sec.
+    Stop time: Sun May 18 17:05:41 2003
+
+ End Execution
+
