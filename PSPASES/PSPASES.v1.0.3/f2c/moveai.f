@@ -39,12 +39,14 @@ C/* constitutes an implicit agreement to these terms.  These terms and        */
 C/* conditions are subject to change at any time without prior notice.        */
 C/*                                                                           */
 C/*****************************************************************************/
-C/* $Id: moveai.f,v 1.1 2004-12-10 20:28:27 paklein Exp $ */
+C/* $Id: moveai.f,v 1.2 2004-12-11 10:10:52 paklein Exp $ */
 C/*****************************************************************************/
 
       subroutine moveai(N,dd,pp,lgblk,myid,mynnodes,order,paptrs,
      +                  recvsizs,painds,aptrs,tainds,wrkint,ranmasks,
-     +                  whichsnode,nsend,nrecvsizs,comm)
+     +                  whichsnode,nsend,nrecvsizs,comm,
+     +                  sendinds, sendsizs,
+     +                  iwillsend_sizs2)
 
       implicit none
 
@@ -56,7 +58,12 @@ C/*****************************************************************************/
       integer tainds(*),wrkint(0:*),whichsnode(0:*),ranmasks(5,0:*)
       integer N,dd,pp,lgblk,myid,mynnodes,nsend,comm
 
-      integer, allocatable :: sendinds(:),sendsizs(:)
+C      integer, allocatable :: sendinds(:),sendsizs(:)
+      integer sendinds, sendsizs
+      integer iwillsend_sizs2
+      dimension sendinds(0:nsend-1)
+      dimension sendsizs(0:iwillsend_sizs2-1)
+      
       integer recvsizs(0:*)
 
       integer proc,pgrsize,ierr,bmaskr,bmaskc,row,col
@@ -95,12 +102,12 @@ C/*****************************************************************************/
       wrkint(psci+pp-1) = 0
       wrkint(pscs+pp-1) = 0
 
-      allocate(sendinds(0:nsend-1),stat=is1)
+C      allocate(sendinds(0:nsend-1),stat=is1)
       if(is1.ne.0) then
         print *,'Error in allocate'
         call mpi_abort(comm,1,ierr)
       end if
-      allocate(sendsizs(0:iwillsend_sizs-1),stat=is1)
+C      allocate(sendsizs(0:iwillsend_sizs-1),stat=is1)
       if(is1.ne.0) then
         print *,'Error in allocate'
         call mpi_abort(comm,1,ierr)
@@ -170,8 +177,8 @@ C/*****************************************************************************/
         j = j+paptrs(2,col)
       end do
 
-      deallocate(sendinds)
-      deallocate(sendsizs)
+C      deallocate(sendinds)
+C      deallocate(sendsizs)
 
       end
 
