@@ -1,6 +1,5 @@
-/* $Id: CSEBaseT.cpp,v 1.29 2003-11-21 22:45:50 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.30 2004-01-05 07:34:30 paklein Exp $ */
 /* created: paklein (11/19/1997) */
-
 #include "CSEBaseT.h"
 
 #include <math.h>
@@ -303,10 +302,10 @@ void CSEBaseT::CloseStep(void)
 }
 
 /* resets to the last converged solution */
-void CSEBaseT::ResetStep(void)
+GlobalT::RelaxCodeT CSEBaseT::ResetStep(void)
 {
 	/* inherited */
-	ElementBaseT::ResetStep();
+	GlobalT::RelaxCodeT relax = ElementBaseT::ResetStep();
 
 	/* unset marks */
 	int nel = NumElements();
@@ -315,6 +314,8 @@ void CSEBaseT::ResetStep(void)
 		int& flag = fElementCards[i].Flag();
 		flag = (flag == kMarked) ? kON : flag;
 	}
+	
+	return relax;
 }
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
@@ -442,13 +443,11 @@ void CSEBaseT::SendOutput(int kincode)
 		case NodalTraction:
 		    flags[NodalTraction] = 1;
 			break;
+		case MaterialData:
+		    flags[MaterialData] = 1;
+			break;
 		default:
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-			cout << "\n CSEBaseT::SendKinematic: invalid output code: ";
-			cout << kincode << endl;
-#else
-			throw ExceptionT::kBadInputValue;
-#endif
+			ExceptionT::BadInputValue("CSEBaseT::SendKinematic", "invalid output code: %d", kincode);
 	}
 
 	/* number of output values */

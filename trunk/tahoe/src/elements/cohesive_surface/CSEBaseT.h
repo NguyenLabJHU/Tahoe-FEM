@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.17 2003-11-25 20:00:35 cjkimme Exp $ */
+/* $Id: CSEBaseT.h,v 1.18 2004-01-05 07:34:30 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -27,7 +27,9 @@ public:
 	enum FormulationT {Isotropic = 0,
 	                 Anisotropic = 1, 
 	         NoRotateAnisotropic = 2,
-	         	ModeIAnisotropic = 3};
+	         	ModeIAnisotropic = 3,
+	            RigidAnisotropic = 4,
+	       NodalRigidAnisotropic = 5};
 
 	/** indicies for nodal output */
 	enum NodalOutputCodeT {
@@ -66,7 +68,7 @@ public:
 	virtual void CloseStep(void);
 
 	/* resets to the last converged solution */
-	virtual void ResetStep(void);
+	virtual GlobalT::RelaxCodeT ResetStep(void);
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* solution calls */
