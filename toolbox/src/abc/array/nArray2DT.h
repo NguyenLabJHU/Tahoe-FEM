@@ -1,4 +1,4 @@
-/* $Id: nArray2DT.h,v 1.8 2001-12-10 12:38:59 paklein Exp $ */
+/* $Id: nArray2DT.h,v 1.9 2002-02-18 08:45:33 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #ifndef _NARRAY2D_T_H_
@@ -25,8 +25,14 @@ public:
 	/* set fields - convert to shallow object */
 	void Set(int majordim, int minordim, nTYPE* MATHTYPEPtr);
 
-	/* allocate an array of the specified size */
-	void Allocate(int majordim, int minordim);
+	/** set the array size to the given dimensions. No change occurs if the array
+	 * is already the specified size. The previous contents of the array is
+	 * not preserved. To preserve the array contents while changing the dimension
+	 * use nArray2DT::Resize. */
+	void Dimension(int majordim, int minordim);
+
+	/** \deprecated replaced by nArray2DT::Dimension on 02/13/2002 */
+	void Allocate(int majordim, int minordim) { Dimension(majordim, minordim); };
 
 	/* free memory (if allocated) and set size to zero */
 	void Free(void);
@@ -172,7 +178,7 @@ inline nArray2DT<nTYPE>::nArray2DT(void): fMajorDim(0), fMinorDim(0) { }
 template <class nTYPE>
 inline nArray2DT<nTYPE>::nArray2DT(int majordim, int minordim)
 {
-	Allocate(majordim, minordim);
+	Dimension(majordim, minordim);
 }
 
 template <class nTYPE>
@@ -216,13 +222,13 @@ inline void nArray2DT<nTYPE>::Set(int majordim, int minordim,
 * nArray2DT's created by default construction.
 */
 template <class nTYPE>
-inline void nArray2DT<nTYPE>::Allocate(int majordim, int minordim)
+inline void nArray2DT<nTYPE>::Dimension(int majordim, int minordim)
 {
 	/* zero dimensions */
 	fMajorDim = fMinorDim = 0;
 
 	/* inherited */
-	nArrayT<nTYPE>::Allocate(majordim*minordim);
+	nArrayT<nTYPE>::Dimension(majordim*minordim);
 
 	/* set dimensions */
 	fMajorDim = majordim;
@@ -273,23 +279,30 @@ inline int nArray2DT<nTYPE>::MinorDim(void) const { return fMinorDim; }
 template <class nTYPE>
 inline nTYPE& nArray2DT<nTYPE>::operator()(int majordim, int minordim) const
 {
-/* range checking */
 #if __option (extended_errorcheck)
-if (majordim < 0 || majordim >= fMajorDim ||
-	minordim < 0 || minordim >= fMinorDim) throw(eOutOfRange);
+	/* range checking */
+	if (majordim < 0 || majordim >= fMajorDim ||
+		minordim < 0 || minordim >= fMinorDim) {
+			cout << "\n nArray2DT<TYPE>::operator(int,int): out of range\n"
+			     <<   "    major {0," << fMajorDim-1 << "}: " << majordim << '\n'
+			     <<   "    minor {0," << fMinorDim-1 << "}: " << minordim << endl;
+			throw eOutOfRange;
+		}
 #endif
-
 	return fArray[majordim*fMinorDim + minordim];
 }
 
 template <class nTYPE>
 inline nTYPE* nArray2DT<nTYPE>::operator()(int majordim) const
 {
-/* range checking */
 #if __option (extended_errorcheck)
-	if (majordim < 0 || majordim >= fMajorDim) throw(eOutOfRange);
+	/* range checking */
+	if (majordim < 0 || majordim >= fMajorDim) {
+		cout << "\n nArray2DT<TYPE>::operator(int): major dimension " << majordim 
+		     << " is out of range {0," << fMajorDim-1 << "}" << endl;
+		throw eOutOfRange;
+	}
 #endif
-
 	return fArray + majordim*fMinorDim;
 }
 
@@ -353,7 +366,7 @@ template <class nTYPE>
 void nArray2DT<nTYPE>::Transpose(const nArray2DT<nTYPE>& source)
 {
 	/* allocate memory */
-	Allocate(source.fMinorDim, source.fMajorDim);
+	Dimension(source.fMinorDim, source.fMajorDim);
 	
 	nTYPE* psrc   = source.Pointer();	
 	for (int i = 0; i < fMinorDim; i++)
@@ -407,7 +420,7 @@ template <class nTYPE>
 inline void nArray2DT<nTYPE>::RowCopy(int row, nArrayT<nTYPE>& array) const
 {
 	/* redimension if needed */
-	if (array.Length() != MinorDim()) array.Allocate(MinorDim());
+	if (array.Length() != MinorDim()) array.Dimension(MinorDim());
 
 	/* call wrapper */
 	RowCopy(row, array.Pointer());
@@ -416,12 +429,16 @@ inline void nArray2DT<nTYPE>::RowCopy(int row, nArrayT<nTYPE>& array) const
 template <class nTYPE>
 inline void nArray2DT<nTYPE>::ColumnCopy(int col, nTYPE* array) const
 {
-	nTYPE* pout = array;
-	nTYPE* pcol = &(*this)(0,col);
-	for (int i = 0; i < fMajorDim; i++)
+	/* don't do anything if empty */
+	if (fMajorDim > 0)
 	{
-		*pout++ = *pcol;
-		pcol   += fMinorDim;
+		nTYPE* pout = array;
+		nTYPE* pcol = &(*this)(0,col);
+		for (int i = 0; i < fMajorDim; i++)
+		{
+			*pout++ = *pcol;
+			pcol   += fMinorDim;
+		}
 	}
 }
 
