@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.1 2002-12-05 08:31:13 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.1.2.1 2002-12-05 21:48:17 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -21,13 +21,10 @@ class CommManagerT
 public:
 
 	/** constructor */
-	CommManagerT(CommunicatorT& comm, int nsd);
+	CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager);
 
 	/** set partition information */
 	void SetPartition(PartitionT* partition) { fPartition = partition; };
-
-	/** set the model manager */
-	void SetModelManager(ModelManagerT* model_manager) { fModelManager = model_manager; };
 
 	/** \name setting periodic boundaries */
 	/*@{*/
@@ -36,10 +33,14 @@ public:
 	/*@}*/
 
 	/** configure the current local coordinate list and register it with the
-	 * model manager */
+	 * model manager. The first time this method is called, it will call
+	 * CommManagerT::FirstConfigure before performing the usual operations. */
 	void Configure(double range);
 
 private:
+
+	/** perform actions needed the first time CommManagerT::Configure is called. */
+	void FirstConfigure(void);
 
 	/** determine the local coordinate bounds 
 	 * \param coords coordinate list
@@ -51,6 +52,9 @@ private:
 
 	/** communicator */
 	CommunicatorT& fComm;
+
+	/** the model manager */
+	ModelManagerT& fModelManager;
 
 	/** \name periodic boundaries */
 	/*@{*/
@@ -66,9 +70,9 @@ private:
 
 	/** partition information */
 	PartitionT* fPartition;
-
-	/** the model manager */
-	ModelManagerT* fModelManager;
+	
+	/** true if CommManagerT::Configure has not been called yet */
+	bool fFirstConfigure;
 };
 
 } /* namespace Tahoe */
