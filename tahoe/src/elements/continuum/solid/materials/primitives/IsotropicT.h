@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.h,v 1.5 2002-07-05 22:28:27 paklein Exp $ */
+/* $Id: IsotropicT.h,v 1.6 2002-10-04 20:52:53 thao Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #ifndef _ISOTROPIC_T_H_
@@ -28,6 +28,7 @@ public:
 	/* set moduli */
 	void Set_E_nu(double E, double nu);
 	void Set_mu_kappa(double mu, double kappa);
+	void Set_PurePlaneStress_mu_lambda(double mu, double lambda);
 	
 	/* accessors */
 	double Young(void) const;

@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.21 2002-09-04 16:28:03 cfoster Exp $ */
+/* $Id: SolidT.h,v 1.22 2002-10-04 20:52:52 thao Exp $ */
 /* created: paklein (03/10/2001) */
 
 #ifndef _MATERIAL_T_H_
@@ -48,14 +48,17 @@ kBCJHypoIsoDmgYC = 47,
  kLocXtalPlastFp = 55,
 kLocXtalPlastFp_C = 56,
  kGrdXtalPlastFp = 57,
-   kOgdenViscVIB = 60,
+          kRGVIB = 60,
+   kRGNeoHookean = 61,
+   kSVNeoHookean = 62,
+       kFDSVKStV = 63,
+       kSSSVKStV = 64,
      kSSStandard = 61,
      kFDStandard = 62,
   kLocJ2SSNlHard = 70,
   kGrdJ2SSNlHard = 71,
      kABAQUS_BCJ = 80,
-kABAQUS_VUMAT_BCJ = 90
-		};
+kABAQUS_VUMAT_BCJ = 90};
 	/* stream extraction operator */ 
 	friend istream& operator>>(istream& in, SolidT::SolidT& code);
 

@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.21 2002-09-04 16:28:03 cfoster Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.22 2002-10-04 20:52:52 thao Exp $ */
 /* created: paklein (02/14/1997) */
 
 #include "SolidMatList3DT.h"
@@ -26,8 +26,6 @@
 #include "OgdenIsoVIB3D.h"
 #include "QuadLogOgden3DT.h"
 #include "FossumSSIsoT.h"
-#include "SSStandardT.h"
-#include "FDStandardT.h"
 #include "HyperEVP3D.h"
 #include "BCJHypo3D.h"
 #include "BCJHypoIsoDamageKE3D.h"
@@ -39,14 +37,16 @@
 #include "LocalCrystalPlastFp.h"
 #include "LocalCrystalPlastFp_C.h"
 #include "GradCrystalPlastFp.h"
+#include "RG_NeoHookean3D.h"
+#include "SV_NeoHookean3D.h"
+#include "SSSV_KStV3D.h"
+#include "FDSV_KStV3D.h"
 #include "tevp3D.h"
 #include "LocalJ2SSNonlinHard.h"
 #include "GradJ2SSNonlinHard.h"
 
 #include "ABAQUS_BCJ.h"
 #include "ABAQUS_VUMAT_BCJ.h"
-
-//#include "OgdenViscVIB3D.h"
 
 /* constructors */
 
@@ -231,19 +231,15 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				fHasLocalizers = true;
 				break;
 			}
-			case kOgdenViscVIB:
-			{
-			  /*				// check 
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
-
-				fArray[matnum] = new OgdenViscVIB3D(in, *fFiniteStrain);
-				fHasLocalizers = true;
-				fHasHistory = true;
-			  */
-			  cout << "\n Viscoelastic VIB model not yet implemented in 3D\n";
-			  throw eGeneralFail;
-			  break;
-			}
+			/*			case kOgdenViscVIB:
+						{
+						if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+									       
+						fArray[matnum] = new OgdenViscVIB3D(in, *fFiniteStrain);
+						fHasLocalizers = true;
+						fHasHistory = true;
+						break;
+						} */
 			case kIsoVIBSimo:
 			{
 				/* check */
@@ -262,24 +258,6 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				fHasLocalizers = true;
 				break;
 			}	
-			case kSSStandard:
-			{
-				/* check */
-				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
-						
-				fArray[matnum] = new SSStandardT(in, *fSmallStrain);
-				fHasHistory = true;
-				break;				
-			}
-			case kFDStandard:
-			{
-				/* check */
-				if (!fFiniteStrain) Error_no_small_strain(cout, matcode);
-						
-				fArray[matnum] = new FDStandardT(in, *fFiniteStrain);
-				fHasHistory = true;
-				break;				
-			}
 			case kIsoVIBSimoJ2:
 			{
 				/* check */
@@ -458,6 +436,42 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 	
 				break;
 			}			
+			case kRGNeoHookean:
+			{
+				/* check */
+				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new RG_NeoHookean3D(in, *fFiniteStrain);
+				fHasHistory = true;
+				break;
+			}
+			case kSVNeoHookean:
+			{
+				/* check */
+				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new SV_NeoHookean3D(in, *fFiniteStrain);
+				fHasHistory = true;
+				break;
+			}
+			case kFDSVKStV:
+			{
+				/* check */
+				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new FDSV_KStV3D(in, *fFiniteStrain);
+				fHasHistory = true;
+				break;
+			}
+			case kSSSVKStV:
+			{
+				/* check */
+				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
+
+				fArray[matnum] = new SSSV_KStV3D(in, *fSmallStrain);
+				fHasHistory = true;
+				break;
+			}
 //TEMP
 #if 0
 			case kIsoVIB_X:

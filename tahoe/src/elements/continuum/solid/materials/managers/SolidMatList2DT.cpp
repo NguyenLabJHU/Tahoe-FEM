@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.22 2002-09-04 16:28:03 cfoster Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.23 2002-10-04 20:52:52 thao Exp $ */
 /* created: paklein (02/14/1997) */
 
 #include "SolidMatList2DT.h"
@@ -39,11 +39,14 @@
 #include "ABAQUS_BCJ.h"
 #include "ABAQUS_VUMAT_BCJ.h"
 #include "QuadLogOgden2DT.h"
-#include "OgdenViscVIB2D.h"
-#include "SSStandard2DT.h"
-#include "FDStandard2DT.h"
+#include "RGVIB2D.h"
+#include "RG_NeoHookean2D.h"
+#include "SV_NeoHookean2D.h"
+#include "SSSV_KStV2D.h"
+#include "FDSV_KStV2D.h"
 #include "tevp2D.h"
 #include "povirk2D.h"
+
 
 #include "HyperEVP2D.h"
 #include "BCJHypo2D.h"
@@ -459,29 +462,48 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 #endif /* __F2C__ */
 				break;
 			}
-			case kOgdenViscVIB:
+			case kRGVIB:
 			{
 				/* check */
 				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new OgdenViscVIB2D(in, *fFiniteStrain);
+				fArray[matnum] = new RGVIB2D(in, *fFiniteStrain);
 				fHasHistory = true;
 				break;
 			}
-			case kSSStandard:
-			{
-				/* check */
-				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
-			
-				fArray[matnum] = new SSStandard2DT(in, *fSmallStrain);
-				fHasHistory = true;
-				break;
-			}
-			case kFDStandard:
+			case kRGNeoHookean:
 			{
 				/* check */
 				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
-				fArray[matnum] = new FDStandard2DT(in, *fFiniteStrain);
+
+				fArray[matnum] = new RG_NeoHookean2D(in, *fFiniteStrain);
+				fHasHistory = true;
+				break;
+			}
+			case kSVNeoHookean:
+			{
+				/* check */
+				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new SV_NeoHookean2D(in, *fFiniteStrain);
+				fHasHistory = true;
+				break;
+			}
+			case kFDSVKStV:
+			{
+				/* check */
+				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new FDSV_KStV2D(in, *fFiniteStrain);
+				fHasHistory = true;
+				break;
+			}
+			case kSSSVKStV:
+			{
+				/* check */
+				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
+
+				fArray[matnum] = new SSSV_KStV2D(in, *fSmallStrain);
 				fHasHistory = true;
 				break;
 			}
@@ -519,6 +541,14 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 
 #endif //TEMP
 
+			/*			case kOgdenViscVIB:
+						{
+						if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+						
+						fArray[matnum] = new OgdenViscVIB2D(in, *fFiniteStrain);
+						fHasHistory = true;
+						break;
+						}*/
 			default:
 			
 				cout << "\n SolidMatList2DT::ReadMaterialData: unknown material code: ";

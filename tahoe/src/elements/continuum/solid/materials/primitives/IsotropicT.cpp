@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.cpp,v 1.4 2002-07-02 19:56:22 cjkimme Exp $ */
+/* $Id: IsotropicT.cpp,v 1.5 2002-10-04 20:52:52 thao Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "IsotropicT.h"
@@ -54,6 +54,19 @@ void IsotropicT::Set_mu_kappa(double mu, double kappa)
 	fYoung = (9.0*fKappa*fMu)/(3.0*fKappa + fMu);
 	fPoisson = (3.0*fKappa - 2.0*fMu)/(6.0*fKappa + 2.0*fMu);
 	fLambda = 2.0*fMu*fPoisson/(1.0 - 2.0*fPoisson);
+}
+void IsotropicT::Set_PurePlaneStress_mu_lambda(double mu, double lambda)
+{
+	fMu = mu;
+	fLambda = lambda;
+	fKappa = mu+lambda;
+
+	/* checks */
+	if (fMu < 0.0 || fKappa < 0.0) throw eGeneralFail;
+
+	/* set moduli */
+	fYoung = 4.0*mu*(lambda + mu)/(lambda + 2.0*mu);
+	fPoisson = lambda/(lambda + 2.0*mu);
 }
 
 /* I/O operators */
