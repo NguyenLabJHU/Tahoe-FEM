@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.h,v 1.5 2005-02-01 20:14:18 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.h,v 1.6 2005-02-02 01:57:53 paklein Exp $ */
 #ifndef _FS_SCNIMF_T_H_
 #define _FS_SCNIMF_T_H_
 
@@ -44,10 +44,10 @@ public:
 	virtual void ReadRestart(istream& in);
 	/*@}*/
 
-	/** */
+	/** compute stiffness matrix */
 	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
 	
-	/** */
+	/** compute residual force */
 	virtual void RHSDriver(void);
 	
 	/** generate labels for output data */
@@ -68,7 +68,8 @@ public:
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 	
-	//virtual void TakeParameterList(const ParameterListT& list);
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected: /* for derived classes only */
@@ -82,8 +83,12 @@ protected: /* for derived classes only */
 	void bVectorToMatrix(double *bVector, dMatrixT& BJ);
 
 	FSMatSupportT* fFSMatSupport;
-	int fNeedsOffset;
-	
+
+	/** \name deformation gradients passed to the constitutive models */
+	/*@{*/
+	ArrayT<dMatrixT> fF_list;
+	ArrayT<dMatrixT> fF_last_list;
+	/*@}*/
 };
 
 } /* namespace Tahoe */
