@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.cpp,v 1.1 2003-04-05 08:34:41 paklein Exp $ */
+/* $Id: ParadynEAMT.cpp,v 1.2 2003-04-11 16:13:11 saubry Exp $ */
 #include "ParadynEAMT.h"
 
 #include "toolboxConstants.h"
@@ -206,16 +206,6 @@ ParadynEAMT::EDStiffnessFunction ParadynEAMT::getElecDensStiffness(void)
   return ParadynEAMT::ElecDensStiffness;
 }
 
-/* return Paradyn-style coefficients table */
-bool ParadynEAMT::getParadynTable(const double** coeff, double& dr, int& row_size, int& num_rows) const
-{
-	*coeff = fPairCoeff.Pointer();
-	dr = f_inc;
-	row_size = 9;
-	num_rows = fPairCoeff.MajorDim();
-	return true;
-}
-
 /***********************************************************************
  * Private
  ***********************************************************************/
@@ -283,6 +273,7 @@ double ParadynEAMT::PairStiffness(double r_ab, double* data_a, double* data_b)
   double z2pp = StiffnessAux(r_ab,s_nr,s_f_inc,s_Paircoeff);
   double phip = PairForce(r_ab,data_a,data_b);
   double phipp = z2pp/r_ab - 2*phip/r_ab;
+  return phipp;
 }
 
 // F''(rho)
