@@ -1,0 +1,679 @@
+
+ Input file version: v3.4.1
+
+ T i t l e : 2D surface adhesion test - disc on surface
+
+ E x e c u t i o n   C o n t r o l   I n f o r m a t i o n :
+
+ Analysis code . . . . . . . . . . . . . . . . . = 3
+    eq. 1, linear elastostatic
+    eq. 2, linear elastodynamic
+    eq. 3, nonlinear elastostatic
+    eq. 4, nonlinear elastodynamic
+    eq. 5, dynamic relaxation
+    eq. 6, linear explicit dynamic
+    eq. 7, nonlinear explicit dynamic
+    eq. 30, perfectly matched layer (PML)
+    eq. 99, general multiple field problem
+ Input format. . . . . . . . . . . . . . . . . . = 1
+    eq.  0. Tahoe
+    eq.  1. Tahoe II
+    eq.  3. Ensight 6 Gold ASCII
+    eq.  4. Ensight 6 Gold Binary
+    eq.  5. Exodus II
+    eq.  6. ABAQUS ASCII (.fin)
+    eq.  7. ABAQUS Binary (.fil)
+    eq. 10. PATRAN Neutral
+    eq. 11. Tahoe Results (.geo/.run)
+ Geometry file . . . . . . . . . . . . . . . . . = protected/benchmark/level.0/adhesion/./jkr/jkr.geom
+ Output format . . . . . . . . . . . . . . . . . = 0
+    eq.  1. Tahoe II
+    eq.  2. TecPlot 7.5
+    eq.  3. Ensight 6 Gold ASCII
+    eq.  4. Ensight 6 Gold Binary
+    eq.  5. Exodus II
+    eq.  6. ABAQUS ASCII (.fin)
+    eq.  7. ABAQUS Binary (.fil)
+    eq.  8. AVS UCD ASCII
+    eq. 10. PATRAN Neutral
+    eq. 12. PARADYN
+ Read restart file code  . . . . . . . . . . . . = 0
+    eq. 0, do not read restart file
+    eq. 1, read restart file
+ Restart file increment (at current step size) . = 0
+ Input data print code . . . . . . . . . . . . . = 0
+    eq. 0, non verbose echo of input data
+    eq. 1, echo all input data
+ Number of solver groups . . . . . . . . . . . . = 1
+
+
+ T i m e   S e q u e n c e   D a t a :
+
+ Number of time sequences  . . . . . . . . . . . = 1
+
+ Sequence number . . . . . . . . . . . . . . . . = 1
+ Number of time steps. . . . . . . . . . . . . . = 1
+ Output print increment (< 0: current step size) = 1
+ Maximum number of load step cuts. . . . . . . . = 0
+ Time step . . . . . . . . . . . . . . . . . . . = 1.000000e+00
+
+
+ L o a d - T i m e   F u n c t i o n   D a t a :
+
+ Number of load-time functions . . . . . . . . . = 1
+ Loadtime function number. . . . . . . . . . . . = 1
+
+           time         factor
+   0.000000e+00   0.000000e+00
+   1.000000e+00   1.000000e+00
+
+
+ T i m e   I n t e g r a t o r s:
+
+ Static controller parameters: NONE
+
+ N o d a l   D a t a :
+
+ Number of nodal points. . . . . . . . . . . . . = 506
+ Number of spatial dimensions. . . . . . . . . . = 2
+
+ Initial conditions:
+
+ Number of initial condition cards . . . . . . . = 0
+
+
+ Kinematic boundary conditions:
+
+ Number of node sets . . . . . . . . . . . . . . = 2
+
+ Node Set Name . . . . . . . . . . . . . . . . . = 3
+ Number of cards . . . . . . . . . . . . . . . . = 50
+ Node Set Name . . . . . . . . . . . . . . . . . = 4
+ Number of cards . . . . . . . . . . . . . . . . = 2
+
+ Number of kinematic boundary condition cards. . = 52
+
+
+ K i n e m a t i c   B C   C o n t r o l l e r s :
+
+ Number of controllers . . . . . . . . . . . . . = 0
+
+
+ Force boundary conditions:
+
+ Number of nodal force cards . . . . . . . . . . = 0
+
+
+ N o d a l   F o r c e   C o n t r o l l e r s :
+
+ Number of controllers . . . . . . . . . . . . . = 0
+
+
+ N o d a l   H i s t o r i e s :
+
+
+ E l e m e n t   G r o u p   D a t a :
+
+ Number of element groups. . . . . . . . . . . . = 3
+
+ Group number. . . . . . . . . . . . . . . . . . = 1
+ Element type code . . . . . . . . . . . . . . . = 36
+    eq. 1, rod
+    eq. 2, elastic
+    eq. 3, hyperelastic
+    eq. 4, hyperelastic with localization
+    eq. 6, diamond cubic lattice
+    eq. 7, diamond cubic lattice with evolving params
+    eq. 8, self-connecting rods
+    eq. 9, self-connecting rods with periodic BC's
+    eq. 10, diamond cubic lattice with periodic BC's
+    eq. 11, cohesive surface element
+    eq. 12, thermal surface element
+    eq. 14, penalty contact
+    eq. 16, augmented Lagrangian contact
+    eq. 17, hyperelastic (total Lagrangian)
+    eq. 18, elastic with MLS displacements
+    eq. 19, hyperelastic MLS (total Lagrangian)
+    eq. 20, hyperelastic MLS (total Lagrangian)
+    eq. 21, linear diffusion element
+    eq. 22, meshfree cohesive surface element
+    eq. 31, Staggered MultiScale Element (for VMS) 
+    eq. 23, 3D contact using ACME
+    eq. 24, 3D contact using Lagrange multipliers
+    eq. 28, 2D Lagrange multiplier contact elements
+    eq. 30, 2D penalty contact elements
+    eq. 34, 3D penalty contact elements
+    eq. 35, Bridging Scale
+    eq. 36, Q1P0 mixed element
+    eq. 37, surface adhesion
+    eq. 38, Pair Potential
+    eq. 39, EAM Potential
+ Associated field. . . . . . . . . . . . . . . . = "displacement"
+ Element geometry code . . . . . . . . . . . . . = 1
+    eq.-1, point
+    eq.0, line
+    eq.1, quadrilateral
+    eq.2, triangle
+    eq.3, hexahedron
+    eq.4, tetrahedron
+ Number of integration points. . . . . . . . . . = 4
+ Mass type code. . . . . . . . . . . . . . . . . = 1
+    eq.0, no mass matrix
+    eq.1, consistent mass matrix
+    eq.2, lumped mass matrix
+ Strain-displacement option. . . . . . . . . . . = 0
+    eq.0, standard
+    eq.1, B-bar (mean dilatation)
+
+ Element Connectivity:
+ Number of connectivity data blocks. . . . . . . = 2
+                   material number: 1
+                element block name: 1
+                   material number: 1
+                element block name: 2
+ Number of elements. . . . . . . . . . . . . . . = 442
+ Block dimensions:
+      ID    size
+       1     218
+       2     224
+
+ Number of nodal output codes. . . . . . . . . . = 7
+    [0]: initial nodal coordinates
+    [1]: nodal displacements
+    [1]: nodal stresses
+    [0]: nodal principal stresses
+    [0]: nodal strain energy density
+    [0]: wave speeds
+    [0]: nodal material output parameters
+ Number of element output codes. . . . . . . . . = 7
+    [0]: reference centroid
+    [0]: ip mass
+    [0]: strain energy
+    [0]: kinetic energy
+    [0]: linear momentum
+    [0]: ip stresses and strains
+    [0]: ip material output parameters
+
+ Body force vector:
+ Body force load-time function number. . . . . . = 0
+ Body force vector components:
+   x[1] direction. . . . . . . . . . . . . . . . = 0.000000e+00
+   x[2] direction. . . . . . . . . . . . . . . . = 0.000000e+00
+
+ Traction boundary conditions:
+ Number of traction BC side sets . . . . . . . . = 0
+
+
+ Material Data:
+ Number of materials . . . . . . . . . . . . . . = 1
+
+ Material number . . . . . . . . . . . . . . . . = 1
+ Material name:
+    Large strain
+    Simo Isotropic
+    Plane Strain
+ Mass damping coefficient. . . . . . . . . . . . = 0.000000e+00
+ Stiffness damping coefficient . . . . . . . . . = 0.000000e+00
+ Density . . . . . . . . . . . . . . . . . . . . = 1.000000e+00
+ Dilatation LTf. . . . . . . . . . . . . . . . . = 0
+ Percent elongation. . . . . . . . . . . . . . . = 0.000000e+00
+ Young's modulus . . . . . . . . . . . . . . . . = 1.000000e+01
+ Poisson's ratio . . . . . . . . . . . . . . . . = 2.500000e-01
+ Shear modulus . . . . . . . . . . . . . . . . . = 4.000000e+00
+ Bulk modulus. . . . . . . . . . . . . . . . . . = 6.666667e+00
+ Lame modulus  . . . . . . . . . . . . . . . . . = 4.000000e+00
+ Thickness . . . . . . . . . . . . . . . . . . . = 1.000000e+00
+ 2D constraint option. . . . . . . . . . . . . . = 2
+    eq.1, plane stress
+    eq.2, plane strain
+
+ Group number. . . . . . . . . . . . . . . . . . = 2
+ Element type code . . . . . . . . . . . . . . . = 37
+    eq. 1, rod
+    eq. 2, elastic
+    eq. 3, hyperelastic
+    eq. 4, hyperelastic with localization
+    eq. 6, diamond cubic lattice
+    eq. 7, diamond cubic lattice with evolving params
+    eq. 8, self-connecting rods
+    eq. 9, self-connecting rods with periodic BC's
+    eq. 10, diamond cubic lattice with periodic BC's
+    eq. 11, cohesive surface element
+    eq. 12, thermal surface element
+    eq. 14, penalty contact
+    eq. 16, augmented Lagrangian contact
+    eq. 17, hyperelastic (total Lagrangian)
+    eq. 18, elastic with MLS displacements
+    eq. 19, hyperelastic MLS (total Lagrangian)
+    eq. 20, hyperelastic MLS (total Lagrangian)
+    eq. 21, linear diffusion element
+    eq. 22, meshfree cohesive surface element
+    eq. 31, Staggered MultiScale Element (for VMS) 
+    eq. 23, 3D contact using ACME
+    eq. 24, 3D contact using Lagrange multipliers
+    eq. 28, 2D Lagrange multiplier contact elements
+    eq. 30, 2D penalty contact elements
+    eq. 34, 3D penalty contact elements
+    eq. 35, Bridging Scale
+    eq. 36, Q1P0 mixed element
+    eq. 37, surface adhesion
+    eq. 38, Pair Potential
+    eq. 39, EAM Potential
+ Adhesive interaction. . . . . . . . . . . . . . =
+    Smith-Ferrante
+ Parameters:
+ Potential parameters:
+      A = 2.000000e-01
+      B = 1.000000e+00
+    l_0 = 0.000000e+00
+ Interaction cut-off distance. . . . . . . . . . = 1.000000e+01
+ Number of surfaces. . . . . . . . . . . . . . . = 2
+ Side Set Name . . . . . . . . . . . . . . . . . = 1
+ Side Set Index. . . . . . . . . . . . . . . . . = 0
+ Side Set Element Group Name . . . . . . . . . . = 1
+ Side Set Length . . . . . . . . . . . . . . . . = 38
+ Side Set Name . . . . . . . . . . . . . . . . . = 2
+ Side Set Index. . . . . . . . . . . . . . . . . = 1
+ Side Set Element Group Name . . . . . . . . . . = 2
+ Side Set Length . . . . . . . . . . . . . . . . = 38
+ Adhesive surfaces:
+ surface  facets    size
+       1      38       2
+
+       2      38       2
+
+
+ Surface adhesion: group 2
+ Time                           = 0.000000e+00
+ Active face pairs              = 257
+
+ Group number. . . . . . . . . . . . . . . . . . = 3
+ Element type code . . . . . . . . . . . . . . . = 14
+    eq. 1, rod
+    eq. 2, elastic
+    eq. 3, hyperelastic
+    eq. 4, hyperelastic with localization
+    eq. 6, diamond cubic lattice
+    eq. 7, diamond cubic lattice with evolving params
+    eq. 8, self-connecting rods
+    eq. 9, self-connecting rods with periodic BC's
+    eq. 10, diamond cubic lattice with periodic BC's
+    eq. 11, cohesive surface element
+    eq. 12, thermal surface element
+    eq. 14, penalty contact
+    eq. 16, augmented Lagrangian contact
+    eq. 17, hyperelastic (total Lagrangian)
+    eq. 18, elastic with MLS displacements
+    eq. 19, hyperelastic MLS (total Lagrangian)
+    eq. 20, hyperelastic MLS (total Lagrangian)
+    eq. 21, linear diffusion element
+    eq. 22, meshfree cohesive surface element
+    eq. 31, Staggered MultiScale Element (for VMS) 
+    eq. 23, 3D contact using ACME
+    eq. 24, 3D contact using Lagrange multipliers
+    eq. 28, 2D Lagrange multiplier contact elements
+    eq. 30, 2D penalty contact elements
+    eq. 34, 3D penalty contact elements
+    eq. 35, Bridging Scale
+    eq. 36, Q1P0 mixed element
+    eq. 37, surface adhesion
+    eq. 38, Pair Potential
+    eq. 39, EAM Potential
+ Number of facet nodes . . . . . . . . . . . . . = 2
+ Regularization parameter. . . . . . . . . . . . = 5.000000e+01
+ Number of contact surfaces. . . . . . . . . . . = 1
+ Side Set Name . . . . . . . . . . . . . . . . . = 1
+ Side Set Index. . . . . . . . . . . . . . . . . = 0
+ Side Set Element Group Name . . . . . . . . . . = 1
+ Side Set Length . . . . . . . . . . . . . . . . = 38
+ Contact surfaces:
+ surface  facets    size
+       1      38       2
+
+ Node Set Name . . . . . . . . . . . . . . . . . = 2
+ Node Set Index. . . . . . . . . . . . . . . . . = 1
+ Node Set Length . . . . . . . . . . . . . . . . = 40
+
+ Search grid: group 3
+
+ Search grid statistics:
+ Number of grid cells. . . . . . . . . . . . . . = 9
+     dx = 1.667011e+00 (3)
+     dy = 3.334000e+00 (3)
+ Number of NULL or empty cells . . . . . . . . . = 9
+ Minimum number of occupants per cell. . . . . . = -1
+ Maximum number of occupants per cell. . . . . . = 0
+ Average number of occupants per cell. . . . . . = 0
+
+ S o l v e r   p a r a m e t e r s:
+
+ Group . . . . . . . . . . . . . . . . . . . . . = 0
+ Global equation type. . . . . . . . . . . . . . = 1
+    eq. 0, diagonal matrix
+    eq. 1, profile solver (symmetric and nonsymmetric)
+    eq. 2, full matrix (most general)
+    eq. 3, NOT AVAILABLE
+    eq. 4, NOT AVAILABLE
+    eq. 5, NOT AVAILABLE
+ Output global equation numbers. . . . . . . . . = 0
+ Check code. . . . . . . . . . . . . . . . . . . = 0
+    eq. 0, do not perform rank check
+    eq. 1, zero/negative pivots
+    eq. 2, all pivots
+    eq. 3, entire LHS matrix
+    eq. 4, entire RHS vector
+    eq. 5, solution vector
+
+ O p t i m i z a t i o n   P a r a m e t e r s :
+
+ Maximum number of iterations. . . . . . . . . . = 50
+ Absolute convergence tolerance. . . . . . . . . = 1.000000e-10
+ Relative convergence tolerance. . . . . . . . . = 1.000000e-12
+ Divergence tolerance. . . . . . . . . . . . . . = 1.000000e+25
+ Quick solution iteration count. (-1 to disable) = 6
+ Number of quick solutions before step increase. = 3
+ Iteration output print increment. . . . . . . . = 0
+ Maximum number of line search iterations. . . . = 7
+ Line search orthoginality tolerance . . . . . . = 1.000000e-01
+ Maximum update step size. . . . . . . . . . . . = 1.500000e+00
+
+ Multi-solver parameters: 1
+    rank   group       loop its.       pass its.
+       1       0              -1              -1
+ Maximum number of solver loops. . . . . . . . . = 1
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 960
+ Total number of equations . . . . . . . . . . . = 960
+ Number of terms in global matrix. . . . . . . . = 49524
+ Mean half bandwidth . . . . . . . . . . . . . . = 52
+ Bandwidth . . . . . . . . . . . . . . . . . . . = 481
+ Number of non-zero values (pre-factorization) . = 9510
+ Storage efficiency (% non-zero) . . . . . . . . = 1.920281e+01
+
+
+ T i m e   S e q u e n c e : 1
+
+
+ Converged at time = 0.000000e+00
+
+ Surface adhesion: group 2
+ Time                           = 0.000000e+00
+ Active face pairs              = 207
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 960
+ Total number of equations . . . . . . . . . . . = 960
+ Number of terms in global matrix. . . . . . . . = 43228
+ Mean half bandwidth . . . . . . . . . . . . . . = 46
+ Bandwidth . . . . . . . . . . . . . . . . . . . = 934
+ Number of non-zero values (pre-factorization) . = 9314
+ Storage efficiency (% non-zero) . . . . . . . . = 2.154622e+01
+
+
+ Converged at time = 1.000000e+00
+
+ E q u a t i o n    S y s t e m    D a t a :
+
+ Local number of equations . . . . . . . . . . . = 960
+ Total number of equations . . . . . . . . . . . = 960
+ Number of terms in global matrix. . . . . . . . = 43228
+ Mean half bandwidth . . . . . . . . . . . . . . = 46
+ Bandwidth . . . . . . . . . . . . . . . . . . . = 934
+ Number of non-zero values (pre-factorization) . = 9314
+ Storage efficiency (% non-zero) . . . . . . . . = 2.154622e+01
+
+
+ Time = 1.000000e+00
+ Step 1 of 1
+
+ Surface adhesion: group 2
+ Time                           = 1.000000e+00
+ Active face pairs              = 207
+  surf 1   facet  surf 2   facet
+       1      14       2      23
+       1      14       2      24
+       1      14       2      25
+       1      14       2      26
+       1      15       2      20
+       1      15       2      21
+       1      15       2      22
+       1      15       2      23
+       1      15       2      24
+       1      15       2      25
+       1      15       2      26
+       1      16       2      18
+       1      16       2      19
+       1      16       2      20
+       1      16       2      21
+       1      16       2      22
+       1      16       2      23
+       1      16       2      24
+       1      16       2      25
+       1      16       2      26
+       1      17       2      16
+       1      17       2      17
+       1      17       2      18
+       1      17       2      19
+       1      17       2      20
+       1      17       2      21
+       1      17       2      22
+       1      17       2      23
+       1      17       2      24
+       1      17       2      25
+       1      17       2      26
+       1      18       2      15
+       1      18       2      16
+       1      18       2      17
+       1      18       2      18
+       1      18       2      19
+       1      18       2      20
+       1      18       2      21
+       1      18       2      22
+       1      18       2      23
+       1      18       2      24
+       1      18       2      25
+       1      19       2      14
+       1      19       2      15
+       1      19       2      16
+       1      19       2      17
+       1      19       2      18
+       1      19       2      19
+       1      19       2      20
+       1      19       2      21
+       1      19       2      22
+       1      19       2      23
+       1      19       2      24
+       1      19       2      25
+       1      20       2      13
+       1      20       2      14
+       1      20       2      15
+       1      20       2      16
+       1      20       2      17
+       1      20       2      18
+       1      20       2      19
+       1      20       2      20
+       1      20       2      21
+       1      20       2      22
+       1      20       2      23
+       1      20       2      24
+       1      20       2      25
+       1      21       2      13
+       1      21       2      14
+       1      21       2      15
+       1      21       2      16
+       1      21       2      17
+       1      21       2      18
+       1      21       2      19
+       1      21       2      20
+       1      21       2      21
+       1      21       2      22
+       1      21       2      23
+       1      21       2      24
+       1      22       2      12
+       1      22       2      13
+       1      22       2      14
+       1      22       2      15
+       1      22       2      16
+       1      22       2      17
+       1      22       2      18
+       1      22       2      19
+       1      22       2      20
+       1      22       2      21
+       1      22       2      22
+       1      22       2      23
+       1      22       2      24
+       1      23       2      11
+       1      23       2      12
+       1      23       2      13
+       1      23       2      14
+       1      23       2      15
+       1      23       2      16
+       1      23       2      17
+       1      23       2      18
+       1      23       2      19
+       1      23       2      20
+       1      23       2      21
+       1      23       2      22
+       1      23       2      23
+       1      24       2      11
+       1      24       2      12
+       1      24       2      13
+       1      24       2      14
+       1      24       2      15
+       1      24       2      16
+       1      24       2      17
+       1      24       2      18
+       1      24       2      19
+       1      24       2      20
+       1      24       2      21
+       1      24       2      22
+       1      24       2      23
+       1      25       2      10
+       1      25       2      11
+       1      25       2      12
+       1      25       2      13
+       1      25       2      14
+       1      25       2      15
+       1      25       2      16
+       1      25       2      17
+       1      25       2      18
+       1      25       2      19
+       1      25       2      20
+       1      25       2      21
+       1      25       2      22
+       1      26       2       9
+       1      26       2      10
+       1      26       2      11
+       1      26       2      12
+       1      26       2      13
+       1      26       2      14
+       1      26       2      15
+       1      26       2      16
+       1      26       2      17
+       1      26       2      18
+       1      26       2      19
+       1      26       2      20
+       1      26       2      21
+       1      27       2       9
+       1      27       2      10
+       1      27       2      11
+       1      27       2      12
+       1      27       2      13
+       1      27       2      14
+       1      27       2      15
+       1      27       2      16
+       1      27       2      17
+       1      27       2      18
+       1      27       2      19
+       1      27       2      20
+       1      28       2       8
+       1      28       2       9
+       1      28       2      10
+       1      28       2      11
+       1      28       2      12
+       1      28       2      13
+       1      28       2      14
+       1      28       2      15
+       1      28       2      16
+       1      28       2      17
+       1      28       2      18
+       1      29       2       8
+       1      29       2       9
+       1      29       2      10
+       1      29       2      11
+       1      29       2      12
+       1      29       2      13
+       1      29       2      14
+       1      29       2      15
+       1      29       2      16
+       1      29       2      17
+       1      30       2       7
+       1      30       2       8
+       1      30       2       9
+       1      30       2      10
+       1      30       2      11
+       1      30       2      12
+       1      30       2      13
+       1      30       2      14
+       1      30       2      15
+       1      31       2       7
+       1      31       2       8
+       1      31       2       9
+       1      31       2      10
+       1      31       2      11
+       1      31       2      12
+       1      31       2      13
+       1      31       2      14
+       1      32       2       7
+       1      32       2       8
+       1      32       2       9
+       1      32       2      10
+       1      32       2      11
+       1      32       2      12
+       1      33       2       6
+       1      33       2       7
+       1      33       2       8
+       1      33       2       9
+       1      33       2      10
+       1      34       2       6
+       1      34       2       7
+
+ Search grid statistics:
+
+ Search grid statistics:
+ Number of grid cells. . . . . . . . . . . . . . = 18
+     dx = 1.634400e+00 (3)
+     dy = 3.275485e+00 (6)
+ Number of NULL or empty cells . . . . . . . . . = 4
+ Minimum number of occupants per cell. . . . . . = 2
+ Maximum number of occupants per cell. . . . . . = 8
+ Average number of occupants per cell. . . . . . = 4
+
+ Contact tracking: group 3
+ Time                           = 1.000000e+00
+ Active strikers                = 10
+ striker surface   facet     facet nodes
+      11       1      30     287     288
+      10       1      31     288     289
+       9       1      32     289     290
+       8       1      33     290     291
+       6       1      35     292     293
+       7       1      34     291     292
+       5       1      36     293     294
+       4       1      37     294     295
+       3       1      38     295     258
+       1       1      38     295     258
+
+ Number of contact interactions = 4
+ Maximum penetration depth      = -3.110332e-03
+
+   Start time: Mon May 19 17:59:44 2003
+ Construction: 4.000000e-01 sec.
+     Solution: 5.540000e+00 sec.
+    Stop time: Mon May 19 17:59:55 2003
+
+ End Execution
+

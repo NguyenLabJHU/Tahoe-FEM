@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.10 2004-04-14 22:42:09 paklein Exp $
+# $Id: makefile,v 1.11 2004-04-28 03:02:41 paklein Exp $
 #
 # type "make clean" to remove test results
 #
@@ -14,7 +14,8 @@ SUB_DIR = \
 	enhanced.strain \
 	integrator \
 	2D.particle \
-	3D.particle
+	3D.particle \
+	adhesion
 
 all:
 	@echo "make clean to remove test results"
