@@ -1,4 +1,4 @@
-/* $Id: ParadynPairT.h,v 1.6 2003-10-28 23:31:52 paklein Exp $ */
+/* $Id: ParadynPairT.h,v 1.7 2004-07-15 08:29:49 paklein Exp $ */
 #ifndef _PARADYN_PAIR_T_H_
 #define _PARADYN_PAIR_T_H_
 
@@ -13,6 +13,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class dArrayT;
+class BasicSupportT;
 
 /** pair interaction constructed for Paradyn (EAM) format. The
  * potential parameters are read from the given file, from which
@@ -25,11 +26,8 @@ public:
 	/** constructor. Reads parameters from file and computes the
 	 * coefficients of a cubic spline through the evenly spaced
 	 * values of the potential read from the file. */
-	ParadynPairT(const StringT& param_file);
-	ParadynPairT(void);
-
-	/** write properties to output */
-	virtual void Write(ostream& out) const;
+	ParadynPairT(const BasicSupportT* support, const StringT& param_file);
+	ParadynPairT(const BasicSupportT* support);
 
 	/** \name return interaction functions */
 	/*@{*/
@@ -81,6 +79,9 @@ private:
 
 private:
 
+	/** host code support */
+	const BasicSupportT* fSupport;
+
 	/** description from parameters file */
 	StringT fDescription;
 	
@@ -113,6 +114,3 @@ private:
 } /* namespace Tahoe */
 
 #endif /* _PARADYN_PAIR_T_H_ */
-
-
-

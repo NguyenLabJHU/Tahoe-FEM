@@ -1,9 +1,11 @@
-/* $Id: MaterialSupportT.h,v 1.11 2004-06-26 05:54:58 paklein Exp $ */
+/* $Id: MaterialSupportT.h,v 1.12 2004-07-15 08:26:14 paklein Exp $ */
 #ifndef _MATERIAL_SUPPORT_T_H_
 #define _MATERIAL_SUPPORT_T_H_
 
+/* base class */
+#include "BasicSupportT.h"
+
 /* direct members */
-#include "GlobalT.h"
 #include "LocalArrayT.h"
 #include "AutoArrayT.h"
 #include "ElementCardT.h"
@@ -13,18 +15,14 @@ namespace Tahoe {
 /* forward declarations */
 class ContinuumElementT;
 class ElementCardT;
-class ScheduleT;
-class ifstreamT;
-class ofstreamT;
-class CommunicatorT;
 
 /** support for the Tahoe materials classes. */
-class MaterialSupportT
+class MaterialSupportT: public BasicSupportT
 {
 public:
 
 	/** constructor */
-	MaterialSupportT(int nsd, int ndof, int nip);
+	MaterialSupportT(int ndof, int nip);
 
 	/** destructor */
 	virtual ~MaterialSupportT(void);
@@ -32,7 +30,7 @@ public:
 	/** \name dimensions */
 	/*@{*/
 	/** number of spatial dimensions */
-	int NumSD(void) const { return fNumSD; };
+//	int NumSD(void) const { return fNumSD; };
 	
 	/** number of degrees of freedom (per node) */
 	int NumDOF(void) const { return fNumDOF; };
@@ -41,69 +39,20 @@ public:
 	int NumIP(void) const { return fNumIP; };
 	/*@}*/
 
-	/** \name multiprocessor support */
-	/*@{*/
-	/** the number of processes */
-	int Size(void) const { return fSize; };
-
-	/** the rank of this process */
-	int Rank(void) const { return fRank; };
-
-	/** the low-level global communicator, or NULL if it doesn't exist */
-	const CommunicatorT* Communicator(void) const { return fCommunicator; };
-
 	/** the low-level communicator only including processes with non-zero numbers
 	 * of elements, or NULL if it doesn't exist */
 	const CommunicatorT* GroupCommunicator(void) const { return fGroupCommunicator; };
-	/*@}*/
 
 	/** \name run time status */
 	/*@{*/
-	/** return a const reference to the run state flag */
-	const GlobalT::StateT RunState(void) const;
 
 	/** current stress evaluation point within the element. If
 	 * no source for the current point is set using 
 	 * MaterialSupportT::SetCurrIP, will return 0. */
 	int CurrIP(void) const;
 
-	/** the iteration number for the current time increment. If
-	 * no source for the iteration number is set using 
-	 * MaterialSupportT::SetIterationNumber, will return -1. */
-	int IterationNumber(void) const;
-	
-	/** the current simulation time */
-	double Time(void) const;
-
-	/** the simulation time increment */
-	double TimeStep(void) const;
-
-	/** the simulation time increment number */
-	int StepNumber(void) const;
-
-	/** number of steps in the simulation for the current step size */
-	int NumberOfSteps(void) const;
-
-	/** set the source for the run state flag */
-	void SetRunState(const GlobalT::StateT& run_state);
-
 	/** set the source for the current stress evaluation point */
 	void SetCurrIP(const int& curr_ip);
-
-	/** set the source for the iteration number */
-	void SetIterationNumber(const int& iter);
-
-	/** set source for the current simulation time */
-	void SetTime(const double& time);
-
-	/** set source for the simulation time increment */
-	void SetTimeStep(const double& time_step);
-
-	/** set source for the simulation time increment number */
-	void SetStepNumber(const int& step_number);
-
-	/** set the source for the number of steps */
-	void SetNumberOfSteps(const int& number_of_steps);
 	/*@}*/
 	
 	/** \name host code information */
@@ -112,9 +61,9 @@ public:
 	 * no element information in available. The ContinuumElementT
 	 * pointer is set using MaterialSupportT::SetContinuumElement. */
 	const ContinuumElementT* ContinuumElement(void) const;
-	
-	/** set the source for element cards */
-	void SetElementCards(AutoArrayT<ElementCardT>* element_cards);
+
+	/** solver iteration number for the group set with MaterialSupportT::SetGroup */
+	const int& GroupIterationNumber(void) const;
 
 	/** return the number of elements. If the element cards pointer
 	 * is not set with MaterialSupportT::SetElementCards, this will return 0 */
@@ -138,9 +87,6 @@ public:
 	 * values for the current element. */
 	virtual const LocalArrayT* LocalArray(LocalArrayT::TypeT t) const;
 
-	/** return a pointer to the specified LoadTime function */
-	const ScheduleT* Schedule(int num) const;
-
 	/** interpolate the given field to the current integration point. Returns true if the
 	 * field is available, false otherwise. */
 	bool Interpolate(const LocalArrayT& u, dArrayT& u_ip) const;
@@ -157,15 +103,12 @@ public:
 
 	/** set pointer local array */
 	virtual void SetLocalArray(const LocalArrayT& array);
-	/*@}*/
 
-	/** \name input/output streams */
-	/*@{*/
-	/** the parameters stream */
-	ifstreamT& Input(void) const;
+	/** set the source for element cards */
+	void SetElementCards(AutoArrayT<ElementCardT>* element_cards);
 
-	/** the echo file */
-	ofstreamT& Output(void) const;
+	/** set solver group */
+	void SetGroup(int group) { fGroup = group; };
 	/*@}*/
 
   private:
@@ -173,7 +116,7 @@ public:
   	/** \name dimensions */
   	/*@{*/
 	/** number of spatial dimensions */
-	int fNumSD;
+//	int fNumSD;
 
 	/** number of degrees of freedom */
 	int fNumDOF;
@@ -182,34 +125,20 @@ public:
 	int fNumIP;
   	/*@}*/
   	
-  	/** sources for run time information */
-  	/*@{*/
-	const GlobalT::StateT* fRunState;
+  	/** source for the current integration point */
 	const int* fCurrIP;
-	const int* fIterationNumber;
-	const double* fTime;
-	const double* fTimeStep;
-	const int* fStepNumber;
-	const int* fNumberOfSteps;
-  	/*@}*/
-
-	/** \name multiprocessor information */
-	/*@{*/
-	int fSize;
-	int fRank;
-	
-	/** global communicator */
-	const CommunicatorT* fCommunicator;
 
 	/** communicator including only processes with non-zero numbers of elements */
 	const CommunicatorT* fGroupCommunicator;
-	/*@}*/
 
 	/** pointer to element card information */
 	AutoArrayT<ElementCardT>* fElementCards;	
   
   	/** pointer to the continuum element */
   	const ContinuumElementT* fContinuumElement;
+
+	/** solver group for MaterialSupportT::fContinuumElement */
+	int fGroup;
 
 	/** \name pointers to local arrays */
 	/*@{*/
@@ -222,6 +151,12 @@ public:
 inline const ContinuumElementT* MaterialSupportT::ContinuumElement(void) const
 {
 	return fContinuumElement;
+}
+
+/* solver iteration number for the group set with MaterialSupportT::SetGroup */
+inline const int& MaterialSupportT::GroupIterationNumber(void) const {
+	if (fGroup == -1) ExceptionT::GeneralFail("", "solver group not set");
+	return IterationNumber(fGroup); /* inherited */
 }
 
 /* set the source for element cards */
@@ -266,83 +201,13 @@ inline ElementCardT* MaterialSupportT::CurrentElement(void) const
 		return NULL;
 }
 
-/* run time status */
-inline const GlobalT::StateT MaterialSupportT::RunState(void) const
-{
-	if (fRunState) return *fRunState;
-	else return GlobalT::kNone;
-}
-
-inline int MaterialSupportT::CurrIP(void) const
-{
+inline int MaterialSupportT::CurrIP(void) const {
 	if (fCurrIP) return *fCurrIP;
 	else return 0;
 }
 
-inline int MaterialSupportT::IterationNumber(void) const
-{
-	if (fIterationNumber) return *fIterationNumber;
-	else return -1;
-}
-
-inline double MaterialSupportT::Time(void) const
-{
-	if (fTime) return *fTime;
-	else return 0.0;
-}
-
-inline double MaterialSupportT::TimeStep(void) const
-{
-	if (fTimeStep) return *fTimeStep;
-	else return 0.0;
-}
-
-inline int MaterialSupportT::StepNumber(void) const
-{
-	if (fStepNumber) return *fStepNumber;
-	else return -1;
-}
-
-inline int MaterialSupportT::NumberOfSteps(void) const
-{
-	if (fNumberOfSteps) return *fNumberOfSteps;
-	else return 0;
-}
-
-inline void MaterialSupportT::SetRunState(const GlobalT::StateT& run_state)
-{
-	fRunState = &run_state;
-}
-
-inline void MaterialSupportT::SetCurrIP(const int& curr_ip)
-{
-	fCurrIP = &curr_ip;
-}
-
-inline void MaterialSupportT::SetIterationNumber(const int& iter)
-{
-	fIterationNumber = &iter;
-}
-
-inline void MaterialSupportT::SetTime(const double& time)
-{
-	fTime = &time;
-}
-
-inline void MaterialSupportT::SetTimeStep(const double& time_step)
-{
-	fTimeStep = &time_step;
-}
-
-inline void MaterialSupportT::SetStepNumber(const int& step_number)
-{
-	fStepNumber = &step_number;
-}
-
-inline void MaterialSupportT::SetNumberOfSteps(const int& number_of_steps)
-{
-	fNumberOfSteps = &number_of_steps;
-}
+inline void MaterialSupportT::SetCurrIP(const int& curr_ip) { fCurrIP = &curr_ip; }
 
 } /* namespace Tahoe */
-#endif /* _SS_HOOKEAN_MAT_H_ */
+
+#endif /* _MATERIAL_SUPPORT_T_H_ */

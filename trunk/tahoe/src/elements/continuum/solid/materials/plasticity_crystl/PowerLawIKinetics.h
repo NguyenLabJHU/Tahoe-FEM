@@ -33,10 +33,6 @@ class PowerLawIKinetics: public SlipKinetics
   virtual double DPsiDIso(double gamdot, int is);
   virtual double DPsiDKin(double gamdot, int is);
 
-  // print kinetic equation data and model name
-  virtual void Print(ostream& out) const;
-  virtual void PrintName(ostream& out) const;
-
   // continuation method using rate sensitivity exponent
   virtual void SetUpRateSensitivity();
   virtual void ComputeRateSensitivity();

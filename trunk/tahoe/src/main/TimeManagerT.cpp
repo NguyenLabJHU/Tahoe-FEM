@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.21 2004-06-28 22:41:51 hspark Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.22 2004-07-15 08:31:03 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "TimeManagerT.h"
 
@@ -12,61 +12,9 @@
 #include "FEManagerT.h"
 #include "TimeSequence.h"
 #include "dArrayT.h"
-
-/* controllers */
-#include "StaticIntegrator.h"
-#include "LinearStaticIntegrator.h"
-#include "TrapezoidIntegrator.h"
-#include "LinearHHTalpha.h"
-#include "NLHHTalpha.h"
-#include "ExplicitCDIntegrator.h"
-#include "VerletIntegrator.h"
-#include "Gear6Integrator.h"
+#include "NodeManagerT.h"
 
 using namespace Tahoe;
-
-namespace Tahoe {
-
-/* stream extraction operator */
-istream& operator>>(istream& in, TimeManagerT::CodeT& code)
-{
-	int i_code = -1;
-	in >> i_code;
-	switch (i_code)
-	{
-		case TimeManagerT::kLinearStatic:
-			code = TimeManagerT::kLinearStatic;
-			break;
-		case TimeManagerT::kStatic:
-			code = TimeManagerT::kStatic;
-			break;
-		case TimeManagerT::kTrapezoid:
-			code = TimeManagerT::kTrapezoid;
-			break;
-		case TimeManagerT::kLinearHHT:
-			code = TimeManagerT::kLinearHHT;
-			break;
-		case TimeManagerT::kNonlinearHHT:
-			code = TimeManagerT::kNonlinearHHT;
-			break;
-		case TimeManagerT::kExplicitCD:
-			code = TimeManagerT::kExplicitCD;
-			break;
-	        case TimeManagerT::kVerlet:
-	                code = TimeManagerT::kVerlet;
-	                break;
-		case TimeManagerT::kGear6:
-			code = TimeManagerT::kGear6;
-			break;
-		default:
-			cout << "\n operator>>TimeManagerT::CodeT: unknown code: "
-			<< i_code<< endl;
-			throw ExceptionT::kBadInputValue;
-	}
-	return in;
-}
-
-} // namespace Tahoe
 
 /* constructor */
 TimeManagerT::TimeManagerT(FEManagerT& FEM):
@@ -81,49 +29,37 @@ TimeManagerT::TimeManagerT(FEManagerT& FEM):
 	fStepCutStatus(kSameStep),
 	
 	fNumSteps(0), fOutputInc(1), fMaxCuts(0), fTimeStep(1.0),
-	fIsTimeShifted(0), fTimeShift(0.0)
+	fIsTimeShifted(0), fTimeShift(0.0),
+	fImpExp(IntegratorT::kImplicit)
 {
 
 }
 
-/* initialization */
-void TimeManagerT::Initialize(void)
+/* set to initial conditions */
+void TimeManagerT::InitialCondition(void)
 {
-	ifstreamT& in  = theBoss.Input();
-	ostream&   out = theBoss.Output();
+	/* nodes */
+	const NodeManagerT* nodes = theBoss.NodeManager();
+	if (!nodes) ExceptionT::GeneralFail("TimeManagerT::InitialCondition");
 
-	/* Time sequences - allocate memory and echo */
-	int num_sequences = -1;
-	in >> num_sequences;	
-	if (num_sequences < 1) throw ExceptionT::kBadInputValue;
-	fSequences.Dimension(num_sequences);
-	EchoTimeSequences(in, out);
-	
-	/* Loadtime functions - allocate memory and echo */	
-	int num_LTf = -1;
-	in >> num_LTf;
-	if (num_LTf < 0) throw ExceptionT::kBadInputValue;
-	fSchedule.Dimension(num_LTf); // add: f(t) = 1.0
-
-	EchoSchedule(in, out);
-	
-	/* console variables */
-	iSetName("time");
-	iAddVariable("num_steps", fNumSteps);
-	iAddVariable("output_inc", fOutputInc);
-	iAddVariable("max_step_cuts", fMaxCuts);
-	iAddVariable("time_step", fTimeStep);
+	/* see if all integrators are explicit */
+	fImpExp = IntegratorT::kExplicit;
+	int num_groups = theBoss.NumGroups();
+	for (int i = 0; i < num_groups && fImpExp == IntegratorT::kExplicit; i++)
+		fImpExp = nodes->ImplicitExplicit(i);
 }
 
 /* run through the time sequences.  NextSequence returns 0
 * if there are no more time sequences */
 void TimeManagerT::Top(void)
 {
+#pragma message("remove me")
 	fCurrentSequence = -1;
 }
 
 bool TimeManagerT::NextSequence(void)
 {
+#pragma message("remove me")
 	fCurrentSequence++;
 	
 	/* initialize next sequence */
@@ -151,13 +87,7 @@ bool TimeManagerT::NextSequence(void)
 		theBoss.Output() << fCurrentSequence + 1 << "\n\n";
 		cout << "\n T i m e   S e q u e n c e : ";
 		cout << fCurrentSequence + 1 << endl;
-		
-		/* see if all Integrators are explicit */
-		fImpExp = IntegratorT::kExplicit;
-		for (int i = 0; fImpExp == IntegratorT::kExplicit && 
-			i < theBoss.NumIntegrators(); i++)
-			fImpExp = theBoss.Integrator(i)->ImplicitExplicit();
-		
+
 		return true;
 	}
 	else
@@ -184,9 +114,9 @@ bool TimeManagerT::Step(void)
 		IncrementTime(fTimeStep);
 		
 		/* print less often for explicit */
-		GlobalT::AnalysisCodeT analysiscode = theBoss.Analysis();
+		//GlobalT::AnalysisCodeT analysiscode = theBoss.Analysis();
 		bool is_explicit = fImpExp == IntegratorT::kExplicit;
-		
+
 		/* verbose flag */
 		bool write_header = !is_explicit     ||
 		                    fOutputInc == -1 ||
@@ -215,15 +145,14 @@ bool TimeManagerT::Step(void)
 
 void TimeManagerT::ResetStep(void)
 {
+	const char caller[] = "TimeManagerT::ResetStep";
+
 	/* check that time has not been shifted */
-	if (fIsTimeShifted) throw ExceptionT::kGeneralFail;
+	if (fIsTimeShifted) ExceptionT::GeneralFail(caller);
 
 	/* too far */
 	if (fStepNum == 0)
-	{
-		cout << "\n TimeManagerT::ResetStep: already at the start time"<< endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		 ExceptionT::GeneralFail(caller, "already at the start time");
 	/* return to previous time */
 	else
 	{		
@@ -273,11 +202,8 @@ ScheduleT* TimeManagerT::Schedule(int num) const
 {
 	/* range check */
 	if (num < 0 || num >= fSchedule.Length())
-	{
-		cout << "\n TimeManagerT::Schedule: function number " << num << " is out of\n"
-		     <<   "     range {" << 0 << "," << fSchedule.Length() - 1 << "}" << endl;
-		throw ExceptionT::kOutOfRange;
-	}
+		ExceptionT::OutOfRange("TimeManagerT::Schedule", "schedule %d is out of range {0,%d}",
+			num, fSchedule.Length() - 1);
 
 	return fSchedule[num];
 }
@@ -346,76 +272,6 @@ bool TimeManagerT::WriteOutput(void) const
 		return false;
 }
 
-/* return a pointer to a integrator of the specified type */
-IntegratorT* TimeManagerT::New_Integrator(CodeT type) const
-{
-	IntegratorT* integrator = NULL;
-	try {
-	switch (type)
-	{
-		case kLinearStatic:
-		{
-			integrator = new LinearStaticIntegrator(theBoss.Output());
-			break;		
-		}
-		case kStatic:
-		{
-			integrator = new StaticIntegrator(theBoss.Output());
-			break;		
-		}
-		case kTrapezoid:
-		{
-			integrator = new TrapezoidIntegrator(theBoss.Output());
-			break;		
-		}
-		case kLinearHHT:
-		{
-			TimeManagerT* tm = const_cast<TimeManagerT*>(this);
-			integrator = new LinearHHTalpha(*tm, theBoss.Input(), theBoss.Output(), true);
-			break;				
-		}
-		case kNonlinearHHT:
-		{
-			TimeManagerT* tm = const_cast<TimeManagerT*>(this);
-			integrator = new NLHHTalpha(*tm, theBoss.Input(), theBoss.Output(), true);
-			break;
-		}
-		case kExplicitCD:
-		{
-			integrator = new ExplicitCDIntegrator(theBoss.Output());
-			break;		
-		}
-		case kVerlet:
-		{
-			integrator = new VerletIntegrator(theBoss.Output());
-			break;
-		}
-		case kGear6:
-		{
-			integrator = new Gear6Integrator(theBoss.Output());
-			break;
-		}
-		default:
-		{
-			cout << "\n TimeManagerT::New_Integrator: unrecognized type: " << type << endl;
-			throw ExceptionT::kGeneralFail;
-		}
-	} }
-#ifdef __NEW_THROWS__
-	catch (bad_alloc) { integrator = NULL; }
-#else
-	catch (ExceptionT::CodeT) { integrator = NULL; }
-#endif	
-	
-	/* fail */
-	if (!integrator) {
-		cout << "\n TimeManagerT::New_Integrator: failed" << endl;
-		throw ExceptionT::kGeneralFail;	
-	}
-
-	return integrator;
-}
-
 /* describe the parameters needed by the interface */
 void TimeManagerT::DefineParameters(ParameterListT& list) const
 {
@@ -429,7 +285,7 @@ void TimeManagerT::DefineParameters(ParameterListT& list) const
 
 	/* results output increment */
 	ParameterT output_inc(ParameterT::Integer, "output_inc");
-	output_inc.AddLimit(0, LimitT::LowerInclusive);
+	output_inc.SetDefault(0);
 	list.AddParameter(output_inc);
 
 	/* maximum number of time increment cuts */
@@ -450,69 +306,53 @@ void TimeManagerT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
 
-	//not implemented
+	//TEMP - remove multiple time sequences
+	fSequences.Dimension(1);
+	TimeSequence& seq = fSequences[0];
+	seq.fNumSteps  = list.GetParameter("num_steps");
+	seq.fOutputInc = list.GetParameter("output_inc");
+	seq.fMaxCuts   = list.GetParameter("max_step_cuts");
+	seq.fTimeStep  = list.GetParameter("time_step");	
+
+	/* console variables */
+	iSetName("time");
+	iAddVariable("num_steps", fNumSteps);
+	iAddVariable("output_inc", fOutputInc);
+	iAddVariable("max_step_cuts", fMaxCuts);
+	iAddVariable("time_step", fTimeStep);
+
+	/* construct schedule functions */
+	fSchedule.Dimension(list.NumLists("schedule_function"));
+	for (int i = 0; i < fSchedule.Length(); i++)
+	{
+		fSchedule[i] = new ScheduleT;
+		fSchedule[i]->TakeParameterList(*(list.List("schedule_function", i)));
+		fSchedule[i]->SetTime(0.0);
+	}
+}
+
+/* information about subordinate parameter lists */
+void TimeManagerT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ParameterInterfaceT::DefineSubs(sub_list);
+
+	/* schedule function */
+	sub_list.AddSub("schedule_function", ParameterListT::Any);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* TimeManagerT::NewSub(const StringT& name) const
+{
+	if (name == "schedule_function")
+		return new ScheduleT;
+	else /* inherited */
+		return ParameterInterfaceT::NewSub(name);
 }
 
 /************************************************************************
  * Private
  ************************************************************************/
-
-void TimeManagerT::EchoTimeSequences(ifstreamT& in, ostream& out)
-{
-	int num_seq = fSequences.Length();
-	out << "\n T i m e   S e q u e n c e   D a t a :\n\n";
-	out << " Number of time sequences  . . . . . . . . . . . = " << num_seq;
-	out << "\n\n";
-	
-	for (int i = 0; i < num_seq; i++)
-	{
-		int seqnum;
-		in >> seqnum;	
-		if (seqnum < 1 ||
-		    seqnum > num_seq) throw ExceptionT::kBadInputValue;
-
-		out << " Sequence number . . . . . . . . . . . . . . . . = ";
-		out << seqnum << '\n';
-		
-		/* echo data */
-		seqnum--;
-		fSequences[seqnum].Read(in);
-		fSequences[seqnum].Write(out);
-		out << '\n';
-	}
-}
-
-void TimeManagerT::EchoSchedule(ifstreamT& in, ostream& out)
-{
-	int num_LTf = fSchedule.Length();
-	out << "\n L o a d - T i m e   F u n c t i o n   D a t a :\n\n";
-	out << " Number of load-time functions . . . . . . . . . = " << num_LTf << '\n';
-
-	for (int i = 0; i < num_LTf; i++)
-	{
-		int LTfnum, numpts;
-		in >> LTfnum >> numpts;
-
-		/* checks */
-		if (LTfnum < 1 || LTfnum > num_LTf) throw ExceptionT::kBadInputValue;
-		if (numpts < 1) throw ExceptionT::kBadInputValue;
-
-		out << " Loadtime function number. . . . . . . . . . . . = ";
-		out << LTfnum << "\n\n";
-		
-		/* echo data */
-		LTfnum--;
-		fSchedule[LTfnum] = new ScheduleT(numpts);
-		if (!fSchedule[LTfnum]) throw ExceptionT::kOutOfMemory;
-
-		fSchedule[LTfnum]->Read(in);
-		fSchedule[LTfnum]->Write(out);
-		out << '\n';
-		
-		/* initialize time */
-		fSchedule[LTfnum]->SetTime(0.0);
-	}
-}
 
 /* increment the time and reset the load factors */
 void TimeManagerT::IncrementTime(double dt)

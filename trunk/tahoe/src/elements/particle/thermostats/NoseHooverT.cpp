@@ -1,35 +1,23 @@
-/* $Id: NoseHooverT.cpp,v 1.7 2003-11-21 22:47:11 paklein Exp $ */
+/* $Id: NoseHooverT.cpp,v 1.8 2004-07-15 08:29:54 paklein Exp $ */
 #include "NoseHooverT.h"
-#include "ArrayT.h"
-#include <iostream.h>
-#include "ifstreamT.h"
 #include <math.h>
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "RaggedArray2DT.h"
+#include "BasicSupportT.h"
 
 const double fkB = 0.00008617385;
 
 using namespace Tahoe;
 
 /* constructor */
-NoseHooverT::NoseHooverT(ifstreamT& in, const int& nsd, const double& dt):
-	ThermostatBaseT(in, nsd, dt),
-	fEta(0.)
+NoseHooverT::NoseHooverT(const BasicSupportT& support):
+	ThermostatBaseT(support),
+	fBetaOrig(0.0),
+	fEta(0.0),
+	fEtaDot(0.0)
 {
-	SetName("NoseHoover");
-	fBetaOrig = fBeta;
-}
-
-NoseHooverT::NoseHooverT(void)
-{
-	SetName("NoseHoover");
-}
-
-/* write properties to output */
-void NoseHooverT::Write(ostream& out) const
-{
-	ThermostatBaseT::Write(out);	
+	SetName("Nose-Hoover");
 }
 
 /* restart files */
@@ -70,36 +58,39 @@ void NoseHooverT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArra
 	if (fTemperature < 0.)
 		ExceptionT::GeneralFail("LangevinT::ApplyDamping","schedule generated negative temperature");
 	
+	int nsd = fSupport.NumSD();
+	double dt = fSupport.TimeStep();
+	
 	/* calculate current temperature */
 	double kineticTemp = 0.;
 	int nDOF = 0;
-	if (fNodes.Length() == 0)
+	if (fAllNodes)
 	{ // All the nodes are damped, use neighbors
-		nDOF = fSD*neighbors.MajorDim();
+		nDOF = nsd*neighbors.MajorDim();
 		for (int j = 0; j < neighbors.MajorDim(); j++) 
 		{
 			int tag_j = *neighbors(j);
 	    	const double* v_j = (*velocities)(tag_j);
 				
-			for (int i = 0; i < fSD; i++, *v_j++)
+			for (int i = 0; i < nsd; i++, *v_j++)
 				kineticTemp += (*v_j)*(*v_j);
 		}
 	}
-	else
+	else if (fNodes.Length() > 0)
 	{
-		nDOF = fSD*fNodes.Length();
+		nDOF = nsd*fNodes.Length();
 		for (int j = 0; j < fNodes.Length(); j++)
 		{ 
 			int tag_j = fNodes[j];
 			const double* v_j = (*velocities)(tag_j);
 
-			for (int i = 0; i < fSD; i++, *v_j++)
+			for (int i = 0; i < nsd; i++, *v_j++)
 				kineticTemp += (*v_j)*(*v_j); 	
 	    }
 	}
 	kineticTemp /= fkB*nDOF;
 	fEtaDot = (kineticTemp-fTemperature)/fBetaOrig;
-	fBeta = fEta += fEtaDot*fTimeStep;
+	fBeta = fEta += fEtaDot*dt;
 	
 //	cout << " NoseHooverT::ApplyDamping KE = " << kineticTemp << " " << fBeta << "\n";
 	

@@ -1,9 +1,10 @@
-/* $Id: ParadynPairT.cpp,v 1.8 2003-10-28 23:31:52 paklein Exp $ */
+/* $Id: ParadynPairT.cpp,v 1.9 2004-07-15 08:29:49 paklein Exp $ */
 #include "ParadynPairT.h"
-#include "toolboxConstants.h"
+
 #include "ifstreamT.h"
 #include "dArrayT.h"
 #include "AutoArrayT.h"
+#include "BasicSupportT.h"
 
 using namespace Tahoe;
 
@@ -20,7 +21,8 @@ double* ParadynPairT::s_coeff = NULL;
 const int knum_coeff = 9;
 
 /* constructor */
-ParadynPairT::ParadynPairT(const StringT& param_file):
+ParadynPairT::ParadynPairT(const BasicSupportT* support, const StringT& param_file):
+	fSupport(support),
 	f_cut(0.0)
 {
 	SetName("Paradyn_pair");
@@ -29,11 +31,13 @@ ParadynPairT::ParadynPairT(const StringT& param_file):
 	ReadParameters(param_file);
 }
 
-ParadynPairT::ParadynPairT(void)
+ParadynPairT::ParadynPairT(const BasicSupportT* support):
+	fSupport(support)
 {
 	SetName("Paradyn_pair");
 }
 
+#if 0
 /* write properties to output */
 void ParadynPairT::Write(ostream& out) const
 {
@@ -48,6 +52,7 @@ void ParadynPairT::Write(ostream& out) const
 	out << " Number of intervals in the potential table. . . = " << fCoefficients.MajorDim() << '\n';
 	out << " Interval size . . . . . . . . . . . . . . . . . = " << 1.0/f_1bydr << '\n';
 }
+#endif
 
 /* return a pointer to the energy function */
 PairPropertyT::EnergyFunction ParadynPairT::getEnergyFunction(void)
@@ -99,7 +104,12 @@ void ParadynPairT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	PairPropertyT::DefineParameters(list);
 
-	list.AddParameter(ParameterT::String, "parameter_file");
+	/* give "mass" default value */
+	ParameterT& mass = list.GetParameter("mass");
+	mass.SetDefault(1.0);
+
+	/* parameter file path (relative to input file) */
+	list.AddParameter(ParameterT::Word, "parameter_file");
 }
 
 /* accept parameter list */
@@ -108,8 +118,19 @@ void ParadynPairT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	PairPropertyT::TakeParameterList(list);
 
-	StringT parameter_file = list.GetParameter("parameter_file");
-	ReadParameters(parameter_file);
+	/* convert file path to standard form */
+	StringT file = list.GetParameter("parameter_file");
+	file.ToNativePathName();
+	
+	/* prepend path from input file */
+	if (!fSupport) ExceptionT::GeneralFail("ParadynPairT::TakeParameterList",
+		"pointer to BasicSupportT not set");
+	StringT path;
+	path.FilePath(fSupport->InputFile());
+	file.Prepend(path);
+
+	/* read parameters */
+	ReadParameters(file);
 }
 
 /***********************************************************************

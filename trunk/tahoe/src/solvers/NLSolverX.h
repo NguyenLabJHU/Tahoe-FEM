@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.h,v 1.6 2003-03-31 22:59:32 paklein Exp $ */
+/* $Id: NLSolverX.h,v 1.7 2004-07-15 08:31:50 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #ifndef _NL_SOLVER_X_H_
 #define _NL_SOLVER_X_H_
@@ -17,7 +17,7 @@ class NLSolverX: public NLSolver
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	NLSolverX(FEManagerT& fe_manager, int group);
 
 	/** solve the system over the current time increment.

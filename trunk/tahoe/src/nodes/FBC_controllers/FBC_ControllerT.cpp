@@ -1,7 +1,9 @@
-/* $Id: FBC_ControllerT.cpp,v 1.9 2003-11-04 01:37:02 paklein Exp $ */
+/* $Id: FBC_ControllerT.cpp,v 1.10 2004-07-15 08:31:15 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 #include "FBC_ControllerT.h"
 #include "ArrayT.h"
+#include "FieldT.h"
+#include "IntegratorT.h"
 
 #include <iostream.h>
 
@@ -13,11 +15,32 @@ DEFINE_TEMPLATE_STATIC const bool ArrayT<FBC_ControllerT>::fByteCopy = false;
 DEFINE_TEMPLATE_STATIC const bool ArrayT<FBC_ControllerT*>::fByteCopy = true;
 } /* namespace Tahoe */
 
-/* constructor */
-FBC_ControllerT::FBC_ControllerT(FEManagerT& fe_manager, int group):
+/* converts strings to FBC_ControllerT::CodeT */
+FBC_ControllerT::CodeT FBC_ControllerT::Code(const char* name)
+{
+	if (strcmp("sphere_penalty", name) == 0)
+		return kPenaltySphere;
+	else if (strcmp("wall_penalty", name) == 0)
+		return kPenaltyWall;
+	else if (strcmp("sphere_augmented_Lagrangian", name) == 0)
+		return kAugLagSphere;
+	else if (strcmp("wall_augmented_Lagrangian", name) == 0)
+		return kAugLagWall;
+	else if (strcmp("sphere_penalty_meshfree", name) == 0)
+		return kMFPenaltySphere;
+	else if (strcmp("cylinder_penalty", name) == 0)
+		return kPenaltyCylinder;
+	else if (strcmp("augmented_Lagrangian_KBC_meshfree", name) == 0)
+		return kMFAugLagMult;
+	else
+		return kNone;
+}
+
+FBC_ControllerT::FBC_ControllerT(void):
 	ParameterInterfaceT("FBC_controller"),
-	fFEManager(fe_manager),
-	fGroup(group),
+	fFieldSupport(NULL),
+	fField(NULL),
+	fGroup(-1),
 	fIntegrator(NULL)
 {
 
@@ -26,10 +49,21 @@ FBC_ControllerT::FBC_ControllerT(FEManagerT& fe_manager, int group):
 /* destructor */
 FBC_ControllerT::~FBC_ControllerT(void) { }
 
-/* set the controller */
-void FBC_ControllerT::SetController(const eIntegratorT* controller)
+/* set the associated field */
+void FBC_ControllerT::SetField(const FieldT& field)
 {
-	fIntegrator = controller;
+	/* the field */
+	fField = &field;
+
+	/* the solver group */
+	fGroup = fField->Group();
+
+	/* the support */
+	fFieldSupport = &(fField->FieldSupport());
+
+	/* the integrator */
+	const IntegratorT& integrator = fField->Integrator();
+	fIntegrator = &(integrator.eIntegrator());
 }
 
 /* append element equations numbers to the list */
@@ -63,4 +97,15 @@ void FBC_ControllerT::ReadRestart(istream& in)
 void FBC_ControllerT::WriteRestart(ostream& out) const
 {
 #pragma unused(out)
+}
+
+/* accept parameter list */
+void FBC_ControllerT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);	
+
+	/* field support should already be set */
+	if (!fFieldSupport)
+		ExceptionT::GeneralFail("FBC_ControllerT::TakeParameterList", "call SetField first");
 }

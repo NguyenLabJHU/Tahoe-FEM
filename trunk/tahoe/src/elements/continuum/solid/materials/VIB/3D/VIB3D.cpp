@@ -1,4 +1,4 @@
-/* $Id: VIB3D.cpp,v 1.9 2004-06-17 07:40:45 paklein Exp $ */
+/* $Id: VIB3D.cpp,v 1.10 2004-07-15 08:27:51 paklein Exp $ */
 /* created: paklein (04/20/1997) */
 #include "VIB3D.h"
 
@@ -8,10 +8,11 @@
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
 
-#include "ifstreamT.h"
+
 #include "C1FunctionT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
+#include "ParameterContainerT.h"
 
 /* point generators */
 #include "LatLongPtsT.h"
@@ -20,55 +21,17 @@
 
 using namespace Tahoe;
 
-/* constructors */
-VIB3D::VIB3D(ifstreamT& in, const FSMatSupportT& support):
-	NL_E_MatT(in, support),
-	VIB_E_MatT(in, 3)
+/* constructor */
+VIB3D::VIB3D(void):
+	ParameterInterfaceT("VIB"),
+	VIB_E_MatT(3),
+	fSphere(NULL)
 {
-	/* construct point generator */
-	int pointcode;
-	in >> pointcode;
-	switch(pointcode)
-	{
-		case SpherePointsT::kLatLong:
-			fSphere = new LatLongPtsT(in);
-			break;
-			
-		case SpherePointsT::kIcosahedral:
-			fSphere = new IcosahedralPtsT(in);
-			break;
 
-		case SpherePointsT::kFCC:
-		{
-			int num_shells;
-			double bond_length;
-			in >> num_shells >> bond_length;
-			fSphere = new FCCPtsT(num_shells, bond_length);
-			break;		
-		}	
-		default:
-		
-			throw ExceptionT::kBadInputValue;
-	}
-	
-	if (!fSphere) throw ExceptionT::kOutOfMemory;
-	
-	/* default construction */
-	SetAngles(0.0, 0.0);
 }
 
 /* destructor */
 VIB3D::~VIB3D(void) { delete fSphere; }
-
-/* print parameters */
-void VIB3D::Print(ostream& out) const
-{
-	/* inherited */
-	NL_E_MatT::Print(out);
-	VIB_E_MatT::Print(out);
-	
-	fSphere->Print(out);
-}
 
 /* set angle offset - for testing onset of amorphous behavior */
 void VIB3D::SetAngles(double phi, double theta)
@@ -78,7 +41,7 @@ void VIB3D::SetAngles(double phi, double theta)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	Dimension(numpoints);
+	VIB::Dimension(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fSphere->Jacobians();
@@ -133,19 +96,112 @@ void VIB3D::SetAngles(double phi, double theta)
 	}
 }
 
-/***********************************************************************
-* Protected
-***********************************************************************/
-
-/* print name */
-void VIB3D::PrintName(ostream& out) const
+/* information about subordinate parameter lists */
+void VIB3D::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
-	NL_E_MatT::PrintName(out);
-	VIB_E_MatT::PrintName(out);
+	NL_E_MatT::DefineSubs(sub_list);
+	VIB_E_MatT::DefineSubs(sub_list);
 
-	fSphere->PrintName(out);
+	/* choice of integration schemes */
+	sub_list.AddSub("sphere_integration_choice", ParameterListT::Once, true);
 }
+
+/* return the description of the given inline subordinate parameter list */
+void VIB3D::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
+{
+	/* inherited */
+	NL_E_MatT::DefineInlineSub(name, order, sub_lists);
+	if (sub_lists.Length() == 0)
+		VIB_E_MatT::DefineInlineSub(name, order, sub_lists);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* VIB3D::NewSub(const StringT& name) const
+{
+	/* inherited */
+	ParameterInterfaceT* sub = NL_E_MatT::NewSub(name);
+	if (sub) 
+		return sub;
+	else if (name == "sphere_integration_choice")
+	{
+		ParameterContainerT* choice = new ParameterContainerT(name);
+		choice->SetListOrder(ParameterListT::Choice);
+
+		/* bound */
+		LimitT lower(1, LimitT::LowerInclusive);
+
+		/* like the grid on a sphere */
+		ParameterContainerT lat_long("latitude_longitude");
+		ParameterT n_phi(ParameterT::Integer, "n_phi");
+		n_phi.AddLimit(lower);
+		ParameterT n_theta(ParameterT::Integer, "n_theta");
+		n_theta.AddLimit(lower);
+		lat_long.AddParameter(n_phi);
+		lat_long.AddParameter(n_theta);
+		choice->AddSub(lat_long);
+
+		/* icosahedral points */
+		ParameterContainerT ico("icosahedral");
+		ParameterT ico_points(ParameterT::Integer, "points");
+		ico_points.AddLimit(6, LimitT::Only);
+		ico_points.AddLimit(10, LimitT::Only);
+		ico_points.AddLimit(40, LimitT::Only);
+		ico_points.AddLimit(160, LimitT::Only);
+		ico.AddParameter(ico_points);
+		choice->AddSub(ico);
+	
+		/* FCC point arrangement */
+		ParameterContainerT fcc("fcc_points");
+		ParameterT n_shells(ParameterT::Integer, "shells");
+		n_shells.AddLimit(lower);
+		fcc.AddParameter(n_shells);
+		fcc.AddParameter(ParameterT::Double, "nearest_neighbor_distance");
+		choice->AddSub(fcc);
+	
+		return choice;
+	}
+	else
+		return VIB_E_MatT::NewSub(name);
+}
+
+/* accept parameter list */
+void VIB3D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	NL_E_MatT::TakeParameterList(list);
+	VIB_E_MatT::TakeParameterList(list);
+
+	/* construct integration scheme */
+	const ParameterListT& points = list.GetListChoice(*this, "sphere_integration_choice");
+	if (points.Name() == "latitude_longitude")
+	{
+		int n_phi = points.GetParameter("n_phi");
+		int n_theta = points.GetParameter("n_theta");
+		fSphere = new LatLongPtsT(n_phi, n_theta);
+	}
+	else if (points.Name() == "icosahedral")
+	{
+		int np = points.GetParameter("points");
+		fSphere = new IcosahedralPtsT(np);
+	}
+	else if (points.Name() == "fcc_points")
+	{
+		int num_shells = points.GetParameter("shells");
+		double bond_length = points.GetParameter("nearest_neighbor_distance");
+		fSphere = new FCCPtsT(num_shells, bond_length);
+	}
+	else
+		ExceptionT::GeneralFail("VIB3D::TakeParameterList", "unrecognized point scheme \"%s\"", points.Name().Pointer());	
+
+	/* set point arrangement */
+	SetAngles(0.0, 0.0);
+}
+
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
 
 /* compute the symetric Cij reduced index matrix */
 void VIB3D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)

@@ -1,17 +1,16 @@
-/* $Id: VirtualRodT.cpp,v 1.7 2004-06-17 07:41:37 paklein Exp $ */
+/* $Id: VirtualRodT.cpp,v 1.8 2004-07-15 08:30:17 paklein Exp $ */
 /* created: paklein (05/01/1997) */
-
 #include "VirtualRodT.h"
 
 #include <iomanip.h>
 
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "toolboxConstants.h"
-
-/* decoding VElPair data */
 
 using namespace Tahoe;
 
+/* decoding VElPair data */
 const int kBoundaryNode = 0;
 const int kVirtualNode  = 1;
 const int kActiveNode   = 2;

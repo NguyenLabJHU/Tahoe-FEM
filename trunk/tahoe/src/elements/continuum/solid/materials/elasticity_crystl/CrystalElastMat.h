@@ -1,4 +1,4 @@
-/* $Id: CrystalElastMat.h,v 1.3 2002-07-02 19:56:03 cjkimme Exp $ */
+/* $Id: CrystalElastMat.h,v 1.4 2004-07-15 08:28:16 paklein Exp $ */
 /*
   File: CrystalElastMat.h
 */
@@ -35,10 +35,6 @@ class CrystalElastMat
 
   // query for isotropic/anisotropic elasticity (default: false)
   virtual bool IsIsotropic() const;
-
-  // output related methods
-  virtual void PrintName(ostream& out) const;
-  virtual void Print(ostream& out) const;
 
  protected:
   // general stiffness coefficients

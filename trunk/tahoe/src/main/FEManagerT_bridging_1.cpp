@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_1.cpp,v 1.2 2004-06-26 06:24:58 paklein Exp $ */
+/* $Id: FEManagerT_bridging_1.cpp,v 1.3 2004-07-15 08:31:03 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -135,7 +135,7 @@ void FEManagerT_bridging::CorrectOverlap_1(const RaggedArray2DT<int>& neighbors,
 
 			/* output file */
 			StringT file;
-			file.Root(fMainIn.filename());
+			file.Root(fInputFile);
 			file.Append(".RdN.b", i+1);
 			file.Append(".out");
 			
@@ -260,7 +260,7 @@ void FEManagerT_bridging::CorrectOverlap_1(const RaggedArray2DT<int>& neighbors,
 	
 		/* output file */
 		StringT file;
-		file.Root(fMainIn.filename());
+		file.Root(fInputFile);
 		file.Append(".bond_density.out");
 			
 		/* write output */

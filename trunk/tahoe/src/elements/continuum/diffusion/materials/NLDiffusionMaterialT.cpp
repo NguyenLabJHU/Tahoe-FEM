@@ -1,7 +1,7 @@
-/* $Id: NLDiffusionMaterialT.cpp,v 1.3 2003-12-10 07:14:28 paklein Exp $ */
+/* $Id: NLDiffusionMaterialT.cpp,v 1.4 2004-07-15 08:26:22 paklein Exp $ */
 #include "NLDiffusionMaterialT.h"
 #include "DiffusionMatSupportT.h"
-#include "ifstreamT.h"
+#include "ParameterContainerT.h"
 
 using namespace Tahoe;
 
@@ -9,29 +9,12 @@ using namespace Tahoe;
 #include "LinearT.h"
 
 /* constructor */
-NLDiffusionMaterialT::NLDiffusionMaterialT(ifstreamT& in, const DiffusionMatSupportT& support):
-	DiffusionMaterialT(in, support),
-	fConductivityScaleFunction(NULL),
-	fCpScaleFunction(NULL),
-	fScaledConductivity(NumSD())
-{
-	SetName("nonlinear_diffusion");
-
-	/* parameters in temperature variation in conductivity */
-	double A, B;
-	in >> A >> B;
-	fConductivityScaleFunction = new LinearT(A, B);
-
-	/* parameters in temperature variation in specific heat */
-	in >> A >> B;
-	fCpScaleFunction = new LinearT(A, B);
-}
-
 NLDiffusionMaterialT::NLDiffusionMaterialT(void):
+	ParameterInterfaceT("nonlinear_diffusion_material"),
 	fConductivityScaleFunction(NULL),
 	fCpScaleFunction(NULL)
 {
-	SetName("nonlinear_diffusion");
+
 }
 
 /* destructor */
@@ -41,25 +24,6 @@ NLDiffusionMaterialT::~NLDiffusionMaterialT(void)
 	delete fCpScaleFunction;
 }
 
-/* I/O functions */
-void NLDiffusionMaterialT::Print(ostream& out) const
-{
-	/* inherited */
-	DiffusionMaterialT::Print(out);
-	
-	/* temperature variation functions */
-	out << " Temperature variation in conductivity:\n";
-	fConductivityScaleFunction->Print(out);
-	fConductivityScaleFunction->PrintName(out);
-}
-
-void NLDiffusionMaterialT::PrintName(ostream& out) const
-{
-	/* inherited */
-	DiffusionMaterialT::PrintName(out);
-	
-	out << "    Nonlinear diffusion material\n";
-}
 
 /* conductivity */
 const dMatrixT& NLDiffusionMaterialT::k_ij(void)
@@ -98,4 +62,70 @@ double NLDiffusionMaterialT::dCapacity_dT(void) const
 {
 	double d_cp = fCpScaleFunction->DFunction(fDiffusionMatSupport->Field());
 	return fDensity*d_cp;
+}
+
+/*information about subordinate parameter lists */
+void NLDiffusionMaterialT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	DiffusionMaterialT::DefineSubs(sub_list);
+	
+	sub_list.AddSub("conductivity_function");
+	sub_list.AddSub("specificheat_function");
+}
+
+/* return the description of the given inline subordinate parameter list */
+void NLDiffusionMaterialT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
+{
+	if (name == "NL_diff_mat_function_choice") {
+		order = ParameterListT::Choice;
+
+		sub_lists.AddSub("linear_function");
+		sub_lists.AddSub("power_law");
+		sub_lists.AddSub("cubic_spline");
+	}
+	else /* inherited */
+		DiffusionMaterialT::DefineInlineSub(name, order, sub_lists);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* NLDiffusionMaterialT::NewSub(const StringT& name) const
+{
+	C1FunctionT* function = C1FunctionT::New(name);
+	if (function)
+		return function;
+	else if (name == "conductivity_function" || name == "specificheat_function") {
+		ParameterContainerT* choice = new ParameterContainerT(name);
+		choice->SetSubSource(this);
+		choice->AddSub("NL_diff_mat_function_choice", ParameterListT::Once, true);
+		return choice;
+	}	
+	else /* inherited */
+		return DiffusionMaterialT::NewSub(name);
+}
+
+/* accept parameter list */
+void NLDiffusionMaterialT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "NLDiffusionMaterialT::TakeParameterList";
+
+	/* inherited */
+	DiffusionMaterialT::TakeParameterList(list);
+
+	/* construct temperature dependence functions */
+	const ParameterListT& cond_function_choice = list.GetList("conductivity_function");
+	const ParameterListT& cond_function = cond_function_choice.GetListChoice(*this, "NL_diff_mat_function_choice");
+	fConductivityScaleFunction = C1FunctionT::New(cond_function.Name());
+	if (!fConductivityScaleFunction) ExceptionT::GeneralFail(caller, "could not construct %s", cond_function_choice.Name().Pointer());
+	fConductivityScaleFunction->TakeParameterList(cond_function);
+
+	const ParameterListT& cp_function_choice = list.GetList("specificheat_function");
+	const ParameterListT& cp_function = cp_function_choice.GetListChoice(*this, "NL_diff_mat_function_choice");
+	fCpScaleFunction = C1FunctionT::New(cp_function.Name());
+	if (!fCpScaleFunction) ExceptionT::GeneralFail(caller, "could not construct %s", cp_function_choice.Name().Pointer());
+	fCpScaleFunction->TakeParameterList(cp_function);
+
+	/* dimension work space */
+	fScaledConductivity.Dimension(NumSD());
 }

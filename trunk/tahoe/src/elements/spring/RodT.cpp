@@ -1,8 +1,9 @@
-/* $Id: RodT.cpp,v 1.32 2004-06-17 07:41:37 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.33 2004-07-15 08:30:17 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
 #include <math.h>
+
 #include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "eIntegratorT.h"
@@ -13,16 +14,15 @@
 #include "LinearSpringT.h"
 #include "LJSpringT.h"
 
-/* Element type parameters */
-
 using namespace Tahoe;
 
+/* Element type parameters */
 const int RodT::kRodTndof = 2; /* number of degrees of freedom per node */
 const int RodT::kRodTnsd = 2; /* number of spatial dimensions */
 
 /* constructors */
 RodT::RodT(const ElementSupportT& support, const FieldT& field):
-	ElementBaseT(support, field),
+	ElementBaseT(support),
 	fCurrMaterial(NULL),
 	fLocAcc(LocalArrayT::kAcc),
 	fInstKE(0.0),
@@ -45,6 +45,7 @@ RodT::RodT(const ElementSupportT& support, const FieldT& field):
 	fHardyHeatFlux(NumSD()),
 	fLocVel(LocalArrayT::kVel)
 {
+#pragma message("fix me")
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
 	fKb = 1.38054;
@@ -53,6 +54,8 @@ RodT::RodT(const ElementSupportT& support, const FieldT& field):
 /* initialization */
 void RodT::Initialize(void)
 {
+#pragma message("delete me")
+#if 0
 	/* inherited */
 	ElementBaseT::Initialize();
 	
@@ -77,7 +80,7 @@ void RodT::Initialize(void)
 
 	/* echo material properties */
 	ReadMaterialData(ElementSupport().Input());	
-	WriteMaterialData(ElementSupport().Output());
+//	WriteMaterialData(ElementSupport().Output());
 
 	/* get form of tangent */
 	GlobalT::SystemTypeT type = TangentType();
@@ -96,6 +99,7 @@ void RodT::Initialize(void)
 	  fLocVel.Dimension(NumElementNodes(), NumDOF());
 	  Field().RegisterLocal(fLocVel);
 	}
+#endif
 }
 
 /* form of tangent matrix */
@@ -411,17 +415,6 @@ void RodT::ReadMaterialData(ifstreamT& in)
 		int LTfnum = fMaterialsList[matnum]->ThermalScheduleNumber();
 		if (LTfnum > -1)
 			fMaterialsList[matnum]->SetThermalSchedule(ElementSupport().Schedule(LTfnum));	
-	}
-}
-
-void RodT::WriteMaterialData(ostream& out) const
-{
-	out << "\n Material Set Data:\n";
-	for (int i = 0; i < fMaterialsList.Length(); i++)
-	{
-		out << "\n Material number . . . . . . . . . . . . . . . . = " << i+1 << '\n';
-		fMaterialsList[i]->PrintName(out);
-		fMaterialsList[i]->Print(out);
 	}
 }
 

@@ -1,4 +1,4 @@
-/* $Id: BasicFieldT.h,v 1.8 2003-08-14 05:34:21 paklein Exp $ */
+/* $Id: BasicFieldT.h,v 1.9 2004-07-15 08:31:09 paklein Exp $ */
 #ifndef _BASIC_FIELD_T_H_
 #define _BASIC_FIELD_T_H_
 
@@ -47,7 +47,7 @@ public:
 	/** \name accessors */
 	/*@{*/
 	/** field name */
-	const StringT& Name(void) const { return fName; };
+	const StringT& FieldName(void) const { return fFieldName; };
 	
 	/** the field labels */
 	const ArrayT<StringT>& Labels(void) const { return fLabels; };
@@ -98,7 +98,7 @@ protected:
 protected:
 
 	/** name */
-	StringT fName;
+	StringT fFieldName;
 	
 	/** the field [nderiv]: [nnd] x [ndof] */
 	ArrayT<dArray2DT> fField;

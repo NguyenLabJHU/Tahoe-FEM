@@ -1,4 +1,4 @@
-/* $Id: MatsuiPairT.h,v 1.2 2003-10-28 23:31:51 paklein Exp $ */
+/* $Id: MatsuiPairT.h,v 1.3 2004-07-15 08:29:49 paklein Exp $ */
 #ifndef _MATSUI_PAIR_T_H_
 #define _MATSUI_PAIR_T_H_
 
@@ -30,9 +30,6 @@ public:
 	/** return a pointer to the stiffness function */
 	virtual StiffnessFunction getStiffnessFunction(void);
 	/*@}*/
-
-	/** write properties to output */
-	virtual void Write(ostream& out) const;
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

@@ -4,7 +4,7 @@
 
 #include "BCJKineticEqn.h"
 #include "EVPFDBaseT.h"
-#include "ifstreamT.h"
+
 
 
 using namespace Tahoe;
@@ -93,8 +93,7 @@ double BCJKineticEqn::DhDs(double eqpdot, double kappa)
   return  1.0;
 }
 
-void BCJKineticEqn::Print(ostream& out) const
-{
+#if 0
   // print temperature and material constants
   out << "       Temperature [K] . . . . . . . . . . . . . = " << fTheta << "\n";
   out << "       C1  [MPa] . . . . . . . . . . . . . . . . = " << fC1    << "\n";
@@ -111,13 +110,7 @@ void BCJKineticEqn::Print(ostream& out) const
   out << "       V   [MPa] . . . . . . . . . . . . . . . . = " << fMatProp[0] << "\n";
   out << "       Y   [MPa] . . . . . . . . . . . . . . . . = " << fMatProp[1] << "\n";
   out << "       f   [1/s] . . . . . . . . . . . . . . . . = " << fMatProp[2] << "\n";
-}
-
-void BCJKineticEqn::PrintName(ostream& out) const
-{
-  // output kinetic equation model name
-  out << "    BCJ Kinetic Equation\n";
-}
+#endif
   
 void BCJKineticEqn::ComputeMaterialProperties(const double theta)
 {

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_2.cpp,v 1.2 2004-06-26 06:24:58 paklein Exp $ */
+/* $Id: FEManagerT_bridging_2.cpp,v 1.3 2004-07-15 08:31:03 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -616,7 +616,7 @@ if (param.is_open()) {
 	
 		/* output file */
 		StringT file;
-		file.Root(fMainIn.filename());
+		file.Root(fInputFile);
 		file.Append(".bond_density.out");
 			
 		/* write output */

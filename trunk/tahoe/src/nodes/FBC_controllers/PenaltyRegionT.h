@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.h,v 1.6 2003-10-04 19:14:05 paklein Exp $ */
+/* $Id: PenaltyRegionT.h,v 1.7 2004-07-15 08:31:15 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #ifndef _PENALTY_REGION_T_H_
@@ -35,15 +35,8 @@ public:
 		        kSchedule = 2  /**< velocity follows schedule function */
 			};
 
-	/* constructor */
-	PenaltyRegionT(FEManagerT& fe_manager, int group, const iArray2DT& eqnos,
-		const dArray2DT& coords, const dArray2DT& displ, const dArray2DT* vels);
-
-	/* input processing */
-	virtual void EchoData(ifstreamT& in, ostream& out);
-
-	/* initialize data */
-	virtual void Initialize(void);
+	/** constructor */
+	PenaltyRegionT(void);
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -80,6 +73,21 @@ public:
 	virtual void WriteOutput(ostream& out) const;
 	/*@}*/
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 private:
 
 	/* accumulate the contact force vector fContactForce */
@@ -87,23 +95,15 @@ private:
 
 protected:
 
-	/** \name references to NodeManagerT data */
-	/*@{*/
-	const iArray2DT& rEqnos;  /**< nodal equation numbers */
-	const dArray2DT& rCoords; /**< nodal coordinates */
-	const dArray2DT& rDisp;   /**< nodal displacement */
-	const dArray2DT* pVels;   /**< nodal velocities */
-	/*@}*/
-
 	/** \name wall input parameters */
 	/*@{*/
 	dArrayT fx0;             /**< initial position */
 	dArrayT fv0;             /**< initial velocity */
 	double fk;               /**< penalty stiffness */
-	int	   fSlow;            /**< 1 if the region slows from collisions */
+	MotionCodeT fSlow;
 	double fMass;            /**< mass of the region */
 	const ScheduleT* fLTf;   /**< NULL if there is no time dependence */
-	int    fNumContactNodes; /**< number of contact nodes */
+	int fNumContactNodes; /**< number of contact nodes */
 	/*@}*/
 
 	/** \name state variables */

@@ -1,35 +1,32 @@
-/* $Id: ScheduleT.h,v 1.5 2003-10-28 07:12:14 paklein Exp $ */
+/* $Id: ScheduleT.h,v 1.6 2004-07-15 08:31:36 paklein Exp $ */
 /* created: paklein (05/24/1996) */
-
 #ifndef _SCHEDULE_T_H_
 #define _SCHEDULE_T_H_
 
 /* direct members */
-#include "dArrayT.h"
-
-#include "ios_fwd_decl.h"
+#include "ParameterInterfaceT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
 class ifstreamT;
+class C1FunctionT;
 
-/** the class formerly known as LoadTime. Piecewise linear function */
-class ScheduleT
+/** schedule functions comprised of a C1FunctionT and a cached time and function value */
+class ScheduleT: public ParameterInterfaceT
 {
 public:
 
-	/** \name constructors */
+	/** constructors */
 	/*@{*/
-	/** constant value for all time */
+	ScheduleT(void); 
+
+	/** construct schedule with constant value */
 	ScheduleT(double value); 
-	ScheduleT(int numpts);
-	ScheduleT(const dArrayT& times, const dArrayT& values);
 	/*@}*/
 
-	/* I/O */
-	void Read(ifstreamT& in);
-	void Write(ostream& out) const;
+	/** destructor */
+	~ScheduleT(void); 
 
 	/** set schedule to the given time */
 	void SetTime(double time);
@@ -37,7 +34,7 @@ public:
 	/** \name current values */
 	/*@{*/
 	/** schedule value at the given time */
-	double Value(void) const;
+	double Value(void) const { return fCurrentValue; };
 	
 	/** get value at the given time. Call does not change the internal time,
 	 * which must be set with ScheduleT::SetTime */
@@ -47,18 +44,26 @@ public:
 	double Time(void) const { return fCurrentTime; };
 	/*@}*/
 
-private:
-
-	/* check that times are sequential */
-	void CheckSequential(void) const;
-
-private:
-
-	/** \name function data */
+	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	dArrayT fTime;
-	dArrayT fValue;
+	/* information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
+
+private:
+
+	/** function data */
+	C1FunctionT* fFunction;
 	
 	/** \name current time and value */
 	/*@{*/
@@ -67,19 +72,6 @@ private:
 	/*@}*/
 };
 
-/* inlines */
-inline double ScheduleT::Value(void) const { return fCurrentValue; }
-inline double ScheduleT::Value(double time) const
-{
-	/* non-const temporary */
-	ScheduleT* non_const_this = (ScheduleT*) this;
-	double curr_time = non_const_this->Time();
-	non_const_this->SetTime(time);
-	double curr_value = non_const_this->Value();
-	non_const_this->SetTime(curr_time);
-	
-	return curr_value;
-}
+} /* namespace Tahoe */
 
-} // namespace Tahoe 
 #endif /* _SCHEDULE_T_H_ */

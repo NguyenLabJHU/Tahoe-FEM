@@ -1,4 +1,4 @@
-/* $Id: RodT.h,v 1.18 2003-05-20 10:30:33 paklein Exp $ */
+/* $Id: RodT.h,v 1.19 2004-07-15 08:30:17 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _ROD_T_H_
@@ -73,7 +73,6 @@ protected: /* for derived classes only */
 		
 	/* element data */
 	virtual void ReadMaterialData(ifstreamT& in);	
-	virtual void WriteMaterialData(ostream& out) const;
 
 	/** return true if connectivities are changing */
 	virtual bool ChangingGeometry(void) const { return false; };

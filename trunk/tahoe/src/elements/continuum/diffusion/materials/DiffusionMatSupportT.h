@@ -1,4 +1,4 @@
-/* $Id: DiffusionMatSupportT.h,v 1.4 2003-06-09 06:53:58 paklein Exp $ */
+/* $Id: DiffusionMatSupportT.h,v 1.5 2004-07-15 08:26:22 paklein Exp $ */
 #ifndef _DIFF_MAT_SUPPORT_T_H_
 #define _DIFF_MAT_SUPPORT_T_H_
 
@@ -20,7 +20,7 @@ class DiffusionMatSupportT: public MaterialSupportT
 public:
 
 	/** constructor */
-	DiffusionMatSupportT(int nsd, int ndof, int nip);
+	DiffusionMatSupportT(int ndof, int nip);
 
 	/** \name field values at the integration points
 	 * The field values can only be access after the source for the

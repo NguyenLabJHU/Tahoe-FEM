@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.h,v 1.9 2004-01-05 07:12:40 paklein Exp $ */
+/* $Id: AugLagWallT.h,v 1.10 2004-07-15 08:31:15 paklein Exp $ */
 #ifndef _AUGLAG_WALL_T_H_
 #define _AUGLAG_WALL_T_H_
 
@@ -19,11 +19,9 @@ class AugLagWallT: public PenaltyWallT, public DOFElementT
 public:
 
 	/* constructor */
-	AugLagWallT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes, const FieldT& field,
-		const dArray2DT& coords, const dArray2DT& disp);
+	AugLagWallT(void);
 
 	/* initialize data */
-	virtual void Initialize(void);
 	virtual void SetEquationNumbers(void);
 
 	/* append element equations numbers to the list */
@@ -69,6 +67,12 @@ public:
 	 * freedom belong. */
 	virtual int Group(void) const;	
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 private:
 
 	/* accumulate the contact force vector fContactForce */
@@ -76,12 +80,6 @@ private:
 
 private:
 
-	/** nodemanager */
-	XDOF_ManagerT* fXDOF_Nodes;
-	
-	/** the field */
-	const FieldT& fField;
-	
 	/* contact equation sets (shallow copy of contact node equs) */
 	iArray2DT fContactEqnos2D;
 	iArray2DT fContactTags;
@@ -94,5 +92,6 @@ private:
 	/*@}*/
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _AUGLAG_WALL_T_H_ */

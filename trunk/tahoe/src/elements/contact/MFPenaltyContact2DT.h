@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.h,v 1.2 2003-11-04 17:37:50 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.h,v 1.3 2004-07-15 08:26:08 paklein Exp $ */
 #ifndef _MF_PENALTY_CONTACT2D_T_H_
 #define _MF_PENALTY_CONTACT2D_T_H_
 
@@ -21,13 +21,19 @@ class MFPenaltyContact2DT: public PenaltyContact2DT
 public:
 
 	/** constructor */
-	MFPenaltyContact2DT(const ElementSupportT& support, const FieldT& field);
+	MFPenaltyContact2DT(const ElementSupportT& support);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
-	/** print element group data */
-	virtual void PrintControlData(ostream& out) const;
-		 	
 	/** construct the effective mass matrix. Not implemeneted. */
 	virtual void LHSDriver(GlobalT::SystemTypeT);
 
@@ -36,12 +42,9 @@ protected:
 
 	/** \name steps in setting contact configuration */
 	/*@{*/
-	/** set contact surfaces and strikers. This implementation is based on
-	 * ContactT::EchoConnectivityData, but taking the strikers from the
-	 * list of meshfree nodes, so that all meshfree nodes can be potential
-	 * strikers. Also, since the connectivities will be oddly-shaped,
-	 * they will not be registered with the ModelManagerT. */
-	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
+	/** Echo contact bodies and striker nodes. After the read section, should 
+	 * have valid nodes/facet connectivities for the local database. */
+	virtual void ExtractContactGeometry(const ParameterListT& list);
 
 	/** set "internal" data. This implementation is bsed on Contact2DT::SetActiveInteractions,
 	 * but modified to account for compute the current coordinates using the
@@ -61,7 +64,6 @@ protected:
 
 	/** \name meshfree element group */
 	/*@{*/
-	int fGroupNumber;
 	const ElementBaseT* fElementGroup;
 
 	/** meshfree support from MFPenaltyContact2DT::fElementGroup */

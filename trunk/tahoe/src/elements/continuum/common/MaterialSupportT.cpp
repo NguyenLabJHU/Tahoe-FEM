@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.cpp,v 1.9 2004-04-08 23:37:16 paklein Exp $ */
+/* $Id: MaterialSupportT.cpp,v 1.10 2004-07-15 08:26:14 paklein Exp $ */
 #include "MaterialSupportT.h"
 #include "ElementsConfig.h"
 
@@ -10,28 +10,17 @@
 using namespace Tahoe;
 
 /* constructor */
-MaterialSupportT::MaterialSupportT(int nsd, int ndof, int nip):
-	fNumSD(nsd),
+MaterialSupportT::MaterialSupportT(int ndof, int nip):
+//	fNumSD(nsd),
 	fNumDOF(ndof),
 	fNumIP(nip),
-	fRunState(NULL),
-
-	/* sources for run time information */
 	fCurrIP(NULL),
-	fIterationNumber(NULL),
-	fTime(NULL),
-	fTimeStep(NULL),
-	fStepNumber(NULL),
-	fNumberOfSteps(NULL),
 
 	/* multiprocessor information */
-	fSize(1),
-	fRank(0),
-	fCommunicator(NULL),
 	fGroupCommunicator(NULL),
-
 	fElementCards(NULL),
 	fContinuumElement(NULL),
+	fGroup(-1),
 	fInitCoords(NULL),
 	fDisp(NULL)
 { 
@@ -48,29 +37,19 @@ void MaterialSupportT::SetContinuumElement(const ContinuumElementT* p)
 	if (fContinuumElement)
 	{
 		const ElementSupportT& element_support = fContinuumElement->ElementSupport();
-		fSize = element_support.Size();
-		fRank = element_support.Rank();
-		fCommunicator = &(element_support.Communicator());
+		
+		/* set FEManagerT */
+		const FEManagerT& fe_man = element_support.FEManager();
+		SetFEManager(&fe_man);
+		
 		fGroupCommunicator = &(fContinuumElement->GroupCommunicator());
 	}
-	else {
-		fCommunicator = NULL;
+	else 
+	{
+		SetFEManager(NULL);
 		fGroupCommunicator = NULL;
+		fGroup = -1;
 	}
-#endif
-}
-
-/* return a pointer to the specified LoadTime function */
-const ScheduleT* MaterialSupportT::Schedule(int num) const
-{
-#ifdef CONTINUUM_ELEMENT
-	if (fContinuumElement) 
-		return fContinuumElement->Schedule(num);
-	else
-		return NULL;
-#else
-#pragma unused(num)
-	return NULL;
 #endif
 }
 
@@ -105,36 +84,6 @@ void MaterialSupportT::SetLocalArray(const LocalArrayT& array)
 			ExceptionT::GeneralFail("MaterialSupportT::LocalArray",
 				"unrecognized array type: %d", array.Type());
 	}
-}
-
-/* the parameters stream */
-ifstreamT& MaterialSupportT::Input(void) const
-{
-	const char caller[] = "MaterialSupportT::Input";
-
-#ifdef CONTINUUM_ELEMENT
-	if (!fContinuumElement) ExceptionT::GeneralFail(caller, "continuum element not defined");
-	return fContinuumElement->ElementSupport().Input();
-#else
-	ExceptionT::GeneralFail(caller, "requires option CONTINUUM_ELEMENT");
-	ifstreamT* dummy;
-	return &dummy;
-#endif
-}
-
-/* the echo file */
-ofstreamT& MaterialSupportT::Output(void) const
-{
-	const char caller[] = "MaterialSupportT::Output";
-
-#ifdef CONTINUUM_ELEMENT
-	if (!fContinuumElement) ExceptionT::GeneralFail(caller, "continuum element not defined");
-	return fContinuumElement->ElementSupport().Output();
-#else
-	ExceptionT::GeneralFail(caller, "requires option CONTINUUM_ELEMENT");
-	ofstreamT* dummy;
-	return &dummy;
-#endif
 }
 
 /* interpolate the given field to the current integration point */

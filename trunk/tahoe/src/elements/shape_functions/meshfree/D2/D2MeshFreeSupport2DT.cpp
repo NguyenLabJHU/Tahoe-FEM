@@ -1,6 +1,5 @@
-/* $Id: D2MeshFreeSupport2DT.cpp,v 1.8 2004-01-27 01:21:14 cjkimme Exp $ */
-/* created: paklein (10/23/1999)                                          */
-
+/* $Id: D2MeshFreeSupport2DT.cpp,v 1.9 2004-07-15 08:30:07 paklein Exp $ */
+/* created: paklein (10/23/1999) */
 #include "D2MeshFreeSupport2DT.h"
 
 #include <math.h>
@@ -11,7 +10,6 @@
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 
-
 using namespace Tahoe;
 
 static    int Max(int a, int b) { return (a > b) ? a : b; };
@@ -19,8 +17,8 @@ static double Max(double a, double b) { return (a > b) ? a : b; };
 
 /* constructor */
 D2MeshFreeSupport2DT::D2MeshFreeSupport2DT(const ParentDomainT* domain,
-	const dArray2DT& coords, const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in):
-	D2MeshFreeSupportT(domain, coords, connects, nongridnodes, in)
+	const dArray2DT& coords, const iArray2DT& connects, const iArrayT& nongridnodes):
+	D2MeshFreeSupportT(domain, coords, connects, nongridnodes)
 {
 
 }
@@ -34,11 +32,8 @@ void D2MeshFreeSupport2DT::SetCuttingFacets(const dArray2DT& facet_coords,
 
 	/* checks */
 	if (fNumFacetNodes != 2)
-	{
-		cout << "\n D2MeshFreeSupport2DT::SetCuttingFacets: 2D cutting facets must\n"
-		     <<   "     have 2 nodes: " << fNumFacetNodes << endl;
-		throw ExceptionT::kSizeMismatch;
-	}
+		ExceptionT::SizeMismatch("D2MeshFreeSupport2DT::SetCuttingFacets", "2D cutting facets must have 2 nodes: %d",
+			fNumFacetNodes);
 }
 
 /*************************************************************************

@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.3 2003-11-21 22:47:59 paklein Exp $ */
+/* $Id: ConveyorT.cpp,v 1.4 2004-07-15 08:31:21 paklein Exp $ */
 #include "ConveyorT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -6,7 +6,7 @@
 #include "LocalArrayT.h"
 #include "ElementBaseT.h"
 #include "KBC_PrescribedT.h"
-#include "ifstreamT.h"
+
 
 using namespace Tahoe;
 
@@ -14,8 +14,8 @@ using namespace Tahoe;
 const double TipNoise = 1.0e-06;
 
 /* constructor */
-ConveyorT::ConveyorT(NodeManagerT& node_manager, FieldT& field):
-	KBC_ControllerT(node_manager),
+ConveyorT::ConveyorT(const BasicSupportT& support, FieldT& field):
+	KBC_ControllerT(support),
 	fField(field),
 	fULBC_Value(0.0),
 	fULBC_Code(KBC_CardT::kFix),
@@ -41,13 +41,14 @@ void ConveyorT::InitialCondition(void)
 	MarkElements();	
 }
 
+#if 0
 /* initialize data - called immediately after construction */
 void ConveyorT::Initialize(ifstreamT& in)
 {
 	const char caller[] = "ConveyorT::Initialize";
 
 	/* only 2D for now */
-	int nsd = fNodeManager.NumSD();
+	int nsd = fSupport.NumSD();
 	if (nsd != 2) ExceptionT::GeneralFail(caller, "only tested for 2D: %d", nsd);
 
 	/* prescribed dimensions */
@@ -63,7 +64,7 @@ void ConveyorT::Initialize(ifstreamT& in)
 	in >> fULBC_Code;
 	in >> fULBC_Value;
 	in >> fULBC_ScheduleNumber; fULBC_ScheduleNumber--;
-	fULBC_Schedule = fNodeManager.Schedule(fULBC_ScheduleNumber);	
+	fULBC_Schedule = fSupport.Schedule(fULBC_ScheduleNumber);	
 	if (!fULBC_Schedule) ExceptionT::BadInputValue(caller, "could not resolve schedule %d", fULBC_ScheduleNumber+1);
 
 	/* initial crack tip position */
@@ -92,27 +93,25 @@ void ConveyorT::Initialize(ifstreamT& in)
 	double valueby2 = fULBC_Value/2.0;
 	for (int i = 0; i < fBottomNodes.Length(); i++) {
 		KBC_CardT& card = fKBC_Cards[node++];
-		card.SetValues(fBottomNodes[i], 1, fULBC_Code, fULBC_ScheduleNumber, -valueby2);
-		card.SetSchedule(fULBC_Schedule);
+		card.SetValues(fBottomNodes[i], 1, fULBC_Code, fULBC_Schedule, -valueby2);
 	}
 	for (int i = 0; i < fTopNodes.Length(); i++) {
 		KBC_CardT& card = fKBC_Cards[node++];
-		card.SetValues(fTopNodes[i], 1, fULBC_Code, fULBC_ScheduleNumber, valueby2);
-		card.SetSchedule(fULBC_Schedule);
-	}
+		card.SetValues(fTopNodes[i], 1, fULBC_Code, fULBC_Schedule, valueby2);
+		}
 
 	/* set stretching tangent cards */
 	for (int i = 0; i < fBottomNodes.Length(); i++) {
 		KBC_CardT& card = fKBC_Cards[node++];
-		card.SetValues(fBottomNodes[i], 0, KBC_CardT::kFix, 0, 0);
+		card.SetValues(fBottomNodes[i], 0, KBC_CardT::kFix, NULL, 0);
 	}
 	for (int i = 0; i < fTopNodes.Length(); i++) {
 		KBC_CardT& card = fKBC_Cards[node++];
-		card.SetValues(fTopNodes[i], 0, KBC_CardT::kFix, 0, 0);
+		card.SetValues(fTopNodes[i], 0, KBC_CardT::kFix, NULL, 0);
 	}
 
 	/* find boundaries */
-	const dArray2DT& init_coords = fNodeManager.InitialCoordinates();
+	const dArray2DT& init_coords = fSupport.InitialCoordinates();
 	dArrayT X2(init_coords.MajorDim());
 	init_coords.ColumnCopy(0, X2);
 	X2.MinMax(fX_Left, fX_Right);
@@ -130,15 +129,10 @@ void ConveyorT::Initialize(ifstreamT& in)
 	fTrackingOutput.open(file);
 	
 	/* create controller for the right edge of the domain */
-	fRightEdge = new KBC_PrescribedT(fNodeManager);
+	fRightEdge = new KBC_PrescribedT(fSupport);
 	fField.AddKBCController(fRightEdge);
 }
-
-void ConveyorT::WriteParameters(ostream& out) const
-{
-	/* inherited */
-	KBC_ControllerT::WriteParameters(out);
-}
+#endif
 
 void ConveyorT::Reset(void)
 {
@@ -158,7 +152,7 @@ void ConveyorT::InitStep(void)
 	fTrackingCount++;
 	
 	/* create pre-crack */
-	if (fNodeManager.FEManager().Time() < kSmall)
+	if (fSupport.FEManager().Time() < kSmall)
 		CreatePrecrack();
 }
 
@@ -179,7 +173,7 @@ void ConveyorT::FormRHS(void)
 			fDampingForce[i] = -fDampingForce[i]*fDampingCoeff[i];
 
 		/* assemble */
-		const FEManagerT& fe_man = fNodeManager.FEManager();
+		const FEManagerT& fe_man = fSupport.FEManager();
 		fe_man.AssembleRHS(fField.Group(), fDampingForce, fDampingEqnos);
 	}
 }
@@ -210,7 +204,7 @@ void ConveyorT::Update(const dArrayT& update)
 			fField.SetLocalEqnos(tags, fDampingEqnos);
 
 			/* collect nodal masses */
-			const FEManagerT& fe = fNodeManager.FEManager();
+			const FEManagerT& fe = fSupport.FEManager();
 			dArrayT diagonals;
 			diagonals.Alias(fDampingCoeff);
 			fe.DisassembleLHSDiagonal(fField.Group(), diagonals, fDampingEqnos);
@@ -244,7 +238,7 @@ void ConveyorT::CloseStep(void)
 		double uY_bottom = u_field(fBottomNodes[0], 1);
 		double uY_top = u_field(fTopNodes[0], 1);
 		
-		fTrackingOutput << fNodeManager.FEManager().Time() << ' ' 
+		fTrackingOutput << fSupport.Time() << ' ' 
 		                << fTrackingPoint << ' '
 		                << uY_top - uY_bottom <<'\n';
 		fTrackingCount = 0;
@@ -287,45 +281,48 @@ double ConveyorT::TrackPoint(TrackingTypeT tracking_type, double threshold)
 	const char caller[] = "ConveyorT::TrackPoint";
 
 	/* near tip element group */
-	const FEManagerT& fe_man = fNodeManager.FEManager();
+	const FEManagerT& fe_man = fSupport.FEManager();
 	ElementBaseT* neartip_group = fe_man.ElementGroup(fTipElementGroup);
 	if (!neartip_group)
 		ExceptionT::GeneralFail(caller, "could not resolve near tip element group number %d", fTipElementGroup+1);
 
 	/* signal to accumulate nodal values */
 	neartip_group->SendOutput(fTipOutputCode);
-	
+
+	/* nodes */
+	NodeManagerT& node_manager = fSupport.NodeManager();
+
 	/* tracking type */
 	if (tracking_type == kMax)
 	{
 		/* find the node with max opening stress */
 		int maxrow;
 		double maxval;
-		fNodeManager.MaxInColumn(fTipColumnNum, maxrow, maxval);
+		node_manager.MaxInColumn(fTipColumnNum, maxrow, maxval);
 		if (maxrow == -1) ExceptionT::GeneralFail(caller);
 
 		/* tracking point x-coordinate */
 		if (maxval > threshold)
-			return (fNodeManager.InitialCoordinates())(maxrow,0);
+			return (fSupport.InitialCoordinates())(maxrow,0);
 		else /* default to left edge of domain */
 			return fX_Left;
 	}
 	else if (tracking_type == kRightMost)
 	{
 		/* reference coordinates */
-		const dArray2DT& ref_coords = fNodeManager.InitialCoordinates();
+		const dArray2DT& ref_coords = node_manager.InitialCoordinates();
 	
 		/* find right most value greater than threshold */
 		double right_most = fX_Left;
 		dArrayT values;
-		fNodeManager.TopAverage();
-		int node = fNodeManager.NextAverageRow(values);
+		node_manager.TopAverage();
+		int node = node_manager.NextAverageRow(values);
 		while (node != -1)
 		{
 			if (values[fTipColumnNum] > threshold && ref_coords(node,0) > right_most)
 				right_most = ref_coords(node,0);
 		
-			node = fNodeManager.NextAverageRow(values);
+			node = node_manager.NextAverageRow(values);
 		}
 
 		return right_most;
@@ -347,11 +344,10 @@ bool ConveyorT::SetSystemFocus(double focus)
 	fX_Right += fWindowShiftDistance;
 
 	/* model information */
-	const FEManagerT& fe = fNodeManager.FEManager();
-	ModelManagerT* model = fe.ModelManager();
+	ModelManagerT& model = fSupport.ModelManager();
 
 	/* reference coordinates */
-	const dArray2DT& initial_coords = fNodeManager.InitialCoordinates();
+	const dArray2DT& initial_coords = fSupport.InitialCoordinates();
 
 	/* fields */
 	dArray2DT& u_field = fField[0];
@@ -388,7 +384,7 @@ bool ConveyorT::SetSystemFocus(double focus)
 			/* shift reference coordinates */
 			new_coords[0] = initial_coords(i,0) + fX_PeriodicLength;
 			new_coords[1] = initial_coords(i,1);
-			model->UpdateNode(new_coords, i);
+			model.UpdateNode(new_coords, i);
 
 			/* correct displacements */
 			u_field(i,0) = 0.0;
@@ -412,14 +408,14 @@ bool ConveyorT::SetSystemFocus(double focus)
 		
 		px += nsd;
 	}
-	fNodeManager.UpdateCurrentCoordinates();
+	fSupport.NodeManager().UpdateCurrentCoordinates();
 	
 	/* reset cards for right edge */
 	ArrayT<KBC_CardT>& cards = fRightEdge->KBC_Cards();
 	cards.Dimension(fShiftedNodes.Length());
 	for (int i = 0; i < cards.Length(); i++) {
 		KBC_CardT& card = cards[i];
-		card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, 0, 0.0);
+		card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, NULL, 0.0);
 	}
 
 	/* mark elements linking left to right edge as inactive */
@@ -433,8 +429,8 @@ bool ConveyorT::SetSystemFocus(double focus)
 void ConveyorT::MarkElements(void)
 {
 	/* system information */
-	const FEManagerT& fe = fNodeManager.FEManager();
-	const dArray2DT& current_coords = fNodeManager.CurrentCoordinates();
+	const FEManagerT& fe = fSupport.FEManager();
+	const dArray2DT& current_coords = fSupport.CurrentCoordinates();
 
 	/* zone to activate/deactivate elements */
 	double X_R_on  = fX_Right - fRightMinSpacing;
@@ -495,8 +491,8 @@ void ConveyorT::MarkElements(void)
 void ConveyorT::CreatePrecrack(void)
 {
 	/* element group */
-	const FEManagerT& fe = fNodeManager.FEManager();
-	const dArray2DT& current_coords = fNodeManager.CurrentCoordinates();
+	const FEManagerT& fe = fSupport.FEManager();
+	const dArray2DT& current_coords = fSupport.CurrentCoordinates();
 	ElementBaseT* element_group = fe.ElementGroup(fTipElementGroup);
 	if (!element_group) ExceptionT::GeneralFail();
 	int nel = element_group->NumElements();

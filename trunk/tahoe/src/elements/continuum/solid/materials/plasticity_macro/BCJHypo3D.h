@@ -1,4 +1,4 @@
-/* $Id: BCJHypo3D.h,v 1.9 2004-03-02 23:50:34 raregue Exp $ */
+/* $Id: BCJHypo3D.h,v 1.10 2004-07-15 08:29:14 paklein Exp $ */
 #ifndef _BCJ_HYPO_3D_H_
 #define _BCJ_HYPO_3D_H_
 
@@ -47,10 +47,6 @@ class BCJHypo3D : public EVPFDBaseT
   virtual int NumOutputVariables() const;
   virtual void OutputLabels(ArrayT<StringT>& labels) const;
   virtual void ComputeOutput(dArrayT& output);
-
-  // print data and model name
-  virtual void Print(ostream& out) const;
-  virtual void PrintName(ostream& out) const;
 
   /* form of tangent matrix */
   virtual GlobalT::SystemTypeT TangentType(void) const;

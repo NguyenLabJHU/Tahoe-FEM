@@ -1,58 +1,22 @@
-/* $Id: OgdenIsotropicT.cpp,v 1.13 2003-06-28 17:32:13 thao Exp $ */
+/* $Id: OgdenIsotropicT.cpp,v 1.14 2004-07-15 08:27:22 paklein Exp $ */
 /* created: paklein (10/01/2000) */
 #include "OgdenIsotropicT.h"
 
-#include <iostream.h>
 #include <math.h>
 
 using namespace Tahoe;
 
 /* constructor */
-OgdenIsotropicT::OgdenIsotropicT(ifstreamT& in, const FSMatSupportT& support):
-	FSSolidMatT(in, support),
-	fSpectralDecomp(NumSD()),
-	fC(NumSD()),
-	fEigs(NumSD()),
-	fdWdE(NumSD()),
-	fddWddE(NumSD()),
-	fModMat(dSymMatrixT::NumValues(NumSD())),
-	fModulus(dSymMatrixT::NumValues(NumSD())),
-	fStress(NumSD())
+OgdenIsotropicT::OgdenIsotropicT(void):
+	ParameterInterfaceT("Ogden_isotropic"),
+	fSpectralDecomp(NULL)
 {
 
 }
 
-void OgdenIsotropicT::Print(ostream& out) const
+OgdenIsotropicT::~OgdenIsotropicT(void)
 {
-	/* inherited */
-	FSSolidMatT::Print(out);
-	IsotropicT::Print(out);
-}
-
-void OgdenIsotropicT::PrintName(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::PrintName(out);
-
-	out << "    Ogden spectral formulation\n";
-}
-
-/* class specific initializations */
-void OgdenIsotropicT::Initialize(void)
-{
-	/* initial modulus */
-	fEigs = 1.0;
-	ddWddE(fEigs, fdWdE, fddWddE);
-	double lambda = fddWddE(0,1);
-	double mu = 0.5*(fddWddE(0,0) - fddWddE(0,1));
-
-	if (NumSD() == 2)
-		IsotropicT::Set_PurePlaneStress_mu_lambda(mu, lambda);
-	else
-	{
-		double kappa = lambda + 2.0/3.0*mu;
-		IsotropicT::Set_mu_kappa(mu, kappa);
-	}
+	delete fSpectralDecomp;
 }
 
 /* modulus */
@@ -86,17 +50,17 @@ const dMatrixT& OgdenIsotropicT::C_IJKL(void)
 	Compute_C(fC);
 
 	/* spectral decomposition */
-	fSpectralDecomp.SpectralDecomp_Jacobi(fC, false);
+	fSpectralDecomp->SpectralDecomp_Jacobi(fC, false);
 
 	/* principal values */
-	const dArrayT& eigenstretch = fSpectralDecomp.Eigenvalues();
+	const dArrayT& eigenstretch = fSpectralDecomp->Eigenvalues();
 	ddWddE(eigenstretch, fdWdE, fddWddE);
 
 	/* axial */
-	fModulus = fSpectralDecomp.EigsToRank4(fddWddE);
+	fModulus = fSpectralDecomp->EigsToRank4(fddWddE);
 
 	/* shear terms */
-	const ArrayT<dArrayT>& eigenvectors = fSpectralDecomp.Eigenvectors();
+	const ArrayT<dArrayT>& eigenvectors = fSpectralDecomp->Eigenvectors();
 	double diff_stretch, dtde;
 	if (NumSD() == 2)
 	{
@@ -148,13 +112,13 @@ const dSymMatrixT& OgdenIsotropicT::S_IJ(void)
 	Compute_C(fC);
 
 	/* spectral decomposition */
-	fSpectralDecomp.SpectralDecomp_Jacobi(fC, false);
-	//fSpectralDecomp.SpectralDecomp(C(), false); // closed-form decomposition
-	const ArrayT<dArrayT>& eigenvectors = fSpectralDecomp.Eigenvectors();
+	fSpectralDecomp->SpectralDecomp_Jacobi(fC, false);
+	//fSpectralDecomp->SpectralDecomp(C(), false); // closed-form decomposition
+	const ArrayT<dArrayT>& eigenvectors = fSpectralDecomp->Eigenvectors();
 
 	/* principal values */
-	dWdE(fSpectralDecomp.Eigenvalues(), fdWdE);
-	fStress = fSpectralDecomp.EigsToRank2(fdWdE);
+	dWdE(fSpectralDecomp->Eigenvalues(), fdWdE);
+	fStress = fSpectralDecomp->EigsToRank2(fdWdE);
 
 	return (fStress);
 }
@@ -162,13 +126,33 @@ const dSymMatrixT& OgdenIsotropicT::S_IJ(void)
 /* return the pressure associated with the last call to stress */
 double OgdenIsotropicT::Pressure(void) const
 {
-	return dArrayT::Dot(fSpectralDecomp.Eigenvalues(), fdWdE)/
-			sqrt(fSpectralDecomp.Eigenvalues().Product());
+	return dArrayT::Dot(fSpectralDecomp->Eigenvalues(), fdWdE)/
+			sqrt(fSpectralDecomp->Eigenvalues().Product());
+}
+
+/* accept parameter list */
+void OgdenIsotropicT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	FSIsotropicMatT::TakeParameterList(list);
+
+	/* construct spectral decomposition */
+	int nsd = NumSD();
+	fSpectralDecomp = new SpectralDecompT(nsd);
+
+	/* dimension work space */
+	fC.Dimension(nsd);
+	fEigs.Dimension(nsd);
+	fdWdE.Dimension(nsd);
+	fddWddE.Dimension(nsd);
+	fModMat.Dimension(dSymMatrixT::NumValues(nsd));
+	fModulus.Dimension(dSymMatrixT::NumValues(nsd));
+	fStress.Dimension(nsd);
 }
 
 /*************************************************************************
-* Private
-*************************************************************************/
+ * Private
+ *************************************************************************/
 
 /* construct symmetric rank-4 mixed-direction tensor (6.1.44) */
 void OgdenIsotropicT::MixedRank4_2D(const dArrayT& a, const dArrayT& b,

@@ -1,4 +1,4 @@
-/* $Id: nLinearHHTalpha.cpp,v 1.12 2003-11-21 22:47:31 paklein Exp $ */
+/* $Id: nLinearHHTalpha.cpp,v 1.13 2004-07-15 08:30:28 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 #include "nLinearHHTalpha.h"
 #include "dArrayT.h"
@@ -11,8 +11,8 @@
 using namespace Tahoe;
 
 /* constructor */
-nLinearHHTalpha::nLinearHHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder):
-	HHTalpha(in, out, auto2ndorder),
+nLinearHHTalpha::nLinearHHTalpha(double alpha):
+	HHTalpha(alpha),
 	fField(NULL)
 {
 

@@ -58,10 +58,6 @@ class HaasenHardening : public SlipHardening
   virtual const dArrayT& ComputeHardQnts();
   virtual const double ComputeHardQnts(int is);
 
-  // print hardening data and model name
-  virtual void Print(ostream& out) const;
-  virtual void PrintName(ostream& out) const;
-
  private:
   // nondirectional slip system hardness
   void NonDirectionalHardening(dArrayT& tauIso, const dArrayT& DDtot,

@@ -1,4 +1,4 @@
-/* $Id: Chain1D.cpp,v 1.2 2004-06-26 05:56:41 paklein Exp $ */
+/* $Id: Chain1D.cpp,v 1.3 2004-07-15 08:26:42 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Chain1D.h"
 #include "ElementsConfig.h"
@@ -21,8 +21,8 @@
 using namespace Tahoe;
 
 /* constructor */
-Chain1D::Chain1D(ifstreamT& in, const FSMatSupportT& support):
-	NL_E_MatT(in, support),
+Chain1D::Chain1D(void):
+	ParameterInterfaceT("chain_1D"),
 	fNearestNeighbor(-1),
 	fLattice1D(NULL),
 	fPairProperty(NULL),
@@ -31,60 +31,7 @@ Chain1D::Chain1D(ifstreamT& in, const FSMatSupportT& support):
 	fBondTensor2(dSymMatrixT::NumValues(1)),
 	fFullDensityForStressOutput(true)
 {
-	const char caller[] = "Chain1D::Chain1D";
 
-	/* read the number of shells */
-	int nshells;
-	in >> nshells;
-
-	/* construct pair property */
-	ParticlePropertyT::TypeT property;
-	in >> property;
-	switch (property)
-	{
-		case ParticlePropertyT::kHarmonicPair:
-		{
-			double mass, K;
-			in >> mass >> fNearestNeighbor >> K;
-			fPairProperty = new HarmonicPairT(mass, fNearestNeighbor, K);
-			break;
-		}
-		case ParticlePropertyT::kLennardJonesPair:
-		{
-			double mass, eps, sigma, alpha;
-			in >> mass >> eps >> sigma >> alpha;
-			fPairProperty = new LennardJonesPairT(mass, eps, sigma, alpha);
-
-			/* equilibrium length of a single unmodified LJ bond */
-			fNearestNeighbor = pow(2.0,1.0/6.0)*sigma;
-			break;
-		}
-		default:
-			ExceptionT::BadInputValue(caller, "unrecognized property type %d", property);
-	}
-	
-	/* construct the bond tables */
-	fLattice1D = new Lattice1DT(nshells);
-	fLattice1D->Initialize();
-
-	/* construct default bond density array */
-	fFullDensity.Dimension(fLattice1D->NumberOfBonds());
-	fFullDensity = 1.0;
-	
-	/* check */
-	if (fNearestNeighbor < kSmall)
-		ExceptionT::BadInputValue(caller, "nearest bond ! (%g > 0)", fNearestNeighbor);
-		
-	/* compute the (approx) cell volume */
-	fAtomicVolume = fNearestNeighbor;
-
-	/* compute stress-free dilatation */
-	double stretch = ZeroStressStretch();
-	fNearestNeighbor *= stretch;
-	fAtomicVolume = fNearestNeighbor;
-
-	/* reset the continuum density (4 atoms per unit cell) */
-	fDensity = fPairProperty->Mass()/fAtomicVolume;
 }
 
 /* destructor */
@@ -93,39 +40,103 @@ Chain1D::~Chain1D(void) {
 	delete fPairProperty;
 }
 
-/* I/O functions */
-void Chain1D::PrintName(ostream& out) const
-{
-	NL_E_MatT::PrintName(out);
-	out << "    1D lattice\n";
-}
-
-void Chain1D::Print(ostream& out) const
-{
-	/* inherited */
-	NL_E_MatT::Print(out);
-
-	/* higher precision */
-	int prec = out.precision();
-	out.precision(12);
-
-	/* lattice parameters */
-	out << " Number of neighbor shells . . . . . . . . . . . = " << fLattice1D->NumShells() << '\n';
-	out << " Number of neighbors . . . . . . . . . . . . . . = " << fLattice1D->NumberOfBonds() << '\n';
-	out << " Nearest neighbor distance . . . . . . . . . . . = " << fNearestNeighbor << '\n';
-
-	/* write pair properties to output */
-	out << " Interaction potential parameters:\n";
-	fPairProperty->Write(out);
-
-	/* restore precision */
-	out.precision(prec);
-}
-
 /* return a reference to the bond lattice */
 const BondLatticeT& Chain1D::BondLattice(void) const {
 	if (!fLattice1D) ExceptionT::GeneralFail("Chain1D::BondLattice", "pointer not set");
 	return *fLattice1D;
+}
+
+/* describe the parameters needed by the interface */
+void Chain1D::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	NL_E_MatT::DefineParameters(list);
+	
+	/* number of neighbor shells */
+	ParameterT n_shells(ParameterT::Integer, "shells");
+	n_shells.AddLimit(1, LimitT::LowerInclusive);
+	list.AddParameter(n_shells);
+}
+
+/* information about subordinate parameter lists */
+void Chain1D::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	NL_E_MatT::DefineSubs(sub_list);
+
+	/* pair potential choice */
+	sub_list.AddSub("chain_1D_potential_choice", ParameterListT::Once, true);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void Chain1D::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
+{
+	if (name == "chain_1D_potential_choice")
+	{
+		order = ParameterListT::Choice;
+
+		/* choice of potentials */
+		sub_lists.AddSub("harmonic");
+		sub_lists.AddSub("Lennard_Jones");
+		sub_lists.AddSub("Paradyn_pair");
+		sub_lists.AddSub("Matsui");
+	}
+	else /* inherited */
+		NL_E_MatT::DefineInlineSub(name, order, sub_lists);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* Chain1D::NewSub(const StringT& name) const
+{
+	/* try to construct pair property */
+	PairPropertyT* pair_prop = PairPropertyT::New(name, fMaterialSupport);
+	if (pair_prop)
+		return pair_prop;
+	else /* inherited */
+		return NL_E_MatT::NewSub(name);
+}
+
+/* accept parameter list */
+void Chain1D::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "Chain1D::TakeParameterList";
+
+	/* inherited */
+	NL_E_MatT::TakeParameterList(list);
+
+	/* number of shells */
+	int nshells = list.GetParameter("shells");
+
+	/* construct pair property */
+	const ParameterListT& pair_prop = list.GetListChoice(*this, "chain_1D_potential_choice");
+	fPairProperty = PairPropertyT::New(pair_prop.Name(), &(MaterialSupport()));
+	if (!fPairProperty) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", pair_prop.Name().Pointer());
+	fPairProperty->TakeParameterList(pair_prop);
+
+	/* check */
+	fNearestNeighbor = fPairProperty->NearestNeighbor();
+	if (fNearestNeighbor < kSmall)
+		ExceptionT::BadInputValue(caller, "nearest bond ! (%g > 0)", fNearestNeighbor);
+
+	/* construct the bond tables */
+	fLattice1D = new Lattice1DT(nshells);
+	fLattice1D->Initialize();
+
+	/* construct default bond density array */
+	fFullDensity.Dimension(fLattice1D->NumberOfBonds());
+	fFullDensity = 1.0;
+
+	/* compute the (approx) cell volume */
+	fAtomicVolume = fNearestNeighbor;
+
+	/* compute stress-free dilatation */
+	double stretch = ZeroStressStretch();
+	fNearestNeighbor *= stretch;
+	fAtomicVolume = fNearestNeighbor;
+
+	/* reset the continuum density */
+	fDensity = fPairProperty->Mass()/fAtomicVolume;
 }
 
 /*************************************************************************

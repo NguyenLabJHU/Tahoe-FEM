@@ -1,42 +1,15 @@
-/* $Id: SimoIso3D.cpp,v 1.10 2004-06-26 18:36:28 paklein Exp $ */
+/* $Id: SimoIso3D.cpp,v 1.11 2004-07-15 08:27:35 paklein Exp $ */
 /* created: paklein (03/02/1997) */
 #include "SimoIso3D.h"
-#include <iostream.h>
 #include <math.h>
 
 using namespace Tahoe;
 
 /* constructor */
-SimoIso3D::SimoIso3D(ifstreamT& in, const FSMatSupportT& support):
-	FSSolidMatT(in, support),
-	IsotropicT(in),
-	fStress(3),
-	fModulus(dSymMatrixT::NumValues(3)),
-	
-	/* work space */
-	fb(3),
-	fb_bar(3),
-	frank4(dSymMatrixT::NumValues(3)),
-	
-	/* fixed forms */
-	fIdentity(3),
-	fIcrossI(dSymMatrixT::NumValues(3)),
-	fIdentity4(dSymMatrixT::NumValues(3)),
-	fDevOp4(dSymMatrixT::NumValues(3))
+SimoIso3D::SimoIso3D(void):
+	ParameterInterfaceT("Simo_isotropic")
 {	
-	/* initialize work matricies */
-	fIdentity.Identity();
-	fIcrossI.Outer(fIdentity, fIdentity);
-	fIdentity4.ReducedIndexI();	
-	fDevOp4.ReducedIndexDeviatoric();
-}
 
-/* print parameters */
-void SimoIso3D::Print(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::Print(out);
-	IsotropicT::Print(out);
 }
 
 /* modulus */
@@ -126,17 +99,33 @@ double SimoIso3D::StrainEnergyDensity(void)
 	return ComputeEnergy(J, fb_bar);
 }
 
-/*************************************************************************
-* Protected
-*************************************************************************/
-
-void SimoIso3D::PrintName(ostream& out) const
+/* accept parameter list */
+void SimoIso3D::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	FSSolidMatT::PrintName(out);
+	FSIsotropicMatT::TakeParameterList(list);
+	
+	/* dimension work space */
+	fStress.Dimension(3);
+	fModulus.Dimension(dSymMatrixT::NumValues(3));
+	fb.Dimension(3);
+	fb_bar.Dimension(3);
+	frank4.Dimension(dSymMatrixT::NumValues(3));
+	fIdentity.Dimension(3);
+	fIcrossI.Dimension(dSymMatrixT::NumValues(3));
+	fIdentity4.Dimension(dSymMatrixT::NumValues(3));
+	fDevOp4.Dimension(dSymMatrixT::NumValues(3));
 
-	out << "    Simo Isotropic\n";
+	/* initialize work matricies */
+	fIdentity.Identity();
+	fIcrossI.Outer(fIdentity, fIdentity);
+	fIdentity4.ReducedIndexI();	
+	fDevOp4.ReducedIndexDeviatoric();
 }
+
+/*************************************************************************
+ * Protected
+ *************************************************************************/
 
 /* computation routines */
 void SimoIso3D::ComputeModuli(double J, const dSymMatrixT& b_bar,

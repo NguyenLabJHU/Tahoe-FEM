@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.cpp,v 1.9 2003-12-10 07:14:21 paklein Exp $ */
+/* $Id: ContinuumMaterialT.cpp,v 1.10 2004-07-15 08:26:13 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "ContinuumMaterialT.h"
 #include "MaterialSupportT.h"
@@ -8,16 +8,6 @@
 using namespace Tahoe;
 
 /* constructor */
-ContinuumMaterialT::ContinuumMaterialT(const MaterialSupportT& support):
-	ParameterInterfaceT("continuum_material"),
-	fMaterialSupport(&support),
-	fNumDOF(support.NumDOF()),
-	fNumSD(support.NumSD()),
-	fNumIP(support.NumIP())
-{
-
-}
-
 ContinuumMaterialT::ContinuumMaterialT(void):
 	ParameterInterfaceT("continuum_material"),
 	fMaterialSupport(NULL),
@@ -26,6 +16,22 @@ ContinuumMaterialT::ContinuumMaterialT(void):
 	fNumIP(0)
 {
 
+}
+
+/* set the material support or pass NULL to clear */
+void ContinuumMaterialT::SetMaterialSupport(const MaterialSupportT* support)
+{
+	fMaterialSupport = support;
+	if (fMaterialSupport) {
+		fNumDOF = fMaterialSupport->NumDOF();
+		fNumSD = fMaterialSupport->NumSD();
+		fNumIP = fMaterialSupport->NumIP();
+	}
+	else {
+		fNumDOF = 0;
+		fNumSD = 0;
+		fNumIP = 0;
+	}
 }
 
 /* destructor */
@@ -56,12 +62,6 @@ ElementCardT& ContinuumMaterialT::CurrentElement(void) const
 	return *the_card;
 }
 
-/* initialization */
-void ContinuumMaterialT::Initialize(void)
-{
-/* do nothing */
-}
-
 /* storage initialization */
 bool ContinuumMaterialT::NeedsPointInitialization(void) const { return false; }
 void ContinuumMaterialT::PointInitialize(void) { /* nothing to do */ }
@@ -82,12 +82,6 @@ void ContinuumMaterialT::CloseStep(void) { }
 /* update/reset internal variables */
 void ContinuumMaterialT::UpdateHistory(void) { }
 void ContinuumMaterialT::ResetHistory(void) { }
-
-/* print parameters */
-void ContinuumMaterialT::Print(ostream& out) const
-{
-	PrintName(out);
-}
 
 /* returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0
@@ -123,12 +117,3 @@ bool ContinuumMaterialT::CompatibleOutput(const ContinuumMaterialT& m1,
 		return true;
 	}
 }	
-
-/***********************************************************************
-* Protected
-***********************************************************************/
-
-void ContinuumMaterialT::PrintName(ostream& out) const
-{
-	out << " Material name:\n";
-}

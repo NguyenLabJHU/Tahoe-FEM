@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.13 2004-01-10 04:41:25 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.14 2004-07-15 08:29:20 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -29,20 +29,17 @@ class SolidMaterialT: public ContinuumMaterialT
 {
 public:
 
+	/** \name 2D constrain options */
+	enum ConstraintT {
+		kNoConstraint = 0, /**< no constraint, material is 3D */
+		kPlaneStress = 1, /**< plane stress */
+		kPlaneStrain = 2  /**< plane strain */};
+
 	/** constructor */
-	SolidMaterialT(ifstreamT& in, const MaterialSupportT& support);
 	SolidMaterialT(void);
 
 	/** destructor */
 	~SolidMaterialT(void);
-
-	/** initialization called immediately after constructor. This function
-	 * checks if thermal strain are being imposed and if the material
-	 * supports thermal strain, using SolidMaterialT::SupportsThermalStrain. */
-	virtual void Initialize(void);
-
-	/** write parameters */
-	virtual void Print(ostream& out) const;
 
 	/** \name spatial description */
 	/*@{*/
@@ -70,13 +67,27 @@ public:
 	virtual const dSymMatrixT& S_IJ(void) = 0;
 	/*@}*/
 
+	/** 2D constrain options or kNoConstraint::kNoConstraint if the material
+	 * is not 2D */
+	ConstraintT Constraint(void) const { return fConstraint; };
+
+	/** \name queries */
+	/*@{*/
+	/** return true if the material can produce localization */
+	virtual bool HasLocalization(void) const { return false; };
+
+	/** return true if the material generates heat. The returns false unless 
+	 * overridden. */
+	virtual bool HasIncrementalHeat(void) const { return false; };
+
+	virtual bool NeedDisp(void) const     { return false; };
+	virtual bool NeedLastDisp(void) const { return false; };
+	virtual bool NeedVel(void) const      { return false; };
+	/*@}*/
+
 	/** incremental heat generation. Associated with the stress calculated with the
 	 * most recent call to SolidMaterialT::s_ij or SolidMaterialT::S_IJ */
 	virtual double IncrementalHeat(void);
-	
-	/** return true if the material generates heat. The returns false unless 
-	 * overridden. */
-	virtual bool HasIncrementalHeat(void) const;
 
 	/** strain energy density */
 	virtual double StrainEnergyDensity(void) = 0;
@@ -90,14 +101,6 @@ public:
 	 * \param normal wave propagation direction
 	 * \param speeds the computed acoustic wave speeds */
 	void WaveSpeeds(const dArrayT& normal, dArrayT& speeds);
-
-	/** \name required parameter flags
-	 * all false by default */
-	/*@{*/
-	virtual bool NeedDisp(void) const     { return false; };
-	virtual bool NeedLastDisp(void) const { return false; };
-	virtual bool NeedVel(void) const      { return false; };
-	/*@}*/
 	
 	/** return the strain in the material. The definition of strain will be
 	 * dependent on the subclass */
@@ -118,12 +121,6 @@ public:
 	 	
 	/** \return mass density */
 	double Density(void) const;
-	
-	/** Rayleigh damping. \return mass proportional damping coefficient */
-	double MassDamping(void) const;
-
-	/** Rayleigh damping. \return stiffness proportional damping coefficient */
-	double StiffnessDamping(void) const;
 
 	/** test for localization. check for bifurcation using current
 	 * Cauchy stress and the spatial tangent moduli.
@@ -136,6 +133,17 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list. This function also checks if thermal strain are 
+	 * being imposed and if the material supports thermal strain, using 
+	 * SolidMaterialT::SupportsThermalStrain. */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 	
 private:
@@ -152,22 +160,18 @@ protected:
 	/* mass density */
 	double fDensity;
 
-private:	
+	/** 2D constrain option */
+	ConstraintT fConstraint;
 
-	double fMassDamp;
-	double fStiffDamp;
+	/** coefficient of thermal expansion in strain/unit temperature */
+	double fCTE;
 };
 
 /* incremental heat generation */
 inline double SolidMaterialT::IncrementalHeat(void) { return 0.0; }
-inline bool SolidMaterialT::HasIncrementalHeat(void) const { return false; }
 
 /* returns the density */
 inline double SolidMaterialT::Density(void) const { return fDensity; }
-
-/* access to Rayleigh damping parameters */
-inline double SolidMaterialT::MassDamping(void) const { return fMassDamp; }
-inline double SolidMaterialT::StiffnessDamping(void) const { return fStiffDamp;}
 
 /* imposed thermal strains */
 inline int SolidMaterialT::HasThermalStrain(void) const { return fThermal->IsActive(); }

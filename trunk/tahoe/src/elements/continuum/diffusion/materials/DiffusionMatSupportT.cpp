@@ -1,4 +1,4 @@
-/* $Id: DiffusionMatSupportT.cpp,v 1.6 2003-12-28 08:23:16 paklein Exp $ */
+/* $Id: DiffusionMatSupportT.cpp,v 1.7 2004-07-15 08:26:22 paklein Exp $ */
 #include "DiffusionMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -9,8 +9,8 @@
 using namespace Tahoe;
 
 /* constructor */
-DiffusionMatSupportT::DiffusionMatSupportT(int nsd, int ndof, int nip):
-	MaterialSupportT(nsd, ndof, nip),
+DiffusionMatSupportT::DiffusionMatSupportT(int ndof, int nip):
+	MaterialSupportT(ndof, nip),
 	fField_list(NULL),
 	fGradient_list(NULL),
 	fDiffusion(NULL)

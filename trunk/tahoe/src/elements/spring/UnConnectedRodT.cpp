@@ -1,6 +1,5 @@
-/* $Id: UnConnectedRodT.cpp,v 1.15 2004-06-17 07:41:37 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.16 2004-07-15 08:30:17 paklein Exp $ */
 /* created: paklein (04/05/1997) */
-
 #include "UnConnectedRodT.h"
 
 #include <iomanip.h>
@@ -9,21 +8,23 @@
 #include "ModelManagerT.h"
 #include "FindNeighborT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 UnConnectedRodT::UnConnectedRodT(const ElementSupportT& support, const FieldT& field):
 	RodT(support, field),
 	fNumNodesUsed(0),
 	fReconnectCount(0)
 {
+ExceptionT::GeneralFail("UnConnectedRodT::UnConnectedRodT", "out of date");
+#if 0
 	/* read neighbor list parameters */
 	ElementSupport().Input() >> fReconnectInc >> fMaxNeighborCount >> fNeighborDist;
 
 	/* checks */
 	if (fMaxNeighborCount <  1  ) throw ExceptionT::kBadInputValue;
 	if (fNeighborDist     <= 0.0) throw ExceptionT::kBadInputValue;
+#endif
 }
 
 /* apply pre-conditions at the current time step.  Signal
@@ -70,7 +71,7 @@ GlobalT::RelaxCodeT UnConnectedRodT::RelaxSystem(void)
 		Connector.GetNeighors(rodconnects, fNeighborDist);
 		
 		/* update model manager */
-		ModelManagerT& model = ElementSupport().Model();
+		ModelManagerT& model = ElementSupport().ModelManager();
 		model.UpdateElementGroup(fBlockData[0].ID(), rodconnects, true);
 		fBlockData[0].SetDimension(rodconnects.MajorDim());
 
@@ -89,20 +90,9 @@ GlobalT::RelaxCodeT UnConnectedRodT::RelaxSystem(void)
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
-/* print data */
-void UnConnectedRodT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	RodT::PrintControlData(out);
-	
-	out << " Reconnection increment. . . . . . . . . . . . . = " << fReconnectInc     << '\n';
-	out << " Maximum number of neighbors . . . . . . . . . . = " << fMaxNeighborCount << '\n';
-	out << " Neighbor cut-off distance . . . . . . . . . . . = " << fNeighborDist     << '\n';
-}
-	
 /* element data */
 void UnConnectedRodT::ReadMaterialData(ifstreamT& in)
 {
@@ -141,7 +131,7 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	else //only use specified nodes
 	{
 		/* model information */
-		ModelManagerT& model = ElementSupport().Model();
+		ModelManagerT& model = ElementSupport().ModelManager();
 	
 		/* model format specific */
 		if (model.DatabaseFormat() == IOBaseT::kTahoe)
@@ -180,7 +170,7 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	}
 
 	/* send connectivity data to ModelManagerT */
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 	StringT name("URod");
 	name.Append(ElementSupport().ElementGroupNumber(this) + 1);
 	GeometryT::CodeT code = GeometryT::kLine;

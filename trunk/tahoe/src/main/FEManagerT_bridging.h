@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.14 2004-06-26 18:38:08 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.15 2004-07-15 08:31:03 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -12,13 +12,15 @@
 /* direct members */
 #include "PointInCellDataT.h"
 #include "nMatrixT.h"
+#include "KBC_CardT.h"
+#include "dArrayT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
 class ParticlePairT;
 class BridgingScaleT;
-class KBC_PrescribedT;
+class KBC_ControllerT;
 class dSPMatrixT;
 class EAMFCC3D;
 class EAMT;
@@ -30,7 +32,7 @@ class FEManagerT_bridging: public FEManagerT
 public:
 
 	/** constructor */
-	FEManagerT_bridging(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
+	FEManagerT_bridging(const StringT& input, ofstreamT& output, CommunicatorT& comm,
 		const ArrayT<StringT>& argv, ifstreamT& bridging_input);
 
 	/** destructor */
@@ -377,7 +379,7 @@ private:
 	/** \name the driven solution */
 	/*@{*/
 	/** the KBC_ControllerT applying the external solution */
-	KBC_PrescribedT* fSolutionDriver;
+	KBC_ControllerT* fSolutionDriver;
 	
 	/** map data of driver points into the mesh */
 	PointInCellDataT fDrivenCellData;

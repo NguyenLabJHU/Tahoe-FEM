@@ -1,31 +1,30 @@
-/* $Id: FDCubicT.cpp,v 1.5 2003-01-29 07:34:40 paklein Exp $ */
+/* $Id: FDCubicT.cpp,v 1.6 2004-07-15 08:27:05 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #include "FDCubicT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-FDCubicT::FDCubicT(ifstreamT& in, const FSMatSupportT& support):
-	FDHookeanMatT(in, support),
-	CubicT(in)
+FDCubicT::FDCubicT(void):
+	ParameterInterfaceT("large_strain_cubic")
 {
 
 }
 
-/* print parameters */
-void FDCubicT::Print(ostream& out) const
+/* information about subordinate parameter lists */
+void FDCubicT:: DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	FDHookeanMatT::Print(out);
-	CubicT::Print(out);
+	FDHookeanMatT::DefineParameters(list);
+	CubicT::DefineParameters(list);
 }
 
-/* print name */
-void FDCubicT::PrintName(ostream& out) const
+/* information about subordinate parameter lists */
+void FDCubicT:: TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	FDHookeanMatT::PrintName(out);
-	CubicT::PrintName(out);
+	CubicT::TakeParameterList(list); /* cubic parameters must be extracted first */
+	FDHookeanMatT::TakeParameterList(list);
 }
 
 /*************************************************************************

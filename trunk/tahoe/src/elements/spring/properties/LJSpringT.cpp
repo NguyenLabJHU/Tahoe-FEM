@@ -1,12 +1,9 @@
-/* $Id: LJSpringT.cpp,v 1.5 2004-06-17 07:41:41 paklein Exp $ */
+/* $Id: LJSpringT.cpp,v 1.6 2004-07-15 08:30:22 paklein Exp $ */
 /* created: paklein (5/28/1996) */
 #include "LJSpringT.h"
 
 #include <iostream.h>
 #include <math.h>
-
-#include "Environment.h"
-#include "ExceptionT.h"
 
 #include "ifstreamT.h"
 #include "ThermalDilatationT.h"
@@ -35,18 +32,6 @@ int LJSpringT::HasInternalStrain(void) const
 	 */
 }
 
-/*
-* I/O functions.
-*/
-void LJSpringT::Print(ostream& out) const
-{
-	/* inherited */
-	RodMaterialT::Print(out);
-
-	out << " Lennard-Jones energy scaling constant. . . . . .= " << f_eps << '\n';	
-	out << " Lennard-Jones length scaling constant. . . . . .= " << f_sigma << '\n';	
-}
-	
 /* potential function and derivatives */
 double LJSpringT::Potential(double rmag, double Rmag) const
 {
@@ -79,13 +64,4 @@ double LJSpringT::DDPotential(double rmag, double Rmag) const
 	double r = f_sigma/rmag;
 
 	return (4.0*f_eps/f_sigma/f_sigma)*(-42.0*pow(r,8) + 156.0*pow(r,14));
-}
-
-/*************************************************************************
-* Protected
-*************************************************************************/
-
-void LJSpringT::PrintName(ostream& out) const
-{
-	out << "    Lennard-Jones 6/12 spring\n";
 }

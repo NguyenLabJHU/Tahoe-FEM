@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.cpp,v 1.11 2004-06-17 07:13:20 paklein Exp $ */
+/* $Id: ThermalSurfaceT.cpp,v 1.12 2004-07-15 08:25:57 paklein Exp $ */
 #include "ThermalSurfaceT.h"
 
 #include <math.h>
@@ -6,20 +6,20 @@
 #include <iomanip.h>
 
 #include "ElementSupportT.h"
-#include "ifstreamT.h"
+
 #include "toolboxConstants.h"
 #include "SurfaceShapeT.h"
 #include "eIntegratorT.h"
-
-/* constructor */
+#include "ParameterContainerT.h"
 
 using namespace Tahoe;
 
-ThermalSurfaceT::ThermalSurfaceT(const ElementSupportT& support, const FieldT& field):
-	CSEBaseT(support, field),
+/* constructor */
+ThermalSurfaceT::ThermalSurfaceT(const ElementSupportT& support):
+	CSEBaseT(support),
 	fLocTemperatures(LocalArrayT::kDisp)
 {
-
+	SetName("thermal_CSE");
 }
 
 /* form of tangent matrix */
@@ -29,50 +29,65 @@ GlobalT::SystemTypeT ThermalSurfaceT::TangentType(void) const
 	return GlobalT::kSymmetric;
 }
 
-void ThermalSurfaceT::Initialize(void)
+/* information about subordinate parameter lists */
+void ThermalSurfaceT::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
-	CSEBaseT::Initialize();
+	CSEBaseT::DefineSubs(sub_list);
 
-	/* check output codes */
-	if (fNodalOutputCodes[MaterialData])
+	/* element block/material specification */
+	sub_list.AddSub("thermal_CSE_element_block", ParameterListT::OnePlus);
+}
+
+/* a pointer to the ParameterInterfaceT */
+ParameterInterfaceT* ThermalSurfaceT::NewSub(const StringT& name) const
+{
+	if (name == "thermal_CSE_element_block")
 	{
-		cout << "\n ThermalSurfaceT::Initialize: material outputs not supported, overriding" << endl;
-		fNodalOutputCodes[MaterialData] = IOBaseT::kAtNever;
+		ParameterContainerT* block = new ParameterContainerT(name);
+		block->SetSubSource(this);
+		
+		/* list of element block ID's (defined by ElementBaseT) */
+		block->AddSub("block_ID_list", ParameterListT::Once);
+	
+		/* conduction parameters */
+		ParameterT K_0(ParameterT::Double, "K_0");
+		K_0.AddLimit(0.0, LimitT::Lower);
+		block->AddParameter(K_0);
+
+		ParameterT d_c(ParameterT::Double, "d_c");
+		d_c.AddLimit(0.0, LimitT::Lower);
+		block->AddParameter(d_c);
+			
+		return block;
 	}
+	else /* inherited */
+		return CSEBaseT::NewSub(name);
+}
+
+/* accept parameter list */
+void ThermalSurfaceT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	CSEBaseT::TakeParameterList(list);
 
 	/* initialize local array */
 	fLocTemperatures.Dimension(NumElementNodes(), NumDOF());
 	Field().RegisterLocal(fLocTemperatures);
 
-	/* read conduction parameters */
-	ifstreamT& in = ElementSupport().Input();
-	int num_sets = -1;
-	in >> num_sets;
-	fConduction.Dimension(num_sets, 2);
-	fConduction = -1.0;
-
-	/* sets of parameters as 
-	 * [set #] [K_0] [D_c] */
-	fConduction.ReadNumbered(in);
-	
-	/* check */
-	if (fConduction.Min() < 0) throw ExceptionT::kBadInputValue;
-	
-	/* echo */	
-	ostream& out = ElementSupport().Output();
-	int d_width = OutputWidth(out, fConduction.Pointer());
-	out << "\n Surface conduction:\n";
-	out << setw(kIntWidth) << "set"
-	    << setw(d_width) << "K_0"
-	    << setw(d_width) << "d_c" << '\n';
-	fConduction.WriteNumbered(out);
-	out.flush();
+	/* collect surface properties */
+	int num_properties = list.NumLists("thermal_CSE_element_block");
+	fConduction.Dimension(num_properties, 2);
+	for (int i = 0; i < num_properties; i++) {
+		const ParameterListT& block = list.GetList("thermal_CSE_element_block", i);
+		fConduction(i,0) = block.GetParameter("K_0");
+		fConduction(i,1) = block.GetParameter("d_c");
+	}
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* called by FormRHS and FormLHS */
 void ThermalSurfaceT::LHSDriver(GlobalT::SystemTypeT)

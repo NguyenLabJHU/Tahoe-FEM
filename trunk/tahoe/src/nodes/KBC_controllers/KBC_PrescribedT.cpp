@@ -1,11 +1,11 @@
-/* $Id: KBC_PrescribedT.cpp,v 1.2 2003-03-31 23:02:50 paklein Exp $ */
+/* $Id: KBC_PrescribedT.cpp,v 1.3 2004-07-15 08:31:21 paklein Exp $ */
 #include "KBC_PrescribedT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-KBC_PrescribedT::KBC_PrescribedT(NodeManagerT& node_manager):
-	KBC_ControllerT(node_manager)
+KBC_PrescribedT::KBC_PrescribedT(const BasicSupportT& support):
+	KBC_ControllerT(support)
 {
 
 }

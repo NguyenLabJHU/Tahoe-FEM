@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.cpp,v 1.11 2004-06-17 07:40:07 paklein Exp $ */
+/* $Id: LocalizerT.cpp,v 1.12 2004-07-15 08:26:27 paklein Exp $ */
 /* created: paklein (02/19/1998) */
 #include "LocalizerT.h"
 
@@ -7,14 +7,12 @@
 #include <iomanip.h>
 
 #include "ifstreamT.h"
-#include "toolboxConstants.h"
 #include "SolidMaterialT.h"
-#include "SolidMatList2DT.h"
-#include "SolidMatList3DT.h"
 #include "ShapeFunctionT.h"
 #include "EdgeFinderT.h"
 #include "iAutoArrayT.h"
 #include "ExodusT.h"
+#include "SolidMatListT.h"
 
 //for strain check below
 #include "FSSolidMatT.h"
@@ -37,9 +35,11 @@ const int kLocCheckAtPrint =-1;
 
 /* constructor */
 LocalizerT::LocalizerT(const ElementSupportT& support, const FieldT& field):
-	UpdatedLagrangianT(support, field),
+	UpdatedLagrangianT(support),
 	fAvgStretch(NumSD())
 {
+ExceptionT::GeneralFail("LocalizerT::LocalizerT", "out of date");
+#if 0
 	/* flags */
 	ifstreamT& in = ElementSupport().Input();
 
@@ -61,11 +61,14 @@ LocalizerT::LocalizerT(const ElementSupportT& support, const FieldT& field):
 	    fLocCheckInc != kLocCheckAtPrint &&
 	    fLocCheckInc < 0)
 		throw ExceptionT::kBadInputValue;
+#endif
 }
 
 /* set work space */
 void LocalizerT::Initialize(void)
 {
+#pragma message("delete me")
+#if 0
 	/* inherited */
 	UpdatedLagrangianT::Initialize();
 
@@ -91,11 +94,11 @@ void LocalizerT::Initialize(void)
 		int groupnum = ElementSupport().ElementGroupNumber(this) + 1;
 	
 		StringT outfile;
-		outfile.Root(ElementSupport().Input().filename());
+		outfile.Root(ElementSupport().InputFile());
 		outfile.Append(".loc.elem", groupnum);
 		fLocOut.open(outfile);
 
-		outfile.Root(ElementSupport().Input().filename());
+		outfile.Root(ElementSupport().InputFile());
 		outfile.Append(".TOC.elem", groupnum);
 		fLocTOC.open(outfile);
 	}		
@@ -137,6 +140,7 @@ void LocalizerT::Initialize(void)
 	/* dimension eigenvalue solver */
 	fEigSolver.Dimension(fnoRBeqs.Length());
 	fEigs.Dimension(fnoRBeqs.Length());
+#endif
 }
 
 /* finalize time increment */
@@ -321,6 +325,7 @@ GlobalT::RelaxCodeT LocalizerT::ResetStep(void)
 * Protected
 ***********************************************************************/
 
+#if 0
 /* print element group data */
 void LocalizerT::PrintControlData(ostream& out) const
 {
@@ -339,6 +344,7 @@ void LocalizerT::PrintControlData(ostream& out) const
 	out << "    eq." << kLocCheckNever   << ", never (skip all localization checks)\n";
 	out << "    eq." << fLocCheckInc	 << ", at every nth step\n";
 }
+#endif
 
 /* skip elements that are off (when?) */
 bool LocalizerT::NextElement(void)
@@ -361,7 +367,7 @@ bool LocalizerT::NextElement(void)
 void LocalizerT::ReadMaterialData(ifstreamT& in)
 {
 	/* inherited */
-	UpdatedLagrangianT::ReadMaterialData(in);
+//	UpdatedLagrangianT::ReadMaterialData(in);
 	
 //TEMP - needs rethinking
 #if 0

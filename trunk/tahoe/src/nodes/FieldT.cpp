@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.29 2004-06-17 07:41:49 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.30 2004-07-15 08:31:09 paklein Exp $ */
 #include "FieldT.h"
 
 #include "ifstreamT.h"
@@ -10,6 +10,9 @@
 #include "LinkedListT.h"
 #include "LocalArrayT.h"
 #include "FieldSupportT.h"
+#include "ParameterContainerT.h"
+#include "ParameterUtils.h"
+#include "ModelManagerT.h"
 
 using namespace Tahoe;
 
@@ -17,6 +20,8 @@ using namespace Tahoe;
 FieldT::FieldT(const FieldSupportT& field_support):
 	ParameterInterfaceT("field"),
 	fFieldSupport(field_support),
+	fGroup(-1),
+	fIntegrator(NULL),	
 	fnIntegrator(NULL),
 	fEquationStart(0),
 	fNumEquations(0)
@@ -25,13 +30,13 @@ FieldT::FieldT(const FieldSupportT& field_support):
 }
 
 /* configure the field */
-void FieldT::Initialize(const StringT& name, int ndof, const nIntegratorT& controller)
+void FieldT::Initialize(const StringT& name, int ndof, int order)
 {
 	/* initialize base class */
-	BasicFieldT::Initialize(name, ndof, controller.Order());
+	BasicFieldT::Initialize(name, ndof, order);
 
-	fnIntegrator = &controller;
-	fField_last.Dimension(fnIntegrator->Order()+1);
+	/* allocate history */
+	fField_last.Dimension(order + 1);
 
 	/* register arrays */
 	for (int i = 0; i < fField_last.Length(); i++)
@@ -41,7 +46,9 @@ void FieldT::Initialize(const StringT& name, int ndof, const nIntegratorT& contr
 
 /* destructor */
 FieldT::~FieldT(void)
-{ 
+{
+	delete fIntegrator;
+
 	for (int i = 0; i < fSourceOutput.Length(); i++)
 		delete fSourceOutput[i];
 		
@@ -131,6 +138,9 @@ void FieldT::EquationSets(AutoArrayT<const iArray2DT*>& eq_1,
 		fFBC_Controllers[i]->Equations(eq_1, eq_2);
 }
 
+/* set the time step */
+void FieldT::SetTimeStep(double dt) { Integrator().SetTimeStep(dt); }
+
 /* append connectivities */
 void FieldT::Connectivities(AutoArrayT<const iArray2DT*>& connects_1,
 	AutoArrayT<const RaggedArray2DT<int>*>& connects_2,
@@ -172,7 +182,7 @@ void FieldT::InitialCondition(void)
 			all_active = false;
 	if (!all_active)
 		cout << "\n FieldT::InitialCondition: initial conditions applied to prescribed\n" 
-		     <<   "     equations in field \"" << BasicFieldT::Name() << "\" are being ignored" << endl;
+		     <<   "     equations in field \"" << FieldName() << "\" are being ignored" << endl;
 
 	/* KBC controllers */
 	for (int k = 0; k < fKBC_Controllers.Length(); k++)
@@ -571,7 +581,7 @@ void FieldT::ReadRestart(ifstreamT& in, const ArrayT<int>* nodes)
 	{
 		/* file name */
 		StringT file = in.filename();
-		file.Append(".", BasicFieldT::Name());
+		file.Append(".", FieldName());
 		file.Append(".", deriv, "u");
 
 		/* read */
@@ -621,7 +631,7 @@ void FieldT::WriteRestart(ofstreamT& out, const ArrayT<int>* nodes) const
 	{
 		/* file name */
 		StringT file = out.filename();
-		file.Append(".", BasicFieldT::Name());
+		file.Append(".", FieldName());
 		file.Append(".", deriv, "u");
 
 		/* write */
@@ -672,7 +682,7 @@ void FieldT::WriteOutput(ostream& out) const
 /* write field parameters to output stream */
 void FieldT::WriteParameters(ostream& out) const
 {
-	out << "\n F i e l d : \"" << BasicFieldT::Name() << "\"\n\n";
+	out << "\n F i e l d : \"" << FieldName() << "\"\n\n";
 	out << " Number of degrees of freedom. . . . . . . . . . = " << NumDOF() << '\n';
 	for (int i = 0; i < fLabels.Length(); i++)
 		out << '\t' << fLabels[i] << '\n';
@@ -744,17 +754,25 @@ void FieldT::DefineParameters(ParameterListT& list) const
 	ParameterInterfaceT::DefineParameters(list);
 
 	/* field name */
-	list.AddParameter(ParameterT(ParameterT::String, "name"));
+	list.AddParameter(ParameterT::Word, "field_name");
 
-	/* degrees of freedom */
-	ParameterT ndof(ParameterT::Integer, "ndof");
-	ndof.SetDescription("number of unknown per node");
-	ndof.AddLimit(0, LimitT::LowerInclusive);
-	list.AddParameter(ndof);
+	/* solution group */
+	ParameterT solver_group(ParameterT::Integer, "solution_group");
+	solver_group.AddLimit(1, LimitT::LowerInclusive);
+	solver_group.SetDefault(1);
+	list.AddParameter(solver_group);
 	
 	/* integrator number */
-	ParameterT integrator(ParameterT::Integer, "integrator");
-	integrator.AddLimit(0, LimitT::LowerInclusive);
+	ParameterT integrator(ParameterT::Enumeration, "integrator");
+	integrator.AddEnumeration(     "linear_static", IntegratorT::kLinearStatic);
+	integrator.AddEnumeration(            "static", IntegratorT::kStatic);
+	integrator.AddEnumeration(         "trapezoid", IntegratorT::kTrapezoid);
+	integrator.AddEnumeration(        "linear_HHT", IntegratorT::kLinearHHT);
+	integrator.AddEnumeration(     "nonlinear_HHT", IntegratorT::kNonlinearHHT);
+	integrator.AddEnumeration("central_difference", IntegratorT::kExplicitCD);
+	integrator.AddEnumeration(            "Verlet", IntegratorT::kVerlet);
+	integrator.AddEnumeration(             "Gear6", IntegratorT::kGear6);
+	integrator.SetDefault(IntegratorT::kStatic);
 	list.AddParameter(integrator);
 }
 
@@ -763,65 +781,327 @@ void FieldT::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
 	ParameterInterfaceT::DefineSubs(sub_list);
+
+	/* degrees of freedom - prescribe number or labels */
+	sub_list.AddSub("ndof_specification", ParameterListT::Once, true);
+
+	/* initial conditions */
+	sub_list.AddSub("initial_condition", ParameterListT::Any);
+
+	/* kinematic boundary conditions */
+	sub_list.AddSub("kinematic_BC", ParameterListT::Any);
+	
+	/* force boundary conditions */
+	sub_list.AddSub("force_BC", ParameterListT::Any);
 	
 	/* KBC controllers */
 	sub_list.AddSub("KBC_controllers", ParameterListT::Any, true);
 	
 	/* FBC controllers */
-//	sub_list.AddSub("FBC_controllers", ParameterListT::Any, true);
+	sub_list.AddSub("FBC_controllers", ParameterListT::Any, true);
 }
 
 /* return the description of the given inline subordinate parameter list */
-void FieldT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void FieldT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
-	if (sub == "KBC_controllers")
+	if (name == "ndof_specification")
 	{
 		order = ParameterListT::Choice;
-		
-		/* K-field */
-		sub_sub_list.AddSub("K_field");	
 
-		/* torsion */
-		sub_sub_list.AddSub("torsion");	
+		/* just give an integer */
+		sub_lists.AddSub("dof_count");		
+
+		/* provide a list labels */
+		sub_lists.AddSub("dof_labels");		
 	}
-	else if (sub == "FBC_controllers")
+	else if (name == "KBC_controllers")
 	{
 		order = ParameterListT::Choice;
 		
-		/* spherical barrier */
-		sub_sub_list.AddSub("sphere_penalty");
-
-		/* flat barrier */
-		sub_sub_list.AddSub("wall_penalty");
-
-		/* cylindrical barrier */
-		sub_sub_list.AddSub("cylinder_penalty");
+		/* choices - KBC_ControllerT::Code must translate names */
+		sub_lists.AddSub("K-field");	
+		sub_lists.AddSub("bi-material_K-field");	
+		sub_lists.AddSub("torsion");	
+		sub_lists.AddSub("mapped_nodes");
+		sub_lists.AddSub("scaled_velocity");
+	}
+	else if (name == "FBC_controllers")
+	{
+		order = ParameterListT::Choice;
+		
+		/* choices - FBC_controllers::Code must translate names */
+		sub_lists.AddSub("sphere_penalty");
+		sub_lists.AddSub("sphere_augmented_Lagrangian");
+		sub_lists.AddSub("sphere_penalty_meshfree");
+		sub_lists.AddSub("wall_penalty");
+		sub_lists.AddSub("wall_augmented_Lagrangian");
+		sub_lists.AddSub("cylinder_penalty");
+		sub_lists.AddSub("augmented_Lagrangian_KBC_meshfree");
 	}
 	else /* inherited */
-		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
+		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* FieldT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* FieldT::NewSub(const StringT& name) const
 {
 	/* non-const this */
 	FieldT* non_const_this = (FieldT*) this;
 
-	if (list_name == "K_field")
-		return fFieldSupport.NewKBC_Controller(*non_const_this, KBC_ControllerT::kK_Field);
+	/* (try to) translate to KBC code */
+	KBC_ControllerT::CodeT KBC_code = KBC_ControllerT::Code(name);
+	if (KBC_code != KBC_ControllerT::kNone)
+		return fFieldSupport.NewKBC_Controller(*non_const_this, KBC_code);
 
-	else if (list_name == "torsion")
-		return fFieldSupport.NewKBC_Controller(*non_const_this, KBC_ControllerT::kTorsion);
+	/* (try to) translate to FBC code */
+	FBC_ControllerT::CodeT FBC_code = FBC_ControllerT::Code(name);
+	if (FBC_code != FBC_ControllerT::kNone)
+		return fFieldSupport.NewFBC_Controller(FBC_code);
+
+	if (name == "dof_count")
+	{
+		ParameterContainerT* dof_count = new ParameterContainerT(name);
+
+		ParameterT ndof(ParameterT::Integer, "ndof");
+		ndof.SetDescription("number of unknown per node");
+		ndof.AddLimit(0, LimitT::LowerInclusive);
+		dof_count->AddParameter(ndof);
+
+		return dof_count;
+	}
+	else if (name == "dof_labels")
+	{
+		StringListT* dof_labels = new StringListT("dof_labels");
+		dof_labels->SetMinLength(1);
+		return dof_labels;
+	}
+	else if (name == "initial_condition")
+	{
+		ParameterContainerT* ic = new ParameterContainerT(name);
+		
+		ic->AddParameter(ParameterT::Word, "node_ID");
+		ic->AddParameter(ParameterT::Integer, "dof");
+		ParameterT IC_type(ParameterT::Enumeration, "type");
+		IC_type.AddEnumeration("u", 0);
+		IC_type.AddEnumeration("D_u", 1);
+		IC_type.AddEnumeration("DD_u", 2);
+		IC_type.AddEnumeration("D3_u", 3);
+		IC_type.AddEnumeration("D4_u", 4);
+		IC_type.SetDefault(0);
+		ic->AddParameter(IC_type);
+		ParameterT value(ParameterT::Double, "value");
+		value.SetDefault(0.0);
+		ic->AddParameter(value);
 	
-	else if (list_name == "sphere_penalty")
-		return fFieldSupport.NewFBC_Controller(*non_const_this, FBC_ControllerT::kPenaltySphere);
+		return ic;	
+	}
+	else if (name == "kinematic_BC")
+	{
+		ParameterContainerT* kbc = new ParameterContainerT(name);
+		
+		kbc->AddParameter(ParameterT::Word, "node_ID");
+		kbc->AddParameter(ParameterT::Integer, "dof");
+		ParameterT BC_type(ParameterT::Enumeration, "type");
+		BC_type.AddEnumeration("fixed", -1);
+		BC_type.AddEnumeration("u", 0);
+		BC_type.AddEnumeration("D_u", 1);
+		BC_type.AddEnumeration("DD_u", 2);
+		BC_type.AddEnumeration("D3_u", 3);
+		BC_type.AddEnumeration("D4_u", 4);
+		BC_type.SetDefault(-1);
+		kbc->AddParameter(BC_type);
+		ParameterT schedule(ParameterT::Integer, "schedule");
+		schedule.SetDefault(0);
+		kbc->AddParameter(schedule);
+		ParameterT value(ParameterT::Double, "value");
+		value.SetDefault(0.0);
+		kbc->AddParameter(value);
 	
-	else if (list_name == "wall_penalty")
-		return fFieldSupport.NewFBC_Controller(*non_const_this, FBC_ControllerT::kPenaltyWall);
+		return kbc;
+	}
+	else if (name == "force_BC")
+	{
+		ParameterContainerT* fbc = new ParameterContainerT(name);
+		
+		fbc->AddParameter(ParameterT::Word, "node_ID");
+		fbc->AddParameter(ParameterT::Integer, "dof");
+		ParameterT schedule(ParameterT::Integer, "schedule");
+		schedule.SetDefault(0);
+		fbc->AddParameter(schedule);
+		ParameterT value(ParameterT::Double, "value");
+		value.SetDefault(0.0);
+		fbc->AddParameter(value);
 	
-	else /* inherited */
-		return ParameterInterfaceT::NewSub(list_name);
+		return fbc;	
+	}
+	/* inherited */
+	return ParameterInterfaceT::NewSub(name);
+}
+
+/* accept parameter list */
+void FieldT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "FieldT::TakeParameterList";
+
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	/* field name */
+	const StringT& field_name = list.GetParameter("field_name");
+
+	/* number of degrees of freedom per node */
+	const ParameterListT& ndof_spec = list.GetListChoice(*this, "ndof_specification");
+	ArrayT<StringT> labels;
+	int ndof = 0;
+	if (ndof_spec.Name() == "dof_count")
+		ndof = ndof_spec.GetParameter("ndof");
+	else if (ndof_spec.Name() == "dof_labels")
+	{
+		/* labels */
+		const ArrayT<ParameterListT>& dof_labels = ndof_spec.Lists();
+		ndof = dof_labels.Length();
+		labels.Dimension(ndof);
+		for (int i = 0; i < ndof; i++)
+			labels[i] = dof_labels[i].GetParameter("value");
+	}
+	else
+		ExceptionT::GeneralFail(caller, "not expecting \"%s\" for \"ndof_specification\" in \"%s\"",
+			ndof_spec.Name().Pointer(), list.Name().Pointer());
+
+	/* solution group */
+	fGroup = list.GetParameter("solution_group");
+	fGroup--;
+
+	/* construct integrator */
+	int integrator_type = list.GetParameter("integrator");
+	fIntegrator = IntegratorT::New(integrator_type, true);
+	
+	/* cast to nodal interface */
+	fnIntegrator = &(fIntegrator->nIntegrator());
+	if (!fnIntegrator) ExceptionT::GeneralFail(caller);
+
+	/* configure the field */
+	int order = fIntegrator->Order();
+	Initialize(field_name, ndof, order);
+	if (labels.Length() > 0) SetLabels(labels);
+	
+	/* construct controllers and count numbers of IC, KBC, and FBC */
+	int num_IC = 0;
+	int num_KBC = 0;
+	int num_FBC = 0;
+	const ArrayT<ParameterListT>& subs = list.Lists();
+	for (int i = 0; i < subs.Length(); i++)
+	{
+		const StringT& name = subs[i].Name();
+		bool resolved = false;
+	
+		/* try KBC */
+		if (!resolved) {
+			KBC_ControllerT::CodeT KBC_code = KBC_ControllerT::Code(name);
+			if (KBC_code != KBC_ControllerT::kNone) {
+				KBC_ControllerT* KBC_controller = fFieldSupport.NewKBC_Controller(*this, KBC_code);
+				KBC_controller->TakeParameterList(subs[i]);
+				AddKBCController(KBC_controller);
+				resolved = true;
+			}
+		}
+			
+		/* try FBC */
+		if (!resolved) {
+			FBC_ControllerT::CodeT FBC_code = FBC_ControllerT::Code(name);
+			if (FBC_code != FBC_ControllerT::kNone) {
+				FBC_ControllerT* FBC_controller = fFieldSupport.NewFBC_Controller(FBC_code);
+				FBC_controller->SetField(*this);
+				FBC_controller->TakeParameterList(subs[i]);
+				AddFBCController(FBC_controller);
+				resolved = true;
+			}
+		}
+		
+		/* look for other sublists */
+		if (!resolved) {
+			if (name == "initial_condition") {			
+				const StringT& node_ID = subs[i].GetParameter("node_ID");
+				ModelManagerT& model_manager = fFieldSupport.ModelManager();
+				num_IC += model_manager.NodeSet(node_ID).Length();
+			}
+			else if (name == "kinematic_BC") {
+				const StringT& node_ID = subs[i].GetParameter("node_ID");
+				ModelManagerT& model_manager = fFieldSupport.ModelManager();
+				num_KBC += model_manager.NodeSet(node_ID).Length();
+			}
+			else if (name == "force_BC") {
+				const StringT& node_ID = subs[i].GetParameter("node_ID");
+				ModelManagerT& model_manager = fFieldSupport.ModelManager();
+				num_FBC += model_manager.NodeSet(node_ID).Length();
+			}
+		}
+	}
+
+	/* construct controllers and count numbers of IC, KBC, and FBC */
+	if (num_IC > 0 || num_KBC > 0 || num_FBC > 0)
+	{
+		ModelManagerT& model_manager = fFieldSupport.ModelManager();
+		fIC.Dimension(num_IC);
+		fKBC.Dimension(num_KBC);
+		fFBC.Dimension(num_FBC);
+		num_IC = num_KBC = num_FBC = 0;
+		for (int i = 0; i < subs.Length(); i++)
+		{
+			const ParameterListT& sub = subs[i];
+			const StringT& name = sub.Name();
+			if (name == "initial_condition") {
+
+				/* extract values */
+				const StringT& node_ID = sub.GetParameter("node_ID");
+				int dof = sub.GetParameter("dof"); dof--;
+				int order = sub.GetParameter("type");
+				double value = sub.GetParameter("value");
+			
+				/* set cards */
+				const iArrayT& set = model_manager.NodeSet(node_ID);
+				for (int i = 0; i < set.Length(); i++)
+					fIC[num_IC++].SetValues(set[i], dof, order, value);
+			}
+			else if (name == "kinematic_BC") {
+
+				/* extract values */
+				const StringT& node_ID = sub.GetParameter("node_ID");
+				int dof = sub.GetParameter("dof"); dof--;
+				int typ = sub.GetParameter("type");
+				KBC_CardT::CodeT code = KBC_CardT::int2CodeT(typ + 1);
+				int schedule_no = sub.GetParameter("schedule"); schedule_no--;
+				double value = sub.GetParameter("value");
+
+				/* get the schedule */
+				const ScheduleT* schedule = (schedule_no > -1) ? fFieldSupport.Schedule(schedule_no) : NULL;
+
+				/* set cards */
+				const iArrayT& set = model_manager.NodeSet(node_ID);
+				for (int i = 0; i < set.Length(); i++)
+					fKBC[num_KBC++].SetValues(set[i], dof, code, schedule, value);
+			}
+			else if (name == "force_BC") {
+		
+				/* extract values */
+				const StringT& node_ID = sub.GetParameter("node_ID");
+				int node = atoi(node_ID);
+				int dof = sub.GetParameter("dof"); dof--;
+				int schedule_no = sub.GetParameter("schedule"); schedule_no--;
+				double value = sub.GetParameter("value");
+
+				/* get the schedule */
+				const ScheduleT* schedule = (schedule_no > -1) ? fFieldSupport.Schedule(schedule_no) : NULL;
+		
+				/* set card */
+				const NodeManagerT& node_man = fFieldSupport.NodeManager();
+				const iArrayT& set = model_manager.NodeSet(node_ID);
+				for (int i = 0; i < set.Length(); i++)
+					fFBC[num_FBC++].SetValues(set[i], dof, schedule, value);
+			}
+		}
+	}
 }
 
 /**********************************************************************

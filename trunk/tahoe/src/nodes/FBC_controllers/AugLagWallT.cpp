@@ -1,14 +1,11 @@
-/* $Id: AugLagWallT.cpp,v 1.11 2003-10-04 19:14:05 paklein Exp $ */
+/* $Id: AugLagWallT.cpp,v 1.12 2004-07-15 08:31:15 paklein Exp $ */
 #include "AugLagWallT.h"
-
-#include <iostream.h>
-#include <iomanip.h>
-
-#include "toolboxConstants.h"
-#include "FEManagerT.h"
-#include "XDOF_ManagerT.h"
-#include "eIntegratorT.h"
 #include "FieldT.h"
+#include "eIntegratorT.h"
+#include "FieldSupportT.h"
+#include "ParameterContainerT.h"
+#include "ParameterUtils.h"
+#include "XDOF_ManagerT.h"
 
 using namespace Tahoe;
 
@@ -16,43 +13,9 @@ using namespace Tahoe;
 const int kNumAugLagDOF = 1;
 
 /* constructor */
-AugLagWallT::AugLagWallT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes,
-	const FieldT& field, const dArray2DT& coords, const dArray2DT& disp):
-	PenaltyWallT(fe_manager, 
-		field.Group(),
-		field.Equations(), 
-		coords,
-		disp,
-		(field.Order() > 0) ? &(field[1]): NULL),
-	fXDOF_Nodes(XDOF_nodes),
-	fField(field)
+AugLagWallT::AugLagWallT(void)
 {
-	/* (re-)dimension the tangent matrix */
-	fLHS.Dimension(rEqnos.MinorDim() + 1); // additional DOF
-}
-
-/* initialize data */
-void AugLagWallT::Initialize(void)
-{
-	/* inherited */
-	PenaltyWallT::Initialize();
-	
-	/* set dimensions */
-	int numDOF = rEqnos.MinorDim() + 1; // additional DOF
-	fContactEqnos.Dimension(fNumContactNodes*numDOF);
-	fContactEqnos2D.Set(fNumContactNodes, numDOF, fContactEqnos.Pointer());
-	fFloatingDOF.Dimension(fNumContactNodes);
-	fFloatingDOF = 0;
-	
-	/* allocate memory for force vector */
-	fContactForce2D.Dimension(fNumContactNodes, numDOF);
-	fContactForce.Set(fNumContactNodes*numDOF, fContactForce2D.Pointer());
-	fContactForce2D = 0.0;
-
-	/* register with node manager - sets initial fContactDOFtags */
-	iArrayT set_dims(1);
-	set_dims = kNumAugLagDOF;
-	fXDOF_Nodes->XDOF_Register(this, set_dims);	
+	SetName("wall_augmented_Lagrangian");
 }
 
 void AugLagWallT::SetEquationNumbers(void)
@@ -68,11 +31,11 @@ void AugLagWallT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 #pragma unused(eq_2)
 
 	/* dimensions */
-	int ndof_u = rCoords.MinorDim();
+	int ndof_u = Field().NumDOF();
 
 	/* collect displacement DOF's */
 	iArray2DT disp_eq(fContactNodes.Length(), ndof_u);
-	fField.SetLocalEqnos(fContactNodes, disp_eq);
+	Field().SetLocalEqnos(fContactNodes, disp_eq);
 
 	int eq_col = 0;
 	iArrayT eq_temp(fContactNodes.Length());
@@ -96,7 +59,7 @@ void AugLagWallT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		     <<   "     Stiffness may be approximate." << endl;	
 
 	/* constraint equations */
-	const iArray2DT& auglageqs = fXDOF_Nodes->XDOF_Eqnos(this, 0);
+	const iArray2DT& auglageqs = FieldSupport().XDOF_Manager().XDOF_Eqnos(this, 0);
 	for (int j = 0; j < auglageqs.MinorDim(); j++)
 	{
 		auglageqs.ColumnCopy(j, eq_temp);
@@ -139,7 +102,7 @@ void AugLagWallT::CloseStep(void)
 
 	/* store last converged DOF array */
 	dArrayT constraints;
-	constraints.Alias(fXDOF_Nodes->XDOF(this, 0));
+	constraints.Alias(FieldSupport().XDOF_Manager().XDOF(this, 0));
 	fLastDOF = constraints;
 }
 
@@ -164,11 +127,11 @@ void AugLagWallT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 	if (!formK) return;
 
 	/* get current values of constraints */
-	const dArray2DT& constr = fXDOF_Nodes->XDOF(this, 0);
+	const dArray2DT& constr = FieldSupport().XDOF_Manager().XDOF(this, 0);
 	const dArrayT force(constr.MajorDim(), constr.Pointer());
 
 	/* workspace */
-	int nsd = rCoords.MinorDim();
+	int nsd = FieldSupport().NumSD();
 	dArrayT vec;
 	dMatrixT ULblock(nsd);
 	dMatrixT mat;
@@ -218,7 +181,7 @@ void AugLagWallT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 		
 		/* send to global equations */
 		fContactEqnos2D.RowAlias(i,fi_sh);
-		fFEManager.AssembleLHS(fGroup, fLHS, fi_sh);
+		FieldSupport().AssembleLHS(fGroup, fLHS, fi_sh);
 	}	
 }
 
@@ -260,7 +223,34 @@ const iArray2DT& AugLagWallT::DOFConnects(int tag_set) const
 int AugLagWallT::Reconfigure(void) { return 0; }
 
 /* return the equation group */
-int AugLagWallT::Group(void) const { return fField.Group(); };
+int AugLagWallT::Group(void) const { return Field().Group(); };
+
+/* accept parameter list */
+void AugLagWallT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	PenaltyWallT::TakeParameterList(list);
+
+	/* (re-)dimension the tangent matrix */
+	int ndof = Field().NumDOF() + 1; // additional DOF
+	fLHS.Dimension(ndof); 
+	
+	/* set dimensions */
+	fContactEqnos.Dimension(fNumContactNodes*ndof);
+	fContactEqnos2D.Set(fNumContactNodes, ndof, fContactEqnos.Pointer());
+	fFloatingDOF.Dimension(fNumContactNodes);
+	fFloatingDOF = 0;
+	
+	/* allocate memory for force vector */
+	fContactForce2D.Dimension(fNumContactNodes, ndof);
+	fContactForce.Set(fNumContactNodes*ndof, fContactForce2D.Pointer());
+	fContactForce2D = 0.0;
+
+	/* register with node manager - sets initial fContactDOFtags */
+	iArrayT set_dims(1);
+	set_dims = kNumAugLagDOF;
+	FieldSupport().XDOF_Manager().XDOF_Register(this, set_dims);	
+}
 
 /**********************************************************************
 * Private
@@ -270,18 +260,19 @@ int AugLagWallT::Group(void) const { return fField.Group(); };
 void AugLagWallT::ComputeContactForce(double kforce)
 {
 	/* dimensions */
-	int ndof_u = rCoords.MinorDim();
+	int ndof_u = Field().NumDOF();
 	int ndof   = fContactForce2D.MinorDim();
 
 	/* initialize */
 	fContactForce2D = 0.0;	
 
 	/* get current values of constraints */
-	const dArray2DT& constr = fXDOF_Nodes->XDOF(this, 0);
+	const dArray2DT& constr = FieldSupport().XDOF_Manager().XDOF(this, 0);
 	const dArrayT force(constr.MajorDim(), constr.Pointer());
-
+	const dArray2DT& coords = FieldSupport().CurrentCoordinates();
+	
 	/* compute relative positions */
-	fp_i.RowCollect(fContactNodes, rCoords);
+	fp_i.RowCollect(fContactNodes, coords);
 	for (int j = 0; j < fNumContactNodes; j++)
 		fp_i.AddToRowScaled(j, -1.0, fx);
 

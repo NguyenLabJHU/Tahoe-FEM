@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.5 2004-06-24 21:02:33 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.6 2004-07-15 08:29:39 paklein Exp $ */
 #include "FS_SCNIMFT.h"
 
 //#define VERIFY_B
@@ -21,9 +21,9 @@
 #include "SolidMatSupportT.h"
 
 /* materials lists */
-#include "SolidMatList1DT.h"
-#include "SolidMatList2DT.h"
-#include "SolidMatList3DT.h"
+#include "FSSolidMatList1DT.h"
+#include "FSSolidMatList2DT.h"
+#include "FSSolidMatList3DT.h"
 
 using namespace Tahoe;
 
@@ -583,15 +583,6 @@ void FS_SCNIMFT::ReadMaterialData(ifstreamT& in)
 	}
 }
 
-/* use in conjunction with ReadMaterialData */
-void FS_SCNIMFT::WriteMaterialData(ostream& out) const
-{
-	fMaterialList->WriteMaterialData(out);
-
-	/* flush buffer */
-	out.flush();
-}
-
 /* return a pointer to a new material list */
 MaterialListT* FS_SCNIMFT::NewMaterialList(int nsd, int size)
 {
@@ -600,37 +591,29 @@ MaterialListT* FS_SCNIMFT::NewMaterialList(int nsd, int size)
 	{
 		/* material support */
 		if (!fFSMatSupport) {
-			fFSMatSupport = new FSMatSupportT(fSD, fSD, 1);
+			fFSMatSupport = new FSMatSupportT(fSD, 1);
 			
 			if (!fFSMatSupport)
 				ExceptionT::GeneralFail("FS_SCNIMFT::NewMaterialList","Could not instantiate material support\n");
-				
-			/* ElementSupportT sources */
-			const ElementSupportT& e_support = ElementSupport();
-			fFSMatSupport->SetRunState(e_support.RunState());
-			fFSMatSupport->SetStepNumber(e_support.StepNumber());
-			fFSMatSupport->SetTime(e_support.Time());                              
-			fFSMatSupport->SetTimeStep(e_support.TimeStep());
-			fFSMatSupport->SetNumberOfSteps(e_support.NumberOfSteps());
 		}
 
 		if (nsd == 1)
-			return new SolidMatList1DT(size, *fFSMatSupport);
+			return new FSSolidMatList1DT(size, *fFSMatSupport);
 		else if (nsd == 2)
-			return new SolidMatList2DT(size, *fFSMatSupport);
+			return new FSSolidMatList2DT(size, *fFSMatSupport);
 		else if (nsd == 3)
-			return new SolidMatList3DT(size, *fFSMatSupport);
+			return new FSSolidMatList3DT(size, *fFSMatSupport);
 		else
 			return NULL;
 	}
 	else
 	{
 		if (nsd == 1)
-			return new SolidMatList1DT;
+			return new FSSolidMatList1DT;
 		else if (nsd == 2)
-			return new SolidMatList2DT;
+			return new FSSolidMatList2DT;
 		else if (nsd == 3)
-			return new SolidMatList3DT;
+			return new FSSolidMatList3DT;
 		else
 			return NULL;
 	}	
@@ -655,16 +638,16 @@ void FS_SCNIMFT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void FS_SCNIMFT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void FS_SCNIMFT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
 	/* inherited */
-	ElementBaseT::DefineInlineSub(sub, order, sub_sub_list);
+	ElementBaseT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* FS_SCNIMFT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* FS_SCNIMFT::NewSub(const StringT& name) const
 {
 	/* inherited */
-	return ElementBaseT::NewSub(list_name);
+	return ElementBaseT::NewSub(name);
 }

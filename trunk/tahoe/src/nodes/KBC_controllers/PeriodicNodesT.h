@@ -1,9 +1,12 @@
-/* $Id: PeriodicNodesT.h,v 1.2 2002-10-20 22:41:38 paklein Exp $ */
+/* $Id: PeriodicNodesT.h,v 1.3 2004-07-15 08:31:21 paklein Exp $ */
 #ifndef _PERIODIC_NODES_T_H_
 #define _PERIODIC_NODES_T_H_
 
 /* base class */
 #include "TiedNodesT.h"
+
+/* direct members */
+#include "dArrayT.h"
 
 namespace Tahoe {
 
@@ -17,10 +20,7 @@ class PeriodicNodesT: public TiedNodesT
 public:	
 
 	/** constructor */
-	PeriodicNodesT(NodeManagerT& node_manager, BasicFieldT& field);
-
-	/** write class parameters */
-	void WriteParameters(ostream& out) const;
+	PeriodicNodesT(const BasicSupportT& support, BasicFieldT& field);
 
 protected:
 

@@ -1,12 +1,10 @@
-/* $Id: FiniteStrainAxiT.cpp,v 1.3 2004-02-22 00:17:39 paklein Exp $ */
+/* $Id: FiniteStrainAxiT.cpp,v 1.4 2004-07-15 08:26:27 paklein Exp $ */
 #include "FiniteStrainAxiT.h"
 
 #include "ShapeFunctionT.h"
 #include "FSSolidMatT.h"
 #include "FSMatSupportT.h"
-
-/* materials lists */
-#include "SolidMatList3DT.h"
+#include "ParameterContainerT.h"
 
 using namespace Tahoe;
 
@@ -15,19 +13,60 @@ const int kRadialDirection = 0; /* the x direction is radial */
 const int kNSD = 2;
 
 /* constructor */
-FiniteStrainAxiT::FiniteStrainAxiT(const ElementSupportT& support, const FieldT& field):
-	FiniteStrainT(support, field),
+FiniteStrainAxiT::FiniteStrainAxiT(const ElementSupportT& support):
+	FiniteStrainT(support),
 	fMat2D(kNSD),
 	fLocCurrCoords(LocalArrayT::kCurrCoords)	
 {
 	SetName("large_strain_axi");
 }
 
-/* called immediately after constructor */
-void FiniteStrainAxiT::Initialize(void)
+/* information about subordinate parameter lists */
+void FiniteStrainAxiT::DefineSubs(SubListT& sub_list) const
 {
+	const char caller[] = "FiniteStrainAxiT::DefineSubs";
+
 	/* inherited */
-	FiniteStrainT::Initialize();
+	FiniteStrainT::DefineSubs(sub_list);
+
+	/* remove previous block definition */
+	const char old_block_def[] = "large_strain_element_block";
+	if (!sub_list.RemoveSub(old_block_def))
+		ExceptionT::GeneralFail(caller, "did not find \"%s\"", old_block_def);
+
+	/* element block/material specification */
+	sub_list.AddSub("large_strain_axi_element_block", ParameterListT::OnePlus);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* FiniteStrainAxiT::NewSub(const StringT& name) const
+{
+	if (name == "large_strain_axi_element_block")
+	{
+		ParameterContainerT* block = new ParameterContainerT(name);
+		
+		/* list of element block ID's (defined by ElementBaseT) */
+		block->AddSub("block_ID_list", ParameterListT::Once);
+	
+		/* choice of materials lists (inline) */
+		block->AddSub("large_strain_material_3D");
+	
+		/* set this as source of subs */
+		block->SetSubSource(this);
+		
+		return block;
+	}
+	else /* inherited */
+		return FiniteStrainT::NewSub(name);
+}
+
+/* accept parameter list */
+void FiniteStrainAxiT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "FiniteStrainAxiT::TakeParameterList";
+
+	/* inherited */
+	FiniteStrainT::TakeParameterList(list);
 
 	/* dimensions */
 	int nip = NumIP();
@@ -56,6 +95,29 @@ void FiniteStrainAxiT::Initialize(void)
 	}
 }
 
+/* extract the list of material parameters */
+void FiniteStrainAxiT::CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const
+{
+	const char caller[] = "FiniteStrainAxiT::CollectMaterialInfo";
+	
+	/* initialize */
+	mat_params.Clear();
+	mat_params.SetName("large_strain_material_3D");
+	
+	/* collected material parameters */
+	int num_blocks = all_params.NumLists("large_strain_axi_element_block");
+	for (int i = 0; i < num_blocks; i++) {
+
+		/* block information */	
+		const ParameterListT& block = all_params.GetList("large_strain_axi_element_block", i);
+		
+		/* collect material parameters */
+		const ParameterListT& mat_list = block.GetList(mat_params.Name());
+		const ArrayT<ParameterListT>& mat = mat_list.Lists();
+		mat_params.AddList(mat[0]);
+	}
+}
+
 /***********************************************************************
  * Protected
  ***********************************************************************/
@@ -74,32 +136,16 @@ void FiniteStrainAxiT::SetLocalArrays(void)
 /* construct a new material support and return a pointer */
 MaterialSupportT* FiniteStrainAxiT::NewMaterialSupport(MaterialSupportT* p) const
 {
-	/* allocate */
-	if (!p) p = new FSMatSupportT(3, NumDOF(), NumIP());
+	/* construct 3D support */
+	if (!p) {
+		p = new FSMatSupportT(NumDOF(), NumIP());
+		p->SetNumSD(3);
+	}
 
 	/* inherited initializations */
 	FiniteStrainT::NewMaterialSupport(p);
 
 	return p;
-}
-
-/* construct materials manager and read data */
-MaterialListT* FiniteStrainAxiT::NewMaterialList(int nsd, int size)
-{
-#pragma unused(nsd)
-
-	if (size > 0)
-	{
-		/* material support */
-		if (!fFSMatSupport) {
-			fFSMatSupport = TB_DYNAMIC_CAST(FSMatSupportT*, NewMaterialSupport());
-			if (!fFSMatSupport) ExceptionT::GeneralFail("FiniteStrainAxiT::NewMaterialList");
-		}
-
-		return new SolidMatList3DT(size, *fFSMatSupport);
-	}
-	else
-		return new SolidMatList3DT;
 }
 
 /* form shape functions and derivatives */

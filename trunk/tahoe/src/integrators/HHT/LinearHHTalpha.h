@@ -1,6 +1,5 @@
-/* $Id: LinearHHTalpha.h,v 1.4 2002-07-05 22:27:52 paklein Exp $ */
+/* $Id: LinearHHTalpha.h,v 1.5 2004-07-15 08:30:28 paklein Exp $ */
 /* created: paklein (10/11/1996) */
-
 #ifndef _LINEAR_HHT_ALPHA_H_
 #define _LINEAR_HHT_ALPHA_H_
 
@@ -19,7 +18,7 @@ class LinearHHTalpha: public nLinearHHTalpha, public eLinearHHTalpha
 public:
 
 	/** constructor */
-	LinearHHTalpha(TimeManagerT& TM, ifstreamT& in, ostream& out, bool auto2ndorder);
+	LinearHHTalpha(double alpha);
 
 	/* take responsibility for forming the nodal contribution
 	 * to the RHS vector:
@@ -35,8 +34,8 @@ protected:
 
 private:
 
-	TimeManagerT& 	TimeBoss;
-	double			fTimeShift; /* t_n+1+alpha */
+	TimeManagerT* fTimeBoss;
+	double        fTimeShift; /* t_n+1+alpha */
 	
 };
 

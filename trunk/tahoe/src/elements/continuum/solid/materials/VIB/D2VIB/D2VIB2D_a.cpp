@@ -1,11 +1,10 @@
-/* $Id: D2VIB2D_a.cpp,v 1.8 2004-06-17 07:40:48 paklein Exp $ */
+/* $Id: D2VIB2D_a.cpp,v 1.9 2004-07-15 08:27:57 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2VIB2D_a.h"
 
 #include <math.h>
 #include <iostream.h>
 
-#include "toolboxConstants.h"
 #include "ifstreamT.h"
 #include "D2FSMatSupportT.h"
 #include "D2MeshFreeFSSolidT.h"
@@ -15,6 +14,7 @@ using namespace Tahoe;
 
 /* constructors */
 D2VIB2D_a::D2VIB2D_a(ifstreamT& in, const D2FSMatSupportT& support):
+	ParameterInterfaceT("gradient_VIB_a_2D"),
 	D2VIB2D(in, support),
 	fLocDisp(support.D2MeshFreeFDElastic()->Displacements()),
 	/* work space */
@@ -26,15 +26,6 @@ D2VIB2D_a::D2VIB2D_a(ifstreamT& in, const D2FSMatSupportT& support):
 	/* gradient term coefficient */
 	in >> fD2coeff;
 	if (fD2coeff < 0.0) throw ExceptionT::kBadInputValue;
-}
-
-/* print parameters */
-void D2VIB2D_a::Print(ostream& out) const
-{
-	/* inherited */
-	D2VIB2D::Print(out);
-	
-	out << " Gradient coefficient. . . . . . . . . . . . . . = " << fD2coeff << '\n';
 }
 
 /* material internal stress terms */

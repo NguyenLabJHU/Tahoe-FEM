@@ -89,19 +89,6 @@ double HaasenKinetics::DPsiDKin(double gamdot, int is)
   return 0.;
 }
 
-void HaasenKinetics::Print(ostream& out) const
-{
-  // print input values for kinetic equation of slip
-  out << "       Rate sensitivity exponent (m) . . . . . . = " << fMatProp[0] << "\n";
-  out << "       Tau_0 . . . . . . . . . . . . . . . . . . = " << fMatProp[1] << "\n";
-}
-
-void HaasenKinetics::PrintName(ostream& out) const
-{
-  // print model name
-  out << "    Haasen's K.E. with nondirectional hardening\n";
-}
-
 double HaasenKinetics::ComputeInternalQnts(double& tau, const int is)
 {
   double C = fHard.ComputeHardQnts(is);

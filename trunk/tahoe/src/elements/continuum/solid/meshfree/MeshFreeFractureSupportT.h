@@ -1,6 +1,5 @@
-/* $Id: MeshFreeFractureSupportT.h,v 1.8 2003-12-28 23:37:20 paklein Exp $ */
-/* created: paklein (02/15/2000)                                          */
-
+/* $Id: MeshFreeFractureSupportT.h,v 1.9 2004-07-15 08:29:39 paklein Exp $ */
+/* created: paklein (02/15/2000) */
 #ifndef _MESHFREE_FRACTURE_T_H_
 #define _MESHFREE_FRACTURE_T_H_
 
@@ -19,6 +18,8 @@ class SolidMaterialT;
 class FrontT;
 class SamplingSurfaceT;
 
+/** support for meshfree calculations including representation of cracks using
+ * cutting surfaces */
 class MeshFreeFractureSupportT: public MeshFreeElementSupportT
 {
 public:
@@ -27,11 +28,9 @@ public:
 	                       kMaxHoopStress = 1,
 	                         kMaxTraction = 2,
 	                            kAcoustic = 3};
-	friend istream& operator>>(istream& in,
-		MeshFreeFractureSupportT::FractureCriterionT& criterion);
 
 	/** constructor */
-	MeshFreeFractureSupportT(ifstreamT& in);
+	MeshFreeFractureSupportT(void);
 
 	/** destructor */
 	virtual ~MeshFreeFractureSupportT(void);
@@ -57,13 +56,6 @@ public:
 	
 	/* fracture criterion */
 	FractureCriterionT FractureCriterion(void) const;
-	
-protected:
-
-	/* initialization */
-	void InitSupport(ifstreamT& in, ostream& out, AutoArrayT<ElementCardT>& elem_cards,
-		const iArrayT& surface_nodes, int numDOF, int max_node_num,
-		ModelManagerT* model);
 
 	/** check for extension of active crack fronts. Material properties are evaluated
 	 * at the sampling points using the constitutive model and the displacement array.
@@ -76,6 +68,28 @@ protected:
 	 * \return true of new facets have been inserted */
 	bool CheckGrowth(SolidMaterialT* material, LocalArrayT* disp,
 		bool verbose);
+	
+	/** initialization of meshless information. This method must be called once after 
+	 * a call to MeshFreeElementSupportT::TakeParameterList */
+	virtual void InitSupport(ostream& out, AutoArrayT<ElementCardT>& elem_cards, 
+		const iArrayT& surface_nodes, int numDOF, int max_node_num, ModelManagerT* model);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
+protected:
+
+	/** translate integer to FractureCriterionT */
+	static FractureCriterionT int2FractureCriterionT(int i);
 
 private:
 
@@ -83,7 +97,7 @@ private:
 	enum SurfaceStatusT {kON, kMarked, kOFF};
 
 	/* steps in InitSupport() */
-	void InitCuttingFacetsAndFronts(ifstreamT& in, ostream& out);
+	void InitCuttingFacetsAndFronts(ostream& out);
 	void InitSamplingSurfaces(ifstreamT& in, ostream& out);
 
 	/* initial active cracks from stream data */

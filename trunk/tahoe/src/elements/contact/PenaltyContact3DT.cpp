@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.12 2004-06-17 07:13:39 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.13 2004-07-15 08:26:08 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 #include "PenaltyContact3DT.h"
 
@@ -29,21 +29,44 @@ inline static void Vector(const double* start, const double* end, double* v)
 };
 
 /* constructor */
-PenaltyContact3DT::PenaltyContact3DT(const ElementSupportT& support, const FieldT& field):
-	Contact3DT(support, field),
-	fElCoord(fNumFacetNodes + 1, NumSD()),
-	fElRefCoord(fNumFacetNodes + 1, NumSD()),
-	fElDisp(fNumFacetNodes + 1, NumDOF()),
-	fdc_du(NumSD(), fElDisp.Length()),
-	fdn_du(NumSD(), fElDisp.Length()),
-	fM1(NumSD()),
-	fM2(NumSD(), fElDisp.Length()),
-	fV1(fElDisp.Length())
+PenaltyContact3DT::PenaltyContact3DT(const ElementSupportT& support):
+	Contact3DT(support),
+	fK(0.0)
 {
-	const char caller[] = "PenaltyContact3DT::PenaltyContact3DT";
-	ElementSupport().Input() >> fK;
-	if (fK < 0.0)
-		ExceptionT::BadInputValue(caller, "regularization must be > 0: %g", fK);
+	SetName("contact_3D_penalty");
+}
+
+/* describe the parameters needed by the interface */
+void PenaltyContact3DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	Contact3DT::DefineParameters(list);
+
+	/* penalty stiffness */
+	ParameterT stiffness(ParameterT::Double, "penalty_stiffness");
+	stiffness.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(stiffness);
+}
+
+/* accept parameter list */
+void PenaltyContact3DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	Contact3DT::TakeParameterList(list);
+
+	/* contact stiffness */
+	fK = list.GetParameter("penalty_stiffness");
+
+	/* dimension workspace */
+	fElCoord.Dimension(fNumFacetNodes + 1, NumSD());
+	fElRefCoord.Dimension(fNumFacetNodes + 1, NumSD());
+	fElDisp.Dimension(fNumFacetNodes + 1, NumDOF());
+
+	fdc_du.Dimension(NumSD(), fElDisp.Length());
+	fdn_du.Dimension(NumSD(), fElDisp.Length());
+	fM1.Dimension(NumSD());
+	fM2.Dimension(NumSD(), fElDisp.Length());
+	fV1.Dimension(fElDisp.Length());
 
 	double third = 1.0/3.0;
 	double* p = fdc_du.Pointer();
@@ -83,24 +106,11 @@ PenaltyContact3DT::PenaltyContact3DT(const ElementSupportT& support, const Field
 	*p++ = 0;
 	*p++ = 0;
 	*p   = 1;
-	
-	/* set console access */
-	iAddVariable("penalty_parameter", fK);
 }
 
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-/* print element group data */
-void PenaltyContact3DT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	Contact3DT::PrintControlData(out);
-
-	/* regularization */
-	out << " Regularization parameter. . . . . . . . . . . . = " << fK << '\n';	
-}
 
 /* called by FormRHS and FormLHS */
 void PenaltyContact3DT::LHSDriver(GlobalT::SystemTypeT)

@@ -1,6 +1,5 @@
-/* $Id: MeshFreeSupport3DT.h,v 1.7 2004-01-27 01:21:11 cjkimme Exp $ */
+/* $Id: MeshFreeSupport3DT.h,v 1.8 2004-07-15 08:29:59 paklein Exp $ */
 /* created: paklein (09/13/1998) */
-
 #ifndef _MF_SUPPORT_3D_T_H_
 #define _MF_SUPPORT_3D_T_H_
 
@@ -22,7 +21,11 @@ public:
 	 * \param nongridnodes index of paricles not included in the connectivities
 	 * \param in input stream for class and window function parameters */
 	MeshFreeSupport3DT(const ParentDomainT* domain, const dArray2DT& coords,
-		const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in);
+		const iArray2DT& connects, const iArrayT& nongridnodes);
+
+	/** construct object sufficient for calling methods inherited from ParameterInterfaceT
+	 * to collect the class parameters, but not for doing any meshfree calculations */
+	MeshFreeSupport3DT(void);
 
 	/** set field cutting facets. 
 	 * \param facet_coords list of coordinate for each facet: [nfacets] x [num_facet_nodes*nsd] 

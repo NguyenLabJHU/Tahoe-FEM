@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.33 2004-06-26 05:53:19 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.34 2004-07-15 08:25:53 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -156,9 +156,6 @@ protected:
 
 	/** allocate and initialize local arrays */
 	virtual void SetLocalArrays(void);
-
-	/** write element group parameters to out */
-	virtual void PrintControlData(ostream& out) const;
 
 	/** write all current element information to the stream. used to generate
 	 * debugging information after runtime errors */

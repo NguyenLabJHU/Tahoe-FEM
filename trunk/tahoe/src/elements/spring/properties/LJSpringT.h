@@ -1,4 +1,4 @@
-/* $Id: LJSpringT.h,v 1.4 2002-11-30 16:33:42 paklein Exp $ */
+/* $Id: LJSpringT.h,v 1.5 2004-07-15 08:30:22 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _LJ_SPRINGT_H_
 #define _LJ_SPRINGT_H_
@@ -37,11 +37,7 @@ public:
 	/* returns trues TRUE since the initial length is always assumed
 	 * to be non-equilibrium */
 	virtual int HasInternalStrain(void) const;
-	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-	
+		
 	/* potential function and derivatives */
 	virtual double Potential(double rmag, double Rmag) const;
 	virtual double DPotential(double rmag, double Rmag) const;

@@ -1,6 +1,5 @@
-/* $Id: K_FieldT.h,v 1.8 2004-01-05 07:12:44 paklein Exp $ */
+/* $Id: K_FieldT.h,v 1.9 2004-07-15 08:31:21 paklein Exp $ */
 /* created: paklein (09/05/2000) */
-
 #ifndef _K_FIELD_T_H_
 #define _K_FIELD_T_H_
 
@@ -18,7 +17,7 @@ namespace Tahoe {
 /* forward declarations */
 class ElementBaseT;
 class IsotropicT;
-class Material2DT;
+class SolidMaterialT;
 
 /** K-field displacements */
 class K_FieldT: public KBC_ControllerT
@@ -33,11 +32,7 @@ public:
 	};
 
 	/* constructor */
-	K_FieldT(NodeManagerT& node_manager);
-
-	/* initialize data - called immediately after construction */
-	virtual void Initialize(ifstreamT& in);
-	virtual void WriteParameters(ostream& out) const;
+	K_FieldT(const BasicSupportT& support);
 
 	/* initial condition/restart functions
 	 *
@@ -62,20 +57,30 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:
+
+	/** extract elastic constants */
+	void ResolveElasticProperties(const ParameterListT& list, int& group_number, int& material_number, double& mu, double& nu, double& kappa) const;
 
 	/* determine the new tip coordinates */
 	void GetNewTipCoordinates(dArrayT& tip_coords);
 
 	/* resolve element info to isotropic material */
 	void ResolveMaterialReference(int element_group, int material_num,
-		const IsotropicT** piso, const Material2DT** pmat) const;
+		const IsotropicT** piso, const SolidMaterialT** pmat) const;
 
-	/* compute K-field displacement factors */
+	/** compute K-field displacement factors. Recompute the asymptotic displacement
+	 * field as a function of the current values of K_FieldT::fmu and K_FieldT::fkappa. */
 	virtual void ComputeDisplacementFactors(const dArrayT& tip_coords);
 	
 	/* set BC cards with current displacement field */
@@ -85,9 +90,7 @@ protected:
 
 	/** \name K-field specifications */
 	/*@{*/
-	int    fnumLTf1;
 	double fK1;
-	int    fnumLTf2;
 	double fK2;
 	/*@}*/
 
@@ -103,10 +106,10 @@ protected:
 	int fNearTipGroupNum;
 	
 	/** nodal output code from tip group used to locate crack tip */
-	int    fNearTipOutputCode;
+	int fNearTipOutputCode;
 
 	/** value within the output variables to locate tip */
-	int    fTipColumnNum;
+	int fTipColumnNum;
 
 	/** tip tracking method */
 	TrackingCodeT fTrackingCode;
@@ -125,14 +128,18 @@ protected:
 	/*@}*/
 		
 	/* BC nodes */
-	int     fFarFieldGroupNum;
-	int     fFarFieldMaterialNum;
 	ArrayT<StringT> fID_List;
 	iArrayT fNodes;
 	
-	/* external links */
-	const IsotropicT*  fIsotropic;
-	const Material2DT* fMaterial2D;
+	/** \name elastic constants */
+	/*@{*/
+	double fmu; /**< shear modulus */
+	double fnu; /**< Poisson's ratio */
+	double fkappa; /**< function of nu */
+	
+	int fGroupNumber;
+	int fMaterialNumber;
+	/*@}*/
 
 	/* runtime data */
 	ScheduleT fDummySchedule;
@@ -147,5 +154,6 @@ protected:
 	dArrayT fLastTipCoords;
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _K_FIELD_T_H_ */

@@ -1,6 +1,5 @@
-/* $Id: ExplicitCDIntegrator.h,v 1.4 2002-07-05 22:27:54 paklein Exp $ */
+/* $Id: ExplicitCDIntegrator.h,v 1.5 2004-07-15 08:30:38 paklein Exp $ */
 /* created: paklein (03/23/1997) */
-
 #ifndef _EXP_CD_CONTROLLER_H_
 #define _EXP_CD_CONTROLLER_H_
 
@@ -22,7 +21,7 @@ class ExplicitCDIntegrator: public nExplicitCD, public eExplicitCD
 public:
 
 	/** constructor */
-	ExplicitCDIntegrator(ostream& out);
+	ExplicitCDIntegrator(void);
 	  	
 protected:  	
 	

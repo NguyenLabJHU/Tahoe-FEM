@@ -1,6 +1,5 @@
-/* $Id: PTHT2BodyT.h,v 1.4 2003-12-28 23:37:12 paklein Exp $ */
-/* created: paklein (10/11/1997)                                          */
-
+/* $Id: PTHT2BodyT.h,v 1.5 2004-07-15 08:28:36 paklein Exp $ */
+/* created: paklein (10/11/1997) */
 #ifndef _PTHT2_BODY_T_H_
 #define _PTHT2_BODY_T_H_
 
@@ -20,10 +19,7 @@ public:
 
 	/** constructor */
 	PTHT2BodyT(const dArrayT& lengths, const ThermalDilatationT* thermal,
-		ifstreamT& in);
-
-	/** destructor */
-	virtual ~PTHT2BodyT(void) { };
+		double A, double A1, double A2);
 
 	/* set free dof - triggers recomputation */
 	virtual void Set(void);

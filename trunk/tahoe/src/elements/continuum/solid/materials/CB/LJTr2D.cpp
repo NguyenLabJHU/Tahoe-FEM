@@ -1,52 +1,47 @@
-/* $Id: LJTr2D.cpp,v 1.10 2004-06-17 07:40:15 paklein Exp $ */
+/* $Id: LJTr2D.cpp,v 1.11 2004-07-15 08:26:42 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "LJTr2D.h"
 
 #include <math.h>
-#include <iostream.h>
-
-#include "ifstreamT.h"
 
 using namespace Tahoe;
 
 const double sqrt3 = sqrt(3.0);
 
 /* constructor */
-LJTr2D::LJTr2D(ifstreamT& in, const FSMatSupportT& support):
-	NL_E_Mat2DT(in, support, kPlaneStress),
-	CBLatticeT(2,2,3)
+LJTr2D::LJTr2D(void):
+	ParameterInterfaceT("LJ_triangular_2D"),
+	feps(0.0)
 {
-	in >> feps;	if (feps < 0.0) throw ExceptionT::kBadInputValue;
+
 }
 
-void LJTr2D::Initialize(void) 
-{
-  NL_E_Mat2DT::Initialize();
-
-  CBLatticeT::Initialize();
-}
-
-/* I/O functions */
-void LJTr2D::Print(ostream& out) const
+/* describe the parameters needed by the interface */
+void LJTr2D::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	NL_E_Mat2DT::Print(out);
+	NL_E_MatT::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStress);
 
-	out << " Lennard-Jones energy scaling constant . . . . . = " << feps << '\n';
+	/* Lennard-Jones scaling */
+	list.AddParameter(feps, "epsilon");
+}
 
+/* accept parameter list */
+void LJTr2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	NL_E_MatT::TakeParameterList(list);
+	feps = list.GetParameter("epsilon");
+	CBLatticeT::Initialize();
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
-
-void LJTr2D::PrintName(ostream& out) const
-{
-	NL_E_Mat2DT::PrintName(out);
-
-	out << "    LJ triangular 2D\n";
-}
-
+ * Protected
+ *************************************************************************/
 
 void LJTr2D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 {	
@@ -54,8 +49,9 @@ void LJTr2D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 	
 	dMatrixT fBondTensor4(3);
 	fBondTensor4 = 0;
-	moduli = 0.; 
-	for (int i = 0; i < fNumBonds; i++)
+	moduli = 0.;
+	int nb = NumberOfBonds();
+	for (int i = 0; i < nb; i++)
 	{
 		double ri = fDefLength[i];
 		double coeff = 2./sqrt3*(ddU(ri)-dUlj(ri)/ri)/ri/ri;
@@ -70,12 +66,12 @@ void LJTr2D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 /* 2nd Piola-Kirchhoff stress vector */
 void LJTr2D::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
 {
-	
 	ComputeDeformedLengths(E);
 	
 	dArrayT fBondTensor2(3);
 	PK2 = 0.; 
-	for (int i = 0; i < fNumBonds; i++)
+	int nb = NumberOfBonds();
+	for (int i = 0; i < nb; i++)
 	{
 		double ri = fDefLength[i];
 		double coeff = dUlj(ri)*2./sqrt3/ri;
@@ -90,8 +86,8 @@ double LJTr2D::ComputeEnergyDensity(const dSymMatrixT& E)
 	ComputeDeformedLengths(E);
 	
 	double tmpSum  = 0.;
-	
-	for (int i = 0; i < fNumBonds; i++)
+	int nb = NumberOfBonds();	
+	for (int i = 0; i < nb; i++)
 	{
 		double r = fDefLength[i];
 		tmpSum += Ulj(r);
@@ -103,8 +99,15 @@ double LJTr2D::ComputeEnergyDensity(const dSymMatrixT& E)
 
 void LJTr2D::LoadBondTable(void)
 {
+	/* dimension work space */
+	fBondCounts.Dimension(3);
+	fDefLength.Dimension(3);
+	fBonds.Dimension(3,2);
+
+	/* all bonds appear once */
   	fBondCounts = 1;
 
+	/* clear deformed lengths for now */
   	fDefLength = 0.0; 
   
   	double bonddata[3][2] = {
@@ -112,10 +115,8 @@ void LJTr2D::LoadBondTable(void)
   		{0.5,-sqrt3/2.0},
   		{0.5,sqrt3/2.0}};
  
-  	if (fBonds.MajorDim() != fNumBonds ||
-     	fBonds.MinorDim() != 2) throw ExceptionT::kGeneralFail;
-
-	for (int i = 0; i < fNumBonds; i++)
+	int nb = NumberOfBonds();
+	for (int i = 0; i < nb; i++)
     	for (int j = 0; j < 2; j++)
       		fBonds(i,j) = bonddata[i][j];
 
@@ -124,8 +125,8 @@ void LJTr2D::LoadBondTable(void)
 }
 
 /*************************************************************************
-* Private
-*************************************************************************/
+ * Private
+ *************************************************************************/
 
 /* second derivative of the Lennard-Jones 6/12 potential */
 double LJTr2D::ddU(double l) const

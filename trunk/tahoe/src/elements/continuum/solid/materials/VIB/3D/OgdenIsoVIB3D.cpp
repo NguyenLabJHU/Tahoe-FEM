@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB3D.cpp,v 1.9 2003-11-21 22:46:38 paklein Exp $ */
+/* $Id: OgdenIsoVIB3D.cpp,v 1.10 2004-07-15 08:27:51 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "OgdenIsoVIB3D.h"
 
@@ -8,66 +8,27 @@
 #include "C1FunctionT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
-#include "ifstreamT.h"
+
 
 /* point generators */
+#include "VIB3D.h"
 #include "LatLongPtsT.h"
 #include "IcosahedralPtsT.h"
+#include "FCCPtsT.h"
 
 using namespace Tahoe;
 
-/* constructors */
-OgdenIsoVIB3D::OgdenIsoVIB3D(ifstreamT& in, const FSMatSupportT& support):
-	OgdenIsotropicT(in, support),
-	VIB(in, 3, 3, 6),
+/* constructor */
+OgdenIsoVIB3D::OgdenIsoVIB3D(void):
+	ParameterInterfaceT("Ogden_isotropic_VIB"),
+	VIB(3, 3, 6),
 	fSphere(NULL)
 {
-	/* construct point generator */
-	int gencode;
-	in >> gencode;
-	switch (gencode)
-	{
-		case SpherePointsT::kLatLong:
-			fSphere = new LatLongPtsT(in);
-			break;
-	
-		case SpherePointsT::kIcosahedral:
-			fSphere = new IcosahedralPtsT(in);
-			break;
-			
-		default:
-			throw ExceptionT::kBadInputValue;
-	}
-	if (!fSphere) throw ExceptionT::kOutOfMemory;
 
-	/* set tables */
-	Construct();
 }
 
 /* destructor */
 OgdenIsoVIB3D::~OgdenIsoVIB3D(void) { delete fSphere; }
-
-/* print parameters */
-void OgdenIsoVIB3D::Print(ostream& out) const
-{
-	/* inherited */
-	OgdenIsotropicT::Print(out);
-	VIB::Print(out);
-
-	fSphere->Print(out);
-}
-
-/* print name */
-void OgdenIsoVIB3D::PrintName(ostream& out) const
-{
-	/* inherited */
-	OgdenIsotropicT::PrintName(out);
-	VIB::PrintName(out);
-	out << "    Odgen principal stretch formulation\n";
-
-	/* integration rule */
-	fSphere->PrintName(out);
-}
 
 /* strain energy density */
 double OgdenIsoVIB3D::StrainEnergyDensity(void)
@@ -94,9 +55,71 @@ double OgdenIsoVIB3D::StrainEnergyDensity(void)
 	return energy;
 }
 
+/* information about subordinate parameter lists */
+void OgdenIsoVIB3D::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	OgdenIsotropicT::DefineSubs(sub_list);
+	VIB::DefineSubs(sub_list);
+
+	/* choice of integration schemes */
+	sub_list.AddSub("sphere_integration_choice", ParameterListT::Once, true);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* OgdenIsoVIB3D::NewSub(const StringT& name) const
+{
+	/* inherited */
+	ParameterInterfaceT* sub = OgdenIsotropicT::NewSub(name);
+	if (sub) 
+		return sub;
+	else if (name == "sphere_integration_choice")
+	{
+		/* use other VIB material to construct point generator */
+		VIB3D vib;
+		return vib.NewSub(name);
+	}
+	else 
+		return VIB::NewSub(name);
+}
+
+/* accept parameter list */
+void OgdenIsoVIB3D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	OgdenIsotropicT::TakeParameterList(list);
+	VIB::TakeParameterList(list);
+
+	/* use other VIB material to construct integration rule */
+	VIB3D vib;
+	const ParameterListT& points = list.GetListChoice(vib, "sphere_integration_choice");
+	if (points.Name() == "latitude_longitude")
+	{
+		int n_phi = points.GetParameter("n_phi");
+		int n_theta = points.GetParameter("n_theta");
+		fSphere = new LatLongPtsT(n_phi, n_theta);
+	}
+	else if (points.Name() == "icosahedral")
+	{
+		int np = points.GetParameter("points");
+		fSphere = new IcosahedralPtsT(np);
+	}
+	else if (points.Name() == "fcc_points")
+	{
+		int num_shells = points.GetParameter("shells");
+		double bond_length = points.GetParameter("nearest_neighbor_distance");
+		fSphere = new FCCPtsT(num_shells, bond_length);
+	}
+	else
+		ExceptionT::GeneralFail("OgdenIsoVIB3D::TakeParameterList", "unrecognized point scheme \"%s\"", points.Name().Pointer());	
+
+	/* set tables */
+	Construct();	
+}
+
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* principal values given principal values of the stretch tensors,
  * i.e., the principal stretches squared */
@@ -221,7 +244,7 @@ void OgdenIsoVIB3D::Construct(void)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	Dimension(numpoints);
+	VIB::Dimension(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fSphere->Jacobians();

@@ -1,45 +1,43 @@
-/* $Id: CubicT.h,v 1.4 2002-07-05 22:28:15 paklein Exp $ */
-/* created: paklein (06/11/1997)                                          */
-
+/* $Id: CubicT.h,v 1.5 2004-07-15 08:27:05 paklein Exp $ */
+/* created: paklein (06/11/1997) */
 #ifndef _CUBIC_T_H_
 #define _CUBIC_T_H_
 
-#include "Environment.h"
+/* base class */
+#include "ParameterInterfaceT.h"
 
-#include "ios_fwd_decl.h"
+/* direct members */
+#include "SolidMaterialT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
-class ifstreamT;
 class dMatrixT;
 
-}
-
-/* direct members */
-#include "Material2DT.h"
-
-namespace Tahoe {
-
-class CubicT
+class CubicT: virtual public ParameterInterfaceT
 {
 public:
 
-	/* constructor */
-	CubicT(ifstreamT& in);
-		
-	/* print parameters */
-	void Print(ostream& out) const;
-	void PrintName(ostream& out) const;
+	/** constructor */
+	CubicT(void);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
 	/* set modulus */
 	void ComputeModuli(dMatrixT& moduli);
-	void ComputeModuli2D(dMatrixT& moduli, Material2DT::ConstraintOptionT constraint) const;
+	void ComputeModuli2D(dMatrixT& moduli, SolidMaterialT::ConstraintT constraint) const;
 
 	/* scale factor for constrained dilatation */
-	double DilatationFactor2D(Material2DT::ConstraintOptionT constraint) const;   	
+	double DilatationFactor2D(SolidMaterialT::ConstraintT constraint) const;   	
 
 protected:
 

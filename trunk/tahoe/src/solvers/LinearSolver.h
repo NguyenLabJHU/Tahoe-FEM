@@ -1,6 +1,5 @@
-/* $Id: LinearSolver.h,v 1.7 2004-03-30 18:34:17 paklein Exp $ */
+/* $Id: LinearSolver.h,v 1.8 2004-07-15 08:31:50 paklein Exp $ */
 /* created: paklein (05/30/1996) */
-
 #ifndef _LINEAR_SOLVER_H_
 #define _LINEAR_SOLVER_H_
 
@@ -14,11 +13,8 @@ class LinearSolver: public SolverT
 {
 public:
 
-	/** \name constructors */
-	/*@{*/
-	LinearSolver(FEManagerT& fe_manager);
+	/** constructor */
 	LinearSolver(FEManagerT& fe_manager, int group);
-	/*@}*/
 	
 	/** configure system */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);

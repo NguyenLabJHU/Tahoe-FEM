@@ -1,7 +1,5 @@
-/* $Id: Anisotropic2DT.h,v 1.3 2002-07-05 22:28:27 paklein Exp $ */
-/* created: paklein (06/11/1997)                                          */
-/* Base class for 2D anisotropic materials                                */
-
+/* $Id: Anisotropic2DT.h,v 1.4 2004-07-15 08:29:19 paklein Exp $ */
+/* created: paklein (06/11/1997) */
 #ifndef _ANISOTROPIC2D_T_H_
 #define _ANISOTROPIC2D_T_H_
 
@@ -19,12 +17,17 @@ class ifstreamT;
 class Rotate2DT;
 class dMatrixT;
 
+/** base class for 2D anisotropic materials */
 class Anisotropic2DT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	Anisotropic2DT(ifstreamT& in);
+	Anisotropic2DT(void);
+
+	/** set the rotation angle */
+	void SetRotation(double angle);
 
 	/* destructor */
 	virtual ~Anisotropic2DT(void);
@@ -54,15 +57,13 @@ protected:
 	
 private:
 
-	/* called by constructor */
+	/** called by constructor */
 	void Construct(istream& in);
 		
 protected:
-			
-	/* coordinate transformer */
-	int		   fIsRotated;
-	Rotate2DT* fRotator;
 	
+	/** coordinate transformer */
+	Rotate2DT* fRotator;	
 };
 
 } // namespace Tahoe 

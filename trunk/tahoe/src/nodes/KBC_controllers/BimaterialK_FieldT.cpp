@@ -1,114 +1,102 @@
-/* $Id: BimaterialK_FieldT.cpp,v 1.10 2004-06-17 07:41:57 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.cpp,v 1.11 2004-07-15 08:31:21 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "BimaterialK_FieldT.h"
 
 #include "NodeManagerT.h"
-#include "ifstreamT.h"
+#include "ParameterUtils.h"
+#include "ParameterContainerT.h"
 
 /* build options */
 #include "ElementsConfig.h"
 #ifdef CONTINUUM_ELEMENT
 #include "IsotropicT.h"
-#include "Material2DT.h"
 #endif
 
 /* parameters */
 using namespace Tahoe;
 
+/* parameters */
 const double Pi = acos(-1.0);
 
 /* constructor */
-BimaterialK_FieldT::BimaterialK_FieldT(NodeManagerT& node_manager):
-	K_FieldT(node_manager),
-	fIsotropic_2(NULL),
-	fMaterial2D_2(NULL)
+BimaterialK_FieldT::BimaterialK_FieldT(const BasicSupportT& support):
+	K_FieldT(support),
+	fmu_1(-1.0), fnu_1(-1.0), fkappa_1(-1.0),	
+	fGroupNumber_1(-1), fMaterialNumber_1(-1),
+	fmu_2(-1.0), fnu_2(-1.0), fkappa_2(-1.0),	
+	fGroupNumber_2(-1), fMaterialNumber_2(-1)
 {
-#ifndef CONTINUUM_ELEMENT
-	ExceptionT::BadInputValue("BimaterialK_FieldT::BimaterialK_FieldT", "CONTINUUM_ELEMENT not enabled");
-#endif
-
+	SetName("bi-material_K-field");
 }
 
-/* initialize data - called immediately after construction */
-void BimaterialK_FieldT::Initialize(ifstreamT& in)
+/* information about subordinate parameter lists */
+void BimaterialK_FieldT::DefineSubs(SubListT& sub_list) const
 {
+	/* inherited */
+	K_FieldT::DefineSubs(sub_list);
+
+	/* remove previous definition of elastic properties */
+	sub_list.RemoveSub("elastic_properties_choice");
+	sub_list.RemoveSub("node_ID_list");
+
+	/* boundary regions */
+	sub_list.AddSub("boundary_region_1", ParameterListT::ZeroOrOnce);
+	sub_list.AddSub("boundary_region_2", ParameterListT::ZeroOrOnce);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* BimaterialK_FieldT::NewSub(const StringT& name) const
+{
+	if (name == "boundary_region_1" || name == "boundary_region_2")
+	{
+		ParameterContainerT* region = new ParameterContainerT(name);
+		region->SetSubSource(this);
+		region->AddSub("elastic_properties_choice", ParameterListT::Once, true);
+		region->AddSub("node_ID_list");
+		return region;
+	}
+	else /* inherited */
+		return K_FieldT::NewSub(name);
+}
+
+/* accept parameter list */
+void BimaterialK_FieldT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "BimaterialK_FieldT::TakeParameterList";
+
+	/* inherited */
+	K_FieldT::TakeParameterList(list);
+
 	/* only 2D for now */
-	int nsd = fNodeManager.NumSD();
-	if (nsd != 2)
-	{
-		cout << "\n BimaterialK_FieldT::Initialize: must be 2D: " << nsd << endl;
-		throw ExceptionT::kGeneralFail;
+	int nsd = fSupport.NumSD();
+	if (nsd != 2) ExceptionT::GeneralFail(caller, "must be 2D: %d", nsd);
+
+	/* resolve elastic properties */
+	const ParameterListT* region_1 = list.List("boundary_region_1");
+	if (region_1) {
+	
+		/* moduli */
+		ResolveElasticProperties(*region_1, fGroupNumber_1, fMaterialNumber_1,  fmu_1, fnu_1, fkappa_1);
+	
+		/* nodes */
+		StringListT::Extract(region_1->GetList("node_ID_list"),  fID_List_1);	
+		GetNodes(fID_List_1, fNodes_1);
 	}
 
-	/* K1 */
-	in >> fnumLTf1 >> fK1; fnumLTf1--;
-	fLTf1 = fNodeManager.Schedule(fnumLTf1);	
-	if (!fLTf1) throw ExceptionT::kBadInputValue;
-
-	/* K2 */
-	in >> fnumLTf2 >> fK2; fnumLTf2--;
-	fLTf2 = fNodeManager.Schedule(fnumLTf2);	
-	if (!fLTf2) throw ExceptionT::kBadInputValue;
-
-	/* coordinates of the crack tip */
-	fInitTipCoords.Dimension(nsd);
-	in >> fInitTipCoords;
-	fLastTipCoords = fTipCoords = fInitTipCoords;
-
-	/* crack extension parameters */
-	fGrowthDirection.Dimension(nsd);
-	in >> fGrowthDirection; fGrowthDirection.UnitVector();
-
-	/* near tip group */
-	in >> fNearTipGroupNum;   // -1: no nearfield group
-	in >> fNearTipOutputCode; // variable to locate crack tip
-	in >> fTipColumnNum;      // column of output variable to locate tip
-	in >> fMaxGrowthDistance; if (fMaxGrowthDistance < 0.0) throw ExceptionT::kBadInputValue;
-	in >> fMaxGrowthSteps; if (fMaxGrowthSteps < 1) throw ExceptionT::kBadInputValue;
-
-	/* offsets and checks */
-	fNearTipOutputCode--;
-	if (fNearTipGroupNum != -1) fNearTipGroupNum--;
-	fTipColumnNum--;
-	if (fNearTipGroupNum <  -1) throw ExceptionT::kBadInputValue;
-
-	/* nodes */
-	in >> fFarFieldGroupNum;
-	if (fFarFieldGroupNum != -1)
-	{
-		in >> fFarFieldMaterialNum;
-		ReadNodes(in, fID_List_1, fNodes_1);
-
-		/* checks and offsets */
-		fFarFieldGroupNum--;
-		fFarFieldMaterialNum--;
-		if (fFarFieldGroupNum < 0) throw ExceptionT::kBadInputValue;
-		if (fFarFieldMaterialNum < 0) throw ExceptionT::kBadInputValue;
+	const ParameterListT* region_2 = list.List("boundary_region_2");
+	if (region_2) {
+	
+		/* moduli */
+		ResolveElasticProperties(*region_2, fGroupNumber_2, fMaterialNumber_2,  fmu_2, fnu_2, fkappa_2);
+	
+		/* nodes */
+		StringListT::Extract(region_2->GetList("node_ID_list"),  fID_List_2);	
+		GetNodes(fID_List_2, fNodes_2);
 	}
-	else
-		fFarFieldMaterialNum = -1;
-
-	in >> fFarFieldGroupNum_2;
-	if (fFarFieldGroupNum_2 != -1)
-	{
-		in >> fFarFieldMaterialNum_2;
-		ReadNodes(in, fID_List_2, fNodes_2);
-
-		/* offsets and checks */
-		fFarFieldGroupNum_2--;
-		fFarFieldMaterialNum_2--;
-		if (fFarFieldGroupNum_2 < 0) throw ExceptionT::kBadInputValue;
-		if (fFarFieldMaterialNum_2 < 0) throw ExceptionT::kBadInputValue;
-	}
-	else
-		fFarFieldMaterialNum_2 = -1;
-		
-	/* checks */
-	if (fFarFieldGroupNum == -1 && fFarFieldGroupNum_2 == -1)
-	{
-		cout << "\n BimaterialK_FieldT::Initialize: at least one half plane must be specified" << endl;
-		throw ExceptionT::kBadInputValue;
-	}
+	
+	/* check */
+	if (!region_1 && !region_2)
+		ExceptionT::GeneralFail(caller, "expecting \"boundary_region_1\" and/or \"boundary_region_2\"");	
 
 	/* create overall ID lists */
 	if (fID_List_1.Length() == 0)
@@ -145,10 +133,7 @@ void BimaterialK_FieldT::Initialize(ifstreamT& in)
 		for (int j = 0; j < nsd; j++)
 		{
 			/* set values */
-			pcard->SetValues(fNodes[i], j, KBC_CardT::kDsp, 0, 0.0);
-	
-			/* dummy schedule */
-			pcard->SetSchedule(&fDummySchedule);
+			pcard->SetValues(fNodes[i], j, KBC_CardT::kDsp, &fDummySchedule, 0.0);
 			pcard++;
 		}	
 
@@ -178,203 +163,113 @@ void BimaterialK_FieldT::Initialize(ifstreamT& in)
 	fUHP = UpperHalfPlane();
 	
 //TEMP - tip tracking not supporting for parallel execution
-	if (fNearTipGroupNum != -1 && fNodeManager.Size() > 1) {
-		cout << "\n BimaterialK_FieldT::Initialize: tip tracking not implemented in parallel" << endl;
-		throw ExceptionT::kBadInputValue;
-	}	
-}
-
-void BimaterialK_FieldT::WriteParameters(ostream& out) const
-{
-	/* inherited */
-	KBC_ControllerT::WriteParameters(out);
-
-	out << "\n K - f i e l d   p a r a m e t e r s :\n\n";
-	out << " K I LTf . . . . . . . . . . . . . . . . . . . . = " << fnumLTf1 + 1 << '\n';
-	out << " K I . . . . . . . . . . . . . . . . . . . . . . = " << fK1         << '\n';
-	out << " K II LTf. . . . . . . . . . . . . . . . . . . . = " << fnumLTf2 + 1 << '\n';
-	out << " K II. . . . . . . . . . . . . . . . . . . . . . = " << fK2         << '\n';
-	out << " Crack tip coordinates (initial):\n" << fTipCoords << '\n';
-	out << " Crack extension direction:\n" << fGrowthDirection << '\n';
-	out << " Fracture path element group . . . . . . . . . . = ";
-	if (fNearTipGroupNum > -1) out << fNearTipGroupNum + 1 << '\n';
-	else out << "<none>\n";
-	out << " Fracture path output code . . . . . . . . . . . = " << fNearTipOutputCode + 1 << '\n';
-	out << " Fracture path test value column number. . . . . = " << fTipColumnNum + 1  << '\n';
-	out << " Maximum extension distance per load step. . . . = " << fMaxGrowthDistance << '\n';
-	out << " Maximum number of extensions per load step. . . = " << fMaxGrowthSteps    << '\n';
-
-	iArrayT tmp;
-	/* set 1 */
-	if (fFarFieldGroupNum != -1)
-	{
-		out << " Far field element group 1 number. . . . . . . . = " << fFarFieldGroupNum + 1 << '\n';
-		out << " Far field group 1 material number . . . . . . . = " << fFarFieldMaterialNum + 1 << '\n';
-		if (fID_List_1.Length() > 0)
-		{
-			out << " Number of group 1 node sets . . . . . . . . . . = " << fID_List_1.Length() << '\n';
-			int wrap = 0;
-			for (int i = 0; i < fID_List_1.Length(); i++)
-			{
-				if (++wrap == 4) {
-					out << '\n';
-					wrap = 0;
-				}
-				out << setw(12) << fID_List_1[i];
-			}	
-			out << '\n';
-		}
-		out << " Number of group 1 nodes . . . . . . . . . . . . = " << fNodes.Length() << '\n';	
-		tmp.Alias(fNodes_1);
-		tmp++;
-		out << tmp.wrap(6) << '\n';
-		tmp--;
-	}
-	else
-		out << " Far field element group 1 number. . . . . . . . = RIGID\n";
-	
-	/* set 2 */
-	if (fFarFieldGroupNum_2 != -1)
-	{
-		out << " Far field element group 2 number. . . . . . . . = " << fFarFieldGroupNum_2 + 1 << '\n';
-		out << " Far field group 2 material number . . . . . . . = " << fFarFieldMaterialNum_2 + 1 << '\n';
-		if (fID_List_2.Length() > 0)
-		{
-			out << " Number of group 2 node sets . . . . . . . . . . = " << fID_List_2.Length() << '\n';
-			int wrap = 0;
-			for (int i = 0; i < fID_List_2.Length(); i++)
-			{
-				if (++wrap == 4) {
-					out << '\n';
-					wrap = 0;
-				}
-				out << setw(12) << fID_List_2[i];
-			}	
-			out << '\n';
-		}
-		out << " Number of group 2 nodes . . . . . . . . . . . . = " << fNodes_2.Length() << '\n';	
-		tmp.Alias(fNodes_2);
-		tmp++;
-		out << tmp.wrap(6) << '\n';
-		tmp--;
-	}
-	else
-		out << " Far field element group 2 number. . . . . . . . = RIGID\n";
-
-	out << " Group in the upper half plane . . . . . . . . . = " << fUHP << '\n';
+	if (fNearTipGroupNum != -1 && fSupport.Size() > 1) 
+		ExceptionT::BadInputValue(caller, "tip tracking not implemented in parallel");
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* compute K-field displacement factors */
 void BimaterialK_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 {
-	/* resolve near tip and material reference */
-	if (fFarFieldGroupNum != -1 && !fIsotropic)
-		ResolveMaterialReference(fFarFieldGroupNum, fFarFieldMaterialNum,
-			&fIsotropic, &fMaterial2D);
-	else
+	const char caller[] = "BimaterialK_FieldT::ComputeDisplacementFactors";
+
+	/* resolve elastic constants */
+	if (fmu_1 < 0.0 && fGroupNumber_1 > -1) 
 	{
-		fIsotropic = NULL;
-		fMaterial2D = NULL;
+		/* resolve material and isotropy information */
+		const IsotropicT* iso = NULL;
+		const SolidMaterialT* mat = NULL;
+		ResolveMaterialReference(fGroupNumber_1, fMaterialNumber_1, &iso, &mat);
+			
+		/* compute elastic constants */
+		fmu_1 = iso->Mu();
+		fnu_1 = iso->Poisson();	
+		fkappa_1 = 3.0 - 4.0*fnu_1;
+		if (fSupport.NumSD() == 2 && mat->Constraint() == SolidMaterialT::kPlaneStress)
+			fkappa = (3.0 - fnu_1)/(1.0 + fnu_1);
 	}
 
-	if (fFarFieldGroupNum_2 != -1 && !fIsotropic_2)		
-		ResolveMaterialReference(fFarFieldGroupNum_2, fFarFieldMaterialNum_2,
-			&fIsotropic_2, &fMaterial2D_2);
-	else
+	/* resolve elastic constants */
+	if (fmu_2 < 0.0 && fGroupNumber_2 > -1) 
 	{
-		fIsotropic_2 = NULL;
-		fMaterial2D_2 = NULL;
+		/* resolve material and isotropy information */
+		const IsotropicT* iso = NULL;
+		const SolidMaterialT* mat = NULL;
+		ResolveMaterialReference(fGroupNumber_2, fMaterialNumber_2, &iso, &mat);
+			
+		/* compute elastic constants */
+		fmu_2 = iso->Mu();
+		fnu_2 = iso->Poisson();	
+		fkappa_2 = 3.0 - 4.0*fnu_2;
+		if (fSupport.NumSD() == 2 && mat->Constraint() == SolidMaterialT::kPlaneStress)
+			fkappa = (3.0 - fnu_2)/(1.0 + fnu_2);
 	}
 
-	/* moduli */
-	double G_1, nu_1, mu_1;
-#ifdef CONTINUUM_ELEMENT
-	if (fIsotropic)
-	{
-		G_1 = fIsotropic->Mu();
-		nu_1 = fIsotropic->Poisson();	
-		mu_1 = 3.0 - 4.0*nu_1;	
-	}
-#endif
-
-	double G_2, nu_2, mu_2;
-#ifdef CONTINUUM_ELEMENT
-	if (fIsotropic_2)
-	{
-		G_2 = fIsotropic_2->Mu();
-		nu_2 = fIsotropic_2->Poisson();	
-		mu_2 = 3.0 - 4.0*nu_2;
-	}
-#endif
-	
-#ifdef CONTINUUM_ELEMENT
-	if (fNodeManager.NumSD() == 2)
-	{
-		if (fMaterial2D && fMaterial2D->ConstraintOption() == Material2DT::kPlaneStress)
-			mu_1 = (3.0 - nu_1)/(1.0 + nu_1);
-		if (fMaterial2D_2 && fMaterial2D_2->ConstraintOption() == Material2DT::kPlaneStress)
-			mu_2 = (3.0 - nu_2)/(1.0 + nu_2);
-	}
-#endif
+	/* rename variables */
+	double  G_1 = fmu_1;
+	double nu_1 = fnu_1;
+	double mu_1 = fkappa_1;
+	double  G_2 = fmu_2;
+	double nu_2 = fnu_2;
+	double mu_2 = fkappa_2;
 
 	if (fUHP == 1)
 	{
 		double eps;
-		if (!fIsotropic)
-			eps =-log(mu_2)/(2.0*Pi);
-		else if (!fIsotropic_2)
-			eps = log(mu_1)/(2.0*Pi);		
-		else
+		if (G_2 > 0.0 && G_1 > 0.0)
 			eps = log((mu_1/G_1 + 1.0/G_2)/
 	                  (mu_2/G_2 + 1.0/G_1))/(2.0*Pi);
+		else if (G_2 > 0.0)
+			eps =-log(mu_2)/(2.0*Pi);
+		else if (G_1 > 0.0)
+			eps = log(mu_1)/(2.0*Pi);		
 	
 		/* UHP */
-		if (fIsotropic)
+		if (G_1 > 0.0)
 			SetFieldFactors( 1, eps, mu_1, G_1, tip_coords, fNodes_1, fK1Disp_1, fK2Disp_1);
 
 		/* LHP */
-		if (fIsotropic_2)
+		if (G_2 > 0.0)
 			SetFieldFactors(-1, eps, mu_2, G_2, tip_coords, fNodes_2, fK1Disp_2, fK2Disp_2);
 	}
 	else
 	{
 		double eps;
-		if (!fIsotropic)
-			eps = log(mu_2)/(2.0*Pi);
-		else if (!fIsotropic_2)
-			eps =-log(mu_1)/(2.0*Pi);
-		else
+		if (G_1 > 0.0 && G_2 > 0.0)
 			eps = log((mu_2/G_2 + 1.0/G_1)/
 	                  (mu_1/G_1 + 1.0/G_2))/(2.0*Pi);
+		else if (G_2 > 0.0)
+			eps = log(mu_2)/(2.0*Pi);
+		else if (G_1 > 0.0)
+			eps =-log(mu_1)/(2.0*Pi);
 
 		/* UHP */
-		if (fIsotropic_2)
+		if (G_2 > 0.0)
 			SetFieldFactors( 1, eps, mu_2, G_2, tip_coords, fNodes_2, fK1Disp_2, fK2Disp_2);
 
 		/* LHP */
-		if (fIsotropic)
+		if (G_1 > 0.0)
 			SetFieldFactors(-1, eps, mu_1, G_1, tip_coords, fNodes_1, fK1Disp_1, fK2Disp_1);
 	}
 }
 
 /***********************************************************************
-* Private
-***********************************************************************/
+ * Private
+ ***********************************************************************/
 
 /* bimaterial displacement field factors */
 void BimaterialK_FieldT::SetFieldFactors(int side, double eps, double mu,
 	double G, const dArrayT& tip_coords, const iArrayT& nodes,
 	dArray2DT& K1_disp, dArray2DT& K2_disp)
 {
-	if (side != 1 && side != -1) throw ExceptionT::kGeneralFail;
+	if (side != 1 && side != -1) ExceptionT::GeneralFail("BimaterialK_FieldT::SetFieldFactors");
 
 	/* (initial) nodal coordinates */
-	int nsd = fNodeManager.NumSD();
-	const dArray2DT& init_coords = fNodeManager.InitialCoordinates();
+	int nsd = fSupport.NumSD();
+	const dArray2DT& init_coords = fSupport.InitialCoordinates();
 
 	/* coefficient */
 	double a = exp(Pi*eps)/(1.0 + exp(2.0*Pi*eps))/(2.0*G)/sqrt(2.0*Pi);
@@ -446,7 +341,7 @@ int BimaterialK_FieldT::UpperHalfPlane(void) const
 	if (fNodes_1.Length() == 0 && fNodes_2.Length() == 0) return 1;
 
 	/* undeformed coordinates */
-	const dArray2DT& init_coords = fNodeManager.InitialCoordinates();
+	const dArray2DT& init_coords = fSupport.InitialCoordinates();
 	int nsd = init_coords.MinorDim();
 
 	/* compute polar angles */
@@ -501,11 +396,8 @@ int BimaterialK_FieldT::UpperHalfPlane(void) const
 	{
 		/* check */
 		if (t_1*t_2 >= 0.0)
-		{
-			cout << "\n BimaterialK_FieldT::UpperHalfPlane: could not determine group in the\n"
-			     <<   "     upper half plane" << endl;		
-			throw ExceptionT::kGeneralFail;
-		}
+			ExceptionT::GeneralFail("BimaterialK_FieldT::UpperHalfPlane",
+				" could not determine group in the upper half plane");
 	
 		if (t_1 >= 0.0)
 			return 1;

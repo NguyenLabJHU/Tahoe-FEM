@@ -1,4 +1,4 @@
-/* $Id: J2Simo3D.cpp,v 1.14 2003-10-12 01:39:03 paklein Exp $ */
+/* $Id: J2Simo3D.cpp,v 1.15 2004-07-15 08:28:54 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 #include "J2Simo3D.h"
 #include "ElementCardT.h"
@@ -9,12 +9,8 @@ using namespace Tahoe;
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* constructor */
-J2Simo3D::J2Simo3D(ifstreamT& in, const FSMatSupportT& support):
-	SimoIso3D(in, support),
-	J2SimoC0HardeningT(in, NumIP(), Mu()),
-	fFmech(3),
-	ffrel(3),
-	fF_temp(3)
+J2Simo3D::J2Simo3D(void):
+	ParameterInterfaceT("Simo_J2")
 {
 
 }
@@ -30,7 +26,7 @@ void J2Simo3D::UpdateHistory(void)
 {
 	/* update if plastic */
 	ElementCardT& element = CurrentElement();
-	if (element.IsAllocated()) Update(element);
+	if (element.IsAllocated()) Update(element, Mu(), NumIP());
 }
 
 /* reset internal variables to last converged solution */
@@ -38,15 +34,7 @@ void J2Simo3D::ResetHistory(void)
 {
 	/* reset if plastic */
 	ElementCardT& element = CurrentElement();
-	if (element.IsAllocated()) Reset(element);
-}
-
-/* print parameters */
-void J2Simo3D::Print(ostream& out) const
-{
-	/* inherited */
-	SimoIso3D::Print(out);
-	J2SimoC0HardeningT::Print(out);
+	if (element.IsAllocated()) Reset(element, NumIP());
 }
 
 /* modulus */
@@ -56,17 +44,18 @@ const dMatrixT& J2Simo3D::c_ijkl(void)
 	ComputeGradients();
 
 	int ip = CurrIP();
+	int nip = NumIP();
 	ElementCardT& element = CurrentElement();
 
 	/* compute isochoric elastic stretch */
 	double J = fFmech.Det();
-	const dSymMatrixT& b_els = TrialElasticState(fFmech, ffrel, element, ip);
+	const dSymMatrixT& b_els = TrialElasticState(fFmech, ffrel, element, nip, ip);
 	
 	/* elastic tangent modulus */
 	ComputeModuli(J, b_els, fModulus);
 	
 	/* elastoplastic correction */
-	fModulus += ModuliCorrection(element, ip);
+	fModulus += ModuliCorrection(element, Mu(), nip, ip);
 	
 	return fModulus;
 }
@@ -78,37 +67,40 @@ const dSymMatrixT& J2Simo3D::s_ij(void)
 	ComputeGradients();
 
 	int ip = CurrIP();
+	int nip = NumIP();
 	ElementCardT& element = CurrentElement();
 
 	/* compute isochoric elastic stretch */
 	double J = fFmech.Det();
-	const dSymMatrixT& b_els = TrialElasticState(fFmech, ffrel, element, ip);
+	const dSymMatrixT& b_els = TrialElasticState(fFmech, ffrel, element, nip, ip);
 	
 	/* elastic stress */
 	ComputeCauchy(J, b_els, fStress);
 
 	/* modify Cauchy stress (return mapping) */
-	int iteration = fFSMatSupport.IterationNumber();
-	if (iteration > -1 && PlasticLoading(element, ip)) /* 1st iteration is elastic */
+	double mu = Mu();
+#pragma message("make elastic its a parameter")
+	int iteration = fFSMatSupport->GroupIterationNumber();
+	if (iteration > -1 && PlasticLoading(element, mu, ip)) /* 1st iteration is elastic */
 //	if (PlasticLoading(element, ip)) /* no iteration is elastic */
 	{
 		/* element not yet plastic */
 		if (!element.IsAllocated())
 		{
 			/* allocate element storage */
-			AllocateElement(element);
+			AllocateElement(element, nip);
 		
 			/* set trial state and load data */
-			TrialElasticState(fFmech, ffrel, element, ip);
+			TrialElasticState(fFmech, ffrel, element, nip, ip);
 			
 			/* set the loading state */
-			PlasticLoading(element, ip);
+			PlasticLoading(element, mu, ip);
 		}
 	
 		/* apply correction due to the return mapping */
-		fStress += StressCorrection(element, ip);
+		fStress += StressCorrection(element, mu, ip);
 	}
-	
+
 	return fStress;
 }
 
@@ -121,7 +113,7 @@ double J2Simo3D::StrainEnergyDensity(void)
 	/* compute isochoric elastic stretch */
 	double J = fFmech.Det();
 	const dSymMatrixT& b_els = TrialElasticState(fFmech, ffrel,
-		CurrentElement(), CurrIP());
+		CurrentElement(), NumIP(), CurrIP());
 
 	return ComputeEnergy(J, b_els);
 }
@@ -155,11 +147,8 @@ void J2Simo3D::OutputLabels(ArrayT<StringT>& labels) const
 void J2Simo3D::ComputeOutput(dArrayT& output)
 {
 	/* check */
-	if (output.Length() < 4) {
-		cout << "\n J2Simo3D::ComputeOutput: expecting 4 output variables: " 
-		     << output.Length() << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (output.Length() < 4)
+		ExceptionT::GeneralFail("J2Simo3D::ComputeOutput", "expecting 4 output variables: %d", output.Length());
 
 	/* compute Cauchy stress (load state variables) */
 	dSymMatrixT stress = s_ij();
@@ -183,7 +172,7 @@ void J2Simo3D::ComputeOutput(dArrayT& output)
 			double alpha = fInternal[kalpha];
 			double dgamma = fInternal[kdgamma];
 			double mu_bar_bar = fInternal[kmu_bar_bar];
-			double k = 2.0*mu_bar_bar*dgamma/fmu;
+			double k = 2.0*mu_bar_bar*dgamma/Mu();
 		
 			/* update variables */
 			alpha += sqrt23*dgamma;
@@ -212,21 +201,41 @@ void J2Simo3D::ComputeOutput(dArrayT& output)
 	output[2] = sqrt(stress.ScalarProduct())/sqrt23;
 }
 
-/***********************************************************************
-* Protected
-***********************************************************************/
-
-/* print name */
-void J2Simo3D::PrintName(ostream& out) const
+/* information about subordinate parameter lists */
+void J2Simo3D::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
-	SimoIso3D::PrintName(out);
-	J2SimoC0HardeningT::PrintName(out);
+	SimoIso3D::DefineSubs(sub_list);
+	J2SimoC0HardeningT::DefineSubs(sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* J2Simo3D::NewSub(const StringT& name) const
+{
+	/* inherited */
+	ParameterInterfaceT* sub = SimoIso3D::NewSub(name);
+	if (sub)
+		return sub;
+	else
+		return J2SimoC0HardeningT::NewSub(name);
+}
+
+/* accept parameter list */
+void J2Simo3D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SimoIso3D::TakeParameterList(list);
+	J2SimoC0HardeningT::TakeParameterList(list);
+
+	/* dimension work space */
+	fFmech.Dimension(3);
+	ffrel.Dimension(3);
+	fF_temp.Dimension(3);
 }
 
 /***********************************************************************
-* Private
-***********************************************************************/
+ * Private
+ ***********************************************************************/
 
 /* compute F_mechanical and f_relative */
 void J2Simo3D::ComputeGradients(void)

@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.h,v 1.7 2003-12-10 07:14:28 paklein Exp $ */
+/* $Id: DiffusionMaterialT.h,v 1.8 2004-07-15 08:26:22 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSION_MATERIALT_H_
 #define _DIFFUSION_MATERIALT_H_
@@ -23,14 +23,10 @@ class DiffusionMaterialT: public ContinuumMaterialT
 public:
 
 	/** constructor */
-	DiffusionMaterialT(ifstreamT& in, const DiffusionMatSupportT& support);
 	DiffusionMaterialT(void);
 
-	/** \name print parameters */
-	/*@{*/
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-	/*@}*/
+	/** set support */
+	void SetDiffusionMatSupport(const DiffusionMatSupportT* support);
 
 	/** \name parameters at the current field point */
 	/*@{*/
@@ -55,6 +51,9 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:

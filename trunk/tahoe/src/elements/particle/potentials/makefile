@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.8 2003-08-07 21:11:35 fwdelri Exp $
+# $Id: makefile,v 1.9 2004-07-15 08:29:49 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -27,8 +27,8 @@ OBJ = \
 	ParadynPairT.o \
 	EAMPropertyT.o \
 	ParadynEAMT.o \
-	MatsuiPairT.o
-
+	MatsuiPairT.o \
+	PairPropertyT_factory.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -55,7 +55,8 @@ SRC = \
 	ParadynPairT.cpp \
 	EAMPropertyT.cpp \
 	ParadynEAMT.cpp \
-	MatsuiPairT.cpp
+	MatsuiPairT.cpp \
+	PairPropertyT_factory.cpp
 
 ##################### (3) headers
 #

@@ -1,4 +1,4 @@
-/* $Id: HookeanMatT.h,v 1.5 2004-01-10 04:41:12 paklein Exp $ */
+/* $Id: HookeanMatT.h,v 1.6 2004-07-15 08:26:56 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _HOOKEAN_MAT_H_
 #define _HOOKEAN_MAT_H_
@@ -26,6 +26,9 @@ public:
 
 	/** initialization */
 	void Initialize(void);
+
+	/** dimension */
+	void Dimension(int nsd);
 
 protected:
 

@@ -1,6 +1,5 @@
-/* $Id: NLSolver_LS.h,v 1.7 2004-01-05 07:07:19 paklein Exp $ */
+/* $Id: NLSolver_LS.h,v 1.8 2004-07-15 08:31:50 paklein Exp $ */
 /* created: paklein (08/18/1999) */
-
 #ifndef _NL_SOLVER_LS_H_
 #define _NL_SOLVER_LS_H_
 
@@ -17,7 +16,7 @@ class NLSolver_LS: public NLSolver
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	NLSolver_LS(FEManagerT& fe_manager, int group);
 
 	/* form and solve the equation system - returns the magnitude of the
@@ -26,6 +25,15 @@ public:
 
 	/* console */
 	virtual bool iDoVariable(const StringT& variable, StringT& line);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
@@ -42,18 +50,22 @@ private:
 
 private:
 
-	/* line search parameters */
+	/** \name line search parameters */
+	/*@{*/
 	int    fSearchIterations;
 	double fOrthogTolerance;
 	double fMaxStepSize;
+	/*@}*/
 
 	/* work space */
 	dArrayT fR; // store first residual
 
-	/* line search data */
-	dArrayT   fUpdate;     // full update vector
-	double    s_current;   // current step size
-	dArray2DT fSearchData; // line search history
+	/** \name line search data */
+	/*@{*/
+	dArrayT   fUpdate;     /**< full update vector */
+	double    s_current;   /**< current step size */
+	dArray2DT fSearchData; /**< line search history */
+	/*@}*/
 };
 
 } // namespace Tahoe 

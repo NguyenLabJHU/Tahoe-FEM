@@ -1,4 +1,4 @@
-/* $Id: SolidMatListT.h,v 1.8 2003-12-02 17:12:22 paklein Exp $ */
+/* $Id: SolidMatListT.h,v 1.9 2004-07-15 08:28:29 paklein Exp $ */
 #ifndef _STRUCT_MAT_LIST_T_H_
 #define _STRUCT_MAT_LIST_T_H_
 
@@ -44,22 +44,8 @@ protected:
 	bool fHasThermal;    /**< materials with thermal loading */
 	/*@}*/
 
-	/** \name material support classes 
-	 * These are dynamically cast from the MaterialSupportT passed
-	 * into the constructor */
-	/*@{*/
 	/** base class for structural material support */
 	const SolidMatSupportT* fSolidMatSupport; 
-	
-	/** support for small strain materials */
-	const SSMatSupportT* fSSMatSupport;
-
-	/** support for finite strain materials */
-	const FSMatSupportT* fFSMatSupport;
-
-	/** support for gradient enhanced small strain materials */
-	const GradSSMatSupportT* fGradSSMatSupport;
-	/*@}*/
 };
 
 inline bool SolidMatListT::HasLocalizingMaterials(void) const { return fHasLocalizers; }

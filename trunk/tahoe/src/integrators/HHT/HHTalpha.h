@@ -1,4 +1,4 @@
-/* $Id: HHTalpha.h,v 1.5 2003-01-29 07:35:14 paklein Exp $ */
+/* $Id: HHTalpha.h,v 1.6 2004-07-15 08:30:27 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _HHT_ALPHA_H_
@@ -23,12 +23,9 @@ class HHTalpha: virtual public IntegratorT
 public:
 
 	/** constructor 
-	 * \param in stream to extract parameters
-	 * \param out stream to write messages
-	 * \param auto2ndorder if true, sets the integrator parameters
-	 *        to produce second order accuracy and does not read
-	 *        any parameters from in. */
-	HHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder);
+	 * \param alpha damping parameters 
+	 */
+	HHTalpha(double alpha);
 
 	/** \name integrator parameters */
 	/*@{*/

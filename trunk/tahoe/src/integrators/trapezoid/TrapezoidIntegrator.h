@@ -1,14 +1,11 @@
-/* $Id: TrapezoidIntegrator.h,v 1.3 2002-07-05 22:27:55 paklein Exp $ */
+/* $Id: TrapezoidIntegrator.h,v 1.4 2004-07-15 08:30:53 paklein Exp $ */
 /* created: paklein (10/03/1999) */
-
 #ifndef _TRAPEZOID_CONTROLLER_H_
 #define _TRAPEZOID_CONTROLLER_H_
 
 /* base classes */
 #include "nTrapezoid.h"
 #include "eTrapezoid.h"
-
-#include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
@@ -17,7 +14,7 @@ class TrapezoidIntegrator: public nTrapezoid, public eTrapezoid
 public:
 
 	/* constructor */
-	TrapezoidIntegrator(ostream& out);
+	TrapezoidIntegrator(void);
 	  	
 protected:  	
 	

@@ -1,7 +1,5 @@
-/* $Id: EAMFCC3DSym.h,v 1.3 2002-07-05 22:28:10 paklein Exp $ */
-/* created: paklein (12/06/1996)                                          */
-/* EAMFCC3DSym.h                                                          */
-
+/* $Id: EAMFCC3DSym.h,v 1.4 2004-07-15 08:26:47 paklein Exp $ */
+/* created: paklein (12/06/1996) */
 #ifndef _EAMFCC3DSYM_H_
 #define _EAMFCC3DSYM_H_
 
@@ -13,24 +11,19 @@ namespace Tahoe {
 /* forward declarations */
 class dMatrixT;
 
-/* bond parameters */
-const int kEAMFCC3DSymNumBonds = 27;
-
 class EAMFCC3DSym: public EAMFCC3D
 {
 public:
 
-	/* constructor */
-	EAMFCC3DSym(ifstreamT& in, int EAMcode, int numspatialdim,
-		int numbonds = kEAMFCC3DSymNumBonds);
-	EAMFCC3DSym(ifstreamT& in, const dMatrixT& Q, int EAMcode, int numspatialdim,
-		int numbonds = kEAMFCC3DSymNumBonds);
-	    	
+	/** constructor */
+	EAMFCC3DSym(void);
+
 protected:
 
-	/* initialize bond table values */
+	/** initialize bond table values */
 	virtual void LoadBondTable(void);
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _EAMFCC3DSYM_H_ */

@@ -1,9 +1,9 @@
-/* $Id: LocalCrystalPlast_C.cpp,v 1.10 2003-12-18 22:22:01 ebmarin Exp $ */
+/* $Id: LocalCrystalPlast_C.cpp,v 1.11 2004-07-15 08:29:07 paklein Exp $ */
 #include "LocalCrystalPlast_C.h"
 #include "LatticeOrient.h"
 #include "VoceHardening.h"
 #include "ElementCardT.h"
-#include "ifstreamT.h"
+
 #include "Utils.h"
 #include "ContinuumElementT.h" //needed for ip coordinates
 
@@ -18,6 +18,7 @@ const int kNumOutput = 2;
 static const char* Labels[kNumOutput] = {"VM_stress", "Hardness"};
 
 LocalCrystalPlast_C::LocalCrystalPlast_C(ifstreamT& in, const FSMatSupportT& support) :
+	ParameterInterfaceT("local_crystal_plasticity_C"),
   LocalCrystalPlast(in, support),
   fLocInitX (ContinuumElement().InitialCoordinates()),
   //fNNodes   (element.NumElemNodes()),
@@ -76,7 +77,7 @@ const dSymMatrixT& LocalCrystalPlast_C::s_ij()
   LoadAggregateData(element, intpt);
 
   // compute state, stress and moduli at center of element
-  if (fFSMatSupport.RunState() == GlobalT::kFormRHS && CurrIP() == 0)
+  if (fFSMatSupport->RunState() == GlobalT::kFormRHS && CurrIP() == 0)
     {
       // reset iteration counter to check NLCSolver
       fIterCount = 0;
@@ -211,8 +212,8 @@ void LocalCrystalPlast_C::ComputeOutput(dArrayT& output)
       output[1] = fIterCount;
 
       // compute texture of aggregate, if requested
-	int step = fFSMatSupport.StepNumber();
-	int nsteps = fFSMatSupport.NumberOfSteps();
+	int step = fFSMatSupport->StepNumber();
+	int nsteps = fFSMatSupport->NumberOfSteps();
 
       if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
 	{
@@ -236,21 +237,6 @@ void LocalCrystalPlast_C::ComputeOutput(dArrayT& output)
 	  fLatticeOrient->WriteTexture(group, elem, intpt, fNumGrain, step, fangles);
 	}
     }
-}
-
-void LocalCrystalPlast_C::Print(ostream& out) const
-{
-  // inherited
-  LocalCrystalPlast::Print(out);
-}
-
-void LocalCrystalPlast_C::PrintName(ostream& out) const
-{
-  // inherited
-  LocalCrystalPlast::PrintName(out);
-
-  // output model feature
-  out << "    (Using one aggregate per element - center)\n";
 }
 
 /* PROTECTED MEMBER FUNCTIONS */

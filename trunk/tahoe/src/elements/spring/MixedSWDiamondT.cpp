@@ -1,6 +1,5 @@
-/* $Id: MixedSWDiamondT.cpp,v 1.5 2004-06-17 07:41:37 paklein Exp $ */
+/* $Id: MixedSWDiamondT.cpp,v 1.6 2004-07-15 08:30:17 paklein Exp $ */
 /* created: paklein (03/22/1997) */
-
 #include "MixedSWDiamondT.h"
 
 #include <math.h>
@@ -11,10 +10,9 @@
 #include "FindNeighbor23T.h"
 #include "ScheduleT.h"
 
-/* parameters */
-
 using namespace Tahoe;
 
+/* parameters */
 const int kSWMaxNeighbors0 = 4;
 
 /* constructor */
@@ -22,8 +20,11 @@ MixedSWDiamondT::MixedSWDiamondT(const ElementSupportT& support, const FieldT& f
 	SWDiamondT(support, field),
 	fCurrMatType(-1)
 {
+ExceptionT::GeneralFail("MixedSWDiamondT::MixedSWDiamondT", "out of date");
+#if 0
 	ElementSupport().Input() >> fLTfNum;
 	fLTfPtr = ElementSupport().Schedule(fLTfNum);
+#endif
 }
 
 /*

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.h,v 1.9 2004-01-05 07:34:30 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.h,v 1.10 2004-07-15 08:25:57 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #ifndef _MF_CSE_ANISO_T_H_
@@ -40,9 +40,6 @@ public:
 	
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
-
-	/* initialize class data */
-	virtual void Initialize(void);
 
 	/* start of new time sequence */
 	virtual void InitialCondition(void);
@@ -87,9 +84,6 @@ public:
                   kMarked = 2};
 
 protected:
-
-	/* print element group data */
-	virtual void PrintControlData(ostream& out) const;
 
 	/* element data */
 	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);

@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.cpp,v 1.10 2004-06-17 07:41:14 paklein Exp $ */
+/* $Id: IsotropicT.cpp,v 1.11 2004-07-15 08:29:19 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "IsotropicT.h"
 
@@ -6,11 +6,14 @@
 
 #include "dMatrixT.h"
 #include "ifstreamT.h"
+#include "ofstreamT.h"
+#include "ParameterContainerT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-IsotropicT::IsotropicT(ifstreamT& in)
+IsotropicT::IsotropicT(ifstreamT& in):
+	ParameterInterfaceT("isotropic")
 {
 	double E, nu;
 	in >> E >> nu;
@@ -18,7 +21,8 @@ IsotropicT::IsotropicT(ifstreamT& in)
 	catch (ExceptionT::CodeT exception) { throw ExceptionT::kBadInputValue; }
 }
 
-IsotropicT::IsotropicT(void)
+IsotropicT::IsotropicT(void):
+	ParameterInterfaceT("isotropic")
 {
 	try { Set_E_nu(0.0, 0.0); }
 	catch (ExceptionT::CodeT exception) { throw ExceptionT::kBadInputValue; }
@@ -74,13 +78,76 @@ void IsotropicT::Print(ostream& out) const
 	out << " Poisson's ratio . . . . . . . . . . . . . . . . = " << fPoisson << '\n';
 	out << " Shear modulus . . . . . . . . . . . . . . . . . = " << fMu      << '\n';
 	out << " Bulk modulus. . . . . . . . . . . . . . . . . . = " << fKappa   << '\n';
-	out << " Lame modulus  . . . . . . . . . . . . . . . . . = " << fLambda  << '\n';
+	out << " Lame modulus  . . . . . . . . . . . . . . . . . = " << fLambda  << '\n';	
+}
+
+/* information about subordinate parameter lists */
+void IsotropicT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ParameterInterfaceT::DefineSubs(sub_list);
+
+	/* choice of how to define moduli */
+	sub_list.AddSub("modulus_definition_choice", ParameterListT::Once, true);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* IsotropicT::NewSub(const StringT& name) const
+{
+	if (name == "modulus_definition_choice")
+	{
+		ParameterContainerT* choice = new ParameterContainerT(name);
+		choice->SetSubSource(this);
+
+		/* set the choices */		
+		choice->SetListOrder(ParameterListT::Choice);
+
+		ParameterContainerT E_and_nu("E_and_nu");
+		ParameterT E(ParameterT::Double, "Young_modulus");
+		E.AddLimit(0.0, LimitT::Lower);
+		E_and_nu.AddParameter(E);
+		ParameterT Poisson(ParameterT::Double, "Poisson_ratio");
+		Poisson.AddLimit(-1.0, LimitT::Lower);
+		Poisson.AddLimit( 0.5, LimitT::Upper);
+		E_and_nu.AddParameter(Poisson);
+		choice->AddSub(E_and_nu);
+		
+		ParameterContainerT bulk_and_shear("bulk_and_shear");		
+		ParameterT kappa(ParameterT::Double, "bulk_modulus");
+		kappa.AddLimit(0.0, LimitT::Lower);
+		bulk_and_shear.AddParameter(kappa);
+		ParameterT mu(ParameterT::Double, "shear_modulus");
+		mu.AddLimit(0.0, LimitT::Lower);
+		bulk_and_shear.AddParameter(mu);
+		choice->AddSub(bulk_and_shear);
 	
+		return choice;
+	}
+	else /* inherited */
+		return ParameterInterfaceT::NewSub(name);
+}
+
+/* accept parameter list */
+void IsotropicT::TakeParameterList(const ParameterListT& list)
+{
+	const ParameterListT* E_and_nu = list.List("E_and_nu");
+	if (E_and_nu) {
+		double  E = E_and_nu->GetParameter("Young_modulus");
+		double nu = E_and_nu->GetParameter("Poisson_ratio");
+		Set_E_nu(E, nu);
+	}
+	else {
+		const ParameterListT* bulk_and_shear = list.List("bulk_and_shear");
+		if (!bulk_and_shear) ExceptionT::GeneralFail("IsotropicT::TakeParameterList");
+		double    mu = bulk_and_shear->GetParameter("shear_modulus");
+		double kappa = bulk_and_shear->GetParameter("bulk_modulus");
+		Set_mu_kappa(mu, kappa);
+	}
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /* compute the symetric Cij reduced index matrix */
 void IsotropicT::ComputeModuli(dMatrixT& moduli) const
@@ -105,7 +172,7 @@ void IsotropicT::ComputeModuli(dMatrixT& moduli) const
 }
 
 void IsotropicT::ComputeModuli2D(dMatrixT& moduli, 
-	Material2DT::ConstraintOptionT constraint) const
+	SolidMaterialT::ConstraintT constraint) const
 {
 	if (moduli.Rows() == 3)
 	{
@@ -113,7 +180,7 @@ void IsotropicT::ComputeModuli2D(dMatrixT& moduli,
 		double lambda = Lambda();
 
 		/* plane stress correction */
-		if (constraint == Material2DT::kPlaneStress) {
+		if (constraint == SolidMaterialT::kPlaneStress) {
 		
 			double lam_2_mu = lambda + 2.0*mu;
 			if (fabs(lam_2_mu) < kSmall) {
@@ -146,9 +213,9 @@ void IsotropicT::ComputeModuli1D(dMatrixT& moduli) const
 }
 
 /* scale factor for constrained dilatation */
-double IsotropicT::DilatationFactor2D(Material2DT::ConstraintOptionT constraint) const
+double IsotropicT::DilatationFactor2D(SolidMaterialT::ConstraintT constraint) const
 {
-	if (constraint == Material2DT::kPlaneStrain)
+	if (constraint == SolidMaterialT::kPlaneStrain)
 		return 1.0 + Poisson();
 	else
 		return 1.0;

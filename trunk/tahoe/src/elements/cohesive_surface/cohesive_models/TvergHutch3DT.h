@@ -1,6 +1,5 @@
-/* $Id: TvergHutch3DT.h,v 1.8 2003-05-28 23:15:27 cjkimme Exp $ */
+/* $Id: TvergHutch3DT.h,v 1.9 2004-07-15 08:26:02 paklein Exp $ */
 /* created: paklein (02/05/2000) */
-
 #ifndef _TVERG_HUTCH_3D_T_H_
 #define _TVERG_HUTCH_3D_T_H_
 
@@ -20,10 +19,8 @@ class TvergHutch3DT: public SurfacePotentialT
 public:
 
 	/** constructors */
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	TvergHutch3DT(ifstreamT& in);
-#endif
 	TvergHutch3DT(dArrayT& params);
+	TvergHutch3DT(void);	
 
 	/** return the number of state variables needed by the model */
 	int NumStateVariables(void) const { return 0; };
@@ -44,12 +41,6 @@ public:
 	/** surface status */
 	virtual StatusT Status(const dArrayT& jump_u, const ArrayT<double>& state);
 
-	/** write model name to output */
-	virtual void PrintName(ostream& out) const;
-
-	/** write model parameters */
-	virtual void Print(ostream& out) const;
-
 	/** return the number of output variables. returns 0 by default. */
 	virtual int NumOutputVariables(void) const;
 
@@ -62,6 +53,15 @@ public:
 	 * \param destination of output values. Allocated by the host code */
 	virtual void ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
 		dArrayT& output);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters  */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 

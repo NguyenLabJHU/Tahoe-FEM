@@ -1,4 +1,4 @@
-/* $Id: Traction_CardT.h,v 1.4 2002-07-05 22:28:33 paklein Exp $ */
+/* $Id: Traction_CardT.h,v 1.5 2004-07-15 08:31:36 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 
 #ifndef _TRACTION_T_H_
@@ -29,6 +29,7 @@ public:
 	enum CoordSystemT {kCartesian = 0, /**< x,y,z components of traction */
 	                       kLocal = 1  /**< last component is normal component */
 	                       }; 
+	static CoordSystemT int2CoordSystemT(int i);
 
 	/** constructor */
 	Traction_CardT(void);
@@ -40,6 +41,10 @@ public:
 	void EchoValues(const ElementSupportT& support, int elem, int facet, int nLTf,
 		 CoordSystemT coord_sys, const iArrayT& locnodenums, const dArray2DT& valuesT,
 		 ostream& out);
+
+	/** define traction values */
+	void SetValues(const ElementSupportT& support, int elem, int facet, int nLTf,
+		 CoordSystemT coord_sys, const iArrayT& locnodenums, const dArray2DT& valuesT);
 
 	/* return the element and facet number specified for the force */
 	void Destination(int& elem_num, int& facet_num) const;

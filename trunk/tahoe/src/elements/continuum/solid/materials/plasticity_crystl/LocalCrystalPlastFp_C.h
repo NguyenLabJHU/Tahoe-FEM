@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp_C.h,v 1.4 2003-01-29 07:35:05 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp_C.h,v 1.5 2004-07-15 08:29:07 paklein Exp $ */
 #ifndef _LOCAL_CRYSTAL_PLAST_FP_C_H_
 #define _LOCAL_CRYSTAL_PLAST_FP_C_H_
 
@@ -41,10 +41,6 @@ class LocalCrystalPlastFp_C : public LocalCrystalPlastFp
   virtual int NumOutputVariables() const;
   virtual void OutputLabels(ArrayT<StringT>& labels) const;
   virtual void ComputeOutput(dArrayT& output);
-
-  // print data and model name
-  virtual void Print(ostream& out) const;
-  virtual void PrintName(ostream& out) const;
 
  protected:
  

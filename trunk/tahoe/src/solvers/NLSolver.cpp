@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.30 2004-06-17 07:42:05 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.31 2004-07-15 08:31:50 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -7,16 +7,14 @@
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
 #include "FEManagerT.h"
 #include "CommunicatorT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-NLSolver::NLSolver(FEManagerT& fe_manager):
-	SolverT(fe_manager),
+NLSolver::NLSolver(FEManagerT& fe_manager, int group):
+	SolverT(fe_manager, group),
 	fMaxIterations(-1),
 	fMinIterations(-1),
 	fZeroTolerance(0.0),
@@ -31,78 +29,6 @@ NLSolver::NLSolver(FEManagerT& fe_manager):
 {
 	SetName("nonlinear_solver");
 
-	/* console variables */
-	iAddVariable("max_iterations", fMaxIterations);
-	iAddVariable("min_iterations", fMinIterations);
-	iAddVariable("abs_tolerance", fZeroTolerance);
-	iAddVariable("rel_tolerance", fTolerance);
-	iAddVariable("div_tolerance", fDivTolerance);
-	iAddVariable("iteration_output_inc", fIterationOutputIncrement);
-}
-
-NLSolver::NLSolver(FEManagerT& fe_manager, int group):
-	SolverT(fe_manager, group),
-	fMaxIterations(-1),
-	fZeroTolerance(0.0),
-	fTolerance(0.0),
-	fDivTolerance(-1.0),
-	fQuickConvCount(0),
-	fIterationOutputCount(0),
-	fVerbose(1)
-{
-	ifstreamT& in = fFEManager.Input();
-	
-	in >> fMaxIterations;
-	//TEMP - no new parameters until switch to XML input
-	//in >> fMinIterations;
-	fMinIterations = 0;
-	in >> fZeroTolerance;
-	in >> fTolerance;
-	in >> fDivTolerance;
-	in >> fQuickSolveTol;
-	in >> fQuickSeriesTol;
-	in >> fIterationOutputIncrement;
-	
-	/* step increase disabled */
-	if (fQuickSolveTol == -1) fQuickSeriesTol = -1;
-
-	/* print parameters */
-	ostream& out = fFEManager.Output();
-	
-	out << "\n O p t i m i z a t i o n   P a r a m e t e r s :\n\n";
-	out << " Maximum number of iterations. . . . . . . . . . = " << fMaxIterations  << '\n';
-	out << " Minimum number of iterations. . . . . . . . . . = " << fMinIterations  << '\n';
-	out << " Absolute convergence tolerance. . . . . . . . . = " << fZeroTolerance  << '\n';	
-	out << " Relative convergence tolerance. . . . . . . . . = " << fTolerance      << '\n';	
-	out << " Divergence tolerance. . . . . . . . . . . . . . = " << fDivTolerance   << '\n';	
-	out << " Quick solution iteration count. (-1 to disable) = " << fQuickSolveTol  << '\n';	
-	out << " Number of quick solutions before step increase. = " << fQuickSeriesTol << '\n';	
-	out << " Iteration output print increment. . . . . . . . = " << fIterationOutputIncrement << endl;	
-	
-	/* checks */
-	if (fMaxIterations < 0) throw ExceptionT::kBadInputValue;
-	if (fZeroTolerance < 0.0 || fZeroTolerance > 1.0)
-	{
-		cout << "\n NLSolver::NLSolver: absolute convergence tolerance is out of\n"
-		     <<   "    range: 0 <= tol <= 1: " << fZeroTolerance << endl;
-		throw ExceptionT::kBadInputValue;
-	}
-	if (fTolerance < 0.0 || fTolerance > 1.0)
-	{
-		cout << "\n NLSolver::NLSolver: relative convergence tolerance is out of\n"
-		     <<   "    range: 0 <= tol <= 1: " << fTolerance << endl;
-		throw ExceptionT::kBadInputValue;
-	}
-	if (fDivTolerance < 0)  throw ExceptionT::kBadInputValue;
-	if (fQuickSolveTol  != -1 && fQuickSolveTol  < 1) throw ExceptionT::kBadInputValue;
-	if (fQuickSeriesTol != -1 && fQuickSeriesTol < 1) throw ExceptionT::kBadInputValue;
-	if (fIterationOutputIncrement < 0)
-	{
-		cout << "\n NLSolver::NLSolver: expecting iteration output increment >= 0: "
-		     << fIterationOutputIncrement << endl;
-		throw ExceptionT::kBadInputValue;
-	}
-	
 	/* console variables */
 	iAddVariable("max_iterations", fMaxIterations);
 	iAddVariable("min_iterations", fMinIterations);
@@ -266,7 +192,7 @@ void NLSolver::InitIterationOutput(void)
 	{
 		/* root of output files */
 		StringT root;
-		root.Root(fFEManager.Input().filename());
+		root.Root(fFEManager.InputFile());
 		
 		/* remove processor designation */ 
 		if (fFEManager.Size() > 1) root.Root();
@@ -300,7 +226,11 @@ void NLSolver::DefineParameters(ParameterListT& list) const
 
 	/* additional parameters */
 	list.AddParameter(fMaxIterations, "max_iterations");
-	list.AddParameter(fMinIterations, "min_iterations", ParameterListT::ZeroOrOnce);
+
+	ParameterT min_iterations(fMinIterations, "min_iterations");
+	min_iterations.SetDefault(0);
+	list.AddParameter(min_iterations);
+
 	list.AddParameter(fZeroTolerance, "abs_tolerance");
 	list.AddParameter(fTolerance, "rel_tolerance");
 	list.AddParameter(fDivTolerance, "divergence_tolerance");
@@ -317,6 +247,23 @@ void NLSolver::DefineParameters(ParameterListT& list) const
 	output_inc.SetDefault(0);
 	output_inc.AddLimit(0, LimitT::LowerInclusive);
 	list.AddParameter(output_inc);
+}
+
+/* accept parameter list */
+void NLSolver::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SolverT::TakeParameterList(list);
+
+	/* extract parameters */
+	fMaxIterations = list.GetParameter("max_iterations");
+	fMinIterations = list.GetParameter("min_iterations");
+	fZeroTolerance = list.GetParameter("abs_tolerance");
+	fTolerance     = list.GetParameter("rel_tolerance");
+	fDivTolerance  = list.GetParameter("divergence_tolerance");
+	fQuickSolveTol = list.GetParameter("quick_solve_iter");
+	fQuickSeriesTol= list.GetParameter("quick_solve_count");
+	fIterationOutputIncrement = list.GetParameter("output_inc");
 }
 
 /*************************************************************************

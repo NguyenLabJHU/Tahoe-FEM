@@ -1,6 +1,5 @@
-/* $Id: PTHT3BodyT.h,v 1.4 2003-12-28 23:37:12 paklein Exp $ */
-/* created: paklein (10/11/1997)                                          */
-
+/* $Id: PTHT3BodyT.h,v 1.5 2004-07-15 08:28:36 paklein Exp $ */
+/* created: paklein (10/11/1997) */
 #ifndef _PTHT3_BODY_T_H_
 #define _PTHT3_BODY_T_H_
 
@@ -21,10 +20,7 @@ public:
 	/** constructor */
 	PTHT3BodyT(const dArrayT& lengths, const dArrayT& angles,
 		const iArray2DT& bondpairs, const ThermalDilatationT* thermal,
-		ifstreamT& in);
-
-	/** destructor */
-	virtual ~PTHT3BodyT(void) { };
+		double B, double Z);
 
 	/* triggers recomputation */
 	virtual void Set(void);

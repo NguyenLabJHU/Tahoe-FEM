@@ -1,45 +1,18 @@
-/* $Id: PenaltyCylinderT.cpp,v 1.3 2004-06-17 07:41:53 paklein Exp $ */
+/* $Id: PenaltyCylinderT.cpp,v 1.4 2004-07-15 08:31:15 paklein Exp $ */
 #include "PenaltyCylinderT.h"
-
-#include <iostream.h>
-#include <iomanip.h>
-
-#include "toolboxConstants.h"
-#include "FEManagerT.h"
-#include "ifstreamT.h"
+#include "FieldT.h"
 #include "eIntegratorT.h"
+#include "FieldSupportT.h"
+#include "ParameterContainerT.h"
+#include "ParameterUtils.h"
 
 using namespace Tahoe;
 
 /* constructor */
-PenaltyCylinderT::PenaltyCylinderT(FEManagerT& fe_manager,
-	int group,
-	const iArray2DT& eqnos,
-	const dArray2DT& coords,
-	const dArray2DT& disp,
-	const dArray2DT* vels):
-	PenaltyRegionT(fe_manager, group, eqnos, coords, disp, vels),
-	fDirection(rCoords.MinorDim()),
-	fR(rCoords.MinorDim()),
-	fv_OP(rCoords.MinorDim()),
-	fLHS(eqnos.MinorDim(), ElementMatrixT::kSymmetric)
+PenaltyCylinderT::PenaltyCylinderT(void):
+	fLHS(ElementMatrixT::kSymmetric)
 {
-	SetName("sphere_cylinder");
-}
-
-/* input processing */
-void PenaltyCylinderT::EchoData(ifstreamT& in, ostream& out)
-{
-	/* inherited */
-	PenaltyRegionT::EchoData(in, out);
-
-	/* echo parameters */
-	in >> fRadius; if (fRadius < 0.0) ExceptionT::BadInputValue("PenaltyCylinderT::EchoData");
-	in >> fDirection;
-	fDirection.UnitVector();
-
-	out << " Cylinder radius . . . . . . . . . . . . . . . . . = " << fRadius << '\n';
-	out << " Cylinder direction. . . . . . . . . . . . . . . . =\n" << fDirection << '\n';
+	SetName("cylinder_penalty");
 }
 
 /* form of tangent matrix */
@@ -57,6 +30,12 @@ void PenaltyCylinderT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 	double constK = 0.0;
 	int formK = fIntegrator->FormK(constK);
 	if (!formK) return;
+
+	/* equations */
+	const iArray2DT& eqnos = Field().Equations();
+
+	/* support class */
+	const FieldSupportT& support = FieldSupport();
 
 	/* node by node */
 	for (int i = 0; i < fNumContactNodes; i++)
@@ -76,8 +55,8 @@ void PenaltyCylinderT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 			fLHS.Outer(fDirection, fDirection, -constK*dPhi/dist, dMatrixT::kAccumulate);
 		
 			/* assemble */
-			rEqnos.RowAlias(fContactNodes[i], fi_sh);
-			fFEManager.AssembleLHS(fGroup, fLHS, fi_sh);
+			eqnos.RowAlias(fContactNodes[i], fi_sh);
+			support.AssembleLHS(fGroup, fLHS, fi_sh);
 		}
 	}
 }
@@ -91,6 +70,60 @@ void PenaltyCylinderT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(fRadius, "radius");
 }
 
+/* information about subordinate parameter lists */
+void PenaltyCylinderT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	PenaltyRegionT::DefineSubs(sub_list);
+
+	/* direction */
+	sub_list.AddSub("cylinder_penalty_axis");
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* PenaltyCylinderT::NewSub(const StringT& name) const
+{
+	if (name == "cylinder_penalty_axis")
+	{
+		ParameterContainerT* dir = new ParameterContainerT(name);
+		
+		/* by dimension */
+		dir->SetListOrder(ParameterListT::Choice);
+		dir->AddSub("Vector_2");
+		dir->AddSub("Vector_3");
+	
+		return dir;
+	}
+	else /* inherited */
+		return PenaltyRegionT::NewSub(name);
+}
+
+/* accept parameter list */
+void PenaltyCylinderT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "PenaltyCylinderT::TakeParameterList";
+
+	/* inherited */
+	PenaltyRegionT::TakeParameterList(list);
+
+	/* get parameters */
+	fRadius = list.GetParameter("radius");
+
+	/* initial position */
+	int nsd = FieldSupport().NumSD();
+	const ParameterListT& dir = list.GetListChoice(*this, "cylinder_penalty_axis");
+	VectorParameterT::Extract(dir, fDirection);
+	fDirection.UnitVector();
+	if (fDirection.Length() != nsd) 
+		ExceptionT::GeneralFail(caller, "\"cylinder_penalty_axis\" should be length %d not %d", nsd, fDirection.Length());
+
+	/* dimension work space */
+	fDirection.Dimension(nsd);
+	fR.Dimension(nsd);
+	fv_OP.Dimension(nsd);
+	fLHS.Dimension(nsd);
+}
+
 /**********************************************************************
  * Protected
  **********************************************************************/
@@ -99,11 +132,12 @@ void PenaltyCylinderT::DefineParameters(ParameterListT& list) const
 void PenaltyCylinderT::ComputeContactForce(double kforce)
 {
 	/* loop over strikers */
+	const dArray2DT& coords = FieldSupport().CurrentCoordinates();
 	fContactForce2D = 0.0;	
 	for (int i = 0; i < fNumContactNodes; i++)
 	{
 		/* center to striker */
-		rCoords.RowCopy(fContactNodes[i], fv_OP);
+		coords.RowCopy(fContactNodes[i], fv_OP);
 		fv_OP -= fx;
 
 		/* vector in radial direction */

@@ -1,69 +1,37 @@
-/* $Id: CSEBaseT.cpp,v 1.32 2004-06-17 07:13:20 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.33 2004-07-15 08:25:57 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
-
 #include "ifstreamT.h"
-#include "toolboxConstants.h"
 #include "SurfaceShapeT.h"
 #include "iAutoArrayT.h"
 #include "OutputSetT.h"
 #include "ElementSupportT.h"
 #include "ModelManagerT.h"
+#include "ParameterContainerT.h"
 
 using namespace Tahoe;
 
 /* initialize static data */
 const int CSEBaseT::NumNodalOutputCodes = 5;
+static const char* NodalOutputNames[5] = {
+	"coordinates",
+	"displacements",
+	"displacement_jump",
+	"traction",
+	"material_output"};
+
 const int CSEBaseT::NumElementOutputCodes = 3;
+static const char* ElementOutputNames[3] = {
+	"centroid",
+	"cohesive_energy",
+	"avg_traction"};
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* constructor */
-CSEBaseT::CSEBaseT(const ElementSupportT& support, const FieldT& field):
-	ElementBaseT(support, field),
-	fLocInitCoords1(LocalArrayT::kInitCoords),
-	fLocCurrCoords(LocalArrayT::kCurrCoords),
-	fFractureArea(0.0),
-	fShapes(NULL),
-	fNumIntPts(-1),
-	fOutputGlobalTractions(false)
-{
-	SetName("CSE_base");
-	
-	/* read control parameters */
-	ifstreamT& in = ElementSupport().Input();
-
-	in >> fGeometryCode;
-	in >> fNumIntPts;
-	in >> fCloseSurfaces;
-	in >> fOutputArea;
-
-	/* checks */
-	if (NumSD() == 2 && fGeometryCode != GeometryT::kLine)
-	{
-		cout << "\n CSEBaseT::CSEBaseT: expecting geometry code "
-		     << GeometryT::kLine<< " for 2D: " << fGeometryCode << endl;
-		throw ExceptionT::kBadInputValue;
-	}
-	else if (NumSD() == 3 &&
-	         fGeometryCode != GeometryT::kQuadrilateral &&
-	         fGeometryCode != GeometryT::kTriangle)
-	{
-		cout << "\n CSEBaseT::CSEBaseT: expecting geometry code " << GeometryT::kQuadrilateral
-		     << " or\n" <<   "     " << GeometryT::kTriangle << " for 3D: "
-		     << fGeometryCode << endl;
-		throw ExceptionT::kBadInputValue;
-	}
-	
-	if (fCloseSurfaces != 0 &&
-	    fCloseSurfaces != 1) throw ExceptionT::kBadInputValue;
-	if (fOutputArea != 0 &&
-	    fOutputArea != 1) throw ExceptionT::kBadInputValue;
-}
-
 CSEBaseT::CSEBaseT(const ElementSupportT& support):
 	ElementBaseT(support),
 	fLocInitCoords1(LocalArrayT::kInitCoords),
@@ -146,133 +114,6 @@ CSEBaseT::~CSEBaseT(void)
 {
 	delete fShapes;
 	fShapes = NULL;
-}
-
-/* allocates space and reads connectivity data */
-void CSEBaseT::Initialize(void)
-{
-	/* inherited */
-	ElementBaseT::Initialize();
-
-	/* dimensions */
-	int num_facet_nodes = NumFacetNodes();
-
-	/* initialize local arrays */
-	fLocInitCoords1.Dimension(num_facet_nodes, NumSD());
-	fLocCurrCoords.Dimension(NumElementNodes(), NumSD());
-	ElementSupport().RegisterCoordinates(fLocInitCoords1);
-	ElementSupport().RegisterCoordinates(fLocCurrCoords);
-
-	/* construct surface shape functions */
-	fShapes = new SurfaceShapeT(fGeometryCode, fNumIntPts, NumElementNodes(), 
-		num_facet_nodes, NumDOF(), fLocInitCoords1);
-	if (!fShapes) throw ExceptionT::kOutOfMemory;
-	fShapes->Initialize();
-
-	/* work space */
-	fNodes1.Dimension(num_facet_nodes);
-	int nee = NumElementNodes()*NumDOF();
-	fNEEvec.Dimension(nee);
-	fNEEmat.Dimension(nee);
-
-	/* echo output codes (one at a time to allow comments) */
-	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
-#ifndef _FRACTURE_INTERFACE_LIBRARY_	
-	ifstreamT& in = ElementSupport().Input();
-	ostream&   out = ElementSupport().Output();
-	for (int i = 0; i < fNodalOutputCodes.Length(); i++)
-	{
-		in >> fNodalOutputCodes[i];
-		
-		/* output tractions in global frame */
-		if (fNodalOutputCodes[i] == 2) fOutputGlobalTractions = true;
-
-		/* convert all to "at print increment" */
-		if (fNodalOutputCodes[i] != IOBaseT::kAtNever)
-			fNodalOutputCodes[i] = IOBaseT::kAtInc;		
-	}
-
-	/* echo */
-	out << " Number of nodal output codes. . . . . . . . . . = " << fNodalOutputCodes.Length() << '\n';
-	out << "    [" << fNodalOutputCodes[NodalCoord   ] << "]: initial nodal coordinates\n";
-	out << "    [" << fNodalOutputCodes[NodalDisp    ] << "]: nodal displacements\n";
-	out << "    [" << fNodalOutputCodes[NodalDispJump] << "]: nodal gap (magnitude)\n";
-	out << "    [" << fNodalOutputCodes[NodalTraction] << "]: nodal traction magnitude\n";
-	out << "    [" << fNodalOutputCodes[MaterialData ] << "]: constitutive output data\n";
-
-	/* check */
-	if (fNodalOutputCodes.Min() < IOBaseT::kAtFinal ||
-	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw ExceptionT::kBadInputValue;
-#endif
-
-	fElementOutputCodes.Dimension(NumElementOutputCodes);
-	fElementOutputCodes = IOBaseT::kAtNever;
-
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-//TEMP - backward compatibility
-
-	if (StringT::versioncmp(ElementSupport().Version(), "v3.01") < 1)
-	{
-		/* message */
-		cout << "\n CSEBaseT::Initialize: use input file version newer than v3.01\n" 
-		     <<   "     to enable element output control" << endl;
-		out << "\n CSEBaseT::Initialize: use input file version newer than v3.01\n" 
-		    <<   "     to enable element output control" << endl;
-	}
-	else
-	{
-//TEMP - BACK
-		int num_codes = fElementOutputCodes.Length();
-		if (StringT::versioncmp(ElementSupport().Version(), "v3.02") < 1)
-		{
-			cout << "\n CSEBaseT::Initialize: use input file version newer than v3.02\n"
-		         <<   "     to enable output control of element averaged traction" << endl;
-			out << "\n CSEBaseT::Initialize: use input file version newer than v3.02\n"
-		         <<   "     to enable output control of element averaged traction" << endl;
-			num_codes = 2;
-		}
-	
-		/* read in one at a time to allow comments */
-		for (int j = 0; j < num_codes; j++)
-		{
-			in >> fElementOutputCodes[j];
-		
-			/* convert all to "at print increment" */
-			if (fElementOutputCodes[j] != IOBaseT::kAtNever)
-				fElementOutputCodes[j] = IOBaseT::kAtInc;
-		}	
-
-		/* checks */
-		if (fElementOutputCodes.Min() < IOBaseT::kAtFail ||
-		    fElementOutputCodes.Max() > IOBaseT::kAtInc) throw ExceptionT::kBadInputValue;
-	}
-
-	/* echo */
-	out << " Number of element output codes. . . . . . . . . = " << fElementOutputCodes.Length() << '\n';
-	out << "    [" << fElementOutputCodes[Centroid      ] << "]: centroid\n";
-	out << "    [" << fElementOutputCodes[CohesiveEnergy] << "]: dissipated cohesive energy\n";
-	out << "    [" << fElementOutputCodes[Traction      ] << "]: average traction\n";
-#else
-	/* In fracture_interface, output codes are communicated via ElementSupportT */
-	ElementSupport().SetOutputCodes(fNodalOutputCodes,fElementOutputCodes);
-#endif
-	
-	/* close surfaces */
-	if (fCloseSurfaces) CloseSurfaces();
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	/* output stream */
-	if (fOutputArea == 1)
-	{
-		/* generate file name */
-		StringT name = (ElementSupport().Input()).filename();
-		name.Root();
-		name.Append(".grp", ElementSupport().ElementGroupNumber(this) + 1);
-		name.Append(".fracture");
-		
-		/* open stream */
-		farea_out.open(name);
-	}
-#endif
 }
 
 /* initial condition/restart functions (per time sequence) */
@@ -385,12 +226,14 @@ void CSEBaseT::RegisterOutput(void)
 	GenerateOutputLabels(n_counts, n_labels, e_counts, e_labels);
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	ArrayT<StringT> block_ID(fBlockData.Length());
-	for (int i = 0; i < block_ID.Length(); i++)
-		block_ID[i] = fBlockData[i].ID();
+
+	/* collect output connectivities */
+	ModelManagerT& model = ElementSupport().ModelManager();
+	ArrayT<const iArray2DT*> output_connects;		
+	model.ElementGroupPointers(fOutputBlockID, output_connects);
 
 	/* set output specifier */
-	OutputSetT output_set(geo_code, block_ID, fOutput_Connectivities, n_labels, e_labels, false);
+	OutputSetT output_set(geo_code, fOutputBlockID, output_connects, n_labels, e_labels, false);
 
 	/* register and get output ID */
 	fOutputID = ElementSupport().RegisterOutput(output_set);
@@ -478,15 +321,6 @@ void CSEBaseT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	ElementBaseT::DefineParameters(list);
 
-	/* geometry code */
-	ParameterT geometry(ParameterT::Enumeration, "geometry");
-	geometry.AddEnumeration("line", GeometryT::kLine);
-	geometry.AddEnumeration("quadrilateral", GeometryT::kQuadrilateral);
-	geometry.AddEnumeration("triangle", GeometryT::kTriangle);
-	list.AddParameter(geometry);
-
-	list.AddParameter(fNumIntPts, "integration_points");
-	
 	ParameterT close_surfaces(ParameterT::Boolean, "close_surfaces");
 	close_surfaces.SetDefault(false);
 	list.AddParameter(close_surfaces);
@@ -496,61 +330,206 @@ void CSEBaseT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(output_area);
 }
 
+/* information about subordinate parameter lists */
+void CSEBaseT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ElementBaseT::DefineSubs(sub_list);
+
+	/* geometry and integration rule (inline) */
+	sub_list.AddSub("surface_geometry", ParameterListT::Once, true);
+
+	/* nodal output codes (optional) */
+	sub_list.AddSub("surface_element_nodal_output", ParameterListT::ZeroOrOnce);
+	sub_list.AddSub("surface_element_element_output", ParameterListT::ZeroOrOnce);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void CSEBaseT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order,
+	SubListT& sub_lists) const
+{
+	if (name == "surface_geometry")
+	{
+		/* choice */
+		order = ParameterListT::Choice;
+
+		/* element geometries */
+		sub_lists.AddSub(GeometryT::ToString(GeometryT::kLine));		
+		sub_lists.AddSub(GeometryT::ToString(GeometryT::kQuadrilateral));
+		sub_lists.AddSub(GeometryT::ToString(GeometryT::kTriangle));
+	}
+	else /* inherited */
+		ElementBaseT::DefineInlineSub(name, order, sub_lists);
+}
+
+/* a pointer to the ParameterInterfaceT */
+ParameterInterfaceT* CSEBaseT::NewSub(const StringT& name) const
+{
+	/* look for geometry */
+	ParameterInterfaceT* geom = GeometryT::New(name);
+	if (geom)
+		return geom;
+
+	if (name == "surface_element_nodal_output")
+	{
+		ParameterContainerT* node_output = new ParameterContainerT(name);
+		
+		/* all false by default */
+		for (int i = 0; i < NumNodalOutputCodes; i++) {
+			ParameterT output(ParameterT::Integer, NodalOutputNames[i]);
+			output.SetDefault(1);
+			node_output->AddParameter(output, ParameterListT::ZeroOrOnce);
+		}
+
+		return node_output;
+	}
+	else if (name == "surface_element_element_output")
+	{
+		ParameterContainerT* element_output = new ParameterContainerT(name);
+		
+		/* all false by default */
+		for (int i = 0; i < NumElementOutputCodes; i++) {
+			ParameterT output(ParameterT::Integer, ElementOutputNames[i]);
+			output.SetDefault(1);
+			element_output->AddParameter(output, ParameterListT::ZeroOrOnce);
+		}
+
+		return element_output;	
+	}
+	else /* inherited */
+		return ElementBaseT::NewSub(name);
+}
+
+/* accept parameter list */
+void CSEBaseT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "CSEBaseT::TakeParameterList";
+
+	/* inherited */
+	ElementBaseT::TakeParameterList(list);
+
+	/* take parameters */
+	fCloseSurfaces = list.GetParameter("close_surfaces");
+	fOutputArea = list.GetParameter("output_area");
+
+	/* element geometry */
+	const ParameterListT& geom = list.GetListChoice(*this, "surface_geometry");
+	fGeometryCode = GeometryT::string2CodeT(geom.Name());
+	fNumIntPts = geom.GetParameter("num_ip");
+
+	/* nodal output codes */
+	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
+	fNodalOutputCodes = 0;
+	const ParameterListT* nodal_output = list.List("surface_element_nodal_output");
+	if (nodal_output)
+		for (int i = 0; i < NumNodalOutputCodes; i++)
+		{
+			/* look for entry */
+			const ParameterT* nodal_value = nodal_output->Parameter(NodalOutputNames[i]);
+			if (nodal_value) {
+				int do_write = *nodal_value;
+				if (do_write == 1)
+					fNodalOutputCodes[i] = 1;
+				else if (i == NodalTraction && do_write == 2) {
+					fNodalOutputCodes[i] = 1;
+					fOutputGlobalTractions = true;
+				}
+			}
+		}
+
+	/* element output codes */
+	fElementOutputCodes.Dimension(NumElementOutputCodes);
+	fElementOutputCodes = 0;
+	const ParameterListT* element_output = list.List("surface_element_element_output");
+	if (element_output)
+		for (int i = 0; i < NumElementOutputCodes; i++)
+		{
+			/* look for entry */
+			const ParameterT* element_value = element_output->Parameter(ElementOutputNames[i]);
+			if (element_value) {
+				int do_write = *element_value;
+				if (do_write == 1)
+					fElementOutputCodes[i] = 1;
+			}
+		}
+
+	/* dimensions */
+	int num_facet_nodes = NumFacetNodes();
+
+	/* initialize local arrays */
+	fLocInitCoords1.Dimension(num_facet_nodes, NumSD());
+	fLocCurrCoords.Dimension(NumElementNodes(), NumSD());
+	ElementSupport().RegisterCoordinates(fLocInitCoords1);
+	ElementSupport().RegisterCoordinates(fLocCurrCoords);
+
+	/* construct surface shape functions */
+	fShapes = new SurfaceShapeT(fGeometryCode, fNumIntPts, NumElementNodes(), 
+		num_facet_nodes, NumDOF(), fLocInitCoords1);
+	if (!fShapes) throw ExceptionT::kOutOfMemory;
+	fShapes->Initialize();
+
+	/* work space */
+	fNodes1.Dimension(num_facet_nodes);
+	int nee = NumElementNodes()*NumDOF();
+	fNEEvec.Dimension(nee);
+	fNEEmat.Dimension(nee);
+
+	/* close surfaces */
+	if (fCloseSurfaces) CloseSurfaces();
+
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+	/* output stream */
+	if (fOutputArea == 1)
+	{
+		/* generate file name */
+		StringT name = ElementSupport().InputFile();
+		name.Root();
+		name.Append(".grp", ElementSupport().ElementGroupNumber(this) + 1);
+		name.Append(".fracture");
+		
+		/* open stream */
+		farea_out.open(name);
+	}
+#endif
+}
+
 /***********************************************************************
  * Protected
  ***********************************************************************/
 
-/* print element group data */
-void CSEBaseT::PrintControlData(ostream& out) const
+/* define the elements blocks for the element group */
+void CSEBaseT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  
+	ArrayT<int>& mat_index) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	/* inherited */
-	ElementBaseT::PrintControlData(out);
+	const char caller[] = "CSEBaseT::CollectBlockInfo";
 
-	/* control parameters */
-	out << " Associated field. . . . . . . . . . . . . . . . = \"" << Field().Name() << "\"\n";	
-	out << " Element geometry code . . . . . . . . . . . . . = " << fGeometryCode << '\n';
-	out << "    eq." << GeometryT::kLine          << ", line\n";
-	out << "    eq." << GeometryT::kQuadrilateral << ", quadrilateral\n";
-	out << "    eq." << GeometryT::kTriangle	  << ", triangle\n";
-	out << " Number of integration points. . . . . . . . . . = " << fNumIntPts     << '\n';
-	out << " Initial surface closure flag. . . . . . . . . . = " << fCloseSurfaces << '\n';
-	out << " Output fracture surface area. . . . . . . . . . = " << fOutputArea    << '\n';
-#else
-#pragma unused(out)
-#endif
-}
+	/* inherited */
+	ElementBaseT::CollectBlockInfo(list, block_ID, mat_index);
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-/* read element connectivity data */
-void CSEBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
-{
-	/* inherited */
-	ElementBaseT::ReadConnectivity(in, out);
-#else
-void CSEBaseT::ReadConnectivity(void)
-{
-	/* inherited */
-	ElementBaseT::ReadConnectivity();
-#endif
+	/* quick exit */
+	if (block_ID.Length() == 0) return;
 
 	/* write output over the original connectivities */
-	fOutput_Connectivities = fConnectivities;
+	CSEBaseT* non_const_this = (CSEBaseT*) this;
+	non_const_this->fOutputBlockID = block_ID;
+
+	/* geometry information */
+	ModelManagerT& model = ElementSupport().ModelManager();
+	int nel, nen = 0;
+	for (int i = 0; nen == 0 && i < block_ID.Length(); i++)
+		model.ElementGroupDimensions (block_ID[i], nel, nen);
 
 	/* check for higher order elements */
 	int nsd = NumSD();
-	int nen = NumElementNodes();
 	if ((nsd == 2 && nen != 4 && nen != 6) || 
 	    (nsd == 3 && nen != 8 && nen != 16))
 	{
 #ifndef _FRACTURE_INTERFACE_LIBRARY_	
 		/* message */
 		ostream& out = ElementSupport().Output();
-		cout << "\n CSEBaseT::ReadConnectivity: detected higher order elements\n";
-		out  << "\n CSEBaseT::ReadConnectivity: detected higher order elements\n";
+		cout << "\n " << caller << ": detected higher order elements\n";
+		out  << "\n " << caller << ": detected higher order elements\n";
 #endif
-		/* the geometry manager */
-		ModelManagerT& model = ElementSupport().Model();
 
 		/* nen: 8 -> 6 */
 		int map_2D[] = {0, 1, 2, 3, 4, 6}; 
@@ -562,12 +541,11 @@ void CSEBaseT::ReadConnectivity(void)
 		iArrayT map((nsd == 2) ? 6 : 16, (nsd == 2) ? map_2D : map_3D); 
 
 		/* loop over connectivity blocks */
-		for (int b = 0; b < fBlockData.Length(); b++)
+		for (int b = 0; b < block_ID.Length(); b++)
 		{
 			/* send new connectivities to model manager */
-			ElementBlockDataT& block_data = fBlockData[b];
-			const StringT& id = block_data.ID();
-			StringT new_id = id;
+			StringT& new_id = block_ID[b];
+			StringT old_id = new_id;
 			new_id.Append(b+1, 3);
 			
 			/* see if new_id is already present */
@@ -576,14 +554,13 @@ void CSEBaseT::ReadConnectivity(void)
 			{
 #ifndef _FRACTURE_INTERFACE_LIBRARY_	
 				/* message */
-		     	cout << "     translating element block ID " << id << endl;	     	
-		     	out  << "     translating element block ID " << id << endl;
+		     	cout << "     translating element block ID " << old_id << endl;	     	
+		     	out  << "     translating element block ID " << old_id << endl;
 #endif
 				/* translate */
-				const iArray2DT& source = *(fOutput_Connectivities[b]);
+				const iArray2DT& source = model.ElementGroup(fOutputBlockID[b]);
 				iArray2DT dest(source.MajorDim(), map.Length());
-				for (int i = 0; i < dest.MajorDim(); i++)
-				{
+				for (int i = 0; i < dest.MajorDim(); i++) {
 					int* a = dest(i);
 					const int* b = source(i);
 					for (int j = 0; j < map.Length(); j++)
@@ -591,31 +568,16 @@ void CSEBaseT::ReadConnectivity(void)
 				}
 
 				/* send new connectivities to model manager */
-				ElementBlockDataT& block_data = fBlockData[b];
-				const StringT& id = block_data.ID();
-				StringT new_id = id;
-				new_id.Append(b+1, 3);
-				if (!model.RegisterElementGroup (new_id, dest, GeometryT::kNone, true)) {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-					cout << "\n CSEBaseT::ReadConnectivity: could not register element block ID: " << new_id << endl;
-#endif
-					throw ExceptionT::kGeneralFail;
-				}
+				if (!model.RegisterElementGroup (new_id, dest, GeometryT::kNone, true))
+					ExceptionT::GeneralFail(caller, "could not register element block ID \"%s\"",
+						new_id.Pointer());
 			}
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_	
 			/* message */
-			cout << "     block ID " << id << " replaced by ID " << new_id << endl;		
-			out  << "     block ID " << id << " replaced by ID " << new_id << endl;
+			cout << "     block ID " << old_id << " replaced by ID " << new_id << endl;		
+			out  << "     block ID " << old_id << " replaced by ID " << new_id << endl;
 #endif
-			/* set pointer to connectivity list */
-			fConnectivities[b] = model.ElementGroupPointer(new_id);
-			
-			/* reset block data */
-			int start = block_data.StartNumber();
-			int dim = block_data.Dimension();
-			int material = block_data.MaterialID();
-			block_data.Set(new_id, start, dim, material);
 		}
 	}
 }

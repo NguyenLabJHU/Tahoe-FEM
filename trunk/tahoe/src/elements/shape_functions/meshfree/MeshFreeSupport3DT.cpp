@@ -1,6 +1,5 @@
-/* $Id: MeshFreeSupport3DT.cpp,v 1.9 2004-01-27 01:21:11 cjkimme Exp $ */
+/* $Id: MeshFreeSupport3DT.cpp,v 1.10 2004-07-15 08:29:59 paklein Exp $ */
 /* created: paklein (09/13/1998) */
-
 #include "MeshFreeSupport3DT.h"
 
 #include <math.h>
@@ -12,43 +11,43 @@
 #include "iArray2DT.h"
 #include "Vector3T.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 MeshFreeSupport3DT::MeshFreeSupport3DT(const ParentDomainT* domain, const dArray2DT& coords,
-	const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in):
-	MeshFreeSupportT(domain, coords, connects, nongridnodes, in)
+	const iArray2DT& connects, const iArrayT& nongridnodes):
+	MeshFreeSupportT(domain, coords, connects, nongridnodes)
 {
+	SetName("meshfree_support_3D");
+}
 
+MeshFreeSupport3DT::MeshFreeSupport3DT(void) 
+{
+	SetName("meshfree_support_3D");
 }
 
 /* cutting facet functions */
 void MeshFreeSupport3DT::SetCuttingFacets(const dArray2DT& facet_coords,
 	int num_facet_nodes)
 {
+	const char caller[] = "MeshFreeSupport3DT::SetCuttingFacets";
+
 	/* inherited */
 	MeshFreeSupportT::SetCuttingFacets(facet_coords, num_facet_nodes);
 
 	if (fNumFacetNodes != 0 &&
 	    fNumFacetNodes != 3 && 
 	    fNumFacetNodes != 4)
-	{
-		cout << "\n MeshFreeSupport3DT::SetCuttingFacets: 3D cutting facets must\n"
-		     <<   "     have 3 or 4 nodes: " << fNumFacetNodes << endl;
-		throw ExceptionT::kSizeMismatch;
-	}
-	if (fNumFacetNodes == 0 && facet_coords.MajorDim() != 0) {
-		cout << "\n MeshFreeSupport3DT::SetCuttingFacets: found facets nodes = 0 with\n" 
-		     <<   "     non-zero number of facets (" << facet_coords.MajorDim()
-		     << ")" << endl;
-		throw ExceptionT::kSizeMismatch;	
-	}
+		ExceptionT::SizeMismatch(caller, "3D cutting facets must have 3 or 4 nodes: %d", fNumFacetNodes);
+
+	if (fNumFacetNodes == 0 && facet_coords.MajorDim() != 0)
+		ExceptionT::SizeMismatch(caller, "found facets nodes = 0 with non-zero number of facets (%d)", 
+			facet_coords.MajorDim());
 }	
 
 /*************************************************************************
-* Private
-*************************************************************************/
+ * Private
+ *************************************************************************/
 
 /* process boundaries - nodes marked as "inactive" at the
 * current x_node by setting nodal_params = -1.0 */

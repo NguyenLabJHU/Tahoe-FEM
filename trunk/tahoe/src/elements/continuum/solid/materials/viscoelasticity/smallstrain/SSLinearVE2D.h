@@ -1,15 +1,12 @@
-/* $Id: SSLinearVE2D.h,v 1.2 2003-05-12 16:50:29 thao Exp $ */
+/* $Id: SSLinearVE2D.h,v 1.3 2004-07-15 08:29:34 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_LINEAR_VE_2D_H_
 #define _SS_LINEAR_VE_2D_H_
 
+/* base class */
 #include "SSViscoelasticityT.h"
 
 namespace Tahoe {
-
-/* forward declarations */
-class ifstreamT;
-class IsotropicT;
 
 /** base class for standard solid Kirchhoff St. Venant constitutive models 
  * constitutive law */
@@ -17,13 +14,9 @@ class SSLinearVE2D: public SSViscoelasticityT
 {
 	public:
 	
-	/*constructor*/
-	SSLinearVE2D(ifstreamT& in, const SSMatSupportT& support);
+	/** constructor */
+	SSLinearVE2D(void);
 		
-	/*print parameters*/
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-
 	virtual double StrainEnergyDensity(void);
 
 	/* spatial description */ 
@@ -38,12 +31,19 @@ class SSLinearVE2D: public SSViscoelasticityT
 	virtual int NumOutputVariables() const;
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 	 
     protected: 
 	
-	/*1/3*/
-	const double fthird;
-        /*strain energy potentials*/ 
+	/*strain energy potentials*/ 
 	dArrayT fMu;
 	dArrayT fKappa;
 

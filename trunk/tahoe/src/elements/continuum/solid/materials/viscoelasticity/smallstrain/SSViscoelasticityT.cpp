@@ -1,12 +1,11 @@
- /* $Id: SSViscoelasticityT.cpp,v 1.1 2003-04-05 20:05:37 thao Exp $ */
+ /* $Id: SSViscoelasticityT.cpp,v 1.2 2004-07-15 08:29:34 paklein Exp $ */
 #include "SSViscoelasticityT.h"
-#include "fstreamT.h"
 #include "ExceptionT.h"
 
 using namespace Tahoe;
 
-SSViscoelasticityT::SSViscoelasticityT(ifstreamT& in, const SSMatSupportT& support):
-	SSSolidMatT(in, support)
+SSViscoelasticityT::SSViscoelasticityT(void):
+	ParameterInterfaceT("linear_viscoelastic")
 {
 	int ndof = 3;
 	int numstress = (ndof*(ndof+1))/2;
@@ -45,19 +44,6 @@ SSViscoelasticityT::SSViscoelasticityT(ifstreamT& in, const SSMatSupportT& suppo
 	fmeanSin_n.Set(1, pstatev);
 	
 }	
-
-void SSViscoelasticityT::Print(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::Print(out);
-}
-
-void SSViscoelasticityT::PrintName(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::PrintName(out);
-        out << "Finite Deformation Simo Viscoelastic Model \n";
-}
 
 void SSViscoelasticityT::PointInitialize(void)
 {

@@ -1,79 +1,35 @@
-/* $Id: IsoVIB3D.cpp,v 1.10 2004-06-17 07:40:44 paklein Exp $ */
+/* $Id: IsoVIB3D.cpp,v 1.11 2004-07-15 08:27:51 paklein Exp $ */
 /* created: paklein (03/15/1998) */
 #include "IsoVIB3D.h"
 
 #include <math.h>
 #include <iostream.h>
 #include "toolboxConstants.h"
-#include "ifstreamT.h"
+
 #include "C1FunctionT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
 
 /* point generators */
+#include "VIB3D.h"
 #include "LatLongPtsT.h"
 #include "IcosahedralPtsT.h"
+#include "FCCPtsT.h"
 
 using namespace Tahoe;
 
-/* constructors */
-IsoVIB3D::IsoVIB3D(ifstreamT& in, const FSMatSupportT& support):
-	FSSolidMatT(in, support),
-	VIB(in, 3, 3, 6),
-	fEigs(3),
-	fEigmods(3),
+/* constructor */
+IsoVIB3D::IsoVIB3D(void):
+	ParameterInterfaceT("isotropic_VIB"),
+	VIB(3, 3, 6),
 	fSpectral(3),
-	fb(3),
-	fModulus(dSymMatrixT::NumValues(3)),
-	fStress(3)
+	fSphere(NULL)
 {	
-	/* construct point generator */
-	int gencode;
-	in >> gencode;
-	switch (gencode)
-	{
-		case SpherePointsT::kLatLong:
-			fSphere = new LatLongPtsT(in);
-			break;
-	
-		case SpherePointsT::kIcosahedral:
-			fSphere = new IcosahedralPtsT(in);
-			break;
-			
-		default:
-			throw ExceptionT::kBadInputValue;
-	}
-	if (!fSphere) throw ExceptionT::kOutOfMemory;
 
-	/* set tables */
-	Construct();
 }
 
 /* destructor */
 IsoVIB3D::~IsoVIB3D(void) { delete fSphere; }
-
-/* print parameters */
-void IsoVIB3D::Print(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::Print(out);
-	VIB::Print(out);
-
-	fSphere->Print(out);
-}
-
-/* print name */
-void IsoVIB3D::PrintName(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::PrintName(out);
-	VIB::PrintName(out);
-
-	out << "    Isotropic/Principal Stretch Formulation\n";
-
-	/* integration rule */
-	fSphere->PrintName(out);
-}
 
 /* modulus */
 const dMatrixT& IsoVIB3D::c_ijkl(void)
@@ -311,6 +267,75 @@ double IsoVIB3D::StrainEnergyDensity(void)
 	return energy;
 }
 
+/* information about subordinate parameter lists */
+void IsoVIB3D::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	FSSolidMatT::DefineSubs(sub_list);
+	VIB::DefineSubs(sub_list);
+
+	/* choice of integration schemes */
+	sub_list.AddSub("sphere_integration_choice", ParameterListT::Once, true);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* IsoVIB3D::NewSub(const StringT& name) const
+{
+	/* inherited */
+	ParameterInterfaceT* sub = FSSolidMatT::NewSub(name);
+	if (sub) 
+		return sub;
+	else if (name == "sphere_integration_choice")
+	{
+		/* use other VIB material to construct point generator */
+		VIB3D vib;
+		return vib.NewSub(name);
+	}	
+	else /* inherited */
+		return VIB::NewSub(name);
+}
+
+/* accept parameter list */
+void IsoVIB3D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	FSSolidMatT::TakeParameterList(list);
+	VIB::TakeParameterList(list);
+
+	/* dimension work space */
+	fEigs.Dimension(3);
+	fEigmods.Dimension(3);
+	fb.Dimension(3);
+	fModulus.Dimension(dSymMatrixT::NumValues(3));
+	fStress.Dimension(3);
+
+	/* use other VIB material to construct integration rule */
+	VIB3D vib;
+	const ParameterListT& points = list.GetListChoice(vib, "sphere_integration_choice");
+	if (points.Name() == "latitude_longitude")
+	{
+		int n_phi = points.GetParameter("n_phi");
+		int n_theta = points.GetParameter("n_theta");
+		fSphere = new LatLongPtsT(n_phi, n_theta);
+	}
+	else if (points.Name() == "icosahedral")
+	{
+		int np = points.GetParameter("points");
+		fSphere = new IcosahedralPtsT(np);
+	}
+	else if (points.Name() == "fcc_points")
+	{
+		int num_shells = points.GetParameter("shells");
+		double bond_length = points.GetParameter("nearest_neighbor_distance");
+		fSphere = new FCCPtsT(num_shells, bond_length);
+	}
+	else
+		ExceptionT::GeneralFail("IsoVIB3D::TakeParameterList", "unrecognized point scheme \"%s\"", points.Name().Pointer());	
+
+	/* set tables */
+	Construct();	
+}
+
 /***********************************************************************
 * Protected
 ***********************************************************************/
@@ -344,7 +369,7 @@ void IsoVIB3D::Construct(void)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	Dimension(numpoints);
+	VIB::Dimension(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fSphere->Jacobians();

@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.17 2004-06-26 06:06:26 paklein Exp $ */
+/* $Id: ParticlePairT.h,v 1.18 2004-07-15 08:29:44 paklein Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -22,16 +22,11 @@ class ParticlePairT: public ParticleT
 public:
 
 	/** constructor */
-	ParticlePairT(const ElementSupportT& support, const FieldT& field);
 	ParticlePairT(const ElementSupportT& support);
 
 	/** collecting element group equation numbers */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
-
-	/** class initialization. Among other things, element work space
-	 * is allocated and connectivities are read. */
-	virtual void Initialize(void);
 
 	/** \name connectivities.
 	 * See ElementBaseT::ConnectsX and ElementBaseT::ConnectsU for more
@@ -61,18 +56,18 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-		SubListT& sub_sub_list) const;
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 	
 protected:
@@ -94,19 +89,12 @@ protected:
 	 * to determine the neighborlists. */
 	virtual void SetConfiguration(void);
 
-	/** construct the list of properties from the given input stream */
-	virtual void EchoProperties(ifstreamT& in, ofstreamT& out);
+	/** extract the properties information from the parameter list. See ParticleT::ExtractProperties */
+	virtual void ExtractProperties(const ParameterListT& list, const ArrayT<StringT>& type_names,
+		ArrayT<ParticlePropertyT*>& properties, nMatrixT<int>& properties_map);
 
 	/** generate labels for output data */
 	virtual void GenerateOutputLabels(ArrayT<StringT>& labels) const;
-
-
-	/*nearest neighbor list*/
-	RaggedArray2DT<int> NearestNeighbors;
-	RaggedArray2DT<int> RefNearestNeighbors;
-
-	/** return a new pair property or NULL if the name is invalid */
-	PairPropertyT* New_PairProperty(const StringT& name, bool throw_on_fail) const;
 
 private:
 
@@ -116,9 +104,15 @@ private:
 	/** neighbor lists */
 	RaggedArray2DT<int> fNeighbors;
 
-
 	/** equation numbers */
 	RaggedArray2DT<int> fEqnos;
+
+	/** \name nearest neighbor lists needed for calculation slip vector
+	 * and strain */
+	/*@{*/
+	RaggedArray2DT<int> fNearestNeighbors;
+	RaggedArray2DT<int> fRefNearestNeighbors;
+	/*@}*/
 
 	/** \name workspace for ParticlePairT::RHSDriver. Used to accumulate the force for
 	 * a single row of ParticlePairT::fNeighbors. */
@@ -134,9 +128,6 @@ private:
 	ofstreamT fout, fout2;
 	StringT fsummary_file, fsummary_file2;
 	/*@}*/
-
-	
-	
 };
 
 } /* namespace Tahoe */

@@ -1,10 +1,10 @@
-/* $Id: LJTr2D.h,v 1.7 2003-01-29 07:34:37 paklein Exp $ */
+/* $Id: LJTr2D.h,v 1.8 2004-07-15 08:26:42 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #ifndef _LJTR2D_H_
 #define _LJTR2D_H_
 
 /* base class */
-#include "NL_E_Mat2DT.h"
+#include "NL_E_MatT.h"
 #include "CBLatticeT.h"
 
 /* direct members */
@@ -13,18 +13,21 @@
 namespace Tahoe {
 
 /** plane stress hexagonal lattice with LJ potential */
-  class LJTr2D: public NL_E_Mat2DT, protected CBLatticeT
+  class LJTr2D: public NL_E_MatT, protected CBLatticeT
 {
 public:
 
-	/* constructor */
-	LJTr2D(ifstreamT& in, const FSMatSupportT& support);
-	
-	virtual void Initialize(void);
+	/** constructor */
+	LJTr2D(void);
 
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
@@ -50,7 +53,7 @@ private:
 
 private:
 
-	/* LJ scaling constant */
+	/** LJ scaling constant */
 	double feps;
 				
 };

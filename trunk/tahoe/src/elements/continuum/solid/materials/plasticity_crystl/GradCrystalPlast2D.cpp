@@ -1,8 +1,8 @@
-/* $Id: GradCrystalPlast2D.cpp,v 1.5 2003-01-29 07:35:04 paklein Exp $ */
+/* $Id: GradCrystalPlast2D.cpp,v 1.6 2004-07-15 08:29:06 paklein Exp $ */
 #include "GradCrystalPlast2D.h"
 #include "Utils.h"
 
-#include "ifstreamT.h"
+
 
 using namespace Tahoe;
 
@@ -10,15 +10,13 @@ using namespace Tahoe;
 const int kNSD = 2;
 
 GradCrystalPlast2D::GradCrystalPlast2D(ifstreamT& in, const FSMatSupportT& support) :
+	ParameterInterfaceT("gradient_crystal_plasticity_2D"),
   GradCrystalPlast (in, support),  
-  Material2DT      (in, Material2DT::kPlaneStrain),
   f2Ds_ij    (kNSD),
   f2Dc_ijkl  (dSymMatrixT::NumValues(kNSD))
 {
 
 }
-
-GradCrystalPlast2D::~GradCrystalPlast2D() {} 
 
 const dSymMatrixT& GradCrystalPlast2D::s_ij()
 {
@@ -27,7 +25,6 @@ const dSymMatrixT& GradCrystalPlast2D::s_ij()
 
   // reduce savg_ij: 3D -> 2D
   f2Ds_ij.ReduceFrom3D(s_ij);
-  f2Ds_ij *= fThickness;
 
   return f2Ds_ij;
 }
@@ -39,23 +36,17 @@ const dMatrixT& GradCrystalPlast2D::c_ijkl()
 
   // reduce c_ijkl: 3D -> 2D
   f2Dc_ijkl.Rank4ReduceFrom3D(c_ijkl);
-  f2Dc_ijkl *= fThickness;
 
   return f2Dc_ijkl;
 }
 
-void GradCrystalPlast2D::Print(ostream& out) const
+/* describe the parameters needed by the interface */
+void GradCrystalPlast2D::DefineParameters(ParameterListT& list) const
 {
-  // inherited
-  GradCrystalPlast::Print(out);
-  Material2DT::Print(out);
-}
-
-void GradCrystalPlast2D::PrintName(ostream& out) const
-{
-  // inherited
-  GradCrystalPlast::PrintName(out);
-
-  // output 2D case name
-  out << "    Plane Strain\n";
+	/* inherited */
+	GradCrystalPlast::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStrain);
 }

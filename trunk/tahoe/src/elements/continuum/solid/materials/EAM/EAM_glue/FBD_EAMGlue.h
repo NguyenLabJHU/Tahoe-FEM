@@ -1,8 +1,5 @@
-/* $Id: FBD_EAMGlue.h,v 1.3 2002-07-05 22:28:13 paklein Exp $ */
-/* created: paklein (01/30/2000)                                          */
-/* FBD_EAMGlue.h                                                          */
-/* EAM glue functions in the form used in PRL v##, n##, 1986.             */
-
+/* $Id: FBD_EAMGlue.h,v 1.4 2004-07-15 08:26:52 paklein Exp $ */
+/* created: paklein (01/30/2000) */
 #ifndef _FBD_EAM_GLUE_H_
 #define _FBD_EAM_GLUE_H_
 
@@ -14,6 +11,7 @@ namespace Tahoe {
 /* forward declarations */
 class ifstreamT;
 
+/** EAM glue functions in the form Paradyn form */
 class FBD_EAMGlue: public EAM
 {
 public:

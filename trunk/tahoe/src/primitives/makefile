@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.9 2003-03-04 07:38:18 paklein Exp $
+# $Id: makefile,v 1.10 2004-07-15 08:31:36 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -29,7 +29,8 @@ OBJ = \
 	SWDataT.o \
 	TimeSequence.o \
 	Traction_CardT.o \
-	ElementBlockDataT.o
+	ElementBlockDataT.o \
+	BasicSupportT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -58,7 +59,8 @@ SRC = \
 	SWDataT.cpp \
 	TimeSequence.cpp \
 	Traction_CardT.cpp \
-	ElementBlockDataT.cpp
+	ElementBlockDataT.cpp \
+	BasicSupportT.cpp
 
 ##################### (3) headers
 #
@@ -79,7 +81,8 @@ HDR = \
 	SWDataT.h \
 	TimeSequence.h \
 	Traction_CardT.h \
-	ElementBlockDataT.h 
+	ElementBlockDataT.h \
+	BasicSupportT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

@@ -1,10 +1,9 @@
-/* $Id: GradJ2SSNonlinHard.h,v 1.9 2003-05-15 22:39:47 rdorgan Exp $ */
+/* $Id: GradJ2SSNonlinHard.h,v 1.10 2004-07-15 08:29:01 paklein Exp $ */
 #ifndef _GRAD_J2_SS_NONLIN_HARD_H_
 #define _GRAD_J2_SS_NONLIN_HARD_H_
 
 /* base classes */
-#include "SSSolidMatT.h"
-#include "IsotropicT.h"
+#include "SSIsotropicMatT.h"
 #include "HookeanMatT.h"
 
 /* direct members */
@@ -21,9 +20,7 @@ namespace Tahoe {
 class ElementCardT;
 class ifstreamT;
 
-class GradJ2SSNonlinHard: public SSSolidMatT,
-	    public IsotropicT,
-	    public HookeanMatT
+class GradJ2SSNonlinHard: public SSIsotropicMatT, public HookeanMatT
 {
 public:
 
@@ -41,10 +38,6 @@ public:
 
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 	
 	/** \name spatial description */
 	/*@{*/

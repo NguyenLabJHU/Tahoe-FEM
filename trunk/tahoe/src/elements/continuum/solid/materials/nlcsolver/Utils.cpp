@@ -1,16 +1,11 @@
-/*
-  File Utils.cpp
-*/
+/* $Id: Utils.cpp,v 1.6 2004-07-15 08:28:42 paklein Exp $ */
+#include "Utils.h"
 
 #include <iostream.h>
 #include <ctype.h>
 
-#include "Utils.h"
-#include "ifstreamT.h"
 #include "StringT.h"
-#include "ExceptionT.h"
-#include "toolboxConstants.h"
-
+#include "ifstreamT.h"
 #include "LocalArrayT.h"
 #include "dArrayT.h"
 #include "iArrayT.h"

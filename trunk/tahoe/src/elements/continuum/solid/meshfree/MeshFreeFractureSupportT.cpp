@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.cpp,v 1.12 2004-06-17 07:41:26 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.cpp,v 1.13 2004-07-15 08:29:39 paklein Exp $ */
 /* created: paklein (02/15/2000) */
 #include "MeshFreeFractureSupportT.h"
 
@@ -7,6 +7,7 @@
 #include "MeshFreeShapeFunctionT.h"
 #include "SolidMaterialT.h"
 #include "FSSolidMatT.h"
+#include "ParameterContainerT.h"
 
 /* crack growth */
 #include "Front2DT.h"
@@ -17,11 +18,10 @@
 using namespace Tahoe;
 
 /* constructor */
-MeshFreeFractureSupportT::MeshFreeFractureSupportT(ifstreamT& in):
-	MeshFreeElementSupportT(in),
+MeshFreeFractureSupportT::MeshFreeFractureSupportT(void):
 	fCriterion(kNoCriterion)
 {
-
+	SetName("meshfree_fracture_support");
 }
 
 /* destructor */
@@ -59,24 +59,114 @@ void MeshFreeFractureSupportT::ResetStep(void)
 
 	//TEMP - no history
 	if (fFrontList.Length() > 0)
-	{
-		cout << "\n MeshFreeFractureSupportT::ResetStep: not implemented for active\n" 
-		     <<   "     crack fronts: " << fFrontList.Length() << endl;	
-		throw ExceptionT::kGeneralFail;			
+		ExceptionT::GeneralFail("MeshFreeFractureSupportT::ResetStep", 
+			"not implemented for active crack fronts: %s", fFrontList.Length());
+}
+
+/* information about subordinate parameter lists */
+void MeshFreeFractureSupportT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	MeshFreeElementSupportT::DefineSubs(sub_list);
+
+	/* cutting surfaces */
+	sub_list.AddSub("cutting_surface", ParameterListT::Any);
+
+	/* sampling surfaces */
+	sub_list.AddSub("sampling_surface", ParameterListT::Any);
+
+#pragma message("define cutting surfaces")
+#pragma message("define sampling surfaces")
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* MeshFreeFractureSupportT::NewSub(const StringT& name) const
+{
+	if (name == "fracture_criterion") {
+
+		ParameterContainerT* crit = new ParameterContainerT(name);
+
+		/* fracture criterion */
+		ParameterT criterion(ParameterT::Enumeration, "criterion");
+		criterion.AddEnumeration("none", kNoCriterion);
+		criterion.AddEnumeration("max_hoop_stress", kMaxHoopStress);
+		criterion.AddEnumeration("max_traction", kMaxTraction);
+		criterion.AddEnumeration("loss_of_ellipticity", kAcoustic);
+		criterion.SetDefault("none");
+		crit->AddParameter(criterion);
+		
+		/* critical value */
+		crit->AddParameter(ParameterT::Double, "critical_value");
+	
+		return crit;
 	}
+	else if (name == "cutting_surface") {
+
+		ParameterContainerT* cutting_surface = new ParameterContainerT(name);
+		cutting_surface->SetSubSource(this);
+		cutting_surface->AddParameter(ParameterT::Word, "geometry_file");
+		cutting_surface->AddSub("block_ID_list");
+		
+		/* one or more advancing fronts */
+		cutting_surface->AddSub("advancing_front", ParameterListT::Any);
+		
+		return cutting_surface;
+	}
+	else if (name == "sampling_surface") {
+		ParameterContainerT* sampling_surface = new ParameterContainerT(name);
+		sampling_surface->AddParameter(ParameterT::Integer, "num_sampling_points");
+		sampling_surface->AddParameter(ParameterT::Word, "geometry_file");
+		sampling_surface->AddSub("block_ID_list");
+		return sampling_surface;
+	}
+	else if (name == "advancing_front") {
+
+		ParameterContainerT* advancing_front = new ParameterContainerT(name);
+		advancing_front->SetSubSource(this);
+
+		/* fracture criterion */
+		advancing_front->AddSub("fracture_criterion", ParameterListT::ZeroOrOnce);
+	
+		/* sampling parameters */
+		advancing_front->AddParameter(ParameterT::Double, "extension_increment");
+		advancing_front->AddParameter(ParameterT::Integer, "num_side_sampling_points");
+		advancing_front->AddParameter(ParameterT::Double, "sampling_cone_angle");
+		advancing_front->AddParameter(ParameterT::Double, "sampling_distance_fraction");
+		advancing_front->AddParameter(ParameterT::Double, "insertion_threshold");
+	
+		/* fronts are side sets to the element blocks defining the surfaces */
+		advancing_front->AddSub("side_set_ID_list");
+		
+		return advancing_front;
+	}
+	else /* inherited */
+		return MeshFreeElementSupportT::NewSub(name);
+}
+
+/* accept parameter list */
+void MeshFreeFractureSupportT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	MeshFreeElementSupportT::TakeParameterList(list);
+
+	/* fracture criterion */
+	const ParameterListT* crit = list.List("fracture_criterion");
+	if (crit) {
+		fCriterion = int2FractureCriterionT(crit->GetParameter("criterion"));
+		fs_u = crit->GetParameter("critical_value");
+	}
+
+	/* collect pointers to parameter lists needed during InitSupport */
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
-namespace Tahoe {
-
-istream& operator>>(istream& in, MeshFreeFractureSupportT::FractureCriterionT& criterion)
+MeshFreeFractureSupportT::FractureCriterionT MeshFreeFractureSupportT::int2FractureCriterionT(int i)
 {
-	int i_criterion = -1;
-	in >> i_criterion;
-	switch(i_criterion)
+	FractureCriterionT criterion;
+	switch (i)
 	{
 		case MeshFreeFractureSupportT::kNoCriterion:
 			criterion = MeshFreeFractureSupportT::kNoCriterion;
@@ -91,33 +181,29 @@ istream& operator>>(istream& in, MeshFreeFractureSupportT::FractureCriterionT& c
 			criterion = MeshFreeFractureSupportT::kAcoustic;
 			break;
 		default:
-			cout << "\n operator>>MeshFreeFractureSupportT::FractureCriterionT: bad value: "
-			     << i_criterion << endl;
-			throw ExceptionT::kBadInputValue;	
+			ExceptionT::BadInputValue("MeshFreeFractureSupportT::int2FractureCriterionT",
+				"unrecognized criterion %d", i);
 	}
-	return in;
+	return criterion;
 }
 
-} // namespace Tahoe
-
 /* initialization */
-void MeshFreeFractureSupportT::InitSupport(ifstreamT& in, ostream& out,
-	AutoArrayT<ElementCardT>& elem_cards, const iArrayT& surface_nodes,
-	int numDOF, int max_node_num, ModelManagerT* model)
+void MeshFreeFractureSupportT::InitSupport(ostream& out, AutoArrayT<ElementCardT>& elem_cards, 
+	const iArrayT& surface_nodes, int numDOF, int max_node_num, ModelManagerT* model)
 {
 	/* inherited */
-	MeshFreeElementSupportT::InitSupport(in, out, elem_cards, surface_nodes,
-		numDOF, max_node_num, model);
+	MeshFreeElementSupportT::InitSupport(out, elem_cards, surface_nodes, numDOF, max_node_num, model);
 
 	/* unitialized */
 	fNumFacetNodes = -1;
 
 	/* field cutting facets (and active crack fronts) */
-	InitCuttingFacetsAndFronts(in, out);
+	InitCuttingFacetsAndFronts(out);
 
 	/* field sampling surfaces */
-	InitSamplingSurfaces(in, out);
-	
+//	InitSamplingSurfaces(out);
+
+#if 0
 	/* insertion criterion */
 	if (fFrontList.Length() > 0 || fSamplingSurfaces.Length() > 0)
 	{
@@ -139,6 +225,7 @@ void MeshFreeFractureSupportT::InitSupport(ifstreamT& in, ostream& out,
 		int nsd = fMFShapes->NumSD();
 		ftmp_nsd.Dimension(nsd);
 	}
+#endif
 }
 
 bool MeshFreeFractureSupportT::CheckGrowth(SolidMaterialT* material, 
@@ -203,9 +290,18 @@ bool MeshFreeFractureSupportT::CheckGrowth(SolidMaterialT* material,
 ***********************************************************************/
 
 /* steps in InitSupport() */
-void MeshFreeFractureSupportT::InitCuttingFacetsAndFronts(ifstreamT& in,
-	ostream& out)
+void MeshFreeFractureSupportT::InitCuttingFacetsAndFronts(ostream& out)
 {
+//TEMP
+fs_i  = 0.0;
+fda   = 0.0;
+fda_s = 0.0;
+fcone = 0.0;
+fn_s  = 0;
+InitFacetDatabase(0);
+//TEMP
+
+#if 0
 	int num_facets = -99;
 	in >> num_facets;
 	out << " Number of cutting facets. . . . . . . . . . . . = "
@@ -280,6 +376,7 @@ void MeshFreeFractureSupportT::InitCuttingFacetsAndFronts(ifstreamT& in,
 		/* must initialize */
 		InitFacetDatabase(0);
 	}
+#endif
 }
 
 void MeshFreeFractureSupportT::InitSamplingSurfaces(ifstreamT& in, ostream& out)

@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.cpp,v 1.10 2004-03-30 18:34:17 paklein Exp $ */
+/* $Id: LinearSolver.cpp,v 1.11 2004-07-15 08:31:50 paklein Exp $ */
 /* created: paklein (05/30/1996) */
 #include "LinearSolver.h"
 #include "FEManagerT.h"
@@ -6,18 +6,11 @@
 using namespace Tahoe;
 
 /* constructors */
-LinearSolver::LinearSolver(FEManagerT& fe_manager):
-	SolverT(fe_manager),
-	fFormLHS(1)
-{
-	SetName("linear_solver");
-}
-
 LinearSolver::LinearSolver(FEManagerT& fe_manager, int group):
 	SolverT(fe_manager, group),
 	fFormLHS(1)
 {
-
+	SetName("linear_solver");
 }
 
 /* signal new reconfigured system */

@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.h,v 1.11 2003-12-02 17:14:53 paklein Exp $ */
+/* $Id: DiffusionElementT.h,v 1.12 2004-07-15 08:26:18 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSE_T_H_
 #define _DIFFUSE_T_H_
@@ -32,19 +32,10 @@ public:
                     iMaterialData = 2}; /**< material model output */
 
 	/** constructor */
-	DiffusionElementT(const ElementSupportT& support, const FieldT& field);
 	DiffusionElementT(const ElementSupportT& support);
 
 	/** destructor */
 	~DiffusionElementT(void);
-	
-	/** data initialization */
-	virtual void Initialize(void);
-
-	/** TEMPORARY. Need this extra call here to set the source for the iteration number
-	 * in SmallStrainT::fSSMatSupport. The solvers are not constructed when the material
-	 * support is initialized */
-	virtual void InitialCondition(void);
 
 	/** compute nodal force */
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
@@ -56,12 +47,6 @@ public:
 	virtual void SendOutput(int kincode);
 
 protected:
-
-	/** \name print element group data */
-	/*@{*/
-	virtual void PrintControlData(ostream& out) const;
-	virtual void EchoOutputCodes(ifstreamT& in, ostream& out);
-	/*@}*/
 
 	/** initialization functions */
 	/*@{*/
@@ -95,9 +80,9 @@ protected:
 
 	/** return a pointer to a new material list. Recipient is responsible for freeing 
 	 * the pointer. 
-	 * \param nsd number of spatial dimensions
+	 * \param name list identifier
 	 * \param size length of the list */
-	virtual MaterialListT* NewMaterialList(int nsd, int size);
+	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
 
 	/** driver for calculating output values */
 	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
@@ -108,9 +93,15 @@ protected:
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	/** return the description of the given inline subordinate parameter list */
+	ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
+
+	/** extract the list of material parameters */
+	virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;
 
 private:
 
@@ -143,8 +134,8 @@ protected:
 	 * an integration point at a time and stored. */
   	ArrayT<dArrayT> fGradient_list;
 
-	/** parameters */
-	static const int NumOutputCodes;
+	/* parameters */
+	static const int NumNodalOutputCodes;
 
 private:
 

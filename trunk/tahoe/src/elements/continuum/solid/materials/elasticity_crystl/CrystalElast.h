@@ -1,4 +1,4 @@
-/* $Id: CrystalElast.h,v 1.7 2003-01-29 07:34:56 paklein Exp $ */
+/* $Id: CrystalElast.h,v 1.8 2004-07-15 08:28:16 paklein Exp $ */
 #ifndef _CRYSTAL_ELAST_H_
 #define _CRYSTAL_ELAST_H_
 
@@ -42,16 +42,10 @@ class CrystalElast : public FDHookeanMatT
   const int NumGrain() const;
   const dArrayT& MaterialProperties() const;
 
-  // print data read
-  virtual void Print(ostream& out) const;
-
  protected:
 
      /* set (material) tangent modulus */
      virtual void SetModulus(dMatrixT& modulus);
-
-  // print name
-  virtual void PrintName(ostream& out) const;
 
   // allocate all elements at once
   void AllocateElements();

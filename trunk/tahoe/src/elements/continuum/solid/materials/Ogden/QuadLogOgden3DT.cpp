@@ -1,29 +1,17 @@
-/* $Id: QuadLogOgden3DT.cpp,v 1.6 2004-06-17 07:40:30 paklein Exp $ */
+/* $Id: QuadLogOgden3DT.cpp,v 1.7 2004-07-15 08:27:22 paklein Exp $ */
 /* created: paklein (02/17/2001) */
 #include "QuadLogOgden3DT.h"
 
-#include <iostream.h>
 #include <math.h>
-#include "ifstreamT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-QuadLogOgden3DT::QuadLogOgden3DT(ifstreamT& in, const FSMatSupportT& support):
-	OgdenIsotropicT(in, support),
+QuadLogOgden3DT::QuadLogOgden3DT(void):
+	ParameterInterfaceT("quad_log_Ogden"),
 	flogE(3)
 {
-	/* read modulus */
-	double E, nu;
-	in >> E >> nu;
-	IsotropicT::Set_E_nu(E, nu);
-}
 
-void QuadLogOgden3DT::PrintName(ostream& out) const
-{
-	/* inherited */
-	OgdenIsotropicT::PrintName(out);
-	out << "    Quad Log\n";
 }
 
 /* strain energy density */
@@ -45,8 +33,8 @@ double QuadLogOgden3DT::StrainEnergyDensity(void)
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* principal values given principal values of the stretch tensors,
  * i.e., the principal stretches squared */

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.48 2004-06-17 07:41:49 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.49 2004-07-15 08:31:10 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -21,7 +21,6 @@
 #include "ReLabellerT.h"
 #include "OutputSetT.h"
 #include "ParameterUtils.h"
-
 #include "FieldT.h"
 
 /* force BC controllers */
@@ -51,7 +50,6 @@ NodeManagerT::NodeManagerT(FEManagerT& fe_manager, CommManagerT& comm_manager):
 	ParameterInterfaceT("nodes"),
 	fFEManager(fe_manager),
 	fCommManager(comm_manager),
-	fFieldSupport(fe_manager, *this),
 	fInitCoords(NULL),
 	fCoordUpdate(NULL),
 	fCurrentCoords(NULL),
@@ -59,6 +57,10 @@ NodeManagerT::NodeManagerT(FEManagerT& fe_manager, CommManagerT& comm_manager):
 {
 	/* set console */
 	iSetName("nodes");
+	
+	/* init support */
+	fFieldSupport.SetFEManager(&fe_manager);
+	fFieldSupport.SetNodeManager(this);
 }
 
 /* destructor */
@@ -114,29 +116,6 @@ int NodeManagerT::NumDOF(int group) const
 const ScheduleT* NodeManagerT::Schedule(int num) const
 {
 	return fFEManager.Schedule(num);
-}
-
-/* initialize data */
-void NodeManagerT::Initialize(void)
-{
-	/* get streams */
-	ifstreamT& in = fFEManager.Input();
-	ostream&   out = fFEManager.Output();
-
-	out << "\n N o d a l   D a t a :\n\n";
-
-	/* echo nodal coordinate data */
-	EchoCoordinates(in, out);
-
-	/* set fields */
-	EchoFields(in, out);
-
-	/* history nodes */
-	EchoHistoryNodes(in, out);
-
-	/* relaxation flags */
-	fXDOFRelaxCodes.Dimension(fFEManager.NumGroups());
-	fXDOFRelaxCodes = GlobalT::kNoRelax;
 }
 
 /* register data for output */
@@ -275,7 +254,7 @@ IntegratorT::ImpExpFlagT NodeManagerT::ImplicitExplicit(int group) const
 const FieldT* NodeManagerT::Field(const char* name) const
 {
 	for (int i = 0; i < fFields.Length(); i++)
-		if (fFields[i] && fFields[i]->Name() == name)
+		if (fFields[i] && fFields[i]->FieldName() == name)
 			return fFields[i];
 
 	/* not found */
@@ -304,9 +283,6 @@ void NodeManagerT::RegisterCoordinates(LocalArrayT& array) const
 				"not a coordinate type: %d", array.Type());
 	}
 }
-
-/* the local node to home processor map */
-const ArrayT<int>* NodeManagerT::ProcessorMap(void) const { return fFEManager.ProcessorMap(); }
 
 CommManagerT& NodeManagerT::CommManager(void) const { return fCommManager; }
 
@@ -393,6 +369,12 @@ GlobalT::RelaxCodeT NodeManagerT::RelaxSystem(int group)
 	return GlobalT::MaxPrecedence(relax, code_XDOF);
 }
 
+/* set the time step */
+void NodeManagerT::SetTimeStep(double dt) {
+	for (int i = 0; i < fFields.Length(); i++)
+		fFields[i]->SetTimeStep(dt);
+}
+
 /* update the active degrees of freedom */
 void NodeManagerT::Update(int group, const dArrayT& update)
 {
@@ -446,6 +428,10 @@ void NodeManagerT::CloseStep(int group)
 /* initial condition/restart functions */
 void NodeManagerT::InitialCondition(void)
 {
+	/* relaxation flags */
+	fXDOFRelaxCodes.Dimension(fFEManager.NumGroups());
+	fXDOFRelaxCodes = GlobalT::kNoRelax;
+
 	/* apply to fields */
 	for (int i = 0; i < fFields.Length(); i++)
 	{
@@ -841,85 +827,6 @@ void NodeManagerT::CopyNodeToNode(const ArrayT<int>& source,
 		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);	
 }
 
-#if 0
-/* duplicate nodes */
-void NodeManagerT::DuplicateNodes(const iArrayT& nodes, 
-	iArrayT& new_node_tags)
-{
-//TEMP
-cout << "\n NodeManagerT::DuplicateNodes: not implemented" << endl;
-throw ExceptionT::kGeneralFail;
-#pragma unused(nodes)
-#pragma unused(new_node_tags)
-
-	/* check */
-	if (nodes.Length() != new_node_tags.Length()) throw ExceptionT::kSizeMismatch;
-	int InitialLength;
-	
-	/* generate the nodes */
-	ModelManagerT* model = fFEManager.ModelManager ();
-	model->DuplicateNodes (nodes, new_node_tags, fNumNodes);
-
-	/* set new array lengths */
-	fNumNodes += nodes.Length() ;
-	fEqnos.Resize(fNumNodes);	
-	fDisp.Resize(fNumNodes);
-
-	/* copy data from old nodes to duplicated nodes */
-	for( int i = 0 ; i < nodes.Length() ; i++ ) 
-	{
-		fEqnos.SetRow(new_node_tags[i],0) ;		
-		fDisp.CopyRowFromRow(new_node_tags[i],nodes[i]) ;
-	}
-	
-	/* check if initial conditions need duplication */
-	InitialLength = fIC.Length() ;
-	for( int i = 0 ; i < InitialLength ; i++ ) 
-		for( int j = 0 ; j < nodes.Length() ; j++ ) 
-		{
-			if( fIC[i].Node() == nodes[j] )
-			{
-				fIC.Resize(fIC.Length()+1) ;
-				fIC.Last() = fIC[i] ;
-			}
-		}
-	
-	/* check if kinematic boundary conditions need duplication */
-	InitialLength = fKBC.Length() ;
-	for( int i = 0 ; i < InitialLength ; i++ ) 
-		for( int j = 0 ; j < nodes.Length() ; j++ ) 
-		{
-			if( fKBC[i].Node() == nodes[j] )
-			{
-				fKBC.Resize(fKBC.Length()+1) ;
-				fKBC.Last() = fKBC[i] ;
-			}
-		}
-
-	/* check if force boundary conditions need duplication */
-	InitialLength = fFBC.Length() ;
-	for( int i = 0 ; i < InitialLength ; i++ ) 
-		for( int j = 0 ; j < nodes.Length() ; j++ ) 
-		{
-			if( fFBC[i].Node() == nodes[j] )
-			{
-				fFBC[i].SplitForce();
-				fFBC.Resize(fFBC.Length()+1) ;
-				fFBC.Last() = fFBC[i] ;
-				fFBCValues.Resize(fFBC.Length()); 
-				fFBCEqnos.Resize(fFBC.Length());
-				fFBCEqnosSet = 0;
-			}
-		}
-
-	/* (re-)set start tag for external DOF */
-	XDOF_ManagerT::SetStartTag(fNumNodes);
-
-	/* resize averaging work space */
-	SetNumAverageRows(fNumNodes);
-}
-#endif
-
 //TEMP - trap parallel execution with XDOF
 void NodeManagerT::XDOF_Register(DOFElementT* group, const iArrayT& numDOF)
 {
@@ -1221,34 +1128,127 @@ void NodeManagerT::DefineSubs(SubListT& sub_list) const
 	sub_list.AddSub("field", ParameterListT::OnePlus);
 	
 	/* list of history node ID's */
-	sub_list.AddSub("history_node_ID", ParameterListT::Any);
+	sub_list.AddSub("history_node_ID_list", ParameterListT::ZeroOrOnce);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* NodeManagerT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* NodeManagerT::NewSub(const StringT& name) const
 {
-	if (list_name == "field")
+	if (name == "field")
 		return new FieldT(fFieldSupport);
-	else if (list_name == "history_node_ID")
-		return new IntegerListT("history_node_ID");
 	else
-		return ParameterInterfaceT::NewSub(list_name);
+		return ParameterInterfaceT::NewSub(name);
+}
+
+/* accept parameter list */
+void NodeManagerT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "NodeManagerT::TakeParameterList";
+
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	/* read coordinates information */
+	SetCoordinates();
+
+	/* relaxation flags */
+	fXDOFRelaxCodes.Dimension(fFEManager.NumGroups());
+	fXDOFRelaxCodes = GlobalT::kNoRelax;
+
+	/* collect history nodes */
+	const ParameterListT* history_nodes = list.List("history_node_ID_list");
+	if (history_nodes) {
+	
+		/* model database */
+		ModelManagerT* model = fFEManager.ModelManager();
+	
+		/* external nodes - no output written */
+		const ArrayT<int>* p_ex_nodes = fCommManager.ExternalNodes();
+		iArrayT ex_nodes;
+		if (p_ex_nodes) ex_nodes.Alias(*p_ex_nodes);
+
+		int num_ID = history_nodes->NumLists("String");
+		fHistoryNodeSetIDs.Dimension(num_ID);
+		for (int i = 0; i < num_ID; i++) {
+		
+			/* read node set */
+			const StringT& node_set_ID = history_nodes->GetList("String", i).GetParameter("value");		
+			const iArrayT& node_set = model->NodeSet(node_set_ID);
+		
+			/* slow-but-steady way */
+			ArrayT<bool> is_external(node_set.Length());
+			is_external = true;
+			int count = 0;
+			for (int j = 0; j < node_set.Length(); j++)
+				if (!ex_nodes.HasValue(node_set[j])) {
+					is_external[j] = false;
+					count++;
+				}
+		
+			/* collect non-external nodes */
+			iArray2DT set(count, 1);
+			count = 0;
+			for (int j = 0; j < node_set.Length(); j++)
+				if (!is_external[j])
+					set[count++] = node_set[j];
+
+			/* register the set with the model manager */
+			StringT ID = "55";
+			ID = model->FreeElementID(ID);
+			if (!model->RegisterElementGroup(ID, set, GeometryT::kPoint, true))
+				ExceptionT::BadInputValue(caller, "error initializing node set %d as model element ID %d", 
+					node_set_ID.Pointer(), ID.Pointer());
+
+			/* store generated ID */
+			fHistoryNodeSetIDs[i] = ID;
+		}
+	}
+
+	/* construct fields */
+	int num_fields = list.NumLists("field");
+	fFields.Dimension(num_fields);
+	fFields = NULL;
+	fMessageID.Dimension(num_fields);
+	for (int i = 0; i < fFields.Length(); i++)
+	{
+		/* parameters */
+		const ParameterListT* field_params = list.List("field", i);
+	
+		/* new field */			
+		FieldT* field = new FieldT(fFieldSupport);
+		field->TakeParameterList(*field_params);
+		field->Dimension(NumNodes(), false);
+		field->Clear();
+
+		/* coordinate update field */
+		if (field->FieldName() == "displacement") {
+			if (fCoordUpdate) ExceptionT::BadInputValue(caller, "\"displacement\" field already set");
+			fCoordUpdate = field;
+			fCurrentCoords = new dArray2DT;
+			fCurrentCoords_man.SetWard(0, *fCurrentCoords, NumSD());
+			fCurrentCoords_man.SetMajorDimension(NumNodes(), false);
+			(*fCurrentCoords) = InitialCoordinates();
+		}
+
+		/* store */
+		fFields[i] = field;
+			
+		/* set up communication of field */
+		fMessageID[i] = fCommManager.Init_AllGather(fFields[i]->Update());	
+	}
 }
 
 /**********************************************************************
  * Protected
  **********************************************************************/
 
-void NodeManagerT::EchoCoordinates(ifstreamT& in, ostream& out)
+void NodeManagerT::SetCoordinates(void)
 {
 	/* model manager */
 	ModelManagerT* model = fFEManager.ModelManager();
 
 	/* read coordinates */
-	if (model->DatabaseFormat() == IOBaseT::kTahoe)
-		model->ReadInlineCoordinates (in);
-	else
-		model->ReadCoordinates();
+	model->ReadCoordinates();
 		
 	/* set pointer */	
 	fInitCoords = &(model->Coordinates());
@@ -1256,23 +1256,20 @@ void NodeManagerT::EchoCoordinates(ifstreamT& in, ostream& out)
 	/* check element groups to see if node data should be 
 	   adjusted to be 2D, some element groups require
 	   fNumSD == fNumDOF */
-	if (NumSD() == 3 && model->AreElements2D())
-	{
-		out << " Number of nodal points. . . . . . . . . . . . . = " << NumNodes() << '\n';
-		out << " Number of spatial dimensions. . . . . . . . . . = " << NumSD() << '\n';
-		out << "\n Adjusting nodal data to 2D" << endl;
+	if (NumSD() == 3 && model->AreElements2D()) {
 		cout << "\n NodeManagerT::EchoCoordinates: WARNING: Adjusting nodal data to 2D" << endl;
 		model->AdjustCoordinatesto2D();
 	}
 	  
-	/* print main header */
-	out << " Number of nodal points. . . . . . . . . . . . . = " << NumNodes() << '\n';
-	out << " Number of spatial dimensions. . . . . . . . . . = " << NumSD() << '\n';
-
 	/* verbose output */
 	if (fFEManager.PrintInput())
 	{
+		ofstreamT& out = fFEManager.Output();
 		int d_width = out.precision() + kDoubleExtra;
+
+		/* print main header */
+		out << " Number of nodal points. . . . . . . . . . . . . = " << NumNodes() << '\n';
+		out << " Number of spatial dimensions. . . . . . . . . . = " << NumSD() << '\n';
 	
 		/* write header */
 		out << setw(kIntWidth) << "node"
@@ -1283,7 +1280,7 @@ void NodeManagerT::EchoCoordinates(ifstreamT& in, ostream& out)
 		out << '\n';
 
 		/* arrays */
-		const ArrayT<int>* processor = ProcessorMap();
+		const ArrayT<int>* processor = fFEManager.ProcessorMap();
 		const dArray2DT& init_coords = InitialCoordinates();
 		const ArrayT<int>* node_map = fFEManager.NodeMap();
 		for (int i = 0; i < init_coords.MajorDim(); i++)
@@ -1303,445 +1300,6 @@ void NodeManagerT::EchoCoordinates(ifstreamT& in, ostream& out)
 	
 	/* averaging work space */
 	SetNumAverageRows(NumNodes());
-}
-
-/* echo field data */
-void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
-{
-	const char caller[] = "NodeManagerT::EchoFields";
-
-	/* no predefined fields */
-	if (fFEManager.Analysis() == GlobalT::kMultiField)
-	{
-		/* number of fields */
-		int num_fields = -1;
-		in >> num_fields;
-
-		/* initialize list */
-		fFields.Dimension(num_fields);
-		fFields = NULL;
-		fMessageID.Dimension(num_fields);
-		
-		/* loop over fields */
-		for (int i = 0; i < fFields.Length(); i++)
-		{
-			int index = -1, group_num = -1, cont_num = -1, ndof = -1;
-			StringT name;
-			
-			/* read: field index */
-			in >> index;
-			
-			/* read: [name] [group] [controller] [ndof] */
-			in >> name >> group_num >> cont_num >> ndof;
-			index--;
-			group_num--;
-			cont_num--;
-			if (fFields[index] != NULL)
-				ExceptionT::BadInputValue(caller, "field at index %d is already set", index+1);
-
-			/* check for field with same name */
-			if (Field(name)) 
-				ExceptionT::BadInputValue(caller, "field name %s already exists", name.Pointer());
-
-			/* read: dof labels */
-			ArrayT<StringT> labels(ndof);
-			for (int j = 0; j < labels.Length(); j++)
-				in >> labels[j];
-			
-			/* get integrator */
-			const nIntegratorT* controller = fFEManager.nIntegrator(cont_num);
-			if (!controller) ExceptionT::GeneralFail(caller);
-
-			/* new field */			
-			FieldT* field = new FieldT(fFieldSupport);
-			field->Initialize(name, ndof, *controller);
-			field->SetLabels(labels);
-			field->SetGroup(group_num);
-			field->Dimension(NumNodes(), false);
-			field->Clear();
-			field->WriteParameters(out);
-
-			/* coordinate update field */
-			if (name == "displacement") {
-				if (fCoordUpdate) ExceptionT::BadInputValue(caller, "\"displacement\" field already set");
-				fCoordUpdate = field;
-				fCurrentCoords = new dArray2DT;
-				fCurrentCoords_man.SetWard(0, *fCurrentCoords, NumSD());
-				fCurrentCoords_man.SetMajorDimension(NumNodes(), false);
-				(*fCurrentCoords) = InitialCoordinates();
-			}
-
-			/* echo initial/boundary conditions */
-			EchoInitialConditions(*field, in, out);
-			EchoKinematicBC(*field, in, out);
-			EchoKinematicBCControllers(*field, in, out);
-			EchoForceBC(*field, in, out);
-			EchoForceBCControllers(*field, in, out);
-
-			/* store */
-			fFields[index] = field;
-			
-			/* set up communication of field */
-			fMessageID[index] = fCommManager.Init_AllGather(fFields[index]->Update());
-		}
-	}
-	else /* legacy code - a single predefined integrator */
-	{
-		/* just one */
-		fFields.Dimension(1);
-		fFields = NULL;
-		fMessageID.Dimension(1);
-		const nIntegratorT* controller = fFEManager.nIntegrator(0);
-		if (!controller) ExceptionT::GeneralFail(caller);
-		
-		/* field config set by analysis type */
-		FieldT* field = NULL;
-		switch(fFEManager.Analysis())
-		{
-			case GlobalT::kLinDynamic:
-			case GlobalT::kNLDynamic:
-			case GlobalT::kLinExpDynamic:
-			case GlobalT::kNLExpDynamic:
-			case GlobalT::kNLExpDynKfield:
-			case GlobalT::kNLStatic:
-			case GlobalT::kNLStaticKfield:
-			case GlobalT::kLinStatic:
-			{
-				field = new FieldT(fFieldSupport);
-				field->Initialize("displacement", NumSD(), *controller);
-
-				/* label list */
-				ArrayT<StringT> labels(field->NumDOF());
-				const char* disp[] = {"D_X", "D_Y", "D_Z"};
-				for (int i = 0; i < labels.Length(); i++)
-					labels[i] = disp[i];
-
-				/* set labels */
-				field->SetLabels(labels);				
-				break;
-			}
-			case GlobalT::kLinTransHeat:
-			case GlobalT::kLinStaticHeat:
-			case GlobalT::kNLStaticHeat:
-			case GlobalT::kNLTransHeat:
-			{
-				field = new FieldT(fFieldSupport);
-				field->Initialize("temperature", 1, *controller);
-
-				/* set labels */
-				ArrayT<StringT> labels(1);
-				labels[0] = "T";
-				field->SetLabels(labels);
-				break;
-			}
-			default:
-				ExceptionT::GeneralFail(caller, "unrecognized analysis code %d", fFEManager.Analysis());
-		}
-		
-		/* check */
-		if (!field) throw ExceptionT::kGeneralFail;
-		
-		/* just one group */
-		field->SetGroup(0);
-		
-		/* dimension */
-		field->Dimension(NumNodes(), false);
-		field->Clear();
-		
-		/* clear all equation numbers */
-		field->Equations() = FieldT::kInit;
-
-		/* coordinate update field */
-		if (field->Name() == "displacement") {
-			if (fCoordUpdate) ExceptionT::BadInputValue(caller, "\"displacement\" field already set");
-			fCoordUpdate = field;
-			fCurrentCoords = new dArray2DT(InitialCoordinates());
-		}
-
-		/* initial/boundary conditions */
-		EchoInitialConditions(*field, in, out);
-		EchoKinematicBC(*field, in, out);
-		EchoKinematicBCControllers(*field, in, out);
-		EchoForceBC(*field, in, out);
-		EchoForceBCControllers(*field, in, out);
-		
-		/* store */
-		fFields[0] = field;
-
-		/* set up communication of field */
-		fMessageID[0] = fCommManager.Init_AllGather(fFields[0]->Update());
-	}
-}
-
-void NodeManagerT::EchoInitialConditions(FieldT& field, ifstreamT& in, ostream& out)
-{
-	out << "\n Initial conditions:\n\n";
-
-	/* model manager */
-	ModelManagerT* model = fFEManager.ModelManager();
-
-	/* initial condition cards */
-	ArrayT<IC_CardT>& cards = field.InitialConditions();
-
-	/* account for text file name instead of data */
-	ifstreamT tmp;
-	ifstreamT& in2 = model->OpenExternal(in, tmp, out, true, "NodeManagerT::EchoInitialConditions: could not open file");
-	
-	/* read */
-	int numIC_sets;
-	in2 >> numIC_sets;
-
-	if (numIC_sets > 0)
-	{
-		/* allocate temp space */
-		ArrayT<iArrayT> nodes (numIC_sets);
-		iArray2DT data (numIC_sets, 2);
-		dArrayT values (numIC_sets);
-
-		int count = model->ReadCards(in2, out, nodes, data, values);
-		cards.Dimension(count);
-
-	    /* set cards */
-	    for (int i=0, dex=0; i < numIC_sets; i++)
-		if (nodes[i].Length() > 0) {
-			int *pn = nodes[i].Pointer();
-			
-			/* ID == -2 (-1 shifted by 1) means "all" */
-			if (*pn == -2) //offset
-			{
-				/* resize array */
-				nodes[i].Dimension(NumNodes());
-				nodes[i].SetValueToPosition();
-				pn = nodes[i].Pointer();
-				
-				/* need more cards */
-				cards.Resize(cards.Length() - 1 + nodes[i].Length());
-			}
-			
-			int dof = data (i, 0) - 1; // offset
-			int order = data (i, 1) - 1; // KBC code -> derivative order
-			for (int j=0; j < nodes[i].Length(); j++)
-				cards[dex++].SetValues(*pn++, dof, order, values[i]);
-			}
-	  }
-
-	/* echo */
-	out << " Number of initial condition cards . . . . . . . = ";
-	out << cards.Length() << "\n\n";
-	if (fFEManager.PrintInput() && cards.Length() > 0)
-	{
-		IC_CardT::WriteHeader(out);
-		for (int i = 0; i < cards.Length(); i++)
-			cards[i].WriteValues(out);
-	}
-}
-
-void NodeManagerT::EchoKinematicBC(FieldT& field, ifstreamT& in, ostream& out)
-{
-	out << "\n Kinematic boundary conditions:\n\n";
-
-	/* model manager */
-	ModelManagerT* model = fFEManager.ModelManager();
-
-	/* kinematic boundary condition cards */
-	ArrayT<KBC_CardT>& cards = field.KinematicBC();
-
-	/* account for text file name instead of data */
-	ifstreamT tmp;
-	ifstreamT& in2 = model->OpenExternal(in, tmp, out, true, "NodeManagerT::EchoKinematicBC: could not open file");
-
-	int numKBCsets;
-	in2 >> numKBCsets;
-	if (numKBCsets > 0)
-	  {
-	    /* allocate temp space */
-	    ArrayT<iArrayT> nodes (numKBCsets);
-	    iArray2DT data (numKBCsets, 3);
-	    dArrayT values (numKBCsets);
-
-	    int count = model->ReadCards (in2, out, nodes, data, values);
-	    cards.Dimension(count);
-
-	    /* set cards */
-	    for (int i=0, dex=0; i < numKBCsets; i++)
-		if (nodes[i].Length() > 0) {
-			int *pn = nodes[i].Pointer();
-			
-			/* ID == -2 (-1 shifted by 1) means "all" */
-			if (*pn == -2) //offset
-			{
-				/* resize array */
-				nodes[i].Dimension(NumNodes());
-				nodes[i].SetValueToPosition();
-				pn = nodes[i].Pointer();
-
-				/* need more cards - only counted an ID of -1 */
-				cards.Resize(cards.Length() - 1 + nodes[i].Length());
-			}
-
-			int dof = data (i, 0) - 1; // offset
-			KBC_CardT::CodeT code = cards[dex].int_to_CodeT (data (i, 1));
-			int ltf = data (i, 2) - 1; // offset
-			for (int j=0; j < nodes[i].Length(); j++)
-				cards[dex++].SetValues (*pn++, dof, code, ltf, values[i]);
-		}
-	  }
-
-	/* finalize BC's/echo data */
-	out << "\n Number of kinematic boundary condition cards. . = ";
-	out << cards.Length() << "\n\n";
-	if (fFEManager.PrintInput() && cards.Length() > 0) 
-		KBC_CardT::WriteHeader(out);
-
-	for (int i = 0; i < cards.Length(); i++)
-	{
-		/* card */
-		KBC_CardT& card = cards[i];
-
-		/* set schedule pointer */
-		const ScheduleT* schedule = (card.Code() != KBC_CardT::kFix) ? Schedule(card.ScheduleNum()) : NULL;
-		card.SetSchedule(schedule);
-		
-		/* echo values */
-		if (fFEManager.PrintInput()) card.WriteValues(out);
-	}
-
-	/* check node numbers */
-	for (int i = 0; i < cards.Length(); i++)
-		if (cards[i].Node() < 0 || cards[i].Node() >= NumNodes()) {
-			cout << "\n NodeManagerT::EchoKinematicBC: node number is out of range: " 
-			     << cards[i].Node() + 1 << endl;
-			throw ExceptionT::kOutOfRange;
-		}
-}
-
-void NodeManagerT::EchoForceBC(FieldT& field, ifstreamT& in, ostream& out)
-{
-	const char caller[] = "NodeManagerT::EchoForceBC";
-
-	/* print header */
-	out << "\n Force boundary conditions:\n\n";
-
-	/* model manager */
-	ModelManagerT* model = fFEManager.ModelManager();
-
-	/* nodal force cards */
-	ArrayT<FBC_CardT>& cards = field.ForceBC();
-
-	/* account for text file name instead of data */
-	ifstreamT tmp;
-	ifstreamT& in2 = model->OpenExternal(in, tmp, out, true, "NodeManagerT::EchoKinematicBC: could not open file");
-
-	int numFBCsets;
-	in2 >> numFBCsets;
-
-	/* check */
-	if (numFBCsets < 0)
-		ExceptionT::BadInputValue(caller, "expecting numFBC_sets > 0: %d", numFBCsets);
-
-	if (numFBCsets > 0)
-	  {
-	    /* allocate temp space */
-	    ArrayT<iArrayT> nodes (numFBCsets);
-	    iArray2DT data (numFBCsets, 2);
-	    dArrayT values (numFBCsets);
-
-	    int count = model->ReadCards(in2, out, nodes, data, values);
-		cards.Dimension (count);
-
-	    /* set cards */
-	    for (int i=0, dex=0; i < numFBCsets; i++)
-		if (nodes[i].Length() > 0) {
-			int *pn = nodes[i].Pointer();
-		
-			/* ID == -2 (-1 shifted by 1) means "all" */
-			if (*pn == -2) //offset
-			{
-				/* resize array */
-				nodes[i].Dimension(NumNodes());
-				nodes[i].SetValueToPosition();
-				pn = nodes[i].Pointer();
-
-				/* need more cards - only counted an ID of -1 */
-				cards.Resize(cards.Length() - 1 + nodes[i].Length());
-			}
-
-			int dof = data (i, 0) - 1; //offset
-			int ltf = data (i, 1) - 1; //offset
-
-			for (int j=0; j < nodes[i].Length(); j++)
-				cards[dex++].SetValues (*this, *pn++, dof, ltf, values[i]);
-		}
-	  }
-
-	/* echo */
-	out << " Number of nodal force cards . . . . . . . . . . = ";
-	out << cards.Length() << "\n\n";
-	if (fFEManager.PrintInput() && cards.Length() > 0)
-	{
-		FBC_CardT::WriteHeader(out);
-		for (int i = 0; i < cards.Length(); i++)
-			cards[i].WriteValues(out);
-	}
-
-	/* check node numbers */
-	for (int i = 0; i < cards.Length(); i++)
-		if (cards[i].Node() < 0 || cards[i].Node() >= NumNodes()) 
-			ExceptionT::OutOfRange(caller, "node number is out of range: %d", cards[i].Node() + 1);
-}
-
-void NodeManagerT::EchoHistoryNodes(ifstreamT& in, ostream &out)
-{
-	out << "\n N o d a l   H i s t o r i e s :\n\n";
-
-	/* model database */
-	ModelManagerT* model = fFEManager.ModelManager();
-	
-	/* list of external nodes */
-	const ArrayT<int>* p_ex_nodes = fCommManager.ExternalNodes();
-	iArrayT ex_nodes;
-	if (p_ex_nodes) ex_nodes.Alias(*p_ex_nodes);
-
-	/* read node set indexes */
-	ArrayT<StringT> node_set_ID;
-	model->NodeSetList(in, node_set_ID);
-
-	/* just read node sets. output of history information is
-	 * configured in RegisterOutput */
-	int num_sets = node_set_ID.Length();
-	fHistoryNodeSetIDs.Dimension(num_sets);
-	for (int i = 0; i < num_sets; i++)
-	{
-		/* read node set */
-		const iArrayT& node_set = model->NodeSet(node_set_ID[i]);
-		
-		/* slow-but-steady way */
-		ArrayT<bool> is_external(node_set.Length());
-		is_external = true;
-		int count = 0;
-		for (int j = 0; j < node_set.Length(); j++)
-			if (!ex_nodes.HasValue(node_set[j]))
-			{
-				is_external[j] = false;
-				count++;
-			}
-		
-		/* collect non-external nodes */
-		iArray2DT set(count, 1);
-		count = 0;
-		for (int j = 0; j < node_set.Length(); j++)
-			if (!is_external[j])
-				set[count++] = node_set[j];
-
-		/* register the set with the model manager */
-		StringT ID = "55";
-		ID = model->FreeElementID(ID);
-		if (!model->RegisterElementGroup(ID, set, GeometryT::kPoint, true))
-			ExceptionT::BadInputValue("NodeManagerT::EchoHistoryNodes", 
-				"error initializing node set %d as model element ID %d", node_set_ID[i].Pointer(), ID.Pointer());
-
-		fHistoryNodeSetIDs[i] = ID;
-	}
 }
 
 /* simple output function */
@@ -1784,42 +1342,42 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 	switch(code)
 	{
 		case KBC_ControllerT::kK_Field:
-			return new K_FieldT(*this);
+			return new K_FieldT(fFieldSupport);
 
 		case KBC_ControllerT::kBimaterialK_Field:	
-			return new BimaterialK_FieldT(*this);
+			return new BimaterialK_FieldT(fFieldSupport);
 
 		case KBC_ControllerT::kMappedPeriodic:	
-			return new MappedPeriodicT(*this, field);
+			return new MappedPeriodicT(fFieldSupport, field);
 
 		case KBC_ControllerT::kTiedNodes:
 		{
-			TiedNodesT* kbc = new TiedNodesT(*this, field);
+			TiedNodesT* kbc = new TiedNodesT(fFieldSupport, field);
 			return kbc;
 		}
 		case KBC_ControllerT::kPeriodicNodes:
 		{
-			PeriodicNodesT* kbc = new PeriodicNodesT(*this, field);
+			PeriodicNodesT* kbc = new PeriodicNodesT(fFieldSupport, field);
 			return kbc;
 		}
 		case KBC_ControllerT::kScaledVelocityNodes:
 		{
-			ScaledVelocityNodesT* kbc = new ScaledVelocityNodesT(*this, field);
+			ScaledVelocityNodesT* kbc = new ScaledVelocityNodesT(fFieldSupport, field);
 			return kbc;
 		}
 		case KBC_ControllerT::kSetOfNodesKBC:
 		{
-			SetOfNodesKBCT* kbc = new SetOfNodesKBCT(*this, field);
+			SetOfNodesKBCT* kbc = new SetOfNodesKBCT(fFieldSupport, field);
 			return kbc;
 		}
 		case KBC_ControllerT::kTorsion:
 		{
-			TorsionKBCT* kbc = new TorsionKBCT(*this, fFEManager.Time());
+			TorsionKBCT* kbc = new TorsionKBCT(fFieldSupport);
 			return kbc;
 		}
 		case KBC_ControllerT::kConyevor:
 		{
-			ConveyorT* kbc = new ConveyorT(*this, field);
+			ConveyorT* kbc = new ConveyorT(fFieldSupport, field);
 			return kbc;
 		}
 		default:
@@ -1829,63 +1387,44 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 	return NULL;
 }
 
-FBC_ControllerT* NodeManagerT::NewFBC_Controller(FieldT& field, int code)
+FBC_ControllerT* NodeManagerT::NewFBC_Controller(int code)
 {
   const char caller[] = "NodeManagerT::NewFBC_Controller";
-
-	/* displacement field */
-	const dArray2DT& disp = field[0];
-
-	/* velocity field */
-	dArray2DT* velocity = NULL;
-	if (field.Order() > 0)
-		velocity = &(field[1]);
-		
-	/* const equations array */
-	const iArray2DT& eqnos = field.Equations();
-	
-	/* current coordinates */
-	const dArray2DT& coords = CurrentCoordinates();
 
 	FBC_ControllerT* fbc = NULL;
 	switch(code)
 	{
 		case FBC_ControllerT::kPenaltyWall:
-			fbc = new PenaltyWallT(fFEManager, field.Group(), eqnos, coords, disp, velocity);
+			fbc = new PenaltyWallT;
 			break;
 
 		case FBC_ControllerT::kAugLagWall:
-			fbc = new AugLagWallT(fFEManager, this, field, coords, disp);
+			fbc = new AugLagWallT;
 			break;
 
 		case FBC_ControllerT::kPenaltySphere:	
-			fbc = new PenaltySphereT(fFEManager, field.Group(), eqnos, coords, disp, velocity);
+			fbc = new PenaltySphereT;
 			break;
 
 		case FBC_ControllerT::kPenaltyCylinder:	
-			fbc = new PenaltyCylinderT(fFEManager, field.Group(), eqnos, coords, disp, velocity);
+			fbc = new PenaltyCylinderT;
 			break;
 
 		case FBC_ControllerT::kAugLagSphere:	
-			fbc = new AugLagSphereT(fFEManager, this, field, coords, disp);
+			fbc = new AugLagSphereT;
 			break;
 
 		case FBC_ControllerT::kMFPenaltySphere:	
-			fbc = new MFPenaltySphereT(fFEManager, field.Group(), eqnos, coords, disp, velocity);
+			fbc = new MFPenaltySphereT;
 			break;
+
 	    case FBC_ControllerT::kMFAugLagMult:
-	    	fbc = new MFAugLagMultT(fFEManager, this, field, coords, disp);
+	    	fbc = new MFAugLagMultT;
 	    	break;
+
 		default:
 			ExceptionT::BadInputValue(caller, "FBC controller code %d is not supported", code);
-	}
-	
-	/* set time integrator */
-	if (fbc) {
-		const eIntegratorT& e_integrator = field.nIntegrator().eIntegrator();
-		fbc->SetController(&e_integrator);
-	}
-	
+	}	
 	return fbc;
 }
 
@@ -1910,103 +1449,8 @@ void NodeManagerT::CheckEquationNumbers(int group)
 }
 
 /**********************************************************************
-* Private
-**********************************************************************/
-
-void NodeManagerT::EchoKinematicBCControllers(FieldT& field, ifstreamT& in, ostream& out)
-{	
-	/* model manager */
-	ModelManagerT* model = fFEManager.ModelManager();
-
-	/* account for text file name instead of data */
-	ifstreamT tmp;
-	ifstreamT& in2 = model->OpenExternal(in, tmp, out, true, "NodeManagerT::EchoKinematicBCControllers: could not open file");
-
-	int numKBC;
-	in2 >> numKBC;
-
-	/* print header */
-	out << "\n K i n e m a t i c   B C   C o n t r o l l e r s :\n\n";
-	out << " Number of controllers . . . . . . . . . . . . . = ";
-	out << numKBC << '\n' << endl;
-
-	/* construct */
-	for (int i = 0; i < numKBC; i++)
-	{
-		int num, KBC_type;
-		in2 >> num >> KBC_type; num--;
-		
-		/* construct */
-		KBC_ControllerT* controller = NewKBC_Controller(field, KBC_type);
-		
-		/* initialize */
-		controller->Initialize(in2);
-		
-		/* store */
-		field.AddKBCController(controller);
-		
-		/* special handling of conveyor */
-		if (false && KBC_type == KBC_ControllerT::kConyevor) {
-		
-			/* force all geometry to be changing */
-			fFEManager.OutputManager()->SetChangingFlag(IOManager::kForceChanging);
-		}
-	}
-
-	/* echo parameters */
-	const ArrayT<KBC_ControllerT*>& controllers = field.KBC_Controllers();
-	for (int j = 0; j < numKBC; j++)
-	{
-		out << " Controller: " << j+1 << '\n';
-	
-		/* write parameters */
-		controllers[j]->WriteParameters(out);
-		out << '\n';
-	}
-
-	/* flush output */
-	out.flush();
-}
-
-void NodeManagerT::EchoForceBCControllers(FieldT& field, ifstreamT& in, ostream& out)
-{
-	/* model manager */
-	ModelManagerT* model = fFEManager.ModelManager();
-
-	/* account for text file name instead of data */
-	ifstreamT tmp;
-	ifstreamT& in2 = model->OpenExternal(in, tmp, out, true, "NodeManagerT::EchoForceBCControllers: could not open file");
-	
-	/* FBC controllers */
-	int numFBCcont;
-	in2 >> numFBCcont;
-
-	/* print header */
-	out << "\n N o d a l   F o r c e   C o n t r o l l e r s :\n\n";
-	out << " Number of controllers . . . . . . . . . . . . . = ";
-	out << numFBCcont << '\n' << endl;
-
-	for (int i = 0; i < numFBCcont; i++)
-	{
-		int num, type;
-		in2 >> num >> type; num--;
-		
-		/* construct */
-		FBC_ControllerT* controller = NewFBC_Controller(field, type);
-		
-		/* echo data */
-		controller->EchoData(in2, out);
-
-		/* initialize */
-		controller->Initialize();
-		
-		/* store */
-		field.AddFBCController(controller);
-	}
-
-	/* flush output */
-	out.flush();
-}
+ * Private
+ **********************************************************************/
 
 void NodeManagerT::WriteNodalHistory(void)
 {

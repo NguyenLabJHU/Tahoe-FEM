@@ -1,4 +1,4 @@
-/* $Id: HexLattice2DT.cpp,v 1.2 2003-03-31 23:14:38 paklein Exp $ */
+/* $Id: HexLattice2DT.cpp,v 1.3 2004-07-15 08:26:42 paklein Exp $ */
 #include "HexLattice2DT.h"
 
 using namespace Tahoe;
@@ -13,8 +13,7 @@ static int AtomsInShells(int nshells) {
 const double sqrt3 = sqrt(3.0);
 
 /* constructor */
-HexLattice2DT::HexLattice2DT(const dMatrixT& Q, int nshells):
-	CBLatticeT(Q, 2, AtomsInShells(nshells)),
+HexLattice2DT::HexLattice2DT(int nshells):
 	fNumShells(nshells)
 {
 
@@ -23,6 +22,13 @@ HexLattice2DT::HexLattice2DT(const dMatrixT& Q, int nshells):
 /* initialize bond table values */
 void HexLattice2DT::LoadBondTable(void)
 {
+	/* dimension work space */
+	int num_bonds = AtomsInShells(fNumShells);
+	fBondCounts.Dimension(num_bonds);
+	fDefLength.Dimension(num_bonds);
+	fBonds.Dimension(num_bonds, 2);
+
+	/* initialize */
   	fBondCounts = 1;
   	fDefLength = 0.0; 
   
@@ -55,15 +61,11 @@ void HexLattice2DT::LoadBondTable(void)
   		 -1.5, 3.0*sqrt3/2.0};
 
 	double* shells[5];
-
 	shells[0] = bonddata1;
 	shells[1] = bonddata2;
 	shells[2] = bonddata3;
 	shells[3] = bonddata4;
 	shells[4] = bonddata5;
-
-  	if (fBonds.MajorDim() != fNumBonds ||
-     	fBonds.MinorDim() != 2) ExceptionT::GeneralFail();
 
 	int bond = 0;
 	for (int i = 0; i < fNumShells; i++)

@@ -1,4 +1,4 @@
-/* $Id: BCJKineticEqn.h,v 1.4 2003-05-27 06:56:02 paklein Exp $ */
+/* $Id: BCJKineticEqn.h,v 1.5 2004-07-15 08:29:14 paklein Exp $ */
 #ifndef _BCJ_KINETIC_EQN_H_
 #define _BCJ_KINETIC_EQN_H_
 
@@ -60,12 +60,6 @@ class BCJKineticEqn : public KineticEqnBase
   virtual double h         (double eqpdot, double kappa);
   virtual double DhDeqpdot (double eqpdot, double kappa);
   virtual double DhDs      (double eqpdot, double kappa);
-  /*@}*/
-
-  /** \name print data and model name */
-  /*@{*/
-  virtual void Print     (ostream& out) const;
-  virtual void PrintName (ostream& out) const;
   /*@}*/
 
  private:

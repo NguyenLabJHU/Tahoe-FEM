@@ -1,4 +1,4 @@
-/* $Id: ContactT.h,v 1.13 2004-06-26 18:39:53 paklein Exp $ */
+/* $Id: ContactT.h,v 1.14 2004-07-15 08:26:08 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #ifndef _CONTACT_T_H_
 #define _CONTACT_T_H_
@@ -23,7 +23,7 @@ class ContactT: public ElementBaseT
 public:
 
 	/** constructor */
-	ContactT(const ElementSupportT& support, const FieldT& field, int numfacetnodes);
+	ContactT(const ElementSupportT& support, int numfacetnodes);
 
 	/** destructor */
 	virtual ~ContactT(void);
@@ -33,9 +33,6 @@ public:
 
 	/** element level reconfiguration for the current solution */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
-
-	/** initialization after constructor */
-	virtual void Initialize(void);
 
 	/** initialize current time increment. Reset the contact tracking data. */
 	virtual void InitStep(void);
@@ -64,6 +61,18 @@ public:
 	virtual void ConnectsX(AutoArrayT<const iArray2DT*>& connects) const;
 	/*@}*/
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/	
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/** surface specification modes */
@@ -78,12 +87,11 @@ protected:
                           kContactBodies = 3,
                             kSideSetList = 4 /**< collect from side sets */};
 
-	/** print element group data */
-	virtual void PrintControlData(ostream& out) const;
-	
 	/** \name initialization steps */
 	/*@{*/
-	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
+	/** Echo contact bodies and striker nodes. After the read section, should 
+	 * have valid nodes/facet connectivities for the local database. */
+	virtual void ExtractContactGeometry(const ParameterListT& list);
 	virtual void SetWorkSpace(void);
 	/*@}*/
 
@@ -105,14 +113,11 @@ protected:
 
 	/** \name surface input methods */
 	/*@{*/
-	/** specify facets as lists of nodes */
-	void InputNodesOnFacet(ifstreamT& in, iArray2DT& facets);
-
 	/** specify facets as side sets */
-	void InputSideSets(ifstreamT& in, iArray2DT& facets);
+	void InputSideSets(const ParameterListT& list, iArray2DT& facets);
 
 	/** specify facets automatically from body boundaries */
-	void InputBodyBoundary(ifstreamT& in, ArrayT<iArray2DT>& surfaces, int& surface);
+	void InputBodyBoundary(const ParameterListT& list, ArrayT<iArray2DT>& surfaces, int& surface);
 	/*@}*/
 
 	/** \name collecting striker nodes */
@@ -121,10 +126,10 @@ protected:
 	void StrikersFromSurfaces(void);
 
 	/** collect strikers from nodes sets */
-	void ReadStrikers(ifstreamT& in, ostream& out);
+	void StrikersFromNodeSets(const ParameterListT& list);
 
 	/** collect strikers from sides sets */
-	void StrikersFromSideSets(ifstreamT& in, ostream& out);
+	void StrikersFromSideSets(const ParameterListT& list);
 	/*@}*/
 
 	/** set the tracking data */

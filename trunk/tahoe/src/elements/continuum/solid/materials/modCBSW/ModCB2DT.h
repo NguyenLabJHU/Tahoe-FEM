@@ -1,38 +1,40 @@
-/* $Id: ModCB2DT.h,v 1.7 2003-01-29 07:34:59 paklein Exp $ */
+/* $Id: ModCB2DT.h,v 1.8 2004-07-15 08:28:36 paklein Exp $ */
 /* created: paklein (05/31/1997) */
 #ifndef _MODCB_2DT_H_
 #define _MODCB_2DT_H_
 
 /* base class */
-#include "NL_E_Mat2DT.h"
-
-/* direct members */
-#include "SWDataT.h"
+#include "NL_E_MatT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
 class ModCBSolverT;
 
-class ModCB2DT: public NL_E_Mat2DT
+class ModCB2DT: public NL_E_MatT
 {
 public:
 
-	/* plane codes - for crystal axes rotated wrt global axes */
-	enum PlaneCodeT {kDC001 = 0,
-                     kDC101 = 1,
-                     kDC111 = 2};
-
 	/* constructor */
-	ModCB2DT(ifstreamT& in, const FSMatSupportT& support, bool equilibrate, 
-		PlaneCodeT plane_code);
+	ModCB2DT(void);
 
 	/* destructor */
 	virtual ~ModCB2DT(void);
 	
-	/* print Parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+ 	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
@@ -55,9 +57,6 @@ private:
 	
 private:
 	
-	/* 2D plane code */
-	PlaneCodeT fPlaneCode;
-
 	/* modified CB solver */
 	ModCBSolverT*	fModCBSolver;
 	
@@ -67,7 +66,6 @@ private:
 	dMatrixT	fStretch3D;
 	dMatrixT	fStretch2D;
 	dMatrixT	fStress3D;
-		
 };
 
 } // namespace Tahoe 

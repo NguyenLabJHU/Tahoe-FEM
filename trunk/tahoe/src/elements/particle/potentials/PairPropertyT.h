@@ -1,4 +1,4 @@
-/* $Id: PairPropertyT.h,v 1.2 2002-12-04 18:55:30 paklein Exp $ */
+/* $Id: PairPropertyT.h,v 1.3 2004-07-15 08:29:49 paklein Exp $ */
 #ifndef _PAIR_PROPERTY_T_H_
 #define _PAIR_PROPERTY_T_H_
 
@@ -7,10 +7,17 @@
 
 namespace Tahoe {
 
+/* forward declarations */
+class BasicSupportT;
+
 /** defines interface for pair interactions */
 class PairPropertyT: public ParticlePropertyT
 {
 public:
+
+	/** pair property factory. Properties that require BasicSupportT cannot be
+	 * constructed unless a pointer is provided. */
+	static PairPropertyT* New(const char* name, const BasicSupportT* support = NULL);
 
 	/** constructor */
 	PairPropertyT(void);

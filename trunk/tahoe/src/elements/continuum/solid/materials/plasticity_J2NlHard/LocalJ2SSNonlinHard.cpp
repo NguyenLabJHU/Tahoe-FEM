@@ -1,10 +1,11 @@
-/* $Id: LocalJ2SSNonlinHard.cpp,v 1.10 2004-01-10 04:41:23 paklein Exp $ */
+/* $Id: LocalJ2SSNonlinHard.cpp,v 1.11 2004-07-15 08:29:01 paklein Exp $ */
 #include "LocalJ2SSNonlinHard.h"
 
+#include "ifstreamT.h"
 #include "iArrayT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
-#include "ifstreamT.h"
+
 #include "SSMatSupportT.h"
 
 using namespace Tahoe;
@@ -27,8 +28,7 @@ static const char* Labels[kNumOutput] = {
 
 /* constructor */
 LocalJ2SSNonlinHard::LocalJ2SSNonlinHard(ifstreamT& in, const SSMatSupportT& support):
-	SSSolidMatT  (in, support),
-	IsotropicT   (in),
+	ParameterInterfaceT("small_strain_J2_local"),
 	HookeanMatT  (kNSD),
 	fNumIP       (NumIP()),
 	fmu          (Mu()),
@@ -119,33 +119,13 @@ void LocalJ2SSNonlinHard::ResetHistory(void)
         }
 }
 
-/* print parameters */
-void LocalJ2SSNonlinHard::Print(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::Print(out);
-	IsotropicT::Print(out);
-
-        /* hardening coefficients */
+#if 0
         out << " Hardening coefficients:\n";
 	out << "     k1 = " << k1 << "  (Kinematic Hardening          )" << endl;
 	out << "     k2 = " << k2 << "  (Isotropic Hardening          )" << endl;
 	out << "     k3 = " << k3 << "  (Nonlinear Kinematic Hardening)" << endl;
 	out << "     k4 = " << k4 << "  (Nonlinear Isotropic Hardening)" << endl;
-
-}
-
-/* print name */
-void LocalJ2SSNonlinHard::PrintName(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::PrintName(out);
-	out << "    Local small strain J2 plasticity\n";
-	out << "      with nonlinear isotropic/kinematic\n";
-        out << "      hardening\n";
-        out << "    Semi-implicit backward Euler\n";
-	out << "      integrating scheme\n";
-}
+#endif
 
 /* modulus */
 const dMatrixT& LocalJ2SSNonlinHard::c_ijkl(void)

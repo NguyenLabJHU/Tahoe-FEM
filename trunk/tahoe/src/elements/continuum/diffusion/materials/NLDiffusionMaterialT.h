@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionMaterialT.h,v 1.2 2003-12-10 07:14:28 paklein Exp $ */
+/* $Id: NLDiffusionMaterialT.h,v 1.3 2004-07-15 08:26:23 paklein Exp $ */
 #ifndef _NL_DIFFUSION_MATERIALT_H_
 #define _NL_DIFFUSION_MATERIALT_H_
 
@@ -18,17 +18,10 @@ class NLDiffusionMaterialT: public DiffusionMaterialT
 public:
 
 	/** constructor */
-	NLDiffusionMaterialT(ifstreamT& in, const DiffusionMatSupportT& support);
 	NLDiffusionMaterialT(void);
 
 	/** destructor */
 	~NLDiffusionMaterialT(void);
-
-	/** \name print parameters */
-	/*@{*/
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
-	/*@}*/
 
 	/** \name parameters at the current field point */
 	/*@{*/
@@ -47,6 +40,30 @@ public:
 	/** change in capacity with temperature */
 	virtual double dCapacity_dT(void) const;
 	/*@}*/
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists
+	 * \param sub_lists description of subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** return the description of the given inline subordinate parameter list.
+	 * Method will be called for each subordinate defined as inline by ParameterInterfaceT::SubNames
+	 * or defined recursively by ParameterInterfaceT::DefineInlineSub. 
+	 * \param sub name of the inlined subordinate list
+	 * \param order defines whether list is a sequence or choice.
+	 * \param sub_listss description of contents of this sub list */
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
+
+	/** accept parameter list.
+	 * \param list input parameter list, which should be validated using ParameterInterfaceT::ValidateParameterList
+	 *        to ensure the list conforms to the description defined by the interface. */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@{*/
 
 private:
 

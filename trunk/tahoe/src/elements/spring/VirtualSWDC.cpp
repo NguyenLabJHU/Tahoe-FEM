@@ -1,16 +1,15 @@
-/* $Id: VirtualSWDC.cpp,v 1.6 2004-06-17 07:41:37 paklein Exp $ */
+/* $Id: VirtualSWDC.cpp,v 1.7 2004-07-15 08:30:17 paklein Exp $ */
 /* created: paklein (05/05/1997) */
 #include "VirtualSWDC.h"
 
 #include <iomanip.h>
 
 #include "ifstreamT.h"
-#include "toolboxConstants.h"
-
-/* fVNodePair decoding */
+#include "ofstreamT.h"
 
 using namespace Tahoe;
 
+/* fVNodePair decoding */
 const int kVirtualNode = 0;
 const int kActiveNode  = 1;
 

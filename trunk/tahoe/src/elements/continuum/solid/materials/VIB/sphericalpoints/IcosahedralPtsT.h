@@ -1,7 +1,5 @@
-/* $Id: IcosahedralPtsT.h,v 1.3 2002-07-05 22:28:20 paklein Exp $ */
-/* created: paklein (10/31/1997)                                          */
-/* Base class for spherical point generators.                             */
-
+/* $Id: IcosahedralPtsT.h,v 1.4 2004-07-15 08:28:09 paklein Exp $ */
+/* created: paklein (10/31/1997) */
 #ifndef _ICO_PTS_T_H_
 #define _ICO_PTS_T_H_
 
@@ -17,16 +15,8 @@ class IcosahedralPtsT: public SpherePointsT
 {
 public:
 
-	/*
-	 * Constructor
-	 */
-	IcosahedralPtsT(ifstreamT& in);
-
-	/*
-	 * Print parameters.
-	 */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;	
+	/* constructor */
+	IcosahedralPtsT(int num_points);
 
 	/*
 	 * Generate sphere points:

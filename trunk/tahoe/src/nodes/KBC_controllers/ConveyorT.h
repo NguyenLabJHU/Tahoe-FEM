@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.h,v 1.2 2003-08-08 16:33:55 paklein Exp $ */
+/* $Id: ConveyorT.h,v 1.3 2004-07-15 08:31:21 paklein Exp $ */
 #ifndef _CONVEYOR_T_H_
 #define _CONVEYOR_T_H_
 
@@ -24,13 +24,7 @@ class ConveyorT: public KBC_ControllerT
 public:
 
 	/** constructor */
-	ConveyorT(NodeManagerT& node_manager, FieldT& field);
-
-	/** initialization */
-	virtual void Initialize(ifstreamT& in);
-
-	/** write parameters */
-	virtual void WriteParameters(ostream& out) const;
+	ConveyorT(const BasicSupportT& support, FieldT& field);
 
 	/** not implemented - there's no going back */
 	virtual void Reset(void);

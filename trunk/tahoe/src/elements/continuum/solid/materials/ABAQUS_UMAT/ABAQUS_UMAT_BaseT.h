@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.10 2004-01-05 07:23:56 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.h,v 1.11 2004-07-15 08:26:33 paklein Exp $ */
 /* created: paklein (05/09/2000) */
 #ifndef _ABAQUS_UMAT_BASE_T_H_
 #define _ABAQUS_UMAT_BASE_T_H_
@@ -7,7 +7,6 @@
 #include "ABAQUS_BaseT.h"
 #include "FSSolidMatT.h"
 #include "IsotropicT.h"
-#include "Material2DT.h"
 
 /* library support options */
 #ifdef __F2C__
@@ -47,10 +46,6 @@ public:
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 
 	/* initialization */
 	virtual void Initialize(void);

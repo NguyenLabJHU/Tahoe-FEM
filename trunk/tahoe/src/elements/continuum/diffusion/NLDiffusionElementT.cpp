@@ -1,19 +1,17 @@
-/* $Id: NLDiffusionElementT.cpp,v 1.5 2004-06-17 07:39:59 paklein Exp $ */
+/* $Id: NLDiffusionElementT.cpp,v 1.6 2004-07-15 08:26:18 paklein Exp $ */
 #include "NLDiffusionElementT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 #include <math.h>
 
-#include "toolboxConstants.h"
-
-#include "ifstreamT.h"
-#include "ofstreamT.h"
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"
 #include "eIntegratorT.h"
 #include "iAutoArrayT.h"
 #include "ModelManagerT.h"
+#include "ParameterContainerT.h"
+#include "ParameterUtils.h"
 
 /* materials */
 #include "NLDiffusionMaterialT.h"
@@ -22,16 +20,6 @@
 using namespace Tahoe;
 
 /* constructor */
-NLDiffusionElementT::NLDiffusionElementT(const ElementSupportT& support, const FieldT& field):
-	DiffusionElementT(support, field),
-	feps(0.0), fT0(0.0), falpha(0.0)
-{
-	SetName("nonlinear_diffusion");
-
-	/* reset structure of element stiffness matrix */
-	fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
-}
-
 NLDiffusionElementT::NLDiffusionElementT(const ElementSupportT& support):
 	DiffusionElementT(support),
 	feps(0.0), 
@@ -39,23 +27,6 @@ NLDiffusionElementT::NLDiffusionElementT(const ElementSupportT& support):
 	falpha(0.0)
 {
 	SetName("nonlinear_diffusion");
-}
-
-/* data initialization */
-void NLDiffusionElementT::Initialize(void)
-{
-	/* inherited */
-	DiffusionElementT::Initialize();
-
-//check to make sure all materials in the materials list are NLDiffusionMaterialT
-
-	/* dimension work space */
-	fField_list.Dimension(NumIP());
-	
-	/* echo mixed traction BC's */
-	ifstreamT&  in = ElementSupport().Input();
-	ofstreamT& out = ElementSupport().Output();
-	EchoTractionBC(in, out);
 }
 
 /* collecting element group equation numbers */
@@ -67,6 +38,50 @@ void NLDiffusionElementT::Equations(AutoArrayT<const iArray2DT*>& eq_1, AutoArra
 	/* collect equation numbers for nonlinear boundary conditions */
 	fBCEqnos.Dimension(fBCFaces);
 	Field().SetLocalEqnos(fBCFaces, fBCEqnos);
+}
+
+/* information about subordinate parameter lists */
+void NLDiffusionElementT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	DiffusionElementT::DefineSubs(sub_list);
+
+	/* mixed boundary condition */
+	sub_list.AddSub("mixed_bc", ParameterListT::ZeroOrOnce);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* NLDiffusionElementT::NewSub(const StringT& name) const
+{
+	if (name == "mixed_bc") {
+		ParameterContainerT* mixed_bc = new ParameterContainerT(name);
+		mixed_bc->SetDescription("outward flux: h = epsilon*(T - T_0)^alpha");
+		mixed_bc->SetSubSource(this);
+	
+		/* side sets */
+		mixed_bc->AddSub("side_set_ID_list", ParameterListT::Once);
+	
+		/* flux parameters */
+		mixed_bc->AddParameter(  feps, "epsilon");
+		mixed_bc->AddParameter(   fT0, "T0");
+		mixed_bc->AddParameter(falpha, "alpha");
+		return mixed_bc;
+	}
+	else /* inherited */
+		return DiffusionElementT::NewSub(name);
+}
+
+/* accept parameter list */
+void NLDiffusionElementT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	DiffusionElementT::TakeParameterList(list);
+
+	/* dimension work space */
+	fField_list.Dimension(NumIP());
+
+	/* extract information about mixed bc's */
+	TakeTractionBC(list);
 }
 
 /***********************************************************************
@@ -342,7 +357,7 @@ void NLDiffusionElementT::FormStiffness(double constK)
 MaterialSupportT* NLDiffusionElementT::NewMaterialSupport(MaterialSupportT* p) const
 {
 	/* allocate */
-	if (!p) p = new DiffusionMatSupportT(NumSD(), NumDOF(), NumIP());
+	if (!p) p = new DiffusionMatSupportT(NumDOF(), NumIP());
 
 	/* inherited initializations */
 	DiffusionElementT::NewMaterialSupport(p);
@@ -360,21 +375,32 @@ MaterialSupportT* NLDiffusionElementT::NewMaterialSupport(MaterialSupportT* p) c
  * Private
  ***********************************************************************/
 
-void NLDiffusionElementT::EchoTractionBC(ifstreamT& in, ostream& out)
+void NLDiffusionElementT::TakeTractionBC(const ParameterListT& list)
 {
-	const char caller[] = "NLDiffusionElementT::EchoTractionBC";
-	int num_sides = -99;
-	in >> num_sides; if (num_sides < 0) ExceptionT::BadInputValue(caller);
+	const char caller[] = "NLDiffusionElementT::TakeTractionBC";
+
+	/* quick exit */
+	const ParameterListT* mixed_bc = list.List("mixed_bc");
+	if (!mixed_bc)
+		return;
+
+	/* extract BC parameters */
+	feps   = mixed_bc->GetParameter("epsilon");
+	fT0    = mixed_bc->GetParameter("T0");
+	falpha = mixed_bc->GetParameter("alpha");
+	
+	const ParameterListT& ss_ID_list = mixed_bc->GetList("side_set_ID_list");
+	int num_sides = ss_ID_list.NumLists("String");
 	if (num_sides > 0)
 	{
 		/* model manager */
-		ModelManagerT& model = ElementSupport().Model();
+		ModelManagerT& model = ElementSupport().ModelManager();
 
 		/* total number of faces */
 		int num_faces = 0;
 		ArrayT<StringT> side_ID(num_sides);
 		for (int i = 0; i < side_ID.Length(); i++) {
-			in >> side_ID[i];
+			side_ID[i] = ss_ID_list.GetList("String", i).GetParameter("value");
 			num_faces += model.SideSetLength(side_ID[i]);
 		}
 
@@ -400,19 +426,8 @@ void NLDiffusionElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 		
 			/* next set */
 			face_num += num_sides;
-		}
-		
-		/* read BC parameters */
-		in >> feps >> fT0 >> falpha;
+		}		
 	}
-
-	/* echo */
-	out << " Number of mixed BC side sets. . . . . . . . . . = " << num_sides << '\n';
-	out << " Number of BC faces. . . . . . . . . . . . . . . = " << fBCFaces.MajorDim() << '\n';
-	out << " BC parameters:\n";
-	out << " epsilon . . . . . . . . . . . . . . . . . . . . = " << feps << '\n';
-	out << " T0. . . . . . . . . . . . . . . . . . . . . . . = " << fT0 << '\n';
-	out << " alpha . . . . . . . . . . . . . . . . . . . . . = " << falpha << '\n';
 }
 
 /* compute contribution to RHS from mixed BC's */

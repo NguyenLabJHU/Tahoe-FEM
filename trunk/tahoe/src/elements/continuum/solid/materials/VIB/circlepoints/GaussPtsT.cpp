@@ -1,38 +1,18 @@
-/* $Id: GaussPtsT.cpp,v 1.4 2002-10-20 22:48:59 paklein Exp $ */
-/* created: paklein (11/02/1997)                                          */
-
+/* $Id: GaussPtsT.cpp,v 1.5 2004-07-15 08:28:03 paklein Exp $ */
+/* created: paklein (11/02/1997) */
 #include "GaussPtsT.h"
 #include <math.h>
-#include <iostream.h>
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
-
 
 using namespace Tahoe;
 
 const double Pi = acos(-1.0);
 
-/*
-* Constructor
-*/
-GaussPtsT::GaussPtsT(istream& in)
+/* constructor */
+GaussPtsT::GaussPtsT(int n): fN(n)
 {
-	/* number of integration points */
-	in >> fN;
-}
 
-/*
-* Print parameters.
-*/
-void GaussPtsT::Print(ostream& out) const
-{
-	/* number of integration points */
-	out << " Number of sampling points . . . . . . . . . . . = " << fN << '\n';
-}
-
-void GaussPtsT::PrintName(ostream& out) const
-{
-	out << "    " << fN << "-point Gauss rule\n";
 }
 
 /*
@@ -96,8 +76,7 @@ void GaussPtsT::SetCoords(int numint)
 			break;
 
 		default:
-			
-			throw ExceptionT::kGeneralFail;
+			ExceptionT::GeneralFail("GaussPtsT::SetCoords", "unrecognized Gauss rule %d", numint);
 	}
 
 	/* calculate directions */	
@@ -151,8 +130,7 @@ void GaussPtsT::SetJacobians(int numint)
 			break;
 
 		default:
-			
-			throw ExceptionT::kGeneralFail;
+			ExceptionT::GeneralFail("GaussPtsT::SetCoords", "unrecognized Gauss rule %d", numint);
 	}
 	
 	/* temp vector */

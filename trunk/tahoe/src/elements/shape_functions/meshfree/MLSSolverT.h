@@ -1,6 +1,5 @@
-/* $Id: MLSSolverT.h,v 1.9 2004-06-26 06:11:09 paklein Exp $ */
+/* $Id: MLSSolverT.h,v 1.10 2004-07-15 08:29:59 paklein Exp $ */
 /* created: paklein (12/08/1999) */
-
 #ifndef _MLS_SOLVER_T_H_
 #define _MLS_SOLVER_T_H_
 
@@ -124,10 +123,6 @@ private:
 	/* configure solver for current number of neighbors */
 	void Dimension(void);
 
-	/* set window functions and derivatives - returns the number
-	 * of active neighbors */
-	int SetWindow(const dArray2DT& support_params);
-
 	/* set moment matrix, inverse, and derivatives */
 	int SetMomentMartrix(const dArrayT& volume);
 	void ComputeM(const dArrayT& volume);
@@ -160,9 +155,12 @@ protected:
 	/** basis functions */
 	BasisT* fBasis;
 	
-	/* window function */
+	/** \name window function */
+	/*@{*/
 	MeshFreeT::WindowTypeT fWindowType; /**< window function type   */
 	WindowT* fWindow;                   /**< window function object */
+	dArrayT fOrigin;
+	/*@}*/
 	
 	/** local nodal coordinates centered at current field point */
 	dArray2DT fLocCoords;

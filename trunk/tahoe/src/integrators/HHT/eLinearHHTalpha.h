@@ -1,6 +1,5 @@
-/* $Id: eLinearHHTalpha.h,v 1.5 2003-01-29 07:35:14 paklein Exp $ */
+/* $Id: eLinearHHTalpha.h,v 1.6 2004-07-15 08:30:28 paklein Exp $ */
 /* created: paklein (10/14/1996) */
-
 #ifndef _E_LINEARHHT_A_H_
 #define _E_LINEARHHT_A_H_
 
@@ -16,7 +15,7 @@ class eLinearHHTalpha: virtual public HHTalpha, public eIntegratorT
 public:
 
 	/** constructor */
-	eLinearHHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder);
+	eLinearHHTalpha(double alpha);
 
 	/** \name elements of the effective mass matrix
 	 * returns 1 if the algorithm requires M, C, or K and sets const equal

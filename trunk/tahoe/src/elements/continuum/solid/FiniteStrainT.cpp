@@ -1,43 +1,138 @@
-/* $Id: FiniteStrainT.cpp,v 1.19 2003-12-28 08:23:20 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.20 2004-07-15 08:26:27 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
 #include "FSSolidMatT.h"
 #include "FSMatSupportT.h"
+#include "ParameterContainerT.h"
 
 /* materials lists */
-#include "SolidMatList1DT.h"
-#include "SolidMatList2DT.h"
-#include "SolidMatList3DT.h"
+#include "FSSolidMatList1DT.h"
+#include "FSSolidMatList2DT.h"
+#include "FSSolidMatList3DT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-FiniteStrainT::FiniteStrainT(const ElementSupportT& support, const FieldT& field):
-	SolidElementT(support, field),
+FiniteStrainT::FiniteStrainT(const ElementSupportT& support):
+	SolidElementT(support),
 	fNeedsOffset(-1),
 	fCurrShapes(NULL),
 	fFSMatSupport(NULL)
 {
-	/* disable any strain-displacement options */
-	if (fStrainDispOpt != kStandardB)
-	{
-		cout << "\n FiniteStrainT::FiniteStrainT: no strain-displacement options\n" << endl;
-		fStrainDispOpt = kStandardB;
-	}
+	SetName("large_strain");
 }
 
 /* destructor */
-FiniteStrainT::~FiniteStrainT(void)
-{
+FiniteStrainT::~FiniteStrainT(void) {
 	delete fFSMatSupport;
 }
 
-/* called immediately after constructor */
-void FiniteStrainT::Initialize(void)
+/* compute field gradients with respect to current coordinates */
+void FiniteStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u) const
+{
+	if (fCurrShapes)
+	{
+		/* field gradient */
+		fCurrShapes->GradU(u, grad_u);
+	}
+	else
+		ExceptionT::GeneralFail("FiniteStrainT::ComputeGradient", "shape functions wrt current coords not defined");
+}
+
+/* compute field gradients with respect to current coordinates */
+void FiniteStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u, 
+	int ip) const
+{
+	if (fCurrShapes)
+	{
+		/* field gradient */
+		fCurrShapes->GradU(u, grad_u, ip);
+	}
+	else
+		ExceptionT::GeneralFail("FiniteStrainT::ComputeGradient", "shape functions wrt current coords not defined");
+}
+
+/* information about subordinate parameter lists */
+void FiniteStrainT::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
-	SolidElementT::Initialize();
+	SolidElementT::DefineSubs(sub_list);	
+
+	/* element block/material specification */
+	sub_list.AddSub("large_strain_element_block", ParameterListT::OnePlus);
+}
+
+/* return the description of the given inline subordinate parameter list. */
+void FiniteStrainT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
+{
+	if (name == "large_strain_material_choice")
+	{
+		order = ParameterListT::Choice;
+		
+		/* list of choices */
+		sub_lists.AddSub("large_strain_material_1D");
+		sub_lists.AddSub("large_strain_material_2D");
+		sub_lists.AddSub("large_strain_material_3D");
+	}
+	else /* inherited */
+		SolidElementT::DefineInlineSub(name, order, sub_lists);
+}
+
+/* return the description of the given inline subordinate parameter list */
+ParameterInterfaceT* FiniteStrainT::NewSub(const StringT& name) const
+{
+	if (name == "large_strain_element_block")
+	{
+		ParameterContainerT* block = new ParameterContainerT(name);
+		
+		/* list of element block ID's (defined by ElementBaseT) */
+		block->AddSub("block_ID_list", ParameterListT::Once);
+	
+		/* choice of materials lists (inline) */
+		block->AddSub("large_strain_material_choice", ParameterListT::Once, true);
+	
+		/* set this as source of subs */
+		block->SetSubSource(this);
+		
+		return block;
+	}
+	else /* inherited */
+		return SolidElementT::NewSub(name);
+
+}
+
+/* accept parameter list */
+void FiniteStrainT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SolidElementT::TakeParameterList(list);
+
+	/* offset to class needs flags */
+	fNeedsOffset = fMaterialNeeds[0].Length();
+	
+	/* set material needs */
+	for (int i = 0; i < fMaterialNeeds.Length(); i++)
+	{
+		/* needs array */
+		ArrayT<bool>& needs = fMaterialNeeds[i];
+
+		/* resize array */
+		needs.Resize(needs.Length() + 2, true);
+
+		/* casts are safe since class contructs materials list */
+		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
+		FSSolidMatT* mat = (FSSolidMatT*) pcont_mat;
+
+		/* collect needs */
+		needs[fNeedsOffset + kF     ] = mat->Need_F();
+		needs[fNeedsOffset + kF_last] = mat->Need_F_last();
+		
+		/* consistency */
+		needs[kNeedDisp] = needs[kNeedDisp] || needs[fNeedsOffset + kF];
+		needs[KNeedLastDisp] = needs[KNeedLastDisp] || needs[fNeedsOffset + kF_last];
+	}
 
 	/* what's needed */
 	bool need_F = false;
@@ -71,56 +166,43 @@ void FiniteStrainT::Initialize(void)
 	}
 }
 
-/* TEMPORARY */
-void FiniteStrainT::InitialCondition(void)
+/* extract the list of material parameters */
+void FiniteStrainT::CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const
 {
-	/* inherited */
-	SolidElementT::InitialCondition();
+	const char caller[] = "SmallStrainT::CollectMaterialInfo";
 	
-	/* set the source for the iteration number */
-	fFSMatSupport->SetIterationNumber(ElementSupport().IterationNumber(Group()));
-}
+	/* initialize */
+	mat_params.Clear();
+	
+	/* collected material parameters */
+	int num_blocks = all_params.NumLists("large_strain_element_block");
+	for (int i = 0; i < num_blocks; i++) {
 
-/* compute field gradients with respect to current coordinates */
-void FiniteStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u) const
-{
-	if (fCurrShapes)
-	{
-		/* field gradient */
-		fCurrShapes->GradU(u, grad_u);
-	}
-	else
-	{
-		cout << "\n FiniteStrainT::ComputeGradient: shape functions wrt current coords not defined" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-}
-
-/* compute field gradients with respect to current coordinates */
-void FiniteStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u, 
-	int ip) const
-{
-	if (fCurrShapes)
-	{
-		/* field gradient */
-		fCurrShapes->GradU(u, grad_u, ip);
-	}
-	else
-	{
-		cout << "\n FiniteStrainT::ComputeGradient: shape functions wrt current coords not defined" << endl;
-		throw ExceptionT::kGeneralFail;
+		/* block information */	
+		const ParameterListT& block = all_params.GetList("large_strain_element_block", i);
+		
+		/* resolve material list name */
+		if (i == 0) {
+			const ParameterListT& mat_list_params = block.GetListChoice(*this, "large_strain_material_choice");
+			mat_params.SetName(mat_list_params.	Name());
+		}
+		
+		/* collect material parameters */
+		const ParameterListT& mat_list = block.GetList(mat_params.Name());
+		const ArrayT<ParameterListT>& mat = mat_list.Lists();
+		mat_params.AddList(mat[0]);
 	}
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* construct a new material support and return a pointer */
 MaterialSupportT* FiniteStrainT::NewMaterialSupport(MaterialSupportT* p) const
 {
 	/* allocate */
-	if (!p) p = new FSMatSupportT(NumSD(), NumDOF(), NumIP());
+	if (!p) p = new FSMatSupportT(NumDOF(), NumIP());
 
 	/* inherited initializations */
 	SolidElementT::NewMaterialSupport(p);
@@ -136,8 +218,20 @@ MaterialSupportT* FiniteStrainT::NewMaterialSupport(MaterialSupportT* p) const
 }
 
 /* construct materials manager and read data */
-MaterialListT* FiniteStrainT::NewMaterialList(int nsd, int size)
+MaterialListT* FiniteStrainT::NewMaterialList(const StringT& name, int size)
 {
+	/* resolve number of spatial dimensions */
+	int nsd = -1;
+	if (name == "large_strain_material_1D")
+		nsd = 1;
+	else if (name == "large_strain_material_2D")
+		nsd = 2;
+	else if (name == "large_strain_material_3D")
+		nsd = 3;
+	
+	/* no match */
+	if (nsd == -1) return NULL;
+
 	if (size > 0)
 	{
 		/* material support */
@@ -147,57 +241,24 @@ MaterialListT* FiniteStrainT::NewMaterialList(int nsd, int size)
 		}
 
 		if (nsd == 1)
-			return new SolidMatList1DT(size, *fFSMatSupport);
+			return new FSSolidMatList1DT(size, *fFSMatSupport);
 		else if (nsd == 2)
-			return new SolidMatList2DT(size, *fFSMatSupport);
+			return new FSSolidMatList2DT(size, *fFSMatSupport);
 		else if (nsd == 3)
-			return new SolidMatList3DT(size, *fFSMatSupport);
-		else
-			return NULL;
+			return new FSSolidMatList3DT(size, *fFSMatSupport);
 	}
 	else
-	{
-		if (nsd == 1)
-			return new SolidMatList1DT;
+	 {
+	 	if (nsd == 1)
+	 		return new FSSolidMatList1DT;
 		else if (nsd == 2)
-			return new SolidMatList2DT;
+			return new FSSolidMatList2DT;
 		else if (nsd == 3)
-			return new SolidMatList3DT;
-		else
-			return NULL;
+			return new FSSolidMatList3DT;
 	}
-}
-
-/* construct list of materials from the input stream */
-void FiniteStrainT::ReadMaterialData(ifstreamT& in)
-{
-	/* inherited */
-	SolidElementT::ReadMaterialData(in);
-
-	/* offset to class needs flags */
-	fNeedsOffset = fMaterialNeeds[0].Length();
 	
-	/* set material needs */
-	for (int i = 0; i < fMaterialNeeds.Length(); i++)
-	{
-		/* needs array */
-		ArrayT<bool>& needs = fMaterialNeeds[i];
-
-		/* resize array */
-		needs.Resize(needs.Length() + 2, true);
-
-		/* casts are safe since class contructs materials list */
-		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
-		FSSolidMatT* mat = (FSSolidMatT*) pcont_mat;
-
-		/* collect needs */
-		needs[fNeedsOffset + kF     ] = mat->Need_F();
-		needs[fNeedsOffset + kF_last] = mat->Need_F_last();
-		
-		/* consistency */
-		needs[kNeedDisp] = needs[kNeedDisp] || needs[fNeedsOffset + kF];
-		needs[KNeedLastDisp] = needs[KNeedLastDisp] || needs[fNeedsOffset + kF_last];
-	}
+	/* no match */
+	return NULL;
 }
 
 /* form shape functions and derivatives */

@@ -1,49 +1,24 @@
-/* $Id: CBLatticeT.cpp,v 1.6 2004-06-26 06:00:13 paklein Exp $ */
+/* $Id: CBLatticeT.cpp,v 1.7 2004-07-15 08:26:42 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #include "CBLatticeT.h"
 
 using namespace Tahoe;
 
-/* Constructor */
-CBLatticeT::CBLatticeT(int numlatticedim, int numspatialdim,
-	int numbonds): BondLatticeT(numlatticedim, numspatialdim, numbonds)
-{
-
-}
-
-/*
-* The Q matrix passed into this constructor is used to rotate the
-* bond vectors into the orientation prescribed by Q.  No check is
-* performed on the orthogonality of Q, only its dimensions.  Q is
-* deep copied.  Q is defined as:
-*
-*			Q = d x_global / d x_natural
-*
-* So that the vectors are transformed by:
-*
-*			r_new = Q.r_natural
-*
-*/
-CBLatticeT::CBLatticeT(const dMatrixT& Q, int numspatialdim,
-	int numbonds): BondLatticeT(Q, numspatialdim, numbonds)
-{
-
-}
+/* constructor */
+CBLatticeT::CBLatticeT(void) { }
 	
-/*
-* Fetch bond component tensor (R_I R_J R_K R_L) in reduced index
-* form.
-*/
+/* fetch bond component tensor (R_I R_J R_K R_L) in reduced index form */
 void CBLatticeT::BondComponentTensor4(int numbond, dMatrixT& matrix) const
 {
 	/* temp */
-	dArrayT temp(fNumSpatialDim, fBonds(numbond));
+	dArrayT temp;
+	fBonds.RowAlias(numbond, temp);
 
-	if (fNumSpatialDim == 2)
+	if (matrix.Rows() == 3) /* 3 stress components in 2D */
 		BondTensor4_2D(temp, matrix);
-	else if (fNumSpatialDim == 3)
+	else if (matrix.Rows() == 6) /* 6 stress components in 2D */
 		BondTensor4_3D(temp, matrix);
-	else if (fNumSpatialDim == 1) {
+	else if (matrix.Rows() == 1) /* 1D */ {
 		double R = fBonds[numbond];
 		matrix[0] = R*R*R*R;
 	}
@@ -57,14 +32,15 @@ void CBLatticeT::BondComponentTensor4(int numbond, dMatrixT& matrix) const
 */
 void CBLatticeT::BondComponentTensor2(int numbond, dArrayT& vector) const
 {
-	/* wrap */
-	dArrayT temp(fNumSpatialDim, fBonds(numbond));
+	/* temp */
+	dArrayT temp;
+	fBonds.RowAlias(numbond, temp);
 
-	if (fNumSpatialDim == 2)
+	if (vector.Length() == 3) /* 3 components in 2D */
 		BondTensor2_2D(temp, vector);
-	else if (fNumSpatialDim == 3)
+	else if (vector.Length() == 6) /* 6 stress components in 2D */
 		BondTensor2_3D(temp, vector);
-	else if (fNumSpatialDim == 1) {
+	else if (vector.Length() == 1) /* 1D */{
 		double R = fBonds[numbond];
 		vector[0] = R*R;
 	}
@@ -74,23 +50,21 @@ void CBLatticeT::BondComponentTensor2(int numbond, dArrayT& vector) const
 
 void CBLatticeT::BatchBondComponentTensor2(dArray2DT& comptable) const
 {
-	if (fNumSpatialDim == 2)
+	if (comptable.MinorDim() == 3) /* 3 components in 2D */
 		BatchBondTensor2_2D(comptable);
 	else
 		BatchBondTensor2_3D(comptable);
 }
 
 /**********************************************************************
-* Private
-**********************************************************************/
+ * Private
+ **********************************************************************/
 
-/*
-* Building the bond component tensors.
-*/
+/* building the bond component tensors */
 void CBLatticeT::BondTensor4_2D(const dArrayT& comps, dMatrixT& matrix) const
 {
 	/* dimension check */
-	if (matrix.Rows() != 3 || matrix.Cols() != 3) throw ExceptionT::kGeneralFail;
+	if (matrix.Rows() != 3 || matrix.Cols() != 3) ExceptionT::GeneralFail("CBLatticeT::BondTensor4_2D");
 
 	double R0 = comps[0];
 	double R1 = comps[1];
@@ -101,13 +75,18 @@ void CBLatticeT::BondTensor4_2D(const dArrayT& comps, dMatrixT& matrix) const
 		for (int i = 0; i <= j; i++)
 			matrix(i,j) = m[i]*m[j];
 
-	matrix.CopySymmetric();
+	for (int j = 0; j < 3; j++) {
+		double* col = matrix(j);
+		*col++ = m[0]*m[j];
+		*col++ = m[1]*m[j];
+		*col   = m[2]*m[j];			
+	}
 }	
 
 void CBLatticeT::BondTensor4_3D(const dArrayT& comps, dMatrixT& matrix) const
 {
 	/* dimension check */
-	if (matrix.Rows() != 6 || matrix.Cols() != 6) throw ExceptionT::kGeneralFail;
+	if (matrix.Rows() != 6 || matrix.Cols() != 6) ExceptionT::GeneralFail("CBLatticeT::BondTensor4_3D");
 
 	double R0 = comps[0];
 	double R1 = comps[1];
@@ -119,13 +98,21 @@ void CBLatticeT::BondTensor4_3D(const dArrayT& comps, dMatrixT& matrix) const
 		for (int i = 0; i <= j; i++)
 			matrix(i,j) = m[i]*m[j];
 
-	matrix.CopySymmetric();
+	for (int j = 0; j < 6; j++) {
+		double* col = matrix(j);
+		*col++ = m[0]*m[j];
+		*col++ = m[1]*m[j];
+		*col++ = m[2]*m[j];
+		*col++ = m[3]*m[j];
+		*col++ = m[4]*m[j];
+		*col   = m[5]*m[j];
+	}
 }	
 
 void CBLatticeT::BondTensor2_2D(const dArrayT& comps, dArrayT& vector) const
 {	
 	/* dimension check */
-	if (vector.Length() != 3) throw ExceptionT::kGeneralFail;
+	if (vector.Length() != 3) ExceptionT::GeneralFail("CBLatticeT::BondTensor2_2D");
 	
 	double R0 = comps[0];
 	double R1 = comps[1];
@@ -138,7 +125,7 @@ void CBLatticeT::BondTensor2_2D(const dArrayT& comps, dArrayT& vector) const
 void CBLatticeT::BondTensor2_3D(const dArrayT& comps, dArrayT& vector) const
 {
 	/* dimension check */
-	if (vector.Length() != 6) throw ExceptionT::kGeneralFail;
+	if (vector.Length() != 6) ExceptionT::GeneralFail("CBLatticeT::BondTensor2_3D");
 	
 	double R0 = comps[0];
 	double R1 = comps[1];
@@ -156,9 +143,9 @@ void CBLatticeT::BondTensor2_3D(const dArrayT& comps, dArrayT& vector) const
 void CBLatticeT::BatchBondTensor2_2D(dArray2DT& comptable) const
 {
 	/* dimension check */
-	if (comptable.MinorDim() != 3) throw ExceptionT::kGeneralFail;
+	if (comptable.MinorDim() != 3) ExceptionT::GeneralFail("CBLatticeT::BatchBondTensor2_2D");
 
-	for (int i = 0; i < fNumBonds; i++)
+	for (int i = 0; i < fBonds.MajorDim(); i++)
 	{
 		const double* pbond = fBonds(i);
 		double* pcomp = comptable(i);
@@ -175,9 +162,9 @@ void CBLatticeT::BatchBondTensor2_2D(dArray2DT& comptable) const
 void CBLatticeT::BatchBondTensor2_3D(dArray2DT& comptable) const
 {
 	/* dimension check */
-	if (comptable.MinorDim() != 6) throw ExceptionT::kGeneralFail;
+	if (comptable.MinorDim() != 6) ExceptionT::GeneralFail("CBLatticeT::BatchBondTensor2_3D");
 
-	for (int i = 0; i < fNumBonds; i++)
+	for (int i = 0; i < fBonds.MajorDim(); i++)
 	{
 		const double* pbond = fBonds(i);
 		double* pcomp = comptable(i);

@@ -1,27 +1,25 @@
-/* $Id: ExpCD_DRSolver.cpp,v 1.10 2004-06-17 07:42:05 paklein Exp $ */
+/* $Id: ExpCD_DRSolver.cpp,v 1.11 2004-07-15 08:31:50 paklein Exp $ */
 /* created: paklein (08/19/1998) */
-
 #include "ExpCD_DRSolver.h"
 
 #include <iostream.h>
 #include <math.h>
 
 #include "ifstreamT.h"
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
 #include "FEManagerT.h"
 #include "DiagonalMatrixT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 ExpCD_DRSolver::ExpCD_DRSolver(FEManagerT& fe_manager, int group):
 	SolverT(fe_manager, group),
 	fMaxIterations(-1),
 	fTolerance(0.0),
 	fdt(1.0)
 {
+ExceptionT::GeneralFail("ExpCD_DRSolver::ExpCD_DRSolver", "out of date");
+#if 0
 	/* check matrix type */
 	if (fMatrixType != kDiagonalMatrix)
 	{
@@ -95,6 +93,7 @@ throw ExceptionT::kGeneralFail;
 	if (fTolerance < 0.0 || fTolerance > 1.0) throw ExceptionT::kBadInputValue;
 	if (fMass_scaling < kSmall) throw ExceptionT::kBadInputValue;
 	if (fDamp_scaling < kSmall) throw ExceptionT::kBadInputValue;
+#endif
 }
 
 /* (re-)configure the global equation system */

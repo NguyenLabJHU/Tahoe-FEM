@@ -1,4 +1,4 @@
-/* $Id: IsoVIB3D.h,v 1.8 2003-01-29 07:34:53 paklein Exp $ */
+/* $Id: IsoVIB3D.h,v 1.9 2004-07-15 08:27:51 paklein Exp $ */
 /* created: paklein (03/15/1998) */
 #ifndef _ISO_VIB_3D_H_
 #define _ISO_VIB_3D_H_
@@ -21,15 +21,11 @@ class IsoVIB3D: public FSSolidMatT, public VIB
 public:
 
 	/* constructor */
-	IsoVIB3D(ifstreamT& in, const FSMatSupportT& support);
+	IsoVIB3D(void);
 
 	/* destructor */
 	virtual ~IsoVIB3D(void);
-	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;	
-	
+		
 	/** \name spatial description */
 	/*@{*/
 	/** spatial tangent modulus */
@@ -52,6 +48,18 @@ public:
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/	
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 

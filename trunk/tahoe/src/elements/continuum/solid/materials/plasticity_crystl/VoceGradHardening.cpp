@@ -6,7 +6,7 @@
 #include "PolyCrystalMatT.h"
 #include "NLCSolver.h"
 #include "Utils.h"
-#include "ifstreamT.h"
+
 
 // number of material properties for hard model 
 
@@ -257,8 +257,7 @@ const double VoceGradHardening::IsoHardeningStress(int is) const
   return fTauIso[0];
 }
 
-void VoceGradHardening::Print(ostream& out) const
-{
+#if 0
   // print hardening parameters
   out << "       Hardening rate (h0) . . . . . . . . . . . = " << fMatProp[0] << "\n";
   out << "       Initial hardness (tauS0). . . . . . . . . = " << fMatProp[1] << "\n";
@@ -269,16 +268,7 @@ void VoceGradHardening::Print(ostream& out) const
   out << "       burger's vector (b) . . . . . . . . . . . = " << fMatProp[6] << "\n";
   out << "       c_2 . . . . . . . . . . . . . . . . . . . = " << fMatProp[7] << "\n";
   out << "       c_1 (computed). . . . . . . . . . . . . . = " << fMatProp[8] << "\n";
-
-  // print hardening solver control data
-  fSolver->Print(out);
-}
-
-void VoceGradHardening::PrintName(ostream& out) const
-{
-  // print model name
-  out << "    VoceGrad's slip hardening law\n";
-}
+#endif
 
 /* PRIVATE MEMBER FUNCTIONS */
 

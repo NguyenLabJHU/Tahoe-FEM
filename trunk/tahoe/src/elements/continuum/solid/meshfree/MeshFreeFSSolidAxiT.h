@@ -1,28 +1,32 @@
-/* $Id: MeshFreeFSSolidAxiT.h,v 1.1 2004-02-03 01:47:44 paklein Exp $ */
+/* $Id: MeshFreeFSSolidAxiT.h,v 1.2 2004-07-15 08:29:39 paklein Exp $ */
 #ifndef _MESHFREE_FSSOLID_AXI_T_H_
 #define _MESHFREE_FSSOLID_AXI_T_H_
 
 /* base classes */
 #include "TotalLagrangianAxiT.h"
-#include "MeshFreeFractureSupportT.h"
 
 /* direct members */
 #include "nVariMatrixT.h"
+#include "nVariArray2DT.h"
 
 namespace Tahoe {
 
+/* forward declarations */
+class MeshFreeSupportT;
+class MeshFreeShapeFunctionT;
+class MeshFreeFractureSupportT;
+
 /** large deformation, axisymmetric solid with MLS shapefunctions for the
  * field (displacement) representation */
-class MeshFreeFSSolidAxiT: public TotalLagrangianAxiT,
-	public MeshFreeFractureSupportT
+class MeshFreeFSSolidAxiT: public TotalLagrangianAxiT
 {
 public:
 
-	/* constructor */
-	MeshFreeFSSolidAxiT(const ElementSupportT& support, const FieldT& field);
-	
-	/* data initialization */
-	virtual void Initialize(void);
+	/** constructor */
+	MeshFreeFSSolidAxiT(const ElementSupportT& support);
+
+	/** destructor */
+	virtual ~MeshFreeFSSolidAxiT(void);
 
 	/* append element equations numbers to the list */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -52,11 +56,26 @@ public:
 	virtual void InitStep(void);
 	virtual void CloseStep(void);
 	virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
+	/** accessors */
+	MeshFreeSupportT& MeshFreeSupport(void) const;
 					
 protected:
-
-	/* print element group data */
-	virtual void PrintControlData(ostream& out) const;
 
 	/* initialization functions */
 	virtual void SetShape(void);
@@ -75,6 +94,15 @@ private:
 	
 protected:
 
+	/** meshless shape functions */
+	MeshFreeShapeFunctionT* fMFShapes;
+
+	/** support for meshless calculations */
+	MeshFreeFractureSupportT* fMFFractureSupport;
+
+	/** make field at bounding nodes nodally exact */
+	bool fAutoBorder;
+
 	/* wrappers */
 	nVariMatrixT<double>  fStressStiff_wrap;
 	nVariMatrixT<double>  fB_wrap;
@@ -83,6 +111,11 @@ protected:
 
 	/* connectivities over all element blocks */
 	iArray2DT fConnectsAll;
+
+	/** pointer to list parameters needed to construct meshless shape functions. This
+	 * pointer is set during MeshFreeSSSolidT::TakeParamaterListT and used during
+	 * MeshFreeSSSolidT::SetShape */
+	const ParameterListT* fMeshfreeParameters;
 };
 
 } /* namespace Tahoe */

@@ -1,9 +1,8 @@
-/* $Id: GradCrystalPlast2D.h,v 1.5 2003-01-29 07:35:04 paklein Exp $ */
+/* $Id: GradCrystalPlast2D.h,v 1.6 2004-07-15 08:29:06 paklein Exp $ */
 #ifndef _GRAD_CRYSTAL_PLAST_2D_H_
 #define _GRAD_CRYSTAL_PLAST_2D_H_
 
 #include "GradCrystalPlast.h"
-#include "Material2DT.h"
 
 #include "ArrayT.h"
 #include "dArray2DT.h"
@@ -11,14 +10,11 @@
 
 namespace Tahoe {
 
-class GradCrystalPlast2D: public GradCrystalPlast, public Material2DT
+class GradCrystalPlast2D: public GradCrystalPlast
 {
  public:
   // constructor
   GradCrystalPlast2D(ifstreamT& in, const FSMatSupportT& support);
-
-  // destructor
-  ~GradCrystalPlast2D();
 
   // crystal Cauchy stress
   virtual const dSymMatrixT& s_ij();
@@ -26,9 +22,11 @@ class GradCrystalPlast2D: public GradCrystalPlast, public Material2DT
   // crystal modulus 
   virtual const dMatrixT& c_ijkl();
 
-  // print data and model name
-  virtual void Print(ostream& out) const;
-  virtual void PrintName(ostream& out) const;
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
  protected: 
 

@@ -1,12 +1,10 @@
-/* $Id: EAMFCC3D.h,v 1.4 2004-04-09 02:02:58 hspark Exp $ */
-/* created: paklein (12/02/1996)                                          */
-/* EAMFCC3D.h                                                             */
-
+/* $Id: EAMFCC3D.h,v 1.5 2004-07-15 08:26:47 paklein Exp $ */
+/* created: paklein (12/02/1996) */
 #ifndef _EAMFCC3D_H_
 #define _EAMFCC3D_H_
 
 /* base class */
-#include "CBLatticeT.h"
+#include "FCCLatticeT.h"
 
 namespace Tahoe {
 
@@ -17,27 +15,19 @@ class dSymMatrixT;
 class EAM;
 class EAM_particle;
 
-/* bond parameters */
-const int kEAMFCC3DNumBonds			= 54;
-const int kEAMFCC3DNumLatticeDim 	=  3;
-const int kEAMFCC3DNumAtomsPerCell	=  4;
-
-class EAMFCC3D: public CBLatticeT
+class EAMFCC3D: public FCCLatticeT
 {
 public:
 
-	/* EAM glue functions */
+	/** EAM glue functions */
 	enum GlueTypeT {kErcolessiAdamsAl = 0,
                          kVoterChenAl = 1,
                          kVoterChenCu = 2,
                      kFoilesBaskesDaw = 3,
 					     kEAMParticle = 4};
 
-	/* constructor */
-	EAMFCC3D(ifstreamT& in, int EAMcode, int numspatialdim,
-		int numbonds = kEAMFCC3DNumBonds);
-	EAMFCC3D(ifstreamT& in, const dMatrixT& Q, int EAMcode, int numspatialdim,
-		int numbonds = kEAMFCC3DNumBonds);
+	/** constructor */
+	EAMFCC3D(void);
 
 	/* destructor */
 	virtual ~EAMFCC3D(void);
@@ -51,35 +41,41 @@ public:
 	/* return the symmetric 2nd PK stress tensor */
 	void SetStress(const dSymMatrixT& strain, dSymMatrixT& stress);
 
-	/* I/O functions */
-	virtual void Print(ostream& out) const;
-
 	/* calculate electron density at ghost atom */
 	void ElectronDensity(const dSymMatrixT& strain, double& edensity, double& embforce);
 
-	/* initialize bond tables */
-	void InitBondTables(void);
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
 	/* initialize bond table values */
 	virtual void LoadBondTable(void);
 
-private:
-
-	/* Set glue functions */
-	void SetGlueFunctions(ifstreamT& in);
-	 	   	    	
 protected:   	    	
 
-	int		fEAMcode;
 	double	fLatticeParameter;
 	double	fCellVolume;
-	
-	/* embedded atom solvers */
-	EAM*	fEAM;
-	EAM_particle* fEAM_particle;
+
+	/** \name embedded atom solver */
+	/*@{*/
+	EAM* fEAM;
+	EAM_particle* fEAM_particle;	
+	/*@}*/
 };
 
 } // namespace Tahoe 
+
 #endif /* _EAMFCC3D_H_ */

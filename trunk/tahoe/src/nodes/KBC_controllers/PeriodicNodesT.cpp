@@ -1,38 +1,19 @@
-/* $Id: PeriodicNodesT.cpp,v 1.4 2003-11-21 22:47:59 paklein Exp $ */
+/* $Id: PeriodicNodesT.cpp,v 1.5 2004-07-15 08:31:21 paklein Exp $ */
 #include "PeriodicNodesT.h"
-#include "NodeManagerT.h"
+
+#include "BasicSupportT.h"
 #include "ifstreamT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-PeriodicNodesT::PeriodicNodesT(NodeManagerT& node_manager, BasicFieldT& field):
-	TiedNodesT(node_manager, field),
-	fIsPeriodic(fNodeManager.NumSD()),
-	fPeriodicStride(fNodeManager.NumSD())
+PeriodicNodesT::PeriodicNodesT(const BasicSupportT& support, BasicFieldT& field):
+	TiedNodesT(support, field),
+	fIsPeriodic(fSupport.NumSD()),
+	fPeriodicStride(fSupport.NumSD())
 {
 	fIsPeriodic = false;
 	fPeriodicStride = 0.0;
-}
-
-void PeriodicNodesT::WriteParameters(ostream& out) const
-{
-	/* inherited */
-	TiedNodesT::WriteParameters(out);
-
-	/* periodic information */
-	int d_width = OutputWidth(out, fPeriodicStride.Pointer());
-	out << " Periodic boundaries:\n";
-	out << setw(kIntWidth) << "dir" << setw(d_width) << "length" << '\n';
-	for (int i = 0; i < fPeriodicStride.Length(); i++)
-	{
-		out << setw(kIntWidth) << i+1;
-		if (fIsPeriodic[i]) 
-			out << setw(d_width) << fPeriodicStride[i] << '\n';
-		else
-			out << setw(d_width) << "-" << '\n';
-	}
-	out.flush();
 }
 
 /**********************************************************************
@@ -63,11 +44,11 @@ void PeriodicNodesT::InitTiedNodePairs(const iArrayT& leader_nodes,
 	iArrayT& follower_nodes)
 {
 	/* coordinates */
-	const dArray2DT& coords = fNodeManager.InitialCoordinates();
+	const dArray2DT& coords = fSupport.InitialCoordinates();
 	
 	/* get processor number */
-	int np = fNodeManager.Rank();
-	const ArrayT<int>* pMap = fNodeManager.ProcessorMap();
+	int np = fSupport.Rank();
+	const ArrayT<int>* pMap = fSupport.ProcessorMap();
 
 	/* dumb search */
 	int nsd = coords.MinorDim();

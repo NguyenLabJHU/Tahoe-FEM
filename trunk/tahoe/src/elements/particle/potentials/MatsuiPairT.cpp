@@ -1,4 +1,4 @@
-/* $Id: MatsuiPairT.cpp,v 1.2 2003-10-28 23:31:51 paklein Exp $ */
+/* $Id: MatsuiPairT.cpp,v 1.3 2004-07-15 08:29:49 paklein Exp $ */
 
 #include "MatsuiPairT.h"
 #include "toolboxConstants.h"
@@ -113,6 +113,7 @@ PairPropertyT::StiffnessFunction MatsuiPairT::getStiffnessFunction(void)
 	return MatsuiPairT::Stiffness;
 }
 
+#if 0
 /* write properties to output */
 void MatsuiPairT::Write(ostream& out) const
 {
@@ -125,6 +126,7 @@ void MatsuiPairT::Write(ostream& out) const
 	out << " Standard Force (f). . . . . . . . . . . . . . . = " << f_f << '\n';
 	out << " Cut-off radius (rc) . . . . . . . . . . . . . . = " << f_rc << '\n';
 }
+#endif
 
 /* describe the parameters needed by the interface */
 void MatsuiPairT::DefineParameters(ParameterListT& list) const

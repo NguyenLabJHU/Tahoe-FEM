@@ -1,12 +1,10 @@
-/* $Id: eNLHHTalpha.h,v 1.3 2002-07-02 19:55:05 cjkimme Exp $ */
+/* $Id: eNLHHTalpha.h,v 1.4 2004-07-15 08:30:28 paklein Exp $ */
 /* created: paklein (10/17/1996) */
-
 #ifndef _E_NL_HHT_A_H_
 #define _E_NL_HHT_A_H_
 
 /* base class */
 #include "eLinearHHTalpha.h"
-
 
 namespace Tahoe {
 
@@ -15,7 +13,7 @@ class eNLHHTalpha: public eLinearHHTalpha
 public:
 
 	/** constructor */
-	eNLHHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder);
+	eNLHHTalpha(double alpha);
 
  	/** \name elements of the residual
 	 * components of the internal force vector */

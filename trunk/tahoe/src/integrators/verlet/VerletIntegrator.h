@@ -1,14 +1,10 @@
+/* $Id: VerletIntegrator.h,v 1.3 2004-07-15 08:30:57 paklein Exp $ */
 #ifndef _VERLET_CONTROLLER_H_
 #define _VERLET_CONTROLLER_H_
-
-#include "Environment.h"
 
 /* base classes */
 #include "nVerlet.h"
 #include "eVerlet.h"
-
-/* forward declarations */
-#include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
@@ -19,7 +15,7 @@ class VerletIntegrator: public nVerlet, public eVerlet
 public:
 
 	/** constructor */
-	VerletIntegrator(ostream& out);
+	VerletIntegrator(void);
 	  	
 protected:  	
 	

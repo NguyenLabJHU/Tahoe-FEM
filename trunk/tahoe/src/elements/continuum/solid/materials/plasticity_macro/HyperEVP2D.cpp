@@ -1,6 +1,6 @@
-/* $Id: HyperEVP2D.cpp,v 1.5 2003-01-29 07:35:06 paklein Exp $ */
+/* $Id: HyperEVP2D.cpp,v 1.6 2004-07-15 08:29:14 paklein Exp $ */
 #include "HyperEVP2D.h"
-#include "ifstreamT.h"
+
 #include "Utils.h"
 
 using namespace Tahoe;
@@ -9,15 +9,13 @@ using namespace Tahoe;
 const int kNSD = 2;
 
 HyperEVP2D::HyperEVP2D(ifstreamT& in, const FSMatSupportT& support) :
+	ParameterInterfaceT("HyperEVP_2D"),
   HyperEVP3D  (in, support),  
-  Material2DT (in, Material2DT::kPlaneStrain),
   f2Ds_ij   (kNSD),
   f2Dc_ijkl (dSymMatrixT::NumValues(kNSD))
 {
 
 }
-
-HyperEVP2D::~HyperEVP2D() {} 
 
 const dSymMatrixT& HyperEVP2D::s_ij()
 {
@@ -26,7 +24,6 @@ const dSymMatrixT& HyperEVP2D::s_ij()
 
   // reduce stress: 3D -> 2D
   f2Ds_ij.ReduceFrom3D(sij);
-  f2Ds_ij *= fThickness;
 
   return f2Ds_ij;
 }
@@ -38,23 +35,17 @@ const dMatrixT& HyperEVP2D::c_ijkl()
 
   // reduce cijkl: 3D -> 2D
   f2Dc_ijkl.Rank4ReduceFrom3D(cijkl);
-  f2Dc_ijkl *= fThickness;
 
   return f2Dc_ijkl;
 }
 
-void HyperEVP2D::Print(ostream& out) const
+/* describe the parameters needed by the interface */
+void HyperEVP2D::DefineParameters(ParameterListT& list) const
 {
-  // inherited
-  HyperEVP3D::Print(out);
-  Material2DT::Print(out);
-}
-
-void HyperEVP2D::PrintName(ostream& out) const
-{
-  // inherited
-  HyperEVP3D::PrintName(out);
-
-  // output model name
-  out << "    Plane Strain\n";
+	/* inherited */
+	HyperEVP3D::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStrain);
 }

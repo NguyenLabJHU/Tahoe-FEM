@@ -1,4 +1,4 @@
-/* $Id: SIERRA_HypoElasticT.cpp,v 1.1 2003-03-08 01:56:20 paklein Exp $ */
+/* $Id: SIERRA_HypoElasticT.cpp,v 1.2 2004-07-15 08:27:31 paklein Exp $ */
 #include "SIERRA_HypoElasticT.h"
 
 using namespace Tahoe;
@@ -10,6 +10,7 @@ void SIERRA_HypoElastic_reg(void);
 
 /* constructor */
 SIERRA_HypoElasticT::SIERRA_HypoElasticT(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("SIERRA_hypoelastic"),
 	SIERRA_Material_BaseT(in, support)
 {
 

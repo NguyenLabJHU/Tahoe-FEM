@@ -1,4 +1,4 @@
-/* $Id: SWDiamond110.cpp,v 1.5 2003-01-29 07:34:37 paklein Exp $ */
+/* $Id: SWDiamond110.cpp,v 1.6 2004-07-15 08:26:42 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #include "SWDiamond110.h"
 #include <math.h>
@@ -8,23 +8,15 @@ using namespace Tahoe;
 
 /* constructor */
 SWDiamond110::SWDiamond110(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("Stillinger_Weber_DC_110"),
 	SWMaterial2D(in, support)
 {
 
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
-
-/* print name */
-void SWDiamond110::PrintName(ostream& out) const
-{
-	/* inherited */
-	SWMaterial2D::PrintName(out);
-
-	out << "    SW Diamond <110> 2D\n";
-}
+ * Protected
+ *************************************************************************/
 
 /* symmetric Cij reduced index matrix */
 void SWDiamond110::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)

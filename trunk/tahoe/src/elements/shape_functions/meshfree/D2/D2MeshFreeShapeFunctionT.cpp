@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeShapeFunctionT.cpp,v 1.7 2004-01-27 01:21:14 cjkimme Exp $ */
+/* $Id: D2MeshFreeShapeFunctionT.cpp,v 1.8 2004-07-15 08:30:07 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2MeshFreeShapeFunctionT.h"
 #include "D2MeshFreeSupport2DT.h"
@@ -12,21 +12,19 @@ using namespace Tahoe;
 D2MeshFreeShapeFunctionT::D2MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 	const LocalArrayT& coords, const dArray2DT& all_coords,
 	const iArray2DT& connects, const iArrayT& nongridnodes,
-	const int& currelement, ifstreamT& in):
+	const int& currelement, const ParameterListT& mf_support_params):
 	MeshFreeShapeFunctionT(geometry_code, numIP, coords, all_coords, connects,
-		nongridnodes, currelement, in),
+		nongridnodes, currelement, mf_support_params),
 	fDDNaU(numIP),
 	fDDNa_tmp(numIP)
 {
+	const char caller[] = "D2MeshFreeShapeFunctionT::D2MeshFreeShapeFunctionT";
+
 	if (all_coords.MinorDim() == 2)
-		fD2MFSupport = new D2MeshFreeSupport2DT(fDomain, all_coords, connects,
-							nongridnodes, in);
+		fD2MFSupport = new D2MeshFreeSupport2DT(fDomain, all_coords, connects, nongridnodes);
 	else
-	{
-		cout << "\n D2MeshFreeShapeFunctionT::D2MeshFreeShapeFunctionT: no 3D yet" << endl;
-		throw ExceptionT::kBadInputValue;
-	}
-	if (!fD2MFSupport) throw ExceptionT::kOutOfMemory;
+		ExceptionT::BadInputValue(caller, "2D only");
+	if (!fD2MFSupport) ExceptionT::OutOfMemory(caller);
 
 	/* delete MLS support for base class */
 	delete fMFSupport;

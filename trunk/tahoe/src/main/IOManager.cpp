@@ -1,4 +1,4 @@
-/* $Id: IOManager.cpp,v 1.22 2004-06-28 22:41:51 hspark Exp $ */
+/* $Id: IOManager.cpp,v 1.23 2004-07-15 08:31:03 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 #include "IOManager.h"
 
@@ -11,10 +11,10 @@
 
 using namespace Tahoe;
 
-IOManager::IOManager(ostream& outfile, const StringT& program_name,
+IOManager::IOManager(ostream& log, const StringT& program_name,
 	const StringT& version, const StringT& title, const StringT& input_file,
 	IOBaseT::FileTypeT output_format):
-	fLog(outfile),
+	fLog(log),
 	fOutputFormat(output_format),
 	fOutput(NULL),
 	fEcho (false),
@@ -24,21 +24,6 @@ IOManager::IOManager(ostream& outfile, const StringT& program_name,
 {
 	/* construct output formatter */
 	fOutput = IOBaseT::NewOutput(program_name, version, title, input_file, fOutputFormat, fLog);
-}
-
-IOManager::IOManager(ifstreamT& in, const IOManager& io_man):
-	fLog(io_man.fLog),
-	fOutputFormat(io_man.fOutputFormat),
-	fOutput(NULL),
-	fEcho (false),
-	fOutputTime(0.0),
-	fOutput_tmp(NULL),
-	fChangingFlag(io_man.fChangingFlag)
-{
-	/* construct output formatter */
-	fOutput = IOBaseT::NewOutput((io_man.fOutput)->CodeName(),
-				(io_man.fOutput)->Version(),
-				(io_man.fOutput)->Title(), in.filename(), fOutputFormat, fLog);
 }
 
 IOManager::~IOManager(void)

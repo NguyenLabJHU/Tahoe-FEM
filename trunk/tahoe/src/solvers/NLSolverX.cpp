@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.cpp,v 1.12 2004-06-17 07:42:05 paklein Exp $ */
+/* $Id: NLSolverX.cpp,v 1.13 2004-07-15 08:31:50 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #include "NLSolverX.h"
 
@@ -7,8 +7,6 @@
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"
-#include "toolboxConstants.h"
-#include "ExceptionT.h"
 #include "FEManagerT.h"
 #include "CCSMatrixT.h"
 
@@ -29,6 +27,8 @@ const int kFailed    = 2;
 NLSolverX::NLSolverX(FEManagerT& fe_manager, int group):
 	NLSolver(fe_manager, group)
 {
+ExceptionT::GeneralFail("NLSolverX::NLSolverX", "out of date");
+#if 0
 #ifdef __NO_RTTI__
 	cout << "\n NLSolverX::Initialize: RTTI required" << endl;
 	throw ExceptionT::kGeneralFail;
@@ -42,7 +42,7 @@ NLSolverX::NLSolverX(FEManagerT& fe_manager, int group):
 #endif		
 
 	ifstreamT&  in = fFEManager.Input();
-	ostream& out = fFEManager.Output();
+	ofstreamT& out = fFEManager.Output();
 
 	in >> fMaxNewTangents;  if (fMaxNewTangents  < 1) throw ExceptionT::kBadInputValue;
 	in >> fMaxTangentReuse; if (fMaxTangentReuse < 1) throw ExceptionT::kBadInputValue;
@@ -64,6 +64,7 @@ NLSolverX::NLSolverX(FEManagerT& fe_manager, int group):
 	out << " Automatic new tangent for negative pivots . . . = " << fCheckNegPivots   << '\n';
 	out << " Trust tolerance for expanded iterations . . . . = " << fTrustTol         << '\n';
 	out << " Mininum quasi-Newton reduction ratio. . . . . . = " << fMinResRatio      << '\n';
+#endif
 }
 
 /* generate the solution for the current time sequence */

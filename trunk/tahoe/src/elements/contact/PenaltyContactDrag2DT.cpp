@@ -1,8 +1,9 @@
-/* $Id: PenaltyContactDrag2DT.cpp,v 1.5 2004-06-17 07:13:39 paklein Exp $ */
+/* $Id: PenaltyContactDrag2DT.cpp,v 1.6 2004-07-15 08:26:08 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContactDrag2DT.h"
-#include "ifstreamT.h"
+
 #include "eIntegratorT.h"
+#include "ModelManagerT.h"
 
 #include <math.h>
 #include <iostream.h>
@@ -11,54 +12,45 @@
 using namespace Tahoe;
 
 /* constructor */
-PenaltyContactDrag2DT::PenaltyContactDrag2DT(const ElementSupportT& support, const FieldT& field):
-	PenaltyContact2DT(support, field),
+PenaltyContactDrag2DT::PenaltyContactDrag2DT(const ElementSupportT& support):
+	PenaltyContact2DT(support),
 	fDrag(0),
 	fGapTolerance(0),
 	fSlipTolerance(0)
 {
-
+	SetName("contact_drag_2D_penalty");
 }
 
-/* initialization after constructor */
-void PenaltyContactDrag2DT::Initialize(void)
+/* describe the parameters needed by the interface */
+void PenaltyContactDrag2DT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	PenaltyContact2DT::Initialize();
+	PenaltyContact2DT::DefineParameters(list);
 
-	ifstreamT& in = ElementSupport().Input();
+	list.AddParameter(fDrag, "drag_traction");
+	list.AddParameter(fGapTolerance, "gap_tolerance");
+	list.AddParameter(fSlipTolerance, "slip_tolerance");
+}
 
-	/* drag parameters */
-	in >> fDrag
-	   >> fGapTolerance
-	   >> fSlipTolerance;
+/* accept parameter list */
+void PenaltyContactDrag2DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	PenaltyContact2DT::TakeParameterList(list);
 
-	/* node blocks containing striker nodes */
-	int num_blocks = -1;
-	in >> num_blocks;
-	ArrayT<StringT> element_id(num_blocks);
-	for (int i = 0; i < element_id.Length(); i++)
-		in >> element_id[i];
+	fDrag = list.GetParameter("drag_traction");
+	fGapTolerance = list.GetParameter("gap_tolerance");
+	fSlipTolerance = list.GetParameter("slip_tolerance");
 
-	/* compute associated nodal area (using all element blocks) */
+	/* compute associated nodal area */
+	ArrayT<StringT> element_id;
+	ElementSupport().ModelManager().ElementGroupIDsWithNodes(fStrikerTags, element_id);
 	ComputeNodalArea(element_id, fNodalArea, fStrikerLocNumber);
 }
 
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-/* print element group data */
-void PenaltyContactDrag2DT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	PenaltyContact2DT::PrintControlData(out);
-
-	/* regularization */
-	out << " Magnitude of the drag traction. . . . . . . . . = " << fDrag << '\n';	
-	out << " Gap tolerance for drag. . . . . . . . . . . . . = " << fGapTolerance << '\n';	
-	out << " Minimum incremental slip for drag . . . . . . . = " << fSlipTolerance << '\n';	
-}
 
 void PenaltyContactDrag2DT::RHSDriver(void)
 {

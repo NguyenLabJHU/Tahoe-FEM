@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.h,v 1.7 2004-06-17 07:40:07 paklein Exp $ */
+/* $Id: LocalizerT.h,v 1.8 2004-07-15 08:26:27 paklein Exp $ */
 /* created: paklein (02/19/1998) */
 #ifndef _LOCALIZER_T_H_
 #define _LOCALIZER_T_H_
@@ -47,9 +47,6 @@ public:
 	virtual GlobalT::RelaxCodeT ResetStep(void);
 		
 protected:
-
-	/* print element group data */
-	virtual void PrintControlData(ostream& out) const;
 
 	/* increment current element */
 	virtual bool NextElement(void);

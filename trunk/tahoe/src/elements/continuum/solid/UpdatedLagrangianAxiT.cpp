@@ -1,12 +1,10 @@
-/* $Id: UpdatedLagrangianAxiT.cpp,v 1.2 2004-06-28 22:41:14 hspark Exp $ */
+/* $Id: UpdatedLagrangianAxiT.cpp,v 1.3 2004-07-15 08:26:27 paklein Exp $ */
 #include "UpdatedLagrangianAxiT.h"
 
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "ifstreamT.h"
-#include "toolboxConstants.h"
 #include "SolidMaterialT.h"
 #include "ShapeFunctionT.h"
 
@@ -16,18 +14,12 @@ const double Pi2 = 2.0*acos(-1.0);
 const int kRadialDirection = 0; /* x <-> r */
 
 /* constructor */
-UpdatedLagrangianAxiT::UpdatedLagrangianAxiT(const ElementSupportT& support, const FieldT& field):
-	FiniteStrainAxiT(support, field),
+UpdatedLagrangianAxiT::UpdatedLagrangianAxiT(const ElementSupportT& support):
+	FiniteStrainAxiT(support),
 	fStress2D_axi(dSymMatrixT::k3D_plane),
 	fStressMat(3)
 {
-	/* consistency check */
-	if (ElementSupport().Analysis() == GlobalT::kLinStatic ||
-	    ElementSupport().Analysis() == GlobalT::kLinDynamic)
-	{
-		cout << "\nUpLag_FDElasticT::UpdatedLagrangianAxiT: no current coordinates required\n" << endl;
-		fLocCurrCoords.SetType(LocalArrayT::kInitCoords);
-	}	
+	SetName("updated_lagrangian_axi");
 }
 
 /* destructors */
@@ -37,11 +29,11 @@ UpdatedLagrangianAxiT::~UpdatedLagrangianAxiT(void)
 	fCurrShapes = NULL;
 }
 
-/* data initialization */
-void UpdatedLagrangianAxiT::Initialize(void)
+/* accept parameter list */
+void UpdatedLagrangianAxiT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	FiniteStrainAxiT::Initialize();
+	FiniteStrainAxiT::TakeParameterList(list);
 
 	/* dimension */
 	fGradNa.Dimension(NumSD(), NumElementNodes());

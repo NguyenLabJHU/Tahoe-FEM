@@ -1,12 +1,5 @@
-/* $Id: DPSSLinHardT.h,v 1.13 2004-03-20 23:38:20 raregue Exp $ */
-/* created: myip (06/01/1999)                                      */
-/*  
- * Interface for Drucker-Prager, nonassociative, small strain,
- * pressure-dependent plasticity model with linear isotropic hardening.
- *
- *	Note: all calculations are peformed in 3D.
- */
-
+/* $Id: DPSSLinHardT.h,v 1.14 2004-07-15 08:28:48 paklein Exp $ */
+/* created: myip (06/01/1999) */
 #ifndef _DP_SS_LIN_HARD_T_H_
 #define _DP_SS_LIN_HARD_T_H_
 
@@ -23,26 +16,24 @@ namespace Tahoe {
 /* forward declarations */
 class ElementCardT;
 
+/** interface for Drucker-Prager, nonassociative, small strain,
+ * pressure-dependent plasticity model with linear isotropic hardening.
+ * \note all calculations are peformed in 3D.
+ */
 class DPSSLinHardT: public DPPrimitiveT
 {
   public:
 
 	/* constructor */
-	DPSSLinHardT(ifstreamT& in, int num_ip, double mu, double lambda);
-
-  	/* output name */
-	virtual void PrintName(ostream& out) const;
-
-  protected:
+	DPSSLinHardT(int num_ip, double mu, double lambda);
 
 	/* status flags */
 	enum LoadingStatusT {kIsPlastic = 0,
 						kIsElastic = 1,
 						kReset = 3}; // indicate not to repeat update
 
-	/* returns elastic strain (3D) */
-	virtual const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain, 
-						const ElementCardT& element, int ip);
+	/** returns elastic strain (3D) */
+	const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain,  const ElementCardT& element, int ip);
 			
 	/* return correction to stress vector computed by mapping the
 	 * stress back to the yield surface, if needed */
@@ -65,6 +56,10 @@ class DPSSLinHardT: public DPPrimitiveT
                             kdgamma = 2,  // consistency parameter
                             kftrial = 3,  // yield function value
 			    		kdgamma2 = 4}; // 2nd consistency par. at vertex
+
+	/** internal variables */
+	dArrayT& Internal(void) { return fInternal; };
+
 	/* element level data */
 	void Update(ElementCardT& element);
 	void Reset(ElementCardT& element);
@@ -84,25 +79,16 @@ class DPSSLinHardT: public DPPrimitiveT
 	double MeanStress(const dSymMatrixT& trialstrain,
 		const ElementCardT& element);
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
   private:
 
 	/* load element data for the specified integration point */
 	void LoadData(const ElementCardT& element, int ip);
-
-	/* returns 1 if the trial elastic strain state lies outside of the 
-	 * yield surface */
-	//	int PlasticLoading(const dSymMatrixT& trialstrain, 
-    //                         ElementCardT& element, int ip);
-
-	/* computes the deviatoric stress corresponding to the given element
-	 * and elastic strain.  The functions returns a reference to the
-	 * stress in fDevStress */
-	//	dSymMatrixT& DeviatoricStress(const dSymMatrixT& totalstrain, 
-	//		const ElementCardT& element);
-
-	/* computes the hydrostatic (mean) stress. */  
-	//	double& MeanStress(const dSymMatrixT& totalstrain,
-	//		const ElementCardT& element);
 
   protected:
 
@@ -121,7 +107,6 @@ class DPSSLinHardT: public DPPrimitiveT
 	double flambda;
 	double fkappa;
 	double fX_H;
-	//double fX;
 	double fMeanStress;
   
   	/* return values */

@@ -1,24 +1,14 @@
-/* $Id: ModCBSolverT.cpp,v 1.5 2004-06-17 07:41:03 paklein Exp $ */
-/* created: paklein (05/27/1997)                                          */
-/* Q defines the orientation of the crystals' natural coordinates         */
-/* and the global coordinate frame. Q is defined as:                      */
-/* 			Q = d x_natural / d x_global                                        */
-/* So that the vectors are transformed by:                                */
-/* 			r_global = Transpose[Q].r_natural                                   */
-
+/* $Id: ModCBSolverT.cpp,v 1.6 2004-07-15 08:28:36 paklein Exp $ */
+/* created: paklein (05/27/1997) */
 #include "ModCBSolverT.h"
 
-#include <iostream.h>
-
-#include "ExceptionT.h"
-
-#include "ifstreamT.h"
 #include "dSymMatrixT.h"
 #include "SW2BodyT.h"
 #include "SW3BodyT.h"
 #include "PTHT2BodyT.h"
 #include "PTHT3BodyT.h"
-
+#include "ParameterContainerT.h"
+#include "FCCLatticeT.h" /* needed for lattice orientation */
 
 using namespace Tahoe;
 
@@ -43,61 +33,16 @@ int pairdata[kNumAngles*2] =
 					0,  4};
 
 /* Constructor */
-ModCBSolverT::ModCBSolverT(const dMatrixT& Q,
-	const ThermalDilatationT* thermal, ifstreamT& in, bool equilibrate):
-	fEquilibrate(equilibrate),
-	fPairs(kNumAngles,2,pairdata),
-	fGeometry(Q,fPairs),
-	dXsi(kNumDOF),
-	dXsidXsi(kNumDOF),
-	dCdC_hat(kStressDim),
-	dCdXsi_hat(kStressDim,kNumDOF),
-	fMatrices(kNumDOF),
-	fMat1(kNumDOF), fMat2(kNumDOF),
-	fGradl_i(3,kNumDOF), fVec(kNumDOF),
-	fSymMat1(kNSD),
-	fTempRank4(kStressDim),
-	fTempMixed(kStressDim, kNumDOF),
-	fGradl_C(3,kStressDim)
+ModCBSolverT::ModCBSolverT(const ThermalDilatationT* thermal):
+	ParameterInterfaceT("mod_Cauchy-Born_solver"),
+	fEquilibrate(true),
+	fThermal(thermal),
+	fPairs(kNumAngles, 2, pairdata),
+	fGeometry(NULL),
+	f2Body(NULL),
+	f3Body(NULL)
 {
-	/* check */
-	if (fEquilibrate != 0 && fEquilibrate != 1)
-		throw ExceptionT::kBadInputValue;
 
-	/* set potentials */
-	in >> fPotential;
-	switch (fPotential)
-	{
-		case kSW:
-		
-			/* read SW data */
-			fSW.Read(in);
-		
-			f2Body = new SW2BodyT(fGeometry.Lengths(), thermal, fSW);
-			f3Body = new SW3BodyT(fGeometry.Lengths(), fGeometry.Cosines(),
-							fPairs, thermal, fSW);
-			break;
-			
-		case kPTHT:
-		
-			f2Body = new PTHT2BodyT(fGeometry.Lengths(), thermal, in);
-			f3Body = new PTHT3BodyT(fGeometry.Lengths(), fGeometry.Cosines(),
-							fPairs, thermal, in);
-			break;
-			
-		case kTersoff:
-		
-			throw ExceptionT::kGeneralFail; //not yet implemented
-			break;
-			
-		default:
-
-			cout << "\nModCBSolverT::ModCBSolverT: unknown potential code:";
-			cout << fPotential << endl;
-			throw ExceptionT::kBadInputValue;
-	}
-
-	if (!f2Body || !f3Body) throw ExceptionT::kOutOfMemory;
 }
 
 /* Destructor */
@@ -105,6 +50,7 @@ ModCBSolverT::~ModCBSolverT(void)
 {
 	delete f2Body;
 	delete f3Body;
+	delete fGeometry;
 }
 
 /* moduli - assume Xsi already determined */
@@ -143,20 +89,20 @@ void ModCBSolverT::SetStress(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& stress
 		SetdXsi(CIJ, Xsi);
 
 	/* Compute all needed derivatives */
-	fGeometry.SetdC(CIJ);
+	fGeometry->SetdC(CIJ);
 
 	/* Initialize stress */
 	stress = 0.0;
 
 	/* scalar derivatives */
-	const dArray2DT& dlh_dC      = fGeometry.dl_hat_dC();
-	const dArray2DT& dCosh_dC    = fGeometry.dCos_hat_dC();
+	const dArray2DT& dlh_dC   = fGeometry->dl_hat_dC();
+	const dArray2DT& dCosh_dC = fGeometry->dCos_hat_dC();
 
 	/* shallow work temps */
 	dMatrixT dl1hdC, dl2hdC, dCoshdC;
 
 	/* 2-body derivatives */
-	const dArrayT& dPhi_2  = f2Body->dPhi();
+	const dArrayT& dPhi_2 = f2Body->dPhi();
 	for (int i = 0 ; i < dPhi_2.Length(); i++)
 	{
 		/* stress */
@@ -207,32 +153,130 @@ double ModCBSolverT::StrainEnergyDensity(const dMatrixT& CIJ, dArrayT& Xsi)
 	return( (f2Body->Phi()).Sum() + (f3Body->Phi()).Sum() );
 }
 
-/*
-* Print parameters.
-*/
-void ModCBSolverT::Print(ostream& out) const
+/* describe the parameters needed by the interface */
+void ModCBSolverT::DefineParameters(ParameterListT& list) const
 {
-	/* print potential data */
-	if (fPotential == kSW) fSW.Write(out);
+	/* inherited */
+	ParameterInterfaceT::DefineParameters(list);
 
-	//printing not implemented for other potentials
-
-	out << " Number of internal DOF. . . . . . . . . . . . . = ";
-	out << ((fEquilibrate == 1) ? dXsi.Length() : 0) << '\n';
+	ParameterT equilibrate(ParameterT::Boolean, "equilibrate");
+	equilibrate.SetDefault(true);
+	list.AddParameter(equilibrate);
 }
 
-void ModCBSolverT::PrintName(ostream& out) const
+/* information about subordinate parameter lists */
+void ModCBSolverT::DefineSubs(SubListT& sub_list) const
 {
-	const char* potentials[] = {"Stillinger-Weber",
-	                            "PTHT",
-	                            "Tersoff"};
+	/* inherited */
+	ParameterInterfaceT::DefineSubs(sub_list);
+
+	/* crystal orientation */
+	sub_list.AddSub("FCC_lattice_orientation", ParameterListT::Once, true);
+
+	/* choice of potentials */
+	sub_list.AddSub("DC_potential_choice", ParameterListT::Once, true);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* ModCBSolverT::NewSub(const StringT& name) const
+{
+	if (name == "DC_potential_choice")
+	{
+		ParameterContainerT* choice = new ParameterContainerT(name);
+		choice->SetSubSource(this);
+		choice->SetListOrder(ParameterListT::Choice);
 	
-	out << "    " << potentials[fPotential] << '\n';
+		choice->AddSub("Stillinger-Weber");
+
+		ParameterContainerT PTHT("PTHT");
+		PTHT.AddParameter(ParameterT::Double, "A");
+		PTHT.AddParameter(ParameterT::Double, "A1");
+		PTHT.AddParameter(ParameterT::Double, "A2");
+		
+		PTHT.AddParameter(ParameterT::Double, "B");
+		PTHT.AddParameter(ParameterT::Double, "Z");
+		choice->AddSub(PTHT);
+
+		//choice->AddSub(ParameterContainerT("Tersoff"));
+
+		return choice;
+	}
+	else if (name == "FCC_lattice_orientation")
+	{
+		FCCLatticeT lattice(0);
+		return lattice.NewSub(name);
+	}
+	else if (name == "Stillinger-Weber")
+		return new SWDataT;
+	else /* inherited */
+		return ParameterInterfaceT::NewSub(name);
+}
+
+/* accept parameter list */
+void ModCBSolverT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	/* dimension work space */
+	dXsi.Dimension(kNumDOF);
+	dXsidXsi.Dimension(kNumDOF);
+	dCdC_hat.Dimension(kStressDim);
+	dCdXsi_hat.Dimension(kStressDim,kNumDOF);
+	fMatrices.Dimension(kNumDOF);
+	fMat1.Dimension(kNumDOF); 
+	fMat2.Dimension(kNumDOF);
+	fGradl_i.Dimension(3,kNumDOF); 
+	fVec.Dimension(kNumDOF);
+	fSymMat1.Dimension(kNSD);
+	fTempRank4.Dimension(kStressDim);
+	fTempMixed.Dimension(kStressDim, kNumDOF);
+	fGradl_C.Dimension(3,kStressDim);
+
+	/* flag */
+	fEquilibrate = list.GetParameter("equilibrate");
+
+	/* resolve orientation */
+	FCCLatticeT lattice(0);
+	const ParameterListT& orientation = list.GetListChoice(lattice, "FCC_lattice_orientation");
+	dMatrixT Q;
+	FCCLatticeT::SetQ(orientation, Q);
+	
+	/* construct bond lattice */
+	fGeometry = new LengthsAndAnglesT(Q,fPairs);
+
+	/* set potentials */
+	const ParameterListT& potential = list.GetListChoice(*this, "DC_potential_choice");
+	if (potential.Name() == "Stillinger-Weber")
+	{
+		/* extract parameters */
+		fSW.TakeParameterList(potential);	
+		
+		/* construct potentials */
+		f2Body = new SW2BodyT(fGeometry->Lengths(), fThermal, fSW);
+		f3Body = new SW3BodyT(fGeometry->Lengths(), fGeometry->Cosines(), fPairs, fThermal, fSW);
+	}
+	else if (potential.Name() == "Stillinger-Weber")
+	{
+		/* extract parameters */
+		double A = list.GetParameter("A");
+		double A1 = list.GetParameter("A1");
+		double A2 = list.GetParameter("A2");
+		double B = list.GetParameter("B");
+		double Z = list.GetParameter("Z");	
+
+		/* construct potentials */
+		f2Body = new PTHT2BodyT(fGeometry->Lengths(), fThermal, A, A1, A2);
+		f3Body = new PTHT3BodyT(fGeometry->Lengths(), fGeometry->Cosines(), fPairs, fThermal, B, Z);
+	}
+	else
+		ExceptionT::BadInputValue("ModCBSolverT::TakeParameterList",
+			"unknown potential \"%s\"", potential.Name().Pointer());
 }
 
 /**********************************************************************
-* Private
-**********************************************************************/
+ * Private
+ **********************************************************************/
 
 /* Minimize the energy wrt Xsi using the initial value passed */
 void ModCBSolverT::Equilibrate(const dMatrixT& CIJ, dArrayT& Xsi)
@@ -253,18 +297,14 @@ void ModCBSolverT::Equilibrate(const dMatrixT& CIJ, dArrayT& Xsi)
 	}
 
 	/* assume not converged */
-	if (count == 15)
-	{
-		cout << "\n ModCBSolverT::Equilibrate: could not find internal equilibrium" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (count == 15) ExceptionT::GeneralFail("ModCBSolverT::Equilibrate", "failed");
 }
 
 /* set free dof - triggers recomputation */
 void ModCBSolverT::SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi)
 {
 	/* set geometry */
-	fGeometry.SetdXsi(CIJ,Xsi);
+	fGeometry->SetdXsi(CIJ,Xsi);
 
 	/* potentials and derivatives */
 	f2Body->Set();
@@ -275,11 +315,11 @@ void ModCBSolverT::SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi)
 	dXsidXsi = 0.0;
 		
 	/* scalar derivatives */
-	const dArray2DT& dl_dXsi      = fGeometry.dl_dXsi();
-	const dArray2DT& d2l_dXsidXsi = fGeometry.d2l_dXsidXsi();
+	const dArray2DT& dl_dXsi      = fGeometry->dl_dXsi();
+	const dArray2DT& d2l_dXsidXsi = fGeometry->d2l_dXsidXsi();
 
-	const dArray2DT& dc_dXsi      = fGeometry.dCos_dXsi();
-	const dArray2DT& d2c_dXsidXsi = fGeometry.d2Cos_dXsidXsi();
+	const dArray2DT& dc_dXsi      = fGeometry->dCos_dXsi();
+	const dArray2DT& d2c_dXsidXsi = fGeometry->d2Cos_dXsidXsi();
 		
 	/* shallow work temps */
 	dArrayT dl1dXsi, dl2dXsi, dCosdXsi;
@@ -360,26 +400,26 @@ void ModCBSolverT::SetdXsi(const dMatrixT& CIJ, const dArrayT& Xsi)
 void ModCBSolverT::SetAll(const dMatrixT& CIJ)
 {
 	/* set geometry */
-	fGeometry.SetAll(CIJ);
+	fGeometry->SetAll(CIJ);
 	
 	/* Initialize */
 	dCdC_hat   = 0.0;
 	dCdXsi_hat = 0.0;
 	
 		/* scalar derivatives */
-	const dArray2DT& dl_dXsi      = fGeometry.dl_dXsi();
-	const dArray2DT& d2l_dXsidXsi = fGeometry.d2l_dXsidXsi();
+	const dArray2DT& dl_dXsi      = fGeometry->dl_dXsi();
+	const dArray2DT& d2l_dXsidXsi = fGeometry->d2l_dXsidXsi();
 
-	const dArray2DT& dl_dC        = fGeometry.dl_hat_dC();
-	const dArray2DT& d2l_dCdC     = fGeometry.d2l_hat_dCdC();
-	const dArray2DT& d2l_dCdXsi   = fGeometry.d2l_hat_dCdXsi();
+	const dArray2DT& dl_dC        = fGeometry->dl_hat_dC();
+	const dArray2DT& d2l_dCdC     = fGeometry->d2l_hat_dCdC();
+	const dArray2DT& d2l_dCdXsi   = fGeometry->d2l_hat_dCdXsi();
 
-	const dArray2DT& dc_dXsi      = fGeometry.dCos_dXsi();
-	const dArray2DT& d2c_dXsidXsi = fGeometry.d2Cos_dXsidXsi();
+	const dArray2DT& dc_dXsi      = fGeometry->dCos_dXsi();
+	const dArray2DT& d2c_dXsidXsi = fGeometry->d2Cos_dXsidXsi();
 
-	const dArray2DT& dc_dC        = fGeometry.dCos_hat_dC();
-	const dArray2DT& d2c_dCdC     = fGeometry.d2Cos_hat_dCdC();
-	const dArray2DT& d2c_dCdXsi   = fGeometry.d2Cos_hat_dCdXsi();
+	const dArray2DT& dc_dC        = fGeometry->dCos_hat_dC();
+	const dArray2DT& d2c_dCdC     = fGeometry->d2Cos_hat_dCdC();
+	const dArray2DT& d2c_dCdXsi   = fGeometry->d2Cos_hat_dCdXsi();
 		
 	/* shallow work temps */
 	dMatrixT	d2ldCdC, dldC;

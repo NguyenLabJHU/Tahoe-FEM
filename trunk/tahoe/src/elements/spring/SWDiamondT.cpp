@@ -1,6 +1,5 @@
-/* $Id: SWDiamondT.cpp,v 1.12 2004-06-17 07:41:37 paklein Exp $ */
+/* $Id: SWDiamondT.cpp,v 1.13 2004-07-15 08:30:17 paklein Exp $ */
 /* created: paklein (03/19/1997) */
-
 #include "SWDiamondT.h"
 
 #include <math.h>
@@ -11,16 +10,15 @@
 #include "FindNeighbor23T.h"
 #include "OutputSetT.h"
 
-/* element group parameters */
-
 using namespace Tahoe;
 
+/* element group parameters */
 const int knsd  = 3;
 const int kSWMaxNeighbors0 = 4; //max neighbors in undeformed state
 
 /* constructor */
 SWDiamondT::SWDiamondT(const ElementSupportT& support, const FieldT& field):
-	ElementBaseT(support, field),
+	ElementBaseT(support),
 	fK_3Body(fLHS),
 	fF_3Body(fRHS),
 	fK_2Body(ElementMatrixT::kSymmetricUpper),
@@ -31,6 +29,8 @@ SWDiamondT::SWDiamondT(const ElementSupportT& support, const FieldT& field):
 	fLocd_2Body(LocalArrayT::kDisp, 2, NumDOF()),
 	fHessian_3Body(3)
 {
+ExceptionT::GeneralFail("SWDiamondT::SWDiamondT", "out of date");
+#if 0
 	/* check base class initializations */
 	if (NumSD() != knsd) throw ExceptionT::kGeneralFail;
 
@@ -56,17 +56,7 @@ SWDiamondT::SWDiamondT(const ElementSupportT& support, const FieldT& field):
 	
 	//TEMP
 	ReadMaterialData(ElementSupport().Input());	
-}
-
-/* initialization */
-void SWDiamondT::Initialize(void)
-{
-	/* inherited */
-	ElementBaseT::Initialize();
-
-	/* material parameters */
-	//ReadMaterialData(ElementSupport().Input());	
-	WriteMaterialData(ElementSupport().Output());
+#endif
 }
 
 /* form of tangent matrix */

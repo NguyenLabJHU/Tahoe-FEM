@@ -1,4 +1,4 @@
-/* $Id: D2FSMatSupportT.h,v 1.4 2003-01-29 07:34:57 paklein Exp $ */
+/* $Id: D2FSMatSupportT.h,v 1.5 2004-07-15 08:28:22 paklein Exp $ */
 #ifndef _D2_FD_MAT_SUPPORT_T_H_
 #define _D2_FD_MAT_SUPPORT_T_H_
 
@@ -16,7 +16,7 @@ class D2FSMatSupportT: public FSMatSupportT
   public:
 
 	/** constructor */
-	D2FSMatSupportT(int nsd, int ndof, int nip);
+	D2FSMatSupportT(int ndof, int nip);
 
 	/** \name host code information */
 	/*@{*/

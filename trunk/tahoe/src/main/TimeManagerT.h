@@ -1,6 +1,5 @@
-/* $Id: TimeManagerT.h,v 1.11 2003-10-28 07:36:49 paklein Exp $ */
+/* $Id: TimeManagerT.h,v 1.12 2004-07-15 08:31:03 paklein Exp $ */
 /* created: paklein (05/23/1996) */
-
 #ifndef _TIMEMANAGER_T_H_
 #define _TIMEMANAGER_T_H_
 
@@ -34,29 +33,15 @@ class TimeManagerT: public iConsoleObjectT, public ParameterInterfaceT
 
 public:
 
-	/** enum of integrator types */
-	enum CodeT {
-		kLinearStatic = 0,
-		      kStatic = 1,
-           kTrapezoid = 2,
-           kLinearHHT = 3,
-		kNonlinearHHT = 4,
-		  kExplicitCD = 5,
-		kVerlet = 6,
-		kGear6 = 7
-	};
-
-	/** stream extraction operator */
-	friend istream& operator>>(istream& in, TimeManagerT::CodeT& code);
-
 	/** constructor */
 	TimeManagerT(FEManagerT& FEM);
 
-	/** initialization */
-	void Initialize(void);
+	/** set to initial conditions */
+	void InitialCondition(void);
 
 	/* run through the time sequences */
 	void Top(void);
+	
 	bool NextSequence(void);
 
 	/* time sequence */
@@ -102,9 +87,6 @@ public:
 	/** return true if output should be written for the current step */
 	bool WriteOutput(void) const;
 
-	/** return a pointer to a integrator of the specified type */
-	IntegratorT* New_Integrator(CodeT type) const;
-
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** describe the parameters needed by the interface */
@@ -112,6 +94,12 @@ public:
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 	/*@}*/
 
 private:	
@@ -120,10 +108,6 @@ private:
 	enum StatusT { kDecreaseStep =-1,
                        kSameStep = 0,
                    kIncreaseStep = 1};
-	
-	/* output functions */
-	void EchoTimeSequences(ifstreamT& in, ostream& out);
-	void EchoSchedule(ifstreamT& in, ostream& out);
 
 	/* increment the time and reset the load factors */
 	void IncrementTime(double dt);
@@ -139,7 +123,7 @@ private:
 
 	FEManagerT& theBoss;
 	
-	ArrayT<TimeSequence> fSequences;
+	ArrayT<TimeSequence> fSequences; //TEMP - remove multiple time sequences
 	pArrayT<ScheduleT*>  fSchedule;
 
 	/** \name copied from current sequence */
@@ -167,9 +151,10 @@ private:
 	 * otherwise will be IntegratorT::kImplicit */
 	IntegratorT::ImpExpFlagT fImpExp;
 
-/* functions for time shifters */
 private:
 
+	/** \name functions for time shifters */
+	/*@{*/
 	/* to allow LinearHHTalpha to adjust the time.  LinearHHTalpha must
 	 * call ResetTime when finished.  MUST call ResetTime before the next call
 	 * to Step */
@@ -177,6 +162,7 @@ private:
 	
 	/* reset the time back to what it was before the calls to IncrementTime */
 	void ResetTime(void);
+	/*@}*/
 };
 
 /* inlines */

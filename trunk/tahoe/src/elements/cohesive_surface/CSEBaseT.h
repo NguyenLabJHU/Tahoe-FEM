@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.20 2004-06-17 06:42:48 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.21 2004-07-15 08:25:57 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -49,7 +49,6 @@ public:
 
 	/* constructors */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	CSEBaseT(const ElementSupportT& support, const FieldT& field);
 	CSEBaseT(const ElementSupportT& support);
 #else
 	CSEBaseT(ElementSupportT& support);
@@ -57,9 +56,6 @@ public:
 
 	/* destructor */
 	~CSEBaseT(void);
-
-	/* allocates space and reads connectivity data */
-	virtual void Initialize(void);
 
 	/* start of new time sequence */
 	virtual void InitialCondition(void);
@@ -94,25 +90,32 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
+
+	/** a pointer to the ParameterInterfaceT */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 	
 protected:
 
-	/** print element group data */
-	virtual void PrintControlData(ostream& out) const;
-
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	/** read element connectivity data. Cohesive elements with higher order
-	 * elements may need to revise the connectivity read from the geometry
-	 * file. The problem is that the element topologies resulting from
-	 * cohesive elements with higher order interpolations are not supported
-	 * by some database types and post-processors. Therefore, a second set
-	 * of connectivities is generated for the element calculations, while
-	 * output is written to the original connectivities. */
-	virtual void ReadConnectivity(ifstreamT& in, ostream& out);
-#else
-	virtual void ReadConnectivity(void);
-#endif 
+	/** \name construction of connectivities */
+	/*@{*/
+	/** extract element block info from parameter list to be used. Method is
+	 * used in conjunction with ElementBaseT::DefineElements to initialize
+	 * the element group connectivities. CSEBaseT::CollectBlockInfo first calls
+	 * ElementBaseT::CollectBlockInfo and generates corrected connectivities
+	 * for improper higher order elements. */
+	virtual void CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  ArrayT<int>& mat_index) const;
+	/*@}*/
 
 	/** \name output data */
 	/*@{*/
@@ -150,8 +153,8 @@ protected:
 	/* parameters */
 	GeometryT::CodeT fGeometryCode;
 	int fNumIntPts;
-	int fCloseSurfaces;
-	int fOutputArea;
+	bool fCloseSurfaces;
+	bool fOutputArea;
 
 	/** \name output control */
 	/*@{*/
@@ -184,12 +187,12 @@ protected:
 	static const int NumNodalOutputCodes;
 	static const int NumElementOutputCodes;
 	
-	/** output connectivities. For low-order element types, there will
-	 * be the same as ElementBaseT::fConnectivities. These will be
+	/** output connectivities. For low-order element types, these will
+	 * be the same as in ElementBaseT::fBlockData. These will be
 	 * different if the connectivities needed for the element calculations
 	 * is not compatible with the element topologies supported by
 	 * most database types or post-processors */
-	ArrayT<const iArray2DT*> fOutput_Connectivities;
+	ArrayT<StringT> fOutputBlockID;	 
 };
 
 } // namespace Tahoe 

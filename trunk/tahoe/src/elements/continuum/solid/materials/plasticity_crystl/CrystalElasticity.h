@@ -1,4 +1,4 @@
-/* $Id: CrystalElasticity.h,v 1.4 2003-01-27 07:00:29 paklein Exp $ */
+/* $Id: CrystalElasticity.h,v 1.5 2004-07-15 08:29:06 paklein Exp $ */
 #ifndef _CRYSTAL_ELASTICTIY_H_
 #define _CRYSTAL_ELASTICTIY_H_
 
@@ -29,10 +29,6 @@ class CrystalElasticity
   
   // query for isotropic/anisotropic elasticity (default: false)
   virtual bool IsIsotropic() const;
-
-  // output related methods
-  virtual void PrintName(ostream& out) const = 0;
-  virtual void Print(ostream& out) const = 0;
   
  protected:
   // general stiffness coefficients
@@ -47,10 +43,6 @@ class IsotropicCrystalElast: public CrystalElasticity
   // constructor/virtual destructor
   IsotropicCrystalElast(PolyCrystalMatT& poly);
   ~IsotropicCrystalElast();
-
-  // output related methods
-  virtual void PrintName(ostream& out) const;
-  virtual void Print(ostream& out) const;
 
   // query for isotropic elasticity
   virtual bool IsIsotropic() const;
@@ -67,10 +59,6 @@ class CubicCrystalElast: public CrystalElasticity
   CubicCrystalElast(PolyCrystalMatT& poly);
   ~CubicCrystalElast();
   
-  // output related methods
-  virtual void PrintName(ostream& out) const;
-  virtual void Print(ostream& out) const;
-
  private:
 };
 

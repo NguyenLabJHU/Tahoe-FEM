@@ -1,31 +1,27 @@
-/* $Id: PTHT3BodyT.cpp,v 1.3 2004-06-17 07:41:03 paklein Exp $ */
-/* created: paklein (10/11/1997)                                          */
-
+/* $Id: PTHT3BodyT.cpp,v 1.4 2004-07-15 08:28:36 paklein Exp $ */
+/* created: paklein (10/11/1997) */
 #include "PTHT3BodyT.h"
 
 #include <math.h>
 
-#include "ifstreamT.h"
 #include "dMatrixT.h"
 #include "iArray2DT.h"
 #include "ThermalDilatationT.h"
 
-
-/* parameters */
-
 using namespace Tahoe;
 
+/* parameters */
 const int kNumVars = 3; //number of arguments in Phi
 
 /* constructor */
 PTHT3BodyT::PTHT3BodyT(const dArrayT& lengths,
 	const dArrayT& angles, const iArray2DT& bondpairs,
-	const ThermalDilatationT* thermal, ifstreamT& in):
-	ThreeBodyT(lengths, angles, bondpairs, thermal)
+	const ThermalDilatationT* thermal, double B, double Z):
+	ThreeBodyT(lengths, angles, bondpairs, thermal),
+	fB(B),
+	fZ(Z)
 {
-	/* read potential patameters */
-	in >> fB;
-	in >> fZ;
+
 }
 
 /* triggers recomputation */

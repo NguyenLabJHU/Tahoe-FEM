@@ -1,7 +1,6 @@
-/* $Id: ParadynEAMT.cpp,v 1.9 2004-04-09 02:03:05 hspark Exp $ */
+/* $Id: ParadynEAMT.cpp,v 1.10 2004-07-15 08:29:49 paklein Exp $ */
 #include "ParadynEAMT.h"
 
-#include "toolboxConstants.h"
 #include "ifstreamT.h"
 #include "dArrayT.h"
 #include "AutoArrayT.h"
@@ -28,72 +27,22 @@ const int knum_coeff = 9;
 
 /* constructor */
 ParadynEAMT::ParadynEAMT(const StringT& param_file):
-  fParams(param_file),
-  f_cut(0.0)
+	f_cut(0.0)
 {
-  const char caller[] = "ParadynEAMT::ParadynEAMT";
-  /* try to open file */
-  ifstreamT in(fParams);
-  if (!in.is_open())
-    ExceptionT::BadInputValue(caller, "error opening file: %s", fParams.Pointer());
-  
-  dArrayT tmp;	
+	SetName("Paradyn_EAM");
 
-  /* read comment line */
-  fDescription.GetLineFromStream(in);
-  
-  /* lattice information */
-  double mass;
-  in >> fAtomicNumber >> mass 
-     >> fLatticeParameter >> fStructure;
-
-  /* Adjust mass like in interpolate.F of ParaDyn */
-  double conmas = 1.0365e-4;
-  mass *= conmas;
-  
-  /* read dimensions */
-  int np, nr;
-  double dp, dr;
-  in >> np >> dp >> nr >> dr >> f_cut;
-  if (np < 2   ||
-      dp < 0.0 ||
-      nr < 2   ||
-      dr < 0.0 ||
-      f_cut < 0.0) ExceptionT::BadInputValue(caller);
-  
-  /* Embedding Energy, frhoin in ParaDyn */
-  tmp.Dimension(np);
-  in >> tmp;
-  /* compute spline coefficients for Embedded energy */
-  ComputeCoefficients(tmp, dp, fEmbedCoeff);
-  rho_inc = 1.0/dp;
-  
-  /* Pair Energy, zrin in ParaDyn 
-     Note: It is only z at this point, not phi = z^2/r */
-  tmp.Dimension(nr);
-  in >> tmp;
-  
-  /* adjust units */
-  tmp *= sqrt(27.2*0.529);
-  
-  f_inc = 1.0/dr;
-
-  /* compute spline coefficients for z */
-  ComputeCoefficients(tmp, dr, fPairCoeff);
-
-  /* Electron Density, rhoin in ParaDyn, 
-     assume that z and rho grids coincide */
-  in >> tmp;
-  /* compute spline coefficients for Electron Density  */
-  ComputeCoefficients(tmp, dr, fElectronDensityCoeff);
-
-  /* inherited */
-  SetMass(mass);
-  SetRange(f_cut);
+	/* read parameters file */
+	ReadParameters(param_file);
 }
 
-/* write properties to output */
+ParadynEAMT::ParadynEAMT(void):
+	f_cut(0.0)
+{
+	SetName("Paradyn_EAM");
+}
 
+#if 0
+/* write properties to output */
 void ParadynEAMT::Write(ostream& out) const
 {
   out << "Paradyn: " << fDescription << '\n';
@@ -105,6 +54,7 @@ void ParadynEAMT::Write(ostream& out) const
   out << " # intervals in the potential table. . . . . . . = " << fPairCoeff.MajorDim() << '\n';
   out << " Interval size . . . . . . . . . . . . . . . . . = " << 1.0/f_inc << '\n';
 }
+#endif
 
 /* return a pointer to the energy function */
 ParadynEAMT::PairEnergyFunction ParadynEAMT::getPairEnergy(void)
@@ -215,6 +165,37 @@ bool ParadynEAMT::getParadynTable(const double** coeff, double& dr,
 #pragma unused(row_size)
 #pragma unused(num_rows)
   return false;
+}
+
+/* describe the parameters needed by the interface */
+void ParadynEAMT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	EAMPropertyT::DefineParameters(list);
+
+	/* give "mass" default value */
+	ParameterT& mass = list.GetParameter("mass");
+	mass.SetDefault(1.0);
+
+	/* parameter file path (relative to input file) */
+	list.AddParameter(ParameterT::Word, "parameter_file");
+}
+
+/* accept parameter list */
+void ParadynEAMT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	EAMPropertyT::TakeParameterList(list);
+
+	/* convert file path to standard form */
+	StringT file = list.GetParameter("parameter_file");
+	file.ToNativePathName();
+	
+	/* prepend path from input file */
+	file.Prepend(fstreamT::Root());
+
+	/* read parameters */
+	ReadParameters(file);
 }
 
 /***********************************************************************
@@ -343,6 +324,68 @@ double ParadynEAMT::StiffnessAux(double r_ab,int n, double inc, double* coeff)
   return c[7] + pp*c[8];
 }
 
+/* read parameters file */
+void ParadynEAMT::ReadParameters(const StringT& params)
+{
+	const char caller[] = "ParadynEAMT::ReadParameters";
+  
+	/* try to open file */
+	ifstreamT in(params);
+	if (!in.is_open())
+		ExceptionT::BadInputValue(caller, "error opening file: %s", params.Pointer());
+  
+	/* read comment line */
+	fDescription.GetLineFromStream(in);
+  
+	/* lattice information */
+	double mass;
+	in >> fAtomicNumber >> mass
+	   >> fLatticeParameter >> fStructure;
+  
+	/* adjust mass like in interpolate.F of ParaDyn */
+	double conmas = 1.0365e-4;
+	mass *= conmas;
+  
+	/* read dimensions */
+	int np, nr;
+	double dp, dr;
+	in >> np >> dp >> nr >> dr >> f_cut;
+	if (np < 2 ||
+      dp < 0.0 ||
+      nr < 2   ||
+      dr < 0.0 ||
+      f_cut < 0.0) ExceptionT::BadInputValue(caller);
+  
+	/* Embedding Energy, frhoin in ParaDyn */
+	dArrayT tmp;
+	tmp.Dimension(np);
+	in >> tmp;
+	
+	/* compute spline coefficients for Embedded energy */
+	ComputeCoefficients(tmp, dp, fEmbedCoeff);
+	rho_inc = 1.0/dp;
+  
+	/* Pair Energy, zrin in ParaDyn Note: It is only z at this point, not phi = z^2/r */
+	tmp.Dimension(nr);
+	in >> tmp;
+  
+	/* adjust units */
+    tmp *= sqrt(27.2*0.529);
+	f_inc = 1.0/dr;
+  
+	/* compute spline coefficients for z */
+	ComputeCoefficients(tmp, dr, fPairCoeff);
+  
+	/* Electron Density, rhoin in ParaDyn, assume that z and rho grids coincide */
+	in >> tmp;
+	
+	/* compute spline coefficients for Electron Density  */
+	ComputeCoefficients(tmp, dr, fElectronDensityCoeff);
+  
+	/* inherited */
+	SetMass(mass);
+	SetRange(f_cut);
+}
 
 /* compute the coefficients, like interpolation.F*/
 void ParadynEAMT::ComputeCoefficients(const ArrayT<double>& f, double dx, dArray2DT& coeff)

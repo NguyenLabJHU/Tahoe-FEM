@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.12 2003-11-21 22:46:29 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.13 2004-07-15 08:27:31 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -14,7 +14,7 @@ const int kSIERRA_stress_dim = 6;
 
 /* constructor */
 SIERRA_Material_BaseT::SIERRA_Material_BaseT(ifstreamT& in, const FSMatSupportT& support):
-	FSSolidMatT(in, support),
+	ParameterInterfaceT("SIERRA_material"),
 	fTangentType(GlobalT::kSymmetric),
 	fSIERRA_Material_Data(NULL),
 	fModulus(dSymMatrixT::NumValues(NumSD())),
@@ -53,13 +53,7 @@ SIERRA_Material_BaseT::~SIERRA_Material_BaseT(void)
 		SIERRA_Material_DB::Delete();
 }
 
-/* print parameters */
-void SIERRA_Material_BaseT::Print(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::Print(out);
-	IsotropicT::Print(out);
-
+#if 0
 	/* write properties array */
 	out << " Material name . . . . . . . . . . . . . . . . . = " << fMaterialName << '\n';
 	out << " Material model name . . . . . . . . . . . . . . = " << fSIERRA_Material_Data->Name() << '\n';
@@ -73,15 +67,18 @@ void SIERRA_Material_BaseT::Print(ostream& out) const
 	for (int i = 0; i < prop_names.Length(); i++)
 		out << setw(d_width) << prop_values[i] << " : " << prop_names[i] << '\n';
 	out.flush();
-}
+
+	out << "    SIERRA material: " << fSIERRA_Material_Data->Name() << '\n';
+#endif
 
 /* disable multiplicative thermal strains */
 void SIERRA_Material_BaseT::Initialize(void)
 {
 	const char caller[] = "SIERRA_Material_BaseT::Initialize";
-
+ExceptionT::GeneralFail(caller, "out of date");
+#if 0
 	/* inherited */
-	FSSolidMatT::Initialize();
+	//FSSolidMatT::Initialize();
 
 	/* call SIERRA registration function */
 	Register_SIERRA_Material();
@@ -146,6 +143,7 @@ void SIERRA_Material_BaseT::Initialize(void)
 	if (fThermal->IsActive())
 		cout << "\n SIERRA_Material_BaseT::Initialize: thermal strains must\n"
 		     <<   "    be handled within the UMAT\n" << endl;
+#endif
 }
 
 /* materials initialization */
@@ -243,7 +241,7 @@ const dSymMatrixT& SIERRA_Material_BaseT::s_ij(void)
 	
 		/* parameters */
 		int nelem = 1;
-		double dt = fFSMatSupport.TimeStep();
+		double dt = fFSMatSupport->TimeStep();
 		int nsv = fstate_old.Length();
 		int ncd = 0;
 		int matvals = fSIERRA_Material_Data->ID();
@@ -369,14 +367,6 @@ void SIERRA_Material_BaseT::ComputeOutput(dArrayT& output)
  * Protected
  ***********************************************************************/
 
-/* I/O functions */
-void SIERRA_Material_BaseT::PrintName(ostream& out) const
-{
-	/* inherited */
-	FSSolidMatT::PrintName(out);
-	out << "    SIERRA material: " << fSIERRA_Material_Data->Name() << '\n';
-}
-
 void SIERRA_Material_BaseT::SIERRA_to_dSymMatrixT(const double* pA,
 	dSymMatrixT& B) const
 {
@@ -431,15 +421,15 @@ void SIERRA_Material_BaseT::Read_SIERRA_Input(ifstreamT& in,
 		if (word == "BEGIN")
 		{
 			/* get list name */
-			StringT list_name;
-			line.Tail(' ', list_name);
-			list_name.ToUpper();
-			if (list_name.StringLength() == 0)
+			StringT name;
+			line.Tail(' ', name);
+			name.ToUpper();
+			if (name.StringLength() == 0)
 				ExceptionT::BadInputValue(caller, "could not list name from line:\n%s",
 					line.Pointer());
 					
 			/* recursively construct list */
-			ParameterListT param_sub_list(list_name);
+			ParameterListT param_sub_list(name);
 			Read_SIERRA_Input(in, param_sub_list);
 			
 			/* add list to parameter list */
@@ -579,7 +569,7 @@ if (input.Length() != 1)
 	/* incremental strain rate */
 	else if (input[0] == "rot_strain_inc")
 	{
-		double dt = fFSMatSupport.TimeStep();
+		double dt = fFSMatSupport->TimeStep();
 		double k = (fabs(dt) > kSmall) ? 2.0/dt : 0.0;
 		fdstran[0] = k*fU1U2[0]; // 11
 		fdstran[1] = k*fU1U2[1]; // 22

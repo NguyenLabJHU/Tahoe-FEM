@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.h,v 1.7 2002-11-30 16:41:29 paklein Exp $ */
+/* $Id: SWDiamondT.h,v 1.8 2004-07-15 08:30:17 paklein Exp $ */
 /* created: paklein (03/19/1997) */
 
 #ifndef _SWDIAMOND_T_H_
@@ -23,9 +23,6 @@ public:
 
 	/* constructor */
 	SWDiamondT(const ElementSupportT& support, const FieldT& field);
-
-	/* initialization */
-	virtual void Initialize(void);
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;

@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.h,v 1.3 2003-05-06 19:59:44 cjkimme Exp $ */
+/* $Id: ScaledVelocityNodesT.h,v 1.4 2004-07-15 08:31:21 paklein Exp $ */
 #ifndef _SCALED_VELOCITY_NODES_T_H_
 #define _SCALED_VELOCITY_NODES_T_H_
 
@@ -9,6 +9,7 @@
 #include "ScheduleT.h"
 #include "iArrayT.h"
 #include "BasicFieldT.h"
+#include "RandomNumberT.h"
 
 namespace Tahoe {
 
@@ -24,16 +25,7 @@ class ScaledVelocityNodesT: public KBC_ControllerT
 public:	
 
 	/** constructor */
-	ScaledVelocityNodesT(NodeManagerT& node_manager, BasicFieldT& field);
-
-	/** destructor */
- 	~ScaledVelocityNodesT(void);
-
-	/** initialize data. Must be called immediately after construction */
-	virtual void Initialize(ifstreamT& in);
-
-	/** write class parameters */
-	void WriteParameters(ostream& out) const;
+	ScaledVelocityNodesT(const BasicSupportT& support, BasicFieldT& field);
 
 	/** do at start of timestep */
 	virtual void InitStep(void);
@@ -43,10 +35,29 @@ public:
 	
 	virtual bool IsICController(void) { return true; }
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
+
+	/** \name node picking methods */
+	/*@{*/
+	void InitNodeSets(const ParameterListT& pick_nodes);
+	/*@}*/
 	
 	void SetBCCards(void);
-	/*@}*/
 
 protected:
 
@@ -67,7 +78,6 @@ protected:
 
 	/** temperature evolution controlled by a schedule */
 	const ScheduleT* fTempSchedule;
-	int fnumTempSchedule;
 	double fTempScale;
 	
 	/** temperature schedule is not the BC value. Need a dummy schedule, too */
@@ -83,7 +93,8 @@ protected:
 	double fMass;
 	
 	/** initial velocity distribution random number gen */
-	RandomNumberT* fRandom;
+	RandomNumberT fRandom;
+
 	/** initial temperature */
 	double fT_0;
 };

@@ -1,6 +1,6 @@
-/* $Id: BCJHypoIsoDamageYC2D.cpp,v 1.4 2003-01-29 07:35:06 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageYC2D.cpp,v 1.5 2004-07-15 08:29:14 paklein Exp $ */
 #include "BCJHypoIsoDamageYC2D.h"
-#include "ifstreamT.h"
+
 #include "Utils.h"
 
 using namespace Tahoe;
@@ -9,15 +9,13 @@ using namespace Tahoe;
 const int kNSD = 2;
 
 BCJHypoIsoDamageYC2D::BCJHypoIsoDamageYC2D(ifstreamT& in, const FSMatSupportT& support) :
+	ParameterInterfaceT("BCJHypoIsoDamageYC_2D"),
   BCJHypoIsoDamageYC3D   (in, support),  
-  Material2DT (in, Material2DT::kPlaneStrain),
   f2Ds_ij   (kNSD),
   f2Dc_ijkl (dSymMatrixT::NumValues(kNSD))
 {
 
 }
-
-BCJHypoIsoDamageYC2D::~BCJHypoIsoDamageYC2D() {} 
 
 const dSymMatrixT& BCJHypoIsoDamageYC2D::s_ij()
 {
@@ -26,7 +24,6 @@ const dSymMatrixT& BCJHypoIsoDamageYC2D::s_ij()
 
   // reduce stress: 3D -> 2D
   f2Ds_ij.ReduceFrom3D(sij);
-  f2Ds_ij *= fThickness;
 
   return f2Ds_ij;
 }
@@ -38,23 +35,17 @@ const dMatrixT& BCJHypoIsoDamageYC2D::c_ijkl()
 
   // reduce cijkl: 3D -> 2D
   f2Dc_ijkl.Rank4ReduceFrom3D(cijkl);
-  f2Dc_ijkl *= fThickness;
 
   return f2Dc_ijkl;
 }
 
-void BCJHypoIsoDamageYC2D::Print(ostream& out) const
+/* describe the parameters needed by the interface */
+void BCJHypoIsoDamageYC2D::DefineParameters(ParameterListT& list) const
 {
-  // inherited
-  BCJHypoIsoDamageYC3D::Print(out);
-  Material2DT::Print(out);
-}
-
-void BCJHypoIsoDamageYC2D::PrintName(ostream& out) const
-{
-  // inherited
-  BCJHypoIsoDamageYC3D::PrintName(out);
-
-  // output model name
-  out << "    Plane Strain\n";
+	/* inherited */
+	BCJHypoIsoDamageYC3D::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStrain);
 }

@@ -1,4 +1,4 @@
-/* $Id: FDCrystalElast.h,v 1.5 2003-01-29 07:34:56 paklein Exp $ */
+/* $Id: FDCrystalElast.h,v 1.6 2004-07-15 08:28:16 paklein Exp $ */
 #ifndef _FD_CRYSTAL_ELAST_H_
 #define _FD_CRYSTAL_ELAST_H_
 
@@ -40,10 +40,6 @@ class FDCrystalElast : public CrystalElast
   virtual int NumOutputVariables() const;
   virtual void OutputLabels(ArrayT<StringT>& labels) const;
   virtual void ComputeOutput(dArrayT& output);
-
-  // print data and model name
-  virtual void Print(ostream& out) const;
-  virtual void PrintName(ostream& out) const;
 
  protected:
   // initial value of crystal variables

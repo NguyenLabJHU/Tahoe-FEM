@@ -1,6 +1,5 @@
-/* $Id: D2MeshFreeSupport2DT.h,v 1.6 2004-01-27 01:21:14 cjkimme Exp $ */
+/* $Id: D2MeshFreeSupport2DT.h,v 1.7 2004-07-15 08:30:07 paklein Exp $ */
 /* created: paklein (10/23/1999) */
-
 #ifndef _D2_MF_SUPPORT_2D_T_H_
 #define _D2_MF_SUPPORT_2D_T_H_
 
@@ -21,10 +20,9 @@ public:
 	 * \param domain used to determine the location of integration points
 	 * \param coords array of all particle coordinates 
 	 * \param connects integration cell connectivities 
-	 * \param nongridnodes index of paricles not included in the connectivities
-	 * \param in input stream for class and window function parameters */
+	 * \param nongridnodes index of paricles not included in the connectivities */
 	D2MeshFreeSupport2DT(const ParentDomainT* domain, const dArray2DT& coords,
-		const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in);
+		const iArray2DT& connects, const iArrayT& nongridnodes);
 
 	/** set cutting field facets. 
 	 * \param facet_coords list of coordinate for each facet: [nfacets] x [num_facet_nodes*nsd] 

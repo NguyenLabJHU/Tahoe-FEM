@@ -1,13 +1,10 @@
-/* $Id: TvergHutch2DT.cpp,v 1.20 2004-06-17 07:13:28 paklein Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.21 2004-07-15 08:26:02 paklein Exp $ */
 /* created: paklein (02/05/2000) */
-
 #include "TvergHutch2DT.h"
 
 #include <iostream.h>
 #include <math.h>
-
 #include "ExceptionT.h"
-#include "ifstreamT.h"
 #include "StringT.h"
 
 using namespace Tahoe;
@@ -16,23 +13,18 @@ using namespace Tahoe;
 const int knumDOF = 2;
 
 /* constructor */
-TvergHutch2DT::TvergHutch2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
+TvergHutch2DT::TvergHutch2DT(void): 
+	SurfacePotentialT(knumDOF),
+	fsigma_max(0.0),
+	fd_c_n(0.0),
+	fd_c_t(0.0),
+	fL_1(0.0),
+	fL_2(0.0),
+	fL_fail(0.0),
+	fpenalty(0.0),
+	fK(0.0)
 {
-	/* traction potential parameters */
-	in >> fsigma_max; if (fsigma_max < 0) throw ExceptionT::kBadInputValue;
-	in >> fd_c_n; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
-	in >> fd_c_t; if (fd_c_t < 0) throw ExceptionT::kBadInputValue;
-	
-	/* non-dimensional opening parameters */
-	in >> fL_1; if (fL_1 < 0 || fL_1 > 1) throw ExceptionT::kBadInputValue;
-	in >> fL_2; if (fL_2 < fL_1 || fL_2 > 1) throw ExceptionT::kBadInputValue;
-	in >> fL_fail; if (fL_fail < 1.0) fL_fail = 1.0;
-
-	/* stiffness multiplier */
-	in >> fpenalty; if (fpenalty < 0) throw ExceptionT::kBadInputValue;
-
-	/* penetration stiffness */
-	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
+	SetName("Tvergaard-Hutchinson_2D");
 }
 
 /* surface potential */
@@ -207,13 +199,7 @@ SurfacePotentialT::StatusT TvergHutch2DT::Status(const dArrayT& jump_u,
 		return Precritical;
 }
 
-void TvergHutch2DT::PrintName(ostream& out) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	out << "    Tvergaard-Hutchinson 2D\n";
-#endif
-}
-
+#if 0
 /* print parameters to the output stream */
 void TvergHutch2DT::Print(ostream& out) const
 {
@@ -227,6 +213,7 @@ void TvergHutch2DT::Print(ostream& out) const
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fpenalty   << '\n';
 #endif
 }
+#endif
 
 /* returns the number of variables computed for nodal extrapolation
 * during for element output, ie. internal variables. Returns 0
@@ -253,6 +240,69 @@ void TvergHutch2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& s
 	double r_n = u_n/fd_c_n;
 	output[0]  = sqrt(r_t*r_t + r_n*r_n); // (1.1)
 }
+
+/* describe the parameters  */
+void TvergHutch2DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	SurfacePotentialT::DefineParameters(list);
+
+	ParameterT sigma_max(fsigma_max, "sigma_max");
+	sigma_max.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(sigma_max);
+
+	ParameterT d_c_n(fd_c_n, "d_c_n");
+	d_c_n.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(d_c_n);
+
+	ParameterT d_c_t(fd_c_t, "d_c_t");
+	d_c_t.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(d_c_t);
+
+	ParameterT L_1(fL_1, "L_1");
+	L_1.AddLimit(0.0, LimitT::Lower);
+	L_1.AddLimit(1.0, LimitT::Upper);
+	list.AddParameter(L_1);
+
+	ParameterT L_2(fL_2, "L_2");
+	L_2.AddLimit(0.0, LimitT::Lower);
+	L_2.AddLimit(1.0, LimitT::Upper);
+	list.AddParameter(L_2);
+
+	ParameterT L_fail(fL_fail, "L_fail");
+	L_fail.AddLimit(1.0, LimitT::LowerInclusive);
+	list.AddParameter(L_fail);
+
+	ParameterT penalty(fpenalty, "penalty");
+	penalty.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(penalty);
+}
+
+/* accept parameter list */
+void TvergHutch2DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SurfacePotentialT::TakeParameterList(list);
+
+	fsigma_max = list.GetParameter("sigma_max");
+	fd_c_n = list.GetParameter("d_c_n");
+	fd_c_t = list.GetParameter("d_c_t");
+
+	fL_1 = list.GetParameter("L_1");
+	fL_2 = list.GetParameter("L_2");
+	if (fL_2 < fL_1) ExceptionT::BadInputValue("TvergHutch2DT::TakeParameterList",
+		"L2 < L1: %g < %g", fL_2, fL_1);
+
+	fL_fail = list.GetParameter("L_fail");
+	fpenalty = list.GetParameter("penalty");
+
+	/* penetration stiffness */
+	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
+}
+
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
 
 bool TvergHutch2DT::CompatibleOutput(const SurfacePotentialT& potential) const
 {

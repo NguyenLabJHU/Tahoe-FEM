@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.h,v 1.3 2003-12-10 07:14:24 paklein Exp $ */
+/* $Id: NLDiffusionElementT.h,v 1.4 2004-07-15 08:26:18 paklein Exp $ */
 #ifndef _NL_DIFFUSE_T_H_
 #define _NL_DIFFUSE_T_H_
 
@@ -16,11 +16,7 @@ class NLDiffusionElementT: public DiffusionElementT
 public:
 	
 	/** constructor */
-	NLDiffusionElementT(const ElementSupportT& support, const FieldT& field);
 	NLDiffusionElementT(const ElementSupportT& support);
-	
-	/** data initialization */
-	virtual void Initialize(void);
 
 	/** collecting element group equation numbers. */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -29,6 +25,18 @@ public:
 	/** form of tangent matrix, symmetric by default. The tangent for nonlinear
 	 * diffusion is generally nonsymmetric */
 	virtual GlobalT::SystemTypeT TangentType(void) const { return GlobalT::kNonSymmetric; };
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
@@ -54,7 +62,7 @@ private:
 
 	/** \name mixed boundary conditions */
 	/*@{*/
-	void EchoTractionBC(ifstreamT& in, ostream& out);
+	void TakeTractionBC(const ParameterListT& list);
 
 	/** compute contribution to RHS from mixed BC's */
 	void TractionBC_RHS(void);

@@ -1,4 +1,4 @@
-/* $Id: FDKStV.h,v 1.5 2003-01-29 07:34:42 paklein Exp $ */
+/* $Id: FDKStV.h,v 1.6 2004-07-15 08:27:14 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #ifndef _FD_KSTV_H_
 #define _FD_KSTV_H_
@@ -13,12 +13,20 @@ class FDKStV: public FDHookeanMatT, public IsotropicT
 {
 public:
 
-	/* constructor */
-	FDKStV(ifstreamT& in, const FSMatSupportT& support);
+	/** constructor */
+	FDKStV(void);
+	
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
 
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 

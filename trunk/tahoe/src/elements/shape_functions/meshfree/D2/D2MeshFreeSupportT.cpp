@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.cpp,v 1.10 2004-01-27 19:12:20 paklein Exp $ */
+/* $Id: D2MeshFreeSupportT.cpp,v 1.11 2004-07-15 08:30:07 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupportT.h"
@@ -22,20 +22,19 @@
 #include "D2OrthoMLS2DT.h"
 #include "MLSSolverT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 D2MeshFreeSupportT::D2MeshFreeSupportT(const ParentDomainT* domain, const dArray2DT& coords,
-	const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in):
-	MeshFreeSupportT(domain, coords, connects, nongridnodes, in),
+	const iArray2DT& connects, const iArrayT& nongridnodes):
+	MeshFreeSupportT(domain, coords, connects, nongridnodes),
 	fD2EFG(NULL)
 {
 	/* only EFG solver is different for D2 */
 	if (fMeshfreeType == kEFG)
 	{
 		/* construct D2 MLS solver */
-		if (fCoords.MinorDim() == 2)
+		if (fCoords->MinorDim() == 2)
 			fD2EFG = new D2OrthoMLS2DT(fEFG->Completeness());
 		else
 		{
@@ -64,7 +63,7 @@ void D2MeshFreeSupportT::InitNeighborData(void)
 //       this process could be redesigned
 
 	int nip        = fDomain->NumIP();
-	int nsd        = fCoords.MinorDim();
+	int nsd        = fCoords->MinorDim();
 	int stress_dim = dSymMatrixT::NumValues(nsd);
 
 	/* space for nodal calculations */
@@ -86,7 +85,7 @@ void D2MeshFreeSupportT::LoadNodalData(int node, iArrayT& neighbors, dArrayT& ph
 	fnNeighborData.RowAlias(tag, neighbors);
 
 	/* dimensions */
-	int nsd = fCoords.MinorDim();
+	int nsd = fCoords->MinorDim();
 	int nst = dSymMatrixT::NumValues(nsd);
 	int nnd = neighbors.Length();
 	
@@ -144,7 +143,7 @@ void D2MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 
 	/* dimensions */
 	int nip = fDomain->NumIP();
-	int nsd = fCoords.MinorDim();
+	int nsd = fCoords->MinorDim();
 	int nst = dSymMatrixT::NumValues(nsd);
 	int nnd = neighbors.Length();
 
@@ -234,7 +233,7 @@ int D2MeshFreeSupportT::SetFieldAt(const dArrayT& x, const dArrayT* shift)
 		fnodal_param_man.SetMajorDimension(fneighbors.Length(), false);
 	
 		/* collect local lists */
-		fcoords.RowCollect(fneighbors, fCoords);
+		fcoords.RowCollect(fneighbors, *fCoords);
 		fnodal_param.RowCollect(fneighbors, fNodalParameters);
 	
 		/* compute MLS field */
@@ -335,7 +334,7 @@ void D2MeshFreeSupportT::SetElementShapeFunctions(void)
 
 	/* dimensions */
 	int nip = fDomain->NumIP();
-	int nel = fConnects.MajorDim();
+	int nel = fConnects->MajorDim();
 
 	/* work space */
 	iArrayT    neighbors;
@@ -375,12 +374,12 @@ void D2MeshFreeSupportT::ComputeNodalData(int node, const iArrayT& neighbors,
 	fcoords_man.SetMajorDimension(count, false);
 	
 	/* collect local lists */
-	fcoords.RowCollect(neighbors, fCoords);
+	fcoords.RowCollect(neighbors, *fCoords);
 	fnodal_param.Collect(neighbors, fNodalParameters);
 		
 	/* coords of current node */
 	dArrayT x_node;
-	fCoords.RowAlias(node, x_node);
+	fCoords->RowAlias(node, x_node);
 	
 	/* process boundaries */
 	fnodal_param_ip = fnodal_param;
@@ -414,10 +413,10 @@ void D2MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 	dArray2DT& phi, ArrayT<dArray2DT>& Dphi, ArrayT<dArray2DT>& DDphi)
 {
 	/* dimensions */
-	int nsd = fCoords.MinorDim();
+	int nsd = fCoords->MinorDim();
 	int nip = fDomain->NumIP();
 	int nnd = neighbors.Length();
-	int nen = fConnects.MinorDim();
+	int nen = fConnects->MinorDim();
 
 	/* set dimensions */
 	fnodal_param_man.SetMajorDimension(nnd, false);
@@ -425,16 +424,16 @@ void D2MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 	fvolume_man.SetLength(nnd, false);
 
 	/* collect neighbor data */
-	fcoords.RowCollect(neighbors, fCoords);
+	fcoords.RowCollect(neighbors, *fCoords);
 	fnodal_param.RowCollect(neighbors, fNodalParameters);
 
 	/* workspace */
 	iArrayT     elementnodes;
 	LocalArrayT loccoords(LocalArrayT::kUnspecified, nen, nsd);
-	loccoords.SetGlobal(fCoords);
+	loccoords.SetGlobal(*fCoords);
 		
 	/* integration point coordinates */
-	fConnects.RowAlias(element, elementnodes);
+	fConnects->RowAlias(element, elementnodes);
 	loccoords.SetLocal(elementnodes);
 	fDomain->Interpolate(loccoords, fx_ip_table);
 		
@@ -480,7 +479,7 @@ void D2MeshFreeSupportT::InitNodalShapeData(void)
 	MeshFreeSupportT::InitNodalShapeData();
 
 	/* dimensions */
-	int nst = dSymMatrixT::NumValues(fCoords.MinorDim());
+	int nst = dSymMatrixT::NumValues(fCoords->MinorDim());
 
 	/* configure nodal storage */
 	fnDDPhiData.Configure(fnNeighborCount, nst);	
@@ -492,7 +491,7 @@ void D2MeshFreeSupportT::InitElementShapeData(void)
 	MeshFreeSupportT::InitElementShapeData();
 
 	/* dimensions */
-	int nst = dSymMatrixT::NumValues(fCoords.MinorDim());
+	int nst = dSymMatrixT::NumValues(fCoords->MinorDim());
 	int nip = fDomain->NumIP();
 
 	/* configure element storage */

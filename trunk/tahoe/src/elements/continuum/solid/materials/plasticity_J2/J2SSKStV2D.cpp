@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV2D.cpp,v 1.4 2002-11-14 17:06:25 paklein Exp $ */
+/* $Id: J2SSKStV2D.cpp,v 1.5 2004-07-15 08:28:54 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV2D.h"
 #include "ElementCardT.h"
@@ -7,41 +7,21 @@
 using namespace Tahoe;
 
 /* constructor */
-J2SSKStV2D::J2SSKStV2D(ifstreamT& in, const SSMatSupportT& support):
-	J2SSKStV(in, support),
-	Material2DT(in, Material2DT::kPlaneStrain),
-	fStress2D(2),
-	fModulus2D(dSymMatrixT::NumValues(2)),
-	fTotalStrain3D(3)
+J2SSKStV2D::J2SSKStV2D(void):
+	ParameterInterfaceT("small_strain_StVenant_J2_2D")
 {
-	/* acccount for thickness */
-	fDensity *= fThickness;
-}
 
-/* initialization */
-void J2SSKStV2D::Initialize(void)
-{
-	/* inherited */
-	HookeanMatT::Initialize();
 }
 
 /* returns elastic strain (3D) */
 const dSymMatrixT& J2SSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain,
-	const ElementCardT& element, int ip)
+	const ElementCardT& element, int nip, int ip)
 {
 	/* 2D -> 3D (plane strain) */
 	fTotalStrain3D.ExpandFrom2D(totalstrain);
 
 	/* inherited */
-	return J2SSKStV::ElasticStrain(fTotalStrain3D, element, ip);
-}
-
-/* print parameters */
-void J2SSKStV2D::Print(ostream& out) const
-{
-	/* inherited */
-	J2SSKStV::Print(out);
-	Material2DT::Print(out);
+	return J2SSKStV::ElasticStrain(fTotalStrain3D, element, nip, ip);
 }
 
 /* moduli */
@@ -49,7 +29,6 @@ const dMatrixT& J2SSKStV2D::c_ijkl(void)
 {
 	/* 3D -> 2D */
 	fModulus2D.Rank4ReduceFrom3D(J2SSKStV::c_ijkl());
-	fModulus2D *= fThickness;
 	return fModulus2D;
 }
 
@@ -58,24 +37,28 @@ const dSymMatrixT& J2SSKStV2D::s_ij(void)
 {
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(J2SSKStV::s_ij());
-	fStress2D *= fThickness;
 	return fStress2D;
 }
 
-/* returns the strain energy density for the specified strain */
-double J2SSKStV2D::StrainEnergyDensity(void)
-{
-	return fThickness*J2SSKStV::StrainEnergyDensity();
-}
-
-/***********************************************************************
-* Protected
-***********************************************************************/
-
-/* print name */
-void J2SSKStV2D::PrintName(ostream& out) const
+/* describe the parameters needed by the interface */
+void J2SSKStV2D::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	J2SSKStV::PrintName(out);
-	out << "    2D\n";
+	J2SSKStV::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStrain);
+}
+
+/* accept parameter list */
+void J2SSKStV2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	J2SSKStV::TakeParameterList(list);
+
+	/* dimension work space */
+	fStress2D.Dimension(2);
+	fModulus2D.Dimension(dSymMatrixT::NumValues(2));
+	fTotalStrain3D.Dimension(3);
 }

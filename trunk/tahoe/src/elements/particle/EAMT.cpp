@@ -1,8 +1,6 @@
-/* $Id: EAMT.cpp,v 1.61 2004-06-28 22:41:39 hspark Exp $ */
-
+/* $Id: EAMT.cpp,v 1.62 2004-07-15 08:29:44 paklein Exp $ */
 #include "EAMT.h"
 
-#include "ifstreamT.h"
 #include "ofstreamT.h"
 #include "eIntegratorT.h"
 #include "InverseMapT.h"
@@ -10,6 +8,7 @@
 #include "dSPMatrixT.h"
 #include "dSymMatrixT.h"
 #include "dArray2DT.h"
+#include "ParameterContainerT.h"
 
 /* EAM potentials */
 #include "ParadynEAMT.h"
@@ -23,43 +22,27 @@ static int iEmb  = 1;
 const int kMemoryHeadRoom = 15; /* percent */
 
 /* constructor */
-EAMT::EAMT(const ElementSupportT& support, const FieldT& field):
-  ParticleT(support, field),
-  fNeighbors(kMemoryHeadRoom),
-  NearestNeighbors(kMemoryHeadRoom),
-  RefNearestNeighbors(kMemoryHeadRoom),
-  fEqnos(kMemoryHeadRoom),
-  fForce_list_man(0, fForce_list),
-  fElectronDensity_man(kMemoryHeadRoom, fElectronDensity, 1),
-  fEmbeddingEnergy_man(kMemoryHeadRoom, fEmbeddingEnergy, 1),
-  fEmbeddingForce_man(kMemoryHeadRoom, fEmbeddingForce, 1),
-  fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1),
-  frhop_r_man(kMemoryHeadRoom, frhop_r,NumDOF()),
-  fExternalEmbedForce(NULL),
-  fExternalElecDensity(NULL),
-  fExternalEmbedForceNodes(NULL),
-  fExternalElecDensityNodes(NULL)
-{
-	SetName("particle_eam");
-}
-
 EAMT::EAMT(const ElementSupportT& support):
-  ParticleT(support),
-  fNeighbors(kMemoryHeadRoom),
-  NearestNeighbors(kMemoryHeadRoom),
-  RefNearestNeighbors(kMemoryHeadRoom),
-  fEqnos(kMemoryHeadRoom),
-  fForce_list_man(0, fForce_list),
-  fElectronDensity_man(kMemoryHeadRoom, fElectronDensity, 1),
-  fEmbeddingEnergy_man(kMemoryHeadRoom, fEmbeddingEnergy, 1),
-  fEmbeddingForce_man(kMemoryHeadRoom, fEmbeddingForce, 1),
-  fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1),
-  fExternalEmbedForce(NULL),
-  fExternalElecDensity(NULL),
-  fExternalEmbedForceNodes(NULL),
-  fExternalElecDensityNodes(NULL)
-{
-	SetName("particle_eam");
+	ParticleT(support),
+	fNeighbors(kMemoryHeadRoom),
+	fNearestNeighbors(kMemoryHeadRoom),
+	fRefNearestNeighbors(kMemoryHeadRoom),
+	fEqnos(kMemoryHeadRoom),
+	fForce_list_man(0, fForce_list),
+	fElectronDensity_man(kMemoryHeadRoom, fElectronDensity, 1),
+	fEmbeddingEnergy_man(kMemoryHeadRoom, fEmbeddingEnergy, 1),
+	fEmbeddingForce_man(kMemoryHeadRoom, fEmbeddingForce, 1),
+	fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1),
+	fElectronDensityMessageID(CommManagerT::kNULLMessageID),
+	fEmbeddingEnergyMessageID(CommManagerT::kNULLMessageID),
+	fEmbeddingForceMessageID(CommManagerT::kNULLMessageID),
+	fEmbeddingStiffMessageID(CommManagerT::kNULLMessageID),
+	frhop_rMessageID(CommManagerT::kNULLMessageID),
+	fExternalEmbedForce(NULL),
+	fExternalElecDensity(NULL),
+	fExternalEmbedForceNodes(NULL),
+	fExternalElecDensityNodes(NULL){
+	SetName("particle_EAM");
 }
 
 /* collecting element group equation numbers */
@@ -76,55 +59,6 @@ void EAMT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 
   /* add to list of equation numbers */
   eq_2.Append(&fEqnos);
-}
-
-/* class initialization */
-void EAMT::Initialize(void)
-{
-  cout << "Initialization Phase\n";
-  
-	/* muli-processor information */
-	CommManagerT& comm_manager = ElementSupport().CommManager();
-
-  /* set up communication of electron density information */
-  fElectronDensityMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
-  fElectronDensity_man.SetMajorDimension(ElementSupport().NumNodes(), false);
-
-  /* set up communication of embedding energy information */
-  fEmbeddingEnergyMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
-  fEmbeddingEnergy_man.SetMajorDimension(ElementSupport().NumNodes(), false);
-
-  /* set up communication of embedding force information */
-  fEmbeddingForceMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
-  fEmbeddingForce_man.SetMajorDimension(ElementSupport().NumNodes(), false);
-
-  /* set up communication of embedding stiffness information */
-  fEmbeddingStiffMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
-  fEmbeddingStiff_man.SetMajorDimension(ElementSupport().NumNodes(), false);
-
-  /* set up communication of rhop * r information */
-  frhop_rMessageID = comm_manager.Init_AllGather(MessageT::Double, NumDOF());
-  frhop_r_man.SetMajorDimension(ElementSupport().NumNodes(), false);
-
-  /* inherited */
-  ParticleT::Initialize();
-
-  ParticleT::SetRefNN(NearestNeighbors,RefNearestNeighbors);
-
-  /* dimension */
-  int ndof = NumDOF();
-  fLHS.Dimension(2*ndof);
-  fRHS.Dimension(2*ndof);
-
-  /* constant matrix needed to calculate stiffness */
-  fOneOne.Dimension(fLHS);
-  dMatrixT one(ndof);
-  one.Identity();
-  fOneOne.SetBlock(0, 0, one);
-  fOneOne.SetBlock(ndof, ndof, one);
-  one *= -1;
-  fOneOne.SetBlock(0, ndof, one);
-  fOneOne.SetBlock(ndof, 0, one);
 }
 
 /* collecting element geometry connectivities */
@@ -201,8 +135,9 @@ void EAMT::WriteOutput(void)
 		V0 = fLatticeParameter*fLatticeParameter*fLatticeParameter/4.0; /* FCC */  
 	
   /* collect mass per particle */
-  dArrayT mass(fNumTypes);
-  for (int i = 0; i < fNumTypes; i++)
+  int num_types = fTypeNames.Length();
+  dArrayT mass(num_types);
+  for (int i = 0; i < num_types; i++)
     mass[i] = fEAMProperties[fPropertiesMap(i,i)]->Mass();
 
  /* collect displacements */
@@ -413,10 +348,12 @@ void EAMT::WriteOutput(void)
 
     /* flag for specifying Lagrangian (0) or Eulerian (1) strain */
     const int kEulerLagr = 0;
+
     /* calculate slip vector and strain */
-    Calc_Slip_and_Strain(s_values,RefNearestNeighbors,kEulerLagr);
+    Calc_Slip_and_Strain(s_values, fRefNearestNeighbors, kEulerLagr);
+
     /* calculate centrosymmetry parameter */
-    Calc_CSP(s_values, NearestNeighbors);
+    Calc_CSP(s_values, fNearestNeighbors);
 
     /* combine strain, slip vector and centrosymmetry parameter into n_values list */
     for (int i = 0; i < fNeighbors.MajorDim(); i++)
@@ -774,13 +711,6 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
     }
 }
 
-/* describe the parameters needed by the interface */
-void EAMT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	ParticleT::DefineParameters(list);
-}
-
 /* set external electron density pointers */
 void EAMT::SetExternalElecDensity(const dArray2DT& elecdensity, const iArrayT& ghostatoms)
 {
@@ -793,6 +723,81 @@ void EAMT::SetExternalEmbedForce(const dArray2DT& embedforce, const iArrayT& gho
 {
 	fExternalEmbedForce = &embedforce;
 	fExternalEmbedForceNodes = &ghostatoms;
+}
+
+/* information about subordinate parameter lists */
+void EAMT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ParticleT::DefineSubs(sub_list);
+
+	/* interactions */
+	sub_list.AddSub("EAM_particle_interaction", ParameterListT::OnePlus);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void EAMT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
+{
+	if (name == "EAM_property_choice")
+	{
+		order = ParameterListT::Choice;
+		
+		/* EAM potentials reading Paradyn parameters tables */
+		sub_lists.AddSub("Paradyn_EAM");
+	}
+	else /* inherited */
+		ParticleT::DefineInlineSub(name, order, sub_lists);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* EAMT::NewSub(const StringT& name) const
+{
+	/* try to construct potential */
+	EAMPropertyT* EAM_property = New_EAMProperty(name, false);
+	if (EAM_property)
+		return EAM_property;
+	else if (name == "EAM_particle_interaction")
+	{
+		ParameterContainerT* interactions = new ParameterContainerT(name);
+		interactions->SetSubSource(this);
+
+		/* particle type labels */
+		interactions->AddParameter(ParameterT::Word, "label_1");
+		interactions->AddParameter(ParameterT::Word, "label_2");
+	
+		/* properties choice list */
+		interactions->AddSub("EAM_property_choice", ParameterListT::Once, true);
+
+		return interactions;
+	}	
+	else /* inherited */
+		return ParticleT::NewSub(name);
+}
+
+/* accept parameter list */
+void EAMT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParticleT::TakeParameterList(list);
+
+	/* set the list of reference nearest neighbors */
+	SetRefNN(fNearestNeighbors, fRefNearestNeighbors);
+
+	/* dimension */
+	int ndof = NumDOF();
+	fLHS.Dimension(2*ndof);
+	fRHS.Dimension(2*ndof);
+
+	/* constant matrix needed to calculate stiffness */
+	fOneOne.Dimension(fLHS);
+	dMatrixT one(ndof);
+	one.Identity();
+	fOneOne.SetBlock(0, 0, one);
+	fOneOne.SetBlock(ndof, ndof, one);
+	one *= -1;
+	fOneOne.SetBlock(0, ndof, one);
+	fOneOne.SetBlock(ndof, 0, one);
 }
 
 /***********************************************************************
@@ -878,6 +883,18 @@ void EAMT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 #endif /* NO_PARTICLE_STRESS_OUTPUT */
 }
 
+/* return a new EAM property or NULL if the name is invalid */
+EAMPropertyT* EAMT::New_EAMProperty(const StringT& name, bool throw_on_fail) const
+{
+	if (name == "Paradyn_EAM")
+		return new ParadynEAMT;
+	else if (throw_on_fail) 
+		ExceptionT::GeneralFail("EAMT::New_EAMProperty",
+			"unrecognized potential \"%s\"", name.Pointer());
+
+	return NULL;
+}
+
 /* form group contribution to the stiffness matrix */
 void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 {
@@ -887,17 +904,18 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
   int formK = fIntegrator->FormK(constK);
   int formM = fIntegrator->FormM(constM);
 
-  /* assemble particle mass */
-  if (formM) 
-    {
-    /* collect mass per particle */
-    dArrayT mass(fNumTypes);
-    for (int i = 0; i < fNumTypes; i++)
-      mass[i] = fEAMProperties[fPropertiesMap(i,i)]->Mass();
-    mass *= constM;
-	
-    AssembleParticleMass(mass);
-  }
+	/* assemble particle mass */
+	if (formM) {
+		
+		/* collect mass per particle */
+		int num_types = fTypeNames.Length();
+		dArrayT mass(num_types);
+		for (int i = 0; i < num_types; i++)
+			mass[i] = fEAMProperties[fPropertiesMap(i,i)]->Mass();
+		mass *= constM;
+
+		AssembleParticleMass(mass);
+	}
 
 	/* muli-processor information */
 	CommManagerT& comm_manager = ElementSupport().CommManager();
@@ -1694,121 +1712,144 @@ void EAMT::RHSDriver3D(void)
 /* set neighborlists */
 void EAMT::SetConfiguration(void)
 {
-  /* inherited */
-  ParticleT::SetConfiguration();
+	/* inherited */
+	ParticleT::SetConfiguration();
 
-  /* reset neighbor lists */
-  CommManagerT& comm_manager = ElementSupport().CommManager();
-  const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
-  if (fActiveParticles) 
-    part_nodes = fActiveParticles;
-  GenerateNeighborList(part_nodes, NearestNeighborDistance, NearestNeighbors, true, true);
-  GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
+	/* reset neighbor lists */
+	CommManagerT& comm_manager = ElementSupport().CommManager();
+	const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
+	if (fActiveParticles) 
+		part_nodes = fActiveParticles;
+	GenerateNeighborList(part_nodes, fNearestNeighborDistance, fNearestNeighbors, true, true);
+	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
 	
-  ofstreamT& out = ElementSupport().Output();
-  out << "\n Neighbor statistics:\n";
-  out << " Total number of neighbors . . . . . . . . . . . = " 
-      << fNeighbors.Length() << '\n';
-  out << " Minimum number of neighbors . . . . . . . . . . = " 
-      << fNeighbors.MinMinorDim(0) << '\n';
-  out << " Maximum number of neighbors . . . . . . . . . . = " 
-      << fNeighbors.MaxMinorDim() << '\n';
-  if (fNeighbors.MajorDim() > 0)
-    out << " Average number of neighbors . . . . . . . . . . = " 
-	<< double(fNeighbors.Length())/fNeighbors.MajorDim() << '\n';
-  else
-    out << " Average number of neighbors . . . . . . . . . . = " << 0 << '\n';
+	ofstreamT& out = ElementSupport().Output();
+	out << "\n Neighbor statistics:\n";
+	out << " Total number of neighbors . . . . . . . . . . . = "
+	    << fNeighbors.Length() << '\n';
+	out << " Minimum number of neighbors . . . . . . . . . . = " 
+	    << fNeighbors.MinMinorDim(0) << '\n';
+	out << " Maximum number of neighbors . . . . . . . . . . = " 
+	    << fNeighbors.MaxMinorDim() << '\n';
+	if (fNeighbors.MajorDim() > 0)
+		out << " Average number of neighbors . . . . . . . . . . = " 
+		    << double(fNeighbors.Length())/fNeighbors.MajorDim() << '\n';
+	else
+		out << " Average number of neighbors . . . . . . . . . . = " << 0 << '\n';
 
-  /* verbose */
-  if (ElementSupport().PrintInput())
-    {
-      out << " Neighbor lists (self as leading neighbor):\n";
-      out << setw(kIntWidth) << "row" << "  n..." << '\n';
-      iArrayT tmp(fNeighbors.Length(), fNeighbors.Pointer());
-      tmp++;
-      fNeighbors.WriteNumbered(out);
-      tmp--;
-      out.flush();
-    }
+	/* verbose */
+	if (ElementSupport().PrintInput()) {
+		out << " Neighbor lists (self as leading neighbor):\n";
+		out << setw(kIntWidth) << "row" << "  n..." << '\n';
+		iArrayT tmp(fNeighbors.Length(), fNeighbors.Pointer());
+		tmp++;
+		fNeighbors.WriteNumbered(out);
+		tmp--;
+		out.flush();
+	}
 
-  int nnd = ElementSupport().NumNodes();
-  // ELECTRON DENSITY //
-  /* reset the electron density array */
-  fElectronDensity_man.SetMajorDimension(nnd, true);
+	/* initialize communications */
+	if (fElectronDensityMessageID == CommManagerT::kNULLMessageID) {
+		int ndof = NumDOF();
+		fElectronDensityMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
+		fEmbeddingEnergyMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
+		fEmbeddingForceMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
+		fEmbeddingStiffMessageID = comm_manager.Init_AllGather(MessageT::Double, 1);
+		frhop_rMessageID = comm_manager.Init_AllGather(MessageT::Double, ndof);
+		
+		/* initialize memory manager */
+		frhop_r_man.SetWard(kMemoryHeadRoom, frhop_r, NumDOF());
+	}
+
+	int nnd = ElementSupport().NumNodes();
+
+	// ELECTRON DENSITY //
+	/* reset the electron density array */
+	fElectronDensity_man.SetMajorDimension(nnd, true);
   
-  /* exchange type information */
-  comm_manager.AllGather(fElectronDensityMessageID, fElectronDensity);
+	/* exchange type information */
+	comm_manager.AllGather(fElectronDensityMessageID, fElectronDensity);
 
-  // EMBEDDING ENERGY //
-  /* reset the embedding energy array */
-  fEmbeddingEnergy_man.SetMajorDimension(nnd, true);
+	// EMBEDDING ENERGY //
+	/* reset the embedding energy array */
+	fEmbeddingEnergy_man.SetMajorDimension(nnd, true);
   
-  /* exchange type information */
-  comm_manager.AllGather(fEmbeddingEnergyMessageID, fEmbeddingEnergy);
+	/* exchange type information */
+	comm_manager.AllGather(fEmbeddingEnergyMessageID, fEmbeddingEnergy);
 
-  /* reset the embedding force array */
-  fEmbeddingForce_man.SetMajorDimension(nnd, true);
+	/* reset the embedding force array */
+	fEmbeddingForce_man.SetMajorDimension(nnd, true);
   
-  /* exchange type information */
-  comm_manager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
+	/* exchange type information */
+	comm_manager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
 
-  /* reset the embedding stiffness array */
-  fEmbeddingStiff_man.SetMajorDimension(nnd, true);
+	/* reset the embedding stiffness array */
+	fEmbeddingStiff_man.SetMajorDimension(nnd, true);
   
-  /* exchange type information */
-  comm_manager.AllGather(fEmbeddingStiffMessageID, fEmbeddingStiff);
+	/* exchange type information */
+	comm_manager.AllGather(fEmbeddingStiffMessageID, fEmbeddingStiff);
 
-  // OTHER  //
-  /* reset the rhop * r array */
-  frhop_r_man.SetMajorDimension(nnd, true);
+	// OTHER  //
+	/* reset the rhop * r array */
+	frhop_r_man.SetMajorDimension(nnd, true);
   
-  /* exchange type information */
-  comm_manager.AllGather(frhop_rMessageID, frhop_r);
+	/* exchange type information */
+	comm_manager.AllGather(frhop_rMessageID, frhop_r);
 }
 
-/* construct the list of properties from the given input stream */
-void EAMT::EchoProperties(ifstreamT& in, ofstreamT& out)
+/* extract the properties information from the parameter list. See ParticleT::ExtractProperties */
+void EAMT::ExtractProperties(const ParameterListT& list, const ArrayT<StringT>& type_names,
+	ArrayT<ParticlePropertyT*>& properties, nMatrixT<int>& properties_map)
 {
-  /* read potentials : one potential corresponds to one type, 
-                       cannot mix different potentials here*/
-  int num_potentials = -1;
-  in >> num_potentials;  
+	const char caller[] = "EAMT::ExtractProperties";
 
-  fEAMProperties.Dimension(num_potentials); 
-  fEAMProperties = NULL;
-  for (int i = 0; i < fEAMProperties.Length(); i++)
-    {
-      int type_of_file;
-      in >> type_of_file;
+	/* check number of interactions */
+	int num_props = list.NumLists("EAM_particle_interaction");
+	int dim = 0;
+	for (int i = 0; i < properties_map.Rows(); i++)
+		dim += properties_map.Rows() - i;
+	if (dim != num_props)
+		ExceptionT::GeneralFail(caller, "%d types requires %d \"EAM_particle_interaction\"",
+			properties_map.Rows(), dim);
 
-      StringT file;
-      in >> file;
-      file.ToNativePathName();
-      
-      StringT path;
-      path.FilePath(in.filename());	
-      file.Prepend(path);
-      
-      fEAMProperties[i] = new ParadynEAMT(file);
-    }
+	/* read properties */
+	fEAMProperties.Dimension(num_props);
+	for (int i = 0; i < num_props; i++) {
 
+		const ParameterListT& interaction = list.GetList("EAM_particle_interaction", i);
+		
+		/* type names */
+		const StringT& label_1 = interaction.GetParameter("label_1");
+		const StringT& label_2 = interaction.GetParameter("label_2");
+		
+		/* resolve index */
+		int index_1 = -1, index_2 = -1;
+		for (int j = 0; index_1 == -1 && j < type_names.Length(); j++)
+			if (type_names[j] == label_1) index_1 = j;
+		if (index_1 == -1) ExceptionT::GeneralFail(caller, "could not resolve index of \"%s\"", label_1.Pointer());
 
-  /* echo particle properties */
-  out << "\n Particle properties:\n\n";
-  out << " Number of properties. . . . . . . . . . . . . . = " 
-      << fEAMProperties.Length() << '\n';
-  for (int i = 0; i < fEAMProperties.Length(); i++)
-    {
-      out << " Property: " << i+1 << '\n';
-      fEAMProperties[i]->Write(out);
-    }
+		for (int j = 0; index_2 == -1 && j < type_names.Length(); j++)
+			if (type_names[j] == label_2) index_2 = j;
+		if (index_2 == -1) ExceptionT::GeneralFail(caller, "could not resolve index of \"%s\"", label_2.Pointer());
+		
+		/* set properies map */
+		if (properties_map(index_1, index_2) != -1)
+			ExceptionT::GeneralFail(caller, "%s-%s interaction is already defined",
+				label_1.Pointer(), label_2.Pointer());
+		properties_map(index_1, index_2) = properties_map(index_2, index_1) = i; /* symmetric */
+		
+		/* read property */
+		const ParameterListT& property = interaction.GetListChoice(*this, "EAM_property_choice");
+		EAMPropertyT* EAM_prop = New_EAMProperty(property.Name(), true);
+		EAM_prop->TakeParameterList(property);
+		fEAMProperties[i] = EAM_prop;
+	}
 	
-  /* copy into base class list */
-  fParticleProperties.Dimension(fEAMProperties.Length());
-  for (int i = 0; i < fEAMProperties.Length(); i++)
-    fParticleProperties[i] = fEAMProperties[i];
+	/* copy */
+	properties.Dimension(fEAMProperties.Length());
+	for (int i = 0; i < properties.Length(); i++)
+		properties[i] = fEAMProperties[i];
 }
-
 
 void EAMT::GetRho2D(const dArray2DT& coords,dArray2DT& rho)
 {

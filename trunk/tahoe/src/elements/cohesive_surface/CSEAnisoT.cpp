@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.62 2004-06-17 07:13:20 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.63 2004-07-15 08:25:57 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -10,7 +10,7 @@
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "ifstreamT.h"
+
 #include "toolboxConstants.h"
 #include "SurfaceShapeT.h"
 #include "SurfacePotentialT.h"
@@ -20,6 +20,7 @@
 #endif
 #include "ElementSupportT.h"
 #include "dSymMatrixT.h"
+#include "ParameterContainerT.h"
 
 /* potential functions */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
@@ -50,29 +51,12 @@ using namespace Tahoe;
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* constructor */
-CSEAnisoT::CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate):
-	CSEBaseT(support, field),
-	fRotate(rotate),
-	fCurrShapes(NULL),
-	fQ(NumSD()),
-	fdelta(NumSD()),
-	fT(NumSD()),
-	fddU(NumSD()),
-	fRunState(support.RunState()),
-	fIPArea(0.0)
-{
-	SetName("anisotropic_CSE");
-
-	/* reset format for the element stiffness matrix */
-	if (fRotate) fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
-}
-
-/* constructor */
 CSEAnisoT::CSEAnisoT(const ElementSupportT& support):
 	CSEBaseT(support),
 	fRotate(true),
 	fCurrShapes(NULL),
-	fRunState(support.RunState())
+	fRunState(support.RunState()),
+	fIPArea(0.0)
 {
 	SetName("anisotropic_CSE");
 }
@@ -118,363 +102,6 @@ GlobalT::SystemTypeT CSEAnisoT::TangentType(void) const
 			
 		return GlobalT::kSymmetric;
 	}
-}
-
-void CSEAnisoT::Initialize(void)
-{
-	const char caller[] = "CSEAnisoT::Initialize";
-
-	/* inherited */
-	CSEBaseT::Initialize();
-	
-	/* rotating local frame */
-	if (fRotate)
-	{
-		/* shape functions wrt. current coordinates (linked parent domains) */
-		fCurrShapes = new SurfaceShapeT(*fShapes, fLocCurrCoords);
-		if (!fCurrShapes) ExceptionT::OutOfMemory(caller);
-		fCurrShapes->Initialize();
- 		
-		/* allocate work space */
-		int nee = NumElementNodes()*NumDOF();
-		fnsd_nee_1.Dimension(NumSD(), nee);
-		fnsd_nee_2.Dimension(NumSD(), nee);
-		fdQ.Dimension(NumSD());
-		for (int k = 0; k < NumSD(); k++)
-			fdQ[k].Dimension(NumSD(), nee);
-	}
-	else
-		fCurrShapes = fShapes;
-
-	/* streams */
-	ifstreamT& in = ElementSupport().Input();
-	ostream&   out = ElementSupport().Output();
-#ifndef _FRACTURE_INTERFACE_LIBRARY_		
-	fCalcNodalInfo = false;
-
-	/* construct props */
-	int numprops;
-	in >> numprops;
-	
-	fTiedPots.Dimension(numprops);
-	fTiedPots = NULL;
-#else
-	int numprops;
-	numprops = 1;
-	fCalcNodalInfo = false;
-#endif
-
-	fSurfPots.Dimension(numprops);
-	fNumStateVariables.Dimension(numprops);
-
-	for (int i = 0; i < fSurfPots.Length(); i++)
-	{
-		int num, code;
-#ifndef _FRACTURE_INTERFACE_LIBRARY_		
-		in >> num >> code;
-#else
-		num = 1; 
-		code = ElementSupport().ReturnInputInt(ElementSupportT::kMaterialCode);
-#endif
-		num--;
-
-		/* check for repeated number */
-		if (fSurfPots[num] != NULL) ExceptionT::BadInputValue(caller, "surface property %d is already defined", num+1);
-
-		switch (code)
-		{
-			case SurfacePotentialT::kXuNeedleman:
-			{			
-				if (NumDOF() == 2)
-				{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-					fSurfPots[num] = new XuNeedleman2DT(in);			
-#else
-					throw ExceptionT::kBadInputValue;
-#endif
-				}
-				else
-				{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-					fSurfPots[num] = new From2Dto3DT(in, code, ElementSupport().TimeStep());
-#else
-					dArrayT *params = ElementSupport().FloatInput();
-					fSurfPots[num] = new XuNeedleman3DT(*params);
-#endif
-				}
-				break;
-			}
-			case SurfacePotentialT::kTvergaardHutchinson:
-			{
-				if (NumDOF() == 2)
-				{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-					fSurfPots[num] = new TvergHutch2DT(in);
-#else
-					throw ExceptionT::kBadInputValue;
-#endif
-				}
-				else
-				{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-					fSurfPots[num] = new From2Dto3DT(in, code, ElementSupport().TimeStep());
-#else
-					dArrayT *params = ElementSupport().FloatInput();
-					fSurfPots[num] = new TvergHutch3DT(*params);				
-#endif
-				}
-				break;
-			}
-			
-			case SurfacePotentialT::kTvergaardHutchinsonRigid:
-			{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-				if (NumDOF() != 2) ExceptionT::GeneralFail();	
-				fSurfPots[num] = new TvergHutchRigid2DT(in);
-#else
-				throw ExceptionT::kBadInputValue;
-#endif
-				break;
-			}
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-			case SurfacePotentialT::kViscTvergaardHutchinson:
-			{
-				if (NumDOF() == 2)
-					fSurfPots[num] = new ViscTvergHutch2DT(in, ElementSupport().TimeStep());
-				else
-					fSurfPots[num] = new From2Dto3DT(in, code, ElementSupport().TimeStep());
-				break;
-			}
-			case SurfacePotentialT::kTijssens:
-			{	
-				if (NumDOF() == 2)
-					fSurfPots[num] = new Tijssens2DT(in, ElementSupport().TimeStep());
-				else
-					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
-				break;
-			}
-			case SurfacePotentialT::kRateDep:
-			{	
-				if (NumDOF() == 2)
-					fSurfPots[num] = new RateDep2DT(in, ElementSupport().TimeStep());
-				else
-					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
-				break;
-			}
-#endif
-			case SurfacePotentialT::kYoonAllen:
-			{	
-				if (NumDOF() == 2)
-				{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-					fSurfPots[num] = new YoonAllen2DT(in, ElementSupport().TimeStep());
-#else
-					throw ExceptionT::kBadInputValue;
-#endif
-				}
-				else
-				{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-					fSurfPots[num] = new From2Dto3DT(in, code, ElementSupport().TimeStep());
-#else
-					dArrayT *fparams = ElementSupport().FloatInput();
-					iArrayT *iparams = ElementSupport().IntInput();
-					fSurfPots[num] = new YoonAllen3DT(*fparams,*iparams,ElementSupport().TimeStep());
-#endif
-				}	
-				break;
-			}
-			case SurfacePotentialT::kInelasticDuctile:
-			{
-#ifdef COHESIVE_SURFACE_ELEMENT_DEV
-				if (NumDOF() == 2)
-					fSurfPots[num] = new InelasticDuctile2DT(in, ElementSupport().TimeStep());
-				else
-					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "COHESIVE_SURFACE_ELEMENT_DEV not enabled: %d", code);
-#endif
-			}
-			case SurfacePotentialT::kInelasticDuctile_RP:
-			{
-#ifdef COHESIVE_SURFACE_ELEMENT_DEV
-				if (NumDOF() == 2)
-					fSurfPots[num] = new InelasticDuctile_RP2DT(in, ElementSupport().TimeStep(), fIPArea, ElementSupport().Output());
-				else
-					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "COHESIVE_SURFACE_ELEMENT_DEV not enabled: %d", code);
-#endif
-			}
-			case SurfacePotentialT::kMR:
-			{
-#ifdef COHESIVE_SURFACE_ELEMENT_DEV
-				if (NumDOF() == 2)
-					fSurfPots[num] = new MR2DT(in);
-				else
-					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "COHESIVE_SURFACE_ELEMENT_DEV not enabled: %d", code);
-#endif
-			}
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-			// Handle all tied potentials here till the code is finalized.
-			case SurfacePotentialT::kTiedPotential:
-			{	
-				if (NumDOF() == 2)
-					fSurfPots[num] = new TiedPotentialT(in);
-				else
-					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
-				break;
-			} 
-			case SurfacePotentialT::kMR_RP:
-			{
-#ifdef COHESIVE_SURFACE_ELEMENT_DEV
-				if (NumDOF() == 2)
-					fSurfPots[num] = new MR_RP2DT(in);
-				else
-					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
-#else
-				ExceptionT::BadInputValue(caller, "COHESIVE_SURFACE_ELEMENT_DEV not enabled: %d", code);
-#endif
-				break;
-			}
-#endif // ndef _FRACTURE_INTERFACE_LIBRARY_
-			default:
-				ExceptionT::BadInputValue(caller," unknown potential code %d \n",code);
-		}
-		if (!fSurfPots[num]) ExceptionT::OutOfMemory(caller);
-		
-		/* check for tied potential */
-		SurfacePotentialT* surfpot = fSurfPots[num];
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-		TiedPotentialBaseT* tiedpot = dynamic_cast<TiedPotentialBaseT*>(surfpot);
-		if (tiedpot)
-		{
-			/* only one tied potential allowed */
-			if (freeNodeQ.Length() != 0) ExceptionT::GeneralFail(caller, "only 1 TiedNodes potential can be extant");
-				
-			/* common allocation for tied potentials */
-			iTiedFlagIndex = tiedpot->TiedStatusPosition();
-			freeNodeQ.Dimension(NumElements(),NumElementNodes());
-			freeNodeQ = 0.;
-			freeNodeQ_last = freeNodeQ;
-					 
-			/* initialize things if a potential needs more info than the gap vector */
-			if (tiedpot->NeedsNodalInfo()) {
-				fCalcNodalInfo = true;
-				fNodalInfoCode = tiedpot->NodalQuantityNeeded();
-				iBulkGroups = tiedpot->BulkGroups();
-			}
-			
-			/* re-tying */
-			if (tiedpot->NodesMayRetie())
-				qRetieNodes = true;
-			else 
-				qRetieNodes = false;
-				
-			/* utility array for stress smoothing over tied node pairs */
-			otherInds.Dimension(NumElementNodes());
-			if (NumSD() == 2)
-			{
-				otherInds[0] = 3; otherInds[1] = 2; otherInds[2] = 1; otherInds[3] = 0;
-			} 
-			else if (NumSD() == 3)
-			{
-				otherInds[0] = 4; otherInds[1] = 5; otherInds[2] = 6; otherInds[3] = 7;
-				otherInds[4] = 0; otherInds[5] = 1; otherInds[6] = 2; otherInds[7] = 3;
-			}
-			else 
-				ExceptionT::GeneralFail(caller, "tied nodes for 2D/3D only not %dD", NumSD());
-
-			/* store */
-			fTiedPots[num] = tiedpot;
-		}
-#endif		
-		
-		/* get number of state variables */
-		fNumStateVariables[num] = fSurfPots[num]->NumStateVariables(); 
-	}
-
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	/* check compatibility of constitutive outputs */
-	if (fSurfPots.Length() > 1 && fNodalOutputCodes[MaterialData])
-		for (int k = 0; k < fSurfPots.Length(); k++)
-		{
-			const SurfacePotentialT* pot_k = fSurfPots[k];
-			for (int i = k+1; i < fSurfPots.Length(); i++)
-			{
-				const SurfacePotentialT* pot_i = fSurfPots[i];
-				if (!SurfacePotentialT::CompatibleOutput(*pot_k, *pot_i))
-					ExceptionT::BadInputValue(caller, "incompatible output between potentials %d and %d",
-						k+1, i+1);
-			}
-		}
-			
-	/* write */
-	out << " Rotating local coordinate frame . . . . . . . . = " <<
-	    ((fRotate) ? "ACTIVE" : "INACTIVE") << '\n';
-	out << "\n Cohesive surface potentials:\n";
-	out << " Number of potentials. . . . . . . . . . . . . . = ";
-	out << fSurfPots.Length() << '\n';
-	for (int j = 0; j < fSurfPots.Length(); j++)
-	{
-		out << "\n Potential number. . . . . . . . . . . . . . . . = " << j + 1 << '\n';
-		out << " Potential name:\n";
-		fSurfPots[j]->PrintName(out);
-		fSurfPots[j]->Print(out);
-	}
-#endif
-	
-	/* initialize state variable space */
-	if (fNumStateVariables.Min() > 0)
-	{
-		/* number of integration points */
-		int num_ip = fCurrShapes->NumIP();
-	
-		/* get state variables per element */
-		int num_elements = fElementCards.Length();
-		iArrayT num_elem_state(num_elements);
-		for (int i = 0; i < num_elements; i++)
-			num_elem_state[i] = num_ip*fNumStateVariables[fElementCards[i].MaterialNumber()];
-
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-		/* allocate space */
-		fStateVariables.Configure(num_elem_state);
-#else
-		fStateVariables.Set(1,num_elem_state[0],ElementSupport().StateVariableArray());
-#endif
-
-		/* initialize state variable space */
-		dArrayT state;
-		for (int i = 0; i < num_elements; i++)
-		{
-			/* material number */
-			int mat_num = fElementCards[i].MaterialNumber();
-			int num_var = fNumStateVariables[mat_num];
-			
-			/* loop over integration points */
-			double* pstate = fStateVariables(i);
-			for (int j = 0; j < num_ip; j++)
-			{
-				state.Set(num_var, pstate);
-				fSurfPots[mat_num]->InitStateVariables(state);
-				pstate += num_var;
-			}
-		}		
-	}
-	else /* set dimensions to zero */
-		fStateVariables.Dimension(fElementCards.Length(), 0);
-
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	/* set history */
-	fStateVariables_last = fStateVariables;
-	/* For SIERRA, don't do anything. Wait until InitStep. */
-#endif
-
 }
 
 /* prepare for a sequence of time steps */
@@ -650,6 +277,226 @@ void CSEAnisoT::DefineParameters(ParameterListT& list) const
 	ParameterT rotate_frame(ParameterT::Boolean, "rotate_frame");
 	rotate_frame.SetDefault(true);
 	list.AddParameter(rotate_frame);
+}
+
+/* information about subordinate parameter lists */
+void CSEAnisoT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	CSEBaseT::DefineSubs(sub_list);
+
+	/* element block/material specification */
+	sub_list.AddSub("anisotropic_CSE_element_block", ParameterListT::OnePlus);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void CSEAnisoT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
+{
+	if (name == "cohesive_relation_choice")
+	{
+		/* choice */
+		order = ParameterListT::Choice;
+		
+		/* function types */
+		sub_lists.AddSub("cohesive_relation_2D");
+		sub_lists.AddSub("cohesive_relation_3D");
+	}
+	else /* inherited */
+		CSEBaseT::DefineInlineSub(name, order, sub_lists);
+}
+
+/* a pointer to the ParameterInterfaceT */
+ParameterInterfaceT* CSEAnisoT::NewSub(const StringT& name) const
+{
+	/* try to construct cohesive relations */
+	SurfacePotentialT* surf_pot = SurfacePotentialT::New(name);
+	if (surf_pot)
+		return surf_pot;
+
+	if (name == "anisotropic_CSE_element_block")
+	{
+		ParameterContainerT* block = new ParameterContainerT(name);
+		
+		/* list of element block ID's (defined by ElementBaseT) */
+		block->AddSub("block_ID_list", ParameterListT::Once);
+	
+		/* choice of materials lists (inline) */
+		block->AddSub("cohesive_relation_choice", ParameterListT::Once, true);
+	
+		/* set this as source of subs */
+		block->SetSubSource(this);
+		
+		return block;
+	}
+	else if (name == "cohesive_relation_2D")
+	{
+		/* choice of 2D cohesive relations */
+		ParameterContainerT* cz = new ParameterContainerT(name);
+		cz->SetSubSource(this);
+		cz->SetListOrder(ParameterListT::Choice);
+	
+		/* choices */
+		cz->AddSub("Xu-Needleman_2D");
+		cz->AddSub("Tvergaard-Hutchinson_2D");
+		cz->AddSub("viscous_Tvergaard-Hutchinson_2D");
+		cz->AddSub("Tijssens_2D");
+		cz->AddSub("Tvergaard-Hutchinson_rate_dep_2D");
+		cz->AddSub("Yoon-Allen_2D");
+
+		return cz;
+	}
+	else if (name == "cohesive_relation_3D")
+	{
+		/* choice of 2D cohesive relations */
+		ParameterContainerT* cz = new ParameterContainerT(name);
+		cz->SetSubSource(this);
+		cz->SetListOrder(ParameterListT::Choice);
+	
+		/* choices */
+		cz->AddSub("Xu-Needleman_3D");
+		cz->AddSub("Tvergaard-Hutchinson_3D");
+		cz->AddSub("Yoon-Allen_3D");
+	
+		return cz;	
+	}
+	else /* inherited */
+		return CSEBaseT::NewSub(name);
+}
+
+/* accept parameter list */
+void CSEAnisoT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "CSEAnisoT::TakeParameterList";
+
+	/* inherited */
+	CSEBaseT::TakeParameterList(list);
+
+	/* dimension work space */
+	int nsd = NumSD();
+	fQ.Dimension(NumSD());
+	fdelta.Dimension(NumSD());
+	fT.Dimension(NumSD());
+	fddU.Dimension(NumSD());
+
+	/* rotating frame */
+#pragma message("need to keep this flag?")
+	fRotate = list.GetParameter("rotate_frame");
+	if (fRotate) {
+	
+		/* reset format for the element stiffness matrix */
+		fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
+
+		/* shape functions wrt. current coordinates (linked parent domains) */
+		fCurrShapes = new SurfaceShapeT(*fShapes, fLocCurrCoords);
+		if (!fCurrShapes) ExceptionT::OutOfMemory(caller);
+		fCurrShapes->Initialize();
+ 		
+		/* allocate work space */
+		int nee = NumElementNodes()*NumDOF();
+		fnsd_nee_1.Dimension(NumSD(), nee);
+		fnsd_nee_2.Dimension(NumSD(), nee);
+		fdQ.Dimension(NumSD());
+		for (int k = 0; k < NumSD(); k++)
+			fdQ[k].Dimension(NumSD(), nee);
+	}
+	else
+		fCurrShapes = fShapes;
+
+	/* construct surface properties - one per block */
+	int num_block = list.NumLists("anisotropic_CSE_element_block");
+	fSurfPots.Dimension(num_block);
+	fNumStateVariables.Dimension(fSurfPots.Length());
+	fTiedPots.Dimension(num_block);
+	fTiedPots = NULL;
+	for (int i = 0; i < fSurfPots.Length(); i++) {
+
+		/* block information */
+		const ParameterListT& block = list.GetList("anisotropic_CSE_element_block", i);
+		
+		/* resolve choices of properties choice by spatial dimension */
+		const ParameterListT& mat_list_choice_choice = block.GetListChoice(*this, "cohesive_relation_choice");
+
+		/* resolve material choice */
+		const ParameterListT& surf_pot_params = block.GetListChoice(*this, mat_list_choice_choice.Name());
+
+		/* construct material */
+		SurfacePotentialT* surf_pot = SurfacePotentialT::New(surf_pot_params.Name());
+		if (!surf_pot) ExceptionT::BadInputValue(caller, "could not construct \"%s\"", surf_pot_params.Name().Pointer());
+		surf_pot->SetTimeStep(ElementSupport().TimeStep());
+		surf_pot->TakeParameterList(surf_pot_params);
+
+		/* number of state variables */
+		fNumStateVariables[i] = surf_pot->NumStateVariables();
+
+		/* keep */
+		fSurfPots[i] = surf_pot;
+	}
+	
+	//handle tied potentials
+	fCalcNodalInfo = false;
+
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+	/* check compatibility of constitutive outputs */
+	if (fSurfPots.Length() > 1 && fNodalOutputCodes[MaterialData])
+		for (int k = 0; k < fSurfPots.Length(); k++)
+		{
+			const SurfacePotentialT* pot_k = fSurfPots[k];
+			for (int i = k+1; i < fSurfPots.Length(); i++)
+			{
+				const SurfacePotentialT* pot_i = fSurfPots[i];
+				if (!SurfacePotentialT::CompatibleOutput(*pot_k, *pot_i))
+					ExceptionT::BadInputValue(caller, "incompatible output between potentials %d and %d",
+						k+1, i+1);
+			}
+		}
+#endif
+
+	/* initialize state variable space */
+	if (fNumStateVariables.Min() > 0)
+	{
+		/* number of integration points */
+		int num_ip = fCurrShapes->NumIP();
+	
+		/* get state variables per element */
+		int num_elements = fElementCards.Length();
+		iArrayT num_elem_state(num_elements);
+		for (int i = 0; i < num_elements; i++)
+			num_elem_state[i] = num_ip*fNumStateVariables[fElementCards[i].MaterialNumber()];
+
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+		/* allocate space */
+		fStateVariables.Configure(num_elem_state);
+#else
+		fStateVariables.Set(1,num_elem_state[0],ElementSupport().StateVariableArray());
+#endif
+
+		/* initialize state variable space */
+		dArrayT state;
+		for (int i = 0; i < num_elements; i++)
+		{
+			/* material number */
+			int mat_num = fElementCards[i].MaterialNumber();
+			int num_var = fNumStateVariables[mat_num];
+			
+			/* loop over integration points */
+			double* pstate = fStateVariables(i);
+			for (int j = 0; j < num_ip; j++)
+			{
+				state.Set(num_var, pstate);
+				fSurfPots[mat_num]->InitStateVariables(state);
+				pstate += num_var;
+			}
+		}		
+	}
+	else /* set dimensions to zero */
+		fStateVariables.Dimension(fElementCards.Length(), 0);
+
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+	/* set history */
+	fStateVariables_last = fStateVariables;
+	/* For SIERRA, don't do anything. Wait until InitStep. */
+#endif
 }
 
 /***********************************************************************
@@ -1066,8 +913,7 @@ void CSEAnisoT::SetStatus(const ArrayT<StatusT>& status)
 /* extrapolate the integration point stresses and strains and extrapolate */
 void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	const iArrayT& e_codes, dArray2DT& e_values)
-{      
-
+{
 	/* number of output values */
 	int n_out = n_codes.Sum();
 	int e_out = e_codes.Sum();

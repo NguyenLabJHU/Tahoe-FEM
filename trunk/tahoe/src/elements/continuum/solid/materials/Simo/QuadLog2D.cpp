@@ -1,4 +1,4 @@
-/* $Id: QuadLog2D.cpp,v 1.5 2003-01-29 07:34:48 paklein Exp $ */
+/* $Id: QuadLog2D.cpp,v 1.6 2004-07-15 08:27:35 paklein Exp $ */
 /* created: paklein (06/28/1997) */
 #include "QuadLog2D.h"
 #include <math.h>
@@ -7,15 +7,7 @@
 using namespace Tahoe;
 
 /* constructor */
-QuadLog2D::QuadLog2D(ifstreamT& in, const FSMatSupportT& support):
-	QuadLog3D(in, support),
-	Material2DT(in, kPlaneStrain),
-	fb_2D(2),
-	fStress2D(2),
-	fModulus2D(dSymMatrixT::NumValues(2))
-{
-	fDensity *= fThickness;
-}
+QuadLog2D::QuadLog2D(void): ParameterInterfaceT("quad_log_2D") { }
 
 /* modulus */
 const dMatrixT& QuadLog2D::c_ijkl(void)
@@ -32,7 +24,6 @@ const dMatrixT& QuadLog2D::c_ijkl(void)
 
 	/* 3D -> 2D */
 	fModulus2D.Rank4ReduceFrom3D(fModulus);
-	fModulus2D *= fThickness;
 
 	return fModulus2D;
 }
@@ -52,7 +43,6 @@ const dSymMatrixT& QuadLog2D::s_ij(void)
 
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(fStress);
-	fStress2D *= fThickness;
 
 	return fStress2D;
 }
@@ -70,26 +60,27 @@ double QuadLog2D::StrainEnergyDensity(void)
 	/* logarithmic stretches */
 	LogStretches(fEigs);
 
-	return fThickness*ComputeEnergy(floge);
+	return ComputeEnergy(floge);
 }
 
-/* print parameters */
-void QuadLog2D::Print(ostream& out) const
+/* describe the parameters needed by the interface */
+void QuadLog2D::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	QuadLog3D::Print(out);
-	Material2DT::Print(out);
+	QuadLog3D::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStrain);
 }
 
-/*************************************************************************
-* Protected
-*************************************************************************/
-
-/* print name */
-void QuadLog2D::PrintName(ostream& out) const
+/* accept parameter list */
+void QuadLog2D::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	QuadLog3D::PrintName(out);
+	QuadLog3D::TakeParameterList(list);
 
-	out << "    Plane Strain\n";
+	fb_2D.Dimension(2);
+	fStress2D.Dimension(2);
+	fModulus2D.Dimension(dSymMatrixT::NumValues(2));
 }

@@ -1,13 +1,10 @@
+/* $Id: Gear6Integrator.cpp,v 1.2 2004-07-15 08:30:43 paklein Exp $ */
 #include "Gear6Integrator.h"
-#include <iostream.h>
 
 using namespace Tahoe;
 
 /* constructor */
-Gear6Integrator::Gear6Integrator(ostream& out)
-{
-	out << "\n Gear6 parameters: NONE" << endl;
-}
+Gear6Integrator::Gear6Integrator(void) { }
 
 /***********************************************************************
 * Protected

@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.h,v 1.16 2003-10-28 07:47:53 paklein Exp $ */
+/* $Id: IOManager_mpi.h,v 1.17 2004-07-15 08:31:03 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 
 #ifndef _IOMANAGER_MPI_H_
@@ -31,7 +31,7 @@ public:
 
 	/** constructor 
 	 * \param model_file total model database */
-	IOManager_mpi(ifstreamT& in, CommunicatorT& comm, const IOManager& local_IO, 
+	IOManager_mpi(const StringT& input_file, CommunicatorT& comm, const IOManager& local_IO, 
 		const PartitionT& partition, const StringT& model_file, IOBaseT::FileTypeT format);
 
 	/** destructor */

@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.h,v 1.6 2003-01-27 23:14:24 paklein Exp $ */
+/* $Id: ExecutionManagerT.h,v 1.7 2004-07-15 08:31:03 paklein Exp $ */
 /* created: paklein (08/27/1997) */
 
 #ifndef _EXECMAN_T_H_
@@ -59,10 +59,10 @@ protected:
 	 * removed, false otherwise. */
 	virtual bool RemoveCommandLineOption(const char* str);
 
-private:
+	/** Recursive dispatch */
+	virtual void JobOrBatch(ifstreamT& in, ostream& status);
 
-	/* Recursive dispatch */
-	void JobOrBatch(ifstreamT& in, ostream& status);
+private:
 	
 	/* Batch file processing */
 	void RunBatch(ifstreamT& in, ostream& status);

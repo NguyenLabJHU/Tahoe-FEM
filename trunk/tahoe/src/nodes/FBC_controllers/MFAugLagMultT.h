@@ -1,4 +1,4 @@
-/* $Id: MFAugLagMultT.h,v 1.2 2004-05-12 00:23:28 cjkimme Exp $ */
+/* $Id: MFAugLagMultT.h,v 1.3 2004-07-15 08:31:15 paklein Exp $ */
 #ifndef _MF_AUG_LAG_MULT_T_H_
 #define _MF_AUG_LAG_MULT_T_H_
 
@@ -32,15 +32,10 @@ class MFAugLagMultT: public FBC_ControllerT, public DOFElementT
 {
 public:
 
-	/* constructor */
-	MFAugLagMultT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes, const FieldT& field,
-		const dArray2DT& coords, const dArray2DT& disp);
+	/** constructor */
+	MFAugLagMultT(void);
 
-	/* input processing */
-	virtual void EchoData(ifstreamT& in, ostream& out);
-
-	/* initialize data */
-	virtual void Initialize(void);
+	/** initialize data */
 	virtual void SetEquationNumbers(void);
 
 	/* append element equations numbers to the list */
@@ -106,9 +101,24 @@ public:
 	/** restore any state data to the previous converged state */
 	virtual void ResetState(void) { };
 
-	/** return the equation group to which the generated degrees of
+	/** return the equation group to which the generate degrees of
 	 * freedom belong. */
 	virtual int Group(void) const;	
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+	
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 private:
 
@@ -121,17 +131,14 @@ private:
 private:
 
 	/** nodemanager */
-	XDOF_ManagerT* fXDOF_Nodes;
-	
-	/** the field */
-	const FieldT& fField;
+//	XDOF_ManagerT* fXDOF_Nodes;
 	
 	int fNumConstrainedDOFs; // This the number of LaGrange multipliers
 	
 	/** \name references to NodeManagerT data */
 	/*@{*/
-	const iArray2DT& rEqnos;  /**< nodal equation numbers */
-	const dArray2DT& rDisp;   /**< nodal displacement */
+//	const iArray2DT& rEqnos;  /**< nodal equation numbers */
+//	const dArray2DT& rDisp;   /**< nodal displacement */
 	/*@}*/
 	
 	/** \name contact force node and equation numbers */

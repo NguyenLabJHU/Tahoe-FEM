@@ -1,43 +1,44 @@
-/* $Id: SSSolidMatT.cpp,v 1.8 2004-01-10 04:41:25 paklein Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.9 2004-07-15 08:29:20 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "SSSolidMatT.h"
-#include <iostream.h>
 #include "SSMatSupportT.h"
 #include "dSymMatrixT.h"
 #include "ThermalDilatationT.h"
 
 using namespace Tahoe;
 
+/* array behavior */
+namespace Tahoe {
+DEFINE_TEMPLATE_STATIC const bool ArrayT<SSSolidMatT>::fByteCopy = false;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<SSSolidMatT*>::fByteCopy = true;
+} /* namespace Tahoe */
+
 /* perturbation used to compute c_ijkl from finite difference */
 const double strain_perturbation = 1.0e-08;
 
 /* constructor */
-SSSolidMatT::SSSolidMatT(ifstreamT& in, const SSMatSupportT& support):
-	SolidMaterialT(in, support),
-	fSSMatSupport(&support),
-	fModulus(dSymMatrixT::NumValues(NumSD())),
-	fStrainTemp(NumSD()),
-	fQ(NumSD()),
-	fThermalStrain(NumSD()),
-	fHasThermalStrain(false)
-{
-	SetName("small_strain_solid_material");
-}
-
 SSSolidMatT::SSSolidMatT(void):
+	ParameterInterfaceT("small_strain_material"),
 	fSSMatSupport(NULL),
 	fHasThermalStrain(false)
 {
-	SetName("small_strain_solid_material");
+
 }
 
-/* I/O */
-void SSSolidMatT::PrintName(ostream& out) const
+/* set the material support or pass NULL to clear */
+void SSSolidMatT::SetSSMatSupport(const SSMatSupportT* support)
 {
-	/* inherited */
-	SolidMaterialT::PrintName(out);
-	
-	out << "    Small strain\n";
+	/* set inherited material support */
+	SetMaterialSupport(support);
+
+	fSSMatSupport = support;
+
+	/* dimension */
+	int nsd = NumSD();
+	fModulus.Dimension(dSymMatrixT::NumValues(nsd));
+	fStrainTemp.Dimension(nsd);
+	fQ.Dimension(nsd);
+	fThermalStrain.Dimension(nsd);
 }
 
 /* strain - returns the elastic strain, ie. thermal removed */

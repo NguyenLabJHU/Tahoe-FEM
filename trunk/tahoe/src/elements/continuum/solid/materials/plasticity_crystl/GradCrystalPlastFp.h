@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp.h,v 1.6 2004-04-13 20:37:32 ebmarin Exp $ */
+/* $Id: GradCrystalPlastFp.h,v 1.7 2004-07-15 08:29:07 paklein Exp $ */
 #ifndef _GRAD_CRYSTAL_PLAST_FP_H_
 #define _GRAD_CRYSTAL_PLAST_FP_H_
 
@@ -36,10 +36,6 @@ class GradCrystalPlastFp : public LocalCrystalPlastFp
   virtual int NumOutputVariables() const;
   virtual void OutputLabels(ArrayT<StringT>& labels) const;
   virtual void ComputeOutput(dArrayT& output);
-
-  // print data and model name
-  virtual void Print(ostream& out) const;
-  virtual void PrintName(ostream& out) const;
 
  protected:
   // slip kinetics

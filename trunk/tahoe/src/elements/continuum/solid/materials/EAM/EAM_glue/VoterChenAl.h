@@ -1,7 +1,5 @@
-/* $Id: VoterChenAl.h,v 1.2 2002-07-02 19:55:37 cjkimme Exp $ */
-/* created: paklein (12/04/1996)                                          */
-/* VoterChenAl.h                                                          */
-
+/* $Id: VoterChenAl.h,v 1.3 2004-07-15 08:26:52 paklein Exp $ */
+/* created: paklein (12/04/1996) */
 #ifndef _VOTERCHEN_AL_H_
 #define _VOTERCHEN_AL_H_
 
@@ -10,6 +8,7 @@
 
 namespace Tahoe {
 
+/** Voter and Chen EAM aluminum */
 class VoterChenAl: public EAM
 {
 public:

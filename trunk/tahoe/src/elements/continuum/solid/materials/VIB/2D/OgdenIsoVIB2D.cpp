@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB2D.cpp,v 1.11 2003-11-21 22:46:35 paklein Exp $ */
+/* $Id: OgdenIsoVIB2D.cpp,v 1.12 2004-07-15 08:27:45 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "OgdenIsoVIB2D.h"
 
@@ -14,48 +14,17 @@
 
 using namespace Tahoe;
 
-/* constructors */
-OgdenIsoVIB2D::OgdenIsoVIB2D(ifstreamT& in, const FSMatSupportT& support):
-	OgdenIsotropicT(in, support),
-	Material2DT(in, kPlaneStress),
-	VIB(in, 2, 2, 3),
+/* constructor */
+OgdenIsoVIB2D::OgdenIsoVIB2D(void):
+	ParameterInterfaceT("Ogden_isotropic_VIB_2D"),
+	VIB(2, 2, 3),
 	fCircle(NULL)
 {
-	/* point generator */
-	fCircle = new EvenSpacePtsT(in);
 
-	/* set tables */
-	Construct();
 }
 
 /* destructor */
-OgdenIsoVIB2D::~OgdenIsoVIB2D(void)
-{
-	delete fCircle;
-}
-
-/* print parameters */
-void OgdenIsoVIB2D::Print(ostream& out) const
-{
-	/* inherited */
-	OgdenIsotropicT::Print(out);
-	Material2DT::Print(out);
-	VIB::Print(out);
-
-	fCircle->Print(out);
-}
-
-/* print name */
-void OgdenIsoVIB2D::PrintName(ostream& out) const
-{
-	/* inherited */
-	OgdenIsotropicT::PrintName(out);
-	VIB::PrintName(out);
-	out << "    Odgen principal stretch formulation\n";
-
-	/* integration rule */
-	fCircle->PrintName(out);
-}
+OgdenIsoVIB2D::~OgdenIsoVIB2D(void) { delete fCircle; }
 
 /* strain energy density */
 double OgdenIsoVIB2D::StrainEnergyDensity(void)
@@ -79,12 +48,59 @@ double OgdenIsoVIB2D::StrainEnergyDensity(void)
 	for (int i = 0; i < fLengths.Length(); i++)
 		energy += (*pU++)*(*pj++);
 	
-	return energy*fThickness;
+	return energy;
+}
+
+/* describe the parameters needed by the interface */
+void OgdenIsoVIB2D::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	OgdenIsotropicT::DefineParameters(list);
+	VIB::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStress);
+
+	/* integration points */
+	ParameterT points(ParameterT::Integer, "n_points");
+	points.AddLimit(1, LimitT::LowerInclusive);
+	list.AddParameter(points);
+}
+
+/* information about subordinate parameter lists */
+void OgdenIsoVIB2D::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	OgdenIsotropicT::DefineSubs(sub_list);
+	VIB::DefineSubs(sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* OgdenIsoVIB2D::NewSub(const StringT& name) const
+{
+	/* inherited */
+	ParameterInterfaceT* sub = OgdenIsotropicT::NewSub(name);
+	if (sub) return sub;
+	else return VIB::NewSub(name);
+}
+
+/* describe the parameters needed by the interface */
+void OgdenIsoVIB2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	OgdenIsotropicT::TakeParameterList(list);
+	VIB::TakeParameterList(list);
+
+	/* point generator */
+	int points = list.GetParameter("n_points");
+	fCircle = new EvenSpacePtsT(points);
+	Construct();
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* principal values given principal values of the stretch tensors,
  * i.e., the principal stretches squared */
@@ -111,10 +127,6 @@ void OgdenIsoVIB2D::dWdE(const dArrayT& eigenstretch2, dArrayT& eigenstress)
 		s0 += factor*(*p0++);
 		s1 += factor*(*p1++);
 	}
-
-	/* thickness */
-	s0 *= fThickness;
-	s1 *= fThickness;
 }
 
 void OgdenIsoVIB2D::ddWddE(const dArrayT& eigenstretch2, dArrayT& eigenstress,
@@ -163,12 +175,6 @@ void OgdenIsoVIB2D::ddWddE(const dArrayT& eigenstretch2, dArrayT& eigenstress,
 		c11 += cfactor*(*pc11++);
 		c01 += cfactor*(*pc01++);
 	}
-	/* thickness */
-	s0  *= fThickness;
-	s1  *= fThickness;
-	c00 *= fThickness;
-	c11 *= fThickness;
-	c01 *= fThickness;
 }
 
 /* strained lengths in terms of the Lagrangian stretch eigenvalues */
@@ -198,7 +204,7 @@ void OgdenIsoVIB2D::Construct(void)
 	int numpoints = points.MajorDim();
 	
 	/* allocate memory */
-	Dimension(numpoints);
+	VIB::Dimension(numpoints);
 	
 	/* fetch jacobians */
 	fjacobian = fCircle->Jacobians();

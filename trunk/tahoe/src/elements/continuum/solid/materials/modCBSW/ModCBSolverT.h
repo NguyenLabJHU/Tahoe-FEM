@@ -1,14 +1,10 @@
-/* $Id: ModCBSolverT.h,v 1.3 2002-07-05 22:28:22 paklein Exp $ */
-/* created: paklein (05/27/1997)                                          */
-/* Q defines the orientation of the crystals' natural coordinates         */
-/* and the global coordinate frame. Q is defined as:                      */
-/* 			Q = d x_natural / d x_global                                        */
-/* So that the vectors are transformed by:                                */
-/* 			r_global = Transpose[Q].r_natural                                   */
-/* NOTE: All calculations done in 3D.                                     */
-
+/* $Id: ModCBSolverT.h,v 1.4 2004-07-15 08:28:36 paklein Exp $ */
+/* created: paklein (05/27/1997) */
 #ifndef _MODCB_SOLVER_T_H_
 #define _MODCB_SOLVER_T_H_
+
+/* base class */
+#include "ParameterInterfaceT.h"
 
 /* direct members */
 #include "iArray2DT.h"
@@ -22,7 +18,7 @@ class ThermalDilatationT;
 class TwoBodyT;
 class ThreeBodyT;
 
-class ModCBSolverT
+class ModCBSolverT: public ParameterInterfaceT
 {
 public:
 
@@ -31,27 +27,38 @@ public:
                        kPTHT = 1,
                     kTersoff = 2};
 
-	/* Constructor */
-	ModCBSolverT(const dMatrixT& Q, const ThermalDilatationT* thermal,
-		ifstreamT& in, bool equilibrate);
+	/** constructor */
+	ModCBSolverT(const ThermalDilatationT* thermal);
 
-	/* Destructor */
+	/** destructor */
 	~ModCBSolverT(void);
-	
-	/* moduli - C_IJKL */
+
+	/** \name constitutive properties */
+	/*@{*/
+	/** moduli - C_IJKL */
 	void SetModuli(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& moduli);
 
-	/* stress - S_IJ (2nd PK) */
+	/** stress - S_IJ (2nd PK) */
 	void SetStress(const dMatrixT& CIJ, dArrayT& Xsi, dMatrixT& stress);
 
-	/* strain energy density */
+	/** strain energy density */
 	double StrainEnergyDensity(const dMatrixT& CIJ, dArrayT& Xsi);
+	/*@}*/
 
-	/*
-	 * Printing parameters.
-	 */
-	void Print(ostream& out) const;
-	void PrintName(ostream& out) const;
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+ 
+  	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 private:
 
@@ -70,11 +77,13 @@ private:
 	/* pairs for 3-body potentials */
 	const iArray2DT fPairs;
 
-	/* lattice geometry */
-	LengthsAndAnglesT	fGeometry;
+	/** lattice geometry */
+	LengthsAndAnglesT* fGeometry;
+	
+	/** thermal dilatation */
+	const ThermalDilatationT* fThermal;
 	
 	/* potential functions and derivatives */
-	int			fPotential;
 	SWDataT		fSW;	//should really make class to manage
 	TwoBodyT*	f2Body; //2 and 3 body potentials together
 	ThreeBodyT*	f3Body;
@@ -100,5 +109,6 @@ private:
 	dMatrixT	fGradl_C;
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _MODCB_SOLVER_T_H_ */

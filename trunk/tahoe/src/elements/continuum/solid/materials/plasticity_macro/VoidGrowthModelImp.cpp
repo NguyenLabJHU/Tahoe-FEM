@@ -1,8 +1,8 @@
-// $Id: VoidGrowthModelImp.cpp,v 1.3 2002-11-14 17:06:36 paklein Exp $
+// $Id: VoidGrowthModelImp.cpp,v 1.4 2004-07-15 08:29:14 paklein Exp $
 #include "VoidGrowthModelImp.h"
 
 #include <iostream.h>
-#include "ifstreamT.h"
+
 
 using namespace Tahoe;
 
@@ -41,19 +41,6 @@ void CocksVGModel::ADerivCoefficients(const double& vvf, double& dA1, double& dA
   dA2 = A2 * ( 1./vvf/(1.+vvf) + 2./(1.+fm)/(1.-vvf) );
 }
 
-void CocksVGModel::PrintName(ostream& out) const
-{
-  // print model name
-  out << "    Cocks's implicit void growth model\n";
-}
-
-void CocksVGModel::Print(ostream& out) const
-{
-  // do nothing
-#pragma unused(out)
-}
-
-
 //derived class: DuvaCrowVGModel
 DuvaCrowVGModel::DuvaCrowVGModel(EVPFDBaseT& macro)
 { 
@@ -81,19 +68,6 @@ void DuvaCrowVGModel::ADerivCoefficients(const double& vvf, double& dA1, double&
   dA2 = A2 * 2.*fm/(1.+fm) / (vvf*(1.-pow(vvf,fm)));
 }
 
-void DuvaCrowVGModel::PrintName(ostream& out) const
-{
-  // print model name
-  out << "    Duva & Crow's implicit void growth model\n";
-}
-
-void DuvaCrowVGModel::Print(ostream& out) const
-{
-  // do nothing
-#pragma unused(out)
-}
-
-
 //derived class: SofronisVGModel
 SofronisVGModel::SofronisVGModel(EVPFDBaseT& macro)
 { 
@@ -119,16 +93,4 @@ void SofronisVGModel::ADerivCoefficients(const double& vvf, double& dA1, double&
   ACoefficients(vvf, A1, A2);
   dA1 = A1 * 4./(1.+fm) / (1.-vvf*vvf);
   dA2 = A2 * 2.*fm/(1.+fm) / (vvf*(1.-pow(vvf,fm)));
-}
-
-void SofronisVGModel::PrintName(ostream& out) const
-{
-  // print model name
-  out << "    Sofronis & McMeeking's implicit void growth model\n";
-}
-
-void SofronisVGModel::Print(ostream& out) const
-{
-  // do nothing
-#pragma unused(out)
 }

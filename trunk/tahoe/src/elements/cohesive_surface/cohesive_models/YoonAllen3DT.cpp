@@ -1,75 +1,25 @@
-/* $Id: YoonAllen3DT.cpp,v 1.14 2004-06-17 07:13:28 paklein Exp $ */
+/* $Id: YoonAllen3DT.cpp,v 1.15 2004-07-15 08:26:03 paklein Exp $ */
 #include "YoonAllen3DT.h"
 
 #include <iostream.h>
 #include <math.h>
 
 #include "ExceptionT.h"
-#include "ifstreamT.h"
+
 #include "StringT.h"
+#include "YoonAllen2DT.h" /* needed for YoonAllen3DT::NewSub */
 
 using namespace Tahoe;
 
 /* class parameters */
 const int knumDOF = 3;
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-/* constructor */
-YoonAllen3DT::YoonAllen3DT(ifstreamT& in, const double& time_step): 
-	SurfacePotentialT(knumDOF),
-	fTimeStep(time_step)
-{	 
-	/* traction potential parameters */
-	in >> fsigma_0; if (fsigma_0 < 0) throw ExceptionT::kBadInputValue;
-	in >> fd_c_n; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
-	in >> fd_c_t; if (fd_c_t < 0) throw ExceptionT::kBadInputValue;
-	
-	/* moduli and time constants */
-	in >> fE_infty; if (fE_infty < 0) throw ExceptionT::kBadInputValue;
-	in >> iNumRelaxTimes; if (iNumRelaxTimes < 0) throw ExceptionT::kBadInputValue;
-
-
-	ftau.Dimension(iNumRelaxTimes);
-	fE_t.Dimension(iNumRelaxTimes);
-	fexp_tau.Dimension(iNumRelaxTimes);
-
-	for (int i = 0;i < iNumRelaxTimes; i++)
-	{
-		in >> fE_t[i]; if (fE_t[i] < 0) throw ExceptionT::kBadInputValue;
-		in >> ftau[i]; if (ftau[i] < 0) throw ExceptionT::kBadInputValue;
-	
-		fexp_tau[i] = exp(-fTimeStep/ftau[i]) - 1.;
-		
-		/* scale ftau by fE_t to reduce multiplications in traction
-		 * and stiffness routines
-		 */
-		ftau[i] *= fE_t[i];
-	}
-
-	in >> idamage; if (idamage < 1 && idamage > 3) throw ExceptionT::kBadInputValue;
-	/* damage evolution law parameters */
-	in >> falpha_exp; //if (falpha_exp < 1.) throw ExceptionT::kBadInputValue;
-	in >> falpha_0; if (falpha_0 <= kSmall) throw ExceptionT::kBadInputValue;
-	if (idamage == 2) 
-	{
-		in >> flambda_exp; if (flambda_exp > -1.) throw ExceptionT::kBadInputValue;	
-		in >> flambda_0; if (flambda_0 < 1.) throw ExceptionT::kBadInputValue;
-	}
-	
-	/* stiffness multiplier */
-	in >> fpenalty; if (fpenalty < 0) throw ExceptionT::kBadInputValue;
-
-	
-	/* penetration stiffness */
-	fK = fpenalty*fsigma_0/fd_c_n;
-
-}
-#endif
-
 YoonAllen3DT::YoonAllen3DT(dArrayT& fparams, iArrayT& iparams, const double& time_step): 
 	SurfacePotentialT(knumDOF),
-	fTimeStep(time_step)
+	fTimeStep(&time_step)
 {
+	SetName("Yoon-Allen_3D");
+
 	/* traction potential parameters */
 	fsigma_0 = fparams[0]; if (fsigma_0 < 0) throw ExceptionT::kBadInputValue;
 	fd_c_n = fparams[1]; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
@@ -77,19 +27,19 @@ YoonAllen3DT::YoonAllen3DT(dArrayT& fparams, iArrayT& iparams, const double& tim
 	
 	/* moduli and time constants */
 	fE_infty = fparams[3]; if (fE_infty < 0) throw ExceptionT::kBadInputValue;
-	iNumRelaxTimes = iparams[0]; if (iNumRelaxTimes < 0) throw ExceptionT::kBadInputValue;
+	int n_prony = iparams[0]; if (n_prony < 0) throw ExceptionT::kBadInputValue;
 	
-	ftau.Allocate(iNumRelaxTimes);
-	fE_t.Allocate(iNumRelaxTimes);
-	fexp_tau.Allocate(iNumRelaxTimes);
+	ftau.Allocate(n_prony);
+	fE_t.Allocate(n_prony);
+	fexp_tau.Allocate(n_prony);
 	
 	int i;
-	for (i = 0;i < iNumRelaxTimes; i++)
+	for (i = 0;i < n_prony; i++)
 	{
 		fE_t[i] = fparams[i+4]; if (fE_t[i] < 0) throw ExceptionT::kBadInputValue;
 		ftau[i] = fparams[i+5]; if (ftau[i] < 0) throw ExceptionT::kBadInputValue;
 	
-		fexp_tau[i] = exp(-fTimeStep/ftau[i]) - 1.;
+		fexp_tau[i] = exp(-(*fTimeStep)/ftau[i]) - 1.;
 		
 		/* scale ftau by fE_t to reduce multiplications in traction
 		 * and stiffness routines
@@ -117,33 +67,48 @@ YoonAllen3DT::YoonAllen3DT(dArrayT& fparams, iArrayT& iparams, const double& tim
 
 }
 
+YoonAllen3DT::YoonAllen3DT(void): 
+	SurfacePotentialT(knumDOF),
+	fTimeStep(NULL),
+	
+	/* traction potential parameters */
+	fsigma_0(0.0),
+	fd_c_n(0.0),
+	fd_c_t(0.0),
+	
+	/* moduli and time constants */
+	fE_infty(0.0),
+	fpenalty(0.0),
+	
+	/* damage flag */
+	idamage(-1),
+	fCurrentTimeStep(-1.0)
+{
+	SetName("Yoon-Allen_3D");
+}
+
 /*initialize state variables with values from the rate-independent model */
 void YoonAllen3DT::InitStateVariables(ArrayT<double>& state)
 {
  	int num_state = NumStateVariables();
 	if (state.Length() != num_state) 
-	{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_	
-	  	cout << "\n SurfacePotentialT::InitStateVariables: expecting state variable array\n"
-		     <<   "     length " << num_state << ", found length " << state.Length() << endl;
-#endif
-		throw ExceptionT::kSizeMismatch;	
-	}
+		ExceptionT::SizeMismatch("YoonAllen3DT::InitStateVariables", 
+			"expecting %d not %d state variables", num_state, state.Length());
 
 	/* clear */
 	if (num_state > 0) state = 0.0;
 
-	/* 	The first iNumRelaxTimes slots in state are the previous
-	 *  steps hereditary integral (more or less). 0..iNumRelaxTimes-1
+	/* 	The first n_prony slots in state are the previous
+	 *  steps hereditary integral (more or less). 0..n_prony-1
 	 *	The next kNumDOF slots are the previous step's components of
-	 *  the gap vector.   iNumRelaxTimes..iNumRelaxTimes+knumDOF-1
+	 *  the gap vector.   n_prony..n_prony+knumDOF-1
 	 *	The next kNumDOF slots are the ith components of the previous
-	 *	step's tractions. iNumRelaxTimes+knumDOF..iNumRelaxTimes+2knumDOF-1
+	 *	step's tractions. n_prony+knumDOF..n_prony+2knumDOF-1
 	 *  The next slot is the rate of change of the previous step's
-	 *  lambda. iNumRelaxTimes+2knumDOF
+	 *  lambda. n_prony+2knumDOF
 	 *	The next slot is the previous step's value of alpha, the damage
-	 *	coefficient.  iNumRelaxTimes+2knumDOF+1
-	 *	The final slot holds the integral of T dot dDelta. iNumRelaxTimes+2knumDOF+2
+	 *	coefficient.  n_prony+2knumDOF+1
+	 *	The final slot holds the integral of T dot dDelta. n_prony+2knumDOF+2
 	 */ 
 
 }
@@ -151,13 +116,13 @@ void YoonAllen3DT::InitStateVariables(ArrayT<double>& state)
 /* return the number of state variables needed by the model */
 int YoonAllen3DT::NumStateVariables(void) const 
 { 
-	return 4*knumDOF + iNumRelaxTimes + 5; 
+	return 4*knumDOF + ftau.Length() + 5; 
 }
 
 /* surface potential */ 
 double YoonAllen3DT::FractureEnergy(const ArrayT<double>& state) 
 {
-   	return state[4*knumDOF + iNumRelaxTimes + 4]; 
+   	return state[4*knumDOF + ftau.Length() + 4]; 
 }
 
 double YoonAllen3DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
@@ -169,9 +134,7 @@ double YoonAllen3DT::Potential(const dArrayT& jump_u, const ArrayT<double>& stat
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	cout << "YoonAllen3DT::Potential is not implemented. It's viscoelastic \n";
-#endif
+	ExceptionT::GeneralFail("YoonAllen3DT::Potential", "not implemented");
 	return 0.;
 }
 	
@@ -183,29 +146,36 @@ const dArrayT& YoonAllen3DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
-	if (fTimeStep < 0.0) {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-		ExceptionT::BadInputValue(caller, "expecting non-negative time increment: %g", fTimeStep);
-#endif		     
-		throw ExceptionT::kBadInputValue;
-	}
+	if (*fTimeStep < 0.0) 
+		ExceptionT::BadInputValue(caller, "expecting non-negative time increment %g", fTimeStep);
 #endif
 
+	int n_prony = ftau.Length();
 	if (!qIntegrate)
 	{
-		fTraction[0] = state[iNumRelaxTimes+knumDOF];
-		fTraction[1] = state[iNumRelaxTimes+knumDOF+1];
-		fTraction[2] = state[iNumRelaxTimes+knumDOF+2];
+		fTraction[0] = state[n_prony+knumDOF];
+		fTraction[1] = state[n_prony+knumDOF+1];
+		fTraction[2] = state[n_prony+knumDOF+2];
 		return fTraction;
 	}
 	else
 	{
+		/* update decay functions */
+		if (fabs(fCurrentTimeStep - *fTimeStep) > kSmall)
+		{
+			/* decay function */
+			for (int i = 0; i < fexp_tau.Length(); i++)
+				fexp_tau[i] = exp(-(*fTimeStep)*fE_t[i]/ftau[i]) - 1.0;
+
+			/* step size */
+			fCurrentTimeStep = *fTimeStep;
+		}	
 
 		double u_t0 = jump_u[0];
 		double u_t1 = jump_u[1];
 		double u_n = jump_u[2];
 		
-		double *state2 = state.Pointer(iNumRelaxTimes);
+		double *state2 = state.Pointer(n_prony);
 
 		/* These calculations don't get used. They're useless! */
 		/*double u_t0_dot = (u_t0 - state2[0])/fTimeStep;
@@ -226,7 +196,7 @@ const dArrayT& YoonAllen3DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 		double l_old = sqrt(l_0_old*l_0_old+l_1_old*l_1_old+l_2_old*l_2_old);
 		double prefactold = 1./(1-state2[2*knumDOF+1]);
 		double l_dot = 0.0;
-		if (fabs(fTimeStep) > kSmall) l_dot = (l-l_old)/fTimeStep; /* for dt -> 0 */
+		if (fabs(*fTimeStep) > kSmall) l_dot = (l-l_old)/(*fTimeStep); /* for dt -> 0 */
 
 		/* do the bulk of the computation now */
 		if (l_old > kSmall)
@@ -246,15 +216,15 @@ const dArrayT& YoonAllen3DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 			fTraction[2] = prefactold*state2[knumDOF+2];
 		}	
 		
-		double tmpSum = fE_infty*fTimeStep;
-		for (int i = 0; i < iNumRelaxTimes; i++)
+		double tmpSum = fE_infty*(*fTimeStep);
+		for (int i = 0; i < n_prony; i++)
 		  tmpSum -= fexp_tau[i]*ftau[i];
 		tmpSum *= l_dot;
 		
 		fTraction += tmpSum;
 		
 		/* update the S coefficients */
-		for (int i = 0; i < iNumRelaxTimes; i++)
+		for (int i = 0; i < n_prony; i++)
 		{
 			state[i] += (state[i]-state2[2*knumDOF]*ftau[i])*fexp_tau[i];
 			fTraction += state[i]*fexp_tau[i];	
@@ -268,17 +238,17 @@ const dArrayT& YoonAllen3DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 			{
 				case 1:
 				{
-					alpha += fTimeStep*falpha_0*pow(l,falpha_exp);
+					alpha += (*fTimeStep)*falpha_0*pow(l,falpha_exp);
 					break;
 				}
 				case 2:
 				{
-					alpha += fTimeStep*falpha_0*pow(1.-alpha,falpha_exp)*pow(1.-flambda_0*l,flambda_exp);
+					alpha += (*fTimeStep)*falpha_0*pow(1.-alpha,falpha_exp)*pow(1.-flambda_0*l,flambda_exp);
 					break;
 				}
 				case 3:
 				{
-					alpha += fTimeStep*falpha_0*pow(l_dot,falpha_exp);
+					alpha += (*fTimeStep)*falpha_0*pow(l_dot,falpha_exp);
 					break;
 				}
 			}
@@ -350,7 +320,8 @@ const dMatrixT& YoonAllen3DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	double u_n = jump_u[2];
 
 	/* compute the current tractions first */
-	const double *state2 = state.Pointer(iNumRelaxTimes);
+	int n_prony = ftau.Length();
+	const double *state2 = state.Pointer(n_prony);
 
 	/*double u_t0_dot = (u_t0 - state2[0])/fTimeStep;
 	double u_t1_dot = (u_t1 - state2[1])/fTimeStep;
@@ -378,7 +349,7 @@ const dMatrixT& YoonAllen3DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	double l_old = sqrt(l_0_old*l_0_old+l_1_old*l_1_old+l_2_old*l_2_old);
 	double prefactold = 1./(1-state2[2*knumDOF+9]);
 	double l_dot = 0.0;
-	if (fabs(fTimeStep) > kSmall) l_dot = (l-l_old)/fTimeStep; /* for dt -> 0 */
+	if (fabs(*fTimeStep) > kSmall) l_dot = (l-l_old)/(*fTimeStep); /* for dt -> 0 */
 
 	dArrayT currTraction(knumDOF);
 	currTraction = 0.;
@@ -401,21 +372,21 @@ const dMatrixT& YoonAllen3DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 		currTraction[2] = prefactold*state2[knumDOF+10];
 	}	
 		
-	double tmpSum = fE_infty*fTimeStep;
-	for (int i = 0; i < iNumRelaxTimes; i++)
+	double tmpSum = fE_infty*(*fTimeStep);
+	for (int i = 0; i < n_prony; i++)
 	  tmpSum -= fexp_tau[i]*ftau[i];
 	tmpSum *= l_dot;
 	
 	currTraction += tmpSum;
 
 	/* update the S coefficients */
-	for (int i = 0; i < iNumRelaxTimes; i++)
+	for (int i = 0; i < n_prony; i++)
 	{
 		currTraction += state[i]*fexp_tau[i];	
 	}
 	
 	/* grab the damage parameter */
-	double alpha = state[iNumRelaxTimes+2*knumDOF+1];
+	double alpha = state[n_prony+2*knumDOF+1];
 	
 	if (alpha >= 1.)
 	{
@@ -427,7 +398,7 @@ const dMatrixT& YoonAllen3DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	{
 		/* Now tackle some stiffnesses */
 		fStiffness = 0.0;
-		if (fabs(fTimeStep) > kSmall) fStiffness = tmpSum/l_dot*(1-alpha)/l/l/fTimeStep;
+		if (fabs(*fTimeStep) > kSmall) fStiffness = tmpSum/l_dot*(1-alpha)/l/l/(*fTimeStep);
 		if (l < kSmall)
 		{
 			fStiffness[0] *= l_0*l_0;
@@ -481,12 +452,12 @@ const dMatrixT& YoonAllen3DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 		{
 			case 1:
 			{
-				ftmp = falpha_exp*pow(l,falpha_exp-1.)*falpha_0*fTimeStep/(1.-alpha);
+				ftmp = falpha_exp*pow(l,falpha_exp-1.)*falpha_0*(*fTimeStep)/(1.-alpha);
 				break;
 			}
 			case 2:
 			{
-				ftmp = -flambda_0*fTimeStep*flambda_exp*pow(1.-flambda_0*l,flambda_exp-1.)/(1-alpha);
+				ftmp = -flambda_0*(*fTimeStep)*flambda_exp*pow(1.-flambda_0*l,flambda_exp-1.)/(1-alpha);
 				break;
 			}
 			case 3:
@@ -551,24 +522,17 @@ SurfacePotentialT::StatusT YoonAllen3DT::Status(const dArrayT& jump_u,
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
 	
-	if (state[iNumRelaxTimes+2*knumDOF+1]+kSmall > 1.)
+	int n_prony = ftau.Length();
+	if (state[n_prony+2*knumDOF+1]+kSmall > 1.)
 		return Failed;
-	else if (state[iNumRelaxTimes+2*knumDOF+1] > kSmall)
+	else if (state[n_prony+2*knumDOF+1] > kSmall)
 		return Critical;
 	else
 		return Precritical;
 
 }
 
-void YoonAllen3DT::PrintName(ostream& out) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	out << " Yoon-Allen 2D \n";
-#else
-#pragma unused(out)
-#endif
-}
-
+#if 0
 /* print parameters to the output stream */
 void YoonAllen3DT::Print(ostream& out) const
 {
@@ -577,8 +541,8 @@ void YoonAllen3DT::Print(ostream& out) const
 	out << " Normal length scale . . . . . . . . . . . . . . = " << fd_c_n     << '\n';
 	out << " Tangential length scale . . . . . . . . . . . . = " << fd_c_t     << '\n';
 	out << " Long-time modulus . . . . . . . . . . . . . . . = " << fE_infty   << '\n';
-	out << " Number of terms in prony series . . . . . . . . = " << iNumRelaxTimes << "\n";
-	for (int i = 0; i < iNumRelaxTimes;i++)
+	out << " Number of terms in prony series . . . . . . . . = " << n_prony << "\n";
+	for (int i = 0; i < n_prony;i++)
 	{
 		out << " Transient modulus for mode "<<i<<" . . . . . . . . .  = " << fE_t[i]    << '\n';
 		out << " Time constant for mode "<<i<<" . . . . . . . . . . .  = " << ftau[i]/fE_t[i] << '\n';
@@ -596,6 +560,7 @@ void YoonAllen3DT::Print(ostream& out) const
 #pragma unused(out)
 #endif
 }
+#endif
 
 /* returns the number of variables computed for nodal extrapolation
  * during for element output, ie. internal variables. Returns 0
@@ -627,18 +592,19 @@ void YoonAllen3DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& st
 	double l_t1 = u_t1/fd_c_t;
 	double l_n = u_n/fd_c_n;
 
+	int n_prony = ftau.Length();
 	output[0] = sqrt(l_t0*l_t0 + l_t1*l_t1 + l_n*l_n); 
-	output[1] = state[iNumRelaxTimes+2*knumDOF+8];
-	output[2] = state[iNumRelaxTimes+2*knumDOF+9];
+	output[1] = state[n_prony+2*knumDOF+8];
+	output[2] = state[n_prony+2*knumDOF+9];
 	
 	double u_t0_dot = 0.0;
 	double u_t1_dot = 0.0;
 	double u_n_dot = 0.0;
-	if (fabs(fTimeStep) > kSmall) /* allow dt -> 0 */
+	if (fabs(*fTimeStep) > kSmall) /* allow dt -> 0 */
 	{
-		u_t0_dot = (u_t0 - state[iNumRelaxTimes+8])/fTimeStep;
-		u_t1_dot = (u_t1 - state[iNumRelaxTimes+9])/fTimeStep;
-		u_n_dot = (u_n - state[iNumRelaxTimes+10])/fTimeStep;	
+		u_t0_dot = (u_t0 - state[n_prony+8])/(*fTimeStep);
+		u_t1_dot = (u_t1 - state[n_prony+9])/(*fTimeStep);
+		u_n_dot = (u_n - state[n_prony+10])/(*fTimeStep);	
 	}
 
 	double l_dot = (l_t0*u_t0_dot/fd_c_t+l_t1*u_t1_dot/fd_c_t+l_n*u_n_dot/fd_c_n)/output[0];
@@ -658,4 +624,124 @@ bool YoonAllen3DT::CompatibleOutput(const SurfacePotentialT& potential) const
 #endif
 }
 
+void YoonAllen3DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	SurfacePotentialT::DefineParameters(list);
 
+	/* common limit */
+	LimitT non_negative(0, LimitT::LowerInclusive);
+
+	/* traction potential parameters */
+	ParameterT sigma_0(fsigma_0, "sigma_0");
+	sigma_0.AddLimit(non_negative);
+	ParameterT d_c_n(fd_c_n, "d_c_n");
+	d_c_n.AddLimit(non_negative);
+	ParameterT d_c_t(fd_c_t, "d_c_t");
+	d_c_t.AddLimit(non_negative);
+	list.AddParameter(sigma_0);
+	list.AddParameter(d_c_n);
+	list.AddParameter(d_c_t);
+
+	 /* asymptotic modulus of cohesive zone */
+	ParameterT E_infty(fE_infty, "E_infty");
+	E_infty.AddLimit(non_negative);
+	list.AddParameter(E_infty);
+
+	/* penalty stiffness */
+	ParameterT penalty(fpenalty, "penalty");
+	penalty.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(penalty);
+}
+
+/* information about subordinate parameter lists */
+void YoonAllen3DT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	SurfacePotentialT::DefineSubs(sub_list);
+
+	/* prony series */
+	sub_list.AddSub("Prony_series");
+
+	/* damage evolution */
+	sub_list.AddSub("Yoon-Allen_damage_choice", ParameterListT::Once, true);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* YoonAllen3DT::NewSub(const StringT& name) const
+{
+	if (name == "Prony_series" || name == "Yoon-Allen_damage_choice")
+	{
+		/* use definitions from 2D model */
+		YoonAllen2DT YH2D;
+		return YH2D.NewSub(name);
+	}
+	else /* inherited */
+		return SurfacePotentialT::NewSub(name);
+}
+	
+/* accept parameter list */
+void YoonAllen3DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SurfacePotentialT::TakeParameterList(list);
+
+	/* traction potential parameters */
+	fsigma_0 = list.GetParameter("sigma_0");
+	fd_c_n = list.GetParameter("d_c_n");
+	fd_c_t = list.GetParameter("d_c_t");
+
+	 /* asymptotic modulus of cohesive zone */
+	fE_infty = list.GetParameter("E_infty");
+
+	/* penetration stiffness */
+	fpenalty = list.GetParameter("penalty");
+	fK = fpenalty*fsigma_0/fd_c_n;
+
+	/* prony series */
+	const ParameterListT& prony_series = list.GetList("Prony_series");
+	int n_terms = prony_series.NumLists("Prony_pair");
+	ftau.Dimension(n_terms);
+	fE_t.Dimension(n_terms);
+	fexp_tau.Dimension(n_terms);
+	for (int i = 0; i < n_terms; i++)
+	{
+		const ParameterListT& prony_pair = prony_series.GetList("Prony_pair", i);
+		fE_t[i] = prony_pair.GetParameter("transient_modulus");
+		ftau[i] = prony_pair.GetParameter("time_constant");
+	
+		/* decay function */
+		fexp_tau[i] = exp(-(*fTimeStep)/ftau[i]) - 1.0;
+		
+		/* scale ftau by fE_t to reduce multiplications in traction
+		 * and stiffness routines */
+		ftau[i] *= fE_t[i];
+	}
+	fCurrentTimeStep = *fTimeStep;
+
+	/* damage evolution */
+	const ParameterListT& damage = list.GetListChoice(*this, "Yoon-Allen_damage_choice");
+	if (damage.Name() == "YA_damage_1")
+	{
+		idamage = 1;
+		falpha_exp = damage.GetParameter("alpha_exp");
+		falpha_0 = damage.GetParameter("alpha_0");
+	}
+	else if (damage.Name() == "YA_damage_2")
+	{
+		idamage = 2;
+		falpha_exp = damage.GetParameter("alpha_exp");
+		falpha_0 = damage.GetParameter("alpha_0");
+		flambda_exp = damage.GetParameter("lambda_exp");
+		flambda_0 = damage.GetParameter("lambda_0");
+	}
+	else if (damage.Name() == "YA_damage_3")
+	{
+		idamage = 3;
+		falpha_exp = damage.GetParameter("alpha_exp");
+		falpha_0 = damage.GetParameter("alpha_0");	
+	}
+	else
+		ExceptionT::GeneralFail("YoonAllen3DT::TakeParameterList", "unrecognized damage option \"%s\"",
+			damage.Name().Pointer());
+}

@@ -1,16 +1,13 @@
-/* $Id: ErcolessiAdamsAl.cpp,v 1.3 2002-10-20 22:48:40 paklein Exp $ */
-/* created: paklein (12/02/1996)                                          */
-/* ErcolessiAdamsAl.cpp                                                   */
-
+/* $Id: ErcolessiAdamsAl.cpp,v 1.4 2004-07-15 08:26:52 paklein Exp $ */
+/* created: paklein (12/02/1996) */
 #include "ErcolessiAdamsAl.h"
 #include <iostream.h> //TEMP
 #include "CubicSplineT.h"
 
-/* lattice parameters - angstrom */
-//const double kLatticeParameterAl = 4.032; //given by E&A
-
 using namespace Tahoe;
 
+/* lattice parameters - angstrom */
+//const double kLatticeParameterAl = 4.032; //given by E&A
 const double kLatticeParameterAl = 4.03515412; //zero stress
 
 /* Constructor */

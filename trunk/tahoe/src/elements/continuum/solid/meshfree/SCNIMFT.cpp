@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.17 2004-06-02 23:03:33 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.18 2004-07-15 08:29:39 paklein Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -23,9 +23,9 @@
 #include "SolidMatSupportT.h"
 
 /* materials lists */
-#include "SolidMatList1DT.h"
-#include "SolidMatList2DT.h"
-#include "SolidMatList3DT.h"
+#include "SSSolidMatList1DT.h"
+#include "SSSolidMatList2DT.h"
+#include "SSSolidMatList3DT.h"
 
 #ifdef __QHULL__
 #include "CompGeomT.h"
@@ -35,7 +35,7 @@ using namespace Tahoe;
 
 /* constructors */
 SCNIMFT::SCNIMFT(const ElementSupportT& support, const FieldT& field):
-	ElementBaseT(support, field),
+	ElementBaseT(support),
 	fSD(ElementSupport().NumSD()),
 	fMaterialList(NULL),
 	fForce_man(0, fForce, field.NumDOF()),
@@ -74,7 +74,8 @@ SCNIMFT::~SCNIMFT(void)
 void SCNIMFT::Initialize(void)
 {
 	const char caller[] = "SCNIMFT::Initialize";
-
+ExceptionT::GeneralFail(caller, "out of date");
+#if 0
 	/* inherited */
 	ElementBaseT::Initialize();
 
@@ -85,7 +86,8 @@ void SCNIMFT::Initialize(void)
 	fForce_man.SetMajorDimension(ElementSupport().NumNodes(), false);
 
 	/* write parameters */
-	ifstreamT& in = ElementSupport().Input();
+//	ifstreamT& in = ElementSupport().Input();
+	ifstreamT in;
 	ostream& out = ElementSupport().Output();
 
 	int qComputeVoronoiCell;
@@ -252,7 +254,6 @@ void SCNIMFT::Initialize(void)
 	
 	/** Material Data */
 	ReadMaterialData(in);
-	WriteMaterialData(out);
 	
 	//TEMP - only works for one material right now, else would have to check
 	//       for the material active within the integration cell (element)
@@ -307,6 +308,8 @@ void SCNIMFT::Initialize(void)
 	else if (size == 2 && rank == 0)
 		hit_node = 5420 - 1;
 	if (hit_node > 0) TraceNode(ElementSupport().Output(), hit_node, *this);
+#endif
+
 #endif
 }
 
@@ -475,7 +478,7 @@ void SCNIMFT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	const char caller[] = "SCNIMFT::EchoConnectivityData";
 	
 	/* access to the model database */
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 
 	/* read node set ids */
 	ArrayT<StringT> ids;
@@ -568,7 +571,7 @@ void SCNIMFT::ReadMaterialData(ifstreamT& in)
 	if (!fMaterialList) ExceptionT::OutOfMemory(caller);
 
 	/* read */
-	fMaterialList->ReadMaterialData(in);
+//	fMaterialList->ReadMaterialData(in);
 	
 	fMaterialNeeds.Dimension(fMaterialList->Length());
 	for (int i = 0; i < fMaterialNeeds.Length(); i++)
@@ -592,15 +595,6 @@ void SCNIMFT::ReadMaterialData(ifstreamT& in)
 		if (fBlockData[i].MaterialID() < 0 || fBlockData[i].MaterialID() >= size)
 			ExceptionT::BadInputValue(caller, "material number %d for element block %d is out of range",
 				fBlockData[i].MaterialID()+1, i+1);*/
-}
-
-/* use in conjunction with ReadMaterialData */
-void SCNIMFT::WriteMaterialData(ostream& out) const
-{
-	fMaterialList->WriteMaterialData(out);
-
-	/* flush buffer */
-	out.flush();
 }
 
 int SCNIMFT::GlobalToLocalNumbering(iArrayT& nodes)
@@ -1257,16 +1251,16 @@ void SCNIMFT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void SCNIMFT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void SCNIMFT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
 	/* inherited */
-	ElementBaseT::DefineInlineSub(sub, order, sub_sub_list);
+	ElementBaseT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* SCNIMFT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* SCNIMFT::NewSub(const StringT& name) const
 {
 	/* inherited */
-	return ElementBaseT::NewSub(list_name);
+	return ElementBaseT::NewSub(name);
 }

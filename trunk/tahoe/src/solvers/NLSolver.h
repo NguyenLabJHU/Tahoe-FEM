@@ -1,4 +1,4 @@
-/* $Id: NLSolver.h,v 1.9 2004-01-05 07:07:19 paklein Exp $ */
+/* $Id: NLSolver.h,v 1.10 2004-07-15 08:31:50 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #ifndef _NL_SOLVER_H_
@@ -14,11 +14,8 @@ class NLSolver: public SolverT
 {
 public:
 
-	/** \name constructors */
-	/*@{*/
-	NLSolver(FEManagerT& fe_manager);
+	/** constructors */
 	NLSolver(FEManagerT& fe_manager, int group);
-	/*@}*/
 	
 	/** \name solution steps */
 	/*@{*/
@@ -46,6 +43,9 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:

@@ -1,33 +1,31 @@
-/* $Id: OgdenIsotropicT.h,v 1.8 2003-01-29 07:34:43 paklein Exp $ */
+/* $Id: OgdenIsotropicT.h,v 1.9 2004-07-15 08:27:22 paklein Exp $ */
 /* created: paklein (10/01/2000) */
 #ifndef _OGDEN_ISOTROPIC_T_H_
 #define _OGDEN_ISOTROPIC_T_H_
 
 /* base classes */
-#include "FSSolidMatT.h"
-#include "IsotropicT.h"
+#include "FSIsotropicMatT.h"
 
 /* direct members */
 #include "SpectralDecompT.h"
 
 namespace Tahoe {
 
+/* forward declarations */
+class SpectralDecompT;
+
 /** base class for large deformation isotropic material following
  * Ogden's spectral formulation. Derived types need only to overload
  * OgdenIsotropicT::dWdE and OgdenIsotropicT::dWdE. */
-class OgdenIsotropicT: public FSSolidMatT, public IsotropicT
+class OgdenIsotropicT: public FSIsotropicMatT
 {
 public:
 
-	/* constructor */
-	OgdenIsotropicT(ifstreamT& in, const FSMatSupportT& support);
-	
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
+	/** constructor */
+	OgdenIsotropicT(void);
 
-	/* class specific initializations */
-	virtual void Initialize(void);
+	/** destructor */
+	virtual ~OgdenIsotropicT(void);
 
 	/** \name spatial description */
 	/*@{*/
@@ -46,6 +44,12 @@ public:
 	/* material description */
 	virtual const dMatrixT& C_IJKL(void); // material tangent moduli
 	virtual const dSymMatrixT& S_IJ(void); // PK2 stress
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
@@ -69,7 +73,7 @@ private:
 protected:
 
 	/* spectral operations */
-	SpectralDecompT fSpectralDecomp;
+	SpectralDecompT* fSpectralDecomp;
 
 	/* work space */
 	dSymMatrixT fC;

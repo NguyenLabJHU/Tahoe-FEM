@@ -1,4 +1,4 @@
-/* $Id: LinearSpringT.cpp,v 1.5 2004-06-17 07:41:41 paklein Exp $ */
+/* $Id: LinearSpringT.cpp,v 1.6 2004-07-15 08:30:22 paklein Exp $ */
 /* created: paklein (05/28/1996) */
 #include "LinearSpringT.h"
 
@@ -14,20 +14,6 @@ using namespace Tahoe;
 LinearSpringT::LinearSpringT(ifstreamT& in): RodMaterialT(in)
 {
 	in >> fSpringConstant;	if (fSpringConstant < 0.0) throw ExceptionT::kBadInputValue;
-}
-
-/* I/O functions */
-void LinearSpringT::Print(ostream& out) const
-{
-	/* inherited */
-	RodMaterialT::Print(out);
-
-	out << " Spring constant . . . . . . . . . . . . . . . . = " << fSpringConstant << '\n';	
-}
-
-void LinearSpringT::PrintName(ostream& out) const
-{
-	out << "    Linear spring\n";
 }
 
 /* potential function and derivatives */

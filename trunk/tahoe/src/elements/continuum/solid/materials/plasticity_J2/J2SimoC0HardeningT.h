@@ -1,38 +1,31 @@
-/* $Id: J2SimoC0HardeningT.h,v 1.7 2004-01-27 19:11:40 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.h,v 1.8 2004-07-15 08:28:54 paklein Exp $ */
 /* created: paklein (05/01/2001) */
-
 #ifndef _J2_SIMO_C0_HARD_T_H_
 #define _J2_SIMO_C0_HARD_T_H_
 
-/* environment */
-#include "Environment.h"
+/* base class */
+#include "J2_C0HardeningT.h"
 
 /* direct members */
 #include "dSymMatrixT.h"
 #include "dMatrixT.h"
 #include "dArrayT.h"
 #include "iArrayT.h"
-#include "C1FunctionT.h"
-
-#include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
 /* forward declarations */
 class ElementCardT;
-class ifstreamT;
+class C1FunctionT;
 
 /** finite strain, J2 elastoplasticity following framework in
  * Simo, J.C. (1988) CMAME v66 and v68. */
-class J2SimoC0HardeningT
+class J2SimoC0HardeningT: virtual public J2_C0HardeningT
 {
 public:
 
 	/** constructor */
-	J2SimoC0HardeningT(ifstreamT& in, int num_ip, double mu);
-
-	/** destructor */
-	~J2SimoC0HardeningT(void);
+	J2SimoC0HardeningT(void);
 
 protected:
 
@@ -55,19 +48,6 @@ protected:
    kmu_bar_bar = 5,
      kDetF_tot = 6, /**< determinant of total F */
      kHeatIncr = 7  /**< incremental heat generation */ };
-
-	/** hardening function types */
-	enum HardeningFunctionT {
-               kLinear = 0,
-    kLinearExponential = 1,
-          kCubicSpline = 2,
-          kPowerLaw = 3};
-
-	/** write parameters */
-	void Print(ostream& out) const;
-
-	/** write material model name */
-	void PrintName(ostream& out) const;
 	
 	/** compute trial elastic state.
 	 * \param F_mechanical mechanical part of the deformation gradient
@@ -77,7 +57,7 @@ protected:
 	 * \param ip current integration point 
 	 * \return reference to isochoric, trial elastic stretch */
 	const dSymMatrixT& TrialElasticState(const dMatrixT& F_mechanical,
-		const dMatrixT& f_relative, ElementCardT& element, int ip);
+		const dMatrixT& f_relative, ElementCardT& element, int nip, int ip);
 
 	/** determine elastic or plastic loading for the current step. Returns 1 if the 
 	 * trial elastic strain state lies outside of the yield surface. Operates on the
@@ -85,34 +65,28 @@ protected:
 	 * J2SimoC0HardeningT::TrialElasticState
 	 * \param element reference to the current element information
 	 * \param ip current integration point */
-	int PlasticLoading(ElementCardT& element, int ip);
+	int PlasticLoading(ElementCardT& element, double mu, int ip);
 			
 	/** apply return mapping. Return the correction to stress vector computed by 
 	 * the mapping the stress back to the yield surface. Operates on the material
 	 * state set with the last call to J2SimoC0HardeningT::PlasticLoading */
-	const dSymMatrixT& StressCorrection(ElementCardT& element, int ip);
+	const dSymMatrixT& StressCorrection(ElementCardT& element, double mu, int ip);
 
 	/** return the correction to moduli due to plasticity (if any)
 	 *
 	 * Note: Return mapping occurs during the call to StressCorrection.
 	 *       The element passed in is already assumed to carry current
 	 *       internal variable values. */
-	const dMatrixT& ModuliCorrection(ElementCardT& element, int ip);
+	const dMatrixT& ModuliCorrection(ElementCardT& element, double mu, int nip, int ip);
 
 	/** allocate element storage */
-	void AllocateElement(ElementCardT& element);
+	void AllocateElement(ElementCardT& element, int nip);
 
 	/** element level data */
-	void Update(ElementCardT& element);
+	void Update(ElementCardT& element, double mu, int nip);
 
 	/** reset element level data */
-	void Reset(ElementCardT& element);
-
-	/* hardening functions and their 1st derivatives */
-	double   H(double) const { return 0.0; }; // no kinematic hardening yet
-	double  dH(double) const { return 0.0; };
-	double   K(double a) const;
-	double  dK(double a) const;
+	void Reset(ElementCardT& element, int nip);
 
 private:
 
@@ -120,13 +94,7 @@ private:
 	void InitIntermediate(const dMatrixT& F_mechanical, const dMatrixT& f_relative);
 
 	/** load element data for the specified integration point */
-	void LoadData(const ElementCardT& element, int ip);
-
-	/** evaluate single parameters yield function */
-	double YieldCondition(const dSymMatrixT& stress, double alpha) const;
-
-	/* construct isotropic hardening function */
-	void ConstructHardeningFunction(ifstreamT& in);
+	void LoadData(const ElementCardT& element, int nip, int ip);
 
 protected:
 
@@ -134,16 +102,6 @@ protected:
 	dArrayT     fInternal; //internal variables
 	dSymMatrixT fb_bar;    //isochoric, elastic part of b
 	dSymMatrixT fbeta_bar; //stress surface "center", kinematic hardening
-
-	/** number of integration points */
-	int fNumIP;
-
-	/** shear modulus */
-	double fmu;
-
-	/** C1 isotropic hardening function */
-	HardeningFunctionT fType;
-	C1FunctionT* fK;	
 
 	/* return values */
 	dSymMatrixT	fStressCorr;
@@ -172,9 +130,6 @@ protected:
 	dSymMatrixT fbeta_bar_trial_; //unit normal to the stress surface
 };
 
-/* hardening functions and their 1st derivatives */
-inline double J2SimoC0HardeningT::K(double a) const { return fK->Function(a); }
-inline double J2SimoC0HardeningT::dK(double a) const { return fK->DFunction(a); }
+} /* namespace Tahoe */
 
-} // namespace Tahoe 
-#endif /* _J2_SIMO_C1_HARD_T_H_ */
+#endif /* _J2_SIMO_C0_HARD_T_H_ */

@@ -1,27 +1,29 @@
-/* $Id: QuadLogOgden2DT.h,v 1.5 2003-01-29 07:34:43 paklein Exp $ */
+/* $Id: QuadLogOgden2DT.h,v 1.6 2004-07-15 08:27:22 paklein Exp $ */
 /* created: paklein (02/18/2001) */
 #ifndef _QUAD_LOG_ISO_2D_T_H_
 #define _QUAD_LOG_ISO_2D_T_H_
 
 /* base classes */
 #include "OgdenIsotropicT.h"
-#include "Material2DT.h"
 
 namespace Tahoe {
 
 /** plane strain QuadLog with Ogden principal stretch formulation */
-class QuadLogOgden2DT: public OgdenIsotropicT, public Material2DT
+class QuadLogOgden2DT: public OgdenIsotropicT
 {
 public:
 
-	/* constructor */
-	QuadLogOgden2DT(ifstreamT& in, const FSMatSupportT& support);
-
-	/* print parameters */
-	virtual void PrintName(ostream& out) const;
+	/** constructor */
+	QuadLogOgden2DT(void);
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
 protected:
 

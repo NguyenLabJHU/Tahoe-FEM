@@ -1,39 +1,26 @@
-/* $Id: VIB_E_MatT.cpp,v 1.5 2003-11-21 22:46:32 paklein Exp $ */
-/* created: paklein (11/08/1997)                                          */
-/* Base class for isotropic VIB_E_MatT materials.                         */
-
+/* $Id: VIB_E_MatT.cpp,v 1.6 2004-07-15 08:27:40 paklein Exp $ */
+/* created: paklein (11/08/1997) */
 #include "VIB_E_MatT.h"
 
 #include <math.h>
-#include <iostream.h>
 
-#include "toolboxConstants.h"
 #include "ExceptionT.h"
 #include "dSymMatrixT.h"
 #include "C1FunctionT.h"
 
-/* constructors */
-
 using namespace Tahoe;
 
-VIB_E_MatT::VIB_E_MatT(ifstreamT& in, int nsd):
-	VIB(in, nsd, dSymMatrixT::NumValues(nsd), (nsd == 2) ? 5 : 15)
+/* constructors */
+VIB_E_MatT::VIB_E_MatT(int nsd):
+	ParameterInterfaceT("VIB_Green_material"),
+	VIB(nsd, dSymMatrixT::NumValues(nsd), (nsd == 2) ? 5 : 15)
 {
 
-}
-
-/* print parameters */
-void VIB_E_MatT::PrintName(ostream& out) const
-{
-	/* inherited */
-	VIB::PrintName(out);
-
-	out << "    Lagrangian\n";
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /* returns the strain energy density for the specified strain */
 double VIB_E_MatT::VIBEnergyDensity(const dSymMatrixT& E)

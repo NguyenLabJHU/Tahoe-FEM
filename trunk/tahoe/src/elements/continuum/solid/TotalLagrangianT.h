@@ -1,6 +1,5 @@
-/* $Id: TotalLagrangianT.h,v 1.7 2002-09-23 06:58:25 paklein Exp $ */
+/* $Id: TotalLagrangianT.h,v 1.8 2004-07-15 08:26:27 paklein Exp $ */
 /* created: paklein (07/03/1996) */
-
 #ifndef _TOTAL_LAGRANGRIAN_T_H_
 #define _TOTAL_LAGRANGRIAN_T_H_
 
@@ -18,10 +17,13 @@ class TotalLagrangianT: public FiniteStrainT
 public:
 
 	/** constructors */
-	TotalLagrangianT(const ElementSupportT& support, const FieldT& field);
+	TotalLagrangianT(const ElementSupportT& support);
 
-	/** data initialization */
-	virtual void Initialize(void);
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 		
 protected:
 

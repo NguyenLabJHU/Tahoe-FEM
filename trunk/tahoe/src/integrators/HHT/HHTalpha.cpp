@@ -1,32 +1,21 @@
-/* $Id: HHTalpha.cpp,v 1.6 2004-06-17 07:13:57 paklein Exp $ */
+/* $Id: HHTalpha.cpp,v 1.7 2004-07-15 08:30:27 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 #include "HHTalpha.h"
 
 #include <iostream.h>
 
-#include "ifstreamT.h"
+
 #include "dArrayT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-HHTalpha::HHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder):
-	fAuto2ndOrder(auto2ndorder),
+HHTalpha::HHTalpha(double alpha):
+	fAuto2ndOrder(true),
 	fgamma(0.5),
-	fbeta(0.25)
+	fbeta(0.25),
+	falpha(alpha)
 {
-	/* read parameter */
-	in >> falpha;
-		
-	/* reduce to single parameter fanmily */
-	if (fAuto2ndOrder) Set2ndOrder(falpha);
-
-	/* echo */
-	out << " HHT-alpha time integration parameters:\n\n";
-	out << " gamma . . . . . . . . . . . . . . . . . . . . . = " << fgamma << '\n';
-	out << " beta. . . . . . . . . . . . . . . . . . . . . . = " << fbeta  << '\n';
-	out << " alpha . . . . . . . . . . . . . . . . . . . . . = " << falpha << endl;
-
 	/* range checks (incomplete) */
 	if (falpha > 0.0 || falpha < -1.0) ExceptionT::BadInputValue("HHTalpha::HHTalpha");
 }

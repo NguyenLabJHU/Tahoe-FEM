@@ -1,4 +1,4 @@
-/* $Id: EAM_particle.h,v 1.2 2004-04-09 02:02:58 hspark Exp $ */
+/* $Id: EAM_particle.h,v 1.3 2004-07-15 08:26:47 paklein Exp $ */
 /* created: hspark(02/25/2004) */
 #ifndef _EAM_PARTICLE_H_
 #define _EAM_PARTICLE_H_
@@ -23,13 +23,13 @@ class EAM_particle
 public:
 
 	/* constructor */
-	EAM_particle(CBLatticeT& lattice);
+	EAM_particle(CBLatticeT& lattice, const StringT& param_file);
 
 	/* destructor */
 	virtual ~EAM_particle(void);
 
-	/** set "glue" functions */
-	void SetGlueFunctions(const StringT& param_file);
+	/** set "glue" functions and dimension work space */
+	void Initialize(int nsd, int numbonds);
 
 	/* compute unit strain energy density:
 	 *
@@ -50,7 +50,7 @@ public:
 	void ComputeUnitModuli(dMatrixT& moduli); 	    	
 
 	/* unstressed lattice parameter */
-	virtual double LatticeParameter(void) const;
+	double LatticeParameter(void) const { return fLatticeParameter; };
 
 	/* compute the total electron density - moved public by HSP 3/5/04 */
 	double TotalElectronDensity(void);
@@ -83,17 +83,16 @@ private:
 	EAMPropertyT::EDEnergyFunction fEDEnergy;
 	EAMPropertyT::EDForceFunction fEDForce;
 	EAMPropertyT::EDStiffnessFunction fEDStiffness;
-	
 	/*@{*/
 
 	CBLatticeT&	fLattice;
-	const iArrayT&	fCounts;		
-	const dArrayT&	fBonds;
+//	const iArrayT&	fCounts;
+//	const dArrayT&	fBonds;
 
 	/* parameters */
-	int		fNumSpatialDim;
-	int		fNumBonds;
-	int		fModuliDim;
+//	int		fNumSpatialDim;
+//	int		fNumBonds;
+//	int		fModuliDim;
 	double  fLatticeParameter;
 	
 	dMatrixT	fBondTensor4;

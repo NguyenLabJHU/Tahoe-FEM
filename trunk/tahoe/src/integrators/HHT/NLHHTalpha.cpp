@@ -1,6 +1,5 @@
-/* $Id: NLHHTalpha.cpp,v 1.5 2002-09-12 17:49:50 paklein Exp $ */
+/* $Id: NLHHTalpha.cpp,v 1.6 2004-07-15 08:30:28 paklein Exp $ */
 /* created: paklein (10/11/1996) */
-
 #include "NLHHTalpha.h"
 
 #include <iostream.h>
@@ -9,17 +8,16 @@
 #include "dArray2DT.h"
 #include "TimeManagerT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
-NLHHTalpha::NLHHTalpha(TimeManagerT& TM, ifstreamT& in, ostream& out,
-	bool auto2ndorder):
-	HHTalpha(in, out, auto2ndorder),
-	nNLHHTalpha(in, out, auto2ndorder),
-	eNLHHTalpha(in, out, auto2ndorder),
-	TimeBoss(TM)
+/* constructor */
+NLHHTalpha::NLHHTalpha(double alpha):
+	HHTalpha(alpha),
+	nNLHHTalpha(alpha),
+	eNLHHTalpha(alpha),
+	fTimeBoss(NULL)
 {
+#if 0
 	/* time-shifting not supported for NL */
 	if (falpha*falpha > kSmall)
 	{
@@ -32,6 +30,7 @@ NLHHTalpha::NLHHTalpha(TimeManagerT& TM, ifstreamT& in, ostream& out,
 		out << " beta. . . . . . . . . . . . . . . . . . . . . . = " << fbeta  << '\n';
 		out << " alpha . . . . . . . . . . . . . . . . . . . . . = " << falpha << endl;
 	}
+#endif
 }
 
 /* take responsibility for forming the nodal contribution
@@ -42,7 +41,7 @@ NLHHTalpha::NLHHTalpha(TimeManagerT& TM, ifstreamT& in, ostream& out,
 void NLHHTalpha::FormNodalForce(NodeManagerT* nodeboss) const
 {
 	/* shift time back */
-	TimeBoss.ShiftTime(fTimeShift);
+	fTimeBoss->ShiftTime(fTimeShift);
 	
 	/* form nodal contribution to RHS */
 //	nodeboss->FormRHS();
@@ -50,7 +49,7 @@ void NLHHTalpha::FormNodalForce(NodeManagerT* nodeboss) const
 #pragma message("NLHHTalpha::FormNodalForce: need this???")
 	
 	/* reset the time */
-	TimeBoss.ResetTime();
+	fTimeBoss->ResetTime();
 }
 
 /***********************************************************************
