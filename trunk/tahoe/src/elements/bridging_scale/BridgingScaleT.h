@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.16 2002-08-17 19:28:33 hspark Exp $ */
+/* $Id: BridgingScaleT.h,v 1.17 2002-08-19 21:26:32 hspark Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -96,7 +96,7 @@ private:
 	/** \name bridging scale-related computational functions */
 	/*@{*/
 	/** compute coarse and fine scale displacement fields */
-	void CoarseFineU(void);
+	void CoarseFineFields(void);
 	/*@}*/
 
 protected:
@@ -116,18 +116,15 @@ protected:
 	 *  [n_cell] x [n_inversemap_i] */
 	RaggedArray2DT<double> fInverseMapInCell;
 
-	/** coarse scale mass matrix */
-	dMatrixT fMass, fMassInv;
-
 	/** Nodal degrees of freedom */
-	dArrayT fWx, fWy;
-	dMatrixT fWtempU;
-	dArray2DT fFineScaleU;
+	dArrayT fUx, fUy, fVx, fVy, fAx, fAy;
+	dMatrixT fWtempU, fWtempV, fWtempA;
+	dArray2DT fFineScaleU, fFineScaleV, fFineScaleA;
 
 	int fTotalNodes;
 	iArray2DT fConnect;
-	ElementMatrixT fElMat;
-	CCSMatrixT fGlobal;
+	ElementMatrixT fElMatU;
+	CCSMatrixT fGlobalMass;
 
 	/* output control */
 	iArrayT	fNodalOutputCodes;
