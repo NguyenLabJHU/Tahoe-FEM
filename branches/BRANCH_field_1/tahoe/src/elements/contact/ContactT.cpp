@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.6.2.3 2002-05-03 07:16:26 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.6.2.4 2002-06-02 20:29:15 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 
 #include "ContactT.h"
@@ -19,14 +19,7 @@ ContactT::ContactT(const ElementSupportT& support, const FieldT& field, int numf
 	ElementBaseT(support, field),
 	fNumFacetNodes(numfacetnodes)
 {
-cout << "\n ContactT::ContactT: is there a better way to do this???" << endl;
-throw;
-#if 0
-	/* override base class parameters */
-	fNumElemNodes = fNumFacetNodes + 1; // facet nodes + 1 striker for each
-	      fNumDOF = fNumSD;             // contact interaction
-	fNumElemEqnos = fNumElemNodes*fNumDOF;
-#endif
+
 }
 
 /* destructor */
@@ -273,21 +266,15 @@ void ContactT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	
 	/* allocate striker coords */
 	fStrikerCoords.Allocate(fStrikerTags.Length(), NumSD());
-}
-
-void ContactT::SetWorkSpace(void)
-{
-	/* allocate map to active strikers data */
-	fActiveMap.Allocate(fStrikerCoords.MajorDim());
-	fActiveMap = -1;
-
+	
 	/* set connectivity name */
 	ModelManagerT& model = ElementSupport().Model();
 	StringT name ("Contact");
 	name.Append (ElementSupport().ElementGroupNumber(this) + 1);
 
 	/* register with the model manager and let it set the ward */
-	if (!model.RegisterVariElements (name, fConnectivities_man, GeometryT::kLine, NumElementNodes(), 0)) 
+	int nen = fNumFacetNodes + 1; /* facet nodes + 1 striker */
+	if (!model.RegisterVariElements (name, fConnectivities_man, GeometryT::kLine, nen, 0)) 
 		throw eGeneralFail;
 
 	/* set up fConnectivities */
@@ -300,7 +287,14 @@ void ContactT::SetWorkSpace(void)
 
 	/* set managed equation numbers array */
 	fEqnos.Allocate(1);
-	fEqnos_man.SetWard(0, fEqnos[0], NumElementNodes()*NumDOF());
+	fEqnos_man.SetWard(0, fEqnos[0], nen*NumDOF());
+}
+
+void ContactT::SetWorkSpace(void)
+{
+	/* allocate map to active strikers data */
+	fActiveMap.Allocate(fStrikerCoords.MajorDim());
+	fActiveMap = -1;
 
 	/* make pseudo-element list to link surfaces in case
 	 * bodies are not otherwise interacting (for the bandwidth
@@ -324,14 +318,10 @@ bool ContactT::SetContactConfiguration(void)
 	bool contact_changed = SetActiveInteractions();
 	if (contact_changed)
 	{
-cout << "\n ContactT::SetContactConfiguration: need to set fNumElements here?" << endl;
-throw;
-
-#if 0
 		/* resize */
-		fNumElements = fActiveStrikers.Length();
-		fConnectivities_man.SetMajorDimension(fNumElements, false);
-		fEqnos_man.SetMajorDimension(fNumElements, false);
+		int nel = fActiveStrikers.Length();
+		fConnectivities_man.SetMajorDimension(nel, false);
+		fEqnos_man.SetMajorDimension(nel, false);
 
 		/* generate connectivities */
 		SetConnectivities();	
@@ -339,9 +329,6 @@ throw;
 		/* update dimensions */
 		ElementBlockDataT& block = fBlockData[0];
 		block.Set(block.ID(), block.StartNumber(), fConnectivities[0]->MinorDim(), block.MaterialID());
-		
-		fNumElements = fConnectivities[0]->MinorDim();
-#endif
 	}
 	
 	return contact_changed;

@@ -1,4 +1,5 @@
-/* $Id: Contact3DT.cpp,v 1.2.2.1 2002-04-28 22:26:18 paklein Exp $ */
+
+/* $Id: Contact3DT.cpp,v 1.2.2.2 2002-06-02 20:29:15 paklein Exp $ */
 /* created: paklein (07/17/1999) */
 
 #include "Contact3DT.h"
@@ -151,6 +152,12 @@ void Contact3DT::SetConnectivities(void)
 
 	int* pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
+	if (fConnectivities[0]->MajorDim() > 0 && rowlength != 4) {
+		cout << "\n Contact2DT::SetConnectivities: expecting connectivites length 4 not " 
+		     << rowlength << endl;
+		throw eSizeMismatch;
+	}
+	
 	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{
 		const iArray2DT& surface = fSurfaces[fHitSurface[i]];
