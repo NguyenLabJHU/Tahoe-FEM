@@ -1,4 +1,4 @@
-/* $Id: GraphT.cpp,v 1.8 2002-07-02 19:57:14 cjkimme Exp $ */
+/* $Id: GraphT.cpp,v 1.8.2.1 2002-10-17 04:03:56 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "GraphT.h"
@@ -36,7 +36,7 @@ void GraphT::AddGroup(const iArray2DT& groupdata)
 	SetRange(groupdata);
 
 	/* do not allow repeated registering of groups */
-	if (!fGroupData_1.AppendUnique(&groupdata)) throw eGeneralFail;
+	if (!fGroupData_1.AppendUnique(&groupdata)) throw ExceptionT::kGeneralFail;
 }
 
 void GraphT::AddGroup(const RaggedArray2DT<int>& groupdata)
@@ -46,7 +46,7 @@ void GraphT::AddGroup(const RaggedArray2DT<int>& groupdata)
 	SetRange(temp);
 
 	/* do not allow repeated registering of groups */
-	if (!fGroupData_2.AppendUnique(&groupdata)) throw eGeneralFail;
+	if (!fGroupData_2.AppendUnique(&groupdata)) throw ExceptionT::kGeneralFail;
 }
 
 void GraphT::ClearGroups(void)
@@ -67,7 +67,7 @@ void GraphT::MakeGraph(void)
 	{
 		cout << " GraphT::MakeGraph: active connectivities must be >= 0, mininum\n"
 		     << "     found " << fShift << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	/* ignore ien < 0 */
 	else if (fShift < 0)
@@ -410,7 +410,7 @@ void GraphT::LabelBranches(const iArrayT& nodes, iArrayT& branch_map)
 	{
 		cout << "\n GraphT::LabelBranches: not expecting non-zero\n"
 		     <<   "     node number shift: " << fShift << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* rooted level structure */
@@ -446,7 +446,7 @@ void GraphT::LabelBranches(const iArrayT& nodes, iArrayT& branch_map)
 				
 					int& map = branch_map[*pnodes++];
 #if __option(extended_errorcheck)
-					if (map != -1) throw eGeneralFail;
+					if (map != -1) throw ExceptionT::kGeneralFail;
 #endif
 					map = branch;
 				}
@@ -466,7 +466,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 	{
 		cout << "\n GraphT::Partition: not expecting non-zero\n"
 		     <<   "     node number shift: " << fShift << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* dimensions */
@@ -507,7 +507,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 		{
 			const iArrayT* nodes_i = partition[commID[i]].NodesIn(ID);
 			if (!nodes_i)
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			else
 				nodes_out[i].Alias(*nodes_i);
 		}
@@ -533,7 +533,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 	{
 		cout << "\n GraphT::Partition: not expecting non-zero\n"
 		     <<   "     node number shift: " << fShift << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* dimensions */
@@ -574,7 +574,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 		{
 			const iArrayT* nodes_i = partition[commID[i]].NodesIn(ID);
 			if (!nodes_i)
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			else
 				nodes_out[i].Alias(*nodes_i);
 		}
@@ -599,7 +599,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 	{
 		cout << "\n GraphT::Partition: not expecting non-zero\n"
 		     <<   "     node number shift: " << fShift << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* dimensions */
@@ -640,7 +640,7 @@ void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 		{
 			const iArrayT* nodes_i = partition[commID[i]].NodesIn(ID);
 			if (!nodes_i)
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			else
 				nodes_out[i].Alias(*nodes_i);
 		}

@@ -1,4 +1,4 @@
-/* $Id: CMReLabellerT.cpp,v 1.2 2002-07-02 19:57:14 cjkimme Exp $ */
+/* $Id: CMReLabellerT.cpp,v 1.2.2.1 2002-10-17 04:03:55 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "CMReLabellerT.h"
@@ -203,7 +203,7 @@ void CMReLabellerT::BuildRootedLevel(void)
 	}
 	
 	/* check all nodes used */
-	if (count != nnd) throw eGeneralFail;
+	if (count != nnd) throw ExceptionT::kGeneralFail;
 	
 	/* set end node from last level */
 	fRootedLevel.NodesOnLevel(nodes_used, fRootedLevel.Depth() - 1);
@@ -278,7 +278,7 @@ void CMReLabellerT::NewSequence(void)
 		NewNumber(currnode);
 	
 	/* check that all nodes got renumbered */
-	if (fCurrLabel != fPriority.Length()) throw eGeneralFail;
+	if (fCurrLabel != fPriority.Length()) throw ExceptionT::kGeneralFail;
 }
 
 /* initialize priorities as specified by Sloan */
@@ -428,7 +428,7 @@ void CMReLabellerT::ComputeSize(const iArrayT& sequence, int& bandwidth, int& pr
 {
 #if __option(extended_errorcheck)
 	if (fGraph.NumNodes() != sequence.Length() - 1)
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 #endif
 
 	// create map

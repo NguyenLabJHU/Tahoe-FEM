@@ -1,4 +1,4 @@
-/* $Id: GridManager3DT.h,v 1.5 2002-09-12 16:40:21 paklein Exp $ */
+/* $Id: GridManager3DT.h,v 1.5.2.1 2002-10-17 04:10:10 paklein Exp $ */
 /* created: paklein (12/06/1997)                                          */
 /* Interface for regular rectangular search and storage grid              */
 /* sTYPE requirements:                                                    */
@@ -119,7 +119,7 @@ double xmin, double xmax, int nx,
 {
 	/* consistency */
 	if (fxmax <= fxmin || fymax <= fymin || fzmax <= fzmin)
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 
 	/* grid spacings */
 	fdx = (fxmax - fxmin)/fnx;
@@ -328,7 +328,7 @@ void GridManager3DT<sTYPE>::Add(const sTYPE& data)
 	if (!(*griddata))
 	{
 		*griddata = new AutoArrayT<sTYPE>;
-		if (!*griddata) throw(eOutOfMemory);
+		if (!*griddata) throw ExceptionT::kOutOfMemory;
 	}
 
 	/* append value */
@@ -591,7 +591,7 @@ AutoArrayT<sTYPE>** GridManager3DT<sTYPE>::FetchGrid(double* coords)
 		     << setw(d_width) << fzmin << ","
 		     << setw(d_width) << fzmax <<  "}" << endl;	
 
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	/* stored column major */

@@ -1,4 +1,4 @@
-/* $Id: GridManager2DT.h,v 1.5 2002-09-12 16:40:21 paklein Exp $ */
+/* $Id: GridManager2DT.h,v 1.5.2.1 2002-10-17 04:10:10 paklein Exp $ */
 /* created: paklein (12/06/1997)                                          */
 /* Interface for regular rectangular search and storage grid              */
 /* sTYPE requirements:                                                    */
@@ -103,7 +103,7 @@ GridManager2DT<sTYPE>::GridManager2DT(double xmin, double xmax, int nx,
 	fGrid(fnx*fny)
 {
 	/* consistency */
-	if (fxmax <= fxmin || fymax <= fymin) throw eGeneralFail;
+	if (fxmax <= fxmin || fymax <= fymin) throw ExceptionT::kGeneralFail;
 
 	/* grid spacings */
 	fdx = (fxmax - fxmin)/fnx;
@@ -255,7 +255,7 @@ void GridManager2DT<sTYPE>::Add(const sTYPE& data)
 	if (!(*griddata))
 	{
 		*griddata = new AutoArrayT<sTYPE>;
-		if (!*griddata) throw(eOutOfMemory);
+		if (!*griddata) throw ExceptionT::kOutOfMemory;
 	}
 
 	/* append value */
@@ -475,7 +475,7 @@ AutoArrayT<sTYPE>** GridManager2DT<sTYPE>::FetchGrid(double* coords)
 	int iy = int((coords[1] - fymin)/fdy);
 	
 	/* range check */
-	if (ix < 0 || ix >= fnx || iy < 0 || iy >= fny ) throw eGeneralFail;		
+	if (ix < 0 || ix >= fnx || iy < 0 || iy >= fny ) throw ExceptionT::kGeneralFail;		
 	
 	/* stored column major */
 	return fGrid.Pointer(ix*fny + iy);

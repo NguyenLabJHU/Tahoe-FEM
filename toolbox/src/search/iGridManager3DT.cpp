@@ -1,4 +1,4 @@
-/* $Id: iGridManager3DT.cpp,v 1.3 2002-07-02 19:57:24 cjkimme Exp $ */
+/* $Id: iGridManager3DT.cpp,v 1.3.2.1 2002-10-17 04:10:10 paklein Exp $ */
 /* created: paklein (12/09/1997)                                          */
 /* iNodeT grid                                                            */
 
@@ -132,7 +132,7 @@ void iGridManager3DT::ProcessHits(double* target, double tol, int skiptag,
 			if (dsqr <= tolsqr)
 			{
 				/* quit if list full */
-				if (count == neighbors.Length()) throw eGeneralFail;
+				if (count == neighbors.Length()) throw ExceptionT::kGeneralFail;
 
 				/* append to list */
 				neighbors[count++] = hits[i].Tag();			

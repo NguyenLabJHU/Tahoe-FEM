@@ -1,4 +1,4 @@
-/* $Id: FileCrawlerT.cpp,v 1.5 2002-09-12 16:40:19 paklein Exp $ */
+/* $Id: FileCrawlerT.cpp,v 1.5.2.1 2002-10-17 04:06:03 paklein Exp $ */
 
 #include "FileCrawlerT.h"
 
@@ -8,7 +8,7 @@
 
 #include "fstreamT.h"
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "StringT.h"
 
 /* maximum batch file recursion depth */
@@ -61,12 +61,12 @@ void FileCrawlerT::Run(void)
 		{
 			cout << "\n FileCrawlerT::Run: unable to open file: \""
 			     << file  << '\"' << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		
 		/* dispatch */
 		try { JobOrBatch(input, cout); }
-		catch (int error)
+		catch (ExceptionT::CodeT error)
 		{
 			cout << "\n FileCrawlerT::Run: file \"" << file 
 			     << "\" quit on exception: " << error << endl;
@@ -86,7 +86,7 @@ void FileCrawlerT::Run(void)
 	
 			/* Recursive dispatch */
 			try { JobOrBatch(input, cout); }
-			catch (int error)
+			catch (ExceptionT::CodeT error)
 			{
 				cout << "\n FileCrawlerT::Run: file \"" << input.filename() 
 				     << "\" quit on exception: " << error << endl;
@@ -206,7 +206,7 @@ void FileCrawlerT::JobOrBatch(ifstreamT& in, ostream& status)
 	}
 
 	/* check recursion depth */
-	if (++fRecursionDepth > kMaxRecursionDepth) throw eGeneralFail;
+	if (++fRecursionDepth > kMaxRecursionDepth) throw ExceptionT::kGeneralFail;
 	
 	/* JOB file */
 	if (filetypechar == fJobChar)

@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LS.cpp,v 1.5 2002-09-12 17:50:12 paklein Exp $ */
+/* $Id: NLSolver_LS.cpp,v 1.5.4.1 2002-10-17 04:14:24 paklein Exp $ */
 /* created: paklein (08/18/1999) */
 
 #include "NLSolver_LS.h"
@@ -8,7 +8,7 @@
 
 #include "fstreamT.h"
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "FEManagerT.h"
 
 /* constructor */
@@ -36,9 +36,9 @@ NLSolver_LS::NLSolver_LS(FEManagerT& fe_manager, int group):
 	out << " Maximum update step size. . . . . . . . . . . . = " << fMaxStepSize      << endl;
 	
 	/* checks */
-	if (fSearchIterations < 0)  throw eBadInputValue;
-	if (fOrthogTolerance > 1.0) throw eBadInputValue;
-	if (fMaxStepSize      < 0)  throw eBadInputValue;
+	if (fSearchIterations < 0)  throw ExceptionT::kBadInputValue;
+	if (fOrthogTolerance > 1.0) throw ExceptionT::kBadInputValue;
+	if (fMaxStepSize      < 0)  throw ExceptionT::kBadInputValue;
 	
 	/* allocate space for history */
 	fSearchData.Allocate(fSearchIterations, 2);
@@ -63,7 +63,7 @@ double NLSolver_LS::SolveAndForm(bool newtangent)
 	fR = fRHS;
 		 		
 	/* solve equation system */
-	if (!fLHS->Solve(fRHS)) throw eBadJacobianDet;
+	if (!fLHS->Solve(fRHS)) throw ExceptionT::kBadJacobianDet;
 
 	/* apply update to system */
 	Update(fRHS, &fR);
@@ -239,7 +239,7 @@ double NLSolver_LS::GValue(double step)
 	fRHS = 0.0;
 	try { fFEManager.FormRHS(Group()); }
 
-	catch (int error)
+	catch (ExceptionT::CodeT error)
 	{
 		cout << "\n NLSolver_LS::GValue: caught exception: " << error << endl;
 		throw error;

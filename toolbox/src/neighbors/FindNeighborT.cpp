@@ -1,4 +1,4 @@
-/* $Id: FindNeighborT.cpp,v 1.4 2002-09-12 16:40:20 paklein Exp $ */
+/* $Id: FindNeighborT.cpp,v 1.4.2.1 2002-10-17 04:08:01 paklein Exp $ */
 /* created: paklein (03/21/1997)                                          */
 /* FindNeighborT.cpp                                                      */
 
@@ -27,7 +27,7 @@ FindNeighborT::FindNeighborT(const dArray2DT& coords, int maxneighbors):
 	fGrid2D(NULL),
 	fGrid3D(NULL)
 {
-	if (fMaxNeighbors < 1) throw eBadInputValue;
+	if (fMaxNeighbors < 1) throw ExceptionT::kBadInputValue;
 
 	fCoords.Alias(fglCoords);
 	Allocate(fCoords.MajorDim(), fCoords.MinorDim());
@@ -36,17 +36,17 @@ FindNeighborT::FindNeighborT(const dArray2DT& coords, int maxneighbors):
 	if (fnsd == 1)
 	{
 		fGrid1D = new iGridManager1DT(Grid_x_count, fCoords, NULL);	
-		if (!fGrid1D) throw eOutOfMemory;		
+		if (!fGrid1D) throw ExceptionT::kOutOfMemory;		
 	}
 	else if (fnsd == 2)
 	{
 		fGrid2D = new iGridManager2DT(Grid_x_count, Grid_y_count, fCoords, NULL);	
-		if (!fGrid2D) throw eOutOfMemory;		
+		if (!fGrid2D) throw ExceptionT::kOutOfMemory;		
 	}
 	else
 	{
 		fGrid3D = new iGridManager3DT(Grid_x_count, Grid_y_count, Grid_z_count, fCoords, NULL);
-		if (!fGrid3D) throw eOutOfMemory;		
+		if (!fGrid3D) throw ExceptionT::kOutOfMemory;		
 	}
 }
 
@@ -59,7 +59,7 @@ FindNeighborT::FindNeighborT(const iArrayT& nodesused, const dArray2DT& coords,
 	fGrid2D(NULL),
 	fGrid3D(NULL)
 {
-	if (fMaxNeighbors < 1) throw eBadInputValue;
+	if (fMaxNeighbors < 1) throw ExceptionT::kBadInputValue;
 
 	Allocate(fNodeMap->Length(), coords.MinorDim());
 	
@@ -71,17 +71,17 @@ FindNeighborT::FindNeighborT(const iArrayT& nodesused, const dArray2DT& coords,
 	if (fnsd == 1)
 	{
 		fGrid1D = new iGridManager1DT(Grid_x_count, fCoords, 0);	
-		if (!fGrid1D) throw eOutOfMemory;		
+		if (!fGrid1D) throw ExceptionT::kOutOfMemory;		
 	}
 	else if (fnsd == 2)
 	{
 		fGrid2D = new iGridManager2DT(Grid_x_count, Grid_y_count, fCoords, 0);	
-		if (!fGrid2D) throw eOutOfMemory;		
+		if (!fGrid2D) throw ExceptionT::kOutOfMemory;		
 	}
 	else
 	{
 		fGrid3D = new iGridManager3DT(Grid_x_count, Grid_y_count, Grid_z_count, fCoords, 0);	
-		if (!fGrid3D) throw eOutOfMemory;		
+		if (!fGrid3D) throw ExceptionT::kOutOfMemory;		
 	}
 }
 
@@ -176,7 +176,7 @@ void FindNeighborT::FindNeighors1D(double tolerance)
 		fGrid1D->Neighbors(i, tolerance, neighbors);
 		fCount[i] = neighbors.Length();
 		
-		if (neighbors.Length() > fNeighbors.MinorDim()) throw eSizeMismatch;
+		if (neighbors.Length() > fNeighbors.MinorDim()) throw ExceptionT::kSizeMismatch;
 		
 		/* copy in */
 		memcpy(fNeighbors(i), neighbors.Pointer(), sizeof(int)*neighbors.Length());
@@ -206,7 +206,7 @@ void FindNeighborT::FindNeighors2D(double tolerance)
 		fGrid2D->Neighbors(i, tolerance, neighbors);
 		fCount[i] = neighbors.Length();
 		
-		if (neighbors.Length() > fNeighbors.MinorDim()) throw eSizeMismatch;
+		if (neighbors.Length() > fNeighbors.MinorDim()) throw ExceptionT::kSizeMismatch;
 		
 		/* copy in */
 		memcpy(fNeighbors(i), neighbors.Pointer(), sizeof(int)*neighbors.Length());
@@ -236,7 +236,7 @@ void FindNeighborT::FindNeighors3D(double tolerance)
 		fGrid3D->Neighbors(i, tolerance, neighbors);
 		fCount[i] = neighbors.Length();
 		
-		if (neighbors.Length() > fNeighbors.MinorDim()) throw eSizeMismatch;
+		if (neighbors.Length() > fNeighbors.MinorDim()) throw ExceptionT::kSizeMismatch;
 		
 		/* copy in */
 		memcpy(fNeighbors(i), neighbors.Pointer(), sizeof(int)*neighbors.Length());
@@ -258,7 +258,7 @@ void FindNeighborT::Allocate(int numpts, int nsd)
 	fnsd    = nsd;
 	
 	/* Now supports 1D, 2D and 3D */
-	if (fnsd != 1 && fnsd != 2 && fnsd != 3) throw eBadInputValue;
+	if (fnsd != 1 && fnsd != 2 && fnsd != 3) throw ExceptionT::kBadInputValue;
 
 	/* Allocate memory */
 	fCount.Allocate(fNumPts);

@@ -1,4 +1,4 @@
-/* $Id: GridManager1DT.h,v 1.5 2002-09-12 16:40:21 paklein Exp $ */
+/* $Id: GridManager1DT.h,v 1.5.2.1 2002-10-17 04:10:10 paklein Exp $ */
 #ifndef _GRIDMANAGER1D_T_H_
 #define _GRIDMANAGER1D_T_H_
 
@@ -90,7 +90,7 @@ GridManager1DT<sTYPE>::GridManager1DT(double xmin, double xmax, int nx):
 	fGrid(fnx)
 {
 	/* consistency */
-	if (fxmax <= fxmin) throw eGeneralFail;
+	if (fxmax <= fxmin) throw ExceptionT::kGeneralFail;
 
 	/* grid spacings */
 	fdx = (fxmax - fxmin)/fnx;
@@ -208,7 +208,7 @@ void GridManager1DT<sTYPE>::Add(const sTYPE& data)
 	if (!(*griddata))
 	{
 		*griddata = new AutoArrayT<sTYPE>;
-		if (!*griddata) throw(eOutOfMemory);
+		if (!*griddata) throw ExceptionT::kOutOfMemory;
 	}
 
 	/* append value */
@@ -397,7 +397,7 @@ AutoArrayT<sTYPE>** GridManager1DT<sTYPE>::FetchGrid(double* coords)
 	int ix = int((coords[0] - fxmin)/fdx);
 	
 	/* range check */
-	if (ix < 0 || ix >= fnx) throw eGeneralFail;		
+	if (ix < 0 || ix >= fnx) throw ExceptionT::kGeneralFail;		
 	
 	/* stored column major */
 	return fGrid.Pointer(ix);

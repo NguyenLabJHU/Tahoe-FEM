@@ -1,4 +1,4 @@
-/* $Id: PartitionT.cpp,v 1.7 2002-07-02 19:57:14 cjkimme Exp $ */
+/* $Id: PartitionT.cpp,v 1.7.2.1 2002-10-17 04:03:56 paklein Exp $ */
 /* created: paklein (11/16/1999) */
 
 #include "PartitionT.h"
@@ -72,11 +72,11 @@ void PartitionT::Set(int num_parts, int id, const iArrayT& part_map,
 {
 	/* total number of partitions */
 	fNumPartitions = num_parts;
-	if (fNumPartitions < 1) throw eGeneralFail;
+	if (fNumPartitions < 1) throw ExceptionT::kGeneralFail;
 
 	/* set ID */
 	fID = id;
-	if (fID < 0 || fID >= fNumPartitions) throw eOutOfRange;
+	if (fID < 0 || fID >= fNumPartitions) throw ExceptionT::kOutOfRange;
 		
 	/* numbering is global */
 	fScope = kGlobal;
@@ -98,11 +98,11 @@ void PartitionT::Set(int num_parts, int id, const iArrayT& part_map, const Array
 {
 	/* total number of partitions */
 	fNumPartitions = num_parts;
-	if (fNumPartitions < 1) throw eGeneralFail;
+	if (fNumPartitions < 1) throw ExceptionT::kGeneralFail;
 
 	/* set ID */
 	fID = id;
-	if (fID < 0 || fID >= fNumPartitions) throw eOutOfRange;
+	if (fID < 0 || fID >= fNumPartitions) throw ExceptionT::kOutOfRange;
 		
 	/* numbering is global */
 	fScope = kGlobal;
@@ -129,14 +129,14 @@ void PartitionT::SetOutgoing(const ArrayT<iArrayT>& nodes_out)
 		     << nodes_out.Length() << ")\n";
 		cout <<   "     to be the same as the Comm ID list (" << fCommID.Length()
 		     << ")" << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 	
 	/* only at global scope for now */
 	if (fScope != kGlobal)
 	{
 		cout << "\n PartitionT::SetOutgoing: number scope must be global" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* store */
@@ -203,7 +203,7 @@ void PartitionT::SetElements(const StringT& blockID, const iArray2DT& connects)
 	{
 		cout << "\n PartitionT::SetElements: number scope must be global"
 		     << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* resolve ID */
@@ -443,7 +443,7 @@ ifstreamT& PartitionT::Read(ifstreamT& in)
 	{
 		cout << "\n operator>>PartitionT&: file version " << version
 		     << " is not current: " << sPartitionTVersion << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	int length;
@@ -517,7 +517,7 @@ ifstreamT& PartitionT::Read(ifstreamT& in)
 	in >> fNodeMap; // global[local]
 	if (length != (fNodes_i.Length() +
 	               fNodes_b.Length() +
-                   fNodes_e.Length())) throw eBadInputValue;
+                   fNodes_e.Length())) throw ExceptionT::kBadInputValue;
 
 	// block global element numbering map
 	for (int m = 0; m < fElementMap.Length(); m++)
@@ -551,7 +551,7 @@ int PartitionT::ElementBlockIndex(const StringT& blockID, const char* caller) co
 		const char* str = (caller != NULL) ? caller : this_routine;
 		cout << "\n PartitionT::" << str << ": block ID not found: "
 		     << blockID << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return dex;
 }
@@ -571,7 +571,7 @@ void PartitionT::MapValues(const iArrayT& map, int shift, ArrayT<int>& values) c
 			cout << "\n PartitionT::MapValues: value " << value
 			     << " at position " << i << " is out of\n"
 			     <<   "     range {0," << n_map << "}" << endl;
-			throw eOutOfRange;
+			throw ExceptionT::kOutOfRange;
 		}
 	
 		*pn = map[value];
@@ -690,7 +690,7 @@ istream& operator>>(istream& in, PartitionT::NumberScopeT& scope)
 			break;
 		default:	
 			cout << "\n operator>>PartitionT::NumberScopeT: unknown value: " << i_scope << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 
 	return in;

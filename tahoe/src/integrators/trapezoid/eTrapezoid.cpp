@@ -1,10 +1,10 @@
-/* $Id: eTrapezoid.cpp,v 1.3 2002-07-02 19:55:10 cjkimme Exp $ */
+/* $Id: eTrapezoid.cpp,v 1.3.4.1 2002-10-17 04:13:13 paklein Exp $ */
 /* created: paklein (10/03/1999)                                          */
 
 #include "eTrapezoid.h"
 
 #include "Environment.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 /* constructor */
 

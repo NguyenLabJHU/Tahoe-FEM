@@ -1,4 +1,4 @@
-/* $Id: DRSolver.cpp,v 1.5 2002-09-12 17:50:12 paklein Exp $ */
+/* $Id: DRSolver.cpp,v 1.5.4.1 2002-10-17 04:14:24 paklein Exp $ */
 /* created: PAK/CBH (10/03/1996) */
 
 #include "DRSolver.h"
@@ -7,7 +7,7 @@
 #include <math.h>
 
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "FEManagerT.h"
 #include "CCSMatrixT.h"
 
@@ -22,7 +22,7 @@ DRSolver::DRSolver(FEManagerT& fe_manager, int group):
 	fCCSLHS = (CCSMatrixT*) fLHS;
 #else
 	fCCSLHS = dynamic_cast<CCSMatrixT*>(fLHS);
-	if (!fCCSLHS) throw eGeneralFail;
+	if (!fCCSLHS) throw ExceptionT::kGeneralFail;
 #endif
 }
 
@@ -87,7 +87,7 @@ SolverT::SolutionStatusT DRSolver::Solve(int num_iterations)
 	
 	} /* end try */
 	
-	catch (int code) { return kFailed; }
+	catch (ExceptionT::CodeT code) { return kFailed; }
 }
 
 /*************************************************************************

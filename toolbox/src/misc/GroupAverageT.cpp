@@ -1,4 +1,4 @@
-/* $Id: GroupAverageT.cpp,v 1.5 2002-09-12 16:40:20 paklein Exp $ */
+/* $Id: GroupAverageT.cpp,v 1.5.2.1 2002-10-17 04:06:03 paklein Exp $ */
 /* created: paklein (10/03/1996)                                          */
 
 #include "GroupAverageT.h"
@@ -127,7 +127,7 @@ void GroupAverageT::MaxInColumn(int column, int& maxrow, double& maxval)
 	{
 		cout << "\n GroupAverageT::MaxInColumn: column out of range: "
 		     << column << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 
 	/* compute averages */

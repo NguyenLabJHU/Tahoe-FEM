@@ -57,7 +57,7 @@ void nVerlet::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		default:
 		
 			cout << "\n nVerlet::ConsistentKBC:unknown BC code\n" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 }		
 

@@ -1,4 +1,4 @@
-/* $Id: nLinearHHTalpha.cpp,v 1.5 2002-07-02 19:55:05 cjkimme Exp $ */
+/* $Id: nLinearHHTalpha.cpp,v 1.5.4.1 2002-10-17 04:13:10 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "nLinearHHTalpha.h"
@@ -66,7 +66,7 @@ void nLinearHHTalpha::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		default:
 		
 			cout << "\nnLinearHHTalpha::ConsistentKBC:unknown BC code\n" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 }		
 
@@ -130,7 +130,7 @@ void nLinearHHTalpha::MappedCorrector(BasicFieldT& field, const iArrayT& map,
 {
 	/* check dimensions */
 	if (flags.MajorDim() != update.MajorDim() ||
-	    flags.MinorDim() != update.MinorDim()) throw eSizeMismatch;
+	    flags.MinorDim() != update.MinorDim()) throw ExceptionT::kSizeMismatch;
 
 	/* run through map */
 	int minordim = flags.MinorDim();

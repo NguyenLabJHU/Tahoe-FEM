@@ -1,4 +1,4 @@
-/* $Id: NLK0Solver.cpp,v 1.6 2002-09-12 17:50:12 paklein Exp $ */
+/* $Id: NLK0Solver.cpp,v 1.6.4.1 2002-10-17 04:14:24 paklein Exp $ */
 /* created: paklein (10/01/1996) */
 
 #include "NLK0Solver.h"
@@ -6,7 +6,7 @@
 #include <iomanip.h>
 #include <math.h>
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "FEManagerT.h"
 #include "fstreamT.h"
 
@@ -30,7 +30,7 @@ NLK0Solver::NLK0Solver(FEManagerT& fe_manager, int group):
 	if (!pCCSLHS) {
 		cout << "\n NLK0Solver::NLK0Solver: solver requires matrix type: " << kProfileSolver 
 		     << " (symmetric)" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -51,7 +51,7 @@ double NLK0Solver::SolveAndForm(bool junk)
 
 		/* solve equation system */
 		fUpdate = fRHS;
-		if(!pCCSLHS->Solve(fRHS)) throw eBadJacobianDet;
+		if(!pCCSLHS->Solve(fRHS)) throw ExceptionT::kBadJacobianDet;
 	
 		/* check for positive definiteness */
 		if ( pCCSLHS->HasNegativePivot() )
@@ -67,7 +67,7 @@ double NLK0Solver::SolveAndForm(bool junk)
 	
 	/* use last positive definite tangent */
 	if (!fFormTangent)
-		if (!fLastTangent.Solve(fRHS)) throw eBadJacobianDet;
+		if (!fLastTangent.Solve(fRHS)) throw ExceptionT::kBadJacobianDet;
 			 		
 	/* update system */
 	fFEManager.Update(Group(), fRHS);
