@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.5 2001-10-11 00:54:28 paklein Exp $ */
+/* $Id: CSEAnisoT.h,v 1.6 2001-10-24 01:58:26 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #ifndef _CSE_ANISO_T_H_
@@ -33,6 +33,12 @@ public:
 
 	/** close current time increment */
 	virtual void CloseStep(void);
+
+	/** write restart data to the output stream. */
+	virtual void WriteRestart(ostream& out) const;
+
+	/** read restart data to the output stream. */
+	virtual void ReadRestart(istream& in);
 
 protected:
 
