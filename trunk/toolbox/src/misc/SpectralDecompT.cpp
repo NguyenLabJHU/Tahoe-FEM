@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.cpp,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
+/* $Id: SpectralDecompT.cpp,v 1.2 2001-03-15 21:40:42 paklein Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
@@ -222,11 +222,11 @@ void SpectralDecompT::PolarDecomp(const dMatrixT& F, dMatrixT& R, dSymMatrixT& U
 	SpectralDecomp(U, perturb_repeated);
 
 	/* eigenvalues to stretches */
-	if (fEigs[0] < 0.0) throw eBadJacobianDet; fEigs[0] = sqrt(fEigs[0]);
-	if (fEigs[1] < 0.0) throw eBadJacobianDet; fEigs[1] = sqrt(fEigs[1]);
+	if (fEigs[0] <= 0.0) throw eBadJacobianDet; fEigs[0] = sqrt(fEigs[0]);
+	if (fEigs[1] <= 0.0) throw eBadJacobianDet; fEigs[1] = sqrt(fEigs[1]);
 	if (fEigs.Length() == 3)
 	{
-		if (fEigs[2] < 0.0) throw eBadJacobianDet;
+		if (fEigs[2] <= 0.0) throw eBadJacobianDet;
 		fEigs[2] = sqrt(fEigs[2]);
 	}
 	
@@ -508,7 +508,7 @@ const dMatrixT& SpectralDecompT::SpatialTensor3D(const dSymMatrixT& b, int A)
 		fSpatTensor.Identity();
 		return fSpatTensor;
 	}
-	else if (fEigs[A] < kSmall) throw eBadJacobianDet;
+	else if (fEigs[A] <= 0.0) throw eBadJacobianDet;
 
 	/* I_b - b (x) b */
 	double k1 = 1.0/dA;
