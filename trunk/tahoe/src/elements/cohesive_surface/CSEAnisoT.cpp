@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.43 2003-04-17 20:11:31 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.44 2003-04-18 18:01:58 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -771,7 +771,48 @@ void CSEAnisoT::RHSDriver(void)
 			  	fNodalValues.Dimension(numElemNodes,fNodalQuantities.MinorDim());
 			  	for (int iIndex = 0; iIndex < numElemNodes; iIndex++) 
 			  	{
-			    	elementVals.SetRow(iIndex,fNodalQuantities(ndIndices[iIndex]));
+			  		elementVals.SetRow(iIndex,0.);
+			    	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[iIndex]));
+			    	int otherIndex;
+			    	if (NumSD() == 2) // average stress over top and bottom 
+			    	{
+			    		switch (ndIndices[iIndex])
+			    		{
+			    			case 0:
+			    			{
+			    				otherIndex = 3;
+			    				break;
+			    			}
+			    			case 1:
+			    			{
+			    				otherIndex = 2;
+			    				break;
+			    			}
+			    			case 2:
+			    			{
+			    				otherIndex = 1;
+			    				break;
+			    			}
+			    			case 3:
+			    			{
+			    				otherIndex = 0;
+			    				break;
+			    			}
+			    			default:
+			    			{
+			    				ExceptionT::GeneralFail("CSEAnisoT::RHSDriver","node index out of range");
+			    				break;
+			    			}
+			    		}
+			    	} 
+			    	else // NumSD == 3
+			    	{
+			    		if (iIndex < 4)
+			    			otherIndex = iIndex + 4;
+			    		else
+			    			otherIndex = iIndex - 4;
+			    	}
+			    	elementVals.AddToRowScaled(iIndex,.5,fNodalQuantities(ndIndices[otherIndex]));
 			  	}
 			  	fNodalValues.SetGlobal(elementVals);
 			  	ndIndices.SetValueToPosition();
