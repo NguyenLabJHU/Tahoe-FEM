@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.24 2005-03-01 17:46:50 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.25 2005-03-04 19:28:59 cjkimme Exp $ */
 #include "FS_SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -300,15 +300,6 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				}
 				Fdef_last.PlusIdentity(); // convert to F
 			}
-		
-			const dMatrixT& cijkl = curr_material->C_IJKL();
-			curr_material->s_ij().ToMatrix(fCauchy);
-			Finverse.Inverse(Fdef);
-			Finverse *= Fdef.Det(); // compute J F^-1
-			fStress.MultABT(fCauchy, Finverse); // compute PK1
-		
-			// FTs = F^T sigma
-			FTs.MultATB(Fdef, fStress);
 
 			curr_material->S_IJ().ToMatrix(fStress);
 			Tijkl.Expand(fStress, nsd, dMatrixT::kOverwrite);
@@ -491,118 +482,128 @@ dMatrixT& FS_SCNIMFT::TransformModuli(const dMatrixT& moduli, const dMatrixT& F,
 		mtmp = 0.;
 		
 		if (nsd == 2) {
-			// use brute force, low-level until I find optimal way
-			// numbering scheme for CIJKL is standard C_AB, I need matrix T_AB with 
-			// indexing 1 <-> 11, 2 <-> 21, 3 <-> 12, 4 <-> 22 in 2D
+			/* numbering scheme for incoming moduli is standard C_AB, 
+			 * I need matrix with DIFFERENT SCHEME 
+			 * indexing 1 <-> 11, 2 <-> 21, 3 <-> 12, 4 <-> 22 in 2D
+			 * so I can multiply entries by F_ij
+			 */
 			
 			// Column 1
-			mtmp[0] = moduli[0]; // C_11
-			mtmp[1] = mtmp[2] = moduli[6]; // C_13
-			mtmp[3] = moduli[3]; // C_12
+			int offs1 = 0; int offs2 = 0;
+			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_11
+			mtmp[offs1 + 1] = mtmp[offs1 + 2] = moduli[offs2 + 6]; // C_13
+			mtmp[offs1 + 3] = moduli[offs2 + 3]; // C_12
 			
 			// Column 2
-			mtmp[4] = moduli[6]; // C_13
-			mtmp[5] = mtmp[6] = moduli[8]; // C_33
-			mtmp[7] = moduli[7]; // C_23
+			offs1 += nsd*nsd;
+			offs2 = 2;
+			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_31
+			mtmp[offs1 + 1] = mtmp[offs1 + 2] = moduli[offs2 + 6]; // C_33
+			mtmp[offs1 + 3] = moduli[offs2 + 3]; // C_32
 			
 			// Column 3
-			mtmp[8] = moduli[6]; // C_13
-			mtmp[9] = mtmp[10] = moduli[8]; // C_33
-			mtmp[11] = moduli[7]; // C_23
+			offs1 += nsd*nsd;
+			offs2 = 2;
+			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_31
+			mtmp[offs1 + 1] = mtmp[offs1 + 2] = moduli[offs2 + 6]; // C_33
+			mtmp[offs1 + 3] = moduli[offs2 + 3]; // C_32
 			
 			// Column 4
-			mtmp[12] = moduli[3]; // C_12
-			mtmp[13] = mtmp[14] = moduli[7]; // C_23
-			mtmp.Last() = moduli[4]; // C_22
+			offs1 += nsd*nsd;
+			offs2 = 1;
+			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_21
+			mtmp[offs1 + 1] = mtmp[offs1 + 2] = moduli[offs2 + 6]; // C_23
+			mtmp[offs1 + 3] = moduli[offs2 + 3]; // C_22
 			
 		} else {
-			// use brute force, low-level until I find optimal way
-			// numbering scheme for CIJKL is standard C_AB, I need matrix T_AB with DIFFERENT
-			// indexing 1 <-> 11, 2 <-> 21, 3 <-> 31, 4 <-> 12 5 <-> 22 6 <-> 32 
-			//          7 <-> 13  8 <-> 23  9 <-> 33
-			// in 3D
+			/* numbering scheme for incoming modulie is standard C_AB, 
+			 * I need matrix with DIFFERENT SCHEME
+			 * indexing 1 <-> 11, 2 <-> 21, 3 <-> 31, 4 <-> 12 5 <-> 22 6 <-> 32 
+			 *          7 <-> 13  8 <-> 23  9 <-> 33
+			 * in 3D so I can multiply entries by F_ij
+			 */
 			
 			// Column 1
 			int offs1 = 0; 
 			int offs2 = 0;
 			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_11
-			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 5]; // C_61
-			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 4]; // C_51
-			mtmp[offs1 + 4] = moduli[offs2 + 1]; // C_21
-			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 3]; // C_41
-			mtmp[offs1 + 8] = moduli[offs2 + 2]; // C_31
+			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 30]; // C_61
+			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 24]; // C_51
+			mtmp[offs1 + 4] = moduli[offs2 + 6]; // C_21
+			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 18]; // C_41
+			mtmp[offs1 + 8] = moduli[offs2 + 12]; // C_31
 			
 			// Column 2
-			offs1 = 9; offs2 = 30;
+			offs1 = 9; offs2 = 5;
 			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_16
-			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 5]; // C_66
-			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 4]; // C_56
-			mtmp[offs1 + 4] = moduli[offs2 + 1]; // C_26
-			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 3]; // C_46
-			mtmp[offs1 + 8] = moduli[offs2 + 2]; // C_36
+			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 30]; // C_66
+			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 24]; // C_56
+			mtmp[offs1 + 4] = moduli[offs2 + 6]; // C_26
+			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 18]; // C_46
+			mtmp[offs1 + 8] = moduli[offs2 + 12]; // C_36
 			
 			// Column 3
-			offs1 = 18; offs2 = 24;
+			offs1 = 18; offs2 = 4;
 			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_15
-			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 5]; // C_65
-			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 4]; // C_55
-			mtmp[offs1 + 4] = moduli[offs2 + 1]; // C_25
-			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 3]; // C_45
-			mtmp[offs1 + 8] = moduli[offs2 + 2]; // C_35
+			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 30]; // C_65
+			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 24]; // C_55
+			mtmp[offs1 + 4] = moduli[offs2 + 6]; // C_25
+			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 18]; // C_45
+			mtmp[offs1 + 8] = moduli[offs2 + 12]; // C_35
 			
 			// Column 4
-			offs1 = 27; offs2 = 30;
+			offs1 = 27; offs2 = 5;
 			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_16
-			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 5]; // C_66
-			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 4]; // C_56
-			mtmp[offs1 + 4] = moduli[offs2 + 1]; // C_26
-			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 3]; // C_46
-			mtmp[offs1 + 8] = moduli[offs2 + 2]; // C_36
+			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 30]; // C_66
+			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 24]; // C_56
+			mtmp[offs1 + 4] = moduli[offs2 + 6]; // C_26
+			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 18]; // C_46
+			mtmp[offs1 + 8] = moduli[offs2 + 12]; // C_36
 			
 			// Column 5
-			offs1 = 36; offs2 = 6;
+			offs1 = 36; offs2 = 1;
 			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_12
-			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 5]; // C_62
-			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 4]; // C_52
-			mtmp[offs1 + 4] = moduli[offs2 + 1]; // C_22
-			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 3]; // C_42
-			mtmp[offs1 + 8] = moduli[offs2 + 2]; // C_32
+			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 30]; // C_62
+			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 24]; // C_52
+			mtmp[offs1 + 4] = moduli[offs2 + 6]; // C_22
+			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 18]; // C_42
+			mtmp[offs1 + 8] = moduli[offs2 + 12]; // C_32
 			
 			// Column 6
-			offs1 = 45; offs2 = 18;
+			offs1 = 45; offs2 = 3;
 			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_14
-			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 5]; // C_64
-			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 4]; // C_54
-			mtmp[offs1 + 4] = moduli[offs2 + 1]; // C_24
-			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 3]; // C_44
-			mtmp[offs1 + 8] = moduli[offs2 + 2]; // C_34
+			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 30]; // C_64
+			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 24]; // C_54
+			mtmp[offs1 + 4] = moduli[offs2 + 6]; // C_24
+			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 18]; // C_44
+			mtmp[offs1 + 8] = moduli[offs2 + 12]; // C_34
 			
 			// Column 7 
-			offs1 = 54; offs2 = 24;
+			offs1 = 54; offs2 = 4;
 			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_15
-			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 5]; // C_65
-			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 4]; // C_55
-			mtmp[offs1 + 4] = moduli[offs2 + 1]; // C_25
-			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 3]; // C_45
-			mtmp[offs1 + 8] = moduli[offs2 + 2]; // C_35
+			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 30]; // C_65
+			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 24]; // C_55
+			mtmp[offs1 + 4] = moduli[offs2 + 6]; // C_25
+			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 18]; // C_45
+			mtmp[offs1 + 8] = moduli[offs2 + 12]; // C_35
 			
 			// Column 8
-			offs1 = 63; offs2 = 18;
+			offs1 = 63; offs2 = 3;
 			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_14
-			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 5]; // C_64
-			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 4]; // C_54
-			mtmp[offs1 + 4] = moduli[offs2 + 1]; // C_24
-			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 3]; // C_44
-			mtmp[offs1 + 8] = moduli[offs2 + 2]; // C_34
+			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 30]; // C_64
+			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 24]; // C_54
+			mtmp[offs1 + 4] = moduli[offs2 + 6]; // C_24
+			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 18]; // C_44
+			mtmp[offs1 + 8] = moduli[offs2 + 12]; // C_34
 			
 			// Column 9
-			offs1 = 72; offs2 = 12;
+			offs1 = 72; offs2 = 2;
 			mtmp[offs1 + 0] = moduli[offs2 + 0]; // C_13
-			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 5]; // C_63
-			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 4]; // C_53
-			mtmp[offs1 + 4] = moduli[offs2 + 1]; // C_23
-			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 3]; // C_43
-			mtmp[offs1 + 8] = moduli[offs2 + 2]; // C_33
+			mtmp[offs1 + 1] = mtmp[offs1 + 3] = moduli[offs2 + 30]; // C_63
+			mtmp[offs1 + 2] = mtmp[offs1 + 6] = moduli[offs2 + 24]; // C_53
+			mtmp[offs1 + 4] = moduli[offs2 + 6]; // C_23
+			mtmp[offs1 + 5] = mtmp[offs1 + 7] = moduli[offs2 + 18]; // C_43
+			mtmp[offs1 + 8] = moduli[offs2 + 12]; // C_33
 		}
 				
 		for (int i = 0; i < nsd*nsd; i++) {
