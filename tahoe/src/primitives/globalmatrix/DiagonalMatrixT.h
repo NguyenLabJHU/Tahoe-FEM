@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.h,v 1.13 2004-03-16 06:56:28 paklein Exp $ */
+/* $Id: DiagonalMatrixT.h,v 1.14 2004-10-04 18:40:51 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _DIAGONAL_MATRIX_H_
@@ -69,9 +69,6 @@ public:
 
 	/** return the form of the matrix */
 	virtual GlobalT::SystemTypeT MatrixType(void) const { return GlobalT::kDiagonal; };
-
-	/** assignment operator */
-	virtual GlobalMatrixT& operator=(const DiagonalMatrixT& rhs);
 
 	/** assignment operator */
 	virtual GlobalMatrixT& operator=(const GlobalMatrixT& rhs);

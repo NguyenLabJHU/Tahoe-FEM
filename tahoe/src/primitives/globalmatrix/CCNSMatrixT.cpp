@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.21 2004-08-03 06:32:39 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.22 2004-10-04 18:40:51 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #include "CCNSMatrixT.h"
 
@@ -323,15 +323,6 @@ void CCNSMatrixT::FindMinMaxPivot(double& min, double& max, double& abs_min,
 				abs_max = diag;
 		}
 	}
-}
-
-/* assignment operator */
-GlobalMatrixT& CCNSMatrixT::operator=(const CCNSMatrixT& rhs)
-{
-	fIsFactorized = rhs.fIsFactorized;
-
-	cout << "\n CCNSMatrixT::operator= : not implemented" << endl;
-	throw ExceptionT::kGeneralFail;
 }
 
 /* assignment operator */

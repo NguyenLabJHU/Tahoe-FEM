@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.h,v 1.14 2004-03-16 06:56:28 paklein Exp $ */
+/* $Id: FullMatrixT.h,v 1.15 2004-10-04 18:40:51 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 
 #ifndef _FULL_MATRIX_T_H_
@@ -59,9 +59,6 @@ public:
 
 	/** return the form of the matrix */
 	virtual GlobalT::SystemTypeT MatrixType(void) const { return GlobalT::kNonSymmetric; };
-
-	/** assignment operator */
-	virtual GlobalMatrixT& operator=(const FullMatrixT& rhs);
 
 	/** assignment operator */
 	virtual GlobalMatrixT& operator=(const GlobalMatrixT& rhs);

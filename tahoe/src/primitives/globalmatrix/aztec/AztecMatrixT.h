@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.h,v 1.11 2004-03-14 02:51:38 paklein Exp $ */
+/* $Id: AztecMatrixT.h,v 1.12 2004-10-04 18:41:07 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 #ifndef _AZTEC_MATRIX_T_H_
 #define _AZTEC_MATRIX_T_H_
@@ -64,9 +64,6 @@ public:
 
 	/** return the form of the matrix */
 	virtual GlobalT::SystemTypeT MatrixType(void) const { return GlobalT::kNonSymmetric; };
-
-	/** assignment operator */
-	virtual GlobalMatrixT& operator=(const AztecMatrixT& rhs);
 
 	/** assignment operator */
 	virtual GlobalMatrixT& operator=(const GlobalMatrixT& rhs);
