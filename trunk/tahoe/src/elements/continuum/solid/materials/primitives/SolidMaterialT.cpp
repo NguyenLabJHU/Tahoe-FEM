@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.16 2005-01-28 23:22:04 raregue Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.17 2005-01-29 01:28:40 raregue Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
@@ -99,41 +99,18 @@ void SolidMaterialT::WaveSpeeds(const dArrayT& normal, dArrayT& speeds)
 	}
 }
 
-/* returns 1 if the strain localization conditions if satisfied,
-* .ie if the acoustic tensor has zero (or negative eigenvalues),
-* for the current conditions (current integration point and strain
-* state). If localization is detected, the normal (current config)
-* to the surface is returned in normal */
-int SolidMaterialT::IsLocalized(dArrayT& normal)
-{
-#pragma unused(normal)
-
-	/* by default, no localization */
-	return 0;
-}
-
-
-/* assumes small strains. returns true if the strain localization condition is satisfied,
+/* returns true if the strain localization conditions if satisfied,
 * .ie if the acoustic tensor has zero (or negative eigenvalues),
 * for the current conditions (current integration point and strain
 * state). If localization is detected, the normals (current config)
-* to the surface and slip directions are returned */
-bool SolidMaterialT::IsLocalized_SS(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
+* to the various surfaces are returned in normals */
+bool SolidMaterialT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
+//virtual bool IsLocalized();
 {
-	/* stress tensor */
-	const dSymMatrixT& stress = s_ij();
-			
-	/* consistent tangent modulus */
-	const dMatrixT& modulus = c_ijkl();
-	
-	/* elastic modulus */
-	const dMatrixT& modulus_e = ce_ijkl();
+#pragma unused(normals)
 
-	/* localization condition checker */
-	DetCheckT checker(stress, modulus, modulus_e);
-	normals.Dimension(NumSD());
-	slipdirs.Dimension(NumSD());
-	return checker.IsLocalized_SS(normals,slipdirs);
+	/* by default, no localization */
+	return false;
 }
 
 

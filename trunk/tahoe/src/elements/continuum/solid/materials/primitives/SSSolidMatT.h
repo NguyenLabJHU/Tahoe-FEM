@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.15 2004-09-22 06:12:57 paklein Exp $ */
+/* $Id: SSSolidMatT.h,v 1.16 2005-01-29 01:28:40 raregue Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
@@ -8,6 +8,7 @@
 
 /* direct members */
 #include "dSymMatrixT.h"
+#include "DetCheckT.h"
 
 namespace Tahoe {
 
@@ -53,6 +54,17 @@ public:
 	/** return modulus. This default implementation computes the material
 	 * modulus using a finite difference approach */
 	virtual const dMatrixT& c_ijkl(void);	 
+	
+	/** spatial elastic modulus */
+	//virtual const dMatrixT& ce_ijkl(void) = 0;
+	virtual const dMatrixT& ce_ijkl(void)
+	{
+		dMatrixT dummymat;
+		dummymat.Dimension(NumSD()+NumSD());
+		//dummymat.Dimension(dSymMatrixT::NumValues(3));
+		dummymat = 0.0;
+		return dummymat;
+	}
 
 	/* apply pre-conditions at the current time step */
 	virtual void InitStep(void);
@@ -66,6 +78,13 @@ public:
 
 	/** small strain material support additive split of thermal strains by default */
 	virtual bool SupportsThermalStrain(void) const { return true; };
+	
+	/** test for localization assuming small strains. check for bifurcation using current
+	 * Cauchy stress and the spatial tangent moduli.
+	 * \param normal orientation of the localization if localized
+	 * \return true if the determinant of the acoustical tensor is negative
+	 * or fals if the determinant is positive. */
+	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
 
 protected:
 
