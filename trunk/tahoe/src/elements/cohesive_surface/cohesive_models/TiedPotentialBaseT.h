@@ -1,6 +1,5 @@
-/* $Id: TiedPotentialBaseT.h,v 1.4 2003-04-22 19:02:06 cjkimme Exp $ */
+/* $Id: TiedPotentialBaseT.h,v 1.5 2003-05-27 07:01:15 paklein Exp $ */
 /* created: cjkimme (04/15/2002) */
-
 #ifndef _TIED_POTENTIAL_BASE_T_H_
 #define _TIED_POTENTIAL_BASE_T_H_
 
@@ -13,14 +12,7 @@ namespace Tahoe {
 
 class dArrayT;
 
-/* constants for state variable flags */
-const double kTiedNode = -100.;
-const double kReleaseNextStep = -10;
-const double kFirstFreeStep = -1.;
-const double kFreeNode = 1.;
-const double kTieNextStep = 10.;
-
-/** A base class for potentials using the TiedNodes KBC controller. */
+/** a base class for potentials using the TiedNodes KBC controller. */
 class TiedPotentialBaseT
 {
 public:
@@ -30,33 +22,47 @@ public:
 	/** constructor */
 	TiedPotentialBaseT(void);
 	
+	/** destructor */
 	~TiedPotentialBaseT(void);
 	
-	/* true if nodal release depends on bulk element groups */
-	virtual bool NeedsNodalInfo(void) = 0;
+	/** true if nodal release depends on bulk element groups */
+	virtual bool NeedsNodalInfo(void) const = 0;
 	
-	/* release condition depends on this bulk quantity */
-	virtual int NodalQuantityNeeded(void) = 0;
-	
-	/* True if a nodal release condition is satisfied */
-	virtual bool InitiationQ(const double* sigma) = 0;
+	/** release condition depends on this bulk quantity */
+	virtual int NodalQuantityNeeded(void) const = 0;
 
-	/* Bulk element groups needed for calculation of nodal release conditions */
-	virtual iArrayT& BulkGroups(void);
+	/** true if nodal values need to be transformed to local frame. This should only 
+	 * return true if the nodal value given by TiedPotentialBaseT::NodalQuantityNeeded
+	 * is a stress tensor */
+	virtual bool RotateNodalQuantity(void) const = 0;
+
+	/** true if a nodal release condition is satisfied */
+	virtual bool InitiationQ(const nArrayT<double>& sigma) const = 0;
+
+	/** bulk element groups needed for calculation of nodal release conditions */
+	virtual const iArrayT& BulkGroups(void) const;
 	
-	/* True if the tied potential may ask for nodes to be retied later */
-	virtual bool NodesMayRetie(void) = 0;
+	/** true if the tied potential may ask for nodes to be retied later */
+	virtual bool NodesMayRetie(void) const = 0;
 	
-	/* True if node should be retied */
-	virtual bool RetieQ(const double* sigma, const ArrayT<double>& state, const dArrayT& jump_u); 
+	/** true if node should be retied */
+	virtual bool RetieQ(const nArrayT<double>& sigma, const ArrayT<double>& state, const dArrayT& jump_u) const;
+
+	/** \name constants for state variable flags */
+	/*@{*/
+	static const double kTiedNode;
+	static const double kReleaseNextStep;
+	static const double kFirstFreeStep;
+	static const double kFreeNode;
+	static const double kTieNextStep;
+	/*@}*/
 	
 protected:
 
     iArrayT iBulkGroups;
-
 };
 
-inline bool TiedPotentialBaseT::RetieQ(const double* sigma, const ArrayT<double>& state, const dArrayT& jump_u)
+inline bool TiedPotentialBaseT::RetieQ(const nArrayT<double>& sigma, const ArrayT<double>& state, const dArrayT& jump_u) const
 {
 #pragma unused(sigma)
 #pragma unused(state)
