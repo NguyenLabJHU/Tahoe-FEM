@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.29 2002-06-26 23:29:44 hspark Exp $ */
+/* $Id: SolidElementT.cpp,v 1.30 2002-06-29 16:15:38 paklein Exp $ */
 
 #include "SolidElementT.h"
 
@@ -147,7 +147,7 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 			SetGlobalShape();
 	
 			/* internal force contribution */	
-			if (formKd) FormKd(1.0);
+			if (formKd) FormKd(constKd);
 				
 			/* damping */
 			//if (formCv) FormCv(1.0);
