@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.10.2.4 2002-12-19 03:10:48 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.10.2.5 2002-12-27 23:22:21 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -276,7 +276,16 @@ private:
 	void EchoKinematicBCControllers(FieldT& field, ifstreamT& in, ostream& out);
 	void EchoForceBCControllers(FieldT& field, ifstreamT& in, ostream& out);
 	/*@}*/
+
+	/** \name not allowed */
+	/*@{*/
+	/** copy constructor */
+	NodeManagerT(NodeManagerT&);
 	
+	/** assignment operator */
+	const NodeManagerT& operator=(const NodeManagerT&);
+	/*@}*/
+
 protected:
 
 	/** host */

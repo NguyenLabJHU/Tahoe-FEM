@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.18.2.6 2002-12-19 03:10:48 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.18.2.7 2002-12-27 23:22:21 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -348,8 +348,7 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 			fFields[i]->AssembleUpdate(update);
 		
 			/* gather external contribution */
-			dArray2DT& update = fFields[i]->Update();
-			fCommManager.AllGather(fMessageID[i], update);
+			fCommManager.AllGather(fMessageID[i], fFields[i]->Update());
 			
 			/* apply the update */
 			fFields[i]->ApplyUpdate();
@@ -573,13 +572,15 @@ void NodeManagerT::SetEquationNumberScope(int group, GlobalT::EquationNumberScop
 					if (*peq > FieldT::kInit) *peq += shift;
 					peq++;
 				}
+				
+				/* set up exchange */
+				int id = fCommManager.Init_AllGather(eqnos);
 
-				/* collect external equation numbers */
-				iArray2DT external_equations(ex_nodes->Length(), fFields[j]->NumDOF());
-				fFEManager.SendRecvExternalData(eqnos, external_equations);
+				/* gather external contribution */
+				fCommManager.AllGather(id, eqnos);
 
-				/* write-in */
-				eqnos.Assemble(*ex_nodes, external_equations);
+				/* clear exchange */
+				fCommManager.Clear_AllGather(id);
 			}
 			
 		/* reset fields */
@@ -1206,7 +1207,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			fFields[index] = field;
 			
 			/* set up communication of field */
-			fMessageID[index] = fCommManager.Init_AllGather(fFields[index]->NumDOF());
+			fMessageID[index] = fCommManager.Init_AllGather(fFields[index]->Update());
 		}
 	}
 	else /* legacy code - a single predefined integrator */
@@ -1298,7 +1299,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 		fFields[0] = field;
 
 		/* set up communication of field */
-		fMessageID[0] = fCommManager.Init_AllGather(fFields[0]->NumDOF());
+		fMessageID[0] = fCommManager.Init_AllGather(fFields[0]->Update());
 	}
 }
 
@@ -1593,7 +1594,7 @@ void NodeManagerT::EchoHistoryNodes(ifstreamT& in, ostream &out)
 		ID = model->FreeElementID(ID);
 		if (!model->RegisterElementGroup(ID, set, GeometryT::kPoint, true))
 			ExceptionT::BadInputValue("NodeManagerT::EchoHistoryNodes", 
-				"error initializing node set %d as model element ID %d", node_set_ID[i], ID.Pointer());
+				"error initializing node set %d as model element ID %d", node_set_ID[i].Pointer(), ID.Pointer());
 
 		fHistoryNodeSetIDs[i] = ID;
 	}
