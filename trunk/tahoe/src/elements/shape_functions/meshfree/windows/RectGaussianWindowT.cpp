@@ -1,4 +1,4 @@
-/* $Id: RectGaussianWindowT.cpp,v 1.4 2004-06-26 06:11:13 paklein Exp $ */
+/* $Id: RectGaussianWindowT.cpp,v 1.5 2004-10-12 00:20:26 paklein Exp $ */
 #include "RectGaussianWindowT.h"
 #include "ExceptionT.h"
 #include <math.h>
@@ -15,14 +15,8 @@ RectGaussianWindowT::RectGaussianWindowT(const dArrayT& dilation_scaling, double
 	fSharpeningFactor(sharpening_factor),
 	fCutOffFactor(cut_off_factor)
 {
-        int count = 0;
-        for (int i = 0; i < fDilationScaling.Length(); i++)
-	{
-	  if (fDilationScaling[i] < 0.0)
-	    count++;
-	}
-	if (count > 0 || fSharpeningFactor < 0.0)
-		throw ExceptionT::kBadInputValue;
+	if (fDilationScaling.Min() < 0.0 || fSharpeningFactor < 0.0 || fCutOffFactor < 1.0)
+		ExceptionT::BadInputValue("GaussianWindowT::GaussianWindowT");
 }
 
 /* "synchronization" of nodal field parameters. */
@@ -126,7 +120,7 @@ bool RectGaussianWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, con
       }
     }
     else
-      throw ExceptionT::kGeneralFail;
+      ExceptionT::GeneralFail("RectGaussianWindowT::Window");
       
 		return true;
   }
@@ -210,6 +204,11 @@ int RectGaussianWindowT::Covers(const dArray2DT& x_n, const dArrayT& x,
 /* spherical upport size */
 double RectGaussianWindowT::SphericalSupportSize(const dArrayT& param_n) const
 {
+#pragma unused(param_n)
+	ExceptionT::GeneralFail("RectGaussianWindowT::SphericalSupportSize", "not implemented");
+	return 0.0;
+
+#if 0
 	int dim = param_n.Length();
 	double param = 0.0;
 	if (dim == 2)
@@ -227,36 +226,12 @@ double RectGaussianWindowT::SphericalSupportSize(const dArrayT& param_n) const
 		ExceptionT::GeneralFail("RectGaussianWindowT::SphericalSupportSize", "%dD not supported", dim);
 
 	return fCutOffFactor*param;
+#endif
 }
 
 /* rectangular support size */
-const dArrayT& RectGaussianWindowT::RectangularSupportSize(const dArrayT& param_n) const
+void RectGaussianWindowT::RectangularSupportSize(const dArrayT& param_n, dArrayT& support_size) const
 {
-#pragma unused(param_n)
-	ExceptionT::GeneralFail("RectGaussianWindowT", "not implemented");
-	return param_n; /* dummy */
-}
-
-/* spherical support sizes in batch */
-void RectGaussianWindowT::SphericalSupportSize(const dArray2DT& param_n, ArrayT<double>& support_size) const
-{
-#if __option(extended_errorcheck)
-	if (param_n.MajorDim() != support_size.Length()) 
-		ExceptionT::SizeMismatch("RectGaussianWindowT::SphericalSupportSize");
-#endif
-
-	dArrayT tmp;
-	for (int i = 0; i < param_n.MajorDim(); i++)
-	{
-		param_n.RowAlias(i,tmp);
-		support_size[i] = RectGaussianWindowT::SphericalSupportSize(tmp);
-	}
-}
-
-/* rectangular support sizes in batch */
-void RectGaussianWindowT::RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const
-{
-	support_size = param_n;
-	for (int i = 0; i < param_n.MinorDim(); i++)
-		support_size.ScaleColumn(i, fCutOffFactor*fDilationScaling[i]);
+	for (int i = 0; i < support_size.Length(); i++)
+		support_size[i] = fCutOffFactor*fDilationScaling[i]*param_n[i];
 }

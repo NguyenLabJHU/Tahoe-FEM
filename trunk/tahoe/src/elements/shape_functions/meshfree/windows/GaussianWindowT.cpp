@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.cpp,v 1.10 2004-06-26 06:11:13 paklein Exp $ */
+/* $Id: GaussianWindowT.cpp,v 1.11 2004-10-12 00:20:26 paklein Exp $ */
 #include "GaussianWindowT.h"
 #include "ExceptionT.h"
 #include <math.h>
@@ -16,7 +16,7 @@ GaussianWindowT::GaussianWindowT(double dilation_scaling, double sharpening_fact
 	fCutOffFactor(cut_off_factor)
 {
 	if (fDilationScaling < 0.0 || fSharpeningFactor < 0.0 || fCutOffFactor < 1.0)
-		throw ExceptionT::kBadInputValue;
+		ExceptionT::BadInputValue("GaussianWindowT::GaussianWindowT");
 }
 
 /* "synchronization" of nodal field parameters. */
@@ -171,10 +171,10 @@ double GaussianWindowT::SphericalSupportSize(const dArrayT& param_n) const
 }
 
 /* rectangular support size */
-const dArrayT& GaussianWindowT::RectangularSupportSize(const dArrayT& param_n) const 
+void GaussianWindowT::RectangularSupportSize(const dArrayT& param_n, dArrayT& support_size) const
 {
-	ExceptionT::GeneralFail("GaussianWindowT::RectangularSupportSize");
-	return param_n; /* dummy */
+	/* same in all dimensions */
+	support_size = SphericalSupportSize(param_n);
 }
 
 /* spherical support sizes in batch */
@@ -189,12 +189,4 @@ void GaussianWindowT::SphericalSupportSize(const dArray2DT& param_n, ArrayT<doub
 	dArrayT tmp;
 	tmp.Alias(support_size);
 	tmp.SetToScaled(fCutOffFactor*fDilationScaling, param_n);
-}
-
-/* rectangular support sizes in batch */
-void GaussianWindowT::RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const
-{
-#pragma unused(param_n)
-#pragma unused(support_size)
-	ExceptionT::GeneralFail("GaussianWindowT::RectangularSupportSize");
 }

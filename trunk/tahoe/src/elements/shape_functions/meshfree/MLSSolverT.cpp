@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.cpp,v 1.16 2004-09-03 20:24:26 paklein Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.17 2004-10-12 00:20:21 paklein Exp $ */
 /* created: paklein (12/08/1999) */
 #include "MLSSolverT.h"
 
@@ -91,17 +91,8 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 		}
 		case MeshFreeT::kRectCubicSpline:
 		{
-			/* one per direction */
-			dArrayT scalings(fNumSD);
-			for (int i = 0; i < fNumSD; i++)
-				scalings[i] = window_params[i*3];
-
-			/* same for all directions */
-			double sharpening_factor = window_params[1];
-			double    cut_off_factor = window_params[2];
-
 			/* construct window function */
-			fWindow = new RectCubicSplineWindowT(scalings, sharpening_factor, cut_off_factor);
+			fWindow = new RectCubicSplineWindowT(window_params);
 			if (!fWindow) ExceptionT::GeneralFail(caller);
 			break;
 		}

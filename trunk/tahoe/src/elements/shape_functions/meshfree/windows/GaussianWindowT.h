@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.h,v 1.10 2004-06-26 06:11:13 paklein Exp $ */
+/* $Id: GaussianWindowT.h,v 1.11 2004-10-12 00:20:26 paklein Exp $ */
 
 #ifndef _GAUSSIAN_WINDOW_T_H_
 #define _GAUSSIAN_WINDOW_T_H_
@@ -68,13 +68,10 @@ class GaussianWindowT: public WindowT
 	virtual double SphericalSupportSize(const dArrayT& param_n) const;
 
 	/** rectangular support size */
-	virtual const dArrayT& RectangularSupportSize(const dArrayT& param_n) const;
+	virtual void RectangularSupportSize(const dArrayT& param_n, dArrayT& support_size) const;
 
 	/** spherical support sizes in batch */
 	virtual void SphericalSupportSize(const dArray2DT& param_n, ArrayT<double>& support_size) const;
-
-	/** rectangular support sizes in batch */
-	virtual void RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const;
 	/*@}*/
 
   private:
