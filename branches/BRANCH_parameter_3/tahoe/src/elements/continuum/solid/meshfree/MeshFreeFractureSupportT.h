@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.h,v 1.8.18.1 2004-05-01 06:33:13 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.h,v 1.8.18.2 2004-05-04 15:50:00 paklein Exp $ */
 /* created: paklein (02/15/2000) */
 #ifndef _MESHFREE_FRACTURE_T_H_
 #define _MESHFREE_FRACTURE_T_H_
@@ -18,6 +18,8 @@ class SolidMaterialT;
 class FrontT;
 class SamplingSurfaceT;
 
+/** support for meshfree calculations including representation of cracks using
+ * cutting surfaces */
 class MeshFreeFractureSupportT: public MeshFreeElementSupportT
 {
 public:
@@ -56,13 +58,6 @@ public:
 	
 	/* fracture criterion */
 	FractureCriterionT FractureCriterion(void) const;
-	
-protected:
-
-	/* initialization */
-	void InitSupport(ifstreamT& in, ostream& out, AutoArrayT<ElementCardT>& elem_cards,
-		const iArrayT& surface_nodes, int numDOF, int max_node_num,
-		ModelManagerT* model);
 
 	/** check for extension of active crack fronts. Material properties are evaluated
 	 * at the sampling points using the constitutive model and the displacement array.
@@ -75,6 +70,11 @@ protected:
 	 * \return true of new facets have been inserted */
 	bool CheckGrowth(SolidMaterialT* material, LocalArrayT* disp,
 		bool verbose);
+	
+	/** initialization of meshless information. This method must be called once after 
+	 * a call to MeshFreeElementSupportT::TakeParameterList */
+	virtual void InitSupport(ostream& out, AutoArrayT<ElementCardT>& elem_cards, 
+		const iArrayT& surface_nodes, int numDOF, int max_node_num, ModelManagerT* model);
 
 private:
 
