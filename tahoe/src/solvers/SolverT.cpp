@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.28 2005-03-11 20:42:18 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.29 2005-04-05 16:08:20 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -17,14 +17,22 @@
 #include "DiagonalMatrixT.h"
 #include "FullMatrixT.h"
 #include "CCNSMatrixT.h"
-#include "AztecMatrixT.h"
 #include "SuperLUMatrixT.h"
 #include "SuperLU_DISTMatrixT.h"
 #include "SPOOLESMatrixT.h"
 #include "PSPASESMatrixT.h"
 
+#ifdef __AZTEC__
+#include "AztecParamsT.h"
+#include "AztecMatrixT.h"
+#endif
+
 #ifdef __TAHOE_MPI__
 #include "SPOOLESMatrixT_mpi.h"
+#endif
+
+#ifdef __SPOOLES_MT__
+#include "SPOOLESMatrixT_MT.h"
 #endif
 
 using namespace Tahoe;
@@ -242,13 +250,14 @@ ParameterInterfaceT* SolverT::NewSub(const StringT& name) const
 	{
 		ParameterContainerT* choice = new ParameterContainerT(name);
 		choice->SetListOrder(ParameterListT::Choice);
+		choice->SetSubSource(this);
 	
 		choice->AddSub(ParameterContainerT("profile_matrix"));
 		choice->AddSub(ParameterContainerT("diagonal_matrix"));
 		choice->AddSub(ParameterContainerT("full_matrix"));
 
 #ifdef __AZTEC__
-		choice->AddSub(ParameterContainerT("Aztec_matrix"));
+		choice->AddSub("Aztec_matrix");
 #endif
 
 #ifdef __SPOOLES__
@@ -260,7 +269,16 @@ ParameterInterfaceT* SolverT::NewSub(const StringT& name) const
 		always_symmetric.SetDefault(false);
 		SPOOLES.AddParameter(always_symmetric);
 		choice->AddSub(SPOOLES);
-#endif
+
+#ifdef __SPOOLES_MT__
+		ParameterContainerT SPOOLES_MT(SPOOLES);
+		SPOOLES_MT.SetName("SPOOLES_MT_matrix");		
+		ParameterT num_threads(ParameterT::Integer, "num_threads");
+		num_threads.AddLimit(2, LimitT::LowerInclusive);
+		SPOOLES_MT.AddParameter(num_threads);
+		choice->AddSub(SPOOLES_MT);
+#endif /* __SPOOLES_MT__ */
+#endif /* __SPOOLES__ */
 
 #ifdef __PSPASES__
 		choice->AddSub(ParameterContainerT("PSPASES_matrix"));
@@ -272,6 +290,8 @@ ParameterInterfaceT* SolverT::NewSub(const StringT& name) const
 
 		return choice;
 	}
+	else if (name == "Aztec_matrix")
+		return new AztecParamsT;
 	else /* inherited */
 		return ParameterInterfaceT::NewSub(name);
 }
@@ -531,7 +551,7 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 	}
 	else if (params.Name() == "full_matrix")
 		fLHS = new FullMatrixT(out, check_code);
-	else if (params.Name() == "SPOOLES_matrix")
+	else if (params.Name() == "SPOOLES_matrix" || params.Name() == "SPOOLES_MT_matrix")
 	{
 #ifdef __SPOOLES__
 		/* global system properties */
@@ -556,22 +576,36 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 		// NOTE: SPOOLES v2.2 does not seem to solve non-symmetric
 		//      systems correctly in parallel if pivoting is disabled
 
-#ifdef __TAHOE_MPI__
-		/* constuctor */
-		if (fFEManager.Size() > 1)
+		/* multi-threaded SPOOLES */
+		if (params.Name() == "SPOOLES_MT_matrix")
 		{
-#ifdef __SPOOLES_MPI__
-			fLHS = new SPOOLESMatrixT_mpi(out, check_code, symmetric, pivoting, fFEManager.Communicator());
-#else /* __SPOOLES_MPI__ */
-			ExceptionT::GeneralFail(caller, "SPOOLES MPI not installed");
-#endif /* __SPOOLES_MPI__ */
+			/* number of solver threads */
+			int num_threads = params.GetParameter("num_threads");
+		
+#ifdef __SPOOLES_MT__
+				fLHS = new SPOOLESMatrixT_MT(out, check_code, symmetric, pivoting, num_threads);
+#else /* __SPOOLES_MT__ */
+				ExceptionT::GeneralFail(caller, "SPOOLES MPI not installed");
+#endif /* __SPOOLES_MT__ */
 		}
-		else
-			fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting);
+		else {
+#ifdef __TAHOE_MPI__
+			/* constuctor */
+			if (fFEManager.Size() > 1)
+			{
+#ifdef __SPOOLES_MPI__
+				fLHS = new SPOOLESMatrixT_mpi(out, check_code, symmetric, pivoting, fFEManager.Communicator());
+#else /* __SPOOLES_MPI__ */
+				ExceptionT::GeneralFail(caller, "SPOOLES MPI not installed");
+#endif /* __SPOOLES_MPI__ */
+			}
+			else /* single processor with MPI-enabled code */
+				fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting);
 #else /* __TAHOE_MPI__ */
-		/* constuctor */
-		fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting);
+			/* constuctor */
+			fLHS = new SPOOLESMatrixT(out, check_code, symmetric, pivoting);
 #endif /* __TAHOE_MPI__ */
+		}
 #else /* __SPOOLES__ */
 		ExceptionT::GeneralFail(caller, "SPOOLES not installed");
 #endif /* __SPOOLES__ */
@@ -617,26 +651,17 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 		ExceptionT::GeneralFail(caller, " PSPASES solver not installed");
 #endif /* __PSPASES__ */
 	}
-	else
-		ExceptionT::GeneralFail(caller, "unrecognized matrix type \"%s\"", params.Name().Pointer());
-		
-#if 0
-	switch (matrix_type)
+	else if (params.Name() == "Aztec_matrix")
 	{
-		case kAztec:
-		{
 #ifdef __AZTEC__
 			/* construct */
-			fLHS = new AztecMatrixT(in, out, check_code, fFEManager.Communicator());
+			fLHS = new AztecMatrixT(out, check_code, fFEManager.Communicator(), params);
 #else
 			ExceptionT::GeneralFail(caller, "Aztec solver not installed: %d", fMatrixType);
 #endif /* __AZTEC__ */
-			break;
-		}
-		default:
-			ExceptionT::GeneralFail(caller, "unknown matrix type: %d", matrix_type);
-	}	
-#endif
+	}
+	else
+		ExceptionT::GeneralFail(caller, "unrecognized matrix type \"%s\"", params.Name().Pointer());
 
 	if (!fLHS) ExceptionT::OutOfMemory(caller);
 }
