@@ -1,9 +1,0 @@
-extern int az_dlaic1__(integer *job, integer *j, doublereal *x, doublereal *sest, doublereal *w, doublereal *gamma, doublereal *sestpr, doublereal *s, doublereal *c__);
-extern int az_dlaswp__(integer *n, doublereal *a, integer *lda, integer *k1, integer *k2, integer *ipiv, integer *incx);
-extern int az_slaic1__(integer *job, integer *j, real *x, real *sest, real *w, real *gamma, real *sestpr, real *s, real *c__);
-extern int az_slaswp__(integer *n, real *a, integer *lda, integer *k1, integer *k2, integer *ipiv, integer *incx);
-/*:ref: dlamch_ 7 2 13 124 */
-/*:ref: ddot_ 7 5 4 7 4 7 4 */
-/*:ref: slamch_ 6 2 13 124 */
-/*:ref: sdot_ 6 5 4 6 4 6 4 */
-/*:ref: sswap_ 14 5 4 6 4 6 4 */
