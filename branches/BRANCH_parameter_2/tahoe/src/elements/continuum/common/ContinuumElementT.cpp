@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.35.2.6 2004-03-15 19:44:38 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.35.2.7 2004-03-16 19:33:00 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -40,7 +40,10 @@ ContinuumElementT::ContinuumElementT(const ElementSupportT& support,
 	fShapes(NULL),
 	fLocInitCoords(LocalArrayT::kInitCoords),
 	fLocDisp(LocalArrayT::kDisp),
-	fDOFvec(NumDOF())
+	fDOFvec(NumDOF()),
+	fNumIP(0),
+	fOutputID(),
+	fGeometryCode(GeometryT::kNone)
 {
 	SetName("continuum_element");
 	ifstreamT& in = ElementSupport().Input();
@@ -60,7 +63,10 @@ ContinuumElementT::ContinuumElementT(const ElementSupportT& support):
 	fTractionBCSet(0),
 	fShapes(NULL),
 	fLocInitCoords(LocalArrayT::kInitCoords),
-	fLocDisp(LocalArrayT::kDisp)
+	fLocDisp(LocalArrayT::kDisp),
+	fNumIP(0),
+	fOutputID(),
+	fGeometryCode(GeometryT::kNone)
 {
 	SetName("continuum_element");
 }
@@ -1296,6 +1302,11 @@ ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
 	MaterialListT* material_list = non_const_this->NewMaterialList(list_name, 0);
 	if (material_list)
 		return material_list;
+		
+	/* try geometry */
+	ParameterInterfaceT* geometry = GeometryT::NewGeometry(list_name);
+	if (list_name)
+		return geometry;
 
 	/* body force */
 	if (list_name == "body_force")
@@ -1327,80 +1338,6 @@ ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
 		
 		return natural_bc;
 	}
-	else if (list_name == "line")
-	{
-		ParameterContainerT* line = new ParameterContainerT(list_name);
-	
-		/* integration rules */
-		ParameterT num_ip(ParameterT::Integer, "num_ip");
-		num_ip.AddLimit(1, LimitT::Only);
-		num_ip.AddLimit(2, LimitT::Only);
-		num_ip.AddLimit(3, LimitT::Only);
-		num_ip.AddLimit(4, LimitT::Only);
-		num_ip.SetDefault(2);
-		line->AddParameter(num_ip);
-
-		return line;
-	}
-	else if (list_name == GeometryT::ToString(GeometryT::kQuadrilateral))
-	{
-		ParameterContainerT* quad = new ParameterContainerT(list_name);
-	
-		/* integration rules */
-		ParameterT num_ip(ParameterT::Integer, "num_ip");
-		num_ip.AddLimit(1, LimitT::Only);
-		num_ip.AddLimit(4, LimitT::Only);
-		num_ip.AddLimit(5, LimitT::Only);
-		num_ip.AddLimit(9, LimitT::Only);
-		num_ip.AddLimit(16, LimitT::Only);
-		num_ip.SetDefault(4);
-		quad->AddParameter(num_ip);
-
-		return quad;
-	}
-	else if (list_name == GeometryT::ToString(GeometryT::kTriangle))
-	{
-		ParameterContainerT* tri = new ParameterContainerT(list_name);
-	
-		/* integration rules */
-		ParameterT num_ip(ParameterT::Integer, "num_ip");
-		num_ip.AddLimit(1, LimitT::Only);
-		num_ip.AddLimit(4, LimitT::Only);
-		num_ip.AddLimit(6, LimitT::Only);
-		num_ip.SetDefault(1);
-		tri->AddParameter(num_ip);
-
-		return tri;
-	}
-	else if (list_name == GeometryT::ToString(GeometryT::kHexahedron))
-	{
-		ParameterContainerT* hex = new ParameterContainerT(list_name);
-	
-		/* integration rules */
-		ParameterT num_ip(ParameterT::Integer, "num_ip");
-		num_ip.AddLimit(1, LimitT::Only);
-		num_ip.AddLimit(8, LimitT::Only);
-		num_ip.AddLimit(9, LimitT::Only);
-		num_ip.AddLimit(27, LimitT::Only);
-		num_ip.AddLimit(64, LimitT::Only);
-		num_ip.SetDefault(8);
-		hex->AddParameter(num_ip);
-
-		return hex;
-	}
-	else if (list_name == GeometryT::ToString(GeometryT::kTetrahedron))
-	{
-		ParameterContainerT* tet = new ParameterContainerT(list_name);
-	
-		/* integration rules */
-		ParameterT num_ip(ParameterT::Integer, "num_ip");
-		num_ip.AddLimit(1, LimitT::Only);
-		num_ip.AddLimit(4, LimitT::Only);
-		num_ip.SetDefault(1);
-		tet->AddParameter(num_ip);
-
-		return tet;
-	}
 	else /* inherited */
 		return ElementBaseT::NewSub(list_name);
 }
@@ -1426,20 +1363,11 @@ void ContinuumElementT::TakeParameterList(const ParameterListT& list)
 	SetLocalArrays();
 
 	/* construct shape functions */
-	GeometryT::CodeT geom_codes[5] = {
-		GeometryT::kQuadrilateral,
-		GeometryT::kTriangle, 
-		GeometryT::kHexahedron,
-		GeometryT::kTetrahedron, 
-		GeometryT::kLine};
-	fGeometryCode = GeometryT::kNone;
-	for (int i = 0; i < 5; i++) {
-		const ParameterListT* integration_domain = list.List(GeometryT::ToString(geom_codes[i]));
-		if (integration_domain) {
-			fGeometryCode = geom_codes[i];
-			fNumIP = integration_domain->GetParameter("num_ip");
-		}
-	}
+	const ParameterListT* integration_domain = list.ResolveListChoice(*this, "element_geometry");
+	if (!integration_domain)
+		ExceptionT::BadInputValue(caller, "could not resolve \"element_geometry\"");
+	fGeometryCode = GeometryT::string2CodeT(integration_domain->Name());
+	fNumIP = integration_domain->GetParameter("num_ip");
 	SetShape();
 
 	/* construct material list */
