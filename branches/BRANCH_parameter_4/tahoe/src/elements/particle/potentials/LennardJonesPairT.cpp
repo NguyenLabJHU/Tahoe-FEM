@@ -1,7 +1,7 @@
-/* $Id: LennardJonesPairT.cpp,v 1.10.30.1 2004-07-06 06:54:18 paklein Exp $ */
+/* $Id: LennardJonesPairT.cpp,v 1.10.30.2 2004-07-08 00:49:14 paklein Exp $ */
 #include "LennardJonesPairT.h"
-#include "toolboxConstants.h"
 #include <iostream.h>
+#include <math.h>
 
 using namespace Tahoe;
 
