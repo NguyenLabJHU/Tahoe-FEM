@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.32.2.5 2003-07-03 00:14:10 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.32.2.6 2003-07-10 15:11:26 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -524,16 +524,24 @@ out << "\n residual =\n" << projection << endl;
 		fGlobalMass.Solve(u_tmp);
 		projection.SetColumn(i, u_tmp);
 	}	
-	//ofstream project;
-	//project.open("project.dat");
-	//project.precision(13);
-	//for (int i = 0; i < projection.MajorDim(); i++)
-	//{
-	//	project << i+1 << " " << 1 << " " << 1 << " " << projection(i,0) << endl;
-	//	project << i+1 << " " << 2 << " " << 1 << " " << projection(i,1) << endl;
-	//}
+	ofstream project, fenodes1, fenodes2;
+	project.open("project.dat");
+	fenodes1.open("fenodes1.dat");
+	fenodes2.open("fenodes2.dat");
+	project.precision(13);
+	for (int i = 0; i < projection.MajorDim(); i++)
+	{
+		project << i+1 << " " << 1 << " " << 1 << " " << projection(i,0) << endl;
+		project << i+1 << " " << 2 << " " << 1 << " " << projection(i,1) << endl;
+		fenodes1 << "*set" << endl;
+		fenodes1 << 1 << endl;
+		fenodes1 << cell_nodes[i]+1 << endl;
+		fenodes2 << i+1 << " " << 1 << endl;
+	}
 	
-	//project.close();
+	project.close();
+	fenodes1.close();
+	fenodes2.close();
 	u_tmp.Free();
 
 	/* initialize return values */
