@@ -108,14 +108,6 @@ void EAMT::WriteOutput(void)
   /* global coordinates */
   const dArray2DT& coords = ElementSupport().CurrentCoordinates();
 
-  /* pair properties function pointers */
-  int current_property_i = -1;
-  int current_property_j = -1;
-  EAMPropertyT::PairEnergyFunction  pair_energy = NULL;
-
-  EAMPropertyT::EmbedEnergyFunction embed_energy_i= NULL;
-  EAMPropertyT::EDEnergyFunction ed_energy_j   = NULL;
-
   /* the field */
   const FieldT& field = Field();
   const dArray2DT& displacement = field[0];
@@ -124,26 +116,35 @@ void EAMT::WriteOutput(void)
 
   /* collect displacements */
   dArrayT vec, values_i;
-  for (int i = 0; i < non; i++) {
-    int   tag_i = (parition_nodes) ? (*parition_nodes)[i] : i;
-    int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
-
-    /* values for particle i */
-    n_values.RowAlias(local_i, values_i);
-
-    /* copy in */
-    vec.Set(ndof, values_i.Pointer());
-    displacement.RowCopy(tag_i, vec);
+  for (int i = 0; i < non; i++) 
+    {
+      int   tag_i = (parition_nodes) ? (*parition_nodes)[i] : i;
+      int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
+      
+      /* values for particle i */
+      n_values.RowAlias(local_i, values_i);
+      
+      /* copy in */
+      vec.Set(ndof, values_i.Pointer());
+      displacement.RowCopy(tag_i, vec);
   }
 
   /* collect mass per particle */
   dArrayT mass(fNumTypes);
   for (int i = 0; i < fNumTypes; i++)
     mass[i] = fEAMProperties[fPropertiesMap(i,i)]->Mass();
+
+  /* EAM properties function pointers */
+  int current_property_i = -1;
+  int current_property_j = -1;
+  EAMPropertyT::PairEnergyFunction  pair_energy_i = NULL,pair_energy_j = NULL;
+  EAMPropertyT::EmbedEnergyFunction embed_energy_i= NULL;
+  EAMPropertyT::EDEnergyFunction ed_energy_j   = NULL;
 	
-  /* run through neighbor list */
   iArrayT neighbors;
   dArrayT x_i, x_j, r_ij(ndof);
+
+  /* Loop i : run through neighbor list */
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
     {
       /* row of neighbor list */
@@ -200,11 +201,10 @@ void EAMT::WriteOutput(void)
 	}
       E_i = embed_energy_i(rho_i,NULL,NULL); 
 
-
       current_property_i = -1;
       current_property_j = -1;
 
-      /* Get Energy */
+      /* Get Potential Energy */
       values_i[ndof] = E_i;
       n_values(local_i, ndof) = E_i;
 
@@ -214,14 +214,20 @@ void EAMT::WriteOutput(void)
 	  int   tag_j = neighbors[j];
 	  int  type_j = fType[tag_j];		
 			
-	  /* set pair property (if not already set) */
 	  int property_i = fPropertiesMap(type_i, type_j);
 	  if (property_i != current_property_i)
 	    {
-	      pair_energy  = fEAMProperties[property_i]->getPairEnergy();
+	      pair_energy_i  = fEAMProperties[property_i]->getPairEnergy();
 	      current_property_i = property_i;
 	    }
 	  
+	  int property_j = fPropertiesMap(type_j, type_i);
+	  if (property_j != current_property_j)
+	    {
+	      pair_energy_j  = fEAMProperties[property_j]->getPairEnergy();
+	      current_property_j = property_j;
+	    }
+
 	  /* global coordinates */
 	  coords.RowAlias(tag_j, x_j);
 	  
@@ -229,8 +235,9 @@ void EAMT::WriteOutput(void)
 	  r_ij.DiffOf(x_j, x_i);
 	  double r = r_ij.Magnitude();
 	  
-	  /* split interaction energy */
-	  double uby2 = 0.5*pair_energy(r, NULL, NULL);
+	  /* phi = z_i z_j /r */
+	  double phi = pair_energy_i(r, NULL, NULL)*pair_energy_i(r, NULL, NULL)/r;
+	  double uby2 = 0.5*phi;
 	  values_i[ndof] += uby2;
 	  
 	  /* second node may not be on processor */
@@ -451,8 +458,9 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
   current_property_j = -1;
   current_property_k = -1;
 
-  EAMPropertyT::PairForceFunction pair_force = NULL;
-  EAMPropertyT::PairStiffnessFunction pair_stiffness = NULL;
+  EAMPropertyT::PairEnergyFunction pair_energy_i = NULL, pair_energy_j = NULL;
+  EAMPropertyT::PairForceFunction pair_force_i = NULL, pair_force_j = NULL;
+  EAMPropertyT::PairStiffnessFunction pair_stiffness_i = NULL,pair_stiffness_j = NULL;
   
   EAMPropertyT::EmbedForceFunction embed_force_i = NULL,embed_force_j = NULL;
   EAMPropertyT::EmbedStiffnessFunction embed_stiffness_i = NULL, 
@@ -494,8 +502,9 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 	      int property_i = fPropertiesMap(type_i, type_j);
 	      if (property_i != current_property_i)
 		{
-		  pair_force     = fEAMProperties[property_i]->getPairForce();
-		  pair_stiffness = fEAMProperties[property_i]->getPairStiffness();
+		  pair_energy_i    = fEAMProperties[property_i]->getPairEnergy();
+		  pair_force_i     = fEAMProperties[property_i]->getPairForce();
+		  pair_stiffness_i = fEAMProperties[property_i]->getPairStiffness();
 
 		  embed_force_i    = fEAMProperties[property_i]->getEmbedForce();
 		  embed_stiffness_i= fEAMProperties[property_i]->getEmbedStiffness();
@@ -509,6 +518,10 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 	      int property_j = fPropertiesMap(type_j, type_i);
 	      if (property_j != current_property_j)
 		{
+		  pair_energy_j    = fEAMProperties[property_j]->getPairEnergy();
+		  pair_force_j     = fEAMProperties[property_j]->getPairForce();
+		  pair_stiffness_j = fEAMProperties[property_j]->getPairStiffness();
+
 		  embed_force_j    = fEAMProperties[property_j]->getEmbedForce();
 		  embed_stiffness_j= fEAMProperties[property_j]->getEmbedStiffness();
 
@@ -528,8 +541,9 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 	      r_ji.SetToScaled(-1.0, r_ij);
 
 	      /* Component of force coming from Pair potential */
-	      double F = pair_force(r, NULL, NULL);
-	      double K = pair_stiffness(r, NULL, NULL);
+	      double E = pair_energy_i(r, NULL, NULL)*pair_energy_j(r, NULL, NULL)/r;
+	      double F = pair_force_i(r, NULL, NULL)*pair_force_j(r, NULL, NULL)/r - E/r;
+	      double K = pair_stiffness_i(r, NULL, NULL)*pair_stiffness_j(r, NULL, NULL) -2*F/r;
 	      double Fbyr = F/r;
 
 	      /* 1st term */
@@ -723,8 +737,9 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
       EAMPropertyT::EDForceFunction ed_force_i = NULL,ed_force_j = NULL;
       EAMPropertyT::EDStiffnessFunction ed_stiffness_i = NULL,ed_stiffness_j = NULL;
       
-      EAMPropertyT::PairForceFunction pair_force = NULL;
-      EAMPropertyT::PairStiffnessFunction pair_stiffness = NULL;
+      EAMPropertyT::PairEnergyFunction pair_energy_i = NULL,pair_energy_j = NULL;
+      EAMPropertyT::PairForceFunction pair_force_i = NULL,pair_force_j = NULL;
+      EAMPropertyT::PairStiffnessFunction pair_stiffness_i = NULL,pair_stiffness_j = NULL;
 
       EAMPropertyT::EmbedForceFunction embed_force_i = NULL,embed_force_j = NULL;
       EAMPropertyT::EmbedStiffnessFunction embed_stiffness_i = NULL,embed_stiffness_j;
@@ -753,8 +768,9 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	      int property_i = fPropertiesMap(type_i, type_j);
 	      if (property_i != current_property_i)
 		{
-		  pair_force     = fEAMProperties[property_i]->getPairForce();
-		  pair_stiffness = fEAMProperties[property_i]->getPairStiffness();
+		  pair_energy_i    = fEAMProperties[property_i]->getPairEnergy();
+		  pair_force_i     = fEAMProperties[property_i]->getPairForce();
+		  pair_stiffness_i = fEAMProperties[property_i]->getPairStiffness();
 
 		  embed_force_i = fEAMProperties[property_i]->getEmbedForce();
 		  embed_stiffness_i = fEAMProperties[property_i]->getEmbedStiffness();
@@ -768,6 +784,10 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	      int property_j = fPropertiesMap(type_j, type_i);
 	      if (property_j != current_property_j)
 		{
+		  pair_energy_j    = fEAMProperties[property_j]->getPairEnergy();
+		  pair_force_j     = fEAMProperties[property_j]->getPairForce();
+		  pair_stiffness_j = fEAMProperties[property_j]->getPairStiffness();
+
 		  embed_force_j = fEAMProperties[property_j]->getEmbedForce();
 		  embed_stiffness_j = fEAMProperties[property_j]->getEmbedStiffness();
 
@@ -785,8 +805,9 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	      double r = r_ij.Magnitude();
 			
 	      /* Component of force coming from Pair potential */
-	      double F = pair_force(r, NULL, NULL);
-	      double K = pair_stiffness(r, NULL, NULL);
+	      double E = pair_energy_i(r, NULL, NULL)*pair_energy_j(r, NULL, NULL)/r;
+	      double F = pair_force_i(r, NULL, NULL)*pair_force_j(r, NULL, NULL)/r-E/r;
+	      double K = pair_stiffness_i(r, NULL, NULL)*pair_stiffness_j(r, NULL, NULL)-2*F/r;
 	      K = (K < 0.0) ? 0.0 : K;
 
 	      double Fbyr = F/r;
@@ -996,8 +1017,9 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
       current_property_j = -1;
       current_property_k = -1;
 
-      EAMPropertyT::PairForceFunction pair_force = NULL;
-      EAMPropertyT::PairStiffnessFunction pair_stiffness = NULL;
+      EAMPropertyT::PairEnergyFunction pair_energy_i = NULL,pair_energy_j = NULL;
+      EAMPropertyT::PairForceFunction pair_force_i = NULL,pair_force_j = NULL;
+      EAMPropertyT::PairStiffnessFunction pair_stiffness_i = NULL,pair_stiffness_j = NULL;
 
       EAMPropertyT::EmbedForceFunction embed_force_i = NULL,embed_force_j = NULL;
       EAMPropertyT::EmbedStiffnessFunction embed_stiffness_i = NULL, 
@@ -1028,8 +1050,9 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	      int property_i = fPropertiesMap(type_i, type_j);
 	      if (property_i != current_property_i)
 		{
-		  pair_force     = fEAMProperties[property_i]->getPairForce();
-		  pair_stiffness = fEAMProperties[property_i]->getPairStiffness();
+		  pair_energy_i    = fEAMProperties[property_i]->getPairEnergy();
+		  pair_force_i     = fEAMProperties[property_i]->getPairForce();
+		  pair_stiffness_i = fEAMProperties[property_i]->getPairStiffness();
 
 		  embed_force_i    = fEAMProperties[property_i]->getEmbedForce();
 		  embed_stiffness_i= fEAMProperties[property_i]->getEmbedStiffness();
@@ -1043,6 +1066,10 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	      int property_j = fPropertiesMap(type_j, type_i);
 	      if (property_j != current_property_j)
 		{
+		  pair_energy_j    = fEAMProperties[property_j]->getPairEnergy();
+		  pair_force_j     = fEAMProperties[property_j]->getPairForce();
+		  pair_stiffness_j = fEAMProperties[property_j]->getPairStiffness();
+
 		  embed_force_j    = fEAMProperties[property_j]->getEmbedForce();
 		  embed_stiffness_j= fEAMProperties[property_j]->getEmbedStiffness();
 
@@ -1061,8 +1088,9 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	      r_ji.SetToScaled(-1.0, r_ij);
 			
 	      /* Component of force coming from Pair potential */
-	      double F = constK*pair_force(r, NULL, NULL);
-	      double K = constK*pair_stiffness(r, NULL, NULL);
+	      double E = constK*pair_energy_i(r, NULL, NULL)*pair_energy_j(r, NULL, NULL)/r;
+	      double F = constK*pair_force_i(r, NULL, NULL)*pair_force_j(r, NULL, NULL)/r -E/r;
+	      double K = constK*pair_stiffness_i(r, NULL, NULL)*pair_stiffness_j(r, NULL, NULL)-2*F/r;
 	      double Fbyr = F/r;
 
 	      /* 1st term */
@@ -1183,20 +1211,15 @@ void EAMT::RHSDriver2D(void)
   const dArray2DT& coords = support.CurrentCoordinates();
 
   /* EAM properties function pointers */
-  int current_property_i = -1;
-  int current_property_j = -1;
-  EAMPropertyT::EDEnergyFunction ed_energy_i = NULL,ed_energy_j = NULL;
-  EAMPropertyT::EDForceFunction  ed_force_i = NULL,ed_force_j = NULL;
+  int current_property = -1;
+  EAMPropertyT::EDEnergyFunction ed_energy = NULL;
 	
   fForce = 0.0;
   iArrayT neighbors;
 
-  /* Get rho_i = \sum_{k=1,neighbor(i)} rho_k (r_ik)  */
-  dArrayT rho_i(fNeighbors.MajorDim());
-  rho_i = 0.0;
-  /* Get rho_j = \sum_{k=1,neighbor(j)} rho_k (r_jk)  */
-  dArrayT rho_j(fNeighbors.MajorDim());
-  rho_j = 0.0;
+  /* Get rho = \sum_{k=1,neighbor(i)} rho_k (r_ik)  */
+  dArrayT rho(fNeighbors.MajorDim());
+  rho = 0.0;
   /* Loop i : run through neighbor list */
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
     {
@@ -1216,18 +1239,11 @@ void EAMT::RHSDriver2D(void)
 	  int  type_j = fType[tag_j];
 	  double* x_j = coords(tag_j);
 
-	  int property_i = fPropertiesMap(type_i, type_j);  // type_i <=> rho_i
-	  if (property_i != current_property_i)
+	  int property = fPropertiesMap(type_i, type_j);  
+	  if (property != current_property)
 	    {
-	      ed_energy_i  = fEAMProperties[property_i]->getElecDensForce();
-	      current_property_i = property_i;
-	    }
-
-	  int property_j = fPropertiesMap(type_j, type_i);  // type_j <=> rho_j
-	  if (property_j != current_property_j)
-	    {
-	      ed_energy_j  = fEAMProperties[property_j]->getElecDensForce();
-	      current_property_j = property_j;
+	      ed_energy  = fEAMProperties[property]->getElecDensForce();
+	      current_property = property;
 	    }
 		
 	  /* connecting vector */
@@ -1235,15 +1251,17 @@ void EAMT::RHSDriver2D(void)
 	  double r_ij_1 = x_j[1] - x_i[1];
 	  double r      = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
 		
-	  rho_i[i] += ed_energy_i(r,NULL,NULL); // sum over j
-	  rho_j[j] += ed_energy_j(r,NULL,NULL); // sum over i
+	  rho[i] += ed_energy(r,NULL,NULL); 
 	}
     }
-  current_property_i = -1;
-  current_property_j = -1;
 
-  EAMPropertyT::PairForceFunction pair_force = NULL;
+  int current_property_i = -1;
+  int current_property_j = -1;
+  EAMPropertyT::PairEnergyFunction pair_energy_i = NULL,pair_energy_j = NULL;
+  EAMPropertyT::PairForceFunction pair_force_i = NULL,pair_force_j = NULL;
+
   EAMPropertyT::EmbedForceFunction embed_force_i = NULL,embed_force_j=NULL;
+  EAMPropertyT::EDForceFunction  ed_force_i = NULL,ed_force_j = NULL;
 
   fForce = 0.0;
   /* Compute Force : sum up contributions  */
@@ -1272,6 +1290,9 @@ void EAMT::RHSDriver2D(void)
 	  int property_i = fPropertiesMap(type_i, type_j);
 	  if (property_i != current_property_i)
 	    {
+	      pair_energy_i = fEAMProperties[property_i]->getPairEnergy();
+	      pair_force_i  = fEAMProperties[property_i]->getPairForce();
+
 	      embed_force_i = fEAMProperties[property_i]->getEmbedForce();
 	      ed_force_i    = fEAMProperties[property_i]->getElecDensForce();
 
@@ -1281,7 +1302,8 @@ void EAMT::RHSDriver2D(void)
 	  int property_j = fPropertiesMap(type_j, type_i);
 	  if (property_j != current_property_j)
 	    {
-	      pair_force = fEAMProperties[property_j]->getPairForce();
+	      pair_energy_j = fEAMProperties[property_j]->getPairEnergy();
+	      pair_force_j  = fEAMProperties[property_j]->getPairForce();
 
 	      embed_force_j = fEAMProperties[property_j]->getEmbedForce();
 	      ed_force_j   = fEAMProperties[property_j]->getElecDensForce();
@@ -1295,7 +1317,8 @@ void EAMT::RHSDriver2D(void)
 	  double r      = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1);
 			
 	  /* Component of force coming from Pair potential */
-	  double F = pair_force(r,NULL,NULL);
+	  double E = pair_energy_i(r,NULL,NULL)*pair_energy_j(r,NULL,NULL)/r;
+	  double F = pair_force_i(r,NULL,NULL)*pair_force_j(r,NULL,NULL)/r - E/r;
 	  double Fbyr = formKd*F/r;
 
 	  r_ij_0 *= Fbyr;
@@ -1307,9 +1330,9 @@ void EAMT::RHSDriver2D(void)
 	  f_j[1] +=-r_ij_1;
 
 	  /* Component of force coming from Embedding energy */
-	  double Ep_i   = embed_force_i(rho_i[i],NULL,NULL);
+	  double Ep_i   = embed_force_i(rho[i],NULL,NULL);
 	  double rhop_i = ed_force_i(r,NULL,NULL);
-	  double Ep_j   = embed_force_j(rho_j[j],NULL,NULL);
+	  double Ep_j   = embed_force_j(rho[j],NULL,NULL);
 	  double rhop_j = ed_force_j(r,NULL,NULL);
 
 	  F = rhop_i * Ep_j + rhop_i * Ep_i;
@@ -1351,21 +1374,16 @@ void EAMT::RHSDriver3D(void)
   /* global coordinates */
   const dArray2DT& coords = support.CurrentCoordinates();
 
-  /* pair properties function pointers */
-  int current_property_i = -1;
-  int current_property_j = -1;
-  EAMPropertyT::EDEnergyFunction ed_energy_i = NULL,ed_energy_j = NULL;
-  EAMPropertyT::EDForceFunction  ed_force_i = NULL,ed_force_j = NULL;
+  /* EAM properties function pointers */
+  int current_property = -1;
+  EAMPropertyT::EDEnergyFunction ed_energy = NULL;
 
   fForce = 0.0;
   iArrayT neighbors;
 
-  /* Get rho_i = \sum_{k=1,neighbor(i)} rho_k (r_ik)  */
-  dArrayT rho_i(fNeighbors.MajorDim());
-  rho_i = 0.0;
-  /* Get rho_j = \sum_{k=1,neighbor(j)} rho_k (r_jk)  */
-  dArrayT rho_j(fNeighbors.MajorDim());
-  rho_j = 0.0;
+  /* Get rho = \sum_{k=1,neighbor(i)} rho_k (r_ik)  */
+  dArrayT rho(fNeighbors.MajorDim());
+  rho = 0.0;
   /* Loop i : run through neighbor list */
   for (int i = 0; i < fNeighbors.MajorDim(); i++)
     {
@@ -1385,18 +1403,11 @@ void EAMT::RHSDriver3D(void)
 	  int  type_j = fType[tag_j];
 	  double* x_j = coords(tag_j);
 
-	  int property_i = fPropertiesMap(type_i, type_j);  // type_i <=> rho_i
-	  if (property_i != current_property_i)
+	  int property = fPropertiesMap(type_i, type_j); 
+	  if (property != current_property)
 	    {
-	      ed_energy_i  = fEAMProperties[property_i]->getElecDensForce();
-	      current_property_i = property_i;
-	    }
-
-	  int property_j = fPropertiesMap(type_j, type_i);  // type_j <=> rho_j
-	  if (property_j != current_property_j)
-	    {
-	      ed_energy_j  = fEAMProperties[property_j]->getElecDensForce();
-	      current_property_j = property_j;
+	      ed_energy  = fEAMProperties[property]->getElecDensForce();
+	      current_property = property;
 	    }
 
 	  /* connecting vector */
@@ -1405,15 +1416,17 @@ void EAMT::RHSDriver3D(void)
 	  double r_ij_2 = x_j[2] - x_i[2];
 	  double r      = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
 	  
-	  rho_i[i] += ed_energy_i(r,NULL,NULL); // sum over j
-	  rho_j[j] += ed_energy_j(r,NULL,NULL); // sum over i
+	  rho[i] += ed_energy(r,NULL,NULL); 
 	}
     }
-  current_property_i = -1;
-  current_property_j = -1;
 
-  EAMPropertyT::PairForceFunction pair_force = NULL;
+  int current_property_i = -1;
+  int current_property_j = -1;
+  EAMPropertyT::PairEnergyFunction pair_energy_i = NULL,pair_energy_j = NULL;
+  EAMPropertyT::PairForceFunction pair_force_i = NULL,pair_force_j = NULL;
+
   EAMPropertyT::EmbedForceFunction embed_force_i = NULL,embed_force_j=NULL;
+  EAMPropertyT::EDForceFunction  ed_force_i = NULL,ed_force_j = NULL;
 
   fForce = 0.0;
   /* Compute Force : sum up contributions  */
@@ -1442,7 +1455,9 @@ void EAMT::RHSDriver3D(void)
 	  int property_i = fPropertiesMap(type_i, type_j);
 	  if (property_i != current_property_i)
 	    {
-	      pair_force    = fEAMProperties[property_i]->getPairForce();
+	      pair_energy_i = fEAMProperties[property_i]->getPairEnergy();
+	      pair_force_i  = fEAMProperties[property_i]->getPairForce();
+
 	      embed_force_i = fEAMProperties[property_i]->getEmbedForce();
 	      ed_force_i    = fEAMProperties[property_i]->getElecDensForce();
 
@@ -1452,6 +1467,9 @@ void EAMT::RHSDriver3D(void)
 	  int property_j = fPropertiesMap(type_j, type_i);
 	  if (property_j != current_property_j)
 	    {
+	      pair_energy_j = fEAMProperties[property_j]->getPairEnergy();
+	      pair_force_j  = fEAMProperties[property_j]->getPairForce();
+
 	      embed_force_j = fEAMProperties[property_j]->getEmbedForce();
 	      ed_force_j    = fEAMProperties[property_j]->getElecDensForce();
 
@@ -1465,7 +1483,9 @@ void EAMT::RHSDriver3D(void)
 	  double r      = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
 			
 	  /* Component of force coming from Pair potential */
-	  double F = pair_force(r, NULL, NULL);
+	  double E = pair_energy_i(r,NULL,NULL)*pair_energy_j(r,NULL,NULL)/r;
+	  double F = pair_force_i(r,NULL,NULL)*pair_force_j(r,NULL,NULL)/r - E/r;
+
 	  double Fbyr = formKd*F/r;
 
 	  r_ij_0 *= Fbyr;
@@ -1481,9 +1501,9 @@ void EAMT::RHSDriver3D(void)
 	  f_j[2] +=-r_ij_2;
 
 	  /* Component of force coming from Embedding energy */
-	  double Ep_i   = embed_force_i(rho_i[i],NULL,NULL);
+	  double Ep_i   = embed_force_i(rho[i],NULL,NULL);
 	  double rhop_i = ed_force_i(r,NULL,NULL);
-	  double Ep_j   = embed_force_j(rho_j[j],NULL,NULL);
+	  double Ep_j   = embed_force_j(rho[j],NULL,NULL);
 	  double rhop_j = ed_force_j(r,NULL,NULL);
 
 	  F = rhop_i * Ep_j + rhop_i * Ep_i;
