@@ -1,4 +1,4 @@
-/* $Id: CellFromMeshT.cpp,v 1.5 2005-01-28 00:38:02 cjkimme Exp $ */
+/* $Id: CellFromMeshT.cpp,v 1.6 2005-01-28 02:41:41 paklein Exp $ */
 #include "CellFromMeshT.h"
 
 #include "ArrayT.h"
@@ -159,7 +159,6 @@ void CellFromMeshT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, RaggedAr
 					sub_cell_shape.IPCoords(ip_coords);
 					cellCentroids.AddToRowScaled(n_0, dv, ip_coords);
 				}
-				cellCentroids.ScaleRow(n_0, 1.0/cellVolumes[n_0]);
 
 				/* loop over facets (internal and on the element boundary) for each node */
 				for (int jj = 0; jj < n_faces; jj++) {
@@ -195,6 +194,10 @@ void CellFromMeshT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, RaggedAr
 			}
 		}
 	}
+	
+	/* compute cell centroids */
+	for (int e = 0; e < cellVolumes.Length(); e++)
+		cellCentroids.ScaleRow(e, 1.0/cellVolumes[e]);
 	
 	ConfigureDataStructures(cellSupports, bVectors, circumferential_B, cellVolumes);
 }
