@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.45 2002-06-04 21:49:07 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.46 2002-06-05 18:51:32 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -144,7 +144,7 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
 	picker = vtkPointPicker::New();
 	picker->SetTolerance(0.01);
 	iren->SetPicker(picker);
-	//	iren->SetEndPickMethod(PickPoints,(void *)iren);  
+	iren->SetEndPickMethod(PickPoints,(void *)iren);  
 	
 	/* set interator style to trackball instead of joystick in the
 	 * same way it occurs from the window */
@@ -218,6 +218,7 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
     {
       renWin->Render();
       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
+      cout << "pick point with mouse and type 'p' to display scalar value" << endl;
       iren->Start();
       return true;
     }  
@@ -825,13 +826,16 @@ void VTKConsoleT::SetFrameLayout(int num_x, int num_y)
 	  }
 }
 
+/* prints out picked point and scalar value */
 void VTKConsoleT::PickPoints(void *arg)
 {
-  
+  vtkRenderWindowInteractor *iren = (vtkRenderWindowInteractor *)arg;
+  vtkPointPicker *picker = (vtkPointPicker *)iren->GetPicker();
 
   cout <<"Point: " << picker->GetPointId() << endl;
-  //cout <<"Value: " << scalars->GetValue(picker->GetPointId()) << endl;
-  
+  //cout <<"Value: " <<picker->GetDataSet()->GetPointData()->GetScalars()[picker->GetPointId()] << endl;
+ 
+  cout <<"Value: " << (picker->GetDataSet()->GetPointData()->GetScalars()->GetComponent(picker->GetPointId(), 0)) << endl;
 }
 
 /* returns the index of the requested option */

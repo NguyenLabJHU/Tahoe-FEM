@@ -1,5 +1,5 @@
 
-/* $Id: VTKConsoleT.h,v 1.25 2002-06-04 21:49:08 recampb Exp $ */
+/* $Id: VTKConsoleT.h,v 1.26 2002-06-05 18:51:32 recampb Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -55,7 +55,8 @@ class VTKConsoleT: public iConsoleObjectT
    * \param num_y number of frames in the vertical direction */
   void SetFrameLayout(int num_x, int num_y);
 
-  void PickPoints(void *);
+  /** prints picked point and scalar value to screen */
+  static void PickPoints(void *);
 
   /** returns the index of the requested option */
   bool CommandLineOption(const char* str, int& index, int start = 0) const;

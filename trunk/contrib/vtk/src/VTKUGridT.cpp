@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.8 2002-06-04 21:49:08 recampb Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.9 2002-06-05 18:51:32 recampb Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -241,6 +241,7 @@ void VTKUGridT::SetScalars(vtkFloatArray* scalars)
 	fUGrid->GetPointData()->SetScalars(scalars);
 }
 
+/* show contour surfaces for 3D or contour lines for 2D */
 void VTKUGridT::ShowContours(vtkFloatArray* scalars, int numContours)
 {
   
@@ -255,6 +256,7 @@ void VTKUGridT::ShowContours(vtkFloatArray* scalars, int numContours)
 
 }
 
+/* hide contour surfaces */
 void VTKUGridT::HideContours(vtkFloatArray* scalars)
 {
   

@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.17 2002-06-04 21:49:07 recampb Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.18 2002-06-05 18:51:31 recampb Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -281,7 +281,7 @@ void VTKBodyDataT::AddToRenderer(vtkRenderer* renderer) const
 	/* add all actors */
   for (int i = 0; i < fUGrids.Length(); i++){
 		renderer->AddActor(fUGrids[i]->Actor());
-		renderer->AddActor(fUGrids[i]->OutlineActor());
+		//renderer->AddActor(fUGrids[i]->OutlineActor());
 		renderer->AddActor(fUGrids[i]->BoundBoxActor());
   }
 }
@@ -292,7 +292,7 @@ void VTKBodyDataT::RemoveFromRenderer(vtkRenderer* renderer) const
 	/* remove all actors */
   for (int i = 0; i < fUGrids.Length(); i++){
 		renderer->RemoveActor(fUGrids[i]->Actor());
-		renderer->RemoveActor(fUGrids[i]->OutlineActor());
+		//renderer->RemoveActor(fUGrids[i]->OutlineActor());
 		renderer->RemoveActor(fUGrids[i]->BoundBoxActor());
   }
 		
