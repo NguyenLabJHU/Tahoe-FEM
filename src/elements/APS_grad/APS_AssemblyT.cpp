@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.54 2004-07-28 16:37:05 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.55 2004-07-29 14:57:12 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "APS_MatlT.h"
@@ -43,12 +43,16 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support):
 /* destructor */
 APS_AssemblyT::~APS_AssemblyT(void) 
 {  
-	delete fShapes_displ;
-	delete fShapes_plast;
+	delete fDispl;
+	delete fPlast;
 	delete fEquation_d; 
 	delete fEquation_eps; 
+	
+	delete fShapes_displ;
+	delete fShapes_plast; 
 	delete fBalLinMomMaterial; 
 	delete fPlastMaterial;
+	
 
 	/* free the global stack object (once) */
 	extern FEA_StackT* fStack;
@@ -983,7 +987,8 @@ void APS_AssemblyT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(n_en_plast, "n_en_plast");
 	
 	list.AddParameter(iPlastModelType, "plast_mod_type");
-	
+			
+	/*		
 	// elasticity
 	list.AddParameter(fMaterial_Data[kMu], "shear_modulus");
 	
@@ -1009,6 +1014,37 @@ void APS_AssemblyT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(fMaterial_Data[kkappa0_1], "kappa0_1");
 	list.AddParameter(fMaterial_Data[kkappa0_2], "kappa0_2");
 	list.AddParameter(fMaterial_Data[kkappa0_3], "kappa0_3");
+	*/
+	
+	double shearMu, m_rate, gamma0_dot_1, gamma0_dot_2, gamma0_dot_3,
+			m1_x,m1_y,m2_x,m2_y,m3_x,m3_y, length_scale, H_param, kappa0_1,
+			kappa0_2,kappa0_3;
+			
+	// elasticity
+	list.AddParameter(shearMu, "shear_modulus");
+	
+	// plasticity
+	list.AddParameter(m_rate, "rate_param");
+	list.AddParameter(gamma0_dot_1, "gamma0_dot_1");
+	list.AddParameter(gamma0_dot_2, "gamma0_dot_2");
+	list.AddParameter(gamma0_dot_3, "gamma0_dot_3");
+	list.AddParameter(m1_x, "m1_x");
+	list.AddParameter(m1_y, "m1_y");
+	list.AddParameter(m2_x, "m2_x");
+	list.AddParameter(m2_y, "m2_y");
+	list.AddParameter(m3_x, "m3_x");
+	list.AddParameter(m3_y, "m3_y");
+
+	//-- length scale, Backstress Parameter
+	list.AddParameter(length_scale, "length_scale");
+
+	//-- Isotropic Hardening Parameter
+	list.AddParameter(H_param, "H_param");
+	
+	//-- Initial values of state variable along various slip systems
+	list.AddParameter(kappa0_1, "kappa0_1");
+	list.AddParameter(kappa0_2, "kappa0_2");
+	list.AddParameter(kappa0_3, "kappa0_3");
 	
 	// number of side sets
 	list.AddParameter(num_sidesets, "num_sidesets");
@@ -1244,14 +1280,14 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 	ElementSupport().RegisterCoordinates(fInitCoords_displ);	
 	fCurrCoords_displ.Dimension(n_en_displ, n_sd);
 	fShapes_displ = new ShapeFunctionT(fGeometryCode_displ, fNumIP_displ, fCurrCoords_displ);
-	fShapes_displ->Initialize();
+	//fShapes_displ->Initialize();
 	// gamma_p
 	fInitCoords_plast.Dimension(n_en_plast, n_sd);
 	ElementSupport().RegisterCoordinates(fInitCoords_plast);	
 	fCurrCoords_plast.Dimension(n_en_plast, n_sd);
 	fShapes_plast = new ShapeFunctionT(fGeometryCode_plast, fNumIP_plast, fCurrCoords_plast);
 	//fShapes_plast = new ShapeFunctionT(fGeometryCode_plast, fNumIP_plast, fCurrCoords_displ);
-	fShapes_plast->Initialize();
+	//fShapes_plast->Initialize();
 	
 	/* allocate state variable storage */
 	// state variables are calculated at IPs for gamma_p field
