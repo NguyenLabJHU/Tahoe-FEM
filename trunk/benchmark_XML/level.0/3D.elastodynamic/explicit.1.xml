@@ -8,7 +8,7 @@
         </schedule_function>
     </time>
     <nodes>
-        <field field_name="displacement" integrator="central_difference">
+        <field field_name="displacement" integrator="central_difference" total_energy_output_inc="25"> 
             <dof_labels>
                 <String value="D_X"/>
                 <String value="D_Y"/>
