@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.cpp,v 1.10 2002-07-20 07:58:39 paklein Exp $ */
+/* $Id: LocalArrayT.cpp,v 1.11 2002-07-24 14:56:28 paklein Exp $ */
 /* created: paklein (07/10/1996) */
 
 #include "LocalArrayT.h"
@@ -43,6 +43,22 @@ LocalArrayT::LocalArrayT(const LocalArrayT& source):
 	fType(source.fType)
 {
 	*this = source;
+}
+
+/* copy data from an nArrayT */
+void LocalArrayT::Copy(int numnodes, int minordim, const nArrayT<double>& source)
+{
+#if __option(extended_errorcheck)
+	if (numnodes*minordim != source.Length()) throw eSizeMismatch;
+#endif
+
+	/* dimensions */
+	fNumNodes = numnodes;
+	fMinorDim = minordim;
+	if (fGlobal && fMinorDim != fGlobal->MinorDim()) throw eSizeMismatch;
+
+	/* inherited */
+	nArrayT<double>::operator=(source);
 }
 
 /* assignment operator */
