@@ -1,4 +1,4 @@
-/* $Id: dArrayT.h,v 1.2 2001-06-20 22:49:57 paklein Exp $ */
+/* $Id: dArrayT.h,v 1.3 2001-10-05 18:54:09 paklein Exp $ */
 /* created: paklein (08/11/1996)                                          */
 
 #ifndef _DARRAY_T_H_
@@ -19,6 +19,7 @@ public:
 
 	/* assigment operators */
 	dArrayT& operator=(const dArrayT& RHS);
+	dArrayT& operator=(const double* pRHS);
 	dArrayT& operator=(const double value);
 
 	/* L2 norm of the vector */
@@ -36,6 +37,12 @@ public:
 inline dArrayT& dArrayT::operator=(const dArrayT& RHS)
 {
 	nArrayT<double>::operator=(RHS);
+	return *this;
+}
+
+inline dArrayT& dArrayT::operator=(const double* pRHS)
+{
+	nArrayT<double>::operator=(pRHS);
 	return *this;
 }
 
