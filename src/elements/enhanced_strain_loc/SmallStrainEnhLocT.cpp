@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.10 2005-02-22 23:21:01 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.11 2005-02-23 00:16:41 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -630,7 +630,50 @@ void SmallStrainEnhLocT::CheckLocalization(int elem)
 			slipdirs.Top();
 			int num_normals = normals.Length();
 			dArrayT dummyt;
-			if (num_normals == 2)
+			if (num_normals == 1)
+			{
+				normals.Next();
+				normal1 = normals.Current();
+				fElementLocNormal1.SetRow(elem, normal1);
+				normal2 = 0.0;
+				fElementLocNormal2.SetRow(elem, normal2);
+				normal3 = 0.0;
+				fElementLocNormal3.SetRow(elem, normal3);
+				
+				slipdirs.Next();
+				slipdir1 = slipdirs.Current();
+				fElementLocSlipDir1.SetRow(elem, slipdir1);
+				slipdir2 = 0.0;
+				fElementLocSlipDir2.SetRow(elem, slipdir2);
+				slipdir3 = 0.0;
+				fElementLocSlipDir3.SetRow(elem, slipdir3);
+				
+				//calculate tangents
+				double product = dArrayT::Dot(normal1,slipdir1);
+				psi1 = asin(product);
+				fElementLocPsiSet[elem,0] = psi1;
+				double sec = 1.0/cos(psi1);
+				if (fabs(psi1-Pi/2.0) < smallnum)
+				{
+					tangent1 = 0.0;
+				}
+				else 
+				{
+					tangent1 = slipdir1;
+					tangent1 *= sec;
+					dummyt = normal1;
+					dummyt *= tan(psi1);
+					tangent1 -= dummyt;
+				}
+				fElementLocTangent1.SetRow(elem, tangent1);
+				
+				tangent2 = 0.0;
+				fElementLocTangent2.SetRow(elem, tangent2);
+				
+				tangent3 = 0.0;
+				fElementLocTangent3.SetRow(elem, tangent3);
+			}
+			else if (num_normals == 2)
 			{
 				normals.Next();
 				normal1 = normals.Current();
@@ -851,7 +894,7 @@ void SmallStrainEnhLocT::ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int ele
 		sum3 += product;
 	}
 	
-	if ( normal3.Magnitude() > smallnum )
+	if ( normal3.Magnitude() > smallnum && normal2.Magnitude() > smallnum )
 	{
 		if ( fabs(sum1) < fabs(sum2) && fabs(sum1) < fabs(sum3))
 		{
@@ -878,7 +921,7 @@ void SmallStrainEnhLocT::ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int ele
 			tangent_chosen = tangent1;
 		}
 	}
-	else
+	else if ( normal2.Magnitude() > smallnum )
 	{
 		if ( fabs(sum1) < fabs(sum2) )
 		{
@@ -898,6 +941,12 @@ void SmallStrainEnhLocT::ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int ele
 			slipdir_chosen = slipdir1;
 			tangent_chosen = tangent1;
 		}
+	}
+	else
+	{
+		normal_chosen = normal1;
+		slipdir_chosen = slipdir1;
+		tangent_chosen = tangent1;
 	}
 	
 	/* store chosen normal and slip direction vectors */
