@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.19 2004-11-06 01:49:49 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.20 2005-02-03 17:05:59 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -482,6 +482,10 @@ void MultiManagerT::DefineParameters(ParameterListT& list) const
 	/* name of the bridging field */
 	list.AddParameter(ParameterT::Word, "bridging_field");
 
+	/* file name for the overlap information */
+	ParameterT overlap_file(ParameterT::String, "overlap_file");
+	list.AddParameter(overlap_file, ParameterListT::ZeroOrOnce);
+
 	/* force balance options */
 	ParameterT fine_to_coarse(fFineToCoarse, "fine_to_coarse");
 	fine_to_coarse.SetDefault(fFineToCoarse);
@@ -750,6 +754,21 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 	if (!particle_pair) ExceptionT::GeneralFail(caller, "could not resolve ParticlePairT");
 	
 	/* overlap correction method */
+	StringT overlap_path;
+	const ParameterT* overlap_file = list.Parameter("overlap_file");
+	if (overlap_file) {
+		overlap_path = *overlap_file;
+		overlap_path.ToNativePathName();
+
+		StringT path;
+		path.FilePath(fInputFile);
+		overlap_path.Prepend(path);
+	} /* default name */
+	else {
+		overlap_path.Root(fInputFile);
+		overlap_path.Append(".overlap");
+	}
+	
 	const ParameterListT& overlap = list.GetListChoice(*this, "overlap_correction_choice");
 	if (overlap.Name() == "prescribe_overlap")
 	{
@@ -768,7 +787,7 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 		/* compute overlap correction */
 		double bound_0 = init_bound_width/2.0;
 		fCoarse->CorrectOverlap_2(particle_pair->Neighbors(), fine_init_coords, 
-			smoothing, bind_1, reg, bound_0, nip);
+			overlap_path, smoothing, bind_1, reg, bound_0, nip);
 	}
 	else if (overlap.Name() == "by-bond_penalty")
 	{
@@ -780,7 +799,7 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 		
 		/* compute overlap correction */
 		fCoarse->CorrectOverlap_22(particle_pair->Neighbors(), fine_init_coords, 
-			smoothing, bind_1, bound_tol, nip);
+			overlap_path, smoothing, bind_1, bound_tol, nip);
 	}
 	else
 		ExceptionT::GeneralFail(caller, "unrecognized overlap correction method \"%s\"",
