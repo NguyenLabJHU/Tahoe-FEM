@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.8 2002-01-27 18:44:14 paklein Exp $ */
+/* $Id: main.cpp,v 1.9 2002-07-02 19:48:40 cjkimme Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include <iostream.h>
@@ -22,6 +22,8 @@ extern "C" int ccommand(char ***arg);
 
 #include "FEExecutionManagerT.h"
 #include "StringT.h"
+
+using namespace Tahoe;
 
 static void StartUp(int* argc, char*** argv);
 static void ShutDown(void);
