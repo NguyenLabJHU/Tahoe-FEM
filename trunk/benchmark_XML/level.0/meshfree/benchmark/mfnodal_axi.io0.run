@@ -1,0 +1,31 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 0
+ Output ID . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodal values. . . . . . . . . . . . . = 13
+ Labels:
+	R
+	Z
+	D_X
+	D_Y
+	mass/rho
+	Err
+	Ezz
+	Erz
+	Ett
+	srr
+	szz
+	srz
+	stt
+ Number of element values. . . . . . . . . . . . = 0
+ Number of blocks. . . . . . . . . . . . . . . . = 1
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 0
+ Number of nodes . . . . . . . . . . . . . . . . = 16
+ Number of elements. . . . . . . . . . . . . . . = 16
+
+ O U T P U T   D A T A :  T O C
+mfnodal_axi.io0.run.ps0000
+mfnodal_axi.io0.run.ps0001
