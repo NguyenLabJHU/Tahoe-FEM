@@ -1,9 +1,9 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.13 2004-01-27 01:26:19 cjkimme Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.13.18.1 2004-06-19 04:33:16 hspark Exp $ */
 /* created: paklein (11/12/1999) */
 
 #include "MeshFreeElementSupportT.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "iAutoArrayT.h"
 #include "MeshFreeShapeFunctionT.h"
 #include "MeshFreeNodalShapeFunctionT.h"

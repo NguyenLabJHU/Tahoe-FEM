@@ -1,11 +1,11 @@
-/* $Id: Material2DT.cpp,v 1.5 2003-04-12 22:10:48 thao Exp $ */
+/* $Id: Material2DT.cpp,v 1.5.42.1 2004-06-19 04:33:15 hspark Exp $ */
 /* created: paklein (02/15/1997) */
 #include "Material2DT.h"
 
 #include <iostream.h>
 
 #include "ExceptionT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 
 namespace Tahoe {
 

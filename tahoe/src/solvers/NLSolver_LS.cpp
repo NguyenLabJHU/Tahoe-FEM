@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LS.cpp,v 1.12 2004-01-05 07:07:19 paklein Exp $ */
+/* $Id: NLSolver_LS.cpp,v 1.12.20.1 2004-06-19 04:33:31 hspark Exp $ */
 /* created: paklein (08/18/1999) */
 
 #include "NLSolver_LS.h"
@@ -6,7 +6,8 @@
 #include <iostream.h>
 #include <math.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
 #include "FEManagerT.h"

@@ -1,11 +1,11 @@
-/* $Id: VirtualRodT.cpp,v 1.6 2002-10-20 22:48:30 paklein Exp $ */
+/* $Id: VirtualRodT.cpp,v 1.6.52.1 2004-06-19 04:33:21 hspark Exp $ */
 /* created: paklein (05/01/1997) */
 
 #include "VirtualRodT.h"
 
 #include <iomanip.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "toolboxConstants.h"
 
 /* decoding VElPair data */

@@ -1,11 +1,11 @@
-/* $Id: LinearSpringT.cpp,v 1.4 2002-10-20 22:49:15 paklein Exp $ */
+/* $Id: LinearSpringT.cpp,v 1.4.52.1 2004-06-19 04:33:22 hspark Exp $ */
 /* created: paklein (05/28/1996) */
 #include "LinearSpringT.h"
 
 #include <iostream.h>
 
 #include "ExceptionT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "ThermalDilatationT.h"
 
 using namespace Tahoe;

@@ -1,4 +1,4 @@
-/* $Id: MFPenaltySphereT.cpp,v 1.6 2003-10-04 19:14:05 paklein Exp $ */
+/* $Id: MFPenaltySphereT.cpp,v 1.6.30.1 2004-06-19 04:33:27 hspark Exp $ */
 /* created: paklein (04/17/2000) */
 #include "MFPenaltySphereT.h"
 
@@ -7,7 +7,7 @@
 #include "toolboxConstants.h"
 #include "FEManagerT.h"
 #include "ElementBaseT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 
 using namespace Tahoe;
 

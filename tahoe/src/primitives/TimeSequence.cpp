@@ -1,9 +1,9 @@
-/* $Id: TimeSequence.cpp,v 1.4 2002-10-20 22:49:31 paklein Exp $ */
+/* $Id: TimeSequence.cpp,v 1.4.52.1 2004-06-19 04:33:29 hspark Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include "TimeSequence.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 
 #include "toolboxConstants.h"
 #include "ExceptionT.h"

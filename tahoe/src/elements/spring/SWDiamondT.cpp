@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.cpp,v 1.11 2002-11-30 16:41:29 paklein Exp $ */
+/* $Id: SWDiamondT.cpp,v 1.11.50.1 2004-06-19 04:33:21 hspark Exp $ */
 /* created: paklein (03/19/1997) */
 
 #include "SWDiamondT.h"
@@ -6,7 +6,8 @@
 #include <math.h>
 #include <iomanip.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "FindNeighbor23T.h"
 #include "OutputSetT.h"
 

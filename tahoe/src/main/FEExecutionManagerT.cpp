@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.60.2.2 2004-04-17 16:52:27 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.60.2.3 2004-06-19 04:33:24 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 #include "ofstreamT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "Environment.h"
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
@@ -18,7 +18,7 @@
 #include <Profiler.h>
 #endif
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "FEManagerT.h"
 #include "FEManagerT_mpi.h"
 #include "IOManager_mpi.h"
@@ -720,22 +720,23 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	batoms.CopyPart(0, allatoms, numgatoms, numbatoms);
 	gatoms.CopyPart(0, allatoms, 0, numgatoms);      
 	boundatoms.CopyPart(0, boundaryghostatoms, numgatoms, numbatoms);
-	elecdens.Dimension(gatoms.Length(), 1);
-	embforce.Dimension(gatoms.Length(), 1);
+	//elecdens.Dimension(gatoms.Length(), 1);
+	//embforce.Dimension(gatoms.Length(), 1);
 	continuum.InitInterpolation(boundaryghostatoms, bridging_field, *atoms.NodeManager());
 	//dArrayT mdmass;
 	//atoms.LumpedMass(atoms.NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
 	continuum.InitProjection(*atoms.CommManager(), atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive);		
-	//nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
-	//nMatrixT<int> ghostonmap(5), ghostoffmap(5);  // for fracture problem
+	nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // 3D void
+	//nMatrixT<int> ghostonmap(5), ghostoffmap(5);  // for 2D fracture problem
 	//nMatrixT<int> ghostonmap(4), ghostoffmap(4);    // for planar wave propagation problem
-	nMatrixT<int> ghostonmap(7), ghostoffmap(7);	// 3D fracture problem
+	//nMatrixT<int> ghostonmap(7), ghostoffmap(7);	// 3D fracture problem
 	ghostonmap = 0;
 	ghostoffmap = 0;
-	ghostonmap(4,5) = ghostonmap(5,4) = 1;	// 3D fracture problem
-	ghostoffmap(0,6) = ghostoffmap(6,0) = ghostoffmap(1,6) = ghostoffmap(6,1) = 1;
-	ghostoffmap(2,6) = ghostoffmap(6,2) = ghostoffmap(3,6) = ghostoffmap(6,3) = 1;
-	ghostoffmap(4,6) = ghostoffmap(6,4) = ghostoffmap(5,6) = ghostoffmap(6,5) = 1;
+	ghostoffmap(0,1) = ghostoffmap(1,0) = 1;	// 3D void problem	
+	//ghostonmap(4,5) = ghostonmap(5,4) = 1;	// 3D fracture problem
+	//ghostoffmap(0,6) = ghostoffmap(6,0) = ghostoffmap(1,6) = ghostoffmap(6,1) = 1;
+	//ghostoffmap(2,6) = ghostoffmap(6,2) = ghostoffmap(3,6) = ghostoffmap(6,3) = 1;
+	//ghostoffmap(4,6) = ghostoffmap(6,4) = ghostoffmap(5,6) = ghostoffmap(6,5) = 1;
 	//ghostoffmap(1,0) = ghostoffmap(0,1) = 1;  // for wave propagation problem
 	//ghostoffmap(4,0) = ghostoffmap(0,4) = ghostoffmap(4,1) = ghostoffmap(1,4) = 1;  // center MD crack
 	//ghostoffmap(4,2) = ghostoffmap(2,4) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
@@ -773,6 +774,16 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		/* use projected totalu instead of totalu for initial FEM displacements */
 		nMatrixT<int>& promap = atoms.PropertiesMap(0);   // element group for particles = 0
 		promap = ghostoffmap;  // turn ghost atoms off for f(u) calculation
+		/* Add image atom positions to projectedu in case of periodic BC's */
+		//CommManagerT* atom_comm = atoms.CommManager();
+		//const ArrayT<int>* nodeswithghost = atom_comm->NodesWithGhosts();
+		//const ArrayT<int>* ghostnodes = atom_comm->GhostNodes();
+		//for (int i = 0; i < nodeswithghost->Length(); i++)
+		//{
+		//	int nwg = (*nodeswithghost)[i];
+		//	int gn = (*ghostnodes)[i];
+		//	projectedu.CopyRowFromRow(gn, nwg);
+		//}
 		fubig = InternalForce(projectedu, atoms);
 		promap = ghostonmap;   // turn ghost atoms back on for MD force calculations
 		
@@ -900,6 +911,16 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		
 			/* calculate FE internal force as function of total displacement u here */
 			promap = ghostoffmap;  // turn off ghost atoms for f(u) calculations
+			/* Add image atom positions to projectedu in case of periodic BC's */
+			//CommManagerT* atom_comm = atoms.CommManager();
+			//const ArrayT<int>* nodeswithghost = atom_comm->NodesWithGhosts();
+			//const ArrayT<int>* ghostnodes = atom_comm->GhostNodes();
+			//for (int i = 0; i < nodeswithghost->Length(); i++)
+			//{
+			//	int nwg = (*nodeswithghost)[i];
+			//	int gn = (*ghostnodes)[i];
+			//	totalu.CopyRowFromRow(gn, nwg);
+			//}
 			fubig = InternalForce(totalu, atoms);
 			promap = ghostonmap;   // turn on ghost atoms for MD force calculations
 			fu.RowCollect(atoms.NonGhostNodes(), fubig); 

@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.h,v 1.6 2004-01-05 07:27:58 paklein Exp $ */
+/* $Id: LocalizerT.h,v 1.6.20.1 2004-06-19 04:33:06 hspark Exp $ */
 /* created: paklein (02/19/1998) */
 
 #ifndef _LOCALIZER_T_H_
@@ -8,7 +8,8 @@
 #include "UpdatedLagrangianT.h"
 
 /* direct members */
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "MonitorT.h"
 #include "AutoArrayT.h"
 #include "dMatrixEXT.h"

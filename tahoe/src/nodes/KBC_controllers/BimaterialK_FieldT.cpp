@@ -1,9 +1,9 @@
-/* $Id: BimaterialK_FieldT.cpp,v 1.9 2004-04-02 16:48:27 jzimmer Exp $ */
+/* $Id: BimaterialK_FieldT.cpp,v 1.9.4.1 2004-06-19 04:33:28 hspark Exp $ */
 /* created: paklein (09/05/2000) */
 #include "BimaterialK_FieldT.h"
 
 #include "NodeManagerT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 
 /* build options */
 #include "ElementsConfig.h"

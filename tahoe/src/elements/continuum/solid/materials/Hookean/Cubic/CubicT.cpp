@@ -1,11 +1,11 @@
-/* $Id: CubicT.cpp,v 1.4 2002-10-20 22:48:42 paklein Exp $ */
+/* $Id: CubicT.cpp,v 1.4.52.1 2004-06-19 04:33:11 hspark Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #include "CubicT.h"
 
 #include <iostream.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "dMatrixT.h"
 
 /* constructor */

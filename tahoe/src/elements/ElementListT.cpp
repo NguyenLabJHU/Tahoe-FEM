@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.85 2004-03-02 23:50:28 raregue Exp $ */
+/* $Id: ElementListT.cpp,v 1.85.14.1 2004-06-19 04:33:01 hspark Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -8,7 +8,8 @@
 #endif
 
 #include <iostream.h>
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "StringT.h"
 #include "ElementT.h"
 #include "ElementSupportT.h"

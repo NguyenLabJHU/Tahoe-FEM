@@ -1,8 +1,9 @@
-/* $Id: EAMT.cpp,v 1.56 2004-04-09 02:03:01 hspark Exp $ */
+/* $Id: EAMT.cpp,v 1.56.2.1 2004-06-19 04:33:17 hspark Exp $ */
 
 #include "EAMT.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "eIntegratorT.h"
 #include "InverseMapT.h"
 #include "CommManagerT.h"

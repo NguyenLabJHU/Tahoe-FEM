@@ -1,8 +1,8 @@
-/* $Id: DiffusionMatListT.cpp,v 1.8 2004-01-10 04:41:07 paklein Exp $ */
+/* $Id: DiffusionMatListT.cpp,v 1.8.20.1 2004-06-19 04:33:05 hspark Exp $ */
 /* created: paklein (02/14/1997) */
 #include "DiffusionMatListT.h"
 #include "DiffusionMatSupportT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 
 /* diffusion materials */
 #include "DiffusionMaterialT.h"

@@ -1,11 +1,11 @@
-/* $Id: UnConnectedRodT.cpp,v 1.14 2004-01-05 07:19:56 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.14.20.1 2004-06-19 04:33:21 hspark Exp $ */
 /* created: paklein (04/05/1997) */
 
 #include "UnConnectedRodT.h"
 
 #include <iomanip.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "ModelManagerT.h"
 #include "FindNeighborT.h"
 

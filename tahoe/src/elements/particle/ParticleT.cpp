@@ -1,7 +1,8 @@
-/* $Id: ParticleT.cpp,v 1.36.4.1 2004-04-20 17:08:29 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.36.4.2 2004-06-19 04:33:18 hspark Exp $ */
 #include "ParticleT.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "eIntegratorT.h"
 #include "OutputSetT.h"
 #include "dArray2DT.h"

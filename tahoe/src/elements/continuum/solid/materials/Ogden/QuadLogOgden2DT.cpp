@@ -1,9 +1,9 @@
-/* $Id: QuadLogOgden2DT.cpp,v 1.5 2003-01-29 07:34:43 paklein Exp $ */
+/* $Id: QuadLogOgden2DT.cpp,v 1.5.48.1 2004-06-19 04:33:12 hspark Exp $ */
 /* created: paklein (02/18/2001) */
 #include "QuadLogOgden2DT.h"
 #include <math.h>
 #include <iostream.h>
-#include "fstreamT.h"
+#include "ifstreamT.h"
 
 using namespace Tahoe;
 

@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.cpp,v 1.4 2003-12-28 08:23:11 paklein Exp $ */
+/* $Id: NLDiffusionElementT.cpp,v 1.4.20.1 2004-06-19 04:33:04 hspark Exp $ */
 #include "NLDiffusionElementT.h"
 
 #include <iostream.h>
@@ -7,7 +7,8 @@
 
 #include "toolboxConstants.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"
 #include "eIntegratorT.h"

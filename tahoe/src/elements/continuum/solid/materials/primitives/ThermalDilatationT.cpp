@@ -1,11 +1,11 @@
-/* $Id: ThermalDilatationT.cpp,v 1.4 2002-07-02 19:56:22 cjkimme Exp $ */
+/* $Id: ThermalDilatationT.cpp,v 1.4.58.1 2004-06-19 04:33:15 hspark Exp $ */
 /* created: paklein (08/25/1996) */
 
 #include "ThermalDilatationT.h"
 
 #include <iostream.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "ScheduleT.h"
 
 /* constructor */
