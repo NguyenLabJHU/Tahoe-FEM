@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.18 2002-07-05 17:24:03 hspark Exp $ */
+/* $Id: RodT.cpp,v 1.19 2002-07-05 18:18:54 hspark Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -218,13 +218,13 @@ void RodT::CloseStep(void)
 	ComputeInstTemperature();
 	//ComputeInstPressure();
       }
-    ComputeAvgPE();
-    ComputeAvgKE();
-    ComputeAvgTotalE();
-    ComputeAvgTemperature();
-    //ComputeAvgPressure();
-    PrintMDToFile();
-    }
+  }
+  ComputeAvgPE();
+  ComputeAvgKE();
+  ComputeAvgTotalE();
+  ComputeAvgTemperature();
+  //ComputeAvgPressure()
+  PrintMDToFile();
 }
 
 
@@ -445,7 +445,6 @@ void RodT::ComputeInstKE(void)
 		}
 		ke *= fCurrMaterial->Mass()/2.0;
 	}
-	  
 	total += ke;
 }
 
@@ -543,7 +542,8 @@ int RodT::PrintMDToFile(void)
 			return 1;
 		}
 
-  		out << setw(d_width) << "InstKE"  
+  		out << setw(d_width) << "Timestep"
+		    << setw(d_width) << "InstKE"  
   		    << setw(d_width) << "InstPE" 
   		    << setw(d_width) << "InstTemp" 
   		    << setw(d_width) << "InstTotalE" 
@@ -560,7 +560,8 @@ int RodT::PrintMDToFile(void)
 			return 1;
 		}
 	
-		out << setw(d_width) << fInstKE 
+		out << setw(d_width) << fStepNumber
+		    << setw(d_width) << fInstKE 
 		    << setw(d_width) << fInstPE 
 		    << setw(d_width) << fInstTemp 
 		    << setw(d_width) << fInstTotalE 
