@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.25 2003-05-21 16:04:08 thao Exp $
+# $Id: makefile,v 1.26 2003-08-04 01:27:27 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -28,7 +28,6 @@ OBJ = \
 	LennardJones612.o \
 	ModBessel.o \
 	ParabolaT.o \
-	ParabolaPotT.o \
 	PhiSplineT.o \
 	SmithFerrante.o \
 	ModSmithFerrante.o \
@@ -66,7 +65,6 @@ SRC = \
 	LennardJones612.cpp \
 	ModBessel.cpp \
 	ParabolaT.cpp \
-	ParabolaPotT.cpp \
 	PhiSplineT.cpp \
 	SmithFerrante.cpp \
 	ModSmithFerrante.cpp \
@@ -95,7 +93,6 @@ HDR = \
 	LennardJones612.h \
 	ModBessel.h \
 	ParabolaT.h \
-	ParabolaPotT.h \
 	PhiSplineT.h \
 	SmithFerrante.h \
 	ModSmithFerrante.h \
