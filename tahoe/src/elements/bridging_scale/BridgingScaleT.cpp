@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.30.2.4 2003-02-12 02:48:54 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.30.2.5 2003-02-12 23:41:59 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -329,11 +329,6 @@ void BridgingScaleT::ProjectField(const StringT& field, const PointInCellDataT& 
 	projection.Dimension(cell_nodes.Length(), values.MinorDim());
 	projection = 0.0;
 
-	/* cell connectivities are (matrix equations) - 1 */
-	iArrayT tmp_shift;
-	tmp_shift.Alias(cell_connects);
-	tmp_shift++;
-
 	/* loop over mesh */
 	int cell_dex = 0;
 	iArrayT cell_eq;
@@ -369,9 +364,6 @@ void BridgingScaleT::ProjectField(const StringT& field, const PointInCellDataT& 
 				projection.Accumulate(j, cell_eq, Nd(j));
 		}
 	}
-	
-	/* shift back (only needed for matrix assembly) */
-	tmp_shift--;
 
 	/* calculate projection - requires global matrix that supports 
 	 * multiple sovles */
@@ -392,7 +384,7 @@ void BridgingScaleT::ProjectField(const StringT& field, const PointInCellDataT& 
 
 	cell_dex = 0;
 	iArrayT cell_connect;
-	dArray2DT cell_projection(cell_connect.Length(), projection.MinorDim());
+	dArray2DT cell_projection(cell_connects.MinorDim(), projection.MinorDim());
 	for (int i = 0; i < point_in_cell.MajorDim(); i++)
 	{
 		int np = point_in_cell.MinorDim(i);
