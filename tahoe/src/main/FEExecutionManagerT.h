@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.13.2.1 2003-04-07 22:47:11 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.13.2.2 2003-04-28 22:14:53 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
@@ -20,6 +20,7 @@ class IOManager;
 class FEManagerT;
 class PartitionT;
 class ModelManagerT;
+class FEManagerT_bridging;
 
 /** class to handle file driven finite element simulations */
 class FEExecutionManagerT: public ExecutionManagerT
@@ -76,6 +77,13 @@ private:
 
 	/** multi-Tahoe, bridging scale test */
 	void RunBridging(ifstreamT& in, ostream& status) const;
+
+        /** quasistatic multi-Tahoe bridging scale */
+        void RunStaticBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms,
+                                ofstream& log_out) const;
+        
+        /** dynamic multi-Tahoe bridging scale */
+        void RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms) const;
 
 	/** time history kernel tests */
 	void RunTHK(ifstreamT& in, ostream& status) const;
