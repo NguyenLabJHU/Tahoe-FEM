@@ -1,6 +1,7 @@
-/* $Id: ParameterInterfaceT.cpp,v 1.6 2003-10-27 19:50:59 paklein Exp $ */
+/* $Id: ParameterInterfaceT.cpp,v 1.7 2003-11-01 21:08:51 paklein Exp $ */
 #include "ParameterInterfaceT.h"
 #include "ParameterListT.h"
+#include "ParameterUtils.h"
 
 using namespace Tahoe;
 
@@ -173,6 +174,14 @@ void ParameterInterfaceT::DefineInlineSub(const StringT& sub, ParameterListT::Li
 /* return a pointer to the ParameterInterfaceT */
 ParameterInterfaceT* ParameterInterfaceT::NewSub(const StringT& list_name) const
 {
-#pragma unused(list_name)
-	return NULL;
+	if (list_name == "Integer")
+		return new IntegerT;
+	else if (list_name == "IntegerList")
+		return new IntegerListT;
+	else if (list_name == "Double")
+		return new DoubleT;
+	else if (list_name == "DoubleList")
+		return new DoubleListT;
+	else
+		return NULL;
 }
