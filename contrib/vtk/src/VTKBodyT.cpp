@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.17 2001-12-13 02:57:59 paklein Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.18 2001-12-13 09:56:21 paklein Exp $ */
 
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
@@ -16,21 +16,13 @@
 #include "vtkActor2D.h"
 
 /* array behavior */
-const bool ArrayT<VTKBodyT>::fByteCopy = true;
+const bool ArrayT<VTKBodyT*>::fByteCopy = true;
 const bool ArrayT<vtkCubeAxesActor2D*>::fByteCopy = true;
 
 const bool ArrayT<vtkIdFilter*>::fByteCopy = true;
 const bool ArrayT<vtkSelectVisiblePoints*>::fByteCopy = true;
 const bool ArrayT<vtkLabeledDataMapper*>::fByteCopy = true;
 const bool ArrayT<vtkActor2D*>::fByteCopy = true;
-
-/* default constuctor */
-VTKBodyT::VTKBodyT(void) 
-{ 
-  fBodyData = NULL; 
-  fFrame = NULL;
-};
-
 
 /* constructor */
 VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
@@ -54,6 +46,14 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	iAddCommand(*command);
 
 	command = fFrame->iCommand("Rotate");
+	if (!command) throw eGeneralFail;
+	iAddCommand(*command);
+
+	command = fFrame->iCommand("ShowColorBar");
+	if (!command) throw eGeneralFail;
+	iAddCommand(*command);
+
+	command = fFrame->iCommand("HideColorBar");
 	if (!command) throw eGeneralFail;
 	iAddCommand(*command);
 	
@@ -112,6 +112,10 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 	else if (command.Name() == "Interactive")
 		return fFrame->iDoCommand(command, line);
 	else if (command.Name() == "Rotate")
+		return fFrame->iDoCommand(command, line);
+	else if (command.Name() == "ShowColorBar")
+		return fFrame->iDoCommand(command, line);
+	else if (command.Name() == "HideColorBar")
 		return fFrame->iDoCommand(command, line);
 	else if (command.Name() == "ShowNodeNumbers")
 	{

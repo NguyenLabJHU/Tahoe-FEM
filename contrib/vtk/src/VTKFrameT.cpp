@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.18 2001-12-13 02:57:59 paklein Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.19 2001-12-13 09:56:22 paklein Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -91,6 +91,17 @@ VTKFrameT::VTKFrameT(VTKConsoleT& console):
   rotate.AddArgument(rot_z);
   iAddCommand(rotate);
 
+  CommandSpecT pan("Pan", false);
+  ArgSpecT pan_x(ArgSpecT::double_, "x");
+  pan_x.SetDefault(0.0);
+  pan_x.SetPrompt("x-direction pan (dx/w)");
+  ArgSpecT pan_y(ArgSpecT::double_, "y");
+  pan_y.SetDefault(0.0);
+  pan_y.SetPrompt("y-direction pan (dy/h)");
+  pan.AddArgument(pan_x);
+  pan.AddArgument(pan_y);
+  iAddCommand(pan);
+
   CommandSpecT zoom("Zoom");
   ArgSpecT factor(ArgSpecT::double_);
   factor.SetPrompt("zoom factor");
@@ -139,11 +150,10 @@ VTKFrameT::~VTKFrameT(void)
   	/* frame label */
 	if (fLabelMapper) fLabelMapper->Delete();
 	if (fLabelActor) fLabelActor->Delete();
-
-	/* free subs - assuming all added with VTKFrameT::AddBody */
-	const ArrayT<iConsoleObjectT*>& isubs = iSubs();
-	for (int i = 0; i < isubs.Length(); i++)
-		delete isubs[i];
+	
+	/* free bodies */
+	for (int i = 0; i < bodies.Length(); i++)
+		delete bodies[i];
 }
 
 void VTKFrameT::ResetView(void)
@@ -161,7 +171,7 @@ bool VTKFrameT::AddBody(VTKBodyDataT* body_data)
 {
 	/* add body to the list */
 	VTKBodyT* new_body = new VTKBodyT(this, body_data);
-	if (bodies.AppendUnique(*new_body))
+	if (bodies.AppendUnique(new_body))
 	{
 		new_body->AddToFrame();
 		iAddSub(*new_body);
@@ -182,7 +192,7 @@ bool VTKFrameT::RemoveBody(VTKBodyDataT* body_data)
   	/* look for body data */
 	int index = -1;
 	for (int i = 0; index == -1 && bodies.Length(); i++)
-		if (bodies[i].BodyData() == body_data)
+		if (bodies[i]->BodyData() == body_data)
 			index = i;
 
   if (index == -1)
@@ -192,16 +202,19 @@ bool VTKFrameT::RemoveBody(VTKBodyDataT* body_data)
   }
   else
     {
-      VTKBodyT& body = bodies[index];
-      iDeleteSub(body);
+      VTKBodyT* body = bodies[index];
+      iDeleteSub(*body);
 
       /* remove from fRenderer */
-      body.RemoveFromFrame();
+      body->RemoveFromFrame();
       ResetView();
 
       /* remove from body list */
       bodies.DeleteAt(index);
-      return true;
+      
+      /* free body */
+      delete body;
+	  return true;
     }
 }
 
@@ -271,7 +284,7 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 	else
   	{
   		/* use the first body */
-  		VTKBodyDataT* body_data = bodies[0].BodyData();
+  		VTKBodyDataT* body_data = bodies[0]->BodyData();
   		
   		/* get grids */
   		const ArrayT<VTKUGridT*>& ugrids = body_data->UGrids();
@@ -346,7 +359,7 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 
       if (body >= 0 && body < bodies.Length())
 	{
-	  if (RemoveBody(bodies[body].BodyData()))
+	  if (RemoveBody(bodies[body]->BodyData()))
 	    {
 	      Render();
 	      return true;
@@ -377,7 +390,7 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
     	else
     	{
     		/* command spec */
-    		CommandSpecT* show = bodies[0].iCommand("ShowNodeNumbers");
+    		CommandSpecT* show = bodies[0]->iCommand("ShowNodeNumbers");
     		if (!show)
     		{
     			cout << "command not found" << endl;
@@ -387,7 +400,7 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
     		/* labels ON */
     		StringT tmp;
     		for (int i = 0; i < bodies.Length(); i++)
-    			bodies[i].iDoCommand(*show, tmp);
+    			bodies[i]->iDoCommand(*show, tmp);
 
 			Render();
 			return true;
@@ -400,7 +413,7 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
     	else
     	{
     		/* command spec */
-    		CommandSpecT* hide = bodies[0].iCommand("HideNodeNumbers");
+    		CommandSpecT* hide = bodies[0]->iCommand("HideNodeNumbers");
     		if (!hide)
     		{
     			cout << "command not found" << endl;
@@ -410,7 +423,7 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
     		/* labels OFF */
     		StringT tmp;
     		for (int i = 0; i < bodies.Length(); i++)
-    			bodies[i].iDoCommand(*hide, tmp);
+    			bodies[i]->iDoCommand(*hide, tmp);
 
 			Render();
 			return true;
@@ -423,7 +436,7 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
     	else
     	{
     		/* command spec */
-    		CommandSpecT* show = bodies[0].iCommand("ShowAxes");
+    		CommandSpecT* show = bodies[0]->iCommand("ShowAxes");
     		if (!show)
     		{
     			cout << "command not found" << endl;
@@ -433,7 +446,7 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
     		/* labels ON */
     		StringT tmp;
     		for (int i = 0; i < bodies.Length(); i++)
-    			bodies[i].iDoCommand(*show, tmp);
+    			bodies[i]->iDoCommand(*show, tmp);
 
 			Render();
 			return true;
@@ -446,7 +459,7 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
     	else
     	{
     		/* command spec */
-    		CommandSpecT* hide = bodies[0].iCommand("HideAxes");
+    		CommandSpecT* hide = bodies[0]->iCommand("HideAxes");
     		if (!hide)
     		{
     			cout << "command not found" << endl;
@@ -456,7 +469,7 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
     		/* labels OFF */
     		StringT tmp;
     		for (int i = 0; i < bodies.Length(); i++)
-    			bodies[i].iDoCommand(*hide, tmp);
+    			bodies[i]->iDoCommand(*hide, tmp);
 
 			Render();
 			return true;
@@ -484,10 +497,11 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 		command.Argument("z").GetValue(z);
 
 		if (fabs(x) > 1.0e-6) fRenderer->GetActiveCamera()->Elevation(x);
-		if (fabs(y) > 1.0e-6) fRenderer->GetActiveCamera()->Azimuth(y);
+		if (fabs(y) > 1.0e-6) fRenderer->GetActiveCamera()->Azimuth(-y);
 		if (fabs(z) > 1.0e-6) fRenderer->GetActiveCamera()->Roll(z);
 
 		fRenderer->GetActiveCamera()->OrthogonalizeViewUp();
+		fRenderer->ResetCameraClippingRange(); //to avoid clipping with rotation
 		Render();
 		return true;
 	}
@@ -499,7 +513,62 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
       Render();
       return true;
     }
-	 
+    /* based on vtkInteractorStyle::PanCamera */
+	else if (command.Name() == "Pan")
+	{
+		double x, y;
+		command.Argument("x").GetValue(x);
+		command.Argument("y").GetValue(y);
+		
+		/* renderer viewport size */
+		int* size = fRenderer->GetSize();
+  
+		/* calculate the focal depth */
+		double ViewFocus[4];
+		fRenderer->GetActiveCamera()->GetFocalPoint(ViewFocus);
+		ComputeWorldToDisplay(ViewFocus[0], ViewFocus[1], ViewFocus[2], ViewFocus);
+		double focalDepth = ViewFocus[2];
+
+		double NewPickPoint[4];
+		ComputeDisplayToWorld(ViewFocus[0] + size[0]*x/2.0, 
+		                      ViewFocus[1] + size[1]*y/2.0, 
+		                      focalDepth, NewPickPoint);
+
+		/* get the current focal point and position */
+		fRenderer->GetActiveCamera()->GetFocalPoint(ViewFocus);
+		double *ViewPoint = fRenderer->GetActiveCamera()->GetPosition();
+
+  		/* compute a translation vector */
+		double MotionVector[3];
+		double a = 1.0;
+		MotionVector[0] = a*(ViewFocus[0] - NewPickPoint[0]);
+		MotionVector[1] = a*(ViewFocus[1] - NewPickPoint[1]);
+		MotionVector[2] = a*(ViewFocus[2] - NewPickPoint[2]);
+
+		fRenderer->GetActiveCamera()->SetFocalPoint(
+			MotionVector[0] + ViewFocus[0],
+			MotionVector[1] + ViewFocus[1],
+			MotionVector[2] + ViewFocus[2]);
+		fRenderer->GetActiveCamera()->SetPosition(
+			MotionVector[0] + ViewPoint[0],
+			MotionVector[1] + ViewPoint[1],
+			MotionVector[2] + ViewPoint[2]);
+
+//TEMP - don't know what this does			
+#if 0
+		/* get render window interactor */
+		vtkRenderWindow* rw = fRenderer->GetRenderWindow();
+  		vtkRenderWindowInteractor *rwi = rw->GetInteractor();
+		if (rwi->GetLightFollowCamera())
+		{
+			/* get the first light */
+			fRenderer->CurrentLight->SetPosition(this->CurrentCamera->GetPosition());
+			fRenderer->CurrentLight->SetFocalPoint(this->CurrentCamera->GetFocalPoint());
+		}
+#endif
+		Render();
+		return true;
+	}
 	else if (command.Name() =="ChangeBackgroundColor")
 	{
 		int bg_color;
@@ -531,14 +600,14 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 	{
 		int varNum;
 		command.Argument(0).GetValue(varNum);
-		const StringT& var = (bodies[0]->NodeLabels())[varNum];
+		const StringT& var = (bodies[0]->BodyData()->NodeLabels())[varNum];
 		for (int i = 0; i < bodies.Length(); i++)
-			bodies[i].ChangeVars(var); // will not return true if body does not have the var
+			bodies[i]->ChangeVars(var); // will not return true if body does not have the var
 		
 		/* reset color bar name */
 		if (scalarBar)	
 		{
-  			VTKBodyDataT* body_data = bodies[0].BodyData();
+  			VTKBodyDataT* body_data = bodies[0]->BodyData();
 			const StringT& var_name = (body_data->NodeLabels())[body_data->CurrentVariableNumber()];
 			scalarBar->SetTitle(var_name);
 		}
@@ -567,7 +636,7 @@ void VTKFrameT::ValuePrompt(const CommandSpecT& command, int index, ostream& out
     }
   else if (command.Name() == "ChooseVariable")
     {
-		const ArrayT<StringT>& labels = bodies[0]->NodeLabels();
+		const ArrayT<StringT>& labels = bodies[0]->BodyData()->NodeLabels();
 		for (int i = 0; i < labels.Length(); i++)
 			out << setw(5) << i << ": " << labels[i] << '\n';
     }
@@ -590,4 +659,34 @@ void VTKFrameT::Render(void) const
 	}
 	StringT line;
 	fConsole.iDoCommand(*spec, line);
+}
+
+// Description:
+// transform from display to world coordinates.
+// WorldPt has to be allocated as 4 vector
+void VTKFrameT::ComputeDisplayToWorld(double x, double y, double z,
+	double *worldPt)
+{
+	fRenderer->SetDisplayPoint(x, y, z);
+	fRenderer->DisplayToWorld();
+	fRenderer->GetWorldPoint(worldPt);
+	if (worldPt[3])
+    {
+		worldPt[0] /= worldPt[3];
+		worldPt[1] /= worldPt[3];
+		worldPt[2] /= worldPt[3];
+		worldPt[3] = 1.0;
+	}
+}
+
+
+// Description:
+// transform from world to display coordinates.
+// displayPt has to be allocated as 3 vector
+void VTKFrameT::ComputeWorldToDisplay(double x, double y, double z,
+	double *displayPt)
+{
+	fRenderer->SetWorldPoint(x, y, z, 1.0);
+	fRenderer->WorldToDisplay();
+	fRenderer->GetDisplayPoint(displayPt);
 }

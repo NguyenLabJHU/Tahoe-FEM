@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.34 2001-12-13 02:57:59 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.35 2001-12-13 09:56:21 paklein Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -115,6 +115,10 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
 	if (!command) throw eGeneralFail;
 	iAddCommand(*command);
 
+	command = fFrames[0]->iCommand("Pan");
+	if (!command) throw eGeneralFail;
+	iAddCommand(*command);
+
 	command = fFrames[0]->iCommand("ResetView");
 	if (!command) throw eGeneralFail;
 	iAddCommand(*command);
@@ -172,7 +176,10 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 		}
 		return true;
     }
-  else if (command.Name() == "Rotate" || command.Name() == "Zoom" || command.Name() == "ResetView")
+  else if (command.Name() == "Rotate" || 
+           command.Name() == "Zoom"   || 
+           command.Name() == "Pan"    || 
+           command.Name() == "ResetView")
 	{
 		/* hold rendering */
 		fRenderHold = true;
