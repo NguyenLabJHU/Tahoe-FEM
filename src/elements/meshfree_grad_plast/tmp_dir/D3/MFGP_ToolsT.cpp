@@ -125,27 +125,38 @@ void MFGP_ToolsT::ExpandIndex2(int nsd, int dex_1, int dex_2, int dex_3,
 
 //--------------------------------------------------------------------
 /* returns jacobian of the nodal values with respect
-* to the variables of the shape function second derivatives */
-void MFGP_ToolsT::JacobianD2(const LocalArrayT& nodal, const dArray2DT& DDNa,
+* to the variables of the shape function second derivatives */ //kyonten
+/*void MFGP_ToolsT::JacobianD2(const LocalArrayT& nodal, const dArray2DT& DDNa,
 	dMatrixT& jac) const
 {
 #if __option(extended_errorcheck)
-	/* consistency check */
-	const char caller[] = "MFGP_ToolsT::JacobianD2";
-	if (nodal.MinorDim() == 1) 
-	ExceptionT::OutOfRange(caller, "bad index %d", nodal.MinorDim());
+	/* dimension check */
+/*if (DDNa.MinorDim() != nodal.NumberOfNodes() ||
+        DDNa.MajorDim() != jac.Cols()            ||
+            jac.Rows() != nodal.MinorDim()) ExceptionT::SizeMismatch("MFGP_ToolsT::JacobianD2");
 #endif
-
 	double *pjac = jac.Pointer();
 	const double *pval = nodal.Pointer();
 	
 	/* dimensions */
-	int nnd   = nodal.NumberOfNodes();
-	int nsd = nodal.MinorDim(); //   nodal:[nnd] x [nu] (assumption: nu = nsd)
-	int nstr = dSymMatrixT::NumValues(nsd);
+	/*int nnd   = nodal.NumberOfNodes();
+	int nstr = DDNa.MajorDim();	//DDNa: [nstr]x[nnd]
+	int nsd;
+	if (nstr==3 || nstr==4)
+	{
+		nsd = 2;
+	}
+	else if (nstr==6)
+	{
+		nsd = 3;
+	}   
+	else
+	{
+		nsd = 1;
+	}
 	
 	/* allocate output space */
-	jac.Dimension(nsd, nstr);
+/*jac.Dimension(nsd, nstr);
 	if (nsd == 2)
 	{
 		double& j11 = *pjac++;
@@ -240,27 +251,26 @@ void MFGP_ToolsT::JacobianD2(const LocalArrayT& nodal, const dArray2DT& DDNa,
 		throw ExceptionT::kBadInputValue;
 	}
 	
-}
+}*/
 
 //--------------------------------------------------------------------
 /* returns jacobian of the nodal values with respect
-* to the variables of the shape function third derivatives */
-void MFGP_ToolsT::JacobianD3(const LocalArrayT& nodal, const dArray2DT& DDDNa,
+* to the variables of the shape function third derivatives */ //kyonten
+/*id MFGP_ToolsT::JacobianD3(const LocalArrayT& nodal, const dArray2DT& DDDNa,
 	dMatrixT& jac) const
 {
 #if __option(extended_errorcheck)
-	/* consistency check */
-	const char caller[] = "MFGP_ToolsT::JacobianD3";
-	if (nodal.MinorDim() == 1) 
-	ExceptionT::OutOfRange(caller, "bad index %d", nodal.MinorDim());
+	/* dimension check */
+/*f (DDDNa.MinorDim() != nodal.NumberOfNodes() ||
+        DDDNa.MajorDim() != jac.Cols()            ||
+            jac.Rows() != nodal.MinorDim()) ExceptionT::SizeMismatch("MFGP_ToolsT::JacobianD3");
 #endif
-
 	double *pjac = jac.Pointer();
 	const double *pval = nodal.Pointer();
 	
 	/* dimensions */
-	int nnd   = nodal.NumberOfNodes();
-	int nsd = nodal.MinorDim(); //   nodal:[nnd] x [nu] (assumption: nu = nsd)
+/*	int nnd = nodal.NumberOfNodes();
+	int nsd = sqrt(DDDNa.MajorDim()); //   DDDNa: [nsd*nsd]x[nnd]
 	
 	jac.Dimension(nsd, nsd*nsd);
 	if (nsd == 2)
@@ -384,4 +394,5 @@ void MFGP_ToolsT::JacobianD3(const LocalArrayT& nodal, const dArray2DT& DDDNa,
 		cout << "\n MFGP_ToolsT::JacobianD3: invalid nsd " << endl;
 		throw ExceptionT::kBadInputValue;
 	}
-}
+} */
+

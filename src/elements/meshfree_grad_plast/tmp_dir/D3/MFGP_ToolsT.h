@@ -6,6 +6,7 @@
 /* direct members */
 #include "dArrayT.h"
 #include "dMatrixT.h"
+#include "dSymMatrixT.h"
 #include "dArray2DT.h"
 
 namespace Tahoe {
@@ -37,7 +38,7 @@ class MFGP_ToolsT
 	 * \param DDNa shape function second derivatives: [nstr] x [nnd]
 	 * \param jacobian resulting jacobian: [nu] x [nstr]
 	 **/
-	void JacobianD2(const LocalArrayT& nodal, const dArray2DT& DDNa, dMatrixT& jacobian) const;
+	//id JacobianD2(const LocalArrayT& nodal, const dArray2DT& DDNa, dMatrixT& jacobian) const;
 	
 	/** compute the jacobian of the nodal values.
 	 * uses externally provided shape function derivatives.
@@ -45,14 +46,8 @@ class MFGP_ToolsT
 	 * \param DDDNa shape function third derivatives: [nsd*nsd] x [nnd] 
 	 * \param jacobian resulting jacobian: [nu] x [nsd*nsd]  
 	 **/
-	void JacobianD3(const LocalArrayT& nodal, const dArray2DT& DDDNa, dMatrixT& jacobian) const;
+	//id JacobianD3(const LocalArrayT& nodal, const dArray2DT& DDDNa, dMatrixT& jacobian) const;
 	
-	/** \name parent domain shape functions derivatives */
-	/*@{*/
-	ArrayT<dArray2DT> fDDNa;
-	ArrayT<dArray2DT> fDDDNa;
-	/*@}*/
-    
 };
 
 } /* namespace Tahoe */
