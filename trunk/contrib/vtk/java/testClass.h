@@ -10,6 +10,7 @@ public:
 
 	testClass(int a);
 	void Print(ostream& out);
+	void SetA (int x);
 
 private:
 
