@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.24 2004-08-05 00:53:37 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.25 2004-08-05 16:39:50 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -47,7 +47,7 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support, const FieldT& field):
 	fNodalShapes(NULL),
 	qComputeVoronoiCell(false),
 	fNumIP(1),
-	vCellFile("vcell.out")
+	vCellFile("voronoidiagram")
 {
 	SetName("mfparticle");
 
@@ -63,7 +63,7 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support):
 	fNodalShapes(NULL),
 	qComputeVoronoiCell(false),
 	fNumIP(1),
-	vCellFile("vcell.out")
+	vCellFile("voronoidiagram")
 {
 	SetName("mfparticle");
 
