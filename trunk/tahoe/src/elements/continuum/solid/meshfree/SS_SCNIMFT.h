@@ -1,4 +1,4 @@
-/* $Id: SS_SCNIMFT.h,v 1.2 2004-07-15 08:29:39 paklein Exp $ */
+/* $Id: SS_SCNIMFT.h,v 1.3 2004-07-29 23:42:06 cjkimme Exp $ */
 #ifndef _SS_SCNIMF_T_H_
 #define _SS_SCNIMF_T_H_
 
@@ -50,14 +50,6 @@ public:
 	/** */
 	virtual void RHSDriver(void);
 	
-protected: /* for derived classes only */
-	
-	virtual void ReadMaterialData(ifstreamT& in);
-	virtual MaterialListT* NewMaterialList(int nsd, int size);
-	
-	/** translate internal storage of bVector to Strain-Displacement matrix */	
-	void bVectorToMatrix(double *bVector, dMatrixT& BJ);
-	
 	/** generate labels for output data */
 	virtual void GenerateOutputLabels(ArrayT<StringT>& labels);
 
@@ -75,9 +67,18 @@ protected: /* for derived classes only */
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+	
+	//virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
-protected:
+protected: /* for derived classes only */
+	
+	virtual void ReadMaterialData(void);
+	virtual MaterialListT* NewMaterialList(const StringT&, int size);
+	
+	/** translate internal storage of bVector to Strain-Displacement matrix */	
+	void bVectorToMatrix(double *bVector, dMatrixT& BJ);
+	
 
 	SSMatSupportT* fSSMatSupport;
 	

@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.h,v 1.2 2004-07-15 08:29:39 paklein Exp $ */
+/* $Id: FS_SCNIMF_AxiT.h,v 1.3 2004-07-29 23:42:06 cjkimme Exp $ */
 #ifndef _FS_SCNIMF_AXI_T_H_
 #define _FS_SCNIMF_AXI_T_H_
 
@@ -53,8 +53,8 @@ public:
 
 protected: /* for derived classes only */
 	
-	virtual void ReadMaterialData(ifstreamT& in);	
-	virtual MaterialListT* NewMaterialList(int nsd, int size);
+	virtual void ReadMaterialData();	
+	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
 	
 	/** translate internal storage of bVector to Strain-Displacement matrix */	
 	void bVectorToMatrix(double *bVector, dMatrixT& BJ);

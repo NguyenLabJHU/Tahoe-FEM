@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.98 2004-07-29 00:24:37 raregue Exp $ */
+/* $Id: ElementListT.cpp,v 1.99 2004-07-29 23:42:01 cjkimme Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -278,6 +278,8 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("updated_lagrangian_Q1P0_axi");
 		sub_lists.AddSub("updated_lagrangian_Q1P0_inv_axi");
 		sub_lists.AddSub("large_strain_meshfree_axi");
+		sub_lists.AddSub("ss_mfparticle");
+		sub_lists.AddSub("fd_mfparticle");
 
 #ifdef BRIDGING_ELEMENT
 		sub_lists.AddSub("bridging");
@@ -446,6 +448,10 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 		return new SimoQ1P0Axi_inv(fSupport);
 	else if (name == "large_strain_meshfree_axi")
 		return new MeshFreeFSSolidAxiT(fSupport);
+	else if (name == "ss_mfparticle")
+		return new SS_SCNIMFT(fSupport);
+	else if (name == "fd_mfparticle")
+		return new FS_SCNIMFT(fSupport);
 
 #ifdef BRIDGING_ELEMENT
 	else if (name == "bridging")

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeNodalShapeFunctionT.h,v 1.3 2004-06-24 21:03:50 cjkimme Exp $ */
+/* $Id: MeshFreeNodalShapeFunctionT.h,v 1.4 2004-07-29 23:42:12 cjkimme Exp $ */
 #ifndef _MF_NODAL_SHAPE_FUNCTION_T_H_
 #define _MF_NODAL_SHAPE_FUNCTION_T_H_
 
@@ -14,7 +14,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class MeshFreeSupportT;
-class ifstreamT;
+class ParameterListT;
 class LocalArrayT;
 template <class TYPE> class RaggedArray2DT;
 
@@ -34,7 +34,7 @@ public:
 	 * \param currelement reference to the current cell of evaluation
 	 * \param in input stream */
 	MeshFreeNodalShapeFunctionT(int numSD,/* const LocalArrayT& nodes,*/ const dArray2DT& all_coords,
-		const iArray2DT& connects, const dArray2DT& nonNodes, ifstreamT& in);
+		const iArray2DT& connects, const dArray2DT& nonNodes, const ParameterListT& mf_support_params);
 
 	/** destructor */
 	~MeshFreeNodalShapeFunctionT(void);

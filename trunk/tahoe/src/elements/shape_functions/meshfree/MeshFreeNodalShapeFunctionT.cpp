@@ -1,4 +1,4 @@
-/* $Id: MeshFreeNodalShapeFunctionT.cpp,v 1.4 2004-07-15 08:29:59 paklein Exp $ */
+/* $Id: MeshFreeNodalShapeFunctionT.cpp,v 1.5 2004-07-29 23:42:12 cjkimme Exp $ */
 #include "MeshFreeNodalShapeFunctionT.h"
 #include "toolboxConstants.h"
 #include "MeshFreeSupport2DT.h"
@@ -11,7 +11,7 @@ using namespace Tahoe;
 /* constructor */
 MeshFreeNodalShapeFunctionT::MeshFreeNodalShapeFunctionT(int numSD, 
 	const dArray2DT& all_coords, const iArray2DT& connects,
-	const dArray2DT& nonNodes, ifstreamT& in):
+	const dArray2DT& nonNodes, const ParameterListT& mf_support_params):
 	fSD(numSD),
 	fMFSupport(NULL),
 	fDNaU(1),
@@ -30,6 +30,9 @@ MeshFreeNodalShapeFunctionT::MeshFreeNodalShapeFunctionT(int numSD,
 
 	if (!fMFSupport) 
 		ExceptionT::OutOfMemory("MeshFreeNodalShapeFunctionT::MeshFreeNodalShapeFunctionT","Cannot create support\n");
+
+	/* initialize */
+	fMFSupport->TakeParameterList(mf_support_params);
 
 }
 
