@@ -1,7 +1,4 @@
-/*
-  File: HyperEVP3D.h
-*/
-
+/* $Id: HyperEVP3D.h,v 1.3 2002-03-26 17:48:18 paklein Exp $ */
 #ifndef _HYPER_EVP_3D_H_
 #define _HYPER_EVP_3D_H_
 
@@ -27,9 +24,6 @@ class HyperEVP3D : public EVPFDBaseT
 
   // destructor
   ~HyperEVP3D();
-
-  // number of variables to be stored
-  virtual int NumVariablesPerElement();
 
   // Cauchy stress
   virtual const dSymMatrixT& s_ij();   
@@ -73,9 +67,6 @@ class HyperEVP3D : public EVPFDBaseT
   // kinetic equation
   virtual void SetKineticEquation();
 
-  // initial value of variables
-  virtual void InitializeVariables();
-
   // recover variables
   virtual void LoadElementData(ElementCardT& element, int intpt);
 
@@ -107,6 +98,13 @@ class HyperEVP3D : public EVPFDBaseT
   virtual void ElasticModuli();
 
  private:
+
+  // number of variables to be stored
+  virtual int NumVariablesPerElement();
+
+  // initial value of variables
+  virtual void InitializeVariables(ElementCardT& element);
+
   // forward gradient estimate for DEQP
   void ForwardGradientEstimate();
 

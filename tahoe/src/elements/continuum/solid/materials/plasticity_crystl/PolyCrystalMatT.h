@@ -36,8 +36,17 @@ class PolyCrystalMatT : public FDHookeanMatT
   // destructor
   virtual ~PolyCrystalMatT();
 
+	/** returns true. Derived classes override ContinuumMaterialT::NeedsPointInitialization */
+	virtual bool NeedsPointInitialization(void) const;
+
+	/** model initialization. Called per integration point for every
+	 * element using the model. Deformation variables are available
+	 * during this call. Uses PolyCrystalMatT::NumVariablesPerElement to
+	 * allocate the element storage, and then calls PolyCrystalMatT::InitializeVariables
+	 * to initialize the state variable space. */
+	void PointInitialize(void);
+
   // allocate space/initialize crystal arrays (all)
-  virtual bool NeedsInitialization() const;
   virtual void Initialize();
 
   // required parameter flag
@@ -49,8 +58,6 @@ class PolyCrystalMatT : public FDHookeanMatT
   // some methods to set/initialize member data
   virtual void SetSlipKinetics() = 0;
   virtual void SetSlipHardening() = 0;
-  virtual void InitializeCrystalVariables() = 0;
-  virtual int  NumVariablesPerElement() = 0;
   virtual int  NumberOfUnknowns() const = 0;
 
   // methods invoked from nonlinear constitutive solver
@@ -87,9 +94,6 @@ class PolyCrystalMatT : public FDHookeanMatT
   // print name
   virtual void PrintName(ostream& out) const;
 
-  // allocate all elements at once
-  void AllocateElements();
-
   // subincrementation procedure to compute crystal state
   void SolveCrystalState();
 
@@ -105,6 +109,13 @@ class PolyCrystalMatT : public FDHookeanMatT
   void FFFFC_3D(dMatrixT& Co, dMatrixT& Ci, const dMatrixT& F);
 
  private:
+
+	/** returns the number of variables stored per element */
+	virtual int  NumVariablesPerElement(void) = 0;
+
+	/** called by PolyCrystalMatT::PointInitialize */
+	virtual void InitializeCrystalVariables(ElementCardT& element) = 0;
+
   /** return true if material implementation supports imposed thermal
     * strains. This material does not support multiplicative thermal
     * strains. FDHookeanMatT has been updated, but this class needs

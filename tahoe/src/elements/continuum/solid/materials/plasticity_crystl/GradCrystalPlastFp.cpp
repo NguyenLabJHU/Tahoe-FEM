@@ -351,19 +351,14 @@ void GradCrystalPlastFp::SetSlipHardening()
   if (!fHardening) throwMemoryError("GradCrystalPlastFp::SetSlipHardening");
 }
 
-void GradCrystalPlastFp::InitializeCrystalVariables()
+void GradCrystalPlastFp::InitializeCrystalVariables(ElementCardT& element)
 {
-  // only one grain per integration point
-  int igrn = 0;
+	// only one grain per integration point
+	int igrn = 0;
+	int elem = CurrElementNumber();
 
-  // initialize state at each element and ...
-  for (int elem = 0; elem < NumElements(); elem++)
-    {
-      // get pointer to element elem
-      ElementCardT& element = ElementCard(elem);
-      
-      // ... at each integration point
-      for (int intpt = 0; intpt < NumIP(); intpt++)
+	// ... at each integration point
+	for (int intpt = 0; intpt < NumIP(); intpt++)
 	{
 	  // fetch crystal data 
 	  LoadCrystalData(element, intpt, igrn);
@@ -397,7 +392,6 @@ void GradCrystalPlastFp::InitializeCrystalVariables()
 	  // hardening variables
 	  fHardening->InitializeHardVariables();
 	}
-    }
 }
 
 void GradCrystalPlastFp::LoadCrystalData(ElementCardT& element,

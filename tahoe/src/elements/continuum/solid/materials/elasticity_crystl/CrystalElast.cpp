@@ -1,4 +1,4 @@
-/* $Id: CrystalElast.cpp,v 1.3 2001-08-21 01:13:51 paklein Exp $ */
+/* $Id: CrystalElast.cpp,v 1.4 2002-03-26 17:48:16 paklein Exp $ */
 /*
   File: CrystalElast.cpp
 */
@@ -61,8 +61,6 @@ CrystalElast::~CrystalElast()
   delete fCrystalElastLat;
   delete fCrystalElastMat;
 }
-
-bool CrystalElast::NeedsInitialization() const { return false; }
 
 void CrystalElast::Initialize()
 {

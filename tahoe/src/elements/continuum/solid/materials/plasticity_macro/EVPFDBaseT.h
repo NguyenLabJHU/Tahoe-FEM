@@ -1,8 +1,4 @@
-/* $Id: EVPFDBaseT.h,v 1.4 2001-09-15 01:21:03 paklein Exp $ */
-/*
-  File: EVPFDBaseT.h
-*/
-
+/* $Id: EVPFDBaseT.h,v 1.5 2002-03-26 17:48:18 paklein Exp $ */
 #ifndef _EVP_FD_BASE_T_H_
 #define _EVP_FD_BASE_T_H_
 
@@ -33,8 +29,17 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
   virtual ~EVPFDBaseT();
 
   // allocate space/initialize crystal arrays (all)
-  virtual bool NeedsInitialization() const;
   virtual void Initialize();
+
+	/** returns true. Derived classes override ContinuumMaterialT::NeedsPointInitialization */
+	virtual bool NeedsPointInitialization() const;
+
+	/** model initialization. Called per integration point for every
+	 * element using the model. Deformation variables are available
+	 * during this call. Uses EVPFDBaseT::NumVariablesPerElement to
+	 * allocate the element storage, and then calls EVPFDBaseT::InitializeVariables
+	 * to initialize the state variable space. */
+	virtual void PointInitialize(void);
 
   // required parameter flag
   virtual bool NeedLastDisp() const;
@@ -44,8 +49,6 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
 
   // PVFs defined in derived classes 
   virtual void SetKineticEquation() = 0;
-  virtual void InitializeVariables() = 0;
-  virtual int  NumVariablesPerElement() = 0;
 
   // PVFs invoked from NLCSolver and defined in derived classes
   virtual void FormRHS(const dArrayT& variab, dArrayT& rhs) = 0;
@@ -69,9 +72,6 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
   // size of system of nonlinear equations
   virtual int GetNumberOfEqns();
 
-  // allocate all elements at once
-  void AllocateElements();
-
 	// function to compute 3D deformation regardless of dimensionality of the
 	// problem. For 2D, the out-of-plane direction is x3 and the deformation
 	// is assumed to be plane strain
@@ -79,6 +79,12 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
 	void Compute_Ftot_last_3D(dMatrixT& F_3D) const;	
 
  private:
+
+	/** return the number variables stored per element */
+	virtual int NumVariablesPerElement() = 0;
+
+	/** initialize the state variables for the given element */
+	virtual void InitializeVariables(ElementCardT& element) = 0;
 
  	/** return true if material implementation supports imposed thermal
 	 * strains. This material does not support multiplicative thermal
