@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.cpp,v 1.4 2001-08-29 07:08:22 paklein Exp $ */
+/* $Id: XDOF_ManagerT.cpp,v 1.5 2001-09-05 07:07:55 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 /* base class which defines the interface for a manager */
 /* of DOF's comprised of FE DOF's plus constrain DOF's */
@@ -241,57 +241,60 @@ void XDOF_ManagerT::CheckEquationNumbers(ostream& out, iArray2DT& eqnos)
 			set_index++;
 			
 			iArray2DT& XDOF_eqnos = *fXDOF_Eqnos[set_index];
-			if (XDOF_eqnos.MinorDim() > 1)
+			if (XDOF_eqnos.MinorDim() == 1)
 			{
-				cout << "\n XDOF_ManagerT::CheckNewEquationNumbers: expecting only 1 DOF" << endl;
-				throw eGeneralFail;
-			}
-			iArrayT eq_temp;
-			eq_temp.Alias(XDOF_eqnos);
+				iArrayT eq_temp;
+				eq_temp.Alias(XDOF_eqnos);
 
-			/* constraint connectivities */
-			const iArray2DT& connects = fDOFElements[i]->DOFConnects(set);
-			iArrayT elem;
-			iArrayT eq_u;
-			int nen = connects.MinorDim();
-			for (int j = 0; j < connects.MajorDim(); j++)
-			{
-				connects.RowAlias(j, elem);
-				if (elem[nen-1] + 1 <= eqnos.MajorDim()) /* eqnos has disp DOF's */
+				/* constraint connectivities */
+				const iArray2DT& connects = fDOFElements[i]->DOFConnects(set);
+				iArrayT elem;
+				iArrayT eq_u;
+				int nen = connects.MinorDim();
+				for (int j = 0; j < connects.MajorDim(); j++)
 				{
-					cout << "\n XDOF_ManagerT: expecting external DOF tag in final slot: ";
-					cout << elem[nen-1] << endl;
-					throw eGeneralFail;
-				}
+					connects.RowAlias(j, elem);
+					if (elem[nen-1] + 1 <= eqnos.MajorDim()) /* eqnos has disp DOF's */
+					{
+						cout << "\n XDOF_ManagerT: expecting external DOF tag in final slot: ";
+						cout << elem[nen-1] << endl;
+						throw eGeneralFail;
+					}
 		
-				/* get equations from 1st node in connect */
-				eqnos.RowAlias(elem[0], eq_u); // connects are 1,...
+					/* get equations from 1st node in connect */
+					eqnos.RowAlias(elem[0], eq_u); // connects are 1,...
 
-				/* find highest equation of the node */
-				int max_eq = eq_u.Max();
-				if (max_eq < 0)
-				{
-					cout << "\n XDOF_ManagerT: no active equations found with contact tag ";
-					cout << elem[nen-1] << '\n';
-					cout << " connectivity: ";
-					cout << elem.no_wrap() << '\n';
-					cout << endl;
-					throw eGeneralFail;
+					/* find highest equation of the node */
+					int max_eq = eq_u.Max();
+					if (max_eq < 0)
+					{
+						cout << "\n XDOF_ManagerT: no active equations found with contact tag ";
+						cout << elem[nen-1] << '\n';
+						cout << " connectivity: ";
+						cout << elem.no_wrap() << '\n';
+						cout << endl;
+						throw eGeneralFail;
+					}
+
+					/* swap */
+					eq_u.ChangeValue(max_eq, XDOF_eqnos(j,0));
+					XDOF_eqnos(j,0) = max_eq;
+
+					out << setw(kIntWidth) << elem[0];
+					out << setw(kIntWidth) << elem[nen-1];
+					if (++col == num_cols)
+					{
+						out << '\n';
+						col = 0;
+					}
+					else
+						out << setw(kIntWidth) << " ";
 				}
-			
-				/* swap */
-				eq_u.ChangeValue(max_eq, XDOF_eqnos(j,0));
-				XDOF_eqnos(j,0) = max_eq;
-			
-				out << setw(kIntWidth) << elem[0];
-				out << setw(kIntWidth) << elem[nen-1];
-				if (++col == num_cols)
-				{
-					out << '\n';
-					col = 0;
-				}
-				else
-					out << setw(kIntWidth) << " ";			
+			}
+			else
+			{
+				cout << "\n XDOF_ManagerT::CheckNewEquationNumbers: no check for NDOF > 1: " 
+				     << XDOF_eqnos.MinorDim() << endl;
 			}
 		}
 	
