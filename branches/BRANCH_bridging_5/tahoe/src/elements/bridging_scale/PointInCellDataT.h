@@ -1,4 +1,4 @@
-/* $Id: PointInCellDataT.h,v 1.5.4.2 2004-04-03 20:15:41 paklein Exp $ */
+/* $Id: PointInCellDataT.h,v 1.5.4.3 2004-04-18 00:22:20 paklein Exp $ */
 #ifndef _POINT_IN_CELL_DATA_T_H_
 #define _POINT_IN_CELL_DATA_T_H_
 
@@ -57,6 +57,9 @@ public:
 
 	/** const access to global to local map */
 	const InverseMapT& GlobalToLocal(void) const { return fGlobalToLocal; };
+	
+	/** translate interpolation data to sparse matrix data */
+	void InterpolationDataToMatrix(iArrayT& r, iArrayT& c, dArrayT& v) const;
 	/*@}*/
 
 	/** \name interpolation to nodes from points in filled cells */

@@ -1,4 +1,4 @@
-/* $Id: InterpolationDataT.cpp,v 1.3.2.2 2004-03-31 22:29:29 paklein Exp $ */
+/* $Id: InterpolationDataT.cpp,v 1.3.2.3 2004-04-18 00:22:20 paklein Exp $ */
 #include "InterpolationDataT.h"
 #include "iArray2DT.h"
 #include "dArrayT.h"
@@ -101,5 +101,28 @@ void InterpolationDataT::Transpose(const InverseMapT& map, const iArray2DT& neig
 			fNeighborWeights(col_map, dex) = weight[j];
 			dex++;
 		}
+	}	
+}
+
+/* return the interpolation data as a sparse matrix */
+void InterpolationDataT::ToMatrix(iArrayT& r, iArrayT& c, dArrayT& v) const
+{
+	iArrayT fwd(fNeighborWeights.MajorDim());
+	fMap.Forward(fwd);	
+
+	int nv = fNeighborWeights.Length();
+	r.Dimension(nv);
+	c.Dimension(nv);
+	v.Dimension(nv);
+	
+	iArrayT tmp(fNeighbors.Length(), fNeighbors.Pointer());
+	c = tmp;
+	v = fNeighborWeights.Pointer();
+
+	int index = 0;	
+	for (int i = 0; i < fwd.Length(); i++) {
+		int dim = fNeighbors.MinorDim(i);
+		for (int j = 0; j < dim; j++)
+			r[index++] = fwd[i];
 	}	
 }

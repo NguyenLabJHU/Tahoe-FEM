@@ -1,4 +1,4 @@
-/* $Id: InterpolationDataT.h,v 1.2.4.2 2004-03-31 22:29:29 paklein Exp $ */
+/* $Id: InterpolationDataT.h,v 1.2.4.3 2004-04-18 00:22:20 paklein Exp $ */
 #ifndef _INTERPOLATION_DATA_T_H_
 #define _INTERPOLATION_DATA_T_H_
 
@@ -53,6 +53,9 @@ public:
 		const dArray2DT& neighbor_weights);
 	/*@}*/
 
+	/** return the interpolation data as a sparse matrix */
+	void ToMatrix(iArrayT& r, iArrayT& c, dArrayT& v) const;
+	
 private:
 
 	/** map of global number to corresponding row in InterpolationDataT::fNeighbors
