@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.39.2.10 2003-05-10 21:30:23 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.39.2.11 2003-05-11 21:01:08 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -571,12 +571,12 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	atoms.InitGhostNodes();
 	continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
 	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager());
-
+	
 	/* time managers */
 	TimeManagerT* atom_time = atoms.TimeManager();
 	TimeManagerT* continuum_time = continuum.TimeManager();
 
-	dArray2DT field_at_ghosts, totalu, fu;
+	dArray2DT field_at_ghosts, totalu, fu, ntfproduct;
 	dSPMatrixT ntf;
 	atom_time->Top();
 	continuum_time->Top();
@@ -620,13 +620,16 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		/* calculate fine scale part of MD displacement and total displacement u */
 		continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu);
 		
-		/* solve for initial FEM force as function of fine scale + FEM */
+		/* solve for initial FEM force f(u) as function of fine scale + FEM */
 		fu = InternalForce(totalu, atoms);
 		
-		/* write f(u) into FEM global force vector here - need to get InterpolationMatrix working */
-		continuum.InterpolationMatrix(bridging_field, ntf);
+		/* calculate global interpolation matrix ntf */
+		continuum.Ntf(ntf);
 		
-		/* solve continuum for accelerations */
+		/* compute FEM RHS force as product of ntf and fu */
+		
+		
+		/* solve FEM equation of motion using force just calculated as RHS */
 		if (1 || error == ExceptionT::kNoError) {
 				continuum.ResetCumulativeUpdate(group);
 				error = continuum.SolveStep();
@@ -693,10 +696,10 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			/* calculate FE internal force as function of total displacement u here */
 			fu = InternalForce(totalu, atoms);
 			
-			/* add f(u) to global FEM force vector here */
-			//continuum.InterpolationMatrix(bridging_field, ntf);
+			/* calculate FEM RHS force using ntf and fu */
 			
-			/* solve FE equation of motion for accelerations using internal force */
+			
+			/* solve FE equation of motion using internal force just calculated */
 			if (1 || error == ExceptionT::kNoError) {
 					continuum.ResetCumulativeUpdate(group);
 					error = continuum.SolveStep();

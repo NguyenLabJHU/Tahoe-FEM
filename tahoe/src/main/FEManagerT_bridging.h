@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.3.2.3 2003-05-10 21:30:23 hspark Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.3.2.4 2003-05-11 21:01:08 hspark Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -87,6 +87,10 @@ public:
 	/** return the interpolation matrix associated with the active degrees
 	 * of freedom */
 	void InterpolationMatrix(const StringT& field, dSPMatrixT& G_Interpolation) const;
+
+	/** compute global interpolation matrix for all nodes whose support intersects the MD 
+	 *  region, i.e. N_{I}(X_{\alpha}) */
+	void Ntf(dSPMatrixT& ntf) const;
 
 	/** initialize projection data. Initialize data structures needed to project
 	 * field values to the given list of points. Requires that this FEManagerT has
