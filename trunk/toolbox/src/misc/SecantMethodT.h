@@ -1,12 +1,10 @@
-/* $Id: SecantMethodT.h,v 1.3 2002-09-12 16:40:20 paklein Exp $ */
-/* created: paklein (12/01/1998)                                          */
-/* SecantMethodT.h                                                        */
-
+/* $Id: SecantMethodT.h,v 1.4 2004-05-26 09:32:10 paklein Exp $ */
+/* created: paklein (12/01/1998) */
 #ifndef _SECANT_METHOD_T_H_
 #define _SECANT_METHOD_T_H_
 
-#include "toolboxConstants.h"
-
+/* direct members */
+#include "dArray2DT.h"
 
 namespace Tahoe {
 
@@ -26,6 +24,9 @@ public:
 	/* try next point, returns 1 when converged, 0 if not converged,
 	 * -1 on fail */
 	int NextPoint(double x, double err);
+	
+	/** return the current number of iterations */
+	int Iterations(void) const { return fcount; };
 
 private:
 
@@ -40,7 +41,17 @@ private:
 	/* solution data */
 	double ferr0;   // reference error
 	int    fcount;  // number of iterations
+
+	/** line search history */
+	dArray2DT fSearchData;
+
+	/** max step size */
+	double fMaxStepSize;
+
+	/** flag to run one more and then give up */
+	bool fOneMore;
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _SECANT_METHOD_T_H_ */
