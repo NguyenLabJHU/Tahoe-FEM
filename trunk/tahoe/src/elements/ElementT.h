@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.44 2004-05-17 23:39:06 raregue Exp $ */
+/* $Id: ElementT.h,v 1.45 2004-06-17 00:47:09 rdorgan Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -66,6 +66,7 @@ kPenaltyContactElement3D = 34,
       kGradC0SmallStrain = 69,      
 			  kSS_SCNIMF = 70, /**< small strain stabilized, conforming nodally-integrated Galerkin MF */
 			  kFS_SCNIMF = 71, /**< finite deformation ditto */
+   kGradSmallStrainMixed = 72,
 			   kAPSVgrad = 80, /* anti-plane shear gradient plasticity, vector element */
 		  kMeshfreeGradP = 85, /* meshfree gradient plasticity */
 		kSS_EnhStrainLoc = 90, /* small strain enhanced strain embedded discontinuity element */
