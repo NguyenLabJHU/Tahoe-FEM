@@ -1,4 +1,4 @@
-# $Id: tahoe.extras,v 1.3 2002-04-03 00:08:42 paklein Exp $
+# $Id: tahoe.extras,v 1.4 2002-04-03 00:13:17 paklein Exp $
 #
 # additional make commands for the tahoe module
 #
@@ -50,4 +50,4 @@ touch_METIS:
 touch_NOX:
 	@ $(ECHO) "removing object files depending on NOX"
 	-@ $(RM) $(SRC_DIR)/main/FEExecutionManagerT.o
-	-@ $(RM) $(SRC_DIR)/solver/NOX/*.o
+	-@ $(RM) $(SRC_DIR)/solvers/NOX/*.o
