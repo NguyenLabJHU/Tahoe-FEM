@@ -1,10 +1,11 @@
-/* $Id: VTKFrameT.h,v 1.3 2001-10-24 18:20:36 paklein Exp $ */
+/* $Id: VTKFrameT.h,v 1.4 2001-10-25 21:40:19 recampb Exp $ */
 
 #ifndef _VTK_FRAME_T_H_
 #define _VTK_FRAME_T_H_
 
 /* base class */
 #include "iConsoleObjectT.h"
+#include "VTKBodyT.h"
 
 /* forward declarations */
 class vtkRenderer;
@@ -30,6 +31,7 @@ class vtkCubeAxesActor2D;
 class StringT;
 class vtkWarpVector;
 class vtkVectors;
+class VTKBodyT;
 
 class VTKFrameT: public iConsoleObjectT
 {
@@ -37,47 +39,27 @@ class VTKFrameT: public iConsoleObjectT
 
   /* constructor */
   VTKFrameT(void);
-
-  private:
-
-  int num_nodes;
-  int num_dim;
-  StringT inFile;
-  double valRange1, valRange2;
-  double hueRange1,hueRange2;
-  double satRange1, satRange2;
-  double alphaRange1, alphaRange2;
-  double scalarRange1[100], scalarRange2[100];
-  double scale_factor;
-  int numColors;
-  int num_node_variables;
-  int num_time_steps;
-  ArrayT<StringT> node_labels;
-  int currentVarNum;
-  StringT output_file;
-  StringT outFileName;
-  StringT sbTitle;
-  StringT varList;
+  //VTKBodyT Body(const int bodyNum) { return bodies(bodyNum);};
+  
+  //vtkRenderer* Renderer(void) {return renderer;};
+  //private:
+ 
   vtkRenderer *renderer;
-  vtkLookupTable *lut;
-  vtkDataSetMapper *ugridMapper;
-  vtkActor *ugridActor;
-  vtkActor *wireActor;
-  vtkScalarBarActor *scalarBar;
+  /* vtkScalarBarActor *scalarBar; */
   vtkRendererSource *renSrc;
-  vtkIdFilter *ids;
-  vtkSelectVisiblePoints *visPts;
-  vtkLabeledDataMapper *ldm;
-  vtkActor2D *pointLabels;
-  vtkUnstructuredGrid *ugrid;
-  vtkScalars *scalars [1000][100];
-  vtkVectors *vectors [1000][100];
-  vtkCamera *cam;
-  vtkCubeAxesActor2D *axes;
-  vtkPoints *points;
-  vtkWarpVector *warp;
-  int frameNum;
-
+ /*  vtkIdFilter *ids; */
+/*   vtkSelectVisiblePoints *visPts; */
+/*   vtkLabeledDataMapper *ldm; */
+/*   vtkActor2D *pointLabels; */
+/*   vtkUnstructuredGrid *ugrid; */
+/*   vtkScalars *scalars [1000][100]; */
+/*   vtkVectors *vectors [1000][100]; */
+/*   vtkCamera *cam; */
+/*   vtkCubeAxesActor2D *axes; */
+/*   vtkPoints *points; */
+/*   vtkWarpVector *warp; */
+/*   int frameNum; */
+  ArrayT<VTKBodyT> bodies;
 };
 
 #endif

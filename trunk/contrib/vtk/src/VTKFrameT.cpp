@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.3 2001-10-24 18:20:36 paklein Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.4 2001-10-25 21:40:19 recampb Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -34,26 +34,26 @@
 #include "GeometryT.h"
 
 /* constructor */
-VTKFrameT::VTKFrameT(void)//: fAge(0)
+VTKFrameT::VTKFrameT(void)
 {
   /* set up console modifiable variables */
 //   iAddVariable("age", fAge);
 //   iAddVariable("str_len", (const int) fLength);
 //   iAddVariable("string", (const char*) fArray);
  /* add variables to the console */
-  iAddVariable("min_Hue_Range", hueRange1);
-  iAddVariable("max_Hue_Range", hueRange2);
-  iAddVariable("min_Value_Range", valRange1);
-  iAddVariable("max_Value_Range", valRange2);
-  iAddVariable("min_Saturation_Range", satRange1);
-  iAddVariable("max_Saturation_Range", satRange2);
-  iAddVariable("min_Alpha_Range", alphaRange1);
-  iAddVariable("max_Alpha_Range", alphaRange2);
-  iAddVariable("numColors", numColors);
-  //iAddVariable("source_file", source_file);
-  iAddVariable("min_Scalar_Range", scalarRange1);
-  iAddVariable("max_Scalar_Range", scalarRange2);
-  iAddVariable("scale_factor", scale_factor);
+//   iAddVariable("min_Hue_Range", hueRange1);
+//   iAddVariable("max_Hue_Range", hueRange2);
+//   iAddVariable("min_Value_Range", valRange1);
+//   iAddVariable("max_Value_Range", valRange2);
+//   iAddVariable("min_Saturation_Range", satRange1);
+//   iAddVariable("max_Saturation_Range", satRange2);
+//   iAddVariable("min_Alpha_Range", alphaRange1);
+//   iAddVariable("max_Alpha_Range", alphaRange2);
+//   iAddVariable("numColors", numColors);
+//   //iAddVariable("source_file", source_file);
+//   iAddVariable("min_Scalar_Range", scalarRange1);
+//   iAddVariable("max_Scalar_Range", scalarRange2);
+//   iAddVariable("scale_factor", scale_factor);
 
   /* add console commands */
   iAddCommand("Reset_to_Default_Values");
@@ -75,6 +75,14 @@ VTKFrameT::VTKFrameT(void)//: fAge(0)
   iAddCommand("Hide_axes");
   iAddCommand("Choose_variable");
 
+  bodies.Allocate(1);
+  for (int i = 0; i<1; i++)
+    {
+      StringT temp;
+      temp.Append("body", i,2);
+      bodies[i].iSetName(temp);
+      iAddSub(bodies[i]);
+    }
 
 }
 
@@ -96,21 +104,21 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
     return true;
   }
 
-  else if (command == "Update_Rendering")
-  {
+//   else if (command == "Update_Rendering")
+//   {
 
-    ugridMapper->SetScalarRange(scalarRange1[currentVarNum],scalarRange2[currentVarNum]);
-    lut->SetHueRange(hueRange1, hueRange2);
-    lut->SetSaturationRange(satRange1,satRange2);
-    lut->SetValueRange(valRange1,valRange2);
-    lut->SetAlphaRange(alphaRange1,alphaRange2);
-    lut->SetNumberOfColors(numColors);
-    warp->SetScaleFactor(scale_factor);
-    renWin->Render();
-    cout << "type 'e' in the graphics window to exit interactive mode" << endl;   
-    iren->Start();
-    return true;
-  }
+//     ugridMapper->SetScalarRange(scalarRange1[currentVarNum],scalarRange2[currentVarNum]);
+//     lut->SetHueRange(hueRange1, hueRange2);
+//     lut->SetSaturationRange(satRange1,satRange2);
+//     lut->SetValueRange(valRange1,valRange2);
+//     lut->SetAlphaRange(alphaRange1,alphaRange2);
+//     lut->SetNumberOfColors(numColors);
+//     warp->SetScaleFactor(scale_factor);
+//     renWin->Render();
+//     cout << "type 'e' in the graphics window to exit interactive mode" << endl;   
+//     iren->Start();
+//     return true;
+//   }
     
 //   else if (command == "Reset_to_Default_Values")
 //     {
