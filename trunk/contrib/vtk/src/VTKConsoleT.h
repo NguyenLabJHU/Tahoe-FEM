@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.h,v 1.20 2001-11-07 02:34:45 paklein Exp $ */
+/* $Id: VTKConsoleT.h,v 1.21 2001-11-20 01:04:04 recampb Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -10,12 +10,14 @@
 /* direct members */
 #include "VTKFrameT.h"
 #include "VTKBodyT.h"
+#include "VTKBodyDataT.h"
 #include "StringT.h"
 #include "AutoArrayT.h"
 #include "Array2DT.h"
 
 /* forward declarations */
 class VTKBodyT;
+class VTKBodyDataT;
 
 class VTKConsoleT: public iConsoleObjectT
 {
@@ -31,7 +33,7 @@ class VTKConsoleT: public iConsoleObjectT
   virtual bool iDoCommand(const StringT& command, StringT& line);
 
   /** return the list of bodies */
-  const ArrayT<VTKBodyT*> Bodies(void) const { return fBodies; };
+  const ArrayT<VTKBodyDataT*> Bodies(void) const { return fBodies; };
 
  private:
   
@@ -61,7 +63,7 @@ class VTKConsoleT: public iConsoleObjectT
   Array2DT<VTKFrameT*> fFrames;
 
   /** list of display objects */
-  AutoArrayT<VTKBodyT*> fBodies;
+  AutoArrayT<VTKBodyDataT*> fBodies;
 };
 
 #endif

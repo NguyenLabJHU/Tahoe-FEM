@@ -1,8 +1,9 @@
-/* $Id: VTKFrameT.cpp,v 1.13 2001-11-15 19:37:02 paklein Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.14 2001-11-20 01:04:04 recampb Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
 #include "VTKBodyT.h"
+#include "VTKBodyDataT.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
@@ -83,7 +84,7 @@ void VTKFrameT::ResetView(void)
   renderer->ResetCamera();
 }
 
-bool VTKFrameT::AddBody(VTKBodyT* body)
+bool VTKFrameT::AddBody(VTKBodyDataT* body)
 {
   if (bodies.AppendUnique(body))
     {
@@ -95,7 +96,6 @@ bool VTKFrameT::AddBody(VTKBodyT* body)
       ResetView();
       StringT name = "body";
       int index = bodies.PositionOf(body);
-
       name.Append(index);
       bodies[index]->iSetName(name);
       iAddSub(*bodies[index]);
@@ -105,14 +105,14 @@ bool VTKFrameT::AddBody(VTKBodyT* body)
     return false;
 }
 
-bool VTKFrameT::RemoveBody(VTKBodyT* body)
+bool VTKFrameT::RemoveBody(VTKBodyDataT* body)
 {
   int index = bodies.PositionOf(body);
   if (index == -1)
     return false;
   else
     {
-      VTKBodyT* body = bodies[index];
+      VTKBodyDataT* body = bodies[index];
       iDeleteSub(*bodies[index]);
       /* remove from renderer */
       renderer->RemoveActor(body->Actor());
@@ -167,7 +167,7 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
   else if (command == "AddBody")
     {
       /* list of bodies */
-      const ArrayT<VTKBodyT*>& bodies = fConsole->Bodies();
+      const ArrayT<VTKBodyDataT*>& bodies = fConsole->Bodies();
 
       cout << "body to add (0," << bodies.Length()-1 << "): ";
       int body = -99;
@@ -252,45 +252,6 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
       return true;
     }
 
-//   else if (command == "Save")
-//     {
-//       cout << "Enter name for file to be saved to: ";
-//       cin >> output_file;
-//       char line[255];
-//       cin.getline(line, 254);
-//       cout << "Save image at: \n 1: current view\n 2: default view: ";
-//       cin >> sfbTest;
-//       cin.getline(line, 254);
-//       /* if default camera desired */
-//       if (sfbTest == 2) {
-// 	  cam->SetFocalPoint(0,0,0);
-// 	  cam->SetPosition(0,0,1);
-// 	  cam->ComputeViewPlaneNormal();
-// 	  cam->SetViewUp(0,1,0);
-// 	  cam->OrthogonalizeViewUp();
-// 	  renderer->SetActiveCamera(cam);
-// 	  renderer->ResetCamera();
-// 	  renWin->Render();
-// 	}
-//       int saveOpt;
-//       renSrc->SetInput(renderer);
-//       if (numRen == 4){ 
-// 	cout << "Save options:\n 1: single plot\n 2: all 4 plots: ";
-// 	cin >> saveOpt;
-// 	cin.getline(line, 254);
-// 	if (saveOpt == 2)
-// 	  renSrc->WholeWindowOn();
-	
-//       }
-//       writer->SetInput(renSrc->GetOutput());
-//       writer->SetFileName(output_file);
-//       writer->Write();
-//       renWin->Render();
-//       cout << "File " << output_file << " has been saved." << endl;
-//       //  iren->Start();
-//       return true;
-//     }
-
   else if (command == "Show_Node_Numbers")
     {
       pointLabels = vtkActor2D::New();
@@ -304,7 +265,6 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
       ldm->SetInput(visPts->GetOutput());
       ldm->SetLabelModeToLabelIds();
       ldm->ShadowOff();
-      // ldm->SetLabelModeToLabelFieldData();
       pointLabels->SetMapper(ldm);
       pointLabels->VisibilityOn();
       renderer->AddActor2D(pointLabels);
@@ -401,14 +361,6 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
       fRenWin->Render();
       return true;
     }
-
-  //  else if (command == "Flip_book")
-  //{
-  //}
-
-  //  else if (command== "Save_flip_book_images")
-  //{
-  //}
 	 
   else if (command=="Change_background_color")
     {
@@ -457,19 +409,6 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
       
     }
 
-//    else if (command == "Hide_Node_Numbers")
-
-//     {
-
-// // //       ids->PointIdsOff();
-// // //       ids->Update();
-//       pointLabels->VisibilityOff();
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       iren->Start();
-//       return true;   
- 
-//     }
   
   else if (command == "Show_axes")
     {
