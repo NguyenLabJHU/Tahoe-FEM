@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.59 2002-11-01 02:09:46 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.60 2003-01-09 00:45:45 paklein Exp $ */
 #include "VTKConsoleT.h"
 
 /* ANSI headers */
@@ -153,7 +153,7 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
 	renWin->SetPosition(10,10);
 
 	//renWin->SetDesiredUpdateRate(30.0);
-//  renWin->SetSize(600,700);
+	renWin->SetSize(500,500);
 	iren = vtkRenderWindowInteractor::New();
 	iren->SetRenderWindow(renWin);
 
