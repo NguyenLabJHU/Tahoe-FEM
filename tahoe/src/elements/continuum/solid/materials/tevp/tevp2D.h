@@ -1,4 +1,4 @@
-/* $Id: tevp2D.h,v 1.16 2001-08-13 22:55:45 hspark Exp $ */
+/* $Id: tevp2D.h,v 1.17 2001-08-14 01:22:32 hspark Exp $ */
 /* Created:  Harold Park (04/04/2001) */
 
 #ifndef _TEVP_2D_H_
@@ -89,8 +89,8 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   double ComputeFluidTemperature(void);
   double ComputeViscoTemperature(void);
   double ComputeEffectiveStress(void);
-  double ComputeFluidEffectiveStrain(void);
-  double ComputeViscoEffectiveStrain(void);
+  double ComputeFluidEffectiveStrain(double& effectivestrainrate);
+  double ComputeViscoEffectiveStrain(double& effectivestrainrate);
   void CheckCriticalCriteria(const ElementCardT& element, int ip);
   int CheckIfPlastic(const ElementCardT& element, int ip);
   /* load element data for the specified integration point */
@@ -155,8 +155,7 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   double fTemperature;         // Temperature
   double fSb;                  // Effective stress
   double fEb;                  // Effective strain
-  double fViscoStrainRate;      // Viscoplastic effective strain rate
-  double fFluidStrainRate;    // Fluid model effective strain rate
+  double fEffectiveStrainRate;    // Fluid model effective strain rate
 
   
   /* Global material constants - class scope variables */
