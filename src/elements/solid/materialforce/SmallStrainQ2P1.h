@@ -1,4 +1,4 @@
-/* $Id: SmallStrainQ2P1.h,v 1.2 2003-08-08 22:57:28 thao Exp $ */
+/* $Id: SmallStrainQ2P1.h,v 1.3 2003-08-10 23:27:27 thao Exp $ */
 #ifndef _SMALL_STRAIN_Q2P1_H_
 #define _SMALL_STRAIN_Q2P1_H_
 
@@ -54,13 +54,15 @@ class SmallStrainQ2P1: public SmallStrainT
 	/** indicies of elements in the list of material needs */
 	enum MaterialNeedsT {kstrain = 0,
 	                kstrain_last = 1};
-
- private:
-	dArray2DT fTheta_List;  /*Dilation at each ip for each element*/ 
+ protected:
+ 	ArrayT<dArray2DT> fGradbar;
+	dArray2DT fTheta_List;      /*Dilation at each ip for each element*/ 
 	dArray2DT fTheta_List_last;
-	dArray2DT fPressure_List;  /*Dilation at each ip for each element*/ 
-	
+	dArray2DT fPressure_List;   /*Dilation at each ip for each element*/ 
 
+	const double fthird;
+
+ private:	
 	const int fpdof;            /*pressure dof*/
        	dArray2DT fMShapes; /*shape function for pressure dof*/
 	dMatrixT fH_inv;    /*Mass matrix from fGamma*/
@@ -77,9 +79,7 @@ class SmallStrainQ2P1: public SmallStrainT
 	dMatrixT fB_dev;
 	dMatrixT fBbar_dil;
 	dArrayT fGradTranspose;
-	ArrayT<dArray2DT> fGradbar;
-
-	const double fthird;
+	
   	/*@}*/
 };
 
