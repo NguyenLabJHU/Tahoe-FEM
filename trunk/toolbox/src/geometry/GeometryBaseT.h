@@ -1,4 +1,4 @@
-/* $Id: GeometryBaseT.h,v 1.6 2004-05-17 05:11:04 paklein Exp $ */
+/* $Id: GeometryBaseT.h,v 1.7 2005-01-26 19:52:10 paklein Exp $ */
 /* created: paklein (10/21/1997) */
 #ifndef _GEOMETRY_BASE_T_H_
 #define _GEOMETRY_BASE_T_H_
@@ -114,7 +114,29 @@ public:
 	/** return the integration point whose domain contains the given point in the
 	 * parent domain coordinates */
 	virtual int IPDomain(int nip, const dArrayT& coords) const;
-		
+
+	/** \name nodal subdomains
+	 * Methods for accessing information about the nodal subdomains. These are the
+	 * domains within the parent domain associated with each of the nodes. The
+	 * union of subdomains from all parent domains comprising the support of a given node
+	 * define a closed volume around the node that does not intersect the domain of
+	 * any other node.
+	/*@{*/
+	/** subdomain geometry */
+	virtual GeometryT::CodeT NodalSubDomainGeometry(void) const;
+
+	/** number of nodes defining the nodal subdomain */
+	virtual int NodalSubDomainNumPoints(void) const;
+	
+	/** compute the coordinates of the points defining the nodal subdomain 
+	 * \param coords coordinates of the nodes over the entire parent domain
+	 * \param node \e local number of node for which to compute the subdomain
+	 * \param subdomain_coords returns with the coordinates of the points
+	 *        defining the subdomain of the given node. */
+	virtual void NodalSubDomainCoordinates(const LocalArrayT& coords, int node,
+		LocalArrayT& subdomain_coords) const;
+	/*@}*/
+
 protected:
 
 	/* number of domain nodes */

@@ -1,4 +1,4 @@
-/* $Id: GeometryBaseT.cpp,v 1.7 2004-05-17 05:11:04 paklein Exp $ */
+/* $Id: GeometryBaseT.cpp,v 1.8 2005-01-26 19:52:10 paklein Exp $ */
 /* created: paklein (10/21/1997) */
 #include "GeometryBaseT.h"
 #include "ExceptionT.h"
@@ -52,4 +52,29 @@ int GeometryBaseT::IPDomain(int nip, const dArrayT& coords) const
 	ExceptionT::GeneralFail("GeometryBaseT::IPDomain", 
 		"not implemented for geometry \"%s\"", ToString(Geometry()));
 	return -1;
+}
+
+/* subdomain geometry */
+GeometryT::CodeT GeometryBaseT::NodalSubDomainGeometry(void) const {
+	ExceptionT::GeneralFail("GeometryBaseT::NodalSubDomainGeometry", 
+		"not implemented for geometry \"%s\"", ToString(Geometry()));
+	return GeometryT::kNone;
+}
+
+/* number of nodes defining the nodal subdomain */
+int GeometryBaseT::NodalSubDomainNumPoints(void) const {
+	ExceptionT::GeneralFail("GeometryBaseT::NodalSubDomainNumPoints", 
+		"not implemented for geometry \"%s\"", ToString(Geometry()));
+	return -1;
+}
+	
+/* compute the coordinates of the points defining the nodal subdomain */
+void GeometryBaseT::NodalSubDomainCoordinates(const LocalArrayT& coords, int node,
+	LocalArrayT& subdomain_coords) const
+{
+#pragma unused(coords)
+#pragma unused(node)
+#pragma unused(subdomain_coords)
+	ExceptionT::GeneralFail("GeometryBaseT::NodalSubDomainCoordinates", 
+		"not implemented for geometry \"%s\"", ToString(Geometry()));
 }
