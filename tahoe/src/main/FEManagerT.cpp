@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.76.2.1 2004-07-29 14:59:47 d-farrell2 Exp $ */
+/* $Id: FEManagerT.cpp,v 1.76.2.2 2004-08-01 18:32:50 d-farrell2 Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -68,7 +68,10 @@ FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output,
 	fActiveEquationStart(0),
 	fGlobalNumEquations(0),
 	fCurrentGroup(-1),
-	fInitCode(kFull)
+	fInitCode(kFull),
+	fPartition(NULL),
+	fTask(task),
+	fExternIOManager(NULL)
 {
 	/* console name */
 	iSetName("FE_manager");
@@ -91,11 +94,11 @@ FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output,
 	
 	iAddCommand(CommandSpecT("WriteOutput"));
 	
-	if (Size() > 1)
+	if (Size() > 1) // if size > 1 check for decomposition, etc
 	{	
-		fPartition(partition),
-		fTask(task),
-		fExternIOManager(NULL)
+		//fPartition(partition),
+		//fTask(task),					
+		//fExternIOManager(NULL)
 		if (fTask == kRun)
 		{
 			const char caller[] = "FEManagerT::FEManagerT";// perhaps differentiate from serial??
@@ -193,13 +196,13 @@ FEManagerT::~FEManagerT(void)
 }
 /* destructor (needed??, how differentiate between serial/parallel)*/
 /*FEManagerT_mpi::~FEManagerT_mpi(void)
- *{
- *	/* log */
- *	TimeStamp("FEManagerT_mpi::~FEManagerT_mpi");
- *
- *	/* restore log messages */
- *	if (fTask == kRun) fComm.SetLog(cout);
- *}
+ {
+ 	// log
+ 	TimeStamp("FEManagerT_mpi::~FEManagerT_mpi");
+ 
+ 	// restore log messages
+ 	if (fTask == kRun) fComm.SetLog(cout);
+ }
  */
 
 /* solve all the time sequences */
@@ -1873,17 +1876,17 @@ void FEManagerT::SetOutput(void)
 
 // not sure what to do with this guy, because of external IO
 /* (re-)set system to initial conditions */
-ExceptionT::CodeT FEManagerT_mpi::InitialCondition(void)
-{
-	/* inherited */
-	ExceptionT::CodeT error = FEManagerT::InitialCondition();
-	
-	/* set I/O */
-	if (error == ExceptionT::kNoError && fExternIOManager) 
-		fExternIOManager->NextTimeSequence(0);
-		
-	return error;
-}
+//ExceptionT::CodeT FEManagerT_mpi::InitialCondition(void)
+//{
+//	/* inherited */
+//	ExceptionT::CodeT error = FEManagerT::InitialCondition();
+//	
+//	/* set I/O */
+//	if (error == ExceptionT::kNoError && fExternIOManager) 
+//		fExternIOManager->NextTimeSequence(0);
+//		
+//	return error;
+//}
 
 /* (re-)set system to initial conditions */
 ExceptionT::CodeT FEManagerT::InitialCondition(void)
