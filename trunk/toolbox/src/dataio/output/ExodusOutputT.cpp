@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.cpp,v 1.10 2002-03-28 16:10:40 sawimme Exp $ */
+/* $Id: ExodusOutputT.cpp,v 1.11 2002-06-25 14:17:06 sawimme Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "ExodusOutputT.h"
@@ -19,6 +19,7 @@ OutputBaseT(out, out_strings)
 void ExodusOutputT::WriteGeometry(void)
 {
 	ExodusT exo(cout);
+	CreateElementBlockIDs ();
 	CreateGeometryFile (exo);
 	exo.Close ();
 }
@@ -80,7 +81,7 @@ void ExodusOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 			{
 				e_block.ColumnCopy(i, values);
 				exo.WriteElementVariable(fElementSets[ID]->PrintStep() + 1, 
-							 fCurrentSetID + b + 1, i + 1, values);
+							 fElementBlockIDs[ID][b], i + 1, values);
 			}
 	    }
 	}
@@ -158,6 +159,10 @@ void ExodusOutputT::CreateResultsFile(int ID, ExodusT& exo)
 
 void ExodusOutputT::CreateGeometryFile(ExodusT& exo)
 {
+  /* create integer ID values from string values */
+  String2IntIDs (fNodeSetNames, fNodeSetIntIDs);
+  String2IntIDs (fSideSetNames, fSideSetIntIDs);
+
   StringT filename = fOutroot;
 
   /* changing geometry */
@@ -199,7 +204,8 @@ void ExodusOutputT::CreateGeometryFile(ExodusT& exo)
     {
       iArrayT& set = *((iArrayT*) fNodeSets[n]);
       set++;
-      exo.WriteNodeSet (fNodeSetIDs[n], set);
+      // exodus does not support string labels, use index instead
+      exo.WriteNodeSet (fNodeSetIntIDs[n], set);
       set--;
     }
   
@@ -207,10 +213,16 @@ void ExodusOutputT::CreateGeometryFile(ExodusT& exo)
   // send element block ID, not group index
   for (int s=0; s < fSideSets.Length(); s++)
     {
+      /* search for group name */
+      StringT& gname = fSSGroupNames [s];
+      int gindex, bindex;
+      ElementGroupBlockIndex (gname, gindex, bindex);
+
+      int block_ID = fElementBlockIDs[gindex][bindex];
       iArray2DT& set = *((iArray2DT*) fSideSets[s]);
       set++;
-      int block_ID = fSSGroupID[s];
-      exo.WriteSideSet (fSideSetIDs[s], block_ID, set);
+      // exodus does not support string labels, use index instead
+      exo.WriteSideSet (fSideSetIntIDs[s], block_ID, set);
       set--;
     }
 }
@@ -263,6 +275,6 @@ void ExodusOutputT::WriteConnectivity (int ID, ExodusT& exo, const iArrayT& node
 		LocalConnectivity(nodes_used, connects, local_connects);
 
 		local_connects++;
-		exo.WriteConnectivities(fCurrentSetID + i + 1, fElementSets[ID]->Geometry(), local_connects);
+		exo.WriteConnectivities(fElementBlockIDs[ID][i], fElementSets[ID]->Geometry(), local_connects);
     }
 }

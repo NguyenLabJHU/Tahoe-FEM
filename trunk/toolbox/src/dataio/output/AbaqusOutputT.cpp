@@ -1,4 +1,4 @@
-/* $Id: AbaqusOutputT.cpp,v 1.4 2002-01-27 18:38:14 paklein Exp $ */
+/* $Id: AbaqusOutputT.cpp,v 1.5 2002-06-25 14:17:05 sawimme Exp $ */
 /* created: sawimme (05/31/2000)                                          */
 
 #include "AbaqusOutputT.h"
@@ -31,11 +31,9 @@ void AbaqusOutputT::WriteGeometry(void)
   // write node sets
   for (int i=0; i < fNodeSets.Length(); i++)
     {
-      StringT name ("NodeSet ");
-      name.Append (fNodeSetIDs[i]);
-      iArrayT& set = *((iArrayT*) fNodeSets[i]);
+       iArrayT& set = *((iArrayT*) fNodeSets[i]);
       set++;
-      aba.WriteNodeSet (name, set);
+      aba.WriteNodeSet (fNodeSetNames[i], set);
       set--;
     }
 }
@@ -237,9 +235,7 @@ void AbaqusOutputT::CreateResultsFile (int ID, AbaqusResultsT& aba)
       iArrayT elem_map (fElementSets[ID]->NumBlockElements(blockids[ec]));
       elem_map.SetValueToPosition ();
       elem_map += startnum;
-      StringT name = "Grp";
-      name.Append (blockids[ec]);
-      aba.WriteElementSet (name, elem_map);
+      aba.WriteElementSet (fElementSets[ID]->ID(), elem_map);
       startnum += elem_map.Length();
     }
 
@@ -249,9 +245,7 @@ void AbaqusOutputT::CreateResultsFile (int ID, AbaqusResultsT& aba)
       iArrayT nodemap;
       nodemap.Alias(fElementSets[ID]->BlockNodesUsed(blockids[nc]));
       nodemap++;
-      StringT name = "Grp";
-      name.Append (blockids[nc]);
-      aba.WriteNodeSet (name, nodemap);
+      aba.WriteNodeSet (fNodeSetNames[nc], nodemap);
       nodemap--;
     }
   

@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.h,v 1.9 2002-03-28 16:10:40 sawimme Exp $ */
+/* $Id: OutputBaseT.h,v 1.10 2002-06-25 14:17:06 sawimme Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #ifndef _OUTPUTBASE_T_H_
@@ -66,46 +66,65 @@ public:
 	const ArrayT<OutputSetT*>& ElementSets(void) const;
 	int NumElements(void) const;
 
-	void AddNodeSet(const iArrayT& nodeset, int setID);
-	void AddSideSet(const iArray2DT& sideset, int setID, int group_ID);
+	void AddNodeSet(const iArrayT& nodeset, const StringT& setID);
+	void AddSideSet(const iArray2DT& sideset, const StringT& setID, const StringT& group_ID);
 
 	/* output functions */
 	virtual void WriteGeometry(void) = 0;
 	void WriteGeometryFile(const StringT& file_name, IOBaseT::FileTypeT format) const;
 	virtual void WriteOutput(double time, int ID, const dArray2DT& n_values,
-		const dArray2DT& e_values) = 0;
+		const dArray2DT& e_values);
 
 protected:
 
 	enum DataTypeT {kNode = 0,
 	             kElement = 1};
 
+	/** convert group node numbering to block node numbering within a connectivity */
 	void LocalConnectivity(const iArrayT& node_map, const iArray2DT& connects, iArray2DT& local_connects) const;
+
+	/** separate group element data into block element data */
 	void ElementBlockValues (int ID, int block, const dArray2DT& allvalues, dArray2DT& blockvalues) const;
+
+	/** separate group nodal data into block nodal data */
 	void NodalBlockValues (int ID, int block, const dArray2DT& allvalues, dArray2DT& blockvalues, iArrayT& block_nodes) const;
+
+	/** search for the block string ID
+	 * \param  s string block ID
+	 * \return g index to the group containing the block 
+	 * \return b index to the block within the group */
+	void ElementGroupBlockIndex (const StringT& s, int& g, int& b) const;
+
+	/** create fElementBlockIDs by attempting to convert string block IDs directly
+	    to integer IDs. If IDs are not unique, then blocks are globally numbered
+	    starting at 1. */
+	void CreateElementBlockIDs (void);
+
+	/** converts side set or node set string ID values to integer values if possible,
+	    if not unique, blocks are globally numbered starting at 1. */
+	void String2IntIDs (const ArrayT<StringT>& s, iArrayT& i) const;
 
 protected:
 
-	StringT fTitle;    // title: description of problem
-	StringT fCodeName; // qa_record codename and version
-	StringT fVersion;  // qa_record inputfile version
-	StringT fOutroot;  // root of all output files
+	StringT fTitle;    /**< title: description of problem */
+	StringT fCodeName; /**<	qa_record codename and version */
+	StringT fVersion;  /**<	qa_record inputfile version */
+	StringT fOutroot;  /**<	root of all output files */
 
 	/* output data */
-	const dArray2DT* fCoordinates;
-	const iArrayT*   fNodeID;
+	const dArray2DT* fCoordinates; /**< pointer to coordinates */
+	const iArrayT*   fNodeID; /**< list of node IDs */
 
-	AutoArrayT<OutputSetT*> fElementSets;
+	AutoArrayT<OutputSetT*> fElementSets; /**< list of output groups */
+	ArrayT<iArrayT> fElementBlockIDs; /**< integer blocks IDs created from string IDs */
 	
-	AutoArrayT<const iArrayT*>   fNodeSets;
-	AutoArrayT<const iArray2DT*> fSideSets;
-	iAutoArrayT                  fNodeSetIDs;
-	iAutoArrayT                  fSideSetIDs;
-	iAutoArrayT                  fSSGroupID; // fElementList group number
+	AutoArrayT<const iArrayT*>   fNodeSets; /**< links to node sets */
+	AutoArrayT<const iArray2DT*> fSideSets; /**< links to side sets */
+	AutoArrayT<StringT>          fNodeSetNames; /**< node set string IDs */
+	AutoArrayT<StringT>          fSideSetNames; /**< side set string IDs */
+	AutoArrayT<StringT>          fSSGroupNames; /**< block name string ID that side set is in */
 
-	int fSequence; // solution sequence number
-
-	int fCurrentSetID; /**< ID value of the output set being written */
+	int fSequence; /**< solution sequence number */
 };
 
 inline const ArrayT<OutputSetT*>& OutputBaseT::ElementSets(void) const

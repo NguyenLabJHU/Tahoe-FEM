@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.cpp,v 1.12 2002-04-17 23:51:55 paklein Exp $ */
+/* $Id: FE_ASCIIT.cpp,v 1.13 2002-06-25 14:17:06 sawimme Exp $ */
 /* created: sawimme (05/20/1999) */
 
 #include "FE_ASCIIT.h"
@@ -60,36 +60,45 @@ void FE_ASCIIT::WriteGeometry(void)
 	mf.PutTitle (fTitle);
 	mf.PutCoordinates (*fCoordinates);
 	
-	for (int e=0, s=0; e < fElementSets.Length(); e++)
+	CreateElementBlockIDs ();
+	for (int e=0; e < fElementSets.Length(); e++)
 	  {
 	    const ArrayT<StringT>& blockIDs = fElementSets[e]->BlockID();
-	    for (int b=0; b < fElementSets[e]->NumBlocks(); b++, s++)
+	    for (int b=0; b < fElementSets[e]->NumBlocks(); b++)
 	      {
 		const iArray2DT* c = fElementSets[e]->Connectivities(blockIDs[b]);
 		iArray2DT conn = *c;
 		
 		iArrayT tmp(conn.Length(), conn.Pointer());
 		tmp++;
-		mf.PutElementSet (s+1, conn);
-		//mf.PutElementSet(atoi(blockIDs[b]), conn);
+		mf.PutElementSet (fElementBlockIDs[e][b], conn);
 		tmp--;
 	      }
 	  }
 	
+	/* create integer ID values from string values */
+	String2IntIDs (fNodeSetNames, fNodeSetIntIDs);
+	String2IntIDs (fSideSetNames, fSideSetIntIDs);
+
 	for (int n=0; n < fNodeSets.Length(); n++)
 	  {
 	    iArrayT& set = *((iArrayT*) fNodeSets[n]);
 	    set++;
-	    mf.PutNodeSet (fNodeSetIDs[n], set);
+	    mf.PutNodeSet (fNodeSetIntIDs[n], set);
 	    set--;
 	  }
 
 	for (int s=0; s < fSideSets.Length(); s++)
 	  {
+	    /* search for group name */
+	    StringT& gname = fSSGroupNames [s];
+	    int gindex, bindex;
+	    ElementGroupBlockIndex (gname, gindex, bindex);
+	    int block_ID = fElementBlockIDs [gindex][bindex];
+
 	    iArray2DT& set = *((iArray2DT*) fSideSets[s]);
 	    set++;
-	    int block_ID = fSSGroupID[s];
-	    mf.PutSideSet (fSideSetIDs[s], block_ID, set);
+	    mf.PutSideSet (fSideSetIntIDs[s], block_ID, set);
 	    set--;
 	  }
 
