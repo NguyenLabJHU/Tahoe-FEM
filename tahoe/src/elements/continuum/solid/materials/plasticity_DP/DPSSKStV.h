@@ -1,11 +1,10 @@
-/* $Id: DPSSKStV.h,v 1.12 2004-07-15 08:28:48 paklein Exp $ */
+/* $Id: DPSSKStV.h,v 1.13 2004-07-22 21:10:09 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_H_
 #define _DP_SS_KSTV_H_
 
 /* base classes */
-#include "SSSolidMatT.h"
-#include "IsotropicT.h"
+#include "SSIsotropicMatT.h"
 #include "HookeanMatT.h"
 
 namespace Tahoe {
@@ -13,8 +12,7 @@ namespace Tahoe {
 /* forward declarations */
 class DPSSLinHardT;
 
-class DPSSKStV: public SSSolidMatT,
-				public IsotropicT,
+class DPSSKStV: public SSIsotropicMatT,
 				public HookeanMatT
 {
   public:

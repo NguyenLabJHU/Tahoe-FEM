@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.h,v 1.9 2004-07-15 08:28:54 paklein Exp $ */
+/* $Id: J2SSKStV.h,v 1.10 2004-07-22 21:10:13 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #ifndef _J2_SS_KSTV_H_
 #define _J2_SS_KSTV_H_
@@ -22,8 +22,8 @@ public:
 	/** constructor */
 	J2SSKStV(void);
 
-	/* initialization */
-	virtual void Initialize(void);
+	/** model has history variables */
+	virtual bool HasHistory(void) const { return true; };
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);
@@ -58,6 +58,10 @@ public:
 	/*@{*/
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& name) const;

@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.24 2004-07-15 08:28:48 paklein Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.25 2004-07-22 21:10:09 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV.h"
 #include "SSMatSupportT.h"
@@ -136,16 +136,16 @@ void DPSSKStV::ComputeOutput(dArrayT& output)
 void DPSSKStV::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	SSSolidMatT::DefineParameters(list);
-	IsotropicT::DefineParameters(list);
+	SSIsotropicMatT::DefineParameters(list);
+	HookeanMatT::DefineParameters(list);
 }
 
 /* information about subordinate parameter lists */
 void DPSSKStV::DefineSubs(SubListT& sub_list) const
 {
 	/* inherited */
-	SSSolidMatT::DefineSubs(sub_list);
-	IsotropicT::DefineSubs(sub_list);
+	SSIsotropicMatT::DefineSubs(sub_list);
+	HookeanMatT::DefineSubs(sub_list);
 
 	/* parameters for Drucker-Prager plasticity */
 	sub_list.AddSub("DP_SS_linear_hardening");
@@ -159,11 +159,11 @@ ParameterInterfaceT* DPSSKStV::NewSub(const StringT& name) const
 	else
 	{
 		/* inherited */
-		ParameterInterfaceT* params = SSSolidMatT::NewSub(name);
+		ParameterInterfaceT* params = SSIsotropicMatT::NewSub(name);
 		if (params) 
 			return params;
 		else
-			return IsotropicT::NewSub(name);
+			return HookeanMatT::NewSub(name);
 	}
 }
 
@@ -171,14 +171,11 @@ ParameterInterfaceT* DPSSKStV::NewSub(const StringT& name) const
 void DPSSKStV::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	SSSolidMatT::TakeParameterList(list);
-	IsotropicT::TakeParameterList(list);
+	SSIsotropicMatT::TakeParameterList(list);
+	HookeanMatT::TakeParameterList(list);
 
 	fStress.Dimension(3);
 	fModulus.Dimension(dSymMatrixT::NumValues(3));
-
-	/* set modulus */
-	HookeanMatT::Initialize();
 
 	/* construct Drucker-Prager solver */
 	fDP = new DPSSLinHardT(NumIP(), Mu(), Lambda());

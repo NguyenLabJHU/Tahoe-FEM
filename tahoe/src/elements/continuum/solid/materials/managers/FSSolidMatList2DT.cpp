@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.2 2004-07-15 08:28:28 paklein Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.3 2004-07-22 21:10:04 paklein Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -9,6 +9,7 @@
 #include "DevelopmentMaterialsConfig.h"
 #endif
 
+#include "FDHookeanMat2DT.h"
 #include "FDKStV2D.h"
 #include "FDCubic2DT.h"
 #include "SimoIso2D.h"
@@ -131,6 +132,7 @@ void FSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 	{
 		order = ParameterListT::Choice;
 	
+		sub_lists.AddSub("large_strain_Hookean_2D");
 		sub_lists.AddSub("large_strain_cubic_2D");
 		sub_lists.AddSub("large_strain_StVenant_2D");
 		sub_lists.AddSub("Simo_isotropic_2D");
@@ -211,7 +213,9 @@ FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& name) const
 {
 	FSSolidMatT* mat = NULL;
 
-	if (name == "large_strain_cubic_2D")
+	if (name == "large_strain_Hookean_2D")
+		mat = new FDHookeanMat2DT;
+	else if (name == "large_strain_cubic_2D")
 		mat = new FDCubic2DT;
 	else if (name == "large_strain_StVenant_2D")
 		mat = new FDKStV2D;
