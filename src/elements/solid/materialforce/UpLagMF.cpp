@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.cpp,v 1.6 2003-11-14 03:17:42 thao Exp $ */
+/* $Id: UpLagMF.cpp,v 1.7 2003-11-14 22:56:12 thao Exp $ */
 #include <ctype.h>
 
 #include "UpLagMF.h"
@@ -213,6 +213,8 @@ GlobalT::RelaxCodeT UpLagMF::RelaxSystem(void)
     int elem = CurrElementNumber();
     if (pcheckflag[elem] == 1)
     {
+      SetGlobalShape();
+      SetLocalX(fLocInitCoords);
       fCurrShapes->TopIP();
       while (fCurrShapes->NextIP() && plocflag[elem] == 0)
       {
@@ -220,13 +222,14 @@ GlobalT::RelaxCodeT UpLagMF::RelaxSystem(void)
 	const dMatrixT& modulus = fCurrMaterial->c_ijkl();
 	
 	int loc = CheckLocalizeFS(stress, modulus,fLocInitCoords);
-	//	cout <<"\nElem "<<elem<<" Localize? "<<loc<<endl;
-	if (loc)
+	//	out <<"\nElem "<<elem<<" Localize? "<<loc<<endl;
+	if (loc == 1)
 	{
 	  plocflag[elem] = 1;
 	  felem_centers.SetRow(elem, LocalizedElemCenter());
 	  fnormals.SetRow(elem, LocalizedNormal());
-	  out << "\nElem: "<<elem;
+      	  out << "\nelem: "<<elem;
+	  //	  out <<"\n"<< modulus;
 	}
       }
     }

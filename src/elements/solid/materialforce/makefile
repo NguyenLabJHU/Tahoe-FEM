@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.10 2003-11-12 19:21:19 thao Exp $
+# $Id: makefile,v 1.11 2003-11-14 22:56:12 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -56,7 +56,7 @@ SRC = \
 	SSQ2P1MF.cpp \
 	SSQ1P0MF.cpp \
 	UpLagMF.cpp \
-	LocalizeT.cpp 
+	LocalizeT.cpp  
 
 ##################### (3) headers
 #
