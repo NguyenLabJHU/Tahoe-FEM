@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.27 2003-05-21 23:48:05 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.28 2003-05-28 23:26:42 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -18,7 +18,7 @@
 #include "IOBaseT.h"
 #include "ElementBlockDataT.h"
 #include "ElementSupportT.h"
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 #include "FieldT.h"
 #endif
 
@@ -36,7 +36,7 @@ class iAutoArrayT;
 class dArray2DT;
 class StringT;
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 class FieldT;
 #endif
 
@@ -59,7 +59,7 @@ class ElementBaseT: public iConsoleObjectT
 public:
 
 	/** constructors */
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	ElementBaseT(const ElementSupportT& support, const FieldT& field);
 #else
 	ElementBaseT(ElementSupportT& support);
@@ -84,7 +84,7 @@ public:
 	/** return the block ID for the specified element */
 	const StringT& ElementBlockID(int element) const;
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/** the source */
 	const ElementSupportT& ElementSupport(void) const { return fSupport; };
 #else
@@ -93,7 +93,7 @@ public:
 	ElementSupportT& ElementSupport(void) const {return fSupport; };
 #endif
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/** field information */
 	const FieldT& Field(void) const { return fField; };
 
@@ -121,7 +121,7 @@ public:
 	/** return the number of degrees of freedom per node */
 	int NumDOF(void) const 
 	{ 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		return fField.NumDOF();
 #else
 		return fSupport.NumSD();
@@ -143,7 +143,7 @@ public:
 	 * \param group equation group to solve */
 	void FormRHS(void);
 	
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/** accumulate the residual force on the specified node
 	 * \param node test node
 	 * \param force array into which to assemble to the residual force */
@@ -224,7 +224,7 @@ public:
 	/** prepare for a sequence of time steps */
 	virtual void InitialCondition(void);
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/** \name restart functions */
 	/*@{*/
 	/** write restart data to the output stream. Should be paired with
@@ -280,7 +280,7 @@ protected: /* for derived classes only */
 
 	/** solver group */
 	int Group(void) const {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		return fField.Group(); 
 #else
 		return 0;
@@ -330,7 +330,7 @@ protected: /* for derived classes only */
 	virtual bool NextElement(void);
 	/*@}*/
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* print element group data */
 	virtual void PrintControlData(ostream& out) const;
 	
@@ -406,13 +406,13 @@ private:
 	/** \name sources and parameters
 	 * Available to sub-classes through access methods */
 	/*@{*/
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	const ElementSupportT& fSupport;
 #else
 	ElementSupportT& fSupport;
 #endif
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	const FieldT& fField;
 #endif
 	/*@}*/
