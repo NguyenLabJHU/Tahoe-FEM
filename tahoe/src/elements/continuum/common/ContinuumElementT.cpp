@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.42 2004-07-22 08:20:55 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.43 2004-09-09 16:17:57 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -278,6 +278,37 @@ void ContinuumElementT::WriteOutput(void)
 
 	/* send to output */
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
+}
+
+/* resolve the output variable label into the output code and offset within the output */
+void ContinuumElementT::ResolveOutputVariable(const StringT& variable, int& code, int& offset)
+{
+	/* search output labels */
+	code = -1;
+	offset = -1;
+	iArrayT e_counts(fElementOutputCodes.Length());
+	e_counts = 0;
+	iArrayT n_codes(fNodalOutputCodes.Length());
+	for (int i = 0; code == -1 && i < n_codes.Length(); i++)
+	{
+		ArrayT<StringT> n_labels, e_labels;
+		n_codes = 0;
+		n_codes[i] = 1;
+		
+		iArrayT n_counts;
+		SetNodalOutputCodes(IOBaseT::kAtInc, n_codes, n_counts);
+		GenerateOutputLabels(n_counts, n_labels, e_counts, e_labels);
+		
+		for (int j = 0; offset == -1 && j < n_labels.Length(); j++)
+			if (n_labels[j] == variable) /* found */ {
+				code = i;
+				offset = j;
+			}
+	}
+	
+	/* inherited */
+	if (code == -1 || offset == -1)
+		ElementBaseT::ResolveOutputVariable(variable, code, offset);
 }
 
 /* return geometry and number of nodes on each facet */
@@ -1183,6 +1214,11 @@ void ContinuumElementT::TakeParameterList(const ParameterListT& list)
 {
 	const char caller[] = "ContinuumElementT::TakeParameterList";
 
+	/* resolve geometry before calling inherited method - geometry code
+	 * may be needed while reading connectivities */
+	const ParameterListT& integration_domain = list.GetListChoice(*this, "element_geometry");
+	fGeometryCode = GeometryT::string2CodeT(integration_domain.Name());
+
 	/* inherited */
 	ElementBaseT::TakeParameterList(list);
 
@@ -1199,8 +1235,6 @@ void ContinuumElementT::TakeParameterList(const ParameterListT& list)
 	SetLocalArrays();
 
 	/* construct shape functions */
-	const ParameterListT& integration_domain = list.GetListChoice(*this, "element_geometry");
-	fGeometryCode = GeometryT::string2CodeT(integration_domain.Name());
 	fNumIP = integration_domain.GetParameter("num_ip");
 	SetShape();
 

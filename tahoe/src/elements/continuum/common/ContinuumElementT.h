@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.28 2004-07-22 08:20:55 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.29 2004-09-09 16:17:57 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -97,11 +97,17 @@ public:
 	 /** write restart information to stream */
 	virtual void WriteRestart(ostream& out) const;
 
+	/** \name writing output */
+	/*@{*/
 	/** register self for output */
 	virtual void RegisterOutput(void);
 
 	/** send output */
 	virtual void WriteOutput(void);
+	
+	/** resolve the output variable label into the output code and offset within the output. */
+	virtual void ResolveOutputVariable(const StringT& variable, int& code, int& offset);	
+	/*@}*/
 
 	/** return geometry and number of nodes on each facet */
 	void FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry, iArrayT& num_facet_nodes) const;
