@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.28 2002-11-14 15:44:00 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.29 2002-11-25 07:17:00 paklein Exp $ */
 
 // DEVELOPMENT
 
@@ -312,7 +312,7 @@ void SurfaceT::ComputeNeighbors(void)
 	int num_faces      =  fFaces.Length();
 	/* find all faces a node is connected to */
         AutoFill2DT<FaceT*> 
-		faces_at_node(num_surf_nodes,kHeadroom,kMaxNumFacesAtNode);
+		faces_at_node(num_surf_nodes, 1, kHeadroom, kMaxNumFacesAtNode);
         for (i = 0; i < fFaces.Length() ; i++) {
                 FaceT* face = fFaces[i];
                 const iArrayT& conn = face->Connectivity();
@@ -342,7 +342,7 @@ void SurfaceT::ComputeNeighbors(void)
 
 	/* find all neighbor faces inclusive of orig. face currently */
 	AutoFill2DT<FaceT*>
-		faces_next_to_face(num_faces,kHeadroom,kMaxNumFaceNeighbors);
+		faces_next_to_face(num_faces, 1, kHeadroom, kMaxNumFaceNeighbors);
 	int node_num;
         for (i = 0; i < fFaces.Length() ; i++) {
                 FaceT* face = fFaces[i];
