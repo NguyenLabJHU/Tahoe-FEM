@@ -1,40 +1,40 @@
-// $Id: MFGP_Bal_EqT.cpp,v 1.4 2004-08-14 00:05:28 raregue Exp $
+// $Id: MFGP_Bal_EqT.cpp,v 1.5 2004-08-19 18:21:55 raregue Exp $
 #include "MFGP_Bal_EqT.h" 
 
 using namespace Tahoe;
 
 /* constructor */
-MFGP_Bal_EqT::MFGP_Bal_EqT ( int &curr_ip, D3MeshFreeShapeFunctionT &Shapes_displ, D3MeshFreeShapeFunctionT &Shapes_plast, 
-							GRAD_MRSSKStV &GRAD_MR_Plast_Mat, 
-							int &fTime_Step, double fdelta_t) 
-{
+MFGP_Bal_EqT::MFGP_Bal_EqT ( int &curr_ip, D3MeshFreeShapeFunctionT *Shapes_displ, D3MeshFreeShapeFunctionT *Shapes_plast, 
+							GRAD_MRSSKStV *GRAD_MR_Plast_Mat, 
+							int &fTime_Step, double fdelta_t);
+//{
 	//Initialize (curr_ip, Shapes_displ, Shapes_plast, GRAD_MR_Plast_Mat, fTime_Step, fdelta_t);
-}
+//}
 
 /* destructor */
-MFGP_Bal_EqT::~MFGP_Bal_EqT(void) { }
+MFGP_Bal_EqT::~MFGP_Bal_EqT(void);
 
-void MFGP_Bal_EqT::Initialize (int &curr_ip, D3MeshFreeShapeFunctionT &Shapes_displ, D3MeshFreeShapeFunctionT &Shapes_plast, 
-							GRAD_MRSSKStV &GRAD_MR_Plast_Mat,
+void MFGP_Bal_EqT::Initialize (int &curr_ip, D3MeshFreeShapeFunctionT *Shapes_displ, D3MeshFreeShapeFunctionT *Shapes_plast, 
+							GRAD_MRSSKStV *GRAD_MR_Plast_Mat,
 							int &fTime_Step, double fdelta_t) 
 {
-	n_en_displ  = Shapes_displ.Dphi.Cols(); //??
-	n_en_plast  = Shapes_plast.Dphi.Cols();
-	n_sd    	= Shapes_displ.Dphi.Rows();	
+	n_en_displ  = Shapes_displ->Derivatives_U(curr_ip).MajorDim(); //??
+	n_en_plast  = Shapes_plast->Derivatives_U(curr_ip).MajorDim();
+	n_sd    	= Shapes_displ->Derivatives_U(curr_ip).MinorDim();	
 	n_sd_x_n_sd = n_sd * n_sd;
 	n_sd_x_n_en_displ = n_sd * n_en_displ;
 	n_sd_x_n_en_plast = n_sd * n_en_plast;
 
 	delta_t = fdelta_t;
 	
-	Data_Pro_Displ.Initialize ( Shapes_displ.Derivatives_U(curr_ip), Shapes_displ.DDDerivatives_U(curr_ip) ); //??
+	Data_Pro_Displ.Initialize ( Shapes_displ->Derivatives_U(curr_ip), Shapes_displ->DDDerivatives_U(curr_ip) ); //??
 	//Data_Pro_Displ.Initialize ( Shapes_displ.Dphi );
 	
-	Data_Pro_Plast.Initialize ( Shapes_displ.IPShapeU(curr_ip), Shapes_displ.DDerivatives_U(curr_ip)	); //??
+	Data_Pro_Plast.Initialize ( Shapes_displ->IPShapeU(curr_ip), Shapes_displ->DDerivatives_U(curr_ip) ); //??
 	//Data_Pro_Plast.Initialize ( Shapes_plast.Dphi	);
 	
-	stress = GRAD_MR_Plast.s_ij();
-	moduli = GRAD_MR_Plast.c_ijkl();
+	stress = GRAD_MR_Plast_Mat->s_ij();
+	moduli = GRAD_MR_Plast_Mat->c_ijkl();
 	
 	Form_C_List		( GRAD_MR_Plast_Mat );
 	Form_B_List		(  );
@@ -46,23 +46,25 @@ void MFGP_Bal_EqT::Initialize (int &curr_ip, D3MeshFreeShapeFunctionT &Shapes_di
 
 void MFGP_Bal_EqT::Form_LHS_Klambda_Ku(dMatrixT &Klambda, dMatrixT &Ku )  
 {
-	n_rows = Klambda.Rows();
-	n_cols = Klambda.Cols();
-	dMatrixT Klambdatemp (n_rows,n_cols);
-	Klambda.MultATBC (B1_d, C_ulam1, phi_lam  );
-	Klambda += Klambdatemp.MultATBC ( B1_d, C_ulam2, B4_lam );	 	
+	n_rows_matrix = Klambda.Rows();
+	n_cols_matrix = Klambda.Cols();
+	dMatrixT Klambdatemp (n_rows_matrix,n_cols_matrix);
+	Klambda.MultATBC (B1_d, Culam1, phi_lam  );
+	Klambdatemp.MultATBC ( B1_d, Culam2, B4_lam );
+	Klambda += Klambdatemp;	 	
 		
-	n_rows = Ku.Rows();
-	n_cols = Ku.Cols();
-	dMatrixT Kutemp (n_rows,n_cols);
-	Ku.MultATBC ( B1_d, C_uu1, B1_d );
-	Ku += Kutemp.MultATBC ( B1_d, C_uu2, B3_d );
+	n_rows_matrix = Ku.Rows();
+	n_cols_matrix = Ku.Cols();
+	dMatrixT Kutemp (n_rows_matrix,n_cols_matrix);
+	Ku.MultATBC ( B1_d, Cuu1, B1_d );
+	Kutemp.MultATBC ( B1_d, Cuu2, B3_d );
+	Ku += Kutemp;
 }
 
 
 void MFGP_Bal_EqT::Form_RHS_F_int ( dArrayT &F_int ) 
 {
-	F_int.MultATB( B1_d, stress);
+	B1_d.MultTx( stress, F_int );
 }
 
 
@@ -74,7 +76,7 @@ void MFGP_Bal_EqT::Form_B_List (void)
 		phi_lam.Dimension ( dum, n_en_plast);
 		B4_lam.Dimension ( dum, n_sd_x_n_en_plast);
 		//NTS: check the allocation of phi_lam and B4_lam
-		B_gradu.Dimension ( dum, n_sd); //B3??	
+		//B_gradu.Dimension ( dum, n_sd); //B3??	
 		
 		Data_Pro_Displ.Set_B1 (B1_d);
 		Data_Pro_Displ.Set_B3 (B3_d);
@@ -83,7 +85,7 @@ void MFGP_Bal_EqT::Form_B_List (void)
 }
 
 
-void MFGP_Bal_EqT::Form_C_List (GRAD_MRSSKStV &GRAD_MR_Plast)
+void MFGP_Bal_EqT::Form_C_List (GRAD_MRSSKStV *GRAD_MR_Plast)
 {
 		//C.Dimension( kNUM_C_TERMS );
 		int i,j;

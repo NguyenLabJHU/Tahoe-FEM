@@ -4,7 +4,7 @@
 using namespace Tahoe;
 
 /* constructor */
-MFGP_MFA_Data_Processor_PlastT::MFGP_MFA_Data_Processor_PlastT( double &fN, dArray2DT &fd2Ndx2 ) 
+MFGP_MFA_Data_Processor_PlastT::MFGP_MFA_Data_Processor_PlastT( const double *fN, const dArray2DT &fd2Ndx2 ) 
 {
 	//Initialize ( fN, fd2Ndx2 );
 }
@@ -14,7 +14,7 @@ MFGP_MFA_Data_Processor_PlastT::~MFGP_MFA_Data_Processor_PlastT();
 
 
 /* initialize local variables */
-void MFGP_MFA_Data_Processor_PlastT::Initialize ( double &fN, dArray2DT &fd2Ndx2 )  
+void MFGP_MFA_Data_Processor_PlastT::Initialize ( const double *fN, const dArray2DT &fd2Ndx2 )  
 {
 	N = fN;
 	d2N = fd2Ndx2;
@@ -24,7 +24,8 @@ void MFGP_MFA_Data_Processor_PlastT::Initialize ( double &fN, dArray2DT &fd2Ndx2
 /* shape function of plastic multiplier */
 void MFGP_MFA_Data_Processor_PlastT::Set_phi( dMatrixT &phi ) 
 {
-	int nnd = N.MinorDim(); //??
+	//int nnd = N.MinorDim(); //??
+	int nnd; //??
 	double* pphi = phi.Pointer();
 	for (int i = 0; i < nnd; i++)
 	  	*pphi++ = *N++;		

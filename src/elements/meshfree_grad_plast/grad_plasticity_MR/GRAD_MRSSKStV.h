@@ -38,7 +38,7 @@ class GRAD_MRSSKStV: public SSIsotropicMatT, public HookeanMatT
 	virtual void ResetHistory(void);
 	
 	/* initialize laplacian of strain and lambda, and lambda, all at ip */
-	void Initialize(dSymMatrixT& strain_lapl_ip, dArrayT& lambda_ip, dArrayT& lambda_lapl_ip)
+	void Initialize(dSymMatrixT& strain_lapl_ip, dArrayT& lambda_ip, dArrayT& lambda_lapl_ip);
 
 	/** returns elastic strain (3D) */
 	virtual const dSymMatrixT& ElasticStrain(

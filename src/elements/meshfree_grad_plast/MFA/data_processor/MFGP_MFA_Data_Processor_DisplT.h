@@ -17,12 +17,12 @@ class MFGP_MFA_Data_Processor_DisplT
 	public:
 
 		/* constructor */
-		MFGP_MFA_Data_Processor_DisplT ( dArray2DT &fdNdx, dArray2DT &fd3Ndx3 );
+		MFGP_MFA_Data_Processor_DisplT ( const dArray2DT &fdNdx, const dArray2DT &fd3Ndx3 );
 		
 		/* destructor */
 		~MFGP_MFA_Data_Processor_DisplT();
 		
-		void Initialize ( dArray2DT &fdNdx, dArray2DT &fd3Ndx3 );
+		void Initialize ( const dArray2DT &fdNdx, const dArray2DT &fd3Ndx3 );
         
 		void Set_B1 (dMatrixT &B1);
 		void Set_B3 (dMatrixT &B3);

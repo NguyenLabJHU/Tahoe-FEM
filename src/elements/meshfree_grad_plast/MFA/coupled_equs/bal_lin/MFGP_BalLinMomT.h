@@ -25,7 +25,7 @@ public:
 	virtual ~MFGP_BalLinMomT ( void );
 
 	/** Pure virtual functions */
-	virtual void Initialize (int&, D3MeshFreeShapeFunctionT&, D3MeshFreeShapeFunctionT&, GRAD_MRSSKStV&, 
+	virtual void Initialize (int&, D3MeshFreeShapeFunctionT*, D3MeshFreeShapeFunctionT*, GRAD_MRSSKStV*, 
 							int	&fTime_Step, double fdelta_t = 0.0) =0;
 	virtual void Form_LHS_Klambda_Ku ( dMatrixT &Klambda, dMatrixT &Ku ) =0; 
   	virtual void Form_RHS_F_int	( dArrayT  &F_int  ) =0; 

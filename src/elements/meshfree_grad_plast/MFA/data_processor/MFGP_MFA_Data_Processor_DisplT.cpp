@@ -4,7 +4,7 @@
 using namespace Tahoe;
 
 /* constructor */
-MFGP_MFA_Data_Processor_DisplT::MFGP_MFA_Data_Processor_DisplT( dArray2DT &fdNdx, dArray2DT &fd3Ndx3 ) 
+MFGP_MFA_Data_Processor_DisplT::MFGP_MFA_Data_Processor_DisplT( const dArray2DT &fdNdx, const dArray2DT &fd3Ndx3 ) 
 {
 	//Initialize ( fdNdx, fd3Ndx3 );
 }
@@ -13,7 +13,7 @@ MFGP_MFA_Data_Processor_DisplT::MFGP_MFA_Data_Processor_DisplT( dArray2DT &fdNdx
 MFGP_MFA_Data_Processor_DisplT::~MFGP_MFA_Data_Processor_DisplT();
 
 /* initialize local variables */
-void MFGP_MFA_Data_Processor_DisplT::Initialize ( dArray2DT &fdNdx, dArray2DT &fd3Ndx3 )  
+void MFGP_MFA_Data_Processor_DisplT::Initialize ( const dArray2DT &fdNdx, const dArray2DT &fd3Ndx3 )  
 {
 	dN = fdNdx;
 	d3N = fd3Ndx3;
@@ -138,7 +138,7 @@ void MFGP_MFA_Data_Processor_DisplT::Set_B3( dMatrixT& B3 )
 		const double* pNaz = d3N(2);
 		const double* pNaxxy = d3N(0); //components??
 		const double* pNaxxz = d3N(1); //double check!!
-		const double* pNayyx = d3N(2)
+		const double* pNayyx = d3N(2);
 		const double* pNayyz = d3N(0);
 		const double* pNazzx = d3N(1);
 		const double* pNazzy = d3N(2);

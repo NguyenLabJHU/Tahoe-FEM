@@ -104,18 +104,21 @@ const dSymMatrixT& GRAD_MRSSKStV::s_ij(void)
 {
 	int ip = CurrIP();
 	ElementCardT& element = CurrentElement();
+	/*
 	const double& dlam = CurrentDLam();           // passed from the global level
 	const double& lap_dlam = CurrentLap_DLam(); // passed from the global level
 	const dSymMatrixT& e_tot = e();          //remove thermal strain ??
 	const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
 	const dSymMatrixT& lap_e_tot = lap_e(); // lap_e??
 	const dSymMatrixT& lap_e_els = LapElasticStrain(lap_etot, element, ip);
+	*/
 // Note:  This part of the code is incomplete.  Basically, the
 // laplacians of the strain and the plastic multiplier need
 // to be passed from the higher level to the consititutive 
 // routine
 	/* Updated Cauchy stress (return mapping) */
-	fStress = fGRAD_MR->StressCorrection(e_els, lap_e_els, dlam, lap_dlam, element, ip);
+	// raregue: define variables properly and uncomment next line
+	//fStress = fGRAD_MR->StressCorrection(e_els, lap_e_els, dlam, lap_dlam, element, ip);
 	return fStress;	
 }
 
