@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.7 2001-06-23 01:34:54 thao Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.8 2001-06-26 17:46:42 hspark Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList3DT.h"
@@ -32,6 +32,7 @@
 #include "LocalCrystalPlast.h"
 #include "LocalCrystalPlast_C.h"
 #include "GradCrystalPlast.h"
+#include "tevp3D.h"
 
 #include "ABAQUS_BCJ.h"
 
@@ -72,10 +73,6 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		{
 			case kLJTr2D:
 			case kLJFCC111:
-			case kThermoViscoPlastic:
-				cout << "\n SolidMatList3DT::ReadMaterialData: model " << matcode
-				     << " is not implemented in 3D" << endl;
-				throw eBadInputValue;
 
 			case kSSKStV:
 				fArray[matnum] = new SSKStV(in, fElementGroup);
@@ -153,6 +150,11 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 				
+        		case kThermoViscoPlastic:
+		                fArray[matnum] = new tevp3D(in, fElementGroup);
+				fHasHistory = true;
+				break;
+
 			case kIsoVIBOgden:
 				fArray[matnum] = new OgdenIsoVIB3D(in, fElementGroup);
 				fHasLocalizers = true;
