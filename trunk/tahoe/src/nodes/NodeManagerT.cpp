@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.39 2003-10-09 00:18:28 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.40 2003-10-20 23:21:49 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -37,7 +37,6 @@
 #include "BimaterialK_FieldT.h"
 #include "MappedPeriodicT.h"
 #include "TiedNodesT.h"
-#include "SymmetricNodesT.h"
 #include "PeriodicNodesT.h"
 #include "ScaledVelocityNodesT.h"
 #include "SetOfNodesKBCT.h"
@@ -1778,11 +1777,6 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 		case KBC_ControllerT::kTiedNodes:
 		{
 			TiedNodesT* kbc = new TiedNodesT(*this, field);
-			return kbc;
-		}
-		case KBC_ControllerT::kSymmetricNodes:
-		{
-			SymmetricNodesT* kbc = new SymmetricNodesT(*this, field);
 			return kbc;
 		}
 		case KBC_ControllerT::kPeriodicNodes:
