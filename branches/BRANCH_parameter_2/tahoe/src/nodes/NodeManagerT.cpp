@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.45.2.5 2004-02-24 19:09:42 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.45.2.6 2004-03-22 18:40:53 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -1647,8 +1647,9 @@ void NodeManagerT::EchoKinematicBC(FieldT& field, ifstreamT& in, ostream& out)
 			int dof = data (i, 0) - 1; // offset
 			KBC_CardT::CodeT code = cards[dex].int_to_CodeT (data (i, 1));
 			int ltf = data (i, 2) - 1; // offset
+			const ScheduleT* schedule = Schedule(ltf);
 			for (int j=0; j < nodes[i].Length(); j++)
-				cards[dex++].SetValues (*pn++, dof, code, ltf, values[i]);
+				cards[dex++].SetValues (*pn++, dof, code, schedule, values[i]);
 		}
 	  }
 
@@ -1658,6 +1659,7 @@ void NodeManagerT::EchoKinematicBC(FieldT& field, ifstreamT& in, ostream& out)
 	if (fFEManager.PrintInput() && cards.Length() > 0) 
 		KBC_CardT::WriteHeader(out);
 
+#if 0
 	for (int i = 0; i < cards.Length(); i++)
 	{
 		/* card */
@@ -1670,6 +1672,7 @@ void NodeManagerT::EchoKinematicBC(FieldT& field, ifstreamT& in, ostream& out)
 		/* echo values */
 		if (fFEManager.PrintInput()) card.WriteValues(out);
 	}
+#endif
 
 	/* check node numbers */
 	for (int i = 0; i < cards.Length(); i++)
@@ -1734,8 +1737,9 @@ void NodeManagerT::EchoForceBC(FieldT& field, ifstreamT& in, ostream& out)
 			int dof = data (i, 0) - 1; //offset
 			int ltf = data (i, 1) - 1; //offset
 
+			const ScheduleT* schedule = Schedule(ltf);
 			for (int j=0; j < nodes[i].Length(); j++)
-				cards[dex++].SetValues (*this, *pn++, dof, ltf, values[i]);
+				cards[dex++].SetValues (*pn++, dof, schedule, values[i]);
 		}
 	  }
 

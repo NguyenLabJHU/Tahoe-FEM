@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.24.2.6 2004-02-26 08:57:18 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.24.2.7 2004-03-22 18:40:53 paklein Exp $ */
 #include "FieldT.h"
 
 #include "fstreamT.h"
@@ -1007,8 +1007,11 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 				int dof = sub.GetParameter("dof"); dof--;
 				int typ = sub.GetParameter("type");
 				KBC_CardT::CodeT code = KBC_CardT::int_to_CodeT(typ + 1);
-				int schedule = sub.GetParameter("schedule"); schedule--;
+				int schedule_no = sub.GetParameter("schedule"); schedule_no--;
 				double value = sub.GetParameter("value");
+
+				/* get the schedule */
+				const ScheduleT* schedule = (schedule_no > -1) ? fFieldSupport.Schedule(schedule_no) : NULL;
 
 				/* set cards */
 				const iArrayT& set = model_manager.NodeSet(node_ID);
@@ -1021,14 +1024,17 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 				const StringT& node_ID = sub.GetParameter("node_ID");
 				int node = atoi(node_ID);
 				int dof = sub.GetParameter("dof"); dof--;
-				int schedule = sub.GetParameter("schedule"); schedule--;
+				int schedule_no = sub.GetParameter("schedule"); schedule_no--;
 				double value = sub.GetParameter("value");
+
+				/* get the schedule */
+				const ScheduleT* schedule = (schedule_no > -1) ? fFieldSupport.Schedule(schedule_no) : NULL;
 		
 				/* set card */
 				const NodeManagerT& node_man = fFieldSupport.NodeManager();
 				const iArrayT& set = model_manager.NodeSet(node_ID);
 				for (int i = 0; i < set.Length(); i++)
-					fFBC[num_FBC++].SetValues(node_man, set[i], dof, schedule, value);
+					fFBC[num_FBC++].SetValues(set[i], dof, schedule, value);
 			}
 		}
 	}

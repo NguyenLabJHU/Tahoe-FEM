@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.11 2003-11-21 22:47:52 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.11.4.1 2004-03-22 18:40:52 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -139,7 +139,7 @@ void FEManagerT_bridging::InitGhostNodes(void)
 	int dex = 0;
 	for (int j = 0; j < ndof; j++)
 		for (int i = 0; i < fGhostNodes.Length(); i++)
-			KBC_cards[dex++].SetValues(fGhostNodes[i], j, KBC_CardT::kDsp, 0, 0.0);
+			KBC_cards[dex++].SetValues(fGhostNodes[i], j, KBC_CardT::kDsp, NULL, 0.0);
 
 	/* search through element groups for particles */
 	bool found = false;
@@ -212,8 +212,8 @@ void FEManagerT_bridging::SetGhostNodeKBC(KBC_CardT::CodeT code, const dArray2DT
 		/* retrieve values set during InitGhostNodes */
 		KBC_CardT& card = KBC_cards[i];
 		int node = card.Node();
-		int dof  = card.DOF();
-		int schd = card.ScheduleNum();
+		int dof = card.DOF();
+		const ScheduleT* schd = card.Schedule();
 	
 		/* reset code and value */
 		card.SetValues(node, dof, code, schd, values[i]);
@@ -442,7 +442,7 @@ void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& fi
 		int dex = 0;
 		for (int j = 0; j < ndof; j++)
 			for (int i = 0; i < cell_nodes.Length(); i++)
-				KBC_cards[dex++].SetValues(cell_nodes[i], j, KBC_CardT::kDsp, 0, 0.0);
+				KBC_cards[dex++].SetValues(cell_nodes[i], j, KBC_CardT::kDsp, NULL, 0.0);
 	}
 
 	/* dimension work space */
