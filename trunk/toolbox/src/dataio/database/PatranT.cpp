@@ -1,4 +1,4 @@
-/* $Id: PatranT.cpp,v 1.18 2003-02-10 20:20:37 sawimme Exp $ */
+/* $Id: PatranT.cpp,v 1.19 2003-03-12 21:13:16 sawimme Exp $ */
 /* created sawimme (05/17/2001) */
 
 #include "PatranT.h"
@@ -813,7 +813,10 @@ void PatranT::ScanFile (void)
   while (AdvanceTo (in, kNamedComponents, ID, IV, KC))
     {
       ClearPackets (in, 1);
-      in >> fNamedComponents[count];
+      fNamedComponents[count].GetLineFromStream (in);
+      fNamedComponents[count].DropLeadingSpace ();
+      fNamedComponents[count].DropTrailingSpace ();
+      fNamedComponents[count].Replace (' ', '_');
       fNamedComponentsData[count].Allocate (IV/2, 2);
       in >> fNamedComponentsData[count];
       count ++;
