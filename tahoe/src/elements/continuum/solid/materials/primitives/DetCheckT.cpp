@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.34 2004-08-31 16:52:59 cfoster Exp $ */
+/* $Id: DetCheckT.cpp,v 1.35 2004-09-10 01:11:59 cfoster Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -129,6 +129,14 @@ bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
 			normal[1] = sin(theta);	
 			//normal[2] = 0.0;
 			normals.Append(normal);
+
+			//temp - account for dilation on band
+			slipdir [0] = sin(theta);
+			slipdir [1] = cos(-theta);
+			slipdirs.Append(slipdir);
+
+
+
 			/*
 			A = 0.0;
 			A.formacoustictensor(A, C, normal);
@@ -143,6 +151,11 @@ bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
 			normal[0] = cos(-theta);
 			normal[1] = sin(-theta);	
 			normals.Append(normal);
+
+
+			slipdir [0] = sin(-theta);
+			slipdir [1] = cos(theta);
+			slipdirs.Append(slipdir);
 			/*
 			A = 0.0;
 			A.formacoustictensor(A, C, normal);
@@ -154,6 +167,9 @@ bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
 			slipdirs.Append(slipdir);
 			*/
 			detA = -1.0;
+
+			
+
 		}
 		return check;
 	}
@@ -291,7 +307,7 @@ int DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
 	int newtoncounter=0; //makes sure Newton iteration doesn't take too long
   
 	/* for choosing normals w/ least determinant */
-	double setTol=5.0e-3; //setTol=1.0e-7 // tolerance for if normals should be in normal set 
+	double setTol=1.0e-5; //setTol=1.0e-7 // tolerance for if normals should be in normal set 
 	double leastmin=2.0*setTol; 
 	double leastdetAe;
 
