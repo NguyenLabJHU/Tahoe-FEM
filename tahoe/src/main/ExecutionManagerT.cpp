@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.cpp,v 1.13 2002-12-02 09:41:13 paklein Exp $ */
+/* $Id: ExecutionManagerT.cpp,v 1.13.2.1 2002-12-10 17:13:02 paklein Exp $ */
 /* created: paklein (08/27/1997) */
 #include "ExecutionManagerT.h"
 
@@ -138,7 +138,7 @@ void ExecutionManagerT::Run_parallel(void)
 			}
 	
 			/* broadcast file name */
-			fComm.Broadcast(file);
+			fComm.Broadcast(0, file);
 			
 			/* open stream */
 			if (file == "quit")

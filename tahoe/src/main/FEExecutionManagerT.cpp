@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.34 2002-12-05 08:30:46 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.34.2.1 2002-12-10 17:13:02 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -880,6 +880,14 @@ void FEExecutionManagerT::Decompose_atom(ifstreamT& in, int size,
 {
 #pragma unused(in)
 	const char caller[] = "FEExecutionManagerT::Decompose_atom";
+
+	/* files exist */
+	bool need_decomp = NeedDecomposition(model_file, size);
+	if (!need_decomp)
+	{
+		cout << "\n " << caller <<": decomposition files exist" << endl;
+		return;
+	}
 	
 	/* model manager */
 	ModelManagerT model(cout);

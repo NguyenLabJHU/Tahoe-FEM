@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.50.2.1 2002-12-05 21:47:17 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.50.2.2 2002-12-10 17:13:02 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -153,6 +153,12 @@ void FEManagerT::Initialize(InitCodeT init)
 	SetController();
 	if (verbose) cout << "    FEManagerT::Initialize: controller" << endl;
 
+	/* initial configuration of communication manager */
+	if (fModelManager->DatabaseFormat() != IOBaseT::kTahoe)
+		fCommManager->Configure();
+//TEMP
+else ExceptionT::Stop("FEManagerT::Initialize", "kTahoe format not supported");
+
 	/* resolve node type here */
 	SetNodeManager();
 	if (verbose) cout << "    FEManagerT::Initialize: nodal data" << endl;
@@ -160,6 +166,16 @@ void FEManagerT::Initialize(InitCodeT init)
 	/* construct element groups */
 	SetElementGroups();
 	if (verbose) cout << "    FEManagerT::Initialize: element groups" << endl;
+
+	/* initial configuration of communication manager */
+	if (fModelManager->DatabaseFormat() == IOBaseT::kTahoe)
+	{
+		//TEMP
+		ExceptionT::Stop("FEManagerT::Initialize", "kTahoe format not supported");
+	
+		fCommManager->Configure();
+		//call to tell everything to reconfigure
+	}
 
 	/* set output manager */
 	SetOutput();
@@ -733,10 +749,9 @@ int FEManagerT::GlobalEquationNumber(int nodenum, int dofnum) const
 int FEManagerT::Rank(void) const { return fComm.Rank(); }
 int FEManagerT::Size(void) const { return fComm.Size(); }
 
-void FEManagerT::NodeToProcessorMap(const iArrayT& node, iArrayT& processor) const
+const iArrayT& FEManagerT::ProcessorMap(void) const
 {
-	processor.Dimension(node);
-	processor = Rank();
+	return fCommManager->ProcessorMap();
 }
 
 void FEManagerT::IncomingNodes(iArrayT& nodes_in ) const {  nodes_in.Free(); }
@@ -745,23 +760,20 @@ void FEManagerT::OutgoingNodes(iArrayT& nodes_out) const { nodes_out.Free(); }
 void FEManagerT::RecvExternalData(dArray2DT& external_data)
 {
 #pragma unused(external_data)
-	cout << "\n FEManagerT::RecvExternalData: invalid request for external data" << endl;
-	throw ExceptionT::kGeneralFail;
+	ExceptionT::GeneralFail("FEManagerT::RecvExternalData", "invalid request for external data");
 }
 
 void FEManagerT::SendExternalData(const dArray2DT& all_out_data)
 {
 #pragma unused(all_out_data)
-	cout << "\n FEManagerT::RecvExternalData: invalid send of external data" << endl;
-	throw ExceptionT::kGeneralFail;
+	ExceptionT::GeneralFail("FEManagerT::RecvExternalData", "invalid send of external data");
 }
 
 void FEManagerT::SendRecvExternalData(const iArray2DT& all_out_data, iArray2DT& external_data)
 {
 #pragma unused(all_out_data)
 #pragma unused(external_data)
-	cout << "\n FEManagerT::RecvExternalData: invalid exchange of external data" << endl;
-	throw ExceptionT::kGeneralFail;
+	ExceptionT::GeneralFail("FEManagerT::RecvExternalData", "invalid exchange of external data");
 }
 
 void FEManagerT::Wait(void)
@@ -798,7 +810,7 @@ eControllerT* FEManagerT::eController(int index) const
 		//NOTE: cast should be safe for all cases
 #else
 	eControllerT* e_controller = dynamic_cast<eControllerT*>(fControllers[index]);
-	if (!e_controller) throw ExceptionT::kGeneralFail;
+	if (!e_controller) ExceptionT::GeneralFail();
 #endif
 
 	return e_controller;
@@ -812,7 +824,7 @@ nControllerT* FEManagerT::nController(int index) const
 		//NOTE: cast should be safe for all cases
 #else
 	nControllerT* n_controller = dynamic_cast<nControllerT*>(fControllers[index]);
-	if (!n_controller) throw ExceptionT::kGeneralFail;
+	if (!n_controller) ExceptionT::GeneralFail();
 #endif
 
 	return n_controller;
@@ -1057,7 +1069,7 @@ void FEManagerT::SetNodeManager(void)
 {
 	/* construct */
 	fNodeManager = new NodeManagerT(*this);
-	if (!fNodeManager) throw ExceptionT::kOutOfMemory;	
+	if (!fNodeManager) ExceptionT::OutOfMemory();	
 	fNodeManager->Initialize();			
 
 	/* add to console */
@@ -1070,7 +1082,7 @@ void FEManagerT::SetElementGroups(void)
 	/* echo element data */
 	int num_groups;
 	fMainIn >> num_groups;
-	if (num_groups < 1) throw ExceptionT::kBadInputValue;
+	if (num_groups < 1) ExceptionT::BadInputValue();
 	fElementGroups.Dimension(num_groups);
 	fElementGroups.EchoElementData(fMainIn, fMainOut, *this);
 		
@@ -1082,6 +1094,8 @@ void FEManagerT::SetElementGroups(void)
 /* set the correct fSolutionDriver type */
 void FEManagerT::SetSolver(void)
 {
+	const char caller[] = "FEManagerT::SetSolver";
+
 	/* equation info */
 	int num_groups = fSolvers.Length();
 	fGlobalEquationStart.Dimension(num_groups);
@@ -1098,11 +1112,8 @@ void FEManagerT::SetSolver(void)
 			int type = -1;
 			fMainIn >> index >> type;
 			index--;
-			if (fSolvers[index] != NULL) {
-				cout << "\n FEManagerT::SetSolver: solver at index "
-				     << index+1 << " is already set" << endl;
-				throw ExceptionT::kBadInputValue;
-			}
+			if (fSolvers[index] != NULL)
+				ExceptionT::BadInputValue(caller, "solver at index %d is already set", index+1);
 	
 			/* construct solver */
 			fSolvers[index] = New_Solver(type, fCurrentGroup);
@@ -1112,7 +1123,7 @@ void FEManagerT::SetSolver(void)
 	else /* support for legacy analysis codes */
 	{
 		/* should have just one solver */
-		if (fSolvers.Length() != 1) throw ExceptionT::kSizeMismatch;
+		if (fSolvers.Length() != 1) ExceptionT::SizeMismatch();
 	
 		/* solver set by analysis code */
 		switch (fAnalysisCode)
@@ -1143,8 +1154,7 @@ void FEManagerT::SetSolver(void)
 				break;
 			}
 			default:
-				cout << "\n FEManagerT::SetSolver: unknown analysis type: " << fAnalysisCode << endl;
-				throw ExceptionT::kBadInputValue;
+				ExceptionT::BadInputValue(caller, "unknown analysis type: %d", fAnalysisCode);
 		}
 	}
 	
@@ -1154,11 +1164,10 @@ void FEManagerT::SetSolver(void)
 	
 		int num_phases = -99;
 		fMainIn >> num_phases;
-		if (num_phases < fSolvers.Length()) {
-			cout << "\n FEManagerT::SetSolver: expecting at least " << fSolvers.Length()
-			     << " solver phases: " << num_phases << endl;
-			throw ExceptionT::kBadInputValue;
-		}
+		if (num_phases < fSolvers.Length())
+			ExceptionT::BadInputValue(caller, "expecting at least %d solver phases: %d",
+				fSolvers.Length(), num_phases);
+
 		fSolverPhases.Dimension(num_phases, 3);
 		fSolverPhases = -99;
 
@@ -1170,20 +1179,14 @@ void FEManagerT::SetSolver(void)
 			solver--;
 
 			/* checks */
-			if (solver < 0 || solver >= fSolverPhases.MajorDim()) {
-				cout << "\n FEManagerT::SetSolver: solver number is out of range: " << solver+1 << endl;
-				throw ExceptionT::kBadInputValue;
-			}
-			if (iters < 1 && iters != -1) {
-				cout << "\n FEManagerT::SetSolver: solver iterations for solver " 
-				     << solver+1 << " must be -1 or > 0: " << iters << endl;
-				throw ExceptionT::kBadInputValue;			
-			}
-			if (pass_iters < 0 && pass_iters != -1) {
-				cout << "\n FEManagerT::SetSolver: iterations to pass solver " 
-				     << solver+1 << " must be -1 or >= 0: " << iters << endl;
-				throw ExceptionT::kBadInputValue;			
-			}
+			if (solver < 0 || solver >= fSolverPhases.MajorDim()) 
+				ExceptionT::BadInputValue(caller, "solver number is out of range: %d", solver+1); 
+
+			if (iters < 1 && iters != -1)
+				ExceptionT::BadInputValue(caller, "solver iterations for solver %d must be -1 or > 0: %d", solver+1, iters);
+
+			if (pass_iters < 0 && pass_iters != -1) 
+				ExceptionT::BadInputValue(caller, "iterations to pass solver %d must be -1 or >= 0: %d", solver+1, iters);
 			
 			/* store values */
 			solver_list.AppendUnique(solver);
@@ -1195,10 +1198,8 @@ void FEManagerT::SetSolver(void)
 		/* number of loops through the solvers */
 		fMaxSolverLoops = -99;
 		fMainIn >> fMaxSolverLoops;
-		if (fMaxSolverLoops < 1 && fMaxSolverLoops != -1) {
-			cout << "\n FEManagerT::SetSolver: expecting -1 or > 0: " << fMaxSolverLoops << endl;
-			throw ExceptionT::kBadInputValue;
-		}
+		if (fMaxSolverLoops < 1 && fMaxSolverLoops != -1)
+			ExceptionT::BadInputValue(caller, "expecting -1 or > 0: %d", fMaxSolverLoops);
 	}
 	else /* set default values for single solver */
 	{
@@ -1224,10 +1225,8 @@ void FEManagerT::SetSolver(void)
 	fMainOut << " Maximum number of solver loops. . . . . . . . . = " << fMaxSolverLoops << '\n';
 	
 	/* check that all solvers hit at least once */
-	if (solver_list.Length() != fSolvers.Length()) {
-		cout << "\n FEManagerT::SetSolver: must have at least one phase per solver" << endl;
-		throw ExceptionT::kBadInputValue;
-	}	
+	if (solver_list.Length() != fSolvers.Length())
+		ExceptionT::BadInputValue(caller, "must have at least one phase per solver");
 	
 	/* initialize */
 	if (fCurrentGroup != -1) throw;
