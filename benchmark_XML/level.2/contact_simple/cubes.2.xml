@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" echo_input="false" geometry_file="../geometry/two_cubes.2.geom" title="two cubes in contact">
+<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" echo_input="false" geometry_file="../geometry/two_cubes.2a.geom" title="two cubes in contact">
     <time num_steps="5" output_inc="5" time_step="0.02">
         <schedule_function>
             <piecewise_linear>
