@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.14 2002-02-13 18:08:32 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.15 2002-02-18 09:44:06 paklein Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -437,45 +437,46 @@ void TranslateIOManager::InitializeTime (void)
    }
 }
 
-void TranslateIOManager::TranslateVariables (void)
+void TranslateIOManager::TranslateVariables(void)
 {
-  int ng = fModel.NumElementGroups ();
-  if (ng < 1)
-    {
-      fMessage << "\n No element groups found.\n";
-      return;
-    }
-  else if (ng != fOutputID.Length()) 
-    throw eSizeMismatch;
-
-  const ArrayT<StringT>& groupnames = fModel.ElementGroupIDs();
-  int numnodes, numdims;
-  fModel.CoordinateDimensions (numnodes, numdims);
-  for (int t=0; t < fNumTS; t++)
-    {
-      cout << "Time Step " << fTimeIncs[t]+1 << ": " << fTimeSteps[t] << endl;
-      for (int g=0; g < fOutputID.Length(); g++)
-	{
-	  // account for user specified element groups not to translate
-	  if (fOutputID [g] > -1) 
-	    {
-	      int numelems, numelemnodes;
-	      fModel.ElementGroupDimensions (groupnames[g], numelems, numelemnodes);
-	      
-	      // read all variables for this step
-	      dArray2DT nvalues (numnodes, fNumNV); // numnodes is larger than needed
-	      dArray2DT evalues (numelems, fNumEV);
-	      if (fNumNV > 0) 
-		fModel.NodeVariables (fTimeIncs[t], groupnames[g], nvalues);
-	      if (fNumEV > 0) 
-		fModel.ElementVariables (fTimeIncs[t], groupnames[g], evalues);
-	      
-	      // future: accout for which variables user wanted translated
-	      
-	      fOutput->WriteOutput (fTimeSteps[t], fOutputID[g], nvalues, evalues);
-	    }
+	/* output sets */
+	if (!fOutput) {
+		cout << "\n TranslateIOManager::TranslateVariables: output not initialized" << endl;
+		throw eGeneralFail;
 	}
-    }
+	const ArrayT<OutputSetT*>& output_sets = fOutput->ElementSets();
+	if (output_sets.Length() != fOutputID.Length()) throw eSizeMismatch;
+
+	/* loop over element groups */
+	for (int g = 0; g < output_sets.Length(); g++)
+	{
+		OutputSetT& set = *(output_sets[g]);
+		int num_nodes = set.NumNodes();
+		int num_node_values = set.NumNodeValues();
+		int num_elems = set.NumElements();
+		int num_elem_values = set.NumElementValues();
+
+		/* work space */
+		dArray2DT n_values(num_nodes, fNumNV);
+		dArray2DT e_values(num_elems, fNumEV);
+	
+		/* loop over time steps */
+		for (int t = 0; t < fTimeIncs.Length(); t++)
+		{
+			/* report */
+			if (g == 0) cout << "Time Step " << fTimeIncs[t]+1 << ": " << fTimeSteps[t] << endl;
+
+			/* read node values */
+			fModel.AllNodeVariables(t, n_values);
+		
+			/* read values for all blocks - assumes block values assembled
+			 * one after the next */
+			fModel.AllElementVariables(t, e_values);
+
+			/* write it */
+			fOutput->WriteOutput(fTimeSteps[t], fOutputID[g], n_values, e_values);
+		}
+	}
 }
 
 void TranslateIOManager::WriteGeometry (void)
@@ -488,12 +489,34 @@ void TranslateIOManager::WriteGeometry (void)
 
 void TranslateIOManager::WriteNodes (void)
 {
-  int numnodes, dof;
-  fModel.CoordinateDimensions (numnodes, dof);
-  fNodeMap.Allocate (numnodes);
-  fModel.AllNodeMap (fNodeMap);
-  fOutput->SetCoordinates (fModel.Coordinates(), &fNodeMap);
-  cout << "\n Number of Nodes: " << numnodes << " DOF: " << dof << endl;
+	int nnd, nsd;
+	fModel.CoordinateDimensions(nnd, nsd);
+	fNodeMap.Dimension(nnd);
+	fModel.AllNodeMap(fNodeMap);
+	fNodeMap--;
+  
+	/* node map should not be empty */
+	if (fNodeMap.Length() == 0) {
+		cout << "\n TranslateIOManager::WriteNodes: node number map is empty" << endl;
+		throw eGeneralFail;
+		}
+  
+	/* Difference between "node map" and "nodes used". Coordinates list is "global" if:
+	 *
+     *   fCoordinates[fNodeMap[i]] == coordinates of node fNodeMap[i] 
+     *
+     */
+	int min, max;
+	fNodeMap.MinMax(min, max);
+	if (min != 0 || max >= nnd) /* this is not a global node set */
+	{
+		fCoordinates.Dimension(max + 1, nsd);
+		fCoordinates.Assemble(fNodeMap, fModel.Coordinates());
+	}
+	else fCoordinates.Alias(fModel.Coordinates());
+  
+	fOutput->SetCoordinates (fCoordinates, &fNodeMap);
+	cout << "\n Number of Nodes: " << nnd << " dim: " << nsd << endl;
 }
 
 void TranslateIOManager::WriteNodeSets (void)
@@ -532,57 +555,85 @@ void TranslateIOManager::WriteNodeSets (void)
     }
 }
  
-void TranslateIOManager::WriteElements (void)
+void TranslateIOManager::WriteElements(void)
 {
-  int num = fModel.NumElementGroups ();
-  fOutputID.Allocate (num);
-  const ArrayT<StringT>& names = fModel.ElementGroupIDs(	);
+	int num = fModel.NumElementGroups ();
+	cout << "\n Number of Element Groups: " << num << endl;
+	cout << "\n1. Translate All\n";
+	cout << "2. Translate Some\n";
+	cout << "\n selection: ";
+	int selection;
+	cin >> selection;
 
-  int selection;
-  if (fWrite)
-    {
-      cout << "\n Number of Element Groups: " << num << endl;
-      cout << "\n1. Translate All\n";
-      cout << "2. Translate Some\n";
-      cout << "\n selection: ";
-    }
-  fIn >> selection;
+	/* element sets */
+	AutoArrayT<const iArray2DT*> blocks;
+	AutoArrayT<StringT> block_IDs;
 
-  bool changing = false;
-  StringT answer;
-  for (int e=0; e < num; e++)
-    {
-      // allow user to select element groups
-      answer = "yes";
-      if (selection == 2)
-	{
-	  if (fWrite)
-	    cout << "    Translate Element Group " << names[e] << " (y/n) ? ";
-	  fIn >> answer;
+	bool changing = false;
+	StringT answer;
+	const ArrayT<StringT>& names = fModel.ElementGroupIDs();
+	if (num == 0) {
+		cout << "\n TranslateIOManager::WriteElements: no element sets" << endl;
+		throw eGeneralFail;
 	}
+	GeometryT::CodeT geometry = GeometryT::kNone;
+	for (int e = 0; e < num; e++)
+	{
+		// allow user to select element groups
+		answer = "yes";
+		if (selection == 2) {
+			cout << "    Translate Element Group " << names[e] << " (y/n) ? ";
+			cin >> answer;
+		}
       
-      if (answer [0] == 'y' || answer[0] == 'Y')
-	{
-	  ArrayT<const iArray2DT*> conn (1);
-	  conn[0] = fModel.ElementGroupPointer (names[e]);
-	  fModel.ReadConnectivity (names[e]);
+		if (answer [0] == 'y' || answer[0] == 'Y')
+		{
+			/* read connectivities */
+			fModel.ReadConnectivity(names[e]);
+			blocks.Append(fModel.ElementGroupPointer(names[e]));
+			block_IDs.Append(names[e]);
 
-	  if (true || conn[0]->Length() > 0)
-	    {
-	      ArrayT<StringT> block_ID(1);
-	      block_ID[0] = names[e];
-	      StringT ID;
-	      ID.Append(e+1);
-	      OutputSetT set(ID, fModel.ElementGroupGeometry (names[e]), block_ID, 
-			      conn, fNodeLabels, fElementLabels, changing);
-	      fOutputID[e] = fOutput->AddElementSet (set);
-	    }
-	  else
-	    cout << " Element Group " << names[e] << " has no elements.\n";
+			/* must all be the same geometry */
+			if (fModel.ElementGroup(names[e]).MajorDim() > 0) /* skip empty sets */
+			{
+				if (geometry == GeometryT::kNone)
+					geometry = fModel.ElementGroupGeometry(names[e]);
+				else if (geometry != fModel.ElementGroupGeometry(names[e])) {
+					cout << "\n TranslateIOManager::WriteElements: mismatched geometry codes\n" 
+					     <<   "     " << geometry <<  " and " << fModel.ElementGroupGeometry(names[e]) 
+					     << endl;
+					throw eDatabaseFail;			
+				}
+			}
+
+#if 0
+			if (true || conn[0]->Length() > 0)
+			{
+				ArrayT<StringT> block_ID(1);
+				block_ID[0] = names[e];
+				StringT ID;
+				ID.Append(e+1);
+//				OutputSetT set(ID, fModel.ElementGroupGeometry (names[e]), block_ID, 
+//					conn, fNodeLabels, fElementLabels, changing);
+//				fOutputID[e] = fOutput->AddElementSet (set);
+			}
+			else
+				cout << " Element Group " << names[e] << " has no elements.\n";
+#endif
+		}
 	}
-      else
-	fOutputID[e] = -1;
-    }
+	
+	/* set ID */
+	StringT ID;
+	if (block_IDs.Length() == 1)
+		ID = block_IDs[0];
+	else
+		ID.Append(0);
+
+	/* create output set */
+	fOutputID.Allocate(1);
+	OutputSetT set(ID, geometry, block_IDs, blocks, fNodeLabels, fElementLabels, changing);
+	fOutputID[0] = fOutput->AddElementSet(set);
 }
 
 void TranslateIOManager::WriteSideSets (void)
