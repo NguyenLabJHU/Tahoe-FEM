@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.10 2002-03-28 16:34:12 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.11 2002-06-29 01:08:04 paklein Exp $ */
 /* created: paklein (05/23/1997) */
 
 #ifndef _NARRAY_T_H_
@@ -124,9 +124,14 @@ public:
 	void SetToScaled(const nTYPE& scale, const nArrayT& RHS);
 	void AddScaled(const nTYPE& scale, const nArrayT& RHS);
 
-	/* sum and difference of nArrayT's */
+	/** sum and difference of nArrayT's */
 	void SumOf(const nArrayT& A, const nArrayT& B);
 	void DiffOf(const nArrayT& A, const nArrayT& B);
+
+	/** sum and difference arrays. Arrays assumed to be the same
+	 * length as this. */
+	void SumOf(const nTYPE* a, const nTYPE* b);
+	void DiffOf(const nTYPE* a, const nTYPE* b);
 	
 	/* linear combinations:
 	 *
@@ -1015,16 +1020,21 @@ void nArrayT<nTYPE>::AddScaled(const nTYPE& scale, const nArrayT& RHS)
 
 /* sum (A + B) and difference (A - B) of nArrayT's */
 template <class nTYPE>
-void nArrayT<nTYPE>::SumOf(const nArrayT& A, const nArrayT& B)
+inline void nArrayT<nTYPE>::SumOf(const nArrayT& A, const nArrayT& B)
 {
-/* dimension checks */
 #if __option (extended_errorcheck)
+	/* dimension checks */
 	if (fLength != A.fLength || fLength != B.fLength) throw eSizeMismatch;
 #endif
 
+	/* call pointer version */
+	SumOf(A.Pointer(), B.Pointer());
+}
+
+template <class nTYPE>
+inline void nArrayT<nTYPE>::SumOf(const nTYPE* pA, const nTYPE* pB)
+{
 	nTYPE* pthis = Pointer();
-	nTYPE* pA    = A.Pointer();
-	nTYPE* pB    = B.Pointer();
 	for (int i = 0; i < fLength; i++)
 	{
 		*pthis  = *pA++;
@@ -1034,16 +1044,21 @@ void nArrayT<nTYPE>::SumOf(const nArrayT& A, const nArrayT& B)
 }
 	
 template <class nTYPE>
-void nArrayT<nTYPE>::DiffOf(const nArrayT& A, const nArrayT& B)
+inline void nArrayT<nTYPE>::DiffOf(const nArrayT& A, const nArrayT& B)
 {
-/* dimension checks */
 #if __option (extended_errorcheck)
+	/* dimension checks */
 	if (fLength != A.fLength || fLength != B.fLength) throw eSizeMismatch;
 #endif
 
+	/* call pointer version */
+	DiffOf(A.Pointer(), B.Pointer());
+}
+
+template <class nTYPE>
+void nArrayT<nTYPE>::DiffOf(const nTYPE* pA, const nTYPE* pB)
+{
 	nTYPE* pthis = Pointer();
-	nTYPE* pA    = A.Pointer();
-	nTYPE* pB    = B.Pointer();
 	for (int i = 0; i < fLength; i++)
 	{
 		*pthis  = *pA++;
