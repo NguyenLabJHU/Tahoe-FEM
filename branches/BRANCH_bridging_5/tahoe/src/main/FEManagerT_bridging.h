@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.11.4.8 2004-04-15 21:15:57 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.11.4.9 2004-04-16 03:22:59 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -166,13 +166,10 @@ public:
 	const PointInCellDataT& ProjectionData(void) { return fDrivenCellData; };
 	/*@}*/
 	
-	/** \name methods to compute bond density correctoin in the overlap region */
+	/** \name methods to compute bond density correction in the overlap region */
 	/*@{*/
 	/** compute internal correction for the overlap region */
 	void CorrectOverlap(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2);
-
-	/** compute internal correction for the overlap region */
-	void CorrectOverlap_nodal(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2);
 	/*@}*/
 
 	/** (re-)set the equation number for the given group */
