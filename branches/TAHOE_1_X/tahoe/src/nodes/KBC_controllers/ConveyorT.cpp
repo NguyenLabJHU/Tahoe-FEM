@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.3.30.3 2004-11-08 23:59:44 thao Exp $ */
+/* $Id: ConveyorT.cpp,v 1.3.30.4 2004-11-09 18:29:07 thao Exp $ */
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
@@ -7,6 +7,8 @@
 #include "KBC_PrescribedT.h"
 #include "ifstreamT.h"
 #include "ConveyorT.h"
+#include "ContinuumElementT.h"
+#include "CSEAnisoT.h"
 
 using namespace Tahoe;
 
@@ -498,11 +500,6 @@ bool ConveyorT::SetSystemFocus(double focus)
 	double uY_top = u_field(fTopNodes[0], 1);
 	double duY_dY = (uY_top - uY_bottom)/(Y_top - Y_bottom);
 
-	double uX_bottom = u_field(fBottomNodes[0],0);
-	double uX_top = u_field(fTopNodes[0],0);
-	if (uX_bottom - uX_top > kSmall) 
-		ExceptionT::GeneralFail("ConveyorT::SetSystemFocus", "Difference in X displacement of top on bottom strip exceeds tolerance: %d",uX_top-uX_bottom);
-		 
 	/* has damping */
 	bool has_damping = (fabs(fDampingWidth) > kSmall && fabs(fDampingCoefficient) > kSmall) ? true : false;
 
@@ -527,7 +524,6 @@ bool ConveyorT::SetSystemFocus(double focus)
 			model->UpdateNode(new_coords, i);
 
 			/* correct displacements */
-			u_field(i,0) = uX_bottom;
 			u_field(i,1) = uY_bottom + duY_dY*(initial_coords(i,1) - Y_bottom); /* interpolate between lower and upper boundary */
 			
 			/* zero higher order components */
@@ -539,9 +535,6 @@ bool ConveyorT::SetSystemFocus(double focus)
 				(*DDu_field)(i,0) = 0.0;
 				(*DDu_field)(i,1) = 0.0;
 			}
-			
-			/*checks for state variables and sets them to initial values*/
-			ResetStateVariables();
 		}
 		
 		/* check for damping */
@@ -573,6 +566,7 @@ void ConveyorT::MarkElements(void)
 {
 	/* system information */
 	const FEManagerT& fe = fNodeManager.FEManager();
+	ModelManagerT* model = fe.ModelManager();
 	const dArray2DT& current_coords = fNodeManager.CurrentCoordinates();
 
 	/* zone to activate/deactivate elements */
@@ -620,65 +614,25 @@ void ConveyorT::MarkElements(void)
 			
 			/* goes end to end */
 			if (x_max - x_min > fX_PeriodicLength/2.0)
-				status[j] = ElementBaseT::kOFF;
+				status[j] = ElementBaseT::kMarkOFF;
 			else if (x_min > X_R_on) /* in reactivation zone */
-				status[j] = ElementBaseT::kON;
+				if (status[j] == ElementBaseT::kOFF)
+					status[j] = ElementBaseT::kMarkON;
+				else status[j] = ElementBaseT::kON;
 		}
 		
 		/* reset element status */
-		element_group->SetStatus(status);
-	}
-}
 
-
-
-/* Finds elements on the right edge */
-void ConveyorT::ResetStateVariables(void)
-{
-	/* system information */
-	const FEManagerT& fe = fNodeManager.FEManager();
-	const dArray2DT& current_coords = fNodeManager.CurrentCoordinates();
-
-	/*determine which elements are on the left edge*/		
-	int num_element_groups = fe.NumElementGroups();
-	for (int i = 0; i < num_element_groups; i++)
-	{
-		/* element group */
-		ElementBaseT* element_group = fe.ElementGroup(i);
-		int nel = element_group->NumElements();
-		int nen = element_group->NumElementNodes();
-
-		/* local coordinate array */
-		LocalArrayT curr_coords(LocalArrayT::kCurrCoords, nen, 2);
-		curr_coords.SetGlobal(current_coords);
-	
-		for (int j = 0; j < nel; j++)
-		{
-			/* element info */
-			ElementCardT& card = element_group->ElementCard(j);
-			/* collect local coordinates */
-			curr_coords.SetLocal(card.NodesX());
-			
-			const double* px = curr_coords(0);
-			double x_min = *px;
-			double x_max = *px;
-			px++;
-			for (int k = 1; k < nen; k++) {
-				/* bounds */
-				x_max = (*px > x_max) ? *px : x_max;
-				x_min = (*px > x_min) ? *px : x_min;
-				px++;
-			}
-			/*for now, set the element DoubleData array to zero.  
-			Ideally the PointInitialize member of the material class should be called to do this*/
-			if ((fabs(x_max - fX_Right) < kSmall) && (x_min > fX_Left) && card.IsAllocated()) 
-				card.DoubleData() = 0.0;
+		ContinuumElementT* cont_elem = TB_DYNAMIC_CAST(const ContinuumElementT*, element_group);
+		if (!cont_elem) {
+			CSEAnisoT* cse_aniso_elem = TB_DYNAMIC_CAST(const CSEAnisoT*, element_group);
+			if (!cse_aniso_elem)
+				ExceptionT::GeneralFail("ConveyorT::MarkElements", "could not cast element group %d to ContinuumElementT", element_group+1);
+			else cse_aniso_elem->SetStatus(status);
 		}
+		else cont_elem->SetStatus(status);
 	}
 }
-
-
-
 
 /* deactivate elements to create a pre-crack */
 void ConveyorT::CreatePrecrack(void)
