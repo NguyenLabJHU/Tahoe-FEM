@@ -1,4 +1,4 @@
-/* $Id: Environment.h,v 1.8 2003-11-04 01:10:27 paklein Exp $ */
+/* $Id: Environment.h,v 1.9 2003-12-28 08:19:26 paklein Exp $ */
 /* created: paklein (02/10/1997)                                          */
 /* Environment.h                                                          */
 /* defining environment-specific preprocessor symbols and options         */
@@ -96,6 +96,14 @@ using namespace std;
 #define DEFINE_TEMPLATE_STATIC template<>
 #else
 #define DEFINE_TEMPLATE_STATIC /* */
+#endif
+
+/* wrapper for dynamic casts */
+#define TB_DYNAMIC_CAST(type_name, arg) TB_CAST_MACRO(type_name, arg)
+#ifndef __NO_RTTI__
+#define TB_CAST_MACRO(type_name, arg) dynamic_cast<type_name>(arg)
+#else
+#define TB_CAST_MACRO(type_name, arg) (type_name) arg
 #endif
 
 #endif /* _ENVIRONMENT_H_ */
