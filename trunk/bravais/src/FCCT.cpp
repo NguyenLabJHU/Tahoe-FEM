@@ -1,4 +1,4 @@
-/* $Id: FCCT.cpp,v 1.6 2002-09-09 23:10:29 saubry Exp $ */
+/* $Id: FCCT.cpp,v 1.7 2002-10-31 00:41:42 saubry Exp $ */
 #include "FCCT.h"
 #include "CrystalLatticeT.h"
 
@@ -36,9 +36,17 @@ FCCT::FCCT(int nlsd,int nuca,double alat,
       vAxis(0,1) = 0.0;
       vAxis(1,1) = vLatticeParameters[1];
 
-      // Rotate axis if necessary
+      // Rotate axis
       if (fabs(angle_rotation) >=1.e-5) 
-      	vAxis = AxisRotation(vAxis);
+      	{
+	  vAxis = AxisRotation(vAxis);
+	  cout << "Axis:\n";
+	  cout << vAxis(0,0) << "\n";
+	  cout << vAxis(1,0) << "\n\n";
+
+	  cout << vAxis(0,1) << "\n";
+	  cout << vAxis(1,1) << "\n";
+	}
     }
   
   if (nlsd==3) 
@@ -75,7 +83,7 @@ FCCT::FCCT(int nlsd,int nuca,double alat,
       vAxis(1,2) = 0.0;
       vAxis(2,2) = vLatticeParameters[2];
 
-      // Rotate axis if necessary  (put a flag later...)
+      // Rotate axis
       double norm = sqrt(norm_vec[0] + norm_vec[1] + norm_vec[2]);
       if (norm > 1.e-5) vAxis = AxisRotation(vAxis);
     }

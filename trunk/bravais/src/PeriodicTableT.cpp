@@ -1,9 +1,12 @@
-/* $Id: PeriodicTableT.cpp,v 1.5 2002-09-09 23:10:29 saubry Exp $ */
+/* $Id: PeriodicTableT.cpp,v 1.6 2002-10-31 00:41:42 saubry Exp $ */
 
 #include "PeriodicTableT.h"
 
 #include "dArrayT.h"
 #include "dArray2DT.h"
+
+#include "ExceptionCodes.h"
+
 #include "StringT.h"
 #include "ArrayT.h"
 #include "PerTabEntryT.h"

@@ -1,4 +1,4 @@
-/* $Id: CrystalLatticeT.cpp,v 1.10 2002-10-18 01:16:02 saubry Exp $ */
+/* $Id: CrystalLatticeT.cpp,v 1.11 2002-10-31 00:41:42 saubry Exp $ */
 #include "CrystalLatticeT.h"
 
 #include <iostream>
@@ -16,99 +16,65 @@
 CrystalLatticeT::CrystalLatticeT(int nlsd, int nuca,
 				 dArray2DT mat_rot,double angle) 
 {
-	nLSD = nlsd;
-	nUCA = nuca;
-        vBasis.Dimension(nLSD,nUCA);
-        vLatticeParameters.Dimension(nLSD);
-        vAxis.Dimension(nLSD,nLSD);
-
-	// Define rotation
-	if(nLSD == 3)
-	  {
-	    // Directions in 3D only
-	    if(mat_rot.MinorDim() != nLSD) throw eSizeMismatch;
-	    if(mat_rot.MajorDim() != nLSD) throw eSizeMismatch;
-	    matrix_rotation.Dimension(nLSD,nLSD);
+  nLSD = nlsd;
+  nUCA = nuca;
+  vBasis.Dimension(nLSD,nUCA);
+  vLatticeParameters.Dimension(nLSD);
+  vAxis.Dimension(nLSD,nLSD);
+  
+  // Define rotation
+  if(nLSD == 3)
+    {
+      // Directions in 3D only
+      if(mat_rot.MinorDim() != nLSD) throw eSizeMismatch;
+      if(mat_rot.MajorDim() != nLSD) throw eSizeMismatch;
+      matrix_rotation.Dimension(nLSD,nLSD);
+      
+      norm_vec.Dimension(nLSD);
+      norm_vec = 0.0;
+      
+      for (int j=0; j<nLSD; j++)
+	{
+	  for (int i=0; i<nLSD; i++)
+	    norm_vec[j] += mat_rot(i,j)*mat_rot(i,j);
+	  if (norm_vec[j] <= 1.e-6) {cout << "Matrix of rotation wrong...\n";throw eBadInputValue;}
+	  norm_vec[j] = sqrt(norm_vec[j]);
+	}
+      
+      for (int j=0; j<nLSD; j++)
+	{	
+	  if(norm_vec[j] != 0 || fabs(norm_vec[j]-1.00) <= 1.e-8 ) 
+	    {
+	      for (int i=0; i<nLSD; i++) 
+		for (int j=0; j<nLSD; j++) 
+		  matrix_rotation(i,j) = mat_rot(i,j)/norm_vec[j];
+	    }
+	}
 	    
-	    norm_vec.Dimension(nLSD);
-	    norm_vec = 0.0;
-
-	    for (int j=0; j<nLSD; j++)
-	      {
-		for (int i=0; i<nLSD; i++)
-		  norm_vec[j] += mat_rot(i,j)*mat_rot(i,j);
-
-		if (norm_vec[j] <= 1.e-6) 
-		  {
-		    cout << "Matrix of rotation wrong...\n";
-		    throw eBadInputValue;
-		  }
-		norm_vec[j] = sqrt(norm_vec[j]);
-	      }
-
-	    for (int j=0; j<nLSD; j++)
-	      {	
-		if(norm_vec[j] != 0 || fabs(norm_vec[j]-1.00) <= 1.e-8 ) 
-		  {
-		    for (int i=0; i<nLSD; i++) 
-		      for (int j=0; j<nLSD; j++) 
-			matrix_rotation(i,j) = mat_rot(i,j)/norm_vec[j];
-		  }
-	      }
-
-	    // check input matrix
-	    double yz = matrix_rotation(1,0)*matrix_rotation(2,1)-
-                        matrix_rotation(1,1)*matrix_rotation(2,0);
-	    double xz = matrix_rotation(0,1)*matrix_rotation(2,0)-
-                        matrix_rotation(0,0)*matrix_rotation(2,1); 
-	    double xy = matrix_rotation(0,0)*matrix_rotation(1,1)-
-	                matrix_rotation(0,1)*matrix_rotation(1,0);  
-	    if ( fabs(yz-matrix_rotation(0,2)) <= 1.e-5 ||
-		 fabs(xz-matrix_rotation(1,2)) <= 1.e-5 ||
-		 fabs(xy-matrix_rotation(2,2)) <= 1.e-5 ) 
-
-	      {
-		/*
-		  cout << "Matrix of rotation is not right.\n Changing it ...\n";
-		  cout << "was " << matrix_rotation(0,2) << "  " 
-	 	       << matrix_rotation(1,2) << "  " 
-		       << matrix_rotation(2,2) << "\n";
-		  cout << "is now " << yz << "  " 
-		       << xz << "  " 
-		       << xy << "\n";
-		*/
-		matrix_rotation(0,2) = yz;
-		matrix_rotation(1,2) = xz;
-		matrix_rotation(2,2) = xy;
-	      }
-
-	    angle_rotation = 0;
-
-
-	    cout << "Checked Matrix of Rotation:" << "\n";
-	    cout << matrix_rotation(0,0)* norm_vec[0]<< "  " 
-		 << matrix_rotation(0,1)* norm_vec[0]<< "  " 
-		 << matrix_rotation(0,2)* norm_vec[0] << "\n";
-	    cout << matrix_rotation(1,0)* norm_vec[1] << "  " 
-		 << matrix_rotation(1,1)* norm_vec[1] << "  " 
-		 << matrix_rotation(1,2)* norm_vec[1] << "\n";
-	    cout << matrix_rotation(2,0)* norm_vec[2] << "  " 
-		 << matrix_rotation(2,1)* norm_vec[2] << "  " 
-		 << matrix_rotation(2,2)* norm_vec[2] << "\n\n";
-
-	    cout << matrix_rotation(0,0) << "  " <<  matrix_rotation(0,1) << "  " << matrix_rotation(0,2) << "\n";
-	    cout << matrix_rotation(1,0) << "  " <<  matrix_rotation(1,1) << "  " << matrix_rotation(1,2) << "\n";
-	    cout << matrix_rotation(2,0) << "  " <<  matrix_rotation(2,1) << "  " << matrix_rotation(2,2) << "\n";
-
-
-
-
-	  }
-	else if(nLSD == 2)  
-	  {
-	    // input angle has to be in degrees
-	    angle_rotation = angle;
-	  }
+      // check input matrix
+      double yz = matrix_rotation(1,0)*matrix_rotation(2,1)-
+	matrix_rotation(1,1)*matrix_rotation(2,0);
+      double xz = matrix_rotation(0,1)*matrix_rotation(2,0)-
+	matrix_rotation(0,0)*matrix_rotation(2,1); 
+      double xy = matrix_rotation(0,0)*matrix_rotation(1,1)-
+	matrix_rotation(0,1)*matrix_rotation(1,0);  
+      if ( fabs(yz-matrix_rotation(0,2)) <= 1.e-5 ||
+	   fabs(xz-matrix_rotation(1,2)) <= 1.e-5 ||
+	   fabs(xy-matrix_rotation(2,2)) <= 1.e-5 ) 
+	{
+	  matrix_rotation(0,2) = yz;
+	  matrix_rotation(1,2) = xz;
+	  matrix_rotation(2,2) = xy;
+	}
+      
+      angle_rotation = 0;
+    }
+  else if(nLSD == 2)  
+    {
+      // input angle has to be in degrees
+      angle_rotation = angle;
+      cout << "Angle of rotation is: " << angle_rotation << "\n";
+    }
 }
 
 CrystalLatticeT::CrystalLatticeT(const CrystalLatticeT& source) 
@@ -145,11 +111,9 @@ dArray2DT  CrystalLatticeT::AxisRotation(dArray2DT A)
   if(A.MajorDim() != nLSD || A.MinorDim() != nLSD) 
     throw eSizeMismatch;
 
-  dArray2DT Bt(nLSD,nLSD);
   dArray2DT B(nLSD,nLSD);
   dMatrixT Q(nLSD,nLSD);
 
-  Bt = 0.0;
   B = 0.0;
   Q = 0.0;
 
@@ -159,23 +123,12 @@ dArray2DT  CrystalLatticeT::AxisRotation(dArray2DT A)
       Rotate2DT R(angle_rotation);
       Q = R.Q();
 
-      // Bt = R.A
       for (int i=0; i<nLSD; i++)
 	for (int j=0; j<nLSD; j++)
 	  {
 	    for (int k=0; k<nLSD; k++)
-	      Bt(i,j) += Q(i,k)*A(k,j);
-	  }
-
-      // B = Bt.R^t = R.A.R^t
-      for (int i=0; i<nLSD; i++)
-	for (int j=0; j<nLSD; j++)
-	  {
-	    for (int k=0; k<nLSD; k++)
-	      B(i,j) += Bt(i,k)*Q(j,k);
-	  }
-      
-      
+	      B(i,j) += Q(i,k)*A(k,j);
+	  }     
     }
   else if(nLSD==3)
     {
@@ -186,22 +139,12 @@ dArray2DT  CrystalLatticeT::AxisRotation(dArray2DT A)
       R.GiveTransfoMatrix(matrix_rotation);
       Q = R.Q();
       
-      // Bt = R.A
       for (int i=0; i<nLSD; i++)
 	for (int j=0; j<nLSD; j++)
 	  {
 	    for (int k=0; k<nLSD; k++)
 	      B(i,j) += Q(i,k)*A(k,j);
 	  }
-
-      // B = Bt.R^t = R.A.R^t
-      for (int i=0; i<nLSD; i++)
-	for (int j=0; j<nLSD; j++)
-	  {
-	    for (int k=0; k<nLSD; k++)
-	      B(i,j) += Bt(i,k)*Q(j,k);
-	  }
-    }
 
   return B;
 }

@@ -24,7 +24,7 @@ using namespace Tahoe;
 // Constructor
 MeshAtom::MeshAtom(StringT which_latticetype,int nsd,int nuca,
 		   dArrayT latticeparameter,StringT which_shape,
-		   int whichunit,dArray2DT len, iArrayT cel,
+		   int whichunit,dArray2DT len, iArrayT cel,int irot,
 		   dArray2DT mat_rot,double angle)
 {
   if(which_latticetype == "FCC")
@@ -41,9 +41,9 @@ MeshAtom::MeshAtom(StringT which_latticetype,int nsd,int nuca,
   if(which_shape == "BOX")
     {
       if(whichunit==1) 
-	Shape = new BoxT(nsd,len,latticeparameter);
+	Shape = new BoxT(nsd,len,latticeparameter,irot);
       else
-	Shape = new BoxT(nsd,cel,latticeparameter);
+	Shape = new BoxT(nsd,cel,latticeparameter,irot);
     }
   else
     {
