@@ -1,4 +1,4 @@
-/* $Id: BoxT.cpp,v 1.11 2002-11-04 18:34:09 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.12 2002-11-05 00:36:24 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -156,29 +156,83 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
 {
   int nlsd = pcl->GetNLSD();
   
-  dArray2DT new_atom(atom_coord.MajorDim(),atom_coord.MinorDim());
+  dArray2DT new_coord(atom_coord.MajorDim(),atom_coord.MinorDim());   
 
-  int new_m = 0;
-   
-  // Try the routine SortAscending of class dArrayT?
-  dArrayT u(4),v(4);
+  dArrayT x(atom_coord.MajorDim());
+  dArrayT y(atom_coord.MajorDim());
+  dArrayT z(atom_coord.MajorDim());
 
-  u[0]=5.;
-  u[1]=2.;
-  u[2]=10.;
-  u[3]=5.5;
+  iArrayT Map(atom_coord.MajorDim());
 
-  u.SortAscending();
+  for(int m=0; m < nATOMS ; m++) 
+    {
+      x[m] = atom_coord(m)[WhichSort[0]];
+      y[m] = atom_coord(m)[WhichSort[1]];
+      if (nlsd == 3) z[m] = atom_coord(m)[WhichSort[2]];
+    }
 
-  cout << u[0] << "\n";
-  cout << u[1] << "\n";
-  cout << u[2] << "\n";
-  cout << u[3] << "\n";
+  Map.SetValueToPosition();
+  Map.SortAscending(x);
 
+  for(int m=0; m < nATOMS ; m++) 
+    {
+      new_coord(m)[WhichSort[0]] = x[m];
+      new_coord(m)[WhichSort[1]] = y[Map[m]];
+      if (nlsd == 3)  new_coord(m)[WhichSort[2]] = z[Map[m]];
+    } 
 
-  atom_coord = new_atom;
+  /*for(int m=0; m < nATOMS ; m++) 
+    {
+      cout << m << "  (" <<  atom_coord(m)[0] << "," << atom_coord(m)[1] << ")"
+	   << " =>  (" <<  new_coord(m)[0] << "," << new_coord(m)[1] << ")\n";
+    }
+
+  for(int m=0; m < nATOMS ; m++) 
+    cout << "Map[" << m << "]=" << Map[m] << "\n";
+  */
+
+  atom_coord = new_coord;
 }
 
+/*void BoxT::SortLattice(CrystalLatticeT* pcl) 
+{
+  int nlsd = pcl->GetNLSD();
+  
+  dArray2DT new_coord(atom_coord.MajorDim(),atom_coord.MinorDim());   
+  dArrayT x(atom_coord.MajorDim());
+  dArrayT y(atom_coord.MajorDim());
+  dArrayT z(atom_coord.MajorDim());
+  iArrayT Map(atom_coord.MajorDim());
+
+  for(int m=0; m < nATOMS ; m++) 
+    {
+      x[m] = atom_coord(m)[0];
+      y[m] = atom_coord(m)[1];
+      if (nlsd == 3) z[m] = atom_coord(m)[2];
+
+    }
+  Map.SetValueToPosition();
+  Map.SortAscending(x);
+
+  for(int m=0; m < nATOMS ; m++) 
+    {
+      new_coord(m)[0] = x[m];
+      new_coord(m)[1] = y[Map[m]];
+      if (nlsd == 3)  new_coord(m)[2] = z[Map[m]];
+    } 
+
+  for(int m=0; m < nATOMS ; m++) 
+    {
+      cout << m << "  (" <<  atom_coord(m)[0] << "," << atom_coord(m)[1] << ")"
+	   << " =>  (" <<  new_coord(m)[0] << "," << new_coord(m)[1] << ")\n";
+    }
+
+  for(int m=0; m < nATOMS ; m++) 
+    cout << "Map[" << m << "]=" << Map[m] << "\n";
+
+  atom_coord = new_coord;
+}
+*/
 
 
 void BoxT::CalculateBounds(iArrayT per,CrystalLatticeT* pcl)

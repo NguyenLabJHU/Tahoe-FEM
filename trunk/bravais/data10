@@ -1,16 +1,25 @@
 3
 0
-1 1 1
+6 6 6
 FCC
 3.52
 BOX
-3
+12
 PERIODICITY
+1 1 1 
+ROTATION
+0
 1 1 0
+-1 1 0
+0 0 1
+SORT 
+0 1 2
+OUTPUT
+mesh3D
 #
 
-NOTE: Test of cells in 3D, no rotation
-------------------------------------------------------------
+NOTE: Test 3D Sort
+-----------------------------------------------------------
 * nsd
 * whichunit: length(1) or ncell(0)
 * if (1), enter length(nsd,2) ; if (0) enter ncell(nsd)
@@ -73,4 +82,3 @@ Test of rotation in 3D : cells, no rotation.
 	                return IOBaseT::kTahoeResults;
 	       case 12:
 	                return IOBaseT::kParaDyn;
-
