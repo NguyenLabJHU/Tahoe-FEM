@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.51.4.2 2004-04-07 15:38:06 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.51.4.3 2004-04-08 06:15:51 paklein Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -173,8 +173,9 @@ void EAMT::WriteOutput(void)
 
  
   /* collect mass per particle */
-  dArrayT mass(fNumTypes);
-  for (int i = 0; i < fNumTypes; i++)
+  int num_types = fTypeNames.Length();
+  dArrayT mass(num_types);
+  for (int i = 0; i < num_types; i++)
     mass[i] = fEAMProperties[fPropertiesMap(i,i)]->Mass();
 
 
@@ -822,17 +823,18 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
   int formK = fIntegrator->FormK(constK);
   int formM = fIntegrator->FormM(constM);
 
-  /* assemble particle mass */
-  if (formM) 
-    {
-    /* collect mass per particle */
-    dArrayT mass(fNumTypes);
-    for (int i = 0; i < fNumTypes; i++)
-      mass[i] = fEAMProperties[fPropertiesMap(i,i)]->Mass();
-    mass *= constM;
-	
-    AssembleParticleMass(mass);
-  }
+	/* assemble particle mass */
+	if (formM) {
+		
+		/* collect mass per particle */
+		int num_types = fTypeNames.Length();
+		dArrayT mass(num_types);
+		for (int i = 0; i < num_types; i++)
+			mass[i] = fEAMProperties[fPropertiesMap(i,i)]->Mass();
+		mass *= constM;
+
+		AssembleParticleMass(mass);
+	}
 
 	/* muli-processor information */
 	CommManagerT& comm_manager = ElementSupport().CommManager();
@@ -1679,6 +1681,13 @@ void EAMT::SetConfiguration(void)
   
   /* exchange type information */
   comm_manager.AllGather(frhop_rMessageID, frhop_r);
+}
+
+/* extract the properties information from the parameter list. See ParticleT::ExtractProperties */
+void EAMT::ExtractProperties(const ParameterListT& list, const ArrayT<StringT>& type_names,
+	ArrayT<ParticlePropertyT*>& properties, nMatrixT<int>& properties_map)
+{
+ExceptionT::GeneralFail("EAMT::ExtractProperties", "not implemented");
 }
 
 /* construct the list of properties from the given input stream */
