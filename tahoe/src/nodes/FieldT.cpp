@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.24.2.9 2004-03-27 04:16:40 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.24.2.10 2004-04-01 08:35:02 paklein Exp $ */
 #include "FieldT.h"
 
 #include "fstreamT.h"
@@ -736,8 +736,7 @@ void FieldT::DefineSubs(SubListT& sub_list) const
 	sub_list.AddSub("KBC_controllers", ParameterListT::Any, true);
 	
 	/* FBC controllers */
-	//sub_list.AddSub("FBC_controllers", ParameterListT::Any, true);
-#pragma message("NewFBC_Controller needs changes")
+	sub_list.AddSub("FBC_controllers", ParameterListT::Any, true);
 }
 
 /* return the description of the given inline subordinate parameter list */
@@ -771,13 +770,12 @@ void FieldT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& ord
 	{
 		order = ParameterListT::Choice;
 		
-		/* spherical barrier */
+		/* choices */
 		sub_sub_list.AddSub("sphere_penalty");
-
-		/* flat barrier */
+		sub_sub_list.AddSub("sphere_augmented_Lagrangian");
+		sub_sub_list.AddSub("sphere_penalty_meshfree");
 		sub_sub_list.AddSub("wall_penalty");
-
-		/* cylindrical barrier */
+		sub_sub_list.AddSub("wall_augmented_Lagrangian");
 		sub_sub_list.AddSub("cylinder_penalty");
 	}
 	else /* inherited */
@@ -798,7 +796,7 @@ ParameterInterfaceT* FieldT::NewSub(const StringT& list_name) const
 	/* (try to) translate to FBC code */
 	FBC_ControllerT::CodeT FBC_code = FBC_ControllerT::Code(list_name);
 	if (FBC_code != FBC_ControllerT::kNone)
-		return fFieldSupport.NewFBC_Controller(*non_const_this, FBC_code);
+		return fFieldSupport.NewFBC_Controller(FBC_code);
 
 	if (list_name == "dof_count")
 	{
@@ -951,7 +949,8 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 		if (!resolved) {
 			FBC_ControllerT::CodeT FBC_code = FBC_ControllerT::Code(name);
 			if (FBC_code != FBC_ControllerT::kNone) {
-				FBC_ControllerT* FBC_controller = fFieldSupport.NewFBC_Controller(*this, FBC_code);
+				FBC_ControllerT* FBC_controller = fFieldSupport.NewFBC_Controller(FBC_code);
+				FBC_controller->SetField(*this);
 				FBC_controller->TakeParameterList(subs[i]);
 				AddFBCController(FBC_controller);
 				resolved = true;

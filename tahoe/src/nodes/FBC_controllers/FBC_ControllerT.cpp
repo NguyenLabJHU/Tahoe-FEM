@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.cpp,v 1.9.6.2 2004-03-31 16:20:14 paklein Exp $ */
+/* $Id: FBC_ControllerT.cpp,v 1.9.6.3 2004-04-01 08:35:04 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 #include "FBC_ControllerT.h"
 #include "ArrayT.h"
@@ -22,6 +22,14 @@ FBC_ControllerT::CodeT FBC_ControllerT::Code(const char* name)
 		return kPenaltySphere;
 	else if (strcmp("wall_penalty", name) == 0)
 		return kPenaltyWall;
+	else if (strcmp("sphere_augmented_Lagrangian", name) == 0)
+		return kAugLagSphere;
+	else if (strcmp("wall_augmented_Lagrangian", name) == 0)
+		return kAugLagWall;
+	else if (strcmp("sphere_penalty_meshfree", name) == 0)
+		return kMFPenaltySphere;
+	else if (strcmp("cylinder_penalty", name) == 0)
+		return kPenaltyCylinder;
 	else
 		return kNone;
 }

@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.h,v 1.12.12.2 2004-03-31 16:20:14 paklein Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.12.12.3 2004-04-01 08:35:04 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 #ifndef _FBC_CONTROLLER_T_H_
 #define _FBC_CONTROLLER_T_H_
@@ -50,9 +50,6 @@ public:
 
 	/** set the associated field */
 	virtual void SetField(const FieldT& field);
-
-	/* initialize data - called immediately after construction */
-	virtual void Initialize(void) = 0;
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const = 0;
@@ -109,10 +106,10 @@ public:
 protected:
 
 	/** return the FieldT or throw exception if not set */
-	const FieldT& Field(void);
+	const FieldT& Field(void) const;
 
 	/** return the FieldSupportT or throw exception if not set */
-	const FieldSupportT& FieldSupport(void);
+	const FieldSupportT& FieldSupport(void) const;
 
 protected:
 
@@ -130,13 +127,13 @@ protected:
 };
 
 /* return the FieldT or throw exception if not set */
-const FieldT& FBC_ControllerT::Field(void) {
+inline const FieldT& FBC_ControllerT::Field(void) const {
 	if (!fField) ExceptionT::GeneralFail("FBC_ControllerT::Field", "pointer not set");
 	return *fField;
 }
 
 /* return the FieldSupportT or throw exception if not set */
-const FieldSupportT& FBC_ControllerT::FieldSupport(void) {
+inline const FieldSupportT& FBC_ControllerT::FieldSupport(void) const {
 	if (!fFieldSupport) ExceptionT::GeneralFail("FBC_ControllerT::FieldSupport", "pointer not set");
 	return *fFieldSupport;
 }

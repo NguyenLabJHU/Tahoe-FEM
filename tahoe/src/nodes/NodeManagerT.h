@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.23.2.3 2004-02-18 16:33:54 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.23.2.4 2004-04-01 08:35:02 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -281,7 +281,7 @@ public:
 	/** \name construct BC controllers */
 	/*@{*/
 	virtual KBC_ControllerT* NewKBC_Controller(FieldT& field, int code);
-	virtual FBC_ControllerT* NewFBC_Controller(FieldT& field, int code);
+	virtual FBC_ControllerT* NewFBC_Controller(int code);
 	/*@}*/
 
 	/** \name implementation of the ParameterInterfaceT interface */

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.45.2.8 2004-03-31 16:20:44 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.45.2.9 2004-04-01 08:35:02 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -50,7 +50,6 @@ NodeManagerT::NodeManagerT(FEManagerT& fe_manager, CommManagerT& comm_manager):
 	ParameterInterfaceT("nodes"),
 	fFEManager(fe_manager),
 	fCommManager(comm_manager),
-	fFieldSupport(fe_manager),
 	fInitCoords(NULL),
 	fCoordUpdate(NULL),
 	fCurrentCoords(NULL),
@@ -58,6 +57,10 @@ NodeManagerT::NodeManagerT(FEManagerT& fe_manager, CommManagerT& comm_manager):
 {
 	/* set console */
 	iSetName("nodes");
+	
+	/* init support */
+	fFieldSupport.SetFEManager(&fe_manager);
+	fFieldSupport.SetNodeManager(this);
 }
 
 /* destructor */
@@ -1934,61 +1937,40 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 	return NULL;
 }
 
-FBC_ControllerT* NodeManagerT::NewFBC_Controller(FieldT& field, int code)
+FBC_ControllerT* NodeManagerT::NewFBC_Controller(int code)
 {
   const char caller[] = "NodeManagerT::NewFBC_Controller";
-
-	/* displacement field */
-	const dArray2DT& disp = field[0];
-
-	/* velocity field */
-	dArray2DT* velocity = NULL;
-	if (field.Order() > 0)
-		velocity = &(field[1]);
-		
-	/* const equations array */
-	const iArray2DT& eqnos = field.Equations();
-	
-	/* current coordinates */
-	const dArray2DT& coords = CurrentCoordinates();
 
 	FBC_ControllerT* fbc = NULL;
 	switch(code)
 	{
 		case FBC_ControllerT::kPenaltyWall:
-			fbc = new PenaltyWallT(fFEManager, field.Group(), eqnos, coords, disp, velocity);
+			fbc = new PenaltyWallT;
 			break;
 
 		case FBC_ControllerT::kAugLagWall:
-			fbc = new AugLagWallT(fFEManager, this, field, coords, disp);
+			fbc = new AugLagWallT;
 			break;
 
 		case FBC_ControllerT::kPenaltySphere:	
-			fbc = new PenaltySphereT(fFEManager, field.Group(), eqnos, coords, disp, velocity);
+			fbc = new PenaltySphereT;
 			break;
 
 		case FBC_ControllerT::kPenaltyCylinder:	
-			fbc = new PenaltyCylinderT(fFEManager, field.Group(), eqnos, coords, disp, velocity);
+			fbc = new PenaltyCylinderT;
 			break;
 
 		case FBC_ControllerT::kAugLagSphere:	
-			fbc = new AugLagSphereT(fFEManager, this, field, coords, disp);
+			fbc = new AugLagSphereT;
 			break;
 
 		case FBC_ControllerT::kMFPenaltySphere:	
-			fbc = new MFPenaltySphereT(fFEManager, field.Group(), eqnos, coords, disp, velocity);
+			fbc = new MFPenaltySphereT;
 			break;
 
 		default:
 			ExceptionT::BadInputValue(caller, "FBC controller code %d is not supported", code);
-	}
-	
-	/* set time integrator */
-	if (fbc) {
-		const eIntegratorT& e_integrator = field.nIntegrator().eIntegrator();
-		//fbc->SetController(&e_integrator);
-	}
-	
+	}	
 	return fbc;
 }
 
@@ -2095,13 +2077,13 @@ void NodeManagerT::EchoForceBCControllers(FieldT& field, ifstreamT& in, ostream&
 		in2 >> num >> type; num--;
 		
 		/* construct */
-		FBC_ControllerT* controller = NewFBC_Controller(field, type);
+		FBC_ControllerT* controller = NewFBC_Controller(type);
 		
 		/* echo data */
 		//controller->EchoData(in2, out);
 
 		/* initialize */
-		controller->Initialize();
+		//controller->Initialize();
 		
 		/* store */
 		field.AddFBCController(controller);

@@ -1,4 +1,4 @@
-/* $Id: FieldSupportT.h,v 1.5.16.4 2004-03-31 16:14:37 paklein Exp $ */
+/* $Id: FieldSupportT.h,v 1.5.16.5 2004-04-01 08:35:02 paklein Exp $ */
 #ifndef _FIELD_SUPPORT_T_H_
 #define _FIELD_SUPPORT_T_H_
 
@@ -18,7 +18,7 @@ class FieldSupportT: public BasicSupportT
 public:
 
 	/** constructor */
-	FieldSupportT(const FEManagerT& fe);
+	FieldSupportT(void);
 
 	/** \name construct BC controllers
 	 * Construct new kinematic or force boundary condition controllers. Responsibility 
@@ -26,7 +26,7 @@ public:
 	 */
 	/*@{*/
 	KBC_ControllerT* NewKBC_Controller(FieldT& field, int code) const;
-	FBC_ControllerT* NewFBC_Controller(FieldT& field, int code) const;
+	FBC_ControllerT* NewFBC_Controller(int code) const;
 	/*@}*/
 };
 
