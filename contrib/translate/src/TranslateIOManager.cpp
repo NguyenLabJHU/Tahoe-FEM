@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.18 2002-03-04 07:03:45 paklein Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.19 2002-03-06 20:35:16 sawimme Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -255,7 +255,7 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
   fModel.AllNodeIDs (nodeIDs);
   switch (selection)
     {
-    case 1:
+    case 1: // List
       {
 	cout << "\n Node list defined individually\n";
 	if (fWrite)
@@ -282,7 +282,7 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
 	  }
 	break;
       }
-    case 2:
+    case 2: // Node set
       {
 	int num = fModel.NumNodeSets ();
 	const ArrayT<StringT>& nodesetnames = fModel.NodeSetIDs();
@@ -302,10 +302,10 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
 	index.Allocate (numpoints);
 	index = fModel.NodeSet (nodesetnames[ni]);
 	for (int n=0; n < numpoints; n++)
-	  nodes[n] = fNodeMap [index[n]];
+	  nodes[n] = fNodeIDs [index[n]];
 	break;
       }
-    case 3:
+    case 3: // nth node
       {
 	int freq;
 	if (fWrite)
