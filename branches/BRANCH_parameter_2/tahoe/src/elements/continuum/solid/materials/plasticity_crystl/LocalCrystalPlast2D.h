@@ -1,9 +1,8 @@
-/* $Id: LocalCrystalPlast2D.h,v 1.5 2003-01-29 07:35:04 paklein Exp $ */
+/* $Id: LocalCrystalPlast2D.h,v 1.5.30.1 2004-03-03 16:15:04 paklein Exp $ */
 #ifndef _LOCAL_CRYSTAL_PLAST_2D_H_
 #define _LOCAL_CRYSTAL_PLAST_2D_H_
 
 #include "LocalCrystalPlast.h"
-#include "Material2DT.h"
 
 #include <iostream.h>
 #include "dMatrixT.h"
@@ -14,14 +13,11 @@ namespace Tahoe {
 class ifstreamT;
 class SolidElementT;
 
-class LocalCrystalPlast2D : public LocalCrystalPlast, public Material2DT
+class LocalCrystalPlast2D : public LocalCrystalPlast
 {
  public:
   // constructor
   LocalCrystalPlast2D(ifstreamT& in, const FSMatSupportT& support);
-
-  // destructor
-  ~LocalCrystalPlast2D();
 
   // Cauchy stress - Taylor average    
   virtual const dSymMatrixT& s_ij();   
@@ -30,8 +26,13 @@ class LocalCrystalPlast2D : public LocalCrystalPlast, public Material2DT
   virtual const dMatrixT& c_ijkl();
 
   // print data and model name
-  virtual void Print(ostream& out) const;
   virtual void PrintName(ostream& out) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
  protected:
  

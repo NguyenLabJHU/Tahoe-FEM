@@ -1,4 +1,4 @@
-/* $Id: SSKStV2D.cpp,v 1.5.32.2 2004-03-02 17:46:15 paklein Exp $ */
+/* $Id: SSKStV2D.cpp,v 1.5.32.3 2004-03-03 16:14:57 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "SSKStV2D.h"
 #include "StringT.h"
@@ -62,6 +62,17 @@ void SSKStV2D::ComputeOutput(dArrayT& output)
 	/* deviator J2 */
 	cauchy_3D.Deviatoric();
 	output[1] = cauchy_3D.Invariant2();
+}
+
+/* describe the parameters needed by the interface */
+void SSKStV2D::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	SSKStV::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("2D_constraint");
+	constraint.SetDefault(kPlaneStress);
 }
 
 /*************************************************************************

@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.30.4.2 2004-02-19 19:59:55 paklein Exp $ */
+/* $Id: tevp2D.cpp,v 1.30.4.3 2004-03-03 16:15:07 paklein Exp $ */
 /* created: Harold Park (04/04/2001) */
 #include "tevp2D.h"
 
@@ -25,7 +25,6 @@ static const char* Labels[kNumOutput] = {
 /* constructor */
 tevp2D::tevp2D(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("tevp_2D"),
-	Material2DT(in),        // Currently reads in plane strain from file...
   /* initialize references */
 //  fRunState(ContinuumElement().RunState()),
 //  fDt(ContinuumElement().ElementSupport().TimeStep()),
@@ -150,7 +149,6 @@ void tevp2D::Print(ostream& out) const
   /* inherited */
   FSSolidMatT::Print(out);
   IsotropicT::Print(out);
-  Material2DT::Print(out);
 }
 
 void tevp2D::PrintName(ostream& out) const

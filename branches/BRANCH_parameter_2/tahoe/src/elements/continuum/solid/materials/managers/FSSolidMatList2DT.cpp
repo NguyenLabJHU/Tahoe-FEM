@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.1.2.2 2004-02-10 07:17:54 paklein Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.1.2.3 2004-03-03 16:14:58 paklein Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -604,10 +604,10 @@ bool FSSolidMatList2DT::HasPlaneStress(void) const
 	{
 		/* get pointer to Material2DT */
 		const ContinuumMaterialT* cont_mat = fArray[i];
-		const Material2DT* mat_2D = dynamic_cast<const Material2DT*>(cont_mat);
+		const SolidMaterialT* sol_mat = TB_DYNAMIC_CAST(const SolidMaterialT*, cont_mat);
 		
 		/* assume materials that don't have Material2DT are plane strain */
-		if (mat_2D && mat_2D->ConstraintOption() == Material2DT::kPlaneStress) 
+		if (sol_mat && sol_mat->Constraint() == SolidMaterialT::kPlaneStress) 
 			return true;
 	}
 	return false;
@@ -632,6 +632,7 @@ void FSSolidMatList2DT::DefineInlineSub(const StringT& sub, ParameterListT::List
 		order = ParameterListT::Choice;
 	
 		sub_sub_list.AddSub("large_strain_cubic_2D");
+		sub_sub_list.AddSub("large_strain_StVenant_2D");		
 	}
 	else /* inherited */
 		SolidMatListT::DefineInlineSub(sub, order, sub_sub_list);
@@ -640,8 +641,52 @@ void FSSolidMatList2DT::DefineInlineSub(const StringT& sub, ParameterListT::List
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* FSSolidMatList2DT::NewSub(const StringT& list_name) const
 {
-	if (list_name == "large_strain_cubic_2D")
-		return new FDCubic2DT;
+	/* try to construct material */
+	FSSolidMatT* fs_solid_mat = NewFSSolidMat(list_name);
+	if (fs_solid_mat)
+		return fs_solid_mat;
 	else /* inherited */
 		return SolidMatListT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void FSSolidMatList2DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SolidMatListT::TakeParameterList(list);
+
+	/* construct materials - NOTE: subs have been defined as a choice, but
+	 * here we construct as many materials as are passed in */
+	AutoArrayT<FSSolidMatT*> materials;
+	const ArrayT<ParameterListT>& subs = list.Lists();
+	for (int i = 0; i < subs.Length(); i++) {
+		const ParameterListT& sub = subs[i];
+		FSSolidMatT* mat = NewFSSolidMat(sub.Name());
+		if (mat) {
+			materials.Append(mat);
+			mat->TakeParameterList(sub);
+		}
+	}
+
+	/* transfer */
+	Dimension(materials.Length());
+	for (int i = 0; i < materials.Length(); i++)
+		fArray[i] = materials[i];
+}
+
+/* construct the specified material or NULL if the request cannot be completed */
+FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& list_name) const
+{
+	FSSolidMatT* mat = NULL;
+
+	if (list_name == "large_strain_cubic_2D")
+		mat = new FDCubic2DT;
+	else if (list_name == "large_strain_StVenant_2D")
+		mat = new FDKStV2D;
+
+	/* set support */
+	mat->SetSSMatSupport(fFSMatSupport);
+
+	return mat;
+
 }

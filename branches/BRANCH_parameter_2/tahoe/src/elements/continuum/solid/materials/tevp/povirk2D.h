@@ -1,4 +1,4 @@
-/* $Id: povirk2D.h,v 1.7.4.1 2004-02-19 19:59:55 paklein Exp $ */
+/* $Id: povirk2D.h,v 1.7.4.2 2004-03-03 16:15:07 paklein Exp $ */
 /* created: Harold Park (09/10/2001) */
 #ifndef _POVIRK_2D_H_
 #define _POVIRK_2D_H_
@@ -6,7 +6,6 @@
 /* base classes */
 #include "FSIsotropicMatT.h"
 #include "iArrayT.h"
-#include "Material2DT.h"
 
 namespace Tahoe {
 
@@ -14,7 +13,7 @@ namespace Tahoe {
 class ElementCardT;
 
 /** Thermoelasto-viscoplastic material used to generate shear bands */
-class povirk2D: public FSIsotropicMatT, public Material2DT
+class povirk2D: public FSIsotropicMatT
 {
  public:
   /* constructor */

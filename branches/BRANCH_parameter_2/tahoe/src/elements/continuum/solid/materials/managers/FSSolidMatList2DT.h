@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.h,v 1.1.2.1 2004-01-21 19:10:18 paklein Exp $ */
+/* $Id: FSSolidMatList2DT.h,v 1.1.2.2 2004-03-03 16:14:58 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #ifndef _MATLIST_2D_T_H_
 #define _MATLIST_2D_T_H_
@@ -8,6 +8,9 @@
 #include "SolidT.h"
 
 namespace Tahoe {
+
+/* forward declaration */
+class FSSolidMatT;
 
 /** materials list for 2D structural analysis */
 class FSSolidMatList2DT: public SolidMatListT, public SolidT
@@ -35,7 +38,13 @@ public:
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
+
+	/** construct the specified material or NULL if the request cannot be completed */
+	FSSolidMatT* NewFSSolidMat(const StringT& list_name) const;
 
 private:
 

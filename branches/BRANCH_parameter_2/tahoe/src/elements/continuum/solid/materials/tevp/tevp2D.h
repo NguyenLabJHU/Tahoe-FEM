@@ -1,12 +1,13 @@
-/* $Id: tevp2D.h,v 1.23.4.1 2004-02-19 19:59:55 paklein Exp $ */
+/* $Id: tevp2D.h,v 1.23.4.2 2004-03-03 16:15:08 paklein Exp $ */
 /* Created:  Harold Park (04/04/2001) */
 #ifndef _TEVP_2D_H_
 #define _TEVP_2D_H_
 
 /* base classes */
 #include "FSIsotropicMatT.h"
+
+/* direct members */
 #include "iArrayT.h"
-#include "Material2DT.h"
 
 namespace Tahoe {
 
@@ -14,7 +15,7 @@ namespace Tahoe {
 class ElementCardT;
 
 /** Thermoelasto-viscoplastic material used to generate shear bands */
-class tevp2D: public FSIsotropicMatT, public Material2DT
+class tevp2D: public FSIsotropicMatT
 {
  public:
   /* constructor */
