@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.12 2003-10-02 00:28:11 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.13 2003-10-02 23:50:18 paklein Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -261,6 +261,25 @@ private:
 	/** integration point stresses. Calculated and stored during 
 	 * APS_AssemblyT::RHSDriver */
 	dArray2DT fIPVariable;
+	/*@}*/
+
+	/** integration point stresses. Calculated and stored during 
+	 * APS_AssemblyT::RHSDriver */
+	dArray2DT fIPVariable;
+	/*@}*/
+
+	/** \name prescribed plastic gradient */
+	/*@{*/
+	ArrayT<StringT>   fSideSetID;
+	
+	/** prescribed plastic gradient over the side set */
+	ArrayT<dArrayT>   fPlasticGradient;
+
+	/** for each side set, the global nodes on the faces in the set */
+	ArrayT<iArray2DT> fPlasticGradientFaces;
+	
+	/** equation numbers for the nodes on each face */ 
+	ArrayT<iArray2DT> fPlasticGradientFaceEqnos;
 	/*@}*/
 
 	//##########################################################################################
