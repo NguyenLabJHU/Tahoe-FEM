@@ -1,4 +1,4 @@
-/* $Id: AutoArrayT.h,v 1.13 2002-11-18 10:02:10 paklein Exp $ */
+/* $Id: AutoArrayT.h,v 1.14 2002-11-25 06:59:07 paklein Exp $ */
 /* created: paklein (12/05/1997) */
 #ifndef _AUTO_ARRAY_T_H_
 #define _AUTO_ARRAY_T_H_
@@ -195,7 +195,7 @@ inline AutoArrayT<TYPE>::AutoArrayT(int headroom):
 	fCurrElement(-1)
 {
 	/* check flags */
-	if (fHeadRoom < 0) throw ExceptionT::kGeneralFail;
+	if (fHeadRoom < 0) ExceptionT::GeneralFail();
 }
 
 template <class TYPE>
@@ -205,7 +205,7 @@ inline AutoArrayT<TYPE>::AutoArrayT(int length, int headroom):
 	fCurrElement(-1)
 {
 	/* check flags */
-	if (fHeadRoom < 0) throw ExceptionT::kGeneralFail;
+	if (fHeadRoom < 0) ExceptionT::GeneralFail();
 	Dimension(length);	
 }
 
@@ -225,7 +225,7 @@ inline AutoArrayT<TYPE>::AutoArrayT(const ArrayT<TYPE>& source, int headroom):
 	fCurrElement(-1)
 {
 	/* check flags */
-	if (fHeadRoom < 0) throw ExceptionT::kGeneralFail;
+	if (fHeadRoom < 0) ExceptionT::GeneralFail();
 
 	operator=(source);	
 }
@@ -302,7 +302,7 @@ inline void AutoArrayT<TYPE>::SetHeadRoom(int headroom)
 	fHeadRoom = headroom;
 	
 	/* check value */
-	if (fHeadRoom < 0) throw ExceptionT::kGeneralFail;
+	if (fHeadRoom < 0) ExceptionT::GeneralFail();
 }
 
 /*
@@ -433,7 +433,7 @@ template <class TYPE>
 void AutoArrayT<TYPE>::InsertAt(const TYPE& value, int position)
 {
 	/* range check */
-	if (position < 0 || position > fLength) throw ExceptionT::kOutOfRange;
+	if (position < 0 || position > fLength) ExceptionT::OutOfRange();
 
 	/* empty or at end */
 	if (position == fLength)
@@ -458,7 +458,7 @@ template <class TYPE>
 void AutoArrayT<TYPE>::DeleteAt(int position)
 {
 	/* range check */
-	if (position < 0 || position >= fLength) throw ExceptionT::kOutOfRange;
+	if (position < 0 || position >= fLength) ExceptionT::OutOfRange();
 
 	/* move data */
 	TYPE*   to = fArray + position;
@@ -546,7 +546,7 @@ inline void AutoArrayT<TYPE>::CopyInto(ArrayT<TYPE>& RHS) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (fLength > RHS.Length()) throw ExceptionT::kSizeMismatch;
+	if (fLength > RHS.Length()) ExceptionT::SizeMismatch();
 #endif
 	
 	/* copy logical size */
@@ -587,11 +587,8 @@ inline TYPE& AutoArrayT<TYPE>::Current(void) const
 #if __option(extended_errorcheck)
 	/* range check */
 	if (fCurrElement < 0 || fCurrElement >= fLength) 
-	{
-		cout << "\n AutoArrayT<TYPE>::Current: current element is out of range: "
-		     << fCurrElement << endl;
-		throw ExceptionT::kOutOfRange;
-	}
+		ExceptionT::OutOfRange("AutoArrayT<TYPE>::Current", 
+			"position is out of range: %d", fCurrElement);
 #endif
 	return *(fArray + fCurrElement);
 }
@@ -602,11 +599,8 @@ inline TYPE& AutoArrayT<TYPE>::Current(int position)
 #if __option(extended_errorcheck)
 	/* range check */
 	if (position < 0 || position >= fLength) 
-	{
-		cout << "\n AutoArrayT<TYPE>::Current: position is out of range: "
-		     << fCurrElement << endl;
-		throw ExceptionT::kOutOfRange;
-	}
+		ExceptionT::OutOfRange("AutoArrayT<TYPE>::Current", 
+			"position is out of range: %d", position);
 #endif
 	fCurrElement = position;
 	return *(fArray + fCurrElement);
