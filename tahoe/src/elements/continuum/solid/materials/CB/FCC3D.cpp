@@ -1,4 +1,4 @@
-/* $Id: FCC3D.cpp,v 1.8 2004-07-15 08:26:42 paklein Exp $ */
+/* $Id: FCC3D.cpp,v 1.9 2005-02-13 22:25:17 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D.h"
 
@@ -184,12 +184,12 @@ void FCC3D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 /* 2nd Piola-Kirchhoff stress vector */
 void FCC3D::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
 {
-	fFCCLattice->ComputeDeformedLengths(E);
-	const dArrayT& bond_length = fFCCLattice->DeformedLengths();
+#if __option(extended_errorcheck)
+	if (E.Rows() != PK2.Rows() ||
+	   (E.Rows() != 2 && E.Rows() != 3))
+	   ExceptionT::GeneralFail("FCC3D::ComputePK2");
+#endif
 
-	/* fetch function pointer */
-	PairPropertyT::ForceFunction force = fPairProperty->getForceFunction();
-	
 	/* bond density */
 	const double* density = fFullDensity.Pointer();
 	int nb = fFCCLattice->NumberOfBonds();
@@ -200,15 +200,98 @@ void FCC3D::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
 		density = d_array.Pointer(CurrIP()*nb);
 	}
 
-	/* sum over bonds */
-	PK2 = 0.0;
+	/* fetch function pointer */
+	PairPropertyT::ForceFunction force = fPairProperty->getForceFunction();
+
+	/* lattice properties */
+	dArrayT& bond_length = fFCCLattice->DeformedLengths();
+	const dArray2DT& bonds = fFCCLattice->Bonds();
 	double R2byV = fNearestNeighbor*fNearestNeighbor/fAtomicVolume;
-	for (int i = 0; i < nb; i++)
+
+	double* pC = fFCCLattice->Stretch().Pointer();
+	const double* pE = E.Pointer();
+	double* pPK2 = PK2.Pointer();
+	
+	/* plane strain */
+	if (E.Rows() == 2)
 	{
-		double ri = bond_length[i]*fNearestNeighbor;
-		double coeff = (*density++)*force(ri, NULL, NULL)/ri;
-		fFCCLattice->BondComponentTensor2(i, fBondTensor2);
-		PK2.AddScaled(R2byV*coeff, fBondTensor2);
+		/* compute the stretch */
+		pC[0] = 2.0*pE[0] + 1.0;
+		pC[1] = 2.0*pE[1] + 1.0;
+		pC[2] = 1.0;
+		pC[3] = 0.0; /* 23 */
+		pC[4] = 0.0; /* 13 */
+		pC[5] = 2.0*pE[2]; /* 12 */	
+
+		/* initialize */
+		pPK2[0] = 0.0;
+		pPK2[1] = 0.0;
+		pPK2[2] = 0.0;
+
+		/* sum over bonds */
+		for (int i = 0; i < nb; i++)
+		{
+			/* bond vector */
+			const double* R = bonds(i);
+	
+			/* deformed bond length */
+			double& l = bond_length[i];
+			l = sqrt(
+				(pC[0]*R[0] + pC[5]*R[1] + pC[4]*R[2])*R[0] +
+				(pC[5]*R[0] + pC[1]*R[1] + pC[3]*R[2])*R[1] +
+				(pC[4]*R[0] + pC[3]*R[1] + pC[2]*R[2])*R[2]
+			);
+
+			/* accumulate */
+			double ri = l*fNearestNeighbor;
+			double coeff = R2byV*(*density++)*force(ri, NULL, NULL)/ri;
+			pPK2[0] += coeff*R[0]*R[0];
+			pPK2[1] += coeff*R[1]*R[1];
+			pPK2[2] += coeff*R[0]*R[1];
+		}
+	}
+	else /* 3D */ 
+	{
+		/* compute the stretch */
+		pC[0] = 2.0*pE[0] + 1.0;
+		pC[1] = 2.0*pE[1] + 1.0;
+		pC[2] = 2.0*pE[2] + 1.0;
+		pC[3] = 2.0*pE[3]; /* 23 */
+		pC[4] = 2.0*pE[4]; /* 13 */
+		pC[5] = 2.0*pE[5]; /* 12 */	
+
+		/* initialize */
+		pPK2[0] = 0.0;
+		pPK2[1] = 0.0;
+		pPK2[2] = 0.0;
+		pPK2[3] = 0.0;
+		pPK2[4] = 0.0;
+		pPK2[5] = 0.0;
+
+		/* sum over bonds */
+		for (int i = 0; i < nb; i++)
+		{
+			/* bond vector */
+			const double* R = bonds(i);
+	
+			/* deformed bond length */
+			double& l = bond_length[i];
+			l = sqrt(
+				(pC[0]*R[0] + pC[5]*R[1] + pC[4]*R[2])*R[0] +
+				(pC[5]*R[0] + pC[1]*R[1] + pC[3]*R[2])*R[1] +
+				(pC[4]*R[0] + pC[3]*R[1] + pC[2]*R[2])*R[2]
+			);
+
+			/* accumulate */
+			double ri = l*fNearestNeighbor;
+			double coeff = R2byV*(*density++)*force(ri, NULL, NULL)/ri;
+			pPK2[0] += coeff*R[0]*R[0];
+			pPK2[1] += coeff*R[1]*R[1];
+			pPK2[2] += coeff*R[2]*R[2];
+			pPK2[3] += coeff*R[1]*R[2];
+			pPK2[4] += coeff*R[0]*R[2];
+			pPK2[5] += coeff*R[0]*R[1];
+		}
 	}
 }
 
