@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.72 2003-11-19 20:36:51 rdorgan Exp $ */
+/* $Id: ElementListT.cpp,v 1.73 2003-11-22 00:03:33 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -77,7 +77,7 @@
 #endif
 
 #ifdef CONTACT_ELEMENT_DEV
-#include "MultiplierContact3DT.h"
+#include "MultiplierContactElement3DT.h"
 #include "MultiplierContactElement2DT.h"
 #include "PenaltyContactElement2DT.h"
 #include "PenaltyContactElement3DT.h"
@@ -598,7 +598,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			case ElementT::kMultiplierContact3D:
 			{
 #ifdef CONTACT_ELEMENT_DEV
-				fArray[group] = new MultiplierContact3DT(fSupport, *field);
+				fArray[group] = new MultiplierContactElement3DT(fSupport, *field);
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT_DEV not enabled: %d", code);
