@@ -1,4 +1,4 @@
-/* $Id: ParticleThreeBodyT.cpp,v 1.3 2004-12-03 20:33:42 cjkimme Exp $ */
+/* $Id: ParticleThreeBodyT.cpp,v 1.4 2004-12-09 01:41:11 cjkimme Exp $ */
 #include "ParticleThreeBodyT.h"
 
 #include "ThreeBodyPropertyT.h"
@@ -699,6 +699,7 @@ void ParticleThreeBodyT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		int current_property = -1;
 		PairPropertyT::ForceFunction force_function = NULL;
 		PairPropertyT::StiffnessFunction stiffness_function = NULL;
+		ThreeBodyPropertyT::ForceFunction force_function_3body = NULL;
 		ThreeBodyPropertyT::StiffnessFunction stiffness_function_3body = NULL;
 
 		/* run through neighbor list */
@@ -732,6 +733,8 @@ void ParticleThreeBodyT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				{
 					force_function = fThreeBodyProperties[property]->getForceFunction();
 					stiffness_function = fThreeBodyProperties[property]->getStiffnessFunction();
+					force_function_3body = fThreeBodyProperties[property]->getThreeBodyForceFunction();
+					stiffness_function_3body = fThreeBodyProperties[property]->getThreeBodyStiffnessFunction();
 					current_property = property;
 				}
 		
@@ -758,7 +761,7 @@ void ParticleThreeBodyT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				}
 				
 				// additional loop over neighbors for 3-body terms
-				for (int k = 1; k < neighbors.Length(); j++)
+				for (int k = 1; k < neighbors.Length(); k++)
 				{
 					/* global tag */
 					int   tag_k = neighbors[k];
@@ -766,14 +769,6 @@ void ParticleThreeBodyT::LHSDriver(GlobalT::SystemTypeT sys_type)
 						int  type_k = fType[tag_k];
 						double* f_k = fForce(tag_k);
 						x_kp = coords(tag_k);
-
-						/* set pair property (if not already set) */
-						int property = fPropertiesMap(type_i, type_j);
-						if (property != current_property)
-						{
-							stiffness_function_3body = fThreeBodyProperties[property]->getThreeBodyStiffnessFunction();
-							current_property = property;
-						}
 					
 						/* stiffness matrix */
 						dMatrixT K_ijk(3*ndof);
@@ -804,11 +799,13 @@ void ParticleThreeBodyT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		int current_property = -1;
 		PairPropertyT::ForceFunction force_function = NULL;
 		PairPropertyT::StiffnessFunction stiffness_function = NULL;
+		ThreeBodyPropertyT::ForceFunction force_function_3body = NULL;
 		ThreeBodyPropertyT::StiffnessFunction stiffness_function_3body = NULL;
 
 		/* work space */
 		dArrayT r_ij(NumDOF(), fRHS.Pointer());
-		dArrayT r_ji(NumDOF(), fRHS.Pointer() + NumDOF());
+		dArrayT r_ji(NumDOF(), fRHS.Pointer() + ndof);
+		ElementMatrixT K_ijk(3*ndof, ElementMatrixT::kNonSymmetric);
 
 		/* run through neighbor list */
 		const iArray2DT& field_eqnos = Field().Equations();
@@ -834,70 +831,62 @@ void ParticleThreeBodyT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			{
 				/* global tag */
 				int  tag_j = neighbors[j];
-				if (tag_j < tag_i) {
-					int type_j = fType[tag_j];
-					pair[1] = triple[1] = tag_j;
+				int type_j = fType[tag_j];
+				pair[1] = triple[1] = tag_j;
+		
+				/* set pair property (if not already set) */
+				int property = fPropertiesMap(type_i, type_j);
+				if (property != current_property)
+				{
+					force_function = fThreeBodyProperties[property]->getForceFunction();
+					stiffness_function = fThreeBodyProperties[property]->getStiffnessFunction();
+					force_function_3body = fThreeBodyProperties[property]->getThreeBodyForceFunction();
+					stiffness_function_3body = fThreeBodyProperties[property]->getThreeBodyStiffnessFunction();
+					current_property = property;
+				}
+		
+				/* global coordinates */
+				coords.RowAlias(tag_j, x_j);
+				x_jp = coords(tag_j);
+		
+				/* connecting vector */
+				r_ij.DiffOf(x_j, x_i);
+				double r = r_ij.Magnitude();
+				r_ji.SetToScaled(-1.0, r_ij);
 			
-					/* set pair property (if not already set) */
-					int property = fPropertiesMap(type_i, type_j);
-					if (property != current_property)
-					{
-						force_function = fThreeBodyProperties[property]->getForceFunction();
-						stiffness_function = fThreeBodyProperties[property]->getStiffnessFunction();
-						current_property = property;
-					}
-			
-					/* global coordinates */
-					coords.RowAlias(tag_j, x_j);
-					x_jp = coords(tag_j);
-			
-					/* connecting vector */
-					r_ij.DiffOf(x_j, x_i);
-					double r = r_ij.Magnitude();
-					r_ji.SetToScaled(-1.0, r_ij);
-				
-					/* interaction functions */
-					double F = constK*force_function(r, NULL, NULL);
-					double K = constK*stiffness_function(r, NULL, NULL);
-					double Fbyr = F/r;
+				/* interaction functions */
+				double F = constK*force_function(r, NULL, NULL);
+				double K = constK*stiffness_function(r, NULL, NULL);
+				double Fbyr = F/r;
 
-					/* 1st term */
-					fLHS.Outer(fRHS, fRHS, (K - Fbyr)/r/r);
+				/* 1st term */
+				fLHS.Outer(fRHS, fRHS, (K - Fbyr)/r/r);
+		
+				/* 2nd term */
+				fLHS.AddScaled(Fbyr, fOneOne);
+				
+				/* assemble */
+				pair_eqnos.RowCollect(pair, field_eqnos);
+				support.AssembleLHS(group, fLHS, pair_eqnos);
 			
-					/* 2nd term */
-					fLHS.AddScaled(Fbyr, fOneOne);
+				// additional loop over neighbors for 3-body terms
+				for (int k = 1; k < neighbors.Length(); k++)
+				{
+					/* global tag */
+					int tag_k = neighbors[k];
+					if (tag_k < tag_j) {
+						int  type_k = fType[tag_k];
+						triple[2] = tag_k;
+						double* f_k = fForce(tag_k);
+						x_kp = coords(tag_k);
 					
-					/* assemble */
-					pair_eqnos.RowCollect(pair, field_eqnos);
-					support.AssembleLHS(group, fLHS, pair_eqnos);
-				
-					// additional loop over neighbors for 3-body terms
-					for (int k = 1; k < neighbors.Length(); j++)
-					{
-						/* global tag */
-						int   tag_k = neighbors[k];
-						if (tag_k < tag_j) {
-							int  type_k = fType[tag_k];
-							triple[2] = tag_k;
-							double* f_k = fForce(tag_k);
-							x_kp = coords(tag_k);
-
-							/* set pair property (if not already set) */
-							int property = fPropertiesMap(type_i, type_j);
-							if (property != current_property)
-							{
-								stiffness_function_3body = fThreeBodyProperties[property]->getThreeBodyStiffnessFunction();
-								current_property = property;
-							}
-						
-							/* stiffness matrix */
-							dMatrixT K_ijk(3*ndof);
-							if (stiffness_function_3body(x_ip, x_jp, x_kp, K_ijk)) {
-								/* assemble */
-								triple_eqnos.RowCollect(triple, field_eqnos);
-								support.AssembleLHS(group, K_ijk, pair_eqnos);
-							} 
-						}
+						/* stiffness matrix */
+						K_ijk = 0.;
+						if (stiffness_function_3body(x_ip, x_jp, x_kp, K_ijk)) {
+							/* assemble */
+							triple_eqnos.RowCollect(triple, field_eqnos);
+							support.AssembleLHS(group, K_ijk, triple_eqnos);
+						} 
 					}
 				}
 			}
@@ -1006,7 +995,7 @@ void ParticleThreeBodyT::RHSDriver3D(void)
 				F = c[4] + pp*(c[5] + pp*c[6]);
 			}
 			else
-				F = force_function(r, NULL, NULL);
+				F = force_function(r, NULL, NULL);  
 			double Fbyr = formKd*F/r;
 
 			r_ij_0 *= Fbyr;
@@ -1040,9 +1029,7 @@ void ParticleThreeBodyT::RHSDriver3D(void)
 					/* interaction force */
 					double f_ij[3], f_ik[3];
 					if (force_function_3body(x_i, x_j, x_k, f_ij, f_ik)) {
-						/*cout << "3 body " << f_ij[0] << " " << f_ij[1] << " " << f_ij[2] << " ";
-						cout << f_ik[0] << " " << f_ik[1] << " " << f_ik[2] << "\n";
-						*/
+						/*
 						f_ij[0] *= formKd; 
 						f_i[0] -= f_ij[0] + f_ik[0];
 						f_j[0] += f_ij[0];
@@ -1056,7 +1043,7 @@ void ParticleThreeBodyT::RHSDriver3D(void)
 						f_ij[0] *= formKd; 
 						f_i[2] -= f_ij[2] + f_ik[2];
 						f_j[2] += f_ij[2];
-						f_k[2] += f_ik[2];
+						f_k[2] += f_ik[2];*/
 					} 
 				}
 			}

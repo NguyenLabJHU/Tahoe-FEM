@@ -1,4 +1,4 @@
-/* $Id: StillingerWeberT.cpp,v 1.5 2004-12-07 08:00:18 paklein Exp $ */
+/* $Id: StillingerWeberT.cpp,v 1.6 2004-12-09 01:41:17 cjkimme Exp $ */
 #include "StillingerWeberT.h"
 #include <iostream.h>
 #include <math.h>
@@ -318,8 +318,8 @@ double StillingerWeberT::TwoBodyStiffness(double r_ab, double* data_a, double* d
 	  		r = exp(rms);
 	  		r_4 -= 1.;
 	  		r_c = rms*rms;
-	  		
-	  		return s_A/s_sigma/s_sigma*r*(r_6 + r_c*(r_4*r_c -  2.*(r_5 + r_4*rms)));
+	  			
+	  		return  s_A/s_sigma/s_sigma*r*(r_6 + r_c*(r_4*r_c -  2.*(r_5 - r_4*rms)));
 	  	} 
 	}
 }
@@ -375,10 +375,7 @@ double* StillingerWeberT::ThreeBodyForce(const double* ri, const double* rj, con
 	costheta /= rij*rik;
 	rij /= s_sigma;
 	rik /= s_sigma;
-	
-	dMatrixT bigbadK(6); bigbadK = 0.;
-	ThreeBodyStiffness(ri,rj,rk,bigbadK);
-	
+
 	// compare with cutoff
 	if (rij > s_b || rik > s_b) {
 		return NULL;
@@ -498,46 +495,59 @@ double* StillingerWeberT::ThreeBodyStiffness(const double* ri, const double* rj,
 		/* K_kk entry proportional to 1 */
 		double kk_fac_diag = -(angle_stretch_2*exp_ik + 2.*angle_stretch*costheta/rik)/rik;;
 		
-		dMatrixT tempSpace(3,3);
+		dMatrixT d_rij_rij(3,3), d_rik_rik(3,3), d_rij_rik(3,3), tempSpace(3,3);
 		dArrayT v1, v2;
 		v1.Set(3,r_ij);
 		v2.Set(3,r_ij);
-		tempSpace.Outer(v1,v2,jk_fac_jj);
+		d_rij_rik.Outer(v1,v2,jk_fac_jj);
 		v2.Set(3,r_ik);
-		tempSpace.Outer(v1,v2,jk_fac_kj,dMatrixT::kAccumulate);
-		tempSpace.Outer(v2,v1,jk_fac_jk,dMatrixT::kAccumulate);
+		d_rij_rik.Outer(v1,v2,jk_fac_kj,dMatrixT::kAccumulate);
+		d_rij_rik.Outer(v2,v1,jk_fac_jk,dMatrixT::kAccumulate);
 		v1.Set(3,r_ik);
-		tempSpace.Outer(v1,v2,jk_fac_kk,dMatrixT::kAccumulate);
-		K_ijk.SetBlock(0,3,tempSpace);
-		K_ijk(0,3) += jk_fac_diag;
-		K_ijk(1,4) += jk_fac_diag;
-		K_ijk(2,5) += jk_fac_diag;
+		d_rij_rik.Outer(v1,v2,jk_fac_kk,dMatrixT::kAccumulate);
+		d_rij_rik.PlusIdentity(jk_fac_diag);
 		
 		v1.Set(3,r_ij);
 		v2.Set(3,r_ij);
-		tempSpace.Outer(v1,v2,jj_fac_jj);
+		d_rij_rij.Outer(v1,v2,jj_fac_jj);
 		v2.Set(3,r_ik);
-		tempSpace.Outer(v1,v2,jj_fac_jk,dMatrixT::kAccumulate);
-		tempSpace.Outer(v2,v1,jj_fac_jk,dMatrixT::kAccumulate);
+		d_rij_rij.Outer(v1,v2,jj_fac_jk,dMatrixT::kAccumulate);
+		d_rij_rij.Outer(v2,v1,jj_fac_jk,dMatrixT::kAccumulate);
 		v1.Set(3,r_ik);
-		tempSpace.Outer(v1,v2,jj_fac_kk,dMatrixT::kAccumulate);
-		K_ijk.SetBlock(0,0,tempSpace);
-		K_ijk(0,0) += jj_fac_diag;
-		K_ijk(1,1) += jj_fac_diag;
-		K_ijk(2,2) += jj_fac_diag;
+		d_rij_rij.Outer(v1,v2,jj_fac_kk,dMatrixT::kAccumulate);
+		d_rij_rij.PlusIdentity(jj_fac_diag);
 		
 		v1.Set(3,r_ik);
 		v2.Set(3,r_ik);
-		tempSpace.Outer(v1,v2,kk_fac_kk);
+		d_rik_rik.Outer(v1,v2,kk_fac_kk);
 		v2.Set(3,r_ij);
-		tempSpace.Outer(v1,v2,kk_fac_jk,dMatrixT::kAccumulate);
-		tempSpace.Outer(v2,v1,kk_fac_jk,dMatrixT::kAccumulate);
+		d_rik_rik.Outer(v1,v2,kk_fac_jk,dMatrixT::kAccumulate);
+		d_rik_rik.Outer(v2,v1,kk_fac_jk,dMatrixT::kAccumulate);
 		v1.Set(3,r_ij);
-		tempSpace.Outer(v1,v2,kk_fac_jj,dMatrixT::kAccumulate);
-		K_ijk.SetBlock(3,3,tempSpace);
-		K_ijk(3,3) += kk_fac_diag;
-		K_ijk(4,4) += kk_fac_diag;
-		K_ijk(5,5) += kk_fac_diag;
+		d_rik_rik.Outer(v1,v2,kk_fac_jj,dMatrixT::kAccumulate);
+		d_rik_rik.PlusIdentity(kk_fac_diag);
+		
+		/* final part of chain rule d r_kl/d r_{i,j, or k} */
+		tempSpace = d_rij_rik;
+		tempSpace.Transpose(d_rij_rik,dMatrixT::kAccumulate);
+		tempSpace += d_rij_rij;
+		tempSpace += d_rik_rik;
+		K_ijk.SetBlock(0,0,tempSpace); // d^2 by d_r_i^2
+		tempSpace.Transpose(d_rij_rik);
+		tempSpace += d_rij_rij;
+		tempSpace *= -1.;
+		K_ijk.SetBlock(0,3,tempSpace); // d^2 by d_r_i d_r_j
+		tempSpace.Transpose();
+		K_ijk.SetBlock(3,0,tempSpace);
+		tempSpace.Transpose(d_rij_rik);
+		tempSpace += d_rik_rik;
+		tempSpace *= -1.;
+		K_ijk.SetBlock(6,0,tempSpace); // d^2 by d_r_i d_r_k
+		tempSpace.Transpose();
+		K_ijk.SetBlock(0,6,tempSpace);
+		K_ijk.SetBlock(3,3,d_rij_rij); // d^2 by d_r_j^2
+		K_ijk.SetBlock(3,6,d_rij_rik); // d^2 by d_r_j d_r_k
+		K_ijk.SetBlock(6,6,d_rik_rik); // d^2 by d_r_k^2
 		
 		K_ijk *= com_fact;
 		
