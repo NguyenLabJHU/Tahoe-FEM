@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.23 2004-01-05 23:42:08 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.24 2004-01-06 00:15:59 paklein Exp $ */
 #include "ABAQUS_VUMAT_BaseT.h"
 
 #ifdef __F2C__
@@ -566,11 +566,11 @@ void ABAQUS_VUMAT_BaseT::Set_VUMAT_Arguments(void)
 	/* total integrated strain */
 	ABAQUS_to_dSymMatrixT(fstrain.Pointer(), fU1);
 	fU2.MultQBQT(fA_nsd, fU1);
-	dSymMatrixT_to_ABAQUS(fU2, fstrain.Pointer());
+	dSymMatrixT_to_ABAQUS(fU2, fstrain.Pointer(), true);
 
 	/* rotate LAST stress to current configuration, instead of current stress */
 	ABAQUS_to_dSymMatrixT(fstress_last.Pointer(), fU1);
 	fU2.MultQBQT(fA_nsd, fU1);
-	dSymMatrixT_to_ABAQUS(fU2, fstress_last.Pointer());
+	dSymMatrixT_to_ABAQUS(fU2, fstress_last.Pointer(), true);
 }
 #endif /* __F2C__ */
