@@ -1,4 +1,4 @@
-# $Id: SGI.64.macros,v 1.5 2003-02-08 17:33:14 paklein Exp $
+# $Id: SGI.64.macros,v 1.6 2003-03-11 18:55:17 paklein Exp $
 
 MAKE        = make
 MAKE_DEPEND = makedepend
@@ -11,7 +11,7 @@ MORE_CFLAGS = -O3 -OPT:Olimit=10000 -DNDEBUG
 LOC_CFLAGS  = -64 -c -mips4 -D__SGI__ -I$(INC_DIR) $(MORE_CFLAGS)
 CFLAGS_C    = $(LOC_CFLAGS) -64 -woff 1110,1116
 CFLAGS_CC   = $(LOC_CFLAGS) -64 -ptused -woff 1110,1155,1174,1188,1682,3303 -LANG:exceptions=ON -LANG:ansi-for-init-scope=ON
-CFLAGS_F    = $(LOC_CFLAGS)
+CFLAGS_F    = $(LOC_CFLAGS) -DEIGHT_BYTE_REAL
 F2C_LFLAG   = -lftn
 LINK        = $(COMP_CC)
 LFLAGS      = $(F2C_LFLAG) -lm -w -64
