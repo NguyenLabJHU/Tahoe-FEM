@@ -1,4 +1,4 @@
-/* $Id: PatranT.cpp,v 1.11 2002-02-14 20:57:29 sawimme Exp $ */
+/* $Id: PatranT.cpp,v 1.12 2002-02-27 12:51:50 sawimme Exp $ */
 /* created sawimme (05/17/2001) */
 
 #include "PatranT.h"
@@ -303,6 +303,13 @@ bool PatranT::ReadAllElements (ArrayT<iArrayT>& connects, iArrayT& elementtypes)
   ifstream in (file_name);
   while (AdvanceTo (in, kElement, ID, IV, KC)) 
     {
+      if (IV < kLine || IV > kHexahedron)
+	{
+	  fMessage << "\nPatranT::ReadAllElements, IV not valid\n";
+	  fMessage << "ID " << ID << " IV " << IV << " KC " << KC << endl;
+	  throw eDatabaseFail;
+	}
+
       if (count >= connects.Length() ||
 	  count >= elementtypes.Length())
 	{
@@ -311,12 +318,10 @@ bool PatranT::ReadAllElements (ArrayT<iArrayT>& connects, iArrayT& elementtypes)
 	}
 
       ClearPackets (in, 1);
-      KC--;
 
       in >> num_nodes;
       connects[count].Allocate (num_nodes);
       ClearPackets (in, 1);
-      KC--;
 
       in >> connects[count];
       KC -= (num_nodes + 9)/10;
@@ -325,6 +330,14 @@ bool PatranT::ReadAllElements (ArrayT<iArrayT>& connects, iArrayT& elementtypes)
       elementtypes[count] = IV;
       count ++;
     }
+
+  if (count != elementtypes.Length())
+    {
+      fMessage << "\nPatranT::ReadAllElements, incorrect number read or allocated\n";
+      fMessage << "count " << count << " " << " elementtypes.length " << elementtypes.Length() << endl;
+      throw eSizeMismatch;    
+    }
+
   return true;
 }
 
