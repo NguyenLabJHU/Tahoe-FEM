@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.11 2005-01-09 21:00:25 paklein Exp $ */
+/* $Id: ConveyorT.cpp,v 1.12 2005-01-10 07:38:33 paklein Exp $ */
 #include "ConveyorT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -676,6 +676,11 @@ void ConveyorT::TakeParameterList(const ParameterListT& list)
 	init_coords.ColumnCopy(0, X2);
 	X2.MinMax(fX_Left, fX_Right);
 	X2.Free();
+
+	/* check */
+	if (fX_Right - fTipX_0 < fRightMinSpacing)
+		ExceptionT::GeneralFail(caller, "initial tip position %g violates \"min_right_space\" %g",
+			fTipX_0, fRightMinSpacing);
 	
 	/* set the periodic distance */
 	fX_PeriodicLength = fX_Right - fX_Left + fMeshRepeatLength;

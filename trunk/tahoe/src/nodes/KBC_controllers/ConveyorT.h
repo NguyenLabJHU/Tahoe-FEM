@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.h,v 1.8 2005-01-09 21:00:25 paklein Exp $ */
+/* $Id: ConveyorT.h,v 1.9 2005-01-10 07:38:33 paklein Exp $ */
 #ifndef _CONVEYOR_T_H_
 #define _CONVEYOR_T_H_
 
@@ -118,7 +118,8 @@ protected:
 	/*@}*/
 
 	/** \name stretching boundary
-	 * Stretching as a displacement, velocity, or acceleration */
+	 * Stretching as a displacement, velocity, or acceleration. The prescibed motion is
+	 * split equally between the upper and lower surfaces. */
 	/*@{*/
 	KBC_CardT::CodeT fULBC_Code;
 	double           fULBC_Value;
