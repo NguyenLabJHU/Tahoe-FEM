@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.14 2002-02-24 01:00:17 raregue Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.15 2002-02-26 01:49:33 raregue Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 
@@ -136,8 +136,6 @@ int DPSSKStV::IsLocalized(dArrayT& normal)
 }
 
 
-
-
 /* returns the strain energy density for the specified strain */
 double DPSSKStV::StrainEnergyDensity(void)
 {
@@ -167,38 +165,6 @@ void DPSSKStV::ComputeOutput(dArrayT& output)
 	/* pressure */
 	output[2] = fStress.Trace()/3.0;
 
-	/* compute modulus */
-	const dMatrixT& modulus = c_ijkl();
-
-	/* continuous localization condition checker */
-/*	DetCheckT checker(stress, modulus);
-	dArrayT normal(stress.Rows());
-	output[3] = checker.IsLocalized_SS(normal);
-	output[5] = normal[0];
-	output[6] = normal[1];
-	if (normal.Length() == 3)
-		output[7] = normal[2];
-	else
-		output[7] = 0.0;
-*/
-    output[5] = 0.0;
-	output[6] = 0.0;
-	output[7] = 0.0;
-	
-	/* compute discontinuous bifurcation modulus */
-	const dMatrixT& modulusdisc = cdisc_ijkl();
-
-	/* discontinuous localization condition checker */
-	DetCheckT checkerdisc(stress, modulusdisc);
-	dArrayT normaldisc(stress.Rows());
-	output[4] = checkerdisc.IsLocalized_SS(normaldisc);
-	output[8] = normaldisc[0];
-	output[9] = normaldisc[1];
-	if (normaldisc.Length() == 3)
-		output[10] = normaldisc[2];
-	else
-		output[10] = 0.0;
-
 	/* deviatoric Von Mises stress */
 	fStress.Deviatoric();
 	double J2 = fStress.Invariant2();
@@ -212,12 +178,64 @@ void DPSSKStV::ComputeOutput(dArrayT& output)
 		output[0] = fInternal[kalpha];
 		const iArrayT& flags = element.IntegerData();
 		if (flags[CurrIP()] == kIsPlastic)
+		  {
 			output[0] -= fH_prime*fInternal[kdgamma];
+			
+			// check for localization
+			// compute modulus 
+			const dMatrixT& modulus = c_ijkl();
+
+			// continuous localization condition checker
+			/*DetCheckT checker(stress, modulus);
+			dArrayT normal(stress.Rows());
+			output[3] = checker.IsLocalized_SS(normal);
+			output[5] = normal[0];
+			output[6] = normal[1];
+			if (normal.Length() == 3)
+				output[7] = normal[2];
+			else
+				output[7] = 0.0;
+			*/
+		    output[3] = 0.0;
+		    output[5] = 0.0;
+			output[6] = 0.0;
+			output[7] = 0.0;
+	
+			/* compute discontinuous bifurcation modulus */
+			const dMatrixT& modulusdisc = cdisc_ijkl();
+
+			/* discontinuous localization condition checker */
+			DetCheckT checkerdisc(stress, modulusdisc);
+			dArrayT normaldisc(stress.Rows());
+			output[4] = checkerdisc.IsLocalized_SS(normaldisc);
+			output[8] = normaldisc[0];
+			output[9] = normaldisc[1];
+			if (normaldisc.Length() == 3)
+				output[10] = normaldisc[2];
+			else
+				output[10] = 0.0;
+			/*
+			output[4] = 0.0;
+		    output[8] = 0.0;
+			output[9] = 0.0;
+			output[10] = 0.0;*/
+			
+		  }
 	}
 	else
 	{
 		output[0] = 0.0;
+		output[3] = 0.0;
+		output[4] = 0.0;
+		output[5] = 0.0;
+		output[6] = 0.0;
+		output[7] = 0.0;
+		output[8] = 0.0;
+		output[9] = 0.0;
+		output[10] = 0.0;
 	}
+
+	
 }
 
 /*************************************************************************
