@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2004-06-23 00:50:21 paklein Exp $
+# $Id: makefile,v 1.1 2004-06-23 00:50:23 paklein Exp $
 #
 # type "make clean" to remove test results
 #
@@ -6,9 +6,8 @@
 # list of sub-directories
 # NOTE: if list is empty, set SUB_DIR = NONE
 SUB_DIR = \
-1D \
-2D \
-3D
+	2D \
+	3D
 
 all:
 	@echo "make clean to remove test results"

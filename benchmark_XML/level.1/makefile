@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2004-06-08 04:48:53 paklein Exp $
+# $Id: makefile,v 1.2 2004-06-23 00:50:20 paklein Exp $
 #
 # type "make clean" to remove test results
 #
@@ -6,7 +6,8 @@
 # list of sub-directories
 # NOTE: if list is empty, set SUB_DIR = NONE
 SUB_DIR = \
-material.solid
+material.solid \
+stress.smoothing
 
 all:
 	@echo "make clean to remove test results"
