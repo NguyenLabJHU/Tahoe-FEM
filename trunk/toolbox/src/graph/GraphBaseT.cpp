@@ -1,4 +1,4 @@
-/* $Id: GraphBaseT.cpp,v 1.10 2002-11-25 07:10:31 paklein Exp $ */
+/* $Id: GraphBaseT.cpp,v 1.11 2003-09-18 22:37:17 cjkimme Exp $ */
 /* created: paklein (04/13/1999) */
 
 #include "GraphBaseT.h"
@@ -793,7 +793,7 @@ void GraphBaseT::OptimizeParts(const GraphBaseT& graph, const iArrayT& weight,
 
 	repetitions = 0;
 	int zero_count = 0; // probably twice zero means nothing will happen
-	int dcuts_last = 1;
+	//	int dcuts_last = 1;
 	double rcuts, rcuts_last = 1.0;
 	int max_reps = 50;
 	int max_zero_count = 5;
@@ -803,7 +803,11 @@ void GraphBaseT::OptimizeParts(const GraphBaseT& graph, const iArrayT& weight,
 		cuts += dcuts;
 		
 		SetMoves(gain, partition, size, move);
+//############################################
+#if 0
 		dcuts_last = dcuts;
+#endif
+//############################################
 		dcuts = ApplyMoves(graph, move, weight, partition, gain, size);		
 		if (fVerbose) cout << " dcuts = " << dcuts << '\n';
 		
