@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.24 2005-01-07 21:23:02 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.25 2005-04-05 16:08:59 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "SPOOLESMatrixT.h"
 
@@ -7,10 +7,6 @@
 
 #include "ElementMatrixT.h"
 #include "LU_serial_driver.h"
-
-#ifdef __SPOOLES_MT__
-#include "SPOOLESMT.h"
-#endif
 
 using namespace Tahoe;
 
@@ -53,12 +49,14 @@ void SPOOLESMatrixT::Clear(void)
 	/* inherited */
 	MSRMatrixT::Clear();
 
-	/* check - must be serial */
+	/* checks - must be serial */
 	if (fTotNumEQ != fLocNumEQ)
 		ExceptionT::GeneralFail(caller, "total equations (%d) != local equations (%d)",
 			fTotNumEQ, fLocNumEQ);
+	if (fStartEQ != 1)
+		ExceptionT::GeneralFail(caller, "expecting first equation number to be 1 not %d",
+			fStartEQ);
 
-#ifndef __SPOOLES_MT__
 	/* delete existing data */
 	if (pLU_dat && !LU_serial_driver_free(&pLU_dat))
 		ExceptionT::GeneralFail(caller, "error freeing SPOOLES data");
@@ -70,7 +68,6 @@ void SPOOLESMatrixT::Clear(void)
 	int seed = 1; /* any seed will do here */
 	if (!LU_serial_driver_init(matrix_type, symmetry_flag, pivoting_flag, seed, fTotNumEQ, &pLU_dat))
 		ExceptionT::GeneralFail(caller, "error initializing SPOOLES data");
-#endif /* __SPOOLES_MT__ */
 
 	/* reset flag */
 	fIsFactorized = false;
@@ -99,7 +96,6 @@ void SPOOLESMatrixT::Factorize(void)
 	/* quick exit */
 	if (fIsFactorized) return;
 
-#ifndef __SPOOLES_MT__
 	/* convert matrix to RCV */
 	iArrayT r, c;
 	dArrayT v;
@@ -117,7 +113,6 @@ void SPOOLESMatrixT::Factorize(void)
 		&pLU_dat);
 
 	if (OK != 1) ExceptionT::BadJacobianDet("SPOOLESMatrixT::Factorize", "LU driver returned %d", OK);
-#endif /* __SPOOLES_MT__ */
 
 	/* set flag */
 	fIsFactorized = true;
@@ -135,29 +130,10 @@ void SPOOLESMatrixT::BackSubstitute(dArrayT& result)
 	 //  1: scalar output (timing data) only
 	 // >1: verbose
 	int OK;
- 
-#ifdef __SPOOLES_MT__
-	/* convert matrix to RCV */
-	iArrayT r, c;
-	dArrayT v;
-	GenerateRCV(r, c, v, 1.0e-15);
-
-	int matrix_type = SPOOLES_REAL;
-	int symmetry_flag = (fSymmetric) ? SPOOLES_SYMMETRIC : SPOOLES_NONSYMMETRIC;
-	int pivoting_flag = (fPivoting) ? SPOOLES_PIVOTING : SPOOLES_NO_PIVOTING;
-	int seed = 1; /* any seed will do here */
-
-	/* call MT driver, __NUM_THREADS__ comes from make macro */
-	OK = LU_MT_driver(msglvl, SPOOLES_FILE, matrix_type, symmetry_flag,
-		pivoting_flag, seed, result.Length(), result.Pointer(),
-		r.Length(), r.Pointer(), c.Pointer(), v.Pointer(), __NUM_THREADS__);
-#else /* not __SPOOLES_MT__ */
 
 	/* back substitute */
 	OK = LU_serial_driver_solve(msglvl, SPOOLES_FILE, result.Pointer(), &pLU_dat);
 
-#endif /* __SPOOLES_MT__ */
- 
 	if (OK != 1) ExceptionT::BadJacobianDet(caller, "LU driver returned %d", OK);
 }
 
