@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.56 2004-01-31 07:20:48 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.57 2004-02-04 07:37:52 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -728,7 +728,9 @@ void SolidElementT::Set_B_axi(const dArrayT& Na, const dArray2DT& DNa,
 {
 #if __option(extended_errorcheck)
 	if (B.Rows() != 4 || /* (number of stress 2D components) + 1 */
-	    B.Cols() != DNa.Length())
+	    B.Cols() != DNa.Length() ||
+    DNa.MajorDim() != 2 ||
+    DNa.MinorDim() != Na.Length())
 			ExceptionT::SizeMismatch("SolidElementT::Set_B_axi");
 #endif
 
@@ -755,7 +757,7 @@ void SolidElementT::Set_B_axi(const dArrayT& Na, const dArray2DT& DNa,
 
 /* set B-bar as given by Hughes (4.5.11-16) */
 void SolidElementT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_gradient, 
-	dMatrixT& B)
+	dMatrixT& B) const
 {
 #if __option(extended_errorcheck)
 	if (B.Rows() != dSymMatrixT::NumValues(DNa.MajorDim()) ||
@@ -841,6 +843,50 @@ void SolidElementT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_gradie
 				
 			pNax++; pNay++; pNaz++;
 		}
+	}
+}
+
+void SolidElementT::Set_B_bar_axi(const dArrayT& Na, const dArray2DT& DNa, const dArray2DT& mean_gradient, 
+	double r, dMatrixT& B) const
+{
+	const char caller[] = "SolidElementT::Set_B_bar_axi";
+	
+#if __option(extended_errorcheck)
+	if (B.Rows() != 4 || /* (number of stress 2D components) + 1 */
+	    B.Cols() != DNa.Length() ||
+	    DNa.MajorDim() != 2 ||
+	    DNa.MinorDim() != Na.Length() ||
+	    mean_gradient.MinorDim() != DNa.MinorDim() ||
+	    mean_gradient.MajorDim() != DNa.MajorDim())
+		ExceptionT::SizeMismatch("SolidElementT::Set_B_axi");
+#endif
+
+	int nnd = DNa.MinorDim();
+	double* pB = B.Pointer();
+
+	const double* pNax = DNa(0);
+	const double* pNay = DNa(1);			
+	const double* pNa  = Na.Pointer();
+
+	const double* pBmx = mean_gradient(0);
+	const double* pBmy = mean_gradient(1);			
+	for (int i = 0; i < nnd; i++)
+	{
+		/* exchange volumetric part: b_bar_vol - b_vol */
+		double factx = ((*pBmx++) - (*pNax + *pNa/r))/3.0;
+		double facty = ((*pBmy++) - (*pNay))/3.0;
+			
+		*pB++ = *pNax + factx;
+		*pB++ = factx;
+		*pB++ = *pNay; /* shear */
+		*pB++ = *pNa/r + factx; /* about y-axis: u_r = u_x */
+	
+		*pB++ = facty;
+		*pB++ = *pNay + facty;
+		*pB++ = *pNax; /* shear */
+		*pB++ = facty;
+				
+		pNax++; pNay++; pNa++;
 	}
 }
 

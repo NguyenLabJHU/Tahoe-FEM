@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.24 2004-01-31 07:20:48 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.25 2004-02-04 07:37:52 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -141,9 +141,13 @@ protected:
 	 * \param B destination for B */
 	void Set_B_axi(const dArrayT& shapes, const dArray2DT& derivatives, double r, dMatrixT& B) const;
 
-	/** set B-bar as given by Hughes (4.5.11-16)*/
+	/** set B-bar as given by Hughes (4.5.11-16) */
 	void Set_B_bar(const dArray2DT& derivatives, const dArray2DT& mean_gradient, 
-		dMatrixT& B);
+		dMatrixT& B) const;
+
+	/** set B-bar for axisymmetric deformations */
+	void Set_B_bar_axi(const dArrayT& shapes, const dArray2DT& derivatives, const dArray2DT& mean_gradient, 
+		double r, dMatrixT& B) const;
 
 	/** \name construct the effective mass matrix */
 	/*@{*/
