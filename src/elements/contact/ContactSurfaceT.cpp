@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.22 2002-04-05 22:15:46 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.23 2002-04-16 16:10:30 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
@@ -131,8 +131,9 @@ ContactSurfaceT::SetPotentialConnectivity(void)
                 }
 	    	}
 	    	if (count != node_face_counts[i]) {
-			cout <<"Error in ContactSurface::SetPotentialConnectivities\n";
-			cout <<" count " << count <<" "<<  node_face_counts[i] <<'\n';
+			cout <<"\nError in ContactSurface::SetPotentialConnectivities\n";
+			cout <<" count " << count 
+			     <<" expecting "<<  node_face_counts[i] <<'\n';
 			throw eGeneralFail;
 		    }
 		}
@@ -188,11 +189,12 @@ ContactSurfaceT::SetMultiplierConnectivity(void)
 						[face_connectivity[k]]];
 					count++;
 				}
-	    	if (count != fConnectivities.MinorDim(i)) {
-			cout <<"Error in ContactSurface::SetMultiplierConnectivities\n";
-			cout <<" count " << count <<'\n';
-			throw eGeneralFail;
 			}
+	    	if (count != fConnectivities.MinorDim(i)) {
+			cout <<"\nError in ContactSurface::SetMultiplierConnectivities\n";
+			cout <<" count " << count 
+			     <<" expecting " << fConnectivities.MinorDim(i) << '\n';
+			throw eGeneralFail;
 			}
 		}
 	}

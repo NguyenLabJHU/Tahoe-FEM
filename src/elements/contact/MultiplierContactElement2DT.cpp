@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.cpp,v 1.5 2002-04-05 22:15:46 rjones Exp $ */
+/* $Id: MultiplierContactElement2DT.cpp,v 1.6 2002-04-16 16:10:31 rjones Exp $ */
 // created by : rjones 2001
 #include "MultiplierContactElement2DT.h"
 
@@ -113,11 +113,13 @@ void MultiplierContactElement2DT::SetStatus(void)
 		}
 	}
 // DEBUG
+#if 0
 	cout << "\n\n";
 	surface.PrintGaps(cout);
 	surface.PrintNormals(cout);
 	surface.PrintMultipliers(cout);
 	surface.PrintStatus(cout);
+#endif
   }
 }
 
@@ -195,7 +197,7 @@ void MultiplierContactElement2DT::RHSDriver(void)
 				face->ComputeShapeFunctions(points(i),P1);
 				if (status == kGapZero) {
 					gap = node->Gap();
-					P1.SetToScaled(-parameters[kGScale]*gap, P1);
+					P1.SetToScaled(parameters[kGScale]*gap, P1);
 				}
 				else if (status == kPJump) {
 					/* calculate pressure on opposing face */
@@ -207,11 +209,11 @@ void MultiplierContactElement2DT::RHSDriver(void)
 					opp_pre = node->OpposingFace()->
 						Interpolate(opp_xi,P2values);
 					double pj = opp_pre - node->Pressure() ;
-					P1.SetToScaled(-parameters[kPScale]*pj, P1);
+					P1.SetToScaled(parameters[kPScale]*pj, P1);
 				}
 				else if (status == kPZero) {
 					double pj = - node->Pressure() ;
-					P1.SetToScaled(-parameters[kPScale]*pj, P1);
+					P1.SetToScaled(parameters[kPScale]*pj, P1);
 				}
 				xRHS += P1;
 			}
@@ -329,21 +331,18 @@ void MultiplierContactElement2DT::LHSDriver(void)
 							for (int j =0; j < fNumSD; j++) 
 								{n1alphal1[j] = n1[j] - alpha*l1[j];}
 							N1.Multx(n1alphal1, N1nl);
-							tmp_LHS.Outer(N1n, N1nl);
 							face->ComputeShapeFunctionDerivatives(points(i),T1);
 							double jac = face->ComputeJacobian(points(i));
 							T1.Multx(n1, T1n);
 							T1n.AddCombination(sfac*weights[i], N1nl,
 								sfac*gap*alpha*weights[i]/jac,T1n);
-							tmp_LHS.Outer(N1n, T1n);
-							LHS += tmp_LHS;
+							LHS.Outer(N1n, T1n);
 							/* jacobian */
 							T1.MultAB(T1,Perm);
 							tmp_LHS.MultABT(N1, T1);
 							tmp_LHS.SetToScaled
 								(node->Pressure()-sfac*gap*weights[i], tmp_LHS);
 							LHS += tmp_LHS;
-
 						} else {
 							LHS.Outer(N1n, N1n);
 							LHS.SetToScaled(sfac*weights[i], LHS);
@@ -379,6 +378,7 @@ void MultiplierContactElement2DT::LHSDriver(void)
 					tmp_LHS_man.SetDimensions
 						(num_nodes*fNumMultipliers,num_nodes*fNumSD);
 					if (consistent) {
+						/* T1n is the consistent D_u1 g(u1,u2) */
 						tmp_LHS.Outer(P1, T1n);
 					} else {
 						tmp_LHS.Outer(P1, N1n);

@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.16 2002-04-01 19:04:29 rjones Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.17 2002-04-16 16:10:31 rjones Exp $ */
 // created by : rjones 2001
 
 #include "PenaltyContactElement2DT.h"
@@ -211,13 +211,13 @@ void PenaltyContactElement2DT::RHSDriver(void)
 		  gap =  node->Gap();
 		  dArrayT& parameters = fEnforcementParameters(s,s2);
 		  /* First derivative represents force */
-          pre  = parameters[kPenalty] * fPenaltyFunctions[LookUp(s,s2,num_surfaces)]->DFunction(gap);
+          pre  = -parameters[kPenalty] * fPenaltyFunctions[LookUp(s,s2,num_surfaces)]->DFunction(gap);
 
 		  face->ComputeShapeFunctions(points(i),N1);
 		  for (int j =0; j < fNumSD; j++) {n1[j] = node->Normal()[j];}
 		  N1.Multx(n1, tmp_RHS);
-		  /* pressure =  penalty + Lagrange multiplier */
-		  tmp_RHS.SetToScaled(pre*weights[i], tmp_RHS);
+		  /* pressure = -e <g> and t = - p n   */
+		  tmp_RHS.SetToScaled(-pre*weights[i], tmp_RHS);
 		  RHS += tmp_RHS;
 
 
