@@ -1,4 +1,4 @@
-# $Id: DARWIN.LAM.macros,v 1.8 2003-03-11 16:30:43 paklein Exp $
+# $Id: DARWIN.LAM.macros,v 1.8.2.1 2003-03-14 18:35:29 paklein Exp $
 #
 # macros for Mac OS X using the GNU distribution provided with
 # the Apple Developer tools in addition to the LAM implementation
@@ -35,6 +35,7 @@ LN          = ln -sf
 ECHO        = /usr/local/bin/echo -e
 CAT         = cat
 PERL        = perl -w
+PRINTF      = printf
 
 # command needed build library
 BUILD_LIBRARY = BUILD_LIBRARY_RANLIB

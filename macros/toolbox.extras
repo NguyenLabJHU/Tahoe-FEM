@@ -1,29 +1,28 @@
-# $Id: toolbox.extras,v 1.2 2002-03-19 18:17:24 paklein Exp $
+# $Id: toolbox.extras,v 1.2.4.1 2003-03-14 18:35:29 paklein Exp $
 #
 # additional make commands for the toolbox module
 #
 
 default:
 	@ $(MAKE) help
-	@ $(ECHO) " "
-	@ $(ECHO) " additional targets for (un-)installing optional modules:"
-	@ $(ECHO) "    touch_SEACAS - Sandia tools"
-	@ $(ECHO) "       touch_MPI - support for parallel execution"
-	@ $(ECHO) "     touch_METIS - domain decomposition using METIS"
+	@ $(PRINTF) "\n additional targets for (un-)installing optional modules:\n"
+	@ $(PRINTF) "    touch_SEACAS - Sandia tools\n"
+	@ $(PRINTF) "       touch_MPI - support for parallel execution\n"
+	@ $(PRINTF) "     touch_METIS - domain decomposition using METIS\n"
 
 touch_SEACAS:
-	@ $(ECHO) "removing object files depending on SEACAS"
+	@ $(PRINTF) "removing object files depending on SEACAS\n"
 	-@ $(RM) $(SRC_DIR)/dataio/ModelManagerT.o
 	-@ $(RM) $(SRC_DIR)/dataio/database/ExodusT.o
-	@ $(ECHO) "NOTE: dependent modules must also be up to date"
+	@ $(PRINTF) "NOTE: dependent modules must also be up to date\n"
 
 touch_MPI:
-	@ $(ECHO) "removing object files depending on MPI"
+	@ $(PRINTF) "removing object files depending on MPI\n"
 	-@ $(RM) $(SRC_DIR)/parallel/CommunicatorT.o
-	@ $(ECHO) "NOTE: dependent modules must also be up to date"
+	@ $(PRINTF) "NOTE: dependent modules must also be up to date\n"
 
 touch_METIS:
-	@ $(ECHO) "removing object files depending on METIS"
+	@ $(PRINTF) "removing object files depending on METIS\n"
 	-@ $(RM) $(SRC_DIR)/graph/GraphBaseT.o
-	@ $(ECHO) "NOTE: dependent modules must also be up to date"
+	@ $(PRINTF) "NOTE: dependent modules must also be up to date\n"
 
