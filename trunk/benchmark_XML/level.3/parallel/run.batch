@@ -1,5 +1,5 @@
 @
-# $Id: run.batch,v 1.4 2004-07-22 08:11:34 paklein Exp $
+# $Id: run.batch,v 1.5 2004-09-07 06:45:24 paklein Exp $
 -join_io
 -no_metis
 -decomp_method
@@ -8,6 +8,7 @@ explicit.dyn.xml
 explicit.dyn.restart.xml
 elastostatic.PCG.xml
 elastostatic.xml
+elastostatic.PCG.K.xml
 elastostatic.N-LS.xml
 3D.particle/run.batch
 
