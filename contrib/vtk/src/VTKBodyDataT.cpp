@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.32 2002-11-01 02:10:08 paklein Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.33 2003-02-08 01:16:28 paklein Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -105,7 +105,11 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 	/* dimensions */
 	int num_elem_blocks = model.NumElementGroups();
 	int num_node_sets = model.NumNodeSets();
-	fUGrids.Allocate(num_elem_blocks + num_node_sets);	
+	int num_side_sets = model.NumSideSets();
+	fUGrids.Dimension(num_elem_blocks + num_node_sets + num_side_sets);
+	fUGridNames.Dimension(fUGrids.Length());
+	fUGridVisible.Dimension(fUGrids.Length());
+	fUGridVisible = true;
   
 	/* load element connectivities */
 	const ArrayT<StringT>& elem_ID = model.ElementGroupIDs();
@@ -133,6 +137,9 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 		fUGrids[i]->SetPoints(fPoints);
 		fUGrids[i]->SetConnectivities(geom_code, connectivities);
 		fUGrids[i]->SetCellNumberMap(map);
+		
+		/* name */
+		fUGridNames[i].Append("elem_set_", elem_ID[i]);
 	}    
     cout << "read element blocks" << endl;
 
@@ -156,8 +163,42 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 		fUGrids[ii] = new VTKUGridT(VTKUGridT::kNodeSet, i, model.NumDimensions());
 		fUGrids[ii]->SetPoints(fPoints);
 		fUGrids[ii]->SetConnectivities(geom_code, connectivities);
+
+		/* name */
+		fUGridNames[ii].Append("node_set_", node_ID[i]);
 	}    
     cout << "read node sets" << endl;
+
+	/* load side sets */
+	const ArrayT<StringT>& side_ID = model.SideSetIDs();
+	for (int i = 0; i < num_side_sets; i++)
+    {
+		/* read side set */
+		ArrayT<GeometryT::CodeT> facet_geom;
+		iArrayT facet_nodes;
+		iArray2DT faces;
+		model.SideSet(side_ID[i], facet_geom, facet_nodes, faces);
+	
+#if __option(extended_errorcheck)
+		cout << "VTKBodyDataT::VTKBodyDataT: reading side set: " 
+		     << faces.MajorDim() << endl;
+#endif
+		
+		GeometryT::CodeT geom = GeometryT::kPoint;
+		if (faces.MajorDim() == 0) {
+			cout << "VTKBodyDataT::VTKBodyDataT: side set " << side_ID[i] << " is empty" << endl; 
+		} else geom = facet_geom[0];
+	
+		/* construct VTK grid */
+		int ii = i + num_elem_blocks + num_node_sets;
+		fUGrids[ii] = new VTKUGridT(VTKUGridT::kSideSet, i, model.NumDimensions());
+		fUGrids[ii]->SetPoints(fPoints);
+		fUGrids[ii]->SetConnectivities(geom, faces);
+
+		/* name */
+		fUGridNames[ii].Append("side_set_", side_ID[i]);
+	}    
+    cout << "read side sets" << endl;
   
 	/* number of results sets */
 	int num_time_steps = model.NumTimeSteps();
@@ -440,69 +481,45 @@ int VTKBodyDataT::NodeMapIndex(int node) const
   return -1;
 }
 
+/* update visibility */
+void VTKBodyDataT::UpdateVisibility(void)
+{
+	for (int i = 0; i < fUGrids.Length(); i++)
+	{
+		if (fUGridVisible[i])
+			fUGrids[i]->Actor()->SetVisibility(1);
+		else
+			fUGrids[i]->Actor()->SetVisibility(0);
+	}
+}
+
 /* execute console command. \return true is executed normally */
 bool VTKBodyDataT::iDoCommand(const CommandSpecT& command, StringT& line)
 {
 	if (command.Name() == "Wire")
 	{
 		for (int i = 0; i < fUGrids.Length(); i++)
-			if (fUGrids[i]->Type() == VTKUGridT::kElementSet)
+			if (fUGrids[i]->Type() == VTKUGridT::kElementSet ||
+			    fUGrids[i]->Type() == VTKUGridT::kSideSet)
 				fUGrids[i]->SetRepresentation(VTKUGridT::kWire);
 		return true;
 	}
 	else if (command.Name() == "Surface")
 	{
 		for (int i = 0; i < fUGrids.Length(); i++)
-			if (fUGrids[i]->Type() == VTKUGridT::kElementSet)
+			if (fUGrids[i]->Type() == VTKUGridT::kElementSet ||
+			    fUGrids[i]->Type() == VTKUGridT::kSideSet)
 				fUGrids[i]->SetRepresentation(VTKUGridT::kSurface);
 		return true;
 	}
 	else if (command.Name() == "Point")
 	{
 		for (int i = 0; i < fUGrids.Length(); i++)
-			if (fUGrids[i]->Type() == VTKUGridT::kElementSet)
+			if (fUGrids[i]->Type() == VTKUGridT::kElementSet ||
+			    fUGrids[i]->Type() == VTKUGridT::kSideSet)
 				fUGrids[i]->SetRepresentation(VTKUGridT::kPoint);
 		return true;
 	}
-
-// 	else if (command.Name() == "ShowContours")
-// 	  {
-// 	     if (fScalars.MinorDim() > 0){
-// 	       for (int i = 0; i < fUGrids.Length(); i++)
-// 		 {
-// 		   fUGrids[i]->ShowContours(fScalars(currentStepNum, currentVarNum), numContours, scalarRange1[currentVarNum], scalarRange2[currentVarNum]);
-
-// 		 }
-// 	     }
-// 	     return true;
-// 	  }
-
-
-// 	else if (command.Name() == "HideContours")
-// 	  {
-// 	     if (fScalars.MinorDim() > 0){
-// 	       for (int i = 0; i < fUGrids.Length(); i++)
-// 		 {
-// 		   fUGrids[i]->HideContours(fScalars(currentStepNum, currentVarNum));
-
-// 		 }
-// 	     }
-// 	     return true;
-// 	  }
-
-// 	else if (command.Name() == "ShowGlyphs")
-// 	  {
-// 	     if (fScalars.MinorDim() > 0){
-// 	       for (int i = 0; i < fUGrids.Length(); i++)
-// 		 {
-// 		   fUGrids[i]->Glyphing(fVectors[currentStepNum]);
-
-// 		 }
-// 	     }
-// 	     return true;
-// 	  }
-
-
 	else if (command.Name() == "HideGlyphs")
 	  {
 	     if (fScalars.MinorDim() > 0){

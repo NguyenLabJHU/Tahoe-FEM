@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.h,v 1.21 2002-09-03 07:10:36 paklein Exp $ */
+/* $Id: VTKBodyDataT.h,v 1.22 2003-02-08 01:16:28 paklein Exp $ */
 #ifndef _VTK_BODY_DATA_T_H_
 #define _VTK_BODY_DATA_T_H_
 
@@ -50,8 +50,6 @@ public:
 	/** set the current time step */
 	bool SelectTimeStep(int);
 
-//	vtkFloatArray* GetVectors(void) {return fVectors[currentStepNum];};
-
  	/** add actors in self to the given renderer */
  	void AddToRenderer(vtkRenderer* renderer) const;
 
@@ -73,18 +71,26 @@ public:
 	/** return tbe number of nodal variables */
 	int NumNodeVariables(void) const { return fScalars.MinorDim(); };
 
-/* 	int NumContours(void) { return numContours;}; */
-
  	double CurrentScalarRange1(void) { return scalarRange1[currentVarNum];}; 
 	double CurrentScalarRange2(void) { return scalarRange2[currentVarNum];}; 
 
-//	int NumVectors(void) const {return fVectors.Length();};
-	
 	/** return a reference to the nodal labels */
 	const ArrayT<StringT>& NodeLabels(void) const { return fNodeLabels; };
  
+ 	/** \name unstructured grid information */
+ 	/*@{*/
 	/** return array of unstructured grid displays */
 	const ArrayT<VTKUGridT*>& UGrids(void) { return fUGrids; };
+
+	/** return array of unstructured grid names */
+	const ArrayT<StringT>& UGridNames(void) { return fUGridNames; };
+ 
+	/** visibility flags of grids */
+	ArrayT<bool>& UGridVisible(void) { return fUGridVisible; };
+	
+	/** update visibility */
+	void UpdateVisibility(void);
+ 	/*@}*/
  
  	/** execute console command. \return true is executed normally */
 	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
@@ -159,15 +165,10 @@ protected:
 	dArrayT fTimeList;
 
 	/** scalar data per node */
-	ArrayT<StringT> fNodeLabels; /**< labels for the nodal output variables */
+	ArrayT<StringT> fNodeLabels;
 
 	/** \name vector fields information */
 	/*@{*/
-	/** vector data per node. 
-	 * dimension: [time_steps] : [num_nodes] x [ndof] */
-//	ArrayT<vtkFloatArray*> fVectors; 
-//	int vec_dim;
-
 	/** vector field data for each (loaded) time step.
 	 * dimensions: [time_steps] x [num_fields] : [num_nodes x field_dim] */
 	Array2DT<vtkFloatArray*> fVectorFields; 
@@ -182,24 +183,32 @@ protected:
 	ArrayT<StringT> fVectorFieldLabel;
 	/*@}*/
 
+	/** \name unstructured grids */
+	/*@{*/
 	/** array of unstructured grid displays */
 	ArrayT<VTKUGridT*> fUGrids;
 
+	/** array of names in VTKBodyDataT::fUGrids */
+	ArrayT<StringT> fUGridNames;
+
+	/** visibility of each member of VTKBodyDataT::fUGrids */
+	ArrayT<bool> fUGridVisible;
+	/*@}*/
+	
 	vtkRenderer* bodyDataRenderer;
-	/* runtime data */
+
+	/** \name runtime data */
+	/*@{*/
   	int currentStepNum; /**< current time step on display */
   	int currentVarNum;  /**< current display variable */
 	dArrayT scalarRange1, scalarRange2;
-//	double hueRange1, hueRange2;
-//	double satRange1, satRange2;
-//	double valRange1, valRange2;
-//	double alphaRange1, alphaRange2;
 	double scale_factor;
 	int numColors;
 	int numContours;
 	int numColorBarLabels;
 	double opacity;
 	double boundingOpacity;
+	/*@}*/
 };
 
 /* type conversion */
