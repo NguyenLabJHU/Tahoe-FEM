@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.10 2002-07-02 19:55:15 cjkimme Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.11 2002-08-22 20:45:08 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -396,7 +396,20 @@ void CSEBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 
 	/* write output over the original connectivities */
 	fOutput_Connectivities = fConnectivities;
-	
+
+//TEMP - do not translate for MP calculations because neither
+//       their is no way to join the output either at runtime
+//       or as a post-analysis step
+if (ElementSupport().Size() > 1) {
+
+	int nsd = NumSD();
+	int nen = NumElementNodes();
+	if ((nsd == 2 && nen != 4 && nen != 6) || 
+	    (nsd == 3 && nen != 8 && nen != 16)) {
+		cout << "\n CSEBaseT::ReadConnectivity: TEMP: detected higher order elements,\n"
+			 <<   "     but output not reduced to lower order MP calculations." << endl;    
+	}
+}
 	/* check for higher order elements */
 	int nsd = NumSD();
 	int nen = NumElementNodes();
