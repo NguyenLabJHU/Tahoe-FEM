@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.17 2003-02-25 14:34:36 sawimme Exp $ */
+/* $Id: main.cpp,v 1.18 2003-09-05 20:27:26 paklein Exp $ */
 #include "ExceptionT.h"
 #include "TranslateIOManager.h"
 #include "ExtractNode.h"
@@ -69,7 +69,7 @@ int main (int c, char* a [])
 	  cout << "\n Type of translation: " << selection << ".";
 
 	  
-	  TranslateIOManager *dataio;
+	  TranslateIOManager *dataio = NULL;
 	  StringT program, version;
 	  switch (selection)
 	    {
@@ -126,6 +126,7 @@ int main (int c, char* a [])
 	    }
 	  if (echo) dataio->SetEcho (selection, echofile);
 	  dataio->Translate (program, version, program);
+	  delete dataio;
 	}
       cout << "\n\n Progam Complete.\n\n";
     }
