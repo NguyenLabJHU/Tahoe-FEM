@@ -1,4 +1,4 @@
-# $Id: DARWIN-3.3.LAM.macros,v 1.9 2004-08-10 06:37:02 paklein Exp $
+# $Id: DARWIN-3.3.LAM.macros,v 1.10 2004-08-17 06:07:37 paklein Exp $
 #
 # macros for Mac OS X using the GNU distribution provided with
 # the Apple Developer tools in addition to the LAM implementation
@@ -7,7 +7,7 @@
 #
 # macros for Panther (GCC 3.3)
 MAKE        = make
-DEFINES     = -D__GNU__ -D__DARWIN__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -D__GCC_3__ -DCHECK_MPI_STATUS -DCHECK_MPI_RETURN -DAZTEC_MPI
+DEFINES     = -DEIGHT_BYTE_REAL -D__GNU__ -D__DARWIN__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -D__GCC_3__ -DCHECK_MPI_STATUS -DCHECK_MPI_RETURN -DAZTEC_MPI
 COMP_C      = mpicc
 COMP_CC     = mpic++
 COMP_F      = mpif77
