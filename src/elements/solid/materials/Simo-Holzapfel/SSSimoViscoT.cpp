@@ -1,4 +1,4 @@
- /* $Id: SSSimoViscoT.cpp,v 1.4 2003-06-28 17:28:56 thao Exp $ */
+ /* $Id: SSSimoViscoT.cpp,v 1.5 2003-08-12 17:17:03 thao Exp $ */
 #include "SSSimoViscoT.h"
 #include "fstreamT.h"
 #include "ExceptionT.h"
@@ -14,7 +14,7 @@ SSSimoViscoT::SSSimoViscoT(ifstreamT& in, const SSMatSupportT& support):
 
 	fInternalDOF.Dimension(1);
 	fInternalDOF = numstress;
-	fViscStress.Dimension(numstress);
+	fViscStress.Dimension(ndof);
 	//TEMP: activate with removal of temp fViscStrain.Dimension(numstress);
 
 	/*allocates storage for state variable array*/
@@ -52,7 +52,7 @@ SSSimoViscoT::SSSimoViscoT(ifstreamT& in, const SSMatSupportT& support):
 	pstatev ++;
 	fmeanSin_n.Set(1, pstatev);
 	pstatev ++;
-	fViscStrain.Set(numstress,pstatev);
+	fViscStrain.Set(ndof,pstatev);
 }	
 
 void SSSimoViscoT::Print(ostream& out) const
