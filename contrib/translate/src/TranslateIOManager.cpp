@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.16 2002-02-22 20:06:08 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.17 2002-02-28 16:29:39 sawimme Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -247,11 +247,12 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
     }
   fIn >> selection;
 
-  int numnodes, numdims;
+  int numnodes, numdims, numpoints;
   fModel.CoordinateDimensions (numnodes, numdims);
+  iArrayT nodeIDs (numnodes);
   fNodeMap.Allocate (numnodes);
   fModel.AllNodeMap (fNodeMap);
-  int numpoints;
+  fModel.AllNodeIDs (nodeIDs);
   switch (selection)
     {
     case 1:
@@ -270,7 +271,7 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
 
 	    // translate node numbers to index
 	    int dex;
-	    fNodeMap.HasValue (nodes[n], dex);
+	    nodeIDs.HasValue (nodes[n], dex);
 	    if (dex < 0 || dex >= numnodes) 
 	      {
 		cout << " ExtractIOManager::InitializeNodePoints\n";
@@ -508,7 +509,13 @@ void TranslateIOManager::WriteNodes (void)
 	fModel.CoordinateDimensions(nnd, nsd);
 	fNodeMap.Dimension(nnd);
 	fModel.AllNodeMap(fNodeMap);
-	fNodeMap--;
+	/*fNodeMap--; offset done by model manager */
+	/* Difference between "node map" and "nodes used". 
+	 * 
+	 * nodes used refers to nodes used by an element group
+	 * node map is just an global index of nodes in fCoordinates
+	 *
+	 */
   
 	/* node map should not be empty */
 	if (fNodeMap.Length() == 0) {
@@ -516,21 +523,20 @@ void TranslateIOManager::WriteNodes (void)
 		throw eGeneralFail;
 		}
   
-	/* Difference between "node map" and "nodes used". Coordinates list is "global" if:
-	 *
-     *   fCoordinates[fNodeMap[i]] == coordinates of node fNodeMap[i] 
-     *
-     */
-	int min, max;
-	fNodeMap.MinMax(min, max);
-	if (min != 0 || max >= nnd) /* this is not a global node set */
-	{
-		fCoordinates.Dimension(max + 1, nsd);
-		fCoordinates.Assemble(fNodeMap, fModel.Coordinates());
-	}
-	else fCoordinates.Alias(fModel.Coordinates());
+	/* do not need to do any mapping, fNodeMap is global and offset 
+	   when it comes from modelmanager */
+	/*int min, max;
+	  fNodeMap.MinMax(min, max);
+	  if (min != 0 || max >= nnd)
+	  {
+	  fCoordinates.Dimension(max + 1, nsd);
+	  fCoordinates.Assemble(fNodeMap, fModel.Coordinates());
+	  fCoordinates.WriteNumbered (cout);
+	  throw eGeneralFail;
+	  }
+	  else fCoordinates.Alias(fModel.Coordinates()); */
   
-	fOutput->SetCoordinates (fCoordinates, &fNodeMap);
+	fOutput->SetCoordinates (fModel.Coordinates(), &fNodeMap);
 	cout << "\n Number of Nodes: " << nnd << " dim: " << nsd << endl;
 }
 
