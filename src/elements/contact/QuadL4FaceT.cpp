@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.cpp,v 1.21 2002-06-17 17:15:07 rjones Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.22 2002-06-18 14:25:34 rjones Exp $ */
 
 #include "QuadL4FaceT.h"
 
@@ -397,8 +397,19 @@ QuadL4FaceT::Quadrature
 (dArray2DT& points, dArrayT& weights) const
 {
 	points = fIntegrationPoints;//this is dangerous
+
+// error checking
+	if ( fIntegrationPoints.MajorDim() != 4) throw;
+
+	double jac[4];
 	for (int i = 0; i < fIntegrationPoints.MajorDim(); i++) {
-		weights[i] = ComputeJacobian(points(i));
+		jac[i] = ComputeJacobian(points(i));
 	}
+	
+//.. weights for 8-point serendipity condensed on nodes
+	weights[0] = (jac[3]+jac[1]+jac[0])/3.0;
+	weights[1] = (jac[0]+jac[2]+jac[1])/3.0;
+	weights[2] = (jac[1]+jac[3]+jac[2])/3.0;
+	weights[3] = (jac[2]+jac[0]+jac[3])/3.0;
 }
 
