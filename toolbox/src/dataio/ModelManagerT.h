@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.31 2004-11-11 03:55:06 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.32 2004-11-19 22:56:08 paklein Exp $ */
 /* created: sawimme July 2001 */
 #ifndef _MODELMANAGER_T_H_
 #define _MODELMANAGER_T_H_
@@ -51,21 +51,13 @@ class ModelManagerT
   ~ModelManagerT (void);
   
   /** \name initialization */
-  /*@{*/
-  /** Use only 1 of the 2 initialize functions. This function initializes the
+  /** This function initializes the
    * InputBaseT* and register array data found in the model file 
    * \param format IO database format.
    * \param database Name of model file (null for inline text files)
    * \param scan_model if true model dimensions are scanned
    * \return true if model database is open, false otherwise */
   bool Initialize(const IOBaseT::FileTypeT format, const StringT& database, bool scan_model);
-
-  /** Use only 1 of the 2 initialize functions. This function queriues the user
-   * interactively for database format and model file name. It is meant to be used
-   * with translator programs. It initializes the InputBaseT* and registers array 
-   * data found in the model file.
-   * \return true if model database is open, false otherwise */
-  bool Initialize(void);
 
   /** echo database format and model file name to the ostream in the print format
    * used by Tahoe */
@@ -76,7 +68,6 @@ class ModelManagerT
 
 	/** checks to see if external file or actual data */
 	ifstreamT& OpenExternal (ifstreamT& in, ifstreamT& in2, ostream& out, bool verbose, const char* fail) const;
-	/*@}*/
   
 	/** \name basic accessors */
 	/*@{*/
@@ -422,7 +413,13 @@ class ModelManagerT
    * \param keep flag to control memory allocation. If keep is true and conn
    *        is not an alias, the model manager will take ownership of the
    *        memory in conn. conn will be passed back as an alias. Otherwise
-   *        the data in conn will be copied. */
+   *        the data in conn will be copied.
+   *
+   * \note RegisterElementGroup puts an element block in the geometry data
+   *       that was not present in the original geometry file. Currently, this
+   *       means values at the nodes may be written but output of element values is 
+   *       not supported.
+   */
   bool RegisterElementGroup (const StringT& ID, iArray2DT& conn, GeometryT::CodeT code, 
   	bool keep);
 
