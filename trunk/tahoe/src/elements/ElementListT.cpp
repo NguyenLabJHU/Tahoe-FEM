@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.81 2004-02-02 23:48:35 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.82 2004-02-03 01:47:41 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -47,6 +47,7 @@
 #include "NLDiffusionElementT.h"
 #include "MeshFreeSSSolidT.h"
 #include "MeshFreeFSSolidT.h"
+#include "MeshFreeFSSolidAxiT.h"
 #include "D2MeshFreeFSSolidT.h"
 #include "SCNIMFT.h"
 #include "UpLagr_ExternalFieldT.h"
@@ -423,6 +424,15 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			{
 #ifdef CONTINUUM_ELEMENT
 				fArray[group] = new MeshFreeFSSolidT(fSupport, *field);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
+			case ElementT::kMeshFreeFDElasticAxi:
+			{
+#ifdef CONTINUUM_ELEMENT
+				fArray[group] = new MeshFreeFSSolidAxiT(fSupport, *field);
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
