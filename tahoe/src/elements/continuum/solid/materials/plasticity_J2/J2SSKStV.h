@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.h,v 1.7 2003-01-29 07:35:02 paklein Exp $ */
+/* $Id: J2SSKStV.h,v 1.8 2003-10-12 01:39:03 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #ifndef _J2_SS_KSTV_H_
 #define _J2_SS_KSTV_H_
@@ -7,7 +7,6 @@
 #include "SSSolidMatT.h"
 #include "IsotropicT.h"
 #include "HookeanMatT.h"
-//#include "J2SSLinHardT.h"
 #include "J2SSC0HardeningT.h"
 
 namespace Tahoe {
@@ -15,7 +14,6 @@ namespace Tahoe {
 class J2SSKStV: public SSSolidMatT,
 				public IsotropicT,
 				public HookeanMatT,
-//				public J2SSLinHardT
 				public J2SSC0HardeningT
 {
 public:
