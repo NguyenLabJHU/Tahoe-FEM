@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.2 2001-03-10 01:46:58 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.3 2001-03-14 03:20:00 paklein Exp $ */
 /* created: paklein (07/09/1996)                                          */
 
 #include "NLSolver.h"
@@ -52,13 +52,13 @@ NLSolver::NLSolver(FEManagerT& fe_manager):
 	if (fZeroTolerance < 0.0 || fZeroTolerance > 1.0)
 	{
 		cout << "\n NLSolver::NLSolver: absolute convergence tolerance is out of\n"
-		     <<   "    range: 0 <Êtol < 1: " << fZeroTolerance << endl;
+		     <<   "    range: 0 <= tol <= 1: " << fZeroTolerance << endl;
 		throw eBadInputValue;
 	}
 	if (fTolerance < 0.0 || fTolerance > 1.0)
 	{
 		cout << "\n NLSolver::NLSolver: relative convergence tolerance is out of\n"
-		     <<   "    range: 0 <Êtol < 1: " << fTolerance << endl;
+		     <<   "    range: 0 <= tol <= 1: " << fTolerance << endl;
 		throw eBadInputValue;
 	}
 	if (fDivTolerance < 0)  throw eBadInputValue;
