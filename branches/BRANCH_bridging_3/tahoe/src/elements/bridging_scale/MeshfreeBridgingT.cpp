@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.cpp,v 1.2 2003-05-23 22:57:45 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.cpp,v 1.2.12.1 2003-10-16 12:51:29 paklein Exp $ */
 #include "MeshfreeBridgingT.h"
 
 #include "PointInCellDataT.h"
@@ -230,7 +230,7 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(const iArrayT& points_used, cons
 	grid.Reset();
 
 	/* collect neighborhood nodes and set support size */
-	fSupport.Dimension(points_used.Length(),1);
+	fSupport.Dimension(point_coordinates.MajorDim(), 1);
 	fSupport = 0.0;
 	InverseMapT& global_to_local = cell_data.GlobalToLocal();
 	AutoFill2DT<int> auto_fill(nodes_used.Length(), 1, 10, 10);
@@ -255,11 +255,9 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(const iArrayT& points_used, cons
 			{
 				auto_fill.Append(i, point);
 				
-				int atom_dex = global_to_local.Map(point);
-				
 				/* take max support */
-				fSupport[atom_dex] = (support_size[i] > fSupport[atom_dex]) ? 
-					support_size[i] : fSupport[atom_dex];
+				fSupport[point] = (support_size[i] > fSupport[point]) ? 
+					support_size[i] : fSupport[point];
 			}
 		}
 	}
