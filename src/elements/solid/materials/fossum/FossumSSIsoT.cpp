@@ -864,8 +864,19 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
   
   /* strains and elastic stress*/
   /* Note ElasticStrain loads ISV's if element is allocated */
-  fStrain = e();  
-  const dSymMatrixT& e_els = ElasticStrain(fStrain, element, ip);
+
+  //fStrain = e();  
+  const dSymMatrixT& e_els = ElasticStrain(e(), element, ip);
+
+  fStrain = e_els;
+
+  if (element.IsAllocated())
+    fStrain += fPlasticStrain; //really hackish but nec for 2D
+
+
+  // cout << "e()= \n" << e() <<endl << endl;
+  //cout << "fStrain= \n" << fStrain <<endl << endl; 
+  
   HookeanStress(e_els, fStress);
 
   /* working ISV's for iteration */
@@ -961,9 +972,11 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
       double dt = fSSMatSupport -> TimeStep(); 
       
       //strains from previous time step
-      const dSymMatrixT& e_tot_last = e_last();
-      const dSymMatrixT& e_els_last = ElasticStrain(e_tot_last, element, ip);
-      
+      //const dSymMatrixT& e_tot_last = e_last();
+      const dSymMatrixT& e_els_last = ElasticStrain(e_last(), element, ip);
+      dSymMatrixT e_tot_last = e_els_last;
+      e_tot_last += fPlasticStrain;      
+
       // stress from previous time step
       dSymMatrixT fStress_last(3);
       HookeanStress(e_els_last, fStress_last);
@@ -971,6 +984,7 @@ const dSymMatrixT& FossumSSIsoT::s_ij(void)
       // strain and elastic stress increment
       dSymMatrixT delta_e(3);
       delta_e.DiffOf(fStrain, e_tot_last);
+      //delta_e.DiffOf(e_els, e_els_last);
       dSymMatrixT elastic_stress_increment(3);
       HookeanStress(delta_e, elastic_stress_increment);
 
@@ -1289,10 +1303,15 @@ bool FossumSSIsoT::StressPointIteration(double initialYieldCheck, dArrayT& itera
 	/* Check that failure surface has not been violated, 
 	   i.e. J_2^alpha < N, i.e. G^/alpha >= 0 */
 	double kin_tol = -1.0e-12;
+
+	//cout << "workingBackStress =\n" << workingBackStress << endl << endl;
+	//cout << "Galpha = " << Galpha(workingBackStress) << endl <<endl;
+
 	if ( Galpha(workingBackStress) < kin_tol)
 	  {
+
 	    if (fFossumDebug)
-	    cout << "FossumSSIsoT::s_ij, Back stress growth limit violated.  Spurious solution obtained. Attempting local step cut.\n" << flush;
+	    cout << "FossumSSIsoT::s_ij, Back stress growth limit violated.  Spurious solution obtained.\n" << flush;
 	    return false;
 	  }
 
