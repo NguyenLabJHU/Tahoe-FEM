@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.cpp,v 1.17 2005-01-21 16:51:22 paklein Exp $ */
+/* $Id: PolyCrystalMatT.cpp,v 1.18 2005-01-21 18:13:17 paklein Exp $ */
 #include "PolyCrystalMatT.h"
 #include "CrystalElasticity.h"
 #include "SlipGeometry.h"
@@ -89,9 +89,6 @@ void PolyCrystalMatT::DefineParameters(ParameterListT& list) const
 /* accept parameter list */
 void PolyCrystalMatT::TakeParameterList(const ParameterListT& list)
 {
-	/* inherited */
-	FDHookeanMatT::TakeParameterList(list);
-
 	fLocLastDisp = &(FSMatSupport().FiniteStrain()->LastDisplacements());
 	fLocDisp = &(FSMatSupport().FiniteStrain()->Displacements());
 
@@ -139,6 +136,9 @@ void PolyCrystalMatT::TakeParameterList(const ParameterListT& list)
 	
 	// close file
 	fInput.close();
+
+	/* inherited - need to be called after SetCrystalElasticity */
+	FDHookeanMatT::TakeParameterList(list);
 
 #if 0
 	// output stream

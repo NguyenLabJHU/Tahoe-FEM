@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.7 2005-01-21 16:51:14 paklein Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.8 2005-01-21 18:13:11 paklein Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -148,9 +148,9 @@ void FSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 #endif
 
 #ifdef PLASTICITY_CRYSTAL_MATERIAL
+		sub_lists.AddSub("local_crystal_plasticity_2D");
 		sub_lists.AddSub("local_crystal_plasticity_Fp_2D");
 		sub_lists.AddSub("gradient_crystal_plasticity_Fp_2D");
-		sub_lists.AddSub("local_crystal_plasticity_Fp_2D");
 #endif
 
 #ifdef CAUCHY_BORN_MATERIAL

@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.h,v 1.12 2005-01-21 16:51:22 paklein Exp $ */
+/* $Id: PolyCrystalMatT.h,v 1.13 2005-01-21 18:13:17 paklein Exp $ */
 #ifndef _POLY_CRYSTAL_MAT_T_H_
 #define _POLY_CRYSTAL_MAT_T_H_
 
@@ -34,6 +34,9 @@ class PolyCrystalMatT : public FDHookeanMatT
 
   // destructor
   virtual ~PolyCrystalMatT();
+
+	/** material has history variables */
+	virtual bool HasHistory(void) const { return true; };
 
 	/** returns true. Derived classes override ContinuumMaterialT::NeedsPointInitialization */
 	virtual bool NeedsPointInitialization(void) const;
