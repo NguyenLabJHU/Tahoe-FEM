@@ -1,9 +1,9 @@
-/* $Id: fstreamT.cpp,v 1.2 2002-01-07 20:40:13 paklein Exp $ */
+/* $Id: fstreamT.cpp,v 1.3 2002-01-09 12:10:09 paklein Exp $ */
 
 #include "fstreamT.h"
-
 #include "Environment.h"
 #include "ExceptionCodes.h"
+#include "ifstreamT.h"
 
 /* temporary */
 void fstreamT::FixPath(const char* path_old, StringT& path)
@@ -60,3 +60,9 @@ else /* stop */
 #endif
 }
 
+/* returns true if the given file is found */
+bool fstreamT::Exists(const char* path)
+{
+	ifstreamT file(path);
+	return file.is_open() == 1;
+}

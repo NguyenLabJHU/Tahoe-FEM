@@ -1,4 +1,4 @@
-/* $Id: fstreamT.h,v 1.3 2002-01-07 20:40:13 paklein Exp $ */
+/* $Id: fstreamT.h,v 1.4 2002-01-09 12:10:09 paklein Exp $ */
 /* created: paklein (12/30/2000) */
 
 #ifndef _FSTREAM_T_H_
@@ -21,6 +21,9 @@ class fstreamT
 	 * a compiler version for which the workaround is needed and
 	 * throws eStop if the compiler version is newer. */
 	static bool need_MW_workaround(void);
+	
+	/** returns true if the given file is found */
+	static bool Exists(const char* path);
 };
 
 #endif /* _FSTREAM_T_H_ */
