@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.58 2004-12-27 07:39:09 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.59 2005-01-06 18:52:27 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -1277,6 +1277,18 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const RaggedArray2DT<int>& node
 	}
 }
 
+/* describe the parameters needed by the interface*/
+void NodeManagerT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	ParameterInterfaceT::DefineParameters(list);
+	
+	/* name of the field which updates the coordinates */
+	ParameterT coord_update(ParameterT::Word, "coordinate_update_field");
+	coord_update.SetDefault("displacement");
+	list.AddParameter(coord_update, ParameterListT::ZeroOrOnce);
+}
+
 /* information about subordinate parameter lists */
 void NodeManagerT::DefineSubs(SubListT& sub_list) const
 {
@@ -1363,6 +1375,12 @@ void NodeManagerT::TakeParameterList(const ParameterListT& list)
 		}
 	}
 
+	/* name of the field which updates the coordinates */
+	StringT coords_update_field = "displacement"; /* default update field name - backward compatibility */
+	const ParameterT* coord_update = list.Parameter("coordinate_update_field");
+	if (coord_update)
+		coords_update_field = *coord_update;
+
 	/* construct fields */
 	int num_fields = list.NumLists("field");
 	fFields.Dimension(num_fields);
@@ -1385,8 +1403,8 @@ void NodeManagerT::TakeParameterList(const ParameterListT& list)
 		field->Clear();
 
 		/* coordinate update field */
-		if (field->FieldName() == "displacement") {
-			if (fCoordUpdate) ExceptionT::BadInputValue(caller, "\"displacement\" field already set");
+		if (field->FieldName() == coords_update_field) {
+			if (fCoordUpdate) ExceptionT::BadInputValue(caller, "coordinate update field already set");
 			fCoordUpdate = field;
 			fCurrentCoords = new dArray2DT;
 			fCurrentCoords_man.SetWard(0, *fCurrentCoords, NumSD());
