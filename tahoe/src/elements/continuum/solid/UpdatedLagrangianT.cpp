@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.5 2002-07-02 19:55:24 cjkimme Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.6 2002-07-17 00:02:10 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 
 #include "UpdatedLagrangianT.h"
@@ -18,7 +18,6 @@ using namespace Tahoe;
 
 UpdatedLagrangianT::UpdatedLagrangianT(const ElementSupportT& support, const FieldT& field):
 	FiniteStrainT(support, field),
-	fCurrShapes(NULL),
 	fCauchyStress(NumSD()),
 	fLocCurrCoords(LocalArrayT::kCurrCoords)
 {

@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.10 2002-07-02 19:55:23 cjkimme Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.11 2002-07-17 00:02:10 paklein Exp $ */
 
 #include "FiniteStrainT.h"
 #include "ShapeFunctionT.h"
@@ -13,7 +13,8 @@ using namespace Tahoe;
 
 FiniteStrainT::FiniteStrainT(const ElementSupportT& support, const FieldT& field):
 	ElasticT(support, field),
-	fNeedsOffset(-1)
+	fNeedsOffset(-1),
+	fCurrShapes(NULL)	
 {
 
 }
@@ -59,36 +60,32 @@ void FiniteStrainT::Initialize(void)
 /* compute field gradients with respect to current coordinates */
 void FiniteStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u) const
 {
-	/* field gradient */
-	fShapes->GradU(u, grad_u);
+	if (fCurrShapes)
+	{
+		/* field gradient */
+		fCurrShapes->GradU(u, grad_u);
+	}
+	else
+	{
+		cout << "\n FiniteStrainT::ComputeGradient: shape functions wrt current coords not defined" << endl;
+		throw eGeneralFail;
+	}
 }
 
 /* compute field gradients with respect to current coordinates */
 void FiniteStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u, 
 	int ip) const
 {
-	/* field gradient */
-	fShapes->GradU(u, grad_u, ip);
-}
-
-/* compute field gradients with respect to reference coordinates */
-void FiniteStrainT::ComputeGradient_reference(const LocalArrayT& u, 
-	dMatrixT& grad_u) const
-{
-#pragma unused(u)
-#pragma unused(grad_u)
-	cout << "\n FiniteStrainT::ComputeGradient_reference: not implemented" << endl;
-	throw;
-}
-
-void FiniteStrainT::ComputeGradient_reference(const LocalArrayT& u, dMatrixT& grad_u, 
-	int ip) const
-{
-#pragma unused(u)
-#pragma unused(grad_u)
-#pragma unused(ip)
-	cout << "\n FiniteStrainT::ComputeGradient_reference: not implemented" << endl;
-	throw;
+	if (fCurrShapes)
+	{
+		/* field gradient */
+		fCurrShapes->GradU(u, grad_u, ip);
+	}
+	else
+	{
+		cout << "\n FiniteStrainT::ComputeGradient: shape functions wrt current coords not defined" << endl;
+		throw eGeneralFail;
+	}
 }
 
 /***********************************************************************
