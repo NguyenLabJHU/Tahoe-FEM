@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.cpp,v 1.16 2004-07-15 08:29:05 paklein Exp $ */
+/* $Id: FEManagerT_THK.cpp,v 1.17 2004-07-22 08:50:22 paklein Exp $ */
 
 #include "FEManagerT_THK.h"
 #ifdef BRIDGING_ELEMENT
@@ -25,7 +25,7 @@ const double root32 = sqrt(3.0)/2.0;    // for neighbor searching tolerance
 /* constructor */
 FEManagerT_THK::FEManagerT_THK(const StringT& input, ofstreamT& output, CommunicatorT& comm,
 	const ArrayT<StringT>& argv, ifstreamT& bridging_input):
-	FEManagerT_bridging(input, output, comm, argv, bridging_input)
+	FEManagerT_bridging(input, output, comm, argv)
 {
 
 }
