@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.18 2001-12-13 09:56:21 paklein Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.19 2002-01-21 03:29:26 paklein Exp $ */
 
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
@@ -298,25 +298,13 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 /* change the plot variable */
 bool VTKBodyT::ChangeVars(const StringT& var)
 {
-	fBodyData->iWriteVariables(cout);
-
 	if (fBodyData->ChangeVars(var))
 	{
-		fBodyData->iWriteVariables(cout);
-
 		/* remove all variables */
 		DeleteVariables();
 		
-		//TEMP
-		cout << "VTKBodyT::ChangeVars: number of variable = " << fVariables.Length() << endl;
-		
 		/* re-add all the VTKBodyDataT variables */
 		AddVariables(*fBodyData);
-		
-		iWriteVariables(cout);
-
-		//TEMP
-		cout << "VTKBodyT::ChangeVars: number of variable = " << fVariables.Length() << endl;
 		
 		return true;
 	}
