@@ -1,7 +1,7 @@
-/* $Id: tevp2D.h,v 1.3 2001-05-01 19:03:10 hspark Exp $ */
+/* $Id: tevp2D.h,v 1.4 2001-05-03 02:48:20 hspark Exp $ */
 /* Thermoelasto-viscoplastic material used to generate shear bands */
 /* Created:  Harold Park (04/04/2001) */
-/* Last Updated:  Harold Park (05/01/2001) */
+/* Last Updated:  Harold Park (05/02/2001) */
 
 #ifndef _TEVP_2D_H_
 #define _TEVP_2D_H_
@@ -111,21 +111,25 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   void Reset(ElementCardT& element);
   /* These take the internal variable array and expand it to a matrix, or
    * vice versa */
-  dMatrixT ArrayToMatrix(dArrayT StressArray);
-  dArrayT MatrixToArray(dSymMatrixT StressMatrix);  
-  dSymMatrixT Return3DStress(dMatrixT StressMatrix);
+  dMatrixT& ArrayToMatrix(dArrayT StressArray);
+  dArrayT& MatrixToArray(dSymMatrixT StressMatrix);  
+  dSymMatrixT& Return3DStress(dMatrixT StressMatrix);
+  dSymMatrixT& ArrayToSymMatrix2D(dArrayT StressArray);
 
  protected:
   /* return values */
   dSymMatrixT fStress;
   dMatrixT fModulus;
   double fStrainEnergyDensity;   // How do I define this for this material?
-  
+  /* execution stage */
+  const GlobalT::StateT& fRunState;  
+
 /* element level internal variables */
   dArrayT fInternal;             // Internal variables
-  dArrayT fTempStress;      // Store the Kirchoff stress from the previous
+  dArrayT fTempKirchoff;      // Store the Kirchoff stress from the previous
                             // timestep (Sig11, Sig12=Sig21, Sig22, Sig33)
-
+  dArrayT fTempCauchy;      // Store the Cauchy stress from the previous
+                            // timestep (Sig11, Sig12=Sig21, Sig22, Sig33)
  private:
 
   const double& fDt;           // Timestep
@@ -154,8 +158,9 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   dMatrixT fStressMatrix;      // Expand stress array to a matrix
   dArrayT fStressArray;        // Flatten stress matrix to an array
   dSymMatrixT fStill3D;        // Still 3D version of stress
-  dSymMatrixT fStress3D;       // 3D version of stress -> fStress
+  dSymMatrixT fStress3D;
   dArrayT fSmlp;
+  dSymMatrixT fSymStress2D;    // 2D symmetrix stress tensor
 
   /* output variables/internal variables */
   double fTemperature;         // Temperature
