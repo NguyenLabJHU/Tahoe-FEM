@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2001-09-04 14:41:53 sawimme Exp $
+# $Id: makefile,v 1.7 2002-07-23 11:40:46 sawimme Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -13,7 +13,8 @@ OBJ = \
 	FE_ASCIIT.o \
 	OutputBaseT.o \
 	OutputSetT.o \
-	TecPlotOutputT.o
+	TecPlotOutputT.o \
+	PatranOutputT.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -29,8 +30,8 @@ SRC = \
 	FE_ASCIIT.cpp \
 	OutputBaseT.cpp \
 	OutputSetT.cpp \
-	TecPlotOutputT.cpp
-
+	TecPlotOutputT.cpp \
+	PatranOutputT.cpp
 # headers
 HDR = \
 	AVSOutputT.h \
@@ -40,7 +41,8 @@ HDR = \
 	FE_ASCIIT.h \
 	OutputBaseT.h \
 	OutputSetT.h \
-	TecPlotOutputT.h
+	TecPlotOutputT.h \
+	PatranOutputT.h
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
