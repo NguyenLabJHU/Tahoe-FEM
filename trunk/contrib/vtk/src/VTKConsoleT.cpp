@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.63 2003-03-28 22:39:32 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.64 2004-01-02 04:26:34 paklein Exp $ */
 #include "VTKConsoleT.h"
 
 /* ANSI headers */
@@ -34,6 +34,8 @@
 #include "vtkActorCollection.h"
 #include "vtkRendererCollection.h"
 #include "vtkProperty.h"
+#include "vtkDataSet.h"
+#include "vtkPointData.h"
 
 /* VTK console headers */
 #include "VTKFrameT.h"

@@ -1,11 +1,15 @@
+/* $Id: vtkTahoeGlyph3D.cpp,v 1.5 2004-01-02 04:26:34 paklein Exp $ */
 #include "vtkTahoeGlyph3D.h"
 #include "vtkTransform.h"
 #include "vtkMath.h"
 #include "vtkObjectFactory.h"
 #include "vtkUnsignedCharArray.h"
 #include "vtkFloatArray.h"
-
 #include "VTKBodyDataT.h"
+#include "vtkPointData.h"
+#include "vtkCell.h"
+#include "vtkPolyData.h"
+#include "vtkIdTypeArray.h"
 
 //------------------------------------------------------------------------
 vtkTahoeGlyph3D* vtkTahoeGlyph3D::New()

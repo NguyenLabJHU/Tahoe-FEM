@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.43 2003-11-25 19:55:49 paklein Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.44 2004-01-02 04:26:34 paklein Exp $ */
 #include "VTKBodyT.h"
 
 /* tahoe toolbox headers */
@@ -23,6 +23,7 @@
 #include "vtkFloatArray.h"
 #include "vtkProperty2D.h"
 #include "vtkProperty.h"
+#include "vtkPolyData.h"
 
 /* VTK console headers */
 #include "VTKBodyDataT.h"
