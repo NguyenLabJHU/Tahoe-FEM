@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactDrag2DT.cpp,v 1.6 2004-07-15 08:26:08 paklein Exp $ */
+/* $Id: PenaltyContactDrag2DT.cpp,v 1.7 2005-01-13 01:50:47 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContactDrag2DT.h"
 
@@ -42,9 +42,23 @@ void PenaltyContactDrag2DT::TakeParameterList(const ParameterListT& list)
 	fGapTolerance = list.GetParameter("gap_tolerance");
 	fSlipTolerance = list.GetParameter("slip_tolerance");
 
+	/* collect volume element block ID's containing the strikers */
+	ModelManagerT& model = ElementSupport().ModelManager();
+	ArrayT<StringT> element_id_all;
+	model.ElementGroupIDsWithNodes(fStrikerTags, element_id_all);
+	iArrayT volume_element(element_id_all.Length());
+	for (int i = 0; i < element_id_all.Length(); i++) {
+		GeometryT::CodeT geom = model.ElementGroupGeometry(element_id_all[i]);
+		volume_element[i] = (GeometryT::GeometryToNumSD(geom) == 2) ? 1 : 0;
+	}
+	int count = 0;
+	ArrayT<StringT> element_id(volume_element.Count(1));
+	for (int i = 0; i < element_id_all.Length(); i++)
+		if (volume_element[i])
+			element_id[count++] = element_id_all[i];
+
+	
 	/* compute associated nodal area */
-	ArrayT<StringT> element_id;
-	ElementSupport().ModelManager().ElementGroupIDsWithNodes(fStrikerTags, element_id);
 	ComputeNodalArea(element_id, fNodalArea, fStrikerLocNumber);
 }
 
