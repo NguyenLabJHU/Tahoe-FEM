@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.32 2003-07-25 00:00:27 jzimmer Exp $ */
+/* $Id: BoxT.cpp,v 1.33 2003-07-25 18:18:34 jzimmer Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -16,7 +16,8 @@
 
 BoxT::BoxT(int dim, dArray2DT len,
 	   dArrayT lattice_parameter,
-	   iArrayT which_sort, StringT slt) : VolumeT(dim) 
+	   iArrayT which_sort, StringT slt,
+           iArrayT per) : VolumeT(dim) 
 {
   nSD = dim;
   length.Dimension(nSD,2);
@@ -24,6 +25,9 @@ BoxT::BoxT(int dim, dArray2DT len,
 
   WhichSort.Dimension(nSD);
   WhichSort = which_sort;
+
+  pbc.Dimension(nSD);
+  pbc = per;
 
   sLATTYPE = slt;
 
@@ -80,7 +84,8 @@ BoxT::BoxT(int dim, dArray2DT len,
 
 BoxT::BoxT(int dim, iArrayT cel,
 	   dArrayT lattice_parameter,
-	   iArrayT which_sort, StringT slt) : VolumeT(dim) 
+	   iArrayT which_sort, StringT slt,
+           iArrayT per) : VolumeT(dim) 
 {
   nSD = dim;
   length.Dimension(nSD,2);
@@ -88,6 +93,9 @@ BoxT::BoxT(int dim, iArrayT cel,
 
   WhichSort.Dimension(nSD);
   WhichSort = which_sort;
+
+  pbc.Dimension(nSD);
+  pbc = per;
 
   sLATTYPE = slt;
 
@@ -141,9 +149,11 @@ BoxT::BoxT(const BoxT& source) : VolumeT(source.nSD)
 
   volume = source.volume;
 
-
   WhichSort.Dimension(nSD);
   WhichSort = source.WhichSort;
+
+  pbc.Dimension(source.nSD);
+  pbc = source.pbc;
 
   atom_names = source.atom_names;
 
@@ -407,25 +417,30 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
 
 }
 
-void BoxT::CalculateBounds(iArrayT per,CrystalLatticeT* pcl)
+void BoxT::CalculateBounds(CrystalLatticeT* pcl)
 {
-  const dArrayT& vLP = pcl->GetLatticeParameters();
+  // const dArrayT& vLP = pcl->GetLatticeParameters();
+  // const dArray2DT& vAX = pcl->GetAxis();
 
   atom_bounds.Dimension(nSD,2);
 
   for (int i=0; i < nSD; i++)
     {
-      if (per[i]==0) 
+      if (pbc[i]==0) 
 	{
 	  // non-periodic conditions
 	  atom_bounds(i,0) = -10000.;
 	  atom_bounds(i,1) =  10000.;
 	}
-      else if (per[i]==1)
+      else if (pbc[i]==1)
 	{
 	  // periodic conditions
-	  atom_bounds(i,0) = length(i)[0];
-	  atom_bounds(i,1) = length(i)[1] + 0.5*vLP[1];
+	  // atom_bounds(i,0) = length(i)[0];
+	  // atom_bounds(i,1) = length(i)[1] + 0.5*vLP[1];
+	  // atom_bounds(i,1) = length(i)[1] + 0.5*vAX(i,i);
+          // cout << vAX(i,i) << "\n";
+          atom_bounds(i,0) = length(i,0);
+          atom_bounds(i,1) = length(i,1);
 	}
       else
 	throw eBadInputValue;
@@ -634,6 +649,15 @@ dArray2DT BoxT::ComputeMinMax()
 	  minmax(i,0) = minmax(i,1);
 	  minmax(i,1) = temp;
 	}
+    }
+
+  for (int i=0; i < nSD; i++)
+    {
+      if (pbc[i]==1)
+        {
+          minmax(i,0) = length(i,0);
+          minmax(i,1) = length(i,1);
+        }
     }
 
   return minmax;  

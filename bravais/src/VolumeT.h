@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: VolumeT.h,v 1.12 2003-07-21 15:27:58 fwdelri Exp $ */
+/* $Id: VolumeT.h,v 1.13 2003-07-25 18:18:34 jzimmer Exp $ */
 
 #ifndef _VOLUME_T_H_
 #define _VOLUME_T_H_
@@ -51,7 +51,7 @@ public:
 	virtual void CreateLattice(CrystalLatticeT* pcl) = 0;
 	virtual void SortLattice(CrystalLatticeT* pcl) = 0;
 
-	virtual void CalculateBounds(iArrayT per,CrystalLatticeT* pcl) = 0;
+	virtual void CalculateBounds(CrystalLatticeT* pcl) = 0;
 
 	virtual iArrayT GetNCells() = 0;
         virtual dArray2DT GetLength() = 0; 
