@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.16.2.3 2002-04-30 01:30:19 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.16.2.4 2002-05-03 09:51:21 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "ContinuumElementT.h"
@@ -77,6 +77,12 @@ void ContinuumElementT::IP_Interpolate(const LocalArrayT& nodal_u, dArrayT& ip_u
 {
     /* computed by shape functions */
     ShapeFunction().InterpolateU(nodal_u, ip_u);
+}
+
+void ContinuumElementT::IP_Interpolate(const LocalArrayT& nodal_u, dArrayT& ip_u, int ip) const
+{
+    /* computed by shape functions */
+    ShapeFunction().InterpolateU(nodal_u, ip_u, ip);
 }
 
 /* field gradients */
