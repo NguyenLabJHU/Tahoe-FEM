@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2002-04-02 23:19:25 paklein Exp $
+# $Id: makefile,v 1.6 2003-01-29 09:11:02 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -8,7 +8,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	eTrapezoid.o \
 	nTrapezoid.o \
-	TrapezoidController.o
+	TrapezoidIntegrator.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -20,14 +20,14 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	eTrapezoid.cpp \
 	nTrapezoid.cpp \
-	TrapezoidController.cpp
+	TrapezoidIntegrator.cpp
 
 # headers
 HDR = \
 	eTrapezoid.h \
 	nTrapezoid.h \
 	Trapezoid.h \
-	TrapezoidController.h
+	TrapezoidIntegrator.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

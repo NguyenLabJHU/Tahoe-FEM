@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.37 2003-01-29 07:34:26 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.38 2003-01-29 09:10:44 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -12,9 +12,6 @@
 
 /* elements */
 #include "ElementBaseT.h"
-#include "RodT.h"
-#include "UnConnectedRodT.h"
-#include "VirtualRodT.h"
 #include "BEMelement.h"
 #include "AdhesionT.h"
 
@@ -59,10 +56,13 @@
 #include "ParticlePairT.h"
 #endif
 
-#ifdef LATTICE_ELEMENT
+#ifdef SPRING_ELEMENT
 #include "SWDiamondT.h"
 #include "MixedSWDiamondT.h"
 #include "VirtualSWDC.h"
+#include "RodT.h"
+#include "UnConnectedRodT.h"
+#include "VirtualRodT.h"
 #endif
 
 using namespace Tahoe;
@@ -187,8 +187,12 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		{
 			case ElementT::kRod:
 			{
+#ifdef SPRING_ELEMENT
 				fArray[group] = new RodT(fSupport, *field);
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "SPRING_ELEMENT not enabled: %d", code);
+#endif
 			}
 			case ElementT::kElastic:
 			{
@@ -313,13 +317,23 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 #endif
 			}	
 			case ElementT::kUnConnectedRod:
+			{
+#ifdef SPRING_ELEMENT
 				fArray[group] = new UnConnectedRodT(fSupport, *field);
 				break;
-			
+#else
+				ExceptionT::BadInputValue(caller, "SPRING_ELEMENT not enabled: %d", code);
+#endif
+			}
 			case ElementT::kVirtualRod:
+			{
+#ifdef SPRING_ELEMENT
 				fArray[group] = new VirtualRodT(fSupport, *field);
 				break;
-
+#else
+				ExceptionT::BadInputValue(caller, "SPRING_ELEMENT not enabled: %d", code);
+#endif
+			}
 			case ElementT::kVirtualSWDC:
 			{
 #ifdef LATTICE_ELEMENT

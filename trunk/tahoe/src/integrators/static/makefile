@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2002-04-02 23:19:24 paklein Exp $
+# $Id: makefile,v 1.7 2003-01-29 09:11:01 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,11 +6,11 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	eStaticController.o \
-	nStaticController.o \
-	nLinearStaticController.o \
-	LinearStaticController.o \
-	StaticController.o
+	eStaticIntegrator.o \
+	nStaticIntegrator.o \
+	nLinearStaticIntegrator.o \
+	LinearStaticIntegrator.o \
+	StaticIntegrator.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -20,20 +20,21 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	eStaticController.cpp \
-	nStaticController.cpp \
-	nLinearStaticController.cpp \
-	LinearStaticController.cpp \
-	StaticController.cpp
+	eStaticIntegrator.cpp \
+	nStaticIntegrator.cpp \
+	nLinearStaticIntegrator.cpp \
+	LinearStaticIntegrator.cpp \
+	StaticIntegrator.cpp
 
 # headers
 HDR = \
 	StaticT.h \
-	eStaticController.h \
-	nStaticController.h \
-	nLinearStaticController.h \
-	LinearStaticController.h \
-	StaticController.h
+	eStaticIntegrator.h \
+	nStaticIntegrator.h \
+	nLinearStaticIntegrator.h \
+	LinearStaticIntegrator.h \
+	StaticIntegrator.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2001-08-27 17:25:35 paklein Exp $
+# $Id: makefile,v 1.6 2003-01-29 09:10:58 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,9 +6,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	ControllerT.o \
-	eControllerT.o \
-	nControllerT.o
+	IntegratorT.o \
+	eIntegratorT.o \
+	nIntegratorT.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -17,15 +17,16 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	ControllerT.cpp \
-	eControllerT.cpp \
-	nControllerT.cpp
+	IntegratorT.cpp \
+	eIntegratorT.cpp \
+	nIntegratorT.cpp
 
 # headers
 HDR = \
-	ControllerT.h \
-	eControllerT.h \
-	nControllerT.h
+	IntegratorT.h \
+	eIntegratorT.h \
+	nIntegratorT.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories

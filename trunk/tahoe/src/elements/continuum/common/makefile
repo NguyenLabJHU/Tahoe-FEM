@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2003-01-29 09:10:59 paklein Exp $
+# $Id: makefile,v 1.1 2003-01-29 09:10:46 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,9 +6,11 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	eExplicitCD.o \
-	ExplicitCDIntegrator.o \
-	nExplicitCD.o
+	ContinuumElementT.o \
+	ContinuumMaterialT.o \
+	MaterialListT.o \
+	MaterialSupportT.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -17,21 +19,22 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	eExplicitCD.cpp \
-	ExplicitCDIntegrator.cpp \
-	nExplicitCD.cpp
+	ContinuumElementT.cpp \
+	ContinuumMaterialT.cpp \
+	MaterialListT.cpp \
+	MaterialSupportT.cpp
 
 # headers
 HDR = \
-	ExplicitCD.h \
-	eExplicitCD.h \
-	ExplicitCDIntegrator.h \
-	nExplicitCD.h
+	ContinuumElementT.h \
+	ContinuumMaterialT.h \
+	MaterialListT.h \
+	MaterialSupportT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
-SUB_DIR = 
+SUB_DIR =
 #subdir_driver: subdir_loop
 # SUB_DIR is empty
 subdir_driver: 

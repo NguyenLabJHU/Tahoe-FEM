@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:19 paklein Exp $
+# $Id: makefile,v 1.5 2003-01-29 09:10:56 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,11 +6,12 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	D2MeshFreeFDElasticT.o \
-	MeshFreeElasticT.o \
 	MeshFreeElementSupportT.o \
-	MeshFreeFDElasticT.o \
-	MeshFreeFractureSupportT.o
+	MeshFreeFractureSupportT.o \
+	MeshFreeSSSolidT.o \
+	MeshFreeFSSolidT.o \
+	D2MeshFreeFSSolidT.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -19,19 +20,20 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	D2MeshFreeFDElasticT.cpp \
-	MeshFreeElasticT.cpp \
 	MeshFreeElementSupportT.cpp \
-	MeshFreeFDElasticT.cpp \
-	MeshFreeFractureSupportT.cpp
+	MeshFreeFractureSupportT.cpp \
+	MeshFreeSSSolidT.cpp \
+	MeshFreeFSSolidT.cpp \
+	D2MeshFreeFSSolidT.cpp
 
 # headers
 HDR = \
-	D2MeshFreeFDElasticT.h \
-	MeshFreeElasticT.h \
 	MeshFreeElementSupportT.h \
-	MeshFreeFDElasticT.h \
-	MeshFreeFractureSupportT.h
+	MeshFreeFractureSupportT.h \
+	MeshFreeSSSolidT.h \
+	MeshFreeFSSolidT.h \
+	D2MeshFreeFSSolidT.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories

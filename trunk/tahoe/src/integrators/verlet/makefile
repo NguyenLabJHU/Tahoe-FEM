@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2002-06-27 23:55:57 hspark Exp $
+# $Id: makefile,v 1.2 2003-01-29 09:11:03 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,8 +7,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	eVerlet.o \
-	VerletController.o \
+	VerletIntegrator.o \
 	nVerlet.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -18,15 +19,16 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	eVerlet.cpp \
-	VerletController.cpp \
+	VerletIntegrator.cpp \
 	nVerlet.cpp
 
 # headers
 HDR = \
 	Verlet.h \
 	eVerlet.h \
-	VerletController.h \
+	VerletIntegrator.h \
 	nVerlet.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories

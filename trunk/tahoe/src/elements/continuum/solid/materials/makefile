@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.19 2003-01-28 22:35:28 paklein Exp $
+# $Id: makefile,v 1.20 2003-01-29 09:10:50 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -20,7 +20,7 @@ DEP = /dev/null
 #HDR_LINK = $(HDR:.h=.h_link)
 
 # materials configuration files
-include ../config/MaterialsConfig.make
+include $(SRC_DIR)/config/MaterialsConfig.make
 
 # subdirectories
 SUB_DIR = \
@@ -33,7 +33,6 @@ SUB_DIR = \
 	Ogden \
 	plasticity_DP \
 	plasticity_J2NlHard \
-	rod \
 	Simo \
 	nlcsolver \
 	tevp \

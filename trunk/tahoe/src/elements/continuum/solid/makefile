@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.12 2002-11-22 23:34:07 creigh Exp $
+# $Id: makefile,v 1.13 2003-01-29 09:10:49 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,9 +6,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	ContinuumElementT.o \
-	DiffusionT.o \
-	ElasticT.o \
+	SolidElementT.o \
 	FiniteStrainT.o \
 	LocalizerT.o \
 	SimoFiniteStrainT.o \
@@ -26,9 +24,7 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	ContinuumElementT.cpp \
-	DiffusionT.cpp \
-	ElasticT.cpp \
+	SolidElementT.cpp \
 	FiniteStrainT.cpp \
 	LocalizerT.cpp \
 	SimoFiniteStrainT.cpp \
@@ -40,9 +36,7 @@ SRC = \
 
 # headers
 HDR = \
-	ContinuumElementT.h \
-	DiffusionT.h \
-	ElasticT.h \
+	SolidElementT.h \
 	FiniteStrainT.h \
 	LocalizerT.h \
 	SimoFiniteStrainT.h \
@@ -56,6 +50,7 @@ HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
 SUB_DIR = \
+	materials \
 	meshfree 
 
 subdir_driver: subdir_loop
