@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.9 2002-04-02 23:38:43 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.10 2002-04-10 01:11:24 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 
 #include "CCSMatrixT.h"
@@ -233,8 +233,11 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_e
 	/* element matrix format */
 	ElementMatrixT::FormatT format = elMat.Format();
 
-	if (format == ElementMatrixT::kNonSymmetric)
-		throw eGeneralFail;
+	if (format == ElementMatrixT::kNonSymmetric) 
+	{
+		cout << "\n CCSMatrixT::Assemble(m, r, c): element matrix is not symmetric" << endl;
+		throw eGeneralFail;	
+	}
 	else if (format == ElementMatrixT::kDiagonal)
 	{
 		cout << "\n CCSMatrixT::Assemble(m, r, c): cannot assemble diagonal matrix" << endl;
