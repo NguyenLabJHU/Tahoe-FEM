@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.h,v 1.9 2002-07-05 22:28:27 paklein Exp $ */
+/* $Id: DetCheckT.h,v 1.10 2002-07-10 16:47:51 cfoster Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _DETCHECK_T_H_
@@ -7,6 +7,8 @@
 #define sweepIncr 5         // should be an integral divisor of 360
 #define numThetaChecks 72    // should be 360/sweepIncr and should be even
 #define numPhiChecks  19      // should be 90/sweepIncr+1
+
+# include "AutoArrayT.h"
 
 namespace Tahoe {
 
@@ -54,17 +56,13 @@ private:
 	/*3D Small Strain check for localization */
 	int DetCheck3D_SS(dArrayT& normal);
 
+	/* auxiliary functions to DetCheck3D_SS */
 	void ConvertTangentFrom2DTo4D(dTensor4DT& C);
 	void FindApproxLocalMins(double detA [numThetaChecks] [numPhiChecks],
 				 int localmin [numThetaChecks] [numPhiChecks], dTensor4DT& C);
 	dArrayT ChooseNewNormal(dArrayT& prevnormal, dMatrixEXT& J,
-				   dTensor4DT& C, double tol);
-
-	//void ConvertTangentFrom2DTo4D(double C [] [3] [3] [3]);
-	//void FindApproxLocalMins(double detA [numThetaChecks] [numPhiChecks],
-	//     int localmin [numThetaChecks] [numPhiChecks], double C [] [3] [3] [3]);
-	//dArrayT ChooseNewNormal(dArrayT& prevnormal, dMatrixEXT& J,
-	//			double C [] [3] [3] [3], double tol);
+				    double tol);
+	dArrayT ChooseNormalFromNormalSet(AutoArrayT <dArrayT> &normalSet, dTensor4DT &C);
 
 	/* 2D determinant check function */
 	int DetCheck2D(dArrayT& normal);
