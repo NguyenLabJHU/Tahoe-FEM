@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.15 2002-07-03 16:12:17 hspark Exp $ */
+/* $Id: RodT.cpp,v 1.16 2002-07-03 22:26:07 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -418,6 +418,16 @@ void RodT::WriteMaterialData(ostream& out) const
 	}
 }
 
+/* read connectivity and determine the nodes used */
+void RodT::EchoConnectivityData(ifstreamT& in, ostream& out)
+{
+	/* inherited */
+	ElementBaseT::EchoConnectivityData(in, out);
+	
+	/* determine the nodes used strictly based on those in the connectivities */
+	NodesUsed(fGroupNodes);
+}
+
 /***********************************************************************
 * Private
 ***********************************************************************/
@@ -425,14 +435,25 @@ void RodT::WriteMaterialData(ostream& out) const
 
 void RodT::ComputeInstKE(void)
 {
-  /* computes the instantaneous kinetic energy of the system of atoms */
-  double* ke = &fInstKE;
-  double* total = &fSumKE;
-  double mass = fCurrMaterial->Mass();
-  *ke = .5 * mass;
-  *total += *ke;
+	/* computes the instantaneous kinetic energy of the system of atoms */
+	double& ke = fInstKE;
+	double& total = fSumKE;
   
-  // NOT FINISHED YET - ISSUES WITH fLocVel
+	ke = 0;
+	const FieldT& field = Field();
+	if (field.Order() > 0) {
+   
+		dArrayT vel;
+		const dArray2DT& velocities = field[1];
+		for (int i = 0; i < fGroupNodes.Length(); i++)
+  		{
+  			velocities.RowAlias(fGroupNodes[i], vel);
+  			ke += Dot(vel,vel);
+		}
+		ke *= fCurrMaterial->Mass()/2.0;
+	}
+	  
+	total += ke;
 }
 
 void RodT::ComputeAvgKE(void)
@@ -515,17 +536,44 @@ void RodT::ComputeAvgPressure(void)
 
 int RodT::PrintMDToFile(void)
 {
-  /* print MD quantities (temperature/energy/pressure) to an output file */
-  ofstream out("MD.out");
-  
-  if(!out) {
-    cout << "Cannot open MD.out file.\n";
-    return 1;
-  }
+	/* print MD quantities (temperature/energy/pressure) to an output file */
+	ofstreamT out;
+	int d_width = OutputWidth(out, &fAvgTotalE); 
+	if (ElementSupport().StepNumber() == 1)
+  	{
+  		out.open("MD.out");
+		if (!out.is_open()) {
+			cout << "Cannot open MD.out file.\n";
+			return 1;
+		}
 
-  out << "InstKE" << setw(12) << "InstPE" << setw(12) << "InstTemp" << setw(12) << "InstTotalE" << setw(12) << "AvgKE" << setw(12) << "AvgPE" << setw(12) << "AvgTemp" << setw(12) << "AvgTotalE" << setw(12) << endl;
-  out << fInstKE << setw(12) << fInstPE << setw(12) << fInstTemp << setw(12) << fInstTotalE << setw(12) << fAvgKE << setw(12) << fAvgPE << setw(12) << fAvgTemp << setw(12) << fAvgTotalE << setw(12) << endl;
-
-  out.close();
-  return 0;
+  		out << setw(d_width) << "InstKE"  
+  		    << setw(d_width) << "InstPE" 
+  		    << setw(d_width) << "InstTemp" 
+  		    << setw(d_width) << "InstTotalE" 
+  		    << setw(d_width) << "AvgKE" 
+  		    << setw(d_width) << "AvgPE" 
+  		    << setw(d_width) << "AvgTemp" 
+  		    << setw(d_width) << "AvgTotalE" << endl;
+	}
+	else /* appending to existing file */
+	{
+  		out.open_append("MD.out");
+		if (!out.is_open()) {
+			cout << "Cannot open MD.out file.\n";
+			return 1;
+		}
+	
+		out << setw(d_width) << fInstKE 
+		    << setw(d_width) << fInstPE 
+		    << setw(d_width) << fInstTemp 
+		    << setw(d_width) << fInstTotalE 
+		    << setw(d_width) << fAvgKE 
+		    << setw(d_width) << fAvgPE 
+		    << setw(d_width) << fAvgTemp 
+		    << setw(d_width) << fAvgTotalE 
+		    << setw(d_width) << endl;
+	}
+	out.close();
+	return 0;
 }

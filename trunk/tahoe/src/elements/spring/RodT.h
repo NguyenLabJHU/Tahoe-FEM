@@ -1,4 +1,4 @@
-/* $Id: RodT.h,v 1.10 2002-07-03 00:05:31 hspark Exp $ */
+/* $Id: RodT.h,v 1.11 2002-07-03 22:26:07 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _ROD_T_H_
@@ -79,6 +79,9 @@ protected: /* for derived classes only */
 	/** return true if connectivities are changing */
 	virtual bool ChangingGeometry(void) const { return false; };
 
+	/** read connectivity and determine the nodes used */
+	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
+
 private: /* MD related computational functions */
 
 	void ComputeInstKE(void);
@@ -101,6 +104,10 @@ protected:
 	/* material data */
 	pArrayT<RodMaterialT*> fMaterialsList; 	
 	RodMaterialT*	       fCurrMaterial;
+
+	/** list of nodes used by the group both in and not in
+	 * current bonding configuration */
+	iArrayT fGroupNodes;
 
 private:
 
