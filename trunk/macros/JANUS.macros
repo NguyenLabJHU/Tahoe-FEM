@@ -1,4 +1,4 @@
-# $Id: JANUS.macros,v 1.13 2003-03-15 16:54:30 paklein Exp $
+# $Id: JANUS.macros,v 1.14 2003-09-24 23:56:25 paklein Exp $
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpi
 
@@ -9,11 +9,11 @@ DEPENDFLAGS = -I/usr/local/intel/tflop/current/tflops/include -I/usr/local/intel
 COMP_C      = cicc
 COMP_CC     = ciCC
 COMP_F      = cif77
-MORE_CFLAGS = -O2 -DNDEBUG 
+MORE_CFLAGS = -O2 -DNDEBUG -D__JANUS__
 #MORE_CFLAGS = -g
 LOC_CFLAGS = -c -I$(INC_DIR) $(MORE_CFLAGS)
 CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS)
-CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -Wc,-tlocal 
+CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -Wc,-tlocal --display_error_number --diag_suppress 815
 CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = $(MPI_LFLAGS)
@@ -22,7 +22,7 @@ ARFLAGS     = -cruv
 MAKEOPTS    =
 RM          = rm
 RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
-LN          = ln -sf
+LN          = /home/paklein/bin/ln -sf
 ECHO        = echo
 CAT         = cat
 PERL        = perl -w
