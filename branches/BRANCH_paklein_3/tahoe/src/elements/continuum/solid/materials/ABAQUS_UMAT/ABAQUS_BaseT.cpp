@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BaseT.cpp,v 1.1.2.2 2003-11-24 17:54:08 paklein Exp $ */
+/* $Id: ABAQUS_BaseT.cpp,v 1.1.2.3 2003-11-24 19:17:09 paklein Exp $ */
 #include "ABAQUS_BaseT.h"
 
 #ifdef __F2C__
@@ -9,7 +9,6 @@
 #include "fstreamT.h"
 
 #include <ctype.h>
-#include <float.h>
 
 using namespace Tahoe;
 
