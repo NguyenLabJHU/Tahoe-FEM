@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.6 2001-08-17 00:47:58 cfoster Exp $ */
+/* $Id: DetCheckT.cpp,v 1.7 2001-08-17 23:32:55 cfoster Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "DetCheckT.h"
@@ -57,7 +57,8 @@ int DetCheckT::IsLocalized(dArrayT& normal)
 
 
 /* check ellipticity of tangent modulus for small strain formulation 
-* 2D version is closed form solution taken from R.A.Regueiro's SPINLOC.
+* 2D version is closed form solution for plane strain taken from 
+* R.A.Regueiro's SPINLOC.
 * 3d is a numerical search algorithm after Ortiz, et. al. (1987) */
 
 int DetCheckT::IsLocalized_SS(dArrayT& normal)
@@ -76,9 +77,9 @@ int DetCheckT::IsLocalized_SS(dArrayT& normal)
 		return check;
 	}
 	else
-	  // cout << "before call to DetCheck3D_SS \n";
-	//return DetCheck3D_SS(normal);
-          return 7;    
+          // not ready yet. remove to run problem to debug
+	  //return DetCheck3D_SS(normal);
+	 return 7;    
 }
 
 
@@ -191,15 +192,17 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 
   double theta, phi; //horizontal plane angle and polar angle for normal
   int i,j,k,l,m,n, control;        // counters and control variable
-  double tol=10^-10; 
-  double leastmin, guess; 
-  /* initial sweep to determine approximate local minima */
+  double tol=.0000000001; 
+  double leastmin=tol; 
+  double guess; 
+  int newtoncounter; //makes sure Newton iteration doesn't take too long
+  double resid;
 
   double detA [72] [19]; //determinant of acoustic tensor at each increment
   int localmin [72] [19]; // 1 for local minimum, 0 if not
   dMatrixT A(3,3), Ainverse(3,3); //acoustic tensor
   dMatrixEXT J(3); // det(A)*C*Ainverse
-  double prevnormal[3], finalnormal [3];
+  dArrayT prevnormal(3), finalnormal (3), eigs(3);
 
 
   double C [3] [3] [3] [3]; // rank 4 tangent modulus
@@ -279,22 +282,24 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
            }
 
 
+ /* initial sweep to determine approximate local minima */
+
   for (i=0;i<72;i++){
     for (j=0;j<19; j++){
 
-      cout << "i= " << i << "; j= " << j << '\n';
+      // cout << "i= " << i << "; j= " << j << '\n';
 
-            theta=Pi/36*i;
-            phi=Pi/36*j;
+      theta=Pi/36*i;
+      phi=Pi/36*j;
 
-             normal[0]=cos(theta)*cos(phi);
-             normal[1]=sin(theta)*cos(phi);
-             normal[2]=sin(phi);
+      normal[0]=cos(theta)*cos(phi);
+      normal[1]=sin(theta)*cos(phi);
+      normal[2]=sin(phi);
 
 	     // initialize acoustic tensor A
    
-             for (m=0;m<3;i++){
-	       for (n=0;n<3;i++){
+             for (m=0;m<3;m++){
+	       for (n=0;n<3;n++){
 		 A (m,n) =0;
 	       }
 	     }
@@ -449,9 +454,6 @@ else
   }
      /* Newton iteration to refine minima*/
 
-  cout << "At Refinement Step \n";
-
-
  for (i=0;i<72;i++){
     for (j=0;j<19; j++){
 
@@ -464,19 +466,46 @@ else
              normal[1]=sin(theta)*cos(phi);
              normal[2]=sin(phi);
 
+             prevnormal[0]=1;
+             prevnormal[1]=1;
+             prevnormal[2]=1;
 
 
-	     while (sqrt((prevnormal[0]-normal[0])*(prevnormal[0]-normal[0])+(prevnormal[1]-normal[1])*(prevnormal[1]-normal[1])+(prevnormal[2]-normal[2])*(prevnormal[2]-normal[2]))>tol){  
+             newtoncounter=0;
+	    
+	     resid=1.0;
 
-	       cout << "in Newton iteration \n";
+	     // while (sqrt((prevnormal[0]-normal[0])*(prevnormal[0]-normal[0])+(prevnormal[1]-normal[1])*(prevnormal[1]-normal[1])+(prevnormal[2]-normal[2])*(prevnormal[2]-normal[2]))>tol){  
+	     while (resid > tol){
+
+
+	       cout << " normal = \n";
+               cout << normal << '\n';
+
+	       cout << " prevnormal = \n";
+               cout << prevnormal << '\n';
+
+	       cout << " norm = \n";
+               cout << resid << '\n';
+	       // cout << sqrt((prevnormal[0]-normal[0])*(prevnormal[0]-normal[0])+(prevnormal[1]-normal[1])*(prevnormal[1]-normal[1])+(prevnormal[2]-normal[2])*(prevnormal[2]-normal[2])) << ' \n';
+             
+
+
+               newtoncounter++;
+               if (newtoncounter > 20)
+		 {
+		 cout << "Newton refinement did not converge after 20 iterations-Localization check failed \n"; 
+                 return 7;
+                 }
+
 
 	       for (k=0;k<3;k++){
-	           prevnormal[k]=normal[k];
+		 prevnormal[k]=normal[k];
 	       }
  // initialize acoustic tensor A
               
-             for (m=0;m<3;i++){
-	       for (n=0;n<3;i++){
+             for (m=0;m<3;m++){
+	       for (n=0;n<3;n++){
 		 A (m,n) =0;
 	       }
 	     }
@@ -500,8 +529,8 @@ else
 
    // initialize J
    
-             for (m=0;m<3;i++){
-	       for (n=0;n<3;i++){
+             for (m=0;m<3;m++){
+	       for (n=0;n<3;n++){
 		 J (m,n) =0;
 	       }
 	     }
@@ -519,8 +548,34 @@ else
 	     }
  // find least eigenvector of J
 
+
+ cout << "check1 \n";
+
+eigs[0]=1;
+eigs[1]=0;
+eigs[2]=0;
+
+
+//J.Diagonalize(eigs);
+
+//if (J(0,0)<J(1,1))
+//  guess = J(0,0);
+//else
+//  guess = J(1,1);
+
+//if (J(2,2)<guess)
+//  guess = J(2,2);
+
 guess=0.0;
+
 J.Eigenvector(guess, normal);
+
+ cout << "check2 \n";
+
+resid= (prevnormal[0]-normal[0])*(prevnormal[0]-normal[0])+(prevnormal[1]-normal[1])*(prevnormal[1]-normal[1])+(prevnormal[2]-normal[2])*(prevnormal[2]-normal[2]);
+
+ cout << "resid= \n";
+ cout << resid << '\n';
 
 	     }
 
