@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.36 2003-05-28 23:26:42 cjkimme Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.37 2003-06-09 06:37:07 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -375,8 +375,27 @@ const dArray2DT& ElementBaseT::InternalForce(int group)
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
+
+/* map the element numbers from block to group numbering */
+void ElementBaseT::BlockToGroupElementNumbers(iArrayT& elems, const StringT& block_ID) const
+{
+	const char caller[] = "ElementBaseT::BlockToGroupElementNumbers";
+
+	/* block information */
+	const ElementBlockDataT& block_data = BlockData(block_ID);
+
+	/* check */
+	int min, max;
+	elems.MinMax (min, max);
+	if (min < 0 || max > block_data.Dimension())
+		ExceptionT::BadInputValue(caller, "element numbers {%d,%d} are out of range",
+			min, max);
+	
+	/* map to group numbering is just a shift */
+	elems += block_data.StartNumber();
+}
 
 /* get local element data, X for geometry, U for
 * field variables */

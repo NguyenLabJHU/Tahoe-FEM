@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.28 2003-05-28 23:26:42 cjkimme Exp $ */
+/* $Id: ElementBaseT.h,v 1.29 2003-06-09 06:37:07 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -277,6 +277,9 @@ public:
 	virtual const dArray2DT& InternalForce(int group);
 
 protected: /* for derived classes only */
+
+	/** map the element numbers from block to group numbering */
+	void BlockToGroupElementNumbers(iArrayT& elems, const StringT& block_ID) const;
 
 	/** solver group */
 	int Group(void) const {
