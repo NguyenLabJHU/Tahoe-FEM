@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.17 2002-08-14 02:30:33 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.18 2002-08-15 16:31:45 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -25,9 +25,11 @@ BridgingScaleT::BridgingScaleT(const ElementSupportT& support,
 	ElementBaseT(support, field),
 	fParticle(particle),
 	fSolid(solid),
+	fElMat(ShapeFunction().ParentDomain().NumNodes(), ElementMatrixT::kSymmetric),
 	fLocInitCoords(LocalArrayT::kInitCoords),
 	fLocDisp(LocalArrayT::kDisp),
 	fDOFvec(NumDOF()),
+	fGlobal(support.Output(),1),
 	fMass(ShapeFunction().ParentDomain().NumNodes()),
 	fConnect(solid.NumElements(), solid.NumElementNodes()),
 	//fWtemp(support.NumNodes(),ShapeFunction().ParentDomain().NumNodes()),
@@ -73,10 +75,8 @@ void BridgingScaleT::Initialize(void)
 	iArrayT node1(nodes_used.Max() + 1); // +1 because starts from 0
 	node1 = -1;
 	for (int i = 0; i < nodes_used.Length(); i++)
-	    node1[nodes_used[i]] = i;
+	    node1[nodes_used[i]] = i + 1;
 
-	fTotalNodes = nodes_used.Length();
-	
 #if 0
 	dArray2DT atom_coords, node_coords;
 	atom_coords.RowCollect(atoms_used, curr_coords);
@@ -92,7 +92,7 @@ void BridgingScaleT::Initialize(void)
 	/* now take an atom, check against every element */
 	const ParentDomainT& parent = ShapeFunction().ParentDomain();
 	int totalatoms = atoms_used.Length();
-	int totalnodes = nodes_used.Length();
+	fTotalNodes = nodes_used.Length();
 	AutoFill2DT<int> auto_fill(fSolid.NumElements(), 10, 10);
 	dArrayT x_atom, centroid;
 	LocalArrayT cell_coords(LocalArrayT::kCurrCoords, fSolid.NumElementNodes(), NumSD());
@@ -175,7 +175,7 @@ void BridgingScaleT::Initialize(void)
 	out.flush();	
 
 	/* store solid nodes used */
-	fSolidNodesUsed.Dimension(nodes_used.Length(), 1);
+	fSolidNodesUsed.Dimension(fTotalNodes, 1);
 	fSolidNodesUsed.SetColumn(0, nodes_used);
 
 	/* store particles used */
@@ -205,7 +205,7 @@ void BridgingScaleT::CloseStep(void)
 	
 	/* Do Bridging scale calculations after MD displacements
 	   computed using RodT */
-	ComputeMass();
+	ComputeCoarseScaleFields();
 }
 
 /* resets to the last converged solution */
@@ -310,27 +310,29 @@ void BridgingScaleT::CurrElementInfo(ostream& out) const
 * Private
 ***********************************************************************/
 
-void BridgingScaleT::ComputeMass(void)
+void BridgingScaleT::ComputeCoarseScaleFields(void)
 {
-  /* computes the coarse scale mass matrix once inverse map has
-   * been performed */
+  /* computes coarse scale fields */
   const ParentDomainT& parent = ShapeFunction().ParentDomain();
   const FieldT& field = Field();
-  iArrayT atoms;
+  iArrayT atoms, elemconnect(parent.NumNodes());
   const dArray2DT& displacements = field[0];
   const dArray2DT& velocities = field[1];
   const dArray2DT& accelerations = field[2];
   dArrayT map, shape(parent.NumNodes()), temp(NumSD()), disp, vel, acc;
-  dMatrixT Mass(fTotalNodes), MassInv(fTotalNodes), tempmass(parent.NumNodes()); 
+  dMatrixT tempmass(parent.NumNodes()); 
   dMatrixT Nd(parent.NumNodes(), NumSD()), Nv(parent.NumNodes(), NumSD()), Na(parent.NumNodes(), NumSD());
-  dArray2DT trialU(fTotalNodes, NumDOF()), trialU2(fTotalNodes, NumDOF());
-  trialU = 0.0, trialU2 = 0.0, Mass = 0.0, MassInv = 0.0;
+  /* set global matrices for bridging scale calculations */
+  fGlobal.AddEquationSet(fConnect);
+  fGlobal.Initialize(fTotalNodes,fTotalNodes,1); // hard wired for serial calculations
+  fGlobal.Clear();
 
   for (int i = 0; i < fParticlesInCell.MajorDim(); i++)
   {
-      fMass = 0.0, fWtempU = 0.0, fWtempV = 0.0, fWtempA = 0.0;
+      fElMat = 0.0, fWtempU = 0.0, fWtempV = 0.0, fWtempA = 0.0;
       fParticlesInCell.RowAlias(i,atoms);
       fInverseMapInCell.RowAlias(i,map);
+      fConnect.RowAlias(i,elemconnect);
       for (int j = 0; j < fParticlesInCell.MinorDim(i); j++)
       {
 	  // still need to access individual atomic masses!!!
@@ -340,7 +342,7 @@ void BridgingScaleT::ComputeMass(void)
 	  temp.CopyPart(0, map, NumSD()*j, NumSD());
 	  parent.EvaluateShapeFunctions(temp,shape);
 	  tempmass.Outer(shape,shape);
-	  fMass += tempmass;
+	  fElMat += tempmass;
 	  Nd.Outer(shape, disp);
 	  Nv.Outer(shape, vel);
 	  Na.Outer(shape, acc);
@@ -348,37 +350,23 @@ void BridgingScaleT::ComputeMass(void)
 	  fWtempV += Nv;
 	  fWtempA += Na;
       }
-      /* augment global W, mass matrix/arrays */
-      //int count = 0;
-      //for (int j = i; j <= i + 1 ; j++)
-      //{
-      //  trialU[j] = trialU[j] + fWtempU[count];
-      //  int count2 = 0;
-      //  for (int k = i; k <= i + 1; k++)
-      //    {
-      //      Mass(j,k) += fMass(count,count2);
-      //      count2++;
-      //    }
-      //  
-      //  count++;
-      //}
-      //fMassInv.Inverse(fMass);
-      //fMassInv.Multx(trialU,fWU);
-      //fMassInv.Multx(fWtempV,fWV);
-      //fMassInv.Multx(fWtempA,fWA);
+      
+      /* Assemble local equations to global equations for LHS */
+      fGlobal.Assemble(fElMat, elemconnect);
+
       //ComputeU(displacements, velocities, accelerations);
   }
-  //MassInv.Inverse(Mass);
-  //MassInv.Multx(trialU,trialU2);
-  //cout << "MD displacements = \n" << displacements << endl;
-  //cout << "FEM nodal values = \n" << trialU2 << endl;
+  cout << "Global = \n" << fGlobal << endl;
 }
 
-void BridgingScaleT::ComputeU(const dArray2DT& field1, const dArray2DT& field2, const dArray2DT& field3)
+void BridgingScaleT::ComputeFineScaleFields(void)
 {
-  /* compute the coarse scale (FEM) solution by projecting the fine scale
-     (MD) solution onto a finite dimensional basis space */
+  /* computes fine scale field solutions after coarse scale fields are known */
   const ParentDomainT& parent = ShapeFunction().ParentDomain();
+  const FieldT& field = Field();
+  const dArray2DT& displacements = field[0];
+  const dArray2DT& velocities = field[1];
+  const dArray2DT& accelerations = field[2];
   dArrayT map, shape1(parent.NumNodes()), shape2(parent.NumNodes());
   dArrayT map1(NumSD()), map2(NumSD());
   iArrayT disp1;
@@ -405,14 +393,14 @@ void BridgingScaleT::ComputeU(const dArray2DT& field1, const dArray2DT& field2, 
   
   for (int i = 0; i < fParticlesInCell.MajorDim(); i++)
   {
-		/* resize array group */
-		dArrayT_group.Dimension(fParticlesInCell.MinorDim(i), false);
+      /* resize array group */
+      dArrayT_group.Dimension(fParticlesInCell.MinorDim(i), false);
   
       fInverseMapInCell.RowAlias(i,map);
       fParticlesInCell.RowAlias(i,disp1);
-      disp.RowCollect(disp1,field1);
-      vel.RowCollect(disp1,field2);
-      acc.RowCollect(disp1,field3);
+      disp.RowCollect(disp1,displacements);
+      vel.RowCollect(disp1,velocities);
+      acc.RowCollect(disp1,accelerations);
       dMatrixT Projection(fParticlesInCell.MinorDim(i));
       ErrorU = 0.0, FineScaleU = 0.0, CoarseScaleU = 0.0, TotalU = 0.0, Projection = 0.0;
       ErrorA = 0.0, FineScaleA = 0.0, CoarseScaleA = 0.0, TotalA = 0.0;
@@ -447,19 +435,7 @@ void BridgingScaleT::ComputeU(const dArray2DT& field1, const dArray2DT& field2, 
       TotalA += CoarseScaleA;
       TotalA += FineScaleA;
   }
-  cout << "MD = \n" << disp << endl;
-  cout << "TotalU = \n" << TotalU << endl;
-  cout << "FEM = \n" << CoarseScaleU << endl;
-  cout << "WU = \n" << fWU << endl;
-  //cout << "Fine Scale = \n" << FineScaleU << endl;
-  //cout << "MD = \n" << vel << endl;
-  //cout << "TotalV = \n" << TotalV << endl;
-  //cout << "FEM = \n" << CoarseScaleV << endl;
-  //cout << "WV = \n" << fWV << endl;
-  //cout << "Fine Scale = \n" << FineScaleV << endl;
-  //cout << "MD = \n" << acc << endl;
-  //cout << "TotalA = \n" << TotalA << endl;
-  //cout << "FEM = \n" << CoarseScaleA << endl;
-  //cout << "WA = \n" << fWA << endl;
-  //cout << "Fine Scale = \n" << FineScaleA << endl;
+  cout << "FineScaleU = \n" << disp << endl;
+  cout << "FineScaleV = \n" << TotalU << endl;
+  cout << "FineScaleA = \n" << CoarseScaleU << endl;
 }
