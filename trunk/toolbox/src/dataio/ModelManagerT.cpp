@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.29 2002-10-20 22:36:52 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.30 2002-11-28 01:06:13 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -528,7 +528,7 @@ bool ModelManagerT::AreElements2D (void) const
 
   /* look over registered element sets */
   for (int i=0; i < NumElementGroups(); i++)
-    if (fElementCodes[i] == GeometryT::kPoint ||
+    if (
 	fElementCodes[i] == GeometryT::kTriangle ||
 	fElementCodes[i] == GeometryT::kQuadrilateral )
       return true;
