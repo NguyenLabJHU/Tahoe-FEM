@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.3 2002-06-03 23:44:50 jzimmer Exp $
+# $Id: temp_makefile,v 1.1 2002-06-03 23:44:50 jzimmer Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,8 +7,14 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	main.o \
+	VolumeT.o \
+	BoxT.o \
+	CrystalLatticeT.o \
+	FCCT.o \
+	AtomSetT.o \
 	PeriodicTableT.o \
-	PerTabEntryT.o 
+	PerTabEntryT.o \
+	MakeCrystalT.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -18,13 +24,25 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	main.cpp \
+	VolumeT.cpp \
+	BoxT.cpp \
+	CrystalLatticeT.cpp \
+	FCCT.cpp \
+	AtomSetT.cpp \
 	PeriodicTableT.cpp \
-	PerTabEntryT.cpp 
+	PerTabEntryT.cpp \
+	MakeCrystalT.cpp
 
 # headers
 HDR = \
+	VolumeT.h \
+	BoxT.h \
+	CrystalLatticeT.h \
+	FCCT.h \
+	AtomSetT.h \
 	PeriodicTableT.h \
-	PerTabEntryT.h 
+	PerTabEntryT.h \
+	MakeCrystalT.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 
