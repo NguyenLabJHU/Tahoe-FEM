@@ -1,4 +1,4 @@
-/* $Id: NewMemory.h,v 1.1 2001-07-22 20:02:16 paklein Exp $ */
+/* $Id: NewMemory.h,v 1.2 2001-07-22 20:14:26 paklein Exp $ */
 
 /* memory allocation function to handle platform dependent
  * differences associated with memory allocation failures and
@@ -20,18 +20,18 @@
 #include <sys/sysinfo.h>
 #define _SPACE_CHECK_
 const int  min_space_check_size = 100;       /* skip check for very small arrays */
-const long min_free_memory      = 5*1000000; /* ~5MB */
+const unsigned long min_free_memory = 5*1000000; /* ~5MB */
 #endif
 
 #if _SPACE_CHECK_
-inline bool HasFreeMemory(long size)
+inline bool HasFreeMemory(unsigned long size)
 {
 	/* get sys info structure */
 	struct sysinfo s_info;
 	sysinfo(&s_info);
 
 	/* check free memory */
-	return size < s_info.freeram;
+	return size > s_info.freeram;
 };
 #endif
 
