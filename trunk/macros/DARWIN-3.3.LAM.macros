@@ -1,4 +1,4 @@
-# $Id: DARWIN-3.3.LAM.macros,v 1.10 2004-08-17 06:07:37 paklein Exp $
+# $Id: DARWIN-3.3.LAM.macros,v 1.11 2004-10-21 18:55:42 paklein Exp $
 #
 # macros for Mac OS X using the GNU distribution provided with
 # the Apple Developer tools in addition to the LAM implementation
@@ -6,6 +6,10 @@
 #                   http://www.lam-mpi.org/
 #
 # macros for Panther (GCC 3.3)
+#
+# location of LAM installation
+LAM_HOME    = /usr/local/lam
+#
 MAKE        = make
 DEFINES     = -DEIGHT_BYTE_REAL -D__GNU__ -D__DARWIN__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -D__GCC_3__ -DCHECK_MPI_STATUS -DCHECK_MPI_RETURN -DAZTEC_MPI
 COMP_C      = mpicc
@@ -20,13 +24,13 @@ LINK        = $(COMP_CC)
 F2C_LFLAG   = -lg2c
 LFLAGS      = -Xlinker -Y -Xlinker 50
 MAKEDEPEND_C         = gcc -MM
-MAKEDEPENDFLAGS_C    = -I$(INC_DIR) $(DEFINES)
+MAKEDEPENDFLAGS_C    = -I$(INC_DIR) -I$(LAM_HOME)/include $(DEFINES)
 MAKEDEPEND_OUTPUT_C  = -MF
 MAKEDEPEND_CC        = g++ -MM
-MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) $(DEFINES)
+MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) -I$(LAM_HOME)/include $(DEFINES)
 MAKEDEPEND_OUTPUT_CC = -MF
 MAKEDEPEND_F         = g77 -MM
-MAKEDEPENDFLAGS_F    = -I$(INC_DIR) $(DEFINES)
+MAKEDEPENDFLAGS_F    = -I$(INC_DIR) -I$(LAM_HOME)/include $(DEFINES)
 MAKEDEPEND_OUTPUT_F  = -MF
 AR          = ar
 ARFLAGS     = -cruv
