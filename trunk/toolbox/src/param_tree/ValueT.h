@@ -1,4 +1,4 @@
-/* $Id: ValueT.h,v 1.5 2003-04-22 18:32:16 paklein Exp $ */
+/* $Id: ValueT.h,v 1.6 2003-05-04 22:59:53 paklein Exp $ */
 #ifndef _VALUE_T_H_
 #define _VALUE_T_H_
 
@@ -14,10 +14,11 @@ public:
 
 	/** enumerator for value type */
 	enum TypeT {
-		None,
+		None = 0,
 		Integer,
 		Double,
 		String,
+		Boolean,
 		Enumeration /**< string-integer pair */
 	};
 
@@ -25,11 +26,12 @@ public:
 	/*@{*/
 	ValueT(int a);
 	ValueT(double x);
-	ValueT(const StringT& s);
+	ValueT(const char* s);
+	ValueT(bool b);
 
 	/** enumeration. Enumerations are string-integer pairs. For all operators
 	 * below, enumerations cast to both integers and strings. */
-	ValueT(const StringT& name, int value);
+	ValueT(const char* s, int value);
 
 	/** set type without assigning value */
 	ValueT(TypeT t);
@@ -56,19 +58,25 @@ public:
 	/*@{*/
 	ValueT& operator=(int a);
 	ValueT& operator=(double x);
+	ValueT& operator=(bool b);
+	ValueT& operator=(const char* s);
 	ValueT& operator=(const StringT& s);
 	ValueT& operator=(const ValueT& rhs);
 
 	/** extract value from string, performing required type conversion */
-	void FromString(const StringT& source);
+	void FromString(const char* source);
 	/*@}*/
 	
 	/** \name type conversion operators not lvalues */
 	/*@{*/
-	operator const int&() const;
-	operator const double&() const;
+	operator const int() const;
+	operator const double() const;
+	operator const bool() const;
 	operator const StringT&() const;
 	/*@}*/
+
+	/** convert type name to string */
+	static const char* TypeName(TypeT t);
 
 protected:
 
@@ -80,8 +88,16 @@ protected:
 	int fInteger;
 	double fDouble;
 	StringT fString;
+	bool fBoolean;
 	/*@}*/
 };
 
-} // namespace Tahoe 
+/* inlines */
+inline ValueT& ValueT::operator=(const StringT& s)
+{
+	return operator=(s.Pointer());
+}
+
+} /* namespace Tahoe */
+
 #endif /* _VALUE_T_H_ */

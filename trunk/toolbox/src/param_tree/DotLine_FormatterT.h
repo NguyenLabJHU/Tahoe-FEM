@@ -1,6 +1,6 @@
-/* $Id: PrettyPrint_FormatterT.h,v 1.1 2003-04-26 02:09:18 paklein Exp $ */
-#ifndef _PRETTY_PRINT_FORMATTER_T_H_
-#define _PRETTY_PRINT_FORMATTER_T_H_
+/* $Id: DotLine_FormatterT.h,v 1.2 2003-05-04 22:59:53 paklein Exp $ */
+#ifndef _DOT_LINE_FORMATTER_T_H_
+#define _DOT_LINE_FORMATTER_T_H_
 
 /* base class */
 #include "FormatterT.h"
@@ -13,12 +13,12 @@ namespace Tahoe {
 /** formatter which writes the parameter list values in a nicely
  * formatted text style. This formatter does not implemented a 
  * parameter description. */
-class PrettyPrint_FormatterT: public FormatterT
+class DotLine_FormatterT: public FormatterT
 {
 public:
 
 	/** constructor */
-	PrettyPrint_FormatterT(void);
+	DotLine_FormatterT(void);
 	
 	/** \name writing parameters
 	 * All methods return true if successful. */	
@@ -34,7 +34,7 @@ public:
 	/*@}*/
 
 	/** \name writing data descriptions 
-	 * PrettyPrint_FormatterT is only for formatting output of values and does
+	 * DotLine_FormatterT is only for formatting output of values and does
 	 * not implement a parameter description */
 	/*@{*/
 	virtual bool InitDescriptionFile(ostream& out) const;
@@ -42,21 +42,29 @@ public:
 	virtual bool WriteDescription(ostream& out, const ParameterListT& list) const;
 	/*@}*/
 
+	/** set tabbing for each level of depth */
+	void SetTabWidth(int tab_width) { fTabWidth = (tab_width > 0) ? tab_width : 0; };
+
 private:
 
 	/** return a row of dots which pads the given string */
 	const StringT& Dots(const StringT& str) const;
-	
+
+	/** return a tabbing string */
+	const StringT& Tab(void) const;
+
 private:
 
-	/** \name tree paths */
-	/*@{*/
+	/** tree path */
 	StringT fPath;
-	StringT fLastPath;
-	/*@}*/
 	
 	/** \name dots */
 	/*@{*/
+	/** spaces for each level of depth, 0 by default */
+	int fTabWidth;
+	StringT fTab;
+	
+	/** dots string */
 	StringT fDots;
 	/*@}*/
 
@@ -64,4 +72,4 @@ private:
 
 } /* namespace Tahoe */
 
-#endif /* _PRETTY_PRINT_FORMATTER_T_H_ */
+#endif /* _DOT_LINE_FORMATTER_T_H_ */
