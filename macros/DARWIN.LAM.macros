@@ -1,4 +1,4 @@
-# $Id: DARWIN.LAM.macros,v 1.7 2003-02-28 02:17:50 paklein Exp $
+# $Id: DARWIN.LAM.macros,v 1.8 2003-03-11 16:30:43 paklein Exp $
 #
 # macros for Mac OS X using the GNU distribution provided with
 # the Apple Developer tools in addition to the LAM implementation
@@ -21,14 +21,14 @@ MORE_CFLAGS = -O -DNDEBUG -g
 LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS)
-CFLAGS_F    = $(LOC_CFLAGS)
+CFLAGS_F    = $(LOC_CFLAGS) -DEIGHT_BYTE_REAL
 LINK        = $(COMP_CC)
 LFLAGS      = -Xlinker -Y -Xlinker 50
 AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = ranlib
 RANLIBFLAGS =
-MAKE_OPTS   = -s
+MAKE_OPTS   = 
 RM          = rm
 RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = ln -sf

@@ -1,4 +1,4 @@
-# $Id: DARWIN.macros,v 1.10 2003-02-25 14:52:44 paklein Exp $
+# $Id: DARWIN.macros,v 1.11 2003-03-11 16:30:43 paklein Exp $
 MAKE        = make
 MAKE_DEPEND = /usr/X11R6/bin/makedepend
 GCC_ROOT    = /usr/include/gcc/darwin/default/g++-v3
@@ -12,14 +12,14 @@ MORE_CFLAGS = -O -DNDEBUG -g
 LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS)
-CFLAGS_F    = $(LOC_CFLAGS)
+CFLAGS_F    = $(LOC_CFLAGS) -DEIGHT_BYTE_REAL
 LINK        = $(COMP_CC)
 LFLAGS      = -Xlinker -Y -Xlinker 50
 AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = ranlib
 RANLIBFLAGS =
-MAKE_OPTS   = -s
+MAKE_OPTS   = 
 RM          = rm
 RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = ln -sf
