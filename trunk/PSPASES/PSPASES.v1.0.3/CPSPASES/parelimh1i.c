@@ -1,4 +1,4 @@
-/* $Id: parelimh1i.c,v 1.6 2005-01-15 01:09:51 paklein Exp $ */
+/* $Id: parelimh1i.c,v 1.7 2005-01-15 02:26:39 paklein Exp $ */
 /* parelimh1i.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -64,7 +64,7 @@ static integer c__27 = 27;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: parelimh1i.c,v 1.6 2005-01-15 01:09:51 paklein Exp $ +/ */
+/* /+ $Id: parelimh1i.c,v 1.7 2005-01-15 02:26:39 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -198,6 +198,9 @@ static integer min(integer a, integer b) {
     newsup = 1;
 /*< 1000  rank = 0 >*/
 L1000:
+#ifdef __DO_DEBUG__
+printf("1000\n");
+#endif
     rank = 0;
 /*<       bottom = node >*/
     bottom = node;
@@ -275,6 +278,9 @@ L1000:
     }
 /*< 10    if (newsup .eq. 1) then >*/
 L10:
+#ifdef __DO_DEBUG__
+	printf("10\n");
+#endif
     if (newsup == 1) {
 /*<         newsup = 0 >*/
 	newsup = 0;
@@ -543,6 +549,7 @@ L135:
 	    while(npending > 0) {
 /*<             call mpi_waitany(4,req,msgid,mpistat,ierr) >*/
 		MPI_Waitany(4, req, &msgid, &mpistat);
+		msgid++; /* FORTRAN requests numbered from 1 */
 
 /*<             call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr) >*/
 		myMPI_Get_count(&mpistat, MPI_BYTE, &nbytes);
@@ -771,12 +778,18 @@ L90:
 	    while(npending != 0) {
 /*<             call mpi_waitany(4,req,msgid,mpistat,ierr) >*/
 		MPI_Waitany(4, req, &msgid, &mpistat);
-		
+		msgid++; /* FORTRAN requests are indexed from 1 */		
+
 /*<             call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr) >*/
 		myMPI_Get_count(&mpistat, MPI_BYTE, &nbytes);
 
 /*<             npending = npending - 1 >*/
 		--npending;
+
+#ifdef __DO_DEBUG__
+	printf("msgid = %d\n", msgid);
+	printf("nsent1 = %d\n", nsent1);
+#endif
 /*<             if (msgid .eq. 1 .and. nsent1 .eq. 0) then >*/
 		if (msgid == 1 && nsent1 == 0) {
 /*<               lda = ishft(nbytes/rank,-3) >*/
@@ -796,6 +809,11 @@ L90:
 		    nsent1 = 1;
 /*<             end if >*/
 		}
+
+#ifdef __DO_DEBUG__
+	printf("msgid = %d\n", msgid);
+	printf("nsent2 = %d\n", nsent2);
+#endif
 /*<             if (msgid .eq. 2 .and. nsent2 .eq. 0) then >*/
 		if (msgid == 2 && nsent2 == 0) {
 /*<               ldb = ishft(nbytes/rank,-3) >*/
@@ -1006,6 +1024,9 @@ L90:
 	    }
 /*< 310       locf = locf + ldf + ii >*/
 L310:
+#ifdef __DO_DEBUG__
+		printf("310\n");
+#endif
 	    locf = locf + *ldf + ii;
 /*<           uptr = uptr + ldf >*/
 	    uptr += *ldf;
