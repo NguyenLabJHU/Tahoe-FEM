@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.26 2003-03-19 19:13:36 thao Exp $ */
+/* $Id: ModelManagerT.h,v 1.27 2003-06-09 06:10:25 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -304,9 +304,10 @@ class ModelManagerT
 	/** returns side set length */
 	int SideSetLength (const StringT& ID) const;
 
-	/** returns reference to side set array
-	 * \note elements in the array may be numbered locally or globally, but are offset to 
-	 * zero and continuous facets numbers are offset to zero */
+	/** returns reference to side set array. Element numbering in the array may be numbered locally 
+	 * or globally, but are offset to zero and continuous facets numbers are offset to zero. The
+	 * scope of the element numbering can be determined from ModelManagerT::IsSideSetLocal, and
+	 * can be transformed using ModelManagerT::SideSetLocalToGlobal and ModelManagerT::SideSetGlobalToLocal. */
 	const iArray2DT& SideSet (const StringT& ID);
 
 	/** return side set as nodes on faces. Limited to element geometries for
@@ -314,8 +315,7 @@ class ModelManagerT
 	 * \param ID side set ID
 	 * \param facet_geom geometry of each face
 	 * \param facet_nodes number of nodes in each face
-	 * \param faces returns with the global node numbers on each face: [nface] x [nfn]
-	 * \return ID of the associated element block */
+	 * \param faces returns with the global node numbers on each face: [nface] x [nfn] */
 	void SideSet(const StringT& ID, ArrayT<GeometryT::CodeT>& facet_geom,
 		iArrayT& facet_nodes, iArray2DT& faces);
 
