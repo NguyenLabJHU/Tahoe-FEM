@@ -1,10 +1,10 @@
-/* $Id: OgdenMaterialT.h,v 1.1 2003-03-19 19:00:54 thao Exp $ */
+/* $Id: OgdenMaterialT.h,v 1.2 2003-03-21 06:29:09 thao Exp $ */
 /* created: tdn (3/17/2003) */
 #ifndef _OGDEN_Material_T_H_
 #define _OGDEN_Material_T_H_
 
 /* base classes */
-#include "OgdenIsotropicT.h"
+#include "OgdenBaseT.h"
 
 namespace Tahoe {
 
@@ -12,7 +12,7 @@ namespace Tahoe {
 class PotentialT;
 
 /**Ogden material model*/
-class OgdenMaterialT: public OgdenIsotropicT
+class OgdenMaterialT: public OgdenBaseT
 {
 public:
 

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2003-03-19 19:00:54 thao Exp $
+# $Id: makefile,v 1.2 2003-03-21 06:29:09 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,6 +20,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
+        OgdenBaseT.o \
 	OgdenMaterialT.o 
 
 OBJ_LINK = $(OBJ)
@@ -40,6 +41,7 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
+	OgdenBaseT.cpp \
 	OgdenMaterialT.cpp 
 
 ##################### (3) headers
@@ -52,6 +54,7 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
+	OgdenBaseT.h \
 	OgdenMaterialT.h 
 
 HDR_LINK = $(HDR:.h=.h_link)

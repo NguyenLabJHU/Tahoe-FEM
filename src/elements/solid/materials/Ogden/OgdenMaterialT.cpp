@@ -1,4 +1,4 @@
-/* $Id: OgdenMaterialT.cpp,v 1.1 2003-03-19 19:00:54 thao Exp $ */
+/* $Id: OgdenMaterialT.cpp,v 1.2 2003-03-21 06:29:09 thao Exp $ */
 /* created: tdn (3/17/2003) */
 #include "OgdenMaterialT.h"
 #include "PotentialT.h"
@@ -6,12 +6,13 @@
 
 #include <iostream.h>
 #include <math.h>
+#include <iomanip.h>
 
 using namespace Tahoe;
 
 /* constructor */
 OgdenMaterialT::OgdenMaterialT(ifstreamT& in, const FSMatSupportT& support):
-	OgdenIsotropicT(in, support),
+	OgdenBaseT(in, support),
 	fthird(1.0/3.0)
 {
   /*read in potential code*/
@@ -29,6 +30,7 @@ OgdenMaterialT::OgdenMaterialT(ifstreamT& in, const FSMatSupportT& support):
        throw ExceptionT::kBadInputValue;
      }
   }
+  cout.precision(12);
 }
 
 OgdenMaterialT::~OgdenMaterialT(void)
@@ -39,7 +41,7 @@ OgdenMaterialT::~OgdenMaterialT(void)
 void OgdenMaterialT::Print(ostream& out) const
 {
 	/* inherited */
-	OgdenIsotropicT::Print(out);
+	OgdenBaseT::Print(out);
 
         fPot->Print(out);
 }
@@ -47,7 +49,7 @@ void OgdenMaterialT::Print(ostream& out) const
 void OgdenMaterialT::PrintName(ostream& out) const
 {
 	/* inherited */
-	OgdenIsotropicT::PrintName(out);
+	OgdenBaseT::PrintName(out);
 
         fPot->PrintName(out);
 }
@@ -55,8 +57,8 @@ void OgdenMaterialT::PrintName(ostream& out) const
 double OgdenMaterialT::StrainEnergyDensity(void)
 {
     /*calculates deviatoric and volumetric part of the total stretch */
-  Compute_b(fC);
-  fC.PrincipalValues(fEigs);
+  Compute_b(fb);
+  fb.PrincipalValues(fEigs);
   double J = sqrt(fEigs.Product());
 
   dArrayT eigenstretch_bar(3);
@@ -94,11 +96,8 @@ void OgdenMaterialT::dWdE(const dArrayT& eigenstretch, dArrayT& eigenstress)
 
   /*evaluates Kirchoff stress*/
   fPot->DevStress(eigenstretch_bar, eigenstress);
-
   eigenstress += fPot->MeanStress(J);
-
-  /*transform to 2nd P-K stress*/
-  eigenstress /= eigenstretch;
+  eigenstress /= J;
 }
 
 void OgdenMaterialT::ddWddE(const dArrayT& eigenstretch, dArrayT& eigenstress,
@@ -123,38 +122,24 @@ void OgdenMaterialT::ddWddE(const dArrayT& eigenstretch, dArrayT& eigenstress,
   /*evaluates dtau_de*/
   fPot->DevMod(eigenstretch_bar,eigenmod);
   eigenmod += fPot->MeanMod(J);
-  
+
+  /*  cout << "\neigenmod: "<<eigenmod;
+      cout << "\neigenstress: "<<eigenstress;*/
+
   if (NumSD() == 2)
   {
-    double& l0 = eigenstretch[0];
-    double& l1 = eigenstretch[1];
-
-    /*transform moduli to dS_dlam*/
     eigenmod[0] -= 2.0*eigenstress[0];
-    eigenmod[2] -= 2.0*eigenstress[1];
-
-    eigenmod[0] /= l0*l0;
-    eigenmod[1] /= l1*l1;
-    eigenmod[2] /= l0*l1;
+    eigenmod[1] -= 2.0*eigenstress[1];
   }
   else
   {
-    double& l0 = eigenstretch[0];
-    double& l1 = eigenstretch[1];
-    double& l2 = eigenstretch[2];
     /*transform moduli to 1/lam dS_dlam*/
     eigenmod[0] -= 2.0*eigenstress[0];
     eigenmod[1] -= 2.0*eigenstress[1];
     eigenmod[2] -= 2.0*eigenstress[2];
-
-    eigenmod[0] /= l0*l0;
-    eigenmod[1] /= l1*l1;
-    eigenmod[2] /= l2*l2;
-    eigenmod[3] /= l1*l2;
-    eigenmod[4] /= l0*l2;
-    eigenmod[5] /= l0*l1;
   }
-  /*transform Kirchoff stress to 2nd P-K stress*/
-  eigenstress /= eigenstretch;
+
+  eigenmod /= J;
+  eigenstress /= J;
 }
 
