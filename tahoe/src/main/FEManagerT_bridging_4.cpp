@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_4.cpp,v 1.1.2.6 2004-05-25 23:44:17 paklein Exp $ */
+/* $Id: FEManagerT_bridging_4.cpp,v 1.1.2.7 2004-05-26 05:58:53 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -25,6 +25,9 @@
 #include "nVariMatrixT.h"
 
 #include "CCSMatrixT.h"
+#ifdef __SPOOLES__
+#include "SPOOLESMatrixT.h"
+#endif
 
 /* debugging */
 #define __DEBUG__ 1
@@ -110,7 +113,11 @@ void FEManagerT_bridging::CorrectOverlap_4(const RaggedArray2DT<int>& point_neig
 	bond_densities = 1.0;
 
 	/* works space that changes for each shell */
+#ifdef __SPOOLES__
+	SPOOLESMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kZeroPivots, true, true);
+#else
 	CCSMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kZeroPivots);
+#endif	
 	
 	dArray2DT p_i, dp_i, df_dp_i;
 	nArray2DGroupT<double> ip_unknown_group(0, false, nip);
