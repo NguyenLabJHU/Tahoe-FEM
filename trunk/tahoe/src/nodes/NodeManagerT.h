@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.2 2001-07-19 01:04:36 paklein Exp $ */
 /* created: paklein (05/23/1996)                                          */
 /* Field variables plus averging                                          */
 
@@ -20,6 +20,12 @@ public:
 	
 	/* constructor */
 	NodeManagerT(FEManagerT& fe_manager);	
+
+	/** duplicate nodes.
+	 * \param nodes list of nodes to duplicate
+	 * \param new_node_tags returns with list of node numbers for the newly 
+	 * created nodes. must dimensioned before call. */
+	virtual void DuplicateNodes(const iArrayT& nodes, iArrayT& new_node_tags);
 
 protected:
 

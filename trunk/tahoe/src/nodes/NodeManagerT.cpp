@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.3 2001-07-03 01:35:46 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.4 2001-07-19 01:04:36 paklein Exp $ */
 /* created: paklein (05/23/1996)                                          */
 /* Field variables plus averging                                          */
 
@@ -24,6 +24,16 @@ void NodeManagerT::AllocateGlobal(void)
 	NodeManagerPrimitive::AllocateGlobal();
 
 	/* set nodal averaging space */
+	SetNumAverageRows(fNumNodes);
+}
+
+/* duplicate nodes. */
+void NodeManagerT::DuplicateNodes(const iArrayT& nodes, iArrayT& new_node_tags)
+{
+	/* inherited */
+	NodeManagerPrimitive::DuplicateNodes(nodes, new_node_tags);
+	
+	/* resize averaging work space */
 	SetNumAverageRows(fNumNodes);
 }
 
