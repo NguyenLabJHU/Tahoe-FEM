@@ -1,6 +1,5 @@
-/* $Id: MappedPeriodicT.cpp,v 1.7.34.1 2004-03-22 18:36:47 paklein Exp $ */
+/* $Id: MappedPeriodicT.cpp,v 1.7.34.2 2004-03-24 19:51:40 paklein Exp $ */
 /* created: paklein (04/07/1997) */
-
 #include "MappedPeriodicT.h"
 
 #include "NodeManagerT.h"
@@ -8,10 +7,9 @@
 #include "fstreamT.h"
 #include "BasicFieldT.h"
 
-/* column indeces */
-
 using namespace Tahoe;
 
+/* column indeces */
 const int kMaster = 0;
 const int kSlave  = 1;
 
@@ -26,6 +24,7 @@ MappedPeriodicT::MappedPeriodicT(NodeManagerT& node_manager, BasicFieldT& field)
 	fD_sm(fNodeManager.NumSD()),
 	fDummySchedule(1.0)
 {
+	SetName("mapped_nodes");
 	fF.Identity();
 }
 
@@ -208,4 +207,37 @@ void MappedPeriodicT::WriteOutput(ostream& out) const
 	/* write output */
 	out << "\n Mapping:\n";
 	out << fF << endl;
+}
+
+/* describe the parameters needed by the interface */
+void MappedPeriodicT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	KBC_ControllerT::DefineParameters(list);
+	
+	/* schedule */
+	list.AddParameter(ParameterT::Integer, "schedule");
+}
+
+/* information about subordinate parameter lists */
+void MappedPeriodicT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	KBC_ControllerT::DefineSubs(sub_list);
+
+	/* perturbation */
+	sub_list.AddSub("F_perturb_choice", ParameterListT::Once, true);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void MappedPeriodicT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* MappedPeriodicT::NewSub(const StringT& list_name) const
+{
+
 }
