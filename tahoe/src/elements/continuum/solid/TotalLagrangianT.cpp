@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianT.cpp,v 1.11 2003-01-29 07:34:34 paklein Exp $ */
+/* $Id: TotalLagrangianT.cpp,v 1.12 2003-11-05 20:33:41 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #include "TotalLagrangianT.h"
 
@@ -125,10 +125,7 @@ void TotalLagrangianT::FormKd(double constK)
 		fTempMat2 = DeformationGradient();
 		double J = fTempMat2.Det();
 		if (J <= 0.0)
-		{
-			cout << "\n TotalLagrangianT::FormKd: negative jacobian determinant" << endl;
-			throw ExceptionT::kBadJacobianDet;
-		}
+			ExceptionT::BadJacobianDet("TotalLagrangianT::FormKd");
 		else
 			fTempMat2.Inverse();
 
