@@ -1,18 +1,17 @@
-/* $Id: ViscVIB.h,v 1.1 2002-10-04 23:59:02 thao Exp $ */
+/* $Id: ViscVIB.h,v 1.2 2002-10-09 18:27:17 paklein Exp $ */
 /* created: TDN (1/19/2000) */
  
 #ifndef _VISCVIB_H_
 #define _VISCVIB_H_
 
 /* direct members */
-
-/* forward declarations */
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
+/* forward declarations */
 class ifstreamT;
 class ViscFuncT;
 class C1FunctionT;

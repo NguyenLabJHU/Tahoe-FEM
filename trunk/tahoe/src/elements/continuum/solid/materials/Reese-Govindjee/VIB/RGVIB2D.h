@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.h,v 1.1 2002-10-04 23:59:02 thao Exp $ */
+/* $Id: RGVIB2D.h,v 1.2 2002-10-09 18:27:17 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #ifndef _RG_VIB_2D_H_
@@ -9,10 +9,9 @@
 #include "Material2DT.h"
 #include "ViscVIB.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class CirclePointsT;
 
 /** 2D Isotropic ViscVIB using Ogden's spectral formulation */
