@@ -80,9 +80,9 @@
       BoxT::CreateLattice(templateLattice);
      
      //initialize an array to store the atom coordinates associated with each grain   
-      nArrayT<dArrayT> AtomsinGrain[NumberofGrains];
+      nArrayT <nArrayT<dArrayT> >AtomsinGrain(NumberofGrains);
    
-      nArrayT<int> TypesinGrain[NumberofGrains];  
+      nArrayT <nArrayT<int> > TypesinGrain(NumberofGrains);  
       for (int i=0; i<NumberofGrains; i++) {
          AtomsinGrain[i]=*(new nArrayT<dArrayT>);
          TypesinGrain[i]=*(new nArrayT<int>);
@@ -149,7 +149,7 @@
       }//endfor
       cout<<"finished copying atoms\n";
       //clean up
-      delete AtomsinGrain; 
+      AtomsinGrain.Free();
    
    // Get atoms coordinates
       atom_number.Dimension(nATOMS);
@@ -165,7 +165,7 @@
    
       // Update lengths
       length = ComputeMinMax();
-      
+      cout<<"length updated \n";
       //Calculate volume here
       switch(nSD) {
          case 2:
@@ -179,7 +179,7 @@
       }//endswitch
       
       // Sort Lattice 
-      if(WhichSort  != 0) SortLattice(templateLattice);
+      //if(WhichSort  != 0) SortLattice(templateLattice);
       int ntype = templateLattice->GetNTYPE();
       // Create types and connectivities
       if(ntype > 2) 
@@ -218,7 +218,7 @@
       // Create parts
       atom_parts.Dimension(nATOMS);
       atom_parts = 1;
-      cout<<"finished lattice creation";
+      cout<<"finished lattice creation \n";
     
    }//end function
 
@@ -262,15 +262,15 @@
       if (nSD==3) {
       //create a random rotation matrix
       //random euler angles
-         double phi = 3.14159265 / 2.0 * ( (double)rand() / (double)(RAND_MAX + 1));
-         double theta = 3.14159265 / 2.0 * ( (double)rand() / (double)(RAND_MAX + 1));
-         double psi = 3.14159265 / 2.0 * ( (double)rand() / (double)(RAND_MAX + 1));
+         double phi = 3.14159265 / 2.0 * ( (double)rand() / (double)(RAND_MAX));
+         double theta = 3.14159265 / 2.0 * ( (double)rand() / (double)(RAND_MAX));
+         double psi = 3.14159265 / 2.0 * ( (double)rand() / (double)(RAND_MAX));
          rot_vector[0]=phi;
          rot_vector[1]=theta;
          rot_vector[2]=psi;
       }
       if (nSD==2) {
-         double angle=3.14159265/2.0 * ( (double)rand() / (double)(RAND_MAX + 1));
+         double angle=3.14159265/2.0 * ( (double)rand() / (double)(RAND_MAX ));
          rot_vector[0]=angle;
       }
       return rot_vector;
@@ -309,7 +309,7 @@
          
             for (int j=0; j < nSD; j++) {
             //random multiplying factor [0,1) to randomly place the grain center
-               double factor = ( (double)rand() / (double)(RAND_MAX + 1));
+               double factor = ( (double)rand() / (double)(RAND_MAX));
                cout <<"factor: "<<factor<<"\n";
                GrainCenters[i][j]=factor * (length(j,1)-length(j,0) ) + length(j,0);
             }//endfor
@@ -328,6 +328,10 @@
             if (dArrayT::Distance(GrainCenters[i],GrainCenters[tempGrain]) > MaxGrainSeparation ) 
                MaxGrainSeparation = dArrayT::Distance(GrainCenters[i],GrainCenters[tempGrain]);
          	
+         }
+         for(int dim=0;dim<nSD;dim++) {
+            if (GrainCenters[i][dim]-length(dim,0) > MaxGrainSeparation ) MaxGrainSeparation = GrainCenters[i][dim]-length(dim,0);
+            if (length(dim,1)-GrainCenters[i][dim] > MaxGrainSeparation ) MaxGrainSeparation = length(dim,1)-GrainCenters[i][dim];
          }
       }//endfor
       cout<<"Max Grain Separation: "<<MaxGrainSeparation<<"\n";
