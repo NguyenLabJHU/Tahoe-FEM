@@ -40,7 +40,7 @@ C/* constitutes an implicit agreement to these terms.  These terms and        */
 C/* conditions are subject to change at any time without prior notice.        */
 C/*                                                                           */
 C/*****************************************************************************/
-C/* $Id: parelimh1i.f.tmp,v 1.2 2005-01-15 00:22:29 paklein Exp $ */
+C/* $Id: parelimh1i.f.tmp,v 1.3 2005-01-15 02:26:39 paklein Exp $ */
 C/*****************************************************************************/
 
       subroutine PARELIMH1(wmem,vbuf_s,hbuf_s,vbuf_r,hbuf_r,supinds,
@@ -68,6 +68,12 @@ C/*****************************************************************************/
       integer statall(MPI_STATUS_SIZE,4)
 
       write (*,*) 'parelimh1: IN'
+      print '(A,I)' , 'myid = ', myid
+      print '(A,I)' , 'myup = ', myup
+      print '(A,I)' , 'mydown = ', mydown
+      print '(A,I)' , 'myleft = ', myleft
+      print '(A,I)' , 'myright = ', myright
+      print '(A,I)' , 'diagproc = ', diagproc
 
       do ireq=1,4
         req(ireq) = MPI_REQUEST_NULL
@@ -80,6 +86,7 @@ C/*****************************************************************************/
       newsup = 1
 
 1000  rank = 0
+      print '(I)', 1000
 
       bottom = node
       j = tptrs(3,node)
@@ -117,6 +124,9 @@ C/*****************************************************************************/
       end if
 
 10    if (newsup .eq. 1) then
+C DEBUG
+      print '(I)', 10
+C DEBUG
         newsup = 0
         if (cinfo(bottom) .ne. 1) then
           nprof = 0
@@ -382,6 +392,10 @@ C/*****************************************************************************/
             call mpi_waitany(4,req,msgid,mpistat,ierr)
             call my_mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr)
             npending = npending - 1
+C DEBUG
+      print '(A,I)', 'msgid =', msgid
+      print '(A,I)', 'nsent1 =', nsent1
+C DEBUG
             if (msgid .eq. 1 .and. nsent1 .eq. 0) then
               lda = ishft(nbytes/rank,-3)
               msgtype1 = mpistat(MPI_TAG)
@@ -393,6 +407,10 @@ C/*****************************************************************************/
               end if
             nsent1 = 1
             end if
+C DEBUG
+      print '(A,I)', 'msgid =', msgid
+      print '(A,I)', 'nsent2 =', nsent2
+C DEBUG
             if (msgid .eq. 2 .and. nsent2 .eq. 0) then
               ldb = ishft(nbytes/rank,-3)
               msgtype2 = mpistat(MPI_TAG)
@@ -495,6 +513,9 @@ C/*****************************************************************************/
 250         continue
 230       continue
 310       locf = locf + ldf + ii
+C
+      print '(I)', 310
+C
           uptr = uptr + ldf
           csuptr_u = csuptr_u + 1
           jj = jj + 1
