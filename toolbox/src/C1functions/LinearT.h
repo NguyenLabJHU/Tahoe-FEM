@@ -1,58 +1,69 @@
-/* $Id: LinearT.h,v 1.3 2002-09-12 16:00:20 paklein Exp $ */
-
+/* $Id: LinearT.h,v 1.4 2003-06-09 06:03:33 paklein Exp $ */
 #ifndef _LINEAR_T_H_
 #define _LINEAR_T_H_
 
 /* base class */
 #include "C1FunctionT.h"
 
-
 namespace Tahoe {
 
+/** specialization of C1FunctionT to a linear function. The two
+ * parameter function defined by:
+   \f[
+		f(x) = A x + B
+   \f]
+ */
 class LinearT: public C1FunctionT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	LinearT(double A, double B);
 
-	/* I/O */
+	/** \name I/O */
+	/*@{*/
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
+	/*@}*/
 	
-	/* returning values */
+	/** \name returning values */
+	/*@{*/
 	virtual double Function(double x) const;
 	virtual double DFunction(double x) const;
 	virtual double DDFunction(double x) const;
+	/*@}*/
 
-	/* returning values in groups */
+	/** \name returning values in groups */
+	/*@{*/
 	virtual dArrayT& MapFunction(const dArrayT& in, dArrayT& out) const;
 	virtual dArrayT& MapDFunction(const dArrayT& in, dArrayT& out) const;
 	virtual dArrayT& MapDDFunction(const dArrayT& in, dArrayT& out) const;
+	/*@}*/
 
 private:
 
-	/* potential parameters */
+	/** \name function parameters */
+	/*@{*/
 	double fA;
 	double fB;
+	/*@}*/
 };
 
 /* inlines */
 
 /* returning values */
-inline double LinearT::Function(double x) const 
-{ return (fA*x+fB); }
-
+inline double LinearT::Function(double x) const { return (fA*x+fB); }
 inline double LinearT::DFunction(double x) const 
-{ return (fA*x); }
+{ 
+#pragma unused(x)
+	return fA; 
+}
 inline double LinearT::DDFunction(double x) const
 { 
 #pragma unused(x)
 	return (0.0); 
 }
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _LINEAR_T_H_ */
-
-
-

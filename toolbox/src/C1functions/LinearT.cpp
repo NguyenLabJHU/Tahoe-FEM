@@ -1,15 +1,13 @@
-/* $Id: LinearT.cpp,v 1.3 2002-10-20 22:38:48 paklein Exp $ */
-/* created: paklein (03/25/1999)                                          */
-
+/* $Id: LinearT.cpp,v 1.4 2003-06-09 06:03:33 paklein Exp $ */
+/* created: paklein (03/25/1999) */
 #include "LinearT.h"
 #include <iostream.h>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 
-/* constructors */
-
 using namespace Tahoe;
 
+/* constructor */
 LinearT::LinearT(double A, double B): 
   fA(A),
   fB(B)
@@ -25,7 +23,7 @@ void LinearT::Print(ostream& out) const
 
 void LinearT::PrintName(ostream& out) const
 {
-        out << "Function .............  linear "<<'\n';
+	out << "    Linear\n";
 }
 
 /* returning values in groups */
