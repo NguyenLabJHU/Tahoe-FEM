@@ -1,4 +1,4 @@
-/* $Id: nVariMatrixT.h,v 1.6 2002-10-23 04:58:54 paklein Exp $ */
+/* $Id: nVariMatrixT.h,v 1.6.2.1 2003-01-09 09:25:38 paklein Exp $ */
 /* created: paklein (07/05/1998) */
 #ifndef _N_VARI_MATRIX_T_H_
 #define _N_VARI_MATRIX_T_H_
@@ -27,6 +27,9 @@ public:
 
 	/** set the managed array. \note can only be set once */
 	void SetWard(int headroom, nMatrixT<nTYPE>& ward);
+
+	/** return true if the ward is already set */
+	bool HasWard(void) const { return fWard != NULL; };
 	
 	/** \name set dimensions of the ward */
 	/*@{*/

@@ -1,4 +1,4 @@
-/* $Id: VariArrayT.h,v 1.3 2002-10-20 22:38:57 paklein Exp $ */
+/* $Id: VariArrayT.h,v 1.3.2.1 2003-01-09 09:25:38 paklein Exp $ */
 /* created: paklein (04/18/1998) */
 #ifndef _VARI_ARRAY_T_H_
 #define _VARI_ARRAY_T_H_
@@ -24,6 +24,9 @@ public:
 
 	/** set the managed array. \note can only be set once. */
 	void SetWard(int headroom, ArrayT<TYPE>& ward);
+
+	/** return true if the ward is already set */
+	bool HasWard(void) const { return fWard != NULL; };
 	
 	/** \name set length of the ward
 	 * Fill extra space and copy in old data if specified */
