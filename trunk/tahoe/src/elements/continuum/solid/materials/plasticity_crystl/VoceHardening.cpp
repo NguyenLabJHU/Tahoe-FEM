@@ -110,7 +110,12 @@ void VoceHardening::ExplicitUpdateHard()
   for (int i = 0; i < fNumHardVar; i++)
   {
      g_n = fTauIso_n[i] - fMatProp[1];
-     g = g_n + c * (1.0 - g_n/g_s) * fInternal[kShearRate];
+
+     if ( (g_n/g_s) <= 1.0 )
+        g = g_n + c * (1.0 - g_n/g_s) * fInternal[kShearRate];
+     else
+        g = g_n;
+
      fTauIso[i] = g + fMatProp[1];
   }
 
@@ -131,8 +136,16 @@ void VoceHardening::ImplicitUpdateHard()   // called from Algorithm 1
   for (int i = 0; i < fNumHardVar; i++)
   {
      g_n = fTauIso_n[i] - fMatProp[1];
-     g = g_n + c*( (1.0-g_n/g_s)*fInternal[kShearRate_n] + fInternal[kShearRate] );
-     g /= ( 1.0 + c*fInternal[kShearRate]/g_s );
+     if ( (g_n/g_s) <= 1.0 )
+     {
+        g = g_n + c*( (1.0-g_n/g_s)*fInternal[kShearRate_n] + fInternal[kShearRate] );
+        g /= ( 1.0 + c*fInternal[kShearRate]/g_s );
+     }
+     else
+     {
+        g = g_n;
+     }
+
      fTauIso[i] = g + fMatProp[1];
   }
 
@@ -161,8 +174,17 @@ void VoceHardening::ImplicitSolveHard()   // called from Algorithm 2
   for (int i = 0; i < fNumHardVar; i++)
   {
      g_n = fTauIso_n[i] - fMatProp[1];
-     g = g_n + c*fInternal[kShearRate];
-     g /= ( 1.0 + c*fInternal[kShearRate]/g_s );
+
+     if ( (g_n/g_s) <= 1.0 )
+     {
+        g = g_n + c*fInternal[kShearRate];
+        g /= ( 1.0 + c*fInternal[kShearRate]/g_s );
+     }
+     else
+     {
+        g = g_n;
+     }
+
      fTauIso[i] = g + fMatProp[1];
   }
 
