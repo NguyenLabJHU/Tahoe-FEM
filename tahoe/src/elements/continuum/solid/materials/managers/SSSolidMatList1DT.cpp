@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList1DT.cpp,v 1.1.6.3 2004-07-12 16:06:18 paklein Exp $ */
+/* $Id: SSSolidMatList1DT.cpp,v 1.1.6.4 2004-07-15 06:25:36 paklein Exp $ */
 #include "SSSolidMatList1DT.h"
 #include "SSMatSupportT.h"
 
@@ -14,6 +14,7 @@
 #ifdef GRAD_SMALL_STRAIN_DEV
 #include "GradJ2SS1D.h"
 #include "J2SSKStV1D.h"
+#include "GradSSMatSupportT.h"
 #endif
 
 using namespace Tahoe;
