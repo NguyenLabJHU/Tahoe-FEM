@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_2.cpp,v 1.1.2.7 2004-05-27 08:45:57 paklein Exp $ */
+/* $Id: FEManagerT_bridging_2.cpp,v 1.1.2.8 2004-05-27 14:29:04 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -292,7 +292,7 @@ if (param.is_open()) {
 		double error_0, error;
 		int max_iter = 20;
 		int check_iter = 10;
-		while (bound - 0.25 > kSmall) /* continuation */
+		while (bound - 0.50 > kSmall) /* continuation */
 		{		
 			int iter = 0;
 
@@ -552,7 +552,7 @@ if (param.is_open()) {
 				}
 			}
 
-			cout << " bounds = " << bound << endl;
+			cout << "{bounds, num_continuration} = {" << bound  << ", " << num_continuation << "}" << endl;
 
 		} /* continuation */
 
