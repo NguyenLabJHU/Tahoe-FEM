@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.39 2003-04-03 02:32:16 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.40 2003-05-20 10:39:56 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -359,10 +359,6 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 			/* set to initial condition */
 			atoms.InitialCondition();
 			continuum.InitialCondition();
-
-			/* read restart information */
-			atoms.ReadRestart();
-			continuum.ReadRestart();
 
 			/* loop over time increments */
 			AutoArrayT<int> loop_count, atom_iter_count, continuum_iter_count;
