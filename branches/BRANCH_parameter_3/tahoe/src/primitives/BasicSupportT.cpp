@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.cpp,v 1.1.4.2 2004-05-25 16:37:24 paklein Exp $ */
+/* $Id: BasicSupportT.cpp,v 1.1.4.3 2004-06-07 13:51:21 paklein Exp $ */
 #include "BasicSupportT.h"
 
 #include "dArray2DT.h"
@@ -281,6 +281,17 @@ int BasicSupportT::Rank(void) const
 #else
 	return Communicator().Rank();	
 #endif 
+}
+
+/* the local node to home processor map */
+const ArrayT<int>* BasicSupportT::ProcessorMap(void) const 
+{ 
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+	if (fFEManager)
+		return fFEManager->ProcessorMap(); 
+	else
+#endif
+	return NULL;
 }
 
 const ArrayT<int>* BasicSupportT::ExternalNodes(void) const
