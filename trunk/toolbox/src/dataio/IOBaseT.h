@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.h,v 1.5 2002-01-02 06:28:05 paklein Exp $ */
+/* $Id: IOBaseT.h,v 1.6 2002-02-18 09:10:37 paklein Exp $ */
 /* created: sawimme (09/28/1999) */
 
 #ifndef _IOBASE_T_H_
@@ -18,7 +18,9 @@ public:
 	                   kAtInc = 1};
 
 	/** I/O file types */
-	enum FileTypeT {kTahoe = 0,
+	enum FileTypeT {
+	kNone = -1,
+	kTahoe = 0,
 	              kTahoeII = 1,
 	              kTecPlot = 2,
 	              kEnSight = 3,
