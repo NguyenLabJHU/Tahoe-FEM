@@ -1,4 +1,4 @@
-/* $Id: PartitionT.h,v 1.9 2002-12-05 08:24:14 paklein Exp $ */
+/* $Id: PartitionT.h,v 1.9.2.1 2002-12-16 09:13:11 paklein Exp $ */
 /* created: paklein (11/16/1999) */
 #ifndef _PARTITION_T_H_
 #define _PARTITION_T_H_
@@ -191,7 +191,10 @@ public:
 	const iArrayT& ElementMap(const StringT& blockID) const;
 	/*@}*/
 
-	/** returns indeces of global nodes that lie within the partition */
+	/** returns indeces of global nodes that lie within the partition. Includes
+	 * the global nodes that appear in the internal, border, and external nodes,
+	 * that is, \e all nodes that appear in this partition not just those nodes
+	 * \e owned by this partition. */
 	void ReturnPartitionNodes(const iArrayT& global_nodes,
 		iArrayT& partition_indices) const;
 
