@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.34 2004-01-27 15:31:52 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.34.6.1 2004-02-25 07:53:30 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -63,6 +63,8 @@ ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 	/* values < 0 mean ignore */
 	fReNeighborDisp = (fReNeighborDisp < kSmall) ? -1 : fReNeighborDisp;
 	fReNeighborIncr = (fReNeighborIncr <= 0) ? -1 : fReNeighborIncr;
+
+	fPeriodicSkin = fNeighborDistance;
 }
 
 ParticleT::ParticleT(const ElementSupportT& support):
@@ -70,6 +72,7 @@ ParticleT::ParticleT(const ElementSupportT& support):
 	fNeighborDistance(-1),
 	fReNeighborDisp(-1),
 	fReNeighborIncr(-1),
+	fPeriodicSkin(-1),
 	fNumTypes(-1),
 	fGrid(NULL),
 	fReNeighborCounter(0),
@@ -445,7 +448,7 @@ void ParticleT::SetConfiguration(void)
 {
 	/* set periodic boundary conditions */
 	CommManagerT& comm_manager = ElementSupport().CommManager();
-	comm_manager.EnforcePeriodicBoundaries(fNeighborDistance);
+	comm_manager.EnforcePeriodicBoundaries(fPeriodicSkin);
 	
 	/* reset the types array */
 	int nnd = ElementSupport().NumNodes();

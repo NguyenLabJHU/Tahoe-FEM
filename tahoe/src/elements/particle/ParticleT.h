@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.23 2004-01-27 15:31:52 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.23.6.1 2004-02-25 07:53:30 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -105,6 +105,10 @@ public:
 	/** add the element group's contribution to the lumped (scalar) mass of the given nodes */
 	virtual void LumpedMass(const iArrayT& nodes, dArrayT& mass) const;
 
+	/** modify the thickness of the image atom layer. The image atom layer is used to enforce
+	 * periodic boundary conditions. Values less that ParticleT::fNeighborDistance are not allowed */
+	void SetPeriodicSkin(double skin) { fPeriodicSkin = (skin > fNeighborDistance) ? skin : fNeighborDistance; };
+
 protected: /* for derived classes only */
 
 	/** echo element connectivity data. Reads parameters that define
@@ -202,6 +206,10 @@ protected:
 
 	/** \name periodic boundary conditions */
 	/*@{*/
+	/** thickess of the image atoms layer used to enforce periodic boundary conditions. This
+	 * initialized to ParticleT::fNeighborDistance and can be modified with ParticleT::SetPeriodicSkin */
+	double fPeriodicSkin;
+
 	/** periodic lower and upper bounds for each coordinate direction */
 	dArray2DT fPeriodicBounds;
 	
