@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.52.2.3 2004-11-10 04:13:41 d-farrell2 Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.52.2.4 2004-11-12 01:54:14 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -483,10 +483,7 @@ void NodeManagerT::InitialCondition(void)
 		{
 			// get the limits for the field
 			fPartFieldStart = fCommManager.GetPartFieldStart();
-			fPartFieldEnd = fCommManager.GetPartFieldEnd();
-//DEBUG
-cout << "fPartFieldStart = " << fPartFieldStart << endl;
-cout << "fPartFieldEnd = " << fPartFieldEnd << endl; 			
+			fPartFieldEnd = fCommManager.GetPartFieldEnd();			
 		}
 		else // set the start/end to the default values of 0, - 1 (full array) for any other decomposition
 		{
@@ -496,10 +493,16 @@ cout << "fPartFieldEnd = " << fPartFieldEnd << endl;
 	}
 	else // set the start/end to the default values of 0, - 1 (full array)
 	{
+//DEBUG
+cout << "NodeManagerT::InitialCondition: no partition information" << endl;
+
 		fPartFieldStart = 0;
 		fPartFieldEnd = - 1;
 	}
 	
+//DEBUG
+cout << "fPartFieldStart = " << fPartFieldStart << endl;
+cout << "fPartFieldEnd = " << fPartFieldEnd << endl;
 
 	/* update current configurations */
 	if (fCoordUpdate)
