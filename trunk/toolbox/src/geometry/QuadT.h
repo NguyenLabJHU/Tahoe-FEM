@@ -1,4 +1,4 @@
-/* $Id: QuadT.h,v 1.7 2005-01-26 19:52:10 paklein Exp $ */
+/* $Id: QuadT.h,v 1.8 2005-02-03 17:36:21 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #ifndef _QUAD_T_H_
 #define _QUAD_T_H_
@@ -66,7 +66,7 @@ public:
 	 * parent domain coordinates */
 	virtual int IPDomain(int nip, const dArrayT& coords) const;
 
-	/** \name nodal subdomains, see GeometryBaseT for more information
+	/** \name nodal subdomains, see GeometryBaseT for more information */
 	/*@{*/
 	/** subdomain geometry */
 	virtual GeometryT::CodeT NodalSubDomainGeometry(void) const;

@@ -1,4 +1,4 @@
-/* $Id: HexahedronT.h,v 1.6 2005-01-30 00:38:53 paklein Exp $ */
+/* $Id: HexahedronT.h,v 1.7 2005-02-03 17:36:21 paklein Exp $ */
 /* created: paklein (10/22/1997) */
 #ifndef _HEXADHEDRON_T_H_
 #define _HEXADHEDRON_T_H_
@@ -62,7 +62,7 @@ public:
 	 * \param point test point coordinates */
 	virtual bool PointInDomain(const LocalArrayT& coords, const dArrayT& point) const;
 
-	/** \name nodal subdomains, see GeometryBaseT for more information
+	/** \name nodal subdomains, see GeometryBaseT for more information */
 	/*@{*/
 	/** subdomain geometry */
 	virtual GeometryT::CodeT NodalSubDomainGeometry(void) const;

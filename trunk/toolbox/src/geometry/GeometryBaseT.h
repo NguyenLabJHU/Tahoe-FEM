@@ -1,4 +1,4 @@
-/* $Id: GeometryBaseT.h,v 1.7 2005-01-26 19:52:10 paklein Exp $ */
+/* $Id: GeometryBaseT.h,v 1.8 2005-02-03 17:36:21 paklein Exp $ */
 /* created: paklein (10/21/1997) */
 #ifndef _GEOMETRY_BASE_T_H_
 #define _GEOMETRY_BASE_T_H_
@@ -120,7 +120,7 @@ public:
 	 * domains within the parent domain associated with each of the nodes. The
 	 * union of subdomains from all parent domains comprising the support of a given node
 	 * define a closed volume around the node that does not intersect the domain of
-	 * any other node.
+	 * any other node. */
 	/*@{*/
 	/** subdomain geometry */
 	virtual GeometryT::CodeT NodalSubDomainGeometry(void) const;
