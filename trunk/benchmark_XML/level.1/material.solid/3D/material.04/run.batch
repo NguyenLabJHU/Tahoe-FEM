@@ -1,0 +1,6 @@
+@
+# $Id: run.batch,v 1.1 2004-06-08 04:49:24 paklein Exp $
+mat.4.a.xml
+mat.4.thermal.a.xml
+mat.4.thermal.b.xml
+
