@@ -1,12 +1,11 @@
-/* $Id: ConveyorT.cpp,v 1.4 2004-07-15 08:31:21 paklein Exp $ */
+/* $Id: ConveyorT.cpp,v 1.5 2004-07-22 08:42:46 paklein Exp $ */
 #include "ConveyorT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
 #include "LocalArrayT.h"
 #include "ElementBaseT.h"
-#include "KBC_PrescribedT.h"
-
+#include "KBC_ControllerT.h"
 
 using namespace Tahoe;
 
@@ -129,7 +128,7 @@ void ConveyorT::Initialize(ifstreamT& in)
 	fTrackingOutput.open(file);
 	
 	/* create controller for the right edge of the domain */
-	fRightEdge = new KBC_PrescribedT(fSupport);
+	fRightEdge = new KBC_ControllerT(fSupport);
 	fField.AddKBCController(fRightEdge);
 }
 #endif

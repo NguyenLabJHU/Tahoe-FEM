@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.h,v 1.3 2004-07-15 08:31:21 paklein Exp $ */
+/* $Id: ConveyorT.h,v 1.4 2004-07-22 08:42:46 paklein Exp $ */
 #ifndef _CONVEYOR_T_H_
 #define _CONVEYOR_T_H_
 
@@ -16,7 +16,6 @@ namespace Tahoe {
 
 /** forward declarations */
 class FieldT;
-class KBC_PrescribedT;
 
 /** conveyor belt */
 class ConveyorT: public KBC_ControllerT
@@ -102,7 +101,7 @@ protected:
 
 	/** \name boundary condition for the far right edge */
 	/*@{*/
-	KBC_PrescribedT* fRightEdge;
+	KBC_ControllerT* fRightEdge;
 	AutoArrayT<int>  fShiftedNodes;
 	/*@}*/
 
