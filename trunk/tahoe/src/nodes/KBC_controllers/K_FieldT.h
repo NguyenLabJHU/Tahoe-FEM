@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.h,v 1.9 2004-07-15 08:31:21 paklein Exp $ */
+/* $Id: K_FieldT.h,v 1.10 2004-09-09 16:20:25 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #ifndef _K_FIELD_T_H_
 #define _K_FIELD_T_H_
@@ -40,8 +40,8 @@ public:
 	 * should read/write any data that overrides the default
 	 * values */
 	virtual void InitialCondition(void);
-	virtual void ReadRestart(istream& in);
-	virtual void WriteRestart(ostream& out) const;
+	virtual void ReadRestart(ifstreamT& in);
+	virtual void WriteRestart(ofstreamT& out) const;
 
 	/* initialize/finalize/reset step */
 	virtual void InitStep(void);
@@ -104,6 +104,9 @@ protected:
 	/*@{*/
 	/** near tip group or -1 to disable any tracking */
 	int fNearTipGroupNum;
+
+	/** near tip output variable */
+	StringT fNearTipOutputVariable;
 	
 	/** nodal output code from tip group used to locate crack tip */
 	int fNearTipOutputCode;

@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.23 2004-07-22 08:29:56 paklein Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.24 2004-09-09 16:20:25 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #ifndef _KBC_CONTROLLER_T_H_
 #define _KBC_CONTROLLER_T_H_
@@ -15,6 +15,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class ifstreamT;
+class ofstreamT;
 class nIntegratorT;
 class iArrayT;
 class StringT;
@@ -66,8 +67,8 @@ public:
 
 	/** \name restart functions */
 	/*@{*/
-	virtual void ReadRestart(istream& in);
-	virtual void WriteRestart(ostream& out) const;
+	virtual void ReadRestart(ifstreamT& in);
+	virtual void WriteRestart(ofstreamT& out) const;
 	/*@}*/
 
 	/** \name solution steps

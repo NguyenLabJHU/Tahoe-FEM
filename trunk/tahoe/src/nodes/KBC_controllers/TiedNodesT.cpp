@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.28 2004-09-01 10:46:27 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.29 2004-09-09 16:20:25 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -7,6 +7,8 @@
 #include "FEManagerT.h"
 #include "ElementsConfig.h"
 #include "ParameterUtils.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
 
 #ifdef __DEVELOPMENT__
 #include "DevelopmentElementsConfig.h"
@@ -68,7 +70,7 @@ void TiedNodesT::InitialCondition(void)
 	fPairStatus = kTied;
 }
 
-void TiedNodesT::ReadRestart(istream& in)
+void TiedNodesT::ReadRestart(ifstreamT& in)
 {
 	/* inherited */
 	KBC_ControllerT::ReadRestart(in);
@@ -89,7 +91,7 @@ void TiedNodesT::ReadRestart(istream& in)
 	fPairStatus_last = fPairStatus;
 }
 
-void TiedNodesT::WriteRestart(ostream& out) const
+void TiedNodesT::WriteRestart(ofstreamT& out) const
 {
 	/* inherited */
 	KBC_ControllerT::WriteRestart(out);
