@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.25 2004-02-04 07:37:52 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.26 2004-06-26 06:30:16 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -102,6 +102,9 @@ public:
 	virtual void DefineParameters(ParameterListT& list) const;
 	/*@}*/
 
+	/** return the materials list */
+	const SolidMatListT& StructuralMaterialList(void) const;
+
 protected:
 
 	/** stream extraction operator */
@@ -170,9 +173,6 @@ protected:
 
 	/** internal force */
 	virtual void FormKd(double constK) = 0;
-	
-	/** return the materials list. \return NULL if fail. */
-	const SolidMatListT& StructuralMaterialList(void) const;
 
 	/** driver for calculating output values */
 	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
