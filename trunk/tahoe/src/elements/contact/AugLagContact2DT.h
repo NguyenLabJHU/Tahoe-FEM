@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.h,v 1.3 2001-08-29 07:12:02 paklein Exp $ */
+/* $Id: AugLagContact2DT.h,v 1.4 2001-12-31 17:44:28 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 
 #ifndef _AUGLAG_CONTACT2D_T_H_
@@ -60,6 +60,10 @@ public:
 	//       throw exceptions
 		 	
 protected:
+
+	/** step in setting contact configuration. Intercepted here so that
+	 * the last contact configuration can be stored */
+	virtual bool SetActiveInteractions(void);
 
 	/* print element group data */
 	virtual void PrintControlData(ostream& out) const;

@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.5 2001-12-17 00:15:53 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.6 2001-12-31 17:44:27 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 
 #include "AugLagContact2DT.h"
@@ -65,9 +65,7 @@ void AugLagContact2DT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 /* returns the array for the DOF tags needed for the current config */
 void AugLagContact2DT::SetDOFTags(void)
 {
-	/* store history */
-	int old_length = fActiveStrikers.Length();
-	fLastActiveMap = fActiveMap;
+	/* DOF space about to be reset. store history */
 	dArrayT constraints;
 	constraints.Alias(fNodes->XDOF(this, 0));
 	fLastDOF = constraints;
@@ -79,7 +77,7 @@ void AugLagContact2DT::SetDOFTags(void)
 	iArrayT tmp;
 	tmp.Alias(fActiveStrikers);	
 	ostream& out = fFEManager.Output();
-	out << "\nold: " << old_length << '\n';
+	out << "\nold: " << fNodes->XDOF(this, 0).MajorDim() << '\n';
 	out << "new: " << fActiveStrikers.Length() << endl;
 	out << "\n            time: " << fFEManager.Time() << '\n';
 	out <<   " active strikers: " << tmp.Length()   << '\n';
@@ -230,6 +228,16 @@ void AugLagContact2DT::WriteRestart(ostream& out) const
 /***********************************************************************
 * Protected
 ***********************************************************************/
+
+/* step in setting contact configuration. */
+bool AugLagContact2DT::SetActiveInteractions(void)
+{
+	/* striker map about to be reset. store history */
+	fLastActiveMap = fActiveMap;
+
+	/* inherited */
+	return Contact2DT::SetActiveInteractions();
+}
 
 /* print element group data */
 void AugLagContact2DT::PrintControlData(ostream& out) const
