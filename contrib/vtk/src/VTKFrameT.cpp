@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.27 2002-07-02 21:23:00 cjkimme Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.28 2002-07-16 15:44:23 recampb Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -73,8 +73,8 @@ VTKFrameT::VTKFrameT(VTKConsoleT& console):
   iAddCommand(CommandSpecT("HideElementNumbers"));
   iAddCommand(CommandSpecT("ShowAxes"));
   iAddCommand(CommandSpecT("HideAxes"));
-//   iAddCommand(CommandSpecT("ShowContours"));
-//   iAddCommand(CommandSpecT("HideContours"));
+  iAddCommand(CommandSpecT("ShowContours"));
+  iAddCommand(CommandSpecT("HideContours"));
 //   iAddCommand(CommandSpecT("ShowCuttingPlane"));
 //   iAddCommand(CommandSpecT("HideCuttingPlane"));
 
@@ -786,53 +786,53 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 		return true;
     }
 
- //  else if (command.Name() == "ShowContours")
-//     {
-//       	if (bodies.Length() == 0)
-//     		return false;
-//     	else
-//     	{
-//     		/* command spec */
-//     		CommandSpecT* show = bodies[0]->iCommand("ShowContours");
-//     		if (!show)
-//     		{
-//     			cout << "command not found" << endl;
-//     			return false;
-//     		}
+  else if (command.Name() == "ShowContours")
+    {
+      	if (bodies.Length() == 0)
+    		return false;
+    	else
+    	{
+    		/* command spec */
+    		CommandSpecT* show = bodies[0]->iCommand("ShowContours");
+    		if (!show)
+    		{
+    			cout << "command not found" << endl;
+    			return false;
+    		}
     	
-//     		/* labels ON */
-//     		StringT tmp;
-//     		for (int i = 0; i < bodies.Length(); i++)
-//     			bodies[i]->iDoCommand(*show, tmp);
+    		/* labels ON */
+    		StringT tmp;
+    		for (int i = 0; i < bodies.Length(); i++)
+    			bodies[i]->iDoCommand(*show, tmp);
 
-// 			Render();
-// 			return true;
-//     	}    
-//     }
+			Render();
+			return true;
+    	}    
+    }
 
-//   else if (command.Name() == "HideContours")
-//     {
-//     	if (bodies.Length() == 0)
-//     		return false;
-//     	else
-//     	{
-//     		/* command spec */
-//     		CommandSpecT* hide = bodies[0]->iCommand("HideContours");
-//     		if (!hide)
-//     		{
-//     			cout << "command not found" << endl;
-//     			return false;
-//     		}
+  else if (command.Name() == "HideContours")
+    {
+    	if (bodies.Length() == 0)
+    		return false;
+    	else
+    	{
+    		/* command spec */
+    		CommandSpecT* hide = bodies[0]->iCommand("HideContours");
+    		if (!hide)
+    		{
+    			cout << "command not found" << endl;
+    			return false;
+    		}
     	
-//     		/* labels OFF */
-//     		StringT tmp;
-//     		for (int i = 0; i < bodies.Length(); i++)
-//     			bodies[i]->iDoCommand(*hide, tmp);
+    		/* labels OFF */
+    		StringT tmp;
+    		for (int i = 0; i < bodies.Length(); i++)
+    			bodies[i]->iDoCommand(*hide, tmp);
 
-// 			Render();
-// 			return true;
-//     	}    
-//     }
+			Render();
+			return true;
+    	}    
+    }
 
 
  //  else if (command.Name() == "ShowCuttingPlane")
