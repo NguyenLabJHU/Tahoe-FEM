@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.20 2003-09-12 18:10:19 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.19 2003-08-18 03:49:16 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nIntegratorT.h"
@@ -721,9 +721,6 @@ void FieldT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& ord
 
 		/* flat barrier */
 		sub_sub_list.AddSub("wall_penalty");
-
-		/* cylindrical barrier */
-		sub_sub_list.AddSub("cylinder_penalty");
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);

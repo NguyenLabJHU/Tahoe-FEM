@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.14 2003-09-09 00:48:53 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.13 2003-03-11 07:21:30 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT.h"
@@ -393,15 +393,17 @@ void SPOOLESMatrixT::Factorize(void)
 /* determine new search direction and put the results in result */
 void SPOOLESMatrixT::BackSubstitute(dArrayT& result)
 {
-	const char caller[] = "SPOOLESMatrixT::BackSubstitute";
-
 	/* check */
 	if (fTotNumEQ != fLocNumEQ)
-		ExceptionT::GeneralFail(caller, "total equations (%d) != local equations (%d)",
-			fTotNumEQ, fLocNumEQ);
+	{
+		cout << "\n SPOOLESMatrixT::BackSubstitute: expecting total number of equations\n"
+		     <<   "     " << fTotNumEQ
+		     << " to be equal to the local number of equations " << fLocNumEQ << endl;
+		throw ExceptionT::kGeneralFail;
+	}
 
 	/* flag should not be set */
-	if (fIsFactorized) ExceptionT::GeneralFail(caller);
+	if (fIsFactorized) throw ExceptionT::kGeneralFail;
 
 	/* convert matrix to RCV */
 	iArrayT r, c;
@@ -451,7 +453,12 @@ void SPOOLESMatrixT::BackSubstitute(dArrayT& result)
 		       r.Length(), r.Pointer(), c.Pointer(), v.Pointer());
 #endif
  
-	if (OK != 1) ExceptionT::BadJacobianDet(caller, "LU driver returned %d", OK);
+ if (OK != 1)
+   {
+     cout << "\n SPOOLESMatrixT::BackSubstitute: LU_MT_driver returned: "
+	  << OK << endl;
+     throw ExceptionT::kGeneralFail;
+   }
 }
 
 /* rank check functions */

@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.13 2003-09-02 07:03:12 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.12 2003-08-18 03:45:17 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 #include "NodeManagerT.h"
@@ -29,12 +29,7 @@ K_FieldT::K_FieldT(NodeManagerT& node_manager):
 	fLTf2(NULL),
 	fIsotropic(NULL),
 	fMaterial2D(NULL),
-	fDummySchedule(1.0),
-	fNearTipGroupNum(-1),
-	fNearTipOutputCode(-1),
-	fTipColumnNum(-1),
-	fMaxGrowthDistance(-1),
-	fMaxGrowthSteps(-1)
+	fDummySchedule(1.0)
 {
 	SetName("K_field");
 

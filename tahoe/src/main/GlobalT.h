@@ -1,4 +1,4 @@
-/* $Id: GlobalT.h,v 1.11 2003-09-09 22:43:48 paklein Exp $ */
+/* $Id: GlobalT.h,v 1.10 2003-08-14 06:01:35 paklein Exp $ */
 /* created: paklein (02/03/1999) */
 
 #ifndef _GLOBAL_T_H_
@@ -45,8 +45,7 @@ public:
                   kiNewtonSolver_LS = 6, /**< interactive Newton solver (with line search) */
                          kNOXSolver = 7, /**< NOX library solver */
                       kLinearSolver = 8, /**< linear problems */
-                          kDRSolver = 9,  /**< dynamic relaxation */                               
-                  kNewtonSolver_LSX = 104 /**< temporary extention to GlobalT::kNewtonSolver_LS */
+                          kDRSolver = 9  /**< dynamic relaxation */                               
                                };
 	
 	/** deprecated analysis codes */

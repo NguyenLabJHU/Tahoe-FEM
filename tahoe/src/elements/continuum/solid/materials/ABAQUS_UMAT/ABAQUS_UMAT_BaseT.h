@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.7 2003-09-06 08:43:49 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.h,v 1.6 2003-01-29 07:34:35 paklein Exp $ */
 /* created: paklein (05/09/2000) */
 #ifndef _ABAQUS_UMAT_BASE_T_H_
 #define _ABAQUS_UMAT_BASE_T_H_
@@ -204,14 +204,6 @@ inline GlobalT::SystemTypeT ABAQUS_UMAT_BaseT::TangentType(void) const
 	return fTangentType;
 }
 
-#else /* __F2C__ */
-
-#ifndef __MWERKS__
-#error "ABAQUS_UMAT_BaseT requires __F2C__"
-#endif
-
+} // namespace Tahoe 
 #endif /* __F2C__ */
-
-} /* namespace Tahoe */
-
 #endif /* _ABAQUS_UMAT_BASE_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.h,v 1.11 2003-09-12 18:10:22 paklein Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.10 2003-08-18 03:44:36 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 #ifndef _FBC_CONTROLLER_T_H_
 #define _FBC_CONTROLLER_T_H_
@@ -33,8 +33,7 @@ public:
 	          kPenaltySphere = 1,
                kAugLagSphere = 2,
             kMFPenaltySphere = 3,
-                 kAugLagWall = 4,
-            kPenaltyCylinder = 5};
+                 kAugLagWall = 4};
 
 	/* constructor */
 	FBC_ControllerT(FEManagerT& fe_manager, int group);
