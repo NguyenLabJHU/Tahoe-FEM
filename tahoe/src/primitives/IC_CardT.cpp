@@ -1,4 +1,4 @@
-/* $Id: IC_CardT.cpp,v 1.11 2002-10-20 22:49:31 paklein Exp $ */
+/* $Id: IC_CardT.cpp,v 1.12 2003-10-28 07:13:09 paklein Exp $ */
 /* created: paklein (07/16/1997) */
 #include "IC_CardT.h"
 
@@ -9,13 +9,12 @@
 #include "ExceptionT.h"
 #include "fstreamT.h"
 
-/* copy behavior for arrays IC_CardT's */
-
 using namespace Tahoe;
 
+/* copy behavior for arrays IC_CardT's */
 namespace Tahoe {
-const bool ArrayT<IC_CardT*>::fByteCopy = true;
-const bool ArrayT<IC_CardT>::fByteCopy = false;
+template<> const bool ArrayT<IC_CardT*>::fByteCopy = true;
+template<> const bool ArrayT<IC_CardT>::fByteCopy = false;
 } /* namespace Tahoe */
 
 /* default constructor */
