@@ -1,4 +1,4 @@
-/* $Id: MSRMatrixT.cpp,v 1.3 2004-04-19 18:37:11 paklein Exp $ */
+/* $Id: MSRMatrixT.cpp,v 1.4 2004-06-26 06:29:14 paklein Exp $ */
 #include "MSRMatrixT.h"
 
 #include "MSRBuilderT.h"
@@ -285,9 +285,55 @@ void MSRMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eq
 
 void MSRMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<int>& eqnos)
 {
-#pragma unused(diagonal_elMat)
-#pragma unused(eqnos)
-	ExceptionT::GeneralFail("MSRMatrixT::Assemble", "not implemented");
+	/* extract values for active equation numbers */
+	fRowDexVec.Dimension(0);	
+	fValVec.Dimension(0);
+	int end_update = fStartEQ + fLocNumEQ - 1;
+	for (int i = 0; i < eqnos.Length(); i++) {
+		int eq = eqnos[i];
+		if (eq >= fStartEQ && eq <= end_update)
+		{
+			fRowDexVec.Append(eq - 1); //OFFSET
+			fValVec.Append(diagonal_elMat[i]);
+		}
+	}
+	
+	/* assemble */
+	int status;
+	AssembleDiagonals(fRowDexVec.Length(), fRowDexVec.Pointer(), fValVec.Pointer(), status);
+
+	/* check completion */
+	if (!status) ExceptionT::GeneralFail("MSRMatrixT::Assemble", "diagonal assembly error");
+}
+
+/* return the values along the diagonal of the matrix */
+bool MSRMatrixT::CopyDiagonal(dArrayT& diags) const
+{
+	/* dimension check */
+	if (diags.Length() != fLocNumEQ)
+		ExceptionT::SizeMismatch("MSRMatrixT::CopyDiagonal");
+
+	/* non-const this */
+	MSRMatrixT* non_const_this = const_cast<MSRMatrixT*>(this);
+
+	/* collect values */
+	int status = 1;
+	int start = fStartEQ-1;
+	int end = start + fLocNumEQ;
+	for (int row = start; row < end; row++)
+	{
+		int rowkey = non_const_this->AZ_quick_find(row, non_const_this->fupdate.Pointer(), non_const_this->fLocNumEQ, 
+			non_const_this->fQF_shift, non_const_this->fupdate_bin.Pointer());
+
+		if (rowkey == -1)
+			status = 0;
+		else
+			/* copy */
+			diags[row-start] = fval[rowkey];
+	}
+
+	/* return status */
+	return (status == 1);
 }
 
 /* set all matrix values to 0.0 */
