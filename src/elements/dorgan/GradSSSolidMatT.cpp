@@ -1,4 +1,4 @@
-/* $Id: GradSSSolidMatT.cpp,v 1.11 2004-07-20 23:16:50 rdorgan Exp $ */ 
+/* $Id: GradSSSolidMatT.cpp,v 1.12 2004-07-21 00:02:17 paklein Exp $ */ 
 #include "GradSSSolidMatT.h"
 #include "GradSSMatSupportT.h"
 #include "dSymMatrixT.h"
@@ -23,7 +23,7 @@ GradSSSolidMatT::GradSSSolidMatT(void):
 void GradSSSolidMatT::SetGradSSMatSupport(const GradSSMatSupportT* support)
 {
 	/* set inherited material support */
-	SetMaterialSupport(support);
+	SetSSMatSupport(support);
 
 	fGradSSMatSupport = support;
 }
