@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.h,v 1.16 2003-11-21 22:41:36 paklein Exp $ */
+/* $Id: dSymMatrixT.h,v 1.17 2004-01-31 07:19:11 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _DSYM_MATRIX_T_H_
 #define _DSYM_MATRIX_T_H_
@@ -144,6 +144,9 @@ public:
 	/* 2D <-> 3D translations.  Return references to *this */
 	dSymMatrixT& ExpandFrom2D(const dSymMatrixT& vec2D); /* assumed plane strain */
 	dSymMatrixT& ReduceFrom3D(const dSymMatrixT& vec3D);
+
+	/** ? <-> ? translations */
+	dSymMatrixT& Translate(const dSymMatrixT& matrix);
 
 	/* outer product */
 	void Outer(const dArrayT& v);
