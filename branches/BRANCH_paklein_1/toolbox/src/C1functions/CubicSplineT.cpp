@@ -1,4 +1,4 @@
-/* $Id: CubicSplineT.cpp,v 1.3 2002-07-02 19:56:31 cjkimme Exp $ */
+/* $Id: CubicSplineT.cpp,v 1.3.2.1 2002-10-17 01:46:09 paklein Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* CubicSplineT.cpp                                                       */
 
@@ -20,9 +20,9 @@ CubicSplineT::CubicSplineT(const dArrayT& knots, const dArray2DT& coefficients):
 {
 	/* check dimensions */
 	if (fCoefficients.MajorDim() != fXPoints.Length() + 1)
-	    throw eSizeMismatch;
+	    throw ExceptionT::kSizeMismatch;
 	if (fCoefficients.MinorDim() != kNumSplineCoeffs)
-	    throw eGeneralFail;
+	    throw ExceptionT::kGeneralFail;
 }
 
 CubicSplineT::CubicSplineT(const dArray2DT& points, FixityT fixity):
@@ -63,7 +63,7 @@ double CubicSplineT::DDFunction(double x) const { return DDfunction(x); }
 dArrayT& CubicSplineT::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw eGeneralFail;
+	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
 	double *pin   = in.Pointer();
 	double *pout  = out.Pointer();
@@ -79,7 +79,7 @@ dArrayT& CubicSplineT::MapFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& CubicSplineT::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw eGeneralFail;
+	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
 	double *pin   =  in.Pointer();
 	double *pout  = out.Pointer();
@@ -95,7 +95,7 @@ dArrayT& CubicSplineT::MapDFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& CubicSplineT::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension check */
-	if ( in.Length() != out.Length() ) throw eGeneralFail;
+	if ( in.Length() != out.Length() ) throw ExceptionT::kGeneralFail;
 	
 	double *pin   =  in.Pointer();
 	double *pout  = out.Pointer();
@@ -234,7 +234,7 @@ void CubicSplineT::SetSpline(const dArray2DT& points, FixityT fixity)
 		DDY[numeqs+1] = DDY[numeqs];
 	}
 	else
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	
 	/* store spline coefficients */
 	for (int j = 1; j < fXPoints.Length(); j++)

@@ -1,10 +1,10 @@
-/* $Id: ModBessel.cpp,v 1.7 2002-07-02 19:56:31 cjkimme Exp $ */
+/* $Id: ModBessel.cpp,v 1.7.2.1 2002-10-17 01:46:10 paklein Exp $ */
 /* created: dzeigle (4/18/2002) */
 
 #include "ModBessel.h"
 #include <math.h>
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dArrayT.h"
 
 /* constants */
@@ -99,7 +99,7 @@ double ModBessel::DDFunction(double x) const
 dArrayT& ModBessel::MapFunction(const dArrayT& in,  dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 	
 	double* pl = in.Pointer();
 	double* pU = out.Pointer();
@@ -115,7 +115,7 @@ dArrayT& ModBessel::MapFunction(const dArrayT& in,  dArrayT& out) const
 dArrayT& ModBessel::MapDFunction(const dArrayT& in,  dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
@@ -131,7 +131,7 @@ dArrayT& ModBessel::MapDFunction(const dArrayT& in,  dArrayT& out) const
 dArrayT& ModBessel::MapDDFunction(const dArrayT& in,  dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl   = in.Pointer();
 	double* pddU = out.Pointer();

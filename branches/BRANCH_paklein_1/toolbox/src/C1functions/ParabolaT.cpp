@@ -1,9 +1,9 @@
-/* $Id: ParabolaT.cpp,v 1.2 2002-07-02 19:56:32 cjkimme Exp $ */
+/* $Id: ParabolaT.cpp,v 1.2.2.1 2002-10-17 01:46:10 paklein Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #include "ParabolaT.h"
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dArrayT.h"
 
 /* constructors */
@@ -28,7 +28,7 @@ void ParabolaT::PrintName(ostream& out) const
 dArrayT& ParabolaT::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl = in.Pointer();
 	double* pU = out.Pointer();
@@ -45,7 +45,7 @@ dArrayT& ParabolaT::MapFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& ParabolaT::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
@@ -59,7 +59,7 @@ dArrayT& ParabolaT::MapDFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& ParabolaT::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	out = fk;
 	return out;
