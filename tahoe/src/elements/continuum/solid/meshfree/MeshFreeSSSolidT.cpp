@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.17.18.4 2004-05-06 16:00:22 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.17.18.5 2004-05-11 15:57:29 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #include "MeshFreeSSSolidT.h"
 
@@ -33,7 +33,8 @@ MeshFreeSSSolidT::MeshFreeSSSolidT(const ElementSupportT& support, const FieldT&
 	fAutoBorder(false),
 	fB_wrap(10, fB),
 	fMFShapes(NULL),
-	fMFFractureSupport(NULL)
+	fMFFractureSupport(NULL),
+	fMeshfreeParameters(NULL)
 {
 	SetName("small_strain_meshfree");
 
@@ -48,7 +49,8 @@ MeshFreeSSSolidT::MeshFreeSSSolidT(const ElementSupportT& support, const FieldT&
 MeshFreeSSSolidT::MeshFreeSSSolidT(const ElementSupportT& support):
 	SmallStrainT(support),
 	fAutoBorder(false),
-	fB_wrap(10, fB)
+	fB_wrap(10, fB),
+	fMeshfreeParameters(NULL)	
 {
 	SetName("small_strain_meshfree");
 
@@ -58,6 +60,11 @@ MeshFreeSSSolidT::MeshFreeSSSolidT(const ElementSupportT& support):
 		cout << "\n MeshFreeSSSolidT::MeshFreeSSSolidT: no strain-displacement options\n" << endl;
 		fStrainDispOpt = kStandardB;
 	}
+}
+
+MeshFreeSSSolidT::~MeshFreeSSSolidT(void)
+{
+	delete fMFFractureSupport;
 }
 
 /* append element equations numbers to the list */
@@ -260,6 +267,14 @@ void MeshFreeSSSolidT::TakeParameterList(const ParameterListT& list)
 {
 	const char caller[] = "MeshFreeSSSolidT::TakeParameterList";
 
+	/* construct meshfree support before calling inherited method because
+	 * support class needed to construct shape functions */
+	fMFFractureSupport = new MeshFreeFractureSupportT;
+	fMFFractureSupport->TakeParameterList(list.GetList("meshfree_fracture_support"));
+
+	/* get parameters needed to construct shape functions */
+	fMeshfreeParameters = list.ResolveListChoice(this, "meshfree_support_choice");
+
 	/* inherited */
 	SmallStrainT::TakeParameterList(list);
 
@@ -267,11 +282,6 @@ void MeshFreeSSSolidT::TakeParameterList(const ParameterListT& list)
 	fAutoBorder = list.GetParameter("auto_border");
 	if (fAutoBorder && ElementSupport().Size() > 1)
 		ExceptionT::BadInputValue(caller, "auto-border not support in parallel");
-
-	//meshfree support
-	
-	/* collect parameters from the element support class */
-	fMFFractureSupport->TakeParameterList(list.GetList("meshfree_fracture_support"));
 
 	/* free memory associated with "other" eqnos */
 	fEqnos.Free(); // is this OK ? can't be freed earlier b/c of
@@ -328,8 +338,12 @@ void MeshFreeSSSolidT::TakeParameterList(const ParameterListT& list)
 	}
 
 	/* initialize meshfree support class */
-//	InitSupport(ostream& out, AutoArrayT<ElementCardT>& elem_cards, 
-//		const iArrayT& surface_nodes, int numDOF, int max_node_num, ModelManagerT* model);
+	fMFFractureSupport->InitSupport(ElementSupport().Output(),
+		fElementCards, 
+		surface_nodes,
+		NumDOF(), 
+		ElementSupport().NumNodes(),
+		&ElementSupport().ModelManager());
 
 	/* final MLS initializations */
 	fMFShapes->SetExactNodes(fMFFractureSupport->InterpolantNodes());
@@ -357,21 +371,18 @@ void MeshFreeSSSolidT::TakeParameterList(const ParameterListT& list)
 /* initialization functions */
 void MeshFreeSSSolidT::SetShape(void)
 {
-#pragma message("fix me")
-#if 0
+	const char caller[] = "MeshFreeSSSolidT::SetShape";
+
 	/* only support single list of integration cells for now */
-	if (fConnectivities.Length() > 1) {
-		cout << "\n MeshFreeSSSolidT::SetShape: multiple element blocks within an\n"
-		     <<   "     element group not supported. Number of blocks: " 
-		     << fConnectivities.Length() << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (fConnectivities.Length() > 1)
+		ExceptionT::GeneralFail(caller, "multiple (%d) element blocks not supported",
+			fConnectivities.Length());
 
 	/* constructors */
 	fMFShapes = new MeshFreeShapeFunctionT(GeometryCode(), NumIP(),
-		fLocInitCoords, ElementSupport().InitialCoordinates(), *fConnectivities[0], fOffGridNodes,
-		fElementCards.Position(), ElementSupport().Input());
-	if (!fMFShapes) throw ExceptionT::kOutOfMemory;
+		fLocInitCoords, ElementSupport().InitialCoordinates(), *fConnectivities[0], 
+		fMFFractureSupport->OffGridNodes(),
+		fElementCards.Position(), /*const ParameterListT& mf_support_params*/);
 	
 	/* echo parameters */
 	fMFShapes->WriteParameters(ElementSupport().Output());
@@ -381,7 +392,9 @@ void MeshFreeSSSolidT::SetShape(void)
 
 	/* set base class pointer */
 	fShapes = fMFShapes;
-#endif
+
+	/* set support class */
+	fMFFractureSupport->SetShape(fMFShapes);
 }
 
 /* current element operations */

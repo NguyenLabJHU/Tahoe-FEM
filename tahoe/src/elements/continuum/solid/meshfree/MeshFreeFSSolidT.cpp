@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.18.18.4 2004-05-06 16:00:22 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.18.18.5 2004-05-11 15:57:29 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #include "MeshFreeFSSolidT.h"
 
@@ -35,7 +35,8 @@ MeshFreeFSSolidT::MeshFreeFSSolidT(const ElementSupportT& support, const FieldT&
 	fGradNa_wrap(10, fGradNa),
 	fStressStiff_wrap(10, fStressStiff),
 	fMFShapes(NULL),
-	fMFFractureSupport(NULL)
+	fMFFractureSupport(NULL),
+	fMeshfreeParameters(NULL)	
 {
 	SetName("large_strain_meshfree");
 }
@@ -47,9 +48,15 @@ MeshFreeFSSolidT::MeshFreeFSSolidT(const ElementSupportT& support):
 	fGradNa_wrap(10, fGradNa),
 	fStressStiff_wrap(10, fStressStiff),
 	fMFShapes(NULL),
-	fMFFractureSupport(NULL)	
+	fMFFractureSupport(NULL),
+	fMeshfreeParameters(NULL)		
 {
 	SetName("large_strain_meshfree");
+}
+
+MeshFreeFSSolidT::~MeshFreeFSSolidT(void)
+{
+	delete fMFFractureSupport;
 }
 
 /* append element equations numbers to the list */
@@ -255,6 +262,14 @@ void MeshFreeFSSolidT::TakeParameterList(const ParameterListT& list)
 {
 	const char caller[] = "MeshFreeFSSolidT::TakeParameterList";
 
+	/* construct meshfree support before calling inherited method because
+	 * support class needed to construct shape functions */
+	fMFFractureSupport = new MeshFreeFractureSupportT;
+	fMFFractureSupport->TakeParameterList(list.GetList("meshfree_fracture_support"));
+
+	/* get parameters needed to construct shape functions */
+	fMeshfreeParameters = list.ResolveListChoice(this, "meshfree_support_choice");
+
 	/* inherited */
 	TotalLagrangianT::TakeParameterList(list);
 
@@ -262,11 +277,6 @@ void MeshFreeFSSolidT::TakeParameterList(const ParameterListT& list)
 	fAutoBorder = list.GetParameter("auto_border");
 	if (fAutoBorder && ElementSupport().Size() > 1)
 		ExceptionT::BadInputValue(caller, "auto-border not support in parallel");
-
-	//meshfree support
-	
-	/* collect parameters from the element support class */
-	fMFFractureSupport->TakeParameterList(list.GetList("meshfree_fracture_support"));
 
 	/* free memory associated with "other" eqnos */
 	fEqnos.Free(); // is this OK ? can't be freed earlier b/c of
@@ -328,8 +338,12 @@ void MeshFreeFSSolidT::TakeParameterList(const ParameterListT& list)
 	}
 
 	/* initialize meshfree support class */
-//	InitSupport(ostream& out, AutoArrayT<ElementCardT>& elem_cards, 
-//		const iArrayT& surface_nodes, int numDOF, int max_node_num, ModelManagerT* model);
+	fMFFractureSupport->InitSupport(ElementSupport().Output(),
+		fElementCards, 
+		surface_nodes,
+		NumDOF(), 
+		ElementSupport().NumNodes(),
+		&ElementSupport().ModelManager());
 
 	/* final MLS initializations */
 	fMFShapes->SetExactNodes(fMFFractureSupport->InterpolantNodes());
@@ -364,8 +378,6 @@ void MeshFreeFSSolidT::SetShape(void)
 		ExceptionT::GeneralFail(caller, "multiple (%d) element blocks not supported",
 			fConnectivities.Length());
 
-#pragma message("fix me")
-#if 0
 	//TEMP - quick and dirty attempt to run with multiple element blocks
 	const iArray2DT* mf_connect = fConnectivities[0];
 	if (fConnectivities.Length() > 1) {
@@ -388,9 +400,8 @@ void MeshFreeFSSolidT::SetShape(void)
 
 	/* construct */
 	fMFShapes = new MeshFreeShapeFunctionT(GeometryCode(), NumIP(),
-		fLocInitCoords, ElementSupport().InitialCoordinates(), *mf_connect, fOffGridNodes,
-		fElementCards.Position(), ElementSupport().Input());
-	if (!fMFShapes) throw ExceptionT::kOutOfMemory;
+		fLocInitCoords, ElementSupport().InitialCoordinates(), *mf_connect, fMFFractureSupport->OffGridNodes(),
+		fElementCards.Position(), /*const ParameterListT& mf_support_params*/);
 
 	/* echo parameters */
 	fMFShapes->WriteParameters(ElementSupport().Output());
@@ -399,11 +410,10 @@ void MeshFreeFSSolidT::SetShape(void)
 	fMFShapes->Initialize();
 	
 	/* set base class pointer */
-	fShapes = fMFShapes;
-	
-	/* set shape functions in support */
-	fMeshFreeElementSupport->SetShape(fMFShapes);
-#endif
+	fShapes = fMFShapes;	
+
+	/* set support class */
+	fMFFractureSupport->SetShape(fMFShapes);
 }
 
 /* current element operations */

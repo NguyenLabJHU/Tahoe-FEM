@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.h,v 1.10.16.4 2004-05-06 16:00:22 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.h,v 1.10.16.5 2004-05-11 15:57:29 paklein Exp $ */
 /* created: paklein (11/12/1999) */
 #ifndef _MFREE_SUPPORT_T_H_
 #define _MFREE_SUPPORT_T_H_
@@ -49,6 +49,9 @@ public:
 	/*@{*/
 	/** return array of interpolant points */
 	const iArrayT& InterpolantNodes(void) { return fAllFENodes; };
+	
+	/** returnt the array of off-grid points */
+	const iArrayT& OffGridNodes(void) { return fOffGridNodes; };
 
 	/** element nodes */
 	const RaggedArray2DT<int>& ElementNodes(void);
@@ -148,7 +151,7 @@ protected:
 
 private:
 
-	/** pointers to lists of class parameters */
+	/** \name pointers to lists of class parameters used during initialization */
 	/*@{*/
 	const ParameterListT* fOffGridID;
 	const ParameterListT* fInterpolantID;
