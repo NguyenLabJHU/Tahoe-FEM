@@ -1,4 +1,4 @@
-/* $Id: MFAugLagMultT.cpp,v 1.1 2004-05-06 18:55:49 cjkimme Exp $ */
+/* $Id: MFAugLagMultT.cpp,v 1.2 2004-05-12 00:23:28 cjkimme Exp $ */
 #include "MFAugLagMultT.h"
 
 #include <iostream.h>
@@ -34,10 +34,22 @@ MFAugLagMultT::MFAugLagMultT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes,
 	fField(field),
 
 	fNumConstrainedDOFs(0),
-
-	/* work space */
-	fLHS(1, ElementMatrixT::kSymmetric),
 	
+	/* RHS work space */
+	fRHS(),
+	fRHS_wrapper(0, fRHS),
+
+	/* LHS work spaces */
+	fLHS(ElementMatrixT::kSymmetric),
+	fLHS_wrapper(0, fLHS),
+	
+	fOtherLHS(ElementMatrixT::kSymmetric),
+	fOtherLHS_wrapper(0, fOtherLHS),
+	
+	fRowEqs(),
+	fRowEqs_wrapper(0, fRowEqs),
+	
+	/* Pointer to the element group with access to the support of each node */
 	mfElemGroup(NULL)
 {
 #pragma unused(coords)
@@ -65,7 +77,7 @@ void MFAugLagMultT::EchoData(ifstreamT& in, ostream& out)
 	fCodes.Dimension(numBCs);
 	fScheduleNums.Dimension(numBCs);
 	fCodes.Dimension(numBCs);
-	fNumConstraints.Dimension(numBCs);
+	iArrayT fNumConstraints(numBCs);
 	fScales.Dimension(numBCs);
 	
 	const ScheduleT* pSchedule;
@@ -91,12 +103,14 @@ void MFAugLagMultT::EchoData(ifstreamT& in, ostream& out)
 			fScheduleNums[i]--;
 			pSchedule = pNodeManager->Schedule(fScheduleNums[i]);	
 			if (!pSchedule) 
-				ExceptionT::BadInputValue("SetOfNodesKBCT::Initialize","Cannot get schedule %d \n",fScheduleNums[i]);
+				ExceptionT::BadInputValue("MFAugLagMultT::EchoData","Cannot get schedule %d \n",fScheduleNums[i]);
 		}
 		
 		fNumConstraints[i] = pModel->NodeSetLength(fNodeSetIDs[i]);
 		fNumConstrainedDOFs += fNumConstraints[i];
 	}
+	
+	fConstraintValues.Dimension(fNumConstrainedDOFs);
 	
 	fNodeSets.Configure(fNumConstraints);
 	
@@ -104,8 +118,6 @@ void MFAugLagMultT::EchoData(ifstreamT& in, ostream& out)
 		const iArrayT& nodeSet_i = pModel->NodeSet(fNodeSetIDs[i]);	
 		fNodeSets.SetRow(i, nodeSet_i);
 	}
-	
-	//pModel->ManyNodeSets(fNodeSetIDs, fConstraintNodes); // Get all constrained nodes
 	
 	int numElementGroups;
 	in >> numElementGroups;
@@ -116,22 +128,15 @@ void MFAugLagMultT::EchoData(ifstreamT& in, ostream& out)
 	fBlockID--;
 	
 	in >> fk;
+	if (fk < 0.) ExceptionT::GeneralFail("MFAugLagMultT::EchoData","fk must be non-negative\n");
 }
 
 /* initialize data */
 void MFAugLagMultT::Initialize(void)
 {
 	const char caller[] = "MFAugLagMultT::Initialize";
-
-	/* set dimensions */
-	int numDOF = rEqnos.MinorDim() + fNumConstrainedDOFs; 
-	//fConstraintEqnos.Dimension(2*fNumConstrainedDOFs); // Eqnos for LaGrange Mults
-	//fConstraintEqnos2D.Set(fNumConstrainedDOFs, 2, fConstraintEqnos.Pointer());
-	//fFloatingDOF.Dimension(fNumConstrainedDOFs);
-	//fFloatingDOF = 0;
 	
 	/* allocate memory for force vector */
-	//fConstraintForce2D.Dimension(fNumConstrainedDOFs, 1);
 	fConstraintForce.Dimension(fNumConstrainedDOFs);
 	fConstraintForce = 0.0;
 
@@ -153,43 +158,35 @@ void MFAugLagMultT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	int ndof_u = rDisp.MinorDim();
 
 	/* collect displacement DOF's */
-	RaggedArray2DT<int> disp_eq, nodesInSupport;
+	iArrayT dofs(fNumConstrainedDOFs);
 	
 	fConstraintEqnos.Dimension(2*fNumEqs);
 	fConstraintEqnos2D.Set(fNumEqs, 2, fConstraintEqnos.Pointer());
 	
-	disp_eq.Configure(fSupportSizes, 1);
-	nodesInSupport.Configure(fSupportSizes, 1);
+	fEqNos.Configure(fSupportSizes, 1);
 	
-	LinkedListT<int> supp_j;
-	LinkedListT<double> phi_j;
-	int ctr = 0;
-	for (int i = 0; i < fLocallyNumberedNodeSets.MajorDim(); i++) {
-		int* row_i = fLocallyNumberedNodeSets(i);
-		for (int j = 0; j < fLocallyNumberedNodeSets.MinorDim(i); j++) {
-		
-			mfElemGroup->NodalSupportAndPhi(*row_i++, supp_j, phi_j);
-			
-			int* row_j = nodesInSupport(ctr++);
-			supp_j.Top();
-			while (supp_j.Next()) 
-				*row_j++ = *(supp_j.CurrentValue());
-		}
-	} 
+	int* constrainedDOFPtr = fConstrainedDOFs.Pointer();
+	int ctr = 0;	
+	for (int i = 0; i < fNodeSets.MajorDim(); i++) {
+		for (int j = 0; j < fNodeSets.MinorDim(i); j++)
+			dofs[ctr++] = *constrainedDOFPtr;
+		constrainedDOFPtr++;
+	}
 	
-	fField.SetLocalEqnos(nodesInSupport, disp_eq, fConstrainedDOFs);
+	fField.SetLocalEqnos(fsupport, fEqNos, dofs);
 
 	/* copying eqs */
 	const int* lagMultEqs = fXDOF_Nodes->XDOF_Eqnos(this, 0).Pointer();
 	int* iptr = fConstraintEqnos.Pointer();
 	ctr = 0;
 	for (int i = 0; i < fNodeSets.MajorDim(); i++) {
-		int* rowptr = disp_eq(i);
+		int* rowptr = fEqNos(i);
 		for (int j = 0; j < fNodeSets.MinorDim(i); j++) {
-			for (int k = 0; k < fSupportSizes[ctr++]; k++) { 	
+			for (int k = 0; k < fSupportSizes[ctr]; k++) { 	
 				*iptr++ = *rowptr++;
 				*iptr++ = *lagMultEqs;
 			}
+		ctr++;
 		lagMultEqs++;
 		}
 	}
@@ -204,13 +201,6 @@ void MFAugLagMultT::Connectivities(AutoArrayT<const iArray2DT*>& connects_1,
 {
 #pragma unused(connects_2)
 #pragma unused(equivalent_nodes)
-
-	/* register with node manager - sets initial fConstraintDOFtags */
-	iArrayT set_dims(fNumConstrainedDOFs);
-	set_dims = kMFAugLagDOF;
-	
-	MFAugLagMultT* non_const_this = const_cast<MFAugLagMultT*>(this);
-	fXDOF_Nodes->XDOF_Register(non_const_this, set_dims);	
 
 	connects_1.Append(&fConstraintTags);
 }
@@ -268,9 +258,23 @@ void MFAugLagMultT::ApplyRHS(void)
 
 	/* recompute contstraint forces */
 	ComputeConstraintValues(constKd);
-
+	
 	/* assemble */
-	fFEManager.AssembleRHS(fGroup, fConstraintValues, fConstraintEqnos);
+	fFEManager.AssembleRHS(fGroup, fConstraintValues, fXDOF_Nodes->XDOF_Eqnos(this, 0));
+	
+	/* get current values of constraints */
+	const dArray2DT& constr = fXDOF_Nodes->XDOF(this, 0);
+	dArrayT force(constr.MajorDim(), constr.Pointer());
+	
+	iArrayT eqNos;
+	for (int i = 0; i < fNumConstrainedDOFs; i++) {
+		fRHS_wrapper.SetLength(fSupportSizes[i], false);
+		fRHS.Copy(fphi(i));
+		fRHS *= fk*fConstraintValues[i] - constKd*force[i];
+		eqNos.Set(fSupportSizes[i], fEqNos(i));
+		fFEManager.AssembleRHS(fGroup, fRHS, eqNos);
+	}
+	
 }
 
 /* tangent term */
@@ -287,36 +291,28 @@ void MFAugLagMultT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 	const dArray2DT& constr = fXDOF_Nodes->XDOF(this, 0);
 	const dArrayT force(constr.MajorDim(), constr.Pointer());
 	
-	LinkedListT<int> supp_i;
-	LinkedListT<double> phi_i;
-	iArrayT col_eqs(1), row_eqs(1);
+	iArrayT col_eqs(1);
  	
-	double& k_entry = fLHS[0];
-
 	/* DOF by DOF */
 	const int* augLagEqnos = fXDOF_Nodes->XDOF_Eqnos(this, 0).Pointer();
-	int *row_i, *row_ptr = fConstraintEqnos.Pointer();
-	for (int i = 0; i < fLocallyNumberedNodeSets.MajorDim(); i++) // loop over constrained node sets
+	for (int i = 0; i < fNumConstrainedDOFs; i++) 
 	{
-		row_i = fLocallyNumberedNodeSets(i);
+		int supp = fSupportSizes[i];
 		
-		for (int j = 0; j < fLocallyNumberedNodeSets.MinorDim(i); j++) { // loop over constrained DOFs
+		col_eqs[0] = augLagEqnos[i];
 			
-			col_eqs[0] = *augLagEqnos++;
-			
-			mfElemGroup->NodalSupportAndPhi(*row_i++, supp_i, phi_i);
+		fLHS_wrapper.SetDimensions(supp, 1);
+		fOtherLHS_wrapper.SetDimensions(supp);
+		fRowEqs_wrapper.SetLength(supp, false);
 		
-			supp_i.Top(); phi_i.Top();
-			while (supp_i.Next() && phi_i.Next()) {
-				k_entry = *(phi_i.CurrentValue()) * constK;
-				row_eqs[0] = *row_ptr++;
-				row_ptr++; // have eq. nos. for LaGrange mults right now, too
-			}
-			
-			fFEManager.AssembleLHS(fGroup, fLHS, row_eqs, col_eqs);	
-			
-		}
+		fLHS.Copy(fphi(i));
+		fOtherLHS.Outer(fLHS, fLHS, fk*constK);
+		fLHS *= constK;
+		fRowEqs.Copy(fEqNos(i));
 		
+		fFEManager.AssembleLHS(fGroup, fOtherLHS, fRowEqs, fRowEqs);
+		 
+		fFEManager.AssembleLHS(fGroup, fLHS, fRowEqs, col_eqs);	
 	}
 }
 
@@ -329,14 +325,27 @@ void MFAugLagMultT::RegisterOutput(void)
 {
 	/* initialize connectivities */
 	//fContactNodes2D.Alias(fContactNodes.Length(), 1, fContactNodes.Pointer());
+	/* register with node manager - sets initial fConstraintDOFtags */
+	iArrayT set_dims(1);
+	set_dims = kMFAugLagDOF;
+	
+	fXDOF_Nodes->XDOF_Register(this, set_dims);	
+	
+	int max_support = fSupportSizes.Max() + 1;
+	fLHS_wrapper.SetDimensions(max_support, 1);
+	fOtherLHS_wrapper.SetDimensions(max_support);
+	fRowEqs_wrapper.SetLength(max_support, false);
+	fRHS_wrapper.SetLength(max_support, false);
 	
 	/* output labels */
-	int num_output = 1;     /* force */
+	int num_output = 3;     /* force, contrained value, actual value */
 	ArrayT<StringT> n_labels(num_output);
 	n_labels[0] = "LAMBDA";
+	n_labels[1] = "u_prescribed";
+	n_labels[2] = "u_actual";
 	
 	/* register output */
-	OutputSetT output_set(GeometryT::kPoint, fConstraintEqnos2D, n_labels);
+	OutputSetT output_set(GeometryT::kPoint, fFlattenedNodeSets, n_labels);
 	fOutputID = fFEManager.RegisterOutput(output_set);
 	
 }
@@ -345,6 +354,29 @@ void MFAugLagMultT::WriteOutput(ostream& out) const
 {
 	out << "\n M F  A u g  L a g  M u l t   D a t a :\n\n";
 	
+	int num_output = 3;
+	dArray2DT n_values(fSupportSizes.Length(), num_output);
+	n_values = 0.;
+	
+	/* get current values of constraints */
+	const dArray2DT& constr = fXDOF_Nodes->XDOF(this, 0);
+	dArray2DT us(n_values.MajorDim(), rDisp.MinorDim());
+	mfElemGroup->InterpolatedFieldAtNodes(fLocalFlatNodes, us);
+	
+	int ctr = 0;
+	double *nptr = n_values.Pointer();
+	for (int i = 0; i < fNodeSetIDs.Length(); i++)	{
+		int which_dof = fConstrainedDOFs[i];
+		for (int j = 0; j < fLocallyNumberedNodeSets.MinorDim(i); j++, ctr++) {
+			*nptr++ = constr(ctr,0);
+			*nptr++ = fConstraintValues[ctr];
+			*nptr++ = us(ctr, which_dof);
+		}
+	}
+	
+	/* send output */
+	dArray2DT e_values;
+	fFEManager.WriteOutput(fOutputID, n_values, e_values);
 }
 
 /* returns the array for the DOF tags needed for the current config */
@@ -372,23 +404,15 @@ void MFAugLagMultT::GenerateElementData(void)
 	fConstraintTags.Dimension(fNumEqs, 2);
 	
 	/* collect tags - {node in support of constrained node, DOF tag} */
-	LinkedListT<int> supp_j;
-	LinkedListT<double> phi_j;
 	int *conn_ptr = fConstraintTags.Pointer(); 
 	int *tag_ptr = fConstraintDOFtags.Pointer();
-	for (int i = 0; i < fNodeSets.MajorDim(); i++) {
-		int* row_i_global = fNodeSets(i);
-		int* row_i_local = fLocallyNumberedNodeSets(i);
-		for (int j = 0; j < fNodeSets.MinorDim(i); j++) {
-			mfElemGroup->NodalSupportAndPhi(*row_i_local++, supp_j, phi_j);
-		
-			supp_j.Top();
-			while (supp_j.Next()) {
-				*conn_ptr++ = *(supp_j.CurrentValue());
+	for (int i = 0; i < fsupport.MajorDim(); i++) {
+		int *supp_i = fsupport(i);
+		for (int j = 0; j < fsupport.MinorDim(i); j++) {
+				*conn_ptr++ = *supp_i++;
 				*conn_ptr++ = *tag_ptr;
-			}
-			tag_ptr++;
 		}
+		tag_ptr++;
 	}
 }
 
@@ -413,21 +437,25 @@ void MFAugLagMultT::ComputeConstraintValues(double kforce)
 {
  	const char caller[] = "MFAugLagMultT::ComputeConstraintValues\n";
  	
+ 	dArray2DT us(fLocalFlatNodes.Length(), rDisp.MinorDim());
+	mfElemGroup->InterpolatedFieldAtNodes(fLocalFlatNodes, us);
+	
  	int valueIndex = 0;
  	fConstraintValues = 0.;
  	NodeManagerT* pNodeManager = fFEManager.NodeManager();
  	const ScheduleT* pSchedule;
- 	for (int i = 0; i < fConstrainedDOFs.Length(); i++) {
+ 	for (int i = 0; i < fCodes.Length(); i++) {
 		
+		int which_dof = fConstrainedDOFs[i];
 		if (fCodes[i] == KBC_CardT::kFix)
-			valueIndex += fNumConstraints[i];
+			valueIndex += fNodeSets.MinorDim(i);
 		else {	 
 			pSchedule = pNodeManager->Schedule(fScheduleNums[i]);	
 			if (!pSchedule) 
 				ExceptionT::GeneralFail(caller,"Cannot get schedule %d \n",fScheduleNums[i]);
-			double sVal = kforce*fScales[i]*pSchedule->Value();
-			for (int j = 0; j < fNumConstraints[i]; j++)
-				fConstraintValues[valueIndex++] = sVal;
+			double sVal = fScales[i]*pSchedule->Value();
+			for (int j = 0; j < fNodeSets.MinorDim(i); j++, valueIndex++)
+				fConstraintValues[valueIndex] = -kforce*(us(valueIndex,which_dof) - sVal);
 			
 		}
 	}
@@ -453,14 +481,21 @@ void MFAugLagMultT::ChatWithElementGroup(void) {
 	fLocallyNumberedNodeSets = fNodeSets; // ouch! two of these data structures
 	mfElemGroup->GlobalToLocalNumbering(fLocallyNumberedNodeSets);
 	
+	fFlattenedNodeSets.Dimension(fNumConstrainedDOFs, 1);
+	fLocalFlatNodes.Dimension(fNumConstrainedDOFs);
 	int ctr = 0;
-	fSupportSizes.Dimension(fNumConstrainedDOFs);
-	for (int i = 0; i < fLocallyNumberedNodeSets.MajorDim(); i++) {
-		int *row_i = fLocallyNumberedNodeSets(i);
-		for (int j = 0; j < fLocallyNumberedNodeSets.MinorDim(i); j++) 
-			fSupportSizes[ctr++] = mfElemGroup->SupportSize(*row_i++);
-	}
+	for (int i = 0; i < fNodeSets.MajorDim(); i++)
+		for (int j = 0; j < fNodeSets.MinorDim(i); j++) {
+			fFlattenedNodeSets[ctr] = fNodeSets(i,j);
+			fLocalFlatNodes[ctr++] = fLocallyNumberedNodeSets(i,j);
+		}
+		
+	mfElemGroup->NodalSupportAndPhi(fLocalFlatNodes, fsupport, fphi);
 	
+	fSupportSizes.Dimension(fNumConstrainedDOFs);
+	for (int i = 0; i < fNumConstrainedDOFs; i++)
+		fSupportSizes[i] = fsupport.MinorDim(i);
+			
 	fNumEqs = fSupportSizes.Sum();
 
 }

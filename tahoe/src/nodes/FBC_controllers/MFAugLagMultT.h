@@ -1,4 +1,4 @@
-/* $Id: MFAugLagMultT.h,v 1.1 2004-05-06 18:55:49 cjkimme Exp $ */
+/* $Id: MFAugLagMultT.h,v 1.2 2004-05-12 00:23:28 cjkimme Exp $ */
 #ifndef _MF_AUG_LAG_MULT_T_H_
 #define _MF_AUG_LAG_MULT_T_H_
 
@@ -15,7 +15,8 @@
 #include "ScheduleT.h"
 #include "KBC_CardT.h"
 #include "RaggedArray2DT.h"
-
+#include "nVariMatrixT.h"
+#include "VariArrayT.h"
 
 namespace Tahoe {
 
@@ -142,15 +143,15 @@ private:
 	/** shallow version of PenaltyRegionT::fContactForce2D */
 	dArrayT fConstraintForce;
 	
-	/** contact equation sets (shallow copy of contact node equs) */
+	/** constraint equation sets (shallow copy of contact node equs) */
 	iArray2DT fConstraintTags;
 	iArray2DT fConstraintEqnos2D;
+	iArray2DT fFlatEqNos;
 	/*@}*/
 	
 	/** \name Augmented multiplier info */
 	/*@{*/
 	iArrayT fConstraintDOFtags; /**< constrained DOF tags and DOF's */
-	iArrayT fFloatingDOF;    /**< 1 if multiplier is attacted to node that has KBC's */
 	dArrayT fLastDOF;        /**< multiplier history */ 
 	/*@}*/
 	
@@ -162,15 +163,26 @@ private:
 	/** penalty stiffness */
 	double fk;
 	
-	/* workspace */
-	ElementMatrixT fLHS;  //tangent matrix
+	/* RHS workspace */
+	dArrayT fRHS;
+	VariArrayT<double> fRHS_wrapper;
+	
+	/* LHS workspaces */
+	nVariMatrixT<double> fLHS_wrapper;
+	ElementMatrixT fLHS; 
+	VariArrayT<int> fRowEqs_wrapper;
+	iArrayT fRowEqs;
+	nVariMatrixT<double> fOtherLHS_wrapper;
+	ElementMatrixT fOtherLHS;
 	
 	/** \name storage for Kinematic boundary condition constraints */
 	/*@{*/
-	iArrayT fConstrainedDOFs, fScheduleNums, fNumConstraints;
+	iArrayT fConstrainedDOFs, fScheduleNums;
 	ArrayT<StringT> fNodeSetIDs;
-	RaggedArray2DT<int> fNodeSets;
+	RaggedArray2DT<int> fNodeSets, fEqNos;
 	RaggedArray2DT<int> fLocallyNumberedNodeSets;
+	iArray2DT fFlattenedNodeSets;
+	iArrayT fLocalFlatNodes;
 	dArrayT fScales;
 	ArrayT<KBC_CardT::CodeT> fCodes;
 	/*@}*/
@@ -183,6 +195,9 @@ private:
 	
 	/** the group furnishing MF shape functions for the contrained nodes */
 	SCNIMFT* mfElemGroup;
+	
+	RaggedArray2DT<int> fsupport;
+	RaggedArray2DT<double> fphi;
 	
 	/** \name writing results */
 	/*@{*/	
