@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:22 paklein Exp $
+# $Id: makefile,v 1.5 2002-12-05 08:31:13 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -14,7 +14,9 @@ OBJ = \
 	IOManager.o \
 	IOManager_mpi.o \
 	main.o \
-	TimeManagerT.o
+	TimeManagerT.o \
+	CommManagerT.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -31,7 +33,8 @@ SRC = \
 	IOManager.cpp \
 	IOManager_mpi.cpp \
 	main.cpp \
-	TimeManagerT.cpp
+	TimeManagerT.cpp \
+	CommManagerT.cpp
 
 # headers
 HDR = \
@@ -42,7 +45,9 @@ HDR = \
 	GlobalT.h \
 	IOManager.h \
 	IOManager_mpi.h \
-	TimeManagerT.h
+	TimeManagerT.h \
+	CommManagerT.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories

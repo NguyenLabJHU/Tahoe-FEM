@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.25 2002-12-02 09:42:10 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.26 2002-12-05 08:31:13 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -15,6 +15,7 @@
 #include "IOBaseT.h"
 #include "PartitionT.h"
 #include "CommunicatorT.h"
+#include "CommManagerT.h"
 
 #include "ModelFileT.h"
 #include "ExodusT.h"
@@ -23,7 +24,7 @@ using namespace Tahoe;
 
 /* constructor */
 FEManagerT_mpi::FEManagerT_mpi(ifstreamT& input, ofstreamT& output, 
-	CommunicatorT& comm, const PartitionT* partition, TaskT task):
+	CommunicatorT& comm, PartitionT* partition, TaskT task):
 	FEManagerT(input, output, comm),
 	fPartition(partition),
 	fTask(task),
@@ -815,9 +816,21 @@ int FEManagerT_mpi::GetGlobalNumEquations(int group) const
 	}
 }
 
+/* construct a new CommManagerT */
+CommManagerT* FEManagerT_mpi::New_CommManager(void) const
+{
+	/* inherited */
+	CommManagerT* comm_man = FEManagerT::New_CommManager();
+	if (!comm_man) ExceptionT::GeneralFail();
+
+	/* set the partition data */
+	comm_man->SetPartition(fPartition);
+	return comm_man;
+}
+
 /*************************************************************************
-* Private
-*************************************************************************/
+ * Private
+ *************************************************************************/
 
 void FEManagerT_mpi::AllocateBuffers(int minor_dim, ArrayT<dArray2DT>& recv,
 	ArrayT<dArray2DT>& send)
