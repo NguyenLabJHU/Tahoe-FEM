@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.17.2.2 2004-07-08 00:41:53 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.17.2.3 2004-07-12 05:12:11 paklein Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -74,7 +74,8 @@ SCNIMFT::~SCNIMFT(void)
 void SCNIMFT::Initialize(void)
 {
 	const char caller[] = "SCNIMFT::Initialize";
-
+ExceptionT::GeneralFail(caller, "out of date");
+#if 0
 	/* inherited */
 	ElementBaseT::Initialize();
 
@@ -85,7 +86,8 @@ void SCNIMFT::Initialize(void)
 	fForce_man.SetMajorDimension(ElementSupport().NumNodes(), false);
 
 	/* write parameters */
-	ifstreamT& in = ElementSupport().Input();
+//	ifstreamT& in = ElementSupport().Input();
+	ifstreamT in;
 	ostream& out = ElementSupport().Output();
 
 	int qComputeVoronoiCell;
@@ -306,6 +308,8 @@ void SCNIMFT::Initialize(void)
 	else if (size == 2 && rank == 0)
 		hit_node = 5420 - 1;
 	if (hit_node > 0) TraceNode(ElementSupport().Output(), hit_node, *this);
+#endif
+
 #endif
 }
 

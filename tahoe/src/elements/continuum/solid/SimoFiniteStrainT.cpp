@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.29.2.1 2004-07-07 15:28:05 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.29.2.2 2004-07-12 05:12:08 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -24,6 +24,8 @@ SimoFiniteStrainT::SimoFiniteStrainT(const ElementSupportT& support, const Field
 	fTempMat1(NumSD()),
 	fTempMat2(NumSD())
 {
+ExceptionT::GeneralFail("SimoFiniteStrainT::SimoFiniteStrainT", "out of date");
+#if 0
 	/* read parameters */
 	ifstreamT& in = ElementSupport().Input();
 
@@ -79,6 +81,7 @@ SimoFiniteStrainT::SimoFiniteStrainT(const ElementSupportT& support, const Field
 	else if (NumSD() == 3)
 		fNumModeShapes = (fIncompressibleMode) ? 4 : 3;
 	else throw ExceptionT::kGeneralFail;
+#endif
 }
 
 /* destructor */

@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LSX.cpp,v 1.4.2.1 2004-07-07 15:28:52 paklein Exp $ */
+/* $Id: NLSolver_LSX.cpp,v 1.4.2.2 2004-07-12 05:12:20 paklein Exp $ */
 #include "NLSolver_LSX.h"
 #include "FEManagerT.h"
 #include "ifstreamT.h"
@@ -11,6 +11,8 @@ using namespace Tahoe;
 NLSolver_LSX::NLSolver_LSX(FEManagerT& fe_manager, int group):
 	NLSolver_LS(fe_manager, group)
 {
+ExceptionT::GeneralFail("NLSolver_LSX::NLSolver_LSX", "out of date");
+#if 0
 	ifstreamT& in = fFEManager.Input();
 	
 	/* read parameters */
@@ -19,6 +21,7 @@ NLSolver_LSX::NLSolver_LSX(FEManagerT& fe_manager, int group):
 	/* print parameters */
 	ostream& out = fFEManager.Output();
 	out << " Continuation tolerance. . . . . . . . . . . . . = " << fPuntTol << '\n';
+#endif
 }
 
 /* start solution step */

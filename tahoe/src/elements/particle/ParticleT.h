@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.28.6.1 2004-07-06 06:54:17 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.28.6.2 2004-07-12 05:12:12 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -187,9 +187,6 @@ protected: /* for derived classes only */
 	 */
 	void GenerateNeighborList(const ArrayT<int>* particle_tags, double distance, 
 		RaggedArray2DT<int>& neighbors, bool double_list, bool full_list);
-
-	/** construct the list of properties from the given input stream */
-	virtual void EchoProperties(ifstreamT& in, ofstreamT& out) {};// = 0;
 
 	/** assemble particle mass matrix into LHS of global equation system
 	 * \param mass mass associated with each particle type */

@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.20.8.1 2004-07-06 06:54:17 paklein Exp $ */
+/* $Id: EAMT.h,v 1.20.8.2 2004-07-12 05:12:12 paklein Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -94,9 +94,6 @@ protected:
 	/** extract the properties information from the parameter list. See ParticleT::ExtractProperties */
 	virtual void ExtractProperties(const ParameterListT& list, const ArrayT<StringT>& type_names,
 		ArrayT<ParticlePropertyT*>& properties, nMatrixT<int>& properties_map);
-
-	/** construct the list of properties from the given input stream */
-	virtual void EchoProperties(ifstreamT& in, ofstreamT& out);
 
 	/** generate labels for output data */
 	virtual void GenerateOutputLabels(ArrayT<StringT>& labels) const;

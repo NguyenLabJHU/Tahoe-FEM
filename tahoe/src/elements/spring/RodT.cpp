@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.32.2.2 2004-07-07 15:28:38 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.32.2.3 2004-07-12 05:12:15 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -53,6 +53,8 @@ RodT::RodT(const ElementSupportT& support, const FieldT& field):
 /* initialization */
 void RodT::Initialize(void)
 {
+#pragma message("delete me")
+#if 0
 	/* inherited */
 	ElementBaseT::Initialize();
 	
@@ -96,6 +98,7 @@ void RodT::Initialize(void)
 	  fLocVel.Dimension(NumElementNodes(), NumDOF());
 	  Field().RegisterLocal(fLocVel);
 	}
+#endif
 }
 
 /* form of tangent matrix */

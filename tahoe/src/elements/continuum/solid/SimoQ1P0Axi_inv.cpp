@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0Axi_inv.cpp,v 1.2.2.1 2004-07-09 00:26:16 paklein Exp $ */
+/* $Id: SimoQ1P0Axi_inv.cpp,v 1.2.2.2 2004-07-12 05:12:08 paklein Exp $ */
 #include "SimoQ1P0Axi_inv.h"
 
 #include "ShapeFunctionT.h"
@@ -402,7 +402,7 @@ void SimoQ1P0Axi_inv::FormKd(double constK)
 			
 			/* file path */
 			StringT path;
-			path.FilePath(ElementSupport().Input().filename());
+			path.FilePath(ElementSupport().InputFile());
 			
 			/* write info for neighborhood nodes */
 			for (int i = 0; i < nodes_u.Length(); i++) {

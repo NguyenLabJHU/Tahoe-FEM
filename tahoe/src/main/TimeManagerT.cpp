@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.21.2.2 2004-07-07 15:28:43 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.21.2.3 2004-07-12 05:12:16 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "TimeManagerT.h"
 
@@ -12,6 +12,7 @@
 #include "FEManagerT.h"
 #include "TimeSequence.h"
 #include "dArrayT.h"
+#include "NodeManagerT.h"
 
 using namespace Tahoe;
 
@@ -28,11 +29,27 @@ TimeManagerT::TimeManagerT(FEManagerT& FEM):
 	fStepCutStatus(kSameStep),
 	
 	fNumSteps(0), fOutputInc(1), fMaxCuts(0), fTimeStep(1.0),
-	fIsTimeShifted(0), fTimeShift(0.0)
+	fIsTimeShifted(0), fTimeShift(0.0),
+	fImpExp(IntegratorT::kImplicit)
 {
 
 }
 
+/* set to initial conditions */
+void TimeManagerT::InitialCondition(void)
+{
+	/* nodes */
+	const NodeManagerT* nodes = theBoss.NodeManager();
+	if (!nodes) ExceptionT::GeneralFail("TimeManagerT::InitialCondition");
+
+	/* see if all integrators are explicit */
+	fImpExp = IntegratorT::kExplicit;
+	int num_groups = theBoss.NumGroups();
+	for (int i = 0; i < num_groups && fImpExp == IntegratorT::kExplicit; i++)
+		fImpExp = nodes->ImplicitExplicit(i);
+}
+
+#if 0
 /* initialization */
 void TimeManagerT::Initialize(void)
 {
@@ -61,6 +78,7 @@ void TimeManagerT::Initialize(void)
 	iAddVariable("max_step_cuts", fMaxCuts);
 	iAddVariable("time_step", fTimeStep);
 }
+#endif
 
 /* run through the time sequences.  NextSequence returns 0
 * if there are no more time sequences */
@@ -136,10 +154,9 @@ bool TimeManagerT::Step(void)
 		IncrementTime(fTimeStep);
 		
 		/* print less often for explicit */
-		GlobalT::AnalysisCodeT analysiscode = theBoss.Analysis();
-		//bool is_explicit = fImpExp == IntegratorT::kExplicit;
-		bool is_explicit = (fNumSteps > 100);
-		
+		//GlobalT::AnalysisCodeT analysiscode = theBoss.Analysis();
+		bool is_explicit = fImpExp == IntegratorT::kExplicit;
+
 		/* verbose flag */
 		bool write_header = !is_explicit     ||
 		                    fOutputInc == -1 ||

@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.30.2.2 2004-07-07 15:28:52 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.30.2.3 2004-07-12 05:12:20 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -192,7 +192,7 @@ void NLSolver::InitIterationOutput(void)
 	{
 		/* root of output files */
 		StringT root;
-		root.Root(fFEManager.Input().filename());
+		root.Root(fFEManager.InputFile());
 		
 		/* remove processor designation */ 
 		if (fFEManager.Size() > 1) root.Root();

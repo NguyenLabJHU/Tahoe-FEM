@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.cpp,v 1.11.2.2 2004-07-08 00:41:52 paklein Exp $ */
+/* $Id: LocalizerT.cpp,v 1.11.2.3 2004-07-12 05:12:08 paklein Exp $ */
 /* created: paklein (02/19/1998) */
 #include "LocalizerT.h"
 
@@ -38,6 +38,8 @@ LocalizerT::LocalizerT(const ElementSupportT& support, const FieldT& field):
 	UpdatedLagrangianT(support, field),
 	fAvgStretch(NumSD())
 {
+ExceptionT::GeneralFail("LocalizerT::LocalizerT", "out of date");
+#if 0
 	/* flags */
 	ifstreamT& in = ElementSupport().Input();
 
@@ -59,11 +61,14 @@ LocalizerT::LocalizerT(const ElementSupportT& support, const FieldT& field):
 	    fLocCheckInc != kLocCheckAtPrint &&
 	    fLocCheckInc < 0)
 		throw ExceptionT::kBadInputValue;
+#endif
 }
 
 /* set work space */
 void LocalizerT::Initialize(void)
 {
+#pragma message("delete me")
+#if 0
 	/* inherited */
 	UpdatedLagrangianT::Initialize();
 
@@ -89,11 +94,11 @@ void LocalizerT::Initialize(void)
 		int groupnum = ElementSupport().ElementGroupNumber(this) + 1;
 	
 		StringT outfile;
-		outfile.Root(ElementSupport().Input().filename());
+		outfile.Root(ElementSupport().InputFile());
 		outfile.Append(".loc.elem", groupnum);
 		fLocOut.open(outfile);
 
-		outfile.Root(ElementSupport().Input().filename());
+		outfile.Root(ElementSupport().InputFile());
 		outfile.Append(".TOC.elem", groupnum);
 		fLocTOC.open(outfile);
 	}		
@@ -135,6 +140,7 @@ void LocalizerT::Initialize(void)
 	/* dimension eigenvalue solver */
 	fEigSolver.Dimension(fnoRBeqs.Length());
 	fEigs.Dimension(fnoRBeqs.Length());
+#endif
 }
 
 /* finalize time increment */

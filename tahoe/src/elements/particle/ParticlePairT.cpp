@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.38.2.2 2004-07-07 15:28:33 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.38.2.3 2004-07-12 05:12:12 paklein Exp $ */
 #include "ParticlePairT.h"
 
 #include "PairPropertyT.h"
@@ -1300,75 +1300,3 @@ void ParticlePairT::ExtractProperties(const ParameterListT& list, const ArrayT<S
 	for (int i = 0; i < properties.Length(); i++)
 		properties[i] = fPairProperties[i];
 }
-
-#if 0
-/* construct the list of properties from the given input stream */
-void ParticlePairT::EchoProperties(ifstreamT& in, ofstreamT& out)
-{
-	/* read potentials */
-	int num_potentials = -1;
-	in >> num_potentials;
-	fPairProperties.Dimension(num_potentials);
-	fPairProperties = NULL;
-	for (int i = 0; i < fPairProperties.Length(); i++)
-	{
-		ParticlePropertyT::TypeT property;
-		in >> property;
-		switch (property)
-		{
-			case ParticlePropertyT::kHarmonicPair:
-			{
-				double mass, R0, K;
-				in >> mass >> R0 >> K;
-				fPairProperties[i] = new HarmonicPairT(mass, R0, K);
-				break;
-			}
-			case ParticlePropertyT::kLennardJonesPair:
-			{
-				double mass, eps, sigma, alpha;
-				in >> mass >> eps >> sigma >> alpha;
-				fPairProperties[i] = new LennardJonesPairT(mass, eps, sigma, alpha);
-				break;
-			}
-			case ParticlePropertyT::kParadynPair:
-			{
-				StringT file;
-				in >> file;
-				file.ToNativePathName();
-
-				StringT path;
-				path.FilePath(in.filename());				
-				file.Prepend(path);
-			
-				fPairProperties[i] = new ParadynPairT(file);
-				break;
-			}
-			case ParticlePropertyT::kMatsuiPair:
-			{
-				double mass, sqr_q, two_A, two_B, sqr_C, f, rc;
-				in >> mass >> sqr_q >> two_A >> two_B >> sqr_C >> f >> rc;
-				fPairProperties[i] = new MatsuiPairT(mass, sqr_q, two_A, two_B, sqr_C, f, rc);
-				break;
-			}
-			default:
-				ExceptionT::BadInputValue("ParticlePairT::ReadProperties", 
-					"unrecognized property type: %d", property);
-		}
-	
-	}
-
-	/* echo particle properties */
-	out << "\n Particle properties:\n\n";
-	out << " Number of properties. . . . . . . . . . . . . . = " << fPairProperties.Length() << '\n';
-	for (int i = 0; i < fPairProperties.Length(); i++)
-	{
-		out << " Property: " << i+1 << '\n';
-		fPairProperties[i]->Write(out);
-	}
-	
-	/* copy into base class list */
-	fParticleProperties.Dimension(fPairProperties.Length());
-	for (int i = 0; i < fPairProperties.Length(); i++)
-		fParticleProperties[i] = fPairProperties[i];
-}
-#endif

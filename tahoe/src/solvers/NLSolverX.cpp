@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.cpp,v 1.12.2.1 2004-07-07 15:28:52 paklein Exp $ */
+/* $Id: NLSolverX.cpp,v 1.12.2.2 2004-07-12 05:12:20 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #include "NLSolverX.h"
 
@@ -27,6 +27,8 @@ const int kFailed    = 2;
 NLSolverX::NLSolverX(FEManagerT& fe_manager, int group):
 	NLSolver(fe_manager, group)
 {
+ExceptionT::GeneralFail("NLSolverX::NLSolverX", "out of date");
+#if 0
 #ifdef __NO_RTTI__
 	cout << "\n NLSolverX::Initialize: RTTI required" << endl;
 	throw ExceptionT::kGeneralFail;
@@ -62,6 +64,7 @@ NLSolverX::NLSolverX(FEManagerT& fe_manager, int group):
 	out << " Automatic new tangent for negative pivots . . . = " << fCheckNegPivots   << '\n';
 	out << " Trust tolerance for expanded iterations . . . . = " << fTrustTol         << '\n';
 	out << " Mininum quasi-Newton reduction ratio. . . . . . = " << fMinResRatio      << '\n';
+#endif
 }
 
 /* generate the solution for the current time sequence */

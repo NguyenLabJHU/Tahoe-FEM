@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.15.2.2 2004-07-07 15:28:39 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.15.2.3 2004-07-12 05:12:15 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 #include "UnConnectedRodT.h"
 
@@ -8,21 +8,23 @@
 #include "ModelManagerT.h"
 #include "FindNeighborT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 UnConnectedRodT::UnConnectedRodT(const ElementSupportT& support, const FieldT& field):
 	RodT(support, field),
 	fNumNodesUsed(0),
 	fReconnectCount(0)
 {
+ExceptionT::GeneralFail("UnConnectedRodT::UnConnectedRodT", "out of date");
+#if 0
 	/* read neighbor list parameters */
 	ElementSupport().Input() >> fReconnectInc >> fMaxNeighborCount >> fNeighborDist;
 
 	/* checks */
 	if (fMaxNeighborCount <  1  ) throw ExceptionT::kBadInputValue;
 	if (fNeighborDist     <= 0.0) throw ExceptionT::kBadInputValue;
+#endif
 }
 
 /* apply pre-conditions at the current time step.  Signal

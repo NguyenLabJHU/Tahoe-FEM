@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.23.2.2 2004-07-07 15:27:56 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.23.2.3 2004-07-12 05:12:04 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 #include "MeshFreeCSEAnisoT.h"
 
@@ -58,7 +58,8 @@ MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(const ElementSupportT& support, const Field
 	fMatrixManager(kHeadRoom, true)
 {
 	const char caller[] = "MeshFreeCSEAnisoT::MeshFreeCSEAnisoT";
-
+ExceptionT::GeneralFail(caller, "out of date");
+#if 0
 	/* set format of element stiffness matrix */
 	fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
 
@@ -92,6 +93,8 @@ MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(const ElementSupportT& support, const Field
 	/* RTTI is required */
 #ifdef __NO_RTTI__
 	ExceptionT::GeneralFail(caller, "requires RTTI");
+#endif
+
 #endif
 }
 
@@ -245,7 +248,7 @@ void MeshFreeCSEAnisoT::WriteOutput(void)
 	if (fOutputArea)
 	{
 		/* generate file name */
-		StringT name = (ElementSupport().Input()).filename();
+		StringT name = ElementSupport().InputFile();
 		name.Root();
 		name.Append(".grp", ElementSupport().ElementGroupNumber(this) + 1);
 		name.Append(".fracture");

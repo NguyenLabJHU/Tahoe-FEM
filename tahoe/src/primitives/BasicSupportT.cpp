@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.cpp,v 1.1.6.2 2004-07-07 15:28:49 paklein Exp $ */
+/* $Id: BasicSupportT.cpp,v 1.1.6.3 2004-07-12 05:12:19 paklein Exp $ */
 #include "BasicSupportT.h"
 
 #include "dArray2DT.h"
@@ -387,12 +387,12 @@ void BasicSupportT::AssembleRHS(int group, const nArrayT<double>& elRes,
 #endif
 }
 
-ifstreamT& BasicSupportT::Input(void) const
+const StringT& BasicSupportT::InputFile(void) const
 {
 #ifdef _FRACTURE_INTERFACE_LIBRARY_
-	return *ifst;
+	return ifst;
 #else
-	return FEManager().Input();
+	return FEManager().InputFile();
 #endif
 }
 

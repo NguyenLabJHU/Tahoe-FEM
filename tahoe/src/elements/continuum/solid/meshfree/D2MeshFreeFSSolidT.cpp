@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.13.2.2 2004-07-07 15:28:31 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.13.2.3 2004-07-12 05:12:11 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2MeshFreeFSSolidT.h"
 #include "SolidMaterialsConfig.h"
@@ -298,13 +298,13 @@ void D2MeshFreeFSSolidT::WriteField(void)
 	fD2MFShapes->NodalField(DOFs, u, Du, DDu, nodes);
 
 	/* write data */
-	ifstreamT& in = ElementSupport().Input();
+	const StringT& input_file = ElementSupport().InputFile();
 	
 	/* output filenames */
 	StringT s_u, s_Du, s_DDu;
-	s_u.Root(in.filename());
-	s_Du.Root(in.filename());
-	s_DDu.Root(in.filename());
+	s_u.Root(input_file);
+	s_Du.Root(input_file);
+	s_DDu.Root(input_file);
 	
 	s_u.Append(".u.", ElementSupport().StepNumber());
 	s_Du.Append(".Du.", ElementSupport().StepNumber());
