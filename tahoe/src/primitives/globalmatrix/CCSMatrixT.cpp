@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.18 2003-12-28 08:24:00 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.19 2004-02-11 16:46:30 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #include "CCSMatrixT.h"
 
@@ -156,11 +156,13 @@ void CCSMatrixT::AddEquationSet(const RaggedArray2DT<int>& eqset)
 * NOTE: assembly positions (equation numbers) = 1...fNumEQ */
 void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
 {
+	const char caller[] = "CCSMatrixT::Assemble";
+
 	/* element matrix format */
 	ElementMatrixT::FormatT format = elMat.Format();
 
 	if (format == ElementMatrixT::kNonSymmetric)
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller, "element matrix cannot be nonsymmetric");
 	else if (format == ElementMatrixT::kDiagonal)
 	{
 		/* from diagonal only */
@@ -176,10 +178,7 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
 
 #if __option (extended_errorcheck)
 			if (dex < 0 || dex >= fNumberOfTerms)
-			{
-				cout << "\nCCSMatrixT::Assemble: index out of range: " << dex << endl;
-				throw ExceptionT::kGeneralFail;
-			}
+				ExceptionT::GeneralFail(caller, "index out of range: %d", dex);
 #endif
 			/* assemble */
 			fMatrix[dex] += *pelMat;
@@ -207,10 +206,7 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& eqnos)
 
 #if __option (extended_errorcheck)
 						if (dex < 0 || dex >= fNumberOfTerms)
-						{
-							cout << "\nCCSMatrixT::Assemble: index out of range: " << dex << endl;
-							throw ExceptionT::kGeneralFail;
-						}
+							ExceptionT::GeneralFail(caller, "index out of range: %d", dex);
 #endif
 						/* off-diagonal in element, but global in diagonal */
 						if (ceqno == reqno && row != col)
@@ -226,31 +222,47 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eq
 	const ArrayT<int>& col_eqnos)
 {
 #if __option(extended_errorcheck)
-	/* dimension check */
+	/* dimension checks */
+	const char caller[] = "CCSMatrixT::Assemble";
 	if (elMat.Rows() != row_eqnos.Length() ||
-	    elMat.Cols() != col_eqnos.Length()) throw ExceptionT::kSizeMismatch;
-#else
-#pragma unused(row_eqnos)
-#pragma unused(col_eqnos)
+	    elMat.Cols() != col_eqnos.Length()) ExceptionT::SizeMismatch(caller);
 #endif
 
 	/* element matrix format */
 	ElementMatrixT::FormatT format = elMat.Format();
 
-	if (format == ElementMatrixT::kNonSymmetric) 
+	if (format == ElementMatrixT::kDiagonal)
 	{
-		cout << "\n CCSMatrixT::Assemble(m, r, c): element matrix is not symmetric" << endl;
-		throw ExceptionT::kGeneralFail;	
-	}
-	else if (format == ElementMatrixT::kDiagonal)
-	{
-		cout << "\n CCSMatrixT::Assemble(m, r, c): cannot assemble diagonal matrix" << endl;
-		throw ExceptionT::kGeneralFail;
+#if __option(extended_errorcheck)
+		if (row_eqnos.Length() != col_eqnos.Length())
+			ExceptionT::SizeMismatch(caller);
+#endif
+		for (int i = 0; i < row_eqnos.Length(); i++) {
+			int ceqno = col_eqnos[i] - 1;	
+			int reqno = row_eqnos[i] - 1;
+			if (ceqno > -1 && reqno > -1)
+				(*this)(reqno,ceqno) += elMat(i,i);
+		}
 	}
 	else
-	{
-		cout << "\n CCSMatrixT::Assemble(m, r, c): cannot assemble symmetric matrix" << endl;
-		throw ExceptionT::kGeneralFail;
+	{   	
+		/* copy to full symmetric */
+		if (format == ElementMatrixT::kSymmetricUpper) elMat.CopySymmetric();
+
+		/* assemble active degrees of freedom */
+		int n_c = col_eqnos.Length();
+		int n_r = row_eqnos.Length();
+		for (int col = 0; col < n_c; col++)
+		{
+			int ceqno = col_eqnos[col] - 1;	
+			if (ceqno > -1)	
+				for (int row = 0; row < n_r; row++)
+				{
+					int reqno = row_eqnos[row] - 1;
+					if ( reqno > -1)
+						(*this)(reqno,ceqno) += elMat(row,col);
+				}
+		}
 	}
 }
 
@@ -520,27 +532,28 @@ void CCSMatrixT::FindMinMaxPivot(double& min, double& max, double& abs_min,
 /* element accessor */
 double CCSMatrixT::operator()(int row, int col) const
 {
-	if (row > col) /* element in lower triangle */
-		return (*this)(col,row);
+#if __option(extended_errorcheck)
+	/* range checks */
+	const char caller[] = "CCSMatrixT::operator()";
+	if (row < 0 || row >= fLocNumEQ) ExceptionT::OutOfRange(caller);
+	if (col < 0 || col >= fLocNumEQ) ExceptionT::OutOfRange(caller);
+#endif
+	
+	if (row == col) /* element on the diagonal */
+		return fMatrix[fDiags[col]];
 	else
 	{
-		/* range checks */
-		if (row < 0 || row >= fLocNumEQ) throw ExceptionT::kGeneralFail;
-		if (col < 0 || col >= fLocNumEQ) throw ExceptionT::kGeneralFail;
-	
-		if (row == col) /* element on the diagonal */
-			return fMatrix[fDiags[col]];
+		/* look into upper triangle */
+		int& r = (row > col) ? col : row;
+		int& c = (row > col) ? row : col;
+
+		int colht = ColumnHeight(c);
+		int hrow  = c - r;		
+		if (hrow > colht) /* element above the skyline */
+			return 0.0;
 		else
-		{
-			int colht = ColumnHeight(col);
-			int hrow  = col-row;
-					
-			if (hrow > colht) /* element above the skyline */
-				return 0.0;
-			else
-				return fMatrix[fDiags[col] - hrow];
-		}
-	}	
+			return fMatrix[fDiags[c] - hrow];
+	}
 }
 
 namespace Tahoe {

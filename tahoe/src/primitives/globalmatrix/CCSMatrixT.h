@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.h,v 1.11 2003-10-31 20:53:14 paklein Exp $ */
+/* $Id: CCSMatrixT.h,v 1.12 2004-02-11 16:46:30 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #ifndef _CCSMATRIX_T_H_
 #define _CCSMATRIX_T_H_
@@ -122,9 +122,15 @@ public:
 
 protected:
 
-	/* element accessor - READ ONLY */
-	double operator()(int row, int col) const;			
-	
+	/** \name element accessors */
+	/*@{*/
+	/** read only accessor returns 0.0 for nonstored values */
+	double operator()(int row, int col) const;
+
+	/** read/write accessor throws exception for nonstored values */
+	double& operator()(int row, int col);
+	/*@}*/
+
 	/* output operator */
 	friend ostream& operator<<(ostream& out, const CCSMatrixT& matrix);	
 
@@ -184,5 +190,34 @@ inline bool CCSMatrixT::MultTx(const dArrayT& x, dArrayT& b) const
 	return CCSMatrixT::Multx(x, b);
 }
 
-} // namespace Tahoe 
+/* element accessor */
+inline double& CCSMatrixT::operator()(int row, int col)
+{
+	const char caller[] = "CCSMatrixT::operator()";
+
+#if __option(extended_errorcheck)
+	/* range checks */
+	if (row < 0 || row >= fLocNumEQ) ExceptionT::OutOfRange(caller);
+	if (col < 0 || col >= fLocNumEQ) ExceptionT::OutOfRange(caller);
+#endif
+	
+	if (row == col) /* element on the diagonal */
+		return fMatrix[fDiags[col]];
+	else
+	{
+		/* look into upper triangle */
+		int& r = (row > col) ? col : row;
+		int& c = (row > col) ? row : col;
+
+		int colht = ColumnHeight(c);
+		int hrow  = c - r;		
+		if (hrow > colht) /* element above the skyline */
+			ExceptionT::OutOfRange(caller);
+		
+		return fMatrix[fDiags[c] - hrow];
+	}
+}
+
+} /* namespace Tahoe */
+
 #endif /* _CCSMATRIX_T_H_ */
