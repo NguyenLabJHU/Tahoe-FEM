@@ -1,13 +1,15 @@
-/* $Id: CellGeometryT.h,v 1.3 2005-01-25 19:08:14 cjkimme Exp $ */
+/* $Id: CellGeometryT.h,v 1.4 2005-01-26 20:21:07 cjkimme Exp $ */
 #ifndef _CELL_GEOMETRY_T_
 #define _CELL_GEOMETRY_T_
 
 #include "SCNIMFT.h"
 #include "ParameterInterfaceT.h"
 #include "ElementSupportT.h"
+#include "iArrayT.h"
 #include "dArray2DT.h"
 #include "RaggedArray2DT.h"
 #include "MeshFreeNodalShapeFunctionT.h"
+#include "LinkedListT.h"
 
 namespace Tahoe {
 
@@ -28,7 +30,7 @@ public:
 	virtual void DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index);
 	
 	/** set the nodal coordinates and shape functions */
-	void SetNodesAndShapes(dArray2DT& nodal_coordinates, MeshFreeNodalShapeFunctionT* nodalShapeFunctions);
+	void SetNodesAndShapes(iArrayT& nodes, dArray2DT& nodal_coordinates, MeshFreeNodalShapeFunctionT* nodalShapeFunctions);
 	
 	/** generate data structures for integration over the body boundary */
 	virtual void BoundaryShapeFunctions(RaggedArray2DT<double>& phis, RaggedArray2DT<int>& supports, dArray2DT& normals) = 0;
@@ -58,9 +60,17 @@ public:
 	/*@}*/
 	
 protected: /* for derived classes only */
+
+	void MergeFacetIntegral(int node_num, double weight, dArrayT& facetNormal, const dArrayT& phiValues,
+						iArrayT& ip_cover, iArrayT& ip_cover_key, ArrayT< LinkedListT<int> >& nodeWorkSpace, 
+						ArrayT< LinkedListT<dArrayT> >& facetWorkSpace,
+						ArrayT< LinkedListT<double> >& circumferentialWorkSpace);
 	
 	/** number of integration points per facet for cell volume boundary integration */
 	int fNumIP; 
+	
+	/** global node numbers */
+	iArrayT fNodes;
 	
 	const ElementSupportT* fElementSupport;
 	
