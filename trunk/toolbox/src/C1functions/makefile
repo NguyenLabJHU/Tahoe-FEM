@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.27 2004-01-27 19:07:23 paklein Exp $
+# $Id: makefile,v 1.28 2004-06-29 16:15:43 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -40,7 +40,8 @@ OBJ = \
 	GaoJi2.o \
 	SF2.o \
 	PiecewiseLinearT.o \
-	PowerLawT.o
+	PowerLawT.o\
+	CosineT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -80,7 +81,8 @@ SRC = \
 	GaoJi2.cpp \
 	SF2.cpp \
 	PiecewiseLinearT.cpp \
-	PowerLawT.cpp
+	PowerLawT.cpp \
+	CosineT.cpp
 
 ##################### (3) headers
 #
@@ -111,7 +113,8 @@ HDR = \
 	GaoJi2.h \
 	SF2.h \
 	PiecewiseLinearT.h \
-	PowerLawT.h
+	PowerLawT.h \
+	CosineT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
