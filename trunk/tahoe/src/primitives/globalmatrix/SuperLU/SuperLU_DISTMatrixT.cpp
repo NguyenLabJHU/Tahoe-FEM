@@ -1,4 +1,4 @@
-/* $Id: SuperLU_DISTMatrixT.cpp,v 1.5 2005-01-07 22:02:06 paklein Exp $ */
+/* $Id: SuperLU_DISTMatrixT.cpp,v 1.6 2005-02-25 15:41:41 paklein Exp $ */
 #include "SuperLU_DISTMatrixT.h"
 
 /* library support options */
@@ -172,12 +172,21 @@ void SuperLU_DISTMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_e
 	A->rowptr = frowptr.Pointer();
 	A->colind = fcolind.Pointer();
 
-	/* output */
-	fOut <<" Number of nonzeros in local global matrix = "<< A->nnz_loc <<"\n"<<endl;
-	
 	/* reset flags/options */
 	fIsSymFactorized = false;
 	fIsNumFactorized = false;
+}
+
+/* write information to output stream after SuperLU_DISTMatrixT::Initialize
+ * has been called */
+void SuperLU_DISTMatrixT::Info(ostream& out)
+{
+	/* inherited */
+	GlobalMatrixT::Info(out);
+
+	/* output */
+	NRformat_loc *A = (NRformat_loc*) fA.Store;
+	out <<" Number of nonzeros in local global matrix = "<< A->nnz_loc <<"\n"<<endl;	
 }
 
 /* set all matrix values to 0.0 */

@@ -1,4 +1,4 @@
-/* $Id: SuperLUMatrixT.h,v 1.2 2005-01-07 21:23:08 paklein Exp $ */
+/* $Id: SuperLUMatrixT.h,v 1.3 2005-02-25 15:41:41 paklein Exp $ */
 #ifndef _SUPER_LU_MATRIX_T_H_
 #define _SUPER_LU_MATRIX_T_H_
 
@@ -31,6 +31,10 @@ public:
 	 * NOTE: do not call Initialize() until equation topology has been set
 	 * with AddEquationSet() for all equation sets */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
+
+	/** write information to output stream after SuperLUMatrixT::Initialize
+	 * has been called */
+	virtual void Info(ostream& out);
 	
 	/* set all matrix values to 0.0 */
 	virtual void Clear(void);

@@ -1,4 +1,4 @@
-/* $Id: SuperLUMatrixT.cpp,v 1.3 2005-01-07 21:23:08 paklein Exp $ */
+/* $Id: SuperLUMatrixT.cpp,v 1.4 2005-02-25 15:41:41 paklein Exp $ */
 #include "SuperLUMatrixT.h"
 
 /* library support */
@@ -202,9 +202,6 @@ void SuperLUMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	fR.Dimension(fA.nrow);
 	fC.Dimension(fA.ncol);
 
-	/* output */
-	fOut <<" Number of nonzeros in global matrix = "<< A->nnz <<"\n"<<endl;
-	
 	/* clear stored equation sets */
 	fEqnos.Clear();
 	fRaggedEqnos.Clear();	
@@ -212,6 +209,18 @@ void SuperLUMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	/* reset flags/options */
 	fIsSymFactorized = false;
 	fequed = 'N';
+}
+
+/* write information to output stream after SuperLUMatrixT::Initialize
+ * has been called */
+void SuperLUMatrixT::Info(ostream& out)
+{
+	/* inherited */
+	GlobalMatrixT::Info(out);
+
+	/* output */
+	NCformat *A = (NCformat*) fA.Store;	
+	out <<" Number of nonzeros in global matrix = " << A->nnz <<"\n"<<endl;
 }
 
 /* set all matrix values to 0.0 */

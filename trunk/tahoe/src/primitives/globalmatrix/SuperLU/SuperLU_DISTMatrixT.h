@@ -1,4 +1,4 @@
-/* $Id: SuperLU_DISTMatrixT.h,v 1.5 2005-01-07 22:02:06 paklein Exp $ */
+/* $Id: SuperLU_DISTMatrixT.h,v 1.6 2005-02-25 15:41:41 paklein Exp $ */
 #ifndef _SUPER_LU_DIST_MATRIX_T_H_
 #define _SUPER_LU_DIST_MATRIX_T_H_
 
@@ -37,6 +37,10 @@ public:
 
 	/** set the internal matrix structure */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
+
+	/** write information to output stream after SuperLU_DISTMatrixT::Initialize
+	 * has been called */
+	virtual void Info(ostream& out);
 	
 	/* set all matrix values to 0.0 */
 	virtual void Clear(void);

@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.h,v 1.14 2005-01-07 21:22:49 paklein Exp $ */
+/* $Id: CCNSMatrixT.h,v 1.15 2005-02-25 15:41:34 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #ifndef _CCNSMATRIX_T_H_
 #define _CCNSMATRIX_T_H_
@@ -64,6 +64,10 @@ public:
 	 * NOTE: do not call Initialize() equation topology has been set
 	 * with AddEquationSet() for all equation sets */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
+
+	/** write information to output stream after CCNSMatrixT::Initialize
+	 * has been called */
+	virtual void Info(ostream& out);
 	
 	/* set all matrix values to 0.0 */
 	virtual void Clear(void);
@@ -189,8 +193,12 @@ protected:
 	double* fMatrix;
 	/*@}*/
 
-	/** runtime flag */
+	/** \name runtime info */
+	/*@{*/
 	bool fIsFactorized;
+	int fBand;
+	int fMeanBand;
+	/*@}*/
 
 private:
 

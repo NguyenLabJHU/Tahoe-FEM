@@ -1,4 +1,4 @@
-/* $Id: SLUMatrix.cpp,v 1.11 2005-01-07 21:22:50 paklein Exp $ */
+/* $Id: SLUMatrix.cpp,v 1.12 2005-02-25 15:41:34 paklein Exp $ */
 /* created: rbridson (06/30/2000) */
 #include "SLUMatrix.h"
 
@@ -172,13 +172,21 @@ void SLUMatrix::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 
 	A->nzval = (void*) malloc (A->nnz*sizeof(double));
 	if (!A->nzval) ExceptionT::OutOfMemory(caller);
-
-	/* output */
-	fOut <<" Number of nonzeros in global matrix = "<< A->nnz <<"\n"<<endl;
 	
 	/* clear stored equation sets */
 	fEqnos.Clear();
 	fRaggedEqnos.Clear();	
+}
+
+/* write information to output stream */
+void SLUMatrix::Info(ostream& out)
+{
+	/* inherited */
+	GlobalMatrixT::Info(out);
+
+	/* output */
+	NCformat *A = (NCformat*) fA.Store;	
+	out <<" Number of nonzeros in global matrix = " << A->nnz <<"\n"<<endl;
 }
 
 /* set all matrix values to 0.0 */

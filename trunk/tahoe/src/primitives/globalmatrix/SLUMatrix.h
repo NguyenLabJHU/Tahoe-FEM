@@ -1,4 +1,4 @@
-/* $Id: SLUMatrix.h,v 1.12 2005-01-07 21:22:50 paklein Exp $ */
+/* $Id: SLUMatrix.h,v 1.13 2005-02-25 15:41:34 paklein Exp $ */
 /* created: rbridson (06/30/2000) */
 #ifndef _SLU_MATRIX_H_
 #define _SLU_MATRIX_H_
@@ -38,6 +38,10 @@ public:
 	 * NOTE: do not call Initialize() until equation topology has been set
 	 * with AddEquationSet() for all equation sets */
 	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
+
+	/** write information to output stream after SLUMatrix::Initialize
+	 * has been called */
+	virtual void Info(ostream& out);
 	
 	/* set all matrix values to 0.0 */
 	virtual void Clear(void);
