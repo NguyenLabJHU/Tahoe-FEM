@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.4.2.2 2001-10-25 20:23:38 sawimme Exp $ */
+/* $Id: ElementBaseT.h,v 1.4.2.3 2001-10-28 23:51:54 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -158,9 +158,23 @@ protected: /* for derived classes only */
 	/* print element group data */
 	virtual void PrintControlData(ostream& out) const;
 	
-	/* element data */
+	/** echo element connectivity data. Calls ElementBaseT::ReadConnectivity
+	 * to read the data and ElementBaseT::WriteConnectivity to write it. */
 	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
+
+	/** default implementation of reading element connectivities. This
+	 * implementation read the connectivity data for the element group
+	 * using the ModelManagerT interface. This call configures the list
+	 * of pointers to the group connectivities in ElementBaseT::fConnectivities,
+	 * set the connectivity block information in ElementBaseT::fBlockData,
+	 * allocates space for the element equation numbers in ElementBaseT::fEqnos,
+	 * and sets the element card array ElementBaseT::fElementCards with a
+	 * call to ElementBaseT::SetElementCards. */
 	virtual void ReadConnectivity(ifstreamT& in, ostream& out);
+
+	/** write connectivity data to the output stream. If the verbose output flag
+	 * is set, determined from FEManagerT::PrintInput, this function writes the
+	 * connectivity data to the output stream in text format. */
 	virtual void WriteConnectivity(ostream& out) const;
 
 	/* generate connectivities with local numbering -
@@ -212,8 +226,10 @@ protected:
 	ElementMatrixT fLHS;
 	dArrayT        fRHS;
 	
-	/* data for multiple connectivity blocks */
-	iArray2DT fBlockData; //[n_blocks]: [ID] [1st group element] [size] [material]
+	/** data for multiple connectivity blocks. Each row contains the
+	 * information for a block of connectivities. The content of each
+	 * row is set by ElementBaseT::BlockIndexT. */
+	iArray2DT fBlockData; 
 };
 
 /* inline functions */
