@@ -1,4 +1,4 @@
-/* $Id: LAdMatrixT.cpp,v 1.5 2002-10-20 22:38:54 paklein Exp $ */
+/* $Id: LAdMatrixT.cpp,v 1.6 2003-05-26 00:43:00 paklein Exp $ */
 /* created: paklein (12/05/1996)                                          */
 /* Matrix2D with some linear algebra functions                            */
 
@@ -70,9 +70,10 @@ void LAdMatrixT::SymmetricPivot(int dex1, int dex2)
 
 void LAdMatrixT::LinearSolve(dArrayT& RHS)
 {
+	const char caller[] = "LAdMatrixT::LinearSolve";
 /* dimension checks */
 #if __option (extended_errorcheck)
-	if (RHS.Length() != fRows) throw ExceptionT::kSizeMismatch;
+	if (RHS.Length() != fRows) ExceptionT::SizeMismatch(caller);
 #endif
 
 	/* mean matrix value */
@@ -115,7 +116,8 @@ void LAdMatrixT::LinearSolve(dArrayT& RHS)
 			
 		/* forward reduction */
 		double diagvalue = (*this)(col,col);
-		if (fabs( diagvalue/mean ) < kSmall) throw ExceptionT::kGeneralFail;
+		if (fabs(diagvalue/mean) < kSmall) 
+			ExceptionT::GeneralFail(caller, "small pivot %g", diagvalue/mean);
 
 		for (int row1 = col + 1; row1 < fRows; row1++)
 		{
@@ -139,8 +141,8 @@ void LAdMatrixT::LinearSolve(dArrayT& RHS)
 	}
 	
 	/* back substitution */
-	if (fabs( (*this)(fRows-1,fCols-1)/mean ) < kSmall)
-		throw ExceptionT::kGeneralFail;
+	if (fabs((*this)(fRows-1,fCols-1)/mean) < kSmall)
+		ExceptionT::GeneralFail(caller, "small pivot %g", (*this)(fRows-1,fCols-1)/mean);
 
 	RHS[fRows-1] /= (*this)(fRows-1,fCols-1); 		
 	for (int row = fRows-2; row > -1; row--)
@@ -152,7 +154,6 @@ void LAdMatrixT::LinearSolve(dArrayT& RHS)
 		for (int col = row + 1; col < fCols; col++)
 		{
 			sum -= (*pcol)*(*pRHS++);
-		
 			pcol += fRows;
 		}
 			
