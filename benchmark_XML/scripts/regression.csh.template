@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: regression.csh.template,v 1.1 2001-09-21 07:14:03 paklein Exp $
+# $Id: regression.csh.template,v 1.2 2001-09-22 18:29:07 paklein Exp $
 
 # username on Tahoe server
 set TAHOE_USER =
@@ -9,6 +9,9 @@ set W_DIR =
 
 # email notification address
 set ADMIN =
+
+# host name
+set HOST =
 
 ######### hopefully no changes will be required below #########
 
@@ -66,17 +69,24 @@ if (-e ${W_DIR}/tahoe/tahoe && -e ${W_DIR}/benchmark/comparator/compare) then
     if(! -e ${W_DIR}/benchmark/compare.summary) then
 #       test/s failed - did not complete
 	echo "BENCHMARKs failed"
-		/bin/cat ${W_DIR}/benchmark/scripts/fail.msg ${W_DIR}/benchmark/compare.console | ${MAILCMD} ${ADMIN}
+		/usr/bin/echo "Subject: TAHOE regression FAIL ${HOST}\nTAHOE regression FAIL" > ${W_DIR}/benchmark/tmp
+		/bin/cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.console > ${W_DIR}/benchmark/tmp_mail
     else if(`grep -c "FAIL" ${W_DIR}/benchmark/compare.summary` ) then
 #       test/s failed
 	echo "BENCHMARKs failed"
-        /bin/cat ${W_DIR}/benchmark/scripts/fail.msg ${W_DIR}/benchmark/compare.summary | ${MAILCMD} ${ADMIN}
+		/usr/bin/echo "Subject: TAHOE regression FAIL ${HOST}\nTAHOE regression FAIL" > ${W_DIR}/benchmark/tmp
+		/bin/cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.summary > ${W_DIR}/benchmark/tmp_mail
     else
 	echo "BENCHMARKs passed"
-		/bin/cat ${W_DIR}/benchmark/scripts/pass.msg ${W_DIR}/benchmark/compare.summary | ${MAILCMD} ${ADMIN}
+		/usr/bin/echo "Subject: TAHOE regression PASS ${HOST}\nTAHOE regression PASS" > ${W_DIR}/benchmark/tmp
+		/bin/cat ${W_DIR}/benchmark/tmp ${W_DIR}/benchmark/compare.summary > ${W_DIR}/benchmark/tmp_mail
 	endif
 else
 #       make failed
-		/bin/cat ${W_DIR}/benchmark/scripts/build.fail.msg ${W_DIR}/make.stderr | ${MAILCMD} ${ADMIN}
+		/usr/bin/echo "Subject: TAHOE build FAIL ${HOST}\nTAHOE build FAIL" > ${W_DIR}/benchmark/tmp
+		/bin/cat ${W_DIR}/benchmark/tmp ${W_DIR}/make.stderr > ${W_DIR}/benchmark/tmp_mail
 endif
+
+# send it
+scp ${W_DIR}/benchmark/tmp_mail ${TAHOE_USER}@tahoe.ca.sandia.gov:/home/paklein/admin/distribute/mail.${HOST}
 
