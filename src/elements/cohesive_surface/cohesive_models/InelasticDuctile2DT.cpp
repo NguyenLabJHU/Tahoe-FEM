@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile2DT.cpp,v 1.5 2003-03-19 01:10:24 cjkimme Exp $  */
+/* $Id: InelasticDuctile2DT.cpp,v 1.6 2003-05-26 01:54:44 paklein Exp $  */
 #include "InelasticDuctile2DT.h"
 #include "ifstreamT.h"
 #include "dArrayT.h"
@@ -12,6 +12,7 @@ const int knumDOF = 2;
 const int kNumState = 
     knumDOF /* \Delta_n */
   + knumDOF /* T_n */
+        + 2 /* dq = {dphi, dphi_s} */
         + 1 /* \kappa */
         + 1 /* \phi_n */
         + 1 /* \phi^*_n */
@@ -26,6 +27,7 @@ const int       k_dex_kappa = 4;
 const int k_dex_dissipation = 5;
 const int   k_dex_incr_diss = 6;
 const int     k_dex_Delta_n = 7;
+const int          k_dex_dq = 9;
 
 /* local iteration tolerances */
 const double abs_tol = 1.0e-10;
@@ -40,7 +42,7 @@ InelasticDuctile2DT::InelasticDuctile2DT(ifstreamT& in, const double& time_step)
 	fw_0(-1.0),
 	feps_0(-1.0),
 	fphi_init(-1.0),
-	fdq(2), fdD(2),
+	fdD(2),
 	
 	/* residual */
 	fR(knumDOF + 1), /* the traction and phi */
@@ -53,7 +55,8 @@ InelasticDuctile2DT::InelasticDuctile2DT(ifstreamT& in, const double& time_step)
 	fkappa(fState[k_dex_kappa]),
 	fphi(fState[k_dex_phi]),
 	fphi_s(fState[k_dex_phi_s]),
-	fdissipation(fState[k_dex_dissipation])
+	fdissipation(fState[k_dex_dissipation]),
+	fdq(2, fState.Pointer(k_dex_dq))
 {
 	const char caller[] = "InelasticDuctile2DT::InelasticDuctile2DT";
 
@@ -103,7 +106,7 @@ double InelasticDuctile2DT::Potential(const dArrayT& jump_u, const ArrayT<double
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& InelasticDuctile2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
+const dArrayT& InelasticDuctile2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate)
 {
 	const char caller[] = "InelasticDuctile2DT::Traction";
 
@@ -111,78 +114,100 @@ const dArrayT& InelasticDuctile2DT::Traction(const dArrayT& jump_u, ArrayT<doubl
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) ExceptionT::SizeMismatch(caller);
 	if (state.Length() != NumStateVariables()) ExceptionT::SizeMismatch(caller);
-	if (fTimeStep <= 0.0) ExceptionT::BadInputValue(caller, "expecting positive time increment: %g", fTimeStep);
+	if (fTimeStep < 0.0) ExceptionT::BadInputValue(caller, "expecting non-zero time increment: %g", fTimeStep);
 #endif
 
 	/* copy state variables */
-	double& phi_n = state[k_dex_phi];
 	fState = state;
-
-	/* compute rates */
-	Rates(fState, jump_u, fTraction, fdD, fdq);
-	fR[0] = (jump_u[0] - fDelta[0])/fTimeStep - fdD[0];
-	fR[1] = (jump_u[1] - fDelta[1])/fTimeStep - fdD[1];
-	fR[2] = (fphi - phi_n)/fTimeStep - fdq[0];
-
-	double error, error0;
-	error = error0 = fR.Magnitude();
-	int count = 0;
-	double phi_s_in = fphi_s;
-	while (count++ < max_iter && error > abs_tol && error/error0 > rel_tol) 
+	
+	/* integrate traction and state variables */
+	if (qIntegrate)
 	{
-		/* compute Jacobian */
-		Jacobian(fState, jump_u, fTraction, fdq, fK);		
-
-		/* solve update */
-		fK.LinearSolve(fR);
-		
-		/* updates */
-		fTraction[0] += fR[0];
-		fTraction[1] += fR[1];
-		fphi += fR[2];
-		if (fReversible || fphi > phi_s_in) 
-			fphi_s = fphi;
-		else
-			fphi_s = phi_s_in;
-		
-		/* max damage */
-		if (fphi_s > phi_max)
-		{
-			fphi_s = phi_max;
-
-			/* no traction */
-			fTraction[0] = 0.0;
-			fTraction[1] = 0.0;
-		
-			error = 0.0;
+		/* compute rates */
+		double& phi_n = state[k_dex_phi];
+		Rates(fState, jump_u, fTraction, fdD, fdq);
+		fR[0] = -fdD[0];
+		fR[1] = -fdD[1];
+		fR[2] = -fdq[0];
+		if (fabs(fTimeStep) > kSmall) {
+			fR[0] += (jump_u[0] - fDelta[0])/fTimeStep;
+			fR[1] += (jump_u[1] - fDelta[1])/fTimeStep;
+			fR[2] += (fphi - phi_n)/fTimeStep;
 		}
-		else
+
+		double error, error0;
+		error = error0 = fR.Magnitude();
+
+		int count = 0;
+		double phi_s_in = fphi_s;
+		while (count++ < max_iter && error > abs_tol && error/error0 > rel_tol) 
 		{
-			/* new rates and error */
-			Rates(fState, jump_u, fTraction, fdD, fdq);
-			fR[0] = (jump_u[0] - fDelta[0])/fTimeStep - fdD[0];
-			fR[1] = (jump_u[1] - fDelta[1])/fTimeStep - fdD[1];
-			fR[2] = (fphi - phi_n)/fTimeStep - fdq[0];
-			error = fR.Magnitude();
+			/* compute Jacobian */
+			Jacobian(fState, jump_u, fTraction, fdq, fK);		
+
+			/* solve update */
+			fK.LinearSolve(fR);
+		
+			/* updates */
+			fTraction[0] += fR[0];
+			fTraction[1] += fR[1];
+			fphi += fR[2];
+			if (fReversible || fphi > phi_s_in) 
+				fphi_s = fphi;
+			else
+				fphi_s = phi_s_in;
+		
+			/* max damage */
+			if (fphi_s > phi_max)
+			{
+				fphi_s = phi_max;
+
+				/* no traction */
+				fTraction[0] = 0.0;
+				fTraction[1] = 0.0;
+		
+				error = 0.0;
+			}
+			else
+			{
+				/* new rates and error */
+				Rates(fState, jump_u, fTraction, fdD, fdq);
+				fR[0] = -fdD[0];
+				fR[1] = -fdD[1];
+				fR[2] = -fdq[0];
+				if (fabs(fTimeStep) > kSmall) {
+					fR[0] += (jump_u[0] - fDelta[0])/fTimeStep;
+					fR[1] += (jump_u[1] - fDelta[1])/fTimeStep;
+					fR[2] += (fphi - phi_n)/fTimeStep;
+				}
+
+				error = fR.Magnitude();
+			}
 		}
-	}
 
-	/* not converged */
-	if (count == max_iter)
-		ExceptionT::BadJacobianDet(caller, "not converged after %d its.", max_iter);
+		/* not converged */
+		if (count == max_iter)
+			ExceptionT::BadJacobianDet(caller, "not converged after %d its.", max_iter);
 
-	/* incremental and integrated dissipation */
-	double* T_n = state.Pointer(k_dex_T_n);
-	fState[k_dex_incr_diss] = 0.5*(T_n[0] + fTraction[0])*(jump_u[0] - fDelta[0]) + 
-	                          0.5*(T_n[1] + fTraction[1])*(jump_u[1] - fDelta[1]);
-	fState[k_dex_dissipation] += fState[k_dex_incr_diss];
+		/* incremental and integrated dissipation */
+		double* T_n = state.Pointer(k_dex_T_n);
+		fState[k_dex_incr_diss] = 0.5*(T_n[0] + fTraction[0])*(jump_u[0] - fDelta[0]) + 
+		                          0.5*(T_n[1] + fTraction[1])*(jump_u[1] - fDelta[1]);
+		fState[k_dex_dissipation] += fState[k_dex_incr_diss];
 
-	/* update state variables */
-	fDelta = jump_u;
-	state = fState;
+		/* update state variables */
+		fDelta = jump_u;
+		state = fState;
+	}	
 
-//TEMP
-//cout << "T: fdq = " << fdq.no_wrap() << '\n';
+#if 0
+dArrayT tmp;
+tmp.Alias(state);
+cout << "F:   T = " << fTraction.no_wrap() << '\n';
+cout << "F: fdq = " << fdq.no_wrap() << '\n';
+cout << "F: jmp = " << jump_u.no_wrap() << '\n';
+cout << "F:  st = \n" << tmp << '\n';
+#endif
 
 	return fTraction;
 }
@@ -199,11 +224,8 @@ const dMatrixT& InelasticDuctile2DT::Stiffness(const dArrayT& jump_u, const Arra
 	if (state.Length() != NumStateVariables()) ExceptionT::SizeMismatch(caller);
 #endif
 
-	/* compute rates and traction */
-	Rates(state, jump_u, fTraction, fdD, fdq);
-
-//TEMP
-//cout << "K: fdq = " << fdq.no_wrap() << '\n';
+	/* copy state variables */
+	fState = state;
 
 	/* compute Jacobian of local problem */
 	Jacobian(state, jump_u, fTraction, fdq, fK);		
@@ -214,7 +236,7 @@ const dMatrixT& InelasticDuctile2DT::Stiffness(const dArrayT& jump_u, const Arra
 	fStiffness(1,0) = fTimeStep*(fK(1,0) - (fK(1,2)*fK(2,0))/fK(2,2));
 	fStiffness(1,1) = fTimeStep*(fK(1,1) - (fK(1,2)*fK(2,1))/fK(2,2));
 	fStiffness.Inverse();
-	
+
 	return fStiffness;
 }
 
@@ -336,7 +358,7 @@ void InelasticDuctile2DT::Jacobian(const ArrayT<double>& q, const dArrayT& D, co
 
 		K(2,0) = sign_T_t*k3/(kappa*k2);
 		K(2,1) = k3/(kappa*k2);
-		K(2,2) = k3*(fabs(T[0]) + T[1])/(kappa*k2*k2) - 1.0/fTimeStep;	
+		K(2,2) = k3*(fabs(T[0]) + T[1])/(kappa*k2*k2);
 	} 
 	else /* phi_s not changing */
 	{
@@ -346,13 +368,16 @@ void InelasticDuctile2DT::Jacobian(const ArrayT<double>& q, const dArrayT& D, co
 
 		K(2,0) = sign_T_t*k3/(kappa*k2);
 		K(2,1) = k3/(kappa*k2);
-		K(2,2) = -1.0/fTimeStep;	
+		K(2,2) = 0.0;
 	}
 
 	/* d_delta_dot_n */
 	K(1,0) = fw_0*K(2,0)/(k1*k1);
 	K(1,1) = fw_0*K(2,1)/(k1*k1);
-	K(1,2) = fw_0*2.0*dq[0]/(k1*k1*k1);
+	K(1,2) = fw_0*(K(2,2) + 2.0*dq[0]/k1)/(k1*k1);
+
+	/* because: R_q = q_dot - 1/dt (q_n+1 - q_n) */ 
+	if (fabs(fTimeStep) > kSmall) K(2,2) -= 1.0/fTimeStep;
 }
 
 /* evaluate the rates */
@@ -399,9 +424,15 @@ void InelasticDuctile2DT::Jacobian_1(const ArrayT<double>& q, const dArrayT& D, 
 		K(0,1) = 0.0;
 		K(0,2) = K(0,0)*T[0]/k2;
 
-		K(2,0) = sgn_T_dot_D*T[0]*k3/T_mag; 
-		K(2,1) = sgn_T_dot_D*T[1]*k3/T_mag;
-		K(2,2) = k3*sgn_T_dot_D*T_mag/k2 - 1.0/fTimeStep;	
+		if (T_mag > kSmall) {
+			K(2,0) = sgn_T_dot_D*T[0]*k3/T_mag; 
+			K(2,1) = sgn_T_dot_D*T[1]*k3/T_mag;
+		} else {
+			K(2,0) = 0.0; 
+			K(2,1) = 0.0;
+		}
+		K(2,2) = k3*sgn_T_dot_D*T_mag/k2;
+		if (fabs(fTimeStep) > kSmall) K(2,2) -= 1.0/fTimeStep;
 	} 
 	else /* phi_s not changing */
 	{
@@ -409,8 +440,13 @@ void InelasticDuctile2DT::Jacobian_1(const ArrayT<double>& q, const dArrayT& D, 
 		K(0,1) = 0.0;
 		K(0,2) = 0.0;
 
-		K(2,0) = T[0]*k3/T_mag; 
-		K(2,1) = T[1]*k3/T_mag;
+		if (T_mag > kSmall) {
+			K(2,0) = T[0]*k3/T_mag; 
+			K(2,1) = T[1]*k3/T_mag;
+		} else {
+			K(2,0) = 0.0; 
+			K(2,1) = 0.0;
+		}
 		K(2,2) = 0.0;
 	}
 
