@@ -1,7 +1,7 @@
-/* $Id: RectGaussianWindowT.h,v 1.1 2001-06-23 06:25:43 hspark Exp $ */
+/* $Id: RectGaussianWindowT.h,v 1.2 2001-06-27 17:40:06 hspark Exp $ */
 
-#ifndef _RECTANGULAR_GAUSSIAN_WINDOW_T_H_
-#define _RECTANGULAR_GAUSSIAN_WINDOW_T_H_
+#ifndef _RECT_GAUSSIAN_WINDOW_T_H_
+#define _RECT_GAUSSIAN_WINDOW_T_H_
 
 /* base class */
 #include "WindowT.h"
@@ -71,4 +71,4 @@ class RectGaussianWindowT: public WindowT
 	dSymMatrixT fNSDsym;
 };
 
-#endif /* _WINDOW_T_H_ */
+#endif /* _RECT_GAUSSIAN_WINDOW_T_H_ */
