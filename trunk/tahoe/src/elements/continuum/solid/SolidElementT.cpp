@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.68 2005-01-13 19:41:45 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.69 2005-02-13 22:20:34 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -888,7 +888,7 @@ void SolidElementT::ElementLHSDriver(void)
 	bool axisymmetric = Axisymmetric();
 	Top();
 	while (NextElement())
-		if (CurrentElement().Flag() != kOFF)
+		if (CurrentElement().Flag() != ElementCardT::kOFF)
 		{
 			double constKe = constK;
 			double constMe = constM;
@@ -997,7 +997,7 @@ void SolidElementT::ElementRHSDriver(void)
 		/* current element */
 		const ElementCardT& element = CurrentElement();
 
-		if (element.Flag() != kOFF)
+		if (element.Flag() != ElementCardT::kOFF)
 		{
 			/* initialize */
 			fRHS = 0.0;
@@ -1247,7 +1247,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		double Pi2 = 2.0*acos(-1.0);
         Top();
         while (NextElement())
-        if (CurrentElement().Flag() != kOFF)
+        if (CurrentElement().Flag() != ElementCardT::kOFF)
         {
 			/* initialize */
 			nodal_space = 0.0;
