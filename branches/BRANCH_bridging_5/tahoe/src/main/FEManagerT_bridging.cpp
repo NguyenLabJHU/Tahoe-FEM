@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.16.4.5 2004-04-06 01:01:33 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.16.4.6 2004-04-06 18:27:15 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -157,11 +157,12 @@ void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& neighbors, c
 		double error_0 = sqrt(dArrayT::Dot(df_dp_i,df_dp_i));
 		cout << setw(kIntWidth) << i+1 << ": " << error_0 << '\n';
 		double abs_tol = 1.0e-10;
-		double rel_tol = 1.0e-10;		
-		int max_iter = 10;
+		double rel_tol = 1.0e-10;
+		double div_tol = 1.0e+06;		
+		int max_iter = 1000;
 		int iter = 0;
 		double error = error_0;
-		while (iter++ < max_iter && error > abs_tol && error/error_0 > rel_tol) {
+		while (iter++ < max_iter && error > abs_tol && error/error_0 > rel_tol && error/error_0 < div_tol) {
 		
 			/* compute update vector (steepest descent) */
 			for (int i = 0; i < p_i.Length(); i++) {
@@ -178,6 +179,11 @@ void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& neighbors, c
 			Compute_df_dp(R_i, V_0, *coarse, overlap_cell, overlap_node_map, p_i, f_a, smoothing, df_dp_i, ddf_dpdp_i);
 			error = sqrt(dArrayT::Dot(df_dp_i,df_dp_i));
 			cout << "e/e_0 = " << error/error_0 << endl;
+		}
+		
+		if (error > abs_tol && error/error_0 > rel_tol) /* converged */ {
+			cout << "FAIL" << endl;
+			p_i = 1.0;
 		}
 
 		/* save result */
@@ -1222,7 +1228,7 @@ void FEManagerT_bridging::Compute_df_dp(const dArrayT& R, double V_0, const Cont
 			/* integrate density gradient matrix */
 			parent_domain.DomainJacobian(element_coords, ip, jacobian_inv);
 			jacobian_inv.Inverse();
-			A.MultATB(jacobian_inv, ip_gradient[i]);
+			A.MultATB(jacobian_inv, ip_gradient[ip]);
 			ATA.MultATB(A,A);
 			ATA_int.AddScaled(smoothing*jw, ATA);
 		
