@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.21 2002-02-01 18:22:25 paklein Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.22 2002-04-07 19:15:41 paklein Exp $ */
 
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
@@ -264,8 +264,11 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 			for (int i = 0; i < fIDFilter.Length(); i++)
 			{
 				/* reset filter */
-				fIDFilter[i]->PointIdsOff();
-				fIDFilter[i]->SetPointMap(NULL);
+				if (fIDFilter[i])
+				{
+					fIDFilter[i]->PointIdsOff();
+					fIDFilter[i]->SetPointMap(NULL);
+				}
 
 				/* clean-up */
 				if (fNodeLabelActor[i])
@@ -414,8 +417,11 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 			for (int i = 0; i < fIDFilter.Length(); i++)
 			{
 				/* reset filter */
-				fIDFilter[i]->CellIdsOff();
-				fIDFilter[i]->SetCellMap(NULL);
+				if (fIDFilter[i])
+				{
+					fIDFilter[i]->CellIdsOff();
+					fIDFilter[i]->SetCellMap(NULL);
+				}
 			
 				/* clean-up */
 				if (fCellLabelActor[i])
