@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.7 2005-02-15 01:21:07 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.8 2005-02-16 17:25:04 raregue Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
@@ -127,11 +127,14 @@ protected:
 	 * \param size length of the list */
 	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
 
+	/* check for localization */
+	void CheckLocalization(int elem);
+	
 	/* choose the normal and slipdir given normals and slipdirs from bifurcation condition */
-	void ChooseNormalAndSlipDir(void);
+	void ChooseNormalAndSlipDir(int elem, int nen);
 	
 	/* given the normal and one point, determine active nodes */
-	void DetermineActiveNodes(void);
+	void DetermineActiveNodesTrace(int elem, int nen);
 
 	/** calculate the internal force contribution ("-k*d") */
 	void FormKd(double constK);
@@ -230,6 +233,7 @@ protected:
 	dArrayT slipdir1, slipdir2, slipdir3, slipdir_chosen;
 	dArrayT tangent1, tangent2, tangent3, tangent_chosen;
 	int loc_flag, numedges;
+	dArrayT node_displ;
 	
 	double fYieldTrial, residual_slip, K_zetazeta;
 	double DgammadeltaDzeta, DpsiDzeta, DPDzeta;
