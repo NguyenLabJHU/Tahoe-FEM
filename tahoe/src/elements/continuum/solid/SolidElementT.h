@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.14.2.1 2002-09-21 09:09:58 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.14.2.2 2002-09-23 06:29:51 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -105,19 +105,15 @@ protected:
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);
 
-	/** compute the measures of strain/deformation over the element.
-	 * Use the current shape function derivatives to compute the strain or other
-	 * measure of deformation over the element. This should includes computing the 
-	 * B-matricies. The destinations for the results is understood to be class-dependent;
-	 * however, SolidElementT assumes the results will be stored in SolidElementT::fB_list.
-	 * Otherwise, derived classes need to override SolidElementT functions that use fB_list. */
-	//virtual void SetDeformation(void) = 0;
-
 	/** set the \e B matrix using the given shape function derivatives
 	 * Set strain displacement matrix as in Hughes (2.8.20)
 	 * \param derivatives of shape function derivatives: [nsd] x [nnd]
 	 * \param B destination for B */
 	void Set_B(const dArray2DT& derivatives, dMatrixT& B) const;
+
+	/** set B-bar as given by Hughes (4.5.11-16)*/
+	void Set_B_bar(const dArray2DT& derivatives, const dArray2DT& mean_gradient, 
+		dMatrixT& B);
 
 	/** \name construct the effective mass matrix */
 	/*@{*/

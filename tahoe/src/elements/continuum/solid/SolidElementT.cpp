@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.32.2.1 2002-09-21 09:09:58 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.32.2.2 2002-09-23 06:29:51 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -639,6 +639,97 @@ void SolidElementT::Set_B(const dArray2DT& DNa, dMatrixT& B) const
 			*pB++ = *pNay++;
 			*pB++ = *pNax++;
 			*pB++ = 0.0;
+		}
+	}
+}
+
+/* set B-bar as given by Hughes (4.5.11-16) */
+void SolidElementT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_gradient, 
+	dMatrixT& B)
+{
+#if __option(extended_errorcheck)
+	if (B.Rows() != dSymMatrixT::NumValues(DNa.MajorDim()) ||
+	    B.Cols() != DNa.Length() ||
+	    mean_gradient.MinorDim() != DNa.MinorDim() ||
+	    mean_gradient.MajorDim() != DNa.MajorDim())
+	    throw eSizeMismatch;
+#endif
+
+	int nnd = DNa.MinorDim();
+	double* pB = B.Pointer();
+
+	/* 1D */
+	if (DNa.MajorDim() == 1)
+	{
+		cout << "\n SolidElementT::Set_B_bar: not implemented yet for 1D B-bar" << endl;
+		throw eGeneralFail;
+	}
+	/* 2D */
+	else if (DNa.MajorDim() == 2)
+	{
+		double* pNax = DNa(0);
+		double* pNay = DNa(1);
+			
+		double* pBmx = mean_gradient(0);
+		double* pBmy = mean_gradient(1);
+			
+		for (int i = 0; i < nnd; i++)
+		{
+			double factx = ((*pBmx++) - (*pNax))/3.0;
+			double facty = ((*pBmy++) - (*pNay))/3.0;
+			
+			/* Hughes (4.5.11-16) */
+			*pB++ = *pNax + factx;
+			*pB++ = factx;
+			*pB++ = *pNay;
+	
+			*pB++ = facty;
+			*pB++ = *pNay + facty;
+			*pB++ = *pNax;
+				
+			pNax++; pNay++;
+		}
+	}
+	/* 3D */
+	else		
+	{
+		double* pNax = DNa(0);
+		double* pNay = DNa(1);
+		double* pNaz = DNa(2);
+
+		double* pBmx = mean_gradient(0);
+		double* pBmy = mean_gradient(1);
+		double* pBmz = mean_gradient(2);
+			
+		for (int i = 0; i < nnd; i++)
+		{
+			double factx = ((*pBmx++) - (*pNax))/3.0;
+			double facty = ((*pBmy++) - (*pNay))/3.0;
+			double factz = ((*pBmz++) - (*pNaz))/3.0;
+
+			/* Hughes (4.5.11-16) */
+			*pB++ = *pNax + factx;
+			*pB++ = factx;
+			*pB++ = factx;
+			*pB++ = 0.0;
+			*pB++ = *pNaz;
+			*pB++ = *pNay;
+
+			*pB++ = facty;
+			*pB++ = *pNay + facty;
+			*pB++ = facty;
+			*pB++ = *pNaz;
+			*pB++ = 0.0;
+			*pB++ = *pNax;
+	
+			*pB++ = factz;
+			*pB++ = factz;
+			*pB++ = *pNaz + factz;
+			*pB++ = *pNay;
+			*pB++ = *pNax;
+			*pB++ = 0.0;
+				
+			pNax++; pNay++; pNaz++;
 		}
 	}
 }
