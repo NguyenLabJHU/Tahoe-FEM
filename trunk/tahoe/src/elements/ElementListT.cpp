@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.100 2004-08-04 22:00:17 cjkimme Exp $ */
+/* $Id: ElementListT.cpp,v 1.101 2004-08-08 02:06:27 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -351,11 +351,11 @@ void ElementListT::TakeParameterList(const ParameterListT& list)
 		if (!element)
 			ExceptionT::GeneralFail("ElementListT::TakeParameterList", "could not construct \"%s\"");
 		
-		/* initialize */
-		element->TakeParameterList(subs[i]);
-		
 		/* store */
 		fArray[i] = element;
+
+		/* initialize */
+		element->TakeParameterList(subs[i]);		
 	}
 }
 

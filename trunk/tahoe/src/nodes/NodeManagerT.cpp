@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.50 2004-07-22 08:29:52 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.51 2004-08-08 02:06:42 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -1208,6 +1208,11 @@ void NodeManagerT::TakeParameterList(const ParameterListT& list)
 	
 		/* new field */			
 		FieldT* field = new FieldT(fFieldSupport);
+
+		/* store */
+		fFields[i] = field;
+
+		/* initialize */
 		field->TakeParameterList(*field_params);
 		field->Dimension(NumNodes(), false);
 		field->Clear();
@@ -1221,9 +1226,6 @@ void NodeManagerT::TakeParameterList(const ParameterListT& list)
 			fCurrentCoords_man.SetMajorDimension(NumNodes(), false);
 			(*fCurrentCoords) = InitialCoordinates();
 		}
-
-		/* store */
-		fFields[i] = field;
 			
 		/* set up communication of field */
 		fMessageID[i] = fCommManager.Init_AllGather(fFields[i]->Update());	

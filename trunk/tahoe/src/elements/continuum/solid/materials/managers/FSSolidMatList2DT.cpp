@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.5 2004-08-03 06:08:49 paklein Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.6 2004-08-08 02:06:32 paklein Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -200,13 +200,17 @@ void FSSolidMatList2DT::TakeParameterList(const ParameterListT& list)
 
 	/* construct materials - NOTE: subs have been defined as a choice, but
 	 * here we construct as many materials as are passed in */
-	AutoArrayT<FSSolidMatT*> materials;
 	const ArrayT<ParameterListT>& subs = list.Lists();
+	int count = 0;
 	for (int i = 0; i < subs.Length(); i++) {
 		const ParameterListT& sub = subs[i];
 		FSSolidMatT* mat = NewFSSolidMat(sub.Name());
 		if (mat) {
-			materials.Append(mat);
+			
+			/* store pointer */
+			(*this)[count++] = mat;
+
+			/* initialize material */
 			mat->TakeParameterList(sub);
 
 			/* set flags */
@@ -215,11 +219,6 @@ void FSSolidMatList2DT::TakeParameterList(const ParameterListT& list)
 			if (mat->HasLocalization()) fHasLocalizers = true;
 		}
 	}
-
-	/* transfer */
-	Dimension(materials.Length());
-	for (int i = 0; i < materials.Length(); i++)
-		fArray[i] = materials[i];
 }
 
 /* construct the specified material or NULL if the request cannot be completed */

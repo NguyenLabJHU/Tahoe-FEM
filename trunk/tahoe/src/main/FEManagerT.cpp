@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.77 2004-08-03 06:06:24 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.78 2004-08-08 02:06:37 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1175,16 +1175,19 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 
 	/* construct solvers */
 	const ArrayT<ParameterListT>& lists = list.Lists();
-	AutoArrayT<SolverT*> solvers_tmp;
 	for (int i = 0; i < lists.Length(); i++)
 	{
-		SolverT* solver = SolverT::New(*this, lists[i].Name(), solvers_tmp.Length());
+		SolverT* solver = SolverT::New(*this, lists[i].Name(), fSolvers.Length());
 		if (solver) {
+		
+			/* store the pointer */
+			fSolvers.Resize(fSolvers.Length() + 1, NULL);
+			fSolvers.Last() = solver;
+		
+			/* initialize solver */
 			solver->TakeParameterList(lists[i]);
-			solvers_tmp.Append(solver);
 		}
 	}
-	fSolvers.Swap(solvers_tmp);
 
 	/* solver phases */
 	const ParameterListT* solver_phases = list.List("solver_phases");

@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.30 2004-07-15 08:31:09 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.31 2004-08-08 02:06:42 paklein Exp $ */
 #include "FieldT.h"
 
 #include "ifstreamT.h"
@@ -1001,8 +1001,12 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 			KBC_ControllerT::CodeT KBC_code = KBC_ControllerT::Code(name);
 			if (KBC_code != KBC_ControllerT::kNone) {
 				KBC_ControllerT* KBC_controller = fFieldSupport.NewKBC_Controller(*this, KBC_code);
-				KBC_controller->TakeParameterList(subs[i]);
+				
+				/* store */
 				AddKBCController(KBC_controller);
+
+				/* initialize */
+				KBC_controller->TakeParameterList(subs[i]);
 				resolved = true;
 			}
 		}
@@ -1012,9 +1016,13 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 			FBC_ControllerT::CodeT FBC_code = FBC_ControllerT::Code(name);
 			if (FBC_code != FBC_ControllerT::kNone) {
 				FBC_ControllerT* FBC_controller = fFieldSupport.NewFBC_Controller(FBC_code);
+
+				/* store */
+				AddFBCController(FBC_controller);
+
+				/* initialize */
 				FBC_controller->SetField(*this);
 				FBC_controller->TakeParameterList(subs[i]);
-				AddFBCController(FBC_controller);
 				resolved = true;
 			}
 		}

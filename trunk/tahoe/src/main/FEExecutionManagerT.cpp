@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.69 2004-07-25 06:44:12 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.70 2004-08-08 02:06:37 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -392,7 +392,6 @@ void FEExecutionManagerT::RunJob_serial(const StringT& input_file, ostream& stat
 		/* write the validated list as formatted text */
 		if (true) {
 			DotLine_FormatterT pp_format;
-			pp_format.SetTabWidth(4);
 			pp_format.InitParameterFile(out);
 			pp_format.WriteParameterList(out, valid_list);
 			pp_format.CloseParameterFile(out);
@@ -713,7 +712,6 @@ void FEExecutionManagerT::RunJob_parallel(const StringT& input_file, ostream& st
 	FEManagerT::ParseInput(input_file, valid_list, true, false, false, fCommandLineOptions);
 	if (true) /* write the validated list as formatted text */ {
 		DotLine_FormatterT pp_format;
-		pp_format.SetTabWidth(4);
 		pp_format.InitParameterFile(out);
 		pp_format.WriteParameterList(out, valid_list);
 		pp_format.CloseParameterFile(out);

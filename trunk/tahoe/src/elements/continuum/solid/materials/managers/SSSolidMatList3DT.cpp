@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList3DT.cpp,v 1.7 2004-08-04 02:25:59 cfoster Exp $ */
+/* $Id: SSSolidMatList3DT.cpp,v 1.8 2004-08-08 02:06:32 paklein Exp $ */
 #include "SSSolidMatList3DT.h"
 #include "SSMatSupportT.h"
 #include "SolidMaterialsConfig.h"
@@ -141,13 +141,17 @@ void SSSolidMatList3DT::TakeParameterList(const ParameterListT& list)
 
 	/* construct materials - NOTE: subs have been defined as a choice, but
 	 * here we construct as many materials as are passed in */
-	AutoArrayT<SSSolidMatT*> materials;
 	const ArrayT<ParameterListT>& subs = list.Lists();
+	int count = 0;
 	for (int i = 0; i < subs.Length(); i++) {
 		const ParameterListT& sub = subs[i];
 		SSSolidMatT* mat = NewSSSolidMat(sub.Name());
 		if (mat) {
-			materials.Append(mat);
+
+			/* store pointer */
+			(*this)[count++] = mat;
+
+			/* initialize material */
 			mat->TakeParameterList(sub);
 
 			/* set flags */
@@ -156,11 +160,6 @@ void SSSolidMatList3DT::TakeParameterList(const ParameterListT& list)
 			if (mat->HasLocalization()) fHasLocalizers = true;
 		}
 	}
-
-	/* transfer */
-	Dimension(materials.Length());
-	for (int i = 0; i < materials.Length(); i++)
-		fArray[i] = materials[i];
 }
 
 /* construct the specified material or NULL if the request cannot be completed */
