@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.14 2002-01-09 12:02:33 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.15 2002-01-27 18:51:04 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "ContinuumElementT.h"
@@ -267,8 +267,9 @@ void ContinuumElementT::RegisterOutput(void)
 	/* element output */
 	iArrayT e_counts;
 	SetElementOutputCodes(IOBaseT::kAtInc, fElementOutputCodes, e_counts);
-	iArrayT block_ID(fBlockData.MajorDim());
-	fBlockData.ColumnCopy(kID, block_ID);
+	ArrayT<StringT> block_ID(fBlockData.Length());
+	for (int i = 0; i < block_ID.Length(); i++)
+		block_ID[i] = fBlockData[i].ID();
 
 	/* collect variable labels */
 	ArrayT<StringT> n_labels(n_counts.Sum());
@@ -276,8 +277,9 @@ void ContinuumElementT::RegisterOutput(void)
 	GenerateOutputLabels(n_counts, n_labels, e_counts, e_labels);
 
 	/* set output specifier */
-	int ID = fFEManager.ElementGroupNumber(this) + 1;
-	OutputSetT output_set(ID, fGeometryCode, block_ID, fConnectivities,
+	StringT set_ID;
+	set_ID.Append(fFEManager.ElementGroupNumber(this) + 1);
+	OutputSetT output_set(set_ID, fGeometryCode, block_ID, fConnectivities,
 		n_labels, e_labels, false);
 		
 	/* register and get output ID */
@@ -311,7 +313,7 @@ void ContinuumElementT::WriteOutput(IOBaseT::OutputModeT mode)
 }
 
 /* side set to nodes on facets data */
-void ContinuumElementT::SideSetToFacets(int block_ID, const iArray2DT& sideset,
+void ContinuumElementT::SideSetToFacets(const StringT& block_ID, const iArray2DT& sideset,
 	iArray2DT& facets) const
 {
 	/* checks */
@@ -328,9 +330,9 @@ void ContinuumElementT::SideSetToFacets(int block_ID, const iArray2DT& sideset,
 //       would be easier to check dimensions of facets.
 
 	/* get block data */
-	const int* block_data = BlockData(block_ID);
+	const ElementBlockDataT& block_data = BlockData(block_ID);
 	
-	int offset = block_data[kStartNum];
+	int offset = block_data.StartNumber();
 	iArrayT facet_nodes, facet_tmp;
 	int num_facets = sideset.MajorDim();
 	for (int i = 0; i < num_facets; i++)
@@ -1017,12 +1019,12 @@ void ContinuumElementT::ReadMaterialData(ifstreamT& in)
 	fMaterialList->ReadMaterialData(in);
 	
 	/* check range */
-	for (int i = 0; i < fBlockData.MajorDim(); i++)
-		if (fBlockData(i, kBlockMat) < 0 ||
-		    fBlockData(i, kBlockMat) >= size)
+	for (int i = 0; i < fBlockData.Length(); i++)
+		if (fBlockData[i].MaterialID() < 0 ||
+		    fBlockData[i].MaterialID() >= size)
 		{
 			cout << "\n ContinuumElementT::ReadMaterialData: material number "
-			     << fBlockData(i, kBlockMat) + 1 << '\n';
+			     << fBlockData[i].MaterialID() + 1 << '\n';
 			cout<<    "     for element block " << i + 1 << " is out of range" << endl;
 			throw eBadInputValue;
 		}
@@ -1071,7 +1073,7 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 	if (numlines > 0)
 	  {
 	    /* temp space */
-	    iArrayT blockindex (numlines);
+	    ArrayT<StringT> block_ID(numlines);
 	    ArrayT<iArray2DT> localsides (numlines);
 	    iArrayT LTf (numlines);
 	    ArrayT<Traction_CardT::CoordSystemT> coord_sys (numlines);
@@ -1088,13 +1090,13 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 	      {
 		/* read num of cards in each block */
 		int setsize = -1;
-		int setindex = -1;
-		model->ReadTractionSetData (in, setindex, setsize);
+		StringT set_ID;
+		model->ReadTractionSetData (in, set_ID, setsize);
 		for (int card=0; card < setsize; card++)
 		  {
 		    /* read side set for that card */
-		    blockindex[line] = setindex;
-		    model->ReadTractionSideSet (in, blockindex[line], localsides[line]);
+		    block_ID[line] = set_ID;
+		    model->ReadTractionSideSet (in, block_ID[line], localsides[line]);
 
 		    /* increment count */
 		    int num_sides = localsides[line].MajorDim();
@@ -1110,15 +1112,14 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 			iArray2DT& side_set = localsides[line];
 
 			/* switch to group numbering */
-			const int* block_data = BlockData (blockindex[line]+1);
+			const ElementBlockDataT& block_data = BlockData (block_ID[line]);
 			iArrayT elems (num_sides);
 			side_set.ColumnCopy (0, elems);
-
 
 			/* check */
 			int min, max;
 			elems.MinMax (min, max);
-			if (min < 0 || max > block_data[kBlockDim])
+			if (min < 0 || max > block_data.Dimension())
 			  {
 			    cout << "\n ContinuumElementT::EchoTractionBC_TahoeII: node numbers\n";
 			    cout <<   "     {"<< min << "," << max << "} are out of range in ";
@@ -1126,7 +1127,7 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 			    throw eBadInputValue;
 			  }
 			/* shift */
-			elems += block_data[kStartNum];
+			elems += block_data.StartNumber();
 			side_set.SetColumn (0, elems);
 
 			/* all facets in set must have the same number of nodes */

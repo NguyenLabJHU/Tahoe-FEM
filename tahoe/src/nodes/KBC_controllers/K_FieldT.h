@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.h,v 1.2 2001-07-03 01:35:46 paklein Exp $ */
+/* $Id: K_FieldT.h,v 1.3 2002-01-27 18:51:12 paklein Exp $ */
 /* created: paklein (09/05/2000)                                          */
 
 #ifndef _K_FIELD_T_H_
@@ -89,7 +89,7 @@ protected:
 	/* BC nodes */
 	int     fFarFieldGroupNum;
 	int     fFarFieldMaterialNum;
-	iArrayT fID_List;
+	ArrayT<StringT> fID_List;
 	iArrayT fNodes;
 	
 	/* external links */

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.11 2002-01-09 12:04:36 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.12 2002-01-27 18:51:08 paklein Exp $ */
 /* created: paklein (01/12/2000)                                          */
 
 #include "FEManagerT_mpi.h"
@@ -628,7 +628,10 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 			/* set number of element sets */
 			iArrayT elementID;
 			if (model_ALL.GetElementSetID(elementID) != ModelFileT::kOK) throw eGeneralFail;
-			partition[j].InitElementBlocks(elementID);	
+			ArrayT<StringT> IDlist(elementID.Length());
+			for (int i = 0; i < IDlist.Length(); i++)
+				IDlist[i].Append(elementID[i]);
+			partition[j].InitElementBlocks(IDlist);	
 			for (int i = 0; i < elementID.Length(); i++)
 			{
 				/* get element set */
@@ -640,7 +643,7 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 				set--;	
 				
 				/* set partition */
-				partition[j].SetElements(elementID[i], set);
+				partition[j].SetElements(IDlist[i], set);
 			}
 		}
 	}
@@ -656,7 +659,10 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 			/* set number of element sets */
 			iArrayT elementID(model_ALL.NumElementBlocks());
 			model_ALL.ElementBlockID(elementID);
-			partition[j].InitElementBlocks(elementID);	
+			ArrayT<StringT> IDlist(elementID.Length());
+			for (int i = 0; i < IDlist.Length(); i++)
+				IDlist[i].Append(elementID[i]);
+			partition[j].InitElementBlocks(IDlist);	
 			for (int i = 0; i < elementID.Length(); i++)
 			{
 				/* get set dimensions */
@@ -673,7 +679,7 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 				set--;	
 				
 				/* set partition */
-				partition[j].SetElements(elementID[i], set);
+				partition[j].SetElements(IDlist[i], set);
 			}
 		}
 	}
@@ -788,7 +794,7 @@ void FEManagerT_mpi::ReadParameters(InitCodeT init)
 		fModelFile.Append(suffix);
 		
 		/* (re-)set model manager to partial geometry file */
-		if (!fModelManager->Initialize(fInputFormat, fModelFile)) {
+		if (!fModelManager->Initialize(fInputFormat, fModelFile, true)) {
 			cout << "\n FEManagerT_mpi::ReadParameters: error initializing model manager" << endl;
 			throw eBadInputValue;
 		}

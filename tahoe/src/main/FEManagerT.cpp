@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.24 2002-01-22 02:14:22 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.25 2002-01-27 18:51:08 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
@@ -260,8 +260,6 @@ void FEManagerT::HandleException(int exception)
 		
 			if (fAnalysisCode == GlobalT::kLinExpDynamic   ||
 			    fAnalysisCode == GlobalT::kNLExpDynamic    ||
-			    fAnalysisCode == GlobalT::kVarNodeNLExpDyn ||
-			    fAnalysisCode == GlobalT::kNLExpDynKfield  ||
 			    fAnalysisCode == GlobalT::kPML)
 			{
 				cout << " FEManagerT::HandleException: no adaptive step for analysis code "
@@ -552,9 +550,11 @@ int FEManagerT::RegisterOutput(const OutputSetT& output_set)
 			io.open_append(io_file);
 			
 		/* write block ID information */
-		const iArrayT& block_ID = output_set.BlockID();
-		io << ID << " " << block_ID.Length() << " "
-		   << block_ID.no_wrap_tight() << '\n';
+		const ArrayT<StringT>& block_ID = output_set.BlockID();
+		io << ID << " " << block_ID.Length();
+		for (int i = 0; i < block_ID.Length(); i++)
+			io << " " << block_ID[i];
+		io << '\n';
 	}
 	
 	return ID;
@@ -1040,34 +1040,32 @@ void FEManagerT::SetSolver(void)
 
 void FEManagerT::ReadParameters(InitCodeT init)
 {
+	/* path to parameters file */
+	StringT path;
+	path.FilePath(fMainIn.filename());
+
+	IOBaseT::FileTypeT format;
+	StringT database;
+
 	/* read */
 	fMainIn >> fAnalysisCode;
-	
-	if (init == kFull || init == kAllButSolver) {
-		if (!fModelManager->Initialize (fMainIn, false)) {
-			cout << "\n FEManagerT::ReadParameters: error initializing model manager" << endl;
-			throw eBadInputValue;
-		}
-	}
-	else {
-		if (!fModelManager->Initialize (fMainIn, true)) {
-			cout << "\n FEManagerT::ReadParameters: error initializing model manager" << endl;
-			throw eBadInputValue;
-		}
-	}
+	fMainIn >> format;
+ 	if (format != IOBaseT::kTahoe)
+   	{
+		fMainIn >> database;
 
+		/* prepend full path name to database file */
+		database.ToNativePathName();      
+		database.Prepend(path);
+    }
 	fMainIn >> fOutputFormat;
 	fMainIn >> fReadRestart;
 	if (fReadRestart == 1)
 	{
 		fMainIn >> fRestartFile;
-		fRestartFile.ToNativePathName();
-
-	    /* path from input file */
-	    StringT path;
-	    path.FilePath(fMainIn.filename());
 	    
 	    /* prepend path */
+		fRestartFile.ToNativePathName();
 	    fRestartFile.Prepend(path);
 	}
 	fMainIn >> fWriteRestart;
@@ -1078,7 +1076,13 @@ void FEManagerT::ReadParameters(InitCodeT init)
 	if (fWriteRestart < 0) throw eBadInputValue;
 	if (fPrintInput   != 0 && fPrintInput   != 1) throw eBadInputValue;
 
-	/* i/o format checks are done my IOManagerT and ModelManagerT */
+	/* initialize the model manager */
+	if (!fModelManager->Initialize(format, database, 
+		init == kFull || init == kAllButSolver)) /* conditions under which to scan model */
+	{
+		cout << "\n FEManagerT::ReadParameters: error initializing model manager" << endl;
+		throw eBadInputValue;
+	}
 }
 
 /* set the execution controller and send to nodes and elements.

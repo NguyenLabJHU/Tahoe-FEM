@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.4 2002-01-09 12:07:27 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.5 2002-01-27 18:51:10 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltyRegionT.h"
@@ -89,12 +89,12 @@ void PenaltyRegionT::EchoData(ifstreamT& in, ostream &out)
 	ModelManagerT* model = fFEManager.ModelManager ();
 
 	/* read node set indexes */
-	iArrayT indexes;
-	model->NodeSetList (in, indexes);
+	ArrayT<StringT> ns_ID;
+	model->NodeSetList (in, ns_ID);
 
-	if (indexes.Length() > 0)
+	if (ns_ID.Length() > 0)
 	  {
-	    model->ManyNodeSets (indexes, fContactNodes);
+	    model->ManyNodeSets (ns_ID, fContactNodes);
 	    fNumContactNodes = fContactNodes.Length();
 	  }
 	else

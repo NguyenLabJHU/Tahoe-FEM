@@ -1,4 +1,4 @@
-/* $Id: BimaterialK_FieldT.h,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.h,v 1.2 2002-01-27 18:51:11 paklein Exp $ */
 /* created: paklein (09/06/2000)                                          */
 /* Displacements for a bimaterial K-field:                                */
 /* P.P.L.Matos et al (1989), Int. J. of Fract., v40, 235-254.             */
@@ -42,9 +42,9 @@ protected:
 	int fFarFieldMaterialNum_2;
 
 	/* BC nodes */
-	iArrayT fID_List_1;
+	ArrayT<StringT> fID_List_1;
 	iArrayT fNodes_1;
-	iArrayT fID_List_2;
+	ArrayT<StringT> fID_List_2;
 	iArrayT fNodes_2;
 	
 	/* external links */

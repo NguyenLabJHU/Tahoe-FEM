@@ -1,6 +1,5 @@
-/* $Id: KBC_ControllerT.h,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
-/* created: paklein (09/05/2000)                                          */
-/* Base class for all kinematic BC controllers                            */
+/* $Id: KBC_ControllerT.h,v 1.2 2002-01-27 18:51:12 paklein Exp $ */
+/* created: paklein (09/05/2000) */
 
 #ifndef _KBC_CONTROLLER_T_H_
 #define _KBC_CONTROLLER_T_H_
@@ -18,7 +17,9 @@ class ifstreamT;
 class NodeManagerT;
 class nControllerT;
 class iArrayT;
+class StringT;
 
+/** base class for all kinematic BC controllers */
 class KBC_ControllerT
 {
 public:
@@ -63,8 +64,8 @@ public:
 
 protected:
 
-	/* read nodes from stream */
-	void ReadNodes(ifstreamT& in, iArrayT& id_list, iArrayT& nodes) const;
+	/** read nodes from stream */
+	void ReadNodes(ifstreamT& in, ArrayT<StringT>& id_list, iArrayT& nodes) const;
 	
 protected:
 

@@ -1,5 +1,5 @@
-/* $Id: K_FieldT.cpp,v 1.3 2001-07-03 01:35:46 paklein Exp $ */
-/* created: paklein (09/05/2000)                                          */
+/* $Id: K_FieldT.cpp,v 1.4 2002-01-27 18:51:12 paklein Exp $ */
+/* created: paklein (09/05/2000) */
 
 #include "K_FieldT.h"
 
@@ -124,7 +124,16 @@ void K_FieldT::WriteParameters(ostream& out) const
 	if (fID_List.Length() > 0)
 	{
 		out << " Number of group node sets . . . . . . . . . . . = " << fID_List.Length() << '\n';
-		out << fID_List.wrap(6) << '\n';
+		int wrap = 0;
+		for (int i = 0; i < fID_List.Length(); i++)
+		{
+			if (++wrap == 4) {
+				out << '\n';
+				wrap = 0;
+			}
+			out << setw(12) << fID_List[i];
+		}	
+		out << '\n';
 	}
 	out << " Number of group nodes . . . . . . . . . . . . . = " << fNodes.Length() << '\n';	
 	iArrayT tmp;

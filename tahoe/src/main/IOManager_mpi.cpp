@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.11 2002-01-12 05:15:55 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.12 2002-01-27 18:51:08 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 
 #include "IOManager_mpi.h"
@@ -40,7 +40,7 @@ IOManager_mpi::IOManager_mpi(ifstreamT& in, const iArrayT& io_map,
 //cout << Rank() << ": IOManager_mpi::IOManager_mpi: constructing set" << endl;
 		
 			/* set block ID's */
-			const iArrayT& block_ID = set.BlockID();
+			const ArrayT<StringT>& block_ID = set.BlockID();
 			
 			/* collect connectivities */
 			ArrayT<const iArray2DT*> connect_list(block_ID.Length());
@@ -48,15 +48,9 @@ IOManager_mpi::IOManager_mpi(ifstreamT& in, const iArrayT& io_map,
 			{
 			  StringT block_name;
 			  block_name.Append(block_ID[j]);
-			  int block_index = fOutputGeometry->ElementGroupIndex(block_name);
-			  if (block_index == -1) {
-				cout << "\n IOManager_mpi::IOManager_mpi: block " << block_ID[j]
-					 << " should be loaded, but wasn't found" << endl;
-				throw eDatabaseFail;
-			  }
 			
 				/* collect */
-				connect_list[j] = fOutputGeometry->ElementGroupPointer(block_index);
+				connect_list[j] = fOutputGeometry->ElementGroupPointer(block_name);
 		}
 
 			/* construct output set */
@@ -789,7 +783,7 @@ void IOManager_mpi::SetAssemblyMap(const iArrayT& inv_global, int shift, const i
 }
 
 /* determine the assembly map */
-void IOManager_mpi::BuildElementAssemblyMap(int set, int block_ID, 
+void IOManager_mpi::BuildElementAssemblyMap(int set, const StringT& block_ID, 
 	const iArrayT& block_map, iArrayT& map) const
 {
 	/* must be dimensioned */
@@ -805,20 +799,14 @@ void IOManager_mpi::BuildElementAssemblyMap(int set, int block_ID,
 	const OutputSetT& output_set = *((fOutput->ElementSets())[set]);
 
 	/* block ID's for the current set */
-	const iArrayT& ID_list = output_set.BlockID();
-	
-	/* find this block */
-	int index;
-	if (!ID_list.HasValue(block_ID, index)) {
-		cout << "\n IOManager_mpi::BuildElementAssemblyMap: block ID NN not found in\n"
-		     <<   "     output set NN: " << ID_list.no_wrap() << endl;
-		throw eGeneralFail;
-	}
+	const ArrayT<StringT>& ID_list = output_set.BlockID();
 	
 	/* compute global offset to this block */
 	int offset = 0;
-	for (int i = 0; i < index; i++)
-		offset += output_set.NumBlockElements(i);
+	for (int i = 0; i < ID_list.Length(); i++) {
+		if (ID_list[i] == block_ID) break;
+		offset += output_set.NumBlockElements(ID_list[i]);
+	}
 	
 	/* set the map */
 	for (int i = 0; i < block_map.Length(); i++)
@@ -964,7 +952,7 @@ void IOManager_mpi::ReadOutputGeometry(const StringT& model_file,
 	/* initialize model manager */
 	fOutputGeometry = new ModelManagerT(cout);
 	if (!fOutputGeometry) throw eGeneralFail;
-	if (!fOutputGeometry->Initialize(format, model_file)) {
+	if (!fOutputGeometry->Initialize(format, model_file, true)) {
 		cout << "\n IOManager_mpi::ReadOutputGeometry: error initializing database: " 
 		     << fOutputGeometry->DatabaseName() << endl;
 		throw eDatabaseFail;
@@ -981,21 +969,10 @@ void IOManager_mpi::ReadOutputGeometry(const StringT& model_file,
 			const OutputSetT& output_set = *(element_sets[i]);
 					
 			/* element block ID's */
-			const iArrayT& block_ID = output_set.BlockID();
+			const ArrayT<StringT>& block_ID = output_set.BlockID();
+			
+			/* read element block */
 			for (int j = 0; j < block_ID.Length(); j++)
-			{
-				/* block ID as string */
-				StringT block_name;
-				block_name.Append(block_ID[j]);
-				int block_index = fOutputGeometry->ElementGroupIndex(block_name);
-				if (block_index == -1) {
-					cout << "\n IOManager_mpi::ReadOutputGeometry: could not find block ID: " 
-					     << block_ID[j] << endl;
-					throw eDatabaseFail;
-				}
-				
-				/* read element block */
-				fOutputGeometry->ReadConnectivity(block_index);
-			}
+				fOutputGeometry->ReadConnectivity(block_ID[j]);
 		}
 }

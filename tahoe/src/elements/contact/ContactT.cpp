@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.4 2002-01-09 12:02:32 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.5 2002-01-27 18:51:03 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 
 #include "ContactT.h"
@@ -284,20 +284,16 @@ void ContactT::SetWorkSpace(void)
 	name.Append (fFEManager.ElementGroupNumber(this) + 1);
 
 	/* register with the model manager and let it set the ward */
-	if (!model->RegisterVariElements (name, fConnectivities_man, 
-	    GeometryT::kLine, fNumElemNodes, 0)) throw eGeneralFail;
-	int index = model->ElementGroupIndex(name);
+	if (!model->RegisterVariElements (name, fConnectivities_man, GeometryT::kLine, fNumElemNodes, 0)) 
+		throw eGeneralFail;
 
 	/* set up fConnectivities */
 	fConnectivities.Allocate(1);
-	fConnectivities[0] = model->ElementGroupPointer (index);
+	fConnectivities[0] = model->ElementGroupPointer(name);
 
 	/* set up fBlockData to store block ID */
-	fBlockData.Allocate (1, ElementBaseT::kBlockDataSize);
-	fBlockData (0, kID) = index + 1;
-	fBlockData (0, kStartNum) = 0;
-	fBlockData (0, kBlockDim) = fConnectivities[0]->MajorDim();
-	fBlockData (0, kBlockMat) = -1;
+	fBlockData.Allocate(1);
+	fBlockData[0].Set(name, 0, fConnectivities[0]->MajorDim(), -1);
 
 	/* set managed equation numbers array */
 	fEqnos.Allocate(1);
@@ -333,8 +329,10 @@ bool ContactT::SetContactConfiguration(void)
 		/* generate connectivities */
 		SetConnectivities();	
 
-		/* update */
-		fBlockData (0, kBlockDim) = fConnectivities[0]->MinorDim();
+		/* update dimensions */
+		ElementBlockDataT& block = fBlockData[0];
+		block.Set(block.ID(), block.StartNumber(), fConnectivities[0]->MinorDim(), block.MaterialID());
+		
 		fNumElements = fConnectivities[0]->MinorDim();
 	}
 	
@@ -386,33 +384,32 @@ void ContactT::InputSideSets(ifstreamT& in, ostream& out, iArray2DT& facets)
 	}
 	
 	/* read data from parameter file */
-	iArrayT indexes;
+	ArrayT<StringT> ss_ID;
 	bool multidatabasesets = false; /* change to positive and the parameter file format changes */
 	ModelManagerT* model = fFEManager.ModelManager();
-	model->SideSetList (in, indexes, multidatabasesets);
+	model->SideSetList (in, ss_ID, multidatabasesets);
 
-	if (indexes.Length () != 1) 
+	if (ss_ID.Length () != 1) 
 	  {
 	    cout << "\n\nContactT::InputSideSets: Model Manager read more than one side set, not programmed for this.\n\n";
 	    throw eBadInputValue;
 	  }
 
 	/* read side set */
-	iArray2DT temp = model->SideSet (indexes[0]);
+	iArray2DT temp = model->SideSet (ss_ID[0]);
 	iArray2DT side_set;
-	int elemindex;
-	if (model->IsSideSetLocal(indexes[0]))
+	StringT elem_ID;
+	if (model->IsSideSetLocal(ss_ID[0]))
 	  {
 	    side_set = temp;
-	    elemindex = model->SideSetGroupIndex (indexes[0]);
+	    elem_ID = model->SideSetGroupID(ss_ID[0]);
 	  }
 	else
-	  model->SideSetGlobalToLocal (elemindex, side_set, temp);
+	  model->SideSetGlobalToLocal (elem_ID, side_set, temp);
 	temp.Free();
-	int block_ID = elemindex + 1;
 
 	/* numbers from element group */
-	pelem_group->SideSetToFacets(block_ID, side_set, facets);
+	pelem_group->SideSetToFacets(elem_ID, side_set, facets);
 }
 
 void ContactT::InputBodyBoundary(ifstreamT& in, ArrayT<iArray2DT>& surfaces,
@@ -510,9 +507,9 @@ void ContactT::ReadStrikers(ifstreamT& in, ostream& out)
   ModelManagerT* model = fFEManager.ModelManager();
 
   /* read list of node set id indexes */
-  iArrayT indexes;
-  model->NodeSetList (in, indexes);
+  ArrayT<StringT> ns_ID;
+  model->NodeSetList(in, ns_ID);
 
   /* collect nodes from those indexes */
-  model->ManyNodeSets (indexes, fStrikerTags);
+  model->ManyNodeSets(ns_ID, fStrikerTags);
 }

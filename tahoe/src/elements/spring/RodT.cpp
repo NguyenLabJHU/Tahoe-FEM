@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.4 2002-01-06 06:58:37 cbhovey Exp $ */
+/* $Id: RodT.cpp,v 1.5 2002-01-27 18:51:07 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "RodT.h"
@@ -94,8 +94,9 @@ double RodT::InternalEnergy(void)
 void RodT::RegisterOutput(void)
 {
 	/* block ID's */
-	iArrayT block_ID(fBlockData.MajorDim());
-	fBlockData.ColumnCopy(kID, block_ID);
+	ArrayT<StringT> block_ID(fBlockData.Length());
+	for (int i = 0; i < block_ID.Length(); i++)
+		block_ID[i] = fBlockData[i].ID();
 
 	/* variable labels */
 	ArrayT<StringT> n_labels(2);
@@ -104,8 +105,9 @@ void RodT::RegisterOutput(void)
 	ArrayT<StringT> e_labels;
 
 	/* set output specifier */
-	int ID = fFEManager.ElementGroupNumber(this) + 1;
-	OutputSetT output_set(ID, GeometryT::kLine, block_ID, fConnectivities, n_labels, e_labels, 
+	StringT set_ID;
+	set_ID.Append(fFEManager.ElementGroupNumber(this) + 1);
+	OutputSetT output_set(set_ID, GeometryT::kLine, block_ID, fConnectivities, n_labels, e_labels, 
 		ChangingGeometry());
 		
 	/* register and get output ID */

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.5 2001-12-17 00:15:56 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.6 2002-01-27 18:51:05 paklein Exp $ */
 /* created: paklein (11/12/1999)                                          */
 
 #include "MeshFreeElementSupportT.h"
@@ -257,7 +257,7 @@ void MeshFreeElementSupportT::TraceNode(ostream& out, int node, const ElementBas
 		if (u_nodes.HasValue(node))
 		{
 			/* cell map */
-			int block_ID = element_group.ElementBlockID(j);
+			const StringT& block_ID = element_group.ElementBlockID(j);
 			const iArrayT* element_map = element_group.FEManager().ElementMap(block_ID);
 		
 			out << "    block ID: " << block_ID << '\n';
@@ -315,14 +315,14 @@ void MeshFreeElementSupportT::WeightNodes(iArrayT& weight) const
 void MeshFreeElementSupportT::EchoNodesData(ifstreamT& in, ostream& out, int max_node_num,
 	ModelManagerT* model)
 {
-        /* could echo "sampling points" */
+	/* could echo "sampling points" */
 
-        /* temp space */
-        iArrayT set_indexes;
+	/* temp space */
+	ArrayT<StringT> set_ID;
 
-        /* EFG nodes not on the integration grid */
-	model->NodeSetList (in, set_indexes);
-	model->ManyNodeSets (set_indexes, fOffGridNodes);
+	/* EFG nodes not on the integration grid */
+	model->NodeSetList (in, set_ID);
+	model->ManyNodeSets (set_ID, fOffGridNodes);
 	out << "\n Number of nodes off the integration grid. . . . = "
 	    << fOffGridNodes.Length() << '\n';
 
@@ -337,8 +337,8 @@ void MeshFreeElementSupportT::EchoNodesData(ifstreamT& in, ostream& out, int max
 	  }
 	
 	/* interpolant nodes */
-	model->NodeSetList (in, set_indexes);
-	model->ManyNodeSets (set_indexes, fFENodes);
+	model->NodeSetList (in, set_ID);
+	model->ManyNodeSets (set_ID, fFENodes);
 	out << " Number of interpolant shape function nodes. . . = " 
 	    << fFENodes.Length() << '\n';
 
@@ -353,8 +353,8 @@ void MeshFreeElementSupportT::EchoNodesData(ifstreamT& in, ostream& out, int max
 	  }
 
 	/* pure EFG nodes */
-	model->NodeSetList (in, set_indexes);
-	model->ManyNodeSets (set_indexes, fEFGNodes);
+	model->NodeSetList (in, set_ID);
+	model->ManyNodeSets (set_ID, fEFGNodes);
 	out << " Number of pure EFG shape function nodes . . . . = " 
 	    << fEFGNodes.Length() << '\n';
 

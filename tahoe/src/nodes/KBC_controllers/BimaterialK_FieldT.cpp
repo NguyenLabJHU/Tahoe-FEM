@@ -1,4 +1,4 @@
-/* $Id: BimaterialK_FieldT.cpp,v 1.3 2001-04-27 10:49:47 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.cpp,v 1.4 2002-01-27 18:51:11 paklein Exp $ */
 /* created: paklein (09/05/2000)                                          */
 
 #include "BimaterialK_FieldT.h"
@@ -198,7 +198,16 @@ void BimaterialK_FieldT::WriteParameters(ostream& out) const
 		if (fID_List_1.Length() > 0)
 		{
 			out << " Number of group 1 node sets . . . . . . . . . . = " << fID_List_1.Length() << '\n';
-			out << fID_List_1.wrap(6) << '\n';
+			int wrap = 0;
+			for (int i = 0; i < fID_List_1.Length(); i++)
+			{
+				if (++wrap == 4) {
+					out << '\n';
+					wrap = 0;
+				}
+				out << setw(12) << fID_List_1[i];
+			}	
+			out << '\n';
 		}
 		out << " Number of group 1 nodes . . . . . . . . . . . . = " << fNodes.Length() << '\n';	
 		tmp.Alias(fNodes_1);
@@ -217,7 +226,16 @@ void BimaterialK_FieldT::WriteParameters(ostream& out) const
 		if (fID_List_2.Length() > 0)
 		{
 			out << " Number of group 2 node sets . . . . . . . . . . = " << fID_List_2.Length() << '\n';
-			out << fID_List_2.wrap(6) << '\n';
+			int wrap = 0;
+			for (int i = 0; i < fID_List_2.Length(); i++)
+			{
+				if (++wrap == 4) {
+					out << '\n';
+					wrap = 0;
+				}
+				out << setw(12) << fID_List_2[i];
+			}	
+			out << '\n';
 		}
 		out << " Number of group 2 nodes . . . . . . . . . . . . = " << fNodes_2.Length() << '\n';	
 		tmp.Alias(fNodes_2);
