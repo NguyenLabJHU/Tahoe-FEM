@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.19 2002-03-06 20:35:16 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.20 2002-03-06 20:56:18 sawimme Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -302,7 +302,7 @@ void TranslateIOManager::InitializeNodePoints (iArrayT& nodes, iArrayT& index)
 	index.Allocate (numpoints);
 	index = fModel.NodeSet (nodesetnames[ni]);
 	for (int n=0; n < numpoints; n++)
-	  nodes[n] = fNodeIDs [index[n]];
+	  nodes[n] = nodeIDs [index[n]];
 	break;
       }
     case 3: // nth node
