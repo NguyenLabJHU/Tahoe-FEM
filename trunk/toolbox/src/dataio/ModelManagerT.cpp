@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.3 2001-09-04 14:31:27 sawimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.4 2001-09-06 17:25:19 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -16,6 +16,7 @@ ModelManagerT::ModelManagerT (ostream& message) :
   fNumNodeSets (0),
   fNumSideSets (0),
   fInput (NULL),
+  fInputName (""),
   fMessage (message)
 {
   fCoordinateDimensions = -1;
@@ -242,6 +243,21 @@ const iArray2DT& ModelManagerT::ElementGroup (int index)
   return fElementSets [index];
 }
 
+void ModelManagerT::AllNodeMap (iArrayT& map)
+{
+  fInput->ReadNodeMap (map);
+}
+
+void ModelManagerT::AllElementMap (iArrayT& map)
+{
+  fInput->ReadAllElementMap (map);
+}
+
+void ModelManagerT::ElementMap (StringT& name, iArrayT& map)
+{
+  fInput->ReadGlobalElementMap (name, map);
+}
+
 void ModelManagerT::NodeSetNames (ArrayT<StringT>& names) const
 {
   for (int i=0; i < names.Length(); i++)
@@ -424,6 +440,8 @@ void ModelManagerT::ScanModel (const IOBaseT::FileTypeT format, const StringT& d
 	  fMessage << "\n\nModelManagerT::ScanModel: Error Registering SideSets.\n\n";
 	  throw eGeneralFail;
 	}
+
+      fInputName = database;
     }
 }
 
