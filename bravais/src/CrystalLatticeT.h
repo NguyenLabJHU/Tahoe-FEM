@@ -1,4 +1,8 @@
-/* $Id: LatticeT.h,v 1.1.1.1 2002-02-28 02:13:08 jzimmer Exp $ */
+/* $Id: CrystalLatticeT.h,v 1.1 2002-03-06 01:55:43 jzimmer Exp $ */
+
+#ifndef _CRYSTAL_LATTICE_T_H_
+#define _CRYSTAL_LATTICE_T_H_
+
 #include "StringT.h"
 #include "ExceptionCodes.h"
 #include "dArrayT.h"
@@ -6,7 +10,7 @@
 
 class ifstreamT;
 
-class LatticeT {
+class CrystalLatticeT {
 protected:
 	int nLSD, nUCA;
 	dArray2DT vBasis;
@@ -15,21 +19,17 @@ protected:
 				// or part of the Box.FillVolume() function?
 	double density;
 public:
-	LatticeT(int nlsd, int nuca);
-	~LatticeT() { }
+	CrystalLatticeT(int nlsd, int nuca);
+	~CrystalLatticeT() { }
 
-	void Dimension();
+	int GetNLSD() { return nLSD; }
+	int GetNUCA() { return nUCA; }
 	virtual void SetBasis() = 0;
 	virtual void SetLatticeParameters(ifstreamT& in) = 0;
+	virtual const dArrayT& GetLatticeParameters() = 0;
+	virtual const dArray2DT& GetBasis() = 0;
 	void CalculateDensity();
 	double GetDensity();
 };
 
-class FCCT : public LatticeT {
-public:
-	FCCT();
-	~FCCT() { }
-
-	void SetBasis();
-	void SetLatticeParameters(ifstreamT& in);
-};
+#endif

@@ -1,13 +1,19 @@
-/* $Id: VolumeT.cpp,v 1.1.1.1 2002-02-28 02:13:08 jzimmer Exp $ */
+/* $Id: VolumeT.cpp,v 1.2 2002-03-06 01:55:43 jzimmer Exp $ */
 #include "VolumeT.h"
 #include <iostream>
 #include <fstream>
 #include "ifstreamT.h"
 #include "dArrayT.h"
+#include "iArray2DT.h"
 #include "dArray2DT.h"
+#include "ArrayT.h"
+#include "EnSightOutputT.h"
+#include "OutputSetT.h"
+#include "StringT.h"
 
 VolumeT::VolumeT(int n) {
 	nSD = n;
+	nATOMS = 0;
 }
 
 VolumeT::~VolumeT() {
@@ -22,44 +28,18 @@ double VolumeT::GetVolume() {
 }
 
 void VolumeT::WriteFile() {
-}
 
-BoxT::BoxT(int n) : VolumeT(n) {
-}
+	ArrayT<iArray2DT> fAtomSets(1);
+	fAtomSets[0].Dimension(nATOMS,1);
+	fAtomSets[0].SetValueToPosition();
 
-BoxT::~BoxT() {
-}
+	ArrayT<iArray2DT*> connects(1);
+	connects[0] = fAtomSets.Pointer(0);
+	ArrayT<StringT> ID(1);
+	ID[0] = "nickel";
 
-void BoxT::DefineBoundary(ifstreamT& in) {
-	length.Dimension(nSD);
-	switch(nSD) {
-	 case 2:
-	  in >> length[0] >> length[1];
-	  break;
-	 case 3:
-	  in >> length[0] >> length[1] >> length[2];
-	  break;
-	}
-
-	surfaces.Dimension(nSD,2);
-	for (int i=0; i<nSD; i++ ) {
-		surfaces(i,0) = -length[i]/2;
-		surfaces(i,1) =  length[i]/2;
-	}
-
-}
-
-void BoxT::CalculateVolume() {
-        switch(nSD) {
-	 case 2:
-	  volume = length[0]*length[1];
-	  break;
-	 case 3:
-	  volume = length[0]*length[1]*length[2];
-	  break;
-	}
-}
-
-void BoxT::FillVolume() {
-}
 	
+
+
+}
+
