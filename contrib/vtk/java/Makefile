@@ -36,7 +36,7 @@ java_native:
 #javah -stubs test
 
 cpp_dso: $(CPP_OBJ)
-	$(LD) $(LD_FLAGS) -o testClass.$(DSO_EXT) $(CPP_OBJ)
+	$(LD) $(LD_FLAGS) -o libtestClass.$(DSO_EXT) $(CPP_OBJ)
 
 run:
 	java test
