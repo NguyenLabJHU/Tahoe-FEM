@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.cpp,v 1.2 2003-04-29 23:07:12 cjkimme Exp $ */
+/* $Id: ScaledVelocityNodesT.cpp,v 1.3 2003-04-30 16:06:12 cjkimme Exp $ */
 #include "ScaledVelocityNodesT.h"
 #include "NodeManagerT.h"
 #include "ifstreamT.h"
@@ -19,6 +19,12 @@ ScaledVelocityNodesT::ScaledVelocityNodesT(NodeManagerT& node_manager, BasicFiel
 	qFirstTime(false)
 {
 	// nein
+}
+
+ScaledVelocityNodesT::~ScaledVelocityNodesT(void)
+{
+   if (fRandom)
+      delete fRandom;
 }
 
 void ScaledVelocityNodesT::WriteParameters(ostream& out) const

@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.h,v 1.1 2003-04-24 20:40:24 cjkimme Exp $ */
+/* $Id: ScaledVelocityNodesT.h,v 1.2 2003-04-30 16:06:12 cjkimme Exp $ */
 #ifndef _SCALED_VELOCITY_NODES_T_H_
 #define _SCALED_VELOCITY_NODES_T_H_
 
@@ -25,6 +25,9 @@ public:
 
 	/** constructor */
 	ScaledVelocityNodesT(NodeManagerT& node_manager, BasicFieldT& field);
+
+	/** destructor */
+ 	~ScaledVelocityNodesT(void);
 
 	/** initialize data. Must be called immediately after construction */
 	virtual void Initialize(ifstreamT& in);
