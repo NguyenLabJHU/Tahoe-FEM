@@ -37,7 +37,7 @@
                 <large_strain_material_3D>
                     <Simo_J2 density="0.00271">
                         <E_and_nu Poisson_ratio="0.33333" Young_modulus="0.069"/>
-                        <power_law a="0.000262" b="263.36" n="0.085"/>
+                        <power_law a="0.000262" b="1.0" c="263.36" n="0.085"/>
                     </Simo_J2>
                 </large_strain_material_3D>
             </fd_scni_axi_element_block>
