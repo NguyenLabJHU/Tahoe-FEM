@@ -33,13 +33,13 @@ ${TAHOE} -f $argv[1].xml > $argv[1].console
 # extract data
 #---------------
 
-${DAKOTA_UTIL}/${EXTRACT} $argv[1].${RESULT_EXT} $argv[1].${RESULT_EXT} $argv[1].fvsd
+${DAKOTA_UTIL}/${EXTRACT} $argv[1].${RESULT_EXT} $argv[1].${RESULT_EXT} $argv[1]_Z.fvsd
 
 #---------------
 # compute error function
 #---------------
 
-${DAKOTA_UTIL}/${ERROR_FUNC} ${REF_RESULTS} $argv[1].fvsd $argv[2]
+${DAKOTA_UTIL}/${ERROR_FUNC} ${REF_RESULTS} $argv[1]_Z.fvsd $argv[2]
 
 #---------------------------------------------------------------
 # clean up
