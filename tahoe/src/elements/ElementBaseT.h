@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.17 2002-11-09 01:45:13 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.18 2002-11-09 18:18:51 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -171,7 +171,9 @@ public:
 	 *        equations numbers per element: [nel] x [nen_i*ndof] (i = 0,...,nel) */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
-	
+
+	/** \name writing output */
+	/*@{*/	
 	/** register element for output. An interface to indicate the element group
 	 * must create an OutputSetT and register it with FEManagerT::RegisterOutput
 	 * to obtain an output ID that is used to write data to the current
@@ -185,6 +187,7 @@ public:
 
 	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode) = 0;
+	/*@}*/
 	
 	/** collecting element connectivities. The element group should collect
 	 * the connectivities defining the geometry of the elements and \em append
@@ -200,6 +203,8 @@ public:
 	/** prepare for a sequence of time steps */
 	virtual void InitialCondition(void);
 
+	/** \name restart functions */
+	/*@{*/
 	/** write restart data to the output stream. Should be paired with
 	 * the corresponding ElementBaseT::ReadRestart implementation. */
 	virtual void WriteRestart(ostream& out) const;
@@ -207,6 +212,7 @@ public:
 	/** read restart data to the output stream. Should be paired with
 	 * the corresponding ElementBaseT::WriteRestart implementation. */
 	virtual void ReadRestart(istream& in);
+	/*@}*/
 
 	/** \name element card data */
 	/*@{*/
@@ -237,6 +243,15 @@ public:
 
 protected: /* for derived classes only */
 
+	/** solver group */
+	int Group(void) const {
+#ifndef _SIERRA_TEST_
+		return fField.Group(); 
+#else
+		return 0;
+#endif
+	};
+
 	/** get local element data, X for geometry, U for
 	 * field variables */
 	/*@{*/
@@ -251,15 +266,6 @@ protected: /* for derived classes only */
 
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
 	/*@{*/
-	/** solver group */
-	int Group(void) const {
-#ifndef _SIERRA_TEST_
-		return fField.Group(); 
-#else
-		return 0;
-#endif
-	};
-
 	/** form group contribution to the stiffness matrix */
 	virtual void LHSDriver(void) = 0;
 
