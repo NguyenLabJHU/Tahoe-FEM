@@ -1,4 +1,4 @@
-/* $Id: GreenwoodWilliamson.cpp,v 1.13 2002-05-21 18:46:58 dzeigle Exp $ */
+/* $Id: GreenwoodWilliamson.cpp,v 1.14 2002-05-24 18:28:15 dzeigle Exp $ */
 
 #include "GreenwoodWilliamson.h"
 #include <math.h>
@@ -13,7 +13,7 @@
 
 /* constants */
 const double PI = 2.0*acos(0.0);
-const double EXTOL = 35.0;
+const double EXTOL = 75.0;
 
 /*
 * constructors
@@ -110,7 +110,7 @@ double GreenwoodWilliamson::DFunction(double x) const
 				term[i] = 0.0;
 			
 			coef = -1.0/(8.0*fS*sqrt(PI*(x-fM)));
-			expo = (fM-x)*(fM-x)/((2*fS)*(2*fS));
+			expo = 0.25*((fM-x)/fS)*((fM-x)/fS);
 			k1 = f1.Function(expo);
 			k3 = f3.Function(expo);
 			k5 = f5.Function(expo);
@@ -138,49 +138,24 @@ double GreenwoodWilliamson::DFunction(double x) const
 			
 			gn = h.Function(-0.25);
 			gp = h.Function(0.25);
-			expo = 0.5*(fM-x)*(fM-x)/(fS*fS);
+			expo = 0.5*((fM-x)/fS)*((fM-x)/fS);
 			
-			if (expo > EXTOL)		// geometric cancellation of 
-							// Kummer function and exponential function
-			{
-				double a[2], b[2], ga[2], gb[2];
-				double app[2];
-				
-				a[0] = 5.0/4.0;
-				a[1] = 7.0/4.0;
-				b[0] = 0.5;
-				b[1] = 1.5;
-				ga[0] = h.Function(a[0]);
-				ga[1] = h.Function(a[1]);
-				gb[0] = h.Function(b[0]);
-				gb[1] = h.Function(b[1]);
-				
-				app[0] = gb[0]*pow(expo,a[0]-b[0])/ga[0];
-				app[1] = gb[1]*pow(expo,a[1]-b[1])/ga[1];
-				
-				term[0] = -2.0*sqrt(2.0)*fS*gp*app[0];
-				term[1] = 3.0*(fM-x)*gn*app[1];
-				term[2] = sqrt(PI*fS*(fM-x))*(term[0]+term[1]);
-			}
-			else
-			{
-				m5 = f5.Function(expo);
-				m7 = f7.Function(expo);
+			m5 = f5.Function(expo);
+			m7 = f7.Function(expo);
 			
 	
-				term[0] = -2.0*sqrt(2.0)*fS*gp*m5;
-				term[1] = 3.0*(fM-x)*gn*m7;
-				term[2] = exp(-expo)*sqrt(PI*fS*(fM-x))*(term[0]+term[1]);
-			}
-			
+			term[0] = -2.0*sqrt(2.0)*fS*gp*m5;
+			term[1] = 3.0*(fM-x)*gn*m7;
+			term[2] = exp(-expo)*sqrt(PI*fS*(fM-x))*(term[0]+term[1]);
 			term[3] = 2.0*pow(2.0,0.25)*sqrt(fM-x)*gp*gn;
+			
 			if (term[3]==0)
 			{
 				cout << "**Error! - Zero denominator in GreenwoodWilliamson. **\n";
 				throw eBadInputValue;
 			}
 		
-			value = term[2]/term[3];	
+			value = term[2]/term[3]; 
 		}
 	}
 	else
@@ -216,7 +191,7 @@ double GreenwoodWilliamson::DDFunction(double x) const
 			
 			coef = 1.0/(16.0*sqrt(PI*(x-fM))*fS*(x-fM));
 			sqmux = fM*fM+2.0*fS*fS-2.0*fM*x+x*x;
-			expo = (fM-x)*(fM-x)/((2*fS)*(2*fS));
+			expo = 0.25*((fM-x)/fS)*((fM-x)/fS);
 			k1 = f1.Function(expo);
 			k3 = f3.Function(expo);
 			k5 = f5.Function(expo);
@@ -254,7 +229,7 @@ double GreenwoodWilliamson::DDFunction(double x) const
 			sqmux = (fM-x)*(fM-x)-fS*fS;
 			gn = h.Function(-0.25);
 			gp = h.Function(0.25);
-			expo = 0.5*(fM-x)*(fM-x)/(fS*fS);
+			expo = 0.5*((fM-x)/fS)*((fM-x)/fS);
 			
 			if (expo > EXTOL)
 			{
@@ -403,7 +378,7 @@ dArrayT& GreenwoodWilliamson::MapDFunction(const dArrayT& in, dArrayT& out) cons
 					term[i] = 0.0;
 			
 				coef = -1.0/(8.0*fS*sqrt(PI*(r-fM)));
-				expo = (fM-r)*(fM-r)/((2*fS)*(2*fS));
+				expo = 0.25*((fM-r)/fS)*((fM-r)/fS);
 				k1 = f1.Function(expo);
 				k3 = f3.Function(expo);
 				k5 = f5.Function(expo);
@@ -431,7 +406,7 @@ dArrayT& GreenwoodWilliamson::MapDFunction(const dArrayT& in, dArrayT& out) cons
 			
 				gn = h.Function(-0.25);
 				gp = h.Function(0.25);
-				expo = 0.5*(fM-r)*(fM-r)/(fS*fS);
+				expo = 0.5*((fM-r)/fS)*((fM-r)/fS);
 			
 				if (expo > EXTOL)		// geometric cancellation of 
 										// Kummer function and exponential function
@@ -518,7 +493,7 @@ dArrayT& GreenwoodWilliamson::MapDDFunction(const dArrayT& in, dArrayT& out) con
 			
 				coef = 1.0/(16.0*sqrt(PI*(r-fM))*fS*(r-fM));
 				sqmux = fM*fM+2.0*fS*fS-2.0*fM*r+r*r;
-				expo = (fM-r)*(fM-r)/((2*fS)*(2*fS));
+				expo = 0.25*((fM-r)/fS)*((fM-r)/fS);
 				k1 = f1.Function(expo);
 				k3 = f3.Function(expo);
 				k5 = f5.Function(expo);
@@ -556,7 +531,7 @@ dArrayT& GreenwoodWilliamson::MapDDFunction(const dArrayT& in, dArrayT& out) con
 				sqmux = (fM-r)*(fM-r)-fS*fS;
 				gn = h.Function(-0.25);
 				gp = h.Function(0.25);
-				expo = 0.5*(fM-r)*(fM-r)/(fS*fS);
+				expo = 0.5*((fM-r)/fS)*((fM-r)/fS);
 			
 				if (expo > EXTOL)
 				{
