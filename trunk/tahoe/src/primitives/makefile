@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:52 paklein Exp $
+# $Id: makefile,v 1.5 2002-01-09 12:00:44 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -10,7 +10,6 @@ OBJ = \
 	ElementMatrixT.o \
 	FBC_CardT.o \
 	IC_CardT.o \
-	JoinOutputT.o \
 	KBC_CardT.o \
 	LoadTime.o \
 	SWDataT.o \
@@ -28,7 +27,6 @@ SRC = \
 	ElementMatrixT.cpp \
 	FBC_CardT.cpp \
 	IC_CardT.cpp \
-	JoinOutputT.cpp \
 	KBC_CardT.cpp \
 	LoadTime.cpp \
 	SWDataT.cpp \
@@ -41,7 +39,6 @@ HDR = \
 	ElementMatrixT.h \
 	FBC_CardT.h \
 	IC_CardT.h \
-	JoinOutputT.h \
 	KBC_CardT.h \
 	LoadTime.h \
 	MapSetT.h \
