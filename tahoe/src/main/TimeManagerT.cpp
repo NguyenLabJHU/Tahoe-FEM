@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.19.22.1 2004-04-08 07:33:48 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.19.22.2 2004-04-28 02:58:53 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "TimeManagerT.h"
 
@@ -308,7 +308,7 @@ void TimeManagerT::DefineParameters(ParameterListT& list) const
 
 	/* results output increment */
 	ParameterT output_inc(ParameterT::Integer, "output_inc");
-	output_inc.AddLimit(0, LimitT::LowerInclusive);
+	output_inc.SetDefault(0);
 	list.AddParameter(output_inc);
 
 	/* maximum number of time increment cuts */
