@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.39.14.1 2004-04-08 07:32:30 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.39.14.2 2004-04-08 15:58:50 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -68,7 +68,8 @@ ContinuumElementT::ContinuumElementT(const ElementSupportT& support):
 	fLocDisp(LocalArrayT::kDisp),
 	fNumIP(0),
 	fOutputID(),
-	fGeometryCode(GeometryT::kNone)
+	fGeometryCode(GeometryT::kNone),
+	fAxisymmetric(false)
 {
 	SetName("continuum_element");
 }
@@ -1455,6 +1456,9 @@ void ContinuumElementT::TakeParameterList(const ParameterListT& list)
 
 	/* inherited */
 	ElementBaseT::TakeParameterList(list);
+
+	/* set axisymmmetric flag */
+	fAxisymmetric = Axisymmetric();
 
 	/* construct group communicator */
 	const CommunicatorT& comm = ElementSupport().Communicator();
