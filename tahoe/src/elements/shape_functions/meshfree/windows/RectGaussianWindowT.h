@@ -1,4 +1,4 @@
-/* $Id: RectGaussianWindowT.h,v 1.6 2004-10-12 00:20:26 paklein Exp $ */
+/* $Id: RectGaussianWindowT.h,v 1.7 2004-10-30 20:55:00 raregue Exp $ */
 
 #ifndef _RECT_GAUSSIAN_WINDOW_T_H_
 #define _RECT_GAUSSIAN_WINDOW_T_H_
@@ -8,6 +8,7 @@
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "dSymMatrixT.h"
+#include "dMatrixT.h"  //kyonten
 
 namespace Tahoe {
 
@@ -43,11 +44,11 @@ class RectGaussianWindowT: public WindowT
 
 	/* single point evaluations */
 	virtual bool Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
-		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw);
+		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dMatrixT& DDDw); // kyonten (DDDw)
 
 	/* multiple point evaluations */
 	virtual int Window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
-		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw);
+		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw, dArray2DT& DDDw); // kyonten (DDDw)
 
 	/** \name coverage tests */
 	/*@{*/
@@ -65,7 +66,13 @@ class RectGaussianWindowT: public WindowT
 	virtual double SphericalSupportSize(const dArrayT& param_n) const;
 
 	/** rectangular support size */
-	virtual void RectangularSupportSize(const dArrayT& param_n, dArrayT& support_size) const;
+	virtual const dArrayT& RectangularSupportSize(const dArrayT& param_n) const;
+
+	/** spherical support sizes in batch */
+	virtual void SphericalSupportSize(const dArray2DT& param_n, ArrayT<double>& support_size) const;
+
+	/** rectangular support sizes in batch */
+	virtual void RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const;
 	/*@}*/
 	
   private:
@@ -78,6 +85,7 @@ class RectGaussianWindowT: public WindowT
 	/* work space */
 	dArrayT fNSD;
 	dSymMatrixT fNSDsym;
+	dMatrixT    fNSDunsym; //for DDDw??
 };
 
 } // namespace Tahoe 

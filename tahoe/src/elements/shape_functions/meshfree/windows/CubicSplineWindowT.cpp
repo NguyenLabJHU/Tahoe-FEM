@@ -44,8 +44,10 @@ void CubicSplineWindowT::WriteParameters(ostream& out) const
 
 /* Single point evaluations */
 bool CubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
-		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw)
+		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw, dMatrixT& DDDw) // added KY (3rd derivative)
 {
+	/* allocate */
+	int nsd = x.Length();
 	/* outside the range of influence */
 	if (!CubicSplineWindowT::Covers(x_n, x, param_n))
 	{
@@ -54,7 +56,13 @@ bool CubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, cons
 		{
 			Dw = 0.0;
 			if (order > 1)
+			{
 				DDw = 0.0;
+				if (order > 2) // kyonten
+				{
+					DDDw = 0.0;
+				}	
+			}
 		}
 		
 		/* does not cover */
@@ -71,6 +79,7 @@ bool CubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, cons
 			w = 0.0;
 			Dw = 0.0;
 			DDw = 0.0;
+			DDDw = 0.0; // kyonten
 		} else if (r > 1.0) {
 			double dr = 2.0 - r;
 			w = 1.0/(6.0*a)*dr*dr*dr;
@@ -80,6 +89,44 @@ bool CubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, cons
 					double ddw = dr/a;
 					DDw.Outer(Dw, (ddw/a - dw/dist)/(dist*dist*a));
 					DDw.PlusIdentity(dw/(dist*a));
+					if (order > 2) // kyonten (DDDw)
+	  				{ 
+	  					dSymMatrixT DDDw1(nsd);
+	  					dMatrixT DDDw2(nsd,dSymMatrixT::NumValues(nsd));
+	  					dArrayT DDDw1_vec(nsd), I(nsd);
+	  					double const1, const2;
+	  					// In 3D case: DDDw is a 3x9 matrix (non-symmetric) or a 3x6 (symmetric)
+	  					// out of 27 (non-symmetric) or 18 (symmetric) components only 9
+	  					// of them are needed for forming B3
+	  					// DDDw, thus, becomes a 3x3 unsymmetric matrix
+	  					DDDw1.Outer(Dw);
+	  					if (nsd == 2)
+	  					{
+	  						DDDw1_vec[0] = DDDw1(0,0);
+	  						DDDw1_vec[1] = DDDw1(1,1);
+	  						I[0] = 1.0; I[1] = 1.0;
+	  					}
+	  					else if (nsd == 3)
+	  					{
+	  						DDDw1_vec[0]=DDDw1(0,0);
+	  						DDDw1_vec[1]=DDDw1(1,1);
+	  						DDDw1_vec[2]=DDDw1(2,2);
+	  						I[0] = 1.0; I[1] = 1.0; I[2] = 1.0;
+	  					}
+	  					DDDw.Outer(Dw,DDDw1_vec);  
+	  					const1 = (ddw/a - dw/dist);
+	  					const1 *= -2./(dist*dist);
+	  					const1 -= 1./(a*a*a*dist);
+	  					const1 -= dr/(a*a*dist*dist);
+	  					const1 += dw/(dist*dist*dist);
+	  					DDDw *= const1/(dist*dist*a);
+	  					const2 = (ddw/a - dw/dist)/(dist*dist*a);
+	  					DDDw2.Outer(Dw,I); 
+	  					DDDw2 += DDDw2;
+	  					DDDw2 += DDDw2;
+	  					DDDw2 *= const2;
+	  					DDDw += DDDw2;
+	  				}
 				}
 				Dw *= dw/(dist*a);
 			}
@@ -92,6 +139,41 @@ bool CubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, cons
 					double ddw = (3.0*r - 2.0)/a;
 					DDw.Outer(Dw, (ddw/a - dw_by_r*r/dist)/(dist*dist*a));
 					DDw.PlusIdentity(dw_by_r*r/(dist*a));
+					if (order > 2) // kyonten (DDDw)
+	  				{
+	  					dSymMatrixT DDDw1(nsd);
+	  					dMatrixT DDDw2(nsd,dSymMatrixT::NumValues(nsd));
+	  					dArrayT DDDw1_vec(2), I(2);
+	  					double const1, const2;
+	  					
+	  					DDDw1.Outer(Dw);
+	  					if (nsd == 2)
+	  					{
+	  						DDDw1_vec[0] = DDDw1(0,0);
+	  						DDDw1_vec[1] = DDDw1(1,1);
+	  						I[0] = 1.0; I[1] = 1.0;
+	  					}
+	  					else if (nsd == 3)
+	  					{
+	  						DDDw1_vec[0]=DDDw1(0,0);
+	  						DDDw1_vec[1]=DDDw1(1,1);
+	  						DDDw1_vec[2]=DDDw1(2,2);
+	  						I[0] = 1.0; I[1] = 1.0; I[2] = 1.0;
+	  					}
+	  					DDDw.Outer(Dw,DDDw1_vec); 
+	  					const1 = (ddw/a - dw_by_r*r/dist);
+	  					const1 *= -2./(dist*dist);
+	  					const1 += 3./(a*a*a*dist);
+	  					const1 -= (3.*r-1.)/(a*a*dist*dist);
+	  					const1 += dw_by_r * r/(dist*dist*dist);
+	  					DDDw *= const1/(dist*dist*a);
+	  					const2 = (ddw/a - dw_by_r*r/dist)/(dist*dist*a);
+	  					DDDw2.Outer(Dw,I); 
+	  					DDDw2 += DDDw2;
+	  					DDDw2 += DDDw2;
+	  					DDDw2 *= const2;
+	  					DDDw += DDDw2;
+	  				}
 				}
 				Dw *= dw_by_r/(a*a);
 			}
@@ -104,12 +186,13 @@ bool CubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, cons
 
 /* multiple point calculations */
 int CubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
-		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw)
+		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw, dArray2DT& DDDw) // kyonten (DDDw)
 {
 	/* allocate */
 	int nsd = x.Length();
 	fNSD.Dimension(nsd);
 	fNSDsym.Dimension(nsd);
+	fNSDunsym.Dimension(nsd,nsd); // for DDDw??
 
 	/* work space */
 	dArrayT x_node, param_node;
@@ -122,7 +205,7 @@ int CubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, c
 		x_n.RowAlias(i, x_node);
 		param_n.RowAlias(i, param_node);
       
-		if (CubicSplineWindowT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym))
+		if (CubicSplineWindowT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym, fNSDunsym)) //kyonten
 			count++;
 
 		/* store derivatives */
@@ -130,7 +213,13 @@ int CubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, c
 		{
 			Dw.SetColumn(i, fNSD);
 			if (order > 1)
+			{
 				DDw.SetColumn(i, fNSDsym);
+				if (order > 2)
+				{
+					DDDw.SetColumn(i, fNSDunsym); // for DDDw??
+				}
+			}
 		}
 	}
 	
@@ -172,10 +261,10 @@ double CubicSplineWindowT::SphericalSupportSize(const dArrayT& param_n) const
 }
 
 /* rectangular support size */
-void CubicSplineWindowT::RectangularSupportSize(const dArrayT& param_n, dArrayT& support_size) const
+const dArrayT& CubicSplineWindowT::RectangularSupportSize(const dArrayT& param_n) const 
 {
-	/* same in all dimensions */
-	support_size = SphericalSupportSize(param_n);
+	ExceptionT::GeneralFail("CubicSplineWindowT::RectangularSupportSize");
+	return param_n; /* dummy */
 }
 
 /* spherical support sizes in batch */
@@ -190,4 +279,12 @@ void CubicSplineWindowT::SphericalSupportSize(const dArray2DT& param_n, ArrayT<d
 	dArrayT tmp;
 	tmp.Alias(support_size);
 	tmp.SetToScaled(1.0*fDilationScaling, param_n);
+}
+
+/* rectangular support sizes in batch */
+void CubicSplineWindowT::RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const
+{
+#pragma unused(param_n)
+#pragma unused(support_size)
+	ExceptionT::GeneralFail("CubicSplineWindowT::RectangularSupportSize");
 }
