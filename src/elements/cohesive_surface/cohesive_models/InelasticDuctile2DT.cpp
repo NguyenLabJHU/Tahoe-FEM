@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile2DT.cpp,v 1.6 2003-05-26 01:54:44 paklein Exp $  */
+/* $Id: InelasticDuctile2DT.cpp,v 1.7 2003-05-27 07:13:30 paklein Exp $  */
 #include "InelasticDuctile2DT.h"
 #include "ifstreamT.h"
 #include "dArrayT.h"
@@ -17,7 +17,8 @@ const int kNumState =
         + 1 /* \phi_n */
         + 1 /* \phi^*_n */
         + 1 /* \int \mathbf{T} \cdot d\boldsymbol{\Delta} */
-		+ 1 /* \mathbf{T} \cdot d\boldsymbol{\Delta} */;
+		+ 1 /* \mathbf{T} \cdot d\boldsymbol{\Delta} */
+		+ 1 /* tied node flag (last slot) */;
         
 /* indicies in state variable array */
 const int         k_dex_T_n = 0;
@@ -28,6 +29,14 @@ const int k_dex_dissipation = 5;
 const int   k_dex_incr_diss = 6;
 const int     k_dex_Delta_n = 7;
 const int          k_dex_dq = 9;
+const int       k_tied_flag = 11;
+
+/* values in the BCJ output array - defined in BCJHypoIsoDamageYC3D.cpp */
+const int kBCJ_kappa_dex = 6;
+const int   kBCJ_phi_dex = 7;
+
+/* code for material output */
+const int kMaterialOutputCode = 6;
 
 /* local iteration tolerances */
 const double abs_tol = 1.0e-10;
@@ -68,6 +77,16 @@ InelasticDuctile2DT::InelasticDuctile2DT(ifstreamT& in, const double& time_step)
 	int reverse = -1;
 	in >> reverse; if (reverse != 0 && reverse != 1) ExceptionT::BadInputValue(caller);
 	fReversible = bool(reverse);
+
+	/* bulk group information for TiedPotentialBaseT */
+	int num_bulk_groups = -99;
+	in >> num_bulk_groups;
+	if (num_bulk_groups < 0)
+		ExceptionT::BadInputValue(caller, "bad number of bulk groups %d", num_bulk_groups);
+	iBulkGroups.Dimension(num_bulk_groups);
+	for (int i = 0; i < iBulkGroups.Length(); i++)
+		in >> iBulkGroups[i];
+	iBulkGroups--;
 }
 
 /* return the number of state variables needed by the model */
@@ -83,6 +102,7 @@ void InelasticDuctile2DT::InitStateVariables(ArrayT<double>& state)
 	state[k_dex_phi]   = 0.05;
 	state[k_dex_phi_s] = 0.05;
 	state[k_dex_kappa] = 1.0;
+	state[k_tied_flag] = kTiedNode;
 }
 
 /* incremental heat */
@@ -116,6 +136,14 @@ const dArrayT& InelasticDuctile2DT::Traction(const dArrayT& jump_u, ArrayT<doubl
 	if (state.Length() != NumStateVariables()) ExceptionT::SizeMismatch(caller);
 	if (fTimeStep < 0.0) ExceptionT::BadInputValue(caller, "expecting non-zero time increment: %g", fTimeStep);
 #endif
+
+	/* not initialized yet */
+	if (fabs(state[k_tied_flag] - kTiedNode) < kSmall) {
+		state[k_dex_phi]   = sigma[kBCJ_phi_dex];
+		state[k_dex_phi_s] = sigma[kBCJ_phi_dex];
+		if (fabs(sigma[kBCJ_kappa_dex]) > kSmall) /* protect against division by zero */
+			state[k_dex_kappa] = sigma[kBCJ_kappa_dex];
+	}
 
 	/* copy state variables */
 	fState = state;
@@ -270,6 +298,14 @@ void InelasticDuctile2DT::Print(ostream& out) const
 #ifndef _SIERRA_TEST_
 	out << " Initial width of the process zone . . . . . . . = " << fw_0 << '\n';
 	out << " Rate-independent strain rate limit. . . . . . . = " << feps_0 << '\n';
+	out << " Critical void volume fraction . . . . . . . . . = " << fphi_init << '\n';
+	out << " Reversible damage . . . . . . . . . . . . . . . = " << ((fReversible) ? "true" : "false") << '\n';
+	out << " Number of element groups for bulk information . = " << iBulkGroups.Length() << '\n';
+	iArrayT tmp;
+	tmp.Alias(iBulkGroups); /* non-const alias */
+	tmp++;
+	out << " Group numbers : " << tmp.no_wrap() << '\n';
+	tmp--;
 #endif
 }
 
@@ -284,6 +320,19 @@ void InelasticDuctile2DT::OutputLabels(ArrayT<StringT>& labels) const
 	labels[0] = "kappa";
 	labels[1] = "phi";
 	labels[2] = "phi_max";
+}
+
+/* release condition depends on this bulk quantity */
+int InelasticDuctile2DT::NodalQuantityNeeded(void) const
+{
+	return kMaterialOutputCode; /* SolidElementT::iMaterialData to get the damage */
+}
+	
+/* true if a nodal release condition is satisfied */
+bool InelasticDuctile2DT::InitiationQ(const nArrayT<double>& sigma) const
+{
+	/* void volume fraction exceeds critital */
+	return sigma[kBCJ_phi_dex] >= fphi_init;
 }
 
 /*************************************************************************

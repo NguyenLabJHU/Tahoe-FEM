@@ -1,9 +1,10 @@
-/* $Id: InelasticDuctile2DT.h,v 1.6 2003-05-26 01:54:44 paklein Exp $ */
+/* $Id: InelasticDuctile2DT.h,v 1.7 2003-05-27 07:13:30 paklein Exp $ */
 #ifndef _INELASTIC_DUCTILE_2D_T_H_
 #define _INELASTIC_DUCTILE_2D_T_H_
 
 /* base class */
 #include "SurfacePotentialT.h"
+#include "TiedPotentialBaseT.h"
 
 /* direct members */
 #include "LAdMatrixT.h"
@@ -13,8 +14,10 @@ namespace Tahoe {
 /* forward declarations */
 class ifstreamT;
 
-/** Inelastic cohesive zone model for ductile fracture */
-class InelasticDuctile2DT: public SurfacePotentialT
+/** Inelastic cohesive zone model for ductile fracture. A cohesive zone model
+ * which is in complementary to the kinetic equations for the BCJ model, which
+ * are implemented in BCJKineticEqn. */
+class InelasticDuctile2DT: public SurfacePotentialT, public TiedPotentialBaseT
 {
 public:
 
@@ -67,6 +70,28 @@ public:
 	 * \param destination of output values. Allocated by the host code */
 	virtual void ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
 		dArrayT& output);
+
+	/** \name implementation of the TiedPotentialBaseT interface */
+	/*@{*/
+	/** true if nodal release depends on bulk element groups. InelasticDuctile2DT
+	 * uses nodal information if bulk groups are specified. */
+	virtual bool NeedsNodalInfo(void) const { return iBulkGroups.Length() > 0; };
+	
+	/** release condition depends on this bulk quantity */
+	virtual int NodalQuantityNeeded(void) const;
+
+	/** nodal value is not stress, so does not need to be transformed to local frame */
+	virtual bool RotateNodalQuantity(void) const { return false; };
+	
+	/** true if a nodal release condition is satisfied */
+	virtual bool InitiationQ(const nArrayT<double>& sigma) const;
+
+	/** true if the tied potential may ask for nodes to be retied later */
+	virtual bool NodesMayRetie(void) const{ return false; };
+	
+	/** true if node should be retied */
+	virtual bool RetieQ(const nArrayT<double>&, const ArrayT<double>&, const dArrayT&) const { return false; }; 
+	/*@}*/
 
 protected:
 
