@@ -1,7 +1,4 @@
-// $Id: testImpl.cpp,v 1.10 2002-08-12 23:24:02 recampb Exp $
-//#include <StubPreamble.h>
-// not needed for 1.3.1
-
+// $Id: testImpl.cpp,v 1.11 2002-08-13 08:21:20 paklein Exp $
 #include "test.h"
 #include "testClass.h"
 // #include "vtkRenderWindow.h"
@@ -12,7 +9,6 @@
 #include "CommandSpecT.h"
 #include "AutoArrayT.h"
 #include "VTKConsoleT.h"
-
 
 using namespace Tahoe;
 
@@ -29,7 +25,6 @@ JNIEXPORT void JNICALL Java_test_InitCpp(JNIEnv * env, jobject obj)
 	int val = -99;
 	//int val2 = 100;
 	cout << "\n Java_test_InitCpp: storing a " << -99 << endl;
-
 
 	iArrayT test(10);
 	test.SetValueToPosition();
@@ -49,7 +44,6 @@ JNIEXPORT void JNICALL Java_test_InitCpp(JNIEnv * env, jobject obj)
 	a->iAddSub(*c);
 	b->iAddSub(*d);
 
-
 	StringT log_file = "testClass.log";
 	//iConsoleT* console = new  iConsoleT(log_file, *b, NULL, false);
 
@@ -68,8 +62,6 @@ JNIEXPORT void JNICALL Java_test_InitCpp(JNIEnv * env, jobject obj)
 
 JNIEXPORT void JNICALL Java_test_Print(JNIEnv * env, jobject obj)
 {
-	cout << "\n Java_test_Print: Hello!" << endl;
-
 	jclass cls = env->GetObjectClass(obj);
 	jfieldID fid = env->GetFieldID(cls, "cpp_obj", "J");
 	if (fid == 0) {
@@ -123,8 +115,7 @@ JNIEXPORT void JNICALL Java_test_Print(JNIEnv * env, jobject obj)
 		cout << " echo OK\n" << endl;
 	else
 		cout << " echo NOT OK\n" << endl;
-		
-	
+
 #if 1
 	/* call command of current console scope */
 	iConsoleObjectT& current_scope = p_console->Current();
@@ -139,12 +130,10 @@ JNIEXPORT void JNICALL Java_test_Print(JNIEnv * env, jobject obj)
 		cout << " AddBody NOT OK\n" << endl;
 
 	read_arguments = "x 20";
-	const CommandSpecT* rotate_command = current_scope.iResolveCommand("Interactive", empty_line);
-	current_scope.iDoCommand(*rotate_command, empty_line);
+//	const CommandSpecT* rotate_command = current_scope.iResolveCommand("Interactive", empty_line);
+//	current_scope.iDoCommand(*rotate_command, empty_line);
 	const CommandSpecT* update_command = current_scope.iResolveCommand("Update", empty_line);
-	
-	
-	
+
 	//const CommandSpecT* interact_command = current_scope.iResolveCommand("Interactive", empty_line);
 	if (update_command && current_scope.iDoCommand(*update_command, empty_line))
 		cout << " Update OK\n" << endl;
@@ -217,26 +206,23 @@ JNIEXPORT void JNICALL Java_test_SetScope(JNIEnv * env, jobject obj, jstring s)
 
 JNIEXPORT void JNICALL Java_test_Interact(JNIEnv * env, jobject obj)
 {
-//   jclass cls = env->GetObjectClass(obj);
-//   jfieldID fid = env->GetFieldID(cls, "console", "J");
-//   if (fid == 0) {
-//     return;
-//   }
+   jclass cls = env->GetObjectClass(obj);
+   jfieldID fid = env->GetFieldID(cls, "console", "J");
+   if (fid == 0) {
+     return;
+   }
   
-//   jlong p_long = env->GetLongField(obj, fid);
-//   iConsoleT* p_console = (iConsoleT*) p_long;
+   jlong p_long = env->GetLongField(obj, fid);
+   iConsoleT* p_console = (iConsoleT*) p_long;
+   iConsoleObjectT& current_scope = p_console->Current();
   
-//   StringT empty_line;
-//   StringT read_args = "x 20";
-//   //p_console->iResolveCommand("Interactive", empty_line);
-
-// #if 1
-//   iConsoleObjectT& current_scope = p_console->Current();
-//   const CommandSpecT* interact_command = current_scope.iResolveCommand("Rotate", read_args);
-//   current_scope.iDoCommand(*interact_command, empty_line);
-
-// #endif
-
+   StringT empty_line;
+   StringT read_args = "x 20";
+   const CommandSpecT* interact_command = current_scope.iResolveCommand("Interactive", empty_line);
+	if (interact_command && current_scope.iDoCommand(*interact_command, empty_line))
+		cout << " Interactive OK\n" << endl;
+ 	else
+ 		cout << " Interactive NOT OK\n" << endl;
 
 // 	jclass cls = env->GetObjectClass(obj);
 // 	jfieldID fid = env->GetFieldID(cls, "console", "J");
@@ -316,6 +302,21 @@ JNIEXPORT void JNICALL Java_test_Interact(JNIEnv * env, jobject obj)
 // #endif
 
 // 	return;
+}
 
+JNIEXPORT void JNICALL Java_test_CommandLine(JNIEnv * env, jobject obj)
+{
+   jclass cls = env->GetObjectClass(obj);
+   jfieldID fid = env->GetFieldID(cls, "console", "J");
+   if (fid == 0) {
+     return;
+   }
+  
+   jlong p_long = env->GetLongField(obj, fid);
+   iConsoleT* p_console = (iConsoleT*) p_long;
 
+	/* let console run */
+	p_console->DoInteractive();
+
+	cout << "\n Control returned to GUI" << endl;
 }
