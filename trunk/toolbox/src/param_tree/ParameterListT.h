@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.17 2004-02-12 17:18:21 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.18 2004-02-18 16:28:50 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -97,6 +97,7 @@ public:
 	bool AddParameter(int a, const char* name, OccurrenceT occur = Once);
 	bool AddParameter(double x, const char* name, OccurrenceT occur = Once);
 	bool AddParameter(const char* s, const char* name, OccurrenceT occur = Once);
+	bool AddParameter(bool b, const char* name, OccurrenceT occur = Once);
 	bool AddParameter(ValueT::TypeT t, const char* name, OccurrenceT occur = Once);
 
 	/** remove the first instance of a parameter. Returns true if the given parameter 
@@ -238,6 +239,11 @@ inline bool ParameterListT::AddParameter(double x, const char* name, OccurrenceT
 inline bool ParameterListT::AddParameter(const char* s, const char* name, OccurrenceT occur)
 {
 	ParameterT parameter(s, name);
+	return AddParameter(parameter, occur);
+}
+inline bool ParameterListT::AddParameter(bool b, const char* name, OccurrenceT occur)
+{
+	ParameterT parameter(b, name);
 	return AddParameter(parameter, occur);
 }
 inline bool ParameterListT::AddParameter(ValueT::TypeT t, const char* name, OccurrenceT occur)
