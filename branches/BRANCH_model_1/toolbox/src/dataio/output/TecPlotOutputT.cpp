@@ -1,4 +1,4 @@
-/* $Id: TecPlotOutputT.cpp,v 1.1.1.1.2.6 2001-11-06 20:22:52 sawimme Exp $ */
+/* $Id: TecPlotOutputT.cpp,v 1.1.1.1.2.7 2001-11-07 15:09:13 sawimme Exp $ */
 /* created: sawimme (06/06/2000)                                          */
 
 #include "TecPlotOutputT.h"
@@ -116,10 +116,9 @@ void TecPlotOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
       // can write separately from coordinate list
       if (n_values.MajorDim() > 0)
 	{
-	  iArrayT rows_used = nodes_used;
-	  rows_used += -c->Min();
-	  dArray2DT local_vars (rows_used.Length(), n_values.MinorDim());
-	  local_vars.RowCollect (rows_used, n_values);
+	  iArrayT block_nodes;
+	  dArray2DT local_vars;
+	  NodalBlockValues (ID, b, n_values, local_vars, block_nodes);
 	  tec.WriteData (out, local_vars);
 	}
 

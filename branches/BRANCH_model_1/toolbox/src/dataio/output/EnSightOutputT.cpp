@@ -1,4 +1,4 @@
-/* $Id: EnSightOutputT.cpp,v 1.3.2.5 2001-11-06 17:06:43 sawimme Exp $ */
+/* $Id: EnSightOutputT.cpp,v 1.3.2.6 2001-11-07 15:09:12 sawimme Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #include "EnSightOutputT.h"
@@ -217,17 +217,8 @@ void EnSightOutputT::WriteVariable (EnSightT& ens, bool nodal, int ID,
     {
       if (nodal)
 	{
-	  // collect node numbers
 	  iArrayT nodes_used;
-	  fElementSets[ID]->BlockNodesUsed (block, nodes_used);
-
-	  // change nodes_used from global to local numbering
-	  const iArray2DT* conn = fElementSets[ID]->Connectivities (block);
-	  nodes_used += -conn->Min();
-
-	  // collect the appropriate rows of data for this block
-	  blockvalues[block].Allocate (nodes_used.Length(), values.MinorDim());
-	  blockvalues[block].RowCollect (nodes_used, values);
+	  NodalBlockValues (ID, block, values, blockvalues[block], nodes_used);
 	}
       else
 	{

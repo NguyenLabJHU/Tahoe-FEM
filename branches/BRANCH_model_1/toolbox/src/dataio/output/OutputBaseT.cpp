@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.1.1.1.2.2 2001-10-31 20:59:40 sawimme Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.1.1.1.2.3 2001-11-07 15:09:12 sawimme Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #include "OutputBaseT.h"
@@ -254,3 +254,27 @@ void OutputBaseT::ElementBlockValues (int ID, int block, const dArray2DT& allval
   blockvalues.RowCollect (rows, allvalues);
 }
 
+void OutputBaseT::NodalBlockValues (int ID, int block, const dArray2DT& allvalues, dArray2DT& blockvalues, iArrayT& block_nodes) const
+{
+  iArrayT group_nodes;
+  group_nodes.Alias (fElementSets[ID]->NodesUsed());
+  fElementSets[ID]->BlockNodesUsed (block, block_nodes);
+
+  iArrayT rows (block_nodes.Length());
+  if (block_nodes.Length() == group_nodes.Length())
+    rows.SetValueToPosition(); // block is using all group nodes
+  else
+    {
+      // determine which rows of group nodal values are in the block
+      for (int i=0; i < block_nodes.Length(); i++)
+	{
+	  int dex;
+	  group_nodes.HasValue (block_nodes[i], dex);
+	  if (dex < 0 || dex > group_nodes.Length()) throw eOutOfRange;
+	  rows[i] = dex;
+	}
+    }
+
+  blockvalues.Allocate (rows.Length(), allvalues.MinorDim());
+  blockvalues.RowCollect (rows, allvalues);
+}

@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.h,v 1.2.2.1 2001-10-31 20:59:40 sawimme Exp $ */
+/* $Id: OutputBaseT.h,v 1.2.2.2 2001-11-07 15:09:13 sawimme Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #ifndef _OUTPUTBASE_T_H_
@@ -69,6 +69,7 @@ protected:
 
 	void LocalConnectivity(const iArrayT& node_map, const iArray2DT& connects, iArray2DT& local_connects) const;
 	void ElementBlockValues (int ID, int block, const dArray2DT& allvalues, dArray2DT& blockvalues) const;
+	void NodalBlockValues (int ID, int block, const dArray2DT& allvalues, dArray2DT& blockvalues, iArrayT& block_nodes) const;
 
 protected:
 
