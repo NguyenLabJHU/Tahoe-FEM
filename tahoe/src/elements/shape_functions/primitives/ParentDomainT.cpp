@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.29 2004-10-30 20:55:50 raregue Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.30 2005-01-26 19:55:26 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "ParentDomainT.h"
 #include "dArray2DT.h"
@@ -779,7 +779,7 @@ void ParentDomainT::NodalValues(const dArrayT& IPvalues,
 				*pnv++ = *prep++;
 		}
 	}
-/* more than 1 integration point */
+	/* more than 1 integration point */
 	else
 	{	
 		const double* psmooth = fNodalExtrap(IPnum);
