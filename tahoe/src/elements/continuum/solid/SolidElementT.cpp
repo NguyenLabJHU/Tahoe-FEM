@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.67 2005-01-05 01:26:42 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.68 2005-01-13 19:41:45 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -53,7 +53,7 @@ SolidElementT::SolidElementT(const ElementSupportT& support):
 	fLocTemp(NULL),
 	fLocTemp_last(NULL),
 	fStoreInternalForce(false),
-	fMassType(kConsistentMass)
+	fMassType(kAutomaticMass)
 {
 	SetName("solid_element");
 }
@@ -292,6 +292,7 @@ void SolidElementT::DefineParameters(ParameterListT& list) const
 
 	/* mass type */
 	ParameterT mass_type(ParameterT::Enumeration, "mass_type");
+	mass_type.AddEnumeration("automatic", kAutomaticMass);
 	mass_type.AddEnumeration("no_mass", kNoMass);
     mass_type.AddEnumeration("consistent_mass", kConsistentMass);
     mass_type.AddEnumeration("lumped_mass", kLumpedMass);
@@ -356,16 +357,24 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 	const char caller[] = "SolidElementT::TakeParameterList";
 
 	/* set mass type before calling ContinuumElementT::TakeParameterList because
-	 * it's needed for SolidElementT::TangentType */
+	 * it's needed for SolidElementT::TangentType. If the mass type is kAutomaticMass,
+	 * this needs to be resolved; however, it cannot be resolved before ContinuumElementT::TakeParameterList
+	 * has been called because fIntegrator won't be set. Therefore, kAutomaticMass is resolved
+	 * both here and in SolidElementT::TangentType. */
 	list.GetParameter("mass_type", enum2int<ContinuumElementT::MassTypeT>(fMassType));
 
 	/* inherited */
 	ContinuumElementT::TakeParameterList(list);
 
+	/* resolve mass type */
+	if (fMassType == kAutomaticMass) {
+		if (fIntegrator->ImplicitExplicit() == IntegratorT::kImplicit)
+			fMassType = kConsistentMass;
+		else
+			fMassType = kLumpedMass;
+	}
+
 	/* allocate work space */
-//	fB_list.Dimension(NumIP());
-//	for (int i = 0; i < fB_list.Length(); i++)
-//		fB_list[i].Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
 	fB.Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
 	fD.Dimension(dSymMatrixT::NumValues(NumSD()));
 	
@@ -1076,11 +1085,21 @@ bool SolidElementT::NextElement(void)
 /* form of tangent matrix */
 GlobalT::SystemTypeT SolidElementT::TangentType(void) const
 {
+	/* resolve mass type - see note in SolidElementT::TakeParameterList
+	 * regarding when the mass type is set */
+	MassTypeT mass_type = fMassType;
+	if (mass_type == kAutomaticMass) {
+		if (fIntegrator->ImplicitExplicit() == IntegratorT::kImplicit)
+			mass_type = kConsistentMass;
+		else
+			mass_type = kLumpedMass;
+	}	
+
 	/* special case */
 	if (fIntegrator->Order() > 0 &&
 	    fIntegrator->ImplicitExplicit() ==  eIntegratorT::kExplicit &&
-	    (fMassType == kNoMass ||
-	     fMassType == kLumpedMass))
+	    (mass_type == kNoMass ||
+	     mass_type == kLumpedMass))
 		return GlobalT::kDiagonal;
 	else
 		/* inherited */
