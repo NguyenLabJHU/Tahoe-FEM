@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.2 2001-02-19 23:13:44 paklein Exp $ */
 /* created: paklein (03/03/1997)                                          */
 
 #include "dSymMatrixT.h"
@@ -1265,6 +1265,13 @@ if (sort_descending)
 		     <<   "     Sum of off-diagonal terms = " << small << endl;
 		throw eGeneralFail;
 	}
+
+	/* transpose matrix */
+	double tmp;
+	v = evecs.Pointer();
+	tmp = v[1]; v[1] = v[3]; v[3] = tmp;
+	tmp = v[2]; v[2] = v[6]; v[6] = tmp;
+	tmp = v[5]; v[5] = v[7]; v[7] = tmp;
 
 #if 0
 	if (sort_descending)
