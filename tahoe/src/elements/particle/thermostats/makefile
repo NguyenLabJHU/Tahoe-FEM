@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.3 2003-04-18 19:52:13 cjkimme Exp $
+# $Id: makefile,v 1.3.12.1 2003-09-18 22:38:28 cjkimme Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -24,7 +24,11 @@ OBJ = \
 	LangevinT.o \
 	NoseHooverT.o \
 	GaussIsokineticT.o \
-	RampedDampingT.o
+	RampedDampingT.o \
+	ConstrainedPressureT.o \
+	ConfigurationalT.o \
+	NPT_EnsembleT.o \
+	AndersenPressureT.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -48,7 +52,11 @@ SRC = \
 	LangevinT.cpp \
 	NoseHooverT.cpp \
 	GaussIsokineticT.cpp \
-	RampedDampingT.cpp
+	RampedDampingT.cpp \
+	ConstrainedPressureT.cpp \
+	ConfigurationalT.cpp \
+	NPT_EnsembleT.cpp \
+	AndersenPressureT.cpp 
 
 ##################### (3) headers
 #
@@ -64,7 +72,11 @@ HDR = \
 	LangevinT.h \
 	NoseHooverT.h \
 	GaussIsokineticT.h \
-	RampedDampingT.h
+	RampedDampingT.h \
+	ConstrainedPressureT.h \
+	ConfigurationalT.h \
+	NPT_EnsembleT.h \
+	AndersenPressureT.h 
 
 HDR_LINK = $(HDR:.h=.h_link)
 
