@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.6 2001-09-28 21:36:36 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.7 2001-10-01 18:17:34 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "vtkRenderer.h"
@@ -56,82 +56,14 @@ VTKConsoleT::VTKConsoleT(void)
   //  iAddCommand("Hide_Node_Numbers");
   iAddCommand("Color_bar_on");
   iAddCommand("Color_bar_off");
-//   iAddCommand("X_axis_rotation");
-//   iAddCommand("Y_axis_rotation");
-//   iAddCommand("Z_axis_rotation");
+  iAddCommand("X_axis_rotation");
+  iAddCommand("Y_axis_rotation");
+  iAddCommand("Z_axis_rotation");
  
 
    StringT file = "../../example_files/heat/heat.io0.exo";
 
-//    ExodusT exo(cout);
-//   if (!exo.OpenRead(file))
-// 	{
-// 	  cout << " ERROR: could not open file: " << file << endl;
-// 	  throw;
-// 	}
-//   else
-// 	cout << "read database file: " << file << endl;
 
-
-
-//   /* read coordinates */
-//   int num_nodes = exo.NumNodes();
-//   int num_dim   = exo.NumDimensions();
-//   dArray2DT coordinates(num_nodes, num_dim);
-//   exo.ReadCoordinates(coordinates);
-
-//   /* read element block ID's */
-//   int num_elem_blocks = exo.NumElementBlocks();
-//   iArrayT element_ID(num_elem_blocks);
-//   exo.ElementBlockID(element_ID);
-
-//   /* read element connectivities */
-//   ArrayT<iArray2DT> connectivities(num_elem_blocks);
-//   for (int i = 0 ; i < num_elem_blocks; i++)
-// 	{
-// 	  /* read dimensions */
-// 	  int num_elements, num_element_nodes;
-// 	  exo.ReadElementBlockDims(element_ID[i], num_elements, num_element_nodes);
-
-// 	  /* read connectivities */
-// 	  connectivities[i].Allocate(num_elements, num_element_nodes);
-// 	  GeometryT::CodeT geometry;
-// 	  exo.ReadConnectivities(element_ID[i], geometry, connectivities[i]);
-
-
-// 	}
-
-//   /* look for results data */
-//   int num_time_steps = exo.NumTimeSteps();
-//   //if (num_time_steps > 0)
-//   //	{
-// 	  /* variables defined at the nodes */
-// 	  int num_node_variables = exo.NumNodeVariables();
-// 	  ArrayT<StringT> node_labels(num_node_variables);
-// 	  exo.ReadNodeLabels(node_labels);
-// 	  cout << " nodal variables:\n";
-// 	  for (int i = 0; i < node_labels.Length(); i++)
-// 		cout << node_labels[i] << '\n';
-
-// 	  /* variables defined over the elements */
-// 	  int num_element_variables = exo.NumElementVariables();
-// 	  ArrayT<StringT> element_labels;
-// 	  exo.ReadElementLabels(element_labels);
-// 	  cout << " element variables:\n" << endl;
-// 	  for (int i = 0; i < element_labels.Length(); i++)
-// 		cout << element_labels[i] << '\n';
-// 	  cout.flush();
-
-// 	  /* read nodal data */
-// 	  dArray2DT nodal_data(num_nodes, num_node_variables);
-// 	  dArrayT ndata(num_nodes);
-
-// 	  if (num_time_steps > 0)
-// 	    {
-// 	      for (int i = 0; i < num_time_steps; i++)
-// 		{
-// 		  double time;
-// 		  exo.ReadTime(i+1, time);
 
    ExodusT exo(cout);
   if (!exo.OpenRead(file))
@@ -139,8 +71,8 @@ VTKConsoleT::VTKConsoleT(void)
 	  cout << " ERROR: could not open file: " << file << endl;
 	  throw;
 	}
-  else
-	cout << "read database file: " << file << endl;
+ //  else
+// 	cout << "read database file: " << file << endl;
 
 
 
@@ -151,6 +83,20 @@ VTKConsoleT::VTKConsoleT(void)
  
   //ArrayT<dArray2DT> coordinates(num_nodes);
   exo.ReadCoordinates(coordinates);
+
+  if (coordinates.MinorDim() == 2) 
+    { 
+      /* temp space */ 
+      dArray2DT tmp(coordinates.MajorDim(), 3); 
+      
+      /* write in */ 
+      tmp.BlockColumnCopyAt(coordinates, 0);    
+      tmp.SetColumn(2, 0.0); 
+      
+      /* swap memory */ 
+      tmp.Swap(coordinates); 
+    } 
+
 
   /* read element block ID's */
   int num_elem_blocks = exo.NumElementBlocks();
@@ -224,7 +170,7 @@ VTKConsoleT::VTKConsoleT(void)
 //  for (int i=0; i<num_nodes; i++) points->InsertPoint(i,coordinates[i]);
 		  
   vtkPoints *points = vtkPoints::New();
- for (int i=0; i<num_nodes; i++) points->InsertPoint(i,coordinates(i));
+ for (int i=0; i<num_nodes; i++) points->InsertPoint(i+1,coordinates(i));
 
  //NOTE: this code is only for a single block of cells
  //      the data for visualization will be provided one
@@ -280,7 +226,7 @@ VTKConsoleT::VTKConsoleT(void)
  ugrid->SetCells(cell_types.Pointer(), vtk_cell_array);
 
   vtkScalars *scalars = vtkScalars::New(VTK_DOUBLE);
-  for (int i=0; i<num_nodes; i++) scalars->InsertScalar(i,nodal_data[i]);
+  for (int i=0; i<num_nodes; i++) scalars->InsertScalar(i+1,nodal_data[i]);
 
   ugrid->SetPoints(points);
   points->Delete();
@@ -295,7 +241,7 @@ VTKConsoleT::VTKConsoleT(void)
   satRange1 = 1; satRange2 = 1;
   alphaRange1 = 1; alphaRange2 = 1;
   scalarRange1 = 6; scalarRange2 = 17;
-  // ugr = vtkUnstructuredGridReader::New();
+  ugr = vtkUnstructuredGridReader::New();
   renderer = vtkRenderer::New();
   renWin = vtkRenderWindow::New();
   iren = vtkRenderWindowInteractor::New();
@@ -311,11 +257,7 @@ VTKConsoleT::VTKConsoleT(void)
   ldm = vtkLabeledDataMapper::New();
   pointLabels = vtkActor2D::New();
   
-
-
-  // ugr->SetFileName(source_file);
-
-
+  ugr->SetFileName(source_file);
 
   renWin->AddRenderer(renderer);
  
@@ -367,8 +309,8 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 //       cout << "int = " << fInteger << endl;
 //       return true;
 //     }
-int xDir;
-double xRot;
+int xDir, yDir, zDir;
+double xRot, yRot, zRot;
 
   if (command == "Start_Rendering")
   {
@@ -405,11 +347,13 @@ double xRot;
 
   else if (command == "Save")
     {
-//         cout << "Enter name for file to be saved to: ";
-//         cin >> output_file;
-    
+      cout << "Enter name for file to be saved to: ";
+      cin >> output_file;
+      char line[255];
+      cin.getline(line, 254);
+	
       renSrc->SetInput(renderer);
-      renSrc->WholeWindowOn();
+       renSrc->WholeWindowOn();
       writer->SetInput(renSrc->GetOutput());
       writer->SetFileName(output_file);
       writer->Write();
@@ -456,18 +400,57 @@ double xRot;
     }
 
 
-//   else if (command == "X_axis_rotation")
-//     {
-//       cout << "Rotate:\n 1: Counter-clockwise\n 2: Clockwise: ";
-//       cin >> xDir;
-//       cout << "Rotate by how many degrees?: ";
-//       cin >> xRot;
-//       if (xDir == 1) renderer->GetActiveCamera()->Elevation(xRot);
-//       else if (xDir == 2) renderer->GetActiveCamera()->Elevation(360.0-xRot);
-//       renWin->Render();
-//       iren->Start();
-//       return true;
-//     }
+  else if (command == "X_axis_rotation")
+    {
+      cout << "Rotate:\n 1: Counter-clockwise\n 2: Clockwise: ";
+      cin >> xDir;
+      char line[255];
+      cin.getline(line, 254);
+      cout << "Rotate by how many degrees?: ";
+      cin >> xRot;
+      cin.getline(line, 254);
+      if (xDir == 1) renderer->GetActiveCamera()->Elevation(xRot);
+      else if (xDir == 2) renderer->GetActiveCamera()->Elevation(-xRot);
+      renWin->Render();
+      iren->Start();
+      return true;
+    }
+
+
+  else if (command == "Y_axis_rotation")
+    {
+      cout << "Rotate:\n 1: Counter-clockwise\n 2: Clockwise: ";
+      cin >> yDir;
+      char line[255];
+      cin.getline(line, 254);
+      cout << "Rotate by how many degrees?: ";
+      cin >> yRot;
+      cin.getline(line, 254);
+      if (yDir == 1) renderer->GetActiveCamera()->Azimuth(yRot);
+      else if (yDir == 2) renderer->GetActiveCamera()->Azimuth(-yRot);
+      renWin->Render();
+      iren->Start();
+      return true;
+    }
+
+  else if (command == "Z_axis_rotation")
+    {
+      cout << "Rotate:\n 1: Counter-clockwise\n 2: Clockwise: ";
+      cin >> zDir;
+      char line[255];
+      cin.getline(line, 254);
+      cout << "Rotate by how many degrees?: ";
+      cin >> zRot;
+      cin.getline(line, 254);
+      if (zDir == 1) renderer->GetActiveCamera()->Roll(zRot);
+      else if (zDir == 2) renderer->GetActiveCamera()->Roll(-zRot);
+      renWin->Render();
+      iren->Start();
+      return true;
+    }
+
+
+
 
   //  else if (command == "Hide_Node_Numbers")
 
