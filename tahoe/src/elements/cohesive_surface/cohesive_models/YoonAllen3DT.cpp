@@ -1,4 +1,4 @@
-/* $Id: YoonAllen3DT.cpp,v 1.1 2002-08-05 19:27:55 cjkimme Exp $ */
+/* $Id: YoonAllen3DT.cpp,v 1.2 2002-08-08 23:27:27 cjkimme Exp $ */
 
 #include "YoonAllen3DT.h"
 
@@ -45,12 +45,16 @@ YoonAllen3DT::YoonAllen3DT(ifstreamT& in, const double& time_step):
 		ftau[i] *= fE_t[i];
 	}
 
+	in >> fdamage; if (fdamage < 1 && fdamage > 3) throw eBadInputValue;
 	/* damage evolution law parameters */
 	in >> falpha_exp; //if (falpha_exp < 1.) throw eBadInputValue;
 	in >> falpha_0; if (falpha_0 <= kSmall) throw eBadInputValue;
-	in >> flambda_exp; if (flambda_exp > -1.) throw eBadInputValue;	
-	in >> flambda_0; if (flambda_0 < 1.) throw eBadInputValue;
-
+	if (fdamage == 2) 
+	{
+		in >> flambda_exp; if (flambda_exp > -1.) throw eBadInputValue;	
+		in >> flambda_0; if (flambda_0 < 1.) throw eBadInputValue;
+	}
+	
 	/* stiffness multiplier */
 	in >> fpenalty; if (fpenalty < 0) throw eBadInputValue;
 
@@ -194,10 +198,26 @@ const dArrayT& YoonAllen3DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 	/* evolve the damage parameter */
 	double alpha = state2[2*knumDOF+1];
 	if (l_dot > kSmall)
-		alpha += fTimeStep*falpha_0*pow(l,falpha_exp);
-//		alpha += fTimeStep*falpha_0*pow(1.-alpha,falpha_exp)*pow(1.-flambda_0*l,flambda_exp);
-//		alpha += fTimeStep*falpha_0*pow(l_dot,falpha_exp);
-
+	{
+		switch (fdamage) 
+		{
+			case 1:
+			{
+				alpha += fTimeStep*falpha_0*pow(l,falpha_exp);
+				break;
+			}
+			case 2:
+			{
+				alpha += fTimeStep*falpha_0*pow(1.-alpha,falpha_exp)*pow(1.-flambda_0*l,flambda_exp);
+				break;
+			}
+			case 3:
+			{
+				alpha += fTimeStep*falpha_0*pow(l_dot,falpha_exp);
+				break;
+			}
+		}
+	}
 	 	
 	if (alpha >= 1.)
 	{
@@ -305,9 +325,24 @@ const dMatrixT& YoonAllen3DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	double alpha = state[fNumRelaxTimes+2*knumDOF+1];
 	if (l_dot > kSmall)
 	{
-		alpha += fTimeStep*falpha_0*pow(l,falpha_exp);
-//		alpha += fTimeStep*falpha_0*pow(1.-alpha,falpha_exp)*pow(1.-flambda_0*l,flambda_exp);
-//		alpha += fTimeStep*falpha_0*pow(l_dot,falpha_exp);
+		switch (fdamage) 
+		{
+			case 1:
+			{
+				alpha += fTimeStep*falpha_0*pow(l,falpha_exp);
+				break;
+			}
+			case 2:
+			{
+				alpha += fTimeStep*falpha_0*pow(1.-alpha,falpha_exp)*pow(1.-flambda_0*l,flambda_exp);
+				break;
+			}
+			case 3:
+			{
+				alpha += fTimeStep*falpha_0*pow(l_dot,falpha_exp);
+				break;
+			}
+		}
 	}
 		
 	if (alpha >= 1.)
@@ -421,8 +456,12 @@ void YoonAllen3DT::Print(ostream& out) const
 		out << " Transient modulus for mode "<<i<<" . . . . . . . . .  = " << fE_t[i]    << '\n';
 		out << " Time constant for mode "<<i<<" . . . . . . . . . . .  = " << ftau[i]/fE_t[i] << '\n';
 	}
-	out << " Damage evolution law exponent . . . . . . . . . = " << falpha_exp << "\n";
-	out << " Damage evolution law constant . . . . . . . . . = " << falpha_0 << "\n";
+	out << " Damage evolution law code . . . . . . . . . . . = " << fdamage << "\n";
+	if (fdamage == 2) 
+	{
+		out << " Damage evolution law exponent . . . . . . . . . = " << falpha_exp << "\n";
+		out << " Damage evolution law constant . . . . . . . . . = " << falpha_0 << "\n";
+	}
 	out << " Damage evolution law lambda exponent. . . . . . = " << flambda_exp << "\n";
 	out << " Damage evolution law lambda prefactor . . . . . = " << flambda_0 << "\n";
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fpenalty   << '\n';
