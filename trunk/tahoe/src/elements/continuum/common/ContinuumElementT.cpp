@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.18 2002-07-02 19:55:23 cjkimme Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.19 2002-07-16 22:23:50 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "ContinuumElementT.h"
@@ -94,6 +94,14 @@ void ContinuumElementT::IP_ComputeGradient(const LocalArrayT& field,
 {
 	/* computed by shape functions */
 	ShapeFunction().GradU(field, gradient);
+}
+
+/* extrapolate all integration point values to the nodes */
+void ContinuumElementT::IP_ExtrapolateAll(const dArrayT& ip_values, 
+	dArrayT& nodal_values) const
+{
+	/* computed by shape functions */
+	ShapeFunction().ExtrapolateAll(ip_values, nodal_values);
 }
 
 /* allocates space and reads connectivity data */
