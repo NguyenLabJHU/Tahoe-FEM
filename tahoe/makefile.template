@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.30 2004-01-02 21:13:46 paklein Exp $
+# $Id: makefile.template,v 1.31 2004-01-03 06:45:38 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -205,10 +205,10 @@ include $(MACRO_DIR)/make.targets
 update_config:
 	@ if test -f $(SRC_DIR)/config/SolidMaterialsConfig.make; then rm $(SRC_DIR)/config/SolidMaterialsConfig.make; fi
 	@ if test -f $(SRC_DIR)/config/ElementsConfig.make; then rm $(SRC_DIR)/config/ElementsConfig.make;  fi
-	@ cd config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl SolidMaterialsConfig.conf $(SRC_DIR)/config
-	@ cd config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl ElementsConfig.conf  $(SRC_DIR)/config
-	@ cd config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   SolidMaterialsConfig.conf $(SRC_DIR)/config
-	@ cd config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   ElementsConfig.conf  $(SRC_DIR)/config
+	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl SolidMaterialsConfig.conf $(SRC_DIR)/config
+	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigHeaderFile.pl ElementsConfig.conf  $(SRC_DIR)/config
+	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   SolidMaterialsConfig.conf $(SRC_DIR)/config
+	@ cd $(HOME_DIR)/config; $(PERL) $(MACRO_DIR)/MakeConfigMakeFile.pl   ElementsConfig.conf  $(SRC_DIR)/config
 	@ make do_up_to_date "COMMAND = update_config"
 
 # create symbolic links
