@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.20 2003-08-08 00:33:27 paklein Exp $ */
+/* $Id: TiedNodesT.h,v 1.20.42.1 2004-11-12 00:28:48 thao Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -68,8 +68,8 @@ public:
 
 	/** \name restart functions */
 	/*@{*/
-	virtual void ReadRestart(istream& in);
-	virtual void WriteRestart(ostream& out) const;
+	virtual void ReadRestart(ifstreamT& in);
+	virtual void WriteRestart(ofstreamT& out) const;
 	/*@}*/
 
 	/** \name solution steps

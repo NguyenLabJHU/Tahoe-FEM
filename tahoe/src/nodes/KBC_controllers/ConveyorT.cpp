@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.3.30.5 2004-11-09 18:34:22 thao Exp $ */
+/* $Id: ConveyorT.cpp,v 1.3.30.6 2004-11-12 00:28:48 thao Exp $ */
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
@@ -89,8 +89,8 @@ void ConveyorT::Initialize(ifstreamT& in)
 	ReadNodes(in, id_list, fTopNodes);
 
 	/* set stretching BC cards */
-//	fKBC_Cards.Dimension(nsd*(fBottomNodes.Length() + fTopNodes.Length()));
-	fKBC_Cards.Dimension(fBottomNodes.Length() + fTopNodes.Length());
+	fKBC_Cards.Dimension(nsd*(fBottomNodes.Length() + fTopNodes.Length()));
+//	fKBC_Cards.Dimension(fBottomNodes.Length() + fTopNodes.Length());
 	int node = 0;
 	double valueby2 = fULBC_Value/2.0;
 
@@ -106,14 +106,14 @@ void ConveyorT::Initialize(ifstreamT& in)
 	}
 	
 	/* set stretching tangent cards */
-/*	for (int i = 0; i < fBottomNodes.Length(); i++) {
+	for (int i = 0; i < fBottomNodes.Length(); i++) {
 		KBC_CardT& card = fKBC_Cards[node++];
 		card.SetValues(fBottomNodes[i], 0, KBC_CardT::kFix, 0, 0);
 	}
 	for (int i = 0; i < fTopNodes.Length(); i++) {
 		KBC_CardT& card = fKBC_Cards[node++];
 		card.SetValues(fTopNodes[i], 0, KBC_CardT::kFix, 0, 0);
-	} */
+	} 
  
  
 	/* find boundaries */
@@ -158,8 +158,8 @@ void ConveyorT::Initialize(ifstreamT& in)
 	cards.Dimension(rightnodes.Length());
 	for (int i=0; i< cards.Length(); i++) {
 		KBC_CardT& card = cards[i];
-//		card.SetValues(rightnodes[i], 0, KBC_CardT::kFix, NULL, 0.0); 
-		card.SetValues(rightnodes[i], 0, KBC_CardT::kFix, 0, 0.0); 
+		card.SetValues(rightnodes[i], 0, KBC_CardT::kFix, NULL, 0.0); 
+//		card.SetValues(rightnodes[i], 0, KBC_CardT::kFix, 0, 0.0); 
 	}
 }
 
@@ -177,6 +177,8 @@ void ConveyorT::Reset(void)
 	/* reset system */
 	fTrackingCount--;
 	fTrackingPoint = fTrackingPoint_last;
+	fX_Left = fX_Left_last;
+	fX_Right = fX_Right_last;
 }
 
 /* open time interva; */
@@ -314,7 +316,7 @@ void ConveyorT::ReadRestart(ifstreamT& in)
 	/*external file*/
 	StringT file = in.filename();
 	file.Append(".", fField.Name());
-	file.Append(".", Name());
+	file.Append(".", "conveyor");
 	ifstreamT my_in(file);
 	if (!my_in.is_open())
 		ExceptionT::GeneralFail("ConveyorT::ReadRestart", "could not open file\"%s\"", file.Pointer());
@@ -364,8 +366,8 @@ void ConveyorT::ReadRestart(ifstreamT& in)
 	cards.Dimension(fShiftedNodes.Length());
 	for (int i=0; i< cards.Length(); i++) {
 		KBC_CardT& card = cards[i];
-//		card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, NULL, 0.0);
-		card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, 0, 0.0);
+		card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, NULL, 0.0);
+//		card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, 0, 0.0);
 	}
 	//TEMP - need to reset the equation system because it was set before
 	//       reading the restart files and does not reflect the equations
@@ -384,7 +386,7 @@ void ConveyorT::WriteRestart(ofstreamT& out) const
         /* external file */
         StringT file = out.filename();
         file.Append(".", fField.Name());
-//        file.Append(".", Name());
+        file.Append(".", "conveyor");
         ofstreamT my_out(file);
         my_out.precision(out.precision());
 
@@ -408,6 +410,7 @@ void ConveyorT::WriteRestart(ofstreamT& out) const
 
         /* write the modified reference coordinates */
         my_out << fNodeManager.InitialCoordinates() << '\n';
+//		my_out.close();
 }
 
 /**********************************************************************
@@ -455,7 +458,8 @@ double ConveyorT::TrackPoint(TrackingTypeT tracking_type, double threshold)
 		int node = fNodeManager.NextAverageRow(values);
 		while (node != -1)
 		{
-			if (values[fTipColumnNum] > threshold && ref_coords(node,0) > right_most)
+			double test_val = values[fTipColumnNum];
+			if (test_val > threshold && ref_coords(node,0) > right_most)
 				right_most = ref_coords(node,0);
 		
 			node = fNodeManager.NextAverageRow(values);
@@ -473,7 +477,9 @@ double ConveyorT::TrackPoint(TrackingTypeT tracking_type, double threshold)
 bool ConveyorT::SetSystemFocus(double focus)
 {
 	/* no need to shift the window */
-	if (fX_Right - focus > fRightMinSpacing) return false;
+	bool no_shift = fX_Right - focus > fRightMinSpacing;
+	
+	if (no_shift) return false;
 
 	/* shift window */
 	fX_Left  += fWindowShiftDistance;

@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.19 2004-06-17 07:41:57 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.19.4.1 2004-11-12 00:28:48 thao Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 
@@ -200,7 +200,7 @@ void K_FieldT::InitialCondition(void)
 }
 
 /* restart operations */
-void K_FieldT::ReadRestart(istream& in)
+void K_FieldT::ReadRestart(ifstreamT& in)
 {
 	/* inherited */
 	KBC_ControllerT::ReadRestart(in);
@@ -213,7 +213,7 @@ void K_FieldT::ReadRestart(istream& in)
 	ComputeDisplacementFactors(fTipCoords);
 }
 
-void K_FieldT::WriteRestart(ostream& out) const
+void K_FieldT::WriteRestart(ofstreamT& out) const
 {
 	/* inherited */
 	KBC_ControllerT::WriteRestart(out);

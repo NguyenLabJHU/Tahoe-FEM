@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.cpp,v 1.12 2004-06-28 22:41:56 hspark Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.12.4.1 2004-11-12 00:28:48 thao Exp $ */
 /* created: paklein (09/05/2000) */
 #include "KBC_ControllerT.h"
 
@@ -32,12 +32,12 @@ void KBC_ControllerT::WriteParameters(ostream& out) const
 #pragma unused(out)
 }
 
-void KBC_ControllerT::ReadRestart(istream& in)
+void KBC_ControllerT::ReadRestart(ifstreamT& in)
 {
 #pragma unused(in)
 }
 
-void KBC_ControllerT::WriteRestart(ostream& out) const
+void KBC_ControllerT::WriteRestart(ofstreamT& out) const
 {
 #pragma unused(out)
 }
