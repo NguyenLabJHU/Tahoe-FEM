@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.30 2002-11-28 01:06:13 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.30.2.1 2002-12-05 21:46:13 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -1335,14 +1335,12 @@ bool ModelManagerT::RegisterVariElements (const StringT& ID, nVariArray2DT<int>&
 }
 
 /* call this function after the connectivity has been changed by outside classes */
-void ModelManagerT::UpdateConnectivity (const StringT& ID, iArray2DT& connects, bool keep)
+void ModelManagerT::UpdateElementGroup(const StringT& ID, iArray2DT& connects, bool keep)
 {
+	const char caller[] = "ModelManagerT::UpdateElementGroup";
 	int index = ElementGroupIndex(ID);
-	if (index == kNotFound) {
-		cout << "\n ModelManagerT::UpdateConnectivity: element ID not found " << ID << endl;
-		throw ExceptionT::kOutOfRange;
-	}
-	if (!fElementSets[index]) throw ExceptionT::kGeneralFail;
+	if (index == kNotFound) ExceptionT::OutOfRange(caller, "element ID not found: %s", ID.Pointer());
+	if (!fElementSets[index]) ExceptionT::GeneralFail(caller, "internal error");
 	
 	if (!keep || !connects.IsAllocated())
 		*fElementSets[index] = connects;
@@ -1353,6 +1351,33 @@ void ModelManagerT::UpdateConnectivity (const StringT& ID, iArray2DT& connects, 
 	}
 	fElementLengths[index] = fElementSets[index]->MajorDim();
 	fElementNodes[index] = fElementSets[index]->MinorDim();
+}
+
+/* update the nodes in an existing node set */
+void ModelManagerT::UpdateNodeSet(const StringT& ID, iArrayT& node_set, bool keep)
+{
+	const char caller[] = "ModelManagerT::UpdateNodeSet";
+	int index = NodeSetIndex(ID);
+	if (index == kNotFound) ExceptionT::OutOfRange(caller, "node set ID not found: %s", ID.Pointer());
+	if (!fNodeSets[index])  ExceptionT::GeneralFail(caller, "internal error");
+	
+	if (!keep || !node_set.IsAllocated())
+		*fNodeSets[index] = node_set;
+	else
+	{
+		fNodeSets[index]->Swap(node_set);
+		node_set.Alias(*fNodeSets[index]);
+	}
+	fNodeSetDimensions[index] = fNodeSets[index]->Length();
+}
+
+/* update the nodes in an existing side set */
+void ModelManagerT::UpdateSideSet(const StringT& ID, iArray2DT& side_set, bool keep)
+{
+#pragma unused (ID)
+#pragma unused (side_set)
+#pragma unused (keep)
+	ExceptionT::Stop("ModelManagerT::UpdateSideSet", "not implemented");
 }
 
 void ModelManagerT::AddElement (const StringT& ID, const iArray2DT& connects, 
