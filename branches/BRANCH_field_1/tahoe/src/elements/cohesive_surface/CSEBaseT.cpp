@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.8.2.4 2002-05-03 23:05:58 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.8.2.5 2002-05-16 19:36:35 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -13,6 +13,7 @@
 #include "iAutoArrayT.h"
 #include "OutputSetT.h"
 #include "ElementSupportT.h"
+#include "ModelManagerT.h"
 
 /* initialize static data */
 const int CSEBaseT::NumNodalOutputCodes = 5;
@@ -284,8 +285,8 @@ void CSEBaseT::RegisterOutput(void)
 	/* set output specifier */
 	StringT set_ID;
 	set_ID.Append(ElementSupport().ElementGroupNumber(this) + 1);
-	OutputSetT output_set(set_ID, geo_code, block_ID, fConnectivities, n_labels, 
-		e_labels, false);
+	OutputSetT output_set(set_ID, geo_code, block_ID, fOutput_Connectivities, 
+		n_labels, e_labels, false);
 		
 	/* register and get output ID */
 	fOutputID = ElementSupport().RegisterOutput(output_set);
@@ -382,6 +383,79 @@ void CSEBaseT::PrintControlData(ostream& out) const
 	out << " Number of integration points. . . . . . . . . . = " << fNumIntPts     << '\n';
 	out << " Initial surface closure flag. . . . . . . . . . = " << fCloseSurfaces << '\n';
 	out << " Output fracture surface area. . . . . . . . . . = " << fOutputArea    << '\n';
+}
+
+/* read element connectivity data */
+void CSEBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
+{
+	/* inherited */
+	ElementBaseT::ReadConnectivity(in, out);
+
+	/* write output over the original connectivities */
+	fOutput_Connectivities = fConnectivities;
+	
+	/* check for higher order elements */
+	int nsd = NumSD();
+	int nen = NumElementNodes();
+	if ((nsd == 2 && nen != 4 && nen != 6) || 
+	    (nsd == 3 && nen != 8 && nen != 16))
+	{
+		/* message */
+		ostream& out = ElementSupport().Output();
+		cout << "\n CSEBaseT::ReadConnectivity: detected higher order elements.\n"
+		     <<   "     Generating revised local connectivities:" << endl;
+		out  << "\n CSEBaseT::ReadConnectivity: detected higher order elements.\n"
+		     <<   "     Generating revised local connectivities:" << endl;
+
+		/* the geometry manager */
+		ModelManagerT& model = ElementSupport().Model();
+
+		/* nen: 8 -> 6 */
+		int map_2D[] = {0, 1, 2, 3, 4, 6}; 
+
+		/* nen: 20 -> 16 */
+		int map_3D[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}; 
+
+		/* node map */
+		iArrayT map((nsd == 2) ? 6 : 16, (nsd == 2) ? map_2D : map_3D); 
+
+		/* loop over connectivity blocks */
+		for (int b = 0; b < fBlockData.Length(); b++)
+		{
+			/* translate */
+			const iArray2DT& source = *(fOutput_Connectivities[b]);
+			iArray2DT dest(source.MajorDim(), map.Length());
+			for (int i = 0; i < dest.MajorDim(); i++)
+			{
+				int* a = dest(i);
+				int* b = source(i);
+				for (int j = 0; j < map.Length(); j++)
+					*a++ = b[map[j]];	
+			}
+
+			/* send new connectivities to model manager */
+			ElementBlockDataT& block_data = fBlockData[b];
+			const StringT& id = block_data.ID();
+			StringT new_id = id;
+			new_id.Append(b+1, 3);
+			if (!model.RegisterElementGroup (new_id, dest, GeometryT::kNone, true)) {
+				cout << "\n CSEBaseT::ReadConnectivity: could not register element block ID: " << new_id << endl;
+				throw eGeneralFail;
+			} else {
+				cout << " block ID " << id << " converted to ID " << new_id << endl;
+				out << " block ID " << id << " converted to ID " << new_id << endl;
+			}
+
+			/* set pointer to connectivity list */
+			fConnectivities[b] = model.ElementGroupPointer(new_id);
+			
+			/* reset block data */
+			int start = block_data.StartNumber();
+			int dim = block_data.Dimension();
+			int material = block_data.MaterialID();
+			block_data.Set(new_id, start, dim, material);
+		}
+	}
 }
 
 void CSEBaseT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
