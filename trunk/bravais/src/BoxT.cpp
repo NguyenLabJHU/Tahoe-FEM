@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.28 2003-07-02 23:46:57 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.29 2003-07-15 01:35:08 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -41,10 +41,19 @@ BoxT::BoxT(int dim, dArray2DT len,
 
   for(int i=0;i<nSD;i++)
     {
+      double dist = ncells[i]*lattice_parameter[i]*0.5;
+      length(i,0) = -dist;
+      length(i,1) = length(i,0) + (dist - length(i,0));
+    }
+
+
+  /*for(int i=0;i<nSD;i++)
+    {
       length(i,0) = len(i,0);
       double dist = len(i,1)-len(i,0)+1;
       length(i,1) = len(i,0) + ncells[i]*lattice_parameter[i];
-    }  
+    } 
+  */ 
 }
 
 BoxT::BoxT(int dim, iArrayT cel,
