@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.20 2003-10-10 22:09:38 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.21 2003-10-12 02:51:19 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -43,14 +43,18 @@ class APS_AssemblyT: public ElementBaseT
  public:
 
 	enum fMat_T 	{ 
-									k__mu,
-									k__m_rate,
-									k__l,
-									k__H,
-									k__gamma0_dot,
-									k__m1,
-									k__m2,
-									k__kappa0,
+									kMu,
+									km_rate,
+									kl,
+									kH,
+									kgamma0_dot_1,
+									kgamma0_dot_2,
+									km1_x,
+									km1_y,
+									km2_x,
+									km2_y,
+									kkappa0_1,
+									kkappa0_2,
 									kNUM_FMAT_TERMS	}; // MAT for material here, not matrix
 
 	/** constructor */

@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.h,v 1.13 2003-10-10 22:09:42 raregue Exp $
+// $Id: APS_Bal_EqT.h,v 1.14 2003-10-12 02:51:21 raregue Exp $
 #ifndef _APS_BALEQ_T_H_ 
 #define _APS_BALEQ_T_H_ 
 
@@ -72,8 +72,10 @@ class APS_Bal_EqT	: public BalLinMomT
 								
 	enum C_T { 
 								kMu,
-								km1,
-								km2,
+								km1_x,
+								km1_y,
+								km2_x,
+								km2_y,
 								kNUM_C_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
 
 		//--------------------------------------------------------------

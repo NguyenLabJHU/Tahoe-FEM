@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.cpp,v 1.19 2003-10-10 22:09:42 raregue Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.20 2003-10-12 02:51:21 raregue Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
@@ -158,8 +158,10 @@ void APS_Bal_EqT::Form_C_List (APS_MaterialT *Shear_Matl, APS_MaterialT *APS_Mat
 		C.Dimension 	( kNUM_C_TERMS );
 		
 		C[kMu] 	= Shear_Matl -> Retrieve ( Shear_MatlT::kMu );
-		C[km1]  = APS_Matl -> Retrieve ( APS_MatlT::km1	);
-		C[km2]  = APS_Matl -> Retrieve ( APS_MatlT::km2	);
+		C[km1_x]  = APS_Matl -> Retrieve ( APS_MatlT::km1_x	);
+		C[km1_y]  = APS_Matl -> Retrieve ( APS_MatlT::km1_y	);
+		C[km2_x]  = APS_Matl -> Retrieve ( APS_MatlT::km2_x	);
+		C[km2_y]  = APS_Matl -> Retrieve ( APS_MatlT::km2_y	);
 }
 
 

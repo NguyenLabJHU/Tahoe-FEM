@@ -1,4 +1,4 @@
-// $Id: APS_MatlT.h,v 1.2 2003-09-29 23:28:55 raregue Exp $
+// $Id: APS_MatlT.h,v 1.3 2003-10-12 02:51:25 raregue Exp $
 #ifndef _APS_MATLT_
 #define _APS_MATLT_
 
@@ -15,13 +15,17 @@ class APS_MatlT : public APS_MaterialT
 
 		enum ParamT { 		
 	 					kMu, 			// 	Shear Modulus
-						kgamma0_dot,
+						kgamma0_dot_1,
+						kgamma0_dot_2,
 						km_rate,
-						km1,
-						km2,	 					
+						km1_x,
+						km1_y,	
+						km2_x,
+						km2_y,	 					
 						kl,
 		 				kH,
-		 				kkappa0,
+		 				kkappa0_1,
+		 				kkappa0_2,
 		        		kNUM_APS_MATL_PARAMS };
 
 		void Allocate (void) { n_mp = kNUM_APS_MATL_PARAMS; Parameter.Dimension ( n_mp ); }

@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.38 2003-10-11 01:29:32 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.39 2003-10-12 02:51:19 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -49,10 +49,10 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 	bStep_Complete(0)
 {
 	
-	knum_d_state = 3; // double's needed per ip
+	knum_d_state = 6; // double's needed per ip
 	knum_i_state = 0; // int's needed per ip
 	
-	knumstrain = 2; 
+	knumstrain = 3; 
 	knumstress = 2; 
 	
 	output = "out";
@@ -74,22 +74,26 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 	in >> iPlastModelType; 
 
 	//-- Elasticity parameters
-	in >> fMaterial_Data[k__mu];
+	in >> fMaterial_Data[kMu];
 
 	//-- Plasticity parameters
-	in >> fMaterial_Data[k__m_rate];
-	in >> fMaterial_Data[k__gamma0_dot];
-	in >> fMaterial_Data[k__m1];
-	in >> fMaterial_Data[k__m2];
+	in >> fMaterial_Data[km_rate];
+	in >> fMaterial_Data[kgamma0_dot_1];
+	in >> fMaterial_Data[kgamma0_dot_2];
+	in >> fMaterial_Data[km1_x];
+	in >> fMaterial_Data[km1_y];
+	in >> fMaterial_Data[km2_x];
+	in >> fMaterial_Data[km2_y];
 
 	//-- Backstress Parameters
-	in >> fMaterial_Data[k__l];
+	in >> fMaterial_Data[kl];
 
 	//-- Isotropic Hardening Parameters
-	in >> fMaterial_Data[k__H];
+	in >> fMaterial_Data[kH];
 	
 	//-- Initial value of state variable
-	in >> fMaterial_Data[k__kappa0];
+	in >> fMaterial_Data[kkappa0_1];
+	in >> fMaterial_Data[kkappa0_2];
 	
 	/* allocate the global stack object (once) */
 	extern FEA_StackT* fStack;
@@ -164,22 +168,26 @@ void APS_AssemblyT::Echo_Input_Data(void) {
 	cout << "iPlastModelType " 						<< iPlastModelType 				<< endl; 
 	
 	//-- Elasticity parameters 
-	cout << "fMaterial_Data[k__mu] "  				<< fMaterial_Data[k__mu] 		<< endl;
+	cout << "fMaterial_Data[kMu] "  				<< fMaterial_Data[kMu] 		<< endl;
 
 	//-- Plasticity parameters
-	cout << "fMaterial_Data[k__m_rate] " 			<< fMaterial_Data[k__m_rate] 	<< endl;
-	cout << "fMaterial_Data[k__gamma0_dot] " 		<< fMaterial_Data[k__gamma0_dot] << endl;
-	cout << "fMaterial_Data[k__m1] " 				<< fMaterial_Data[k__m1] 		<< endl;
-	cout << "fMaterial_Data[k__m2] " 				<< fMaterial_Data[k__m2] 		<< endl;
+	cout << "fMaterial_Data[km_rate] " 				<< fMaterial_Data[km_rate] 	<< endl;
+	cout << "fMaterial_Data[kgamma0_dot_1] " 		<< fMaterial_Data[kgamma0_dot_1] << endl;
+	cout << "fMaterial_Data[kgamma0_dot_2] " 		<< fMaterial_Data[kgamma0_dot_2] << endl;
+	cout << "fMaterial_Data[km1_x] " 				<< fMaterial_Data[km1_x] 		<< endl;
+	cout << "fMaterial_Data[km1_y] " 				<< fMaterial_Data[km1_y] 		<< endl;
+	cout << "fMaterial_Data[km2_x] " 				<< fMaterial_Data[km2_x] 		<< endl;
+	cout << "fMaterial_Data[km2_y] " 				<< fMaterial_Data[km2_y] 		<< endl;
 
 	//-- Backstress Parameters
-	cout << "fMaterial_Data[k__l] " 				<< fMaterial_Data[k__l]			<< endl;
+	cout << "fMaterial_Data[kl] " 					<< fMaterial_Data[kl]			<< endl;
 
 	//-- Isotropic Hardening Parameters
-	cout << "fMaterial_Data[k__H] "					<< fMaterial_Data[k__H]			<< endl;
+	cout << "fMaterial_Data[kH] "					<< fMaterial_Data[kH]			<< endl;
 	
 	//-- Initial state variable
-	cout << "fMaterial_Data[k__kappa0] "			<< fMaterial_Data[k__kappa0]	<< endl;
+	cout << "fMaterial_Data[kkappa0_1] "			<< fMaterial_Data[kkappa0_1]	<< endl;
+	cout << "fMaterial_Data[kkappa0_2] "			<< fMaterial_Data[kkappa0_2]	<< endl;
 	
 }
 
@@ -429,7 +437,7 @@ void APS_AssemblyT::Select_Equations (const int &iBalScale,const int &iPlastScal
 		case BalLinMomT::kAPS_Bal_Eq :
 			fEquation_d = new APS_Bal_EqT;
 			fBalLinMomMaterial = new Shear_MatlT;
-			fBalLinMomMaterial -> Assign ( Shear_MatlT::kMu, fMaterial_Data[k__mu] );
+			fBalLinMomMaterial -> Assign ( Shear_MatlT::kMu, fMaterial_Data[kMu] );
 			break;
 
 		default :
@@ -444,14 +452,18 @@ void APS_AssemblyT::Select_Equations (const int &iBalScale,const int &iPlastScal
 		case PlastT::kAPS_BCJ :
 			fEquation_eps	= new APS_BCJT;
 			fPlastMaterial	= new APS_MatlT;		
-			fPlastMaterial -> Assign (	APS_MatlT::kMu, 		fMaterial_Data[k__mu] 		); 	
-			fPlastMaterial -> Assign ( 	APS_MatlT::km_rate, 	fMaterial_Data[k__m_rate] 	); 	
-			fPlastMaterial -> Assign ( 	APS_MatlT::kgamma0_dot, fMaterial_Data[k__gamma0_dot]); 	
-			fPlastMaterial -> Assign ( 	APS_MatlT::km1, 		fMaterial_Data[k__m1] 		); 
-			fPlastMaterial -> Assign ( 	APS_MatlT::km2, 		fMaterial_Data[k__m2] 		); 	
-			fPlastMaterial -> Assign ( 	APS_MatlT::kl, 			fMaterial_Data[k__l] 		); 	
-			fPlastMaterial -> Assign ( 	APS_MatlT::kH, 			fMaterial_Data[k__H] 		);
-			fPlastMaterial -> Assign ( 	APS_MatlT::kkappa0, 	fMaterial_Data[k__kappa0] 	); 	
+			fPlastMaterial -> Assign (	APS_MatlT::kMu, 		fMaterial_Data[kMu] 		); 	
+			fPlastMaterial -> Assign ( 	APS_MatlT::km_rate, 	fMaterial_Data[km_rate] 	); 	
+			fPlastMaterial -> Assign ( 	APS_MatlT::kgamma0_dot_1, fMaterial_Data[kgamma0_dot_1]); 
+			fPlastMaterial -> Assign ( 	APS_MatlT::kgamma0_dot_2, fMaterial_Data[kgamma0_dot_2]); 	
+			fPlastMaterial -> Assign ( 	APS_MatlT::km1_x, 		fMaterial_Data[km1_x] 		); 
+			fPlastMaterial -> Assign ( 	APS_MatlT::km1_y, 		fMaterial_Data[km1_y] 		); 	
+			fPlastMaterial -> Assign ( 	APS_MatlT::km2_x, 		fMaterial_Data[km2_x] 		); 
+			fPlastMaterial -> Assign ( 	APS_MatlT::km2_y, 		fMaterial_Data[km2_y] 		); 	
+			fPlastMaterial -> Assign ( 	APS_MatlT::kl, 			fMaterial_Data[kl] 		); 	
+			fPlastMaterial -> Assign ( 	APS_MatlT::kH, 			fMaterial_Data[kH] 		);
+			fPlastMaterial -> Assign ( 	APS_MatlT::kkappa0_1, 	fMaterial_Data[kkappa0_1] 	); 	
+			fPlastMaterial -> Assign ( 	APS_MatlT::kkappa0_2, 	fMaterial_Data[kkappa0_2] 	); 	
 			break;
 			
 		default :
@@ -707,8 +719,8 @@ void APS_AssemblyT::RegisterOutput(void)
 	ArrayT<StringT> e_labels(fNumIP*(knumstrain+knumstress+knum_d_state));
 
 	/* over integration points */
-	const char* slabels2D[] = {"gamma1", "gamma2","s13", "s23"};
-	const char* svlabels2D[] = {"xi", "kappa", "gamma_dot"};
+	const char* slabels2D[] = {"gamma_x", "gamma_y", "gammap_curl", "s_xz", "s_yz"};
+	const char* svlabels2D[] = {"xi_1", "kappa_1", "gamma_dot_1", "xi_2", "kappa_2", "gamma_dot_2"};
 	int count = 0;
 	for (int j = 0; j < fNumIP; j++)
 	{
