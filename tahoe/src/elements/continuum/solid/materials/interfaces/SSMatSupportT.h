@@ -1,9 +1,9 @@
-/* $Id: SSMatSupportT.h,v 1.1.2.2 2002-10-30 09:18:11 paklein Exp $ */
-#ifndef _FD_MAT_SUPPORT_T_H_
-#define _FD_MAT_SUPPORT_T_H_
+/* $Id: SSMatSupportT.h,v 1.1.2.3 2002-11-13 08:33:10 paklein Exp $ */
+#ifndef _SS_MAT_SUPPORT_T_H_
+#define _SS_MAT_SUPPORT_T_H_
 
 /* base class */
-#include "MaterialSupportT.h"
+#include "StructuralMatSupportT.h"
 
 /* direct members */
 #include "dArrayT.h"
@@ -12,11 +12,10 @@
 namespace Tahoe {
 
 /* forward declarations */
-class LocalArrayT;
 class SmallStrainT;
 
 /** support for the small strain Tahoe materials classes */
-class SSMatSupportT: public MaterialSupportT
+class SSMatSupportT: public StructuralMatSupportT
 {
 public:
 
@@ -53,11 +52,6 @@ public:
 
 	/** set the element group pointer */
 	virtual void SetContinuumElement(const ContinuumElementT* p);
-
-	/** return a pointer the specified local array, or NULL if the array is not
-	 * available. During calls the materials routines these will contain the
-	 * values for the current element. */
-	virtual const LocalArrayT* LocalArray(LocalArrayT::TypeT t) const;
 	/*@}*/
 
   private:
@@ -73,29 +67,29 @@ public:
 };
 
 /* inlines */
-const dSymMatrixT& SSMatSupportT::LinearStrain(void) const
+inline const dSymMatrixT& SSMatSupportT::LinearStrain(void) const
 {
 	if (!fStrain_List) throw ExceptionT::kGeneralFail;
 	return (*fStrain_List)[CurrIP()]; 
 }
 
-const dSymMatrixT& SSMatSupportT::LinearStrain(int ip) const
+inline const dSymMatrixT& SSMatSupportT::LinearStrain(int ip) const
 {
 	if (!fStrain_List) throw ExceptionT::kGeneralFail;
 	return (*fStrain_List)[ip]; 
 }
 
-const dSymMatrixT& SSMatSupportT::LinearStrain_last(void) const
+inline const dSymMatrixT& SSMatSupportT::LinearStrain_last(void) const
 {
 	if (!fStrain_last_List) throw ExceptionT::kGeneralFail;
 	return (*fStrain_last_List)[CurrIP()]; 
 }
 
-const dSymMatrixT& SSMatSupportT::LinearStrain_last(int ip) const
+inline const dSymMatrixT& SSMatSupportT::LinearStrain_last(int ip) const
 {
 	if (!fStrain_last_List) throw ExceptionT::kGeneralFail;
 	return (*fStrain_last_List)[ip]; 
 }
 
 } /* namespace Tahoe */
-#endif /* _FD_MAT_SUPPORT_T_H_ */
+#endif /* _SS_MAT_SUPPORT_T_H_ */

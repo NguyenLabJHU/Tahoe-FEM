@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.cpp,v 1.2.8.3 2002-10-30 09:18:11 paklein Exp $ */
+/* $Id: MaterialSupportT.cpp,v 1.2.8.4 2002-11-13 08:33:10 paklein Exp $ */
 #include "MaterialSupportT.h"
 #include "ContinuumElementT.h"
 
@@ -17,8 +17,10 @@ MaterialSupportT::MaterialSupportT(int nsd, int ndof, int nip):
 	fTime(NULL),
 	fTimeStep(NULL),
 	fStepNumber(NULL),
+	fNumberOfSteps(NULL),
 
-	fContinuumElement(NULL) 
+	fElementCards(NULL),
+	fContinuumElement(NULL)
 { 
 
 }
