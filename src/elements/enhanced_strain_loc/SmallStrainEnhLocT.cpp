@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.4 2005-02-02 21:12:57 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.5 2005-02-03 15:46:00 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -10,6 +10,8 @@
 #include "SSMatSupportT.h"
 #include "ParameterContainerT.h"
 #include "ModelManagerT.h"
+
+//#include "BasicSupportT.h"
 
 using namespace Tahoe;
 
@@ -31,6 +33,34 @@ SmallStrainEnhLocT::~SmallStrainEnhLocT(void)
 	delete fSSMatSupport;
 }
 
+
+/* finalize current step - step is solved */
+void SmallStrainEnhLocT::InitStep(void)
+{
+	/* inherited */
+	SolidElementT::InitStep();
+	
+	/* initialize to converged previous solution */
+	fElementLocScalars = fElementLocScalars_last;
+	fElementLocSlipDir = fElementLocSlipDir_last;
+	fElementLocMuDir = fElementLocMuDir_last;
+	fElementLocInternalVars = fElementLocInternalVars_last;
+	fElementVolume = fElementVolume_last;
+	
+	ss_enh_out	<< endl << "----------------------------------------------------------------------------------------------" << endl;
+	ss_enh_out	<< endl 
+				<< setw(outputFileWidth) << "time_step"  
+				<< setw(outputFileWidth) << "element" 
+				<< endl;
+	int elem = CurrElementNumber();
+	int step = fSSMatSupport->StepNumber();
+	ss_enh_out	<< setw(outputFileWidth) << step  
+				<< setw(outputFileWidth) << elem 
+				<< endl;			
+
+}
+
+
 /* finalize current step - step is solved */
 void SmallStrainEnhLocT::CloseStep(void)
 {
@@ -43,11 +73,6 @@ void SmallStrainEnhLocT::CloseStep(void)
 	fElementLocMuDir_last = fElementLocMuDir;
 	fElementLocInternalVars_last = fElementLocInternalVars;
 	fElementVolume_last = fElementVolume;
-	
-	ss_enh_out	<< setw(outputFileWidth) << "\n\n time_step    element " << setw(outputFileWidth) << "?" 
-			<< setw(outputFileWidth) << "?" << endl;
-	ss_enh_out	<< endl << "----------------------------------------------------------------------------------------------" << endl;
-
 }
 	
 /* restore last converged state */
@@ -269,8 +294,10 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	fElementLocTangent2 = 0.0;
 	fElementLocTangent3.Dimension(NumElements(),NumSD());
 	fElementLocTangent3 = 0.0;
-	fElementLocGradEnh.Dimension(NumElements(),NumSD());
+	fElementLocGradEnh.Dimension(NumElements(),NumSD()*NumIP());
 	fElementLocGradEnh = 0.0;
+	fElementLocGradEnhIP.Dimension(NumIP(),NumSD());
+	fElementLocGradEnhIP = 0.0;
 	//hardcode element edge number for hex element for now
 	int numedges = 12;
 	fElementLocEdgeIntersect.Dimension(NumElements(),numedges);
@@ -315,6 +342,10 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	tangent2.Dimension(NumSD());
 	tangent3.Dimension(NumSD());
 	tangent_chosen.Dimension(NumSD());
+	
+	mu_dir.Dimension(NumSD());
+	
+	grad_enh.Dimension(NumSD()*NumIP());
 	
 	/* need to initialize previous volume */
 	Top();
@@ -584,6 +615,42 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 	int elem = CurrElementNumber();
 	loc_flag = fElementLocScalars[elem,kLocFlag];
 	double vol = fElementVolume[elem];
+
+	if (loc_flag == 2) 
+	{	
+		/* fetch normal and slipdir for element */
+		fElementLocNormal.RowAlias(elem, normal_chosen);
+		fElementLocSlipDir.RowAlias(elem, slipdir_chosen);
+		fElementLocTangent.RowAlias(elem, tangent_chosen);
+		fElementLocMuDir.RowAlias(elem, mu_dir);
+		
+		fElementLocGradEnh.RowAlias(elem, grad_enh);
+	
+		ss_enh_out	<< endl << endl << "element volume:" << setw(outputFileWidth) << vol; 
+		
+		ss_enh_out	<< endl << endl << " normal_chosen: " << setw(outputFileWidth) << normal_chosen[0] 
+					<< setw(outputFileWidth) << normal_chosen[1] <<  setw(outputFileWidth) << normal_chosen[2]; 
+		ss_enh_out	<< endl << "slipdir_chosen: " << setw(outputFileWidth) << slipdir_chosen[0] 
+					<< setw(outputFileWidth) << slipdir_chosen[1] <<  setw(outputFileWidth) << slipdir_chosen[2]; 
+		ss_enh_out	<< endl << "tangent_chosen: " << setw(outputFileWidth) << tangent_chosen[0] 
+					<< setw(outputFileWidth) << tangent_chosen[1] <<  setw(outputFileWidth) << tangent_chosen[2]; 
+		ss_enh_out	<< endl << "mu_dir: " << setw(outputFileWidth) << mu_dir[0] 
+					<< setw(outputFileWidth) << mu_dir[1] <<  setw(outputFileWidth) << mu_dir[2];
+		
+		ss_enh_out	<< endl << endl << "loc_flag" << setw(outputFileWidth) << "jump_displ" 
+					<< setw(outputFileWidth) << "gamma_delta" <<  setw(outputFileWidth) << "Q"
+					<< setw(outputFileWidth) << "P" <<  setw(outputFileWidth) << "q_St"
+					<< setw(outputFileWidth) << "q_Sn" <<  setw(outputFileWidth) << "p_S"; 
+		ss_enh_out	<< endl << fElementLocScalars[kLocFlag] << setw(outputFileWidth) << fElementLocScalars[kJumpDispl] 
+					<< setw(outputFileWidth) << fElementLocScalars[kgamma_delta] <<  setw(outputFileWidth) << fElementLocScalars[kQ]
+					<< setw(outputFileWidth) << fElementLocScalars[kP] <<  setw(outputFileWidth) << fElementLocScalars[kq_St]
+					<< setw(outputFileWidth) << fElementLocScalars[kq_Sn] <<  setw(outputFileWidth) << fElementLocScalars[kp_S]; 
+		
+		ss_enh_out	<< endl << endl << "cohesion" << setw(outputFileWidth) << "friction (rad)" 
+					<< setw(outputFileWidth) << "dilation (rad)"; 
+		ss_enh_out	<< endl << fElementLocInternalVars[kCohesion] << setw(outputFileWidth) << fElementLocInternalVars[kFriction] 
+					<< setw(outputFileWidth) << fElementLocInternalVars[kDilation] << endl;				
+	}
 	
 	fShapes->TopIP();
 	while ( fShapes->NextIP() )
@@ -613,6 +680,16 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 		{
 			//modify stiffness matrix
 			
+			const int ip = fShapes->CurrIP()+1;
+			int array_location = fShapes->CurrIP()*NumSD();
+			fElementLocGradEnhIP[CurrIP(),0] = grad_enh[array_location];
+			fElementLocGradEnhIP[CurrIP(),1] = grad_enh[array_location+1];
+			fElementLocGradEnhIP[CurrIP(),2] = grad_enh[array_location+2];
+			ss_enh_out	<< endl << "GradEnh at IP" << ip
+						<< setw(outputFileWidth) << fElementLocGradEnhIP[CurrIP(),0] 
+						<< setw(outputFileWidth) << fElementLocGradEnhIP[CurrIP(),1] 
+						<< setw(outputFileWidth) << fElementLocGradEnhIP[CurrIP(),2];
+
 		}
 		else
 		{
@@ -620,7 +697,8 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 			bool checkloc = fCurrMaterial->IsLocalized(normals,slipdirs);
 			if (checkloc) 
 			{
-				loc_flag = 1;
+				//loc_flag = 1; //localized, not traced
+				loc_flag = 2; //localized and traced
 				fElementLocScalars[elem,kLocFlag] = loc_flag;
 				normals.Top();
 				slipdirs.Top();
@@ -676,8 +754,9 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 					ExceptionT::GeneralFail("SmallStrainEnhLocT::FormStiffness - incorrect number of normals");
 				}
 				
-				
-				ss_enh_out	<< endl << "  " << endl << "normal1: " << setw(outputFileWidth) << normal1[0] 
+				const int ip = fShapes->CurrIP()+1;
+				ss_enh_out	<< endl << "IP" << ip;
+				ss_enh_out	<< endl << "normal1: " << setw(outputFileWidth) << normal1[0] 
 							<< setw(outputFileWidth) << normal1[1] <<  setw(outputFileWidth) << normal1[2]
 							<< setw(outputFileWidth) << "slipdir1: " << setw(outputFileWidth) << slipdir1[0] 
 							<< setw(outputFileWidth) << slipdir1[1] <<  setw(outputFileWidth) << slipdir1[2]; 
@@ -688,7 +767,7 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 				ss_enh_out	<< endl << "normal3: " << setw(outputFileWidth) << normal3[0] 
 							<< setw(outputFileWidth) << normal3[1] <<  setw(outputFileWidth) << normal3[2]
 							<< setw(outputFileWidth) << "slipdir3: " << setw(outputFileWidth) << slipdir3[0] 
-							<< setw(outputFileWidth) << slipdir3[1] <<  setw(outputFileWidth) << slipdir3[2]; 						
+							<< setw(outputFileWidth) << slipdir3[1] <<  setw(outputFileWidth) << slipdir3[2] << endl; 						
 
 
 				//do band tracing somewhere else in the element, and only when the stress state is converged

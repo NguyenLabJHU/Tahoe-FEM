@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.4 2005-02-02 21:12:57 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.5 2005-02-03 15:46:00 raregue Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
@@ -31,9 +31,9 @@ public:
 							};
 							
 	enum fElementLocInternalVars {
-							kcohesion,
-							kfriction,
-							kdilation,
+							kCohesion,
+							kFriction,
+							kDilation,
 							kNUM_ISV_TERMS 
 							};					
 							
@@ -54,6 +54,9 @@ public:
 
 	/** destructor */
 	~SmallStrainEnhLocT(void);
+	
+	/** initialize current step */
+	virtual void InitStep(void);
 	
 	/** finalize current step - step is solved */
 	virtual void CloseStep(void);
@@ -203,6 +206,7 @@ protected:
 	dArray2DT fElementLocMuDir;
 	dArray2DT fElementLocInternalVars;
 	dArray2DT fElementLocGradEnh; // varies for each IP
+	dArray2DT fElementLocGradEnhIP; // for each IP for one element
 	dArray2DT fElementLocEdgeIntersect;
 	dArrayT fElementVolume;
 
@@ -218,7 +222,7 @@ protected:
 	
 	AutoArrayT <dArrayT> normals;
 	AutoArrayT <dArrayT> slipdirs;
-	dArrayT gradenh;
+	dArrayT grad_enh, mu_dir;
 	dArrayT normal1, normal2, normal3, normal_chosen;
 	dArrayT slipdir1, slipdir2, slipdir3, slipdir_chosen;
 	dArrayT tangent1, tangent2, tangent3, tangent_chosen;
