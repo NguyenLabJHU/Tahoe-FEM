@@ -1,4 +1,4 @@
-/* $Id: VIB.cpp,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* $Id: VIB.cpp,v 1.2 2001-06-11 02:05:39 paklein Exp $ */
 /* created: paklein (10/30/1997)                                          */
 /* Base class for isotropic VIB materials.                                */
 
@@ -18,6 +18,7 @@
 #include "SmithFerrante.h"
 #include "GaoKlein.h"
 #include "ParabolaT.h"
+#include "Triantafyllidis.h"
 
 /* constructors */
 VIB::VIB(ifstreamT& in, int nsd, int numstress, int nummoduli):
@@ -56,6 +57,13 @@ VIB::VIB(ifstreamT& in, int nsd, int numstress, int nummoduli):
 			double A;
 			in >> A;		
 			fPotential = new ParabolaT(A);
+			break;
+		}
+		case C1FunctionT::kTriantafyllidis:
+		{
+			double A;
+			in >> A;		
+			fPotential = new Triantafyllidis(A);
 			break;
 		}
 		default:
