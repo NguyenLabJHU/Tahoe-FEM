@@ -1,5 +1,4 @@
-/* $Id: TranslateIOManager.h,v 1.14 2003-02-25 14:34:36 sawimme Exp $ */
-
+/* $Id: TranslateIOManager.h,v 1.15 2003-09-05 06:01:46 paklein Exp $ */
 #ifndef _TRANSLATE_IOMANAGER_H_
 #define _TRANSLATE_IOMANAGER_H_
 
@@ -85,7 +84,7 @@ class TranslateIOManager
 
   OutputBaseT* fOutput;
   bool fEcho;
-  ofstream fEchoOut;
+  ofstreamT fEchoOut;
 
  private:
   iArrayT fOutputID;
