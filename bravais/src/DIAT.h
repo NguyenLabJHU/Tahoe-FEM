@@ -11,7 +11,8 @@ using namespace Tahoe;
 class DIAT : public CrystalLatticeT 
 {
 public:
-	DIAT(int nlsd,int nuca,double alat,dArrayT vec_rot);
+	DIAT(int nlsd,int nuca,double alat,
+	     dArrayT vec_rot,double angle);
 
 	~DIAT() { };
 

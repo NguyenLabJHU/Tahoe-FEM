@@ -52,7 +52,8 @@ class MeshAtom {
   // Constructor
   MeshAtom(StringT which_latticetype,int nsd,int nuca,
 	   dArrayT latticeparameter,StringT which_shape,
-	   int whichunit,dArrayT len_cel,dArrayT rot_vec);
+	   int whichunit,dArrayT len_cel,dArrayT rot_vec,
+	   double angle);
   
   // Destructor: not done yet. 
   ~MeshAtom(){};

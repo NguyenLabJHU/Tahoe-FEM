@@ -11,7 +11,8 @@ using namespace Tahoe;
 class BCCT : public CrystalLatticeT 
 {
 public:
-	BCCT(int nlsd,int nuca,double alat,dArrayT vec_rot);
+	BCCT(int nlsd,int nuca,double alat,
+	     dArrayT vec_rot,double angle);
 
 	~BCCT() { };
 

@@ -1,4 +1,4 @@
-/* $Id: CrystalLatticeT.h,v 1.4 2002-07-25 23:48:07 saubry Exp $ */
+/* $Id: CrystalLatticeT.h,v 1.5 2002-07-29 19:16:26 saubry Exp $ */
 
 #ifndef _CRYSTAL_LATTICE_T_H_
 #define _CRYSTAL_LATTICE_T_H_
@@ -19,13 +19,15 @@ protected:
 	dArray2DT vBasis;
 	dArrayT vLatticeParameters;
 	dArrayT vector_rotation;
+	double angle_rotation;
 	double norm_vec;
 	double density;
 
 public:
 
 	// Constructor 
-	CrystalLatticeT(int nlsd, int nuca,dArrayT vec_rot);
+	CrystalLatticeT(int nlsd, int nuca,
+			dArrayT vec_rot,double angle);
 	// Copy Constructor 
 	CrystalLatticeT(const CrystalLatticeT& source);
 	// Destructor
@@ -33,6 +35,9 @@ public:
 
 	int GetNLSD() { return nLSD; }
 	int GetNUCA() { return nUCA; }
+
+	double GetAngleRotation() { return angle_rotation; };
+	dArrayT GetVectorRotation() { return vector_rotation;};
 
 	virtual const dArrayT& GetLatticeParameters() = 0;
 	virtual const dArray2DT& GetBasis() = 0;
