@@ -1,4 +1,4 @@
-/* $Id: fstreamT.cpp,v 1.3 2002-01-09 12:10:09 paklein Exp $ */
+/* $Id: fstreamT.cpp,v 1.4 2002-02-03 00:03:43 paklein Exp $ */
 
 #include "fstreamT.h"
 #include "Environment.h"
@@ -48,11 +48,11 @@ bool fstreamT::need_MW_workaround(void)
 #if defined(__MWERKS__) && !defined(__MACH__)
 if (__MWERKS__ < 0x2402) /* old versions are OK */
 	return false;
-else if(__MWERKS__ <= 0x2406)
+else if(__MWERKS__ <= 0x2407)
 	return true;
 else /* stop */
 {
-	cout << "ifstreamT::need_MW_workaround: __MWERKS__ > 0x2406. Still need fix?" << endl;
+	cout << "ifstreamT::need_MW_workaround: __MWERKS__ > 0x2407. Still need fix?" << endl;
 	throw eStop;
 }
 #else
