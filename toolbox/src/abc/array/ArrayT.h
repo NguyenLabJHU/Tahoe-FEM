@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.12 2002-10-20 22:38:51 paklein Exp $ */
+/* $Id: ArrayT.h,v 1.13 2002-11-25 06:57:49 paklein Exp $ */
 /* created: paklein (06/19/1996) */
 
 #ifndef _ARRAY_T_H_
@@ -189,17 +189,18 @@ public:
 	/** write array to stream as binary */
 	void WriteBinary(ostream& out) const;
 
-protected:
-
+	/** \name useful functions for manipulating memory */
+	/*@{*/
 	/** return allocate memory and return a pointer (new C++ error handling)
 	 * \return NULL on fail */
-	TYPE* New(int size) const;
+	static TYPE* New(int size);
 
 	/** copying memory depending on the ArrayT:fByteCopy flag */
 	static void MemCopy(TYPE* to, const TYPE* from, int length);
 
 	/** moving memory depending on the ArrayT:fByteCopy flag */
 	static void MemMove(TYPE* to, const TYPE* from, int length);
+	/*@}*/
 	  	
 protected:
 	
@@ -284,7 +285,7 @@ template <class TYPE>
 #if ! __option(extended_errorcheck)
 inline
 #endif
-TYPE* ArrayT<TYPE>::New(int size) const
+TYPE* ArrayT<TYPE>::New(int size)
 {
 	TYPE* p = NULL;
 	if (size > 0)
@@ -296,17 +297,10 @@ TYPE* ArrayT<TYPE>::New(int size) const
 		p = new TYPE[size];
 #endif
 
-		if (!p)
-		{
-			cout << "\n ArrayT<TYPE>::New: out of memory" << endl;
-			throw ExceptionT::kOutOfMemory;
-		}
+		if (!p) ExceptionT::OutOfMemory("ArrayT<TYPE>::New");
 	}
-	else if (size < 0)
-	{
-		cout << "\n ArrayT<TYPE>::New: invalid size: " << size << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	else if (size < 0) 
+		ExceptionT::GeneralFail("ArrayT<TYPE>::New", "invalid size: %d", size);
 	
 	return p;
 }
@@ -411,7 +405,8 @@ void ArrayT<TYPE>::Resize(int new_length)
 	if (new_length == fLength) return;
 
 	/* abort on negative lengths */
-	if (new_length < 0) throw ExceptionT::kGeneralFail;
+	if (new_length < 0) 
+		ExceptionT::GeneralFail("ArrayT<TYPE>::Resize", "bad size: %d", new_length);
 	
 	/* allocate new space */
 	TYPE* new_data = New(new_length);
@@ -451,7 +446,8 @@ inline TYPE* ArrayT<TYPE>::Pointer(int offset) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (offset < 0 || offset > fLength) throw ExceptionT::kOutOfRange;
+	if (offset < 0 || offset > fLength) 
+		ExceptionT::OutOfRange("ArrayT<TYPE>::Pointer", "offset: !(0 <= %d <= %d)", offset, fLength);
 #endif
 	return fArray + offset;
 }
@@ -462,11 +458,8 @@ inline TYPE& ArrayT<TYPE>::operator[](int index) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (index < 0 || index >= fLength) {
-		cout << "\n ArrayT<TYPE>::operator[]: index " << index 
-		     << " is out of range {0," << Length()-1 << "}" << endl;
-		throw ExceptionT::kOutOfRange;
-		}
+	if (index < 0 || index >= fLength) 
+		ExceptionT::OutOfRange("ArrayT<TYPE>::operator[]", "index !(0 <= %d < %d)", index, fLength);
 #endif
 	return fArray[index];
 }
@@ -475,7 +468,7 @@ template <class TYPE>
 TYPE& ArrayT<TYPE>::First(void) const
 {
 #if __option(extended_errorcheck)
-	if (fArray == NULL) throw ExceptionT::kGeneralFail;
+	if (fArray == NULL) ExceptionT::GeneralFail("ArrayT<TYPE>::First", "array is NULL");
 #endif	
 	return *fArray;
 }
@@ -484,7 +477,7 @@ template <class TYPE>
 inline TYPE& ArrayT<TYPE>::Last(void) const
 {
 #if __option(extended_errorcheck)
-	if (fArray == NULL) throw ExceptionT::kGeneralFail;
+	if (fArray == NULL) ExceptionT::GeneralFail("ArrayT<TYPE>::Last", "array is NULL");
 #endif	
 	return *(fArray + fLength - 1);
 }
@@ -599,8 +592,8 @@ void ArrayT<TYPE>::CopyPart(int offset, const ArrayT<TYPE>& source,
 {
 #if __option(extended_errorcheck)
 	/* dimension checks */
-	if (offset + length > fLength) throw ExceptionT::kSizeMismatch;
-	if (source_offset + length > source.fLength) throw ExceptionT::kOutOfRange;
+	if (offset + length > fLength) ExceptionT::SizeMismatch("ArrayT<TYPE>::CopyPart");
+	if (source_offset + length > source.fLength) ExceptionT::OutOfRange("ArrayT<TYPE>::CopyPart");
 #endif
 
 	/* copy */
@@ -612,7 +605,7 @@ template <class TYPE>
 inline void ArrayT<TYPE>::Collect(const ArrayT<int>& keys, const ArrayT<TYPE>& source)
 {
 #if __option (extended_errorcheck)
-	if (keys.Length() != Length()) throw ExceptionT::kSizeMismatch;
+	if (keys.Length() != Length()) ExceptionT::SizeMismatch("ArrayT<TYPE>::Collect");
 #endif
 	Collect(keys, source.Pointer());
 }
@@ -649,15 +642,9 @@ template <class TYPE>
 void ArrayT<TYPE>::ReleasePointer(TYPE** array)
 {
 	if (fArray != NULL && !fDelete)
-	{
-		cout << "\n ArrayT<TYPE>::ReleasePointer: array is shallow" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("ArrayT<TYPE>::ReleasePointer", "array is shallow");
 	else if (array == NULL)
-	{
-		cout << "\n ArrayT<TYPE>::ReleasePointer: cannot release pointer to NULL" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("ArrayT<TYPE>::ReleasePointer", "array is NULL");
 	else
 		fDelete = 0;
 	
