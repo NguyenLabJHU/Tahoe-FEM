@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.34.2.3 2003-01-05 23:48:39 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.34.2.4 2003-01-09 09:42:13 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -42,6 +42,9 @@ FEExecutionManagerT::FEExecutionManagerT(int argc, char* argv[], char job_char,
 	/* if not prescribed as joined, write separate files */
 	if (!CommandLineOption("-join_io")) AddCommandLineOption("-split_io");
 #endif
+
+	/* set communicator log level */
+	if (CommandLineOption("-verbose")) comm.SetLogLevel(CommunicatorT::kLow);
 }
 
 /**********************************************************************
