@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.50 2002-12-05 08:31:13 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.50.2.1 2002-12-05 21:47:17 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -139,9 +139,9 @@ void FEManagerT::Initialize(InitCodeT init)
 	if (verbose) cout << "    FEManagerT::Initialize: execution parameters" << endl;
 
 	/* set communication manager */
-//	fCommManager = New_CommManager();
-//	if (!fCommManager) throw ExceptionT::kOutOfMemory;
-//	if (verbose) cout << "    FEManagerT::Initialize: comm manager" << endl;
+	fCommManager = New_CommManager();
+	if (!fCommManager) throw ExceptionT::kOutOfMemory;
+	if (verbose) cout << "    FEManagerT::Initialize: comm manager" << endl;
 	
 	/* construct the managers */
 	fTimeManager = new TimeManagerT(*this);
@@ -1611,8 +1611,7 @@ CommManagerT* FEManagerT::New_CommManager(void) const
 	if (!fModelManager) 
 		ExceptionT::GeneralFail("FEManagerT::New_CommManager", "need ModelManagerT");
 
-	CommManagerT* comm_man = new CommManagerT(fComm, fModelManager->NumDimensions());
-	comm_man->SetModelManager(fModelManager);
+	CommManagerT* comm_man = new CommManagerT(fComm, *fModelManager);
 	return comm_man;
 }
 
