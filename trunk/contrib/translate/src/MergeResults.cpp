@@ -1,4 +1,4 @@
-/* $Id: MergeResults.cpp,v 1.3 2002-07-02 21:22:59 cjkimme Exp $  */
+/* $Id: MergeResults.cpp,v 1.4 2002-09-12 17:51:39 paklein Exp $  */
 #include "MergeResults.h"
 #include "OutputSetT.h"
 
@@ -82,7 +82,7 @@ void MergeResults::Translate (const StringT& program, const StringT& version, co
 		ArrayT<const iArray2DT*> connectivities(1);
 		connectivities[0] = union_elem_connects.Pointer(i);
 		ArrayT<StringT> e_labels;
-		OutputSetT* output_set = new OutputSetT(ID, union_elem_geom[i], block_ID, connectivities, 
+		OutputSetT* output_set = new OutputSetT(union_elem_geom[i], block_ID, connectivities, 
 			union_node_labels, e_labels, false);
 	
 		/* register output */

@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.28 2002-08-16 17:55:54 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.29 2002-09-12 17:52:11 paklein Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -658,7 +658,7 @@ void TranslateIOManager::WriteElements(void)
 			    StringT ID;
 			    ID.Append(e+1);
 			    conn[0] = fModel.ElementGroupPointer (names[e]);
-			    OutputSetT set(ID, fModel.ElementGroupGeometry (names[e]), block_ID, 
+			    OutputSetT set(fModel.ElementGroupGeometry (names[e]), block_ID, 
 					   conn, fNodeLabels, fElementLabels, changing);
 			    fOutputID[e] = fOutput->AddElementSet (set);
 			  }
@@ -677,7 +677,7 @@ void TranslateIOManager::WriteElements(void)
 	      ID.Append(0);
 	    
 	    /* create output set */
-	    OutputSetT set(ID, geometry, block_IDs, blocks, fNodeLabels, fElementLabels, changing);
+	    OutputSetT set(geometry, block_IDs, blocks, fNodeLabels, fElementLabels, changing);
 	    fOutputID[0] = fOutput->AddElementSet(set);
 	  }
 }

@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.25 2002-09-04 15:58:20 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.26 2002-09-12 17:43:41 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -215,18 +215,14 @@ void BridgingScaleT::RegisterOutput(void)
 	for (int i = 0; i < ndof; i++) n_labels[dex++] = coarse_labels[i];
 	for (int i = 0; i < ndof; i++) n_labels[dex++] = fine_labels[i];
 
-	/* group ID */	
-	StringT set_ID;
-	set_ID.Append(ElementSupport().ElementGroupNumber(this) + 1);
-
 	/* register output at solid nodes */
 #if 0
-	OutputSetT output_set_solid(set_ID, GeometryT::kPoint, fSolidNodesUsed, n_labels);
+	OutputSetT output_set_solid(GeometryT::kPoint, fSolidNodesUsed, n_labels);
 	fSolidOutputID = ElementSupport().RegisterOutput(output_set_solid);
 #endif
 
 	/* register output at particles */
-	OutputSetT output_set_particle(set_ID, GeometryT::kPoint, fParticlesUsed, n_labels);
+	OutputSetT output_set_particle(GeometryT::kPoint, fParticlesUsed, n_labels);
 	fParticleOutputID = ElementSupport().RegisterOutput(output_set_particle);
 }
 

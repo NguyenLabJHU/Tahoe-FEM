@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.20 2002-07-17 00:02:10 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.21 2002-09-12 17:45:37 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "ContinuumElementT.h"
@@ -302,10 +302,7 @@ void ContinuumElementT::RegisterOutput(void)
 	GenerateOutputLabels(n_counts, n_labels, e_counts, e_labels);
 
 	/* set output specifier */
-	StringT set_ID;
-	set_ID.Append(ElementSupport().ElementGroupNumber(this) + 1);
-	OutputSetT output_set(set_ID, fGeometryCode, block_ID, fConnectivities,
-		n_labels, e_labels, false);
+	OutputSetT output_set(fGeometryCode, block_ID, fConnectivities, n_labels, e_labels, false);
 		
 	/* register and get output ID */
 	fOutputID = ElementSupport().RegisterOutput(output_set);

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.12 2002-09-10 19:20:08 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.13 2002-09-12 17:48:12 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "NodeManagerT.h"
@@ -150,7 +150,7 @@ void NodeManagerT::RegisterOutput(void)
 				const StringT& ID = fHistoryNodeSetIDs[i];
 		
 				/* specify output - "free set" */
-				OutputSetT output_set(ID, model.ElementGroupGeometry(ID), model.ElementGroup(ID), n_labels);
+				OutputSetT output_set(model.ElementGroupGeometry(ID), model.ElementGroup(ID), n_labels);
 				 
 				/* register output */
 				fHistoryOutputID(dex,0) = fFEManager.RegisterOutput(output_set);
