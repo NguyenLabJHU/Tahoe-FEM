@@ -1,4 +1,4 @@
-/* $Id: StillingerWeberT.h,v 1.1 2004-11-23 01:43:20 cjkimme Exp $ */
+/* $Id: StillingerWeberT.h,v 1.2 2004-12-03 20:33:50 cjkimme Exp $ */
 #ifndef _STILLINGER_WEBER_T_H_
 #define _STILLINGER_WEBER_T_H_
 
@@ -54,7 +54,7 @@ private:
 	static double TwoBodyEnergy(double r_ab, double* data_a, double* data_b);
 	static double TwoBodyForce(double r_ab, double* data_a, double* data_b);
 	static double TwoBodyStiffness(double r_ab, double* data_a, double* data_b);
-	static double ThreeBodyEnergy(double* ri, double* rj, double* rk);
+	static double ThreeBodyEnergy(const double* ri, const double* rj, const double* rk);
 	static double* ThreeBodyForce(const double* ri, const double* rj, const double* rk, double* fij, double *fik);
 	static double* ThreeBodyStiffness(const double* ri, const double* rj, const double* rk, dMatrixT& K_ijk);
 	/*@}*/
