@@ -1,21 +1,21 @@
-/* $Id: TensorTransformT.cpp,v 1.5 2002-10-20 22:49:11 paklein Exp $ */
-/* created: paklein (07/02/1996)                                          */
-
+/* $Id: TensorTransformT.cpp,v 1.5.34.1 2004-01-21 19:10:27 paklein Exp $ */
+/* created: paklein (07/02/1996) */
 #include "TensorTransformT.h"
-
-/* constructor */
 
 using namespace Tahoe;
 
-TensorTransformT::TensorTransformT(int dim):
-	fRank2(dim),
-	fRank4(dSymMatrixT::NumValues(dim)),
-	fPull(dim),
-	fTransform(dSymMatrixT::NumValues(dim)),
-	fOuter(dim),
-	fRedMat(dSymMatrixT::NumValues(dim))
-{	
+/* constructor */
+TensorTransformT::TensorTransformT(int dim) { Dimension(dim); }
 
+/* set the dimension */
+void TensorTransformT::Dimension(int dim)
+{
+	fRank2.Dimension(dim);
+	fRank4.Dimension(dSymMatrixT::NumValues(dim));
+	fPull.Dimension(dim);
+	fTransform.Dimension(dSymMatrixT::NumValues(dim));
+	fOuter.Dimension(dim);
+	fRedMat.Dimension(dSymMatrixT::NumValues(dim));
 }
 
 /* rank 4 tensor transformations */

@@ -1,4 +1,4 @@
-/* $Id: SSKStV2D.cpp,v 1.5 2002-11-14 17:06:06 paklein Exp $ */
+/* $Id: SSKStV2D.cpp,v 1.5.32.1 2004-01-21 19:10:09 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "SSKStV2D.h"
 #include "StringT.h"
@@ -12,6 +12,7 @@ static const char* Labels[kNumOutput] = {"phi", "J2_dev", "p"};
 
 /* constructor */
 SSKStV2D::SSKStV2D(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("small_strain_StVenant_2D"),
 	SSKStV(in, support),
 	Material2DT(in)
 {
@@ -19,6 +20,12 @@ SSKStV2D::SSKStV2D(ifstreamT& in, const SSMatSupportT& support):
 	fDensity *= fThickness;
 }
 
+SSKStV2D::SSKStV2D(void):
+	ParameterInterfaceT("small_strain_StVenant_2D")
+{
+
+}
+	
 /* print parameters */
 void SSKStV2D::Print(ostream& out) const
 {

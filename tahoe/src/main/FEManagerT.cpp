@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.70 2004-01-05 07:14:40 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.70.2.1 2004-01-21 19:10:31 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1188,10 +1188,62 @@ void FEManagerT::DefineParameters(ParameterListT& list) const
 /* accept parameter list */
 void FEManagerT::TakeParameterList(const ParameterListT& list)
 {
+	const char caller[] = "FEManagerT::TakeParameterList";
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
+
+	/* path to parameters file */
+	StringT path;
+	path.FilePath(fMainIn.filename());
+
+	/* geometry database parameters */
+	IOBaseT::FileTypeT format = IOBaseT::int_to_FileTypeT(list.GetParameter("geometry_format"));
+	StringT database;
+	database = list.GetParameter("geometry_file");
+	database.ToNativePathName();      
+	database.Prepend(path);
+
+	/* output format */
+	fOutputFormat = IOBaseT::int_to_FileTypeT(list.GetParameter("output_format"));
 	
-	//not implemented
+	/* restart files */
+	const ParameterT* restart_file = list.Parameter("restart_file");
+	if (restart_file) {
+		fRestartFile = *restart_file;
+		fRestartFile.ToNativePathName();
+	    fRestartFile.Prepend(path);
+	    
+	    fReadRestart = true; //TEMP - still need this?
+	}
+	fWriteRestart = list.GetParameter("restart_output_inc");
+
+	/* verbose echo */
+	fPrintInput = list.Parameter("echo_input");
+	
+	/* compute the initial conditions */
+	fComputeInitialCondition = list.Parameter("compute_IC");
+
+	/* initialize the model manager */
+	fModelManager = new ModelManagerT(fMainOut);
+	if (!fModelManager) ExceptionT::OutOfMemory(caller);
+	if (!fModelManager->Initialize(format, database, true)) /* conditions under which to scan model */
+		ExceptionT::BadInputValue(caller, "error initializing model manager");
+
+	/* construct IO manager - configure in SetOutput below */
+	StringT file_name(fMainIn.filename());
+	fIOManager = new IOManager(fMainOut, kProgramName, kCurrentVersion, fTitle, file_name, fOutputFormat);	
+	if (!fIOManager) throw ExceptionT::kOutOfMemory;
+
+	/* set communication manager */
+	fCommManager = New_CommManager();
+	if (!fCommManager) throw ExceptionT::kOutOfMemory;
+
+	/* count solvers and allocate so that NumGroups is correct */
+	int num_groups = 0;
+	while (list.List("solvers", num_groups+1) != NULL)
+		num_groups++;
+	fSolvers.Dimension(num_groups);
+	fSolvers = NULL;	
 }
 
 /* information about subordinate parameter lists */
@@ -1617,7 +1669,7 @@ void FEManagerT::ReadParameters(InitCodeT init)
 	else
 		num_groups = 1;
 
-	/* allocate to that NumGroups is correct */
+	/* allocate so that NumGroups is correct */
 	fSolvers.Dimension(num_groups);
 	fSolvers = NULL;
 }

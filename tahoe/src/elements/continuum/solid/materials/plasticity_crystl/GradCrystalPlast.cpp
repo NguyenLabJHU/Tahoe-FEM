@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlast.cpp,v 1.11 2003-12-18 22:22:01 ebmarin Exp $ */
+/* $Id: GradCrystalPlast.cpp,v 1.11.2.1 2004-01-21 19:10:24 paklein Exp $ */
 #include "GradCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -27,6 +27,7 @@ const bool XTAL_MESSAGES = false;
 const int ELprnt = 0;
 
 GradCrystalPlast::GradCrystalPlast(ifstreamT& in, const FSMatSupportT& support) :
+	ParameterInterfaceT("gradient_crystal_plasticity"),
   LocalCrystalPlast(in, support),  
   fLocInitX (ContinuumElement().InitialCoordinates()),
   fLocCurrX (LocalArrayT::kCurrCoords),
@@ -127,10 +128,10 @@ const dSymMatrixT& GradCrystalPlast::s_ij()
   int igrn = 0;
 
   // time step
-  fdt = fFSMatSupport.TimeStep();
+  fdt = fFSMatSupport->TimeStep();
 
   // compute crystal stresses
-  if (fFSMatSupport.RunState() == GlobalT::kFormRHS && CurrIP() == 0)
+  if (fFSMatSupport->RunState() == GlobalT::kFormRHS && CurrIP() == 0)
     {
       if (XTAL_MESSAGES && CurrElementNumber() == ELprnt)
          cout << " elem # " << CurrElementNumber() << endl;
@@ -284,7 +285,7 @@ void GradCrystalPlast::ComputeOutput(dArrayT& output)
   if (elem == 0 && intpt == 0) fAvgStress = 0.0;
   fAvgStress.AddScaled(1./(NumIP()*NumElements()), fs_ij);
   if (elem == (NumElements()-1) && intpt == (NumIP()-1))
-     cerr << " step # " << fFSMatSupport.StepNumber()
+     cerr << " step # " << fFSMatSupport->StepNumber()
           << "    S_eq_avg = " 
           << sqrt(fsymmatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23 << endl; 
 
@@ -293,8 +294,8 @@ void GradCrystalPlast::ComputeOutput(dArrayT& output)
   output[2] = fIterState;
 
   // compute euler angles
-  int step   = fFSMatSupport.StepNumber();
-  int nsteps = fFSMatSupport.NumberOfSteps();
+  int step   = fFSMatSupport->StepNumber();
+  int nsteps = fFSMatSupport->NumberOfSteps();
 
   if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
   {

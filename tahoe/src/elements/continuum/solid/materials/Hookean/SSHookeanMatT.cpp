@@ -1,4 +1,4 @@
-/* $Id: SSHookeanMatT.cpp,v 1.7 2004-01-10 04:41:12 paklein Exp $ */
+/* $Id: SSHookeanMatT.cpp,v 1.7.2.1 2004-01-21 19:10:04 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "SSHookeanMatT.h"
 
@@ -6,16 +6,18 @@ using namespace Tahoe;
 
 /* constructor */
 SSHookeanMatT::SSHookeanMatT(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("small_strain_Hookean"),
 	SSSolidMatT(in, support),
 	HookeanMatT(NumSD()),
 	fStress(NumSD())
 {
-	SetName("small_strain_Hookean");
+
 }
 
-SSHookeanMatT::SSHookeanMatT(void)
+SSHookeanMatT::SSHookeanMatT(void):
+	ParameterInterfaceT("small_strain_Hookean")
 {
-	SetName("small_strain_Hookean");
+
 }
 
 /* initialization */

@@ -1,4 +1,4 @@
-/* $Id: SWDiamond110.cpp,v 1.5 2003-01-29 07:34:37 paklein Exp $ */
+/* $Id: SWDiamond110.cpp,v 1.5.30.1 2004-01-21 19:10:02 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #include "SWDiamond110.h"
 #include <math.h>
@@ -8,6 +8,7 @@ using namespace Tahoe;
 
 /* constructor */
 SWDiamond110::SWDiamond110(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("Stillinger_Weber_DC_110"),
 	SWMaterial2D(in, support)
 {
 

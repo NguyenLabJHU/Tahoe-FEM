@@ -1,4 +1,4 @@
-/* $Id: BCJHypo2D.cpp,v 1.5 2003-01-29 07:35:06 paklein Exp $ */
+/* $Id: BCJHypo2D.cpp,v 1.5.30.1 2004-01-21 19:10:25 paklein Exp $ */
 #include "BCJHypo2D.h"
 #include "ifstreamT.h"
 #include "Utils.h"
@@ -9,7 +9,8 @@ using namespace Tahoe;
 const int kNSD = 2;
 
 BCJHypo2D::BCJHypo2D(ifstreamT& in, const FSMatSupportT& support) :
-  BCJHypo3D   (in, support),  
+	ParameterInterfaceT("BCJHypo_2D"),
+	BCJHypo3D   (in, support),  
   Material2DT (in, Material2DT::kPlaneStrain),
   f2Ds_ij   (kNSD),
   f2Dc_ijkl (dSymMatrixT::NumValues(kNSD))

@@ -1,4 +1,4 @@
-/* $Id: FDHookeanMatT.h,v 1.7 2003-01-29 07:34:39 paklein Exp $ */
+/* $Id: FDHookeanMatT.h,v 1.7.30.1 2004-01-21 19:10:04 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #ifndef _FD_HOOKEAN_MAT_H_
 #define _FD_HOOKEAN_MAT_H_
@@ -13,10 +13,11 @@ class FDHookeanMatT: public FSSolidMatT, public HookeanMatT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	FDHookeanMatT(ifstreamT& in, const FSMatSupportT& support);
+	FDHookeanMatT(void);
 
-	/* initialization */
+	/** initialization */
 	virtual void Initialize(void);
 
 	/** \name spatial description */

@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.cpp,v 1.8 2003-01-29 07:34:38 paklein Exp $ */
+/* $Id: EAMFCC2D.cpp,v 1.8.30.1 2004-01-21 19:10:03 paklein Exp $ */
 /* created: paklein (12/09/1996) */
 #include "EAMFCC2D.h"
 
@@ -21,6 +21,7 @@ const double sqrt3 = sqrt(3.0);
 
 /* constructor */
 EAMFCC2D::EAMFCC2D(ifstreamT& in, const FSMatSupportT& support, PlaneCodeT plane_code):
+	ParameterInterfaceT("EAM_FCC_2D"),
 	NL_E_Mat2DT(in, support, kPlaneStrain),
 	fPlaneCode(plane_code),
 	fEAM(NULL)

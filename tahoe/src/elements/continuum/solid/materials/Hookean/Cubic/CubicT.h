@@ -1,12 +1,13 @@
-/* $Id: CubicT.h,v 1.4 2002-07-05 22:28:15 paklein Exp $ */
-/* created: paklein (06/11/1997)                                          */
-
+/* $Id: CubicT.h,v 1.4.40.1 2004-01-21 19:10:06 paklein Exp $ */
+/* created: paklein (06/11/1997) */
 #ifndef _CUBIC_T_H_
 #define _CUBIC_T_H_
 
-#include "Environment.h"
+/* base class */
+#include "ParameterInterfaceT.h"
 
-#include "ios_fwd_decl.h"
+/* direct members */
+#include "Material2DT.h"
 
 namespace Tahoe {
 
@@ -14,23 +15,23 @@ namespace Tahoe {
 class ifstreamT;
 class dMatrixT;
 
-}
-
-/* direct members */
-#include "Material2DT.h"
-
-namespace Tahoe {
-
-class CubicT
+class CubicT: virtual public ParameterInterfaceT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	CubicT(ifstreamT& in);
+	CubicT(void);
 		
 	/* print parameters */
 	void Print(ostream& out) const;
 	void PrintName(ostream& out) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
 protected:
 

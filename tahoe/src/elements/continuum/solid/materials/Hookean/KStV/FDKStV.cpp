@@ -1,4 +1,4 @@
-/* $Id: FDKStV.cpp,v 1.5 2003-01-29 07:34:42 paklein Exp $ */
+/* $Id: FDKStV.cpp,v 1.5.30.1 2004-01-21 19:10:08 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "FDKStV.h"
 
@@ -6,6 +6,7 @@ using namespace Tahoe;
 
 /* constructor */
 FDKStV::FDKStV(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("large_strain_StVenant"),
 	FDHookeanMatT(in, support),
 	IsotropicT(in)
 {

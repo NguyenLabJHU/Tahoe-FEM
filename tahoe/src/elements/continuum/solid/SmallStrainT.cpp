@@ -1,13 +1,14 @@
-/* $Id: SmallStrainT.cpp,v 1.13 2003-12-28 08:23:20 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.13.2.1 2004-01-21 19:09:58 paklein Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
 
 /* materials lists */
-#include "SolidMatList1DT.h"
-#include "SolidMatList2DT.h"
-#include "SolidMatList3DT.h"
+#include "SSSolidMatList1DT.h"
+#include "SSSolidMatList2DT.h"
+#include "SSSolidMatList3DT.h"
 #include "SSMatSupportT.h"
+#include "ParameterContainerT.h"
 
 using namespace Tahoe;
 
@@ -94,44 +95,60 @@ void SmallStrainT::DefineParameters(ParameterListT& list) const
 
 /* information about subordinate parameter lists */
 void SmallStrainT::DefineSubs(SubListT& sub_list) const
-{	
+{
 	/* inherited */
-	SolidElementT::DefineSubs(sub_list);
+	SolidElementT::DefineSubs(sub_list);	
 
-	/* the element groups - an array of choices */
-	sub_list.AddSub("solid_materials", ParameterListT::Once, true);
+	/* element block/material specification */
+	sub_list.AddSub("small_strain_element_block", ParameterListT::OnePlus);
 }
 
 /* return the description of the given inline subordinate parameter list */
-void SmallStrainT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
-{
-	if (sub == "solid_materials")
-	{
-		order = ParameterListT::Choice;
-		sub_sub_list.AddSub("solid_materials_1D");
-		sub_sub_list.AddSub("solid_materials_2D");	
-		sub_sub_list.AddSub("solid_materials_3D");	
-	}
-	else /* inherited */
-		SolidElementT::DefineInlineSub(sub, order, sub_sub_list);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* SmallStrainT::NewSub(const StringT& list_name) const
 {
 	/* create non-const this */
 	SmallStrainT* non_const_this = const_cast<SmallStrainT*>(this);
 
-	if (list_name == "solid_materials_1D")
+	if (list_name == "small_strain_element_block")
+	{
+		ParameterContainerT* block = new ParameterContainerT("small_strain_element_block");
+		
+		/* list of element block ID's (defined by ElementBaseT) */
+		block->AddSub("block_ID_list", ParameterListT::Once);
+	
+		/* choice of materials lists (inline) */
+		block->AddSub("small_strain_material_choice", ParameterListT::Once, true);
+	
+		/* set this as source of subs */
+		block->SetSubSource(this);
+		
+		return block;
+	}
+	else if (list_name == "small_strain_material_1D")
 		return non_const_this->NewMaterialList(1,0);
-	else if (list_name == "solid_materials_2D")
+	else if (list_name == "small_strain_material_2D")
 		return non_const_this->NewMaterialList(2,0);
-	else if (list_name == "solid_materials_3D")
+	else if (list_name == "small_strain_material_3D")
 		return non_const_this->NewMaterialList(3,0);
 	else /* inherited */
+		return ContinuumElementT::NewSub(list_name);
+}
 
-		return SolidElementT::NewSub(list_name);
+/* return the description of the given inline subordinate parameter list. */
+void SmallStrainT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	if (sub == "small_strain_material_choice")
+	{
+		order = ParameterListT::Choice;
+		
+		/* list of choices */
+		sub_sub_list.AddSub("small_strain_material_1D");
+		sub_sub_list.AddSub("small_strain_material_2D");
+		sub_sub_list.AddSub("small_strain_material_3D");
+	}
+	else /* inherited */
+		return SolidElementT::DefineInlineSub(sub, order, sub_sub_list);
 }
 
 /***********************************************************************
@@ -171,22 +188,22 @@ MaterialListT* SmallStrainT::NewMaterialList(int nsd, int size)
 		}
 
 		if (nsd == 1)
-			return new SolidMatList1DT(size, *fSSMatSupport);
+			return new SSSolidMatList1DT(size, *fSSMatSupport);
 		else if (nsd == 2)
-			return new SolidMatList2DT(size, *fSSMatSupport);
+			return new SSSolidMatList2DT(size, *fSSMatSupport);
 		else if (nsd == 3)
-			return new SolidMatList3DT(size, *fSSMatSupport);
+			return new SSSolidMatList3DT(size, *fSSMatSupport);
 		else
 			return NULL;
 	}
 	else
 	{
 		if (nsd == 1)
-			return new SolidMatList1DT;
+			return new SSSolidMatList1DT;
 		else if (nsd == 2)
-			return new SolidMatList2DT;
+			return new SSSolidMatList2DT;
 		else if (nsd == 3)
-			return new SolidMatList3DT;
+			return new SSSolidMatList3DT;
 		else
 			return NULL;
 	}	

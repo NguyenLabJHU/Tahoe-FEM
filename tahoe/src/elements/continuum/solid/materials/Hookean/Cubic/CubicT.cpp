@@ -1,6 +1,5 @@
-/* $Id: CubicT.cpp,v 1.4 2002-10-20 22:48:42 paklein Exp $ */
-/* created: paklein (06/11/1997)                                          */
-
+/* $Id: CubicT.cpp,v 1.4.34.1 2004-01-21 19:10:06 paklein Exp $ */
+/* created: paklein (06/11/1997) */
 #include "CubicT.h"
 
 #include <iostream.h>
@@ -8,15 +7,22 @@
 #include "fstreamT.h"
 #include "dMatrixT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
-CubicT::CubicT(ifstreamT& in)
+/* constructor */
+CubicT::CubicT(ifstreamT& in):
+	ParameterInterfaceT("cubic")
 {	
 	in >> fC11;			
 	in >> fC12;			//add check on the ranges!!!!
 	in >> fC44;	
+}
+
+CubicT::CubicT(void): 
+	ParameterInterfaceT("cubic"),
+	fC11(0.0), fC12(0.0), fC44(0.0)
+{
+
 }
 
 /* I/O operators */
@@ -25,6 +31,17 @@ void CubicT::Print(ostream& out) const
 	out << " C11 . . . . . . . . . . . . . . . . . . . . . . = " << fC11 << '\n';
 	out << " C12 . . . . . . . . . . . . . . . . . . . . . . = " << fC12 << '\n';
 	out << " C44 . . . . . . . . . . . . . . . . . . . . . . = " << fC44 << '\n';	
+}
+
+/* describe the parameters needed by the interface */
+void CubicT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	ParameterInterfaceT::DefineParameters(list);
+
+	list.AddParameter(fC11, "C11");
+	list.AddParameter(fC12, "C12");
+	list.AddParameter(fC44, "C44");
 }
 
 /*************************************************************************

@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.8 2004-01-10 04:41:25 paklein Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.8.2.1 2004-01-21 19:10:27 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "SSSolidMatT.h"
 #include <iostream.h>
@@ -12,7 +12,8 @@ using namespace Tahoe;
 const double strain_perturbation = 1.0e-08;
 
 /* constructor */
-SSSolidMatT::SSSolidMatT(ifstreamT& in, const SSMatSupportT& support):
+SSSolidMatT::SSSolidMatT(ifstreamT& in,const SSMatSupportT& support):
+	ParameterInterfaceT("small_strain_material"),
 	SolidMaterialT(in, support),
 	fSSMatSupport(&support),
 	fModulus(dSymMatrixT::NumValues(NumSD())),
@@ -21,14 +22,15 @@ SSSolidMatT::SSSolidMatT(ifstreamT& in, const SSMatSupportT& support):
 	fThermalStrain(NumSD()),
 	fHasThermalStrain(false)
 {
-	SetName("small_strain_solid_material");
+
 }
 
 SSSolidMatT::SSSolidMatT(void):
+	ParameterInterfaceT("small_strain_material"),
 	fSSMatSupport(NULL),
 	fHasThermalStrain(false)
 {
-	SetName("small_strain_solid_material");
+
 }
 
 /* I/O */

@@ -1,4 +1,4 @@
-/* $Id: EVPFDBaseT.cpp,v 1.11 2003-01-29 07:35:06 paklein Exp $ */
+/* $Id: EVPFDBaseT.cpp,v 1.11.30.1 2004-01-21 19:10:25 paklein Exp $ */
 #include "EVPFDBaseT.h"
 #include "NLCSolver.h"
 #include "NLCSolver_LS.h"
@@ -17,6 +17,7 @@ const int kIsInit = 1;
 const int kNSD = 3;
 
 EVPFDBaseT::EVPFDBaseT(ifstreamT& in, const FSMatSupportT& support) :
+	ParameterInterfaceT("EVPFDBase"),
   FDHookeanMatT(in, support),
   IsotropicT  (in),
   //fdt         (element.FEManager().TimeStep()),

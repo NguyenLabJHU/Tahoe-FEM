@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden2DT.cpp,v 1.5 2003-01-29 07:34:43 paklein Exp $ */
+/* $Id: QuadLogOgden2DT.cpp,v 1.5.30.1 2004-01-21 19:10:10 paklein Exp $ */
 /* created: paklein (02/18/2001) */
 #include "QuadLogOgden2DT.h"
 #include <math.h>
@@ -9,6 +9,7 @@ using namespace Tahoe;
 
 /* constructor */
 QuadLogOgden2DT::QuadLogOgden2DT(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("quad_log_Ogden_2D"),
 	OgdenIsotropicT(in, support),
 	Material2DT(in, kPlaneStrain),
 	flogE(2)

@@ -1,4 +1,4 @@
-/* $Id: SSKStV.cpp,v 1.4 2002-11-14 17:06:06 paklein Exp $ */
+/* $Id: SSKStV.cpp,v 1.4.32.1 2004-01-21 19:10:08 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "SSKStV.h"
 
@@ -6,8 +6,15 @@ using namespace Tahoe;
 
 /* constructor */
 SSKStV::SSKStV(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("small_strain_StVenant"),
 	SSHookeanMatT(in, support),
 	IsotropicT(in)
+{
+
+}
+
+SSKStV::SSKStV(void):
+	ParameterInterfaceT("small_strain_StVenant")
 {
 
 }
@@ -29,8 +36,8 @@ void SSKStV::PrintName(ostream& out) const
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /* set (material) tangent modulus */
 void SSKStV::SetModulus(dMatrixT& modulus)

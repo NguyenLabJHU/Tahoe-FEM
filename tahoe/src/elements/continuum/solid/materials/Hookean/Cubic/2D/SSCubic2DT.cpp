@@ -1,4 +1,4 @@
-/* $Id: SSCubic2DT.cpp,v 1.6 2002-11-14 17:06:05 paklein Exp $ */
+/* $Id: SSCubic2DT.cpp,v 1.6.32.1 2004-01-21 19:10:07 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #include "SSCubic2DT.h"
 #include "ThermalDilatationT.h"
@@ -7,12 +7,20 @@ using namespace Tahoe;
 
 /* constructor */
 SSCubic2DT::SSCubic2DT(ifstreamT& in, const SSMatSupportT& support):
+	ParameterInterfaceT("small_strain_cubic_2D"),
 	SSCubicT(in, support),
 	Anisotropic2DT(in),
 	Material2DT(in)
 {
 	/* account for thickness */
 	fDensity *= fThickness;
+}
+
+/* constructor */
+SSCubic2DT::SSCubic2DT(void):
+	ParameterInterfaceT("small_strain_cubic_2D")
+{
+
 }
 
 /* print parameters */

@@ -1,4 +1,4 @@
-/* $Id: SSKStV2D.h,v 1.4 2002-11-14 17:06:06 paklein Exp $ */
+/* $Id: SSKStV2D.h,v 1.4.32.1 2004-01-21 19:10:09 paklein Exp $ */
 /* created: paklein (06/10/97) */
 #ifndef _SS_KSTV_2D_H_
 #define _SS_KSTV_2D_H_
@@ -13,9 +13,10 @@ class SSKStV2D: public SSKStV, public Material2DT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	SSKStV2D(ifstreamT& in, const SSMatSupportT& support);
-
+	SSKStV2D(void);
+	
 	/* print parameters */
 	virtual void Print(ostream& out) const;
 

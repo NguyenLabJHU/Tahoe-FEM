@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.19 2003-12-28 08:23:20 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.19.2.1 2004-01-21 19:09:58 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -6,9 +6,8 @@
 #include "FSMatSupportT.h"
 
 /* materials lists */
-#include "SolidMatList1DT.h"
-#include "SolidMatList2DT.h"
-#include "SolidMatList3DT.h"
+#include "FSSolidMatList2DT.h"
+#include "FSSolidMatList3DT.h"
 
 using namespace Tahoe;
 
@@ -147,22 +146,22 @@ MaterialListT* FiniteStrainT::NewMaterialList(int nsd, int size)
 		}
 
 		if (nsd == 1)
-			return new SolidMatList1DT(size, *fFSMatSupport);
+			return NULL;
 		else if (nsd == 2)
-			return new SolidMatList2DT(size, *fFSMatSupport);
+			return new FSSolidMatList2DT(size, *fFSMatSupport);
 		else if (nsd == 3)
-			return new SolidMatList3DT(size, *fFSMatSupport);
+			return new FSSolidMatList3DT(size, *fFSMatSupport);
 		else
 			return NULL;
 	}
 	else
 	{
 		if (nsd == 1)
-			return new SolidMatList1DT;
+			return NULL;
 		else if (nsd == 2)
-			return new SolidMatList2DT;
+			return new FSSolidMatList2DT;
 		else if (nsd == 3)
-			return new SolidMatList3DT;
+			return new FSSolidMatList3DT;
 		else
 			return NULL;
 	}

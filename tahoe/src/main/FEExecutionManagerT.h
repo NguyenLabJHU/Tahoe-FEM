@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.23 2004-01-10 17:13:11 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.23.2.1 2004-01-21 19:10:31 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #ifndef _FE_EXECMAN_T_H_
 #define _FE_EXECMAN_T_H_
@@ -59,6 +59,9 @@ protected:
 	int Size(void) const;
 	/*@}*/
 
+	/** Recursive dispatch */
+	virtual void JobOrBatch(ifstreamT& in, ostream& status);
+
 private:
 
 	/** \name execution modes */
@@ -75,6 +78,9 @@ private:
 	
 	/** standard serial driver */
 	void RunJob_serial(ifstreamT& in, ostream& status) const;
+
+	/** TEMP - serial driver for XMl input */
+	void RunJob_serial_XML(ifstreamT& in, ostream& status) const;
 	
 	/** parallel driver */
 	void RunJob_parallel(ifstreamT& in, ostream& status) const;

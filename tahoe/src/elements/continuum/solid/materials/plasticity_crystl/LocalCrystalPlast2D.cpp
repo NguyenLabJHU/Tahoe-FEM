@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast2D.cpp,v 1.6 2003-01-29 07:35:04 paklein Exp $ */
+/* $Id: LocalCrystalPlast2D.cpp,v 1.6.30.1 2004-01-21 19:10:24 paklein Exp $ */
 #include "LocalCrystalPlast2D.h"
 #include "ElementCardT.h"
 #include "ifstreamT.h"
@@ -9,6 +9,7 @@ using namespace Tahoe;
 const int kNSD = 2;
 
 LocalCrystalPlast2D::LocalCrystalPlast2D(ifstreamT& in, const FSMatSupportT& support) :
+	ParameterInterfaceT("local_crystal_plasticity_2D"),
   LocalCrystalPlast (in, support),  
   Material2DT       (in, Material2DT::kPlaneStrain),
   f2Dsavg_ij   (kNSD),

@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.10 2004-01-10 04:41:25 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.10.2.1 2004-01-21 19:10:27 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
@@ -12,8 +12,8 @@
 using namespace Tahoe;
 
 /* constructor */
-SolidMaterialT::SolidMaterialT(ifstreamT& in,
-	const MaterialSupportT& support):
+SolidMaterialT::SolidMaterialT(ifstreamT& in, const MaterialSupportT& support):
+	ParameterInterfaceT("solid_material"),
 	ContinuumMaterialT(support)
 {
 	in >> fMassDamp;	if (fMassDamp  <  0.0) throw ExceptionT::kBadInputValue;
@@ -26,12 +26,13 @@ SolidMaterialT::SolidMaterialT(ifstreamT& in,
 }
 
 SolidMaterialT::SolidMaterialT(void):
+	ParameterInterfaceT("solid_material"),
 	fThermal(NULL),
 	fDensity(0.0),
 	fMassDamp(0.0),
 	fStiffDamp(0.0)
 {
-	SetName("solid_material");
+
 }
 
 /* destructor */
@@ -87,7 +88,7 @@ void SolidMaterialT::WaveSpeeds(const dArrayT& normal, dArrayT& speeds)
 		{
 			double temp = speeds[0];
 			speeds[0] = speeds[1];
-			speeds[1] = speeds[0];
+			speeds[1] = temp;
 		}
 		
 		/* compute wave speeds */
@@ -158,7 +159,6 @@ void SolidMaterialT::DefineParameters(ParameterListT& list) const
 
 	/* density */
 	ParameterT density(fDensity, "density");
-	density.SetDefault(1.0);
 	density.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(density);
 }

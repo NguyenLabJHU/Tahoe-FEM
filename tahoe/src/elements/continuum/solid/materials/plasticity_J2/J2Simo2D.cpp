@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.cpp,v 1.13 2003-11-21 22:46:48 paklein Exp $ */
+/* $Id: J2Simo2D.cpp,v 1.13.4.1 2004-01-21 19:10:21 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 #include "J2Simo2D.h"
 #include "StringT.h"
@@ -11,6 +11,7 @@ const double sqrt23 = sqrt(2.0/3.0);
 
 /* constructor */
 J2Simo2D::J2Simo2D(ifstreamT& in, const FSMatSupportT& support):
+	ParameterInterfaceT("Simo_J2_2D"),
 	SimoIso2D(in, support),
 	J2SimoC0HardeningT(in, NumIP(), Mu()),
 	fFmech(3),

@@ -1,18 +1,18 @@
-/* $Id: IsotropicT.cpp,v 1.9 2003-08-16 01:31:48 rdorgan Exp $ */
-/* created: paklein (06/10/1997)                                          */
-
+/* $Id: IsotropicT.cpp,v 1.9.16.1 2004-01-21 19:10:26 paklein Exp $ */
+/* created: paklein (06/10/1997) */
 #include "IsotropicT.h"
 
 #include <iostream.h>
 
 #include "dMatrixT.h"
 #include "fstreamT.h"
-
-/* constructor */
+#include "ParameterContainerT.h"
 
 using namespace Tahoe;
 
-IsotropicT::IsotropicT(ifstreamT& in)
+/* constructor */
+IsotropicT::IsotropicT(ifstreamT& in):
+	ParameterInterfaceT("isotropic")
 {
 	double E, nu;
 	in >> E >> nu;
@@ -20,7 +20,8 @@ IsotropicT::IsotropicT(ifstreamT& in)
 	catch (ExceptionT::CodeT exception) { throw ExceptionT::kBadInputValue; }
 }
 
-IsotropicT::IsotropicT(void)
+IsotropicT::IsotropicT(void):
+	ParameterInterfaceT("isotropic")
 {
 	try { Set_E_nu(0.0, 0.0); }
 	catch (ExceptionT::CodeT exception) { throw ExceptionT::kBadInputValue; }
@@ -76,13 +77,91 @@ void IsotropicT::Print(ostream& out) const
 	out << " Poisson's ratio . . . . . . . . . . . . . . . . = " << fPoisson << '\n';
 	out << " Shear modulus . . . . . . . . . . . . . . . . . = " << fMu      << '\n';
 	out << " Bulk modulus. . . . . . . . . . . . . . . . . . = " << fKappa   << '\n';
-	out << " Lame modulus  . . . . . . . . . . . . . . . . . = " << fLambda  << '\n';
-	
+	out << " Lame modulus  . . . . . . . . . . . . . . . . . = " << fLambda  << '\n';	
+}
+
+/* information about subordinate parameter lists */
+void IsotropicT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ParameterInterfaceT::DefineSubs(sub_list);
+
+	/* choice of how to define moduli */
+	sub_list.AddSub("modulus_definition_choice", ParameterListT::Once, true);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void IsotropicT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	if (sub == "modulus_definition_choice")
+	{
+		order = ParameterListT::Choice;
+		
+		sub_sub_list.AddSub("E_and_nu");
+		sub_sub_list.AddSub("bulk_and_shear");
+	}
+	else /* inherited */
+		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* IsotropicT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "E_and_nu")
+	{
+		ParameterContainerT* E_and_nu = new ParameterContainerT("E_and_nu");
+		
+		ParameterT E(ParameterT::Double, "Young_modulus");
+		E.AddLimit(0.0, LimitT::Lower);
+		E_and_nu->AddParameter(E);
+
+		ParameterT Poisson(ParameterT::Double, "Poisson_ratio");
+		Poisson.AddLimit(-1.0, LimitT::Lower);
+		Poisson.AddLimit( 0.5, LimitT::Upper);
+		E_and_nu->AddParameter(Poisson);		
+
+		return E_and_nu;
+	}
+	else if (list_name == "bulk_and_shear")
+	{
+		ParameterContainerT* bulk_and_shear = new ParameterContainerT("bulk_and_shear");
+		
+		ParameterT kappa(ParameterT::Double, "bulk_modulus");
+		kappa.AddLimit(0.0, LimitT::Lower);
+		bulk_and_shear->AddParameter(kappa);
+
+		ParameterT mu(ParameterT::Double, "shear_modulus");
+		mu.AddLimit(0.0, LimitT::Lower);
+		bulk_and_shear->AddParameter(mu);
+
+		return bulk_and_shear;
+	}
+	else /* inherited */
+		return ParameterInterfaceT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void IsotropicT::TakeParameterList(const ParameterListT& list)
+{
+	const ParameterListT* E_and_nu = list.List("E_and_nu");
+	if (E_and_nu) {
+		double  E = E_and_nu->GetParameter("Young_modulus");
+		double nu = E_and_nu->GetParameter("Poisson_ratio");
+		Set_E_nu(E, nu);
+	}
+	else {
+		const ParameterListT* bulk_and_shear = list.List("bulk_and_shear");
+		if (!bulk_and_shear) ExceptionT::GeneralFail("IsotropicT::TakeParameterList");
+		double    mu = bulk_and_shear->GetParameter("shear_modulus");
+		double kappa = bulk_and_shear->GetParameter("bulk_modulus");
+		Set_mu_kappa(mu, kappa);
+	}
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /* compute the symetric Cij reduced index matrix */
 void IsotropicT::ComputeModuli(dMatrixT& moduli) const

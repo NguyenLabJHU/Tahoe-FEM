@@ -1,4 +1,4 @@
-/* $Id: SSCubic2DT.h,v 1.6 2003-01-29 07:34:41 paklein Exp $ */
+/* $Id: SSCubic2DT.h,v 1.6.30.1 2004-01-21 19:10:07 paklein Exp $ */
 /* created: paklein (06/11/97) */
 #ifndef _SS_CUBIC_2D_T_H_
 #define _SS_CUBIC_2D_T_H_
@@ -14,8 +14,9 @@ class SSCubic2DT: public SSCubicT, public Anisotropic2DT, public Material2DT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	SSCubic2DT(ifstreamT& in, const SSMatSupportT& support);
+	SSCubic2DT(void);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

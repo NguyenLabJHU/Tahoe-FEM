@@ -1,4 +1,4 @@
-/* $Id: FDCubicT.h,v 1.5 2003-01-29 07:34:40 paklein Exp $ */
+/* $Id: FDCubicT.h,v 1.5.30.1 2004-01-21 19:10:06 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #ifndef _FD_CUBIC_T_H_
 #define _FD_CUBIC_T_H_
@@ -13,12 +13,19 @@ class FDCubicT: public FDHookeanMatT, public CubicT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	FDCubicT(ifstreamT& in, const FSMatSupportT& support);
+	FDCubicT(void);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
 protected:
 
