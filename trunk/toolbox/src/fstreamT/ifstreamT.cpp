@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.cpp,v 1.9 2001-12-16 23:50:57 paklein Exp $ */
+/* $Id: ifstreamT.cpp,v 1.10 2001-12-30 20:28:15 paklein Exp $ */
 /* created: paklein (03/03/1999) */
 
 #include "ifstreamT.h"
@@ -17,7 +17,7 @@ const int kLineLength = 255;
 /* temporary */
 void ifstreamT::FixPath(const char* path_old, StringT& path) const
 {
-#ifdef __MWERKS__
+#if defined(__MWERKS__) && !defined(__MACH__)
 if (__MWERKS__ < 0x2402) /* old versions are OK */
 	path = path_old;
 else if(__MWERKS__ <= 0x2406)

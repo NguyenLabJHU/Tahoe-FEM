@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.8 2001-12-10 23:57:03 paklein Exp $ */
+/* $Id: StringT.h,v 1.9 2001-12-30 20:28:14 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #ifndef _STRING_T_H_
@@ -194,7 +194,11 @@ inline int StringT::StringLength(void) const { return strlen(*this); }
 inline char StringT::DirectorySeparator(void)
 {
 #ifdef _MACOS_
+#ifdef __MACH__
+	return '/';
+#else
 	return ':';
+#endif
 #elif defined(_WINNT_)
 	return '\\';
 #endif
