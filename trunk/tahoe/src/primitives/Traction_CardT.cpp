@@ -1,4 +1,4 @@
-/* $Id: Traction_CardT.cpp,v 1.8 2004-07-15 08:31:36 paklein Exp $ */
+/* $Id: Traction_CardT.cpp,v 1.9 2004-10-20 21:20:32 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #include "Traction_CardT.h"
 
@@ -36,7 +36,8 @@ Traction_CardT::Traction_CardT(void):
 	fFacetNum(0),
 	fCoordSystem(kCartesian),
 	fLTfPtr(NULL),
-	fValues(LocalArrayT::kUnspecified)
+	fValues(LocalArrayT::kUnspecified),
+	fTau(0.0)
 {
 #ifndef SHAPE_FUNCTION_CLASSES
 	ExceptionT::GeneralFail("Traction_CardT::Traction_CardT", "SHAPE_FUNCTION_CLASSES not enabled");
@@ -64,7 +65,10 @@ void Traction_CardT::SetValues(const ElementSupportT& support, int elem, int fac
 /* return the traction value: (ndof x nnd) */
 void Traction_CardT::CurrentValue(LocalArrayT& traction) const
 {
-	traction.SetToScaled(fLTfPtr->Value(), fValues);
+	if (fabs(fTau) < kSmall)
+		traction.SetToScaled(fLTfPtr->Value(), fValues);
+	else
+		traction.SetToScaled(fTau*fLTfPtr->Rate() + fLTfPtr->Value(), fValues);
 }
 
 /* write the standard header */

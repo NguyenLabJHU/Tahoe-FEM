@@ -1,4 +1,4 @@
-/* $Id: Traction_CardT.h,v 1.5 2004-07-15 08:31:36 paklein Exp $ */
+/* $Id: Traction_CardT.h,v 1.6 2004-10-20 21:20:32 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 
 #ifndef _TRACTION_T_H_
@@ -46,6 +46,15 @@ public:
 	void SetValues(const ElementSupportT& support, int elem, int facet, int nLTf,
 		 CoordSystemT coord_sys, const iArrayT& locnodenums, const dArray2DT& valuesT);
 
+	/** set the Maxwell-Cattaneo relaxation time, such that the time
+	 * dependent behavior is given by
+	 \f[
+	 	g(t) = \tau f'(t) + f(t)
+	 \f]
+	 * where \f$ f(t) \f$ is the schedule function.
+	 */
+	void SetRelaxationTime(double tau) { fTau = tau; };
+
 	/* return the element and facet number specified for the force */
 	void Destination(int& elem_num, int& facet_num) const;
 	CoordSystemT CoordSystem(void) const;
@@ -85,6 +94,9 @@ private:
 	/* (global) node numbers/equations */
 	iArrayT fNodes;
 	iArrayT fEqnos;
+	
+	/** relaxation time for Maxwell-Cattaneo flux */
+	double fTau;
 };
 
 /* inlines */
