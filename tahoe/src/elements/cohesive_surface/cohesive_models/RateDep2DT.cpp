@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.cpp,v 1.4 2002-03-08 16:57:27 cjkimme Exp $  */
+/* $Id: RateDep2DT.cpp,v 1.5 2002-03-12 21:29:58 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "RateDep2DT.h"
@@ -157,6 +157,8 @@ const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state
 		  cout <<  "\n RateDep2DT::Traction: rate-dependent length scale is incompatible with rate-independent one. Check input parameters. \n ";
 		  throw eBadInputValue;
 		}
+		/*recalculate state[0] to keep state[0]*state[6] constant */
+		state[0] *= fd_c_n/state[6];
 		r_n = u_n/state[6];
 		L = sqrt(r_t*r_t+r_n*r_n);
 	      }
