@@ -1,65 +1,65 @@
-# $Id: suffix,v 1.5 2003-03-15 16:54:31 paklein Exp $
+# $Id: suffix,v 1.6 2004-01-02 01:17:40 paklein Exp $
 
 .SUFFIXES: .c .cpp .C .f .F .o .d .h .h_link
 
 # source file -> object file
 .c.o:
 	@ $(PRINTF) "    $(COMP_C): %s\n" $<
-	$(COMP_C) $(OPT_CFLAGS) $(CFLAGS_C) $(MY_CFLAGS) $<
+	$(COMP_C) $(CFLAGS_C) $(OPT_CFLAGS) $(MOD_CFLAGS_C) $<
 	@$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
 	@$(PRINTF) "#touch" > $(LIB_DIR)/lib.junk
 
 .cpp.o:
 	@ $(PRINTF) "    $(COMP_CC): %s\n" $<
-	$(COMP_CC) $(OPT_CFLAGS) $(CFLAGS_CC) $(MY_CCFLAGS) $<
+	$(COMP_CC) $(CFLAGS_CC) $(OPT_CFLAGS) $(MOD_CFLAGS_CC) $<
 	@$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
 	@$(PRINTF) "#touch" > $(LIB_DIR)/lib.junk
 
 .C.o:
 	@ $(PRINTF) "    $(COMP_CC): %s\n" $<
-	$(COMP_CC) $(OPT_CFLAGS) $(CFLAGS_CC) $(MY_CCFLAGS) $<
+	$(COMP_CC) $(CFLAGS_CC) $(OPT_CFLAGS) $(MOD_CFLAGS_CC) $<
 	@$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
 	@$(PRINTF) "#touch" > $(LIB_DIR)/lib.junk
 
 .f.o:
 	@ $(PRINTF) "    $(COMP_F): %s\n" $<
-	$(COMP_F) $(OPT_CFLAGS) $(CFLAGS_F) $(MY_FFLAGS) $<
+	$(COMP_F) $(CFLAGS_F) $(OPT_CFLAGS) $(MOD_CFLAGS_F) $<
 	@$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
 	@$(PRINTF) "#touch" > $(LIB_DIR)/lib.junk
 
 .F.o:
 	@ $(PRINTF) "    $(COMP_F): %s\n" $<
-	$(COMP_F) $(OPT_CFLAGS) $(CFLAGS_F) $(MY_FFLAGS) $<
+	$(COMP_F) $(CFLAGS_F) $(OPT_CFLAGS) $(MOD_CFLAGS_F) $<
 	@$(LN) $(CURR_DIR)/$@ $(OBJ_DIR)/$@
 	@$(PRINTF) "#touch" > $(LIB_DIR)/lib.junk
 
 # header file -> symbolic link
 .h.h_link:
-	@ $(PRINTF) "    $(LN): %s\n" $<; \
+	@ $(PRINTF) "    $(LN): %s\n" $<;
 	$(LN) $(CURR_DIR)/$< $(INC_DIR)/$<
 
 # source file -> list of dependencies
 .c.d:
-	@ $(PRINTF) "    $(MAKE_DEPEND): %s\n" $<
+	@ $(PRINTF) "    $(MAKEDEPEND): %s\n" $<
 	@ $(PRINTF) "\n" > $@
-	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
+	$(MAKEDEPEND) $(MAKEDEPENDFLAGS) $(OPT_MAKEDEPENDFLAGS) $(MOD_MAKEDEPENDFLAGS) $(MAKEDEPEND_OUTPUT)$@ $<
 
 .cpp.d:
-	@ $(PRINTF) "    $(MAKE_DEPEND): %s\n" $<
+	@ $(PRINTF) "    $(MAKEDEPEND): %s\n" $<
 	@ $(PRINTF) "# DO NOT DELETE\n" > $@
-	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
+	$(MAKEDEPEND) $(MAKEDEPENDFLAGS) $(OPT_MAKEDEPENDFLAGS) $(MOD_MAKEDEPENDFLAGS) $(MAKEDEPEND_OUTPUT)$@ $<
 
 .C.d:
-	@ $(PRINTF) "    $(MAKE_DEPEND): %s\n" $<
+	@ $(PRINTF) "    $(MAKEDEPEND): %s\n" $<
 	@ $(PRINTF) "# DO NOT DELETE\n" > $@
-	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
+	$(MAKEDEPEND) $(MAKEDEPENDFLAGS) $(OPT_MAKEDEPENDFLAGS) $(MOD_MAKEDEPENDFLAGS) $(MAKEDEPEND_OUTPUT)$@ $<
 
 .f.d:
-	@ $(PRINTF) "    $(MAKE_DEPEND): %s\n" $<
+	@ $(PRINTF) "    $(MAKEDEPEND): %s\n" $<
 	@ $(PRINTF) "# DO NOT DELETE\n" > $@
-	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
+	$(MAKEDEPEND) $(MAKEDEPENDFLAGS) $(OPT_MAKEDEPENDFLAGS) $(MOD_MAKEDEPENDFLAGS) $(MAKEDEPEND_OUTPUT)$@ $<
 
 .F.d:
-	@ $(PRINTF) "    $(MAKE_DEPEND): %s\n" $<
+	@ $(PRINTF) "    $(MAKEDEPEND): %s\n" $<
 	@ $(PRINTF) "# DO NOT DELETE\n" > $@
-	$(MAKE_DEPEND) $(DEPEND_PATH) -f$@ $<
+	$(MAKEDEPEND) $(MAKEDEPENDFLAGS) $(OPT_MAKEDEPENDFLAGS) $(MOD_MAKEDEPENDFLAGS) $(MAKEDEPEND_OUTPUT)$@ $<

@@ -1,33 +1,30 @@
-# $Id: DARWIN-3.3.LAM.macros,v 1.7 2003-03-20 19:21:57 paklein Exp $
+# $Id: DARWIN-3.3.LAM.macros,v 1.8 2004-01-02 01:17:39 paklein Exp $
 #
 # macros for Mac OS X using the GNU distribution provided with
 # the Apple Developer tools in addition to the LAM implementation
 # if MPI:
 #                   http://www.lam-mpi.org/
 #
-# The lam tools were modified only to rename mpiCC -> mpic++ since
-# OS X does not distinguish mpicc from mpiCC.
-#
+# macros for Panther (GCC 3.3)
 MAKE        = make
-MAKE_DEPEND = /usr/X11R6/bin/makedepend
-GCC_ROOT    = /usr/include/gcc/darwin/default/c++
-DEPENDFLAGS = -I$(GCC_ROOT) -I$(GCC_ROOT)/backward -I$(GCC_ROOT)/bits -I$(GCC_ROOT)/ppc-darwin -I/usr/local/include
+DEFINES     = -D__GNU__ -D__DARWIN__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -D__GCC_3__ -DCHECK_MPI_STATUS -DCHECK_MPI_RETURN -DAZTEC_MPI
+MAKEDEPEND  = g++ -MM
+MAKEDEPENDFLAGS = -I$(INC_DIR) $(DEFINES)
+MAKEDEPEND_OUTPUT = -MF
 COMP_C      = mpicc
 COMP_CC     = mpic++
 COMP_F      = mpif77
-DEFINES     = -D__GNU__ -D__DARWIN__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -D__GCC_3__ -DCHECK_MPI_STATUS -DCHECK_MPI_RETURN -DAZTEC_MPI
-MORE_CFLAGS = -DNDEBUG -g
-#MORE_CFLAGS = -g
+MORE_CFLAGS = -O3 -DNDEBUG
 LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(LOC_CFLAGS)
-CFLAGS_CC   = $(LOC_CFLAGS)
+CFLAGS_CC   = $(LOC_CFLAGS) -include $(BLD_DIR)/pch/$(PCH) -Winvalid-pch 
 CFLAGS_F    = $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
 LFLAGS      = -Xlinker -Y -Xlinker 50
 AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = ranlib
-RANLIBFLAGS = -s
+RANLIBFLAGS =
 MAKE_OPTS   =
 RM          = rm
 RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
@@ -36,8 +33,42 @@ ECHO        = echo
 CAT         = cat
 PERL        = perl -w
 PRINTF      = printf
+GREP        = grep
+XARGS       = xargs
 
-# command needed build library
-BUILD_LIBRARY = BUILD_LIBRARY_RANLIB
-#BUILD_LIBRARY = BUILD_LIBRARY_AR
+# target-specific extras
+MAKE_INIT_XTRAS        =
+MAKE_HEADERS_XTRAS     =
+MAKE_DEPEND_INIT_XTRAS = init_pch
+MAKE_CLEAN_XTRAS       = clean_pch
+MAKE_BUILD_XTRAS       = build_pch
 
+# initialize precompiled header directory
+init_pch:
+	@ if ! test -d $(BLD_DIR)/pch; then mkdir $(BLD_DIR)/pch; fi
+	@ cp $(MACRO_DIR)/DARWIN-3.3.pch.makefile.template $(BLD_DIR)/pch/makefile
+	@ cd $(BLD_DIR)/pch; \
+	make do_init_pch \
+	"MACROS = $(MACRO_DIR)/$(ARCH).macros" \
+	"SRC_DIR = $(SRC_DIR)" \
+	"INC_DIR = $(INC_DIR)" \
+	"PCH = $(PCH)" \
+	"OPT_MAKEDEPENDFLAGS = $(OPT_MAKEDEPENDFLAGS)" \
+	"MOD_MAKEDEPENDFLAGS = $(MOD_MAKEDEPENDFLAGS)"
+
+# create precompiled header file
+build_pch:
+	@ cd $(BLD_DIR)/pch; \
+	make do_build_pch \
+	"MACROS = $(MACRO_DIR)/$(ARCH).macros" \
+	"SRC_DIR = $(SRC_DIR)" \
+	"INC_DIR = $(INC_DIR)" \
+	"BLD_DIR = $(BLD_DIR)" \
+	"PCH = $(PCH)" \
+	"OPT_CFLAGS = $(OPT_CFLAGS)" \
+	"MOD_CFLAGS_CC = $(MOD_CFLAGS_CC)" \
+	"DEPEND = $(PCH:.h=.d)"
+
+# remove precompiled header directory
+clean_pch:
+	@ if test -d $(BLD_DIR)/pch; then $(RM) -rf $(BLD_DIR)/pch; fi

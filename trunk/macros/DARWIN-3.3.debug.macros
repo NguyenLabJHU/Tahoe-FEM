@@ -1,4 +1,4 @@
-# $Id: DARWIN-3.3.macros,v 1.7 2004-01-02 01:17:39 paklein Exp $
+# $Id: DARWIN-3.3.debug.macros,v 1.1 2004-01-02 01:17:39 paklein Exp $
 # macros for Panther (GCC 3.3)
 MAKE        = make
 DEFINES     = -D__GNU__ -D__DARWIN__ -DNON_UNIX_STDIO -D__GCC_3__
@@ -8,7 +8,7 @@ MAKEDEPEND_OUTPUT = -MF
 COMP_C      = gcc
 COMP_CC     = g++
 COMP_F      = g77
-MORE_CFLAGS = -O3 -DNDEBUG
+MORE_CFLAGS = -g
 LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS) -include $(BLD_DIR)/pch/$(PCH) -Winvalid-pch 
@@ -44,7 +44,6 @@ init_pch:
 	@ cd $(BLD_DIR)/pch; \
 	make do_init_pch \
 	"MACROS = $(MACRO_DIR)/$(ARCH).macros" \
-	"MACRO_DIR = $(MACRO_DIR)" \
 	"SRC_DIR = $(SRC_DIR)" \
 	"INC_DIR = $(INC_DIR)" \
 	"PCH = $(PCH)" \
@@ -56,7 +55,6 @@ build_pch:
 	@ cd $(BLD_DIR)/pch; \
 	make do_build_pch \
 	"MACROS = $(MACRO_DIR)/$(ARCH).macros" \
-	"MACRO_DIR = $(MACRO_DIR)" \
 	"SRC_DIR = $(SRC_DIR)" \
 	"INC_DIR = $(INC_DIR)" \
 	"BLD_DIR = $(BLD_DIR)" \
