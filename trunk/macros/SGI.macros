@@ -1,4 +1,4 @@
-# $Id: SGI.macros,v 1.17 2003-03-15 16:54:31 paklein Exp $
+# $Id: SGI.macros,v 1.18 2003-10-07 17:23:45 paklein Exp $
 
 MAKE        = make
 MAKE_DEPEND = makedepend
@@ -17,7 +17,7 @@ LINK        = $(COMP_CC)
 LFLAGS      = $(F2C_LFLAG) -lm -w
 AR          = ar
 ARFLAGS     = -cruv
-MAKE_OPTS   = -sP
+MAKE_OPTS   = -P
 RM          = rm -rf
 RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = ln -sf
