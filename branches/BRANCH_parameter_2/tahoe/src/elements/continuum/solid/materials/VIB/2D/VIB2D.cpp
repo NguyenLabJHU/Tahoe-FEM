@@ -1,4 +1,4 @@
-/* $Id: VIB2D.cpp,v 1.8.4.1 2004-01-21 19:10:14 paklein Exp $ */
+/* $Id: VIB2D.cpp,v 1.8.4.2 2004-03-02 17:46:19 paklein Exp $ */
 /* created: paklein (04/09/1997) */
 #include "VIB2D.h"
 
@@ -24,7 +24,7 @@ const double Pi = acos(-1.0);
 /* constructors */
 VIB2D::VIB2D(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("VIB_2D"),
-	NL_E_Mat2DT(in, support, kPlaneStress),
+	NL_E_MatT(in, support),
 	VIB_E_MatT(in, 2)
 {
 	/* construct point generator */
@@ -63,7 +63,7 @@ VIB2D::~VIB2D(void)
 void VIB2D::Print(ostream& out) const
 {
 	/* inherited */
-	NL_E_Mat2DT::Print(out);
+	NL_E_MatT::Print(out);
 	VIB_E_MatT::Print(out);
 
 	fCircle->Print(out);
@@ -181,6 +181,17 @@ void VIB2D::Perturb(dArrayT& dU, double eps)
 	}
 }
 
+/* describe the parameters needed by the interface */
+void VIB2D::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	NL_E_MatT::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("2D_constraint");
+	constraint.SetDefault(kPlaneStress);
+}
+
 /***********************************************************************
 * Protected
 ***********************************************************************/
@@ -191,7 +202,7 @@ void VIB2D::Perturb(dArrayT& dU, double eps)
 void VIB2D::PrintName(ostream& out) const
 {
 	/* inherited */
-	NL_E_Mat2DT::PrintName(out);
+	NL_E_MatT::PrintName(out);
 	VIB_E_MatT::PrintName(out);
 	
 	fCircle->PrintName(out);

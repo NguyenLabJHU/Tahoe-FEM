@@ -1,10 +1,10 @@
-/* $Id: ModCB2DT.h,v 1.7 2003-01-29 07:34:59 paklein Exp $ */
+/* $Id: ModCB2DT.h,v 1.7.30.1 2004-03-02 17:46:20 paklein Exp $ */
 /* created: paklein (05/31/1997) */
 #ifndef _MODCB_2DT_H_
 #define _MODCB_2DT_H_
 
 /* base class */
-#include "NL_E_Mat2DT.h"
+#include "NL_E_MatT.h"
 
 /* direct members */
 #include "SWDataT.h"
@@ -14,7 +14,7 @@ namespace Tahoe {
 /* forward declarations */
 class ModCBSolverT;
 
-class ModCB2DT: public NL_E_Mat2DT
+class ModCB2DT: public NL_E_MatT
 {
 public:
 
@@ -33,6 +33,12 @@ public:
 	/* print Parameters */
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
 protected:
 

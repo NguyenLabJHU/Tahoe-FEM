@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.2 2004-01-05 07:23:56 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.2.2.1 2004-03-02 17:46:10 paklein Exp $ */
 #ifndef _ABAQUS_UMAT_SS_BASE_T_H_
 #define _ABAQUS_UMAT_SS_BASE_T_H_
 
@@ -6,7 +6,6 @@
 #include "ABAQUS_BaseT.h"
 #include "SSSolidMatT.h"
 #include "IsotropicT.h"
-#include "Material2DT.h"
 #include "ofstreamT.h"
 
 /* library support options */

@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.cpp,v 1.9.16.1 2004-01-21 19:10:26 paklein Exp $ */
+/* $Id: IsotropicT.cpp,v 1.9.16.2 2004-03-02 17:46:22 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "IsotropicT.h"
 
@@ -186,7 +186,7 @@ void IsotropicT::ComputeModuli(dMatrixT& moduli) const
 }
 
 void IsotropicT::ComputeModuli2D(dMatrixT& moduli, 
-	Material2DT::ConstraintOptionT constraint) const
+	SolidMaterialT::ConstraintT constraint) const
 {
 	if (moduli.Rows() == 3)
 	{
@@ -194,7 +194,7 @@ void IsotropicT::ComputeModuli2D(dMatrixT& moduli,
 		double lambda = Lambda();
 
 		/* plane stress correction */
-		if (constraint == Material2DT::kPlaneStress) {
+		if (constraint == SolidMaterialT::kPlaneStress) {
 		
 			double lam_2_mu = lambda + 2.0*mu;
 			if (fabs(lam_2_mu) < kSmall) {
@@ -227,9 +227,9 @@ void IsotropicT::ComputeModuli1D(dMatrixT& moduli) const
 }
 
 /* scale factor for constrained dilatation */
-double IsotropicT::DilatationFactor2D(Material2DT::ConstraintOptionT constraint) const
+double IsotropicT::DilatationFactor2D(SolidMaterialT::ConstraintT constraint) const
 {
-	if (constraint == Material2DT::kPlaneStrain)
+	if (constraint == SolidMaterialT::kPlaneStrain)
 		return 1.0 + Poisson();
 	else
 		return 1.0;

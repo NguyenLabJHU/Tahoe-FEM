@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.cpp,v 1.9.4.1 2004-01-21 19:10:13 paklein Exp $ */
+/* $Id: IsoVIB2D.cpp,v 1.9.4.2 2004-03-02 17:46:18 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoVIB2D.h"
 
@@ -18,7 +18,6 @@ using namespace Tahoe;
 IsoVIB2D::IsoVIB2D(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("isotropic_VIB_2D"),
 	FSSolidMatT(in, support),
-	Material2DT(in, kPlaneStress),
 	VIB(in, 2, 2, 3),
 	fCircle(NULL),
 	fEigs(2),
@@ -43,7 +42,6 @@ void IsoVIB2D::Print(ostream& out) const
 {
 	/* inherited */
 	FSSolidMatT::Print(out);
-	Material2DT::Print(out);
 	VIB::Print(out);
 
 	fCircle->Print(out);
@@ -106,7 +104,7 @@ const dMatrixT& IsoVIB2D::c_ijkl(void)
 	}
 
 	/* (material) -> (spatial) (with thickness) */
-	double J = sqrt(fEigs[0]*fEigs[1])/fThickness;
+	double J = sqrt(fEigs[0]*fEigs[1]);
 
 	if (fabs(fEigs[0]-fEigs[1]) < kSmall)
 	{
@@ -182,7 +180,7 @@ const dSymMatrixT& IsoVIB2D::s_ij(void)
 	}
 
 	/* PK2 -> Cauchy (with thickness) */
-	double J = sqrt(fEigs[0]*fEigs[1])/fThickness;
+	double J = sqrt(fEigs[0]*fEigs[1]);
 	fEigs[0] *= (s1/J);
 	fEigs[1] *= (s2/J);
 
@@ -300,12 +298,23 @@ double IsoVIB2D::StrainEnergyDensity(void)
 	for (int i = 0; i < fLengths.Length(); i++)
 		energy += (*pU++)*(*pj++);
 	
-	return energy*fThickness;
+	return energy;
+}
+
+/* describe the parameters needed by the interface */
+void IsoVIB2D::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	FSSolidMatT::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("2D_constraint");
+	constraint.SetDefault(kPlaneStress);
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* print name */
 void IsoVIB2D::PrintName(ostream& out) const

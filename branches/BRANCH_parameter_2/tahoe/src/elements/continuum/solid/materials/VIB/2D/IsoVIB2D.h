@@ -1,11 +1,10 @@
-/* $Id: IsoVIB2D.h,v 1.8 2003-01-29 07:34:52 paklein Exp $ */
+/* $Id: IsoVIB2D.h,v 1.8.30.1 2004-03-02 17:46:19 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #ifndef _ISO_VIB_2D_H_
 #define _ISO_VIB_2D_H_
 
 /* base classes */
 #include "FSSolidMatT.h"
-#include "Material2DT.h"
 #include "VIB.h"
 
 /* direct members */
@@ -17,7 +16,7 @@ namespace Tahoe {
 class CirclePointsT;
 
 /** 2D Isotropic VIB solver using spectral decomposition formulation */
-class IsoVIB2D: public FSSolidMatT, public Material2DT, public VIB
+class IsoVIB2D: public FSSolidMatT, public VIB
 {
 public:
 
@@ -56,6 +55,12 @@ public:
 
 	//TEMP
 	const dSymMatrixT& CurvatureTensor(void);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
 protected:
 

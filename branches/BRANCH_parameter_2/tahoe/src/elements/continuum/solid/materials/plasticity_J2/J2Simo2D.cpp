@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.cpp,v 1.13.4.1 2004-01-21 19:10:21 paklein Exp $ */
+/* $Id: J2Simo2D.cpp,v 1.13.4.2 2004-03-02 17:46:21 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 #include "J2Simo2D.h"
 #include "StringT.h"
@@ -74,7 +74,6 @@ const dMatrixT& J2Simo2D::c_ijkl(void)
 	
 	/* 3D -> 2D */
 	fModulus2D.Rank4ReduceFrom3D(fModulus);
-	fModulus2D *= fThickness;
 
 	return fModulus2D;
 }
@@ -117,7 +116,6 @@ const dSymMatrixT& J2Simo2D::s_ij(void)
 	
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(fStress);
-	fStress2D *= fThickness;
 
 	return fStress2D;
 }
@@ -133,7 +131,7 @@ double J2Simo2D::StrainEnergyDensity(void)
 	const dSymMatrixT& b_els = TrialElasticState(fFmech, ffrel,
 		CurrentElement(), CurrIP());
 
-	return fThickness*ComputeEnergy(J, b_els);
+	return ComputeEnergy(J, b_els);
 }
 
 /* incremental heat generation */
