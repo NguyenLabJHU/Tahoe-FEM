@@ -1,4 +1,4 @@
-/* $Id: nVariArray2DT.h,v 1.8 2003-01-27 06:42:46 paklein Exp $ */
+/* $Id: nVariArray2DT.h,v 1.8.6.1 2003-09-25 17:29:24 cjkimme Exp $ */
 /* created: paklein (04/18/1998) */
 #ifndef _N_VARI_ARRAY2D_T_H_
 #define _N_VARI_ARRAY2D_T_H_
@@ -70,16 +70,16 @@ private:
 /* constructors */
 template <class nTYPE>
 nVariArray2DT<nTYPE>::nVariArray2DT(void): 
-	fWard(NULL),
-	fMinorDim(0)
+	fMinorDim(0),
+	fWard(NULL)
 { 
 
 }
 
 template <class nTYPE>
 nVariArray2DT<nTYPE>::nVariArray2DT(nArray2DT<nTYPE>& ward):
-	fWard(NULL),
-	fMinorDim(0)
+	fMinorDim(0),
+	fWard(NULL)
 {
 	SetWard(0, ward, 0);
 }
@@ -87,8 +87,8 @@ nVariArray2DT<nTYPE>::nVariArray2DT(nArray2DT<nTYPE>& ward):
 template <class nTYPE>
 nVariArray2DT<nTYPE>::nVariArray2DT(int headroom,
 	nArray2DT<nTYPE>& ward, int minordim): 
-	fWard(NULL),
-	fMinorDim(0)
+	fMinorDim(0),
+	fWard(NULL)
 {
 	SetWard(headroom, ward, minordim);
 }

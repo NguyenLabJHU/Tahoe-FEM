@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.h,v 1.13 2003-01-27 06:42:47 paklein Exp $ */
+/* $Id: iConsoleT.h,v 1.13.6.1 2003-09-25 17:29:25 cjkimme Exp $ */
 /* created: paklein (12/21/2000) */
 #ifndef _I_CONSOLE_T_H_
 #define _I_CONSOLE_T_H_
@@ -25,7 +25,7 @@ class iConsoleT: public iConsoleBaseT
 		bool do_interactive = true);
 
 	/* destructor */
-	~iConsoleT(void);
+	virtual ~iConsoleT(void);
 
 	/* execute given command - returns false on fail */
 	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);

@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.16 2003-01-27 22:52:51 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.16.6.1 2003-09-25 17:29:26 cjkimme Exp $ */
 /* created: paklein (03/24/2000) */
 #include "JoinOutputT.h"
 
@@ -115,7 +115,7 @@ void JoinOutputT::Join(void)
 				all_e_values = 0.0;
 			
 				/* loop over partitions */
-				double time;
+				double time = double();
 				bool found_time = false;
 				for (int k = 0; k < fPartitions.Length(); k++)
 				{
@@ -364,7 +364,7 @@ void JoinOutputT::SetOutput(void)
 	
 				/* construct output set */
 				const iArray2DT& connects = fModel->ElementGroup(sID);
-				bool changing = false; // changing geometry not supported
+//				bool changing = false; // changing geometry not supported
 				OutputSetT output_set(geometry_code, connects, n_labels);
 
 				/* register */
@@ -664,7 +664,7 @@ void JoinOutputT::SetAssemblyMap(const iArrayT& inv_global, int shift, const iAr
 	/* set map */
 	int n_map = local.Length();
 	lg_map.Dimension(n_map);
-	int dex = 0;
+//	int dex = 0;
 	int*  p = local.Pointer();
 	for (int j = 0; j < n_map; j++)
 	{

@@ -1,4 +1,4 @@
-/* $Id: dMatrixEXT.cpp,v 1.13 2002-10-20 22:38:54 paklein Exp $ */
+/* $Id: dMatrixEXT.cpp,v 1.13.8.1 2003-09-25 17:29:22 cjkimme Exp $ */
 /* created: paklein (03/06/1998)                                          */
 
 #include "dMatrixEXT.h"
@@ -313,7 +313,7 @@ double dMatrixEXT::pythag(double a, double b) const
 
 int dMatrixEXT::tqli(double d[], double e[], int n)
 {
-	int m,l,iter,i;
+	int m,l,iter = -1,i;
 	double s,r,p,g,f,dd,c,b;
 
 	for (i=2;i<=n;i++) e[i-1]=e[i];
@@ -436,7 +436,7 @@ void dMatrixEXT::hqr(dMatrixEXT& a, int n, dArrayT& wr, dArrayT& wi)
   //int n;
 {
 	int nn,m,l,k,j,its,i,mmin;
-	double z,y,x,w,v,u,t,s,r,q,p,anorm;
+	double z,y,x,w,v,u,t,s,r = 0.,q = 0.,p = 0.,anorm;
 
 	//anorm=fabs(a(1,1));
 	anorm=fabs(a(0,0));	
@@ -575,7 +575,7 @@ void dMatrixEXT::hqr(dMatrixEXT& a, int n, dArrayT& wr, dArrayT& wi)
 int dMatrixEXT::svdcmp(double* a, int m, int n, double* w, double* v, double* rv1, int max_its) const
 {
 //	double pythag(double a, double b);
-	int flag,i,its,j,jj,k,l,nm;
+	int flag,i,its,j,jj,k,l=1,nm=0;
 	double anorm,c,f,g,h,s,scale,x,y,z;
 
 //	rv1=vector(1,n);

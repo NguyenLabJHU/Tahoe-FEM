@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.23 2003-08-12 18:51:03 thao Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.23.2.1 2003-09-25 17:29:22 cjkimme Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
@@ -207,7 +207,9 @@ void dSymMatrixT::PrincipalValues(dArrayT& val) const // will get phased out
 void dSymMatrixT::Eigenvalues(dArrayT& val, bool sort_descending) const
 {
 	const char caller[] = "dSymMatrixT::Eigenvalues";
+#ifdef __MWERKS__
 #pragma unused(sort_descending)
+#endif
 	if (fNumSD == 1)
 		val[0] = fArray[0];
 	else if (fNumSD == 2 || fNumSD == dSymMatrixT:: k3D_plane)
@@ -262,7 +264,7 @@ void dSymMatrixT::Eigensystem(dArrayT& val, dMatrixT& vec, bool sort_descending)
 	else
 	{
 		double tau = .5*(c-a)/b;
-		double r = sqrt(1.0+tau*tau);
+		//double r = sqrt(1.0+tau*tau);
 		//		double t = (tau >= 0) ? (-tau + r) : (-tau - r);
 		double t = (tau >= 0) ? 1.0/(tau+sqrt(1+tau*tau)):-1.0/(-tau+sqrt(1+tau*tau));
 		cos = 1.0/sqrt(1+t*t);

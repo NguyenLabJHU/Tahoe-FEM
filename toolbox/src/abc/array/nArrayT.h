@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.21 2003-08-14 01:20:34 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.21.2.1 2003-09-25 17:29:22 cjkimme Exp $ */
 /* created: paklein (05/23/1997) */
 #ifndef _NARRAY_T_H_
 #define _NARRAY_T_H_
@@ -278,20 +278,26 @@ ostream& operator<<(ostream& out, const OutputProxyT<TYPE>& proxy)
 /* output formatters - for int's and double's */
 inline int OutputWidth(ostream& out, const int* junk)
 {
+#ifdef __MWERKS__
 #pragma unused(junk)
 #pragma unused(out)
+#endif
 	return kIntWidth;
 };
 
 inline int OutputWidth(ostream& out, const float* junk)
 {
+#ifdef __MWERKS__
 #pragma unused(junk)
+#endif
 	return out.precision() + kDoubleExtra;
 };
 
 inline int OutputWidth(ostream& out, const double* junk)
 {
+#ifdef __MWERKS__
 #pragma unused(junk)
+#endif
 	return out.precision() + kDoubleExtra;
 };
 
@@ -359,7 +365,7 @@ template <class nTYPE>
 void nArrayT<nTYPE>::WriteWrappedTight(ostream& out, int linecount) const
 {
 	nTYPE*  p = Pointer();
-	int width = OutputWidth(out, p);
+//	int width = OutputWidth(out, p);
 	int count = 0;
 	for (int i = 0; i < Length(); i++)
 	{

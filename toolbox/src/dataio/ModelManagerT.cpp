@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.36 2003-08-19 08:02:02 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.36.2.1 2003-09-25 17:29:26 cjkimme Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -18,8 +18,8 @@ const bool ArrayT<ModelManagerT::SideSetScopeT>::fByteCopy = true;
 
 ModelManagerT::ModelManagerT (ostream& message):
 	fMessage(message),
-	fCoordinateDimensions (2),
 	fInput(NULL),
+	fCoordinateDimensions (2),
 	fCoordinates_man(fCoordinates)
 {
   fCoordinateDimensions = -1;
@@ -1163,7 +1163,7 @@ void ModelManagerT::SideSet(const StringT& ID, ArrayT<GeometryT::CodeT>& facet_g
 
 	/* element block information */
 	const iArray2DT& connectivities = ElementGroup(elemID);
-	int nel = connectivities.MajorDim();
+//	int nel = connectivities.MajorDim();
 	int nen = connectivities.MinorDim();
 	GeometryT::CodeT geometry_code = ElementGroupGeometry(elemID);
 	
@@ -1224,11 +1224,11 @@ const StringT& ModelManagerT::SideSetGroupID (const StringT& ss_ID) const
 
 	int index = SideSetIndex(ss_ID);
 	if (index == kNotFound) 
-		ExceptionT::OutOfRange("ModelManagerT::SideSetGroupID", "ID not found: %s", ss_ID.Pointer());
+		ExceptionT::OutOfRange(caller, "ID not found: %s", ss_ID.Pointer());
 
 	int ss_group_index = fSideSetGroupIndex[index];
 	if (ss_group_index < 0 || ss_group_index >= fElementNames.Length()) 
-		ExceptionT::OutOfRange("ModelManagerT::SideSetGroupID", "group ID for not defined for set %s",
+		ExceptionT::OutOfRange(caller, "group ID for not defined for set %s",
 			ss_ID.Pointer());
 
 	return fElementNames[ss_group_index];
@@ -1259,9 +1259,11 @@ void ModelManagerT::SideSetLocalToGlobal (const StringT& element_ID, const iArra
 void ModelManagerT::SideSetGlobalToLocal(const iArray2DT& global, iArray2DT& local, 
 	StringT& element_ID)
 {
+#ifdef __MWERKS__
 #pragma unused(element_ID)
 #pragma unused(local)
 #pragma unused(global)
+#endif
 	ExceptionT::GeneralFail("ModelManagerT::SideSetGlobalToLocal", "not implemented");
 }
 
@@ -1410,9 +1412,11 @@ void ModelManagerT::UpdateNodeSet(const StringT& ID, iArrayT& node_set, bool kee
 /* update the nodes in an existing side set */
 void ModelManagerT::UpdateSideSet(const StringT& ID, iArray2DT& side_set, bool keep)
 {
+#ifdef __MWERKS__
 #pragma unused (ID)
 #pragma unused (side_set)
 #pragma unused (keep)
+#endif
 	ExceptionT::Stop("ModelManagerT::UpdateSideSet", "not implemented");
 }
 

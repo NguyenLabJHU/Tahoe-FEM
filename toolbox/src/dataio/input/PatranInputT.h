@@ -1,4 +1,4 @@
-/* $Id: PatranInputT.h,v 1.12 2002-07-25 19:47:29 sawimme Exp $ */
+/* $Id: PatranInputT.h,v 1.12.10.1 2003-09-25 17:29:28 cjkimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _PATRANINPUT_T_H_
@@ -103,7 +103,9 @@ class PatranInputT : public InputBaseT
 
 inline void PatranInputT::SideSetNames (ArrayT<StringT>& sidenames) const
 { 
+#ifdef __MWERKS__
 #pragma unused (sidenames) 
+#endif
 }
 inline int  PatranInputT::NumSideSets (void) const
 { return 0; }
@@ -113,7 +115,9 @@ inline int PatranInputT::NumDimensions (void) const
 { return fPatran.NumDimensions(); }
 inline int PatranInputT::NumElementQuadPoints (const StringT& name)
 {
+#ifdef __MWERKS__
 #pragma unused (name)
+#endif
   return (0);
 }
 inline int PatranInputT::NumGlobalElements (void) const
@@ -134,17 +138,23 @@ inline int  PatranInputT::NumQuadratureVariables (void) const
 { return 0; }
 inline void PatranInputT::NodeVariablesUsed (const StringT& name, iArrayT& used)
 {
+#ifdef __MWERKS__
 #pragma unused (name)
+#endif
   used = 0;
 }
 inline void PatranInputT::ElementVariablesUsed (const StringT& name, iArrayT& used)
 {
+#ifdef __MWERKS__
 #pragma unused (name)
+#endif
   used = 0;
 }
 inline void PatranInputT::QuadratureVariablesUsed (const StringT& name, iArrayT& used)
 {
+#ifdef __MWERKS__
 #pragma unused (name)
+#endif
   used = 0;
 }
 inline void PatranInputT::ReadNodeLabels (ArrayT<StringT>& nlabels) const
@@ -155,80 +165,106 @@ inline void PatranInputT::ReadQuadratureLabels (ArrayT<StringT>& qlabels) const
 { qlabels.Free (); } 
 inline void PatranInputT::ReadAllNodeVariable (int step, int varindex, dArrayT& values)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (varindex)
+#endif
   values.Free();
 }
 inline void PatranInputT::ReadNodeVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
 #pragma unused (varindex)
+#endif
   values.Free();
 }
 inline void PatranInputT::ReadAllNodeVariables (int step, dArray2DT& nvalues)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
+#endif
   nvalues.Free ();
 }
 inline void PatranInputT::ReadNodeVariables (int step, const StringT& name, dArray2DT& nvalues)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
+#endif
   nvalues.Free ();
 }
 inline void PatranInputT::ReadNodeSetVariables (int step, const StringT& nsetname, dArray2DT& nvalues)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (nsetname)
+#endif
   nvalues.Free ();
 }
 inline void PatranInputT::ReadAllElementVariable (int step, int varindex, dArrayT& values)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (varindex)
+#endif
   values.Free();
 }
 inline void PatranInputT::ReadElementVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
 #pragma unused (varindex)
+#endif
   values.Free();
 }
 inline void PatranInputT::ReadAllElementVariables (int step, dArray2DT& evalues)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
+#endif
   evalues.Free ();
 }
 inline void PatranInputT::ReadElementVariables (int step, const StringT& name, dArray2DT& evalues)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
+#endif
   evalues.Free ();
 }
 inline void PatranInputT::ReadAllQuadratureVariable (int step, int varindex, dArrayT& values)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (varindex)
+#endif
   values.Free();
 }
 inline void PatranInputT::ReadQuadratureVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
 #pragma unused (varindex)
+#endif
   values.Free();
 }
 inline void PatranInputT::ReadAllQuadratureVariables (int step, dArray2DT& qvalues)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
+#endif
   qvalues.Free ();
 }
 inline void PatranInputT::ReadQuadratureVariables (int step, const StringT& name, dArray2DT& qvalues)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
+#endif
   qvalues.Free ();
 }
 

@@ -1,4 +1,4 @@
-/* $Id: iConsoleObjectT.cpp,v 1.6 2002-07-05 17:16:01 paklein Exp $ */
+/* $Id: iConsoleObjectT.cpp,v 1.6.10.1 2003-09-25 17:29:25 cjkimme Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleObjectT.h"
@@ -19,6 +19,11 @@ iConsoleObjectT::iConsoleObjectT(void):
 {
 	StringT name("<none>");
 	iSetName(name);
+}
+
+iConsoleObjectT::~iConsoleObjectT(void)
+{
+	// do nothing
 }
 
 /* subs control - return true if changed */
@@ -54,7 +59,7 @@ void iConsoleObjectT::iSetName(const StringT& name)
 {
 	fName = name;
 	char* str = fName;
-	for (int i = 0; i < strlen(str); i++)
+	for (size_t i = 0; i < strlen(str); i++)
 		if (isspace(str[i]))
 			str[i] = '_';
 }

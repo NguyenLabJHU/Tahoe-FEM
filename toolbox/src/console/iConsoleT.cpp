@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.24 2003-01-27 06:42:47 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.24.6.1 2003-09-25 17:29:25 cjkimme Exp $ */
 /* created: paklein (12/21/2000) */
 #include "iConsoleT.h"
 
@@ -32,8 +32,8 @@ iConsoleT::iConsoleT(const StringT& log_file, iConsoleObjectT& current,
 	fhistory_size(10),
 	fCurrent(NULL),
 	fInputStack(0),
-	fHistory(fhistory_size + 1, 0), /* shift size by 1 */
 	fHistoryCount(0),
+	fHistory(fhistory_size + 1, 0), /* shift size by 1 */
 	
 	/* dictionary */
 	fWord(20),
@@ -799,9 +799,9 @@ iConsoleObjectT* iConsoleT::GetScope(iConsoleObjectT& start,
 	else /* down */
 	{
 		/* partial scope length */
-		int length = 0;
+		size_t length = 0;
 		char* str = line;
-		int max = strlen(str);
+		size_t max = strlen(str);
 		while (!isspace(*str) && *str != ':' && length < max)
 		{
 			length++;
@@ -892,7 +892,7 @@ iConsoleT::CommandScope iConsoleT::ResolveNextWord(StringT& line,
 * kNone if the word could not be resolved */
 iConsoleT::CommandScope iConsoleT::ResolveCommandName(StringT& command) const
 {
-	int word_length = strlen(command);
+	size_t word_length = strlen(command);
 	if (word_length == 0) return kNone;
 
 	CommandScope scope = kNone;

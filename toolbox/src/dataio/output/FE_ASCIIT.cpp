@@ -1,6 +1,7 @@
-/* $Id: TextOutputT.cpp,v 1.1.2.1 2003-09-25 17:29:29 cjkimme Exp $ */
+/* $Id: FE_ASCIIT.cpp,v 1.16.2.1 2003-09-25 17:29:29 cjkimme Exp $ */
 /* created: sawimme (05/20/1999) */
-#include "TextOutputT.h"
+
+#include "FE_ASCIIT.h"
 
 #include "GeometryT.h"
 #include "OutputSetT.h"
@@ -11,10 +12,11 @@
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 
+/* constructor */
+
 using namespace Tahoe;
 
-/* constructor */
-TextOutputT::TextOutputT(ostream& out, bool external, const ArrayT<StringT>& out_strings):
+FE_ASCIIT::FE_ASCIIT(ostream& out, bool external, const ArrayT<StringT>& out_strings):
 	OutputBaseT(out, out_strings),
 	fExternTahoeII(external)
 {
@@ -22,7 +24,7 @@ TextOutputT::TextOutputT(ostream& out, bool external, const ArrayT<StringT>& out
 }
 
 /* register the output for an element set. returns the output ID */
-int TextOutputT::AddElementSet(const OutputSetT& output_set)
+int FE_ASCIIT::AddElementSet(const OutputSetT& output_set)
 {
 	/* set flags */
 	fInitGeom.Append(false);
@@ -33,7 +35,7 @@ int TextOutputT::AddElementSet(const OutputSetT& output_set)
 }
 
 /* increment sequence, create new output file series */
-void TextOutputT::NextTimeSequence(int sequence_number)
+void FE_ASCIIT::NextTimeSequence(int sequence_number)
 {
 	/* inherited */
 	OutputBaseT::NextTimeSequence(sequence_number);
@@ -44,7 +46,7 @@ void TextOutputT::NextTimeSequence(int sequence_number)
 }
 
 //NOTE: to write a geometry definition file
-void TextOutputT::WriteGeometry(void)
+void FE_ASCIIT::WriteGeometry(void)
 {
 	ModelFileT mf;
 	StringT filename = fOutroot;
@@ -106,7 +108,7 @@ void TextOutputT::WriteGeometry(void)
 	mf.Close(); // datafile actually written here
 }
 
-void TextOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
+void FE_ASCIIT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 	const dArray2DT& e_values)
 {
 	/* inherited */
@@ -140,7 +142,7 @@ void TextOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 		/* check */
 		if (!out.is_open())
 		{
-			cout << "\n TextOutputT::WriteOutput: error opening file: " << geom_file << endl;
+			cout << "\n FE_ASCIIT::WriteOutput: error opening file: " << geom_file << endl;
 			throw ExceptionT::kGeneralFail;
 		}
 
@@ -163,44 +165,33 @@ void TextOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 		WriteGeometryData(out, ID);
 	}
 
-	/* toc file name */
-	StringT toc_file(fOutroot);
-	if (fSequence > 0) toc_file.Append(".seq", fSequence + 1);
-	toc_file.Append(".io", ID);
-	toc_file.Append(".run");
+	/* file name */
+	StringT dat_file(fOutroot);
+	if (fSequence > 0) dat_file.Append(".seq", fSequence + 1);
+	dat_file.Append(".io", ID);
+	dat_file.Append(".run");
 
 	/* open stream */
-	ofstreamT toc;
-	SetStreamPrefs(toc);
+	ofstreamT out;
+	SetStreamPrefs(out);
 	if (!fInitRun[ID])
 	{
-		/* initialize toc file */
-		toc.open(toc_file);
-		InitResultsFile(toc, ID);
+		/* initialize output file */
+		out.open(dat_file);
+		InitResultsFile(out, ID);
 	
 		/* set flag */
 		fInitRun[ID] = true;
 	}
 	else /* re-open file */
-		toc.open_append(toc_file);
+		out.open_append(dat_file);
 
-	/* data file name */
-	StringT dat_file(toc_file);
-	dat_file.Append(".ps", fElementSets[ID]->PrintStep(), 4);
-
-	/* write toc entry - drop the file path */
-	StringT file_path;
-	file_path.FilePath(dat_file);
-	StringT dat_file_relative(dat_file);
-	dat_file_relative.Drop(file_path.StringLength());
-	toc << dat_file_relative << '\n';
-	toc.close();
-		
-	/* open data file */
-	ofstreamT out(dat_file);
+	/* check */
 	if (!out.is_open())
-		ExceptionT::GeneralFail("TextOutputT::WriteOutput", "error opening file: %s", dat_file.Pointer());
-	SetStreamPrefs(out);
+	{
+		cout << "\n FE_ASCIIT::WriteOutput: error opening file: " << dat_file << endl;
+		throw ExceptionT::kGeneralFail;
+	}
 
 	/* print header */
 	out << "\n Group number. . . . . . . . . . . . . . . . . . = "
@@ -223,7 +214,7 @@ void TextOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 *************************************************************************/
 
 /* initialize the results file */
-void TextOutputT::InitResultsFile(ostream& out, int ID)
+void FE_ASCIIT::InitResultsFile(ostream& out, int ID)
 {
 	/* output set */
 	OutputSetT& set = *fElementSets[ID];
@@ -239,7 +230,7 @@ void TextOutputT::InitResultsFile(ostream& out, int ID)
 	if (set.NumNodeValues() > 0)
 	{
 		out << " Labels:\n";
-		//int count = 0;
+//		int count = 0;
 		const ArrayT<StringT>& n_labels = set.NodeOutputLabels();
 		for (int i = 0; i < n_labels.Length(); i++)
 			out << '\t' << n_labels[i] << '\n';
@@ -249,7 +240,7 @@ void TextOutputT::InitResultsFile(ostream& out, int ID)
 	if (set.NumElementValues() > 0)
 	{
 		out << " Labels:\n";
-		//int count = 0;
+//		int count = 0;
 		const ArrayT<StringT>& e_labels = set.ElementOutputLabels();
 		for (int i = 0; i < e_labels.Length(); i++)
 			out << '\t' << e_labels[i] << '\n';
@@ -271,10 +262,10 @@ void TextOutputT::InitResultsFile(ostream& out, int ID)
 	}
 
 	/* result section header */
-	out << "\n O U T P U T   D A T A :  T O C\n";
+	out << "\n O U T P U T   D A T A :\n";
 }
 
-void TextOutputT::WriteGeometryData(ostream& out, int ID)
+void FE_ASCIIT::WriteGeometryData(ostream& out, int ID)
 {
 	/* dimensions */
 	int nsd = fCoordinates->MinorDim();
@@ -346,7 +337,7 @@ void TextOutputT::WriteGeometryData(ostream& out, int ID)
 	out.flush();
 }
 
-void TextOutputT::WriteOutputData(ostream& out, int ID, const dArray2DT& n_values,
+void FE_ASCIIT::WriteOutputData(ostream& out, int ID, const dArray2DT& n_values,
 	const dArray2DT& e_values)
 {
 	/* write node header */
@@ -402,7 +393,7 @@ void TextOutputT::WriteOutputData(ostream& out, int ID, const dArray2DT& n_value
 	out.flush();
 }
 
-void TextOutputT::WriteNodeHeader(ostream& out, int num_output_nodes,
+void FE_ASCIIT::WriteNodeHeader(ostream& out, int num_output_nodes,
 	const ArrayT<StringT>& labels) const
 {
 	double* junk = NULL;
@@ -422,7 +413,7 @@ void TextOutputT::WriteNodeHeader(ostream& out, int num_output_nodes,
 	}
 }
 
-void TextOutputT::WriteElementHeader(ostream& out, int num_output_elems,
+void FE_ASCIIT::WriteElementHeader(ostream& out, int num_output_elems,
 	const ArrayT<StringT>& labels) const
 {
 	double* junk = NULL;
@@ -442,7 +433,7 @@ void TextOutputT::WriteElementHeader(ostream& out, int num_output_elems,
 	}
 }
 
-void TextOutputT::WriteNodeValues(ostream& out, const iArrayT& node_numbers,
+void FE_ASCIIT::WriteNodeValues(ostream& out, const iArrayT& node_numbers,
 	const dArray2DT& values) const
 {
 	/* no values */
@@ -460,7 +451,7 @@ void TextOutputT::WriteNodeValues(ostream& out, const iArrayT& node_numbers,
 	}
 }
 
-void TextOutputT::WriteElementValues(ostream& out, const dArray2DT& values) const
+void FE_ASCIIT::WriteElementValues(ostream& out, const dArray2DT& values) const
 {
 	/* no values */
 	if (values.Length() == 0) return;

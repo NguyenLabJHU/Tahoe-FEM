@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.cpp,v 1.17 2002-10-20 22:36:54 paklein Exp $ */
+/* $Id: ExodusInputT.cpp,v 1.17.8.1 2003-09-25 17:29:28 cjkimme Exp $ */
 /* created: sawimme (12/04/1998) */
 
 #include "ExodusInputT.h"
@@ -118,7 +118,7 @@ void ExodusInputT::ReadAllElementMap (iArrayT& elemmap)
 void ExodusInputT::ReadGlobalElementMap (const StringT& name, iArrayT& elemmap)
 {
   if (elemmap.Length() != NumElements (name)) throw ExceptionT::kSizeMismatch;
-  int id = atoi (name.Pointer());
+//  int id = atoi (name.Pointer());
   int offset = 0;
   ArrayT<StringT> eid (NumElementGroups());
   ElementGroupNames (eid);
@@ -226,17 +226,21 @@ void ExodusInputT::ReadTimeSteps (dArrayT& steps)
 }
 
 void ExodusInputT::NodeVariablesUsed (const StringT& name, iArrayT& used)
-{ 
+{
+#ifdef __MWERKS__ 
 #pragma unused(name)
 #pragma unused(used)
+#endif
   // TEMP
   used = 1;
 }
 
 void ExodusInputT::ElementVariablesUsed (const StringT& name, iArrayT& used)
 { 
+#ifdef __MWERKS__
 #pragma unused(name)
 #pragma unused(used)
+#endif
   // TEMP: I think there is a variable table that could be used ???
   used = 1;
 }

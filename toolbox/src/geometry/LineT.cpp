@@ -1,4 +1,4 @@
-/* $Id: LineT.cpp,v 1.3 2002-10-20 22:32:08 paklein Exp $ */
+/* $Id: LineT.cpp,v 1.3.8.1 2003-09-25 17:29:31 cjkimme Exp $ */
 /* created: paklein (04/25/1999) */
 #include "LineT.h"
 
@@ -36,9 +36,12 @@ void LineT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
 /* evaluate the shape functions and gradients. */
 void LineT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT& DNa) const
 {
+#ifdef __MWERKS__
 #pragma unused(coords)
 #pragma unused(Na)
 #pragma unused(DNa)
+#endif
+
 	cout << "\n LineT::EvaluateShapeFunctions: not implemented" << endl;
 	throw ExceptionT::kGeneralFail;
 }
@@ -251,7 +254,9 @@ void LineT::NodesOnFacet(int facet, iArrayT& facetnodes) const
 #if __option(extended_errorcheck)
 	if (facet != 0 && facet != 1) throw ExceptionT::kOutOfRange;
 #else
+#ifdef __MWERKS__
 #pragma unused (facet)	
+#endif
 #endif
 
 	facetnodes.Dimension(1);

@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.cpp,v 1.14 2002-10-20 22:38:59 paklein Exp $ */
+/* $Id: iConsoleBaseT.cpp,v 1.14.8.1 2003-09-25 17:29:25 cjkimme Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleBaseT.h"
@@ -64,7 +64,10 @@ void iConsoleBaseT::iWriteVariables(ostream& out) const
 /* execute given command - returns false on fail */
 bool iConsoleBaseT::iDoCommand(const CommandSpecT& command, StringT& line)
 {
+#ifdef __MWERKS__
 #pragma unused(line)
+#endif
+
 	cout << "unrecognized command: \"" << command.Name() << "\"" << endl;
 	return false;
 }
@@ -154,9 +157,11 @@ CommandSpecT* iConsoleBaseT::iCommand(const StringT& command_name) const
 void iConsoleBaseT::ValuePrompt(const CommandSpecT& command, int index, 
 	ostream& out) const
 {
+#ifdef __MWERKS__
 #pragma unused(command)
 #pragma unused(index)
 #pragma unused(out)
+#endif 
 }
 
 /* add command to the dictionary - true if added */
@@ -215,7 +220,7 @@ bool iConsoleBaseT::ResolveArguments(CommandSpecT& command, StringT& line,
 		StringT first;
 		int count;
 		bool scan_OK = true;
-		bool set_defaults = false;
+//		bool set_defaults = false;
 		bool done = false;
 		
 		first.FirstWord(line, count, true);
