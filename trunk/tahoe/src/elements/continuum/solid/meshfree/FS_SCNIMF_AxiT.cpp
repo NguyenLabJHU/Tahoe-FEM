@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.9 2004-10-26 22:09:37 paklein Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.10 2004-10-28 20:30:53 gjwagne Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 //#define VERIFY_B
@@ -28,6 +28,7 @@
 
 using namespace Tahoe;
 
+const double Pi = acos(-1.0);
 const double twoPi = 2.*acos(-1.0);
 const int kRadialDirection = 0; /* the x direction is radial */
 const int kNSD = 2;
@@ -563,6 +564,37 @@ void FS_SCNIMF_AxiT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		}
 	}
 }
+
+
+/* assemble particle mass matrix into LHS of global equation system */
+void FS_SCNIMF_AxiT::AssembleParticleMass(const double rho)
+{
+	
+  fForce = 0.0;
+  double* m = fForce.Pointer();
+  int* nodes = fNodes.Pointer();
+  double* volume = fVoronoiCellVolumes.Pointer();
+  dArrayT cell_i_centroid(fSD);
+  for (int i = 0; i < fNodes.Length(); i++) {
+    /* compute cell centroid by averaging Voronoi cell vertices */
+    cell_i_centroid = 0.0;
+    iArrayT& cell_i = fVoronoiCells[i];
+    for (int j = 0; j < cell_i.Length(); j++) {
+      cell_i_centroid += fVoronoiVertices(cell_i[j]);
+    }
+    cell_i_centroid /= double(cell_i.Length());
+       
+    for (int j = 0; j < fSD; j++)
+      *m++ = *volume * 2 * Pi * cell_i_centroid[0];
+    volume++;
+  }
+  fForce *= rho;
+  
+  /* assemble all */
+  ElementSupport().AssembleLHS(Group(), fForce, Field().Equations());
+}
+
+
 
 void FS_SCNIMF_AxiT::RHSDriver(void)
 {

@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.20 2004-10-27 16:30:43 cjkimme Exp $ */
+/* $Id: SCNIMFT.h,v 1.21 2004-10-28 20:30:53 gjwagne Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -159,7 +159,7 @@ protected: /* for derived classes only */
 	virtual bool ChangingGeometry(void) const;
 
 	/** assemble particle mass matrix into LHS of global equation system */
-	void AssembleParticleMass(const double rho);
+	virtual void AssembleParticleMass(const double rho);
 
 	/** transfers data from QHULL and computes any new data structures */
 	void InitializeVoronoiData(void);
