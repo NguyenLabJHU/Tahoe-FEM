@@ -1,4 +1,4 @@
-/* $Id: EnSightT.cpp,v 1.5 2002-02-27 12:50:32 sawimme Exp $ */
+/* $Id: EnSightT.cpp,v 1.6 2002-02-27 16:47:15 paklein Exp $ */
 /* created: sawimme (05/13/1999) */
 
 #include "EnSightT.h"
@@ -15,7 +15,7 @@
 #include "AutoArrayT.h"
 
 /* array behavior */
-template<> const bool ArrayT<EnSightT::VariableTypeT>::fByteCopy = true;
+const bool ArrayT<EnSightT::VariableTypeT>::fByteCopy = true;
 
 EnSightT::EnSightT (ostream& out, bool binary, int dof) :
 fBinary (binary),

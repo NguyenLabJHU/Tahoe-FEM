@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.cpp,v 1.13 2002-02-27 01:24:05 paklein Exp $ */
+/* $Id: ifstreamT.cpp,v 1.14 2002-02-27 16:47:17 paklein Exp $ */
 /* created: paklein (03/03/1999) */
 
 #include "ifstreamT.h"
@@ -14,7 +14,7 @@
 const int kLineLength = 255;
 
 /* static variables */
-template<> const bool ArrayT<ifstreamT*>::fByteCopy = true; // array behavior
+const bool ArrayT<ifstreamT*>::fByteCopy = true; // array behavior
 
 /* constructors */
 ifstreamT::ifstreamT(void):

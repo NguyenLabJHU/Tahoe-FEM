@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.5 2002-02-27 01:32:54 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.6 2002-02-27 16:47:48 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -26,7 +26,7 @@
 #include "MeshFreeFractureSupportT.h"
 
 /* array behavior */
-template<> const bool ArrayT<MeshFreeCSEAnisoT::StatusFlagT>::fByteCopy = true;
+const bool ArrayT<MeshFreeCSEAnisoT::StatusFlagT>::fByteCopy = true;
 
 /* parameters */
 const int kHeadRoom = 0;

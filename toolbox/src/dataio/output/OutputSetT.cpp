@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.10 2002-02-27 01:24:04 paklein Exp $ */
+/* $Id: OutputSetT.cpp,v 1.11 2002-02-27 16:47:16 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 
 #include "OutputSetT.h"
@@ -6,7 +6,7 @@
 #include "iArray2DT.h"
 
 /* array behavior */
-template<> const bool ArrayT<OutputSetT*>::fByteCopy = true;
+const bool ArrayT<OutputSetT*>::fByteCopy = true;
 
 /* constructor */
 OutputSetT::OutputSetT(const StringT& ID, GeometryT::CodeT geometry_code,

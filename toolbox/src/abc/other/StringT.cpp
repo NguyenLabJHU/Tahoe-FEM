@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.18 2002-02-27 01:24:00 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.19 2002-02-27 16:47:13 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 
 #include "StringT.h"
@@ -20,9 +20,9 @@
 #include "ExceptionCodes.h"
 
 /* array behavior */
-template<> const bool ArrayT<StringT>::fByteCopy = false;
-template<> const bool ArrayT<StringT*>::fByteCopy = true;
-template<> const bool ArrayT<const StringT*>::fByteCopy = true;
+const bool ArrayT<StringT>::fByteCopy = false;
+const bool ArrayT<StringT*>::fByteCopy = true;
+const bool ArrayT<const StringT*>::fByteCopy = true;
 
 /* line length */
 const int kLineLength = 254;

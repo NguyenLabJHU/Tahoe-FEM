@@ -1,4 +1,4 @@
-/* $Id: GraphBaseT.cpp,v 1.5 2002-02-27 01:24:05 paklein Exp $ */
+/* $Id: GraphBaseT.cpp,v 1.6 2002-02-27 16:47:17 paklein Exp $ */
 /* created: paklein (04/13/1999) */
 
 #include "GraphBaseT.h"
@@ -22,7 +22,7 @@
 static inline int rnd(double number) { return int((2.0*number + 1.0)/2); }
 
 /* array behavior */
-template<> const bool ArrayT<GraphBaseT*>::fByteCopy = true;
+const bool ArrayT<GraphBaseT*>::fByteCopy = true;
 
 /* constructor */
 GraphBaseT::GraphBaseT(bool verbose):

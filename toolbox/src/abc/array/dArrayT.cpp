@@ -1,5 +1,5 @@
-/* $Id: dArrayT.cpp,v 1.3 2002-02-27 01:23:58 paklein Exp $ */
-/* created: paklein (08/11/1996)                                          */
+/* $Id: dArrayT.cpp,v 1.4 2002-02-27 16:47:11 paklein Exp $ */
+/* created: paklein (08/11/1996) */
 
 #include "dArrayT.h"
 #include <iostream.h>
@@ -7,8 +7,8 @@
 #include <math.h>
 #include "Constants.h"
 
-template<> const bool ArrayT<dArrayT*>::fByteCopy = true; 
-template<> const bool ArrayT<dArrayT>::fByteCopy = false; 
+const bool ArrayT<dArrayT*>::fByteCopy = true; 
+const bool ArrayT<dArrayT>::fByteCopy = false; 
 
 /* constructor */
 dArrayT::dArrayT(void) { }
