@@ -1,4 +1,4 @@
-/* $Id: EAM_particle.cpp,v 1.1.2.6 2004-02-28 02:58:45 hspark Exp $ */
+/* $Id: EAM_particle.cpp,v 1.1.2.7 2004-02-28 18:06:58 hspark Exp $ */
 /* created: hspark(02/25/2004) */
 #include "EAM_particle.h"
 #include <iostream.h> //TEMP
@@ -78,7 +78,7 @@ double EAM_particle::ComputeUnitEnergy(void)
 		int ci = *pcount++;
 
 		double  ri = fBonds[i];
-		double phi = fPairEnergy(ri, NULL, NULL);
+		double phi = fPairEnergy(ri, NULL, NULL)*fPairEnergy(ri, NULL, NULL)/ri;
 		double rho = fEDEnergy(ri, NULL, NULL);
 
 		rho    += ci*rho;
@@ -102,18 +102,15 @@ void EAM_particle::ComputeUnitStress(dSymMatrixT& stress)
 
 	/* assemble stress */
 	stress = 0.0;
-
+	
 	for (int i = 0; i < fNumBonds; i++)	// fNumBonds, ri, ci check out
 	{
 		double ri = fBonds[i];
 		int    ci = fCounts[i];	
-		double DPotential = fPairForce(ri, NULL, NULL);
-		//cout << "DPotential = " << DPotential << endl;
+		double Potential = fPairEnergy(ri, NULL, NULL)*fPairEnergy(ri, NULL, NULL)/ri;
+		double DPotential = 2.0*fPairForce(ri, NULL, NULL)*fPairEnergy(ri, NULL, NULL)/ri-Potential/ri;
 		double DDensity = fEDForce(ri, NULL, NULL);	
-		//cout << "DDensity = " << DDensity << endl;
 		double coeff = (1.0/ri)*ci*(0.5*DPotential + dFdrho*DDensity);
-		//double DDPotential = fPairStiffness(ri, NULL, NULL);
-		//cout << "DDPotential = " << DDPotential << endl;
 		fLattice.BondComponentTensor2(i,fBondTensor2);
 		stress.AddScaled(coeff,fBondTensor2);
 	}
@@ -164,7 +161,11 @@ void EAM_particle::FormMixedDerivatives(double rho)
 		double rj = fBonds[j];
 		int    cj = fCounts[j];
 
-		double DDPj = fPairStiffness(rj, NULL, NULL);
+		double Potential = fPairEnergy(rj, NULL, NULL)*fPairEnergy(rj, NULL, NULL)/rj;
+		double DPotential = 2.0*fPairForce(rj, NULL, NULL)*fPairEnergy(rj, NULL, NULL)/rj-Potential/rj;
+		double DDPj = 2.0*fPairStiffness(rj, NULL, NULL)*fPairEnergy(rj, NULL, NULL)/rj;
+		DDPj+=2.0*fPairForce(rj, NULL, NULL)*fPairForce(rj, NULL, NULL)/rj;
+		DDPj-=(2.0*DPotential/rj);
 		double DDDj = fEDStiffness(rj, NULL, NULL);
 		double DDj = fEDForce(rj, NULL, NULL);
 	
@@ -223,7 +224,8 @@ void EAM_particle::FormSingleBondContribution(double rho, dMatrixT& moduli)
 	for (int i = 0; i < fNumBonds; i++)
 	{
 		double ri = fBonds[i];
-		double DPotential = fPairForce(ri, NULL, NULL);
+		double Potential = fPairEnergy(ri, NULL, NULL)*fPairEnergy(ri, NULL, NULL)/ri;
+		double DPotential = 2.0*fPairForce(ri, NULL, NULL)*fPairEnergy(ri, NULL, NULL)/ri-Potential/ri;
 		double DDensity = fEDForce(ri, NULL, NULL);
 		double coeff = -fCounts[i]*(0.5*DPotential + dFdrho*DDensity)/(ri*ri*ri);
 		fLattice.BondComponentTensor4(i,fBondTensor4);		
