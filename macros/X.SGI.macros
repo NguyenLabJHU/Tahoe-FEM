@@ -1,0 +1,8 @@
+# $Id: X.SGI.macros,v 1.1 2001-09-19 19:04:53 paklein Exp $
+
+X_CFLAGS =
+
+X_LIBS   = -lGL -lXext -lXt -lSM -lICE -lX11
+X_LFLAGS = $(X_LIBS)
+
+X_INC_FLAGS = 
