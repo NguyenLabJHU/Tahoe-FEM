@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.cpp,v 1.2 2003-03-22 00:40:53 thao Exp $ */
+/* $Id: RGVIB2D.cpp,v 1.3 2003-03-25 06:30:24 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include <math.h>
@@ -30,27 +30,21 @@ static const char* Labels[kNumOutputVar] = {"Jv","Je","dW_disp"};
 /* constructors */
 RGVIB2D::RGVIB2D(ifstreamT& in, const FSMatSupportT& support): 
 	RGBaseT(in, support),
-	Material2DT(in, kPlaneStress),
 	ViscVIB(in, 2, 2, 3),
 	fCircle(NULL),
         fb(2), 
         fEigs(2), 
         fEigs_e(2), 
-        fsigA_E(2), 
-        fdtauAdepB_E(2), 
-        fsigA_I(2), 
-        fdtauAdepB_I(2), 
-        fCalg(2), 
+        ftau_E(2), 
+        fDtauDep_E(2), 
+        ftau_I(2), 
+        fDtauDep_I(2), 
         fModMat(3), 
         fModulus(3), 
         fStress(2), 
-	fiKAB(2,2)
+	fiKAB(2,2),
+	fconst(0.5)
 {
-        if (PurePlaneStress())
-                fconst =0.5;
-        else
-	        fconst = 1.0/3.0;
-
   	/* point generator */
 	fCircle = new EvenSpacePtsT(in);
 
@@ -70,7 +64,6 @@ void RGVIB2D::Print(ostream& out) const
 {
 	/* inherited */
 	RGBaseT::Print(out);
-	Material2DT::Print(out);
 	ViscVIB::Print(out);
 
 	fCircle->Print(out);
@@ -105,30 +98,14 @@ void RGVIB2D::Initialize(void)
   /* initial modulus */
 
         fEigs = 1.0;
-        fJ = 1.0;
-        dtauAdepB(fEigs, fsigA_E, fdtauAdepB_E, Elastic);
-        dtauAdepB(fEigs, fsigA_I, fdtauAdepB_I, Inelastic);
+        ddWddE(fEigs, ftau_E, fDtauDep_E, Elastic);
+        ddWddE(fEigs, ftau_I, fDtauDep_I, Inelastic);
 
-        double lambda = fdtauAdepB_E(0,1)+ fdtauAdepB_I(0,1);
-        double mu = 0.5*((fdtauAdepB_E(0,0) - fdtauAdepB_E(0,1))+
-                        (fdtauAdepB_I(0,0) - fdtauAdepB_I(0,1)));
+        double lambda = fDtauDep_E(0,1)+ fDtauDep_I(0,1);
+        double mu = 0.5*((fDtauDep_E(0,0) - fDtauDep_E(0,1))+
+                        (fDtauDep_I(0,0) - fDtauDep_I(0,1)));
 
-        if (fConstraintOption == Material2DT::kPlaneStress)
-	  {
-                if (PurePlaneStress())
-			IsotropicT::Set_PurePlaneStress_mu_lambda(mu, lambda);
-                else
-		  {
-                        lambda *= 2.0*mu/(lambda + 2.0*mu);
-                        double kappa = lambda + 2.0/3.0*mu;
-			IsotropicT::Set_mu_kappa(mu, kappa);
-		  }
-	  }
-        else
-	  {
-                        double kappa = lambda + 2.0/3.0*mu;
-			IsotropicT::Set_mu_kappa(mu, kappa);
-	  }
+	IsotropicT::Set_PurePlaneStress_mu_lambda(mu, lambda);
 }
 
 double RGVIB2D::StrainEnergyDensity(void)
@@ -136,12 +113,11 @@ double RGVIB2D::StrainEnergyDensity(void)
 	/* Calculates eigenvalues of total stretch tensor */
 	Compute_b(fb);
 	fb.PrincipalValues(fEigs);
-	fJ = fEigs.Product();
 
 	/*eigenvalues of elastic stretch tensor*/
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
-	ComputeEigs_e(fEigs, fEigs_e, fsigA_I, fdtauAdepB_I);
+	ComputeEigs_e(fEigs, fEigs_e, ftau_I, fDtauDep_I);
 	Store(element, CurrIP());
 	
 	/*get bond lengths*/
@@ -165,120 +141,135 @@ double RGVIB2D::StrainEnergyDensity(void)
 /* modulus */ 
 const dMatrixT& RGVIB2D::c_ijkl(void) 
 { 
-        /*Assumes s_ij() has been calculated*/ 
   
-        dtauAdepB(fEigs, fsigA_E, fdtauAdepB_E, Elastic); 
-        dSymMatrixT gamAB_E = fdtauAdepB_E; 
-        Calgorithm(fEigs_e, fsigA_I, fdtauAdepB_I, fCalg);
-	dMatrixT gamAB_I =fCalg;
-        double iJ = 1.0/fJ;
-	gamAB_E *= iJ;
-	gamAB_I *= iJ;
-
-	gamAB_E(0,0) -= 2.0*fsigA_E[0];
-	gamAB_E(1,1) -= 2.0*fsigA_E[1];
-	gamAB_I(0,0) -= 2.0*fsigA_I[0];
-	gamAB_I(1,1) -= 2.0*fsigA_I[1];
-
-        /*axial*/ 
- 
-        /*add the elastic part*/ 
-        fModulus = fSpectralDecompSpat.EigsToRank4(gamAB_E);       
-        /*add the inelastic part*/ 
-        fModulus += fSpectralDecompSpat.NonSymEigsToRank4(gamAB_I); 
- 
-        /* shear terms */ 
-        const ArrayT<dArrayT>& eigenvectors=fSpectralDecompSpat.Eigenvectors(); 
-	double dlamb, coeff; 
-	double sig1 = fsigA_E[0]+fsigA_I[0]; 
-	double sig2 = fsigA_E[1]+fsigA_I[1]; 
-	
-	double& lamb1 = fEigs[0]; 
-	double& lamb2 = fEigs[1]; 
-	
-	dlamb = lamb1 - lamb2; 
-	/* modulus coefficient */ 
-	if (fabs(dlamb) > kSmall) 
-	  coeff = (sig1*lamb2 - sig2*lamb1)/dlamb; 
-	else 
-	  coeff = 0.5*(gamAB_E(0,0) - gamAB_E(0,1) +  
-		       gamAB_I(0,0) - gamAB_I(0,1))-sig1;           
-	MixedRank4_2D(eigenvectors[0], eigenvectors[1], fModMat); 
-	fModulus.AddScaled(2.0*coeff, fModMat); 
-	
-	return fModulus; 
-} 
-const dSymMatrixT& RGVIB2D::s_ij(void) 
-{ 
-  /* stretch tensor */ 
+        /* stretch tensor */ 
         Compute_b(fb); 
  
         /* spectral decomposition */ 
         fSpectralDecompSpat.SpectralDecomp_Jacobi(fb, false);    
-        /*calculates principal stretch*/ 
-         
+
+        /*calculates principal stretch and Jacobian determinant*/          
         fEigs = fSpectralDecompSpat.Eigenvalues(); 
-        /*calc jacobian*/ 
-        fJ = sqrt(fEigs.Product()) ; 
-         
-        /*load viscoelastic principal stretches from state variable arrays*/ 
+	double J = sqrt(fEigs.Product());
+
+        /*load the viscoelastic principal stretches from history variables*/ 
         ElementCardT& element = CurrentElement(); 
         Load(element, CurrIP()); 
+	
+	/*calc elastic principal stretch*/
+        fSpectralDecompRef.SpectralDecomp_Jacobi(fC_v, false);   
+        dArrayT Eigs_v = fSpectralDecompRef.Eigenvalues(); 
+	fEigs_e = fEigs;
+	fEigs_e /= Eigs_v;
+
+        ddWddE(fEigs, ftau_E, fDtauDep_E, Elastic); 
+        dSymMatrixT gamAB_E = fDtauDep_E; 
+	gamAB_E(0,0) -= 2.0*ftau_E[0];
+	gamAB_E(1,1) -= 2.0*ftau_E[1];
+
+	dMatrixT Calg(2);
+        Calgorithm(fEigs, fEigs_e, ftau_I, fDtauDep_I, Calg);
+	dMatrixT gamAB_I = Calg;
+	gamAB_I(0,0) -= 2.0*ftau_I[0];
+	gamAB_I(1,1) -= 2.0*ftau_I[1];
+
+        /*axial*/ 
+        fModulus = fSpectralDecompSpat.EigsToRank4(gamAB_E);       
+        fModulus += fSpectralDecompSpat.NonSymEigsToRank4(gamAB_I); 
+ 
+        /* shear terms */ 
+        const ArrayT<dArrayT>& eigenvectors=fSpectralDecompSpat.Eigenvectors(); 
+        double dl, coeff; 
+	double tau0 = ftau_E[0]+ftau_I[0]; 
+	double tau1 = ftau_E[1]+ftau_I[1]; 
+	
+	double& l0 = fEigs[0]; 
+	double& l1 = fEigs[1]; 
+	
+	dl = l0 - l1; 
+	/* modulus coefficient */ 
+	if (fabs(dl) > kSmall) 
+	  coeff = (tau0*l1 - tau1*l0)/dl; 
+	else 
+	{
+	  //	  cout << "\nHere";
+	  coeff = 0.5*(gamAB_E(0,0) - gamAB_E(0,1) +  
+		       gamAB_I(0,0) - gamAB_I(0,1))-tau0;           
+	}
+	MixedRank4_2D(eigenvectors[0], eigenvectors[1], fModMat); 
+	fModulus.AddScaled(2.0*coeff, fModMat); 
+
+	fModulus /= J;	
+	return fModulus; 
+} 
+const dSymMatrixT& RGVIB2D::s_ij(void) 
+{ 
+        /* stretch tensor */ 
+        Compute_b(fb); 
+ 
+        /* spectral decomposition */ 
+        fSpectralDecompSpat.SpectralDecomp_Jacobi(fb, false);    
+
+        /*calculates principal stretch*/          
+        fEigs = fSpectralDecompSpat.Eigenvalues(); 
+
+        /*calc jacobian*/ 
+        double J = sqrt(fEigs.Product()) ; 
+         
+        /*load viscoelastic principal stretches from history variables*/ 
+        ElementCardT& element = CurrentElement(); 
+        Load(element, CurrIP()); 
+
 	if (fFSMatSupport.RunState() == GlobalT::kFormRHS) 
-	  { 
-                double Jvn = sqrt(fC_vn.Det());
+	{ 
+	  double Jvn = sqrt(fC_vn.Det()); 
+      	  if (Jvn < 1.2) 
+       	  { 
+	    SpectralDecompT SpectralDecompTrial(NumSD());
+	    dSymMatrixT b_tr(NumSD()); 
 
-		/*A value of 1.21 is currently hardwired for the cut-off of Jv 
-		  for finite viscosity. The cutoff is abrupt and no "step down"
-                  procedure is implemented.  Eventually the cut-off should be
-                  moved to the viscosity function*/
+	    /*calculate trial state;*/ 
+	    dSymMatrixT iCvn = fC_vn; 
+	    iCvn.Inverse(); 
+	    const dMatrixT& F = F_mechanical(); 
+	    b_tr.MultQBQT(F,iCvn);
+	    SpectralDecompTrial.SpectralDecomp_Jacobi(b_tr, false);      
 
-                if (Jvn < 1.21) 
-		  { 
-                    dSymMatrixT iCvn = fC_vn; 
-                    iCvn.Inverse(); 
+	    /*set initial value of elastic principal stretches to trial values*/ 
+	    fEigs_e = SpectralDecompTrial.Eigenvalues(); 
+	    ComputeEigs_e(fEigs, fEigs_e, ftau_I, fDtauDep_I); 
 
-                    /*calculate trial state;*/ 
-		    SpectralDecompT SpectralDecompTrial(NumSD());
-                    dSymMatrixT b_tr(NumSD()); 
-
-                    const dMatrixT& F = F_mechanical(); 
-                    b_tr.MultQBQT(F,iCvn); 
-                    SpectralDecompTrial.SpectralDecomp_Jacobi(b_tr, false);      
-                    /*set initial value of elastic principal stretches  
-                     * to trial values*/ 
-                    fEigs_e = SpectralDecompTrial.Eigenvalues(); 
-
-                    ComputeEigs_e(fEigs, fEigs_e, fsigA_I, fdtauAdepB_I); 
-
-                    /*update viscuous stretch tensor*/ 
-                    Compute_C(fC_v); 
-                    fSpectralDecompRef.SpectralDecomp_Jacobi(fC_v,false); 
-                    dArrayT Eigs_v = fEigs; 
-                    Eigs_v /= fEigs_e; 
-                    fC_v = fSpectralDecompRef.EigsToRank2(Eigs_v); 
-		  } 
-                else 
-		  { 
-                    fEigs_e = 1.0; 
-                    Compute_C(fC_v); 
-		  } 
-                Store(element, CurrIP()); 
-	  }        
+	    /*update viscuous stretch tensor*/ 
+	    Compute_C(fC_v); 
+	    fSpectralDecompRef.SpectralDecomp_Jacobi(fC_v,false); 
+	    dArrayT Eigs_v = fEigs; 
+	    Eigs_v /= fEigs_e; 
+	    fC_v = fSpectralDecompRef.EigsToRank2(Eigs_v); 
+       	  } 
+       	  else 
+      	  { 
+       	    fEigs_e = 1.0; 
+       	    Compute_C(fC_v); 
+       	  } 
+	  Store(element, CurrIP()); 
+	}        
         else  
-	  { 
-                fSpectralDecompRef.SpectralDecomp_Jacobi(fC_v, false);   
-                dArrayT Eigs_v = fSpectralDecompRef.Eigenvalues(); 
+	{ 
+	  fSpectralDecompRef.SpectralDecomp_Jacobi(fC_v, false);   
+	  dArrayT Eigs_v = fSpectralDecompRef.Eigenvalues(); 
+	  
+	  fEigs_e = fEigs; 
+	  fEigs_e /= Eigs_v; 
+	} 
+        dWdE(fEigs_e, ftau_I, Inelastic); 
+        dWdE(fEigs, ftau_E, Elastic);
+        fStress = fSpectralDecompSpat.EigsToRank2(ftau_E); 
+        fStress += fSpectralDecompSpat.EigsToRank2(ftau_I); 
+	fStress /= J;
+	//	cout << "\nfEigs_e: "<<fEigs_e;
+	//	cout << "\nfEigs: "<<fEigs;
  
-                fEigs_e = fEigs; 
-                fEigs_e /= Eigs_v; 
-	  } 
-        sigA(fEigs_e, fsigA_I, Inelastic); 
-        sigA(fEigs, fsigA_E, Elastic); 
- 
-        fStress = fSpectralDecompSpat.EigsToRank2(fsigA_E); 
-        fStress += fSpectralDecompSpat.EigsToRank2(fsigA_I); 
- 
+
         return fStress; 
 } 
 /* material description */ 
@@ -304,7 +295,7 @@ const dSymMatrixT& RGVIB2D::S_IJ(void)
  
 void RGVIB2D::ComputeOutput(dArrayT& output) 
 { 
-  /* stretch tensor */ 
+        /* stretch tensor */ 
         Compute_b(fb); 
  
         /* spectral decomposition */ 
@@ -312,42 +303,46 @@ void RGVIB2D::ComputeOutput(dArrayT& output)
         /*calculates principal stretch*/ 
          
         fEigs = fSpectralDecompSpat.Eigenvalues(); 
-         
-        /*load the viscoelastic principal stretches from state variable arrays*/ 
+	double J = sqrt(fEigs.Product());
+
+        /*load the viscoelastic principal stretches from history variables*/ 
         ElementCardT& element = CurrentElement(); 
         Load(element, CurrIP()); 
  
         fSpectralDecompRef.SpectralDecomp_Jacobi(fC_v, false);   
         dArrayT Eigs_v = fSpectralDecompRef.Eigenvalues(); 
-         
-        double Jv = sqrt(Eigs_v.Product()); 
-        double Je = sqrt(fEigs.Product())/Jv; 
- 
+	fEigs_e = fEigs;
+	fEigs_e /= Eigs_v;
+
+        double Je = sqrt(fEigs_e.Product()); 
+	double Jv = J/Je;
+
         output[0] = Jv; 
         output[1] = Je; 
          
-        sigA(fEigs_e, fsigA_I, Inelastic); 
-        sigA(fEigs, fsigA_E, Elastic); 
+        dWdE(fEigs_e, ftau_I, Inelastic); 
+        dWdE(fEigs, ftau_E, Elastic); 
 
-        fSpectralDecompSpat.SpectralDecomp_Jacobi(fb, false); 
         dSymMatrixT dev_stress(NumSD()); 
-        dev_stress = fSpectralDecompSpat.EigsToRank2(fsigA_I); 
+        dev_stress = fSpectralDecompSpat.EigsToRank2(ftau_I); 
+	dev_stress /= J;
+
         double mean_stress = fconst*dev_stress.Sum();  
         dev_stress.PlusIdentity(-mean_stress); 
  
 	fietaS = fShearVisc->Function(Jv,Je);
 	fietaB = fBulkVisc->Function(Jv,Je);
-
-        double rate_visc_disp = dev_stress.ScalarProduct()*0.5*fietaS+ 
-          fconst*mean_stress*fconst*fietaB; 
+	fietaS=1.0/fietaS;
+	fietaB=1.0/fietaB;
+        double rate_visc_disp = 0.5*(dev_stress.ScalarProduct()*0.5*fietaS+ 
+          mean_stress*mean_stress*fietaB); 
          
         output[2] = rate_visc_disp*fFSMatSupport.TimeStep(); 
-         
 }  
 /***********************************************************************
  * Protected
  ***********************************************************************/
-void RGVIB2D::sigA(const dArrayT& eigenstretch, dArrayT& eigenstress, 
+void RGVIB2D::dWdE(const dArrayT& eigenstretch, dArrayT& eigenstress, 
 	int etype)
 {
 	/*Compute bond lengths*/
@@ -390,12 +385,11 @@ void RGVIB2D::sigA(const dArrayT& eigenstretch, dArrayT& eigenstress,
 		s0 += sfactor* (*pz0++);
 		s1 += sfactor* (*pz1++);
 	}	
-	double iJ = 1/fJ;
-	s0 *= l0*iJ*fThickness;
-	s1 *= l1*iJ*fThickness;
+	s0 *= l0;
+	s1 *= l1;
 }
 
-void RGVIB2D::dtauAdepB(const dArrayT& eigenstretch, dArrayT& eigenstress, 
+void RGVIB2D::ddWddE(const dArrayT& eigenstretch, dArrayT& eigenstress, 
 	dSymMatrixT& eigenmodulus, int etype)
 {
 	/*Compute bond lengths*/
@@ -462,54 +456,48 @@ void RGVIB2D::dtauAdepB(const dArrayT& eigenstretch, dArrayT& eigenstress,
 		c11 += cfactor* (*pz1z1++);
 		c01 += cfactor* (*pz0z1++);
 	}
-	s0 *= l0*fThickness;
-	s1 *= l1*fThickness;
+	s0 *= l0;
+	s1 *= l1;
 	
-	c00 *= l0*l0*fThickness;
-	c11 *= l1*l1*fThickness;
-	c01 *= l0*l1*fThickness;	
+	c00 *= l0*l0;
+	c11 *= l1*l1;
+	c01 *= l0*l1;
 	
 	c00 += 2.0*s0;
 	c11 += 2.0*s1;
-
-	double iJ = 1/fJ;
-	s0 *= iJ;
-	s1 *= iJ;
 }
 
-void RGVIB2D::Calgorithm(const dArrayT& eigenstretch, dArrayT& eigenstress,
-	dSymMatrixT& eigenmodulus, dMatrixT& Calg)
+void RGVIB2D::Calgorithm(const dArrayT& eigenstretch, const dArrayT& eigenstretch_e, 
+			 dArrayT& eigenstress,dSymMatrixT& eigenmodulus, dMatrixT& Calg)
 {	
+	/*jacobian determinants*/
+	double Je = sqrt(eigenstretch_e[0]*eigenstretch_e[1]);
+	double J = sqrt(eigenstretch[0]*eigenstretch[1]);
+	double Jv = J/Je;
+
         /*get sigma and dsigma/dep_e*/
-	dtauAdepB(eigenstretch, eigenstress, eigenmodulus, Inelastic);
+	ddWddE(eigenstretch_e, eigenstress, eigenmodulus, Inelastic);
 	
-	double& s0 = eigenstress[0];
-	double& s1 = eigenstress[1];
+	double s0 = eigenstress[0]/J;
+	double s1 = eigenstress[1]/J;
 
 	/*caculate means*/
 	double sm = fconst*(s0+s1);
 
-	/*calculate elastic and viscous parts of the jacobean*/
-	double Je = sqrt(eigenstretch[0]*eigenstretch[1]);
-	double Jv = fJ/Je;
+	fietaS = 1.0/fShearVisc->Function(Jv,Je);
+	fietaB = 1.0/fBulkVisc->Function(Jv,Je);
 
-	fietaS = fShearVisc->Function(Jv,Je);
-	fietaB = fBulkVisc->Function(Jv,Je);
-
-	fietaS = 1/fietaS;
-	fietaB = 1/fietaB;
         /*Calculate derivatives of viscosities*/
         double DietaSDep = fietaS*fShearVisc->DFuncDJv(Jv, Je)*Jv;
         double DietaBDep = fietaB*fBulkVisc->DFuncDJv(Jv, Je)*Jv;
 
-	/*evaluate KAB^-1 where 
-	 *KAB = 1+dt D/Dep_e(sigA_Idev/nD+isostress/nV)*/
-	ComputeiKAB(Je, Jv, eigenstress, eigenmodulus);
+	/*evaluate KAB^-1 where KAB = 1+dt D/Dep_e(sigA_Idev/nD+isostress/nV)*/
+	ComputeiKAB(J, Jv, eigenstress, eigenmodulus);
 
 	/*GAB= 1 + dt D/Dep(sigA_Idev/nD+isostress/nV+deta_de*stress)*/
-	dMatrixT GAB(2,2);
-
 	double dt = fFSMatSupport.TimeStep();
+
+	dMatrixT GAB(2,2);
 	GAB(0,0) = 1+0.5*dt*fietaS*(s0-sm)*(1+DietaSDep)+
 	               fconst*dt*fietaB*sm*(1+DietaBDep);
 	GAB(1,1) = 1+0.5*dt*fietaS*(s1-sm)*(1+DietaSDep)+
@@ -522,32 +510,34 @@ void RGVIB2D::Calgorithm(const dArrayT& eigenstretch, dArrayT& eigenstress,
 
 	dMatrixT DAB(2);
 	DAB.MultAB(fiKAB,GAB);
-	//	Calg.MultSymAB(eigenmodulus,DAB);
-	Calg(0,0) = DAB(0,0)*fiKAB(0,0)+DAB(0,1)*fiKAB(1,0);
-	Calg(1,0) = DAB(1,0)*fiKAB(0,0)+DAB(1,1)*fiKAB(1,0);
-	Calg(0,1) = DAB(0,0)*fiKAB(0,1)+DAB(0,1)*fiKAB(1,1);
-	Calg(1,1) = DAB(1,0)*fiKAB(0,1)+DAB(1,1)*fiKAB(1,1);
+
+	Calg(0,0) = eigenmodulus(0,0)*DAB(0,0)+eigenmodulus(0,1)*DAB(1,0);
+	Calg(1,0) = eigenmodulus(1,0)*DAB(0,0)+eigenmodulus(1,1)*DAB(1,0);
+	Calg(0,1) = eigenmodulus(0,0)*DAB(0,1)+eigenmodulus(0,1)*DAB(1,1);
+	Calg(1,1) = eigenmodulus(1,0)*DAB(0,1)+eigenmodulus(1,1)*DAB(1,1);
 }
 
-void RGVIB2D::ComputeEigs_e(const dArrayT& eigenstretch, 
-			    dArrayT& eigenstretch_e, dArrayT& eigenstress, 
-			    dSymMatrixT& eigenmodulus) 
+void RGVIB2D::ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_e, 
+			    dArrayT& eigenstress, dSymMatrixT& eigenmodulus) 
 {		
-	const double ctol = 1.00e-10;
+	const double ctol = 1.00e-14;
 		
 	/*set references to principle stretches*/
 	double& l0 = eigenstretch[0];
 	double& l1 = eigenstretch[1];
-	
+	double J = sqrt(l0*l1);
+	double iJ = 1.0/J;
+
 	double& le0 = eigenstretch_e[0];
 	double& le1 = eigenstretch_e[1];
+	double Je = sqrt(le0*le1);
 	
 	double ltr0 = le0;
 	double ltr1 = le1;
 
 	double lvn0 = l0/le0;
 	double lvn1 = l1/le1;
-	double Jv=sqrt(lvn0*lvn1);
+	double Jv=J/Je;
 	
 	double tol;
 	
@@ -559,7 +549,6 @@ void RGVIB2D::ComputeEigs_e(const dArrayT& eigenstretch,
 	double ep_e0 = ep_tr0;		
 	double ep_e1 = ep_tr1;
 	
-	double Je;
 	int counter = 0;
 	
 	/*initializes principle viscous stretch*/
@@ -567,30 +556,28 @@ void RGVIB2D::ComputeEigs_e(const dArrayT& eigenstretch,
 	{
 	        counter ++;
 		/*calculate stresses and moduli*/
-		dtauAdepB(eigenstretch_e, eigenstress, eigenmodulus, Inelastic);
+		ddWddE(eigenstretch_e, eigenstress, eigenmodulus, Inelastic);
 	    
 		/*initialize references*/
-		double& s0 = eigenstress[0];
-		double& s1 = eigenstress[1];
+		double s0 = eigenstress[0]*iJ;
+		double s1 = eigenstress[1]*iJ;
 	    
 		/*caculate means*/
 		double sm = fconst*(s0+s1);
 	    
 		/*caluclate inverse viscosities*/
 		Je = sqrt(le0*le1);
-		Jv = fJ/Je;
+		Jv = J/Je;
 	    
 		fietaS = 1.0/fShearVisc->Function(Jv, Je);
 		fietaB = 1.0/fBulkVisc->Function(Jv, Je);
 	    
-		ComputeiKAB(Jv,Je,eigenstress,eigenmodulus);
+		ComputeiKAB(J,Je,eigenstress,eigenmodulus);
 	    
 		/*calculate the residual*/
 		double dt = fFSMatSupport.TimeStep();
-		double res0 = ep_e0 + dt*(0.5*fietaS*(s0-sm) +
-					   fconst*fietaB*sm) - ep_tr0;
-		double res1 = ep_e1 + dt*(0.5*fietaS*(s1-sm) +
-					   fconst*fietaB*sm) - ep_tr1;
+		double res0 = ep_e0 + dt*(0.5*fietaS*(s0-sm)+fconst*fietaB*sm) - ep_tr0;
+		double res1 = ep_e1 + dt*(0.5*fietaS*(s1-sm)+fconst*fietaB*sm) - ep_tr1;
 		
 		/*solve for the principal strain increments*/
 		double dep_e0 = -fiKAB(0,0)*res0 - fiKAB(0,1)*res1;
@@ -604,7 +591,7 @@ void RGVIB2D::ComputeEigs_e(const dArrayT& eigenstretch,
 		le1 = exp(2*ep_e1);
 		//	cout << "\n depsilon1 "<< dep_e0;
 		
-		if (counter > 100)
+		if (counter > 300)
 		{
 	               ep_e0 = 0;
 		       ep_e1 = 0;
@@ -625,40 +612,39 @@ void RGVIB2D::ComputeEigs_e(const dArrayT& eigenstretch,
  ***********************************************************************/
 /* Initialize angle tables */
 
-void RGVIB2D::ComputeiKAB(double& Jv, double& Je, 
-			       dArrayT& eigenstress, dSymMatrixT& eigenmodulus)
+void RGVIB2D::ComputeiKAB(const double& J, const double& Je, 
+			  const dArrayT& eigenstress, const dSymMatrixT& eigenmodulus)
 {	
         /*Calculate derivatives of viscosities*/
+        double Jv = J/Je;
         double DietaSDep_e = fietaS*(fShearVisc->DFuncDJe(Jv, Je)*Je - 
 			     fShearVisc->DFuncDJv(Jv, Je)*Jv);
         double DietaBDep_e = fietaB*(fBulkVisc->DFuncDJe(Jv, Je)*Je - 
 			     fBulkVisc->DFuncDJv(Jv, Je)*Jv);
 	
-	//	       	cout <<"\n deta: "<< DietaBDep_e;
-	/*Calculate d_sigA_I/d_eps_e*/
-	double& s0 = eigenstress[0];
-	double& s1 = eigenstress[1];
-	
-	double iJ = 1.0/fJ;
+	/*principal components of stress and modulus*/
+	double iJ = 1.0/J;	
+	double s0 = eigenstress[0]*iJ;
+	double s1 = eigenstress[1]*iJ;
 	
 	double c0 = eigenmodulus[0]*iJ;
 	double c1 = eigenmodulus[1]*iJ;
 	double c01 = eigenmodulus[2]*iJ;
 
-	/*mean of dtauAdepB_I*/
+	/*mean values*/
 	double sm = fconst*(s0+s1);
 	double cm0 = fconst*(c0 + c01);
 	double cm1 = fconst*(c01 + c1);
 
 	dMatrixT& KAB = fiKAB;
 		
-	/*calculates  KAB = 1+dt*D(sigA_Idev/nD+isostress/nV)/Dep_e*/
+	/*calculates  KAB = 1+dt*D(sig_Idev/nD+isostress/nV)/Dep_e*/
 
 	double dt = fFSMatSupport.TimeStep();
-	KAB(0,0) = 1+0.5*fietaS*dt*(c0-cm0-DietaSDep_e*(s0-sm))+
+	KAB(0,0) = 1.0+0.5*fietaS*dt*(c0-cm0-DietaSDep_e*(s0-sm))+
 	             fconst*fietaB*dt*(cm0 - DietaBDep_e*sm);
 
-	KAB(1,1) = 1+0.5*fietaS*dt*(c1-cm1-DietaSDep_e*(s1-sm))+
+	KAB(1,1) = 1.0+0.5*fietaS*dt*(c1-cm1-DietaSDep_e*(s1-sm))+
 	             fconst*fietaB*dt*(cm1 - DietaBDep_e*sm);
 
 	KAB(0,1) = 0.5*fietaS*dt*(c01-cm1-DietaSDep_e*(s0-sm))+

@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.h,v 1.1 2003-03-19 19:00:57 thao Exp $ */
+/* $Id: RGVIB2D.h,v 1.2 2003-03-25 06:30:24 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #ifndef _RG_VIB_2D_H_
@@ -6,7 +6,6 @@
 
 /* base classes */
 #include "RGBaseT.h"
-#include "Material2DT.h"
 #include "ViscVIB.h"
 
 namespace Tahoe {
@@ -15,7 +14,7 @@ namespace Tahoe {
 class CirclePointsT;
 
 /** 2D Isotropic ViscVIB using Ogden's spectral formulation */
-class RGVIB2D: public RGBaseT, public Material2DT, public ViscVIB
+class RGVIB2D: public RGBaseT, public ViscVIB
 {
   public:
   
@@ -53,30 +52,25 @@ class RGVIB2D: public RGBaseT, public Material2DT, public ViscVIB
         enum EnergyType {Inelastic=0, Elastic=1}; 
 
 	/*principal elastic stretches*/
-	virtual void ComputeEigs_e(const dArrayT& eigenstretch, 
-				   dArrayT& eigenstretch_e, 
-				   dArrayT& eigenstress, 
-				   dSymMatrixT& eigenmodulus);
+	void ComputeEigs_e(const dArrayT& eigenstretch,dArrayT& eigenstretch_e, 
+			   dArrayT& eigenstress,dSymMatrixT& eigenmodulus);
   
 	/* stresses and moduli*/
-  	void sigA(const dArrayT& eigenstretch, dArrayT& eigenstress, 
-			  int etype);
+  	void dWdE(const dArrayT& eigenstretch, dArrayT& eigenstress,int etype);
 
-  	void dtauAdepB(const dArrayT& eigenstretch, 
-				    dArrayT& eigenstress, dSymMatrixT& eigenmodulus, 
-				    int etype);
+  	void ddWddE(const dArrayT& eigenstretch, 
+		    dArrayT& eigenstress, dSymMatrixT& eigenmodulus,int etype);
 
-  	void Calgorithm(const dArrayT& eigenstretch, 
-			    dArrayT& eigenstress, dSymMatrixT& eigenmodulus, 
-			    dMatrixT& calg);
+  	void Calgorithm(const dArrayT& eigenstretch, const dArrayT& eigenstretch_e,
+			dArrayT& eigenstress, dSymMatrixT& eigenmodulus,dMatrixT& Calg);
 
 	/* return true of model is purely 2D, plain stress */
 	virtual bool PurePlaneStress(void) const { return true; };
 
   private:
 
-	void ComputeiKAB(double& Jv, double& Je, dArrayT& eigenstress, 
-			 dSymMatrixT& eigenmodulus);
+	void ComputeiKAB(const double& J, const double& Je, const dArrayT& eigenstress, 
+			 const dSymMatrixT& eigenmodulus);
 
   	/* calculates "bond" lengths from Lagrangian stretch eigenvalues */
 	void ComputeLengths(const dArrayT& eigenstretch, int etype);
@@ -94,20 +88,16 @@ class RGVIB2D: public RGBaseT, public Material2DT, public ViscVIB
         dSymMatrixT fb; 
         dArrayT     fEigs; 
         dArrayT     fEigs_e; 
-        dArrayT     fsigA_E; 
-        dSymMatrixT fdtauAdepB_E; 
-        dArrayT     fsigA_I; 
-        dSymMatrixT fdtauAdepB_I; 
-        dMatrixT    fCalg; 
+        dArrayT     ftau_E; 
+        dSymMatrixT fDtauDep_E; 
+        dArrayT     ftau_I; 
+        dSymMatrixT fDtauDep_I; 
         dMatrixT    fModMat; 
          
         /* return values */ 
         dMatrixT        fModulus; 
         dSymMatrixT     fStress; 
          
-        /*jacobian of F*/ 
-        double fJ; 
-
   	/*inelastic moduli*/
   	dMatrixT fiKAB;
 
@@ -116,7 +106,7 @@ class RGVIB2D: public RGBaseT, public Material2DT, public ViscVIB
 	double fietaB;
 	
 	/*2D geometric constraint*/
-	double fconst;
+	const double fconst;  //fconst = 0.5 for 2D formulation.
 };
 }
 #endif /* _RG_VIB_2D_H_ */
