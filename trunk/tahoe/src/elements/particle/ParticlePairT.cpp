@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.17 2003-07-11 16:46:02 hspark Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.18 2003-08-05 01:18:50 pgandhi Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -12,6 +12,8 @@
 #include <iostream.h>
 #include <iomanip.h>
 #include <stdlib.h>
+#include "dSymMatrixT.h"
+#include "dArray2DT.h"
 
 /* pair property types */
 #include "LennardJonesPairT.h"
@@ -111,6 +113,13 @@ void ParticlePairT::WriteOutput(void)
 	/* map from partition node index */
 	const InverseMapT* inverse_map = fCommManager.PartitionNodes_inv();
 
+	////////////////////////////////////////////////////////
+	dSymMatrixT vs_i(ndof), temp(ndof);
+	int num_stresses=vs_i.NumValues(ndof);
+	//dArray2DT vsvalues(non, num_stresses);
+	num_output +=num_stresses;
+	///////////////////////////////////////////////////// 
+
 	/* output arrays length number of active nodes */
 	dArray2DT n_values(non, num_output), e_values;
 	n_values = 0.0;
@@ -118,10 +127,27 @@ void ParticlePairT::WriteOutput(void)
 	/* global coordinates */
 	const dArray2DT& coords = ElementSupport().CurrentCoordinates();
 
+	//////////////////////////////////////////////////////
+	/* time integration parameters */
+	double constMa = 0.0;
+	double constKd = 0.0;
+	int formMa = fIntegrator->FormMa(constMa);
+	int formKd = fIntegrator->FormKd(constKd);
+
+	//TEMP - interial force not implemented
+	if (formMa) ExceptionT::GeneralFail(caller, "inertial force not implemented");
+	//////////////////////////////////////////////////
+
 	/* pair properties function pointers */
 	int current_property = -1;
-	PairPropertyT::EnergyFunction energy_function = NULL;
-	
+	PairPropertyT::EnergyFunction energy_function = NULL;	
+	//////////////////////////////////////////////////////
+	PairPropertyT::ForceFunction force_function = NULL;
+	const double* Paradyn_table = NULL;
+	double dr = 1.0;
+	int row_size = 0, num_rows = 0;
+	//////////////////////////////////////////////////
+
 	/* the field */
 	const FieldT& field = Field();
 	const dArray2DT& displacement = field[0];
@@ -150,6 +176,8 @@ void ParticlePairT::WriteOutput(void)
 	/* run through neighbor list */
 	iArrayT neighbors;
 	dArrayT x_i, x_j, r_ij(ndof);
+
+
 	for (int i = 0; i < fNeighbors.MajorDim(); i++)
 	{
 		/* row of neighbor list */
@@ -157,7 +185,11 @@ void ParticlePairT::WriteOutput(void)
 
 		/* tags */
 		int   tag_i = neighbors[0]; /* self is 1st spot */
-		int  type_i = fType[tag_i];		
+		int  type_i = fType[tag_i];
+		///////////////////////////////////////////////////////
+		double* f_i = fForce(tag_i);
+		vs_i.SetToScaled(0.0,vs_i);
+		///////////////////////////////////////////////////		
 		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
 		
 		/* values for particle i */
@@ -177,13 +209,20 @@ void ParticlePairT::WriteOutput(void)
 		{
 			/* tags */
 			int   tag_j = neighbors[j];
-			int  type_j = fType[tag_j];		
+			int  type_j = fType[tag_j];
+			////////////////////////////////////////////////
+			double* f_j = fForce(tag_j);
+			//////////////////////////////////////////////		
 			
 			/* set pair property (if not already set) */
 			int property = fPropertiesMap(type_i, type_j);
 			if (property != current_property)
 			{
 				energy_function = fPairProperties[property]->getEnergyFunction();
+				////////////////////////////////////////
+					if (!fPairProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
+					force_function = fPairProperties[property]->getForceFunction();
+				////////////////////////////////////
 				current_property = property;
 			}
 		
@@ -198,6 +237,30 @@ void ParticlePairT::WriteOutput(void)
 			double uby2 = 0.5*energy_function(r, NULL, NULL);
 			values_i[ndof] += uby2;
 			
+			///////////////////////////////////////////////////////
+	      		/* interaction force */
+			double F;
+			if (Paradyn_table)
+			{
+				double pp = r*dr;
+				int kk = int(pp);
+				int max_row = num_rows-2;
+				kk = (kk < max_row) ? kk : max_row;
+				pp -= kk;
+				pp = (pp < 1.0) ? pp : 1.0;				
+				const double* c = Paradyn_table + kk*row_size;
+				F = c[4] + pp*(c[5] + pp*c[6]);
+			}
+			else
+				F = force_function(r, NULL, NULL);
+
+			double Fbyr = formKd*F/r;
+			  //f_i=r_ij[nnf1]*Fbyr;
+			  //f_i[nnf1] += f_i[nnf1];			     
+			temp.Outer(r_ij);
+			vs_i.AddScaled( 0.5*Fbyr,temp);
+			/////////////////////////////////////////
+
 			/* second node may not be on processor */
 			if (!proc_map || (*proc_map)[tag_j] == rank) {
 				int local_j = (inverse_map) ? inverse_map->Map(tag_j) : tag_j;
@@ -208,8 +271,30 @@ void ParticlePairT::WriteOutput(void)
 					n_values(local_j, ndof) += uby2;
 
 			}
+
 		}
-	}	
+		///////////////////////////////////////////////////////	 
+		    if(velocities){
+		      velocities->RowAlias(tag_i, vec);
+		      temp.Outer(vec);
+		      vs_i.AddScaled(-mass[type_i],temp);
+		    } 
+		    /*display stress*/
+		    // cout <<vs_i <<"\n";
+
+		 /*copy stress into array*/		   
+		      //out << tag_i <<" \t";
+		 for(int cc=0; cc < vs_i.NumValues(ndof);cc++){
+		   int ndex=ndof+2+cc;
+		   int dex1,dex2;
+		   vs_i.ExpandIndex(ndof,cc,dex1,dex2);
+		   //vsvalues(tag_i,cc)=vs_i(dex1,dex2);
+		   values_i[ndex]=vs_i(dex1,dex2);		   
+		 }
+	  
+		 ////////////////////////////////////////
+	}
+
 	/* Temporary to calculate MD quantities and write to file */
 	//ifstreamT& in = ElementSupport().Input();
 	//ModelManagerT& model = ElementSupport().Model();
@@ -376,21 +461,49 @@ void ParticlePairT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 /* generate labels for output data */
 void ParticlePairT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 {
-	if (NumDOF() > 3) ExceptionT::GeneralFail("ParticlePairT::GenerateOutputLabels");
+  int ndof=NumDOF();
+	if (ndof > 3) ExceptionT::GeneralFail("ParticlePairT::GenerateOutputLabels");
 
 	/* displacement labels */
 	const char* disp[3] = {"D_X", "D_Y", "D_Z"};
 	
 	int num_labels =
-		NumDOF() // displacements
+		ndof // displacements
 		+ 2;     // PE and KE
-
+	///////////////////////////////////////////////////////////
+	int num_stress=0;
+	const char* stress[6];
+	if (ndof==3){
+	  num_stress=6;
+	  stress[0]="s11";
+	  stress[1]="s22";
+	  stress[2]="s33";
+	  stress[3]="s23";
+	  stress[4]="s13";
+	  stress[5]="s12";
+	  }
+	  else if (ndof==2) {
+	   num_stress=3;
+	  stress[0]="s11";
+	  stress[1]="s22";
+	  stress[2]="s12";
+	  }
+	  else if (ndof==1) {
+	   num_stress=1;
+	  stress[0] = "s11";
+	  }
+	num_labels+=num_stress;
+	/////////////////////////////////////////////////
 	labels.Dimension(num_labels);
 	int dex = 0;
 	for (dex = 0; dex < NumDOF(); dex++)
 		labels[dex] = disp[dex];
 	labels[dex++] = "PE";
 	labels[dex++] = "KE";
+	////////////////////////////////////////////////////////////
+	for (int ns =0 ; ns<num_stress; ns++)
+	  labels[dex++]=stress[ns];
+	//////////////////////////////////////////////////////////
 }
 
 /* form group contribution to the stiffness matrix */
