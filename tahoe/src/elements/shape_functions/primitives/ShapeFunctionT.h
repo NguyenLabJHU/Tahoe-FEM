@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.13 2002-07-05 22:28:40 paklein Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.13.2.1 2002-09-21 08:59:07 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -20,25 +20,18 @@ class ShapeFunctionT: public DomainIntegrationT
 {
 public:
 
-	/** strain-displacement options */
-	enum StrainOptionT {kStandardB = 0, /**< standard strain-displacement matrix */
-	                  kMeanDilBbar = 1  /**< mean dilatation for near incompressibility */ };
-
 	/** constructor. 
 	 * \param geometry_code geometry of the parent domain
 	 * \param numIP number of integration points 
 	 * \param coords array of nodal coordinates in local ordering
 	 * \param B_option strain-displacement option */
 	ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP, 
-		const LocalArrayT& coords, StrainOptionT B_option);
+		const LocalArrayT& coords);
 	
 	/** constructor. 
 	 * \param link shared parent domain and "synch-ed" CurrIP
 	 * \param coords array of nodal coordinates in local ordering */
 	ShapeFunctionT(const ShapeFunctionT& link, const LocalArrayT& coords);
-
-        /* Allow stand-alone use of class ShapeFunctionT */
-        //void InitializeParentDomain(void) { fDomain->Initialize(); }
 
 	/** type of the domain coordinates */
 	LocalArrayT::TypeT DomainCoordType(void) const;
@@ -55,6 +48,17 @@ public:
 	double IPDet(void) const; // d(fCoords) = j d(parent domain)
 #endif
 
+	/** \name shape function gradients
+	 * Return the matrix of shape function gradients for the specified
+	 * integration point */
+	/*@{*/
+	const dArray2DT& Derivatives_X(int ip) const { return fDNaX[ip]; };
+	const dArray2DT& Derivatives_X(void) const { return fDNaX[fCurrIP]; };
+
+	const dArray2DT& Derivatives_U(int ip) const { return (*pDNaU)[ip]; };
+	const dArray2DT& Derivatives_U(void) const { return (*pDNaU)[fCurrIP]; };
+	/*@}*/
+
 	/** coordinates of the current integration point */
 	void IPCoords(dArrayT& coordinates) const;
 	
@@ -69,8 +73,8 @@ public:
 	 * \param ip integration point number */
 	void InterpolateU(const LocalArrayT& nodal, dArrayT& u, int ip) const;
 	
-	 /* Allow stand-alone use of class ShapeFunctionT */
-        void InitializeDomain(void) const;
+	/* Allow stand-alone use of class ShapeFunctionT */
+	void InitializeDomain(void) const;
 	
 	/** array of shape function values defining the geometry */
 	const double* IPShapeX(void) const;
@@ -101,7 +105,7 @@ public:
 	 *  For 2D case, put zero's in the 3 components of T, and use 2D DNa
 	 *  of dimension 2 x num_nodes.
 	 *  Note: Return curl(T) will be 3x1 */
-        void CurlU(const ArrayT<dArrayT>& T, dArrayT& curl_T, int IPnumber) const;
+	void CurlU(const ArrayT<dArrayT>& T, dArrayT& curl_T, int IPnumber) const;
 
 	/** compute the curl of a tensor that is of dimension 3x3
 	 *  Values for tensor at the node points must be provided 
@@ -109,7 +113,7 @@ public:
 	 *  For 2D case, put zero's in the 3 components of T, and use 2D DNa
 	 *  of dimension 2 x num_nodes.
 	 *  Note: Return curl(T) will be 3x3 */
-        void CurlU(const ArrayT<dMatrixT>& T, dMatrixT& curl_T, int IPnumber) const;
+	void CurlU(const ArrayT<dMatrixT>& T, dMatrixT& curl_T, int IPnumber) const;
 
 	/** convert derivatives of the enhanced modes by applying a chain rule
 	 * transformation:
@@ -121,6 +125,7 @@ public:
 	 *        dimensioned during the call: [nsd] x [num_modes] */
 	void TransformDerivatives(const dMatrixT& changeofvar, dArray2DT& derivatives);
 
+#if 0
 	/** set strain displacement matrix as in Hughes (2.8.20). If ShapeFunctionT::kMeanDilBbar
 	 * passed in during construction, the mean dilatations calculated with the last call to
 	 * ShapeFunctionT::SetMeanDilatation are used to compute B-bar using Hughes (4.5.11-16). */
@@ -131,6 +136,7 @@ public:
 	 * ShapeFunctionT::SetMeanDilatation are used to compute B-bar using Hughes (4.5.11-16).
 	 * \param derivatives shape function derivatives: [nsd] x [nnd] */
 	void B(const dArray2DT& derivatives, dMatrixT& B_matrix) const;
+#endif
 
 	/** shape function gradients matrix at the current integration point
 	 * as in Hughes (4.90) */
@@ -139,18 +145,17 @@ public:
 	/** shape function gradients matrix as in Hughes (4.90) */
 	void GradNa(const dArray2DT& derivatives, dMatrixT& grad_Na) const;
 
+#if 0
 	//TEMP - need better way to support different types of
 	//       "strain"-"displacement" matrices
 	void B_q(dMatrixT& B_matrix) const;
 	void B_q(const dArray2DT& derivatives, dMatrixT& B_matrix) const;
+#endif
 
 /*******************************************/
 
 	/** print the shape function values to the output stream */
 	virtual void Print(ostream& out) const;
-
-	/** compute mean dilatation for the current element, Hughes (4.5.23) */
-	const dArray2DT& SetMeanDilatation(void);
 
 protected:
 
@@ -184,10 +189,6 @@ protected:
 	const LocalArrayT& fCoords;
 
 private:
-
-	/* strain-displacement option */
-	StrainOptionT fB_option;
-	dArray2DT     fB_workspace;
 
 	/* global shape function derivatives */
 	dArrayT	fDet;	         // d(fCoords) = j d(parent domain)
@@ -280,20 +281,24 @@ inline void ShapeFunctionT::CurlU(const ArrayT<dMatrixT>& T,
         fDomain->Curl(T, (*pDNaU)[IPnumber], curl_T);
 }
 
+#if 0
 inline void ShapeFunctionT::B(dMatrixT& B_matrix) const
 {
 	B((*pDNaU)[fCurrIP], B_matrix);
 }
+#endif
 
 inline void ShapeFunctionT::GradNa(dMatrixT& grad_Na) const
 {
 	GradNa((*pDNaU)[fCurrIP], grad_Na);
 }
 
+#if 0
 inline void ShapeFunctionT::B_q(dMatrixT& B_matrix) const
 {
 	B_q((*pDNaU)[fCurrIP], B_matrix);
 }
+#endif
 
 inline void ShapeFunctionT::TransformDerivatives(const dMatrixT& changeofvar, dArray2DT& derivatives)
 {
