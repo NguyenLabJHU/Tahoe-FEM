@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.19 2003-04-07 17:32:01 cjkimme Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.20 2003-04-09 22:29:17 paklein Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
@@ -37,7 +37,8 @@ void dSymMatrixT::Dimension(int nsd)
 {
 	/* check  */
 	fNumSD = nsd;
-	if (fNumSD < 1 || fNumSD > 3) throw ExceptionT::kGeneralFail;
+	if (fNumSD < 1 || fNumSD > 3) 
+		ExceptionT::GeneralFail("dSymMatrixT::Dimension", "invalid dimension %d", nsd);
 
 	/* inherited */
 	dArrayT::Dimension(NumValues(fNumSD));
@@ -47,7 +48,8 @@ void dSymMatrixT::Dimension(int nsd)
 void dSymMatrixT::Set(int nsd, double* array)
 {
 	fNumSD = nsd;
-	if (fNumSD < 1 || fNumSD > 3) throw ExceptionT::kGeneralFail;
+	if (fNumSD < 1 || fNumSD > 3) 
+		ExceptionT::GeneralFail("dSymMatrixT::Set", "invalid dimension %d", nsd);
 	
 	/* inherited */
 	dArrayT::Set(NumValues(fNumSD), array);
@@ -56,15 +58,16 @@ void dSymMatrixT::Set(int nsd, double* array)
 /* accessor */
 double& dSymMatrixT::operator()(int row, int col) const
 {
-/* rigorous range checking */
-/* 1D modifications made by HSP 6-25-02 */
+	const char caller[] = "dSymMatrixT::operator()";
 #if __option (extended_errorcheck)
 	if (row < 0 || row >= fNumSD ||
-	    col < 0 || col >= fNumSD) throw ExceptionT::kOutOfRange;
+	    col < 0 || col >= fNumSD) 
+	    ExceptionT::OutOfRange(caller,
+	    	"row !(0 <= %d < %d) || col !(0 <= %d < %d)",
+	    	row, fNumSD, col, fNumSD);
 #endif
-        /* added by HSP for 1D cases */
-        int map1D[1][1] = {{0}};
-        /* original 2 and 3 D stuff below */
+	int map1D[1][1] = {{0}};
+
 	int map2D[2][2] = {{0,2},
 	                   {2,1}};
 
@@ -72,10 +75,10 @@ double& dSymMatrixT::operator()(int row, int col) const
 	                   {5,1,3},
 	                   {4,3,2}};
 
-	if (fNumSD == 0) throw ExceptionT::kGeneralFail; //not configured
+	if (fNumSD == 0) ExceptionT::GeneralFail(caller, "NumSD == 0");
 	if (fNumSD == 1)
-                return fArray[map1D[row][col]];
-        else if (fNumSD == 2)
+		return fArray[map1D[row][col]];
+	else if (fNumSD == 2)
 		return fArray[map2D[row][col]];		
 	else
 		return fArray[map3D[row][col]];		
@@ -83,13 +86,14 @@ double& dSymMatrixT::operator()(int row, int col) const
 
 void dSymMatrixT::ExpandIndex(int nsd, int dex, int& dex_1, int& dex_2)
 {
-/* 1D modifications made by HSP 6-25-02 */  
+	const char caller[] = "dSymMatrixT::ExpandIndex";
+
 #if __option(extended_errorcheck)
 	/* consistency check */
-	if (dex >= NumValues(nsd)) throw ExceptionT::kOutOfRange;
+	if (dex >= NumValues(nsd)) ExceptionT::OutOfRange(caller, "bad index %d", dex);
 #endif	
 	
-	if (nsd == 1) ExceptionT::GeneralFail("dSymMatrixT::ExpandIndex", "not implemented yet for 1D");
+	if (nsd == 1) ExceptionT::GeneralFail(caller, "not implemented yet for 1D");
 
 	int  map_2D[6] = {0,0,1,1,0,1};
 	int map_3D[18] = {0,0,1,1,2,2,
@@ -106,7 +110,8 @@ namespace Tahoe {
 /* I/O operators */
 ostream& operator<<(ostream& out, const dSymMatrixT& array)
 {
-	if (array.fNumSD == 0) throw ExceptionT::kGeneralFail;
+	const char caller[] = "operator<<(ostream&, const dSymMatrixT&)";
+	if (array.fNumSD == 0) ExceptionT::GeneralFail(caller, "NumSD == 0");
 
 	int d_width = OutputWidth(out, array.fArray);
 
@@ -137,6 +142,7 @@ ostream& operator<<(ostream& out, const dSymMatrixT& array)
 
 istream& operator>>(istream& in, dSymMatrixT& array)
 {
+	const char caller[] = "operator>>(istream&, dSymMatrixT&)";
 	if (array.fNumSD == 2)
 	{
 		double a21;
@@ -144,7 +150,8 @@ istream& operator>>(istream& in, dSymMatrixT& array)
 		in >> array.fArray[0] >> array.fArray[2];
 		in >> a21             >> array.fArray[1];
 		
-		if (a21 != array.fArray[2]) throw ExceptionT::kBadInputValue;
+		if (a21 != array.fArray[2])
+			ExceptionT::BadInputValue(caller, "matrix is not symmetric");
 	}
 	else if (array.fNumSD == 3)
 	{
@@ -156,12 +163,13 @@ istream& operator>>(istream& in, dSymMatrixT& array)
 		
 		if (a21 != array.fArray[5] ||
 		    a31 != array.fArray[4] ||
-		    a32 != array.fArray[3]) throw ExceptionT::kBadInputValue;
+		    a32 != array.fArray[3])
+			ExceptionT::BadInputValue(caller, "matrix is not symmetric");
 	}
 	else if (array.fNumSD == 1)
 		in >> array.fArray[0];
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 
 	return in;
 }
@@ -177,6 +185,7 @@ void dSymMatrixT::PrincipalValues(dArrayT& val) const // will get phased out
 
 void dSymMatrixT::Eigenvalues(dArrayT& val, bool sort_descending) const
 {
+	const char caller[] = "dSymMatrixT::Eigenvalues";
 #pragma unused(sort_descending)
 	if (fNumSD == 1)
 		val[0] = fArray[0];
@@ -201,11 +210,11 @@ void dSymMatrixT::Eigenvalues(dArrayT& val, bool sort_descending) const
 		dArrayT tmp(3);		
 		Eigenvalues3D(tmp);
 		for (int i = 0; i < 3; i++)
-			if (fabs(val[0] - tmp[0]) > kSmall) throw ExceptionT::kGeneralFail;
+			if (fabs(val[0] - tmp[0]) > kSmall) ExceptionT::GeneralFail(caller);
 #endif
 	}
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 }
 
 void dSymMatrixT::Eigensystem(dArrayT& val, dMatrixT& vec, bool sort_descending) const
@@ -296,7 +305,7 @@ void dSymMatrixT::Eigensystem(dArrayT& val, dMatrixT& vec, bool sort_descending)
 	else if (fNumSD == 3)
 		Eigensystem3D(val, vec, sort_descending);
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail("dSymMatrixT::Eigensystem");
 }
 
 /*
@@ -309,7 +318,7 @@ void dSymMatrixT::Eigensystem(dArrayT& val, dMatrixT& vec, bool sort_descending)
 double dSymMatrixT::ScalarProduct(void) const
 {
 #if __option(extended_errorcheck)
-	if (fNumSD == 0) throw ExceptionT::kGeneralFail;
+	if (fNumSD == 0) ExceptionT::GeneralFail("dSymMatrixT::ScalarProduct");
 #endif	
 
 	//return( 2.0*Invariant2() + pow(Trace(),2) );
@@ -331,7 +340,7 @@ double dSymMatrixT::ScalarProduct(void) const
 double dSymMatrixT::ScalarProduct(const dSymMatrixT& matrix) const
 {
 #if __option(extended_errorcheck)
-	if (fNumSD == 0) throw ExceptionT::kGeneralFail;
+	if (fNumSD == 0) ExceptionT::GeneralFail("dSymMatrixT::ScalarProduct");
 #endif	
 
 	//return( 2.0*Invariant2() + pow(Trace(),2) );
@@ -357,7 +366,7 @@ double dSymMatrixT::ScalarProduct(const dSymMatrixT& matrix) const
 double dSymMatrixT::Invariant2(void) const
 {
 #if __option(extended_errorcheck)
-	if (fNumSD == 0) throw ExceptionT::kGeneralFail;
+	if (fNumSD == 0) ExceptionT::GeneralFail("dSymMatrixT::Invariant2");
 #endif	
 
 	if (fNumSD == 2)
@@ -378,7 +387,7 @@ double dSymMatrixT::Invariant2(void) const
 double dSymMatrixT::Det(void) const
 {
 #if __option(extended_errorcheck)
-	if (fNumSD == 0) throw ExceptionT::kGeneralFail;
+	if (fNumSD == 0) ExceptionT::GeneralFail("dSymMatrixT::Det");
 #endif	
 
 	if (fNumSD == 2)
@@ -398,7 +407,7 @@ double dSymMatrixT::Det(void) const
 double dSymMatrixT::Trace(void) const
 {
 #if __option(extended_errorcheck)
-	if (fNumSD == 0) throw ExceptionT::kGeneralFail;
+	if (fNumSD == 0) ExceptionT::GeneralFail("dSymMatrixT::Trace");
 #endif	
 
 	if (fNumSD == 2)
@@ -414,7 +423,7 @@ double dSymMatrixT::Trace(void) const
 void dSymMatrixT::PlusIdentity(double value)
 {
 #if __option(extended_errorcheck)
-	if (fNumSD == 0) throw ExceptionT::kGeneralFail;
+	if (fNumSD == 0) ExceptionT::GeneralFail("dSymMatrixT::PlusIdentity");
 #endif	
 
 	if (fNumSD == 2)
@@ -435,7 +444,7 @@ void dSymMatrixT::PlusIdentity(double value)
 dSymMatrixT& dSymMatrixT::Identity(double value)
 {
 #if __option(extended_errorcheck)
-	if (fNumSD == 0) throw ExceptionT::kGeneralFail;
+	if (fNumSD == 0) ExceptionT::GeneralFail("dSymMatrixT::Identity");
 #endif	
 
 	if (fNumSD == 2)
@@ -467,7 +476,7 @@ dSymMatrixT& dSymMatrixT::Identity(double value)
 dSymMatrixT& dSymMatrixT::Deviatoric(const dSymMatrixT& tensor)
 {
 	/* dimension checks */
-	if (fNumSD != 3) throw ExceptionT::kGeneralFail;
+	if (fNumSD != 3) ExceptionT::GeneralFail("dSymMatrixT::Deviatoric", "3D only");
 
 	double* pLHS = fArray;
 	double* pRHS = tensor.fArray;
@@ -563,10 +572,12 @@ dSymMatrixT& dSymMatrixT::Inverse(const dSymMatrixT& matrix)
 /* reduced index <-> matrix transformations */	
 void dSymMatrixT::ToMatrix(dMatrixT& matrix) const
 {
+	const char caller[] = "dSymMatrixT::ToMatrix";
+
 	/* must be square and 2D or 3D */
 #if __option(extended_errorcheck)
 	if (matrix.Rows() != matrix.Cols() ||
-		matrix.Rows() != fNumSD) throw ExceptionT::kSizeMismatch;
+		matrix.Rows() != fNumSD) ExceptionT::SizeMismatch(caller);
 #endif
 
 	double* pmat = matrix.Pointer();
@@ -589,7 +600,7 @@ void dSymMatrixT::ToMatrix(dMatrixT& matrix) const
 	else if (fNumSD == 1)
 		pmat[0] = fArray[0];			//1,1
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 }
 
 /* take the symmetric part of the matrix. Returns a reference to *this */
@@ -597,7 +608,7 @@ dSymMatrixT& dSymMatrixT::Symmetrize(const dMatrixT& matrix)
 {
 	/* dimension check */
 	if (fNumSD != matrix.Rows() ||
-	    fNumSD != matrix.Cols()) throw ExceptionT::kSizeMismatch;
+	    fNumSD != matrix.Cols()) ExceptionT::SizeMismatch("dSymMatrixT::Symmetrize");
 
 	double* pmat = matrix.Pointer();
 
@@ -626,10 +637,12 @@ dSymMatrixT& dSymMatrixT::Symmetrize(const dMatrixT& matrix)
 
 dSymMatrixT& dSymMatrixT::FromMatrix(const dMatrixT& matrix)
 {
+	const char caller[] = "dSymMatrixT::FromMatrix";
+
 	/* must be square and 2D or 3D */
 #if __option(extended_errorcheck)
 	if (matrix.Rows() != matrix.Cols() ||
-		matrix.Rows() != fNumSD) throw ExceptionT::kSizeMismatch;
+		matrix.Rows() != fNumSD) ExceptionT::SizeMismatch(caller);
 #endif
 
 	double* pmat = matrix.Pointer();
@@ -652,7 +665,7 @@ dSymMatrixT& dSymMatrixT::FromMatrix(const dMatrixT& matrix)
 	else if (fNumSD == 1)
 		fArray[0] = pmat[0];	//1,1
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 	
 	return *this;
 }
@@ -663,7 +676,7 @@ dSymMatrixT& dSymMatrixT::ExpandFrom2D(const dSymMatrixT& vec2D) /* assumed plan
 /* dimension check */
 #if __option (extended_errorcheck)
 	if (fNumSD != 3 ||
-	    vec2D.fNumSD != 2) throw ExceptionT::kSizeMismatch;
+	    vec2D.fNumSD != 2) ExceptionT::SizeMismatch("dSymMatrixT::ExpandFrom2D");
 #endif
 
 	/* translation */
@@ -682,7 +695,7 @@ dSymMatrixT& dSymMatrixT::ReduceFrom3D(const dSymMatrixT& vec3D)
 /* dimension checks */
 #if __option (extended_errorcheck)
 	if (fNumSD != 2 ||
-	    vec3D.fNumSD != 3) throw ExceptionT::kSizeMismatch;
+	    vec3D.fNumSD != 3) ExceptionT::SizeMismatch("dSymMatrixT::ReduceFrom3D");
 #endif
 
 	/* translation */
@@ -696,10 +709,12 @@ dSymMatrixT& dSymMatrixT::ReduceFrom3D(const dSymMatrixT& vec3D)
 /* symmetric rank-4 - rank-2 contraction */
 void dSymMatrixT::A_ijkl_B_kl(const dMatrixT& A, const dSymMatrixT& B)
 {
+	const char caller[] = "dSymMatrixT::A_ijkl_B_kl";
+
 #if __option(extended_errorcheck)
 	if (A.Cols() != NumValues(B.Rows()) ||
 	    A.Rows() != NumValues(Rows())   ||
-	      Rows() != B.Rows()) throw ExceptionT::kSizeMismatch;
+	      Rows() != B.Rows()) ExceptionT::SizeMismatch("caller");
 #endif
 
 	double* pA = A.Pointer();
@@ -722,15 +737,17 @@ void dSymMatrixT::A_ijkl_B_kl(const dMatrixT& A, const dSymMatrixT& B)
 	else if (fNumSD == 1)
 		fArray[0] = pA[0]*pB[0];
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 }
 
 void dSymMatrixT::A_ijkl_B_ij(const dMatrixT& A, const dSymMatrixT& B)
 {
+	const char caller[] = "dSymMatrixT::A_ijkl_B_ij";
+
 #if __option(extended_errorcheck)
 	if (A.Rows() != NumValues(B.Rows()) ||
 	    A.Cols() != NumValues(Rows())   ||
-	      Rows() != B.Rows()) throw ExceptionT::kSizeMismatch;
+	      Rows() != B.Rows()) ExceptionT::SizeMismatch(caller);
 #endif
 
 	double* pA = A.Pointer();
@@ -753,15 +770,16 @@ void dSymMatrixT::A_ijkl_B_ij(const dMatrixT& A, const dSymMatrixT& B)
 	else if (fNumSD == 1)
 		fArray[0] = pA[0]*pB[0];
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 }
 
 /* symmetric rank-(2-4-2) contraction with this */
 double dSymMatrixT::B_ij_A_ijkl_B_kl(const dMatrixT& A) const
 {
+	const char caller[] = "dSymMatrixT::B_ij_A_ijkl_B_kl";
 #if __option(extended_errorcheck)
 	if (A.Rows() != A.Cols() ||
-	    A.Rows() != NumValues(Rows())) throw ExceptionT::kSizeMismatch;
+	    A.Rows() != NumValues(Rows())) ExceptionT::SizeMismatch(caller);
 #endif
 
 	double* pA = A.Pointer();
@@ -786,7 +804,7 @@ pB[2]*(pA[12]*pB[0] + pA[13]*pB[1] + pA[14]*pB[2] +
 	else if (fNumSD == 1)
 		return fArray[0]*fArray[0]*A[0];
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 		
 	/* dummy */
 	return 0;
@@ -797,7 +815,7 @@ void dSymMatrixT::Outer(const dArrayT& v)
 {
 #if __option (extended_errorcheck)
 	/* dimension checks */
-	if (fNumSD != v.Length()) throw ExceptionT::kSizeMismatch;
+	if (fNumSD != v.Length()) ExceptionT::SizeMismatch("dSymMatrixT::Outer");
 #endif
 
 	double *pthis = fArray;
@@ -825,10 +843,12 @@ void dSymMatrixT::Outer(const dArrayT& v)
 /* matrix-matrix multiplication */
 void dSymMatrixT::MultAB(const dSymMatrixT& A, const dSymMatrixT& B)
 {
+	const char caller[] = "dSymMatrixT::MultAB";
+
 #if __option (extended_errorcheck)
 	/* dimension checks */
 	if (  fNumSD != A.fNumSD ||
-	    A.fNumSD != B.fNumSD) throw ExceptionT::kSizeMismatch;
+	    A.fNumSD != B.fNumSD) ExceptionT::SizeMismatch(caller);
 #endif
 
 	if (fNumSD == 2)
@@ -855,15 +875,17 @@ void dSymMatrixT::MultAB(const dSymMatrixT& A, const dSymMatrixT& B)
 	else if (fNumSD == 1)
 		fArray[0] = A[0]*B[0];
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 }
 
 void dSymMatrixT::MultATA(const dMatrixT& A)
 {
+	const char caller[] = "dSymMatrixT::MultATA";
+
 /* dimension checks */
 #if __option (extended_errorcheck)
 	if (A.Rows() != A.Cols() ||
-	    A.Rows() != fNumSD) throw ExceptionT::kSizeMismatch;
+	    A.Rows() != fNumSD) ExceptionT::SizeMismatch(caller);
 #endif
 
 	double* pA = A.Pointer();
@@ -887,15 +909,17 @@ void dSymMatrixT::MultATA(const dMatrixT& A)
 	else if (fNumSD == 1)
 		fArray[0] = pA[0]*pA[0];
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 }
 
 void dSymMatrixT::MultAAT(const dMatrixT& A)
 {
+	const char caller[] = "dSymMatrixT::MultAAT";
+
 /* dimension checks */
 #if __option (extended_errorcheck)
 	if (A.Rows() != A.Cols() ||
-	    A.Rows() != fNumSD) throw ExceptionT::kSizeMismatch;
+	    A.Rows() != fNumSD) ExceptionT::SizeMismatch(caller);
 #endif
 
 	double* pA = A.Pointer();
@@ -919,21 +943,23 @@ void dSymMatrixT::MultAAT(const dMatrixT& A)
 	else if (fNumSD == 1)
 		fArray[0] = pA[0]*pA[0];
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 }
 
 /* matrix-matrix-matrix operations, ie. tensor basis transformations */
 void dSymMatrixT::MultQBQT(const dMatrixT& Q, const dSymMatrixT& B)
 {
+	const char caller[] = "dSymMatrixT::MultQBQT";
+
 /* dimension checks */
 #if __option (extended_errorcheck)
 	if (  fNumSD != Q.Rows() ||
 	    B.fNumSD != Q.Cols() ||
-	    B.fNumSD != fNumSD) throw ExceptionT::kSizeMismatch;
+	    B.fNumSD != fNumSD) ExceptionT::SizeMismatch(caller);
 #endif
 
 	/* no transforms of self */
-	if (B.Pointer() == Pointer()) ExceptionT::GeneralFail("dSymMatrixT::MultQBQT", "no transforms of self");
+	if (B.Pointer() == Pointer()) ExceptionT::GeneralFail(caller, "no transforms of self");
 
 	double* b = B.Pointer();
 	double* q = Q.Pointer();
@@ -966,16 +992,18 @@ void dSymMatrixT::MultQBQT(const dMatrixT& Q, const dSymMatrixT& B)
 	else if (fNumSD == 1)
 		fArray[0] = b[0]*q[0]*q[0];
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 }
 
 void dSymMatrixT::MultQTBQ(const dMatrixT& Q, const dSymMatrixT& B)
 {
+	const char caller[] = "dSymMatrixT::MultQTBQ";
+
 /* dimension checks */
 #if __option (extended_errorcheck)
 	if (  fNumSD != Q.Cols() ||
 	    B.fNumSD != Q.Rows() ||
-	    B.fNumSD != fNumSD) throw ExceptionT::kSizeMismatch;
+	    B.fNumSD != fNumSD) ExceptionT::SizeMismatch(caller);
 #endif
 
 	double* q = Q.Pointer();
@@ -1025,16 +1053,18 @@ void dSymMatrixT::MultQTBQ(const dMatrixT& Q, const dSymMatrixT& B)
 	else if (fNumSD == 1)
 		fArray[0] = B[0]*q[0]*q[0];
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 }
 
 /* matrix-vector multiplication */
 void dSymMatrixT::Multx(const dArrayT& x, dArrayT& b) const
 {
+	const char caller[] = "dSymMatrixT::Multx";
+
 /* dimension checks */
 #if __option (extended_errorcheck)
 	if (x.Length() != b.Length() ||
-	    b.Length() != fNumSD) throw ExceptionT::kSizeMismatch;
+	    b.Length() != fNumSD) ExceptionT::SizeMismatch(caller);
 #endif
 
 	double* px = x.Pointer();
@@ -1053,16 +1083,17 @@ void dSymMatrixT::Multx(const dArrayT& x, dArrayT& b) const
 	else if (fNumSD == 1)
 		b[0] = fArray[0]*px[0];
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 }
 
 /* vector-matrix-vector product */
 double dSymMatrixT::MultmBn(const dArrayT& m, const dArrayT& n) const
 {
+	const char caller[] = "dSymMatrixT::MultmBn";
 /* dimension check */
 #if __option (extended_errorcheck)
 	if (m.Length() != fNumSD ||
-	    n.Length() != fNumSD) throw ExceptionT::kSizeMismatch;
+	    n.Length() != fNumSD) ExceptionT::SizeMismatch(caller);
 #endif
 
 	double *pn = n.Pointer();
@@ -1078,21 +1109,23 @@ double dSymMatrixT::MultmBn(const dArrayT& m, const dArrayT& n) const
 	else if (fNumSD == 1)
 		return fArray[0]*pm[0]*pn[0];
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 
 	return 0.0;
 }
 
 /**************************************************************************
-* Private
-**************************************************************************/
+ * Private
+ **************************************************************************/
 
 int dSymMatrixT::Eigenvalues3D(dArrayT& evals, bool sort_descending,
 	int max_iterations) const
 {
+	const char caller[] = "dSymMatrixT::Eigenvalues3D";
+
 #if __option(extended_errorcheck)
-	if (Rows() != evals.Length() ||
-evals.Length() != 3) throw ExceptionT::kSizeMismatch;
+	if (Rows() != evals.Length() || evals.Length() != 3)
+		ExceptionT::SizeMismatch(caller);
 #endif
 
 	double a[3], b[3], z[3];
@@ -1187,7 +1220,7 @@ evals.Length() != 3) throw ExceptionT::kSizeMismatch;
 
 	/* check convergence */
 	if (iterations >= max_iterations) 
-		ExceptionT::GeneralFail("dSymMatrixT::Eigenvalues3D", 
+		ExceptionT::GeneralFail(caller, 
 			"failed to converge after %d iterations. Sum of off-diagonals = %e", 
 			max_iterations, small);
 	
@@ -1222,15 +1255,17 @@ evals.Length() != 3) throw ExceptionT::kSizeMismatch;
 int dSymMatrixT::Eigensystem3D(dArrayT& evals, dMatrixT& evecs, bool sort_descending,
 	int max_iterations) const
 {
+	const char caller[] = "dSymMatrixT::Eigensystem3D";
+
 #if __option(extended_errorcheck)
 	if (Rows() != evals.Length() ||
 evecs.Rows() != evecs.Cols() ||
 evecs.Rows() != evals.Length() ||
-evecs.Rows() != 3) throw ExceptionT::kSizeMismatch;
+evecs.Rows() != 3) ExceptionT::SizeMismatch(caller);
 #endif
 
 //TEMP
-if (sort_descending) ExceptionT::GeneralFail("dSymMatrixT::Eigensystem3D", "sort_descending not implemented");
+if (sort_descending) ExceptionT::GeneralFail(caller, "sort_descending not implemented");
 
 	double a[3], b[3], z[3];
 	double* d = evals.Pointer();
@@ -1353,7 +1388,7 @@ if (sort_descending) ExceptionT::GeneralFail("dSymMatrixT::Eigensystem3D", "sort
 
 	/* check convergence */
 	if (iterations >= max_iterations)
-		ExceptionT::GeneralFail("dSymMatrixT::Eigensystem3D", 
+		ExceptionT::GeneralFail(caller, 
 			"failed to converge after %d iterations. Sum of off-diagonals = %e", 
 			max_iterations, small);
 
