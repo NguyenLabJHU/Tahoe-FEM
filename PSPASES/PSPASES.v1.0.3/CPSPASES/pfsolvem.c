@@ -1,4 +1,4 @@
-/* $Id: pfsolvem.c,v 1.4 2005-01-05 16:51:31 paklein Exp $ */
+/* $Id: pfsolvem.c,v 1.5 2005-01-15 02:43:30 paklein Exp $ */
 /* pfsolvem.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -62,7 +62,7 @@ static doublereal c_b58 = -1.;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: pfsolvem.c,v 1.4 2005-01-05 16:51:31 paklein Exp $ +/ */
+/* /+ $Id: pfsolvem.c,v 1.5 2005-01-15 02:43:30 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -371,9 +371,10 @@ static integer lbit_shift(integer a, integer b) {
 /*<               do while(npending.gt.0) >*/
 		    while(npending > 0) {
 /*<                 call mpi_waitany(2,req,mid,mpistat,ierr) >*/
-
-			MPI_Waitany(2, req, &mid, &mpistat);
 /*			mpi_waitany__(&c__2, req, &mid, mpistat, &ierr); */
+			MPI_Waitany(2, req, &mid, &mpistat);
+			mid++; /* completed requests numbered from 1 in FORTRAN */
+			
 
 /*<                 if(mid.eq.1) then >*/
 			if (mid == 1) {
@@ -461,9 +462,9 @@ static integer lbit_shift(integer a, integer b) {
 /*<               do while(npending.gt.0) >*/
 		    while(npending > 0) {
 /*<                 call mpi_waitany(3,req,mid,mpistat,ierr) >*/
-
-			MPI_Waitany(3, req, &mid, &mpistat);
 /*			mpi_waitany__(&c__3, req, &mid, mpistat, &ierr); */
+			MPI_Waitany(3, req, &mid, &mpistat);
+			mid++; /* completed requests numbered from 1 in FORTRAN */
 
 /*<                 if(mid.eq.1) then >*/
 			if (mid == 1) {
@@ -532,9 +533,9 @@ static integer lbit_shift(integer a, integer b) {
 /*<             do while(npending.gt.0) >*/
 		while(npending > 0) {
 /*<               call mpi_waitany(2,req(4),mid,mpistat,ierr) >*/
-
-		    MPI_Waitany(2, &req[3], &mid, &mpistat);
 /*		    mpi_waitany__(&c__2, &req[3], &mid, mpistat, &ierr); */
+		    MPI_Waitany(2, &req[3], &mid, &mpistat);
+		    mid++; /* completed requests are numbered from 1 in FORTRAN */
 
 /*<               npending = npending-1 >*/
 		    --npending;

@@ -1,4 +1,4 @@
-/* $Id: pbsolvem.c,v 1.3 2005-01-05 16:51:31 paklein Exp $ */
+/* $Id: pbsolvem.c,v 1.4 2005-01-15 02:43:30 paklein Exp $ */
 /* pbsolvem.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -60,7 +60,7 @@ static integer c__11 = 11;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: pbsolvem.c,v 1.3 2005-01-05 16:51:31 paklein Exp $ +/ */
+/* /+ $Id: pbsolvem.c,v 1.4 2005-01-15 02:43:30 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -501,6 +501,8 @@ static integer max(integer a, integer b) {
 					while(npending > 0) {
 /*<                     call mpi_waitany(2,req,mid,mpistat,ierr) >*/
 					    MPI_Waitany(2, req, &mid, &mpistat);
+					    mid++; /* completed requests numbered from 1 in FORTRAN */
+					    
 /*<                     if(mid.eq.1 .and. rrec.eq.0) then >*/
 					    if (mid == 1 && rrec == 0) {
 /*<                       itag = mpistat(MPI_TAG) >*/
@@ -605,6 +607,8 @@ static integer max(integer a, integer b) {
 			while(npendings > 0) {
 /*<               call mpi_waitany(2,req,mid,mpistat,ierr) >*/
 			    MPI_Waitany(2, req, &mid, &mpistat);
+			    mid++; /* completed requests numbered from 1 in FORTRAN */
+			    
 /*<               npendings = npendings-1 >*/
 			    --npendings;
 /*<             end do >*/
