@@ -1,5 +1,5 @@
-/* $Id: SolidMatList2DT.cpp,v 1.13 2002-03-21 22:41:31 creigh Exp $ */
-/* created: paklein (02/14/1997)                                          */
+/* $Id: SolidMatList2DT.cpp,v 1.14 2002-03-25 19:39:17 paklein Exp $ */
+/* created: paklein (02/14/1997) */
 
 #include "SolidMatList2DT.h"
 
@@ -111,7 +111,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			case kSSKStV:
 			{
 				/* check */
-				if (!fSmallStrain && !fMultiScale) Error_no_small_strain(cout, matcode);
+				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
 			
 				fArray[matnum] = new SSKStV2D(in, *fSmallStrain);
 				break;
