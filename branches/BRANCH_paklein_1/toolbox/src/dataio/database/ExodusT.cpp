@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.19 2002-07-08 12:17:23 sawimme Exp $ */
+/* $Id: ExodusT.cpp,v 1.19.2.1 2002-10-17 03:57:48 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -32,8 +32,13 @@ ExodusT::ExodusT(ostream& message_out, int float_size):
 	if (comp_ws != sizeof(float) && comp_ws != sizeof(double))
 	{
 		cout << "\n ExodusT::ExodusT: unexpected float size " << comp_ws << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
+
+#if __option(extended_errorcheck)
+	/* debugging messages */
+	ex_opts(EX_VERBOSE);
+#endif
 }
 
 /* destructor */
@@ -64,7 +69,7 @@ bool ExodusT::OpenRead(const StringT& filename)
 		{
 			fOut << "\n ExodusT::OpenRead: known float size: " << io_ws;
 			fOut << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 	
 		/* get initialization data */
@@ -160,8 +165,8 @@ void ExodusT::Close(void)
 void ExodusT::ElementBlockID(nArrayT<int>& ID) const
 {
 	/* check */
-	if (exoid < 0) throw eGeneralFail;
-	if (ID.Length() != num_elem_blk) throw eSizeMismatch;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
+	if (ID.Length() != num_elem_blk) throw ExceptionT::kSizeMismatch;
 
 	/* non-empty */
 	if (num_elem_blk > 0)
@@ -176,8 +181,8 @@ void ExodusT::ElementBlockID(nArrayT<int>& ID) const
 void ExodusT::NodeSetID(nArrayT<int>& ID) const
 {
 	/* check */
-	if (exoid < 0) throw eGeneralFail;
-	if (ID.Length() != num_node_sets) throw eSizeMismatch;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
+	if (ID.Length() != num_node_sets) throw ExceptionT::kSizeMismatch;
 
 	/* non-empty */
 	if (num_node_sets > 0)
@@ -192,8 +197,8 @@ void ExodusT::NodeSetID(nArrayT<int>& ID) const
 void ExodusT::SideSetID(nArrayT<int>& ID) const
 {
 	/* check */
-	if (exoid < 0) throw eGeneralFail;
-	if (ID.Length() != num_side_sets) throw eSizeMismatch;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
+	if (ID.Length() != num_side_sets) throw ExceptionT::kSizeMismatch;
 
 	/* non-empty */
 	if (num_side_sets > 0)
@@ -209,9 +214,9 @@ void ExodusT::SideSetID(nArrayT<int>& ID) const
 void ExodusT::ReadCoordinates(dArray2DT& coords) const
 {
 	/* checks */
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 	if (coords.MajorDim() != num_nodes ||
-	    coords.MinorDim() != num_dim) throw eSizeMismatch;
+	    coords.MinorDim() != num_dim) throw ExceptionT::kSizeMismatch;
 
 	dArray2DT xyz(num_dim, num_nodes);
 	double* px = xyz(0);
@@ -231,7 +236,7 @@ void ExodusT::WriteCoordinates(const dArray2DT& coords,
 	const nArrayT<int>* node_map) const
 {
 	/* checks */
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	dArrayT x(num_nodes), y(num_nodes), z(num_nodes);
 	double *px = x.Pointer(), *py = y.Pointer(), *pz = z.Pointer();
@@ -257,7 +262,7 @@ void ExodusT::WriteCoordinates(const dArray2DT& coords,
 	if (node_map && node_map->Length() > 0)
 	{
 		/* check */
-		if (node_map->Length() != coords.MajorDim()) throw eSizeMismatch;
+		if (node_map->Length() != coords.MajorDim()) throw ExceptionT::kSizeMismatch;
 	
 		Try("ExodusT::WriteCoordinates: ex_put_node_map",
 			ex_put_node_num_map(exoid, node_map->Pointer()),
@@ -268,8 +273,8 @@ void ExodusT::WriteCoordinates(const dArray2DT& coords,
 void ExodusT::ReadNodeMap(nArrayT<int>& node_map) const
 {
 	/* checks */
-	if (exoid < 0) throw eGeneralFail;
-	if (node_map.Length() != num_nodes) throw eSizeMismatch;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
+	if (node_map.Length() != num_nodes) throw ExceptionT::kSizeMismatch;
 
 	Try("ExodusT::ReadNodeMap: ",
 		ex_get_node_num_map(exoid, node_map.Pointer()),
@@ -279,7 +284,7 @@ void ExodusT::ReadNodeMap(nArrayT<int>& node_map) const
 /* element block */
 void ExodusT::ReadElementBlockDims(int block_ID, int& num_elems, int& num_elem_nodes) const
 {
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	/* read block parameters */
 	ArrayT<char> type(MAX_STR_LENGTH);
@@ -293,7 +298,7 @@ void ExodusT::ReadElementBlockDims(int block_ID, int& num_elems, int& num_elem_n
 void ExodusT::ReadConnectivities(int block_ID, GeometryT::CodeT& code,
 	iArray2DT& connects) const
 {
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	/* read attributues */		
 	char elem_type[MAX_STR_LENGTH];
@@ -314,7 +319,7 @@ void ExodusT::ReadConnectivities(int block_ID, GeometryT::CodeT& code,
 		     << "}\n"
 		     <<   "     do not match the destination array {" << connects.MajorDim()
 		     << "," << connects.MinorDim() << "}: " << file_name << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 
 	/* non-empty set */
@@ -339,7 +344,7 @@ void ExodusT::ReadConnectivities(int block_ID, GeometryT::CodeT& code,
 void ExodusT::WriteConnectivities(int block_ID, GeometryT::CodeT code,
 	const iArray2DT& connects, const nArrayT<int>* elem_map)
 {
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	/* check dimensions */
 	if (connects.MajorDim() > num_elem)
@@ -347,7 +352,7 @@ void ExodusT::WriteConnectivities(int block_ID, GeometryT::CodeT code,
 		cout << "\n ExodusT::WriteConnectivities: number of elements in block "
 		     << block_ID << " exceeds\n"
 		     <<   "     the total number of elements " << num_elem << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 
 	/* get element type name and output nodes */
@@ -389,7 +394,7 @@ void ExodusT::WriteConnectivities(int block_ID, GeometryT::CodeT code,
 	if (elem_map && elem_map->Length() > 0)
 	{
 		/* check */
-		if (elem_map->Length() != connects.MajorDim()) throw eSizeMismatch;
+		if (elem_map->Length() != connects.MajorDim()) throw ExceptionT::kSizeMismatch;
 	
 		Try("ExodusT::WriteConnectivities: ex_put_elem_num_map",
 			ex_put_elem_num_map(exoid, elem_map->Pointer()),
@@ -400,7 +405,7 @@ void ExodusT::WriteConnectivities(int block_ID, GeometryT::CodeT code,
 /* node sets */
 int ExodusT::NumNodesInSet(int set_ID) const
 {
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	/* read set parameters */
 	int num_set_nodes, num_dist;
@@ -413,10 +418,10 @@ int ExodusT::NumNodesInSet(int set_ID) const
 
 void ExodusT::ReadNodeSet(int set_ID, nArrayT<int>& nodes) const
 {
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	/* check dims */
-	if (NumNodesInSet(set_ID) != nodes.Length()) throw eSizeMismatch;
+	if (NumNodesInSet(set_ID) != nodes.Length()) throw ExceptionT::kSizeMismatch;
 
 	/* non-empty */
 	if (nodes.Length() > 0)
@@ -451,7 +456,7 @@ void ExodusT::ReadNodeSets(const nArrayT<int>& set_ID, nArrayT<int>& nodes) cons
 
 void ExodusT::WriteNodeSet(int set_ID, const nArrayT<int>& nodes) const
 {
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	Try("ExoduT::WriteNodeSet: ex_put_node_set_param",
 		ex_put_node_set_param(exoid, set_ID, nodes.Length(), nodes.Length()),
@@ -469,7 +474,7 @@ void ExodusT::WriteNodeSet(int set_ID, const nArrayT<int>& nodes) const
 /* side sets */
 int ExodusT::NumSidesInSet(int set_ID) const
 {
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	/* read set parameters */
 	int num_sides, num_dist;
@@ -483,8 +488,8 @@ int ExodusT::NumSidesInSet(int set_ID) const
 void ExodusT::ReadSideSet(int set_ID, int& block_ID, iArray2DT& sides) const
 {
 	/* checks */
-	if (exoid < 0) throw eGeneralFail;
-	if (NumSidesInSet(set_ID) != sides.MajorDim()) throw eSizeMismatch;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
+	if (NumSidesInSet(set_ID) != sides.MajorDim()) throw ExceptionT::kSizeMismatch;
 
 	/* non-empty set */
 	if (sides.MajorDim() > 0)
@@ -532,7 +537,7 @@ void ExodusT::ReadSideSet(int set_ID, int& block_ID, iArray2DT& sides) const
 void ExodusT::WriteSideSet(int set_ID, int block_ID, const iArray2DT& sides) const
 {
 	/* check */
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	/* write parameters */
 	Try("ExodusT::WriteSideSet: ex_put_side_set",
@@ -574,7 +579,7 @@ void ExodusT::WriteSideSet(int set_ID, int block_ID, const iArray2DT& sides) con
 /* variable results */
 void ExodusT::WriteLabels(const ArrayT<StringT>& labels, ExodusT::VariableTypeT t) const
 {
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	const char vartypes [3] = { 'n', 'e', 'g' };
 	char type = vartypes[t];
@@ -601,7 +606,7 @@ void ExodusT::WriteLabels(const ArrayT<StringT>& labels, ExodusT::VariableTypeT 
 
 void ExodusT::WriteTime(int step, double time) const
 {
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	/* write time value, each time value corresponds to a time_step
 	 * the first time_step must be one and be incremented by one */
@@ -612,7 +617,7 @@ void ExodusT::WriteTime(int step, double time) const
 
 void ExodusT::WriteNodalVariable(int step, int index, const dArrayT& fValues) const
 {
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	/* don't write empty lists */
 	if (fValues.Length() == 0) return;
@@ -627,7 +632,7 @@ void ExodusT::WriteNodalVariable(int step, int index, const dArrayT& fValues) co
 void ExodusT::WriteElementVariable(int step, int block_ID, int index,
 		const dArrayT& fValues) const
 {
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	/* don't write empty lists */
 	if (fValues.Length() == 0) return;
@@ -641,7 +646,7 @@ void ExodusT::WriteElementVariable(int step, int block_ID, int index,
 
 void ExodusT::WriteGlobalVariable(int step, const dArrayT& fValues) const
 {
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	/* don't write empty lists */
 	if (fValues.Length() == 0) return;
@@ -655,7 +660,7 @@ void ExodusT::WriteGlobalVariable(int step, const dArrayT& fValues) const
 /* read results data */
 void ExodusT::ReadLabels(ArrayT<StringT>& labels, ExodusT::VariableTypeT t) const
 {
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	const char vartypes [3] = { 'n', 'e', 'g' };
 	char type = vartypes[t];
@@ -674,7 +679,7 @@ void ExodusT::ReadLabels(ArrayT<StringT>& labels, ExodusT::VariableTypeT t) cons
 		for (int i = 0; i < num_labels; i++)
 		{
 			char* str = new char[MAX_STR_LENGTH];
-			if (!str) throw eOutOfMemory;
+			if (!str) throw ExceptionT::kOutOfMemory;
 			var_names[i] = str;
 		}
 
@@ -695,7 +700,7 @@ void ExodusT::ReadLabels(ArrayT<StringT>& labels, ExodusT::VariableTypeT t) cons
 
 int ExodusT::NumTimeSteps(void) const
 {
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	/* return values */
 	int i_ret;
@@ -712,7 +717,7 @@ int ExodusT::NumTimeSteps(void) const
 
 void ExodusT::ReadTime(int step, double& time) const
 {
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	/* inquire */
 	Try("ExodusT::ReadTime",
@@ -733,7 +738,7 @@ int ExodusT::NumVariables (ExodusT::VariableTypeT t) const
 
 void ExodusT::ReadNodalVariable(int step, int index, dArrayT& fValues) const
 {
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	/* don't try to read empty lists */
 	if (fValues.Length() == 0) return;
@@ -748,12 +753,12 @@ void ExodusT::ReadNodalVariable(int step, int index, dArrayT& fValues) const
 void ExodusT::ReadElementVariable(int step, int block_ID, int index,
 	dArrayT& fValues) const
 {
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 	
 	/* check dimensions */
 	int num_elems, num_elem_nodes;
 	ReadElementBlockDims(block_ID, num_elems, num_elem_nodes);
-	if (num_elems != fValues.Length()) throw eSizeMismatch;
+	if (num_elems != fValues.Length()) throw ExceptionT::kSizeMismatch;
 
 	/* don't read from empty block */
 	if (num_elems == 0) return;
@@ -767,7 +772,7 @@ void ExodusT::ReadElementVariable(int step, int block_ID, int index,
 
 void ExodusT::ReadGlobalVariable(int step, dArrayT& fValues) const
 {
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	/* don't read empty lists */
 	if (fValues.Length() == 0) return;
@@ -780,7 +785,7 @@ void ExodusT::ReadGlobalVariable(int step, dArrayT& fValues) const
 
 void ExodusT::ReadQA(ArrayT<StringT>& qa_records) const
 {
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	int num_qa_rec;
 	Try("ExodusBaseT::ReadInit ex_inq_qa",
@@ -808,7 +813,7 @@ char *recs[MAX_QA_REC][4];
 
 void ExodusT::ReadInfo(ArrayT<StringT>& info_records) const
 {
-	if (exoid < 0) throw eGeneralFail;
+	if (exoid < 0) throw ExceptionT::kGeneralFail;
 
 	int num_info;
 	Try("ExodusT::ReadInfo ex_inq_info",
@@ -1004,7 +1009,7 @@ void ExodusT::GetElementName(int elemnodes, GeometryT::CodeT code,
 
 		default:
 			cout << "\nExodusT::GetElementName cannot find name\n\n";
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	  }
 }
 
@@ -1043,7 +1048,7 @@ GeometryT::CodeT ExodusT::ToGeometryCode(const StringT& elem_name) const
 	{
 		cout << "\n ExodusT::ToGeometryCode: code not resolve element name "
 		     << elem_name << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	return code;
@@ -1158,7 +1163,7 @@ void ExodusT::Try(const char* caller, int code, bool do_warning) const
 	{
 		fOut << "\n " << caller << ": returned error: " << code << '\n'
 		     <<   "     file: " << file_name << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	if (code > 0 && do_warning)
@@ -1178,13 +1183,13 @@ ExodusT::~ExodusT(void) { }
 bool ExodusT::OpenRead(const StringT& filename) 
 {
   cout << "\n ExodusT::OpenRead: file format not available" << endl;
-  throw eGeneralFail;
+  throw ExceptionT::kGeneralFail;
   return false; 
 }
 bool ExodusT::OpenWrite(const StringT& filename)
 {
   cout << "\n ExodusT::OpenWrite: file format not available" << endl;
-  throw eGeneralFail;
+  throw ExceptionT::kGeneralFail;
   return false; 
 }
 bool ExodusT::Create(const StringT& filename, const StringT& title,
@@ -1192,50 +1197,50 @@ bool ExodusT::Create(const StringT& filename, const StringT& title,
 		int elem, int num_blks, int node_sets, int side_sets)
 {
   cout << "\n ExodusT::OpenCreate: file format not available" << endl;
-  throw eGeneralFail;
+  throw ExceptionT::kGeneralFail;
   return false; 
 }
-void ExodusT::Close(void) { throw eGeneralFail; }
-void ExodusT::ElementBlockID(nArrayT<int>& ID) const { throw eGeneralFail; }
-void ExodusT::NodeSetID(nArrayT<int>& ID) const { throw eGeneralFail; }
-void ExodusT::SideSetID(nArrayT<int>& ID) const { throw eGeneralFail; }
-void ExodusT::ReadCoordinates(dArray2DT& coords) const { throw eGeneralFail; }
-void ExodusT::WriteCoordinates(const dArray2DT& coords, const nArrayT<int>* node_map) const { throw eGeneralFail; }
-void ExodusT::ReadNodeMap(nArrayT<int>& node_map) const { throw eGeneralFail; }
-void ExodusT::ReadElementBlockDims(int block_ID, int& num_elems, int& num_elem_nodes) const { throw eGeneralFail; }
-void ExodusT::ReadConnectivities(int block_ID, GeometryT::CodeT& code, iArray2DT& connects) const { throw eGeneralFail; }
-void ExodusT::WriteConnectivities(int block_ID, GeometryT::CodeT code, const iArray2DT& connects, const nArrayT<int>* elem_map) { throw eGeneralFail; }
+void ExodusT::Close(void) { throw ExceptionT::kGeneralFail; }
+void ExodusT::ElementBlockID(nArrayT<int>& ID) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::NodeSetID(nArrayT<int>& ID) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::SideSetID(nArrayT<int>& ID) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::ReadCoordinates(dArray2DT& coords) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::WriteCoordinates(const dArray2DT& coords, const nArrayT<int>* node_map) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::ReadNodeMap(nArrayT<int>& node_map) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::ReadElementBlockDims(int block_ID, int& num_elems, int& num_elem_nodes) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::ReadConnectivities(int block_ID, GeometryT::CodeT& code, iArray2DT& connects) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::WriteConnectivities(int block_ID, GeometryT::CodeT code, const iArray2DT& connects, const nArrayT<int>* elem_map) { throw ExceptionT::kGeneralFail; }
 int ExodusT::NumNodesInSet(int set_ID) const { return 0; }
-void ExodusT::ReadNodeSet(int set_ID, nArrayT<int>& nodes) const { throw eGeneralFail; }
-void ExodusT::ReadNodeSets(const nArrayT<int>& set_ID, nArrayT<int>& nodes) const { throw eGeneralFail; }
-void ExodusT::WriteNodeSet(int set_ID, const nArrayT<int>& nodes) const { throw eGeneralFail; }
+void ExodusT::ReadNodeSet(int set_ID, nArrayT<int>& nodes) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::ReadNodeSets(const nArrayT<int>& set_ID, nArrayT<int>& nodes) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::WriteNodeSet(int set_ID, const nArrayT<int>& nodes) const { throw ExceptionT::kGeneralFail; }
 int ExodusT::NumSidesInSet(int set_ID) const { return 0; }
-void ExodusT::ReadSideSet(int set_ID, int& block_ID, iArray2DT& sides) const { throw eGeneralFail; }
-void ExodusT::WriteSideSet(int set_ID, int block_ID, const iArray2DT& sides) const { throw eGeneralFail; }
-void ExodusT::WriteTime(int step, double time) const { throw eGeneralFail; }
-void ExodusT::WriteNodalVariable(int step, int index, const dArrayT& fValues) const { throw eGeneralFail; }
-void ExodusT::WriteElementVariable(int step, int block_ID, int index, const dArrayT& fValues) const { throw eGeneralFail; }
-void ExodusT::WriteGlobalVariable(int step, const dArrayT& fValues) const { throw eGeneralFail; }
-void ExodusT::ReadLabels(ArrayT<StringT>& labels, ExodusT::VariableTypeT t) const { throw eGeneralFail; }
-void ExodusT::WriteLabels(const ArrayT<StringT>& labels, ExodusT::VariableTypeT t) const { throw eGeneralFail; }
+void ExodusT::ReadSideSet(int set_ID, int& block_ID, iArray2DT& sides) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::WriteSideSet(int set_ID, int block_ID, const iArray2DT& sides) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::WriteTime(int step, double time) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::WriteNodalVariable(int step, int index, const dArrayT& fValues) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::WriteElementVariable(int step, int block_ID, int index, const dArrayT& fValues) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::WriteGlobalVariable(int step, const dArrayT& fValues) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::ReadLabels(ArrayT<StringT>& labels, ExodusT::VariableTypeT t) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::WriteLabels(const ArrayT<StringT>& labels, ExodusT::VariableTypeT t) const { throw ExceptionT::kGeneralFail; }
 int ExodusT::NumTimeSteps(void) const { return 0; }
-void ExodusT::ReadTime(int step, double& time) const { throw eGeneralFail; }
+void ExodusT::ReadTime(int step, double& time) const { throw ExceptionT::kGeneralFail; }
 int ExodusT::NumVariables (ExodusT::VariableTypeT t) const { return 0; }
-void ExodusT::ReadNodalVariable(int step, int index, dArrayT& fValues) const { throw eGeneralFail; }
-void ExodusT::ReadElementVariable(int step, int block_ID, int index, dArrayT& fValues) const { throw eGeneralFail; }
-void ExodusT::ReadGlobalVariable(int step, dArrayT& fValues) const { throw eGeneralFail; }
-void ExodusT::ReadQA(ArrayT<StringT>& qa_records) const { throw eGeneralFail; }
-void ExodusT::ReadInfo(ArrayT<StringT>& info_records) const { throw eGeneralFail; }
-void ExodusT::GlobalToBlockElementNumbers(int& block_ID, nArrayT<int>& elements) const { throw eGeneralFail; }
-void ExodusT::BlockToGlobalElementNumbers(int block_ID, nArrayT<int>& elements) const { throw eGeneralFail; }
-void ExodusT::WriteQA(const ArrayT<StringT>& qa_records) const { throw eGeneralFail; }
-void ExodusT::WriteInfo(const ArrayT<StringT>& info_records) const { throw eGeneralFail; }
-void ExodusT::GetElementName(int elemnodes, GeometryT::CodeT code, StringT& elem_name, int& num_output_nodes) const { throw eGeneralFail; }
-GeometryT::CodeT ExodusT::ToGeometryCode(const StringT& elem_name) const { throw eGeneralFail; }
-void ExodusT::ConvertSideSetOut(const char* elem_type, nArrayT<int>& sides) const { throw eGeneralFail; }
-void ExodusT::ConvertSideSetIn(const char* elem_type, nArrayT<int>& sides) const { throw eGeneralFail; }
-void ExodusT::ConvertElementNumbering (iArray2DT& conn, int fcode) const { throw eGeneralFail; }
-void ExodusT::Clear(void) { throw eGeneralFail; }
-void ExodusT::Try(const char* caller, int code, bool do_warning) const { throw eGeneralFail; }
+void ExodusT::ReadNodalVariable(int step, int index, dArrayT& fValues) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::ReadElementVariable(int step, int block_ID, int index, dArrayT& fValues) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::ReadGlobalVariable(int step, dArrayT& fValues) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::ReadQA(ArrayT<StringT>& qa_records) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::ReadInfo(ArrayT<StringT>& info_records) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::GlobalToBlockElementNumbers(int& block_ID, nArrayT<int>& elements) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::BlockToGlobalElementNumbers(int block_ID, nArrayT<int>& elements) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::WriteQA(const ArrayT<StringT>& qa_records) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::WriteInfo(const ArrayT<StringT>& info_records) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::GetElementName(int elemnodes, GeometryT::CodeT code, StringT& elem_name, int& num_output_nodes) const { throw ExceptionT::kGeneralFail; }
+GeometryT::CodeT ExodusT::ToGeometryCode(const StringT& elem_name) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::ConvertSideSetOut(const char* elem_type, nArrayT<int>& sides) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::ConvertSideSetIn(const char* elem_type, nArrayT<int>& sides) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::ConvertElementNumbering (iArray2DT& conn, int fcode) const { throw ExceptionT::kGeneralFail; }
+void ExodusT::Clear(void) { throw ExceptionT::kGeneralFail; }
+void ExodusT::Try(const char* caller, int code, bool do_warning) const { throw ExceptionT::kGeneralFail; }
 #pragma warn_unusedarg reset
 #endif /* __ACCESS__ */

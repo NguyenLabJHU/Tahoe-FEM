@@ -1,4 +1,4 @@
-/* $Id: ModelFileT.cpp,v 1.8 2002-07-02 19:57:01 cjkimme Exp $ */
+/* $Id: ModelFileT.cpp,v 1.8.2.1 2002-10-17 03:57:48 paklein Exp $ */
 /* created: paklein (12/15/1999)                                          */
 
 #include "ModelFileT.h"
@@ -918,7 +918,7 @@ ifstreamT& ModelFileT::OpenExternal(ifstreamT& in,  ifstreamT& in2,
 		if (!in2.is_open())
 		{
 			if (fail) cout << fail << ": " << file << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 
 		/* set comments */
