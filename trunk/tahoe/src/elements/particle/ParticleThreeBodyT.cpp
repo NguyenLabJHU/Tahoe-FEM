@@ -1,4 +1,4 @@
-/* $Id: ParticleThreeBodyT.cpp,v 1.4 2004-12-09 01:41:11 cjkimme Exp $ */
+/* $Id: ParticleThreeBodyT.cpp,v 1.5 2004-12-09 09:19:09 paklein Exp $ */
 #include "ParticleThreeBodyT.h"
 
 #include "ThreeBodyPropertyT.h"
@@ -357,7 +357,7 @@ void ParticleThreeBodyT::WriteOutput(void)
 #endif
 	}
 #ifndef NO_PARTICLE_STRESS_OUTPUT
-    int num_s_vals = num_stresses+1+ndof+1;
+    int num_s_vals = num_stresses+1+ndof;
     dArray2DT s_values(non,num_s_vals);
     s_values = 0.0;
 
@@ -368,7 +368,8 @@ void ParticleThreeBodyT::WriteOutput(void)
 	Calc_Slip_and_Strain(s_values, fRefNearestNeighbors, kEulerLagr);
 
     /* calculate centrosymmetry parameter */
-	Calc_CSP(s_values, fNearestNeighbors);
+    dArrayT csp(non);
+	Calc_CSP(fNearestNeighbors, csp);
 
 	/* combine strain, slip vector and centrosymmetry parameter into n_values list */
 	for (int i = 0; i < fNeighbors.MajorDim(); i++)
@@ -394,7 +395,7 @@ void ParticleThreeBodyT::WriteOutput(void)
 		for (int n = 0; n < ndof; n++)
 			n_values(local_i, ndof+2+num_stresses+num_stresses+n) = s_values(local_i, num_stresses+1+n);
 
-		n_values(local_i, num_output-1) = s_values(local_i, num_s_vals-1);
+		n_values(local_i, num_output-1) = csp[local_i];
 	}
 #endif
 
