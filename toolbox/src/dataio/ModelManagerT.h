@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.4.2.3 2001-10-10 20:06:38 sawimme Exp $ */
+/* $Id: ModelManagerT.h,v 1.4.2.4 2001-10-11 19:58:19 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -52,6 +52,32 @@ class ModelManagerT
   bool RegisterNodeSet (ifstreamT& in, const StringT& name);
   bool RegisterSideSet (ifstreamT& in, const StringT& name, bool local, int groupindex);
 
+  /* reads from input file the coordinate dimensions and coords if kTahoe
+     allows code to read from input file but not care about input format */
+  void ReadInlineCoordinates (ifstreamT& in);
+
+  /* reads from input file the number of blocks, list of names, and matnums
+     if kTahoe, it will read connectivity and register it
+     return array of indexes and array of matnums
+     allows code to read from input file but not care about input format */
+  void ElementBlockList (ifstreamT& in, iArrayT& indexes, iArrayT& matnums);
+
+  /* reads from input file the number of sets and list of names
+     if kTahoe, it will read number of nodes and register them
+     returns array of indexes
+     allows code to read from input file but not care about input format */
+  void NodeSetList (ifstreamT& in, iArrayT& indexes);
+
+  /* reads from input file the number of sets and list of names
+     if kTahoe, it will read number of facets and register them
+     returns array of indexes
+     allows code to read from input file but not care about input format */
+  void SideSetList (ifstreamT& in, iArrayT& indexes);
+
+  /* read IC/KBC/FBC card type data
+     allows code to read from input file but not care about input format */
+  int ModelManagerT::ReadCards (ifstreamT& in, ostream& out, ArrayT<iArrayT>& nodes, iArray2DT& data, dArrayT& value);
+
   /* access */
   void CoordinateDimensions (int& length, int& dof) const;
   const dArray2DT& CoordinateReference (void) const; /* return coords */
@@ -74,6 +100,7 @@ class ModelManagerT
   int NodeSetIndex (const StringT& name) const;
   int NodeSetLength (int index) const;
   const iArrayT& NodeSet (int index);
+  void ManyNodeSets (const iArrayT& indexes, iArrayT& nodes);
 
   int NumSideSets (void) const;
   void SideSetNames (ArrayT<StringT>& names) const;
