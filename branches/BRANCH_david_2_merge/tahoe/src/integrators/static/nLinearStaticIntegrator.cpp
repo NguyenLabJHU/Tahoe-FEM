@@ -1,4 +1,4 @@
-/* $Id: nLinearStaticIntegrator.cpp,v 1.5 2003-11-21 22:47:42 paklein Exp $ */
+/* $Id: nLinearStaticIntegrator.cpp,v 1.5.38.1 2004-12-26 06:27:54 d-farrell2 Exp $ */
 /* created: paklein (10/14/1996) */
 #include "nLinearStaticIntegrator.h"
 #include "BasicFieldT.h"
@@ -10,17 +10,33 @@ using namespace Tahoe;
 nLinearStaticIntegrator::nLinearStaticIntegrator(void) { };
 
 /* predictor. Maps ALL degrees of freedom forward. */
-void nLinearStaticIntegrator::Predictor(BasicFieldT& field)
+void nLinearStaticIntegrator::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
-	/* clear all displacements */
-	field[0] = 0.0;
+	if (fieldend == -1) // operate on full arrays
+	{
+		/* clear all displacements */
+		field[0] = 0.0;
+	}
+	else
+	{
+		/* clear all displacements */
+		field[0].SetToScaled(0.0, field[0], fieldstart, fieldend);
+	}
 }
 
 /* corrector. Maps ALL degrees of freedom forward. */
-void nLinearStaticIntegrator::Corrector(BasicFieldT& field, const dArray2DT& update)
+void nLinearStaticIntegrator::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
 {
-	/* update displacements */
-	field[0] += update;
+	if (fieldend == -1) // operate on full arrays
+	{
+		/* update displacements */
+		field[0] += update;
+	}
+	else
+	{
+		/* update displacements */
+		field[0].AddScaled(1.0, update, fieldstart, fieldend);
+	}
 }
 
 /* correctors - map ACTIVE */

@@ -1,4 +1,4 @@
-/* $Id: nStaticIntegrator.cpp,v 1.9 2004-02-06 17:34:08 cjkimme Exp $ */
+/* $Id: nStaticIntegrator.cpp,v 1.9.32.1 2004-12-26 06:27:54 d-farrell2 Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "nStaticIntegrator.h"
@@ -43,18 +43,26 @@ void nStaticIntegrator::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 	}
 }		
 
-/* predictor. Maps ALL degrees of freedom forward. */
-void nStaticIntegrator::Predictor(BasicFieldT& field)
+// predictors - map ALL, unless limit arguments are specified
+void nStaticIntegrator::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fieldend /*= -1*/)
 {
 #pragma unused(field)
 	//nothing to do
 }
 
 /* corrector. Maps ALL degrees of freedom forward. */
-void nStaticIntegrator::Corrector(BasicFieldT& field, const dArray2DT& update)
+void nStaticIntegrator::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
 {
-	/* update displacements */
-	field[0] += update;
+	if (fieldend == -1) // operate on full arrays
+	{
+		/* update displacements */
+		field[0] += update;
+	}
+	else
+	{
+		/* update displacements */
+		field[0].AddScaled(1.0, update, fieldstart, fieldend);
+	}
 }
 
 /* correctors - map ACTIVE */

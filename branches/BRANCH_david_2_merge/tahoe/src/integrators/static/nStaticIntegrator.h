@@ -1,4 +1,4 @@
-/* $Id: nStaticIntegrator.h,v 1.7 2003-01-27 07:00:23 paklein Exp $ */
+/* $Id: nStaticIntegrator.h,v 1.7.64.1 2004-12-26 06:27:54 d-farrell2 Exp $ */
 /* created: paklein (10/14/1996) */
 #ifndef _N_STATIC_CONTROLLER_H_
 #define _N_STATIC_CONTROLLER_H_
@@ -23,11 +23,11 @@ public:
 	/** pseudo-boundary conditions for external nodes */
 	virtual KBC_CardT::CodeT ExternalNodeCondition(void) const;
 
-	/** predictor. Maps ALL degrees of freedom forward. */
-	virtual void Predictor(BasicFieldT& field);
+	/** predictor. Maps ALL degrees of freedom forward Unless specified otherwise */
+	virtual void Predictor(BasicFieldT& field, int fieldstart = 0, int fieldend = -1);
 
 	/** corrector. Maps ALL degrees of freedom forward. */
-	virtual void Corrector(BasicFieldT& field, const dArray2DT& update);
+	virtual void Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart = 0, int fieldend = -1, int dummy = 0);
 
 	/** corrector - map ACTIVE. See nIntegratorT::Corrector for more
 	 * documentation */

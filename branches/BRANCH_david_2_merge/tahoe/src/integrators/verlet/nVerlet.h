@@ -1,4 +1,4 @@
-/* $Id: nVerlet.h,v 1.6 2004-07-15 08:30:57 paklein Exp $ */
+/* $Id: nVerlet.h,v 1.6.8.1 2004-12-26 06:27:56 d-farrell2 Exp $ */
 #ifndef _N_VERLET_H_
 #define _N_VERLET_H_
 
@@ -23,11 +23,11 @@ public:
 	/** pseudo-boundary conditions for external nodes */
 	virtual KBC_CardT::CodeT ExternalNodeCondition(void) const;
 
-	/** predictor. Maps ALL degrees of freedom forward. */
-	virtual void Predictor(BasicFieldT& field);
+	/** predictor. Maps ALL degrees of freedom forward, Unless specified otherwise*/
+	virtual void Predictor(BasicFieldT& field, int fieldstart = 0, int fieldend = -1);
 
-	/** corrector. Maps ALL degrees of freedom forward. */
-	virtual void Corrector(BasicFieldT& field, const dArray2DT& update);
+	/** corrector. Maps ALL degrees of freedom forward, Unless specified otherwise  */
+	virtual void Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart = 0, int fieldend = -1, int dummy = 0);
 
 	/** corrector - map ACTIVE. See nIntegratorT::Corrector for more
 	 * documentation */
