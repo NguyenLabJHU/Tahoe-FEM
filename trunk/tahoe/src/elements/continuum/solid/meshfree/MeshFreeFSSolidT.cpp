@@ -1,7 +1,5 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.7 2002-03-22 02:21:26 paklein Exp $ */
-/* created: paklein (09/16/1998)                                          */
-/* large deformation elasticity with MLS shapefunctions for the           */
-/* field (displacement) representation                                    */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.8 2002-03-23 01:43:50 paklein Exp $ */
+/* created: paklein (09/16/1998) */
 
 #include "MeshFreeFSSolidT.h"
 
@@ -297,18 +295,21 @@ void MeshFreeFSSolidT::WeightNodalCost(iArrayT& weight) const
 void MeshFreeFSSolidT::InitStep(void)
 {
 	/* inherited */
+	TotalLagrangianT::InitStep();
 	MeshFreeFractureSupportT::InitStep();
 }
 
 void MeshFreeFSSolidT::CloseStep(void)
 {
 	/* inherited */
+	TotalLagrangianT::CloseStep();
 	MeshFreeFractureSupportT::CloseStep();
 }
 
 void MeshFreeFSSolidT::ResetStep(void)
 {
 	/* inherited */
+	TotalLagrangianT::ResetStep();
 	MeshFreeFractureSupportT::ResetStep();
 }
 

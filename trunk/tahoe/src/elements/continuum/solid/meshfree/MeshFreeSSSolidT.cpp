@@ -1,7 +1,5 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.7 2002-03-22 02:21:26 paklein Exp $ */
-/* created: paklein (09/11/1998)                                          */
-/* small strain elasticity with MLS shapefunctions for the                */
-/* field (displacement) representation                                    */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.8 2002-03-23 01:43:50 paklein Exp $ */
+/* created: paklein (09/11/1998) */
 
 #include "MeshFreeSSSolidT.h"
 
@@ -294,18 +292,21 @@ void MeshFreeSSSolidT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 void MeshFreeSSSolidT::InitStep(void)
 {
 	/* inherited */
+	SmallStrainT::InitStep();
 	MeshFreeFractureSupportT::InitStep();
 }
 
 void MeshFreeSSSolidT::CloseStep(void)
 {
 	/* inherited */
+	SmallStrainT::CloseStep();
 	MeshFreeFractureSupportT::CloseStep();
 }
 
 void MeshFreeSSSolidT::ResetStep(void)
 {
 	/* inherited */
+	SmallStrainT::ResetStep();
 	MeshFreeFractureSupportT::ResetStep();
 }
 
