@@ -1,6 +1,5 @@
-/* $Id: dSymMatrixT.cpp,v 1.14 2002-10-04 01:36:34 thao Exp $ */
-/* created: paklein (03/03/1997)                                          */
-
+/* $Id: dSymMatrixT.cpp,v 1.15 2002-10-12 03:04:57 paklein Exp $ */
+/* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -15,6 +14,7 @@ const bool ArrayT<dSymMatrixT*>::fByteCopy = true;
 const bool ArrayT<dSymMatrixT>::fByteCopy = false; 
 }
 
+const double kEigenSmall = 1.0e-16;
 const double Pi = acos(-1.0);
 inline double d_sign(double a, double b)
 {
@@ -226,7 +226,7 @@ void dSymMatrixT::Eigensystem(dArrayT& val, dMatrixT& vec, bool sort_descending)
 	double cos;
 	double sin;
 	
-	if (fabs(b) < 1e-14)
+	if (fabs(b) < kEigenSmall)
 	{
 		cos = 1.0;
 		sin = 0.0;
@@ -1121,7 +1121,8 @@ evals.Length() != 3) throw eSizeMismatch;
 	int iterations = 0;
 	int min_iterations = 4;
 	double small = fabs(a[0]) + fabs(a[1]) + fabs(a[2]);
-	while (iterations++ < 50 && small != 0.0)
+	//while (iterations++ < 50 && small != 0.0)
+	while (iterations++ < 50 && small > kEigenSmall) 
 	{
 		double threshold = (iterations < min_iterations) ? 0.011*small : 0.0;
 
@@ -1275,7 +1276,8 @@ if (sort_descending)
 	int iterations = 0;
 	int min_iterations = 4;
 	double small = fabs(a[0]) + fabs(a[1]) + fabs(a[2]);
-	while (iterations++ < 50 && small != 0.0)
+	//while (iterations++ < 50 && small != 0.0)
+	while (iterations++ < 50 && small > kEigenSmall)
 	{
 		double threshold = (iterations < min_iterations) ? 0.011*small : 0.0;
 
