@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.h,v 1.2.2.4 2003-05-03 09:06:52 paklein Exp $ */
+/* $Id: ParameterInterfaceT.h,v 1.2.2.5 2003-05-03 17:46:08 paklein Exp $ */
 #ifndef _PARAMETER_INTERFACE_T_H_
 #define _PARAMETER_INTERFACE_T_H_
 
@@ -17,6 +17,9 @@ public:
 
 	/** constructor */
 	ParameterInterfaceT(const StringT& name);
+
+	/** destructor */
+	virtual ~ParameterInterfaceT(void) {};
 
 	/** identifier */
 	const StringT& Name(void) const { return fName; };
