@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.5.2.1 2001-10-25 19:49:01 sawimme Exp $ */
+/* $Id: OutputSetT.h,v 1.5.2.2 2001-10-28 23:40:53 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 
 #ifndef _OUTPUTSET_T_H_
@@ -66,32 +66,48 @@ public:
 	/** copy constructor */
 	OutputSetT(const OutputSetT& source);
 
+	/* dimensions */
+	int NumNodes(void) const; /**< return the number of nodes used by the set */
+	int NumBlocks (void) const;	/**< return the number of connectivity blocks in the set */
+	int NumBlockElements(int index) const; /**< return the number of elements in the specified block */
+	int NumElements(void) const; /**< return the total number of elements */
+	int NumNodeValues(void) const; /** return the number of nodal output variables */
+	int NumElementValues(void) const; /** return the number of element output variables */
+
 	/* print step counter */
 	int PrintStep(void) const;
 	void ResetPrintStep(void);
 	void IncrementPrintStep(void);
 
-	/* accessors */
+	/** return the ID for the output set */
 	int ID(void) const;
+
+	/** return true if the set has changing geometry, false otherwise */
 	bool Changing(void) const;
+
+	/** return the GeometryT::CodeT for the output set */
 	GeometryT::CodeT Geometry(void) const;
-	int NumBlocks (void) const;
-	int BlockID(int index) const;
+
+	/** return the list of element block ID's used by the set */
+	const iArrayT& BlockID(void) const { return fBlockID; };
+
+	/** return a pointer to the connectivities for the specified block */
 	const iArray2DT* Connectivities(int index) const;
-	void AllConnectivities (iArray2DT& connects) const;
+
+//TEMP - used to write all set connectivities at once
+#if 0
+	void AllConnectivities(iArray2DT& connects) const;
+#endif
+
+	/** return the labels for the nodal output variables */
 	const ArrayT<StringT>& NodeOutputLabels(void) const;
+
+	/** return the labels for the element output variables */
 	const ArrayT<StringT>& ElementOutputLabels(void) const;
 
 	/** return the nodes used by the output set. If the geometry if
 	 * changing, the nodes used are recalculated with every call. */
 	const iArrayT& NodesUsed(void);
-
-	/* dimensions */
-	int NumNodes(void) const;
-	int NumNodeValues(void) const;
-	int NumElements(void) const;
-	int NumBlockElements (int index) const;
-	int NumElementValues(void) const;
 
 private:
 

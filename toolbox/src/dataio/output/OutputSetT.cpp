@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.3.2.1 2001-10-25 19:49:01 sawimme Exp $ */
+/* $Id: OutputSetT.cpp,v 1.3.2.2 2001-10-28 23:40:53 paklein Exp $ */
 /* created: paklein (03/07/2000)                                          */
 
 #include "OutputSetT.h"
@@ -77,13 +77,6 @@ int OutputSetT::NumElements(void) const
   return num; 
 }
 
-int OutputSetT::BlockID(int index) const 
-{ 
-  if (index < 0 || index >= fBlockID.Length())
-    throw eOutOfRange;
-  return fBlockID[index]; 
-}
-
 const iArray2DT* OutputSetT::Connectivities(int index) const
 {
   if (index < 0 || index >= fConnectivities.Length())
@@ -91,6 +84,8 @@ const iArray2DT* OutputSetT::Connectivities(int index) const
 	return fConnectivities[index];
 }
 
+//TEMP - used to write all set connectivities at once
+#if 0
 void  OutputSetT::AllConnectivities (iArray2DT& connects) const
 {
   if (fConnectivities.Length() == 1)
@@ -105,6 +100,7 @@ void  OutputSetT::AllConnectivities (iArray2DT& connects) const
 	}
     }
 }
+#endif
 
 /* set nodes used */
 void OutputSetT::SetNodesUsed(void)
