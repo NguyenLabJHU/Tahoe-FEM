@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2003-03-04 07:37:52 paklein Exp $
+# $Id: makefile,v 1.6 2003-04-03 01:13:31 saubry Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -24,7 +24,9 @@ OBJ = \
 	LennardJonesPairT.o \
 	PairPropertyT.o \
 	ParticlePropertyT.o \
-	ParadynPairT.o
+	ParadynPairT.o \
+        ParadynT.o
+
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -48,7 +50,9 @@ SRC = \
 	LennardJonesPairT.cpp \
 	PairPropertyT.cpp \
 	ParticlePropertyT.cpp \
-	ParadynPairT.cpp
+	ParadynPairT.cpp \
+        ParadynT.cpp
+
 
 ##################### (3) headers
 #
@@ -64,7 +68,9 @@ HDR = \
 	LennardJonesPairT.h \
 	PairPropertyT.h \
 	ParticlePropertyT.h \
-	ParadynPairT.h
+	ParadynPairT.h \
+        ParadynT.h
+
 
 HDR_LINK = $(HDR:.h=.h_link)
 
