@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.11 2002-08-21 07:26:01 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.12 2002-09-10 13:43:56 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 
 #ifndef _FE_MANAGER_MPI_H_
@@ -63,9 +63,6 @@ public:
 	 * \param e_values element output values */
 	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
 
-	/** reference to the coordinate array */
-//	const dArray2DT& Coordinates(void) const;
-
 	/* (temporarily) direct output away from main out */
 	virtual void DivertOutput(const StringT& outfile);
 	virtual void RestoreOutput(void);
@@ -74,13 +71,16 @@ public:
 	virtual void IncomingNodes(iArrayT& nodes_in) const;
 	virtual void OutgoingNodes(iArrayT& nodes_out) const;
 
+	/** return the local node to processor map */
+	virtual void NodeToProcessorMap(const iArrayT& node, iArrayT& processor) const;
+
+	/** synchronize */
+	virtual void Wait(void);
+
 	/* get external nodal values */
 	virtual void SendExternalData(const dArray2DT& all_out_data);
 	virtual void RecvExternalData(dArray2DT& external_data);
 	virtual void SendRecvExternalData(const iArray2DT& all_out_data, iArray2DT& external_data);
-
-	/* synchronize */
-	virtual void Wait(void);
 
 	/* domain decomposition (graph is returned) */
 	void Decompose(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose, int method);

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.37 2002-08-21 07:26:01 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.38 2002-09-10 13:43:56 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -745,6 +745,12 @@ int FEManagerT::GlobalEquationNumber(int nodenum, int dofnum) const
 
 int FEManagerT::Rank(void) const { return fComm.Rank(); }
 int FEManagerT::Size(void) const { return fComm.Size(); }
+
+void FEManagerT::NodeToProcessorMap(const iArrayT& node, iArrayT& processor) const
+{
+	processor.Dimension(node);
+	processor = Rank();
+}
 
 void FEManagerT::IncomingNodes(iArrayT& nodes_in ) const {  nodes_in.Free(); }
 void FEManagerT::OutgoingNodes(iArrayT& nodes_out) const { nodes_out.Free(); }
