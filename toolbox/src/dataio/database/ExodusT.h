@@ -1,5 +1,5 @@
-/* $Id: ExodusT.h,v 1.3 2001-06-14 14:49:51 sawimme Exp $ */
-/* created: sawimme (12/04/1998)                                          */
+/* $Id: ExodusT.h,v 1.4 2001-12-10 12:40:11 paklein Exp $ */
+/* created: sawimme (12/04/1998) */
 
 #ifndef _EXODUS_T_H_
 #define _EXODUS_T_H_
@@ -7,7 +7,7 @@
 #include "Environment.h"
 
 /* direct members */
-#include "iArrayT.h"
+#include "nArrayT.h"
 #include "StringT.h"
 #include "GeometryT.h"
 
@@ -16,6 +16,7 @@ class iArray2DT;
 class dArrayT;
 class dArray2DT;
 
+/** interface for reading and writing ExodusII files */
 class ExodusT
 {
 public:
@@ -42,27 +43,27 @@ public:
 	int NumNodeSets(void) const;
 	int NumElementBlocks(void) const;
 	int NumSideSets(void) const;
-	void ElementBlockID(iArrayT& ID) const;
-	void NodeSetID(iArrayT& ID) const;
-	void SideSetID(iArrayT& ID) const;
+	void ElementBlockID(nArrayT<int>& ID) const;
+	void NodeSetID(nArrayT<int>& ID) const;
+	void SideSetID(nArrayT<int>& ID) const;
 	
 	/* coordinates */
 	void ReadCoordinates(dArray2DT& coords) const;
-	void WriteCoordinates(const dArray2DT& coords, const iArrayT* node_map = NULL) const;
-	void ReadNodeMap(iArrayT& node_map) const;
+	void WriteCoordinates(const dArray2DT& coords, const nArrayT<int>* node_map = NULL) const;
+	void ReadNodeMap(nArrayT<int>& node_map) const;
 
 	/* element blocks */
 	void ReadElementBlockDims(int block_ID, int& num_elems, int& num_elem_nodes) const;
 	void ReadConnectivities(int block_ID, GeometryT::CodeT& code,
 		iArray2DT& connects) const;
 	void WriteConnectivities(int block_ID, GeometryT::CodeT code,
-		const iArray2DT& connects, const iArrayT* elem_map = NULL);
+		const iArray2DT& connects, const nArrayT<int>* elem_map = NULL);
 
 	/* node sets */
 	int  NumNodesInSet(int set_ID) const;
-	void ReadNodeSet(int set_ID, iArrayT& nodes) const;
-	void ReadNodeSets(const iArrayT& set_ID, iArrayT& nodes) const;
-	void WriteNodeSet(int set_ID, const iArrayT& nodes) const;
+	void ReadNodeSet(int set_ID, nArrayT<int>& nodes) const;
+	void ReadNodeSets(const nArrayT<int>& set_ID, nArrayT<int>& nodes) const;
+	void WriteNodeSet(int set_ID, const nArrayT<int>& nodes) const;
 	
 	/* side sets */
 	int  NumSidesInSet(int set_ID) const;
@@ -96,8 +97,8 @@ public:
 	 * global element numbers are continuous within and between block
 	 * and that the order of blocks is set by the global number. side
 	 * sets may not include elements from more than one block */
-	void GlobalToBlockElementNumbers(int& block_ID, iArrayT& elements) const;
-	void BlockToGlobalElementNumbers(int  block_ID, iArrayT& elements) const;
+	void GlobalToBlockElementNumbers(int& block_ID, nArrayT<int>& elements) const;
+	void BlockToGlobalElementNumbers(int  block_ID, nArrayT<int>& elements) const;
 
 	/* Read and echo Quality Assurance and Information data strings */
 	void ReadQA(ArrayT<StringT>& records) const;
@@ -122,8 +123,8 @@ private:
 	void WriteInfo(const ArrayT<StringT>& info_records) const;
 
 	/* convert side set information to fe++ numbering convention */
-	void ConvertSideSetOut(const char* elem_type, iArrayT& sides) const;
-	void ConvertSideSetIn(const char* elem_type, iArrayT& sides) const;
+	void ConvertSideSetOut(const char* elem_type, nArrayT<int>& sides) const;
+	void ConvertSideSetIn(const char* elem_type, nArrayT<int>& sides) const;
 
 	void ConvertElementNumbering (iArray2DT& conn, int code) const;
 

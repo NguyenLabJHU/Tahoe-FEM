@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.10 2001-07-14 01:20:41 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.11 2001-12-10 12:40:10 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -154,7 +154,7 @@ void ExodusT::Close(void)
 }
 
 /* accessors */
-void ExodusT::ElementBlockID(iArrayT& ID) const
+void ExodusT::ElementBlockID(nArrayT<int>& ID) const
 {
 	/* check */
 	if (exoid < 0) throw eGeneralFail;
@@ -170,7 +170,7 @@ void ExodusT::ElementBlockID(iArrayT& ID) const
 	}
 }
 
-void ExodusT::NodeSetID(iArrayT& ID) const
+void ExodusT::NodeSetID(nArrayT<int>& ID) const
 {
 	/* check */
 	if (exoid < 0) throw eGeneralFail;
@@ -186,7 +186,7 @@ void ExodusT::NodeSetID(iArrayT& ID) const
 	}
 }
 
-void ExodusT::SideSetID(iArrayT& ID) const
+void ExodusT::SideSetID(nArrayT<int>& ID) const
 {
 	/* check */
 	if (exoid < 0) throw eGeneralFail;
@@ -225,7 +225,7 @@ void ExodusT::ReadCoordinates(dArray2DT& coords) const
 }
 
 void ExodusT::WriteCoordinates(const dArray2DT& coords,
-	const iArrayT* node_map) const
+	const nArrayT<int>* node_map) const
 {
 	/* checks */
 	if (exoid < 0) throw eGeneralFail;
@@ -259,7 +259,7 @@ void ExodusT::WriteCoordinates(const dArray2DT& coords,
 	}
 }
 
-void ExodusT::ReadNodeMap(iArrayT& node_map) const
+void ExodusT::ReadNodeMap(nArrayT<int>& node_map) const
 {
 	/* checks */
 	if (exoid < 0) throw eGeneralFail;
@@ -331,7 +331,7 @@ void ExodusT::ReadConnectivities(int block_ID, GeometryT::CodeT& code,
 }
 
 void ExodusT::WriteConnectivities(int block_ID, GeometryT::CodeT code,
-	const iArray2DT& connects, const iArrayT* elem_map)
+	const iArray2DT& connects, const nArrayT<int>* elem_map)
 {
 	if (exoid < 0) throw eGeneralFail;
 
@@ -405,7 +405,7 @@ int ExodusT::NumNodesInSet(int set_ID) const
 	return num_nodes;
 }
 
-void ExodusT::ReadNodeSet(int set_ID, iArrayT& nodes) const
+void ExodusT::ReadNodeSet(int set_ID, nArrayT<int>& nodes) const
 {
 	if (exoid < 0) throw eGeneralFail;
 
@@ -422,7 +422,7 @@ void ExodusT::ReadNodeSet(int set_ID, iArrayT& nodes) const
 	}
 }
 
-void ExodusT::ReadNodeSets(const iArrayT& set_ID, iArrayT& nodes) const
+void ExodusT::ReadNodeSets(const nArrayT<int>& set_ID, nArrayT<int>& nodes) const
 {
 	/* get total number of nodes */
 	int num_nodes = 0;
@@ -434,7 +434,7 @@ void ExodusT::ReadNodeSets(const iArrayT& set_ID, iArrayT& nodes) const
 
 	/* read */
 	int count = 0;
-	iArrayT tmp;
+	nArrayT<int> tmp;
 	for (int j = 0; j < set_ID.Length(); j++)
 	{
 		tmp.Set(NumNodesInSet(set_ID[j]), nodes.Pointer(count));
@@ -443,7 +443,7 @@ void ExodusT::ReadNodeSets(const iArrayT& set_ID, iArrayT& nodes) const
 	}
 }
 
-void ExodusT::WriteNodeSet(int set_ID, const iArrayT& nodes) const
+void ExodusT::WriteNodeSet(int set_ID, const nArrayT<int>& nodes) const
 {
 	if (exoid < 0) throw eGeneralFail;
 
@@ -490,7 +490,7 @@ void ExodusT::ReadSideSet(int set_ID, int& block_ID, iArray2DT& sides) const
 			true);
 
 		/* convert to element block numbering */
-		iArrayT elements;
+		nArrayT<int> elements;
 		temp.RowAlias(0, elements);
 		GlobalToBlockElementNumbers(block_ID, elements);
 
@@ -503,7 +503,7 @@ void ExodusT::ReadSideSet(int set_ID, int& block_ID, iArray2DT& sides) const
 			true);	
 
 		/* convert facet numbering */
-		iArrayT facets;
+		nArrayT<int> facets;
 		temp.RowAlias(1, facets);
 		ConvertSideSetOut(type, facets);
 
@@ -540,12 +540,12 @@ void ExodusT::WriteSideSet(int set_ID, int block_ID, const iArray2DT& sides) con
 			true);
 
 		/* convert facet numbering */
-		iArrayT facets;
+		nArrayT<int> facets;
 		temp.RowAlias(1, facets);
 		ConvertSideSetIn(type, facets);
 	
 		/* convert to global numbering */
-		iArrayT elements;
+		nArrayT<int> elements;
 		temp.RowAlias(0, elements);
 		BlockToGlobalElementNumbers(block_ID, elements);
 	
@@ -783,12 +783,12 @@ if (num_info > MAX_INFO)
 * global element numbers are continuous within and between block
 * and that the order of blocks is set by the global number. side
 * sets may not include elements from more than one block */
-void ExodusT::GlobalToBlockElementNumbers(int& block_ID, iArrayT& elements) const
+void ExodusT::GlobalToBlockElementNumbers(int& block_ID, nArrayT<int>& elements) const
 {
 	int start_num = elements[0];
 	
 	/* get element block ID's */
-	iArrayT all_block_ID(num_elem_blk);
+	nArrayT<int> all_block_ID(num_elem_blk);
 	ex_get_elem_blk_ids(exoid, all_block_ID.Pointer());
 	
 	/* find element number offset */
@@ -826,10 +826,10 @@ void ExodusT::GlobalToBlockElementNumbers(int& block_ID, iArrayT& elements) cons
 	}
 }
 
-void ExodusT::BlockToGlobalElementNumbers(int block_ID, iArrayT& elements) const
+void ExodusT::BlockToGlobalElementNumbers(int block_ID, nArrayT<int>& elements) const
 {
 	/* get element block ID's */
-	iArrayT all_block_ID(num_elem_blk);
+	nArrayT<int> all_block_ID(num_elem_blk);
 	ex_get_elem_blk_ids(exoid, all_block_ID.Pointer());
 
 	/* find element number shift */
@@ -998,7 +998,7 @@ GeometryT::CodeT ExodusT::ToGeometryCode(const StringT& elem_name) const
 *************************************************************************/
 
 /* convert side set information to fe++ numbering convention */
-void ExodusT::ConvertSideSetOut(const char* elem_type, iArrayT& sides) const
+void ExodusT::ConvertSideSetOut(const char* elem_type, nArrayT<int>& sides) const
 {
 	if (strncmp(elem_type, "HEX", 3) == 0)
 	{
@@ -1015,7 +1015,7 @@ void ExodusT::ConvertSideSetOut(const char* elem_type, iArrayT& sides) const
 	}
 }
 
-void ExodusT::ConvertSideSetIn(const char* elem_type, iArrayT& sides) const
+void ExodusT::ConvertSideSetIn(const char* elem_type, nArrayT<int>& sides) const
 {
 	if (strncmp(elem_type, "HEX", 3) == 0)
 	{
@@ -1057,7 +1057,7 @@ start = 9;
 /* basically swapping last two sets of numbers, set length = dimension */
 if (convert)
 {
-iArrayT temp (2*dimension);
+nArrayT<int> temp (2*dimension);
 for (int i=0; i < conn.MajorDim(); i++)
 	{
 	  /* transfer to temp space */
@@ -1202,19 +1202,19 @@ bool ExodusT::Create(const StringT& filename, const StringT& title,
   return false; 
 }
 void ExodusT::Close(void) { throw eGeneralFail; }
-void ExodusT::ElementBlockID(iArrayT& ID) const { throw eGeneralFail; }
-void ExodusT::NodeSetID(iArrayT& ID) const { throw eGeneralFail; }
-void ExodusT::SideSetID(iArrayT& ID) const { throw eGeneralFail; }
+void ExodusT::ElementBlockID(nArrayT<int>& ID) const { throw eGeneralFail; }
+void ExodusT::NodeSetID(nArrayT<int>& ID) const { throw eGeneralFail; }
+void ExodusT::SideSetID(nArrayT<int>& ID) const { throw eGeneralFail; }
 void ExodusT::ReadCoordinates(dArray2DT& coords) const { throw eGeneralFail; }
-void ExodusT::WriteCoordinates(const dArray2DT& coords, const iArrayT* node_map) const { throw eGeneralFail; }
-void ExodusT::ReadNodeMap(iArrayT& node_map) const { throw eGeneralFail; }
+void ExodusT::WriteCoordinates(const dArray2DT& coords, const nArrayT<int>* node_map) const { throw eGeneralFail; }
+void ExodusT::ReadNodeMap(nArrayT<int>& node_map) const { throw eGeneralFail; }
 void ExodusT::ReadElementBlockDims(int block_ID, int& num_elems, int& num_elem_nodes) const { throw eGeneralFail; }
 void ExodusT::ReadConnectivities(int block_ID, GeometryT::CodeT& code, iArray2DT& connects) const { throw eGeneralFail; }
-void ExodusT::WriteConnectivities(int block_ID, GeometryT::CodeT code, const iArray2DT& connects, const iArrayT* elem_map) { throw eGeneralFail; }
+void ExodusT::WriteConnectivities(int block_ID, GeometryT::CodeT code, const iArray2DT& connects, const nArrayT<int>* elem_map) { throw eGeneralFail; }
 int ExodusT::NumNodesInSet(int set_ID) const { return 0; }
-void ExodusT::ReadNodeSet(int set_ID, iArrayT& nodes) const { throw eGeneralFail; }
-void ExodusT::ReadNodeSets(const iArrayT& set_ID, iArrayT& nodes) const { throw eGeneralFail; }
-void ExodusT::WriteNodeSet(int set_ID, const iArrayT& nodes) const { throw eGeneralFail; }
+void ExodusT::ReadNodeSet(int set_ID, nArrayT<int>& nodes) const { throw eGeneralFail; }
+void ExodusT::ReadNodeSets(const nArrayT<int>& set_ID, nArrayT<int>& nodes) const { throw eGeneralFail; }
+void ExodusT::WriteNodeSet(int set_ID, const nArrayT<int>& nodes) const { throw eGeneralFail; }
 int ExodusT::NumSidesInSet(int set_ID) const { return 0; }
 void ExodusT::ReadSideSet(int set_ID, int& block_ID, iArray2DT& sides) const { throw eGeneralFail; }
 void ExodusT::WriteSideSet(int set_ID, int block_ID, const iArray2DT& sides) const { throw eGeneralFail; }
@@ -1238,14 +1238,14 @@ void ExodusT::ReadElementVariable(int step, int block_ID, int index, dArrayT& fV
 void ExodusT::ReadGlobalVariable(int step, dArrayT& fValues) const { throw eGeneralFail; }
 void ExodusT::ReadQA(ArrayT<StringT>& qa_records) const { throw eGeneralFail; }
 void ExodusT::ReadInfo(ArrayT<StringT>& info_records) const { throw eGeneralFail; }
-void ExodusT::GlobalToBlockElementNumbers(int& block_ID, iArrayT& elements) const { throw eGeneralFail; }
-void ExodusT::BlockToGlobalElementNumbers(int block_ID, iArrayT& elements) const { throw eGeneralFail; }
+void ExodusT::GlobalToBlockElementNumbers(int& block_ID, nArrayT<int>& elements) const { throw eGeneralFail; }
+void ExodusT::BlockToGlobalElementNumbers(int block_ID, nArrayT<int>& elements) const { throw eGeneralFail; }
 void ExodusT::WriteQA(const ArrayT<StringT>& qa_records) const { throw eGeneralFail; }
 void ExodusT::WriteInfo(const ArrayT<StringT>& info_records) const { throw eGeneralFail; }
 void ExodusT::GetElementName(int elemnodes, GeometryT::CodeT code, StringT& elem_name, int& num_output_nodes) const { throw eGeneralFail; }
 GeometryT::CodeT ExodusT::ToGeometryCode(const StringT& elem_name) const { throw eGeneralFail; }
-void ExodusT::ConvertSideSetOut(const char* elem_type, iArrayT& sides) const { throw eGeneralFail; }
-void ExodusT::ConvertSideSetIn(const char* elem_type, iArrayT& sides) const { throw eGeneralFail; }
+void ExodusT::ConvertSideSetOut(const char* elem_type, nArrayT<int>& sides) const { throw eGeneralFail; }
+void ExodusT::ConvertSideSetIn(const char* elem_type, nArrayT<int>& sides) const { throw eGeneralFail; }
 void ExodusT::ConvertElementNumbering (iArray2DT& conn, int fcode) const { throw eGeneralFail; }
 void ExodusT::WriteLabels(const ArrayT<StringT>& labels, const char *type) const { throw eGeneralFail; }
 void ExodusT::ReadLabels(ArrayT<StringT>& labels, char *type) const { throw eGeneralFail; }
