@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.cpp,v 1.1.1.1.4.2 2001-06-19 18:27:48 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.cpp,v 1.1.1.1.4.3 2001-06-19 23:05:30 paklein Exp $ */
 /* created: paklein (09/10/1998)                                          */
 
 #include "MeshFreeShapeFunctionT.h"
@@ -13,6 +13,7 @@ MeshFreeShapeFunctionT::MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, i
 	const iArray2DT& connects, const iArrayT& nongridnodes,
 	const int& currelement, ifstreamT& in):
 	ShapeFunctionT(geometry_code, numIP, coords, kStandardB),
+	fMFSupport(NULL),
 	fCurrElement(currelement),
 	fDNaU(numIP),
 	fXConnects(connects)
@@ -26,7 +27,7 @@ MeshFreeShapeFunctionT::MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, i
 							nongridnodes, in);
 
 	if (!fMFSupport) throw eOutOfMemory;
-	
+
 	/* set as field shape function */
 	SetUShapeFunctions(fNaU, fDNaU);
 }
@@ -379,6 +380,11 @@ void MeshFreeShapeFunctionT::PrintAt(ostream& out) const
 }
 
 /* write MLS statistics */
+void MeshFreeShapeFunctionT::WriteParameters(ostream& out) const
+{
+	fMFSupport->WriteParameters(out);
+}
+
 void MeshFreeShapeFunctionT::WriteStatistics(ostream& out) const
 {
 	fMFSupport->WriteStatistics(out);

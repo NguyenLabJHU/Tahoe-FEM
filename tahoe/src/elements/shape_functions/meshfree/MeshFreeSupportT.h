@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.h,v 1.1.1.1.4.3 2001-06-19 18:27:49 paklein Exp $ */
+/* $Id: MeshFreeSupportT.h,v 1.1.1.1.4.4 2001-06-19 23:05:31 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #ifndef _MF_SUPPORT_T_H_
@@ -67,7 +67,7 @@ public:
 	const iArrayT& SkipElements(void) const;
 
 	/* read/write nodal meshfree parameters */
-	void SynchronizeNodalParameters(dArray2DT& nodal_params);
+	void SynchronizeSupportParameters(dArray2DT& nodal_params);
 	void SetNodalParameters(const iArrayT& node, const dArray2DT& nodal_params);
 	void GetNodalParameters(const iArrayT& node, dArray2DT& nodal_params) const;
 	const dArray2DT& NodalParameters(void) const;

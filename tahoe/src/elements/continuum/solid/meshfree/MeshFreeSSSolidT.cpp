@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.2.4.1 2001-06-19 18:27:47 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.2.4.2 2001-06-19 23:05:28 paklein Exp $ */
 /* created: paklein (09/11/1998)                                          */
 /* small strain elasticity with MLS shapefunctions for the                */
 /* field (displacement) representation                                    */
@@ -40,12 +40,12 @@ MeshFreeSSSolidT::MeshFreeSSSolidT(FEManagerT& fe_manager):
 /* data initialization */
 void MeshFreeSSSolidT::Initialize(void)
 {
-/* inherited */
-SolidT::Initialize();
+	/* inherited */
+	SolidT::Initialize();
 
-/* free memory associated with "other" eqnos */
-fEqnos.Free(); // is this OK ? can't be freed earlier b/c of
-// base class initializations
+	/* free memory associated with "other" eqnos */
+	fEqnos.Free(); // is this OK ? can't be freed earlier b/c of
+                   // base class initializations
 
 	/* register dynamic local arrays */
 	fLocGroup.Register(fLocDisp); // ContinuumElementT
@@ -311,16 +311,18 @@ void MeshFreeSSSolidT::PrintControlData(ostream& out) const
 /* initialization functions */
 void MeshFreeSSSolidT::SetShape(void)
 {
-/* constructors */
+	/* constructors */
 	fMFShapes = new MeshFreeShapeFunctionT(fGeometryCode, fNumIP,
 		fLocInitCoords, fNodes->InitialCoordinates(), fConnectivities, fOffGridNodes,
 		fElementCards.Position(), fFEManager.Input());
-
 	if (!fMFShapes) throw eOutOfMemory;
+	
+	/* echo parameters */
+	fMFShapes->WriteParameters(fFEManager.Output());
 	
 	/* initialize */
 	fMFShapes->Initialize();
-	
+
 	/* set base class pointer */
 	fShapes = fMFShapes;
 }

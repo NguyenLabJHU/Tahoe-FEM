@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.h,v 1.1.1.1.4.2 2001-06-19 18:27:49 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.h,v 1.1.1.1.4.3 2001-06-19 23:05:31 paklein Exp $ */
 /* created: paklein (09/10/1998)                                          */
 /* MLS shape functions for the displacement interpolation - for           */
 /* small strain or total Lagrangian finite deformation. DO NOT            */
@@ -83,7 +83,8 @@ public:
 	virtual void Print(ostream& out) const;
 	void PrintAt(ostream& out) const;
 
-	/* write MLS statistics */
+	/* write MLS information */
+	void WriteParameters(ostream& out) const;
 	void WriteStatistics(ostream& out) const;
 
 	/* blend FE/MLS shape functions for interpolant nodes */

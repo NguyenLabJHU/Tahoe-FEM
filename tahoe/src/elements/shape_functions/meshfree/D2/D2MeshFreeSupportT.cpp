@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.cpp,v 1.1.1.1.4.1 2001-06-19 18:27:51 paklein Exp $ */
+/* $Id: D2MeshFreeSupportT.cpp,v 1.1.1.1.4.2 2001-06-19 23:05:32 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupportT.h"
@@ -221,7 +221,7 @@ int D2MeshFreeSupportT::SetFieldAt(const dArrayT& x, AutoArrayT<int>& nodes)
 	{
 		/* dimension */
 		fcoords_man.SetMajorDimension(fneighbors.Length(), false);	
-		fnodal_param_man.Dimension(fneighbors.Length(), false);
+		fnodal_param_man.SetMajorDimension(fneighbors.Length(), false);
 	
 		/* collect local lists */
 		fcoords.RowCollect(nodes, fCoords);
@@ -335,7 +335,7 @@ void D2MeshFreeSupportT::ComputeNodalData(int node, const iArrayT& neighbors,
 {
 	/* set dimensions */
 	int count = neighbors.Length();
-	fnodal_param_man.Dimension(count, false);
+	fnodal_param_man.SetMajorDimension(count, false);
 	fcoords_man.SetMajorDimension(count, false);
 	
 	/* collect local lists */
@@ -384,7 +384,7 @@ void D2MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 	int nen = fConnects.MinorDim();
 
 	/* set dimensions */
-	fnodal_param_man.Dimension(nnd, false);
+	fnodal_param_man.SetMajorDimension(nnd, false);
 	fcoords_man.SetMajorDimension(nnd, false);
 	fvolume_man.SetLength(nnd, false);
 
