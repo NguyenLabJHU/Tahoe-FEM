@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.17.2.1 2001-10-02 20:54:25 sawimme Exp $ */
+/* $Id: FEManagerT.cpp,v 1.17.2.2 2001-10-04 20:43:02 sawimme Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
@@ -23,8 +23,8 @@
 #include "FDNodeManager.h"
 #include "DynNodeManager.h"
 #include "FDDynNodeManagerT.h"
-#include "VariFDNodesT.h"
-#include "VariFDDynNodesT.h"
+//#include "VariFDNodesT.h"
+//#include "VariFDDynNodesT.h"
 #include "DuNodeManager.h"
 
 /* controllers */
@@ -722,7 +722,7 @@ int FEManagerT::AddNode(const ArrayT<LocalArrayT::TypeT>& types,
 	//could use RTTI here
 	switch (fAnalysisCode)
 	{
-		case GlobalT::kVarNodeNLStatic:
+	  /*case GlobalT::kVarNodeNLStatic:
 		{
 			VariFDNodesT* pnodes = (VariFDNodesT*) fNodeManager;
 			return  pnodes->AddNode(types,values);
@@ -733,7 +733,7 @@ int FEManagerT::AddNode(const ArrayT<LocalArrayT::TypeT>& types,
 			VariFDDynNodesT* pnodes = (VariFDDynNodesT*) fNodeManager;
 			return pnodes->AddNode(types,values);
 			break;
-		}
+			}*/
 		default:
 		
 			cout << "\n FEManagerT::AddNode: incorrect analysis code: ";
@@ -985,7 +985,7 @@ void FEManagerT::SetNodeManager(void)
 			fNodeManager = new FDDynNodeManagerT(*this);
 			break;
 
-		case GlobalT::kVarNodeNLStatic:
+			/*case GlobalT::kVarNodeNLStatic:
 		
 			fNodeManager = new VariFDNodesT(*this);
 			break;
@@ -993,7 +993,7 @@ void FEManagerT::SetNodeManager(void)
 		case GlobalT::kVarNodeNLExpDyn:
 		
 			fNodeManager = new VariFDDynNodesT(*this);
-			break;
+			break;*/
 
 		default:
 
