@@ -1,13 +1,11 @@
-/* $Id: AugLagSphereT.h,v 1.7 2003-04-07 17:25:48 cjkimme Exp $ */
+/* $Id: AugLagSphereT.h,v 1.8 2003-10-04 19:14:05 paklein Exp $ */
 /* created: paklein (03/24/1999) */
-
 #ifndef _AUGLAG_SPHERE_T_H_
 #define _AUGLAG_SPHERE_T_H_
 
 /* base classes */
 #include "PenaltySphereT.h"
 #include "DOFElementT.h"
-
 
 namespace Tahoe {
 
@@ -21,7 +19,7 @@ public:
 
 	/* constructor */
 	AugLagSphereT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes, 
-		const FieldT& field, const dArray2DT& coords);
+		const FieldT& field, const dArray2DT& coords, const dArray2DT& disp);
 
 	/* initialize data */
 	virtual void Initialize(void);

@@ -1,4 +1,4 @@
-/* $Id: PenaltyCylinderT.h,v 1.1 2003-09-12 18:10:22 paklein Exp $ */
+/* $Id: PenaltyCylinderT.h,v 1.2 2003-10-04 19:14:05 paklein Exp $ */
 #ifndef _PENALTY_CYLINDER_T_H_
 #define _PENALTY_CYLINDER_T_H_
 
@@ -17,13 +17,10 @@ public:
 
 	/** constructor */
 	PenaltyCylinderT(FEManagerT& fe_manager, int group, const iArray2DT& eqnos, 
-		const dArray2DT& coords, const dArray2DT* vels);
+		const dArray2DT& coords, const dArray2DT& disp, const dArray2DT* vels);
 
 	/** input processing */
 	virtual void EchoData(ifstreamT& in, ostream& out);
-
-	/** initialize data */
-	virtual void Initialize(void);
 
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -52,9 +49,6 @@ protected:
 	
 	/** cylinder direction */
 	dArrayT fDirection;
-	
-	/** center to striker distances */
-	dArrayT	fDistances;
 	
 	/** \name workspace */
 	/*@{*/

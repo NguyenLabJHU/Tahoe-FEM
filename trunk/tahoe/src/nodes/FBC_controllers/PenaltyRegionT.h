@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.h,v 1.5 2002-07-05 22:28:30 paklein Exp $ */
+/* $Id: PenaltyRegionT.h,v 1.6 2003-10-04 19:14:05 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #ifndef _PENALTY_REGION_T_H_
@@ -37,7 +37,7 @@ public:
 
 	/* constructor */
 	PenaltyRegionT(FEManagerT& fe_manager, int group, const iArray2DT& eqnos,
-		const dArray2DT& coords, const dArray2DT* vels);
+		const dArray2DT& coords, const dArray2DT& displ, const dArray2DT* vels);
 
 	/* input processing */
 	virtual void EchoData(ifstreamT& in, ostream& out);
@@ -71,8 +71,14 @@ public:
 	/* reset displacements (and configuration to the last known solution) */
 	virtual void Reset(void);
 
-	/* writing results */
+	/** \name writing results */
+	/*@{*/
+	/** register data for output */
+	virtual void RegisterOutput(void);
+
+	/** write results */
 	virtual void WriteOutput(ostream& out) const;
+	/*@}*/
 
 private:
 
@@ -85,6 +91,7 @@ protected:
 	/*@{*/
 	const iArray2DT& rEqnos;  /**< nodal equation numbers */
 	const dArray2DT& rCoords; /**< nodal coordinates */
+	const dArray2DT& rDisp;   /**< nodal displacement */
 	const dArray2DT* pVels;   /**< nodal velocities */
 	/*@}*/
 
@@ -101,7 +108,6 @@ protected:
 
 	/** \name state variables */
 	/*@{*/
-	double  fh_max; /**< maximum penetration distance */
 	dArrayT fx;     /**< position */
 	dArrayT fv;     /**< velocity */
 	dArrayT fxlast; /**< last converged position */
@@ -112,12 +118,28 @@ protected:
 	/*@{*/
 	iArrayT fContactNodes;
 	iArrayT fContactEqnos;
-	dArrayT fContactForce;     /**< shallow version of fContactForce2D */
-	dArray2DT fContactForce2D; /**< dArray2DT copy of the force */
+
+	/** shallow version of PenaltyRegionT::fContactForce2D */
+	dArrayT fContactForce;
+
+	/** array of signed gaps where gap < 0.0 implies contact */
+	dArrayT fGap;
+
+	/** dArray2DT copy of the force */
+	dArray2DT fContactForce2D;
 	/*@}*/
 
 	/* workspace */
 	dArrayT fTempNumNodes; // temp space length = fNumContactNodes
+
+	/** \name writing results */
+	/*@{*/	
+	/** output ID */
+	int fOutputID;
+	
+	/** "connectivities" for output, just alias of PenaltyRegionT::fContactNodes */
+	iArray2DT fContactNodes2D;
+	/*@}*/	
 };
 
 } // namespace Tahoe 

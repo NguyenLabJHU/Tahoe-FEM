@@ -1,6 +1,5 @@
-/* $Id: PenaltyRegionT.cpp,v 1.12 2003-08-23 20:08:57 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.13 2003-10-04 19:14:05 paklein Exp $ */
 /* created: paklein (04/30/1998) */
-
 #include "PenaltyRegionT.h"
 
 #include <math.h>
@@ -17,6 +16,7 @@
 #include "ScheduleT.h"
 #include "eIntegratorT.h"
 #include "IOBaseT.h"
+#include "OutputSetT.h"
 
 using namespace Tahoe;
 
@@ -27,12 +27,14 @@ PenaltyRegionT::PenaltyRegionT(FEManagerT& fe_manager,
 	int group,
 	const iArray2DT& eqnos,
 	const dArray2DT& coords,
+	const dArray2DT& disp,
 	const dArray2DT* vels):
 	FBC_ControllerT(fe_manager, group),
 	
 	/* references to NodeManagerT data */
 	rEqnos(eqnos),
 	rCoords(coords),
+	rDisp(disp),
 	pVels(vels),
 	
 	/* wall parameters */
@@ -42,11 +44,11 @@ PenaltyRegionT::PenaltyRegionT(FEManagerT& fe_manager,
 	fLTf(NULL),
 
 	/* state variables */
-	fh_max(0.0),
 	fx(rCoords.MinorDim()),
 	fv(rCoords.MinorDim()),
 	fxlast(rCoords.MinorDim()),
-	fvlast(rCoords.MinorDim())
+	fvlast(rCoords.MinorDim()),
+	fOutputID(-1)
 {
 
 }
@@ -143,27 +145,11 @@ void PenaltyRegionT::EchoData(ifstreamT& in, ostream &out)
 	/* write contact nodes */
 	out << " Number of contact nodes . . . . . . . . . . . . = "
 	    << fNumContactNodes << endl;	
-	if (fFEManager.PrintInput())
-		switch (fFEManager.OutputFormat())
-		{
-			case IOBaseT::kTahoe:
-			case IOBaseT::kTecPlot:
-			case IOBaseT::kEnSight:
-			case IOBaseT::kEnSightBinary:
-			case IOBaseT::kExodusII:
-			
-				
-				fContactNodes++;
-				out << fContactNodes.wrap(6) << '\n';
-				fContactNodes--;				
-				break;
-	
-			default:
-
-				cout << "\n PenaltyRegionT::EchoData: unsupported output format: ";
-				cout << fFEManager.OutputFormat() << endl;
-				throw ExceptionT::kGeneralFail;
-		}
+	if (fFEManager.PrintInput()) {
+		fContactNodes++;
+		out << fContactNodes.wrap(6) << '\n';
+		fContactNodes--;				
+	}	
 }
 
 /* initialize data */
@@ -177,6 +163,10 @@ void PenaltyRegionT::Initialize(void)
 	fContactForce2D.Dimension(fNumContactNodes,numDOF);
 	fContactForce.Set(fNumContactNodes*numDOF, fContactForce2D.Pointer());
 	fContactForce2D = 0.0; // will be generate impulse at ApplyPreSolve
+
+	/* allocate space to store gaps (for output) */
+	fGap.Dimension(fNumContactNodes);
+	fGap = 0.0;
 }
 
 /* form of tangent matrix */
@@ -281,14 +271,41 @@ void PenaltyRegionT::Reset(void)
 	fv = fvlast;
 }
 
+/* register data for output */
+void PenaltyRegionT::RegisterOutput(void)
+{
+	/* initialize connectivities */
+	fContactNodes2D.Alias(fContactNodes.Length(), 1, fContactNodes.Pointer());
+	
+	/* output labels */
+	int ndof = rEqnos.MinorDim();
+	int num_output = ndof + /* displacements */
+	                 ndof + /* force */
+	                 1;     /* penetration depth */
+	ArrayT<StringT> n_labels(num_output);
+	const char* d_labels[] = {"D_X", "D_Y", "D_Z"};
+	const char* f_labels[] = {"F_X", "F_Y", "F_Z"};
+	int index = 0;
+	for (int i = 0; i < ndof; i++)
+		n_labels[index++] = d_labels[i];
+	for (int i = 0; i < ndof; i++)
+		n_labels[index++] = f_labels[i];
+	n_labels[index] = "h";
+	
+	/* register output */
+	OutputSetT output_set(GeometryT::kPoint, fContactNodes2D, n_labels);
+	fOutputID = fFEManager.RegisterOutput(output_set);
+}
+
 /* writing results */
 void PenaltyRegionT::WriteOutput(ostream& out) const
 {
 	int d_width = out.precision() + kDoubleExtra;
 
+	double h_max = fGap.Min();
 	out << "\n P e n a l t y   R e g i o n   D a t a :\n\n";
 	out << " Maximum penetration. . . . . . . . . . . . =\n"
-	    << setw(d_width) << fh_max << '\n';
+	    << setw(d_width) << h_max << '\n';
 	out << " Position . . . . . . . . . . . . . . . . . =\n" << fx << '\n';
 	out << " Velocity . . . . . . . . . . . . . . . . . =\n" << fv << '\n';
 	
@@ -296,4 +313,29 @@ void PenaltyRegionT::WriteOutput(ostream& out) const
 	out << " Contact force:\n";
 	for (int i = 0; i < rCoords.MinorDim(); i++)
 		out << setw(kDoubleWidth) << -fContactForce2D.ColumnSum(i) << '\n';
+
+	/* collect output data */
+	int ndof = rEqnos.MinorDim();
+	int num_output = ndof + /* displacements */
+	                 ndof + /* force */
+	                 1;     /* penetration depth */
+	dArray2DT n_values(fContactNodes.Length(), num_output);
+	dArray2DT n_disp(fContactNodes.Length(), ndof);
+
+	/* collect displacements */
+	int index = 0;
+	n_disp.RowCollect(fContactNodes, rDisp);
+	for (int i = 0; i < ndof; i++)
+		n_values.ColumnCopy(index++, n_disp, i);
+
+	/* collect the forces */
+	for (int i = 0; i < ndof; i++)
+		n_values.ColumnCopy(index++, fContactForce2D, i);	
+
+	/* collect gaps */
+	n_values.SetColumn(index, fGap);
+
+	/* send output */
+	dArray2DT e_values;
+	fFEManager.WriteOutput(fOutputID, n_values, e_values);
 }

@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.10 2003-08-18 03:44:36 paklein Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.11 2003-10-04 19:14:05 paklein Exp $ */
 /* created: paklein (02/25/1997) */
 #include "PenaltyWallT.h"
 
@@ -22,8 +22,9 @@ PenaltyWallT::PenaltyWallT(FEManagerT& fe_manager,
 	int group,
 	const iArray2DT& eqnos,
 	const dArray2DT& coords,
+	const dArray2DT& disp,
 	const dArray2DT* vels):
-	PenaltyRegionT(fe_manager, group, eqnos, coords, vels),
+	PenaltyRegionT(fe_manager, group, eqnos, coords, disp, vels),
 
 	/* wall normal and tangents */	
 	fnormal(rCoords.MinorDim()),
@@ -176,6 +177,9 @@ void PenaltyWallT::ComputeContactForce(double kforce)
 				
 				fContactForce2D.SetRow(i,fxyforce);
 			}
+			
+			/* store gap */
+			fGap[i] = normal_comp;
 		}
 	}
 	else
@@ -186,7 +190,6 @@ void PenaltyWallT::ComputeContactForce(double kforce)
 			fp_i.AddToRowScaled(j, -1.0, fx);
 	
 		/* compute contact forces */
-		fh_max = 0.0;
 		fntforce = 0.0;
 		fContactForce2D = 0.0;	
 		for (int i = 0; i < fNumContactNodes; i++)
@@ -196,9 +199,6 @@ void PenaltyWallT::ComputeContactForce(double kforce)
 			/* penetration */
 			if (normal_comp < 0.0)
 			{
-				/* store max penetration */
-				fh_max = (-normal_comp > fh_max) ? -normal_comp : fh_max;
-			
 				/* normal force */
 				fntforce[0] =-fk*normal_comp*kforce;		
 		
@@ -207,6 +207,9 @@ void PenaltyWallT::ComputeContactForce(double kforce)
 				
 				fContactForce2D.SetRow(i, fxyforce);
 			}
+
+			/* store gap */
+			fGap[i] = normal_comp;
 		}
 	}
 }
