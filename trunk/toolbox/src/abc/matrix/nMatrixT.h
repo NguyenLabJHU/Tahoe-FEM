@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.21 2003-06-09 06:05:50 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.22 2003-08-23 05:31:46 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _NMATRIX_T_H_
 #define _NMATRIX_T_H_
@@ -80,6 +80,7 @@ public:
 	/*@{*/
 	void AddBlock(int row, int col, const nMatrixT<nTYPE>& block);
 	void SetBlock(int row, int col, const nMatrixT<nTYPE>& block);
+
 	void CopyBlock(int row, int col, nMatrixT<nTYPE>& block) const;
 	void CopyBlock(const ArrayT<int>& rc, nMatrixT<nTYPE>& block) const; //block must be square
 	void CopyBlock(const ArrayT<int>& r, const ArrayT<int>& c, nMatrixT<nTYPE>& block) const;
@@ -164,11 +165,15 @@ public:
 	/** vector-matrix-vector product */
 	nTYPE MultmBn(const nArrayT<nTYPE>& m, const nArrayT<nTYPE>& n) const;
 	   		
-	/** dyadic product
+	/** \name dyadic product
 	 * Set this to the the outer product of the two vectors, or
 	 * in dyadic notation \f$ \mathbf{v}_1 \otimes \mathbf{v}_2 \f$. */
+	/*@{*/
 	void Outer(const nArrayT<nTYPE>& v1, const nArrayT<nTYPE>& v2, 
 		const nTYPE& scale = nTYPE(1.0), int fillmode = kOverwrite);
+	void Outer(const nTYPE* v1, const nTYPE* v2, 
+		const nTYPE& scale = nTYPE(1.0), int fillmode = kOverwrite);
+	/*@}*/
 
 	/** \name identity operations
 	 * For use with square matrices \e only */
@@ -1559,7 +1564,7 @@ nTYPE nMatrixT<nTYPE>::MultmBn(const nArrayT<nTYPE>& m,
 
 /* dyadic product */
 template <class nTYPE>
-void nMatrixT<nTYPE>::Outer(const nArrayT<nTYPE>& v1, const nArrayT<nTYPE>& v2,
+inline void nMatrixT<nTYPE>::Outer(const nArrayT<nTYPE>& v1, const nArrayT<nTYPE>& v2,
 	const nTYPE& scale, int fillmode)
 {
 	/* dimension checks */
@@ -1567,44 +1572,117 @@ void nMatrixT<nTYPE>::Outer(const nArrayT<nTYPE>& v1, const nArrayT<nTYPE>& v2,
 	if (v1.Length() != fRows || v2.Length() != fCols) throw ExceptionT::kSizeMismatch;
 #endif
 
+	/* inherited */
+	nMatrixT<nTYPE>::Outer(v1.Pointer(), v2.Pointer(), scale, fillmode);
+}
+
+template <class nTYPE>
+void nMatrixT<nTYPE>::Outer(const nTYPE* v1, const nTYPE* v2, const nTYPE& scale, int fillmode)
+{
 	if (fillmode == kOverwrite)
 	{
-		nTYPE* pthis = Pointer();
-		nTYPE* pv1 = v1.Pointer();
-		nTYPE* pv2 = v2.Pointer();
-		for (int j = 0; j < fCols; j++)
+		if (fCols == 2 && fRows == 2)
 		{
-			nTYPE* pcol = pv1;
-			for (int i = 0; i < fRows; i++)
+			nTYPE* v1v2 = Pointer();
+			nTYPE v10 = scale*v1[0];
+			nTYPE v11 = scale*v1[1];
+
+			v1v2[0] = v10*v2[0];
+			v1v2[1] = v11*v2[0];
+			v1v2[2] = v10*v2[1];
+			v1v2[3] = v11*v2[1];
+		}
+		else if (fCols == 3 && fRows == 3)
+		{
+			nTYPE* v1v2 = Pointer();
+			nTYPE v10 = scale*v1[0];
+			nTYPE v11 = scale*v1[1];
+			nTYPE v12 = scale*v1[2];
+
+			v1v2[0] = v10*v2[0];
+			v1v2[1] = v11*v2[0];
+			v1v2[2] = v12*v2[0];
+
+			v1v2[3] = v10*v2[1];
+			v1v2[4] = v11*v2[1];
+			v1v2[5] = v12*v2[1];
+
+			v1v2[6] = v10*v2[2];
+			v1v2[7] = v11*v2[2];
+			v1v2[8] = v12*v2[2];
+		}
+		else
+		{
+			nTYPE* pthis = Pointer();
+			const nTYPE* pv1 = v1;
+			const nTYPE* pv2 = v2;
+			for (int j = 0; j < fCols; j++)
 			{
-				*pthis    = scale;
-				*pthis   *= *pcol++;
-				*pthis++ *= *pv2;
+				const nTYPE* pcol = pv1;
+				for (int i = 0; i < fRows; i++)
+				{
+					*pthis    = scale;
+					*pthis   *= *pcol++;
+					*pthis++ *= *pv2;
+				}
+				pv2++;
 			}
-			pv2++;
 		}
 	}
 	else if (fillmode == kAccumulate)
 	{
-		nTYPE* pthis = Pointer();
-		nTYPE* pv1 = v1.Pointer();
-		nTYPE* pv2 = v2.Pointer();
-		register nTYPE temp;
-		for (int j = 0; j < fCols; j++)
+		if (fCols == 2 && fRows == 2)
 		{
-			nTYPE* pcol = pv1;
-			for (int i = 0; i < fRows; i++)
+			nTYPE* v1v2 = Pointer();
+			nTYPE v10 = scale*v1[0];
+			nTYPE v11 = scale*v1[1];
+
+			v1v2[0] += v10*v2[0];
+			v1v2[1] += v11*v2[0];
+			v1v2[2] += v10*v2[1];
+			v1v2[3] += v11*v2[1];
+		}
+		else if (fCols == 3 && fRows == 3)
+		{
+			nTYPE* v1v2 = Pointer();
+			nTYPE v10 = scale*v1[0];
+			nTYPE v11 = scale*v1[1];
+			nTYPE v12 = scale*v1[2];
+
+			v1v2[0] += v10*v2[0];
+			v1v2[1] += v11*v2[0];
+			v1v2[2] += v12*v2[0];
+
+			v1v2[3] += v10*v2[1];
+			v1v2[4] += v11*v2[1];
+			v1v2[5] += v12*v2[1];
+
+			v1v2[6] += v10*v2[2];
+			v1v2[7] += v11*v2[2];
+			v1v2[8] += v12*v2[2];
+		}
+		else
+		{
+			nTYPE* pthis = Pointer();
+			const nTYPE* pv1 = v1;
+			const nTYPE* pv2 = v2;
+			register nTYPE temp;
+			for (int j = 0; j < fCols; j++)
 			{
-				temp  = scale;
-				temp *= *pcol++;
-				temp *= *pv2;
+				const nTYPE* pcol = pv1;
+				for (int i = 0; i < fRows; i++)
+				{
+					temp  = scale;
+					temp *= *pcol++;
+					temp *= *pv2;
 				
-				*pthis++ += temp;
+					*pthis++ += temp;
+				}
+				pv2++;
 			}
-			pv2++;
 		}
 	}
-	else ExceptionT::GeneralFail();
+	else ExceptionT::GeneralFail("nMatrixT<nTYPE>::Outer");
 }
 
 /* identity operations - square matrices ONLY */
