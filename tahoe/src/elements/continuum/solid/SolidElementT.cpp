@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.43 2003-03-11 08:14:35 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.43.6.1 2003-05-12 16:29:05 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -36,7 +36,8 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	fLocTemp(NULL),
 	fLocTemp_last(NULL),
 	fStress(NumSD()),
-	fD(dSymMatrixT::NumValues(NumSD()))
+	fD(dSymMatrixT::NumValues(NumSD())),
+	fStoreInternalForce(false)
 {
 	/* check base class initializations */
 	if (NumDOF() != NumSD()) throw ExceptionT::kGeneralFail;
@@ -143,9 +144,6 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 			/* global shape function values */
 			SetGlobalShape();
 
-			/* compute strain and B matricies */
-			//SetDeformation();
-	
 			/* internal force contribution */	
 			if (formKd) FormKd(constKd);
 
@@ -289,6 +287,22 @@ void SolidElementT::SendOutput(int kincode)
 	ComputeOutput(n_counts, n_values, e_counts, e_values);
 }
 
+/* contribution to the nodal residual forces */
+const dArray2DT& SolidElementT::InternalForce(int group)
+{
+	const char caller[] = "SolidElementT::InternalForce";
+
+	/* check */
+	if (group != Group())
+		ExceptionT::GeneralFail(caller, "expecting solver group %d not %d", 
+			Group(), group);
+			
+	/* must be storing force */
+	if (!fStoreInternalForce)
+		ExceptionT::GeneralFail(caller, "internal force not being stored");
+			
+	return fForce;
+}
 
 /***********************************************************************
 * Protected
@@ -855,6 +869,13 @@ void SolidElementT::ElementRHSDriver(void)
 			temperature->RegisterSource(fBlockData[i].ID(), fIncrementalHeat[i]);
 		}
 	}
+	
+	/* storage for entire internal force */
+	if (fStoreInternalForce) {
+		fForce.Dimension(ElementSupport().NumNodes(), NumDOF());
+		fForce = 0.0;	
+	} else 
+		fForce.Dimension(0, NumDOF());
 
 	/* set components and weights */
 	double constMa = 0.0;
@@ -893,9 +914,6 @@ void SolidElementT::ElementRHSDriver(void)
 		/* global shape function values */
 		SetGlobalShape();
 		
-		/* compute strain and B matricies */
-		//SetDeformation();
-			
 		/* internal force contribution */	
 		if (formKd) FormKd(-constKd);
 				
@@ -918,12 +936,29 @@ void SolidElementT::ElementRHSDriver(void)
 		if (temperature)
 			fIncrementalHeat[block_dex].SetRow(block_count, fElementHeat);
 
-		/* assemble */
-		AssembleRHS();
+		/* global assembly */
+		if (fStoreInternalForce) 
+		{
+			double* pRHS = fRHS.Pointer();
+			int ndof = NumDOF();
+			const iArrayT& nodes_u = CurrentElement().NodesU();
+			for (int i = 0; i < nodes_u.Length(); i++) 
+			{
+				double* pForce = fForce(nodes_u[i]);
+				for (int j = 0; j < ndof; j++)
+					*pForce++ += *pRHS++;
+			}
+		}
+		else /* assemble element-by-element */
+			AssembleRHS();
 		
 		/* next block */
 		block_count++;
 	}
+	
+	/* assemble all at once */
+	if (fStoreInternalForce)
+		ElementSupport().AssembleRHS(Group(), fForce, Field().Equations());
 }
 
 /* current element operations */
