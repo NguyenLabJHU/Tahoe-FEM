@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.26 2003-09-02 07:03:06 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.27 2003-09-03 23:45:18 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -69,7 +69,8 @@ CSEBaseT::CSEBaseT(const ElementSupportT& support):
 	fLocInitCoords1(LocalArrayT::kInitCoords),
 	fLocCurrCoords(LocalArrayT::kCurrCoords),
 	fFractureArea(0.0),
-	fShapes(NULL)
+	fShapes(NULL),
+	fNumIntPts(-1)
 {
 	SetName("CSE_base");	
 }
@@ -80,7 +81,8 @@ CSEBaseT::CSEBaseT(ElementSupportT& support):
 	fLocInitCoords1(LocalArrayT::kInitCoords),
 	fLocCurrCoords(LocalArrayT::kCurrCoords),
 	fFractureArea(0.0),
-	fShapes(NULL)
+	fShapes(NULL),
+	fNumIntPts(-1)	
 {
 	SetName("CSE_base");
 
