@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.h,v 1.3 2004-12-20 19:44:51 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.h,v 1.4 2005-02-25 03:22:40 cfoster Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_CF_T_H_
 #define _SMALL_STRAIN_ENH_LOC_CF_T_H_
 
@@ -50,7 +50,7 @@ class SSMatSupportT;
 	  SubListT& sub_lists) const; */
 
 	/** return the description of the given inline subordinate parameter list */
-//virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+	//virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
@@ -62,13 +62,8 @@ class SSMatSupportT;
 
 protected:
 
-	/** strain-displacement options. */
-	enum StrainOptionT {kStandardB = 0, /**< standard strain-displacement matrix */
-	                  kMeanDilBbar = 1  /**< mean dilatation for near incompressibility */ };
-
-	/** indicies of elements in the list of material needs */
-	enum MaterialNeedsT {kstrain = 0,
-	                kstrain_last = 1};
+    /* Currently NewMaterialSupport and NewMaterialList call subroutines from SmallStrainT.
+	Consider removing them if there is no reason to keep */
 
 	/** construct a new material support and return a pointer. Recipient is responsible for
 	 * for freeing the pointer.
@@ -106,12 +101,12 @@ protected:
 	double fLocalizedFrictionCoeff;
 	double fJumpIncrement;
 	dMatrixT fInitialModulus;
-
+	ArrayT<dSymMatrixT> fStress_List;
 
 	/** driver for calculating output values */
 	/* Used to check localization - is there a more appropriate fn? */
-	/*virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
-				   const iArrayT& e_codes, dArray2DT& e_values); */
+	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+				   const iArrayT& e_codes, dArray2DT& e_values); 
   public:
 	virtual void CloseStep(void);
   protected:
@@ -123,41 +118,17 @@ protected:
 	void ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipDirs);
 	dArrayT Centroid();
 
-#if 0
-	/** offset to material needs */
-	int fNeedsOffset; //NOTE - better to have this or a separate array?
-  
-	/** form of B matrix */
-	StrainOptionT fStrainDispOpt;
-  
-  	/** \name return values */
-	/*@{*/
-  	ArrayT<dSymMatrixT> fStrain_List;
-  	ArrayT<dSymMatrixT> fStrain_last_List;
-	/*@}*/
-  	
-  	/** \name work space */
-  	/*@{*/
-  	dMatrixT fGradU;
-  	dArrayT fLocDispTranspose; /**< used for B-bar method */
-	dArray2DT fMeanGradient;   /**< store mean shape function gradient */
-  	/*@}*/
-
-  	/** the material support used to construct materials lists. This pointer
-  	 * is only set the first time SSEnhLocCraigT::NewMaterialList is called. */
-	SSMatSupportT* fSSMatSupport;
-
-#endif
-
 };
 
-#if 0
+/* These are conforming strains. Change to regular strains? */
 
 /* inlines */
+#if 0
 
 inline const dSymMatrixT& SSEnhLocCraigT::LinearStrain(void) const
 {
-#if __option(extended_errorcheck)
+#if 0 
+	//__option(extended_errorcheck)
 	/* check need */
 	int mat_num = CurrentElement().MaterialNumber();
 	const ArrayT<bool>& needs = fMaterialNeeds[mat_num];
@@ -172,7 +143,8 @@ inline const dSymMatrixT& SSEnhLocCraigT::LinearStrain(void) const
 
 inline const dSymMatrixT& SSEnhLocCraigT::LinearStrain(int ip) const
 {
-#if __option(extended_errorcheck)
+#if 0
+//__option(extended_errorcheck)
 	/* check need */
 	int mat_num = CurrentElement().MaterialNumber();
 	const ArrayT<bool>& needs = fMaterialNeeds[mat_num];
@@ -187,7 +159,8 @@ inline const dSymMatrixT& SSEnhLocCraigT::LinearStrain(int ip) const
 
 inline const dSymMatrixT& SSEnhLocCraigT::LinearStrain_last(void) const
 {
-#if __option(extended_errorcheck)
+#if 0
+//__option(extended_errorcheck)
 	/* check need */
 	int mat_num = CurrentElement().MaterialNumber();
 	const ArrayT<bool>& needs = fMaterialNeeds[mat_num];
@@ -202,7 +175,8 @@ inline const dSymMatrixT& SSEnhLocCraigT::LinearStrain_last(void) const
 
 inline const dSymMatrixT& SSEnhLocCraigT::LinearStrain_last(int ip) const
 {
-#if __option(extended_errorcheck)
+#if 0 
+//__option(extended_errorcheck)
 	/* check need */
 	int mat_num = CurrentElement().MaterialNumber();
 	const ArrayT<bool>& needs = fMaterialNeeds[mat_num];

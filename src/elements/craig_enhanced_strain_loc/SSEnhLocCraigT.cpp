@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.4 2005-02-08 22:44:49 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.5 2005-02-25 03:22:40 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -46,17 +46,8 @@ void SSEnhLocCraigT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	SmallStrainT::DefineParameters(list);
 
-	/* strain-displacement relation */
 
-	/*
-	ParameterT strain_displacement(ParameterT::Enumeration, "strain_displacement");
-	strain_displacement.AddEnumeration("standard", kStandardB);
-    strain_displacement.AddEnumeration("B-bar", kMeanDilBbar);
-    strain_displacement.SetDefault(kStandardB);
-	list.AddParameter(strain_displacement);
-	*/
-
-	/*ADD PARAMETERS FOR ENHANCED STRAIN HERE */
+	/*PARAMETERS FOR ENHANCED STRAIN*/
 	list.AddParameter(fH_Delta, "Post-Localization_softening_parameter_H_Delta"); 
 	list.AddParameter(fNoBandDilation, "Disallow_Dilation_on_Band");
 	list.AddParameter(fLocalizedFrictionCoeff, "Localized_Friction_Coefficient");
@@ -73,59 +64,12 @@ void SSEnhLocCraigT::DefineSubs(SubListT& sub_list) const
 	//sub_list.AddSub("small_strain_enh_loc_craig_element_block", ParameterListT::OnePlus);
 }
 
-
-#if 0
-
-/* return the description of the given inline subordinate parameter list */
-ParameterInterfaceT* SSEnhLocCraigT::NewSub(const StringT& name) const
-{
-
-
-
-	if (name == "small_strain_enh_loc_craig_element_block")
-	{
-		ParameterContainerT* block = new ParameterContainerT(name);
-		
-		/* list of element block ID's (defined by ElementBaseT) */
-		block->AddSub("block_ID_list", ParameterListT::Once);
-	
-		/* choice of materials lists (inline) */
-		block->AddSub("small_strain_enh_loc_craig_material_choice", ParameterListT::Once, true);
-	
-		/* set this as source of subs */
-		block->SetSubSource(this);
-		
-		return block;
-	}
-	else /* inherited */
-		return SolidElementT::NewSub(name);
-}
-
-/* return the description of the given inline subordinate parameter list. */
-void SSEnhLocCraigT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
-	SubListT& sub_lists) const
-{
-	if (name == "small_strain_enh_loc_craig_material_choice")
-	{
-		order = ParameterListT::Choice;
-		
-		/* list of choices */
-		sub_lists.AddSub("small_strain_material_1D");
-		sub_lists.AddSub("small_strain_material_2D");
-		sub_lists.AddSub("small_strain_material_3D");
-	}
-	else /* inherited */
-		SolidElementT::DefineInlineSub(name, order, sub_lists);
-}
-
-#endif
-
 void SSEnhLocCraigT::TakeParameterList(const ParameterListT& list)
 {
 	
 	SmallStrainT::TakeParameterList(list);
 
-	/*ADD PARAMETERS FOR ENHACED STRAIN HERE */
+	/*PARAMETERS FOR ENHANCED STRAIN*/
 	fH_Delta = list.GetParameter("Post-Localization_softening_parameter_H_Delta"); 
 	fNoBandDilation = list.GetParameter("Disallow_Dilation_on_Band");
 	fLocalizedFrictionCoeff = list.GetParameter("Localized_Friction_Coefficient");
@@ -135,74 +79,6 @@ void SSEnhLocCraigT::TakeParameterList(const ParameterListT& list)
 	//can't initialize this here fCurrMaterial not set
 	fInitialModulus = 0.0;
 
-#if 0
-
-  const char caller[] = "SSEnhLocCraigT::TakeParameterList";
-
-	/* strain displacement option before calling SolidElementT::TakeParameterList */
-	int b = list.GetParameter("strain_displacement");
-	fStrainDispOpt = (b == kStandardB) ? kStandardB : kMeanDilBbar;
-
-	/* inherited */
-	SolidElementT::TakeParameterList(list);
-	
-	/* dimension workspace */
-	fGradU.Dimension(NumSD());	
-	if (fStrainDispOpt == kMeanDilBbar) {
-		fLocDispTranspose.Dimension(fLocDisp.Length());
-		fMeanGradient.Dimension(NumSD(), NumElementNodes());
-	}	
-
-	/* offset to class needs flags */
-	fNeedsOffset = fMaterialNeeds[0].Length();
-	
-	/* set material needs */
-	for (int i = 0; i < fMaterialNeeds.Length(); i++)
-	{
-		/* needs array */
-		ArrayT<bool>& needs = fMaterialNeeds[i];
-
-		/* resize array */
-		needs.Resize(needs.Length() + 2, true);
-
-		/* casts are safe since class contructs materials list */
-		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
-		SSSolidMatT* mat = (SSSolidMatT*) pcont_mat;
-
-		/* collect needs */
-		needs[fNeedsOffset + kstrain     ] = mat->Need_Strain();
-		needs[fNeedsOffset + kstrain_last] = mat->Need_Strain_last();
-		
-		/* consistency */
-		needs[kNeedDisp] = needs[kNeedDisp] || needs[fNeedsOffset + kstrain];
-		needs[KNeedLastDisp] = needs[KNeedLastDisp] || needs[fNeedsOffset + kstrain_last];
-	}
-
-	/* what's needed */
-	bool need_strain = false;
-	bool need_strain_last = false;
-	for (int i = 0; i < fMaterialNeeds.Length(); i++) {
-		const ArrayT<bool>& needs = fMaterialNeeds[i];
-		need_strain = need_strain || needs[fNeedsOffset + kstrain];
-		need_strain_last = need_strain_last || needs[fNeedsOffset + kstrain_last];
-	}
-
-	/* allocate strain list */
-	if (need_strain) {
-		fStrain_List.Dimension(NumIP());
-		for (int i = 0; i < NumIP(); i++)
-			fStrain_List[i].Dimension(NumSD());
-	}
-	
-	/* allocate "last" strain list */
-	if (need_strain_last) {
-		fStrain_last_List.Dimension(NumIP());
-		for (int i = 0; i < NumIP(); i++)
-			fStrain_last_List[i].Dimension(NumSD());
-	}   
-
-#endif
-
 }
 
 /* extract the list of material parameters */
@@ -210,33 +86,6 @@ void SSEnhLocCraigT::CollectMaterialInfo(const ParameterListT& all_params, Param
 {
 
   SmallStrainT::CollectMaterialInfo(all_params, mat_params);
-
-#if 0
-	const char caller[] = "SSEnhLocCraigT::CollectMaterialInfo";
-	
-	/* initialize */
-	mat_params.Clear();
-	
-	/* collected material parameters */
-	int num_blocks = all_params.NumLists("small_strain_enh_loc_craig_element_block");
-	for (int i = 0; i < num_blocks; i++) {
-
-		/* block information */	
-		const ParameterListT& block = all_params.GetList("small_strain_enh_loc_craig_element_block", i);
-		
-		/* resolve material list name */
-		if (i == 0) {
-			const ParameterListT& mat_list_params = block.GetListChoice(*this, "small_strain_enh_loc_craig_material_choice");
-			mat_params.SetName(mat_list_params.Name());
-		}
-		
-		/* collect material parameters */
-		const ParameterListT& mat_list = block.GetList(mat_params.Name());
-		const ArrayT<ParameterListT>& mat = mat_list.Lists();
-		mat_params.AddList(mat[0]);
-	}
-
-#endif
 
 }
 
@@ -247,79 +96,14 @@ void SSEnhLocCraigT::CollectMaterialInfo(const ParameterListT& all_params, Param
 /* construct a new material support and return a pointer */
 MaterialSupportT* SSEnhLocCraigT::NewMaterialSupport(MaterialSupportT* p) const
 {
-
   return SmallStrainT::NewMaterialSupport(p);
-
-#if 0
-	/* allocate */
-	if (!p) p = new SSMatSupportT(NumDOF(), NumIP());
-
-	/* inherited initializations */
-	SolidElementT::NewMaterialSupport(p);
-	
-	/* set SolidMatSupportT fields */
-	SSMatSupportT* ps = TB_DYNAMIC_CAST(SSMatSupportT*, p);
-	if (ps) {
-		ps->SetLinearStrain(&fStrain_List);
-		ps->SetLinearStrain_last(&fStrain_last_List);
-	}
-
-	return p;
-
-#endif
-
 }
 
 
 /* return a pointer to a new material list */
 MaterialListT* SSEnhLocCraigT::NewMaterialList(const StringT& name, int size)
 {
-  //cout << "name = " << name << endl;
   return SmallStrainT::NewMaterialList(name, size);
-
-#if 0
-
-	/* resolve dimension */
-	int nsd = -1;
-	if (name == "small_strain_material_1D") nsd = 1;
-	else if (name == "small_strain_material_2D") nsd = 2;
-	else if (name == "small_strain_material_3D") nsd = 3;
-	
-	/* no match */
-	if (nsd == -1) return NULL;
-
-	/* full list */
-	if (size > 0)
-	{
-		/* material support */
-		if (!fSSMatSupport) {
-			fSSMatSupport = TB_DYNAMIC_CAST(SSMatSupportT*, NewMaterialSupport());
-			if (!fSSMatSupport)
-				ExceptionT::GeneralFail("SSEnhLocCraigT::NewMaterialList");
-		}
-
-		if (nsd == 1)
-			return new SSSolidMatList1DT(size, *fSSMatSupport);
-		else if (nsd == 2)
-			return new SSSolidMatList2DT(size, *fSSMatSupport);
-		else if (nsd == 3)
-			return new SSSolidMatList3DT(size, *fSSMatSupport);
-	}
-	else
-	{
-		if (nsd == 1)
-			return new SSSolidMatList1DT;
-		else if (nsd == 2)
-			return new SSSolidMatList2DT;
-		else if (nsd == 3)
-			return new SSSolidMatList3DT;
-	}
-	
-	/* no match */
-	return NULL;
-
-#endif
-
 }
 
 
@@ -333,37 +117,46 @@ void SSEnhLocCraigT::FormKd(double constK)
       fInitialModulus = fCurrMaterial->c_ijkl();
     }
 
+  if(!isLocalized)
     SmallStrainT::FormKd(constK);
 
+    //cout << "fRHS =\n" << fRHS <<endl;
 
-    cout << "fRHS =\n" << fRHS <<endl;
-
-#if 0
+#if 1
+    if(isLocalized)
+      {
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
 	
 	/* collect incremental heat */
 	bool need_heat = fElementHeat.Length() == fShapes->NumIP();
-
+	
 	fShapes->TopIP();
 	while (fShapes->NextIP())
-	{
-		/* strain displacement matrix */
-		if (fStrainDispOpt == kMeanDilBbar)
-			Set_B_bar(fShapes->Derivatives_U(), fMeanGradient, fB);
-		else
-			Set_B(fShapes->Derivatives_U(), fB);
+	  {
+	    /* strain displacement matrix */
+	    if (fStrainDispOpt == kMeanDilBbar)
+	      Set_B_bar(fShapes->Derivatives_U(), fMeanGradient, fB);
+	    else
+	      Set_B(fShapes->Derivatives_U(), fB);
 
-		/* B^T * Cauchy stress */
-		fB.MultTx(fCurrMaterial->s_ij(), fNEEvec);
-
-		/* accumulate */
-		fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);
-		
-		/* incremental heat generation */
-		if (need_heat) 
-			fElementHeat[fShapes->CurrIP()] += fCurrMaterial->IncrementalHeat();
-	}	
+	    /* B^T * Cauchy stress */
+	    dSymMatrixT strainIncr = fStrain_List [CurrIP()];
+	    strainIncr -= fStrain_last_List [CurrIP()];
+	    //	cout << "strainIncr =\n" << strainIncr << endl;
+	    dSymMatrixT stressIncr(NumSD());
+	    stressIncr.A_ijkl_B_kl(fInitialModulus, strainIncr);
+	    stressIncr += fStress_List[CurrIP()];
+	    fB.MultTx(stressIncr, fNEEvec);
+	    
+	    /* accumulate */
+	    fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);
+	    
+	    /* incremental heat generation */
+	    if (need_heat) 
+	      fElementHeat[fShapes->CurrIP()] += fCurrMaterial->IncrementalHeat();
+	  }     
+      }
 
 #endif
 
@@ -394,6 +187,8 @@ void SSEnhLocCraigT::FormStiffness(double constK)
   else //if already localized, use localized stiffness routine
     {
 
+      cout << "constK =\n" << constK << endl;
+
 	/* matrix format */
 	dMatrixT::SymmetryFlagT format = dMatrixT::kWhole;
 
@@ -404,8 +199,11 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 	int ndof = NumDOF();
 	int nen = NumElementNodes();
 	int nedof = nen*ndof;//# of element dof
-	double k_zeta_zeta, area = 0.0;
+	double k_zeta_zeta = 0.0, area = 0.0;
 	dArrayT k_d_zeta(nedof), k_zeta_d(nedof);
+	dArrayT k_d_zeta_work(nedof), k_zeta_d_work(nedof);
+	k_d_zeta = 0.0;
+	k_zeta_d = 0.0;
 
 	dSymMatrixT gradActiveTensorFlowDir(ndof), dGdSigma(ndof);
 	dMatrixT fLHSWork(nedof),// fDfB((HookeanMatT::Modulus().Rows()),nedof);
@@ -429,7 +227,11 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 		/* get D matrix */
 		//fD.SetToScaled(scale, HookeanMatT::Modulus());
 		fD.SetToScaled(scale, fInitialModulus);
-							
+
+		//cout << "fLHS =\n" << fLHS << endl;		
+		//cout << "fD =\n" << fD << endl;
+		cout << "fB =\n" << fB << endl;
+
 		/* multiply b(transpose) * db, taking account of symmetry, */
 		/* and accumulate in elstif */
 		fDfB.MultAB(fD, fB);
@@ -441,17 +243,25 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 		//form k_d_zeta
 		gradActiveTensorFlowDir = FormGradActiveTensorFlowDir(ndof);
 
-		fDfB.MultTx(gradActiveTensorFlowDir, k_d_zeta, dMatrixT::kAccumulate);
+		//k_d_zeta_work = 0.0;
+		//fDfB.MultTx(gradActiveTensorFlowDir, k_d_zeta_work,::dMatrixT::kOverwrite);
+		fDfB.MultTx(gradActiveTensorFlowDir, k_d_zeta_work);
+		k_d_zeta += k_d_zeta_work;
+		cout << "k_d_zeta =\n" << k_d_zeta << endl;
 
 		//form k_zeta_d
-		fDfB.MultTx(dGdSigma, k_zeta_d, dMatrixT::kAccumulate);
+		//fDfB.MultTx(dGdSigma, k_zeta_d_work, dMatrixT::kOverwrite);
+		fDfB.MultTx(dGdSigma, k_zeta_d_work);
+		k_zeta_d += k_zeta_d_work;
+		cout << "k_zeta_d =\n" << k_zeta_d << endl;
 
 		//form k_zeta_zeta
-		k_zeta_zeta = fD.MultmBn(dGdSigma, gradActiveTensorFlowDir);
-		
+		k_zeta_zeta +=
+		fD.MultmBn(dGdSigma,gradActiveTensorFlowDir);
+		cout << "k_zeta_zeta =\n" << k_zeta_zeta << endl;
 	}
 
-	//cout << "fLHS =\n" << fLHS << endl;
+	cout << "fLHS =\n" << fLHS << endl;
 	//cout << "area =" << area << endl;
 
 	k_d_zeta *= 1.0/area;
@@ -460,61 +270,11 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 	k_zeta_zeta += fH_Delta;
 	//k_zeta_zeta *= -1.0;
 
-	//cout << "gradActiveTensorFlowDir =\n" << gradActiveTensorFlowDir << endl;
-	//cout << "dGdSigma =\n" << dGdSigma << endl;
-	//cout << "k_d_zeta =\n" << k_d_zeta << endl;
-	//cout << "k_zeta_zeta =\n" << k_zeta_zeta << endl;
-	//cout << "k_zeta_d =\n" << k_zeta_d << endl;
-	
 
 
 	fLHS.Outer(k_d_zeta, k_zeta_d, -1.0/k_zeta_zeta, dMatrixT::kAccumulate);
 	//cout << "fLHS =\n" << fLHS << endl;
     }
-
-
-#if 0
-
-	/* matrix format */
-	dMatrixT::SymmetryFlagT format =
-		(fLHS.Format() == ElementMatrixT::kNonSymmetric) ?
-		dMatrixT::kWhole :
-		dMatrixT::kUpperOnly;
-
-	/* integrate element stiffness */
-	const double* Det    = fShapes->IPDets();
-	const double* Weight = fShapes->IPWeights();
-
-	/********DEBUG*******/
-	bool print = false; 
-	int pos = fElementCards.Position(); 
-	if (pos == 1&&0)  
-	  print = true; 
-	/*******************/
-	
-	fShapes->TopIP();
-	while ( fShapes->NextIP() )
-	{
-
-		double scale = constK*(*Det++)*(*Weight++);
-	
-		/* strain displacement matrix */
-		if (fStrainDispOpt == kMeanDilBbar)
-			Set_B_bar(fShapes->Derivatives_U(), fMeanGradient, fB);
-		else
-			Set_B(fShapes->Derivatives_U(), fB);
-
-		/* get D matrix */
-		fD.SetToScaled(scale, fCurrMaterial->c_ijkl());
-		if (print) cout << "\nmodulus: "<<fCurrMaterial->c_ijkl();
-							
-		/* multiply b(transpose) * db, taking account of symmetry, */
-		/* and accumulate in elstif */
-		fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);	
-	}
-
-#endif
-
 }
 
 /* compute the measures of strain/deformation over the element */
@@ -569,13 +329,11 @@ void SSEnhLocCraigT::SetGlobalShape(void)
 		  //cout << "dGfD = " << dGfD << endl << endl;
 		  //cout << "strainIncr = " << strainIncr << endl;
  
-
 		  fJumpIncrement += scale * strainIncr.Dot(dGfD, strainIncr);
-		  jumpWork += scale * gradActiveTensorFlowDir.Dot(dGfD,gradActiveTensorFlowDir);
-		  
+		  jumpWork += scale * gradActiveTensorFlowDir.Dot(dGfD,gradActiveTensorFlowDir);		  
 		}
 		
-		//cout << "fJumpIncrement = " << fJumpIncrement << endl ;
+		//cout << "area = " << area << endl ;
 		//cout << "jumpWork = " << jumpWork << endl;		
 		 
 		
@@ -599,7 +357,6 @@ void SSEnhLocCraigT::SetGlobalShape(void)
 			/* deformation gradient */
 			if (needs[fNeedsOffset + kstrain])
 			  {			    
-
 				 fStrain_List[i].AddScaled(-(fBand->Jump() + fJumpIncrement), gradActiveTensorFlowDir);
 			  }
 
@@ -609,85 +366,8 @@ void SSEnhLocCraigT::SetGlobalShape(void)
 				 fStrain_last_List[i].AddScaled(-(fBand->Jump()), gradActiveTensorFlowDir);
 			}
 		}
-
 	  }
     }
-
-#if 0
-	/* inherited */
-	SolidElementT::SetGlobalShape();
-
-	/* material information */
-	int material_number = CurrentElement().MaterialNumber();
-	const ArrayT<bool>& needs = fMaterialNeeds[material_number];
-	
-	/* using B-bar */
-	if (fStrainDispOpt == kMeanDilBbar)
-	{
-		/* compute mean of shape function gradients */
-		SetMeanGradient(fMeanGradient);
-
-		/* loop over integration points */
-		fShapes->TopIP();
-		while (fShapes->NextIP())
-		{
-			/* set B-bar */
-			int ip = fShapes->CurrIP();
-			Set_B_bar(fShapes->Derivatives_U(ip), fMeanGradient, fB);
-	
-			/* deformation gradient */
-			if (needs[fNeedsOffset + kstrain])
-			{
-				/* transpose displacement array */
-				fLocDisp.ReturnTranspose(fLocDispTranspose);
-
-				/* compute strain using B-bar */
-				dSymMatrixT& strain = fStrain_List[ip];
-				fB.Multx(fLocDispTranspose, strain);
-				strain.ScaleOffDiagonal(0.5);
-			}
-
-			/* "last" deformation gradient */
-			if (needs[fNeedsOffset + kstrain_last])
-			{
-				/* transpose displacement array */
-				fLocLastDisp.ReturnTranspose(fLocDispTranspose);
-
-				/* compute strain using B-bar */
-				dSymMatrixT& strain = fStrain_last_List[ip];
-				fB.Multx(fLocDispTranspose, strain);
-				strain.ScaleOffDiagonal(0.5);
-			}
-		}		
-	}
-	else
-	{
-		/* loop over integration points */
-		for (int i = 0; i < NumIP(); i++)
-		{
-			/* deformation gradient */
-			if (needs[fNeedsOffset + kstrain])
-			{
-				/* displacement gradient */
-				fShapes->GradU(fLocDisp, fGradU, i);
-
-				/* symmetric part */
-				 fStrain_List[i].Symmetrize(fGradU);
-			}
-
-			/* "last" deformation gradient */
-			if (needs[fNeedsOffset + kstrain_last])
-			{
-				/* displacement gradient */
-				fShapes->GradU(fLocLastDisp, fGradU, i);
-
-				/* symmetric part */
-				 fStrain_last_List[i].Symmetrize(fGradU);
-			}
-		}
-	} 
-
-#endif
 }
 
 /***********************************************************************
@@ -697,7 +377,7 @@ void SSEnhLocCraigT::SetGlobalShape(void)
 /** driver for calculating output values */
 /* Used to check localization - is there a more appropriate fn? */
 
-#if 0
+
 void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			   const iArrayT& e_codes, dArray2DT& e_values)
 {
@@ -705,12 +385,64 @@ void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
   SolidElementT::ComputeOutput(n_codes, n_values, e_codes, e_values);
 
+#if 0
+
   /* If element has not localized yet, check */
   if (!isLocalized)
     {
       if (isLocalizedTemp)
+	{
 	isLocalized = true;
+	
+#if 0
+
+	/* allocate for current strain if material did not */
+	int mat_num = CurrentElement().MaterialNumber();
+	const ArrayT<bool>& needs = fMaterialNeeds[mat_num];
+	if (!needs[fNeedsOffset + kstrain])
+	  {
+	    fStrain_List.Dimension(NumIP());
+	    for (int i = 0; i < NumIP(); i++)
+	      fStrain_List[i].Dimension(NumSD());
+	    
+	    needs[kNeedDisp] = true;
+	  }
+	
+	/* allocate for last strain if material did not */
+	if (!needs[fNeedsOffset + kstrain_last])
+	  {
+	    fStrain_last_List.Dimension(NumIP());
+	    for (int i = 0; i < NumIP(); i++)
+	      fStrain_last_List[i].Dimension(NumSD());
+	    
+	    needs[KNeedLastDisp] = true;
+	  }
+			
+#endif
+
+	/* grab stresses */
+	cout << "NumIP() =" << NumIP() << endl << flush;
+	cout << "Density =" << fCurrMaterial->Density() << endl << flush;
+	
+	/* temp - this works only for single element */
+	Top();
+	while (NextElement())
+	  {
+
+	fStress_List.Dimension(NumIP());
+	fShapes->TopIP();
+	for (int i = 0; i < NumIP(); i++)
+	  {
+	    fShapes -> NextIP();
+	    cout << "s_ij = " << fCurrMaterial->s_ij() << endl << flush;
+	    fStress_List[i].Dimension(NumSD());
+	    fStress_List[i] = fCurrMaterial -> s_ij();
+	    //fShapes -> NextIP();
+	  }    
+	  } // end temp - while(NextElement())
+	} 
     }
+
   else
     {
       fBand->IncrementJump(fJumpIncrement);
@@ -720,61 +452,90 @@ void SSEnhLocCraigT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
   cout << "isLocalized = " << isLocalized << endl;
   cout << "isLocalizedTemp = " << isLocalizedTemp << endl; 
 
-}
 #endif
+
+}
+
 
 void SSEnhLocCraigT::CloseStep(void)
 {
+
  /* If element has not localized yet, check */
   if (!isLocalized)
     {
       if (isLocalizedTemp)
-	isLocalized = true;
+	{
+	  isLocalized = true;
+	
+#if 0
+	  
+	  /* allocate for current strain if material did not */
+	  int mat_num = CurrentElement().MaterialNumber();
+	  const ArrayT<bool>& needs = fMaterialNeeds[mat_num];
+	  if (!needs[fNeedsOffset + kstrain])
+	    {
+	      fStrain_List.Dimension(NumIP());
+	      for (int i = 0; i < NumIP(); i++)
+		fStrain_List[i].Dimension(NumSD());
+	      
+	      needs[kNeedDisp] = true;
+	    }
+	  
+	  /* allocate for last strain if material did not */
+	  if (!needs[fNeedsOffset + kstrain_last])
+	    {
+	      fStrain_last_List.Dimension(NumIP());
+	      for (int i = 0; i < NumIP(); i++)
+		fStrain_last_List[i].Dimension(NumSD());
+	      
+	      needs[KNeedLastDisp] = true;
+	    }
+			
+#endif
+
+	  /* grab stresses */
+	  //cout << "NumIP() =" << NumIP() << endl << flush;
+
+	/* temp - this works only for single element */
+	Top();
+	while (NextElement())
+	  {
+
+	    fStress_List.Dimension(NumIP());
+	    fShapes->TopIP();
+	    for (int i = 0; i < NumIP(); i++)
+	      {
+		fShapes -> NextIP();
+		cout << "s_ij = " << fCurrMaterial -> s_ij() << endl << flush;
+		fStress_List[i].Dimension(NumSD());
+		fStress_List[i] = fCurrMaterial -> s_ij();
+	      }
+	  }
+		}
     }
   else
     {
       fBand->IncrementJump(fJumpIncrement);
       cout << "Jump = " << fBand -> Jump() << endl; 
+	  
+	  Top();
+	  while(NextElement())
+	  {
+	   
+	   fShapes -> TopIP();
+	   while(fShapes->NextIP())
+	   {
+		dSymMatrixT strainIncr = fStrain_List [CurrIP()];
+		strainIncr -= fStrain_last_List [CurrIP()]; 
+		dSymMatrixT stressIncr(NumSD());
+		stressIncr.A_ijkl_B_kl(fInitialModulus, strainIncr);
+		fStress_List[CurrIP()] += stressIncr;
+	   }
+	  }
     }
 
   SmallStrainT::CloseStep();		
 }
-
-/***********************************************************************
- * Private
- ***********************************************************************/
-
-
-#if 0
-/*private function - not needed - yet */
-
-/* compute mean shape function gradient, Hughes (4.5.23) */
-/* for b-bar only ? */
-void SSEnhLocCraigT::SetMeanGradient(dArray2DT& mean_gradient) const
-{
-
-
-	int nip = NumIP();
-	const double* det = fShapes->IPDets();
-	const double*   w = fShapes->IPWeights();
-
-	/* volume */
-	double vol = 0.0;
-	for (int i = 0; i < nip; i++)
-		vol += w[i]*det[i];
-
-	/* initialize */
-	mean_gradient = 0.0;			
-
-	/* integrate */
-	for (int i = 0; i < nip; i++)
-		mean_gradient.AddScaled(w[i]*det[i]/vol, fShapes->Derivatives_U(i)); 
-
-
-}
-
-#endif
-
 
 /***********************************************************************
  * Protected
@@ -799,8 +560,6 @@ dSymMatrixT SSEnhLocCraigT::FormdGdSigma(int ndof)
 
   return dGdSigma;
 }
-
-
 
 dSymMatrixT SSEnhLocCraigT::FormGradActiveTensorFlowDir(int ndof)
 {
@@ -855,11 +614,9 @@ bool SSEnhLocCraigT::IsElementLocalized()
       fShapes->TopIP();
       while ( fShapes->NextIP() )
     {
-
       //DetCheckT checker(fCurrMaterial->s_ij(), fCurrMaterial->c_ijkl(), HookeanMatT::Modulus());
       DetCheckT checker(fCurrMaterial->s_ij(), fCurrMaterial->c_ijkl(), fInitialModulus);
       
-
       /*is this necessary? */
       checker.SetfStructuralMatSupport(*fSSMatSupport);
       if (checker.IsLocalized_SS(normals, slipDirs, detA))
@@ -919,8 +676,8 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
   dArrayT centroid = Centroid();
 
   //temp
-  slipDir *= -1.0;
-  perpSlipDir *= -1.0;
+  //slipDir *= -1.0;
+  //perpSlipDir *= -1.0;
 
   fBand = new BandT(normal, slipDir, perpSlipDir, centroid, this);
   //fBand = new BandT(slipDir, normal, normal, centroid, this);
@@ -949,12 +706,10 @@ dArrayT SSEnhLocCraigT::Centroid()
   fShapes->TopIP();
   while ( fShapes->NextIP() )
     {
-      //area += (*Det)*(*Weight);
       double scale = (*Det++)*(*Weight++);
       area += scale;
       fShapes->IPCoords(coords);
       centroid.AddScaled(scale,coords);
-
     }
   centroid *= 1.0/area;
   
