@@ -9,7 +9,7 @@
 #include "Utils.h"
 
 const double STP_MAX = 1000.;
-const double DBL_EPSILON = 2.2204460492503131E-16;
+const double DBL_EPS = 2.2204460492503131E-16;
 
 bool NLCSolver::NLCS_MESSAGES = false;
 
@@ -336,9 +336,9 @@ double NLCSolver::SetDefaultStepTol()
 {
   double eta;
   if (fDigits == -1)
-    eta = DBL_EPSILON;
+    eta = DBL_EPS;
   else
-    eta = max(DBL_EPSILON, pow(10, -fDigits));
+    eta = max(DBL_EPS, pow(10, -fDigits));
   return eta;
 }
 
@@ -442,7 +442,7 @@ void NLCSolver::FiniteDifferenceJac(NLCSolverWrapperPtr theModel, dArrayT& X)
 {
   // relative noise
   // double eta = pow(10., -fDigits);
-  double eta = DBL_EPSILON;
+  double eta = DBL_EPS;
   eta = sqrt(eta);
 
   // zero out Jacobian
@@ -475,7 +475,7 @@ void NLCSolver::SecantUpdateJac(NLCSolverWrapperPtr theModel, dArrayT& X)
 {
   // relative noise
   // double eta = pow(10., -fDigits);
-  double eta = DBL_EPSILON;
+  double eta = DBL_EPS;
 
   // recompute previous rhs
   theModel.FormRHS(fLastAcceptedX, fLastAcceptedRHS);
