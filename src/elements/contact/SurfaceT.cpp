@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.12 2001-04-25 17:26:44 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.13 2001-04-27 00:55:26 rjones Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -444,7 +444,17 @@ void SurfaceT::ComputeNeighbors(void)
                 }
         }
 	
-	fFaceNeighbors.CopyCompressed(faces_next_to_face);
+//fFaceNeighbors.CopyCompressed(faces_next_to_face);
+	/* copy neighbors faces to face data */
+	int num_neighbors;
+	for (i = 0; i < fFaces.Length() ; i++) {
+		ArrayT<FaceT*>& neighbor_faces = fFaces[i]->AssignNeighbors();
+		num_neighbors = faces_next_to_face.MinorDim(i);
+		neighbor_faces.Allocate(num_neighbors);
+		for (j = 0; j < num_neighbors ; j++) {
+		  neighbor_faces[j] = faces_next_to_face(i,j);
+		}
+	}
 
 }
 

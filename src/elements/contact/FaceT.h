@@ -1,4 +1,4 @@
-/* $Id: FaceT.h,v 1.11 2001-04-24 18:17:38 rjones Exp $ */
+/* $Id: FaceT.h,v 1.12 2001-04-27 00:55:25 rjones Exp $ */
 
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
@@ -65,8 +65,13 @@ public:
 		(ContactNodeT* node, dArrayT& parameters) const =0; 
 
 	/* access functions */
+	inline ArrayT<FaceT*>& AssignNeighbors(void) {return fNeighborFaces;}
+
+	/* look-up functions */
 	inline const int NumNodes(void) const 
 		{return fConnectivity.Length();}
+	inline const ArrayT<FaceT*>& Neighbors(void) const 
+		{return fNeighborFaces;}
 	inline const GeometryT::CodeT GeometryType(void) const 
 		{return fGeometryType;}
  	inline const iArrayT& Connectivity(void) const {return fConnectivity;} 
@@ -100,6 +105,9 @@ protected:
 
 	/* connectivity, in node numbers local to surface */
 	iArrayT fConnectivity;
+
+	/* adjacent faces */
+	ArrayT<FaceT*> fNeighborFaces;
 
 	double fnormal[3] ; // face normal
 	/* workspace */

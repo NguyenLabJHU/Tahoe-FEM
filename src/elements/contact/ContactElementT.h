@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.5 2001-04-19 23:47:00 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.6 2001-04-27 00:55:25 rjones Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -83,10 +83,6 @@ protected:
 
 	/* generate contact element data  */
 	bool SetContactConfiguration(void);
-
-	/* generate element connectivity data  */
-	void SetConnectivity(void);
-
 
 	/* update contact element data  */
 	bool UpdateContactConfiguration(void);

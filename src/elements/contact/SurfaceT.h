@@ -1,4 +1,4 @@
-/* $Id: SurfaceT.h,v 1.10 2001-04-25 17:26:44 rjones Exp $ */
+/* $Id: SurfaceT.h,v 1.11 2001-04-27 00:55:26 rjones Exp $ */
 
 #ifndef _SURFACE_T_H_
 #define _SURFACE_T_H_
@@ -87,16 +87,16 @@ class SurfaceT
 	/* neighbors */
 	RaggedArray2DT <FaceT*>  fNodeNeighbors ; // for averaging
 	RaggedArray2DT <int>     fLocalNodeInNeighbors ; // for averaging
-	RaggedArray2DT <FaceT*>  fFaceNeighbors ; // for contact tracking
+//RaggedArray2DT <FaceT*>  fFaceNeighbors ; // for contact tracking
 
-  private:
 	int fNumSD;
 	int fTag;
+	const NodeManagerT* kNodeManager;
 
+  private:
 	void ComputeNeighbors(void);
 	void ComputeSurfaceBasis(void);
 
-	const NodeManagerT* kNodeManager;
 
 
 };

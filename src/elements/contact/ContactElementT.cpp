@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.8 2001-04-24 00:33:21 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.9 2001-04-27 00:55:25 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -127,14 +127,21 @@ void ContactElementT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
                 AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
 {
 #pragma unused(eq_1)
-
-#if 0
-        /* get local equations numbers */
-        fNodes->SetLocalEqnos(*fElemNodesEX, fElemEqnosEX);
-
+	
+  /* send potential connectivity */
+  for (int i = 0; i < fSurfaces.Length(); i++) {
+	const RaggedArray2DT<int>& connectivities   
+		= fSurfaces[i].Connectivities(); 
+	RaggedArray2DT<int>& equation_numbers 
+		= fSurfaces[i].EqNums();
+        /* get local equations numbers from NodeManager */
+	/* Connectivities generated in SetConfiguration */
+        ElementBaseT::fNodes->
+		SetLocalEqnos(connectivities, equation_numbers);
         /* add to list */
-        eq_2.Append(&fElemEqnosEX);
-#endif
+        eq_2.Append(&equation_numbers);
+  }
+
 
 }
 
@@ -149,6 +156,13 @@ void ContactElementT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 
 	/* link surfaces with fictious node-to-node pairs*/
 	connects_1.AppendUnique(&fSurfaceLinks);
+	
+	/* add node-face interactions */
+	for (int i = 0; i < fSurfaces.Length(); i++) {
+	  const RaggedArray2DT<int>& connectivities   
+		= fSurfaces[i].Connectivities(); 
+          connects_2.Append(&connectivities);
+	}
 }
 
 /* returns no (NULL) geometry connectivies */
@@ -247,13 +261,16 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
 
 /* generate contact element data - return true if configuration has
  * changed since the last call */
+/* generate connectivity data based on current node-face pairs */
 bool ContactElementT::SetContactConfiguration(void)
 {
 	bool changed = fContactSearch->SetInteractions();
 	
         if (changed) { 
-		/* form current connectivity */
-		SetConnectivity();
+		/* form potential connectivity for step */
+  		for (int i = 0; i < fSurfaces.Length(); i++) {
+			fSurfaces[i].SetPotentialConnectivity();
+  		}
 	}
 
 	return changed;
@@ -265,28 +282,4 @@ bool ContactElementT::UpdateContactConfiguration(void)
 
         return changed;
 }
-
-/* generate connectivity data based on current node-face pairs */
-void ContactElementT::SetConnectivity(void)
-{
-
-#if 0
-	/* loop through nodes and connect them to faces */
-	// assume all same face type??? or Ragged
-
-        for (int i = 0; i < fContactNodes.Length(); i++)
-        {
-		node = fContactNodes[i];
-                FaceT*  face = node->OpposingFace();
-		conn = face->Connectivity();
-
-                /* all element tags */
-                for (int j = 0; j < conn.Length(); j++ ) {
-		  pelem[j] = conn[j]; // facet nodes
-		}
-                pelem[j++] = fGlobal[i]; // node
-        }
-#endif
-}
-
 

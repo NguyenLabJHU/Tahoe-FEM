@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.3 2001-04-19 23:47:01 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.4 2001-04-27 00:55:25 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include "SurfaceT.h"
@@ -15,7 +15,7 @@ ContactSurfaceT::~ContactSurfaceT(void)
 }
 
 void
-ContactSurfaceT::AllocateContactNodes()
+ContactSurfaceT::AllocateContactNodes(void)
 {
 	fContactNodes.Allocate(fGlobalNodes.Length());
 	for(int i = 0; i < fContactNodes.Length(); i++){
@@ -28,7 +28,7 @@ ContactSurfaceT::AllocateContactNodes()
 }
 
 void
-ContactSurfaceT::CopyCurrentToPrevious()
+ContactSurfaceT::CopyCurrentToPrevious(void)
 {
 	for (int i = 0 ; i < fContactNodes.Length() ; i++) {
 #if 0
@@ -36,4 +36,65 @@ ContactSurfaceT::CopyCurrentToPrevious()
 		fContactPoints[i].OpposingSurface() = NULL;
 #endif
 	}
+}
+
+void 
+ContactSurfaceT::SetPotentialConnectivity(void)
+{
+	int i,j,k,count;
+	ContactNodeT* node;
+	const FaceT* face = NULL;
+	iArrayT node_face_counts;
+	node_face_counts.Allocate(fContactNodes.Length());
+	node_face_counts = 0;
+
+	/* count connectivity */
+        for (i = 0; i < fContactNodes.Length(); i++){
+          node = fContactNodes[i];
+          face = node->OpposingFace();
+          /* connectivities for potential interactions, based on search tol */
+          if (face) {
+	    node_face_counts[i] = 1;
+            /* inclusive of opposing face */
+            const ArrayT<FaceT*>&  faces 
+		= node->OpposingFace()->Neighbors();
+            for (j = 0; j < faces.Length() ; j++) {
+		face = faces[j]; // this is a cast
+		node_face_counts[i] += face->Connectivity().Length();
+            }
+          }
+        }
+
+
+	/* configure connectivity and equation numbers */
+	fConnectivities.Configure(node_face_counts);
+	fEqNums.Configure(node_face_counts,fNumSD);
+
+	/* fill connectivity */
+        for (i = 0; i < fContactNodes.Length(); i++){
+          node = fContactNodes[i];
+	  face = node->OpposingFace();
+	  count = 0;
+	  /* connectivities for potential interactions, based on search tol */
+	  if (face) {
+	    int* node_face_connectivity = fConnectivities(j);
+            node_face_connectivity[count++] 
+		= fGlobalNodes[i]; // node
+cout << fGlobalNodes[i] << " ";
+	    /* inclusive of opposing face */
+	    const iArrayT& global_nodes=node->OpposingSurface()->GlobalNodes();
+            const ArrayT<FaceT*>&  faces 
+		= node->OpposingFace()->Neighbors();
+	    for (j = 0; j < faces.Length() ; j++) {
+		face = faces[i] ; // this is cast
+                const iArrayT& face_connectvity = face->Connectivity();
+                for (int k = 0; k < face_connectvity.Length(); k++ ) {
+                  node_face_connectivity[count++] 
+		    = global_nodes[face_connectvity[k]];// face nodes
+cout << global_nodes[face_connectvity[k]] << ",";
+                }
+	    }
+cout << '\n';
+	  }
+        }
 }

@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.5 2001-04-19 23:47:01 rjones Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.6 2001-04-27 00:55:25 rjones Exp $ */
 
 
 #ifndef _CONTACT_SURFACE_T_H_
@@ -37,9 +37,16 @@ class ContactSurfaceT : public SurfaceT
 	/* move current to previous */
 	void CopyCurrentToPrevious(void);
 
+	/* potential connectivities based on growing/sliding contact */
+	void SetPotentialConnectivity(void);
+
 	/* access functions */
 	inline ArrayT<ContactNodeT*>& ContactNodes(void) 
 		{return fContactNodes;}
+	inline RaggedArray2DT<int>& Connectivities(void)
+		{return fConnectivities;}
+	inline RaggedArray2DT<int>& EqNums(void)
+		{return fEqNums;}  // this can NOT be const
 #if 0
 	inline ArrayT<ContactNodeT*>& PreviousContactNodes(void) 
 		{return fPreviousContactNodes;}
@@ -50,6 +57,11 @@ class ContactSurfaceT : public SurfaceT
         /* nodal arrays */
 	ArrayT <ContactNodeT*>  fContactNodes ; 
 
+	/* potential connectivities for the time step */
+	RaggedArray2DT<int> fConnectivities;
+
+	/* space for associated equation numbers */
+	RaggedArray2DT<int> fEqNums;
 #if 0
 	/* for frictional slip */
 	ArrayT <ContactNodeT*>  fPreviousContactNodes;
