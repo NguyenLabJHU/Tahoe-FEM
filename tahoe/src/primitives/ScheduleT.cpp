@@ -1,4 +1,4 @@
-/* $Id: ScheduleT.cpp,v 1.9 2004-10-20 21:21:02 paklein Exp $ */
+/* $Id: ScheduleT.cpp,v 1.10 2005-03-11 20:31:18 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ScheduleT.h"
 #include "dArray2DT.h"
@@ -70,6 +70,7 @@ void ScheduleT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT&
 		sub_lists.AddSub("cubic_spline");
 		sub_lists.AddSub("cosine");
 		sub_lists.AddSub("linear_exponential");
+		sub_lists.AddSub("power_law");
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
