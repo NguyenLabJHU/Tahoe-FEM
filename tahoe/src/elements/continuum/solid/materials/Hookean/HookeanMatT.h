@@ -1,4 +1,4 @@
-/* $Id: HookeanMatT.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: HookeanMatT.h,v 1.1.1.1.2.1 2001-06-06 16:22:00 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 /* Base class for all Hookean materials, defined as:                      */
 /* 	stress_ij = moduli_ijkl strain_kl                                     */
@@ -7,25 +7,40 @@
 #define _HOOKEAN_MAT_H_
 
 /* forward declarations */
-class dMatrixT;
 class dSymMatrixT;
+
+/* direct members */
+#include "dMatrixT.h"
 
 class HookeanMatT
 {
 public:
 
 	/* constructor */
-	HookeanMatT(void);
+	HookeanMatT(int nsd);
+
+	/* destructor */
+	virtual ~HookeanMatT(void);
+
+	/* initialization */
+	void Initialize(void);
 
 protected:
 
+	/* set (material) tangent modulus */
+	virtual void SetModulus(dMatrixT& modulus) = 0;
+	const dMatrixT& Modulus(void) const { return fModulus; };
+
 	/* symmetric stress */
-	void HookeanStress(const dMatrixT& moduli, const dSymMatrixT& strain,
-		dSymMatrixT& stress);
+	void HookeanStress(const dSymMatrixT& strain, dSymMatrixT& stress) const;
 
 	/* strain energy density */
-	double HookeanEnergy(const dMatrixT& moduli,
-		const dSymMatrixT& strain);
+	double HookeanEnergy(const dSymMatrixT& strain) const;
+		
+private:
+
+	/* (constant) modulus */
+	dMatrixT fModulus;
 };
 
 #endif /* _HOOKEAN_MAT_H_ */
