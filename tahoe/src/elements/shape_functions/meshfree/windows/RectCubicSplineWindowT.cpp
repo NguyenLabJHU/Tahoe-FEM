@@ -1,4 +1,4 @@
-#include "RectCubicSplineWindowT.h"
+#include "RectangularCubicSplineWindowT.h"
 #include "ExceptionCodes.h"
 #include <math.h>
 
@@ -6,7 +6,7 @@ const double sqrtPi = sqrt(acos(-1.0));
 static double Max(double a, double b) { return (a > b) ? a : b; };
 
 /* constructor */
-RectCubicSplineWindowT::RectCubicSplineWindowT(const dArrayT& dilation_scaling, double sharpening_factor,
+RectangularCubicSplineWindowT::RectangularCubicSplineWindowT(const dArrayT& dilation_scaling, double sharpening_factor,
 						       double cut_off_factor):
 	fDilationScaling(dilation_scaling),
 	fSharpeningFactor(sharpening_factor),
@@ -23,7 +23,7 @@ RectCubicSplineWindowT::RectCubicSplineWindowT(const dArrayT& dilation_scaling, 
 }
 
 /* "synchronization" of nodal field parameters. */
-void RectCubicSplineWindowT::SynchronizeSupportParameters(dArray2DT& params_1, 
+void RectangularCubicSplineWindowT::SynchronizeSupportParameters(dArray2DT& params_1, 
 	dArray2DT& params_2) const
 {
 	/* should be over the same global node set (marked by length) */
@@ -31,7 +31,7 @@ void RectCubicSplineWindowT::SynchronizeSupportParameters(dArray2DT& params_1,
 	    params_1.MinorDim() != NumberOfSupportParameters() ||
 	    params_2.MinorDim() != NumberOfSupportParameters())
 	{
-		cout << "\n RectCubicSplineWindowT::SynchronizeSupportParameters: nodal\n"
+		cout << "\n RectangularCubicSplineWindowT::SynchronizeSupportParameters: nodal\n"
 		     << " parameters dimension mismatch" << endl;
 		throw eSizeMismatch;
 	}
@@ -48,14 +48,14 @@ void RectCubicSplineWindowT::SynchronizeSupportParameters(dArray2DT& params_1,
 }
 
 /* modify nodal shape function parameters */
-void RectCubicSplineWindowT::ModifySupportParameters(dArray2DT& nodal_params) const
+void RectangularCubicSplineWindowT::ModifySupportParameters(dArray2DT& nodal_params) const
 {
 	/* scale supports */
 	for (int i = 0; i < fDilationScaling.Length(); i++)
 		nodal_params.ScaleColumn(i, fDilationScaling[i]);	
 }
 
-void RectCubicSplineWindowT::WriteParameters(ostream& out) const
+void RectangularCubicSplineWindowT::WriteParameters(ostream& out) const
 {
 	/* window function parameters */
 	out << " Dilation scaling factor . . . . . . . . . . . . :\n" << fDilationScaling << '\n';
@@ -64,13 +64,13 @@ void RectCubicSplineWindowT::WriteParameters(ostream& out) const
 }
 
 /* Single point evaluations */
-bool RectCubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
+bool RectangularCubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, const dArrayT& x,
 		int order, double& w, dArrayT& Dw, dSymMatrixT& DDw)
 {
   /* Compute window function and its derivatives - accomplish by scalar product of individual
    * window functions in x/y/z directions */
 
-  if (!RectCubicSplineWindowT::Covers(x_n, x, param_n))
+  if (!RectangularCubicSplineWindowT::Covers(x_n, x, param_n))
   {
     w = 0.0;
     if (order > 0)
@@ -114,7 +114,7 @@ bool RectCubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, 
       else
 	wy = 0.0;
 
-      w = wx * wy / (param_n[0] * param_n[1]);
+      w = wx * wy;
 
       if (order > 0)
       {
@@ -122,50 +122,50 @@ bool RectCubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, 
 	{
 	  /* check x-direction */
 	  if ((rx >= -2) && (rx < -1))
-	    DDw[0] = wy / (param_n[0] * param_n[0] * param_n[0] * param_n[1]) * (2 + rx);
+	    DDw[0] = wy / (param_n[0] * param_n[0] * param_n[0]) * (2 + rx);
 	  else if ((rx >= -1) && (rx < 0))
-	    DDw[0] = - wy / (param_n[0] * param_n[0] * param_n[0] * param_n[1]) * (2 + 3 * rx);
+	    DDw[0] = - wy / (param_n[0] * param_n[0] * param_n[0]) * (2 + 3 * rx);
 	  else if ((rx >= 0) && (rx < 1))
-	    DDw[0] = - wy / (param_n[0] * param_n[0] * param_n[0] * param_n[1]) * (2 - 3 * rx);
+	    DDw[0] = - wy / (param_n[0] * param_n[0] * param_n[0]) * (2 - 3 * rx);
 	  else if ((rx >= 1) && (rx <= 2))
-	    DDw[0] = wy / (param_n[0] * param_n[0] * param_n[0] * param_n[1]) * (2 - rx);
+	    DDw[0] = wy / (param_n[0] * param_n[0] * param_n[0]) * (2 - rx);
 	  else
 	    DDw[0] = 0.0;
 	  
 	  /* check y-direction */
 	  if ((ry >= -2) && (ry < -1))
-	    DDw[1] = wx / (param_n[1] * param_n[1] * param_n[1] * param_n[0]) * (2 + ry);
+	    DDw[1] = wx / (param_n[1] * param_n[1] * param_n[1]) * (2 + ry);
 	  else if ((ry >= -1) && (ry < 0))
-	    DDw[1] = - wx / (param_n[1] * param_n[1] * param_n[1] * param_n[0]) * (2 + 3 * ry);
+	    DDw[1] = - wx / (param_n[1] * param_n[1] * param_n[1]) * (2 + 3 * ry);
 	  else if ((ry >= 0) && (ry < 1))
-	    DDw[1] = - wx / (param_n[1] * param_n[1] * param_n[1] * param_n[0]) * (2 - 3 * ry);
+	    DDw[1] = - wx / (param_n[1] * param_n[1] * param_n[1]) * (2 - 3 * ry);
 	  else if ((ry >= 1) && (ry <= 2))
-	    DDw[1] = wx / (param_n[1] * param_n[1] * param_n[1] * param_n[0]) * (2 - ry);
+	    DDw[1] = wx / (param_n[1] * param_n[1] * param_n[1]) * (2 - ry);
 	  else
 	    DDw[1] = 0.0;
 	}
 
 	/* check x-direction */
 	if ((rx >= -2) && (rx < -1))
-	  Dw[0] = - .5 * wy / (param_n[0] * param_n[0] * param_n[1]) * (2 + rx) * (2 + rx);
+	  Dw[0] = - .5 * wy / (param_n[0] * param_n[0]) * (2 + rx) * (2 + rx);
 	else if ((rx >= -1) && (rx < 0))
-	  Dw[0] = wy / (param_n[0] * param_n[0] * param_n[1]) * (2 * rx + 1.5 * rx * rx);
+	  Dw[0] = wy / (param_n[0] * param_n[0]) * (2 * rx + 1.5 * rx * rx);
 	else if ((rx >= 0) && (rx < 1))
-	  Dw[0] = wy / (param_n[0] * param_n[0] * param_n[1]) * (2 * rx - 1.5 * rx * rx);
+	  Dw[0] = wy / (param_n[0] * param_n[0]) * (2 * rx - 1.5 * rx * rx);
 	else if ((rx >= 1) && (rx <= 2))
-	  Dw[0] = .5 * wy / (param_n[0] * param_n[0] * param_n[1]) * (2 - rx) * (2 - rx);
+	  Dw[0] = .5 * wy / (param_n[0] * param_n[0]) * (2 - rx) * (2 - rx);
 	else
 	  Dw[0] = 0.0;
 	  
 	  /* check y-direction */
 	if ((ry >= -2) && (ry < -1))
-	  Dw[1] = - .5 * wx / (param_n[1] * param_n[1] * param_n[0]) * (2 + ry) * (2 + ry);
+	  Dw[1] = - .5 * wx / (param_n[1] * param_n[1]) * (2 + ry) * (2 + ry);
 	else if ((ry >= -1) && (ry < 0))
-	  Dw[1] = wx / (param_n[1] * param_n[1] * param_n[0]) * (2 * ry + 1.5 * ry * ry);
+	  Dw[1] = wx / (param_n[1] * param_n[1]) * (2 * ry + 1.5 * ry * ry);
 	else if ((ry >= 0) && (ry < 1))
-	  Dw[1] = wx / (param_n[1] * param_n[1] * param_n[0]) * (2 * ry - 1.5 * ry * ry);
+	  Dw[1] = wx / (param_n[1] * param_n[1]) * (2 * ry - 1.5 * ry * ry);
 	else if ((ry >= 1) && (ry <= 2))
-	  Dw[1] = .5 * wx / (param_n[1] * param_n[1] * param_n[0]) * (2 - ry) * (2 - ry);
+	  Dw[1] = .5 * wx / (param_n[1] * param_n[1]) * (2 - ry) * (2 - ry);
 	else
 	  Dw[1] = 0.0;
       }
@@ -213,81 +213,81 @@ bool RectCubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, 
       else
 	wz = 0.0;
 
-      w = wx * wy * wz / (param_n[0] * param_n[1] * param_n[2]);
+      w = wx * wy * wz;
       if (order > 0)
       {
 	if (order > 1)
 	{
 	  /* check x-direction */
 	  if ((rx >= -2) && (rx < -1))
-	    DDw[0] = wy * wz / (param_n[0] * param_n[0] * param_n[0] * param_n[1] * param_n[2]) * (2 + rx);
+	    DDw[0] = wy * wz / (param_n[0] * param_n[0] * param_n[0]) * (2 + rx);
 	  else if ((rx >= -1) && (rx < 0))
-	    DDw[0] = - wy * wz / (param_n[0] * param_n[0] * param_n[0] * param_n[1] * param_n[2]) * (2 + 3 * rx);
+	    DDw[0] = - wy * wz / (param_n[0] * param_n[0] * param_n[0]) * (2 + 3 * rx);
 	  else if ((rx >= 0) && (rx < 1))
-	    DDw[0] = - wy * wz / (param_n[0] * param_n[0] * param_n[0] * param_n[1] * param_n[2]) * (2 - 3 * rx);
+	    DDw[0] = - wy * wz / (param_n[0] * param_n[0] * param_n[0]) * (2 - 3 * rx);
 	  else if ((rx >= 1) && (rx <= 2))
-	    DDw[0] = wy * wz / (param_n[0] * param_n[0] * param_n[0] * param_n[1] * param_n[2]) * (2 - rx);
+	    DDw[0] = wy * wz / (param_n[0] * param_n[0] * param_n[0]) * (2 - rx);
 	  else
 	    DDw[0] = 0.0;
 	  
 	  /* check y-direction */
 	  if ((ry >= -2) && (ry < -1))
-	    DDw[1] = wx * wz / (param_n[1] * param_n[1] * param_n[1] * param_n[0] * param_n[2]) * (2 + ry);
+	    DDw[1] = wx * wz / (param_n[1] * param_n[1] * param_n[1]) * (2 + ry);
 	  else if ((ry >= -1) && (ry < 0))
-	    DDw[1] = - wx * wz / (param_n[1] * param_n[1] * param_n[1] * param_n[0] * param_n[2]) * (2 + 3 * ry);
+	    DDw[1] = - wx * wz / (param_n[1] * param_n[1] * param_n[1]) * (2 + 3 * ry);
 	  else if ((ry >= 0) && (ry < 1))
-	    DDw[1] = - wx * wz / (param_n[1] * param_n[1] * param_n[1] * param_n[0] * param_n[2]) * (2 - 3 * ry);
+	    DDw[1] = - wx * wz / (param_n[1] * param_n[1] * param_n[1]) * (2 - 3 * ry);
 	  else if ((ry >= 1) && (ry <= 2))
-	    DDw[1] = wx * wz / (param_n[1] * param_n[1] * param_n[1] * param_n[0] * param_n[2]) * (2 - ry);
+	    DDw[1] = wx * wz / (param_n[1] * param_n[1] * param_n[1]) * (2 - ry);
 	  else
 	    DDw[1] = 0.0;
 
 	  /* check z-direction */
 	  if ((rz >= -2) && (rz < -1))
-	    DDw[2] = wx * wy / (param_n[2] * param_n[2] * param_n[2] * param_n[0] * param_n[1]) * (2 + rz);
+	    DDw[2] = wx * wy / (param_n[2] * param_n[2] * param_n[2]) * (2 + rz);
 	  else if ((rz >= -1) && (rz < 0))
-	    DDw[2] = - wx * wy / (param_n[2] * param_n[2] * param_n[2] * param_n[0] * param_n[1]) * (2 + 3 * rz);
+	    DDw[2] = - wx * wy / (param_n[2] * param_n[2] * param_n[2]) * (2 + 3 * rz);
 	  else if ((rz >= 0) && (rz < 1))
-	    DDw[2] = - wx * wy / (param_n[2] * param_n[2] * param_n[2] * param_n[0] * param_n[1]) * (2 - 3 * rz);
+	    DDw[2] = - wx * wy / (param_n[2] * param_n[2] * param_n[2]) * (2 - 3 * rz);
 	  else if ((rz >= 1) && (rz <= 2))
-	    DDw[2] = wx * wy / (param_n[2] * param_n[2] * param_n[2] * param_n[0] * param_n[1]) * (2 - rz);
+	    DDw[2] = wx * wy / (param_n[2] * param_n[2] * param_n[2]) * (2 - rz);
 	  else
 	    DDw[2] = 0.0;
 	}
 
 	/* check x-direction */
 	if ((rx >= -2) && (rx < -1))
-	  Dw[0] = - .5 * wy * wz / (param_n[0] * param_n[0] * param_n[1] * param_n[2]) * (2 + rx) * (2 + rx);
+	  Dw[0] = - .5 * wy * wz / (param_n[0] * param_n[0]) * (2 + rx) * (2 + rx);
 	else if ((rx >= -1) && (rx < 0))
-	  Dw[0] = wy * wz / (param_n[0] * param_n[0] * param_n[1] * param_n[2]) * (2 * rx + 1.5 * rx * rx);
+	  Dw[0] = wy * wz / (param_n[0] * param_n[0]) * (2 * rx + 1.5 * rx * rx);
 	else if ((rx >= 0) && (rx < 1))
-	  Dw[0] = wy * wz / (param_n[0] * param_n[0] * param_n[1] * param_n[2]) * (2 * rx - 1.5 * rx * rx);
+	  Dw[0] = wy * wz / (param_n[0] * param_n[0]) * (2 * rx - 1.5 * rx * rx);
 	else if ((rx >= 1) && (rx <= 2))
-	  Dw[0] = .5 * wy * wz / (param_n[0] * param_n[0] * param_n[1] * param_n[2]) * (2 - rx) * (2 - rx);
+	  Dw[0] = .5 * wy * wz / (param_n[0] * param_n[0]) * (2 - rx) * (2 - rx);
 	else
 	  Dw[0] = 0.0;
 	
 	/* check y-direction */
 	if ((ry >= -2) && (ry < -1))
-	  Dw[1] = - .5 * wx * wz / (param_n[1] * param_n[1] * param_n[0] * param_n[2]) * (2 + ry) * (2 + ry);
+	  Dw[1] = - .5 * wx * wz / (param_n[1] * param_n[1]) * (2 + ry) * (2 + ry);
 	else if ((ry >= -1) && (ry < 0))
-	  Dw[1] = wx * wz / (param_n[1] * param_n[1] * param_n[0] * param_n[2]) * (2 * ry + 1.5 * ry * ry);
+	  Dw[1] = wx * wz / (param_n[1] * param_n[1]) * (2 * ry + 1.5 * ry * ry);
 	else if ((ry >= 0) && (ry < 1))
-	  Dw[1] = wx * wz / (param_n[1] * param_n[1] * param_n[0] * param_n[2]) * (2 * ry - 1.5 * ry * ry);
+	  Dw[1] = wx * wz / (param_n[1] * param_n[1]) * (2 * ry - 1.5 * ry * ry);
 	else if ((ry >= 1) && (ry <= 2))
-	  Dw[1] = .5 * wx * wz / (param_n[1] * param_n[1] * param_n[0] * param_n[2]) * (2 - ry) * (2 - ry);
+	  Dw[1] = .5 * wx * wz / (param_n[1] * param_n[1]) * (2 - ry) * (2 - ry);
 	else
 	  Dw[1] = 0.0;
 
 	/* check z-direction */
 	if ((rz >= -2) && (rz < -1))
-	  Dw[2] = - .5 * wx * wy / (param_n[2] * param_n[2] * param_n[0] * param_n[1]) * (2 + rz) * (2 + rz);
+	  Dw[2] = - .5 * wx * wy / (param_n[2] * param_n[2]) * (2 + rz) * (2 + rz);
 	else if ((rz >= -1) && (rz < 0))
-	  Dw[2] = wx * wy / (param_n[2] * param_n[2] * param_n[0] * param_n[1]) * (2 * rz + 1.5 * rz * rz);
+	  Dw[2] = wx * wy / (param_n[2] * param_n[2]) * (2 * rz + 1.5 * rz * rz);
 	else if ((rz >= 0) && (rz < 1))
-	  Dw[2] = wx * wy / (param_n[2] * param_n[2] * param_n[0] * param_n[1]) * (2 * rz - 1.5 * rz * rz);
+	  Dw[2] = wx * wy / (param_n[2] * param_n[2]) * (2 * rz - 1.5 * rz * rz);
 	else if ((rz >= 1) && (rz <= 2))
-	  Dw[2] = .5 * wx * wy / (param_n[2] * param_n[2] * param_n[0] * param_n[1]) * (2 - rz) * (2 - rz);
+	  Dw[2] = .5 * wx * wy / (param_n[2] * param_n[2]) * (2 - rz) * (2 - rz);
 	else
 	  Dw[2] = 0.0;
       }
@@ -301,7 +301,7 @@ bool RectCubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, 
 }
 
 /* multiple point calculations */
-int RectCubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
+int RectangularCubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
 		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw)
 {
   /* compute window function and derivatives for multiple field points */
@@ -322,7 +322,7 @@ int RectCubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_
     x_n.RowAlias(i, x_node);
     param_n.RowAlias(i, param_node);
       
-    if (RectCubicSplineWindowT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym))
+    if (RectangularCubicSplineWindowT::Window(x_node, param_node, x, order, w[i], fNSD, fNSDsym))
       count ++;
 
     /* store derivatives */
@@ -336,7 +336,7 @@ int RectCubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_
   return count;
 }
 
-bool RectCubicSplineWindowT::Covers(const dArrayT& x_n, const dArrayT& x, 
+bool RectangularCubicSplineWindowT::Covers(const dArrayT& x_n, const dArrayT& x, 
 	const dArrayT& param_n) const
 {
   dArrayT dx(x.Length());
@@ -345,13 +345,13 @@ bool RectCubicSplineWindowT::Covers(const dArrayT& x_n, const dArrayT& x,
   /* check individual directions to see if outside the "box" */
   for (int i = 0; i < x.Length(); i++)
   {
-    if (fabs(dx[i] / param_n[i]) > 2.0)
+    if (fabs(dx[i] / param_n[i]) > 4.0)
       return false;
   }
   return true;
 }
 
-int RectCubicSplineWindowT::Covers(const dArray2DT& x_n, const dArrayT& x, 
+int RectangularCubicSplineWindowT::Covers(const dArray2DT& x_n, const dArrayT& x, 
 	const dArray2DT& param_n, ArrayT<bool>& covers) const
 {
   int count = 0;
@@ -363,7 +363,7 @@ int RectCubicSplineWindowT::Covers(const dArray2DT& x_n, const dArrayT& x,
     dx.DiffOf(x, temprow);
     for (int j = 0; j < x.Length(); j++)
     {
-      if (fabs(dx[j] / param_n(i,j)) > 2.0)
+      if (fabs(dx[j] / param_n(i,j)) > 4.0)
 		count++;
     }
     if (count == 0)
