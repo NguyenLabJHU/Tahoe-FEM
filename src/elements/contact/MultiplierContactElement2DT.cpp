@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.cpp,v 1.17 2003-09-22 21:20:49 paklein Exp $ */
+/* $Id: MultiplierContactElement2DT.cpp,v 1.18 2003-11-06 21:57:40 rjones Exp $ */
 // created by : rjones 2001
 #include "MultiplierContactElement2DT.h"
 
@@ -13,6 +13,11 @@
 
 /* vector functions */
 #include "vector2D.h"
+
+#undef  PRINT_DEBUG
+#define PRINT_DEBUG 0
+#undef  HACK
+#define HACK 0
 
 using namespace Tahoe;
 
@@ -106,13 +111,12 @@ void MultiplierContactElement2DT::SetContactStatus(void)
 			}
 		}
 	}
-// DEBUG
-#if 0
+#if PRINT_DEBUG
 	cout << "\n\n";
 	surface.PrintGaps(cout);
-	surface.PrintNormals(cout);
+  	surface.PrintNormals(cout);
 	surface.PrintMultipliers(cout);
-	surface.PrintStatus(cout);
+  	surface.PrintStatus(cout);
 #endif
   }
 }
@@ -149,6 +153,9 @@ void MultiplierContactElement2DT::RHSDriver(void)
 	xeqnums1_man.SetMajorDimension(num_nodes,false);
 	xconn1_man.SetLength(num_nodes,false);
 		
+//	surface.PrintStatus(cout);
+//	surface.PrintMultipliers(cout);
+
 	/*form residual for this surface */
 	for (int f = 0;  f < faces.Length(); f++) {
 		const FaceT* face = faces[f];
@@ -165,7 +172,7 @@ void MultiplierContactElement2DT::RHSDriver(void)
 		for (int i = 0 ; i < weights.Length() ; i++) {
 			node = nodes[face->Node(i)];
 			status = node->EnforcementStatus();
-			if (status > kNoP )  {
+			if (status > kPZero )  {
 				elem_in_contact = 1;
 				const ContactSurfaceT* opp_surf = node->OpposingSurface();
 				opp_surf_tag = opp_surf->Tag();
@@ -206,10 +213,12 @@ void MultiplierContactElement2DT::RHSDriver(void)
 					double pj = opp_pre - node->Pressure() ;
 					P1.SetToScaled(parameters[kPScale]*pj, P1);
 				}
-				else if (status == kPZero) {
-					double pj = - node->Pressure() ;
-					P1.SetToScaled(parameters[kPScale]*pj, P1);
-				}
+				xRHS += P1;
+			}
+			else if (status == kPZero) {
+				double pScale = fEnforcementParameters(0,1)[kPScale];
+				double pj = - node->Pressure() ;
+				P1.SetToScaled(pScale*pj, P1);
 				xRHS += P1;
 			}
 		} 
@@ -219,8 +228,18 @@ void MultiplierContactElement2DT::RHSDriver(void)
 		
 			Field().SetLocalEqnos(conn1, eqnums1);
 			support.AssembleRHS(Group(), RHS, eqnums1);
+#if PRINT_DEBUG
+cout << " RHS : " << eqnums1[0] << ", " << eqnums1[1] 
+<< ", " << eqnums1[2] << ", " << eqnums1[3] << "\n";
+cout << " RHS : " << RHS[0] << ", " << RHS[1] 
+<< ", " << RHS[2] << ", " << RHS[3] << "\n";
+#endif
 			support.XDOF_Manager().XDOF_SetLocalEqnos(Group(), xconn1, xeqnums1);
 			support.AssembleRHS(Group(), xRHS, xeqnums1);
+#if PRINT_DEBUG
+cout << " xRHS : " << xeqnums1[0] << ", " << xeqnums1[1] << "\n";
+cout << " xRHS : " << xRHS[0] << ", " << xRHS[1] << "\n";
+#endif
 		}
 	}
   }
@@ -284,7 +303,7 @@ void MultiplierContactElement2DT::LHSDriver(GlobalT::SystemTypeT)
 		for (int i = 0 ; i < weights.Length() ; i++) {
 			node = nodes[face->Node(i)];
 			status = node->EnforcementStatus();
-			if (status > kNoP )  {
+			if (status > kPZero )  {
 				elem_in_contact = 1;
 				/* set-up */
 				gap = node->Gap();
@@ -312,7 +331,16 @@ void MultiplierContactElement2DT::LHSDriver(GlobalT::SystemTypeT)
 					tmp_LHS_man.SetDimensions
 						(num_nodes*NumSD(),num_nodes*fNumMultipliers);
 					tmp_LHS.Outer(N1n, P1);
+					tmp_LHS.SetToScaled(weights[i], tmp_LHS);
 					ElementSupport().AssembleLHS(Group(), tmp_LHS, eqnums1,xeqnums1);
+#if PRINT_DEBUG
+cout << "N1n (x) P1 "  << xeqnums1[0] << ", " << xeqnums1[1] << "\n"
+<< eqnums1[0] << " | " << tmp_LHS(0,0) << ", " << tmp_LHS(0,1) << "\n"
+<< eqnums1[1] << " | " << tmp_LHS(1,0) << ", " << tmp_LHS(1,1) << "\n"
+<< eqnums1[2] << " | " << tmp_LHS(2,0) << ", " << tmp_LHS(2,1) << "\n"
+<< eqnums1[3] << " | " << tmp_LHS(3,0) << ", " << tmp_LHS(3,1) << "\n";
+#endif
+
 
                 	if (status == kGapZero){
 /* primary U (X) primary   U block */
@@ -339,11 +367,20 @@ void MultiplierContactElement2DT::LHSDriver(GlobalT::SystemTypeT)
 							T1.MultAB(T1,Perm);
 							tmp_LHS.MultABT(N1, T1);
 							tmp_LHS.SetToScaled
-								(node->Pressure()-sfac*gap*weights[i], tmp_LHS);
+							 ((node->Pressure()-sfac*gap)*weights[i], tmp_LHS);
 							LHS += tmp_LHS;
 						} else {
 							LHS.Outer(N1n, N1n);
 							LHS.SetToScaled(sfac*weights[i], LHS);
+#if PRINT_DEBUG
+if ( sfac > 0.0 ) {
+cout << "N1n (x) N1n " << eqnums1[0] << ", " << eqnums1[1] << ", " << eqnums1[2] << ", " << eqnums1[3] << "\n"
+<< eqnums1[0] << " | " << LHS(0,0) << ", " << LHS(0,1) << ", " << LHS(0,2) << ", " << LHS(0,3)  << "\n"
+<< eqnums1[1] << " | " << LHS(1,0) << ", " << LHS(1,1) << ", " << LHS(1,2) << ", " << LHS(1,3)  << "\n"
+<< eqnums1[2] << " | " << LHS(2,0) << ", " << LHS(2,1) << ", " << LHS(2,2) << ", " << LHS(2,3)  << "\n"
+<< eqnums1[3] << " | " << LHS(3,0) << ", " << LHS(3,1) << ", " << LHS(3,2) << ", " << LHS(3,3)  << "\n";
+}
+#endif
 						}
 						ElementSupport().AssembleLHS(Group(), LHS, eqnums1);
 
@@ -361,6 +398,15 @@ void MultiplierContactElement2DT::LHSDriver(GlobalT::SystemTypeT)
 							(num_nodes*NumSD(),opp_num_nodes*NumSD());
 						tmp_LHS.Outer(N1n, N2n);
 						tmp_LHS.SetToScaled(-sfac*weights[i], tmp_LHS);
+#if PRINT_DEBUG
+if ( sfac > 0.0 ) {
+cout << "N1n (x) N2n " << eqnums1[0] << ", " << eqnums1[1] << ", " << eqnums1[2] << ", " << eqnums1[3] << "\n"
+<< eqnums2[0] << " | " << tmp_LHS(0,0) << ", " << tmp_LHS(0,1) << ", " << tmp_LHS(0,2) << ", " << tmp_LHS(0,3)  << "\n"
+<< eqnums2[1] << " | " << tmp_LHS(1,0) << ", " << tmp_LHS(1,1) << ", " << tmp_LHS(1,2) << ", " << tmp_LHS(1,3)  << "\n"
+<< eqnums2[2] << " | " << tmp_LHS(2,0) << ", " << tmp_LHS(2,1) << ", " << tmp_LHS(2,2) << ", " << tmp_LHS(2,3)  << "\n"
+<< eqnums2[3] << " | " << tmp_LHS(3,0) << ", " << tmp_LHS(3,1) << ", " << tmp_LHS(3,2) << ", " << tmp_LHS(3,3)  << "\n";
+}
+#endif
 
 						/* get equation numbers */
 						Field().SetLocalEqnos(conn2, eqnums2);
@@ -383,14 +429,24 @@ void MultiplierContactElement2DT::LHSDriver(GlobalT::SystemTypeT)
 					}
 					tmp_LHS.SetToScaled(gfac, tmp_LHS);
 					ElementSupport().AssembleLHS(Group(), tmp_LHS, xeqnums1,eqnums1);
+#if PRINT_DEBUG
+cout << "P1 (x) N1n "  << eqnums1[0] << ", " << eqnums1[1] << ", " << eqnums1[2] << ", " << eqnums1[3] << "\n"
+<< xeqnums1[0] << " | " << tmp_LHS(0,0) << ", " << tmp_LHS(0,1) << ", " << tmp_LHS(0,2) << ", " << tmp_LHS(0,3)  << "\n"
+<< xeqnums1[1] << " | " << tmp_LHS(1,0) << ", " << tmp_LHS(1,1) << ", " << tmp_LHS(1,2) << ", " << tmp_LHS(1,3)  << "\n";
+#endif
 /* primary P (X) secondary U block */
 					tmp_LHS_man.SetDimensions
 						(num_nodes*fNumMultipliers,opp_num_nodes*NumSD());
 					tmp_LHS.Outer(P1, N2n);
 					tmp_LHS.SetToScaled(-gfac, tmp_LHS);
 					ElementSupport().AssembleLHS(Group(), tmp_LHS, xeqnums1,eqnums2);
+#if PRINT_DEBUG
+cout << "P1 (x) N2n " << eqnums2[0] << ", " << eqnums2[1] << ", " << eqnums2[2] << ", " << eqnums2[3] << "\n"
+<< xeqnums1[0] << " | " << tmp_LHS(0,0) << ", " << tmp_LHS(0,1) << ", " << tmp_LHS(0,2) << ", " << tmp_LHS(0,3)  << "\n"
+<< xeqnums1[1] << " | " << tmp_LHS(1,0) << ", " << tmp_LHS(1,1) << ", " << tmp_LHS(1,2) << ", " << tmp_LHS(1,3)  << "\n";
+#endif
                 }
-                else if (status == kPJump || status == kPZero) {
+                else if (status == kPJump) {
 					double pfac = parameters[kPScale];
 /* primary P (X) primary   P block */
 					tmp_LHS_man.SetDimensions
@@ -398,23 +454,45 @@ void MultiplierContactElement2DT::LHSDriver(GlobalT::SystemTypeT)
 					tmp_LHS.Outer(P1, P1);
 					tmp_LHS.SetToScaled(pfac, tmp_LHS);
 					ElementSupport().AssembleLHS(Group(), tmp_LHS, xeqnums1,xeqnums1);
-                	if (status == kPJump) {
+#if PRINT_DEBUG
+cout << "P1 (x) P1 " << xeqnums1[0] << ", " << xeqnums1[1] << "\n"
+<< xeqnums1[0] << " | " << tmp_LHS(0,0) << ", " << tmp_LHS(0,1) <<  "\n"
+<< xeqnums1[1] << " | " << tmp_LHS(1,0) << ", " << tmp_LHS(1,1) <<  "\n";
+#endif
 /* primary P (X) secondary P block */		
-					    xconn2_man.SetLength(opp_num_nodes,false);
-						opp_surf->MultiplierTags
+					xconn2_man.SetLength(opp_num_nodes,false);
+					opp_surf->MultiplierTags
 							(opp_face->Connectivity(),xconn2);
-					    xeqnums2_man.SetMajorDimension(opp_num_nodes,false);
-						ElementSupport().XDOF_Manager().XDOF_SetLocalEqnos(Group(), xconn2, xeqnums2);
-						P2_man.SetDimensions
+					xeqnums2_man.SetMajorDimension(opp_num_nodes,false);
+					ElementSupport().XDOF_Manager().XDOF_SetLocalEqnos(Group(), xconn2, xeqnums2);
+					P2_man.SetDimensions
 							(opp_num_nodes*fNumMultipliers,fNumMultipliers);
-						opp_face->ComputeShapeFunctions(opp_xi,P2);
-						tmp_LHS_man.SetDimensions (num_nodes*fNumMultipliers,
+					opp_face->ComputeShapeFunctions(opp_xi,P2);
+					tmp_LHS_man.SetDimensions (num_nodes*fNumMultipliers,
 							opp_num_nodes*fNumMultipliers);
-						tmp_LHS.Outer(P1, P2);
-						tmp_LHS.SetToScaled(-pfac, tmp_LHS);
-						ElementSupport().AssembleLHS(Group(), tmp_LHS, xeqnums1,xeqnums2);
-					}
+					tmp_LHS.Outer(P1, P2);
+					tmp_LHS.SetToScaled(-pfac, tmp_LHS);
+					ElementSupport().AssembleLHS(Group(), tmp_LHS, xeqnums1,xeqnums2);
+#if PRINT_DEBUG
+cout << "P1 (x) P2 " << xeqnums2[0] << ", " << xeqnums2[1] << "\n"
+<< xeqnums1[0] << " | " << tmp_LHS(0,0) << ", " << tmp_LHS(0,1) <<  "\n"
+<< xeqnums1[1] << " | " << tmp_LHS(1,0) << ", " << tmp_LHS(1,1) <<  "\n";
+#endif
                 }
+			}
+            else if (status == kPZero) {
+				double pScale = fEnforcementParameters(0,1)[kPScale];
+/* primary P (X) primary   P block */
+				tmp_LHS_man.SetDimensions
+					(num_nodes*fNumMultipliers,num_nodes*fNumMultipliers);
+				tmp_LHS.Outer(P1, P1);
+				tmp_LHS.SetToScaled(pScale, tmp_LHS);
+				ElementSupport().AssembleLHS(Group(), tmp_LHS, xeqnums1,xeqnums1);
+#if PRINT_DEBUG
+cout << "P1 (x) P1 " << xeqnums1[0] << ", " << xeqnums1[1] << "\n"
+<< xeqnums1[0] << " | " << tmp_LHS(0,0) << ", " << tmp_LHS(0,1) <<  "\n"
+<< xeqnums1[1] << " | " << tmp_LHS(1,0) << ", " << tmp_LHS(1,1) <<  "\n";
+#endif
 			}
 		}
 	}

@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.32 2003-07-03 00:04:38 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.33 2003-11-06 21:57:40 rjones Exp $ */
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
 
@@ -170,6 +170,8 @@ public:
                                	kYield,
 							  	kLength,
 								kAsperityArea,
+								kAdhesionEnergy,
+								kAdhesionModulus,
 								knGP
 						};
 

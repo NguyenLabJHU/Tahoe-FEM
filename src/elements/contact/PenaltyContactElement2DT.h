@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.h,v 1.20 2003-06-30 22:07:28 rjones Exp $ */
+/* $Id: PenaltyContactElement2DT.h,v 1.21 2003-11-06 21:57:40 rjones Exp $ */
 // created by : rjones 2001
 #ifndef _PENALTY_CONTACT_ELEMENT_2D_T_H_
 #define _PENALTY_CONTACT_ELEMENT_2D_T_H_
@@ -43,6 +43,8 @@ class PenaltyContactElement2DT: public ContactElementT
 	
 	/* total _real_ area of contact for each surface */
 	dArrayT fRealArea; 
+	dArrayT fContactArea; 
+	dArrayT fPlasticArea; 
 
     /* penalty models */
 	pArrayT<C1FunctionT*> fPenaltyFunctions;

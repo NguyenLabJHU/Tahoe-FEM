@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.36 2003-07-17 20:32:50 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.37 2003-11-06 21:57:40 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
@@ -296,8 +296,11 @@ ContactSurfaceT::MultiplierTags
 {
 	for (int i = 0; i < local_nodes.Length(); i++)
 	{
-		multiplier_tags[i] 
-			= fMultiplierTags[fMultiplierMap[local_nodes[i]]];
+		int mapped_tag = fMultiplierMap[local_nodes[i]];
+		if (mapped_tag > -1) {
+			multiplier_tags[i] = fMultiplierTags[mapped_tag]; }
+		else {
+			multiplier_tags[i] = -1 ; }
 	}
 }
 
@@ -448,7 +451,8 @@ ContactSurfaceT::PrintMultipliers(ostream& out) const
         for (int n = 0 ; n < fMultiplierMap.Length(); n++) {
 			int tag = fMultiplierMap[n];
 			if (tag > -1) {
-                out << "# tag " << fContactNodes[n]->Tag() << "\n";
+                out << "# tag " << fContactNodes[n]->Tag() 
+				    << ", multiplier tag "<< tag << "\n";
 				out << n << " ";
                 for (int i = 0; i < fNumSD; i++) {
                         out << fContactNodes[n]->Position()[i] << " ";
@@ -535,6 +539,13 @@ ContactSurfaceT::PrintStatus(ostream& out) const
 					fContactNodes[n]->Gap();
 
 					out << "\n";
+				}
+				else 
+				{
+                	out << fContactNodes[n]->Tag()<< " ";
+                	out << " status " << fContactNodes[n]->Status()  
+					<< " : " << fContactNodes[n]->EnforcementStatus()
+				    << " no projection \n"	;
 				}
         }
 }

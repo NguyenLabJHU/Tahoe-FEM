@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.47 2003-07-17 20:32:50 rjones Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.48 2003-11-06 21:57:40 rjones Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -106,11 +106,14 @@ void PenaltyContactElement2DT::Initialize(void)
                 double gp_len = mat_parameters[kLength];
                 double gp_yld = mat_parameters[kYield];
                 double gp_aa = mat_parameters[kAsperityArea];
+                double gp_ade = mat_parameters[kAdhesionEnergy];
+                double gp_adm = mat_parameters[kAdhesionModulus];
                 double material_coeff=gp_dens;
           		double area_coeff = gp_dens;
 				enf_parameters[kPenalty] *= material_coeff; // overwrite
 				fPenaltyFunctions[LookUp(i,j,num_surfaces)]
-                     = new GWPlastic(gp_mu,gp_sigma,gp_mod,gp_yld,gp_len,gp_aa);
+                     = new GWPlastic(gp_mu,gp_sigma,gp_mod,gp_yld,gp_len,gp_aa,
+									 gp_ade,gp_adm);
 				}
 				break;
 			default:
@@ -120,9 +123,13 @@ void PenaltyContactElement2DT::Initialize(void)
 		}
 	}
 
+    fContactArea.Dimension(fSurfaces.Length());
+	fContactArea = 0;
 	/* subsidary data for GW models */
     fRealArea.Dimension(fSurfaces.Length());
 	fRealArea = 0;
+    fPlasticArea.Dimension(fSurfaces.Length());
+	fPlasticArea = 0;
 }
 
 /* print/compute element output quantities */
@@ -148,8 +155,14 @@ void PenaltyContactElement2DT::WriteOutput(void)
     if (fOutputFlags[kArea] )
  	{
 		cout << "\n";
-		for (int i=0; i<fSurfaces.Length(); i++)
-			cout << "real contact area = " << fRealArea[i] << "\n";
+		for (int i=0; i<fSurfaces.Length(); i++) {
+			cout << "Surface : " << i << 
+					"         contact area = " << fContactArea[i] << "\n";
+			cout << "Surface : " << i << 
+					"    real contact area = " << fRealArea[i] << "\n";
+			cout << "Surface : " << i << 
+					" plastic contact area = " << fPlasticArea[i] << "\n";
+		}
 	}
 
     if (fOutputFlags[kGaps] ) {
@@ -299,6 +312,10 @@ void PenaltyContactElement2DT::RHSDriver(void)
 
   int num_surfaces = fSurfaces.Length(); 
   int nsd = NumSD();
+  fContactArea = 0;
+  fRealArea = 0;
+  fPlasticArea = 0;
+
   /* residual */
   for(int s = 0; s < num_surfaces; s++) {
 	ContactSurfaceT& surface = fSurfaces[s];
@@ -311,7 +328,6 @@ void PenaltyContactElement2DT::RHSDriver(void)
 	N1_man.SetDimensions(num_nodes*nsd, nsd);
 	weights_man.SetLength(num_nodes,false);
 	eqnums1_man.SetMajorDimension(num_nodes,false);
-	fRealArea[s] = 0;
 		
 	/*form residual for this surface */
 	for (int f = 0;  f < faces.Length(); f++) {
@@ -357,6 +373,8 @@ void PenaltyContactElement2DT::RHSDriver(void)
 		  RHS += tmp_RHS;
 
 
+		  fContactArea[s] += weights[i];
+
 		  /* real area computation */
 		  if (enf_parameters[kMaterialType] 
 				== PenaltyContactElement2DT::kGreenwoodWilliamson) {
@@ -379,6 +397,20 @@ void PenaltyContactElement2DT::RHSDriver(void)
 			MajumdarBhushan MBArea(mb_f,mb_s,mb_c); 
 			double area_coeff = 0.5*mb_f/(mb_f-2.0); //0.5/mb_f;
 		  	fRealArea[s] += (area_coeff*MBArea.Function(gap)*weights[i]);
+		  }
+		  else if (enf_parameters[kMaterialType] 
+				== PenaltyContactElement2DT::kGWPlastic) {
+			double gp_dens = mat_parameters[kDensity];
+			double area_coeff = gp_dens;
+			double real_area = ((GWPlastic*) pen_function)->Function(gap);
+		  	fRealArea[s] += (area_coeff*real_area*weights[i]);
+			double plastic_area = 0.0;
+			if (real_area > 0.0) {
+				gmin = node->MinGap(); 
+				if (gap < gmin) gmin = gap;
+				plastic_area = ((GWPlastic*) pen_function)->PlasticArea(gmin);
+			}
+		  	fPlasticArea[s] += (area_coeff*plastic_area*weights[i]);
 		  }
 		}
 	  } 
