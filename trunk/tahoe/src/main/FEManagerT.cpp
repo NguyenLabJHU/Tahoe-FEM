@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.20 2002-01-03 03:02:29 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.21 2002-01-05 06:38:27 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
@@ -1038,10 +1038,18 @@ void FEManagerT::ReadParameters(InitCodeT init)
 	/* read */
 	fMainIn >> fAnalysisCode;
 	
-	if (init == kFull || init == kAllButSolver)
-	  fModelManager->Initialize (fMainIn, false);
-	else
-	  fModelManager->Initialize (fMainIn, true);
+	if (init == kFull || init == kAllButSolver) {
+		if (!fModelManager->Initialize (fMainIn, false)) {
+			cout << "\n FEManagerT::ReadParameters: error initializing model manager" << endl;
+			throw eBadInputValue;
+		}
+	}
+	else {
+		if (!fModelManager->Initialize (fMainIn, true)) {
+			cout << "\n FEManagerT::ReadParameters: error initializing model manager" << endl;
+			throw eBadInputValue;
+		}
+	}
 
 	fMainIn >> fOutputFormat;
 	fMainIn >> fReadRestart;
