@@ -32,7 +32,7 @@
                     <FCC_EAM_2D density="1.0">
                         <FCC_EAM_Cauchy-Born dimensions="2">
                             <FCC_natural/>
-                            <Paradyn_EAM parameter_file="auu3"/>
+                            <Paradyn_EAM_glue parameter_file="auu3"/>
                         </FCC_EAM_Cauchy-Born>
                     </FCC_EAM_2D>
                 </large_strain_material_2D>
