@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.37 2003-11-21 22:41:39 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.38 2004-03-27 04:04:49 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #include "StringT.h"
 #include "ifstreamT.h"
@@ -1044,9 +1044,26 @@ bool StringT::Tail(char key, StringT& value) const
 	return false;
 }
 
+bool StringT::IsXMLName(const char* s)
+{
+	if (strlen(s) < 1 || (!isalnum(*s) && *s != '_'))
+		return false;
+	else {
+	
+		while (*s != '\0') {
+			if (!isalnum(*s) && *s != '_' && *s != '-' && *s != '.' && *s != ':')
+				return false;
+			s++;
+		}
+	
+		/* OK */
+		return true;
+	}
+}
+
 /**********************************************************************
-* Private
-**********************************************************************/
+ * Private
+ **********************************************************************/
 
 /* returns the character string corresponding to the number */
 void StringT::IntegerToString(int number, char* string) const

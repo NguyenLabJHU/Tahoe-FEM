@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.21 2003-11-21 22:41:39 paklein Exp $ */
+/* $Id: StringT.h,v 1.22 2004-03-27 04:04:49 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #ifndef _STRING_T_H_
 #define _STRING_T_H_
@@ -230,6 +230,12 @@ public:
 	/*@{*/
 	int FirstPositionOf(char a) const;
 	int LastPositionOf(char a) const;
+	/*@}*/
+
+	/** \name check for valid XML name */
+	/*@{*/
+	static bool IsXMLName(const char* s);
+	bool IsXMLName(void) const { return IsXMLName(*this); };
 	/*@}*/
 
 private:
