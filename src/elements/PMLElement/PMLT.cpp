@@ -1,4 +1,4 @@
-/* $Id: PMLT.cpp,v 1.2 2002-01-22 02:13:28 paklein Exp $ */
+/* $Id: PMLT.cpp,v 1.3 2002-01-22 02:34:30 paklein Exp $ */
 
 #include "PMLT.h"
 
@@ -115,6 +115,23 @@ void PMLT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 {
 	cout << "\n PMLT::NodalDOFs: not implemented" << endl;
 	throw eGeneralFail;
+
+#if 0
+	if (nodes.Length() == fNumElementNodes)
+	{
+		fLocDisp.SetLocal(nodes);
+	
+		//construct total displacement in DOFs
+	}
+	else
+	{
+	
+	
+	}
+
+
+#endif	
+	
 }
 
 /* construct the effective mass matrix */
@@ -501,6 +518,10 @@ void PMLT::FormStiffness(double constK)
 	/* integrate element stiffness */
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
+
+	/* clear */
+	fLHSa = 0.0;
+	fLHSb = 0.0;
 	
 	fShapes->TopIP();
 	while ( fShapes->NextIP() )
@@ -521,20 +542,12 @@ void PMLT::FormStiffness(double constK)
 		fDa.SetToScaled(scale_a, fCurrMaterial->c_ijkl());
 		fDb.SetToScaled(scale_b, fCurrMaterial->c_ijkl());
 							
-		/* multiply b_alpha(transpose) * d*b */
-		
-		ElementMatrixT temp1(fLHSa);
-		ElementMatrixT temp2(fLHSa);
-		
-		temp1.MultATBC(fBa, fDa, fBa, format, dMatrixT::kAccumulate);	
-		temp2.MultATBC(fBa, fDb, fBb, format, dMatrixT::kAccumulate);
-		fLHSa += temp1;
-		fLHSa += temp2;		
+		/* multiply b_alpha(transpose) * d*b */		
+		fLHSa.MultATBC(fBa, fDa, fBa, dMatrixT::kWhole, dMatrixT::kAccumulate);	
+		fLHSa.MultATBC(fBa, fDb, fBb, dMatrixT::kWhole, dMatrixT::kAccumulate);
 	
-		temp1.MultATBC(fBb, fDa, fBa, format, dMatrixT::kAccumulate);	
-		temp2.MultATBC(fBb, fDb, fBb, format, dMatrixT::kAccumulate);
-		fLHSb += temp1;
-		fLHSb += temp2;
+		fLHSb.MultATBC(fBb, fDa, fBa, dMatrixT::kWhole, dMatrixT::kAccumulate);	
+		fLHSb.MultATBC(fBb, fDb, fBb, dMatrixT::kWhole, dMatrixT::kAccumulate);
 	/*Map into fLHS*/
 	}
 	int next = fNumElemEqnos*fNEESub;
@@ -855,7 +868,6 @@ void PMLT::AddLinearMomentum(dArrayT& momentum)
 		SetGlobalShape();
 		
 		/* get velocities */
-//Q: Should SetLocalU be called for fLocVel or fTotVel?
 		SetLocalU(fLocVel);
 		LocalArrayT& LocVel = TotalVel(fLocVel);
 
