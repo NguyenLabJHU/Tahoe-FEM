@@ -1,4 +1,4 @@
-/* $Id: iArrayT.h,v 1.6 2002-11-25 07:03:21 paklein Exp $ */
+/* $Id: iArrayT.h,v 1.6.4.1 2003-04-27 22:09:35 paklein Exp $ */
 /* created: paklein (08/10/1996) */
 #ifndef _IARRAY_T_H_
 #define _IARRAY_T_H_
@@ -66,10 +66,6 @@ public:
 	iArrayT& Union(const ArrayT<const nArrayT<int>*>& source);
 };
 
-} /* namespace Tahoe */
-
-using namespace Tahoe;
-
 /* inlines */
 
 /* assigment operators */
@@ -100,7 +96,9 @@ inline void iArrayT::SortAscending(ArrayT<int>& master)
 inline void iArrayT::SortAscending(ArrayT<double>& master)
 {
 	/* utility */
-	::SortAscending(master, *this);
+	Tahoe::SortAscending(master, *this);
 }
+
+} /* namespace Tahoe */
 
 #endif /* _IARRAY_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: GridManager1DT.h,v 1.8 2003-01-27 06:42:48 paklein Exp $ */
+/* $Id: GridManager1DT.h,v 1.8.2.1 2003-04-27 22:10:48 paklein Exp $ */
 #ifndef _GRIDMANAGER1D_T_H_
 #define _GRIDMANAGER1D_T_H_
 
@@ -73,13 +73,9 @@ protected:
 
 };
 
-} // namespace Tahoe;
-
-using namespace Tahoe;
-
 /*************************************************************************
-* Implementation
-*************************************************************************/
+ * Implementation
+ *************************************************************************/
 
 /* constructors */
 template <class sTYPE>
@@ -402,5 +398,7 @@ AutoArrayT<sTYPE>** GridManager1DT<sTYPE>::FetchGrid(double* coords)
 	/* stored column major */
 	return fGrid.Pointer(ix);
 }
+
+} /* namespace Tahoe */
 
 #endif /* _GRIDMANAGER1D_T_H_ */
