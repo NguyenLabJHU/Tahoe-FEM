@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.13 2005-01-28 02:45:12 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.14 2005-01-29 18:33:51 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
@@ -118,10 +118,6 @@ void MFPenaltyContact2DT::TakeParameterList(const ParameterListT& list)
 {
 	const char caller[] = "MFPenaltyContact2DT::TakeParameterList";
 
-#ifdef __NO_RTTI__
-	ExceptionT::GeneralFail(caller, "requires RTTI");
-#endif
-
 	/* NOTE: fMeshFreeSupport must be resolved before calling PenaltyContact2DT::TakeParameterList
 	 *       because it is needed during MFPenaltyContact2DT:: ExtractContactGeometry */
 
@@ -131,19 +127,40 @@ void MFPenaltyContact2DT::TakeParameterList(const ParameterListT& list)
 	ElementBaseT& element = ElementSupport().ElementGroup(group);
 	fElementGroup = &element;
 
+#ifndef __NO_RTTI__
 	/* cast to meshfree element types */
 	const MeshFreeSSSolidT* mf_ss_solid = dynamic_cast<const MeshFreeSSSolidT*>(fElementGroup);
 	const MeshFreeFSSolidT* mf_fs_solid = dynamic_cast<const MeshFreeFSSolidT*>(fElementGroup);
 	const MeshFreeFSSolidAxiT* mf_fs_axi_solid = dynamic_cast<const MeshFreeFSSolidAxiT*>(fElementGroup);
 	fSCNI = dynamic_cast<const SCNIMFT*>(fElementGroup);
 	if (mf_ss_solid)
-		fMeshFreeSupport = &(mf_ss_solid->MeshFreeSupport());	
+		fMeshFreeSupport = &(mf_ss_solid->MeshFreeSupport());
 	else if (mf_fs_solid)
-		fMeshFreeSupport = &(mf_fs_solid->MeshFreeSupport());	
+		fMeshFreeSupport = &(mf_fs_solid->MeshFreeSupport());
 	else if (mf_fs_axi_solid)
-		fMeshFreeSupport = &(mf_fs_axi_solid->MeshFreeSupport());	
+		fMeshFreeSupport = &(mf_fs_axi_solid->MeshFreeSupport());
 	else if (!fSCNI)
 		ExceptionT::GeneralFail(caller, "element group %d is not meshfree", group+1);
+#else
+	/* use name to resolve meshfree type */
+	const StringT& element_name = fElementGroup->Name();
+	if (element_name == "small_strain_meshfree") {
+		const MeshFreeSSSolidT* mf_ss_solid = (const MeshFreeSSSolidT*) fElementGroup;
+		fMeshFreeSupport = &(mf_ss_solid->MeshFreeSupport());
+	}
+	else if (element_name == "large_strain_meshfree") {
+		const MeshFreeFSSolidT* mf_fs_solid = (const MeshFreeFSSolidT*) fElementGroup;
+		fMeshFreeSupport = &(mf_fs_solid->MeshFreeSupport());
+	}
+	else if (element_name == "large_strain_meshfree_axi") {
+		const MeshFreeFSSolidAxiT* mf_fs_axi_solid = (const MeshFreeFSSolidAxiT*) fElementGroup;
+		fMeshFreeSupport = &(mf_fs_axi_solid->MeshFreeSupport());
+	}
+	else if (element_name.StringMatch("mfparticle"))
+		fSCNI = (const SCNIMFT*) fElementGroup;
+	else
+		ExceptionT::GeneralFail(caller, "could not resolve meshfree group %d", group+1);
+#endif
 
 	/* register arrays with memory manager */
 	fStrikerCoords_man.SetWard(0, fStrikerCoords, NumSD());
