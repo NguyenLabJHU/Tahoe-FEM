@@ -1,4 +1,4 @@
-/* $Id: CellGeometryT.cpp,v 1.3 2005-01-26 20:21:07 cjkimme Exp $ */
+/* $Id: CellGeometryT.cpp,v 1.4 2005-01-27 17:50:34 paklein Exp $ */
 #include "CellGeometryT.h"
 #include "dArrayT.h"
 
@@ -8,6 +8,8 @@ using namespace Tahoe;
 CellGeometryT::CellGeometryT(const ElementSupportT& support, bool isAxisymmetric):
 	ParameterInterfaceT("cell_geometry"),
 	fElementSupport(&support),
+	fNodes(NULL),
+	fNodalCoordinates(NULL),
 	fNumIP(1),
 	fscnimft(NULL),
 	qIsAxisymmetric(isAxisymmetric)
@@ -19,15 +21,11 @@ CellGeometryT::CellGeometryT(const ElementSupportT& support, bool isAxisymmetric
 CellGeometryT::CellGeometryT(void):
 	ParameterInterfaceT("cell_geometry"),
 	fElementSupport(NULL),
+	fNodes(NULL),
+	fNodalCoordinates(NULL),
 	fNumIP(1),
 	fscnimft(NULL),
 	qIsAxisymmetric(false)
-{
-
-}
-
-/* destructor */
-CellGeometryT::~CellGeometryT(void)
 {
 
 }
@@ -38,10 +36,19 @@ void CellGeometryT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT
 #pragma unused(mat_index)
 }
 
-void CellGeometryT::SetNodesAndShapes(iArrayT& nodes, dArray2DT& nodal_coordinates, MeshFreeNodalShapeFunctionT* nodalShapeFunctions)
+void CellGeometryT::SetNodesAndShapes(const iArrayT* nodes, const dArray2DT* nodal_coordinates, 
+	MeshFreeNodalShapeFunctionT* nodalShapeFunctions)
 {
-	fNodes.Alias(nodes);
-	fNodalCoordinates.Alias(nodal_coordinates);
+	const char caller[] = "CellGeometryT::SetNodesAndShapes";
+
+	fNodes = nodes;
+	fNodalCoordinates = nodal_coordinates;
+	if ((fNodes && !fNodalCoordinates) ||
+	    (!fNodes && fNodalCoordinates))
+	    ExceptionT::GeneralFail(caller, "nodes and coordinates must be set together");
+	if (fNodes && fNodes->Length() != fNodalCoordinates->MajorDim())
+		ExceptionT::SizeMismatch(caller);
+
 	fNodalShapes = nodalShapeFunctions;
 }
 
