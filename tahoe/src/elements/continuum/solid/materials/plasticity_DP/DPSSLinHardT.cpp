@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.cpp,v 1.8 2001-07-27 00:08:04 cfoster Exp $ */
+/* $Id: DPSSLinHardT.cpp,v 1.9 2001-07-27 01:23:05 paklein Exp $ */
 /* created: myip (06/01/1999)                                        */
 /*
  * Interface for Drucker-Prager, nonassociative, small strain,
@@ -279,7 +279,7 @@ void DPSSLinHardT::Update(ElementCardT& element)
 		if (Flags[ip] == kIsPlastic) /* plastic update */
 		{
 			/* do not repeat if called again. */
-			Flags[ip] = kIsElastic;
+			//Flags[ip] = kIsElastic;
 			/* NOTE: ComputeOutput writes the updated internal variables
 			 *       for output even during iteration output, which is
 			 *       called before UpdateHistory */

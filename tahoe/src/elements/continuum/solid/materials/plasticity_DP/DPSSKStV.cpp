@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.7 2001-07-27 00:08:04 cfoster Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.8 2001-07-27 01:23:05 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 
@@ -205,14 +205,6 @@ void DPSSKStV::ComputeOutput(dArrayT& output)
 	if (element.IsAllocated())
 	{
 		output[0] = fInternal[kalpha];
-		/* status flags */
-		iArrayT& flags = element.IntegerData();
-		if (flags[CurrIP()] == kIsPlastic) // output with update
-		{
-			output[0] -= fH_prime*fInternal[kdgamma]; 
-		}
-		// alpha not incremented until Update(), which 
-		// hasn't occurred yet
 	}
 	else
 	{
