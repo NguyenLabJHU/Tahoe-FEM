@@ -1,6 +1,5 @@
-/* $Id: iArrayT.h,v 1.5 2002-07-02 19:56:40 cjkimme Exp $ */
+/* $Id: iArrayT.h,v 1.6 2002-11-25 07:03:21 paklein Exp $ */
 /* created: paklein (08/10/1996) */
-
 #ifndef _IARRAY_T_H_
 #define _IARRAY_T_H_
 
@@ -9,21 +8,24 @@
 
 namespace Tahoe {
 
-/* integer array class. Most functionality is inherited from nArrayT. */
+/** integer array class. Most functionality is inherited from nArrayT */
 class iArrayT: public nArrayT<int>
 {
 public:
 
-	/* constructors */
+	/** \name constructors */
+	/*@{*/
 	iArrayT(void);
 	explicit iArrayT(int length);
 	iArrayT(int length, int* p);
 	iArrayT(const iArrayT& source);
+	/*@}*/
 	
-	/* assigment operators */
+	/** \name assigment operators */
+	/*@{*/
 	iArrayT& operator=(const iArrayT& RHS);
 	iArrayT& operator=(const int value);
-	
+	/*@}*/
 
 	/** flip specified values in the array
 	 * \param from values to match
@@ -63,7 +65,8 @@ public:
 	/** determine the union of the given arrays */
 	iArrayT& Union(const ArrayT<const nArrayT<int>*>& source);
 };
-}//namespace Tahoe
+
+} /* namespace Tahoe */
 
 using namespace Tahoe;
 

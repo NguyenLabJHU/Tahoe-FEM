@@ -1,12 +1,10 @@
-/* $Id: iArray2DT.h,v 1.2 2002-07-02 19:56:39 cjkimme Exp $ */
-/* created: paklein (09/23/1996)                                          */
-
+/* $Id: iArray2DT.h,v 1.3 2002-11-25 07:03:21 paklein Exp $ */
+/* created: paklein (09/23/1996) */
 #ifndef _IARRAY2D_T_H_
 #define _IARRAY2D_T_H_
 
 /* base class */
 #include "nArray2DT.h"
-
 
 namespace Tahoe {
 
