@@ -1,9 +1,10 @@
-/* $Id: ParadynPairT.cpp,v 1.8.22.1 2004-04-08 07:33:31 paklein Exp $ */
+/* $Id: ParadynPairT.cpp,v 1.8.22.2 2004-04-16 18:12:12 paklein Exp $ */
 #include "ParadynPairT.h"
 #include "toolboxConstants.h"
 #include "ifstreamT.h"
 #include "dArrayT.h"
 #include "AutoArrayT.h"
+#include "BasicSupportT.h"
 
 using namespace Tahoe;
 
@@ -20,7 +21,8 @@ double* ParadynPairT::s_coeff = NULL;
 const int knum_coeff = 9;
 
 /* constructor */
-ParadynPairT::ParadynPairT(const StringT& param_file):
+ParadynPairT::ParadynPairT(const BasicSupportT& support, const StringT& param_file):
+	fSupport(support),
 	f_cut(0.0)
 {
 	SetName("Paradyn_pair");
@@ -29,7 +31,8 @@ ParadynPairT::ParadynPairT(const StringT& param_file):
 	ReadParameters(param_file);
 }
 
-ParadynPairT::ParadynPairT(void)
+ParadynPairT::ParadynPairT(const BasicSupportT& support):
+	fSupport(support)
 {
 	SetName("Paradyn_pair");
 }
@@ -99,6 +102,11 @@ void ParadynPairT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	PairPropertyT::DefineParameters(list);
 
+	/* give "mass" default value */
+	ParameterT& mass = list.GetParameter("mass");
+	mass.SetDefault(1.0);
+
+	/* parameter file path (relative to input file) */
 	list.AddParameter(ParameterT::Word, "parameter_file");
 }
 
@@ -108,8 +116,17 @@ void ParadynPairT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	PairPropertyT::TakeParameterList(list);
 
-	StringT parameter_file = list.GetParameter("parameter_file");
-	ReadParameters(parameter_file);
+	/* convert file path to standard form */
+	StringT file = list.GetParameter("parameter_file");
+	file.ToNativePathName();
+	
+	/* prepend path from input file */
+	StringT path;
+	path.FilePath(fSupport.Input().filename());	
+	file.Prepend(path);
+
+	/* read parameters */
+	ReadParameters(file);
 }
 
 /***********************************************************************
