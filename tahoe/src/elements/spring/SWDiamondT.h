@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.h,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: SWDiamondT.h,v 1.2 2001-04-27 10:52:18 paklein Exp $ */
 /* created: paklein (03/19/1997)                                          */
 
 #ifndef _SWDIAMOND_T_H_
@@ -125,6 +125,11 @@ protected:
 	
 	/* derived values */
 	double	fB;
+
+	/* I/O ID */
+	int       fOutputID;
+	iArrayT   fNodesUsed;
+	iArray2DT fOutputConnects;
 
 	/* 3 Body */
 	ElementMatrixT& fK_3Body;

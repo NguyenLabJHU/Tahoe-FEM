@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: SWDiamondT.cpp,v 1.2 2001-04-27 10:52:18 paklein Exp $ */
 /* created: paklein (03/19/1997)                                          */
 
 #include "SWDiamondT.h"
@@ -10,6 +10,7 @@
 #include "FEManagerT.h"
 #include "NodeManagerT.h"
 #include "FindNeighbor23T.h"
+#include "OutputSetT.h"
 
 /* element group parameters */
 const int kndof = 3;
@@ -39,6 +40,7 @@ SWDiamondT::SWDiamondT(FEManagerT& fe_manager):
 
 	/* set base class data */
 	fNumDOF = kndof;
+	fNumElemEqnos = 3*fNumDOF;
 
 	/* allocate memory */
 	fK_3Body.Allocate(3*fNumDOF);
@@ -53,6 +55,9 @@ SWDiamondT::SWDiamondT(FEManagerT& fe_manager):
 	
 	fFEManager.RegisterLocal(fLocd_3Body);
 	fFEManager.RegisterLocal(fLocd_2Body);
+	
+	//TEMP
+	ReadMaterialData(fFEManager.Input());	
 }
 
 /* initialization */
@@ -62,7 +67,7 @@ void SWDiamondT::Initialize(void)
 	ElementBaseT::Initialize();
 
 	/* material parameters */
-	ReadMaterialData(fFEManager.Input());	
+	//ReadMaterialData(fFEManager.Input());	
 	WriteMaterialData(fFEManager.Output());
 }
 
@@ -128,13 +133,33 @@ void SWDiamondT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 /* writing output */
 void SWDiamondT::RegisterOutput(void)
 {
-	//nothing for now
+	/* set labels */
+	ArrayT<StringT> n_labels(3), e_labels;
+	n_labels[0] = "D_X";
+	n_labels[1] = "D_Y";
+	n_labels[2] = "D_Z";		
+
+	/* set output specifier */
+	int ID = fFEManager.ElementGroupNumber(this) + 1;
+	iArrayT block_ID;
+	OutputSetT output_set(ID, GeometryT::kPoint, block_ID, fOutputConnects,
+		n_labels, e_labels, false);
+
+	/* register and get output ID */
+	fOutputID = fFEManager.RegisterOutput(output_set);
 }
 
 void SWDiamondT::WriteOutput(IOBaseT::OutputModeT mode)
 {
-#pragma unused(mode)
-	//nothing for now
+	if (mode == IOBaseT::kAtInc)
+	{
+		/* calculate output values */
+		dArray2DT n_values(fNodesUsed.Length(), kndof), e_values;
+		n_values.RowCollect(fNodesUsed, fNodes->Displacements());
+
+		/* send to output */
+		fFEManager.WriteOutput(fOutputID, n_values, e_values);
+	}
 }
 
 /* compute specified output parameter and send for smoothing */
@@ -152,38 +177,44 @@ void SWDiamondT::LHSDriver(void)
 {
 	/* 3 body contribution */
 	List_3Body.Top();
-	while ( Next3Body() )
+	while (List_3Body.Next()) //assume ALL will contribute
 	{
 		/* initialize */
 		fK_3Body = 0.0;
 
+		/* current interaction */
+		ElementCardT& card = List_3Body.Current();
+	
 		/* local arrays */
-		SetLocalX(fLocX_3Body);
-		SetLocalU(fLocd_3Body);
+		fLocX_3Body.SetLocal(card.NodesX());
+		fLocd_3Body.SetLocal(card.NodesU());
 						
 		/* form element stiffness */
 		Stiffness3Body();
 	
 		/* add to global equations */
-		fFEManager.AssembleLHS(fK_3Body, CurrentElement().Equations());
+		fFEManager.AssembleLHS(fK_3Body, card.Equations());
 	}
 
 	/* 2 body contribution */
 	List_2Body.Top();
-	while ( Next2Body() )
+	while (List_2Body.Next()) //assume ALL will contribute
 	{
 		/* initialize */
 		fK_2Body = 0.0;
 
+		/* current interaction */
+		ElementCardT& card = List_2Body.Current();
+
 		/* local arrays */
-		SetLocalX(fLocX_2Body);
-		SetLocalU(fLocd_2Body);
+		fLocX_2Body.SetLocal(card.NodesX());
+		fLocd_2Body.SetLocal(card.NodesX());
 		
 		/* form element stiffness */
 		Stiffness2Body();
 	
 		/* add to global equations */
-		fFEManager.AssembleLHS(fK_2Body, CurrentElement().Equations());
+		fFEManager.AssembleLHS(fK_2Body, card.Equations());
 	}
 }
 
@@ -192,38 +223,44 @@ void SWDiamondT::RHSDriver(void)
 {
 	/* 3 body contribution */
 	List_3Body.Top();
-	while ( Next3Body() ) //assume ALL will contribute
+	while (List_3Body.Next()) //assume ALL will contribute
 	{
 		/* initialize */
 		fF_3Body = 0.0;
 
+		/* current interaction */
+		ElementCardT& card = List_3Body.Current();
+	
 		/* local arrays */
-		SetLocalX(fLocX_3Body);
-		SetLocalU(fLocd_3Body);
+		fLocX_3Body.SetLocal(card.NodesX());
+		fLocd_3Body.SetLocal(card.NodesU());
 						
 		/* form element stiffness */
 		Force3Body();
 	
 		/* add to global equations */
-		fFEManager.AssembleRHS(fF_3Body, CurrentElement().Equations());
+		fFEManager.AssembleRHS(fF_3Body, card.Equations());
 	}
 
 	/* 2 body contribution */
 	List_2Body.Top();
-	while ( Next2Body() ) //assume ALL will contribute
+	while (List_2Body.Next()) //assume ALL will contribute
 	{
 		/* initialize */
 		fF_2Body = 0.0;
 
+		/* current interaction */
+		ElementCardT& card = List_2Body.Current();
+
 		/* local arrays */
-		SetLocalX(fLocX_2Body);
-		SetLocalU(fLocd_2Body);
+		fLocX_2Body.SetLocal(card.NodesX());
+		fLocd_2Body.SetLocal(card.NodesX());
 		
 		/* form element stiffness */
 		Force2Body();
 	
 		/* add to global equations */
-		fFEManager.AssembleRHS(fF_2Body, CurrentElement().Equations());
+		fFEManager.AssembleRHS(fF_2Body, card.Equations());
 	}
 }
 
@@ -291,21 +328,28 @@ void SWDiamondT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	/* read nodes used */
 	if (num_nodes_used == -1) //use ALL nodes
 	{
+		/* current coordinates */
+		const dArray2DT& coords = fNodes->CurrentCoordinates();
+	
 		/* connector */
-		FindNeighbor23T Connector(fNodes->CurrentCoordinates(), kSWMaxNeighbors0);
+		FindNeighbor23T Connector(coords, kSWMaxNeighbors0);
 	
 		/* connect nodes - dimensions lists */
 		Connector.GetNeighors(fNodes_2Body, fNodes_3Body, tolerance);
+		
+		/* set nodes used */
+		fNodesUsed.Allocate(coords.MajorDim());
+		fNodesUsed.SetValueToPosition();
 	}
 	else                      //only use specified nodes
 	{
 		/* read specified nodes */
-		iArrayT nodesused(num_nodes_used);
-		in >> nodesused;
+		fNodesUsed.Allocate(num_nodes_used);
+		in >> fNodesUsed;
 
 		/* echo data */
 		out << "\n Nodes used : \n\n";
-		int* pnodes    = nodesused.Pointer();
+		int* pnodes    = fNodesUsed.Pointer();
 		int  linecount = 0;
 		for (int i = 0; i < num_nodes_used; i++)
 		{
@@ -322,12 +366,15 @@ void SWDiamondT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		if (linecount != 0) out << '\n';
 
 		/* connector */
-		FindNeighbor23T Connector(nodesused, fNodes->CurrentCoordinates(),
+		FindNeighbor23T Connector(fNodesUsed, fNodes->CurrentCoordinates(),
 									kSWMaxNeighbors0);
 	
 		/* connect nodes - dimensions lists */
 		Connector.GetNeighors(fNodes_2Body, fNodes_3Body, tolerance);		
 	}
+	
+	/* connectivities of "point elements" */
+	fOutputConnects.Set(fNodesUsed.Length(), 1, fNodesUsed.Pointer());
 	
 	/* set element equation and node lists */
 	ConfigureElementData();

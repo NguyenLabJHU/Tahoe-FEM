@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.2 2001-02-27 00:10:25 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.3 2001-04-27 10:52:17 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -164,9 +164,9 @@ protected: /* for derived classes only */
 	virtual void WriteConnectivity(ostream& out) const;
 
 	/* generate connectivities with local numbering -
-* returns the number of nodes used by the element group */
+     * returns the number of nodes used by the element group */
 	int MakeLocalConnects(iArray2DT& localconnects);
-	void NodesUsed(iArrayT& nodes_used) const;
+	void NodesUsed(ArrayT<int>& nodes_used) const;
 
 	/* return pointer to block data given the ID */
 	const int* BlockData(int block_ID) const;

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.4 2001-03-15 21:37:50 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.5 2001-04-27 10:52:17 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #include "ElementBaseT.h"
@@ -451,7 +451,7 @@ for (int k = 0; k < localconnects.Length(); k++)
 	return localnum;
 }
 
-void ElementBaseT::NodesUsed(iArrayT& nodes_used) const
+void ElementBaseT::NodesUsed(ArrayT<int>& nodes_used) const
 {
 	/* compressed number range */
 	int min   = fConnectivities.Min();
