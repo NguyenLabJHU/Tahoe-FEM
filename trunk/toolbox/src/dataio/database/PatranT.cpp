@@ -1,4 +1,4 @@
-/* $Id: PatranT.cpp,v 1.15 2002-07-23 15:35:26 sawimme Exp $ */
+/* $Id: PatranT.cpp,v 1.16 2002-07-25 19:47:28 sawimme Exp $ */
 /* created sawimme (05/17/2001) */
 
 #include "PatranT.h"
@@ -150,7 +150,7 @@ bool PatranT::NumNodesInSet (const StringT& title, int& num) const
   int *it = fNamedComponentsData[index].Pointer();
   int *il = fNamedComponentsData[index].Pointer() + 1;
   for (int i=0; i < length; i++, it += 2, il += 2)
-    if (*it == kNodeType)
+    if (*it == kNCNode)
       num++;
 
   return true;
@@ -186,7 +186,8 @@ bool PatranT::ReadCoordinates (dArray2DT& coords, int dof) const
 
 bool PatranT::ReadElementBlockDims (const StringT& title, int& num_elems, int& num_elem_nodes) const
 {
-  int ID, IV, KC, code;
+  int ID, IV, KC;
+  PatranT::NamedTypes code;
   iArrayT elems;
   if (!ReadElementSet (title, code, elems))
     {
@@ -216,7 +217,7 @@ bool PatranT::ReadElementBlockDims (const StringT& title, int& num_elems, int& n
   return false;
 }
 
-bool PatranT::ReadConnectivity (const StringT& title, int& namedtype, iArray2DT& connects) const
+bool PatranT::ReadConnectivity (const StringT& title, PatranT::NamedTypes& namedtype, iArray2DT& connects) const
 {
   iArrayT elems;
   if (!ReadElementSet (title, namedtype, elems))
@@ -268,7 +269,7 @@ bool PatranT::ReadConnectivity (const StringT& title, int& namedtype, iArray2DT&
   return true;
 }
 
-bool PatranT::ReadAllElements (ArrayT<iArrayT>& connects, iArrayT& elementtypes) const
+bool PatranT::ReadAllElements (ArrayT<iArrayT>& connects, ArrayT<PatranT::ElementTypes>& elementtypes) const
 {
   int ID, IV, KC, num_nodes, count = 0;
   ifstream in (file_name);
@@ -298,7 +299,7 @@ bool PatranT::ReadAllElements (ArrayT<iArrayT>& connects, iArrayT& elementtypes)
       KC -= (num_nodes + 9)/10;
       ClearPackets (in, KC);
 
-      elementtypes[count] = IV;
+      elementtypes[count] = Int2ElementType (IV);
       count ++;
     }
 
@@ -312,7 +313,7 @@ bool PatranT::ReadAllElements (ArrayT<iArrayT>& connects, iArrayT& elementtypes)
   return true;
 }
 
-bool PatranT::ReadElementSet (const StringT& title, int& namedtype, iArrayT& elems) const
+bool PatranT::ReadElementSet (const StringT& title, PatranT::NamedTypes& namedtype, iArrayT& elems) const
 {
   int index = LocateNamedComponent (title);
   if (index < 0) 
@@ -323,7 +324,7 @@ bool PatranT::ReadElementSet (const StringT& title, int& namedtype, iArrayT& ele
 
   /* pull element IDs from component list */
   iAutoArrayT set;
-  namedtype = -1;
+  namedtype = kNoNamedType;
   int length = fNamedComponentsData[index].MajorDim();
   int *it = fNamedComponentsData[index].Pointer();
   int *il = fNamedComponentsData[index].Pointer() + 1;
@@ -333,8 +334,8 @@ bool PatranT::ReadElementSet (const StringT& title, int& namedtype, iArrayT& ele
 	(*it > 205 && *it < 219))
       {
 	set.Append (*il);
-	if (namedtype == -1)
-	  namedtype = *it;
+	if (namedtype == kNoNamedType)
+	  namedtype = Int2NamedType (*it);
       }
 
   elems.Allocate (set.Length());
@@ -342,7 +343,7 @@ bool PatranT::ReadElementSet (const StringT& title, int& namedtype, iArrayT& ele
   return true;
 }
 
-bool PatranT::ReadElementSetMixed (const StringT& title, iArrayT& namedtype, iArrayT& elems) const
+bool PatranT::ReadElementSetMixed (const StringT& title, ArrayT<PatranT::NamedTypes>& namedtype, iArrayT& elems) const
 {
   int index = LocateNamedComponent (title);
   if (index < 0) 
@@ -369,7 +370,8 @@ bool PatranT::ReadElementSetMixed (const StringT& title, iArrayT& namedtype, iAr
   elems.Allocate (set.Length());
   elems.CopyPart (0, set, 0, set.Length());
   namedtype.Allocate (nt.Length());
-  namedtype.CopyPart (0, nt, 0, nt.Length());
+  for (int in=0; in < nt.Length(); in++)
+    namedtype[in] = Int2NamedType (nt[in]);
   return true;
 }
 
@@ -431,7 +433,7 @@ bool PatranT::ReadNodeSet (const StringT& title, iArrayT& nodes) const
   int *it = fNamedComponentsData[index].Pointer();
   int *il = fNamedComponentsData[index].Pointer() + 1;
   for (int i=0; i < length; i++, it += 2, il += 2)
-    if (*it == kNodeType)
+    if (*it == kNCNode)
       set.Append (*il);
     
   nodes.Allocate (set.Length());
@@ -540,7 +542,7 @@ bool PatranT::WriteCoordinates (ostream& out, const dArray2DT& coords, int first
   return true;
 }
 
-bool PatranT::WriteElements (ostream& out, const iArray2DT& elems, const iArrayT& elemtypes, int firstelemID) const
+bool PatranT::WriteElements (ostream& out, const iArray2DT& elems, const ArrayT<PatranT::ElementTypes>& elemtypes, int firstelemID) const
 {
   iArrayT n (5);
   n = 0;
@@ -549,7 +551,7 @@ bool PatranT::WriteElements (ostream& out, const iArray2DT& elems, const iArrayT
   out.precision (prec);
   for (int e=0; e < elems.MajorDim(); e++)
     {
-      int shape = ElementTypeToShapeType (elemtypes[e]);
+      int shape = elemtypes[e];
       if (!WritePacketHeader (out, kElement, firstelemID + e, shape, KC, n))
 	return false;
       
@@ -565,8 +567,18 @@ bool PatranT::WriteElements (ostream& out, const iArray2DT& elems, const iArrayT
       for (int t=0; t < theta.Length(); t++)
 	out << setw (16) << theta[t];
       out << "\n";
-
-      elems.WriteWithFormat (out, hwidth, 0, 10, 0);
+      
+      int *elnode = elems(e);
+      int wrap = 1;
+      for (int n=0; n < elems.MinorDim(); n++, wrap++)
+	{
+	  out << setw (hwidth) << *elnode++;
+	  if (wrap == 10 || n == elems.MinorDim() - 1)
+	    {
+	      out << '\n';
+	      wrap = 0;
+	    }
+	}
 
       // if (n[0] > 0) write associated data
     }
@@ -678,6 +690,7 @@ bool PatranT::WriteNodalVariables (const StringT& filename, const iArrayT& ids, 
       return false;
     }
   out.setf (ios::scientific);
+  out.setf (ios::right);
   
   int num = values.MajorDim();
   int maxnode = ids.Max();
@@ -686,22 +699,35 @@ bool PatranT::WriteNodalVariables (const StringT& filename, const iArrayT& ids, 
   int dof = values.MinorDim();
 
   out.precision (6);
-  out << setw (80) << titles[0] << "\n";
+  out << titles[0] << "\n";
   out << setw (9) << num << setw(9) << maxnode ;
   out << setw (15) << maxdef;
   out << setw (9) << maxposition << setw (9) << dof << "\n";
-  out << setw (80) << titles[1] << "\n";
-  out << setw (80) << titles[2] << "\n";
+  out << titles[1] << "\n";
+  out << titles[2] << "\n";
 
   out.precision (7);
+  out.setf(ios::right, ios::adjustfield);
   double *pv = values.Pointer();
   for (int i=0, *pi=ids.Pointer(); i < num; i++)
     {
       out << setw (8) << *pi++;
-      for (int j=0; j < dof; j++)
+      int wrap = 1;
+      for (int j=0; j < dof; j++, wrap++)
 	{
-	  out << setw (13) << *pv++;
-	  if (j == 4) out << "\n";
+	  if (*pv > 0)
+	    out << setw (13) << *pv++;
+	  else
+	    {
+	      out.precision (6);
+	      out << setw (13) << *pv++;
+	      out.precision (7);
+	    }
+	  if (wrap == 5) 
+	    {
+	      out << "\n";
+	      wrap = 0;
+	    }
 	}
       out << "\n";
     }
@@ -830,16 +856,47 @@ bool PatranT::WritePacketHeader (ostream& out, int tag, int ID, int IV, int KC, 
   return true;
 }
 
-int PatranT::ElementTypeToShapeType (int elemtype) const
+PatranT::ElementTypes PatranT::Int2ElementType (int i) const
 {
-  switch (elemtype)
+  switch (i)
     {
-    case kNCLine:      return kBarShape;
-    case kNCQuad:      return kQuadShape;
-    case kNCTriangle:  return kTriShape;
-    case kNCHex:       return kHexShape;
-    case kNCTet:       return kTetShape;
-    case kNCWedge:     return kWedgeShape;
+    case kLine:          return kLine;
+    case kQuadrilateral: return kQuadrilateral;
+    case kTriangle:      return kTriangle;
+    case kHexahedron:    return kHexahedron;
+    case kTetrahedron:   return kTetrahedron;
+    case kPentahedron:   return kPentahedron;
     }
-  return -1;
+  return kNoElementType;
+}
+
+PatranT::NamedTypes PatranT::Int2NamedType (int i) const
+{
+  switch (i)
+    {
+    case PatranT::kNCPoint:    return PatranT::kNCPoint;
+    case PatranT::kNCCurve:    return PatranT::kNCCurve;
+    case PatranT::kNCPatch:    return PatranT::kNCPatch;
+    case PatranT::kNCHyperPatch: return PatranT::kNCHyperPatch;
+    case PatranT::kNCNode:     return PatranT::kNCNode;
+    case PatranT::kNCLine:     return PatranT::kNCLine;
+    case PatranT::kNCLine2:     return PatranT::kNCLine2;
+    case PatranT::kNCLine3:     return PatranT::kNCLine3;
+    case PatranT::kNCQuad:     return PatranT::kNCQuad;
+    case PatranT::kNCQuad2:     return PatranT::kNCQuad2;
+    case PatranT::kNCQuad3:     return PatranT::kNCQuad3;
+    case PatranT::kNCTriangle: return PatranT::kNCTriangle;
+    case PatranT::kNCTriangle2: return PatranT::kNCTriangle2;
+    case PatranT::kNCTriangle3: return PatranT::kNCTriangle3;
+    case PatranT::kNCHex:      return PatranT::kNCHex;
+    case PatranT::kNCHex2:      return PatranT::kNCHex2;
+    case PatranT::kNCHex3:      return PatranT::kNCHex3;
+    case PatranT::kNCTet:      return PatranT::kNCTet;
+    case PatranT::kNCTet2:      return PatranT::kNCTet2;
+    case PatranT::kNCTet3:      return PatranT::kNCTet3;
+    case PatranT::kNCWedge:    return PatranT::kNCWedge;
+    case PatranT::kNCWedge2:    return PatranT::kNCWedge2;
+    case PatranT::kNCWedge3:    return PatranT::kNCWedge3;
+    }
+  return kNoNamedType;
 }

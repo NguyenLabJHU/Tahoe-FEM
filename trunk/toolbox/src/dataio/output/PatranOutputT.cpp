@@ -4,6 +4,7 @@
 #include "ofstreamT.h"
 #include "OutputSetT.h"
 #include "dArray2DT.h"
+#include "dArrayT.h"
 
 using namespace Tahoe;
 
@@ -19,7 +20,7 @@ PatranOutputT::PatranOutputT (ostream& out, const ArrayT<StringT>& out_strings, 
 void PatranOutputT::WriteGeometry (void)
 {
   StringT file;
-  FileName (0, file, ".pao");
+  FileName (0, file, ".out");
   ofstreamT out (file);
 
   int num_elems = 0;
@@ -59,7 +60,7 @@ void PatranOutputT::WriteOutput (double time, int ID, const dArray2DT& n_values,
       CreateElementBlockIDs ();
 
       // open geometry file
-      FileName (ID, patfile, "_geo.pao");
+      FileName (ID, patfile, ".out");
       ofstreamT patout (patfile);
       int numnodes = fElementSets[ID]->NumNodes();
       int numelems = fElementSets[ID]->NumElements();
@@ -79,8 +80,6 @@ void PatranOutputT::WriteOutput (double time, int ID, const dArray2DT& n_values,
       // write named components
       firstID = 1;
       WriteNamedComponents (patout, firstID, ID);
-
-      // write variable data
 
       fPatran.WriteClosure(patout);
     }
@@ -116,7 +115,7 @@ void PatranOutputT::WriteConnectivity (ostream& patout, int& firstID, int ID, iA
   for (int i=0; i < num_blocks; i++)
     {
       StringT blockid = fElementSets[ID]->BlockID(i);
-      iArrayT types (fElementSets[ID]->NumElements());
+      ArrayT<PatranT::ElementTypes> types (fElementSets[ID]->NumElements());
       types = GetPatranElementType (fElementSets[ID]->Geometry());
       
       // write connectivity
@@ -152,7 +151,8 @@ void PatranOutputT::WriteNamedComponents (ostream& patout, int& firstID, int ID)
     }  
 }
 
-int PatranOutputT::GetPatranElementType (GeometryT::CodeT geom) const
+
+PatranT::NamedTypes PatranOutputT::GetPatranNamedType (GeometryT::CodeT geom) const
 {
   switch (geom)
     {
@@ -163,5 +163,19 @@ int PatranOutputT::GetPatranElementType (GeometryT::CodeT geom) const
     case GeometryT::kTetrahedron:   return PatranT::kNCTet;
     case GeometryT::kPentahedron:   return PatranT::kNCWedge;
     }
-  return GeometryT::kNone;
+  return PatranT::kNoNamedType;
+}
+
+PatranT::ElementTypes PatranOutputT::GetPatranElementType (GeometryT::CodeT geom) const
+{
+  switch (geom)
+    {
+    case GeometryT::kLine:          return PatranT::kLine;
+    case GeometryT::kQuadrilateral: return PatranT::kQuadrilateral;
+    case GeometryT::kTriangle:      return PatranT::kTriangle;
+    case GeometryT::kHexahedron:    return PatranT::kHexahedron;
+    case GeometryT::kTetrahedron:   return PatranT::kTetrahedron;
+    case GeometryT::kPentahedron:   return PatranT::kPentahedron;
+    }
+  return PatranT::kNoElementType;
 }

@@ -1,4 +1,4 @@
-/* $Id: PatranInputT.cpp,v 1.11 2002-07-02 19:57:03 cjkimme Exp $ */
+/* $Id: PatranInputT.cpp,v 1.12 2002-07-25 19:47:29 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "PatranInputT.h"
@@ -130,7 +130,7 @@ void PatranInputT::ReadAllElementMap (iArrayT& elemmap)
 
 void PatranInputT::ReadGlobalElementMap (const StringT& name, iArrayT& elemmap)
 {
-  int namedtype;
+  PatranT::NamedTypes namedtype;
   if (!fPatran.ReadElementSet (name, namedtype, elemmap))
     throw eDatabaseFail;
 }
@@ -154,7 +154,7 @@ void PatranInputT::ReadGlobalElementSet (const StringT& name, iArrayT& set)
 
 void PatranInputT::ReadConnectivity (const StringT& name, iArray2DT& connects)
 {
-  int namedtype;
+  PatranT::NamedTypes namedtype;
   if (!fPatran.ReadConnectivity (name, namedtype, connects))
     throw eDatabaseFail;
 
@@ -175,7 +175,7 @@ void PatranInputT::ReadConnectivity (const StringT& name, iArray2DT& connects)
 void PatranInputT::ReadGeometryCode (const StringT& name, GeometryT::CodeT& code)
 {
   iArrayT elems;
-  int namedtype;
+  PatranT::NamedTypes namedtype;
   if (!fPatran.ReadElementSet (name, namedtype, elems))
     throw eDatabaseFail;
 
@@ -240,7 +240,7 @@ void PatranInputT::ReadSideSetGlobal (const StringT& name, iArray2DT& sides) con
 
 /**************** PRIVATE *******************/
 
-void PatranInputT::SetCode (int namedtype, GeometryT::CodeT& code) const
+void PatranInputT::SetCode (PatranT::NamedTypes namedtype, GeometryT::CodeT& code) const
 {
   switch (namedtype)
     {

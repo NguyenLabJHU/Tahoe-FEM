@@ -1,4 +1,4 @@
-/* $Id: PatranT.h,v 1.11 2002-07-23 15:35:26 sawimme Exp $ */
+/* $Id: PatranT.h,v 1.12 2002-07-25 19:47:28 sawimme Exp $ */
 /* created: sawimme (05/17/2001)  */
 
 #ifndef _PATRAN_T_H_
@@ -20,7 +20,8 @@ class dArrayT;
 class PatranT
 {
  public:
-  enum NamedTypes { kNCPoint = 1, kNCCurve = 2,
+  enum NamedTypes { kNoNamedType = -1,
+		    kNCPoint = 1, kNCCurve = 2,
 		    kNCPatch = 3, kNCHyperPatch = 4,
 		    kNCNode = 5, 
 		    kNCLine = 6, kNCLine2 = 106, kNCLine3 = 206,
@@ -30,7 +31,8 @@ class PatranT
 		    kNCWedge = 11, kNCWedge2 = 111, kNCWedge3 = 211,
 		    kNCHex = 12, kNCHex2 = 112, kNCHex3 = 212 };
 
-  enum ElementTypes { kLine = 2,
+  enum ElementTypes { kNoElementType = -1,
+		      kLine = 2,
 		      kTriangle = 3,
 		      kQuadrilateral = 4,
 		      kTetrahedron = 5,
@@ -55,10 +57,10 @@ class PatranT
   bool ReadGlobalElementMap (iArrayT& map) const;
   bool ReadCoordinates (dArray2DT& coords, int dof) const;
   bool ReadElementBlockDims (const StringT& title, int& num_elems, int& num_elem_nodes) const;
-  bool ReadConnectivity (const StringT& title, int& namedtype, iArray2DT& connects) const;
-  bool ReadAllElements (ArrayT<iArrayT>& connects, iArrayT& elementtypes) const;
-  bool ReadElementSet (const StringT& title, int& namedtype, iArrayT& elems) const;
-  bool ReadElementSetMixed (const StringT& title, iArrayT& namedtype, iArrayT& elems) const;
+  bool ReadConnectivity (const StringT& title, PatranT::NamedTypes& namedtype, iArray2DT& connects) const;
+  bool ReadAllElements (ArrayT<iArrayT>& connects, ArrayT<PatranT::ElementTypes>& elementtypes) const;
+  bool ReadElementSet (const StringT& title, PatranT::NamedTypes& namedtype, iArrayT& elems) const;
+  bool ReadElementSetMixed (const StringT& title, ArrayT<PatranT::NamedTypes>& namedtype, iArrayT& elems) const;
   bool ReadDistLoadSetDims (int setID, int& num_elems) const;
   bool ReadDistLoadSet (int setID, iArray2DT& facets) const;
   bool ReadNodeSet (const StringT& title, iArrayT& nodes) const;
@@ -67,7 +69,7 @@ class PatranT
   /* write geometry file */
   bool WriteHeader (ostream& out, int numnodes, int numelems, const StringT& title) const;
   bool WriteCoordinates (ostream& out, const dArray2DT& coords, int firstnodeID) const;
-  bool WriteElements (ostream& out, const iArray2DT& elems, const iArrayT& elemtypes, int firstelemID) const;
+  bool WriteElements (ostream& out, const iArray2DT& elems, const ArrayT<PatranT::ElementTypes>& elemtypes, int firstelemID) const;
   bool WriteNamedComponent (ostream& out, const StringT& name, int ID, const iArray2DT& comps) const;
   bool WriteGeometryPoints (ostream& out, const dArray2DT& points, int firstptiD) const;
   bool WritePairPointCurve (ostream& out, int curveID, int ID1, int ID2, const dArrayT& coord1, const dArrayT& coord2) const;
@@ -92,33 +94,6 @@ class PatranT
 		 kGridData = 31,
 		 kLineData = 32 };
 
-  enum ShapeT { kBarShape = 2,
-		kTriShape = 3,
-		kQuadShape = 4,
-		kTetShape = 5,
-		kWedgeShape = 7,
-		kHexShape = 8 };
-
-  enum NTypeT { kNodeType = 5,
-		kBarType = 6,
-		kTriType = 7,
-		kQuadType = 8,
-		kTetType = 9,
-		kWedgeType = 11, 
-		kHexType = 12,
-		kBarTypeA = 106,
-		kTriTypeA = 107,
-		kQuadTypeA = 108,
-		kTetTypeA = 109,
-		kWedgeTypeA = 111, 
-		kHexTypeA = 112,
-		kBarTypeB = 206,
-		kTriTypeB = 207,
-		kQuadTypeB = 208,
-		kTetTypeB = 209,
-		kWedgeTypeB = 211, 
-		kHexTypeB = 212 };
-
   enum GeometryFormatT { hwidth = 8, cwidth = 16, prec = 9};
   enum ResultsFormatT { kString = 80, kHeaderInt = 9, kDataInt = 8,
 			kHeaderDouble = 15, kDataDouble=13,
@@ -130,7 +105,8 @@ class PatranT
   void ClearPackets (ifstream &in, int KC) const;
 
   bool WritePacketHeader (ostream& out, int tag, int ID, int IV, int KC, iArrayT n) const;
-  int ElementTypeToShapeType (int elemtype) const;
+  PatranT::ElementTypes Int2ElementType (int i) const;
+  PatranT::NamedTypes Int2NamedType (int i) const;
 
  private:
   StringT file_name;
