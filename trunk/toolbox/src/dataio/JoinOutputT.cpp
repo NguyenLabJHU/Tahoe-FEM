@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.5 2002-01-27 18:38:10 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.6 2002-02-18 09:05:37 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 
 #include "JoinOutputT.h"
@@ -8,7 +8,6 @@
 #include "ModelManagerT.h"
 #include "OutputSetT.h"
 #include "StringT.h"
-#include "ExodusT.h"
 #include "iArray2DT.h"
 #include "nVariArray2DT.h"
 #include "VariArrayT.h"
@@ -169,7 +168,7 @@ void JoinOutputT::Join(void)
 							part_n_man.Dimension(num_nodes, all_n_values.MinorDim());
 
 							/* read data */
-							results.AllNodeVariables (j, part_n_values);
+							results.AllNodeVariables(j, part_n_values);
 
 							/* assemble */
 							all_n_values.Assemble(node_map, part_n_values);
@@ -209,13 +208,17 @@ void JoinOutputT::Join(void)
 									     << "     set " << i << " in partition " << k << endl;
 									throw eSizeMismatch;
 								}
-							
-								/* alias */
-								dArray2DT block_values(nel, all_e_values.MinorDim(), all_e_values(row_offset));
-								row_offset += nel;
 								
-								/* read variables */
-								results.ElementVariables(j, block_name, block_values);
+								/* skip empty sets */
+								if (nel > 0)
+								{
+									/* alias */
+									dArray2DT block_values(nel, part_e_values.MinorDim(), part_e_values(row_offset));
+									row_offset += nel;
+								
+									/* read variables */
+									results.ElementVariables(j, block_name, block_values);
+								}
 							}
 							
 							/* assemble */
@@ -268,32 +271,48 @@ void JoinOutputT::SetOutput(void)
 		ArrayT<StringT> n_labels;
 		ArrayT<StringT> e_labels;
 		OutputLabels(ID, n_labels, e_labels);
-		
-		/* collect element blocks */
-		GeometryT::CodeT geometry_code;
-		ArrayT<const iArray2DT*> connects_list(block_ID.Length());
-		for (int i = 0; i < block_ID.Length(); i++)
+
+		/* no block ID's implies a "free set" otherwise the set
+		 * is tied to element blocks in the geometry file */
+		if (block_ID.Length() == 0)
 		{
-			/* block ID as string */
-			StringT block_name;
-			block_name.Append(block_ID[i]);
+//TEMP
+cout << "\n JoinOutputT::SetOutput: cannot join data for free sets"<< endl;		
+		
+// "build" free set from the partial results files
 
-			/* geometry code */
-			geometry_code = fModel->ElementGroupGeometry(block_name);
-			
-			/* load element group */
-			const iArray2DT& connects = fModel->ElementGroup(block_name);
-			connects_list[i] = &connects;
+// add to global geometry
+
+// register output set
 		}
+		else
+		{
+			/* collect element blocks */
+			GeometryT::CodeT geometry_code;
+			ArrayT<const iArray2DT*> connects_list(block_ID.Length());
+			for (int i = 0; i < block_ID.Length(); i++)
+			{
+				/* block ID as string */
+				StringT block_name;
+				block_name.Append(block_ID[i]);
 
-		/* construct output set */
-		bool changing = false; // changing geometry not supported
-		StringT set_ID;
-		set_ID.Append(++count);
-		OutputSetT output_set(set_ID, geometry_code, block_ID, connects_list, n_labels, e_labels, changing);
+				/* geometry code */
+				geometry_code = fModel->ElementGroupGeometry(block_name);
+			
+				/* load element group */
+				const iArray2DT& connects = fModel->ElementGroup(block_name);
+				connects_list[i] = &connects;
+			}
+
+			/* construct output set */
+			bool changing = false; // changing geometry not supported
+			StringT set_ID;
+			set_ID.Append(++count);
+			OutputSetT output_set(set_ID, geometry_code, block_ID, connects_list, n_labels, e_labels, changing);
 	
-		/* register */
-		fOutput->AddElementSet(output_set);
+			/* register */
+			fOutput->AddElementSet(output_set);
+		}
 	
 		/* next block */
 		io >> ID;
@@ -553,10 +572,12 @@ void JoinOutputT::ResultFileName(int part, int group, StringT& name) const
 	name.Append(".io", group);
 	
 	/* file format extension */
-	if (fResultsFileType == IOBaseT::kExodusII)
+	if (fResultsFileType == IOBaseT::kTahoeResults)
+		name.Append(".run");
+	else if (fResultsFileType == IOBaseT::kExodusII)
 		name.Append(".exo");
 	else
-		cout << "\n JoinOutputT::ResultFileName: no extension added for file type "
+		cout << "\n JoinOutputT::ResultFileName: supported results file format: "
 		     << fResultsFileType << endl;
 	
 	//NOTE: not handling multiple time sequences ".sq" or changing
@@ -568,16 +589,18 @@ int JoinOutputT::NumOutputSteps(int group) const
 {
 	/* database  */
 	int num_steps = -1;
-	ExodusT exo(cout);
-	StringT filename;
 	
 	/* some partitions could be missing */
 	for (int i = 0; i < fPartitions.Length() && num_steps < 0; i++)
 	{
 		/* generate file name */
+		StringT filename;
 		ResultFileName(i, group, filename);
-		if (exo.OpenRead(filename))
-			num_steps = exo.NumTimeSteps();
+		
+		/* open the database file */
+		ModelManagerT results(cout);
+		if (results.Initialize(fResultsFileType, filename, true))
+			num_steps = results.NumTimeSteps();
 	}
 	return num_steps;
 }
@@ -599,7 +622,7 @@ void JoinOutputT::OutputLabels(int group, ArrayT<StringT>& node_labels,
 		{
 			/* database  */
 			ModelManagerT model(cout);
-			if (!model.Initialize(fModel->DatabaseFormat(), filename, true)) {
+			if (!model.Initialize(fResultsFileType, filename, true)) {
 				cout << "\n JoinOutputT::OutputLabels: error opening database file \""
 				     << fModel->DatabaseName() << '\"' << endl;
 				throw eDatabaseFail;
@@ -610,6 +633,12 @@ void JoinOutputT::OutputLabels(int group, ArrayT<StringT>& node_labels,
 			model.NodeLabels(node_labels);
 			model.ElementLabels(element_labels);		
 		}
+	}
+	
+	/* no results files found */
+	if (!found_file) {
+		cout << "\n JoinOutputT::OutputLabels: could not find output labels for set " 
+		     << group << endl;
 	}
 }
 
