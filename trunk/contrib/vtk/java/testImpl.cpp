@@ -1,4 +1,4 @@
-// $Id: testImpl.cpp,v 1.13 2002-08-13 23:33:54 paklein Exp $
+// $Id: testImpl.cpp,v 1.14 2002-08-14 00:20:47 paklein Exp $
 #include "test.h"
 #include "testClass.h"
 // #include "vtkRenderWindow.h"
@@ -233,6 +233,9 @@ JNIEXPORT void JNICALL Java_test_Interact(JNIEnv * env, jobject obj)
    iConsoleT* p_console = (iConsoleT*) p_long;
    iConsoleObjectT& current_scope = p_console->Current();
   
+  	/* start synchronized block */
+  	env->MonitorEnter(obj);
+  
    StringT empty_line;
    StringT read_args = "x 20";
    const CommandSpecT* interact_command = current_scope.iResolveCommand("Interactive", empty_line);
@@ -240,6 +243,9 @@ JNIEXPORT void JNICALL Java_test_Interact(JNIEnv * env, jobject obj)
 		cout << " Interactive OK\n" << endl;
  	else
  		cout << " Interactive NOT OK\n" << endl;
+
+  	/* end synchronized block */
+  	env->MonitorExit(obj);
 
 // 	jclass cls = env->GetObjectClass(obj);
 // 	jfieldID fid = env->GetFieldID(cls, "console", "J");
