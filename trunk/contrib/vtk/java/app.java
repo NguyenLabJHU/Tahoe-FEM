@@ -34,7 +34,7 @@ public static void main(String args[]) throws IOException {
 		emptyLabel.setPreferredSize(new Dimension(175, 100));
 		emptyLabel.setHorizontalAlignment(JLabel.CENTER);
 		//frame.getContentPane().add(emptyLabel, BorderLayout.CENTER);		
-		frame.setSize(1268,988);
+		frame.setSize(600,400);
 		frame.getContentPane().add(new test(frame));
                 frame.pack();
                 frame.setVisible(true);

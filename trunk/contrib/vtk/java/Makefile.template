@@ -1,8 +1,8 @@
-# $Id: Makefile.template,v 1.6 2002-08-12 17:16:35 paklein Exp $
+# $Id: Makefile.template,v 1.7 2002-08-12 23:24:02 recampb Exp $
 .SUFFIXES: .cpp .h .java .class .o .sig
 
 # choose platform specific macros file
-ARCH =
+ARCH = SGI
 include ./macros/$(ARCH).macros
 
 # Java sources

@@ -1,4 +1,4 @@
-// $Id: test.java,v 1.9 2002-08-08 15:17:22 recampb Exp $
+// $Id: test.java,v 1.10 2002-08-12 23:24:02 recampb Exp $
 import java.io.*;
 import javax.swing.*;
 import java.awt.event.*;
@@ -18,11 +18,14 @@ public class test extends JPanel implements ActionListener, ChangeListener {
   public native void Print();
   public native void SetMinSc(int x);
   public native int GetMinSc();
-  public native void AddScope(String s);
+  public native void SetScope(String s);
+  public native void Interact();
+  //public native void Rotate(int x, int y , int z);
 
  
   long cpp_obj;
   long console;
+  long consoleObjects;
 
   int newNodeSuffix = 1;
   protected JButton testButton, b2, flipBookButton, nextTimeButton, prevTimeButton, selectTimeButton, addButton, removeButton, clearButton;
@@ -276,13 +279,15 @@ public class test extends JPanel implements ActionListener, ChangeListener {
                     Object nodeInfo = node.getUserObject();
 		    if (((String)nodeInfo).equals( "0.body")){
 		      tabbedPane.setSelectedComponent(bodyToolBar);
+		      SetScope((String)nodeInfo);
 
 		    }
 		    else if (((String)nodeInfo).equals("Console Root")){
 		      tabbedPane.setSelectedComponent(rootPanel);
 		      //remove(leftPanel);
 		      //add(leftRootPanel,new GridBagConstraints(0,2,1,1,0.05,1.0,GridBagConstraints.NORTHWEST,GridBagConstraints.BOTH,new Insets(0,0,0,0),0,0));
-		      splitPane.setLeftComponent(leftRootPanel);
+		      //splitPane.setLeftComponent(leftRootPanel);
+		      SetScope((String)nodeInfo);
 		      updateUI();
 
 		    }
@@ -290,7 +295,8 @@ public class test extends JPanel implements ActionListener, ChangeListener {
 		      tabbedPane.setSelectedComponent(framePanel);
 		      //remove(leftPanel);
 		      //add(leftRootPanel,new GridBagConstraints(0,2,1,1,0.05,1.0,GridBagConstraints.NORTHWEST,GridBagConstraints.BOTH,new Insets(0,0,0,0),0,0));
-		      splitPane.setLeftComponent(leftFrameScrollPane);
+		      //splitPane.setLeftComponent(leftFrameScrollPane);
+		      SetScope((String)nodeInfo);
 		      updateUI();
 
 		    }
@@ -336,27 +342,28 @@ public class test extends JPanel implements ActionListener, ChangeListener {
     JButton resetViewButton = new JButton("Reset View");
     JButton interactiveButton = new JButton("Interactive");
     JButton updateButton = new JButton("Update");
-
+    interactiveButton.addActionListener(this);
+    interactiveButton.setActionCommand("Interact");
+    resetViewButton.addActionListener(this);
+    resetViewButton.setActionCommand("Reset View");
     
      
         //treePanel.setPreferredSize(new Dimension(300, 150));
         //add(treePanel, BorderLayout.CENTER);
 
-    JPanel rotPanel = new JPanel();
-    rotPanel.setLayout(new GridLayout(3,2));
-    rotPanel.add(rotXLabel);
-    rotPanel.add(rotateXTF);
-    rotPanel.add(rotYLabel);
-    rotPanel.add(rotateYTF);
-    rotPanel.add(rotZLabel);
-    rotPanel.add(rotateZTF);
-    JPanel rotPanel2 = new JPanel();
-    rotPanel2.setLayout(new GridLayout(2,1));
-    rotPanel2.add(rotateButton);
-    rotPanel2.add(rotPanel);
+//     JPanel rotPanel = new JPanel();
+//     rotPanel.setLayout(new GridLayout(3,2));
+//     rotPanel.add(rotXLabel);
+//     rotPanel.add(rotateXTF);
+//     rotPanel.add(rotYLabel);
+//     rotPanel.add(rotateYTF);
+//     rotPanel.add(rotZLabel);
+//     rotPanel.add(rotateZTF);
+//     JPanel rotPanel2 = new JPanel();
+//     rotPanel2.setLayout(new GridLayout(2,1));
+//     rotPanel2.add(rotateButton);
+//     rotPanel2.add(rotPanel);
     
-
-
 
 	leftPanel = new JPanel();
 	gbc.anchor=gbc.NORTHWEST;
@@ -835,8 +842,9 @@ public class test extends JPanel implements ActionListener, ChangeListener {
             leftRootPanel.setMinimumSize(minimumSize);
             renderPanel.setMinimumSize(minimumSize);
 
-            splitPane2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                                       splitPane, treePanel);
+//             splitPane2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+//                                        splitPane, treePanel);
+	    splitPane2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftRootPanel, treePanel);
             splitPane2.setOneTouchExpandable(true);
             splitPane2.setDividerLocation(900);
 
@@ -929,6 +937,9 @@ public class test extends JPanel implements ActionListener, ChangeListener {
     else if (e.getActionCommand().equals("Clear")){
        treePanel.clear();
     }
+    else if (e.getActionCommand().equals("Interact")){
+      Interact();
+    }
     else if (e.getActionCommand().equals("Black BG")){
       System.out.println("Black BG");
     }
@@ -984,14 +995,14 @@ public class test extends JPanel implements ActionListener, ChangeListener {
 	 if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals("Root Commands")){
 	   /* for some reason this event occurs when the app is started */
 	   if (tabBool)
-	     splitPane.setLeftComponent(leftRootPanel);
+	     splitPane2.setLeftComponent(leftRootPanel);
 	   else
 	     {tabBool=true;}
 	 }
 	 else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals("Frame Commands"))
-	   splitPane.setLeftComponent(leftFrameScrollPane);
+	   splitPane2.setLeftComponent(leftFrameScrollPane);
 	 else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals("Body Commands"))
-	   splitPane.setLeftComponent(leftBodyScrollPane);
+	   splitPane2.setLeftComponent(leftBodyScrollPane);
 	 updateUI();
        }
      }
