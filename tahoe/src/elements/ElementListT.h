@@ -1,4 +1,4 @@
-/* $Id: ElementListT.h,v 1.9.26.2 2004-07-12 08:08:37 paklein Exp $ */
+/* $Id: ElementListT.h,v 1.9.26.3 2004-07-12 16:05:55 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #ifndef _ELEMENTLIST_T_H_
 #define _ELEMENTLIST_T_H_
@@ -52,11 +52,11 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-		SubListT& sub_sub_list) const;
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list.
 	 * \param list input parameter list, which should be validated using ParameterInterfaceT::ValidateParameterList
@@ -67,7 +67,7 @@ public:
 private:
 
 	/** return a pointer to a new element group or NULL if the request cannot be completed */
-	ElementBaseT* NewElement(const StringT& list_name) const;
+	ElementBaseT* NewElement(const StringT& name) const;
 
 private:
 

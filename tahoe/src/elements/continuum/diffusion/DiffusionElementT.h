@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.h,v 1.11.26.2 2004-07-12 08:08:46 paklein Exp $ */
+/* $Id: DiffusionElementT.h,v 1.11.26.3 2004-07-12 16:06:02 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSE_T_H_
 #define _DIFFUSE_T_H_
@@ -99,7 +99,7 @@ protected:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** return the description of the given inline subordinate parameter list */
-	ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

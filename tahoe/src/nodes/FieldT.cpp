@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.29.2.2 2004-07-08 07:50:21 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.29.2.3 2004-07-12 16:06:35 paklein Exp $ */
 #include "FieldT.h"
 
 #include "ifstreamT.h"
@@ -802,66 +802,66 @@ void FieldT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void FieldT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void FieldT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
-	if (sub == "ndof_specification")
+	if (name == "ndof_specification")
 	{
 		order = ParameterListT::Choice;
 
 		/* just give an integer */
-		sub_sub_list.AddSub("dof_count");		
+		sub_lists.AddSub("dof_count");		
 
 		/* provide a list labels */
-		sub_sub_list.AddSub("dof_labels");		
+		sub_lists.AddSub("dof_labels");		
 	}
-	else if (sub == "KBC_controllers")
+	else if (name == "KBC_controllers")
 	{
 		order = ParameterListT::Choice;
 		
 		/* choices - KBC_ControllerT::Code must translate names */
-		sub_sub_list.AddSub("K-field");	
-		sub_sub_list.AddSub("bi-material_K-field");	
-		sub_sub_list.AddSub("torsion");	
-		sub_sub_list.AddSub("mapped_nodes");
-		sub_sub_list.AddSub("scaled_velocity");
+		sub_lists.AddSub("K-field");	
+		sub_lists.AddSub("bi-material_K-field");	
+		sub_lists.AddSub("torsion");	
+		sub_lists.AddSub("mapped_nodes");
+		sub_lists.AddSub("scaled_velocity");
 	}
-	else if (sub == "FBC_controllers")
+	else if (name == "FBC_controllers")
 	{
 		order = ParameterListT::Choice;
 		
 		/* choices - FBC_controllers::Code must translate names */
-		sub_sub_list.AddSub("sphere_penalty");
-		sub_sub_list.AddSub("sphere_augmented_Lagrangian");
-		sub_sub_list.AddSub("sphere_penalty_meshfree");
-		sub_sub_list.AddSub("wall_penalty");
-		sub_sub_list.AddSub("wall_augmented_Lagrangian");
-		sub_sub_list.AddSub("cylinder_penalty");
-		sub_sub_list.AddSub("augmented_Lagrangian_KBC_meshfree");
+		sub_lists.AddSub("sphere_penalty");
+		sub_lists.AddSub("sphere_augmented_Lagrangian");
+		sub_lists.AddSub("sphere_penalty_meshfree");
+		sub_lists.AddSub("wall_penalty");
+		sub_lists.AddSub("wall_augmented_Lagrangian");
+		sub_lists.AddSub("cylinder_penalty");
+		sub_lists.AddSub("augmented_Lagrangian_KBC_meshfree");
 	}
 	else /* inherited */
-		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
+		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* FieldT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* FieldT::NewSub(const StringT& name) const
 {
 	/* non-const this */
 	FieldT* non_const_this = (FieldT*) this;
 
 	/* (try to) translate to KBC code */
-	KBC_ControllerT::CodeT KBC_code = KBC_ControllerT::Code(list_name);
+	KBC_ControllerT::CodeT KBC_code = KBC_ControllerT::Code(name);
 	if (KBC_code != KBC_ControllerT::kNone)
 		return fFieldSupport.NewKBC_Controller(*non_const_this, KBC_code);
 
 	/* (try to) translate to FBC code */
-	FBC_ControllerT::CodeT FBC_code = FBC_ControllerT::Code(list_name);
+	FBC_ControllerT::CodeT FBC_code = FBC_ControllerT::Code(name);
 	if (FBC_code != FBC_ControllerT::kNone)
 		return fFieldSupport.NewFBC_Controller(FBC_code);
 
-	if (list_name == "dof_count")
+	if (name == "dof_count")
 	{
-		ParameterContainerT* dof_count = new ParameterContainerT(list_name);
+		ParameterContainerT* dof_count = new ParameterContainerT(name);
 
 		ParameterT ndof(ParameterT::Integer, "ndof");
 		ndof.SetDescription("number of unknown per node");
@@ -870,15 +870,15 @@ ParameterInterfaceT* FieldT::NewSub(const StringT& list_name) const
 
 		return dof_count;
 	}
-	else if (list_name == "dof_labels")
+	else if (name == "dof_labels")
 	{
 		StringListT* dof_labels = new StringListT("dof_labels");
 		dof_labels->SetMinLength(1);
 		return dof_labels;
 	}
-	else if (list_name == "initial_condition")
+	else if (name == "initial_condition")
 	{
-		ParameterContainerT* ic = new ParameterContainerT(list_name);
+		ParameterContainerT* ic = new ParameterContainerT(name);
 		
 		ic->AddParameter(ParameterT::Word, "node_ID");
 		ic->AddParameter(ParameterT::Integer, "dof");
@@ -896,9 +896,9 @@ ParameterInterfaceT* FieldT::NewSub(const StringT& list_name) const
 	
 		return ic;	
 	}
-	else if (list_name == "kinematic_BC")
+	else if (name == "kinematic_BC")
 	{
-		ParameterContainerT* kbc = new ParameterContainerT(list_name);
+		ParameterContainerT* kbc = new ParameterContainerT(name);
 		
 		kbc->AddParameter(ParameterT::Word, "node_ID");
 		kbc->AddParameter(ParameterT::Integer, "dof");
@@ -920,9 +920,9 @@ ParameterInterfaceT* FieldT::NewSub(const StringT& list_name) const
 	
 		return kbc;
 	}
-	else if (list_name == "force_BC")
+	else if (name == "force_BC")
 	{
-		ParameterContainerT* fbc = new ParameterContainerT(list_name);
+		ParameterContainerT* fbc = new ParameterContainerT(name);
 		
 		fbc->AddParameter(ParameterT::Word, "node_ID");
 		fbc->AddParameter(ParameterT::Integer, "dof");
@@ -936,7 +936,7 @@ ParameterInterfaceT* FieldT::NewSub(const StringT& list_name) const
 		return fbc;	
 	}
 	/* inherited */
-	return ParameterInterfaceT::NewSub(list_name);
+	return ParameterInterfaceT::NewSub(name);
 }
 
 /* accept parameter list */

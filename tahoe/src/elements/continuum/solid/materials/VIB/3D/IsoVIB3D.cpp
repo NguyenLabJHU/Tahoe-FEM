@@ -1,4 +1,4 @@
-/* $Id: IsoVIB3D.cpp,v 1.10.2.2 2004-07-07 15:28:15 paklein Exp $ */
+/* $Id: IsoVIB3D.cpp,v 1.10.2.3 2004-07-12 16:06:16 paklein Exp $ */
 /* created: paklein (03/15/1998) */
 #include "IsoVIB3D.h"
 
@@ -279,20 +279,20 @@ void IsoVIB3D::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* IsoVIB3D::NewSub(const StringT& list_name) const
+ParameterInterfaceT* IsoVIB3D::NewSub(const StringT& name) const
 {
 	/* inherited */
-	ParameterInterfaceT* sub = FSSolidMatT::NewSub(list_name);
+	ParameterInterfaceT* sub = FSSolidMatT::NewSub(name);
 	if (sub) 
 		return sub;
-	else if (list_name == "sphere_integration_choice")
+	else if (name == "sphere_integration_choice")
 	{
 		/* use other VIB material to construct point generator */
 		VIB3D vib;
-		return vib.NewSub(list_name);
+		return vib.NewSub(name);
 	}	
 	else /* inherited */
-		return VIB::NewSub(list_name);
+		return VIB::NewSub(name);
 }
 
 /* accept parameter list */

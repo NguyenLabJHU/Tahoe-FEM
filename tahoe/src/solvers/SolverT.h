@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.19.14.2 2004-07-10 08:06:31 paklein Exp $ */
+/* $Id: SolverT.h,v 1.19.14.3 2004-07-12 16:06:40 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -142,7 +142,7 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

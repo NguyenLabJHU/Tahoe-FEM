@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.h,v 1.3.26.2 2004-07-12 08:08:46 paklein Exp $ */
+/* $Id: NLDiffusionElementT.h,v 1.3.26.3 2004-07-12 16:06:02 paklein Exp $ */
 #ifndef _NL_DIFFUSE_T_H_
 #define _NL_DIFFUSE_T_H_
 
@@ -32,7 +32,7 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

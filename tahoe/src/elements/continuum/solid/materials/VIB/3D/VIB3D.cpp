@@ -1,4 +1,4 @@
-/* $Id: VIB3D.cpp,v 1.9.2.2 2004-07-07 15:28:15 paklein Exp $ */
+/* $Id: VIB3D.cpp,v 1.9.2.3 2004-07-12 16:06:16 paklein Exp $ */
 /* created: paklein (04/20/1997) */
 #include "VIB3D.h"
 
@@ -108,25 +108,25 @@ void VIB3D::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void VIB3D::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void VIB3D::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
 	/* inherited */
-	NL_E_MatT::DefineInlineSub(sub, order, sub_sub_list);
-	if (sub_sub_list.Length() == 0)
-		VIB_E_MatT::DefineInlineSub(sub, order, sub_sub_list);
+	NL_E_MatT::DefineInlineSub(name, order, sub_lists);
+	if (sub_lists.Length() == 0)
+		VIB_E_MatT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* VIB3D::NewSub(const StringT& list_name) const
+ParameterInterfaceT* VIB3D::NewSub(const StringT& name) const
 {
 	/* inherited */
-	ParameterInterfaceT* sub = NL_E_MatT::NewSub(list_name);
+	ParameterInterfaceT* sub = NL_E_MatT::NewSub(name);
 	if (sub) 
 		return sub;
-	else if (list_name == "sphere_integration_choice")
+	else if (name == "sphere_integration_choice")
 	{
-		ParameterContainerT* choice = new ParameterContainerT(list_name);
+		ParameterContainerT* choice = new ParameterContainerT(name);
 		choice->SetListOrder(ParameterListT::Choice);
 
 		/* bound */
@@ -163,7 +163,7 @@ ParameterInterfaceT* VIB3D::NewSub(const StringT& list_name) const
 		return choice;
 	}
 	else
-		return VIB_E_MatT::NewSub(list_name);
+		return VIB_E_MatT::NewSub(name);
 }
 
 /* accept parameter list */

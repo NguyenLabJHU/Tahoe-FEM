@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.cpp,v 1.9.26.1 2004-07-06 06:53:15 paklein Exp $ */
+/* $Id: ContinuumMaterialT.cpp,v 1.9.26.2 2004-07-12 16:06:01 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "ContinuumMaterialT.h"
 #include "MaterialSupportT.h"
@@ -8,16 +8,6 @@
 using namespace Tahoe;
 
 /* constructor */
-ContinuumMaterialT::ContinuumMaterialT(const MaterialSupportT& support):
-	ParameterInterfaceT("continuum_material"),
-	fMaterialSupport(&support),
-	fNumDOF(support.NumDOF()),
-	fNumSD(support.NumSD()),
-	fNumIP(support.NumIP())
-{
-
-}
-
 ContinuumMaterialT::ContinuumMaterialT(void):
 	ParameterInterfaceT("continuum_material"),
 	fMaterialSupport(NULL),

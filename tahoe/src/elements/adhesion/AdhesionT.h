@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.h,v 1.8.40.2 2004-07-12 08:08:39 paklein Exp $ */
+/* $Id: AdhesionT.h,v 1.8.40.3 2004-07-12 16:05:56 paklein Exp $ */
 #ifndef _ADHESION_T_H_
 #define _ADHESION_T_H_
 
@@ -76,7 +76,7 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

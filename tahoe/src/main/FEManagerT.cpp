@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.74.2.3 2004-07-12 05:10:57 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.74.2.4 2004-07-12 16:06:33 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1384,23 +1384,23 @@ void FEManagerT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* FEManagerT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* FEManagerT::NewSub(const StringT& name) const
 {
 	FEManagerT* non_const_this = (FEManagerT*) this;
 
 	/* try to construct solver */
-	SolverT* solver = SolverT::New(*non_const_this, list_name, -1);
+	SolverT* solver = SolverT::New(*non_const_this, name, -1);
 	if (solver)
 		return solver;
-	else if (list_name == "time")
+	else if (name == "time")
 		return new TimeManagerT(*non_const_this);
-	else if (list_name == "nodes")
+	else if (name == "nodes")
 		return new NodeManagerT(*non_const_this, *fCommManager);
-	else if (list_name == "element_list")
+	else if (name == "element_list")
 		return new ElementListT(*non_const_this);
-	else if (list_name == "solver_phases")
+	else if (name == "solver_phases")
 	{
-		ParameterContainerT* solver_phases = new ParameterContainerT(list_name);
+		ParameterContainerT* solver_phases = new ParameterContainerT(name);
 		solver_phases->SetSubSource(this);
 	
 		/* number of passes through the phases */
@@ -1414,9 +1414,9 @@ ParameterInterfaceT* FEManagerT::NewSub(const StringT& list_name) const
 		
 		return solver_phases;
 	}
-	else if (list_name == "solver_phase")
+	else if (name == "solver_phase")
 	{
-		ParameterContainerT* solver_phase = new ParameterContainerT(list_name);
+		ParameterContainerT* solver_phase = new ParameterContainerT(name);
 
 		solver_phase->AddParameter(ParameterT::Integer, "solver");
 		solver_phase->AddParameter(ParameterT::Integer, "iterations");
@@ -1425,31 +1425,31 @@ ParameterInterfaceT* FEManagerT::NewSub(const StringT& list_name) const
 		return solver_phase;
 	}
 	else /* inherited */
-		return ParameterInterfaceT::NewSub(list_name);
+		return ParameterInterfaceT::NewSub(name);
 }
 
 /* return the description of the given inline subordinate parameter list */
-void FEManagerT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void FEManagerT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
-	if (sub == "solvers")
+	if (name == "solvers")
 	{
 		order = ParameterListT::Choice;
 
 		/* linear solver */
-		sub_sub_list.AddSub("linear_solver");
+		sub_lists.AddSub("linear_solver");
 
 		/* nonlinear solver */
-		sub_sub_list.AddSub("nonlinear_solver");
+		sub_lists.AddSub("nonlinear_solver");
 
 		/* nonlinear PCG solver */
-		sub_sub_list.AddSub("PCG_solver");
+		sub_lists.AddSub("PCG_solver");
 
 		/* nonlinear solver with line search*/
-		sub_sub_list.AddSub("nonlinear_solver_LS");
+		sub_lists.AddSub("nonlinear_solver_LS");
 	}
 	else /* inherited */
-		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
+		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* returns true if the option was passed on the command line */

@@ -1,4 +1,4 @@
-/* $Id: ContactT.h,v 1.13.2.2 2004-07-12 08:08:43 paklein Exp $ */
+/* $Id: ContactT.h,v 1.13.2.3 2004-07-12 16:06:00 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #ifndef _CONTACT_T_H_
 #define _CONTACT_T_H_
@@ -67,7 +67,7 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

@@ -1,4 +1,4 @@
-/* $Id: YoonAllen3DT.cpp,v 1.14.2.2 2004-07-07 15:27:58 paklein Exp $ */
+/* $Id: YoonAllen3DT.cpp,v 1.14.2.3 2004-07-12 16:05:59 paklein Exp $ */
 #include "YoonAllen3DT.h"
 
 #include <iostream.h>
@@ -724,16 +724,16 @@ void YoonAllen3DT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* YoonAllen3DT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* YoonAllen3DT::NewSub(const StringT& name) const
 {
-	if (list_name == "Prony_series" || list_name == "Yoon-Allen_damage_choice")
+	if (name == "Prony_series" || name == "Yoon-Allen_damage_choice")
 	{
 		/* use definitions from 2D model */
 		YoonAllen2DT YH2D;
-		return YH2D.NewSub(list_name);
+		return YH2D.NewSub(name);
 	}
 	else /* inherited */
-		return SurfacePotentialT::NewSub(list_name);
+		return SurfacePotentialT::NewSub(name);
 }
 	
 /* accept parameter list */

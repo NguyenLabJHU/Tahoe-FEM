@@ -1,4 +1,4 @@
-/* $Id: SSHookean1D.cpp,v 1.6.26.1 2004-07-06 06:53:30 paklein Exp $ */
+/* $Id: SSHookean1D.cpp,v 1.6.26.2 2004-07-12 16:06:09 paklein Exp $ */
 #include "SSHookean1D.h"
 
 using namespace Tahoe;
@@ -20,14 +20,14 @@ void SSHookean1D::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* SSHookean1D::NewSub(const StringT& list_name) const
+ParameterInterfaceT* SSHookean1D::NewSub(const StringT& name) const
 {
 	/* inherited */
-	ParameterInterfaceT* params = SSHookeanMatT::NewSub(list_name);
+	ParameterInterfaceT* params = SSHookeanMatT::NewSub(name);
 	if (params)
 		return params;
 	else
-		return IsotropicT::NewSub(list_name);
+		return IsotropicT::NewSub(name);
 }
 
 /* accept parameter list */

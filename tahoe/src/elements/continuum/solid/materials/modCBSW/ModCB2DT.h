@@ -1,4 +1,4 @@
-/* $Id: ModCB2DT.h,v 1.7.54.1 2004-07-06 06:53:54 paklein Exp $ */
+/* $Id: ModCB2DT.h,v 1.7.54.2 2004-07-12 16:06:19 paklein Exp $ */
 /* created: paklein (05/31/1997) */
 #ifndef _MODCB_2DT_H_
 #define _MODCB_2DT_H_
@@ -30,7 +30,7 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

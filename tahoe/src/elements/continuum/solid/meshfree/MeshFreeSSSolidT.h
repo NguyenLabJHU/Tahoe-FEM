@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.h,v 1.8.26.2 2004-07-12 08:08:50 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.h,v 1.8.26.3 2004-07-12 16:06:28 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #ifndef _MF_SMALLSTRAIN_T_H_
 #define _MF_SMALLSTRAIN_T_H_
@@ -71,7 +71,7 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

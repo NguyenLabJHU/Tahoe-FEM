@@ -1,4 +1,4 @@
-/* $Id: BimaterialK_FieldT.h,v 1.5.64.1 2004-07-06 06:54:42 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.h,v 1.5.64.2 2004-07-12 16:06:37 paklein Exp $ */
 /* created: paklein (09/06/2000)*/
 
 #ifndef _BIMATERIAL_K_FIELD_T_H_
@@ -25,7 +25,7 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

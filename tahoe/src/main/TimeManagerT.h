@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.h,v 1.11.30.2 2004-07-12 05:12:16 paklein Exp $ */
+/* $Id: TimeManagerT.h,v 1.11.30.3 2004-07-12 16:06:33 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _TIMEMANAGER_T_H_
 #define _TIMEMANAGER_T_H_
@@ -105,7 +105,7 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 	/*@}*/
 
 private:	

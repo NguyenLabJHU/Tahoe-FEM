@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainAxiT.cpp,v 1.3.22.3 2004-07-12 08:08:47 paklein Exp $ */
+/* $Id: FiniteStrainAxiT.cpp,v 1.3.22.4 2004-07-12 16:06:05 paklein Exp $ */
 #include "FiniteStrainAxiT.h"
 
 #include "ShapeFunctionT.h"
@@ -39,11 +39,11 @@ void FiniteStrainAxiT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* FiniteStrainAxiT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* FiniteStrainAxiT::NewSub(const StringT& name) const
 {
-	if (list_name == "large_strain_axi_element_block")
+	if (name == "large_strain_axi_element_block")
 	{
-		ParameterContainerT* block = new ParameterContainerT(list_name);
+		ParameterContainerT* block = new ParameterContainerT(name);
 		
 		/* list of element block ID's (defined by ElementBaseT) */
 		block->AddSub("block_ID_list", ParameterListT::Once);
@@ -57,7 +57,7 @@ ParameterInterfaceT* FiniteStrainAxiT::NewSub(const StringT& list_name) const
 		return block;
 	}
 	else /* inherited */
-		return FiniteStrainT::NewSub(list_name);
+		return FiniteStrainT::NewSub(name);
 }
 
 /* accept parameter list */

@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList1DT.h,v 1.1.2.1 2004-07-07 21:50:43 paklein Exp $ */
+/* $Id: FSSolidMatList1DT.h,v 1.1.2.2 2004-07-12 16:06:18 paklein Exp $ */
 #ifndef _MATLIST_1D_T_H_
 #define _MATLIST_1D_T_H_
 
@@ -26,11 +26,11 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-		SubListT& sub_sub_list) const;
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

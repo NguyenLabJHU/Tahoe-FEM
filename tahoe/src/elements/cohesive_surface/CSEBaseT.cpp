@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.32.2.5 2004-07-12 08:08:41 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.32.2.6 2004-07-12 16:05:57 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
@@ -345,34 +345,34 @@ void CSEBaseT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void CSEBaseT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order,
-	SubListT& sub_sub_list) const
+void CSEBaseT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order,
+	SubListT& sub_lists) const
 {
-	if (sub == "surface_geometry")
+	if (name == "surface_geometry")
 	{
 		/* choice */
 		order = ParameterListT::Choice;
 
 		/* element geometries */
-		sub_sub_list.AddSub(GeometryT::ToString(GeometryT::kLine));		
-		sub_sub_list.AddSub(GeometryT::ToString(GeometryT::kQuadrilateral));
-		sub_sub_list.AddSub(GeometryT::ToString(GeometryT::kTriangle));
+		sub_lists.AddSub(GeometryT::ToString(GeometryT::kLine));		
+		sub_lists.AddSub(GeometryT::ToString(GeometryT::kQuadrilateral));
+		sub_lists.AddSub(GeometryT::ToString(GeometryT::kTriangle));
 	}
 	else /* inherited */
-		ElementBaseT::DefineInlineSub(sub, order, sub_sub_list);
+		ElementBaseT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT */
-ParameterInterfaceT* CSEBaseT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* CSEBaseT::NewSub(const StringT& name) const
 {
 	/* look for geometry */
-	ParameterInterfaceT* geom = GeometryT::New(list_name);
+	ParameterInterfaceT* geom = GeometryT::New(name);
 	if (geom)
 		return geom;
 
-	if (list_name == "surface_element_nodal_output")
+	if (name == "surface_element_nodal_output")
 	{
-		ParameterContainerT* node_output = new ParameterContainerT(list_name);
+		ParameterContainerT* node_output = new ParameterContainerT(name);
 		
 		/* all false by default */
 		for (int i = 0; i < NumNodalOutputCodes; i++) {
@@ -383,9 +383,9 @@ ParameterInterfaceT* CSEBaseT::NewSub(const StringT& list_name) const
 
 		return node_output;
 	}
-	else if (list_name == "surface_element_element_output")
+	else if (name == "surface_element_element_output")
 	{
-		ParameterContainerT* element_output = new ParameterContainerT(list_name);
+		ParameterContainerT* element_output = new ParameterContainerT(name);
 		
 		/* all false by default */
 		for (int i = 0; i < NumElementOutputCodes; i++) {
@@ -397,7 +397,7 @@ ParameterInterfaceT* CSEBaseT::NewSub(const StringT& list_name) const
 		return element_output;	
 	}
 	else /* inherited */
-		return ElementBaseT::NewSub(list_name);
+		return ElementBaseT::NewSub(name);
 }
 
 /* accept parameter list */

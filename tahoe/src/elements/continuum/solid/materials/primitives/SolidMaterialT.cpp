@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.11.2.1 2004-07-06 06:54:06 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.11.2.2 2004-07-12 16:06:26 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
@@ -144,11 +144,11 @@ void SolidMaterialT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* SolidMaterialT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* SolidMaterialT::NewSub(const StringT& name) const
 {
-	if (list_name == "thermal_dilatation")
+	if (name == "thermal_dilatation")
 	{
-		ParameterContainerT* thermal_dilatation = new ParameterContainerT(list_name);
+		ParameterContainerT* thermal_dilatation = new ParameterContainerT(name);
 		
 		thermal_dilatation->AddParameter(ParameterT::Double, "percent_elongation");
 		thermal_dilatation->AddParameter(ParameterT::Integer, "schedule_number");
@@ -156,7 +156,7 @@ ParameterInterfaceT* SolidMaterialT::NewSub(const StringT& list_name) const
 		return thermal_dilatation;
 	}
 	else /* inherited */
-		return ContinuumMaterialT::NewSub(list_name);
+		return ContinuumMaterialT::NewSub(name);
 }
 
 /* accept parameter list */

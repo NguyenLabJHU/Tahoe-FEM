@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.61.2.6 2004-07-12 08:08:51 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.61.2.7 2004-07-12 16:06:29 paklein Exp $ */
 #include "EAMT.h"
 
 #include "ofstreamT.h"
@@ -736,30 +736,30 @@ void EAMT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void EAMT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void EAMT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
-	if (sub == "EAM_property_choice")
+	if (name == "EAM_property_choice")
 	{
 		order = ParameterListT::Choice;
 		
 		/* EAM potentials reading Paradyn parameters tables */
-		sub_sub_list.AddSub("Paradyn_EAM");
+		sub_lists.AddSub("Paradyn_EAM");
 	}
 	else /* inherited */
-		ParticleT::DefineInlineSub(sub, order, sub_sub_list);
+		ParticleT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* EAMT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* EAMT::NewSub(const StringT& name) const
 {
 	/* try to construct potential */
-	EAMPropertyT* EAM_property = New_EAMProperty(list_name, false);
+	EAMPropertyT* EAM_property = New_EAMProperty(name, false);
 	if (EAM_property)
 		return EAM_property;
-	else if (list_name == "EAM_particle_interaction")
+	else if (name == "EAM_particle_interaction")
 	{
-		ParameterContainerT* interactions = new ParameterContainerT(list_name);
+		ParameterContainerT* interactions = new ParameterContainerT(name);
 		interactions->SetSubSource(this);
 
 		/* particle type labels */
@@ -772,7 +772,7 @@ ParameterInterfaceT* EAMT::NewSub(const StringT& list_name) const
 		return interactions;
 	}	
 	else /* inherited */
-		return ParticleT::NewSub(list_name);
+		return ParticleT::NewSub(name);
 }
 
 /* accept parameter list */

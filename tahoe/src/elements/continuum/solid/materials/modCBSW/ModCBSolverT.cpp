@@ -1,4 +1,4 @@
-/* $Id: ModCBSolverT.cpp,v 1.5.2.1 2004-07-06 06:53:54 paklein Exp $ */
+/* $Id: ModCBSolverT.cpp,v 1.5.2.2 2004-07-12 16:06:19 paklein Exp $ */
 /* created: paklein (05/27/1997) */
 #include "ModCBSolverT.h"
 
@@ -178,11 +178,11 @@ void ModCBSolverT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* ModCBSolverT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* ModCBSolverT::NewSub(const StringT& name) const
 {
-	if (list_name == "DC_potential_choice")
+	if (name == "DC_potential_choice")
 	{
-		ParameterContainerT* choice = new ParameterContainerT(list_name);
+		ParameterContainerT* choice = new ParameterContainerT(name);
 		choice->SetSubSource(this);
 		choice->SetListOrder(ParameterListT::Choice);
 	
@@ -201,15 +201,15 @@ ParameterInterfaceT* ModCBSolverT::NewSub(const StringT& list_name) const
 
 		return choice;
 	}
-	else if (list_name == "FCC_lattice_orientation")
+	else if (name == "FCC_lattice_orientation")
 	{
 		FCCLatticeT lattice(0);
-		return lattice.NewSub(list_name);
+		return lattice.NewSub(name);
 	}
-	else if (list_name == "Stillinger-Weber")
+	else if (name == "Stillinger-Weber")
 		return new SWDataT;
 	else /* inherited */
-		return ParameterInterfaceT::NewSub(list_name);
+		return ParameterInterfaceT::NewSub(name);
 }
 
 /* accept parameter list */

@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.cpp,v 1.10.2.2 2004-07-07 15:28:28 paklein Exp $ */
+/* $Id: IsotropicT.cpp,v 1.10.2.3 2004-07-12 16:06:26 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "IsotropicT.h"
 
@@ -92,11 +92,11 @@ void IsotropicT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* IsotropicT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* IsotropicT::NewSub(const StringT& name) const
 {
-	if (list_name == "modulus_definition_choice")
+	if (name == "modulus_definition_choice")
 	{
-		ParameterContainerT* choice = new ParameterContainerT(list_name);
+		ParameterContainerT* choice = new ParameterContainerT(name);
 		choice->SetSubSource(this);
 
 		/* set the choices */		
@@ -124,7 +124,7 @@ ParameterInterfaceT* IsotropicT::NewSub(const StringT& list_name) const
 		return choice;
 	}
 	else /* inherited */
-		return ParameterInterfaceT::NewSub(list_name);
+		return ParameterInterfaceT::NewSub(name);
 }
 
 /* accept parameter list */

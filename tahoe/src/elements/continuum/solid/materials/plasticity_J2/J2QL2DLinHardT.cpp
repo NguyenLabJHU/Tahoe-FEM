@@ -1,4 +1,4 @@
-/* $Id: J2QL2DLinHardT.cpp,v 1.13.28.1 2004-07-06 06:53:57 paklein Exp $ */
+/* $Id: J2QL2DLinHardT.cpp,v 1.13.28.2 2004-07-12 16:06:22 paklein Exp $ */
 /* created: paklein (06/29/1997) */
 #include "J2QL2DLinHardT.h"
 
@@ -54,31 +54,6 @@ static const char* Labels[kNumOutput] = {
 	    "s_min"}; // min in-plane principal stress
 
 /* constructor */
-J2QL2DLinHardT::J2QL2DLinHardT(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("quad_log_J2_2D"),
-	QuadLog2D(in, support),
-//	J2PrimitiveT(in),
-	fb_elastic(kNSD),
-	fEPModuli(kNSD),
-
-	/* work space */
-	fa_inverse(kNSD),
-	fMatrixTemp1(kNSD),
-	fMatrixTemp2(kNSD),
-	fMatrixTemp3(kNSD),
-	fdev_beta(kNSD),
-	fFtot(3),
-	ffrel(3),
-	
-	/* 2D translation */
-	fF_temp(2),
-	fFtot_2D(2),
-	ffrel_2D(2)	
-{
-	/* for intermediate config update */
-	fa_inverse.Inverse(fEigMod);
-}
-
 J2QL2DLinHardT::J2QL2DLinHardT(void):
 	ParameterInterfaceT("quad_log_J2_2D")
 {

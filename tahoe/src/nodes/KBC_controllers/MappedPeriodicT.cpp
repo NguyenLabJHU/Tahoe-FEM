@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.cpp,v 1.8.2.2 2004-07-07 15:28:47 paklein Exp $ */
+/* $Id: MappedPeriodicT.cpp,v 1.8.2.3 2004-07-12 16:06:37 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 #include "MappedPeriodicT.h"
 
@@ -238,11 +238,11 @@ void MappedPeriodicT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* MappedPeriodicT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* MappedPeriodicT::NewSub(const StringT& name) const
 {
-	if (list_name == "F_perturb_choice") {
+	if (name == "F_perturb_choice") {
 
-		ParameterContainerT* F_choice = new ParameterContainerT(list_name);
+		ParameterContainerT* F_choice = new ParameterContainerT(name);
 		
 		/* by dimension */
 		F_choice->SetListOrder(ParameterListT::Choice);
@@ -252,9 +252,9 @@ ParameterInterfaceT* MappedPeriodicT::NewSub(const StringT& list_name) const
 	
 		return F_choice;
 	}
-	else if (list_name == "leader_follower_node_ID_list") {
+	else if (name == "leader_follower_node_ID_list") {
 
-		ParameterContainerT* node_pairs = new ParameterContainerT(list_name);
+		ParameterContainerT* node_pairs = new ParameterContainerT(name);
 		
 		/* by dimension */
 		node_pairs->SetListOrder(ParameterListT::Sequence);
@@ -264,7 +264,7 @@ ParameterInterfaceT* MappedPeriodicT::NewSub(const StringT& list_name) const
 		return node_pairs;	
 	}
 	else /* inherited */
-		return KBC_ControllerT::NewSub(list_name);
+		return KBC_ControllerT::NewSub(name);
 }
 
 /* accept parameter list */

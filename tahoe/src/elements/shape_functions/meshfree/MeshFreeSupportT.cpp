@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.26.2.2 2004-07-07 15:28:37 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.26.2.3 2004-07-12 16:06:32 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #include "MeshFreeSupportT.h"
 
@@ -716,11 +716,11 @@ void MeshFreeSupportT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* MeshFreeSupportT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* MeshFreeSupportT::NewSub(const StringT& name) const
 {
-	if (list_name == "meshfree_formulation")
+	if (name == "meshfree_formulation")
 	{
-		ParameterContainerT* window_choice = new ParameterContainerT(list_name);
+		ParameterContainerT* window_choice = new ParameterContainerT(name);
 		window_choice->SetSubSource(this);
 		window_choice->SetListOrder(ParameterListT::Choice);
 		window_choice->AddSub("EFG");
@@ -728,9 +728,9 @@ ParameterInterfaceT* MeshFreeSupportT::NewSub(const StringT& list_name) const
 		
 		return window_choice;
 	}
-	else if (list_name == "EFG") 
+	else if (name == "EFG") 
 	{
-		ParameterContainerT* efg = new ParameterContainerT(list_name);
+		ParameterContainerT* efg = new ParameterContainerT(name);
 	
 		ParameterT d_extra(ParameterT::Double, "support_scaling");
 		d_extra.AddLimit(0.0, LimitT::Lower);
@@ -744,9 +744,9 @@ ParameterInterfaceT* MeshFreeSupportT::NewSub(const StringT& list_name) const
 	
 		return efg;
 	}
-	else if (list_name == "RKPM")
+	else if (name == "RKPM")
 	{
-		ParameterContainerT* rkpm = new ParameterContainerT(list_name);
+		ParameterContainerT* rkpm = new ParameterContainerT(name);
 		rkpm->SetSubSource(this);
 	
 		ParameterT completeness(ParameterT::Integer, "completeness");
@@ -759,7 +759,7 @@ ParameterInterfaceT* MeshFreeSupportT::NewSub(const StringT& list_name) const
 	
 		return rkpm;
 	}
-	else if (list_name == "window_function_choice")
+	else if (name == "window_function_choice")
 	{
 		ParameterContainerT* window_choice = new ParameterContainerT("window_function_choice");
 		window_choice->SetListOrder(ParameterListT::Choice);
@@ -770,9 +770,9 @@ ParameterInterfaceT* MeshFreeSupportT::NewSub(const StringT& list_name) const
 		window_choice->AddSub("rect_cubic_spline_window");
 		return window_choice;
 	}
-	else if (list_name == "gaussian_window")
+	else if (name == "gaussian_window")
 	{
-		ParameterContainerT* window = new ParameterContainerT(list_name);
+		ParameterContainerT* window = new ParameterContainerT(name);
 		
 		ParameterT support_scaling(ParameterT::Double, "support_scaling");
 		support_scaling.AddLimit(0.0, LimitT::Lower);
@@ -791,9 +791,9 @@ ParameterInterfaceT* MeshFreeSupportT::NewSub(const StringT& list_name) const
 		
 		return window;
 	}
-	else if (list_name == "rect_gaussian_window")
+	else if (name == "rect_gaussian_window")
 	{
-		ParameterContainerT* window = new ParameterContainerT(list_name);
+		ParameterContainerT* window = new ParameterContainerT(name);
 		window->SetSubSource(this);
 		window->SetDescription("1 or nsd sets of Gaussian window parameters");
 		
@@ -802,15 +802,15 @@ ParameterInterfaceT* MeshFreeSupportT::NewSub(const StringT& list_name) const
 
 		return window;
 	}
-	else if (list_name == "cubic_spline_window")
+	else if (name == "cubic_spline_window")
 	{
-		ParameterContainerT* window = new ParameterContainerT(list_name);
+		ParameterContainerT* window = new ParameterContainerT(name);
 		window->AddParameter(ParameterT::Double, "support_scaling");
 		return window;
 	}
-	else if (list_name == "rect_cubic_spline_window")
+	else if (name == "rect_cubic_spline_window")
 	{
-		ParameterContainerT* window = new ParameterContainerT(list_name);
+		ParameterContainerT* window = new ParameterContainerT(name);
 		window->SetSubSource(this);
 		window->SetDescription("1 or nsd sets of spline parameters");
 		
@@ -820,7 +820,7 @@ ParameterInterfaceT* MeshFreeSupportT::NewSub(const StringT& list_name) const
 		return window;	
 	}
 	else /* inherited */
-		return ParameterInterfaceT::NewSub(list_name);
+		return ParameterInterfaceT::NewSub(name);
 }
 
 /* accept parameter list */

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidAxiT.h,v 1.1.22.3 2004-07-12 08:08:50 paklein Exp $ */
+/* $Id: MeshFreeFSSolidAxiT.h,v 1.1.22.4 2004-07-12 16:06:27 paklein Exp $ */
 #ifndef _MESHFREE_FSSOLID_AXI_T_H_
 #define _MESHFREE_FSSOLID_AXI_T_H_
 
@@ -63,7 +63,7 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

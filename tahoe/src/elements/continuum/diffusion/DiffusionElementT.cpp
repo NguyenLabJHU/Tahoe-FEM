@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.20.2.4 2004-07-12 08:08:46 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.20.2.5 2004-07-12 16:06:02 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -552,11 +552,11 @@ void DiffusionElementT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-ParameterInterfaceT* DiffusionElementT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* DiffusionElementT::NewSub(const StringT& name) const
 {
-	if (list_name == "diffusion_element_nodal_output")
+	if (name == "diffusion_element_nodal_output")
 	{
-		ParameterContainerT* node_output = new ParameterContainerT(list_name);
+		ParameterContainerT* node_output = new ParameterContainerT(name);
 		
 		/* all false by default */
 		for (int i = 0; i < NumNodalOutputCodes; i++) {
@@ -567,9 +567,9 @@ ParameterInterfaceT* DiffusionElementT::NewSub(const StringT& list_name) const
 
 		return node_output;
 	}
-	else if (list_name == "diffusion_element_block")
+	else if (name == "diffusion_element_block")
 	{
-		ParameterContainerT* block = new ParameterContainerT(list_name);
+		ParameterContainerT* block = new ParameterContainerT(name);
 		
 		/* list of element block ID's (defined by ElementBaseT) */
 		block->AddSub("block_ID_list", ParameterListT::Once);
@@ -583,7 +583,7 @@ ParameterInterfaceT* DiffusionElementT::NewSub(const StringT& list_name) const
 		return block;
 	}
 	else /* inherited */
-		return ContinuumElementT::NewSub(list_name);
+		return ContinuumElementT::NewSub(name);
 }
 
 /* accept parameter list */

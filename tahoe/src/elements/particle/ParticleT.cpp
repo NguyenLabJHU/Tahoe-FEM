@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.41.2.5 2004-07-12 08:08:52 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.41.2.6 2004-07-12 16:06:30 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -736,33 +736,33 @@ void ParticleT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void ParticleT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void ParticleT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
-	if (sub == "thermostats")
+	if (name == "thermostats")
 	{
 		order = ParameterListT::Choice;
 		
-		sub_sub_list.AddSub("velocity_damping");
-		sub_sub_list.AddSub("ramped_damping");
-		sub_sub_list.AddSub("Nose-Hoover");
-		sub_sub_list.AddSub("Gauss_isokinetic");
-		sub_sub_list.AddSub("Langevin");
+		sub_lists.AddSub("velocity_damping");
+		sub_lists.AddSub("ramped_damping");
+		sub_lists.AddSub("Nose-Hoover");
+		sub_lists.AddSub("Gauss_isokinetic");
+		sub_lists.AddSub("Langevin");
 	}
 	else /* inherited */
-		ElementBaseT::DefineInlineSub(sub, order, sub_sub_list);
+		ElementBaseT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* ParticleT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* ParticleT::NewSub(const StringT& name) const
 {
 	/* try to construct thermostat */
-	ThermostatBaseT* thermostat = New_Thermostat(list_name, false);
+	ThermostatBaseT* thermostat = New_Thermostat(name, false);
 	if (thermostat)
 		return thermostat;
-	else if (list_name == "periodic_bc")
+	else if (name == "periodic_bc")
 	{
-		ParameterContainerT* pbc = new ParameterContainerT(list_name);
+		ParameterContainerT* pbc = new ParameterContainerT(name);
 	
 		pbc->AddParameter(ParameterT::Integer, "direction");
 		pbc->AddParameter(ParameterT::Double, "x_min");
@@ -771,9 +771,9 @@ ParameterInterfaceT* ParticleT::NewSub(const StringT& list_name) const
 
 		return pbc;
 	}
-	else if (list_name == "particle_type")
+	else if (name == "particle_type")
 	{
-		ParameterContainerT* particle_type = new ParameterContainerT(list_name);
+		ParameterContainerT* particle_type = new ParameterContainerT(name);
 	
 		particle_type->AddParameter(ParameterT::Word, "label");
 
@@ -791,7 +791,7 @@ ParameterInterfaceT* ParticleT::NewSub(const StringT& list_name) const
 		return particle_type;
 	}
 	else /* inherited */
-		return ElementBaseT::NewSub(list_name);
+		return ElementBaseT::NewSub(name);
 }
 
 /* accept parameter list */

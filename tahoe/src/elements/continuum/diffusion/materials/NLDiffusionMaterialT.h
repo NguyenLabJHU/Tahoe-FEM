@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionMaterialT.h,v 1.2.26.1 2004-07-06 06:53:18 paklein Exp $ */
+/* $Id: NLDiffusionMaterialT.h,v 1.2.26.2 2004-07-12 16:06:04 paklein Exp $ */
 #ifndef _NL_DIFFUSION_MATERIALT_H_
 #define _NL_DIFFUSION_MATERIALT_H_
 
@@ -48,16 +48,16 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** return the description of the given inline subordinate parameter list.
 	 * Method will be called for each subordinate defined as inline by ParameterInterfaceT::SubNames
 	 * or defined recursively by ParameterInterfaceT::DefineInlineSub. 
 	 * \param sub name of the inlined subordinate list
 	 * \param order defines whether list is a sequence or choice.
-	 * \param sub_sub_lists description of contents of this sub list */
-	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-		SubListT& sub_sub_list) const;
+	 * \param sub_listss description of contents of this sub list */
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
 
 	/** accept parameter list.
 	 * \param list input parameter list, which should be validated using ParameterInterfaceT::ValidateParameterList

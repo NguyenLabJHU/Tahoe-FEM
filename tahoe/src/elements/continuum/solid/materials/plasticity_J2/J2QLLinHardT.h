@@ -1,4 +1,4 @@
-/* $Id: J2QLLinHardT.h,v 1.6.54.1 2004-07-06 06:53:57 paklein Exp $ */
+/* $Id: J2QLLinHardT.h,v 1.6.54.2 2004-07-12 16:06:22 paklein Exp $ */
 /* created: paklein (10/26/2000) */
 #ifndef _J2_QL_LIN_HARD_T_H_
 #define _J2_QL_LIN_HARD_T_H_
@@ -31,8 +31,7 @@ class J2QLLinHardT: public QuadLog3D, public J2PrimitiveT
 {
 public:
 
-	/* constructor */
-	J2QLLinHardT(ifstreamT& in, const FSMatSupportT& support);
+	/** constructor */
 	J2QLLinHardT(void);
 
 	/** required parameter flags */

@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList1DT.cpp,v 1.1.2.1 2004-07-07 21:50:43 paklein Exp $ */
+/* $Id: FSSolidMatList1DT.cpp,v 1.1.2.2 2004-07-12 16:06:17 paklein Exp $ */
 #include "FSSolidMatList1DT.h"
 #include "FSMatSupportT.h"
 
@@ -39,30 +39,30 @@ void FSSolidMatList1DT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void FSSolidMatList1DT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-		SubListT& sub_sub_list) const
+void FSSolidMatList1DT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const
 {
-	if (sub == "fs_material_list_1D")
+	if (name == "fs_material_list_1D")
 	{
 		order = ParameterListT::Choice;
 
 #ifdef CAUCHY_BORN_MATERIAL
-		sub_sub_list.AddSub("chain_1D");
+		sub_lists.AddSub("chain_1D");
 #endif
 	}
 	else /* inherited */
-		SolidMatListT::DefineInlineSub(sub, order, sub_sub_list);
+		SolidMatListT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* FSSolidMatList1DT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* FSSolidMatList1DT::NewSub(const StringT& name) const
 {
 	/* try to construct material */
-	FSSolidMatT* fs_solid_mat = NewFSSolidMat(list_name);
+	FSSolidMatT* fs_solid_mat = NewFSSolidMat(name);
 	if (fs_solid_mat)
 		return fs_solid_mat;
 	else /* inherited */
-		return SolidMatListT::NewSub(list_name);
+		return SolidMatListT::NewSub(name);
 }
 
 /* accept parameter list */

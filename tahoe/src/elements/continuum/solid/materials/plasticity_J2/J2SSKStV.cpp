@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.cpp,v 1.9.26.1 2004-07-06 06:53:57 paklein Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.9.26.2 2004-07-12 16:06:22 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV.h"
 #include "SSMatSupportT.h"
@@ -137,18 +137,18 @@ void J2SSKStV::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* J2SSKStV::NewSub(const StringT& list_name) const
+ParameterInterfaceT* J2SSKStV::NewSub(const StringT& name) const
 {
 	ParameterInterfaceT* sub = NULL;
 
 	/* try each base class */
-	sub = SSSolidMatT::NewSub(list_name);
+	sub = SSSolidMatT::NewSub(name);
 	if (sub) return sub;
 
-	sub = IsotropicT::NewSub(list_name);
+	sub = IsotropicT::NewSub(name);
 	if (sub) return sub;
 	
-	return J2SSC0HardeningT::NewSub(list_name);
+	return J2SSC0HardeningT::NewSub(name);
 }
 
 /* accept parameter list */

@@ -1,4 +1,4 @@
-/* $Id: FDKStV.cpp,v 1.5.54.1 2004-07-06 06:53:34 paklein Exp $ */
+/* $Id: FDKStV.cpp,v 1.5.54.2 2004-07-12 16:06:10 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "FDKStV.h"
 
@@ -20,14 +20,14 @@ void FDKStV::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* FDKStV::NewSub(const StringT& list_name) const
+ParameterInterfaceT* FDKStV::NewSub(const StringT& name) const
 {
 	/* inherited */
-	ParameterInterfaceT* params = FDHookeanMatT::NewSub(list_name);
+	ParameterInterfaceT* params = FDHookeanMatT::NewSub(name);
 	if (params)
 		return params;
 	else
-		return IsotropicT::NewSub(list_name);
+		return IsotropicT::NewSub(name);
 }
 
 /* accept parameter list */

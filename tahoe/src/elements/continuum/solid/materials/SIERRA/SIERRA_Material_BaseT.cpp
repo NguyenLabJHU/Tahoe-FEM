@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.12.28.2 2004-07-12 05:12:10 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.12.28.3 2004-07-12 16:06:11 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -421,15 +421,15 @@ void SIERRA_Material_BaseT::Read_SIERRA_Input(ifstreamT& in,
 		if (word == "BEGIN")
 		{
 			/* get list name */
-			StringT list_name;
-			line.Tail(' ', list_name);
-			list_name.ToUpper();
-			if (list_name.StringLength() == 0)
+			StringT name;
+			line.Tail(' ', name);
+			name.ToUpper();
+			if (name.StringLength() == 0)
 				ExceptionT::BadInputValue(caller, "could not list name from line:\n%s",
 					line.Pointer());
 					
 			/* recursively construct list */
-			ParameterListT param_sub_list(list_name);
+			ParameterListT param_sub_list(name);
 			Read_SIERRA_Input(in, param_sub_list);
 			
 			/* add list to parameter list */

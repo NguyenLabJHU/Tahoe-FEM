@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.cpp,v 1.5.2.3 2004-07-12 08:08:46 paklein Exp $ */
+/* $Id: NLDiffusionElementT.cpp,v 1.5.2.4 2004-07-12 16:06:02 paklein Exp $ */
 #include "NLDiffusionElementT.h"
 
 #include <iostream.h>
@@ -51,10 +51,10 @@ void NLDiffusionElementT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* NLDiffusionElementT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* NLDiffusionElementT::NewSub(const StringT& name) const
 {
-	if (list_name == "mixed_bc") {
-		ParameterContainerT* mixed_bc = new ParameterContainerT(list_name);
+	if (name == "mixed_bc") {
+		ParameterContainerT* mixed_bc = new ParameterContainerT(name);
 		mixed_bc->SetDescription("outward flux: h = epsilon*(T - T_0)^alpha");
 		mixed_bc->SetSubSource(this);
 	
@@ -68,7 +68,7 @@ ParameterInterfaceT* NLDiffusionElementT::NewSub(const StringT& list_name) const
 		return mixed_bc;
 	}
 	else /* inherited */
-		return DiffusionElementT::NewSub(list_name);
+		return DiffusionElementT::NewSub(name);
 }
 
 /* accept parameter list */

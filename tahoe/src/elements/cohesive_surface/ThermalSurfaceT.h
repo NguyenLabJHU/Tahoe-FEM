@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.h,v 1.5.56.2 2004-07-12 08:08:41 paklein Exp $ */
+/* $Id: ThermalSurfaceT.h,v 1.5.56.3 2004-07-12 16:05:57 paklein Exp $ */
 
 #ifndef _THERMAL_SURFACE_T_H_
 #define _THERMAL_SURFACE_T_H_
@@ -31,7 +31,7 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.13.26.1 2004-07-06 06:54:06 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.13.26.2 2004-07-12 16:06:26 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -138,7 +138,7 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list. This function also checks if thermal strain are 
 	 * being imposed and if the material supports thermal strain, using 

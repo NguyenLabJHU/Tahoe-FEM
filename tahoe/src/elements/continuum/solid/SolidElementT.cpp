@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.62.2.6 2004-07-12 08:08:47 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.62.2.7 2004-07-12 16:06:05 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -300,11 +300,11 @@ void SolidElementT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* SolidElementT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* SolidElementT::NewSub(const StringT& name) const
 {
-	if (list_name == "solid_element_nodal_output")
+	if (name == "solid_element_nodal_output")
 	{
-		ParameterContainerT* node_output = new ParameterContainerT(list_name);
+		ParameterContainerT* node_output = new ParameterContainerT(name);
 		
 		/* wave speed sampling direction */
 		ParameterContainerT wave_direction("wave_direction");
@@ -322,9 +322,9 @@ ParameterInterfaceT* SolidElementT::NewSub(const StringT& list_name) const
 
 		return node_output;
 	}
-	else if (list_name == "solid_element_element_output")
+	else if (name == "solid_element_element_output")
 	{
-		ParameterContainerT* element_output = new ParameterContainerT(list_name);
+		ParameterContainerT* element_output = new ParameterContainerT(name);
 		
 		/* all false by default */
 		for (int i = 0; i < NumElementOutputCodes; i++) {
@@ -336,7 +336,7 @@ ParameterInterfaceT* SolidElementT::NewSub(const StringT& list_name) const
 		return element_output;	
 	}
 	else /* inherited */
-		return ContinuumElementT::NewSub(list_name);
+		return ContinuumElementT::NewSub(name);
 }
 
 /* accept parameter list */

@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.13.26.2 2004-07-12 08:08:47 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.13.26.3 2004-07-12 16:06:05 paklein Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -65,11 +65,11 @@ void SmallStrainT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-ParameterInterfaceT* SmallStrainT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* SmallStrainT::NewSub(const StringT& name) const
 {
-	if (list_name == "small_strain_element_block")
+	if (name == "small_strain_element_block")
 	{
-		ParameterContainerT* block = new ParameterContainerT(list_name);
+		ParameterContainerT* block = new ParameterContainerT(name);
 		
 		/* list of element block ID's (defined by ElementBaseT) */
 		block->AddSub("block_ID_list", ParameterListT::Once);
@@ -83,24 +83,24 @@ ParameterInterfaceT* SmallStrainT::NewSub(const StringT& list_name) const
 		return block;
 	}
 	else /* inherited */
-		return SolidElementT::NewSub(list_name);
+		return SolidElementT::NewSub(name);
 }
 
 /* return the description of the given inline subordinate parameter list. */
-void SmallStrainT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void SmallStrainT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
-	if (sub == "small_strain_material_choice")
+	if (name == "small_strain_material_choice")
 	{
 		order = ParameterListT::Choice;
 		
 		/* list of choices */
-		sub_sub_list.AddSub("small_strain_material_1D");
-		sub_sub_list.AddSub("small_strain_material_2D");
-		sub_sub_list.AddSub("small_strain_material_3D");
+		sub_lists.AddSub("small_strain_material_1D");
+		sub_lists.AddSub("small_strain_material_2D");
+		sub_lists.AddSub("small_strain_material_3D");
 	}
 	else /* inherited */
-		SolidElementT::DefineInlineSub(sub, order, sub_sub_list);
+		SolidElementT::DefineInlineSub(name, order, sub_lists);
 }
 
 void SmallStrainT::TakeParameterList(const ParameterListT& list)

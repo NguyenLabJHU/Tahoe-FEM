@@ -1,4 +1,4 @@
-/* $Id: Chain1D.cpp,v 1.2.2.2 2004-07-07 21:50:42 paklein Exp $ */
+/* $Id: Chain1D.cpp,v 1.2.2.3 2004-07-12 16:06:06 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Chain1D.h"
 #include "ElementsConfig.h"
@@ -69,32 +69,32 @@ void Chain1D::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void Chain1D::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void Chain1D::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
-	if (sub == "chain_1D_potential_choice")
+	if (name == "chain_1D_potential_choice")
 	{
 		order = ParameterListT::Choice;
 
 		/* choice of potentials */
-		sub_sub_list.AddSub("harmonic");
-		sub_sub_list.AddSub("Lennard_Jones");
-		sub_sub_list.AddSub("Paradyn_pair");
-		sub_sub_list.AddSub("Matsui");
+		sub_lists.AddSub("harmonic");
+		sub_lists.AddSub("Lennard_Jones");
+		sub_lists.AddSub("Paradyn_pair");
+		sub_lists.AddSub("Matsui");
 	}
 	else /* inherited */
-		NL_E_MatT::DefineInlineSub(sub, order, sub_sub_list);
+		NL_E_MatT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* Chain1D::NewSub(const StringT& list_name) const
+ParameterInterfaceT* Chain1D::NewSub(const StringT& name) const
 {
 	/* try to construct pair property */
-	PairPropertyT* pair_prop = PairPropertyT::New(list_name, fMaterialSupport);
+	PairPropertyT* pair_prop = PairPropertyT::New(name, fMaterialSupport);
 	if (pair_prop)
 		return pair_prop;
 	else /* inherited */
-		return NL_E_MatT::NewSub(list_name);
+		return NL_E_MatT::NewSub(name);
 }
 
 /* accept parameter list */

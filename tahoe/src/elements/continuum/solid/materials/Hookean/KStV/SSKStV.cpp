@@ -1,4 +1,4 @@
-/* $Id: SSKStV.cpp,v 1.4.56.1 2004-07-06 06:53:34 paklein Exp $ */
+/* $Id: SSKStV.cpp,v 1.4.56.2 2004-07-12 16:06:10 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "SSKStV.h"
 
@@ -20,14 +20,14 @@ void SSKStV::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* SSKStV::NewSub(const StringT& list_name) const
+ParameterInterfaceT* SSKStV::NewSub(const StringT& name) const
 {
 	/* inherited */
-	ParameterInterfaceT* params = SSHookeanMatT::NewSub(list_name);
+	ParameterInterfaceT* params = SSHookeanMatT::NewSub(name);
 	if (params)
 		return params;
 	else
-		return IsotropicT::NewSub(list_name);
+		return IsotropicT::NewSub(name);
 }
 
 /* accept parameter list */

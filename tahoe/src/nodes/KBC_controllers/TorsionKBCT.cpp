@@ -1,4 +1,4 @@
-/* $Id: TorsionKBCT.cpp,v 1.3.40.2 2004-07-07 15:28:47 paklein Exp $ */
+/* $Id: TorsionKBCT.cpp,v 1.3.40.3 2004-07-12 16:06:37 paklein Exp $ */
 #include "TorsionKBCT.h"
 #include "NodeManagerT.h"
 
@@ -127,12 +127,12 @@ void TorsionKBCT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* TorsionKBCT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* TorsionKBCT::NewSub(const StringT& name) const
 {
-	if (list_name == "point_on_axis")
-		return new VectorParameterT(list_name, 'x', 3);
+	if (name == "point_on_axis")
+		return new VectorParameterT(name, 'x', 3);
 	else /* inherited */	
-		return KBC_ControllerT::NewSub(list_name);
+		return KBC_ControllerT::NewSub(name);
 }
 
 /* accept parameter list */

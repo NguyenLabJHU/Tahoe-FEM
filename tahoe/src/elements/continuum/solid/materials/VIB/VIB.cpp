@@ -1,4 +1,4 @@
-/* $Id: VIB.cpp,v 1.13.2.1 2004-07-06 06:53:41 paklein Exp $ */
+/* $Id: VIB.cpp,v 1.13.2.2 2004-07-12 16:06:14 paklein Exp $ */
 /* created: paklein (10/30/1997) */
 #include "VIB.h"
 
@@ -106,31 +106,31 @@ void VIB::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void VIB::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void VIB::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
-	if (sub == "VIB_potential_choice")
+	if (name == "VIB_potential_choice")
 	{
 		order = ParameterListT::Choice;
-		sub_sub_list.AddSub("Lennard-Jones_6-12");
-		sub_sub_list.AddSub("Smith-Ferrante");
-		sub_sub_list.AddSub("Gao-Ji");
-		sub_sub_list.AddSub("Gao-Ji_2");
-		sub_sub_list.AddSub("Gao-Nguyen");
+		sub_lists.AddSub("Lennard-Jones_6-12");
+		sub_lists.AddSub("Smith-Ferrante");
+		sub_lists.AddSub("Gao-Ji");
+		sub_lists.AddSub("Gao-Ji_2");
+		sub_lists.AddSub("Gao-Nguyen");
 	}
 	else /* inherited */
-		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
+		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* VIB::NewSub(const StringT& list_name) const
+ParameterInterfaceT* VIB::NewSub(const StringT& name) const
 {
 	/* try C1FunctionT */
-	C1FunctionT* C1 = C1FunctionT::New(list_name);
+	C1FunctionT* C1 = C1FunctionT::New(name);
 	if (C1)
 		return C1;
 	else /* inherited */
-		return ParameterInterfaceT::NewSub(list_name);
+		return ParameterInterfaceT::NewSub(name);
 }
 
 /* accept parameter list */

@@ -1,4 +1,4 @@
-/* $Id: ModCB2DT.cpp,v 1.8.54.1 2004-07-06 06:53:54 paklein Exp $ */
+/* $Id: ModCB2DT.cpp,v 1.8.54.2 2004-07-12 16:06:19 paklein Exp $ */
 /* created: paklein (05/31/1997) */
 #include "ModCB2DT.h"
 
@@ -42,12 +42,12 @@ void ModCB2DT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* ModCB2DT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* ModCB2DT::NewSub(const StringT& name) const
 {
-	if (list_name == "mod_Cauchy-Born_solver")
+	if (name == "mod_Cauchy-Born_solver")
 		return new ModCBSolverT(NULL);
 	else /* inherited */
-		return NL_E_MatT::NewSub(list_name);
+		return NL_E_MatT::NewSub(name);
 }
 
 /* accept parameter list */

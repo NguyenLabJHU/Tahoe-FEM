@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.cpp,v 1.11.2.3 2004-07-12 08:08:41 paklein Exp $ */
+/* $Id: ThermalSurfaceT.cpp,v 1.11.2.4 2004-07-12 16:05:57 paklein Exp $ */
 #include "ThermalSurfaceT.h"
 
 #include <math.h>
@@ -40,11 +40,11 @@ void ThermalSurfaceT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT */
-ParameterInterfaceT* ThermalSurfaceT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* ThermalSurfaceT::NewSub(const StringT& name) const
 {
-	if (list_name == "thermal_CSE_element_block")
+	if (name == "thermal_CSE_element_block")
 	{
-		ParameterContainerT* block = new ParameterContainerT(list_name);
+		ParameterContainerT* block = new ParameterContainerT(name);
 		block->SetSubSource(this);
 		
 		/* list of element block ID's (defined by ElementBaseT) */
@@ -62,7 +62,7 @@ ParameterInterfaceT* ThermalSurfaceT::NewSub(const StringT& list_name) const
 		return block;
 	}
 	else /* inherited */
-		return CSEBaseT::NewSub(list_name);
+		return CSEBaseT::NewSub(name);
 }
 
 /* accept parameter list */

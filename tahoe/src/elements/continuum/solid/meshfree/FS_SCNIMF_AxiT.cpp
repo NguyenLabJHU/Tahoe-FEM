@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.1.2.1 2004-07-08 00:41:53 paklein Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.1.2.2 2004-07-12 16:06:27 paklein Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 //#define VERIFY_B
@@ -992,16 +992,16 @@ void FS_SCNIMF_AxiT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void FS_SCNIMF_AxiT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void FS_SCNIMF_AxiT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
 	/* inherited */
-	ElementBaseT::DefineInlineSub(sub, order, sub_sub_list);
+	ElementBaseT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* FS_SCNIMF_AxiT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* FS_SCNIMF_AxiT::NewSub(const StringT& name) const
 {
 	/* inherited */
-	return ElementBaseT::NewSub(list_name);
+	return ElementBaseT::NewSub(name);
 }

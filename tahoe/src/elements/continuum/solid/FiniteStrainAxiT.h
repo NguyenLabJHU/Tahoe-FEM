@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainAxiT.h,v 1.4.22.2 2004-07-12 08:08:47 paklein Exp $ */
+/* $Id: FiniteStrainAxiT.h,v 1.4.22.3 2004-07-12 16:06:05 paklein Exp $ */
 #ifndef _FINITE_STRAIN_AXI_T_H_
 #define _FINITE_STRAIN_AXI_T_H_
 
@@ -21,7 +21,7 @@ class FiniteStrainAxiT: public FiniteStrainT
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

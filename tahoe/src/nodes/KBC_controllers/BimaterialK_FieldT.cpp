@@ -1,4 +1,4 @@
-/* $Id: BimaterialK_FieldT.cpp,v 1.10.2.1 2004-07-06 06:54:42 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.cpp,v 1.10.2.2 2004-07-12 16:06:37 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "BimaterialK_FieldT.h"
 
@@ -45,18 +45,18 @@ void BimaterialK_FieldT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* BimaterialK_FieldT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* BimaterialK_FieldT::NewSub(const StringT& name) const
 {
-	if (list_name == "boundary_region_1" || list_name == "boundary_region_2")
+	if (name == "boundary_region_1" || name == "boundary_region_2")
 	{
-		ParameterContainerT* region = new ParameterContainerT(list_name);
+		ParameterContainerT* region = new ParameterContainerT(name);
 		region->SetSubSource(this);
 		region->AddSub("elastic_properties_choice", ParameterListT::Once, true);
 		region->AddSub("node_ID_list");
 		return region;
 	}
 	else /* inherited */
-		return K_FieldT::NewSub(list_name);
+		return K_FieldT::NewSub(name);
 }
 
 /* accept parameter list */

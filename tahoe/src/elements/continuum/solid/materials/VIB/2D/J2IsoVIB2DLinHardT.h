@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB2DLinHardT.h,v 1.6.54.1 2004-07-06 06:53:42 paklein Exp $ */
+/* $Id: J2IsoVIB2DLinHardT.h,v 1.6.54.2 2004-07-12 16:06:15 paklein Exp $ */
 /* created: paklein (10/18/1998) */
 #ifndef _J2_ISOVIB_2D_T_H_
 #define _J2_ISOVIB_2D_T_H_
@@ -30,7 +30,7 @@ class J2IsoVIB2DLinHardT: public IsoVIB3D, public J2PrimitiveT
 public:
 
 	/* constructor */
-	J2IsoVIB2DLinHardT(ifstreamT& in, const FSMatSupportT& support);
+	J2IsoVIB2DLinHardT(void);
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);

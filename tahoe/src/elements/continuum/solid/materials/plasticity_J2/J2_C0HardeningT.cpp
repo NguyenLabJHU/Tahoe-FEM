@@ -1,4 +1,4 @@
-/* $Id: J2_C0HardeningT.cpp,v 1.1.4.1 2004-07-06 06:53:57 paklein Exp $ */
+/* $Id: J2_C0HardeningT.cpp,v 1.1.4.2 2004-07-12 16:06:22 paklein Exp $ */
 #include "J2_C0HardeningT.h"
 
 #include "dSymMatrixT.h"
@@ -33,32 +33,32 @@ void J2_C0HardeningT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void J2_C0HardeningT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void J2_C0HardeningT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
-	if (sub == "hardening_function_choice")
+	if (name == "hardening_function_choice")
 	{
 		order = ParameterListT::Choice;
 	
 		/* function types */
-		sub_sub_list.AddSub("linear_function");
-		sub_sub_list.AddSub("cubic_spline");
-		sub_sub_list.AddSub("linear_exponential");
-		sub_sub_list.AddSub("power_law");
+		sub_lists.AddSub("linear_function");
+		sub_lists.AddSub("cubic_spline");
+		sub_lists.AddSub("linear_exponential");
+		sub_lists.AddSub("power_law");
 	}
 	else /* inherited */
-		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
+		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* J2_C0HardeningT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* J2_C0HardeningT::NewSub(const StringT& name) const
 {
 	/* try to construct C1 function */
-	C1FunctionT* function = C1FunctionT::New(list_name);
+	C1FunctionT* function = C1FunctionT::New(name);
 	if (function)
 		return function;
 	else /* inherited */
-		return ParameterInterfaceT::NewSub(list_name);
+		return ParameterInterfaceT::NewSub(name);
 }
 
 /* accept parameter list */

@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList1DT.cpp,v 1.1.6.2 2004-07-07 15:28:20 paklein Exp $ */
+/* $Id: SSSolidMatList1DT.cpp,v 1.1.6.3 2004-07-12 16:06:18 paklein Exp $ */
 #include "SSSolidMatList1DT.h"
 #include "SSMatSupportT.h"
 
@@ -39,99 +39,6 @@ SSSolidMatList1DT::SSSolidMatList1DT(void):
 	SetName("small_strain_material_1D");
 }
 
-/* read material data from the input stream */
-void SSSolidMatList1DT::ReadMaterialData(ifstreamT& in)
-{
-
-ExceptionT::GeneralFail("SSSolidMaterialList1DT::ReadMaterialData");
-#if 0
-	int i, matnum;
-	SolidT::TypeT matcode;
-	try {
-
-	/* read material data */
-	for (i = 0; i < fLength; i++)
- 	{
-		in >> matnum; matnum--;
-		in >> matcode;
-		/* checks */
-		if (matnum < 0  || matnum >= fLength) throw ExceptionT::kBadInputValue;
-		
-		/* repeated material number */
-		if (fArray[matnum] != NULL)
-		{
-			cout << "\n SSSolidMatList1DT::ReadMaterialData: repeated material number: ";
-			cout << matnum + 1 << endl;
-			throw ExceptionT::kBadInputValue;
-		}
-		
-		/* add to the list of matxxerials */
-		switch (matcode)
-		{
-			case kSSKStV:
-			{
-				fArray[matnum] = new SSHookean1D(in, *fSSMatSupport);
-				break;
-		  	}
-			case kGradJ2SS:
-			{
-#ifdef GRAD_SMALL_STRAIN_DEV
-				fArray[matnum] = new GradJ2SS1D(in, *fGradSSMatSupport);
-				fHasHistory = true;
-				break;
-#else
-				ExceptionT::BadInputValue("SSSolidMatList1DT::ReadMaterialData", "GRAD_SMALL_STRAIN_DEV not enabled: %d", matcode);
-#endif
-			}
-			case kJ2SSKStV1D:
-			{
-#ifdef GRAD_SMALL_STRAIN_DEV
-				/* check */
-				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
-			
-				fArray[matnum] = new J2SSKStV1D(in, *fSSMatSupport);
-				fHasHistory = true;															
-				break;
-#else
-				ExceptionT::BadInputValue("SSSolidMatList1DT::ReadMaterialData", "GRAD_SMALL_STRAIN_DEV not enabled: %d", matcode);
-#endif
-			}
-			default:
-			{
-				cout << "\n SSSolidMatList1DT::ReadMaterialData: unknown material code: ";
-				cout << matcode << '\n' << endl;
-				throw ExceptionT::kBadInputValue;
-			}
-		}
-
-		/* safe cast since all structural */
-		SolidMaterialT* pmat = (SolidMaterialT*) fArray[matnum];
-		/* verify construction */
-		if (!pmat) throw ExceptionT::kOutOfMemory;
-		
-		/* set thermal LTf pointer */
-		int LTfnum = pmat->ThermalStrainSchedule();
-		if (LTfnum > -1)
-		{
-			pmat->SetThermalSchedule(fSolidMatSupport->Schedule(LTfnum));
-			
-			/* set flag */
-			fHasThermal = true;
-		}
-		
-		/* perform initialization */
-		pmat->Initialize();
-	}  } /* end try */
-	
-	catch (ExceptionT::CodeT error)
-	{
-		cout << "\n SSSolidMatList1DT::ReadMaterialData: exception constructing material " << i+1
-		     << '\n' << "     index " << matnum+1 << ", code " << matcode << endl;
-		throw error;
-	}
-#endif
-}
-
 /* information about subordinate parameter lists */
 void SSSolidMatList1DT::DefineSubs(SubListT& sub_list) const
 {
@@ -143,28 +50,28 @@ void SSSolidMatList1DT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void SSSolidMatList1DT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-		SubListT& sub_sub_list) const
+void SSSolidMatList1DT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const
 {
-	if (sub == "ss_material_list_1D")
+	if (name == "ss_material_list_1D")
 	{
 		order = ParameterListT::Choice;
 	
-		sub_sub_list.AddSub("linear_material_1D");
+		sub_lists.AddSub("linear_material_1D");
 	}
 	else /* inherited */
-		SolidMatListT::DefineInlineSub(sub, order, sub_sub_list);
+		SolidMatListT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* SSSolidMatList1DT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* SSSolidMatList1DT::NewSub(const StringT& name) const
 {
 	/* try to construct material */
-	SSSolidMatT* ss_solid_mat = NewSSSolidMat(list_name);
+	SSSolidMatT* ss_solid_mat = NewSSSolidMat(name);
 	if (ss_solid_mat)
 		return ss_solid_mat;
 	else /* inherited */
-		return SolidMatListT::NewSub(list_name);
+		return SolidMatListT::NewSub(name);
 }
 
 /* accept parameter list */
@@ -198,11 +105,11 @@ void SSSolidMatList1DT::TakeParameterList(const ParameterListT& list)
 }
 
 /* construct the specified material or NULL if the request cannot be completed */
-SSSolidMatT* SSSolidMatList1DT::NewSSSolidMat(const StringT& list_name) const
+SSSolidMatT* SSSolidMatList1DT::NewSSSolidMat(const StringT& name) const
 {
 	SSSolidMatT* mat = NULL;
 
-	if (list_name == "linear_material_1D")
+	if (name == "linear_material_1D")
 		mat = new SSHookean1D;
 
 	/* set support */

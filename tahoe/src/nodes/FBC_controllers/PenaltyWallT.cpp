@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.12.2.1 2004-07-06 06:54:40 paklein Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.12.2.2 2004-07-12 16:06:36 paklein Exp $ */
 /* created: paklein (02/25/1997) */
 #include "PenaltyWallT.h"
 #include "FieldT.h"
@@ -153,11 +153,11 @@ void PenaltyWallT::DefineSubs(SubListT& sub_list) const
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* PenaltyWallT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* PenaltyWallT::NewSub(const StringT& name) const
 {
-	if (list_name == "wall_normal") {
+	if (name == "wall_normal") {
 
-		ParameterContainerT* n_choice = new ParameterContainerT(list_name);
+		ParameterContainerT* n_choice = new ParameterContainerT(name);
 		
 		/* by dimension */
 		n_choice->SetListOrder(ParameterListT::Choice);
@@ -167,7 +167,7 @@ ParameterInterfaceT* PenaltyWallT::NewSub(const StringT& list_name) const
 		return n_choice;	
 	}
 	else /* inherited */
-		return PenaltyRegionT::NewSub(list_name);
+		return PenaltyRegionT::NewSub(name);
 }
 
 /* accept parameter list */

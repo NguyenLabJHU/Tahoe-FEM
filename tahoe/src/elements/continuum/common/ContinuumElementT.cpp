@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.40.2.5 2004-07-12 08:08:44 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.40.2.6 2004-07-12 16:06:01 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -1261,46 +1261,46 @@ void ContinuumElementT::DefineSubs(SubListT& sub_list) const
 }
 
 /* return the description of the given inline subordinate parameter list */
-void ContinuumElementT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
+void ContinuumElementT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+	SubListT& sub_lists) const
 {
 	/* geometry and integration rule (inline) */
-	if (sub == "element_geometry")
+	if (name == "element_geometry")
 	{
 		/* choice */
 		order = ParameterListT::Choice;
 	
 		/* element geometries */
-		sub_sub_list.AddSub(GeometryT::ToString(GeometryT::kQuadrilateral));
-		sub_sub_list.AddSub(GeometryT::ToString(GeometryT::kTriangle));
-		sub_sub_list.AddSub(GeometryT::ToString(GeometryT::kHexahedron));
-		sub_sub_list.AddSub(GeometryT::ToString(GeometryT::kTetrahedron));
-		sub_sub_list.AddSub(GeometryT::ToString(GeometryT::kLine));
+		sub_lists.AddSub(GeometryT::ToString(GeometryT::kQuadrilateral));
+		sub_lists.AddSub(GeometryT::ToString(GeometryT::kTriangle));
+		sub_lists.AddSub(GeometryT::ToString(GeometryT::kHexahedron));
+		sub_lists.AddSub(GeometryT::ToString(GeometryT::kTetrahedron));
+		sub_lists.AddSub(GeometryT::ToString(GeometryT::kLine));
 	}
 	else
-		ElementBaseT::DefineInlineSub(sub, order, sub_sub_list);
+		ElementBaseT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& name) const
 {
 	/* create non-const this */
 	ContinuumElementT* non_const_this = const_cast<ContinuumElementT*>(this);
 
 	/* try material list */
-	MaterialListT* material_list = non_const_this->NewMaterialList(list_name, 0);
+	MaterialListT* material_list = non_const_this->NewMaterialList(name, 0);
 	if (material_list)
 		return material_list;
 		
 	/* try geometry */
-	ParameterInterfaceT* geometry = GeometryT::New(list_name);
+	ParameterInterfaceT* geometry = GeometryT::New(name);
 	if (geometry)
 		return geometry;
 
 	/* body force */
-	if (list_name == "body_force")
+	if (name == "body_force")
 	{
-		ParameterContainerT* body_force = new ParameterContainerT(list_name);
+		ParameterContainerT* body_force = new ParameterContainerT(name);
 	
 		/* schedule number */
 		body_force->AddParameter(ParameterT::Integer, "schedule");
@@ -1310,9 +1310,9 @@ ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
 		
 		return body_force;
 	}
-	else if (list_name == "natural_bc") /* traction bc */
+	else if (name == "natural_bc") /* traction bc */
 	{
-		ParameterContainerT* natural_bc = new ParameterContainerT(list_name);
+		ParameterContainerT* natural_bc = new ParameterContainerT(name);
 
 		natural_bc->AddParameter(ParameterT::Word, "side_set_ID");
 		natural_bc->AddParameter(ParameterT::Integer, "schedule");
@@ -1328,7 +1328,7 @@ ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
 		return natural_bc;
 	}
 	else /* inherited */
-		return ElementBaseT::NewSub(list_name);
+		return ElementBaseT::NewSub(name);
 }
 
 /* accept parameter list */

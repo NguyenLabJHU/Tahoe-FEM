@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.18.6.2 2004-07-07 15:28:23 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.18.6.3 2004-07-12 16:06:24 paklein Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -34,7 +34,7 @@ const int IPprnt = 1;
 
 LocalCrystalPlastFp::LocalCrystalPlastFp(ifstreamT& in, const FSMatSupportT& support) :
 	ParameterInterfaceT("local_crystal_plasticity_Fp"),
-  PolyCrystalMatT(in, support),  
+//  PolyCrystalMatT(in, support),  
 
   // penalty parameter for detFp
   fPenalty (1.0e+0),
