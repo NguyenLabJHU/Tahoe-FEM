@@ -1,4 +1,4 @@
-/* $Id: ExceptionT.cpp,v 1.10 2003-09-24 23:58:24 paklein Exp $ */
+/* $Id: ExceptionT.cpp,v 1.11 2003-10-27 18:09:31 paklein Exp $ */
 #include "ExceptionT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -16,7 +16,7 @@
 /* initialize static data */
 namespace Tahoe {
 int ExceptionT::NumExceptions = 12;
-const bool ArrayT<ExceptionT::CodeT>::fByteCopy = true;
+template<> const bool ArrayT<ExceptionT::CodeT>::fByteCopy = true;
 
 /* exceptions strings */
 const char* ExceptionT::fExceptionStrings[13] = 
