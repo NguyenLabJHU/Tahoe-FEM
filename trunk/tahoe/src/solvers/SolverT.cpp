@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.23 2004-09-13 18:41:12 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.24 2004-09-14 18:14:31 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -505,7 +505,6 @@ void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 	const char caller[] = "SolverT::SetGlobalMatrix";
 
 	/* streams */
-//	ifstreamT&  in = fFEManager.Input();
 	ofstreamT& out = fFEManager.Output();
 
 	/* resolve matrix type */
