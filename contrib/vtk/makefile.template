@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.12 2002-10-23 18:00:15 paklein Exp $
+# $Id: makefile.template,v 1.13 2003-02-08 01:15:29 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -12,7 +12,7 @@
 # (6) "make build" to (re-)compiler binaries.
 
 # full path to current directory
-HOME_DIR = 
+HOME_DIR =
 
 # working directories:
 OBJ_DIR = $(HOME_DIR)/obj
@@ -21,7 +21,7 @@ SRC_DIR = $(HOME_DIR)/src
 LIB_DIR = $(HOME_DIR)/lib
 
 # build architecture
-ARCH = 
+ARCH =
 # see macros directory for choices $(ARCH).macros
 
 # default target name - root of library name or executable name
@@ -43,10 +43,10 @@ MACRO_DIR = $(HOME_DIR)/../../macros
 # uncomment macros for installed models
 
 ##### any additional user C, C++, fortran, or linker flags
-MY_CFLAGS  =
-MY_CCFLAGS =
-MY_FFLAGS  =
-MY_LFLAGS  =
+#MY_CFLAGS  =
+#MY_CCFLAGS = --load-pch $(HOME_DIR)/pch
+#MY_FFLAGS  =
+#MY_LFLAGS  =
 
 ##### toolbox
 TB_DIR      = $(HOME_DIR)/../../toolbox
@@ -70,22 +70,27 @@ TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 #VTK_CFLAGS = $(X_CFLAGS) $(THREAD_CFLAGS) $(VTK_INC) -D__VTK__
 #VTK_LFLAGS =  -L$(VTK_DIR)/contrib -lVTKContrib -L$(VTK_DIR)/patented -lVTKPatented -L$(VTK_DIR)/imaging -lVTKImaging -L$(VTK_DIR)/graphics -lVTKGraphics -L$(VTK_DIR)/common -lVTKCommon $(X_LIBS) $(THREAD_LFLAGS)
 
-#### VTK - upcoming release
-VTK_DIR    = /scr/paklein/local/src/VTK
+#### VTK 4.0
+VTK_DIR    = /usr/local/src/VTK-4.0
 VTK_INC    = $(X_INC_FLAGS) -I$(VTK_DIR) -I$(VTK_DIR)/Common -I$(VTK_DIR)/Graphics -I$(VTK_DIR)/Imaging -I$(VTK_DIR)/Filtering -I$(VTK_DIR)/IO -I$(VTK_DIR)/Rendering -I$(VTK_DIR)/Hybrid
 VTK_CFLAGS = $(X_CFLAGS) $(THREAD_CFLAGS) $(VTK_INC) -D__VTK__ -D__VTK_NEW__
-VTK_LFLAGS = -L$(VTK_DIR)/bin/ -L/usr/X11R6.tenon/lib -lpthread -lm -lvtkCommon -lvtkFiltering -lvtkGraphics -lvtkRendering -lvtkHybrid -lGL -lXt  -lSM -lICE  -L/usr/X11R6/lib -lX11 -lXext -lvtkImaging -lvtkGraphics -lvtkIO -lvtkFiltering -lvtkCommon -lvtkpng -lvtkzlib -lvtkjpeg -lpthread -lm -lvtkCommon -lvtkFiltering -lvtkGraphics -lvtkRendering -lvtkHybrid -lGL -lXt  -lSM -lICE  -L/usr/X11R6/lib -lX11 -lXext -lvtkImaging -lvtkGraphics -lvtkIO -lvtkFiltering -lvtkCommon -lvtkpng -lvtkzlib -lvtkjpeg
+VTK_LFLAGS = -L$(VTK_DIR)/bin/ -L/usr/X11R6/lib -lpthread -lm -lvtkCommon -lvtkFiltering -lvtkGraphics -lvtkRendering -lvtkHybrid -lGL -lXt  -lSM -lICE  -L/usr/X11R6/lib -lX11 -lXext -lvtkImaging -lvtkGraphics -lvtkIO -lvtkFiltering -lvtkCommon -lvtkpng -lvtkzlib -lvtkjpeg -lpthread -lm -lvtkCommon -lvtkFiltering -lvtkGraphics -lvtkRendering -lvtkHybrid -lGL -lXt  -lSM -lICE  -L/usr/X11R6/lib -lX11 -lXext -lvtkImaging -lvtkGraphics -lvtkIO -lvtkFiltering -lvtkCommon -lvtkpng -lvtkzlib -lvtkjpeg
 
 ##### SEACAS/ACCESS software
-#AX_INC    = -I$(ACCESS)/inc
-#AX_CFLAGS = $(AX_INC) -D__ACCESS__
-#AX_LFLAGS = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
+AX_INC    = -I$(ACCESS)/inc
+AX_CFLAGS = $(AX_INC) -D__ACCESS__
+AX_LFLAGS = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
 ############################### build options ###########################
 
 # "make build" extras - target brought up to date before other makefile
 # targets associated with "make build"
 #MAKE_BUILD_XTRAS = make_build_extras
 make_build_extras:
+	@cd $(HOME_DIR)/pch; make \
+	"COMP_CC = $(COMP_CC)" \
+	"CFLAGS_CC = $(CFLAGS_CC) $(TB_CFLAGS) $(VTK_CFLAGS)" \
+	"INC_DIR = $(INC_DIR)" \
+	"TB_INC = $(TB_DIR)/inc"
 
 # include common target definitions
 include $(MACRO_DIR)/make.targets
