@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.13 2002-08-13 02:58:56 hspark Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.14 2002-08-22 17:21:21 hspark Exp $ */
 /* created: paklein (07/03/1996) */
 
 #include "ParentDomainT.h"
@@ -650,25 +650,29 @@ bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& 
       Res[0] -= point[0];
       Res[1] -= point[1];
       double magres0 = Res.Magnitude();
-
       /* perform Newton iterations */
-      int count = 0;
-      while (count++ < 15 && Res.Magnitude()/magres0 > 10e-14)
+      if (magres0 < 10e-14) // if initial guess is exact, so don't divide by 0
+	  mapped = Current;
+      else
 	{
-	  Res *= -1.0;
-	  Jacobinv.Multx(Res,Temp);
-	  Current += Temp;
-	  EvaluateShapeFunctions(Current, Na);
-	  Res = 0.0;
-	  for (int i = 0; i < NumNodes(); i++)
+	  int count = 0;
+	  while (count++ < 15 && Res.Magnitude()/magres0 > 10e-14)
 	    {
-	      Res[0] += Na[i] * coords(i,0);
-	      Res[1] += Na[i] * coords(i,1);
+	      Res *= -1.0;
+	      Jacobinv.Multx(Res,Temp);
+	      Current += Temp;
+	      EvaluateShapeFunctions(Current, Na);
+	      Res = 0.0;
+	      for (int i = 0; i < NumNodes(); i++)
+		{
+		  Res[0] += Na[i] * coords(i,0);
+		  Res[1] += Na[i] * coords(i,1);
+		}
+	      Res[0] -= point[0];
+	      Res[1] -= point[1];
 	    }
-	  Res[0] -= point[0];
-	  Res[1] -= point[1];
+	  mapped = Current;
 	}
-      mapped = Current;
     }
 #pragma unused(coords)
 #pragma unused(point)
