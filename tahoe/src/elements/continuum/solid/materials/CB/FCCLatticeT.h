@@ -1,4 +1,4 @@
-/* $Id: FCCLatticeT.h,v 1.2.42.1 2004-06-16 00:31:50 paklein Exp $ */
+/* $Id: FCCLatticeT.h,v 1.2.42.2 2004-06-17 07:54:22 paklein Exp $ */
 #ifndef _FCC_LATTICE_T_H_
 #define _FCC_LATTICE_T_H_
 
@@ -53,7 +53,7 @@ public:
 	 *
 	 *			r_global = Transpose[Q].r_natural
 	 */
-	static void SetQ(OrientationCodeT orientation, dMatrixT& Q);
+	static void SetQ(const ParameterListT& list, dMatrixT& Q);
 
 protected:
 

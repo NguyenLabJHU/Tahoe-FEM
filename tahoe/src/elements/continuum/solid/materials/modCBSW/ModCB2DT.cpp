@@ -1,13 +1,7 @@
-/* $Id: ModCB2DT.cpp,v 1.8.46.2 2004-06-09 23:17:53 paklein Exp $ */
+/* $Id: ModCB2DT.cpp,v 1.8.46.3 2004-06-17 07:54:25 paklein Exp $ */
 /* created: paklein (05/31/1997) */
 #include "ModCB2DT.h"
 
-#include <math.h>
-#include <iostream.h>
-
-#include "toolboxConstants.h"
-
-#include "fstreamT.h"
 #include "ModCBSolverT.h"
 #include "dMatrixT.h"
 
@@ -16,19 +10,13 @@ using namespace Tahoe;
 /* material parameters */
 const int knsd = 2;
 
-const double sqrt2 = sqrt(2.0);
-const double sqrt3 = sqrt(3.0);
-
 /* constructor */
-ModCB2DT::ModCB2DT(ifstreamT& in, const FSMatSupportT& support, bool equilibrate, PlaneCodeT plane_code):
-	ParameterInterfaceT("modified_CB_2D"),
+ModCB2DT::ModCB2DT(ifstreamT& in, const FSMatSupportT& support, bool equilibrate):
+	ParameterInterfaceT("Cauchy-Born_diamond_2D"),
 	NL_E_MatT(in, support),
-	fPlaneCode(plane_code),
-	fModCBSolver(NULL),
-	fCij3D(dSymMatrixT::NumValues(3)),
-	fXsi(3), fStretch3D(3),
-	fStretch2D(2), fStress3D(3)
+	fModCBSolver(NULL)
 {
+#if 0
 	/* lattice transformation */
 	dMatrixT Q;
 	switch (fPlaneCode)
@@ -85,15 +73,20 @@ ModCB2DT::ModCB2DT(ifstreamT& in, const FSMatSupportT& support, bool equilibrate
 			throw ExceptionT::kBadInputValue;
 	}
 
-	fModCBSolver = new ModCBSolverT(Q, fThermal, in, equilibrate);
+	fModCBSolver = new ModCBSolverT(fThermal);
 	if (!fModCBSolver) throw ExceptionT::kOutOfMemory;
+#endif
+}
+
+ModCB2DT::ModCB2DT(void):
+	ParameterInterfaceT("Cauchy-Born_diamond_2D"),
+	fModCBSolver(NULL)
+{
+
 }
 
 /* destructor */
-ModCB2DT::~ModCB2DT(void)
-{
-	delete fModCBSolver;
-}
+ModCB2DT::~ModCB2DT(void) { delete fModCBSolver; }
 
 /* describe the parameters needed by the interface */
 void ModCB2DT::DefineParameters(ParameterListT& list) const
@@ -104,6 +97,42 @@ void ModCB2DT::DefineParameters(ParameterListT& list) const
 	/* 2D option must be plain stress */
 	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStrain);
+}
+
+/* information about subordinate parameter lists */
+void ModCB2DT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	NL_E_MatT::DefineSubs(sub_list);
+	
+	sub_list.AddSub("mod_Cauchy-Born_solver");
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* ModCB2DT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "mod_Cauchy-Born_solver")
+		return new ModCBSolverT(NULL);
+	else /* inherited */
+		return NL_E_MatT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void ModCB2DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	NL_E_MatT::TakeParameterList(list);
+
+	/* dimension work space */
+	fCij3D.Dimension(dSymMatrixT::NumValues(3));
+	fXsi.Dimension(3); 
+	fStretch3D.Dimension(3);
+	fStretch2D.Dimension(2);
+	fStress3D.Dimension(3);
+	
+	/* construct Caucby-Born solver */
+	fModCBSolver = new ModCBSolverT(fThermal);
+	fModCBSolver->TakeParameterList(list.GetList("mod_Cauchy-Born_solver"));
 }
 
 /*************************************************************************

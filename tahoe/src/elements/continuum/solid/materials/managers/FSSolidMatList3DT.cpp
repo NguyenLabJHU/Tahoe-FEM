@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.1.4.8 2004-06-16 18:42:02 paklein Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.1.4.9 2004-06-17 07:54:24 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -580,6 +580,10 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& sub, ParameterListT::List
 #ifdef CAUCHY_BORN_MATERIAL
 		sub_sub_list.AddSub("FCC_EAM");
 #endif
+
+#ifdef MODCBSW_MATERIAL
+		sub_sub_list.AddSub("Cauchy-Born_diamond");
+#endif
 	}
 	else /* inherited */
 		SolidMatListT::DefineInlineSub(sub, order, sub_sub_list);
@@ -652,6 +656,11 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #ifdef CAUCHY_BORN_MATERIAL
 	else if (name == "FCC_EAM")
 		mat = new EAMFCC3DMatT;
+#endif
+
+#ifdef MODCBSW_MATERIAL
+	else if (name == "Cauchy-Born_diamond")
+		mat= new ModCB3DT;
 #endif
 
 	/* set support */

@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.h,v 1.7.46.2 2004-06-09 23:17:32 paklein Exp $ */
+/* $Id: EAMFCC2D.h,v 1.7.46.3 2004-06-17 07:54:23 paklein Exp $ */
 /* created: paklein (12/09/1996) */
 #ifndef _EAMFCC2D_H_
 #define _EAMFCC2D_H_
@@ -16,13 +16,9 @@ class EAMFCC2D: public NL_E_MatT
 {
 public:
 
-	/** plane codes - for crystal axes rotated wrt global axes */
-	enum PlaneCodeT {kFCC001 = 0,
-                     kFCC101 = 1,
-                     kFCC111 = 2};
-
 	/* constructor */
-	EAMFCC2D(ifstreamT& in, const FSMatSupportT& support, PlaneCodeT plane_code);
+	EAMFCC2D(ifstreamT& in, const FSMatSupportT& support);
+	EAMFCC2D(void);
 
 	/* destructor */
 	virtual ~EAMFCC2D(void);
@@ -30,7 +26,16 @@ public:
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
+	void DefineParameters(ParameterListT& list) const;
+	
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:
@@ -46,12 +51,8 @@ protected:
 	
 protected:
 	
-	PlaneCodeT fPlaneCode;
-	int	fEAMCode;
-	
-	/* EAM solver */
+	/** Cauchy-Born EAM solver */
 	EAMFCC3DSym* fEAM;
-	
 };
 
 } // namespace Tahoe 
