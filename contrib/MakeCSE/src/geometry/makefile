@@ -6,7 +6,6 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	GeometryBaseT.o \
-	GeometryT.o \
 	HexahedronT.o \
 	LineT.o \
 	PentahedronT.o \
@@ -23,7 +22,6 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	GeometryBaseT.cpp \
-	GeometryT.cpp \
 	HexahedronT.cpp \
 	LineT.cpp \
 	PentahedronT.cpp \
@@ -34,7 +32,6 @@ SRC = \
 # headers
 HDR = \
 	GeometryBaseT.h \
-	GeometryT.h \
 	HexahedronT.h \
 	LineT.h \
 	PentahedronT.h \

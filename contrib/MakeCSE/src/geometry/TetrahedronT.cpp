@@ -1,23 +1,15 @@
-/*
- * File: TetrahedronT.cpp
- *
- */
-
-/*
- * created      : PAK (10/22/96)
- * last modified: PAK (05/06/99)
- */
-
-#include "ExceptionCodes.h"
+/* $Id: TetrahedronT.cpp,v 1.2 2002-09-30 20:52:43 sawimme Exp $ */
+/* created: paklein (10/22/1996) */
 
 #include "TetrahedronT.h"
-
 #include "QuadT.h"
 #include "iArrayT.h"
 #include "dArrayT.h"
 #include "iArray2DT.h"
 #include "dArray2DT.h"
 #include "dMatrixT.h"
+
+using namespace Tahoe;
 
 /* parameters */
 const int kTetnsd           = 3;
@@ -27,9 +19,28 @@ const int kNumFacets        = 4;
 /* constructor */
 TetrahedronT::TetrahedronT(int numnodes): GeometryBaseT(numnodes, kNumFacets) {}
 
+/* evaluate the shape functions and gradients. */
+void TetrahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
+{
+#pragma unused(coords)
+#pragma unused(Na)
+	cout << "\n TetrahedronT::EvaluateShapeFunctions: not implemented" << endl;
+	throw eGeneralFail;
+}
+
+/* evaluate the shape functions and gradients. */
+void TetrahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT& DNa) const
+{
+#pragma unused(coords)
+#pragma unused(Na)
+#pragma unused(DNa)
+	cout << "\n TetrahedronT::EvaluateShapeFunctions: not implemented" << endl;
+	throw eGeneralFail;
+}
+
 /* compute local shape functions and derivatives */
 void TetrahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
-	dArrayT& weights)
+	dArrayT& weights) const
 {
 	/* dimensions */
 	int numnodes = Na.MinorDim();
@@ -37,9 +48,21 @@ void TetrahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 	int nsd      = Na_x[0].MajorDim();
 
 	/* dimension checks */
-	if (numnodes != 4) throw eGeneralFail;
-	if (numint != 1 && 
-	    numint != 4) throw eGeneralFail;
+	if (numnodes != 4)
+	{
+		cout << "\n TetrahedronT::SetLocalShape: unsupported number of element nodes: "
+		     << numnodes << endl;
+		throw eGeneralFail;
+	}
+	
+	if (numint != 1 &&
+	    numint != 4)
+	{
+		cout << "\n TetrahedronT::SetLocalShape: unsupported number of integration points: "
+		     << numint << endl;
+		throw eGeneralFail;
+	}
+
 	if (nsd != kTetnsd) throw eGeneralFail;
 
 	/* initialize */
@@ -55,9 +78,9 @@ void TetrahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 	double t1[1] = {1.0/4.0};
 	
 	/* 4 point */
-    double r4[4] = {0.58541020, 0.13819660, 0.13819660, 0.13819660};
-    double s4[4] = {0.13819660, 0.58541020, 0.13819660, 0.13819660};
-    double t4[4] = {0.13819660, 0.13819660, 0.13819660, 0.58541020};
+double r4[4] = {0.58541020, 0.13819660, 0.13819660, 0.13819660};
+double s4[4] = {0.13819660, 0.58541020, 0.13819660, 0.13819660};
+double t4[4] = {0.13819660, 0.13819660, 0.13819660, 0.58541020};
 		
 	double* r;
 	double* s;
@@ -67,27 +90,27 @@ void TetrahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 	switch (numint)
 	{
 		case 1:	
-			  
-    		weights[0] = 1.0/6.0; 
+			
+		weights[0] = 1.0/6.0;
 
 			/* set coordinates */
-    		r = r1;
-    		s = s1;
-    		t = t1;
-    		
-    		break;
- 
- 		case 4:
-    
-    		weights = (1.0/24.0);
-    		
+		r = r1;
+		s = s1;
+		t = t1;
+		
+		break;
+
+		case 4:
+
+		weights = (1.0/24.0);
+		
 			/* set coordinates */
-    		r = r4;
-    		s = s4;
-    		t = t4;
-    		
-    		break;
-    
+		r = r4;
+		s = s4;
+		t = t4;
+		
+		break;
+
 		default:
 		
 			throw eGeneralFail;			
@@ -103,34 +126,34 @@ void TetrahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 
 		/* vertex nodes */
 
-    	/* Na */
-    	na[0] += r[i];
-    	na[1] += s[i];
-    	na[3] += t[i];
-    	na[2] += 1 - r[i] - s[i] - t[i];
+	/* Na */
+	na[0] += r[i];
+	na[1] += s[i];
+	na[3] += t[i];
+	na[2] += 1 - r[i] - s[i] - t[i];
 
-        /* Na,r */
-    	nax[0] += 1.0;
-    	nax[1] += 0.0;
-    	nax[3] += 0.0;
-    	nax[2] +=-1.0;
-    	
-    	/* Na,s */
-    	nay[0] += 0.0;
-    	nay[1] += 1.0;
-    	nay[3] += 0.0;
-    	nay[2] +=-1.0;
+/* Na,r */
+	nax[0] += 1.0;
+	nax[1] += 0.0;
+	nax[3] += 0.0;
+	nax[2] +=-1.0;
+	
+	/* Na,s */
+	nay[0] += 0.0;
+	nay[1] += 1.0;
+	nay[3] += 0.0;
+	nay[2] +=-1.0;
 
-    	/* Na,t */
-    	naz[0] += 0.0;
-    	naz[1] += 0.0;
-    	naz[3] += 1.0;
-    	naz[2] +=-1.0;    	
-   	}
+	/* Na,t */
+	naz[0] += 0.0;
+	naz[1] += 0.0;
+	naz[3] += 1.0;
+	naz[2] +=-1.0;    	
+	}
 }
 
 /* set the values of the nodal extrapolation matrix */
-void TetrahedronT::SetExtrapolation(dMatrixT& extrap)
+void TetrahedronT::SetExtrapolation(dMatrixT& extrap) const
 {
 	/* dimensions */
 	int numnodes = extrap.Rows();
@@ -138,18 +161,18 @@ void TetrahedronT::SetExtrapolation(dMatrixT& extrap)
 
 	/* dimension checks */
 	if (numnodes != 4) throw eGeneralFail;
-	if (numint != 1 && 
+	if (numint != 1 &&
 	    numint != 4) throw eGeneralFail;	
-	    
+	
 	/* initialize */
 	extrap = 0.0;
 
 	switch (numint)
 	{
 		case 1:	
-			  
-    		extrap(0,0) = 1.0;
-    		break;
+			
+		extrap = 1.0;
+		break;
 
 		case 4:	
 		{		
@@ -163,16 +186,16 @@ void TetrahedronT::SetExtrapolation(dMatrixT& extrap)
 			extrap = smooth;
 			
 			break;
-        }	
+}	
 		default:
 		
 			throw eGeneralFail;
 	}
 }
 
-/* return the local node numbers for each facet of the element 
- * numbered to produce at outward normal in the order: vertex
- * nodes, mid-edge nodes, mid-face nodes */
+/* return the local node numbers for each facet of the element
+* numbered to produce at outward normal in the order: vertex
+* nodes, mid-edge nodes, mid-face nodes */
 void TetrahedronT::NodesOnFacet(int facet, iArrayT& facetnodes) const
 {
 	if (fNumNodes != 4 && fNumNodes != 10)
@@ -209,7 +232,6 @@ void TetrahedronT::NodesOnFacet(int facet, iArrayT& facetnodes) const
 
 void TetrahedronT::NumNodesOnFacets(iArrayT& num_nodes) const
 {
-//TEMP
 	if (fNumNodes != 4 && fNumNodes != 10)
 	{
 		cout << "\n TetrahedronT::NodesOnFacet: only implemented 4 and 10 element nodes" << endl;
@@ -224,7 +246,7 @@ void TetrahedronT::NumNodesOnFacets(iArrayT& num_nodes) const
 }
 
 /* returns the nodes on each facet needed to determine neighbors
- * across facets */
+* across facets */
 void TetrahedronT::NeighborNodeMap(iArray2DT& facetnodes) const
 {
 	int dat4[] = {0,1,3,
@@ -237,9 +259,8 @@ void TetrahedronT::NeighborNodeMap(iArray2DT& facetnodes) const
 }
 
 /* return geometry and number of nodes on each facet */
-void TetrahedronT::FacetGeometry(ArrayT<GeometryCode>& facet_geom, iArrayT& facet_nodes) const
+void TetrahedronT::FacetGeometry(ArrayT<CodeT>& facet_geom, iArrayT& facet_nodes) const
 {
-//TEMP: reminder
 	if (fNumNodes != 4 && fNumNodes != 10)
 	{
 		cout << "\n TetrahedronT::FacetGeometry: only implemented for 4 nodes" << endl;
@@ -251,7 +272,7 @@ void TetrahedronT::FacetGeometry(ArrayT<GeometryCode>& facet_geom, iArrayT& face
 	
 	facet_nodes.Allocate(fNumFacets);
 	if (fNumNodes == 4)
-	  facet_nodes = 3;
+		facet_nodes = 3;
 	else
-	  facet_nodes = 6;
+		facet_nodes = 6;
 }
