@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.h,v 1.6.40.1 2004-03-24 19:51:40 paklein Exp $ */
+/* $Id: MappedPeriodicT.h,v 1.6.40.2 2004-03-27 04:18:53 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 
 #ifndef _MAPPED_PERIODIC_T_H
@@ -35,7 +35,7 @@ class MappedPeriodicT: public KBC_ControllerT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	MappedPeriodicT(NodeManagerT& node_manager, BasicFieldT& field);
 
 	/* initialize data - called immediately after construction */
@@ -59,12 +59,11 @@ public:
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
-	/** return the description of the given inline subordinate parameter list */
-	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-		SubListT& sub_sub_list) const;
-
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 	
 protected:
@@ -72,8 +71,7 @@ protected:
 	/** the field */
 	BasicFieldT& fField;
 
-	/* schedule for fFperturb */
-	int fnumLTf;
+	/** schedule for fFperturb */
 	const ScheduleT* fSchedule;   	
 	
 	/* specified deformation gradient */
