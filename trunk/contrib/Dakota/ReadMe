@@ -1,0 +1,46 @@
+# $Id: ReadMe,v 1.1 2004-11-12 21:09:57 paklein Exp $
+#
+# Scripts and helper apps for running Dakota/Tahoe optimization
+#
+INSTALLATION:
+(1) copy makefile.tmpl to makefile
+(2) edit makefile - set HOME_DIR, ARCH and other configuration options
+(3) execute "make" to see available options
+
+Note: installation of the toolbox is required.
+
+CONTENTS:
+(1) dakota2tahoe.pl
+Perl script to read a DAKOTA variable definition file and insert the variables
+into the parameter values of a (Tahoe) XML file. A template XML files must be
+provided where the parameters to be substituted are defined as in:
+
+	Poisson_ratio="nu"
+	
+where nu the name given the variable in the Dakota input file.
+
+(2) least_square.cpp least_square_trap.cpp
+Helper apps to compute the normalized rms error of two piece-wise linear functions
+defined as xy pairs saved to a text file.
+
+least_square - integrates squared-error between two piecewise linear functions exactly
+least_square_trap - integrates squared-error between two piecewise linear functions
+	using a trapezoidal integration scheme.
+
+(3) extract_1D.cpp extract_CT.cpp
+Helper apps to extract xy-data from Tahoe results.
+
+(4) data/
+Example xy data files used with "make test".
+
+(5) example/
+
+search.in - Dakota input file
+fvsd - reference results
+mat.2.a.xml.tmpl - Tahoe input file template
+error_func.csh - script for Dakota/Tahoe communication
+
+Dakota parameter fitting example. If dakota and tahoe can be found in the standard paths,
+this example can be executed with "make dakota". Otherwise, the example can be run directly
+from the example/ directory, where error_func.csh needs to be edit to that TAHOE is set to
+the path to the tahoe executable.
