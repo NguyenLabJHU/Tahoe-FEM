@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.8 2001-12-17 00:15:49 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.9 2002-01-08 22:30:03 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #include "ElementBaseT.h"
@@ -357,22 +357,25 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 
 	/* read from parameter file */
 	int elem_count = 0;
-	int nen;
+	int nen = 0;
 	for (int b=0; b < num_blocks; b++)
-	  {
+	{
 	    /* check number of nodes */
 	    int num_elems, num_nodes;
 	    model->ElementGroupDimensions (indexes[b], num_elems, num_nodes);
-	    if (b == 0)
-	      nen = num_nodes;
-	    else if (nen != num_nodes)
-	      {
-		cout << "\n ElementBaseT::ReadConnectivity: minor dimension "
-		     << num_nodes << " of block " << b+1 << '\n';
-		cout <<   "     does not match dimension of previous blocks "
-		     << nen << endl;
-		throw eBadInputValue;
-	      }
+	    
+	    /* set if unset */
+	    if (nen == 0) nen = num_nodes;
+	    
+	    /* consistency check */
+	    if (num_nodes != 0 && nen != num_nodes)
+		{
+			cout << "\n ElementBaseT::ReadConnectivity: minor dimension "
+                 << num_nodes << " of block " << b+1 << '\n';
+			cout <<   "     does not match dimension of previous blocks "
+                 << nen << endl;
+			throw eBadInputValue;
+		}
 	    
 	    /* store block data */
 	    fBlockData (b, kID) = indexes[b] + 1; // use global index as ID value
@@ -384,12 +387,12 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 	    elem_count += num_elems;
 
 	    /* load connectivity from database into model manager */
-	    model->ReadConnectivity (indexes[b]);
+	    model->ReadConnectivity(indexes[b]);
 
 	    /* set pointer to connectivity list */
-	    fConnectivities [b] = model->ElementGroupPointer(indexes[b]);
-	  }
-	
+	    fConnectivities[b] = model->ElementGroupPointer(indexes[b]);
+	}
+	  
 	/* set dimensions */
 	fNumElements  = elem_count;
 	fNumElemNodes = nen;
