@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.41 2004-12-22 22:54:06 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.42 2005-01-03 18:04:26 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -1376,7 +1376,7 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
 		vout << i <<"\n";
 
 		for (int j = 0; j < fSD; j++)
-			vout << fVoronoiCellCentroids(i,j);
+			vout << fVoronoiCellCentroids(i,j) << " ";
 
 		// cell volume
 		vout << fVoronoiCellVolumes[i] << "\n";
