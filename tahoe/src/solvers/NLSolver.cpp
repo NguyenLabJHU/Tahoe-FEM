@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.15 2002-10-20 22:49:47 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.16 2002-11-21 01:13:44 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #include "NLSolver.h"
@@ -290,7 +290,7 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 	/* write convergence output */
 	if (++fIterationOutputCount == fIterationOutputIncrement)
 	{
-		fFEManager.WriteOutput(double(fNumIteration), IOBaseT::kAtInc);
+		fFEManager.WriteOutput(double(fNumIteration));
 		fIterationOutputCount = 0;
 	}
 	

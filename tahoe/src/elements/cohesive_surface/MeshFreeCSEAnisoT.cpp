@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.13 2002-10-20 22:48:17 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.14 2002-11-21 01:13:35 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -396,9 +396,9 @@ void MeshFreeCSEAnisoT::RegisterOutput(void)
 }
 
 /* write integration point data to the output stream */
-void MeshFreeCSEAnisoT::WriteOutput(IOBaseT::OutputModeT mode)
+void MeshFreeCSEAnisoT::WriteOutput(void)
 {
-	if (fOutputArea && mode == IOBaseT::kAtInc)
+	if (fOutputArea)
 	{
 		/* generate file name */
 		StringT name = (ElementSupport().Input()).filename();

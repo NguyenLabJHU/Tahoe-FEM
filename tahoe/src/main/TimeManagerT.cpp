@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.12 2002-10-20 22:48:32 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.13 2002-11-21 01:13:42 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "TimeManagerT.h"
@@ -345,7 +345,7 @@ void TimeManagerT::CloseStep(void) //TEMP? - let FEManager control/monitor outpu
 	    fStepNum == fNumSteps)) // at end
 	{
 		/* run time output */
-		theBoss.WriteOutput(Time(), IOBaseT::kAtInc);
+		theBoss.WriteOutput(Time());
 			
 		/* reset count */
 		fOutputCount = 0;

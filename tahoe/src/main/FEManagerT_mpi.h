@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.13 2002-10-20 22:48:32 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.14 2002-11-21 01:13:41 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 
 #ifndef _FE_MANAGER_MPI_H_
@@ -55,7 +55,7 @@ public:
 
 	/** initiate the process of writing output from all output sets 
 	 * \param time time label associated with the output data */
-	virtual void WriteOutput(double time, IOBaseT::OutputModeT mode);
+	virtual void WriteOutput(double time);
 	
 	/** write results for a single output set
 	 * \param ID output set ID for the given data

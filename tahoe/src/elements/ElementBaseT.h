@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.18 2002-11-09 18:18:51 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.19 2002-11-21 01:13:32 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -183,7 +183,7 @@ public:
 	/** write element output. An interface to indicate the element group
 	 * gather nodal and element data and send it for output with
 	 * FEManagerT::WriteOutput */
-	virtual void WriteOutput(IOBaseT::OutputModeT mode) = 0;
+	virtual void WriteOutput(void) = 0;
 
 	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode) = 0;

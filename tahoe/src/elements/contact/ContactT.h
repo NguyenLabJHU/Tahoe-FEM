@@ -1,4 +1,4 @@
-/* $Id: ContactT.h,v 1.5 2002-10-20 22:48:21 paklein Exp $ */
+/* $Id: ContactT.h,v 1.6 2002-11-21 01:13:36 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 
 #ifndef _CONTACT_T_H_
@@ -43,7 +43,7 @@ public:
 	
 	/** writing output */
 	virtual void RegisterOutput(void);
-	virtual void WriteOutput(IOBaseT::OutputModeT mode);
+	virtual void WriteOutput(void);
 
 	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);  // not implemented

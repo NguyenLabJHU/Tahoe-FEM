@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.18 2002-11-14 17:05:51 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.19 2002-11-21 01:13:37 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -101,7 +101,7 @@ public:
 	virtual void RegisterOutput(void);
 
 	/** send output */
-	virtual void WriteOutput(IOBaseT::OutputModeT mode);
+	virtual void WriteOutput(void);
 
 	/** return geometry and number of nodes on each facet */
 	void FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry, iArrayT& num_facet_nodes) const;

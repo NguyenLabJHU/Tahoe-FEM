@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.7 2002-10-25 05:31:22 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.8 2002-11-21 01:13:33 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -153,10 +153,8 @@ void AdhesionT::RegisterOutput(void)
 	}
 }
 
-void AdhesionT::WriteOutput(IOBaseT::OutputModeT mode)
+void AdhesionT::WriteOutput(void)
 {
-#pragma unused(mode)
-
 	/* statistics */
 	ostream& out = ElementSupport().Output();
 	out << "\n Surface adhesion: group " << ElementSupport().ElementGroupNumber(this) + 1 << '\n';

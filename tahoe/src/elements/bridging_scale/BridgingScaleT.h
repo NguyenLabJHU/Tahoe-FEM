@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.19 2002-09-04 15:58:21 hspark Exp $ */
+/* $Id: BridgingScaleT.h,v 1.20 2002-11-21 01:13:34 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -56,7 +56,7 @@ public:
 	virtual void RegisterOutput(void);
 
 	/** send output */
-	virtual void WriteOutput(IOBaseT::OutputModeT mode);
+	virtual void WriteOutput(void);
 
 	/** form of tangent matrix, symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const { return GlobalT::kSymmetric; };

@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact2DT.h,v 1.3 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: PenaltyContact2DT.h,v 1.4 2002-11-21 01:13:36 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 
 #ifndef _PENALTY_CONTACT2D_T_H_
@@ -17,7 +17,7 @@ public:
 	PenaltyContact2DT(const ElementSupportT& support, const FieldT& field);
 
 	/* writing output */
-	virtual void WriteOutput(IOBaseT::OutputModeT mode);
+	virtual void WriteOutput(void);
 
 protected:
 

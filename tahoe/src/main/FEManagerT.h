@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.22 2002-11-09 18:08:23 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.23 2002-11-21 01:13:41 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -212,7 +212,7 @@ public:
 
 	/** initiate the process of writing output from all output sets 
 	 * \param time time label associated with the output data */
-	virtual void WriteOutput(double time, IOBaseT::OutputModeT mode);
+	virtual void WriteOutput(double time);
 	
 	/** write results for a single output set
 	 * \param ID output set ID for the given data
