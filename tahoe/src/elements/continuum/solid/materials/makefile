@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:22 paklein Exp $
+# $Id: makefile,v 1.5 2001-04-30 19:29:22 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -34,7 +34,8 @@ SUB_DIR = \
 	primitives \
 	rod \
 	Simo \
-	VIB
+	VIB \
+	tevp
 subdir_driver: subdir_loop
 # SUB_DIR is empty
 #subdir_driver: 
