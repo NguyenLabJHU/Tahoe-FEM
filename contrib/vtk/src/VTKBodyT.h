@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.h,v 1.2 2001-10-25 21:40:19 recampb Exp $ */
+/* $Id: VTKBodyT.h,v 1.3 2001-10-31 21:50:35 recampb Exp $ */
 
 #ifndef _VTK_BODY_T_H_
 #define _VTK_BODY_T_H_
@@ -6,6 +6,8 @@
 /* direct members */
 #include "StringT.h"
 #include "iConsoleObjectT.h"
+#include "ExodusT.h"
+
 
 /* forward declarations */
 class vtkPoints;
@@ -22,8 +24,9 @@ class vtkScalars;
 class vtkCamera;
 class vtkWarpVector;
 class vtkVectors;
-
-class VTKBodyT: public iConsoleObjectT
+class vtkScalarBarActor;
+class ExodusT;
+class VTKBodyT
 {
  public:
 
@@ -32,14 +35,26 @@ class VTKBodyT: public iConsoleObjectT
 
   /** destructor */
   ~VTKBodyT(void);
+  
+  void SetLookupTable(void);
+  void UpdateData(void);
+  void DefaultValues(void);
 
   /** return pointer to actor for the body */
   vtkActor* Actor(void) { return ugridActor; };
 
-  //private:
-
+  vtkScalarBarActor* SBActor(void) {return scalarBar;}; 
+  
+/*   vtkDataSetMapper *Mapper(void) {return ugridMapper;}; */
+/*   StringT SBTitle(void) {return sbTitle;}; */
+/*   int CurrentVar (void) {return currentVarNum;}; */
+/*   StringT NodeLabels(const int i) {return node_labels[i];}; */
+ int num_node_variables;
+    const StringT inFile;
+ private:
+  
   /* source file */
-  const StringT inFile;
+
 
   /* model data */
   int num_nodes;
@@ -47,7 +62,7 @@ class VTKBodyT: public iConsoleObjectT
   vtkPoints *points;
  /*  vtkCellArray *cells; */
   vtkCellArray *vtk_cell_array;
-  int num_node_variables;
+ 
   double hueRange1, hueRange2;
   double satRange1, satRange2;
   double valRange1, valRange2;
@@ -64,10 +79,19 @@ class VTKBodyT: public iConsoleObjectT
   StringT outFileName;
   StringT sbTitle;
   StringT varList;
+  vtkScalarBarActor *scalarBar;
   vtkLookupTable *lut;
   vtkDataSetMapper *ugridMapper;
   vtkActor *ugridActor;
-  vtkIdFilter *ids;
+  vtkIdFilter *ids;//     //TEMP - construct one body
+//     try {
+//       VTKBodyT* body2 = new VTKBodyT(inFile);
+//       fBodies.Append(body2);
+//     }
+//     catch (int) {
+//       cout << "\n exception constructing body" << endl;
+//     }
+
   vtkSelectVisiblePoints *visPts;
   vtkLabeledDataMapper *ldm;
   vtkActor2D *pointLabels;
@@ -75,6 +99,7 @@ class VTKBodyT: public iConsoleObjectT
   vtkScalars *scalars [100][20];
   vtkVectors *vectors [100][20];
   vtkWarpVector *warp;
+/*   ExodusT exo; */
 };
 
 #endif

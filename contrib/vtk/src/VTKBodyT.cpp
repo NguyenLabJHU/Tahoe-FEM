@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.3 2001-10-26 02:14:53 paklein Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.4 2001-10-31 21:50:34 recampb Exp $ */
 
 #include "VTKBodyT.h"
 
@@ -21,6 +21,8 @@
 #include "vtkCamera.h"
 #include "vtkWarpVector.h"
 #include "vtkVectors.h"
+#include "vtkScalarBarActor.h"
+#include "StringT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
@@ -49,14 +51,13 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
     cout << "read database file: " << inFile << endl;
   
   /* read coordinates */
-  dArray2DT coordinates;
+  //dArray2DT coordinates;
   num_nodes = exo.NumNodes();
   num_dim   = exo.NumDimensions();
-  coordinates(num_nodes, num_dim);
+  dArray2DT coordinates(num_nodes, num_dim);
   
-  // ArrayT<dArray2DT> coordinates(num_time_steps);
-  exo.ReadCoordinates(coordinates);
-  
+//   // ArrayT<dArray2DT> coordinates(num_time_steps);
+  exo.ReadCoordinates(coordinates); //******???
   if (coordinates.MinorDim() == 2) 
     { 
       /* temp space */ 
@@ -117,14 +118,15 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
   /* read nodal data */
   dArray2DT nodal_data(num_nodes, num_node_variables);
   dArrayT ndata(num_nodes);
+  num_time_steps =1; //num_node_variables =1; // used to test data
   if (num_time_steps > 0)
     {
-      //for (int i = 0; i < num_time_steps; i++)
-      for (int i = 0; i<1; i++)
+      for (int i = 0; i < num_time_steps; i++)
+      //for (int i = 0; i<1; i++)
       	{
 	  exo.ReadTime(i+1, time);
-	  // for (int j = 0; j < num_node_variables; j++)
-	  for(int j=0; j<1; j++)  
+	   for (int j = 0; j < num_node_variables; j++)
+	  //for(int j=0; j<1; j++)  
 	    {
 	      exo.ReadNodalVariable(i+1, j+1, ndata);
 	      nodal_data.SetColumn(j, ndata);
@@ -138,9 +140,7 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
 	      scalarRange1[j] = 10000;
 	      scalarRange2[j] = -10000;
 	      
-	      for (int k = 0; k<num_nodes; k++) {
-		
-		//	scalars[i][j]->InsertScalar(k+1, nodal_data[k][j]);
+	      for (int k = 0; k<num_nodes; k++) {	       
 		/* determine min and max scalar range values */
 		if (nodal_data(k,j) < scalarRange1[j]) scalarRange1[j] = nodal_data(k,j);
 		if (nodal_data(k,j) > scalarRange2[j]) scalarRange2[j] = nodal_data(k,j);
@@ -224,18 +224,17 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
   ugrid = vtkUnstructuredGrid::New();
   /* insert cells in the grid */
   ugrid->SetCells(cell_types.Pointer(), vtk_cell_array);
-  
   ugrid->SetPoints(points);
   ugrid->GetPointData()->SetScalars(scalars[frameNum][currentVarNum]);
   if (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z")
     ugrid->GetPointData()->SetVectors(vectors[frameNum][currentVarNum]);
   
 
-  
+  scalarBar = vtkScalarBarActor::New();
   warp = vtkWarpVector::New();
   warp->SetInput(ugrid);
   scale_factor = 5;
-  warp->SetScaleFactor(scale_factor);
+
   //set up mapper
   ugridMapper = vtkDataSetMapper::New();
   ugridMapper->SetInput(warp->GetOutput());
@@ -251,24 +250,13 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
   ugridActor->AddPosition(0,0.001,0);
 
 
-  output_file = "A.tif";
   /* color mapping variables */
-  numColors = 256;
-  hueRange1 = 0; hueRange2 = 0.6667;
-  valRange1 = 1; valRange2 = 1;
-  satRange1 = 1; satRange2 = 1;
-  alphaRange1 = 1; alphaRange2 = 1;
+  DefaultValues();
   
   /* color mapping stuff */  
   lut = vtkLookupTable::New();
-  lut->SetHueRange(hueRange1, hueRange2);
-  lut->SetSaturationRange(satRange1, satRange2);
-  lut->SetValueRange(valRange1, valRange2);
-  lut->SetAlphaRange(alphaRange1, alphaRange2);
-  lut->SetNumberOfColors(numColors);
-  lut->Build();
-  ugridMapper->SetScalarRange(scalarRange1[0], scalarRange2[0]);
-  ugridMapper->SetLookupTable(lut);
+  UpdateData();
+  SetLookupTable();
 
   /* assemble a string that is a list of all the variables */
   varList = "";
@@ -296,4 +284,40 @@ VTKBodyT::~VTKBodyT(void)
   scalars[0][0]->Delete();
   vectors[0][0]->Delete();
   
+}
+
+void VTKBodyT::SetLookupTable(void)
+{
+  scalarBar->SetLookupTable(ugridMapper->GetLookupTable());
+  sbTitle.Append(node_labels[currentVarNum]); 
+  sbTitle.Append(" for frame 000");
+  scalarBar->SetTitle(sbTitle);
+  scalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
+  scalarBar->GetPositionCoordinate()->SetValue(0.1,0.01);
+  scalarBar->SetOrientationToHorizontal();
+  scalarBar->SetWidth(0.8);
+  scalarBar->SetHeight(0.17);
+  //renderer->AddActor(scalarBar);
+}
+
+void VTKBodyT::UpdateData(void)
+{
+  lut->SetHueRange(hueRange1, hueRange2);
+  lut->SetSaturationRange(satRange1, satRange2);
+  lut->SetValueRange(valRange1, valRange2);
+  lut->SetAlphaRange(alphaRange1, alphaRange2);
+  lut->SetNumberOfColors(numColors);
+  lut->Build();
+  warp->SetScaleFactor(scale_factor);
+  ugridMapper->SetScalarRange(scalarRange1[0], scalarRange2[0]);
+  ugridMapper->SetLookupTable(lut);
+}
+
+void VTKBodyT::DefaultValues(void)
+{
+  numColors = 256;
+  hueRange1 = 0; hueRange2 = 0.6667;
+  valRange1 = 1; valRange2 = 1;
+  satRange1 = 1; satRange2 = 1;
+  alphaRange1 = 1; alphaRange2 = 1;
 }

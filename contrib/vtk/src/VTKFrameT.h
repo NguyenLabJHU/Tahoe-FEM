@@ -1,13 +1,15 @@
-/* $Id: VTKFrameT.h,v 1.5 2001-10-26 02:14:53 paklein Exp $ */
+/* $Id: VTKFrameT.h,v 1.6 2001-10-31 21:50:35 recampb Exp $ */
 
 #ifndef _VTK_FRAME_T_H_
 #define _VTK_FRAME_T_H_
 
 /* base class */
 #include "iConsoleObjectT.h"
+#include "StringT.h"
 
 /* direct members */
 #include "AutoArrayT.h"
+#include "VTKBodyT.h"
 
 /* VTK forward declarations */
 class vtkRenderer;
@@ -30,15 +32,30 @@ class VTKFrameT: public iConsoleObjectT
 
   //VTKBodyT Body(const int bodyNum) { return bodies(bodyNum);};
   
+  vtkRenderer* getRen(void) {return renderer;};
+  //private:
+  
+  void ResetView(void);
+
   /** return a pointer to the frame's renderer */
   vtkRenderer* Renderer(void) { return renderer; };
 
-private:
-
+   virtual bool iDoCommand(const StringT& command, StringT& line);
+   vtkRenderWindow* getRenWin(void) {return fRenWin;};
+   vtkRenderWindowInteractor* getIren(void) {return fIren;};
+   StringT getName(void) {return bodies[0]->inFile;};
+   
+  vtkRenderWindow *fRenWin;
+  vtkRenderWindowInteractor *fIren;
+  AutoArrayT<VTKBodyT*> bodies;
+ private:
+  
   vtkRenderer *renderer;
   vtkRendererSource *renSrc;
 
-  /* vtkScalarBarActor *scalarBar; */
+  
+
+
  /*  vtkIdFilter *ids; */
 /*   vtkSelectVisiblePoints *visPts; */
 /*   vtkLabeledDataMapper *ldm; */
@@ -52,8 +69,11 @@ private:
 /*   vtkWarpVector *warp; */
 /*   int frameNum; */
 
+  //AutoArrayT<VTKBodyT*> pBodies;
+
   /** pointers to bodies displayed in the frame */
-  AutoArrayT<VTKBodyT*> bodies;
+
+
 };
 
 #endif
