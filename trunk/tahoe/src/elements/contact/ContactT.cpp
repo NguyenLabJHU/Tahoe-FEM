@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.15 2003-11-13 22:19:25 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.16 2003-12-29 04:54:44 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -430,12 +430,6 @@ void ContactT::InputSideSets(ifstreamT& in, iArray2DT& facets)
 void ContactT::InputBodyBoundary(ifstreamT& in, ArrayT<iArray2DT>& surfaces,
 		int& surface)
 {
-#ifdef __NO_RTTI__
-	cout << "\n ContactT::InputBodyBoundary: RTTI required, but not available.\n";
-	cout <<   "     Use different surface specification mode." << endl;
-	throw;
-#endif
-
 	/* gather element group info */
 	int elem_group;
 	in >> elem_group;
