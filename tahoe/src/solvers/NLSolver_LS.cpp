@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LS.cpp,v 1.7 2002-10-25 05:28:18 paklein Exp $ */
+/* $Id: NLSolver_LS.cpp,v 1.8 2002-11-28 17:30:31 paklein Exp $ */
 /* created: paklein (08/18/1999) */
 
 #include "NLSolver_LS.h"
@@ -56,7 +56,7 @@ double NLSolver_LS::SolveAndForm(bool newtangent)
 	if (newtangent)
 	{
 		fLHS->Clear();
-		fFEManager.FormLHS(Group());
+		fFEManager.FormLHS(Group(), GlobalT::kNonSymmetric);
 	}
 	
 	/* store residual */

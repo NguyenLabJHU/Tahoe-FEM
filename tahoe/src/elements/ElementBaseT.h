@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.20 2002-11-25 07:21:31 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.21 2002-11-28 17:30:30 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -126,11 +126,15 @@ public:
 	/** class initialization. Among other things, element work space
 	 * is allocated and connectivities are read. */
 	virtual void Initialize(void);
-		
-	/** call to trigger calculation and assembly of the tangent stiffness */
-	void FormLHS(void);
-	
-	/** call to trigger calculation and assembly of the residual force */
+
+	/** compute LHS-side matrix and assemble to solver.
+	 * \param sys_type "maximum" LHS matrix type needed by the solver. The GlobalT::SystemTypeT
+	 *        enum is ordered by generality. The solver should indicate the most general
+	 *        system type that is actually needed. */
+	void FormLHS(GlobalT::SystemTypeT sys_type);
+
+	/** compute RHS-side, residual force vector and assemble to solver
+	 * \param group equation group to solve */
 	void FormRHS(void);
 	
 #ifndef _SIERRA_TEST_

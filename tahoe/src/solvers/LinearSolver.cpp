@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.cpp,v 1.5 2002-10-20 22:49:47 paklein Exp $ */
+/* $Id: LinearSolver.cpp,v 1.6 2002-11-28 17:30:31 paklein Exp $ */
 /* created: paklein (05/30/1996) */
 
 #include "LinearSolver.h"
@@ -42,7 +42,7 @@ SolverT::SolutionStatusT LinearSolver::Solve(int)
 		fLHS->Clear();
 	
 		/* form the stiffness matrix */
-		fFEManager.FormLHS(Group());
+		fFEManager.FormLHS(Group(), GlobalT::kNonSymmetric);
 				
 		/* flag not to reform */
 		fFormLHS = 0;

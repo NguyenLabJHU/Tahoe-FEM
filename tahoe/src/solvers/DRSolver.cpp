@@ -1,4 +1,4 @@
-/* $Id: DRSolver.cpp,v 1.6 2002-10-20 22:49:47 paklein Exp $ */
+/* $Id: DRSolver.cpp,v 1.7 2002-11-28 17:30:31 paklein Exp $ */
 /* created: PAK/CBH (10/03/1996) */
 
 #include "DRSolver.h"
@@ -57,7 +57,7 @@ SolverT::SolutionStatusT DRSolver::Solve(int num_iterations)
 	{
 		/* form the stiffness matrix */
 		fLHS->Clear();				
-		fFEManager.FormLHS(Group());
+		fFEManager.FormLHS(Group(), GlobalT::kDiagonal);
 	
 		/* compute mass for stability */
 		ComputeMass();
