@@ -137,14 +137,34 @@ void MeshAtomT::BuildIOFile(StringT& program_name,
   Set=new OutputSetT(GeometryT::kPoint, *(Shape->GetAtomID()), *(Shape->GetAtomConnect()), 
 		     n_labels, e_labels, false);
 
-
-
   IOLattice->SetCoordinates(*(Shape->GetAtomCoordinates()),(Shape->GetAtomNumber()));
 
   IOLattice->SetBounds(*(Shape->GetAtomBounds()));
   IOLattice->SetTypes(*(Shape->GetAtomTypes()));
   IOLattice->SetParts(*(Shape->GetAtomParts()));
- 
+
+  /* Add nodeset ??? (SA Mon Aug  4 2003)
+  const iArray2DT nodeset = *((*Shape->GetAtomConnect())[0]);
+  const StringT setID = (*Shape->GetAtomID())[0];
+
+  const iArrayT nodeset0(Shape->GetNumberOfAtoms());
+  for (int p=0;p<nodeset.MajorDim();p++) 
+    nodeset0[p] = nodeset(p)[0];
+
+  IOLattice->AddNodeSet(nodeset0,setID);
+
+  if (Crystal->GetNumberOfType() > 1) 
+    {
+      const iArray2DT nodeset1 = *((*Shape->GetAtomConnect())[1]);
+      const StringT setID1 = (*Shape->GetAtomID())[1];
+
+      for (int p=0;p<nodeset1.MajorDim();p++) 
+      	nodeset0[p] = nodeset1(p)[0];
+
+      IOLattice->AddNodeSet(nodeset0,setID);
+    }
+  */
+  
   IOLattice->AddElementSet(*Set);
   
   IOLattice->WriteGeometry();

@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: CrystalLatticeT.h,v 1.12 2003-08-01 22:54:39 saubry Exp $ */
+/* $Id: CrystalLatticeT.h,v 1.13 2003-08-04 23:17:36 saubry Exp $ */
 
 #ifndef _CRYSTAL_LATTICE_T_H_
 #define _CRYSTAL_LATTICE_T_H_
@@ -52,6 +52,7 @@ public:
 	double GetAngleRotation() { return angle_rotation; };
 	dArray2DT GetMatrixRotation() { return matrix_rotation;};
 	iArrayT GetType() { return vType; }
+	int GetNumberOfType() { return nType; }
 
 	virtual const dArrayT& GetLatticeParameters() = 0;
 	virtual const dArray2DT& GetBasis() = 0;

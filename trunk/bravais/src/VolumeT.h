@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: VolumeT.h,v 1.15 2003-08-02 00:21:33 saubry Exp $ */
+/* $Id: VolumeT.h,v 1.16 2003-08-04 23:17:36 saubry Exp $ */
 
 #ifndef _VOLUME_T_H_
 #define _VOLUME_T_H_
@@ -55,6 +55,8 @@ public:
 
 	virtual iArrayT GetNCells() = 0;
         virtual dArray2DT GetLength() = 0; 
+
+	int GetNumberOfAtoms() {return nATOMS;}
 
 	StringT*   GetAtomNames();
 	const ArrayT< StringT > *   GetAtomID();
