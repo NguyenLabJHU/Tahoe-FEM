@@ -1,4 +1,4 @@
-/* $Id: tevp3D.cpp,v 1.11 2002-07-17 00:20:01 paklein Exp $ */
+/* $Id: tevp3D.cpp,v 1.12 2002-10-05 20:04:20 paklein Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (06/25/2001) */
 
@@ -160,8 +160,11 @@ const dMatrixT& tevp3D::C_IJKL(void)
 /* stress */
 const dSymMatrixT& tevp3D::S_IJ(void)
 {
-  /* implement stress here */
-  return fStress;    // Dummy - PK2 stress not desired
+	cout << "\n tevp3D::S_IJ: not implemented" << endl;
+	throw eGeneralFail;
+
+	/* implement stress here */
+	return fStress;
 }
 
 /* material description */

@@ -1,7 +1,5 @@
-/* $Id: Material2DT.cpp,v 1.2 2002-07-02 19:56:22 cjkimme Exp $ */
-/* created: paklein (02/15/1997)                                          */
-/* Mix-in for 2D materials.                                               */
-
+/* $Id: Material2DT.cpp,v 1.3 2002-10-05 20:04:19 paklein Exp $ */
+/* created: paklein (02/15/1997) */
 #include "Material2DT.h"
 
 #include <iostream.h>
@@ -9,10 +7,9 @@
 #include "ExceptionCodes.h"
 #include "fstreamT.h"
 
-/* stream extraction operator */
-
 namespace Tahoe {
 
+/* stream extraction operator */
 istream& operator>>(istream& in, Material2DT::ConstraintOptionT& option)
 {
 	int i_option;
@@ -69,7 +66,3 @@ void Material2DT::Print(ostream& out) const
 	out << "    eq." << kPlaneStress	<< ", plane stress\n";
 	out << "    eq." << kPlaneStrain	<< ", plane strain\n";
 }
-
-/* accessors */
-double Material2DT::Thickness(void) const { return fThickness; }
-int Material2DT::ConstraintOption(void) const { return fConstraintOption; }

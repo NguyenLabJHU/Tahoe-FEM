@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.23 2002-10-04 20:52:52 thao Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.24 2002-10-05 20:04:16 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 
 #include "SolidMatList2DT.h"
@@ -584,6 +584,22 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 	}
 }
 
+/* return true if the list contains plane stress models */
+bool SolidMatList2DT::HasPlaneStress(void) const
+{
+	/* check materials */
+	for (int i = 0; i < Length(); i++)
+	{
+		/* get pointer to Material2DT */
+		const ContinuumMaterialT* cont_mat = fArray[i];
+		const Material2DT* mat_2D = dynamic_cast<const Material2DT*>(cont_mat);
+		if (!mat_2D) throw eGeneralFail;
+
+		/* test */
+		if (mat_2D->ConstraintOption() == Material2DT::kPlaneStress) return true;
+	}
+	return false;
+}
 
 /* errror messages */
 

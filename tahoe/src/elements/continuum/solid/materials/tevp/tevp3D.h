@@ -1,4 +1,4 @@
-/* $Id: tevp3D.h,v 1.6 2002-07-05 22:28:29 paklein Exp $ */
+/* $Id: tevp3D.h,v 1.7 2002-10-05 20:04:20 paklein Exp $ */
 /* Created:  Harold Park (06/25/2001) */
 
 #ifndef _TEVP_3D_H_
@@ -38,9 +38,19 @@ class tevp3D: public FDStructMatT, public IsotropicT
   virtual void Print(ostream& out) const;
   virtual void PrintName(ostream& out) const;
 
-  /* spatial description - this IS implemented */
-  virtual const dMatrixT& c_ijkl(void);  // spatial tangent moduli
-  virtual const dSymMatrixT& s_ij(void);  // Cauchy stress
+	/** \name spatial description */
+	/*@{*/
+	/** spatial tangent modulus */
+	virtual const dMatrixT& c_ijkl(void);
+
+	/** Cauchy stress */
+	virtual const dSymMatrixT& s_ij(void);
+
+	/** return the pressure associated with the last call to 
+	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * for more information. */
+	virtual double Pressure(void) const { return fStress.Trace()/3.0; };
+	/*@}*/
 
   /* material description - not implemented */
   virtual const dMatrixT& C_IJKL(void);  // material tangent moduli

@@ -1,18 +1,17 @@
-/* $Id: FDHookeanMatT.cpp,v 1.5 2002-07-02 19:55:38 cjkimme Exp $ */
-/* created: paklein (06/10/1997)                                          */
-
+/* $Id: FDHookeanMatT.cpp,v 1.6 2002-10-05 20:04:11 paklein Exp $ */
+/* created: paklein (06/10/1997) */
 #include "FDHookeanMatT.h"
-
-/* constructor */
 
 using namespace Tahoe;
 
+/* constructor */
 FDHookeanMatT::FDHookeanMatT(ifstreamT& in, const FiniteStrainT& element):
 	FDStructMatT(in, element),
 	HookeanMatT(NumSD()),
 	fE(NumSD()),
 	fStress(NumSD()),
-	fModulus(dSymMatrixT::NumValues(NumSD()))
+	fModulus(dSymMatrixT::NumValues(NumSD())),
+	fLastCall(kNone)
 {
 
 }
@@ -49,7 +48,19 @@ const dSymMatrixT& FDHookeanMatT::s_ij(void)
 	/* push forward */
 	fStress = PushForward(F_mech, fStress);
 	fStress /= F_mech.Det();
+	fLastCall = kSpatial;
 	return fStress;
+}
+
+/* return the pressure associated with the last call to s_ij */
+double FDHookeanMatT::Pressure(void) const
+{
+	if (fLastCall != kSpatial) {
+		cout << "\n FDHookeanMatT::Pressure: last call to stress must be in\n"
+		     <<   "     the spatial representaion" << endl;
+		throw eGeneralFail;
+	}
+	return fStress.Trace()/3.0;
 }
 
 /* material description */
@@ -92,6 +103,7 @@ const dSymMatrixT& FDHookeanMatT::S_IJ(void)
 		fStress /= F_t_inv.Det();
 	}
 	
+	fLastCall = kMaterial;
 	return fStress;
 }
 

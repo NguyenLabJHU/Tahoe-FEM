@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.12 2002-07-02 19:55:33 cjkimme Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.13 2002-10-05 20:04:10 paklein Exp $ */
 
 #include "ABAQUS_VUMAT_BaseT.h"
 
@@ -26,6 +26,7 @@ ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FiniteStrainT& elem
 	fModulus(dSymMatrixT::NumValues(NumSD())),
 	fStress(NumSD()),
 	fIPCoordinates(NumSD()),
+	fPressure(0.0),
 	fDecomp(NULL),
 	fF_rel(NumSD()),
 	fROld(NumSD()),

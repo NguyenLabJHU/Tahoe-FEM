@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.7 2002-07-05 22:28:27 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.8 2002-10-05 20:04:19 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 
 #ifndef _FD_STRUCT_MAT_T_H_
@@ -112,6 +112,9 @@ public:
 	const dMatrixT& F_mechanical_last(int ip);
 	
 protected:
+
+	/** enum for use by derived classes to to track last stress called */
+	enum FrameT {kNone, kMaterial, kSpatial};
 
 	/** left stretch tensor.
 	 * \param F the deformation gradient

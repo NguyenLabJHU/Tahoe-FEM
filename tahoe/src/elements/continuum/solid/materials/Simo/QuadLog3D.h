@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.h,v 1.5 2002-07-02 19:55:50 cjkimme Exp $ */
+/* $Id: QuadLog3D.h,v 1.6 2002-10-05 20:04:13 paklein Exp $ */
 /* created: paklein (06/27/1997)                                          */
 /* Hyperelastic material governed by quadratic logarithmic potential.     */
 
@@ -24,11 +24,19 @@ public:
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
 
-	/* modulus */
+	/** \name spatial description */
+	/*@{*/
+	/** spatial tangent modulus */
 	virtual const dMatrixT& c_ijkl(void);
-	
-	/* stresses */
+
+	/** Cauchy stress */
 	virtual const dSymMatrixT& s_ij(void);
+
+	/** return the pressure associated with the last call to 
+	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * for more information. */
+	virtual double Pressure(void) const { return fStress.Trace()/3.0; };
+	/*@}*/
 
 	/* material description */
 	virtual const dMatrixT& C_IJKL(void); // material tangent moduli

@@ -1,6 +1,5 @@
-/* $Id: IsoVIB2D.h,v 1.4 2002-07-05 22:28:17 paklein Exp $ */
-/* created: paklein (11/08/1997)                                          */
-/* 2D Isotropic VIB solver using spectral decomposition formulation       */
+/* $Id: IsoVIB2D.h,v 1.5 2002-10-05 20:04:14 paklein Exp $ */
+/* created: paklein (11/08/1997) */
 
 #ifndef _ISO_VIB_2D_H_
 #define _ISO_VIB_2D_H_
@@ -18,6 +17,7 @@ namespace Tahoe {
 /* forward declarations */
 class CirclePointsT;
 
+/** 2D Isotropic VIB solver using spectral decomposition formulation */
 class IsoVIB2D: public FDStructMatT, public Material2DT, public VIB
 {
 public:
@@ -32,9 +32,19 @@ public:
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;	
 
-	/* spatial description */
-	virtual const dMatrixT& c_ijkl(void); // spatial tangent moduli
-	virtual const dSymMatrixT& s_ij(void); // Cauchy stress
+	/** \name spatial description */
+	/*@{*/
+	/** spatial tangent modulus */
+	virtual const dMatrixT& c_ijkl(void);
+
+	/** Cauchy stress */
+	virtual const dSymMatrixT& s_ij(void);
+
+	/** return the pressure associated with the last call to 
+	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * for more information. */
+	virtual double Pressure(void) const { return fEigs.Sum()/3.0; };
+	/*@}*/
 
 	/* material description */
 	virtual const dMatrixT& C_IJKL(void); // material tangent moduli

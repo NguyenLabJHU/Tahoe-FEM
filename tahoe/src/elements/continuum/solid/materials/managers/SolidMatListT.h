@@ -1,4 +1,4 @@
-/* $Id: SolidMatListT.h,v 1.3 2002-07-02 19:56:05 cjkimme Exp $ */
+/* $Id: SolidMatListT.h,v 1.4 2002-10-05 20:04:16 paklein Exp $ */
 
 #ifndef _STRUCT_MAT_LIST_T_H_
 #define _STRUCT_MAT_LIST_T_H_
@@ -26,6 +26,9 @@ public:
 
 	/** return true if the contains materials that generate heat */
 	bool HasHeatSources(void) const;
+	
+	/** return true if the list contains plane stress models */
+	virtual bool HasPlaneStress(void) const { return false; };
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.3 2002-07-02 19:55:32 cjkimme Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.h,v 1.4 2002-10-05 20:04:09 paklein Exp $ */
 /* created: paklein (05/09/2000)                                          */
 /* NOTE: pick the base class for this based on the                        */
 /* weak form equations it's supposed to fit into                          */
@@ -62,9 +62,19 @@ public:
 	virtual void UpdateHistory(void); // per element
 	virtual void ResetHistory(void);  // per element
 
-	/* spatial description */
-	virtual const dMatrixT& c_ijkl(void);  // spatial tangent moduli
-	virtual const dSymMatrixT& s_ij(void); // Cauchy stress
+	/** \name spatial description */
+	/*@{*/
+	/** spatial tangent modulus */
+	virtual const dMatrixT& c_ijkl(void);
+
+	/** Cauchy stress */
+	virtual const dSymMatrixT& s_ij(void);
+
+	/** return the pressure associated with the last call to 
+	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * for more information. */
+	virtual double Pressure(void) const { return fPressure; };
+	/*@}*/
 
 	/* material description */
 	virtual const dMatrixT& C_IJKL(void);  // material tangent moduli
@@ -147,6 +157,7 @@ private:
 	dMatrixT    fModulus;            // return value
 	dSymMatrixT fStress;             // return value
 	dArrayT fIPCoordinates;          // integration point coordinates
+	double fPressure; /**< pressure for the most recent calculation of the stress */
 
 	/* properties array */
 	nArrayT<doublereal> fProperties;

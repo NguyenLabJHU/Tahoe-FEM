@@ -43,11 +43,19 @@ public:
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
 	
-	/* modulus */
+	/** \name spatial description */
+	/*@{*/
+	/** spatial tangent modulus */
 	virtual const dMatrixT& c_ijkl(void);
-	
-	/* stress */
+
+	/** Cauchy stress */
 	virtual const dSymMatrixT& s_ij(void);
+
+	/** return the pressure associated with the last call to 
+	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * for more information. */
+	virtual double Pressure(void) const { return fStress.Trace()/3.0; };
+	/*@}*/
 
 	/* returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void);
