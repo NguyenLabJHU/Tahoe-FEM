@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.cpp,v 1.5 2001-06-22 15:46:27 hspark Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.6 2001-06-23 06:26:45 paklein Exp $ */
 /* created: paklein (12/08/1999)                                          */
 
 #include "MLSSolverT.h"
@@ -13,8 +13,8 @@
 
 /* window functions */
 #include "GaussianWindowT.h"
-#include "RectangularGaussianWindowT.h"
-#include "RectangularCubicSplineWindowT.h"
+#include "RectGaussianWindowT.h"
+#include "RectCubicSplineWindowT.h"
 
 /* constants */
 const double sqrtPi = sqrt(acos(-1.0));
@@ -75,7 +75,7 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 			dArrayT scalings(fNumSD, window_params.Pointer());
 			double sharpening_factor = window_params[fNumSD];
 			double cut_off_factor = window_params[fNumSD+1];
-			fWindow = new RectangularGaussianWindowT(scalings, sharpening_factor, cut_off_factor);
+			fWindow = new RectGaussianWindowT(scalings, sharpening_factor, cut_off_factor);
 			if (!fWindow) throw eGeneralFail;
 			break;
 		}
@@ -84,7 +84,7 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 		        dArrayT scalings(fNumSD, window_params.Pointer());
 			double sharpening_factor = window_params[fNumSD];
 			double cut_off_factor = window_params[fNumSD+1];
-			fWindow = new RectangularCubicSplineWindowT(scalings, sharpening_factor, cut_off_factor);
+			fWindow = new RectCubicSplineWindowT(scalings, sharpening_factor, cut_off_factor);
 			if (!fWindow) throw eGeneralFail;
 			break;
 		}
