@@ -1,5 +1,4 @@
-/* $Id: ElementT.h,v 1.14 2002-11-14 19:25:33 creigh Exp $ */
-
+/* $Id: ElementT.h,v 1.15 2002-11-25 07:24:51 paklein Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -17,8 +16,8 @@ public:
 	enum TypeT {
                     kRod = 1, /**< pair potential */
                 kElastic = 2, /**< small strain solid */
-           kHyperElastic = 3, /**< large strain solid */
-             kLocalizing = 4,
+           kHyperElastic = 3, /**< updated Lagragian large strain solid */
+             kLocalizing = 4, /**< experimental */
                 kVariTri = 5,
               kSWDiamond = 6, /**< diamond-cubic with Stillinger-Weber potentials */
          kMixedSWDiamond = 7,
@@ -26,13 +25,11 @@ public:
              kVirtualRod = 9, /**< pair potential with periodic boundary conditions */
             kVirtualSWDC = 10,
         kCohesiveSurface = 11,
-        
          kThermalSurface = 12,
-
          kPenaltyContact = 14,
              kBEMelement = 15,
         kAugLagContact2D = 16,
-     kTotLagHyperElastic = 17,
+     kTotLagHyperElastic = 17, /**< total Lagragian large strain solid */
         kMeshFreeElastic = 18,
       kMeshFreeFDElastic = 19,
     kD2MeshFreeFDElastic = 20,
@@ -46,12 +43,13 @@ kMultiplierContactElement2D = 28,
        kSimoFiniteStrain = 29,  /**< enhanced strain element */
 kPenaltyContactElement2D = 30,
     kStaggeredMultiScale = 31,
-	        	kCoarseScale = 32,
-	          	kFineScale = 33,
+            kCoarseScale = 32,
+              kFineScale = 33,
 kPenaltyContactElement3D = 34,
           kBridgingScale = 35,
                kSimoQ1P0 = 36, /**< Q1P0, finite strain, mixed element */
-               kAdhesion = 37  /**< adhesive tractions between surfaces */
+               kAdhesion = 37, /**< adhesive tractions between surfaces */
+           kParticlePair = 38  /**< particles with pair interactions */
 	};
 
 	/** stream extraction operator */ 
