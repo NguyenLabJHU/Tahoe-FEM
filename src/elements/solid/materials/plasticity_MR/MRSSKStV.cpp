@@ -145,7 +145,11 @@ void MRSSKStV::ComputeOutput(dArrayT& output)
 		AutoArrayT <dArrayT> slipdirs;
 		normals.Dimension(3);
 		slipdirs.Dimension(3);
-		output[6] = checker.IsLocalized_SS(normals,slipdirs);
+		bool checkloc;
+		double detA;
+		checkloc = checker.IsLocalized_SS(normals,slipdirs,detA);
+		if (checkloc) output[6] = 1.0;
+		else output[6] = 0.0;
 	}	
 	else
 	{
