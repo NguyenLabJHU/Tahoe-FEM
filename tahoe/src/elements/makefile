@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2001-12-17 00:15:49 paklein Exp $
+# $Id: makefile,v 1.6.2.1 2002-05-03 09:53:57 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,6 +7,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	ElementT.o \
+	ElementSupportT.o \
 	ElementBaseT.o \
 	ElementListT.o
 OBJ_LINK = $(OBJ)
@@ -18,12 +19,14 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	ElementT.cpp \
+	ElementSupportT.cpp \
 	ElementBaseT.cpp \
 	ElementListT.cpp
 
 # headers
 HDR = \
 	ElementT.h \
+	ElementSupportT.h \
 	ElementBaseT.h \
 	ElementListT.h
 HDR_LINK = $(HDR:.h=.h_link)
