@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.32 2005-03-11 20:41:46 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.33 2005-04-04 17:22:15 rjones Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -703,6 +703,16 @@ bool FEManagerT_bridging::ProjectImagePoints(void) const
 {
 	return BridgingScale().ProjectImagePoints();
 }
+
+/* project the point values onto the mesh */
+void FEManagerT_bridging::Project(const dArray2DT& fine_values, dArray2DT& nodal_values)
+{
+	const char caller[] = "FEManagerT_bridging::Project";
+
+	/* should do some dimension checking */
+	BridgingScale().ProjectField(fDrivenCellData, fine_values, nodal_values);
+}
+
 
 /* project the point values onto the mesh */
 void FEManagerT_bridging::ProjectField(const StringT& field, const NodeManagerT& node_manager, int order)

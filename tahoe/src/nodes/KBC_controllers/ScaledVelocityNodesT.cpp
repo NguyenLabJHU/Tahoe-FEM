@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.cpp,v 1.10 2005-02-17 00:50:40 cjkimme Exp $ */
+/* $Id: ScaledVelocityNodesT.cpp,v 1.11 2005-04-04 17:22:22 rjones Exp $ */
 #include "ScaledVelocityNodesT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -421,7 +421,6 @@ void ScaledVelocityNodesT::SetBCCards(void)
 					tKE += (*v_i)*(*v_i);
 					vCOM[j] += *v_i++;
 				} 
-				
 				n_scaled++;
 			}
 		}
@@ -435,10 +434,13 @@ void ScaledVelocityNodesT::SetBCCards(void)
 		
 		vCOM /= n_total;
 		
+		//cout << "KE_total : " << 0.5*KE_total << " mass" << fMass << " n_total " << n_total << "\n";
 		/* adjust KE to COM frame  and convert it to a temperature */
 		for (int j = 0; j < ndof; j++)
 			KE_total -= n_total*vCOM[j]*vCOM[j];
 		KE_total *= fMass;
+
+		//cout << "KE_total - CM : " << 0.5*KE_total << "\n";
 			
 		/* want new KE to be ndof/2*n_scaled * kT */
 		vscale = sqrt(ndof*n_total*fkB*fTempScale*(fTempSchedule->Value())/KE_total);

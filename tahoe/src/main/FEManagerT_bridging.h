@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.22 2005-02-13 22:16:25 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.23 2005-04-04 17:22:15 rjones Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -153,6 +153,10 @@ public:
 
 	/** indicate whether image nodes should be included in the projection */
 	virtual bool ProjectImagePoints(void) const;
+
+	/** projects non-field point values onto the mesh. 
+	 */
+	void FEManagerT_bridging::Project(const dArray2DT& fine_values, dArray2DT& nodal_values);
 
 	/** project the point values onto the mesh. Project to the nodes using
 	 * projection initialized with the latest call to FEManagerT_bridging::InitProjection. */

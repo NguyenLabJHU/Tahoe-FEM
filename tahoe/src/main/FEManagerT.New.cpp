@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.New.cpp,v 1.2 2004-09-28 15:35:37 paklein Exp $ */
+/* $Id: FEManagerT.New.cpp,v 1.3 2005-04-04 17:22:15 rjones Exp $ */
 #include "FEManagerT.h"
 
 /* element configuration header */
@@ -10,6 +10,7 @@
 #ifdef __DEVELOPMENT__
 #include "BridgingScaleManagerT.h"
 #include "FEManagerT_THK.h"
+#include "ThermomechanicalCouplingManagerT.h"
 #endif
 #endif
 
@@ -47,6 +48,16 @@ FEManagerT* FEManagerT::New(const StringT& name, const StringT& input_file, ofst
 	{
 #if defined(BRIDGING_ELEMENT) && defined(__DEVELOPMENT__)
 		return new BridgingScaleManagerT(input_file, output, comm, argv, task);
+#else
+		ExceptionT::GeneralFail(caller, "\"%s\" requires BRIDGING_ELEMENT and __DEVELOPMENT__",
+			name.Pointer());
+		return NULL;
+#endif
+	}
+	else if (name == "tahoe_thermomechanical_coupling")
+	{
+#if defined(BRIDGING_ELEMENT) && defined(__DEVELOPMENT__)
+		return new ThermomechanicalCouplingManagerT(input_file, output, comm, argv, task);
 #else
 		ExceptionT::GeneralFail(caller, "\"%s\" requires BRIDGING_ELEMENT and __DEVELOPMENT__",
 			name.Pointer());
