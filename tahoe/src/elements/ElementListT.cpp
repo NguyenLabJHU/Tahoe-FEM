@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.108 2005-03-02 21:31:32 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.109 2005-03-04 18:37:27 cjkimme Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -56,6 +56,7 @@
 #include "D2MeshFreeFSSolidT.h"
 #include "SS_SCNIMFT.h"
 #include "FS_SCNIMFT.h"
+#include "SS_SCNIMF_AxiT.h"
 #include "FS_SCNIMF_AxiT.h"
 #include "UpLagr_ExternalFieldT.h"
 #ifdef SIMPLE_SOLID_DEV
@@ -288,6 +289,7 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 		sub_lists.AddSub("large_strain_meshfree_axi");
 		sub_lists.AddSub("ss_mfparticle");
 		sub_lists.AddSub("fd_mfparticle");
+		sub_lists.AddSub("ss_mfparticle_axi");
 		sub_lists.AddSub("fd_mfparticle_axi");
 
 #ifdef BRIDGING_ELEMENT
@@ -475,6 +477,8 @@ ElementBaseT* ElementListT::NewElement(const StringT& name) const
 		return new SS_SCNIMFT(fSupport);
 	else if (name == "fd_mfparticle")
 		return new FS_SCNIMFT(fSupport);
+	else if (name == "ss_mfparticle_axi")
+		return new SS_SCNIMF_AxiT(fSupport);
 	else if (name == "fd_mfparticle_axi")
 	  return new FS_SCNIMF_AxiT(fSupport);
 
