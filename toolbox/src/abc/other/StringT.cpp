@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.43 2004-08-08 02:01:16 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.44 2005-01-29 18:31:29 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #include "StringT.h"
 #include "ifstreamT.h"
@@ -134,6 +134,11 @@ int operator==(const char* str_lhs, const StringT& str_rhs)
 	return (str_rhs == str_lhs);
 }
 } /* namespace Tahoe */
+
+/* string match */
+const char* StringT::StringMatch(const char* search) const {
+	return strstr(*this, search);
+}
 
 /* return 1 of {*this, rhs} are in alphabetical order, 0 otherwise */
 int StringT::operator<(const StringT& rhs) const
