@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.20 2003-06-11 06:30:51 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.21 2003-08-14 01:20:34 paklein Exp $ */
 /* created: paklein (05/23/1997) */
 #ifndef _NARRAY_T_H_
 #define _NARRAY_T_H_
@@ -31,6 +31,8 @@ class nArrayT: public ArrayT<nTYPE>
 {
 public:
 
+	/** \name constructors */
+	/*@{*/
 	/** default constructor. Constructs a zero length array. */
 	nArrayT(void);
 
@@ -46,30 +48,40 @@ public:
 
 	/** copy constructor */
 	nArrayT(const nArrayT& source);
+	/*@}*/
 
-	/* assignment operators */
+	/** \name assignment operators */
+	/*@{*/
 	nArrayT<nTYPE>& operator=(const nArrayT& RHS); /**< assignment operator. Redimensions the array too match the source. */
+	nArrayT<nTYPE>& operator=(const nTYPE* pRHS);  /**< assignment operator. Copy as many values as fit. */
 	nArrayT<nTYPE>& operator=(const nTYPE& value); /**< set all elements in the array to value */
+	/*@}*/
 
-	/* addition operators */
+	/** \name addition operators */
+	/*@{*/
 	nArrayT<nTYPE>& operator+=(const nArrayT& RHS); /**< element-by-element addition with RHS */
 	nArrayT<nTYPE>& operator+=(const nTYPE* pRHS);  /**< element-by-element addition with pRHS (without range checking). */
 	nArrayT<nTYPE>& operator+=(const nTYPE& value); /**< add value to all elements */
+	/*@}*/
 
-	/* subtraction operators */
+	/** \name subtraction operators */
+	/*@{*/
 	nArrayT<nTYPE>& operator-=(const nArrayT& RHS); /**< element-by-element subtraction with RHS */
 	nArrayT<nTYPE>& operator-=(const nTYPE* pRHS);  /**< element-by-element subtraction with pRHS (without range checking). */
 	nArrayT<nTYPE>& operator-=(const nTYPE& value); /**< subtract value to all elements */
+	/*@}*/
 
-	/* multiplication operators */
+	/** \name multiplication operators */
+	/*@{*/	
 	nArrayT<nTYPE>& operator*=(const nArrayT& RHS); /**< element-by-element multiplication by RHS */
 	nArrayT<nTYPE>& operator*=(const nTYPE& value); /**< multiply all elements by value */
+	/*@}*/
 	
-	/** element-by-element division by RHS */
-	nArrayT<nTYPE>& operator/=(const nArrayT& RHS); 		  	
-
-	/** multiply all elements by value */
-	nArrayT<nTYPE>& operator/=(const nTYPE& value);
+	/** \name division operators */
+	/*@{*/
+	nArrayT<nTYPE>& operator/=(const nArrayT& RHS); /**< element-by-element division by RHS */		  	
+	nArrayT<nTYPE>& operator/=(const nTYPE& value); /**< divide all elements by value */
+	/*@}*/
 
 	/** (post-)increment all elements in the array */
 	nArrayT<nTYPE>& operator++(int);
@@ -100,7 +112,8 @@ public:
 	/** norm of the difference of two nArrayT's */
 	static nTYPE Distance(const nArrayT<nTYPE>& A1, const nArrayT<nTYPE>& A2);
 
-	/* max and min functions */
+	/** \name max and min functions */
+	/*@{*/
 	nTYPE Max(void) const;          /**< return the maximum value in the array */
 	nTYPE Max(int& position) const; /**< return the maximum value in the array and its position */
 	nTYPE Min(void) const;          /**< return the minimum value in the array */
@@ -109,6 +122,7 @@ public:
 	nTYPE AbsMin(void) const;       /**< return the value with minimum absolute value */
 	void MinMax(nTYPE& min, nTYPE& max, bool positive_only = false) const; /**< return min and max values */
 	void AbsMinMax(nTYPE& absmin, nTYPE& absmax) const; /**< return values values with the min and max absolute value */
+	/*@}*/
 	
 	/** set all values with an absolute value smaller than tolerance to 0.0 */
 	void Chop(double tolerance = kSmall);
@@ -117,10 +131,12 @@ public:
 	 * the number type of the array */
 	void SetValueToPosition(void);
 
-	/* sorting */
+	/** \name sorting */
+	/*@{*/
 	void SortAscending(void);
 	void SortAscending(ArrayT<int>& map);
 	void SortDescending(void); // not efficient
+	/*@}*/
 
 	/* commonly used operations:
 	 *
@@ -161,7 +177,8 @@ public:
 	/** fill the array with random numbers in the range [-1 1] */
 	void Random(int seed = 1);
 	
-	/* output */
+	/** \name I/O methods */
+	/*@{*/
 	void WriteWithFormat(ostream& out, int width, int prec,
 		int wrapat, int tab = 0) const;
 
@@ -183,6 +200,7 @@ public:
 
 	OutputProxyT<nTYPE> wrap_tight(int line_count, int tab = 0) const {
 		return OutputProxyT<nTYPE>(OutputProxyT<nTYPE>::kWrapTight, *this, line_count, tab); };
+	/*@}*/
 };
 
 
@@ -365,6 +383,16 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator=(const nArrayT& RHS)
 {
 	/* inherited */
 	ArrayT<nTYPE>::operator=(RHS);
+	return *this;	
+}
+
+template <class nTYPE>
+inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator=(const nTYPE* pRHS)
+{
+	/* no copies to self */
+	if (pRHS != Pointer())
+		MemCopy(Pointer(), pRHS, Length());
+	
 	return *this;	
 }
 
