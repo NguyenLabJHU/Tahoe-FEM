@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.19 2002-01-27 18:51:04 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.20 2002-02-03 02:06:51 paklein Exp $ */
 /* created: paklein (05/28/1996) */
 
 #include "SolidElementT.h"
@@ -432,7 +432,7 @@ void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 	/* echo */
 	out << " Number of element output codes. . . . . . . . . = " << fElementOutputCodes.Length() << '\n';
 	out << "    [" << fElementOutputCodes[iCentroid      ] << "]: reference centroid\n";
-	out << "    [" << fElementOutputCodes[iMass          ] << "]: mass\n";
+	out << "    [" << fElementOutputCodes[iMass          ] << "]: ip mass\n";
 	out << "    [" << fElementOutputCodes[iStrainEnergy  ] << "]: strain energy\n";
 	out << "    [" << fElementOutputCodes[iKineticEnergy ] << "]: kinetic energy\n";
 	out << "    [" << fElementOutputCodes[iLinearMomentum] << "]: linear momentum\n";
@@ -474,7 +474,7 @@ void SolidElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArra
 
 	/* set output flags */
 	if (fElementOutputCodes[iCentroid] == mode) counts[iCentroid] = fNumSD;
-	if (fElementOutputCodes[iMass] == mode) counts[iMass] = 1;
+	if (fElementOutputCodes[iMass] == mode) counts[iMass] = fNumIP;
 	if (fElementOutputCodes[iStrainEnergy] == mode) counts[iStrainEnergy] = 1;
 	if (fElementOutputCodes[iKineticEnergy] == mode) counts[iKineticEnergy] = 1;
 	if (fElementOutputCodes[iLinearMomentum] == mode) counts[iLinearMomentum] = fNumDOF;
@@ -913,14 +913,18 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	/* element work arrays */
 	dArrayT element_values(e_values.MinorDim());
 	pall = element_values.Pointer();
-	dArrayT centroid, ip_centroid;
+	dArrayT centroid, ip_centroid, ip_mass;
 	if (e_codes[iCentroid])
 	{
 		centroid.Set(fNumSD, pall); pall += fNumSD;
 		ip_centroid.Allocate(fNumSD);
 	}
-	double m_tmp, w_tmp, ke_tmp;
-	double& mass = (e_codes[iMass]) ? *pall++ : m_tmp;
+	if (e_codes[iMass]) {
+		ip_mass.Set(fNumIP, pall); 
+		pall += fNumIP;
+	}
+	double w_tmp, ke_tmp;
+	double mass;
 	double& strain_energy = (e_codes[iStrainEnergy]) ? *pall++ : w_tmp;
 	double& kinetic_energy = (e_codes[iKineticEnergy]) ? *pall++ : ke_tmp;
 	dArrayT linear_momentum, ip_velocity;
@@ -1042,6 +1046,9 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			{
 				/* mass */
 				mass += ip_w*density;
+				
+				/* integration point mass */
+				if (e_codes[iMass]) ip_mass[fShapes->CurrIP()] = ip_w*density;
 			
 				/* moment */
 				if (e_codes[iCentroid])
@@ -1163,7 +1170,17 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 		for (int i = 0; i < fNumSD; i++)
 			e_labels[count++] = xlabels[i];
 	}
-	if (e_codes[iMass]) e_labels[count++] = "mass";
+	if (e_codes[iMass])
+	{
+		/* over integration points */
+		for (int j = 0; j < fNumIP; j++)
+		{
+			StringT ip_label;
+			ip_label.Append("ip", j+1);
+			ip_label.Append(".mass");	
+			e_labels[count++] = ip_label;
+		}
+	}
 	if (e_codes[iStrainEnergy]) e_labels[count++] = "U";
 	if (e_codes[iKineticEnergy]) e_labels[count++] = "T";
 	if (e_codes[iLinearMomentum])
