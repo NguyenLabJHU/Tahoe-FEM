@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.19 2003-08-05 23:54:48 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.20 2003-08-07 21:11:33 fwdelri Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -19,6 +19,7 @@
 #include "LennardJonesPairT.h"
 #include "HarmonicPairT.h"
 #include "ParadynPairT.h"
+#include "MatsuiPairT.h"
 
 using namespace Tahoe;
 
@@ -897,6 +898,13 @@ void ParticlePairT::EchoProperties(ifstreamT& in, ofstreamT& out)
 				file.Prepend(path);
 			
 				fPairProperties[i] = new ParadynPairT(file);
+				break;
+			}
+			case ParticlePropertyT::kMatsuiPair:
+			{
+				double mass, sqr_q, two_A, two_B, sqr_C, f, rc;
+				in >> mass >> sqr_q >> two_A >> two_B >> sqr_C >> f >> rc;
+				fPairProperties[i] = new MatsuiPairT(mass, sqr_q, two_A, two_B, sqr_C, f, rc);
 				break;
 			}
 			default:
