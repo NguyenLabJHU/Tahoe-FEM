@@ -1,5 +1,5 @@
-/* $Id: J2Simo2D.cpp,v 1.5 2001-08-15 00:36:01 paklein Exp $ */
-/* created: paklein (06/22/1997)                                          */
+/* $Id: J2Simo2D.cpp,v 1.6 2001-10-24 02:23:08 paklein Exp $ */
+/* created: paklein (06/22/1997) */
 
 #include "J2Simo2D.h"
 #include "StringT.h"
@@ -13,10 +13,10 @@ J2Simo2D::J2Simo2D(ifstreamT& in, const FiniteStrainT& element):
 	SimoIso2D(in, element),
 //	J2SimoLinHardT(in, NumIP(), Mu()),
 	J2SimoC0HardeningT(in, NumIP(), Mu()),
-	fFtot(3),
+	fFmech(3),
 	ffrel(3),
 	fF_temp(2),
-	fFtot_2D(2),
+	fFmech_2D(2),
 	ffrel_2D(2)	
 {
 
@@ -56,15 +56,15 @@ void J2Simo2D::Print(ostream& out) const
 /* modulus */
 const dMatrixT& J2Simo2D::c_ijkl(void)
 {
-	/* Compute F_total and f_relative 3D */
+	/* Compute F_mechanical and f_relative 3D */
 	ComputeGradients();
 
 	int ip = CurrIP();
 	ElementCardT& element = CurrentElement();
 
 	/* compute isochoric elastic stretch */
-	double J = fFtot.Det();
-	const dSymMatrixT& b_els = TrialElasticState(fFtot, ffrel, element, ip);
+	double J = fFmech.Det();
+	const dSymMatrixT& b_els = TrialElasticState(fFmech, ffrel, element, ip);
 	
 	/* 3D elastic stress */
 	ComputeModuli(J, b_els, fModulus);
@@ -89,14 +89,31 @@ const dSymMatrixT& J2Simo2D::s_ij(void)
 	ElementCardT& element = CurrentElement();
 
 	/* compute isochoric elastic stretch */
-	double J = fFtot.Det();
-	const dSymMatrixT& b_els = TrialElasticState(fFtot, ffrel, element, ip);
+	double J = fFmech.Det();
+	const dSymMatrixT& b_els = TrialElasticState(fFmech, ffrel, element, ip);
 	
 	/* 3D elastic stress */
 	ComputeCauchy(J, b_els, fStress);
 
 	/* modify Cauchy stress (return mapping) */
-	fStress += StressCorrection(fFtot, ffrel, element, ip);
+	if (PlasticLoading(element, ip))
+	{
+		/* element not yet plastic */
+		if (!element.IsAllocated())
+		{
+			/* allocate element storage */
+			AllocateElement(element);
+		
+			/* set trial state and load data */
+			TrialElasticState(fFmech, ffrel, element, ip);
+			
+			/* set the loading state */
+			PlasticLoading(element, ip);
+		}
+	
+		/* apply correction due to the return mapping */
+		fStress += StressCorrection(element, ip);
+	}
 	
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(fStress);
@@ -112,8 +129,8 @@ double J2Simo2D::StrainEnergyDensity(void)
 	ComputeGradients();
 
 	/* compute isochoric elastic stretch */
-	double J = fFtot.Det();
-	const dSymMatrixT& b_els = TrialElasticState(fFtot, ffrel,
+	double J = fFmech.Det();
+	const dSymMatrixT& b_els = TrialElasticState(fFmech, ffrel,
 		CurrentElement(), CurrIP());
 
 	return fThickness*ComputeEnergy(J, b_els);
@@ -151,7 +168,7 @@ void J2Simo2D::ComputeOutput(dArrayT& output)
 	output[3] = stress.Trace()/3.0;
 
 	/* Cauchy -> relative stress = dev[Kirchhoff] - beta */
-	stress *= fFtot.Det();
+	stress *= fFmech.Det();
 	stress.Deviatoric();
 
 	/* apply update to state variable data */
@@ -212,18 +229,32 @@ void J2Simo2D::PrintName(ostream& out) const
 * Private
 ***********************************************************************/
 
-/* compute F_total and f_relative */
+/* compute F_mechanical and f_relative */
 void J2Simo2D::ComputeGradients(void)
 {
 	/* compute relative deformation gradient */
-	fFtot_2D = F();
-	fF_temp.Inverse(F_last());
-	ffrel_2D.MultAB(fFtot_2D,fF_temp);
+	fFmech_2D = F_mechanical();
+	fF_temp.Inverse(F_mechanical_last());
+	ffrel_2D.MultAB(fFmech_2D, fF_temp);
 
 	/* 2D -> 3D */
-	fFtot.Rank2ExpandFrom2D(fFtot_2D);
-	fFtot(2,2) = 1.0;
-
+	fFmech.Rank2ExpandFrom2D(fFmech_2D);
 	ffrel.Rank2ExpandFrom2D(ffrel_2D);
-	ffrel(2,2) = 1.0;
+	
+	/* approximate effect of plane constraint */
+	if (HasThermalStrain())
+	{
+		double F_inv_last = (F_thermal_inverse_last())(0,0);
+		double F_inv = (F_thermal_inverse())(0,0);
+		
+		/* assuming isotropic thermal strain */
+		fFmech(2,2) = F_inv;
+		ffrel(2,2) = F_inv/F_inv_last;
+	}
+	else
+	{
+		/* plane strain */
+		fFmech(2,2) = 1.0;
+		ffrel(2,2) = 1.0;
+	}
 }
