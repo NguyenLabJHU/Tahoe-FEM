@@ -1,4 +1,4 @@
-/* $Id: FDKStV2D.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: FDKStV2D.cpp,v 1.1.1.1.2.1 2001-06-06 16:20:45 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "FDKStV2D.h"
@@ -6,10 +6,11 @@
 
 /* constructor */
 FDKStV2D::FDKStV2D(ifstreamT& in, const ElasticT& element):
-	FDHookeanMatT(in, element),
-	KStV2D(in, fModulus, fDensity)
+	FDKStV(in, element),
+	Material2DT(in)
 {
-
+	/* account for thickness */
+	fDensity *= fThickness;
 }
 
 /* print parameters */
@@ -17,15 +18,18 @@ void FDKStV2D::Print(ostream& out) const
 {
 	/* inherited */
 	FDHookeanMatT::Print(out);
-	KStV2D::Print(out);
+	Material2DT::Print(out);
 }
 
-/* print name */
-void FDKStV2D::PrintName(ostream& out) const
+/*************************************************************************
+* Protected
+*************************************************************************/
+
+/* set (material) tangent modulus */
+void FDKStV2D::SetModulus(dMatrixT& modulus)
 {
-	/* inherited */
-	FDHookeanMatT::PrintName(out);
-	KStV2D::PrintName(out);
+	IsotropicT::ComputeModuli2D(modulus, fConstraintOption);
+	modulus *= fThickness;
 }
 
 /*************************************************************************
@@ -37,7 +41,7 @@ bool FDKStV2D::SetInverseThermalTransformation(dMatrixT& F_trans_inv)
 {
 	if (fThermal->IsActive())
 	{
-		double factor = DilatationFactor();
+		double factor = IsotropicT::DilatationFactor2D(fConstraintOption);
 
 		/* assuming isotropic expansion */
 		double Fii_inv = 1.0/(1.0 + factor*fThermal->PercentElongation());
