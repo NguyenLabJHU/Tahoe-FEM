@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.39 2003-08-14 05:57:04 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.39.2.1 2003-09-28 09:11:46 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -205,7 +205,11 @@ void ElementBaseT::FormRHS(void)
 /* initialize/finalize time increment */
 void ElementBaseT::InitStep(void) { }
 void ElementBaseT::CloseStep(void) { }
-void ElementBaseT::ResetStep(void) { }
+GlobalT::RelaxCodeT ElementBaseT::ResetStep(void) 
+{ 
+	/* no relaxation */
+	return GlobalT::kNoRelax;
+}
 
 /* element level reconfiguration for the current solution */
 GlobalT::RelaxCodeT ElementBaseT::RelaxSystem(void)

@@ -1,4 +1,4 @@
-/* $Id: AugLagContact3DT.h,v 1.1 2003-03-02 18:52:59 paklein Exp $ */
+/* $Id: AugLagContact3DT.h,v 1.1.12.1 2003-09-28 09:11:48 paklein Exp $ */
 #ifndef _AUGLAG_CONTACT3D_T_H_
 #define _AUGLAG_CONTACT3D_T_H_
 
@@ -45,13 +45,15 @@ public:
 	/* returns 1 if group needs to reconfigure DOF's, else 0 */
 	virtual int Reconfigure(void);
 
+	/** restore any state data to the previous converged state */
+	virtual void ResetState(void) { };
+
 	/* the group */
 	virtual int Group(void) const { return Contact3DT::Group(); }
 	/*@}*/
 
 	/* element level reconfiguration for the current solution */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
-
 
 	/* append connectivities */
 	virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,

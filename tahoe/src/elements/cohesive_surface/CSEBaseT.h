@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.15.2.2 2003-09-19 06:25:55 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.15.2.3 2003-09-28 09:11:47 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -67,7 +67,7 @@ public:
 	virtual void CloseStep(void);
 
 	/* resets to the last converged solution */
-	virtual void ResetStep(void);
+	virtual GlobalT::RelaxCodeT ResetStep(void);
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* solution calls */

@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.28 2003-06-09 06:49:33 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.28.2.1 2003-09-28 09:11:49 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -213,10 +213,10 @@ void ContinuumElementT::CloseStep(void)
 }
 
 /* resets to the last converged solution */
-void ContinuumElementT::ResetStep(void)
+GlobalT::RelaxCodeT ContinuumElementT::ResetStep(void)
 {
 	/* inherited */
-	ElementBaseT::ResetStep();
+	GlobalT::RelaxCodeT relax = ElementBaseT::ResetStep();
 
 	/* update material internal variables */
 	if (fMaterialList->HasHistoryMaterials())
@@ -234,6 +234,8 @@ void ContinuumElementT::ResetStep(void)
 			}
 		}
 	}
+
+	return relax;
 }
 
 /* restart operations */
