@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.1.4.4 2004-06-09 06:25:36 paklein Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.1.4.5 2004-06-09 23:16:38 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -606,13 +606,18 @@ void FSSolidMatList3DT::TakeParameterList(const ParameterListT& list)
 		if (mat) {
 			materials.Append(mat);
 			mat->TakeParameterList(sub);
+
+			/* set flags */
+			if (mat->HasHistory()) fHasHistory = true;	
+			if (mat->HasThermalStrain()) fHasThermal = true;
+			if (mat->HasLocalization()) fHasLocalizers = true;
 		}
 	}
 
 	/* transfer */
 	Dimension(materials.Length());
-	for (int i = 0; i < materials.Length(); i++)
-		fArray[i] = materials[i];
+	for (int i = 0; i < materials.Length(); i++) 
+		fArray[i] = materials[i];	
 }
 
 /* construct the specified material or NULL if the request cannot be completed */

@@ -1,4 +1,4 @@
-/* $Id: ContinuumMaterialT.h,v 1.8.18.2 2004-06-08 22:27:30 paklein Exp $ */
+/* $Id: ContinuumMaterialT.h,v 1.8.18.3 2004-06-09 23:16:37 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _CONTINUUM_MATERIAL_T_H_
 #define _CONTINUUM_MATERIAL_T_H_
@@ -80,6 +80,20 @@ public:
 	 * class specific initializations. */
 	virtual void Initialize(void);
 
+	/** apply pre-conditions at the current time step. Called once for
+	 * the model at the beginning of a time increment */
+	virtual void InitStep(void);
+
+	/** finalize the current time step. Called once for the model at 
+	 * the end of a time increment */
+	virtual void CloseStep(void);
+
+	/** \name history variables */
+	/*@{*/
+	/** return true if the material has history variables.
+	 * \return false by default. */
+	virtual bool HasHistory(void) const { return false; };
+	
 	/** return true if model needs ContinuumMaterialT::PointInitialize
 	 * to be called for every integration point of every element as
 	 * part of the model initialization. \return false by default. */
@@ -89,14 +103,6 @@ public:
 	 * element using the model. Deformation variables are available
 	 * during this call. */
 	virtual void PointInitialize(void);
-
-	/** apply pre-conditions at the current time step. Called once for
-	 * the model at the beginning of a time increment */
-	virtual void InitStep(void);
-
-	/** finalize the current time step. Called once for the model at 
-	 * the end of a time increment */
-	virtual void CloseStep(void);
 
 	/** update internal variables. Called once per element for all
 	 * elements using the model, hence no deformation variables are
@@ -108,13 +114,10 @@ public:
 	 * elements using the model, hence no deformation variables are
 	 * available during this call. */
 	virtual void ResetHistory(void);
+	/*@}*/
 
-	/** write parameters to the output stream. */
-	virtual void Print(ostream& out) const;
-
-	/** write the model name to the output stream. */
-	virtual void PrintName(ostream& out) const;
-
+	/** \name material output variables */
+	/*@{*/
 	/** return the number of constitutive model output parameters
 	 * per evaluation point. Used by the host element group in
 	 * conjunction with ContinuumMaterialT::OutputLabels and
@@ -145,6 +148,7 @@ public:
 	 * models can be used within the same host element group when
 	 * requesting model-specific, materials output. */
 	static bool CompatibleOutput(const ContinuumMaterialT& m1, const ContinuumMaterialT& m2);
+	/*@}*/
 	
 protected:
 
