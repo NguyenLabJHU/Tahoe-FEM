@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.1 2001-06-11 02:10:12 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.2 2001-06-12 02:53:58 paklein Exp $ */
 
 #include "ComparatorT.h"
 
@@ -77,7 +77,7 @@ void ComparatorT::RunBatch(ifstreamT& in, ostream& status)
 		if (fFiles.Length() != fPassFail.Length()) throw eGeneralFail;
 
 		/* open output stream */
-		StringT file_name = "compare.out";
+		StringT file_name = "compare.summary";
 		file_name.ToNativePathName();
 		file_name.Prepend(fRoot);
 		ofstreamT summary;
@@ -139,7 +139,13 @@ bool ComparatorT::PassOrFail(ifstreamT& in) const
 	StringT benchmark(kBenchmarkDirectory);
 	benchmark.ToNativePathName();
 	benchmark.Prepend(path);
-	benchmark.Append(file_root, ".run");
+	if (file_root[0] != StringT::DirectorySeparator())
+	{
+		const char sep[2] = {StringT::DirectorySeparator(), '\0'};
+		benchmark.Append(sep, file_root, ".run");
+	}
+	else
+		benchmark.Append(file_root, ".run");
 	ifstreamT bench_in(benchmark);
 	cout << "looking for benchmark results: " << benchmark << ": "
 	     << ((bench_in.is_open()) ? "found" : "not found") << '\n';
