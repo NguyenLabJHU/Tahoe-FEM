@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.10 2004-07-22 08:32:55 paklein Exp $
+# $Id: makefile,v 1.11 2004-07-25 06:44:12 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -23,6 +23,7 @@ OBJ = \
 	ExecutionManagerT.o \
 	FEExecutionManagerT.o \
 	FEManagerT.o \
+	FEManagerT.New.o \
 	FEManagerT.ParseInput.o \
 	FEManagerT_mpi.o \
 	FEManagerT_bridging.o \
@@ -60,6 +61,7 @@ SRC = \
 	ExecutionManagerT.cpp \
 	FEExecutionManagerT.cpp \
 	FEManagerT.cpp \
+	FEManagerT.New.cpp \
 	FEManagerT.ParseInput.cpp \
 	FEManagerT_mpi.cpp \
 	FEManagerT_bridging.cpp \

@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.68 2004-07-22 08:32:54 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.69 2004-07-25 06:44:12 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -11,6 +11,9 @@
 #if defined(__MWERKS__) && __option(profile)
 #include <Profiler.h>
 #endif
+
+/* element configuration header */
+#include "ElementsConfig.h"
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -41,6 +44,7 @@
 #include "FEManagerT_bridging.h"
 #include "MultiManagerT.h"
 #ifdef __DEVELOPMENT__
+#include "BridgingScaleManagerT.h"
 #include "FEManagerT_THK.h"
 #endif
 #include "TimeManagerT.h"
@@ -50,7 +54,7 @@
 #include "IntegratorT.h"
 #include "ElementBaseT.h"
 #include "EAMFCC3D.h"
-#endif
+#endif /* BRIDGING_ELEMENT */
 
 using namespace Tahoe;
 
@@ -111,9 +115,6 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 		}
 	}
 
-	//TEMP - look for command line option indicating THK calculation
-	if (CommandLineOption("-thk")) mode = kTHK;
-
 	switch (mode)
 	{
 		case kJob:
@@ -158,29 +159,6 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 			/* synch */
 			fComm.Barrier();
 			break;
-		}
-#pragma message("delete me")
-#if 0
-		case kBridging:
-		{
-			cout << "\n RunBridging: " << in.filename() << endl;
-			if (fComm.Size() > 1) ExceptionT::GeneralFail(caller, "RunBridging for SERIAL ONLY");
-
-			RunBridging(in, status);
-			break;
-		}
-#endif
-		case kTHK:
-		{
-#ifdef __DEVELOPMENT__
-			cout << "\n RunTHK: " << in.filename() << endl;
-			if (fComm.Size() > 1) ExceptionT::GeneralFail(caller, "RunTHK for SERIAL ONLY");
-
-			RunTHK(in, status);
-			break;
-#else
-			ExceptionT::BadInputValue(caller, "development module needed to run THK");
-#endif
 		}
 		default:
 			ExceptionT::GeneralFail("FEExecutionManagerT::RunJob", "unknown mode: %d", mode);
@@ -291,427 +269,6 @@ bool FEExecutionManagerT::RemoveCommandLineOption(const char* str)
  * Private
  **********************************************************************/
 
-#ifdef BRIDGING_ELEMENT
-#ifdef __DEVELOPMENT__
-void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_THK& atoms, ofstream& log_out, ifstreamT& in) const
-{
-	const char caller[] = "FEExecutionManagerT::RunDynamicBridging";
-	/* configure ghost nodes */
-	ModelManagerT* model = continuum.ModelManager();
-	int nsd = model->NumDimensions();		
-	int group = 0;
-	int order1 = 0;	// For InterpolateField, 3 calls to obtain displacement/velocity/acceleration
-	int order2 = 1;
-	int order3 = 2;
-	double dissipation = 0.0;
-	dArray2DT field_at_ghosts, totalu, fubig, fu, projectedu, boundghostdisp, boundghostvel, boundghostacc;
-	dArray2DT thkforce, totaldisp, elecdens, embforce, wavedisp;
-	dSPMatrixT ntf;
-	iArrayT activefenodes, boundaryghostatoms;
-	StringT bridging_field = "displacement";
-//	atoms.InitGhostNodes(continuum.ProjectImagePoints());
-#pragma message("fix me")
-
-	bool makeinactive = false;	
-	/* figure out boundary atoms for use with THK boundary conditions, 
-	   ghost atoms for usage with MD force calculations */
-	if (nsd == 2)
-		boundaryghostatoms = atoms.InterpolationNodes2D();
-	else
-		boundaryghostatoms = atoms.InterpolationNodes3D();
-		
-	int numgatoms = (atoms.GhostNodes()).Length();	// total number of ghost atoms
-	int numbatoms = boundaryghostatoms.Length() - numgatoms;	// total number of boundary atoms
-	dArray2DT gadisp(numgatoms,nsd), gavel(numgatoms,nsd), gaacc(numgatoms,nsd);
-	dArray2DT badisp(numbatoms,nsd), bavel(numbatoms,nsd), baacc(numbatoms,nsd);
-	iArrayT allatoms(boundaryghostatoms.Length()), gatoms(numgatoms), batoms(numbatoms), boundatoms(numbatoms);
-	allatoms.SetValueToPosition();
-	batoms.CopyPart(0, allatoms, numgatoms, numbatoms);
-	gatoms.CopyPart(0, allatoms, 0, numgatoms);      
-	boundatoms.CopyPart(0, boundaryghostatoms, numgatoms, numbatoms);
-	//elecdens.Dimension(gatoms.Length(), 1);
-	//embforce.Dimension(gatoms.Length(), 1);
-	continuum.InitInterpolation(bridging_field, boundaryghostatoms, *atoms.NodeManager());
-	//dArrayT mdmass;
-	//atoms.LumpedMass(atoms.NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
-	continuum.InitProjection(bridging_field, *atoms.CommManager(), atoms.NonGhostNodes(), *atoms.NodeManager(), makeinactive);		
-
-	/* nodes to include/exclude in calculation of the atomistic displacements. Dimension
-	 * of these matricies is the number atom types */
-	nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // 3D wave propagation
-	//nMatrixT<int> ghostonmap(5), ghostoffmap(5);  // for 2D fracture problem
-	//nMatrixT<int> ghostonmap(4), ghostoffmap(4);    // for planar wave propagation problem
-	//nMatrixT<int> ghostonmap(7), ghostoffmap(7);	// 3D fracture problem
-	ghostonmap = 0;
-	ghostoffmap = 0;
-	ghostoffmap(0,1) = ghostoffmap(1,0) = 1;	// 3D wave propagation
-	//ghostonmap(4,5) = ghostonmap(5,4) = 1;	// 3D fracture problem
-	//ghostoffmap(0,6) = ghostoffmap(6,0) = ghostoffmap(1,6) = ghostoffmap(6,1) = 1;
-	//ghostoffmap(2,6) = ghostoffmap(6,2) = ghostoffmap(3,6) = ghostoffmap(6,3) = 1;
-	//ghostoffmap(4,6) = ghostoffmap(6,4) = ghostoffmap(5,6) = ghostoffmap(6,5) = 1;
-	//ghostoffmap(1,0) = ghostoffmap(0,1) = 1;  // for wave propagation problem
-	//ghostoffmap(4,0) = ghostoffmap(0,4) = ghostoffmap(4,1) = ghostoffmap(1,4) = 1;  // center MD crack
-	//ghostoffmap(4,2) = ghostoffmap(2,4) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
-	//ghostoffmap(4,3) = ghostoffmap(3,4) = 1;
-	//ghostonmap(2,3) = ghostonmap(3,2) = 1;
-	//ghostoffmap(1,0) = ghostoffmap(0,1) = ghostoffmap(3,0) = ghostoffmap(0,3) = 1; // left edge MD crack
-	//ghostoffmap(1,3) = ghostoffmap(3,1) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
-	//ghostonmap(1,0) = ghostonmap(0,1) = 1;
-
-	if (nsd == 3)
-	{
-		/* set pointers to embedding force/electron density in FEManagerT_bridging atoms */
-		//atoms.SetExternalElecDensity(elecdens, atoms.GhostNodes());
-		//atoms.SetExternalEmbedForce(embforce, atoms.GhostNodes());
-		//continuum.ElecDensity(gatoms.Length(), elecdens, embforce);
-	}
-	
-	/* time managers */
-	TimeManagerT* atom_time = atoms.TimeManager();
-	TimeManagerT* continuum_time = continuum.TimeManager();
-
-//	atom_time->Top();
-//	continuum_time->Top();
-	int d_width = OutputWidth(log_out, field_at_ghosts.Pointer());
-	
-//	while (atom_time->NextSequence() && continuum_time->NextSequence())
-//	{		
-		/* set to initial condition */
-		atoms.InitialCondition();
-		
-		/* calculate fine scale part of MD displacement and total displacement u */
-		continuum.InitialProject(bridging_field, *atoms.NodeManager(), projectedu, order1);
-	
-		/* solve for initial FEM force f(u) as function of fine scale + FEM */
-		/* use projected totalu instead of totalu for initial FEM displacements */
-		nMatrixT<int>& promap = atoms.PropertiesMap(0);   // element group for particles = 0
-		promap = ghostoffmap;  // turn ghost atoms off for f(u) calculation
-		fubig = InternalForce(projectedu, atoms);
-		promap = ghostonmap;   // turn ghost atoms back on for MD force calculations
-		
-		/* calculate global interpolation matrix ntf */
-		continuum.Ntf(ntf, atoms.NonGhostNodes(), activefenodes);
-		
-		/* compute FEM RHS force as product of ntf and fu */
-		dArrayT fx(ntf.Rows()), fy(ntf.Rows()), fz(ntf.Rows()), tempx(ntf.Cols()), tempy(ntf.Cols()), tempz(ntf.Cols());
-		dArray2DT ntfproduct(ntf.Rows(), nsd);
-		fu.Dimension((atoms.NonGhostNodes()).Length(), nsd);
-		fu.RowCollect(atoms.NonGhostNodes(), fubig);   
-		fu.ColumnCopy(0,tempx);
-		ntf.Multx(tempx,fx);
-		ntfproduct.SetColumn(0,fx);
-		fu.ColumnCopy(1,tempy);
-		ntf.Multx(tempy,fy);
-		ntfproduct.SetColumn(1,fy);
-		if (nsd == 3)
-		{
-			fu.ColumnCopy(2,tempz);
-			ntf.Multx(tempz,fz);
-			ntfproduct.SetColumn(2,fz);
-		}
-
-		/* Add FEM RHS force to RHS using SetExternalForce */
-		continuum.SetExternalForce(bridging_field, ntfproduct, activefenodes);
-	
-		/* now d0, v0 and a0 are known after InitialCondition */
-		continuum.InitialCondition();
-		
-		if (nsd == 3)
-		{
-			/* Calculate EAM electron density/embedding terms for ghost atoms using continuum information */
-			//continuum.ElecDensity(gatoms.Length(), elecdens, embforce);
-		}
-		
-		/* Interpolate FEM values to MD ghost nodes which will act as MD boundary conditions */
-		continuum.InterpolateField(bridging_field, order1, boundghostdisp);
-		continuum.InterpolateField(bridging_field, order2, boundghostvel);
-		continuum.InterpolateField(bridging_field, order3, boundghostacc);
-		
-		/* sort boundary + ghost atom info into separate arrays */
-		gadisp.RowCollect(gatoms, boundghostdisp);
-		gavel.RowCollect(gatoms, boundghostvel);
-		gaacc.RowCollect(gatoms, boundghostacc);
-		badisp.RowCollect(batoms, boundghostdisp);
-		bavel.RowCollect(batoms, boundghostvel);
-		baacc.RowCollect(batoms, boundghostacc);
-
-		/* Removed atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp); here */	
-			
-		if (nsd == 2)
-		{
-			/* store initial MD boundary displacement histories */
-			thkforce = atoms.THKForce(badisp);
-			atoms.SetExternalForce(bridging_field, thkforce, boundatoms);  // sets pointer to thkforce 
-		}
-		else
-		{
-			/* thkdisp = fine scale part of ghost atom displacement */
-			thkforce = atoms.THKDisp(badisp);
-			atoms.SetExternalForce(bridging_field, thkforce, boundatoms);
-			//totaldisp+=gadisp;	// add FEM coarse scale part of displacement
-			//atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, totaldisp);
-		}
-		
-		/* figure out timestep ratio between fem and md simulations */
-		int nfesteps = continuum_time->NumberOfSteps();
-		double mddt = atom_time->TimeStep();
-		double fedt = continuum_time->TimeStep();
-		double d_ratio = fedt/mddt;		
-		int ratio = int((2.0*d_ratio + 1.0)/2.0);
-		
-		/* running status flag */
-		ExceptionT::CodeT error = ExceptionT::kNoError;	
-
-		for (int i = 0; i < nfesteps; i++)	
-		{
-			for (int j = 0; j < ratio; j++)	// MD update first
-			{
-				atom_time->Step();	
-								
-				/* initialize step */
-				if (1 || error == ExceptionT::kNoError) error = atoms.InitStep();
-				
-				/* update FEM solution interpolated at boundary atoms and ghost atoms assuming 
-				constant acceleration - because of constant acceleration assumption, predictor and 
-				corrector are combined into one function */
-				atoms.BAPredictAndCorrect(mddt, badisp, bavel, baacc);
-				atoms.BAPredictAndCorrect(mddt, gadisp, gavel, gaacc);
-
-				if (nsd == 2)
-				{
-					/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
-					atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);	
-				
-					/* calculate THK force on boundary atoms, update displacement histories */
-					thkforce = atoms.THKForce(badisp);  // SetExternalForce set via pointer
-				}
-				else
-				{
-					/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
-					atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);
-					
-					/* calculate thkforces */
-					thkforce = atoms.THKDisp(badisp);
-				}
-				
-				/* solve MD equations of motion */
-				if (1 || error == ExceptionT::kNoError) {
-						atoms.ResetCumulativeUpdate(group);
-						error = atoms.SolveStep();
-				}
-
-				/* close  md step */
-				if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();    
-			}
-			continuum_time->Step();
-
-			/* initialize step */
-			if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
-            
-			/* calculate total displacement u = FE + fine scale here using updated FEM displacement */
-			continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu);
-		
-			/* calculate FE internal force as function of total displacement u here */
-			promap = ghostoffmap;  // turn off ghost atoms for f(u) calculations
-			fubig = InternalForce(totalu, atoms);
-			promap = ghostonmap;   // turn on ghost atoms for MD force calculations
-			fu.RowCollect(atoms.NonGhostNodes(), fubig); 
-			fu.ColumnCopy(0,tempx);
-			ntf.Multx(tempx,fx);
-			ntfproduct.SetColumn(0,fx);
-			fu.ColumnCopy(1,tempy);
-			ntf.Multx(tempy,fy);
-			ntfproduct.SetColumn(1,fy);	// SetExternalForce updated via pointer
-			if (nsd == 3)
-			{
-				fu.ColumnCopy(2,tempz);
-				ntf.Multx(tempz,fz);
-				ntfproduct.SetColumn(2,fz);
-			}
-			
-			/* no need to call SetExternalForce again due to pointers to ntfproduct */
-			
-			/* solve FE equation of motion using internal force just calculated */
-			if (1 || error == ExceptionT::kNoError) {
-					continuum.ResetCumulativeUpdate(group);
-					error = continuum.SolveStep();
-			}
-
-			/* Interpolate FEM values to MD ghost nodes which will act as MD boundary conditions */
-			continuum.InterpolateField(bridging_field, order1, boundghostdisp);
-			continuum.InterpolateField(bridging_field, order2, boundghostvel);
-			continuum.InterpolateField(bridging_field, order3, boundghostacc);
-			
-			/* sort boundary + ghost atom info into separate arrays */
-			gadisp.RowCollect(gatoms, boundghostdisp);
-			gavel.RowCollect(gatoms, boundghostvel);
-			gaacc.RowCollect(gatoms, boundghostacc);
-			badisp.RowCollect(batoms, boundghostdisp);
-			bavel.RowCollect(batoms, boundghostvel);
-			baacc.RowCollect(batoms, boundghostacc);
-			
-			if (nsd == 3)
-			{
-				/* Calculate EAM electron density/embedding terms for ghost atoms using updated continuum information */
-				//continuum.ElecDensity(gatoms.Length(), elecdens, embforce);
-			}
-			
-			/* close fe step */
-			if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
-                        
-		}
-
-		/* check for error */
-		if (0)
-			ExceptionT::GeneralFail(caller, "hit error %d", error);
-                
-//	}
-}
-#endif
-
-/* calculate MD internal force as function of total bridging scale displacement u */
-const dArray2DT& FEExecutionManagerT::InternalForce(dArray2DT& totalu, FEManagerT_bridging& atoms) const
-{
-	/* first obtain the MD displacement field */
-	StringT bridging_field = "displacement";
-	FieldT* atomfield = atoms.NodeManager()->Field(bridging_field);
-	dArray2DT mddisp = (*atomfield)[0];	// temporarily store permanent MD displacements
-	int group = 0;	// assume particle group number = 0
-	
-	/* obtain atom node list - can calculate once and store... */
-	int nnd = totalu.MajorDim();
-	iArrayT nodes(nnd);
-	nodes.SetValueToPosition();
-		
-	/* now write total bridging scale displacement u into field */
-	int order = 0;	// write displacement only
-	atoms.SetFieldValues(bridging_field, nodes, order, totalu);
-		
-	/* compute RHS - ParticlePairT fForce calculated by this call */
-	atoms.FormRHS(group);
-	
-	/* write actual MD displacements back into field */
-	atoms.SetFieldValues(bridging_field, nodes, order, mddisp);
-
-	/* get the internal force contribution associated with the last call to FormRHS */
-	return atoms.InternalForce(group);
-}
-
-#else /* bridging element not enabled */
-
-void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
-{
-#pragma unused(in)
-#pragma unused(status)
-
-	const char caller[] = "FEExecutionManagerT::RunBridging";
-	ExceptionT::GeneralFail(caller, "BRIDGING_ELEMENT not enabled");
-}
-#endif
-
-#ifdef __DEVELOPMENT__
-#ifdef BRIDGING_ELEMENT
-void FEExecutionManagerT::RunTHK(ifstreamT& in, ostream& status) const
-{
-	const char caller[] = "FEExecutionManagerT::RunTHK";
-
-	/* output stream */
-	StringT outfilename;
-	outfilename.Root(in.filename());
-	outfilename.Append(".out");
-	ofstreamT out;
-	out.open(outfilename);
-
-#ifdef __MWERKS__
-	if (!out.is_open())
-	{
-		cout << "\n " << caller << " : could not open file: " << outfilename << endl;
-		return;
-	}
-#endif
-
-	clock_t t0 = 0, t1 = 0, t2 = 0;
-
-	/* start day/date info */
-	time_t starttime;
-	time(&starttime);
-
-	int phase; // job phase
-	try
-	{
-		t0 = clock();
-
-		/* construction */
-		phase = 0;
-		in.set_marker('#');
-		ifstreamT dummy_bridging_input; // TEMP - this would normally be input about ghost nodes
-		FEManagerT_THK thk(in.filename(), out, fComm, fCommandLineOptions, dummy_bridging_input);
-		thk.Initialize();
-
-		t1 = clock();
-
-		/* solution */
-		phase = 1;
-		thk.Solve();
-
-		t2 = clock();
-	}
-
-	/* job failure */
-	catch (ExceptionT::CodeT code)
-	{
-		status << "\n \"" << in.filename() << "\" exit on exception during the\n";
-		if (phase == 0)
-		{
-			status << " construction phase. Check the input file for errors." << endl;
-		
-			/* echo some lines from input */
-			if (code == ExceptionT::kBadInputValue) Rewind(in, status);
-		}
-		else
-		{
-			status << " solution phase. See \"" << outfilename << "\" for a list";
-			status << " of the codes.\n";
-		}
-		
-		/* fix clock values */
-		if (t1 == 0) t1 = clock();
-		if (t2 == 0) t2 = clock();		
-
-		out << endl;
-	}
-
-	/* stop day/date info */
-	time_t stoptime;
-	time(&stoptime);
-
-	/* output timing */
-	status << "\n     Filename: " << in.filename() << '\n';
-	status <<   "   Start time: " << ctime(&starttime);
-	status <<   " Construction: " << double(t1 - t0)/CLOCKS_PER_SEC << " sec.\n";
-	status <<   "     Solution: " << double(t2 - t1)/CLOCKS_PER_SEC << " sec.\n";
-	
-	out << "\n   Start time: " << ctime(&starttime);
-	out <<   " Construction: " << double(t1 - t0)/CLOCKS_PER_SEC << " sec.\n";
-	out <<   "     Solution: "   << double(t2 - t1)/CLOCKS_PER_SEC << " sec.\n";
-	status << "    Stop time: " << ctime(&stoptime);
-	out   << "    Stop time: " << ctime(&stoptime);
-
-	status << "\n End Execution\n" << endl;
-	out    << "\n End Execution\n" << endl;
-}
-#else /* bridging element not enabled */
-void FEExecutionManagerT::RunTHK(ifstreamT& in, ostream& status) const
-{
-#pragma unused(in)
-#pragma unused(status)
-
-	const char caller[] = "FEExecutionManagerT::RunTHK";
-	ExceptionT::GeneralFail(caller, "BRIDGING_ELEMENT not enabled");
-}
-#endif /* BRIDGING_ELEMENT */
-#endif /* __DEVELOPMENT__ */
-
 /* dump current DTD or XSD file */
 void FEExecutionManagerT::RunWriteDescription(int doc_type) const
 {
@@ -725,12 +282,28 @@ void FEExecutionManagerT::RunWriteDescription(int doc_type) const
 	/* collect parameters */
 	cout << " collecting parameters..." << endl;
 	ParameterTreeT tree;
+
 	FEManagerT fe(input, output, comm, fCommandLineOptions);
 	tree.BuildDescription(fe);
+
 #ifdef BRIDGING_ELEMENT
+
+	FEManagerT_bridging bridging(input, output, comm, fCommandLineOptions);
+	tree.BuildDescription(bridging);
+
 	MultiManagerT multi(input, output, comm, fCommandLineOptions);
 	tree.BuildDescription(multi);
-#endif
+
+#ifdef __DEVELOPMENT__
+
+	FEManagerT_THK thk(input, output, comm, fCommandLineOptions);
+	tree.BuildDescription(thk);
+
+	BridgingScaleManagerT bridging_multi(input, output, comm, fCommandLineOptions);
+	tree.BuildDescription(bridging_multi);
+
+#endif /* __DEVELOPMENT__ */
+#endif /* BRIDGING_ELEMENT */
 
 	/* write description */
 	cout << " writing description..." << endl;
@@ -806,6 +379,7 @@ void FEExecutionManagerT::RunJob_serial(const StringT& input_file, ostream& stat
 	time(&starttime);
 
 	int phase; // job phase
+	FEManagerT* tahoe = NULL;
 	try
 	{
 		t0 = clock();
@@ -824,61 +398,37 @@ void FEExecutionManagerT::RunJob_serial(const StringT& input_file, ostream& stat
 			pp_format.CloseParameterFile(out);
 			out << endl;
 		}
-		
-		/* analysis type */
-		if (valid_list.Name() == "tahoe")
-		{
-			/* construction */
-			FEManagerT analysis1(input_file, out, fComm, fCommandLineOptions);
-			analysis1.TakeParameterList(valid_list);
-			t1 = clock();
+
+		/* construction */
+		tahoe = FEManagerT::New(valid_list.Name(), input_file, out, fComm, fCommandLineOptions);
+		tahoe->TakeParameterList(valid_list);
 
 #if defined(__MWERKS__) && __option(profile)
-			/* start recording profiler information */
-			ProfilerSetStatus(1);
+		/* start recording profiler information */
+		ProfilerSetStatus(1);
 #endif
 		
-			/* solution */
-			phase = 1;
-			analysis1.Solve();
+		/* solution */
+		phase = 1;
+		t1 = clock();
+		tahoe->Solve();
+		t2 = clock();
 
 #if defined(__MWERKS__) && __option(profile)
-			/* stop recording profiler information */
-			ProfilerSetStatus(0);
+		/* stop recording profiler information */
+		ProfilerSetStatus(0);
 #endif
-			t2 = clock();
-		}
-#ifdef BRIDGING_ELEMENT
-		else if (valid_list.Name() == "tahoe_multi")
-		{
-			/* construction */
-			MultiManagerT analysis1(input_file, out, fComm, fCommandLineOptions);
-			analysis1.TakeParameterList(valid_list);
-			t1 = clock();
 
-#if defined(__MWERKS__) && __option(profile)
-			/* start recording profiler information */
-			ProfilerSetStatus(1);
-#endif
-		
-			/* solution */
-			phase = 1;
-			analysis1.Solve();
-
-#if defined(__MWERKS__) && __option(profile)
-			/* stop recording profiler information */
-			ProfilerSetStatus(0);
-#endif
-			t2 = clock();
-		}
-#endif
-		else
-			ExceptionT::GeneralFail(caller, "unexpected parameter list \"%s\"", valid_list.Name().Pointer());
+		/* clean up */
+		delete tahoe;
 	}
 
 	/* job failure */
 	catch (ExceptionT::CodeT code)
 	{
+		/* clean up */
+		delete tahoe;
+	
 		status << "\n \"" << input_file << "\" exit on exception during the\n";
 		if (phase == 0)
 		{
@@ -1136,8 +686,8 @@ void FEExecutionManagerT::RunJob_parallel(const StringT& input_file, ostream& st
 	const char caller[] = "::RunJob_parallel";
 
 	/* get rank and size */
-	int rank = Rank();
-	int size = Size();
+	int rank = fComm.Rank();
+	int size = fComm.Size();
 
 	/* time markers */
 	clock_t t0 = 0, t1 = 0, t2 = 0, t3 = 0;
@@ -1390,28 +940,6 @@ void FEExecutionManagerT::RunJob_parallel(const StringT& input_file, ostream& st
 	status << "\n End Execution\n" << endl;
 	out    << "\n End Execution\n" << endl;
 }	
-
-/* print message on exception */
-void FEExecutionManagerT::Rewind(ifstreamT& in, ostream& status) const
-{
-	/* reset stream */
-	ifstream& istr = in;
-	if (!istr.good()) istr.clear();
-			
-	/* rewind a couple of lines */
-	in.rewind(4);
-			
-	status << " Error occurred while reading input near:\n\n";
-	int i = 8;
-	char line[255];
-	istr.getline(line, 254);
-	while(istr.good() && i-- > 0)
-	{
-		status << line << '\n';
-		istr.getline(line, 254);
-	}
-	status << endl;
-}
 
 void FEExecutionManagerT::Decompose(const StringT& input_file, int size, int decomp_type, CommunicatorT& comm,
 	const StringT& model_file, IOBaseT::FileTypeT format) const
@@ -2093,7 +1621,3 @@ void FEExecutionManagerT::EchoPartialGeometry_TahoeII(const PartitionT& partitio
 	/* close database */
 	model.Close();
 }
-
-/* basic MP support */
-int FEExecutionManagerT::Rank(void) const { return fComm.Rank(); }
-int FEExecutionManagerT::Size(void) const { return fComm.Size(); }

@@ -1,5 +1,4 @@
-/* $Id: FEManagerT.ParseInput.cpp,v 1.1 2004-07-22 08:16:51 paklein Exp $ */
-/* created: paklein (05/22/1996) */
+/* $Id: FEManagerT.ParseInput.cpp,v 1.2 2004-07-25 06:44:12 paklein Exp $ */
 #include "FEManagerT.h"
 
 #include "ofstreamT.h"
@@ -7,13 +6,6 @@
 #include "expat_ParseT.h"
 #include "XML_Attribute_FormatterT.h"
 #include "CommunicatorT.h"
-
-/* element configuration header */
-#include "ElementsConfig.h"
-
-#ifdef BRIDGING_ELEMENT
-#include "MultiManagerT.h"
-#endif
 
 using namespace Tahoe;
 
@@ -50,23 +42,28 @@ void FEManagerT::ParseInput(const StringT& path, ParameterListT& params, bool va
 		/* parameters currently needed to construct an FEManagerT */
 		ofstreamT output;
 		CommunicatorT comm;
+		
+		FEManagerT* fe = NULL;
+		try {
 
-		ParameterTreeT tree;
-		if (raw_list.Name() == "tahoe")
-		{
-			FEManagerT fe_man(path, output, comm, argv);
-			tree.Validate(fe_man, raw_list, params);	
+			/* construct FEManagerT */
+			fe = FEManagerT::New(raw_list.Name(), path, output, comm, argv);
+			if (!fe) 
+				ExceptionT::GeneralFail(caller, "failed to construct \"%s\"",
+					raw_list.Name().Pointer());
+
+			/* validate */
+			ParameterTreeT tree;
+			tree.Validate(*fe, raw_list, params);
+			
+			/* clean up */
+			delete fe;
 		}
-#ifdef BRIDGING_ELEMENT
-		else if (raw_list.Name() == "tahoe_multi")
-		{
-			MultiManagerT multi_man(path, output, comm, argv);
-			tree.Validate(multi_man, raw_list, params);	
+		
+		catch (ExceptionT::CodeT error) {
+			delete fe;
+			ExceptionT::Throw(error, caller, "validation failed");
 		}
-#endif
-		else
-			ExceptionT::GeneralFail(caller, "unrecorngized list \"%s\"",
-				raw_list.Name().Pointer());
 	}
 
 	/* write validated XML */

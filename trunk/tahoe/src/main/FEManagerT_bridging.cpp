@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.25 2004-07-22 08:41:38 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.26 2004-07-25 06:44:12 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -55,7 +55,7 @@ FEManagerT_bridging::FEManagerT_bridging(const StringT& input, ofstreamT& output
 	fEAMFCC3D(NULL),
 	fEAMT(NULL)
 {
-
+	SetName("tahoe_bridging");
 }
 
 /* destructor */
@@ -624,15 +624,17 @@ void FEManagerT_bridging::InitProjection(const StringT& field, CommManagerT& com
 
 	/* generate KBC cards - all degrees of freedom */
 	int ndof = the_field->NumDOF();
+	ArrayT<KBC_CardT>& KBC_cards = fSolutionDriver->KBC_Cards();
 	if (make_inactive)
 	{
-		ArrayT<KBC_CardT>& KBC_cards = fSolutionDriver->KBC_Cards();
 		KBC_cards.Dimension(fProjectedNodes.Length()*ndof);
 		int dex = 0;
 		for (int j = 0; j < ndof; j++)
 			for (int i = 0; i < fProjectedNodes.Length(); i++)
 				KBC_cards[dex++].SetValues(fProjectedNodes[i], j, KBC_CardT::kDsp, NULL, 0.0);
 	}
+	else
+		KBC_cards.Dimension(0);
 
 	/* dimension work space */
 	fProjection.Dimension(fProjectedNodes.Length(), ndof);

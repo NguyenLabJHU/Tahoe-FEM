@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.14 2004-07-22 20:06:10 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.15 2004-07-25 06:44:12 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -28,7 +28,6 @@ MultiManagerT::MultiManagerT(const StringT& input_file, ofstreamT& output, Commu
 	fCoarseField(NULL),
 	fFineToCoarse(true),
 	fCoarseToFine(true),
-//	fCorrectOverlap(true),
 	fImpExp(IntegratorT::kImplicit)
 {
 	SetName("tahoe_multi");
@@ -621,7 +620,8 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 	continuum_output_file.Root(continuum_input);
 	continuum_output_file.Append(".out");
 	fCoarseOut.open(continuum_output_file);
-	fCoarse = new FEManagerT_bridging(continuum_input, fCoarseOut, fComm, fArgv);
+	fCoarse = TB_DYNAMIC_CAST(FEManagerT_bridging*, FEManagerT::New(continuum_params.Name(), continuum_input, fCoarseOut, fComm, fArgv));
+	if (!fCoarse) ExceptionT::GeneralFail(caller, "could not construct continuum solver");
 	fCoarse->TakeParameterList(continuum_params);
 
 	/* parse/validate atomistic input */
@@ -636,7 +636,8 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 	atom_output_file.Root(atom_input);
 	atom_output_file.Append(".out");
 	fFineOut.open(atom_output_file);
-	fFine = new FEManagerT_bridging(atom_input, fFineOut, fComm, fArgv);
+	fFine = TB_DYNAMIC_CAST(FEManagerT_bridging*, FEManagerT::New(atom_params.Name(), atom_input, fFineOut, fComm, fArgv));
+	if (!fFine) ExceptionT::GeneralFail(caller, "could not construct atomistic solver");
 	fFine->TakeParameterList(atom_params);
 
 	/* check consistency between time managers */
