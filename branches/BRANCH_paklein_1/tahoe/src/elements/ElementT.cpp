@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.11.2.1 2002-10-17 04:28:48 paklein Exp $ */
+/* $Id: ElementT.cpp,v 1.11.2.2 2002-10-18 17:43:08 paklein Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -96,8 +96,10 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			type = ElementT::kTotLagrExternalField;
 			break;
 		case ElementT::kNonsingularContinuum:
-			type = ElementT::kNonsingularContinuum;
-			break;
+		{
+			cout << "\n operator>>ElementT::TypeT: type is not longer supported: " << i_type << endl;
+			throw ExceptionT::kBadInputValue;
+		}
 		case ElementT::kMultiplierContactElement2D:
 			type = ElementT::kMultiplierContactElement2D;
 			break;
@@ -118,6 +120,9 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			break;	
 		case ElementT::kSimoQ1P0:
 			type = ElementT::kSimoQ1P0;
+			break;	
+		case ElementT::kAdhesion:
+			type = ElementT::kAdhesion;
 			break;	
 		default:
 			cout << "\n operator>>ElementT::TypeT: unknown type: "

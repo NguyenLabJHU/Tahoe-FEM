@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.11 2002-09-23 06:58:23 paklein Exp $ */
+/* $Id: ElementT.h,v 1.11.2.1 2002-10-18 17:43:08 paklein Exp $ */
 
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
@@ -41,7 +41,7 @@ public:
            kACME_Contact = 23,
     kMultiplierContact3D = 24,
    kTotLagrExternalField = 26, /**< experimental/temporary for loosely coupled problems */
-   kNonsingularContinuum = 27, /**< nonsingular continuum element */ 
+   kNonsingularContinuum = 27, /**< obsolete */
 kMultiplierContactElement2D = 28,
        kSimoFiniteStrain = 29,  /**< enhanced strain element */
 kPenaltyContactElement2D = 30,
@@ -50,7 +50,8 @@ kPenaltyContactElement2D = 30,
 	          kFinePhest = 33,
 kPenaltyContactElement3D = 34,
           kBridgingScale = 35,
-               kSimoQ1P0 = 36  /**< Q1P0, finite strain, mixed element */
+               kSimoQ1P0 = 36, /**< Q1P0, finite strain, mixed element */
+               kAdhesion = 37  /**< adhesive tractions between surfaces */
 	};
 
 	/** stream extraction operator */ 
