@@ -43,7 +43,7 @@
                     <String value="2"/>
                 </block_ID_list>
                 <cohesive_relation_2D>
-                    <viscous_Tvergaard-Hutchinson_2D L_1="0.1" L_2="0.1" L_fail="2.0" d_c_n="0.4" d_c_t="0.4" eta_0="0.1" penalty="0.0" sigma_max="10.0"/>
+                    <viscous_Tvergaard-Hutchinson_2D L_1="0.1" L_2="0.1" L_fail="2.0" d_c_n="0.45" d_c_t="0.45" eta_0="0.1" penalty="0.0" sigma_max="10.0"/>
                 </cohesive_relation_2D>
             </anisotropic_CSE_element_block>
         </anisotropic_CSE>
