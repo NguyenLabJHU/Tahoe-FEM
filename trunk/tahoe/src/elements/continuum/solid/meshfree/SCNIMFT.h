@@ -20,6 +20,7 @@
 #include "GeometryBaseT.h"
 #include "MaterialListT.h"
 #include "ScheduleT.h"
+#include "LinkedListT.h"
 
 #ifdef __QHULL__
 #include "CompGeomT.h"
@@ -238,8 +239,10 @@ protected:
 	MaterialListT* fMaterialList;
 	SSMatSupportT* fSSMatSupport;
 	
-	/** workspace for strain smoothing */
-	ArrayT<dArray2DT> bVectors;
+	/** workspaces for strain smoothing */
+	//ArrayT<dArray2DT> bVectors;
+	ArrayT< LinkedListT<int> > nodeWorkSpace;
+	ArrayT< LinkedListT<dArrayT> > facetWorkSpace;
 	  	
 	/* body force vector */
 	const ScheduleT* fBodySchedule; /**< body force schedule */
