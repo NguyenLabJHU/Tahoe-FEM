@@ -1,4 +1,4 @@
-/* $Id: LinearSolver.cpp,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* $Id: LinearSolver.cpp,v 1.2 2002-04-02 23:28:01 paklein Exp $ */
 /* created: paklein (05/30/1996)                                          */
 
 #include "LinearSolver.h"
@@ -67,7 +67,7 @@ void LinearSolver::Run(void)
 			}
 
 			/* determine update vector */
-			fLHS->Solve(fRHS);
+			if (!fLHS->Solve(fRHS)) throw eBadJacobianDet;
 
 			/* update displacements */
 			fFEManager.Update(fRHS);		
