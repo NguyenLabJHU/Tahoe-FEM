@@ -1,4 +1,4 @@
-/*$Id: MR2DT.cpp,v 1.14 2003-09-04 23:56:28 paklein Exp $*/
+/*$Id: MR2DT.cpp,v 1.15 2003-11-07 21:26:43 paklein Exp $*/
 /* created by manzari*/
 /* Elastolastic Cohesive Model for Geomaterials*/
 #include "MR2DT.h"
@@ -204,7 +204,7 @@ double ff; double bott; double topp; double dlam; double dlam2; double normr;
       state[10] = ff;
       normr = 0.;
       state[13] = normr;
-      kk = 0.;
+      kk = 0;
     }  
     else {
       kk = 0;
