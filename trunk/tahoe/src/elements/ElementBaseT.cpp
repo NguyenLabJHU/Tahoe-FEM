@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.50 2004-10-20 21:22:23 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.51 2005-02-13 22:12:30 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -55,11 +55,19 @@ int ElementBaseT::ElementGroupNumber(void) const
 ElementBaseT::~ElementBaseT(void) {	}
 
 /* set the active elements */
-void ElementBaseT::SetStatus(const ArrayT<StatusT>& status)
+void ElementBaseT::SetStatus(const ArrayT<ElementCardT::StatusT>& status)
 {
 	if (status.Length() != NumElements()) ExceptionT::SizeMismatch();
 	for (int i = 0; i < fElementCards.Length(); i++)
 		fElementCards[i].Flag() = status[i];
+}
+
+/* get element status */
+void ElementBaseT::GetStatus(ArrayT<ElementCardT::StatusT>& status) const
+{
+	status.Dimension(NumElements());
+	for (int i = 0; i < fElementCards.Length(); i++)
+		status[i]= fElementCards[i].Flag();
 }
 
 /* initial condition/restart functions
@@ -294,8 +302,11 @@ void ElementBaseT::ReadRestart(istream& in)
 	if (!in.good()) throw ExceptionT::kGeneralFail;
 
 	/* read status flag */
-	for (int i = 0; i < fElementCards.Length(); i++)
-		in >> fElementCards[i].Flag();
+	for (int i = 0; i < fElementCards.Length(); i++) {
+		int flag;
+		in >> flag;
+		fElementCards[i].Flag() = ElementCardT::int2StatusT(flag);
+	}
 }
 
 void ElementBaseT::WriteRestart(ostream& out) const
