@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.43 2003-09-06 07:12:12 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.44 2003-12-02 17:12:22 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 #include "fstreamT.h"
@@ -109,7 +109,12 @@ using namespace Tahoe;
 SolidMatList2DT::SolidMatList2DT(int length, const SolidMatSupportT& support):
 	SolidMatListT(length, support)
 {
+	SetName("solid_materials_2D");
+}
 
+SolidMatList2DT::SolidMatList2DT(void)
+{
+	SetName("solid_materials_2D");
 }
 
 /* read material data from the input stream */
@@ -752,7 +757,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 		int LTfnum = pmat->ThermalStrainSchedule();
 		if (LTfnum > -1)
 		{
-			pmat->SetThermalSchedule(fSolidMatSupport.Schedule(LTfnum));
+			pmat->SetThermalSchedule(fSolidMatSupport->Schedule(LTfnum));
 			
 			/* set flag */
 			fHasThermal = true;
