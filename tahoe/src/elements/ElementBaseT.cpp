@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.24 2002-10-23 00:18:01 cjkimme Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.24.2.1 2002-11-13 08:37:52 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -18,13 +18,7 @@
 
 #include "LocalArrayT.h"
 
-/* array behavior */
-
 using namespace Tahoe;
-
-namespace Tahoe {
-const bool ArrayT<const RaggedArray2DT<int>*>::fByteCopy = true;
-} /* namespace Tahoe */
 
 /* constructor */
 #ifndef _SIERRA_TEST_
