@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.cpp,v 1.18 2004-03-16 05:37:18 paklein Exp $ */
+/* $Id: LocalArrayT.cpp,v 1.19 2005-01-26 19:53:27 paklein Exp $ */
 /* created: paklein (07/10/1996) */
 #include "LocalArrayT.h"
 #include "dArray2DT.h"
@@ -90,6 +90,19 @@ void LocalArrayT::BlockCopyAt(const LocalArrayT& source, int start_node)
 	int size = sizeof(double)*source.NumberOfNodes();
 	for (int i = 0; i < fMinorDim; i++)
 		memcpy((*this)(i) + start_node, source(i), size);
+}
+
+/* collect subset */
+void LocalArrayT::Collect(const ArrayT<int>& nodes, const LocalArrayT& source)
+{
+#if __option(extended_errorcheck)
+	if (nodes.Length() != fNumNodes || source.fMinorDim != fMinorDim)
+		ExceptionT::SizeMismatch("LocalArrayT::Collect");
+#endif
+
+	for (int j = 0; j < fMinorDim; j++)
+		for (int i = 0; i < nodes.Length(); i++)
+			(*this)(i,j) = source(nodes[i],j); 
 }
 
 /* compute the array average value */
