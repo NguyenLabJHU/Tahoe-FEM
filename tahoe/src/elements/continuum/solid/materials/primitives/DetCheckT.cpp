@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.7 2001-08-17 23:32:55 cfoster Exp $ */
+/* $Id: DetCheckT.cpp,v 1.8 2001-09-20 23:48:22 cfoster Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "DetCheckT.h"
@@ -77,9 +77,9 @@ int DetCheckT::IsLocalized_SS(dArrayT& normal)
 		return check;
 	}
 	else
-          // not ready yet. remove to run problem to debug
+          // not ready yet. remove to run problem to debu
 	  //return DetCheck3D_SS(normal);
-	 return 7;    
+	return 7;    
 }
 
 
@@ -178,7 +178,7 @@ int DetCheckT::DetCheck2D(dArrayT& normal)
 		/* compute normal */
 		normal[0] = cos(angle);
 		normal[1] = sin(angle);
-		
+
 		return 1;
 	}
 }
@@ -188,26 +188,29 @@ int DetCheckT::DetCheck2D(dArrayT& normal)
 int DetCheckT::DetCheck3D_SS(dArrayT& normal)
 {
 
-  cout << "In DetCheck3D_SS \n";
-
   double theta, phi; //horizontal plane angle and polar angle for normal
   int i,j,k,l,m,n, control;        // counters and control variable
-  double tol=.0000000001; 
+  int numev; //number of eigenvectors for given eigenvalue
+  double tol=1.0e-10; 
   double leastmin=tol; 
   double guess; 
   int newtoncounter; //makes sure Newton iteration doesn't take too long
   double resid;
+  double inprod0, inprod1, inprod2;
 
   double detA [72] [19]; //determinant of acoustic tensor at each increment
   int localmin [72] [19]; // 1 for local minimum, 0 if not
-  dMatrixT A(3,3), Ainverse(3,3); //acoustic tensor
-  dMatrixEXT J(3); // det(A)*C*Ainverse
-  dArrayT prevnormal(3), finalnormal (3), eigs(3);
+  dMatrixEXT A(3), Ainverse(3); //acoustic tensor
+  dMatrixEXT J(3), tempmatrix(3); // det(A)*C*Ainverse
+  dArrayT prevnormal(3), finalnormal (3), eigs(3), realev(3), imev(3), altnormal(3), altnormal2(3), normal0(3), normal1(3), normal2(3);
 
+  dMatrixEXT A0(3), A1(3), A2(3); //trial acoustic tensors
+  double detA0, detA1, detA2;
 
-  double C [3] [3] [3] [3]; // rank 4 tangent modulus
+  double C [3] [3] [3] [3]; // rank 4 tangent modulus 
 
- // convert fc_ijkl from rank 2 to rank 4
+ // convert tangent modulus from rank 2 to rank 4
+          
            for (k=0;k<3;k++){
 	     for (l=0;l<3;l++){ 
             C [k] [k] [l] [l] = fc_ijkl (k,l);
@@ -232,7 +235,6 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
              C [1] [0] [k] [k] = fc_ijkl (5,k);
            }
 
-          for (k=0;k<3;k++){
              C [1] [2] [1] [2] = fc_ijkl (3,3);
              C [1] [2] [2] [1] = fc_ijkl (3,3);
              C [2] [1] [1] [2] = fc_ijkl (3,3);
@@ -278,11 +280,8 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
              C [2] [0] [2] [1] = fc_ijkl (5,3);
              C [2] [0] [1] [2] = fc_ijkl (5,3);
 
- 
-           }
-
-
- /* initial sweep to determine approximate local minima */
+ /* initial sweep in 10 degree increments to determine approximate 
+  *local minima */
 
   for (i=0;i<72;i++){
     for (j=0;j<19; j++){
@@ -454,17 +453,30 @@ else
   }
      /* Newton iteration to refine minima*/
 
+  // cout << "new integration point" << endl;
+
  for (i=0;i<72;i++){
     for (j=0;j<19; j++){
 
+      // cout << " niv ";
+
        if (localmin [i] [j] ==1)
 	 {
+ 
+	   // cout << endl;
+
+	   // 0 false, 1 true
+
+#if 1
             theta=Pi/36*i;
             phi=Pi/36*j;
 
              normal[0]=cos(theta)*cos(phi);
              normal[1]=sin(theta)*cos(phi);
              normal[2]=sin(phi);
+
+	     cout << "initial vector = \n";
+	     cout << normal << endl;
 
              prevnormal[0]=1;
              prevnormal[1]=1;
@@ -473,29 +485,15 @@ else
 
              newtoncounter=0;
 	    
-	     resid=1.0;
+	     resid=0.0;
 
-	     // while (sqrt((prevnormal[0]-normal[0])*(prevnormal[0]-normal[0])+(prevnormal[1]-normal[1])*(prevnormal[1]-normal[1])+(prevnormal[2]-normal[2])*(prevnormal[2]-normal[2]))>tol){  
-	     while (resid > tol){
-
-
-	       cout << " normal = \n";
-               cout << normal << '\n';
-
-	       cout << " prevnormal = \n";
-               cout << prevnormal << '\n';
-
-	       cout << " norm = \n";
-               cout << resid << '\n';
-	       // cout << sqrt((prevnormal[0]-normal[0])*(prevnormal[0]-normal[0])+(prevnormal[1]-normal[1])*(prevnormal[1]-normal[1])+(prevnormal[2]-normal[2])*(prevnormal[2]-normal[2])) << ' \n';
-             
-
+	     while (resid < 1-tol && newtoncounter <= 30){
 
                newtoncounter++;
-               if (newtoncounter > 20)
+               if (newtoncounter > 30)
 		 {
-		 cout << "Newton refinement did not converge after 20 iterations-Localization check failed \n"; 
-                 return 7;
+		 cout << "Newton refinement did not converge after 30 iterations-Localization check failed \n"; 
+		 return 8;
                  }
 
 
@@ -541,43 +539,153 @@ else
 	       for (n=0;n<3;n++){
 		 for (k=0;k<3;k++){
 		   for (l=0;l<3;l++){
-                     J (m,n)+=detA [i] [j]*C [m] [k] [j] [n]*Ainverse (j,k); 
+                     J (m,n)+=detA [i] [j]*C [m] [k] [l] [n]*Ainverse (l,k); 
 		   }
 		 }
 	       }
 	     }
  // find least eigenvector of J
 
+  cout << "J= \n";
+ cout << J << '\n';
 
- cout << "check1 \n";
+ // cout << "check1 \n";
 
-eigs[0]=1;
-eigs[1]=0;
-eigs[2]=0;
+tempmatrix=J;
+
+// tempmatrix(0,0)=1; tempmatrix(0,1)=0; tempmatrix(0,2)=0;
+// tempmatrix(1,0)=0; tempmatrix(1,1)=1; tempmatrix(1,2)=1;
+// tempmatrix(2,0)=0; tempmatrix(2,1)=1; tempmatrix(2,2)=1;
+
+tempmatrix.eigenvalue3x3(tempmatrix, realev, imev);
+
+cout << "realev = \n";
+cout << realev << '\n';
+
+  cout << "imev = \n";
+  cout << imev << '\n';
 
 
-//J.Diagonalize(eigs);
+  // chooses least eigenvalue to find eigenvector
+  // not active 
 
-//if (J(0,0)<J(1,1))
-//  guess = J(0,0);
-//else
-//  guess = J(1,1);
+// if ((realev[0] ==0 && imev[0] <tol) || (fabs(imev[0]/realev[0])<tol))
+// guess=realev[0];
 
-//if (J(2,2)<guess)
-//  guess = J(2,2);
+//  if (((realev[1] ==0 && imev[1] <tol) || fabs(imev[1]/realev[1]))<tol && realev[1]<guess)
+// guess=realev[1];
 
-guess=0.0;
+//   if (((realev[2] ==0 && imev[2] <tol) || fabs(imev[2]/realev[2]))<tol && realev[2]<guess)
+// guess=realev[2];
 
-J.Eigenvector(guess, normal);
+//   tempmatrix.eigenvector3x3(tempmatrix, guess, numev, normal, altnormal, altnormal2);
 
- cout << "check2 \n";
+   //tempmatrix.Eigenvector(guess, normal);
 
-resid= (prevnormal[0]-normal[0])*(prevnormal[0]-normal[0])+(prevnormal[1]-normal[1])*(prevnormal[1]-normal[1])+(prevnormal[2]-normal[2])*(prevnormal[2]-normal[2]);
+#if 0
 
- cout << "resid= \n";
+  // chooses eigenvector by closest approximation to previous iteration
+  //not active
+
+    if (( fabs(imev[0]) <tol) || (fabs(0.001*imev[0]/realev[0])<tol)){
+    tempmatrix.eigenvector3x3(tempmatrix, realev[0], numev, normal0, altnormal, altnormal2);
+
+    inprod0 = fabs(normal0.Dot(normal0, normal));
+    }
+   else
+   inprod0 = 0.0;
+
+
+if (( fabs(imev[1] <tol)) || fabs(0.001*imev[1]/realev[1])<tol)
+    {
+    tempmatrix.eigenvector3x3(tempmatrix, realev[1], numev, normal1, altnormal, altnormal2);
+inprod1 = fabs(normal1.Dot(normal1, normal));
+
+    }
+else
+ inprod1 = 0.0;
+
+if (( fabs(imev[2] <tol)) || fabs(0.001*imev[2]/realev[2])<tol)
+    {
+    tempmatrix.eigenvector3x3(tempmatrix, realev[2], numev, normal2, altnormal, altnormal2);
+    //tempmatrix.Eigenvector(realev[2], normal2);
+    // cout << "normal2 = " << endl;
+    //cout <<  normal2 << endl;
+inprod2 = fabs( normal2.Dot(normal2, normal));
+    }
+else
+  inprod2 = 0.0;
+
+ if ((inprod0 >= inprod1) && (inprod0 >= inprod2))
+   normal = normal0;
+ else 
+   if (inprod1 >= inprod2)
+     normal = normal1;
+   else
+     normal = normal2;
+
+#endif
+
+#if 1
+
+ // chooses eigvector by one that gives smallest value of det(A)
+
+    if (( fabs(imev[0]) <tol) || (fabs(0.001*imev[0]/realev[0])<tol)){
+    tempmatrix.eigenvector3x3(tempmatrix, realev[0], numev, normal0, altnormal, altnormal2);
+  A0.formacoustictensor(A0, C, normal0);
+detA0=A0.Det();
+    }
+   else
+   detA0 = A0.ScalarProduct()*A0.ScalarProduct();
+
+
+if (( fabs(imev[1] <tol)) || fabs(0.001*imev[1]/realev[1])<tol)
+    {
+    tempmatrix.eigenvector3x3(tempmatrix, realev[1], numev, normal1, altnormal, altnormal2);
+  A1.formacoustictensor(A1, C, normal1);
+detA1=A1.Det();
+
+    }
+else
+ detA1 = A1.ScalarProduct()*A1.ScalarProduct();
+
+if (( fabs(imev[2] <tol)) || fabs(0.001*imev[2]/realev[2])<tol)
+    {
+    tempmatrix.eigenvector3x3(tempmatrix, realev[2], numev, normal2, altnormal, altnormal2);
+ A2.formacoustictensor(A2, C, normal2);
+detA2=A2.Det();
+
+    }
+else
+ detA2 = A2.ScalarProduct()*A2.ScalarProduct();   
+
+ if ((detA0 <= detA1) && (detA0 <= detA2))
+   normal = normal0;
+ else 
+   if (detA1 <= detA2)
+     normal = normal1;
+   else
+     normal = normal2;
+
+#endif
+
+
+ 
+ cout << "normal = \n";
+ cout << normal << '\n';
+
+ // resid= (prevnormal[0]-normal[0])*(prevnormal[0]-normal[0])+(prevnormal[1]-normal[1])*(prevnormal[1]-normal[1])+(prevnormal[2]-normal[2])*(prevnormal[2]-normal[2]);
+
+ resid=fabs(prevnormal.Dot(prevnormal, normal));
+
+  cout << "resid= ";
  cout << resid << '\n';
 
+ //resid=sqrt(resid);
+
 	     }
+
+#endif
 
 if (leastmin > detA [i] [j])
   {
@@ -801,3 +909,4 @@ int DetCheckT::SPINLOC_localize(double *c__, double *thetan, int *loccheck)
     }
     return 0;
 }
+
