@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.10 2002-02-07 23:36:17 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.11 2002-02-09 19:13:06 paklein Exp $ */
 
 #include "ComparatorT.h"
 
@@ -219,24 +219,52 @@ bool ComparatorT::PassOrFail(ifstreamT& in) //const
 	file_root.Drop(path.StringLength());
 	file_root.Root();
 	
-	/* look for results file in current directory */
-	StringT current = path;
-	current.Append(file_root, ".run");
+	/* look for results as [infile].run or [infile].io[N].run */
+	bool pass_or_fail= true;
+	bool OK = true;
+	int count = -1;
+	int found_count = 0;
+	while (OK) {
+	
+		/* look for results file in current directory */
+		StringT current = path;
+		current.Append(file_root);
+		if (count != -1) current.Append(".io", count);
+		current.Append(".run");
 
-	/* look for results file in benchmark directory */
-	StringT benchmark(kBenchmarkDirectory);
-	benchmark.ToNativePathName();
-	benchmark.Prepend(path);
-	if (file_root[0] != StringT::DirectorySeparator())
-	{
-		const char sep[2] = {StringT::DirectorySeparator(), '\0'};
-		benchmark.Append(sep, file_root, ".run");
-	}
-	else
-		benchmark.Append(file_root, ".run");
+		/* look for results file in benchmark directory */
+		StringT benchmark(kBenchmarkDirectory);
+		benchmark.ToNativePathName();
+		benchmark.Prepend(path);
+		if (file_root[0] != StringT::DirectorySeparator())
+		{
+			const char sep[2] = {StringT::DirectorySeparator(), '\0'};
+			benchmark.Append(sep, file_root);
+		}
+		if (count != -1) benchmark.Append(".io", count);
+		benchmark.Append(".run");
+		
+		/* do compare */
+		if (fstreamT::Exists(benchmark))
+		{
+			found_count++;
+			pass_or_fail = pass_or_fail && PassOrFail(current, benchmark, do_relative, do_absolute);
+		}
+		else if (count != -1)
+			OK = false;
 
-	/* do compare */
-	 return PassOrFail(current, benchmark, do_relative, do_absolute);
+	 	/* next */
+	 	count++;
+	 }
+	 
+	 /* no results found */
+	 if (found_count == 0) {
+	 	cout << "no results found for input file: " << in.filename() << endl;
+	 	pass_or_fail = false;
+	 }
+	 
+	 /* return */
+	 return pass_or_fail;
 }
 
 /* compare results */
