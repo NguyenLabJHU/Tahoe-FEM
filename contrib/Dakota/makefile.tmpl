@@ -1,0 +1,89 @@
+# $Id: makefile.tmpl,v 1.1 2004-11-12 21:09:57 paklein Exp $
+# INSTALLATION INSTRUCTIONS
+#
+# (1) copy makefile.template to a local makefile
+# (2) set HOME_DIR to the full path to this makefile
+# (3) set ARCH from the ARCH.macros files in the macros directory
+# (4) comment/uncomment the macros in the "build options" below based
+#     on the installed optional components
+
+# full path to the top level of this module
+HOME_DIR =
+
+# build architecture - see macros directory for choices $(ARCH).macros
+ARCH =
+
+# full path to compiler macros
+MACRO_DIR = $(HOME_DIR)/../../macros
+
+############################### build options ###########################
+# uncomment macros for installed models
+
+##### toolbox
+TB_DIR      = $(HOME_DIR)/../../toolbox/
+TB_INC      = -I$(TB_DIR)/inc
+TB_DEFINES  = 
+TB_CFLAGS   = $(TB_INC) $(TB_DEFINES)
+TB_LIB_NAME = toolbox
+TB_LIB      = $(TB_DIR)/lib/lib$(TB_LIB_NAME).a
+TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
+
+##### compatibility with precompiled headers
+BLD_DIR = $(TB_DIR)
+PCH     = toolboxPrefix.h
+
+##### SEACAS/ACCESS software
+#AX_INC     = -I$(ACCESS)/inc
+#AX_DEFINES = -D__ACCESS__
+#AX_CFLAGS  = $(AX_INC) $(AX_DEFINES)
+#AX_LFLAGS  = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
+
+############################### build options ###########################
+
+TOOLS = extract_1D extract_CT least_square least_square_trap
+
+all:
+	@ $(PRINTF) "targets:\n";
+	@ $(PRINTF) "\t  tools - build helper apps\n";
+	@ $(PRINTF) "\t   test - test error function helper app\n";
+	@ $(PRINTF) "\t dakota - run simple Dakota test\n";
+	@ $(PRINTF) "\t  clean\n\n";
+
+tools: $(TOOLS)
+
+# include common target definitions
+include $(MACRO_DIR)/$(ARCH).macros
+
+least_square: $(TB_LIB) least_square.cpp
+	$(COMP_CC) $(CFLAGS_CC) $(TB_CFLAGS) $(AX_CFLAGS) least_square.cpp -o least_square $(TB_LFLAGS) $(AX_LFLAGS) $(LFLAGS)
+
+least_square_trap: $(TB_LIB) least_square_trap.cpp
+	$(COMP_CC) $(CFLAGS_CC) $(TB_CFLAGS) $(AX_CFLAGS) least_square_trap.cpp -o least_square_trap $(TB_LFLAGS) $(AX_LFLAGS) $(LFLAGS)
+
+extract_CT: $(TB_LIB) extract_CT.cpp
+	$(COMP_CC) $(CFLAGS_CC) $(TB_CFLAGS) $(AX_CFLAGS) extract_CT.cpp -o extract_CT $(TB_LFLAGS) $(AX_LFLAGS) $(LFLAGS)
+
+extract_1D: $(TB_LIB) extract_1D.cpp
+	$(COMP_CC) $(CFLAGS_CC) $(TB_CFLAGS) $(AX_CFLAGS) extract_1D.cpp -o extract_1D $(TB_LFLAGS) $(AX_LFLAGS) $(LFLAGS)
+
+# test least square functions
+NPTS = 1 10 100 1000 10000
+test: least_square least_square_trap
+	@ $(PRINTF) "least_square:\n"
+	@ least_square data/result_1 data/result_2 least_square.junk
+	@ rm least_square.junk
+	@ $(PRINTF) "\nleast_square_trap:\n"
+	@ $(PRINTF) "points\tresult\n"
+	@ for PTS in $(NPTS); do \
+		$(PRINTF) "$$PTS:\t"; \
+		least_square_trap data/result_1 data/result_2 $$PTS least_square.junk | grep norm; \
+		rm least_square.junk; \
+	done
+	
+# run Dakota example
+dakota: least_square extract_1D
+	@ cd example; dakota -input search.in
+
+clean:
+	rm $(TOOLS)
+	cd example; rm OPT_DEFAULT.out idr-parsed-input.txt dakota.rst
