@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.h,v 1.5.2.1 2002-05-11 20:22:46 paklein Exp $ */
+/* $Id: J2Simo2D.h,v 1.5.2.2 2002-05-17 01:25:22 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 
 #ifndef _J2_SIMO_2D_H_
@@ -44,6 +44,9 @@ public:
 
 	/** incremental heat generation */
 	virtual double IncrementalHeat(void);
+
+	/** this model does generate heat */
+	virtual bool HasIncrementalHeat(void) const { return true; };
 	 	 	
 	/** required parameter flags */
 	virtual bool Need_F_last(void) const { return true; };

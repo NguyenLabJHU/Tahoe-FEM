@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.3.4.2 2002-05-11 19:49:23 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.3.4.3 2002-05-17 01:25:22 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 
 #ifndef _STRUCTURAL_MATERIALT_H_
@@ -53,6 +53,10 @@ public:
 	/** incremental heat generation. Associated with the stress calculated with the
 	 * most recent call to SolidMaterialT::s_ij or SolidMaterialT::S_IJ */
 	virtual double IncrementalHeat(void);
+	
+	/** return true if the material generates heat. The returns false unless 
+	 * overridden. */
+	virtual bool HasIncrementalHeat(void) const;
 
 	/** strain energy density */
 	virtual double StrainEnergyDensity(void) = 0;
@@ -119,11 +123,11 @@ private:
 
 	double fMassDamp;
 	double fStiffDamp;
-	
 };
 
 /* incremental heat generation */
-inline double SolidMaterialT::IncrementalHeat(void) { return 0.0; };
+inline double SolidMaterialT::IncrementalHeat(void) { return 0.0; }
+inline bool SolidMaterialT::HasIncrementalHeat(void) const { return false; }
 
 /* returns the density */
 inline double SolidMaterialT::Density(void) const { return fDensity; }
