@@ -1,27 +1,15 @@
-# $Id: makefile,v 1.13 2004-05-11 15:56:49 paklein Exp $
+# $Id: makefile,v 1.1 2004-05-11 15:56:52 paklein Exp $
 #
 # type "make clean" to remove test results
 #
 
-# list of subdirectories
-SUB_DIR = \
-	2D.elastodynamic \
-	2D.elastostatic \
-	3D.elastostatic \
-	3D.elastodynamic \
-	diffusion \
-	coupled \
-	enhanced.strain \
-	integrator \
-	2D.particle \
-	3D.particle \
-	adhesion \
-	axisymmetric \
-	meshfree
+# list of sub-directories
+# NOTE: if list is empty, set SUB_DIR = NONE
+SUB_DIR = NONE 
 
 all:
 	@echo "make clean to remove test results"
-
+	
 clean:
 	@ for n in $(SUB_DIR); do \
 		if test -d $$n; then \
@@ -32,4 +20,5 @@ clean:
 		elif test "$$n" != "NONE"; then \
 			echo "*** WARNING: missing directory: $(CURR_DIR)/$$n"; \
 			fi; \
-	done    
+	done
+	-@rm *.io*.ps* *.out *.geo *.run *.echo.xml *.valid.xml
