@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.cpp,v 1.14 2004-09-14 19:30:54 paklein Exp $ */
+/* $Id: AugLagWallT.cpp,v 1.15 2004-09-15 15:37:07 paklein Exp $ */
 #include "AugLagWallT.h"
 #include "FieldT.h"
 #include "eIntegratorT.h"
@@ -224,9 +224,8 @@ void AugLagWallT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 		/* contact */
 		if (g <= 0.0)
 		{
-			/* the long way */
-			ULblock.Outer(fnormal, fnormal);
-			ULblock *= fk;
+			/* upper-left block */
+			ULblock.Outer(fnormal, fnormal, fk);
 
 			/* assemble element matrix */
 			fLHS.SetBlock(0, 0, ULblock);

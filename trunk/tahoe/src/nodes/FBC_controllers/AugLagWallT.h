@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.h,v 1.11 2004-09-14 18:20:24 paklein Exp $ */
+/* $Id: AugLagWallT.h,v 1.12 2004-09-15 15:37:07 paklein Exp $ */
 #ifndef _AUGLAG_WALL_T_H_
 #define _AUGLAG_WALL_T_H_
 
@@ -52,6 +52,8 @@ public:
 	 *        system type that is actually needed. */
 	virtual void ApplyLHS(GlobalT::SystemTypeT sys_type);
 
+	/** \name implementation of the DOFElementT interface */
+	/*@{*/
 	/* returns the array for the DOF tags needed for the current config */
 	virtual void SetDOFTags(void);
 	virtual iArrayT& DOFTags(int tag_set);
@@ -74,6 +76,7 @@ public:
 	/** return the equation group to which the generate degrees of
 	 * freedom belong. */
 	virtual int Group(void) const;	
+	/*@}*/
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
@@ -119,7 +122,7 @@ private:
 	
 	/** runtime flag */
 	bool fRecomputeForce;
-	/*@}*/	
+	/*@}*/
 };
 
 } /* namespace Tahoe */
