@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.27 2003-10-28 23:31:48 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.28 2003-10-30 17:15:18 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -916,7 +916,51 @@ void ParticleT::DefineSubs(SubListT& sub_list) const
 	ElementBaseT::DefineSubs(sub_list);
 
 	/* thermostats - array of choices */
-	//sub_list.AddSub("thermostats", ParameterListT::Any, true);
+	sub_list.AddSub("thermostats", ParameterListT::Any, true);
+}
 
-#pragma message("finish defining thermostat parameters")
+/* return the description of the given inline subordinate parameter list */
+void ParticleT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	if (sub == "thermostats")
+	{
+		order = ParameterListT::Choice;
+		
+		sub_sub_list.AddSub("ramped_damping");
+		sub_sub_list.AddSub("NoseHoover");
+		sub_sub_list.AddSub("Gauss_isokinetic");
+		sub_sub_list.AddSub("Langevin");
+	}
+	else /* inherited */
+		ElementBaseT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* ParticleT::NewSub(const StringT& list_name) const
+{
+	/* try to construct thermostat */
+	ThermostatBaseT* thermostat = New_Thermostat(list_name, false);
+	if (thermostat)
+		return thermostat;
+	else /* inherited */
+		return ElementBaseT::NewSub(list_name);
+}
+
+/* return a new pair property or NULL if the name is invalid */
+ThermostatBaseT* ParticleT::New_Thermostat(const StringT& name, bool throw_on_fail) const
+{
+	if (name == "ramped_damping")
+		return new RampedDampingT;
+	else if (name == "NoseHoover")
+		return new NoseHooverT;
+	else if (name == "Gauss_isokinetic")
+		return new GaussIsokineticT;
+	else if (name == "Langevin")
+		return new LangevinT;
+	else if (throw_on_fail)
+		ExceptionT::GeneralFail("ParticleT::New_Thermostat",
+			"unrecognized thermostat \"%s\"", name.Pointer());
+	else
+		return NULL;
 }

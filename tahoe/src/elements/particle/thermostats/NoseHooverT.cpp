@@ -1,4 +1,4 @@
-/* $Id: NoseHooverT.cpp,v 1.5 2003-04-29 23:09:36 cjkimme Exp $ */
+/* $Id: NoseHooverT.cpp,v 1.6 2003-10-30 17:15:21 paklein Exp $ */
 #include "NoseHooverT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -17,7 +17,13 @@ NoseHooverT::NoseHooverT(ifstreamT& in, const int& nsd, const double& dt):
 	ThermostatBaseT(in, nsd, dt),
 	fEta(0.)
 {
+	SetName("NoseHoover");
 	fBetaOrig = fBeta;
+}
+
+NoseHooverT::NoseHooverT(void)
+{
+	SetName("NoseHoover");
 }
 
 /* write properties to output */
@@ -45,6 +51,14 @@ void NoseHooverT::ReadRestart(istream& in)
 	in >> fBeta;
 	in >> fEta;
 	in >> fEtaDot;
+}
+
+/* accept parameter list */
+void NoseHooverT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ThermostatBaseT::TakeParameterList(list);
+	fBetaOrig = fBeta;
 }
 
 void NoseHooverT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2DT* velocities,

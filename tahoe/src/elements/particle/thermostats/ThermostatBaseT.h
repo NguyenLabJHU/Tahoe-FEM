@@ -1,6 +1,9 @@
-/* $Id: ThermostatBaseT.h,v 1.5 2003-05-06 19:57:45 cjkimme Exp $ */
+/* $Id: ThermostatBaseT.h,v 1.6 2003-10-30 17:15:21 paklein Exp $ */
 #ifndef _THERMOSTAT_BASE_T_H_
 #define _THERMOSTAT_BASE_T_H_
+
+/* base class */
+#include "ParameterInterfaceT.h"
 
 #include "ios_fwd_decl.h"
 
@@ -21,7 +24,7 @@ class ParticlePropertyT;
 class ModelManagerT;
 
 /** base class for thermostatting and damping */
-class ThermostatBaseT
+class ThermostatBaseT: public ParameterInterfaceT
 {
 public:
 
@@ -44,6 +47,7 @@ public:
 
 	/** constructor */
 	ThermostatBaseT(ifstreamT& in, const int& nsd, const double& dt);
+	ThermostatBaseT(void);
 
 	/** destructor */
 	virtual ~ThermostatBaseT(void) {};
@@ -80,6 +84,15 @@ public:
 	/** Initialize nodes to thermostat by spatial coords */
 	virtual void InitRegion(ifstreamT& in, const dArray2DT& coords,	
 					const ArrayT<int>* partition_nodes);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 	
