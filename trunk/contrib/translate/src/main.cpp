@@ -1,26 +1,19 @@
-/* $Id: main.cpp,v 1.1 2001-09-01 00:05:37 paklein Exp $ */
+/* $Id: main.cpp,v 1.2 2001-09-07 13:25:29 sawimme Exp $ */
 
-#include "ios_fwd_decl.h"
-#include "StringT.h"
 #include "TranslateIOManager.h"
-#include "ifstreamT.h"
 
-void main (void)
+int main (void)
 {
-  try
+  try 
     {
-      // determine input file 
-      char *program_name = "tetexo";
-      char *program_version = "v1.3 (10 May 2000)";
-      TranslateIOManager iodata (cout);
-      ifstreamT in ('#');
-      bool interactive = true;
-      iodata.ReadParameters (in, true, program_name, program_version);
-      iodata.Translate ();
-      cout << "\nProgram Complete\n\n" << endl;
+      cout << "\n\n Program to translate data files or extract xy data.\n\n";
+      StringT program = "Translate";
+      StringT version = "v1.4";
+      TranslateIOManager dataio (cout);
+      dataio.Translate (program, version, program);
+      cout << "\n\n Progam Complete.\n\n";
     }
-
-  catch (int ErrorCode) 
+  catch (int ErrorCode)
     {
       cout << "\n\n Exiting due to error . . . ";
       switch (ErrorCode)
@@ -37,11 +30,12 @@ void main (void)
 	case eOutOfMemory:
 	  cout << " Out of Memory\n";
 	  break;
-	  //case eGeneralFail:
-	  //case eStop:
-	  //default:
+	case eDatabaseFail:
+	  cout << " Error with database\n";
+	  break;
 	}
-      cout << "      Game Over\n\n";
+      cout << "\n\n Game Over\n\n";
     }
+  return 1;
 }
 
