@@ -1,4 +1,4 @@
-/* $Id: Contact2DT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: Contact2DT.cpp,v 1.1.1.1.6.1 2001-10-25 20:25:15 sawimme Exp $ */
 /* created: paklein (05/26/1999)                                          */
 
 #include "Contact2DT.h"
@@ -204,28 +204,36 @@ void Contact2DT::SetActiveStrikers(void)
 void Contact2DT::SetConnectivities(void)
 {
 	/* check */
-	if (fConnectivities.MajorDim() != fActiveStrikers.Length())
+	if (fNumElements != fActiveStrikers.Length())
 	{
 		cout << "\n Contact2DT::SetConnectivities: expecting the number of contact\n"
-		     <<   "    connectivities " << fConnectivities.MajorDim()
+		     <<   "    connectivities " << fNumElements
 		     << " to equal the number of active strikers "
 		     << fActiveStrikers.Length() << endl;
 		throw eGeneralFail;
 	}
 
 	/* set interacting nodes */
-	for (int i = 0; i < fConnectivities.MajorDim(); i++)
-	{
-		const iArray2DT& surface = fSurfaces[fHitSurface[i]];
+	int count = 0;
+	for (int b = 0; b < fBlockData.MajorDim(); b++)
+	  {
+	    const iArray2DT* conn = fConnectivities[b];
+	    int *pelem = conn->Pointer();
+	    for (int i = 0; i < conn->MajorDim(); i++)
+	      {
+		const iArray2DT& surface = fSurfaces[fHitSurface[count]];
 		
-		int   facet = fHitFacets[i];
+		int   facet = fHitFacets[count];
 		int* pfacet = surface(facet);
-		int*  pelem = fConnectivities(i);
 
 		/* all element tags */
 		pelem[0] = pfacet[0]; // 1st facet node
 		pelem[1] = pfacet[1]; // 2nd facet node
 		pelem[2] = fActiveStrikers[i]; // striker node
+
+		count ++;
+		pelem += conn->MinorDim();
+	      }
 	}
 }
 
