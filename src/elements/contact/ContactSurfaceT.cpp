@@ -1,9 +1,9 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.8 2001-06-12 22:14:32 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.9 2001-06-13 21:06:22 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include "SurfaceT.h"
 #include "ContactNodeT.h"
-#include <ostream.h>
+#include <iostream.h>
 #include "ofstreamT.h"
 
 /* parameters */
