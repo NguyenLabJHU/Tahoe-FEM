@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2004-08-19 18:02:37 raregue Exp $
+# $Id: makefile,v 1.3 2004-09-13 22:34:14 raregue Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -58,7 +58,8 @@ SRC = \
 HDR = \
 	D3MeshFreeShapeFunctionT.h \
 	D3MeshFreeSupportT.h \
-	D3MeshFreeSupport2DT.h
+	D3MeshFreeSupport2DT.h \
+	MF_dMatrixT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
