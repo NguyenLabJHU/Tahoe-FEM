@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.34.6.2 2004-02-26 07:28:59 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.34.6.3 2004-02-28 00:08:53 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -188,13 +188,13 @@ void ParticleT::Initialize(void)
 
 	StringT key;
 	in>>key;
-	if (key =="lattice") in >> latticeParameter;
+	if (key =="lattice") in >> fLatticeParameter;
 	else
 	  {
 	    in.rewind();
-	    latticeParameter = 4.08; //defaults to gold
+	    fLatticeParameter = 4.08; //defaults to gold
 	  }
-	NearestNeighborDistance = latticeParameter*.79;
+	NearestNeighborDistance = fLatticeParameter*.79;
 
 	/* set up communication of type information */
 	fTypeMessageID = ElementSupport().CommManager().Init_AllGather(MessageT::Integer, 1);
@@ -1057,12 +1057,14 @@ double ParticleT::GenCSymmValue (CSymmParamNode *CSymmParam, int ndof)
     CSymmParam = CSymmParam->Next;
     delete CurrentAlias;
   }
-  CSymmValue /=latticeParameter;
+  CSymmValue /= fLatticeParameter;
   return CSymmValue;
 }
 
 
-void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CParamStart, dMatrixT *Strain, dArrayT *SlipVector, RaggedArray2DT<int> *NearestNeighbors) {
+void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CParamStart, dMatrixT *Strain, 
+	dArrayT *SlipVector, RaggedArray2DT<int> *NearestNeighbors, double& J) 
+{
   int ndof = NumDOF();
   /* run through neighbor list */
   iArrayT neighbors;
@@ -1130,7 +1132,9 @@ void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CPara
       dMatrixT EtaInverse = Eta.Inverse();
       F_iI.MultAB(Omega, EtaInverse);
       b_ij.MultABT(F_iI, F_iI);
-      if(fabs(b_ij.Det())>kSmall) {
+      double J2 = b_ij.Det();
+      if(fabs(J2) > kSmall) {
+      J = sqrt(J2);
 	dMatrixT Id(ndof);
 	Id=0.0;
 	for(int i=0; i<ndof;i++) Id(i,i)=1.0;
