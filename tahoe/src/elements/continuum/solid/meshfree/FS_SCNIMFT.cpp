@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.15 2005-01-25 23:10:00 paklein Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.16 2005-02-01 20:14:18 cjkimme Exp $ */
 #include "FS_SCNIMFT.h"
 
 //#define VERIFY_B
@@ -20,6 +20,7 @@
 #include "SolidMaterialT.h"
 #include "FSSolidMatT.h"
 #include "FSMatSupportT.h"
+#include "TensorTransformT.h"
 
 /* materials lists */
 #include "FSSolidMatList1DT.h"
@@ -54,9 +55,7 @@ void FS_SCNIMFT::GenerateOutputLabels(ArrayT<StringT>& labels)
 {
   	/* Reference Configuration */
 	const char* ref[3] = {"X", "Y", "Z"};
-
-	/* displacement labels */
-	const char* disp[3] = {"D_X", "D_Y", "D_Z"};
+	
 	int num_labels = 2*fSD; // displacements
 	int num_stress=0;
 
@@ -91,8 +90,11 @@ void FS_SCNIMFT::GenerateOutputLabels(ArrayT<StringT>& labels)
 	int dex = 0;
 	for (dex = 0; dex < fSD; dex++)
 		labels[dex] = ref[dex];
+		
+	const ArrayT<StringT>& disp_labels = Field().Labels();
 	for (int ns = 0 ; ns < fSD; ns++)
-	  	labels[dex++] = disp[ns];
+	  	labels[dex++] = disp_labels[ns];
+	
 	labels[dex++] = "mass";
 	for (int ns = 0 ; ns < num_stress; ns++)
 		labels[dex++] = strain[ns];
@@ -123,9 +125,6 @@ void FS_SCNIMFT::WriteOutput(void)
 	const FieldT& field = Field();
 	const dArray2DT* velocities = NULL;
 	if (field.Order() > 0) velocities = &(field[1]);
-
-	/* check 2D */
-	if (NumDOF() != 2) ExceptionT::GeneralFail(caller, "2D only: %d", NumDOF());
 
 	/* For now, just one material. Grab it */
 	ContinuumMaterialT *mat = (*fMaterialList)[0];
@@ -173,10 +172,9 @@ void FS_SCNIMFT::WriteOutput(void)
 		Fdef = 0.0;
 		dArrayT* bVec_i = bVectorArray(i);
 		int* supp_i = nodalCellSupports(i);
-		for (int j = 0; j < nodalCellSupports.MinorDim(i); j++) { 
-			bVectorToMatrix(bVec_i->Pointer(), BJ);
+		for (int j = 0; j < nodalCellSupports.MinorDim(i); j++) {
+			Fdef.Outer(u(*supp_i++), bVec_i->Pointer(), 1.0, dMatrixT::kAccumulate);
 			bVec_i++;
-			BJ.Multx(u(*supp_i++), Fdef.Pointer(), 1.0, dMatrixT::kAccumulate);
 		}
 		E = 0.;
 		E.MultATB(Fdef, Fdef, dMatrixT::kWhole);
@@ -279,7 +277,7 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	
 		AssembleParticleMass(fCurrMaterial->Density());
 	}
-	
+#pragma message("FS_SCNIMFT::LHSDriver Specialized to 2D")	
 	if (formK) {
 		/* hold the smoothed strain */
 		ArrayT<dMatrixT> Flist(1);
@@ -306,8 +304,10 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		const iArray2DT& field_eqnos = Field().Equations();
 		iArrayT row_eqnos(ndof); 
 		iArrayT col_eqnos(ndof);
+		dMatrixT ctmpin(fSD), ctmpout;
 		dMatrixT BJ(fSD*fSD, ndof), BK(fSD*fSD, ndof), FTs(fSD), fStress(fSD), fCauchy(fSD);
 		dMatrixT Tijkl(fSD*fSD), BJTCijkl(fSD, fSD*fSD), K_JK, Finverse(fSD);
+		dMatrixT Cijklsigma(fSD*fSD);
 		K_JK.Alias(fLHS);
 		LinkedListT<dArrayT> bVectors_j;
 		LinkedListT<int> nodeSupport_j;
@@ -321,49 +321,38 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			dArrayT* bVec_i = bVectorArray(i);
 			int* supp_i = nodalCellSupports(i);
 			for (int j = 0; j < n_supp; j++) { 
-				bVectorToMatrix(bVec_i->Pointer(), BJ);
+				Fdef.Outer(u(*supp_i++), bVec_i->Pointer(), 1.0, dMatrixT::kAccumulate);
 				bVec_i++;
-				BJ.Multx(u(*supp_i++), Fdef.Pointer(), 1.0, dMatrixT::kAccumulate);
-			}
+			}		
 			Fdef.PlusIdentity(); // convert to F
 			fFSMatSupport->SetDeformationGradient(&Flist);
 		
-			const dMatrixT& cijkl = fCurrMaterial->C_IJKL();
-			fCurrMaterial->s_ij().ToMatrix(fCauchy);
-			Finverse.Inverse(Fdef);
-			Finverse *= Fdef.Det(); // compute J F^-1
-			fStress.MultABT(fCauchy, Finverse); // compute PK1
+			const dMatrixT& moduli = fCurrMaterial->C_IJKL();
+			//fCurrMaterial->s_ij().ToMatrix(fCauchy);
+			//Finverse.Inverse(Fdef);
+			//Finverse *= Fdef.Det(); // compute J F^-1
+			//fStress.MultABT(fCauchy, Finverse); // compute PK1
+			//fCauchy.MultATB(Fdef, fStress);
+			//fStress = fCauchy;
 		
-			// FTs = F^T sigma
-			FTs.MultATB(Fdef, fStress);
+			// FTs = F^T PK1
+			//FTs.MultATB(Fdef, fStress);
 			// T_11 = T_22 = FTs_11 T_13 = T_24 = FTs_12
 			// T_31 = T_42 = FTs_21 T_33 = T_44 = FTs_22
-			Tijkl.Expand(FTs, fSD, dMatrixT::kOverwrite);
-			// Tijkl = 0.; used to debug material stiffness
-			// use brute force, low-level until I find optimal way
-			Tijkl[0] += cijkl[0]; // += C_11
-			Tijkl[1] += cijkl[6]; // += C_13
-			Tijkl[2] += cijkl[6]; // += C_13
-			Tijkl[3] += cijkl[3]; // += C_12
-			Tijkl[4] += cijkl[6]; // += C_13
-			Tijkl[5] += cijkl[8]; // += C_33
-			Tijkl[6] += cijkl[8]; // += C_33
-			Tijkl[7] += cijkl[7]; // += C_23
-			Tijkl[8] += cijkl[6]; // += C_13
-			Tijkl[9] += cijkl[8]; // += C_33
-			Tijkl[10] += cijkl[8]; // += C_33
-			Tijkl[11] += cijkl[7]; // += C_23
-			Tijkl[12] += cijkl[3]; // += C_12
-			Tijkl[13] += cijkl[7]; // += C_23
-			Tijkl[14] += cijkl[7]; // += C_23
-			Tijkl.Last() += cijkl[4]; // += C_22
+			
+			// stress stiffness
+			fCurrMaterial->S_IJ().ToMatrix(fStress);
+			Tijkl.Expand(fStress, fSD, dMatrixT::kOverwrite);
+			// Tijkl = 0.; //used to debug material stiffness
+			
+			// material stiffness
+			Tijkl += TransformModuli(moduli, Fdef, Cijklsigma);
 			
 			// sum over pairs to get contribution to stiffness
 			supp_i = nodalCellSupports(i);
 			bVec_i = bVectorArray(i);
 			for (int j = 0; j < n_supp; j++, supp_i++, bVec_i++) {
 				bVectorToMatrix(bVec_i->Pointer(), BJ);
-				//BJTCijkl.MultATB(BJ, cijkl, 0);
 				
 				/* simultanesouly compute material and stress stiffnesses */
 				BJTCijkl.MultATB(BJ, Tijkl, dMatrixT::kWhole); // accumulate stress stiffness
@@ -397,9 +386,6 @@ void FS_SCNIMFT::RHSDriver(void)
 	
 	/* contribution from natural boundary conditions */
 	SCNIMFT::RHSDriver();
-
-	/* check 2D */
-	if (NumDOF() != 2) ExceptionT::GeneralFail(caller, "2D only: %d", NumDOF());
 
 	/* time integration parameters */
 	double constMa = 0.0;
@@ -453,9 +439,8 @@ void FS_SCNIMFT::RHSDriver(void)
 		dArrayT* bVec_i = bVectorArray(i);
 		int* supp_i = nodalCellSupports(i);
 		for (int j = 0; j < n_supp; j++) { 
-			bVectorToMatrix(bVec_i->Pointer(), BJ);
+			Fdef.Outer(u(*supp_i++), bVec_i->Pointer(), 1.0, dMatrixT::kAccumulate);
 			bVec_i++;
-			BJ.Multx(u(*supp_i++), Fdef.Pointer(), 1.0, dMatrixT::kAccumulate);
 		}
 		Fdef.PlusIdentity(); // convert to F 	
 		fFSMatSupport->SetDeformationGradient(&Flist);
@@ -468,13 +453,14 @@ void FS_SCNIMFT::RHSDriver(void)
 		Finverse *= J; // compute J F^-1
 		fStress.MultABT(fCauchy, Finverse); // compute PK1
 		
+		fCurrMaterial->S_IJ().ToMatrix(fStress);
+		
 		supp_i = nodalCellSupports(i);
 		bVec_i = bVectorArray(i);
 		for (int j = 0; j < n_supp; j++) { 
-			bVectorToMatrix(bVec_i->Pointer(), BJ);
-			bVec_i++;
 			double* fint = fForce(*supp_i++);
-			BJ.MultTx(fStress.Pointer(), fint, w_i, dMatrixT::kAccumulate);
+			fStress.Multx(bVec_i->Pointer(), fint, w_i, dMatrixT::kAccumulate);
+			bVec_i++;
 		}
 	}
 	
@@ -495,7 +481,6 @@ void FS_SCNIMFT::bVectorToMatrix(double *bVector, dMatrixT& BJ)
 #endif
 
 	double* Bptr = BJ.Pointer();
-	
 	BJ = 0.;
 	Bptr[0] = *bVector;
 	if (fSD == 2) {
@@ -503,13 +488,69 @@ void FS_SCNIMFT::bVectorToMatrix(double *bVector, dMatrixT& BJ)
 		Bptr[2] = *bVector;
 		Bptr[7] = *bVector;
 	} else { // fSD == 3
-	    // I haven't changed this yet
-		Bptr[11] = Bptr[16] = *bVector++;
-		Bptr[7] = *bVector;
-		Bptr[5] = Bptr[15] = *bVector++;
-		Bptr[14] = *bVector;
-		Bptr[4] = Bptr[9] = *bVector;
+		Bptr[10] = Bptr[19] = *bVector++;
+		Bptr[3] = *bVector;
+		Bptr[13] = Bptr[23] = *bVector++;
+		Bptr[6] = *bVector;
+		Bptr[16] = Bptr[26] = *bVector;
 	}
+}
+
+dMatrixT& FS_SCNIMFT::TransformModuli(const dMatrixT& moduli, const dMatrixT& F, dMatrixT& Csig) {
+		
+		Csig = 0.;
+		
+		int nsd = F.Rows();
+		dMatrixT mtmp(nsd*nsd);
+		
+		mtmp = 0.;
+		
+		if (nsd == 2) {
+			// use brute force, low-level until I find optimal way
+			// numbering scheme for CIJKL is standard C_AB, I need matrix T_AB with 
+			// indexing 1 <-> 11, 2 <-> 21, 3 <-> 12, 4 <-> 22 in 2D
+			
+			mtmp[0] = moduli[0]; // C_11
+			mtmp[1] = mtmp[2] = moduli[6]; // C_13
+			mtmp[3] = moduli[3]; // C_12
+			
+			mtmp[4] = moduli[6]; // C_13
+			mtmp[5] = mtmp[6] = moduli[8]; // C_33
+			mtmp[7] = moduli[7]; // C_23
+			
+			mtmp[8] = moduli[6]; // C_13
+			mtmp[9] = mtmp[10] = moduli[8]; // C_33
+			mtmp[11] = moduli[7]; // C_23
+			
+			mtmp[12] = moduli[3]; // C_12
+			mtmp[13] = mtmp[14] = moduli[7]; // C_23
+			mtmp.Last() = moduli[4]; // C_22
+			
+		} else {
+			ExceptionT::GeneralFail("FS_SCNIMFT::TransformModuli","Not implemented for 3d yet\n");
+		}
+		
+		//Csig = mtmp;
+		
+		//return Csig;
+				
+		for (int i = 0; i < nsd*nsd; i++) {
+			dMatrixT col_in(nsd, nsd, mtmp.Pointer(i*nsd*nsd));
+			dMatrixT col_out(nsd, nsd, Csig.Pointer(i*nsd*nsd));
+			col_out.MultAB(F, col_in);
+		}
+		
+		Csig.Transpose(Csig);
+		mtmp = Csig;
+		
+		for (int i = 0; i < nsd*nsd; i++) {
+			dMatrixT col_in(nsd, nsd, mtmp.Pointer(i*nsd*nsd));
+			dMatrixT col_out(nsd, nsd, Csig.Pointer(i*nsd*nsd));
+			col_out.MultAB(F, col_in);
+		}
+		
+		return Csig;
+		
 }
 
 void FS_SCNIMFT::CollectMaterialInfo(const ParameterListT& all_params,

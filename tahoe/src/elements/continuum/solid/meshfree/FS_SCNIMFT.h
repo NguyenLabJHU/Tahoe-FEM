@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.h,v 1.4 2004-08-04 22:00:23 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.h,v 1.5 2005-02-01 20:14:18 cjkimme Exp $ */
 #ifndef _FS_SCNIMF_T_H_
 #define _FS_SCNIMF_T_H_
 
@@ -72,6 +72,8 @@ public:
 	/*@}*/
 
 protected: /* for derived classes only */
+
+	dMatrixT& TransformModuli(const dMatrixT& moduli, const dMatrixT& F, dMatrixT& Csig);
 	
 	virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;
 	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
