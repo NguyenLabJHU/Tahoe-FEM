@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.64 2004-09-10 22:36:56 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.65 2004-11-06 01:48:31 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -166,9 +166,6 @@ void SolidElementT::AddLinearMomentum(dArrayT& momentum)
 		/* get velocities */
 		SetLocalU(fLocVel);
 
-		/* material density */
-		double density = fCurrMaterial->Density();
-
 		/* integration */
 		const double* Det    = fShapes->IPDets();
 		const double* Weight = fShapes->IPWeights();
@@ -176,6 +173,9 @@ void SolidElementT::AddLinearMomentum(dArrayT& momentum)
 		fShapes->TopIP();
 		while ( fShapes->NextIP() )
 		{					
+			/* density could change with position */
+			double density = fCurrMaterial->Density();
+
 			double temp  = density*(*Det++)*(*Weight++);
 
 			/* integration point velocities */
@@ -1212,13 +1212,15 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
                 if (e_codes[iLinearMomentum]) linear_momentum = 0.0;
                 const double* j = fShapes->IPDets();
                 const double* w = fShapes->IPWeights();
-                double density = fCurrMaterial->Density();
 
                 /* integrate */
                 dArray2DT Na_X_ip_w;
                 fShapes->TopIP();
                 while (fShapes->NextIP())
                 {
+                	/* density may change with integration point */
+                	double density = fCurrMaterial->Density();
+
                         /* element integration weight */
                         double ip_w = (*j++)*(*w++);
 				if (is_axi) {
