@@ -1,8 +1,7 @@
-/* $Id: tevp2D.h,v 1.12 2001-06-04 16:01:50 hspark Exp $ */
+/* $Id: tevp2D.h,v 1.13 2001-06-12 14:03:05 hspark Exp $ */
 /* Thermoelasto-viscoplastic material used to generate shear bands */
 /* Created:  Harold Park (04/04/2001) */
-/* Last Updated:  Harold Park (05/29/2001) */
-/* The one with errors to show Patrick */
+/* Last Updated:  Harold Park (06/12/2001) */
 
 #ifndef _TEVP_2D_H_
 #define _TEVP_2D_H_
@@ -59,9 +58,9 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   
   /* accessor functions to be inlined - these should return the value from
    * the previous timestep */
-  const dMatrixT& GetDmat(void) const;     // Return the elastic modulus tensor
-  const dMatrixT& GetF(void) const;
-  const dMatrixT& GetD(void) const;
+  //const dMatrixT& GetDmat(void) const;     // Return the elastic modulus tensor
+  //const dMatrixT& GetF(void) const;
+  //const dMatrixT& GetD(void) const;
 
  private:
   /* computational functions */
@@ -94,9 +93,11 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
 
   /* Output values/internal variable functions below - these functions
    * should ONLY be called AFTER the stress and modulus have been computed */
-  double ComputeTemperature(const ElementCardT& element, int ip);
+  double ComputeFluidTemperature(void);
+  double ComputeViscoTemperature(void);
   double ComputeEffectiveStress(void);
-  double ComputeEffectiveStrain(const ElementCardT& element, int ip);
+  double ComputeFluidEffectiveStrain(void);
+  double ComputeViscoEffectiveStrain(void);
   void CheckCriticalStrain(const ElementCardT& element, int ip);
   int CheckIfPlastic(const ElementCardT& element, int ip);
   /* load element data for the specified integration point */

@@ -1,9 +1,7 @@
-/* $Id: tevp2D.cpp,v 1.13 2001-06-04 16:01:49 hspark Exp $ */
+/* $Id: tevp2D.cpp,v 1.14 2001-06-12 14:03:05 hspark Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (04/04/2001) */
-/* Last Updated:  Harold Park (05/29/2001) */
-/* The one with errors to show Patrick */
-
+/* Last Updated:  Harold Park (06/12/2001) */
 
 #include "tevp2D.h"
 #include <iostream.h>
@@ -200,42 +198,35 @@ const dSymMatrixT& tevp2D::s_ij(void)
     /* Allocate all state variable space on first timestep, ie time = 0 */
     int ip = CurrIP();
     ElementCardT& element = CurrentElement();
+
     /* load data */
     LoadData(element, ip);
+    iArrayT& flags = element.IntegerData();
     
-    CheckCriticalStrain(element, ip);
-    //cout << "Critical Strain Indicator = " << fCriticalStrain << '\n';
     int checkplastic = CheckIfPlastic(element, ip);
  
-    if (fCriticalStrain == kFluid) {
+    if (flags[ip + fNumIP] == kFluid) {
       /* Fluid model part - if critical strain criteria is exceeded */
       //cout << "Went fluid at time" << ContinuumElement().FEManager().StepNumber() << '\n';
       ComputeF();
       ComputeD();
-      //cout << "D = " << fDtot << '\n';
-      //cout << "F = " << fFtot << '\n';
       const double temp = fInternal[kTemp];   // Use the PREVIOUS temperature
-      //cout << "Temperature = " << temp << '\n';
       double cm = -Gamma_d * El_E * (1.0 - fJ + Alpha_T * (temp - Temp_0));
       cm /= (fJ * (1.0 - El_V));
-      //cout << "cm = " << cm << '\n';
+
       dMatrixT eye_cm(3), dtemp(3);
       eye_cm = 0.0;
       eye_cm.PlusIdentity(1.0);
-      //cout << "eye_cm = " << eye_cm << '\n';
       eye_cm *= cm;
-      //cout << "eye_cm = " << eye_cm << '\n';
       dtemp = fDtot;          // Memory copying, ie affecting fDtot?
-      //cout << "dtemp = " << dtemp << '\n';
       dtemp *= Mu_d;
-      //cout << "dtemp2 = " << dtemp << '\n';
       eye_cm += dtemp;
-      //cout << "eye_cm2 = " << eye_cm << '\n';
       fStress3D = Return3DStress(eye_cm);
       fTempKirchoff = MatrixToArray(fStress3D);
-      //cout << "fTempKirchoff = " << fTempKirchoff << '\n';
       fStress3D /= fJ;           // Return the Cauchy, NOT Kirchoff stress!!!
-      //cout << "fStress3D = " << fStress3D << '\n';
+      fInternal[kSb] = ComputeEffectiveStress();
+      fInternal[kTemp] = ComputeFluidTemperature();
+      fInternal[kEb] = ComputeFluidEffectiveStrain();
     }  
     else {
       /* Incremental stress update part - if critical strain criteria not
@@ -273,17 +264,15 @@ const dSymMatrixT& tevp2D::s_ij(void)
       fTempKirchoff = MatrixToArray(fStress3D);    // This is the Kirchoff stress
       
       fStress3D /= fJ;
-      //cout << "Visco stress = " << fStress3D << '\n';
+      fInternal[kSb] = ComputeEffectiveStress();
+      fInternal[kTemp] = ComputeViscoTemperature();
+      fInternal[kEb] = ComputeViscoEffectiveStrain();
     }
 
     fStress.ReduceFrom3D(fStress3D);     // Take only 2D stress components
     // STORE CAUCHY STRESS HERE (2D version)
     fTempCauchy = fStress;
-
-    /* Compute the state variables / output variables */
-    fInternal[kSb] = ComputeEffectiveStress();
-    fInternal[kTemp] = ComputeTemperature(element, ip);
-    fInternal[kEb] = ComputeEffectiveStrain(element, ip);
+    CheckCriticalStrain(element, ip);
   }
   else
   {
@@ -322,8 +311,6 @@ void tevp2D::ComputeOutput(dArrayT& output)
   output[0] = fInternal[kTemp];        // Temperature
   output[1] = fInternal[kEb];          // Effective strain
   output[2] = fInternal[kSb];          // Effective stress
-  cout << "fTemp = " << fInternal[kTemp] << '\n';
-  //cout << "fEff. Stress = " << fInternal[kSb] << '\n';
 }
 
 /*******************************************************************
@@ -369,76 +356,71 @@ double tevp2D::ComputeSpin(void)
   return fSpin;
 }
 
-double tevp2D::ComputeTemperature(const ElementCardT& element, int ip)
+double tevp2D::ComputeFluidTemperature(void)
 {
   /* Compute the output temperature - 2 different methods of computing, 
    * which depends upon whether fluid model was used or not */
 
-  /* First check to see if critical strain criteria is met */
   const double temp_last = fInternal[kTemp];
 
-  if (fCriticalStrain == kFluid) {
   /* Case where fluid model was used */
-    dMatrixT temp_stress(3); 
-    temp_stress = ArrayToMatrix(fTempKirchoff);
-    //cout << "temp_stress = " << temp_stress << '\n';
-    double wpdot = temp_stress(0,0) * fDtot(0,0) + temp_stress(1,1) * fDtot(1,1) + 2.0 * Mu_d * fDtot(0,1) * fDtot(0,1);
-    double temp_rate = Chi * Xi * wpdot;
-    //cout << "temp_rate = " << temp_rate << '\n';
-    fTemperature = temp_rate * fDt + temp_last;
-    if (temp_rate < 0.0)
-      cout << "NEGATIVE TEMPERATURE RATE:  FLUID" << '\n';
-    fInternal[kTemp] = fTemperature;
-  }
-  else {
-  /* Case where fluid model was not used - viscoplasticity */
-    double sb = fInternal[kSb];
-    //cout << "Visco sb = " << sb << '\n';
-    double temp_rate = Chi * Xi * fEbtot * sb;
-    //cout << "Visco temp_rate = " << temp_rate << '\n';
-    //cout << "temp_last = " << temp_last << '\n';
-    fTemperature = temp_rate * fDt + temp_last;
-    if (temp_rate < 0.0)
-      cout << "NEGATIVE TEMPERATURE RATE:  VISCO" << '\n';
-    fInternal[kTemp] = fTemperature;
-  }
+  dMatrixT temp_stress(3); 
+  temp_stress = ArrayToMatrix(fTempKirchoff);
+  double wpdot = temp_stress(0,0) * fDtot(0,0) + temp_stress(1,1) * fDtot(1,1) + 2.0 * Mu_d * fDtot(0,1) * fDtot(0,1);
+  double temp_rate = Chi * Xi * wpdot;
+  fTemperature = temp_rate * fDt + temp_last;
+
+  if (temp_rate < 0.0)
+    cout << "NEGATIVE TEMPERATURE RATE:  FLUID" << '\n';
   if (fTemperature < 293.0)
-    cout << "TEMPERATURE < 293K!!!" << '\n';
+    cout << "TEMPERATURE < 293K!!! - FLUID" << '\n';
+  //fInternal[kTemp] = fTemperature;
   return fTemperature;
 }
 
-double tevp2D::ComputeEffectiveStrain(const ElementCardT& element, int ip)
+double tevp2D::ComputeViscoTemperature(void)
+{
+  /* Case where fluid model was not used - viscoplasticity */
+  const double sb = fInternal[kSb];
+  const double temp_last = fInternal[kTemp];
+  double temp_rate = Chi * Xi * fEbtot * sb;
+  fTemperature = temp_rate * fDt + temp_last;
+  if (temp_rate < 0.0)
+    cout << "NEGATIVE TEMPERATURE RATE:  VISCO" << '\n';
+  //fInternal[kTemp] = fTemperature;
+ 
+  if (fTemperature < 293.0)
+    cout << "TEMPERATURE < 293K!!! - VISCO" << '\n';
+  return fTemperature;
+}
+
+double tevp2D::ComputeFluidEffectiveStrain(void)
 {
   /* Computes the effective strain - 2 different methods of computing,
    * which depends upon whether fluid model was used or not */
-
-  /* First check to see if critical strain criteria is met */
   const double eb_last = fInternal[kEb];
+  double temp1 = fDtot(0,0) * fDtot(0,0);
+  double temp2 = fDtot(1,1) * fDtot(1,1);
+  double temp3 = fDtot(0,1) * fDtot(0,1);
+  //double ebar = 2.0 * (temp1 + temp2) / 3.0 + 2.0 * temp3;  
+  double ebar = 1.5 * (temp1 + temp2) + 2.0 * temp3;
+  ebar = sqrt(ebar);
+  fEb = ebar * fDt + eb_last;
+  //fInternal[kEb] = fEb;
+  return fEb;
+}
 
-  if (fCriticalStrain == kFluid) {
-  /* If fluid model is used (ie shear band has formed) */
-    double temp1 = fDtot(0,0) * fDtot(0,0);
-    double temp2 = fDtot(1,1) * fDtot(1,1);
-    double temp3 = fDtot(0,1) * fDtot(0,1);
-    //double ebar = 2.0 * (temp1 + temp2) / 3.0 + 2.0 * temp3;  
-    double ebar = 1.5 * (temp1 + temp2) + 2.0 * temp3;
-    ebar = sqrt(ebar);
-    fEb = ebar * fDt + eb_last;
-    if (ebar < 0.0)
-      cout << "NEGATIVE EFFECTIVE STRAIN RATE:  FLUID" << '\n';
-    fInternal[kEb] = fEb;
-  }
-  else {
+double tevp2D::ComputeViscoEffectiveStrain(void)
+{
   /* If fluid model / critical strain is not used */
-    double ecc = ComputeEcc();
+  const double eb_last = fInternal[kEb];
+  double ecc = ComputeEcc();
+  
+  /* access necessary data */
+  double ebtot_c = fEbtot / (1.0 + fXxii) + fCtcon * ecc;
+  fEb = eb_last + fDt * ebtot_c;
+  //fInternal[kEb] = fEb;
 
-    /* access necessary data */
-    double ebtot_c = fEbtot / (1.0 + fXxii) + fCtcon * ecc;
-    fEb = eb_last + fDt * ebtot_c;
-    fInternal[kEb] = fEb;
-  }
-  if (fEb < 0.0)
-    cout << "TOTAL NEGATIVE EFFECTIVE STRAIN" << '\n';
   return fEb;
 }
 
@@ -454,7 +436,7 @@ double tevp2D::ComputeEffectiveStress(void)
   double temp3 = pow(temp_stress(2,2) - trace, 2);
   fSb = 1.5 * (temp1 + temp2 + temp3) + 3.0 * pow(temp_stress(0,1), 2);
   fSb = sqrt(fSb);
-  fInternal[kSb] = fSb;
+  //fInternal[kSb] = fSb;
   return fSb;
 }
 
@@ -463,10 +445,11 @@ void tevp2D::CheckCriticalStrain(const ElementCardT& element, int ip)
   /* Returns an indicator to determine whether critical strain criteria
    * has been met, and switch to fluid model happens next time step */
   iArrayT& flags = element.IntegerData();
-  int* critstrain = &fCriticalStrain;
+  int* criticalstrain = &fCriticalStrain;
+
   /* if already fluid, no need to check criterion */
   if (flags[ip + fNumIP] == kFluid)
-    *critstrain = 1;
+    *criticalstrain = 1;
   else
   {  
     const double eb = fInternal[kEb];
@@ -475,12 +458,12 @@ void tevp2D::CheckCriticalStrain(const ElementCardT& element, int ip)
     if (eb >= ebar_cr)
     {
       flags[ip + fNumIP] = kFluid;
-      *critstrain = 1;        // Indicator to switch to fluid model
+      *criticalstrain = 1;        // Indicator to switch to fluid model
     }
     else
     {
       flags[ip + fNumIP] = kTevp; 
-      *critstrain = 0;
+      *criticalstrain = 0;
     }
   } 
 }
@@ -492,7 +475,7 @@ void tevp2D::ComputeEbtotCtconXxii(void)
   double* ctcon = &fCtcon;
   double* xxii = &fXxii;
   double* ebtot = &fEbtot;
-  double sb = fInternal[kSb];
+  const double sb = fInternal[kSb];
                               
   if (sb <= kYieldTol)
   {
@@ -528,7 +511,7 @@ void tevp2D::ComputeSmlp(void)
   /* compute the deviatoric Kirchoff stress */
   fSmlp = 0.0;
   dArrayT* smlp = &fSmlp;
-  double sb = fInternal[kSb];
+  const double sb = fInternal[kSb];
   if (sb <= kYieldTol) 
     *smlp = 0.0;
   else
