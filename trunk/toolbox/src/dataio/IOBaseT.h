@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.h,v 1.2 2001-06-14 12:55:10 sawimme Exp $ */
+/* $Id: IOBaseT.h,v 1.3 2001-09-04 14:48:25 sawimme Exp $ */
 /* created: sawimme (09/28/1999)                                          */
 /* Base class for InputBaseT and OutputBaseT                              */
 
@@ -39,7 +39,8 @@ public:
 	static FileTypeT int_to_FileTypeT(int i);
 	friend istream& operator>>(istream& in, IOBaseT::FileTypeT& file_type);
 
-	void PrintFormat (ostream &log) const;
+	void InputFormats (ostream &log) const;
+	void OutputFormats (ostream &log) const;
 
 protected:
 
