@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.1.4.7 2004-06-16 07:14:15 paklein Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.1.4.8 2004-06-16 18:42:02 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -578,7 +578,7 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& sub, ParameterListT::List
 #endif
 
 #ifdef CAUCHY_BORN_MATERIAL
-		sub_sub_list.AddSub("EAM_FCC_3D");
+		sub_sub_list.AddSub("FCC_EAM");
 #endif
 	}
 	else /* inherited */
@@ -650,7 +650,7 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #endif
 
 #ifdef CAUCHY_BORN_MATERIAL
-	else if (name == "EAM_FCC_3D")
+	else if (name == "FCC_EAM")
 		mat = new EAMFCC3DMatT;
 #endif
 
