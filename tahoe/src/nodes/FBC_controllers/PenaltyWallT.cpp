@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.11 2003-10-04 19:14:05 paklein Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.11.12.1 2004-03-27 04:17:10 paklein Exp $ */
 /* created: paklein (02/25/1997) */
 #include "PenaltyWallT.h"
 
@@ -12,6 +12,7 @@
 #include "eIntegratorT.h"
 #include "Vector3T.h"
 #include "ParameterUtils.h"
+#include "ParameterContainerT.h"
 
 using namespace Tahoe;
 
@@ -221,14 +222,36 @@ void PenaltyWallT::DefineSubs(SubListT& sub_list) const
 	PenaltyRegionT::DefineSubs(sub_list);
 	
 	/* normal to the wall */
-	sub_list.AddSub("normal");
+	sub_list.AddSub("normal_choice");
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* PenaltyWallT::NewSub(const StringT& list_name) const
 {
-	if (list_name == "normal")
-		return new DoubleListT("normal"); 
+	if (list_name == "normal_choice") {
+
+		ParameterContainerT* n_choice = new ParameterContainerT(list_name);
+		
+		/* by dimension */
+		n_choice->SetListOrder(ParameterListT::Choice);
+		n_choice->AddSub("Vector_2");
+		n_choice->AddSub("Vector_3");
+
+		return n_choice;	
+	}
 	else /* inherited */
 		return PenaltyRegionT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void PenaltyWallT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	PenaltyRegionT::TakeParameterList(list);
+
+	/* get normal */
+	int nsd = rCoords.MinorDim();
+	const char *n_names[] = {"", "", "Vector_2", "Vector_3"};
+	const ParameterListT& n_parameters = list.GetList(n_names[nsd]);
+	VectorParameterT::Extract(n_parameters, fnormal);
 }

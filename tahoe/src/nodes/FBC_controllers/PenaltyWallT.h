@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.h,v 1.9 2003-10-04 19:14:05 paklein Exp $ */
+/* $Id: PenaltyWallT.h,v 1.9.12.1 2004-03-27 04:17:29 paklein Exp $ */
 /* created: paklein (02/25/1997) */
 #ifndef _PENATLY_WALL_T_H_
 #define _PENATLY_WALL_T_H_
@@ -39,6 +39,9 @@ public:
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 private:
