@@ -1,12 +1,5 @@
-/* $Id: PartitionT.h,v 1.2 2001-07-09 17:21:39 paklein Exp $ */
-/* created: paklein (11/16/1999)                                          */
-/* graph partition information (following NEMESIS data model)             */
-/* class generates complete decomposition information using               */
-/* a node-to-partition map and a graph. initialization is in              */
-/* 3 stages:                                                              */
-/* (1) Set(,,) to set internal nodal data                                 */
-/* (2) [cross-link] to complete communication maps                        */
-/* (3) [tolocal] to convert to partition-local numbering                  */
+/* $Id: PartitionT.h,v 1.3 2002-01-07 20:38:06 paklein Exp $ */
+/* created: paklein (11/16/1999) */
 
 #ifndef _PARTITION_T_H_
 #define _PARTITION_T_H_
@@ -22,6 +15,13 @@ class ifstreamT;
 class StringT;
 template <class TYPE> class RaggedArray2DT;
 
+/** graph partition information (following NEMESIS data model)
+ * class generates complete decomposition information using
+ * a node-to-partition map and a graph. initialization is in
+ * 3 stages:\n
+ * (1) Set(,,) to set internal nodal data\n
+ * (2) [cross-link] to complete communication maps\n
+ * (3) [tolocal] to convert to partition-local numbering */
 class PartitionT
 {
 public:
