@@ -1,9 +1,10 @@
 @
-# $Id: run.batch,v 1.6 2004-09-01 10:47:55 paklein Exp $
+# $Id: run.batch,v 1.7 2004-09-09 16:27:03 paklein Exp $
 force.controller/run.batch
 contact_simple/run.batch
 torsion/run.batch 
 K.field/run.batch
 thermostats/run.batch
 tied/run.batch
+conveyor/run.batch
 
