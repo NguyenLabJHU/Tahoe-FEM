@@ -1,43 +1,83 @@
-/* $Id: PeriodicNodesT.cpp,v 1.5 2004-07-15 08:31:21 paklein Exp $ */
+/* $Id: PeriodicNodesT.cpp,v 1.6 2004-09-01 10:46:27 paklein Exp $ */
 #include "PeriodicNodesT.h"
-
 #include "BasicSupportT.h"
-#include "ifstreamT.h"
+#include "ParameterContainerT.h"
 
 using namespace Tahoe;
 
 /* constructor */
 PeriodicNodesT::PeriodicNodesT(const BasicSupportT& support, BasicFieldT& field):
-	TiedNodesT(support, field),
-	fIsPeriodic(fSupport.NumSD()),
-	fPeriodicStride(fSupport.NumSD())
+	TiedNodesT(support, field)
 {
+	SetName("periodic_nodes");
+}
+
+/* information about subordinate parameter lists */
+void PeriodicNodesT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	TiedNodesT::DefineSubs(sub_list);
+
+	/* periodic strides */
+	sub_list.AddSub("periodic_stride", ParameterListT::OnePlus);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* PeriodicNodesT::NewSub(const StringT& name) const
+{
+	if (name == "periodic_stride")
+	{
+		ParameterContainerT* periodic_stride = new ParameterContainerT(name);
+	
+		periodic_stride->AddParameter(ParameterT::Integer, "direction");
+
+		ParameterT stride(ParameterT::Double, "stride");
+		stride.AddLimit(0.0, LimitT::Lower);
+		periodic_stride->AddParameter(stride);
+	
+		return periodic_stride;
+	}
+	else /* inherited */
+		return TiedNodesT::NewSub(name);
+}
+
+/* accept parameter list */
+void PeriodicNodesT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "PeriodicNodesT::TakeParameterList";
+
+	/* extract periodic strides before calling inherited method */
+	int nsd = fSupport.NumSD();
+	fIsPeriodic.Dimension(nsd);
+	fPeriodicStride.Dimension(nsd);
 	fIsPeriodic = false;
 	fPeriodicStride = 0.0;
+	int num_stride = list.NumLists("periodic_stride");
+	if (num_stride > nsd) 
+		ExceptionT::GeneralFail(caller, "expecting at most %d not %d \"periodic_stride\"",
+			nsd, num_stride);
+	for (int i = 0; i < num_stride; i++)
+	{
+		const ParameterListT& periodic_stride = list.GetList("periodic_stride", i);
+		
+		/* extract direction */
+		int direction = periodic_stride.GetParameter("direction"); direction--;
+		if (direction < 0 || direction >= nsd)
+			ExceptionT::GeneralFail(caller, "direction %d out of range {1,%d}",
+				direction+1, nsd);
+		
+		/* store */
+		fIsPeriodic[direction] = true;
+		fPeriodicStride[direction] = periodic_stride.GetParameter("stride");
+	}
+	
+	/* inherited */
+	TiedNodesT::TakeParameterList(list);
 }
 
 /**********************************************************************
  * Protected
  **********************************************************************/
-
-void PeriodicNodesT::ReadParameters(ifstreamT& in)
-{
-	/* inherited */
-	TiedNodesT::ReadParameters(in);
-	
-	/* periodic information */
-	for (int i = 0; i < fIsPeriodic.Length(); i++)
-	{
-		int tf;
-		double s;
-		in >> tf >> s;
-		if (tf == 1) {
-			fPeriodicStride[i] = s;
-			fIsPeriodic[i] = true;
-			if (fPeriodicStride[i] < kSmall) throw ExceptionT::kBadInputValue;
-		}
-	}
-}
 
 /* set initial tied node pairs */
 void PeriodicNodesT::InitTiedNodePairs(const iArrayT& leader_nodes, 

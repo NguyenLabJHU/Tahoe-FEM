@@ -1,4 +1,4 @@
-/* $Id: PeriodicNodesT.h,v 1.3 2004-07-15 08:31:21 paklein Exp $ */
+/* $Id: PeriodicNodesT.h,v 1.4 2004-09-01 10:46:27 paklein Exp $ */
 #ifndef _PERIODIC_NODES_T_H_
 #define _PERIODIC_NODES_T_H_
 
@@ -22,13 +22,19 @@ public:
 	/** constructor */
 	PeriodicNodesT(const BasicSupportT& support, BasicFieldT& field);
 
-protected:
-
-	/** \name called by TiedNodesT::Initialize */
+	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	/** read class parameters. Called after nodes information is read.
-	 * Reads peridic boundary information. */
-	virtual void ReadParameters(ifstreamT& in);
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
+protected:
 
 	/** set initial tied node pairs. Initializes the data in TiedNodesT::fLeaderIds,
 	 * TiedNodesT::fFollowerIds, TiedNodesT::fNodePairs, and TiedNodesT::fPairStatus.
@@ -36,7 +42,6 @@ protected:
 	 * strides. The routine is based on TiedNodesT::InitTiedNodePairs. The follower
 	 * array may be resized during the operation. */
 	virtual void InitTiedNodePairs(const iArrayT& leader, iArrayT& follower);
-	/*@}*/
 
 protected:
 

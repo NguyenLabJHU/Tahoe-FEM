@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.27 2004-07-15 08:31:21 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.28 2004-09-01 10:46:27 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -6,6 +6,7 @@
 #include "BasicFieldT.h"
 #include "FEManagerT.h"
 #include "ElementsConfig.h"
+#include "ParameterUtils.h"
 
 #ifdef __DEVELOPMENT__
 #include "DevelopmentElementsConfig.h"
@@ -23,79 +24,8 @@ TiedNodesT::TiedNodesT(const BasicSupportT& support, BasicFieldT& field):
 	fField(field),
 	fDummySchedule(1.0)
 {
-#ifndef COHESIVE_SURFACE_ELEMENT
-	ExceptionT::BadInputValue("TiedNodesT::TiedNodesT", "COHESIVE_SURFACE_ELEMENT not enabled");
-#endif
+	SetName("tied_nodes");
 }
-
-#if 0
-/* initialize data. Must be called immediately after construction */
-void TiedNodesT::Initialize(ifstreamT& in)
-{
-	/* read "leader" nodes */
-	iArrayT leader_nodes;
-	ReadNodes(in, fLeaderIds, leader_nodes);
-
-	/* read "follower" nodes */
-	iArrayT follower_nodes;
-	ReadNodes(in, fFollowerIds, follower_nodes);
-
-	/* echo "follower" has one "leader" */
-	fNodePairs.Dimension(follower_nodes.Length(), 2);
-	fNodePairs = -1;
-	fNodePairs.SetColumn(0, follower_nodes);
-	fPairStatus.Dimension(follower_nodes);
-	fPairStatus = kFree;
-	fPairStatus_last = fPairStatus;
-	
-	int tiedFlag;
-	in >> tiedFlag; 
-	if (tiedFlag)
-	{
-#ifdef COHESIVE_SURFACE_ELEMENT
-		qNoTiedPotential = false;
-		int nBulkGroups;
-    	in >> nBulkGroups; if (nBulkGroups != 1) throw ExceptionT::kBadInputValue;
-    	iElemGroups.Dimension(nBulkGroups);
-    	for (int i = 0; i < nBulkGroups; i++)
-    	{
-    		in >> iElemGroups[i]; 
-    		if (iElemGroups[i] < 0) throw ExceptionT::kBadInputValue;
-    		iElemGroups[i]--;
-    	}
-#else
-		ExceptionT::BadInputValue("TiedNodesT","Cohesive Surface Elements Not Defined");
-#endif
-	}
-	else
-		qNoTiedPotential = true;
-
-	/* read more parameters */
-	ReadParameters(in);
-	
-	/* initialize tied pairs */
-	InitTiedNodePairs(leader_nodes, follower_nodes);
-	
-	/* check */
-	int free_count = fPairStatus.Count(kFree);
-	if (free_count != 0) {
-		cout << "\n TiedNodesT::Initialize: " << free_count
-		     << " follower nodes without leaders" << endl;
-//		throw ExceptionT::kGeneralFail;
-//NOTE: for MP calculations, followers nodes that are external
-//      may not have their (external) leader nodes reproduced
-//      on this processor. Therefore, leader-less followers are
-//      not necessarily an error, though they should remain kFree
-//      and rely on other processors to enforce the tied constraint.
-//      Also, pairs that involve _only_ external nodes should be
-//      removed since any operations involving them on this
-//      processor are redundant.
-	}
-	
-	/* generate BC cards */
-	SetBCCards();
-}
-#endif
 
 /* initialize directly instead of using TiedNodesT::Initialize */
 void TiedNodesT::SetTiedPairs(iArrayT& follower, iArrayT& leader)
@@ -309,6 +239,93 @@ void TiedNodesT::WriteOutput(ostream& out) const
 	for (int i = 0; i < fNodePairs.MajorDim(); i++) 
        	    out <<i+1<<" "<<fNodePairs(i,1)+1<<" "<<fNodePairs(i,0)+1<<" "<< (fPairStatus[i] == kFree ? 0 : 1 )<<"\n";
 
+}
+
+/* describe the parameters needed by the interface */
+void TiedNodesT::DefineParameters(ParameterListT& list) const
+{
+	/* define parameters */
+	KBC_ControllerT::DefineParameters(list);
+
+	/* associated cohesive element group */
+	list.AddParameter(ParameterT::Integer, "cz_element_group", ParameterListT::ZeroOrOnce);
+}
+
+/* information about subordinate parameter lists */
+void TiedNodesT::DefineSubs(SubListT& sub_list) const
+{
+	/* define parameters */
+	KBC_ControllerT::DefineSubs(sub_list);
+
+	/* "leader" nodes */
+	sub_list.AddSub("leader_node_ID_list");
+
+	/* "followder" nodes */
+	sub_list.AddSub("follower_node_ID_list");
+}
+
+/* accept parameter list */
+void TiedNodesT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "TiedNodesT::TakeParameterList";
+
+	/* define parameters */
+	KBC_ControllerT::TakeParameterList(list);
+
+	/* associated cohesive element group */
+	const ParameterT* cz_group = list.Parameter("cz_element_group");
+	if (cz_group)
+	{
+#ifdef COHESIVE_SURFACE_ELEMENT
+		int group = *cz_group;
+		iElemGroups.Dimension(1);
+		iElemGroups[0] = --group;
+#else
+		ExceptionT::BadInputValue(caller, "cohesive surface elements required for \"cz_element_group\"");
+#endif /* COHESIVE_SURFACE_ELEMENT */
+	}	
+	else
+		qNoTiedPotential = true;
+
+	/* "leader" nodes */
+	StringListT::Extract(list.GetList("leader_node_ID_list"),  fLeaderIds);
+	iArrayT leader_nodes;
+	GetNodes(fLeaderIds, leader_nodes);
+
+	/* "follower" nodes */
+	StringListT::Extract(list.GetList("follower_node_ID_list"),  fFollowerIds);
+	iArrayT follower_nodes;
+	GetNodes(fFollowerIds, follower_nodes);
+
+	/* each "follower" has one "leader" */
+	fNodePairs.Dimension(follower_nodes.Length(), 2);
+	fNodePairs = -1;
+	fNodePairs.SetColumn(0, follower_nodes);
+	fPairStatus.Dimension(follower_nodes);
+	fPairStatus = kFree;
+	fPairStatus_last = fPairStatus;
+
+	/* initialize tied pairs */
+	InitTiedNodePairs(leader_nodes, follower_nodes);
+	
+	/* check */
+	int free_count = fPairStatus.Count(kFree);
+	if (free_count != 0) {
+		cout << "\n TiedNodesT::Initialize: " << free_count
+		     << " follower nodes without leaders" << endl;
+//		throw ExceptionT::kGeneralFail;
+//NOTE: for MP calculations, followers nodes that are external
+//      may not have their (external) leader nodes reproduced
+//      on this processor. Therefore, leader-less followers are
+//      not necessarily an error, though they should remain kFree
+//      and rely on other processors to enforce the tied constraint.
+//      Also, pairs that involve _only_ external nodes should be
+//      removed since any operations involving them on this
+//      processor are redundant.
+	}
+	
+	/* generate BC cards */
+	SetBCCards();
 }
 
 /**********************************************************************
