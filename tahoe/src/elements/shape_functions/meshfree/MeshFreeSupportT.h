@@ -1,11 +1,11 @@
-/* $Id: MeshFreeSupportT.h,v 1.11 2004-02-10 01:27:38 cjkimme Exp $ */
-/* created: paklein (09/07/1998)                                          */
-
+/* $Id: MeshFreeSupportT.h,v 1.11.14.1 2004-04-28 15:43:25 paklein Exp $ */
+/* created: paklein (09/07/1998) */
 #ifndef _MF_SUPPORT_T_H_
 #define _MF_SUPPORT_T_H_
 
-/* base class */
+/* base classes */
 #include "MeshFreeT.h"
+#include "ParameterInterfaceT.h"
 
 /* direct members */
 #include "iArrayT.h"
@@ -51,7 +51,7 @@ class iNodeT;
  * grows, although new LHS matrices should be computed. In order for
  * the global equation matrix to change fnNeighborData and would need to be 
  * recomputed. */
-class MeshFreeSupportT: public MeshFreeT
+class MeshFreeSupportT: public MeshFreeT, public ParameterInterfaceT
 {
 public:
 
@@ -237,6 +237,21 @@ private:
 	/* swap data */
 	void SwapData(const iArrayT& counts, iArray2DT** pfrom, iArray2DT** pto);
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/* common meshfree parameters */
@@ -249,7 +264,7 @@ protected:
 	const dArray2DT* fCutCoords;
 
 	/* nodal coordinates */
-	const dArray2DT& fCoords;
+	const dArray2DT* fCoords;
 
 	/* parent integration domain and its data */
 	const ParentDomainT* fDomain;
@@ -326,7 +341,10 @@ inline const iArrayT& MeshFreeSupportT::NodesUsed(void) const { return fNodesUse
 
 inline const iArrayT& MeshFreeSupportT::SkipNodes(void) const { return fSkipNode; }
 inline const iArrayT& MeshFreeSupportT::SkipElements(void) const { return fSkipElement; }
-inline const dArray2DT& MeshFreeSupportT::NodalCoordinates(void) const { return fCoords; }
+inline const dArray2DT& MeshFreeSupportT::NodalCoordinates(void) const { 
+	if (!fCoords) ExceptionT::GeneralFail("MeshFreeSupportT::NodalCoordinates", "coordinates not set");
+	return *fCoords; 
+}
 inline const ArrayT<int>& MeshFreeSupportT::NeighborsAt(void) const { return fneighbors; }
 
 inline const ArrayT<int>& MeshFreeSupportT::ResetNodes(void) const { return fResetNodes; }
