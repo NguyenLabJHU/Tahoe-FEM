@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.19 2002-08-21 16:07:22 cjkimme Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.20 2002-08-21 22:32:11 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -987,12 +987,13 @@ void FEManagerT_mpi::DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph,
 	AutoArrayT<const iArray2DT*> connects_1;
 	AutoArrayT<const RaggedArray2DT<int>*> connects_2;
 
+	/* collect connectivies from all solver groups */
+	for (int i = 0; i < NumGroups(); i++)
+		fNodeManager->ConnectsU(i,connects_1,connects_2);
+
 	/* collect element groups */
 	for (int s = 0 ; s < fElementGroups.Length(); s++)
-	{
-		fElementGroups[s]->ConnectsU(connects_1, connects_2);		
-		fNodeManager->ConnectsU(s,connects_1,connects_2);
-	}
+		fElementGroups[s]->ConnectsU(connects_1, connects_2);
 
 	/* initialize graph */
 	GraphT& graphU = graph;
