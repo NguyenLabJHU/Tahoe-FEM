@@ -1,4 +1,4 @@
-# $Id: tahoe.extras,v 1.14 2004-07-22 08:58:46 paklein Exp $
+# $Id: tahoe.extras,v 1.15 2004-07-27 16:58:55 paklein Exp $
 #
 # additional make commands for the tahoe module
 #
@@ -24,6 +24,7 @@ touch_spooles:
 	- $(RM) $(BLD_SRC_DIR)/solvers/SolverT.o
 	- $(RM) $(BLD_SRC_DIR)/solvers/NLSolver.o
 	- $(RM) $(BLD_SRC_DIR)/primitives/globalmatrix/SPOOLES/*.o
+	- $(RM) $(BLD_SRC_DIR)/main/FEManagerT_bridging_*.o
 
 touch_Aztec:
 	@ $(PRINTF) "removing object files depending on Aztec\n"
