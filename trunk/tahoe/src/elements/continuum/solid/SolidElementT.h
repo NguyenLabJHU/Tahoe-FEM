@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.9 2002-05-03 23:38:45 cjkimme Exp $ */
+/* $Id: SolidElementT.h,v 1.10 2002-05-14 23:05:56 cjkimme Exp $ */
 /* created: paklein (05/28/1996) */
 
 #ifndef _ELASTIC_T_H_
@@ -157,8 +157,8 @@ protected:
 	static const int NumNodalOutputCodes;
 	static const int NumElementOutputCodes;
 
-	/* flag for Simo smoothing */
-	bool qUseSimo;
+	/* flags for stress smoothing */
+	bool qUseSimo, qNoExtrap;
 };
 
 /* accessors */

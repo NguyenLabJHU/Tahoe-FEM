@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.22 2002-05-03 23:38:45 cjkimme Exp $ */
+/* $Id: SolidElementT.cpp,v 1.23 2002-05-14 23:05:56 cjkimme Exp $ */
 /* created: paklein (05/28/1996) */
 
 #include "SolidElementT.h"
@@ -352,20 +352,23 @@ void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 	/* allocate nodal output codes */
 	fNodalOutputCodes.Allocate(NumNodalOutputCodes);
 
-	/*Initialize Simo smoothing flag */
-	qUseSimo = false;
-	/* done */
+	/*Initialize smoothing flags */
+	qUseSimo = qNoExtrap = false;
 
 	/* read in at a time to allow comments */
 	for (int i = 0; i < fNodalOutputCodes.Length(); i++)
 	{
 		in >> fNodalOutputCodes[i];
 		
-		/*Set Simo smoothing flag before it's too late */
-		if (fNodalOutputCodes[i] == 2)
+		/*Set stress smoothing flags before it's too late */
+		if (fNodalOutputCodes[i] == 3)
 	 	{
-		  qUseSimo = true;
+		  qUseSimo = qNoExtrap = true;
 		}
+		else if (fNodalOutputCodes[i] == 2)
+		  qNoExtrap = true;
+		  
+		
 		/*that's all */
 
 		/* convert all to "at print increment" */
@@ -1046,8 +1049,10 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			/* element integration weight */
 			double ip_w = (*j++)*(*w++);
 			dArray2DT Na_X_ip_w;
-			if (qUseSimo)
+			if (qUseSimo || qNoExtrap)
 			{
+			  if (qUseSimo)
+			    {
 				const double* Na_X = fShapes->IPShapeX();
 				Na_X_ip_w.Allocate(fNumElemNodes,1);
 				Na_X_ip_w = ip_w;
@@ -1056,6 +1061,10 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					Na_X_ip_w(k,0) *= *Na_X++;
 				}
 				simoNa_bar += Na_X_ip_w;
+			    }
+			  else
+			    for (int k = 0; k < fNumElemNodes;k++)
+				Na_X_ip_w(k,0) = 1.;
 			}
 		
 			/* get Cauchy stress */
@@ -1064,7 +1073,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			/* stresses */
 			if (n_codes[iNodalStress])
 			{	
-				if (qUseSimo)
+				if (qNoExtrap)
 					for (int k = 0;k<fNumElemNodes;k++)
 						nodalstress.AddToRowScaled(k,Na_X_ip_w(k,0),cauchy);
 				else
@@ -1078,7 +1087,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			{
 				/* acoustic wave speeds */
 				fCurrMaterial->WaveSpeeds(fNormal, ipspeed);
-				if (qUseSimo)
+				if (qNoExtrap)
 					for (int k = 0;k<fNumElemNodes;k++)
 						speed.AddToRowScaled(k,Na_X_ip_w(k,0),ipspeed);
 				else
@@ -1090,7 +1099,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			{
 				/* compute eigenvalues */
 				cauchy.PrincipalValues(ipprincipal);
-				if (qUseSimo)
+				if (qNoExtrap)
 					for (int k = 0;k<fNumElemNodes;k++)
 						princstress.AddToRowScaled(k,Na_X_ip_w(k,0),ipprincipal);
 				else
@@ -1106,8 +1115,8 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				if (n_codes[iEnergyDensity])
 				{
 					ipenergy[0] = ip_strain_energy;
-					if (qUseSimo)
-					for (int k = 0;k<fNumElemNodes;k++)
+					if (qNoExtrap)
+					  for (int k = 0;k<fNumElemNodes;k++)
 						energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy);
 					else
 						fShapes->Extrapolate(ipenergy,energy);
@@ -1127,7 +1136,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				/* store nodal data */
 				if (n_codes[iMaterialData])
 				{
-					if (qUseSimo)
+					if (qNoExtrap)
 						for (int k = 0;k<fNumElemNodes;k++)
 							matdat.AddToRowScaled(k,Na_X_ip_w(k,0),ipmat);
 					else 
@@ -1178,6 +1187,15 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
 		if (!qUseSimo)
 		{
+		  if (qNoExtrap)
+		    {
+		      double nip(fShapes->NumIP());
+		      nodalstress /= nip;
+		      princstress /= nip;
+		      energy /= nip;
+		      speed /= nip;
+		      matdat /= nip;
+		    }
 			nodal_all.BlockColumnCopyAt(nodalstress, colcount); colcount += nodalstress.MinorDim();
 			nodal_all.BlockColumnCopyAt(princstress, colcount); colcount += princstress.MinorDim();
 			nodal_all.BlockColumnCopyAt(energy     , colcount); colcount += energy.MinorDim();
