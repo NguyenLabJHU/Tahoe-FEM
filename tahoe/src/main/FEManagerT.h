@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.41.16.1 2004-04-24 19:57:41 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.41.16.2 2004-05-13 20:41:40 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -162,8 +162,8 @@ public:
 	/** \name time */
 	/*@{*/
 	/* load control functions (returns true if successful) */
-	bool DecreaseLoadStep(void);
-	bool IncreaseLoadStep(void);
+	virtual bool DecreaseLoadStep(void);
+	virtual bool IncreaseLoadStep(void);
 	
 	/* solution accessors */
 	const double& Time(void) const;

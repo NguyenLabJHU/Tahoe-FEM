@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.9.16.2 2004-04-28 05:33:26 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.9.16.3 2004-05-13 20:41:40 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -235,8 +235,19 @@ ExceptionT::CodeT MultiManagerT::CloseStep(void)
 /* called for all groups if the solution procedure for any group fails */
 ExceptionT::CodeT MultiManagerT::ResetStep(void)
 {
-	ExceptionT::GeneralFail("MultiManagerT::ResetStep", "not implemented");
-	return ExceptionT::kNoError;
+	ExceptionT::CodeT error = ExceptionT::kNoError;
+	if (error == ExceptionT::kNoError) 
+		error = fFine->ResetStep();
+	if (error == ExceptionT::kNoError) 
+		error = fCoarse->ResetStep();
+
+	/* loop over solvers only */
+	for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
+		fSolvers[fCurrentGroup]->ResetStep();
+	fCurrentGroup = -1;
+
+	/* OK */
+	return error;
 }
 
 /* compute LHS-side matrix and assemble to solver */
@@ -461,8 +472,16 @@ void MultiManagerT::WriteOutput(double time)
 	if (fDivertOutput) {
 		fFine->WriteOutput(time);
 		fCoarse->WriteOutput(time);
-	}
-	
+	}	
 }
+
+bool MultiManagerT::DecreaseLoadStep(void) {
+	return fCoarse->DecreaseLoadStep() && fFine->DecreaseLoadStep();
+}
+
+bool MultiManagerT::IncreaseLoadStep(void) {
+	return fCoarse->IncreaseLoadStep() && fFine->IncreaseLoadStep();
+}
+
 
 #endif /* BRIDGING_ELEMENT */

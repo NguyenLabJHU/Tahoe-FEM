@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.h,v 1.3.28.1 2004-04-24 19:57:41 paklein Exp $ */
+/* $Id: MultiManagerT.h,v 1.3.28.2 2004-05-13 20:41:40 paklein Exp $ */
 #ifndef _MULTI_MANAGER_H_
 #define _MULTI_MANAGER_H_
 
@@ -69,6 +69,12 @@ public:
 
 	/** restore outputs to their regular destinations */
 	virtual void RestoreOutput(void);
+	/*@}*/
+
+	/** \name load control functions (returns true if successful) */
+	/*@{*/
+	virtual bool DecreaseLoadStep(void);
+	virtual bool IncreaseLoadStep(void);
 	/*@}*/
 
 private:
