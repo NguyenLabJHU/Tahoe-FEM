@@ -1,6 +1,9 @@
-/* $Id: DPPrimitiveT.h,v 1.4 2001-07-11 22:02:33 paklein Exp $ */
-/* created: myip (06/01/1999)                                             */
-/* Base class for a pressure dependent plastic material                   */
+/* $Id: DPPrimitiveT.h,v 1.5 2001-07-13 23:15:06 cfoster Exp $ */
+/* created: myip (06/01/1999)                                      */
+/*
+ * Base class for Drucker-Prager, nonassociative, small-strain,
+ * pressure dependent plastic model with linear isotropic hardening
+ */
 
 #ifndef _DP_PRIMITIVET_H_
 #define _DP_PRIMITIVET_H_
@@ -15,7 +18,7 @@ class dSymMatrixT;
 
 class DPPrimitiveT
 {
-public:
+  public:
 
 	/* constructor */
 	DPPrimitiveT(ifstreamT& in);
@@ -24,30 +27,26 @@ public:
 	virtual ~DPPrimitiveT(void);
 
 	/* write parameters to stream */
-	virtual void Print(ostream& out) const;
+   	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
 	
-protected:
+  protected:
 
-	/*
-	 * Returns the value value of the yield function given the
-	 * Cauchy stress vector and state variables, where alpha_dev and
-	 * alpha_vol are the deviatoric and volumetric part of internal
-	 * variables, respectively.
-	 */
-	double YieldCondition(const dSymMatrixT& devstress, const double meanstress,
-			      double alpha_dev, double alpha_vol) const; //**mien**//
+  	/*
+  	 * Returns the value of the yield function given the
+  	 * Cauchy stress vector and state variables, where alpha is
+  	 * the deviatoric stress-like internal state variable
+  	 */
+  	double YieldCondition(const dSymMatrixT& devstress, 
+			      const double meanstress, double alpha) const;
 
-protected:
+  protected:
 	
-	double falpha_bar;  /* cohesion-like strength parameter (falpha_bar >= 0.0) */
-	double ffriction;   /* friction-like parameter (ffriction >= 0.0) */
-	double fdilation;   /* dilation-like parameter (fdilation >= 0.0) */
-	double fH_prime;    /* Deviatoric hardening parameter */
-	double fK_prime;    /* Volumetric hardening parameter */
-//	double fH_delta;    /* Localized deviatoric hardening parameter (fH_delta < 0.0) */
-//	double fK_delta;    /* Localized volumetric hardening parameter (fK_delta < 0.0) */
-//NOTE: this parameters are not used in the current implementation
+  double falpha_bar; /* cohesion-like strength parameter (falpha_bar >= 0.0) */
+  double ffriction;  /* friction-like parameter (ffriction >= 0.0) */
+  double fdilation;  /* dilation-like parameter (fdilation >= 0.0) */
+  double fH_prime;   /* Deviatoric hardening parameter */
+  double fH_delta;   /* Localized deviatoric hardening parameter (fH_delta < 0.0) */
 };
 
 #endif /* _DP_PRIMITIVET_H_ */

@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV2D.cpp,v 1.4 2001-07-11 22:02:34 paklein Exp $ */
+/* $Id: DPSSKStV2D.cpp,v 1.5 2001-07-13 23:14:13 cfoster Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 #include "DPSSKStV2D.h"
@@ -25,7 +25,7 @@ void DPSSKStV2D::Initialize(void)
 }
 
 /* returns elastic strain (3D) */
-const dSymMatrixT& DPSSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain,
+const dSymMatrixT& DPSSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain, 
 	const ElementCardT& element, int ip)
 {
 	/* 2D -> 3D (plane strain) */
@@ -33,6 +33,7 @@ const dSymMatrixT& DPSSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain,
 
 	/* inherited */
 	return DPSSKStV::ElasticStrain(fTotalStrain3D, element, ip);
+
 }
 
 /* print parameters */
@@ -65,7 +66,7 @@ const dSymMatrixT& DPSSKStV2D::s_ij(void)
 {
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(DPSSKStV::s_ij());
-	fStress2D *= fThickness;
+	fStress2D *= fThickness;  
 	return fStress2D;
 }
 
