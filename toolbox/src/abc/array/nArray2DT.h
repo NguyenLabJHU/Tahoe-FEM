@@ -1,12 +1,10 @@
-/* $Id: nArray2DT.h,v 1.17 2003-02-12 02:47:18 paklein Exp $ */
+/* $Id: nArray2DT.h,v 1.18 2003-09-04 23:55:24 paklein Exp $ */
 /* created: paklein (07/09/1996) */
-
 #ifndef _NARRAY2D_T_H_
 #define _NARRAY2D_T_H_
 
 /* base class */
 #include "nArrayT.h"
-
 
 namespace Tahoe {
 
@@ -16,16 +14,22 @@ class nArray2DT: public nArrayT<nTYPE>
 {
 public:
 
-	/* constructors */
+	/** constructors */
 	nArray2DT(void);
 	nArray2DT(int majordim, int minordim);
 	nArray2DT(int majordim, int minordim, nTYPE* MATHTYPEPtr);
 	nArray2DT(const nArray2DT& source);
 
-	/* destructors */
+	/** destructors */
 	~nArray2DT(void);
 
-	/* set fields - convert to shallow object */
+	/** \name convert to a shallow object */
+	/*@{*/
+	void Alias(int majordim, int minordim, nTYPE* MATHTYPEPtr);
+	void Alias(const nArray2DT& RHS);
+	/*@}*/
+	
+	/** \deprecated replaced by nArray2DT::Alias on 09/04/2003 */	
 	void Set(int majordim, int minordim, nTYPE* MATHTYPEPtr);
 
 	/** set the array size to the given dimensions. No change occurs if the array
@@ -61,7 +65,6 @@ public:
 	/* copy/assignment operators - by a scalar or element by element */
 	nArray2DT<nTYPE>& operator=(const nArray2DT& RHS);
 	nArray2DT<nTYPE>& operator=(const nTYPE& value);
-	void Alias(const nArray2DT& RHS);
 	
 	/** exchange data */
 	void Swap(nArray2DT<nTYPE>& source);
@@ -249,15 +252,31 @@ inline nArray2DT<nTYPE>::~nArray2DT(void)
 
 /* set fields - convert to shallow object */
 template <class nTYPE>
-inline void nArray2DT<nTYPE>::Set(int majordim, int minordim,
-	nTYPE* MATHTYPEPtr)
+inline void nArray2DT<nTYPE>::Alias(int majordim, int minordim, nTYPE* MATHTYPEPtr)
 {
 	/* inherited */
-	nArrayT<nTYPE>::Set(majordim*minordim,MATHTYPEPtr);
+	nArrayT<nTYPE>::Alias(majordim*minordim, MATHTYPEPtr);
 
 	/* set dimensions */
 	fMajorDim = majordim;
 	fMinorDim = minordim;
+}
+
+template <class nTYPE>
+inline void nArray2DT<nTYPE>::Alias(const nArray2DT& RHS)
+{
+	/* inherited */
+	nArrayT<nTYPE>::Alias(RHS);
+
+	/* set dimensions */
+	fMajorDim = RHS.fMajorDim;
+	fMinorDim = RHS.fMinorDim;
+}
+
+template <class nTYPE>
+inline void nArray2DT<nTYPE>::Set(int majordim, int minordim, nTYPE* MATHTYPEPtr)
+{
+	Alias(majordim, minordim, MATHTYPEPtr);
 }
 
 /*
@@ -373,17 +392,6 @@ inline nArray2DT<nTYPE>& nArray2DT<nTYPE>::operator=(const nTYPE& value)
 	nArrayT<nTYPE>::operator=(value);
 
 	return *this;
-}
-
-template <class nTYPE>
-inline void nArray2DT<nTYPE>::Alias(const nArray2DT& RHS)
-{
-	/* inherited */
-	nArrayT<nTYPE>::Alias(RHS);
-
-	/* set dimensions */
-	fMajorDim = RHS.fMajorDim;
-	fMinorDim = RHS.fMinorDim;
 }
 
 /* exchange data */
@@ -508,7 +516,7 @@ template <class nTYPE>
 inline void nArray2DT<nTYPE>::RowAlias(int row,
 	nArrayT<nTYPE>& array) const
 {
-	array.Set(fMinorDim, (*this)(row));
+	array.Alias(fMinorDim, (*this)(row));
 }	
 
 /* set values in batch */

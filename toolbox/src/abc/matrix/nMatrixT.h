@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.22 2003-08-23 05:31:46 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.23 2003-09-04 23:55:26 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _NMATRIX_T_H_
 #define _NMATRIX_T_H_
@@ -44,8 +44,13 @@ public:
 	/** dimensions this matrix to the same dimensions as the source, but no data is copied */
 	void Dimension(const nMatrixT& source) { Dimension(source.Rows(), source.Cols()); };
 
-	/** configure an matrix of the specified dimensions using the 
-	 * given memory */
+	/** \name convert to a shallow object */
+	/*@{*/
+	void Alias(int numrows, int numcols, nTYPE* p);
+	void Alias(const nMatrixT& RHS);
+	/*@}*/
+
+	/** \deprecated replaced by nMatrixT::Alias on 09/04/2003 */
 	void Set(int numrows, int numcols, nTYPE* p);
 
 	/** free memory (if allocated) and set size to zero */
@@ -90,7 +95,6 @@ public:
 	/*@{*/
 	nMatrixT<nTYPE>& operator=(const nMatrixT& RHS);
 	nMatrixT<nTYPE>& operator=(const nTYPE& value);
-	void Alias(const nMatrixT& RHS);
 
 	/** exchange data */
 	void Swap(nMatrixT<nTYPE>& source);
@@ -260,7 +264,7 @@ inline nMatrixT<nTYPE>::nMatrixT(int squaredim)
 template <class nTYPE>
 inline nMatrixT<nTYPE>::nMatrixT(int numrows, int numcols, nTYPE* p)
 {
-	Set(numrows, numcols, p);
+	Alias(numrows, numcols, p);
 }
 
 template <class nTYPE>
@@ -299,14 +303,26 @@ inline void nMatrixT<nTYPE>::Dimension(int squaredim)
 }
 
 template <class nTYPE>
-inline void nMatrixT<nTYPE>::Set(int numrows, int numcols, nTYPE* p)
+inline void nMatrixT<nTYPE>::Alias(int numrows, int numcols, nTYPE* p)
 {
 	/* inherited */
-	nArrayT<nTYPE>::Set(numrows*numcols, p);
+	nArrayT<nTYPE>::Alias(numrows*numcols, p);
 
 	/* set dimensions */
 	fRows = numrows;
 	fCols = numcols;
+}
+
+template <class nTYPE>
+inline void nMatrixT<nTYPE>::Alias(const nMatrixT& RHS)
+{
+	Alias(RHS.Rows(), RHS.Cols(), RHS.Pointer() );	
+}
+
+template <class nTYPE>
+inline void nMatrixT<nTYPE>::Set(int numrows, int numcols, nTYPE* p)
+{
+	Alias(numrows, numcols, p);
 }
 
 /* free memory (if allocated) and set size to zero */
@@ -486,12 +502,6 @@ inline nMatrixT<nTYPE>& nMatrixT<nTYPE>::operator=(const nTYPE& value)
 	return(*this);
 }
 
-template <class nTYPE>
-inline void nMatrixT<nTYPE>::Alias(const nMatrixT& RHS)
-{
-	Set(RHS.Rows(), RHS.Cols(), RHS.Pointer() );	
-}
-
 /* exchange data */
 template <class nTYPE>
 inline void nMatrixT<nTYPE>::Swap(nMatrixT<nTYPE>& source)
@@ -611,7 +621,7 @@ void nMatrixT<nTYPE>::CopyColumns(const ArrayT<int>& cols,
 template <class nTYPE>
 void nMatrixT<nTYPE>::ColumnAlias(int colnum, ArrayT<nTYPE>& col) const
 {
-	col.Set(fRows, (*this)(colnum));
+	col.Alias(fRows, (*this)(colnum));
 }	
 
 /*
