@@ -1,4 +1,4 @@
-/* $Id: main_cpp.cpp,v 1.4 2003-03-15 02:21:25 paklein Exp $ */
+/* $Id: main_cpp.cpp,v 1.5 2005-01-16 19:42:39 paklein Exp $ */
 #include <iostream.h>
 #include <math.h>
 #include <iomanip.h>
@@ -32,6 +32,17 @@ int main (int, char**)
 	cout.setf(ios::showpoint);
 	cout.setf(ios::right, ios::adjustfield);
 	cout.setf(ios::scientific, ios::floatfield);
+
+	/* write out data sizes */
+	cout << "data sizes:\n"
+	     << "sizeof(bool) = " << sizeof(bool) << '\n'
+	     << "sizeof(char) = " << sizeof(char) << '\n'
+	     << "sizeof(int) = " << sizeof(int) << '\n'
+	     << "sizeof(long int) = " << sizeof(long int) << '\n'
+	     << "sizeof(float) = " << sizeof(float) << '\n'
+	     << "sizeof(double) = " << sizeof(double) << '\n'
+	     << "sizeof(void*) = " << sizeof(void*) << "\n\n";
+
 	int wd = 15;
 	int wi = 5;
 

@@ -1,4 +1,4 @@
-/* $Id: main_c.c,v 1.2 2003-03-09 04:17:13 paklein Exp $ */
+/* $Id: main_c.c,v 1.3 2005-01-16 19:42:39 paklein Exp $ */
 #include <stdio.h>
 #include <math.h>
 #include "fortran_names.h"
@@ -39,6 +39,17 @@ static int i_check(int a_ref, int a_test)
 
 int main(int argc, char** argv)
 {
+	/* write out data sizes */
+	printf("data sizes:\n");
+/*	printf("sizeof(bool) = %d\n", sizeof(bool)); */
+	printf("sizeof(char) = %d\n", sizeof(char));
+	printf("sizeof(int) = %d\n", sizeof(int));
+	printf("sizeof(long int) = %d\n", sizeof(long int));
+	printf("sizeof(float) = %d\n", sizeof(float));
+	printf("sizeof(double) = %d\n", sizeof(double));
+	printf("sizeof(void*) = %d\n", sizeof(void*));
+	printf("\n");
+
 	double a = 1.1;
 	int i = 2;
 

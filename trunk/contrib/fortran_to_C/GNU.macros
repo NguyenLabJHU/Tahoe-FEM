@@ -1,4 +1,4 @@
-# $Id: GNU.macros,v 1.2 2003-03-09 04:21:34 paklein Exp $
+# $Id: GNU.macros,v 1.3 2005-01-16 19:42:39 paklein Exp $
 .SUFFIXES: .c .cpp .f .F
 
 # GNU macros
@@ -12,6 +12,6 @@ F_FLAGS  = -D__GNU__
 LINK_C     = $(COMP_C) 
 LINK_CC    = $(COMP_CC)
 LINK_F     = $(COMP_F)
-L_FLAGS_C  = -Xlinker -Y -Xlinker 50 -lg2c -lm
-L_FLAGS_CC = -Xlinker -Y -Xlinker 50 -lg2c -lm
+L_FLAGS_C  = -Xlinker -Y -Xlinker 50 -L/sw/lib -lg2c -lm
+L_FLAGS_CC = -Xlinker -Y -Xlinker 50 -L/sw/lib -lg2c -lm
 L_FLAGS_F  = -Xlinker -Y -Xlinker 50 -lm
