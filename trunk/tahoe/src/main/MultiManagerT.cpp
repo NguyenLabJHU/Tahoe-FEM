@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.16 2004-07-26 09:27:13 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.17 2004-07-27 17:49:50 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -21,7 +21,9 @@ using namespace Tahoe;
 MultiManagerT::MultiManagerT(const StringT& input_file, ofstreamT& output, CommunicatorT& comm,
 	const ArrayT<StringT>& argv):
 	FEManagerT(input_file, output, comm, argv),
+	fFineComm(&fComm),
 	fFine(NULL),
+	fCoarseComm(&fComm),
 	fCoarse(NULL),
 	fDivertOutput(false),
 	fFineField(NULL),
@@ -623,7 +625,7 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 	continuum_output_file.Root(continuum_input);
 	continuum_output_file.Append(".out");
 	fCoarseOut.open(continuum_output_file);
-	fCoarse = TB_DYNAMIC_CAST(FEManagerT_bridging*, FEManagerT::New(continuum_params.Name(), continuum_input, fCoarseOut, fComm, fArgv));
+	fCoarse = TB_DYNAMIC_CAST(FEManagerT_bridging*, FEManagerT::New(continuum_params.Name(), continuum_input, fCoarseOut, *fCoarseComm, fArgv));
 	if (!fCoarse) ExceptionT::GeneralFail(caller, "could not construct continuum solver");
 	fCoarse->TakeParameterList(continuum_params);
 
@@ -639,7 +641,7 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 	atom_output_file.Root(atom_input);
 	atom_output_file.Append(".out");
 	fFineOut.open(atom_output_file);
-	fFine = TB_DYNAMIC_CAST(FEManagerT_bridging*, FEManagerT::New(atom_params.Name(), atom_input, fFineOut, fComm, fArgv));
+	fFine = TB_DYNAMIC_CAST(FEManagerT_bridging*, FEManagerT::New(atom_params.Name(), atom_input, fFineOut, *fFineComm, fArgv));
 	if (!fFine) ExceptionT::GeneralFail(caller, "could not construct atomistic solver");
 	fFine->TakeParameterList(atom_params);
 

@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.h,v 1.7 2004-07-25 06:44:12 paklein Exp $ */
+/* $Id: MultiManagerT.h,v 1.8 2004-07-27 17:49:50 paklein Exp $ */
 #ifndef _MULTI_MANAGER_H_
 #define _MULTI_MANAGER_H_
 
@@ -115,7 +115,10 @@ protected:
 
 	/** \name sub-managers */
 	/*@{*/
+	CommunicatorT* fFineComm;
 	FEManagerT_bridging* fFine;
+
+	CommunicatorT* fCoarseComm;
 	FEManagerT_bridging* fCoarse;
 	IntegratorT::ImpExpFlagT fImpExp;
 	
