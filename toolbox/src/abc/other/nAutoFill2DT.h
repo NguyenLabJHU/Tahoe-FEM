@@ -1,4 +1,4 @@
-/* $Id: nAutoFill2DT.h,v 1.1 2003-02-22 02:54:22 kaplan Exp $ */
+/* $Id: nAutoFill2DT.h,v 1.2 2003-02-22 23:53:15 paklein Exp $ */
 #ifndef _N_AUTO_FILL2D_T_H_
 #define _N_AUTO_FILL2D_T_H_
 
@@ -43,7 +43,8 @@ nAutoFill2DT<nTYPE>::nAutoFill2DT(int majordim, int numchunks, int headroom, int
 template <class nTYPE>
 nAutoFill2DT<nTYPE>& nAutoFill2DT<nTYPE>::operator=(const nTYPE& value)
 {
-	for (int i = 0; i < fMajorDim; i++)
+	int md = MajorDim();
+	for (int i = 0; i < md; i++)
 	{
 		int dim = MinorDim(i);
 		nTYPE* p = (*this)(i);
@@ -56,7 +57,8 @@ nAutoFill2DT<nTYPE>& nAutoFill2DT<nTYPE>::operator=(const nTYPE& value)
 template <class nTYPE>
 nAutoFill2DT<nTYPE>& nAutoFill2DT<nTYPE>::operator+=(const nTYPE& value)
 {
-	for (int i = 0; i < fMajorDim; i++)
+	int md = MajorDim();
+	for (int i = 0; i < md; i++)
 	{
 		int dim = MinorDim(i);
 		nTYPE* p = (*this)(i);
