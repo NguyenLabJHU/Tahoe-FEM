@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.4 2004-06-02 23:03:33 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.5 2004-06-24 21:02:33 cjkimme Exp $ */
 #include "FS_SCNIMFT.h"
 
 //#define VERIFY_B
@@ -154,8 +154,9 @@ void FS_SCNIMFT::WriteOutput(void)
 	ArrayT<dMatrixT> Flist(1);
 	Flist[0].Dimension(fSD);
 	dMatrixT& Fdef = Flist[0];
-	dMatrixT BJ(fSD*fSD, fSD);
-	dMatrixT E(fSD);
+	dMatrixT BJ(fSD*fSD, fSD), Finverse(fSD);
+	dMatrixT E(fSD), fStress(fSD), fCauchy(fSD);
+	double J;
 	
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
@@ -201,8 +202,13 @@ void FS_SCNIMFT::WriteOutput(void)
 				E(rows,cols) += Fdef(cols,rows);
 		Fdef.PlusIdentity();
 		fFSMatSupport->SetDeformationGradient(&Flist);
+		J = Fdef.Det();
 		
-		const double* stress = fCurrMaterial->s_ij().Pointer();
+		fCurrMaterial->s_ij().ToMatrix(fCauchy);
+		Finverse.Inverse(Fdef);
+		Finverse *= J; // compute J F^-1
+		fStress.MultABT(fCauchy, Finverse); // compute PK1
+		double* stress = fStress.Pointer();
 
 		double* inp_val = values_i.Pointer() + 2*ndof;
 		
@@ -333,8 +339,8 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		const iArray2DT& field_eqnos = Field().Equations();
 		iArrayT row_eqnos(ndof); 
 		iArrayT col_eqnos(ndof);
-		dMatrixT BJ(fSD*fSD, ndof), BK(fSD*fSD, ndof), FTs(fSD), fStress(fSD);
-		dMatrixT Tijkl(fSD*fSD), BJTCijkl(fSD, fSD*fSD), K_JK;
+		dMatrixT BJ(fSD*fSD, ndof), BK(fSD*fSD, ndof), FTs(fSD), fStress(fSD), fCauchy(fSD);
+		dMatrixT Tijkl(fSD*fSD), BJTCijkl(fSD, fSD*fSD), K_JK, Finverse(fSD);
 		K_JK.Alias(fLHS);
 		LinkedListT<dArrayT> bVectors_j;
 		LinkedListT<int> nodeSupport_j;
@@ -356,8 +362,11 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			Fdef.PlusIdentity(); // convert to F
 			fFSMatSupport->SetDeformationGradient(&Flist);
 		
-			const dMatrixT& cijkl = fCurrMaterial->c_ijkl();
-			fCurrMaterial->s_ij().ToMatrix(fStress);
+			const dMatrixT& cijkl = fCurrMaterial->C_IJKL();
+			fCurrMaterial->s_ij().ToMatrix(fCauchy);
+			Finverse.Inverse(Fdef);
+			Finverse *= Fdef.Det(); // compute J F^-1
+			fStress.MultABT(fCauchy, Finverse); // compute PK1
 		
 			// FTs = F^T sigma
 			FTs.MultATB(Fdef, fStress);
@@ -466,7 +475,8 @@ void FS_SCNIMFT::RHSDriver(void)
 	ArrayT<dMatrixT> Flist(1);
 	Flist[0].Dimension(fSD);
 	dMatrixT& Fdef = Flist[0];
-	dMatrixT BJ(fSD*fSD, fSD), fStress(fSD);
+	dMatrixT BJ(fSD*fSD, fSD), fCauchy(fSD), Finverse(fSD), fStress(fSD);
+	double J;
 	
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
@@ -487,8 +497,14 @@ void FS_SCNIMFT::RHSDriver(void)
 		}
 		Fdef.PlusIdentity(); // convert to F 	
 		fFSMatSupport->SetDeformationGradient(&Flist);
+		J = Fdef.Det();
+		if (J <= 0.0)
+			ExceptionT::BadJacobianDet("FS_SCNIMFT::FormKd");
 		
-		fCurrMaterial->s_ij().ToMatrix(fStress);
+		fCurrMaterial->s_ij().ToMatrix(fCauchy);
+		Finverse.Inverse(Fdef);
+		Finverse *= J; // compute J F^-1
+		fStress.MultABT(fCauchy, Finverse); // compute PK1
 		
 		supp_i = nodalCellSupports(i);
 		bVec_i = bVectorArray(i);
