@@ -1,4 +1,4 @@
-/* $Id: TetrahedronT.cpp,v 1.5 2004-02-28 21:52:26 paklein Exp $ */
+/* $Id: TetrahedronT.cpp,v 1.6 2004-05-12 22:20:15 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "TetrahedronT.h"
 #include "QuadT.h"
@@ -245,6 +245,23 @@ void TetrahedronT::SetExtrapolation(dMatrixT& extrap) const
 		
 			ExceptionT::GeneralFail(caller);
 	}
+}
+
+/* integration point gradient matrix */
+void TetrahedronT::IPGradientTransform(int ip, dMatrixT& transform) const
+{
+	const char caller[] = "TetrahedronT::IPGradientTransform";
+
+	/* dimensions */
+	int nsd = transform.Rows();
+	int nip = transform.Cols();
+	if (nsd != 3) ExceptionT::SizeMismatch(caller);
+	
+	//TEMP only implemented for 1 integration point
+	if (ip != 0 || nip != 1) ExceptionT::GeneralFail(caller, "only implemented for 1 integration point");
+
+	/* no gradient */
+	transform = 0.0;
 }
 
 /* return the local node numbers for each facet of the element

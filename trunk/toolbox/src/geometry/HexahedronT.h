@@ -1,4 +1,4 @@
-/* $Id: HexahedronT.h,v 1.4 2004-02-28 21:52:26 paklein Exp $ */
+/* $Id: HexahedronT.h,v 1.5 2004-05-12 22:20:15 paklein Exp $ */
 /* created: paklein (10/22/1997) */
 #ifndef _HEXADHEDRON_T_H_
 #define _HEXADHEDRON_T_H_
@@ -38,6 +38,9 @@ public:
 
 	/* set the values of the nodal extrapolation matrix */
 	virtual void SetExtrapolation(dMatrixT& extrap) const;
+
+	/** integration point gradient matrix */
+	virtual void IPGradientTransform(int ip, dMatrixT& transform) const;
 
 	/* return the local node numbers for each facet of the element
 	 * numbered to produce at outward normal in the order: vertex
