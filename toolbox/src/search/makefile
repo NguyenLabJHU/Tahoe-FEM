@@ -1,6 +1,5 @@
-# $Id: makefile,v 1.7 2003-01-28 21:26:40 paklein Exp $
+# $Id: makefile,v 1.8 2003-01-28 21:41:51 paklein Exp $
 # object directory makefile - compilation instructions
-#
 
 include $(MACRO_DIR)/suffix
 include $(MACRO_DIR)/$(ARCH).macros
