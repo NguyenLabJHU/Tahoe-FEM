@@ -104,13 +104,12 @@ const dSymMatrixT& GRAD_MRSSKStV::s_ij(void)
 {
 	int ip = CurrIP();
 	ElementCardT& element = CurrentElement();
-	/*
 	const dSymMatrixT& e_tot = e();          //remove thermal strain 
 	const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
 	const dSymMatrixT& lap_e_els = LapElasticStrain(Strain_Lapl_IP, element, ip);
 	
 	/* Updated Cauchy stress (return mapping) */
-	//fStress = fGRAD_MR->StressCorrection(e_els, lap_e_els, lambdaPM, lambdaPM_Lapl, element, ip);
+	fStress = fGRAD_MR->StressCorrection(e_els, lap_e_els, lambdaPM, lambdaPM_Lapl, element, ip);
 	return fStress;	
 }
 
