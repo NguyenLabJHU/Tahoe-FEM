@@ -1,4 +1,4 @@
-/* $Id: Array2DT.h,v 1.4 2002-02-18 08:48:38 paklein Exp $ */
+/* $Id: Array2DT.h,v 1.5 2002-03-04 01:38:09 paklein Exp $ */
 /* created: paklein (11/02/1998)                                          */
 
 #ifndef _ARRAY2D_T_H_
@@ -29,6 +29,9 @@ public:
 	 * not preserved. To preserve the array contents while changing the dimension
 	 * use Array2DT::Resize. */
 	void Dimension(int majordim, int minordim);
+
+	/** dimensions this array to the same length as the source, but no data is copied */
+	void Dimension(const Array2DT& source) { Dimension(source.MajorDim(), source.MinorDim()); };
 
 	/** \deprecated replaced by Array2DT::Dimension on 02/13/2002 */
 	void Allocate(int majordim, int minordim) { Dimension(majordim, minordim); };

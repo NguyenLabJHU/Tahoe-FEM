@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.8 2002-02-18 08:40:38 paklein Exp $ */
+/* $Id: ArrayT.h,v 1.9 2002-03-04 01:38:09 paklein Exp $ */
 /* created: paklein (06/19/1996) */
 
 #ifndef _ARRAY_T_H_
@@ -59,6 +59,9 @@ public:
 	 * not preserved. To preserve the array contents while changing the dimension
 	 * use ArrayT::Resize. */
 	void Dimension(int length);
+	
+	/** dimensions this array to the same length as the source, but no data is copied */
+	void Dimension(const ArrayT& source) { Dimension(source.Length()); };
 
 	/** \deprecated replaced by ArrayT::Dimension on 02/13/2002 */
 	void Allocate(int length) { Dimension(length); };
