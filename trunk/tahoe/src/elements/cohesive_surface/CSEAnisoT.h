@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.19 2002-12-11 23:13:17 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.20 2003-02-21 22:32:20 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -42,12 +42,18 @@ public:
 	/** close current time increment */
 	virtual void CloseStep(void);
 
+#ifndef _SIERRA_TEST_
 	/** write restart data to the output stream. */
 	virtual void WriteRestart(ostream& out) const;
 
 	/** read restart data to the output stream. */
 	virtual void ReadRestart(istream& in);
+#else
+	virtual void WriteRestart(double* outgoingData) const;
 	
+	virtual void ReadRestart(double* incomingData);
+#endif	
+
 #ifdef _SIERRA_TEST_	
 	/* Initialize fields passed in from the outside */
 	virtual void InitStep(void);
