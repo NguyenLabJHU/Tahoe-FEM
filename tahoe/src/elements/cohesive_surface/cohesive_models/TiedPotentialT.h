@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.h,v 1.4 2002-07-05 22:27:59 paklein Exp $ */
+/* $Id: TiedPotentialT.h,v 1.5 2002-08-16 17:11:26 cjkimme Exp $ */
 /* created: cjkimme (04/15/2002) */
 
 #ifndef _TIED_POTENTIAL_T_H_
@@ -85,21 +85,17 @@ private:
 	const double& fTimeStep;
 
 	/* traction potential parameters */
-	double q;     // phi_t/phi_n
-	double r;     // delta_n* /d_n
+	int qXu;
 	
 	double d_n;   // characteristic normal opening
 	double d_t;   // characteristic tangent opening  	
 	double phi_n; // mode I work to fracture
-
-	double r_fail; // d/d_(n/t) for which surface is considered failed
-
-/* additional penetration stiffness */
-	double fKratio; // stiffening ratio
-	double fK;
-	double fu_t0, fu_n0; /* Offsets of gap vector when nodes are untied */
-
-	static double fsigma_critical;
+	double r_fail; 
+	double fsigma, fL_0, fL_1, fL_2;
+	
+	static double fnvec1, fnvec2; /*components of direction
+	  in which to sample the stress for freeing nodes */
+	static double fsigma_critical; /* Initiation traction */
 };
 
 } // namespace Tahoe 
