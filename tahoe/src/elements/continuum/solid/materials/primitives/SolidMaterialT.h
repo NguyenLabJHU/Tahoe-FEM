@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.15 2004-08-01 00:54:59 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.16 2004-08-14 05:15:33 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -85,8 +85,9 @@ public:
 	virtual bool NeedVel(void) const      { return false; };
 	/*@}*/
 
-	/** incremental heat generation. Associated with the stress calculated with the
-	 * most recent call to SolidMaterialT::s_ij or SolidMaterialT::S_IJ */
+	/** incremental heat generation (energy/volume). The value should be the amount of
+	 * heat associated with the updated stress calculated with the most recent call to 
+	 * SolidMaterialT::s_ij or SolidMaterialT::S_IJ */
 	virtual double IncrementalHeat(void);
 
 	/** strain energy density */
