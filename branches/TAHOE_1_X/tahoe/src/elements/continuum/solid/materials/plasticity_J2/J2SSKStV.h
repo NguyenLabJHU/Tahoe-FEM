@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.h,v 1.8 2003-10-12 01:39:03 paklein Exp $ */
+/* $Id: J2SSKStV.h,v 1.8.34.1 2005-04-05 23:29:02 thao Exp $ */
 /* created: paklein (06/18/1997) */
 #ifndef _J2_SS_KSTV_H_
 #define _J2_SS_KSTV_H_
@@ -61,6 +61,11 @@ protected:
 
 	/* set modulus */
 	virtual void SetModulus(dMatrixT& modulus);
+
+	/*internal variable accessors*/
+	virtual const iArrayT& InternalDOF(void) const;
+	virtual const dArrayT& InternalStrainVars(void);
+	virtual const dArrayT& InternalStressVars(void);
 	 	 	
 private:
 
