@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.45 2004-06-17 00:47:09 rdorgan Exp $ */
+/* $Id: ElementT.h,v 1.46 2004-06-24 03:00:12 rdorgan Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -57,16 +57,14 @@ kPenaltyContactElement3D = 34,
 			 kFSMatForce = 60,    /*UpLag with material force calculation*/
 			kSSMatForceD = 61,
 			kSSMatForceS = 62,
-        kGradSmallStrain = 63,
 		kSmallStrainQ2P1 = 64, /*small strain with mat force calculation*/		     
 			   kSSQ2P1MF = 65,
 		kSmallStrainQ1P0 = 66,
 			   kSSQ1P0MF = 67,
 				kAPSgrad = 68, /* anti-plane shear gradient plasticity */
-      kGradC0SmallStrain = 69,      
 			  kSS_SCNIMF = 70, /**< small strain stabilized, conforming nodally-integrated Galerkin MF */
 			  kFS_SCNIMF = 71, /**< finite deformation ditto */
-   kGradSmallStrainMixed = 72,
+        kGradSmallStrain = 72,
 			   kAPSVgrad = 80, /* anti-plane shear gradient plasticity, vector element */
 		  kMeshfreeGradP = 85, /* meshfree gradient plasticity */
 		kSS_EnhStrainLoc = 90, /* small strain enhanced strain embedded discontinuity element */

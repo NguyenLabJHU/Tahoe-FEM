@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.34 2004-01-14 22:04:44 rdorgan Exp $ */
+/* $Id: SolidT.cpp,v 1.35 2004-06-24 03:00:16 rdorgan Exp $ */
 /* created: paklein (03/10/2001) */
 #include "SolidT.h"
 
@@ -154,9 +154,6 @@ istream& operator>>(istream& in, SolidT::TypeT& code)
 			break;
 		case SolidT::kGradJ2SS:
 			code = SolidT::kGradJ2SS;
-			break;
-		case SolidT::kGradC0J2SS:
-			code = SolidT::kGradC0J2SS;
 			break;
 		case SolidT::kSIERRA_Hypoelastic:
 			code = SolidT::kSIERRA_Hypoelastic;
