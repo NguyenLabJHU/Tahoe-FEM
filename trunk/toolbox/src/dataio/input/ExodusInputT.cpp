@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.cpp,v 1.15 2002-07-08 17:16:42 sawimme Exp $ */
+/* $Id: ExodusInputT.cpp,v 1.16 2002-08-23 15:38:23 paklein Exp $ */
 /* created: sawimme (12/04/1998) */
 
 #include "ExodusInputT.h"
@@ -263,8 +263,14 @@ void ExodusInputT::ReadNodeVariable (int step, const StringT& name, int varindex
 
 void ExodusInputT::ReadAllNodeVariables (int step, dArray2DT& values)
 {
-  if (values.MajorDim() != NumNodes() ||
-      values.MinorDim() != NumNodeVariables()) throw eSizeMismatch;
+	if (values.MajorDim() != NumNodes() ||
+     	values.MinorDim() != NumNodeVariables()) {
+      	cout << "\n ExodusInputT::ReadAllNodeVariables: dimension of array {"
+      	     << values.MajorDim() << "," << values.MinorDim() << "}\n"
+      	     <<   "     does not match the file dimensions {"
+      	     << NumNodes() << "," << NumNodeVariables() << "}." << endl;
+     	throw eSizeMismatch;
+	}
 
   dArrayT temp (NumNodes());
   for (int n=0; n < values.MinorDim(); n++)
