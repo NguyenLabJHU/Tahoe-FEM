@@ -1,4 +1,4 @@
-/* $Id: ValueT.cpp,v 1.3 2002-11-16 20:50:21 paklein Exp $ */
+/* $Id: ValueT.cpp,v 1.4 2002-11-18 09:59:03 paklein Exp $ */
 #include "ValueT.h"
 
 /* array behavior */
@@ -40,6 +40,15 @@ ValueT::ValueT(TypeT t):
 
 }
 
+ValueT::ValueT(const ValueT& source):
+	fType(source.fType),
+	fInteger(source.fInteger),
+	fDouble(source.fDouble),
+	fString(source.fString)
+{
+
+}
+
 ValueT::ValueT(void):
 	fType(None),
 	fInteger(0),
@@ -73,3 +82,59 @@ void ValueT::Write(ostream& out) const
 			ExceptionT::GeneralFail();	
 	}
 }
+
+namespace Tahoe {
+ostream& operator<<(ostream& out, const ValueT& value)
+{
+	value.Write(out);
+	return out;
+}
+}
+
+int ValueT::operator=(int a)
+{
+	switch (fType)
+	{
+		case Integer:
+		case Enumeration:
+			fInteger = a;
+			break;
+
+		case Double:
+			fDouble = double(a);
+			break;
+
+		default:
+			ExceptionT::GeneralFail("ValueT::operator=(int)", "type mismatch");	
+	}
+	return a;
+}
+
+double ValueT::operator=(double x)
+{
+	if (fType == Double)
+		fDouble = x;
+	else
+		ExceptionT::GeneralFail("ValueT::operator=(double)", "type mismatch");	
+	return x;
+}
+
+const StringT& ValueT::operator=(const StringT& s)
+{
+	if (fType == String || fType == Enumeration)
+		fString = s;
+	else
+		ExceptionT::GeneralFail("ValueT::operator=(StringT)", "type mismatch");	
+	return s;
+}
+
+#if 0
+const ValueT& ValueT::operator=(const ValueT& rhs)
+{
+	/* copy contents */
+	fType = rhs.fType;
+	fInteger = rhs.fInteger;
+	fDouble = rhs.fDouble;
+	fString = rhs.fString;
+}
+#endif

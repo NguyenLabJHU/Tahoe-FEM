@@ -1,4 +1,4 @@
-/* $Id: FormatterT.h,v 1.3 2002-11-16 20:50:21 paklein Exp $ */
+/* $Id: FormatterT.h,v 1.4 2002-11-18 09:59:03 paklein Exp $ */
 #ifndef _FORMATTER_T_H_
 #define _FORMATTER_T_H_
 
@@ -48,7 +48,7 @@ public:
 	virtual bool CloseDescriptionFile(ostream& out) const = 0;
 	
 	/** write the data description */
-	virtual bool WriteDescription(ostream& out, const ParameterT& parameter) const = 0;
+//	virtual bool WriteDescription(ostream& out, const ParameterT& parameter) const = 0;
 	/*@}*/
 
 protected:
