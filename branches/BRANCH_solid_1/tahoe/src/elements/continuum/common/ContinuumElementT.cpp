@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.4.2.1 2001-06-07 03:01:15 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.4.2.2 2001-06-29 23:58:46 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 
 #include "ContinuumElementT.h"
@@ -383,7 +383,6 @@ void ContinuumElementT::InitialCondition(void)
 			{
 				/* global shape function values */
 				SetGlobalShape();
-				SetLocalU(fLocDisp);
 			
 				/* loop over integration points */
 				fShapes->TopIP();

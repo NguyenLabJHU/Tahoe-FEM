@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.1.1.1.2.1 2001-06-29 23:58:49 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeFSSolidT.h"
@@ -63,6 +63,8 @@ void D2MeshFreeFSSolidT::Initialize(void)
 	}
 }
 
+//DEV - no reason to override
+#if 0
 void D2MeshFreeFSSolidT::RHSDriver(void)
 {
 	/* skip down */
@@ -123,7 +125,8 @@ void D2MeshFreeFSSolidT::ElementRHSDriver(void)
 			if (eformKd) FormKd(-1.0);
 				
 			/* damping */
-			if (eformCv) FormCv(-1.0);
+			//if (eformCv) FormCv(-1.0);
+			//DEV - compute at constitutive level
 
 			/* inertia forces */
 			if (eformMa) FormMa(fMassType, -(fCurrMaterial->Density()), fLocAcc);			  		
@@ -133,6 +136,7 @@ void D2MeshFreeFSSolidT::ElementRHSDriver(void)
 		}
 	}
 }
+#endif
 
 /***********************************************************************
 * Protected

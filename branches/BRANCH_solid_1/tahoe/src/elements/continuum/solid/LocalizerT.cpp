@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.cpp,v 1.1.1.1.2.2 2001-06-22 14:14:26 paklein Exp $ */
+/* $Id: LocalizerT.cpp,v 1.1.1.1.2.3 2001-06-29 23:58:47 paklein Exp $ */
 /* created: paklein (02/19/1998)                                          */
 
 #include "LocalizerT.h"
@@ -625,9 +625,6 @@ int LocalizerT::CheckLocalization(ostream& out)
 	/* compute global shape functions */
 	SetGlobalShape();
 		
-	/* get local displacements */
-	SetLocalU(fLocDisp);
-
 	int numloc = 0;
 	fShapes->TopIP();
 	while (fShapes->NextIP())

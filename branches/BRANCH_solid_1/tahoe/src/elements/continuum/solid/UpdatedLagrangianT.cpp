@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.1.2.3 2001-06-29 01:21:15 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.1.2.4 2001-06-29 23:58:47 paklein Exp $ */
 /* created: paklein (07/03/1996)                                          */
 
 #include "UpdatedLagrangianT.h"
@@ -122,7 +122,6 @@ void UpdatedLagrangianT::FormStiffness(double constK)
 
 	/* initialize */
 	fStressStiff = 0.0;
-	SetLocalU(fLocDisp);
 	
 	fShapes->TopIP();
 	while ( fShapes->NextIP() )
@@ -159,6 +158,8 @@ void UpdatedLagrangianT::FormStiffness(double constK)
 	fLHS.Expand(fStressStiff, fNumDOF);
 }
 
+//DEV - Rayleigh damping should be added to the constitutive level
+#if 0
 /*
 * Compute the effective acceleration and velocities based
 * on the algorithmic flags formXx and the given constants
@@ -219,6 +220,7 @@ void UpdatedLagrangianT::ComputeEffectiveDVA(int formBody,
 	else
 		fLocVel = 0.0;
 }	
+#endif
 
 /* calculate the damping force contribution ("-c*v") */
 void UpdatedLagrangianT::FormCv(double constC)

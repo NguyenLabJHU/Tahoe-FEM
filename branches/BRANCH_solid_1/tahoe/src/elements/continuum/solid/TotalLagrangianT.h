@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianT.h,v 1.1.2.1 2001-06-22 01:31:42 paklein Exp $ */
+/* $Id: TotalLagrangianT.h,v 1.1.2.2 2001-06-29 23:58:47 paklein Exp $ */
 /* created: paklein (07/03/1996)                                          */
 
 #ifndef _TOTAL_LAGRANGRIAN_T_H_
@@ -31,6 +31,8 @@ protected:
 	/* form the element stiffness matrix */
 	virtual void FormStiffness(double constK);
 	
+//DEV - Rayleigh damping should be added to the constitutive level
+#if 0
 	/* compute the effective acceleration and velocities based
 	 * on the algorithmic flags formXx and the given constants
 	 * constXx.
@@ -47,6 +49,7 @@ protected:
 	virtual void ComputeEffectiveDVA(int formBody,
 		int formMa, double constMa, int formCv, double constCv,
 		int formKd, double constKd);
+#endif
 
 	/* calculate the damping force contribution ("-c*v") */
 	virtual void FormCv(double constC);

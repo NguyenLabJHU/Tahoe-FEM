@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.4.2.2 2001-06-29 01:21:14 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.4.2.3 2001-06-29 23:58:46 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #ifndef _ELASTIC_T_H_
@@ -99,6 +99,8 @@ protected:
 	/* form the element stiffness matrix */
 	virtual void FormStiffness(double constK);
 	
+//DEV - Rayleigh damping should be added to the constitutive level
+#if 0
 	/* compute the effective acceleration and velocities based
 	 * on the algorithmic flags formXx and the given constants
 	 * constXx.
@@ -117,6 +119,7 @@ protected:
 	virtual void ComputeEffectiveDVA(int formBody,
 		int formMa, double constMa, int formCv, double constCv,
 		int formKd, double constKd);
+#endif
 
 	/* body force */
 	void FormRayleighMassDamping(double constM);
