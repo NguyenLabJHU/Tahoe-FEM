@@ -4,7 +4,7 @@
 
 #include "FEA.h"
 
-using namespace Tahoe;
-
+/* declare "global" within the Tahoe namespace */
+namespace Tahoe {
 FEA_StackT fStack;
-
+}
