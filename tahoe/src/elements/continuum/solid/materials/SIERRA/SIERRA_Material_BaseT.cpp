@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.15 2004-08-01 01:00:59 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.16 2004-08-01 20:41:34 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -136,13 +136,14 @@ const dSymMatrixT& SIERRA_Material_BaseT::s_ij(void)
 
 		/* debug information */
 		if (fDebug) {
-			cout << "\n SIERRA_Material_BaseT::s_ij: IN\n"
+			ofstreamT& out = MaterialSupport().Output();
+			out << "\n SIERRA_Material_BaseT::s_ij: IN\n"
 				 << " element: " << CurrElementNumber()+1 << '\n'
 				 << "      ip: " << CurrIP()+1 << '\n';
 			
-			cout << " rot strain inc = " << fdstran.no_wrap() << '\n';
-			cout << " old stress = " << fstress_old.no_wrap() << '\n';
-			cout << " old state =\n" << fstate_old.wrap(5) << '\n';
+			out << " rot strain inc = " << fdstran.no_wrap() << '\n';
+			out << " old stress = " << fstress_old.no_wrap() << '\n';
+			out << " old state =\n" << fstate_old.wrap(5) << '\n';
 		}
 
 		/* call the calc function */
@@ -154,9 +155,10 @@ const dSymMatrixT& SIERRA_Material_BaseT::s_ij(void)
 
 		/* debug information */
 		if (fDebug) {
-			cout << "\n SIERRA_Material_BaseT::s_ij: OUT\n";
-			cout << " new stress = " << fstress_new.no_wrap() << '\n';
-			cout << " new state =\n" << fstate_new.wrap(5) << '\n';
+			ofstreamT& out = MaterialSupport().Output();
+			out << "\n SIERRA_Material_BaseT::s_ij: OUT\n";
+			out << " new stress = " << fstress_new.no_wrap() << '\n';
+			out << " new state =\n" << fstate_new.wrap(5) << '\n';
 		}
 
 		/* write to storage */
