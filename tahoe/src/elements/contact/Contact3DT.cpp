@@ -1,4 +1,4 @@
-/* $Id: Contact3DT.cpp,v 1.9 2003-11-21 22:45:57 paklein Exp $ */
+/* $Id: Contact3DT.cpp,v 1.10 2004-06-17 07:13:39 paklein Exp $ */
 /* created: paklein (07/17/1999) */
 #include "Contact3DT.h"
 
@@ -6,7 +6,7 @@
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "fstreamT.h"
+#include "ofstreamT.h"
 #include "eIntegratorT.h"
 #include "iGridManager3DT.h"
 #include "Vector3T.h"

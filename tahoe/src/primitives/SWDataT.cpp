@@ -1,4 +1,4 @@
-/* $Id: SWDataT.cpp,v 1.4 2002-10-20 22:49:31 paklein Exp $ */
+/* $Id: SWDataT.cpp,v 1.5 2004-06-17 07:14:05 paklein Exp $ */
 /* created: paklein (03/22/1997)                                          */
 /* Container class for Stillinger-Weber potential parameters              */
 
@@ -11,7 +11,7 @@
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 
 /* constructor */
 

@@ -1,11 +1,11 @@
-/* $Id: AugLagContact3DT.cpp,v 1.3 2003-11-21 22:45:57 paklein Exp $ */
+/* $Id: AugLagContact3DT.cpp,v 1.4 2004-06-17 07:13:38 paklein Exp $ */
 #include "AugLagContact3DT.h"
 
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "eIntegratorT.h"
 #include "ElementSupportT.h"
 #include "XDOF_ManagerT.h"

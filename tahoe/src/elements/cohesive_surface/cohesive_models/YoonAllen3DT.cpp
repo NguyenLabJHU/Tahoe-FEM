@@ -1,11 +1,11 @@
-/* $Id: YoonAllen3DT.cpp,v 1.13 2003-11-21 22:45:53 paklein Exp $ */
+/* $Id: YoonAllen3DT.cpp,v 1.14 2004-06-17 07:13:28 paklein Exp $ */
 #include "YoonAllen3DT.h"
 
 #include <iostream.h>
 #include <math.h>
 
 #include "ExceptionT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "StringT.h"
 
 using namespace Tahoe;

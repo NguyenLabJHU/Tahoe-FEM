@@ -1,11 +1,11 @@
-/* $Id: TvergHutchRigid2DT.cpp,v 1.1 2003-08-08 00:43:00 paklein Exp $ */
+/* $Id: TvergHutchRigid2DT.cpp,v 1.2 2004-06-17 07:13:28 paklein Exp $ */
 #include "TvergHutchRigid2DT.h"
 
 #include <iostream.h>
 #include <math.h>
 
 #include "ExceptionT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "StringT.h"
 
 using namespace Tahoe;

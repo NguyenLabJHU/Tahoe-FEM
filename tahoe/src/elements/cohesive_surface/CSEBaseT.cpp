@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.31 2004-03-19 17:16:53 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.32 2004-06-17 07:13:20 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
@@ -6,7 +6,7 @@
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "toolboxConstants.h"
 #include "SurfaceShapeT.h"
 #include "iAutoArrayT.h"

@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.19 2004-05-10 17:02:55 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.20 2004-06-17 07:13:20 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
@@ -7,7 +7,7 @@
 #include <iomanip.h>
 
 #include "ElementSupportT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "toolboxConstants.h"
 #include "SurfaceShapeT.h"
 #include "C1FunctionT.h"

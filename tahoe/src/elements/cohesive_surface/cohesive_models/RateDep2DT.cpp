@@ -1,30 +1,24 @@
-/* $Id: RateDep2DT.cpp,v 1.15 2003-05-29 06:41:17 paklein Exp $  */
+/* $Id: RateDep2DT.cpp,v 1.16 2004-06-17 07:13:28 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
-
 #include "RateDep2DT.h"
 
 #include <iostream.h>
 #include <math.h>
 
 #include "ExceptionT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "StringT.h"
 #include "SecantMethodT.h"
-
-/* class parameters */
 
 using namespace Tahoe;
 
 const int knumDOF = 2;
-
-/* state indices */
 const int kL_1 = 0;
 const int kL_2 = 2;
 const int ksigma_max = 4;
 const int kd_c_n = 6;
 const int kd_c_t = 8;
 const int kDelta = 10;
-
 
 /* constructor */
 RateDep2DT::RateDep2DT(ifstreamT& in, const double& time_step): 

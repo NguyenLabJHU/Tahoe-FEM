@@ -1,4 +1,4 @@
-/* $Id: ACME_Contact3DT.cpp,v 1.4 2002-10-20 22:48:20 paklein Exp $ */
+/* $Id: ACME_Contact3DT.cpp,v 1.5 2004-06-17 07:13:38 paklein Exp $ */
 /* created: paklein (10/15/2000) */
 
 #include "ACME_Contact3DT.h"
@@ -6,7 +6,7 @@
 
 /* library support options */
 #ifdef __ACME__
-#include "fstreamT.h"
+#include "ofstreamT.h"
 
 /* constructor */
 
