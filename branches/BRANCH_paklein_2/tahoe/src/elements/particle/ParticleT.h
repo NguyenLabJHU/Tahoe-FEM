@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.2 2002-10-20 22:48:27 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.2.2.1 2002-11-13 08:35:22 paklein Exp $ */
 #ifndef _ROD_T_H_
 #define _ROD_T_H_
 
@@ -66,9 +66,32 @@ protected:
 	/** reference ID for sending output */
 	int fOutputID;
 
+	/** \name particle attributes */
+	/*@{*/
+	dArrayT fMass;
+	
+	iArrayT fType;
+	/*@}*/
+	
+	/** \name cached calculated values */
+	/*@{*/
+	dArrayT fEnergy;
+
+	dArray2DT fForce;
+	/*@{*/
+	
+	/** \name group running averages.
+	 * Values are averages over {n1, n2,...,nN} steps */
+	/*@{*/
+	dArrayT fKE;
+	dArrayT fPE;
+	/*@}*/
+
 	/** local to global tag map. Neighborlists constructed using
 	 * group-local numbering */
 	iArrayT GlobalTag;
+
+	int fNumberLocalAtoms;
 
 private:
 
