@@ -1,4 +1,4 @@
-/* $Id: KBC_CardT.h,v 1.5.48.1 2004-07-06 06:54:46 paklein Exp $ */
+/* $Id: KBC_CardT.h,v 1.5.48.2 2004-07-08 07:40:24 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _KBC_CARD_T_H_
 #define _KBC_CARD_T_H_
@@ -48,12 +48,11 @@ public:
 	double Value(void) const;
 
 	/* I/O */
-	static void WriteHeader(ostream& out);
-	void WriteValues(ostream& out) const;
+//	static void WriteHeader(ostream& out);
+//	void WriteValues(ostream& out) const;
 
 	/* input operator for codes */
-	static CodeT int_to_CodeT (int i);
-	friend istream& operator>>(istream& in, KBC_CardT::CodeT& code);
+	static CodeT int2CodeT(int i);
 	
 protected:
 

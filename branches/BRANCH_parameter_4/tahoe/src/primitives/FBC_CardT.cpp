@@ -1,14 +1,13 @@
-/* $Id: FBC_CardT.cpp,v 1.13.2.2 2004-07-07 15:28:49 paklein Exp $ */
+/* $Id: FBC_CardT.cpp,v 1.13.2.3 2004-07-08 07:40:24 paklein Exp $ */
 /* created: paklein (06/15/1996) */
 #include "FBC_CardT.h"
+#include "ScheduleT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "toolboxConstants.h"
-#include "NodeManagerT.h" // needed for schedule information
-
-#include "ScheduleT.h"
+//#include "toolboxConstants.h"
+//#include "NodeManagerT.h" // needed for schedule information
 
 using namespace Tahoe;
 
@@ -28,12 +27,12 @@ FBC_CardT::FBC_CardT(void):
 
 }
 
+#if 0
 /* modifiers */
 void FBC_CardT::SetValues(const NodeManagerT&, ifstreamT&)
 {
 #pragma message("delete me")
 ExceptionT::GeneralFail();
-#if 0
 	/* parameters */
 	int    node;
 	int    dof;
@@ -48,8 +47,8 @@ ExceptionT::GeneralFail();
 
 	/* set */	
 	SetValues(theBoss, node, dof, nLTf, value);
-#endif
 }
+#endif
 
 void FBC_CardT::SetValues(int node, int dof, const ScheduleT* schedule, double value)
 {
@@ -75,6 +74,7 @@ double FBC_CardT::CurrentValue(void) const
 		return fValue*(fSchedule->Value());
 }
 
+#if 0
 /* I/O */
 void FBC_CardT::WriteHeader(ostream& out)
 {
@@ -97,3 +97,4 @@ void FBC_CardT::WriteValues(ostream& out) const
 << setw(d_width)   << fValue
 << '\n';
 }
+#endif
