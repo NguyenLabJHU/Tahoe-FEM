@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.2 2001-11-06 17:42:24 paklein Exp $ */
 /* created: paklein (12/11/1997)                                          */
 
 #include "ContactT.h"
@@ -306,9 +306,9 @@ bool ContactT::SetContactConfiguration(void)
 	if (contact_changed)
 	{
 		/* resize */
-		int num_active = fActiveStrikers.Length();
-		fConnectivities_man.SetMajorDimension(num_active, false);
-		fEqnos_man.SetMajorDimension(num_active, false);
+		fNumElements = fActiveStrikers.Length();
+		fConnectivities_man.SetMajorDimension(fNumElements, false);
+		fEqnos_man.SetMajorDimension(fNumElements, false);
 
 		/* generate connectivities */
 		SetConnectivities();	
