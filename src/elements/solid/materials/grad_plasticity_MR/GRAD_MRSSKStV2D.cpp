@@ -11,7 +11,7 @@ using namespace Tahoe;
 
 /* constructor */
 GRAD_MRSSKStV2D::GRAD_MRSSKStV2D(void):
-	ParameterInterfaceT("small_strain_StVenant_GRAD_MR_2D")
+	ParameterInterfaceT("small_strain_StVenant_MR_grad_2D")
 {
 	/* account for thickness */
 //	fDensity *= fThickness;
