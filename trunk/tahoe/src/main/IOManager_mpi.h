@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.h,v 1.6 2002-01-11 23:48:32 paklein Exp $ */
+/* $Id: IOManager_mpi.h,v 1.7 2002-01-12 05:15:56 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 
 #ifndef _IOMANAGER_MPI_H_
@@ -17,6 +17,7 @@
 
 /* forward declarations */
 class PartitionT;
+class ModelManagerT;
 
 /** class to support runtime joining of parallel output. The generation of
  * assembly maps differs here from the approach used in JoinOutputT in that
@@ -105,15 +106,9 @@ private:
 
 	/** partition info */
 	const PartitionT& fPartition;
-
-	/** global list of nodal coordinates */
-	dArray2DT fCoordinates;
-
-	/** list if ID's for element blocks in IOManager_mpi::fConnectivities */
-	iArrayT fBlockID;
 	
-	/** global (assembled) connectivities used for output */
-	ArrayT<iArray2DT> fConnectivities;
+	/** global model geometry */
+	ModelManagerT* fOutputGeometry;
 
 	/* communication maps */
 	iArray2DT fNodeCounts;    // [element sets] x [number of processors]
