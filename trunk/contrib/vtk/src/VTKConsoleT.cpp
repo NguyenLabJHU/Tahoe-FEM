@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.36 2001-12-30 20:17:35 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.37 2002-01-02 06:38:49 paklein Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -8,6 +8,7 @@
 //#include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
+#include "vtkInteractorStyle.h"
 #include "vtkRendererSource.h"
 #include "vtkTIFFWriter.h"
 #include "vtkJPEGWriter.h"
@@ -28,6 +29,7 @@
 #include "iArray2DT.h"
 #include "dArrayT.h"
 #include "GeometryT.h"
+#include "IOBaseT.h"
 
 #include "CommandSpecT.h"
 #include "ArgSpecT.h"
@@ -47,7 +49,11 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   CommandSpecT addbody("AddBody");
   ArgSpecT file(ArgSpecT::string_);
   file.SetPrompt("path to database file");
+  ArgSpecT file_format(ArgSpecT::string_);
+  file_format.SetPrompt("database file format");
+  file_format.SetDefault("auto");
   addbody.AddArgument(file);
+  addbody.AddArgument(file_format);
   iAddCommand(addbody);
 
   CommandSpecT removebody("RemoveBody");
@@ -109,6 +115,10 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
 //  renWin->SetSize(600,700);
 	iren = vtkRenderWindowInteractor::New();
 	iren->SetRenderWindow(renWin);
+	
+	/* set interator style to trackball instead of joystick in the
+	 * same way it occurs from the window */
+	iren->GetInteractorStyle()->OnChar(0, 0, 't', 1);
 
 	/* set up single frame */
 	SetFrameLayout(1,1);
@@ -137,7 +147,7 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
 	{
 		StringT path = fArguments[index+1];
 		path.ToNativePathName();
-		if (!AddBody(path))
+		if (!AddBody("auto", path))
 			cout << "could not add body: " << path << endl;
 		start = index+1;
 	}
@@ -247,10 +257,11 @@ bool VTKConsoleT::iDoCommand(const CommandSpecT& command, StringT& line)
 	}
   else if (command.Name() == "AddBody")
     {
-      StringT path;
+      StringT path, format;
       command.Argument(0).GetValue(path);
+      command.Argument(1).GetValue(format);
       path.ToNativePathName();	  
-      return AddBody(path);
+      return AddBody(format, path);
     }
   else if (command.Name() == "RemoveBody")
     {
@@ -501,14 +512,19 @@ void VTKConsoleT::ValuePrompt(const CommandSpecT& command, int index,
 **********************************************************************/
 
 /* construct body from the given file path */
-bool VTKConsoleT::AddBody(const StringT& file)
+bool VTKConsoleT::AddBody(const StringT& format, const StringT& file)
 {
   /* temp */
   VTKBodyDataT* body;
 
   /* try to construct body */
   try {
-	body = new VTKBodyDataT(file);
+  
+  	IOBaseT::FileTypeT file_format = IOBaseT::kExodusII;
+  	if (format == "auto")
+  		file_format = IOBaseT::name_to_FileTypeT(file);
+  
+	body = new VTKBodyDataT(file_format, file);
 	StringT name;
 	name.Append(fBodyCount++);
 	name.Append(".body");

@@ -1,5 +1,5 @@
 
-/* $Id: VTKConsoleT.h,v 1.23 2001-12-10 12:44:08 paklein Exp $ */
+/* $Id: VTKConsoleT.h,v 1.24 2002-01-02 06:38:50 paklein Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -46,7 +46,7 @@ class VTKConsoleT: public iConsoleObjectT
   /** construct body from the given file path. If successful,
    * new body is appended to the end of VTKConsoleT::fBodies.
    * \return true if successful, false otherwise */
-  bool AddBody(const StringT& file);
+  bool AddBody(const StringT& format, const StringT& file);
 
   /** reset the frame layout. Frames that fit will be transferred
    * to the new layout. Others will be discarded. 
