@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.16.4.17 2004-04-24 01:43:37 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.16.4.18 2004-04-24 17:55:34 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -25,8 +25,8 @@
 #include "ShapeFunctionT.h"
 #include "nArrayGroupT.h"
 #include "nVariMatrixT.h"
-//TEMP
-#include "LAdMatrixT.h"
+
+#include "LAdMatrixT.h" //TEMP
 #include "CCSMatrixT.h"
 
 /* debugging */
@@ -159,10 +159,10 @@ void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& point_neighb
 	bond_densities = 1.0;
 
 	/* works space that changes for each bond family */
-	LAdMatrixT ddf_dpdp_i;
-	CCSMatrixT ddf_dpdp_i_(Output(), GlobalMatrixT::kZeroPivots);
+//	LAdMatrixT ddf_dpdp_i;
+//	nVariMatrixT<double> ddf_dpdp_i_man(0, ddf_dpdp_i);
+	CCSMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kZeroPivots);
 	
-	nVariMatrixT<double> ddf_dpdp_i_man(0, ddf_dpdp_i);
 	dArray2DT p_i, dp_i, df_dp_i;
 	nArray2DGroupT<double> ip_unknown_group(0, false, coarse->NumIP());
 	ip_unknown_group.Register(p_i);
@@ -223,7 +223,7 @@ void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& point_neighb
 			cell_type[overlap_cell_i[j]] = p_x;
 			
 		/* dimension work space */
-		ddf_dpdp_i_man.SetDimensions(overlap_cell_i.Length()*coarse->NumIP());
+//		ddf_dpdp_i_man.SetDimensions(overlap_cell_i.Length()*coarse->NumIP());
 		ip_unknown_group.SetMajorDimension(overlap_cell_i.Length(), false);
 		overlap_node_group.Dimension(overlap_node_i.Length(), false);
 		
@@ -252,8 +252,8 @@ void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& point_neighb
 		}
 
 		/* configure linear solver */
-		ddf_dpdp_i_.AddEquationSet(inv_equations_i);
-		ddf_dpdp_i_.Initialize(num_eq, num_eq, 1);
+		ddf_dpdp_i.AddEquationSet(inv_equations_i);
+		ddf_dpdp_i.Initialize(num_eq, num_eq, 1);
 		
 		/* compute contribution from bonds terminating at "ghost" atoms */
 		ComputeSum_signR_Na(R_i, ghost_neighbors_i, point_coords, overlap_node_i_map, sum_R_N);
@@ -263,25 +263,11 @@ void FEManagerT_bridging::CorrectOverlap(const RaggedArray2DT<int>& point_neighb
 		
 		/* compute residual - add Cauchy-Born contribution */
 		f_a = sum_R_N;
-		dArray2DT df_dp_i_(df_dp_i);
+//		Compute_df_dp(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i_map, p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
 		Compute_df_dp(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map, 
 			bond_densities_i_eq, inv_connects_i, inv_equations_i,
-			p_i, f_a, smoothing, k2, df_dp_i_, ddf_dpdp_i_);
+			p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
 
-		f_a = sum_R_N;
-		Compute_df_dp(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i_map, p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
-
-#if __DEBUG__
-int prec = fMainOut.precision();
-fMainOut.precision(12);
-fMainOut << "f_old = \n" << df_dp_i << '\n';
-fMainOut << "K_old = \n" << ddf_dpdp_i << '\n';
-fMainOut << "f_new = \n" << df_dp_i_ << '\n';
-fMainOut << "K_new = \n" << ddf_dpdp_i_ << '\n';
-fMainOut.precision(prec);
-fMainOut.flush();
-#endif
-		
 		/* solve bond densities */
 		double abs_tol = 1.0e-10;
 		double rel_tol = 1.0e-10;
@@ -295,14 +281,13 @@ fMainOut.flush();
 			/* catch errors in linear solver */
 			try {
 
-//TEMP new solver
-				dp_i.SetToScaled(-1.0, df_dp_i_);
-				dArrayT tmp_;
-				tmp_.Alias(dp_i);
-				ddf_dpdp_i_.Solve(tmp_);
-				fMainOut << "dp_i =\n" << tmp_ << endl;
-//TEMP
+				/* solve system */
+				dp_i.SetToScaled(-1.0, df_dp_i);
+				dArrayT tmp;
+				tmp.Alias(dp_i);
+				ddf_dpdp_i.Solve(tmp);
 
+#if 0
 				/* solve system */
 				dp_i.SetToScaled(-1.0, df_dp_i);
 				dArrayT tmp;
@@ -314,13 +299,17 @@ fMainOut.flush();
 #if __DEBUG__
 				fMainOut << "dp_i =\n" << tmp << endl;
 #endif
-
+#endif
 				/* update densities */
 				p_i += dp_i;
 
 				/* recompute residual */			
 				f_a = sum_R_N;
-				Compute_df_dp(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i_map, p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
+				Compute_df_dp(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map,
+					bond_densities_i_eq, inv_connects_i, inv_equations_i,
+					p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
+				
+//				Compute_df_dp(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i_map, p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
 				error = sqrt(dArrayT::Dot(df_dp_i,df_dp_i));
 				cout << setw(kIntWidth) << iter << ": e/e_0 = " << error/error_0 << endl;
 
@@ -1920,10 +1909,6 @@ void FEManagerT_bridging::Compute_df_dp(const dArrayT& R, double V_0,
 			}
 		}
 
-//TEMP
-fMainOut << "f_a =\n" << f_a << endl;
-//TEMP
-
 	/* gradient work space */
 	const ParentDomainT& parent_domain = shapes.ParentDomain();	
 	ArrayT<dMatrixT> ip_gradient(nip);
@@ -2035,11 +2020,7 @@ fMainOut << "f_a =\n" << f_a << endl;
 			ddf_dpdp.AddBlock(overlap_cell_index*nip, overlap_cell_index*nip, ATA_int);
 		}
 
-//TEMP
-fMainOut << "df_a_dp =\n" << df_a_dp << endl;
-//TEMP
-
-	//TEMP - add coupling term
+	/* add coupling term */
 	for (int i = 0; i < df_a_dp.MajorDim(); i++)
 		ddf_dpdp.Outer(df_a_dp(i), df_a_dp(i), 1.0, dMatrixT::kAccumulate);
 }
@@ -2122,10 +2103,6 @@ void FEManagerT_bridging::Compute_df_dp(const dArrayT& R, double V_0, const Arra
 				}
 			}
 		}
-
-//TEMP
-fMainOut << "f_a =\n" << f_a << endl;
-//TEMP
 
 	/* gradient work space */
 	const ParentDomainT& parent_domain = shapes.ParentDomain();	
@@ -2243,7 +2220,7 @@ fMainOut << "f_a =\n" << f_a << endl;
 			int local_node = -1;
 			for (int k = 0; local_node == -1 && k < nodesX.Length(); k++)
 				if (nodesX[k] == node)
-					local_node = node;
+					local_node = k;
 			if (local_node == -1) ExceptionT::GeneralFail(caller);
 
 			/* integration parameters */
@@ -2269,10 +2246,6 @@ fMainOut << "f_a =\n" << f_a << endl;
 				df_a_dp(e, ip) += R_dot_dN*jw_by_V;
 			}		
 		}
-
-//TEMP
-fMainOut << "df_a_dp =\n" << df_a_dp << endl;
-//TEMP
 
 		/* assemble stiffness */
 		df_a_dp_2_man.SetDimensions(inv_equations_i.MinorDim(i));
@@ -2506,9 +2479,11 @@ void FEManagerT_bridging::TransposeConnects(const ContinuumElementT& element_gro
 	AutoFill2DT<int> elements_per_node(active_nodes.Length(), 1, 25, 10);
 	for (int i= 0; i < active_elements.Length(); i++) {
 		const iArrayT& nodes = element_group.ElementCard(active_elements[i]).NodesU();
-		int active_node_index = active_node_map.Map(nodes[i]);
-		if (active_node_index != -1)
-			elements_per_node.Append(active_node_index, active_elements[i]);
+		for (int j = 0; j < nodes.Length(); j++) {
+			int active_node_index = active_node_map.Map(nodes[j]);
+			if (active_node_index != -1)
+				elements_per_node.Append(active_node_index, active_elements[i]);
+		}
 	}
 	
 	/* copy into return value */
