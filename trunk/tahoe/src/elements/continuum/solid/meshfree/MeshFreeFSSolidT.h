@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.h,v 1.8 2003-07-12 00:25:45 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.h,v 1.9 2004-01-05 07:16:47 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 
 #ifndef _EFG_FDELASTIC_T_H_
@@ -55,7 +55,7 @@ public:
 	/* initialize/finalize time increment */
 	virtual void InitStep(void);
 	virtual void CloseStep(void);
-	virtual void ResetStep(void); // restore last converged state
+	virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
 					
 protected:
 
