@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.7 2002-06-08 20:20:27 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.8 2002-07-01 17:34:49 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 
 #include "UnConnectedRodT.h"
@@ -128,20 +128,40 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		/* connect nodes - dimensions lists */
 		Connector.GetNeighors(rodconnects, fNeighborDist);
 	}
-	else                      //only use specified nodes
+	else //only use specified nodes
 	{
-		/* read specified nodes */
-		iArrayT nodesused(fNumNodesUsed);
-		in >> nodesused;
+		/* model information */
+		ModelManagerT& model = ElementSupport().Model();
+	
+		/* model format specific */
+		iArrayT nodesused;
+		if (model.DatabaseFormat() == IOBaseT::kTahoe)
+		{
+			/* read specified nodes */
+			nodesused.Dimension(fNumNodesUsed);
+			in >> nodesused;
+			nodesused--;
+		}
+		else 
+		{
+			/* read node set ID's */
+			ArrayT<StringT> node_ids(fNumNodesUsed);
+			for (int i = 0; i < node_ids.Length(); i++)
+				in >> node_ids[i];
 		
+			/* collect nodes */
+			model.ManyNodeSets (node_ids, nodesused);
+		}	
+	
 		/* echo data */
+		nodesused++;
 		out << "\n Number of search nodes. . . . . . . . . . . . . = ";
 		out << nodesused.Length() << "\n\n";
 		out << nodesused.wrap(5) << '\n';
 		out << '\n';
+		nodesused--;
 		
 		/* connector */
-		nodesused--;
 		FindNeighborT Connector(nodesused, 
 			ElementSupport().CurrentCoordinates(), 
 			fMaxNeighborCount);
