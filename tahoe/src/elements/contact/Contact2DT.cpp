@@ -1,4 +1,4 @@
-/* $Id: Contact2DT.cpp,v 1.2.2.2 2002-05-03 07:16:26 paklein Exp $ */
+/* $Id: Contact2DT.cpp,v 1.2.2.3 2002-06-02 20:29:15 paklein Exp $ */
 /* created: paklein (05/26/1999) */
 
 #include "Contact2DT.h"
@@ -216,6 +216,12 @@ void Contact2DT::SetConnectivities(void)
 	/* set interacting nodes */
 	int* pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
+	if (fConnectivities[0]->MajorDim() > 0 && rowlength != 3) {
+		cout << "\n Contact2DT::SetConnectivities: expecting connectivites length 3 not " 
+		     << rowlength << endl;
+		throw eSizeMismatch;
+	}
+
 	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{
 		const iArray2DT& surface = fSurfaces[fHitSurface[i]];
