@@ -1,4 +1,4 @@
-/* $Id: ExceptionT.h,v 1.6 2003-05-04 22:53:30 paklein Exp $ */
+/* $Id: ExceptionT.h,v 1.7 2004-01-21 17:02:33 paklein Exp $ */
 /* created: paklein (06/04/1996) */
 #ifndef _EXCEPTION_T_H_
 #define _EXCEPTION_T_H_
@@ -104,9 +104,9 @@ inline void ExceptionT::SizeMismatch(const char* caller)   { Throw_(kSizeMismatc
 inline void ExceptionT::BadInputValue(const char* caller)  { Throw_(kBadInputValue, caller, NULL);  }
 inline void ExceptionT::BadJacobianDet(const char* caller) { Throw_(kBadJacobianDet, caller, NULL); }
 inline void ExceptionT::MPIFail(const char* caller)        { Throw_(kMPIFail, caller, NULL);        }
-inline void ExceptionT::DatabaseFail(const char* caller)   { Throw(kDatabaseFail, caller, NULL);   }
-inline void ExceptionT::BadHeartBeat(const char* caller)   { Throw(kBadHeartBeat, caller, NULL);   }
-inline void ExceptionT::TypeMismatch(const char* caller)   { Throw(kTypeMismatch, caller, NULL);   }
+inline void ExceptionT::DatabaseFail(const char* caller)   { Throw_(kDatabaseFail, caller, NULL);   }
+inline void ExceptionT::BadHeartBeat(const char* caller)   { Throw_(kBadHeartBeat, caller, NULL);   }
+inline void ExceptionT::TypeMismatch(const char* caller)   { Throw_(kTypeMismatch, caller, NULL);   }
 
 } /* namespace Tahoe */
 #endif /* _EXCEPTION_CODES_H_ */
