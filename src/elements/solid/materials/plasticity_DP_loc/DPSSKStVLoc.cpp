@@ -1,4 +1,4 @@
-/* $Id: DPSSKStVLoc.cpp,v 1.6 2004-07-22 21:10:26 paklein Exp $ */
+/* $Id: DPSSKStVLoc.cpp,v 1.7 2004-08-31 16:50:07 cfoster Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStVLoc.h"
 #include "SSMatSupportT.h"
@@ -172,7 +172,8 @@ void DPSSKStVLoc::ComputeOutput(dArrayT& output)
 			AutoArrayT <dArrayT> slipdirs;
 			normals.Dimension(3);
 			slipdirs.Dimension(3);
-			output[3] = checker.IsLocalized_SS(normals,slipdirs);
+			double dummy;
+			output[3] = checker.IsLocalized_SS(normals,slipdirs, dummy);
 		  }
 	}
 	else
