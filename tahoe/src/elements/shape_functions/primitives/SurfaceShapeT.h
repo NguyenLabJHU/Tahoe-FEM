@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.h,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
+/* $Id: SurfaceShapeT.h,v 1.2 2001-04-27 10:48:33 paklein Exp $ */
 /* created: paklein (11/21/1997)                                          */
 /* Class to manage CSE integrals, where the dimension of                  */
 /* the field variable is 1 greater than the dimension of the parent       */
@@ -59,7 +59,7 @@ public:
 	 *
 	 *     fgrad_d = d delta_i/d u_j	[i] = FieldDim
 	 *                              	[j] = NumNodes*FieldDim
-*
+     *
 	 *     fgrad_dTgrad_d = d delta_k/d u_i	d delta_k/d u_j
 	 *                          	[i],[j] = NumNodes*FieldDim
 	 */
