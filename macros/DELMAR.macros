@@ -1,4 +1,4 @@
-# $Id: DELMAR.macros,v 1.12 2003-08-15 01:01:38 paklein Exp $
+# $Id: DELMAR.macros,v 1.13 2003-08-15 01:26:20 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__  -DAZTEC_MPI
 MPI_LFLAGS = -lmpich -lgm
@@ -19,7 +19,7 @@ CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -ptr $(TR) -msg_disable 161,111
 CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 LINK        = $(COMP_CC)
-LFLAGS      = $(MPI_LFLAGS) -lm -ptr $(TR) -L/usr/local/delmar/build/LINUX/ch_gm/lib
+LFLAGS      = $(MPI_LFLAGS) -lm -ptr $(TR) -L/usr/local/delmar/lib
 AR          = ar
 ARFLAGS     = -cruv
 MAKE_OPTS   = -s
