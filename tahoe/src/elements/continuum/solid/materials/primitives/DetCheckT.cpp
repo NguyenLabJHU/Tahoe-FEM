@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.35 2004-09-10 01:11:59 cfoster Exp $ */
+/* $Id: DetCheckT.cpp,v 1.36 2005-01-25 23:13:22 raregue Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -102,7 +102,8 @@ int DetCheckT::IsLocalized(dArrayT& normal)
 * 3d is a numerical search algorithm after Ortiz, et. al. (1987) */
 
 bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
-							AutoArrayT <dArrayT> &slipdirs, double detA)
+							AutoArrayT <dArrayT> &slipdirs)
+//							AutoArrayT <dArrayT> &slipdirs, double detA)
 {
   int nsd =fs_jl.Rows();
 	dArrayT normal(nsd), slipdir(nsd);
@@ -110,6 +111,7 @@ bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
 	dMatrixEXT A(nsd); //acoustic tensor 
 	/* for eigen analysis */
 	dArrayT realev(3), imev(3), altnormal_i(3), altnormal_ii(3);
+	double detA;
 	
 	if (fs_jl.Rows() == 2)
 	{
@@ -117,12 +119,13 @@ bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
 		//C.ConvertTangentFrom2DTo4D(C, fc_ijkl);
 		/* call SPINLOC routine */
 		double theta = 0.0, eigVal;
-		int check = 0, numev = 0; 
+		int numev = 0; 
+		bool check = false; 
 		/* clear normals and slipdirs */
 		normals.Free();
 		slipdirs.Free();
 		SPINLOC_localize(fc_ijkl.Pointer(), &theta, &check);
-		if (check == 1)
+		if (check)
 		{
 			//but these are with respect to principal stress axes
 			normal[0] = cos(theta);
@@ -134,8 +137,6 @@ bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
 			slipdir [0] = sin(theta);
 			slipdir [1] = cos(-theta);
 			slipdirs.Append(slipdir);
-
-
 
 			/*
 			A = 0.0;
@@ -152,7 +153,6 @@ bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
 			normal[1] = sin(-theta);	
 			normals.Append(normal);
 
-
 			slipdir [0] = sin(-theta);
 			slipdir [1] = cos(theta);
 			slipdirs.Append(slipdir);
@@ -168,13 +168,12 @@ bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
 			*/
 			detA = -1.0;
 
-			
-
 		}
 		return check;
 	}
 	else
-		return DetCheck3D_SS(normals,slipdirs, detA);
+		return DetCheck3D_SS(normals,slipdirs);
+		//return DetCheck3D_SS(normals,slipdirs, detA);
 }
 
 
@@ -280,10 +279,13 @@ int DetCheckT::DetCheck2D(dArrayT& normal)
 
 /* 3D determinant check function */
 /* assumes small strain formulation */
-int DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
-							AutoArrayT <dArrayT> &slipdirs, double detAmin)
+bool DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
+							AutoArrayT <dArrayT> &slipdirs)
+//							AutoArrayT <dArrayT> &slipdirs, double detAmin)
 {
 	int i,j,k,l,m,n; // counters 
+	
+	double detAmin;
 	
 	/* calculated normal at particular angle increment */
 	dArrayT normal(3);
@@ -323,7 +325,7 @@ int DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
 
 	//const ElementCardT* element = (fElement) ? &(fElement->CurrentElement()) : NULL;
 	//const ElementSupportT* support = (fElement) ? &(fElement->ElementSupport()) : NULL;
-//??	SetfStructuralMatSupport(support);
+	//??SetfStructuralMatSupport(support);
   
 	/* Set up output file */
 	normalSet.Free();
@@ -508,12 +510,12 @@ int DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
 	
 	if (leastmin/leastdetAe > setTol)  //no bifurcation occured
 	{
-	        detAmin = 1.0;
-		return 0;
+		detAmin = 1.0;
+		return false;
 	}
 	else //bifurcation occured
 	{	
-	        detAmin = leastmin;
+		detAmin = leastmin;
 		//choose normal from set of normals producing least detA
 		//normal = ChooseNormalFromNormalSet(normalSet, C);
 		
@@ -542,7 +544,7 @@ int DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
 					<< setw(outputFileWidth) << slipdir[2];
 
 		}	
-		return 1;
+		return true;
 	}
 	
 } // end DetCheckT::DetCheck3D_SS
@@ -763,7 +765,7 @@ void DetCheckT::ComputeCoefficients(void)
 /* 2 is 22 */
 /* 3 is 12 */
 /* angle theta subtends from the x1 axis to the band normal */
-int DetCheckT::SPINLOC_localize(const double *c__, double *thetan, int *loccheck)
+bool DetCheckT::SPINLOC_localize(const double *c__, double *thetan, bool *loccheck)
 {
 	/* Initialized data */
 	double zero = 0.;
@@ -888,15 +890,15 @@ int DetCheckT::SPINLOC_localize(const double *c__, double *thetan, int *loccheck
 	if (fmin / c__[4] < tol) 
 	{
 		/* localized */
-		*loccheck = 1;
+		*loccheck = true;
 	} 
 	else 
 	{
 		/* not localized */
-		*loccheck = 0;
+		*loccheck = false;
 	}
 	
-	return 0;
+	return false;
 	
 }
 
