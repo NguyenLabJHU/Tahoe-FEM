@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.3 2001-07-10 07:29:54 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.4 2001-07-11 01:02:15 paklein Exp $ */
 
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
@@ -49,20 +49,29 @@ class FiniteStrainT: public ElasticT
 	 * support for Rayleigh damping, which is on the way out */
 	virtual void FormCv(double constC);
 
+	/** returns true if the current material require the deformation gradient */
+	bool Needs_F(void) const;
+
+	/** returns true if the current material require the deformation gradient 
+	 * from the end of the last time increment */
+	bool Needs_F_last(void) const;
+
   private:
 
 	/** indicies of elements in the list of material needs */
 	enum MaterialNeedsT {kF = 0,
 	                kF_last = 1};
 
+  protected:
+
+  	/* return values */
+  	ArrayT<dMatrixT> fF_List;
+  	ArrayT<dMatrixT> fF_last_List;
+  
   private:
   
 	/** offset to material needs */
 	int fNeedsOffset; //NOTE - better to have this or a separate array?
-  
-  	/** return values */
-  	ArrayT<dMatrixT> fF_List;
-  	ArrayT<dMatrixT> fF_last_List;
 };
 
 /* inlines */
@@ -133,6 +142,25 @@ inline const dMatrixT& FiniteStrainT::DeformationGradient_last(int ip) const
 #endif
 
 	return fF_last_List[ip];
+}
+
+/* returns true if the current material require the deformation gradient */
+inline bool FiniteStrainT::Needs_F(void) const
+{
+	/* material information */
+	int material_number = CurrentElement().MaterialNumber();
+	const ArrayT<bool>& needs = fMaterialNeeds[material_number];
+	return needs[fNeedsOffset + kF];
+}
+
+/* returns true if the current material require the deformation gradient 
+ * from the end of the last time increment */
+inline bool FiniteStrainT::Needs_F_last(void) const
+{
+	/* material information */
+	int material_number = CurrentElement().MaterialNumber();
+	const ArrayT<bool>& needs = fMaterialNeeds[material_number];
+	return needs[fNeedsOffset + kF_last];
 }
 
 #endif /* _FINITE_STRAIN_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.6 2001-07-03 01:34:49 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.7 2001-07-11 01:02:14 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 
 #include "ContinuumElementT.h"
@@ -11,6 +11,7 @@
 #include "NodeManagerT.h"
 #include "StructuralMaterialT.h"
 #include "ShapeFunctionT.h"
+#include "DomainIntegrationT.h"
 #include "eControllerT.h"
 #include "Traction_CardT.h"
 #include "ExodusT.h"

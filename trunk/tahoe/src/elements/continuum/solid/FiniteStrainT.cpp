@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.3 2001-07-10 07:29:54 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.4 2001-07-11 01:02:15 paklein Exp $ */
 
 #include "FiniteStrainT.h"
 #include "ShapeFunctionT.h"
@@ -129,21 +129,21 @@ void FiniteStrainT::ReadMaterialData(ifstreamT& in)
 	}
 }
 
-/* increment current element */
+/* form shape functions and derivatives */
 void FiniteStrainT::SetGlobalShape(void)
 {
 	/* inherited */
 	ElasticT::SetGlobalShape();
-
-	/* material information */
-	int material_number = CurrentElement().MaterialNumber();
-	const ArrayT<bool>& needs = fMaterialNeeds[material_number];
+	
+	/* what needs to get computed */
+	bool needs_F = Needs_F();
+	bool needs_F_last = Needs_F_last();
 	
 	/* loop over integration points */
 	for (int i = 0; i < NumIP(); i++)
 	{
 		/* deformation gradient */
-		if (needs[fNeedsOffset + kF])
+		if (needs_F)
 		{
 			dMatrixT& mat = fF_List[i];
 
@@ -155,7 +155,7 @@ void FiniteStrainT::SetGlobalShape(void)
 		}
 
 		/* "last" deformation gradient */
-		if (needs[fNeedsOffset + kF_last])
+		if (needs_F_last)
 		{
 			dMatrixT& mat = fF_last_List[i];
 
