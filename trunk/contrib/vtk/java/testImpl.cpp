@@ -1,4 +1,4 @@
-// $Id: testImpl.cpp,v 1.7 2002-08-08 16:50:32 paklein Exp $
+// $Id: testImpl.cpp,v 1.8 2002-08-12 06:56:21 paklein Exp $
 //#include <StubPreamble.h>
 // not needed for 1.3.1
 
@@ -10,6 +10,7 @@
 #include "iConsoleT.h"
 #include "iConsoleObjectT.h"
 #include "CommandSpecT.h"
+#include "VTKConsoleT.h"
 
 using namespace Tahoe;
 
@@ -47,7 +48,12 @@ JNIEXPORT void JNICALL Java_test_InitCpp(JNIEnv * env, jobject obj)
 
 	StringT log_file = "testClass.log";
 	//iConsoleT console(log_file, *b);
-	iConsoleT* console = new iConsoleT(log_file, *b, NULL, false);
+	
+	/* construct VTK console object */
+	ArrayT<StringT> arguments;
+	VTKConsoleT* vtk_console = new VTKConsoleT(arguments);
+	
+	iConsoleT* console = new iConsoleT(log_file, *vtk_console, NULL, false);
 	//console_(log_file, *b);
 
   	testClass* p = new testClass(val);
@@ -102,10 +108,11 @@ JNIEXPORT void JNICALL Java_test_Print(JNIEnv * env, jobject obj)
 
 	/* try "echo" command */
 	StringT echo_arguments;
-	echo_arguments.Append("X");
+	echo_arguments.Append("\"X");
 	echo_arguments.Append(" ", 5);
-	echo_arguments.Append("Y");
+	echo_arguments.Append(" Y");
 	echo_arguments.Append(" ", 10);
+	echo_arguments.Append("\"");	
 	const CommandSpecT* echo_command = p_console->iResolveCommand("echo", echo_arguments);
 	if (p_console->iDoCommand(*echo_command, empty_line))
 		cout << " echo OK\n" << endl;
@@ -115,17 +122,20 @@ JNIEXPORT void JNICALL Java_test_Print(JNIEnv * env, jobject obj)
 	/* call command of current console scope */
 	iConsoleObjectT& current_scope = p_console->Current();
 	cout << "current console object name: " << current_scope.iName() << endl;
-	echo_command = current_scope.iResolveCommand("echo", echo_arguments);
-	if (echo_command && current_scope.iDoCommand(*echo_command, empty_line))
-		cout << " echo OK\n" << endl;
-	else
-		cout << " echo NOT OK\n" << endl;
 
-	const CommandSpecT* list_command = current_scope.iResolveCommand("list", empty_line);
-	if (list_command && current_scope.iDoCommand(*list_command, empty_line))
-		cout << " list OK\n" << endl;
+	/* try loading a body */
+	read_arguments = "billet.io0.geo";
+	read_command = current_scope.iResolveCommand("AddBody", read_arguments);
+	if (read_command && current_scope.iDoCommand(*read_command, empty_line))
+		cout << " AddBody OK\n" << endl;
 	else
-		cout << " list NOT OK\n" << endl;
+		cout << " AddBody NOT OK\n" << endl;
+
+	const CommandSpecT* update_command = current_scope.iResolveCommand("Update", empty_line);
+	if (update_command && current_scope.iDoCommand(*update_command, empty_line))
+		cout << " Update OK\n" << endl;
+	else
+		cout << " Update NOT OK\n" << endl;
 
 	return;
 }
