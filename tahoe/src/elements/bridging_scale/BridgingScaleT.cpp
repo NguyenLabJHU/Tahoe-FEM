@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.43 2004-04-09 02:02:54 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.43.2.1 2004-04-10 20:56:36 hspark Exp $ */
 
 #include "BridgingScaleT.h"
 
@@ -196,7 +196,7 @@ void BridgingScaleT::InitInterpolation(const iArrayT& points_used, const dArray2
 {
 	/* initialize the point-in-cell data */
 	MaptoCells(points_used, init_coords, curr_coords, cell_data);
-
+	
 	/* dimension return value */
 	dArray2DT& weights = cell_data.InterpolationWeights();
 	weights.Dimension(points_used.Length(), fSolid.NumElementNodes());
