@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.52.2.2 2004-11-08 21:20:42 d-farrell2 Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.52.2.3 2004-11-10 04:13:41 d-farrell2 Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -314,14 +314,22 @@ void NodeManagerT::InitStep(int group)
 	/* apply to fields */
 	for (int i = 0; i < fFields.Length(); i++)
 	{
-		if (fFields[i]->Group() == group && fPartFieldEnd != -1)
+		if (fFields[i]->Group() == group)
 		{
-			fFields[i]->InitStep(fPartFieldStart, fPartFieldEnd);
-		}
-		else if(fFields[i]->Group() == group)
-		{
+			if (fPartFieldEnd != -1)
+			{
+				fFields[i]->InitStep(fPartFieldStart, fPartFieldEnd);
+			}
+			else if(fPartFieldEnd == -1)
+			{
 				fFields[i]->InitStep();
+			}
+			else
+			{
+			ExceptionT::GeneralFail("NodeManagerT::InitStep, apply to fields","fPartFieldEnd does not fit expected values");
+			}
 		}
+		
 	}
 
 	/* update current configurations */
@@ -334,9 +342,13 @@ void NodeManagerT::InitStep(int group)
 			// communicate the updated coords
 			fCommManager.AllGather(fMessageCurrCoordsID, *fCurrentCoords);
 		}
-		else
+		else if (fPartFieldEnd == -1)
 		{
 			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
+		}
+		else
+		{
+			ExceptionT::GeneralFail("NodeManagerT::InitStep, update current config","fPartFieldEnd does not fit expected values");
 		}
 	}
 	
@@ -472,6 +484,14 @@ void NodeManagerT::InitialCondition(void)
 			// get the limits for the field
 			fPartFieldStart = fCommManager.GetPartFieldStart();
 			fPartFieldEnd = fCommManager.GetPartFieldEnd();
+//DEBUG
+cout << "fPartFieldStart = " << fPartFieldStart << endl;
+cout << "fPartFieldEnd = " << fPartFieldEnd << endl; 			
+		}
+		else // set the start/end to the default values of 0, - 1 (full array) for any other decomposition
+		{
+			fPartFieldStart = 0;
+			fPartFieldEnd = - 1;
 		}
 	}
 	else // set the start/end to the default values of 0, - 1 (full array)
@@ -484,7 +504,7 @@ void NodeManagerT::InitialCondition(void)
 	/* update current configurations */
 	if (fCoordUpdate)
 	{
-		if (fPartFieldEnd != -1)
+		if (fPartFieldEnd != -1 && fDecomp_Type == PartitionT::kIndex)
 		{
 			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0], fPartFieldStart, fPartFieldEnd);
 //DEBUG
