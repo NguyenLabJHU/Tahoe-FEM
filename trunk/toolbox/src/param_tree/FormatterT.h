@@ -1,4 +1,4 @@
-/* $Id: FormatterT.h,v 1.4 2002-11-18 09:59:03 paklein Exp $ */
+/* $Id: FormatterT.h,v 1.5 2003-04-26 02:06:48 paklein Exp $ */
 #ifndef _FORMATTER_T_H_
 #define _FORMATTER_T_H_
 
@@ -8,7 +8,7 @@
 namespace Tahoe {
 
 /* forward declarations */
-class ParameterT;
+class ParameterListT;
 
 /** base class for formatting output of ValueT's. There are
  * assumed to be two kinds of output for every format: value
@@ -34,8 +34,8 @@ public:
 	/** close parameter file */
 	virtual bool CloseParameterFile(ostream& out) const = 0;
 	
-	/** write the value */
-//	virtual bool WriteParameter(ostream& out, const ParameterT& parameter) const = 0;
+	/** write the parameter list */
+	virtual bool WriteParameterList(ostream& out, const ParameterListT& list) const = 0;
 	/*@}*/
 
 	/** \name writing data descriptions 
@@ -48,13 +48,16 @@ public:
 	virtual bool CloseDescriptionFile(ostream& out) const = 0;
 	
 	/** write the data description */
-//	virtual bool WriteDescription(ostream& out, const ParameterT& parameter) const = 0;
+	virtual bool WriteDescription(ostream& out, const ParameterListT& list) const = 0;
 	/*@}*/
 
 protected:
 
 	/** \name tabbing */
 	/*@{*/
+	/** return the tab depth */
+	int Depth(void) const { return fTabCount; };
+
 	/** the tab string */
 	const char* Tab(void) const { return fTabs; };
 	
