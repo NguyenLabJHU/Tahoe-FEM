@@ -1,4 +1,4 @@
-/* $Id: LineT.cpp,v 1.7 2004-05-16 00:47:38 paklein Exp $ */
+/* $Id: LineT.cpp,v 1.8 2004-05-20 14:55:29 paklein Exp $ */
 /* created: paklein (04/25/1999) */
 #include "LineT.h"
 
@@ -323,4 +323,28 @@ bool LineT::PointInDomain(const LocalArrayT& coords, const dArrayT& point) const
 		else
 			return false;
 	}
+}
+
+/* return the integration point whose domain contains the given point in the parent domain coordinates */
+int LineT::IPDomain(int nip, const dArrayT& coords) const
+{
+	const char caller[] = "LineT::IPDomain";
+	
+	/* domain check */
+	if (coords[0] < -1.0 || coords[0] > 1.0)
+		ExceptionT::OutOfRange(caller, "{%g} outside domain", coords[0]);	
+	
+	if (nip == 1)
+		return 0;
+	else if (nip == 2) {
+		if (coords[0] > 0.0)
+			return 1;
+		else
+			return 0;
+	}
+	else
+		ExceptionT::GeneralFail(caller, "%d integration points not supported", nip);
+
+	/* dummy */
+	return -1;
 }
