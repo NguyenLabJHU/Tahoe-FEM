@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.7 2004-10-13 00:20:15 cjkimme Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.8 2004-10-24 03:57:06 paklein Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 //#define VERIFY_B
@@ -33,19 +33,10 @@ const int kRadialDirection = 0; /* the x direction is radial */
 const int kNSD = 2;
 const double kZeroTol = 0.0000001;
 
-/* constructors */
-FS_SCNIMF_AxiT::FS_SCNIMF_AxiT(const ElementSupportT& support, const FieldT& field):
-	SCNIMFT(support, field),
-	fFSMatSupport(NULL),
-	circumferential_B()
-{
-	SetName("fd_mfparticle_axi");
-}
-
+/* constructor */
 FS_SCNIMF_AxiT::FS_SCNIMF_AxiT(const ElementSupportT& support):
 	SCNIMFT(support),
-	fFSMatSupport(NULL),
-	circumferential_B()
+	fFSMatSupport(NULL)
 {
 	SetName("fd_mfparticle_axi");
 }
@@ -265,9 +256,61 @@ void FS_SCNIMF_AxiT::ReadRestart(istream& in)
 //	return fForce;
 //}
 
+/* information about subordinate parameter lists */
+void FS_SCNIMF_AxiT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	SCNIMFT::DefineSubs(sub_list);
+	
+	/* element blocks for underlying connectivity -- TEMP */
+	sub_list.AddSub("fd_scni_axi_element_block");
+
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* FS_SCNIMF_AxiT::NewSub(const StringT& name) const
+{
+   if  (name == "fd_scni_axi_element_block") {
+    
+	  ParameterContainerT* block = new ParameterContainerT(name);
+
+	  block->AddSub("block_ID_list",ParameterListT::Once);
+	  block->AddSub("large_strain_material_3D");
+
+	  block->SetSubSource(this);
+
+	  return block;
+
+  }
+  else /* inherited */
+	return SCNIMFT::NewSub(name);
+}
+
 /***********************************************************************
  * Protected
  ***********************************************************************/
+
+void FS_SCNIMF_AxiT::CollectMaterialInfo(const ParameterListT& all_params,
+				  ParameterListT& mat_params) const
+{
+	const char caller[] = "FS_SCNIMFT::CollectMaterialInfo";
+
+	/* initialize */
+	mat_params.Clear();
+	mat_params.SetName("large_strain_material_3D");	
+
+	/* collect material parameters */
+	int num_blocks = all_params.NumLists("fd_scni_axi_element_block");
+	for (int i = 0; i < num_blocks; i++) {
+	  
+		const ParameterListT& block = all_params.GetList("large_strain_element_block",i);
+
+		/* collect material parameters */
+		const ParameterListT& mat_list = block.GetList(mat_params.Name());
+		const ArrayT<ParameterListT>& mat = mat_list.Lists();
+		mat_params.AddList(mat[0]);
+	}
+}
 
 /* form group contribution to the stiffness matrix */
 void FS_SCNIMF_AxiT::LHSDriver(GlobalT::SystemTypeT sys_type)
@@ -581,32 +624,6 @@ void FS_SCNIMF_AxiT::bVectorToMatrix(double *bVector, dMatrixT& BJ)
 		Bptr[4] = Bptr[9] = *bVector;
 	}
 }
-
-void FS_SCNIMF_AxiT::CollectMaterialInfo(const ParameterListT& all_params,
-				  ParameterListT& mat_params) const
-{
-	const char caller[] = "FS_SCNIMFT::CollectMaterialInfo";
-
-	/* initialize */
-	mat_params.Clear();
-
-        int num_blocks = all_params.NumLists("large_strain_element_block");
-	for (int i = 0; i < num_blocks; i++) {
-	  
-	  const ParameterListT& block = all_params.GetList("large_strain_element_block",i);
-
-	  if (i == 0) {
-	    const ParameterListT& mat_list_params = block.GetListChoice(*this, "large_strain_material_choice");
-	    mat_params.SetName(mat_list_params.Name());
-	  }
-
-	  /* collect material parameters */
-	  const ParameterListT& mat_list = block.GetList(mat_params.Name());
-	  const ArrayT<ParameterListT>& mat = mat_list.Lists();
-	  mat_params.AddList(mat[0]);
-	}
-}
-
 
 /* return a pointer to a new material list */
 MaterialListT* FS_SCNIMF_AxiT::NewMaterialList(const StringT& name, int size)
@@ -1015,57 +1032,4 @@ void FS_SCNIMF_AxiT::ComputeBMatrices(void)
 			*crow_i++ = *(clist.CurrentValue());
 		}
 	}
-}
-	
-// XML stuff below
-
-/* describe the parameters needed by the interface */
-void FS_SCNIMF_AxiT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	SCNIMFT::DefineParameters(list);
-}
-
-/* information about subordinate parameter lists */
-void FS_SCNIMF_AxiT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	SCNIMFT::DefineSubs(sub_list);
-	
-	/* element blocks for underlying connectivity -- TEMP */
-	sub_list.AddSub("fd_axi_connectivity_block");
-
-}
-
-/* return the description of the given inline subordinate parameter list */
-void FS_SCNIMF_AxiT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
-	SubListT& sub_lists) const
-{
-	if (name == "large_strain_material_choice") {
-		order = ParameterListT::Choice;
-		
-		/* list of choices */
-		sub_lists.AddSub("large_strain_material_3D");
-	} else /* inherited */
-		SCNIMFT::DefineInlineSub(name, order, sub_lists);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* FS_SCNIMF_AxiT::NewSub(const StringT& name) const
-{
-   if  (name == "fd_axi_connectivity_block") {
-    
-	  ParameterContainerT* block = new ParameterContainerT(name);
-
-	  block->AddSub("mfparticle_block_ID_list",ParameterListT::Once);
-
-	  block->AddSub("large_strain_material_choice", ParameterListT::Once, true);
-
-	  block->SetSubSource(this);
-
-	  return block;
-
-  }
-  else /* inherited */
-	return SCNIMFT::NewSub(name);
 }
