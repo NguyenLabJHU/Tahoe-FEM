@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.cpp,v 1.5 2003-05-14 17:41:11 cjkimme Exp $ */
+/* $Id: ScaledVelocityNodesT.cpp,v 1.6 2003-05-15 00:47:11 cjkimme Exp $ */
 #include "ScaledVelocityNodesT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -125,7 +125,6 @@ void ScaledVelocityNodesT::Initialize(ifstreamT& in)
 	if (!fRandom)
 		ExceptionT::GeneralFail("ScaledVelocityNodesT::Initialize","Cannot create random number gen");
 	fRandom->sRand(rseed);
-
 }
 
 void ScaledVelocityNodesT::InitStep(void)
@@ -191,14 +190,9 @@ void ScaledVelocityNodesT::InitialCondition(void)
 		myNodes.Set(fNodes.Length(), fNodes.Pointer());
 	else
 	{
-		const ArrayT<int>* nMap = fNodeManager.FEManager().NodeMap();
-		
-		if (!nMap)
-			ExceptionT::GeneralFail("ScaledVelocityNodesT","Cannot get a node map");
-			
 		for (int i = 0; i < myNodes.Length(); i++)
 			if ((*pMap)[fNodes[i]] == thisProc)
-				myNodes[i] = (*nMap)[fNodes[i]];
+				myNodes[i] = fNodes[i];
 			else
 				myNodes[i] = -1;
 	}
@@ -299,14 +293,9 @@ void ScaledVelocityNodesT::SetBCCards(void)
 		myNodes.Set(fNodes.Length(), fNodes.Pointer());
 	else
 	{
-		const ArrayT<int>* nMap = fNodeManager.FEManager().NodeMap();
-		
-		if (!nMap)
-			ExceptionT::GeneralFail("ScaledVelocityNodesT","Cannot get a node map");
-			
 		for (int i = 0; i < myNodes.Length(); i++)
 			if ((*pMap)[fNodes[i]] == thisProc)
-				myNodes[i] = (*nMap)[fNodes[i]];
+				myNodes[i] = fNodes[i];
 			else
 				myNodes[i] = -1;
 	}
