@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.18 2002-04-24 17:52:27 dzeigle Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.19 2002-05-09 22:10:10 dzeigle Exp $ */
 // created by : rjones 2001
 
 #include "PenaltyContactElement2DT.h"
@@ -39,7 +39,7 @@ void PenaltyContactElement2DT::Initialize(void)
 	fPenaltyFunctions.Dimension(num_surfaces*(num_surfaces-1));
     for (int i = 0; i < num_surfaces ; i++)
     {
-        for (int j = i ; j < num_surfaces ; j++)
+        for (int j = 0 ; j < num_surfaces ; j++)
         {
           dArrayT& parameters = fEnforcementParameters(i,j);
 		  if (parameters.Length()) {
@@ -54,7 +54,7 @@ void PenaltyContactElement2DT::Initialize(void)
                 double A = parameters[kSmithFerranteA];
                 double B = parameters[kSmithFerranteB];
 				fPenaltyFunctions[LookUp(i,j,num_surfaces)] = new ModSmithFerrante(A,B);
-				parameters[kPenalty] = 1.0; // overwrite pen value
+				//parameters[kPenalty] = 1.0; // overwrite pen value
 				}
 				break;
 			case PenaltyContactElement2DT::kGreenwoodWilliamson:
@@ -65,9 +65,9 @@ void PenaltyContactElement2DT::Initialize(void)
                 double gw_dens = parameters[kAsperityDensity];
                 double gw_mod = parameters[kHertzianModulus];
                 double gw_rad = parameters[kAsperityTipRadius];
-                double material_coeff=(4.0/3.0)*gw_dens*gw_mod*sqrt(gw_rad*gw_s)*gw_s;
-          		double area_coeff = PI*gw_dens*gw_rad*gw_s;
-				parameters[kPenalty] = material_coeff; // overwrite pen value
+                double material_coeff=(4.0/3.0)*gw_dens*gw_mod*sqrt(gw_rad);
+          		double area_coeff = PI*gw_dens*gw_rad;
+				parameters[kPenalty] *= material_coeff; // overwrite pen value
 				fPenaltyFunctions[LookUp(i,j,num_surfaces)] 
 					= new GreenwoodWilliamson(1.5,gw_m,gw_s);
 				}
@@ -212,7 +212,6 @@ void PenaltyContactElement2DT::RHSDriver(void)
 		  dArrayT& parameters = fEnforcementParameters(s,s2);
 		  /* First derivative represents force */
           pre  = -parameters[kPenalty] * fPenaltyFunctions[LookUp(s,s2,num_surfaces)]->DFunction(gap);
-
 		  face->ComputeShapeFunctions(points(i),N1);
 		  for (int j =0; j < fNumSD; j++) {n1[j] = node->Normal()[j];}
 		  N1.Multx(n1, tmp_RHS);
@@ -231,7 +230,7 @@ void PenaltyContactElement2DT::RHSDriver(void)
 			double gw_rad = parameters[kAsperityTipRadius];
 
 			GreenwoodWilliamson GWArea(1.0,gw_m,gw_s);
-  		  	double area_coeff = PI*gw_dens*gw_rad*gw_s;
+  		  	double area_coeff = PI*gw_dens*gw_rad;
 		  	fRealArea[s] += (area_coeff*GWArea.Function(gap)*weights[i]);
 		  }
 		}
@@ -255,8 +254,8 @@ void PenaltyContactElement2DT::LHSDriver(void)
   int num_nodes,opp_num_nodes;
   int s2;
   ContactNodeT* node;
-  double pre, dpre_dg;
-  double gap;
+  double pre=0.0, dpre_dg=0.0;
+  double gap=0.0;
   double lm2[3];
   dArrayT n1alphal1;
   n1alphal1.Allocate(fNumSD);
@@ -311,7 +310,7 @@ void PenaltyContactElement2DT::LHSDriver(void)
 					s2 = node->OpposingFace()->Surface().Tag();
 					gap =  node->Gap();
 					face->ComputeShapeFunctions(points(i),N1);
-					dArrayT& parameters = fEnforcementParameters(s,s2);
+					dArrayT& parameters = fEnforcementParameters(s,s2);		
 					pre  = 
 					 parameters[kPenalty]*fPenaltyFunctions[LookUp(s,s2,num_surfaces)]->DFunction(gap);
 					dpre_dg = 
@@ -384,6 +383,4 @@ void PenaltyContactElement2DT::LHSDriver(void)
 /***********************************************************************
  * Private
  ***********************************************************************/
-
-
 

@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.h,v 1.8 2002-04-01 19:04:29 rjones Exp $ */
+/* $Id: PenaltyContactElement2DT.h,v 1.9 2002-05-09 22:10:10 dzeigle Exp $ */
 // created by : rjones 2001
 
 #ifndef _PENALTY_CONTACT_ELEMENT_2D_T_H_
@@ -28,7 +28,7 @@ class PenaltyContactElement2DT: public ContactElementT
                                 kConsistentTangent = 0 ,
                                 kPenalty ,
                                 kPenaltyType ,
-		kNumEnfParameters=8}; //this has to the max of all the Penalty types
+			kNumEnfParameters=8}; //this has to the max of all the Penalty types
 
 	enum PenaltyTypesT {
 								kLinear = 0,
