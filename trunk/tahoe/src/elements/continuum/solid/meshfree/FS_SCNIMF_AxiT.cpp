@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.12 2005-01-20 00:22:14 paklein Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.13 2005-01-20 00:42:57 cjkimme Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 //#define VERIFY_B
@@ -155,8 +155,8 @@ void FS_SCNIMF_AxiT::WriteOutput(void)
 	{
 		/* set current element */
 		fElementCards.Current(i);
-	
-		int   tag_i = (partition_nodes) ? (*partition_nodes)[i] : i;
+		
+		int   tag_i = (partition_nodes) ? (*partition_nodes)[fNodes[i]] : fNodes[i];
 		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
 
 		/* values for particle i */
