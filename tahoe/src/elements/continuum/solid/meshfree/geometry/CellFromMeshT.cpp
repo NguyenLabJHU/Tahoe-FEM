@@ -1,4 +1,4 @@
-/* $Id: CellFromMeshT.cpp,v 1.6 2005-01-28 02:41:41 paklein Exp $ */
+/* $Id: CellFromMeshT.cpp,v 1.7 2005-01-30 00:39:39 paklein Exp $ */
 #include "CellFromMeshT.h"
 
 #include "ArrayT.h"
@@ -125,7 +125,8 @@ void CellFromMeshT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, RaggedAr
 			/* element nodes */
 			connects.RowAlias(i, nodes_glb);
 			nodes_loc = nodes_glb;
-			fscnimft->GlobalToLocalNumbering(nodes_loc);
+			if (!fscnimft->GlobalToLocalNumbering(nodes_loc))
+				ExceptionT::GeneralFail(caller, "list contains point that is not meshfree");
 
 			/* collect coordinates over the current element */
 			cell_coords.SetLocal(nodes_glb);
