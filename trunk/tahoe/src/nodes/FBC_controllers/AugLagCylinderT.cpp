@@ -1,4 +1,4 @@
-/* $Id: AugLagCylinderT.cpp,v 1.1 2004-09-15 15:38:41 paklein Exp $ */
+/* $Id: AugLagCylinderT.cpp,v 1.2 2004-09-16 16:49:31 paklein Exp $ */
 #include "AugLagCylinderT.h"
 #include "FieldT.h"
 #include "eIntegratorT.h"
@@ -278,16 +278,15 @@ void AugLagCylinderT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 		if (g <= 0.0)
 		{
 			/* get force vector (has normal direction) */
-			fContactForce2D.RowAlias(i, fd_sh);
+			fd_sh.Alias(nsd, fContactForce2D(i));
 			
 			/* unit normal */
 			norm.SetToScaled(-1.0/g, fd_sh);
 
 			/* upper-left block */			
-			double dPhi = gap*fk;
-			ULblock.Outer(fd_sh, fd_sh, constK*((fk/dPhi) - (1.0/dist))/dPhi);
-			ULblock.PlusIdentity(constK*dPhi/dist);
-			ULblock.Outer(fDirection, fDirection, -constK*dPhi/dist, dMatrixT::kAccumulate);		
+			ULblock.Outer(norm, norm, fk - g/dist);
+			ULblock.PlusIdentity(g/dist);
+			ULblock.Outer(fDirection, fDirection, -g/dist, dMatrixT::kAccumulate);		
 			fLHS.SetBlock(0, 0, ULblock);
 
 			mat.Alias(1, nsd, norm.Pointer());
@@ -325,7 +324,7 @@ void AugLagCylinderT::DefineSubs(SubListT& sub_list) const
 	PenaltyCylinderT::DefineSubs(sub_list);
 
 	/* direction */
-	sub_list.AddSub("Uzawa_method");
+	sub_list.AddSub("Uzawa_method", ParameterListT::ZeroOrOnce);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
@@ -399,7 +398,46 @@ void AugLagCylinderT::ComputeContactForce(double kforce)
 	/* Uzawa */
 	if (fUzawa)
 	{
+		/* check for update */
+		int iter = FieldSupport().IterationNumber();
+		if (!fRecomputeForce && (iter != -1 && fabs(fmod(double(iter+1), fPrimalIterations)) > kSmall)) return;
+		fRecomputeForce = false;
+	
+		/* dimensions */
+		int ndof = Field().NumDOF();
 
+		/* initialize */
+		fContactForce2D = 0.0;	
+
+		/* loop over strikers */
+		const dArray2DT& coords = FieldSupport().CurrentCoordinates();
+		dArrayT f_u;
+		for (int i = 0; i < fNumContactNodes; i++)
+		{
+			/* displacement DOF's */
+			f_u.Alias(ndof, fContactForce2D(i));
+
+			/* center to striker */
+			coords.RowCopy(fContactNodes[i], fv_OP);
+			fv_OP -= fx;
+
+			/* vector in radial direction */
+			fR.SetToCombination(1.0, fv_OP, -dArrayT::Dot(fv_OP, fDirection), fDirection);
+		
+			/* penetration */
+			double dist = fR.Magnitude();
+			double pen  = dist - fRadius;
+			double g = fDOF[i] + fk*pen;			
+			if (g <= 0.0) {
+				f_u.SetToScaled(-g*kforce/dist, fR);
+				fDOF[i] = g;
+			}
+			else
+				fDOF[i] = 0.0;
+
+			/* store */
+			fGap[i] = pen;
+		}
 	}
 	else /* solve primal and dual simultaneously */
 	{

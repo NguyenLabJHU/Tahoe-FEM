@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.h,v 1.15 2004-09-14 18:18:12 paklein Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.16 2004-09-16 16:49:31 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 #ifndef _FBC_CONTROLLER_T_H_
 #define _FBC_CONTROLLER_T_H_
@@ -38,7 +38,8 @@ public:
             kMFPenaltySphere = 3,
                  kAugLagWall = 4,
             kPenaltyCylinder = 5,
-               kMFAugLagMult = 6};
+               kMFAugLagMult = 6,
+             kAugLagCylinder = 7};
 
 	/** converts strings to FBC_ControllerT::CodeT */
 	static CodeT Code(const char* name);
