@@ -1,4 +1,4 @@
-/* $Id: ValueT.h,v 1.6 2003-05-04 22:59:53 paklein Exp $ */
+/* $Id: ValueT.h,v 1.7 2004-01-21 17:06:45 paklein Exp $ */
 #ifndef _VALUE_T_H_
 #define _VALUE_T_H_
 
@@ -77,6 +77,9 @@ public:
 
 	/** convert type name to string */
 	static const char* TypeName(TypeT t);
+
+	/** comparison */
+	bool operator==(const ValueT& rhs) const;
 
 protected:
 
