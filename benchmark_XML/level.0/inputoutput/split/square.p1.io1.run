@@ -1,0 +1,74 @@
+
+ S U M M A R Y :
+
+ Group number. . . . . . . . . . . . . . . . . . = 2
+ Output ID . . . . . . . . . . . . . . . . . . . = 1
+ Number of nodal values. . . . . . . . . . . . . = 5
+ Labels:
+       D_X       D_Y       s11       s22       s12
+ Number of element values. . . . . . . . . . . . = 1
+ Labels:
+         U
+ Number of blocks. . . . . . . . . . . . . . . . = 2
+ Changing geometry . . . . . . . . . . . . . . . = 0
+
+ Block ID. . . . . . . . . . . . . . . . . . . . = 13
+ Number of nodes . . . . . . . . . . . . . . . . = 0
+ Number of elements. . . . . . . . . . . . . . . = 0
+ Block ID. . . . . . . . . . . . . . . . . . . . = 12
+ Number of nodes . . . . . . . . . . . . . . . . = 0
+ Number of elements. . . . . . . . . . . . . . . = 0
+
+ O U T P U T   D A T A :
+
+ Group number. . . . . . . . . . . . . . . . . . = 2
+ Output ID . . . . . . . . . . . . . . . . . . . = 1
+ Print Step. . . . . . . . . . . . . . . . . . . = 0
+ Time. . . . . . . . . . . . . . . . . . . . . . = 5.000000000000e-01
+ Number of blocks. . . . . . . . . . . . . . . . = 2
+
+ Nodal data:
+ Number of nodal points. . . . . . . . . . . . . = 0
+ Number of values. . . . . . . . . . . . . . . . = 5
+
+   index    node                  D_X                  D_Y                  s11                  s22                  s12
+
+ Element data:
+ Block ID . . . . . .  . . . . . . . . . . . . . = 13
+ Number of elements. . . . . . . . . . . . . . . = 0
+ Number of values. . . . . . . . . . . . . . . . = 1
+
+   index element                    U
+
+ Element data:
+ Block ID . . . . . .  . . . . . . . . . . . . . = 12
+ Number of elements. . . . . . . . . . . . . . . = 0
+ Number of values. . . . . . . . . . . . . . . . = 1
+
+   index element                    U
+
+ Group number. . . . . . . . . . . . . . . . . . = 2
+ Output ID . . . . . . . . . . . . . . . . . . . = 1
+ Print Step. . . . . . . . . . . . . . . . . . . = 1
+ Time. . . . . . . . . . . . . . . . . . . . . . = 1.000000000000e+00
+ Number of blocks. . . . . . . . . . . . . . . . = 2
+
+ Nodal data:
+ Number of nodal points. . . . . . . . . . . . . = 0
+ Number of values. . . . . . . . . . . . . . . . = 5
+
+   index    node                  D_X                  D_Y                  s11                  s22                  s12
+
+ Element data:
+ Block ID . . . . . .  . . . . . . . . . . . . . = 13
+ Number of elements. . . . . . . . . . . . . . . = 0
+ Number of values. . . . . . . . . . . . . . . . = 1
+
+   index element                    U
+
+ Element data:
+ Block ID . . . . . .  . . . . . . . . . . . . . = 12
+ Number of elements. . . . . . . . . . . . . . . = 0
+ Number of values. . . . . . . . . . . . . . . . = 1
+
+   index element                    U
