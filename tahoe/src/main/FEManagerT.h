@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.41.12.2 2004-06-07 23:20:16 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.41.12.3 2004-06-16 00:31:23 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -537,8 +537,10 @@ inline int FEManagerT::IterationNumber(void) const
 	int curr_group = CurrentGroup();
 	if (curr_group >= 0)
 		return IterationNumber(curr_group);
-	else
+	else {
+		ExceptionT::GeneralFail("FEManagerT::IterationNumber", "no group is current"); 
 		return -1;
+	}
 }
 
 inline int FEManagerT::GlobalEquationStart(int group) const { return fGlobalEquationStart[group]; }
