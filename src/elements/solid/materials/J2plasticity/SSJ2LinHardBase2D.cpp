@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardBase2D.cpp,v 1.1 2003-08-13 00:15:34 thao Exp $ */
+/* $Id: SSJ2LinHardBase2D.cpp,v 1.2 2004-01-28 00:23:58 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -230,7 +230,7 @@ const dSymMatrixT& SSJ2LinHardBase2D::StressCorrection(const dSymMatrixT& devtri
   fplastic = PlasticLoading(devtrialstress);
   if (fplastic)
   {
-    if (fSSMatSupport.RunState() == GlobalT::kFormRHS)
+    if (fSSMatSupport->RunState() == GlobalT::kFormRHS)
     {
 
       /* plastic increment */

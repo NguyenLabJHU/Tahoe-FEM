@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardT.cpp,v 1.3 2003-08-08 22:56:06 thao Exp $ */
+/* $Id: SSJ2LinHardT.cpp,v 1.4 2004-01-28 00:23:58 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -80,7 +80,7 @@ const dMatrixT& SSJ2LinHardT::c_ijkl(void)
   fModulus(0,1) += fKappa; fModulus(0,2) += fKappa; fModulus(1,2) += fKappa;
   fModulus(1,0) += fKappa; fModulus(2,0) += fKappa; fModulus(2,1) += fKappa;
   
-  int iteration = fSSMatSupport.IterationNumber();
+  int iteration = fSSMatSupport->IterationNumber();
   if (iteration > -1) /* elastic iteration */
     fModulus += ModuliCorrection();
   return fModulus;
@@ -102,7 +102,7 @@ const dSymMatrixT& SSJ2LinHardT::s_ij(void)
   fStress *= 2.0*fMu;
   
   /* modify deviatoric part of trial elastic stress (return mapping) */
-  int iteration = fSSMatSupport.IterationNumber();
+  int iteration = fSSMatSupport->IterationNumber();
   if (iteration > -1) /* elastic iteration */
     fStress += StressCorrection(fStress);
   Store(element,CurrIP());

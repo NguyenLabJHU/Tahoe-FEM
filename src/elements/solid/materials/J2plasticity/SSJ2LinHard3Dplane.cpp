@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHard3Dplane.cpp,v 1.2 2003-11-04 18:11:55 thao Exp $ */
+/* $Id: SSJ2LinHard3Dplane.cpp,v 1.3 2004-01-28 00:23:58 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Plane Strain linearly                */
 /* isotropically elasto plastic material model subject to the Huber-von Mises yield             */
@@ -72,7 +72,7 @@ const dMatrixT& SSJ2LinHard3Dplane::c_ijkl(void)
 	fModulus(3,0) = fModulus(3,1) = fKappa-2.0*fMu*fthird;
 	fModulus(2,2) = fMu;
 
-       	int iteration = fSSMatSupport.IterationNumber();
+       	int iteration = fSSMatSupport->IterationNumber();
        	if (iteration > -1) /* elastic iteration */
         fModulus += ModuliCorrection();
 
@@ -111,7 +111,7 @@ const dSymMatrixT& SSJ2LinHard3Dplane::s_ij(void)
     fStress *= 2.0*fMu;
 
     /* modify trial stress (return mapping) */
-    int iteration = fSSMatSupport.IterationNumber();
+    int iteration = fSSMatSupport->IterationNumber();
     if (iteration > -1) /* elastic iteration */
       fStress += StressCorrection(fStress);
     Store(element,CurrIP());
