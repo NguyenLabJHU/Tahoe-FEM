@@ -21,7 +21,7 @@ GradJ2SSNonlinHard2D::GradJ2SSNonlinHard2D(ifstreamT& in, const SmallStrainT& el
 void GradJ2SSNonlinHard2D::Initialize(void)
 {
 	/* inherited */
-	HookeanMatT::Initialize();
+	GradJ2SSNonlinHard::Initialize();
 }
 
 /* returns elastic strain (3D) */

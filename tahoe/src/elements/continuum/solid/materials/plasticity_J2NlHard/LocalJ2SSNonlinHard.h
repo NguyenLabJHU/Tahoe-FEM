@@ -81,6 +81,11 @@ protected:
 	double YieldCondition(const dSymMatrixT& relstress, double isotropic) const;
 
 private:
+	/* status flags */
+	enum LoadingStatusT {kIsPlastic = 0,
+                             kIsElastic = 1,
+                                 kReset = 3}; // indicator not to repeat update
+
 	/* load element data for the specified integration point */
 	void LoadData(const ElementCardT& element, int ip);
 
