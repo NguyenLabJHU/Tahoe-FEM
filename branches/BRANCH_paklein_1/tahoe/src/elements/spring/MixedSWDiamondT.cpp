@@ -1,4 +1,4 @@
-/* $Id: MixedSWDiamondT.cpp,v 1.3 2002-07-02 19:55:28 cjkimme Exp $ */
+/* $Id: MixedSWDiamondT.cpp,v 1.3.4.1 2002-10-17 04:28:57 paklein Exp $ */
 /* created: paklein (03/22/1997) */
 
 #include "MixedSWDiamondT.h"
@@ -65,7 +65,7 @@ void MixedSWDiamondT::ReadMaterialData(ifstreamT& in)
 {
 	int numsets;
 	
-	in >> numsets;	if (numsets < 1) throw eBadInputValue;
+	in >> numsets;	if (numsets < 1) throw ExceptionT::kBadInputValue;
 
 	fSWDataList.Allocate(numsets);
 
@@ -86,7 +86,7 @@ void MixedSWDiamondT::EchoConnectivityData(ifstreamT& in, ostream& out)
 {
 	int num_nodes_used;
 	in >> num_nodes_used;
-	if (num_nodes_used != -1 /* || num_nodes_used > 0 */) throw eBadInputValue;
+	if (num_nodes_used != -1 /* || num_nodes_used > 0 */) throw ExceptionT::kBadInputValue;
 								//general case not implemented yet		
 
 	/* neighbor distance assuming material 0*/
@@ -106,7 +106,7 @@ void MixedSWDiamondT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	}
 	else //only use specified nodes
 	{
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	
 		//see MixedSWDiamondT for sample code
 	}
@@ -184,7 +184,7 @@ void MixedSWDiamondT::EchoNodeTags(istream& in, ostream& out)
 
 		/* checks */
 		if (fNodeTypes[nodenum] < 1 ||
-		    fNodeTypes[nodenum] > numtypes) throw eBadInputValue;
+		    fNodeTypes[nodenum] > numtypes) throw ExceptionT::kBadInputValue;
 	
 		out << setw(kIntWidth) << nodenum;
 		out << setw(kIntWidth) << fNodeTypes[nodenum];

@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.24 2002-09-12 17:49:52 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.24.4.1 2002-10-17 04:28:49 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -74,7 +74,7 @@ void CSEAnisoT::Initialize(void)
 	{
 		/* shape functions wrt. current coordinates (linked parent domains) */
 		fCurrShapes = new SurfaceShapeT(*fShapes, fLocCurrCoords);
-		if (!fCurrShapes) throw eOutOfMemory;
+		if (!fCurrShapes) throw ExceptionT::kOutOfMemory;
 		fCurrShapes->Initialize();
  		
 		/* allocate work space */
@@ -106,7 +106,7 @@ void CSEAnisoT::Initialize(void)
 		num--;
 
 		/* check for repeated number */
-		if (fSurfPots[num] != NULL) throw eBadInputValue;
+		if (fSurfPots[num] != NULL) throw ExceptionT::kBadInputValue;
 
 		switch (code)
 		{
@@ -140,7 +140,7 @@ void CSEAnisoT::Initialize(void)
 				{
 					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: "
 					     << code << endl; 				
-					throw eBadInputValue;
+					throw ExceptionT::kBadInputValue;
 				}
 				break;
 			}
@@ -152,7 +152,7 @@ void CSEAnisoT::Initialize(void)
 				{
 					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code <<  endl;
 
-					throw eBadInputValue;
+					throw ExceptionT::kBadInputValue;
 				}
 				break;
 			}
@@ -164,7 +164,7 @@ void CSEAnisoT::Initialize(void)
 				{
 					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code <<  endl;
 
-					throw eBadInputValue;
+					throw ExceptionT::kBadInputValue;
 				}
 				break;
 			}
@@ -181,7 +181,7 @@ void CSEAnisoT::Initialize(void)
 				{
 					cout << "\n TiedPotentialT::Initialize: potential not implemented for 3D: " << code <<  endl;
 
-					throw eBadInputValue;
+					throw ExceptionT::kBadInputValue;
 				}
 				break;
 			}
@@ -201,15 +201,15 @@ void CSEAnisoT::Initialize(void)
 				{
 					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code <<  endl;
 
-					throw eBadInputValue;
+					throw ExceptionT::kBadInputValue;
 				}
 				break;
 			}*/
 			default:
 				cout << "\n CSEAnisoT::Initialize: unknown potential code: " << code << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 		}
-		if (!fSurfPots[num]) throw eOutOfMemory;
+		if (!fSurfPots[num]) throw ExceptionT::kOutOfMemory;
 		
 		/* get number of state variables */
 		fNumStateVariables[num] = fSurfPots[num]->NumStateVariables();
@@ -236,7 +236,7 @@ void CSEAnisoT::Initialize(void)
 				{
 					cout << "\n CSEAnisoT::Initialize: incompatible output between potentials\n"
 					     <<   "     " << k+1 << " and " << i+1 << endl;
-					throw eBadInputValue;
+					throw ExceptionT::kBadInputValue;
 				}
 			}
 		}
@@ -430,7 +430,7 @@ void CSEAnisoT::LHSDriver(void)
 				j0 = j = fShapes->Jacobian(fQ);
 
 			/* check */
-			if (j0 <= 0.0 || j <= 0.0) throw eBadJacobianDet;
+			if (j0 <= 0.0 || j <= 0.0) throw ExceptionT::kBadJacobianDet;
 		
 			/* gap vector and gradient (facet1 to facet2) */
 			const dArrayT&    delta = fShapes->InterpolateJumpU(fLocCurrCoords);
@@ -632,7 +632,7 @@ void CSEAnisoT::RHSDriver(void)
 				if (j0 <= 0.0 || j <= 0.0)
 				{
 					cout << "\n CSEAnisoT::RHSDriver: jacobian error" << endl;
-					throw eBadJacobianDet;
+					throw ExceptionT::kBadJacobianDet;
 				}
 	
 				/* gap vector from facet1 to facet2 */
@@ -1072,7 +1072,7 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 		else if (NumDOF() == 3)
 			dlabels = d_3D;
 		else
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 
 		for (int i = 0; i < NumDOF(); i++)
 			n_labels[count++] = dlabels[i];
@@ -1088,7 +1088,7 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 		else if (NumDOF() == 3)
 			tlabels = t_3D;
 		else
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 
 		for (int i = 0; i < NumDOF(); i++)
 			n_labels[count++] = tlabels[i];
@@ -1123,7 +1123,7 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 		else if (NumDOF() == 3)
 			tlabels = t_3D;
 		else
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 
 		for (int i = 0; i < NumDOF(); i++)
 			e_labels[count++] = tlabels[i];
@@ -1154,7 +1154,7 @@ void CSEAnisoT::CurrElementInfo(ostream& out) const
 		out << delta_temp << '\n';	
 	}
 	
-	catch (int error)
+	catch (ExceptionT::CodeT error)
 	{
 		out << " CSEAnisoT::CurrElementInfo: error on surface jacobian\n";
 	}
@@ -1183,5 +1183,5 @@ void CSEAnisoT::Q_ijk__u_j(const ArrayT<dMatrixT>& Q, const dArrayT& u,
 	else if (Q.Length() == 3)
 		Qu.SetToCombination(u[0], Q[0], u[1], Q[1], u[2], Q[2]);
 	else
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 }

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.14 2002-07-20 08:01:13 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.14.6.1 2002-10-17 04:28:47 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -98,6 +98,9 @@ public:
 
 	/** return the number of degrees of freedom per node */
 	int NumDOF(void) const { return fField.NumDOF(); };
+	
+	/** collect the list of element block ID's used by the element group */
+	void ElementBlockIDs(ArrayT<StringT>& IDs) const;
 	/*@}*/
 
 	/** class initialization. Among other things, element work space
@@ -212,22 +215,40 @@ public:
 
 protected: /* for derived classes only */
 
-	/* get local element data, X for geometry, U for
+	/** get local element data, X for geometry, U for
 	 * field variables */
+	/*@{*/
 	const LocalArrayT& SetLocalX(LocalArrayT& localarray); // the geometry
 	const LocalArrayT& SetLocalU(LocalArrayT& localarray); // the degrees of freedom
+	/*@}*/
 
-	/* called by FormRHS and FormLHS */
+	/** \name drivers called by FormRHS and FormLHS */
+	/*@{*/
 	virtual void LHSDriver(void) = 0;
 	virtual void RHSDriver(void) = 0;
+	/*@}*/
 
-	/* assembling the left and right hand sides */
+	/** \name assembling functions
+	 * Assemble into the left and right hand sides using information from the
+	 * "current" element. This assumes you are using ElementBaseT::Top and
+	 * ElementBaseT::NextElement to traverse the ElementCardT's in
+	 * ElementBaseT::fElementCards. */
+	/*@{*/
+	/** assemble values in ElementBaseT::fRHS using the equation number for the
+	 * "current" element. */
 	void AssembleRHS(void) const;
 	void AssembleLHS(void) const;
+	/*@}*/
 	
-	/* element loop operations */
+	/** \name element loop operations */
+	/*@{*/
+	/** reset loop */
 	void Top(void);
+	
+	/** advance to next element. \return true if there is another element, 
+	 * false otherwise */ 
 	virtual bool NextElement(void);
+	/*@}*/
 
 	/* print element group data */
 	virtual void PrintControlData(ostream& out) const;
@@ -251,16 +272,10 @@ protected: /* for derived classes only */
 	 * connectivity data to the output stream in text format. */
 	virtual void WriteConnectivity(ostream& out) const;
 
-#if 0
-	/* generate connectivities with local numbering -
-     * returns the number of nodes used by the element group */
-	int MakeLocalConnects(iArray2DT& localconnects);
-#endif
-
-	/* return pointer to block data given the ID */
+	/** return pointer to block data given the ID */
 	const ElementBlockDataT& BlockData(const StringT& ID) const;
 
-	/* write all current element information to the stream */
+	/** write all current element information to the stream */
 	virtual void CurrElementInfo(ostream& out) const;
 
 	/** (re-)set element cards array */

@@ -1,8 +1,8 @@
-/* $Id: ElementT.cpp,v 1.11 2002-09-23 06:58:23 paklein Exp $ */
+/* $Id: ElementT.cpp,v 1.11.2.1 2002-10-17 04:28:48 paklein Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 namespace Tahoe {
 
@@ -30,7 +30,7 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			cout << "\n operator>>ElementT::TypeT: element type is not longer\n"
 			     <<   "     supported. Support for changing number of elements is being re-\n"
 			     <<   "     written: " << i_type << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		case ElementT::kSWDiamond:
 			type = ElementT::kSWDiamond;
@@ -122,7 +122,7 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		default:
 			cout << "\n operator>>ElementT::TypeT: unknown type: "
 			<< i_type<< endl;
-			throw eBadInputValue;	
+			throw ExceptionT::kBadInputValue;	
 	}
 	return in;
 }

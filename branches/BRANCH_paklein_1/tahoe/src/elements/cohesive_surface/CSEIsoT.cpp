@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.9 2002-09-12 17:49:52 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.9.4.1 2002-10-17 04:28:49 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEIsoT.h"
@@ -61,7 +61,7 @@ void CSEIsoT::Initialize(void)
 		in >> num >> code;
 		
 		/* check for repeated number */
-		if (fSurfPots[--num] != NULL) throw eBadInputValue;
+		if (fSurfPots[--num] != NULL) throw ExceptionT::kBadInputValue;
 	
 		/* construct surface potential function */
 		switch (code)
@@ -84,10 +84,10 @@ void CSEIsoT::Initialize(void)
 			}
 			default:
 			
-				throw eBadInputValue;	
+				throw ExceptionT::kBadInputValue;	
 		}
 	
-		if (!fSurfPots[num]) throw eOutOfMemory;
+		if (!fSurfPots[num]) throw ExceptionT::kOutOfMemory;
 	}
 
 	/* echo */

@@ -1,5 +1,5 @@
 
-/* $Id: Contact3DT.cpp,v 1.4 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: Contact3DT.cpp,v 1.4.4.1 2002-10-17 04:28:52 paklein Exp $ */
 /* created: paklein (07/17/1999) */
 
 #include "Contact3DT.h"
@@ -27,7 +27,7 @@ Contact3DT::Contact3DT(const ElementSupportT& support, const FieldT& field):
 	fGrid3D(NULL)
 {
 	/* check base class initializations */
-	if (NumSD() != 3) throw eGeneralFail;
+	if (NumSD() != 3) throw ExceptionT::kGeneralFail;
 }
 
 /* destructor */
@@ -92,7 +92,7 @@ void Contact3DT::ConvertQuadToTri(iArray2DT& surface) const
 	{
 		cout << "\n Contact3DT::EchoConnectivityData: only 3- or 4-noded facets\n";
 		cout <<   "     are supported" << endl;
-		throw eGeneralFail;	
+		throw ExceptionT::kGeneralFail;	
 	}
 }
 
@@ -119,7 +119,7 @@ bool Contact3DT::SetActiveInteractions(void)
 		ngrid = (ngrid > kMaxNumGrid) ? kMaxNumGrid : ngrid;
 
 		fGrid3D = new iGridManager3DT(ngrid, ngrid, ngrid, fStrikerCoords, 0);
-		if (!fGrid3D) throw eOutOfMemory;
+		if (!fGrid3D) throw ExceptionT::kOutOfMemory;
 
 		/* search grid statistics */
 		ostream& out = ElementSupport().Output();
@@ -150,7 +150,7 @@ void Contact3DT::SetConnectivities(void)
 		     <<   "    connectivities " << fConnectivities[0]->MajorDim()
 		     << " to equal the number of active strikers "
 		     << fActiveStrikers.Length() << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	int* pelem = fConnectivities[0]->Pointer();
@@ -158,7 +158,7 @@ void Contact3DT::SetConnectivities(void)
 	if (fConnectivities[0]->MajorDim() > 0 && rowlength != 4) {
 		cout << "\n Contact2DT::SetConnectivities: expecting connectivites length 4 not " 
 		     << rowlength << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 	
 	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)

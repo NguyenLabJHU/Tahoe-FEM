@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.14 2002-09-12 17:44:12 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.14.4.1 2002-10-17 04:28:49 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -42,7 +42,7 @@ CSEBaseT::CSEBaseT(const ElementSupportT& support, const FieldT& field):
 	{
 		cout << "\n CSEBaseT::CSEBaseT: expecting geometry code "
 		     << GeometryT::kLine<< " for 2D: " << fGeometryCode << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	else if (NumSD() == 3 &&
 	         fGeometryCode != GeometryT::kQuadrilateral &&
@@ -51,13 +51,13 @@ CSEBaseT::CSEBaseT(const ElementSupportT& support, const FieldT& field):
 		cout << "\n CSEBaseT::CSEBaseT: expecting geometry code " << GeometryT::kQuadrilateral
 		     << " or\n" <<   "     " << GeometryT::kTriangle << " for 3D: "
 		     << fGeometryCode << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	
 	if (fCloseSurfaces != 0 &&
-	    fCloseSurfaces != 1) throw eBadInputValue;
+	    fCloseSurfaces != 1) throw ExceptionT::kBadInputValue;
 	if (fOutputArea != 0 &&
-	    fOutputArea != 1) throw eBadInputValue;
+	    fOutputArea != 1) throw ExceptionT::kBadInputValue;
 }
 
 /* destructor */
@@ -85,7 +85,7 @@ void CSEBaseT::Initialize(void)
 	/* construct surface shape functions */
 	fShapes = new SurfaceShapeT(fGeometryCode, fNumIntPts, NumElementNodes(), NumDOF(),
 		fLocInitCoords1);
-	if (!fShapes) throw eOutOfMemory;
+	if (!fShapes) throw ExceptionT::kOutOfMemory;
 	fShapes->Initialize();
 
 	/* work space */
@@ -117,7 +117,7 @@ void CSEBaseT::Initialize(void)
 
 	/* check */
 	if (fNodalOutputCodes.Min() < IOBaseT::kAtFinal ||
-	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw eBadInputValue;
+	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw ExceptionT::kBadInputValue;
 
 	fElementOutputCodes.Allocate(NumElementOutputCodes);
 	fElementOutputCodes = IOBaseT::kAtNever;
@@ -156,7 +156,7 @@ void CSEBaseT::Initialize(void)
 
 		/* checks */
 		if (fElementOutputCodes.Min() < IOBaseT::kAtFail ||
-		    fElementOutputCodes.Max() > IOBaseT::kAtInc) throw eBadInputValue;
+		    fElementOutputCodes.Max() > IOBaseT::kAtInc) throw ExceptionT::kBadInputValue;
 	}
 
 	/* echo */
@@ -265,7 +265,7 @@ void CSEBaseT::RegisterOutput(void)
 		cout << "\n CSEBaseT::RegisterOutput: could not translate\n";
 		cout << "     geometry code " << fGeometryCode
 			 << " to a pseudo-geometry code for the volume." << endl;
-		throw eGeneralFail;	
+		throw ExceptionT::kGeneralFail;	
 	}	
 
 	/* nodal output */
@@ -451,7 +451,7 @@ void CSEBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 				new_id.Append(b+1, 3);
 				if (!model.RegisterElementGroup (new_id, dest, GeometryT::kNone, true)) {
 					cout << "\n CSEBaseT::ReadConnectivity: could not register element block ID: " << new_id << endl;
-					throw eGeneralFail;
+					throw ExceptionT::kGeneralFail;
 				}
 			}
 

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.cpp,v 1.6 2002-07-02 19:55:26 cjkimme Exp $ */
+/* $Id: MeshFreeFractureSupportT.cpp,v 1.6.4.1 2002-10-17 04:28:56 paklein Exp $ */
 /* created: paklein (02/15/2000) */
 
 #include "MeshFreeFractureSupportT.h"
@@ -64,7 +64,7 @@ void MeshFreeFractureSupportT::ResetStep(void)
 	{
 		cout << "\n MeshFreeFractureSupportT::ResetStep: not implemented for active\n" 
 		     <<   "     crack fronts: " << fFrontList.Length() << endl;	
-		throw eGeneralFail;			
+		throw ExceptionT::kGeneralFail;			
 	}
 }
 
@@ -95,7 +95,7 @@ istream& operator>>(istream& in, MeshFreeFractureSupportT::FractureCriterionT& c
 		default:
 			cout << "\n operator>>MeshFreeFractureSupportT::FractureCriterionT: bad value: "
 			     << i_criterion << endl;
-			throw eBadInputValue;	
+			throw ExceptionT::kBadInputValue;	
 	}
 	return in;
 }
@@ -134,7 +134,7 @@ void MeshFreeFractureSupportT::InitSupport(ifstreamT& in, ostream& out,
 			out.flush();
 			cout << "\n MeshFreeFractureSupportT::InitSupport: criterion does not admit growth: "
 			     << kNoCriterion << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		
 		/* allocate work space */
@@ -158,7 +158,7 @@ bool MeshFreeFractureSupportT::CheckGrowth(StructuralMaterialT* material,
 		/* check */
 		if (!disp) {
 			cout << "\n MeshFreeFractureSupportT::CheckGrowth: displacement array is NULL" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 
 		/* check source of growth */
@@ -221,7 +221,7 @@ void MeshFreeFractureSupportT::InitCuttingFacetsAndFronts(ifstreamT& in,
 			cout << "\n MeshFreeFractureSupportT::InitSupport: number of cutting facets\n"
 			     <<   "     must be >= 0: " << num_facets << endl;
 		out.flush();
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 
 	if (num_facets > 0)
@@ -235,7 +235,7 @@ void MeshFreeFractureSupportT::InitCuttingFacetsAndFronts(ifstreamT& in,
 			     <<   "    cutting facet nodes " << num_facet_nodes
 			     << " does not match previously given value " << fNumFacetNodes
 			     << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		else if (fNumFacetNodes == -1)          //NOTE: -1 indicates fNumFacetNodes has not 
 			InitFacetDatabase(num_facet_nodes); //      been initialized, why call this anyway?
@@ -299,7 +299,7 @@ void MeshFreeFractureSupportT::InitSamplingSurfaces(ifstreamT& in, ostream& out)
 			cout << "\n MeshFreeFractureSupportT::InitSupport: number of sampling surfaces\n"
 			     <<   "     must be >= 0: " << num_sampling_surfaces << endl;
 		out.flush();
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	
 	if (num_sampling_surfaces > 0)
@@ -328,14 +328,14 @@ void MeshFreeFractureSupportT::InitSamplingSurfaces(ifstreamT& in, ostream& out)
 	   			     <<   "    cutting facet nodes " << num_facet_nodes
 	   			     << " does not match previously given value " << fNumFacetNodes
 	   			     << endl;
-	   			throw eBadInputValue;
+	   			throw ExceptionT::kBadInputValue;
 	   		}
 	   		else if (fNumFacetNodes == -1)
 	   			InitFacetDatabase(num_facet_nodes);
 
 			fSamplingSurfaces[i] = new SamplingSurfaceT(code, num_facet_nodes,
 				num_samples_per_facet, fMFShapes->MeshFreeSupport());
-			if (!fSamplingSurfaces[i]) throw eOutOfMemory;
+			if (!fSamplingSurfaces[i]) throw ExceptionT::kOutOfMemory;
 
 			/* surface geometry data */
 			int nnd;
@@ -388,12 +388,12 @@ void MeshFreeFractureSupportT::InitializeFronts(ifstreamT& in, ostream& out)
 	{
 		cout << "\n MeshFreeFractureSupportT::InitializeFronts: fraction of\n"
 		     <<   "     failure stress at insertion must be >= 0: " << fs_i << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 
 	/* number of crack fronts */
 	int num_fronts;
-	in >> num_fronts; if (num_fronts < 0) throw eBadInputValue;
+	in >> num_fronts; if (num_fronts < 0) throw ExceptionT::kBadInputValue;
 	out << " Number of active crack fronts . . . . . . . . . = " << num_fronts << endl;
 			
 	/* allocate tip space */	
@@ -428,7 +428,7 @@ void MeshFreeFractureSupportT::InitializeFronts(ifstreamT& in, ostream& out)
 			if (numSD == 2)
 			{
 				Front2DT* front2D = new Front2DT(fcone, fda, fda_s, fn_s);
-				if (!front2D) throw eOutOfMemory;			
+				if (!front2D) throw ExceptionT::kOutOfMemory;			
 
 		  		/* store */
 		  		fFrontList[i] = front2D;
@@ -436,7 +436,7 @@ void MeshFreeFractureSupportT::InitializeFronts(ifstreamT& in, ostream& out)
 			else
 			{
 				Front3DT* front3D = new Front3DT(fcone, fda, fda_s, fn_s);
-				if (!front3D) throw eOutOfMemory;			
+				if (!front3D) throw ExceptionT::kOutOfMemory;			
 
 		  		/* set minimum included angle for kinks on the front */
 		  		front3D->SetKinkAngle(90.0);		
@@ -461,11 +461,11 @@ bool MeshFreeFractureSupportT::CheckFronts(StructuralMaterialT& material,
 
 	/* checks */
 	if (!fLocGroup.IsRegistered(disp) ||
-		disp.Type() != LocalArrayT::kDisp) throw eGeneralFail;
+		disp.Type() != LocalArrayT::kDisp) throw ExceptionT::kGeneralFail;
 
 #ifdef __NO_RTTI__
 	cout << "\n MeshFreeFractureSupportT::CheckSurfaces: requires RTTI" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 #endif
 
 	/* check for finite deformation */
@@ -551,7 +551,7 @@ bool MeshFreeFractureSupportT::CheckFronts(StructuralMaterialT& material,
 				{
 					cout << "\n MeshFreeFractureSupportT::CheckFronts: error at sampling point: ";
 					cout << x_s.no_wrap() << endl;
-					throw eGeneralFail;
+					throw ExceptionT::kGeneralFail;
 				}
 			}
 		
@@ -645,11 +645,11 @@ bool MeshFreeFractureSupportT::CheckSurfaces(StructuralMaterialT& material,
 
 	/* checks */
 	if (!fLocGroup.IsRegistered(disp) || disp.Type() != LocalArrayT::kDisp)
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 
 #ifdef __NO_RTTI__
 	cout << "\n MeshFreeFractureSupportT::CheckSurfaces: requires RTTI" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 #endif
 
 	/* check for finite deformation */
@@ -814,7 +814,7 @@ double MeshFreeFractureSupportT::ComputeCriterion(StructuralMaterialT& material,
 		{
 			cout << "\n MeshFreeFractureSupportT::ComputeCriterion: unknown criterion: "
 			     << criterion << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	}
 	return value;

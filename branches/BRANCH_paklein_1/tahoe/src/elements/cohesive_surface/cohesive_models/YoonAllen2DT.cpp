@@ -1,11 +1,11 @@
-/* $Id: YoonAllen2DT.cpp,v 1.5 2002-08-08 23:27:27 cjkimme Exp $ */
+/* $Id: YoonAllen2DT.cpp,v 1.5.6.1 2002-10-17 04:28:51 paklein Exp $ */
 
 #include "YoonAllen2DT.h"
 
 #include <iostream.h>
 #include <math.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "fstreamT.h"
 #include "StringT.h"
 /* class parameters */
@@ -20,13 +20,13 @@ YoonAllen2DT::YoonAllen2DT(ifstreamT& in, const double& time_step):
 	fTimeStep(time_step)
 {
 	/* traction potential parameters */
-	in >> fsigma_0; if (fsigma_0 < 0) throw eBadInputValue;
-	in >> fd_c_n; if (fd_c_n < 0) throw eBadInputValue;
-	in >> fd_c_t; if (fd_c_t < 0) throw eBadInputValue;
+	in >> fsigma_0; if (fsigma_0 < 0) throw ExceptionT::kBadInputValue;
+	in >> fd_c_n; if (fd_c_n < 0) throw ExceptionT::kBadInputValue;
+	in >> fd_c_t; if (fd_c_t < 0) throw ExceptionT::kBadInputValue;
 	
 	/* moduli and time constants */
-	in >> fE_infty; if (fE_infty < 0) throw eBadInputValue;
-	in >> fNumRelaxTimes; if (fNumRelaxTimes < 0) throw eBadInputValue;
+	in >> fE_infty; if (fE_infty < 0) throw ExceptionT::kBadInputValue;
+	in >> fNumRelaxTimes; if (fNumRelaxTimes < 0) throw ExceptionT::kBadInputValue;
 
 	ftau.Allocate(fNumRelaxTimes);
 	fE_t.Allocate(fNumRelaxTimes);
@@ -34,8 +34,8 @@ YoonAllen2DT::YoonAllen2DT(ifstreamT& in, const double& time_step):
 
 	for (int i = 0;i < fNumRelaxTimes; i++)
 	{
-		in >> fE_t[i]; if (fE_t[i] < 0) throw eBadInputValue;
-		in >> ftau[i]; if (ftau[i] < 0) throw eBadInputValue;
+		in >> fE_t[i]; if (fE_t[i] < 0) throw ExceptionT::kBadInputValue;
+		in >> ftau[i]; if (ftau[i] < 0) throw ExceptionT::kBadInputValue;
 	
 		fexp_tau[i] = exp(-fTimeStep/ftau[i]) - 1.;
 		
@@ -45,18 +45,18 @@ YoonAllen2DT::YoonAllen2DT(ifstreamT& in, const double& time_step):
 		ftau[i] *= fE_t[i];
 	}
 
-	in >> fdamage; if (fdamage < 1 && fdamage > 3) throw eBadInputValue;
+	in >> fdamage; if (fdamage < 1 && fdamage > 3) throw ExceptionT::kBadInputValue;
 	/* damage evolution law parameters */
-	in >> falpha_exp; //if (falpha_exp < 1.) throw eBadInputValue;
-	in >> falpha_0; if (falpha_0 <= kSmall) throw eBadInputValue;
+	in >> falpha_exp; //if (falpha_exp < 1.) throw ExceptionT::kBadInputValue;
+	in >> falpha_0; if (falpha_0 <= kSmall) throw ExceptionT::kBadInputValue;
 	if (fdamage == 2) 
 	{
-		in >> flambda_exp; if (flambda_exp > -1.) throw eBadInputValue;	
-		in >> flambda_0; if (flambda_0 < 1.) throw eBadInputValue;
+		in >> flambda_exp; if (flambda_exp > -1.) throw ExceptionT::kBadInputValue;	
+		in >> flambda_0; if (flambda_0 < 1.) throw ExceptionT::kBadInputValue;
 	}
 
 	/* stiffness multiplier */
-	in >> fpenalty; if (fpenalty < 0) throw eBadInputValue;
+	in >> fpenalty; if (fpenalty < 0) throw ExceptionT::kBadInputValue;
 
 	
 	/* penetration stiffness */
@@ -74,7 +74,7 @@ void YoonAllen2DT::InitStateVariables(ArrayT<double>& state)
 	  	cout << "\n SurfacePotentialT::InitStateVariables: expecting state variable array\n"
 		     <<   "     length " << num_state << ", found length " << state.Length() << endl;
 #endif
-		throw eSizeMismatch;	
+		throw ExceptionT::kSizeMismatch;	
 	}
 
 	/* clear */
@@ -112,8 +112,8 @@ double YoonAllen2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& stat
 #pragma unused(jump_u)
 #pragma unused(state)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
+	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
 
 #ifndef _TAHOE_FRACTURE_INTERFACE_
@@ -127,14 +127,14 @@ const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
+	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 	if (fTimeStep <= 0.0) {
 #ifndef _TAHOE_FRACTURE_INTERFACE_	
 		cout << "\n YoonAllen2DT::Traction: expecting positive time increment: "
 		     << fTimeStep << endl;
 #endif		     
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 #endif
 
@@ -244,8 +244,8 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
+	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif	
 
 	double u_t = jump_u[0];
@@ -408,7 +408,7 @@ SurfacePotentialT::StatusT YoonAllen2DT::Status(const dArrayT& jump_u,
 {
 #pragma unused(jump_u)
 #if __option(extended_errorcheck)
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
 	
 	if (state[fNumRelaxTimes+2*knumDOF+1]+kSmall > 1.)
@@ -473,7 +473,7 @@ void YoonAllen2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& st
 #pragma unused(jump_u)
 #ifndef _TAHOE_FRACTURE_INTERFACE_
 #if __option(extended_errorcheck)
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif	
 #endif
 	double u_t = jump_u[0];

@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.cpp,v 1.5 2002-09-12 17:49:52 paklein Exp $ */
+/* $Id: ThermalSurfaceT.cpp,v 1.5.4.1 2002-10-17 04:28:49 paklein Exp $ */
 #include "ThermalSurfaceT.h"
 
 #include <math.h>
@@ -57,7 +57,7 @@ void ThermalSurfaceT::Initialize(void)
 	fConduction.ReadNumbered(in);
 	
 	/* check */
-	if (fConduction.Min() < 0) throw eBadInputValue;
+	if (fConduction.Min() < 0) throw ExceptionT::kBadInputValue;
 	
 	/* echo */	
 	ostream& out = ElementSupport().Output();

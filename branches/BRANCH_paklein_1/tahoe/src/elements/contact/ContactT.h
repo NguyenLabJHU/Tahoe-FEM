@@ -1,4 +1,4 @@
-/* $Id: ContactT.h,v 1.4 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: ContactT.h,v 1.4.4.1 2002-10-17 04:28:52 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 
 #ifndef _CONTACT_T_H_
@@ -20,80 +20,96 @@ class ContactT: public ElementBaseT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	ContactT(const ElementSupportT& support, const FieldT& field, int numfacetnodes);
 
-	/* destructor */
+	/** destructor */
 	virtual ~ContactT(void);
 
-	/* form of tangent matrix */
+	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
-	/* element level reconfiguration for the current solution */
+	/** element level reconfiguration for the current solution */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 
-	/* initialization after constructor */
+	/** initialization after constructor */
 	virtual void Initialize(void);
 
-	/* solution calls */
+	/** solution calls */
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force); //not implemented
 
-	/* Returns the energy as defined by the derived class types */
+	/** Returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void); // not implemented
 	
-	/* writing output */
+	/** writing output */
 	virtual void RegisterOutput(void);
 	virtual void WriteOutput(IOBaseT::OutputModeT mode);
 
-	/* compute specified output parameter and send for smoothing */
+	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);  // not implemented
 
-	/* append connectivities */
+	/** \name append connectivities */
+	/*@{*/
 	virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
+
+	/** ContactT returns no (NULL) geometry connectivies */
 	virtual void ConnectsX(AutoArrayT<const iArray2DT*>& connects) const;
-		// returns no (NULL) geometry connectivies
-	 	
+	/*@}*/
+
 protected:
 
-	/* surface specification modes */
+	/** surface specification modes */
 	enum SurfaceSpecModeT {kNodesOnFacet = 0,
                                kSideSets = 1,
                            kBodyBoundary = 2};
 
-	/* striker node specification */
+	/** striker node specification */
 	enum StrikerSpecModeT {kListStrikers = 0,
                            kSurfaceNodes = 1,
                             kAllStrikers = 2,
                           kContactBodies = 3};
 
-	/* print element group data */
+	/** print element group data */
 	virtual void PrintControlData(ostream& out) const;
 	
-	/* initialization steps */
+	/** \name initialization steps */
+	/*@{*/
 	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
 	virtual void SetWorkSpace(void);
+	/*@}*/
 
 	/* generate contact element data - return true if configuration has
 	 * changed since the last call */
 	bool SetContactConfiguration(void);
 
-	/* steps in setting contact configuration */
-	virtual bool SetActiveInteractions(void) = 0; // "internal" data
-	virtual void SetConnectivities(void) = 0; // "external" data - interface to FEManager
+	/** \name steps in setting contact configuration */
+	/*@{*/
+	/** set "internal" data. Configure information used internally by the class. */
+	virtual bool SetActiveInteractions(void) = 0; 
 
-	/* surface input functions */
+	/** set "external" data. Configure information passed to the FEManagerT,
+	 * such as connectivities. */
+	virtual void SetConnectivities(void) = 0; 
+
+	/** \name surface input methods */
+	/*@{*/
+	/** specify facets as lists of nodes */
 	void InputNodesOnFacet(ifstreamT& in, iArray2DT& facets);
-	void InputSideSets(ifstreamT& in, ostream& out, iArray2DT& facets);
-	void InputBodyBoundary(ifstreamT& in, ArrayT<iArray2DT>& surfaces,
-		int& surface);
 
-	/* generate striker list from surfaces */
+	/** specify facets as side sets */
+	void InputSideSets(ifstreamT& in, iArray2DT& facets);
+
+	/** specify facets automatically from body boundaries */
+	void InputBodyBoundary(ifstreamT& in, ArrayT<iArray2DT>& surfaces, int& surface);
+	/*@}*/
+
+	/** generate striker list from surfaces */
 	void StrikersFromSurfaces(void);
 
 private:
 
-	/* read strikers */
+	/** read strikers from stream */
 	void ReadStrikers(ifstreamT& in, ostream& out);
 
 protected:

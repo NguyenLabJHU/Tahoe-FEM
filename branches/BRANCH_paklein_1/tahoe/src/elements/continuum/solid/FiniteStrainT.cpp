@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.12 2002-09-23 06:58:25 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.12.2.1 2002-10-17 04:28:54 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -72,7 +72,7 @@ void FiniteStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u) cons
 	else
 	{
 		cout << "\n FiniteStrainT::ComputeGradient: shape functions wrt current coords not defined" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -88,7 +88,7 @@ void FiniteStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u,
 	else
 	{
 		cout << "\n FiniteStrainT::ComputeGradient: shape functions wrt current coords not defined" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 

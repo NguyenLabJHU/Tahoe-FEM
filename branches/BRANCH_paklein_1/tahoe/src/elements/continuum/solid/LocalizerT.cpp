@@ -1,4 +1,4 @@
-/* $Id: LocalizerT.cpp,v 1.6 2002-09-12 17:49:53 paklein Exp $ */
+/* $Id: LocalizerT.cpp,v 1.6.4.1 2002-10-17 04:28:54 paklein Exp $ */
 /* created: paklein (02/19/1998) */
 
 #include "LocalizerT.h"
@@ -52,16 +52,16 @@ LocalizerT::LocalizerT(const ElementSupportT& support, const FieldT& field):
 	    fStrainCheckFlag != kStrainCheckRHS   &&
 	    fStrainCheckFlag != kStrainCheckLHS   &&
 	    fStrainCheckFlag != kStrainCheckEvery)
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	
 	if (fStrainCheckFlag != kStrainCheckNever &&
 	    fCriticalStretch < 1.0)
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	
 	if (fLocCheckInc != kLocCheckNever   &&
 	    fLocCheckInc != kLocCheckAtPrint &&
 	    fLocCheckInc < 0)
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 }
 
 /* set work space */
@@ -131,7 +131,7 @@ void LocalizerT::Initialize(void)
 		}
 		default:
 
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}
 	fnoRBeqs = eq_temp;
 
@@ -451,7 +451,7 @@ void LocalizerT::FormStiffness(double constK)
 		fLocOut << fullvec << '\n';		
 	}
 		
-	if (Kcheck || Qcheck) throw(eBadJacobianDet);
+	if (Kcheck || Qcheck) throw ExceptionT::kBadJacobianDet;
 }
 
 /***********************************************************************
@@ -464,7 +464,7 @@ void LocalizerT::EchoData(ifstreamT& in, ostream& out)
 	/* read initial localization check elements */
 	int numlocelems;
 	in >> numlocelems;
-	if (numlocelems < 0) throw eBadInputValue;
+	if (numlocelems < 0) throw ExceptionT::kBadInputValue;
 	
 	/* indicates "smart" element checking */
 	if (numlocelems > 0)
@@ -481,7 +481,7 @@ void LocalizerT::EchoData(ifstreamT& in, ostream& out)
 			{
 				cout << "\n LocalizerT::EchoSpecialData: element localization list";
 				cout << " member " << temp << " is out of range" << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 			
 			/* add to list */

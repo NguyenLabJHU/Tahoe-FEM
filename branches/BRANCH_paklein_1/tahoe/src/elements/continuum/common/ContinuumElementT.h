@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.15 2002-08-14 21:02:09 creigh Exp $ */
+/* $Id: ContinuumElementT.h,v 1.15.4.1 2002-10-17 04:28:54 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _CONTINUUM_ELEMENT_T_H_
@@ -109,7 +109,7 @@ public:
 	 * \param sideset {elememt, face} of each side in the set
 	 * \param facets nodes on each facet of the side set in cannonical ordering.
 	 *        array is dimensioned internally */
-	void SideSetToFacets(const StringT& block_ID, const iArray2DT& sideset, iArray2DT& facets) const;
+//	void SideSetToFacets(const StringT& block_ID, const iArray2DT& sideset, iArray2DT& facets) const;
 
 	/** return geometry and number of nodes on each facet */
 	void FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry, iArrayT& num_facet_nodes) const;
@@ -120,6 +120,7 @@ public:
 	/** initial condition/restart functions (per time sequence) */
 	virtual void InitialCondition(void);
 
+#if 0
 	/** element faces on the group "surface" */
 	void SurfaceFacets(GeometryT::CodeT& geometry,
 		iArray2DT& surface_facets, iArrayT& surface_nodes) const;
@@ -132,6 +133,7 @@ public:
 	/** generate a list of nodes on the "surface" of the element group
 	 * based in the group connectivities */
 	void SurfaceNodes(iArrayT& surface_nodes) const;
+#endif
 	
 	/** reference to the materials list */
 	const MaterialListT& MaterialsList(void) const;
@@ -193,10 +195,6 @@ protected:
 
 	/** construct a new material list and return a pointer */
 	virtual MaterialListT* NewMaterialList(int size) const = 0;
-
-	/** return the "bounding" elements and the corresponding
-	 * neighbors, both dimensioned internally */
-	void BoundingElements(iArrayT& elements, iArray2DT& neighbors) const;
 
 	/** write all current element information to the stream. used to generate
 	 * debugging information after runtime errors */
@@ -286,7 +284,7 @@ inline const ShapeFunctionT& ContinuumElementT::ShapeFunction(void) const
 	if (!fShapes)
 	{
 		cout << "\n ContinuumElementT::ShapeFunction: no shape functions" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 	return *fShapes;
@@ -304,7 +302,7 @@ inline const LocalArrayT& ContinuumElementT::Displacements() const
 
 inline const MaterialListT& ContinuumElementT::MaterialsList(void) const
 {
-	if (!fMaterialList) throw eGeneralFail;
+	if (!fMaterialList) throw ExceptionT::kGeneralFail;
 	return *fMaterialList;
 }
 

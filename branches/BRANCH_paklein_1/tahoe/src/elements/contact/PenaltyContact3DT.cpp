@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.4 2002-07-02 19:55:19 cjkimme Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.4.4.1 2002-10-17 04:28:52 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 
 #include "PenaltyContact3DT.h"
@@ -47,7 +47,7 @@ PenaltyContact3DT::PenaltyContact3DT(const ElementSupportT& support, const Field
 	{
 		cout << "\n PenaltyContact3DT::PenaltyContact3DT: reguralization must be > 0: "
 		     << fK << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 
 	double third = 1.0/3.0;

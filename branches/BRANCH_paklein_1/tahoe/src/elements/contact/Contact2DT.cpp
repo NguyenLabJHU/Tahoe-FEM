@@ -1,4 +1,4 @@
-/* $Id: Contact2DT.cpp,v 1.4 2002-07-02 19:55:18 cjkimme Exp $ */
+/* $Id: Contact2DT.cpp,v 1.4.4.1 2002-10-17 04:28:52 paklein Exp $ */
 /* created: paklein (05/26/1999) */
 #include "Contact2DT.h"
 
@@ -25,7 +25,7 @@ Contact2DT::Contact2DT(const ElementSupportT& support, const FieldT& field):
 	fv2(NumSD())
 {
 	/* check base class initializations */
-	if (NumSD() != 2) throw eGeneralFail;
+	if (NumSD() != 2) throw ExceptionT::kGeneralFail;
 }
 
 /* destructor */
@@ -71,7 +71,7 @@ bool Contact2DT::SetActiveInteractions(void)
 		ngrid = (ngrid > kMaxNumGrid) ? kMaxNumGrid : ngrid;
 
 		fGrid2D = new iGridManager2DT(ngrid, ngrid, fStrikerCoords, 0);
-		if (!fGrid2D) throw eOutOfMemory;
+		if (!fGrid2D) throw ExceptionT::kOutOfMemory;
 
 		/* search grid statistics */
 		ostream& out = ElementSupport().Output();
@@ -211,7 +211,7 @@ void Contact2DT::SetConnectivities(void)
 		     <<   "    connectivities " << fConnectivities[0]->MajorDim()
 		     << " to equal the number of active strikers "
 		     << fActiveStrikers.Length() << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* set interacting nodes */
@@ -220,7 +220,7 @@ void Contact2DT::SetConnectivities(void)
 	if (fConnectivities[0]->MajorDim() > 0 && rowlength != 3) {
 		cout << "\n Contact2DT::SetConnectivities: expecting connectivites length 3 not " 
 		     << rowlength << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 
 	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)

@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.14 2002-08-05 19:27:55 cjkimme Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.14.6.1 2002-10-17 04:28:50 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -6,7 +6,7 @@
 #include <iostream.h>
 #include <math.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "fstreamT.h"
 #include "StringT.h"
 #include "SecantMethodT.h"
@@ -23,24 +23,24 @@ Tijssens2DT::Tijssens2DT(ifstreamT& in, const double& time_step):
 	fTimeStep(time_step)
 {
 	/* traction rate parameters */
-	in >> fk_t0; if (fk_t0 < 0) throw eBadInputValue;
-	in >> fk_n; if (fk_n < 0) throw eBadInputValue;
-	in >> fc_1; if (fc_1 < 0) throw eBadInputValue;
-	in >> fDelta_n_ccr; if (fDelta_n_ccr < 0) throw eBadInputValue;
+	in >> fk_t0; if (fk_t0 < 0) throw ExceptionT::kBadInputValue;
+	in >> fk_n; if (fk_n < 0) throw ExceptionT::kBadInputValue;
+	in >> fc_1; if (fc_1 < 0) throw ExceptionT::kBadInputValue;
+	in >> fDelta_n_ccr; if (fDelta_n_ccr < 0) throw ExceptionT::kBadInputValue;
 
 	/* craze initiation parameters */
-	in >> fA_0; if (fA_0 < 0) throw eBadInputValue;
-	in >> fB_0; if (fB_0 < 0) throw eBadInputValue;
-	in >> fQ_A; if (fQ_A < 0) throw eBadInputValue;
-	in >> fQ_B; if (fQ_B < 0) throw eBadInputValue;
+	in >> fA_0; if (fA_0 < 0) throw ExceptionT::kBadInputValue;
+	in >> fB_0; if (fB_0 < 0) throw ExceptionT::kBadInputValue;
+	in >> fQ_A; if (fQ_A < 0) throw ExceptionT::kBadInputValue;
+	in >> fQ_B; if (fQ_B < 0) throw ExceptionT::kBadInputValue;
 	
 	/* crazing state variables' parameters */
-	in >> fDelta_0; if (fDelta_0 < 0) throw eBadInputValue;
-	in >> fsigma_c; if (fsigma_c < 0) throw eBadInputValue;
-	in >> fastar; if (fastar < 0) throw eBadInputValue;
-	in >> ftemp; if (ftemp < 0) throw eBadInputValue;
-	in >> fGroup; if (fGroup <= 0) throw eBadInputValue;
-	in >> fSteps; if (fSteps < 0) throw eBadInputValue;
+	in >> fDelta_0; if (fDelta_0 < 0) throw ExceptionT::kBadInputValue;
+	in >> fsigma_c; if (fsigma_c < 0) throw ExceptionT::kBadInputValue;
+	in >> fastar; if (fastar < 0) throw ExceptionT::kBadInputValue;
+	in >> ftemp; if (ftemp < 0) throw ExceptionT::kBadInputValue;
+	in >> fGroup; if (fGroup <= 0) throw ExceptionT::kBadInputValue;
+	in >> fSteps; if (fSteps < 0) throw ExceptionT::kBadInputValue;
 
 	fA = fA_0/2.*exp(fQ_A/ftemp);
 	fB = fB_0/6.*exp(fQ_B/ftemp);
@@ -73,14 +73,14 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
+	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 	if (fTimeStep <= 0.0) {
 #ifndef _TAHOE_FRACTURE_INTERFACE_
 		cout << "\n Tijssens2DT::Traction: expecting positive time increment: "
 		     << fTimeStep << endl;
 #endif
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 #endif
 
@@ -159,8 +159,8 @@ const dMatrixT& Tijssens2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doubl
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
+	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif
 
 	
@@ -238,7 +238,7 @@ SurfacePotentialT::StatusT Tijssens2DT::Status(const dArrayT& jump_u,
 {
 #pragma unused(jump_u)
 #if __option(extended_errorcheck)
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
        
 	//	if ((1.5*state[7] - fA + fB/state[7] - state[1]) > kSmall)
@@ -297,7 +297,7 @@ void Tijssens2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& sta
 {
 #pragma unused(jump_u)
 #if __option(extended_errorcheck)
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif	
 	output[0] = (jump_u[1]-state[3])/fTimeStep;
 	output[1] = state[4];
