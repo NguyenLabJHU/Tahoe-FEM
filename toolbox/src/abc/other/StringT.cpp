@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.5 2001-04-27 10:43:55 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.6 2001-04-27 18:55:28 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #include "StringT.h"
@@ -271,7 +271,7 @@ StringT& StringT::FilePath(void)
 	char* p = fArray + len - 1;
 	int i;
 	for (i = 1; i < len && *p != separator; i++) p--;
-	
+
 	/* take tail including separator (unless MacOS) */
 	if (*p == separator)
 	{
@@ -284,6 +284,10 @@ StringT& StringT::FilePath(void)
 		Resize(new_len, true);
 		fArray[new_len - 1] = '\0';
 	}
+	/* no path */
+	else
+		fArray[0] = '\0';
+
 	return *this;
 }
 
