@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2004-04-23 18:44:36 rdorgan Exp $
+# $Id: makefile,v 1.8 2004-06-16 18:33:39 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -25,6 +25,7 @@ OBJ = \
 	C1ShapeTools.o\
 	GradSmallStrainT.o\
 	GradC0SmallStrainT.o\
+	GradSmallStrainMixedT.o \
         J2SSKStV1D.o\
         GradJ2SS1D.o\
         GradC0J2SS1D.o\
@@ -53,6 +54,7 @@ SRC = \
         C1ShapeTools.cpp\
 	GradSmallStrainT.cpp\
 	GradC0SmallStrainT.cpp\
+	GradSmallStrainMixedT.cpp \
         J2SSKStV1D.cpp\
         GradJ2SS1D.cpp\
         GradC0J2SS1D.cpp\
@@ -73,6 +75,7 @@ HDR = \
         C1ShapeTools.h\
 	GradSmallStrainT.h\
 	GradC0SmallStrainT.h\
+	GradSmallStrainMixedT.h \
         J2SSKStV1D.h\
         GradJ2SS1D.h\
         GradC0J2SS1D.h\
