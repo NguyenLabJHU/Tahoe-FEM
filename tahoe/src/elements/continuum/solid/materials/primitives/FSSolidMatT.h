@@ -1,12 +1,14 @@
-/* $Id: FSSolidMatT.h,v 1.8 2002-10-05 20:04:19 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.8.6.3 2002-11-13 08:44:29 paklein Exp $ */
 /* created: paklein (06/09/1997) */
-
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
 
 /* base class */
 #include "StructuralMaterialT.h"
 #include "TensorTransformT.h"
+
+/* direct members */
+#include "FDMatSupportT.h"
 
 namespace Tahoe {
 
@@ -29,11 +31,14 @@ class FSSolidMatT: public StructuralMaterialT, protected TensorTransformT
 public:
 
 	/** constructor */
-	FSSolidMatT(ifstreamT& in, const FiniteStrainT& element);
+	FSSolidMatT(ifstreamT& in, const FDMatSupportT& support);
 
 	/** initialization. If active, initialize the history of
 	 * prescribed thermal strains. */
 	virtual void Initialize(void);
+
+	/** finite strain materials support */
+	const FDMatSupportT& FDMatSupport(void) const { return fFDMatSupport; };
 
 	/** write name to output stream */
 	virtual void PrintName(ostream& out) const;
@@ -156,9 +161,11 @@ protected:
 
 	/** finite strain element group.
 	 * allows access to all const functions of the finite strain element
-	 * class that are not currently supported with wrappers.
-	 * \return a const reference to the supporting element group */
-	const FiniteStrainT& FiniteStrain(void) const { return fFiniteStrain; }
+	 * class that are not currently supported with wrappers. \note this
+	 * method is not guaranteed to be supported. If no FiniteStrainT is
+	 * available, this function will return NULL.
+	 * \return a const pointer to the supporting element group */
+	const FiniteStrainT* FiniteStrain(void) const { return fFDMatSupport.FiniteStrain(); };
 
 private:
 
@@ -183,10 +190,12 @@ private:
 	void ComputeQ_3D(const dMatrixT& CIJKL, const dSymMatrixT& SIJ,
 		const dMatrixT& FkK, const dArrayT& N, dSymMatrixT& Q) const;
 
-private:
+protected:
 
-	/** reference to finite deformation element group */
-	const FiniteStrainT& fFiniteStrain;
+	/** support for finite strain materials */
+	const FDMatSupportT& fFDMatSupport;
+
+private:
 
 	/** return value for FSSolidMatT::AcousticalTensor */
 	dSymMatrixT fQ;  

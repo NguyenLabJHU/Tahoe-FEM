@@ -1,4 +1,4 @@
-/* $Id: YoonAllen3DT.cpp,v 1.5 2002-11-01 19:46:07 cjkimme Exp $ */
+/* $Id: YoonAllen3DT.cpp,v 1.4 2002-10-23 00:18:03 cjkimme Exp $ */
 
 #include "YoonAllen3DT.h"
 
@@ -209,17 +209,22 @@ const dArrayT& YoonAllen3DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 	
 	fTraction = 0.;
 	
+	/* handle the first time through */
+	if (l < kSmall)
+	{
+		return fTraction;
+	}
+	
 	double l_0_old = state2[0]/fd_c_t;
 	double l_1_old = state2[1]/fd_c_t;
 	double l_2_old = state2[2]/fd_c_n;
 	double l_old = sqrt(l_0_old*l_0_old+l_1_old*l_1_old+l_2_old*l_2_old);
-	double prefactold = 1./(1-state2[2*knumDOF+1]);
+	double prefactold = l_old/(1-state2[2*knumDOF+1]);
 	double l_dot = (l-l_old)/fTimeStep;
 
-	/* do the bulk of the computation now */
-	if (l_old > kSmall)
+	if (prefactold > kSmall)
 	{
-		prefactold *= l_old;
+		/* do the bulk of the computation now */
 		if (fabs(l_0_old) > kSmall)
 			fTraction[0] = prefactold/l_0_old*state2[knumDOF]; 
 		if (fabs(l_1_old) > kSmall)
@@ -227,13 +232,7 @@ const dArrayT& YoonAllen3DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 		if (fabs(l_2_old) > kSmall)
 			fTraction[2] = prefactold/l_2_old*state2[knumDOF+2];
 	}
-	else
-	{
-		fTraction[0] = prefactold*state2[knumDOF];
-		fTraction[1] = prefactold*state2[knumDOF+1];
-		fTraction[2] = prefactold*state2[knumDOF+2];
-	}	
-	
+		
 	double tmpSum = fE_infty*fTimeStep;
 	for (int i = 0; i < iNumRelaxTimes; i++)
 	  tmpSum -= fexp_tau[i]*ftau[i];
@@ -279,23 +278,10 @@ const dArrayT& YoonAllen3DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 	}
 	
 	/* scale the final tractions */
-	fTraction *= 1.-alpha;
-	if (l > kSmall)
-	{
-		fTraction[0] *= l_0/l;
-		fTraction[1] *= l_1/l;
-		fTraction[2] *= l_2/l;
-	}
-	else
-	{
-		if (fabs(l_0 - l_0_old) < kSmall)
-			fTraction[0] = 0.;
-		if (fabs(l_1 - l_1_old) < kSmall)
-			fTraction[1] = 0.;
-		if (fabs(l_2 - l_2_old) < kSmall)
-			fTraction[2] = 0.; 
-	}
-	
+	fTraction[0] *= l_0/l*(1.-alpha);
+	fTraction[1] *= l_1/l*(1.-alpha);
+	fTraction[2] *= l_2/l*(1.-alpha);
+
 	/* handle penetration */
 //	if (u_n < 0) fTraction[1] += fK*u_n;
 	
@@ -355,16 +341,15 @@ const dMatrixT& YoonAllen3DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	double l_1_old = state2[1]/fd_c_t;
 	double l_2_old = state2[2]/fd_c_n;
 	double l_old = sqrt(l_0_old*l_0_old+l_1_old*l_1_old+l_2_old*l_2_old);
-	double prefactold = 1./(1-state2[2*knumDOF+1]);
+	double prefactold = l_old/(1-state2[2*knumDOF+1]);
 	double l_dot = (l-l_old)/fTimeStep;
 
 	dArrayT currTraction(knumDOF);
 	currTraction = 0.;
 	
-	/* do the bulk of the computation now */
-	if (l_old > kSmall)
+	if (prefactold > kSmall) 
 	{
-		prefactold *= l_old;
+		/* do the bulk of the computation now */
 		if (fabs(l_0_old) > kSmall)
 			currTraction[0] = prefactold/l_0_old*state2[knumDOF]; 
 		if (fabs(l_1_old) > kSmall)
@@ -372,12 +357,6 @@ const dMatrixT& YoonAllen3DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 		if (fabs(l_2_old) > kSmall)
 			currTraction[2] = prefactold/l_2_old*state2[knumDOF+2];
 	}
-	else
-	{
-		currTraction[0] = prefactold*state2[knumDOF];
-		currTraction[1] = prefactold*state2[knumDOF+1];
-		currTraction[2] = prefactold*state2[knumDOF+2];
-	}	
 		
 	double tmpSum = fE_infty*fTimeStep;
 	for (int i = 0; i < iNumRelaxTimes; i++)
@@ -428,91 +407,39 @@ const dMatrixT& YoonAllen3DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	{
 		/* Now tackle some stiffnesses */
 		fStiffness = tmpSum/l_dot*(1-alpha)/l/l/fTimeStep;
-		if (l < kSmall)
-		{
-			fStiffness[0] *= l_0*l_0;
-			fStiffness[1] *= l_0*l_1;
-			fStiffness[2] *= l_0*l_2;
-			fStiffness[3] *= l_1*l_0;
-			fStiffness[4] *= l_1*l_1;
-			fStiffness[5] *= l_1*l_2;
-			fStiffness[6] *= l_2*l_0;
-			fStiffness[7] *= l_2*l_1;
-			fStiffness[8] *= l_2*l_2;
-		}
+		fStiffness[0] *= l_0*l_0;
+		fStiffness[1] *= l_0*l_1;
+		fStiffness[2] *= l_0*l_2;
+		fStiffness[3] *= l_1*l_0;
+		fStiffness[4] *= l_1*l_1;
+		fStiffness[5] *= l_1*l_2;
+		fStiffness[6] *= l_2*l_0;
+		fStiffness[7] *= l_2*l_1;
+		fStiffness[8] *= l_2*l_2;
 	}
 	
 	/* scale the final tractions up to components of the gap vector */
-	if (l < kSmall)
-	{
-		currTraction *= (1.-alpha)/l;
+	currTraction *= (1.-alpha)/l;
 
-		if (fabs(l_0 - l_0_old) < kSmall)
-			currTraction[0] = 0.;
-		if (fabs(l_1 - l_1_old) < kSmall)
-			currTraction[1] = 0.;
-		if (fabs(l_2 - l_2_old) < kSmall)
-			currTraction[2] = 0.;
-	}
-	else
-	{
-		currTraction *= (1-alpha)/l;
-		
-		/* delta_ij terms added to stiffness */
-		fStiffness[0] += currTraction[0];
-		fStiffness[4] += currTraction[1];
-		fStiffness[8] += currTraction[2];
+	/* delta_ij terms added to stiffness */
+	fStiffness[0] += currTraction[0];
+	fStiffness[4] += currTraction[1];
+	fStiffness[8] += currTraction[2];
 	
-		/* now scale currTraction to actually be the traction */
-		currTraction[0] *= l_0;
-		currTraction[1] *= l_1;
-		currTraction[2] *= l_2;
-	}
+	/* now scale currTraction to actually be the traction */
+	currTraction[0] *= l_0;
+	currTraction[1] *= l_1;
+	currTraction[2] *= l_2;
 	
 	double scratch;
-	if (l > kSmall)
-		scratch = 1./l/l;
-	else
-		scratch = 0;
+	scratch = 1./l/l;
 	if (l_dot > kSmall)
-	{
-		double ftmp;
-		switch (idamage)
-		{
-			case 1:
-			{
-				ftmp = falpha_exp*pow(l,falpha_exp-1.)*falpha_0*fTimeStep/(1.-alpha);
-				break;
-			}
-			case 2:
-			{
-				ftmp = -flambda_0*fTimeStep*flambda_exp*pow(1.-flambda_0*l,flambda_exp-1.)/(1-alpha);
-				break;
-			}
-			case 3:
-			{
-				ftmp = falpha_exp*pow(l_dot,falpha_exp-1)*falpha_0/(1.-alpha);
-				break;
-			}
-		}
-		if (l > kSmall)
-			ftmp /= l;
-		scratch += ftmp;
-	}
-		
-	if (l > kSmall)
-	{
-		l_0 *= scratch;
-		l_1 *= scratch;
-		l_2 *= scratch;
-	}
-	else
-	{
-		l_0 = scratch;
-		l_1 = scratch;
-		l_2 = scratch;
-	}
-			
+		scratch += falpha_exp*pow(l,falpha_exp-2.)*falpha_0*fTimeStep/(1.-alpha);
+//	    scratch -= flambda_0*fTimeStep*flambda_exp*pow(1.-flambda_0*l,flambda_exp-1.)/(1-alpha);
+//		scratch += falpha_exp*pow(l_dot,falpha_exp-1)*falpha_0*fTimeStep/(1.-alpha)/l;
+	l_0 *= scratch;
+	l_1 *= scratch;
+	l_2 *= scratch;
 	
 	fStiffness[0] -= currTraction[0]*l_0;
 	fStiffness[1] -= currTraction[0]*l_1;
@@ -639,6 +566,18 @@ void YoonAllen3DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& st
 	if (l_dot > kSmall)
 		output[2] += falpha_0*pow(output[0],falpha_exp);
 	
+}
+
+bool YoonAllen3DT::NeedsNodalInfo(void) { return false; }
+
+int YoonAllen3DT::NodalQuantityNeeded(void) 
+{ 
+	return -1; 
+}
+
+int YoonAllen3DT::ElementGroupNeeded(void) 
+{
+	return -1;
 }
 
 bool YoonAllen3DT::CompatibleOutput(const SurfacePotentialT& potential) const

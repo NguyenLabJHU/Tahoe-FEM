@@ -1,13 +1,11 @@
-/* $Id: BCJHypo3D.cpp,v 1.12 2002-10-20 22:49:09 paklein Exp $ */
+/* $Id: BCJHypo3D.cpp,v 1.12.2.1 2002-10-28 06:49:24 paklein Exp $ */
 #include "BCJHypo3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
 #include "ifstreamT.h"
 #include "Utils.h"
 #include "BCJKineticEqn.h"
-
-#include "ContinuumElementT.h"
-
+#include "MaterialSupportT.h"
 
 using namespace Tahoe;
 
@@ -31,8 +29,8 @@ const int kNumMatProp = 6;
 const int kNumOutput = 4;
 static const char* Labels[kNumOutput] = {"EQP","VMISES","PRESS","KAPPA"};
 
-BCJHypo3D::BCJHypo3D(ifstreamT& in, const FiniteStrainT& element) :
-  EVPFDBaseT(in, element),  
+BCJHypo3D::BCJHypo3D(ifstreamT& in, const FDMatSupportT& support) :
+  EVPFDBaseT(in, support),  
 
   // some constants
   fNumInternal (kNumInternal),   // fDEQP, fALPH, fKAPP
@@ -148,10 +146,10 @@ const dSymMatrixT& BCJHypo3D::s_ij()
   LoadElementData(element, intpt);
 
   // compute state, stress and moduli 
-  if (fStatus == GlobalT::kFormRHS)
+  if (MaterialSupport().RunState() == GlobalT::kFormRHS)
     {
       // reset iteration counter to check NLCSolver
-      if (CurrIP() == 0) fIterCount = 0;
+      if (intpt == 0) fIterCount = 0;
 
       //compute 3D total deformation gradient
       Compute_Ftot_3D(fFtot);
@@ -315,7 +313,7 @@ void BCJHypo3D::ComputeOutput(dArrayT& output)
   //output[5] = fIterCount;
 
   if (BCJ_MESSAGES && intpt == 0 && CurrElementNumber() == 0)
-     cerr << " step # " << ContinuumElement().ElementSupport().StepNumber()
+     cerr << " step # " << MaterialSupport().StepNumber()
           << " EQP  "   << fEQValues[kEQP]
           << " EQXi "   << fEQValues[kEQXi]
           << " PRESS "  << fEQValues[kPress]
@@ -480,7 +478,7 @@ void BCJHypo3D::SolveState()
   int totSubIncrs = 1;
 
   // time step and relative deformation gradient
-  fdt = ContinuumElement().ElementSupport().TimeStep();
+  fdt = MaterialSupport().TimeStep();
   fmatx1.Inverse(fFtot_n);
   fF.MultAB(fFtot, fmatx1);
   fFr = fF;
@@ -533,7 +531,7 @@ void BCJHypo3D::SolveState()
  
       // time step
       double tmp = (float)subIncr/(float)totSubIncrs;
-      fdt = ContinuumElement().ElementSupport().TimeStep() * tmp;
+      fdt = MaterialSupport().TimeStep() * tmp;
       
       // relative deformation gradient for subincrement
       fFr.SetToCombination((1.-tmp), fI, tmp, fF);

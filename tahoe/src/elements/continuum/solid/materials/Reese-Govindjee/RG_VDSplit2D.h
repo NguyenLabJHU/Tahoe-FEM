@@ -1,4 +1,4 @@
-/* $Id: RG_VDSplit2D.h,v 1.1 2002-10-04 23:59:00 thao Exp $ */
+/* $Id: RG_VDSplit2D.h,v 1.1.6.1 2002-10-28 06:48:58 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #ifndef _RG_VDSplit_2D_
@@ -16,7 +16,7 @@ class RG_VDSplit2D: public RGBaseT, public Material2DT
    public:
   
 	/* constructor */
-	RG_VDSplit2D(ifstreamT& in, const FiniteStrainT& element);
+	RG_VDSplit2D(ifstreamT& in, const FDMatSupportT& support);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

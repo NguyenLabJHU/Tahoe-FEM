@@ -1,26 +1,24 @@
-/* $Id: LocalCrystalPlast_C.cpp,v 1.7 2002-10-20 22:49:07 paklein Exp $ */
+/* $Id: LocalCrystalPlast_C.cpp,v 1.7.2.2 2002-11-13 08:44:25 paklein Exp $ */
 #include "LocalCrystalPlast_C.h"
 #include "LatticeOrient.h"
 #include "VoceHardening.h"
 #include "ElementCardT.h"
 #include "ifstreamT.h"
 #include "Utils.h"
-#include "ContinuumElementT.h"
-
-/* spatial dimensions of the problem */
+#include "ContinuumElementT.h" //needed for ip coordinates
 
 using namespace Tahoe;
 
+/* spatial dimensions of the problem */
 const int kNSD = 3; 
-
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
 const int kNumOutput = 2;
 static const char* Labels[kNumOutput] = {"VM_stress", "Hardness"};
 
-LocalCrystalPlast_C::LocalCrystalPlast_C(ifstreamT& in, const FiniteStrainT& element) :
-  LocalCrystalPlast(in, element),
+LocalCrystalPlast_C::LocalCrystalPlast_C(ifstreamT& in, const FDMatSupportT& support) :
+  LocalCrystalPlast(in, support),
   fLocInitX (ContinuumElement().InitialCoordinates()),
   //fNNodes   (element.NumElemNodes()),
   fNNodes   (fLocInitX.NumberOfNodes()),
@@ -78,7 +76,7 @@ const dSymMatrixT& LocalCrystalPlast_C::s_ij()
   LoadAggregateData(element, intpt);
 
   // compute state, stress and moduli at center of element
-  if (fStatus == GlobalT::kFormRHS && CurrIP() == 0)
+  if (fFDMatSupport.RunState() == GlobalT::kFormRHS && CurrIP() == 0)
     {
       // reset iteration counter to check NLCSolver
       fIterCount = 0;
@@ -212,8 +210,8 @@ void LocalCrystalPlast_C::ComputeOutput(dArrayT& output)
       output[1] = fIterCount;
 
       // compute texture of aggregate, if requested
-      const int& step = ContinuumElement().ElementSupport().StepNumber();
-      const int& nsteps = ContinuumElement().ElementSupport().NumberOfSteps();
+	int step = fFDMatSupport.StepNumber();
+	int nsteps = fFDMatSupport.NumberOfSteps();
 
       if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
 	{

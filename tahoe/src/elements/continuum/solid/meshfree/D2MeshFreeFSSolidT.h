@@ -1,6 +1,5 @@
-/* $Id: D2MeshFreeFSSolidT.h,v 1.6 2002-10-20 22:48:24 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.h,v 1.6.2.1 2002-10-28 06:48:44 paklein Exp $ */
 /* created: paklein (10/23/1999) */
-
 #ifndef _D2_EFG_FDELASTIC_T_H_
 #define _D2_EFG_FDELASTIC_T_H_
 

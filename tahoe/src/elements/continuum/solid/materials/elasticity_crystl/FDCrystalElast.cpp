@@ -1,5 +1,4 @@
-/* $Id: FDCrystalElast.cpp,v 1.6 2002-10-20 22:49:00 paklein Exp $ */
-
+/* $Id: FDCrystalElast.cpp,v 1.6.2.1 2002-10-28 06:49:13 paklein Exp $ */
 #include "FDCrystalElast.h"
 
 #include <stdlib.h>
@@ -9,20 +8,20 @@
 #include "ifstreamT.h"
 #include "Utils.h"
 #include "UpLagr_ExternalFieldT.h"
+#include "FDMatSupportT.h"
 #include "SpectralDecompT.h"
 
-  /* spatial dimensions of the problem */
-	const int kNSD = 3;
-  /* element output data */
-	const int kNumOutput = 4;
-        static const char* Labels[kNumOutput] = {"VM_stress","s1","s2","sn"};
-  /* Numerical constants */
-	const double sqrt23 = sqrt(2.0/3.0);
-
+/* spatial dimensions of the problem */
+const int kNSD = 3;
+/* element output data */
+const int kNumOutput = 4;
+static const char* Labels[kNumOutput] = {"VM_stress","s1","s2","sn"};
+/* Numerical constants */
+const double sqrt23 = sqrt(2.0/3.0);
 
 using namespace Tahoe;
 
-FDCrystalElast::FDCrystalElast(ifstreamT& in, const FiniteStrainT& element):CrystalElast(in, element),
+FDCrystalElast::FDCrystalElast(ifstreamT& in, const FDMatSupportT& support):CrystalElast(in, support),
   // deformation gradient 
 	fF    (kNSD,kNSD),
   // elastic and thermal (inverse) deformation gradients
@@ -70,8 +69,7 @@ FDCrystalElast::FDCrystalElast(ifstreamT& in, const FiniteStrainT& element):Crys
   // set 2nd order unit tensor (sym matrix)
   fISym.Identity();
 
-  fExFieldElement = dynamic_cast<const UpLagr_ExternalFieldT*>(&element);
-
+  fExFieldElement = dynamic_cast<const UpLagr_ExternalFieldT*>(FDMatSupport().FiniteStrain());
   if (!fExFieldElement)
     {
       cout << "\n FDCrystalElast::FDCrystalElast: could not cast element group to \n"
@@ -112,7 +110,7 @@ const dSymMatrixT& FDCrystalElast::s_ij()
   array1.Dimension(1);
 
   // compute elastic moduli and stress due to thermal strain
-  if (fStatus == GlobalT::kFormRHS)
+  if (MaterialSupport().RunState() == GlobalT::kFormRHS)
     {
       // deformation gradient
       fF = F();

@@ -1,7 +1,5 @@
-/* $Id: QuadLog3D.h,v 1.7 2002-10-20 22:48:50 paklein Exp $ */
-/* created: paklein (06/27/1997)                                          */
-/* Hyperelastic material governed by quadratic logarithmic potential.     */
-
+/* $Id: QuadLog3D.h,v 1.7.2.1 2002-10-28 06:49:06 paklein Exp $ */
+/* created: paklein (06/27/1997) */
 #ifndef _QUAD_LOG_3D_H_
 #define _QUAD_LOG_3D_H_
 
@@ -10,15 +8,15 @@
 #include "IsotropicT.h"
 #include "SpectralDecompT.h"
 
-
 namespace Tahoe {
 
+/** hyperelastic material governed by quadratic logarithmic potential */
 class QuadLog3D: public FDStructMatT, public IsotropicT
 {
 public:
 
 	/* constructor */
-	QuadLog3D(ifstreamT& in, const FiniteStrainT& element);
+	QuadLog3D(ifstreamT& in, const FDMatSupportT& support);
 	
 	/* print parameters */
 	virtual void Print(ostream& out) const;

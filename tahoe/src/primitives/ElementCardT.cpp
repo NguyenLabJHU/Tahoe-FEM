@@ -1,5 +1,6 @@
-/* $Id: ElementCardT.cpp,v 1.11 2002-11-09 18:13:48 paklein Exp $ */
+/* $Id: ElementCardT.cpp,v 1.10 2002-10-20 22:49:31 paklein Exp $ */
 /* created: paklein (05/24/1996) */
+
 #include "ElementCardT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -9,9 +10,10 @@
 /* for the BC codes */
 #include "KBC_CardT.h"
 
+/* array behavior */
+
 using namespace Tahoe;
 
-/* array behavior */
 namespace Tahoe {
 const bool ArrayT<ElementCardT>::fByteCopy = false;
 } /* namespace Tahoe */
@@ -131,22 +133,6 @@ void ElementCardT::Dimension(int i_size, int d_size)
 
 	fData = new ElementStorageT(i_size, d_size);
 	if (!fData) throw ExceptionT::kOutOfMemory;
-}
-
-void ElementCardT::Set(int i_size, int* i_data, int d_size, double* d_data)
-{
-	/* allocate storage card */
-	if (!fData) fData = new ElementStorageT();
-	
-	/* NOTE: exisintg data gone */
-	fData->Set(i_size, i_data, d_size, d_data);
-}
-
-/* make arrays alias to other data */
-void ElementStorageT::Set(int i_size, int* i_data, int d_size, double* d_data)
-{
-	fIntegerData.Set(i_size, i_data);
-	fDoubleData.Set(d_size, d_data);
 }
 
 namespace Tahoe {

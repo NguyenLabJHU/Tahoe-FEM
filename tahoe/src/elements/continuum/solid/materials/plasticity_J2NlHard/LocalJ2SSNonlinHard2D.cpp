@@ -1,13 +1,13 @@
+/* $Id: LocalJ2SSNonlinHard2D.cpp,v 1.2.8.1 2002-10-28 06:49:21 paklein Exp $ */
 #include "LocalJ2SSNonlinHard2D.h"
 #include "ElementCardT.h"
 #include "StringT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
-LocalJ2SSNonlinHard2D::LocalJ2SSNonlinHard2D(ifstreamT& in, const SmallStrainT& element) :
-  LocalJ2SSNonlinHard(in, element),  
+/* constructor */
+LocalJ2SSNonlinHard2D::LocalJ2SSNonlinHard2D(ifstreamT& in, const SSMatSupportT& support) :
+  LocalJ2SSNonlinHard(in, support),  
   Material2DT(in, Material2DT::kPlaneStrain),
   fStress2D(2),
   fModulus2D(dSymMatrixT::NumValues(2)),

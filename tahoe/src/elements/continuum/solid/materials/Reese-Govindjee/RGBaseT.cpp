@@ -1,21 +1,18 @@
-/* $Id: RGBaseT.cpp,v 1.2 2002-10-20 22:48:45 paklein Exp $ */
+/* $Id: RGBaseT.cpp,v 1.2.2.2 2002-11-13 08:44:14 paklein Exp $ */
 /* created: TDN (01/22/2000) */
-
 #include "RGBaseT.h"
-#include "ContinuumElementT.h"
+//#include "ContinuumElementT.h"
 #include "ElementSupportT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-RGBaseT::RGBaseT(ifstreamT& in, const FiniteStrainT& element):
-	FDStructMatT(in, element),
+RGBaseT::RGBaseT(ifstreamT& in, const FDMatSupportT& support):
+	FDStructMatT(in, support),
 	fSpectralDecompSpat(NumSD()),
-	fSpectralDecompRef(NumSD()),
-	fRunState(ContinuumElement().RunState()),
-	fdt(ContinuumElement().ElementSupport().TimeStep())
+	fSpectralDecompRef(NumSD())
 {
-        int numstress = (NumSD()*(NumSD()+1))/2;
+	int numstress = (NumSD()*(NumSD()+1))/2;
 	fnstatev = 0;
 	fnstatev += numstress;   /*current C_v*/
 	fnstatev += numstress;   /*last C_vn*/

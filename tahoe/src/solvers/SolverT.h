@@ -1,7 +1,5 @@
-
-/* $Id: SolverT.h,v 1.8 2002-08-21 07:26:03 paklein Exp $ */
+/* $Id: SolverT.h,v 1.8.8.1 2002-11-13 08:31:09 paklein Exp $ */
 /* created: paklein (05/23/1996) */
-
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
 

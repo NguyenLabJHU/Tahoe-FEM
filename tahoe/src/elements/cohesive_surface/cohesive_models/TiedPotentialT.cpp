@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.10 2002-11-06 21:53:48 cjkimme Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.7 2002-10-23 00:18:03 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -18,7 +18,6 @@ const int    knumDOF = 2;
 const double kExpMax = 100;
 
 /* initialize static variables */
-int TiedPotentialT::iBulkGroup = 0;
 double TiedPotentialT::fsigma_critical = 0.;
 double TiedPotentialT::fnvec1 = 0.;
 double TiedPotentialT::fnvec2 = 0.;
@@ -32,31 +31,22 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in, const double& time_step):
 
     in >> fnvec1; /* read in direction to sample stress state at */
     in >> fnvec2;
- 
+    
     /*make it a unit vector */
     double mag = sqrt(fnvec1*fnvec1+fnvec2*fnvec2);
     
     fnvec1 /= mag;
     fnvec2 /= mag;
- 
-    int nBulkGroups;
-    in >> nBulkGroups;
-    in >> iBulkGroup; if (iBulkGroup < 0) throw ExceptionT::kBadInputValue;
-    iBulkGroup--;
     
-	in >> qTv; /* 0 for Xu-Needleman. 1 for TvergHutch */
+	in >> qXu; /* 1 for Xu-Needleman. 0 for TvergHutch */
 	
-	if (qTv)
+	if (!qXu)
 	{
 		in >> fsigma; if (fsigma < kSmall) throw ExceptionT::kBadInputValue;
 		in >> d_n;  if (d_n < kSmall) throw ExceptionT::kBadInputValue;
 		in >> d_t;  if (d_t < kSmall) throw ExceptionT::kBadInputValue;
 		in >> fL_1; if (fL_1 < kSmall || fL_1 > 1.) throw ExceptionT::kBadInputValue;
 		in >> fL_2; if (fL_2 > 1. || fL_2 < fL_1) throw ExceptionT::kBadInputValue;
-		
-		double fL_fail; 
-		in >> fL_fail;
-		
 		in >> fL_0; if (fL_0 < 0. || fL_0 > 1.) throw ExceptionT::kBadInputValue;
 		r_fail = 1.;
 		if (fL_0 < fL_1)
@@ -69,14 +59,9 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in, const double& time_step):
 	}
 	else
 	{
-	  	double q, r;
-	  	in >> q;	// phi_t/phi_n
-	  	in >> r; //delta_n* /d_n
-	  	if (q < 0.0 || r < 0.0) throw ExceptionT::kBadInputValue;
-	
+		in >> phi_n; if (phi_n <= kSmall) throw ExceptionT::kBadInputValue;
 		in >> d_n; if (d_n <= kSmall) throw ExceptionT::kBadInputValue;
 		in >> d_t; if (d_t <= kSmall) throw ExceptionT::kBadInputValue;
-		in >> phi_n; if (phi_n <= kSmall) throw ExceptionT::kBadInputValue;
 		in >> r_fail; if (r_fail < 1.0) throw ExceptionT::kBadInputValue;
 		fsigma_critical = phi_n/d_n/exp(1.); 
 	}
@@ -84,6 +69,7 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in, const double& time_step):
 	fsigma_critical *= fsigma_critical;
 }
 
+/*initialize state variables with values from the rate-independent model */
 void TiedPotentialT::InitStateVariables(ArrayT<double>& state)
 {
 	state = 0.;
@@ -97,7 +83,7 @@ double TiedPotentialT::FractureEnergy(const ArrayT<double>& state)
 {
 #pragma unused(state)
 
-   	if (!qTv)
+   	if (qXu)
    		return phi_n;
    	else
    		if (fL_0 > fL_2)
@@ -111,8 +97,6 @@ double TiedPotentialT::FractureEnergy(const ArrayT<double>& state)
 
 double TiedPotentialT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
 {
-#pragma unused(jump_u)
-#pragma unused(state)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
@@ -144,7 +128,7 @@ const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 	}
 	else
 	{
-		if (!qTv)
+		if (qXu)
 		{
 			double du_n = jump_u[1]+/*.608341*/d_n;
 			double fexpf = exp(-du_n/d_n)* exp(-jump_u[0]*jump_u[0]/d_t/d_t);
@@ -203,7 +187,7 @@ const dMatrixT& TiedPotentialT::Stiffness(const dArrayT& jump_u, const ArrayT<do
 	else
 	{
 		fStiffness = 0.;
-		if (!qTv)
+		if (qXu)
 		{
 			double du_n = jump_u[1]+/*.608341*/d_n;
 			double fexpf = exp(-du_n/d_n)* exp(-jump_u[0]*jump_u[0]/d_t/d_t);
@@ -276,7 +260,6 @@ SurfacePotentialT::StatusT TiedPotentialT::Status(const dArrayT& jump_u,
 	const ArrayT<double>& state)
 {
 #pragma unused(jump_u)
-#pragma unused(state)
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
@@ -284,7 +267,7 @@ SurfacePotentialT::StatusT TiedPotentialT::Status(const dArrayT& jump_u,
 	double u_t1 = jump_u[0];
 	double u_t  = sqrt(u_t1*u_t1);
 	double u_n ;
-	if (!qTv)
+	if (qXu)
 		u_n = jump_u[1]+d_n;
 	else
 		u_n = jump_u[1] + fL_0*d_n;
@@ -367,11 +350,6 @@ bool TiedPotentialT::InitiationQ(const double* sigma)
 	double t2 = sigma[2]*fnvec1+sigma[1]*fnvec2;
 	
 	return t1*t1 + t2*t2 >= fsigma_critical;
-}
-
-int TiedPotentialT::BulkGroup(void)
-{
-  return iBulkGroup;
 }
 
 /*void TiedPotentialT::AllocateSpace(int MajorDim, int MinorDim) 

@@ -1,10 +1,12 @@
+/* $Id: GradJ2SSNonlinHard.cpp,v 1.6.2.2 2002-11-13 08:44:23 paklein Exp $ */
 #include "GradJ2SSNonlinHard.h"
+#include "SSMatSupportT.h"
 
 #include "iArrayT.h"
 #include "ElementCardT.h"
 #include "StringT.h"
 #include "ifstreamT.h"
-#include "ContinuumElementT.h"
+#include "ContinuumElementT.h" //needed for global information about nodes
 
 using namespace Tahoe;
 
@@ -28,13 +30,12 @@ static const char* Labels[kNumOutput] = {
 	"YldCrit"};  // Yield criteria
 
 /* constructor */
-GradJ2SSNonlinHard::GradJ2SSNonlinHard(ifstreamT& in, const SmallStrainT& element):
-	SSStructMatT (in, element),
+GradJ2SSNonlinHard::GradJ2SSNonlinHard(ifstreamT& in, const SSMatSupportT& support):
+	SSStructMatT (in, support),
 	IsotropicT   (in),
 	HookeanMatT  (kNSD),
-	fStatus      (ContinuumElement().RunState()),
-        fNumIP       (NumIP()),
-        fmu          (Mu()),
+	fNumIP       (NumIP()),
+	fmu          (Mu()),
 	fNumNodes    (ContinuumElement().InitialCoordinates().NumberOfNodes()),
 
 	/* return values */
@@ -46,7 +47,7 @@ GradJ2SSNonlinHard::GradJ2SSNonlinHard(ifstreamT& in, const SmallStrainT& elemen
 	/* general workspaces */
 	fRelStress (kNSD),
 	fsymmatx1  (kNSD),
-        fmatx1     (kNSD,kNSD),
+	fmatx1     (kNSD,kNSD),
 	fmatx2     (kNSD,kNSD),
 	fmatx3     (kNSD,kNSD),
 	ftnsr1     (dSymMatrixT::NumValues(kNSD))
@@ -264,9 +265,9 @@ const dSymMatrixT& GradJ2SSNonlinHard::s_ij(void)
 	int fCurrIP = CurrIP();
 	ElementCardT& element = CurrentElement();
 
-	int iteration = ContinuumElement().IterationNumber();
+	int iteration = fSSMatSupport.IterationNumber();
 
-	if (fStatus == GlobalT::kFormRHS && fCurrIP == 0)
+	if (fSSMatSupport.RunState() == GlobalT::kFormRHS && fCurrIP == 0)
 	{
 	        if (iteration > -1)
 		        /* solve state at each integration point (all at once) */

@@ -1,20 +1,24 @@
-/* $Id: SolidMatListT.h,v 1.4 2002-10-05 20:04:16 paklein Exp $ */
-
+/* $Id: SolidMatListT.h,v 1.4.6.1 2002-11-13 08:44:20 paklein Exp $ */
 #ifndef _STRUCT_MAT_LIST_T_H_
 #define _STRUCT_MAT_LIST_T_H_
 
 /* base class */
 #include "MaterialListT.h"
 
-
 namespace Tahoe {
 
+/* forward declarations */
+class SolidMatSupportT;
+class SSMatSupportT;
+class FDMatSupportT;
+
+/** list of materials for structural analysis */
 class SolidMatListT: public MaterialListT
 {
 public:
 
 	/** constructor */
-	SolidMatListT(int length);
+	SolidMatListT(int length, const SolidMatSupportT& support);
 
 	/** returns true if any of the materials in the list can undergo
 	 * strain localization */
@@ -32,9 +36,25 @@ public:
 
 protected:
 
-	/* flags for material properties */
-	bool fHasLocalizers; /* materials that localize        */
-	bool fHasThermal;    /* materials with thermal loading */
+	/** \name flags for material properties */
+	/*@{*/
+	bool fHasLocalizers; /**< materials that localize */
+	bool fHasThermal;    /**< materials with thermal loading */
+	/*@}*/
+
+	/** \name material support classes 
+	 * These are dynamically cast from the MaterialSupportT passed
+	 * into the constructor */
+	/*@{*/
+	/** base class for structural material support */
+	const SolidMatSupportT& fSolidMatSupport; 
+	
+	/** support for small strain materials */
+	const SSMatSupportT* fSSMatSupport;
+
+	/** support for finite strain materials */
+	const FDMatSupportT* fFDMatSupport;
+	/*@}*/
 };
 
 inline bool SolidMatListT::HasLocalizingMaterials(void) const { return fHasLocalizers; }

@@ -1,11 +1,10 @@
-/* $Id: FDSimoViscoBaseT.cpp,v 1.2 2002-10-20 22:48:51 paklein Exp $ */
+/* $Id: FDSimoViscoBaseT.cpp,v 1.2.2.2 2002-11-13 08:44:16 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
-
 #include "FDSimoViscoBaseT.h"
 
 #include "fstreamT.h"
 #include "ExceptionT.h"
-#include "ContinuumElementT.h"
+//#include "ContinuumElementT.h"
 #include "ElementSupportT.h"
 
 using namespace Tahoe;
@@ -14,10 +13,8 @@ const int kNumOutputVar = 2;
 static const char* Labels[kNumOutputVar] = {"r_dil","r_dev"};
 
 FDSimoViscoBaseT::FDSimoViscoBaseT(ifstreamT& in,  
-				   const FiniteStrainT& element):
-	FDStructMatT(in, element),
-	fRunState(ContinuumElement().RunState()),
-	fdt(ContinuumElement().ElementSupport().TimeStep())
+				   const FDMatSupportT& support):
+	FDStructMatT(in, support)
 {
 	int nsd = NumSD();
         int numstress = (nsd*(nsd+1))/2;

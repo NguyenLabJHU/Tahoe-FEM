@@ -1,6 +1,5 @@
-/* $Id: SolidMatList3DT.h,v 1.6 2002-07-05 22:28:21 paklein Exp $ */
+/* $Id: SolidMatList3DT.h,v 1.6.8.2 2002-11-13 08:44:20 paklein Exp $ */
 /* created: paklein (02/14/1997) */
-
 #ifndef _MATLIST_3D_T_H_
 #define _MATLIST_3D_T_H_
 
@@ -10,32 +9,24 @@
 
 namespace Tahoe {
 
-/* forward declaration */
-class ElasticT;
-class SmallStrainT;
-class FiniteStrainT;
-
+/** materials list for 3D structural analysis */
 class SolidMatList3DT: public StructuralMatListT, public MaterialT
 {
 public:
 
-	/* constructors */
-	SolidMatList3DT(int length, const ElasticT& element_group);
+	/** constructors */
+	SolidMatList3DT(int length, const StructuralMatSupportT& support);
 
-	/* read material data from the input stream */
+	/** read material data from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);
 
 private:
 	
-	/* errror messages */
+	/** \name errror messages */
+	/*@{*/
 	void Error_no_small_strain(ostream& out, int matcode) const;
 	void Error_no_finite_strain(ostream& out, int matcode) const;
-
-private:
-
-	const ElasticT&      fElementGroup;
-	const SmallStrainT*  fSmallStrain;
-	const FiniteStrainT* fFiniteStrain;
+	/*@}*/
 };
 
 } // namespace Tahoe 

@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.cpp,v 1.11 2002-10-20 22:49:07 paklein Exp $ */
+/* $Id: PolyCrystalMatT.cpp,v 1.11.2.3 2002-11-13 22:47:19 paklein Exp $ */
 #include "PolyCrystalMatT.h"
 #include "CrystalElasticity.h"
 #include "SlipGeometry.h"
@@ -9,13 +9,13 @@
 #include "SlipHardening.h"
 #include "Utils.h"
 
+#include "FDMatSupportT.h"
 #include "FiniteStrainT.h"
 #include "StringT.h"
 
-/* number of elastic material properties : isotropic and cubic */
-
 using namespace Tahoe;
 
+/* number of elastic material properties : isotropic and cubic */
 const int kNumMatProp = 3;
 
 /* number of slip systems based on crystal structure */
@@ -29,13 +29,12 @@ const int kIsInit = 1;
 /* spatial dimensions of the problem */
 const int kNSD = 3;
 
-PolyCrystalMatT::PolyCrystalMatT(ifstreamT& in, const FiniteStrainT& element) :
-  FDHookeanMatT(in, element),
-  //fdt           (element.FEManager().TimeStep()),
-  ftime         (element.ElementSupport().Time()),
-  fStatus       (element.RunState()),
-  fLocLastDisp  (element.LastDisplacements()),
-  fLocDisp      (element.Displacements()),
+PolyCrystalMatT::PolyCrystalMatT(ifstreamT& in, const FDMatSupportT& support) :
+  FDHookeanMatT(in, support),
+  fdt           (FDMatSupport().TimeStep()),
+  //ftime       (FDMatSupport().Time()),
+  fLocLastDisp  (FDMatSupport().FiniteStrain()->LastDisplacements()),
+  fLocDisp      (FDMatSupport().FiniteStrain()->Displacements()),
   fSlipGeometry (NULL),
   fLatticeOrient(NULL),
   fElasticity   (NULL),

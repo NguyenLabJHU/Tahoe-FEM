@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.26 2002-11-09 18:18:51 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.24.2.1 2002-11-13 08:37:52 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -89,19 +89,11 @@ GlobalT::SystemTypeT ElementBaseT::TangentType(void) const
 }
 
 #ifndef _SIERRA_TEST_
-
 /* the iteration number for the current time increment */
 const int& ElementBaseT::IterationNumber(void) const
 {
 	return ElementSupport().IterationNumber(Group());
 }
-
-/* return true if the element contributes to the group */
-bool ElementBaseT::InGroup(int group) const
-{
-	return fField.Group() == group;
-}
-
 #endif
 
 /* collect the list of element block ID's used by the element group */
@@ -402,7 +394,6 @@ void ElementBaseT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	  {
 	    int numblockelems = fConnectivities[be]->MajorDim();
 	    fEqnos[be].Dimension(numblockelems, neq);
-	    fEqnos[be] = -1;
 	  }
 
 	/* set pointers in element cards */
@@ -547,6 +538,59 @@ void ElementBaseT::WriteConnectivity(ostream& out) const
 	}
 }
 
+#if 0
+/* generate connectivities with local numbering -
+* returns the number of nodes used by the element group */
+int ElementBaseT::MakeLocalConnects(iArray2DT& localconnects)
+{
+	int num_blocks = fBlockData.Length();
+
+	iArrayT mins (num_blocks);
+	iArrayT maxes (num_blocks);
+	for (int i=0; i < fBlockData.Length(); i++)
+	{
+		mins[i] = fConnectivities[i]->Min();
+		maxes[i] = fConnectivities[i]->Max();
+	}
+
+	/* compressed number range */
+	int min   = mins.Min();
+	int range = maxes.Max() - min + 1;
+
+	/* local map */
+	iArrayT node_map(range);
+
+	/* determine used nodes */
+	node_map = 0;
+	for (int b=0; b < num_blocks; b++)
+	{
+		const iArray2DT* conn = fConnectivities[b];
+		int *pc = conn->Pointer();
+		for (int i = 0; i < conn->Length(); i++)
+			node_map[*pc++ - min] = 1;
+	}
+
+	/* set node map */
+	int localnum = 0;
+	for (int j = 0; j < node_map.Length(); j++)
+	    if (node_map[j] == 1)
+		    node_map[j] = localnum++;
+
+	/* connectivities with local node numbering */
+	localconnects.Dimension(NumElements(), NumElementNodes());
+	int *plocal = localconnects.Pointer();
+	for (int b=0; b < num_blocks; b++)
+	{
+		const iArray2DT* conn = fConnectivities[b];
+		int *pc = conn->Pointer();
+		for (int i = 0; i < conn->Length(); i++)
+			*plocal++ = node_map [*pc++ - min];
+	}
+
+	return localnum;
+}
+#endif
+
 /* return pointer to block data given the ID */
 const ElementBlockDataT& ElementBaseT::BlockData(const StringT& block_ID) const
 {
@@ -657,6 +701,9 @@ void ElementBaseT::SetElementCards(void)
       cout << "\n          fEqnos length = " << fEqnos.Length() << endl;
       throw ExceptionT::kSizeMismatch;
     }
+
+	/* allocate */
+	//fElementCards.Dimension(fNumElements);
 
 	/* loop over blocks to set pointers */
 	int numberofnodes = fSupport.NumNodes();

@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp.cpp,v 1.11 2002-11-09 01:51:25 paklein Exp $ */
+/* $Id: GradCrystalPlastFp.cpp,v 1.10.2.2 2002-11-13 08:44:25 paklein Exp $ */
 #include "GradCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -10,12 +10,11 @@
 
 #include "ElementCardT.h"
 #include "ifstreamT.h"
-#include "ContinuumElementT.h"
-
-/* spatial dimensions of the problem */
+#include "ContinuumElementT.h" //needed for ip coordinates
 
 using namespace Tahoe;
 
+/* spatial dimensions of the problem */
 const int kNSD = 3;
 
 /* useful constant */
@@ -29,8 +28,8 @@ static const char* Labels[kNumOutput] = {"VM_stress", "IterNewton", "IterState"}
 const bool XTAL_MESSAGES = false;
 const int ELprnt = 0;
 
-GradCrystalPlastFp::GradCrystalPlastFp(ifstreamT& in, const FiniteStrainT& element) :
-  LocalCrystalPlastFp(in, element),  
+GradCrystalPlastFp::GradCrystalPlastFp(ifstreamT& in, const FDMatSupportT& support) :
+  LocalCrystalPlastFp(in, support),  
   fLocInitX (ContinuumElement().InitialCoordinates()),
   fLocCurrX (LocalArrayT::kCurrCoords),
   fGradTool (NULL),
@@ -117,12 +116,12 @@ const dSymMatrixT& GradCrystalPlastFp::s_ij()
   int igrn = 0;
 
   // time step
-  fdt = ContinuumElement().ElementSupport().TimeStep();
+  fdt = fFDMatSupport.TimeStep();
 
   // compute crystal stresses (all IPs at once - elastic predictor at first iter)
-  if (fStatus == GlobalT::kFormRHS && CurrIP() == 0)
+  if (fFDMatSupport.RunState() == GlobalT::kFormRHS && CurrIP() == 0)
     {
-       if (ContinuumElement().ElementSupport().IterationNumber() <= -1)
+       if (fFDMatSupport.IterationNumber() <= -1)
          {
            for (int intpt = 0; intpt < NumIP(); intpt++)
              {
@@ -203,7 +202,7 @@ const dMatrixT& GradCrystalPlastFp::c_ijkl()
   else
         fElasticity->ComputeModuli(fcBar_ijkl);
 
-  if (ContinuumElement().ElementSupport().IterationNumber() <= 0)
+  if (fFDMatSupport.IterationNumber() <= 0)
     {
       // elastic crystal stiffness
       FFFFC_3D(fc_ijkl, fcBar_ijkl, fFe);
@@ -301,7 +300,7 @@ void GradCrystalPlastFp::ComputeOutput(dArrayT& output)
   if (elem == 0 && intpt == 0) fAvgStress = 0.0;
   fAvgStress.AddScaled(1./(NumIP()*NumElements()), fs_ij);
   if (elem == (NumElements()-1) && intpt == (NumIP()-1))
-     cerr << " step # " << ContinuumElement().ElementSupport().StepNumber()
+     cerr << " step # " << fFDMatSupport.StepNumber()
           << "    S_eq_avg = " 
           << sqrt(fSymMatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23
           << "    Savg_12 = " << fAvgStress(0,1) << endl; 
@@ -311,8 +310,8 @@ void GradCrystalPlastFp::ComputeOutput(dArrayT& output)
   output[2] = fIterState;
 
   // compute euler angles
-  const int& step = ContinuumElement().ElementSupport().StepNumber();
-  const int& nsteps = ContinuumElement().ElementSupport().NumberOfSteps();
+  int step = fFDMatSupport.StepNumber();
+  int nsteps = fFDMatSupport.NumberOfSteps();
 
   if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
   {

@@ -1,12 +1,10 @@
-/* $Id: D2VIB2D_a.h,v 1.2 2002-07-02 19:55:59 cjkimme Exp $ */
-/* created: paklein (10/23/1999)                                          */
-
+/* $Id: D2VIB2D_a.h,v 1.2.8.1 2002-10-28 06:49:12 paklein Exp $ */
+/* created: paklein (10/23/1999) */
 #ifndef _D2_VIB_2D_A_H_
 #define _D2_VIB_2D_A_H_
 
 /* base class */
 #include "D2VIB2D.h"
-
 
 namespace Tahoe {
 
@@ -15,7 +13,7 @@ class D2VIB2D_a: public D2VIB2D
 public:
 
 	/* constructor */
-	D2VIB2D_a(ifstreamT& in, const D2MeshFreeFDElasticT& element);
+	D2VIB2D_a(ifstreamT& in, const D2FDMatSupportT& support);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

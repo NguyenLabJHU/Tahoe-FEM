@@ -1,15 +1,5 @@
-/* $Id: J2IsoVIB2DLinHardT.h,v 1.4 2002-10-20 22:48:55 paklein Exp $ */
-/* created: paklein (10/18/1998)                                          */
-/* VIB plus principal stretch elasticity                                  */
-/* Interface for a elastoplastic material that is linearly                */
-/* isotropically elastic subject to the Huber-von Mises yield             */
-/* condition as fYield with kinematic/isotropic hardening laws            */
-/* given by:                                                              */
-/* 		H(a) = (1 - ftheta) fH_bar a                                         */
-/* K(a) = fYield + ftheta fH_bar a                                        */
-/* 		where a is the internal hardening variable                           */
-/* 	Note: all calculations are peformed in 3D.                            */
-
+/* $Id: J2IsoVIB2DLinHardT.h,v 1.4.2.1 2002-10-28 06:49:10 paklein Exp $ */
+/* created: paklein (10/18/1998) */
 #ifndef _J2_ISOVIB_2D_T_H_
 #define _J2_ISOVIB_2D_T_H_
 
@@ -24,15 +14,24 @@
 #include "dArrayT.h"
 #include "iArrayT.h"
 
-
 namespace Tahoe {
 
+/** VIB plus principal stretch elasticity
+ * Interface for a elastoplastic material that is linearly
+ * isotropically elastic subject to the Huber-von Mises yield
+ * condition as fYield with kinematic/isotropic hardening laws
+ * given by:
+ *      H(a) = (1 - ftheta) fH_bar a
+ *      K(a) = fYield + ftheta fH_bar a
+ * 		where a is the internal hardening variable
+ * 	\note all calculations are peformed in 3D
+ */
 class J2IsoVIB2DLinHardT: public IsoVIB3D, public Material2DT, public J2PrimitiveT
 {
 public:
 
 	/* constructor */
-	J2IsoVIB2DLinHardT(ifstreamT& in, const FiniteStrainT& element);
+	J2IsoVIB2DLinHardT(ifstreamT& in, const FDMatSupportT& support);
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);

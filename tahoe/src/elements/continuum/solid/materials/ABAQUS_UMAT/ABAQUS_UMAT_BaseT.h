@@ -1,10 +1,5 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.4 2002-10-05 20:04:09 paklein Exp $ */
-/* created: paklein (05/09/2000)                                          */
-/* NOTE: pick the base class for this based on the                        */
-/* weak form equations it's supposed to fit into                          */
-/* Q: What to do with the constitutive jacobian?                          */
-/* chain rule it into a material tangent modulus???                       */
-
+/* $Id: ABAQUS_UMAT_BaseT.h,v 1.4.6.2 2002-11-13 08:44:10 paklein Exp $ */
+/* created: paklein (05/09/2000) */
 #ifndef _ABAQUS_UMAT_BASE_T_H_
 #define _ABAQUS_UMAT_BASE_T_H_
 
@@ -25,10 +20,9 @@
 /* f2c */
 #include "f2c.h"
 
-/* forward declarations */
-
 namespace Tahoe {
 
+/* forward declarations */
 class SpectralDecompT;
 
 class ABAQUS_UMAT_BaseT: public FDStructMatT
@@ -36,7 +30,7 @@ class ABAQUS_UMAT_BaseT: public FDStructMatT
 public:
 
 	/* constructor */
-	ABAQUS_UMAT_BaseT(ifstreamT& in, const FiniteStrainT& element);
+	ABAQUS_UMAT_BaseT(ifstreamT& in, const FDMatSupportT& support);
 
 	/* destructor */
 	~ABAQUS_UMAT_BaseT(void);
@@ -135,11 +129,6 @@ private:
 	void Skip_ABAQUS_Comments(ifstreamT& in);
 	void Read_ABAQUS_Word(ifstreamT& in, StringT& word, bool to_upper = true) const;
 	
-protected:
-
-	/* execution stage */
-	const GlobalT::StateT& fRunState;
-
 private:
 
 	//debugging

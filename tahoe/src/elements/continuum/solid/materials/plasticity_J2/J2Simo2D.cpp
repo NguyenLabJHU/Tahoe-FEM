@@ -1,19 +1,17 @@
-/* $Id: J2Simo2D.cpp,v 1.9 2002-10-20 22:49:05 paklein Exp $ */
+/* $Id: J2Simo2D.cpp,v 1.9.2.1 2002-10-28 06:49:19 paklein Exp $ */
 /* created: paklein (06/22/1997) */
-
 #include "J2Simo2D.h"
 #include "StringT.h"
 #include "ElementCardT.h"
 
-/* constants */
-
 using namespace Tahoe;
 
+/* constants */
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* constructor */
-J2Simo2D::J2Simo2D(ifstreamT& in, const FiniteStrainT& element):
-	SimoIso2D(in, element),
+J2Simo2D::J2Simo2D(ifstreamT& in, const FDMatSupportT& support):
+	SimoIso2D(in, support),
 //	J2SimoLinHardT(in, NumIP(), Mu()),
 	J2SimoC0HardeningT(in, NumIP(), Mu()),
 	fFmech(3),

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.41 2002-11-09 01:48:36 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.40 2002-10-20 22:48:32 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -57,8 +57,7 @@ FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm)
 	fRestartCount(0),
 	fGlobalEquationStart(0),
 	fActiveEquationStart(0),
-	fGlobalNumEquations(0),
-	fCurrentGroup(-1)
+	fGlobalNumEquations(0)
 {
 	/* console name */
 	iSetName("FE_manager");
@@ -244,7 +243,6 @@ GlobalT::SystemTypeT FEManagerT::GlobalSystemType(int group) const
 		/* using precedence */
 		type = (e_type > type) ? e_type : type;
 	}
-	
 	return type;
 }
 
@@ -261,22 +259,18 @@ ExceptionT::CodeT FEManagerT::ResetStep(void)
 
 	/* time */
 	fTimeManager->ResetStep();
-	
-	/* check group flag */
-	if (fCurrentGroup != -1) throw;
 
 	/* nodes - ALL groups */
-	for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
-		fNodeManager->ResetStep(fCurrentGroup);
-	fCurrentGroup = -1;
+	for (int i = 0; i < NumGroups(); i++)
+		fNodeManager->ResetStep(i);
 	
 	/* elements */
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
 		fElementGroups[i]->ResetStep();
 		
 	/* solver - ALL groups */
-	for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
-		fSolvers[fCurrentGroup]->ResetStep();
+	for (int i = 0; i < NumGroups(); i++)
+		fSolvers[i]->ResetStep();
 	}
 	
 	catch (ExceptionT::CodeT exc) {
@@ -284,9 +278,6 @@ ExceptionT::CodeT FEManagerT::ResetStep(void)
 		     << ExceptionT::ToString(exc) << endl;
 		return exc;
 	}
-	
-	/* reset group flag */
-	fCurrentGroup = -1;
 	
 	/* OK */
 	return ExceptionT::kNoError;
@@ -299,14 +290,7 @@ const int& FEManagerT::NumberOfSteps(void) const { return fTimeManager->NumberOf
 int FEManagerT::SequenceNumber(void) const { return fTimeManager->SequenceNumber(); }
 int FEManagerT::NumSequences(void) const { return fTimeManager->NumSequences(); }
 const int& FEManagerT::IterationNumber(int group) const 
-{
-#if __option(extended_errorcheck)
-	/* range check */
-	if (group < 0 || group >= fSolvers.Length()) {
-		cout << "\n FEManagerT::IterationNumber: group is out of range: " << group << endl;
-		throw ExceptionT::kOutOfRange;
-	}
-#endif
+{ 
 	return fSolvers[group]->IterationNumber(); 
 }
 
@@ -321,7 +305,7 @@ void FEManagerT::FormLHS(int group) const
 
 	/* element contributions */
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
-		if (fElementGroups[i]->InGroup(group))
+		if (fElementGroups[i]->Group() == group)
 			fElementGroups[i]->FormLHS();
 }
 
@@ -336,7 +320,7 @@ void FEManagerT::FormRHS(int group) const
 
 	/* element contribution */
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
-		if (fElementGroups[i]->InGroup(group))
+		if (fElementGroups[i]->Group() == group)
 			fElementGroups[i]->FormRHS();
 		
 	/* output system info (debugging) */
@@ -364,13 +348,9 @@ ExceptionT::CodeT FEManagerT::InitStep(void)
 	/* set the default value for the output time stamp */
 	fIOManager->SetOutputTime(Time());
 
-	/* check group flag */
-	if (fCurrentGroup != -1) throw ExceptionT::kGeneralFail;
-
 	/* nodes - ALL groups*/
-	for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
-		fNodeManager->InitStep(fCurrentGroup);
-	fCurrentGroup = -1;
+	for (int i = 0; i < NumGroups(); i++)
+		fNodeManager->InitStep(i);
 
 	/* elements */
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
@@ -391,9 +371,6 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 {
 	ExceptionT::CodeT error = ExceptionT::kNoError;
 	try {
-	
-		/* check group flag */
-		if (fCurrentGroup != -1) throw ExceptionT::kGeneralFail;
 		
 		int loop_count = 0;
 		bool all_pass = false;
@@ -414,16 +391,16 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 			for (int i = 0; status != SolverT::kFailed && i < fSolverPhases.MajorDim(); i++)
 			{
 				/* group parameters */
-				fCurrentGroup = fSolverPhases(i,0);
+				int group = fSolverPhases(i,0);
 				int iter  = fSolverPhases(i,1);
 				int pass  = fSolverPhases(i,2);
 			
 				/* call solver */
-				status = fSolvers[fCurrentGroup]->Solve(iter);
+				status = fSolvers[group]->Solve(iter);
 				
 				/* check result */
-				solve_status(i,0) = fCurrentGroup;
-				solve_status(i,1) = fSolvers[fCurrentGroup]->IterationNumber();
+				solve_status(i,0) = group;
+				solve_status(i,1) = fSolvers[group]->IterationNumber();
 				if (status == SolverT::kFailed) {
 					all_pass = false;
 					solve_status(i,2) = -1;					
@@ -471,9 +448,6 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 		error = exc;
 	}
 	
-	/* reset group flag */
-	fCurrentGroup = -1;
-	
 	/* done */
 	return error;
 }
@@ -487,13 +461,9 @@ ExceptionT::CodeT FEManagerT::CloseStep(void)
 	/* write output BEFORE closing nodes and elements */
 	fTimeManager->CloseStep();
 
-	/* check group flag */
-	if (fCurrentGroup != -1) throw ExceptionT::kGeneralFail;
-
 	/* nodes - ALL groups */
-	for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
-		fNodeManager->CloseStep(fCurrentGroup);
-	fCurrentGroup = -1;
+	for (int i = 0; i < NumGroups(); i++)
+		fNodeManager->CloseStep(i);
 
 	/* elements */
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
@@ -530,7 +500,7 @@ GlobalT::RelaxCodeT FEManagerT::RelaxSystem(int group) const
 		
 	/* check element groups - must touch all of them to reset */
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
-		if (fElementGroups[i]->InGroup(group))
+		if (fElementGroups[i]->Group() == group)
 			relax = GlobalT::MaxPrecedence(relax, fElementGroups[i]->RelaxSystem());
 
 	return relax;
@@ -1564,7 +1534,7 @@ void FEManagerT::SetEquationSystem(int group)
 	
 		/* collect element groups */
 		for (int i = 0 ; i < fElementGroups.Length(); i++)
-			if (fElementGroups[i]->InGroup(group))
+			if (fElementGroups[i]->Group() == group)
 				fElementGroups[i]->ConnectsU(connects_1, connects_2);		
 	
 		/* renumber equations */
@@ -1597,7 +1567,7 @@ void FEManagerT::SendEqnsToSolver(int group) const
 	/* collect equation sets */
 	fNodeManager->Equations(group, eq_1, eq_2);
 	for (int i = 0 ; i < fElementGroups.Length(); i++)
-		if (fElementGroups[i]->InGroup(group))
+		if (fElementGroups[i]->Group() == group)
 			fElementGroups[i]->Equations(eq_1, eq_2);
 
 	/* send lists to solver */

@@ -1,9 +1,9 @@
-/* $Id: SSSimoViscoT.cpp,v 1.2 2002-10-20 22:48:51 paklein Exp $ */
+/* $Id: SSSimoViscoT.cpp,v 1.2.2.2 2002-11-13 08:44:16 paklein Exp $ */
 #include "SSSimoViscoT.h"
 
 #include "fstreamT.h"
 #include "ExceptionT.h"
-#include "ContinuumElementT.h"
+//#include "ContinuumElementT.h"
 #include "ElementSupportT.h"
 
 using namespace Tahoe;
@@ -11,13 +11,11 @@ using namespace Tahoe;
 const int kNumOutputVar = 2;
 static const char* Labels[kNumOutputVar] = {"r_dil","r_dev"};
 
-SSSimoViscoT::SSSimoViscoT(ifstreamT& in, const SmallStrainT& element):
-	SSStructMatT(in, element),
-	fRunState(ContinuumElement().RunState()),
-	fdt(ContinuumElement().ElementSupport().TimeStep())
+SSSimoViscoT::SSSimoViscoT(ifstreamT& in, const SSMatSupportT& support):
+	SSStructMatT(in, support)
 {
 	int nsd = NumSD();
-        int numstress = (nsd*(nsd+1))/2;
+	int numstress = (nsd*(nsd+1))/2;
 		
 	/*allocates storage for state variable array*/
 	fnstatev = 0;

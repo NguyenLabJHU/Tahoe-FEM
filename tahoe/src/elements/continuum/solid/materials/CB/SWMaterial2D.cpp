@@ -1,14 +1,12 @@
-/* $Id: SWMaterial2D.cpp,v 1.3 2002-07-02 19:55:34 cjkimme Exp $ */
-/* created: paklein (08/25/1996)                                          */
-
+/* $Id: SWMaterial2D.cpp,v 1.3.8.1 2002-10-28 06:48:47 paklein Exp $ */
+/* created: paklein (08/25/1996) */
 #include "SWMaterial2D.h"
-
-/* constructor */
 
 using namespace Tahoe;
 
-SWMaterial2D::SWMaterial2D(ifstreamT& in, const FiniteStrainT& element):
-	NL_E_RotMat2DT(in, element, kPlaneStrain),
+/* constructor */
+SWMaterial2D::SWMaterial2D(ifstreamT& in, const FDMatSupportT& support):
+	NL_E_RotMat2DT(in, support, kPlaneStrain),
 	SWDataT(in)
 {
 

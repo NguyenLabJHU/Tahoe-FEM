@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.h,v 1.7 2002-11-06 21:53:48 cjkimme Exp $ */
+/* $Id: TiedPotentialT.h,v 1.5 2002-08-16 17:11:26 cjkimme Exp $ */
 /* created: cjkimme (04/15/2002) */
 
 #ifndef _TIED_POTENTIAL_T_H_
@@ -72,8 +72,6 @@ public:
 	virtual int ElementGroupNeeded(void);
 	
 	static bool InitiationQ(const double* sigma);
-
-	static int BulkGroup(void);
 	
 protected:
 
@@ -87,7 +85,7 @@ private:
 	const double& fTimeStep;
 
 	/* traction potential parameters */
-	int qTv;
+	int qXu;
 	
 	double d_n;   // characteristic normal opening
 	double d_t;   // characteristic tangent opening  	
@@ -98,7 +96,6 @@ private:
 	static double fnvec1, fnvec2; /*components of direction
 	  in which to sample the stress for freeing nodes */
 	static double fsigma_critical; /* Initiation traction */
-        static int iBulkGroup;
 };
 
 } // namespace Tahoe 

@@ -1,19 +1,16 @@
-/* $Id: QuadLogOgden3DT.cpp,v 1.3 2002-07-02 19:55:47 cjkimme Exp $ */
-/* created: paklein (02/17/2001)                                          */
-/* principal stretch version of Quad Log model                            */
-
+/* $Id: QuadLogOgden3DT.cpp,v 1.3.8.1 2002-10-28 06:48:56 paklein Exp $ */
+/* created: paklein (02/17/2001) */
 #include "QuadLogOgden3DT.h"
 
 #include <iostream.h>
 #include <math.h>
 #include "fstreamT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
-QuadLogOgden3DT::QuadLogOgden3DT(ifstreamT& in, const FiniteStrainT& element):
-	OgdenIsotropicT(in, element),
+/* constructor */
+QuadLogOgden3DT::QuadLogOgden3DT(ifstreamT& in, const FDMatSupportT& support):
+	OgdenIsotropicT(in, support),
 	flogE(3)
 {
 	/* read modulus */

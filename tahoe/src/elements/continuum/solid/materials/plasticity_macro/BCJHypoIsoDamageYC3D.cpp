@@ -1,4 +1,4 @@
-/* $Id: BCJHypoIsoDamageYC3D.cpp,v 1.5 2002-11-09 01:51:26 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageYC3D.cpp,v 1.4.2.2 2002-11-13 08:44:27 paklein Exp $ */
 #include "BCJHypoIsoDamageYC3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -6,8 +6,7 @@
 #include "Utils.h"
 #include "BCJKineticEqn.h"
 
-#include "ContinuumElementT.h"
-
+//#include "ContinuumElementT.h"
 
 using namespace Tahoe;
 
@@ -35,8 +34,8 @@ const int kNumOutput = 8;
 static const char* Labels[kNumOutput] = {"EQPe","EQPh","EQXie","EQXih",
                                          "VMISES","ALPHA","KAPPA","VVF"};
 
-BCJHypoIsoDamageYC3D::BCJHypoIsoDamageYC3D(ifstreamT& in, const FiniteStrainT& element) :
-  BCJHypo3D(in, element),  
+BCJHypoIsoDamageYC3D::BCJHypoIsoDamageYC3D(ifstreamT& in, const FDMatSupportT& support) :
+  BCJHypo3D(in, support),  
   fVoidGrowthModel (NULL)
 {
   // re-assigning values to base class variables
@@ -82,7 +81,7 @@ const dSymMatrixT& BCJHypoIsoDamageYC3D::s_ij()
   LoadElementData(element, intpt);
 
   // compute state, stress and moduli 
-  if (fStatus == GlobalT::kFormRHS)
+  if (MaterialSupport().RunState() == GlobalT::kFormRHS)
     {
       // reset iteration counter to check NLCSolver
       if (CurrIP() == 0) fIterCount = 0;
@@ -268,7 +267,7 @@ void BCJHypoIsoDamageYC3D::ComputeOutput(dArrayT& output)
   //output[8] = fIterCount;
 
   if (BCJ_DMG_MESSAGES && intpt == 0 && CurrElementNumber() == 0)
-     cerr << " step # " << ContinuumElement().ElementSupport().StepNumber()
+     cerr << " step # " << fFDMatSupport.StepNumber()
           << " EQPe  "  << fEQValues[kEQPe] 
           << " EQXie "  << fEQValues[kEQXie]
           << " PRESS "  << -fEQValues[kEQXih]
@@ -396,7 +395,7 @@ void BCJHypoIsoDamageYC3D::IntegrateConstitutiveEqns(bool& converged, int subInc
 
   // check for inelastic process (note: use deviatoric part for this check)
   if ( fEQXieTr > (1.+1.e-6)*fKineticEqn->h(fInternal_n[kDEQPe]/fdt,fInternal_n[kKAPP])
-                   && ContinuumElement().ElementSupport().IterationNumber() > -1 )
+                   && fFDMatSupport.IterationNumber() > -1 )
     {
       // step 5. forward gradient estimate
       if (subIncr == 1) ForwardGradientEstimate();

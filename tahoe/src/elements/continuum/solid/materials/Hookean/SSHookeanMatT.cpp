@@ -1,14 +1,12 @@
-/* $Id: SSHookeanMatT.cpp,v 1.4 2002-07-02 19:55:38 cjkimme Exp $ */
-/* created: paklein (06/10/1997)                                          */
-
+/* $Id: SSHookeanMatT.cpp,v 1.4.8.1 2002-10-28 06:48:49 paklein Exp $ */
+/* created: paklein (06/10/1997) */
 #include "SSHookeanMatT.h"
-
-/* constructor */
 
 using namespace Tahoe;
 
-SSHookeanMatT::SSHookeanMatT(ifstreamT& in, const SmallStrainT& element):
-	SSStructMatT(in, element),
+/* constructor */
+SSHookeanMatT::SSHookeanMatT(ifstreamT& in, const SSMatSupportT& support):
+	SSStructMatT(in, support),
 	HookeanMatT(NumSD()),
 	fStress(NumSD())
 {

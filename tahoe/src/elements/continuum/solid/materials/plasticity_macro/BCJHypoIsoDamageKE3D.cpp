@@ -1,4 +1,4 @@
-/* $Id: BCJHypoIsoDamageKE3D.cpp,v 1.5 2002-11-09 01:51:26 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageKE3D.cpp,v 1.4.2.2 2002-11-13 08:44:27 paklein Exp $ */
 #include "BCJHypoIsoDamageKE3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -6,8 +6,7 @@
 #include "Utils.h"
 #include "BCJKineticEqn.h"
 
-#include "ContinuumElementT.h"
-
+//#include "ContinuumElementT.h"
 
 using namespace Tahoe;
 
@@ -32,8 +31,8 @@ const int kNumOutput = 8;
 static const char* Labels[kNumOutput] = {"EQPe","EQPh","EQXie","EQXih",
 	                                 "VMISES","ALPHA","KAPPA","VVF"};
 
-BCJHypoIsoDamageKE3D::BCJHypoIsoDamageKE3D(ifstreamT& in, const FiniteStrainT& element) :
-  BCJHypo3D(in, element),  
+BCJHypoIsoDamageKE3D::BCJHypoIsoDamageKE3D(ifstreamT& in, const FDMatSupportT& support) :
+  BCJHypo3D(in, support),  
   fVoidGrowthModel (NULL)
 {
   // re-assigning values to base class variables
@@ -79,10 +78,10 @@ const dSymMatrixT& BCJHypoIsoDamageKE3D::s_ij()
   LoadElementData(element, intpt);
 
   // compute state, stress and moduli 
-  if (fStatus == GlobalT::kFormRHS)
+  if (MaterialSupport().RunState() == GlobalT::kFormRHS)
     {
       // reset iteration counter to check NLCSolver
-      if (CurrIP() == 0) fIterCount = 0;
+      if (intpt == 0) fIterCount = 0;
 
       //compute 3D total deformation gradient
       Compute_Ftot_3D(fFtot);
@@ -266,7 +265,7 @@ void BCJHypoIsoDamageKE3D::ComputeOutput(dArrayT& output)
 
 //  if (BCJ_DMG_MESSAGES && intpt == 0 && CurrElementNumber() == 0)
   if (intpt == 0 && CurrElementNumber() == 0)
-     cerr << " step # " << ContinuumElement().ElementSupport().StepNumber()
+     cerr << " step # " << fFDMatSupport.StepNumber()
           << " EQPe  "  << fEQValues[kEQPe] 
           << " EQXie "  << fInternal[kEQXie] 
           << " PRESS "  << -fInternal[kEQXih] 
@@ -393,7 +392,7 @@ void BCJHypoIsoDamageKE3D::IntegrateConstitutiveEqns(bool& converged, int subInc
 
   // check for inelastic process (note: uses deviatoric part)
   if ( fEQXieTr > (1.+1.e-6)*fKineticEqn->h(fEQValues[kEQPeDot_n],fInternal_n[kKAPP])
-                   && ContinuumElement().ElementSupport().IterationNumber() > -1 )
+                   && fFDMatSupport.IterationNumber() > -1 )
     {
       // step 5. forward gradient estimate
       if (subIncr == 1) ForwardGradientEstimate();

@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.7 2002-11-09 18:12:12 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.6 2002-10-20 22:49:25 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nControllerT.h"
@@ -367,29 +367,6 @@ void FieldT::SetLocalEqnos(const iArray2DT& nodes, iArray2DT& eqnos) const
 				*pien++ = fEqnos(nodenum, k);
 		}
 	}
-}
-
-/* collect equation numbers */
-void FieldT::SetLocalEqnos(ArrayT<const iArray2DT*> nodes, iArray2DT& eqnos) const
-{
-	int row = 0;
-	for (int i = 0; i < nodes.Length(); i++)
-	{
-		const iArray2DT& nd = *(nodes[i]);
-	
-		/* check */
-		if (row + nd.MajorDim() > eqnos.MajorDim()) throw ExceptionT::kOutOfRange;
-
-		/* single block */	
-		iArray2DT eq(nd.MajorDim(), eqnos.MinorDim(), eqnos(row));
-		SetLocalEqnos(nd, eq);
-	
-		/* next */
-		row += nd.MajorDim();
-	}
-	
-	/* check - must fill all of eqnos */
-	if (row != eqnos.MajorDim()) throw ExceptionT::kSizeMismatch;
 }
 
 void FieldT::SetLocalEqnos(const RaggedArray2DT<int>& nodes,

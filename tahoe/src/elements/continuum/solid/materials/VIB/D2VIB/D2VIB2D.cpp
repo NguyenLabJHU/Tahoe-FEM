@@ -1,6 +1,5 @@
-/* $Id: D2VIB2D.cpp,v 1.4 2002-10-20 22:48:58 paklein Exp $ */
-/* created: paklein (10/23/1999)                                          */
-
+/* $Id: D2VIB2D.cpp,v 1.4.2.1 2002-10-28 06:49:12 paklein Exp $ */
+/* created: paklein (10/23/1999) */
 #include "D2VIB2D.h"
 
 #include <math.h>
@@ -8,15 +7,15 @@
 
 #include "toolboxConstants.h"
 #include "fstreamT.h"
+#include "D2FDMatSupportT.h"
 #include "D2MeshFreeFDElasticT.h"
-
-/* constructors */
 
 using namespace Tahoe;
 
-D2VIB2D::D2VIB2D(ifstreamT& in, const D2MeshFreeFDElasticT& element):
-	VIB2D(in, element),
-	fD2MLSShape(element.D2MLSShapeFunction())
+/* constructors */
+D2VIB2D::D2VIB2D(ifstreamT& in, const D2FDMatSupportT& support):
+	VIB2D(in, support),
+	fD2MLSShape(support.D2MeshFreeFDElastic()->D2MLSShapeFunction())
 {
 	/* length scale parameter */
 	in >> feps2;

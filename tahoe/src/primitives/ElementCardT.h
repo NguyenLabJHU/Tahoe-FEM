@@ -1,5 +1,7 @@
-/* $Id: ElementCardT.h,v 1.5 2002-11-09 18:13:48 paklein Exp $ */
-/* created: paklein (05/24/1996) */
+/* $Id: ElementCardT.h,v 1.4 2002-10-20 22:49:31 paklein Exp $ */
+/* created: paklein (05/24/1996)                                          */
+/* Empty organizer class - needs manager class to control data.           */
+
 #ifndef _ELEMENT_CARD_T_H_
 #define _ELEMENT_CARD_T_H_
 
@@ -12,9 +14,9 @@
 namespace Tahoe {
 
 /* forward declarations */
+class dMatrixT;
 class ElementStorageT;
 
-/** collection of element data */
 class ElementCardT
 {
 public:
@@ -52,8 +54,6 @@ public:
 	/* element storage accessors/modifiers */
 	int IsAllocated(void) const;
 	void Dimension(int i_size, int d_size);
-	void Set(int i_size, int* i_data, int d_size, double* d_data);
-
 	iArrayT& IntegerData(void) const;
 	dArrayT& DoubleData(void) const;
 	
@@ -77,39 +77,28 @@ private:
 	static dArrayT d_junk;
 };
 
-/** storage */
 class ElementStorageT
 {
 	friend class ElementCardT;
 
 private:
 
-	/** \name constructor */
-	/*@{*/
-	ElementStorageT(void) {};
+	/* constructor */
 	ElementStorageT(int i_size, int d_size);
 	ElementStorageT(const ElementStorageT& source);
-	/*@}*/
 	
-	/** make arrays alias to other data */
-	void Set(int i_size, int* i_data, int d_size, double* d_data);
-	
-	/** \name I/O operators */
-	/*@{*/
+	/* I/O operators */
 	friend istream& operator>>(istream& in, ElementStorageT& data);
 	friend ostream& operator<<(ostream& out, const ElementStorageT& data);
-	/*@}*/
 
-	/** assignment operator */
+	/* assignment operator */
 	ElementStorageT& operator=(const ElementStorageT& rhs);
 	
 private:
 
-	/** storage */
-	/*@{*/
+	/* data */
 	iArrayT fIntegerData;
 	dArrayT fDoubleData;
-	/*@}*/
 };
 
 /* in-lines */

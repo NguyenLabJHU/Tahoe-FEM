@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.h,v 1.6 2002-10-05 20:04:12 paklein Exp $ */
+/* $Id: OgdenIsotropicT.h,v 1.6.6.1 2002-10-28 06:48:56 paklein Exp $ */
 /* created: paklein (10/01/2000) */
 #ifndef _OGDEN_ISOTROPIC_T_H_
 #define _OGDEN_ISOTROPIC_T_H_
@@ -20,7 +20,7 @@ class OgdenIsotropicT: public FDStructMatT, public IsotropicT
 public:
 
 	/* constructor */
-	OgdenIsotropicT(ifstreamT& in, const FiniteStrainT& element);
+	OgdenIsotropicT(ifstreamT& in, const FDMatSupportT& support);
 	
 	/* print parameters */
 	virtual void Print(ostream& out) const;

@@ -1,19 +1,15 @@
-/*
-  File: BCJHypoIsoDamageKE2D.cpp
-*/
-
+/* $Id: BCJHypoIsoDamageKE2D.cpp,v 1.2.8.1 2002-10-28 06:49:24 paklein Exp $ */
 #include "BCJHypoIsoDamageKE2D.h"
 #include "ifstreamT.h"
 #include "Utils.h"
 
-/* spatial dimension of problem */
-
 using namespace Tahoe;
 
+/* spatial dimension of problem */
 const int kNSD = 2;
 
-BCJHypoIsoDamageKE2D::BCJHypoIsoDamageKE2D(ifstreamT& in, const FiniteStrainT& element) :
-  BCJHypoIsoDamageKE3D   (in, element),  
+BCJHypoIsoDamageKE2D::BCJHypoIsoDamageKE2D(ifstreamT& in, const FDMatSupportT& support) :
+  BCJHypoIsoDamageKE3D   (in, support),  
   Material2DT (in, Material2DT::kPlaneStrain),
   f2Ds_ij   (kNSD),
   f2Dc_ijkl (dSymMatrixT::NumValues(kNSD))

@@ -1,18 +1,16 @@
-/* $Id: tevp3D.cpp,v 1.13 2002-10-20 22:49:20 paklein Exp $ */
-/* Implementation file for thermo-elasto-viscoplastic material subroutine */
-/* Created:  Harold Park (06/25/2001) */
-
+/* $Id: tevp3D.cpp,v 1.13.2.2 2002-10-30 09:18:14 paklein Exp $ */
+/* created:  Harold Park (06/25/2001) */
 #include "tevp3D.h"
 #include <iostream.h>
 #include <math.h>
 #include "ifstreamT.h"
-#include "FiniteStrainT.h"
+//#include "FiniteStrainT.h"
+#include "FDMatSupportT.h"
 #include "ElementCardT.h"
-
-/* element output data */
 
 using namespace Tahoe;
 
+/* element output data */
 const int kNumOutput = 3;   // # of internal variables
 const double kYieldTol = 1.0e-16;   // Yield stress criteria
 const int kVoigt = 6;    // 6 stress components in 3D voigt notation
@@ -22,16 +20,16 @@ static const char* Labels[kNumOutput] = {
   "Eff._Stress"};   // effective stress
 
 /* constructor */
-tevp3D::tevp3D(ifstreamT& in, const FiniteStrainT& element):
-  FDStructMatT(in, element),
+tevp3D::tevp3D(ifstreamT& in, const FDMatSupportT& support):
+  FDStructMatT(in, support),
   IsotropicT(in),
   /* initialize references */
-  fRunState(ContinuumElement().RunState()),
-  fDt(ContinuumElement().ElementSupport().TimeStep()),
+//  fRunState(ContinuumElement().RunState()),
+//  fDt(ContinuumElement().ElementSupport().TimeStep()),
   fStress(3),
   fModulus(kVoigt),
-  fLocVel(element.Velocities()),
-  fLocDisp(element.Displacements()),
+  fLocVel(support.LocalArray(LocalArrayT::kVel)),
+//  fLocDisp(element.Displacements()),
 
   /* initialize work matrices */
   fGradV(3),
@@ -199,8 +197,11 @@ const dMatrixT& tevp3D::c_ijkl(void)
 /* stress */
 const dSymMatrixT& tevp3D::s_ij(void)
 {
-  if (fRunState == GlobalT::kFormRHS)
+  if (MaterialSupport().RunState() == GlobalT::kFormRHS)
   {
+  	/* current time step */
+	fDt = MaterialSupport().TimeStep();
+
     /* implement stress here - work with Kirchoff stress, then convert back
      * to Cauchy when necessary */
     /* Allocate all state variable space on first timestep, ie time = 0 */
@@ -335,21 +336,25 @@ void tevp3D::ComputeF(void)
 
 void tevp3D::ComputeD(void)
 {
+	if (!fLocVel) throw ExceptionT::kGeneralFail;
+
   /* Compute rate of deformation, put in in 3D symmetric stress array form */
   fDtot = 0.0;
   dSymMatrixT* smalld = &fDtot;
   dSymMatrixT tempd(3);
   dMatrixT yada(3);
-  FiniteStrain().ComputeGradient_reference(fLocVel, fGradV);  
+  if (!FDMatSupport().ComputeGradient_reference(*fLocVel, fGradV)) throw ExceptionT::kGeneralFail;
   yada.MultAB(fGradV, fF_temp, 0);
   (*smalld) = tempd.Symmetrize(yada);
 }
 
 dMatrixT& tevp3D::ComputeSpin(void)
 {
+	if (!fLocVel) throw ExceptionT::kGeneralFail;
+
   /* Compute the spin tensor */
   fSpin = 0.0;
-  FiniteStrain().ComputeGradient_reference(fLocVel, fGradV);
+  if (!FDMatSupport().ComputeGradient_reference(*fLocVel, fGradV)) throw ExceptionT::kGeneralFail;
   dMatrixT yada(3);
   yada.MultAB(fGradV, fF_temp, 0);
   double temp1 = .5 * (yada(0,1) - yada(1,0));

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.7 2002-10-20 22:49:25 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.7.2.1 2002-11-13 08:31:53 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _NODEMANAGER_T_H_
@@ -355,13 +355,6 @@ inline int NodeManagerT::NumSD(void) const
 { 
 	return InitialCoordinates().MinorDim(); 
 }
-
-//inline int NodeManagerT::NumSD(void) const        { return fNumSD;        }
-//inline int NodeManagerT::NumDOF(void) const       { return fNumDOF;       }
-//inline int NodeManagerT::GlobalEquationNumber(int nodenum, int dofnum) const
-//{
-//	return fEqnos(nodenum, dofnum);
-//}
 
 } // namespace Tahoe 
 #endif /* _NODEMANAGER_T_H_ */

@@ -1,13 +1,14 @@
-/* $Id: ContinuumMaterialT.h,v 1.6 2002-07-05 22:28:27 paklein Exp $ */
+/* $Id: ContinuumMaterialT.h,v 1.6.8.2 2002-10-28 06:49:27 paklein Exp $ */
 /* created: paklein (11/20/1996) */
-
 #ifndef _CONTINUUM_MATERIAL_T_H_
 #define _CONTINUUM_MATERIAL_T_H_
 
 #include "Environment.h"
 #include "GlobalT.h"
-
 #include "ios_fwd_decl.h"
+
+/* direct members */
+#include "MaterialSupportT.h"
 
 namespace Tahoe {
 
@@ -16,7 +17,6 @@ class ElementCardT;
 class dArrayT;
 template <class TYPE> class ArrayT;
 class StringT;
-class ContinuumElementT;
 
 /** interface for continuum materials. */
 class ContinuumMaterialT
@@ -24,14 +24,17 @@ class ContinuumMaterialT
 public:
 
 	/** constructor.
-	 * \param element reference to the host element */
-	ContinuumMaterialT(const ContinuumElementT& element);
+	 * \param support reference to the host element */
+	ContinuumMaterialT(const MaterialSupportT& support);
 
 	/** destructor */
 	virtual ~ContinuumMaterialT(void);
 
 	/** form of tangent matrix. \return symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
+
+	/** reference to the material support */
+	const MaterialSupportT& MaterialSupport(void) { return fMaterialSupport; };
 
 	/** reference to the host element */
 	const ContinuumElementT& ContinuumElement(void) const;
@@ -47,9 +50,9 @@ public:
 	 * host element group. */
 	int NumIP(void) const;
 
-	/** reference to the current integration point within the
-	 * element of evaluation. */
-	const int& CurrIP(void) const;
+	/** the current integration point within the element of evaluation. */
+//	const int& CurrIP(void) const;
+	int CurrIP(void) const { return fMaterialSupport.CurrIP(); };
 
 	/** return the total number of elements in the host element
 	 * group. */
@@ -137,8 +140,8 @@ public:
 	
 protected:
 
-	/** host element group */
-	const ContinuumElementT& fContinuumElement;
+	/** support from the host code */
+	const MaterialSupportT& fMaterialSupport;
 	
 	/** number of degrees of freedom */
 	int fNumDOF;
@@ -151,16 +154,16 @@ protected:
 
 	/** reference to the current integration point for the
 	 * current element of evaluation. */
-	const int& fCurrIP;
+//	const int& fCurrIP;
 };
 
 /* inlines */
 inline int ContinuumMaterialT::NumDOF(void) const { return fNumDOF; }
 inline int ContinuumMaterialT::NumSD(void) const { return fNumSD; }
 inline int ContinuumMaterialT::NumIP(void) const { return fNumIP; }
-inline const int& ContinuumMaterialT::CurrIP(void) const { return fCurrIP; }
+//inline const int& ContinuumMaterialT::CurrIP(void) const { return fCurrIP; }
 inline const ContinuumElementT& ContinuumMaterialT::ContinuumElement(void) const
-{ return fContinuumElement; }
+{ return *fMaterialSupport.ContinuumElement(); }
 
 } // namespace Tahoe 
 #endif /* _CONTINUUM_MATERIAL_T_H_ */

@@ -1,18 +1,18 @@
-/* $Id: FDSimoVisco2D.cpp,v 1.5 2002-10-20 22:48:51 paklein Exp $ */
+/* $Id: FDSimoVisco2D.cpp,v 1.5.2.2 2002-11-13 08:44:16 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
-
 #include "FDSimoVisco2D.h"
 
 #include <math.h>
 #include <iostream.h>
 #include "fstreamT.h"
 #include "ExceptionT.h"
+#include "FDMatSupportT.h"
 
 using namespace Tahoe;
 
-FDSimoVisco2D::FDSimoVisco2D(ifstreamT& in, const FiniteStrainT& element):
+FDSimoVisco2D::FDSimoVisco2D(ifstreamT& in, const FDMatSupportT& support):
         Material2DT(in),
-	FDSimoViscoBaseT(in, element),
+	FDSimoViscoBaseT(in, support),
 	fStress(2),
 	fModulus(3),
 	fFbar_E(2),
@@ -86,8 +86,9 @@ const dMatrixT& FDSimoVisco2D::c_ijkl(void)
        
 const dSymMatrixT& FDSimoVisco2D::s_ij(void)
 {
-	double taudtS = fdt/ftauS;
-	double taudtB = fdt/ftauB;
+	double dt = fFDMatSupport.TimeStep();
+	double taudtS = dt/ftauS;
+	double taudtB = dt/ftauB;
 
 	falphaS = exp(-0.5*taudtS);
 	falphaB = exp(-0.5*taudtB);
@@ -115,7 +116,7 @@ const dSymMatrixT& FDSimoVisco2D::s_ij(void)
 	Load(element, CurrIP());
 
 	/*overstress*/
-	if(fRunState == GlobalT::kFormRHS)
+	if(fFDMatSupport.RunState() == GlobalT::kFormRHS)
 	{
 	        fJ_I = fJ;
 		fFbar_I = fF;

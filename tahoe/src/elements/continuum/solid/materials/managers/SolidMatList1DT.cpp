@@ -1,9 +1,6 @@
+/* $Id: SolidMatList1DT.cpp,v 1.4.2.2 2002-11-13 08:44:20 paklein Exp $ */
 #include "SolidMatList1DT.h"
-
-#include "MultiScaleT.h"
-#include "SmallStrainT.h"
-#include "FiniteStrainT.h"
-
+#include "StructuralMatSupportT.h"
 #include "fstreamT.h"
 
 /* 1D material types codes */
@@ -11,36 +8,10 @@
 #include "SSHookean1D.h"
 
 /* constructor */
-SolidMatList1DT::SolidMatList1DT(int length, const ElasticT& element_group):
-	StructuralMatListT(length),
-	fElementGroup(element_group)
+SolidMatList1DT::SolidMatList1DT(int length, const StructuralMatSupportT& support):
+	StructuralMatListT(length, support)
 {
-#ifdef __NO_RTTI__
-	cout << "\n SolidMatList1DT::SolidMatList1DT: WARNING: environment has no RTTI. Some\n" 
-	     <<   "    consistency checking is disabled" << endl;
-	/* cast and hope for the best */
-	fSmallStrain  = (const SmallStrainT*)  &fElementGroup;
-	fFiniteStrain = (const FiniteStrainT*) &fElementGroup;
-	fMultiScale   = (const MultiScaleT*)   &fElementGroup;
-#else
 
-	/* cast to small strain */
-	fSmallStrain  = dynamic_cast<const SmallStrainT*>(&fElementGroup);
-
-	/* cast to finite strain */
-	fFiniteStrain = dynamic_cast<const FiniteStrainT*>(&fElementGroup);
-	
-	/* cast to multi scale */
-	fMultiScale   = dynamic_cast<const MultiScaleT*>(&fElementGroup);
-	
-	/* must have at least one */
-	if (!fSmallStrain && !fFiniteStrain && !fMultiScale)
-	{
-		cout << "\n SolidMatList1DT::SolidMatList1DT: could not cast element group to\n" 
-		     <<   "     either SmallStrainT, FiniteStrainT, or MultiScaleT" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-#endif
 }
 
 /* read material data from the input stream */
@@ -69,18 +40,19 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 		/* add to the list of materials */
 		switch (matcode)
 		{
-		  case kSSKStV:
-		  {
-			/* check */
-                        if (!fSmallStrain) Error_no_small_strain(cout, matcode);
-                        fArray[matnum] = new SSHookean1D(in, *fSmallStrain);
-                        break;
-		  }
+			case kSSKStV:
+			{
+				/* check */
+				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
+				fArray[matnum] = new SSHookean1D(in, *fSSMatSupport);
+				break;
+		  	}
 			default:
-			
+			{
 				cout << "\n SolidMatList1DT::ReadMaterialData: unknown material code: ";
 				cout << matcode << '\n' << endl;
 				throw ExceptionT::kBadInputValue;
+			}
 		}
 
 		/* safe cast since all structural */
@@ -92,7 +64,7 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 		int LTfnum = pmat->ThermalStrainSchedule();
 		if (LTfnum > -1)
 		{
-			pmat->SetThermalSchedule(fElementGroup.Schedule(LTfnum));
+			pmat->SetThermalSchedule(fStructuralMatSupport.Schedule(LTfnum));
 			
 			/* set flag */
 			fHasThermal = true;

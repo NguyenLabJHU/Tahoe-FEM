@@ -1,28 +1,23 @@
-/* $Id: DiffusionMatListT.cpp,v 1.3 2002-10-20 22:49:02 paklein Exp $ */
-/* created: paklein (02/14/1997)                                          */
-
+/* $Id: DiffusionMatListT.cpp,v 1.3.2.2 2002-11-13 08:44:20 paklein Exp $ */
+/* created: paklein (02/14/1997) */
 #include "DiffusionMatListT.h"
-
-#include "ContinuumElementT.h"
+#include "DiffusionMatSupportT.h"
 #include "fstreamT.h"
 
 /* diffusion materials */
 #include "DiffusionMaterialT.h"
 
-/* diffusion materials */
-
 using namespace Tahoe;
 
+/* diffusion materials */
 const int kLinear      = 1;
-
 const int kMaterialMin = 1;
 const int kMaterialMax = 1;
 
 /* constructors */
-DiffusionMatListT::	DiffusionMatListT(int length,
-	const DiffusionT& element_group):
+DiffusionMatListT::	DiffusionMatListT(int length, const DiffusionMatSupportT& support):
 	MaterialListT(length),
-	fElementGroup(element_group)
+	fDiffusionMatSupport(support)
 {
 
 }
@@ -55,7 +50,7 @@ void DiffusionMatListT::ReadMaterialData(ifstreamT& in)
 		{
 			case kLinear:
 			{
-				fArray[matnum] = new DiffusionMaterialT(in, fElementGroup);
+				fArray[matnum] = new DiffusionMaterialT(in, fDiffusionMatSupport);
 				break;
 			}
 			default:

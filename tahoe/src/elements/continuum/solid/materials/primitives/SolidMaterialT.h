@@ -1,6 +1,5 @@
-/* $Id: SolidMaterialT.h,v 1.7 2002-10-05 20:04:19 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.7.6.1 2002-10-28 06:49:28 paklein Exp $ */
 /* created: paklein (11/20/1996) */
-
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
 
@@ -31,7 +30,7 @@ class SolidMaterialT: public ContinuumMaterialT
 public:
 
 	/** constructor */
-	SolidMaterialT(ifstreamT& in, const ContinuumElementT& element);
+	SolidMaterialT(ifstreamT& in, const MaterialSupportT& support);
 
 	/** destructor */
 	~SolidMaterialT(void);

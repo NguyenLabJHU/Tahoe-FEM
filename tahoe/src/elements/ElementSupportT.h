@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.10 2002-11-09 18:20:46 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.8.2.1 2002-10-28 06:48:39 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -9,6 +9,7 @@
 /* direct members */
 #include "GlobalT.h"
 #include "dArray2DT.h"
+#include "ModelManagerT.h"
 #ifndef _SIERRA_TEST_
 #include "FieldT.h"
 #endif
@@ -76,7 +77,6 @@ public:
 
 	/** set the number of nodes in the fracture interface */
 	void SetNumNodes(int nn);	
-
 	
 	void SetInitialCoordinates(double *InitialCoords);
 
@@ -143,15 +143,8 @@ public:
 	 * NULL if the number is out of range. */
 	const ScheduleT* Schedule(int num) const;
 
-	/** solver iteration number for the specified group */
+	/** solver iteration numbers */
 	const int& IterationNumber(int group) const;
-	
-	/** return the iteration number for the current solver group. Returns
-	 * -1 of no solver group is current */
-	int IterationNumber(void) const;
-
-	/** the group number being solved or -1 if not defined */
-	int CurrentGroup(void) const;
 	
 	/** exception string */
 	const char* Exception(ExceptionT::CodeT exception) const;
@@ -282,7 +275,7 @@ private:
 	NodeManagerT& Nodes(void) const;
 	/*@}*/
 
-//	FieldT* fField;
+	FieldT* fField;
 	
 	/** the boss */
 	FEManagerT* fFEManager;

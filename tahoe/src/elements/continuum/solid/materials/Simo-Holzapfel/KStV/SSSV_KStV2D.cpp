@@ -1,19 +1,18 @@
-/* $Id: SSSV_KStV2D.cpp,v 1.5 2002-10-20 22:48:52 paklein Exp $ */
-/* created:   TDN (5/31/2001) */
-
+/* $Id: SSSV_KStV2D.cpp,v 1.5.2.2 2002-11-13 08:44:17 paklein Exp $ */
+/* created: TDN (5/31/2001) */
 #include "SSSV_KStV2D.h"
+#include "SSMatSupportT.h"
 
 #include <math.h>
 #include <iostream.h>
 #include "fstreamT.h"
 #include "ExceptionT.h"
 
-
 using namespace Tahoe;
 
-SSSV_KStV2D::SSSV_KStV2D(ifstreamT& in, const SmallStrainT& element):
-        Material2DT(in),
-	SSSimoViscoT(in, element),
+SSSV_KStV2D::SSSV_KStV2D(ifstreamT& in, const SSMatSupportT& support):
+	Material2DT(in),
+	SSSimoViscoT(in, support),
 	fStress(2),
 	fModulus(3),
 	fMu(2),
@@ -127,8 +126,9 @@ const dMatrixT& SSSV_KStV2D::c_ijkl(void)
 
 const dSymMatrixT& SSSV_KStV2D::s_ij(void)
 {
-	double taudtS = fdt/ftauS;
-	double taudtB = fdt/ftauB;
+	double dt = fSSMatSupport.TimeStep();
+	double taudtS = dt/ftauS;
+	double taudtB = dt/ftauB;
 
 	falphaS = exp(-0.5*taudtS);
 	falphaB = exp(-0.5*taudtB);
@@ -161,7 +161,7 @@ const dSymMatrixT& SSSV_KStV2D::s_ij(void)
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
 
-	if(fRunState == GlobalT::kFormRHS)
+	if(fSSMatSupport.RunState() == GlobalT::kFormRHS)
 	{
 	        mu = fMu[kNonEquilibrium];
 		kappa = fKappa[kEquilibrium];
