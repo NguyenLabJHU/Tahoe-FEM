@@ -1,4 +1,4 @@
-/* $Id: GeometryT.cpp,v 1.8 2004-03-18 17:42:47 paklein Exp $ */
+/* $Id: GeometryT.cpp,v 1.9 2005-02-24 17:33:04 paklein Exp $ */
 /* created: paklein (10/10/1999) */
 #include "GeometryT.h"
 
@@ -94,7 +94,9 @@ namespace Tahoe {
 int GeometryT::GeometryToNumSD(GeometryT::CodeT code)
 {
 	/* set spatial dimension */
-	if (code == GeometryT::kLine)
+	if (code == GeometryT::kPoint)
+		return 0;
+	else if (code == GeometryT::kLine)
 		return 1;
 	else if (code == GeometryT::kQuadrilateral ||
 	         code == GeometryT::kTriangle)
