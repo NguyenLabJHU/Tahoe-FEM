@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.21 2004-10-28 20:30:53 gjwagne Exp $ */
+/* $Id: SCNIMFT.h,v 1.22 2004-11-02 22:33:19 cjkimme Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -207,7 +207,7 @@ protected:
 	iArray2DT fDeloneEdges;
 
 	/** Voronoi facets dual to the Delone Edges */
-	iArray2DT fDualFacets; // Tag for Deletion
+	RaggedArray2DT<int> fDualFacets; 
 	iArray2DT fSelfDualFacets; 
 
 	/** Self-dual facet information. I.E. facets that contribute only to one integral over one boundary node's cell */
