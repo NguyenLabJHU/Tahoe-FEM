@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.cpp,v 1.5 2003-04-29 23:09:36 cjkimme Exp $ */
+/* $Id: ThermostatBaseT.cpp,v 1.6 2003-05-06 19:57:45 cjkimme Exp $ */
 #include "ThermostatBaseT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -9,6 +9,7 @@
 #include "AutoArrayT.h"
 #include "RaggedArray2DT.h"
 #include "ParticlePropertyT.h"
+#include "ModelManagerT.h"
 
 const double fkB = 0.00008617385;
 
@@ -95,7 +96,63 @@ void ThermostatBaseT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const d
 				*f_j++ -= beta*(*v_j++); 	
 	    }
 	}
-}			
+}		
+
+void ThermostatBaseT::InitNodeSets(ifstreamT& in, ModelManagerT& model)
+{
+	/* Get node sets */
+	char peekahead = in.next_char();
+	int allOrSome;
+	if (peekahead == '-')
+		in >> allOrSome;
+	else
+		allOrSome = atoi(&peekahead);
+	if (!allOrSome)
+	{   // use all the nodes
+		in >> allOrSome; // fast-forward the stream
+	}
+	else	
+		if (allOrSome > 0)
+		{   // Read in Node Sets and use them
+
+            /* read node set ids */
+            ArrayT<StringT> ids;
+            model.NodeSetList(in, ids);
+            iArrayT tags;
+            model.ManyNodeSets(ids, fNodes);        
+		}
+		else
+		{   // Read in Node Sets and use all nodes but theirs
+			ArrayT<StringT> notTheseSets;
+			int numNotSets = -allOrSome;
+			numNotSets = abs(numNotSets);
+			notTheseSets.Dimension(numNotSets); 
+			
+			for (int i=0; i < numNotSets; i++)
+			{
+	  			StringT& name = notTheseSets[i];
+	  			in >> name;
+	  			int index = model.NodeSetIndex(name);
+	  			if (index < 0) {
+	  				cout << "\n ScaledVelocityT::Initialize: error retrieving node set " << name << endl;
+	  				throw ExceptionT::kDatabaseFail;
+	  			}
+			}
+			
+			// get all the nodes we don't want
+			iArrayT fNotNodes;
+			model.ManyNodeSets(notTheseSets, fNotNodes);
+			// get all the nodes
+			fNodes.Dimension(model.NumNodes());
+			fNodes.SetValueToPosition();
+			// Take the complement
+			for (int i = 0; i < fNotNodes.Length(); i++)
+				fNodes[fNotNodes[i]] = -fNodes[fNotNodes[i]] - 1; // if the node is to be deleted, make it < 0
+			fNodes.SortDescending();
+			fNodes.Resize(fNodes.Length() - fNotNodes.Length());
+		}
+				
+}	
 
 void ThermostatBaseT::InitRegion(ifstreamT& in, const dArray2DT& coords,	
 					const ArrayT<int>* partition_nodes)
