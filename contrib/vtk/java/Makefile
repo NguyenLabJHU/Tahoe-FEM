@@ -1,6 +1,6 @@
 .SUFFIXES: .cpp .h .java .class .o
 
-JAVA_OBJ = test.class app.class
+JAVA_OBJ = test.class 
 
 CPP_OBJ = testClass.o testImpl.o
 
@@ -39,7 +39,7 @@ cpp_dso: $(CPP_OBJ)
 	$(LD) $(LD_FLAGS) -o testClass.$(DSO_EXT) $(CPP_OBJ)
 
 run:
-	java app
+	java test
 
 clean:
 	rm *.class *.$(DSO_EXT) *.o $(JAVA_H)
