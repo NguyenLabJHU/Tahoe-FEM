@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.13 2002-01-27 23:06:35 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.14 2002-02-12 02:18:27 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 
 #include "IOManager_mpi.h"
@@ -35,34 +35,108 @@ IOManager_mpi::IOManager_mpi(ifstreamT& in, const iArrayT& io_map,
 //cout << Rank() << ": IOManager_mpi::IOManager_mpi: set: " << i << endl;
 
 		const OutputSetT& set = *(element_sets[i]);
+		
+		/* output over element blocks */
 		if (fIO_map[i] == Rank())
 		{
 //cout << Rank() << ": IOManager_mpi::IOManager_mpi: constructing set" << endl;
-		
-			/* set block ID's */
-			const ArrayT<StringT>& block_ID = set.BlockID();
-			
-			/* collect connectivities */
-			ArrayT<const iArray2DT*> connect_list(block_ID.Length());
-			for (int j = 0; j < block_ID.Length(); j++)
-			{
-			  StringT block_name;
-			  block_name.Append(block_ID[j]);
-			
-				/* collect */
-				connect_list[j] = fOutputGeometry->ElementGroupPointer(block_name);
-		}
 
-			/* construct output set */
-			OutputSetT global_set(set.ID(), set.Geometry(), block_ID, connect_list,
-				set.NodeOutputLabels(), set.ElementOutputLabels(), set.Changing());
+			/* output set ID */
+			int IO_ID;
+			
+			/* regular output set */
+			if (set.Mode() == OutputSetT::kElementBlock)
+			{
+				/* set block ID's */
+				const ArrayT<StringT>& block_ID = set.BlockID();
+			
+				/* collect connectivities */
+				ArrayT<const iArray2DT*> connect_list(block_ID.Length());
+				for (int j = 0; j < block_ID.Length(); j++)
+				{
+					StringT block_name;
+					block_name.Append(block_ID[j]);
+			
+					/* collect */
+					connect_list[j] = fOutputGeometry->ElementGroupPointer(block_name);
+				}
+
+				/* construct output set */
+				OutputSetT global_set(set.ID(), set.Geometry(), block_ID, connect_list,
+					set.NodeOutputLabels(), set.ElementOutputLabels(), set.Changing());
 
 //cout << Rank() << ": IOManager_mpi::IOManager_mpi: num nodes: " << global_set.NumNodes() << endl;
 //cout << Rank() << ": IOManager_mpi::IOManager_mpi: num blocks: " << global_set.NumBlocks() << endl;
 //cout << Rank() << ": IOManager_mpi::IOManager_mpi: num elements: " << global_set.NumElements() << endl;
 
-			/* register */
-			int IO_ID = AddElementSet(global_set);
+				/* register */
+				IO_ID = AddElementSet(global_set);
+			}
+			else /* construct free set */
+			{
+//TEMP
+cout << "IOManager_mpi::IOManager_mpi: free sets not supported yet" << endl;
+throw eGeneralFail;
+			
+#if 0
+cout << Rank() << ": constructing free set here: " << i << endl;			
+			
+				/* collect number of elements from each processor */
+				iArrayT elem_count(Size());
+				elem_count[Rank()] = set.NumElements();
+				if (MPI_Gather(elem_count.Pointer(Rank()), 1, MPI_INT, 
+					elem_count.Pointer(), 1, MPI_INT, Rank(), MPI_COMM_WORLD) != MPI_SUCCESS) throw eMPIFail;
+
+cout << Rank() << ": counts:\n" << elem_count.wrap(5) << endl;			
+
+				/* allocate space for incoming */
+				StringT dummy_ID;
+				const Array2DT& my_connects = *set.Connectivities(dummy_ID);
+				connects.Allocate(elem_count.Sum(), my_connects.MinorDim());
+
+				/* collect all */
+				if (MPI_Gatherv(conn.Pointer(), conn.Length(), MPI_INT, j, 0, 
+							MPI_COMM_WORLD, &status) != MPI_SUCCESS) throw eMPIFail;
+				
+				ArrayT<iArray2DT> connects_all(Size());
+				for (int j = 0; j < connects_all.Length(); j++)
+				{
+				
+					if (i == Rank())
+						connects_all[j].Alias(my_connects);
+					else
+						connects_all[j].Allocate(elem_count[j], my_connects.MinorDim());
+				}
+				
+				/* receive all incoming (blocking receives) */
+				for (int j = 0; j < connects_all.Length(); j++)
+					if (j != Rank() && elem_count[j] > 0)
+					{
+						iArray2DT& conn = connects_all[j];
+cout << Rank() << ": posting receive from " << j << " for " << conn.MajorDim() << " x " << conn.MinorDim() << endl;			
+					
+						/* blocking receive */
+						MPI_Status status;
+						
+						//check status?
+					}
+
+				
+				/* produce union of connectivities */
+				iArray2DT connects;
+				//Union(connects_all, connects);
+			
+				/* construct output set */
+				OutputSetT global_set(set.ID(), set.Geometry(), block_ID, connects, set.NodeOutputLabels());
+
+//cout << Rank() << ": IOManager_mpi::IOManager_mpi: num nodes: " << global_set.NumNodes() << endl;
+//cout << Rank() << ": IOManager_mpi::IOManager_mpi: num blocks: " << global_set.NumBlocks() << endl;
+//cout << Rank() << ": IOManager_mpi::IOManager_mpi: num elements: " << global_set.NumElements() << endl;
+
+				/* register */
+				IO_ID = AddElementSet(global_set);
+#endif			
+			}
 
 			/* check */
 			if (IO_ID != i)
@@ -77,18 +151,50 @@ IOManager_mpi::IOManager_mpi(ifstreamT& in, const iArrayT& io_map,
 		{
 //cout << Rank() << ": IOManager_mpi::IOManager_mpi: constructing dummy" << endl;
 
-			/* dummy stuff */
-			iArray2DT connects;
-			ArrayT<const iArray2DT*> connects_list(set.BlockID().Length());
-			connects_list = &connects;
-			ArrayT<StringT> no_labels;
-
-			/* construct dummy set */
-			OutputSetT dummy_set(set.ID(), set.Geometry(), set.BlockID(), connects_list,
-				no_labels, no_labels, false);
+			/* regular output set */
+			if (set.Mode() == OutputSetT::kElementBlock)
+			{
+				/* dummy stuff */
+				iArray2DT connects;
+				ArrayT<const iArray2DT*> connects_list(set.BlockID().Length());
+				connects_list = &connects;
+				ArrayT<StringT> no_labels;
+	
+				/* construct dummy set */
+				OutputSetT dummy_set(set.ID(), set.Geometry(), set.BlockID(), connects_list,
+					no_labels, no_labels, false);
+					
+				/* register */
+				int IO_ID = AddElementSet(dummy_set);
+			}
+			else
+			{
+//TEMP
+cout << "IOManager_mpi::IOManager_mpi: free sets not supported yet" << endl;
+throw eGeneralFail;
+			
+#if 0			
+cout << Rank() << ": sending free set" << endl;			
+			
+				/* collect number of elements from each processor */
+				int* dummy;
+				int count = set.NumElements();
+				if (MPI_Gather(&count, 1, MPI_INT, dummy, 1, MPI_INT, fIO_map[j], MPI_COMM_WORLD) 
+					!= MPI_SUCCESS) throw eMPIFail;
 				
-			/* register */
-			int IO_ID = AddElementSet(dummy_set);
+				/* send if non empty */	
+				if (count > 0) {
+				
+					StringT dummy_ID;
+					const Array2DT& my_connects = *set.Connectivities(dummy_ID);				
+				
+cout << Rank() << ": posting send to " << fIO_map[j] << " for " << my_connects.MajorDim() << " x " << my_connects.MinorDim() << endl;			
+				
+					if (MPI_Send(my_connects.Pointer(), my_connects.Length(), MPI_INT, fIO_map[j], 
+						MPI_COMM_WORLD) != MPI_SUCCESS) throw eMPIFail;
+				}
+#endif
+			}
 		}
 	}
 
