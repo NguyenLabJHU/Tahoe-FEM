@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.cpp,v 1.11 2004-02-03 08:24:57 paklein Exp $ */
+/* $Id: SimoQ1P0.cpp,v 1.12 2004-02-04 07:35:45 paklein Exp $ */
 #include "SimoQ1P0.h"
 
 #include "ShapeFunctionT.h"
@@ -152,9 +152,6 @@ void SimoQ1P0::SetGlobalShape(void)
 			/* "replace" dilatation */
 			dMatrixT& F = fF_List[i];
 			double J = F.Det();
-			
-			double tmp = v/(H*J);
-			
 			F *= pow(v/(H*J), 1.0/3.0);
 			
 			/* store Jacobian */
