@@ -1,112 +1,26 @@
-/* $Id: FiniteStrainT.cpp,v 1.1.2.2 2001-06-26 07:17:33 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.1.2.3 2001-06-28 01:24:11 paklein Exp $ */
 
 #include "FiniteStrainT.h"
 #include "ShapeFunctionT.h"
 
 /* constructor */
 FiniteStrainT::FiniteStrainT(FEManagerT& fe_manager):
-	ElasticT(fe_manager),
-	fMatrixList(4),
-	fIPSet(4)
+	ElasticT(fe_manager)
 {
-	/* allocate return values */
-	for (int i = 0; i < fMatrixList.Length(); i++)
-		fMatrixList[i].Allocate(NumSD());
 
-	/* initialize */
-	fIPSet = -1;
 }
 
-/* total deformation gradient */
-const dMatrixT& FiniteStrainT::DeformationGradient(void) const
+/* called immediately after constructor */
+void FiniteStrainT::Initialize(void)
 {
-	/* get reference */
-	int dex = kF;
-	int&  ip_flag = fIPSet[dex];
-	dMatrixT& mat = fMatrixList[dex];
+	/* inherited */
+	ElasticT::Initialize();
 
-	/* recompute */
-	if (ip_flag != CurrIP())
-	{
-		/* displacement gradient */
-		fShapes->GradU(fLocDisp, mat);
+	/* allocate deformation gradient list */
+	fF_List.Allocate(NumIP());
+	for (int i = 0; i < NumIP(); i++)
+		fF_List.Allocate(NumSD());
 
-		/* add identity */
-		mat.PlusIdentity();
-
-		/* flag */
-		ip_flag = CurrIP();
-	}
-	return mat;
-}
-
-/* total deformation gradient */
-const dMatrixT& FiniteStrainT::DeformationGradient(int ip) const
-{
-	/* get reference */
-	int dex = kF_ip;
-	int&  ip_flag = fIPSet[dex];
-	dMatrixT& mat = fMatrixList[dex];
-
-	/* recompute */
-	if (ip_flag != CurrIP())
-	{
-		/* displacement gradient */
-		fShapes->GradU(fLocLastDisp, mat, ip);
-
-		/* add identity */
-		mat.PlusIdentity();
-
-		/* flag */
-		ip_flag = ip;
-	}
-	return mat;
-}
-
-/* total strain from the end of the previous time step */
-const dMatrixT& FiniteStrainT::DeformationGradient_last(void) const
-{
-	/* get reference */
-	int dex = kF_last;
-	int&  ip_flag = fIPSet[dex];
-	dMatrixT& mat = fMatrixList[dex];
-
-	/* recompute */
-	if (ip_flag != CurrIP())
-	{
-		/* displacement gradient */
-		fShapes->GradU(fLocLastDisp, mat);
-
-		/* add identity */
-		mat.PlusIdentity();
-
-		/* flag */
-		ip_flag = CurrIP();
-	}
-	return mat;
-}
-
-/* total strain from the end of the previous time step */
-const dMatrixT& FiniteStrainT::DeformationGradient_last(int ip) const
-{
-	/* get reference */
-	int dex = KF_last_ip;
-	int&  ip_flag = fIPSet[dex];
-	dMatrixT& mat = fMatrixList[dex];
-
-	/* recompute */
-	if (ip_flag != CurrIP())
-	{
-		/* displacement gradient */
-		fShapes->GradU(fLocLastDisp, mat, ip);
-
-		/* add identity */
-		mat.PlusIdentity();
-
-		/* flag */
-		ip_flag = CurrIP();
-	}
-	return mat;
 }
 
 /* compute field gradients with respect to current coordinates */
@@ -156,4 +70,22 @@ bool FiniteStrainT::NextElement(void)
 	
 	/* inherited */
 	return ElasticT::NextElement();
+
+
+	dMatrixT& mat = fMatrixList[dex];
+
+	/* recompute */
+	if (ip_flag != CurrIP())
+	{
+		/* displacement gradient */
+		fShapes->GradU(fLocLastDisp, mat, ip);
+
+		/* add identity */
+		mat.PlusIdentity();
+
+		/* flag */
+		ip_flag = CurrIP();
+	}
+	return mat;
+
 }

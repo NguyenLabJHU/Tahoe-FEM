@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianT.cpp,v 1.1.2.1 2001-06-22 01:31:43 paklein Exp $ */
+/* $Id: TotalLagrangianT.cpp,v 1.1.2.2 2001-06-28 01:24:11 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "TotalLagrangianT.h"
@@ -38,7 +38,7 @@ TotalLagrangianT::TotalLagrangianT(FEManagerT& fe_manager):
 void TotalLagrangianT::Initialize(void)
 {
 	/* inherited */
-	ElasticT::Initialize();
+	FiniteStrainT::Initialize();
 
 	/* dimension */
 	fGradNa.Allocate(fNumSD, fNumElemNodes);
@@ -54,7 +54,7 @@ void TotalLagrangianT::Initialize(void)
 void TotalLagrangianT::ReadMaterialData(ifstreamT& in)
 {
 	/* inherited */
-	ElasticT::ReadMaterialData(in);
+	FiniteStrainT::ReadMaterialData(in);
 	
 //TEMP
 	if (fMaterialList->HasThermalStrains())
@@ -239,20 +239,6 @@ void TotalLagrangianT::FormCv(double constC)
 /* calculate the internal force contribution ("-k*d") */
 void TotalLagrangianT::FormKd(double constK)
 {
-//TEMP - must be a cleaner way
-#ifdef __NO_RTTI__
-	FDStructMatT* pFDmat = 0;
-	cout << "\n TotalLagrangianT::FormKd: requires RTTI" << endl;
-	throw eGeneralFail;
-#else
-	FDStructMatT* pFDmat = dynamic_cast<FDStructMatT*>(fCurrMaterial);
-	if (!pFDmat)
-	{
-		cout << "\n TotalLagrangianT::FormKd: requires an FDStructMatT" << endl;	
-		throw eGeneralFail;
-	}
-#endif		
-
 	/* matrix alias to fTemp */
 	dMatrixT fWP(fNumSD, fStressStiff.Rows(), fNEEvec.Pointer());
 

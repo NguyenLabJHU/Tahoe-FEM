@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.1.1.1.2.3 2001-06-22 14:18:31 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.1.1.1.2.4 2001-06-28 01:24:14 paklein Exp $ */
 /* created: paklein (11/20/1996)                                          */
 /* Defines the interface for elastic continuum materials.                 */
 
@@ -88,7 +88,7 @@ public:
 	/** Rayleigh damping. \return stiffness proportional damping coefficient */
 	double StiffnessDamping(void) const;
 
-	/** test for localization. check for bifurvation using current
+	/** test for localization. check for bifurcation using current
 	 * Cauchy stress and the spatial tangent moduli.
 	 * \param normal orientation of the localization if localized
 	 * \return 1 if the determinant of the acoustical tensor is negative

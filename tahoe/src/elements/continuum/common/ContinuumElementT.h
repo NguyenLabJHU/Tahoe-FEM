@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.3.2.1 2001-06-07 03:01:15 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.3.2.2 2001-06-28 01:24:11 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 /* Interface for a general continuum element type, meaning the presence   */
 /* of shape functions, and the implied presence of a continuum mechanics  */
@@ -194,27 +194,28 @@ protected:
 	int	fNumIP;
 	int fOutputID;
 
-	/* material data */
-	MaterialListT* fMaterialList; 	
-
+	/* materials */
+	MaterialListT*        fMaterialList;  /**< list of materials */
+	ArrayT<ArrayT<bool> > fMaterialNeeds; /**< list of needs by material */
+	
 	/* output control */
 	iArrayT	fNodalOutputCodes;
 	iArrayT	fElementOutputCodes;
 	  	
 	/* body force vector */
-	int	    fBodyForceLTf;
-	dArrayT fBody;	  	
+	int	    fBodyForceLTf; /**< body force schedule */
+	dArrayT fBody;	  	   /**< body force vector   */
 
 	/* traction data */
 	ArrayT<Traction_CardT> fTractionList;
 	int fTractionBCSet;
 
-	/* shape functions */
+	/** shape functions */
 	ShapeFunctionT* fShapes;
 	
 	/* arrays with local ordering */
-	LocalArrayT	fLocInitCoords;	// initial coords with local ordering
-	LocalArrayT fLocDisp;	    // displacements with local ordering
+	LocalArrayT	fLocInitCoords;	/**< initial coords with local ordering */
+	LocalArrayT fLocDisp;	    /**< displacements with local ordering  */ 
 	
 	/* work space */
 	dArrayT fNEEvec; // [element DOF]
