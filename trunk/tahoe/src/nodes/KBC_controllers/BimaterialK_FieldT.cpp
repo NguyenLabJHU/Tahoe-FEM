@@ -1,4 +1,4 @@
-/* $Id: BimaterialK_FieldT.cpp,v 1.2 2001-03-19 22:39:38 paklein Exp $ */
+/* $Id: BimaterialK_FieldT.cpp,v 1.3 2001-04-27 10:49:47 paklein Exp $ */
 /* created: paklein (09/05/2000)                                          */
 
 #include "BimaterialK_FieldT.h"
@@ -197,7 +197,7 @@ void BimaterialK_FieldT::WriteParameters(ostream& out) const
 		out << " Far field group 1 material number . . . . . . . = " << fFarFieldMaterialNum + 1 << '\n';
 		if (fID_List_1.Length() > 0)
 		{
-			out << " Number of group 1 node sets . . . . . . . . . . = " << fID_List.Length() << '\n';
+			out << " Number of group 1 node sets . . . . . . . . . . = " << fID_List_1.Length() << '\n';
 			out << fID_List_1.wrap(6) << '\n';
 		}
 		out << " Number of group 1 nodes . . . . . . . . . . . . = " << fNodes.Length() << '\n';	
