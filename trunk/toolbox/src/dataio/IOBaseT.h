@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.h,v 1.10 2002-10-20 22:36:52 paklein Exp $ */
+/* $Id: IOBaseT.h,v 1.11 2003-08-08 00:28:45 paklein Exp $ */
 /* created: sawimme (09/28/1999) */
 #ifndef _IOBASE_T_H_
 #define _IOBASE_T_H_
@@ -65,7 +65,7 @@ public:
 
 	/** construct a new output formatter */
 	static OutputBaseT* NewOutput(const StringT& program_name, const StringT& version,
-		const StringT& title, const StringT& input_file,
+		const StringT& title, const StringT& output_file,
 		FileTypeT output_format, ostream& log);	
 
 protected:
