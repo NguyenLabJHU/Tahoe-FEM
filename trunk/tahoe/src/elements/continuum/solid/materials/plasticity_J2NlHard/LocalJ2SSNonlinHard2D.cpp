@@ -1,4 +1,4 @@
-/* $Id: LocalJ2SSNonlinHard2D.cpp,v 1.4 2004-07-15 08:29:01 paklein Exp $ */
+/* $Id: LocalJ2SSNonlinHard2D.cpp,v 1.5 2004-09-10 22:39:38 paklein Exp $ */
 #include "LocalJ2SSNonlinHard2D.h"
 #include "ElementCardT.h"
 #include "StringT.h"
@@ -13,7 +13,8 @@ LocalJ2SSNonlinHard2D::LocalJ2SSNonlinHard2D(ifstreamT& in, const SSMatSupportT&
   fModulus2D(dSymMatrixT::NumValues(2)),
   fTotalStrain3D(3)
 {
-
+	/* reset default value */
+	fConstraint = kPlaneStrain;
 }
 
 /* returns elastic strain (3D) */
@@ -41,15 +42,4 @@ const dSymMatrixT& LocalJ2SSNonlinHard2D::s_ij()
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(LocalJ2SSNonlinHard::s_ij());
 	return fStress2D;
-}
-
-/* describe the parameters needed by the interface */
-void LocalJ2SSNonlinHard2D::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	LocalJ2SSNonlinHard::DefineParameters(list);
-	
-	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("constraint_2D");
-	constraint.SetDefault(kPlaneStrain);
 }

@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV2D.cpp,v 1.5 2004-07-15 08:28:54 paklein Exp $ */
+/* $Id: J2SSKStV2D.cpp,v 1.6 2004-09-10 22:39:32 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV2D.h"
 #include "ElementCardT.h"
@@ -10,7 +10,8 @@ using namespace Tahoe;
 J2SSKStV2D::J2SSKStV2D(void):
 	ParameterInterfaceT("small_strain_StVenant_J2_2D")
 {
-
+	/* reset default value */
+	fConstraint = kPlaneStrain;
 }
 
 /* returns elastic strain (3D) */
@@ -38,17 +39,6 @@ const dSymMatrixT& J2SSKStV2D::s_ij(void)
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(J2SSKStV::s_ij());
 	return fStress2D;
-}
-
-/* describe the parameters needed by the interface */
-void J2SSKStV2D::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	J2SSKStV::DefineParameters(list);
-	
-	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("constraint_2D");
-	constraint.SetDefault(kPlaneStrain);
 }
 
 /* accept parameter list */

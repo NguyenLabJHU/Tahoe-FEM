@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.cpp,v 1.10 2004-07-15 08:26:47 paklein Exp $ */
+/* $Id: EAMFCC2D.cpp,v 1.11 2004-09-10 22:38:52 paklein Exp $ */
 /* created: paklein (12/09/1996) */
 #include "EAMFCC2D.h"
 
@@ -20,22 +20,12 @@ EAMFCC2D::EAMFCC2D(void):
 	ParameterInterfaceT("FCC_EAM_2D"),
 	fEAM(NULL)
 {
-
+	/* reset default */
+	fConstraint = kPlaneStrain;
 }
 
 /* destructor */
 EAMFCC2D::~EAMFCC2D(void) { delete fEAM; }
-
-/* describe the parameters needed by the interface */
-void EAMFCC2D::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	NL_E_MatT::DefineParameters(list);
-	
-	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("constraint_2D");
-	constraint.SetDefault(kPlaneStrain);
-}
 
 /* describe the parameters needed by the interface */
 void EAMFCC2D::DefineSubs(SubListT& sub_list) const

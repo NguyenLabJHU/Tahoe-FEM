@@ -1,7 +1,6 @@
-/* $Id: LocalCrystalPlast2D.cpp,v 1.7 2004-07-15 08:29:07 paklein Exp $ */
+/* $Id: LocalCrystalPlast2D.cpp,v 1.8 2004-09-10 22:39:43 paklein Exp $ */
 #include "LocalCrystalPlast2D.h"
 #include "ElementCardT.h"
-
 
 using namespace Tahoe;
 
@@ -14,7 +13,8 @@ LocalCrystalPlast2D::LocalCrystalPlast2D(ifstreamT& in, const FSMatSupportT& sup
   f2Dsavg_ij   (kNSD),
   f2Dcavg_ijkl (dSymMatrixT::NumValues(kNSD))
 {
- 
+	/* reset default value */
+	fConstraint = kPlaneStrain;
 }
 
 const dSymMatrixT& LocalCrystalPlast2D::s_ij()
@@ -37,15 +37,4 @@ const dMatrixT& LocalCrystalPlast2D::c_ijkl()
   f2Dcavg_ijkl.Rank4ReduceFrom3D(cavg_ijkl);
 
   return f2Dcavg_ijkl;
-}
-
-/* describe the parameters needed by the interface */
-void LocalCrystalPlast2D::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	LocalCrystalPlast::DefineParameters(list);
-	
-	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("constraint_2D");
-	constraint.SetDefault(kPlaneStrain);
 }

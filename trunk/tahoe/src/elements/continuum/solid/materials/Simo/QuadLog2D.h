@@ -1,4 +1,4 @@
-/* $Id: QuadLog2D.h,v 1.6 2004-07-15 08:27:35 paklein Exp $ */
+/* $Id: QuadLog2D.h,v 1.7 2004-09-10 22:39:12 paklein Exp $ */
 /* created: paklein (06/28/1997) */
 #ifndef _QUAD_LOG_2D_
 #define _QUAD_LOG_2D_
@@ -24,12 +24,6 @@ public:
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-	/*@}*/
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

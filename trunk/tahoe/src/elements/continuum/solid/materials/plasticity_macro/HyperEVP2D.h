@@ -1,4 +1,4 @@
-/* $Id: HyperEVP2D.h,v 1.6 2004-07-15 08:29:14 paklein Exp $ */
+/* $Id: HyperEVP2D.h,v 1.7 2004-09-10 22:39:48 paklein Exp $ */
 #ifndef _HYPER_EVP_2D_H_
 #define _HYPER_EVP_2D_H_
 
@@ -24,12 +24,6 @@ class HyperEVP2D : public HyperEVP3D
 
   // tangent modulus
   virtual const dMatrixT& c_ijkl();
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-	/*@}*/
 
  protected:
   // Cauchy stress in 2D

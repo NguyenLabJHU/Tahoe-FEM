@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp2D.h,v 1.5 2004-07-15 08:29:07 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp2D.h,v 1.6 2004-09-10 22:39:43 paklein Exp $ */
 #ifndef _LOCAL_CRYSTAL_PLAST_FP_2D_H_
 #define _LOCAL_CRYSTAL_PLAST_FP_2D_H_
 
@@ -24,12 +24,6 @@ class LocalCrystalPlastFp2D : public LocalCrystalPlastFp
 
   // modulus - Taylor average 
   virtual const dMatrixT& c_ijkl();
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-	/*@}*/
 
  protected:
  

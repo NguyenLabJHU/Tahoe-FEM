@@ -1,4 +1,4 @@
-/* $Id: FDKStV2D.cpp,v 1.8 2004-07-15 08:27:18 paklein Exp $ */
+/* $Id: FDKStV2D.cpp,v 1.9 2004-09-10 22:39:02 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "FDKStV2D.h"
 #include "ThermalDilatationT.h"
@@ -9,18 +9,8 @@ using namespace Tahoe;
 FDKStV2D::FDKStV2D(void):
 	ParameterInterfaceT("large_strain_StVenant_2D")
 {
-
-}
-
-/* describe the parameters needed by the interface */
-void FDKStV2D::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	FDKStV::DefineParameters(list);
-	
-	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("constraint_2D");
-	constraint.SetDefault(kPlaneStress);
+	/* reset default value */
+	fConstraint = kPlaneStress;
 }
 
 /*************************************************************************

@@ -1,4 +1,4 @@
-/* $Id: SSKStV2D.h,v 1.5 2004-07-15 08:27:18 paklein Exp $ */
+/* $Id: SSKStV2D.h,v 1.6 2004-09-10 22:39:02 paklein Exp $ */
 /* created: paklein (06/10/97) */
 #ifndef _SS_KSTV_2D_H_
 #define _SS_KSTV_2D_H_
@@ -20,12 +20,6 @@ public:
 	virtual int NumOutputVariables(void) const;
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-	/*@}*/
 
 protected:
 

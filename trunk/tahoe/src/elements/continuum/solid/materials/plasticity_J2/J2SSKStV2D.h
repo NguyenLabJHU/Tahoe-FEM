@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV2D.h,v 1.5 2004-07-15 08:28:54 paklein Exp $ */
+/* $Id: J2SSKStV2D.h,v 1.6 2004-09-10 22:39:32 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #ifndef _J2_SS_KSTV_2D_H_
 #define _J2_SS_KSTV_2D_H_
@@ -27,9 +27,6 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-	
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/

@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden2DT.cpp,v 1.7 2004-07-15 08:27:22 paklein Exp $ */
+/* $Id: QuadLogOgden2DT.cpp,v 1.8 2004-09-10 22:39:07 paklein Exp $ */
 /* created: paklein (02/18/2001) */
 #include "QuadLogOgden2DT.h"
 #include <math.h>
@@ -10,7 +10,8 @@ QuadLogOgden2DT::QuadLogOgden2DT(void):
 	ParameterInterfaceT("quad_log_Ogden_2D"),
 	flogE(2)
 {
-
+	/* set default value */
+	fConstraint = kPlaneStrain;
 }
 
 /* strain energy density */
@@ -28,17 +29,6 @@ double QuadLogOgden2DT::StrainEnergyDensity(void)
 
 	return 0.5*Lambda()*pow(flogE.Sum(), 2.0) + 
 	           Mu()*dArrayT::Dot(flogE, flogE);
-}
-
-/* describe the parameters needed by the interface */
-void QuadLogOgden2DT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	OgdenIsotropicT::DefineParameters(list);
-	
-	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("constraint_2D");
-	constraint.SetDefault(kPlaneStrain);
 }
 
 /*************************************************************************

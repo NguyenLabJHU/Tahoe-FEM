@@ -1,4 +1,4 @@
-/* $Id: FDKStV2D.h,v 1.6 2004-07-15 08:27:18 paklein Exp $ */
+/* $Id: FDKStV2D.h,v 1.7 2004-09-10 22:39:02 paklein Exp $ */
 /* created: paklein (06/10/97) */
 #ifndef _FD_KSTV_2D_H_
 #define _FD_KSTV_2D_H_
@@ -15,12 +15,6 @@ public:
 
 	/** constructor */
 	FDKStV2D(void);
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-	/*@}*/
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV2D.cpp,v 1.10 2004-07-15 08:28:48 paklein Exp $ */
+/* $Id: DPSSKStV2D.cpp,v 1.11 2004-09-10 22:39:27 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV2D.h"
 #include "ElementCardT.h"
@@ -11,7 +11,8 @@ using namespace Tahoe;
 DPSSKStV2D::DPSSKStV2D(void):
 	ParameterInterfaceT("small_strain_StVenant_DP_2D")
 {
-
+	/* reset default value */
+	fConstraint = kPlaneStrain;
 }
 
 /* returns elastic strain (3D) */
@@ -39,17 +40,6 @@ const dSymMatrixT& DPSSKStV2D::s_ij(void)
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(DPSSKStV::s_ij());
 	return fStress2D;
-}
-
-/* describe the parameters needed by the interface */
-void DPSSKStV2D::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	DPSSKStV::DefineParameters(list);
-	
-	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("constraint_2D");
-	constraint.SetDefault(kPlaneStrain);
 }
 
 /* accept parameter list */

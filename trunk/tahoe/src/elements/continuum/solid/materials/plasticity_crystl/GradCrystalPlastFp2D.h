@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp2D.h,v 1.5 2004-07-15 08:29:07 paklein Exp $ */
+/* $Id: GradCrystalPlastFp2D.h,v 1.6 2004-09-10 22:39:43 paklein Exp $ */
 #ifndef _GRAD_CRYSTAL_PLAST_FP_2D_H_
 #define _GRAD_CRYSTAL_PLAST_FP_2D_H_
 
@@ -21,12 +21,6 @@ class GradCrystalPlastFp2D: public GradCrystalPlastFp
 
   // crystal modulus 
   virtual const dMatrixT& c_ijkl();
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-	/*@}*/
 
  protected: 
 

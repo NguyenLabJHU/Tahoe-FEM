@@ -1,4 +1,4 @@
-/* $Id: VIB2D.cpp,v 1.10 2004-07-15 08:27:45 paklein Exp $ */
+/* $Id: VIB2D.cpp,v 1.11 2004-09-10 22:39:17 paklein Exp $ */
 /* created: paklein (04/09/1997) */
 #include "VIB2D.h"
 
@@ -6,8 +6,6 @@
 #include <iostream.h>
 
 #include "toolboxConstants.h"
-
-
 #include "C1FunctionT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
@@ -29,7 +27,8 @@ VIB2D::VIB2D(void):
 	VIB_E_MatT(2),
 	fCircle(NULL)
 {
-
+	/* set default value */
+	fConstraint = kPlaneStress;
 }
 
 /* destructor */
@@ -153,10 +152,6 @@ void VIB2D::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	NL_E_MatT::DefineParameters(list);
 	VIB_E_MatT::DefineParameters(list);
-	
-	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("constraint_2D");
-	constraint.SetDefault(kPlaneStress);
 }
 
 /* information about subordinate parameter lists */

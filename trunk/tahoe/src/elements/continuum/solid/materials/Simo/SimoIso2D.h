@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.h,v 1.8 2004-07-15 08:27:35 paklein Exp $ */
+/* $Id: SimoIso2D.h,v 1.9 2004-09-10 22:39:12 paklein Exp $ */
 /* created: paklein (03/04/1997) */
 #ifndef _SIMO_ISO_2D_H_
 #define _SIMO_ISO_2D_H_
@@ -32,9 +32,6 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
