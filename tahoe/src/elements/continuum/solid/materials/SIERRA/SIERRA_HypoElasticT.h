@@ -1,5 +1,6 @@
-/* $Id: SIERRA_HypoElasticT.h,v 1.1 2003-03-08 01:56:20 paklein Exp $ */
+/* $Id: SIERRA_HypoElasticT.h,v 1.2 2003-03-08 03:45:54 paklein Exp $ */
 #ifndef _SIERRA_HYPO_ELASTIC_T_H_
+#define _SIERRA_HYPO_ELASTIC_T_H_ 
 
 /* base class */
 #include "SIERRA_Material_BaseT.h"
@@ -40,4 +41,4 @@ protected:
 
 } /* namespace Tahoe */
 
-#endif /* _SIERRA_MAT_BASE_T_H_ */
+#endif /* _SIERRA_HYPO_ELASTIC_T_H_ */
