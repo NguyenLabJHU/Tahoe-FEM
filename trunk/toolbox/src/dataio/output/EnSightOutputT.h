@@ -1,4 +1,4 @@
-/* $Id: EnSightOutputT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: EnSightOutputT.h,v 1.2 2001-10-17 19:07:15 sawimme Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #ifndef _ENSIGHTOUTPUT_T_H_
@@ -23,8 +23,8 @@ private:
 
 enum FileNameTypeT { kWildFile = -9, kNoIncFile = -1 };
 
-StringT OpenGeometryFile (EnSightT& ens, ofstream& geo) const;
-StringT CreateFileName (const StringT& label, int increment) const;
+StringT OpenGeometryFile (EnSightT& ens, ofstream& geo, int ID) const;
+StringT CreateFileName (const StringT& label, int increment, int groupnumber) const;
 
 void WritePart (ostream& geo, EnSightT& ens, int ID) const;
 void WriteCoordinates (ostream& geo, EnSightT& ens, const iArrayT& nodes_used) const;
