@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.13 2002-07-05 22:28:02 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.14 2002-08-14 21:02:09 creigh Exp $ */
 
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
@@ -154,6 +154,15 @@ protected:
 	LocalArrayT fLocLastDisp; /**< last converged displacements */
 	LocalArrayT fLocVel;      /**< nodal velocities */
 	LocalArrayT fLocAcc;      /**< nodal accelerations */
+
+	/** Multiscale data */
+	LocalArrayT fLocLastDispAlpha; /**< u^alpha last converged displacements */
+	LocalArrayT fLocVelAlpha;      /**< u^alpha nodal velocities */
+	LocalArrayT fLocAccAlpha;      /**< u^alpha nodal accelerations */
+
+	LocalArrayT fLocLastDispBeta; /**< u^beta last converged displacements */
+	LocalArrayT fLocVelBeta;      /**< u^beta nodal velocities */
+	LocalArrayT fLocAccBeta;      /**< u^beta nodal accelerations */
 
 	LocalArrayT* fLocTemp;      /**< (optional) nodal temperatures */
 	LocalArrayT* fLocTemp_last; /**< (optional) last nodal temperatures */
