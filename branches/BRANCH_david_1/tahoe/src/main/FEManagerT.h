@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.46.2.7 2004-09-15 02:14:15 d-farrell2 Exp $ */
+/* $Id: FEManagerT.h,v 1.46.2.8 2004-09-27 23:35:36 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -9,7 +9,7 @@
 /* base classes */
 #include "iConsoleObjectT.h"
 #include "ParameterInterfaceT.h"
-#include "FEDecomposeT.h" // DEF 4 Aug 04
+#include "DecomposeT.h" // DEF 4 Aug 04
 
 /* direct members */
 #include "iArrayT.h"

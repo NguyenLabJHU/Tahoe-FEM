@@ -1,11 +1,11 @@
-/* $Id: FEExecutionManagerT.h,v 1.27.2.4 2004-09-15 02:14:15 d-farrell2 Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.27.2.5 2004-09-27 23:35:36 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #ifndef _FE_EXECMAN_T_H_
 #define _FE_EXECMAN_T_H_
 
 /* base class */
 #include "ExecutionManagerT.h"
-#include "FEDecomposeT.h" // DEF 4 Aug 04
+#include "DecomposeT.h"
 
 /* direct members */
 #include "IOBaseT.h"

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.76.2.10 2004-09-15 02:14:15 d-farrell2 Exp $ */
+/* $Id: FEManagerT.cpp,v 1.76.2.11 2004-09-27 23:35:36 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1270,7 +1270,7 @@ cout << caller << ": START" << endl;
 		int token = 1;
 
 		// generate decompose instance
-		FEDecomposeT decompose;
+		DecomposeT decompose;
 		if (decompose.NeedDecomposition(database, Size()))
 		{
 			/* 'serial' communicator */
