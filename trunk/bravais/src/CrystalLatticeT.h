@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: CrystalLatticeT.h,v 1.11 2003-07-21 15:27:58 fwdelri Exp $ */
+/* $Id: CrystalLatticeT.h,v 1.12 2003-08-01 22:54:39 saubry Exp $ */
 
 #ifndef _CRYSTAL_LATTICE_T_H_
 #define _CRYSTAL_LATTICE_T_H_
@@ -18,7 +18,8 @@ class CrystalLatticeT {
 protected:
 
 	int nLSD, nUCA;
-	StringT sLATTYPE;
+	int nType;                   // total number of types
+	StringT sLATTYPE;  
 
 	dArray2DT vBasis;            // atoms in cell
 	dArrayT vLatticeParameters;  // lattice parameters
@@ -44,6 +45,7 @@ public:
 
 	int GetNLSD() { return nLSD; }
 	int GetNUCA() { return nUCA; }
+	int GetNTYPE() { return nType; }
 	StringT GetSLATTYPE() { return sLATTYPE; }
 
 	int GetRotMeth() { return WhichRot; };

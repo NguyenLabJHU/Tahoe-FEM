@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: CrystalLatticeT.cpp,v 1.19 2003-07-25 00:00:27 jzimmer Exp $ */
+/* $Id: CrystalLatticeT.cpp,v 1.20 2003-08-01 22:54:39 saubry Exp $ */
 #include "CrystalLatticeT.h"
 
 #include <iostream>
@@ -27,8 +27,8 @@ CrystalLatticeT::CrystalLatticeT(int nlsd, int nuca,int which_rot,
 
   WhichRot = which_rot;
   
-  // initialize vType for all lattices
-
+  // initialize NType and vType for all lattices
+  nType = 1;
   vType = 1;
 
   // Define rotation

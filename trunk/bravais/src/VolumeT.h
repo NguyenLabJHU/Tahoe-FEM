@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: VolumeT.h,v 1.13 2003-07-25 18:18:34 jzimmer Exp $ */
+/* $Id: VolumeT.h,v 1.14 2003-08-01 22:54:39 saubry Exp $ */
 
 #ifndef _VOLUME_T_H_
 #define _VOLUME_T_H_
@@ -30,10 +30,13 @@ protected:
 	iArrayT atom_ID;
 	dArray2DT atom_coord;
 	iArray2DT atom_connectivities;
-	ArrayT< iArray2DT * > atom_part_connect;   
 	dArray2DT atom_bounds;
 	iArrayT atom_types;
 	iArrayT atom_parts;
+
+	// try to use the other OutputSeT constructor
+	ArrayT< const iArray2DT * > atom_array_connect;   
+	ArrayT< StringT > atom_array_ID;
 
 	iArrayT WhichSort;
 	iArrayT Map;
@@ -60,10 +63,14 @@ public:
 	iArrayT*   GetAtomID();
 	dArray2DT* GetAtomCoordinates();
 	iArray2DT* GetAtomConnectivities();
-	ArrayT< iArray2DT * > * GetAtomPartsConnectivities();
 	dArray2DT* GetAtomBounds();
 	iArrayT*   GetAtomTypes();
 	iArrayT*   GetAtomParts();
+
+
+	const ArrayT< const iArray2DT * > * GetAtomArrayConnect();
+	const ArrayT< StringT > * GetAtomArrayID();
+
 };
 
 }

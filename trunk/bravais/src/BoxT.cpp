@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.33 2003-07-25 18:18:34 jzimmer Exp $ */
+/* $Id: BoxT.cpp,v 1.34 2003-08-01 22:54:39 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -175,6 +175,7 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
 {
   int nlsd = pcl->GetNLSD();
   int nuca = pcl->GetNUCA();
+  int ntype = pcl->GetNTYPE();
 
   int natoms=0;
   int temp_nat=0;
@@ -209,16 +210,52 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
   for(int m=0; m < nATOMS ; m++) 
     for (int k=0;k< nlsd;k++)
       {
-      atom_coord(m)[k] = temp_atom(m)[k];
-      atom_types[m] = temp_type[m];
+	atom_coord(m)[k] = temp_atom(m)[k];
+	atom_types[m] = temp_type[m];
       }
   
   atom_names = "Box";
+
+  // Create connectivities and IDs
   for (int p=0;p<nATOMS;p++)
     {
       atom_ID[p] = p;
       atom_connectivities(p)[0] = p;
     }
+
+  if(ntype > 2) 
+    cout << "WARNING: ** nTypes == 2  maximum for ensight output ** \n"
+
+  atom_array_ID.Dimension(ntype);
+  atom_array_connect.Dimension(ntype);
+
+
+  type1.Dimension(nATOMS,1);type1 = 0;
+  type2.Dimension(nATOMS,1);type2 = 0;
+
+  int n=0,m=0;
+  for (int p=0;p<nATOMS;p++)
+    {
+      if ( atom_types[p] == 1) 
+	{
+	  type1(n)[0] = p;
+	  n++;
+	}
+      else
+	{
+	  type2(m)[0] = p;
+	  m++;
+	}	
+    }
+
+  atom_array_ID[0] = "type1";
+  if (ntype > 1) atom_array_ID[1] = "type2";
+
+  if (n < nATOMS && n > 0) type1.Resize(n);
+  if (m < nATOMS && m > 0) type2.Resize(m);
+  atom_array_connect[0] = &type1;
+  if (ntype > 1) atom_array_connect[1] = &type2;
+
 
   // Create parts
   atom_parts.Dimension(nATOMS);
