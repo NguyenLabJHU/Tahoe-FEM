@@ -1,4 +1,4 @@
-/* $Id: YoonAllen2DT.h,v 1.5 2002-08-08 23:27:27 cjkimme Exp $ */
+/* $Id: YoonAllen2DT.h,v 1.6 2002-11-01 19:46:07 cjkimme Exp $ */
 /* created: cjkimme (05/28/2002) */
 
 #ifndef _YOON_ALLEN_2D_T_H_
@@ -62,12 +62,6 @@ public:
 	virtual void ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
 		dArrayT& output);
 
-	virtual bool NeedsNodalInfo(void);
-	virtual int NodalQuantityNeeded(void);
-//        virtual double ComputeNodalValue(const dArrayT &);
-//	virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
-	virtual int ElementGroupNeeded(void);
-
 protected:
 
 	/** return true if the potential has compatible (type and sequence)
@@ -83,12 +77,12 @@ private:
 	
 	/* moduli */
 	double fE_infty; /**< Asymptotic modulus of cohesive zone */
-	int fNumRelaxTimes;
+	int iNumRelaxTimes;
 	dArrayT fE_t; /**< transient modulus with exponential time decay*/
 	dArrayT ftau; /**< time constant for decay */
 	dArrayT fexp_tau; /**< exponentiations of the timestep over the time constants */
 	
-	int fdamage; /*switch for different damage evolutions laws */
+	int idamage; /*switch for different damage evolutions laws */
 	/* damage evolution law parameters */
 	double falpha_exp, flambda_exp;
 	double falpha_0, flambda_0;
