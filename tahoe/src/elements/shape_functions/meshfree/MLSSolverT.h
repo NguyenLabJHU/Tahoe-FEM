@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.h,v 1.15 2004-11-03 16:09:41 raregue Exp $ */
+/* $Id: MLSSolverT.h,v 1.16 2005-01-27 17:47:51 paklein Exp $ */
 /* created: paklein (12/08/1999) */
 #ifndef _MLS_SOLVER_T_H_
 #define _MLS_SOLVER_T_H_
@@ -37,10 +37,10 @@ public:
 		const dArrayT& window_params);
 	
 	/** destructor */
-	virtual ~MLSSolverT(void);
+	~MLSSolverT(void);
 	
 	/** write parameters */
-	virtual void WriteParameters(ostream& out) const;
+	void WriteParameters(ostream& out) const;
 	
 	/** class dependent initializations */
 	void Initialize(void);
@@ -98,13 +98,16 @@ public:
 	/** \name translate support parameters to support sizes */
 	/*@{*/
 	/** compute spherical support size */
-	virtual double SphericalSupportSize(const dArrayT& param_n) const;
+	double SphericalSupportSize(const dArrayT& param_n) const;
 
 	/** compute spherical support size in batch */
-	virtual void SphericalSupportSize(const dArray2DT& param_n, ArrayT<double>& support_size) const;
+	void SphericalSupportSize(const dArray2DT& param_n, ArrayT<double>& support_size) const;
+
+	/** compute rectangular support size */
+	void RectangularSupportSize(const dArrayT& param_n, dArrayT& support_size) const;
 
 	/** compute rectangular support size in batch */
-	virtual void RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const;
+	void RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const;
 	/*@}*/
 
 	/* name debugging methods */
@@ -266,6 +269,11 @@ inline double MLSSolverT::SphericalSupportSize(const dArrayT& param_n) const {
 /* compute spherical support size in batch */
 inline void MLSSolverT::SphericalSupportSize(const dArray2DT& param_n, ArrayT<double>& support_size) const {
 	Window().SphericalSupportSize(param_n, support_size);
+}
+
+/* compute rectangular support size */
+inline void MLSSolverT::RectangularSupportSize(const dArrayT& param_n, dArrayT& support_size) const	{
+	Window().RectangularSupportSize(param_n, support_size);
 }
 
 /* compute rectangular support size in batch */
