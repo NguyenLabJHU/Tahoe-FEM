@@ -1,0 +1,75 @@
+# $Id: makefile.template,v 1.1.1.1 2001-01-30 20:59:00 paklein Exp $
+# INSTALLATION INSTRUCTIONS
+#
+# (0) copy makefile.template to a local makefile.
+# (1) set HOME_DIR to the full path to this makefile.
+# (2) set MACRO_DIR to the full path to directory
+#     containing the machine specific compiler macros.
+# (3) select ARCH from list of supported platforms.
+# (4) select installed "build options".
+# (5) "make init" to (re-)initialize headers and file
+#     dependencies.
+# (6) "make build" to (re-)compiler binaries.
+
+# full path to current directory
+HOME_DIR =
+
+# working directories:
+OBJ_DIR = $(HOME_DIR)/obj
+INC_DIR = $(HOME_DIR)/inc
+SRC_DIR = $(HOME_DIR)/src
+LIB_DIR = $(HOME_DIR)/lib
+
+# build architecture
+ARCH =
+# choices:
+#     ALASKA - DEC OSF
+#  CA-CPLANT - DEC OSF
+#        DEC - DEC OSF
+#    DEC.mpi - DEC OSF with MPI
+#        GNU - egcs
+#      JANUS - ASCI Red
+#        SGI - IRIX
+#  SGI.mpich - IRIX with MPICH
+#    SGI.mpi - IRIX with MPI
+#    SIBERIA - DEC OSF
+#        SUN - SUNWSpro
+
+# default target name - root of library name or executable name
+TARGET  = aztec
+LIBRARY = $(HOME_DIR)/lib/lib$(TARGET).a
+
+# path to main, needed if primary target is an executable (not 
+# a library)
+MAIN    = $(SRC_DIR)/main/main.o
+
+# target of "make build", i.e., the library $(LIBRARY) or
+# the executable $(TARGET)
+BUILD   = $(LIBRARY)
+
+# full path to compiler macros
+MACRO_DIR = $(HOME_DIR)/../macros
+
+############################### build options ###########################
+# uncomment macros for installed models
+
+##### F2C 1.4.3
+F2C_DIR      = $(HOME_DIR)/../f2c
+F2C_INC      = -I$(F2C_DIR)/inc
+F2C_CFLAGS   = $(F2C_INC) -D__F2C__
+F2C_LIB_NAME = f2c_
+F2C_LIB      = $(F2C_DIR)/lib/lib$(F2C_LIB_NAME).a
+F2C_LFLAGS   = -L$(F2C_DIR)/lib -l$(F2C_LIB_NAME)
+
+#### BLAS
+BLAS_DIR      = $(HOME_DIR)/../CBLAS
+BLAS_INC      = -I$(BLAS_DIR)/inc
+BLAS_CFLAGS   = $(BLAS_INC) -D__BLAS__
+BLAS_LIB_NAME = CBLAS
+BLAS_LIB      = $(BLAS_DIR)/lib/lib$(BLAS_LIB_NAME).a
+BLAS_LFLAGS   = -L$(BLAS_DIR)/lib -l$(BLAS_LIB_NAME)
+
+############################### build options ###########################
+
+# include common target definitions
+include $(MACRO_DIR)/make.targets
