@@ -1,0 +1,11 @@
+####### SIERRA native input
+begin property specification for material test_material
+	density = 7.76e-6
+
+	begin parameters for model hypoelastic
+		bulk modulus = 15177.0
+#		shear modulus = 9001.5
+		two mu = 18003.0
+	end parameters for model hypoelastic
+
+end property specification for material test_material
