@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.41.4.2 2004-04-03 20:15:11 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.41.4.3 2004-04-17 04:45:02 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -482,6 +482,26 @@ void BridgingScaleT::CoarseField(const PointInCellDataT& cell_data, const dArray
 
 	const char caller[] = "BridgingScaleT::CoarseField";
 	ExceptionT::GeneralFail(caller, "not implemented");
+}
+
+/* collect the cells without any free nodes */
+void BridgingScaleT::CollectProjectedCells(const PointInCellDataT& cell_data, iArrayT& cells) const
+{
+	/* mark cells */
+	const RaggedArray2DT<int>& point_in_cell = cell_data.PointInCell();
+	iArrayT projected_cell(point_in_cell.MajorDim());
+	for (int i = 0; i < projected_cell.Length(); i++)
+		if (point_in_cell.MinorDim(i) > 0)
+			projected_cell[i] = 1;
+		else
+			projected_cell[i] = 0;
+
+	/* collect filled cells */
+	cells.Dimension(projected_cell.Count(1));
+	int index = 0;
+	for (int i = 0; i < projected_cell.Length(); i++)
+		if (projected_cell[i])
+			cells[index++] = i;
 }
 
 /* Project point values onto mesh, write into displacement field.  Used to compute initial
