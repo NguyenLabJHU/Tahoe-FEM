@@ -12,7 +12,8 @@ class DIAT : public CrystalLatticeT
 {
 public:
 	DIAT(int nlsd,int nuca,double alat,
-	     dArray2DT mat_rot,double angle);
+	     int which_rot,dArray2DT mat_rot,
+	     double angle);
 
 	~DIAT() { };
 

@@ -1,4 +1,4 @@
-/* $Id: BoxT.cpp,v 1.9 2002-10-31 00:41:42 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.10 2002-11-01 00:09:52 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -15,12 +15,14 @@
 
 BoxT::BoxT(int dim, dArray2DT len,
 	   dArrayT lattice_parameter,
-	   int irot) : VolumeT(dim) 
+	   iArrayT which_sort) : VolumeT(dim) 
 {
   nSD = dim;
   length.Dimension(nSD,2);
   ncells.Dimension(nSD);
-  WhichRot = irot;
+
+  WhichSort.Dimension(nSD);
+  WhichSort = which_sort;
 
   for(int i=0;i<nSD;i++)
     {
@@ -41,12 +43,14 @@ BoxT::BoxT(int dim, dArray2DT len,
 
 BoxT::BoxT(int dim, iArrayT cel,
 	   dArrayT lattice_parameter,
-	   int irot) : VolumeT(dim) 
+	   iArrayT which_sort) : VolumeT(dim) 
 {
   nSD = dim;
   length.Dimension(nSD,2);
   ncells.Dimension(nSD);
-  WhichRot = irot;
+
+  WhichSort.Dimension(nSD);
+  WhichSort = which_sort;
 
   for(int i=0;i<nSD;i++)
       ncells[i] = cel[i];
@@ -62,12 +66,15 @@ BoxT::BoxT(const BoxT& source) : VolumeT(source.nSD)
 {
   ncells.Dimension(source.nSD);
   ncells = source.ncells;
-  WhichRot = source.WhichRot;
 
   length.Dimension(source.nSD,2);
   length = source.length;
 
   volume = source.volume;
+
+
+  WhichSort.Dimension(nSD);
+  WhichSort = source.WhichSort;
 
   atom_names = source.atom_names;
 
@@ -92,10 +99,7 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
   int temp_nat=0;
   dArray2DT temp_atom;
 
-  // WhichRot = 0: rotate atoms in box
-  //          = 1: rotate box of atoms
-
-  if(WhichRot == 0) 
+  if(pcl->GetRotMeth() == 0) 
     {
       if (nlsd==2) temp_nat = 16*nuca*ncells[0]*ncells[1];
       if (nlsd==3) temp_nat = 64*nuca*ncells[0]*ncells[1]*ncells[2];
@@ -107,7 +111,7 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
     }
   temp_atom.Dimension(temp_nat,nlsd);
 
-  if(WhichRot == 0)
+  if(pcl->GetRotMeth() == 0)
     nATOMS = RotateAtomInBox(pcl,&temp_atom,temp_nat);
   else
     nATOMS = RotateBoxOfAtom(pcl,&temp_atom,temp_nat);
@@ -118,10 +122,8 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
   atom_connectivities.Dimension(nATOMS,1);
 
   for(int m=0; m < nATOMS ; m++) 
-    {
-      for (int k=0;k< nlsd;k++)
-	atom_coord(m)[k] = temp_atom(m)[k];
-    }
+    for (int k=0;k< nlsd;k++)
+      atom_coord(m)[k] = temp_atom(m)[k];
   
   atom_names = "Box";
   for (int p=0;p<nATOMS;p++)
@@ -144,7 +146,84 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
              (length(2,1)-length(2,0));
     break;
   }
+
+  // Sort Lattice 
+  if(WhichSort  != 0) SortLattice(pcl);
 }
+
+
+void BoxT::SortLattice(CrystalLatticeT* pcl) 
+{
+  /*
+  int nlsd = pcl->GetNLSD();
+
+  dArrayT atoms_mod(atom_coord.MajorDim()*atom_coord.MinorDim());
+  atoms_mod = 0.;
+  
+  for(int m=0; m < nATOMS ; m++) 
+    for(int j=0; j < nlsd ; j++) 
+      atoms_mod[j + nlsd*m] = atom_coord(m)[j];
+  
+  int new_m = 0;
+  for(int m=0; m < nATOMS ; m++) 
+    {
+      atom_coord(new_m)[1] = atoms_mod[1 + nlsd*m];
+      new_m++;
+    }
+
+  for(int m=0; m < nATOMS ; m++) 
+    {
+      atom_coord(new_m)[2] = atoms_mod[2 + nlsd*m];
+      new_m++;
+    }
+  */
+}
+
+
+
+void BoxT::CalculateBounds(iArrayT per,CrystalLatticeT* pcl)
+{
+  const dArrayT& vLP = pcl->GetLatticeParameters();
+  //dArray2DT MinMax(nSD,2);
+
+  //MinMax = ComputeMinMax();
+
+  atom_bounds.Dimension(nSD,2);
+
+  for (int i=0; i < nSD; i++)
+    {
+      if (per[i]==0) 
+	{
+	  // non-periodic conditions
+	  atom_bounds(i,0) = -10000.;
+	  atom_bounds(i,1) =  10000.;
+	}
+      else if (per[i]==1)
+	{
+	  // periodic conditions
+	  //	  atom_bounds(i,0) = MinMax(i)[0];
+	  //	  atom_bounds(i,1) = MinMax(i)[1] + 0.5*vLP[1];
+
+	  	  atom_bounds(i,0) = length(i)[0];
+	  	  atom_bounds(i,1) = length(i)[1] + 0.5*vLP[1];
+	}
+      else
+	throw eBadInputValue;
+    }  
+}
+
+
+void BoxT::CalculateType()
+{
+  atom_types.Dimension(nATOMS);
+
+  for (int i=0; i < nATOMS; i++)
+    atom_types[i] = 1; 
+}
+
+
+
+//////////////////// PRIVATE //////////////////////////////////
 
 int BoxT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat)
 {
@@ -310,51 +389,6 @@ int BoxT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat
   return natom;
 }
 
-
-
-void BoxT::CalculateBounds(iArrayT per,CrystalLatticeT* pcl)
-{
-  const dArrayT& vLP = pcl->GetLatticeParameters();
-  //dArray2DT MinMax(nSD,2);
-
-  //MinMax = ComputeMinMax();
-
-  atom_bounds.Dimension(nSD,2);
-
-  for (int i=0; i < nSD; i++)
-    {
-      if (per[i]==0) 
-	{
-	  // non-periodic conditions
-	  atom_bounds(i,0) = -10000.;
-	  atom_bounds(i,1) =  10000.;
-	}
-      else if (per[i]==1)
-	{
-	  // periodic conditions
-	  //	  atom_bounds(i,0) = MinMax(i)[0];
-	  //	  atom_bounds(i,1) = MinMax(i)[1] + 0.5*vLP[1];
-
-	  	  atom_bounds(i,0) = length(i)[0];
-	  	  atom_bounds(i,1) = length(i)[1] + 0.5*vLP[1];
-	}
-      else
-	throw eBadInputValue;
-    }  
-}
-
-
-void BoxT::CalculateType()
-{
-  atom_types.Dimension(nATOMS);
-
-  for (int i=0; i < nATOMS; i++)
-    atom_types[i] = 1; 
-}
-
-
-
-//////////////////// PRIVATE //////////////////////////////////
 
 dArray2DT BoxT::ComputeMinMax()
 {

@@ -1,4 +1,4 @@
-/* $Id: VolumeT.h,v 1.5 2002-08-02 02:07:50 saubry Exp $ */
+/* $Id: VolumeT.h,v 1.6 2002-11-01 00:09:53 saubry Exp $ */
 
 #ifndef _VOLUME_T_H_
 #define _VOLUME_T_H_
@@ -31,6 +31,9 @@ protected:
 	dArray2DT atom_bounds;
 	iArrayT atom_types;
 
+	iArrayT WhichSort;
+	iArrayT Map;
+
 public:
 
         VolumeT(int n);
@@ -42,6 +45,8 @@ public:
 	double GetVolume();
 
 	virtual void CreateLattice(CrystalLatticeT* pcl) = 0;
+	virtual void SortLattice(CrystalLatticeT* pcl) = 0;
+
 	virtual void CalculateBounds(iArrayT per,CrystalLatticeT* pcl) = 0;
 	virtual void CalculateType()=0;
 

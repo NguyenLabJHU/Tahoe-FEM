@@ -1,9 +1,10 @@
-/* $Id: VolumeT.cpp,v 1.4 2002-08-02 02:07:49 saubry Exp $ */
+/* $Id: VolumeT.cpp,v 1.5 2002-11-01 00:09:52 saubry Exp $ */
 #include "VolumeT.h"
 
 VolumeT::VolumeT(int n) 
 {
-  nSD = n;nATOMS = 0;
+  nSD = n;
+  nATOMS = 0;
 }
 
 

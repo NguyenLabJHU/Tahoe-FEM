@@ -1,4 +1,4 @@
-/* $Id: CrystalLatticeT.h,v 1.7 2002-09-09 23:10:29 saubry Exp $ */
+/* $Id: CrystalLatticeT.h,v 1.8 2002-11-01 00:09:52 saubry Exp $ */
 
 #ifndef _CRYSTAL_LATTICE_T_H_
 #define _CRYSTAL_LATTICE_T_H_
@@ -16,10 +16,12 @@ class CrystalLatticeT {
 protected:
 
 	int nLSD, nUCA;
+
 	dArray2DT vBasis;            // atoms in cell
 	dArrayT vLatticeParameters;  // lattice parameters
 	dArray2DT vAxis;             // Bravais vectors
 
+	int WhichRot;
 	dArray2DT matrix_rotation;
 	double angle_rotation;
 	dArrayT norm_vec;
@@ -29,7 +31,7 @@ protected:
 public:
 
 	// Constructor 
-	CrystalLatticeT(int nlsd, int nuca,
+	CrystalLatticeT(int nlsd, int nuca,int which_rot,
 			dArray2DT mat_rot,double angle);
 	// Copy Constructor 
 	CrystalLatticeT(const CrystalLatticeT& source);
@@ -39,6 +41,7 @@ public:
 	int GetNLSD() { return nLSD; }
 	int GetNUCA() { return nUCA; }
 
+	int GetRotMeth() { return WhichRot; };
 	double GetAngleRotation() { return angle_rotation; };
 	dArray2DT GetMatrixRotation() { return matrix_rotation;};
 
