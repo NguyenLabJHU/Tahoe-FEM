@@ -1,4 +1,4 @@
-/* $Id: EnSightOutputT.cpp,v 1.2 2001-02-13 17:50:45 paklein Exp $ */
+/* $Id: EnSightOutputT.cpp,v 1.3 2001-06-11 02:01:54 paklein Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #include "EnSightOutputT.h"
@@ -252,11 +252,13 @@ else
 
 bool EnSightOutputT::IsVector (const ArrayT<StringT>& inlabels, int index, StringT& extension, int dof) const
 {
-extension = inlabels[index];
+	extension = inlabels[index];
 
-if ( (strstr ((const char*) inlabels[index], "_x")) == NULL &&
-	 (strstr ((const char*) inlabels[index], "_X")) == NULL)
-return false;
+	if ((strstr ((const char*) inlabels[index], "_x")) == NULL &&
+        (strstr ((const char*) inlabels[index], "_X")) == NULL)
+		return false;
+	else
+		extension.Drop(-2);
 
 if (dof >= 2)
 {
@@ -275,11 +277,14 @@ if (dof == 3)
 	  return false;
 }
 
+//DEPRECATRED
+#if 0
 // create vector extension
 if ( (strstr ((const char*) inlabels[index], "_x")) != NULL)
 extension.DefaultName (inlabels[index], "_x", "", -1);
 else
 extension.DefaultName (inlabels[index], "_X", "", -1);
+#endif
 
 return true;
 }
