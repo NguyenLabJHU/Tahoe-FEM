@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.cpp,v 1.7 2001-07-25 08:13:33 paklein Exp $ */
+/* $Id: DPSSLinHardT.cpp,v 1.8 2001-07-27 00:08:04 cfoster Exp $ */
 /* created: myip (06/01/1999)                                        */
 /*
  * Interface for Drucker-Prager, nonassociative, small strain,
@@ -134,9 +134,15 @@ const dMatrixT& DPSSLinHardT::ModuliCorrection(const ElementCardT& element,
 	/* initialize */
 	fModuliCorr = 0.0;
 
+	cout << "element.IsAllocated = " << element.IsAllocated() << '\n';
+	cout << "element.IntegerData()  = " << element.IntegerData() << '\n'; 
+
 	if (element.IsAllocated() && 
 	   (element.IntegerData())[ip] == kIsPlastic)
 	{
+        
+	  cout << " in if statement \n";
+
 		/* load internal state variables */
 	  	LoadData(element,ip);
 		
@@ -145,6 +151,7 @@ const dMatrixT& DPSSLinHardT::ModuliCorrection(const ElementCardT& element,
 	double c2  = -sqrt(6.0)*fmu*fmu*fInternal[kdgamma]/fInternal[kstressnorm];
 	double c3  = -(3.0/2.0)/fX_H + sqrt32*fInternal[kdgamma]/fInternal[kstressnorm];
 	       c3 *= 4.0*fmu*fmu;
+
 	double c4  = -3.0*sqrt(2.0)*fkappa*fmu/fX_H;
 
 		fTensorTemp.Outer(One, One);
@@ -162,6 +169,18 @@ const dMatrixT& DPSSLinHardT::ModuliCorrection(const ElementCardT& element,
 		fTensorTemp.Outer(fUnitNorm,One);
 		fModuliCorr.AddScaled(ffriction*c4, fTensorTemp);
 	}
+
+               cout << " Moduli Correction = \n";
+	       //        cout << fModuliCorr[0] << ' ' <<  fModuliCorr[6] << ' ' << fModuliCorr[12] << fModuliCorr[18] << ' ' <<  fModuliCorr[24] << ' ' << fModuliCorr[30] << '\n';
+	       // cout << fModuliCorr[1] << ' ' <<  fModuliCorr[7] << ' ' << fModuliCorr[13] << fModuliCorr[19] << ' ' <<  fModuliCorr[25] << ' ' << fModuliCorr[31] << '\n';
+	       // cout << fModuliCorr[2] << ' ' <<  fModuliCorr[8] << ' ' << fModuliCorr[14] << fModuliCorr[20] << ' ' <<  fModuliCorr[26] << ' ' << fModuliCorr[32] << '\n'; 
+	       // cout << fModuliCorr[3] << ' ' <<  fModuliCorr[9] << ' ' << fModuliCorr[15] << fModuliCorr[21] << ' ' <<  fModuliCorr[27] << ' ' << fModuliCorr[33] << '\n';
+	       // cout << fModuliCorr[4] << ' ' <<  fModuliCorr[10] << ' ' << fModuliCorr[16] << fModuliCorr[22] << ' ' <<  fModuliCorr[28] << ' ' << fModuliCorr[34] << '\n';
+	       // cout << fModuliCorr[5] << ' ' <<  fModuliCorr[11] << ' ' << fModuliCorr[17] << fModuliCorr[23] << ' ' <<  fModuliCorr[29] << ' ' << fModuliCorr[35] << '\n';
+	
+               cout << fModuliCorr << '\n';
+	
+
 	return fModuliCorr;
 }	
 
