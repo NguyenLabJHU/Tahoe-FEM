@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.78 2004-01-14 22:04:41 rdorgan Exp $ */
+/* $Id: ElementListT.cpp,v 1.79 2004-01-27 01:27:58 cjkimme Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -46,6 +46,7 @@
 #include "MeshFreeSSSolidT.h"
 #include "MeshFreeFSSolidT.h"
 #include "D2MeshFreeFSSolidT.h"
+#include "SCNIMFT.h"
 #include "UpLagr_ExternalFieldT.h"
 #ifdef SIMPLE_SOLID_DEV
 #include "TotalLagrangianFlatT.h"
@@ -245,6 +246,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		out << "    eq. " << ElementT::kMFCohesiveSurface  << ", meshfree cohesive surface element\n";
 		out << "    eq. " << ElementT::kStaggeredMultiScale << ", Staggered MultiScale Element (for VMS) \n";
 		out << "    eq. " << ElementT::kAPSgrad 			<< ", Strict Anti-plane Shear gradient plasticity \n";
+		out << "    eq. " << ElementT::kSCNIMF 			<< ", Stabilized, Conforming Nodally-Integrated Galerkin Mesh-free \n";
 		out << "    eq. " << ElementT::kACME_Contact       << ", 3D contact using ACME\n";
 		out << "    eq. " << ElementT::kMultiplierContact3D       << ", 3D contact using Lagrange multipliers\n";
 		out << "    eq. " << ElementT::kMultiplierContactElement2D       << ", 2D Lagrange multiplier contact elements\n";
@@ -826,6 +828,15 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		  ExceptionT::BadInputValue(caller, "GRAD_SMALL_STRAIN_DEV not enabled: %d", code);
 #endif			
 		}
+		case ElementT::kSCNIMF:
+		{
+#ifdef CONTINUUM_ELEMENT
+			fArray[group] = new SCNIMFT(fSupport, *field);
+			break;
+#else
+			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
+#endif		
+		}
 		case ElementT::kGradC0SmallStrain:
 		{
 #ifdef GRAD_SMALL_STRAIN_DEV
@@ -845,9 +856,8 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		  ExceptionT::BadInputValue(caller, "GRAD_SMALL_STRAIN_DEV not enabled: %d", code);
 #endif			
 		}
-
 		default:
-		  ExceptionT::BadInputValue(caller, "unknown element type: %d", code);
+			ExceptionT::BadInputValue(caller, "unknown element type: %d", code);
 		}
 		
 		if (!fArray[group]) ExceptionT::OutOfMemory();
