@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.14 2002-06-18 21:49:00 recampb Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.15 2002-06-19 16:43:41 recampb Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -25,6 +25,7 @@
 #include "vtkArrowSource.h"
 #include "vtkSelectVisiblePoints.h"
 #include "vtkRenderer.h"
+#include "vtkTahoeGlyph3D.h"
 
 
 /* array behavior */
@@ -92,9 +93,9 @@ VTKUGridT::VTKUGridT(TypeT my_type, int id, int nsd):
 	boundBoxActor->SetVisibility(false);
 	boundBoxActor->GetProperty()->SetColor(1,1,1);
 	
+	fWarp = vtkWarpVector::New();
 
-
-	glyph = vtkGlyph3D::New();
+	glyph = vtkTahoeGlyph3D::New();
 	cone = vtkArrowSource::New();
 	//cone->SetResolution(6);
 	
@@ -328,7 +329,7 @@ void VTKUGridT::HideContours(vtkFloatArray* scalars)
 }
 
 
-void VTKUGridT::CuttingPlane(vtkRenderer* renderer, double oX, double oY, double oZ,double nX, double nY, double nZ)
+void VTKUGridT::CuttingPlane(vtkRenderer* renderer, double oX, double oY, double oZ,double nX, double nY, double nZ, bool warp)
 {
   vtkPlane* tplane = vtkPlane::New();
   vtkCutter* tcutter = vtkCutter::New();
@@ -349,9 +350,17 @@ void VTKUGridT::CuttingPlane(vtkRenderer* renderer, double oX, double oY, double
   cut.Append(tcut);
 
   //fActor->SetMapper(cutterMapper);
+
+  if (warp)
+    for (int i=0; i<cutter.Length(); i++)
+      {
+	cutter[i]->SetInput(fWarp->GetOutput());
+	cutterMapper[i]->SetInput(cutter[i]->GetOutput());
+      }  
+  
   fActor->SetVisibility(false);
   renderer->AddActor(tcut);
-  
+
   
   
 }
@@ -368,16 +377,14 @@ void VTKUGridT::HideCuttingPlane(vtkRenderer* renderer)
   
 }
 
-void VTKUGridT::Glyphing(vtkFloatArray* glyphs, vtkRenderer* renderer) 
+void VTKUGridT::Glyphing(vtkFloatArray* vectors, vtkRenderer* renderer) 
 {
 
   visPoints->SetRenderer(renderer);
-  glyphs->SetName("glyphs");
-  fUGrid->GetPointData()->AddArray(glyphs);
-  fUGrid->GetPointData()->SetActiveVectors("glyphs");
+  glyph->SetVectors(vectors);
+
   spikeActor->SetVisibility(true);
   spikeActor->PickableOff();
-  cout << fUGrid->GetPointData()->GetNumberOfArrays() << endl;
 }
 
 void VTKUGridT::HideGlyphing(void)
@@ -421,7 +428,7 @@ void VTKUGridT::SetWarpVectors(vtkFloatArray* vectors, dArray2DT coords)
 
 
     /* set up warp vector */
-    if (!fWarp) fWarp = vtkWarpVector::New();
+    
     fWarp->SetInput(fUGrid);
     //fWarp->SelectInputVectors(vectors);
     fMapper->SetInput(fWarp->GetOutput());

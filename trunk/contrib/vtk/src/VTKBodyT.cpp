@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.27 2002-06-18 21:49:00 recampb Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.28 2002-06-19 16:43:41 recampb Exp $ */
 
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
@@ -598,21 +598,24 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 	  {
 	    ArrayT<VTKUGridT*> fUGrids = fBodyData->UGrids();
 	    double oX, oY, oZ, nX, nY, nZ;
+	    bool warp = false;
+	    if (fBodyData->NumVectors() > 0)
+	      warp = true;
 	    
-	      for (int i = 0; i < fBodyData->UGrids().Length(); i++)
-		  {
-		    command.Argument("oX").GetValue(oX);
-		    command.Argument("oY").GetValue(oY);
-		    command.Argument("oZ").GetValue(oZ);
-		    command.Argument("nX").GetValue(nX);
-		    command.Argument("nY").GetValue(nY);
-		    command.Argument("nZ").GetValue(nZ);
-		    fUGrids[i]->CuttingPlane(fFrame->Renderer(), oX, oY, oZ, nX, nY, nZ );
-
-		 }
-	     return true;
+	    for (int i = 0; i < fBodyData->UGrids().Length(); i++)
+	      {
+		command.Argument("oX").GetValue(oX);
+		command.Argument("oY").GetValue(oY);
+		command.Argument("oZ").GetValue(oZ);
+		command.Argument("nX").GetValue(nX);
+		command.Argument("nY").GetValue(nY);
+		command.Argument("nZ").GetValue(nZ);
+		    fUGrids[i]->CuttingPlane(fFrame->Renderer(), oX, oY, oZ, nX, nY, nZ, warp );
+		    
+	      }
+	    return true;
 	    
-
+	    
 	  }
 
 	else if (command.Name() == "HideCuttingPlane")

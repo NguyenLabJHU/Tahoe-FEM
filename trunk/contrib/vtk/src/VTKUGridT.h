@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.h,v 1.11 2002-06-18 21:49:00 recampb Exp $ */
+/* $Id: VTKUGridT.h,v 1.12 2002-06-19 16:43:41 recampb Exp $ */
 #ifndef _VTK_U_GRID_T_H_
 #define _VTK_U_GRID_T_H_
 
@@ -30,7 +30,7 @@ class vtkPlane;
 class vtkCutter;
 class vtkSmoothPolyDataFilter;
 class vtkDataSetToPolyDataFilter;
-class vtkGlyph3D;
+class vtkTahoeGlyph3D;
 class vtkArrowSource;
 class vtkSelectVisiblePoints;
 class vtkRenderer;
@@ -82,11 +82,11 @@ class VTKUGridT
 	/** remove contours */
 	void HideContours(vtkFloatArray* scalars);
 
-	void CuttingPlane(vtkRenderer* renderer, double oX, double oY, double oZ, double nX, double nY, double nZ);
+	void CuttingPlane(vtkRenderer* renderer, double oX, double oY, double oZ, double nX, double nY, double nZ, bool warp);
 
 	void HideCuttingPlane(vtkRenderer* renderer);
 
-	void Glyphing(vtkFloatArray* glyphs, vtkRenderer* renderer);
+	void Glyphing(vtkFloatArray* vectors, vtkRenderer* renderer);
 
 	void HideGlyphing(void);
 
@@ -214,7 +214,7 @@ class VTKUGridT
 	AutoArrayT<vtkPolyDataMapper*> cutterMapper;
 
 	/** glyphing variables */
-	vtkGlyph3D* glyph;
+	vtkTahoeGlyph3D* glyph;
 	vtkPolyDataMapper* spikeMapper;
 	vtkActor* spikeActor;
 	vtkArrowSource* cone;
@@ -222,7 +222,6 @@ class VTKUGridT
 	int warpCount;
 	int numPoints;
 	vtkSelectVisiblePoints* visPoints;
-	
 	
       
 };
