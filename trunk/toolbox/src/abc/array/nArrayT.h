@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.9 2002-03-06 02:04:46 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.10 2002-03-28 16:34:12 paklein Exp $ */
 /* created: paklein (05/23/1997) */
 
 #ifndef _NARRAY_T_H_
@@ -78,6 +78,9 @@ public:
 	
 	/** return the sum of all elements in the array */
 	nTYPE Sum(void) const;
+
+	/** return the abs sum of all elements in the array */
+	nTYPE AbsSum(void) const;
 
 	/** return the average of the elements in the array */
 	nTYPE Average(void) const;
@@ -505,6 +508,17 @@ inline nTYPE nArrayT<nTYPE>::Sum(void) const
 	
 	for (int i = 0; i < fLength; i++)
 		sum += *p++;
+
+	return sum;
+}
+
+template <class nTYPE>
+inline nTYPE nArrayT<nTYPE>::AbsSum(void) const
+{
+	register nTYPE sum = nTYPE(0.0);
+	nTYPE* p = Pointer();
+	for (int i = 0; i < fLength; i++)
+		sum += fabs(*p++);
 
 	return sum;
 }
