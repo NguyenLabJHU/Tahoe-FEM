@@ -1,4 +1,4 @@
-/* $Id: J2SimoC0HardeningT.cpp,v 1.1 2001-05-05 19:28:34 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.cpp,v 1.2 2001-05-07 04:59:35 paklein Exp $ */
 /* created: paklein (05/01/2001) */
 
 #include "J2SimoC0HardeningT.h"
@@ -62,6 +62,25 @@ void J2SimoC0HardeningT::Print(ostream& out) const
 	/* hardening function parameters */
 	out << " Hardening function:\n";
 	fK->Print(out);
+	
+	/* print out spline coefficients */
+	if (fType == kCubicSpline)
+	{
+#ifndef __NO_RTTI__
+		const CubicSplineT* spline = dynamic_cast<const CubicSplineT*>(fK);
+		if (spline)
+		{
+			/* spline coefficients */
+			const dArray2DT& coefficients = spline->Coefficients();
+			out << " Spline coefficients:\n";
+			coefficients.WriteNumbered(out);
+		}
+		else
+			out << " Error: could not cast hardening function to cubic spline" << endl;
+#else /* __NO_RTTI__ */
+		out << " Note: RTTI not available. Cannot write spline coefficients" << endl;
+#endif /* __NO_RTTI__ */
+	}
 }
 
 void J2SimoC0HardeningT::PrintName(ostream& out) const
