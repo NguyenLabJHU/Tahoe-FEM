@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.5.2.2 2001-10-28 23:40:53 paklein Exp $ */
+/* $Id: OutputSetT.h,v 1.5.2.3 2001-10-29 21:10:27 sawimme Exp $ */
 /* created: paklein (03/07/2000) */
 
 #ifndef _OUTPUTSET_T_H_
@@ -95,9 +95,9 @@ public:
 	const iArray2DT* Connectivities(int index) const;
 
 //TEMP - used to write all set connectivities at once
-#if 0
+	//#if 0
 	void AllConnectivities(iArray2DT& connects) const;
-#endif
+	//#endif
 
 	/** return the labels for the nodal output variables */
 	const ArrayT<StringT>& NodeOutputLabels(void) const;
