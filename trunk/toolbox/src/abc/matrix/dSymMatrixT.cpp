@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.33 2004-08-01 00:52:39 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.34 2005-03-16 10:18:35 paklein Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
@@ -1203,7 +1203,7 @@ void dSymMatrixT::MultQTBQ(const dMatrixT& Q, const dSymMatrixT& B)
 }
 
 /* matrix-vector multiplication */
-void dSymMatrixT::Multx(const dArrayT& x, dArrayT& b) const
+void dSymMatrixT::Multx(const dArrayT& x, dArrayT& b, double scale, int fillmode) const
 {
 	const char caller[] = "dSymMatrixT::Multx";
 
@@ -1217,17 +1217,29 @@ void dSymMatrixT::Multx(const dArrayT& x, dArrayT& b) const
 
 	if (fNumSD == 2)
 	{
-		b[0] = fArray[0]*px[0] + fArray[2]*px[1];
-		b[1] = fArray[2]*px[0] + fArray[1]*px[1];		
+		if (fillmode == kOverwrite) {
+			b[0] = 0.0;
+			b[1] = 0.0;
+		}
+		b[0] += scale*(fArray[0]*px[0] + fArray[2]*px[1]);
+		b[1] += scale*(fArray[2]*px[0] + fArray[1]*px[1]);		
 	}
 	else if (fNumSD == 3)
 	{
-		b[0] = fArray[0]*px[0] + fArray[5]*px[1] + fArray[4]*px[2];
-		b[1] = fArray[5]*px[0] + fArray[1]*px[1] + fArray[3]*px[2];		
-		b[2] = fArray[4]*px[0] + fArray[3]*px[1] + fArray[2]*px[2];		
+		if (fillmode == kOverwrite) {
+			b[0] = 0.0;
+			b[1] = 0.0;
+			b[2] = 0.0;
+		}
+		b[0] += scale*(fArray[0]*px[0] + fArray[5]*px[1] + fArray[4]*px[2]);
+		b[1] += scale*(fArray[5]*px[0] + fArray[1]*px[1] + fArray[3]*px[2]);		
+		b[2] += scale*(fArray[4]*px[0] + fArray[3]*px[1] + fArray[2]*px[2]);		
 	}
 	else if (fNumSD == 1)
-		b[0] = fArray[0]*px[0];
+	{
+		if (fillmode == kOverwrite) b[0] = 0.0;
+		b[0] += scale*fArray[0]*px[0];
+	}
 	else
 		ExceptionT::GeneralFail(caller);
 }

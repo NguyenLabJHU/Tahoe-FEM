@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.h,v 1.20 2004-08-08 01:59:30 paklein Exp $ */
+/* $Id: dSymMatrixT.h,v 1.21 2005-03-16 10:18:35 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _DSYM_MATRIX_T_H_
 #define _DSYM_MATRIX_T_H_
@@ -25,6 +25,8 @@ public:
 		k3D = 3,
 		k3D_plane = 4 /**< 2D plane components, plus axial out-of-plane component */
 	};
+
+	enum AssemblyModeT {kOverwrite = 0, kAccumulate = 1};
 
 	/** integer to dSymMatrixT::DimensionT type conversion operator. Needed
 	 * for backward compatibility with code written before the enum was defined */
@@ -161,7 +163,7 @@ public:
 	void MultQTBQ(const dMatrixT& Q, const dSymMatrixT& B);
 
 	/* matrix-vector multiplication */
-	void Multx(const dArrayT& x, dArrayT& b) const;
+	void Multx(const dArrayT& x, dArrayT& b, double scale = 1.0, int fillmode = kOverwrite) const;
 
 	/* vector-matrix-vector product */
 	double MultmBn(const dArrayT& m, const dArrayT& n) const;
