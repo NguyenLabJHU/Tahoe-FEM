@@ -1,5 +1,5 @@
 %&LaTeX
-% $Id: material.solid.tex,v 1.6 2002-04-13 02:17:29 paklein Exp $
+% $Id: material.solid.tex,v 1.7 2002-04-24 22:44:52 dzeigle Exp $
 
 \section{Constitutive models for solid mechanics}
 This section of the guide describes the constitutive models available 
@@ -814,17 +814,15 @@ below:
 100.0 # Young's modulus
 0.25  # Poisson's ratio
 ####### plasticity
+0     # isotropic hardening function (0:linear)
 0.25  # yield stress
 0.01  # hardening parameter
-1.0   # kinematic/isotropic mixity
 \end{inputfile}
 After the common parameters described in 
 Section~\ref{sect.material.solid.common}, the 
 model requires specification of Young's modulus 
-$E$ and Poisson's ratio $\nu$. Finally, the user defines the initial 
-yield stress $\sigma_{y}$, the hardening parameter $\bar{H}$, and the 
-kinematic/isotropic hardening mixity parameter $\theta$, 
-for which $\theta = 1$ produces purely isotropic hardening.
+$E$ and Poisson's ratio $\nu$. Finally, the user defines the specification for the isotropic hardening function $K\farg{\alpha}$, the initial 
+yield stress $\sigma_{y}$, and the hardening parameter $\bar{H}$. All available hardening functions are listed in Table~\ref{tab.hardening.functions.iso}. An example of implementing the general cubic spline is detailed in Section~\ref{sect.mat.FD.J2.C0.Hardening}. 
 
 \subsubsection{2D input parameters}
 An example of input parameters for two-dimensional analysis is shown 
@@ -839,9 +837,9 @@ below:
 100.0 # Young's modulus
 0.25  # Poisson's ratio
 ####### plasticity
+0     # isotropic hardening function
 0.25  # yield stress
 0.01  # hardening parameter
-1.0   # kinematic/isotropic mixity
 ####### 2D parameters
 1.0   # thickness
 2     # constraint option (override)
@@ -850,10 +848,8 @@ After the common parameters described in
 Section~\ref{sect.material.solid.common}, the 
 model requires specification of Young's modulus 
 $E$ and Poisson's ratio $\nu$. Following these parameters, 
-the user defines the initial 
-yield stress $\sigma_{y}$, the hardening parameter $\bar{H}$, and the 
-kinematic/isotropic hardening mixity parameter $\theta$, 
-for which $\theta = 1$ produces purely isotropic hardening.
+the user defines the specification for the isotropic hardening function $K\farg{\alpha}$, the initial 
+yield stress $\sigma_{y}$, and the hardening parameter $\bar{H}$. All available hardening functions are listed in Table~\ref{tab.hardening.functions.iso}. An example of implementing the general cubic spline is detailed in Section~\ref{sect.mat.FD.J2.C0.Hardening}. 
 The material thickness and 
 constraint option from Table~\ref{tab.2Dconstraint} 
 follow the parameters for three-dimensional analysis.
@@ -2326,4 +2322,5 @@ description of the \textsf{UMAT} interface.}
 \subsubsection{Output values}
 \todo{output values determined by the implementation of the 
 \textsf{UMAT}. Show output parameters for A356.}
+
 
