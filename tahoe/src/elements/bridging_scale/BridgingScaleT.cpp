@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.13 2002-08-10 02:37:38 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.14 2002-08-11 01:29:41 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -28,20 +28,20 @@ BridgingScaleT::BridgingScaleT(const ElementSupportT& support,
 	fLocInitCoords(LocalArrayT::kInitCoords),
 	fLocDisp(LocalArrayT::kDisp),
 	fDOFvec(NumDOF()),
-	fMass(ShapeFunction().ParentDomain().NumNodes()),
+	fMass(ShapeFunction().ParentDomain().NumNodes()*NumDOF()),
 	//fWtemp(support.NumNodes(),ShapeFunction().ParentDomain().NumNodes()),
 	//fW(support.NumNodes(),ShapeFunction().ParentDomain().NumNodes())
-	fWtempU(ShapeFunction().ParentDomain().NumNodes()),
-	fWtempV(ShapeFunction().ParentDomain().NumNodes()),
-	fWtempA(ShapeFunction().ParentDomain().NumNodes()),
-	fWU(ShapeFunction().ParentDomain().NumNodes()),
+	fWtempU(ShapeFunction().ParentDomain().NumNodes()*NumDOF()),
+	fWtempV(ShapeFunction().ParentDomain().NumNodes()*NumDOF()),
+	fWtempA(ShapeFunction().ParentDomain().NumNodes()*NumDOF()),
+	//fWU(ShapeFunction().ParentDomain().NumNodes()),
 	fWV(ShapeFunction().ParentDomain().NumNodes()),
 	fWA(ShapeFunction().ParentDomain().NumNodes()),
 	//fError(ShapeFunction().ParentDomain().NumNodes()),
   	//fFineScaleU(ShapeFunction().ParentDomain().NumNodes()),
 	//fCoarseScaleU(ShapeFunction().ParentDomain().NumNodes()),
 	//fTotalU(ShapeFunction().ParentDomain().NumNodes()),
-	fMassInv(ShapeFunction().ParentDomain().NumNodes())
+	fMassInv(ShapeFunction().ParentDomain().NumNodes()*NumDOF())
 	//	fProjection(support.NumNodes())
 {
 
@@ -69,6 +69,7 @@ void BridgingScaleT::Initialize(void)
 	iArrayT atoms_used, nodes_used;
 	fParticle.NodesUsed(atoms_used);
 	fSolid.NodesUsed(nodes_used);
+	fTotalNodes = nodes_used.Length();
 	
 #if 0
 	dArray2DT atom_coords, node_coords;
@@ -305,9 +306,12 @@ void BridgingScaleT::ComputeMass(void)
   const dArray2DT& accelerations = field[2];
   dArrayT map, shape(parent.NumNodes()), shape2(parent.NumNodes()), shape3(parent.NumNodes());
   dArrayT temp(NumSD()), disp, vel, acc;
-  double dp, ve, ac;
+  double dp, ve, ac; 
+  dMatrixT Mass(fTotalNodes*NumDOF()), MassInv(fTotalNodes*NumDOF());
+  dArrayT trialU(fTotalNodes*NumDOF()), trialU2(fTotalNodes*NumDOF());
+  trialU = 0.0, trialU2 = 0.0, Mass = 0.0, MassInv = 0.0;
 
-  dMatrixT tempmass(parent.NumNodes());
+  dMatrixT tempmass(parent.NumNodes()*NumDOF());
   for (int i = 0; i < fParticlesInCell.MajorDim(); i++)
   {
       fMass = 0.0, fWtempU = 0.0, fWtempV = 0.0, fWtempA = 0.0;
@@ -336,12 +340,30 @@ void BridgingScaleT::ComputeMass(void)
 	  fWtempA += shape3;
 	  //fW.SetRow(atoms[j],shape); -> multiD implementation
       }
-      fMassInv.Inverse(fMass);
-      fMassInv.Multx(fWtempU,fWU);
-      fMassInv.Multx(fWtempV,fWV);
-      fMassInv.Multx(fWtempA,fWA);
-      ComputeU(displacements, velocities, accelerations);
+      /* augment global W, mass matrix/arrays */
+      int count = 0;
+      for (int j = i; j <= i + 1 ; j++)
+	{
+	  trialU[j] = trialU[j] + fWtempU[count];
+	  int count2 = 0;
+	  for (int k = i; k <= i + 1; k++)
+	    {
+	      Mass(j,k) += fMass(count,count2);
+	      count2++;
+	    }
+	  
+	  count++;
+	}
+      //fMassInv.Inverse(fMass);
+      //fMassInv.Multx(trialU,fWU);
+      //fMassInv.Multx(fWtempV,fWV);
+      //fMassInv.Multx(fWtempA,fWA);
+      //ComputeU(displacements, velocities, accelerations);
   }
+  MassInv.Inverse(Mass);
+  MassInv.Multx(trialU,trialU2);
+  cout << "MD displacements = \n" << displacements << endl;
+  cout << "FEM nodal values = \n" << trialU2 << endl;
 }
 
 void BridgingScaleT::ComputeU(const dArray2DT& field1, const dArray2DT& field2, const dArray2DT& field3)
@@ -416,17 +438,20 @@ void BridgingScaleT::ComputeU(const dArray2DT& field1, const dArray2DT& field2, 
       TotalV += FineScaleV;
       TotalA += CoarseScaleA;
       TotalA += FineScaleA;
-      cout << "MD = \n" << disp << endl;
-      cout << "TotalU = \n" << TotalU << endl;
-      cout << "FEM = \n" << CoarseScaleU << endl;
-      cout << "Fine Scale = \n" << FineScaleU << endl;
-      cout << "MD = \n" << vel << endl;
-      cout << "TotalV = \n" << TotalV << endl;
-      cout << "FEM = \n" << CoarseScaleV << endl;
-      cout << "Fine Scale = \n" << FineScaleV << endl;
-      cout << "MD = \n" << acc << endl;
-      cout << "TotalA = \n" << TotalA << endl;
-      cout << "FEM = \n" << CoarseScaleA << endl;
-      cout << "Fine Scale = \n" << FineScaleA << endl;
   }
+  cout << "MD = \n" << disp << endl;
+  cout << "TotalU = \n" << TotalU << endl;
+  cout << "FEM = \n" << CoarseScaleU << endl;
+  cout << "WU = \n" << fWU << endl;
+  //cout << "Fine Scale = \n" << FineScaleU << endl;
+  //cout << "MD = \n" << vel << endl;
+  //cout << "TotalV = \n" << TotalV << endl;
+  //cout << "FEM = \n" << CoarseScaleV << endl;
+  //cout << "WV = \n" << fWV << endl;
+  //cout << "Fine Scale = \n" << FineScaleV << endl;
+  //cout << "MD = \n" << acc << endl;
+  //cout << "TotalA = \n" << TotalA << endl;
+  //cout << "FEM = \n" << CoarseScaleA << endl;
+  //cout << "WA = \n" << fWA << endl;
+  //cout << "Fine Scale = \n" << FineScaleA << endl;
 }

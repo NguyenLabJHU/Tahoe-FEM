@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.10 2002-08-10 02:37:38 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.11 2002-08-11 01:29:41 hspark Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -126,6 +126,8 @@ protected:
 	dArrayT fWtempU, fWU, fErrorU, fFineScaleU, fCoarseScaleU, fTotalU;
 	dArrayT fWtempV, fWV, fErrorV, fFineScaleV, fCoarseScaleV, fTotalV;
         dArrayT fWtempA, fWA, fErrorA, fFineScaleA, fCoarseScaleA, fTotalA;
+
+	int fTotalNodes;
 
 	/* output control */
 	iArrayT	fNodalOutputCodes;
