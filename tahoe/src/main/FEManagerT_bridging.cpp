@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.7 2003-05-23 23:02:45 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.8 2003-07-11 16:46:07 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -21,7 +21,6 @@ FEManagerT_bridging::FEManagerT_bridging(ifstreamT& input, ofstreamT& output, Co
 	ifstreamT& bridging_input):
 	FEManagerT(input, output, comm),
 	fBridgingIn(bridging_input),
-	fParticle(NULL),
 	fBridgingScale(NULL),
 	fSolutionDriver(NULL)
 {
@@ -102,7 +101,7 @@ void FEManagerT_bridging::SetExternalForce(const StringT& field, const dArray2DT
 	
 	/* collect equation numbers */
 	iArray2DT& eqnos = fExternalForce2DEquations[group];
-	eqnos.Dimension(fNodeManager->NumNodes(), thefield->NumDOF());
+	eqnos.Dimension(activefenodes.Length(), thefield->NumDOF());
 	thefield->SetLocalEqnos(activefenodes, eqnos);	// crashes here if not nodes and atoms everywhere
 }
 
@@ -141,11 +140,24 @@ void FEManagerT_bridging::InitGhostNodes(void)
 	for (int j = 0; j < ndof; j++)
 		for (int i = 0; i < fGhostNodes.Length(); i++)
 			KBC_cards[dex++].SetValues(fGhostNodes[i], j, KBC_CardT::kDsp, 0, 0.0);
-	
-	/* reset neighbor lists */
-	ParticleT& particle = Particle();
-	particle.SetSkipParticles(fGhostNodes);
-	particle.SetConfiguration();
+
+	/* search through element groups for particles */
+	bool found = false;
+	for (int i = 0; i < fElementGroups.Length(); i++)
+	{
+		/* pointer to element group */
+		ElementBaseT* element_base = fElementGroups[i];
+		
+		/* attempt cast to particle type */
+		ParticleT* particle = dynamic_cast<ParticleT*>(element_base);
+		if (particle) 
+		{
+			found = true;
+			particle->SetSkipParticles(fGhostNodes);
+			particle->SetConfiguration();
+		}
+	}
+	if (!found) ExceptionT::GeneralFail(caller, "no particle group found");
 	
 	/* reset the group equations numbers */
 	SetEquationSystem(the_field->Group());
@@ -176,10 +188,40 @@ void FEManagerT_bridging::InitGhostNodes(void)
 	for (int i = 0; i < is_ghost.Length(); i++)
 		if (is_ghost[i] == 0)
 			fNonGhostNodes[dex++] = i;
+			
+}
+
+/* prescribe the motion of ghost nodes */
+void FEManagerT_bridging::SetGhostNodeKBC(KBC_CardT::CodeT code, const dArray2DT& values)
+{
+	const char caller[] = "FEManagerT_bridging::SetGhostNodeKBC";
+	if (!fSolutionDriver) ExceptionT::GeneralFail(caller, "controller for ghost node motion not set");
+
+	/* fetch cards */
+	ArrayT<KBC_CardT>& KBC_cards = fSolutionDriver->KBC_Cards();
+
+	/* check dimensions */
+	int ndof = values.MinorDim();
+	if (KBC_cards.Length()/ndof != values.MajorDim())
+		ExceptionT::SizeMismatch(caller, "expecting %d nodal values not %d",
+			KBC_cards.Length()/ndof, values.MajorDim());
+
+	/* loop over cards */
+	for (int i = 0; i < KBC_cards.Length(); i++)
+	{
+		/* retrieve values set during InitGhostNodes */
+		KBC_CardT& card = KBC_cards[i];
+		int node = card.Node();
+		int dof  = card.DOF();
+		int schd = card.ScheduleNum();
+	
+		/* reset code and value */
+		card.SetValues(node, dof, code, schd, values[i]);
+	}
 }
 
 /* compute the ghost-nonghost part of the stiffness matrix */
-void FEManagerT_bridging::Form_G_NG_Stiffness(const StringT& field, dSPMatrixT& K_G_NG)
+void FEManagerT_bridging::Form_G_NG_Stiffness(const StringT& field, int element_group, dSPMatrixT& K_G_NG)
 {
 	const char caller[] = "FEManagerT_bridging::Form_G_NG_Stiffness";
 
@@ -208,12 +250,17 @@ void FEManagerT_bridging::Form_G_NG_Stiffness(const StringT& field, dSPMatrixT& 
 	/* clear values */
 	K_G_NG = 0.0;
 
+	/* try cast */
+	ElementBaseT* element_base = fElementGroups[element_group];
+	ParticleT* particle = dynamic_cast<ParticleT*>(element_base);
+	if (!particle) ExceptionT::GeneralFail(caller, "element group %d is not a particle group", element_group);
+
 	/* form matrix */
-	Particle().FormStiffness(fGhostIdToIndex, fGhostNodesEquations, K_G_NG);
+	particle->FormStiffness(fGhostIdToIndex, fGhostNodesEquations, K_G_NG);
 }
 
 /* set the field at the ghost nodes */
-void FEManagerT_bridging::SetFieldValues(const StringT& field, const iArrayT& nodes, 
+void FEManagerT_bridging::SetFieldValues(const StringT& field, const iArrayT& nodes, int order, 
 	const dArray2DT& values)
 {
 	const char caller[] = "FEManagerT_bridging::SetFieldValues";
@@ -227,10 +274,10 @@ void FEManagerT_bridging::SetFieldValues(const StringT& field, const iArrayT& no
 	FieldT* the_field = fNodeManager->Field(field);
 	if (!the_field) ExceptionT::GeneralFail(caller, "could not resolve field \"%s\"", field.Pointer());
 
-	/* assume we're writing into the displacement array */
-	dArray2DT& displacement = (*the_field)[0];
+	/* can write into any field due to order parameter */
+	dArray2DT& arbitraryfield = (*the_field)[order];
 	for (int i = 0; i < values.MajorDim(); i++)	
-		displacement.SetRow(nodes[i], values(i));
+		arbitraryfield.SetRow(nodes[i], values(i));
 
 	/* reset the current configuration */
 	fNodeManager->UpdateCurrentCoordinates();
@@ -252,10 +299,10 @@ void FEManagerT_bridging::InitInterpolation(const iArrayT& nodes, const StringT&
 }
 
 /* field interpolations */
-void FEManagerT_bridging::InterpolateField(const StringT& field, dArray2DT& nodal_values)
+void FEManagerT_bridging::InterpolateField(const StringT& field, int order, dArray2DT& nodal_values)
 {
 	/* interpolate in bridging scale element */
-	BridgingScale().InterpolateField(field, fFollowerCellData, nodal_values);
+	BridgingScale().InterpolateField(field, order, fFollowerCellData, nodal_values);
 }
 
 /* return the interpolation matrix associated with the active degrees
@@ -321,22 +368,20 @@ void FEManagerT_bridging::InterpolationMatrix(const StringT& field, dSPMatrixT& 
 void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& atoms, iArrayT& activefenodes) const
 {
 	/* obtain global node numbers of nodes whose support intersects MD, create inverse map */
-	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();	// list of active nodes
+	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();	// list of active nodes fDrivenCellData
 	activefenodes = cell_nodes;
-	InverseMapT gtlnodes, gtlatoms;
+	InverseMapT gtlnodes;
 	gtlnodes.SetMap(cell_nodes);	// create global to local map for active nodes
-	gtlatoms.SetMap(atoms);		// create global to local map for all atoms - redundant?
 	int numactivenodes = cell_nodes.Length();	// number of projected nodes
-	int numatoms = atoms.Length();	// total number of atoms
+	int numatoms = atoms.Length();	// total number of non ghost atoms
 
 	/* the shape functions values at the interpolating point */
 	const dArray2DT& weights = fDrivenCellData.InterpolationWeights(); 
 
-	/* redimension matrix if needed */
+	/* dimension matrix if needed */
 	int row_eq = numactivenodes;	// the number of projected nodes
-	int col_eq = numatoms;	// total number of atoms
-	if (ntf.Rows() != row_eq || ntf.Cols() != col_eq)
-		ntf.Dimension(row_eq, col_eq, 0);
+	int col_eq = numatoms;	// total number of non ghost atoms
+	ntf.Dimension(row_eq, col_eq, 0);
 
 	/* clear */
 	ntf = 0.0;
@@ -351,13 +396,12 @@ void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& atoms, iArrayT& ac
 		/* element info */
 		const ElementCardT& element_card = continuum->ElementCard(cell[i]);
 		const iArrayT& fenodes = element_card.NodesU();
-		int dex = gtlatoms.Map(atoms[i]);	// global to local map for atoms
-		
+
 		/* put shape functions for nodes evaluated at each atom into global interpolation matrix */
 		for (int j = 0; j < weights.MinorDim(); j++)
 		{
 			int dex2 = gtlnodes.Map(fenodes[j]);	// global to local map for nodes
-			ntf.SetElement(dex2, dex, weights(dex,j));  // dex = i...
+			ntf.SetElement(dex2, i, weights(i,j));  // dex = i...
 		}
 	}
 }
@@ -409,7 +453,7 @@ void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& fi
 }
 
 /* project the point values onto the mesh */
-void FEManagerT_bridging::ProjectField(const StringT& field, NodeManagerT& node_manager)
+void FEManagerT_bridging::ProjectField(const StringT& field, NodeManagerT& node_manager, int order)
 {
 	const char caller[] = "FEManagerT_bridging::ProjectField";
 
@@ -423,11 +467,12 @@ void FEManagerT_bridging::ProjectField(const StringT& field, NodeManagerT& node_
 
 	/* write values into the field */
 	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
-	SetFieldValues(field, cell_nodes, fProjection);
+	SetFieldValues(field, cell_nodes, order, fProjection);
 }
 
 /* project the point values onto the mesh */
-void FEManagerT_bridging::InitialProject(const StringT& field, NodeManagerT& node_manager, dArray2DT& projectedu)
+void FEManagerT_bridging::InitialProject(const StringT& field, NodeManagerT& node_manager, dArray2DT& projectedu,
+int order)
 {
 	const char caller[] = "FEManagerT_bridging::ProjectField";
 
@@ -441,7 +486,7 @@ void FEManagerT_bridging::InitialProject(const StringT& field, NodeManagerT& nod
 
 	/* write values into the field */
 	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
-	SetFieldValues(field, cell_nodes, fProjection);
+	SetFieldValues(field, cell_nodes, order, fProjection);
 }
 
 /* calculate the fine scale part of MD solution as well as total displacement u */
@@ -483,14 +528,34 @@ void FEManagerT_bridging::SetReferenceError(int group, double error) const
  * most recent call to FEManagerT_bridging::FormRHS. */
 const dArray2DT& FEManagerT_bridging::InternalForce(int group) const
 {
-//TEMP - only look for the contribution from the particle group
 	const char caller[] = "FEManagerT_bridging::InternalForce";
-	if (!fParticle)
-		ExceptionT::GeneralFail(caller, "particle group not set");
-	else if (!fParticle->InGroup(group))
-		ExceptionT::GeneralFail(caller, "particles are not in group %d", group);
-		
-	return fParticle->InternalForce(group);
+
+	/* search through element groups */
+	ElementBaseT* element = NULL;
+	for (int i = 0; i < fElementGroups.Length(); i++)
+		if (fElementGroups[i]->InGroup(group))
+		{
+			/* already found element group */
+			if (element) ExceptionT::GeneralFail(caller, "solver group %d contains more than one element group", group);
+			element = fElementGroups[i];
+		}
+	
+	/* no elements in the group */
+	if (!element) ExceptionT::GeneralFail(caller, "no elements in solver group %d", group);
+
+	return element->InternalForce(group);
+}
+
+/* return the properties map for the given element group */
+nMatrixT<int>& FEManagerT_bridging::PropertiesMap(int element_group)
+{
+	/* try cast to particle type */
+	ElementBaseT* element_base = fElementGroups[element_group];
+	ParticleT* particle = dynamic_cast<ParticleT*>(element_base);
+	if (!particle)
+		ExceptionT::GeneralFail("FEManagerT_bridging::PropertiesMap",
+			"group %d is not a particle group", element_group);
+	return particle->PropertiesMap();
 }
 
 /*************************************************************************
@@ -520,32 +585,6 @@ void FEManagerT_bridging::SetSolver(void)
 /*************************************************************************
  * Private
  *************************************************************************/
-
-/* the particle group */
-ParticleT& FEManagerT_bridging::Particle(void) const
-{
-	/* find bridging scale group */
-	if (!fParticle) {
-	
-		/* search through element groups */
-		for (int i = 0; !fParticle && i < fElementGroups.Length(); i++)
-		{
-			/* try cast */
-			ElementBaseT* element_base = fElementGroups[i];
-			
-			/* need non-const pointer to this */
-			FEManagerT_bridging* fe = (FEManagerT_bridging*) this;
-			fe->fParticle = dynamic_cast<ParticleT*>(element_base);
-		}
-		
-		/* not found */
-		if (!fParticle)
-			ExceptionT::GeneralFail("FEManagerT_bridging::Particle",
-				"did not find ParticleT group");
-	}
-	
-	return *fParticle;
-}
 
 /* the bridging scale element group */
 BridgingScaleT& FEManagerT_bridging::BridgingScale(void) const

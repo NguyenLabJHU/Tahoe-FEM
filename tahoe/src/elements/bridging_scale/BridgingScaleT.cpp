@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.33 2003-05-23 22:55:08 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.34 2003-07-11 16:45:59 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -243,7 +243,7 @@ void BridgingScaleT::InitInterpolation(const iArrayT& points_used, const dArray2
 	}
 }
 
-void BridgingScaleT::InterpolateField(const StringT& field, const PointInCellDataT& cell_data,
+void BridgingScaleT::InterpolateField(const StringT& field, int order, const PointInCellDataT& cell_data,
 	dArray2DT& point_values) const
 {
 	int nen = fSolid.NumElementNodes();
@@ -251,7 +251,7 @@ void BridgingScaleT::InterpolateField(const StringT& field, const PointInCellDat
 	/* get the field */
 	const FieldT* the_field = ElementSupport().Field(field);
 	LocalArrayT loc_field(LocalArrayT::kDisp, nen, the_field->NumDOF());
-	loc_field.SetGlobal((*the_field)[0]); /* take zeroth order field */
+	loc_field.SetGlobal((*the_field)[order]); /* change orde so can accomodate any field */
 	
 	/* interpolation data */
 	const dArray2DT& weights = cell_data.InterpolationWeights();
@@ -470,7 +470,6 @@ void BridgingScaleT::InitialProject(const StringT& field, const PointInCellDataT
 	const dArray2DT& point_values, dArray2DT& projection, dArray2DT& projectedu)
 {
 #pragma unused(field)
-
 	/* projected part of the mesh */
 	const iArrayT& cell_nodes = cell_data.CellNodes();
 	const iArray2DT& cell_connects = cell_data.CellConnectivities();
@@ -499,14 +498,14 @@ void BridgingScaleT::InitialProject(const StringT& field, const PointInCellDataT
 			for (int j = 0; j < np; j++)
 			{
 				int point = points[j];
-			
+		
 				/* fetch interpolation weights */
 				int point_dex = global_to_local.Map(point);
 				weights.RowAlias(point_dex, Na);
 
 				/* source values of the point */
 				point_values.RowAlias(point, point_value);
-			
+
 				/* rhs during projection - calculating part of w */
 				Nd.Outer(Na, point_value, 1.0, dMatrixT::kAccumulate);
 			}
@@ -519,7 +518,7 @@ void BridgingScaleT::InitialProject(const StringT& field, const PointInCellDataT
 				projection.Accumulate(j, cell_eq, Nd(j));
 		}
 	}
-	
+
 //TEMP - write mass matrix to file
 #if 0
 ostream& out = ElementSupport().Output();
@@ -536,7 +535,25 @@ out << "\n residual =\n" << projection << endl;
 		projection.ColumnCopy(i, u_tmp);
 		fGlobalMass.Solve(u_tmp);
 		projection.SetColumn(i, u_tmp);
-	}
+	}	
+	//ofstream project, fenodes1, fenodes2;
+	//project.open("project.dat");
+	//fenodes1.open("fenodes1.dat");
+	//fenodes2.open("fenodes2.dat");
+	//project.precision(13);
+	//for (int i = 0; i < projection.MajorDim(); i++)
+	//{
+	//	project << i+1 << " " << 1 << " " << 1 << " " << projection(i,0) << endl;
+	//	project << i+1 << " " << 2 << " " << 1 << " " << projection(i,1) << endl;
+	//	fenodes1 << "*set" << endl;
+	//	fenodes1 << 1 << endl;
+	//	fenodes1 << cell_nodes[i]+1 << endl;
+	//	fenodes2 << i+1 << " " << 1 << endl;
+	//}
+	
+	//project.close();
+	//fenodes1.close();
+	//fenodes2.close();
 	u_tmp.Free();
 
 	fFineScale.Dimension(point_values);
@@ -563,7 +580,7 @@ out << "\n residual =\n" << projection << endl;
 			for (int j = 0; j < np; j++)
 			{
 				int point = points[j];
-			
+		
 				/* fetch interpolation weights */
 				int point_dex = global_to_local.Map(point);
 				weights.RowAlias(point_dex, Na);
@@ -595,7 +612,7 @@ void BridgingScaleT::BridgingFields(const StringT& field, const PointInCellDataT
 	/* projected part of the mesh */
 	const iArrayT& cell_nodes = cell_data.CellNodes();
 	const iArray2DT& cell_connects = cell_data.CellConnectivities();
-
+	
 	/* points in cell data */
 	const RaggedArray2DT<int>& point_in_cell = cell_data.PointInCell();
 	const dArray2DT& weights = cell_data.InterpolationWeights();
@@ -658,6 +675,7 @@ out << "\n residual =\n" << projection << endl;
 		fGlobalMass.Solve(u_tmp);
 		projection.SetColumn(i, u_tmp);
 	}
+
 	u_tmp.Free();
 
 	/* initialize return values */
@@ -675,6 +693,11 @@ out << "\n residual =\n" << projection << endl;
 	cell_dex = 0;
 	iArrayT cell_connect;
 	dArray2DT cell_projection(cell_connects.MinorDim(), projection.MinorDim());
+
+	/* element group information */
+	const ContinuumElementT* continuum = cell_data.ContinuumElement();
+	const iArrayT& cell = cell_data.InterpolatingCell();
+
 	for (int i = 0; i < point_in_cell.MajorDim(); i++)
 	{
 		int np = point_in_cell.MinorDim(i);
@@ -683,13 +706,18 @@ out << "\n residual =\n" << projection << endl;
 			/* gather cell information */
 			cell_connects.RowAlias(cell_dex++, cell_connect);
 			cell_projection.RowCollect(cell_connect, projection);
-			coarse.RowCollect(cell_connect, fedisp);
-		
+				
+			/* element info */
 			int* points = point_in_cell(i);
+			int off = global_to_local.Map(points[0]);
+			const ElementCardT& element_card = continuum->ElementCard(cell[off]);
+			const iArrayT& fenodes = element_card.NodesU();
+			coarse.RowCollect(fenodes, fedisp);  
+		
 			for (int j = 0; j < np; j++)
 			{
 				int point = points[j];
-			
+				
 				/* fetch interpolation weights */
 				int point_dex = global_to_local.Map(point);
 				weights.RowAlias(point_dex, Na);
@@ -712,9 +740,6 @@ out << "\n residual =\n" << projection << endl;
 			}
 		}
 	}
-	cout << "totalu = " << totalu << endl;
-	cout << "fem disp = " << coarse_scale << endl;
-	cout << "fine scale = " << fFineScale << endl;
 }
 
 /* writing output */

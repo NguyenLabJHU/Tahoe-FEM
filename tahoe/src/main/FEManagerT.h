@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.34 2003-05-20 10:39:56 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.35 2003-07-11 16:46:07 hspark Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -116,6 +116,12 @@ public:
 
 	/** resolve the index of the given element group */
 	int ElementGroupNumber(const ElementBaseT* pgroup) const;
+
+	/** change the active element groups.
+	 * \param mask list with length of the \e total number of element
+	 *        groups with true|false determining whether the element
+	 *        group is active. */
+	void SetActiveElementGroupMask(const ArrayT<bool>& mask) { fElementGroups.SetActiveElementGroupMask(mask); };
 
 	/** pointer to an element group */
 	SolverT* Solver(int group) { return fSolvers[group]; };

@@ -1,8 +1,9 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.43 2003-05-30 18:08:02 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.44 2003-07-11 16:46:07 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
 #include <iostream.h>
+#include <iomanip.h>
 #include <time.h>
 #include <ctype.h>
 
@@ -335,13 +336,13 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		phase = 0;
 		char job_char;
 		atom_in >> job_char;
-		FEManagerT_bridging atoms(atom_in, atom_out, fComm, bridge_atom_in);
+		
+		/* initialize FEManager_THK using atom values */
+		FEManagerT_THK atoms(atom_in, atom_out, fComm, bridge_atom_in);
 		atoms.Initialize();
-
-		continuum_in >> job_char;
+	    	continuum_in >> job_char;
 		FEManagerT_bridging continuum(continuum_in, continuum_out, fComm, bridge_continuum_in);
 		continuum.Initialize();
-
 		t1 = clock();
 		phase = 1;
                 
@@ -349,14 +350,15 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		 * check only one integrator assuming they both are the same */
 		const IntegratorT* mdintegrate = atoms.Integrator(0);
 		IntegratorT::ImpExpFlagT impexp = mdintegrate->ImplicitExplicit();
-                
+       
 		if (impexp == IntegratorT::kImplicit)
 			RunStaticBridging(continuum, atoms, log_out);
 		else if (impexp == IntegratorT::kExplicit)
 			RunDynamicBridging(continuum, atoms, log_out);
 		else
 			ExceptionT::GeneralFail(caller, "unknown integrator type %d", impexp);
-
+		
+	
 		t2 = clock();
 	}
         
@@ -394,14 +396,16 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 	status << "\n End Execution\n" << endl;
 }
 
-void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms, ofstream& log_out) const
+void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEManagerT_THK& atoms, ofstream& log_out) const
 {
 	const char caller[] = "FEExecutionManagerT::RunStaticBridging";
 	    
 	/* configure ghost nodes */
 	int group = 0;
+	int order1 = 0;
 	StringT bridging_field = "displacement";
 	bool make_inactive = true;
+	bool active = false;
 	atoms.InitGhostNodes();
 	continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
 	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), make_inactive);
@@ -486,7 +490,7 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 #endif
 					
 				/* apply solution to continuum */
-				continuum.ProjectField(bridging_field, *atoms.NodeManager());
+				continuum.ProjectField(bridging_field, *atoms.NodeManager(), order1);
 #if 0
 				K_CA.Multx(atoms.CumulativeUpdate(group_num), F_C);
 				F_C *= -1.0;
@@ -502,8 +506,9 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 				}
 				
 				/* apply solution to atoms */
-				continuum.InterpolateField(bridging_field, field_at_ghosts);
-				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
+				int order = 0;  // displacement only for static case
+				continuum.InterpolateField(bridging_field, order, field_at_ghosts);
+				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order, field_at_ghosts);
 #if 0
 				K_AC.Multx(continuum.CumulativeUpdate(group_num), F_A);
 				F_A *= -1.0;
@@ -564,25 +569,46 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 	}
 }
 
-void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms, ofstream& log_out) const
+void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_THK& atoms, ofstream& log_out) const
 {
 	const char caller[] = "FEExecutionManagerT::RunDynamicBridging";
-	
+
 	/* configure ghost nodes */
 	int group = 0;
+	int order1 = 0;	// For InterpolateField, 3 calls to obtain displacement/velocity/acceleration
+	int order2 = 1;
+	int order3 = 2;
+	dArray2DT field_at_ghosts, totalu, fubig, fu, projectedu, boundghostdisp, boundghostvel, boundghostacc;
+	dArray2DT thkforce, gaussdisp;
+	dSPMatrixT ntf;
+	iArrayT activefenodes;
 	StringT bridging_field = "displacement";
 	atoms.InitGhostNodes();
 	bool makeinactive = false;	
-	continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
-	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive);
 	
+	/* figure out boundary atoms for use with THK boundary conditions, 
+	   ghost atoms for usage with MD force calculations */
+	const iArrayT& boundaryghostatoms = atoms.InterpolationNodes();
+	int numgatoms = (atoms.GhostNodes()).Length();	// total number of ghost atoms
+	int numbatoms = boundaryghostatoms.Length() - numgatoms;	// total number of boundary atoms
+	dArray2DT gadisp(numgatoms,2), gavel(numgatoms,2), gaacc(numgatoms,2);
+	dArray2DT badisp(numbatoms,2), bavel(numbatoms,2), baacc(numbatoms,2);
+	iArrayT allatoms(boundaryghostatoms.Length()), gatoms(numgatoms), batoms(numbatoms), boundatoms(numbatoms);
+	allatoms.SetValueToPosition();
+	batoms.CopyPart(0, allatoms, numgatoms, numbatoms);  
+	gatoms.CopyPart(0, allatoms, 0, numgatoms);          
+	boundatoms.CopyPart(0, boundaryghostatoms, numgatoms, numbatoms);
+	continuum.InitInterpolation(boundaryghostatoms, bridging_field, *atoms.NodeManager());
+	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive);
+	nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
+	ghostonmap = 0;
+	ghostoffmap = 0;
+	ghostoffmap(1,0) = ghostoffmap(0,1) = 1;
+
 	/* time managers */
 	TimeManagerT* atom_time = atoms.TimeManager();
 	TimeManagerT* continuum_time = continuum.TimeManager();
 
-	dArray2DT field_at_ghosts, totalu, fu, projectedu;
-	dSPMatrixT ntf;
-	iArrayT activefenodes;
 	atom_time->Top();
 	continuum_time->Top();
 	int d_width = OutputWidth(log_out, field_at_ghosts.Pointer());
@@ -590,129 +616,119 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	{	
 		/* set to initial condition */
 		atoms.InitialCondition();
-		continuum.InitialCondition();
 
-		/* figure out timestep ratio between fem and md simulations */
-		int nfesteps = continuum_time->NumberOfSteps();
-		double mddt = atom_time->TimeStep();
-		double fedt = continuum_time->TimeStep();
-		double d_ratio = fedt/mddt;		
-		int ratio = int((2.0*d_ratio + 1.0)/2.0);
-		cout << "time step ratio = " << ratio << endl;
-		
-		/* running status flag */
-		ExceptionT::CodeT error = ExceptionT::kNoError;		
-		
-		/* Solve both MD and FE initially before main time loop */
-		atom_time->Step();	
-					
-		/* initialize MD step - assume initial MD displacements known here */
-		if (1 || error == ExceptionT::kNoError) error = atoms.InitStep();
-		
-		/* begin continuum initial step */
-		continuum_time->Step();
-					
-		/* initialize step */
-		if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
-                    		
 		/* calculate fine scale part of MD displacement and total displacement u */
-		continuum.InitialProject(bridging_field, *atoms.NodeManager(), projectedu);
+		continuum.InitialProject(bridging_field, *atoms.NodeManager(), projectedu, order1);
 		
 		/* solve for initial FEM force f(u) as function of fine scale + FEM */
-		/* use projected totalu instead of totalu for first timestep */
-		fu = InternalForce(projectedu, atoms);
-		
+		/* use projected totalu instead of totalu for initial FEM displacements */
+		nMatrixT<int>& promap = atoms.PropertiesMap(0);   // element group for particles = 0
+		promap = ghostoffmap;  // turn ghost atoms off for f(u) calculation
+		fubig = InternalForce(projectedu, atoms);
+		promap = ghostonmap;   // turn ghost atoms back on for MD force calculations
+	
 		/* calculate global interpolation matrix ntf */
 		continuum.Ntf(ntf, atoms.NonGhostNodes(), activefenodes);
-		cout << "ntf = " << ntf << endl;
-		cout << "fu = " << fu << endl;
 		
 		/* compute FEM RHS force as product of ntf and fu */
 		dArrayT fx(ntf.Rows()), fy(ntf.Rows()), tempx(ntf.Cols()), tempy(ntf.Cols());
-		dArray2DT ntfproduct(ntf.Rows(), fu.MinorDim());
+		dArray2DT ntfproduct(ntf.Rows(), 2);
+		fu.Dimension((atoms.NonGhostNodes()).Length(), 2);
+		fu.RowCollect(atoms.NonGhostNodes(), fubig);   
 		fu.ColumnCopy(0,tempx);
 		ntf.Multx(tempx,fx);
 		ntfproduct.SetColumn(0,fx);
 		fu.ColumnCopy(1,tempy);
 		ntf.Multx(tempy,fy);
 		ntfproduct.SetColumn(1,fy);
-		cout << "ntfproduct = " << ntfproduct << endl;
-		
+	
 		/* Add FEM RHS force to RHS using SetExternalForce */
 		continuum.SetExternalForce(bridging_field, ntfproduct, activefenodes);
+	
+		/* now d0, v0 and a0 are known after InitialCondition */
+		continuum.InitialCondition();
 		
-		/* solve FEM equation of motion using force just calculated as RHS */
-		if (1 || error == ExceptionT::kNoError) {
-				continuum.ResetCumulativeUpdate(group);
-				error = continuum.SolveStep();
-		}
+		/* Interpolate FEM values to MD ghost nodes which will act as MD boundary conditions */
+		continuum.InterpolateField(bridging_field, order1, boundghostdisp);
+		continuum.InterpolateField(bridging_field, order2, boundghostvel);
+		continuum.InterpolateField(bridging_field, order3, boundghostacc);
+
+		/* sort boundary + ghost atom info into separate arrays */
+		gadisp.RowCollect(gatoms, boundghostdisp);
+		gavel.RowCollect(gatoms, boundghostvel);
+		gaacc.RowCollect(gatoms, boundghostacc);
+		badisp.RowCollect(batoms, boundghostdisp);
+		bavel.RowCollect(batoms, boundghostvel);
+		baacc.RowCollect(batoms, boundghostacc);
+
+		/* Write interpolated FEM values at MD ghost nodes into MD field - displacement only */
+		atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);
 		
-		/* close fe step (all solving of equations over) */
-		if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
+		/* store initial MD boundary displacement histories */
+		thkforce = atoms.THKForce(badisp);
+		atoms.SetExternalForce(bridging_field, thkforce, boundatoms);  // sets pointer to thkforce 
 		
-		/* set ghost atom displacements/velocities as BC's for MD simulation - need to integrate
-		 * these ghost atom displacements through time during MD time loop assuming
-		 * constant coarse scale acceleration */
-		continuum.InterpolateField(bridging_field, field_at_ghosts);
-		atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
+		/* figure out timestep ratio between fem and md simulations */
+		int nfesteps = continuum_time->NumberOfSteps();
+		double mddt = atom_time->TimeStep();
+		double fedt = continuum_time->TimeStep();
+		double d_ratio = fedt/mddt;		
+		int ratio = int((2.0*d_ratio + 1.0)/2.0);
 		
-		/* initialize time history variables here */
-		
-		/* solve atoms for accelerations */
-		if (1 || error == ExceptionT::kNoError) {
-				atoms.ResetCumulativeUpdate(group);
-				error = atoms.SolveStep();
-		}
-							
-		/* close  md step */
-		if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep(); 
+		/* running status flag */
+		ExceptionT::CodeT error = ExceptionT::kNoError;	
 		
 		/* now loop over continuum and atoms after initialization */
-		for (int i = 1; i < nfesteps; i++)	// FE loop - originally i = 0
+		for (int i = 0; i < nfesteps; i++)	
 		{
 			for (int j = 0; j < ratio; j++)	// MD update first
 			{
 				atom_time->Step();	
-					
+								
 				/* initialize step */
 				if (1 || error == ExceptionT::kNoError) error = atoms.InitStep();
-                 
-				/* integrate coarse scale displacements/velocities at MD boundary atom/ghost atoms here */
 				
-				/* integrate MD displacements, fractional velocities */
+				/* update FEM solution interpolated at boundary atoms and ghost atoms assuming 
+				constant acceleration - because of constant acceleration assumption, predictor and 
+				corrector are combined into one function */
+				atoms.BAPredictAndCorrect(mddt, badisp, bavel, baacc);
+				atoms.BAPredictAndCorrect(mddt, gadisp, gavel, gaacc);
+	
+				/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
+				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);				
 				
-				/* update time history variables here using coarse scale displacements at MD
-				 * boundary/ghost atoms + MD displacements at boundary/ghost atoms */
-				
+				/* calculate THK force on boundary atoms, update displacement histories */
+				thkforce = atoms.THKForce(badisp);  // SetExternalForce set via pointer
+																			
 				/* solve MD equations of motion */
 				if (1 || error == ExceptionT::kNoError) {
 						atoms.ResetCumulativeUpdate(group);
 						error = atoms.SolveStep();
 				}
 				
-				/* update MD integer step velocities */
-				
 				/* close  md step */
 				if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();    
 			}
 			continuum_time->Step();
-					
+
 			/* initialize step */
 			if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
             
 			/* calculate total displacement u = FE + fine scale here using updated FEM displacement */
 			continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu);
-						
-			/* integrate FEM displacement, fractional step velocities */
-			
+		
 			/* calculate FE internal force as function of total displacement u here */
-			fu = InternalForce(totalu, atoms);
+			promap = ghostoffmap;  // turn off ghost atoms for f(u) calculations
+			fubig = InternalForce(totalu, atoms);
+			promap = ghostonmap;   // turn on ghost atoms for MD force calculations
+			fu.RowCollect(atoms.NonGhostNodes(), fubig); 
 			fu.ColumnCopy(0,tempx);
 			ntf.Multx(tempx,fx);
 			ntfproduct.SetColumn(0,fx);
 			fu.ColumnCopy(1,tempy);
 			ntf.Multx(tempy,fy);
 			ntfproduct.SetColumn(1,fy);
+			ntfproduct.SetColumn(1,fy);	// SetExternalForce updated via pointer
 			
 			/* no need to call SetExternalForce again due to pointers to ntfproduct */
 			
@@ -721,13 +737,23 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 					continuum.ResetCumulativeUpdate(group);
 					error = continuum.SolveStep();
 			}
+
+			/* Interpolate FEM values to MD ghost nodes which will act as MD boundary conditions */
+			continuum.InterpolateField(bridging_field, order1, boundghostdisp);
+			continuum.InterpolateField(bridging_field, order2, boundghostvel);
+			continuum.InterpolateField(bridging_field, order3, boundghostacc);
 			
-			/* finish time integration for integer step velocities */
-                    
-			/* interpolate coarse scale displacements/velocities to MD ghost atoms/boundary 
-			 * atom for next MD timesteps */
+			/* sort boundary + ghost atom info into separate arrays */
+			gadisp.RowCollect(gatoms, boundghostdisp);
+			gavel.RowCollect(gatoms, boundghostvel);
+			gaacc.RowCollect(gatoms, boundghostacc);
+			badisp.RowCollect(batoms, boundghostdisp);
+			bavel.RowCollect(batoms, boundghostvel);
+			baacc.RowCollect(batoms, boundghostacc);
 			
-			
+			/* Write interpolated FEM values at MD ghost nodes into MD field - displacement only */
+			//atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);
+
 			/* close fe step */
 			if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
                         
@@ -738,7 +764,6 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			ExceptionT::GeneralFail(caller, "hit error %d", error);
                 
 	}
-
 }
 
 /* calculate MD internal force as function of total bridging scale displacement u */
@@ -756,13 +781,14 @@ const dArray2DT& FEExecutionManagerT::InternalForce(dArray2DT& totalu, FEManager
 	nodes.SetValueToPosition();
 
 	/* now write total bridging scale displacement u into field */
-	atoms.SetFieldValues(bridging_field, nodes, totalu);
+	int order = 0;	// write displacement only
+	atoms.SetFieldValues(bridging_field, nodes, order, totalu);
 		
 	/* compute RHS - ParticlePairT fForce calculated by this call */
 	atoms.FormRHS(group);
 	
 	/* write actual MD displacements back into field */
-	atoms.SetFieldValues(bridging_field, nodes, mddisp);
+	atoms.SetFieldValues(bridging_field, nodes, order, mddisp);
 
 	/* get the internal force contribution associated with the last call to FormRHS */
 	return atoms.InternalForce(group);
