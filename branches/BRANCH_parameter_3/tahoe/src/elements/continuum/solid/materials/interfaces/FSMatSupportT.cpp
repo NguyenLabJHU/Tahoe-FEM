@@ -1,4 +1,4 @@
-/* $Id: FSMatSupportT.cpp,v 1.5 2003-12-28 08:23:29 paklein Exp $ */
+/* $Id: FSMatSupportT.cpp,v 1.5.18.1 2004-06-14 04:56:33 paklein Exp $ */
 #include "FSMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -9,8 +9,8 @@
 using namespace Tahoe;
 
 /* constructor */
-FSMatSupportT::FSMatSupportT(int nsd, int ndof, int nip):
-	SolidMatSupportT(nsd, ndof, nip),
+FSMatSupportT::FSMatSupportT(int ndof, int nip):
+	SolidMatSupportT(ndof, nip),
 	fF_List(NULL),
 	fF_last_List(NULL),
 	fFiniteStrain(NULL)

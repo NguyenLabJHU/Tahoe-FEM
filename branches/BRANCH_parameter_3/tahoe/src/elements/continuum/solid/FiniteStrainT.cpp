@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.19.18.2 2004-06-07 23:20:07 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.19.18.3 2004-06-14 04:56:30 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -75,6 +75,7 @@ void FiniteStrainT::Initialize(void)
 	}
 }
 
+#if 0
 /* TEMPORARY */
 void FiniteStrainT::InitialCondition(void)
 {
@@ -84,6 +85,7 @@ void FiniteStrainT::InitialCondition(void)
 	/* set the source for the iteration number */
 	fFSMatSupport->SetIterationNumber(ElementSupport().IterationNumber(Group()));
 }
+#endif
 
 /* compute field gradients with respect to current coordinates */
 void FiniteStrainT::ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u) const
@@ -262,7 +264,7 @@ void FiniteStrainT::CollectMaterialInfo(const ParameterListT& all_params, Parame
 MaterialSupportT* FiniteStrainT::NewMaterialSupport(MaterialSupportT* p) const
 {
 	/* allocate */
-	if (!p) p = new FSMatSupportT(NumSD(), NumDOF(), NumIP());
+	if (!p) p = new FSMatSupportT(NumDOF(), NumIP());
 
 	/* inherited initializations */
 	SolidElementT::NewMaterialSupport(p);

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.58.14.3 2004-06-07 13:49:20 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.58.14.4 2004-06-14 04:56:30 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -764,7 +764,7 @@ void SolidElementT::SetGlobalShape(void)
 MaterialSupportT* SolidElementT::NewMaterialSupport(MaterialSupportT* p) const
 {
 	/* allocate new */
-	if (!p) p = new SolidMatSupportT(NumSD(), NumDOF(), NumIP());
+	if (!p) p = new SolidMatSupportT(NumDOF(), NumIP());
 
 	/* inherited initializations */
 	ContinuumElementT::NewMaterialSupport(p);

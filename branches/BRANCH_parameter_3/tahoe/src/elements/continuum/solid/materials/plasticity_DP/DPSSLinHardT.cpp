@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.cpp,v 1.17.4.2 2004-06-11 01:38:16 paklein Exp $ */
+/* $Id: DPSSLinHardT.cpp,v 1.17.4.3 2004-06-14 04:56:35 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSLinHardT.h"
 #include <iostream.h>
@@ -23,7 +23,6 @@ DPSSLinHardT::DPSSLinHardT(int num_ip, double mu, double lambda):
 	fmu(mu),
 	flambda(lambda),
 	fkappa(flambda + (2.0/3.0*fmu)),
-	fX_H(3.0*(fmu+ffriction*fdilation*fkappa) + fH_prime),
 	fMeanStress(0.0)
 {
 	SetName("DP_SS_linear_hardening");
@@ -257,6 +256,9 @@ void DPSSLinHardT::TakeParameterList(const ParameterListT& list)
 	IdentityTensor2.Dimension(kNSD);
 	One.Dimension(kNSD);
 
+	/* constant */
+	fX_H = 3.0*(fmu+ffriction*fdilation*fkappa) + fH_prime;
+	
 	/* initialize constant tensor */
 	One.Identity();
 }

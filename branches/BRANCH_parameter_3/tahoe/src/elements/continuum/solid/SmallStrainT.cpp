@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.13.18.2 2004-06-07 23:20:07 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.13.18.3 2004-06-14 04:56:30 paklein Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -70,6 +70,7 @@ void SmallStrainT::Initialize(void)
 	}
 }
 
+#if 0
 /* TEMPORARY */
 void SmallStrainT::InitialCondition(void)
 {
@@ -79,6 +80,7 @@ void SmallStrainT::InitialCondition(void)
 	/* set the source for the iteration number */
 	fSSMatSupport->SetIterationNumber(ElementSupport().IterationNumber(Group()));
 }
+#endif
 
 /* implementation of the ParameterInterfaceT interface */
 void SmallStrainT::DefineParameters(ParameterListT& list) const
@@ -249,7 +251,7 @@ void SmallStrainT::CollectMaterialInfo(const ParameterListT& all_params, Paramet
 MaterialSupportT* SmallStrainT::NewMaterialSupport(MaterialSupportT* p) const
 {
 	/* allocate */
-	if (!p) p = new SSMatSupportT(NumSD(), NumDOF(), NumIP());
+	if (!p) p = new SSMatSupportT(NumDOF(), NumIP());
 
 	/* inherited initializations */
 	SolidElementT::NewMaterialSupport(p);

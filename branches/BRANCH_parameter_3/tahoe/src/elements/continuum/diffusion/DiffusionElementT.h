@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.h,v 1.11.18.1 2004-04-08 07:32:31 paklein Exp $ */
+/* $Id: DiffusionElementT.h,v 1.11.18.2 2004-06-14 04:56:28 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSE_T_H_
 #define _DIFFUSE_T_H_
@@ -44,7 +44,7 @@ public:
 	/** TEMPORARY. Need this extra call here to set the source for the iteration number
 	 * in SmallStrainT::fSSMatSupport. The solvers are not constructed when the material
 	 * support is initialized */
-	virtual void InitialCondition(void);
+//	virtual void InitialCondition(void);
 
 	/** compute nodal force */
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);

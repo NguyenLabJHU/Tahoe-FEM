@@ -1,4 +1,4 @@
-/* $Id: NL_E_MatT.cpp,v 1.6.46.1 2004-04-08 07:33:18 paklein Exp $ */
+/* $Id: NL_E_MatT.cpp,v 1.6.46.2 2004-06-14 04:56:36 paklein Exp $ */
 /* created: paklein (06/13/1997) */
 #include "NL_E_MatT.h"
 
@@ -11,6 +11,12 @@ NL_E_MatT::NL_E_MatT(ifstreamT& in, const FSMatSupportT& support):
 	fE(NumSD()),
 	fPK2(NumSD()),
 	fModuli(dSymMatrixT::NumValues(NumSD()))
+{
+
+}
+
+NL_E_MatT::NL_E_MatT(void):
+	ParameterInterfaceT("large_strain_E_material")
 {
 
 }
@@ -73,4 +79,16 @@ double NL_E_MatT::StrainEnergyDensity(void)
 
 	/* derived class function */
 	return ComputeEnergyDensity(fE);
+}
+
+/* accept parameter list */
+void NL_E_MatT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	FSSolidMatT::TakeParameterList(list);
+
+	/* dimension work space */
+	fE.Dimension(NumSD());
+	fPK2.Dimension(NumSD());
+	fModuli.Dimension(dSymMatrixT::NumValues(NumSD()));
 }

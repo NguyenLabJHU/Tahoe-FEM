@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.14.16.2 2004-05-06 16:03:20 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.14.16.3 2004-06-14 04:56:30 paklein Exp $ */
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
 
@@ -40,7 +40,7 @@ class SmallStrainT: public SolidElementT
 	/** TEMPORARY. Need this extra call here to set the source for the iteration number
 	 * in SmallStrainT::fSSMatSupport. The solvers are not constructed when the material
 	 * support is initialized */
-	virtual void InitialCondition(void);
+//	virtual void InitialCondition(void);
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

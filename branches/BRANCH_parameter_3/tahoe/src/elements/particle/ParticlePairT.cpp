@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.33.2.4 2004-04-16 18:10:58 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.33.2.5 2004-06-14 04:56:37 paklein Exp $ */
 #include "ParticlePairT.h"
 
 #include "PairPropertyT.h"
@@ -567,7 +567,7 @@ void ParticlePairT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrde
 ParameterInterfaceT* ParticlePairT::NewSub(const StringT& list_name) const
 {
 	/* try to construct potential */
-	PairPropertyT* pair_property = New_PairProperty(list_name, false);
+	PairPropertyT* pair_property = PairPropertyT::New(list_name, &(ElementSupport()));
 	if (pair_property)
 		return pair_property;
 	else if (list_name == "pair_particle_interaction")
@@ -617,6 +617,7 @@ void ParticlePairT::TakeParameterList(const ParameterListT& list)
  * Protected
  ***********************************************************************/
 
+#if 0
 /* return a new pair property or NULL if the name is invalid */
 PairPropertyT* ParticlePairT::New_PairProperty(const StringT& name, bool throw_on_fail) const
 {
@@ -634,6 +635,7 @@ PairPropertyT* ParticlePairT::New_PairProperty(const StringT& name, bool throw_o
 		
 	return NULL;
 }
+#endif
 
 /* generate labels for output data */
 void ParticlePairT::GenerateOutputLabels(ArrayT<StringT>& labels) const
@@ -1196,7 +1198,8 @@ void ParticlePairT::ExtractProperties(const ParameterListT& list, const ArrayT<S
 		const ParameterListT* property = interaction.ResolveListChoice(*this, "pair_property_choice");
 		if (!property)
 			ExceptionT::GeneralFail(caller, "could not resolve \"pair_property_choice\"");
-		PairPropertyT* pair_prop = New_PairProperty(property->Name(), true);
+		PairPropertyT* pair_prop = PairPropertyT::New(property->Name(), &(ElementSupport()));
+		if (!pair_prop) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", property->Name().Pointer());
 		pair_prop->TakeParameterList(*property);
 		fPairProperties[i] = pair_prop;
 	}
