@@ -1,4 +1,5 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.21 2004-06-26 18:38:08 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.22 2004-06-28 22:41:51 hspark Exp $ */
+
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -647,10 +648,10 @@ void FEManagerT_bridging::InitProjection(CommManagerT& comm, const iArrayT& node
 	/* reset the group equations numbers */
 	SetEquationSystem(the_field->Group());
 
-	/* construct EAMFCC3D pointer if 3D bridging scale */
+	/* construct EAMFCC3D pointer if 3D bridging scale using EAM */
 	//if (the_field->NumDOF() == 3)
 	//{
-		/* construct EAMFCC3D pointer if 3D bridging scale */
+		/* construct EAMFCC3D pointer if 3D bridging scale using EAM */
 	//	ifstreamT& in = Input();
 	//	fEAMFCC3D = new EAMFCC3D(in, 4, 3, 54);
 	//	fEAMFCC3D->InitBondTables();

@@ -5,6 +5,7 @@
 #include "NeoHookean.h"
 
 #include "ExceptionT.h"
+#include "ifstreamT.h"
 #include <math.h>
 #include <iostream.h>
 #include "ifstreamT.h"

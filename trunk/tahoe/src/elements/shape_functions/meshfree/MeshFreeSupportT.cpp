@@ -1,5 +1,6 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.25 2004-06-26 06:11:09 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.26 2004-06-28 22:41:43 hspark Exp $ */
 /* created: paklein (09/07/1998) */
+
 #include "MeshFreeSupportT.h"
 
 #include <math.h>

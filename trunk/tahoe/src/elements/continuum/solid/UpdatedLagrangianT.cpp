@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.12 2004-06-26 05:57:36 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.13 2004-06-28 22:41:14 hspark Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpdatedLagrangianT.h"
 
@@ -6,7 +6,7 @@
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "toolboxConstants.h"
 #include "SolidMaterialT.h"
 #include "ShapeFunctionT.h"

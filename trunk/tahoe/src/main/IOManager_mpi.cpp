@@ -1,9 +1,9 @@
-/* $Id: IOManager_mpi.cpp,v 1.31 2003-12-09 16:33:56 cjkimme Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.32 2004-06-28 22:41:51 hspark Exp $ */
 /* created: paklein (03/14/2000) */
 #include "IOManager_mpi.h"
 
 #include "ExceptionT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "OutputBaseT.h"
 #include "OutputSetT.h"
 #include "PartitionT.h"

@@ -1,5 +1,7 @@
-/* $Id: Anisotropic2DT.cpp,v 1.4 2004-06-17 07:41:14 paklein Exp $ */
+/* $Id: Anisotropic2DT.cpp,v 1.5 2004-06-28 22:41:34 hspark Exp $ */
 /* created: paklein (06/11/1997) */
+/* Base class for 2D anisotropic materials                                */
+
 #include "Anisotropic2DT.h"
 
 #include <iostream.h>

@@ -1,13 +1,13 @@
-/* $Id: ParticlePairT.cpp,v 1.37 2004-06-26 06:06:26 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.38 2004-06-28 22:41:39 hspark Exp $ */
+
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "eIntegratorT.h"
 #include "InverseMapT.h"
 #include "CommManagerT.h"
 #include "dSPMatrixT.h"
 #include "ofstreamT.h"
-#include "ifstreamT.h"
 #include "ModelManagerT.h"
 #include <iostream.h>
 #include <iomanip.h>
@@ -1191,7 +1191,6 @@ void ParticlePairT::RHSDriver3D(void)
 			f_j[2] +=-r_ij_2;
 		}
 	}
-
 }
 
 /* set neighborlists */
@@ -1205,9 +1204,9 @@ void ParticlePairT::SetConfiguration(void)
 	const ArrayT<int>* part_nodes = comm_manager.PartitionNodes();
 	if (fActiveParticles) 
 		part_nodes = fActiveParticles;
+		
 	GenerateNeighborList(part_nodes, NearestNeighborDistance, NearestNeighbors, true, true);
 	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
-
 
 	/* output stream */
 	ofstreamT& out = ElementSupport().Output();
