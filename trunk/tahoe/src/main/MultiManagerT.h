@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.h,v 1.9 2004-09-28 15:35:37 paklein Exp $ */
+/* $Id: MultiManagerT.h,v 1.10 2005-02-13 22:21:55 paklein Exp $ */
 #ifndef _MULTI_MANAGER_H_
 #define _MULTI_MANAGER_H_
 
@@ -12,6 +12,7 @@
 /* direct members */
 #include "IntegratorT.h"
 #include "ofstreamT.h"
+#include "ElementCardT.h"
 
 namespace Tahoe {
 
