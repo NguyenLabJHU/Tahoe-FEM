@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.8 2002-07-30 21:16:25 hspark Exp $ */
+/* $Id: BridgingScaleT.h,v 1.9 2002-08-08 23:24:11 hspark Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -95,7 +95,7 @@ private:
 	/*@{*/
 	/** computes coarse scale (FEM) solution via projecting the 
 	    fine scale (MD) solution onto the FEM basis space */
-	void ComputeU(const dArray2DT& displacements);
+	void ComputeU(const dArray2DT& field1, const dArray2DT& field2, const dArray2DT& field3);
 
 	/** compute coarse scale mass matrix */
 	void ComputeMass(void);
@@ -121,7 +121,9 @@ protected:
 
 	/** Nodal degrees of freedom */
 	//dArray2DT fWtemp, fW, fError, fFineScaleU, fCoarseScaleU, fTotalU;
-	dArrayT fWtemp, fW, fError, fFineScaleU, fCoarseScaleU, fTotalU;
+	dArrayT fWtempU, fWU, fErrorU, fFineScaleU, fCoarseScaleU, fTotalU;
+	dArrayT fWtempV, fWV, fErrorV, fFineScaleV, fCoarseScaleV, fTotalV;
+        dArrayT fWtempA, fWA, fErrorA, fFineScaleA, fCoarseScaleA, fTotalA;
 
 	/* output control */
 	iArrayT	fNodalOutputCodes;
