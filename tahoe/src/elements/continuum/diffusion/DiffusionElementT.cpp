@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.14 2003-06-09 06:58:12 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.15 2003-11-01 21:12:56 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -35,12 +35,22 @@ DiffusionElementT::DiffusionElementT(const ElementSupportT& support, const Field
 	fq(NumSD()),
 	fDiffusionMatSupport(NULL)
 {
+	SetName("diffusion_element");
+
 	/* check base class initializations */
 	if (NumDOF() != kDiffusionNDOF) {
 		cout << "\n DiffusionElementT::DiffusionElementT: expecting field with " << kDiffusionNDOF << " dof/node not " 
 		     << NumDOF() << endl;
 		throw ExceptionT::kBadInputValue;
 	}
+}
+
+DiffusionElementT::DiffusionElementT(const ElementSupportT& support):
+	ContinuumElementT(support),
+	fLocVel(LocalArrayT::kVel),
+	fDiffusionMatSupport(NULL)
+{
+	SetName("diffusion_element");
 }
 
 /* destructor */
