@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.cpp,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
+/* $Id: IOBaseT.cpp,v 1.2 2001-06-14 12:55:09 sawimme Exp $ */
 /* created: sawimme (09/28/1999)                                          */
 
 #include "IOBaseT.h"
@@ -33,6 +33,12 @@ IOBaseT::FileTypeT IOBaseT::int_to_FileTypeT(int i)
 			return IOBaseT::kAbaqus;
 		case 7:
 			return IOBaseT::kAbaqusBinary;
+   	        case 8:
+	                return IOBaseT::kAVS;
+	        case 9:
+	                return IOBaseT::kAVSBinary;
+	       case 10:
+	                return IOBaseT::kPatranNeutral;
 		default:
 			cout << "\n int_to_IOFileType: could not convert: " << i << endl;
 			throw eOutOfRange;
@@ -49,6 +55,21 @@ istream& operator>>(istream& in, IOBaseT::FileTypeT& file_type)
 	file_type = IOBaseT::int_to_FileTypeT(i_type);
 
 	return in;
+}
+
+void IOBaseT::PrintFormat (ostream& log) const
+{
+  log << "    eq. " << setw (2) << IOBaseT::kTahoe         << ". Tahoe\n";
+  log << "    eq. " << setw (2) << IOBaseT::kTahoeII       << ". Tahoe II\n";
+  log << "    eq. " << setw (2) << IOBaseT::kTecPlot       << ". TecPlot 7.5\n";
+  log << "    eq. " << setw (2) << IOBaseT::kEnSight       << ". Ensight 6 Gold ASCII\n";
+  log << "    eq. " << setw (2) << IOBaseT::kEnSightBinary << ". Ensight 6 Gold Binary\n";
+  log << "    eq. " << setw (2) << IOBaseT::kExodusII      << ". Exodus II\n";
+  log << "    eq. " << setw (2) << IOBaseT::kAbaqus        << ". ABAQUS ASCII (.fin)\n";
+  log << "    eq. " << setw (2) << IOBaseT::kAbaqusBinary  << ". ABAQUS Binary (.fil)\n";
+  log << "    eq. " << setw (2) << IOBaseT::kAVS           << ". AVS UCD ASCII\n";
+  log << "    eq. " << setw (2) << IOBaseT::kAVSBinary     << ". AVS UCD Binary\n";
+  log << "    eq. " << setw (2) << IOBaseT::kPatranNeutral << ". PATRAN Neutral\n";
 }
 
 /*************************************************************************
