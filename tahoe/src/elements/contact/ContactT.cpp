@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.1.1.1.6.3 2001-11-06 20:31:57 sawimme Exp $ */
+/* $Id: ContactT.cpp,v 1.1.1.1.6.4 2001-11-07 12:50:48 sawimme Exp $ */
 /* created: paklein (12/11/1997)                                          */
 
 #include "ContactT.h"
@@ -277,20 +277,19 @@ void ContactT::SetWorkSpace(void)
 	fActiveMap.Allocate(fStrikerCoords.MajorDim());
 	fActiveMap = -1;
 
-	/* register with model manager */
+	/* set connectivity name */
 	ModelManagerT* model = fFEManager.ModelManager();
 	StringT name ("Contact");
 	name.Append (fFEManager.ElementGroupNumber(this) + 1);
-	model->RegisterElementGroup (name, 0, 0, GeometryT::kLine);
+
+	/* register with the model manager and let it set the ward */
+	if (!model->RegisterVariElements (name, fConnectivities_man, 
+	    GeometryT::kLine, fNumElemNodes, 0)) throw eGeneralFail;
 	int index = model->ElementGroupIndex(name);
 
 	/* set up fConnectivities */
 	fConnectivities.Allocate(1);
 	fConnectivities[0] = model->ElementGroupPointer (index);
-
-	/* set the managed connectivities array */
-	iArray2DT* contactconns = const_cast<iArray2DT*> (fConnectivities[0]);
-	fConnectivities_man.SetWard(0, *contactconns, fNumElemNodes);
 
 	/* set up fBlockData to store block ID */
 	fBlockData.Allocate (1, ElementBaseT::kBlockDataSize);
