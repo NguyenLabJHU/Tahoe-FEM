@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.h,v 1.11 2002-10-20 22:38:55 paklein Exp $ */
+/* $Id: LocalArrayT.h,v 1.12 2003-05-27 06:54:29 paklein Exp $ */
 /* created: paklein (07/10/1996) */
 
 #ifndef _LOCALARRAY_T_H_
@@ -179,19 +179,19 @@ inline double& LocalArrayT::operator()(int majordim, int minordim) const
 	if (majordim < 0 ||
 	    majordim >= fNumNodes ||
 	    minordim < 0 ||
-	    minordim >= fMinorDim) throw ExceptionT::kOutOfRange;
+	    minordim >= fMinorDim) ExceptionT::OutOfRange("LocalArrayT::operator(,)");
 #endif
 
 	return (fArray[minordim*fNumNodes + majordim]);
 }
 
-inline double* LocalArrayT::operator()(int majordim) const
+inline double* LocalArrayT::operator()(int minordim) const
 {
 #if __option (extended_errorcheck)
-	if (majordim < 0 || majordim >= fNumNodes) throw ExceptionT::kOutOfRange;
+	if (minordim < 0 || minordim >= fMinorDim) ExceptionT::OutOfRange("LocalArrayT::operator()");
 #endif
 
-	return (fArray + majordim*fNumNodes);
+	return (fArray + minordim*fNumNodes);
 }
 
 /* assignment operator */
@@ -222,11 +222,13 @@ inline void LocalArrayT::FromTranspose(const nArrayT<double>& transpose)
 {
 #if __option (extended_errorcheck)
 	/* dimension check */
-	if(fLength != transpose.Length()) throw ExceptionT::kSizeMismatch;
+	if(fLength != transpose.Length()) ExceptionT::SizeMismatch("LocalArrayT::FromTranspose");
 #endif
 
 	/* call primitive function */
 	FromTranspose(transpose.Pointer());
 }
-}//namespace Tahoe
+
+} /* namespace Tahoe */
+
 #endif /* _LOCALARRAY_T_H_ */
