@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.14 2003-05-21 23:48:14 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.15 2003-07-11 16:46:02 hspark Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -97,6 +97,9 @@ public:
 	 * group to the residual for the given solver group. ParticleT::InternalForce 
 	 * returns the internal force calculated with the latest call to ElementBaseT::FormRHS. */
 	virtual const dArray2DT& InternalForce(int group);
+
+	/** read/write access to the properties map */
+	nMatrixT<int>& PropertiesMap(void) { return fPropertiesMap; };
 
 protected: /* for derived classes only */
 

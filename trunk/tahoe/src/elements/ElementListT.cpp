@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.55 2003-07-09 23:30:42 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.56 2003-07-11 16:45:57 hspark Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -100,6 +100,17 @@ using namespace Tahoe;
 ElementListT::ElementListT(void)
 {
 
+}
+
+/* destructor */
+ElementListT::~ElementListT(void)
+{
+	/* activate all */
+	if (fAllElementGroups.Length() > 0) {
+		ArrayT<bool> mask(fAllElementGroups.Length());
+		mask = true;
+		SetActiveElementGroupMask(mask);
+	}
 }
 
 /* initialization functions */
@@ -661,7 +672,8 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		ParticleT* particle = dynamic_cast<ParticleT*>(e_group);
 		if (particle) count++;
 	}
-	if (count > 1) ExceptionT::BadInputValue(caller, "only one particle group allowed: %d", count);
+//	if (count > 1) ExceptionT::BadInputValue(caller, "only one particle group allowed: %d", count);
+	if (count > 1) cout << "\n " << caller << ": WARNING found more than 1 particle group" << endl;
 #endif
 }
 
@@ -693,4 +705,39 @@ bool ElementListT::HasContact(void) const
 	return false;
 #endif /* CONTACT_ELEMENT */
 #endif /* __NO_RTTI__ */
+}
+
+/* change the number of active element groups */
+void ElementListT::SetActiveElementGroupMask(const ArrayT<bool>& mask)
+{
+	/* first time */
+	if (fAllElementGroups.Length() == 0) 
+	{
+		/* cache all pointers */
+		fAllElementGroups.Dimension(Length());
+		for (int i = 0; i < fAllElementGroups.Length(); i++)
+		{
+			ElementBaseT* element = (*this)[i];
+			fAllElementGroups[i] = element;
+		}
+	}
+
+	/* check */
+	if (mask.Length() != fAllElementGroups.Length())
+		ExceptionT::SizeMismatch("ElementListT::SetActiveElementGroupMask",
+			"expecting mask length %d not %d", fAllElementGroups.Length(), mask.Length());
+
+	/* reset active element groups */
+	int num_active = 0;
+	for (int i = 0; i < mask.Length(); i++)
+		if (mask[i])
+			num_active++;
+			
+	/* cast this to an ArrayT */
+	ArrayT<ElementBaseT*>& element_list = *this;
+	element_list.Dimension(num_active);
+	num_active = 0;
+	for (int i = 0; i < mask.Length(); i++)
+		if (mask[i])
+			element_list[num_active++] = fAllElementGroups[i];
 }

@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.25 2003-05-23 22:55:08 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.26 2003-07-11 16:45:59 hspark Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -45,7 +45,7 @@ public:
 	 *        the mesh with BridgingScaleT::MaptoCells and then initializing the
 	 *        interpolation data with BridgingScaleT::MaptoCells. 
 	 * \param returns with the interpolated values of the field */
-	void InterpolateField(const StringT& field, const PointInCellDataT& cell_data,
+	void InterpolateField(const StringT& field, int order, const PointInCellDataT& cell_data,
 		dArray2DT& point_values) const;
 	/*@}*/
 
