@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.cpp,v 1.19 2003-05-27 20:34:52 manzari Exp $*/
+/*$Id: MR_RP2DT.cpp,v 1.20 2003-05-27 20:42:48 cjkimme Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
@@ -827,7 +827,7 @@ double MR_RP2DT::signof(double& r)
 		return fabs(r)/r;
 }
 
-bool MR_RP2DT::InitiationQ(const double *sigma) const
+bool MR_RP2DT::InitiationQ(const nArrayT<double>& sigma) const
 {
 
   double tmp1, tmp11, tmp2, tmp3, tmp31, tmp32, tmp4, tmp5, ff;
