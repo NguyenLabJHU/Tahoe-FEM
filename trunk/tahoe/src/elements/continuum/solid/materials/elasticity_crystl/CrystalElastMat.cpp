@@ -1,3 +1,4 @@
+/* $Id: CrystalElastMat.cpp,v 1.3 2001-08-20 22:15:40 rdorgan Exp $ */
 /*
   File: CrystalElastMat.cpp
 */
