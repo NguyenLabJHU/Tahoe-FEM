@@ -1,4 +1,4 @@
-/* $Id: zArrayT.cpp,v 1.3 2001-02-01 18:22:29 paklein Exp $ */
+/* $Id: zArrayT.cpp,v 1.4 2001-12-10 23:38:10 paklein Exp $ */
 /* created: PAK/AFLP (05/19/1997)                                         */
 
 #include "zArrayT.h"
@@ -45,13 +45,13 @@ ostream& operator<<(ostream& out, const zArrayT& array)
 void zArrayT::toRe(dArrayT& re) const
 {
 	/* ComplexT function */
-	z_to_Re(*this, re);
+	ComplexT::z_to_Re(*this, re);
 }
 
 void zArrayT::toIm(dArrayT& im) const
 {
 	/* ComplexT function */
-	z_to_Im(*this, im);
+	ComplexT::z_to_Im(*this, im);
 }
 
 zArrayT& zArrayT::toZ(const dArrayT& re, const dArrayT& im)
@@ -60,7 +60,7 @@ zArrayT& zArrayT::toZ(const dArrayT& re, const dArrayT& im)
 	Allocate(re.Length());
 	
 	/* ComplexT function */
-	ReIm_to_z(re,im,*this);
+	ComplexT::ReIm_to_z(re,im,*this);
 
 	return (*this);
 }
