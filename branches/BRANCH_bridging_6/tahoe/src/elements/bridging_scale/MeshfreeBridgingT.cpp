@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.cpp,v 1.5.16.1 2004-04-24 19:57:28 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.cpp,v 1.5.16.2 2004-04-25 20:53:28 paklein Exp $ */
 #include "MeshfreeBridgingT.h"
 
 #include "ifstreamT.h"
@@ -203,7 +203,7 @@ void MeshfreeBridgingT::InitProjection(CommManagerT& comm, const iArrayT& points
 		int count = 0;
 		for (int i = 0; i < cell_nodes.Length(); i++)
 			if (cell_nodes_OK[i] == 1) {
-				nodes_OK[count] = i;
+				nodes_OK[count] = cell_nodes[i];
 				nodes_OK_dim[count] = nodal_neighbors.MinorDim(i);
 				count++;	
 			}
