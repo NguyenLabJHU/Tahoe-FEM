@@ -1,4 +1,4 @@
-/* $Id: MergeResults.cpp,v 1.1 2002-05-19 17:45:42 paklein Exp $  */
+/* $Id: MergeResults.cpp,v 1.2 2002-06-21 23:47:31 paklein Exp $  */
 #include "MergeResults.h"
 #include "OutputSetT.h"
 
@@ -169,7 +169,7 @@ void MergeResults::SetInput(void)
 		ModelManagerT* model = new ModelManagerT(cout);
 		if (!model->Initialize(file_type, database, true))
 		{
-			cout << "\m MergeResults::SetInput: could not initialize results file: " 
+			cout << "\n MergeResults::SetInput: could not initialize results file: " 
 			     << database << endl;
 			throw eGeneralFail;
 		}
