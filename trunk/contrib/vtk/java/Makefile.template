@@ -1,4 +1,4 @@
-# $Id: Makefile.template,v 1.1 2002-07-20 01:59:38 paklein Exp $
+# $Id: Makefile.template,v 1.2 2002-07-20 02:33:17 paklein Exp $
 .SUFFIXES: .cpp .h .java .class .o .sig
 
 # choose platform specific macros file
@@ -27,7 +27,7 @@ run:
 sig: $(JAVA_SIG)
 
 clean:
-	rm $(JAVA_OBJ) $(JAVA_JNI_HDR) $(CPP_OBJ) $(CPP_DSO)
+	rm $(JAVA_OBJ) $(JAVA_JNI_HDR) $(CPP_OBJ) $(CPP_DSO) $(ARCH_JUNK)
 
 ############ SUFFIX rules
 
