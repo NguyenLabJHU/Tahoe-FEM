@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.3 2001-02-27 00:16:13 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.4 2001-03-19 22:31:17 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #include "SolidElementT.h"
@@ -280,8 +280,11 @@ void SolidElementT::SendOutput(int kincode)
 	/* reset averaging workspace */
 	fNodes->ResetAverage(n_counts.Sum());
 
+	/* no element output */
+	iArrayT e_counts(fElementOutputCodes.Length());
+	e_counts = 0;
+
 	/* generate output */
-	iArrayT e_counts;
 	dArray2DT n_values, e_values;
 	ComputeOutput(n_counts, n_values, e_counts, e_values);
 }
