@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidAxiT.cpp,v 1.2.2.2 2004-07-07 15:28:31 paklein Exp $ */
+/* $Id: MeshFreeFSSolidAxiT.cpp,v 1.2.2.3 2004-07-09 00:26:17 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #include "MeshFreeFSSolidAxiT.h"
 
@@ -10,6 +10,7 @@
 #include "ofstreamT.h"
 #include "MeshFreeShapeFunctionT.h"
 #include "MeshFreeFractureSupportT.h"
+#include "MeshFreeSupport2DT.h"
 #include "ModelManagerT.h"
 #include "CommManagerT.h"
 
@@ -202,10 +203,53 @@ MeshFreeSupportT& MeshFreeFSSolidAxiT::MeshFreeSupport(void) const
 	return fMFShapes->MeshFreeSupport();
 }
 
+/* describe the parameters needed by the interface */
+void MeshFreeFSSolidAxiT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	TotalLagrangianAxiT::DefineParameters(list);
+	
+	ParameterT auto_border(fAutoBorder, "auto_border");
+	auto_border.SetDefault(false);
+	list.AddParameter(auto_border);
+}
+
+/* information about subordinate parameter lists */
+void MeshFreeFSSolidAxiT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	TotalLagrangianAxiT::DefineSubs(sub_list);
+	
+	/* parameters for the meshfree support */
+	sub_list.AddSub("meshfree_support_2D");
+
+	/* element support */
+	sub_list.AddSub("meshfree_fracture_support");
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* MeshFreeFSSolidAxiT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "meshfree_support_2D")
+		return new MeshFreeSupport2DT;	
+	else if (list_name == "meshfree_fracture_support")
+		return new MeshFreeFractureSupportT;
+	else /* inherited */
+		return TotalLagrangianAxiT::NewSub(list_name);
+}
+
 /* accept parameter list */
 void MeshFreeFSSolidAxiT::TakeParameterList(const ParameterListT& list)
 {
 	const char caller[] = "MeshFreeFSSolidAxiT::TakeParameterList";
+
+	/* construct meshfree support before calling inherited method because
+	 * support class needed to construct shape functions */
+	fMFFractureSupport = new MeshFreeFractureSupportT;
+	fMFFractureSupport->TakeParameterList(list.GetList("meshfree_fracture_support"));
+
+	/* get parameters needed to construct shape functions */
+	fMeshfreeParameters = list.List("meshfree_support_2D");
 
 	/* inherited */
 	TotalLagrangianAxiT::TakeParameterList(list);
@@ -214,11 +258,6 @@ void MeshFreeFSSolidAxiT::TakeParameterList(const ParameterListT& list)
 	fAutoBorder = list.GetParameter("auto_border");
 	if (fAutoBorder && ElementSupport().Size() > 1)
 		ExceptionT::BadInputValue(caller, "auto-border not support in parallel");
-
-	//meshfree support
-
-	/* collect parameters from the element support class */
-	fMFFractureSupport->TakeParameterList(list.GetList("meshfree_fracture_support"));
 
 	/* free memory associated with "other" eqnos */
 	fEqnos.Free(); // is this OK ? can't be freed earlier b/c of
@@ -280,17 +319,30 @@ void MeshFreeFSSolidAxiT::TakeParameterList(const ParameterListT& list)
 	}
 
 	/* initialize meshfree support class */
-//	InitSupport(ostream& out, AutoArrayT<ElementCardT>& elem_cards, 
-//		const iArrayT& surface_nodes, int numDOF, int max_node_num, ModelManagerT* model);
+	fMFFractureSupport->InitSupport(ElementSupport().Output(),
+		fElementCards, 
+		surface_nodes,
+		NumDOF(), 
+		ElementSupport().NumNodes(),
+		&ElementSupport().ModelManager());
 
 	/* final MLS initializations */
 	fMFShapes->SetExactNodes(fMFFractureSupport->InterpolantNodes());
 	fMFShapes->WriteStatistics(ElementSupport().Output());
-
+	
 	//TEMP - only works for one material right now, else would have to check
 	//       for the material active within the integration cell (element)
 	if (fMFFractureSupport->HasActiveCracks() && fMaterialList->Length() != 1)
 		ExceptionT::BadInputValue(caller, "can only have 1 material in the group with active cracks");
+
+//TEMP - needs rethinking
+#if 0
+	/* check for localizing materials */
+	if (FractureCriterion() == MeshFreeFractureSupportT::kAcoustic &&
+	   !fMaterialList->HasLocalizingMaterials())
+	   ExceptionT::BadInputValue(caller, "failure criterion requires localizing materials: %d",
+	   	MeshFreeFractureSupportT::kAcoustic);
+#endif
 }
 
 /***********************************************************************
@@ -300,8 +352,12 @@ void MeshFreeFSSolidAxiT::TakeParameterList(const ParameterListT& list)
 /* initialization functions */
 void MeshFreeFSSolidAxiT::SetShape(void)
 {
-#pragma message("fix me")
-#if 0
+	const char caller[] = "MeshFreeFSSolidAxiT::SetShape";
+
+	/* only support single list of integration cells for now */
+	if (fConnectivities.Length() > 1)
+		ExceptionT::GeneralFail(caller, "multiple (%d) element blocks not supported",
+			fConnectivities.Length());
 
 	//TEMP - quick and dirty attempt to run with multiple element blocks
 	const iArray2DT* mf_connect = fConnectivities[0];
@@ -320,14 +376,14 @@ void MeshFreeFSSolidAxiT::SetShape(void)
 		mf_connect = &fConnectsAll;
 
 		//TEMP write warning
-		cout << "\n MeshFreeFSSolidAxiT::SetShape: WARNING multiple element blocks within the element group" << endl;
+		cout << "\n MeshFreeFSSolidT::SetShape: WARNING multiple element blocks within the element group" << endl;
 	}
 
-	/* constructors */
+	/* construct */
+	if (!fMeshfreeParameters) ExceptionT::GeneralFail(caller, "shape function parameters not set");
 	fMFShapes = new MeshFreeShapeFunctionT(GeometryCode(), NumIP(),
-		fLocInitCoords, ElementSupport().InitialCoordinates(), *mf_connect, fOffGridNodes,
-		fElementCards.Position(), ElementSupport().Input());
-	if (!fMFShapes) throw ExceptionT::kOutOfMemory;
+		fLocInitCoords, ElementSupport().InitialCoordinates(), *mf_connect, fMFFractureSupport->OffGridNodes(),
+		fElementCards.Position(), *fMeshfreeParameters);
 
 	/* echo parameters */
 	fMFShapes->WriteParameters(ElementSupport().Output());
@@ -336,11 +392,10 @@ void MeshFreeFSSolidAxiT::SetShape(void)
 	fMFShapes->Initialize();
 	
 	/* set base class pointer */
-	fShapes = fMFShapes;
+	fShapes = fMFShapes;	
 
-	/* set shape functions in support */
-	fMeshFreeElementSupport->SetShape(fMFShapes);
-#endif
+	/* set support class */
+	fMFFractureSupport->SetShape(fMFShapes);
 }
 
 /* current element operations */

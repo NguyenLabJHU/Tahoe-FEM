@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0Axi.h,v 1.2 2004-06-26 18:31:43 paklein Exp $ */
+/* $Id: SimoQ1P0Axi.h,v 1.2.2.1 2004-07-09 00:26:16 paklein Exp $ */
 #ifndef _SIMO_Q1_P0_AXI_H_
 #define _SIMO_Q1_P0_AXI_H_
 
@@ -14,9 +14,7 @@ public:
 
 	/** constructor */
 	SimoQ1P0Axi(const ElementSupportT& support, const FieldT& field);
-
-	/** data initialization */
-	virtual void Initialize(void);
+	SimoQ1P0Axi(const ElementSupportT& support);
 
 	/** finalize current step - step is solved */
 	virtual void CloseStep(void);
@@ -29,6 +27,12 @@ public:
 
 	/** write restart information from stream */
 	virtual void WriteRestart(ostream& out) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
