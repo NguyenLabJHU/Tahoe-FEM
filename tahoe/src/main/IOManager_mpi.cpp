@@ -1,5 +1,5 @@
-/* $Id: IOManager_mpi.cpp,v 1.6 2001-12-17 00:13:00 paklein Exp $ */
-/* created: paklein (03/14/2000)                                          */
+/* $Id: IOManager_mpi.cpp,v 1.7 2002-01-07 00:56:22 paklein Exp $ */
+/* created: paklein (03/14/2000) */
 
 #include "IOManager_mpi.h"
 
@@ -13,11 +13,10 @@
 /* constructor */
 IOManager_mpi::IOManager_mpi(ifstreamT& in, const iArrayT& io_map,
 	const IOManager& local_IO, const PartitionT& partition,
-	const StringT& global_geom_file, IOBaseT::FileTypeT format):
+	const StringT& model_file, IOBaseT::FileTypeT format):
 	IOManager(in, local_IO),
 	fIO_map(io_map),
-	fPartition(partition),
-	fConnectivities(fIO_map.Length())
+	fPartition(partition)
 {
 	if (io_map.Length() != local_IO.ElementSets().Length())
 		throw eSizeMismatch;
@@ -25,25 +24,61 @@ IOManager_mpi::IOManager_mpi(ifstreamT& in, const iArrayT& io_map,
 	/* local output sets */
 	const ArrayT<OutputSetT*>& element_sets = local_IO.ElementSets();
 
+	/* count total number of element blocks 
+	 * NOTE: repeated block ID's in separate sets are counted twice */
+	int num_elem_blocks = 0;	
+	bool do_warning_done = false; //TEMP - write warning about joining element data
+	for (int i = 0; i < element_sets.Length(); i++)
+	{
+		/* count (possibly with redundance) the total number of blocks */
+		num_elem_blocks += element_sets[i]->NumBlocks();
+	
+		//TEMP - write warning about joining element data
+		if (!do_warning_done && element_sets[i]->ElementOutputLabels().Length() > 0) {
+			cout << "\n IOManager_mpi::IOManager_mpi: runtime assembly of element output is\n" 
+			     <<   "     not implemented. Use command line option \"-split_io\"."<< endl;
+			do_warning_done = true; 
+		}
+	}
+	fBlockID.Allocate(num_elem_blocks);
+	fBlockID = -1;
+	fConnectivities.Allocate(num_elem_blocks);
+
 	/* load global geometry */
-	if (fIO_map.HasValue(Rank())) ReadOutputGeometry(global_geom_file, format);
+	if (fIO_map.HasValue(Rank())) ReadOutputGeometry(model_file, element_sets, format);
 
 	/* construct global output sets - all of them to preserve ID's */
 	for (int i = 0; i < element_sets.Length(); i++)
 	{
 		const OutputSetT& set = *(element_sets[i]);
-	
+
 		if (fIO_map[i] == Rank())
-		{		
-			/* construct global set */
-			ArrayT<const iArray2DT*> connect_list(1);
-			connect_list[0] = &fConnectivities[i];
-			OutputSetT global_set(set.ID(), set.Geometry(), set.BlockID(), connect_list,
+		{
+			/* set block ID's */
+			const iArrayT& block_ID = set.BlockID();
+			
+			/* collect connectivities */
+			ArrayT<const iArray2DT*> connect_list(block_ID.Length());
+			for (int j = 0; j < block_ID.Length(); j++)
+			{
+				int index;
+				if (!fBlockID.HasValue(block_ID[j], index)) {
+					cout << "\n IOManager_mpi::IOManager_mpi: block ID " << block_ID[j]
+					     << " should be stored but was not found" << endl;
+					throw eGeneralFail;
+				}
+			
+				/* collect */
+				connect_list[j] = fConnectivities.Pointer(index);
+			}
+
+			/* construct output set */
+			OutputSetT global_set(set.ID(), set.Geometry(), block_ID, connect_list,
 				set.NodeOutputLabels(), set.ElementOutputLabels(), set.Changing());
 
 			/* register */
 			int IO_ID = AddElementSet(global_set);
-			
+
 			/* check */
 			if (IO_ID != i)
 			{
@@ -60,7 +95,7 @@ IOManager_mpi::IOManager_mpi(ifstreamT& in, const iArrayT& io_map,
 			ArrayT<const iArray2DT*> connects_list(1);
 			connects_list[0] = &connects;
 			ArrayT<StringT> no_labels;
-		
+
 			/* construct dummy set */
 			OutputSetT dummy_set(set.ID(), set.Geometry(), set.BlockID(), connects_list,
 				no_labels, no_labels, false);
@@ -552,8 +587,8 @@ void IOManager_mpi::CheckAssemblyMaps(void)
 }
 
 /* load global geometry */
-void IOManager_mpi::ReadOutputGeometry(const StringT& global_geom_file,
-	IOBaseT::FileTypeT format)
+void IOManager_mpi::ReadOutputGeometry(const StringT& model_file,
+	const ArrayT<OutputSetT*>& element_sets, IOBaseT::FileTypeT format)
 {
 	switch (format)
 	{
@@ -561,32 +596,49 @@ void IOManager_mpi::ReadOutputGeometry(const StringT& global_geom_file,
 		{
 			/* database file */
 			ModelFileT file;
-			file.OpenRead(global_geom_file);
+			file.OpenRead(model_file);
 			
 			/* read coordinates */
 			if (file.GetCoordinates(fCoordinates) != ModelFileT::kOK) throw eGeneralFail;
 		
+#if 0
 			/* elements */
 			iArrayT element_ID;
 			if (file.GetElementSetID(element_ID) != ModelFileT::kOK) throw eGeneralFail;
-			if (element_ID.Length() != fIO_map.Length())
-			{
-				cout << "\n IOManager_mpi::ReadOutputGeometry: number of element blocks\n"
-				     <<   "     in \"" << global_geom_file << "\" does not match the io map\n"
-				     <<   "     dimensions " << fIO_map.Length() << endl;
-				throw eGeneralFail;
-			}
-			
-			/* read output connectivities */
-			fConnectivities.Allocate(element_ID.Length());
+#endif
+
+			/* read connectivities needed for the local output sets */
 			for (int i = 0; i < fIO_map.Length(); i++)
 				if (fIO_map[i] == Rank())
 				{
-					if (file.GetElementSet(element_ID[i], fConnectivities[i]) != ModelFileT::kOK)
-						throw eGeneralFail;
+					/* set info */
+					const OutputSetT& output_set = *(element_sets[i]);
+					
+					/* element block ID's */
+					const iArrayT& block_ID = output_set.BlockID();
+					for (int j = 0; j < block_ID.Length(); j++)
+					{
+						/* load if not already read */
+						if (!fBlockID.HasValue(block_ID[j]))
+						{
+							/* find empty slot */
+							int index = -1;
+							if (!fBlockID.HasValue(-1, index)) {
+								cout << "\n IOManager_mpi::ReadOutputGeometry: no more slots connectivities:\n" 
+								     << fBlockID.wrap(5) << endl;
+								throw eGeneralFail;
+							}
+							
+							/* read and store */
+							fBlockID[index] = block_ID[j];
+							iArray2DT& connectivities = fConnectivities[index];
+							if (file.GetElementSet(block_ID[j], connectivities) != ModelFileT::kOK)
+								throw eGeneralFail;
 				
-					/* correct numbering offset */
-					fConnectivities[i]--;
+							/* correct numbering offset */
+							connectivities--;
+						}
+					}
 				}
 			break;
 		}
@@ -594,7 +646,7 @@ void IOManager_mpi::ReadOutputGeometry(const StringT& global_geom_file,
 		{
 			/* open database */
 			ExodusT exo(fLog);
-			exo.OpenRead(global_geom_file);
+			exo.OpenRead(model_file);
 
 			/* read coordinates */
 			int num_nodes = exo.NumNodes();
@@ -602,31 +654,48 @@ void IOManager_mpi::ReadOutputGeometry(const StringT& global_geom_file,
 			fCoordinates.Allocate(num_nodes, num_dim);
 			exo.ReadCoordinates(fCoordinates);
 
+#if 0
 			/* element ID's */
 			iArrayT element_ID(exo.NumElementBlocks());
 			exo.ElementBlockID(element_ID);
-			if (element_ID.Length() != fIO_map.Length())
-			{
-				cout << "\n IOManager_mpi::ReadOutputGeometry: number of element blocks\n"
-				     <<   "     in \"" << global_geom_file << "\" does not match the io map\n"
-				     <<   "     dimensions " << fIO_map.Length() << endl;
-				throw eGeneralFail;
-			}
+#endif
 
-			/* read output connectivities */
-			fConnectivities.Allocate(element_ID.Length());
+			/* read connectivities needed for the local output sets */
 			for (int i = 0; i < fIO_map.Length(); i++)
 				if (fIO_map[i] == Rank())
 				{
-					int num_elems;
-					int num_elem_nodes;
-					exo.ReadElementBlockDims(element_ID[i], num_elems, num_elem_nodes);
-					GeometryT::CodeT geometry_code;
-					fConnectivities[i].Allocate(num_elems, num_elem_nodes);
-					exo.ReadConnectivities(element_ID[i], geometry_code, fConnectivities[i]);	
+					/* set info */
+					const OutputSetT& output_set = *(element_sets[i]);
+					
+					/* element block ID's */
+					const iArrayT& block_ID = output_set.BlockID();
+					for (int j = 0; j < block_ID.Length(); j++)
+					{
+						/* load if not already read */
+						if (!fBlockID.HasValue(block_ID[j]))
+						{
+							/* find empty slot */
+							int index = -1;
+							if (!fBlockID.HasValue(-1, index)) {
+								cout << "\n IOManager_mpi::ReadOutputGeometry: no more slots connectivities:\n" 
+								     << fBlockID.wrap(5) << endl;
+								throw eGeneralFail;
+							}
+							
+							/* read and store */
+							fBlockID[index] = block_ID[j];
+							iArray2DT& connectivities = fConnectivities[index];
+							int num_elems;
+							int num_elem_nodes;
+							exo.ReadElementBlockDims(block_ID[j], num_elems, num_elem_nodes);
+							connectivities.Allocate(num_elems, num_elem_nodes);
+							GeometryT::CodeT geometry_code;
+							exo.ReadConnectivities(block_ID[j], geometry_code, connectivities);
 
-					/* correct numbering offset */
-					fConnectivities[i]--;
+							/* correct numbering offset */
+							connectivities--;
+						}
+					}
 				}
 			break;
 		}

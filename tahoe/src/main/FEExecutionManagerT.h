@@ -1,6 +1,5 @@
-/* $Id: FEExecutionManagerT.h,v 1.3 2002-01-03 19:10:28 paklein Exp $ */
-/* created: paklein (09/21/1997)                                          */
-/* Manager for file driven finite element simulations                     */
+/* $Id: FEExecutionManagerT.h,v 1.4 2002-01-07 00:56:22 paklein Exp $ */
+/* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
 #define _FE_EXECMAN_T_H_
@@ -19,6 +18,7 @@ class IOManager;
 class FEManagerT;
 class PartitionT;
 
+/** class to handle file driven finite element simulations */
 class FEExecutionManagerT: public ExecutionManagerT
 {
 public:
@@ -37,6 +37,10 @@ protected:
 
 	/** overloaded */
 	virtual void RunJob(ifstreamT& in, ostream& status);
+
+	/* basic MP support */
+	int Rank(void) const;
+	int Size(void) const;
 
 private:
 
@@ -77,7 +81,11 @@ private:
 	void ReadOutputMap(ifstreamT& in, const StringT& map_file,
 		iArrayT& map) const;
 
-	/** set output map based on length of map */
+	/** set output map based on length of map. The map defines the output prcoessor
+	 * for each OutputSetT.
+	 * \param output_sets list of OutputSetT's
+	 * \param output_map returns with the output processor for each OutputSetT
+	 * \param size number of output processors. */
 	void SetOutputMap(const ArrayT<OutputSetT*>& output_sets,
 		iArrayT& output_map, int size) const;
 
