@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.11 2002-11-26 00:17:33 cjkimme Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.12 2002-11-26 18:54:27 cjkimme Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -19,7 +19,6 @@
 #endif
 
 using namespace Tahoe;
-using namespace std;
 
 /* constructor */
 ElementSupportT::ElementSupportT(void)
