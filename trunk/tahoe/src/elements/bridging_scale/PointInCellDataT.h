@@ -1,4 +1,4 @@
-/* $Id: PointInCellDataT.h,v 1.3 2003-05-23 22:56:11 paklein Exp $ */
+/* $Id: PointInCellDataT.h,v 1.4 2003-10-28 07:32:08 paklein Exp $ */
 #ifndef _POINT_IN_CELL_DATA_T_H_
 #define _POINT_IN_CELL_DATA_T_H_
 
@@ -57,7 +57,7 @@ public:
 	const InverseMapT& GlobalToLocal(void) const { return fGlobalToLocal; };
 	/*@}*/
 
-	/** \name nodal neighborhood data */
+	/** \name nodal neighborhood data for nodes in filled cells */
 	/*@{*/
 	RaggedArray2DT<int>& NodalNeighbors(void) { return fNodalNeighbors; };
 	const RaggedArray2DT<int>& NodalNeighbors(void) const { return fNodalNeighbors; };
@@ -75,6 +75,25 @@ public:
 	/** const access to map of nodes in PointInCellDataT::CellNodes to rows in 
 	 * PointInCellDataT::NodalNeighbors and PointInCellDataT::NodalNeighborWeights */
 	const InverseMapT& NodeToNeighborData(void) const { return fNodeToNeighborData; };
+	/*@}*/
+
+	/** \name neighborhood data at source points */
+	/*@{*/
+	RaggedArray2DT<int>& PointNeighbors(void) { return fPointNeighbors; };
+	const RaggedArray2DT<int>& PointNeighbors(void) const { return fPointNeighbors; };
+
+	/** interpolation data with arbitrary number of weights per point */
+	RaggedArray2DT<double>& PointNeighborWeights(void) { return fPointNeighborWeights; };
+
+	/** const access to interpolation data with arbitrary number of weights per point */
+	const RaggedArray2DT<double>& PointNeighborWeights(void) const { return fPointNeighborWeights; };
+
+	/** map of rows in PointInCellDataT::PointNeighbors and PointInCellDataT::fPointNeighborWeights */
+	InverseMapT& PointToNeighborData(void) { return fPointToNeighborData; };
+
+	/** const access to map of rows in PointInCellDataT::PointNeighbors and 
+	 * PointInCellDataT::fPointNeighborWeights */
+	const InverseMapT& PointToNeighborData(void) const { return fPointToNeighborData; };
 	/*@}*/
 
 	/** collect the list of nodes in cells containing points. Returns the number of non-empty
@@ -130,7 +149,7 @@ private:
 	dArray2DT fInterpolationWeights;	
 	/*@}*/
 	
-	/** \name nodal neighborhoods */
+	/** \name nodal neighborhoods for all nodes in filled cells */
 	/*@{*/
 	/** map of global node number to corresponding row in PointInCellDataT::fNodalNeighbors
 	 * and PointInCellDataT::fNodalNeighborWeights */
@@ -141,6 +160,19 @@ private:
 
 	/** weights for interpolating point values to the nodes */
 	RaggedArray2DT<double> fNodalNeighborWeights;	
+	/*@}*/
+
+	/** \name neighborhoods for projection points */
+	/*@{*/
+	/** map of global point number to corresponding row in PointInCellDataT::fPointNeighbors
+	 * and PointInCellDataT::fPointNeighborWeights */
+	InverseMapT fPointToNeighborData;
+	
+	/** points within the neighborhood of points mapped by fPointToNeighborData */
+	RaggedArray2DT<int> fPointNeighbors;
+
+	/** weights for interpolating point values to the points */
+	RaggedArray2DT<double> fPointNeighborWeights;	
 	/*@}*/
 };
 
