@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.cpp,v 1.18 2003-05-27 07:08:14 paklein Exp $*/
+/*$Id: MR_RP2DT.cpp,v 1.19 2003-05-27 20:34:52 manzari Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
@@ -393,30 +393,30 @@ else
 
 double& MR_RP2DT::Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff)
 {
-  double tmp1, tmp11, tmp12, tmp2, tmp3, tmp31, tmp32;
+  double tmp1, tmp11, tmp22, tmp3, tmp31, tmp32, tmp4, tmp5;
   
   tmp1   = qn[1];
   tmp11  = Sig[1];
   tmp11 *= qn[2];
   tmp1  -= tmp11;
-  tmp12  = tmp1;
-  tmp12 *= tmp1;
-  tmp2   = Sig[0];
-  tmp2 *= Sig[0];
+  
+  tmp22  = Sig[0];
+  tmp22 *= Sig[0];
+  
   tmp3  = qn[1];
   tmp31 = qn[0];
   tmp31 *= qn[2];
   tmp3 -= tmp31;
   tmp32 = tmp3;
-  tmp32 *= tmp3;
+  tmp32 *=tmp3;
   
-  /*ff = Sig[0]*Sig[0] - (qn[1] - Sig[1]*qn[2])*
-  (qn[1] - Sig[1]*qn[2]) + 
-  (qn[1] - qn[0]*qn[2])*(qn[1] - qn[0]*qn[2]);*/
+  tmp4  = tmp22;
+  tmp4 += tmp32;
   
-  ff = tmp2;
-  ff -=tmp12;
-  ff +=tmp32;
+  tmp5 = sqrt(tmp4);
+  
+  ff = tmp5;
+  ff -=tmp1;
   
   return ff;
 }
@@ -462,8 +462,9 @@ dMatrixT& MR_RP2DT::dQdSig2_f(const dArrayT& qn, dMatrixT& dQdSig2)
 
 dArrayT& MR_RP2DT::dfdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdSig)
 {
-  dfdSig[0] = 2.*Sig[0];
-  dfdSig[1] = 2.*qn[2]*(qn[1] - Sig[1]*qn[2]);
+  double Shear = Sig[0]*Sig[0]+(qn[1]-qn[0]*qn[2])*(qn[1]-qn[0]*qn[2]);
+  dfdSig[0] = Sig[0]/sqrt(Shear);
+  dfdSig[1] = qn[2];
   
   return dfdSig;
 }
@@ -483,9 +484,11 @@ dArrayT& MR_RP2DT::dQdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dQdS
 
 dArrayT& MR_RP2DT::dfdq_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdq)
 {
-  dfdq[0] = -2.*qn[2]*(qn[1]-qn[0]*qn[2]);
-  dfdq[1] = 2.*(Sig[1] - qn[0])*qn[2];
-  dfdq[2] = 2.*Sig[1]*(qn[1] - Sig[1]*qn[2]) - 2.*qn[0]*(qn[1]-qn[0]*qn[2]);
+  double Shear = Sig[0]*Sig[0]+(qn[1]-qn[0]*qn[2])*(qn[1]-qn[0]*qn[2]);
+  double zeta = (qn[1] - qn[0]*qn[2])/sqrt(Shear);
+  dfdq[0] = -qn[2]*zeta;
+  dfdq[1] = zeta - 1.;
+  dfdq[2] = -qn[0]*zeta + Sig[1];
   dfdq[3] = 0.;
   
   return dfdq;
@@ -824,10 +827,10 @@ double MR_RP2DT::signof(double& r)
 		return fabs(r)/r;
 }
 
-bool MR_RP2DT::InitiationQ(const nArrayT<double>& sigma) const
+bool MR_RP2DT::InitiationQ(const double *sigma) const
 {
 
-  double tmp1, tmp11, tmp12, tmp2, tmp3, tmp31, tmp32, ff;
+  double tmp1, tmp11, tmp2, tmp3, tmp31, tmp32, tmp4, tmp5, ff;
   dArrayT Sig(2);
   
   double enp = 0.;
@@ -838,28 +841,29 @@ bool MR_RP2DT::InitiationQ(const nArrayT<double>& sigma) const
   
   Sig[0] = sigma[2];
   Sig[1] = sigma[1];
-  /*tmp1   = qn[1];*/
-  tmp1   = fc;
+
   tmp11  = Sig[1];
-  /*tmp11 *= qn[2];*/
   tmp11 *= ftan_phi;
+  tmp1   = fc;
   tmp1  -= tmp11;
-  tmp12 = tmp1;
-  tmp12 *=tmp1;
+  
   tmp2  = Sig[0];
   tmp2 *= Sig[0];
-  /*tmp3  = qn[1];*/
-  tmp3  = fc;
-  /*tmp31 = qn[0];*/
-  tmp3  = fchi;
-  /*tmp31 *= qn[2];*/
-  tmp31  = ftan_phi;
+  
+  tmp31  = fchi;
+  tmp31  *= ftan_phi;
+  tmp3 = fc; 
   tmp3 -= tmp31;
   tmp32 = tmp3;
   tmp32 *=tmp3;
-  ff = tmp2;
-  ff -=tmp12;
-  ff +=tmp32;
+  
+  tmp4 = tmp2;
+  tmp4 += tmp32;
+  
+  tmp5 = sqrt(tmp4);
+  
+  ff = tmp5;
+  ff -=tmp1;
   
   return ff >= 0.;
 }
