@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.cpp,v 1.19 2004-07-12 21:49:59 paklein Exp $ */
+/* $Id: ParameterInterfaceT.cpp,v 1.20 2004-08-05 23:03:19 paklein Exp $ */
 #include "ParameterInterfaceT.h"
 #include "ParameterListT.h"
 #include "ParameterUtils.h"
@@ -205,10 +205,6 @@ void ParameterInterfaceT::DefineInlineSub(const StringT& name, ParameterListT::L
 		
 		/* clean up */
 		delete inline_sub;
-	}
-	else /* class must override DefineInlineSub to define the sub */ {
-		order = ParameterListT::Sequence;
-		sub_lists.Dimension(0);
 	}
 }
 
