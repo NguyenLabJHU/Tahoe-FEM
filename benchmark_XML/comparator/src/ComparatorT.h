@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.h,v 1.3 2001-06-12 04:28:20 paklein Exp $ */
+/* $Id: ComparatorT.h,v 1.4 2001-06-14 20:52:09 paklein Exp $ */
 
 #ifndef _COMPARATOR_T_H_
 #define _COMPARATOR_T_H_
@@ -26,8 +26,7 @@ class ComparatorT: public FileCrawlerT
 public:
 
 	/* constructors */
-	ComparatorT(int argc, char* argv[], char job_char, char batch_char,
-		int jobcharputback = 1);
+	ComparatorT(int argc, char* argv[], char job_char, char batch_char);
 
 protected:
 
