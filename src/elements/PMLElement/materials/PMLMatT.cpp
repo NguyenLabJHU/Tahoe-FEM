@@ -1,4 +1,4 @@
-/* $Id: PMLMatT.cpp,v 1.6 2002-11-14 17:06:08 paklein Exp $ */
+/* $Id: PMLMatT.cpp,v 1.7 2003-01-29 07:34:44 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #include "PMLMatT.h"
 #include <math.h>
@@ -12,7 +12,7 @@ using namespace Tahoe;
 
 /* constructor */
 PMLMatT::PMLMatT(ifstreamT& in, const MaterialSupportT& support, const PMLT& element):
-	StructuralMaterialT(in, support),
+	SolidMaterialT(in, support),
 	Material2DT(in),
 	IsotropicT(in),
 	fPMLElement(element),
@@ -94,7 +94,7 @@ PMLMatT::PMLMatT(ifstreamT& in, const MaterialSupportT& support, const PMLT& ele
 void PMLMatT::Print(ostream& out) const
 {
 	/* inherited */
-	StructuralMaterialT::Print(out);
+	SolidMaterialT::Print(out);
 	Material2DT::Print(out);
 	IsotropicT::Print(out);
 	out << " Number of spatial dimensions. . . . . . . . . . = " << fNumSD << '\n';
@@ -103,7 +103,7 @@ void PMLMatT::Print(ostream& out) const
 void PMLMatT::PrintName(ostream& out) const
 {
 	/* inherited */
-	StructuralMaterialT::PrintName(out);
+	SolidMaterialT::PrintName(out);
 	out << " PML Constitutive Model \n";
 }
 

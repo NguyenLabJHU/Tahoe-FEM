@@ -1,12 +1,12 @@
-/* $Id: PMLT.h,v 1.8 2002-11-30 16:41:23 paklein Exp $ */
+/* $Id: PMLT.h,v 1.9 2003-01-29 07:34:27 paklein Exp $ */
 #ifndef _PML_T_H_
 #define _PML_T_H_
 
-#include "ElasticT.h"
+#include "SolidElementT.h"
 
 namespace Tahoe {
 
-class PMLT: public ElasticT
+class PMLT: public SolidElementT
 {
   public:
       

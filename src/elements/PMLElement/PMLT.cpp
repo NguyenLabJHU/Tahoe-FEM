@@ -1,5 +1,4 @@
-/* $Id: PMLT.cpp,v 1.10 2002-11-30 16:41:23 paklein Exp $ */
-
+/* $Id: PMLT.cpp,v 1.11 2003-01-29 07:34:27 paklein Exp $ */
 #include "PMLT.h"
 
 #include <iostream.h>
@@ -11,18 +10,17 @@
 #include "fstreamT.h"
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"
-#include "eControllerT.h"
-#include "StructuralMaterialT.h"
+#include "eIntegratorT.h"
+#include "SolidMaterialT.h"
 #include "MaterialListT.h"
 #include "iAutoArrayT.h"
-#include "SSStructMatT.h"
-
-/* constructor */
+#include "SSSolidMatT.h"
 
 using namespace Tahoe;
 
+/* constructor */
 PMLT::PMLT(const ElementSupportT& support, const FieldT& field):
-	ElasticT(support, field),
+	SolidElementT(support, field),
 	fNeedsOffset(-1),
 	fGradU(NumSD()),
 	fLHSa(fLHS.Format()),
@@ -51,7 +49,7 @@ PMLT::PMLT(const ElementSupportT& support, const FieldT& field):
 void PMLT::Initialize(void)
 {
 	/* inherited */
-	ElasticT::Initialize();
+	SolidElementT::Initialize();
 	
 //	fDOFvec.Dimension(NumDOF());
 		
@@ -141,7 +139,7 @@ void PMLT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 void PMLT::LHSDriver(GlobalT::SystemTypeT sys_type)
 {
 	/* inherited */
-	ElasticT::LHSDriver(sys_type);
+	SolidElementT::LHSDriver(sys_type);
 
 	/* element contribution */
 	ElementLHSDriver();
@@ -153,9 +151,9 @@ void PMLT::ElementLHSDriver(void)
 	double constC = 0.0;
 	double constK = 0.0;
 	
-	int formM = fController->FormM(constM);
-	int formC = fController->FormC(constC);
-	int formK = fController->FormK(constK);
+	int formM = fIntegrator->FormM(constM);
+	int formC = fIntegrator->FormC(constC);
+	int formK = fIntegrator->FormK(constK);
 
 	/* override algorithm */
 	if (fMassType == kNoMass) formM = 0;
@@ -197,7 +195,7 @@ void PMLT::ElementLHSDriver(void)
 void PMLT::RHSDriver(void)
 {
 	/* inherited */
-	ElasticT::RHSDriver();
+	SolidElementT::RHSDriver();
 
 	/* element contribution */
 	ElementRHSDriver();
@@ -212,9 +210,9 @@ void PMLT::ElementRHSDriver(void)
 	double constKd = 0.0;
 	
 	/* components dicated by the algorithm */
-	int formMa = fController->FormMa(constMa);
-	int formCv = fController->FormCv(constCv);
-	int formKd = fController->FormKd(constKd);
+	int formMa = fIntegrator->FormMa(constMa);
+	int formCv = fIntegrator->FormCv(constCv);
+	int formKd = fIntegrator->FormKd(constKd);
 
 	/* body forces */
 	int formBody = 0;
@@ -592,9 +590,9 @@ void PMLT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 	double constKd = 0.0;
 	
 	/* components dicated by the algorithm */
-	int formMa = fController->FormMa(constMa);
-	int formCv = fController->FormCv(constCv);
-	int formKd = fController->FormKd(constKd);
+	int formMa = fIntegrator->FormMa(constMa);
+	int formCv = fIntegrator->FormCv(constCv);
+	int formKd = fIntegrator->FormKd(constKd);
 
 	/* body forces */
 	int formBody = 0;
@@ -923,7 +921,7 @@ void PMLT::SendOutput(int kincode)
 			flags[iPrincipal] = NumSD();
 			break;
 		default:
-			cout << "\n ElasticT::SendKinematic: invalid output code: ";
+			cout << "\n SolidElementT::SendKinematic: invalid output code: ";
 			cout << kincode << endl;
 	}
 
@@ -1450,7 +1448,7 @@ void PMLT::Bb(dMatrixT& Bb_matrix, dMatrixT& B_matrix)
 void PMLT::ReadMaterialData(ifstreamT& in)
 {
 	/* inherited */
-	ElasticT::ReadMaterialData(in);
+	SolidElementT::ReadMaterialData(in);
 
 	/* offset to class needs flags */
 	fNeedsOffset = fMaterialNeeds[0].Length();
@@ -1466,7 +1464,7 @@ void PMLT::ReadMaterialData(ifstreamT& in)
 
 		/* casts are safe since class contructs materials list */
 		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
-		SSStructMatT* mat = (SSStructMatT*) pcont_mat;
+		SSSolidMatT* mat = (SSSolidMatT*) pcont_mat;
 
 		/* collect needs */
 		needs[fNeedsOffset + kstrain     ] = mat->Need_Strain();
@@ -1482,7 +1480,7 @@ void PMLT::ReadMaterialData(ifstreamT& in)
 void PMLT::SetGlobalShape(void)
 {
 	/* inherited */
-	ElasticT::SetGlobalShape();
+	SolidElementT::SetGlobalShape();
 	/* material information */
 	int material_number = CurrentElement().MaterialNumber();
 	/* material needs */

@@ -1,9 +1,9 @@
-/* $Id: PMLMatT.h,v 1.3 2002-11-14 17:06:08 paklein Exp $ */
+/* $Id: PMLMatT.h,v 1.4 2003-01-29 07:34:44 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _PML_H_
 #define _PML_H_
  
-#include "StructuralMaterialT.h"
+#include "SolidMaterialT.h"
 #include "IsotropicT.h"
 #include "Material2DT.h"
 #include "dSymMatrixT.h"
@@ -18,7 +18,7 @@ class ifstreamT;
 
 /** base class for small strain linear elastic viscoelastic 
  * constitutive law */
-class PMLMatT: public StructuralMaterialT, IsotropicT, Material2DT
+class PMLMatT: public SolidMaterialT, IsotropicT, Material2DT
 {
 	public:
 
