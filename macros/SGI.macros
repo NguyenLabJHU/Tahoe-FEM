@@ -1,4 +1,4 @@
-# $Id: SGI.macros,v 1.7 2001-02-22 23:38:44 paklein Exp $
+# $Id: SGI.macros,v 1.8 2001-02-27 01:11:18 paklein Exp $
 # SGI Irix 6.2 (or newer)
 MAKE        = make
 MAKE_DEPEND = makedepend
@@ -9,7 +9,7 @@ MORE_CFLAGS = -O3 -OPT:Olimit=10000 -DNDEBUG
 #MORE_CFLAGS = -g
 MY_CFLAGS   = -c -mips4 -D__SGI__ -I$(INC_DIR) $(MORE_CFLAGS)
 CFLAGS_C    = $(MY_CFLAGS) -woff 1110,1116
-CFLAGS_CC   = $(MY_CFLAGS) -ptused -woff 1110,1155,1174,1188,1682 -LANG:exceptions=ON 
+CFLAGS_CC   = $(MY_CFLAGS) -ptused -woff 1110,1155,1174,1188,1682 -LANG:exceptions=ON -LANG:ansi-for-init-scope=ON
 CFLAGS_F    = $(MY_CFLAGS)
 F2C_LFLAG   = -lftn
 LINK        = $(COMP_CC)
