@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.16 2002-07-02 19:56:09 cjkimme Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.17 2002-07-18 00:47:29 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 
@@ -133,6 +133,7 @@ const dSymMatrixT& DPSSKStV::s_ij(void)
 int DPSSKStV::IsLocalized(dArrayT& normal)
 {
         DetCheckT checker(fStress, fModulus);
+        checker.SetElementGroup(ContinuumElement());
 
         int loccheck= checker.IsLocalized(normal);
         return loccheck;
