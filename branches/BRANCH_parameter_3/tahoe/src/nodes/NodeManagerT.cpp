@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.45.18.1 2004-04-08 07:33:49 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.45.18.2 2004-05-13 16:43:34 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -2023,7 +2023,7 @@ void NodeManagerT::EchoKinematicBCControllers(FieldT& field, ifstreamT& in, ostr
 		KBC_ControllerT* controller = NewKBC_Controller(field, KBC_type);
 		
 		/* initialize */
-		controller->Initialize(in2);
+//		controller->Initialize(in2);
 		
 		/* store */
 		field.AddKBCController(controller);
@@ -2043,7 +2043,7 @@ void NodeManagerT::EchoKinematicBCControllers(FieldT& field, ifstreamT& in, ostr
 		out << " Controller: " << j+1 << '\n';
 	
 		/* write parameters */
-		controllers[j]->WriteParameters(out);
+		//controllers[j]->WriteParameters(out);
 		out << '\n';
 	}
 

@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.cpp,v 1.11.22.1 2004-04-08 07:33:53 paklein Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.11.22.2 2004-05-13 16:43:35 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "KBC_ControllerT.h"
 
@@ -40,12 +40,6 @@ KBC_ControllerT::KBC_ControllerT(NodeManagerT& node_manager):
 
 /* destructor */
 KBC_ControllerT::~KBC_ControllerT(void) { }
-
-/* initialization */
-void KBC_ControllerT::WriteParameters(ostream& out) const
-{
-#pragma unused(out)
-}
 
 void KBC_ControllerT::ReadRestart(istream& in)
 {

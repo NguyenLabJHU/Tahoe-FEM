@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.17.18.6 2004-05-12 17:51:36 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.17.18.7 2004-05-13 16:43:33 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #include "MeshFreeSSSolidT.h"
 
@@ -238,6 +238,9 @@ void MeshFreeSSSolidT::DefineSubs(SubListT& sub_list) const
 	
 	/* parameters for the meshfree support */
 	sub_list.AddSub("meshfree_support_choice", ParameterListT::Once, true);
+
+	/* element support */
+	sub_list.AddSub("meshfree_fracture_support");
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
@@ -258,6 +261,8 @@ ParameterInterfaceT* MeshFreeSSSolidT::NewSub(const StringT& list_name) const
 		return new MeshFreeSupport2DT;
 	else if (list_name == "meshfree_support_3D")
 		return new MeshFreeSupport3DT;
+	else if (list_name == "meshfree_fracture_support")
+		return new MeshFreeFractureSupportT;
 	else /* inherited */
 		return SmallStrainT::NewSub(list_name);
 }

@@ -1,7 +1,8 @@
-/* $Id: TorsionKBCT.cpp,v 1.3.32.1 2004-04-08 07:33:54 paklein Exp $ */
+/* $Id: TorsionKBCT.cpp,v 1.3.32.2 2004-05-13 16:43:36 paklein Exp $ */
 #include "TorsionKBCT.h"
 #include "NodeManagerT.h"
 #include "ifstreamT.h"
+#include "ParameterUtils.h"
 
 using namespace Tahoe;
 
@@ -28,74 +29,11 @@ TorsionKBCT::TorsionKBCT(NodeManagerT& node_manager, const double& time):
 	SetName("torsion");
 }
 
-/* initialize data - called immediately after construction */
-void TorsionKBCT::Initialize(ifstreamT& in)
-{
-	const char caller[] = "TorsionKBCT::Initialize";
-
-	/* 3D only */
-	if (fNodeManager.NumSD() != 3)
-		ExceptionT::BadInputValue(caller, "3D only");
-
-	/* rotation rate */
-	in >> fw;
-	
-	/* direction of the axis of rotation */
-	in >> fAxis;
-	if (fAxis > 3 || fAxis < 1)
-		ExceptionT::BadInputValue(caller, "axis is out of range: %d", fAxis);
-	fAxis--;
-	
-	/* point on the axis of rotation */
-	fPoint.Dimension(fNodeManager.NumSD());
-	in >> fPoint;
-
-	/* nodes */
-	ReadNodes(in, fID_List, fNodes);
-
-	/* constrained directions */
-	int constrained_dirs[3][2] = {
-		{1,2},
-		{2,0},
-		{0,1}};
-	int* dir = constrained_dirs[fAxis];
-
-	/* generate BC cards */
-	int n_cards = 2;
-	fKBC_Cards.Dimension(fNodes.Length()*n_cards);
-	KBC_CardT* pcard = fKBC_Cards.Pointer();
-	for (int i = 0; i < fNodes.Length(); i++)
-		for (int j = 0; j < n_cards; j++)
-		{
-			/* set values */
-			pcard->SetValues(fNodes[i], dir[j], KBC_CardT::kDsp, &fDummySchedule, 0.0);
-			pcard++;
-		}	
-}
-
 /* set to initial conditions */
 void TorsionKBCT::InitialCondition(void)
 {
 	/* store start time */
 	fStartTime = fTime;
-}
-
-void TorsionKBCT::WriteParameters(ostream& out) const
-{
-	/* inherited */
-	KBC_ControllerT::WriteParameters(out);
-
-	out << "\n T o r s i o n   p a r a m e t e r s :\n\n";
-	out << " Rotation rate . . . . . . . . . . . . . . . . . = " << fw << '\n';
-	out << " Rotation axis direction (1:x, 2:y, 3:z) . . . . = " << fAxis+1 << '\n';
-	out << " Point on the axis of rotation:\n";
-	out << fPoint << '\n';
-	out << " Number of group nodes . . . . . . . . . . . . . = " << fNodes.Length() << '\n';	
-	iArrayT tmp;
-	tmp.Alias(fNodes);
-	tmp++;
-	out << tmp.wrap(5) << '\n';
-	tmp--;
 }
 
 /* initialize/finalize/reset step */
@@ -161,5 +99,87 @@ void TorsionKBCT::DefineParameters(ParameterListT& list) const
 	KBC_ControllerT::DefineParameters(list);
 
 	list.AddParameter(fw, "rotation_rate");
-	list.AddParameter(fAxis, "rotation_axis");
+
+	ParameterT axis(ParameterT::Integer, "rotation_axis");
+	axis.AddLimit(1, LimitT::Only);
+	axis.AddLimit(2, LimitT::Only);
+	axis.AddLimit(3, LimitT::Only);
+	list.AddParameter(axis);
+}
+
+/* information about subordinate parameter lists */
+void TorsionKBCT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	KBC_ControllerT::DefineSubs(sub_list);
+
+	/* point on the axis of rotation */
+	sub_list.AddSub("point_on_axis");
+
+	/* list of nodes to control */
+	sub_list.AddSub("node_ID_list");
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* TorsionKBCT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "point_on_axis")
+		return new VectorParameterT("list_name", 3);
+	else /* inherited */	
+		return KBC_ControllerT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void TorsionKBCT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "TorsionKBCT::TakeParameterList";
+
+	/* inherited */
+	KBC_ControllerT::TakeParameterList(list);
+
+	/* 3D only */
+	if (fNodeManager.NumSD() != 3) ExceptionT::BadInputValue(caller, "3D only");
+
+	/* rotation rate and axis */
+	fw = list.GetParameter("rotation_rate");
+	fAxis = list.GetParameter("rotation_axis");
+	fAxis--;
+
+#if 0
+	/* point on the axis of rotation */
+	fPoint.Dimension(fNodeManager.NumSD());
+	in >> fPoint;
+
+	/* nodes */
+	ReadNodes(in, fID_List, fNodes);
+#endif
+
+	/* constrained directions */
+	int constrained_dirs[3][2] = {
+		{1,2},
+		{2,0},
+		{0,1}};
+	int* dir = constrained_dirs[fAxis];
+
+	/* generate BC cards */
+	int n_cards = 2;
+	fKBC_Cards.Dimension(fNodes.Length()*n_cards);
+	KBC_CardT* pcard = fKBC_Cards.Pointer();
+	for (int i = 0; i < fNodes.Length(); i++)
+		for (int j = 0; j < n_cards; j++)
+		{
+			/* set values */
+			pcard->SetValues(fNodes[i], dir[j], KBC_CardT::kDsp, &fDummySchedule, 0.0);
+			pcard++;
+		}	
+
+#if 0
+//TEMP - write nodes???
+	out << " Number of group nodes . . . . . . . . . . . . . = " << fNodes.Length() << '\n';	
+	iArrayT tmp;
+	tmp.Alias(fNodes);
+	tmp++;
+	out << tmp.wrap(5) << '\n';
+	tmp--;
+#endif
 }

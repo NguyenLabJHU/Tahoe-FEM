@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.3.20.1 2004-04-08 07:33:53 paklein Exp $ */
+/* $Id: ConveyorT.cpp,v 1.3.20.2 2004-05-13 16:43:35 paklein Exp $ */
 #include "ConveyorT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -130,12 +130,6 @@ void ConveyorT::Initialize(ifstreamT& in)
 	/* create controller for the right edge of the domain */
 	fRightEdge = new KBC_PrescribedT(fNodeManager);
 	fField.AddKBCController(fRightEdge);
-}
-
-void ConveyorT::WriteParameters(ostream& out) const
-{
-	/* inherited */
-	KBC_ControllerT::WriteParameters(out);
 }
 
 void ConveyorT::Reset(void)

@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.18.2.1 2004-04-08 07:33:54 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.18.2.2 2004-05-13 16:43:35 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 
@@ -146,7 +146,7 @@ void K_FieldT::Initialize(ifstreamT& in)
 void K_FieldT::WriteParameters(ostream& out) const
 {
 	/* inherited */
-	KBC_ControllerT::WriteParameters(out);
+//	KBC_ControllerT::WriteParameters(out);
 
 	out << "\n K - f i e l d   p a r a m e t e r s :\n\n";
 	out << " K I LTf . . . . . . . . . . . . . . . . . . . . = " << fnumLTf1 + 1 << '\n';
