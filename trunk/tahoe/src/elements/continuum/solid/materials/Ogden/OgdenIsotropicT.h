@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.h,v 1.4 2002-07-02 19:55:47 cjkimme Exp $ */
+/* $Id: OgdenIsotropicT.h,v 1.5 2002-10-04 20:45:17 thao Exp $ */
 /* created: paklein (10/01/2000)                                          */
 /* base class for large deformation isotropic material following          */
 /* Ogden's formulation.                                                   */
@@ -47,7 +47,7 @@ protected:
 		dSymMatrixT& eigenmod) = 0;
 
 	/* return true of model is purely 2D, plain stress */
-	virtual bool PurePlainStress(void) const { return false; };
+	virtual bool PurePlaneStress(void) const { return false; };
 
 private:
 

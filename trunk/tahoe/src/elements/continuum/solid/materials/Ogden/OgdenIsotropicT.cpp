@@ -1,4 +1,4 @@
-/* $Id: OgdenIsotropicT.cpp,v 1.6 2002-07-02 19:55:47 cjkimme Exp $ */
+/* $Id: OgdenIsotropicT.cpp,v 1.7 2002-10-04 20:45:17 thao Exp $ */
 /* created: paklein (10/01/2000)                                          */
 /* base class for large deformation isotropic material following          */
 /* Ogden's formulation.                                                   */
@@ -46,27 +46,18 @@ void OgdenIsotropicT::Initialize(void)
 {
 	/* initial modulus */
 	fEigs = 1.0;
-	ddWddE(fEigs, fdWdE, fddWddE);
-	
-	if (NumSD() == 2 && PurePlainStress())
-	{
-		double lambda = fddWddE(0,1);
-		double mu = 0.5*(fddWddE(0,0) - fddWddE(0,1));
-		double E = 4.0*mu*(lambda + mu)/(lambda + 2.0*mu);
-		double nu = lambda/(lambda + 2.0*mu);
+        ddWddE(fEigs, fdWdE, fddWddE);
 
-		/* set moduli */
-		IsotropicT::Set_E_nu(E, nu);
-	}
-	else
-	{
-		/* bulk and shear moduli */
-		double kappa = (fddWddE(0,0) + 2.0*fddWddE(0,1))/3.0;
-		double mu = (fddWddE(0,0) - fddWddE(0,1))/2.0;
+        double lambda = fddWddE(0,1);
+        double mu = 0.5*(fddWddE(0,0) - fddWddE(0,1));
 
-		/* using the normal 3D relations */
-		IsotropicT::Set_mu_kappa(mu, kappa);
-	}
+	if (NumSD() == 2 && PurePlaneStress())
+	               IsotropicT::Set_PurePlaneStress_mu_lambda(mu, lambda);
+        else
+          {
+                        double kappa = lambda + 2.0/3.0*mu;
+                        IsotropicT::Set_mu_kappa(mu, kappa);
+          }
 }
 
 /* modulus */
