@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.52.2.2 2004-03-06 23:01:25 hspark Exp $ */
+/* $Id: EAMT.cpp,v 1.52.2.3 2004-03-07 05:24:59 hspark Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -31,7 +31,11 @@ EAMT::EAMT(const ElementSupportT& support, const FieldT& field):
   fEmbeddingEnergy_man(kMemoryHeadRoom, fEmbeddingEnergy, 1),
   fEmbeddingForce_man(kMemoryHeadRoom, fEmbeddingForce, 1),
   fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1),
-  frhop_r_man(kMemoryHeadRoom, frhop_r,NumDOF())
+  frhop_r_man(kMemoryHeadRoom, frhop_r,NumDOF()),
+  fExternalEmbedForce(NULL),
+  fExternalElecDensity(NULL),
+  fExternalEmbedForceNodes(NULL),
+  fExternalElecDensityNodes(NULL)
 {
 	SetName("particle_eam");
 }
@@ -44,7 +48,11 @@ EAMT::EAMT(const ElementSupportT& support):
   fElectronDensity_man(kMemoryHeadRoom, fElectronDensity, 1),
   fEmbeddingEnergy_man(kMemoryHeadRoom, fEmbeddingEnergy, 1),
   fEmbeddingForce_man(kMemoryHeadRoom, fEmbeddingForce, 1),
-  fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1)
+  fEmbeddingStiff_man(kMemoryHeadRoom, fEmbeddingStiff, 1),
+  fExternalEmbedForce(NULL),
+  fExternalElecDensity(NULL),
+  fExternalEmbedForceNodes(NULL),
+  fExternalElecDensityNodes(NULL)
 {
 	SetName("particle_eam");
 }
@@ -738,26 +746,18 @@ void EAMT::DefineParameters(ParameterListT& list) const
 	ParticleT::DefineParameters(list);
 }
 
-/* assemble external electron density into fElectronDensity */
-void EAMT::AssembleElecDensity(const dArray2DT& elecdens, const iArrayT& ghostatoms)
+/* set external electron density pointers */
+void EAMT::SetExternalElecDensity(const dArray2DT& elecdensity, const iArrayT& ghostatoms)
 {
-	dArrayT asdf(1);
-	for (int i = 0; i < ghostatoms.Length(); i++)
-	{
-		elecdens.RowAlias(i, asdf);
-		fElectronDensity.SetRow(ghostatoms[i], asdf);
-	}
+	fExternalElecDensity = &elecdensity;
+	fExternalElecDensityNodes = &ghostatoms;
 }
 
-/* assemble external embedding force into fEmbeddingForce */
-void EAMT::AssembleEmbedForce(const dArray2DT& embforce, const iArrayT& ghostatoms)
+/* set external embedding force pointers */
+void EAMT::SetExternalEmbedForce(const dArray2DT& embedforce, const iArrayT& ghostatoms)
 {
-	dArrayT asdf(1);
-	for (int i = 0; i < ghostatoms.Length(); i++)
-	{
-		embforce.RowAlias(i, asdf);
-		fEmbeddingForce.SetRow(ghostatoms[i], asdf);
-	}
+	fExternalEmbedForce = &embedforce;
+	fExternalEmbedForceNodes = &ghostatoms;
 }
 
 /***********************************************************************
@@ -1501,14 +1501,33 @@ void EAMT::RHSDriver3D(void)
       /* get electron density */
       fElectronDensity = 0.0;
       GetRho3D(coords,fElectronDensity);
-	
+	  
+	  if (fExternalElecDensity)
+	  {
+		dArrayT asdf(1);
+		for (int i = 0; i < fExternalElecDensityNodes->Length(); i++)
+		{
+			fExternalElecDensity->RowAlias(i, asdf);
+			fElectronDensity.SetRow((*fExternalElecDensityNodes)[i], asdf);
+		}
+	  }
+		
       /* exchange electron density information */
       comm_manager.AllGather(fElectronDensityMessageID, fElectronDensity);
 	  
       /* get embedding force */
       fEmbeddingForce = 0.0;
       GetEmbForce(coords,fElectronDensity,fEmbeddingForce);
-
+	  if (fExternalEmbedForce)
+	  {
+		dArrayT asdf(1);
+		for (int i = 0; i < fExternalElecDensityNodes->Length(); i++)
+		{
+			fExternalEmbedForce->RowAlias(i, asdf);
+			fEmbeddingForce.SetRow((*fExternalEmbedForceNodes)[i], asdf);
+		}
+	  }
+	  
 	  /* exchange embedding energy information */
       comm_manager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
     }

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.9.2.3 2004-03-06 23:01:26 hspark Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.9.2.4 2004-03-07 05:25:00 hspark Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -161,12 +161,6 @@ public:
 	/** add external embedding force contribution to ghost atoms */
 	void SetExternalEmbedForce(const dArray2DT& embforce, const iArrayT& ghostatoms);
 
-	/** call EAMT function to update electron density */
-	void AssembleElecDensity(const iArrayT& ghostatoms);
-
-	/** call EAMT function to update embedding force */
-	void AssembleEmbedForce(const iArrayT& ghostatoms);
-
 protected:
 
 	/** initialize solver information */
@@ -232,12 +226,6 @@ private:
 	/** cumulative update for each solver group */
 	ArrayT<dArrayT> fCumulativeUpdate;
 	/*@}*/
-	
-	/** external electron density */
-	const dArray2DT* fExternalElecDensity;
-
-	/** external electron density */
-	const dArray2DT* fExternalEmbedForce;
 	
 	/** \name external force vector by group */
 	/*@{*/

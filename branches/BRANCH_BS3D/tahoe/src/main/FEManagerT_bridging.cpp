@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.14.2.4 2004-03-06 23:01:26 hspark Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.14.2.5 2004-03-07 05:25:00 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -30,9 +30,7 @@ FEManagerT_bridging::FEManagerT_bridging(ifstreamT& input, ofstreamT& output, Co
 	fBridgingScale(NULL),
 	fSolutionDriver(NULL),
 	fEAMFCC3D(NULL),
-	fEAMT(NULL),
-	fExternalElecDensity(NULL),
-	fExternalEmbedForce(NULL)
+	fEAMT(NULL)
 {
 
 }
@@ -700,8 +698,8 @@ void FEManagerT_bridging::SetExternalElecDensity(const dArray2DT& elecdens, cons
 	if (ghostatoms.Length() != elecdens.MajorDim()) 
 		ExceptionT::SizeMismatch(caller);
 
-	/* store pointers */
-	fExternalElecDensity = &elecdens;
+	/* store pointers in EAMT */
+	EAM().SetExternalElecDensity(elecdens, ghostatoms);
 }
 
 /* add external embedding force contribution to ghost atoms */
@@ -713,20 +711,8 @@ void FEManagerT_bridging::SetExternalEmbedForce(const dArray2DT& embforce, const
 	if (ghostatoms.Length() != embforce.MajorDim()) 
 		ExceptionT::SizeMismatch(caller);
 
-	/* store pointers */
-	fExternalEmbedForce = &embforce;
-}
-
-/* call EAMT function to assemble electron density */
-void FEManagerT_bridging::AssembleElecDensity(const iArrayT& ghostatoms)
-{
-	EAM().AssembleElecDensity(*fExternalElecDensity, ghostatoms);
-}
-
-/* call EAMT function to assemble embedding force */
-void FEManagerT_bridging::AssembleEmbedForce(const iArrayT& ghostatoms)
-{
-	EAM().AssembleEmbedForce(*fExternalEmbedForce, ghostatoms);
+	/* store pointers in EAMT */
+	EAM().SetExternalEmbedForce(embforce, ghostatoms);
 }
 
 /*************************************************************************
