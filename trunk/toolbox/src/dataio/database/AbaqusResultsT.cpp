@@ -1,7 +1,8 @@
-/* $Id: AbaqusResultsT.cpp,v 1.7 2002-01-05 06:36:41 paklein Exp $ */
+/* $Id: AbaqusResultsT.cpp,v 1.8 2002-01-05 06:56:26 paklein Exp $ */
 /* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
+#include "fstreamT.h"
 #include <time.h>
 
 /* these variables are nodal and have a node number before the value list */
@@ -30,7 +31,7 @@ AbaqusResultsT::AbaqusResultsT (ostream& message) :
 bool AbaqusResultsT::Initialize (const char *filename)
 {
 	//TEMP - workaround for problem with CW7
-	ifstreamT::FixPath(filename, fFileName);
+	fstreamT::FixPath(filename, fFileName);
 	fIn.open (fFileName);
 	if (!fIn.is_open())
     {
