@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactDrag2DT.cpp,v 1.2 2003-08-23 16:15:35 paklein Exp $ */
+/* $Id: PenaltyContactDrag2DT.cpp,v 1.3 2003-08-25 04:41:02 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContactDrag2DT.h"
 #include "fstreamT.h"
@@ -157,6 +157,7 @@ void PenaltyContactDrag2DT::RHSDriver(void)
 			if (fabs(mag_slip) > fSlipTolerance)
 			{
 				has_drag = true;
+				if (!has_contact) fRHS = 0.0;
 			
 				/* drag force */
 				int striker_index = fStrikerLocNumber.Map(striker_node);				
