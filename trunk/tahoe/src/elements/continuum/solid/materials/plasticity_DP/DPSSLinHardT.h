@@ -1,7 +1,7 @@
-/* $Id: DPSSLinHardT.h,v 1.7 2001-08-15 00:34:44 paklein Exp $ */
+/* $Id: DPSSLinHardT.h,v 1.8 2001-08-17 00:52:38 cfoster Exp $ */
 /* created: myip (06/01/1999)                                      */
 /*  
- * Interface for Druker-Prager, nonassociative, small strain,
+ * Interface for Drucker-Prager, nonassociative, small strain,
  * pressure-dependent plasticity model with linear isotropic hardening.
  *
  *	Note: all calculations are peformed in 3D.
