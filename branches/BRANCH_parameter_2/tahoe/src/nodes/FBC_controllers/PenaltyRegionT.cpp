@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.15.4.3 2004-04-04 03:05:58 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.15.4.4 2004-04-05 00:35:25 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltyRegionT.h"
 
@@ -203,7 +203,8 @@ void PenaltyRegionT::WriteOutput(ostream& out) const
 		out << setw(kDoubleWidth) << global_sum[i] << '\n';
 
 	/* collect output data */
-	int ndof = fContactForce2D.MinorDim();
+	const dArray2DT& disp = Field()[0];
+	int ndof = disp.MinorDim();
 	int num_output = ndof + /* displacements */
 	                 ndof + /* force */
 	                 1;     /* penetration depth */
@@ -212,7 +213,6 @@ void PenaltyRegionT::WriteOutput(ostream& out) const
 
 	/* collect displacements */
 	int index = 0;
-	const dArray2DT& disp = Field()[0];
 	n_disp.RowCollect(fContactNodes, disp);
 	for (int i = 0; i < ndof; i++)
 		n_values.ColumnCopy(index++, n_disp, i);
