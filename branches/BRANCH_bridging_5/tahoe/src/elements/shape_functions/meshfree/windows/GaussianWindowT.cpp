@@ -1,9 +1,7 @@
-/* $Id: GaussianWindowT.cpp,v 1.9 2002-10-20 22:49:44 paklein Exp $ */
-
+/* $Id: GaussianWindowT.cpp,v 1.9.42.1 2004-03-20 16:41:55 paklein Exp $ */
 #include "GaussianWindowT.h"
 #include "ExceptionT.h"
 #include <math.h>
-
 
 using namespace Tahoe;
 
@@ -44,13 +42,6 @@ void GaussianWindowT::SynchronizeSupportParameters(dArray2DT& params_1,
 		*p1 = *p2 = Max(*p1, *p2);
 		p1++; p2++;
 	}
-}
-
-/* modify nodal shape function parameters */
-void GaussianWindowT::ModifySupportParameters(dArray2DT& nodal_params) const
-{
-	/* scale supports */
-	nodal_params *= fDilationScaling;
 }
 
 void GaussianWindowT::WriteParameters(ostream& out) const
@@ -172,4 +163,42 @@ int GaussianWindowT::Covers(const dArray2DT& x_n, const dArrayT& x,
 		}
   	}
   	return count;
+}
+
+/* spherical upport size */
+double GaussianWindowT::SphericalSupportSize(const dArrayT& param_n) const
+{
+#if __option(extended_errorcheck)
+	if (param_n.Length() != 1) ExceptionT::GeneralFail("GaussianWindowT::SphericalSupportSize");
+#endif
+	return fCutOffFactor*fDilationScaling*param_n[0];
+}
+
+/* rectangular support size */
+const dArrayT& GaussianWindowT::RectangularSupportSize(const dArrayT& param_n) const 
+{
+	ExceptionT::GeneralFail("GaussianWindowT::RectangularSupportSize");
+	return param_n; /* dummy */
+}
+
+/* spherical support sizes in batch */
+void GaussianWindowT::SphericalSupportSize(const dArray2DT& param_n, ArrayT<double>& support_size) const
+{
+#if __option(extended_errorcheck)
+	if (param_n.MinorDim() != 1 ||
+	    param_n.MajorDim() != support_size.Length()) 
+		ExceptionT::GeneralFail("GaussianWindowT::SphericalSupportSize");
+#endif
+
+	dArrayT tmp;
+	tmp.Alias(support_size);
+	tmp.SetToScaled(fCutOffFactor*fDilationScaling, param_n);
+}
+
+/* rectangular support sizes in batch */
+void GaussianWindowT::RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const
+{
+#pragma unused(param_n)
+#pragma unused(support_size)
+	ExceptionT::GeneralFail("GaussianWindowT::RectangularSupportSize");
 }

@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.h,v 1.9 2002-07-05 22:28:39 paklein Exp $ */
+/* $Id: GaussianWindowT.h,v 1.9.48.1 2004-03-20 16:41:55 paklein Exp $ */
 
 #ifndef _GAUSSIAN_WINDOW_T_H_
 #define _GAUSSIAN_WINDOW_T_H_
@@ -41,9 +41,6 @@ class GaussianWindowT: public WindowT
 	virtual void SynchronizeSupportParameters(dArray2DT& params_1, 
 		dArray2DT& params_2) const;
 
-	/** modify nodal shape function parameters */
-	virtual void ModifySupportParameters(dArray2DT& nodal_params) const;
-	
 	/** write parameters to output stream */
 	virtual void WriteParameters(ostream& out) const;
 
@@ -55,25 +52,46 @@ class GaussianWindowT: public WindowT
 	virtual int Window(const dArray2DT& x_n, const dArray2DT& param_n, const dArrayT& x,
 		int order, dArrayT& w, dArray2DT& Dw, dArray2DT& DDw);
 
-	/* coverage tests */
-	/* single point */
+	/** \name coverage tests */
+	/*@{*/
+	/** single point */
 	virtual bool Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT& param_n) const;
 
-	/* multiple points */
+	/** multiple points */
 	virtual int Covers(const dArray2DT& x_n, const dArrayT& x, 
 		const dArray2DT& param_n, ArrayT<bool>& covers) const;
-	
+	/*@}*/
+
+	/** support dimensions */
+	/*@{*/
+	/** spherical upport size */
+	virtual double SphericalSupportSize(const dArrayT& param_n) const;
+
+	/** rectangular support size */
+	virtual const dArrayT& RectangularSupportSize(const dArrayT& param_n) const;
+
+	/** spherical support sizes in batch */
+	virtual void SphericalSupportSize(const dArray2DT& param_n, ArrayT<double>& support_size) const;
+
+	/** rectangular support sizes in batch */
+	virtual void RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const;
+	/*@}*/
+
   private:
   
-  	/* window function adjustable parameters */
+  	/** \name window function adjustable parameters */
+  	/*@{*/
   	double fDilationScaling;
   	double fSharpeningFactor;
   	double fCutOffFactor;
+  	/*@}*/
   	
 	/* work space */
 	dArrayT     fNSD;
 	dSymMatrixT fNSDsym;
+	dArrayT fSupportSize;
 };
 
-} // namespace Tahoe 
+} /* namespace Tahoe */
+
 #endif /* _GAUSSIAN_WINDOW_T_H_ */

@@ -2,7 +2,6 @@
 #include "ExceptionT.h"
 #include <math.h>
 
-
 using namespace Tahoe;
 
 const double sqrtPi = sqrt(acos(-1.0));
@@ -38,13 +37,6 @@ void CubicSplineWindowT::SynchronizeSupportParameters(dArray2DT& params_1,
 		*p1 = *p2 = Max(*p1, *p2);
 		p1++; p2++;
 	}
-}
-
-/* modify nodal shape function parameters */
-void CubicSplineWindowT::ModifySupportParameters(dArray2DT& nodal_params) const
-{
-	/* scale supports */
-	nodal_params *= fDilationScaling;	
 }
 
 void CubicSplineWindowT::WriteParameters(ostream& out) const
@@ -170,4 +162,42 @@ int CubicSplineWindowT::Covers(const dArray2DT& x_n, const dArrayT& x,
 	}
 	
 	return count;
+}
+
+/* spherical upport size */
+double CubicSplineWindowT::SphericalSupportSize(const dArrayT& param_n) const
+{
+#if __option(extended_errorcheck)
+	if (param_n.Length() != 1) ExceptionT::GeneralFail("CubicSplineWindowT::SphericalSupportSize");
+#endif
+	return 2.0*fDilationScaling*param_n[0];
+}
+
+/* rectangular support size */
+const dArrayT& CubicSplineWindowT::RectangularSupportSize(const dArrayT& param_n) const 
+{
+	ExceptionT::GeneralFail("CubicSplineWindowT::RectangularSupportSize");
+	return param_n; /* dummy */
+}
+
+/* spherical support sizes in batch */
+void CubicSplineWindowT::SphericalSupportSize(const dArray2DT& param_n, ArrayT<double>& support_size) const
+{
+#if __option(extended_errorcheck)
+	if (param_n.MinorDim() != 1 ||
+	    param_n.MajorDim() != support_size.Length()) 
+		ExceptionT::GeneralFail("CubicSplineWindowT::SphericalSupportSize");
+#endif
+
+	dArrayT tmp;
+	tmp.Alias(support_size);
+	tmp.SetToScaled(2.0*fDilationScaling, param_n);
+}
+
+/* rectangular support sizes in batch */
+void CubicSplineWindowT::RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const
+{
+#pragma unused(param_n)
+#pragma unused(support_size)
+	ExceptionT::GeneralFail("CubicSplineWindowT::RectangularSupportSize");
 }
