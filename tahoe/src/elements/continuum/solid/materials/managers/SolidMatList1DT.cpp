@@ -1,4 +1,4 @@
-/* $Id: SolidMatList1DT.cpp,v 1.14 2004-01-10 04:41:16 paklein Exp $ */
+/* $Id: SolidMatList1DT.cpp,v 1.15 2004-01-14 19:25:30 rdorgan Exp $ */
 #include "SolidMatList1DT.h"
 #include "SolidMatSupportT.h"
 #include "fstreamT.h"
@@ -145,7 +145,7 @@ void SolidMatList1DT::DefineInlineSub(const StringT& sub, ParameterListT::ListOr
 		sub_sub_list.AddSub("small_strain_Hookean_1D");
 
 #ifdef GRAD_SMALL_STRAIN_DEV
-		sub_sub_list.AddSub("GradJ2SS1D")
+		sub_sub_list.AddSub("GradJ2SS1D");
 		sub_sub_list.AddSub("J2SSKStV1D");
 #endif		
 	}
@@ -161,7 +161,7 @@ ParameterInterfaceT* SolidMatList1DT::NewSub(const StringT& list_name) const
 #ifdef GRAD_SMALL_STRAIN_DEV
 	else if (list_name == "GradJ2SS1D")
 		return new GradJ2SS1D;
-	if (list_name == "J2SSKStV1D")
+	else if (list_name == "J2SSKStV1D")
 		return new J2SSKStV1D;
 #endif		
 	else /* inherited */
