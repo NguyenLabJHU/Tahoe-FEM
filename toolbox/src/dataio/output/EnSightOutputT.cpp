@@ -1,4 +1,4 @@
-/* $Id: EnSightOutputT.cpp,v 1.3.2.1 2001-10-25 19:49:00 sawimme Exp $ */
+/* $Id: EnSightOutputT.cpp,v 1.3.2.2 2001-10-31 20:59:39 sawimme Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #include "EnSightOutputT.h"
@@ -11,247 +11,283 @@
 #include <fstream.h>
 
 EnSightOutputT::EnSightOutputT (ostream& out, const ArrayT<StringT>& out_strings, int numdigs, bool binary) :
-OutputBaseT (out, out_strings),
-fNumDigits (numdigs),
-fBinary (binary),
-fTimeValues (20)
+  OutputBaseT (out, out_strings),
+  fNumDigits (numdigs),
+  fBinary (binary),
+  fTimeValues (20)
 {
 }
 
 void EnSightOutputT::WriteGeometry (void)
 {
-int dof = fCoordinates->MinorDim();
-EnSightT ens (fout, fBinary, dof);
-
-// write geometry file
-ofstream geo;
-StringT geocase = OpenGeometryFile (ens, geo);
-if (geo)
-{
-int partID = 1;
-for (int i=0; i < fElementSets.Length(); i++)
+  int dof = fCoordinates->MinorDim();
+  EnSightT ens (fout, fBinary, dof);
+  
+  // write geometry file
+  ofstream geo;
+  StringT geocase = OpenGeometryFile (ens, geo, -1);
+  if (geo)
+    {
+      int partID = 1;
+      for (int i=0; i < fElementSets.Length(); i++)
 	{
 	  WritePart (geo, ens, i);
 	  if (partID < fElementSets[i]->ID())
 	    partID = fElementSets[i]->ID() + 1;
 	}
-// node sets
-for (int n=0; n < fNodeSets.Length(); n++)
+      // node sets
+      for (int n=0; n < fNodeSets.Length(); n++)
 	{
 	  StringT description (fOutroot);
 	  description.Append (" NodeSet ", fNodeSetIDs[n]);
 	  ens.WritePartInfo (geo, partID++, description);
 	  WriteCoordinates (geo, ens, *fNodeSets[n]);
 	}
-}
-
-// write case file
-StringT label = "case";
-StringT casefile = CreateFileName (label, kNoIncFile);
-ofstream out (casefile);
-ens.WriteCaseFormat (out);
-ens.WriteCaseGeometry (out, fSequence + 1, geocase);
+    }
+  
+  // write case file
+  StringT label = "case";
+  StringT casefile = CreateFileName (label, kNoIncFile, -1);
+  ofstream out (casefile);
+  ens.WriteCaseFormat (out);
+  ens.WriteCaseGeometry (out, fSequence + 1, geocase);
 }
 
 void EnSightOutputT::WriteOutput (double time, int ID, const dArray2DT& n_values, const dArray2DT& e_values)
 {
-OutputBaseT::WriteOutput (time, ID, n_values, e_values);
-
-// save time value
-fTimeValues.Append (time);
-
-int dof = fCoordinates->MinorDim();
-EnSightT ens (fout, fBinary, dof);
-
-// write geometry file
-ofstream geo;
-StringT geocase = OpenGeometryFile (ens, geo);
-WritePart (geo, ens, ID);
-
-// variable files
-AutoArrayT<StringT> names (20), files (20);
-AutoArrayT<EnSightT::VariableTypeT> vtypes;
-const ArrayT<StringT>& n_labels = fElementSets[ID]->NodeOutputLabels();
-const ArrayT<StringT>& e_labels = fElementSets[ID]->NodeOutputLabels();
-WriteVariable (ens, true, ID, n_values, n_labels, names, files, vtypes);
-WriteVariable (ens, false, ID, e_values, e_labels, names, files, vtypes);
-
-// write case file
-StringT label = "case";
-StringT casefile = CreateFileName (label, kNoIncFile);
-ofstream out (casefile);
-ens.WriteCaseFormat (out);
-ens.WriteCaseGeometry (out, fSequence + 1, geocase);
-if (names.Length() > 0)
-ens.WriteVariableLabels (out, names, files, vtypes);
-if (fTimeValues.Length() > 0)
-{
-int startinc = 0;
-int increment = 1;
-ens.WriteTime (out, fSequence + 1, startinc, increment, fTimeValues);
-}
+  //cout << "***** writing " << ID << endl;
+  OutputBaseT::WriteOutput (time, ID, n_values, e_values);
+  
+  // save time value
+  if (fElementSets[ID]->PrintStep() == fTimeValues.Length())
+    fTimeValues.Append (time);
+  
+  int dof = fCoordinates->MinorDim();
+  EnSightT ens (fout, fBinary, dof);
+  
+  // write geometry file
+  ofstream geo;
+  StringT geocase = OpenGeometryFile (ens, geo, ID);
+  WritePart (geo, ens, ID);
+  
+  // variable files
+  AutoArrayT<StringT> names (20), files (20);
+  AutoArrayT<EnSightT::VariableTypeT> vtypes;
+  const ArrayT<StringT>& n_labels = fElementSets[ID]->NodeOutputLabels();
+  const ArrayT<StringT>& e_labels = fElementSets[ID]->NodeOutputLabels();
+  WriteVariable (ens, true, ID, n_values, n_labels, names, files, vtypes);
+  WriteVariable (ens, false, ID, e_values, e_labels, names, files, vtypes);
+  
+  // write case file
+  StringT label = "case";
+  StringT casefile = CreateFileName (label, kNoIncFile, fElementSets[ID]->ID());
+  ofstream out (casefile);
+  ens.WriteCaseFormat (out);
+  ens.WriteCaseGeometry (out, fSequence + 1, geocase);
+  if (names.Length() > 0)
+    ens.WriteVariableLabels (out, names, files, vtypes);
+  if (fTimeValues.Length() > 0)
+    {
+      int startinc = 0;
+      int increment = 1;
+      ens.WriteTime (out, fSequence + 1, startinc, increment, fTimeValues);
+    }
 }
 
 // *************** PRIVATE ********************
 
-StringT EnSightOutputT::OpenGeometryFile (EnSightT& ens, ofstream& geo) const
+StringT EnSightOutputT::OpenGeometryFile (EnSightT& ens, ofstream& geo, int ID) const
 {
-StringT label = "geo";
-StringT geofile, geocase;
-bool change = false;
-for (int j=0; j < fElementSets.Length() && !change; j++)
-if (fElementSets[j]->Changing()) change = true;
-if (change)
-{
-geofile = CreateFileName (label, fElementSets[0]->PrintStep());
-geocase = CreateFileName (label, kWildFile);
-}
-else
-{
-geofile = CreateFileName (label, kNoIncFile);
-geocase = geofile;
-}
-
-// is it necessary to write a geometry file
-if (!change && fElementSets[0]->PrintStep() > 0) return geocase;
-geo.open (geofile);
-
-// header
-int h = 0;
-ArrayT<StringT> header;
-if (fBinary)
-{
-header.Allocate (5);
-header[h++] = "C Binary";
-}
-else
-header.Allocate (4);
-header[h] = fOutroot;
-header[h++].Append (" ", fTitle.Pointer());
-header[h] = fCodeName;
-header[h++].Append (" ", fVersion.Pointer());
-header[h++] = "node id assign";
-header[h++] = "element id assign";
-ens.WriteHeader (geo, header);
-
+  StringT label = "geo";
+  StringT geofile, geocase;
+  bool change = false;
+  for (int j=0; j < fElementSets.Length() && !change; j++)
+    if (fElementSets[j]->Changing()) change = true;
+  if (change)
+    {
+      geofile = CreateFileName (label, fElementSets[0]->PrintStep(), fElementSets[ID]->ID());
+      geocase = CreateFileName (label, kWildFile, fElementSets[ID]->ID());
+    }
+  else
+    {
+      geofile = CreateFileName (label, kNoIncFile, fElementSets[ID]->ID());
+      geocase = geofile;
+    }
+  
+  // is it necessary to write a geometry file
+  if (!change && fElementSets[0]->PrintStep() > 0) return geocase;
+  geo.open (geofile);
+  
+  // header
+  int h = 0;
+  ArrayT<StringT> header;
+  if (fBinary)
+    {
+      header.Allocate (5);
+      header[h++] = "C Binary";
+    }
+  else
+    header.Allocate (4);
+  header[h] = fOutroot;
+  header[h++].Append (" ", fTitle.Pointer());
+  header[h] = fCodeName;
+  header[h++].Append (" ", fVersion.Pointer());
+  header[h++] = "node id assign";
+  header[h++] = "element id assign";
+  ens.WriteHeader (geo, header);
+  
 return geocase;
 }
 
-StringT EnSightOutputT::CreateFileName (const StringT& Label, int increment) const
+StringT EnSightOutputT::CreateFileName (const StringT& Label, int increment, int groupnumber) const
 {
-StringT var (fOutroot);
-
-/* tack on sequence number */
-if (fSequence > 0) var.Append(".sq", fSequence + 1);
-
-/* tack on print increment number or wildcards */
-if (increment == kWildFile)
-{
-var.Append (".ps");
-for (int i = 0; i < fNumDigits; i++)
+  StringT var (fOutroot);
+  
+  /* tack on sequence number */
+  if (fSequence > 0) var.Append(".sq", fSequence + 1);
+  
+  /* tack on group number */
+  if (groupnumber > 0)
+    var.Append (".gp", groupnumber);
+  
+  /* tack on print increment number or wildcards */
+  if (increment == kWildFile)
+    {
+      var.Append (".ps");
+      for (int i = 0; i < fNumDigits; i++)
 	var.Append ("*");
-}
-else if (increment > kNoIncFile)
-var.Append (".ps", increment, fNumDigits);
-
-/* tack on extension */
-var.Append (".");
-var.Append (Label);
-return var;
+    }
+  else if (increment > kNoIncFile)
+    var.Append (".ps", increment, fNumDigits);
+  
+  /* tack on extension */
+  var.Append (".");
+  var.Append (Label);
+  return var;
 }
 
 void EnSightOutputT::WritePart (ostream& geo, EnSightT& ens, int index) const
 {
-StringT description = fOutroot;
-description.Append (" Grp ", fElementSets[index]->ID());
-ens.WritePartInfo (geo, fElementSets[index]->ID(), description);
-
-iArrayT nodes_used;
-nodes_used.Alias (fElementSets[index]->NodesUsed());
-WriteCoordinates (geo, ens, nodes_used);
-WriteConnectivity (geo, ens, nodes_used, index);
+  const iArrayT& blockIDs = fElementSets[index]->BlockID();
+  for (int b=0; b < fElementSets[index]->NumBlocks(); b++)
+    {
+      StringT description = fOutroot;
+      description.Append (" Grp ", fElementSets[index]->ID());
+      description.Append (".", blockIDs[b]);
+      ens.WritePartInfo (geo, blockIDs[b], description);
+  
+      iArrayT nodes_used;
+      fElementSets[index]->BlockNodesUsed (b, nodes_used);
+      WriteCoordinates (geo, ens, nodes_used);
+      WriteConnectivity (geo, ens, nodes_used, index, b);
+    }
 }
 
 void EnSightOutputT::WriteCoordinates (ostream& geo, EnSightT& ens, const iArrayT& nodes) const
 {
-dArray2DT local (nodes.Length(), fCoordinates->MinorDim());
-for (int i=0; i < nodes.Length(); i++)
-local.SetRow (i, (*fCoordinates)(nodes[i]));
-ens.WriteCoordinateHeader (geo, nodes.Length());
-ens.WriteCoordinates (geo, local);
+  dArray2DT local (nodes.Length(), fCoordinates->MinorDim());
+  for (int i=0; i < nodes.Length(); i++)
+    local.SetRow (i, (*fCoordinates)(nodes[i]));
+  ens.WriteCoordinateHeader (geo, nodes.Length());
+  ens.WriteCoordinates (geo, local);
 }
 
-void EnSightOutputT::WriteConnectivity (ostream& geo, EnSightT& ens, const iArrayT& nodes_used, int i) const
+void EnSightOutputT::WriteConnectivity (ostream& geo, EnSightT& ens, const iArrayT& nodes_used, int i, int block) const
 {
-  const iArray2DT* connects = fElementSets[i]->Connectivities(0);
-  int numelems = fElementSets[i]->NumElements();
-  int numelemnodes = connects->MinorDim();
-  int outputnodes = ens.WriteConnectivityHeader (geo, fElementSets[i]->Geometry(), numelems, numelemnodes);
+  const iArray2DT* connects = fElementSets[i]->Connectivities(block);
+  int outputnodes = ens.WriteConnectivityHeader (geo, fElementSets[i]->Geometry(), 
+						 connects->MajorDim(), connects->MinorDim());
   
-  for (int ic=0; ic < fElementSets[i]->NumBlocks(); ic++)
-    {
-      const iArray2DT* connects = fElementSets[i]->Connectivities(ic);
-      iArray2DT localconn (connects->MinorDim(), numelemnodes);
-      LocalConnectivity (nodes_used, *connects, localconn);
-      localconn++;
-      ens.WriteConnectivity (geo, outputnodes, localconn);
-    }
+  iArray2DT localconn (connects->MajorDim(), connects->MinorDim());
+  LocalConnectivity (nodes_used, *connects, localconn);
+  localconn++;
+  ens.WriteConnectivity (geo, outputnodes, localconn);
 }
 
 void EnSightOutputT::WriteVariable (EnSightT& ens, bool nodal, int ID,
-	const dArray2DT& values, const ArrayT<StringT>& labels,
-	AutoArrayT<StringT>& names, AutoArrayT<StringT>& files,
-	AutoArrayT<EnSightT::VariableTypeT>& vtypes) const
+				    const dArray2DT& values, const ArrayT<StringT>& labels,
+				    AutoArrayT<StringT>& names, AutoArrayT<StringT>& files,
+				    AutoArrayT<EnSightT::VariableTypeT>& vtypes) const
 {
-int dof = fCoordinates->MinorDim();
-for (int n=0; n < values.MinorDim(); n++)
-{
-// determine variable name
-StringT extension;
-bool vector = IsVector (labels, n, extension, dof);
-names.Append (extension);
-
-// open variable file
-StringT varfile = CreateFileName (extension, fElementSets[ID]->PrintStep());
-StringT varcase = CreateFileName (extension, kWildFile);
-files.Append (varcase);
-
-// open file
-ofstream var (varfile);
-ArrayT<StringT> header (1);
-header[0] = extension;
-header[0].Append (" ", fElementSets[ID]->PrintStep());
-ens.WriteHeader (var, header);
-
-// write part information
-StringT name = "coordinates";
-if (!nodal)
+  // extract block values from output set
+  ArrayT<dArray2DT> blockvalues(fElementSets[ID]->NumBlocks());
+  for (int block=0; block < fElementSets[ID]->NumBlocks(); block++)
+    {
+      if (nodal)
 	{
-	  const iArray2DT* connects = fElementSets[ID]->Connectivities(0);
-	  int numelemnodes = connects->MinorDim();
-	  ens.GetElementName (name, numelemnodes, fElementSets[ID]->Geometry());
+	  iArrayT nodes_used;
+	  fElementSets[ID]->BlockNodesUsed (block, nodes_used);
+	  blockvalues[block].Allocate (nodes_used.Length(), values.MinorDim());
+	  blockvalues[block].RowCollect (nodes_used, values);
 	}
-ens.WritePartInfo (var, fElementSets[ID]->ID(), name);
-
-// write values
-if (vector)
+      else
 	{
-	  ens.WriteVector (var, values, n);
-	  n += dof - 1;
-	  if (nodal)
-	    vtypes.Append (EnSightT::kVectorNodal);
+	  blockvalues[block].Allocate (fElementSets[ID]->NumBlockElements(block), values.MinorDim());
+	  ElementBlockValues (ID, block, values, blockvalues[block]);
+	}
+    }
+  const iArrayT& blockIDs = fElementSets[ID]->BlockID();
+
+  // print each variable to a separate file
+  int dof = fCoordinates->MinorDim();
+  for (int n=0; n < values.MinorDim(); n++)
+    {
+      // determine variable name
+      StringT extension;
+      bool vector = IsVector (labels, n, extension, dof);
+      names.Append (extension);
+      
+      // create variable file name
+      StringT varfile = CreateFileName (extension, fElementSets[ID]->PrintStep(), fElementSets[ID]->ID());
+      StringT varcase = CreateFileName (extension, kWildFile, fElementSets[ID]->ID());
+      
+      // account for only one time step being written. 
+      if (fTimeValues.Length() < 2)
+	files.Append (varfile);
+      else
+	files.Append (varcase);
+      //cout << "********" << varfile << endl;
+      
+      // open file
+      ofstream var (varfile);
+      ArrayT<StringT> header (1);
+      header[0] = extension;
+      header[0].Append (" ", fElementSets[ID]->PrintStep());
+      ens.WriteHeader (var, header);
+      
+      // write this variable's values for each block to the same file
+      for (int block=0; block < fElementSets[ID]->NumBlocks(); block++)
+	{
+	  // write part information
+	  StringT name = "coordinates";
+	  if (!nodal)
+	    {
+	      const iArray2DT* connects = fElementSets[ID]->Connectivities(block);
+	      int numelemnodes = connects->MinorDim();
+	      ens.GetElementName (name, numelemnodes, fElementSets[ID]->Geometry());
+	    }
+	  ens.WritePartInfo (var, blockIDs[block], name);
+
+	  // write values
+	  if (vector)
+	    {
+	      ens.WriteVector (var, blockvalues[block], n);
+	      n += dof - 1;
+	      if (nodal)
+		vtypes.Append (EnSightT::kVectorNodal);
+	      else
+		vtypes.Append (EnSightT::kVectorElemental);
+	    }
 	  else
-	    vtypes.Append (EnSightT::kVectorElemental);
+	    {
+	      ens.WriteScalar (var, blockvalues[block], n);
+	      if (nodal)
+		vtypes.Append (EnSightT::kScalarNodal);
+	      else
+		vtypes.Append (EnSightT::kScalarElemental);
+	    }
 	}
-else
-	{
-	  ens.WriteScalar (var, values, n);
-	  if (nodal)
-	    vtypes.Append (EnSightT::kScalarNodal);
-	  else
-	    vtypes.Append (EnSightT::kScalarElemental);
-	}
-}
+    }
 }
 
 bool EnSightOutputT::IsVector (const ArrayT<StringT>& inlabels, int index, StringT& extension, int dof) const
@@ -264,32 +300,32 @@ bool EnSightOutputT::IsVector (const ArrayT<StringT>& inlabels, int index, Strin
 	else
 		extension.Drop(-2);
 
-if (dof >= 2)
-{
-	if (inlabels.Length() < index+1)
-	  return false;
-	if ( (strstr ((const char*) inlabels[index+1], "_y")) == NULL &&
-	     (strstr ((const char*) inlabels[index+1], "_Y")) == NULL)
-	  return false;
-}
-if (dof == 3)
-{
-	if (inlabels.Length() < index+2)
-	  return false;
-	if ( (strstr ((const char*) inlabels[index+2], "_z")) == NULL &&
-	     (strstr ((const char*) inlabels[index+2], "_Z")) == NULL)
-	  return false;
-}
-
-//DEPRECATRED
+	if (dof >= 2)
+	  {
+	    if (inlabels.Length() < index+1)
+	      return false;
+	    if ( (strstr ((const char*) inlabels[index+1], "_y")) == NULL &&
+		 (strstr ((const char*) inlabels[index+1], "_Y")) == NULL)
+	      return false;
+	  }
+	if (dof == 3)
+	  {
+	    if (inlabels.Length() < index+2)
+	      return false;
+	    if ( (strstr ((const char*) inlabels[index+2], "_z")) == NULL &&
+		 (strstr ((const char*) inlabels[index+2], "_Z")) == NULL)
+	      return false;
+	  }
+	
+	//DEPRECATRED
 #if 0
-// create vector extension
-if ( (strstr ((const char*) inlabels[index], "_x")) != NULL)
-extension.DefaultName (inlabels[index], "_x", "", -1);
-else
-extension.DefaultName (inlabels[index], "_X", "", -1);
+	// create vector extension
+	if ( (strstr ((const char*) inlabels[index], "_x")) != NULL)
+	  extension.DefaultName (inlabels[index], "_x", "", -1);
+	else
+	  extension.DefaultName (inlabels[index], "_X", "", -1);
 #endif
-
-return true;
+	
+	return true;
 }
 

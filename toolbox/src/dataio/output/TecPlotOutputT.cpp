@@ -1,4 +1,4 @@
-/* $Id: TecPlotOutputT.cpp,v 1.1.1.1.2.1 2001-10-25 19:49:01 sawimme Exp $ */
+/* $Id: TecPlotOutputT.cpp,v 1.1.1.1.2.2 2001-10-31 20:59:41 sawimme Exp $ */
 /* created: sawimme (06/06/2000)                                          */
 
 #include "TecPlotOutputT.h"
@@ -47,15 +47,17 @@ if (fElementSets[e]->NumNodes() > 0)
 	local_coords.RowCollect(nodes_used, *fCoordinates);
 	tec.WriteData (out, local_coords);
 	
-	const iArray2DT* c = fElementSets[e]->Connectivities(0);
-	iArray2DT connects (fElementSets[e]->NumElements(), c->MinorDim());
-	fElementSets[e]->AllConnectivities (connects);
+	// write all blocks as one zone for now
+	for (int b=0; b < fElementSets[e]->NumBlocks(); b++)
+	  {
+	    const iArray2DT* c = fElementSets[e]->Connectivities(b);
 
-	iArray2DT local_connects(connects.MajorDim(), connects.MinorDim());
-	LocalConnectivity(nodes_used, connects, local_connects);
-	local_connects++;
-	tec.WriteConnectivity (out, fElementSets[e]->Geometry(), local_connects);
-	local_connects--;
+	    iArray2DT local_connects(c->MajorDim(), c->MinorDim());
+	    LocalConnectivity(nodes_used, *c, local_connects);
+	    local_connects++;
+	    tec.WriteConnectivity (out, fElementSets[e]->Geometry(), local_connects);
+	    local_connects--;
+	  }
 }
 }
 
@@ -107,15 +109,17 @@ void TecPlotOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
   // write connectivity
   if (fElementSets[ID]->PrintStep() == 0 || fElementSets[ID]->Changing())
     {
-      const iArray2DT* c = fElementSets[ID]->Connectivities(0);
-      iArray2DT connects (fElementSets[ID]->NumElements(), c->MinorDim());
-      fElementSets[ID]->AllConnectivities (connects);
+	// write all blocks as one zone for now
+	for (int b=0; b < fElementSets[ID]->NumBlocks(); b++)
+	  {
+	    const iArray2DT* c = fElementSets[ID]->Connectivities(b);
 
-      iArray2DT local_connects(connects.MajorDim(), connects.MinorDim());
-      LocalConnectivity(nodes_used, connects, local_connects);
-      local_connects++;
-      tec.WriteConnectivity (out, fElementSets[ID]->Geometry(), local_connects);
-      local_connects--;
+	    iArray2DT local_connects(c->MajorDim(), c->MinorDim());
+	    LocalConnectivity(nodes_used, *c, local_connects);
+	    local_connects++;
+	    tec.WriteConnectivity (out, fElementSets[ID]->Geometry(), local_connects);
+	    local_connects--;
+	  }
     }
   
   out.flush ();
