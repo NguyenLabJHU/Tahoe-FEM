@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.33 2004-09-10 20:28:49 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.34 2004-09-14 18:16:10 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -62,6 +62,11 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 
 	try
 	{ 	
+
+	/* counters */
+	int num_iterations = 0;
+	int tan_iterations = 0;
+
 	/* form the first residual force vector */
 	fRHS_lock = kOpen;
 	if (fLHS_update) {
@@ -74,12 +79,49 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 	fFEManager.FormRHS(Group());	
 	fLHS_lock = kLocked;
 	fRHS_lock = kLocked;
-		
-	/* loop on error */
+
+	/* initial error */
 	double error = Residual(fRHS);
 	SolutionStatusT solutionflag = ExitIteration(error, fNumIteration);
-	int num_iterations = 0;
-	int tan_iterations = 0;
+
+	/* check for relaxation */
+	if (solutionflag == kConverged) {
+		GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
+		
+		/* reset global equations */
+		if (relaxcode == GlobalT::kReEQ || relaxcode == GlobalT::kReEQRelax)
+			fFEManager.SetEquationSystem(Group());
+			
+		/* recompute force and continue iterating */
+		if (relaxcode == GlobalT::kRelax || relaxcode == GlobalT::kReEQRelax) {
+
+			/* tangent reformed next iteration? */
+			if (tan_iterations + 1 == fReformTangentIterations)
+				fLHS_update = true;
+			else
+				fLHS_update = false;
+
+			/* recalculate residual */
+			if (fLHS_update) {
+				fLHS->Clear();
+				fLHS_lock = kOpen; /* LHS open for assembly, too! */
+			}
+			else
+				fLHS_lock = kIgnore; /* ignore assembled values */
+			fRHS = 0.0;
+			fFEManager.FormRHS(Group());	
+			fLHS_lock = kLocked;
+			fRHS_lock = kLocked;
+			
+			/* new error */
+			error = Residual(fRHS);		
+
+			/* test for convergence */
+			solutionflag = ExitIteration(error, fNumIteration);
+		}
+	}
+			
+	/* loop on error */
 	while (solutionflag == kContinue &&
 		(max_iterations == -1 || num_iterations < max_iterations))
 	{
@@ -137,6 +179,43 @@ SolverT::SolutionStatusT NLSolver::Solve(int max_iterations)
 
 		/* test for convergence */
 		solutionflag = ExitIteration(error, fNumIteration);
+
+		/* check for relaxation */
+		if (solutionflag == kConverged) {
+			GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
+		
+			/* reset global equations */
+			if (relaxcode == GlobalT::kReEQ || relaxcode == GlobalT::kReEQRelax)
+				fFEManager.SetEquationSystem(Group());
+			
+			/* recompute force and continue iterating */
+			if (relaxcode == GlobalT::kRelax || relaxcode == GlobalT::kReEQRelax) {
+
+				/* tangent reformed next iteration? */
+				if (tan_iterations + 1 == fReformTangentIterations)
+					fLHS_update = true;
+				else
+					fLHS_update = false;
+
+				/* recalculate residual */
+				if (fLHS_update) {
+					fLHS->Clear();
+					fLHS_lock = kOpen; /* LHS open for assembly, too! */
+				}
+				else
+					fLHS_lock = kIgnore; /* ignore assembled values */
+				fRHS = 0.0;
+				fFEManager.FormRHS(Group());	
+				fLHS_lock = kLocked;
+				fRHS_lock = kLocked;
+				
+				/* new error */
+				error = Residual(fRHS);		
+
+				/* test for convergence */
+				solutionflag = ExitIteration(error, fNumIteration);
+			}
+		}
 	}
 
 	/* found solution - check relaxation */
@@ -214,28 +293,6 @@ NLSolver::SolutionStatusT NLSolver::DoConverged(void)
 		fQuickConvCount = 0;	
 		cout << "\n NLSolver::DoConverged: reset quick converged: ";
 		cout << fQuickConvCount << "/" << fQuickSeriesTol << endl;	
-	}
-
-	/* allow for multiple relaxation */
-	GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
-	while (relaxcode != GlobalT::kNoRelax)
-	{	
-		/* reset global equations */
-		if (relaxcode == GlobalT::kReEQ ||
-		    relaxcode == GlobalT::kReEQRelax)
-			fFEManager.SetEquationSystem(Group());
-						
-		/* new equilibrium */
-		if (relaxcode == GlobalT::kRelax ||
-		    relaxcode == GlobalT::kReEQRelax)
-		{
-			if (Relax() == kFailed)
-				return kFailed;
-	   		else
-				relaxcode = fFEManager.RelaxSystem(Group());
-		}
-		else
-			relaxcode = GlobalT::kNoRelax;
 	}
 
 	/* success */

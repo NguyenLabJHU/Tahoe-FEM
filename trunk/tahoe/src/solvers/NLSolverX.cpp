@@ -1,4 +1,4 @@
-/* $Id: NLSolverX.cpp,v 1.14 2004-09-09 23:54:55 paklein Exp $ */
+/* $Id: NLSolverX.cpp,v 1.15 2004-09-14 18:16:10 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 #include "NLSolverX.h"
 
@@ -320,28 +320,6 @@ cout << fQuickConvCount << "/" << fQuickSeriesTol << endl;
 //TEMP
 cout << "\n NLSolverX::DoConverged: reset quick converged: ";
 cout << fQuickConvCount << "/" << fQuickSeriesTol << endl;
-	}
-
-	/* allow for multiple relaxation */
-	GlobalT::RelaxCodeT relaxcode = fFEManager.RelaxSystem(Group());
-	while (relaxcode != GlobalT::kNoRelax)
-	{	
-		/* reset global equations */
-		if (relaxcode == GlobalT::kReEQ ||
-		    relaxcode == GlobalT::kReEQRelax)
-			fFEManager.SetEquationSystem(Group());
-						
-		/* new equilibrium */
-		if (relaxcode == GlobalT::kRelax ||
-		    relaxcode == GlobalT::kReEQRelax)
-		{
-			if (Relax() == kFailed)
-				return kFailed;
-	   		else
-				relaxcode = fFEManager.RelaxSystem(Group());
-		}
-		else
-			relaxcode = GlobalT::kNoRelax;
 	}
 
 	/* success */
