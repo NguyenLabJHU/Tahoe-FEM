@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.21 2002-01-05 06:38:27 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.22 2002-01-07 20:36:48 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
@@ -135,7 +135,7 @@ void FEManagerT::Initialize(InitCodeT init)
 	cout << "\n Title: " << fTitle << endl;
 	
 	/* set model manager */
-	fModelManager = new ModelManagerT (fMainOut);
+	fModelManager = new ModelManagerT(cout);
 	if (!fModelManager) throw eOutOfMemory;
 	if (verbose) cout << "    FEManagerT::Initialize: input" << endl;
 
