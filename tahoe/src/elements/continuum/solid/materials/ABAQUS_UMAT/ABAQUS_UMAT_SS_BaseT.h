@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.1.2.3 2003-12-03 19:52:53 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.h,v 1.1.2.4 2003-12-05 17:57:49 paklein Exp $ */
 #ifndef _ABAQUS_UMAT_SS_BASE_T_H_
 #define _ABAQUS_UMAT_SS_BASE_T_H_
 
@@ -122,11 +122,15 @@ protected:
 	/** properties array */
 	nArrayT<doublereal> fProperties;
 
+	/** debugging */
+	ofstream flog;
+
 private:
 
-	//debugging
-	ofstream flog;
-	
+	/** set to true if modulus should be computed using the finite
+	 * difference approximation */
+	bool fApproxModulus;
+
 	/* material name */
 	StringT fUMAT_name;
 	//other options:
@@ -135,7 +139,6 @@ private:
 	//  expansion   (*EXPANSION)
 
 	/* work space */
-	dMatrixT    fModulus;            // return value
 	dSymMatrixT fStress;             // return value
 	dArrayT fIPCoordinates;          // integration point coordinates
 	double fPressure; /**< pressure for the most recent calculation of the stress */

@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.1.2.6 2003-12-04 07:48:02 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.1.2.7 2003-12-05 17:57:49 paklein Exp $ */
 #include "ABAQUS_UMAT_SS_BaseT.h"
 
 #ifdef __F2C__
@@ -21,8 +21,8 @@ using namespace Tahoe;
 /* constructor */
 ABAQUS_UMAT_SS_BaseT::ABAQUS_UMAT_SS_BaseT(ifstreamT& in, const SSMatSupportT& support):
 	SSSolidMatT(in, support),
+	fApproxModulus(false),
 	fTangentType(GlobalT::kSymmetric),
-	fModulus(dSymMatrixT::NumValues(NumSD())),
 	fStress(NumSD()),
 	fIPCoordinates(NumSD()),
 	fPressure(0.0),
@@ -81,9 +81,6 @@ void ABAQUS_UMAT_SS_BaseT::Initialize(void)
 		cout << "\n ABAQUS_UMAT_SS_BaseT::Initialize: thermal strains must\n"
 		     <<   "    be handled within the UMAT\n" << endl;
 	
-	/* disable thermal transform */
-	//SetFmodMult(NULL);	
-
 	/* UMAT dimensions */
 	ndi = 3; // always 3 direct components
 	int nsd = NumSD();
@@ -262,7 +259,7 @@ const dMatrixT& ABAQUS_UMAT_SS_BaseT::c_ijkl(void)
 
 			fModulus(2,0) = fModulus(0,2) = double(fmodulus[6]);
 			fModulus(2,1) = fModulus(1,2) = double(fmodulus[7]);
-			fModulus(2,2) = double(fmodulus[9]);	
+			fModulus(2,2) = double(fmodulus[9]);
 		}
 		else
 		{
@@ -291,7 +288,7 @@ const dMatrixT& ABAQUS_UMAT_SS_BaseT::c_ijkl(void)
 			fModulus(5,2) = fModulus(2,5) = double(fmodulus[8]);
 			fModulus(5,3) = fModulus(3,5) = double(fmodulus[18]);
 			fModulus(5,4) = fModulus(4,5) = double(fmodulus[13]);		
-			fModulus(5,5) = double(fmodulus[9]);		
+			fModulus(5,5) = double(fmodulus[9]);
 		}
 	}
 	else if (fTangentType == GlobalT::kNonSymmetric)
@@ -299,17 +296,17 @@ const dMatrixT& ABAQUS_UMAT_SS_BaseT::c_ijkl(void)
 		if (nsd == 2) 
 		{
 			double* mod_tahoe = fModulus.Pointer();
-			*mod_tahoe++ = fmodulus[0];
-			*mod_tahoe++ = fmodulus[1];
-			*mod_tahoe++ = fmodulus[3];
+			*mod_tahoe++ = double(fmodulus[0]);
+			*mod_tahoe++ = double(fmodulus[1]);
+			*mod_tahoe++ = double(fmodulus[3]);
 
-			*mod_tahoe++ = fmodulus[4];
-			*mod_tahoe++ = fmodulus[5];
-			*mod_tahoe++ = fmodulus[7];
+			*mod_tahoe++ = double(fmodulus[4]);
+			*mod_tahoe++ = double(fmodulus[5]);
+			*mod_tahoe++ = double(fmodulus[7]);
 
-			*mod_tahoe++ = fmodulus[12];
-			*mod_tahoe++ = fmodulus[13];
-			*mod_tahoe   = fmodulus[15];
+			*mod_tahoe++ = double(fmodulus[12]);
+			*mod_tahoe++ = double(fmodulus[13]);
+			*mod_tahoe   = double(fmodulus[15]);
 		}
 		else
 		{
@@ -338,7 +335,8 @@ flog << setw(10) << "modulus:\n" << fModulus << endl;
 const dSymMatrixT& ABAQUS_UMAT_SS_BaseT::s_ij(void)
 {
 	/* call UMAT */
-	if (MaterialSupport().RunState() == GlobalT::kFormRHS)
+	if (MaterialSupport().RunState() == GlobalT::kFormRHS ||
+	    (fApproxModulus && MaterialSupport().RunState() == GlobalT::kFormLHS))
 	{
 		double  t = fSSMatSupport.Time();
 		double dt = fSSMatSupport.TimeStep();
@@ -511,17 +509,19 @@ void ABAQUS_UMAT_SS_BaseT::Call_UMAT(double t, double dt, int step, int iter)
 	ftnlen      cmname_len = strlen(fUMAT_name);      // f2c: length of cmname string
 
 #ifdef DEBUG
-int d_width = OutputWidth(flog, stress);
-flog << "\n THE INPUT\n";
-flog << setw(10) << "   time: " << setw(d_width) << time[0]  << '\n';
-flog << setw(10) << "   iter: " << MaterialSupport().IterationNumber() << '\n';
-flog << setw(10) << "element: " << MaterialSupport().CurrElementNumber()+1 << '\n';
-flog << setw(10) << "     ip: " << CurrIP()+1 << '\n';
-flog << setw(10) << " stress: " << fstress.no_wrap() << '\n';
-flog << setw(10) << " strain: " << fstrain.no_wrap() << '\n';
-flog << setw(10) << "dstrain: " << fdstran.no_wrap() << '\n';
-flog << setw(10) << "  state:\n";
-flog << fstatv.wrap(5) << '\n';
+if (MaterialSupport().RunState() == GlobalT::kFormRHS) {
+	int d_width = OutputWidth(flog, stress);
+	flog << "\n THE INPUT\n";
+	flog << setw(10) << "   time: " << setw(d_width) << time[0]  << '\n';
+	flog << setw(10) << "   iter: " << MaterialSupport().IterationNumber() << '\n';
+	flog << setw(10) << "element: " << MaterialSupport().CurrElementNumber()+1 << '\n';
+	flog << setw(10) << "     ip: " << CurrIP()+1 << '\n';
+	flog << setw(10) << " stress: " << fstress.no_wrap() << '\n';
+	flog << setw(10) << " strain: " << fstrain.no_wrap() << '\n';
+	flog << setw(10) << "dstrain: " << fdstran.no_wrap() << '\n';
+	flog << setw(10) << "  state:\n";
+	flog << fstatv.wrap(5) << '\n';
+}
 #endif
 
 	/* call UMAT wrapper */
@@ -535,10 +535,12 @@ flog << fstatv.wrap(5) << '\n';
 		ExceptionT::BadJacobianDet("ABAQUS_UMAT_SS_BaseT::Call_UMAT", "material signaled step cut");
 
 #ifdef DEBUG
-flog << " THE OUTPUT\n";
-flog << setw(10) << " stress: " << fstress.no_wrap() << '\n';
-flog << setw(10) << " state:\n";
-flog << fstatv.wrap(5) << endl;
+if (MaterialSupport().RunState() == GlobalT::kFormRHS) {
+	flog << " THE OUTPUT\n";
+	flog << setw(10) << " stress: " << fstress.no_wrap() << '\n';
+	flog << setw(10) << " state:\n";
+	flog << fstatv.wrap(5) << endl;
+}
 #endif
 
 	/* update strain */
@@ -581,11 +583,14 @@ void ABAQUS_UMAT_SS_BaseT::Set_UMAT_Arguments(void)
 
 	/* total integrated strain */
 	const dSymMatrixT& e_int = e_last();
-	dSymMatrixT_to_ABAQUS(e_int, fstrain.Pointer());
+	dSymMatrixT_to_ABAQUS(e_int, fstrain.Pointer(), true);
 
 	/* incremental strain */
 	fsym_mat_nsd.DiffOf(e(), e_int);
-	dSymMatrixT_to_ABAQUS(fsym_mat_nsd, fdstran.Pointer());
+	dSymMatrixT_to_ABAQUS(fsym_mat_nsd, fdstran.Pointer(), true);
+
+	/* initialize Jacobian */
+	fddsdde = 0.0;
 }
 
 /* store the modulus */
@@ -613,7 +618,8 @@ void ABAQUS_UMAT_SS_BaseT::Store_UMAT_Modulus(void)
 		/* store everything */
 		fmodulus = fddsdde;
 	}
-	else throw ExceptionT::kGeneralFail;	
+	else 
+		ExceptionT::GeneralFail("ABAQUS_UMAT_SS_BaseT::Store_UMAT_Modulus");	
 }
 
 #endif /* __F2C__ */
