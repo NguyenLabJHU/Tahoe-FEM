@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.h,v 1.2 2001-06-20 22:49:58 paklein Exp $ */
+/* $Id: dMatrixT.h,v 1.3 2001-06-23 00:53:45 thao Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #ifndef _DMATRIX_T_H_
@@ -6,6 +6,8 @@
 
 /* base class */
 #include "nMatrixT.h"
+
+class dSymMatrixT;
 
 class dMatrixT: public nMatrixT<double>
 {
@@ -45,6 +47,9 @@ public:
 	/* transposition */
 	dMatrixT& Transpose(const dMatrixT& matrix);
 	dMatrixT& Transpose(void);
+
+	/*special matrix multiplication TDN: 3/4/01*/
+	void MultSymAB(const dSymMatrixT& A, const dMatrixT& B);
 	
 /***********************************************
 * Symmetric matrix specializations
