@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.24.2.10 2004-04-01 08:35:02 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.24.2.11 2004-04-07 15:36:16 paklein Exp $ */
 #include "FieldT.h"
 
 #include "fstreamT.h"
@@ -811,7 +811,9 @@ ParameterInterfaceT* FieldT::NewSub(const StringT& list_name) const
 	}
 	else if (list_name == "dof_labels")
 	{
-		return new StringListT("dof_labels");
+		StringListT* dof_labels = new StringListT("dof_labels");
+		dof_labels->SetMinLength(1);
+		return dof_labels;
 	}
 	else if (list_name == "initial_condition")
 	{

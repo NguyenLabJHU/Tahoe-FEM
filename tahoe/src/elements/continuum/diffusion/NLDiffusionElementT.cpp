@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.cpp,v 1.4.2.3 2004-03-31 16:16:26 paklein Exp $ */
+/* $Id: NLDiffusionElementT.cpp,v 1.4.2.4 2004-04-07 15:36:15 paklein Exp $ */
 #include "NLDiffusionElementT.h"
 
 #include <iostream.h>
@@ -94,10 +94,6 @@ ParameterInterfaceT* NLDiffusionElementT::NewSub(const StringT& list_name) const
 		mixed_bc->AddParameter(   fT0, "T0");
 		mixed_bc->AddParameter(falpha, "alpha");
 		return mixed_bc;
-	}
-	else if (list_name == "side_set_ID_list") {
-		StringListT* ss_ID_list = new StringListT("side_set_ID_list");
-		return ss_ID_list;
 	}
 	else /* inherited */
 		return DiffusionElementT::NewSub(list_name);

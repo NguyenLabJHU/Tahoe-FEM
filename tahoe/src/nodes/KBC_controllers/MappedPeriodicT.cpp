@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.cpp,v 1.7.34.3 2004-03-27 04:18:53 paklein Exp $ */
+/* $Id: MappedPeriodicT.cpp,v 1.7.34.4 2004-04-07 15:36:18 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 #include "MappedPeriodicT.h"
 
@@ -253,15 +253,9 @@ ParameterInterfaceT* MappedPeriodicT::NewSub(const StringT& list_name) const
 	
 		return F_choice;
 	}
-	else if (
-		list_name == "mapped_node_ID_list" || 
-		list_name == "leader_node_ID_list" ||
-		list_name == "follower_node_ID_list")
-		return new StringListT(list_name);
 	else if (list_name == "leader_follower_node_ID_list") {
 
 		ParameterContainerT* node_pairs = new ParameterContainerT(list_name);
-		node_pairs->SetSubSource(this);
 		
 		/* by dimension */
 		node_pairs->SetListOrder(ParameterListT::Sequence);
