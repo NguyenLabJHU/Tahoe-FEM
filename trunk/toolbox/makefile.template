@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.5 2001-07-19 06:46:20 paklein Exp $
+# $Id: makefile.template,v 1.6 2001-07-19 18:20:49 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -61,7 +61,7 @@ MACRO_DIR = $(HOME_DIR)/../macros
 #### METIS
 #METIS_DIR      = $(HOME_DIR)/../metis
 #METIS_INC      = -I$(METIS_DIR)/inc
-#METIS_CFLAGS   = $(METIS_DIR) -D__METIS__
+#METIS_CFLAGS   = $(METIS_INC) -D__METIS__
 #METIS_LIB_NAME = metis
 #METIS_LIB      = $(METIS_DIR)/lib/lib$(METIS_LIB_NAME).a
 #METIS_LFLAGS   = -L$(METIS_DIR)/lib -l$(METIS_LIB_NAME)

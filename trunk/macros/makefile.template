@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.9 2001-01-31 02:12:21 paklein Exp $
+# $Id: makefile.template,v 1.10 2001-07-19 18:20:22 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -100,6 +100,14 @@ MACRO_DIR = $(HOME_DIR)/../macros
 #SPOOLESMPI_LIB_NAME = spoolesMPI
 #SPOOLESMPI_LIB      = $(SPOOLESMPI_DIR)/lib/lib$(SPOOLESMPI_LIB_NAME).a
 #SPOOLESMPI_LFLAGS   = -L$(SPOOLESMPI_DIR)/lib -l$(SPOOLESMPI_LIB_NAME)
+
+#### METIS
+#METIS_DIR      = $(HOME_DIR)/../metis
+#METIS_INC      = -I$(METIS_DIR)/inc
+#METIS_CFLAGS   = $(METIS_INC) -D__METIS__
+#METIS_LIB_NAME = metis
+#METIS_LIB      = $(METIS_DIR)/lib/lib$(METIS_LIB_NAME).a
+#METIS_LFLAGS   = -L$(METIS_DIR)/lib -l$(METIS_LIB_NAME)
 
 #### ACME
 #ACME_DIR      = $(HOME_DIR)/../libs/acme-0.2a
