@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.h,v 1.14 2002-06-19 16:43:41 recampb Exp $ */
+/* $Id: VTKBodyDataT.h,v 1.15 2002-06-22 01:56:13 paklein Exp $ */
 #ifndef _VTK_BODY_DATA_T_H_
 #define _VTK_BODY_DATA_T_H_
 
@@ -82,7 +82,7 @@ public:
 	/** return a reference to the point numbering map */
 	const iArrayT& PointNumberMap(void) const { return fPointNumberMap; };
 
-	const dArray2DT& Coordinates(void) const { return coords;};
+	const dArray2DT& Coordinates(void) const { return fCoords; };
 
  private:
  
@@ -107,7 +107,8 @@ public:
 	/** source file */
 	const StringT fInFile;
   
-	dArray2DT coords;
+  	/** body coordinates */
+	dArray2DT fCoords;
 	
 	/** point coordinates */
 	vtkPoints* fPoints;
