@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.13.2.6 2003-12-03 01:44:07 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.13.2.7 2003-12-03 19:52:53 paklein Exp $ */
 /* created: paklein (05/14/2000) */
 #include "ABAQUS_UMAT_BaseT.h"
 
@@ -74,6 +74,7 @@ void ABAQUS_UMAT_BaseT::Print(ostream& out) const
 {
 	/* inherited */
 	FSSolidMatT::Print(out);
+	IsotropicT::Print(out);
 	
 	/* write properties array */
 	out << " Number of ABAQUS UMAT internal variables. . . . = " << nstatv << '\n';
