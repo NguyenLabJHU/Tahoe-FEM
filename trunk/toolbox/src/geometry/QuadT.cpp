@@ -1,4 +1,4 @@
-/* $Id: QuadT.cpp,v 1.10 2004-05-12 17:31:05 paklein Exp $ */
+/* $Id: QuadT.cpp,v 1.11 2004-05-12 22:19:31 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "QuadT.h"
 #include <math.h>
@@ -639,8 +639,6 @@ void QuadT::IPGradientTransform(int ip, dMatrixT& transform) const
 	int nip = transform.Cols();
 	if (nsd != 2) ExceptionT::SizeMismatch(caller);
 
-	//TEMP - only implemented for 4 or 9 integration points
-	if (nip != 4 && nip != 9) ExceptionT::GeneralFail(caller);
 	if (nip == 4) {
 		double a = sqrt(3.0)/2.0;
 		double m0[2*4] = {-a, -a, a, 0.0, 0.0, 0.0, 0.0, a};
