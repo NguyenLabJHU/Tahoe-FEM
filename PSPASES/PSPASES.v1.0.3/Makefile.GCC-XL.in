@@ -24,7 +24,7 @@ PCFLAGS = -g -DUNDERSCORE
 
 ## for IBM, SGI, and SUN (if you are not using Sun Performance Library)
 ## (This is the LAPACK code for Cholesky Factorization)
-#PSOBJS = dpotrf.o
+PSOBJS = dpotrf.o
 
 #----------------- Archival Mechanism            ----------------
 

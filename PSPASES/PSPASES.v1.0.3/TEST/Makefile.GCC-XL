@@ -87,7 +87,10 @@ TARGET2 = frpspases_test
 S3 = pspases_testc.o 
 TARGET3 = cpspases_test
 
-all : $(TARGET3) $(TARGET2) $(TARGET1)
+all : libs $(TARGET3) $(TARGET2) $(TARGET1)
+
+libs:
+	cd ../; make
 
 $(TARGET1) : $(S1) $(LIB_DEP)
 	$(FLINKER) -o $@ $(S1) $(LIB_DIR) $(LIBS) $(FLFL)
