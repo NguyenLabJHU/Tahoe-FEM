@@ -24,7 +24,7 @@ class MFGP_Con_EqT
 
 public:
 
-	enum Eqn_TypeT 	{ kMFGP_Con_Eq};
+	enum Eqn_TypeT 	{kMFGP_Con_Eq};
 	
 	/* constructors */
 	MFGP_Con_EqT(void);
@@ -32,12 +32,12 @@ public:
  	/* destructor */
  	//~MFGP_Con_EqT(void);
 								
-	void 	Initialize 	( int&, D3MeshFreeShapeFunctionT*, D3MeshFreeShapeFunctionT*, GRAD_MRSSKStV*,  
-						int &fTime_Step, double fdelta_t = 0.0); 
-  	void 	Form_LHS_Ku_Klambda	( dMatrixT &Ku, dMatrixT &Klambda ); 
-  	void 	Form_RHS_F_int		( dArrayT &F_int ); 
-	void 	Form_B_List 		( void );  // Strain Displacement Matricies
- 	void 	Form_C_List 		( GRAD_MRSSKStV *GRAD_MR_Plast_Mat);  // Constant List
+	void Initialize(int&, D3MeshFreeShapeFunctionT*, D3MeshFreeShapeFunctionT*, GRAD_MRSSKStV*,  
+						int& fTime_Step, double fdelta_t = 0.0); 
+  	void Form_LHS_Ku_Klambda(dMatrixT& Ku, dMatrixT& Klambda ); 
+  	void Form_RHS_F_int(dArrayT& F_int ); 
+	void Form_B_List(void);  // Strain Displacement Matricies
+ 	void Form_C_List(GRAD_MRSSKStV *GRAD_MR_Plast_Mat);  // Constant List
 
 	
 protected:

@@ -1,4 +1,4 @@
-// $Id: MFGP_Bal_EqT.h,v 1.9 2004-09-13 22:31:37 raregue Exp $
+// $Id: MFGP_Bal_EqT.h,v 1.10 2004-10-21 03:27:09 kyonten Exp $
 #ifndef _MFGP_BAL_EQ_T_H_ 
 #define _MFGP_BAL_EQ_T_H_ 
 
@@ -31,14 +31,14 @@ class MFGP_Bal_EqT
 		/* destructor */				
 		//~MFGP_Bal_EqT(void);
 
-		void 	Initialize 	( int&, D3MeshFreeShapeFunctionT*, D3MeshFreeShapeFunctionT*, 
+		void Initialize(int&, D3MeshFreeShapeFunctionT*, D3MeshFreeShapeFunctionT*, 
 							GRAD_MRSSKStV*, 
-							int &fTime_Step, double fdelta_t = 0.0); 
+							int& fTime_Step, double fdelta_t = 0.0); 
 
-  		void 	Form_LHS_Klambda_Ku( dMatrixT &Klambda, dMatrixT &Ku); // add delta_t for dynamics
-  		void 	Form_RHS_F_int( dArrayT  &F_int ); 
-		void 	Form_B_List( void );  // Strain Displacement Matricies
- 		void 	Form_C_List( GRAD_MRSSKStV *GRAD_MR_Plast_Mat);  // Constant List
+  		void Form_LHS_Klambda_Ku(dMatrixT& Klambda, dMatrixT& Ku); // add delta_t for dynamics
+  		void Form_RHS_F_int(dArrayT& F_int ); 
+		void Form_B_List(void);  // Strain Displacement Matricies
+ 		void Form_C_List(GRAD_MRSSKStV *GRAD_MR_Plast_Mat);  // Constant List
 
 
 	protected:
