@@ -1,9 +1,12 @@
-/* $Id: SimoQ1P0Axi.cpp,v 1.1 2004-02-03 08:24:57 paklein Exp $ */
+/* $Id: SimoQ1P0Axi.cpp,v 1.2 2004-02-04 07:36:38 paklein Exp $ */
 #include "SimoQ1P0Axi.h"
 
 #include "ShapeFunctionT.h"
 #include "SolidMaterialT.h"
 #include "SolidMatListT.h"
+
+const double Pi2 = 2.0*acos(-1.0);
+const int kRadialDirection = 0; /* x <-> r */
 
 using namespace Tahoe;
 
@@ -152,9 +155,6 @@ void SimoQ1P0Axi::SetGlobalShape(void)
 			/* "replace" dilatation */
 			dMatrixT& F = fF_List[i];
 			double J = F.Det();
-			
-			double tmp = v/(H*J);
-			
 			F *= pow(v/(H*J), 1.0/3.0);
 			
 			/* store Jacobian */
@@ -192,18 +192,35 @@ void SimoQ1P0Axi::FormStiffness(double constK)
 
 	/* initialize */
 	fStressStiff = 0.0;
+	fNEEvec = 0.0;
 
+	int  nsd = NumSD();
+	int ndof = NumDOF();
+	int nen  = NumElementNodes();
 	fCurrShapes->GradNa(fMeanGradient, fb_bar);	
 	fShapes->TopIP();
 	while ( fShapes->NextIP() )
 	{
-		/* double scale factor */
-		double scale = constK*(*Det++)*(*Weight++);
-	
+		int ip = fShapes->CurrIP();
+		double r = fRadius_x[ip];
+
+		/* scale factor */
+		double scale = Pi2*r*constK*(*Det++)*(*Weight++);
+
+		/* collect array of nodal shape functions */
+		const double* Na_u = fCurrShapes->IPShapeU();
+		fIPShape.Alias(nen, Na_u);
+		double* u_r = fNEEvec.Pointer(kRadialDirection);
+		for (int a = 0; a < nen; a++) {
+			*u_r = *Na_u++;
+			u_r += ndof;
+		}
+
 	/* S T R E S S   S T I F F N E S S */			
 		/* compute Cauchy stress */
 		const dSymMatrixT& cauchy = fCurrMaterial->s_ij();
 		cauchy.ToMatrix(fStressMat);
+		fMat2D.Rank2ReduceFrom3D(fStressMat);
 		
 		/* determinant of modified deformation gradient */
 		double J_bar = DeformationGradient().Det();
@@ -214,24 +231,35 @@ void SimoQ1P0Axi::FormStiffness(double constK)
 
 		/* get shape function gradients matrix */
 		fCurrShapes->GradNa(fGradNa);
-		fb_sig.MultAB(fStressMat, fGradNa);
+		fb_sig.MultAB(fMat2D, fGradNa); //contribution from out-of-plane stress??
 
 		/* integration constants */		
-		fStressMat *= scale*J_correction;
+		fMat2D *= scale*J_correction;
 	
 		/* using the stress symmetry */
-		fStressStiff.MultQTBQ(fGradNa, fStressMat,
-			format, dMatrixT::kAccumulate);
+		fStressStiff.MultQTBQ(fGradNa, fMat2D, format, dMatrixT::kAccumulate);
+
+		/* contribution from out-of-plane stress */
+		fLHS.Outer(fNEEvec, fNEEvec, scale*J_correction*fStressMat(2,2)/(r*r), dMatrixT::kAccumulate);
 
 	/* M A T E R I A L   S T I F F N E S S */									
 		/* strain displacement matrix */
-		Set_B_bar(fCurrShapes->Derivatives_U(), fMeanGradient, fB);
+		Set_B_bar_axi(fIPShape, fCurrShapes->Derivatives_U(), fMeanGradient, r, fB);
 
 		/* get D matrix */
-		fD.SetToScaled(scale*J_correction, fCurrMaterial->c_ijkl());
+		fD.Rank4ReduceFrom3D(fCurrMaterial->c_ijkl());
+		fD *= scale;
 						
 		/* accumulate */
 		fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);
+
+		/* add axisymmetric contribution to b */
+		Na_u = fCurrShapes->IPShapeU();
+		double* b_r = fGradNa.Pointer(kRadialDirection);
+		for (int a = 0; a < nen; a++) {
+			*b_r += (*Na_u++)/r;
+			b_r += nsd;
+		}
 		
 		/* $div div$ term */	
 		fNEEmat.Outer(fGradNa, fGradNa);
@@ -273,29 +301,38 @@ void SimoQ1P0Axi::FormKd(double constK)
 	double& p_bar = fPressure[elem];
 	p_bar = 0.0;
 
+	int nen = NumElementNodes();
 	fCurrShapes->TopIP();
 	while ( fCurrShapes->NextIP() )
 	{
-#pragma message("SimoQ1P0Axi::FormKd: need Set_B_bar_axi?????")
+		int ip = fShapes->CurrIP();
+		double r = fRadius_x[ip];
+
+		/* collect array of nodal shape functions */
+		fIPShape.Alias(nen, fShapes->IPShapeU());
 	
 		/* strain displacement matrix */
-		Set_B_bar(fCurrShapes->Derivatives_U(), fMeanGradient, fB);
+		Set_B_bar_axi(fIPShape, fCurrShapes->Derivatives_U(), fMeanGradient, r, fB);
 
-		/* B^T * Cauchy stress */
+		/* translate Cauchy stress to axisymmetric */
 		const dSymMatrixT& cauchy = fCurrMaterial->s_ij();
-		fB.MultTx(cauchy, fNEEvec);
+		fStress2D_axi.ReduceFrom3D(cauchy);
+		
+		/* B^T * Cauchy stress */
+		fB.MultTx(fStress2D_axi, fNEEvec);
 		
 		/* determinant of modified deformation gradient */
 		double J_bar = DeformationGradient().Det();
 		
 		/* detF correction */
 		double J_correction = J_bar/fJacobian[CurrIP()];
+		double vol = Pi2*r*(*Weight++)*(*Det++)*J_correction;
 		
 		/* integrate pressure */
-		p_bar += (*Weight)*(*Det)*J_correction*cauchy.Trace()/3.0;
+		p_bar += vol*cauchy.Trace()/3.0;
 		
 		/* accumulate */
-		fRHS.AddScaled(constK*(*Weight++)*(*Det++)*J_correction, fNEEvec);
+		fRHS.AddScaled(constK*vol, fNEEvec);
 
 		/* incremental heat generation */
 		if (need_heat) 
@@ -324,8 +361,6 @@ void SimoQ1P0Axi::ReadMaterialData(ifstreamT& in)
 /* compute mean shape function gradient, Hughes (4.5.23) */
 void SimoQ1P0Axi::SetMeanGradient(dArray2DT& mean_gradient, double& H, double& v) const
 {
-#pragma message("SimoQ1P0Axi::SetMeanGradient????")
-
 	/* assume same integration rule defined for current and references
 	 * shape functions */
 	int nip = NumIP();
@@ -336,18 +371,29 @@ void SimoQ1P0Axi::SetMeanGradient(dArray2DT& mean_gradient, double& H, double& v
 	/* H and current volume */
 	H = 0.0;
 	v = 0.0;
-	for (int i = 0; i < nip; i++)
-	{
-		H += w[i]*det_0[i];
-		v += w[i]*det[i];
+	for (int i = 0; i < nip; i++) {
+		H += Pi2*fRadius_X[i]*w[i]*det_0[i];
+		v += Pi2*fRadius_x[i]*w[i]*det[i];
 	}
 
 	/* initialize */
 	mean_gradient = 0.0;			
 
 	/* integrate */
-	for (int i = 0; i < nip; i++)
-		mean_gradient.AddScaled(w[i]*det[i]/v, fCurrShapes->Derivatives_U(i));
+	int nen = mean_gradient.MinorDim();
+	for (int i = 0; i < nip; i++) {
+
+		double r = fRadius_x[i];
+		double dv_by_v = Pi2*r*w[i]*det[i]/v;
+
+		mean_gradient.AddScaled(dv_by_v, fCurrShapes->Derivatives_U(i));
+		
+		/* contribution from out-of-plane component */
+		double* mean_r = mean_gradient(kRadialDirection);
+		const double* pNaU = fCurrShapes->IPShapeU(i);
+		for (int a = 0; a < nen; a++)
+			*mean_r++ += dv_by_v*(*pNaU++)/r;
+	}
 }
 
 void SimoQ1P0Axi::bSp_bRq_to_KSqRp(const dMatrixT& b, dMatrixT& K) const
