@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.16 2002-05-28 06:55:01 bhji Exp $
+# $Id: makefile,v 1.17 2002-05-31 07:17:13 thao Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -21,8 +21,12 @@ OBJ = \
 	ModSmithFerrante.o \
 	LinearExponentialT.o \
 	Triantafyllidis.o \
-	LinearDecreaseT.o \
 	Linear.o \
+	LinearT.o \
+	QuadraticT.o \
+	ConstantT.o \
+	BiQuadraticT.o \
+	ConstQuadT.o \
 	QuadraticDecreaseT.o \
 	GaoVicky.o \
 	GaoJi.o \
@@ -51,8 +55,12 @@ SRC = \
 	ModSmithFerrante.cpp \
 	LinearExponentialT.cpp \
 	Triantafyllidis.cpp \
-	LinearDecreaseT.cpp \
 	Linear.cpp \
+	LinearT.cpp \
+	QuadraticT.cpp \
+	ConstantT.cpp \
+	BiQuadraticT.cpp \
+	ConstQuadT.cpp \
 	QuadraticDecreaseT.cpp \
 	GaoVicky.cpp \
 	GaoJi.cpp \
@@ -75,8 +83,12 @@ HDR = \
 	ModSmithFerrante.h \
 	LinearExponentialT.h \
 	Triantafyllidis.h \
-	LinearDecreaseT.h \
 	Linear.h \
+	LinearT.h \
+	QuadraticT.h \
+	ConstantT.h \
+	BiQuadraticT.h \
+	ConstQuadT.h \
 	QuadraticDecreaseT.h \
 	GaoVicky.h \
 	GaoJi.h \
