@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.h,v 1.2 2001-09-26 20:59:26 paklein Exp $ */
+/* $Id: iConsoleBaseT.h,v 1.3 2001-11-07 02:33:23 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_BASE_T_H_
@@ -33,6 +33,12 @@ public:
 	virtual bool iDoVariable(const StringT& variable, StringT& line);
 
 protected:
+
+	/** clear the input stream. Remove the next 254 characters from the
+	 * stream including any trailing newline. This is useful for clearing
+	 * any leftovers from the command line when values are read using
+	 * >>, which does not grab the trailing newline. */
+	void Clean(istream& in) const;
 
 	/* add command to the dictionary - true if added */
 	bool iAddCommand(const StringT& command);
@@ -110,6 +116,13 @@ inline const ArrayT<StringT>& iConsoleBaseT::iCommands(void) const
 inline const ArrayT<StringT>& iConsoleBaseT::iVariables(void) const
 {
 	return fVariables;
+}
+
+/* inlines */
+inline void iConsoleBaseT::Clean(istream& in) const
+{
+  char line[255];
+  in.getline(line, 254);
 }
 
 #endif /* _I_CONSOLE_BASE_T_H_ */

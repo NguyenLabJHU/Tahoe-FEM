@@ -1,6 +1,5 @@
-/* $Id: iConsoleT.h,v 1.3 2001-02-13 17:48:35 paklein Exp $ */
-/* created: paklein (12/21/2000)                                          */
-/* iConsoleT.h                                                            */
+/* $Id: iConsoleT.h,v 1.4 2001-11-07 02:33:23 paklein Exp $ */
+/* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_T_H_
 #define _I_CONSOLE_T_H_
@@ -14,6 +13,7 @@
 /* forward declaration */
 class iConsoleObjectT;
 
+/** base class for interactive consoles */
 class iConsoleT: public iConsoleBaseT
 {
 public:
