@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.cpp,v 1.1.2.5 2002-05-16 19:35:10 paklein Exp $ */
+/* $Id: ThermalSurfaceT.cpp,v 1.1.2.6 2002-05-17 01:29:56 paklein Exp $ */
 #include "ThermalSurfaceT.h"
 
 #include <math.h>
@@ -159,6 +159,11 @@ void ThermalSurfaceT::RHSDriver(void)
 	dArrayT ip_source;
 	if (block_source) ip_source.Dimension(fShapes->NumIP());
 	int block_count = 0;
+
+ostream& out = ElementSupport().Output();
+out << "\n ThermalSurfaceT::RHSDriver: source: \n";
+block_source->WriteNumbered(out);
+out << endl;
 	
 	Top();
 	while (NextElement())

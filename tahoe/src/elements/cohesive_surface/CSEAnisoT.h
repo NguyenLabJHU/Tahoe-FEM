@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.10.2.2 2002-05-10 00:06:06 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.10.2.3 2002-05-17 01:29:56 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #ifndef _CSE_ANISO_T_H_
@@ -88,6 +88,9 @@ protected:
 	 * Array has dimensions: [nel] x [nip * nvar] */
 	RaggedArray2DT<double> fStateVariables;
 	RaggedArray2DT<double> fStateVariables_last;
+
+	/** incremental heat sources for each element block */
+	ArrayT<dArray2DT> fIncrementalHeat;
 	
 	/* coordinate transformation */
 	dMatrixT fQ;     // t'_i = Q_ji t_j, where t' is in the local frame

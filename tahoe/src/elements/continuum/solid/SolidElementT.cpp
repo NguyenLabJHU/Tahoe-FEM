@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.21.2.8 2002-05-11 20:47:10 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.21.2.9 2002-05-17 01:29:57 paklein Exp $ */
 /* created: paklein (05/28/1996) */
 
 #include "SolidElementT.h"
@@ -619,12 +619,23 @@ void SolidElementT::ElementRHSDriver(void)
 {
 	/* heat source if needed */
 	const FieldT* temperature = ElementSupport().Field("temperature");
-	dArray2DT incremental_heat;
-	if (temperature) {
-		incremental_heat.Dimension(NumElements(), fShapes->NumIP());
+
+	/* initialize sources */
+	if (temperature && fIncrementalHeat.Length() == 0) {
+	
+		/* allocate the element heat */
 		fElementHeat.Dimension(fShapes->NumIP());
-		fElementHeat = 0.0;
-		incremental_heat = 0.0;
+			
+		/* initialize heat source arrays */
+		fIncrementalHeat.Dimension(fBlockData.Length());
+		for (int i = 0; i < fIncrementalHeat.Length(); i++)
+		{
+			/* dimension */
+			fIncrementalHeat[i].Dimension(fBlockData[i].Dimension(), NumIP());
+
+			/* register */
+			temperature->RegisterSource(fBlockData[i].ID(), fIncrementalHeat[i]);
+		}
 	}
 
 	/* set components and weights */
@@ -649,11 +660,13 @@ void SolidElementT::ElementRHSDriver(void)
 	/* override controller */
 	if (fMassType == kNoMass) formMa = 0;
 
+	int block_count = 0, block_dex = 0;
 	Top();
 	while (NextElement())
 	{
 		/* initialize */
 		fRHS = 0.0;
+		fElementHeat = 0.0;
 		
 		/* global shape function values */
 		SetGlobalShape();
@@ -677,30 +690,18 @@ void SolidElementT::ElementRHSDriver(void)
 		}
 		
 		/* store incremental heat */
-		if (temperature) {
-			incremental_heat.SetRow(CurrElementNumber(), fElementHeat);
-			fElementHeat = 0.0;
-		}
+		if (temperature)
+			fIncrementalHeat[block_dex].SetRow(block_count, fElementHeat);
 
 		/* assemble */
 		AssembleRHS();
-	}
-
-	/* set source to temperature field */
-	if (temperature) {
-
-		/* loop over blocks */
-		for (int i = 0; i < fBlockData.Length(); i++)
-		{
-			/* dimensions */
-			int start = fBlockData[i].StartNumber();
-			int size = fBlockData[i].Dimension();
-
-			/* block info */
-			dArray2DT tmp(size, incremental_heat.MinorDim(), incremental_heat(start));
-			temperature->AccumulateSource(fBlockData[i].ID(), tmp);
+		
+		/* next block */
+		if (++block_count == fBlockData[block_dex].Dimension()) {
+			block_count = 0;
+			block_dex++;
 		}
-	} 
+	}
 }
 
 /* current element operations */
