@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.15 2004-02-05 18:41:59 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.16 2004-02-11 16:34:45 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -128,14 +128,23 @@ public:
 	/** \name query access to parameters and sublists. Methods return NULL if the request
 	 * cannot be completed. */
 	/*@{*/		
-	/** return the pointer to the given list. Returns a points to the nth instance of the
+	/** return the pointer to the given list. Returns a pointer to the nth instance of the
 	 * given list or NULL if the list is not found or the instance is out of range. */
 	const ParameterListT* List(const char* name, int instance = 0) const;
 
-	/** return the non-const pointer to the given list. Returns a points to the nth 
+	/** return the non-const pointer to the given list. Returns a pointer to the nth 
 	 * instance of the given list or NULL if the list is not found or the instance is 
 	 * out of range. */
 	ParameterListT* List(const char* name, int instance = 0);
+
+	/** search for list by name. Returns a pointer to the nth list whose name contains
+	 * the given search string or NULL if the list is not found or the instance is out 
+	 * of range. */
+	const ParameterListT* FindList(const char* search_name, int instance = 0) const;
+
+	/** return the index to the given list. Returns index of the nth instance of the
+	 * given list or -1 if the list is not found or the instance is out of range. */
+	int ListIndex(const char* name, int instance = 0) const;
 
 	/** return the pointer to the given parameter or NULL if the list is not found */
 	const ParameterT* Parameter(const char* name) const;
@@ -224,6 +233,25 @@ inline bool ParameterListT::AddParameter(ValueT::TypeT t, const char* name, Occu
 {
 	ParameterT parameter(t, name);
 	return AddParameter(parameter, occur);
+}
+
+inline int ParameterListT::ListIndex(const char* name, int instance) const
+{
+	/* search list */
+	int count = 0;
+	for (int i = 0; i < fParameterLists.Length(); i++)
+		if (fParameterLists[i].Name() == name)
+			if (count++ == instance) 
+				return i;
+
+	/* fail */
+	return -1;
+}
+
+inline const ParameterListT* ParameterListT::List(const char* name, int instance) const
+{
+	int dex = ListIndex(name, instance);
+	return (dex > -1) ? fParameterLists.Pointer(dex) : NULL;
 }
 
 inline ParameterListT* ParameterListT::List(const char* name, int instance)
