@@ -1,4 +1,4 @@
-/* $Id: ModelFileT.cpp,v 1.4 2001-12-16 23:52:41 paklein Exp $ */
+/* $Id: ModelFileT.cpp,v 1.5 2002-01-09 12:13:00 paklein Exp $ */
 /* created: paklein (12/15/1999)                                          */
 
 #include "ModelFileT.h"
@@ -126,6 +126,9 @@ ModelFileT::StatusT ModelFileT::OpenRead(const StringT& file_name)
 	ifstreamT tmp(sComment, file_name);
 	if (tmp.is_open() && CheckVersion(tmp) == kOK)
 	{
+		/* close temp file */
+		tmp.close();
+	
 		fFileName = file_name;
 		fMode = kRead;
 		
