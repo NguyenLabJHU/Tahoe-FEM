@@ -1,4 +1,4 @@
-/* $Id: ViscVIB.cpp,v 1.1 2003-03-19 19:00:57 thao Exp $ */
+/* $Id: ViscVIB.cpp,v 1.2 2003-05-21 04:34:42 thao Exp $ */
 /* created: TDN (1/19/2000) */
 
 #include <math.h>
@@ -13,6 +13,7 @@
 /* potential functions */
 #include "SmithFerrante.h"
 #include "SF2.h"
+#include "ParabolaT.h"
 #include "VariViscT.h"
 #include "ConstantT.h"
 #include "BiQuadraticT.h"
@@ -47,6 +48,15 @@ ViscVIB::ViscVIB(ifstreamT& in, int nsd, int numstress, int nummoduli):
 			fPotential_E = new SF2(AE,BE);
 			in >> AIN >> BIN;
 			fPotential_I = new SF2(AIN,BIN);
+			break;
+		}
+	        case C1FunctionT::kQuadratic:
+		{
+		        double AE, AIN;
+			in >> AE;        
+			fPotential_E = new ParabolaT(AE);
+			in >> AIN;
+			fPotential_I = new ParabolaT(AIN);
 			break;
 		}
 		default:
