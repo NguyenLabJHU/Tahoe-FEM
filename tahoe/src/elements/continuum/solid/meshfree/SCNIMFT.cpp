@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.36 2004-10-26 22:07:51 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.37 2004-10-27 16:30:43 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 
@@ -164,23 +164,11 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 		fVoronoi->GenerateBoundaryCells(fBoundaryNodes, fBoundaryConnectivity,
 			fBoundaryIsTriangulated);
 
-		fVoronoiVertices.Alias(fVoronoi->VoronoiVertices());
-		fVoronoiCells.Alias(fVoronoi->VoronoiCells()); 		
-		fVoronoiFacetIndices.Alias(fVoronoi->VoronoiFacetIndices());
-
-		// Data for integration over boundary of each Voronoi region
-		fVoronoiFacetAreas.Alias(fVoronoi->VoronoiFacetAreas());
-		fVoronoiFacetNormals.Alias(fVoronoi->VoronoiFacetNormals());
-		fVoronoiCellVolumes.Alias(fVoronoi->VoronoiCellVolumes());
-
-		fDeloneEdges.Alias(fVoronoi->DeloneEdges());
-		fDualFacets.Alias(fVoronoi->DualFacets());
-		fNumClippedFacets = fVoronoi->NumClippedFacets();
-		fSelfDuals.Alias(fVoronoi->SelfDualFacets());
-		fNumSelfDuals = fVoronoi->NumSelfDualFacets();
+		InitializeVoronoiData();
 	
   		// Write output to file
-		ofstreamT vout(vCellFile);
+		ofstreamT vout;
+	        vout.open(vCellFile);
 
 		if (vout.is_open())	 {
 			VoronoiDiagramToFile(vout);
@@ -917,6 +905,58 @@ int SCNIMFT::SupportSize(int localNode)
 	return fNodalPhi.MinorDim(localNode);
 }
 
+void SCNIMFT::InitializeVoronoiData(void)
+{
+  fVoronoiVertices.Alias(fVoronoi->VoronoiVertices());
+  fVoronoiCells.Alias(fVoronoi->VoronoiCells()); 		
+  fVoronoiFacetIndices.Alias(fVoronoi->VoronoiFacetIndices());
+  
+  // Data for integration over boundary of each Voronoi region
+  fVoronoiFacetAreas.Alias(fVoronoi->VoronoiFacetAreas());
+  fVoronoiFacetNormals.Alias(fVoronoi->VoronoiFacetNormals());
+  fVoronoiCellVolumes.Alias(fVoronoi->VoronoiCellVolumes());
+  
+  fDeloneEdges.Alias(fVoronoi->DeloneEdges());
+  fDualFacets.Alias(fVoronoi->DualFacets());
+  fNumClippedFacets = fVoronoi->NumClippedFacets();
+  fSelfDuals.Alias(fVoronoi->SelfDualFacets());
+  fNumSelfDuals = fVoronoi->NumSelfDualFacets();
+
+  fNonDeloneEdges.Dimension(fNumSelfDuals);
+  fNonDeloneNormals.Dimension(fNumSelfDuals, fSD);
+  fBoundaryIntegrationWeights.Dimension(fNumSelfDuals);
+  fSelfDualFacets.Dimension(fNumSelfDuals, 2);
+
+  int ctr = 0;
+  double *v1;
+  
+  // list of centroids of self-dual facets
+  iArrayT* thisFacet;
+  int thisFacetLength;
+  dArrayT ptArray(fSD); // workspace for centroids
+  double *pt = ptArray.Pointer(); 
+  
+  for (int i = 0; i < fSelfDuals.Length(); i++)
+    for (int j = 0; j < fSelfDuals[i].Length(); j++) {
+      fNonDeloneEdges[ctr] = fBoundaryNodes[i];
+      thisFacet = &fVoronoiFacetIndices[fBoundaryNodes[i]][fSelfDuals[i][j]];
+      thisFacetLength = thisFacet->Length();
+      ptArray = 0.;
+      for (int k = 0; k < thisFacetLength; k++) {
+	v1 = fVoronoiVertices(fVoronoiCells[fBoundaryNodes[i]][(*thisFacet)[k]]);
+	for (int l = 0; l < fSD; l++)
+	  pt[l] += v1[l];
+	fSelfDualFacets(ctr,k) =  fVoronoiCells[fBoundaryNodes[i]][(*thisFacet)[k]]; 
+      }
+      
+      for (int k = 0; k < fSD; k++) 
+	fNonDeloneNormals(ctr,k) =  fVoronoiFacetNormals[fBoundaryNodes[i]](fSelfDuals[i][j],k);
+      
+      fBoundaryIntegrationWeights[ctr] =  fVoronoiFacetAreas[fBoundaryNodes[i]][fSelfDuals[i][j]];
+      ctr++;
+    }
+}
+
 void SCNIMFT::ComputeBMatrices(void)
 {
 	/* possible best implementation is to loop over all Delone edges
@@ -1352,27 +1392,16 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
     if (fDualFacets.MajorDim() != nDelone)
     	ExceptionT::GeneralFail("SCNIMFT::VoronoiDiagramToFile","Dual edge/facet dimension mismatch\n");
 
-    double *v1, *v2;
     for (int i = 0; i < fDualFacets.MajorDim(); i++) {
-    	v1 = fVoronoiVertices(fDualFacets(i,0));
-    	v2 = fVoronoiVertices(fDualFacets(i,1));
     	vout << fDualFacets(i,0) << " " << fDualFacets(i,1) << " ";
     	vout << "\n";
     }
   
     // write out self-duals and allocate storage for them
     // self-duals are facets on the body boundary dual to only 1 node in the body
-    fNonDeloneEdges.Dimension(fNumSelfDuals);
-    fNonDeloneNormals.Dimension(fNumSelfDuals, fSD);
-    fBoundaryIntegrationWeights.Dimension(fNumSelfDuals);
-    fSelfDualFacets.Dimension(fNumSelfDuals, 2);
     vout << fNumSelfDuals << "\n";
-    int ctr = 0;
-    for (int i = 0; i < fSelfDuals.Length(); i++)
-    	for (int j = 0; j < fSelfDuals[i].Length(); j++) {
-			vout << fBoundaryNodes[i] << " ";
-			fNonDeloneEdges[ctr++] = fBoundaryNodes[i];
-    	}
+    for (int i = 0; i < fNumSelfDuals; i++)
+      vout << fNonDeloneEdges[i] << " ";
     vout << "\n";
 
     // list of centroids of self-dual facets
@@ -1381,43 +1410,24 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
     dArrayT ptArray(fSD); // workspace for centroids
     double *pt = ptArray.Pointer(); 
     
-    ctr = 0;
-    for (int i = 0; i < fSelfDuals.Length(); i++)
-    	for (int j = 0; j < fSelfDuals[i].Length(); j++) {
-			thisFacet = &fVoronoiFacetIndices[fBoundaryNodes[i]][fSelfDuals[i][j]];
-			thisFacetLength = thisFacet->Length();
-			ptArray = 0.;
-			// vout << thisFacetLength << " "; Comment this out until I lift restriction to 2D
-			for (int k = 0; k < thisFacetLength; k++) {
-	  			v1 = fVoronoiVertices(fVoronoiCells[fBoundaryNodes[i]][(*thisFacet)[k]]);
-	  			for (int l = 0; l < fSD; l++)
-	    			  pt[l] += v1[l];
-				fSelfDualFacets(ctr,k) =  fVoronoiCells[fBoundaryNodes[i]][(*thisFacet)[k]]; 
-				vout << fSelfDualFacets(ctr,k) << " ";
-			}
-			ctr++;
-			vout << "\n";
-      	}
+    for (int i = 0; i < fNumSelfDuals; i++) { 
+      for (int k = 0; k < fSD; k++)
+	vout << fSelfDualFacets(i,k) << " "; // SPECIALIZED TO 2D!!!
+      vout << "\n";
+    }
 
     // list of normals of self-dual facets
-    ctr = 0;
-    for (int i = 0; i < fSelfDuals.Length(); i++)
-    	for (int j = 0; j < fSelfDuals[i].Length(); j++) {
-			for (int k = 0; k < fSD; k++) {
-	  			fNonDeloneNormals(ctr,k) =  fVoronoiFacetNormals[fBoundaryNodes[i]](fSelfDuals[i][j],k);
-	  			vout << fNonDeloneNormals(ctr,k) << " ";
-			}
-			vout << "\n";
-			ctr++;
-    	}
+    for (int i = 0; i < fNumSelfDuals; i++) {
+      for (int k = 0; k < fSD; k++) {
+	vout << fNonDeloneNormals(i,k) << " ";
+      }
+      vout << "\n";
+    }
 
     // list of areas of self-dual facets
-    ctr = 0;
-    for (int i = 0; i < fSelfDuals.Length(); i++)
-    	for (int j = 0; j < fSelfDuals[i].Length(); j++) {
-			fBoundaryIntegrationWeights[ctr] =  fVoronoiFacetAreas[fBoundaryNodes[i]][fSelfDuals[i][j]];
-			vout << fBoundaryIntegrationWeights[ctr++] << "\n";
-      	}
+    for (int i = 0; i < fNumSelfDuals; i++)
+      vout << fBoundaryIntegrationWeights[i] << "\n";
+ 
 }	
 	
 void SCNIMFT::VoronoiDiagramFromFile(ifstreamT& vin)
