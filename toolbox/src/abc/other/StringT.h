@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.15 2002-07-05 22:26:20 paklein Exp $ */
+/* $Id: StringT.h,v 1.16 2002-09-03 07:06:06 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #ifndef _STRING_T_H_
@@ -86,17 +86,25 @@ public:
 	StringT& FilePath(void);
 	StringT& FilePath(const char* s);
 
-	/** append characters to the string */
+	/** \name append characters to the string */
+	/*@{*/
 	StringT& Append(const char* s);
 	StringT& Append(const char* s1, const char* s2);
 	StringT& Append(const char* s1, const char* s2, const char* s3);
 	StringT& Append(char c);
+	/*@}*/
 	
-	/** append an integer - width specifies the minimum number of digits
+	/** \name append an integer
+	 * width specifies the minimum number of digits
 	 * that will be appended, padded by zeroes if number has fewer
 	 * digits than width */
+	/*@{*/
 	StringT& Append(int number, int width = 0);
 	StringT& Append(const char* s, int number, int width = 0);
+	/*@}*/
+
+	/** append a floating point number */
+	StringT& Append(double number, int precision = 2);
 
 	/** insert characters at the beginning of the string */
 	StringT& Prepend(const char* s);
