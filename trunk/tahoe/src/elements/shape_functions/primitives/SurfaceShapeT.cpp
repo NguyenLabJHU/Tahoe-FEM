@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.cpp,v 1.11 2003-11-21 22:47:24 paklein Exp $ */
+/* $Id: SurfaceShapeT.cpp,v 1.12 2005-03-15 07:15:09 paklein Exp $ */
 /* created: paklein (11/21/1997) */
 #include "SurfaceShapeT.h"
 
@@ -132,13 +132,14 @@ void SurfaceShapeT::InterpolateJump(const LocalArrayT& nodal, dArrayT& jump) con
 void SurfaceShapeT::Interpolate(const LocalArrayT& nodal, dArrayT& u) const
 {
 #if __option(extended_errorcheck)
-	if (u.Length() != nodal.MinorDim()) throw ExceptionT::kSizeMismatch;
+	const char caller[] = "SurfaceShapeT::Interpolate";
+	if (u.Length() != nodal.MinorDim()) ExceptionT::SizeMismatch(caller);
 	if (nodal.NumberOfNodes() != TotalNodes() &&
-	    nodal.NumberOfNodes() != NumFacetNodes()) throw ExceptionT::kSizeMismatch;
+	    nodal.NumberOfNodes() != NumFacetNodes()) ExceptionT::SizeMismatch(caller);
 #endif
 
 	/* average across both sides if all values given */
-	bool both_sides = nodal.NumberOfNodes() == TotalNodes();
+	bool both_sides = nodal.NumberOfNodes() != fNumFacetNodes;
 	double scale = (both_sides) ? 0.5 : 1.0;
 
 	/* reference to the shape functions for one face */
@@ -146,7 +147,7 @@ void SurfaceShapeT::Interpolate(const LocalArrayT& nodal, dArrayT& u) const
 
 	/* a little tricky here because node numbering across
 	 * both faces is inconsistent between 2D and 3D */
-	const int* face_nodes = fFacetNodes(1); /* nodes on 2nd face */
+	const int* face_nodes = (both_sides) ? fFacetNodes(1) : NULL; /* nodes on 2nd face */
 	for (int i = 0; i < u.Length(); i++)
 	{	
 		/* first face */
