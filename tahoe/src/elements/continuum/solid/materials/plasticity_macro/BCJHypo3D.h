@@ -1,4 +1,4 @@
-/* $Id: BCJHypo3D.h,v 1.2 2001-07-03 01:35:38 paklein Exp $ */
+/* $Id: BCJHypo3D.h,v 1.3 2002-03-12 02:08:14 ebmarin Exp $ */
 /*
   File: BCJHypo3D.h
 */
@@ -61,17 +61,6 @@ class BCJHypo3D : public EVPFDBaseT
   virtual GlobalT::SystemTypeT TangentType(void) const;
 
  protected:
-  // indexes to access internal variable (scalars) array
-  enum InternalVariables { kDEQP = 0,
-			   kALPH = 1,
-			   kKAPP = 2 };
-
-  enum EQValues { kEQP_n   = 0,
-		  kEQP     = 1,
-		  kEQSig_n = 2,
-		  kEQSig   = 3,
-		  kPresTr  = 4 };
-
   // material properties for isotropic/kinematic hardening rules
   void ComputeMaterialProperties(double theta);
 
@@ -91,10 +80,10 @@ class BCJHypo3D : public EVPFDBaseT
   virtual void SolveState();
 
   // backward integration of constitutive equations
-  virtual void IntegrateConstitutiveEqns(bool& converged, int subIncr);
+  virtual void IntegrateConstitutiveEqns(bool& converged, int subIncr, int totSubIncrs);
 
   // polar decomposition of relative deformation gradient
-  void PolarDecomposition();
+  virtual void PolarDecomposition();
 
   // incremental total strain (logaritmic strain)
   virtual void IncrementalStrain();
@@ -106,7 +95,7 @@ class BCJHypo3D : public EVPFDBaseT
   virtual void ElasticTrialStress();
 
   // solve for state variables
-  virtual void Solve();
+  virtual void Solve(bool& converged);
 
   // Cauchy stress and backstress
   virtual void UpdateStresses();
@@ -115,24 +104,42 @@ class BCJHypo3D : public EVPFDBaseT
   virtual void TangentModuli();
 
   // elastic moduli
-  virtual void ElasticModuli();
+  virtual void ElasticModuli(double mu, double bulk);
+
+  // forward gradient estimate for primary unknowns (DEQP, DALP, DKAPP) 
+  virtual void ForwardGradientEstimate();
+
+  // check for negative values of solution variables
+  virtual bool IsSolnVariableNegative();
 
  private:
-  // forward gradient estimate for DEQP, DALP, DKAPP
-  void ForwardGradientEstimate();
+  // indexes to access internal variable (scalars) array
+  enum InternalVariables { kDEQP = 0,    // equivalent plastic strain increment
+			   kALPH = 1,    // norm of back stress tensor
+			   kKAPP = 2 };  // isotropic hardening variable
+
+  enum EQValues { kEQP_n  = 0,           // equivalent plastic strain
+                  kEQP    = 1,         
+                  kEQXi_n = 2,           // equivalent overstress (deviatoric)  
+                  kEQXi   = 3,         
+		  kPress  = 4 };         // pressure
 
   // internal quantities
   void ComputeInternalQntsRHS(const dArrayT& array);
   void ComputeInternalQntsLHS(const dArrayT& array);
 
  protected:
+  // some constants
+  int fNumInternal;
+  int fNumEQValues;
+  
   // material constants
   double fC7, fC8, fC9, fC10, fC11, fC12;
   double fC13, fC14, fC15, fC16, fC17, fC18;
 
   // scalar stress variables
-  double fEQSigTr;
-  double fradial;     // fradial=fEQValues[EQSig]/fEQSigTr
+  double fEQXiTr;
+  double fradial;     // fradial=fEQValues[EQXi]/fEQXiTr
   double ffactor;
 
   // other scalar variables
@@ -147,7 +154,7 @@ class BCJHypo3D : public EVPFDBaseT
   // deformation gradients
   dMatrixT fFtot_n;   // at t_n
   dMatrixT fF;        // relative def gradient = Ftot*Ftot_n^(-1)
-  dMatrixT fFr;       // relative def gradient in continuation method
+  dMatrixT fFr;       // relative def gradient in subincrementation method
 
   // backstress
   dSymMatrixT falph_ij;
@@ -186,11 +193,11 @@ class BCJHypo3D : public EVPFDBaseT
   dSymMatrixT fU;
   dMatrixT fR;
 
-  // array for scalar internal variables
+  // array for scalar internal variables (for deviatoric BCJ model)
   dArrayT fInternal_n;    // DEQP_n, ALPH_n, KAPP_n
   dArrayT fInternal;      // DEQP, ALPH, KAPP
   dArrayT fInt_save;
-  dArrayT fEQValues;      // EQP_n, EQP, EQSig_n, EQSig, PresTr
+  dArrayT fEQValues;      // EQP_n, EQP, EQXi_n, EQXi, Press
 
   // arrays used in forward gradient estimate
   dArrayT fRHS;
