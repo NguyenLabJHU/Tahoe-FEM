@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.21 2003-08-14 01:20:34 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.22 2003-11-10 22:14:03 cjkimme Exp $ */
 /* created: paklein (05/23/1997) */
 #ifndef _NARRAY_T_H_
 #define _NARRAY_T_H_
@@ -359,7 +359,7 @@ template <class nTYPE>
 void nArrayT<nTYPE>::WriteWrappedTight(ostream& out, int linecount) const
 {
 	nTYPE*  p = Pointer();
-	int width = OutputWidth(out, p);
+//	int width = OutputWidth(out, p);
 	int count = 0;
 	for (int i = 0; i < Length(); i++)
 	{

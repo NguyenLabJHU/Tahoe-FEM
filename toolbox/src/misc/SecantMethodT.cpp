@@ -1,4 +1,4 @@
-/* $Id: SecantMethodT.cpp,v 1.3 2002-10-20 22:39:04 paklein Exp $ */
+/* $Id: SecantMethodT.cpp,v 1.4 2003-11-10 22:14:34 cjkimme Exp $ */
 /* created: paklein (12/01/1998)                                          */
 /* SecantMethodT.cpp                                                      */
 
@@ -13,8 +13,8 @@
 using namespace Tahoe;
 
 SecantMethodT::SecantMethodT(int max_iterations, double tolerance):
-	fMaxIts(max_iterations),
 	fTol(tolerance),
+	fMaxIts(max_iterations),
 	ferr0(0.0),
 	fcount(-1)
 {

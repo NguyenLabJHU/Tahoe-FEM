@@ -1,4 +1,4 @@
-/* $Id: TextInputT.cpp,v 1.1 2003-09-10 00:14:15 paklein Exp $ */
+/* $Id: TextInputT.cpp,v 1.2 2003-11-10 22:14:22 cjkimme Exp $ */
 #include "TextInputT.h"
 
 #include "iArrayT.h"
@@ -83,25 +83,33 @@ void TextInputT::Close (void)
 
 void TextInputT::QuadratureVariablesUsed (const StringT& name, iArrayT& used)
 {
+#ifdef __MWERKS__
 #pragma unused (name)
+#endif
 	used = 0;
 }
 
 void TextInputT::ReadNodeSet(const StringT& name, iArrayT& nodes)
 {
+#ifdef __MWERKS__
 #pragma unused (name)
+#endif
 	nodes.Free();
 }
 
 void TextInputT::ReadSideSetLocal(const StringT& setname, iArray2DT& sides) const
 {
+#ifdef __MWERKS__
 #pragma unused (setname)
+#endif
 	sides.Free ();
 }
 
 void TextInputT::ReadSideSetGlobal(const StringT& setname, iArray2DT& sides) const
 {
+#ifdef __MWERKS__
 #pragma unused (setname)
+#endif
 	sides.Free ();
 }
 
@@ -112,36 +120,46 @@ void TextInputT::ReadQuadratureLabels (ArrayT<StringT>& qlabels) const
 
 void TextInputT::ReadNodeSetVariables(int step, const StringT& name, dArray2DT& nvalues)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
+#endif
   nvalues.Free();
 }
 
 void TextInputT::ReadAllQuadratureVariable(int step, int varindex, dArrayT& values)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (varindex)
+#endif
 	values.Free();
 }
 
 void TextInputT::ReadQuadratureVariable(int step, const StringT& name, int varindex, dArrayT& values)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
 #pragma unused (varindex)
+#endif
 	values.Free();
 }
 
 void TextInputT::ReadAllQuadratureVariables(int step, dArray2DT& vals)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
+#endif
 	vals.Free();
 }
 
 void TextInputT::ReadQuadratureVariables(int step, const StringT& name, dArray2DT& vals)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
+#endif
 	vals.Free();
 }
 
@@ -413,17 +431,21 @@ void TextInputT::ReadAllNodeVariables(int step, dArray2DT& nvalues)
 
 void TextInputT::ReadAllNodeVariable (int step, int varindex, dArrayT& values)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (varindex)
+#endif
 	values.Free();
 	ExceptionT::GeneralFail("InputFEASIIT::ReadAllNodeVariable", "not yet programmed");
 }
 
 void TextInputT::ReadNodeVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
 #pragma unused (varindex)
+#endif
 	values.Free();
 	ExceptionT::GeneralFail("InputFEASIIT::ReadNodeVariable", "not yet programmed");
 }
@@ -467,17 +489,21 @@ void TextInputT::ReadNodeVariables(int step, const StringT& name, dArray2DT& nva
 
 void TextInputT::ReadAllElementVariable (int step, int varindex, dArrayT& values)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (varindex)
+#endif
 	values.Free();
 	ExceptionT::GeneralFail("InputFEASIIT::ReadAllNodeVariable", "not yet programmed");
 }
 
 void TextInputT::ReadElementVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
+#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
 #pragma unused (varindex)
+#endif
 	values.Free();
 	ExceptionT::GeneralFail("InputFEASIIT::ReadNodeVariable", "not yet programmed");
 }
@@ -923,7 +949,9 @@ bool TextInputT::is_old_format(const StringT& file) const
 
 void TextInputT::ReadNodeVariables_old(int step, const StringT& name, dArray2DT& nvalues)
 {
+#ifdef __MWERKS__
 #pragma unused(step)
+#endif
 
 	if (nvalues.Length() == 0) throw ExceptionT::kSizeMismatch;
 

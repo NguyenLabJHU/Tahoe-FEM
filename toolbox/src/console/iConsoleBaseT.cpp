@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.cpp,v 1.16 2003-11-04 01:21:05 paklein Exp $ */
+/* $Id: iConsoleBaseT.cpp,v 1.17 2003-11-10 22:14:15 cjkimme Exp $ */
 /* created: paklein (12/21/2000) */
 #include "iConsoleBaseT.h"
 #include "CommandSpecT.h"
@@ -63,6 +63,7 @@ void iConsoleBaseT::iWriteVariables(ostream& out) const
 bool iConsoleBaseT::iDoCommand(const CommandSpecT& command, StringT& line)
 {
 #pragma unused(line)
+
 	cout << "unrecognized command: \"" << command.Name() << "\"" << endl;
 	return false;
 }
@@ -213,7 +214,7 @@ bool iConsoleBaseT::ResolveArguments(CommandSpecT& command, StringT& line,
 		StringT first;
 		int count;
 		bool scan_OK = true;
-		bool set_defaults = false;
+//		bool set_defaults = false;
 		bool done = false;
 		
 		first.FirstWord(line, count, true);

@@ -1,4 +1,4 @@
-/* $Id: EdgeFinderT.cpp,v 1.7 2003-03-19 19:13:39 thao Exp $ */
+/* $Id: EdgeFinderT.cpp,v 1.8 2003-11-10 22:14:37 cjkimme Exp $ */
 /* created: paklein (02/14/1998) */
 #include "EdgeFinderT.h"
 #include "AutoArrayT.h"
@@ -15,14 +15,14 @@ int kInvConnect = 2;
 /* constructor */
 EdgeFinderT::EdgeFinderT(const ArrayT<const iArray2DT*>& connects,
 	const iArray2DT& nodefacetmap):
-	fCurrent(kNumFlags),
 	fConnects(connects.Length()),
 	fStartNumber (connects.Length()),
-	fNumElements (0),
+	fNumElements(0),
 	fNumFacets(nodefacetmap.MajorDim()),
 	fKeyNodes(nodefacetmap.Max() + 1), // assuming key nodes appear sequentially as
 	                                   // the first entries in the connectivities
-	fNodeFacetMap(nodefacetmap)
+	fNodeFacetMap(nodefacetmap),
+	fCurrent(kNumFlags)
 {
 	/* check */
 	if (fNumFacets < 3) throw ExceptionT::kGeneralFail; // at least tri's?
@@ -432,7 +432,7 @@ void EdgeFinderT::SetInverseConnects(void)
 		AutoFill2DT<int> invconnects(fNumNodes, 1, 25, fNumFacets);
 
 		/* generate map */
-		int  nen = fConnects[0]->MinorDim();
+//		int  nen = fConnects[0]->MinorDim();
 		for (int i = 0; i < fNumElements; i++)
 		{
 			int* pel = ElementNodes(i);
@@ -502,7 +502,7 @@ int* EdgeFinderT::ElementNodes (int index) const
 
   /* find the block */
   int block = 0;
-  int offset = 0;
+//  int offset = 0;
   while (block+1 < fStartNumber.Length() && index >= fStartNumber[block+1])
     {
       block++;

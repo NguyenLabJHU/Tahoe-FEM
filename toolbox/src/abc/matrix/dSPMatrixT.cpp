@@ -1,4 +1,4 @@
-/* $Id: dSPMatrixT.cpp,v 1.5 2003-05-22 16:49:05 paklein Exp $ */
+/* $Id: dSPMatrixT.cpp,v 1.6 2003-11-10 22:14:05 cjkimme Exp $ */
 /* created MLK 10/3/00 */
 #include "dSPMatrixT.h"
 
@@ -30,23 +30,21 @@ dSPMatrixT::dSPMatrixT(void):
 }
 
 dSPMatrixT::dSPMatrixT(int numrows, int numcols, int max_cols): 
-	fRows(numrows), 
-	fCols(numcols), 
-	fNnz(0),
-	
 	fCol_Matrix(numrows, NumPartitions(numrows), kheadroom, max_cols),
-	fVal_Matrix(numrows, NumPartitions(numrows), kheadroom, max_cols)
+	fVal_Matrix(numrows, NumPartitions(numrows), kheadroom, max_cols),
+	fRows(numrows),
+	fCols(numcols),
+	fNnz(0)
 { 
 	
 }
 
 dSPMatrixT::dSPMatrixT(int squaredim, int max_cols):
-	fRows(squaredim), 
-	fCols(squaredim), 
-	fNnz(0),
-	
 	fCol_Matrix(squaredim, NumPartitions(squaredim), kheadroom, max_cols),
-	fVal_Matrix(squaredim, NumPartitions(squaredim), kheadroom, max_cols)
+	fVal_Matrix(squaredim, NumPartitions(squaredim), kheadroom, max_cols),
+	fRows(squaredim),
+	fCols(squaredim),
+	fNnz(0)
 { 
 	
 }

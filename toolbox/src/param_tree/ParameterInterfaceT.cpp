@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.cpp,v 1.8 2003-11-04 01:21:25 paklein Exp $ */
+/* $Id: ParameterInterfaceT.cpp,v 1.9 2003-11-10 22:14:41 cjkimme Exp $ */
 #include "ParameterInterfaceT.h"
 #include "ParameterListT.h"
 #include "ParameterUtils.h"
@@ -166,7 +166,9 @@ void ParameterInterfaceT::DefineSubs(SubListT& sub_list) const
 void ParameterInterfaceT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order,
 	SubListT& sub_sub_list) const
 {
+#ifdef __MWERKS__
 #pragma unused(sub)
+#endif
 	order = ParameterListT::Sequence;
 	sub_sub_list.Dimension(0);
 }
