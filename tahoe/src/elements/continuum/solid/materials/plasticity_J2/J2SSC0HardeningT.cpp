@@ -1,4 +1,4 @@
-/* $Id: J2SSC0HardeningT.cpp,v 1.5 2003-11-21 22:46:48 paklein Exp $ */
+/* $Id: J2SSC0HardeningT.cpp,v 1.5.30.1 2005-04-05 23:29:02 thao Exp $ */
 #include "J2SSC0HardeningT.h"
 
 #include <iostream.h>
@@ -195,6 +195,21 @@ void J2SSC0HardeningT::AllocateElement(ElementCardT& element)
 	/* initialize values */
 	element.IntegerData() = kIsElastic;
 	element.DoubleData()  = 0.0;
+
+	int dofcount = 0;
+	fInternalDOF.Dimension(3);
+	fInternalDOF[0] = 1; //alpha, -K*alpha
+	dofcount++;
+	fInternalDOF[1] = dSymMatrixT::NumValues(kNSD); //plasticstrain, -beta
+	dofcount += dSymMatrixT::NumValues(kNSD);
+	fInternalDOF[2] = dSymMatrixT::NumValues(kNSD); //plasticstrain, stress
+	dofcount += dSymMatrixT::NumValues(kNSD);
+	
+	fInternalStressVars.Dimension(dofcount);
+	fInternalStressVars = 0.0;
+	
+	fInternalStrainVars.Dimension(dofcount);
+	fInternalStrainVars = 0.0;
 }
 
 /***********************************************************************
@@ -286,6 +301,27 @@ void J2SSC0HardeningT::Reset(ElementCardT& element)
 {
 	/* flag not to update again */
 	(element.IntegerData()) = kReset;
+}
+
+/* Access History Variables */
+const dSymMatrixT& J2SSC0HardeningT::Get_PlasticStrain(const ElementCardT& element, int ip)
+{
+         LoadData(element, ip);
+         return (fPlasticStrain);
+}
+
+/* load element data for the specified integration point */
+const dSymMatrixT& J2SSC0HardeningT::Get_Beta(const ElementCardT& element, int ip)
+{
+         LoadData(element, ip);
+         return (fBeta);
+}
+
+/* load element data for the specified integration point */
+const dArrayT& J2SSC0HardeningT::Get_Internal(const ElementCardT& element, int ip)
+{
+         LoadData(element, ip);
+         return (fInternal);
 }
 
 /***********************************************************************
