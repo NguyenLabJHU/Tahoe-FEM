@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.72 2004-10-06 21:07:10 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.73 2004-10-06 21:14:30 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -700,6 +700,9 @@ void FEExecutionManagerT::RunDecomp_serial(const StringT& input_file, ostream& s
 					cin >> n_grid;
 				}
 				if (count == 10) ExceptionT::GeneralFail(caller);
+
+				/* clear to end of line */
+				fstreamT::ClearLine(cin);
 				
 				/* add to parameters */
 				StringT label = "n_";
