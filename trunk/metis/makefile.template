@@ -1,0 +1,119 @@
+# $Id: makefile.template,v 1.1.1.1 2001-07-19 06:23:59 paklein Exp $
+# INSTALLATION INSTRUCTIONS
+#
+# (0) copy makefile.template to a local makefile.
+# (1) set HOME_DIR to the full path to this makefile.
+# (2) set MACRO_DIR to the full path to directory
+#     containing the machine specific compiler macros.
+# (3) select ARCH from list of supported platforms.
+# (4) select installed "build options".
+# (5) "make init" to (re-)initialize headers and file
+#     dependencies.
+# (6) "make build" to (re-)compiler binaries.
+
+# full path to current directory
+HOME_DIR =
+
+# working directories:
+OBJ_DIR = $(HOME_DIR)/obj
+INC_DIR = $(HOME_DIR)/inc
+SRC_DIR = $(HOME_DIR)/src
+LIB_DIR = $(HOME_DIR)/lib
+
+# build architecture
+ARCH =
+# choices:
+#     ALASKA - DEC OSF
+#  CA-CPLANT - DEC OSF
+#        DEC - DEC OSF
+#    DEC.mpi - DEC OSF with MPI
+#        GNU - egcs
+#      JANUS - ASCI Red
+#        SGI - IRIX
+#  SGI.mpich - IRIX with MPICH
+#    SGI.mpi - IRIX with MPI
+#    SIBERIA - DEC OSF
+#        SUN - SUNWSpro
+
+# default target name - root of library name or executable name
+TARGET  =
+LIBRARY = $(HOME_DIR)/lib/lib$(TARGET).a
+
+# path to main, needed if primary target is an executable (not 
+# a library)
+MAIN    = $(SRC_DIR)/main/main.o
+
+# target of "make build", i.e., the library $(LIBRARY) or
+# the executable $(TARGET)
+BUILD   = $(TARGET)
+
+# full path to compiler macros
+MACRO_DIR = $(HOME_DIR)/../macros
+
+############################### build options ###########################
+# uncomment macros for installed models
+
+##### toolbox
+#TB_DIR      = $(HOME_DIR)/../toolbox
+#TB_INC      = -I$(TB_DIR)/inc
+#TB_CFLAGS   = $(TB_INC)
+#TB_LIB_NAME = toolbox
+#TB_LIB      = $(TB_DIR)/lib/lib$(TB_LIB_NAME).a
+#TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
+
+##### F2C 1.4.3
+#F2C_DIR      = $(HOME_DIR)/../f2c
+#F2C_INC      = -I$(F2C_DIR)/inc
+#F2C_CFLAGS   = $(F2C_INC) -D__F2C__
+#F2C_LIB_NAME = f2c_
+#F2C_LIB      = $(F2C_DIR)/lib/lib$(F2C_LIB_NAME).a
+#F2C_LFLAGS   = -L$(F2C_DIR)/lib -l$(F2C_LIB_NAME)
+
+#### BLAS
+#BLAS_DIR      = $(HOME_DIR)/../CBLAS
+#BLAS_INC      = -I$(BLAS_DIR)/inc
+#BLAS_CFLAGS   = $(BLAS_INC) -D__BLAS__
+#BLAS_LIB_NAME = CBLAS
+#BLAS_LIB      = $(BLAS_DIR)/lib/lib$(BLAS_LIB_NAME).a
+#BLAS_LFLAGS   = -L$(BLAS_DIR)/lib -l$(BLAS_LIB_NAME)
+
+##### Aztec iterative linear algebra library
+#AZ_DIR      = $(HOME_DIR)/../aztec
+#AZ_INC      = -I$(AZ_DIR)/inc
+#AZ_CFLAGS   = $(AZ_INC) -D__AZTEC__
+#AZ_LIB_NAME = aztec
+#AZ_LIB      = $(AZ_DIR)/lib/lib$(AZ_LIB_NAME).a
+#AZ_LFLAGS   = -L$(AZ_DIR)/lib -l$(AZ_LIB_NAME)
+
+#### SPOOLES
+#SPOOLES_DIR      = $(HOME_DIR)/../spooles
+#SPOOLES_INC      = -I$(SPOOLES_DIR)/inc
+#SPOOLES_CFLAGS   = $(SPOOLES_INC) -D__SPOOLES__
+#SPOOLES_LIB_NAME = spooles
+#SPOOLES_LIB      = $(SPOOLES_DIR)/lib/lib$(SPOOLES_LIB_NAME).a
+#SPOOLES_LFLAGS   = -L$(SPOOLES_DIR)/lib -l$(SPOOLES_LIB_NAME)
+
+#### SPOOLES MPI
+#SPOOLESMPI_DIR      = $(HOME_DIR)/../spoolesMPI
+#SPOOLESMPI_INC      = -I$(SPOOLESMPI_DIR)/inc
+#SPOOLESMPI_CFLAGS   = $(SPOOLESMPI_INC) -D__SPOOLES_MPI__
+#SPOOLESMPI_LIB_NAME = spoolesMPI
+#SPOOLESMPI_LIB      = $(SPOOLESMPI_DIR)/lib/lib$(SPOOLESMPI_LIB_NAME).a
+#SPOOLESMPI_LFLAGS   = -L$(SPOOLESMPI_DIR)/lib -l$(SPOOLESMPI_LIB_NAME)
+
+#### ACME
+#ACME_DIR      = $(HOME_DIR)/../libs/acme-0.2a
+#ACME_INC      = -I$(ACME_DIR)/search -I$(ACME_DIR)/enforcement
+#ACME_CFLAGS   = $(ACME_INC) -D__ACME__
+#ACME_LIB_NAME = acme
+#ACME_LIB      = $(ACME_DIR)/lib$(ACME_LIB_NAME).a
+#ACME_LFLAGS   = -L$(ACME_DIR) -l$(ACME_LIB_NAME)
+
+##### SEACAS/ACCESS software
+#AX_INC    = -I$(ACCESS)/inc
+#AX_CFLAGS = $(AX_INC) -D__ACCESS__
+#AX_LFLAGS = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
+############################### build options ###########################
+
+# include common target definitions
+include $(MACRO_DIR)/make.targets
