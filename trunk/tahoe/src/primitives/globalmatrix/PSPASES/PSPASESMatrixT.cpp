@@ -1,4 +1,4 @@
-/* $Id: PSPASESMatrixT.cpp,v 1.4 2004-03-14 01:51:21 paklein Exp $ */
+/* $Id: PSPASESMatrixT.cpp,v 1.5 2004-03-14 02:27:48 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "PSPASESMatrixT.h"
 
@@ -251,17 +251,17 @@ void PSPASESMatrixT::PrintZeroPivots(void) const
 void PSPASESMatrixT::PrintLHS(bool force) const
 {
 #pragma unused(force)
-	PSPASESMatrixT& A = const_cast<PSPASESMatrixT&>(*this);
+	fOut << "LHS: {r, c, v}: \n";
+	for (int i = 0; i < fLocNumEQ; i++) {
 	
-	int d_width = OutputWidth(fOut, favals.Pointer());
-	fOut << "\nLHS matrix:\n\n";
-	for (int row = 0; row < fLocNumEQ; row++) {
-		for (int col = 0; col < fTotNumEQ; col++) {
-			double* pa = A(row + fStartEQ - 1, col);
-			double a = (pa) ? *pa : 0.0;
-			fOut << setw(d_width) << a;
-		}
-		fOut << '\n';
+		int index = faptrs(i,0) - 1;
+		int count = faptrs(i,1);
+
+		const int* col = fainds.Pointer(index);
+		const double* val = favals.Pointer(index);
+	
+		for (int j = 0; j < count; j++)
+			fOut << i+fStartEQ << " " << *col++ << " " << *val++ << '\n';
 	}
 	fOut << endl;
 }
@@ -339,10 +339,12 @@ void PSPASESMatrixT::BackSubstitute(dArrayT& result)
 	DPSPACET(frowdist.Pointer(), &nrhs, fb.Pointer(), &fLocNumEQ, result.Pointer(),
 		&fLocNumEQ, fioptions_DPSPACET.Pointer(), &fNcomm, &comm);
 
-#if 0
-	void CHECKB_AX(int *rowdista,int *aptrs,int *ainds,double *avals,
-		int *rowdistb,int *pnrhs,double *b,int *pldb,double *x,
-		int *pldx,double *perr,MPI_Comm *pcomm);
+#if __option(extended_errorcheck)
+	double error = 0.0;
+	CHECKB_AX(frowdist.Pointer(), faptrs.Pointer(), fainds.Pointer(),
+		favals.Pointer(), frowdist.Pointer(), &nrhs, fb.Pointer(), &fLocNumEQ, result.Pointer(),
+		&fLocNumEQ, &error, &comm);
+	fOut << caller << ": max |B - AX| = " << error << endl;
 #endif
 }
 

@@ -1,4 +1,4 @@
-/* $Id: MSRMatrixT.cpp,v 1.1 2004-03-14 00:10:38 paklein Exp $ */
+/* $Id: MSRMatrixT.cpp,v 1.2 2004-03-14 02:28:09 paklein Exp $ */
 #include "MSRMatrixT.h"
 
 #include "MSRBuilderT.h"
@@ -333,15 +333,25 @@ void MSRMatrixT::PrintZeroPivots(void) const
 void MSRMatrixT::PrintLHS(bool force) const
 {
 #pragma unused(force)
-//not implemented
+
+	/* convert to RCV */
+	iArrayT r, c;
+	dArrayT v;
+	GenerateRCV(r, c, v, 0.0);
+	r++;
+	c++;
+	fOut << "LHS: {r, c, v}: \n";
+	for (int i = 0; i < r.Length(); i++)
+		fOut << r[i] << " " << c[i] << " " << v[i] << '\n';
+	fOut << endl;
 }
 
 /* copy MSR data to RCV */
-void MSRMatrixT::GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v, double drop_tol)
+void MSRMatrixT::GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v, double drop_tol) const
 {
 	/* count number of values */
 	int num_vals = 0;
-	double *pval = fval.Pointer();
+	const double *pval = fval.Pointer();
 	for (int i = 0; i < fLocNumEQ; i++) /* diagonals */
 		if (fabs(*pval++) > drop_tol) num_vals++;
 	pval++;
@@ -354,7 +364,7 @@ void MSRMatrixT::GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v, double drop_tol
 	v.Dimension(num_vals);
 
 	/* start of off-diagonal data (MSR) */
-	int* pcol = fbindx.Pointer(fLocNumEQ + 1);
+	const int* pcol = fbindx.Pointer(fLocNumEQ + 1);
 	pval = fval.Pointer(fLocNumEQ + 1);
 
 	/* output rows in ascending column order */
@@ -363,7 +373,7 @@ void MSRMatrixT::GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v, double drop_tol
 	for (int row = 0; row < fLocNumEQ; row++)
 	{
 		/* the diagonal */
-		double& diag = fval[row];
+		const double& diag = fval[row];
 		if (fabs(diag) > drop_tol) {
 			r[count] = row + shift;
 			c[count] = row + shift;
@@ -374,7 +384,7 @@ void MSRMatrixT::GenerateRCV(iArrayT& r, iArrayT& c, dArrayT& v, double drop_tol
 		int numvals = fbindx[row+1] - fbindx[row]; /* not incl. diagonal */
 		for (int i = 0; i < numvals; i++)
 		{
-			double& val = *pval++;
+			const double& val = *pval++;
 			if (fabs(val) > drop_tol) {
 				r[count] = row + shift;
 				c[count] = *pcol++;
