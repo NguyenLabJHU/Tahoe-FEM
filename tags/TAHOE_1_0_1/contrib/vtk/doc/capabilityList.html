@@ -1,0 +1,823 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.76C-SGI [en] (X11; I; IRIX64 6.5 IP27) [Netscape]">
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
+<b><font color="#3333FF"><font size=+4>Current Capabilities</font></font></b>
+<br>&nbsp;
+<p><b><font color="#FF0000"><font size=+2>Console Root Commands</font></font></b>
+<table BORDER WIDTH="1000" NOSAVE >
+<tr NOSAVE>
+<td NOSAVE><b><font size=+2>Command</font></b></td>
+
+<td><b><font size=+2>Arguments</font></b></td>
+
+<td NOSAVE><b><font size=+2>Description</font></b></td>
+</tr>
+
+<tr NOSAVE>
+<td>&nbsp; <a href="AddBody.html#ConsoleRoot">AddBody</a></td>
+
+<td>2 arguments: ordered
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (string) (no default)
+: path to database file
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (string) (default
+= "auto") : database file format</td>
+
+<td NOSAVE>Input data files to be displayed.&nbsp; The body is automatically
+added to the 0.0.frame.&nbsp; Currently each file must be of type Exodus
+ouput(.exo, .e, .geo) and inputted individually.&nbsp; The database files
+can also be inputted when the application is started up using the -f flag,
+e.g. vtk_console -f big.exo -f square0CSE.exo.</td>
+</tr>
+
+<tr>
+<td>&nbsp; <a href="FlipBook.html">FlipBook</a></td>
+
+<td>2 arguments: not ordered
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; delay (double) (default
+= 0) : frame delay in seconds
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; step (integer) (default
+= 1) : time step increment</td>
+
+<td>Show flip book of images from each time step.&nbsp; This occurs in
+all the frames in the window.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="HideFrameNums.html">HideFrameNumbers</a></td>
+
+<td>0 arguments</td>
+
+<td>Hide frame numbers for each corresponding frame.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Interactive.html">Interactive</a></td>
+
+<td>0 arguments</td>
+
+<td>Allow manipulation of the bodies in the display via the mouse. The
+left button controls rotation of the body, the middle button controls panning,
+and the right button controls zooming in and out. Other keyboard commands
+are available such as:&nbsp;
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; key press 'j'/key press 't' - toggle
+between joystick (position sensitive) and trackball (motion sensitive)
+styles&nbsp;
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; key press 'w'/key press 's' - toggle
+between wire frame and surfaces for bodies&nbsp;
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; key press 'p' - displays&nbsp; marker
+on body along with node number, coordinates and scalar value of node that&nbsp;
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+mouse is currently pointing to
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; key press 'e' - exit interactive mode</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Layout.html">Layout</a></td>
+
+<td>2 arguments: not ordered
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nx (integer) (no default)
+: number of horizontal frames
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ny (integer) (no default)
+: number of vertical frames</td>
+
+<td>Set up the number of frames lengthwise (nx) and widthwise(ny) of main
+window.</td>
+</tr>
+
+<tr NOSAVE>
+<td>&nbsp;<a href="NextTimeStep.html">NextTimeStep</a></td>
+
+<td NOSAVE>1 argument
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (integer) (default
+= 1) : number steps forwards</td>
+
+<td>Move dispalyed data in all frames forward by inputted number of time
+steps.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Pan.html">Pan</a></td>
+
+<td>2 arguments: not ordered
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x (double) (default = 0)
+: x-direction pan (dx/w)
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y (double) (default = 0)
+: y-direction pan (dy/h)</td>
+
+<td>Enter command line argument for panning/translating bodies in x and
+y directions in all frames.&nbsp;</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Point.html">Point</a></td>
+
+<td>0 arguments</td>
+
+<td>Display bodies as points in all frames as opposed to wireframes or
+surfaces.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="PreviousTimeStep.html">PreviousTimeStep</a></td>
+
+<td>1 argument
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (integer) (default
+= 1) : number steps backwards</td>
+
+<td>Move displayed data in all frames backward by inputted number of time
+steps.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="RemoveBody.html#Console Root Command">RemoveBody</a></td>
+
+<td>&nbsp;1 argument
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (integer) (no
+default) : body number to remove</td>
+
+<td>Remove one of data files that is currently being displayed.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="ResetView.html">ResetView</a></td>
+
+<td>0 arguments</td>
+
+<td>Reset camera to initial default view in all frames.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Rotate.html">Rotate</a></td>
+
+<td>3 arguments: not ordered
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x (double) (default = 0)
+: x-axis rotation
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y (double) (default = 0)
+: y-axis rotation
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; z (double) (default = 0)
+: z-axis rotation</td>
+
+<td>Enter command line argument (in degrees) for rotating bodies in x,
+y, and z directions in all frames.&nbsp; This can be a bit tricky since
+it rotates on permanent x, y, z axes and not on the current axes.&nbsp;</td>
+</tr>
+
+<tr NOSAVE>
+<td NOSAVE>&nbsp;Save</td>
+
+<td>2 arguments: ordered
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (string) (no default)
+: image file name
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (string) (default
+= "JPG") : image file format (TIFF|JPG|PS)</td>
+
+<td>Save an image of the main window as a .tif, .ps,&nbsp; or .jpg.</td>
+</tr>
+
+<tr>
+<td>&nbsp;SaveFlipBook</td>
+
+<td>2 arguments: ordered
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (string) (no default)
+: image file name
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (string) (default
+= "JPG") : image file format (TIFF|JPG|PS)</td>
+
+<td>Save multiple images from a flip book as a series of .tif, .ps, or
+.jpg.&nbsp; The flip book images can be combined to form .mov quicktime
+animations.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="SelectTimeStep.html">SelectTimeStep</a></td>
+
+<td>1 argument
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (integer) (no
+default) : time step</td>
+
+<td>Select time step from given range to be displayed in all frames.&nbsp;
+When multiple bodies with different time ranges are in the same frame,
+selecting a time step becomes a bit tricky.&nbsp; This issue shall be resolved
+in the future.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="ShowFrameNumbers.html">ShowFrameNumbers</a></td>
+
+<td>0 arguments</td>
+
+<td>Show frame numbers for each corresponding frame.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Surface.html">Surface</a></td>
+
+<td>0 arguments</td>
+
+<td>Display bodies as solid surfaces in all frames as opposed to wireframes
+or points.</td>
+</tr>
+
+<tr>
+<td>&nbsp;Update</td>
+
+<td>0 arguments</td>
+
+<td>Update displays in all frames after changes have been made to data.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="WindowSize.html">WindowSize</a></td>
+
+<td>2 arguments: not ordered
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; w (integer) (no default)
+: width
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; h (integer) (no default)
+: height</td>
+
+<td>Set size, in pixels, of main window.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Wire.html">Wire</a></td>
+
+<td>0 arguments</td>
+
+<td>Display bodies as wireframes in all frames as oppposed to surfaces
+or points.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Zoom.html">Zoom</a></td>
+
+<td>1 argument
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (double) (no default)
+: zoom factor</td>
+
+<td>Zoom camera in/out in all frames by inputtted zoom factor.</td>
+</tr>
+</table>
+
+<hr WIDTH="100%">
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<p><b><font color="#FF0000"><font size=+2>Frame Commands</font></font></b>
+<br>&nbsp;
+<table BORDER WIDTH="1000" NOSAVE >
+<tr NOSAVE>
+<td NOSAVE><b><font size=+2>Command</font></b></td>
+
+<td><b><font size=+2>Arguments</font></b></td>
+
+<td><b><font size=+2>Description</font></b></td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="AddBody.html#Frame">AddBody</a></td>
+
+<td>1 argument
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (integer) (no
+default) : body number</td>
+
+<td>Add body to frame.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="ChangeBGColor.html">ChangeBackgroundColor</a></td>
+
+<td>1 argument
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (integer) (no
+default) : background color</td>
+
+<td>Change the color of the background for the frame.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="ChooseVar.html">ChooseVariable</a></td>
+
+<td>1 argument
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (string) (no default)
+: variable label</td>
+
+<td>From a given list of variables, choose the variable to display in the
+frame.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="FlipBook.html">FlipBook</a></td>
+
+<td>2 arguments: not ordered
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; delay (double) (default
+= 0) : frame delay in seconds
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; step (integer) (default
+= 1) : time step increment</td>
+
+<td>Show flip book of images from each time step.&nbsp; This occurs only
+in the current frame.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="HideAxe.html">HideAxes</a></td>
+
+<td>0 arguments</td>
+
+<td>Hide x,y,z axes display in the frame.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="HideColorBar.html">HideColorBar</a></td>
+
+<td>0 arguments</td>
+
+<td>Hide scalar color bar.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="HideElementNumbers.html">HideElementNumbers</a></td>
+
+<td>0 arguments</td>
+
+<td>Hide element number displays.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="HideNodeNumbers.html">HideNodeNumbers</a></td>
+
+<td>0 arguments</td>
+
+<td>Hide node number displays.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Interactive.html">Interactive</a></td>
+
+<td>0 arguments</td>
+
+<td>Allow manipulation of the bodies in the display via the mouse. The
+left button controls rotation of the body, the middle button controls panning,
+and the right button controls zooming in and out. Other keyboard commands
+are available such as:&nbsp;
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; key press 'j'/key press 't' - toggle
+between joystick (position sensitive) and trackball (motion&nbsp;
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+sensitive) styles.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; key press 'w'/key press 's' - toggle
+between wire frame and surfaces for bodies.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; key press 'p' - displays&nbsp; marker
+on body along with node number, coordinates and scalar value of&nbsp;
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+node that mouse is currently pointing to.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; key press 'e' - exit interactive mode.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Pan.html">Pan</a></td>
+
+<td>2 arguments: not ordered
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x (double) (default = 0)
+: x-direction pan (dx/w)
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y (double) (default = 0)
+: y-direction pan (dy/h)</td>
+
+<td>Enter command line argument for panning/translating bodies in x and
+y directions in the frame.&nbsp;</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Point.html">Point</a></td>
+
+<td>0 arguments</td>
+
+<td>Display bodies as points in the frame as opposed to wireframes or surfaces.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="RemoveBody.html#Frame Command">RemoveBody</a></td>
+
+<td>1 argument
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (integer) (no
+default) : body number</td>
+
+<td>Remove body display from frame.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="ResetView.html">ResetView</a></td>
+
+<td>0 arguments</td>
+
+<td>Reset camera to initial default view in the frame.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Rotate.html">Rotate</a></td>
+
+<td>3 arguments: not ordered
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x (double) (default = 0)
+: x-axis rotation
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y (double) (default = 0)
+: y-axis rotation
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; z (double) (default = 0)
+: z-axis rotation</td>
+
+<td>Enter command line argument (in degrees) for rotating all bodies in
+x, y, and z directions in the frame.&nbsp; This can be a bit tricky since
+it rotates on permanent x, y, z axes and not on the current axes.&nbsp;</td>
+</tr>
+
+<tr>
+<td>Save</td>
+
+<td>2 arguments: ordered
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (string) (no default)
+: image file name
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (string) (default
+= "JPG") : image file format (TIFF|JPG|PS)</td>
+
+<td>Save an image of the main window as a .tif, .ps,&nbsp; or .jpg.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="SelectTimeStep.html">SelectTimeStep</a></td>
+
+<td>1 argument
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (integer) (no
+default) : time step</td>
+
+<td>Select time step from given range to be displayed in the frame.&nbsp;
+When multiple bodies with different time ranges are in the same frame,
+selecting a time step becomes a bit tricky.&nbsp; This issue shall be resolved
+in the future.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="ShowAxes.html">ShowAxes</a></td>
+
+<td>0 arguments</td>
+
+<td>Show x,y,z axes display in the frame.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="ShowColorBar.html">ShowColorBar</a></td>
+
+<td>2 arguments: ordered
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (string) (default
+= "&lt;DEFAULT>") : body to reference scalar range
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; location (string) (default
+= "L") : color bar position, where T/t = top, L/l = left, B/b = bottom,
+R/r = right</td>
+
+<td>Show scalar color bar in specified location of the frame.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="ShowElementNumbers.html">ShowElementNumbers</a></td>
+
+<td>0 arguments</td>
+
+<td>Show element number displays for all bodies in frame.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="ShowNodeNumbers.html">ShowNodeNumbers</a></td>
+
+<td>0 arguments</td>
+
+<td>Show node number displays for all bodies in frame.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Surface.html">Surface</a></td>
+
+<td>0 arguments</td>
+
+<td>Display bodies as solid surfaces in the frame as opposed to wireframes
+or points.</td>
+</tr>
+
+<tr>
+<td>Update</td>
+
+<td>0 arguments</td>
+
+<td>Update display in the frame after changes have been made to data.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Wire.html">Wire</a></td>
+
+<td>0 arguments</td>
+
+<td>Display bodies as wireframes in the frame as oppposed to surfaces or
+points.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Zoom.html">Zoom</a></td>
+
+<td>1 argument
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (double) (no default)
+: zoom factor</td>
+
+<td>Zoom camera in/out in the frame by inputtted zoom factor.</td>
+</tr>
+</table>
+
+<hr WIDTH="100%">
+<br>&nbsp;
+<p><b><font color="#FF0000"><font size=+2>Body Commands</font></font></b>
+<br>&nbsp;
+<table BORDER WIDTH="1000" NOSAVE >
+<tr>
+<td><b><font size=+2>Command</font></b></td>
+
+<td><b><font size=+2>Arguments</font></b></td>
+
+<td><b><font size=+2>Description</font></b></td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="HideAxe.html">HideAxes</a></td>
+
+<td>0 arguments</td>
+
+<td>Hide x,y,z axes display in the frame.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="HideColorBar.html">HideColorBar</a></td>
+
+<td>0 arguments</td>
+
+<td>Hide scalar color bar.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="HideContours.html">HideContours</a></td>
+
+<td>0 arguments</td>
+
+<td>Hide contour surfaces/lines for the body.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="HideCutttingPlane.html">HideCuttingPlane</a></td>
+
+<td>0 arguments</td>
+
+<td>Hide all cutting planes for the body.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="HideElementNumbers.html">HideElementNumbers</a></td>
+
+<td>0 arguments</td>
+
+<td>Hide element number displays for the body.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="HideGlyphs.html">HideGlyphs</a></td>
+
+<td>0 arguments</td>
+
+<td>Hide vector glyphs for the body.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="HideNodeNumbers.html">HideNodeNumbers</a></td>
+
+<td>0 arguments</td>
+
+<td>Hide node number dispalys for the body.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Interactive.html">Interactive</a></td>
+
+<td>0 arguments</td>
+
+<td>Allow manipulation of the bodies in the display via the mouse. The
+left button controls rotation of the body, the middle button controls panning,
+and the right button controls zooming in and out. Other keyboard commands
+are available such as:&nbsp;
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; key press 'j'/key press 't' - toggle
+between joystick (position sensitive) and trackball (motion&nbsp;
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+sensitive) styles.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; key press 'w'/key press 's' - toggle
+between wire frame and surfaces for bodies&nbsp;
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; key press 'p' - displays&nbsp; marker
+on body along with node number, coordinates and scalar value of&nbsp;
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+node that mouse is currently pointing to.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; key press 'e' - exit interactive mode.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Pick.html">Pick</a></td>
+
+<td>1 argument
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; node (integer) (default
+= 1) : node number</td>
+
+<td>Display marker on body along with coordinates and scalar value of specified
+node.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Point.html">Point</a></td>
+
+<td>0 arguments</td>
+
+<td>Display body as points in the frame as opposed to a wireframe or surface.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Rotate.html">Rotate</a></td>
+
+<td>3 arguments: not ordered
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x (double) (default = 0)
+: x-axis rotation
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; y (double) (default = 0)
+: y-axis rotation
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; z (double) (default = 0)
+: z-axis rotation</td>
+
+<td>Enter command line argument (in degrees) for rotating all bodies in
+x, y, and z directions in the frame.&nbsp; This can be a bit tricky since
+it rotates on permanent x, y, z axes and not on the current axes.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="ShowAxes.html">ShowAxes</a></td>
+
+<td>0 arguments</td>
+
+<td>Show x,y,z axes display for the body.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="ShowColorBar.html">ShowColorBar</a></td>
+
+<td>2 arguments: ordered
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (unnamed) (string) (default
+= "&lt;DEFAULT>") : body to reference scalar range
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; location (string) (default
+= "L") : color bar position, where T/t = top, L/l = left, B/b = bottom,
+R/r = right</td>
+
+<td>Show scalar color bar in specified location of the frame.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="ShowContours.html">ShowContours</a></td>
+
+<td>0 arguments</td>
+
+<td>Display body with contours.&nbsp; Contours are displayed as surfaces
+in the 3-D case, and lines in the 2-D case.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="ShowCuttingPlane.html">ShowCuttingPlane</a></td>
+
+<td>6 arguments: not ordered
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; oX (double) = 0.5 (default
+= 0) : x-coordinate of origin
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; oY (double) = 0.5 (default
+= 0) : y-coordinate of origin
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; oZ (double) = 0.2 (default
+= 0) : z-coordinate of origin
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nX (double) = 0 (default
+= 0) : x-coordinate of normal
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nY (double) = 0 (default
+= 1) : y-coordinate of normal
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nZ (double) = 1 (default
+= 0) : z-coordinate of normal</td>
+
+<td>Display 3-D body with specified cutting plane.&nbsp; Multiple cutting
+planes can be added.&nbsp; This can be combined with the "ShowContours"
+command to show cutting planes with contour lines.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="ShowElementNumbers.html">ShowElementNumbers</a></td>
+
+<td>0 arguments</td>
+
+<td>Show element number displays for the body.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="ShowGlyphs.html">ShowGlyphs</a></td>
+
+<td>4 arguments: not ordered
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; filter (boolean) (default
+= true) : Show only visible points (true/false)
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; base (string) (default =
+"tail") : Location of base of arrow (head/tail)
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; scale (boolean) (default
+= true) : determines whether the vectors scale in size or are of fixed
+length (true/false)
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; color (boolean) (default
+= true) : color glyphs by values or not (true/false)</td>
+
+<td>
+<br>Display vector glyphs on the body.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="ShowNodeNumbers.html">ShowNodeNumbers</a></td>
+
+<td>0 arguments</td>
+
+<td>Show node number displays for the body.</td>
+</tr>
+
+<tr>
+<td><a href="Surface.html">&nbsp;Surface</a></td>
+
+<td>0 arguments</td>
+
+<td>Display body as a solid surface as opposed to a wireframe or points.</td>
+</tr>
+
+<tr>
+<td>Update</td>
+
+<td>0 arguments</td>
+
+<td>Update body display after changes have been made to data.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Wire.html">Wire</a></td>
+
+<td>0 arguments</td>
+
+<td>Display body as wireframe as oppposed to a surface or points.</td>
+</tr>
+</table>
+
+<hr WIDTH="100%">
+<br>&nbsp;
+<br>&nbsp;
+<p><b><font color="#FF0000"><font size=+2>Body Variables</font></font></b>
+<br>&nbsp;
+<table BORDER WIDTH="700" NOSAVE >
+<tr>
+<td><b><font size=+2>Variable</font></b></td>
+
+<td><b><font size=+2>Description</font></b></td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="minMaxScalar.html">min_Scalar_Range</a></td>
+
+<td>Minimum scalar range value</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="minMaxScalar.html">max_Scalar_Range</a></td>
+
+<td>Maximum scalar range value</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="numColors.html">numColors</a></td>
+
+<td>Number of colors used to display the body.&nbsp; Default is 256 colors.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="scaleFactor.html">scale_factor</a></td>
+
+<td>Scale factor for displacement vector.&nbsp; Scale factor from 0 to
+1 decreases displacements.&nbsp; Scale factor greater than 1 increases
+displacements.&nbsp; Default is 1.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="Opacity.html">opacity</a></td>
+
+<td>Opacity of body.&nbsp; Range is from 0 (transparent) to 1 (opaque).&nbsp;
+Default is 1.</td>
+</tr>
+
+<tr>
+<td>&nbsp;<a href="numContours.html">numContours</a></td>
+
+<td>Number of contours to be used with the "ShowContours" command.&nbsp;
+Default is 10.</td>
+</tr>
+</table>
+
+</body>
+</html>
