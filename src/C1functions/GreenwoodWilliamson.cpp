@@ -1,4 +1,4 @@
-/* $Id: GreenwoodWilliamson.cpp,v 1.6 2002-04-24 17:52:32 dzeigle Exp $ */
+/* $Id: GreenwoodWilliamson.cpp,v 1.7 2002-04-25 17:47:29 dzeigle Exp $ */
 
 #include "GreenwoodWilliamson.h"
 #include <math.h>
@@ -195,11 +195,11 @@ double GreenwoodWilliamson::DDFunction(double x) const
 			kn1 = fn1.Function(expo);
 			kn3 = fn3.Function(expo);
 		
-			term[0] =- (fM-x)*(fM-x)*(kn1+k1+k7+k9)/(fS*fS);
+			term[0] = -(fM-x)*(fM-x)*(kn1+k1+k7+k9)/(fS*fS);
 			term[1] = -16.0*k1+8.0*(k3+k5);
 			term[2] = 2.0*sqmux*(kn3+k5)/(fS*fS);
 			term[3] = -0.5*(fM-x)*(fM-x)*(x-fM)*(term[1]+term[2]+term[0]);
-			term[4] = -(fM-x)*(fM-x)*(2.0*sqmux*k1-k3-k5)/(fS*fS);
+			term[4] = -(fM-x)*(fM-x)*(x-fM)*(2.0*sqmux*k1-(fM-x)*(fM-x)*(k3+k5))/(fS*fS);
 			term[5] = 2.0*(x-fM)*(2.0*sqmux*k1-(fM-x)*(fM-x)*(k3+k5));
 			term[6] = (fM-x)*(2*sqmux*k1-(fM-x)*(fM-x)*(k3+k5));
 			term[7] = exp(-expo)*(term[6]+term[5]+term[4]+term[3]);
@@ -499,5 +499,4 @@ dArrayT& GreenwoodWilliamson::MapDDFunction(const dArrayT& in, dArrayT& out) con
 	}
 	return(out);
 }
-
 
