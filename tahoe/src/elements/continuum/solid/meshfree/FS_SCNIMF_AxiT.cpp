@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.16 2005-01-25 18:22:05 cjkimme Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.17 2005-01-25 23:10:01 paklein Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 //#define VERIFY_B
@@ -55,7 +55,6 @@ void FS_SCNIMF_AxiT::GenerateOutputLabels(ArrayT<StringT>& labels)
 	const char* ref[2] = {"R", "Z"};
 
 	/* displacement labels */
-	const char* disp[2] = {"D_R", "D_Z"};
 	int num_labels = 4; // displacements
 	int num_stress=0;
 
@@ -81,8 +80,11 @@ void FS_SCNIMF_AxiT::GenerateOutputLabels(ArrayT<StringT>& labels)
 	int dex = 0;
 	for (dex = 0; dex < fSD; dex++)
 		labels[dex] = ref[dex];
+
+	const ArrayT<StringT>& disp_labels = Field().Labels();
 	for (int ns = 0 ; ns < fSD; ns++)
-	  	labels[dex++] = disp[ns];
+	  	labels[dex++] = disp_labels[ns];
+
 	labels[dex++] = "mass";
 	for (int ns = 0 ; ns < num_stress; ns++)
 		labels[dex++] = strain[ns];
@@ -92,27 +94,15 @@ void FS_SCNIMF_AxiT::GenerateOutputLabels(ArrayT<StringT>& labels)
 
 void FS_SCNIMF_AxiT::WriteOutput(void)
 {
-	ofstreamT& out = ElementSupport().Output();
-
 	const char caller[] = "FS_SCNIMF_AxiT::WriteOutput";
 	
-	/* muli-processor information */
-	CommManagerT& comm_manager = ElementSupport().CommManager();
-	const ArrayT<int>* proc_map = comm_manager.ProcessorMap();
-	int rank = ElementSupport().Rank();
-
 	/* dimensions */
 	int ndof = NumDOF();
 	int num_stress = 6;
 	int num_output = 2*ndof + 1 + 2 * num_stress; /* ref. coords, displacements, mass, e, s */
 
-	/* number of nodes */
-	const ArrayT<int>* partition_nodes = comm_manager.PartitionNodes();
-	int non = (partition_nodes) ? partition_nodes->Length() : 
-								ElementSupport().NumNodes();
-
-	/* map from partition node index */
-	const InverseMapT* inverse_map = comm_manager.PartitionNodes_inv();
+	/* number of output nodes */
+	int non = fNodes.Length();
 
 	/* output arrays length number of active nodes */
 	dArray2DT n_values(non, num_output), e_values;
@@ -130,11 +120,7 @@ void FS_SCNIMF_AxiT::WriteOutput(void)
 	ContinuumMaterialT *mat = (*fMaterialList)[0];
 	SolidMaterialT* fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
 	if (!fCurrMaterial)
-	{
-		ExceptionT::GeneralFail("FS_SCNIMF_AxiT::RHSDriver","Cannot get material\n");
-	}
-	
-	int nNodes = fNodes.Length();
+		ExceptionT::GeneralFail("FS_SCNIMF_AxiT::RHSDriver","Cannot get material\n");	
 
 	const RaggedArray2DT<int>& nodeSupport = fNodalShapes->NodeNeighbors();
 	
@@ -151,16 +137,15 @@ void FS_SCNIMF_AxiT::WriteOutput(void)
 	/* collect displacements */
 	dArrayT vec, values_i;
 	double F_33;
-	for (int i = 0; i < nNodes; i++) 
+	for (int i = 0; i < non; i++) 
 	{
 		/* set current element */
 		fElementCards.Current(i);
 		
-		int   tag_i = (partition_nodes) ? (*partition_nodes)[fNodes[i]] : fNodes[i];
-		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
+		int tag_i = fNodes[i];
 
 		/* values for particle i */
-		n_values.RowAlias(local_i, values_i);
+		n_values.RowAlias(i, values_i);
 
 		/* copy in */
 		vec.Set(ndof, values_i.Pointer());
@@ -649,11 +634,6 @@ void FS_SCNIMF_AxiT::RHSDriver(void)
 	double F_33, S_33, J;
 	dMatrixT F2D(2);
 
-//TEMP
-//iArrayT tmp(1);
-//tmp[0] = 617;
-//GlobalToLocalNumbering(tmp);
-
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
 	for (int i = 0; i < nNodes; i++)
@@ -716,11 +696,6 @@ void FS_SCNIMF_AxiT::RHSDriver(void)
 		fStress3D.MultABT(fCauchy, Finverse); // compute PK1
 		fStress2D.Rank2ReduceFrom3D(fStress3D);
 		S_33 = fStress3D(2,2);
-
-//TEMP
-//if (i == tmp[0]) {
-//	int a = 0;
-//}
 
 		supp_i = nodalCellSupports(i);
 		bVec_i = bVectorArray(i); b_33 = circumferential_B(i);

@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.14 2005-01-25 02:23:58 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.15 2005-01-25 23:10:00 paklein Exp $ */
 #include "FS_SCNIMFT.h"
 
 //#define VERIFY_B
@@ -105,24 +105,12 @@ void FS_SCNIMFT::WriteOutput(void)
 	ofstreamT& out = ElementSupport().Output();
 
 	const char caller[] = "FS_SCNIMFT::WriteOutput";
-	
-	/* muli-processor information */
-	CommManagerT& comm_manager = ElementSupport().CommManager();
-	const ArrayT<int>* proc_map = comm_manager.ProcessorMap();
-	int rank = ElementSupport().Rank();
 
 	/* dimensions */
 	int ndof = NumDOF();
 	int num_stress = fSD == 2 ? 3 : 6;
 	int num_output = 2*ndof + 1 + 2 * num_stress; /* ref. coords, displacements, mass, e, s */
-
-	/* number of nodes */
-	const ArrayT<int>* partition_nodes = comm_manager.PartitionNodes();
-	int non = (partition_nodes) ? partition_nodes->Length() : 
-								ElementSupport().NumNodes();
-
-	/* map from partition node index */
-	const InverseMapT* inverse_map = comm_manager.PartitionNodes_inv();
+	int non = fNodes.Length();
 
 	/* output arrays length number of active nodes */
 	dArray2DT n_values(non, num_output), e_values;
@@ -144,8 +132,6 @@ void FS_SCNIMFT::WriteOutput(void)
 	SolidMaterialT* fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
 	if (!fCurrMaterial)
 		ExceptionT::GeneralFail("FS_SCNIMFT::RHSDriver","Cannot get material\n");
-	
-	int nNodes = fNodes.Length();
 
 	const RaggedArray2DT<int>& nodeSupport = fNodalShapes->NodeNeighbors();
 	
@@ -161,12 +147,12 @@ void FS_SCNIMFT::WriteOutput(void)
 
 	/* collect displacements */
 	dArrayT vec, values_i;
-	for (int i = 0; i < nNodes; i++) {
-		int   tag_i = (partition_nodes) ? (*partition_nodes)[fNodes[i]] : fNodes[i];
-		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
+	for (int i = 0; i < non; i++) {
+	
+		int tag_i = fNodes[i];
 
 		/* values for particle i */
-		n_values.RowAlias(local_i, values_i);
+		n_values.RowAlias(i, values_i);
 
 		/* copy in */
 		vec.Set(ndof, values_i.Pointer());

@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.48 2005-01-25 18:22:05 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.49 2005-01-25 23:10:01 paklein Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -440,18 +440,7 @@ void SCNIMFT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 void SCNIMFT::RegisterOutput(void)
 {
 	/* "point connectivities" needed for output */
-	CommManagerT& comm_manager = ElementSupport().CommManager();
-	const ArrayT<int>* parition_nodes = comm_manager.PartitionNodes();
-	if (parition_nodes) {
-		int num_nodes = parition_nodes->Length();
-		fPointConnectivities.Alias(num_nodes, 1, parition_nodes->Pointer());
-	}
-	else { /* ALL nodes */
-		fPointConnectivities.Dimension(ElementSupport().NumNodes(), 1);
-		iArrayT tmp;
-		tmp.Alias(fPointConnectivities);
-		tmp.SetValueToPosition();				
-	}
+	fPointConnectivities.Alias(fNodes.Length(), 1, fNodes.Pointer());
 
 	/* block ID's */
 	ArrayT<StringT> block_ID(fBlockData.Length());
@@ -478,7 +467,6 @@ void SCNIMFT::GenerateOutputLabels(ArrayT<StringT>& labels)
 	const char* ref[3] = {"X", "Y", "Z"};
 
 	/* displacement labels */
-	const char* disp[3] = {"D_X", "D_Y", "D_Z"};
 	int num_labels = 2*fSD; // displacements
 	int num_stress=0;
 
@@ -513,8 +501,11 @@ void SCNIMFT::GenerateOutputLabels(ArrayT<StringT>& labels)
 	int dex = 0;
 	for (dex = 0; dex < fSD; dex++)
 		labels[dex] = ref[dex];
+
+	const ArrayT<StringT>& disp_labels = Field().Labels();
 	for (int ns = 0 ; ns < fSD; ns++)
-	  	labels[dex++] = disp[ns];
+	  	labels[dex++] = disp_labels[ns];
+
 	labels[dex++] = "mass";
 	for (int ns = 0 ; ns < num_stress; ns++)
 		labels[dex++] = strain[ns];
