@@ -15,9 +15,9 @@
             </dof_labels>
             <kinematic_BC dof="1" node_ID="1" schedule="1" type="D_u" value="1.0"/>
         </field>
-        <history_node_ID>
+        <history_node_ID_list>
             <String value="1"/>
-        </history_node_ID>
+        </history_node_ID_list>
     </nodes>
     <linear_solver matrix_type="diagonal"/>
 </tahoe>

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.8 2004-04-06 06:53:30 paklein Exp $
+# $Id: makefile,v 1.9 2004-04-08 16:13:34 paklein Exp $
 #
 # type "make clean" to remove test results
 #
@@ -12,7 +12,8 @@ SUB_DIR = \
 	diffusion \
 	coupled \
 	enhanced.strain \
-	integrator
+	integrator \
+	2D.particle
 
 all:
 	@echo "make clean to remove test results"
