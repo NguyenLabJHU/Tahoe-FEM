@@ -24,14 +24,14 @@ using namespace Tahoe;
 // Constructor
 MeshAtom::MeshAtom(StringT which_latticetype,int nsd,int nuca,
 		   dArrayT latticeparameter,StringT which_shape,
-		   int whichunit,dArrayT len_cel)
+		   int whichunit,dArrayT len_cel,dArrayT rot_vec)
 {
   if(which_latticetype == "FCC")
-    Crystal = new FCCT(nsd,nuca,latticeparameter[0]);
+    Crystal = new FCCT(nsd,nuca,latticeparameter[0],rot_vec);
   else if(which_latticetype == "BCC")
-    Crystal = new BCCT(nsd,nuca,latticeparameter[0]);
+    Crystal = new BCCT(nsd,nuca,latticeparameter[0],rot_vec);
   else if(which_latticetype == "DIA")
-    Crystal = new DIAT(nsd,nuca,latticeparameter[0]);
+    Crystal = new DIAT(nsd,nuca,latticeparameter[0],rot_vec);
   else
     {
       throw eBadInputValue;

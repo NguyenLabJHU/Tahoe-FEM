@@ -1,4 +1,4 @@
-/* $Id: MakeCrystalT.cpp,v 1.4 2002-07-24 23:14:56 saubry Exp $ */
+/* $Id: MakeCrystalT.cpp,v 1.5 2002-07-25 23:48:07 saubry Exp $ */
 
 
 /* Build a mesh of atoms with a format-independent output
@@ -32,7 +32,7 @@ void MakeCrystalT::Run() {
 
   // Read and store data from "data" file	
   StringT inputfile;
-  inputfile = "data";
+  inputfile = "data5";
   
   ifstreamT in('%');
   in.open(inputfile);
@@ -86,6 +86,20 @@ void MakeCrystalT::Run() {
   in >> shape;
   cout << "Shape of the domain:" << shape <<  "\n";
 
+  dArrayT rot_vec(nsd);
+  if(nsd==2) 
+    {
+      in >> rot_vec[0] >> rot_vec[1];
+      cout << "Rotation Vector: " << rot_vec[0] << "  " 
+	   <<  rot_vec[1] << "\n";
+	}
+  else if (nsd==3)
+    {
+      in >> rot_vec[0] >> rot_vec[1] >> rot_vec[2];
+      cout << "Rotation Vector: " << rot_vec[0] << "  " 
+	   <<  rot_vec[1] << "  " << rot_vec[2] << "\n";
+    }
+
   in.close();
   
   //Define Mesh
@@ -96,8 +110,10 @@ void MakeCrystalT::Run() {
   for (int i=0; i<nsd; i++)   
     latticeparameter[i] = alat;
 
+  
+
   MeshAtom mesh_atom(latticetype,nsd,b,latticeparameter,
-		     shape,whichunit,len_cell);
+		     shape,whichunit,len_cell,rot_vec);
 
   StringT program = "bravais";
   StringT version = "v1.0";
@@ -119,12 +135,21 @@ void MakeCrystalT::Run() {
 
   coords = *(mesh_atom.ReturnCoordinates());
   cout << "Coordinates:\n";
-  for (int j=0; j<nb_atoms; j++) 
-    cout << coords(j,0) <<  "  " 
-	 << coords(j,1) <<  "  " 
-	 << coords(j,2) << "\n";
-  
-
+  /*
+  if(nsd==2)
+    {
+      for (int j=0; j<nb_atoms; j++) 
+	cout << coords(j,0) <<  "  " 
+	     << coords(j,1) <<  "\n";
+    }
+  else 
+    {
+      for (int j=0; j<nb_atoms; j++) 
+	cout << coords(j,0) <<  "  " 
+	     << coords(j,1) <<  "  " 
+	     << coords(j,2) << "\n";
+    }
+  */
 
   cout << "\nWriting geometry in specified format file...\n";
   mesh_atom.BuildIOFile(program,version,title,input,
