@@ -1,4 +1,4 @@
-/* $Id: ArgSpecT.cpp,v 1.3 2001-12-14 20:35:15 paklein Exp $ */
+/* $Id: ArgSpecT.cpp,v 1.4 2002-01-27 18:21:47 paklein Exp $ */
 
 #include "ArgSpecT.h"
 #include <ctype.h>
@@ -582,7 +582,10 @@ void ArgSpecT::Write(ostream& out) const
 	out << '\t';
 		
 	/* name */
-	if (Name().StringLength() > 0) out << Name() << " ";
+	if (Name().StringLength() > 0) 
+		out << Name() << " ";
+	else
+		out << "(unnamed) ";
 
 	/* type */
 	out << "(" << TypeName() << ")";
