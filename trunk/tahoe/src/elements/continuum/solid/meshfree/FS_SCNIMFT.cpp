@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.9 2004-08-04 22:00:23 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.10 2004-08-05 00:53:37 cjkimme Exp $ */
 #include "FS_SCNIMFT.h"
 
 //#define VERIFY_B
@@ -554,8 +554,6 @@ MaterialListT* FS_SCNIMFT::NewMaterialList(const StringT& name, int size)
 		nsd = 2;
 	else if (name == "large_strain_material_3D")
 		nsd = 3;
-
-	cout << "name = " << name << " size = " << size << "\n";
 	
 	/* no match */
 	if (nsd == -1) return NULL;
@@ -567,7 +565,6 @@ MaterialListT* FS_SCNIMFT::NewMaterialList(const StringT& name, int size)
 		 	if (!fFSMatSupport)
 		 		ExceptionT::GeneralFail("FS_SCNIMFT::NewMaterialList","Could not instantiate material support\n");
 			fFSMatSupport->SetFEManager(&ElementSupport().FEManager());
-			cout << "'Twas instantiated\n";
 		 }
 
 		if (nsd == 2)

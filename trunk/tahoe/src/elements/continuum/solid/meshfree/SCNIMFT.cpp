@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.23 2004-08-04 22:00:23 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.24 2004-08-05 00:53:37 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -43,7 +43,6 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support, const FieldT& field):
 	ElementBaseT(support),
 	fSD(ElementSupport().NumSD()),
 	fMaterialList(NULL),
-	fForce_man(0, fForce, field.NumDOF()),
 	fVoronoi(NULL),
 	fNodalShapes(NULL),
 	qComputeVoronoiCell(false),
@@ -60,7 +59,6 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support):
 	ElementBaseT(support),
 	fSD(0),
 	fMaterialList(NULL),
-	fForce_man(0, fForce, fSD),
 	fVoronoi(NULL),
 	fNodalShapes(NULL),
 	qComputeVoronoiCell(false),
@@ -111,8 +109,6 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	//get nodes from ModelManagerT
 	model.ManyNodeSets(particle_ID_list, fNodes);
 
-	cout << "fNodes.Length() = " << fNodes.Length() << " fSD = " << fSD << "\n";
-
 	/* inherited */
 	ElementBaseT::TakeParameterList(list);
 
@@ -120,22 +116,21 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	fLHS.Dimension(fSD);
 	
 	/* allocate work space */
+	fForce_man.SetWard(0, fForce, fSD);
 	fForce_man.SetMajorDimension(ElementSupport().NumNodes(), false);
 
 	/* write parameters */
 	ostream& out = ElementSupport().Output();
 
 	// Do the heavy lifting for the Voronoi Diagram now
-	cout << "fDeloneVertices " << fDeloneVertices.MajorDim() << " X " << fDeloneVertices.MinorDim() << "\n";
-
 	if (qComputeVoronoiCell) {
 #ifndef __QHULL__
 	        ExceptionT::GeneralFail(caller,"Requires the QHull library\n");
 #else 
 
 		fVoronoi = new CompGeomT(fDeloneVertices);
-		fVoronoi->ComputeVoronoiDiagram();
-		cout << " Computed\n";cout.flush();
+		fVoronoi->ComputeVoronoiDiagram(); 
+		
 		// Determine which cells are clipped by the boundary
 		// Must be done before accessing data from the qhull library!!!
 		fVoronoi->GenerateBoundaryCells(fBoundaryNodes, fBoundaryConnectivity,
@@ -162,7 +157,6 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 		if (vout.is_open())	 {
 			VoronoiDiagramToFile(vout);
 			vout.close();
-			cout << " Wrote datafile \n";
 		} else 
   			cout  << " Unable to save data to file " << vCellFile << ". Ignoring error \n"; 
 #endif
@@ -170,29 +164,19 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	else  {	// read in Voronoi information from a file
 		ifstreamT vin('#', vCellFile);
 
-		cout << "vCellFile = " << vCellFile << "\n";
-
 		if (!vin.is_open())
 		  ExceptionT::GeneralFail(caller,"Unable to open file for reading");
-	    
-		cout << "Reading datafile ...\n";
-
+	   
 		VoronoiDiagramFromFile(vin);  
-
-		cout << "Read datafile \n";
-	    
+ 
 		vin.close();
 	}
-
-	cout << "Done with CG stuff. There are " << fVoronoiVertices.MajorDim() << " voronoi Vertices \n";
 	
 	/* shape functions */
 	/* only support single list of integration cells for now */
 	if (fElementConnectivities.Length() > 1) {
 	       ExceptionT::GeneralFail(caller,"Multiple ElementConnectivities not yet supported\n");
 	}
-
-	cout << ElementSupport().InitialCoordinates().MajorDim() << " X " << ElementSupport().InitialCoordinates().MinorDim() << "\n";
 
 	/* construct shape functions */
 	fNodalShapes = new MeshFreeNodalShapeFunctionT(fSD,
@@ -267,12 +251,10 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	ParameterListT mat_params;
 	CollectMaterialInfo(list, mat_params);
 	fMaterialList = NewMaterialList(mat_params.Name(), mat_params.NumLists());
-	cout << " Thar be the material list\n";
-	if (!fMaterialList)
+ 
+ 	if (!fMaterialList)
 	  ExceptionT::GeneralFail(caller,"could not construct material list \"%s\"", mat_params.Name().Pointer());
 	fMaterialList->TakeParameterList(mat_params);
-
-	cout << "params been gotten\n";
 	
 }
 
@@ -438,8 +420,6 @@ void SCNIMFT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>&
 	/* access to the model database */
 	ModelManagerT& model = ElementSupport().ModelManager();
 
-	cout << "block_ID " << block_ID.Length() << " " << block_ID[0] << "\n";
-
 	fElementConnectivities.Dimension(1);
 
 	// NB THIS IS SPECIALIZED TO ONLY ONE ELEMENT BLOCK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -447,8 +427,6 @@ void SCNIMFT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>&
 
 	/* set pointer to connectivity list */
 	fElementConnectivities[0] = model.ElementGroupPointer(block_ID[0]);
-	
-	cout << "Gotten ye connectivity\n";
 	
 	/* get nodes and facets on the boundary */
 	GeometryBaseT::CodeT facetType;
@@ -466,8 +444,6 @@ void SCNIMFT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>&
 	// Get nodal coordinates to use in Initialize
 	fDeloneVertices.Dimension(fNodes.Length(), fSD);
 	fDeloneVertices.RowCollect(fNodes, model.Coordinates());
-
-	cout << fDeloneVertices.MajorDim() << " x " << fDeloneVertices.MinorDim() << " for the verts\n";
 
 }
 
