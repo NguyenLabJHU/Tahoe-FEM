@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.h,v 1.7 2002-01-05 06:55:01 paklein Exp $ */
+/* $Id: ifstreamT.h,v 1.8 2002-04-07 19:14:14 paklein Exp $ */
 /* created: paklein (03/03/1999) */
 
 #ifndef _IFSTREAM_T_H_
@@ -19,50 +19,60 @@ class ifstreamT: public ifstream
 {
 public:
 
-	/* constructors */
+	/** \name constructors */
+	/*@{*/
 	ifstreamT(void);
 	ifstreamT(const char* file_name);
 	ifstreamT(char marker);
 	ifstreamT(char marker, const char* file_name);
+	/*@}*/
 
-	/* open stream */
+	/** \name opening stream */
+	/*@{*/
 	void open(const char* file_name);
 	int open(const char* prompt, const char* skipname,
 		const char* defaultname = NULL);
 	int is_open(void);
+	/*@}*/
 	
-	/* close stream */
+	/** close stream */
 	void close(void);
 
-	/* comment marker */
+	/** \name comment marker */
+	/*@{*/
 	void set_marker(char marker);
 	void clear_marker(void);
 	char comment_marker(void) const;
 	int skip_comments(void) const;
+	/*@}*/
 	
-	/* put a character back in the stream */
+	/** put a character back in the stream */
 	istream& putback(char a);
 	
-	/* return the next character (skipping whitespace and comments)
+	/** return the next character (skipping whitespace and comments)
 	 * without removing it from the stream */
 	char next_char(void);
 	
-	/* return the filename - NULL if no file is open */
+	/** get the next line from stream. Ignores comment lines */
+	istream& getline(char* s, streamsize n, char delimiter = '\n');
+	
+	/** \return the filename or NULL if no file is open */
 	const char* filename(void) const;
 	
-	/* set file name string - does not change stream */
+	/** set file name string, but not change the stream */
 	void set_filename(const char* name);
 
-	/* adjusting stream position - returns actual number of rewound lines */
+	/** adjusting stream position
+	 * \return the actual number of rewound lines */
 	int rewind(int num_lines = 1);
 
-	/* advance to the end of the line (or next 255 characters) */
+	/** advance to the end of the line (or next 255 characters) */
 	void clear_line(void);
 
-	/* advances passed comments */
+	/** advances passed comments */
 	void do_skip_comments(void);
 
-	/* extraction of streams */
+	/** extraction of streams */
 	ifstreamT& operator>>(bool& a);
 
 	/** stream search. read lines from the stream looking for key
@@ -73,17 +83,20 @@ public:
 
 private:
 
-	/* open stream with prompt - return 1 if successful */
+	/** open stream with prompt
+	 * \return 1 if successful */
 	int OpenWithPrompt(const char* prompt, const char* skipname,
 		const char* defaultname);
 	
 private:
 
-	/* comment marker */
+	/** \name comment marker */
+	/*@{*/
 	int  fSkipComments;
 	char fMarker;
+	/*@}*/
 	
-	/* the filename */
+	/** the filename */
 	StringT fFileName;
 };
 
@@ -99,6 +112,21 @@ inline void ifstreamT::set_marker(char marker)
 }
 
 inline void ifstreamT::clear_marker(void) { fSkipComments = 0; }
+
+/* get the next line from stream. Ignores comment lines */
+inline istream& ifstreamT::getline(char* s, streamsize n, char delimiter)
+{
+	/* advance */
+	do_skip_comments();
+		
+	/* ANSI */
+	ifstream::getline(s, n, delimiter);
+
+	/* advance */
+	do_skip_comments();
+
+	return *this;
+}
 
 /* extraction operator */
 template <class TYPE> ifstreamT& operator>>(ifstreamT& str, TYPE& data);

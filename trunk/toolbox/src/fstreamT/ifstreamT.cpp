@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.cpp,v 1.15 2002-03-04 06:18:17 paklein Exp $ */
+/* $Id: ifstreamT.cpp,v 1.16 2002-04-07 19:14:14 paklein Exp $ */
 /* created: paklein (03/03/1999) */
 
 #include "ifstreamT.h"
@@ -207,7 +207,11 @@ int ifstreamT::rewind(int num_lines)
 void ifstreamT::clear_line(void)
 {
 	char line[kLineLength];
+	
+	int skip = fSkipComments;
+	fSkipComments = 0;
 	getline(line, kLineLength-1);
+	fSkipComments = skip;
 }
 
 /* advances passed comments */
