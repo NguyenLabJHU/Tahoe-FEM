@@ -74,6 +74,8 @@ void EVPFDBaseT::Initialize()
   InitializeVariables();
 }
 
+bool EVPFDBaseT::NeedLastDisp() const { return true; }
+
 void EVPFDBaseT::Print(ostream& out) const
 {
   // inherited
