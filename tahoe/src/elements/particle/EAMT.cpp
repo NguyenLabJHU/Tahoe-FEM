@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.38 2003-07-15 23:51:29 saubry Exp $ */
+/* $Id: EAMT.cpp,v 1.39 2003-07-15 23:58:44 saubry Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -512,10 +512,10 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 		  double rhop_j  = ed_force_j(r,NULL,NULL);
 		  double rhopp_j = ed_stiffness_j(r,NULL,NULL);
 		  
-		  double F_i = rhop_j * Ep_i;
+		  double F_i =   rhop_j * Ep_i;
 		  double F_i_byr = F_i/r;
 
-		  double F_j = rhop_i * Ep_j;
+		  double F_j = - rhop_i * Ep_j;
 		  double F_j_byr = F_j/r;
 
 		  double K_i = Ep_i * rhopp_j;
@@ -746,10 +746,10 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		  double rhop_j  = ed_force_j(r,NULL,NULL);
 		  double rhopp_j = ed_stiffness_j(r,NULL,NULL);
 		  
-		  double F_i = rhop_j * Ep_i;
+		  double F_i =   rhop_j * Ep_i;
 		  double F_i_byr = F_i/r;
 
-		  double F_j = rhop_i * Ep_j;
+		  double F_j = - rhop_i * Ep_j;
 		  double F_j_byr = F_j/r;
 
 		  double K_i = Ep_i * rhopp_j;
@@ -958,10 +958,10 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		  double rhop_j  = ed_force_j(r,NULL,NULL);
 		  double rhopp_j = ed_stiffness_j(r,NULL,NULL);
 		  
-		  double F_i = rhop_j * Ep_i;
+		  double F_i =   rhop_j * Ep_i;
 		  double F_i_byr = F_i/r;
 
-		  double F_j = rhop_i * Ep_j;
+		  double F_j = - rhop_i * Ep_j;
 		  double F_j_byr = F_j/r;
 
 		  double K_i = Ep_i * rhopp_j;
@@ -1151,17 +1151,17 @@ void EAMT::RHSDriver2D(void)
 	      double Ep_j   = fEmbeddingForce(tag_j,0);
 	      double rhop_j = ed_force_j(r,NULL,NULL);
 	      
-	      double F1 =  rhop_j * Ep_i;
+	      double F1 =    rhop_j * Ep_i;
 	      double F1byr = formKd*F1/r;
 
-	      double F2 =  rhop_i * Ep_j ;
+	      double F2 =  - rhop_i * Ep_j ;
 	      double F2byr = formKd*F2/r;
 
-	      f_i[0] += r_ij_0 * F1byr;
-	      f_j[0] += r_ij_0 * F2byr;
+	      f_i[0] +=  r_ij_0 * F1byr;
+	      f_j[0] +=  r_ij_0 * F2byr;
 	      
-	      f_i[1] += -r_ij_1 * F1byr;
-	      f_j[1] += -r_ij_1 * F2byr;
+	      f_i[1] +=  r_ij_1 * F1byr;
+	      f_j[1] +=  r_ij_1 * F2byr;
 	    }
 	}
     }
@@ -1313,20 +1313,20 @@ void EAMT::RHSDriver3D(void)
 	      double Ep_j   = fEmbeddingForce(tag_j,0);
 	      double rhop_j = ed_force_j(r,NULL,NULL);
 	      
-	      double F1 =  rhop_j * Ep_i;
+	      double F1 =    rhop_j * Ep_i;
 	      double F1byr = formKd*F1/r;
 
-	      double F2 =  rhop_i * Ep_j ;
+	      double F2 =  - rhop_i * Ep_j ;
 	      double F2byr = formKd*F2/r;
 
 	      f_i[0] +=  r_ij_0 * F1byr;
-	      f_j[0] += -r_ij_0 * F2byr;
+	      f_j[0] +=  r_ij_0 * F2byr;
 	      
 	      f_i[1] +=  r_ij_1 * F1byr;
-	      f_j[1] += -r_ij_1 * F2byr;
+	      f_j[1] +=  r_ij_1 * F2byr;
 
 	      f_i[2] +=  r_ij_2 * F1byr;
-	      f_j[2] += -r_ij_2 * F2byr;	  
+	      f_j[2] +=  r_ij_2 * F2byr;	  
 	  
 	    }
 	}
