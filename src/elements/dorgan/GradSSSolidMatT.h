@@ -1,4 +1,4 @@
-/* $Id: GradSSSolidMatT.h,v 1.14 2004-08-05 17:26:11 rdorgan Exp $ */
+/* $Id: GradSSSolidMatT.h,v 1.15 2004-09-02 18:25:04 rdorgan Exp $ */
 #ifndef _GRAD_SS_SOLID_MAT_T_H_
 #define _GRAD_SS_SOLID_MAT_T_H_
 
@@ -13,6 +13,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class GradSSMatSupportT;
+class ElementCardT;
 
 /** defines the interface for gradient dependent small strain continuum materials */
 class GradSSSolidMatT: public SSSolidMatT
@@ -30,26 +31,26 @@ public:
 	
 	/** \name field */
 	/*@{*/
-	const double& Lambda(void) const;
-	const double& Lambda(int ip) const;
-	const double& Lambda_last(void) const;
-	const double& Lambda_last(int ip) const;
+	const dMatrixT& Lambda(void) const;
+	const dMatrixT& Lambda(int ip) const;
+	const dMatrixT& Lambda_last(void) const;
+	const dMatrixT& Lambda_last(int ip) const;
 	/*@}*/
 	
 	/** \name gradient field */
 	/*@{*/
-	const double& GradLambda(void) const;
-	const double& GradLambda(int ip) const;
-	const double& GradLambda_last(void) const;
-	const double& GradLambda_last(int ip) const;
+	const dMatrixT& GradLambda(void) const;
+	const dMatrixT& GradLambda(int ip) const;
+	const dMatrixT& GradLambda_last(void) const;
+	const dMatrixT& GradLambda_last(int ip) const;
 	/*@}*/
 	
 	/** \name Laplacian field */
 	/*@{*/
-	const double& LapLambda(void) const;
-	const double& LapLambda(int ip) const;
-	const double& LapLambda_last(void) const;
-	const double& LapLambda_last(int ip) const;
+	const dMatrixT& LapLambda(void) const;
+	const dMatrixT& LapLambda(int ip) const;
+	const dMatrixT& LapLambda_last(void) const;
+	const dMatrixT& LapLambda_last(int ip) const;
 	/*@}*/
 
 	/** \name spatial description */
@@ -59,15 +60,18 @@ public:
 	virtual const dMatrixT& gm_hh(void) = 0;
 	virtual const dMatrixT& gm_hp(void) = 0;
 	virtual const dMatrixT& gm_hq(void) = 0;
+	virtual const dSymMatrixT& n_ij(void) = 0;
 	virtual double yc(void) = 0;
+	virtual double ys(void) = 0;
 	virtual int weakened(void) = 0;
+	virtual void UpdateWeakened(const ElementCardT& element, int ip) = 0;
+	virtual void ResetWeakened(const ElementCardT& element, int ip) = 0;
 	/*@}*/
 	
-	/** return the plastic multiplier in the material at the current integration point. 
-	 * Returns the plastic multiplier. */
-	virtual void PMultiplier(dSymMatrixT& pmultiplier) { pmultiplier = Lambda(); };
-	virtual void GradPMultiplier(dSymMatrixT& gradpmultiplier) { gradpmultiplier = GradLambda(); };
-	virtual void LapPMultiplier(dSymMatrixT& lappmultiplier) { lappmultiplier = LapLambda(); };
+	/** return the plastic multiplier in the material at the current integration point. */
+	virtual void PMultiplier(dMatrixT& pmultiplier) { pmultiplier = Lambda(); };
+	virtual void GradPMultiplier(dMatrixT& gradpmultiplier) { gradpmultiplier = GradLambda(); };
+	virtual void LapPMultiplier(dMatrixT& lappmultiplier) { lappmultiplier = LapLambda(); };
 
 protected:
 

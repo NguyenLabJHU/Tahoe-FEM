@@ -1,6 +1,6 @@
-/* $Id: GradJ2SSKStV1D.h,v 1.7 2004-09-02 18:25:04 rdorgan Exp $ */
-#ifndef _GRAD_J2_SS_KSTV_1D_H_
-#define _GRAD_J2_SS_KSTV_1D_H_
+/* $Id: GradJ2SSKStV.h,v 1.1 2004-09-02 18:25:04 rdorgan Exp $ */
+#ifndef _GRAD_J2_SS_KSTV_H_
+#define _GRAD_J2_SS_KSTV_H_
 
 /* base classes */
 #include "GradSSSolidMatT.h"
@@ -20,17 +20,17 @@ namespace Tahoe {
 class ElementCardT;
 class ifstreamT;
 
-class GradJ2SSKStV1D: public GradSSSolidMatT,
+class GradJ2SSKStV: public GradSSSolidMatT,
 		public IsotropicT,
 		public HookeanMatT
 {
 public:
 
 	/** constructor */
-	GradJ2SSKStV1D(void);
+	GradJ2SSKStV(void);
 
 	/** destructor */
-	virtual ~GradJ2SSKStV1D(void);
+	virtual ~GradJ2SSKStV(void);
 
 	/** \name flags */
 	/*@{*/
@@ -140,9 +140,6 @@ private:
 	
 	void LoadData(const ElementCardT& element, int ip);
 	
-	const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain,
-					 const dSymMatrixT& plasticstrain );
-	
 	/* \name hardening functions and their derivatives */
 	double      K(double r) const;
 	double     dK(double r) const;
@@ -155,6 +152,9 @@ private:
 	virtual double   Grad2R(double fLambda, dMatrixT fGradLambda, double fLapLambda);
 	virtual dMatrixT Grad3R(double fLambda, dMatrixT fGradLambda, double fLapLambda);
 	virtual double   Grad4R(double fLambda, dMatrixT fGradLambda, double fLapLambda);
+
+	/** \name compute the consistent elastic tangent moduli */
+	void TangentModulus();
 
 	/** \name yield criteria */
 	virtual double YieldCondition(double isohard, dMatrixT gradisohard, double lapisohard);
@@ -177,7 +177,6 @@ private:
 	/** \name return values */
 	/*@{*/
 	dSymMatrixT fStress;
-	dMatrixT	fModulus;
 	dMatrixT    fOffDiagonalModulus_bh, fOffDiagonalModulus_hb;
 	dMatrixT    fGradientModulus_hh, fGradientModulus_hp, fGradientModulus_hq;
 	/*@}*/
@@ -186,28 +185,31 @@ private:
 	dSymMatrixT	fElasticStrain;
 	
 	/** \name element level internal variables at current time step*/
+	dSymMatrixT fUnitNorm;           /**< unit normal to the stress surface */
 	dSymMatrixT fPlasticStrain_j;    /**< plastic strain */
-	dSymMatrixT fUnitNorm_j;         /**< unit normal to the stress surface */
 	dArrayT     fInternal_j;         /**< internal variables */
 	dMatrixT    fGradIsoHard_j;      /**< gradient of isotropic hardening */
+	dMatrixT	fEModulus;            /**< pseudo-elastic stiffness operator */
 	
 	/** \name element level internal variables at end of "last" converged time step*/
 	dSymMatrixT fPlasticStrain_0;    /**< plastic strain */
-	dSymMatrixT fUnitNorm_0;         /**< unit normal to the stress surface */
 	dArrayT     fInternal_0;         /**< internal variables */
 	dMatrixT    fGradIsoHard_0;      /**< gradient of isotropic hardening */
 
 	/* work space */
+	dSymMatrixT fRelStress;
 	dMatrixT fTensorTemp1;	
 	dMatrixT fTensorTemp2;	
+	dMatrixT fTensorTemp3;	
+	dSymMatrixT fTensorTemp4;	
 };
  
 /* hardening functions and their 1st derivatives */
-inline double GradJ2SSKStV1D::K(double a) const { return fK->Function(a); }
-inline double GradJ2SSKStV1D::dK(double a) const { return fK->DFunction(a); }
-inline double GradJ2SSKStV1D::ddK(double a) const { return fK->DDFunction(a); }
-inline double GradJ2SSKStV1D::dddK(double a) const { return fK->DDDFunction(a); }
-inline double GradJ2SSKStV1D::ddddK(double a) const { return fK->DDDDFunction(a); }
+inline double GradJ2SSKStV::K(double a) const { return fK->Function(a); }
+inline double GradJ2SSKStV::dK(double a) const { return fK->DFunction(a); }
+inline double GradJ2SSKStV::ddK(double a) const { return fK->DDFunction(a); }
+inline double GradJ2SSKStV::dddK(double a) const { return fK->DDDFunction(a); }
+inline double GradJ2SSKStV::ddddK(double a) const { return fK->DDDDFunction(a); }
 
 } // namespace Tahoe 
-#endif /* _GRAD_J2_SS_KSTV_1D_H_ */
+#endif /* _GRAD_J2_SS_KSTV_H_ */

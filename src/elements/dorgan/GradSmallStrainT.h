@@ -1,4 +1,4 @@
-/* $Id: GradSmallStrainT.h,v 1.15 2004-08-05 17:26:11 rdorgan Exp $ */ 
+/* $Id: GradSmallStrainT.h,v 1.16 2004-09-02 18:25:04 rdorgan Exp $ */ 
 #ifndef _GRAD_SMALL_STRAIN_T_H_ 
 #define _GRAD_SMALL_STRAIN_T_H_ 
 
@@ -28,34 +28,37 @@ public:
 	/** destructor */
 	~GradSmallStrainT(void);
 
+	/** initialize time increment */
+	//	virtual void InitStep(void);
+
 	/** adds check for weakening */
-	virtual void RHSDriver(void);
+	//	virtual void RHSDriver(void);
 
 	/** element level reconfiguration for the current time increment */
-	virtual GlobalT::RelaxCodeT RelaxSystem(void);
+	//	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 	
 	/** \name field */
 	/*@{*/
-	const double& LinearPMultiplier(void) const;
-	const double& LinearPMultiplier(int ip) const;
-	const double& LinearPMultiplier_last(void) const;
-	const double& LinearPMultiplier_last(int ip) const;
+	const dMatrixT& LinearPMultiplier(void) const;
+	const dMatrixT& LinearPMultiplier(int ip) const;
+	const dMatrixT& LinearPMultiplier_last(void) const;
+	const dMatrixT& LinearPMultiplier_last(int ip) const;
 	/*@}*/
 	
 	/** \name gradient field */
 	/*@{*/
-	const double& LinearGradPMultiplier(void) const;
-	const double& LinearGradPMultiplier(int ip) const;
-	const double& LinearGradPMultiplier_last(void) const;
-	const double& LinearGradPMultiplier_last(int ip) const;
+	const dMatrixT& LinearGradPMultiplier(void) const;
+	const dMatrixT& LinearGradPMultiplier(int ip) const;
+	const dMatrixT& LinearGradPMultiplier_last(void) const;
+	const dMatrixT& LinearGradPMultiplier_last(int ip) const;
 	/*@}*/
 	
 	/** \name Laplacian field */
 	/*@{*/
-	const double& LinearLapPMultiplier(void) const;
-	const double& LinearLapPMultiplier(int ip) const;
-	const double& LinearLapPMultiplier_last(void) const;
-	const double& LinearLapPMultiplier_last(int ip) const;
+	const dMatrixT& LinearLapPMultiplier(void) const;
+	const dMatrixT& LinearLapPMultiplier(int ip) const;
+	const dMatrixT& LinearLapPMultiplier_last(void) const;
+	const dMatrixT& LinearLapPMultiplier_last(int ip) const;
 	/*@}*/
 
 	/** return the number of degrees of freedom for pmultiplier per node */
@@ -147,14 +150,14 @@ private:
 protected:
 	/** \name return values */
 	/*@{*/
-	dArrayT fPMultiplier_List;
-	dArrayT fPMultiplier_last_List;
+	ArrayT<dMatrixT> fPMultiplier_List;
+	ArrayT<dMatrixT> fPMultiplier_last_List;
 
-	dArrayT fGradPMultiplier_List;
-	dArrayT fGradPMultiplier_last_List;
+	ArrayT<dMatrixT> fGradPMultiplier_List;
+	ArrayT<dMatrixT> fGradPMultiplier_last_List;
 
-	dArrayT fLapPMultiplier_List;
-	dArrayT fLapPMultiplier_last_List;
+	ArrayT<dMatrixT> fLapPMultiplier_List;
+	ArrayT<dMatrixT> fLapPMultiplier_last_List;
 
 	dArrayT fYield_List;
 	/*@}*/
@@ -180,6 +183,9 @@ protected:
 
 	/** keep solving current time step */
 	bool fHoldTime;
+
+	/** count of times relaxed */
+	int fRelaxed;
 
 	/** connectivities for the multiplier */
 	ArrayT<iArray2DT> fConnectivities_PMultiplier;
@@ -252,65 +258,23 @@ protected:
 
 /* inlines */
 
-inline const double& GradSmallStrainT::LinearPMultiplier(void) const
-{
-	return fPMultiplier_List[CurrIP()]; 
-}
+inline const dMatrixT& GradSmallStrainT::LinearPMultiplier(void) const   { return fPMultiplier_List[CurrIP()]; }
+inline const dMatrixT& GradSmallStrainT::LinearPMultiplier(int ip) const { return fPMultiplier_List[ip]; }
 
-inline const double& GradSmallStrainT::LinearPMultiplier(int ip) const
-{
-	return fPMultiplier_List[ip]; 
-}
+inline const dMatrixT& GradSmallStrainT::LinearPMultiplier_last(void) const   { return fPMultiplier_last_List[CurrIP()]; }
+inline const dMatrixT& GradSmallStrainT::LinearPMultiplier_last(int ip) const { return fPMultiplier_last_List[ip]; }
 
-inline const double& GradSmallStrainT::LinearPMultiplier_last(void) const
-{
-	return fPMultiplier_last_List[CurrIP()]; 
-}
+inline const dMatrixT& GradSmallStrainT::LinearGradPMultiplier(void) const   { return fGradPMultiplier_List[CurrIP()]; }
+inline const dMatrixT& GradSmallStrainT::LinearGradPMultiplier(int ip) const { return fGradPMultiplier_List[ip]; }
 
-inline const double& GradSmallStrainT::LinearPMultiplier_last(int ip) const
-{
-	return fPMultiplier_last_List[ip]; 
-}
+inline const dMatrixT& GradSmallStrainT::LinearGradPMultiplier_last(void) const   { return fGradPMultiplier_last_List[CurrIP()]; }
+inline const dMatrixT& GradSmallStrainT::LinearGradPMultiplier_last(int ip) const { return fGradPMultiplier_last_List[ip]; }
 
-inline const double& GradSmallStrainT::LinearGradPMultiplier(void) const
-{
-	return fGradPMultiplier_List[CurrIP()]; 
-}
+inline const dMatrixT& GradSmallStrainT::LinearLapPMultiplier(void) const   { return fLapPMultiplier_List[CurrIP()]; }
+inline const dMatrixT& GradSmallStrainT::LinearLapPMultiplier(int ip) const { return fLapPMultiplier_List[ip]; }
 
-inline const double& GradSmallStrainT::LinearGradPMultiplier(int ip) const
-{
-	return fGradPMultiplier_List[ip]; 
-}
-
-inline const double& GradSmallStrainT::LinearGradPMultiplier_last(void) const
-{
-	return fGradPMultiplier_last_List[CurrIP()]; 
-}
-
-inline const double& GradSmallStrainT::LinearGradPMultiplier_last(int ip) const
-{
-	return fGradPMultiplier_last_List[ip]; 
-}
-
-inline const double& GradSmallStrainT::LinearLapPMultiplier(void) const
-{
-	return fLapPMultiplier_List[CurrIP()]; 
-}
-
-inline const double& GradSmallStrainT::LinearLapPMultiplier(int ip) const
-{
-	return fLapPMultiplier_List[ip]; 
-}
-
-inline const double& GradSmallStrainT::LinearLapPMultiplier_last(void) const
-{
-	return fLapPMultiplier_last_List[CurrIP()]; 
-}
-
-inline const double& GradSmallStrainT::LinearLapPMultiplier_last(int ip) const
-{
-	return fLapPMultiplier_last_List[ip]; 
-}
+inline const dMatrixT& GradSmallStrainT::LinearLapPMultiplier_last(void) const   { return fLapPMultiplier_last_List[CurrIP()]; }
+inline const dMatrixT& GradSmallStrainT::LinearLapPMultiplier_last(int ip) const { return fLapPMultiplier_last_List[ip]; }
 
 /* accessors */
 inline const ShapeTools& GradSmallStrainT::ShapeFunction(void) const

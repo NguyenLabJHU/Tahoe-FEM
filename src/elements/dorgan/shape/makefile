@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.12 2004-09-02 18:25:04 rdorgan Exp $
+# $Id: makefile,v 1.1 2004-09-02 18:25:08 rdorgan Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,18 +21,11 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-	J2SSKStV1D.o\
-	J2_C0Hardening1DT.o\
-	J2SSC0Hardening1DT.o\
-	GradJ2SSKStV1D.o\
-	GradJ2SSKStV2D.o\
-	GradJ2SSKStV.o\
-	GradSmallStrainT.o\
-	GradSSSolidMatT.o\
-	GradSSMatSupportT.o\
-	GradSSSolidMatList1DT.o\
-	GradSSSolidMatList2DT.o\
-	GradSSSolidMatList3DT.o
+        C0_LineT.o\
+        C1_LineT.o\
+        C0_QuadT.o\
+        C0_HexahedronT.o\
+        ShapeTools.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -52,18 +45,11 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	J2SSKStV1D.cpp\
-	J2_C0Hardening1DT.cpp\
-	J2SSC0Hardening1DT.cpp\
-	GradJ2SSKStV1D.cpp\
-	GradJ2SSKStV2D.cpp\
-	GradJ2SSKStV.cpp\
-	GradSmallStrainT.cpp\
-	GradSSSolidMatT.cpp\
-	GradSSMatSupportT.cpp\
-	GradSSSolidMatList1DT.cpp\
-	GradSSSolidMatList2DT.cpp\
-	GradSSSolidMatList3DT.cpp
+        C0_LineT.cpp\
+        C1_LineT.cpp\
+        C0_QuadT.cpp\
+        C0_HexahedronT.cpp\
+        ShapeTools.cpp
 
 ##################### (3) headers
 #
@@ -75,18 +61,11 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	J2SSKStV1D.h\
-	J2_C0Hardening1DT.h\
-	J2SSC0Hardening1DT.h\
-	GradJ2SSKStV1D.h\
-	GradJ2SSKStV2D.h\
-	GradJ2SSKStV.h\
-	GradSmallStrainT.h\
-	GradSSSolidMatT.h\
-	GradSSMatSupportT.h\
-	GradSSSolidMatList1DT.h\
-	GradSSSolidMatList2DT.h\
-	GradSSSolidMatList3DT.h
+        C0_LineT.h\
+        C1_LineT.h\
+        C0_QuadT.h\
+        C0_HexahedronT.h\
+        ShapeTools.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
@@ -97,17 +76,16 @@ HDR_LINK = $(HDR:.h=.h_link)
 #    (2) uncomment the subdir_driver macro
 #    (3) comment the SUB_DIR and subdir_driver in section (4.2)
 #
-SUB_DIR = \
-        shape
-subdir_driver: subdir_loop
+#SUB_DIR = \
+#subdir_driver: subdir_loop
 
 #
 # (4.2) If there are no sub-directories in this directory:
 #    (1) comment the SUB_DIR and subdir_driver in section (4.1)
 #    (2) uncomment the subdir_driver macro below
 #
-#SUB_DIR =
-#subdir_driver: 
+SUB_DIR =
+subdir_driver: 
 
 #####################
 

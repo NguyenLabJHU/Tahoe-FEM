@@ -1,4 +1,4 @@
-/* $Id: GradSSMatSupportT.cpp,v 1.10 2004-07-20 23:16:49 rdorgan Exp $ */ 
+/* $Id: GradSSMatSupportT.cpp,v 1.11 2004-09-02 18:25:04 rdorgan Exp $ */ 
 #include "GradSSMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -27,42 +27,42 @@ GradSSMatSupportT::~GradSSMatSupportT(void)
 }
 
 /* set source for the isotropic hadening */
-void GradSSMatSupportT::SetLinearPMultiplier(const dArrayT* pmultiplier_List)
+void GradSSMatSupportT::SetLinearPMultiplier(const ArrayT<dMatrixT>* pmultiplier_List)
 {
 	/* keep pointer */
 	fPMultiplier_List = pmultiplier_List;
 }
 
 /** set source for the isotropic hardening from the end of the previous time step */
-void GradSSMatSupportT::SetLinearPMultiplier_last(const dArrayT* pmultiplier_last_List)
+void GradSSMatSupportT::SetLinearPMultiplier_last(const ArrayT<dMatrixT>* pmultiplier_last_List)
 {
 	/* keep pointer */
 	fPMultiplier_last_List = pmultiplier_last_List;
 }
 
 /* set source for the gradient of isotropic hadening */
-void GradSSMatSupportT::SetLinearGradPMultiplier(const dArrayT* gradpmultiplier_List)
+void GradSSMatSupportT::SetLinearGradPMultiplier(const ArrayT<dMatrixT>* gradpmultiplier_List)
 {
 	/* keep pointer */
 	fGradPMultiplier_List = gradpmultiplier_List;
 }
 
 /** set source for the gradient of isotropic hardening from the end of the previous time step */
-void GradSSMatSupportT::SetLinearGradPMultiplier_last(const dArrayT* gradpmultiplier_last_List)
+void GradSSMatSupportT::SetLinearGradPMultiplier_last(const ArrayT<dMatrixT>* gradpmultiplier_last_List)
 {
 	/* keep pointer */
 	fGradPMultiplier_last_List = gradpmultiplier_last_List;
 }
 
 /* set source for the laplacian of isotropic hadening */
-void GradSSMatSupportT::SetLinearLapPMultiplier(const dArrayT* lappmultiplier_List)
+void GradSSMatSupportT::SetLinearLapPMultiplier(const ArrayT<dMatrixT>* lappmultiplier_List)
 {
 	/* keep pointer */
 	fLapPMultiplier_List = lappmultiplier_List;
 }
 
 /** set source for the laplacian of isotropic hardening from the end of the previous time step */
-void GradSSMatSupportT::SetLinearLapPMultiplier_last(const dArrayT* lappmultiplier_last_List)
+void GradSSMatSupportT::SetLinearLapPMultiplier_last(const ArrayT<dMatrixT>* lappmultiplier_last_List)
 {
 	/* keep pointer */
 	fLapPMultiplier_last_List = lappmultiplier_last_List;
