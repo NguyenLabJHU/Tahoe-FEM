@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.13 2002-07-16 22:23:50 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.14 2002-07-17 00:02:10 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _CONTINUUM_ELEMENT_T_H_
@@ -53,6 +53,12 @@ public:
 	 * \param field nodal values of the field 
 	 * \param gradient field gradient: [ndof] x [nsd] */
 	void IP_ComputeGradient(const LocalArrayT& field, dMatrixT& gradient) const;
+
+	/** field gradients.
+	 * compute the gradient of the field at the specified integration point 
+	 * \param field nodal values of the field 
+	 * \param gradient field gradient: [ndof] x [nsd] */
+	void IP_ComputeGradient(const LocalArrayT& field, dMatrixT& gradient, int ip) const;
 	
 	/** extrapolate all integration point values to the nodes
 	 * \param IPvalues values from the integration points: [nip] 

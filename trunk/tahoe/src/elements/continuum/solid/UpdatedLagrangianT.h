@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.h,v 1.6 2002-07-05 22:28:03 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.h,v 1.7 2002-07-17 00:02:10 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 
 #ifndef _UPDATED_LAGRANGIAN_T_H_
@@ -38,32 +38,10 @@ protected:
 	/* form the element stiffness matrix */
 	virtual void FormStiffness(double constK);
 
-//DEV - Rayleigh damping should be added to the constitutive level
-#if 0
-	/* compute the effective acceleration and velocities based
-	 * on the algorithmic flags formXx and the given constants
-	 * constXx.
-	 *
-	 *		acc_eff  = constMa acc  + constCv a vel
-	 *      disp_eff = constKd disp
-	 *
-	 * where a and b are the Rayleigh damping coefficients.
-	 *
-	 *        ***The effective displacement does not include
-	 *           velocity since the internal force is a nonlinear
-	 *           function of the displacements */
-	virtual void ComputeEffectiveDVA(int formBody,
-		int formMa, double constMa, int formCv, double constCv,
-		int formKd, double constKd);
-#endif
-
 	/* calculate the internal force contribution ("-k*d") */
 	virtual void FormKd(double constK);
 
 protected:
-
-	/* shape functions (wrt current config) */
-	ShapeFunctionT* fCurrShapes;
 
 	dMatrixT fCauchyStress;	// symmetric Cauchy stress tensor
 	dMatrixT fStressStiff;	// compact stress stiffness contribution

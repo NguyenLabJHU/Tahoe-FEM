@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.10 2002-07-05 22:28:02 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.11 2002-07-17 00:02:10 paklein Exp $ */
 
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
@@ -19,21 +19,35 @@ class FiniteStrainT: public ElasticT
 	/** initialization. called immediately after constructor */
 	virtual void Initialize(void);
 
-	/** total deformation gradient */
+	/** \name deformation gradients */
+	/*@{*/
+	/** total deformation gradient at the current integration point */
 	const dMatrixT& DeformationGradient(void) const;
+
+	/** total deformation gradient at the specified integration point */
 	const dMatrixT& DeformationGradient(int ip) const;
 
-	/** total strain from the end of the previous time step */
+	/** total strain from the end of the previous time step at the current integration point */
 	const dMatrixT& DeformationGradient_last(void) const;
-	const dMatrixT& DeformationGradient_last(int ip) const;
 
-	/** compute field gradients with respect to current coordinates */
+	/** total strain from the end of the previous time step at the specified integration point */
+	const dMatrixT& DeformationGradient_last(int ip) const;
+	/*@}*/
+
+	/** \name field gradients */
+	/*@{*/
+	/** compute field gradients with respect to current coordinates at the current integration point */
 	void ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u) const;
+
+	/** compute field gradients with respect to current coordinates at the specified integration point */
 	void ComputeGradient(const LocalArrayT& u, dMatrixT& grad_u, int ip) const;
 
-	/** compute field gradients with respect to reference coordinates */
+	/** compute field gradients with respect to reference coordinates at the current integration point */
 	void ComputeGradient_reference(const LocalArrayT& u, dMatrixT& grad_u) const;
+
+	/** compute field gradients with respect to reference coordinates at the specified integration point */
 	void ComputeGradient_reference(const LocalArrayT& u, dMatrixT& grad_u, int ip) const;
+	/*@}*/
 
   protected:
 
@@ -75,6 +89,10 @@ class FiniteStrainT: public ElasticT
   	dArrayT          fF_all;       /**< grouped memory for all deformation gradients */
   	ArrayT<dMatrixT> fF_last_List; /**< last deformation gradient */
   	dArrayT          fF_last_all;  /**< grouped memory for all last deformation gradients */
+
+	/** Pointer to shape functions wrt current coords. This pointer must be
+	 * set by sub-classes to enable calculation wrt current coordinates */
+	ShapeFunctionT* fCurrShapes;
   
   private:
   
@@ -167,6 +185,20 @@ inline bool FiniteStrainT::Needs_F_last(int material_number) const
 	/* material information */
 	const ArrayT<bool>& needs = fMaterialNeeds[material_number];
 	return needs[fNeedsOffset + kF_last];
+}
+
+/* compute field gradients with respect to reference coordinates at the current integration point */
+inline void FiniteStrainT::ComputeGradient_reference(const LocalArrayT& u, dMatrixT& grad_u) const
+{
+	/* inherited function is wrt reference coordinates */
+	IP_ComputeGradient(u, grad_u);
+}
+
+/* compute field gradients with respect to reference coordinates at the specified integration point */
+inline void FiniteStrainT::ComputeGradient_reference(const LocalArrayT& u, dMatrixT& grad_u, int ip) const
+{
+	/* inherited function is wrt reference coordinates */
+	IP_ComputeGradient(u, grad_u, ip);
 }
 
 } // namespace Tahoe 
