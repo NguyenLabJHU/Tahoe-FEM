@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.2 2004-10-31 17:06:31 paklein Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.3 2004-11-05 22:53:49 paklein Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -41,17 +41,51 @@ void FSSolidMixtureT::SetFSSolidMixtureSupport(const FSSolidMixtureSupportT* sup
 }
 #endif
 
-/* get nodal concentrations over the current element */
+/* get all nodal concentrations over the current element */
 void FSSolidMixtureT::UpdateConcentrations(void)
 {
 	/* current element */
 	const ElementCardT& element = CurrentElement();
 
 	/* collect nodal values */
-	fConc.SetLocal(element.NodesU());
+	const iArrayT& nodes_u = element.NodesU();
+	for (int i = 0; i < fFields.Length(); i++)
+	{
+		const FieldT& field = *(fFields[i]);
+		const dArray2DT& c = field[0];
+		double* pc = fConc(i);
+		for (int j = 0; j < nodes_u.Length(); j++)
+			*pc++ = c[nodes_u[j]];
+	}
 }
 
-/** \return mass density */
+/* update given nodal concentrations over the current element */
+void FSSolidMixtureT::UpdateConcentrations(int i)
+{
+	/* current element */
+	const ElementCardT& element = CurrentElement();
+
+	/* collect nodal values */
+	const iArrayT& nodes_u = element.NodesU();
+	const FieldT& field = *(fFields[i]);
+	const dArray2DT& c = field[0];
+	double* pc = fConc(i);
+	for (int j = 0; j < nodes_u.Length(); j++)
+		*pc++ = c[nodes_u[j]];
+}
+
+/** return the index of the species associated with the given field name */
+int FSSolidMixtureT::SpeciesIndex(const StringT& field_name) const
+{
+	for (int i = 0; i < fFields.Length(); i++)
+		if (fFields[i]->FieldName() == field_name)
+			return i;
+	
+	/* not found */
+	return -1;
+}
+
+/* mass density */
 double FSSolidMixtureT::Density(void)
 {
 	/* update concentrations */
@@ -78,7 +112,7 @@ double FSSolidMixtureT::StrainEnergyDensity(void)
 	for (int i = 0; i < fConc.Length(); i++)
 	{
 		/* compute mechanical strain */
-		int rel_conc = fConc[i]/conc_0[i];
+		double rel_conc = fConc[i]/conc_0[i];
 		fF_growth_inv.Identity(1.0/rel_conc);
 		fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
 
@@ -99,7 +133,7 @@ const dMatrixT& FSSolidMixtureT::c_ijkl(void)
 	/* update concentrations */
 	if (CurrIP() == 0) UpdateConcentrations();
 	fFSMatSupport->Interpolate(fConc, fIPConc);
-	const dArrayT& conc = fConc;
+	const dArrayT& conc = fIPConc;
 	//const dArrayT& conc = fFSSolidMixtureSupport->Concentration();
 
 	/* sum over species */
@@ -107,7 +141,7 @@ const dMatrixT& FSSolidMixtureT::c_ijkl(void)
 	for (int i = 0; i < conc.Length(); i++)
 	{
 		/* compute mechanical strain */
-		int rel_conc = conc[i]/conc_0[i];
+		double rel_conc = conc[i]/conc_0[i];
 		fF_growth_inv.Identity(1.0/rel_conc);
 		fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
 
@@ -127,11 +161,11 @@ const dMatrixT& FSSolidMixtureT::c_ijkl(int i)
 
 	/* concentrations */
 	fFSMatSupport->Interpolate(fConc, fIPConc);
-	const dArrayT& conc = fConc;	
+	const dArrayT& conc = fIPConc;	
 //	const dArrayT& conc = fFSSolidMixtureSupport->Concentration();
 
 	/* compute mechanical strain */
-	int rel_conc = conc[i]/conc_0[i];
+	double rel_conc = conc[i]/conc_0[i];
 	fF_growth_inv.Identity(1.0/rel_conc);
 	fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
 
@@ -151,7 +185,7 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(void)
 	/* update concentrations */
 	if (CurrIP() == 0) UpdateConcentrations();
 	fFSMatSupport->Interpolate(fConc, fIPConc);
-	const dArrayT& conc = fConc;
+	const dArrayT& conc = fIPConc;
 	//const dArrayT& conc = fFSSolidMixtureSupport->Concentration();
 
 	/* sum over species */
@@ -159,7 +193,7 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(void)
 	for (int i = 0; i < conc.Length(); i++)
 	{
 		/* compute mechanical strain */
-		int rel_conc = conc[i]/conc_0[i];
+		double rel_conc = conc[i]/conc_0[i];
 		fF_growth_inv.Identity(1.0/rel_conc);
 		fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
 
@@ -179,11 +213,11 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(int i)
 
 	/* concentrations */
 	fFSMatSupport->Interpolate(fConc, fIPConc);
-	const dArrayT& conc = fConc;	
+	const dArrayT& conc = fIPConc;	
 //	const dArrayT& conc = fFSSolidMixtureSupport->Concentration();
 
 	/* compute mechanical strain */
-	int rel_conc = conc[i]/conc_0[i];
+	double rel_conc = conc[i]/conc_0[i];
 	fF_growth_inv.Identity(1.0/rel_conc);
 	fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
 
@@ -218,7 +252,9 @@ void FSSolidMixtureT::PointInitialize(void)
 	
 	/* initialize concentrations */
 	fFSMatSupport->Interpolate(fConc, fIPConc);
-	element.DoubleData() = fIPConc;	
+	int nc = fIPConc.Length();
+//	element.DoubleData() = fIPConc;	
+	element.DoubleData().CopyPart(cip*nc, fIPConc, 0, nc);
 //	element.DoubleData() = fFSSolidMixtureSupport->Concentration();
 
 	/* store results as last converged */
@@ -230,9 +266,6 @@ void FSSolidMixtureT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
 	FSSolidMatT::DefineParameters(list);
-
-	/* name of the concentration field */
-	list.AddParameter(ParameterT::Word, "concentration_field");
 }
 
 /* information about subordinate parameter lists */
@@ -256,13 +289,10 @@ ParameterInterfaceT* FSSolidMixtureT::NewSub(const StringT& name) const
 	if (name == "mixture_species")
 	{
 		ParameterContainerT* species = new ParameterContainerT(name);
-	
-		species->AddParameter(ParameterT::Word, "name");
+		species->SetSubSource(this);
 
-		/* velocity of species is calculated wrt this reference frame */
-		ParameterT frame(ParameterT::Word, "reference_frame");
-		frame.SetDefault("global");
-		species->AddParameter(frame);
+		/* name of the associated concentration field */
+		species->AddParameter(ParameterT::Word, "concentration_field");
 		
 		/* choice of stress functions */
 		species->AddSub("species_stress_function_choice", ParameterListT::Once, true);
@@ -296,36 +326,36 @@ void FSSolidMixtureT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	FSSolidMatT::TakeParameterList(list);
 
-	/* concentrations */
-	const StringT& conc_field_name = list.GetParameter("concentration_field");
-	const FieldT* conc_field = fFSMatSupport->Field(conc_field_name);
-	if (conc_field)
-		ExceptionT::GeneralFail(caller, "could not resolve field \"%s\"",
-			conc_field_name.Pointer());
-	fConc.Dimension(NumElementNodes(), conc_field->NumDOF());
-	conc_field->RegisterLocal(fConc);
-	fIPConc.Dimension(conc_field->NumDOF());
-
 	/* construct support for stress functions */
 	int nsd = NumSD();
 	fStressSupport = new FSMatSupportT(nsd, 1); /* single integration point */
 	fF_species.Dimension(1);
 	fF_species[0].Dimension(nsd);
 	fF_growth_inv.Dimension(nsd);
+	fStressSupport->SetContinuumElement(MaterialSupport().ContinuumElement());
 	fStressSupport->SetDeformationGradient(&fF_species);
 
 	/* species */
-	//const dArrayT& conc =fFSSolidMixtureSupport->Concentration(0);
 	int num_species = list.NumLists("mixture_species");
-	if (num_species != fIPConc.Length())
-		ExceptionT::GeneralFail(caller, "expecting %d species not %d",
-			fIPConc.Length(), num_species);
 	fStressFunctions.Dimension(num_species);
 	fStressFunctions = NULL;
+	fFields.Dimension(num_species);
+	fFields = NULL;
 	for (int i = 0; i < num_species; i++)
 	{
 		/* species */
 		const ParameterListT& species = list.GetList("mixture_species", i);
+
+		/* concentration field */
+		const StringT& conc_field_name = list.GetParameter("concentration_field");
+		const FieldT* conc_field = fFSMatSupport->Field(conc_field_name);
+		if (!conc_field)
+			ExceptionT::GeneralFail(caller, "could not resolve field \"%s\"", 
+				conc_field_name.Pointer());
+		if (conc_field->NumDOF() != 1)
+			ExceptionT::GeneralFail(caller, "field \"%s\" has dimension %d not 1", 
+				conc_field_name.Pointer(), conc_field->NumDOF());
+		fFields[i] = conc_field;
 	
 		/* resolve stress function */
 		const ParameterListT& solid_params = species.GetListChoice(*this, "species_stress_function_choice");
@@ -343,6 +373,10 @@ void FSSolidMixtureT::TakeParameterList(const ParameterListT& list)
 		/* store */
 		fStressFunctions[i] = solid;
 	}
+
+	/* work space */
+	fConc.Dimension(NumElementNodes(), num_species);
+	fIPConc.Dimension(num_species);
 }
 
 /* return the specified stress function or NULL */

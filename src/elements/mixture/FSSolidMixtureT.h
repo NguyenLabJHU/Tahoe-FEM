@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.h,v 1.1 2004-10-21 18:48:44 paklein Exp $ */
+/* $Id: FSSolidMixtureT.h,v 1.2 2004-11-05 22:53:49 paklein Exp $ */
 #ifndef _FS_SOLID_MIX_T_H_
 #define _FS_SOLID_MIX_T_H_
 
@@ -27,27 +27,36 @@ public:
 	/** finite strain mixture materials support */
 //	const FSSolidMixtureSupportT& FSSolidMixtureSupport(void) const;
 
-	/** get nodal concentrations over the current element */
+	/** get all nodal concentrations over the current element */
 	void UpdateConcentrations(void);
 
-	/** \return mass density */
+	/** update the specific nodal concentrations over the current element */
+	void UpdateConcentrations(int i);
+
+	/** return the index of the species associated with the given field name, or
+	 * -1 if the field is not found */
+	int SpeciesIndex(const StringT& field_name) const;
+
+	/** mass density. Method does retrieve current values of the nodal concentrations. */
 	virtual double Density(void);
 
 	/** \name spatial representation */
 	/*@{*/
-	/** strain energy density */
+	/** strain energy density. Method does retrieve current values of the nodal concentrations. */
 	virtual double StrainEnergyDensity(void);
 	
-	/** total material tangent modulus */
+	/** total material tangent modulus. Method does retrieve current values of the nodal concentrations. */
 	virtual const dMatrixT& c_ijkl(void);
 
-	/** partial material tangent modulus */
+	/** partial material tangent modulus. Method does not retrieve current values of the nodal 
+	 * concentrations. These can be updated with FSSolidMixtureT::UpdateConcentrations. */
 	const dMatrixT& c_ijkl(int i);
 
-	/** total Cauchy stress */
+	/** total Cauchy stress. Method does retrieve current values of the nodal concentrations. */
 	virtual const dSymMatrixT& s_ij(void);
 
-	/** partial Cauchy stress */
+	/** partial Cauchy stress. Method does not retrieve current values of the nodal 
+	 * concentrations. These can be updated with FSSolidMixtureT::UpdateConcentrations. */
 	const dSymMatrixT& s_ij(int i);
 
 	/** return the pressure associated with the last call to 
@@ -102,6 +111,9 @@ protected:
 
 	/** array of stored energy functions */
 	ArrayT<FSSolidMatT*> fStressFunctions;
+
+	/** concentration field for each stress function */
+	ArrayT<const FieldT*> fFields;
 	
 	/** support for stress functions */
 	FSMatSupportT* fStressSupport;
