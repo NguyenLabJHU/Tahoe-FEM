@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.32 2003-11-19 20:36:51 rdorgan Exp $ */
+/* $Id: ElementT.cpp,v 1.33 2003-12-10 06:44:03 paklein Exp $ */
 
 #include "ElementT.h"
 
@@ -169,6 +169,9 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			break;
 		case ElementT::kTotLagSplitIntegration:
 		    type = ElementT::kTotLagSplitIntegration;
+		    break;
+		case ElementT::kTotLagFlat:
+		    type = ElementT::kTotLagFlat;
 		    break;
 		default:
 			ExceptionT::BadInputValue("operator>>ElementT::TypeT",

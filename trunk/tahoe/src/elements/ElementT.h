@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.32 2003-11-19 20:36:51 rdorgan Exp $ */
+/* $Id: ElementT.h,v 1.33 2003-12-10 06:44:03 paklein Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -65,7 +65,9 @@ kPenaltyContactElement3D = 34,
    kHyperElasticInitCSE = 111, /**< large strain solid that triggers CSE */
 	kPenaltyContactDrag = 114, /**< contact with constant drag traction */
 kMeshfreePenaltyContact = 115, /**< contact with meshfree strikers */
-kTotLagSplitIntegration = 117 };
+kTotLagSplitIntegration = 117,
+            kTotLagFlat = 217  /**< simplified total Lagragian solid */
+ };
 
 /** stream extraction operator */ 
 	friend istream& operator>>(istream& in, ElementT::TypeT& type);
