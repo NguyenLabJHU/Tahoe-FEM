@@ -1,3 +1,5 @@
+% $Id: plotGroup.m,v 1.2 2001-08-14 21:41:54 strohban Exp $
+
 function plotGroup (xy, elementsets,setnr, nDat, step,type,edgecolor)
 % plotGroup (xy, elementsets,setnr, nDat, step,type, edgecolor)
 % plots values for timestep step 
