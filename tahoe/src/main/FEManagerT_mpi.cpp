@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.5 2001-06-29 16:26:42 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.6 2001-07-07 19:03:20 paklein Exp $ */
 /* created: paklein (01/12/2000)                                          */
 
 #include "FEManagerT_mpi.h"
@@ -622,7 +622,8 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 		graphU.AddGroup(*(connects_2[k]));
 		
 	/* make graph */
-	clock_t t0 = clock();		
+	clock_t t0 = clock();
+	if (verbose) cout << " FEManagerT_mpi::Decompose: constructing graph" << endl;
 	graphU.MakeGraph();
 	clock_t t1 = clock();
 	if (verbose)
@@ -635,6 +636,8 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 	GraphT graphX;
 	if (dual_graph == 1)
 	{
+		if (verbose) cout << " FEManagerT_mpi::Decompose: constructing dual graph" << endl;
+		
 		/* collect element groups */
 		for (int s = 0 ; s < fElementGroups.Length(); s++)
 			fElementGroups[s]->ConnectsX(connectsX_1);
