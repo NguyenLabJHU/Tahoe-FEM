@@ -1,4 +1,4 @@
-/* $Id: GraphT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: GraphT.cpp,v 1.2 2001-07-06 22:24:34 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "GraphT.h"
@@ -8,7 +8,8 @@
 #include "iArrayT.h"
 #include "iArray2DT.h"
 #include "RaggedArray2DT.h"
-#include "AutoFill2DT.h"
+//#include "AutoFill2DT.h"
+#include "RowAutoFill2DT.h"
 #include "AutoArrayT.h"
 #include "RootedLevelT.h"
 #include "PartitionT.h"
@@ -71,7 +72,8 @@ void GraphT::MakeGraph(void)
 
 	/* temp work space */
 	int range = fMaxNodeNum - fMinNodeNum + 1;
-	AutoFill2DT<int> edgedata(range, 25, 5);
+	//AutoFill2DT<int> edgedata(range, 25, 5);
+	RowAutoFill2DT<int> edgedata(range, 25, 5);
 
 	/* create adjacency lists */	
 	const iArray2DT* currgroup;
@@ -158,7 +160,8 @@ void GraphT::MakeGraph(const iArrayT& active_rows, bool add_self)
 		active[*pactiverow++ - fShift] = 1;		
 
 	/* temp work space */
-	AutoFill2DT<int> edgedata(range, 25, 5);
+	//AutoFill2DT<int> edgedata(range, 25, 5);
+	RowAutoFill2DT<int> edgedata(range, 25, 5);
 	
 	/* initialize all lists with self */
 	if (add_self)
@@ -283,7 +286,8 @@ void GraphT::MakeGraph(const iArrayT& active_rows, bool add_self, bool upper_onl
 			active[*pactiverow++ - fShift] = 1;		
 
 		/* temp work space */
-		AutoFill2DT<int> edgedata(range, 25, 5);
+		//AutoFill2DT<int> edgedata(range, 25, 5);
+		RowAutoFill2DT<int> edgedata(range, 25, 5);
 	
 		/* initialize all lists with self */
 		if (add_self)
