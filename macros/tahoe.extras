@@ -1,4 +1,4 @@
-# $Id: tahoe.extras,v 1.13 2004-07-12 18:23:49 paklein Exp $
+# $Id: tahoe.extras,v 1.14 2004-07-22 08:58:46 paklein Exp $
 #
 # additional make commands for the tahoe module
 #
@@ -65,5 +65,5 @@ touch_fossum:
 
 touch_expat:
 	@ $(PRINTF) "removing object files depending on expat\n"
-	- $(RM) $(BLD_SRC_DIR)/main/FEExecutionManagerT.o
+	- $(RM) $(BLD_SRC_DIR)/main/FEManagerT.ParseInput.o
 	@ $(PRINTF) "NOTE: dependent modules must also be up to date\n"
