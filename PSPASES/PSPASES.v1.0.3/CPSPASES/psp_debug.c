@@ -1,4 +1,4 @@
-/* $Id: psp_debug.c,v 1.10 2005-01-15 16:59:13 paklein Exp $ */
+/* $Id: psp_debug.c,v 1.11 2005-01-15 17:34:51 paklein Exp $ */
 #include <stdio.h>
 #include "pspases_f2c.h"
 #include "mpi.h"
@@ -89,13 +89,20 @@ int MPI_Send_d(void* buf, int count, MPI_Datatype datatype, int dest, int tag, M
 
 int MPI_Recv_d(void* buf, int count, MPI_Datatype datatype, int source, int tag, MPI_Comm comm, MPI_Status *status)
 {
+	int ret;
+	
 	/* report values */
 	printf("MPI_Recv: count = %d, datatype = %s, source = %d, tag = %d\n", 
 		count, t2s(datatype), source, tag);
 	fflush(stdout);
 	
 	/* call */
-	return MPI_Recv(buf, count, datatype, source, tag, comm, status);
+	ret = MPI_Recv(buf, count, datatype, source, tag, comm, status);
+
+	printf("MPI_Recv: status = %x\n", status);
+	fflush(stdout);
+
+	return ret;
 }
 
 int MPI_Irecv_d(void* buf, int count, MPI_Datatype datatype, int source, int tag, MPI_Comm comm, MPI_Request *request)
@@ -103,7 +110,7 @@ int MPI_Irecv_d(void* buf, int count, MPI_Datatype datatype, int source, int tag
 	int ret;
 
 	/* report values */
-	printf("MPI_Irecv: count = %d, datatype = %s, dest = %d, tag = %d\n", 
+	printf("MPI_Irecv: count = %d, datatype = %s, source = %d, tag = %d\n", 
 		count, t2s(datatype), source, tag);
 	fflush(stdout);
 	
@@ -189,6 +196,11 @@ int MPI_Waitany_d(int count, MPI_Request *request, int *index, MPI_Status *statu
 
 	/* call */	
 	ret = MPI_Waitany(count, request, index, status);
+
+	if (ret == MPI_SUCCESS)
+		printf("MPI_Waitall: return = MPI_SUCCESS\n");
+	else
+		printf("MPI_Waitall: return = %d\n", ret);
 
 	printf("MPI_Waitany: status[%d]: status = %x, source = %d, tag = %d\n", *index,
 		status + *index, status[*index].MPI_SOURCE, status[*index].MPI_TAG);
