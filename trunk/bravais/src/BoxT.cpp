@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.37 2003-08-02 00:21:33 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.38 2003-08-04 21:06:00 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -216,6 +216,25 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
   
   atom_names = "Box";
 
+  // Update lengths
+  length = ComputeMinMax();
+
+  //Calculate volume here
+  switch(nlsd) {
+  case 2:
+    volume = (length(0,1)-length(0,0))*(length(1,1)-length(1,0));
+    break;
+  case 3:
+    volume = (length(0,1)-length(0,0))*         
+             (length(1,1)-length(1,0))*
+             (length(2,1)-length(2,0));
+    break;
+  }
+
+  // Sort Lattice 
+  if(WhichSort  != 0) SortLattice(pcl);
+
+  // Create types and connectivities
   if(ntype > 2) 
     cout << "WARNING: ** nTypes == 2  maximum for ensight output ** \n";
 
@@ -253,24 +272,6 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
   atom_parts.Dimension(nATOMS);
   atom_parts = 1;
 
-  // Update lengths
-  length = ComputeMinMax();
-
-  //Calculate volume here
-  switch(nlsd) {
-  case 2:
-    volume = (length(0,1)-length(0,0))*(length(1,1)-length(1,0));
-    break;
-  case 3:
-    volume = (length(0,1)-length(0,0))*         
-             (length(1,1)-length(1,0))*
-             (length(2,1)-length(2,0));
-    break;
-  }
-
-  // Sort Lattice 
-  if(WhichSort  != 0) SortLattice(pcl);
-
 }
 
 void BoxT::SortLattice(CrystalLatticeT* pcl)
@@ -281,13 +282,15 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
   new_coord.Dimension(atom_coord.MajorDim(),nlsd);   
   new_coord = 0.0;
 
-  iArrayT new_type;
-  new_type.Dimension(nATOMS);  
-  new_type = 0;
-
   dArrayT x(atom_coord.MajorDim()); x = 0.0;
   dArrayT y(atom_coord.MajorDim()); y = 0.0;
   dArrayT z(atom_coord.MajorDim()); z = 0.0;
+
+  iArrayT new_type;
+  new_type.Dimension(atom_coord.MajorDim());  
+  new_type = 0;
+
+  iArrayT typ(atom_coord.MajorDim());typ = 0;
 
   iArrayT Map(atom_coord.MajorDim());
   Map = 0;
@@ -340,11 +343,13 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
   x = 0;
   y = 0;
   z = 0;
+  typ = 0;
   int p = 0;
   for(int n = 0; n < is-1; n++)
     {
       dArrayT aux(Ind[n+1]-Ind[n]);
       dArrayT aux2(Ind[n+1]-Ind[n]);
+      iArrayT aux3(Ind[n+1]-Ind[n]);
       aux = 0.0;
       aux2= 0.0;
 
@@ -353,6 +358,7 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
 	{
 	  aux[isa] = atom_coord(m)[WhichSort[1]];
 	  if(nlsd == 3) aux2[isa]= atom_coord(m)[WhichSort[2]];
+	  aux3[isa] = atom_types[m];
 	  isa++;
 	}
 
@@ -364,7 +370,7 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
 	{
 	  y[p] = aux[m];
 	  if(nlsd == 3) z[p] = aux2[Map2[m]];
-	  new_type[p] = atom_types[Map2[m]];
+	  typ[p] = aux3[Map2[m]];
 	  p++;
 	}
     }
@@ -374,12 +380,13 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
       new_coord(m)[WhichSort[0]] = atom_coord(m)[WhichSort[0]];
       new_coord(m)[WhichSort[1]] = y[m];
       if (nlsd == 3) new_coord(m)[WhichSort[2]] = z[m];
+      new_type[m] = typ[m];
     } 
-
+ 
   // Update sorted atoms
   atom_coord = new_coord;
   atom_types = new_type;
-
+  
   // Sort 3nd criterium
   if(nlsd == 3)
   {
@@ -407,16 +414,20 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
     x = 0;
     y = 0;
     z = 0;
+    typ = 0;
     int p = 0;
     for(int n = 0; n < is-1; n++)
       {
 	dArrayT aux(Ind[n+1]-Ind[n]);
+	iArrayT aux2(Ind[n+1]-Ind[n]);
 	aux = 0.0;
+	aux2 = 0;
 
 	int isa = 0;
 	for(int m = Ind[n]; m < Ind[n+1]; m++)
 	  {
 	    aux[isa] = atom_coord(m)[WhichSort[2]];
+	    aux2[isa] = atom_types[m];
 	    isa++;
 	  }
 	
@@ -427,7 +438,7 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
 	for(int m = 0; m < isa; m++)
 	  {
 	    z[p] = aux[m];
-	    new_type[p] = atom_types[m];
+	    typ[p] = aux2[m];
 	    p++;
 	  }
       }
@@ -437,13 +448,14 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
 	new_coord(m)[WhichSort[0]] = atom_coord(m)[WhichSort[0]];
 	new_coord(m)[WhichSort[1]] = atom_coord(m)[WhichSort[1]];
 	new_coord(m)[WhichSort[2]] = z[m];
+	new_type[m] = typ[m];
       } 
   }
-
+  
   // Update sorted atoms
   atom_coord = new_coord;
   atom_types = new_type;
-
+  
 }
 
 void BoxT::CalculateBounds()
