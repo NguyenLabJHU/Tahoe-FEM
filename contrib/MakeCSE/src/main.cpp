@@ -1,11 +1,9 @@
-// main.cpp
-
+// $Id: main.cpp,v 1.4 2002-10-08 20:51:51 paklein Exp $
 // created: 6 Oct 1999 by S. A. Wimmer
-
 // program reads input file, runs MakeCSE, writes output file
 
-#include "MakeCSEFEManager.h"
-#include "MakeCSEIOManager.h"
+#include "MakeCSE_FEManager.h"
+#include "MakeCSE_IOManager.h"
 #include "ifstreamT.h"
 
 using namespace Tahoe;
@@ -41,11 +39,11 @@ int main (void)
 	}
      
       ofstream log (outfile);
-      MakeCSEIOManager iodata (log);
+      MakeCSE_IOManager iodata (log);
       iodata.ReadParameters (in, interactive, program_name, program_version);
 
       /* set up node and element data */
-      MakeCSEFEManager maker (log, iodata);
+      MakeCSE_FEManager maker (log, iodata);
 
       /* make cohesive surfaces */
       maker.CreateCSE ();
@@ -87,9 +85,10 @@ bool IsInteractive (ifstreamT& in)
   bool file = false;
   while (file == false)
     {
-      cout << "\nEnter input file name: \n" 
-	   << "(\"quit\" to exit, \"nothing\" for interactive): ";
-      cin.getline (infile.Pointer(), 80, '\n');
+		cout << "\nEnter input file name: \n" 
+             << "(\"quit\" to exit, \"nothing\" for interactive): ";
+		infile.GetLineFromStream(cin);
+//		cin.getline (infile.Pointer(), 80, '\n');
   
       if (strncmp (infile, "nothing", 7) == 0)
 	return true;

@@ -1,13 +1,5 @@
-/*
- * File: MakeCSEPrimitive.h
- *
- */
-
-/*
- * created      : SAW (04/22/99)
- * last modified: SAW (07/11/99)
- */
-
+/* $Id: MakeCSE.h,v 1.4 2002-10-08 20:51:50 paklein Exp $ */
+/* created      : SAW (04/22/99) */
 #ifndef _MAKECSEPRIMITIVE_H_
 #define _MAKECSEPRIMITIVE_H_
 
@@ -20,6 +12,8 @@ class MakeCSE_FEManager;
 
 using namespace Tahoe;
 
+/** This class uses the regular mesh to put CSEs into the specified
+ * element block, tacks the created nodes on the end of the coordinate list. */
 class MakeCSE
 {
  public:
@@ -32,18 +26,18 @@ class MakeCSE
   MakeCSE (ostream& log, GlobalEdgeFinderT& Edger);
   ~MakeCSE (void);
 
-  void Initialize (MakeCSEIOManager& theInput, MakeCSEFEManager& FEM, int comments);
+  void Initialize (MakeCSE_IOManager& theInput, MakeCSE_FEManager& FEM, int comments);
   void Create (void);
 
  private:
 
   // gather and initialze data
-  void SetFE (MakeCSEFEManager& FEM);
-  void SetInput (MakeCSEIOManager& theInput);
-  void InitializeContact (MakeCSEIOManager& theInput);
-  void CollectFacets (MakeCSEIOManager& theInput, const iArrayT& facetdata);
-  void CollectSingleNodes (MakeCSEIOManager& theInput);
-  void CollectZones (MakeCSEIOManager& theInput, const iArrayT& zonedata);
+  void SetFE (MakeCSE_FEManager& FEM);
+  void SetInput (MakeCSE_IOManager& theInput);
+  void InitializeContact (MakeCSE_IOManager& theInput);
+  void CollectFacets (MakeCSE_IOManager& theInput, const iArrayT& facetdata);
+  void CollectSingleNodes (MakeCSE_IOManager& theInput);
+  void CollectZones (MakeCSE_IOManager& theInput, const iArrayT& zonedata);
   void CollectBoundaries (const iArrayT& boundarydata);
 
   void InitializeSet (int group, int CSEgroup);

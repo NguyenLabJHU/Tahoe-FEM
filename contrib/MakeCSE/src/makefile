@@ -4,8 +4,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	main.o \
-	MakeCSEIOManager.o \
-	MakeCSEFEManager.o \
+	MakeCSE_IOManager.o \
+	MakeCSE_FEManager.o \
 	MakeCSE_ElementBaseT.o \
 	Quad2Tri.o \
 	MakeCSE_CSEBaseT.o \
@@ -24,9 +24,9 @@ SRC = \
 	GlobalEdgeFinderT.cpp \
 	MakeCSE_ElementBaseT.cpp \
 	MakeCSE_CSEBaseT.cpp \
-	MakeCSEFEManager.cpp \
+	MakeCSE_FEManager.cpp \
 	MakeCSE.cpp \
-	MakeCSEIOManager.cpp \
+	MakeCSE_IOManager.cpp \
 	NodeManagerPrimitive.cpp \
 	Quad2Tri.cpp \
 	main.cpp
@@ -36,9 +36,9 @@ HDR = \
 	GlobalEdgeFinderT.h \
 	MakeCSE_ElementBaseT.h \
 	MakeCSE_CSEBaseT.h \
-	MakeCSEFEManager.h \
+	MakeCSE_FEManager.h \
 	MakeCSE.h \
-	MakeCSEIOManager.h \
+	MakeCSE_IOManager.h \
 	NodeManagerPrimitive.h \
 	Quad2Tri.h \
 	ClockT.h
@@ -46,11 +46,10 @@ HDR = \
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
-SUB_DIR = \
-	geometry
-subdir_driver: subdir_loop
+SUB_DIR =
+#subdir_driver: subdir_loop
 # SUB_DIR is empty
-#subdir_driver: 
+subdir_driver: 
 
 # instructions for subdirectories
 include $(MACRO_DIR)/subdir.targets

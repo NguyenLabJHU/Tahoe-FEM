@@ -1,10 +1,9 @@
-// file: Quad2Tri.cpp
-
+// $Id: Quad2Tri.cpp,v 1.3 2002-10-08 20:51:50 paklein Exp $
 // created: SAW 12/21/99
 
 #include "Quad2Tri.h"
 #include "dArrayT.h"
-#include "FEManager.h"
+#include "MakeCSE_FEManager.h"
 
 const char* fMethodName [] = { "X-Method",
 			      "Slash Method",
@@ -14,15 +13,16 @@ const char* fMethodName [] = { "X-Method",
 using namespace Tahoe;
 
 Quad2Tri::Quad2Tri (ostream& fMainOut, NodeManagerPrimitive& NMP, int method, int ID) :
-  ElementBaseT (fMainOut, ID),
-  theNodes (&NMP),
-  fMethod (method)
+	MakeCSE_ElementBaseT (fMainOut, ID),
+	theNodes (&NMP),
+	fMethod (method)
 {
+
 }
 
 // *********** PROTECTED *************
 
-void Quad2Tri::EchoConnectivity (MakeCSEIOManager& theInput)
+void Quad2Tri::EchoConnectivity (MakeCSE_IOManager& theInput)
 {
   // read quadrilateral data
   GeometryT::CodeT geocode;
@@ -30,7 +30,7 @@ void Quad2Tri::EchoConnectivity (MakeCSEIOManager& theInput)
 
   // translate fConn into fNodeNums, by splitting quadrilaterals
   out << "\n  Translating Element Group ID " 
-      << ElementBaseT::GroupNumber()
+      << MakeCSE_ElementBaseT::GroupNumber()
       << " from Quad to Tri by " << fMethodName[fMethod] << "\n";
   Translate ();
 
@@ -39,7 +39,7 @@ void Quad2Tri::EchoConnectivity (MakeCSEIOManager& theInput)
   InitializeConnectivity ();
 }
 
-void Quad2Tri::EchoSideSets (MakeCSEIOManager& theInput)
+void Quad2Tri::EchoSideSets (MakeCSE_IOManager& theInput)
 {
   ArrayT<iArray2DT> sidesets;
   ReadSideSetData (theInput, sidesets);
@@ -157,7 +157,7 @@ void Quad2Tri::Allocate (int numQuadNodes)
 
   // allocate space
   fNodeNums.Allocate (fConn.MajorDim() *numCreated, numTriNodes);
-  fNodeNums = FEManager::kNotSet;
+  fNodeNums = MakeCSE_FEManager::kNotSet;
 }
 
 /* find centroid of element */

@@ -9,18 +9,18 @@
 #include "iArrayT.h"
 #include "iAutoArrayT.h"
 
-class MakeCSEFEManager;
+class MakeCSE_FEManager;
 class GlobalEdgeFinderT;
-class MakeCSEIOManager;
+class MakeCSE_IOManager;
 
 using namespace Tahoe;
 
 class NodeManagerPrimitive
 {
  public:
-  NodeManagerPrimitive (ostream& out, int comments, MakeCSEFEManager& FEM);
+  NodeManagerPrimitive (ostream& out, int comments, MakeCSE_FEManager& FEM);
 
-  void Initialize (MakeCSEIOManager& input);
+  void Initialize (MakeCSE_IOManager& input);
 
   /* returns new node number */
   int AddCoord (const dArrayT& p);
@@ -42,7 +42,7 @@ class NodeManagerPrimitive
   iArrayT& NodeSet (int set) const;
   int NodeSetID (int set) const;
 
-  void RegisterOutput (MakeCSEIOManager& theIO);
+  void RegisterOutput (MakeCSE_IOManager& theIO);
   
   enum TransferMethods { kSurface1 = 0,
 			 kSurface2,
@@ -50,8 +50,8 @@ class NodeManagerPrimitive
 			 kSplit };
 
  private:
-  void EchoCoordinates (MakeCSEIOManager& theInput);
-  void EchoNodeSets (MakeCSEIOManager& theInput);
+  void EchoCoordinates (MakeCSE_IOManager& theInput);
+  void EchoNodeSets (MakeCSE_IOManager& theInput);
 
   void SurfaceNodeSet (iArrayT& set, bool surface1, const ArrayT<int>& surface1facets, GlobalEdgeFinderT &E);
   void MapNodeSet (iArrayT& set, const ArrayT<int>& surface1facets, GlobalEdgeFinderT &E);
@@ -62,7 +62,7 @@ class NodeManagerPrimitive
  private:
   ostream& out;
   int fPrintUpdate;
-  MakeCSEFEManager* theBoss;
+  MakeCSE_FEManager* theBoss;
 
   dArray2DT fCoordinates;
   int fNumInitCoordinates;

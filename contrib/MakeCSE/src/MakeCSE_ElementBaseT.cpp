@@ -3,7 +3,7 @@
 // created: SAW 10/06/99
 
 #include "MakeCSE_ElementBaseT.h"
-#include "MakeCSEFEManager.h"
+#include "MakeCSE_FEManager.h"
 #include "OutputSetT.h"
 #include "GeometryBaseT.h"
 #include "TriT.h"
@@ -28,7 +28,7 @@ MakeCSE_ElementBaseT::~MakeCSE_ElementBaseT (void)
 }
 
 // use this initialize for preexisting data
-void MakeCSE_ElementBaseT::Initialize (MakeCSEIOManager& theInput)
+void MakeCSE_ElementBaseT::Initialize (MakeCSE_IOManager& theInput)
 {
   EchoConnectivity (theInput);
   EchoSideSets (theInput);
@@ -53,10 +53,10 @@ void MakeCSE_ElementBaseT::AddElements (int numelems)
   if (fNodeNums.Length() == 0)
     {
       fNodeNums.Allocate (numelems, fNumElemNodes);
-      fNodeNums = FEManager::kNotSet;
+      fNodeNums = MakeCSE_FEManager::kNotSet;
     }
   else
-    fNodeNums.Resize (num + numelems, FEManager::kNotSet);
+    fNodeNums.Resize (num + numelems, MakeCSE_FEManager::kNotSet);
 }
 
 void MakeCSE_ElementBaseT::SetNodes (int e1local, const iArrayT& nodes)
@@ -158,7 +158,7 @@ void MakeCSE_ElementBaseT::FaceNodes (int e1local, int f1, iArrayT& nodes) const
     if (*pfN > -1) // account for ragged array (penta)
       nodes [i] = fNodeNums (e1local, *pfN++);
     else
-      nodes [i] = FEManager::kNotSet;
+      nodes [i] = MakeCSE_FEManager::kNotSet;
 }
 
 void MakeCSE_ElementBaseT::AbbrFaceNodes (int e1local, int f1, iArrayT& nodes) const
@@ -175,7 +175,7 @@ void MakeCSE_ElementBaseT::AbbrFaceNodes (int e1local, int f1, iArrayT& nodes) c
     if (vertexfacenodes [i] > -1) // account for ragged array (penta)
       nodes [i] = fNodeNums (e1local, vertexfacenodes[i]);
     else
-      nodes [i] = FEManager::kNotSet;
+      nodes [i] = MakeCSE_FEManager::kNotSet;
 }
 
 bool MakeCSE_ElementBaseT::CheckSideSet (const iArray2DT& sides) const
@@ -211,14 +211,14 @@ void MakeCSE_ElementBaseT::AddSideSet (int setID, const iArray2DT& sides)
     {
       int length = fSideSetData[dex].MajorDim();
       int num = sides.MajorDim();
-      fSideSetData[dex].Resize (length + num, FEManager::kNotSet);
+      fSideSetData[dex].Resize (length + num, MakeCSE_FEManager::kNotSet);
       fSideSetData[dex].BlockRowCopyAt (sides, length);
     }
   else
     {
       int length = fSideSetID.Length();
       fSideSetData.Resize (length + 1);
-      fSideSetID.Resize (length + 1, FEManager::kNotSet);
+      fSideSetID.Resize (length + 1, MakeCSE_FEManager::kNotSet);
       fSideSetData[length] = sides;
       fSideSetID[length] = setID;
       out << "\n  Element Group ID . . . . . . . . . . . . . . . = " 
@@ -270,7 +270,7 @@ void MakeCSE_ElementBaseT::NodesUsed (iArrayT& nodes_used) const
 		if (*p++ == 1) nodes_used[dex++] = j + min;
 }
 
-void MakeCSE_ElementBaseT::RegisterOutput (MakeCSEIOManager& theIO)
+void MakeCSE_ElementBaseT::RegisterOutput (MakeCSE_IOManager& theIO)
 {
   ArrayT<StringT> n_labels;
   ArrayT<StringT> e_labels;
@@ -286,7 +286,7 @@ void MakeCSE_ElementBaseT::RegisterOutput (MakeCSEIOManager& theIO)
     //theIO.AddSideSet (fSideSetData[s], fSideSetID[s], fOutputID);
 }
 
-void MakeCSE_ElementBaseT::WriteOutput (MakeCSEIOManager& theIO, IOBaseT::OutputModeT mode) const
+void MakeCSE_ElementBaseT::WriteOutput (MakeCSE_IOManager& theIO, IOBaseT::OutputModeT mode) const
 {
   // send variable data
   /*iArrayT codes;
@@ -332,13 +332,13 @@ bool MakeCSE_ElementBaseT::IsFaceValid (int face) const
 
 // *********** PROTECTED *************
 
-void MakeCSE_ElementBaseT::EchoConnectivity (MakeCSEIOManager& theInput)
+void MakeCSE_ElementBaseT::EchoConnectivity (MakeCSE_IOManager& theInput)
 {
   ReadConnectivity (theInput, fGeometryCode, fNodeNums);
   InitializeConnectivity ();
 }
 
-void MakeCSE_ElementBaseT::ReadConnectivity (MakeCSEIOManager& theInput, GeometryT::CodeT& geocode, iArray2DT& conn) const
+void MakeCSE_ElementBaseT::ReadConnectivity (MakeCSE_IOManager& theInput, GeometryT::CodeT& geocode, iArray2DT& conn) const
 {
   iArrayT map;
   StringT id;
@@ -358,17 +358,17 @@ void MakeCSE_ElementBaseT::InitializeConnectivity (void)
   PrintControlData ();
 }
 
-void MakeCSE_ElementBaseT::EchoSideSets (MakeCSEIOManager& theInput)
+void MakeCSE_ElementBaseT::EchoSideSets (MakeCSE_IOManager& theInput)
 {
   ReadSideSetData (theInput, fSideSetData);
   CheckAllSideSets ();
 }
 
-void MakeCSE_ElementBaseT::ReadSideSetData (MakeCSEIOManager& theInput, ArrayT<iArray2DT>& Data)
+void MakeCSE_ElementBaseT::ReadSideSetData (MakeCSE_IOManager& theInput, ArrayT<iArray2DT>& Data)
 {
   /* read in side sets that are to be transferred */
   iArrayT sides;
-  theInput.InputData (sides, MakeCSEIOManager::kCopySide);
+  theInput.InputData (sides, MakeCSE_IOManager::kCopySide);
   iAutoArrayT ids;
 
   /* list side sets in this element group */

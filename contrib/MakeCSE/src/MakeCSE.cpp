@@ -1,18 +1,9 @@
-/*
- * File: MakeCSE.cpp
- *
- * This class uses the regular mesh to put CSEs into the specified
- * element block, tacks the created nodes on the end of the coordinate list.
- *
- * created      : SAW (04/09/99)
- */
-
+/* $Id: MakeCSE.cpp,v 1.3 2002-10-08 20:51:50 paklein Exp $ */
 // for debugging, this prints extra information
 //#define _PRINT_DEBUG_
-
 #include "MakeCSE.h"
-#include "MakeCSEIOManager.h"
-#include "FEManager.h"
+#include "MakeCSE_IOManager.h"
+#include "MakeCSE_FEManager.h"
 
 const int kPrint = 40000;
 
@@ -36,7 +27,7 @@ MakeCSE::~MakeCSE (void)
 {
 }
 
-void MakeCSE::Initialize (MakeCSEIOManager& theInput, FEManager& FEM, int comments)
+void MakeCSE::Initialize (MakeCSE_IOManager& theInput, MakeCSE_FEManager& FEM, int comments)
 {
   if (comments == 1) fPrintUpdate = true;
   fNumStartElements = theEdger->TotalElements();
@@ -82,7 +73,7 @@ void MakeCSE::Create (void)
 /************ Private ***************************/
 /************ Private ***************************/
 
-void MakeCSE::SetFE (FEManager& FEM)
+void MakeCSE::SetFE (MakeCSE_FEManager& FEM)
 {
   // set up link to regular elements
   int num = FEM.NumRegularGroups ();
@@ -101,14 +92,14 @@ void MakeCSE::SetFE (FEManager& FEM)
   fNumStartNodes = theNodes->NumNodes();
 }
 
-void MakeCSE::SetInput (MakeCSEIOManager& theInput)
+void MakeCSE::SetInput (MakeCSE_IOManager& theInput)
 {
   // grab input data, collect individual facets later
   out << "\n M a k e   C S E   D a t a :\n" << '\n';
   iArrayT facetdata, zonedata, boundarydata;
-  theInput.InputData (facetdata, MakeCSEIOManager::kFacet);
-  theInput.InputData (zonedata, MakeCSEIOManager::kZone);
-  theInput.InputData (boundarydata, MakeCSEIOManager::kBoundary);
+  theInput.InputData (facetdata, MakeCSE_IOManager::kFacet);
+  theInput.InputData (zonedata, MakeCSE_IOManager::kZone);
+  theInput.InputData (boundarydata, MakeCSE_IOManager::kBoundary);
 
   int nummeth = 0;
   if (boundarydata.Length() > 0) nummeth++;
@@ -133,9 +124,9 @@ void MakeCSE::SetInput (MakeCSEIOManager& theInput)
   out.flush ();
 }
 
-void MakeCSE::InitializeContact (MakeCSEIOManager& theInput)
+void MakeCSE::InitializeContact (MakeCSE_IOManager& theInput)
 {
-  theInput.InputData (fContact, MakeCSEIOManager::kContactData);
+  theInput.InputData (fContact, MakeCSE_IOManager::kContactData);
 
   // collect existing side set ID's
   fSSetID = 1;
@@ -159,7 +150,7 @@ void MakeCSE::InitializeContact (MakeCSEIOManager& theInput)
   fContact.WriteWrapped (out, 5);
 }
 
-void MakeCSE::CollectFacets (MakeCSEIOManager& theInput, const iArrayT& facetdata)
+void MakeCSE::CollectFacets (MakeCSE_IOManager& theInput, const iArrayT& facetdata)
 {
   cout << "\n Collecting Facet Data . . ." << endl;
   out << " Side Sets Specified by user. .  . . . . . . . . = "
@@ -220,10 +211,10 @@ void MakeCSE::CollectFacets (MakeCSEIOManager& theInput, const iArrayT& facetdat
     }
 }
 
-void MakeCSE::CollectSingleNodes (MakeCSEIOManager& theInput)
+void MakeCSE::CollectSingleNodes (MakeCSE_IOManager& theInput)
 {
   iArrayT setids;
-  theInput.InputData (setids, MakeCSEIOManager::kSingleNodes);
+  theInput.InputData (setids, MakeCSE_IOManager::kSingleNodes);
   iAutoArrayT nodes;
   iArrayT nodeset;
   for (int i=0; i < setids.Length(); i++)
@@ -248,7 +239,7 @@ void MakeCSE::CollectSingleNodes (MakeCSEIOManager& theInput)
   RemoveSingleNodes (nodes);
 }
 
-void MakeCSE::CollectZones (MakeCSEIOManager& theInput, const iArrayT& zonedata)
+void MakeCSE::CollectZones (MakeCSE_IOManager& theInput, const iArrayT& zonedata)
 {
   cout << "\n Collecting Zone Data . . ." << endl;
   out << " Element Group Zones . . . . . . . . . . . . . . = "
@@ -296,7 +287,7 @@ void MakeCSE::CollectZones (MakeCSEIOManager& theInput, const iArrayT& zonedata)
 
   // based on user input, allow some boundary nodes to be split
   int zoneedgetype = kSingleZE;
-  theInput.InputData (zoneedgetype, MakeCSEIOManager::kZoneEdge);
+  theInput.InputData (zoneedgetype, MakeCSE_IOManager::kZoneEdge);
   out << " Zone Edge Node Splitting Method . . . . . . . . = "
       << zoneedgetype << "\n";
 
@@ -308,7 +299,7 @@ void MakeCSE::CollectZones (MakeCSEIOManager& theInput, const iArrayT& zonedata)
       {
 	boundarynodes.Free();
 	iArrayT nodesets;
-	theInput.InputData (nodesets, MakeCSEIOManager::kZoneEdgeNSets);
+	theInput.InputData (nodesets, MakeCSE_IOManager::kZoneEdgeNSets);
 	for (int i=0; i < nodesets.Length(); i++)
 	  {
 	    iArrayT temp;
@@ -324,7 +315,7 @@ void MakeCSE::CollectZones (MakeCSEIOManager& theInput, const iArrayT& zonedata)
     case kMixDoubZE:
       {
 	iArrayT nodesets;
-	theInput.InputData (nodesets, MakeCSEIOManager::kZoneEdgeNSets);
+	theInput.InputData (nodesets, MakeCSE_IOManager::kZoneEdgeNSets);
 	for (int i=0; i < nodesets.Length(); i++)
 	  {
 	    iArrayT temp;
@@ -593,9 +584,9 @@ void MakeCSE::CheckNeighbor (int eglobal, int face, int node, iAutoArrayT& nelem
   nelems.Free();
   nfaces.Free();
 
-  int elocal = FEManager::kNotSet, g = FEManager::kNotSet;
-  int e3global = FEManager::kNotSet;
-  int f3 = FEManager::kNotSet;
+  int elocal = MakeCSE_FEManager::kNotSet, g = MakeCSE_FEManager::kNotSet;
+  int e3global = MakeCSE_FEManager::kNotSet;
+  int f3 = MakeCSE_FEManager::kNotSet;
 
   // collect faces using this node from the given element
   theEdger->LocalElement (eglobal, elocal, g);

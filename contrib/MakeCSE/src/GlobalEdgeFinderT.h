@@ -14,7 +14,7 @@
 
 #include "MakeCSE_ElementBaseT.h"
 
-class MakeCSEFEManager;
+class MakeCSE_FEManager;
 
 using namespace Tahoe;
 
@@ -28,7 +28,7 @@ class GlobalEdgeFinderT
 	GlobalEdgeFinderT (ostream& out);
 	~GlobalEdgeFinderT (void);
 
-	void Initialize (MakeCSEFEManager& theBoss, int num_nodes);
+	void Initialize (MakeCSE_FEManager& theBoss, int num_nodes);
 
 	// element group data
 	int ElementGroup (int groupid) const;

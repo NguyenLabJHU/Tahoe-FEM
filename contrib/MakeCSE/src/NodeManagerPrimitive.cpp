@@ -3,20 +3,20 @@
 // created: SAW 10/07/99
 
 #include "NodeManagerPrimitive.h"
-#include "MakeCSEIOManager.h"
-#include "FEManager.h"
+#include "MakeCSE_IOManager.h"
+#include "MakeCSE_FEManager.h"
 #include "dArrayT.h"
 
 using namespace Tahoe;
 
-NodeManagerPrimitive::NodeManagerPrimitive (ostream& fMainOut, int comments, FEManager& FEM) :
+NodeManagerPrimitive::NodeManagerPrimitive (ostream& fMainOut, int comments, MakeCSE_FEManager& FEM) :
   out (fMainOut),
   fPrintUpdate (comments),
   theBoss (&FEM)
 {
 }
 
-void NodeManagerPrimitive::Initialize (MakeCSEIOManager& theInput)
+void NodeManagerPrimitive::Initialize (MakeCSE_IOManager& theInput)
 {
   EchoCoordinates (theInput);
   EchoNodeSets (theInput);
@@ -34,7 +34,7 @@ int NodeManagerPrimitive::AddCoord (const dArrayT& p)
   fCoordinates.Resize (newnode + 1, fill);
   fCoordinates.SetRow(newnode, p);
   
-  fNew2Old.Resize (newnode + 1, FEManager::kNotSet);
+  fNew2Old.Resize (newnode + 1, MakeCSE_FEManager::kNotSet);
   fNew2Old[newnode] = newnode;
 
   return newnode;
@@ -47,7 +47,7 @@ int NodeManagerPrimitive::AddDuplicateCoord (const int oldnode)
   fCoordinates.Resize (newnode + 1);
   fCoordinates.CopyRowFromRow (newnode, oldnode);
 
-  fNew2Old.Resize (newnode + 1, FEManager::kNotSet);
+  fNew2Old.Resize (newnode + 1, MakeCSE_FEManager::kNotSet);
   fNew2Old[newnode] = oldnode;
 
   if (fSplitNodes.AppendUnique (oldnode))
@@ -73,7 +73,7 @@ void NodeManagerPrimitive::AddNodeSet (int setID, const ArrayT<int>& nodes, int 
     {
       int num = nodes.Length();
       int length = fNodeSetData[dex].Length();
-      fNodeSetData[dex].Resize (length + num, FEManager::kNotSet);
+      fNodeSetData[dex].Resize (length + num, MakeCSE_FEManager::kNotSet);
       fNodeSetData[dex].CopyPart (length, nodes, 0, num);
       RemoveRepeats (fNodeSetData[dex]);
       out << "            Added to Node Set. . . . . . . . . . = " 
@@ -85,7 +85,7 @@ void NodeManagerPrimitive::AddNodeSet (int setID, const ArrayT<int>& nodes, int 
     {
       int length = fNodeSetID.Length();
       fNodeSetData.Resize (length + 1);
-      fNodeSetID.Resize (length + 1, FEManager::kNotSet);
+      fNodeSetID.Resize (length + 1, MakeCSE_FEManager::kNotSet);
       fNodeSetData[length].Allocate (nodes.Length());
       fNodeSetData[length].CopyPart (0, nodes, 0, nodes.Length());
       fNodeSetID[length] = setID;
@@ -159,7 +159,7 @@ void NodeManagerPrimitive::Renumber (int option, iArrayT& map)
 
   // determine if all nodes are to be renumbered
   int start = 1;
-  if (option == FEManager::kRenumberAdded) 
+  if (option == MakeCSE_FEManager::kRenumberAdded) 
     {
       start = fNumInitCoordinates;
       for (int j=0; j < fNumInitCoordinates; j++)
@@ -217,13 +217,13 @@ void NodeManagerPrimitive::Renumber (int option, iArrayT& map)
     }
 }
 
-void NodeManagerPrimitive::RegisterOutput (MakeCSEIOManager& theIO)
+void NodeManagerPrimitive::RegisterOutput (MakeCSE_IOManager& theIO)
 {
   iArrayT nodemap (0);
   //theIO.SetCoordinates (fCoordinates, &nodemap);
 
   iArrayT blocktonodesets;
-  theIO.InputData (blocktonodesets, MakeCSEIOManager::kBlockToNode);
+  theIO.InputData (blocktonodesets, MakeCSE_IOManager::kBlockToNode);
 
   iArrayT nodes;
   int setID = fNodeSetID.Max();
@@ -244,7 +244,7 @@ void NodeManagerPrimitive::RegisterOutput (MakeCSEIOManager& theIO)
 
 /********** private *****************/
 
-void NodeManagerPrimitive::EchoCoordinates (MakeCSEIOManager& theInput)
+void NodeManagerPrimitive::EchoCoordinates (MakeCSE_IOManager& theInput)
 {
   iArrayT map;
   fCoordinates = theInput.Coordinates ();
@@ -257,11 +257,11 @@ void NodeManagerPrimitive::EchoCoordinates (MakeCSEIOManager& theInput)
       << fCoordinates.MinorDim() << endl << endl;
 }
 
-void NodeManagerPrimitive::EchoNodeSets (MakeCSEIOManager& theInput)
+void NodeManagerPrimitive::EchoNodeSets (MakeCSE_IOManager& theInput)
 {
   /* read in nodes set that are to be transferred */
   iArrayT ids;
-  theInput.InputData (ids, MakeCSEIOManager::kMapNodes);
+  theInput.InputData (ids, MakeCSE_IOManager::kMapNodes);
 
   fNodeSetData.Allocate (ids.Length()/2);
   fTransMethods.Allocate (ids.Length()/2);
