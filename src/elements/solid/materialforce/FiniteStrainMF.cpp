@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainMF.cpp,v 1.2 2003-03-20 22:43:00 thao Exp $ */
+/* $Id: FiniteStrainMF.cpp,v 1.3 2003-03-21 06:30:50 thao Exp $ */
 #include "FiniteStrainMF.h"
 
 #include "OutputSetT.h"
@@ -354,7 +354,7 @@ void FiniteStrainMF::MatForceDissip(dArrayT& elem_val, const dArrayT& statev)
 {
   /*obtain dimensions*/
   int nsd = NumSD();
-  int numstress = nsd*(nsd+1)*0.5;
+  int numstress = nsd*(nsd+1)/2;
   int nen = NumElementNodes();
   
   /*initialize workspaces*/
@@ -638,7 +638,7 @@ void FiniteStrainMF::MatForceSurfMech(dArrayT& global_val)
       if (nsd == 2)
       {
         elem_val = 0.0;
-        int thickness = 1.0;
+        double thickness = 1.0;
         const double* ip_w = surf_shape.Weight();
         for (int j = 0; j<nip; j++)
         {

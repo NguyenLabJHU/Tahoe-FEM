@@ -1,4 +1,4 @@
-/* $Id: SmallStrainMF.cpp,v 1.2 2003-03-20 22:43:00 thao Exp $ */
+/* $Id: SmallStrainMF.cpp,v 1.3 2003-03-21 06:30:50 thao Exp $ */
 #include "SmallStrainMF.h"
 
 #include "OutputSetT.h"
@@ -468,7 +468,7 @@ void SmallStrainMF::MatForceSurfMech(dArrayT& global_val)
       if (nsd == 2)
       {
         elem_val = 0.0;
-        int thickness = 1.0;
+        double thickness = 1.0;
         const double* ip_w = surf_shape.Weight();
         for (int j = 0; j<nip; j++)
         {
