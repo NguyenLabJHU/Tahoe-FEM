@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.3 2003-09-03 00:02:53 raregue Exp $
+# $Id: makefile,v 1.4 2003-09-03 00:47:26 raregue Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -24,8 +24,7 @@ HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
 SUB_DIR = FEA \
-	materials \
-	continuum
+	materials 
 
 subdir_driver: subdir_loop
 
