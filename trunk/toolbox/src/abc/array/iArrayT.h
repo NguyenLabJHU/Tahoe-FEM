@@ -1,4 +1,4 @@
-/* $Id: iArrayT.h,v 1.8 2003-11-21 22:41:30 paklein Exp $ */
+/* $Id: iArrayT.h,v 1.9 2004-03-16 05:37:14 paklein Exp $ */
 /* created: paklein (08/10/1996) */
 #ifndef _IARRAY_T_H_
 #define _IARRAY_T_H_
@@ -23,10 +23,12 @@ public:
 	iArrayT(int length, const int* p);
 	/*@}*/
 	
-	/** \name assigment operators */
+	/** \name assigment operators 
+	 * Cannot provide operator with (int*) on the right-hand side since this is
+	 * indistinguishable from an int. */
 	/*@{*/
-	iArrayT& operator=(const iArrayT& RHS);
-	iArrayT& operator=(const int value);
+	iArrayT& operator=(const iArrayT& RHS); /**< assignment operator. Redimensions the array too match the source. */
+	iArrayT& operator=(int value);  /**< set all elements in the array to value */
 	/*@}*/
 
 	/** flip specified values in the array
@@ -77,7 +79,7 @@ inline iArrayT& iArrayT::operator=(const iArrayT& RHS)
 	return *this;
 }
 
-inline iArrayT& iArrayT::operator=(const int value)
+inline iArrayT& iArrayT::operator=(int value)
 {
 	nArrayT<int>::operator=(value);
 	return *this;

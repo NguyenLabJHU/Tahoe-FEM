@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.23 2003-11-21 22:41:30 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.24 2004-03-16 05:37:14 paklein Exp $ */
 /* created: paklein (05/23/1997) */
 #ifndef _NARRAY_T_H_
 #define _NARRAY_T_H_
@@ -389,10 +389,14 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator=(const nArrayT& RHS)
 template <class nTYPE>
 inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator=(const nTYPE* pRHS)
 {
+#if __option (extended_errorcheck)
+	/* check */
+	if (!pRHS) ExceptionT::GeneralFail("nArrayT<nTYPE>::operator=", "pointer is NULL");
+#endif
+
 	/* no copies to self */
-	if (pRHS != Pointer())
-		MemCopy(Pointer(), pRHS, Length());
-	
+	if (pRHS != Pointer()) MemCopy(Pointer(), pRHS, Length());
+
 	return *this;	
 }
 
@@ -407,8 +411,8 @@ inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator=(const nTYPE& value)
 template <class nTYPE>
 inline nArrayT<nTYPE>& nArrayT<nTYPE>::operator+=(const nArrayT& RHS)
 {
-/* dimension checks */
 #if __option (extended_errorcheck)
+	/* dimension checks */
 	if (fLength != RHS.fLength) ExceptionT::SizeMismatch("nArrayT<nTYPE>::operator+=");
 #endif
 	return operator+=(RHS.Pointer());

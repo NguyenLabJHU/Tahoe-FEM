@@ -1,4 +1,4 @@
-/* $Id: PatranT.cpp,v 1.22 2003-11-21 22:41:46 paklein Exp $ */
+/* $Id: PatranT.cpp,v 1.23 2004-03-16 05:37:22 paklein Exp $ */
 /* created sawimme (05/17/2001) */
 #include "PatranT.h"
 #include "ifstreamT.h"
@@ -578,7 +578,7 @@ bool PatranT::WriteElements (ostream& out, const iArray2DT& elems, const ArrayT<
       int PID = 0; // property id
       int CEID = 0; // congruent element id
       dArrayT theta (3); // material orientation angles
-      theta = 0;
+      theta = 0.0;
       out << setw (hwidth) << elems.MinorDim();
       out << setw (hwidth) << config;
       out << setw (hwidth) << PID;
@@ -661,7 +661,7 @@ bool PatranT::WriteGeometryPoints (ostream& out, const dArray2DT& points, int fi
 bool PatranT::WritePairPointCurve (ostream& out, int curveID, int ID1, int ID2, const dArrayT& coord1, const dArrayT& coord2) const
 {
   dArrayT origin (3);
-  origin = 0;
+  origin = 0.0;
   
   dArrayT distance (3);
   for (int k=0; k < 3; k++)

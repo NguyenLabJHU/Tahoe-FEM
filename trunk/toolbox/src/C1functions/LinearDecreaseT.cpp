@@ -1,4 +1,4 @@
-/* $Id: LinearDecreaseT.cpp,v 1.4 2003-11-21 22:41:27 paklein Exp $ */
+/* $Id: LinearDecreaseT.cpp,v 1.5 2004-03-16 05:37:12 paklein Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #include "LinearDecreaseT.h"
@@ -60,6 +60,6 @@ dArrayT& LinearDecreaseT::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	/* dimension checks */
 	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
-	out = 0;
+	out = 0.0;
 	return out;
 }
