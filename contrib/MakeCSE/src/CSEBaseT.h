@@ -7,19 +7,21 @@
 
 #include "ElementBaseT.h"
 
+using namespace Tahoe;
+
 class CSEBaseT : public ElementBaseT
 {
  public:
   CSEBaseT (ostream& fMainOut, int ID);
 
-  virtual void Initialize (GeometryT::GeometryCode code, int numregfacenodes);
+  virtual void Initialize (GeometryT::CodeT code, int numregfacenodes);
 
   virtual void SetNodes (int e1local, const iArrayT& regelemnodes);
 
   virtual void CSElemFaces (iArrayT& faces) const;
 
  private:
-  void CSEType (GeometryT::GeometryCode code, int numfacenodes);
+  void CSEType (GeometryT::CodeT code, int numfacenodes);
   void Set3DNodes (int linearfacenodes);
 
  private:

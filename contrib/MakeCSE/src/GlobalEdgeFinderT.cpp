@@ -10,13 +10,11 @@
 
 #include "GlobalEdgeFinderT.h"
 #include "FEManager.h"
-#include "ElementBaseT.h"
-#include "NodeManagerPrimitive.h"
 
-const int fill = FEManager::kNotSet;
-const bool copy = true;
-const bool bytecopy = false;
+const int fill = GlobalEdgeFinderT::kNoNeighbor;
 const int kPrint = 20000;
+
+using namespace Tahoe;
 
 /* constructor */
 GlobalEdgeFinderT::GlobalEdgeFinderT(ostream& out) :
@@ -89,14 +87,14 @@ void GlobalEdgeFinderT::AddElements (int numelems, int numfaces, int group)
   // resize element map
   int length = fElementMap[group].Length();
   int numold = fNumElements;
-  fElementMap[group].Resize (length + numelems, fill, copy, bytecopy);
+  fElementMap[group].Resize (length + numelems, fill);
 
   // resize neighbor data
   fNumElements += numelems;
   int numfacets = theElements[group]->NumElemFaces();
   int neighborlength = fNeighbors.Length();
-  fNeighbors.Resize (fNumElements, copy, bytecopy);
-  fNeighborFacets.Resize (fNumElements, copy, bytecopy);
+  fNeighbors.Resize (fNumElements);
+  fNeighborFacets.Resize (fNumElements);
 
   // initialize data
   int *p = fElementMap[group].Pointer(length);
@@ -111,7 +109,7 @@ void GlobalEdgeFinderT::AddElements (int numelems, int numfaces, int group)
 
   // resize reverse element map
   int revlength = fRevElementMap.MajorDim();
-  fRevElementMap.Resize (revlength + numelems, fill, copy);
+  fRevElementMap.Resize (revlength + numelems, fill);
   int *rev = fRevElementMap(numold);
   for (int c=0; c < numelems; c++)
     {

@@ -3,13 +3,10 @@
 // created: SAW 5/2/2000
 
 #include "CSEBaseT.h"
-
-#include "TriT.h"
-#include "QuadT.h"
-#include "HexahedronT.h"
-#include "TetrahedronT.h"
-#include "PentahedronT.h"
 #include "FEManager.h"
+#include "MakeCSEIOManager.h"
+
+using namespace Tahoe;
 
 CSEBaseT::CSEBaseT (ostream& fMainOut, int ID) :
   ElementBaseT (fMainOut, ID),
@@ -19,7 +16,7 @@ CSEBaseT::CSEBaseT (ostream& fMainOut, int ID) :
   fSurfaceFacets[1] = FEManager::kNotSet;
 }
 
-void CSEBaseT::Initialize (GeometryT::GeometryCode code, int numregfacenodes)
+void CSEBaseT::Initialize (GeometryT::CodeT code, int numregfacenodes)
 {
   CSEType (code, numregfacenodes);
   SetFace ();
@@ -45,7 +42,7 @@ void CSEBaseT::SetNodes (int e1local, const iArrayT& regelemnodes)
 
 // *********** PRIVATE *************
 
-void CSEBaseT::CSEType (GeometryT::GeometryCode code, int numFaceNodes)
+void CSEBaseT::CSEType (GeometryT::CodeT code, int numFaceNodes)
 {
   switch (code)
     {

@@ -12,14 +12,11 @@
 #ifndef _GLOBAL_EDGE_FINDER_T_H_
 #define _GLOBAL_EDGE_FINDER_T_H_
 
-/* direct members */
-#include "iArray2DT.h"
-#include "iArrayT.h"
-#include "iAutoArrayT.h"
+#include "ElementBaseT.h"
 
 class FEManager;
-class ElementBaseT;
-class NodeManagerPrimitive;
+
+using namespace Tahoe;
 
 class GlobalEdgeFinderT
 {

@@ -5,19 +5,10 @@
 #ifndef _ELEMENTBASET_H_
 #define _ELEMENTBASET_H_
 
-#include "ArrayT.h"
-#include "iArrayT.h"
 #include "iArray2DT.h"
-#include "GeometryT.h"
-#include "AutoArrayT.h"
-#include "IOBaseT.h"
+#include "MakeCSEIOManager.h"
 
-class StringT;
-class iAutoArrayT;
-class dArray2DT;
-class IOManager;
-class FEManager;
-class GeometryBaseT;
+using namespace Tahoe;
 
 class ElementBaseT
 {
@@ -27,10 +18,10 @@ class ElementBaseT
   virtual ~ElementBaseT (void);
 
   // read from input that group's connectivity, create element cards
-  void Initialize (IOManager& input);
+  void Initialize (MakeCSEIOManager& input);
 
   // initialize element group for newly created data
-  virtual void Initialize (GeometryT::GeometryCode geocode, int numnodes);
+  virtual void Initialize (GeometryT::CodeT geocode, int numnodes);
 
   // add elements, reallocates space and initializes new space to kNotSet
   void AddElements (int numelems);
@@ -57,7 +48,7 @@ class ElementBaseT
   int NumElements (void) const;
   int NumElemFaces (void) const;
   virtual void CSElemFaces (iArrayT& faces) const;
-  GeometryT::GeometryCode GeometryCode (void) const;
+  GeometryT::CodeT GeometryCode (void) const;
   int GroupNumber (void) const; // exterior numbering
   int NumSideSets (void) const;
 
@@ -74,8 +65,8 @@ class ElementBaseT
   void Connectivities (AutoArrayT<const iArray2DT*>& conn, iAutoArrayT& geocodes, iAutoArrayT& change);
 
   void NodesUsed (iArrayT& nodes) const;
-  void RegisterOutput (IOManager& theIO);
-  void WriteOutput (IOManager& theIO, IOBaseT::OutputMode mode) const;
+  void RegisterOutput (MakeCSEIOManager& theIO);
+  void WriteOutput (MakeCSEIOManager& theIO, IOBaseT::OutputModeT mode) const;
 
   /* returns true if side set is contained within this element group */
   bool CheckSideSet (const iArray2DT& sides) const;
@@ -85,11 +76,11 @@ class ElementBaseT
   bool IsFaceValid (int face) const;
 
  protected:
-  virtual void EchoConnectivity (IOManager& theInput);
-  void ReadConnectivity (IOManager& theInput, GeometryT::GeometryCode& geocode, iArray2DT& conn) const;
+  virtual void EchoConnectivity (MakeCSEIOManager& theInput);
+  void ReadConnectivity (MakeCSEIOManager& theInput, GeometryT::CodeT& geocode, iArray2DT& conn) const;
   void InitializeConnectivity (void);
-  virtual void EchoSideSets (IOManager& theInput);
-  void ReadSideSetData (IOManager& theInput, ArrayT<iArray2DT>& sides);
+  virtual void EchoSideSets (MakeCSEIOManager& theInput);
+  void ReadSideSetData (MakeCSEIOManager& theInput, ArrayT<iArray2DT>& sides);
   void CheckAllSideSets (void);
 
   /* determines facenode map from GeometryT */
@@ -104,7 +95,7 @@ class ElementBaseT
 
   iArray2DT         fNodeNums;
   int               fNumElemNodes;
-  GeometryT::GeometryCode  fGeometryCode;
+  GeometryT::CodeT  fGeometryCode;
   ArrayT<iArray2DT> fSideSetData;
   iArrayT           fSideSetID;
 
@@ -119,7 +110,7 @@ class ElementBaseT
 inline int ElementBaseT::NumElements (void) const { return fNodeNums.MajorDim(); }
 inline int ElementBaseT::NumElemFaces (void) const { return fFacetNodes.Length(); }
 inline void ElementBaseT::CSElemFaces (iArrayT& faces) const { };
-inline GeometryT::GeometryCode ElementBaseT::GeometryCode (void) const { return fGeometryCode; }
+inline GeometryT::CodeT ElementBaseT::GeometryCode (void) const { return fGeometryCode; }
 inline int ElementBaseT::GroupNumber (void) const { return fGroupID; }
 inline int ElementBaseT::NumSideSets (void) const { return fSideSetData.Length(); }
 inline iArray2DT& ElementBaseT::SideSet (int g) const { return fSideSetData[g]; }
