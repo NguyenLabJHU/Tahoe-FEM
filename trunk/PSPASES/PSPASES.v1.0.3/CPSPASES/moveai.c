@@ -1,4 +1,4 @@
-/* $Id: moveai.c,v 1.2 2004-12-11 10:18:10 paklein Exp $ */
+/* $Id: moveai.c,v 1.3 2004-12-12 23:20:06 paklein Exp $ */
 /* moveai.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -57,11 +57,11 @@ static integer c__11 = 11;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: moveai.c,v 1.2 2004-12-11 10:18:10 paklein Exp $ +/ */
+/* /+ $Id: moveai.c,v 1.3 2004-12-12 23:20:06 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 /*<    >*/
 
-integer lbit_shift(integer a, integer b) {
+static integer lbit_shift(integer a, integer b) {
 	return b >= 0 ? a << b : (integer)((uinteger)a >> -b);
 };
 
