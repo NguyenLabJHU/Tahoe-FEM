@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.5 2002-09-30 23:49:02 cjkimme Exp $ */
+/* $Id: FieldT.cpp,v 1.5.2.1 2002-10-17 04:45:24 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nControllerT.h"
@@ -8,10 +8,9 @@
 #include "LocalArrayT.h"
 #include "FieldSupportT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 FieldT::FieldT(const StringT& name, int ndof, nControllerT& controller):
 	BasicFieldT(name, ndof, controller.Order()),
 	fnController(controller),
@@ -53,7 +52,7 @@ void FieldT::RegisterLocal(LocalArrayT& array) const
 		{
 			if (Order() < 1) {
 				cout << "\n FieldT::RegisterLocal: only up to order " << Order() << ": 1" << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 			array.SetGlobal(fField[1]);
 			break;			
@@ -62,7 +61,7 @@ void FieldT::RegisterLocal(LocalArrayT& array) const
 		{
 			if (Order() < 2) {
 				cout << "\n FieldT::RegisterLocal: only up to order " << Order() << ": 2" << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 			array.SetGlobal(fField[2]);
 			break;			
@@ -74,7 +73,7 @@ void FieldT::RegisterLocal(LocalArrayT& array) const
 		{
 			if (Order() < 1) {
 				cout << "\n FieldT::RegisterLocal: only up to order " << Order() << ": 1" << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 			array.SetGlobal(fField_last[1]);
 			break;			
@@ -83,14 +82,14 @@ void FieldT::RegisterLocal(LocalArrayT& array) const
 		{
 			if (Order() < 2) {
 				cout << "\n FieldT::RegisterLocal: only up to order " << Order() << ": 2" << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 			array.SetGlobal(fField_last[2]);
 			break;			
 		}
 		default:
 			cout << "\n FieldT::RegisterLocal: unrecognized type: " << array.Type() << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -332,7 +331,7 @@ void FieldT::InitExternalEquations(const iArrayT& ex_nodes)
 	if (NumNodes() < ex_nodes.Length()) {
 		cout << "\n FieldT::InitExternalEquations: inconsistent number of\n" 
 		     <<   "     field nodes. Dimension must be called first. "<< endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* allocate */
@@ -350,7 +349,7 @@ void FieldT::SetLocalEqnos(const iArray2DT& nodes, iArray2DT& eqnos) const
 /* consistency checks */
 #if __option (extended_errorcheck)
 	if (nodes.MajorDim() != eqnos.MajorDim() ||
-	    eqnos.MinorDim() < nodes.MinorDim()*NumDOF()) throw eGeneralFail;
+	    eqnos.MinorDim() < nodes.MinorDim()*NumDOF()) throw ExceptionT::kGeneralFail;
 		//must have enough space (and maybe more)
 #endif
 
@@ -375,14 +374,14 @@ void FieldT::SetLocalEqnos(const RaggedArray2DT<int>& nodes,
 {
 /* consistency checks */
 #if __option(extended_errorcheck)
-	if (nodes.MajorDim() != eqnos.MajorDim()) throw eSizeMismatch;
+	if (nodes.MajorDim() != eqnos.MajorDim()) throw ExceptionT::kSizeMismatch;
 #endif
 	
 	int numel = nodes.MajorDim();
 	for (int i = 0; i < numel; i++)
 	{
 #if __option(extended_errorcheck)
-		if (eqnos.MinorDim(i) < nodes.MinorDim(i)*NumDOF()) throw eSizeMismatch;
+		if (eqnos.MinorDim(i) < nodes.MinorDim(i)*NumDOF()) throw ExceptionT::kSizeMismatch;
 		//must have enough space (and maybe more)
 #endif
 		int  nen    = nodes.MinorDim(i);
@@ -579,7 +578,7 @@ void FieldT::Apply_IC(const IC_CardT& card)
 	if (card.Order() > Order()) {
 		cout << "\n FieldT::Apply_IC: order is out of range {0," 
 		     << Order() << "}: " << card.Order() << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}	
 
 	/* decode */

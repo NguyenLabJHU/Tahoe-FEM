@@ -1,4 +1,4 @@
-/* $Id: FDCrystalElast.cpp,v 1.5 2002-07-02 19:56:03 cjkimme Exp $ */
+/* $Id: FDCrystalElast.cpp,v 1.5.4.1 2002-10-17 04:38:10 paklein Exp $ */
 
 #include "FDCrystalElast.h"
 
@@ -76,7 +76,7 @@ FDCrystalElast::FDCrystalElast(ifstreamT& in, const FiniteStrainT& element):Crys
     {
       cout << "\n FDCrystalElast::FDCrystalElast: could not cast element group to \n"
            << "UpLagr_ExternalFieldT" << endl;
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
 }
 

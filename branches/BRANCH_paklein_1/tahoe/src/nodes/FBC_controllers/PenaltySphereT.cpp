@@ -1,4 +1,4 @@
-/* $Id: PenaltySphereT.cpp,v 1.4 2002-09-12 17:50:05 paklein Exp $ */
+/* $Id: PenaltySphereT.cpp,v 1.4.4.1 2002-10-17 04:45:25 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltySphereT.h"
@@ -34,7 +34,7 @@ void PenaltySphereT::EchoData(ifstreamT& in, ostream& out)
 	PenaltyRegionT::EchoData(in, out);
 
 	/* echo parameters */
-	in >> fRadius; if (fRadius < 0.0) throw eBadInputValue;
+	in >> fRadius; if (fRadius < 0.0) throw ExceptionT::kBadInputValue;
 
 	out << " Sphere radius . . . . . . . . . . . . . . . . . = " << fRadius << '\n';
 }

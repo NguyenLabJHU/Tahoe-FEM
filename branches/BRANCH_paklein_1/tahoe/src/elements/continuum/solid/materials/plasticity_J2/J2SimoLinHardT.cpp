@@ -1,4 +1,4 @@
-/* $Id: J2SimoLinHardT.cpp,v 1.9 2002-07-02 19:56:12 cjkimme Exp $ */
+/* $Id: J2SimoLinHardT.cpp,v 1.9.4.1 2002-10-17 04:38:15 paklein Exp $ */
 /* created: paklein (06/19/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -274,7 +274,7 @@ void J2SimoLinHardT::Update(ElementCardT& element)
 	//disable the material - look at J2QL2DLinHard2DT to
 	//verify that this is OK, esp. for successive calls to
 	//Update without advancing the simulation
-	if (!element.IsAllocated()) throw eGeneralFail;
+	if (!element.IsAllocated()) throw ExceptionT::kGeneralFail;
 
 	/* get flags */
 	iArrayT& Flags = element.IntegerData();
@@ -320,7 +320,7 @@ void J2SimoLinHardT::Reset(ElementCardT& element)
 	//disable the material - look at J2QL2DLinHard2DT to
 	//verify that this is OK, esp. for successive calls to
 	//Update without advancing the simulation
-	if (!element.IsAllocated()) throw eGeneralFail;
+	if (!element.IsAllocated()) throw ExceptionT::kGeneralFail;
 
 	/* get flags */
 	iArrayT& Flags = element.IntegerData();
@@ -405,7 +405,7 @@ int J2SimoLinHardT::PlasticLoading(const dMatrixT& F_total,
 		{
 			cout << "\n J2SimoLinHardT::PlasticLoading: should not arrive here\n"
 			     <<   "     with uninitialized state" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 #if 0
 		{

@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.cpp,v 1.5 2002-07-02 19:55:50 cjkimme Exp $ */
+/* $Id: QuadLog3D.cpp,v 1.5.4.1 2002-10-17 04:38:03 paklein Exp $ */
 /* created: paklein (06/27/1997)                                          */
 /* Hyperelastic material governed by quadratic logarithmic potential.     */
 
@@ -69,7 +69,7 @@ const dSymMatrixT& QuadLog3D::s_ij(void)
 const dMatrixT& QuadLog3D::C_IJKL(void)
 {
 	cout << "\n QuadLog3D::C_IJKL: use updated Lagrangian formulation" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 
 	return fModulus; // dummy
 }
@@ -77,7 +77,7 @@ const dMatrixT& QuadLog3D::C_IJKL(void)
 const dSymMatrixT& QuadLog3D::S_IJ(void)
 {
 	cout << "\n QuadLog3D::S_IJk: use updated Lagrangian formulation" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 
 	return fStress; // dummy
 }

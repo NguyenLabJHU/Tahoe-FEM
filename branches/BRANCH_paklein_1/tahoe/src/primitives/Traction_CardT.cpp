@@ -1,4 +1,4 @@
-/* $Id: Traction_CardT.cpp,v 1.4 2002-09-12 17:50:07 paklein Exp $ */
+/* $Id: Traction_CardT.cpp,v 1.4.4.1 2002-10-17 04:47:06 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #include "Traction_CardT.h"
 
@@ -124,7 +124,7 @@ istream& operator>>(istream& in, Traction_CardT::CoordSystemT& code)
 		default:
 			cout << "\n operator>>Traction_CardT::CoordSystemT: unknown code: "
 			<< i_code<< endl;
-			throw eBadInputValue;	
+			throw ExceptionT::kBadInputValue;	
 	}
 
 	return in;

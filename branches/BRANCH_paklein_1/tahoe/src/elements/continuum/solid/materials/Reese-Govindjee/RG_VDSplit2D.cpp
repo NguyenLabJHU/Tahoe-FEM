@@ -1,7 +1,6 @@
-/* $Id: RG_VDSplit2D.cpp,v 1.2 2002-10-14 18:28:06 thao Exp $ */
+/* $Id: RG_VDSplit2D.cpp,v 1.2.2.1 2002-10-17 04:36:15 paklein Exp $ */
 /* created: TDN (01/22/2001) */
-
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "fstreamT.h"
 #include "RG_VDSplit2D.h"
 
@@ -332,7 +331,6 @@ void RG_VDSplit2D::ComputeEigs_e(const dArrayT& eigenstretch,
 	/*initializes principle viscous stretch*/
 	do 
 	{
-
 	        fJe=sqrt(le0*le1);
 	        fEigs_ebar = eigenstretch_e;
 		fEigs_ebar *= pow(fJe, -2.0*fthird);
@@ -404,4 +402,3 @@ void RG_VDSplit2D::ComputeiKAB(dSymMatrixT& eigenmodulus, double& bulkmodulus)
 	/*inverts KAB*/
 	fiKAB.Inverse(KAB);
 }
-

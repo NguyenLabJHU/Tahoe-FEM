@@ -1,4 +1,4 @@
-/* $Id: SimoIso3D.cpp,v 1.6 2002-07-02 19:55:50 cjkimme Exp $ */
+/* $Id: SimoIso3D.cpp,v 1.6.4.1 2002-10-17 04:38:03 paklein Exp $ */
 /* created: paklein (03/02/1997)                                          */
 
 #include "SimoIso3D.h"
@@ -52,7 +52,7 @@ const dMatrixT& SimoIso3D::c_ijkl(void)
 
 	/* compute b_bar */
 	double J = fb.Det();
-	if (J <= 0.0) throw eBadJacobianDet;
+	if (J <= 0.0) throw ExceptionT::kBadJacobianDet;
 	J = sqrt(J);
 	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
 
@@ -72,7 +72,7 @@ const dSymMatrixT& SimoIso3D::s_ij(void)
 
 	/* compute b_bar */
 	double J = fb.Det();
-	if (J <= 0.0) throw eBadJacobianDet;
+	if (J <= 0.0) throw ExceptionT::kBadJacobianDet;
 	J = sqrt(J);
 	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
 
@@ -85,7 +85,7 @@ const dSymMatrixT& SimoIso3D::s_ij(void)
 const dMatrixT& SimoIso3D::C_IJKL(void)
 {
 	cout << "\n SimoIso3D::C_IJKL: use updated Lagrangian formulation" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 
 	return fModulus; // dummy
 }
@@ -93,7 +93,7 @@ const dMatrixT& SimoIso3D::C_IJKL(void)
 const dSymMatrixT& SimoIso3D::S_IJ(void)
 {
 	cout << "\n SimoIso3D::S_IJ: use updated Lagrangian formulation" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 
 	return fStress; // dummy
 }
@@ -109,7 +109,7 @@ double SimoIso3D::StrainEnergyDensity(void)
 
 	/* compute b_bar */
 	double J = fb.Det();
-	if (J <= 0.0) throw eBadJacobianDet;
+	if (J <= 0.0) throw ExceptionT::kBadJacobianDet;
 	J = sqrt(J);
 	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
 

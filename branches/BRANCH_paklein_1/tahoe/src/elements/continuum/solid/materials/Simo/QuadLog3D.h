@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.h,v 1.6 2002-10-05 20:04:13 paklein Exp $ */
+/* $Id: QuadLog3D.h,v 1.6.2.1 2002-10-17 04:38:03 paklein Exp $ */
 /* created: paklein (06/27/1997)                                          */
 /* Hyperelastic material governed by quadratic logarithmic potential.     */
 
@@ -42,7 +42,7 @@ public:
 	virtual const dMatrixT& C_IJKL(void); // material tangent moduli
 	virtual const dSymMatrixT& S_IJ(void); // PK2 stress
 //TEMP - no reason to use these in total Lagrangian formulation.
-//       calls to these write error message and throw exception
+//       calls to these write error message and throw ExceptionT::xception
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);

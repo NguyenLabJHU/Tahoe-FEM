@@ -1,10 +1,10 @@
-/* $Id: FDSimoViscoBaseT.cpp,v 1.1 2002-10-05 00:49:20 thao Exp $ */
+/* $Id: FDSimoViscoBaseT.cpp,v 1.1.2.1 2002-10-17 04:38:04 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "FDSimoViscoBaseT.h"
 
 #include "fstreamT.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "ContinuumElementT.h"
 #include "ElementSupportT.h"
 
@@ -193,5 +193,5 @@ void FDSimoViscoBaseT::ComputeOutput(dArrayT& output)
 double FDSimoViscoBaseT::StrainEnergyDensity(void)
 {
         cout << "\nStrain Energy is undefined.";
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }

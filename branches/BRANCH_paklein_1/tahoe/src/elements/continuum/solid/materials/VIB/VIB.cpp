@@ -1,4 +1,4 @@
-/* $Id: VIB.cpp,v 1.6 2002-09-12 17:49:58 paklein Exp $ */
+/* $Id: VIB.cpp,v 1.6.4.1 2002-10-17 04:38:06 paklein Exp $ */
 /* created: paklein (10/30/1997) */
 #include "VIB.h"
 
@@ -6,7 +6,7 @@
 #include <iostream.h>
 
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 #include "fstreamT.h"
 #include "dSymMatrixT.h"
@@ -93,9 +93,9 @@ VIB::VIB(ifstreamT& in, int nsd, int numstress, int nummoduli):
 		}
 		default:
 		
-			throw eBadInputValue;	
+			throw ExceptionT::kBadInputValue;	
 	}
-	if (!fPotential) throw eOutOfMemory;
+	if (!fPotential) throw ExceptionT::kOutOfMemory;
 }
 
 /* destructor */

@@ -1,4 +1,4 @@
-/* $Id: FDCubic2DT.cpp,v 1.5 2002-10-05 20:04:11 paklein Exp $ */
+/* $Id: FDCubic2DT.cpp,v 1.5.2.1 2002-10-17 04:37:57 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #include "FDCubic2DT.h"
 #include "ThermalDilatationT.h"
@@ -30,7 +30,7 @@ double FDCubic2DT::Pressure(void) const
 		return FDCubicT::Pressure();
 	else {
 		cout << "\n FDCubic2DT::Pressure: not implemented for plane strain" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 

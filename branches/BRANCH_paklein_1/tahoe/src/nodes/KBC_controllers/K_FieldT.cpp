@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.7 2002-07-02 19:56:35 cjkimme Exp $ */
+/* $Id: K_FieldT.cpp,v 1.7.4.1 2002-10-17 04:42:20 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #include "K_FieldT.h"
@@ -38,18 +38,18 @@ void K_FieldT::Initialize(ifstreamT& in)
 	if (nsd != 2)
 	{
 		cout << "\n K_FieldT::Initialize: must be 2D: " << nsd << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* K1 */
 	in >> fnumLTf1 >> fK1; fnumLTf1--;
 	fLTf1 = fNodeManager.Schedule(fnumLTf1);	
-	if (!fLTf1) throw eBadInputValue;
+	if (!fLTf1) throw ExceptionT::kBadInputValue;
 
 	/* K2 */
 	in >> fnumLTf2 >> fK2; fnumLTf2--;
 	fLTf2 = fNodeManager.Schedule(fnumLTf2);	
-	if (!fLTf2) throw eBadInputValue;
+	if (!fLTf2) throw ExceptionT::kBadInputValue;
 
 	/* coordinates of the crack tip */
 	fInitTipCoords.Allocate(nsd);
@@ -64,14 +64,14 @@ void K_FieldT::Initialize(ifstreamT& in)
 	in >> fNearTipGroupNum;   // -1: no nearfield group
 	in >> fNearTipOutputCode; // variable to locate crack tip
 	in >> fTipColumnNum;      // column of output variable to locate tip
-	in >> fMaxGrowthDistance; if (fMaxGrowthDistance < 0.0) throw eBadInputValue;
-	in >> fMaxGrowthSteps; if (fMaxGrowthSteps < 1) throw eBadInputValue;
+	in >> fMaxGrowthDistance; if (fMaxGrowthDistance < 0.0) throw ExceptionT::kBadInputValue;
+	in >> fMaxGrowthSteps; if (fMaxGrowthSteps < 1) throw ExceptionT::kBadInputValue;
 
 	/* offsets and checks */
 	fNearTipOutputCode--;
 	if (fNearTipGroupNum != -1) fNearTipGroupNum--;
 	fTipColumnNum--;
-	if (fNearTipGroupNum <  -1) throw eBadInputValue;
+	if (fNearTipGroupNum <  -1) throw ExceptionT::kBadInputValue;
 
 	/* nodes */
 	in >> fFarFieldGroupNum;
@@ -81,8 +81,8 @@ void K_FieldT::Initialize(ifstreamT& in)
 	/* offsets and checks */
 	fFarFieldGroupNum--;
 	fFarFieldMaterialNum--;
-	if (fFarFieldGroupNum < 0) throw eBadInputValue;
-	if (fFarFieldMaterialNum < 0) throw eBadInputValue;
+	if (fFarFieldGroupNum < 0) throw ExceptionT::kBadInputValue;
+	if (fFarFieldMaterialNum < 0) throw ExceptionT::kBadInputValue;
 
 	/* generate BC cards */
 	fKBC_Cards.Allocate(fNodes.Length()*nsd);
@@ -105,7 +105,7 @@ void K_FieldT::Initialize(ifstreamT& in)
 //TEMP - tip tracking not supporting for parallel execution
 	if (fNearTipGroupNum != -1 && fNodeManager.Size() > 1) {
 		cout << "\n K_FieldT::Initialize: tip tracking not implemented in parallel" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}	
 }
 
@@ -261,7 +261,7 @@ GlobalT::RelaxCodeT K_FieldT::RelaxSystem(void)
 				cout << "\n K_FieldT::RelaxSystem: exceeded max growth per increment\n"
 					 <<   "   count: " << fGrowthCount << '\n'
 					 <<   "    dist: " << advance << endl;
-				throw eBadJacobianDet; // to trigger step cut
+				throw ExceptionT::kBadJacobianDet; // to trigger step cut
 			}
 
 			/* move the crack tip coords */
@@ -309,7 +309,7 @@ void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
 	{
 		cout << "\n K_FieldT::GetNewTipCoordinates: could not resolve near tip element\n"
 		     <<   "    group number:" << fNearTipGroupNum+1 << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* signal to accumulate nodal values */
@@ -319,7 +319,7 @@ void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
 	int maxrow;
 	double maxval;
 	fNodeManager.MaxInColumn(fTipColumnNum, maxrow, maxval);
-	if (maxrow == -1) throw eGeneralFail;	
+	if (maxrow == -1) throw ExceptionT::kGeneralFail;	
 		
 	/* get new tip coordinates */
 	fNodeManager.InitialCoordinates().RowAlias(maxrow, tip_coords);
@@ -332,7 +332,7 @@ void K_FieldT::ResolveMaterialReference(int element_group,
 	/* resolve element group */
 	const FEManagerT& fe_man = fNodeManager.FEManager();
 	const ElementBaseT* element = fe_man.ElementGroup(element_group);
-	if (!element) throw eGeneralFail;
+	if (!element) throw ExceptionT::kGeneralFail;
 #ifdef __NO_RTTI__
 	cout << "\n K_FieldT::ResolveReference: WARNING: environment does not support RTTI:\n"
 	     <<   "     assuming cast of element group " << element_group+1
@@ -345,14 +345,14 @@ void K_FieldT::ResolveMaterialReference(int element_group,
 		cout << "\n K_FieldT::ResolveReference: could not cast element group "
 		     << element_group+1<< " to\n" <<   "     ContinuumElementT"
 		     << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 
 	/* resolve material reference */
 	const MaterialListT& material_list = cont_element->MaterialsList();
 	ContinuumMaterialT* cont_mat = material_list[material_num];
-	if (!cont_mat) throw eGeneralFail;
+	if (!cont_mat) throw ExceptionT::kGeneralFail;
 #ifdef __NO_RTTI__
 	cout << "\n K_FieldT::ResolveReference: WARNING: environment does not support RTTI:\n"
 	     <<   "     assuming cast of material " << material_num+1
@@ -367,7 +367,7 @@ void K_FieldT::ResolveMaterialReference(int element_group,
 		     << material_num+1<< " to\n" <<   "     IsotropicT:\n";
 		cont_mat->PrintName(cout);
 		cout.flush();
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	if (fNodeManager.NumSD() == 2)
@@ -379,7 +379,7 @@ void K_FieldT::ResolveMaterialReference(int element_group,
 			     << material_num+1<< " to\n" <<   "     Material2DT:\n";
 			cont_mat->PrintName(cout);
 			cout.flush();
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	}
 #endif
@@ -403,7 +403,7 @@ void K_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 	double kappa = 3.0 - 4.0*nu;
 	if (fNodeManager.NumSD() == 2)
 	{
-		if (!fMaterial2D) throw eGeneralFail;
+		if (!fMaterial2D) throw ExceptionT::kGeneralFail;
 		if (fMaterial2D->ConstraintOption() == Material2DT::kPlaneStress)
 			kappa = (3.0 - nu)/(1.0 + nu);
 	}

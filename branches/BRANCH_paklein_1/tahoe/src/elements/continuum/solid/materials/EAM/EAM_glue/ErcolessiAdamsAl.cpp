@@ -1,4 +1,4 @@
-/* $Id: ErcolessiAdamsAl.cpp,v 1.2 2002-07-02 19:55:37 cjkimme Exp $ */
+/* $Id: ErcolessiAdamsAl.cpp,v 1.2.4.1 2002-10-17 04:37:50 paklein Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* ErcolessiAdamsAl.cpp                                                   */
 
@@ -80,7 +80,7 @@ void ErcolessiAdamsAl::SetPairPotential(void)
 	dArray2DT	coeff(18, 4, coeffdata);
 
 	fPairPotential = new CubicSplineT(knots, coeff);
-	if (!fPairPotential) throw(eOutOfMemory);
+	if (!fPairPotential) throw ExceptionT::kOutOfMemory;
 }
 
 void ErcolessiAdamsAl::SetEmbeddingEnergy(void)
@@ -120,7 +120,7 @@ void ErcolessiAdamsAl::SetEmbeddingEnergy(void)
 	dArray2DT	coeff(14, 4, coeffdata);
 
 	fEmbeddingEnergy = new CubicSplineT(knots, coeff);
-	if (!fEmbeddingEnergy) throw(eOutOfMemory);
+	if (!fEmbeddingEnergy) throw ExceptionT::kOutOfMemory;
 }
 
 void ErcolessiAdamsAl::SetElectronDensity(void)
@@ -168,5 +168,5 @@ void ErcolessiAdamsAl::SetElectronDensity(void)
 	dArray2DT	coeff(18, 4, coeffdata);
 
 	fElectronDensity = new CubicSplineT(knots, coeff);
-	if (!fElectronDensity) throw(eOutOfMemory);
+	if (!fElectronDensity) throw ExceptionT::kOutOfMemory;
 }

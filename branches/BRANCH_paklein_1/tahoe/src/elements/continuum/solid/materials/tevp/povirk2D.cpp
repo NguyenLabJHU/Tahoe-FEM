@@ -1,4 +1,4 @@
-/* $Id: povirk2D.cpp,v 1.5 2002-10-05 20:04:20 paklein Exp $ */
+/* $Id: povirk2D.cpp,v 1.5.2.1 2002-10-17 04:38:21 paklein Exp $ */
 /* Created:  Harold Park (09/10/2001) */
 #include "povirk2D.h"
 
@@ -540,7 +540,7 @@ void povirk2D::LoadData(const ElementCardT& element, int ip)
 {
   /* load element data for the specified integration point */
   /* check */
-  if (!element.IsAllocated()) throw eGeneralFail;
+  if (!element.IsAllocated()) throw ExceptionT::kGeneralFail;
 
   int dex = ip * kVoigt;     // 4 non-zero stress components (11, 12, 22, 33)
   int dex2 = ip * kNSD;      // 3 non-zero 2D stress components (11, 12=21, 22)

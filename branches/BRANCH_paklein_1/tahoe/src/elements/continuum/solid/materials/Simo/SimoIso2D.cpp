@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.cpp,v 1.6 2002-07-02 19:55:50 cjkimme Exp $ */
+/* $Id: SimoIso2D.cpp,v 1.6.4.1 2002-10-17 04:38:03 paklein Exp $ */
 /* created: paklein (03/04/1997) */
 
 #include "SimoIso2D.h"
@@ -38,7 +38,7 @@ void SimoIso2D::InitStep(void)
 		{
 			cout << "\n SimoIso2D::InitStep: expecting isotropic (F_thermal)^-1:\n"
 			     << F_therm_inv << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 	}
 }
@@ -51,7 +51,7 @@ const dMatrixT& SimoIso2D::c_ijkl(void)
 
 	/* compute b_bar */
 	double J = fb.Det();
-	if (J <= 0.0) throw eBadJacobianDet;
+	if (J <= 0.0) throw ExceptionT::kBadJacobianDet;
 	J = sqrt(J);
 	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
 
@@ -73,7 +73,7 @@ const dSymMatrixT& SimoIso2D::s_ij(void)
 	
 	/* compute b_bar */
 	double J = fb.Det();
-	if (J <= 0.0) throw eBadJacobianDet;
+	if (J <= 0.0) throw ExceptionT::kBadJacobianDet;
 	J = sqrt(J);
 	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
 
@@ -95,7 +95,7 @@ double SimoIso2D::StrainEnergyDensity(void)
 	
 	/* compute b_bar */
 	double J = fb.Det();
-	if (J <= 0.0) throw eBadJacobianDet;
+	if (J <= 0.0) throw ExceptionT::kBadJacobianDet;
 	J = sqrt(J);
 	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
 

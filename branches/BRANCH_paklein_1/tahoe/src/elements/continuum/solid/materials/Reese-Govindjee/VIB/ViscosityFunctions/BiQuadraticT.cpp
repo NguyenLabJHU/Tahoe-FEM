@@ -1,9 +1,9 @@
-/* $Id: BiQuadraticT.cpp,v 1.1 2002-10-04 23:59:02 thao Exp $ */
+/* $Id: BiQuadraticT.cpp,v 1.1.2.1 2002-10-17 04:38:02 paklein Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #include "BiQuadraticT.h"
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dArrayT.h"
 
 using namespace Tahoe;

@@ -1,4 +1,4 @@
-/* $Id: EVPFDBaseT.cpp,v 1.8 2002-07-02 19:56:19 cjkimme Exp $ */
+/* $Id: EVPFDBaseT.cpp,v 1.8.4.1 2002-10-17 04:38:18 paklein Exp $ */
 #include "EVPFDBaseT.h"
 #include "NLCSolver.h"
 #include "NLCSolver_LS.h"
@@ -151,7 +151,7 @@ void EVPFDBaseT::Compute_Ftot_3D(dMatrixT& F_3D) const
 		F_3D(2, 2) = 1.0;
 	}
 	else 
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 }
 
 void EVPFDBaseT::Compute_Ftot_last_3D(dMatrixT& F_3D) const
@@ -166,7 +166,7 @@ void EVPFDBaseT::Compute_Ftot_last_3D(dMatrixT& F_3D) const
 		F_3D(2, 2) = 1.0;
 	}
 	else 
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 }
 
 void EVPFDBaseT::SetConstitutiveSolver()

@@ -33,6 +33,6 @@ void SSHookean1D::PrintName(ostream& out) const
 /* set (material) tangent modulus */
 void SSHookean1D::SetModulus(dMatrixT& modulus)
 {
-	if (modulus.Rows() != 1 || modulus.Cols() != 1) throw eSizeMismatch;
+	if (modulus.Rows() != 1 || modulus.Cols() != 1) throw ExceptionT::kSizeMismatch;
 	modulus = Young();
 }

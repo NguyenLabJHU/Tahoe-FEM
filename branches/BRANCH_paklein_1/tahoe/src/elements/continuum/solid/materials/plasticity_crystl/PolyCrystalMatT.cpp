@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.cpp,v 1.10 2002-07-02 19:56:14 cjkimme Exp $ */
+/* $Id: PolyCrystalMatT.cpp,v 1.10.4.1 2002-10-17 04:38:17 paklein Exp $ */
 #include "PolyCrystalMatT.h"
 #include "CrystalElasticity.h"
 #include "SlipGeometry.h"
@@ -357,7 +357,7 @@ void PolyCrystalMatT::SolveCrystalState()
           if (totSubIncrs > 128) {
              cout << " ... in PolyCrystalMatT::SolveCrystalState: totSubIncrs > 128 \n";
              cout << " ...... will throw 'EBadJacobianDet' to force dtime decrease \n";
-             throw eBadJacobianDet;
+             throw ExceptionT::kBadJacobianDet;
           }
           if (subIncr > 1) RestoreSavedSolution();
 	}
@@ -408,7 +408,7 @@ void PolyCrystalMatT::Compute_Ftot_3D(dMatrixT& F_3D) const
 		F_3D(2, 2) = 1.0;
 	}
 	else 
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 }
 
 void PolyCrystalMatT::Compute_Ftot_3D(dMatrixT& F_3D, int ip) const
@@ -423,7 +423,7 @@ void PolyCrystalMatT::Compute_Ftot_3D(dMatrixT& F_3D, int ip) const
 		F_3D(2, 2) = 1.0;
 	}
 	else 
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 }
 
 void PolyCrystalMatT::Compute_Ftot_last_3D(dMatrixT& F_3D) const
@@ -438,7 +438,7 @@ void PolyCrystalMatT::Compute_Ftot_last_3D(dMatrixT& F_3D) const
 		F_3D(2, 2) = 1.0;
 	}
 	else 
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 }
 
 void PolyCrystalMatT::Compute_Ftot_last_3D(dMatrixT& F_3D, int ip) const
@@ -453,7 +453,7 @@ void PolyCrystalMatT::Compute_Ftot_last_3D(dMatrixT& F_3D, int ip) const
 		F_3D(2, 2) = 1.0;
 	}
 	else 
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 }
 
 /* 4th order tensor transformation: Co_ijkl = F_iI F_jJ F_kK f_lL Ci_IJKL */

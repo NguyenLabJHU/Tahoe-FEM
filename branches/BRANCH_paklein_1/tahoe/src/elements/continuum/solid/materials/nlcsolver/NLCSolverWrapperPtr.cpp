@@ -3,7 +3,7 @@
 */
 
 #include "NLCSolverWrapperPtr.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 
 using namespace Tahoe;
@@ -12,7 +12,7 @@ NLCSolverWrapperPtr::NLCSolverWrapperPtr(NLCSolverWrapper* ptr)
   : refCount_(0), ptr_(ptr)
 {
   refCount_ = new int;
-  if (refCount_ == 0) throw eOutOfMemory;
+  if (refCount_ == 0) throw ExceptionT::kOutOfMemory;
   *refCount_ = 1;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: MFPenaltySphereT.cpp,v 1.4 2002-09-12 17:50:05 paklein Exp $ */
+/* $Id: MFPenaltySphereT.cpp,v 1.4.4.1 2002-10-17 04:45:25 paklein Exp $ */
 /* created: paklein (04/17/2000) */
 
 #include "MFPenaltySphereT.h"
@@ -106,7 +106,7 @@ void MFPenaltySphereT::SetElementGroup(void)
 	{
 		cout << "\n MFPenaltySphereT::SetElementGroup: error retrieving pointer\n"
 		     <<   "     for group " << fGroupNumber + 1 << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	/* check */
@@ -114,6 +114,6 @@ void MFPenaltySphereT::SetElementGroup(void)
 	{
 		cout << "\n MFPenaltySphereT::SetElementGroup: element group " << fGroupNumber + 1
 		     << '\n' <<   "     has interpolant DOF's. Use PenaltySphereT." << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }

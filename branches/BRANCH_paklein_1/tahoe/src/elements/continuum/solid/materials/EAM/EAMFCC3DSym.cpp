@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DSym.cpp,v 1.2 2002-07-02 19:55:36 cjkimme Exp $ */
+/* $Id: EAMFCC3DSym.cpp,v 1.2.4.1 2002-10-17 04:37:49 paklein Exp $ */
 /* created: paklein (12/06/1996)                                          */
 /* EAMFCC3DSym.cpp                                                        */
 
@@ -78,7 +78,7 @@ void EAMFCC3DSym::LoadBondTable(void)
 
 	/* dimension check */				     		
 	if (fBonds.MajorDim() != fNumBonds ||
-	    fBonds.MinorDim() != kEAMFCC3DNumLatticeDim) throw eGeneralFail;
+	    fBonds.MinorDim() != kEAMFCC3DNumLatticeDim) throw ExceptionT::kGeneralFail;
 	
 	/* copy into reference table */
 	for (int i = 0; i < fNumBonds; i++)

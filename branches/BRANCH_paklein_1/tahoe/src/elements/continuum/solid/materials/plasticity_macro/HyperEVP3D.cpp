@@ -1,4 +1,4 @@
-/* $Id: HyperEVP3D.cpp,v 1.7 2002-07-02 19:56:19 cjkimme Exp $ */
+/* $Id: HyperEVP3D.cpp,v 1.7.4.1 2002-10-17 04:38:18 paklein Exp $ */
 #include "HyperEVP3D.h"
 
 #include "ContinuumElementT.h"
@@ -468,7 +468,7 @@ void HyperEVP3D::Solve()
   if (ierr == 1) {
     writeMessage("HyperEVP3D::Solve: Convergence problems");
     writeWarning("HyperEVP3D::Solve: Will use unconverged DEQP");
-    //    throw eGeneralFail;	
+    //    throw ExceptionT::kGeneralFail;	
   }
 
   // update iteration count from NLCSolver

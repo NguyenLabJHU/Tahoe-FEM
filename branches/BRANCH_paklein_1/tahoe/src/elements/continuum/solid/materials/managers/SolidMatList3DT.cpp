@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.22 2002-10-04 20:52:52 thao Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.22.2.1 2002-10-17 04:38:12 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 
 #include "SolidMatList3DT.h"
@@ -75,7 +75,7 @@ SolidMatList3DT::SolidMatList3DT(int length, const ElasticT& element_group):
 	{
 		cout << "\n SolidMatList3DT::SolidMatList3DT: could not cast element group to\n" 
 		     <<   "     SmallStrainT or FiniteStrainT" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 }
@@ -94,14 +94,14 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		in >> matcode;
 		
 		/* checks */
-		if (matnum < 0  || matnum >= fLength) throw eBadInputValue;
+		if (matnum < 0  || matnum >= fLength) throw ExceptionT::kBadInputValue;
 
 		/* repeated material number */
 		if (fArray[matnum] != NULL)
 		{
 			cout << "\n SolidMatList3DT::ReadMaterialData: repeated material number: ";
 			cout << matnum + 1 << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		
 		/* add to the list of materials */
@@ -112,7 +112,7 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 			{
 				cout << "\n SolidMatList3DT::ReadMaterialData: material is 2D only: " 
 				     << matcode << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 			case kSSKStV:
 			{
@@ -415,7 +415,7 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 #else
 				cout << "\n SolidMatList3DT::ReadMaterialData: model requires f2c support: "
 				     << kABAQUS_BCJ << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 #endif /* __F2C__ */
 	
 				break;
@@ -431,7 +431,7 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 #else
 				cout << "\n SolidMatList3DT::ReadMaterialData: model requires f2c support: "
 				     << kABAQUS_VUMAT_BCJ << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 #endif /* __F2C__ */
 	
 				break;
@@ -489,14 +489,14 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 			
 				cout << "\n SolidMatList3DT::ReadMaterialData: unknown material code: ";
 				cout << matcode << '\n' << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 		}
 
 		/* safe cast since all structural */
 		StructuralMaterialT* pmat = (StructuralMaterialT*) fArray[matnum];
 
 		/* verify construction */
-		if (!pmat) throw eOutOfMemory;
+		if (!pmat) throw ExceptionT::kOutOfMemory;
 		
 		/* set thermal LTf pointer */
 		int LTfnum = pmat->ThermalStrainSchedule();
@@ -512,7 +512,7 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		pmat->Initialize();			
 	}  } /* end try */
 
-	catch (int error)
+	catch (ExceptionT::CodeT error)
 	{
 		cout << "\n SolidMatList3DT::ReadMaterialData: exception constructing material " << i+1
 		     << '\n' << "     index " << matnum+1 << ", code " << matcode << endl;
@@ -525,12 +525,12 @@ void SolidMatList3DT::Error_no_small_strain(ostream& out, int matcode) const
 {
 	out << "\n SolidMatList3DT: material " << matcode
 		<< " requires a small strain element" << endl;
-	throw eBadInputValue;
+	throw ExceptionT::kBadInputValue;
 }
 
 void SolidMatList3DT::Error_no_finite_strain(ostream& out, int matcode) const
 {
 	out << "\n SolidMatList3DT: material " << matcode
 		<< " requires a finite strain element" << endl;
-	throw eBadInputValue;
+	throw ExceptionT::kBadInputValue;
 }

@@ -1,9 +1,9 @@
-/* $Id: SV_NeoHookean2D.cpp,v 1.2 2002-10-05 18:10:26 paklein Exp $ */
+/* $Id: SV_NeoHookean2D.cpp,v 1.2.2.1 2002-10-17 04:38:05 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 /* Phi(I1,J) = mu/2*(I1-3)+kappa/4*(J^2-1-2*ln(J)) */
 /* I1 = trace(C); J=sqrt(det(C)) */
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "SV_NeoHookean2D.h"
 #include "ifstreamT.h"
 
@@ -22,7 +22,7 @@ SV_NeoHookean2D::SV_NeoHookean2D(ifstreamT& in, const FiniteStrainT& element):
          if (fConstraintOption == Material2DT::kPlaneStress)
 	 {
 	         cout << "Plane Stress formulation is not implemented yet\n";
-		 throw eBadInputValue;
+		 throw ExceptionT::kBadInputValue;
 	 }
   
          double& mu_EQ = fMu[kEquilibrium];
