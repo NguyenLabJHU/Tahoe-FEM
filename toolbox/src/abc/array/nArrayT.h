@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.11 2002-06-29 01:08:04 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.12 2002-07-02 19:56:40 cjkimme Exp $ */
 /* created: paklein (05/23/1997) */
 
 #ifndef _NARRAY_T_H_
@@ -14,6 +14,8 @@
 
 /* base class */
 #include "ArrayT.h"
+
+namespace Tahoe {
 
 /* forward declarations */
 template <class nTYPE> class OutputProxyT;
@@ -176,6 +178,7 @@ public:
 		return OutputProxyT<nTYPE>(OutputProxyT<nTYPE>::kWrapTight, *this, line_count, tab); };
 };
 
+
 /* I/O operators */
 template <class nTYPE>
 istream& operator>>(istream& in, nArrayT<nTYPE>& array)
@@ -247,6 +250,10 @@ ostream& operator<<(ostream& out, const OutputProxyT<TYPE>& proxy)
 	}
 	return out;
 };
+
+} //namespace Tahoe
+
+using namespace Tahoe;
 
 /* output formatters - for int's and double's */
 inline int OutputWidth(ostream& out, const int* junk)

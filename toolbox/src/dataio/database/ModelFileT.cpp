@@ -1,4 +1,4 @@
-/* $Id: ModelFileT.cpp,v 1.7 2002-01-23 20:27:29 paklein Exp $ */
+/* $Id: ModelFileT.cpp,v 1.8 2002-07-02 19:57:01 cjkimme Exp $ */
 /* created: paklein (12/15/1999)                                          */
 
 #include "ModelFileT.h"
@@ -13,6 +13,9 @@
 #include "ExodusT.h"
 
 /* parameters */
+
+using namespace Tahoe;
+
 const char  sComment = '#';
 const char* sVersion = "1.0";
 

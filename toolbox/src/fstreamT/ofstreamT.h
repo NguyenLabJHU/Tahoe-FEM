@@ -1,4 +1,4 @@
-/* $Id: ofstreamT.h,v 1.2 2001-04-10 17:56:13 paklein Exp $ */
+/* $Id: ofstreamT.h,v 1.3 2002-07-02 19:57:13 cjkimme Exp $ */
 /* created: paklein (12/30/2000)                                          */
 
 #ifndef _OFSTREAM_T_H_
@@ -11,6 +11,9 @@
 
 /* direct members */
 #include "StringT.h"
+
+
+namespace Tahoe {
 
 class ofstreamT: public ofstream
 {
@@ -43,4 +46,5 @@ private:
 /* inlines */
 inline const char* ofstreamT::filename(void) const { return fFileName; }
 
+} // namespace Tahoe 
 #endif /* _OFSTREAM_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: Front3DT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: Front3DT.cpp,v 1.2 2002-07-02 19:57:10 cjkimme Exp $ */
 /* created: paklein (03/18/1999)                                          */
 
 #include "Front3DT.h"
@@ -8,6 +8,9 @@
 #include "iArrayT.h"
 
 /* constants */
+
+using namespace Tahoe;
+
 const double Pi = acos(-1.0);
 
 /* vector functions */

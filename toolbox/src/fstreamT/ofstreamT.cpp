@@ -1,4 +1,4 @@
-/* $Id: ofstreamT.cpp,v 1.3 2002-01-07 20:40:14 paklein Exp $ */
+/* $Id: ofstreamT.cpp,v 1.4 2002-07-02 19:57:13 cjkimme Exp $ */
 /* created: paklein (12/30/2000) */
 
 #include "ofstreamT.h"
@@ -14,6 +14,9 @@
 #include "StringT.h"
 
 /* parameter */
+
+using namespace Tahoe;
+
 const int kLineLength = 255;
 
 /* constructors */

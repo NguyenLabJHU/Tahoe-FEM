@@ -7,6 +7,8 @@
 /* direct members */
 #include "iNodeT.h"
 
+namespace Tahoe {
+
 class iGridManager1DT: public GridManager1DT<iNodeT>
 {
 public:
@@ -26,5 +28,7 @@ protected:
 	const dArray2DT& fCoords;
 	const iArrayT* fNodesUsed;
 };
+
+} // namespace Tahoe
 
 #endif /* _I_GRIDMANAGER1D_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: LinearDecreaseT.h,v 1.1 2001-12-20 02:42:45 thao Exp $ */
+/* $Id: LinearDecreaseT.h,v 1.2 2002-07-02 19:56:31 cjkimme Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #ifndef _LINDEC_T_H_
@@ -6,6 +6,9 @@
 
 /* base class */
 #include "C1FunctionT.h"
+
+
+namespace Tahoe {
 
 class LinearDecreaseT: public C1FunctionT
 {
@@ -51,6 +54,7 @@ inline double LinearDecreaseT::DDFunction(double x) const
 	return (0);
 }
 
+} // namespace Tahoe 
 #endif /* _LINDEC_T_H_ */
 
 

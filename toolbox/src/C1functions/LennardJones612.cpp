@@ -1,4 +1,4 @@
-/* $Id: LennardJones612.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: LennardJones612.cpp,v 1.2 2002-07-02 19:56:31 cjkimme Exp $ */
 /* created: paklein (10/30/1997)                                          */
 
 #include "LennardJones612.h"
@@ -8,6 +8,9 @@
 #include "dArrayT.h"
 
 /* constants */
+
+using namespace Tahoe;
+
 const double twoe1by6 = pow(2.0,1.0/6.0);
 
 /*

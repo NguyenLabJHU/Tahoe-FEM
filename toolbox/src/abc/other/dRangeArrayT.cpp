@@ -1,10 +1,13 @@
-/* $Id: dRangeArrayT.cpp,v 1.3 2002-02-18 08:48:43 paklein Exp $ */
+/* $Id: dRangeArrayT.cpp,v 1.4 2002-07-02 19:56:50 cjkimme Exp $ */
 /* created: paklein (12/02/1996) */
 
 #include "dRangeArrayT.h"
 #include "dArray2DT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 dRangeArrayT::dRangeArrayT(void) { }
 
 dRangeArrayT::dRangeArrayT(const dArrayT& values)
@@ -28,6 +31,8 @@ dRangeArrayT::dRangeArrayT(int colnum, const dArray2DT& values2D)
 	}
 }
 
+namespace Tahoe {
+
 /* I/O operators */
 ostream& operator<<(ostream& out, const dRangeArrayT& array)
 {
@@ -35,6 +40,8 @@ ostream& operator<<(ostream& out, const dRangeArrayT& array)
 	const dArrayT& temp = array;
 	return (out << temp);
 }
+
+} // namespace Tahoe
 
 /* set values */
 void dRangeArrayT::SetValues(const dArrayT& values)

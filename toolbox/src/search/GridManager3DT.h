@@ -1,4 +1,4 @@
-/* $Id: GridManager3DT.h,v 1.2 2001-06-19 00:52:18 paklein Exp $ */
+/* $Id: GridManager3DT.h,v 1.3 2002-07-02 19:57:23 cjkimme Exp $ */
 /* created: paklein (12/06/1997)                                          */
 /* Interface for regular rectangular search and storage grid              */
 /* sTYPE requirements:                                                    */
@@ -21,6 +21,9 @@
 #include "dArray2DT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class iArrayT;
 
 template <class sTYPE>
@@ -596,4 +599,5 @@ AutoArrayT<sTYPE>** GridManager3DT<sTYPE>::FetchGrid(double* coords)
 	return fGrid.Pointer(ix*fxjump + iy*fyjump + iz);
 }
 
+} // namespace Tahoe 
 #endif /* _GRIDMANAGER3D_T_H_ */

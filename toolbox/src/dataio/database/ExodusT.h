@@ -1,4 +1,4 @@
-/* $Id: ExodusT.h,v 1.5 2002-03-11 20:14:44 sawimme Exp $ */
+/* $Id: ExodusT.h,v 1.6 2002-07-02 19:57:00 cjkimme Exp $ */
 /* created: sawimme (12/04/1998) */
 
 #ifndef _EXODUS_T_H_
@@ -12,6 +12,9 @@
 #include "GeometryT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class iArray2DT;
 class dArrayT;
 class dArray2DT;
@@ -200,4 +203,5 @@ inline int ExodusT::NumNodeSets(void) const { return num_node_sets; }
 inline int ExodusT::NumElementBlocks(void) const { return num_elem_blk; }
 inline int ExodusT::NumSideSets(void) const { return num_side_sets; }
 
+} // namespace Tahoe 
 #endif /* _EXODUS_T_H_ */

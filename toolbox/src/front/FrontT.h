@@ -1,4 +1,4 @@
-/* $Id: FrontT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: FrontT.h,v 1.2 2002-07-02 19:57:10 cjkimme Exp $ */
 /* created: paklein (02/11/2000)                                          */
 /* base class for crack surface objects                                   */
 
@@ -11,6 +11,9 @@
 #include "dArray2DT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class iArrayT;
 class FrontNodeT;
 
@@ -62,4 +65,5 @@ inline const AutoArrayT<FrontNodeT*>& FrontT::FrontNodes(void) const
 	return fFrontNodes;
 }
 
+} // namespace Tahoe 
 #endif /* _FRONT_T_H_ */

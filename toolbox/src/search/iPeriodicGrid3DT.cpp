@@ -1,4 +1,4 @@
-/* $Id: iPeriodicGrid3DT.cpp,v 1.2 2002-02-25 17:50:49 xiang Exp $ */
+/* $Id: iPeriodicGrid3DT.cpp,v 1.3 2002-07-02 19:57:24 cjkimme Exp $ */
 /* created: paklein (12/18/1997)                                          */
 
 #include "iPeriodicGrid3DT.h"
@@ -6,6 +6,9 @@
 #include "iArrayT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 iPeriodicGrid3DT::iPeriodicGrid3DT(int nx, int ny, int nz,
 	const dArray2DT& coords, const iArrayT* nodes_used,
 	const dArrayT& periodicity):

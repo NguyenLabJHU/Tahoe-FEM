@@ -7,6 +7,9 @@
 #include "iArray2DT.h"
 #include "dArray2DT.h"
 
+
+using namespace Tahoe;
+
 AVST::AVST (ostream& out, bool binary) :
   fOut (out),
   fBinary (binary)

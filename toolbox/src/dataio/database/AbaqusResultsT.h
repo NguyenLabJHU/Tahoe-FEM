@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.h,v 1.11 2002-04-10 12:08:55 sawimme Exp $ */
+/* $Id: AbaqusResultsT.h,v 1.12 2002-07-02 19:57:00 cjkimme Exp $ */
 /*
    CREATED: S. Wimmer 9 Nov 2000
 
@@ -23,6 +23,9 @@
 #include "GeometryT.h"
 #include "iArray2DT.h"
 #include "AbaqusVariablesT.h"
+
+
+namespace Tahoe {
 
 class AbaqusResultsT
 {
@@ -344,4 +347,5 @@ inline int AbaqusResultsT::NumNodeVariables (void) const { return fNumNodeVars; 
 inline int AbaqusResultsT::NumElementVariables (void) const { return fNumElemVars; }
 inline int AbaqusResultsT::NumQuadratureVariables (void) const { return fNumQuadVars; }
 
+} // namespace Tahoe 
 #endif

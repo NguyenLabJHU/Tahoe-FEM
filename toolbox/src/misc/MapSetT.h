@@ -1,4 +1,4 @@
-/* $Id: MapSetT.h,v 1.1 2002-01-09 18:25:25 paklein Exp $ */
+/* $Id: MapSetT.h,v 1.2 2002-07-02 19:57:18 cjkimme Exp $ */
 /* created: paklein (03/26/2000)                                          */
 
 #ifndef _MAP_SET_T_H_
@@ -6,6 +6,9 @@
 
 /* direct members */
 #include "iArrayT.h"
+
+
+namespace Tahoe {
 
 class MapSetT
 {
@@ -36,4 +39,5 @@ public:
 	ArrayT<iArrayT> fElementMaps;
 };
 
+} // namespace Tahoe 
 #endif /* _MAP_SET_T_H_ */

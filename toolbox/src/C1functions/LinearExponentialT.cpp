@@ -1,4 +1,4 @@
-/* $Id: LinearExponentialT.cpp,v 1.1 2001-05-05 19:05:21 paklein Exp $ */
+/* $Id: LinearExponentialT.cpp,v 1.2 2002-07-02 19:56:31 cjkimme Exp $ */
 /* created: paklein (10/30/1997)                                          */
 
 #include "LinearExponentialT.h"
@@ -8,6 +8,9 @@
 #include "dArrayT.h"
 
 /** constructor */
+
+using namespace Tahoe;
+
 LinearExponentialT::LinearExponentialT(double a, double b, double c, double d):
 	fa(a),
 	fb(b),

@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.h,v 1.8 2002-01-06 06:57:52 cbhovey Exp $ */
+/* $Id: iConsoleBaseT.h,v 1.9 2002-07-02 19:56:57 cjkimme Exp $ */
 /* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_BASE_T_H_
@@ -9,6 +9,9 @@
 #include "StringT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class CommandSpecT;
 class ArgSpecT;
 
@@ -208,4 +211,5 @@ inline void iConsoleBaseT::Clean(istream& in) const
   in.getline(line, 254);
 }
 
+} // namespace Tahoe 
 #endif /* _I_CONSOLE_BASE_T_H_ */

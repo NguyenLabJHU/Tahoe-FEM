@@ -1,4 +1,4 @@
-/* $Id: VariRaggedArray2DT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: VariRaggedArray2DT.h,v 1.2 2002-07-02 19:56:39 cjkimme Exp $ */
 /* created: paklein (02/17/2000)                                          */
 /* VariRaggedArray2DT with dynamics resizing functions                    */
 
@@ -10,6 +10,9 @@
 
 /* direct members */
 #include "VariArrayT.h"
+
+
+namespace Tahoe {
 
 template <class TYPE>
 class VariRaggedArray2DT: public RaggedArray2DT<TYPE>
@@ -307,4 +310,5 @@ inline void VariRaggedArray2DT<TYPE>::SetRow(int row, const TYPE* array) // no r
 	RaggedArray2DT<TYPE>::SetRow(row, array);
 }
 
+} // namespace Tahoe 
 #endif /* _VARI_RAGGED_2D_T_H_ */

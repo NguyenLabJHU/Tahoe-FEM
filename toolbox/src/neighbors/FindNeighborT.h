@@ -1,4 +1,4 @@
-/* $Id: FindNeighborT.h,v 1.2 2002-06-29 22:21:12 hspark Exp $ */
+/* $Id: FindNeighborT.h,v 1.3 2002-07-02 19:57:20 cjkimme Exp $ */
 /* created: paklein (03/21/1997)                                          */
 /* FindNeighborT.h                                                        */
 
@@ -13,6 +13,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class iGridManager1DT;
 class iGridManager2DT;
 class iGridManager3DT;
@@ -75,4 +78,5 @@ private:
 	iGridManager3DT*	fGrid3D;	//search grid
 };
 
+} // namespace Tahoe 
 #endif /* _FIND_NEIGHBORT_H_ */

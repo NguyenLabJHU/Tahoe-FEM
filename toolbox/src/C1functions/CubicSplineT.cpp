@@ -1,4 +1,4 @@
-/* $Id: CubicSplineT.cpp,v 1.2 2001-05-05 19:05:21 paklein Exp $ */
+/* $Id: CubicSplineT.cpp,v 1.3 2002-07-02 19:56:31 cjkimme Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* CubicSplineT.cpp                                                       */
 
@@ -7,6 +7,9 @@
 #include "dMatrixT.h"
 #include "TriDiagdMatrixT.h"
 #include "iArrayT.h"
+
+
+using namespace Tahoe;
 
 const int kNumSplineCoeffs = 4;
 

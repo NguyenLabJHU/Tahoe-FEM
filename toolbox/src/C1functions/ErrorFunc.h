@@ -1,10 +1,13 @@
-/* $Id: ErrorFunc.h,v 1.2 2002-04-24 17:52:32 dzeigle Exp $ */
+/* $Id: ErrorFunc.h,v 1.3 2002-07-02 19:56:31 cjkimme Exp $ */
 
 #ifndef _ERR_FUN_H_
 #define _ERR_FUN_H_
 
 /* base class */
 #include "C1FunctionT.h"
+
+
+namespace Tahoe {
 
 class ErrorFunc: public C1FunctionT
 {
@@ -53,6 +56,7 @@ public:
 
 };
 
+} // namespace Tahoe 
 #endif /* _ERR_FUN_H_ */
 
 

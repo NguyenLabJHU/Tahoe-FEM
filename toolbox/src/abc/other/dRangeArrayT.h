@@ -1,4 +1,4 @@
-/* $Id: dRangeArrayT.h,v 1.2 2001-07-14 01:21:04 paklein Exp $ */
+/* $Id: dRangeArrayT.h,v 1.3 2002-07-02 19:56:50 cjkimme Exp $ */
 /* created: paklein (12/02/1996) */
 
 #ifndef _DRANGEARRAY_T_H_
@@ -8,6 +8,9 @@
 #include "dArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class dArray2DT;
 
 /** Class to identify the interval numbers in a list of floating
@@ -56,4 +59,5 @@ private:
 /*  still allow length checks */
 inline int dRangeArrayT::Length(void) const { return dArrayT::Length(); }	
 
+} // namespace Tahoe 
 #endif /* _DRANGEARRAY_T_H_ */

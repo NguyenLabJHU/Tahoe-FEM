@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.cpp,v 1.16 2002-04-07 19:14:14 paklein Exp $ */
+/* $Id: ifstreamT.cpp,v 1.17 2002-07-02 19:57:13 cjkimme Exp $ */
 /* created: paklein (03/03/1999) */
 
 #include "ifstreamT.h"
@@ -11,6 +11,9 @@
 #include "fstreamT.h"
 
 /* parameter */
+
+using namespace Tahoe;
+
 const int kLineLength = 255;
 
 /* static variables */

@@ -1,9 +1,12 @@
-/* $Id: ArgSpecT.cpp,v 1.7 2002-04-07 19:14:59 paklein Exp $ */
+/* $Id: ArgSpecT.cpp,v 1.8 2002-07-02 19:56:57 cjkimme Exp $ */
 
 #include "ArgSpecT.h"
 #include <ctype.h>
 
 /* array copy behavior */
+
+using namespace Tahoe;
+
 const bool ArrayT<ArgSpecT*>::fByteCopy = true; 
 const bool ArrayT<ArgSpecT>::fByteCopy = false;
 

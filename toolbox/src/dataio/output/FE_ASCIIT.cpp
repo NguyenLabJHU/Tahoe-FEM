@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.cpp,v 1.13 2002-06-25 14:17:06 sawimme Exp $ */
+/* $Id: FE_ASCIIT.cpp,v 1.14 2002-07-02 19:57:07 cjkimme Exp $ */
 /* created: sawimme (05/20/1999) */
 
 #include "FE_ASCIIT.h"
@@ -13,6 +13,9 @@
 #include "iArray2DT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 FE_ASCIIT::FE_ASCIIT(ostream& out, bool external, const ArrayT<StringT>& out_strings):
 	OutputBaseT(out, out_strings),
 	fExternTahoeII(external)

@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.cpp,v 1.13 2002-03-11 20:14:45 sawimme Exp $ */
+/* $Id: ExodusInputT.cpp,v 1.14 2002-07-02 19:57:03 cjkimme Exp $ */
 /* created: sawimme (12/04/1998) */
 
 #include "ExodusInputT.h"
@@ -7,6 +7,9 @@
 #include "iArray2DT.h"
 #include "dArray2DT.h"
 #include "dArrayT.h"
+
+
+using namespace Tahoe;
 
 ExodusInputT::ExodusInputT (ostream& out) :
   InputBaseT (out),

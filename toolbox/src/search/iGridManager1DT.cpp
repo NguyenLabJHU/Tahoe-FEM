@@ -2,6 +2,8 @@
 #include "iArrayT.h"
 #include "dArrayT.h"
 
+using namespace Tahoe;
+
 /* constructor */
 iGridManager1DT::iGridManager1DT(int nx, const dArray2DT& coords,
 	const iArrayT* nodes_used):

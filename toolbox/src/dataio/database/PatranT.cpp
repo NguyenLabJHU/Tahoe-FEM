@@ -1,4 +1,4 @@
-/* $Id: PatranT.cpp,v 1.12 2002-02-27 12:51:50 sawimme Exp $ */
+/* $Id: PatranT.cpp,v 1.13 2002-07-02 19:57:01 cjkimme Exp $ */
 /* created sawimme (05/17/2001) */
 
 #include "PatranT.h"
@@ -10,6 +10,9 @@
 #include "ExceptionCodes.h"
 #include "iAutoArrayT.h"
 #include <time.h>
+
+
+using namespace Tahoe;
 
 PatranT::PatranT (ostream &message_out) :
   fMessage (message_out)

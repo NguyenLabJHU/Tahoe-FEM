@@ -1,4 +1,4 @@
-/* $Id: iGridManager2DT.h,v 1.2 2001-06-19 00:52:18 paklein Exp $ */
+/* $Id: iGridManager2DT.h,v 1.3 2002-07-02 19:57:23 cjkimme Exp $ */
 /* created: paklein (12/09/1997)                                          */
 /* iNodeT grid. offset specifies the starting number for the iNodeT       */
 /* tags.                                                                  */
@@ -11,6 +11,9 @@
 
 /* direct members */
 #include "iNodeT.h"
+
+
+namespace Tahoe {
 
 class iGridManager2DT: public GridManager2DT<iNodeT>
 {
@@ -32,4 +35,5 @@ protected:
 	const iArrayT* fNodesUsed;
 };
 
+} // namespace Tahoe 
 #endif /* _I_GRIDMANAGER2D_T_H_ */

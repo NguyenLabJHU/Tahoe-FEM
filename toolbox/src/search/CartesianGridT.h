@@ -1,4 +1,4 @@
-/* $Id: CartesianGridT.h,v 1.2 2002-05-03 09:44:23 paklein Exp $ */
+/* $Id: CartesianGridT.h,v 1.3 2002-07-02 19:57:23 cjkimme Exp $ */
 /* created: paklein (11/10/2000) */
 
 #ifndef _CARTESIAN_GRID_T_H_
@@ -11,6 +11,9 @@
 
 /** N-dimensional cartesian grid with periodic boundary conditions 
  * and load balancing */
+
+namespace Tahoe {
+
 class CartesianGridT
 {
 public:
@@ -105,4 +108,5 @@ inline const iArrayT CartesianGridT::Partition(void) const
 	return fCellMap;
 }
 
+} // namespace Tahoe 
 #endif /* _CARTESIAN_GRID_T_H_ */

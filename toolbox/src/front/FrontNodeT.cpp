@@ -1,4 +1,4 @@
-/* $Id: FrontNodeT.cpp,v 1.3 2002-02-27 16:47:16 paklein Exp $ */
+/* $Id: FrontNodeT.cpp,v 1.4 2002-07-02 19:57:10 cjkimme Exp $ */
 /* created: paklein (03/19/1999)                                          */
 
 #include "FrontNodeT.h"
@@ -8,6 +8,9 @@
 #include "dMatrixT.h"
 
 /* constants */
+
+using namespace Tahoe;
+
 const double Pi = acos(-1.0);
 
 /* vector functions */

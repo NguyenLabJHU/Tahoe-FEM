@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.cpp,v 1.6 2002-03-04 06:16:34 paklein Exp $ */
+/* $Id: IOBaseT.cpp,v 1.7 2002-07-02 19:56:59 cjkimme Exp $ */
 /* created: sawimme (09/28/1999) */
 
 #include "IOBaseT.h"
@@ -9,6 +9,9 @@
 
 #include "ExceptionCodes.h"
 #include "StringT.h"
+
+
+using namespace Tahoe;
 
 IOBaseT::IOBaseT(ostream& out): fout(out) { }
 IOBaseT::~IOBaseT(void) { }
@@ -51,6 +54,8 @@ IOBaseT::FileTypeT IOBaseT::int_to_FileTypeT(int i)
 	return IOBaseT::kTahoe;
 }
 
+namespace Tahoe {
+
 istream& operator>>(istream& in, IOBaseT::FileTypeT& file_type)
 {
 	int i_type;
@@ -58,6 +63,8 @@ istream& operator>>(istream& in, IOBaseT::FileTypeT& file_type)
 	file_type = IOBaseT::int_to_FileTypeT(i_type);
 
 	return in;
+}
+
 }
 
 void IOBaseT::InputFormats (ostream& log) const

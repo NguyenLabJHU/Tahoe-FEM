@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.h,v 1.6 2002-03-02 19:33:17 paklein Exp $ */
+/* $Id: dMatrixT.h,v 1.7 2002-07-02 19:56:47 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _DMATRIX_T_H_
@@ -6,6 +6,9 @@
 
 /* base class */
 #include "nMatrixT.h"
+
+
+namespace Tahoe {
 
 class dSymMatrixT;
 
@@ -177,5 +180,5 @@ inline void dMatrixT::Rank2ReduceFrom3D(const dMatrixT& mat3D)
 	*p++ = mat3D.fArray[3];
 	*p   = mat3D.fArray[4];
 }
-
+}//namespace Tahoe
 #endif /* _DMATRIX_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: InputFEASCIIT.h,v 1.8 2002-03-04 18:15:07 paklein Exp $ */
+/* $Id: InputFEASCIIT.h,v 1.9 2002-07-02 19:57:03 cjkimme Exp $ */
 #ifndef _INPUTFEASCII_T_H_
 #define _INPUTFEASCII_T_H_
 
@@ -10,6 +10,9 @@
 #include "AutoArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ifstreamT;
 class dArrayT;
 
@@ -179,4 +182,5 @@ inline int InputFEASCIIT::NumQuadratureVariables (void) const
 { return 0; }
 
 
+} // namespace Tahoe 
 #endif

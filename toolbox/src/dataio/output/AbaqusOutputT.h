@@ -1,4 +1,4 @@
-/* $Id: AbaqusOutputT.h,v 1.3 2001-12-16 23:57:06 paklein Exp $ */
+/* $Id: AbaqusOutputT.h,v 1.4 2002-07-02 19:57:07 cjkimme Exp $ */
 /* created: sawimme (05/31/2000)                                          */
 
 #ifndef _ABAQUSOUTPUT_T_H_
@@ -10,6 +10,9 @@
 
 /* forward declarations */
 
+
+
+namespace Tahoe {
 
 class AbaqusOutputT: public OutputBaseT
 {
@@ -43,4 +46,5 @@ private:
 	double fOldTime; /**< previous time step, used to determine time increment */
 };
 
+} // namespace Tahoe 
 #endif

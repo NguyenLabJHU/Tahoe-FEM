@@ -1,4 +1,4 @@
-/* $Id: GaoKlein.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: GaoKlein.cpp,v 1.2 2002-07-02 19:56:31 cjkimme Exp $ */
 /* created: paklein (12/26/1998)                                          */
 
 #include "GaoKlein.h"
@@ -8,6 +8,9 @@
 #include "dArrayT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 GaoKlein::GaoKlein(double A, double B, double C, double L):
 	fA(A),
 	fB(B),

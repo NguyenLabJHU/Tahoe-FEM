@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.h,v 1.3 2002-01-09 18:28:01 paklein Exp $ */
+/* $Id: JoinOutputT.h,v 1.4 2002-07-02 19:56:59 cjkimme Exp $ */
 /* created: paklein (03/24/2000) */
 
 #ifndef _JOIN_OUTPUT_T_H_
@@ -12,6 +12,9 @@
 #include "StringT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class OutputBaseT;
 class ModelManagerT;
 
@@ -90,4 +93,5 @@ private:
 	ArrayT<MapSetT> fMapSets;	
 };
 
+} // namespace Tahoe 
 #endif /* _JOIN_OUTPUT_T_H_ */

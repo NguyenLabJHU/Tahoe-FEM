@@ -1,4 +1,4 @@
-/* $Id: RowAutoFill2DT.h,v 1.3 2001-07-08 01:02:15 paklein Exp $ */
+/* $Id: RowAutoFill2DT.h,v 1.4 2002-07-02 19:56:50 cjkimme Exp $ */
 
 #ifndef _ROW_AUTO_ARRAY2D_T_H_
 #define _ROW_AUTO_ARRAY2D_T_H_
@@ -12,6 +12,9 @@
 /** class to allow dynamical resizing of rows. Allocation is on a
  * row by row basis. "Overallocation" is controlled by the headroom
  * parameter. */
+
+namespace Tahoe {
+
 template <class TYPE>
 class RowAutoFill2DT
 {
@@ -414,4 +417,5 @@ void RowAutoFill2DT<TYPE>::FlushMemory(void)
 	cout << "\n RowAutoFill2DT<TYPE>::FlushMemory: flushing memory: DONE" << endl; 
 }
 
+} // namespace Tahoe 
 #endif /* _ROW_AUTO_ARRAY2D_T_H_ */

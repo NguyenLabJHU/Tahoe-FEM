@@ -1,4 +1,4 @@
-/* $Id: TriDiagdMatrixT.cpp,v 1.2 2001-05-07 06:13:42 paklein Exp $ */
+/* $Id: TriDiagdMatrixT.cpp,v 1.3 2002-07-02 19:56:47 cjkimme Exp $ */
 /* created: paklein (01/15/1998)                                          */
 /* Triadiagonal matrix with Gauss elimination. The                        */
 /* matrix is stored in row major form.                                    */
@@ -9,6 +9,9 @@
 #include "dArrayT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 TriDiagdMatrixT::TriDiagdMatrixT(int rows):
 	nArrayT<double>(rows*3),
 	fRows(rows),

@@ -6,6 +6,9 @@
 /* base class */
 #include "C1FunctionT.h"
 
+
+namespace Tahoe {
+
 class ModSmithFerrante: public C1FunctionT
 {
 public:
@@ -46,4 +49,5 @@ private:
 	double fB;
 };
 
+} // namespace Tahoe 
 #endif /* _MOD_SMITH_FERRANTE_H_ */

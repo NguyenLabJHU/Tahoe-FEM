@@ -18,6 +18,9 @@
 #include "nMatrixT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 template <class MATHTYPE> class nArrayT;
 
 template <class MATHTYPE>
@@ -553,4 +556,5 @@ void Tensor3DT<MATHTYPE>::Gen1Contract3D1D(int t3dex,
 	}	
 }  	                        	
 
+}//namespace Tahoe
 #endif /* _TENSOR3D_H_ */

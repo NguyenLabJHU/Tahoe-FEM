@@ -1,4 +1,4 @@
-/* $Id: zArrayT.h,v 1.4 2001-06-20 23:38:01 pecore Exp $ */
+/* $Id: zArrayT.h,v 1.5 2002-07-02 19:56:42 cjkimme Exp $ */
 /* created: PAK/AFLP (05/19/1997)                                         */
 
 #ifndef _ZARRAY_T_H_
@@ -11,6 +11,9 @@
 #include "ComplexT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class dArrayT;
 
 class zArrayT: public nArrayT<ComplexT>
@@ -68,4 +71,5 @@ inline zArrayT& zArrayT::operator=(const ComplexT& value)
 	return(*this);
 }
 
+} // namespace Tahoe 
 #endif /* _ZARRAY_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: SecantMethodT.cpp,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
+/* $Id: SecantMethodT.cpp,v 1.2 2002-07-02 19:57:18 cjkimme Exp $ */
 /* created: paklein (12/01/1998)                                          */
 /* SecantMethodT.cpp                                                      */
 
@@ -9,6 +9,9 @@
 #include "ExceptionCodes.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 SecantMethodT::SecantMethodT(int max_iterations, double tolerance):
 	fMaxIts(max_iterations),
 	fTol(tolerance),

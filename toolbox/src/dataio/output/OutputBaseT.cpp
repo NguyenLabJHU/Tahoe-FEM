@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.10 2002-06-25 14:17:06 sawimme Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.11 2002-07-02 19:57:07 cjkimme Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "OutputBaseT.h"
@@ -12,6 +12,9 @@
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 #include "AutoArrayT.h"
+
+
+using namespace Tahoe;
 
 OutputBaseT::OutputBaseT(ostream& out, const ArrayT<StringT>& out_strings):
 	IOBaseT(out),

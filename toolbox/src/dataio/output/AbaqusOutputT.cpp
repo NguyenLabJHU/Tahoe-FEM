@@ -1,4 +1,4 @@
-/* $Id: AbaqusOutputT.cpp,v 1.5 2002-06-25 14:17:05 sawimme Exp $ */
+/* $Id: AbaqusOutputT.cpp,v 1.6 2002-07-02 19:57:07 cjkimme Exp $ */
 /* created: sawimme (05/31/2000)                                          */
 
 #include "AbaqusOutputT.h"
@@ -12,6 +12,9 @@
 #include "dArray2DT.h"
 #include "ArrayT.h"
 #include "ofstreamT.h"
+
+
+using namespace Tahoe;
 
 AbaqusOutputT::AbaqusOutputT(ostream& out, const ArrayT<StringT>& out_strings, bool binary):
   OutputBaseT(out, out_strings),

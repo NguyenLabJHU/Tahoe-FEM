@@ -1,4 +1,4 @@
-/* $Id: dMatrixEXT.h,v 1.8 2002-06-27 23:41:24 cfoster Exp $ */
+/* $Id: dMatrixEXT.h,v 1.9 2002-07-02 19:56:47 cjkimme Exp $ */
 /* created: paklein (03/06/1998) */
 
 #ifndef _DMATRIXEX_T_H_
@@ -13,6 +13,9 @@
 #include "dTensor4DT.h"
 
 /** interface for dMatrixT plus special matrix functions */
+
+namespace Tahoe {
+
 class dMatrixEXT: public dMatrixT
 {
 public:
@@ -153,4 +156,5 @@ inline double dMatrixEXT::Dot(const double* v1, const double* v2, int length) co
 	return prod;
 }
 
+} // namespace Tahoe 
 #endif /* _DMATRIXEX_T_H_ */

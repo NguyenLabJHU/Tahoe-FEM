@@ -1,4 +1,4 @@
-/* $Id: ComplexT.h,v 1.6 2001-12-10 23:38:10 paklein Exp $ */
+/* $Id: ComplexT.h,v 1.7 2002-07-02 19:56:42 cjkimme Exp $ */
 /* created: PAK/AFLP (05/19/1997)                                         */
 /* 	                                                                      */
 
@@ -10,6 +10,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 template <class nTYPE> class nArrayT;
 
 class ComplexT
@@ -89,6 +92,10 @@ private:
 	double fIm;
 
 };
+
+//} // namespace Tahoe
+
+//using namespace Tahoe;
 
 /* inline functions */
 
@@ -244,6 +251,7 @@ inline ComplexT& ComplexT::operator/=(const ComplexT& zRHS)
 	fIm = ti;
 
 	return (*this);
+}
 }
 
 #endif /* _COMPLEX_T_H_ */

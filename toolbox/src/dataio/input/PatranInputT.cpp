@@ -1,10 +1,13 @@
-/* $Id: PatranInputT.cpp,v 1.10 2002-03-04 06:25:30 paklein Exp $ */
+/* $Id: PatranInputT.cpp,v 1.11 2002-07-02 19:57:03 cjkimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "PatranInputT.h"
 #include "iArrayT.h"
 #include "dArray2DT.h"
 #include "iArray2DT.h"
+
+
+using namespace Tahoe;
 
 PatranInputT::PatranInputT (ostream& out) :
   InputBaseT (out),

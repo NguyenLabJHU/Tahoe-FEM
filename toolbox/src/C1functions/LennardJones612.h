@@ -1,4 +1,4 @@
-/* $Id: LennardJones612.h,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: LennardJones612.h,v 1.2 2002-07-02 19:56:31 cjkimme Exp $ */
 /* created: paklein (10/30/1997)                                          */
 
 #ifndef _LJ_612_H_
@@ -6,6 +6,9 @@
 
 /* base class */
 #include "C1FunctionT.h"
+
+
+namespace Tahoe {
 
 class LennardJones612: public C1FunctionT
 {
@@ -49,4 +52,5 @@ private:
 
 };
 
+} // namespace Tahoe 
 #endif /* _LJ_612_H_ */

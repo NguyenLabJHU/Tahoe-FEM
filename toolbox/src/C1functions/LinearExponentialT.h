@@ -1,4 +1,4 @@
-/* $Id: LinearExponentialT.h,v 1.1 2001-05-05 19:05:21 paklein Exp $ */
+/* $Id: LinearExponentialT.h,v 1.2 2002-07-02 19:56:31 cjkimme Exp $ */
 /* created: paklein (05/04/2001)                                    */
 
 #ifndef _LINEAR_EXPONENTIAL_T_H_
@@ -13,6 +13,9 @@
  *
  * with parameters {a, b, c, d}
  */
+
+namespace Tahoe {
+
 class LinearExponentialT: public C1FunctionT
 {
 public:
@@ -52,4 +55,5 @@ private:
 	double fa, fb, fc, fd;
 };
 
+} // namespace Tahoe 
 #endif /* _LINEAR_EXPONENTIAL_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: ParabolaT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: ParabolaT.cpp,v 1.2 2002-07-02 19:56:32 cjkimme Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #include "ParabolaT.h"
@@ -7,6 +7,9 @@
 #include "dArrayT.h"
 
 /* constructors */
+
+using namespace Tahoe;
+
 ParabolaT::ParabolaT(double k): fk(k) { }
 
 /* I/O */
