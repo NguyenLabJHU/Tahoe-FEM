@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.16 2002-10-23 00:18:02 cjkimme Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.17 2002-10-30 00:35:49 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -69,25 +69,51 @@ CSEBaseT::CSEBaseT(const ElementSupportT& support):
 	fFractureArea(0.0),
 	fShapes(NULL)
 {
-	fGeometryCode = GeometryT::kQuadrilateral;
-	fNumIntPts = 4;
-	fCloseSurfaces = 0;
-	fOutputArea = 0;
+	/*ElementSupportT is const here; cast it away */
+	ElementSupportT* nonConstEst = const_cast<ElementSupportT*>(&(ElementSupport()));
+	int i_code = nonConstEst->ReturnInputInt("SURFACE GEOMETRY CODE");
+	switch (i_code)
+	{
+		case GeometryT::kNone:
+			fGeometryCode= GeometryT::kNone;
+			break;
+		case GeometryT::kPoint:
+			fGeometryCode = GeometryT::kPoint;
+			break;
+		case GeometryT::kLine:
+			fGeometryCode = GeometryT::kLine;
+			break;
+		case GeometryT::kQuadrilateral:
+			fGeometryCode = GeometryT::kQuadrilateral;
+			break;
+		case GeometryT::kTriangle:
+			fGeometryCode = GeometryT::kTriangle;
+			break;
+		case GeometryT::kHexahedron:
+			fGeometryCode = GeometryT::kHexahedron;
+			break;
+		case GeometryT::kTetrahedron:
+			fGeometryCode = GeometryT::kTetrahedron;
+			break;
+		case GeometryT::kPentahedron:
+			fGeometryCode = GeometryT::kPentahedron;
+			break;
+		default:
+			throw ExceptionT::kBadInputValue;	
+	}
+	fNumIntPts =  nonConstEst->ReturnInputInt("NUMBER INTEGRATION POINTS");
+	fCloseSurfaces =  nonConstEst->ReturnInputInt("INITIALLY CLOSE SURFACES");
+	fOutputArea =  nonConstEst->ReturnInputInt("OUTPUT FRACTURE SURFACE AREA");
 
 	/* checks */
 	if (NumSD() == 2 && fGeometryCode != GeometryT::kLine)
 	{
-		cout << "\n CSEBaseT::CSEBaseT: expecting geometry code "
-		     << GeometryT::kLine<< " for 2D: " << fGeometryCode << endl;
 		throw ExceptionT::kBadInputValue;
 	}
 	else if (NumSD() == 3 &&
 	         fGeometryCode != GeometryT::kQuadrilateral &&
 	         fGeometryCode != GeometryT::kTriangle)
 	{
-		cout << "\n CSEBaseT::CSEBaseT: expecting geometry code " << GeometryT::kQuadrilateral
-		     << " or\n" <<   "     " << GeometryT::kTriangle << " for 3D: "
-		     << fGeometryCode << endl;
 		throw ExceptionT::kBadInputValue;
 	}
 	
