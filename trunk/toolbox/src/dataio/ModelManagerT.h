@@ -1,20 +1,20 @@
-/* $Id: ModelManagerT.h,v 1.27 2003-06-09 06:10:25 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.28 2003-08-08 00:25:34 paklein Exp $ */
 /* created: sawimme July 2001 */
-
 #ifndef _MODELMANAGER_T_H_
 #define _MODELMANAGER_T_H_
 
-/* direct */
+#include "ios_fwd_decl.h"
+
+/* direct members */
 #include "iArrayT.h"
 #include "iAutoArrayT.h"
 #include "StringT.h"
 #include "GeometryT.h"
 #include "iArray2DT.h"
 #include "dArray2DT.h"
+#include "dArrayT.h"
 #include "InputBaseT.h"
 #include "nVariArray2DT.h"
-
-#include "ios_fwd_decl.h"
 
 namespace Tahoe {
 
@@ -367,6 +367,9 @@ class ModelManagerT
 
 	/** overwrite the given the coordinates */
 	void UpdateNodes(const dArray2DT& coordinates, const ArrayT<int>& nodes);
+
+	/** overwrite the coordinates of the given node */
+	void UpdateNode(const dArrayT& coordinates, int node);
 
 	/** call this function if the connectivity group/block/set is altered and replacement is needed
 	 * the number of elements and element nodes is updated
@@ -802,6 +805,12 @@ inline const StringT& ModelManagerT::ElementGroupID(int index) const {
 	}
 	return fElementNames[index]; 
 };
+
+inline void ModelManagerT::UpdateNode(const dArrayT& coordinates, int node)
+{
+	/* write in */
+	fCoordinates.SetRow(node, coordinates);
+}
 
 } // namespace Tahoe 
 #endif
