@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.cpp,v 1.8.18.1 2004-06-14 04:56:27 paklein Exp $ */
+/* $Id: MaterialSupportT.cpp,v 1.8.18.2 2004-06-16 00:27:44 paklein Exp $ */
 #include "MaterialSupportT.h"
 #include "ElementsConfig.h"
 
@@ -18,9 +18,9 @@ MaterialSupportT::MaterialSupportT(int ndof, int nip):
 
 	/* multiprocessor information */
 	fGroupCommunicator(NULL),
-
 	fElementCards(NULL),
 	fContinuumElement(NULL),
+	fGroup(-1),
 	fInitCoords(NULL),
 	fDisp(NULL)
 { 
@@ -48,6 +48,7 @@ void MaterialSupportT::SetContinuumElement(const ContinuumElementT* p)
 	{
 		SetFEManager(NULL);
 		fGroupCommunicator = NULL;
+		fGroup = -1;
 	}
 #endif
 }
