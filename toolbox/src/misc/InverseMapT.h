@@ -1,4 +1,4 @@
-/* $Id: InverseMapT.h,v 1.3 2003-02-23 02:42:31 paklein Exp $ */
+/* $Id: InverseMapT.h,v 1.4 2003-03-02 18:50:53 paklein Exp $ */
 #ifndef _INVERSE_MAP_T_H_
 #define _INVERSE_MAP_T_H_
 
@@ -78,7 +78,10 @@ inline InverseMapT::InverseMapT(void):
 /* map the global index to the local index */
 inline int InverseMapT::Map(int global) const
 {
-	int map = (*this)[global - fShift];
+	int dex = global - fShift;
+	int map = -1;
+	if (dex > -1 && dex < fLength) map = (*this)[dex];
+
 	if (map == -1 && fOutOfRange == Throw) 
 		ExceptionT::OutOfRange("InverseMapT::Map", "%d was not in the forward map", global);
 	return map;
