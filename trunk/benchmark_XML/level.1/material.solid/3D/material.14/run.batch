@@ -1,5 +1,6 @@
 @
-# $Id: run.batch,v 1.1 2004-06-16 07:10:14 paklein Exp $
-mat.14.ErcolessiAdams-Al.a.in
-mat.14.VoterChen-Cu.a.in
-mat.14.FoilesBaskesDaw-Au.a.in
+# $Id: run.batch,v 1.2 2004-06-16 18:38:12 paklein Exp $
+mat.14.ErcolessiAdams-Al.a.xml
+mat.14.FoilesBaskesDaw-Au.a.xml
+mat.14.VoterChen-Cu.a.xml
+
