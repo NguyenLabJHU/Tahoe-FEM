@@ -1,5 +1,7 @@
-/* $Id: FieldT.cpp,v 1.36 2004-09-16 16:50:23 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.37 2004-11-18 16:36:34 paklein Exp $ */
 #include "FieldT.h"
+
+#include "ElementsConfig.h"
 
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -827,8 +829,10 @@ void FieldT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& or
 		order = ParameterListT::Choice;
 		
 		/* choices - KBC_ControllerT::Code must translate names */
+#ifdef CONTINUUM_ELEMENT
 		sub_lists.AddSub("K-field");	
 		sub_lists.AddSub("bi-material_K-field");	
+#endif
 		sub_lists.AddSub("torsion");	
 		sub_lists.AddSub("mapped_nodes");
 		sub_lists.AddSub("scaled_velocity");
@@ -845,10 +849,12 @@ void FieldT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& or
 		sub_lists.AddSub("sphere_augmented_Lagrangian");
 		sub_lists.AddSub("sphere_penalty_meshfree");
 		sub_lists.AddSub("wall_penalty");
+#ifdef CONTINUUM_ELEMENT
+		sub_lists.AddSub("augmented_Lagrangian_KBC_meshfree");
+#endif
 		sub_lists.AddSub("wall_augmented_Lagrangian");
 		sub_lists.AddSub("cylinder_penalty");
 		sub_lists.AddSub("cylinder_augmented_Lagrangian");
-		sub_lists.AddSub("augmented_Lagrangian_KBC_meshfree");
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);

@@ -1,5 +1,7 @@
-/* $Id: MFAugLagMultT.cpp,v 1.5 2004-10-06 19:58:55 cjkimme Exp $ */
+/* $Id: MFAugLagMultT.cpp,v 1.6 2004-11-18 16:36:40 paklein Exp $ */
 #include "MFAugLagMultT.h"
+
+#ifdef CONTINUUM_ELEMENT
 
 #include <iostream.h>
 #include <iomanip.h>
@@ -11,10 +13,10 @@
 #include "XDOF_ManagerT.h"
 #include "eIntegratorT.h"
 #include "FieldT.h"
-#include "SCNIMFT.h"
 #include "dMatrixT.h"
 #include "ifstreamT.h"
 #include "OutputSetT.h"
+#include "SCNIMFT.h"
 
 using namespace Tahoe;
 
@@ -565,3 +567,4 @@ void MFAugLagMultT::ChatWithElementGroup(void) {
 
 }
 
+#endif /* CONTINUUM_ELEMENT */

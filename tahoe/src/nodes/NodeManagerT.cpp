@@ -1,6 +1,7 @@
-/* $Id: NodeManagerT.cpp,v 1.53 2004-10-14 20:24:17 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.54 2004-11-18 16:36:34 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
+#include "ElementsConfig.h"
 
 #include <iostream.h>
 #include <iomanip.h>
@@ -30,8 +31,8 @@
 #include "AugLagSphereT.h"
 #include "MFPenaltySphereT.h"
 #include "PenaltyCylinderT.h"
-#include "MFAugLagMultT.h"
 #include "AugLagCylinderT.h"
+#include "MFAugLagMultT.h"
 
 /* kinematic BC controllers */
 #include "K_FieldT.h"
@@ -1399,11 +1400,13 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 		case KBC_ControllerT::kPrescribed:
 			return new KBC_ControllerT(fFieldSupport);
 	
+#ifdef CONTINUUM_ELEMENT
 		case KBC_ControllerT::kK_Field:
 			return new K_FieldT(fFieldSupport);
 
 		case KBC_ControllerT::kBimaterialK_Field:	
 			return new BimaterialK_FieldT(fFieldSupport);
+#endif
 
 		case KBC_ControllerT::kMappedPeriodic:	
 			return new MappedPeriodicT(fFieldSupport, field);
@@ -1476,9 +1479,11 @@ FBC_ControllerT* NodeManagerT::NewFBC_Controller(int code)
 			fbc = new MFPenaltySphereT;
 			break;
 
+#ifdef CONTINUUM_ELEMENT
 	    case FBC_ControllerT::kMFAugLagMult:
 	    	fbc = new MFAugLagMultT;
 	    	break;
+#endif
 
 	    case FBC_ControllerT::kAugLagCylinder:
 	    	fbc = new AugLagCylinderT;

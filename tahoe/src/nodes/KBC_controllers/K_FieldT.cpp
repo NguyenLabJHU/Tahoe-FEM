@@ -1,24 +1,19 @@
-/* $Id: K_FieldT.cpp,v 1.23 2004-11-14 01:58:19 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.24 2004-11-18 16:36:47 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
+
+#ifdef CONTINUUM_ELEMENT
 
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 
-#include "IsotropicT.h"
-#include "SolidMaterialT.h"
-#include "ElementsConfig.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
 
-#ifdef CONTINUUM_ELEMENT
 #include "MaterialListT.h"
-#include "ContinuumMaterialT.h"
+#include "SolidMaterialT.h"
 #include "ContinuumElementT.h"
 #include "IsotropicT.h"
-#else
-#include "ElementBaseT.h"
-#endif
 #include "ParameterContainerT.h"
 #include "ParameterUtils.h"
 
@@ -270,13 +265,11 @@ ParameterInterfaceT* K_FieldT::NewSub(const StringT& name) const
 		props->SetListOrder(ParameterListT::Choice);
 		props->SetSubSource(this);
 
-#ifdef CONTINUUM_ELEMENT
 		/* define from material in far-field element group */
 		ParameterContainerT group("far_field_element_group");
 		group.AddParameter(ParameterT::Integer, "group_number");
 		group.AddParameter(ParameterT::Integer, "material_number");
 		props->AddSub(group);
-#endif
 
 		/* define moduli directly */
 		ParameterContainerT moduli("far_field_elastic_properties");
@@ -442,9 +435,6 @@ void K_FieldT::ResolveElasticProperties(const ParameterListT& list,
 	{
 		if (elastic->Name() == "far_field_element_group") 
 		{
-#ifndef CONTINUUM_ELEMENT
-			ExceptionT::BadInputValue(caller, "\"%s\" requires CONTINUUM_ELEMENT", elastic->Name().Pointer());
-#endif
 			/* extract element group information - the group won't be available until later */
 			group_number = elastic->GetParameter("group_number"); group_number--;
 			material_number = elastic->GetParameter("material_number"); material_number--;
@@ -564,7 +554,6 @@ void K_FieldT::ResolveMaterialReference(int element_group,
 {
 	const char caller[] = "K_FieldT::ResolveMaterialReference";
 
-#ifdef CONTINUUM_ELEMENT
 	/* resolve element group */
 	const FEManagerT& fe_man = fSupport.FEManager();
 	const ElementBaseT* element = fe_man.ElementGroup(element_group);
@@ -594,13 +583,6 @@ void K_FieldT::ResolveMaterialReference(int element_group,
 			ExceptionT::GeneralFail(caller, "could not cast material %d \"%s\" to Material2DT",
 				material_num+1, cont_mat->Name().Pointer());		
 	}
-#else /* CONTINUUM_ELEMENT */
-#pragma unused(element_group)
-#pragma unused(material_num)
-#pragma unused(iso)
-#pragma unused(mat)
-ExceptionT::GeneralFail(caller);
-#endif /* CONTINUUM_ELEMENT */
 }
 
 /* compute K-field displacement factors */
@@ -692,3 +674,5 @@ void K_FieldT::SetBCCards(void)
 		fKBC_Cards[dex++].SetValues(node, 1, KBC_CardT::kDsp, NULL, d2);
 	}
 }
+
+#endif /* CONTINUUM_ELEMENT */
