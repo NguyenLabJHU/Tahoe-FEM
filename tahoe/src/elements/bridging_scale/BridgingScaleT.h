@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.27 2003-10-28 07:30:35 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.28 2004-01-28 01:28:30 hspark Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -60,7 +60,7 @@ public:
 	 * \param point_in_cell destination for map data
 	 */
 	virtual void InitProjection(const iArrayT& points_used, const dArray2DT* init_coords, 
-		const dArray2DT* curr_coords, PointInCellDataT& cell_data);
+		const dArray2DT* curr_coords, PointInCellDataT& cell_data, dArrayT& mdmass);
 
 	/** project the point values onto the mesh. Requires a previous call to
 	 * BridgingScaleT::InitProjection in order to compute the mass-like
@@ -77,12 +77,12 @@ public:
 	 *  and fine scale part of MD solution.  values = MD displacements, values2 = 
 	 *  fem displacements */
 	void BridgingFields(const StringT& field, const PointInCellDataT& cell_data,
-		const dArray2DT& mddisp, const dArray2DT& fedisp, dArray2DT& projection, dArray2DT& totalu);
+		const dArray2DT& mddisp, const dArray2DT& fedisp, dArray2DT& projection, dArray2DT& totalu, dArrayT& mdmass);
 	
 	/** Same as BridgingFields except that projected FEM displacements are written into
 	 *  displacement field.  Used during initial timestep */
 	void InitialProject(const StringT& field, const PointInCellDataT& cell_data,
-		const dArray2DT& mddisp, dArray2DT& projection, dArray2DT& projectedu);
+		const dArray2DT& mddisp, dArray2DT& projection, dArray2DT& projectedu, dArrayT& mdmass);
 	/*@}*/
 	
 	/** register self for output */
