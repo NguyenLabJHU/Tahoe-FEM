@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianAxiT.cpp,v 1.2.14.1 2004-05-06 16:03:20 paklein Exp $ */
+/* $Id: TotalLagrangianAxiT.cpp,v 1.2.14.2 2004-05-11 03:59:45 paklein Exp $ */
 #include "TotalLagrangianAxiT.h"
 
 #include "ShapeFunctionT.h"
@@ -16,7 +16,7 @@ TotalLagrangianAxiT::TotalLagrangianAxiT(const ElementSupportT& support, const F
 	fTempMat1(3),
 	fTempMat2(3)
 {
-
+	SetName("total_lagrangian_axi");
 }
 
 TotalLagrangianAxiT::TotalLagrangianAxiT(const ElementSupportT& support):
@@ -25,14 +25,14 @@ TotalLagrangianAxiT::TotalLagrangianAxiT(const ElementSupportT& support):
 	fTempMat1(3),
 	fTempMat2(3)
 {
-
+	SetName("total_lagrangian_axi");
 }
 
-/* data initialization */
-void TotalLagrangianAxiT::Initialize(void)
+/* accept parameter list */
+void TotalLagrangianAxiT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	FiniteStrainAxiT::Initialize();
+	FiniteStrainAxiT::TakeParameterList(list);
 
 	/* dimension */
 	fGradNa.Dimension(NumSD(), NumElementNodes());
