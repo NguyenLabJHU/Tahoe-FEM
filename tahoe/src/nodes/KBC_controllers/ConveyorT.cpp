@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.3.30.7 2004-11-12 01:23:48 thao Exp $ */
+/* $Id: ConveyorT.cpp,v 1.3.30.8 2004-11-12 19:27:13 thao Exp $ */
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
@@ -159,8 +159,8 @@ void ConveyorT::Initialize(ifstreamT& in)
 	cards.Dimension(rightnodes.Length());
 	for (int i=0; i< cards.Length(); i++) {
 		KBC_CardT& card = cards[i];
-		card.SetValues(rightnodes[i], 0, KBC_CardT::kFix, NULL, 0.0); 
-//		card.SetValues(rightnodes[i], 0, KBC_CardT::kFix, 0, 0.0); 
+//		card.SetValues(rightnodes[i], 0, KBC_CardT::kFix, NULL, 0.0); 
+		card.SetValues(rightnodes[i], 0, KBC_CardT::kFix, 0, 0.0); 
 	}
 }
 
@@ -329,9 +329,21 @@ void ConveyorT::ReadRestart(ifstreamT& in)
 	iArrayT tmp;
 	int num_shifted = -1;
 	my_in >> num_shifted;
-	tmp.Dimension(num_shifted);
-	my_in >> tmp;
-	fShiftedNodes = tmp;
+
+	ArrayT<KBC_CardT>& cards = fRightEdge->KBC_Cards();
+//	cards.Dimension(fShiftedNodes.Length());
+	if (num_shifted > 0) {
+		tmp.Dimension(num_shifted);
+		my_in >> tmp;
+		fShiftedNodes = tmp;
+
+		/*reset cards for right edge*/
+		for (int i=0; i< cards.Length(); i++) {
+			KBC_CardT& card = cards[i];
+	//		card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, NULL, 0.0);
+			card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, 0, 0.0);
+		}
+	}
 	
 	int reset, num_damped = -1;
 	my_in >> reset;
@@ -362,14 +374,6 @@ void ConveyorT::ReadRestart(ifstreamT& in)
 	fX_Left_last =fX_Left;
 	fX_Right_last=fX_Right;
 	
-	/*reset cards for right edge*/
-	ArrayT<KBC_CardT>& cards = fRightEdge->KBC_Cards();
-	cards.Dimension(fShiftedNodes.Length());
-	for (int i=0; i< cards.Length(); i++) {
-		KBC_CardT& card = cards[i];
-		card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, NULL, 0.0);
-//		card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, 0, 0.0);
-	}
 	//TEMP - need to reset the equation system because it was set before
 	//       reading the restart files and does not reflect the equations
 	//       the system had when the restart was written because the kbc's
