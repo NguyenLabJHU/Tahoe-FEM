@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.9 2003-03-02 18:56:12 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.10 2003-11-13 22:19:25 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 #include "PenaltyContact3DT.h"
 
@@ -270,7 +270,12 @@ void PenaltyContact3DT::RHSDriver(void)
 
 			/* assemble */
 			ElementSupport().AssembleRHS(Group(), fRHS, eqnos);
+
+			/* store for output */
+			fActiveStrikersForce[i] = dphi;
 		}
+		else /* zero force */
+			fActiveStrikersForce[i] = 0.0;
 	}
 
 	/* set tracking */

@@ -1,4 +1,4 @@
-/* $Id: AugLagContact3DT.cpp,v 1.1 2003-03-02 18:52:59 paklein Exp $ */
+/* $Id: AugLagContact3DT.cpp,v 1.2 2003-11-13 22:19:25 paklein Exp $ */
 #include "AugLagContact3DT.h"
 
 #include <math.h>
@@ -138,17 +138,6 @@ void AugLagContact3DT::SetDOFTags(void)
 
 	/* resize DOF tags array */
 	fContactDOFtags.Dimension(fActiveStrikers.Length());
-
-	/* write list of active strikers */
-	iArrayT tmp;
-	tmp.Alias(fActiveStrikers);	
-	ostream& out = ElementSupport().Output();
-	out << "\n            time: " << ElementSupport().Time() << '\n';
-	out <<   " previous active: " << ElementSupport().XDOF_Manager().XDOF(this, 0).MajorDim() << '\n';
-	out <<   "  current active: " << tmp.Length()   << '\n';
-	tmp++;
-	out << tmp.wrap(8) << '\n';
-	tmp--;
 }
 
 iArrayT& AugLagContact3DT::DOFTags(int tag_set)
@@ -363,6 +352,9 @@ void AugLagContact3DT::RHSDriver(void)
 
 		/* augmented Lagrangian */
 		double g = force[i] + fr*h;
+
+		/* store for output */
+		fActiveStrikersForce[i] = force[i];
 		
 		/* contact */
 		if (g < 0.0)
