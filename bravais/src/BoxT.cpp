@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.31 2003-07-23 20:34:22 fwdelri Exp $ */
+/* $Id: BoxT.cpp,v 1.32 2003-07-25 00:00:27 jzimmer Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -41,16 +41,41 @@ BoxT::BoxT(int dim, dArray2DT len,
       ncells[i] = static_cast<int>(dist/lattice_parameter[i]);
     }
 
-  for(int i=0;i<nSD;i++)
-    {
-      double dist = ncells[i]*lattice_parameter[i]*0.5;
-      length(i,0) = -dist;
-      length(i,1) = length(i,0) + (dist - length(i,0));
-    }
-
   if (sLATTYPE == "CORUN")
-    length(0,1) = length(0,0) + 3.0*ncells[0]*lattice_parameter[0];
-
+    {
+      double dist[3];
+      dist[0] = 3.0*ncells[0]*lattice_parameter[0];
+      dist[1] = sqrt(3.0)*ncells[1]*lattice_parameter[1];
+      dist[2] = ncells[2]*lattice_parameter[2];
+      for(int i=0;i<nSD;i++)
+        {
+          dist[i] = 0.5*dist[i];
+          length(i,0) = -dist[i];
+          length(i,1) = length(i,0) + (dist[i] - length(i,0));
+        }
+    }
+  else if (sLATTYPE == "HEX")
+    {
+      double dist[3]; 
+      dist[0] = ncells[0]*lattice_parameter[0];
+      dist[1] = sqrt(3.0)*ncells[1]*lattice_parameter[1];
+      if (nSD==3) dist[2] = ncells[2]*lattice_parameter[2];
+      for(int i=0;i<nSD;i++)
+        {
+          dist[i] = 0.5*dist[i];                           
+          length(i,0) = -dist[i];
+          length(i,1) = length(i,0) + (dist[i] - length(i,0)); 
+        }
+    }    
+  else
+    {
+      for(int i=0;i<nSD;i++)
+        {
+          double dist = ncells[i]*lattice_parameter[i]*0.5;
+          length(i,0) = -dist;
+          length(i,1) = length(i,0) + (dist - length(i,0));
+        }
+     }
 }
 
 BoxT::BoxT(int dim, iArrayT cel,
@@ -69,19 +94,41 @@ BoxT::BoxT(int dim, iArrayT cel,
   for(int i=0;i<nSD;i++)
       ncells[i] = cel[i];
 
-  for(int i=0;i<nSD;i++)
-    {
-      double dist = ncells[i]*lattice_parameter[i]*0.5;
-      length(i,0) = -dist;
-      length(i,1) = length(i,0) + (dist - length(i,0));
-    }
-
   if (sLATTYPE == "CORUN")
     {
-      length(0,0) =-1.5*ncells[0]*lattice_parameter[0];
-      length(0,1) = 1.5*ncells[0]*lattice_parameter[0];
+      double dist[3];
+      dist[0] = 3.0*ncells[0]*lattice_parameter[0];
+      dist[1] = sqrt(3.0)*ncells[1]*lattice_parameter[1];
+      dist[2] = ncells[2]*lattice_parameter[2];
+      for(int i=0;i<nSD;i++)
+        {
+          dist[i] = 0.5*dist[i];
+          length(i,0) = -dist[i];
+          length(i,1) = length(i,0) + (dist[i] - length(i,0));
+        }
     }
-
+  else if (sLATTYPE == "HEX")
+    {
+      double dist[3];
+      dist[0] = ncells[0]*lattice_parameter[0];
+      dist[1] = sqrt(3.0)*ncells[1]*lattice_parameter[1];
+      if (nSD==3) dist[2] = ncells[2]*lattice_parameter[2];
+      for(int i=0;i<nSD;i++)
+        {
+          dist[i] = 0.5*dist[i];
+          length(i,0) = -dist[i];
+          length(i,1) = length(i,0) + (dist[i] - length(i,0));
+        }
+    }
+  else
+    {
+      for(int i=0;i<nSD;i++)
+        {
+          double dist = ncells[i]*lattice_parameter[i]*0.5;
+          length(i,0) = -dist;
+          length(i,1) = length(i,0) + (dist - length(i,0));
+        }
+     }
 }
 
 BoxT::BoxT(const BoxT& source) : VolumeT(source.nSD) 
