@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.cpp,v 1.4 2001-06-18 17:04:18 hspark Exp $ */
+/* $Id: GaussianWindowT.cpp,v 1.5 2001-06-18 18:02:53 hspark Exp $ */
 
 #include "GaussianWindowT.h"
 #include "ExceptionCodes.h"
@@ -36,21 +36,30 @@ void GaussianWindowT::window(const dArrayT& x_n, const dArrayT& param_n, const d
   if (!Covers(x_n, x, param_n))    // WARNING:  param_n[0] may not be correct with only 1 value!
   {
     w = 0.0;
-    Dw = 0.0;
-    DDw = 0.0;
+    if (order > 0)
+    {
+      Dw = 0.0;
+      if (order > 1)
+	DDw = 0.0;
+    }
   }
   else
   {
-    dSymMatrixT NSDsym(x.Length());
     double adm = param_n[0] * fSharpeningFudgeFactor;
     double adm2 = adm * adm;
     double q = dist / adm;
     w = exp(-q * q) / (sqrtPi * adm);
-    Dw.SetToScaled(-2.0 * w / adm2, dx);
-    NSDsym.Outer(dx);
-    NSDsym *= 4.0 * w / (adm2 * adm2);
-    NSDsym.PlusIdentity(-2.0 * w / adm2);
-    DDw = NSDsym;    // THIS COULD BE WRONG!!
+    if (order > 0)
+    {
+      Dw.SetToScaled(-2.0 * w / adm2, dx);
+      if (order > 1)
+      {
+	  NSDsym.Outer(dx);
+	  NSDsym *= 4.0 * w / (adm2 * adm2);
+	  NSDsym.PlusIdentity(-2.0 * w / adm2);
+	  DDw = NSDsym;    // THIS COULD BE WRONG!!
+      }
+    }
   }
 }
 
@@ -75,8 +84,12 @@ int GaussianWindowT::window(const dArray2DT& x_n, const dArray2DT& param_n, cons
     if (!covers[i])
     {
       w[i] = 0.0;
-      Dw.SetColumn(i, 0.0);
-      DDw.SetColumn(i, 0.0);
+      if (order > 0)
+      {
+	Dw.SetColumn(i, 0.0);
+	if (order > 1)
+	  DDw.SetColumn(i, 0.0);
+      }
     }
     else
     {
@@ -84,12 +97,18 @@ int GaussianWindowT::window(const dArray2DT& x_n, const dArray2DT& param_n, cons
       double q = dist / adm;
       double adm2 = adm * adm;
       w[i] = (-q * q) / (sqrtPi * adm);
-      tempDw.SetToScaled(-2.0 * w[i] / adm2, dx);
-      Dw.SetColumn(i, tempDw);
-      NSDsym.Outer(dx);
-      NSDsym *= 4.0 * w[i] / (adm2 * adm2);
-      NSDsym.PlusIdentity(-2.0 * w[i] / adm2);
-      DDw.SetColumn(i, NSDsym);
+      if (order > 0)
+      {
+	tempDw.SetToScaled(-2.0 * w[i] / adm2, dx);
+	Dw.SetColumn(i, tempDw);
+	if (order > 1)
+	{
+	  NSDsym.Outer(dx);
+	  NSDsym *= 4.0 * w[i] / (adm2 * adm2);
+	  NSDsym.PlusIdentity(-2.0 * w[i] / adm2);
+	  DDw.SetColumn(i, NSDsym);
+	}
+      }
       count++;
     }
   }
