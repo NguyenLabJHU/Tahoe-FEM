@@ -24,5 +24,8 @@ Things that needed to be addressed when running the code through f2c
 (7) because some functions are called recursively, the local variables
 	cannot be declared static, which is the default with f2c
 
+(8) f2c assumes functions called will also be fortran (not C), so check
+    all arguments to see if they are supposed to be pointers or values.
+
 Potential issues:
 (1) lbit_shift translated from ishft in moveai.c. What does this do?
