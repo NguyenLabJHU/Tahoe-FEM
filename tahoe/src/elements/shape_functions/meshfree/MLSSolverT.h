@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.h,v 1.1.1.1.4.1 2001-06-19 00:54:44 paklein Exp $ */
+/* $Id: MLSSolverT.h,v 1.1.1.1.4.2 2001-06-19 08:58:43 paklein Exp $ */
 /* created: paklein (12/08/1999)                                          */
 /* base class for moving least squares, interpolants                      */
 
@@ -20,47 +20,70 @@
 /* forward declarations */
 class BasisT;
 
+/** class to calculate MLS shape functions and derivatives */
 class MLSSolverT
 {
 public:
 
-	/* constructor */
+	/** constructor.
+	 * \param nsd number of spatial dimensions
+	 * \param complete order of completeness for the basis functions
+	 * \param window_type window function specifier
+	 * \param window_params array of window function parameters */
 	MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type, 
 		const dArrayT& window_params);
 	
-	/* destructor */
+	/** destructor */
 	virtual ~MLSSolverT(void);
 	
-	/* write parameters */
+	/** write parameters */
 	virtual void WriteParameters(ostream& out) const;
 	
-	/* class dependent initializations */
+	/** class dependent initializations */
 	void Initialize(void);
 	
-	/* set MLS at fieldpt given sampling points and influence of each, returns 1
-	 * if successful and 0 if not */
+	/** computevshape function and derivatives. 
+	 * \param coords coordinates of the neighborhood nodes: [nnd] x [nsd]
+	 * \param nodal_params support parameters for each node: [nnd] x [nparam] 
+	 * \param volume array of nodal volumes 
+	 * \param fieldpt point of field evaluation
+	 * \order highest order field derivative to compute
+	 * \return 1 if successful, or 0 otherwise */
 	int SetField(const dArray2DT& coords, const dArray2DT& nodal_param,
 		const dArrayT& volume, const dArrayT& fieldpt, int order);
+
+	/* return field value and derivatives from previous SetField */
+
+	/** shape function values.
+	 * \return array of nodal shape functions: [nnd] */
+	const dArrayT& phi(void) const;
+	
+	/** shape function derivatives.
+	 * \return array of shape functions derivatives: [nsd] x [nnd] */
+	const dArray2DT& Dphi(void) const;	
+
+	/** shape function second derivatives.
+	 * \return array of shape functions second derivatives: [nstr] x [nnd] */
+	const dArray2DT& DDphi(void) const;	
 		
 	/** neighbor search type needed by the window function */
 	WindowT::SearchTypeT SearchType(void) const;
 
 	/** coverage test */
 	bool Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT& param_n) const;
-	
-	/* return field value and derivatives - valid AFTER SetField() */
-	const dArrayT& phi(void) const;	
-	const dArray2DT& Dphi(void) const;	
-	const dArray2DT& DDphi(void) const;	
 
-	/* basis dimension */
+	/** basis dimension.
+	 * \return the number of basis functions */
 	int BasisDimension(void) const;
 	
-	/* number of nodal field parameters */
+	/** number of nodal field parameters */
 	int NumberOfNodalParameters(void) const;
 	
-	/** "synchronization" of nodal field parameters. */
+	/** "synchronization" of nodal field parameters */
 	void SynchronizeNodalParameters(dArray2DT& params_1, dArray2DT& params_2);
+
+	/** modify nodal shape function parameters */
+	void ModifyNodalParameters(dArray2DT& nodal_params) const;
 
 	//TEMP: debugging functions
 	
@@ -195,6 +218,10 @@ inline WindowT::SearchTypeT MLSSolverT::SearchType(void) const
 #endif
 	return fWindow->SearchType();
 }
+
+/* modify nodal shape function parameters */
+inline void MLSSolverT::ModifyNodalParameters(dArray2DT& nodal_params) const
+{ return fWindow->ModifyNodalParameters(nodal_params); };
 
 /* return field value and derivatives */
 inline const dArrayT& MLSSolverT::phi(void) const { return fphi; }

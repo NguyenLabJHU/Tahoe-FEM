@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.1.1.1.4.1 2001-06-19 00:54:45 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.1.1.1.4.2 2001-06-19 08:58:43 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -191,13 +191,14 @@ void MeshFreeSupportT::SetSupportSize(void)
 	if (fMeshfreeType == kEFG || fRKPM->SearchType() == WindowT::kSpherical)
 	{
 		cout << "\n MeshFreeSupportT::SetSupportSize: spherical search" << endl;
-		SetSupport_SphericalSearch();
+		SetSupport_Spherical_Search();
 	}
-	else
+	else if (fRKPM->SearchType() == WindowT::kConnectivity)
 	{
 		cout << "\n MeshFreeSupportT::SetSupportSize: connectivity search" << endl;
-		SetSupport_Connectivities();
-	}
+		SetSupport_Cartesian_Connectivities();
+	} 
+	else throw eGeneralFail;
 }
 
 void MeshFreeSupportT::SetNeighborData(void)
@@ -1261,7 +1262,7 @@ void MeshFreeSupportT::ComputeNodalData(int node, const iArrayT& neighbors,
 }
 
 /* set support for each node in the connectivities */
-void MeshFreeSupportT::SetSupport_SphericalSearch(void)
+void MeshFreeSupportT::SetSupport_Spherical_Search(void)
 {
 	/* dimensions */
 	int nnd = fCoords.MajorDim();
@@ -1277,18 +1278,16 @@ void MeshFreeSupportT::SetSupport_SphericalSearch(void)
 		/* check */
 		if (fRKPM->NumberOfNodalParameters() != 1)
 		{
-			cout << "\n MeshFreeSupportT::SetSupport_SphericalSearch: expecting only 1\n" 
+			cout << "\n MeshFreeSupportT::SetSupport_Spherical_Search: expecting only 1\n" 
 			     <<   "     nodal support size parameter:" << fRKPM->NumberOfNodalParameters() 
 			     << endl;
 			throw eGeneralFail;
 		}
 	}
 
-// continue HERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-	/* initialize max distance to "inactive" */
-	fDmax.Allocate(nnd);
-	fDmax = -1.0;
+	/* initialize nodal parameters to "inactive" */
+	fNodalParameters.Allocate(nnd,1);
+	fNodalParameters = -1.0;
 
 	int min_neighbors = (fEFG) ? fEFG->NumberOfMonomials() :
 	                            fRKPM->BasisDimension();
@@ -1316,7 +1315,6 @@ void MeshFreeSupportT::SetSupport_SphericalSearch(void)
 	/* loop over all nodes */
 	AutoArrayT<double> dists;
 	AutoArrayT<int> nodes;
-//	dArrayT dists_sh;
 	iArrayT nodes_sh;
 	double dmax = 0.0;
 	for (int ndex = 0; ndex < fNodesUsed.Length(); ndex++)
@@ -1428,7 +1426,7 @@ void MeshFreeSupportT::SetSupport_SphericalSearch(void)
 			/* insurance for constructing the nodal fields */
 			for (int i = 0; i < num_support; i++)
 			{
-				double& d_i = fDmax[nodes[i]];
+				double& d_i = fNodalParameters(nodes[i],0);
 				d_i = (d_i < dmax) ? dmax : d_i;
 			}
 			
@@ -1444,21 +1442,16 @@ void MeshFreeSupportT::SetSupport_SphericalSearch(void)
 		}
 	}
 	
-	/* scale neighborhoods */
-	fDmax *= fDextra;
-
-//TEMP
-#if 0
-cout << " MeshFreeSupportT::SetDmax:\n";
-for (int i = 0; i < fDmax.Length(); i++)
-	cout << setw(kIntWidth) << i+1 << setw(kDoubleWidth) << fDmax[i] << '\n';
-#endif
-//END		
-						
+	/* post-modify support size */
+	if (fMeshfreeType == kEFG)
+		fNodalParameters *= fDextra; /* scale neighborhoods */
+	else if (fMeshfreeType == kRKPM)
+		fRKPM->ModifyNodalParameters(fNodalParameters);
+	else throw eGeneralFail;
 }
 
-/* set dmax for each node in the connectivities */
-void MeshFreeSupportT::SetSupport_Connectivities(void)
+/* set the support for each node in the connectivities */
+void MeshFreeSupportT::SetSupport_Spherical_Connectivities(void)
 {
 // NOTE: this version of finding Dmax only works if all the nodes
 //       are members of the connectivities defining the integration
@@ -1474,7 +1467,6 @@ void MeshFreeSupportT::SetSupport_Connectivities(void)
 
 	/* loop over elements */
 	dArrayT x_0, x_i;
-	dArrayT r(nsd);
 	for (int i = 0; i < nel; i++)
 	{
 		int* pelem = fConnects(i);
@@ -1487,19 +1479,74 @@ void MeshFreeSupportT::SetSupport_Connectivities(void)
 			fCoords.RowAlias(node, x_0);
 			
 			/* find max neighbor distance */
-			double& maxdist = fDmax[node];
+			double& maxdist = fNodalParameters(node,0);
 			for (int k = 0; k < nen; k++)
 				if (k != j)
 				{
 					/* fetch origin coords */
 					fCoords.RowAlias(pelem[k], x_i);
 			
-					/* distance vector */
-					r.DiffOf(x_i, x_0);
-					double dist = r.Magnitude();
+					/* separating distance */
+					double dist = Distance(x_i, x_0);
 					
 					/* keep max */
 					maxdist = Max(dist, maxdist);
+				}
+		}
+	}
+}
+
+/* set the support for each node in the connectivities */
+void MeshFreeSupportT::SetSupport_Cartesian_Connectivities(void)
+{
+	/* checks */
+	if (fNodalParameters.MajorDim() != fCoords.MajorDim() ||
+	    fNodalParameters.MinorDim() != fCoords.MinorDim())
+	{
+		cout << "\n MeshFreeSupportT::SetSupport_Cartesian_Connectivities: unexpected\n" 
+		     <<   "     dimension for nodal parameters" << endl;
+		throw eSizeMismatch;
+	}
+
+	/* dimensions */
+	int nnd = fCoords.MajorDim();
+	int nsd = fCoords.MinorDim();
+	int nel = fConnects.MajorDim();
+	int nen = fConnects.MinorDim();
+
+	/* loop over elements */
+	dArrayT x_0, x_i, r(nsd), support;
+	for (int i = 0; i < nel; i++)
+	{
+		int* pelem = fConnects(i);
+		for (int j = 0; j < nen; j++)
+		{
+			/* current node */
+			int node = pelem[j];
+
+			/* fetch origin coords */
+			fCoords.RowAlias(node, x_0);
+			
+			/* find max neighbor distance */
+			for (int k = 0; k < nen; k++)
+				if (k != j) /* skip self */
+				{
+					/* fetch node coords */
+					fCoords.RowAlias(pelem[k], x_i);
+
+					/* check visibility */
+					if (Visible(x_0, x_i))
+					{
+						/* fetch support size */
+						fNodalParameters.RowAlias(node, support);
+
+						/* separation */
+						r.DiffOf(x_i, x_0);
+					
+						/* keep max in each direction */
+						for (int l = 0; l < nsd; l++)
+							support[l] = Max(r[l], support[l]);
+					}
 				}
 		}
 	}
@@ -1537,11 +1584,14 @@ void MeshFreeSupportT::SetNodesUsed(void)
 		if (*pused++) *pnused++ = k;
 }
 
+/************** HERE
+// better to write separate BuildNeighborhood functions?
+
 /* collect all nodes covering the point x */
 int MeshFreeSupportT::BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes)
 {
 /* NOTE: relies on the fact that the support of any node is big
-*       enough to ensure coverage of all neighboring nodes */
+ *       enough to ensure coverage of all neighboring nodes */
 
 	/* collect nodes in neighborhood of point x */
 	int cell_span = 0;
@@ -1556,18 +1606,39 @@ int MeshFreeSupportT::BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes
 		throw eGeneralFail;
 	}
 	
-	/* find biggest support */
-	double support_max = 0.0;
-	for (int ii = 0; ii < inodes->Length(); ii++)
+	/* collect support nodes */
+	if (fMeshfreeType == kEFG || fRKPM->SearchType() == WindowT::kSpherical)
 	{
-		int tag = ((*inodes)[ii]).Tag();
-		double dmax = fDmax[tag];
-		support_max = (dmax > support_max) ? dmax : support_max;
-	}
+		/* find biggest support */
+		double support_max = 0.0;
+		for (int ii = 0; ii < inodes->Length(); ii++)
+		{
+			int tag = ((*inodes)[ii]).Tag();
+			double dmax = fNodalParameters(tag,0);
+			support_max = (dmax > support_max) ? dmax : support_max;
+		}
 	
-	/* need to re-collect nodes */
-	if (fGrid->CellSpan(cell_span) < support_max)
-		inodes = &fGrid->HitsInRegion(target, support_max);
+		/* need to re-collect nodes */
+		if (fGrid->CellSpan(cell_span) < support_max)
+			inodes = &fGrid->HitsInRegion(target, support_max);
+	}
+	else if (fRKPM->SearchType() == WindowT::kConnectivity)
+	{
+		/* find biggest support */
+		dArrayT support_max(x.Length()), support;
+		support_max = 0.0;
+		for (int ii = 0; ii < inodes->Length(); ii++)
+		{
+			int tag = ((*inodes)[ii]).Tag();
+			double dmax = fNodalParameters(tag,0);
+			support_max = (dmax > support_max) ? dmax : support_max;
+		}
+	
+		/* need to re-collect nodes */
+		if (fGrid->CellSpan(cell_span) < support_max)
+			inodes = &fGrid->HitsInRegion(target, support_max);
+	}
+	else throw eGeneralFail;
 
 	/* work space */	
 	int nsd = fCoords.MinorDim();
