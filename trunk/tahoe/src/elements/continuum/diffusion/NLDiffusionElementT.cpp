@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.cpp,v 1.7 2004-08-14 05:19:19 paklein Exp $ */
+/* $Id: NLDiffusionElementT.cpp,v 1.8 2005-01-24 06:52:28 paklein Exp $ */
 #include "NLDiffusionElementT.h"
 
 #include <iostream.h>
@@ -108,6 +108,7 @@ void NLDiffusionElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	int nen = NumElementNodes();	
 
 	/* loop over elements */
+	dArrayT Na;
 	Top();
 	while (NextElement())
 	{
@@ -131,14 +132,13 @@ void NLDiffusionElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			const double* Det    = fShapes->IPDets();
 			const double* Weight = fShapes->IPWeights();
 		
-			dArrayT Na;
 			fShapes->TopIP();
 			while (fShapes->NextIP())
 			{
 				double scale = constC*(*Det++)*(*Weight++)*fCurrMaterial->Capacity();
 			
 				/* shape function array */
-				Na.Set(nen, (double*) fShapes->IPShapeU());
+				Na.Alias(nen, fShapes->IPShapeU());
 		
 				/* accumulate */
 				fLHS.Outer(Na, Na, scale, dMatrixT::kAccumulate);
