@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.18 2002-11-28 16:44:19 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.18.2.1 2002-12-05 21:48:42 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -155,7 +155,7 @@ void NodeManagerT::RegisterOutput(void)
 				 	 * original "connectivities" are not guaranteed to be in this order */
 					const iArrayT& nodes_used = output_set.NodesUsed();
 					iArray2DT new_conn(nodes_used.Length(), 1, nodes_used.Pointer());
-					model.UpdateConnectivity(ID, new_conn, false);
+					model.UpdateElementGroup(ID, new_conn, false);
 				}
 				
 				/* next output set */
