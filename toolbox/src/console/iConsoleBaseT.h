@@ -1,5 +1,6 @@
-/* $Id: iConsoleBaseT.h,v 1.2 2001-09-26 20:59:26 paklein Exp $ */
-/* created: paklein (12/21/2000) */
+/* $Id: iConsoleBaseT.h,v 1.1.1.1 2001-01-25 20:56:28 paklein Exp $ */
+/* created: paklein (12/21/2000)                                          */
+/* iConsoleBaseT.h                                                        */
 
 #ifndef _I_CONSOLE_BASE_T_H_
 #define _I_CONSOLE_BASE_T_H_
@@ -8,7 +9,6 @@
 #include "AutoArrayT.h"
 #include "StringT.h"
 
-/** base class for interactive console and console objects */
 class iConsoleBaseT
 {
 public:
@@ -20,7 +20,7 @@ public:
 	const ArrayT<StringT>& iCommands(void) const;
 
 	/* variable specifications */
-	enum VariableType {int_ = 0, double_ = 1, string_ = 2, bool_ = 3, float_ = 4};
+	enum VariableType {int_ = 0, double_ = 1, string_ = 2, bool_ = 3};
 	const ArrayT<StringT>& iVariables(void) const;
 
 	/* write variables */
@@ -43,9 +43,6 @@ protected:
 
 	bool iAddVariable(const StringT& name, int& variable);
 	bool iAddVariable(const StringT& name, const int& variable);
-
-	bool iAddVariable(const StringT& name, float& variable);
-	bool iAddVariable(const StringT& name, const float& variable);
 
 	bool iAddVariable(const StringT& name, double& variable);
 	bool iAddVariable(const StringT& name, const double& variable);
@@ -85,7 +82,6 @@ private:
 	/* variable operators - return false on fail */
 	bool Operate(bool& variable, VariableOperator op, StringT& line) const;
 	bool Operate(int& variable, VariableOperator op, StringT& line) const;
-	bool Operate(float& variable, VariableOperator op, StringT& line) const;
 	bool Operate(double& variable, VariableOperator op, StringT& line) const;
 	bool Operate(StringT& variable, VariableOperator op, StringT& line) const;
 

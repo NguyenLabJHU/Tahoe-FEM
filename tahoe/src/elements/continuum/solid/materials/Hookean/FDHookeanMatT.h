@@ -1,5 +1,5 @@
-/* $Id: FDHookeanMatT.h,v 1.3 2001-09-15 01:19:23 paklein Exp $ */
-/* created: paklein (06/10/1997) */
+/* $Id: FDHookeanMatT.h,v 1.2 2001-07-03 01:35:05 paklein Exp $ */
+/* created: paklein (06/10/1997)                                          */
 
 #ifndef _FD_HOOKEAN_MAT_H_
 #define _FD_HOOKEAN_MAT_H_
@@ -28,13 +28,6 @@ public:
 
 	/* returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void);
-
-private:
-
-	/** return true if material implementation supports imposed thermal
-	 * strains. This material does support multiplicative thermal
-	 * strains. */
-	virtual bool SupportsThermalStrain(void) const { return true; };
 	
 private:
 

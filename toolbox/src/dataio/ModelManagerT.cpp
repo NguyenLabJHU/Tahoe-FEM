@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.4 2001-09-06 17:25:19 sawimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.2 2001-08-07 23:11:52 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -8,7 +8,6 @@
 #include "ExodusInputT.h"
 #include "PatranInputT.h"
 #include "EnSightInputT.h"
-#include "AbaqusInputT.h"
 
 ModelManagerT::ModelManagerT (ostream& message) :
   fCoordinateDimensions (2),
@@ -16,7 +15,6 @@ ModelManagerT::ModelManagerT (ostream& message) :
   fNumNodeSets (0),
   fNumSideSets (0),
   fInput (NULL),
-  fInputName (""),
   fMessage (message)
 {
   fCoordinateDimensions = -1;
@@ -44,7 +42,7 @@ void ModelManagerT::Initialize (const IOBaseT::FileTypeT format, const StringT& 
 void ModelManagerT::Initialize (void)
 {
   IOBaseT temp (cout);
-  temp.InputFormats (cout);
+  temp.PrintFormat (cout);
   IOBaseT::FileTypeT format;
   StringT database;
   cout << "\n Enter the Model Format Type: ";
@@ -243,27 +241,6 @@ const iArray2DT& ModelManagerT::ElementGroup (int index)
   return fElementSets [index];
 }
 
-void ModelManagerT::AllNodeMap (iArrayT& map)
-{
-  fInput->ReadNodeMap (map);
-}
-
-void ModelManagerT::AllElementMap (iArrayT& map)
-{
-  fInput->ReadAllElementMap (map);
-}
-
-void ModelManagerT::ElementMap (StringT& name, iArrayT& map)
-{
-  fInput->ReadGlobalElementMap (name, map);
-}
-
-void ModelManagerT::NodeSetNames (ArrayT<StringT>& names) const
-{
-  for (int i=0; i < names.Length(); i++)
-    names[i] = fNodeSetNames[i];
-}
-
 int ModelManagerT::NodeSetIndex (const StringT& name) const
 {
   for (int i=0; i < fNumNodeSets; i++)
@@ -294,11 +271,6 @@ const iArrayT& ModelManagerT::NodeSet (int index)
   return fNodeSets [index];
 }
 
-void ModelManagerT::SideSetNames (ArrayT<StringT>& names) const
-{
-  for (int i=0; i < names.Length(); i++)
-    names[i] = fSideSetNames[i];
-}
 
 int ModelManagerT::SideSetIndex (const StringT& name) const
 {
@@ -388,7 +360,7 @@ void ModelManagerT::ScanModel (const IOBaseT::FileTypeT format, const StringT& d
     case IOBaseT::kTahoe:
       /* do nothing, arrays will be registered via ElementBaseT and NodeManager */
       break;
-      case IOBaseT::kTahoeII:
+    case IOBaseT::kTahoeII:
       fInput = new TahoeInputT (fMessage);
       break;
     case IOBaseT::kEnSight:
@@ -402,10 +374,6 @@ void ModelManagerT::ScanModel (const IOBaseT::FileTypeT format, const StringT& d
       break;
     case IOBaseT::kPatranNeutral:
       fInput = new PatranInputT (fMessage);
-      break;
-    case IOBaseT::kAbaqus:
-    case IOBaseT::kAbaqusBinary:
-      fInput = new AbaqusInputT (fMessage);
       break;
     default:
       {
@@ -440,8 +408,6 @@ void ModelManagerT::ScanModel (const IOBaseT::FileTypeT format, const StringT& d
 	  fMessage << "\n\nModelManagerT::ScanModel: Error Registering SideSets.\n\n";
 	  throw eGeneralFail;
 	}
-
-      fInputName = database;
     }
 }
 

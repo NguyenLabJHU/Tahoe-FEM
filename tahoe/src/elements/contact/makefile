@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.10 2001-09-24 20:37:25 rjones Exp $
+# $Id: makefile,v 1.9 2001-08-06 20:55:14 rjones Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -18,10 +18,6 @@ OBJ = \
 	LineL2FaceT.o \
 	LineQ3FaceT.o \
 	QuadL4FaceT.o \
-	ContactFaceT.o \
-	ContactLineL2FaceT.o \
-	ContactLineQ3FaceT.o \
-	ContactQuadL4FaceT.o \
 	ACME_Contact3DT.o \
 	AugLagContact2DT.o \
 	ContactT.o \
@@ -50,10 +46,6 @@ SRC = \
 	LineL2FaceT.cpp \
 	LineQ3FaceT.cpp \
 	QuadL4FaceT.cpp \
-	ContactFaceT.cpp \
-	ContactLineL2FaceT.cpp \
-	ContactLineQ3FaceT.cpp \
-	ContactQuadL4FaceT.cpp \
 	ACME_Contact3DT.cpp \
 	AugLagContact2DT.cpp \
 	ContactT.cpp \
@@ -68,20 +60,16 @@ HDR = \
 	AdhesionContact2DT.h \
 	MultiplierContact2DT.h \
 	MultiplierContact3DT.h \
-	ContactSurfaceT.h \
-	ContactElementT.h \
-	ContactSearchT.h \
+        ContactSurfaceT.h \
+        ContactElementT.h \
+        ContactSearchT.h \
 	ContactSurfaceT.h \
 	ContactNodeT.h \
 	SurfaceT.h \
-	FaceT.h \
-	LineL2FaceT.h \
-	LineQ3FaceT.h \
-	QuadL4FaceT.h \
-	ContactFaceT.cpp \
-	ContactLineL2FaceT.cpp \
-	ContactLineQ3FaceT.cpp \
-	ContactQuadL4FaceT.cpp \
+        FaceT.h \
+        LineL2FaceT.h \
+        LineQ3FaceT.h \
+        QuadL4FaceT.h \
 	vector2D.h \
 	vector3D.h \
 	ACME_Contact3DT.h \

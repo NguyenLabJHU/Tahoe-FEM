@@ -1,5 +1,6 @@
-/* $Id: SimoIso2D.cpp,v 1.5 2001-09-15 01:19:42 paklein Exp $ */
-/* created: paklein (03/04/1997) */
+/* $Id: SimoIso2D.cpp,v 1.4 2001-07-03 01:35:14 paklein Exp $ */
+/* created: paklein (03/04/1997)                                          */
+/* (2D <-> 3D) translator for the SimoIso3D.                              */
 
 #include "SimoIso2D.h"
 #include <math.h>
@@ -16,38 +17,18 @@ SimoIso2D::SimoIso2D(ifstreamT& in, const FiniteStrainT& element):
 	fDensity *= fThickness;
 }
 
-/* initialize step */
-void SimoIso2D::InitStep(void)
-{
-	/* inherited */
-	SimoIso3D::InitStep();
-
-	/* check (inverse) thermal dilatation */
-	const dMatrixT& F_therm_inv = F_thermal_inverse();
-	if (HasThermalStrain())
-	{
-		/* inverse thermal dilatation */
-		const dMatrixT& F_therm_inv = F_thermal_inverse();
-
-		if (fabs(F_therm_inv(0,0) - F_therm_inv(1,1)) > kSmall ||
-		    fabs(F_therm_inv(1,0)) > kSmall ||
-		    fabs(F_therm_inv(0,1)) > kSmall)
-		{
-			cout << "\n SimoIso2D::InitStep: expecting isotropic (F_thermal)^-1:\n"
-			     << F_therm_inv << endl;
-			throw eGeneralFail;
-		}
-	}
-}
-
 /* moduli */
 const dMatrixT& SimoIso2D::c_ijkl(void)
 {
-	/* compute 3D stretch tensor */
-	Compute_b_3D(fb);
+	/* b */
+	Compute_b(fb_2D);
+	
+	/* Compute plane strain stretch */
+	fb.ExpandFrom2D(fb_2D);
+	fb(2,2) = 1.0; /* plane strain */
 
 	/* compute b_bar */
-	double J = fb.Det();
+	double J = fb_2D.Det();
 	if (J <= 0.0) throw eBadJacobianDet;
 	J = sqrt(J);
 	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
@@ -65,11 +46,15 @@ const dMatrixT& SimoIso2D::c_ijkl(void)
 /* stresses */
 const dSymMatrixT& SimoIso2D::s_ij(void)
 {
-	/* compute 3D stretch tensor */
-	Compute_b_3D(fb);
+	/* b */
+	Compute_b(fb_2D);
+
+	/* Compute plane strain stretch */
+	fb.ExpandFrom2D(fb_2D);
+	fb(2,2) = 1.0; //out-of-plane stretch
 	
 	/* compute b_bar */
-	double J = fb.Det();
+	double J = fb_2D.Det();
 	if (J <= 0.0) throw eBadJacobianDet;
 	J = sqrt(J);
 	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
@@ -87,11 +72,15 @@ const dSymMatrixT& SimoIso2D::s_ij(void)
 /* strain energy density */
 double SimoIso2D::StrainEnergyDensity(void)
 {
-	/* compute 3D stretch tensor */
-	Compute_b_3D(fb);
+	/* b */
+	Compute_b(fb_2D);
+
+	/* Compute plane strain stretch */
+	fb.ExpandFrom2D(fb_2D);
+	fb(2,2) = 1.0; //out-of-plane stretch
 	
 	/* compute b_bar */
-	double J = fb.Det();
+	double J = fb_2D.Det();
 	if (J <= 0.0) throw eBadJacobianDet;
 	J = sqrt(J);
 	fb_bar.SetToScaled(pow(J,-2.0/3.0), fb);
@@ -118,29 +107,4 @@ void SimoIso2D::PrintName(ostream& out) const
 	SimoIso3D::PrintName(out);
 
 	out << "    Plane Strain\n";
-}
-
-/*************************************************************************
-* Private
-*************************************************************************/
-
-/** compute 3D stretch tensor \b b from the 2D deformation state. 
- * \todo Make this a FDStructMatT function? */
-void SimoIso2D::Compute_b_3D(dSymMatrixT& b_3D)
-{
-	/* get mechanical part of the deformation gradient */
-	const dMatrixT& F_mech = F_mechanical();
-
-	/* b */
-	Compute_b(F_mech, fb_2D);
-	
-	/* Compute plane strain stretch */
-	b_3D.ExpandFrom2D(fb_2D);
-	if (HasThermalStrain()) /* assuming isotropic thermal strain */
-	{
-		double F_inv = (F_thermal_inverse())(0,0);
-		b_3D(2,2) = F_inv*F_inv; 
-	}
-	else
-		b_3D(2,2) = 1.0; /* plane strain */
 }

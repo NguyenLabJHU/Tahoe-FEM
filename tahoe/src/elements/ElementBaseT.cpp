@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.7 2001-09-05 00:26:04 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.6 2001-05-21 17:11:52 paklein Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #include "ElementBaseT.h"
@@ -542,6 +542,10 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 	out << (CurrentElement().Equations()).wrap(4) << '\n';
 }
 
+/***********************************************************************
+* Private
+***********************************************************************/
+
 /* set element cards array */
 void ElementBaseT::SetElementCards(void)
 {
@@ -585,10 +589,6 @@ void ElementBaseT::SetElementCards(void)
 		}
 	}
 }
-
-/***********************************************************************
-* Private
-***********************************************************************/
 
 /* read element connectivity data, resolve material pointers
 * and set the local equation numbers */

@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.7 2001-09-15 01:13:32 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.6 2001-08-21 01:12:16 paklein Exp $ */
 
 #include "FiniteStrainT.h"
 #include "ShapeFunctionT.h"
@@ -203,16 +203,3 @@ void FiniteStrainT::FormCv(double constC)
 #endif
 }
 
-/* write all current element information to the stream */
-void FiniteStrainT::CurrElementInfo(ostream& out) const
-{
-	/* inherited */
-	ElasticT::CurrElementInfo(out);
-	
-	/* write deformation gradients */
-	out << "\n i.p. deformation gradients:\n";
-	for (int i = 0; i < fF_List.Length(); i++)
-		out << " ip: " << i+1 << '\n'
-		    << fF_List[i] << '\n';
-	out << '\n';
-}

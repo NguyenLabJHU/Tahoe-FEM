@@ -1,4 +1,4 @@
-/* $Id: TahoeInputT.cpp,v 1.3 2001-09-04 14:46:38 sawimme Exp $ */
+/* $Id: TahoeInputT.cpp,v 1.2 2001-08-07 23:11:55 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "TahoeInputT.h"
@@ -19,73 +19,43 @@ void TahoeInputT::Close (void)
   fModel.Close ();
 }
 
-void TahoeInputT::ElementGroupNames (ArrayT<StringT>& groupnames) const
-{
-  if (groupnames.Length() != NumElementGroups()) throw eSizeMismatch;
-  iArrayT ids (groupnames.Length());
-  if (fModel.GetElementSetID (ids) == ModelFileT::kFail)
-    throw eDatabaseFail;
-  for (int i=0; i < ids.Length(); i++)
-    groupnames[i].Append (ids[i]);
-}
-
-void TahoeInputT::SideSetNames (ArrayT<StringT>& sidenames) const
-{
-  if (sidenames.Length() != NumSideSets()) throw eSizeMismatch;
-  iArrayT nums (sidenames.Length());
-  if (fModel.GetSideSetID (nums) == ModelFileT::kFail)
-    throw eDatabaseFail;
-  for (int i=0; i < nums.Length(); i++)
-    sidenames[i].Append (nums[i]);
-}
-
-void TahoeInputT::NodeSetNames (ArrayT<StringT>& nodenames) const
-{
-  if (nodenames.Length() != NumNodeSets()) throw eSizeMismatch;
-  iArrayT nums (nodenames.Length());
-  if (fModel.GetNodeSetID (nums) == ModelFileT::kFail)
-    throw eDatabaseFail;
-  for (int i=0; i < nums.Length(); i++)
-    nodenames[i].Append (nums[i]);
-}
-
-int TahoeInputT::NumElementGroups (void) const
+int TahoeInputT::NumElementGroups (void)
 {
   iArrayT ids;
   if (fModel.GetElementSetID (ids) == ModelFileT::kFail)
-    throw eDatabaseFail;
+    throw eGeneralFail;
   return ids.Length();
 }
 
-int TahoeInputT::NumSideSets (void) const
+int TahoeInputT::NumSideSets (void)
 {
   iArrayT ids;
   if (fModel.GetSideSetID (ids) == ModelFileT::kFail)
-    throw eDatabaseFail;
+    throw eGeneralFail;
   return ids.Length();
 }
 
-int TahoeInputT::NumNodeSets (void) const
+int TahoeInputT::NumNodeSets (void)
 {
   iArrayT ids;
   if (fModel.GetNodeSetID (ids) == ModelFileT::kFail)
-    throw eDatabaseFail;
+    throw eGeneralFail;
   return ids.Length();
 }
 
-int TahoeInputT::NumNodes (void) const
+int TahoeInputT::NumNodes (void)
 {
   int numnodes, dims;
   if (fModel.GetDimensions (numnodes, dims) == ModelFileT::kFail)
-    throw eDatabaseFail;
+    throw eGeneralFail;
   return numnodes;
 }
 
-int TahoeInputT::NumDimensions (void) const
+int TahoeInputT::NumDimensions (void)
 {
   int numnodes, dims;
   if (fModel.GetDimensions (numnodes, dims) == ModelFileT::kFail)
-    throw eDatabaseFail;
+    throw eGeneralFail;
   return dims;
 }
 
@@ -100,7 +70,7 @@ void TahoeInputT::ReadCoordinates (dArray2DT& coords)
   if (coords.MajorDim() != NumNodes() ||
       coords.MinorDim() != NumDimensions()) throw eSizeMismatch;
   if (fModel.GetCoordinates (coords) == ModelFileT::kFail) 
-    throw eDatabaseFail;
+    throw eGeneralFail;
 }
 
 void TahoeInputT::ReadCoordinates (dArray2DT& coords, iArrayT& nodemap)
@@ -109,38 +79,15 @@ void TahoeInputT::ReadCoordinates (dArray2DT& coords, iArrayT& nodemap)
   ReadNodeMap (nodemap);
 }
 
-int TahoeInputT::NumGlobalElements (void) const
+int TahoeInputT::NumGlobalElements (void)
 {
   int numelems = 0;
   iArrayT ids;
   if (fModel.GetElementSetID (ids) == ModelFileT::kFail)
-    throw eDatabaseFail;
-  int nume, dims;
+    throw eGeneralFail;
   for (int i=0; i < ids.Length(); i++)
-    {
-      if (fModel.GetElementSetDimensions (ids[i], nume, dims) == ModelFileT::kFail)
-	throw eDatabaseFail;
-      numelems += nume;
-    }
+    numelems += NumElements_ID (ids[i]);
   return numelems;
-}
-
-int TahoeInputT::NumElements (StringT& name)
-{
-  int ID = atoi (name.Pointer());
-  int numelems, dims;
-  if (fModel.GetElementSetDimensions (ID, numelems, dims) == ModelFileT::kFail)
-    throw eDatabaseFail;
-  return numelems;
-}
-
-int TahoeInputT::NumElementNodes (StringT& name)
-{
-  int ID = atoi (name.Pointer());
-  int numelems, dims;
-  if (fModel.GetElementSetDimensions (ID, numelems, dims) == ModelFileT::kFail)
-    throw eDatabaseFail;
-  return dims;
 }
 
 void TahoeInputT::ReadAllElementMap (iArrayT& elemmap)
@@ -150,21 +97,56 @@ void TahoeInputT::ReadAllElementMap (iArrayT& elemmap)
   elemmap += 1;
 }
 
-void TahoeInputT::ReadGlobalElementMap (StringT& name, iArrayT& elemmap)
+/******************* PROTECTED ********************/
+
+void TahoeInputT::ElementGroupIDs (iArrayT& groupnums)
 {
-  int ID = atoi (name.Pointer());
-  if (elemmap.Length() != NumElements (name)) throw eSizeMismatch;
+  if (groupnums.Length() != NumElementGroups()) throw eSizeMismatch;
+  if (fModel.GetElementSetID (groupnums) == ModelFileT::kFail)
+    throw eGeneralFail;
+}
+
+void TahoeInputT::SideSetIDs (iArrayT& nums)
+{
+  if (nums.Length() != NumSideSets()) throw eSizeMismatch;
+  if (fModel.GetSideSetID (nums) == ModelFileT::kFail)
+    throw eGeneralFail;
+}
+
+void TahoeInputT::NodeSetIDs (iArrayT& nums)
+{
+  if (nums.Length() != NumNodeSets()) throw eSizeMismatch;
+  if (fModel.GetNodeSetID (nums) == ModelFileT::kFail)
+    throw eGeneralFail;
+}
+
+int TahoeInputT::NumElements_ID (int ID)
+{
+  int numelems, dims;
+  if (fModel.GetElementSetDimensions (ID, numelems, dims) == ModelFileT::kFail)
+    throw eGeneralFail;
+  return numelems;
+}
+
+int TahoeInputT::NumElementNodes_ID (int ID)
+{
+  int numelems, dims;
+  if (fModel.GetElementSetDimensions (ID, numelems, dims) == ModelFileT::kFail)
+    throw eGeneralFail;
+  return dims;
+}
+
+void TahoeInputT::ReadGlobalElementMap_ID (int ID, iArrayT& elemmap)
+{
+  if (elemmap.Length() != NumElements_ID (ID)) throw eSizeMismatch;
 
   int numelems = 0;
   iArrayT ids;
   if (fModel.GetElementSetID (ids) == ModelFileT::kFail)
-    throw eDatabaseFail;
-  int nume, dims;
+    throw eGeneralFail;
   for (int i=0; i < ids.Length(); i++)
     {
-      if (fModel.GetElementSetDimensions (ids[i], nume, dims) == ModelFileT::kFail)
-	throw eDatabaseFail;
-      numelems += nume;
+      numelems += NumElements_ID (ids[i]);
       if (ids[i] == ID) break;
     }
 
@@ -172,88 +154,74 @@ void TahoeInputT::ReadGlobalElementMap (StringT& name, iArrayT& elemmap)
   elemmap += 1 + numelems;
 }
 
-void TahoeInputT::ReadGlobalElementSet (StringT& name, iArrayT& set)
+void TahoeInputT::ReadConnectivity_ID (int ID, iArray2DT& connects)
 {
-  ReadGlobalElementMap (name, set);
-  set += -1;
-}
-
-void TahoeInputT::ReadConnectivity (StringT& name, iArray2DT& connects)
-{
-  int ID = atoi (name.Pointer());
   if (fModel.GetElementSet (ID, connects) == ModelFileT::kFail) 
-    throw eDatabaseFail;
+    throw eGeneralFail;
 
   connects += -1;
 }
 
-void TahoeInputT::ReadGeometryCode (StringT& name, GeometryT::CodeT& code)
+void TahoeInputT::ReadGeometryCode_ID (int ID, GeometryT::CodeT& code)
 {
-  int ID = atoi (name.Pointer());
   int length, numelemnodes;
   int numnodes, dims;
   if (fModel.GetDimensions (numnodes, dims) == ModelFileT::kFail)
-    throw eDatabaseFail;
+    throw eGeneralFail;
   if (fModel.GetElementSetDimensions (ID, length, numelemnodes) == ModelFileT::kFail) 
-    throw eDatabaseFail;
+    throw eGeneralFail;
   SetCode (numelemnodes, dims, code);
 }
 
-int TahoeInputT::NumNodesInSet (StringT& name)
+int TahoeInputT::NumNodesInSet_ID (int id)
 {
-  int id = atoi (name.Pointer());
   int num;
   if (fModel.GetNodeSetDimensions (id, num) == ModelFileT::kFail)
-    throw eDatabaseFail;
+    throw eGeneralFail;
   return num;
 }
 
-void TahoeInputT::ReadNodeSet (StringT& name, iArrayT& nodes)
+void TahoeInputT::ReadNodeSet_ID (int id, iArrayT& nodes)
 {
-  int id = atoi (name.Pointer());
   if (fModel.GetNodeSet (id, nodes) == ModelFileT::kFail) 
-    throw eDatabaseFail;
+    throw eGeneralFail;
 
   nodes += -1;
 }
 
-int TahoeInputT::NumSidesInSet (StringT& name) const
+int TahoeInputT::NumSidesInSet_ID (int id)
 {
-  int id = atoi (name.Pointer());
   int num;
   if (fModel.GetSideSetDimensions (id, num) == ModelFileT::kFail)
-    throw eDatabaseFail;
+    throw eGeneralFail;
   return num;
 }
 
-int TahoeInputT::SideSetGroupIndex (StringT& name) const
+int TahoeInputT::SideSetGroupIndex_ID (int id)
 {
-  int id = atoi (name.Pointer());
   int elsetid;
-  iArray2DT sides (NumSidesInSet(name), 2);
+  iArray2DT sides (NumSidesInSet_ID(id), 2);
   if (fModel.GetSideSet (id, elsetid, sides) == ModelFileT::kFail)
-    throw eDatabaseFail;
+    throw eGeneralFail;
   return elsetid;
 }
 
-void TahoeInputT::ReadSideSetLocal (StringT& name, iArray2DT& sides) const
+void TahoeInputT::ReadSideSetLocal_ID (int id, iArray2DT& sides)
 {
-  int id = atoi (name.Pointer());
   int elsetid;
   if (fModel.GetSideSet (id, elsetid, sides) == ModelFileT::kFail)
-    throw eDatabaseFail;
+    throw eGeneralFail;
 }
 
-void TahoeInputT::ReadSideSetGlobal (StringT& name, iArray2DT& sides) const
+void TahoeInputT::ReadSideSetGlobal_ID (int id, iArray2DT& sides)
 {
-  int id = atoi (name.Pointer());
   int elsetid;
   if (fModel.GetSideSet (id, elsetid, sides) == ModelFileT::kFail)
-    throw eDatabaseFail;
+    throw eGeneralFail;
 
   iArrayT ids;
   if (fModel.GetElementSetID (ids) == ModelFileT::kFail)
-    throw eDatabaseFail;
+    throw eGeneralFail;
 
   int num_elems, dim, offset = 0;
   for (int i=0; i < ids.Length(); i++)
@@ -272,7 +240,7 @@ void TahoeInputT::ReadSideSetGlobal (StringT& name, iArray2DT& sides) const
 
 /******************* PRIVATE ********************/
 
-void TahoeInputT::SetCode (int numelemnodes, int dof, GeometryT::CodeT& code) const
+void TahoeInputT::SetCode (int numelemnodes, int dof, GeometryT::CodeT& code)
 {
   code = GeometryT::kNone;
   if (dof == 2)

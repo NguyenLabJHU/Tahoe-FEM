@@ -1,4 +1,4 @@
-/* $Id: PatranT.h,v 1.4 2001-09-04 14:38:53 sawimme Exp $ */
+/* $Id: PatranT.h,v 1.3 2001-08-10 14:46:52 sawimme Exp $ */
 /* created: sawimme (05/17/2001)  */
 
 #ifndef _PATRAN_T_H_
@@ -23,7 +23,6 @@ class PatranT
 
   /* accessors */
   const StringT& Filename (void) const;
-  void VersionNotes (ArrayT<StringT>& records) const;
   int NumNodes (void) const;
   int NumElements (void) const;
   int NumDimensions (void) const;

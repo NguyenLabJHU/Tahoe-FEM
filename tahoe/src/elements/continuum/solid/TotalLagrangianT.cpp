@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianT.cpp,v 1.5 2001-09-15 01:13:12 paklein Exp $ */
+/* $Id: TotalLagrangianT.cpp,v 1.4 2001-08-20 06:46:36 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "TotalLagrangianT.h"
@@ -35,6 +35,17 @@ void TotalLagrangianT::Initialize(void)
 {
 	/* inherited */
 	FiniteStrainT::Initialize();
+
+//TEMP
+	if (fMaterialList->HasThermalStrains())
+	{
+		cout << "\n TotalLagrangianT::Initialize: element group ";
+		cout << fFEManager.ElementGroupNumber(this) + 1 << ": total Lagrangian\n";
+		cout << "     formulation has a bug associated with the multiplicative treatment\n";
+		cout << "     of thermal strains. The solutions appear correct, but the convergence\n";
+		cout << "     is not quadratic. Use updated Lagrangian formulation." << endl;
+		throw eGeneralFail;
+	}	
 
 	/* dimension */
 	fGradNa.Allocate(fNumSD, fNumElemNodes);

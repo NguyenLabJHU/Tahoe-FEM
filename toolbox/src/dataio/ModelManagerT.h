@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.4 2001-09-06 17:25:20 sawimme Exp $ */
+/* $Id: ModelManagerT.h,v 1.2 2001-08-07 23:11:52 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -17,6 +17,8 @@
 #include "ios_fwd_decl.h"
 class ifstreamT;
 
+/** still need to add global node and element maps
+ * assume for now that side sets are globally numbered */
 class ModelManagerT
 {
  public:
@@ -57,18 +59,12 @@ class ModelManagerT
   GeometryT::CodeT ElementGroupGeometry (int index) const;
   const iArray2DT& ElementGroup (int index);
 
-  void AllNodeMap (iArrayT& map);
-  void AllElementMap (iArrayT& map);
-  void ElementMap (StringT& name, iArrayT& map);
-
   int NumNodeSets (void) const;
-  void NodeSetNames (ArrayT<StringT>& names) const;
   int NodeSetIndex (const StringT& name) const;
   int NodeSetLength (int index) const;
   const iArrayT& NodeSet (int index);
 
   int NumSideSets (void) const;
-  void SideSetNames (ArrayT<StringT>& names) const;
   int SideSetIndex (const StringT& name) const;
   int SideSetLength (int index) const;
   const iArray2DT& SideSet (int index) const;
@@ -85,12 +81,10 @@ class ModelManagerT
   bool ScanNodeSets (void);
   bool ScanSideSets (void);
 
- protected:
+ private:
   ostream& fMessage;
   InputBaseT *fInput;
-  StringT fInputName;
 
- private:
   /* dimensional information */
   iArrayT fCoordinateDimensions;
   iAutoArrayT fElementLengths;

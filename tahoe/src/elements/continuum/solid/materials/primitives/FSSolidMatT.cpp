@@ -1,5 +1,5 @@
-/* $Id: FSSolidMatT.cpp,v 1.3 2001-09-15 01:18:58 paklein Exp $ */
-/* created: paklein (06/09/1997) */
+/* $Id: FSSolidMatT.cpp,v 1.2 2001-07-03 01:35:41 paklein Exp $ */
+/* created: paklein (06/09/1997)                                          */
 
 #include "FSSolidMatT.h"
 #include <iostream.h>
@@ -12,15 +12,31 @@ FSSolidMatT::FSSolidMatT(ifstreamT& in, const FiniteStrainT& element):
 	StructuralMaterialT(in, element),
 	TensorTransformT(NumSD()),
 	fFiniteStrain(element),
-	fQ(NumSD()),
-	fF_therm_inv(NumSD()),
-	fF_mechanical(NumSD())
+	fQ(NumSD())
 {
-	/* no thermal strain */
-	fF_therm_inv.Identity();
+
+}
+
+/* initialization */
+void FSSolidMatT::Initialize(void)
+{
+	/* inherited */
+	StructuralMaterialT::Initialize();
+
+	/* active multiplicative dilatation */
+	if (fThermal->IsActive())
+	{
+		//DEV
+		cout << "\n FSSolidMatT::Initialize: no imposed thermal strain yet" << endl;
+		throw eGeneralFail;
+
+		/* allocate and initialize */
+		//fFtherminverse.Allocate(NumSD());
+		//fFtherminverse.Identity();
 	
-	/* initialize */
-	fF_mechanical.Identity();
+		/* activate continuum level correction */
+//		SetFmodMult(&fFtherminverse);
+	}
 }
 
 /* test for localization using "current" values for Cauchy
@@ -61,96 +77,50 @@ void FSSolidMatT::InitStep(void)
 	StructuralMaterialT::InitStep();
 
 	/* set multiplicative thermal transformation */
-	SetInverseThermalTransformation(fF_therm_inv);
+	SetInverseThermalTransformation(fFtherminverse);
 }
 
 /* deformation gradients */
 const dMatrixT& FSSolidMatT::F(void) const
 {
 	return fFiniteStrain.DeformationGradient();
+	
 	//DEV - what about corrections for thermal strains?
 }
 
 const dMatrixT& FSSolidMatT::F(int ip) const
 {
 	return fFiniteStrain.DeformationGradient(ip);
+	
 	//DEV - what about corrections for thermal strains?
-}
-
-const dMatrixT& FSSolidMatT::F_total(void) const
-{
-	return fFiniteStrain.DeformationGradient();
-}
-
-const dMatrixT& FSSolidMatT::F_total(int ip) const
-{
-	return fFiniteStrain.DeformationGradient(ip);
-}
-
-const dMatrixT& FSSolidMatT::F_mechanical(void)
-{
-	/* has thermal strain */
-	if (fThermal->IsActive())
-	{
-		fF_mechanical.MultAB(fFiniteStrain.DeformationGradient(), fF_therm_inv);
-		return fF_mechanical;
-	}
-	else /* no thermal strain */
-		return fFiniteStrain.DeformationGradient();
-}
-
-const dMatrixT& FSSolidMatT::F_mechanical(int ip)
-{
-	/* has thermal strain */
-	if (fThermal->IsActive())
-	{
-		fF_mechanical.MultAB(fFiniteStrain.DeformationGradient(ip), fF_therm_inv);
-		return fF_mechanical;
-	}
-	else /* no thermal strain */
-		return fFiniteStrain.DeformationGradient(ip);
 }
 
 /* deformation gradient from end of previous step */
 const dMatrixT& FSSolidMatT::F_last(void) const
 {
 	return fFiniteStrain.DeformationGradient_last();
+	
+	//DEV - what about corrections for thermal strains?
 }
 
 const dMatrixT& FSSolidMatT::F_last(int ip) const
 {
 	return fFiniteStrain.DeformationGradient_last(ip);
+	
+	//DEV - what about corrections for thermal strains?
 }
 
 /***********************************************************************
 * Protected
 ***********************************************************************/
 
-/* left stretch tensor */
+/* left stretch tensor. \param b return value */
 void FSSolidMatT::Compute_b(dSymMatrixT& b) const
-{
-	Compute_b(fFiniteStrain.DeformationGradient(), b);
-}
-
-/* right stretch tensor */
-void FSSolidMatT::Compute_C(dSymMatrixT& C) const
-{
-	Compute_C(fFiniteStrain.DeformationGradient(), C);
-}
-
-/* Green-Lagrangian strain */
-void FSSolidMatT::Compute_E(dSymMatrixT& E) const
-{
-	Compute_E(fFiniteStrain.DeformationGradient(), E);
-}
-
-/* left stretch tensor */
-void FSSolidMatT::Compute_b(const dMatrixT& F, dSymMatrixT& b) const
 {
 	int nsd = NumSD();
 	if (nsd == 2)
 	{
-		double* f = F.Pointer();
+		double* f = fFiniteStrain.DeformationGradient().Pointer();
 		double* a = b.Pointer();
 		
 		/* unrolled */
@@ -160,7 +130,7 @@ void FSSolidMatT::Compute_b(const dMatrixT& F, dSymMatrixT& b) const
 	}
 	else if (nsd == 3)
 	{
-		double* f = F.Pointer();
+		double* f = fFiniteStrain.DeformationGradient().Pointer();
 		double* a = b.Pointer();
 	
 		/* unrolled */
@@ -178,13 +148,13 @@ void FSSolidMatT::Compute_b(const dMatrixT& F, dSymMatrixT& b) const
 	}
 }
 
-/* right stretch tensor */
-void FSSolidMatT::Compute_C(const dMatrixT& F, dSymMatrixT& C) const
+/* right stretch tensor. \param b return value */
+void FSSolidMatT::Compute_C(dSymMatrixT& C) const
 {
 	int nsd = NumSD();
 	if (nsd == 2)
 	{
-		double* f = F.Pointer();
+		double* f = fFiniteStrain.DeformationGradient().Pointer();
 		double* c = C.Pointer();
 		
 		/* unrolled */
@@ -194,7 +164,7 @@ void FSSolidMatT::Compute_C(const dMatrixT& F, dSymMatrixT& C) const
 	}
 	else if (nsd == 3)
 	{
-		double* f = F.Pointer();
+		double* f = fFiniteStrain.DeformationGradient().Pointer();
 		double* c = C.Pointer();
 	
 		/* unrolled */
@@ -212,13 +182,13 @@ void FSSolidMatT::Compute_C(const dMatrixT& F, dSymMatrixT& C) const
 	}
 }
 
-/* Green-Lagrangian strain */
-void FSSolidMatT::Compute_E(const dMatrixT& F, dSymMatrixT& E) const
+/* Green-Lagrangian strain. \param E return value */
+void FSSolidMatT::Compute_E(dSymMatrixT& E) const
 {
 	int nsd = NumSD();
 	if (nsd == 2)
 	{
-		double* f = F.Pointer();
+		double* f = fFiniteStrain.DeformationGradient().Pointer();
 		double* e = E.Pointer();
 		
 		/* unrolled */
@@ -228,7 +198,7 @@ void FSSolidMatT::Compute_E(const dMatrixT& F, dSymMatrixT& E) const
 	}
 	else if (nsd == 3)
 	{
-		double* f = F.Pointer();
+		double* f = fFiniteStrain.DeformationGradient().Pointer();
 		double* e = E.Pointer();
 	
 		/* unrolled */

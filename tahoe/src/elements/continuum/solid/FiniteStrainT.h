@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.7 2001-09-15 01:15:42 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.6 2001-08-21 01:12:16 paklein Exp $ */
 
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
@@ -55,10 +55,6 @@ class FiniteStrainT: public ElasticT
 	/** returns true if the material requires the deformation gradient 
 	 * from the end of the last time increment */
 	bool Needs_F_last(int material_number) const;
-
-	/** write all current element information to the stream. used to generate
-	 * debugging information after runtime errors */
-	virtual void CurrElementInfo(ostream& out) const;
 
   private:
 
