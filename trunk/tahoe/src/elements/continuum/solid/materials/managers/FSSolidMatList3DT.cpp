@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.11 2005-01-21 16:51:14 paklein Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.12 2005-01-21 18:13:11 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -151,9 +151,11 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 #endif
 
 #ifdef PLASTICITY_CRYSTAL_MATERIAL
+		sub_lists.AddSub("local_crystal_plasticity");
 		sub_lists.AddSub("local_crystal_plasticity_Fp");
-		sub_lists.AddSub("gradient_crystal_plasticity_Fp");
 		sub_lists.AddSub("local_crystal_plasticity_C");
+		sub_lists.AddSub("local_crystal_plasticity_Fp_C");
+		sub_lists.AddSub("gradient_crystal_plasticity_Fp");
 #endif
 
 #ifdef CAUCHY_BORN_MATERIAL
@@ -270,6 +272,8 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #endif
 
 #ifdef PLASTICITY_CRYSTAL_MATERIAL
+	else if (name == "local_crystal_plasticity")
+		mat = new LocalCrystalPlast;
 	else if (name == "local_crystal_plasticity_Fp")
 		mat = new LocalCrystalPlastFp;
 	else if (name == "gradient_crystal_plasticity_Fp")
