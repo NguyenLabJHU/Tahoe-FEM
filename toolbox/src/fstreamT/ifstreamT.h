@@ -1,8 +1,10 @@
-/* $Id: ifstreamT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: ifstreamT.h,v 1.2 2001-03-01 01:17:50 hspark Exp $ */
 /* created: paklein (03/03/1999)                                          */
 
 #ifndef _IFSTREAM_T_H_
 #define _IFSTREAM_T_H_
+
+#include "Environment.h"
 
 /* base class */
 #include "ios_fwd_decl.h"
