@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.14 2001-06-12 14:03:05 hspark Exp $ */
+/* $Id: tevp2D.cpp,v 1.15 2001-07-03 00:47:23 hspark Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (04/04/2001) */
 /* Last Updated:  Harold Park (06/12/2001) */
@@ -190,7 +190,6 @@ const dMatrixT& tevp2D::c_ijkl(void)
 /* stress */
 const dSymMatrixT& tevp2D::s_ij(void)
 {
-  
   if (fRunState == GlobalT::kFormRHS)
   {
     /* implement stress here - work with Kirchoff stress, then convert back
@@ -207,7 +206,6 @@ const dSymMatrixT& tevp2D::s_ij(void)
  
     if (flags[ip + fNumIP] == kFluid) {
       /* Fluid model part - if critical strain criteria is exceeded */
-      //cout << "Went fluid at time" << ContinuumElement().FEManager().StepNumber() << '\n';
       ComputeF();
       ComputeD();
       const double temp = fInternal[kTemp];   // Use the PREVIOUS temperature
@@ -218,7 +216,7 @@ const dSymMatrixT& tevp2D::s_ij(void)
       eye_cm = 0.0;
       eye_cm.PlusIdentity(1.0);
       eye_cm *= cm;
-      dtemp = fDtot;          // Memory copying, ie affecting fDtot?
+      dtemp = fDtot;         
       dtemp *= Mu_d;
       eye_cm += dtemp;
       fStress3D = Return3DStress(eye_cm);
@@ -370,11 +368,6 @@ double tevp2D::ComputeFluidTemperature(void)
   double temp_rate = Chi * Xi * wpdot;
   fTemperature = temp_rate * fDt + temp_last;
 
-  if (temp_rate < 0.0)
-    cout << "NEGATIVE TEMPERATURE RATE:  FLUID" << '\n';
-  if (fTemperature < 293.0)
-    cout << "TEMPERATURE < 293K!!! - FLUID" << '\n';
-  //fInternal[kTemp] = fTemperature;
   return fTemperature;
 }
 
@@ -385,12 +378,7 @@ double tevp2D::ComputeViscoTemperature(void)
   const double temp_last = fInternal[kTemp];
   double temp_rate = Chi * Xi * fEbtot * sb;
   fTemperature = temp_rate * fDt + temp_last;
-  if (temp_rate < 0.0)
-    cout << "NEGATIVE TEMPERATURE RATE:  VISCO" << '\n';
-  //fInternal[kTemp] = fTemperature;
- 
-  if (fTemperature < 293.0)
-    cout << "TEMPERATURE < 293K!!! - VISCO" << '\n';
+
   return fTemperature;
 }
 
@@ -406,7 +394,7 @@ double tevp2D::ComputeFluidEffectiveStrain(void)
   double ebar = 1.5 * (temp1 + temp2) + 2.0 * temp3;
   ebar = sqrt(ebar);
   fEb = ebar * fDt + eb_last;
-  //fInternal[kEb] = fEb;
+
   return fEb;
 }
 
@@ -419,7 +407,6 @@ double tevp2D::ComputeViscoEffectiveStrain(void)
   /* access necessary data */
   double ebtot_c = fEbtot / (1.0 + fXxii) + fCtcon * ecc;
   fEb = eb_last + fDt * ebtot_c;
-  //fInternal[kEb] = fEb;
 
   return fEb;
 }
@@ -436,7 +423,7 @@ double tevp2D::ComputeEffectiveStress(void)
   double temp3 = pow(temp_stress(2,2) - trace, 2);
   fSb = 1.5 * (temp1 + temp2 + temp3) + 3.0 * pow(temp_stress(0,1), 2);
   fSb = sqrt(fSb);
-  //fInternal[kSb] = fSb;
+
   return fSb;
 }
 

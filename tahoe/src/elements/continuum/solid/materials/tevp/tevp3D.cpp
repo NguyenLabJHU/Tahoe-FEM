@@ -1,4 +1,4 @@
-/* $Id: tevp3D.cpp,v 1.2 2001-06-26 15:17:14 hspark Exp $ */
+/* $Id: tevp3D.cpp,v 1.3 2001-07-03 00:47:23 hspark Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (06/25/2001) */
 /* Last Updated:  Harold Park (06/25/2001) */
@@ -15,7 +15,6 @@
 const int kNumOutput = 3;   // # of internal variables
 const double kYieldTol = 1.0e-16;   // Yield stress criteria
 const int kVoigt = 6;    // 6 stress components in 3D voigt notation
-const int kNSD = 6;      // 6 3D stress components (11, 22, 33, 23, 31, 12)
 static const char* Labels[kNumOutput] = {
   "Temp",       // Temperature
   "Eff._Strain",    // effective strain
@@ -89,7 +88,7 @@ tevp3D::tevp3D(ifstreamT& in, const ElasticT& element):
   Epsilon_rate = 4.0E4;
   Gamma_d = .002;
   Mu_d = 500.0;
-  SigCr = 6.0 * Sb0;
+  SigCr = 3.0 * Sb0;
 
   /* used in temperature update */
   Xi = 1.0 / (Rho0 * Cp);
@@ -158,7 +157,6 @@ const dSymMatrixT& tevp3D::S_IJ(void)
 const dMatrixT& tevp3D::c_ijkl(void)
 {
   /* this function calculates the tangent modulus */
-
   int ip = CurrIP();
   ElementCardT& element = CurrentElement();
   LoadData(element, ip);
@@ -186,7 +184,6 @@ const dMatrixT& tevp3D::c_ijkl(void)
 /* stress */
 const dSymMatrixT& tevp3D::s_ij(void)
 {
-  
   if (fRunState == GlobalT::kFormRHS)
   {
     /* implement stress here - work with Kirchoff stress, then convert back
@@ -247,7 +244,7 @@ const dSymMatrixT& tevp3D::s_ij(void)
       sts_dot += part1;
       sts_dot -= part2;
       sts_dot *= fDt;
-      kirchoff_last -= sts_dot;
+      kirchoff_last += sts_dot;
 
       fStress = Return3DStress(kirchoff_last);
       fTempKirchoff = MatrixToArray(fStress);    // This is the Kirchoff stress
@@ -257,7 +254,7 @@ const dSymMatrixT& tevp3D::s_ij(void)
       fInternal[kTemp] = ComputeViscoTemperature();
       fInternal[kEb] = ComputeViscoEffectiveStrain();
     }
-
+    
     /* store cauchy stress here */
     fTempCauchy = fStress;
     CheckCriticalStrain(element, ip);
@@ -323,8 +320,8 @@ void tevp3D::ComputeD(void)
   /* Compute rate of deformation, put in in 3D symmetric stress array form */
   fDtot = 0.0;
   dSymMatrixT* smalld = &fDtot;
-  dSymMatrixT tempd;
-  dMatrixT yada;
+  dSymMatrixT tempd(3);
+  dMatrixT yada(3);
   fShapes.GradU(fLocVel, fGradV);
   yada.MultAB(fGradV, fF_temp, 0);
   (*smalld) = tempd.Symmetrize(yada);
@@ -335,7 +332,7 @@ dMatrixT& tevp3D::ComputeSpin(void)
   /* Compute the spin tensor */
   fSpin = 0.0;
   fShapes.GradU(fLocVel, fGradV);
-  dMatrixT yada;
+  dMatrixT yada(3);
   yada.MultAB(fGradV, fF_temp, 0);
   double temp1 = .5 * (yada(0,1) - yada(1,0));
   double temp2 = .5 * (yada(0,2) - yada(2,0));
@@ -356,7 +353,7 @@ double tevp3D::ComputeFluidTemperature(void)
    * which depends upon whether fluid model was used or not */
 
   const double temp_last = fInternal[kTemp];
-
+  
   /* Case where fluid model was used */
   dMatrixT temp_stress(3); 
   temp_stress = ArrayToMatrix(fTempKirchoff);
@@ -364,11 +361,6 @@ double tevp3D::ComputeFluidTemperature(void)
   wpdot += (2.0 * Mu_d * (fDtot[3] * fDtot[3] + fDtot[4] * fDtot[4] + fDtot[5] * fDtot[5]));
   double temp_rate = Chi * Xi * wpdot;
   fTemperature = temp_rate * fDt + temp_last;
-
-  if (temp_rate < 0.0)
-    cout << "NEGATIVE TEMPERATURE RATE:  FLUID" << '\n';
-  if (fTemperature < 293.0)
-    cout << "TEMPERATURE < 293K!!! - FLUID" << '\n';
 
   return fTemperature;
 }
@@ -380,11 +372,7 @@ double tevp3D::ComputeViscoTemperature(void)
   const double temp_last = fInternal[kTemp];
   double temp_rate = Chi * Xi * fEbtot * sb;
   fTemperature = temp_rate * fDt + temp_last;
-  if (temp_rate < 0.0)
-    cout << "NEGATIVE TEMPERATURE RATE:  VISCO" << '\n';
- 
-  if (fTemperature < 293.0)
-    cout << "TEMPERATURE < 293K!!! - VISCO" << '\n';
+
   return fTemperature;
 }
 
@@ -599,9 +587,9 @@ void tevp3D::AllocateElement(ElementCardT& element)
   i_size += 2 * fNumIP;              // 2 flags per IP:  critical strain
                                       // and check for plasticity
   d_size += kNumOutput * fNumIP;     // 3 internal variables to track
-  d_size += kVoigt * fNumIP;         // 6 non-zero stress components:
+  d_size += kVoigt * fNumIP;         // 6 symmetric stress components:
                                       // S11, S22, S33, S23, S13, S21
-  d_size += kNSD * fNumIP;           // 6 3D symmetric components (S11, S22, S33, S23, S13, S12)
+  d_size += kVoigt * fNumIP;           // 6 3D symmetric components (S11, S22, S33, S23, S13, S12)
   /* construct new plastic element */
   element.Allocate(i_size, d_size);
 
@@ -623,14 +611,12 @@ void tevp3D::LoadData(const ElementCardT& element, int ip)
   if (!element.IsAllocated()) throw eGeneralFail;
 
   int dex = ip * kVoigt;     // 6 non-zero 3Dstress components (11, 22, 33, 23, 13, 21)
-  int dex2 = ip * kNSD;      // 6 non-zero 3D stress components (11, 22, 33, 23, 13, 21)
-  int offset = fNumIP * 6;
-  int offset2 = kNSD * offset / kVoigt;
+  int offset = fNumIP * kVoigt;
   /* fetch arrays */
   dArrayT& d_array = element.DoubleData();
   fTempKirchoff.Set(kVoigt, &d_array[dex]);
-  fTempCauchy.Set(kNSD, &d_array[offset + dex2]);
-  fInternal.Set(kNumOutput, &d_array[offset + offset2 + ip * kNumOutput]); 
+  fTempCauchy.Set(kVoigt, &d_array[offset + dex]);
+  fInternal.Set(kNumOutput, &d_array[2 * offset + ip * kNumOutput]);
 }
 
 void tevp3D::Update(ElementCardT& element)
