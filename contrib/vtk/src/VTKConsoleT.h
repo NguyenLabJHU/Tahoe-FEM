@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.h,v 1.11 2001-10-15 18:40:11 recampb Exp $ */
+/* $Id: VTKConsoleT.h,v 1.12 2001-10-15 18:48:08 recampb Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -76,8 +76,8 @@ class VTKConsoleT: public iConsoleObjectT
   vtkActor2D *pointLabels;
   vtkUnstructuredGrid *ugrid;  
   /* vtkScalars *scalars[num_time_steps]; */
-  vtkScalars *scalars [1000][12];
-  vtkVectors *vectors [1000][12];
+  vtkScalars *scalars [1000][100];
+  vtkVectors *vectors [1000][100];
   int num_time_steps;
   vtkCamera *cam;
   vtkCubeAxesActor2D *axes;
