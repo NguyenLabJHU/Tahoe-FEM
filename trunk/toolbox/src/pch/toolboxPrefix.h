@@ -1,3 +1,5 @@
+#ifdef __cplusplus
+
 /* environment */
 #include "Environment.h"
 #include "ios_fwd_decl.h"
@@ -17,3 +19,5 @@
 #include "dArray2DT.h"
 #include "fstreamT.h"
 #include "RaggedArray2DT.h"
+
+#endif /* __cplusplus */
