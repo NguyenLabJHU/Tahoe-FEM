@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.9 2005-02-16 22:26:51 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.10 2005-02-22 23:21:01 raregue Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
@@ -18,7 +18,7 @@ class SmallStrainEnhLocT: public SolidElementT
 
 public:
 
-	enum fElementLocScalars {
+	enum fElementLocScalars_T {
 							kLocFlag,
 							kJumpDispl,
 							kgamma_delta,
@@ -30,14 +30,14 @@ public:
 							kNUM_SCALAR_TERMS 
 							};
 							
-	enum fElementLocInternalVars {
+	enum fElementLocInternalVars_T {
 							kCohesion,
 							kFriction,
 							kDilation,
 							kNUM_ISV_TERMS 
 							};					
 							
-	enum fElementLocCohesiveSurfaceParams {
+	enum fCohesiveSurfaceParams_T {
 							kc_r,
 							kc_p,
 							kalpha_c,
@@ -131,7 +131,7 @@ protected:
 	void CheckLocalization(int elem);
 	
 	/* choose the normal and slipdir given normals and slipdirs from bifurcation condition */
-	void ChooseNormalAndSlipDir(int elem, int nen);
+	void ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int elem, int nen);
 	
 	/* given the normal and one point, determine active nodes */
 	void DetermineActiveNodesTrace(int elem, int nen);

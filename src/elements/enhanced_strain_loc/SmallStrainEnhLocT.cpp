@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.9 2005-02-16 22:26:51 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.10 2005-02-22 23:21:01 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -85,15 +85,17 @@ void SmallStrainEnhLocT::CloseStep(void)
 		/* shape function derivatives, jacobians, local coords */
 		SetGlobalShape();
 		
+		/* get displacements */
+        SetLocalU(fLocDisp);
+		
 		elem_num = CurrElementNumber();
 		nen = NumElementNodes();
-		loc_flag = fElementLocScalars[elem_num,kLocFlag];
-		//sconst ElementCardT& element = CurrentElement();
-	
+		loc_flag = fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kLocFlag];
+			
 		if ( loc_flag == 1)
 		{
 			/* choose normal and slip direction based on current element deformation */
-			ChooseNormalAndSlipDir(elem_num, nen);
+			ChooseNormalAndSlipDir(fLocDisp, elem_num, nen);
 		}
 	
 		if ( loc_flag == 1 )
@@ -179,7 +181,7 @@ GlobalT::RelaxCodeT SmallStrainEnhLocT::RelaxSystem(void)
 		
 		elem_num = CurrElementNumber();
 		nen = NumElementNodes();
-		loc_flag = fElementLocScalars[elem_num,kLocFlag];
+		loc_flag = fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kLocFlag];
 		const ElementCardT& element = CurrentElement();
 
 		/* until element is traced, i.e. loc_flag = 2, check for localization */
@@ -187,7 +189,8 @@ GlobalT::RelaxCodeT SmallStrainEnhLocT::RelaxSystem(void)
 		{
 			/* initialize element localization data */
 			loc_flag = 0;
-			fElementLocScalars[elem_num,kLocFlag] = loc_flag;
+			//fElementLocScalars[elem_num,kLocFlag] = loc_flag;
+			fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kLocFlag] = loc_flag;
 			
 			normal1 = 0.0;
 			fElementLocNormal1.SetRow(elem_num, normal1);
@@ -622,7 +625,7 @@ void SmallStrainEnhLocT::CheckLocalization(int elem)
 		if (checkloc)
 		{
 			loc_flag = 1; // localized, not traced
-			fElementLocScalars[elem,kLocFlag] = loc_flag;
+			fElementLocScalars[kNUM_SCALAR_TERMS*elem + kLocFlag] = loc_flag;
 			normals.Top();
 			slipdirs.Top();
 			int num_normals = normals.Length();
@@ -807,7 +810,7 @@ void SmallStrainEnhLocT::CheckLocalization(int elem)
 
 
 /* choose the normal and slipdir given normals and slipdirs from bifurcation condition */
-void SmallStrainEnhLocT::ChooseNormalAndSlipDir(int elem, int nen)
+void SmallStrainEnhLocT::ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int elem, int nen)
 {
 	int i, nodeindex;
 	double product, sum1, sum2, sum3;
@@ -828,10 +831,17 @@ void SmallStrainEnhLocT::ChooseNormalAndSlipDir(int elem, int nen)
 	sum3 = 0.0;
 	for (i=0; i < nen; i++)
 	{
-		nodeindex = i*NumSD();
-		node_displ[0] = fLocDisp[nodeindex];
-		node_displ[1] = fLocDisp[nodeindex+1];
-		node_displ[2] = fLocDisp[nodeindex+2];
+		if (NumSD() == 2)
+		{
+			node_displ[0] = displ_elem[i];
+			node_displ[1] = displ_elem[i+nen];
+		}
+		else if (NumSD() == 3)
+		{
+			node_displ[0] = displ_elem[i];
+			node_displ[1] = displ_elem[i+nen];
+			node_displ[2] = displ_elem[i+2*nen];
+		}
 		
 		product = dArrayT::Dot(normal1,node_displ);
 		sum1 += product;
@@ -929,7 +939,7 @@ void SmallStrainEnhLocT::DetermineActiveNodesTrace(int elem, int nen)
 	if (trace)
 	{
 		loc_flag = 2;
-		fElementLocScalars[elem,kLocFlag] = loc_flag;
+		fElementLocScalars[kNUM_SCALAR_TERMS*elem + kLocFlag] = loc_flag;
 	}
 	*/
 }
@@ -945,7 +955,7 @@ void SmallStrainEnhLocT::FormKd(double constK)
 
 	/* current element number */
 	int elem = CurrElementNumber();
-	loc_flag = fElementLocScalars[elem,kLocFlag];
+	loc_flag = fElementLocScalars[kNUM_SCALAR_TERMS*elem + kLocFlag];
 	
 	/* fetch normal and slipdir for element */
 	fElementLocNormal.RowAlias(elem, normal_chosen);
@@ -1001,12 +1011,13 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 	
 	/* current element info */
 	int elem = CurrElementNumber();
-	loc_flag = fElementLocScalars[elem,kLocFlag];
+	loc_flag = fElementLocScalars[kNUM_SCALAR_TERMS*elem + kLocFlag];
 	double vol = fElementVolume[elem];
 
 	/* element has localized and has been traced, thus fetch data to modify the stiffness matrix */
-	if (loc_flag == 2) 
-	{	
+	//if (loc_flag == 2) 
+	if (loc_flag == 1) 
+	{
 		/* fetch normal and slipdir for element */
 		fElementLocNormal.RowAlias(elem, normal_chosen);
 		fElementLocSlipDir.RowAlias(elem, slipdir_chosen);
@@ -1036,15 +1047,15 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 						<< setw(outputFileWidth) << "gamma_delta" <<  setw(outputFileWidth) << "Q"
 						<< setw(outputFileWidth) << "P" <<  setw(outputFileWidth) << "q_St"
 						<< setw(outputFileWidth) << "q_Sn" <<  setw(outputFileWidth) << "p_S"; 
-			ss_enh_out	<< endl << fElementLocScalars[kLocFlag] << setw(outputFileWidth) << fElementLocScalars[kJumpDispl] 
-						<< setw(outputFileWidth) << fElementLocScalars[kgamma_delta] <<  setw(outputFileWidth) << fElementLocScalars[kQ]
-						<< setw(outputFileWidth) << fElementLocScalars[kP] <<  setw(outputFileWidth) << fElementLocScalars[kq_St]
-						<< setw(outputFileWidth) << fElementLocScalars[kq_Sn] <<  setw(outputFileWidth) << fElementLocScalars[kp_S]; 
+			ss_enh_out	<< endl << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kLocFlag] << setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kJumpDispl] 
+						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kgamma_delta] <<  setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kQ]
+						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kP] <<  setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kq_St]
+						<< setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kq_Sn] <<  setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kp_S]; 
 			
 			ss_enh_out	<< endl << endl << "cohesion" << setw(outputFileWidth) << "friction (rad)" 
 						<< setw(outputFileWidth) << "dilation (rad)"; 
-			ss_enh_out	<< endl << fElementLocInternalVars[kCohesion] << setw(outputFileWidth) << fElementLocInternalVars[kFriction] 
-						<< setw(outputFileWidth) << fElementLocInternalVars[kDilation] << endl;		
+			ss_enh_out	<< endl << fElementLocInternalVars[kNUM_ISV_TERMS*elem + kCohesion] << setw(outputFileWidth) << fElementLocInternalVars[kNUM_ISV_TERMS*elem + kFriction] 
+						<< setw(outputFileWidth) << fElementLocInternalVars[kNUM_ISV_TERMS*elem + kDilation] << endl;		
 		}
 	}
 	
