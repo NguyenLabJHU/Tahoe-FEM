@@ -1,4 +1,4 @@
-/* $Id: From2Dto3DT.cpp,v 1.2 2003-12-28 08:23:03 paklein Exp $ */
+/* $Id: From2Dto3DT.cpp,v 1.3 2004-03-02 18:44:15 cjkimme Exp $ */
 /* created: paklein (06/23/1999)*/
 
 #include "From2Dto3DT.h"
@@ -124,11 +124,11 @@ const dArrayT& From2Dto3DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 	new_traction =  f2DModel->Traction(new_jump_u, state, sigma, qIntegrate);
 	
 	if (fabs(jump_u[0]) > kSmall)
-		fTraction[0] = fabs(jump_u[0])/new_jump_u[0]*new_traction[0];
+		fTraction[0] = jump_u[0]/new_jump_u[0]*new_traction[0];
 	else
 		fTraction[0] = 0.;
 	if (fabs(jump_u[1]) > kSmall)
-		fTraction[1] = fabs(jump_u[1])/new_jump_u[0]*new_traction[0];
+		fTraction[1] = jump_u[1]/new_jump_u[0]*new_traction[0];
 	else
 		fTraction[1] = 0.;
 	
@@ -156,19 +156,23 @@ const dMatrixT& From2Dto3DT::Stiffness(const dArrayT& jump_u, const ArrayT<doubl
 	new_stiffness =  f2DModel->Stiffness(new_jump_u, state, sigma);
 	
 	double f0, f1;
-	if (jump_u[0] < kSmall)
+	if (fabs(jump_u[0]) > kSmall)
 		f0 = jump_u[0]/new_jump_u[0];
 	else
 		f0 = 0.;
-	if (jump_u[1] < kSmall)
+	if (fabs(jump_u[1]) > kSmall)
 		f1 = jump_u[1]/new_jump_u[0];
 	else
 		f1 = 0.;
 		
+	if (fabs(new_jump_u[0]) < kSmall)
+		f0 = f1 = 1/sqrt(2.);
+		
 	fStiffness(0,0) = fStiffness(1,1) = fStiffness(0,1) = fStiffness(1,0) = new_stiffness(0,0);
-	fStiffness(2,1) = fStiffness(1,2) = fStiffness(2,0) = fStiffness(0,2) = new_stiffness(1,0);
+	fStiffness(2,0) = fStiffness(2,1) = new_stiffness(1,0);
+	fStiffness(0,2) = fStiffness(1,2) = new_stiffness(0,1);
 	fStiffness(2,2) = new_stiffness(1,1);
-	
+
 	/* scale by chain rule */
 	fStiffness(0,0) *= f0*f0;
 	fStiffness(1,1) *= f1*f1;
@@ -178,6 +182,21 @@ const dMatrixT& From2Dto3DT::Stiffness(const dArrayT& jump_u, const ArrayT<doubl
 	fStiffness(0,2) *= f0;
 	fStiffness(2,1) *= f1;
 	fStiffness(1,2) *= f1;
+	
+	if (fabs(new_jump_u[0]) > kSmall)
+	{	
+		/* Add traction-dependent terms */
+		double T2D_t;
+		dArrayT new_state(state.Length(), state.Pointer());
+		const dArrayT& tract = f2DModel->Traction(new_jump_u, new_state, sigma, false);
+		T2D_t =  tract[0]/new_jump_u[0];
+		
+		fStiffness(0,0) += (1. - f0*f0)*T2D_t;
+		fStiffness(1,1) += (1. - f1*f1)*T2D_t;
+		T2D_t *= f0*f1;
+		fStiffness(0,1) -= T2D_t;
+		fStiffness(1,0) -= T2D_t;
+	}
 	
 	return fStiffness;
 }
