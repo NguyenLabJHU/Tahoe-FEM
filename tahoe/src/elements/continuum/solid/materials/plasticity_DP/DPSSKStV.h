@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.h,v 1.11 2004-03-20 23:38:20 raregue Exp $ */
+/* $Id: DPSSKStV.h,v 1.10 2003-01-29 07:35:01 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_H_
 #define _DP_SS_KSTV_H_
@@ -41,7 +41,9 @@ class DPSSKStV: public SSSolidMatT,
 	/*@{*/
 	/** spatial tangent modulus */
 	virtual const dMatrixT& c_ijkl(void);
-	
+
+	virtual const dMatrixT& cdisc_ijkl(void);
+
 	/** Cauchy stress */
 	virtual const dSymMatrixT& s_ij(void);
 
@@ -60,16 +62,27 @@ class DPSSKStV: public SSSolidMatT,
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
 
+        /*
+         * Test for localization using "current" values for Cauchy
+         * stress and the spatial tangent moduli. Returns 1 if the
+         * determinant of the acoustic tensor is negative and returns
+         * the normal for which the determinant is minimum. Returns 0
+         * of the determinant is positive.
+         */
+	 int IsLocalized(dArrayT& normal);
+
 protected:
 
 	/* set modulus */
  	virtual void SetModulus(dMatrixT& modulus); 
+         int loccheck;
  
-private:
+  private:
   
   	/* return values */
   	dSymMatrixT	fStress;
   	dMatrixT	fModulus;
+        dMatrixT        fModulusdisc;
 
 };
 

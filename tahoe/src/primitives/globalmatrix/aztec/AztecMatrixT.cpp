@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.cpp,v 1.17 2004-03-14 16:32:56 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.15 2003-12-28 08:24:09 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 #include "AztecMatrixT.h"
 
@@ -335,12 +335,22 @@ GlobalMatrixT* AztecMatrixT::Clone(void) const
 }
 
 /*************************************************************************
- * Protected
- *************************************************************************/
+* Protected
+*************************************************************************/
+
+/* precondition matrix */
+void AztecMatrixT::Factorize(void)
+{
+	/* preconditioning done during solve */
+	fIsFactorized = 0; // undo GlobalMatrixT flag set
+}
 	
 /* determine new search direction and put the results in result */
 void AztecMatrixT::BackSubstitute(dArrayT& result)
 {
+	/* flag should not be set */
+	if (fIsFactorized) throw ExceptionT::kGeneralFail;
+
 	/* inherited - no initial guess */
 	fAztec->Solve(result);
 }

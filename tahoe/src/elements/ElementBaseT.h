@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.38 2004-03-17 22:47:02 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.37 2004-02-09 08:23:31 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -39,11 +39,6 @@ class SubListT;
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 class FieldT;
-#endif
-
-#ifdef __NO_RTTI__
-class ParticleT;
-class BridgingScaleT;
 #endif
 
 /** base class for element types. Initialization of the element classes
@@ -310,17 +305,6 @@ public:
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
 	/*@}*/
-
-#ifdef __NO_RTTI__
-	/** \name fixes for environments without working RTTI */
-	/*@{*/
-	/** cast this to ParticleT */
-	virtual ParticleT* dynamic_cast_ParticleT(void) { return NULL; };
-
-	/** cast this to BridgingScaleT* */
-	virtual BridgingScaleT* dynamic_cast_BridgingScaleT(void) { return NULL; };
-	/*@}*/
-#endif
 
 protected: /* for derived classes only */
 

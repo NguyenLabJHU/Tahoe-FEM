@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.h,v 1.14 2004-03-16 06:56:28 paklein Exp $ */
+/* $Id: FullMatrixT.h,v 1.12 2003-10-31 20:53:14 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 
 #ifndef _FULL_MATRIX_T_H_
@@ -77,6 +77,9 @@ public:
 	virtual bool MultTx(const dArrayT& x, dArrayT& b) const;
 	
 protected:
+
+	/* precondition matrix */
+	virtual void Factorize(void);
 	
 	/* solution driver */
 	virtual void BackSubstitute(dArrayT& result);
@@ -88,11 +91,8 @@ protected:
 
 protected:
 
-	/** the matrix */
+	/* the matrix */
 	LAdMatrixT fMatrix;
-	
-	/** runtime flag */
-	bool fIsFactorized;
 };
 
 } // namespace Tahoe 
