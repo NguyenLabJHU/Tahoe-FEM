@@ -1,6 +1,6 @@
-/* $Id: InverseMapT.cpp,v 1.3 2004-02-24 19:05:45 paklein Exp $ */
+/* $Id: InverseMapT.cpp,v 1.4 2004-02-25 14:11:43 paklein Exp $ */
 #include "InverseMapT.h"
-#include "nArrayT.h"
+#include "iArrayT.h"
 
 using namespace Tahoe;
 
