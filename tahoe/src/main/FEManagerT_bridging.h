@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.15 2004-07-15 08:31:03 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.16 2004-07-22 08:32:55 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -33,7 +33,7 @@ public:
 
 	/** constructor */
 	FEManagerT_bridging(const StringT& input, ofstreamT& output, CommunicatorT& comm,
-		const ArrayT<StringT>& argv, ifstreamT& bridging_input);
+		const ArrayT<StringT>& argv);
 
 	/** destructor */
 	~FEManagerT_bridging(void);
@@ -68,10 +68,12 @@ public:
 	 * The ghost node database must be initialized by calling
 	 * FEManagerT_bridging::InitGhostNodes before accessing the lists.*/
 	/*@{*/
-	/** initialize the ghost node information 
+	/** initialize the ghost node information. Ghost nodes are nodes with externally
+	 * prescribed motion. The motion of the ghost nodes must be defined by calling
+	 * FEManagerT_bridging::SetGhostNodeKBC.
 	 * \param include_image_nodes flag to indicate whether image nodes should be
 	 *        included in the list of non-ghost nodes */
-	void InitGhostNodes(bool include_image_nodes);
+	void InitGhostNodes(const StringT& field, const ArrayT<StringT>& ghost_id_list, bool include_image_nodes);
 
 	/** prescribe the motion of ghost nodes. Generate KBC cards to control the
 	 * ghost node motion. Assumes all components of the ghost node motion are
@@ -102,7 +104,7 @@ public:
 	/** initialize interpolation data. Initialize data structures needed to interpolate
 	 * field values to the given list of points. Requires that this FEManagerT has
 	 * a BridgingScaleT in its element list. */
-	void InitInterpolation(const iArrayT& nodes, const StringT& field,
+	void InitInterpolation(const StringT& field, const iArrayT& nodes,
 		NodeManagerT& node_manager);
 
 	/** field interpolations. Interpolate the field to the nodes initialized
@@ -138,7 +140,7 @@ public:
 	/** initialize projection data. Initialize data structures needed to project
 	 * field values to the given list of points. Requires that this FEManagerT has
 	 * a BridgingScaleT in its element list. */
-	void InitProjection(CommManagerT& comm, const iArrayT& nodes, const StringT& field,
+	void InitProjection(const StringT& field, CommManagerT& comm, const iArrayT& nodes,
 		NodeManagerT& node_manager, bool make_inactive);
 
 	/** indicate whether image nodes should be included in the projection */
@@ -184,11 +186,11 @@ public:
 
 	/** solve bond densities one at a time enforcing constraints on bond densities using augmented
 	 * Lagrange multipliers */
-	void CorrectOverlap_2(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2, double k_r, int nip);
+	void CorrectOverlap_2(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2, double k_r, double bound_0, int nip);
 
 	/** solve bond densities one at a time enforcing constraints on bond densities using a
 	 * penalty method */
-	void CorrectOverlap_22(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2, double k_r, int nip);
+	void CorrectOverlap_22(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2, double bound_tol, int nip);
 
 	/** solve bond densities one at a time activating unknowns at integration points only if
 	 * the associated domain contains the terminus of a ghost node bond. */
@@ -342,9 +344,6 @@ protected:
 	int NumberShells(const dArray2DT& bonds, iArrayT& shell, dArrayT& shell_bond_length) const;
 
 private:
-
-	/** input parameters for bridging parameters */
-	ifstreamT& fBridgingIn;
 
 	/** \name ghost node information */
 	/*@{*/

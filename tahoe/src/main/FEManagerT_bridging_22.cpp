@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_22.cpp,v 1.3 2004-07-15 08:31:03 paklein Exp $ */
+/* $Id: FEManagerT_bridging_22.cpp,v 1.4 2004-07-22 08:32:55 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -17,6 +17,7 @@
 #include "ElementSupportT.h"
 
 /* headers needed to compute the correction for overlap */
+#include "ContinuumElementT.h"
 #include "SolidMatListT.h"
 #include "FCC3D.h"
 #include "Hex2D.h"
@@ -48,10 +49,8 @@ const double sqrt2 = sqrt(2.0);
 using namespace Tahoe;
 
 void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_neighbors, const dArray2DT& point_coords, 
-	double smoothing, double k2, double k_r, int nip)
+	double smoothing, double k2, double bound_tol, int nip)
 {
-#pragma unused(k_r)
-
 	const char caller[] = "FEManagerT_bridging::CorrectOverlap_22";
 
 	/* finding free vs projected nodes */
@@ -88,7 +87,9 @@ void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_nei
 	/* coarse scale element group */
 	const ContinuumElementT* coarse = fFollowerCellData.ContinuumElement();
 	int nel = coarse->NumElements();
-	if (nip != 1 && nip != coarse->NumIP())
+	if (nip == -1)
+		nip = coarse->NumIP();
+	else if (nip != 1)
 		ExceptionT::GeneralFail(caller, "number of integration points needs to be 1 or %d: %d",
 			coarse->NumIP(), nip);
 
@@ -256,7 +257,7 @@ void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_nei
 
 		/* solve bond densities */
 		double scale_jump = 1.0; /* total jump is actually 1 + scale_jump */
-		double constraint_tol = 2.0e-02;
+		double constraint_tol = bound_tol;
 		double abs_tol = 1.0e-10;
 		double rel_tol = 1.0e-10;
 		double div_tol = 1.0e+32;		

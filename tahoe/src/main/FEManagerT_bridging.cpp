@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.23 2004-07-15 08:31:03 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.24 2004-07-22 08:32:55 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -20,6 +20,7 @@
 #include "ElementSupportT.h"
 
 /* headers needed to compute the correction for overlap */
+#include "ContinuumElementT.h"
 #include "SolidMatListT.h"
 #include "FCC3D.h"
 #include "Hex2D.h"
@@ -47,9 +48,8 @@ using namespace Tahoe;
 
 /* constructor */
 FEManagerT_bridging::FEManagerT_bridging(const StringT& input, ofstreamT& output, CommunicatorT& comm,
-	const ArrayT<StringT>& argv, ifstreamT& bridging_input):
+	const ArrayT<StringT>& argv):
 	FEManagerT(input, output, comm, argv),
-	fBridgingIn(bridging_input),
 	fBridgingScale(NULL),
 	fSolutionDriver(NULL),
 	fEAMFCC3D(NULL),
@@ -184,19 +184,14 @@ void FEManagerT_bridging::SetExternalForce(const StringT& field, const dArray2DT
 }
 
 /* initialize the ghost node information */
-void FEManagerT_bridging::InitGhostNodes(bool include_image_nodes)
+void FEManagerT_bridging::InitGhostNodes(const StringT& field, const ArrayT<StringT>& ghost_id_list, bool include_image_nodes)
 {
 	const char caller[] = "FEManagerT_bridging::InitGhostNodes";
 
 	/* collect ghost nodes */
-	if (fBridgingIn.is_open()) {
-		ArrayT<StringT> id_list;
-		fModelManager->NodeSetList(fBridgingIn, id_list);
-		fModelManager->ManyNodeSets(id_list, fGhostNodes);
-	}
+	fModelManager->ManyNodeSets(ghost_id_list, fGhostNodes);
 
-	/* assume atomistic field is "displacement" */
-	StringT field = "displacement";
+	/* get atomistic field */
 	FieldT* the_field = fNodeManager->Field(field);
 	if (!the_field) ExceptionT::GeneralFail(caller, "could not resolve field \"%s\"", field.Pointer());
 
@@ -402,7 +397,7 @@ void FEManagerT_bridging::LumpedMass(const iArrayT& nodes, dArrayT& mass) const
 }
 
 /* initialize nodes that follow the field computed by this instance */
-void FEManagerT_bridging::InitInterpolation(const iArrayT& nodes, const StringT& field, 
+void FEManagerT_bridging::InitInterpolation(const StringT& field, const iArrayT& nodes, 
 	NodeManagerT& node_manager)
 {
 #pragma unused(field)
@@ -600,7 +595,7 @@ void FEManagerT_bridging::MultNTf(const InterpolationDataT& N, const dArray2DT& 
 }
 
 /* initialize data for the driving field */
-void FEManagerT_bridging::InitProjection(CommManagerT& comm, const iArrayT& nodes, const StringT& field, 
+void FEManagerT_bridging::InitProjection(const StringT& field, CommManagerT& comm, const iArrayT& nodes, 
 	NodeManagerT& node_manager, bool make_inactive)
 {
 	const char caller[] = "FEManagerT_bridging::InitProjection";
