@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.22 2003-03-26 20:00:06 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.23 2003-03-28 00:14:59 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -144,7 +144,7 @@ protected:
 	/* variables for calculating nodal info */
 	/* Added by cjkimme 11/07/01 */
 	bool fCalcNodalInfo;
-	int fNodalInfoCode;
+	int fNodalInfoCode, iTiedFlagIndex;
 	dArray2DT fNodalQuantities;
 	iArrayT iBulkGroups;
 	
