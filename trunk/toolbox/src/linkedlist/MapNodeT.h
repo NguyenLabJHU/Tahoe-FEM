@@ -1,4 +1,4 @@
-/* $Id: MapNodeT.h,v 1.1 2002-11-16 20:44:59 paklein Exp $ */
+/* $Id: MapNodeT.h,v 1.2 2003-03-06 17:25:14 paklein Exp $ */
 #ifndef _MAP_NODE_T_H_
 #define _MAP_NODE_T_H_
 
@@ -26,6 +26,9 @@ public:
 
 	/** node with key only */
 	MapNodeT(const key_TYPE &key);
+	
+	/** default constructor. Requires key_TYPE to have a default constructor  */
+	MapNodeT(void);
 	/*@}*/
 
 	/** destructor */
@@ -81,6 +84,14 @@ inline MapNodeT<key_TYPE, value_TYPE>::MapNodeT(const MapNodeT& source):
 template <class key_TYPE, class value_TYPE>
 inline MapNodeT<key_TYPE, value_TYPE>::MapNodeT(const key_TYPE &key):
 	fKey(key),
+	fValue(NULL)
+{
+
+}
+
+/* default constructor */
+template <class key_TYPE, class value_TYPE>
+inline MapNodeT<key_TYPE, value_TYPE>::MapNodeT(void):
 	fValue(NULL)
 {
 
