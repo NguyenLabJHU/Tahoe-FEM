@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.31 2002-12-02 17:16:39 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.32 2002-12-05 01:34:12 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -566,6 +566,8 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 			}
 		}
 
+		if (NeedDecomposition(in, model_file, size))
+		  {
 		/* prompt if not found */
 		if (method == -1)
 		{	
@@ -590,6 +592,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 			cout << " ::RunJob_parallel: exception on decomposition: " << code << endl;
 			token = 0;
 		}
+		  }
 	}
 
 	/* synch and check status */
