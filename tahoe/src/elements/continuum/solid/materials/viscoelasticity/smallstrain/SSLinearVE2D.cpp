@@ -1,4 +1,4 @@
-/* $Id: SSLinearVE2D.cpp,v 1.3.18.2 2004-06-09 23:18:12 paklein Exp $ */
+/* $Id: SSLinearVE2D.cpp,v 1.3.18.3 2004-06-25 01:29:21 paklein Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSLinearVE2D.h"
 #include "SSMatSupportT.h"
@@ -10,35 +10,14 @@
 
 using namespace Tahoe;
 
+const double third = 1.0/3.0;
 const int kNumOutputVar = 1;
 static const char* Labels[kNumOutputVar] = {"Dvisc"};
 
-SSLinearVE2D::SSLinearVE2D(ifstreamT& in, const SSMatSupportT& support):
-	ParameterInterfaceT("linear_viscoelastic_2D"),
-	SSViscoelasticityT(in, support),
-	fStress(2),
-	fModulus(3),
-	fModMat(3),
-	fStrain3D(3),
- 	fStress3D(3),
-	fMu(2),
-	fKappa(2),
-	fthird(1.0/3.0)
+SSLinearVE2D::SSLinearVE2D(void):
+	ParameterInterfaceT("linear_viscoelastic_2D")
 {
-        double& mu_EQ = fMu[kEquilibrium];
-	double& kappa_EQ = fKappa[kEquilibrium]; 
 
-	double& mu_NEQ = fMu[kNonEquilibrium]; 
-	double& kappa_NEQ = fKappa[kNonEquilibrium];
-
-	in >> ftauS;
-	in >> ftauB;
-
-	in >> mu_EQ;
-	in >> kappa_EQ;
-
-	in >> mu_NEQ;
-	in >> kappa_NEQ;
 }	
 
 double SSLinearVE2D::StrainEnergyDensity(void)
@@ -55,9 +34,9 @@ double SSLinearVE2D::StrainEnergyDensity(void)
 
 	double I1 = strain[0]+strain[1]; 
 
-	fStrain3D[0] -= fthird*I1;
-	fStrain3D[1] -= fthird*I1;
-	fStrain3D[2] -= fthird*I1;
+	fStrain3D[0] -= third*I1;
+	fStrain3D[1] -= third*I1;
+	fStrain3D[2] -= third*I1;
 	
 	/*deviatoric part*/
 	fStress3D = fStrain3D;
@@ -83,9 +62,9 @@ double SSLinearVE2D::StrainEnergyDensity(void)
 	
 	fStrain3D = fdevQ;
 	fStrain3D /= 2.0*mu;
-	fStrain3D[0] += fmeanQ[0]/kappa*fthird;
-	fStrain3D[1] += fmeanQ[0]/kappa*fthird;
-	fStrain3D[2] += fmeanQ[0]/kappa*fthird;
+	fStrain3D[0] += fmeanQ[0]/kappa*third;
+	fStrain3D[1] += fmeanQ[0]/kappa*third;
+	fStrain3D[2] += fmeanQ[0]/kappa*third;
 
 	fStress3D = fdevQ;
 	fStress3D[0] += fmeanQ[0];
@@ -121,9 +100,9 @@ const dMatrixT& SSLinearVE2D::c_ijkl(void)
 	
 	/*deviatoric part*/
 	fModulus = 0.0;
-	fModulus(0,0) = fModulus(1,1) = 2.0*mu*(1.0 - fthird);
+	fModulus(0,0) = fModulus(1,1) = 2.0*mu*(1.0 - third);
 	fModulus(2,2) = mu;
-	fModulus(0,1) =	fModulus(1,0) = -2.0*mu*fthird;
+	fModulus(0,1) =	fModulus(1,0) = -2.0*mu*third;
 
 	/*volumetric part*/
 	fModulus(0,0) += kappa; fModulus(1,1) += kappa; 
@@ -135,9 +114,9 @@ const dMatrixT& SSLinearVE2D::c_ijkl(void)
 
 	/*deviatoric part*/
 	fModMat = 0.0;
-	fModMat(0,0) = fModMat(1,1) = 2.0*mu*falphaS*(1.0 - fthird);
+	fModMat(0,0) = fModMat(1,1) = 2.0*mu*falphaS*(1.0 - third);
 	fModMat(2,2) = mu*falphaS;
-	fModMat(0,1) = fModMat(1,0) = -2.0*mu*falphaS*fthird;
+	fModMat(0,1) = fModMat(1,0) = -2.0*mu*falphaS*third;
 	
 	/*volumetric part*/
 	fModMat(0,0) += kappa*falphaB; fModMat(1,1) += kappa*falphaB; 
@@ -171,9 +150,9 @@ const dSymMatrixT& SSLinearVE2D::s_ij(void)
 
 	double I1 = strain[0]+strain[1]; 
 
-	fStrain3D[0] -= fthird*I1;
-	fStrain3D[1] -= fthird*I1;
-	fStrain3D[2] -= fthird*I1;
+	fStrain3D[0] -= third*I1;
+	fStrain3D[1] -= third*I1;
+	fStrain3D[2] -= third*I1;
 	
 	/*deviatoric part*/
 	fStress3D = fStrain3D;
@@ -243,3 +222,61 @@ void SSLinearVE2D::ComputeOutput(dArrayT& output)
 	
 	output[0] = 0.5*(0.5/etaS*fdevQ.ScalarProduct() + 1.0/etaB*fmeanQ[0]*fmeanQ[0]); 
 }	
+
+/* describe the parameters needed by the interface */
+void SSLinearVE2D::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	SSViscoelasticityT::DefineParameters(list);
+
+	/* common limit */
+	LimitT positive(0.0, LimitT::Lower);
+
+	/* relaxation times */
+	ParameterT tau_shear(ParameterT::Double, "tau_shear");
+	ParameterT tau_bulk(ParameterT::Double, "tau_bulk");
+	tau_shear.AddLimit(positive);
+	tau_bulk.AddLimit(positive);
+	list.AddParameter(tau_shear);
+	list.AddParameter(tau_bulk);
+
+	/* elastic properties */
+	ParameterT mu_EQ(ParameterT::Double, "mu_EQ");
+	ParameterT kappa_EQ(ParameterT::Double, "kappa_EQ");
+	ParameterT mu_NEQ(ParameterT::Double, "mu_NEQ");
+	ParameterT kappa_NEQ(ParameterT::Double, "kappa_NEQ");
+	mu_EQ.AddLimit(positive);
+	kappa_EQ.AddLimit(positive);
+	mu_NEQ.AddLimit(positive);
+	kappa_NEQ.AddLimit(positive);
+	list.AddParameter(mu_EQ);
+	list.AddParameter(kappa_EQ);
+	list.AddParameter(mu_NEQ);
+	list.AddParameter(kappa_NEQ);
+}
+
+/* accept parameter list */
+void SSLinearVE2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SSViscoelasticityT::TakeParameterList(list);
+
+	/* dimension work space */
+	fStress.Dimension(2);
+	fModulus.Dimension(3);
+	fModMat.Dimension(3);
+	fStrain3D.Dimension(3);
+ 	fStress3D.Dimension(3);
+	fMu.Dimension(2);
+	fKappa.Dimension(2);
+
+	/* relaxation times */
+	ftauS = list.GetParameter("tau_shear");
+	ftauB = list.GetParameter("tau_bulk");
+
+	/* elastic properties */
+	fMu[kEquilibrium] = list.GetParameter("mu_EQ");
+	fKappa[kEquilibrium] = list.GetParameter("kappa_EQ");
+	fMu[kNonEquilibrium] = list.GetParameter("mu_NEQ");
+	fKappa[kNonEquilibrium] = list.GetParameter("kappa_NEQ");
+}

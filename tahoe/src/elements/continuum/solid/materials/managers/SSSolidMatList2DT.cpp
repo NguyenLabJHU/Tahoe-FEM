@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList2DT.cpp,v 1.1.4.6 2004-06-19 23:28:09 paklein Exp $ */
+/* $Id: SSSolidMatList2DT.cpp,v 1.1.4.7 2004-06-25 01:29:22 paklein Exp $ */
 #include "SSSolidMatList2DT.h"
 #include "SSMatSupportT.h"
 
@@ -89,6 +89,7 @@ void SSSolidMatList2DT::ReadMaterialData(ifstreamT& in)
 {
 	const char caller[] = "SSSolidMatList2DT::ReadMaterialData";
 
+#pragma unused(in)
 ExceptionT::GeneralFail(caller);
 #if 0
 	int i, matnum;
@@ -329,6 +330,10 @@ void SSSolidMatList2DT::DefineInlineSub(const StringT& sub, ParameterListT::List
 #ifdef PLASTICITY_DP_MATERIAL
 		sub_sub_list.AddSub("small_strain_StVenant_DP_2D");
 #endif
+
+#ifdef VISCOELASTICITY
+		sub_sub_list.AddSub("linear_viscoelastic_2D");
+#endif
 	}
 	else /* inherited */
 		SolidMatListT::DefineInlineSub(sub, order, sub_sub_list);
@@ -397,6 +402,11 @@ SSSolidMatT* SSSolidMatList2DT::NewSSSolidMat(const StringT& list_name) const
 #ifdef PLASTICITY_DP_MATERIAL
 	else if (list_name == "small_strain_StVenant_DP_2D")
 		mat = new DPSSKStV2D;
+#endif
+
+#ifdef VISCOELASTICITY
+	else if (list_name == "linear_viscoelastic_2D")
+		mat = new SSLinearVE2D;
 #endif
 
 	/* set support */

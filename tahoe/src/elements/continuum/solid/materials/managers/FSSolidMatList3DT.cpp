@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.1.4.10 2004-06-19 23:28:09 paklein Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.1.4.11 2004-06-25 01:29:22 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -594,6 +594,10 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& sub, ParameterListT::List
 		sub_sub_list.AddSub("isotropic_VIB");
 		sub_sub_list.AddSub("Ogden_isotropic_VIB");
 #endif
+
+#ifdef VISCOELASTICITY
+	sub_sub_list.AddSub("Reese-Govindjee_split");
+#endif
 	}
 	else /* inherited */
 		SolidMatListT::DefineInlineSub(sub, order, sub_sub_list);
@@ -682,6 +686,11 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 		mat= new IsoVIB3D;
 	else if (name == "Ogden_isotropic_VIB")
 		mat= new OgdenIsoVIB3D;
+#endif
+
+#ifdef VISCOELASTICITY
+	else if (name == "Reese-Govindjee_split")
+		mat= new RGSplitT;
 #endif
 
 	/* set support */
