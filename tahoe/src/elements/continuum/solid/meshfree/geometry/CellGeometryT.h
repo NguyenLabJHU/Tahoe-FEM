@@ -1,4 +1,4 @@
-/* $Id: CellGeometryT.h,v 1.2 2005-01-25 18:22:11 cjkimme Exp $ */
+/* $Id: CellGeometryT.h,v 1.3 2005-01-25 19:08:14 cjkimme Exp $ */
 #ifndef _CELL_GEOMETRY_T_
 #define _CELL_GEOMETRY_T_
 
@@ -81,3 +81,4 @@ protected: /* for derived classes only */
 
 
 #endif /* _CELL_GEOMETRY_T */
+
