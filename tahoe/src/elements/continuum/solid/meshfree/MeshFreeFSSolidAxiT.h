@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidAxiT.h,v 1.1.22.1 2004-07-06 06:54:15 paklein Exp $ */
+/* $Id: MeshFreeFSSolidAxiT.h,v 1.1.22.2 2004-07-09 00:26:17 paklein Exp $ */
 #ifndef _MESHFREE_FSSOLID_AXI_T_H_
 #define _MESHFREE_FSSOLID_AXI_T_H_
 
@@ -57,6 +57,15 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
@@ -100,6 +109,11 @@ protected:
 
 	/* connectivities over all element blocks */
 	iArray2DT fConnectsAll;
+
+	/** pointer to list parameters needed to construct meshless shape functions. This
+	 * pointer is set during MeshFreeSSSolidT::TakeParamaterListT and used during
+	 * MeshFreeSSSolidT::SetShape */
+	const ParameterListT* fMeshfreeParameters;
 };
 
 } /* namespace Tahoe */
