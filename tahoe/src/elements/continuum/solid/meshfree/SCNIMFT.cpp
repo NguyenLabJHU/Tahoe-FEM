@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.43 2005-01-14 00:04:12 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.44 2005-01-14 17:28:43 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -86,6 +86,7 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support):
 	fVoronoi(NULL),
 	fNodalShapes(NULL),
 	qComputeVoronoiCell(false),
+	qJustVoronoiDiagram(false),
 	fNumIP(1),
 	vCellFile("voronoidiagram")
 {
