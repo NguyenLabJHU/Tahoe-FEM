@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.h,v 1.3 2001-10-02 00:31:19 ebmarin Exp $ */
+/* $Id: LocalCrystalPlast.h,v 1.4 2002-02-01 00:15:49 ebmarin Exp $ */
 /*
   File: LocalCrystalPlast.h
 */
@@ -31,6 +31,9 @@ class LocalCrystalPlast : public PolyCrystalMatT
   // number of crystal variables to be stored
   virtual int NumVariablesPerElement();
 
+  // number of variables to compute in NLCSolver
+  virtual int NumberOfUnknowns() const;
+
   // Cauchy stress - Taylor average    
   virtual const dSymMatrixT& s_ij();   
 
@@ -59,10 +62,6 @@ class LocalCrystalPlast : public PolyCrystalMatT
   // form of tangent matrix
   virtual GlobalT::SystemTypeT TangentType(void) const;
 
-  // some needed accesors (by slip hardening classes mainly)
-  virtual const dArrayT& GetResolvedShearStress() const;
-  virtual const dArrayT& GetIncrSlipShearStrain() const;
-
  protected:
   // slip kinetics
   virtual void SetSlipKinetics();
@@ -80,8 +79,11 @@ class LocalCrystalPlast : public PolyCrystalMatT
   virtual void LoadAggregateData(ElementCardT& element, int intpt);
 
   // solve for the state at each crystal
-  virtual void SolveCrystalState();
   virtual void IterateOnCrystalState(bool& stateConverged, int subIncr);
+
+  // restores and saves solution for FDGamma (when subincrementation is on!)
+  virtual void RestoreSavedSolution();
+  virtual void SaveCurrentSolution();
 
   // trial deformation quantities
   void TrialDeformation();
@@ -109,13 +111,10 @@ class LocalCrystalPlast : public PolyCrystalMatT
   virtual void SolveForDGamma(int& ierr);
 
   // slip system resolve shear stress
-  void ResolveShearStress(const dSymMatrixT& Ce);
+  void ResolveShearStress();
 
   // inverse of incremental plastic deformation gradient
   virtual void DeltaFPInverse(const dArrayT& dgamma);
-
-  // Second Piola Kirchhoff stress
-  void CrystalPKIIStress(const dSymMatrixT& Ce);
 
   // fDFpi/dDGamma term in local Jacobian
   void dDFpidDGamma(const dArrayT& dgamma, ArrayT<dMatrixT>& array);
@@ -129,26 +128,13 @@ class LocalCrystalPlast : public PolyCrystalMatT
   // polar decomposition of deformation gradient
   void PolarDecomp();
 
-	// function to compute 3D deformations regardless of dimensionality of the
-	// problem. For 2D, the out-of-plane direction is x3 and the deformation
-	// is assumed to be plane strain
-	void Compute_Ftot_3D(dMatrixT& F_3D) const;	
-	void Compute_Ftot_3D(dMatrixT& F_3D, int ip) const;	
-	void Compute_Ftot_last_3D(dMatrixT& F_3D) const;	
-
-  // 4th order tensor transformation: Co_ijkl = F_iI F_jJ F_kK f_lL Ci_IJKL
-  void FFFFC_3D(dMatrixT& Co, dMatrixT& Ci, const dMatrixT& F);
-
  protected:
-  // number of hardening variables
+  // number of hardening variables (used in Grad derived class)
   int fNumHard;
 
   // norms to check convergence on DGamma
   double fMagDGam0;
   double fMagDGam;
-
-  // deformation gradient (continuation method)
-  dMatrixT fFt;   
 
   // elastic deformation gradients
   dMatrixT fFeTr;
@@ -166,27 +152,15 @@ class LocalCrystalPlast : public PolyCrystalMatT
   dSymMatrixT fEeBar;
   dSymMatrixT fSBar;
 
-  // rotation matrix from Euler angles
-  dMatrixT fRotMat;
+  // crystal consistent tangent operator in Bbar
+  dMatrixT fcBar_ijkl;  
 
-  // crystal Cauchy stress
-  dSymMatrixT fs_ij;
-  
-  // crystal consistent tangent operator
-  dMatrixT fcBar_ijkl;   // intermediate configuration
-  dMatrixT fc_ijkl;      // current configuration
-
-  // Schmidt tensors in sample coords
-  ArrayT<dMatrixT> fZ;
+  // Sym Schmidt tensors in sample coords
   ArrayT<dSymMatrixT> fP;
 
   // incremental slip system shearing rate
   dArrayT fDGamma_n;
-  dArrayT fDGamma;
   dArrayT fdgam_save;
-
-  // resolve shear stress on slip systems
-  dArrayT fTau;
 
   // second order identity tensor
   dSymMatrixT fISym;
@@ -209,7 +183,6 @@ class LocalCrystalPlast : public PolyCrystalMatT
 
   // workspaces for computing moduli 
   LAdMatrixT fLHS;
-  dArrayT fRHS;
   ArrayT<dSymMatrixT> fA;
   ArrayT<dSymMatrixT> fB;
   ArrayT<dMatrixT> farray;

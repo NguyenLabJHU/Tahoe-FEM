@@ -47,7 +47,11 @@ PolyCrystalMatT::PolyCrystalMatT(ifstreamT& in, const FiniteStrainT& element) :
   fMatProp      (kNumMatProp),
   fFtot_n       (kNSD,kNSD),
   fFtot         (kNSD,kNSD),
+  fFt           (kNSD,kNSD),
+  fRotMat       (kNSD,kNSD),
+  fs_ij         (kNSD),
   fsavg_ij      (kNSD),
+  fc_ijkl       (dSymMatrixT::NumValues(kNSD)),
   fcavg_ijkl    (dSymMatrixT::NumValues(kNSD))
 {
   // input file
@@ -76,12 +80,8 @@ PolyCrystalMatT::PolyCrystalMatT(ifstreamT& in, const FiniteStrainT& element) :
   // set crystal elasticity type
   SetCrystalElasticity();
 
-  // set nonlinear constitutive solver 
-  SetConstitutiveSolver();
-
-  // read data for state iteration
-  fInput >> fMaxIterState;
-  fInput >> fTolerState;
+  // SetConstitutiveSolver moved to Initialize()
+  // it allows to initialize NLCSolver with adequate # variables
 }
 
 PolyCrystalMatT::~PolyCrystalMatT()
@@ -97,6 +97,13 @@ PolyCrystalMatT::~PolyCrystalMatT()
 bool PolyCrystalMatT::NeedsInitialization() const { return false; }
 void PolyCrystalMatT::Initialize()
 {
+  // set nonlinear constitutive solver 
+  SetConstitutiveSolver();
+
+  // read data for state iteration
+  fInput >> fMaxIterState;
+  fInput >> fTolerState;
+
   // set slip system hardening law (set before slip kinetics!!!)
   SetSlipHardening();
 
@@ -205,10 +212,17 @@ void PolyCrystalMatT::SetSlipSystems()
   // set number of slip systems
   fNumSlip = fSlipGeometry->NumSlip();
 
-  // allocate Schmidt tensor in crystal coords
+  // allocate space for Schmidt tensor in crystal/sample coords
   fZc.Allocate(fNumSlip);
-  for (int i = 0; i < fNumSlip; i++)
+  fZ.Allocate(fNumSlip);
+  for (int i = 0; i < fNumSlip; i++) {
     fZc[i].Allocate(3,3);
+    fZ[i].Allocate(3,3);
+  }
+
+  // allocate space for slip shearing rate and resolve shear stress
+  fDGamma.Allocate(fNumSlip);
+  fTau.Allocate(fNumSlip);
 
   // copy Schmidt tensor in crystal coords
   fZc = fSlipGeometry->GetSchmidtTensor();
@@ -282,17 +296,20 @@ void PolyCrystalMatT::SetConstitutiveSolver()
   // input solver code
   fInput >> fSolverCode;
 
+  // number of variables in nonlinear solver
+  int numvar = NumberOfUnknowns();
+
   // select constitutive solver
   switch(fSolverCode)
     {
       // Newton's method + line search
     case NLCSolver::kNLCSolver_LS: 
-      fSolver = new NLCSolver_LS(fNumSlip);
+      fSolver = new NLCSolver_LS(numvar);
       break;
           
       // Newton's method + trust region
     case NLCSolver::kNLCSolver_TR:
-      //fSolver = new NLCSolver_TR(fNumSlip);
+      //fSolver = new NLCSolver_TR(numvar);
       throwRunTimeError("PolyCrystalMatT::SetConstitutiveSolver: TR not implemented");
       break; 
 
@@ -313,4 +330,183 @@ void PolyCrystalMatT::SetConstitutiveSolver()
   double gradtol;
   fInput >> gradtol;
   fSolver->SetGradTol(gradtol);
+}
+
+/* general driver to solve crystal state using subincrementation */
+void PolyCrystalMatT::SolveCrystalState()
+{
+  // flag to track convergence of crystal state
+  bool stateConverged;
+
+  // counters for subincrementation 
+  int subIncr = 1;
+  int totSubIncrs = 1;
+
+  // time step and deformation gradient
+  fdt = ContinuumElement().FEManager().TimeStep();
+  fFt = fFtot;
+
+  // iterate to compute crystal state
+  IterateOnCrystalState(stateConverged, subIncr);
+ 
+  // if converged -> return; else -> do subincrementation
+  if (stateConverged) return;
+  
+  // loop for subincrementation procedure
+  for(;;)
+    {
+      // increase number of subincrements if not converged
+      if (!stateConverged) 
+	{
+	  subIncr = 2 * subIncr - 1;
+	  totSubIncrs = 2 * totSubIncrs;
+          //if (totSubIncrs > pow(2,10)) throwRunTimeError
+          //   ("PolyCrystalMatT::SolveCrystalState: totSubIncrs > 2^10");
+          if (totSubIncrs > pow(2,10)) {
+             cout << "PolyCrystalMatT::SolveCrystalState: totSubIncrs > 2^10 \n";
+             cout << "  **will throw 'EBadJacobianDet' to force dtime decrease** \n";
+             throw eBadJacobianDet;
+          }
+          if (subIncr > 1) RestoreSavedSolution();
+	}
+
+      // if converged, adjust subincrements
+      else if (subIncr < totSubIncrs)
+	{
+	  if ((subIncr/2*2) == subIncr) 
+	    {
+	      subIncr = subIncr / 2 + 1;
+	      totSubIncrs = totSubIncrs / 2;
+	    }
+	  else
+	    subIncr = subIncr + 1;
+	}
+
+      // succesfull return for subincrementation
+      else
+	break;
+
+      // time step
+      double tmp = (float)subIncr / (float)totSubIncrs;
+      fdt = ContinuumElement().FEManager().TimeStep() * tmp;
+
+      // current deformation gradient
+      fFt.SetToCombination( (1.-tmp), fFtot_n, tmp, fFtot );
+
+      // save current converged solution before getting next solution 
+      if (subIncr > 1 && stateConverged) {
+         SaveCurrentSolution();
+      }
+
+      // iterate to compute crystal state
+      IterateOnCrystalState(stateConverged, subIncr);
+    }
+}
+
+/* compute 3D deformation gradient */
+void PolyCrystalMatT::Compute_Ftot_3D(dMatrixT& F_3D) const
+{
+	int nsd = NumSD();
+	if (nsd == 3)
+		F_3D =  F();
+	else if (nsd == 2)
+	{
+		// expand total deformation gradient: 2D -> 3D (plane strain)
+		F_3D.Rank2ExpandFrom2D(F());    // fFtot or fFtot_n
+		F_3D(2, 2) = 1.0;
+	}
+	else 
+		throw eGeneralFail;
+}
+
+void PolyCrystalMatT::Compute_Ftot_3D(dMatrixT& F_3D, int ip) const
+{
+	int nsd = NumSD();
+	if (nsd == 3)
+		F_3D =  F(ip);
+	else if (nsd == 2)
+	{
+		// expand total deformation gradient: 2D -> 3D (plane strain)
+		F_3D.Rank2ExpandFrom2D(F(ip));    // fFtot or fFtot_n
+		F_3D(2, 2) = 1.0;
+	}
+	else 
+		throw eGeneralFail;
+}
+
+void PolyCrystalMatT::Compute_Ftot_last_3D(dMatrixT& F_3D) const
+{
+	int nsd = NumSD();
+	if (nsd == 3)
+		F_3D =  F_total_last();
+	else if (nsd == 2)
+	{
+		// expand total deformation gradient: 2D -> 3D (plane strain)
+		F_3D.Rank2ExpandFrom2D(F_total_last());    // fFtot or fFtot_n
+		F_3D(2, 2) = 1.0;
+	}
+	else 
+		throw eGeneralFail;
+}
+
+void PolyCrystalMatT::Compute_Ftot_last_3D(dMatrixT& F_3D, int ip) const
+{
+	int nsd = NumSD();
+	if (nsd == 3)
+		F_3D =  F_total_last(ip);
+	else if (nsd == 2)
+	{
+		// expand total deformation gradient: 2D -> 3D (plane strain)
+		F_3D.Rank2ExpandFrom2D(F_total_last(ip));    // fFtot or fFtot_n
+		F_3D(2, 2) = 1.0;
+	}
+	else 
+		throw eGeneralFail;
+}
+
+/* 4th order tensor transformation: Co_ijkl = F_iI F_jJ F_kK f_lL Ci_IJKL */
+void PolyCrystalMatT::FFFFC_3D(dMatrixT& Co, dMatrixT& Ci, const dMatrixT& F)
+{
+  int nsd = F.Rows();
+  dSymMatrixT coltemp;
+  dMatrixT outer(nsd);
+  dMatrixT transform(dSymMatrixT::NumValues(nsd));
+
+  // compute tranformation matrix
+  dArrayT Fi1(nsd,F(0));
+  dArrayT Fi2(nsd,F(1));
+  dArrayT Fi3(nsd,F(2));
+
+  coltemp.Set(nsd,transform(0));
+  outer.Outer(Fi1,Fi1);
+  coltemp.FromMatrix(outer);
+
+  coltemp.Set(nsd,transform(1));
+  outer.Outer(Fi2,Fi2);
+  coltemp.FromMatrix(outer);
+
+  coltemp.Set(nsd,transform(2));
+  outer.Outer(Fi3,Fi3);
+  coltemp.FromMatrix(outer);
+
+  coltemp.Set(nsd,transform(3));
+  outer.Outer(Fi2,Fi3);
+  outer.Symmetrize();
+  coltemp.FromMatrix(outer);
+  coltemp *= 2.0;
+
+  coltemp.Set(nsd,transform(4));
+  outer.Outer(Fi1,Fi3);
+  outer.Symmetrize();
+  coltemp.FromMatrix(outer);
+  coltemp *= 2.0;
+
+  coltemp.Set(nsd,transform(5));
+  outer.Outer(Fi1,Fi2);
+  outer.Symmetrize();
+  coltemp.FromMatrix(outer);
+  coltemp *= 2.0;
+	
+  // compute transformed tensor
+  Co.MultQBQT(transform, Ci);
 }

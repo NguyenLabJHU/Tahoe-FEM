@@ -23,15 +23,15 @@ CrystalElasticity::~CrystalElasticity() { }
 void CrystalElasticity::ElasticityProps(dArrayT& matprop) const
 {
   // material properties used in computations
-  matprop[0] = fC44;                     // mu 
-  matprop[1] = fC12;                     // lambda
-  matprop[2] = 0.5*(2.*fC44+fC12-fC11);  // beta (=0 for isotropic)
+  matprop[0] = fC44;                      // mu 
+  matprop[1] = fC12;                      // lambda
+  matprop[2] = 0.5*(2.0*fC44+fC12-fC11);  // beta (=0 for isotropic)
 }
 
 void CrystalElasticity::ComputeModuli(dMatrixT& moduli) const
 {
   // initialize moduli
-  moduli = 0.;
+  moduli = 0.0;
 
   // 3D symmetric Cij reduced index matrix
   moduli(2,2) = moduli(1,1) = moduli(0,0) = fC11;
@@ -61,9 +61,9 @@ IsotropicCrystalElast::IsotropicCrystalElast(PolyCrystalMatT& poly)
     throwRunTimeError("IsotropicCrystalElast: 0.5 < fPoisson < -1");
 
   // general stiffness coefficients
-  fC44 = 0.5*fYoung/(1.0 + fPoisson);                // mu 
-  fC12 = 2.0*fC44*fPoisson/(1.0 - 2.0*fPoisson);     // lambda
-  fC11 = 2.0*fC44 + fC12;                            // alpha
+  fC44 = 0.5*fYoung/(1.0 + fPoisson);              // mu 
+  fC12 = 2.0*fC44*fPoisson/(1.0 - 2.0*fPoisson);   // lambda
+  fC11 = 2.0*fC44 + fC12;                          // alpha
 }
 
 IsotropicCrystalElast::~IsotropicCrystalElast() { }

@@ -20,6 +20,10 @@ PowerLawIKinetics::PowerLawIKinetics(PolyCrystalMatT& poly) :
   // read material properties
   in >> fMatProp[0];     // "m" strain rate sensitivity exponent
   in >> fMatProp[1];     // "Gdot_0"
+
+  // set up parameters for continuation method using "m"
+  fxm   = fMatProp[0];
+  fkmax = 1.e0 / fxm;
 }
 
 PowerLawIKinetics::~PowerLawIKinetics() { }
@@ -110,10 +114,10 @@ void PowerLawIKinetics::PrintName(ostream& out) const
 
 void PowerLawIKinetics::SetUpRateSensitivity()
 {
-  fxm   = fMatProp[0];
-  fkmax = 1.e0 / fxm;
-  //fk = 2.5e0;
-  fk = fkmax;
+  if (fkmax > 30.e0) 
+     fk = 2.5e0;
+  else
+     fk = fkmax;
 }
 
 void PowerLawIKinetics::ComputeRateSensitivity()
@@ -126,4 +130,9 @@ void PowerLawIKinetics::ComputeRateSensitivity()
 bool PowerLawIKinetics::IsMaxRateSensitivity()
 {
    return (fk == fkmax);
+}
+
+void PowerLawIKinetics::RestoreRateSensitivity()
+{
+   fMatProp[0] = fxm;
 }

@@ -9,12 +9,17 @@
 #include "ifstreamT.h"
 
 // number of material properties and initial hard values
-const int kNumMatProp = 5;
+const int kNumMatProp    = 5;
 const int kNumInitValues = 1;
+const int kNumInternal   = 2;
 
 // codes for computing hardening law qnts
 const int kFunc  = 0;  // HardFunc 
 const int kdFunc = 1;  // d(HardFunc)/d(Crss)
+
+// codes to access fInternal
+const int kShearRate_n = 0;
+const int kShearRate   = 1;
 
 // some limits for total shear rate
 const double SHR_MIN = 0.;
@@ -22,7 +27,8 @@ const double SHR_MAX = 1.0e6;
 
 VoceHardening::VoceHardening(PolyCrystalMatT& poly) :
   SlipHardening(poly),
-  farray (poly.NumSlip())
+  fInternal (kNumInternal),
+  farray    (poly.NumSlip())
 {
   // input file
   ifstreamT& in = poly.Input_x();
@@ -59,20 +65,37 @@ VoceHardening::~VoceHardening() {}
 
 void VoceHardening::InitializeHardVariables() 
 { 
+  // hardening stress
   fTauIso_n = fInitHardValues[0]; 
-  ResetHistory();
+  fTauIso   = fInitHardValues[0]; 
+
+  // internal variables
+  fInternal = 0.0;
 }
 
 double VoceHardening::Magnitude() const { return fTauIso.Magnitude(); }
-const int VoceHardening::NumberOfVariables() const { return 2*fNumHardVar; }
-void VoceHardening::UpdateHistory() { fTauIso_n = fTauIso; }
-void VoceHardening::ResetHistory() { fTauIso = fTauIso_n; }
+const int VoceHardening::NumberOfVariables() const 
+{ 
+  return 2*fNumHardVar + kNumInternal; 
+}
+
+void VoceHardening::UpdateHistory() 
+{ 
+  fTauIso_n = fTauIso; 
+  fInternal[kShearRate_n] = fInternal[kShearRate];
+}
+
+void VoceHardening::ResetHistory() { 
+  fTauIso = fTauIso_n; 
+  fInternal[kShearRate] = fInternal[kShearRate_n];
+}
 
 void VoceHardening::LoadHardData(int dim, int dex, dArrayT& d_array)
 {
   // recover hardening variables for current element/IP/grain
   fTauIso_n.Set (fNumHardVar,  &d_array[dex += dim        ]);
   fTauIso.Set   (fNumHardVar,  &d_array[dex += fNumHardVar]);
+  fInternal.Set (kNumInternal, &d_array[dex += fNumHardVar]);
 }
 
 void VoceHardening::ExplicitUpdateHard()
@@ -80,9 +103,16 @@ void VoceHardening::ExplicitUpdateHard()
   // preliminary computations
   InternalHardQnts();
 
-  // forward Euler estimate for fCrss
+  // forward Euler estimate for crss
+  double c   = fdt * fMatProp[0];
+  double g_s = fTauIsoSat - fMatProp[1];
+  double g_n, g;
   for (int i = 0; i < fNumHardVar; i++)
-    fTauIso[i] = fTauIso_n[i] + fdt * HardeningLaw(fTauIso_n[i], kFunc);
+  {
+     g_n = fTauIso_n[i] - fMatProp[1];
+     g = g_n + c * (1.0 - g_n/g_s) * fInternal[kShearRate];
+     fTauIso[i] = g + fMatProp[1];
+  }
 
   // norm of explicit estimate
   fNormHard0 = fTauIso.Magnitude();
@@ -93,9 +123,18 @@ void VoceHardening::ImplicitUpdateHard()   // called from Algorithm 1
   // preliminary computations
   InternalHardQnts();
 
-  // implicit estimate for fCrss
+  // generalized mid-point approximation for crss (theta=0.5)
+  double c   = 0.5 * fdt * fMatProp[0];
+  double g_s = fTauIsoSat - fMatProp[1];
+  double g_n, g;
+
   for (int i = 0; i < fNumHardVar; i++)
-    fTauIso[i] = fTauIso_n[i] + fdt * HardeningLaw(fTauIso[i], kFunc);
+  {
+     g_n = fTauIso_n[i] - fMatProp[1];
+     g = g_n + c*( (1.0-g_n/g_s)*fInternal[kShearRate_n] + fInternal[kShearRate] );
+     g /= ( 1.0 + c*fInternal[kShearRate]/g_s );
+     fTauIso[i] = g + fMatProp[1];
+  }
 
   // norm of implicit estimate
   fNormHard = fTauIso.Magnitude();
@@ -109,10 +148,23 @@ void VoceHardening::ImplicitSolveHard()   // called from Algorithm 2
   InternalHardQnts();
 
   // backward Euler method: call solver method of NLCSolver class
-  fSolver->Solve(fSolverPtr, fTauIso, ierr);
+  //fSolver->Solve(fSolverPtr, fTauIso, ierr);
 
-  if (ierr == 1)
-    throwRunTimeError("VoceHardening::SolveImplicitHard: Convergence problems");
+  //if (ierr == 1)
+  //  throwRunTimeError("VoceHardening::SolveImplicitHard: Convergence problems");
+
+  // backward Euler approximation for crss
+  double c   = fdt * fMatProp[0];
+  double g_s = fTauIsoSat - fMatProp[1];
+  double g_n, g;
+
+  for (int i = 0; i < fNumHardVar; i++)
+  {
+     g_n = fTauIso_n[i] - fMatProp[1];
+     g = g_n + c*fInternal[kShearRate];
+     g /= ( 1.0 + c*fInternal[kShearRate]/g_s );
+     fTauIso[i] = g + fMatProp[1];
+  }
 
   // norm of implicit solution
   fNormHard = fTauIso.Magnitude();
@@ -169,7 +221,7 @@ const dArrayT& VoceHardening::ComputeHardQnts()
   double dHdIso = fdt * HardeningLaw(fTauIso[0], kdFunc);
 
   // compute factor of dHardLaw/dDGamma
-  double dHdDGam = HardeningLaw(fTauIso[0], kFunc) / (fShearRate * fdt);
+  double dHdDGam = HardeningLaw(fTauIso[0], kFunc) / (fInternal[kShearRate]*fdt);
 
   // compute array (1-dHardLaw/dTauIso)^(-1)*dHardLaw/dDGamma
   for (int i = 0; i < fDGamma.Length(); i++)
@@ -204,21 +256,21 @@ void VoceHardening::PrintName(ostream& out) const
 void VoceHardening::InternalHardQnts()
 {
   // accumulated shear rate
-  fShearRate = 0.;
-  for (int i = 0; i < fDGamma.Length(); i++) fShearRate += fabs(fDGamma[i]);
-  fShearRate /= fdt; 
+  fInternal[kShearRate] = 0.;
+  for (int i = 0; i < fDGamma.Length(); i++) fInternal[kShearRate] += fabs(fDGamma[i]);
+  fInternal[kShearRate] /= fdt; 
 
   // check limits on fShearRate
-  if (fShearRate <= SHR_MIN) fShearRate = SHR_MIN;
-  if (fShearRate >= SHR_MAX) fShearRate = SHR_MAX;
+  if (fInternal[kShearRate] <= SHR_MIN) fInternal[kShearRate] = SHR_MIN;
+  if (fInternal[kShearRate] >= SHR_MAX) fInternal[kShearRate] = SHR_MAX;
 
   // hardening saturation level
-  fTauIsoSat = fMatProp[2] * pow(fShearRate/fMatProp[3], fMatProp[4]);
+  fTauIsoSat = fMatProp[2] * pow(fInternal[kShearRate]/fMatProp[3], fMatProp[4]);
 }
 	
 const double VoceHardening::HardeningLaw(double tauIso, int kcode)
 {
-  double hard = fMatProp[0] / (fTauIsoSat - fMatProp[1]) * fShearRate;
+  double hard = fMatProp[0] / (fTauIsoSat - fMatProp[1]) * fInternal[kShearRate];
 
   switch(kcode)
     {

@@ -283,8 +283,8 @@ void HaasenHardening::TempDependentFuncs(ifstreamT& in)
   // some constants
   double B0 = 9.50e-5, B1 = 2.67e3;  // [m s^-1 (MPa)^(-1/m)], [K]
   double B2 = 1.83e5,  B3 = 2.19e4;  // [m s^-1 (MPa)^(-1/m)], [K]
-  double G0 = 5.45e5,  G1 = 2.19e4;  // adimensional
-  double W0 = 1.09e7,  W1 = 2.19e4;  // adimensional
+  double G0 = 5.45e5,  G1 = 2.19e4;  // adimensional, [K]
+  double W0 = 1.09e7,  W1 = 2.19e4;  // [1/s], [K]
 
   // input temperature
   double theta;

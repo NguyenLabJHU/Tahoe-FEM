@@ -12,6 +12,7 @@
 
 class PolyCrystalMatT;
 class GradCrystalPlast;
+class GradCrystalPlastFp;
 class PowerLawIKinetics;
 class PowerLawIIKinetics;
 class HaasenKinetics;
@@ -22,6 +23,7 @@ class dMatrixT;
 class SlipHardening
 {
   friend class GradCrystalPlast;
+  friend class GradCrystalPlastFp;
 
  public:
   // enumeration for hardening models for local crystal plast
