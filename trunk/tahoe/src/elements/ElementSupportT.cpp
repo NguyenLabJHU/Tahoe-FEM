@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.cpp,v 1.19 2003-01-22 01:09:30 cjkimme Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.20 2003-01-24 18:01:30 cjkimme Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -132,8 +132,6 @@ void ElementSupportT::RegisterCoordinates(LocalArrayT& array) const
     		break;
     	}
     	default:
-    		cout << "\n FieldSupportT::RegisterCoordinates: not a coordinate type: " 
-                 << array.Type() << endl;
             throw ExceptionT::kGeneralFail;
      }
 #endif
@@ -544,7 +542,7 @@ void ElementSupportT::AssembleLHS(int group, const ElementMatrixT& elMat,
 	}
 	fp = fStiffness->Pointer();
 	for (int i = 0;i < fStiffness->Length(); i++)
-		cout <<"i = "<<i<<" "<<*fp++<<"\n";
+		std::cout <<"i = "<<i<<" "<<*fp++<<"\n";
 #endif
 }
 
@@ -582,14 +580,14 @@ void ElementSupportT::AssembleRHS(int group, const nArrayT<double>& elRes,
 #else
 #pragma unused(eqnos)
 /* NB that group is really the element number; it's an offset in my eq array */
-	cout <<"elRes.Length() = "<<group<<"\n";
+	std::cout <<"elRes.Length() = "<<group<<"\n";
 	double *fp = elRes.Pointer();
 	int *ip = ieqnos->Pointer() + group*elRes.Length();
 	for (int i = 0;i < elRes.Length();i++)
 		(*fResidual)[*ip++] += *fp++;
 	fp = fResidual->Pointer();
 	for (int i = 0;i < fResidual->Length(); i++)
-		cout <<"i = "<<i<<" "<<*fp++<<"\n";
+		std::cout <<"i = "<<i<<" "<<*fp++<<"\n";
 #endif
 }
 

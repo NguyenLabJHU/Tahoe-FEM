@@ -1,4 +1,4 @@
-/* $Id: YoonAllen3DT.cpp,v 1.7 2002-12-11 23:13:19 cjkimme Exp $ */
+/* $Id: YoonAllen3DT.cpp,v 1.8 2003-01-24 18:01:30 cjkimme Exp $ */
 
 #include "YoonAllen3DT.h"
 
@@ -14,6 +14,7 @@ using namespace Tahoe;
 
 const int knumDOF = 3;
 
+#ifndef _SIERRA_TEST_
 /* constructor */
 YoonAllen3DT::YoonAllen3DT(ifstreamT& in, const double& time_step): 
 	SurfacePotentialT(knumDOF),
@@ -64,6 +65,7 @@ YoonAllen3DT::YoonAllen3DT(ifstreamT& in, const double& time_step):
 	fK = fpenalty*fsigma_0/fd_c_n;
 
 }
+#endif
 
 YoonAllen3DT::YoonAllen3DT(dArrayT& fparams, iArrayT& iparams, const double& time_step): 
 	SurfacePotentialT(knumDOF),

@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.h,v 1.11 2002-12-11 23:13:19 cjkimme Exp $ */
+/* $Id: XuNeedleman3DT.h,v 1.12 2003-01-24 18:01:30 cjkimme Exp $ */
 /* created: paklein (06/23/1999) */
 
 #ifndef _XU_NEEDLE_3D_T_H_
@@ -17,8 +17,10 @@ class XuNeedleman3DT: public SurfacePotentialT
 {
 public:
 
-	/** constructor */
+	/** constructors */
+#ifndef _SIERRA_TEST_
 	XuNeedleman3DT(ifstreamT& in);
+#endif
 	/** constructor for use in SIERRA */
 	XuNeedleman3DT(dArrayT& params);
 
