@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.8 2001-12-10 22:58:22 paklein Exp $
+# $Id: makefile.template,v 1.9 2002-04-08 16:21:09 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -63,9 +63,9 @@ VTK_CFLAGS = $(X_CFLAGS) $(THREAD_CFLAGS) $(VTK_INC) -D__VTK__ -D__VTK_NEW__
 VTK_LFLAGS = -L$(VTK_DIR)/bin/ -L/usr/X11R6.tenon/lib -lpthread -lm -lvtkCommon -lvtkFiltering -lvtkGraphics -lvtkRendering -lvtkHybrid -lGL -lXt  -lSM -lICE  -L/usr/X11R6/lib -lX11 -lXext -lvtkImaging -lvtkGraphics -lvtkIO -lvtkFiltering -lvtkCommon -lvtkpng -lvtkzlib -lvtkjpeg -lpthread -lm -lvtkCommon -lvtkFiltering -lvtkGraphics -lvtkRendering -lvtkHybrid -lGL -lXt  -lSM -lICE  -L/usr/X11R6/lib -lX11 -lXext -lvtkImaging -lvtkGraphics -lvtkIO -lvtkFiltering -lvtkCommon -lvtkpng -lvtkzlib -lvtkjpeg
 
 ##### SEACAS/ACCESS software
-AX_INC    = -I$(ACCESS)/inc
-AX_CFLAGS = $(AX_INC) -D__ACCESS__
-AX_LFLAGS = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
+#AX_INC    = -I$(ACCESS)/inc
+#AX_CFLAGS = $(AX_INC) -D__ACCESS__
+#AX_LFLAGS = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
 ############################### build options ###########################
 
 # include common target definitions
