@@ -1,4 +1,4 @@
-/* $Id: Environment.h,v 1.6 2002-09-12 16:40:18 paklein Exp $ */
+/* $Id: Environment.h,v 1.7 2002-10-24 18:50:14 sawimme Exp $ */
 /* created: paklein (02/10/1997)                                          */
 /* Environment.h                                                          */
 /* defining environment-specific preprocessor symbols and options         */
@@ -75,6 +75,7 @@ using namespace std;
 #ifdef __SUNPRO_CC
 /* 	#define __NO_RTTI__ -> v4.2, not needed for v5.0? */
 using namespace std;
+#undef _MW_MSL_
 #endif
 /* NOTE: v4.2 support RTTI, but could not get it to work if the pointer */
 /*       I was casting was the pointer to a purely virtual base class   */
