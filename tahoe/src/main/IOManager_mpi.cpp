@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.17 2002-03-02 20:25:15 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.18 2002-03-02 20:38:30 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 
 #include "IOManager_mpi.h"
@@ -1157,7 +1157,8 @@ void IOManager_mpi::ReadOutputGeometry(const StringT& model_file,
 	}
 	
 	/* set global coordinates */
-	SetCoordinates(fOutputGeometry->Coordinates(), NULL);
+//	SetCoordinates(fOutputGeometry->Coordinates(), NULL);
+	SetCoordinates(fOutputGeometry->Coordinates());
 
 	/* read connectivities needed for the local output sets */
 	for (int i = 0; i < fIO_map.Length(); i++)
