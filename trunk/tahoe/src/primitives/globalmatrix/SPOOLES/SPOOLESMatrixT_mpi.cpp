@@ -1,6 +1,5 @@
-/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.2 2001-02-28 00:29:37 paklein Exp $ */
-/* created: paklein (09/13/2000)                                          */
-/* SPOOLES matrix solver                                                  */
+/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.3 2002-02-10 00:52:33 paklein Exp $ */
+/* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT_mpi.h"
 
@@ -54,18 +53,20 @@ fMSRBuilder->WriteMSRData(out, fupdate, fbindx);
 	iArrayT r, c;
 	dArrayT v;
 	GenerateRCV(r, c, v);
-
-//DEBUG
-#if 0
-//ofstream out("rcv.out");
-for (int i = 0; i < r.Length(); i++)
-	out << setw(kIntWidth) << r[i]
-	    << setw(kIntWidth) << c[i]
-		<< setw(kDoubleWidth) << v[i] << endl;
-cout << "\n SPOOLESMatrixT::BackSubstitute: EXIT" << endl;
-throw;
-#endif
-//DEBUG
+	
+	/* write matrix */
+	if (fCheckCode == kPrintLHS) {
+		int old_precision = fOut.precision();
+		fOut.precision(12);
+		int d_width = fOut.precision() + kDoubleExtra;
+		fOut << "\n LHS matrix in {r,c,v} format:\n";
+		for (int i = 0; i < r.Length(); i++)
+			fOut << setw(kIntWidth) << r[i] + 1
+			     << setw(kIntWidth) << c[i] + 1
+			     << setw(d_width) << v[i] << '\n';
+		fOut.flush();
+		fOut.precision(old_precision);
+	}
 
 	/* serial driver provided by in SPOOLES documentation */
 	int msglvl = 0; //  0: nothing

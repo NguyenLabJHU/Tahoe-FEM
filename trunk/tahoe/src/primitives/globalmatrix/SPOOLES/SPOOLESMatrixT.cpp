@@ -1,6 +1,5 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.4 2001-09-17 22:37:38 strohban Exp $ */
-/* created: paklein (09/13/2000)                                          */
-/* SPOOLES matrix solver                                                  */
+/* $Id: SPOOLESMatrixT.cpp,v 1.5 2002-02-10 00:52:33 paklein Exp $ */
+/* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT.h"
 
@@ -11,11 +10,9 @@
 #include "ElementMatrixT.h"
 #include "SPOOLES.h"
 
-
 #ifdef __SPOOLES_MT__
 #include "SPOOLESMT.h"
 #endif
-
 
 /* message file name */
 const char SPOOLES_FILE[] = "SPOOLES.out";
@@ -365,20 +362,20 @@ void SPOOLESMatrixT::BackSubstitute(dArrayT& result)
 	iArrayT r, c;
 	dArrayT v;
 	GenerateRCV(r, c, v);
-
-//DEBUG
-#if 0
-ofstream out("rcv.out");
-fMSRBuilder->Write(out);
-fMSRBuilder->WriteMSRData(out, fupdate, fbindx);
-for (int i = 0; i < r.Length(); i++)
-	out << setw(kIntWidth) << r[i]
-	    << setw(kIntWidth) << c[i]
-		<< setw(kDoubleWidth) << v[i] << endl;
-cout << "\n SPOOLESMatrixT::BackSubstitute: EXIT" << endl;
-throw;
-#endif
-//DEBUG
+	
+	/* write matrix */
+	if (fCheckCode == kPrintLHS) {
+		int old_precision = fOut.precision();
+		fOut.precision(12);
+		int d_width = fOut.precision() + kDoubleExtra;
+		fOut << "\n LHS matrix in {r,c,v} format:\n";
+		for (int i = 0; i < r.Length(); i++)
+			fOut << setw(kIntWidth) << r[i] + 1
+			     << setw(kIntWidth) << c[i] + 1
+			     << setw(d_width) << v[i] << '\n';
+		fOut.flush();
+		fOut.precision(old_precision);
+	}
 
 /* solving the system using either the serial or MT driver */
  
