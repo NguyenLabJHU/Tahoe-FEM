@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.2 2001-08-07 23:11:52 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.3 2001-09-04 14:31:27 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -8,6 +8,7 @@
 #include "ExodusInputT.h"
 #include "PatranInputT.h"
 #include "EnSightInputT.h"
+#include "AbaqusInputT.h"
 
 ModelManagerT::ModelManagerT (ostream& message) :
   fCoordinateDimensions (2),
@@ -42,7 +43,7 @@ void ModelManagerT::Initialize (const IOBaseT::FileTypeT format, const StringT& 
 void ModelManagerT::Initialize (void)
 {
   IOBaseT temp (cout);
-  temp.PrintFormat (cout);
+  temp.InputFormats (cout);
   IOBaseT::FileTypeT format;
   StringT database;
   cout << "\n Enter the Model Format Type: ";
@@ -241,6 +242,12 @@ const iArray2DT& ModelManagerT::ElementGroup (int index)
   return fElementSets [index];
 }
 
+void ModelManagerT::NodeSetNames (ArrayT<StringT>& names) const
+{
+  for (int i=0; i < names.Length(); i++)
+    names[i] = fNodeSetNames[i];
+}
+
 int ModelManagerT::NodeSetIndex (const StringT& name) const
 {
   for (int i=0; i < fNumNodeSets; i++)
@@ -271,6 +278,11 @@ const iArrayT& ModelManagerT::NodeSet (int index)
   return fNodeSets [index];
 }
 
+void ModelManagerT::SideSetNames (ArrayT<StringT>& names) const
+{
+  for (int i=0; i < names.Length(); i++)
+    names[i] = fSideSetNames[i];
+}
 
 int ModelManagerT::SideSetIndex (const StringT& name) const
 {
@@ -360,7 +372,7 @@ void ModelManagerT::ScanModel (const IOBaseT::FileTypeT format, const StringT& d
     case IOBaseT::kTahoe:
       /* do nothing, arrays will be registered via ElementBaseT and NodeManager */
       break;
-    case IOBaseT::kTahoeII:
+      case IOBaseT::kTahoeII:
       fInput = new TahoeInputT (fMessage);
       break;
     case IOBaseT::kEnSight:
@@ -374,6 +386,10 @@ void ModelManagerT::ScanModel (const IOBaseT::FileTypeT format, const StringT& d
       break;
     case IOBaseT::kPatranNeutral:
       fInput = new PatranInputT (fMessage);
+      break;
+    case IOBaseT::kAbaqus:
+    case IOBaseT::kAbaqusBinary:
+      fInput = new AbaqusInputT (fMessage);
       break;
     default:
       {
