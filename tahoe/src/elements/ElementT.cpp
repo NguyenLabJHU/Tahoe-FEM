@@ -1,12 +1,14 @@
-/* $Id: ElementT.cpp,v 1.11 2002-09-23 06:58:23 paklein Exp $ */
+/* $Id: ElementT.cpp,v 1.10 2002-07-18 21:58:21 hspark Exp $ */
+
 #include "ElementT.h"
 
 #include <iostream.h>
 #include "ExceptionCodes.h"
 
+/* stream extraction operator */ 
+
 namespace Tahoe {
 
-/* stream extraction operator */ 
 istream& operator>>(istream& in, ElementT::TypeT& type)
 {
 	int i_type;
@@ -115,9 +117,6 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			break;
 		case ElementT::kBridgingScale:
 			type = ElementT::kBridgingScale;
-			break;	
-		case ElementT::kSimoQ1P0:
-			type = ElementT::kSimoQ1P0;
 			break;	
 		default:
 			cout << "\n operator>>ElementT::TypeT: unknown type: "

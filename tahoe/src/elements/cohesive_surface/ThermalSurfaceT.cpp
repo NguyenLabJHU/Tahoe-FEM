@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.cpp,v 1.5 2002-09-12 17:49:52 paklein Exp $ */
+/* $Id: ThermalSurfaceT.cpp,v 1.4 2002-07-02 19:55:15 cjkimme Exp $ */
 #include "ThermalSurfaceT.h"
 
 #include <math.h>
@@ -7,7 +7,7 @@
 
 #include "ElementSupportT.h"
 #include "fstreamT.h"
-#include "toolboxConstants.h"
+#include "Constants.h"
 #include "SurfaceShapeT.h"
 #include "eControllerT.h"
 
