@@ -33,15 +33,19 @@ class RGSplitT: public RGViscoelasticityT
 	virtual const dMatrixT& C_IJKL(void);
 	virtual const dSymMatrixT& S_IJ(void);
 
+	/*internal variables*/
+	virtual const dArrayT& InternalStressVars(void);
+	virtual const dArrayT& InternalStrainVars(void);
+
 	/*compute output variables*/ 
 	virtual int NumOutputVariables() const; 
 	virtual void OutputLabels(ArrayT<StringT>& labels) const; 
 	virtual void ComputeOutput(dArrayT& output);
 
    private:
-	void ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_e, 
+	void ComputeEigs_e(const int index, const dArrayT& eigenstretch, dArrayT& eigenstretch_e, 
 	                   dArrayT& eigenstress, dSymMatrixT& eigenmodulus);
-	void ComputeiKAB(dSymMatrixT& eigenmodulus, double& bulkmodulus);
+	void ComputeiKAB(const int index, const dSymMatrixT& eigenmodulus, const double& bulkmodulus);
     
    protected:
 	/* return values */
@@ -50,7 +54,7 @@ class RGSplitT: public RGViscoelasticityT
 	
 	/* free energy potential */
 	PotentialT* fPot_EQ;
-	PotentialT* fPot_NEQ;
+    ArrayT<PotentialT*> fPot_NEQ;
 
 	const double fthird;
   
@@ -85,8 +89,8 @@ class RGSplitT: public RGViscoelasticityT
   	dMatrixT    fiKAB;
 	
   	/*viscosities*/
-	double fietaS;
-	double fietaB;
+	dArrayT fietaS;
+	dArrayT fietaB;
 };
 }
 #endif /* _RGSplitT_ */

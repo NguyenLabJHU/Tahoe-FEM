@@ -1,4 +1,4 @@
-/* $Id: RGViscoelasticityT.h,v 1.1 2003-04-05 20:06:59 thao Exp $ */
+/* $Id: RGViscoelasticityT.h,v 1.1.50.1 2005-02-22 00:17:49 thao Exp $ */
 /* created : TDN (1/22/2001) */
 #ifndef _RG_VISCO_T_H_
 #define _RG_VISCO_T_H_
@@ -54,6 +54,10 @@ class RGViscoelasticityT: public FSSolidMatT, public IsotropicT
 	void Load(ElementCardT& element, int ip);
 	void Store(ElementCardT& element, int ip);
 
+	/*inquire if dissipation variables used in material force calculation are needed*/
+	virtual bool HasDissipVar(void) const {return true;}
+	virtual const iArrayT& InternalDOF(void) const;
+
  protected:
 	/* construct symmetric rank-4 mixed-direction tensor (6.1.44) */
   	void MixedRank4_2D(const dArrayT& a, const dArrayT& b, dMatrixT& rank4_ab) const;
@@ -62,8 +66,11 @@ class RGViscoelasticityT: public FSSolidMatT, public IsotropicT
 
   protected:
 	/*internal state variables*/
-	dSymMatrixT     fC_v;
-	dSymMatrixT     fC_vn;
+	ArrayT<dSymMatrixT>     fC_v;
+	ArrayT<dSymMatrixT>     fC_vn;
+
+	/*number of relaxation times*/
+	int fnrelax;
 		
 	/*number of state variables*/
 	int fnstatev;
@@ -73,7 +80,16 @@ class RGViscoelasticityT: public FSSolidMatT, public IsotropicT
 	
 	/*dof of internal variables*/
 	int fndof;
+	iArrayT fInternalDOF;
+	dArrayT fViscStress;
+	dArrayT fViscStrain;
+	dSymMatrixT fMatStress;
 };
+
+ inline const iArrayT& RGViscoelasticityT::InternalDOF(void) const 
+ {
+	return fInternalDOF;
+ }
 }
 
 #endif /* _RG_VISCO_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: RGViscoelasticityT.cpp,v 1.1 2003-04-05 20:06:59 thao Exp $ */
+/* $Id: RGViscoelasticityT.cpp,v 1.1.50.1 2005-02-22 00:17:49 thao Exp $ */
 /* created: TDN (01/22/2000) */
 #include "RGViscoelasticityT.h"
 
@@ -7,13 +7,19 @@ using namespace Tahoe;
 /* constructor */
 RGViscoelasticityT::RGViscoelasticityT(ifstreamT& in, const FSMatSupportT& support):
 	FSSolidMatT(in, support)
-{}
+{
+	/*reads in dimension of relaxation spectrum*/
+	in >> fnrelax;
+	fC_v.Dimension(fnrelax);
+	fC_vn.Dimension(fnrelax);
+	
+}
 
 void RGViscoelasticityT::Initialize(void)
 {
-        /*inheritance*/
-        FSSolidMatT::Initialize();
- 
+	/*inheritance*/
+	FSSolidMatT::Initialize();
+	
 	fndof = 3;
         
 	int numstress = dSymMatrixT::NumValues(fndof);
@@ -21,14 +27,27 @@ void RGViscoelasticityT::Initialize(void)
 	fnstatev = 0;
 	fnstatev += numstress;   /*current C_v*/
 	fnstatev += numstress;   /*last C_vn*/
-
+	
+	fnstatev *= fnrelax;
+	
 	fstatev.Dimension(fnstatev);
 	double* pstatev = fstatev.Pointer();
-	
+
+	fInternalDOF.Dimension(fnrelax);
+	int count = 0;
 	/* assign pointers to current and last blocks of state variable array */
-	fC_v.Set(fndof, pstatev);        
-	pstatev += numstress;
-	fC_vn.Set(fndof, pstatev);
+	for (int i = 0; i < fnrelax; i++)
+	{
+		fInternalDOF[i] = numstress;
+
+		fC_v[i].Set(fndof, pstatev);        
+		pstatev += numstress;
+		fC_vn[i].Set(fndof, pstatev);
+		pstatev += numstress;
+	}
+	fViscStrain.Dimension(fnrelax*numstress);
+	fViscStress.Dimension(fnrelax*numstress);
+	fMatStress.Dimension(numstress);
 }
 
 void RGViscoelasticityT::Print(ostream& out) const
@@ -62,9 +81,11 @@ void  RGViscoelasticityT::PointInitialize(void)
 		      /* load state variables */
 		      Load(element, ip);
 		      
-		      fC_vn.Identity();
-		      fC_v.Identity();
-
+			  for (int i = 0; i < fnrelax; i++)
+			  {
+				fC_vn[i].Identity();
+				fC_v[i].Identity();
+			  }
 		      /* write to storage */
 		      Store(element, ip);
 		}
@@ -81,8 +102,9 @@ void RGViscoelasticityT::UpdateHistory(void)
 		Load(element, ip);
 	
 		/* assign "current" to "last" */	
-		fC_vn = fC_v;
-
+		for (int i = 0; i < fnrelax; i++)
+			fC_vn[i] = fC_v[i];
+	
 		/* write to storage */
 		Store(element, ip);
 	}
