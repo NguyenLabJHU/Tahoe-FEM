@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.26 2002-02-07 23:29:33 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.27 2002-02-18 09:28:37 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
@@ -533,6 +533,13 @@ int FEManagerT::RegisterOutput(const OutputSetT& output_set)
 		throw eGeneralFail;
 	}
 
+	/* limit registering output to initialization stage */
+	if (fStatus != GlobalT::kInitialization) {
+		cout << "\n FEManagerT::RegisterOutput: output sets can only be registered\n"
+		     <<   "     during initialization" << endl;
+		throw eGeneralFail;
+	}
+
 	int ID = fIOManager->AddElementSet(output_set);
 	if (Size() > 1 && Rank() == 0)
 	{
@@ -554,13 +561,25 @@ int FEManagerT::RegisterOutput(const OutputSetT& output_set)
 		}
 		else
 			io.open_append(io_file);
-			
-		/* write block ID information */
-		const ArrayT<StringT>& block_ID = output_set.BlockID();
-		io << ID << " " << block_ID.Length();
-		for (int i = 0; i < block_ID.Length(); i++)
-			io << " " << block_ID[i];
-		io << '\n';
+
+		/* set mode */
+		if (output_set.Mode() == OutputSetT::kElementBlock) {	
+			/* write block ID information */
+			const ArrayT<StringT>& block_ID = output_set.BlockID();
+			io << ID << " " << block_ID.Length();
+			for (int i = 0; i < block_ID.Length(); i++)
+				io << " " << block_ID[i];
+			io << '\n';
+		}
+		else if (output_set.Mode() == OutputSetT::kFreeSet) {
+			/* no ID's for free sets */
+			io << ID << " 0\n";
+		}
+		else {
+			cout << "\n FEManagerT::RegisterOutput: unrecognized output set mode: "
+			     << output_set.Mode() << endl;
+			throw eGeneralFail;
+		}
 	}
 	
 	return ID;
