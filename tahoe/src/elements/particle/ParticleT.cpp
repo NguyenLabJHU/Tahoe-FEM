@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.10 2002-12-04 06:34:18 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.10.2.1 2002-12-16 09:26:31 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -11,6 +11,7 @@
 #include "iNodeT.h"
 #include "ParticlePropertyT.h"
 #include "RaggedArray2DT.h"
+#include "CommManagerT.h"
 
 using namespace Tahoe;
 
@@ -24,7 +25,8 @@ ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 	fReNeighborIncr(-1),
 	fNumTypes(-1),
 	fGrid(NULL),
-	fReNeighborCounter(0)
+	fReNeighborCounter(0),
+	fCommManager(support.CommManager())
 {
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
@@ -96,6 +98,21 @@ void ParticleT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 /* writing output */
 void ParticleT::RegisterOutput(void)
 {
+	/* "point connectivities" needed for output */
+	const ArrayT<int>* parition_nodes = fCommManager.PartitionNodes();
+	if (parition_nodes)
+	{
+		int num_nodes = parition_nodes->Length();
+		fPointConnectivities.Set(num_nodes, 1, parition_nodes->Pointer());
+	}
+	else /* ALL nodes */
+	{
+		fPointConnectivities.Dimension(ElementSupport().NumNodes(), 1);
+		iArrayT tmp;
+		tmp.Alias(fPointConnectivities);
+		tmp.SetValueToPosition();				
+	}
+
 	/* block ID's */
 	ArrayT<StringT> block_ID(fBlockData.Length());
 	for (int i = 0; i < block_ID.Length(); i++)
@@ -108,7 +125,7 @@ void ParticleT::RegisterOutput(void)
 	/* set output specifier */
 	StringT set_ID;
 	set_ID.Append(ElementSupport().ElementGroupNumber(this) + 1);
-	OutputSetT output_set(GeometryT::kPoint, fPointConnectivities, n_labels, true);
+	OutputSetT output_set(GeometryT::kPoint, fPointConnectivities, n_labels, ChangingGeometry());
 		
 	/* register and get output ID */
 	fOutputID = ElementSupport().RegisterOutput(output_set);
@@ -116,6 +133,19 @@ void ParticleT::RegisterOutput(void)
 
 void ParticleT::WriteOutput(void)
 {
+	/* reset connectivities */
+	if (ChangingGeometry())
+	{
+		const ArrayT<int>* parition_nodes = fCommManager.PartitionNodes();
+		if (parition_nodes)
+		{
+			int num_nodes = parition_nodes->Length();
+			fPointConnectivities.Set(num_nodes, 1, parition_nodes->Pointer());	
+		}
+		else
+			ExceptionT::GeneralFail("ParticleT::WriteOutput", "expecting a partition nodes list");
+	}
+
 	/* write the search grid statistics */
 	if (fGrid) {
 		ofstreamT& out = ElementSupport().Output();
@@ -176,58 +206,14 @@ void ParticleT::ReadRestart(istream& in)
 /* return true if connectivities are changing */
 bool ParticleT::ChangingGeometry(void) const
 {
-	/* assume that for a single processor calculation, the geometry
-	 * is not changing */
-	if (ElementSupport().Size() > 1)
-		return true;
-	else
-		return false;
+	return fCommManager.PartitionNodesChanging();
 }
 
 /* echo element connectivity data */
 void ParticleT::EchoConnectivityData(ifstreamT& in, ostream& out)
 {
+#pragma unused(out)
 	const char caller[] = "ParticleT::EchoConnectivityData";
-
-	/* access to the model database */
-	ModelManagerT& model = ElementSupport().Model();
-
-	int all_or_some = -1;
-	in >> all_or_some; 
-	if (all_or_some != 0 && all_or_some != 1) ExceptionT::BadInputValue(caller);
-	
-	if (all_or_some == 0) /* ALL */
-	{
-		fID.Dimension(1);
-		fID[0] = "ALL";
-		
-		/* make list of all nodes */
-		fGlobalTag.Dimension(ElementSupport().NumNodes());
-		fGlobalTag.SetValueToPosition();
-	}
-	else
-	{
-		/* read node set indexes */
-		model.NodeSetList(in, fID);
-
-		/* get tags */
-		iArrayT tags;
-		if (fID.Length() > 0) model.ManyNodeSets (fID, tags);
-		
-		/* remove duplicates */
-		fGlobalTag.Union(tags);
-	}
-
-	/* "point connectivities" needed for output */
-	fPointConnectivities.Set(fGlobalTag.Length(), 1, fGlobalTag.Pointer());
-	
-	/* set inverse map */
-	fGlobalToLocal.SetMap(fGlobalTag);
-	
-	/* write connectivity info */
-	out << " Number of particles . . . . . . . . . . . . . . = " << fGlobalTag.Length();
-	if (all_or_some == 0) out << " (ALL)";
-	out << endl;
 	
 	/* particle types */
 	fNumTypes = -1;
@@ -238,6 +224,7 @@ void ParticleT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	fType.Dimension(ElementSupport().NumNodes());
 	fType = -1;
 
+	int all_or_some = -99;
 	in >> all_or_some; 
 	if (all_or_some != 0 && all_or_some != 1) ExceptionT::BadInputValue(caller);
 	if (fNumTypes > 1 && all_or_some == 0)
@@ -246,11 +233,13 @@ void ParticleT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	if (all_or_some == 0) /* ALL */
 	{
 		/* mark particle tags with type 0 */
-		for (int i = 0; i < fGlobalTag.Length(); i++)
-			fType[fGlobalTag[i]] = 0;
+		fType = 0;
 	}
 	else
 	{
+		/* access to the model database */
+		ModelManagerT& model = ElementSupport().Model();
+
 		/* read sets */
 		for (int i = 0; i < fNumTypes; i++)
 		{
@@ -268,28 +257,32 @@ void ParticleT::EchoConnectivityData(ifstreamT& in, ostream& out)
 
 	/* check that all are typed */
 	int not_marked_count = 0;
-	for (int i = 0; i < fGlobalTag.Length(); i++)
-		if (fType[fGlobalTag[i]] == -1) not_marked_count++;
+	for (int i = 0; i < fType.Length(); i++)
+		if (fType[i] == -1) not_marked_count++;
 	if (not_marked_count != 0)
 		ExceptionT::BadInputValue(caller, "%d atoms not typed", not_marked_count);
 }
 
 /* generate neighborlist */
-void ParticleT::GenerateNeighborList(const iArrayT& particle_tags, 
-	double distance, bool double_list, RaggedArray2DT<int>& neighbors)
+void ParticleT::GenerateNeighborList(const ArrayT<int>* particle_tags, 
+	double distance, RaggedArray2DT<int>& neighbors, 
+	bool double_list, bool full_list)
 {
 	/* global coordinates */
 	const dArray2DT& coords = ElementSupport().CurrentCoordinates();
 
-	/* construct grid */
-	if (!fGrid) fGrid = new iGridManagerT(kAvgNodesPerCell, kMaxNumCells, coords, &particle_tags);
+	/* node to processor map */
+	const ArrayT<int>* n2p_map = fCommManager.ProcessorMap();
+
+	/* construct grid (using all local nodes) */
+	if (!fGrid) fGrid = new iGridManagerT(kAvgNodesPerCell, kMaxNumCells, coords, NULL);
 
 	/* reset contents */
 	fGrid->Reset();
 	
 	/* set up temp space */
 	int init_num_neighbors = 6;
-	int num_tags = particle_tags.Length();
+	int num_tags = (particle_tags) ? particle_tags->Length() : coords.MajorDim();
 	int num_chunks = num_tags/250;
 	num_chunks = (num_chunks < 1) ? 1 : num_chunks; 
 	AutoFill2DT<int> auto_neighbors(num_tags, num_chunks, 20, init_num_neighbors);
@@ -297,10 +290,11 @@ void ParticleT::GenerateNeighborList(const iArrayT& particle_tags,
 	/* loop over tags */
 	int nsd = coords.MinorDim();
 	double distance2 = distance*distance;
-	for (int i = 0; i < particle_tags.Length(); i++)
+	for (int i = 0; i < num_tags; i++)
 	{
 		/* this tag */
-		int tag_i = particle_tags[i];
+		int tag_i = (particle_tags) ? (*particle_tags)[i] : i;
+		int  pr_i = (n2p_map) ? (*n2p_map)[tag_i] : 0;
 	
 		/* add self */
 		auto_neighbors.Append(i, tag_i);
@@ -313,8 +307,9 @@ void ParticleT::GenerateNeighborList(const iArrayT& particle_tags,
 		for (int j = 0; j < hits.Length(); j++)
 		{
 			int tag_j = hits[j].Tag();
+			int  pr_j = (n2p_map) ? (*n2p_map)[tag_j] : 0;
 			
-			if (tag_j > tag_i || double_list)
+			if (double_list || tag_j > tag_i || (full_list && pr_i != pr_j && tag_j != tag_i))
 			{
 				/* hit info */
 				const double* coords_hit = hits[j].Coords();
@@ -340,11 +335,27 @@ void ParticleT::GenerateNeighborList(const iArrayT& particle_tags,
 /* assemble particle mass matrix into LHS of global equation system */
 void ParticleT::AssembleParticleMass(const dArrayT& mass)
 {
-	/* loop over particles */
+	/* partition nodes */
+	const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
+	
 	fForce = 0.0;
-	for (int i = 0; i < fGlobalTag.Length(); i++)
-		/* assemble into global array */
-		fForce.SetRow(fGlobalTag[i], mass[fType[i]]);
+	if (part_nodes) /* not all nodes */
+	{
+		for (int i = 0; i < part_nodes->Length(); i++)
+		{
+			int tag = (*part_nodes)[i];
+		
+			/* assemble into global array */
+			fForce.SetRow(tag, mass[fType[tag]]);
+		}
+	}
+	else /* all nodes */
+	{
+		int nnd = ElementSupport().NumNodes();
+		for (int i = 0; i < nnd; i++)
+			/* assemble into global array */
+			fForce.SetRow(i, mass[fType[i]]);
+	}
 	
 	/* assemble all */
 	ElementSupport().AssembleLHS(Group(), fForce, Field().Equations());

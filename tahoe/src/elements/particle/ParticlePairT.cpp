@@ -1,9 +1,10 @@
-/* $Id: ParticlePairT.cpp,v 1.12 2002-12-05 08:28:57 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.12.2.1 2002-12-16 09:26:30 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
 #include "eControllerT.h"
 #include "InverseMapT.h"
+#include "CommManagerT.h"
 
 /* pair property types */
 #include "LennardJonesPairT.h"
@@ -81,8 +82,8 @@ void ParticlePairT::WriteOutput(void)
 	int ndof = NumDOF();
 	int num_output = ndof + 2; /* displacement + PE + KE */
 
-	/* output arrays length fGlobalTag */
-	int num_particles = fGlobalTag.Length();
+	/* output arrays length number of active nodes */
+	int num_particles = fNeighbors.MajorDim();
 	dArray2DT n_values(num_particles, num_output), e_values;
 	n_values = 0.0;
 
@@ -103,6 +104,9 @@ void ParticlePairT::WriteOutput(void)
 	dArrayT mass(fNumTypes);
 	for (int i = 0; i < fNumTypes; i++)
 		mass[i] = fProperties[fPropertiesMap(i,i)]->Mass();
+		
+	/* map from partition node index */
+	const InverseMapT* inverse_map = fCommManager.PartitionNodes_inv();
 	
 	/* run through neighbor list */
 	iArrayT neighbors;
@@ -115,7 +119,7 @@ void ParticlePairT::WriteOutput(void)
 		/* tags */
 		int   tag_i = neighbors[0]; /* self is 1st spot */
 		int  type_i = fType[tag_i];		
-		int local_i = fGlobalToLocal.Map(tag_i);
+		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
 		
 		/* values for particle i */
 		n_values.RowAlias(local_i, values_i);
@@ -139,7 +143,7 @@ void ParticlePairT::WriteOutput(void)
 			/* tags */
 			int   tag_j = neighbors[j];
 			int  type_j = fType[tag_j];		
-			int local_j = fGlobalToLocal.Map(tag_j);
+			int local_j = (inverse_map) ? inverse_map->Map(tag_j) : tag_j;
 			
 			/* set pair property (if not already set) */
 			int property = fPropertiesMap(type_i, type_j);
@@ -657,8 +661,9 @@ void ParticlePairT::RHSDriver3D_3(void)
 void ParticlePairT::SetConfiguration(void)
 {
 	/* reset neighbor lists */
-	GenerateNeighborList(fGlobalTag, fNeighborDistance, false, fNeighbors);
-
+	const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
+	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
+	
 	ofstreamT& out = ElementSupport().Output();
 	out << "\n Neighbor statistics:\n";
 	out << " Neighbor cut-off distance . . . . . . . . . . . = " << fNeighborDistance << '\n';

@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.8 2002-12-04 06:32:40 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.8.2.1 2002-12-16 09:26:31 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -13,6 +13,7 @@ namespace Tahoe {
 
 /** forward declarations */
 class iGridManagerT;
+class CommManagerT;
 
 /** base class for particle types */
 class ParticleT: public ElementBaseT
@@ -91,18 +92,23 @@ protected: /* for derived classes only */
 	virtual void SetConfiguration(void) = 0;
 
 	/** generate neighborlist
-	 * \param particle_tags global tags for which to determine neighhors
+	 * \param particle_tags global tags for which to determine neighhors. If NULL, find
+	 *        neighbors for all nodes.
 	 * \param distance distance over which to search for neighbors
+	 * \param neighbors list of neighbors for every tag in particle_tags as rows in the
+	 *        2D array. The list for each tag begins with the tag itself. Therefore, all
+	 *        lists are at least length 1. The numbering of the tags in the neighbor list
+	 *        is in terms of the tags provided in particle_tags.
 	 * \param double_list if true the neighbor lists will contain two references for
 	 *        every neighbor interaction. For tags A and B, this means B will appear
 	 *        in the neighbor list for A and vice versa. if true, neighbor lists will
 	 *        only contain neighbors for which A > B.
-	 * \param neighbors list of neighbors for every tag in particle_tags as rows in the
-	 *        2D array. The list for each tag begins with the tag itself. Therefore, all
-	 *        lists are at least length 1. The numbering of the tags in the neighbor list
-	 *        is in terms of the tags provided in particle_tags. */
-	void GenerateNeighborList(const iArrayT& particle_tags, double distance, bool double_list,
-		RaggedArray2DT<int>& neighbors);
+	 * \param full_list if double_list is false, passing full_list true will add B to
+	 *        the neighbor list of A regardless of which tag is higher in order to
+	 *        produce a full list of interactions for A. If double_list is true,
+	 *        this flag has no effect. */
+	void GenerateNeighborList(const ArrayT<int>* particle_tags, double distance, 
+		RaggedArray2DT<int>& neighbors, bool double_list, bool full_list);
 
 	/** construct the list of properties from the given input stream */
 	virtual void EchoProperties(ifstreamT& in, ofstreamT& out) = 0;
@@ -115,6 +121,9 @@ protected:
 
 	/** reference ID for sending output */
 	int fOutputID;
+	
+	/** communications manager */
+	const CommManagerT& fCommManager;
 
 	/** \name local to global tag map.
 	 * Used for things like neighbor lists */
@@ -123,20 +132,13 @@ protected:
 	 * nodes are particles, this will be length 1 with fID[0] = "ALL" */
 	ArrayT<StringT> fID;
 	
-	/** map of global = fGlobalTag[local], which is compact in the local tags */
-	iArrayT fGlobalTag;
-
 	/** connectivities used to define the output set. Just an alias to the
 	 * ParticleT::fGlobalTag. */
 	iArray2DT fPointConnectivities;
-
 	/*@}*/
 
 	/** number of steps between reseting neighbor lists */
 	int fReNeighborIncr;
-
-	/** \name map from global tag to local tag */
-	InverseMapT fGlobalToLocal;
 
 	/** \name particle properties */
 	/*@{*/
