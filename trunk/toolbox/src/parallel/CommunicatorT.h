@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.h,v 1.13 2004-10-14 19:02:54 paklein Exp $ */
+/* $Id: CommunicatorT.h,v 1.14 2004-11-17 23:22:53 paklein Exp $ */
 #ifndef _COMMUNICATOR_T_H_
 #define _COMMUNICATOR_T_H_
 
@@ -14,6 +14,9 @@
 #define MPI_Request long
 #define MPI_Status  long
 #define MPI_Op      long
+#define MPI_SUM       10
+#define MPI_MIN       11
+#define MPI_MAX       12
 #endif
 
 #include "ios_fwd_decl.h"
@@ -120,12 +123,20 @@ class CommunicatorT
 	/** return elapsed time */
 	static double Time(void);
 	/*@}*/
-	
+
+	/** \name reduction operations */
+	/*@{*/	
 	/** maximum over single integers returned to all */
 	int Max(int a) const;
 
+	/** element-by-element maximum returned to all */
+	void Max(const nArrayT<int>& my_values, nArrayT<int>& max) const;
+
 	/** minimum over single integers returned to all */
 	int Min(int a) const;
+
+	/** element-by-element minimum returned to all */
+	void Min(const nArrayT<int>& my_values, nArrayT<int>& min) const;
 
 	/** sum of single integers returned to all */
 	int Sum(int a) const;
@@ -133,14 +144,27 @@ class CommunicatorT
 	/** maximum over single doubles returned to all */
 	double Max(double a) const;
 
+	/** element-by-element maximum returned to all */
+	void Max(const nArrayT<double>& my_values, nArrayT<double>& max) const;
+
 	/** minimum over single doubles returned to all */
 	double Min(double a) const;
+
+	/** element-by-element minimum returned to all */
+	void Min(const nArrayT<double>& my_values, nArrayT<double>& min) const;
 
 	/** sum of single doubles returned to all */
 	double Sum(double a) const;
 
 	/** element-by-element sum of a vector */
 	void Sum(const nArrayT<double>& my_values, nArrayT<double>& sum) const;
+
+	/** general reduction operator for floating point arrays */
+	void AllReduce(const nArrayT<double>& my_values, nArrayT<double>& reduce, MPI_Op op) const;
+
+	/** general reduction operator for integer arrays */
+	void AllReduce(const nArrayT<int>& my_values, nArrayT<int>& reduce, MPI_Op op) const;
+	/*@}*/	
 
 	/** \name gather from all to one
 	 * Gather single integer from all processes to one. */
@@ -322,6 +346,27 @@ inline bool CommunicatorT::ActiveMP(void)
 #else
 	return false;
 #endif
+}
+
+/* element-by-element sum of a vector */
+inline void CommunicatorT::Sum(const nArrayT<double>& my_values, nArrayT<double>& sum) const {
+	AllReduce(my_values, sum, MPI_SUM);
+}
+
+/* element-by-element maximum returned to all */
+inline void CommunicatorT::Max(const nArrayT<int>& my_values, nArrayT<int>& max) const {
+	AllReduce(my_values, max, MPI_MAX);
+}
+inline void CommunicatorT::Max(const nArrayT<double>& my_values, nArrayT<double>& max) const {
+	AllReduce(my_values, max, MPI_MAX);
+}
+
+/* element-by-element minimum returned to all */
+inline void CommunicatorT::Min(const nArrayT<int>& my_values, nArrayT<int>& min) const {
+	AllReduce(my_values, min, MPI_MIN);
+}
+inline void CommunicatorT::Min(const nArrayT<double>& my_values, nArrayT<double>& min) const {
+	AllReduce(my_values, min, MPI_MIN);
 }
 
 } // namespace Tahoe 
