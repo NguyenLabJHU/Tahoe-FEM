@@ -12,16 +12,15 @@ MFGP_MFA_Data_Processor_DisplT::MFGP_MFA_Data_Processor_DisplT() { };
 
 
 /* initialize local variables */
-void MFGP_MFA_Data_Processor_DisplT::Initialize ( const dArray2DT &fdNdx, const dArray2DT &fd3Ndx3 )  
+void MFGP_MFA_Data_Processor_DisplT::Initialize(const dArray2DT& fdNdx, const dArray2DT& fd3Ndx3 )  
 {
 	dN = fdNdx;
 	d3N = fd3Ndx3;
 }
 
 
-/* First Derivative of the Displacement Shape Function: [nsd] x [nnd] */ 
-//fDphi has three components  
-void MFGP_MFA_Data_Processor_DisplT::Set_B1( dMatrixT& B1 )
+/* first derivative of the displacement shape function: [nsd] x [nnd] */  
+void MFGP_MFA_Data_Processor_DisplT::Set_B1(dMatrixT& B1 )
 {
 #if __option(extended_errorcheck)
 	if (B1.Rows() != dSymMatrixT::NumValues(dN.MajorDim()) ||
@@ -90,80 +89,80 @@ void MFGP_MFA_Data_Processor_DisplT::Set_B1( dMatrixT& B1 )
 }
 
 
-/* Laplacian of the Displacement Shape Function: [nstr] x [nnd] */ 
-//fDDDphi has ten components; 
-void MFGP_MFA_Data_Processor_DisplT::Set_B3( dMatrixT& B3 )
+/* laplacian of the displacement shape function: [nsd*nsd] x [nnd] */  
+void MFGP_MFA_Data_Processor_DisplT::Set_B3(dMatrixT& B3 )
 {
 #if __option(extended_errorcheck)
-	if (B3.Rows() != dSymMatrixT::NumValues(d3N.MajorDim()) ||
-	    B3.Cols() != d3N.Length())
+	if (B3.Rows() != dSymMatrixT::NumValues(sqrt(d3N.MajorDim())) ||
+	    B3.Cols() != sqrt(d3N.Length()))
 	    throw ExceptionT::kSizeMismatch;
 #endif
 
 	int nnd = d3N.MinorDim();
+	int nsd = sqrt(d3N.MajorDim());
 	double* pB3 = B3.Pointer();
 
 	/* 1D */
-	if (d3N.MajorDim() == 1)
+	if (nsd == 1)
 	{
-		const double* pNax = d3N(0);
+		const double* pNaxxx = d3N(0);
 		for (int i = 0; i < nnd; i++)
-			*pB3++ = *pNax++;
+			*pB3++ = *pNaxxx++;
 	}
 	/* 2D */
-	else if (d3N.MajorDim() == 2)
+	else if (nsd == 2)
 	{
-		const double* pNax = d3N(0);
-		const double* pNay = d3N(1);
-		const double* pNaxxy = d3N(5);
-		const double* pNayyx = d3N(7);
+		const double* pNaxxx = d3N(0);
+		const double* pNayyx = d3N(1);
+		const double* pNaxxy = d3N(2);
+		const double* pNayyy = d3N(3);
 		for (int i = 0; i < nnd; i++)
 		{
 			
-			*pB3++ = *pNax + (*pNaxxy);
+			*pB3++ = *pNaxxx + (*pNayyx);
 			*pB3++ = 0.0;
-			*pB3++ = *pNay + (*pNayyx);
+			*pB3++ = *pNayyy + (*pNaxxy);
 
 			*pB3++ = 0.0;
-			*pB3++ = *pNay + (*pNayyx);
-			*pB3++ = *pNax + (*pNaxxy);
+			*pB3++ = *pNayyy + (*pNaxxy);
+			*pB3++ = *pNaxxx + (*pNayyx);
 		}
 	}
 	/* 3D */
 	else		
 	{
-		const double* pNax = d3N(0);
-		const double* pNay = d3N(1);
-		const double* pNaz = d3N(2);
-		const double* pNaxxy = d3N(0); //components??
-		const double* pNaxxz = d3N(1); //double check!!
-		const double* pNayyx = d3N(2);
-		const double* pNayyz = d3N(0);
-		const double* pNazzx = d3N(1);
-		const double* pNazzy = d3N(2);
+		const double* pNaxxx = d3N(0);
+		const double* pNayyx = d3N(1);
+		const double* pNazzx = d3N(2);
+		const double* pNaxxy = d3N(3); 
+		const double* pNayyy = d3N(4); 
+		const double* pNazzy = d3N(5);
+		const double* pNaxxz = d3N(6);
+		const double* pNayyz = d3N(7);
+		const double* pNazzz = d3N(8);
 		
 		for (int i = 0; i < nnd; i++)
 		{
 			
-			*pB3++ = *pNax + (*pNayyx) + (*pNazzx);
+			*pB3++ = *pNaxxx + (*pNayyx) + (*pNazzx);
 			*pB3++ = 0.0;
 			*pB3++ = 0.0;
 			*pB3++ = 0.0;
-			*pB3++ = *pNaz + (*pNaxxz) + (*pNayyz);
-			*pB3++ = *pNay + (*pNaxxy) + (*pNazzy);
+			*pB3++ = *pNazzz + (*pNaxxz) + (*pNayyz);
+			*pB3++ = *pNayyy + (*pNaxxy) + (*pNazzy);
 
 			*pB3++ = 0.0;
-			*pB3++ = *pNay + (*pNaxxy) + (*pNazzy);
+			*pB3++ = *pNayyy + (*pNaxxy) + (*pNazzy);
 			*pB3++ = 0.0;
-			*pB3++ = *pNaz + (*pNaxxz) + (*pNayyz);
+			*pB3++ = *pNazzz + (*pNaxxz) + (*pNayyz);
 			*pB3++ = 0.0;
-			*pB3++ = *pNax + (*pNayyx) + (*pNazzx);
+			*pB3++ = *pNaxxx + (*pNayyx) + (*pNazzx);
 
 			*pB3++ = 0.0;
 			*pB3++ = 0.0;
-			*pB3++ = *pNaz++ + (*pNaxxz++) + (*pNayyz++);
-			*pB3++ = *pNay++ + (*pNaxxy++) + (*pNazzy++);
-			*pB3++ = *pNax++ + (*pNayyx++) + (*pNazzx++);
+			*pB3++ = *pNazzz++ + (*pNaxxz++) + (*pNayyz++);
+			*pB3++ = *pNayyy++ + (*pNaxxy++) + (*pNazzy++);
+			*pB3++ = *pNaxxx++ + (*pNayyx++) + (*pNazzx++);
 			*pB3++ = 0.0;
 		}
 	}
