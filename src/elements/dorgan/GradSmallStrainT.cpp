@@ -1,4 +1,4 @@
-/* $Id: GradSmallStrainT.cpp,v 1.2 2004-01-14 22:02:46 rdorgan Exp $ */ 
+/* $Id: GradSmallStrainT.cpp,v 1.3 2004-02-09 08:24:55 paklein Exp $ */ 
 #include "GradSmallStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -147,7 +147,7 @@ void GradSmallStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
         }
         
         /* reset pointers to element cards */
-        SetElementCards();        
+        SetElementCards(fBlockData, fConnectivities, fEqnos, fElementCards);
 }
 
 /***********************************************************************

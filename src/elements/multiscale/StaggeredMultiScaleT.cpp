@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.37 2003-11-21 22:54:39 paklein Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.38 2004-02-09 08:26:45 paklein Exp $ */
 #include "StaggeredMultiScaleT.h"
 
 #include "ShapeFunctionT.h"
@@ -457,7 +457,7 @@ void StaggeredMultiScaleT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		}
 	
 		/* reset pointers to element cards */
-		SetElementCards();	
+		SetElementCards(fBlockData, fConnectivities, fEqnos, fElementCards);
 	}
 	else
 	{
