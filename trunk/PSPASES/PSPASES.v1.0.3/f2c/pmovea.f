@@ -39,13 +39,14 @@ C/* constitutes an implicit agreement to these terms.  These terms and        */
 C/* conditions are subject to change at any time without prior notice.        */
 C/*                                                                           */
 C/*****************************************************************************/
-C/* $Id: pmovea.f,v 1.2 2004-12-15 01:14:19 paklein Exp $ */
+C/* $Id: pmovea.f,v 1.3 2004-12-30 00:40:37 paklein Exp $ */
 C/*****************************************************************************/
 
       subroutine pmovea(N,dd,pp,lgblk,myid,mynnodes,order,paptrs,
      +                  painds,pavals,aptrs,tainds,tavals,wrkint,
      +                  ranmasks,whichsnode,recvsizs,nrsiz,comm,
-     +                  sendinds,sendsizs,sendvals)
+     +                  sendinds,sendsizs,sendvals,
+     +                  iwillsend_inds2, iwillsend_sizs2)
 
       implicit none
 
@@ -59,9 +60,13 @@ C/*****************************************************************************/
 
 C     integer, allocatable :: sendinds(:),sendsizs(:)
       integer sendinds(*),sendsizs(*)
+      integer iwillsend_inds2, iwillsend_sizs2
+      dimension sendinds(0:iwillsend_inds2-1)
+      dimension sendsizs(0:iwillsend_sizs2-1)      
       
 C     double precision, allocatable :: sendvals(:)
       double precision sendvals(*)
+      dimension sendvals(0:iwillsend_inds2-1)
 
       integer proc,pgrsize,ppg,ierr,rsize,bmaskr,row,col
       integer psci,pscs,psdi,psds,ppr,ppc,bmaskc
