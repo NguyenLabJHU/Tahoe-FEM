@@ -12,3 +12,7 @@ dimensions: nsd numbers
 latticetype
 alat
 shape
+rotation vector
+
+Test of DIA lattice in 3D.
+

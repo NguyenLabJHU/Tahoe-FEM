@@ -5,7 +5,7 @@ DIA
 3.52
 BOX
 ROT
-1 1 1 
+1 0 0 45 
 #
 
 nsd
@@ -14,6 +14,7 @@ dimensions: nsd numbers
 latticetype
 alat
 shape
-rotation vector
+rotation vector ,rotation angle in degree
 
-Test of rotation in 3D
+Test of rotation in 3D, 
+need a vector and an angle in degree
