@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.6 2001-07-07 19:03:20 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.7 2001-07-09 17:23:47 paklein Exp $ */
 /* created: paklein (01/12/2000)                                          */
 
 #include "FEManagerT_mpi.h"
@@ -607,63 +607,13 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 		throw eBadInputValue;
 	}	
 
-	/* connectivities for partititioning */
-	AutoArrayT<const iArray2DT*> connects_1;
-	AutoArrayT<const RaggedArray2DT<int>*> connects_2;
-
-	/* collect element groups */
-	for (int s = 0 ; s < fElementGroups.Length(); s++)
-		fElementGroups[s]->ConnectsU(connects_1, connects_2);		
-
-	/* initialize graph */
-	for (int r = 0; r < connects_1.Length(); r++)
-		graphU.AddGroup(*(connects_1[r]));
-	for (int k = 0; k < connects_2.Length(); k++)
-		graphU.AddGroup(*(connects_2[k]));
-		
-	/* make graph */
-	clock_t t0 = clock();
-	if (verbose) cout << " FEManagerT_mpi::Decompose: constructing graph" << endl;
-	graphU.MakeGraph();
-	clock_t t1 = clock();
-	if (verbose)
-		cout << setw(kDoubleWidth) << double(t1 - t0)/CLOCKS_PER_SEC
-		     << " sec: FEManagerT_mpi::Decompose: construct graph" << endl;
-	
-	/* dual graph partitioning graph */
-	int dual_graph = (InterpolantDOFs() == 0) ? 1 : 0;
-	AutoArrayT<const iArray2DT*> connectsX_1;
-	GraphT graphX;
-	if (dual_graph == 1)
-	{
-		if (verbose) cout << " FEManagerT_mpi::Decompose: constructing dual graph" << endl;
-		
-		/* collect element groups */
-		for (int s = 0 ; s < fElementGroups.Length(); s++)
-			fElementGroups[s]->ConnectsX(connectsX_1);
-
-		/* initialize graph */
-		for (int r = 0; r < connectsX_1.Length(); r++)
-			graphX.AddGroup(*(connectsX_1[r]));
-		
-		/* make graph */
-		clock_t t0 = clock();		
-		graphX.MakeGraph();
-		clock_t t1 = clock();
-		if (verbose)
-			cout << setw(kDoubleWidth) << double(t1 - t0)/CLOCKS_PER_SEC
-		     << " sec: FEManagerT_mpi::Decompose: construct X graph" << endl;
-	}
-	
-	/* generate partition */
-	iArrayT config(1); //TEMP - will be scalar soon?
-	config[0] = partition.Length();	
-	iArrayT weight;
-	WeightNodalCost(weight);
-	if (dual_graph == 1)
-		graphX.Partition(config, weight, graphU, partition, true);
+	/* decomposition method */
+	bool use_new_methods = false; //TEMP
+	bool dual_graph = (InterpolantDOFs() == 0);
+	if (dual_graph && use_new_methods)
+		DoDecompose_2(partition, graphU, verbose);
 	else
-		graphU.Partition(config, weight, partition, true);
+		DoDecompose_1(partition, graphU, verbose);
 
 	if (fInputFormat == IOBaseT::kTahoeII)
 	{
@@ -1065,4 +1015,106 @@ const char* FEManagerT_mpi::WallTime(void) const
 	time_t t;
 	time(&t);
 	return ctime(&t);
+}
+
+/* decomposition methods */
+void FEManagerT_mpi::DoDecompose_2(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose)
+{
+	/* connectivities for partititioning */
+	AutoArrayT<const iArray2DT*> connects_1;
+	AutoArrayT<const RaggedArray2DT<int>*> connects_2;
+
+	/* collect element groups */
+	for (int s = 0 ; s < fElementGroups.Length(); s++)
+		fElementGroups[s]->ConnectsU(connects_1, connects_2);		
+	
+	/* dual graph partitioning graph */
+	AutoArrayT<const iArray2DT*> connectsX_1;
+	
+	/* collect minimal connects */
+	for (int s = 0 ; s < fElementGroups.Length(); s++)
+		fElementGroups[s]->ConnectsX(connectsX_1);
+
+	/* initialize graph */
+	GraphT& graphX = graph;
+	for (int r = 0; r < connectsX_1.Length(); r++)
+		graphX.AddGroup(*(connectsX_1[r]));
+		
+	/* make graph */
+	if (verbose) cout << " FEManagerT_mpi::DoDecompose_2: constructing dual graph" << endl;
+	clock_t t0 = clock();		
+	graphX.MakeGraph();
+	clock_t t1 = clock();
+	if (verbose)
+		cout << setw(kDoubleWidth) << double(t1 - t0)/CLOCKS_PER_SEC
+	     << " sec: FEManagerT_mpi::DoDecompose_2: construct graph" << endl;
+	
+	/* generate partition */
+	iArrayT config(1); //TEMP - will be scalar soon?
+	config[0] = partition.Length();	
+	iArrayT weight;
+	WeightNodalCost(weight);
+	graphX.Partition(config, weight, connects_1, connects_2, partition, true);
+}
+
+void FEManagerT_mpi::DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose)
+{
+	/* connectivities for partititioning */
+	AutoArrayT<const iArray2DT*> connects_1;
+	AutoArrayT<const RaggedArray2DT<int>*> connects_2;
+
+	/* collect element groups */
+	for (int s = 0 ; s < fElementGroups.Length(); s++)
+		fElementGroups[s]->ConnectsU(connects_1, connects_2);		
+
+	/* initialize graph */
+	GraphT& graphU = graph;
+	for (int r = 0; r < connects_1.Length(); r++)
+		graphU.AddGroup(*(connects_1[r]));
+	for (int k = 0; k < connects_2.Length(); k++)
+		graphU.AddGroup(*(connects_2[k]));
+		
+	/* make graph */
+	clock_t t0 = clock();
+	if (verbose) cout << " FEManagerT_mpi::DoDecompose_1: constructing graph" << endl;
+	graphU.MakeGraph();
+	clock_t t1 = clock();
+	if (verbose)
+		cout << setw(kDoubleWidth) << double(t1 - t0)/CLOCKS_PER_SEC
+		     << " sec: FEManagerT_mpi::DoDecompose_1: construct graph" << endl;
+	
+	/* dual graph partitioning graph */
+	int dual_graph = (InterpolantDOFs() == 0) ? 1 : 0;
+	AutoArrayT<const iArray2DT*> connectsX_1;
+	GraphT graphX;
+	if (dual_graph == 1)
+	{
+		if (verbose) cout << " FEManagerT_mpi::DoDecompose_1: constructing dual graph" << endl;
+		
+		/* collect element groups */
+		for (int s = 0 ; s < fElementGroups.Length(); s++)
+			fElementGroups[s]->ConnectsX(connectsX_1);
+
+		/* initialize graph */
+		for (int r = 0; r < connectsX_1.Length(); r++)
+			graphX.AddGroup(*(connectsX_1[r]));
+		
+		/* make graph */
+		clock_t t0 = clock();		
+		graphX.MakeGraph();
+		clock_t t1 = clock();
+		if (verbose)
+			cout << setw(kDoubleWidth) << double(t1 - t0)/CLOCKS_PER_SEC
+		     << " sec: FEManagerT_mpi::DoDecompose_1: construct X graph" << endl;
+	}
+	
+	/* generate partition */
+	iArrayT config(1); //TEMP - will be scalar soon?
+	config[0] = partition.Length();	
+	iArrayT weight;
+	WeightNodalCost(weight);
+	if (dual_graph == 1)
+		graphX.Partition(config, weight, graphU, partition, true);
+	else
+		graphU.Partition(config, weight, partition, true);
 }
