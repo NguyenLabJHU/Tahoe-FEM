@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2001-06-13 20:53:58 paklein Exp $
+# $Id: makefile,v 1.2 2001-06-13 21:14:14 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,7 +7,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	GaussianWindowT.o
-	
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -22,7 +22,7 @@ SRC = \
 HDR = \
 	GaussianWindowT.h \
 	WindowT.h
-	
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
