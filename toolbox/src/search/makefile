@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2001-02-22 23:45:27 paklein Exp $
+# $Id: makefile,v 1.6 2002-06-29 22:07:07 hspark Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -8,6 +8,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	CartesianGridT.o \
 	iGridManagerT.o \
+	iGridManager1DT.o \
 	iGridManager2DT.o \
 	iGridManager3DT.o \
 	iNodeT.o \
@@ -22,6 +23,7 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	CartesianGridT.cpp \
 	iGridManagerT.cpp \
+	iGridManager1DT.cpp \
 	iGridManager2DT.cpp \
 	iGridManager3DT.cpp \
 	iNodeT.cpp \
@@ -30,9 +32,11 @@ SRC = \
 # headers
 HDR = \
 	CartesianGridT.h \
+	GridManager1DT.h \
 	GridManager2DT.h \
 	GridManager3DT.h \
 	iGridManagerT.h \
+	iGridManager1DT.h \
 	iGridManager2DT.h \
 	iGridManager3DT.h \
 	iNodeT.h \
