@@ -1,18 +1,17 @@
-# $Id: makefile,v 1.3 2004-03-09 08:54:20 paklein Exp $
+# $Id: makefile,v 1.1 2004-03-09 08:54:21 paklein Exp $
 #
 # type "make clean" to remove test results
 #
 
-# list of subdirectories
-SUB_DIR = \
-	2D.elastodynamic \
-	2D.elastostatic \
-	diffusion
+# list of sub-directories
+# NOTE: if list is empty, set SUB_DIR = NONE
+SUB_DIR = NONE
 
 all:
 	@echo "make clean to remove test results"
-
+	
 clean:
+	-@rm *.io*.ps* *.out *.geo *.run *.valid.xml
 	@ for n in $(SUB_DIR); do \
 		if test -d $$n; then \
 			echo " cd $$n"; \
