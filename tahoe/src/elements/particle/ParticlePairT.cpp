@@ -1,5 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.36 2004-04-21 08:14:39 paklein Exp $ */
-
+/* $Id: ParticlePairT.cpp,v 1.31.4.2 2004-04-16 03:22:16 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -33,7 +32,6 @@ ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field
 	ParticleT(support, field),
 	fNeighbors(kMemoryHeadRoom),
 	NearestNeighbors(kMemoryHeadRoom),
-	RefNearestNeighbors(kMemoryHeadRoom),
 	fEqnos(kMemoryHeadRoom),
 	fForce_list_man(0, fForce_list)
 {
@@ -45,8 +43,6 @@ ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field
 ParticlePairT::ParticlePairT(const ElementSupportT& support):
 	ParticleT(support),
 	fNeighbors(kMemoryHeadRoom),
-	NearestNeighbors(kMemoryHeadRoom),
-	RefNearestNeighbors(kMemoryHeadRoom),
 	fEqnos(kMemoryHeadRoom),
 	fForce_list_man(0, fForce_list)
 {
@@ -75,8 +71,6 @@ void ParticlePairT::Initialize(void)
 {
 	/* inherited */
 	ParticleT::Initialize();
-
-	ParticleT::SetRefNN(NearestNeighbors,RefNearestNeighbors);
 
 	/* dimension */
 	int ndof = NumDOF();
@@ -200,7 +194,7 @@ void ParticlePairT::WriteOutput(void)
 			temp.Outer(vec);
 		 	for (int cc = 0; cc < num_stresses; cc++) {
 				int ndex = ndof+2+cc;
-		   		values_i[ndex] = (fabs(V0) > kSmall) ? -mass[type_i]*temp[cc]/V0 : 0.0;
+		   		values_i[ndex] = -mass[type_i]*temp[cc]/V0;
 		 	}
 		}
 #endif
@@ -228,7 +222,13 @@ void ParticlePairT::WriteOutput(void)
 		n_values.RowAlias(local_i, values_i);
 
 #ifndef NO_PARTICLE_STRESS_OUTPUT
+		/* linked list for holding vector pair magnitudes */
+		CSymmParamNode *CParamStart = new CSymmParamNode;
+ 		CParamStart->Next = NULL;
+ 		CParamStart->value = 0.0;
+		Strain = 0;
 		vs_i = 0.0;
+		SlipVector = 0.0;
 #endif
 		
 		/* kinetic energy */
@@ -292,64 +292,37 @@ void ParticlePairT::WriteOutput(void)
 			 		/* accumulate into stress into array */
 		 			for (int cc = 0; cc < num_stresses; cc++) {
 						int ndex = ndof+2+cc;
-		   				n_values(local_j, ndex) += (fabs(V0) > kSmall) ? 0.5*Fbyr*temp[cc]/V0 : 0.0;
+		   				n_values(local_j, ndex) += 0.5*Fbyr*temp[cc]/V0;		   
 		 			}
 #endif
 				}
 			}
 		}
 
-
 #ifndef NO_PARTICLE_STRESS_OUTPUT
+		/* calculate strain */
+		double J = 1.0;
+		CalcValues(i, coords, CParamStart, &Strain, &SlipVector, &NearestNeighbors, J);
+
 		/* copy stress into array */
 		for (int cc = 0; cc < num_stresses; cc++) {
 		  int ndex = ndof+2+cc;
-		  values_i[ndex] += (fabs(V0) > kSmall) ? vs_i[cc]/V0 : 0.0;
+		  values_i[ndex] += (vs_i[cc]/V0);
 		}
-#endif
-	}
-#ifndef NO_PARTICLE_STRESS_OUTPUT
-    int num_s_vals = num_stresses+1+ndof+1;
-    dArray2DT s_values(non,num_s_vals);
-    s_values = 0.0;
 
-    /* flag for specifying Lagrangian (0) or Eulerian (1) strain */ 
-    const int kEulerLagr = 0;
-	/* calculate slip vector and strain */
-	Calc_Slip_and_Strain(s_values,RefNearestNeighbors,kEulerLagr);
-
-    /* calculate centrosymmetry parameter */
-	Calc_CSP(s_values,NearestNeighbors);
-
-	/* combine strain, slip vector and centrosymmetry parameter into n_values list */
-	for (int i = 0; i < fNeighbors.MajorDim(); i++)
-	{
-		/* row of neighbor list */
-		fNeighbors.RowAlias(i, neighbors);
-
-		/* tags */
-		int   tag_i = neighbors[0]; /* self is 1st spot */
-		int  type_i = fType[tag_i];
-		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
-									            
 		int valuep = 0;
-		for (int is = 0; is < num_stresses; is++)
-		{
-			n_values(local_i,ndof+2+num_stresses+valuep++) = s_values(local_i,is);
-		}
-
-		/* recover J, the determinant of the deformation gradient, for atom i
-		 * and divide stress values by it */
-		double J = s_values(local_i,num_stresses);
-	    for (int is = 0; is < num_stresses; is++) 
-	    	n_values(local_i,ndof+2+is) /= J;
+		Strain /= 2.0;
+		for (int n = 0; n < ndof; n++)
+			for (int m = n;m < ndof; m++)
+				n_values(local_i,ndof+2+num_stresses+valuep++) = Strain(n,m);
 
 		for (int n = 0; n < ndof; n++)
-			n_values(local_i, ndof+2+num_stresses+num_stresses+n) = s_values(local_i,num_stresses+1+n);
+			n_values(local_i, ndof+2+num_stresses+num_stresses+n) = SlipVector[n];
 
-		n_values(local_i, num_output-1) = s_values(local_i,num_s_vals-1);
-	}
+		/*given the list of vector pair magnitudes, returns first seven*/
+		n_values(local_i,num_output-1) = GenCSymmValue(CParamStart,ndof);
 #endif
+	}
 
 #if 0
 	/* temporary to calculate crack propagation velocity */
@@ -891,13 +864,107 @@ void ParticlePairT::RHSDriver(void)
 		RHSDriver3D();
 	else if (nsd == 2)
 		RHSDriver2D();
+	else if (nsd == 1)
+		RHSDriver1D();	
 	else
-		ExceptionT::GeneralFail("ParticlePairT::RHSDriver");
+		ExceptionT::GeneralFail("ParticlePairT::RHSDriver", "unsupported dimension %d", nsd);
 		
 	ApplyDamping(fNeighbors);
 	
 	/* assemble */
 	ElementSupport().AssembleRHS(Group(), fForce, Field().Equations());
+}
+
+void ParticlePairT::RHSDriver1D(void)
+{
+	/* function name */
+	const char caller[] = "ParticlePairT::RHSDriver1D";
+
+	/* check 1D */
+	if (NumDOF() != 1) ExceptionT::GeneralFail(caller, "1D only: %d", NumDOF());
+
+	/* time integration parameters */
+	double constMa = 0.0;
+	double constKd = 0.0;
+	int formMa = fIntegrator->FormMa(constMa);
+	int formKd = fIntegrator->FormKd(constKd);
+
+	//TEMP - interial force not implemented
+	if (formMa) ExceptionT::GeneralFail(caller, "inertial force not implemented");
+
+	/* assembly information */
+	const ElementSupportT& support = ElementSupport();
+	int group = Group();
+	int ndof = NumDOF();
+	
+	/* global coordinates */
+	const dArray2DT& coords = support.CurrentCoordinates();
+
+	/* pair properties function pointers */
+	int current_property = -1;
+	PairPropertyT::ForceFunction force_function = NULL;
+	const double* Paradyn_table = NULL;
+	double dr = 1.0;
+	int row_size = 0, num_rows = 0;
+
+	/* run through neighbor list */
+	fForce = 0.0;
+	iArrayT neighbors;
+	for (int i = 0; i < fNeighbors.MajorDim(); i++)
+	{
+		/* row of neighbor list */
+		fNeighbors.RowAlias(i, neighbors);
+
+		/* type */
+		int   tag_i = neighbors[0]; /* self is 1st spot */
+		int  type_i = fType[tag_i];
+		double* f_i = fForce(tag_i);
+		const double* x_i = coords(tag_i);
+		
+		/* run though neighbors for one atom - first neighbor is self */
+		for (int j = 1; j < neighbors.Length(); j++)
+		{
+			/* global tag */
+			int   tag_j = neighbors[j];
+			int  type_j = fType[tag_j];
+			double* f_j = fForce(tag_j);
+			const double* x_j = coords(tag_j);
+
+			/* set pair property (if not already set) */
+			int property = fPropertiesMap(type_i, type_j);
+			if (property != current_property)
+			{
+				if (!fPairProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
+					force_function = fPairProperties[property]->getForceFunction();
+				current_property = property;
+			}
+		
+			/* connecting vector */
+			double r_ij_0 = x_j[0] - x_i[0];
+			double r = sqrt(r_ij_0*r_ij_0);
+			
+			/* interaction force */
+			double F;
+			if (Paradyn_table)
+			{
+				double pp = r*dr;
+				int kk = int(pp);
+				int max_row = num_rows-2;
+				kk = (kk < max_row) ? kk : max_row;
+				pp -= kk;
+				pp = (pp < 1.0) ? pp : 1.0;				
+				const double* c = Paradyn_table + kk*row_size;
+				F = c[4] + pp*(c[5] + pp*c[6]);
+			}
+			else
+				F = force_function(r, NULL, NULL);
+			double Fbyr = formKd*F/r;
+
+			r_ij_0 *= Fbyr;
+			f_i[0] += r_ij_0;
+			f_j[0] +=-r_ij_0;
+		}
+	}
 }
 
 void ParticlePairT::RHSDriver2D(void)

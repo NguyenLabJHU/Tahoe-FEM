@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.12 2004-04-09 02:03:11 hspark Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.11.4.15 2004-04-24 01:43:37 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -16,12 +16,11 @@
 namespace Tahoe {
 
 /* forward declarations */
-class ParticleT;
+class ParticlePairT;
 class BridgingScaleT;
 class KBC_PrescribedT;
 class dSPMatrixT;
-class EAMFCC3D;
-class EAMT;
+class LAdMatrixT; //TEMP
 
 /** extension of FEManagerT for bridging scale calculations */
 class FEManagerT_bridging: public FEManagerT
@@ -31,9 +30,6 @@ public:
 	/** constructor */
 	FEManagerT_bridging(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
 		ifstreamT& bridging_input);
-
-	/** destructor */
-	~FEManagerT_bridging(void);
 
 	/** \name solution update */
 	/*@{*/
@@ -114,6 +110,24 @@ public:
 	 *  region, i.e. N_{I}(X_{\alpha}) */
 	void Ntf(dSPMatrixT& ntf, const iArrayT& atoms, iArrayT& activefenodes) const;
 
+	/** compute the product with transpose of the interpolation matrix 
+	 * \param N data for interpolating from rows in NTf to rows in f
+	 * \param f multi-vector in columns
+	 * \param f_rows rows if f to include in the product
+	 * \param NTf returns with matrix-vector product added to the vectors in columns. Global ids
+	 *        in N map directly to rows in NTf.
+	 */
+	void MultNTf(const PointInCellDataT& N, const dArray2DT& f, const iArrayT& f_rows, dArray2DT& NTf) const;
+
+	/** compute the product with transpose of the interpolation matrix 
+	 * \param N data for interpolating from rows in NTf to rows in f
+	 * \param f multi-vector in columns
+	 * \param f_rows rows if f to include in the product
+	 * \param NTf returns with matrix-vector product added to the vectors in columns. Global ids
+	 *        in N map directly to rows in NTf.
+	 */
+	void MultNTf(const InterpolationDataT& N, const dArray2DT& f, const iArrayT& f_rows, dArray2DT& NTf) const;
+
 	/** initialize projection data. Initialize data structures needed to project
 	 * field values to the given list of points. Requires that this FEManagerT has
 	 * a BridgingScaleT in its element list. */
@@ -141,10 +155,36 @@ public:
 	  * from BridgingFields in that projected FE nodal values written into displacement field */
 	void InitialProject(const StringT& field, NodeManagerT& atom_node_manager, dArray2DT& projectedu,
 		int order);
+
+	/** transpose follower cell data */
+	void TransposeFollowerCellData(InterpolationDataT& transpose);
+
+	/** interpolation data */
+	const PointInCellDataT& InterpolationData(void) { return fFollowerCellData;	};
+	
+	/** projection data */
+	const PointInCellDataT& ProjectionData(void) { return fDrivenCellData; };
+	/*@}*/
+	
+	/** \name bond density corrections */
+	/*@{*/
+	/** compute internal correction for the overlap region accounting for ghost node bonds
+	 * extending into the coarse scale region */
+	void CorrectOverlap_ghost(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2);
+
+	/** compute internal correction for the overlap region accounting for ghost node bonds
+	 * extending into the coarse scale region and elements which are partially filled with
+	 * crystal */
+	void CorrectOverlap_all(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2);
+
+	void CorrectOverlap(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2);
+
+	/** enforce zero bond density in projected cells */
+	void DeactivateFollowerCells(void);
 	/*@}*/
 
 	/** (re-)set the equation number for the given group */
-	virtual void SetEquationSystem(int group);
+	virtual void SetEquationSystem(int group, int start_eq_shift = 0);
 
 	/** set the reference error for the given group */
 	void SetReferenceError(int group, double error) const;
@@ -157,14 +197,8 @@ public:
 	 * a particle type; otherwise, an exception will be thrown. */
 	nMatrixT<int>& PropertiesMap(int element_group);
 
-	/** calculate EAM total electron density at ghost atoms */
-	void ElecDensity(int length, dArray2DT& elecdens, dArray2DT& embforce);
-
-	/** add external electron density contribution to ghost atoms */
-	void SetExternalElecDensity(const dArray2DT& elecdens, const iArrayT& ghostatoms);
-	
-	/** add external embedding force contribution to ghost atoms */
-	void SetExternalEmbedForce(const dArray2DT& embforce, const iArrayT& ghostatoms);
+	/** return the given instance of the ParticlePairT element group or NULL if not found */
+	const ParticlePairT* ParticlePair(int instance = 0) const;
 
 protected:
 
@@ -178,9 +212,81 @@ protected:
 
 	/** the bridging scale element group */
 	BridgingScaleT& BridgingScale(void) const;
+
+	/** \name method needed to correct atomistic/continuum overlap */
+	/*@{*/
+	/** collect nodes and cells in the overlap region. This method collects only free
+	 * nodes with ghost atoms in their supports. */
+	void CollectOverlapRegion_free(iArrayT& overlap_cell, iArrayT& overlap_node) const;
+
+	/** collect nodes and cells in the overlap region. This method collects all nodes
+	 * with ghost nodes in their supports, including both free and projected nodes. */
+	//void CollectOverlapRegion_all(iArrayT& overlap_cell, iArrayT& overlap_node) const;
+
+	/** collect bonds between real points and follower points */
+	void GhostNodeBonds(const RaggedArray2DT<int>& neighbors, RaggedArray2DT<int>& ghost_neighbors, 
+		InverseMapT& overlap_cell_map) const;
+
+	void GhostNodeBonds(const RaggedArray2DT<int>& neighbors,
+		RaggedArray2DT<int>& ghost_neighbors, iArrayT& overlap_cell) const;
 	
-	/** the EAMT element group */
-	EAMT& EAM(void) const;
+	void GhostNodeBonds(const dArrayT& R_i, const dArray2DT& point_coords, 
+		const RaggedArray2DT<int>& ghost_neighbors_all, RaggedArray2DT<int>& ghost_neighbors_i, 
+		AutoArrayT<int>& overlap_cell_i, AutoArrayT<int>& overlap_node_i) const;
+
+	/** generate "inverse" connectivities for active elements in the support of active nodes.
+	 * For each node in the forward map, collect the elements which are part of its support
+	 * \param element_group source of element connectivities
+	 * \param active_nodes list of nodes for which to generate an element list
+	 * \param active_elements list of elements to include in the connectivities
+	 * \param transpose_connects returns with the list of active elements in the support of 
+	 *        active nodes. The major dimension is the number of active nodes */
+	void TransposeConnects(const ContinuumElementT& element_group, const ArrayT<int>& active_nodes,
+		const ArrayT<int>& active_elements, RaggedArray2DT<int>& transpose_connects);
+
+	/** compute bond contribution to the nodal internal force
+	 * \param R_i bond vector
+	 * \param ghost_neighbors neighbor list containing only bond from free points to
+	 *        follower points. The follower points only appear in the neighbor lists of the
+	 *        free points. The followers do not have neighbors in this list.
+	 * \param point_coords global coordinates of all points
+	 * \param overlap_node_map map of global node number to index in sum_R_N for nodes in the
+	 *        overlap region
+	 * \param sum_R_N returns with the bond contribution to all the nodes in the overlap region
+	 * \param overlap_cell_i list of cells containing bonds to ghost nodes
+	 * \param overlap_atom_i list of atoms with bonds to ghost nodes
+	 */
+	void ComputeSum_signR_Na(const dArrayT& R_i, const RaggedArray2DT<int>& ghost_neighbors, 
+		const dArray2DT& point_coords, const InverseMapT& overlap_node_map, dArrayT& sum_R_N,
+		AutoArrayT<int>& overlap_cell_i) const;
+
+	void ComputeSum_signR_Na(const dArrayT& R_i, const RaggedArray2DT<int>& ghost_neighbors, 
+		const dArray2DT& point_coords, const InverseMapT& overlap_node_map, dArrayT& sum_R_N) const;
+
+	/** compute Cauchy-Born contribution to the nodal internal force
+	 * \param R bond vector
+	 * \param V_0 Cauchy-Born reference volume
+	 * \param coarse element group defining shape functions in the overlap region
+	 * \param overlap_cell list of elements from coarse in the overlap region
+	 * \param overlap_node_map map of global node number to index in sum_R_N for nodes in the
+	 *        overlap region
+	 */
+	void Compute_df_dp(const dArrayT& R, double V_0, const ContinuumElementT& coarse, 
+		const ArrayT<int>& overlap_cell, const InverseMapT& overlap_node_map, const dArray2DT& rho, 
+		dArrayT& f_a, double smoothing, double k2, dArray2DT& df_dp, LAdMatrixT& ddf_dpdp) const;
+
+	void Compute_df_dp(const dArrayT& R, double V_0,
+		const ArrayT<char>& cell_type, const InverseMapT& overlap_cell_map, const InverseMapT& overlap_node_map,
+		const dArray2DT& rho, dArrayT& f_a, double smoothing, double k2, dArray2DT& df_dp, 
+		LAdMatrixT& ddf_dpdp) const;
+
+	void Compute_df_dp(const dArrayT& R, double V_0, const ArrayT<char>& cell_type, 
+		const InverseMapT& overlap_cell_map, const ArrayT<int>& overlap_node, const InverseMapT& overlap_node_map,
+		const iArray2DT& cell_eq_i,
+		const RaggedArray2DT<int>& inv_connects_i, const RaggedArray2DT<int>& inv_equations_i,
+		const dArray2DT& rho, dArrayT& f_a, double smoothing, double k2, dArray2DT& df_dp, 
+		GlobalMatrixT& ddf_dpdp) const;
+	/*@}*/
 
 private:
 
@@ -205,12 +311,6 @@ private:
 	/** projection/interpolation operator */
 	BridgingScaleT* fBridgingScale;
 	
-	/** EAMFCC class */
-	EAMFCC3D* fEAMFCC3D;
-	
-	/** EAMT class */
-	EAMT* fEAMT;
-	
 	/** \name follower node information */
 	/*@{*/
 	/** map data of follower points into the mesh */
@@ -225,6 +325,9 @@ private:
 	/** map data of driver points into the mesh */
 	PointInCellDataT fDrivenCellData;
 	
+	/** list of projected nodes */
+	iArrayT fProjectedNodes;
+	
 	/** projected solution */
 	dArray2DT fProjection;
 	
@@ -234,7 +337,8 @@ private:
 	
 	/** \name external force vector by group */
 	/*@{*/
-	ArrayT<const dArrayT*> fExternalForce;	
+	ArrayT<const dArrayT*> fExternalForce;
+	
 	ArrayT<const dArray2DT*> fExternalForce2D;
 	ArrayT<const iArrayT*>   fExternalForce2DNodes;
 	ArrayT<iArray2DT>        fExternalForce2DEquations;

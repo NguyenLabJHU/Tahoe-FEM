@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.42 2004-04-11 22:29:06 raregue Exp $ */
+/* $Id: ElementT.cpp,v 1.41 2004-03-02 23:50:28 raregue Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -198,9 +198,6 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			break;
 		case ElementT::kAPSVgrad:
 		    type = ElementT::kAPSVgrad;
-		    break;   
-		case ElementT::kMeshfreeGradP:
-		    type = ElementT::kMeshfreeGradP;
 		    break;    
 		case ElementT::kTotLagFlat:
 		    type = ElementT::kTotLagFlat;

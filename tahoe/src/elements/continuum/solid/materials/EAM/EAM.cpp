@@ -1,4 +1,4 @@
-/* $Id: EAM.cpp,v 1.5 2004-04-09 02:02:58 hspark Exp $ */
+/* $Id: EAM.cpp,v 1.4 2003-11-21 22:46:19 paklein Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAM.cpp                                                                */
 
@@ -69,6 +69,7 @@ double EAM::ComputeUnitEnergy(void)
 	}
 	
 	energy += fEmbeddingEnergy->Function(rho);
+
 	return energy;
 }
 
@@ -88,11 +89,10 @@ void EAM::ComputeUnitStress(dSymMatrixT& stress)
 	
 	dArrayT& DPotential = fPairPotential->MapDFunction(fBonds, fBond1);
 	dArrayT& DDensity   = fElectronDensity->MapDFunction(fBonds, fBond2);
-	
 	for (int i = 0; i < fNumBonds; i++)
 	{
 		double ri = fBonds[i];
-		int    ci = fCounts[i];	
+		int    ci = fCounts[i];		
 		double coeff = (1.0/ri)*ci*(0.5*DPotential[i] + dFdrho*DDensity[i]);
 		fLattice.BondComponentTensor2(i,fBondTensor2);
 		stress.AddScaled(coeff,fBondTensor2);
@@ -119,23 +119,6 @@ void EAM::ComputeUnitModuli(dMatrixT& moduli)
 	FormSingleBondContribution(rho, moduli);
 }
 
-/*
-* Compute the total electron density.
-*/
-double EAM::TotalElectronDensity(void)
-{
-	/* compute total atomic density */
-	dArrayT& ElectronDensity = fElectronDensity->MapFunction(fBonds, fBond1);
-
-	double rho = 0.0;
-	const int* pcount = fCounts.Pointer();
-	double* pedensity = ElectronDensity.Pointer();
-
-	for (int i = 0; i < fNumBonds; i++)
-		rho += (*pcount++)*(*pedensity++);
-
-	return rho;
-}
 /**********************************************************************
 * Private
 **********************************************************************/
@@ -190,6 +173,24 @@ void EAM::FormMixedDerivatives(double rho)
 	
 	fAmn.CopySymmetric();
 }	
+
+/*
+* Compute the total electron density.
+*/
+double EAM::TotalElectronDensity(void)
+{
+	/* compute total atomic density */
+	dArrayT& ElectronDensity = fElectronDensity->MapFunction(fBonds, fBond1);
+
+	double rho = 0.0;
+	const int* pcount = fCounts.Pointer();
+	double* pedensity = ElectronDensity.Pointer();
+
+	for (int i = 0; i < fNumBonds; i++)
+		rho += (*pcount++)*(*pedensity++);
+
+	return rho;
+}
 
 /*
 * Moduli tensor contributions.

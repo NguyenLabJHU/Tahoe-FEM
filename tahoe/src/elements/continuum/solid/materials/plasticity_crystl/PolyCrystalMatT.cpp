@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.cpp,v 1.14 2004-04-13 20:37:32 ebmarin Exp $ */
+/* $Id: PolyCrystalMatT.cpp,v 1.13 2003-01-29 07:35:05 paklein Exp $ */
 #include "PolyCrystalMatT.h"
 #include "CrystalElasticity.h"
 #include "SlipGeometry.h"
@@ -17,6 +17,11 @@ using namespace Tahoe;
 
 /* number of elastic material properties : isotropic and cubic */
 const int kNumMatProp = 3;
+
+/* number of slip systems based on crystal structure */
+const int kSlipFCC = 12;
+const int kSlipBCC = 12;
+const int kSlipHCP = 12;
 
 /* initialization flag value */
 const int kIsInit = 1;
@@ -179,21 +184,17 @@ void PolyCrystalMatT::SetSlipSystems()
   switch(fCrystalType)
     {
     case SlipGeometry::kFCC:
-      fSlipGeometry = new FCCGeometry();
+      fSlipGeometry = new FCCGeometry(kSlipFCC);
       break;
 
     case SlipGeometry::kBCC:
-      //fSlipGeometry = new BCCGeometry();
+      //fSlipGeometry = new BCCGeometry(kSlipBCC);
       throwRunTimeError("PolyCrystalMatT::SetSlipSystems: BCC not implemented");
       break;
 
     case SlipGeometry::kHCP:
-      //fSlipGeometry = new HCPGeometry();
+      //fSlipGeometry = new HCPGeometry(kSlipHCP);
       throwRunTimeError("PolyCrystalMatT::SetSlipSystems: HCP not implemented");
-      break;
-
-    case SlipGeometry::kFCC24:
-      fSlipGeometry = new FCCGeometry24();
       break;
 
     default:
@@ -212,28 +213,12 @@ void PolyCrystalMatT::SetSlipSystems()
     fZ[i].Dimension(3,3);
   }
 
-  // allocate space for slip vectors in crystal/sample coords
-  fSlipSc.Dimension(fNumSlip);
-  fSlipMc.Dimension(fNumSlip);
-  fSlipS.Dimension(fNumSlip);
-  fSlipM.Dimension(fNumSlip);
-  for (int i = 0; i < fNumSlip; i++) {
-    fSlipSc[i].Dimension(3);
-    fSlipMc[i].Dimension(3);
-    fSlipS[i].Dimension(3);
-    fSlipM[i].Dimension(3);
-  }
-
   // allocate space for slip shearing rate and resolve shear stress
   fDGamma.Dimension(fNumSlip);
   fTau.Dimension(fNumSlip);
 
   // copy Schmidt tensor in crystal coords
   fZc = fSlipGeometry->GetSchmidtTensor();
-
-  // copy slip vectors in crystal coords
-  fSlipSc = fSlipGeometry->GetSlipVectorS();
-  fSlipMc = fSlipGeometry->GetSlipVectorM();
 }
 
 void PolyCrystalMatT::SetLatticeOrientation()

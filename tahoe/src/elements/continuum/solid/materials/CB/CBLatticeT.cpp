@@ -1,4 +1,4 @@
-/* $Id: CBLatticeT.cpp,v 1.5 2003-11-21 22:46:16 paklein Exp $ */
+/* $Id: CBLatticeT.cpp,v 1.5.12.1 2004-04-15 21:10:19 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #include "CBLatticeT.h"
 
@@ -41,8 +41,14 @@ void CBLatticeT::BondComponentTensor4(int numbond, dMatrixT& matrix) const
 
 	if (fNumSpatialDim == 2)
 		BondTensor4_2D(temp, matrix);
-	else
+	else if (fNumSpatialDim == 3)
 		BondTensor4_3D(temp, matrix);
+	else if (fNumSpatialDim == 1) {
+		double R = fBonds[numbond];
+		matrix[0] = R*R*R*R;
+	}
+	else
+		ExceptionT::GeneralFail("CBLatticeT::BondComponentTensor2");
 }
 
 /*
@@ -56,8 +62,14 @@ void CBLatticeT::BondComponentTensor2(int numbond, dArrayT& vector) const
 
 	if (fNumSpatialDim == 2)
 		BondTensor2_2D(temp, vector);
-	else
+	else if (fNumSpatialDim == 3)
 		BondTensor2_3D(temp, vector);
+	else if (fNumSpatialDim == 1) {
+		double R = fBonds[numbond];
+		vector[0] = R*R;
+	}
+	else
+		ExceptionT::GeneralFail("CBLatticeT::BondComponentTensor2");
 }
 
 void CBLatticeT::BatchBondComponentTensor2(dArray2DT& comptable) const

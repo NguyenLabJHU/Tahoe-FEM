@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.16 2004-04-02 16:48:22 jzimmer Exp $ */
+/* $Id: ParticlePairT.h,v 1.15.8.1 2004-04-16 03:22:16 paklein Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -84,6 +84,7 @@ protected:
 
 	/** form group contribution to the residual */
 	virtual void RHSDriver(void);
+	void RHSDriver1D(void);
 	void RHSDriver2D(void);
 	void RHSDriver3D(void);
 	/*@}*/
@@ -102,7 +103,7 @@ protected:
 
 	/*nearest neighbor list*/
 	RaggedArray2DT<int> NearestNeighbors;
-	RaggedArray2DT<int> RefNearestNeighbors;
+
 
 	/** return a new pair property or NULL if the name is invalid */
 	PairPropertyT* New_PairProperty(const StringT& name, bool throw_on_fail) const;

@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.11 2003-01-29 07:34:34 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.11.38.1 2004-04-15 21:11:33 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpdatedLagrangianT.h"
 
@@ -23,7 +23,7 @@ UpdatedLagrangianT::UpdatedLagrangianT(const ElementSupportT& support, const Fie
 	if (ElementSupport().Analysis() == GlobalT::kLinStatic ||
 	    ElementSupport().Analysis() == GlobalT::kLinDynamic)
 	{
-		cout << "\nUpLag_FDElasticT::UpdatedLagrangianT: no current coordinates required\n" << endl;
+		cout << "\nUpdatedLagrangianT::UpdatedLagrangianT: no current coordinates required\n" << endl;
 		fLocCurrCoords.SetType(LocalArrayT::kInitCoords);
 	}	
 }

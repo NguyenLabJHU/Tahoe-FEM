@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.cpp,v 1.9 2004-04-08 23:37:16 paklein Exp $ */
+/* $Id: MaterialSupportT.cpp,v 1.8 2004-01-10 17:15:06 paklein Exp $ */
 #include "MaterialSupportT.h"
 #include "ElementsConfig.h"
 
@@ -53,10 +53,9 @@ void MaterialSupportT::SetContinuumElement(const ContinuumElementT* p)
 		fCommunicator = &(element_support.Communicator());
 		fGroupCommunicator = &(fContinuumElement->GroupCommunicator());
 	}
-	else {
+	else
 		fCommunicator = NULL;
 		fGroupCommunicator = NULL;
-	}
 #endif
 }
 

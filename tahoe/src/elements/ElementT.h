@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.43 2004-04-11 22:29:06 raregue Exp $ */
+/* $Id: ElementT.h,v 1.42 2004-03-02 23:50:28 raregue Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -62,12 +62,11 @@ kPenaltyContactElement3D = 34,
 			   kSSQ2P1MF = 65,
 		kSmallStrainQ1P0 = 66,
 			   kSSQ1P0MF = 67,
-				kAPSgrad = 68, /* anti-plane shear gradient plasticity */
+				kAPSgrad = 68,	     
       kGradC0SmallStrain = 69,      
 			  kSS_SCNIMF = 70, /**< small strain stabilized, conforming nodally-integrated Galerkin MF */
 			  kFS_SCNIMF = 71, /**< finite deformation ditto */
-			   kAPSVgrad = 80, /* anti-plane shear gradient plasticity, vector element */
-		  kMeshfreeGradP = 85, /* meshfree gradient plasticity */
+			   kAPSVgrad = 80,				  
             kElasticAxi = 102, /**< small strain axisymmetric solid */
        kHyperElasticAxi = 103, /**<  updated Lagrangian, large strain axisymmetric solid */
  kTotLagHyperElasticAxi = 104, /**<  total Lagrangian, large strain axisymmetric solid */

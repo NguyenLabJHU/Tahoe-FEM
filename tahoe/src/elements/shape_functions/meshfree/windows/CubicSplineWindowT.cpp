@@ -2,7 +2,6 @@
 #include "ExceptionT.h"
 #include <math.h>
 
-
 using namespace Tahoe;
 
 const double sqrtPi = sqrt(acos(-1.0));
@@ -40,13 +39,6 @@ void CubicSplineWindowT::SynchronizeSupportParameters(dArray2DT& params_1,
 	}
 }
 
-/* modify nodal shape function parameters */
-void CubicSplineWindowT::ModifySupportParameters(dArray2DT& nodal_params) const
-{
-	/* scale supports */
-	nodal_params *= fDilationScaling;	
-}
-
 void CubicSplineWindowT::WriteParameters(ostream& out) const
 {
 	/* window function parameters */
@@ -76,7 +68,7 @@ bool CubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, cons
 		/* distance */
 		Dw.DiffOf(x_n, x);
 		double dist = Dw.Magnitude();
-		double a = param_n[0];
+		double a = param_n[0]*fDilationScaling;
 		double r = dist/a;
 		if (r > 2.0) {
 			w = 0.0;
@@ -97,14 +89,13 @@ bool CubicSplineWindowT::Window(const dArrayT& x_n, const dArrayT& param_n, cons
 		} else {
 			w = (2.0/3.0 + r*r*(r/2.0 - 1.0))/a;
 			if (order > 0) {
-				//double dw = r*(3.0*r/2.0 - 2.0)/a; re-write to avoid division by zero when r = 0.
-				double dw_by_r = (3.0*r/2.0 - 2.0)/a;
+				double dw = r*(3.0*r/2.0 - 2.0)/a;
 				if (order > 1) {
 					double ddw = (3.0*r - 2.0)/a;
-					DDw.Outer(Dw, (ddw/a - dw_by_r*r/dist)/(dist*dist*a));
-					DDw.PlusIdentity(dw_by_r*r/(dist*a));
+					DDw.Outer(Dw, (ddw/a - dw/dist)/(dist*dist*a));
+					DDw.PlusIdentity(dw/(dist*a));
 				}
-				Dw *= dw_by_r/(a*a);
+				Dw *= dw/(dist*a);
 			}
 		}
 	
@@ -151,7 +142,7 @@ int CubicSplineWindowT::Window(const dArray2DT& x_n, const dArray2DT& param_n, c
 bool CubicSplineWindowT::Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT& param_n) const
 {
 	double dist = dArrayT::Distance(x, x_n);
-	return (dist/param_n[0] < 2.0);
+	return (dist/(param_n[0]*fDilationScaling) < 2.0);
 }
 
 int CubicSplineWindowT::Covers(const dArray2DT& x_n, const dArrayT& x, 
@@ -162,7 +153,7 @@ int CubicSplineWindowT::Covers(const dArray2DT& x_n, const dArrayT& x,
 	for (int i = 0; i < numwindowpoints; i++)
 	{
 		double dist = dArrayT::Distance(x, x_n);
-		if (dist/param_n[0] < 2.0) {
+		if (dist/(param_n[0]*fDilationScaling) < 2.0) {
 			count++;
 			covers[i] = true;
 		} 
@@ -171,4 +162,42 @@ int CubicSplineWindowT::Covers(const dArray2DT& x_n, const dArrayT& x,
 	}
 	
 	return count;
+}
+
+/* spherical upport size */
+double CubicSplineWindowT::SphericalSupportSize(const dArrayT& param_n) const
+{
+#if __option(extended_errorcheck)
+	if (param_n.Length() != 1) ExceptionT::GeneralFail("CubicSplineWindowT::SphericalSupportSize");
+#endif
+	return 2.0*fDilationScaling*param_n[0];
+}
+
+/* rectangular support size */
+const dArrayT& CubicSplineWindowT::RectangularSupportSize(const dArrayT& param_n) const 
+{
+	ExceptionT::GeneralFail("CubicSplineWindowT::RectangularSupportSize");
+	return param_n; /* dummy */
+}
+
+/* spherical support sizes in batch */
+void CubicSplineWindowT::SphericalSupportSize(const dArray2DT& param_n, ArrayT<double>& support_size) const
+{
+#if __option(extended_errorcheck)
+	if (param_n.MinorDim() != 1 ||
+	    param_n.MajorDim() != support_size.Length()) 
+		ExceptionT::GeneralFail("CubicSplineWindowT::SphericalSupportSize");
+#endif
+
+	dArrayT tmp;
+	tmp.Alias(support_size);
+	tmp.SetToScaled(2.0*fDilationScaling, param_n);
+}
+
+/* rectangular support sizes in batch */
+void CubicSplineWindowT::RectangularSupportSize(const dArray2DT& param_n, dArray2DT& support_size) const
+{
+#pragma unused(param_n)
+#pragma unused(support_size)
+	ExceptionT::GeneralFail("CubicSplineWindowT::RectangularSupportSize");
 }

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2004-03-16 06:56:28 paklein Exp $
+# $Id: makefile,v 1.5 2003-03-04 07:38:19 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -25,7 +25,7 @@ OBJ = \
 	DiagonalMatrixT.o \
 	FullMatrixT.o \
 	GlobalMatrixT.o \
-	MSRMatrixT.o
+	SLUMatrix.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -50,7 +50,7 @@ SRC = \
 	DiagonalMatrixT.cpp \
 	FullMatrixT.cpp \
 	GlobalMatrixT.cpp \
-	MSRMatrixT.cpp
+	SLUMatrix.cpp
 
 ##################### (3) headers
 #
@@ -67,7 +67,8 @@ HDR = \
 	DiagonalMatrixT.h \
 	FullMatrixT.h \
 	GlobalMatrixT.h \
-	MSRMatrixT.h
+	SLUMatrix.h \
+	superlu.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
@@ -80,9 +81,7 @@ HDR_LINK = $(HDR:.h=.h_link)
 #
 SUB_DIR = \
 	aztec \
-	SPOOLES \
-	PSPASES \
-	SuperLU
+	SPOOLES
 
 subdir_driver: subdir_loop
 

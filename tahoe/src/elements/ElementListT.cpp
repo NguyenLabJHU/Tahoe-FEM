@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.86 2004-04-11 22:29:06 raregue Exp $ */
+/* $Id: ElementListT.cpp,v 1.85 2004-03-02 23:50:28 raregue Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -112,10 +112,6 @@
 
 #ifdef MULTISCALE_APS_V_DEV
 #include "APS_V_AssemblyT.h"
-#endif
-
-#ifdef MESHFREE_GRAD_PLAST_DEV
-#include "MeshfreeGradP_AssemblyT.h"
 #endif
 
 #ifdef GRAD_SMALL_STRAIN_DEV
@@ -260,7 +256,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		out << "    eq. " << ElementT::kMFCohesiveSurface  << ", meshfree cohesive surface element\n";
 		out << "    eq. " << ElementT::kStaggeredMultiScale << ", Staggered MultiScale Element (for VMS) \n";
 		out << "    eq. " << ElementT::kAPSgrad 			<< ", Strict Anti-plane Shear gradient plasticity \n";
-		out << "    eq. " << ElementT::kMeshfreeGradP 		<< ", Meshfree gradient plasticity \n";
 		out << "    eq. " << ElementT::kSS_SCNIMF 			<< ", Small Strain Stabilized, Conforming Nodally-Integrated Galerkin Mesh-free \n";
 		out << "    eq. " << ElementT::kFS_SCNIMF           << ", Finite Strain Stabilized Conforming Nodally-Integrated Galerkin Mesh-free \n";
 		out << "    eq. " << ElementT::kACME_Contact       << ", 3D contact using ACME\n";
@@ -472,29 +467,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "MULTISCALE_APS_V_DEV not enabled: %d", code);
-#endif
-			}
-			case ElementT::kMeshfreeGradP:
-			{
-#ifdef MESHFREE_GRAD_PLAST_DEV
-				/* must be using multi-field solver */
-				if (fSupport.Analysis() != GlobalT::kMultiField)				
-					ExceptionT::BadInputValue(caller, "multi field required");
-			
-				/* displacement field read above */
-				const FieldT* displ = field;
-
-				/* plastic multiplier field */				
-				StringT plast_name;
-				in >> plast_name;
-				const FieldT* plast = fSupport.Field(plast_name);
-				if (!displ || !plast)
-					ExceptionT::BadInputValue(caller, "error resolving field names");
-			
-				fArray[group] = new MeshfreeGradP_AssemblyT(fSupport, *displ, *plast);
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "MESHFREE_GRAD_PLAST_DEV not enabled: %d", code);
 #endif
 			}
 			case ElementT::kMeshFreeFDElastic:

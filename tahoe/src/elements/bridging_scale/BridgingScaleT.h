@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.32 2004-03-17 22:47:06 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.31.4.3 2004-04-17 04:45:02 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -74,6 +74,9 @@ public:
 		
 	/** indicate whether image nodes should be included in the projection */
 	virtual bool ProjectImagePoints(void) const { return false; };
+	
+	/** collect the cells without any free nodes */
+	virtual void CollectProjectedCells(const PointInCellDataT& cell_data, iArrayT& cells) const;
 	/*@}*/
 
 	/** Same as ProjectField, except that computes and returns total solution u 
@@ -107,14 +110,6 @@ public:
 
 	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int) {};
-
-#ifdef __NO_RTTI__
-	/** \name fixes for environments without working RTTI */
-	/*@{*/
-	/** cast this to BridgingScaleT* */
-	virtual BridgingScaleT* dynamic_cast_BridgingScaleT(void) { return this; };
-	/*@}*/
-#endif
 
 protected:
 

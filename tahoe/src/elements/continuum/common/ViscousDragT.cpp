@@ -1,4 +1,4 @@
-/* $Id: ViscousDragT.cpp,v 1.3 2004-04-17 16:54:30 paklein Exp $ */
+/* $Id: ViscousDragT.cpp,v 1.2 2004-01-05 07:30:11 paklein Exp $ */
 #include "ViscousDragT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
@@ -48,7 +48,7 @@ void ViscousDragT::Initialize(void)
 	/* shape function information */
 	const double* j0 = shape.IPDets();
 	const double* w  = shape.IPWeights();
-	const double* Na = shape.IPShapeU(0);
+	const double* Na = shape.IPShapeU();
 
 	/* calculate nodal mass */
 	fGlobalToLocal.SetOutOfRange(InverseMapT::MinusOne);

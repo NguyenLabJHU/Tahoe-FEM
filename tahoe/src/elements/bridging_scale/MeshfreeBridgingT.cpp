@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.cpp,v 1.5 2004-03-04 19:10:52 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.cpp,v 1.5.2.6 2004-04-23 20:24:45 paklein Exp $ */
 #include "MeshfreeBridgingT.h"
 
 #include "ifstreamT.h"
@@ -23,6 +23,10 @@ MeshfreeBridgingT::MeshfreeBridgingT(const ElementSupportT& support, const Field
 	BridgingScaleT(support, field, solid),
 	fMLS(NULL)
 {
+	/* solid element class needs to store the internal force vector */
+	SolidElementT& solid_tmp = const_cast<SolidElementT&>(fSolid);
+	solid_tmp.SetStoreInternalForce(true);
+
 	ifstreamT& in = ElementSupport().Input();
 	MeshFreeT::WindowTypeT window_type;
 	in >> window_type;
@@ -96,6 +100,8 @@ void MeshfreeBridgingT::InitProjection(CommManagerT& comm, const iArrayT& points
 	dArrayT x_node;
 	iArrayT neighbors;
 	const iArrayT& cell_nodes = cell_data.CellNodes();
+	iArrayT cell_nodes_OK(cell_nodes.Length());
+	cell_nodes_OK = 0; /* not OK */
 	for (int i = 0; i < cell_nodes.Length(); i++)
 	{
 		/* nodal neighbors */
@@ -110,17 +116,24 @@ void MeshfreeBridgingT::InitProjection(CommManagerT& comm, const iArrayT& points
 		
 		/* collect data */
 		neighbor_coords.RowCollect(neighbors, point_coordinates);
-		neighbor_support.RowCollect(neighbors, fSupport);
+		neighbor_support.RowCollect(neighbors, fSupportParams);
 		cell_coordinates.RowAlias(cell_nodes[i], x_node);
 		
 		/* compute MLS fit */
-		if (!fMLS->SetField(neighbor_coords, neighbor_support, neighbor_volume, x_node, 0)) {
+		if (fMLS->SetField(neighbor_coords, neighbor_support, neighbor_volume, x_node, 0)) 
+		{
+			/* store MLS fit weights */
+			neighbor_weights.SetRow(i, fMLS->phi());
 
+			/* set flag */
+			cell_nodes_OK[i] = 1;
+		}
+		else if (ElementSupport().PrintInput()) /* report nodes that could not be fit */
+		{
 			/* write support size of the neighborhood nodes */
 			bool write_support_size = true;
 			if (write_support_size)
 			{
-				StringT junk = "N/A";
 				StringT file;
 				file.Root(ElementSupport().Input().filename());
 				file.Append(".MLS", cell_nodes[i]+1);
@@ -177,13 +190,41 @@ void MeshfreeBridgingT::InitProjection(CommManagerT& comm, const iArrayT& points
 					}
 				}
 			}
-
-			/* throw */
-			ExceptionT::GeneralFail(caller, "could not compute MLS fit for node %d", cell_nodes[i]+1);
-		}
+		}		
+	}
 	
-		/* store weights */
-		neighbor_weights.SetRow(i, fMLS->phi());
+	/* filter out nodes that could not be fit */
+	int num_nodes_OK = cell_nodes_OK.Count(1);
+	if (num_nodes_OK != cell_nodes.Length()) {
+
+		/* collect nodes with good fits */
+		iArrayT nodes_OK(num_nodes_OK);
+		iArrayT nodes_OK_dim(num_nodes_OK);
+		int count = 0;
+		for (int i = 0; i < cell_nodes.Length(); i++)
+			if (cell_nodes_OK[i] == 1) {
+				nodes_OK[count] = i;
+				nodes_OK_dim[count] = nodal_neighbors.MinorDim(i);
+				count++;	
+			}
+
+		/* filter down neighbor data */
+		RaggedArray2DT<int>& nodal_neighbors = point_to_node.Neighbors();
+		RaggedArray2DT<double>& neighbor_weights = point_to_node.NeighborWeights();
+		RaggedArray2DT<int> nodal_neighbors_tmp = nodal_neighbors;
+		RaggedArray2DT<double> neighbor_weights_tmp = neighbor_weights;
+		nodal_neighbors.Configure(nodes_OK_dim);
+		neighbor_weights.Configure(nodes_OK_dim);
+		count = 0;
+		for (int i = 0; i < cell_nodes.Length(); i++)
+			if (cell_nodes_OK[i] == 1) {
+				nodal_neighbors.SetRow(count, nodal_neighbors_tmp(i));
+				neighbor_weights.SetRow(count, neighbor_weights_tmp(i));
+				count++;
+			}
+		
+		/* reset the map */
+		point_to_node.Map().SetMap(nodes_OK);
 	}
 	
 	/* verbose output */
@@ -222,7 +263,7 @@ void MeshfreeBridgingT::InitProjection(CommManagerT& comm, const iArrayT& points
 		
 		/* collect data */
 		neighbor_coords.RowCollect(neighbors, point_coordinates);
-		neighbor_support.RowCollect(neighbors, fSupport);
+		neighbor_support.RowCollect(neighbors, fSupportParams);
 		point_coordinates.RowAlias(points_used[i], x_node);
 		
 		if (nngh < 2) /* some image points will be off the grid */
@@ -251,7 +292,7 @@ void MeshfreeBridgingT::ProjectField(const PointInCellDataT& cell_data,
 	const RaggedArray2DT<double>& neighbor_weights = point_to_node.NeighborWeights();
 
 	/* initialize return value */
-	projection.Dimension(cell_nodes.Length(), point_values.MinorDim());
+	projection.Dimension(nodal_neighbors.MajorDim(), point_values.MinorDim());
 	projection = 0.0;
 
 	/* neighborhood values */
@@ -317,6 +358,13 @@ void MeshfreeBridgingT::CoarseField(const PointInCellDataT& cell_data, const dAr
 	}
 }
 
+/* collect the cells without any free nodes */
+void MeshfreeBridgingT::CollectProjectedCells(const PointInCellDataT& cell_data, iArrayT& cells) const
+{
+//TEMP - for now just assume a cell that contains any projecting points has no free nodes
+	BridgingScaleT::CollectProjectedCells(cell_data, cells);
+}
+
 /***********************************************************************
  * Protected
  ***********************************************************************/
@@ -352,8 +400,8 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(CommManagerT& comm, const iArray
 	/* compute (average) support size of each node */
 	iArrayT counts(nodes_used.Length());
 	counts = 0;
-	dArrayT support_size(nodes_used.Length());
-	support_size = 0.0;
+	dArray2DT support_param(nodes_used.Length(), 1);
+	support_param = 0.0;
 	const ParentDomainT& parent = ShapeFunction().ParentDomain();
 	dArrayT centroid;
 	LocalArrayT loc_cell_coords(coord_type, fSolid.NumElementNodes(), NumSD());
@@ -377,7 +425,7 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(CommManagerT& comm, const iArray
 			if (dex != -1) /* is in nodes_used */
 			{
 				counts[dex]++;
-				support_size[dex] += radius;
+				support_param[dex] += radius;
 			}
 		}
 	}
@@ -386,7 +434,8 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(CommManagerT& comm, const iArray
 	/* compute support size from average element size */
 	for (int i = 0; i < counts.Length(); i++)
 		if (counts[i] > 0)
-			support_size[i] /= counts[i];
+			/* support parameters tend to be about twice the near-neighbor distance */
+			support_param[i] /= counts[i]; 
 		else
 			ExceptionT::GeneralFail(caller, "could not compute suppose size for node %d",
 				nodes_used[i]+1);
@@ -395,22 +444,22 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(CommManagerT& comm, const iArray
 	iGridManagerT grid(10, 100, point_coordinates, &points_used);
 	grid.Reset();
 
+	/* support parameters */
+	fSupportParams.Dimension(point_coordinates.MajorDim(), 1);
+	fSupportParams = 0.0;
+	dArrayT support_size(support_param.Length());
+	fMLS->SphericalSupportSize(support_param, support_size);
+	
 	/* collect neighborhood nodes and set support size */
-	fSupport.Dimension(point_coordinates.MajorDim(), 1);
-	fSupport = 0.0;
 	InverseMapT& global_to_local = cell_data.GlobalToLocal();
 	AutoFill2DT<int> auto_fill(nodes_used.Length(), 1, 10, 10);
-	dArray2DT nodal_params(1,1);
-	dArrayT nodal_params_tmp;
-	nodal_params_tmp.Alias(nodal_params);
 	dArrayT x_node, x_point;
+	dArrayT nodal_params;
 	for (int i = 0; i < nodes_used.Length(); i++)
 	{
 		/* candidate points */
-		nodal_params[0] = support_size[i];
-		fMLS->ModifySupportParameters(nodal_params); /* scaling of support size */
 		cell_coordinates.RowAlias(nodes_used[i], x_node);
-		const AutoArrayT<iNodeT>& hits = grid.HitsInRegion(x_node.Pointer(), nodal_params[0]);
+		const AutoArrayT<iNodeT>& hits = grid.HitsInRegion(x_node.Pointer(), support_size[i]);
 
 		/* test all hits */
 		for (int j = 0; j < hits.Length(); j++)
@@ -420,19 +469,21 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(CommManagerT& comm, const iArray
 			point_coordinates.RowAlias(point, x_point);
 
 			/* add to neighbor list */
-			if (fMLS->Covers(x_node, x_point, nodal_params_tmp))
+			nodal_params.Alias(1, support_param.Pointer(i));
+			if (fMLS->Covers(x_node, x_point, nodal_params))
 			{
 				auto_fill.Append(i, point);
 				
 				/* take max support */
-				fSupport[point] = (nodal_params[0] > fSupport[point]) ? nodal_params[0] : fSupport[point];
+				fSupportParams[point] = (support_param[i] > fSupportParams[point]) ? 
+					support_param[i] : fSupportParams[point];
 			}
 		}
 	}
 	
 	/* distribute the support sizes */
-	int id = comm.Init_AllGather(fSupport);
-	comm.AllGather(id, fSupport);
+	int id = comm.Init_AllGather(fSupportParams);
+	comm.AllGather(id, fSupportParams);
 	comm.Clear_AllGather(id);
 
 	/* copy/compress contents */
@@ -449,13 +500,16 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(CommManagerT& comm, const iArray
 		out << "\n Nodal neighborhoods:\n";
 		iArrayT tmp(nodal_neighbors.Length(), nodal_neighbors.Pointer());
 		tmp++;
-		nodal_neighbors.WriteNumbered(out);
+		iArrayT neighbors;
+		for (int i = 0; i < nodes_used.Length(); i++) {
+			nodal_neighbors.RowAlias(i, neighbors);
+			out << setw(kIntWidth) << nodes_used[i]+1 << ":" << neighbors.no_wrap() << '\n';
+		}
 		tmp--;
 		
 		/* support sizes for each source point */
 		bool write_support_size = true;
 		if (write_support_size) {
-			StringT junk = "N/A";
 			StringT file;
 			file.Root(ElementSupport().Input().filename());
 			file.Append(".support.out");
@@ -467,7 +521,7 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(CommManagerT& comm, const iArray
 			labels[0] = "r";
 
 			dArray2DT n_values(points_used.Length(), 1);
-			n_values.Collect(points_used, fSupport);
+			n_values.Collect(points_used, fSupportParams);
 		
 			ElementSupport().WriteOutput(file, coords_used, points_used, n_values, labels);			
 		}
@@ -475,7 +529,6 @@ void MeshfreeBridgingT::BuildNodalNeighborhoods(CommManagerT& comm, const iArray
 		/* number of neighbors for each projected node */
 		bool write_num_neighbors = true;
 		if (write_num_neighbors) {
-			StringT junk = "N/A";
 			StringT file;
 			file.Root(ElementSupport().Input().filename());
 			file.Append(".neighbors.out");
@@ -515,15 +568,17 @@ void MeshfreeBridgingT::BuildPointNeighborhoods(const iArrayT& points_used, cons
 
 	/* collect neighborhood points */
 	AutoFill2DT<int> auto_fill(points_used.Length(), 1, 10, 10);
-	dArrayT nodal_params(1);
+	dArrayT nodal_params;
 	dArrayT x_node, x_point;
 	for (int i = 0; i < points_used.Length(); i++)
 	{
+	
 		/* candidate points */
 		int point = points_used[i];	
-		nodal_params[0] = fSupport[point];
+		fSupportParams.RowAlias(point, nodal_params);
+		double support_size = fMLS->SphericalSupportSize(nodal_params);
 		point_coords.RowAlias(point, x_node);
-		const AutoArrayT<iNodeT>& hits = grid.HitsInRegion(x_node.Pointer(), nodal_params[0]);
+		const AutoArrayT<iNodeT>& hits = grid.HitsInRegion(x_node.Pointer(), support_size);
 
 		/* test all hits */
 		for (int j = 0; j < hits.Length(); j++)

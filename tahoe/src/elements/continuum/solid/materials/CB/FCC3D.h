@@ -1,4 +1,4 @@
-/* $Id: FCC3D.h,v 1.3 2004-03-04 08:54:23 paklein Exp $ */
+/* $Id: FCC3D.h,v 1.3.4.2 2004-04-03 20:16:16 paklein Exp $ */
 #ifndef _FCC_3D_H_
 #define _FCC_3D_H_
 
@@ -10,6 +10,7 @@ namespace Tahoe {
 /* forward declarations */
 class FCCLatticeT;
 class PairPropertyT;
+class BondLatticeT;
 
 /** 3D Cauchy-Born material for FCC crystals with pair potential interactions. */
 class FCC3D: public NL_E_MatT
@@ -26,6 +27,18 @@ public:
 	/*@{*/
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
+	/*@}*/
+
+	/** \name Cauchy-Born parameters */
+	/*@{*/
+	/** return a reference to the bond lattice */
+	const BondLatticeT& BondLattice(void) const;
+
+	/** reference volume */
+	double CellVolume(void) const { return fAtomicVolume; };
+
+	/** nearest neighbor distance */
+	double NearestNeighbor(void) const { return fNearestNeighbor; };
 	/*@}*/
 
 protected:

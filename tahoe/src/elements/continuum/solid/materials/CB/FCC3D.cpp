@@ -1,4 +1,4 @@
-/* $Id: FCC3D.cpp,v 1.3 2004-03-04 08:54:23 paklein Exp $ */
+/* $Id: FCC3D.cpp,v 1.3.4.1 2004-04-03 03:16:23 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D.h"
 #include "ElementsConfig.h"
@@ -113,6 +113,12 @@ void FCC3D::Print(ostream& out) const
 	/* write pair properties to output */
 	out << " Interaction potential parameters:\n";
 	fPairProperty->Write(out);
+}
+
+/* return a reference to the bond lattice */
+const BondLatticeT& FCC3D::BondLattice(void) const {
+	if (!fFCCLattice) ExceptionT::GeneralFail("FCC3D::BondLattice", "pointer not set");
+	return *fFCCLattice;
 }
 
 /*************************************************************************
