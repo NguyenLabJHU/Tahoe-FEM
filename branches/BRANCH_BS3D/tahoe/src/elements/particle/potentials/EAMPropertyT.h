@@ -1,4 +1,4 @@
-/* $Id: EAMPropertyT.h,v 1.1 2003-04-05 08:34:41 paklein Exp $ */
+/* $Id: EAMPropertyT.h,v 1.1.30.1 2004-02-27 14:46:48 hspark Exp $ */
 #ifndef _EAM_PROPERTY_T_H_
 #define _EAM_PROPERTY_T_H_
 
@@ -58,6 +58,8 @@ public:
 	 * returns false if no table is available. */
 	virtual bool getParadynTable(const double** coeff, double& dr, 
 		int& row_size, int& num_rows) const = 0;
+		
+	virtual double GetLatticeParameter(void) const = 0;
 };
 
 } /* namespace Tahoe */
