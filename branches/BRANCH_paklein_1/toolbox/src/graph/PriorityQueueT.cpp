@@ -1,4 +1,4 @@
-/* $Id: PriorityQueueT.cpp,v 1.3 2002-07-02 19:57:14 cjkimme Exp $ */
+/* $Id: PriorityQueueT.cpp,v 1.3.2.1 2002-10-17 04:03:56 paklein Exp $ */
 /* created: paklein (8/06/1996) */
 
 #include "PriorityQueueT.h"
@@ -41,7 +41,7 @@ PriorityQueueT::~PriorityQueueT(void)
 void PriorityQueueT::Add(int value)
 {	
 	/* check */
-	if (value >= fPriorities.Length()) throw eGeneralFail;
+	if (value >= fPriorities.Length()) throw ExceptionT::kGeneralFail;
 	
 	/* append to the queue */
 	fQueue.Append(value);

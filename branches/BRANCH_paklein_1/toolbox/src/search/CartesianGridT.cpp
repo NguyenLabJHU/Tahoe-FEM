@@ -1,4 +1,4 @@
-/* $Id: CartesianGridT.cpp,v 1.5 2002-07-05 17:16:12 paklein Exp $ */
+/* $Id: CartesianGridT.cpp,v 1.5.2.1 2002-10-17 04:10:10 paklein Exp $ */
 /* created: paklein (11/10/2000) */
 
 #include "CartesianGridT.h"
@@ -35,7 +35,7 @@ void CartesianGridT::SetDimensions(const iArrayT& dimensions,
 		cout << "\n CartesianGridT::SetDimensions: dimensionality " << dimensions.Length()
 		     << " does not\n" <<   "     match the number of boundary conditions "
 		     << fBC.Length() << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}	
 
 	/* indexed distances */
@@ -62,14 +62,14 @@ void CartesianGridT::PartitionGrid(int num_parts, const iArrayT& cell_weight)
 		cout << "\n CartesianGridT::PartitionGrid: number of partitions " << num_parts
 		     << " must be <= number\n"
 		     <<   "     of cells in the grid " << num_cells << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	if (cell_weight.Length() != num_cells)
 	{
 		cout << "\n CartesianGridT::Partition: number of weights "
 		     << cell_weight.Length() << " does not\n"
 		     <<   "     match the number of grid cells " << num_cells << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 
 	/* allocate space */
@@ -98,7 +98,7 @@ void CartesianGridT::PartitionGrid(int num_parts, const iArrayT& cell_weight)
 				edge[1] = list[j];
 			}
 	}
-	if (pair != pairs.MajorDim()) throw eGeneralFail;
+	if (pair != pairs.MajorDim()) throw ExceptionT::kGeneralFail;
 	to_graph= &pairs;
 #endif
 	
@@ -157,7 +157,7 @@ void CartesianGridT::SetNeighborLists(void)
 					else if (fBC[j] == kPeriodic)
 						neighbors[0] = cell_num + Width(j);
 					else
-						throw eGeneralFail;
+						throw ExceptionT::kGeneralFail;
 
 					neighbors[1] = cell_num + Shift(j);
 				}
@@ -170,7 +170,7 @@ void CartesianGridT::SetNeighborLists(void)
 					else if (fBC[j] == kPeriodic)
 						neighbors[1] = cell_num - Width(j);
 					else
-						throw eGeneralFail;
+						throw ExceptionT::kGeneralFail;
 				}
 				else
 				{

@@ -48,7 +48,7 @@ void iGridManager1DT::Neighbors(int n, const ArrayT<double>& tol_xy,
 	{
 		cout << "\n iGridManager1DT::Neighbors: expecting tolerance list length 1: " 
 		     << tol_xy.Length() << endl;
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 	}
 
 	/* initialize */

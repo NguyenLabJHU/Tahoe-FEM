@@ -1,4 +1,4 @@
-/* $Id: LinkedListT.h,v 1.3 2002-07-08 11:20:22 sawimme Exp $ */
+/* $Id: LinkedListT.h,v 1.3.2.1 2002-10-17 04:04:33 paklein Exp $ */
 /* created: paklein (02/07/1996)                                          */
 /* Basic linked list template                                             */
 /* Note: the TYPE stored in the list should have an appropriate           */
@@ -11,7 +11,7 @@
 /* ANSI headers */
 #include <iostream.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 /* direct members */
 #include "ListNodeT.h"
@@ -115,7 +115,7 @@ template <class TYPE>
 void LinkedListT<TYPE>::Append(const TYPE &value)
 {
 	ListNodeT<TYPE>* newptr = new ListNodeT<TYPE>(value);
-	if (!newptr) throw(eOutOfMemory);
+	if (!newptr) throw ExceptionT::kOutOfMemory;
 	
 	if (fFirstPtr == NULL)
 	{
@@ -162,11 +162,11 @@ void LinkedListT<TYPE>::InsertAt(const TYPE& value, int position)
 	}
 		
 	/* check */	
-	if (currPtr == NULL) throw eGeneralFail;
+	if (currPtr == NULL) throw ExceptionT::kGeneralFail;
 
 	/* new list node */
 	ListNodeT<TYPE>* newptr = new ListNodeT<TYPE>(value);
-	if (!newptr) throw(eOutOfMemory);
+	if (!newptr) throw ExceptionT::kOutOfMemory;
 	
 	if (lastPtr == NULL)
 		fFirstPtr = newPtr;
@@ -191,7 +191,7 @@ void LinkedListT<TYPE>::DeleteAt(int position)
 	}
 		
 	/* check */	
-	if (currPtr == NULL) throw eGeneralFail;
+	if (currPtr == NULL) throw ExceptionT::kGeneralFail;
 	
 	if (lastPtr == NULL)
 		fFirstPtr = currPtr->fNextPtr;

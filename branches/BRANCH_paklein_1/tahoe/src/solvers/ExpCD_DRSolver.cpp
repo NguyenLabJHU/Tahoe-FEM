@@ -1,4 +1,4 @@
-/* $Id: ExpCD_DRSolver.cpp,v 1.5 2002-09-12 17:50:12 paklein Exp $ */
+/* $Id: ExpCD_DRSolver.cpp,v 1.5.4.1 2002-10-17 04:14:24 paklein Exp $ */
 /* created: paklein (08/19/1998) */
 
 #include "ExpCD_DRSolver.h"
@@ -8,7 +8,7 @@
 
 #include "fstreamT.h"
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "FEManagerT.h"
 #include "DiagonalMatrixT.h"
 
@@ -27,7 +27,7 @@ ExpCD_DRSolver::ExpCD_DRSolver(FEManagerT& fe_manager, int group):
 	{
 		cout << "\n ExpCD_DRSolver::ExpCD_DRSolver: expecting matrix type: "
 		     << kDiagonalMatrix << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	else
 	{
@@ -39,7 +39,7 @@ ExpCD_DRSolver::ExpCD_DRSolver(FEManagerT& fe_manager, int group):
 		{
 			cout << "\n ExpCD_DRSolver::ExpCD_DRSolver: cast of global matrix to\n"
 			     <<   "    diagonal matrix failed" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 #endif
 		/* reset assembly mode */
@@ -67,7 +67,7 @@ ExpCD_DRSolver::ExpCD_DRSolver(FEManagerT& fe_manager, int group):
 //       which field to query
 //		fOutputDOF = fFEManager.GlobalEquationNumber(nodenum, dofnum);
 cout << "\n ExpCD_DRSolver::ExpCD_DRSolver: not update for multi-field" << endl;
-throw eGeneralFail;
+throw ExceptionT::kGeneralFail;
 
 		StringT outname("dof");
 		outname.Append(".", fOutputDOF);
@@ -94,10 +94,10 @@ throw eGeneralFail;
 	out << '\n';
 
 	/* checks */
-	if (fMaxIterations < 0) throw eBadInputValue;
-	if (fTolerance < 0.0 || fTolerance > 1.0) throw eBadInputValue;
-	if (fMass_scaling < kSmall) throw eBadInputValue;
-	if (fDamp_scaling < kSmall) throw eBadInputValue;
+	if (fMaxIterations < 0) throw ExceptionT::kBadInputValue;
+	if (fTolerance < 0.0 || fTolerance > 1.0) throw ExceptionT::kBadInputValue;
+	if (fMass_scaling < kSmall) throw ExceptionT::kBadInputValue;
+	if (fDamp_scaling < kSmall) throw ExceptionT::kBadInputValue;
 }
 
 /* (re-)configure the global equation system */
@@ -171,7 +171,7 @@ SolverT::SolutionStatusT ExpCD_DRSolver::Solve(int num_iterations)
 	} /* end try */
 
 	/* abnormal */
-	catch (int code) { 
+	catch (ExceptionT::CodeT code) { 
 		return kFailed;
 	}
 }
@@ -317,7 +317,7 @@ double ExpCD_DRSolver::SolveAndForm(void)
 	}
 		
 	/* get a_n+1 */
-	if (!fLHS->Solve(fRHS)) throw eBadJacobianDet;
+	if (!fLHS->Solve(fRHS)) throw ExceptionT::kBadJacobianDet;
 
 	/* updates */
 	fDis.SetToCombination(fdt, fVel, 0.5*fdt*fdt, fAcc);
@@ -360,10 +360,10 @@ void ExpCD_DRSolver::Relax(int newtancount)
 		}	
 	}
 			
-	catch (int ErrorCode)
+	catch (ExceptionT::CodeT ErrorCode)
 	{
 		cout << "\nExpCD_DRSolver::Run: encountered exception on relaxation:\n";
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -383,7 +383,7 @@ void ExpCD_DRSolver::SetMass(void)
 	dArrayT&  massmatrix = lhs->TheMatrix();
 
 	/* should all be positive */
-	if (massmatrix.Min() < kSmall) throw eGeneralFail;
+	if (massmatrix.Min() < kSmall) throw ExceptionT::kGeneralFail;
 	
 	/* store the diagonal stiffness matrix (for optimal damping calc) */
 	fK_0 = massmatrix;

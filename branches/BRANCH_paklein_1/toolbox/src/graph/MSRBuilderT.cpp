@@ -1,10 +1,10 @@
-/* $Id: MSRBuilderT.cpp,v 1.4 2002-09-12 16:40:19 paklein Exp $ */
+/* $Id: MSRBuilderT.cpp,v 1.4.2.1 2002-10-17 04:03:56 paklein Exp $ */
 /* created: paklein (07/30/1998)                                          */
 /* class to generate MSR matrix structure data                            */
 
 #include "MSRBuilderT.h"
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "iArrayT.h"
 #include "iArray2DT.h"
 #include "RaggedArray2DT.h"
@@ -47,7 +47,7 @@ void MSRBuilderT::CheckActiveSet(const iArrayT& activerows) const
 	{
 		cout << "\n MSRBuilderT::SetMSRData: active equations are out of range:\n";
 		cout << "    {min,max} = {" << min << "," << max << "}"<< endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 
 	/* must be in ascending order */
@@ -58,7 +58,7 @@ void MSRBuilderT::CheckActiveSet(const iArrayT& activerows) const
 		{
 			cout << "\n MSRBuilderT::SetMSRData: active rows must be unique and";
 			cout << " in ascending order." << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 		pactive++;
 	}
@@ -103,7 +103,7 @@ void MSRBuilderT::GenerateMSR(int row_shift, const RaggedArray2DT<int>& edgelist
 					     << *pactive << '\n';
 					iArrayT tmp(count, pdata);
 					cout << tmp.wrap(8) << endl;
-					throw eGeneralFail;
+					throw ExceptionT::kGeneralFail;
 				}
 #endif
 
