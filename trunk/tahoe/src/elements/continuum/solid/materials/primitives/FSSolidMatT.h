@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.16 2004-08-01 00:54:59 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.17 2004-08-01 20:40:42 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -242,6 +242,13 @@ private:
 	/** true if temperature field found during FSSolidMatT::Initialize */
 	bool fTemperatureField;
 	dArrayT fTemperature;
+	
+	/** \name FSSolidMatT::c_ijkl work space */
+	/*@{*/
+	dMatrixT F_0_;
+	dArrayT vec_;
+	dSymMatrixT stress_;
+	/*@}*/
 };
 
 /* finite strain materials support */
