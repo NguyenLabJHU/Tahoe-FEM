@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.12 2002-07-02 19:57:11 cjkimme Exp $ */
+/* $Id: NLSolver.cpp,v 1.13 2002-08-21 07:26:03 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #include "NLSolver.h"
@@ -10,11 +10,11 @@
 #include "Constants.h"
 #include "ExceptionCodes.h"
 #include "FEManagerT.h"
-
-/* constructor */
+#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
+/* constructor */
 NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 	SolverT(fe_manager, group),
 	fMaxIterations(-1),
@@ -120,9 +120,14 @@ SolverT::SolutionStatusT NLSolver::Solve(int num_iterations)
 	/* abnormal ending */
 	catch (int code)
 	{
-		cout << "\n NLSolver::Run: exception at step number "
+		cout << "\n NLSolver::Solve: exception at step number "
              << fFEManager.StepNumber() << " with step "
-             << fFEManager.TimeStep() << endl;
+             << fFEManager.TimeStep() 
+             << "\n     " << code << ": " << fFEManager.Exception(code) << endl;
+
+		/* error occurred here -> trip checksum */
+		if (code != eBadHeartBeat) fFEManager.Communicator().Sum(code);
+		
 		return kFailed;
 	}
 }

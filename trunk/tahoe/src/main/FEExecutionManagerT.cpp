@@ -1,6 +1,5 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.23 2002-08-15 08:59:35 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.24 2002-08-21 07:26:01 paklein Exp $ */
 /* created: paklein (09/21/1997) */
-
 #include "FEExecutionManagerT.h"
 
 #include <iostream.h>
@@ -8,7 +7,6 @@
 #include <ctype.h>
 
 #include "fstreamT.h"
-
 #include "Environment.h"
 #include "Constants.h"
 #include "ExceptionCodes.h"
@@ -92,12 +90,7 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 		else if (fCommandLineOptions[i] == "-join")
 			run_option = 4;
 	}
-
-#ifdef __MPI__
-	int size;
-	if (MPI_Comm_size(fComm, &size) != MPI_SUCCESS) throw eMPIFail;
-	if (size > 1) run_option = 1;
-#endif
+	if (fComm.Size() > 1) run_option = 1;
 
 	switch (run_option)
 	{
@@ -483,14 +476,6 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 }
 
 /* testing for distributed execution */
-#ifndef __MPI__
-void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
-{
-#pragma unused (in)
-	status << "\n FEExecutionManagerT::RunJob_parallel: no mpi" << endl;
-	throw;
-}
-#else
 void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 {
 	/* set stream comment marker */
@@ -516,8 +501,6 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	out.open(out_file);
 
 	int token; // for run time check sums
-	int check_sum;
-
 	try {
 	t0 = clock();
 	
@@ -546,10 +529,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	}
 
 	/* synch and check status */
-	check_sum = 0;
-	if (MPI_Allreduce(&token, &check_sum, 1, MPI_INT, MPI_SUM, fComm) !=
-		MPI_SUCCESS) throw eMPIFail;
-	if (check_sum != size) throw eGeneralFail;
+	if (fComm.Sum(token) != size) throw eGeneralFail;
 
 	/* read partition information */
 	PartitionT partition;
@@ -578,10 +558,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	}
 	
 	/* synch and check status */
-	check_sum = 0;
-	if (MPI_Allreduce(&token, &check_sum, 1, MPI_INT, MPI_SUM, fComm) !=
-		MPI_SUCCESS) throw eMPIFail;
-	if (check_sum != size) throw eGeneralFail;
+	if (fComm.Sum(token) != size) throw eGeneralFail;
 		
 	/* write partial geometry files (if needed) */
 	StringT partial_file;
@@ -622,25 +599,22 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		FEman.WriteExceptionCodes(out);
 	}
 	
-	check_sum = 0;
-	if (MPI_Allreduce(&token, &check_sum, 1, MPI_INT, MPI_SUM, fComm)
-		!= MPI_SUCCESS) throw eMPIFail;
-	if (check_sum != size)
+	if (fComm.Sum(token) != size)
 	{
 		/* gather tokens to rank 0 */
-		iArrayT tokens;
-		if (rank == 0) tokens.Allocate(size);
-		if (MPI_Gather(&token, 1, MPI_INT, tokens.Pointer(), 1, MPI_INT, 0, fComm)
-			!= MPI_SUCCESS) throw eMPIFail;
 		if (rank == 0)
 		{
+			iArrayT tokens(size);
+			fComm.Gather(token, tokens);
+		
 			status << "\n The following processes exit on exception during construction:\n";
 			for (int i = 0; i < tokens.Length(); i++)
 				if (tokens[i] != 1)
 					status << setw(kIntWidth) << i << '\n';
 			status.flush();
 		}
-
+		else fComm.Gather(token, 0);
+		
 		throw eGeneralFail;
 	}
 	
@@ -655,7 +629,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		ReadOutputMap(in, map_file, output_map);
 
 		/* set-up local IO */
-		IOMan = new IOManager_mpi(in, output_map, *(FEman.OutputManager()), FEman.Partition(), model_file, format);
+		IOMan = new IOManager_mpi(in, fComm, output_map, *(FEman.OutputManager()), FEman.Partition(), model_file, format);
 		if (!IOMan) throw eOutOfMemory;
 		
 		/* set external IO */
@@ -672,24 +646,22 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 		}
 	}
 
-	check_sum = 0;
-	if (MPI_Allreduce(&token, &check_sum, 1, MPI_INT, MPI_SUM, fComm)
-		!= MPI_SUCCESS) throw eMPIFail;
-	if (check_sum != size)
+	if (fComm.Sum(token) != size)
 	{
 		/* gather tokens to rank 0 */
-		iArrayT tokens;
-		if (rank == 0) tokens.Allocate(size);
-		if (MPI_Gather(&token, 1, MPI_INT, tokens.Pointer(), 1, MPI_INT, 0, fComm)
-			!= MPI_SUCCESS) throw eMPIFail;
 		if (rank == 0)
 		{
+			iArrayT tokens(size);
+			fComm.Gather(token, tokens);			
 			status << "\n The following processes exit on exception during construction:\n";
 			for (int i = 0; i < tokens.Length(); i++)
 				if (tokens[i] != 1)
 					status << setw(kIntWidth) << i << '\n';
 			status.flush();
 		}
+		else 
+			fComm.Gather(token, 0);
+		
 		throw eGeneralFail;
 	}
 
@@ -711,24 +683,22 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	/* free external IO */
 	delete IOMan;
 
-	check_sum = 0;
-	if (MPI_Allreduce(&token, &check_sum, 1, MPI_INT, MPI_SUM, fComm)
-		!= MPI_SUCCESS) throw eMPIFail;
-	if (check_sum != size)
+	if (fComm.Sum(token) != size)
 	{
 		/* gather tokens to rank 0 */
-		iArrayT tokens;
-		if (rank == 0) tokens.Allocate(size);
-		if (MPI_Gather(&token, 1, MPI_INT, tokens.Pointer(), 1, MPI_INT, 0, fComm)
-			!= MPI_SUCCESS) throw eMPIFail;
 		if (rank == 0)
 		{
+			iArrayT tokens(size);
+			fComm.Gather(token, tokens);
+
 			status << "\n The following processes exit on exception during solution:\n";
 			for (int i = 0; i < tokens.Length(); i++)
 				if (tokens[i] != 1)
 					status << setw(kIntWidth) << i << '\n';
 			status.flush();
 		}
+		else fComm.Gather(token, 0);
+		
 		throw eGeneralFail;
 	}
 	t3 = clock(); } // end try
@@ -758,12 +728,11 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	out <<   "Decomposition: " << double(t1 - t0)/CLOCKS_PER_SEC << " sec.\n";
 	out <<   " Construction: " << double(t2 - t1)/CLOCKS_PER_SEC << " sec.\n";
 	out <<   "     Solution: " << double(t3 - t2)/CLOCKS_PER_SEC << " sec.\n";
-out <<   "    Stop time: " << ctime(&stoptime);
+	out <<   "    Stop time: " << ctime(&stoptime);
 
 	status << "\n End Execution\n" << endl;
 	out    << "\n End Execution\n" << endl;
 }	
-#endif // __MPI__
 
 /* print message on exception */
 void FEExecutionManagerT::Rewind(ifstreamT& in, ostream& status) const

@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.h,v 1.12 2002-07-05 22:28:07 paklein Exp $ */
+/* $Id: IOManager_mpi.h,v 1.13 2002-08-21 07:26:01 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 
 #ifndef _IOMANAGER_MPI_H_
@@ -11,9 +11,7 @@
 #include "iArray2DT.h"
 #include "dArray2DT.h"
 #include "MapSetT.h"
-#ifdef __MPI__
-#include "mpi.h"
-#endif
+#include "CommunicatorT.h"
 
 namespace Tahoe {
 
@@ -33,7 +31,7 @@ public:
 
 	/** constructor 
 	 * \param model_file total model database */
-	IOManager_mpi(ifstreamT& in, const iArrayT& io_map,
+	IOManager_mpi(ifstreamT& in, CommunicatorT& comm, const iArrayT& io_map,
 		const IOManager& local_IO, const PartitionT& partition,
 		const StringT& model_file, IOBaseT::FileTypeT format);
 
@@ -77,10 +75,6 @@ private:
 	void BuildElementAssemblyMap(int set, const StringT& block_ID, const iArrayT& block_map, 
 		iArrayT& map) const;
 
-	/** MPI information */
-	int Rank(void) const;
-	int Size(void) const;
-
 	/** check that assembly maps are compact and complete */
 	void CheckAssemblyMaps(void);
 
@@ -102,6 +96,9 @@ private:
 #endif
 
 private:
+
+	/** MP communicator */
+	CommunicatorT& fComm;
 
 	/** output set index to output processor map 
 	 * output_processor[output_set_index] */
