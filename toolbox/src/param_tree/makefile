@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2003-03-08 03:44:43 paklein Exp $
+# $Id: makefile,v 1.2 2003-04-22 18:32:16 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -23,7 +23,12 @@ OBJ = \
 	ValueT.o \
 	ParameterT.o \
 	LimitT.o \
-	ParameterListT.o	
+	ParameterListT.o \
+	expat_ParseT.o \
+	FormatterT.o \
+	XML_Attribute_FormatterT.o \
+	XML_Atomic_FormatterT.o \
+	ParameterInterfaceT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -46,7 +51,12 @@ SRC = \
 	ValueT.cpp \
 	ParameterT.cpp \
 	LimitT.cpp \
-	ParameterListT.cpp	
+	ParameterListT.cpp \
+	expat_ParseT.cpp \
+	FormatterT.cpp \
+	XML_Attribute_FormatterT.cpp \
+	XML_Atomic_FormatterT.cpp \
+	ParameterInterfaceT.cpp
 
 ##################### (3) headers
 #
@@ -61,7 +71,12 @@ HDR = \
 	ValueT.h \
 	ParameterT.h \
 	LimitT.h \
-	ParameterListT.h	
+	ParameterListT.h \
+	expat_ParseT.h \
+	ParameterInterfaceT.h \
+	FormatterT.h \
+	XML_Attribute_FormatterT.h \
+	XML_Atomic_FormatterT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
