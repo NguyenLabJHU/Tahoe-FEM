@@ -1,6 +1,7 @@
-/* $Id: FBC_ControllerT.cpp,v 1.4.2.1 2003-02-17 17:11:43 paklein Exp $ */
+/* $Id: FBC_ControllerT.cpp,v 1.4.2.2 2003-02-17 17:44:38 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 #include "FBC_ControllerT.h"
+#include "ArrayT.h"
 
 #include <iostream.h>
 
