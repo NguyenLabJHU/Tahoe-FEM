@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.65 2004-04-15 23:56:31 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.66 2004-04-16 01:09:32 paklein Exp $ */
 #include "VTKConsoleT.h"
 
 /* ANSI headers */
@@ -60,15 +60,7 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   /* add console commands */
   iAddCommand(CommandSpecT("Interactive"));
   iAddCommand(CommandSpecT("Update"));
-  
-  /* forward commands from VTKFrameT */
-  iAddCommand(CommandSpecT("ShowNodeNumbers"));
-  iAddCommand(CommandSpecT("HideNodeNumbers"));
-  iAddCommand(CommandSpecT("ShowElementNumbers"));
-  iAddCommand(CommandSpecT("HideElementNumbers"));
-  iAddCommand(CommandSpecT("ShowColorBar"));
-  iAddCommand(CommandSpecT("HideColorBar"));
- 
+
   CommandSpecT addbody("AddBody");
   ArgSpecT file(ArgSpecT::string_);
   file.SetPrompt("path to database file");
@@ -218,6 +210,25 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
 	if (!command) throw eGeneralFail;
 	iAddCommand(*command);
 	
+	command = fFrames[0]->iCommand("ShowNodeNumbers");
+	if (!command) throw eGeneralFail;
+	iAddCommand(*command);
+	command = fFrames[0]->iCommand("HideNodeNumbers");
+	if (!command) throw eGeneralFail;
+	iAddCommand(*command);
+	command = fFrames[0]->iCommand("ShowElementNumbers");
+	if (!command) throw eGeneralFail;
+	iAddCommand(*command);
+	command = fFrames[0]->iCommand("HideElementNumbers");
+	if (!command) throw eGeneralFail;
+	iAddCommand(*command);
+	command = fFrames[0]->iCommand("ShowColorBar");
+	if (!command) throw eGeneralFail;
+	iAddCommand(*command);
+	command = fFrames[0]->iCommand("HideColorBar");
+	if (!command) throw eGeneralFail;
+	iAddCommand(*command);
+
 	/* representation */
   	iAddCommand(CommandSpecT("Wire"));
   	iAddCommand(CommandSpecT("Surface"));
