@@ -104,11 +104,15 @@ public:
 	int GlobalToLocalNumbering(RaggedArray2DT<int>& nodes);
 
 	/** Return interpolated displacement field at selected nodes -- communication routine for MFLagMultT */
-	void InterpolatedFieldAtNodes(iArrayT& nodes, dArray2DT& fieldAtNodes);
+	void InterpolatedFieldAtNodes(const iArrayT& nodes, dArray2DT& fieldAtNodes);
 
 	/** Return the data structure holding the support of the localNode and it's window function values 
 		-- communication routine for for MFLagMultT */
 	void NodalSupportAndPhi(int localNode, LinkedListT<int>& support, LinkedListT<double>& phi);
+	
+	/** Return the data structure holding the supports of the localNodes and their window function values 
+		-- communication routine for for MFLagMultT */
+	void NodalSupportAndPhi(iArrayT& localNodes, RaggedArray2DT<int>& support, RaggedArray2DT<double>& phi);
 	
 	int SupportSize(int localNode);
 
