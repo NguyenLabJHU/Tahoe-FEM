@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:50 paklein Exp $
+# $Id: makefile,v 1.5 2002-04-10 16:48:24 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -9,7 +9,9 @@ OBJ = \
 	BimaterialK_FieldT.o \
 	KBC_ControllerT.o \
 	K_FieldT.o \
-	MappedPeriodicT.o
+	MappedPeriodicT.o \
+	TiedNodesT.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -21,14 +23,17 @@ SRC = \
 	BimaterialK_FieldT.cpp \
 	KBC_ControllerT.cpp \
 	K_FieldT.cpp \
-	MappedPeriodicT.cpp
+	MappedPeriodicT.cpp \
+	TiedNodesT.cpp
 
 # headers
 HDR = \
 	BimaterialK_FieldT.h \
 	KBC_ControllerT.h \
 	K_FieldT.h \
-	MappedPeriodicT.h
+	MappedPeriodicT.h \
+	TiedNodesT.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
