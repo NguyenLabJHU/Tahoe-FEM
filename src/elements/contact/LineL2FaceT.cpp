@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.5 2001-04-16 17:30:51 rjones Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.6 2001-04-19 23:47:01 rjones Exp $ */
 
 #include "LineL2FaceT.h"
 #include "FaceT.h"
@@ -47,9 +47,32 @@ LineL2FaceT::ComputeRadius(void)
 }
 
 void
+LineL2FaceT::NodeNormal(int local_node_number, double& normal)
+{
+	int curr = local_node_number;
+	int next = Next(curr);
+	/* get sense of left and right */
+	if (next > curr) {
+		Diff(fx[next],fx[curr],t1);
+	}
+	else {
+		Diff(fx[curr],fx[next],t1);
+	}
+	RCross(t1,&normal);
+}
+
+void
+LineL2FaceT::FaceNormal(void)
+{
+        /* right to left */
+        Diff(fx[0],fx[1],t1);
+        RCross(t1,fnormal);
+}
+
+
+void
 LineL2FaceT::ComputeNormal(dArrayT& local_coordinates, double& normal)
 {
-	double t1[2];
 	Diff(fx[0],fx[1],t1);
 	/* this assumes a CW parameterization of the boundary */
 	RCross(t1,&normal);
@@ -98,7 +121,7 @@ LineL2FaceT::ComputeJacobian (dArrayT& local_coordinates)
 
 bool
 LineL2FaceT::Projection 
-(double& point, double& normal, dArrayT& local_coordinates, double gap)
+(ContactNodeT* node, dArrayT& parameters)
 {
 	//HACK
 	return 0;

@@ -1,4 +1,4 @@
-/* $Id: SurfaceT.h,v 1.5 2001-04-16 17:30:52 rjones Exp $ */
+/* $Id: SurfaceT.h,v 1.6 2001-04-19 23:47:02 rjones Exp $ */
 
 #ifndef _SURFACE_T_H_
 #define _SURFACE_T_H_
@@ -47,6 +47,11 @@ class SurfaceT
 	inline int NumSD(void) {return fNumSD;}
 	inline iArrayT&   GlobalNodes(void) {return fGlobalNodes;}
 	inline dArray2DT& Coordinates(void) {return fCoordinates;}
+	inline ArrayT<FaceT*>& Faces(void) {return fFaces;}
+	inline const double* Position(int i) {return fCoordinates(i);}
+	inline const double* Normal(int i)   {return fNormals(i);}
+	inline const double* Tangent1(int i) {return fTangent1s(i);}
+	inline const double* Tangent2(int i) {return fTangent2s(i);}
 
 	/* these are predicated on the surfaces being homogeneous */
 	inline int NumNodesPerFace(void)
@@ -67,19 +72,27 @@ class SurfaceT
 	/* list of global node numbers i.e local->global map */
 	iArrayT fGlobalNodes;
 
+ 	/* Nodal data */
 	/* current surface coordinates */
 	dArray2DT fCoordinates;
-
-	/* nodal outward unit normals */
+	/* nodal outward unit normals and tangents */
 	dArray2DT fNormals; 
+	dArray2DT fTangent1s; 
+	dArray2DT fTangent2s; 
 
 	/* neighbors */
-	RaggedArray2DT <int>     fNodeNeighbors ; // for averaging, ordered CCW
+	RaggedArray2DT <FaceT*>  fNodeNeighbors ; // for averaging
+	RaggedArray2DT <int>     fLocalNodeInNeighbors ; // for averaging
 	RaggedArray2DT <FaceT*>  fFaceNeighbors ; // for contact tracking
 
   private:
 	void ComputeNeighbors(void);
+	void ComputeNeighbors2D(void);
+	void ComputeNeighbors3D(void);
+
 	void ComputeSurfaceNormals(void);
+	void ComputeSurfaceNormals2D(void);
+	void ComputeSurfaceNormals3D(void);
 
 	const NodeManagerT* kNodeManager;
 

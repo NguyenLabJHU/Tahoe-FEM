@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.4 2001-04-16 17:30:50 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.5 2001-04-19 23:47:00 rjones Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -46,6 +46,10 @@ public:
 
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);  // not implemented
+
+        /* append element equations numbers to the list */
+        virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
+                AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
 	/* append connectivities */
 	virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,

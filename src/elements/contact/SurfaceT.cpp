@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.7 2001-04-16 17:30:52 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.8 2001-04-19 23:47:02 rjones Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -15,8 +15,41 @@
 #include "FaceT.h"
 #include "LineL2FaceT.h"
 #include "QuadL4FaceT.h"
+#include "AutoFill2DT.h"
 
 /* parameters */
+const int kHeadroom = 10; // this is a percentage
+const int kMaxNumFacesAtNode = 8;
+const int kMaxNumFaceNeighbors = 10;
+const int kMaxNumNodesAround = kMaxNumFacesAtNode;
+
+/* vector functions */
+inline static void Zero(double* v, int dim)
+{
+	v[0] = 0.0; v[1] = 0.0; if (dim == 3) v[2] = 0.0;
+	
+}
+
+inline static void Add(double* v1, double* v2, double* v, int dim)
+{
+	v[0] = v1[0] + v2[0];
+	v[1] = v1[1] + v2[1];
+	if (dim == 3) v[2] = v1[2] + v2[2];
+}
+
+
+inline static void Normalize(double* v, int dim)
+{
+	double scale;
+        if (dim == 3) {
+                scale = 1.0/sqrt(v[0]*v[0] +v[1]*v[1] +v[2]*v[2]);
+                v[0] *= scale; v[1] *= scale; v[2] *= scale;
+        } 
+        else {
+                scale = 1.0/sqrt(v[0]*v[0] +v[1]*v[1]);
+                v[0] *= scale; v[1] *= scale;
+        }
+}
 
 SurfaceT::SurfaceT(void)
 {
@@ -304,7 +337,9 @@ void SurfaceT::Initialize (const NodeManagerT* node_manager)
 
 	ComputeNeighbors();
 
+	cout << " Initialize \n";
 	UpdateConfiguration();
+	cout << " DOne Initialize \n";
 }
 
 void SurfaceT::UpdateConfiguration ()
@@ -318,18 +353,31 @@ void SurfaceT::UpdateConfiguration ()
 }
 
 void SurfaceT::ComputeNeighbors (void)
-{ // assume vertex nodes are ordered CCW and first in connectivity lists
+{ 
 
   switch(fNumSD) {
      case 2:
+	ComputeNeighbors2D();
+	break;
+     case 3:
+	ComputeNeighbors3D();
+	break;
+     default:
+	cout << "\n SurfaceT::ComputeNeighbors, not 2D nor 3D geometry \n";
+  }
+
+}
+
+void SurfaceT::ComputeNeighbors2D()
+{// assume vertex nodes are ordered LR and first in connectivity lists
 #if 0
-	//ComputeNeighbors2D();
-	// need left/right sense
+        //ComputeNeighbors2D();
+        // need left/right sense
         for (i = 0; i < fFaces.Length() ; i++) {
                 face = fFace[i];
                 conn = face.Connectivity();
                 for (j = 0; j < conn.Length(); j++) {
-			Inface
+                        Inface
                         NeighborNode[conn[1],0] = conn[0]; /left -> right
                         NeighborNode[conn[0],1] = conn[1]; /right <- left
                 }
@@ -342,98 +390,124 @@ void SurfaceT::ComputeNeighbors (void)
                 }
         }
 
-	
+
 #endif
-	break;
-     case 3:
-#if 0
-	//ComputeNeighbors3D();
-	// ragged array of face pointers
-	//RaggedArray2DT<int> set_data;
-       	//set_data.Configure(count);
-	InFace.Allocate(fGlobalNodes.Length());
-	for (i = 0; i < fFaces.Length() ; i++) {
-		face = fFace[i];
-                conn = face.Connectivity();
-		for (j = 0; j < conn.Length(); j++) {
-			InFace[conn[j]] = face;
-		}
+}
+
+void SurfaceT::ComputeNeighbors3D()
+{// assume vertex nodes are ordered CCW and first in connectivity lists
+	int i,j,k;
+	int num_surf_nodes =  fGlobalNodes.Length();
+	int num_faces      =  fFaces.Length();
+	/* find all faces a node is connected to */
+        AutoFill2DT<FaceT*> 
+		faces_at_node(num_surf_nodes,kHeadroom,kMaxNumFacesAtNode);
+        for (i = 0; i < fFaces.Length() ; i++) {
+                FaceT* face = fFaces[i];
+                const iArrayT& conn = face->Connectivity();
+                for (j = 0; j < conn.Length(); j++) { 
+                        faces_at_node.Append(conn[j],face);
+                }
+
         }
 
-	// lists of neighboring faces
-	// LOOK at Kevin's linked list class
-	for (i = 0; i < fFaces.Length() ; i++) {
-		face = fFace[i];
-                conn = face.Connectivity();
-                for (j = 0; j < conn.Length(); j++) {
-                       FaceNeighbor.Insert() = InFace[conn[j]];
-                }
+	fNodeNeighbors.CopyCompressed(faces_at_node);
+	        cout << " num face count \n";
+        for (i = 0; i < fNodeNeighbors.MajorDim() ; i++) {
+                cout << i << " " << fNodeNeighbors.MinorDim(i) << '\n';
+        }
+
+	iArrayT face_counts;
+	face_counts.Allocate(fNodeNeighbors.MajorDim());
+	for (i = 0; i < fNodeNeighbors.MajorDim() ; i++) {
+		face_counts[i] = fNodeNeighbors.MinorDim(i);
 	}
 
-	/* determine node neighbors CCW ordered */
-	/*       and face neighbors */
-	for (i = 0; i < InFace.MajorDim() ; i++) {//loop over nodes
-		
-		curr = i;
-		j = first_face.LocalNodeNumber(curr);
-		prev = face.Prev(j);
-                NodeNeighbor.Insert = face.Next(j);
-		nvn = face.NumVertexNodes();
-		
-		for (j = 0; j < nvn j++) {
-			n = face.Next(j);
-			c = conn(j);
-			p = face.Prev(j);
-			if ( c = curr  &&  n = prev) {
-                		NodeNeighbor.Insert = face.Next(j);
-				prev = p ; // or exit loop
-			}
+	/* find the local node number in each neighbor face */
+	fLocalNodeInNeighbors.Configure(face_counts);
+	for (i = 0; i < fLocalNodeInNeighbors.MajorDim() ; i++) {
+		for (j = 0; j < fLocalNodeInNeighbors.MinorDim(i) ; j++) {
+		  FaceT* face = fNodeNeighbors(i)[j];
+		  fLocalNodeInNeighbors(i)[j] = face->LocalNodeNumber(i);
 		}
 	}
-	/* search next and previous to get ring */
-	/* condense associated faces for member nodes */
+
+	                cout << " local node num \n";
+        for (i = 0; i < fLocalNodeInNeighbors.MajorDim() ; i++) {
+		cout << i << " ";
+		for (j = 0; j < fLocalNodeInNeighbors.MinorDim(i) ; j++) {
+                  cout << 1+fLocalNodeInNeighbors(i)[j] << " " ;
+		}
+		cout << '\n';
+        }
+
+
+	/* find all neighbor faces inclusive of orig. face currently */
+	AutoFill2DT<FaceT*>
+		faces_next_to_face(num_faces,kHeadroom,kMaxNumFaceNeighbors);
+	int node_num;
+        for (i = 0; i < fFaces.Length() ; i++) {
+                FaceT* face = fFaces[i];
+                const iArrayT& conn = face->Connectivity();
+                for (j = 0; j < conn.Length(); j++) {
+		  node_num = conn[j];
+		  for (k = 0; k < faces_at_node.MinorDim(node_num); k++) {
+			FaceT* neighbor_face = faces_at_node(node_num,k);
+                        faces_next_to_face.AppendUnique(i,neighbor_face);
+		  }
+                }
+        }
+	        cout << " face neigbor count \n";
+        for (i = 0; i < faces_next_to_face.MajorDim() ; i++) {
+                cout << i << " " << faces_next_to_face.MinorDim(i) << '\n';
+	}
+	
+	fFaceNeighbors.CopyCompressed(faces_next_to_face);
+	        cout << " FaceNeighbors \n";
+        for (i = 0; i < fFaceNeighbors.MajorDim() ; i++) {
+                cout << i << " " << fFaceNeighbors.MinorDim(i) << '\n';
+	}
+
+#if 0
+        /*       and face neighbors */
+        for (i = 0; i < InFace.MajorDim() ; i++) {//loop over nodes
+
+                curr = i;
+                j = first_face.LocalNodeNumber(curr);
+                prev = face.Prev(j);
+                NodeNeighbor.Insert = face.Next(j);
+                nvn = face.NumVertexNodes();
+
+                for (j = 0; j < nvn j++) {
+                        n = face.Next(j);
+                        c = conn(j);
+                        p = face.Prev(j);
+                        if ( c = curr  &&  n = prev) {
+                                NodeNeighbor.Insert = face.Next(j);
+                                prev = p ; // or exit loop
+                        }
+                }
+        }
+        /* search next and previous to get ring */
+        /* condense associated faces for member nodes */
 #endif
-	break;
-     default:
-	cout << "\n SurfaceT::ComputeNeighbors, not 2D nor 3D geometry \n";
-  }
 
 }
 
 void SurfaceT::ComputeSurfaceNormals(void)
-{
-	/*compute each normal, add, then normalize*/
-#if 0
-  switch(fNumSD) {
-     case 2:
-	//ComputeSurfaceNormals2D
-	for (int i = 0; i < X.Length(); i++) {	
-		left  = NodeNeigbor(curr);
-		right = NodeNeigbor(curr);
-		Diff( fCoordinates(left), fCoordinates(curr),  tangent1);
-		RCross(tangent1,normal1);
-		Diff( fCoordinates(curr), fCoordinates(right), tangent2);
-		RCross(tangent2,normal2);
-		Add(normal1,normal2, normal);
-		Normalize(normal);	
-	}
-	break;
-     case 3:
-	//ComputeSurfaceNormals3D
-	for (int i = 0; i < X.Length(); i++) {	
-	  curr = ;
-	  for (int j = 0; j < X.Length(); j++) {
-		next = NodeNeighbor
-		prev = NodeNeighbor
-		Diff(fCoordinates(curr), fCoordinates(next),  tangent1);
-		Diff(fCoordinates(curr), fCoordinates(prev),  tangent2);
-		Cross(tangent1,  tangent2, normal1);
-		Add(normal, normal1, normal);
-	  }
-	  Normalize(normal);
-	}	
-	break;
-     default:
-  }
-#endif
+{ 
+	double normal_i[3];
+        for (int i = 0; i < fNodeNeighbors.MajorDim(); i++) {
+	  double* normal = fNormals(i);
+	  Zero(normal,fNumSD);
+          for (int j = 0; j < fNodeNeighbors.MinorDim(i); j++) {
+		FaceT* face = fNodeNeighbors(i)[j];
+		int lnn = fLocalNodeInNeighbors(i)[j];
+		face->NodeNormal(lnn,*normal_i);
+		Add(normal,normal_i,normal,fNumSD);
+          }
+	  Normalize(normal,fNumSD);
+	  cout << i << " normal " << normal[0] << " " 
+                                  << normal[1] << " " << normal[2] << "\n";
+        }
 }

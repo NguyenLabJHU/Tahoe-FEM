@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.h,v 1.3 2001-04-16 17:30:50 rjones Exp $ */
+/* $Id: ContactSearchT.h,v 1.4 2001-04-19 23:47:01 rjones Exp $ */
 
 #ifndef _CONTACT_SEARCH_T_H_
 #define _CONTACT_SEARCH_T_H_
@@ -37,11 +37,13 @@ private:
 
 	/* nodes on surface 1 projected onto faces of surface 2*/
 	void NodeFaceSearch
-		(ContactSurfaceT& surface1, ContactSurfaceT& surface2); 
+		(ContactSurfaceT& surface1, ContactSurfaceT& surface2,
+		dArrayT& parameters); 
 
 	/* update gaps and local coordinates of projection */
 	void UpdateProjection
-		(ContactSurfaceT& surface1, ContactSurfaceT& surface2); 
+		(ContactSurfaceT& surface1, ContactSurfaceT& surface2,
+		dArrayT& parameters); 
 	
 	/* search grid */
 	iGridManagerT* fGrid;
@@ -51,6 +53,10 @@ private:
 
 	/* search parameters from contact element */
 	const nMatrixT<dArrayT>& fSearchParameters;
+
+	/*workspace*/
+	double centroid[3];
+	double radius;
 
 };
 

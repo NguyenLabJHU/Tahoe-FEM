@@ -1,18 +1,20 @@
-/*  $Id: ContactNodeT.cpp,v 1.1 2001-04-16 17:30:50 rjones Exp $ */
+/*  $Id: ContactNodeT.cpp,v 1.2 2001-04-19 23:47:00 rjones Exp $ */
 #include "ContactNodeT.h"
 
-#include "ContactSurfaceT.h"
+#include "SurfaceT.h"
 #include "FaceT.h"
 
 /* parameters */
 
-ContactNodeT::ContactNodeT(void)
+ContactNodeT::ContactNodeT(SurfaceT& surface, int node_tag):
+	fSurface(surface)
 {
+	fNodeTag         = node_tag;
 	fOpposingSurface = NULL;
 	fOpposingFace    = NULL;
 	fxi[0]           = 0.0 ;
 	fxi[1]           = 0.0 ;
-	fGap             = 0.0 ; // this needs to be TOL_G
+	fGap             = 1.0e8 ; // this needs to be TOL_G?
 }
 
 ContactNodeT::~ContactNodeT(void)
@@ -40,3 +42,14 @@ ContactNodeT::AssignOpposing
 	}
 	return 0;
 }
+
+void 
+ContactNodeT::UpdateOpposing
+(double* xi, double g)
+{
+                fxi[0] = xi[0] ;
+                if (fOpposingSurface->NumSD() == 3 )
+                        {fxi[1] = xi[1] ; }
+                fGap = g ;
+}
+

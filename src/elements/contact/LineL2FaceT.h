@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.h,v 1.4 2001-04-16 17:30:51 rjones Exp $ */
+/* $Id: LineL2FaceT.h,v 1.5 2001-04-19 23:47:01 rjones Exp $ */
 
 #ifndef _LINEL2_FACE_T_H_
 #define _LINEL2_FACE_T_H_
@@ -9,10 +9,6 @@
 /* direct members */
 
 /* forward declarations */
-class SurfaceT;
-class iArrayT;
-class dArrayT;
-class dMatrixT;
 
 /*  connectivity
  * L  1--2  R  (outward normal up)
@@ -39,29 +35,14 @@ public:
         void ComputeCentroid(double& centroid); 
 	double ComputeRadius();
         void ComputeNormal(dArrayT& local_coordinates, double& normal); 
-#if 0
-        void ComputeTangents // ?????????
-		(double& local_coordinates, double& tangent1,double& tangent2); 
-#endif
+        void NodeNormal(int local_node_number, double& normal); 
+	void FaceNormal(void);
 	void ComputeShapeFunctions
 		(dArrayT& local_coordinates, dArrayT& shape_functions);
 	void ComputeShapeFunctions
 		(dArrayT& local_coordinates, dMatrixT& shape_functions);
-#if 0
-	void ComputeShapeFunctionDerivatives
-		(ArrayT& local_coordinates, ArrayT& shape_derivatives);
-	void ComputeShapeFunctionDerivatives
-		(ArrayT& local_coordinates, MatrixT& shape_derivatives);
-#endif
 	double ComputeJacobian (dArrayT& local_coordinates);
-        bool Projection
-		(double& point, double& normal, 
-		dArrayT& local_coordinates, double gap); 
-#if 0
-        bool Projection
-		(double& point, 
-		double& local_coordinates, double gap); 
-#endif
+        bool Projection (ContactNodeT* node, dArrayT& parameters);
 protected:
 
 private:

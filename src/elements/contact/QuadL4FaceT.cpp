@@ -1,8 +1,9 @@
-/* $Id: QuadL4FaceT.cpp,v 1.6 2001-04-16 17:30:52 rjones Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.7 2001-04-19 23:47:01 rjones Exp $ */
 
 #include "QuadL4FaceT.h"
 #include "FaceT.h"
 
+#include "ContactElementT.h"
 #include "dArrayT.h"
 #include "dMatrixT.h"
 
@@ -46,9 +47,19 @@ QuadL4FaceT::ComputeRadius(void)
 	return radius;
 }
 
-#if 0
 void
-QuadL4FaceT::ComputeNormal(double& normal)
+QuadL4FaceT::NodeNormal(int local_node_number,double& normal)
+{ /* computes (unnormalized) outward normal at vertex node */
+	int curr = local_node_number;
+	int prev = Prev(local_node_number);	
+	int next = Next(local_node_number);	
+	Diff(fx[next],fx[curr],t1);
+	Diff(fx[prev],fx[curr],t2);
+	Cross(t1,t2,&normal); 
+}
+
+void
+QuadL4FaceT::FaceNormal(void)
 { /* compute face average normal */
 	double e1[3], e2[3], e3[3], e4[3], v1[3], v2[3];
 	Add(fx[0],fx[1],e1);
@@ -57,17 +68,9 @@ QuadL4FaceT::ComputeNormal(double& normal)
 	Add(fx[3],fx[0],e4);
 	Diff(e4,e2,v1);
 	Diff(e1,e3,v2);
-	Cross(v1,v2,&normal);
-	Normlize(&normal);
+	Cross(v1,v2,fnormal);
+//Normalize(&fnormal);
 }
-#endif
-
-#if 0
-void
-QuadL4FaceT::ComputeNormal(int local_node, double& normal)
-{ /* compute face node normal */
-}
-#endif
 
 void
 QuadL4FaceT::ComputeNormal(dArrayT& local_coordinates,double& normal)
@@ -104,40 +107,28 @@ QuadL4FaceT::ComputeJacobian (dArrayT& local_coordinates)
 
 bool
 QuadL4FaceT::Projection 
-(double& point, double& normal, dArrayT& local_coordinates, double gap)
+(ContactNodeT* node,dArrayT& parameters)
 {
-#if 0
-// declare these in header
+	double tol_g  = parameters[ContactElementT::kGapTol];
+	double tol_xi = parameters[ContactElementT::kXiTol];
+
 	/* check normal opposition */
-	FaceNormal(fnm) ; // recompute??
+	if ( Dot(node->Normal(),fnormal) > 0.0 ) {
+#if 0
+	  /* compute local coordinates */
 
-	if ( CheckOpposition(nm,fnm) ) {
-
-	  /* compute (approximate) local coordinates */
-	  Diff(x0, fx1,v1);
-	  Diff(x0, fx2,v2);
-	  Diff(x0, fx3,v3);
-	  Diff(x0, fx4,v4);
-	  a1 = TripleProduct(v1,v2,n) ;
-	  a2 = TripleProduct(v2,v3,n) ;
-	  a3 = TripleProduct(v3,v4,n) ;
-	  a4 = TripleProduct(v4,v1,n) ;
-	
-	  xi(0) = ( a4 - a2)/ (a4 - a2) ;
-	  xi(1) = ( a1 - a3)/ (a1 - a3) ;
-	  if( CheckLocalCoordinates(xi,tolxi) ) { // inline for FaceT
+	  if( CheckLocalCoordinates(xi,tolxi) ) { 
 	    /* compute gap */
-	    Interpolate (xi, fx, x_check );
-	    g = Gap(x_check, x0, nm); // inline for FaceT
+	    Interpolate (xi, fx, x_proj );
+	    g = Gap(x_proj, x0, nm); // inline for FaceT
 	    if (CheckGap(g,tolg) ) {
 		//assign opposite (chooses closest)
 		isbetter = node->AssignOpposing(fSurface,this,xi,g);
 		return 1;
 	    }
 	  }
-	}
-
 #endif
+	}
         return 0;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.5 2001-04-16 17:30:50 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.6 2001-04-19 23:47:00 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -122,7 +122,24 @@ void ContactElementT::SendOutput(int kincode)
 //not implemented: contact tractions/forces
 }
 
-/* appends group connectivities to the array */
+/* append element equations numbers to the list */
+void ContactElementT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
+                AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
+{
+#pragma unused(eq_1)
+
+#if 0
+        /* get local equations numbers */
+        fNodes->SetLocalEqnos(*fElemNodesEX, fElemEqnosEX);
+
+        /* add to list */
+        eq_2.Append(&fElemEqnosEX);
+#endif
+
+}
+
+
+/* appends group connectivities to the array for graph-based algorithms */
 void ContactElementT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 	AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const
 {
@@ -130,7 +147,7 @@ void ContactElementT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 	/* base class uses fConnectivities to create profile */
 	ElementBaseT::ConnectsU(connects_1, connects_2);
 
-	/* add fictious surface node-to-node links */
+	/* link surfaces with fictious node-to-node pairs*/
 	connects_1.AppendUnique(&fSurfaceLinks);
 }
 

@@ -1,4 +1,4 @@
-/* $Id: FaceT.h,v 1.6 2001-04-16 17:30:51 rjones Exp $ */
+/* $Id: FaceT.h,v 1.7 2001-04-19 23:47:01 rjones Exp $ */
 
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
@@ -8,13 +8,11 @@
 #include "dArray2DT.h"
 #include "ArrayT.h"
 #include "GeometryT.h"
-#if 0
-#include <math.h>
-#endif
 
 
 /* forward declarations */
 class SurfaceT;
+class ContactNodeT;
 class iArrayT;
 class dArrayT;
 class dMatrixT;
@@ -41,15 +39,27 @@ public:
 	virtual double ComputeRadius(void)=0;
         virtual void ComputeNormal
 		(dArrayT& local_coordinates,double& normal)=0; 
+        virtual void NodeNormal(int local_node_number,double& normal)=0; 
+	virtual void FaceNormal(void)=0; 
+#if 0
+        void ComputeTangents // ?????????
+                (double& local_coordinates, double& tangent1,double& tangent2);
+#endif
+
 	virtual void ComputeShapeFunctions
 		(dArrayT& local_coordinates, dArrayT& shape_functions)=0;
 	virtual void ComputeShapeFunctions
 		(dArrayT& local_coordinates, dMatrixT& shape_functions)=0;
+#if 0
+        void ComputeShapeFunctionDerivatives
+                (ArrayT& local_coordinates, ArrayT& shape_derivatives);
+        void ComputeShapeFunctionDerivatives
+                (ArrayT& local_coordinates, MatrixT& shape_derivatives);
+#endif
+
 	virtual double ComputeJacobian
 		(dArrayT& local_coordinates)=0;
-        virtual bool Projection
-		(double& point, double& normal, 
-		dArrayT& local_coordinates, double gap)=0; 
+        virtual bool Projection (ContactNodeT* node, dArrayT& parameters)=0; 
 
 	/* access functions */
 	inline const int NumNodes(void) const 
@@ -60,32 +70,18 @@ public:
 		{return fConnectivity;} 
 	inline const int NumVertexNodes(void) 
 		{return fNumVertexNodes;}
-#if 0
-	//2D
-	inline const int Left() {return fConnectivity[0];}
-	inline const int Right() {return fConnectivity[1];}
-	//3D (2d too)
-	inline const int Next(int i)
-		{return mod(i + 1, fNumVertexNodes);}
-	inline const int Prev(int i)
-		{return mod(i - 1, fNumVertexNodes);}
+	inline const int Next(int i) {return (i + 1)%fNumVertexNodes;}
+	inline const int Prev(int i) {return (i - 1)%fNumVertexNodes;}
 	inline const int LocalNodeNumber(int node_num)
 		{for (int i = 0; i < fConnectivity.Length(); i++) {
 			if (node_num == fConnectivity[i]) return i ; } }
-#endif
 
-#if 0
-// need Face2DT and Face3DT?
-// these functions should know the tolerances...
-	/* check functions */   // shouldnot recompute face normal
-	inline bool CheckOpposition(double& nm, double& face_nm)
-	inline bool CheckOpposition(double* nm)
-		{return 0; }
+	/* check functions */  
 	inline bool CheckLocalCoordinates(double* xi, double tol_xi)
-		{return 0; }
+		{return xi[0] < 1.0 - tol_xi && xi[0] >-1.0 + tol_xi
+		   &&   xi[1] < 1.0 - tol_xi && xi[1] >-1.0 + tol_xi ; }
 	inline bool CheckGap(double gap, double tol_g)
-		{ {gap < tol_g} ? {return 1} : {return 0} ;}
-#endif
+		{ return gap < tol_g ? 1 : 0 ;}
 		
 
 protected:
@@ -104,10 +100,11 @@ protected:
 	/* connectivity, in node numbers local to surface */
 	iArrayT fConnectivity;
 
-private:
-	/* face neighbors */
-//ArrayT<FaceT*> fNeighbors;
+	double fnormal[3] ; // face normal
+	/* workspace */
+	double x_proj[3], t1[3], t2[3] ;
 
+private:
 };
 
 #endif /* _FACE_T_H_ */

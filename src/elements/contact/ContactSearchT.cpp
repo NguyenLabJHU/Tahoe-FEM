@@ -1,9 +1,10 @@
-/* $Id: ContactSearchT.cpp,v 1.3 2001-04-16 17:30:50 rjones Exp $ */
+/* $Id: ContactSearchT.cpp,v 1.4 2001-04-19 23:47:01 rjones Exp $ */
 
 #include "ContactSearchT.h"
 
 #include "ContactSurfaceT.h"
 #include "iGridManagerT.h"
+#include "AutoArrayT.h"
 
 /* parameters */
 const int    kMaxNumGrid    = 50;
@@ -50,8 +51,9 @@ bool ContactSearchT::SetInteractions(void)
 		
 	for (int j = 0 ; j < fSurfaces.Length() ; j++) {
 		ContactSurfaceT& surface2  = fSurfaces[j]; // "face" surface
+		dArrayT& parameters = fSearchParameters(i,j);
 		/* set node-face data */
-		NodeFaceSearch(surface1,surface2);
+		NodeFaceSearch(surface1,surface2,parameters);
  	}
 	delete fGrid;
   }
@@ -72,8 +74,9 @@ bool ContactSearchT::UpdateInteractions(void)
         ContactSurfaceT& surface1 = fSurfaces[i]; // "node" surface
         for (int j = 0 ; j < fSurfaces.Length(); j++) {
                 ContactSurfaceT& surface2  = fSurfaces[j]; // "face" surface
+		dArrayT& parameters = fSearchParameters(i,j);
                 /* update node-face data */
-		UpdateProjection(surface1,surface2);
+		UpdateProjection(surface1,surface2,parameters);
         }
   }
   return 1; // HACK will be a status code
@@ -89,62 +92,73 @@ void ContactSearchT::Initialize(void)
   /* loop over surfaces */
   for (int i = 0 ; i < fSurfaces.Length() ; i++) {
 	ContactSurfaceT& surface = fSurfaces[i];
+	/* update surface geometry */
 	surface.UpdateConfiguration();
+
+	/* update face normals */
+	ArrayT<FaceT*>& faces = surface.Faces();
+	for (int j = 0; j < faces.Length(); j++) {
+		FaceT* face = faces[j];
+		face->FaceNormal();
+	}
+
+	/* track previous node-face pairs */
 	for (int j = 0; j < fSurfaces.Length(); j++) {
 #if 0
 // HACK fillin later
+	  for (int k = 0; k < fSurfaces.Length(); k++) {
+		ContactNodeT node = nodes[k];
 		if (node.OpposingSurface()) {
-			opposing_face = node.OpposingFace() ;
-			opposing_face.Projection();
-		} else {
-			node.OpposingFace() = NULL;
+			FaceT* opposing_face = node.OpposingFace() ;
+			opposing_face->Projection(node,parameters);
 		}
+	  }
 #endif
 	}
   }
 }
 
 void ContactSearchT::NodeFaceSearch
-(ContactSurfaceT& node_surface,ContactSurfaceT& face_surface)
+(ContactSurfaceT& node_surface,ContactSurfaceT& face_surface, 
+dArrayT& parameters)
 {
   /* loop over faces */
+  ArrayT<FaceT*>& faces = face_surface.Faces();
   for (int i = 0; i < face_surface.NumFaces(); i++) {
-#if 0
-	FaceT* face = Faces[i];
+	FaceT* face = faces[i];
 	/* face centroid*/
-        face.ComputeCentroid(centroid);
+        face->ComputeCentroid(*centroid);
         /* face "radius"*/
-        double radius = kFaceTolerance*pface.ComputeRadius();
-        const AutoArrayT<iNodeT>&
+        radius = kFaceTolerance*(face->ComputeRadius());
 	/* get nodes in neighborhood */
-        close_nodes = fGrid->ActivesInRegion(centroid, radius);
+        const AutoArrayT<iNodeT>&
+          close_nodes = fGrid->HitsInRegion(centroid, radius);
 	for (int j = 0; j < close_nodes.Length(); j++) {
-		dArrayT& paramters = fSearchParameters(i,j);
-    		/* taking first interaction defined */
+#if 0
     		if (!node.OpposingSurface()) {
-			/* projection checks : */ 
-			/* opposing normals, gap, local coords */
-			pface.Projection(x0,n,loc_coor,g, parameters) ;
+		/* checks : opposing normals, gap, local coords */
+			face.Projection(node,parameters) ;
 		}
-	}
 #endif
+	}
   }
 }
 
 void ContactSearchT::UpdateProjection
-(ContactSurfaceT& node_surface,ContactSurfaceT& face_surface)
+(ContactSurfaceT& node_surface,ContactSurfaceT& face_surface,
+dArrayT& parameters)
 {
   /* loop over faces */
   for (int i = 0; i < node_surface.NumNodes(); i++) {
 #if 0
         pnode = fNode[i];
 	opposing_face = node.OpposingFace() ;
-	opposing_face.Projection();
+	opposing_face->Projection(node,parameters);
 
 	if (!node.OpposingFace() ){
 		while (!node.OpposingFace() && <MORE> ){
 			neigbor_face = opposing_face.NeighborFaces() ;
-			neigbor_face.Projection();
+			neigbor_face.Projection(node,parameters);
 		}
 	}
 #endif

@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.4 2001-04-16 17:30:51 rjones Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.5 2001-04-19 23:47:01 rjones Exp $ */
 
 
 #ifndef _CONTACT_SURFACE_T_H_
@@ -28,15 +28,32 @@ class ContactSurfaceT : public SurfaceT
 	/* constructor */
 	ContactSurfaceT(void);
 
-	/* constructor */
+	/* destructor */
 	~ContactSurfaceT(void);
 
 	/* allocate contact node array */
 	void AllocateContactNodes(void);
 
+	/* move current to previous */
+	void CopyCurrentToPrevious(void);
+
+	/* access functions */
+	inline ArrayT<ContactNodeT*>& ContactNodes(void) 
+		{return fContactNodes;}
+#if 0
+	inline ArrayT<ContactNodeT*>& PreviousContactNodes(void) 
+		{return fPreviousContactNodes;}
+#endif
+
+
   protected:
         /* nodal arrays */
-	ArrayT <ContactNodeT>  fContactNodes ; 
+	ArrayT <ContactNodeT*>  fContactNodes ; 
+
+#if 0
+	/* for frictional slip */
+	ArrayT <ContactNodeT*>  fPreviousContactNodes;
+#endif
 
 };
 
