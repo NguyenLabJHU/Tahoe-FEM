@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.h,v 1.4 2001-09-04 14:46:37 sawimme Exp $ */
+/* $Id: AbaqusInputT.h,v 1.5 2001-09-10 15:42:00 sawimme Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #ifndef _ABAQUSINPUT_T_H_
@@ -83,7 +83,9 @@ class AbaqusInputT : public InputBaseT
 
 private:
   void SetLabelName (const ArrayT<AbaqusResultsT::VariableKeyT>& key, const iArrayT& dims, ArrayT<StringT>& name) const;
-  
+  void MapOffset (ArrayT<int>& set, const iArrayT& map) const;
+  void NodesUsed (const nArrayT<int>& connects, iArrayT& nodesused) const;
+
  private:
   AbaqusResultsT fData;
 
