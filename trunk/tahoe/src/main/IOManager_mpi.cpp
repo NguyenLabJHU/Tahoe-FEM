@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.30 2003-12-01 23:52:28 cjkimme Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.31 2003-12-09 16:33:56 cjkimme Exp $ */
 /* created: paklein (03/14/2000) */
 #include "IOManager_mpi.h"
 
@@ -922,7 +922,7 @@ void IOManager_mpi::BuildElementAssemblyMap(int set, const StringT& block_ID,
 	const OutputSetT& output_set = *((fOutput->ElementSets())[set]);
 	
 	/* check */
-	if (output_set.Mode() != OutputSetT::kElementBlock || output_set.Mode() != OutputSetT::kElementFromSideSet) {
+	if (output_set.Mode() != OutputSetT::kElementBlock && output_set.Mode() != OutputSetT::kElementFromSideSet) {
 		cout << "\n IOManager_mpi::BuildElementAssemblyMap: no element assembly map unless\n" 
 		     <<   "     output set mode is " << OutputSetT::kElementBlock << " or " << OutputSetT::kElementFromSideSet  
 		     << ": " << output_set.Mode() << endl;
