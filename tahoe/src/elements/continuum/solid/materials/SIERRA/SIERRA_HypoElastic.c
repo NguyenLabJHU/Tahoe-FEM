@@ -1,4 +1,4 @@
-/* $Id: SIERRA_HypoElastic.c,v 1.2 2003-03-08 03:13:30 paklein Exp $ */
+/* $Id: SIERRA_HypoElastic.c,v 1.3 2003-03-09 04:42:31 paklein Exp $ */
 #include "SIERRA_Material_Interface.h"
 #include <stdio.h>
 
@@ -27,28 +27,28 @@ void SIERRA_HypoElastic_reg(void)
 	int material_code = 9999;
 
 	/* register the material model */
-	register_material(&material_code, SIERRA_HypoElastic_check, &iflag, model_name);
+	FORTRAN_NAME(register_material)(&material_code, SIERRA_HypoElastic_check, &iflag, model_name);
 
 	/* register function to do material computations */
-	register_process_func(SIERRA_HypoElastic_calc, model_name);
+	FORTRAN_NAME(register_process_func)(SIERRA_HypoElastic_calc, model_name);
 
 	/* register function to do material initialization */
-	register_init_func(SIERRA_HypoElastic_init, model_name);
+	FORTRAN_NAME(register_init_func)(SIERRA_HypoElastic_init, model_name);
 
 	/* register the number of state variables that the model needs */
-	register_num_state_vars(&num_state, model_name);
+	FORTRAN_NAME(register_num_state_vars)(&num_state, model_name);
 
 	/* register the data that the material model needs from the element in
 	 * order to do its computations */
-	register_input_var("rot_strain_inc", model_name);
+	FORTRAN_NAME(register_input_var)("rot_strain_inc", model_name);
 }
 
 void SIERRA_HypoElastic_check(double* parameters)
 {
 	/* fetch material properties */
 	double bulk_modulus, two_mu;
-	get_real_constant(&bulk_modulus, parameters, "BULK_MODULUS");
-	get_real_constant(&two_mu, parameters,"TWO_MU");
+	FORTRAN_NAME(get_real_constant)(&bulk_modulus, parameters, "BULK_MODULUS");
+	FORTRAN_NAME(get_real_constant)(&two_mu, parameters,"TWO_MU");
 	
 	if (bulk_modulus < 0.0 || two_mu < 0.0) {
 		printf("{kappa, 2 mu} = {%g, %g}\n", bulk_modulus, two_mu);
@@ -93,13 +93,13 @@ void SIERRA_HypoElastic_calc(int* nelem, double* dt,
 	double kappa_minus_2_mu_by_3, kappa_plus_4_mu_by_3;
 	
 	/* fetch material properties */
-	get_real_constant(&bulk_modulus, matvals, "BULK_MODULUS");
-	get_real_constant(&two_mu, matvals,"TWO_MU");
+	FORTRAN_NAME(get_real_constant)(&bulk_modulus, matvals, "BULK_MODULUS");
+	FORTRAN_NAME(get_real_constant)(&two_mu, matvals,"TWO_MU");
 	kappa_minus_2_mu_by_3 = bulk_modulus - two_mu/3.0;
 	kappa_plus_4_mu_by_3 = bulk_modulus + 2.0*two_mu/3.0;
 
 	/* offset to strain variable */
-	get_var_index(&istrain, nelem, "rot_strain_inc", model_name);
+	FORTRAN_NAME(get_var_index)(&istrain, nelem, "rot_strain_inc", model_name);
 	dstrain = vars_input + istrain;
 	
 	/* loop over stress points */
