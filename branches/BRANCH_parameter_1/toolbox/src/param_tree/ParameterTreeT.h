@@ -1,4 +1,4 @@
-/* $Id: ParameterTreeT.h,v 1.2 2003-04-26 19:22:36 paklein Exp $ */
+/* $Id: ParameterTreeT.h,v 1.2.2.1 2003-04-27 22:19:08 paklein Exp $ */
 #ifndef _PARAMETER_TREE_T_H_
 #define _PARAMETER_TREE_T_H_
 
@@ -54,6 +54,9 @@ private:
 
 	/** branches of the tree */
 	AutoArrayT<ParameterListT*> fBranches;
+	
+	/** list of pointers to delete */
+	AutoArrayT<ParameterInterfaceT*> fDeleteMe;
 };
 
 } /* namespace Tahoe */
