@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.48 2004-07-22 08:18:02 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.49 2004-09-09 16:15:49 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -206,6 +206,14 @@ void ElementBaseT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 #endif
 }
 
+/* resolve the output variable label into the output code and offset within the output */
+void ElementBaseT::ResolveOutputVariable(const StringT& variable, int& code, int& offset)
+{
+#pragma unused(variable)
+	code = -1;
+	offset = -1;
+}
+
 /* appends group connectivities to the array (X -> geometry, U -> field) */
 void ElementBaseT::ConnectsX(AutoArrayT<const iArray2DT*>& connects) const
 {
@@ -227,12 +235,29 @@ void ElementBaseT::ReadRestart(istream& in)
 {
 	/* stream check */
 	if (!in.good()) throw ExceptionT::kGeneralFail;
+
+	/* read status flag */
+	for (int i = 0; i < fElementCards.Length(); i++)
+		in >> fElementCards[i].Flag();
 }
 
 void ElementBaseT::WriteRestart(ostream& out) const
 {
 	/* stream check */
-	if (!out.good()) throw ExceptionT::kGeneralFail;
+	if (!out.good()) ExceptionT::GeneralFail("ElementBaseT::WriteRestart");
+
+	/* write status flag */
+	int wrap = 10;
+	int count = 0;
+	for (int i = 0; i < fElementCards.Length(); i++)
+	{
+		out << fElementCards[i].Flag() << ' ';
+		if (++count == wrap) {
+			out << '\n';
+			count = 0;
+		}
+	}
+	out << '\n';
 }
 #else
 void ElementBaseT::ReadRestart(double* incomingData)

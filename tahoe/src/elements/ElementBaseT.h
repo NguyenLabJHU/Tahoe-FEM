@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.41 2004-08-04 22:20:34 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.42 2004-09-09 16:15:49 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -207,6 +207,10 @@ public:
 
 	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode) = 0;
+
+	/** resolve the output variable label into the output code and offset within the output.
+	 * The output code and offset will return -1 if the variable is not found. */
+	virtual void ResolveOutputVariable(const StringT& variable, int& code, int& offset);
 	/*@}*/
 	
 	/** \name connectivities
