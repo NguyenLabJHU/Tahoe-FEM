@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.h,v 1.5 2002-08-16 17:11:26 cjkimme Exp $ */
+/* $Id: TiedPotentialT.h,v 1.6 2002-11-04 16:52:17 cjkimme Exp $ */
 /* created: cjkimme (04/15/2002) */
 
 #ifndef _TIED_POTENTIAL_T_H_
@@ -85,7 +85,7 @@ private:
 	const double& fTimeStep;
 
 	/* traction potential parameters */
-	int qXu;
+	int qTv;
 	
 	double d_n;   // characteristic normal opening
 	double d_t;   // characteristic tangent opening  	
