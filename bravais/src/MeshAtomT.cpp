@@ -125,7 +125,7 @@ void MeshAtomT::BuildIOFile(StringT& program_name,
 			   IOBaseT::FileTypeT output_format,
 			   iArrayT per)
 {
-  Shape->CalculateBounds();
+  Shape->CalculateBounds(Crystal);
 
   if(IOLattice != 0) delete IOLattice;
   IOLattice = new OutPutLatticeT(cout,program_name,version,title,
