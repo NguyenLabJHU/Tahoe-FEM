@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.12 2005-01-31 07:09:14 paklein Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.13 2005-03-04 04:06:07 cfoster Exp $ */
 /* created: paklein (06/09/1997) */
 #include "SSSolidMatT.h"
 #include "SSMatSupportT.h"
@@ -155,22 +155,33 @@ void SSSolidMatT::InitStep(void)
 * for the current conditions (current integration point and strain
 * state). If localization is detected, the normals (current config)
 * to the surface and slip directions are returned */
-bool SSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
+bool SSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double detA)
 {
 	/* stress tensor */
 	const dSymMatrixT& stress = s_ij();
 			
 	/* consistent tangent modulus */
-	const dMatrixT& modulus = c_ijkl();
+	const dMatrixT& modulus = this->c_ijkl();
 	
 	/* elastic modulus */
 	const dMatrixT& modulus_e = ce_ijkl();
+
+	cout << stress << endl << endl;
+	cout << modulus << endl << endl << modulus_e << endl;
+
 
 	/* localization condition checker */
 	DetCheckT checker(stress, modulus, modulus_e);
 	normals.Dimension(NumSD());
 	slipdirs.Dimension(NumSD());
-	return checker.IsLocalized_SS(normals,slipdirs);
+	return checker.IsLocalized_SS(normals, slipdirs, detA);
+}
+
+
+bool SSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
+{
+  double dummyDetA = 0.0;
+  return IsLocalized(normals, slipdirs, dummyDetA);
 }
 
 /*************************************************************************

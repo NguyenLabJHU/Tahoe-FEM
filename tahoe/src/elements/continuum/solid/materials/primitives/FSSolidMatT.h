@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.19 2005-02-10 17:59:56 raregue Exp $ */
+/* $Id: FSSolidMatT.h,v 1.20 2005-03-04 04:06:07 cfoster Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -62,7 +62,7 @@ public:
 	 * \return 1 if the determinant of the acoustical tensor is negative
 	 * or 0 if the determinant is positive. */
 	//virtual int IsLocalized(dArrayT& normal);
-	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs);
+	virtual bool IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs, double DetA);
 
 	/** initialize current step. compute thermal dilatation */
 	virtual void InitStep(void);
