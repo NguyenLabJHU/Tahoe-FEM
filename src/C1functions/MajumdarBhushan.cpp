@@ -1,4 +1,4 @@
-/* $Id: MajumdarBhushan.cpp,v 1.4 2003-06-18 21:50:27 dzeigle Exp $ */
+/* $Id: MajumdarBhushan.cpp,v 1.5 2003-07-03 22:58:10 dzeigle Exp $ */
 #include "MajumdarBhushan.h"
 #include <math.h>
 #include <iostream.h>
@@ -54,7 +54,10 @@ double MajumdarBhushan::Function(double x) const
 	if (((fD>1.0) && (fD<2.0)) && (fS>0.0) && (fC>0.0))
 	{
 		ErrorFunc f;
-		value = (1.0/(2.0*fD))*(1.0-f.Function(x/(sqrt(2.0)*fS)));		
+		double hec = 0.5*((2.0-fD)/fD)*(1.0-f.Function(x/(sqrt(2.0)*fS)));
+		
+		value = pow(fC,1.0-0.5*fD)*pow(hec,0.5*fD)-hec;
+		//value = (1.0/(2.0*fD))*(1.0-f.Function(x/(sqrt(2.0)*fS)));	
 	}
 	else
 	{
@@ -85,7 +88,7 @@ double MajumdarBhushan::DFunction(double x) const
 	
 	if (((fD>1.0) && (fD<2.0)) && (fS>0.0) && (fC>0.0))
 	{			
-		ErrorFunc f;
+		ErrorFunc f; 
 		
 		double h = 0.5*(2.0-fD)/fD;
 		double ratio = x/(fS*sqrt(2.0));
@@ -96,7 +99,7 @@ double MajumdarBhushan::DFunction(double x) const
 			value = pow(hec,0.75)*log(hec/fC); 
 		}
 		else
-			value = pow(hec,0.5*fD)*(pow(hec,1.5-fD)-pow(fC,1.5-fD));
+			value = pow(hec,0.5*(3.0-fD))-pow(fC,1.5-fD)*pow(hec,0.5*fD);
 	}
 	else
 	{
@@ -134,21 +137,24 @@ double MajumdarBhushan::DDFunction(double x) const
 		double ratio = x/(fS*sqrt(2.0));
 		double h = 0.5*(2.0-fD)/fD;
 		double erfc = 1.0-f.Function(ratio);
+		double hec = h*erfc;
+		double eta = (h/fS)*sqrt(2.0/PI)*exp(-ratio*ratio);
 		
 		if (fD==1.5)
 		{
-			double hec = h*erfc;
 			double numer = h*exp(-ratio*ratio)*(-4.0+3.0*log(fC/hec));
 			double denom = 2.0*fS*sqrt(2.0*PI)*pow(hec,0.25);
 			
 			value = numer/denom;
 		}
 		else
-		{
-			double c0 = pow(fC,-fD)*exp(-ratio*ratio)*pow(h,-0.5*fD)*pow(erfc,-1.0-0.5*fD);
-			double c1 = (fD-3.0)*pow(fC,fD)*pow(h*erfc,1.5)+fD*pow(fC,1.5)*pow(h*erfc,fD);
+		{			
+			double c0 = 0.5*fD*pow(fC,1.5-fD)*pow(hec,0.5*(fD-2));
+			//double c0 = pow(fC,-fD)*exp(-ratio*ratio)*pow(h,-0.5*fD)*pow(erfc,-1.0-0.5*fD);
+			double c1 = 0.5*(3-fD)*pow(hec,0.5*(1-fD));
+			//double c1 = (fD-3.0)*pow(fC,fD)*pow(h*erfc,1.5)+fD*pow(fC,1.5)*pow(h*erfc,fD);
 		
-			value = c0*c1/(fS*sqrt(2.0*PI));	
+			value = eta*(c0-c1);	
 		}	
 	}
 	else
@@ -199,7 +205,10 @@ dArrayT& MajumdarBhushan::MapFunction(const dArrayT& in, dArrayT& out) const
 		if (((fD>1.0) && (fD<2.0)) && (fS>0.0) && (fC>0.0))
 		{
 			ErrorFunc f;
-			value = (1.0/(2.0*fD))*(1.0-f.Function(r/(sqrt(2.0)*fS)));		
+			double hec = 0.5*((2.0-fD)/fD)*(1.0-f.Function(r/(sqrt(2.0)*fS)));
+		
+			value = pow(fC,1.0-0.5*fD)*pow(hec,0.5*fD)-hec;
+			//value = (1.0/(2.0*fD))*(1.0-f.Function(r/(sqrt(2.0)*fS)));		
 		}
 		else
 		{
@@ -250,7 +259,7 @@ dArrayT& MajumdarBhushan::MapDFunction(const dArrayT& in, dArrayT& out) const
 				value = pow(hec,0.75)*log(hec/fC); 
 			}
 			else
-				value = pow(hec,0.5*fD)*(pow(hec,1.5-fD)-pow(fC,1.5-fD));
+				value = pow(hec,0.5*(3.0-fD))-pow(fC,1.5-fD)*pow(hec,0.5*fD);
 		}
 		else
 		{
@@ -295,10 +304,11 @@ dArrayT& MajumdarBhushan::MapDDFunction(const dArrayT& in, dArrayT& out) const
 			double ratio = r/(fS*sqrt(2.0));
 			double h = 0.5*(2.0-fD)/fD;
 			double erfc = 1.0-f.Function(ratio);
+			double hec = h*erfc;
+			double eta = (h/fS)*sqrt(2.0/PI)*exp(-ratio*ratio);
 		
 			if (fD==1.5)
 			{
-				double hec = h*erfc;
 				double numer = h*exp(-ratio*ratio)*(-4.0+3.0*log(fC/hec));
 				double denom = 2.0*fS*sqrt(2.0*PI)*pow(hec,0.25);
 			
@@ -306,10 +316,10 @@ dArrayT& MajumdarBhushan::MapDDFunction(const dArrayT& in, dArrayT& out) const
 			}
 			else
 			{
-				double c0 = pow(fC,-fD)*exp(-ratio*ratio)*pow(h,-0.5*fD)*pow(erfc,-1.0-0.5*fD);
-				double c1 = (fD-3.0)*pow(fC,fD)*pow(h*erfc,1.5)+fD*pow(fC,1.5)*pow(h*erfc,fD);
+				double c0 = 0.5*fD*pow(fC,1.5-fD)*pow(hec,0.5*(fD-2));
+				double c1 = 0.5*(3-fD)*pow(hec,0.5*(1-fD));
 		
-				value = c0*c1/(fS*sqrt(2.0*PI));	
+				value = eta*(c0-c1);	
 			}		
 		}
 		else

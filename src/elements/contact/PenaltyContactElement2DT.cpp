@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.45 2003-07-03 00:04:38 rjones Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.46 2003-07-03 22:58:12 dzeigle Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -88,7 +88,7 @@ void PenaltyContactElement2DT::Initialize(void)
                 if (mb_f==1.5)
                 	material_coeff=sqrt(PI*mb_g)*mb_mod;
                 else
-                	material_coeff=(4.0/3.0)*sqrt(2.0*PI)*mb_mod
+                	material_coeff=(4.0/3.0)*sqrt(PI)*mb_mod
 							*pow(mb_g,mb_f-1)*mb_f/(3.0-2.0*mb_f);
                 double area_coeff = 0.5/mb_f;
 				enf_parameters[kPenalty] *= material_coeff;// overwrite
@@ -371,7 +371,7 @@ void PenaltyContactElement2DT::RHSDriver(void)
 			double mb_c = mat_parameters[kAreaFraction];
 
 			MajumdarBhushan MBArea(mb_f,mb_s,mb_c); 
-			double area_coeff = 0.5/mb_f;
+			double area_coeff = 0.5*mb_f/(mb_f-2.0); //0.5/mb_f;
 		  	fRealArea[s] += (area_coeff*MBArea.Function(gap)*weights[i]);
 		  }
 		}
