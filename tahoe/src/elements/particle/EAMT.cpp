@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.42 2003-08-04 16:36:10 saubry Exp $ */
+/* $Id: EAMT.cpp,v 1.43 2003-08-07 00:03:52 pgandhi Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -6,6 +6,9 @@
 #include "InverseMapT.h"
 #include "CommManagerT.h"
 #include "dSPMatrixT.h"
+#include "dSymMatrixT.h"
+#include "dArray2DT.h"
+
 
 /* EAM potentials */
 #include "ParadynEAMT.h"
@@ -130,6 +133,11 @@ void EAMT::WriteOutput(void)
   /* map from partition node index */
   const InverseMapT* inverse_map = fCommManager.PartitionNodes_inv();
 
+  dSymMatrixT vs_i(ndof), temp(ndof);
+  int num_stresses=vs_i.NumValues(ndof);
+  //dArray2DT vsvalues(non, num_stresses);
+  num_output +=num_stresses; 
+
   /* output arrays length number of active nodes */
   dArray2DT n_values(non, num_output), e_values;
 
@@ -144,12 +152,20 @@ void EAMT::WriteOutput(void)
   const dArray2DT* velocities = NULL;
   if (field.Order() > 0) velocities = &(field[1]);
 
-  /* collect displacements */
+ 
+  /* collect mass per particle */
+  dArrayT mass(fNumTypes);
+  for (int i = 0; i < fNumTypes; i++)
+    mass[i] = fEAMProperties[fPropertiesMap(i,i)]->Mass();
+
+
+ /* collect displacements */
   dArrayT vec, values_i;
   for (int i = 0; i < non; i++) 
     {
       int   tag_i = (parition_nodes) ? (*parition_nodes)[i] : i;
       int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
+      int  type_i = fType[tag_i];
       
       /* values for particle i */
       n_values.RowAlias(local_i, values_i);
@@ -157,13 +173,17 @@ void EAMT::WriteOutput(void)
       /* copy in */
       vec.Set(ndof, values_i.Pointer());
       displacement.RowCopy(tag_i, vec);
-  }
-
-  /* collect mass per particle */
-  dArrayT mass(fNumTypes);
-  for (int i = 0; i < fNumTypes; i++)
-    mass[i] = fEAMProperties[fPropertiesMap(i,i)]->Mass();
-
+  
+	/* kinetic contribution to the virial */
+		if (velocities) {
+			velocities->RowAlias(tag_i, vec);
+			temp.Outer(vec);
+		 	for (int cc = 0; cc < num_stresses; cc++) {
+				int ndex = ndof+2+cc;
+		   		values_i[ndex] = -mass[type_i]*temp[cc];
+		 	}
+		}
+    }
   if(iEmb == 1)
     {
       /* get electron density */
@@ -182,6 +202,13 @@ void EAMT::WriteOutput(void)
   EAMPropertyT::PairEnergyFunction  pair_energy_i = NULL;
   EAMPropertyT::PairEnergyFunction  pair_energy_j = NULL;
 
+  EAMPropertyT::PairForceFunction  pair_force_i  = NULL;
+  EAMPropertyT::PairForceFunction  pair_force_j  = NULL;
+
+  EAMPropertyT::EDForceFunction ed_force_i = NULL;
+  EAMPropertyT::EDForceFunction ed_force_j = NULL;
+  fForce = 0.0;
+
   iArrayT neighbors;
   dArrayT x_i, x_j, r_ij(ndof);
 
@@ -198,6 +225,8 @@ void EAMT::WriteOutput(void)
       int   tag_i = neighbors[0]; /* self is 1st spot */
       int  type_i = fType[tag_i];		
       int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
+      double* f_i = fForce(tag_i);
+      vs_i.SetToScaled(0.0,vs_i);
 
       /* values for particle i */
       n_values.RowAlias(local_i, values_i);		
@@ -207,6 +236,7 @@ void EAMT::WriteOutput(void)
 	{
 	  velocities->RowAlias(tag_i, vec);
 	  values_i[ndof+1] = 0.5*mass[type_i]*dArrayT::Dot(vec, vec);
+		    
 	}
       coords.RowAlias(tag_i, x_i);
 
@@ -218,11 +248,15 @@ void EAMT::WriteOutput(void)
 	  /* tags */
 	  int   tag_j = neighbors[j];
 	  int  type_j = fType[tag_j];		
+	  double* f_j = fForce(tag_j);
+	  //double* x_j = coords(tag_j);
 			
 	  int property_i = fPropertiesMap(type_i, type_j);
 	  if (property_i != current_property_i)
 	    {
 	      pair_energy_i  = fEAMProperties[property_i]->getPairEnergy();
+	      pair_force_i  = fEAMProperties[property_i]->getPairForce();
+	      ed_force_i    = fEAMProperties[property_i]->getElecDensForce();
 	      current_property_i = property_i;
 	    }
 	  
@@ -230,6 +264,8 @@ void EAMT::WriteOutput(void)
 	  if (property_j != current_property_j)
 	    {
 	      pair_energy_j  = fEAMProperties[property_j]->getPairEnergy();
+	      pair_force_j  = fEAMProperties[property_j]->getPairForce();
+	      ed_force_j    = fEAMProperties[property_j]->getElecDensForce();
 	      current_property_j = property_j;
 	    }
 
@@ -239,7 +275,9 @@ void EAMT::WriteOutput(void)
 	  /* connecting vector */
 	  r_ij.DiffOf(x_j, x_i);
 	  double r = r_ij.Magnitude();
-	  
+
+
+
 	  /* Pair Potential : phi = 0.5 * z_i z_j /r */
 	  double phiby2 = 0.0;
 	  if(ipair == 1) 
@@ -249,9 +287,42 @@ void EAMT::WriteOutput(void)
 	    double phi =  z_i * z_j/r;
 	    phiby2 = 0.5*phi;
 	  }
-
 	  values_i[ndof] +=  phiby2;
 	  
+       /* Compute Force  */
+	  double Fbyr=0.0;
+	  /* Component of force coming from Pair potential */
+	  if(ipair == 1)
+	    {
+
+	      double z_i = pair_energy_i(r,NULL,NULL);
+	      double z_j = pair_energy_j(r,NULL,NULL);
+	      double zp_i = pair_force_i(r,NULL,NULL);
+	      double zp_j = pair_force_j(r,NULL,NULL);
+	      
+	      double E = z_i*z_j/r;
+	      double F = (z_i*zp_j + zp_i*z_j)/r - E/r;
+	      
+	      Fbyr = F/r;
+
+	    }
+
+	  /* Component of force coming from Embedding energy */
+	      if(iEmb == 1){
+	    
+	      double Ep_i   = fEmbeddingForce(tag_i,0);
+	      double Ep_j   = fEmbeddingForce(tag_j,0);
+	      double rhop_i = ed_force_i(r,NULL,NULL);
+	      double rhop_j = ed_force_j(r,NULL,NULL);
+
+	      double F =  Ep_j * rhop_i + Ep_i * rhop_j;
+	      Fbyr += F/r;
+	      }
+
+	      temp.Outer(r_ij);
+	      vs_i.AddScaled( 0.5*Fbyr,temp);
+
+
 	  /* second node may not be on processor */
 	  if (!proc_map || (*proc_map)[tag_j] == rank) 
 	    {
@@ -259,10 +330,29 @@ void EAMT::WriteOutput(void)
 	      
 	      if (local_j < 0 || local_j >= n_values.MajorDim())
 		cout << caller << ": out of range: " << local_j << '\n';
-	      else
+	   
+	      else {
+
+	      	/* potential energy */
 		n_values(local_j, ndof) += phiby2;
-	    }	  
+
+	       	/* accumulate into stress into array */
+	       	for (int cc = 0; cc < num_stresses; cc++) {
+		  int ndex = ndof+2+cc;
+		  n_values(local_j, ndex) += 0.5*Fbyr*temp[cc];		   
+		}
+	      }	  
+	    }
 	}
+
+
+		 /*copy stress into array*/
+		 for (int cc = 0; cc < num_stresses; cc++) {
+			int ndex = ndof+2+cc;
+		   	values_i[ndex] += vs_i[cc];
+		 }		   
+
+    
     }	
 
   /* send */
@@ -592,14 +682,39 @@ void EAMT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 /* generate labels for output data */
 void EAMT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 {
-  if (NumDOF() > 3) ExceptionT::GeneralFail("EAMT::GenerateOutputLabels");
+  int ndof=NumDOF();
+  if (ndof > 3) ExceptionT::GeneralFail("EAMT::GenerateOutputLabels");
 
   /* displacement labels */
   const char* disp[3] = {"D_X", "D_Y", "D_Z"};
 	
   int num_labels =
-    NumDOF() // displacements
+    ndof // displacements
     + 2;     // PE and KE
+	///////////////////////////////////////////////////////////
+	int num_stress=0;
+	const char* stress[6];
+	if (ndof==3){
+	  num_stress=6;
+	  stress[0]="s11";
+	  stress[1]="s22";
+	  stress[2]="s33";
+	  stress[3]="s23";
+	  stress[4]="s13";
+	  stress[5]="s12";
+	  }
+	  else if (ndof==2) {
+	   num_stress=3;
+	  stress[0]="s11";
+	  stress[1]="s22";
+	  stress[2]="s12";
+	  }
+	  else if (ndof==1) {
+	   num_stress=1;
+	  stress[0] = "s11";
+	  }
+	num_labels+=num_stress;
+	/////////////////////////////////////////////////
 
   labels.Dimension(num_labels);
   int dex = 0;
@@ -607,6 +722,11 @@ void EAMT::GenerateOutputLabels(ArrayT<StringT>& labels) const
     labels[dex] = disp[dex];
   labels[dex++] = "PE";
   labels[dex++] = "KE";
+
+	////////////////////////////////////////////////////////////
+	for (int ns =0 ; ns<num_stress; ns++)
+	  labels[dex++]=stress[ns];
+	//////////////////////////////////////////////////////////
 }
 
 /* form group contribution to the stiffness matrix */
