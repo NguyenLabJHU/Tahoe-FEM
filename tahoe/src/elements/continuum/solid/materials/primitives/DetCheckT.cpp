@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.21 2002-07-13 00:03:58 cfoster Exp $ */
+/* $Id: DetCheckT.cpp,v 1.22 2002-07-18 00:46:52 paklein Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "DetCheckT.h"
@@ -12,6 +12,13 @@
 #include "ofstreamT.h"
 # include "AutoArrayT.h"
 
+/* needed to access element information */
+#include "ContinuumElementT.h"
+#include "ElementSupportT.h"
+
+/* initialize static variables */
+bool DetCheckT::fFirstPass = true;
+
 /* constants */
 
 using namespace Tahoe;
@@ -21,7 +28,8 @@ const double Pi = acos(-1.0);
 /* constructor */
 DetCheckT::DetCheckT(const dSymMatrixT& s_jl, const dMatrixT& c_ijkl):
 	fs_jl(s_jl),
-	fc_ijkl(c_ijkl)
+	fc_ijkl(c_ijkl),
+	fElement(NULL)
 {
 
 }
@@ -51,6 +59,7 @@ inline double DetCheckT::dddet(double t) const
  * Returns true if the normals are distinct, false if not. 
  * Both vectors should be normalized before being passed into this function. 
  */
+bool NormalCompare(const dArrayT& normal1, const dArrayT& normal2, double tol);
 bool NormalCompare(const dArrayT& normal1, const dArrayT& normal2, double tol)
 {
   dArrayT resid(3), negResid(3);
@@ -65,6 +74,7 @@ bool NormalCompare(const dArrayT& normal1, const dArrayT& normal2, double tol)
 /* As above, but fits form for comparator function in AutoArrayT. 
  * 10e-10 seems to be a good tolerance for this comparison
  */
+bool NormalCompare(const dArrayT& normal1, const dArrayT& normal2);
 bool NormalCompare(const dArrayT& normal1, const dArrayT& normal2)
 {
   return NormalCompare(normal1, normal2, 10e-10);
@@ -255,14 +265,21 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
   const int outputFileWidth = outputPrecision + 8;
   AutoArrayT <dArrayT> normalSet;
 
-  //const ElementCardT& element = CurrentElement();
-  //const ElementSupportT& support = ContinuumElement().ElementSupport();
+  const ElementCardT* element = (fElement) ? &(fElement->CurrentElement()) : NULL;
+  const ElementSupportT* support = (fElement) ? &(fElement->ElementSupport()) : NULL;
   
   /* Set up output file */
   normalSet.Free();
-  ofstreamT normal_out("normal.info", ios::app);
+  ofstreamT normal_out;
+  if (fFirstPass) {
+  	normal_out.open("normal.info");
+  	fFirstPass = false;
+  }
+  else
+    normal_out.open_append("normal.info");
+  
   normal_out << "\ntime step    element #    ip#\n";
-  // normal_out << support.StepNumber() << endl << endl;
+  normal_out << ((support) ? support->StepNumber() : 0) << endl << endl;
   normal_out << setw(outputFileWidth) << "approx normal0" << setw(outputFileWidth) << "approx normal1" <<  setw(outputFileWidth) << " approx normal2" <<  setw(outputFileWidth) << "normal0" <<  setw(outputFileWidth) << "normal1" <<  setw(outputFileWidth) << "normal2" << setw(outputFileWidth) << "detA" <<  setw(outputFileWidth) << "in normalSet?\n";
   
   // initialize variables
