@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.18.2.5 2002-05-07 19:03:43 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.18.2.6 2002-05-10 00:06:07 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -314,13 +314,12 @@ void CSEAnisoT::LHSDriver(void)
 	iArrayT facet1;
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 
-	dArray2DT fNodalQuantities;
-	if (fCalcNodalInfo) 
+/*	if (fCalcNodalInfo) 
 	{
 		ElementBaseT& surroundingGroup = ElementSupport().ElementGroup(fBulkGroup);
 		surroundingGroup.SendOutput(fNodalInfoCode);
 		fNodalQuantities = ElementSupport().OutputAverage();
-	}
+	}*/
 
 	AutoArrayT<double> state2;
 	dArrayT state;
@@ -354,7 +353,7 @@ void CSEAnisoT::LHSDriver(void)
 		  	fNodalValues.Allocate(numNodes,fNodalQuantities.MinorDim());
 		  	for (int iIndex = 0; iIndex < numNodes; iIndex++) 
 		    	elementVals.SetRow(iIndex,fNodalQuantities(ndIndices[iIndex]));
-		  	ndIndices[0] = 3;ndIndices[3] = 0;ndIndices[1] = 2;ndIndices[2] =1;
+		  //	ndIndices[0] = 3;ndIndices[3] = 0;ndIndices[1] = 2;ndIndices[2] =1;
 		  //	dArray2DT sbntma;
 		  //	sbntma = elementVals;
 		  //	elementVals.Accumulate(ndIndices,sbntma);
@@ -476,11 +475,12 @@ void CSEAnisoT::RHSDriver(void)
 	fFractureArea = 0.0;
 	
 	/* If the potential needs info from the nodes, start to gather it now */
-	dArray2DT fNodalQuantities;
 	if (fCalcNodalInfo) 
 	{
 		ElementBaseT& surroundingGroup = ElementSupport().ElementGroup(fBulkGroup);
 		surroundingGroup.SendOutput(fNodalInfoCode);
+		if (fNodalQuantities.Length() > 0)
+			fNodalQuantities.Free();
 		fNodalQuantities = ElementSupport().OutputAverage();
 	}
 
@@ -750,15 +750,14 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 
 	/* If the potential needs info from the nodes, start to gather it now */
-	dArray2DT fNodalQuantities;
-	if (fCalcNodalInfo) 
+/*	if (fCalcNodalInfo) 
 	{
 		ElementBaseT& surroundingGroup = ElementSupport().ElementGroup(fBulkGroup);
 		surroundingGroup.SendOutput(fNodalInfoCode);
 		fNodalQuantities = ElementSupport().OutputAverage();
 	}	
 	ElementSupport().ResetAverage(n_out);
-	
+*/	
 	AutoArrayT<double> state;
 	Top();
 	while (NextElement())
