@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.8 2002-07-02 19:55:18 cjkimme Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.9 2002-10-16 22:55:05 cjkimme Exp $ */
 /* created: paklein (05/31/1998) */
 
 #include "AugLagContact2DT.h"
@@ -91,6 +91,7 @@ void AugLagContact2DT::SetDOFTags(void)
 
 iArrayT& AugLagContact2DT::DOFTags(int tag_set)
 {
+#pragma unused(tag_set)
 #if __option(extended_errorcheck)
 	/* check */
 	if (tag_set != 0)
@@ -133,6 +134,7 @@ void AugLagContact2DT::GenerateElementData(void)
 /* return the contact elements */
 const iArray2DT& AugLagContact2DT::DOFConnects(int tag_set) const
 {
+#pragma unused(tag_set)
 #if __option(extended_errorcheck)
 	/* check */
 	if (tag_set != 0)
@@ -149,6 +151,7 @@ const iArray2DT& AugLagContact2DT::DOFConnects(int tag_set) const
 /* restore the DOF values to the last converged solution */
 void AugLagContact2DT::ResetDOF(dArray2DT& DOF, int tag_set) const
 {
+#pragma unused(tag_set)
 #if __option(extended_errorcheck)
 	/* check */
 	if (tag_set != 0)
