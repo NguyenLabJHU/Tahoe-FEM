@@ -1,6 +1,5 @@
-/* $Id: DomainIntegrationT.h,v 1.8 2002-10-20 22:49:46 paklein Exp $ */
+/* $Id: DomainIntegrationT.h,v 1.9 2002-10-23 05:00:25 paklein Exp $ */
 /* created: paklein (09/04/1998) */
-
 #ifndef _DOMAIN_INTEGRATION_T_H_
 #define _DOMAIN_INTEGRATION_T_H_
 
@@ -39,15 +38,20 @@ public:
 	/** weights for all the integration points */
 	const double* IPWeights(void) const;
 
-	/* accessors */
+	/** \name accessors */
+	/*@{*/
 	int NumSD(void) const; /**< number of spatial dimensions */
 	int NumIP(void) const; /**< number of integration points */
+	GeometryT::CodeT GeometryCode(void) const; /**< domain geometry */
+	/*@}*/
 
-	/* integration control */
+	/** \name integration control */
+	/*@{*/
 	void TopIP(void);   /**< restart loop over integration points */
 	int  NextIP(void);  /**< next integration point. \return 0 when after last ip */
 	void SetIP(int ip); /**< move to specified integration point */
 	const int& CurrIP(void) const; /**< reference to the "current" integration point number */
+	/*@}*/
 
 	/** array nodal shape functions at the "current" integration point */
 	const double* IPShape(void) const;
@@ -149,6 +153,10 @@ return fDomain->Weight();
 /* accessors */
 inline int DomainIntegrationT::NumSD(void) const { return fDomain->NumSD(); }
 inline int DomainIntegrationT::NumIP(void) const { return fNumIP; }
+inline GeometryT::CodeT DomainIntegrationT::GeometryCode(void) const 
+{ 
+	return fDomain->GeometryCode(); 
+}
 
 /* integration management */
 inline void DomainIntegrationT::TopIP(void)  { fCurrIP = -1; }
