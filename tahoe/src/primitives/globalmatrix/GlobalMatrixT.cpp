@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.16 2003-11-21 22:48:06 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.17 2004-03-14 01:53:16 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "GlobalMatrixT.h"
 #include <iostream.h>
@@ -86,8 +86,8 @@ bool GlobalMatrixT::Solve(dArrayT& result)
 			fOut.precision(old_precision);
 	
 			/* factorize */
-			fIsFactorized = 1;
 			Factorize();
+			fIsFactorized = 1;
 	
 			/* rank checks after factorization */
 			fOut.precision(12);
