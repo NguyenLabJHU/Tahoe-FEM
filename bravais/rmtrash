@@ -1,6 +1,0 @@
-echo "Erase trash files"
-rm *~
-rm *case 
-rm *geo
-rm *.atoms
-echo "End"
