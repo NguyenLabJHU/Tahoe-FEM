@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.h,v 1.8 2002-01-27 18:51:08 paklein Exp $ */
+/* $Id: IOManager_mpi.h,v 1.9 2002-02-18 09:37:33 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 
 #ifndef _IOMANAGER_MPI_H_
@@ -123,7 +123,7 @@ private:
 	 * not needed because all elements are resident, hence the ID's (by
 	 * block) can be taken directly from the elements maps stored in the
 	 * local PartitionT. Seems to be redundant with IOManager_mpi::fNodeCounts */
-	iArrayT fOutNodeCounts;
+	iArrayT fOutNodeCounts;	
 };
 
 #endif /* _IOMANAGER_MPI_H_ */
