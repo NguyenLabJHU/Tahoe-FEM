@@ -1,4 +1,4 @@
-/* $Id: NOX_Tahoe_Group.cpp,v 1.5 2002-10-20 22:49:48 paklein Exp $ */
+/* $Id: NOX_Tahoe_Group.cpp,v 1.6 2003-12-28 08:24:18 paklein Exp $ */
 #include "NOX_Tahoe_Group.h"
 
 /* optional */
@@ -94,7 +94,7 @@ NOX::Abstract::Group& Group::operator=(const NOX::Abstract::Group& source)
 	throw ExceptionT::kGeneralFail;
 #endif
 
-	const Group* t_group = dynamic_cast<const Group*>(&source);
+	const Group* t_group = TB_DYNAMIC_CAST(const Group*, &source);
 	if (!t_group) {
 		cout << "\n Tahoe::Group::operator= : cast failed" << endl;
 		throw ExceptionT::kGeneralFail;
@@ -123,14 +123,14 @@ bool Group::computeX(const NOX::Abstract::Group& grp, const NOX::Abstract::Vecto
 #endif
 
 	/* cast group */
-	const Group* t_grp = dynamic_cast<const Group*>(&grp);
+	const Group* t_grp = TB_DYNAMIC_CAST(const Group*, &grp);
 	if (!t_grp) {
 		cout << "\n Tahoe::Group::computeX: Group cast failed" << endl;
 		throw ExceptionT::kGeneralFail;
 	}
 
 	/* cast vector */
-	const Vector* t_d = dynamic_cast<const Vector*>(&d);
+	const Vector* t_d = TB_DYNAMIC_CAST(const Vector*, &d);
 	if (!t_d) {
 		cout << "\n Tahoe::Group::computeX: Vector cast failed" << endl;
 		throw ExceptionT::kGeneralFail;
@@ -254,12 +254,12 @@ bool Group::applyJacobian(const NOX::Abstract::Vector& input, NOX::Abstract::Vec
 	else
 	{
 		/* cast to Tahoe vectors */
-		const Vector* t_input = dynamic_cast<const Vector*>(&input);
+		const Vector* t_input = TB_DYNAMIC_CAST(const Vector*, &input);
 		if (!t_input) {
 			cout << "\n Group::applyJacobian: cast of input failed" << endl;
 			throw ExceptionT::kGeneralFail;
 		}
-		Vector* t_result = dynamic_cast<Vector*>(&result);
+		Vector* t_result = TB_DYNAMIC_CAST(Vector*, &result);
 		if (!t_result) {
 			cout << "\n Group::applyJacobian: cast of result failed" << endl;
 			throw ExceptionT::kGeneralFail;
@@ -279,12 +279,12 @@ bool Group::applyJacobianTranspose(const NOX::Abstract::Vector& input, NOX::Abst
 	else
 	{
 		/* cast to Tahoe vectors */
-		const Vector* t_input = dynamic_cast<const Vector*>(&input);
+		const Vector* t_input = TB_DYNAMIC_CAST(const Vector*, &input);
 		if (!t_input) {
 			cout << "\n Group::applyJacobianTranspose: cast of input failed" << endl;
 			throw ExceptionT::kGeneralFail;
 		}
-		Vector* t_result = dynamic_cast<Vector*>(&result);
+		Vector* t_result = TB_DYNAMIC_CAST(Vector*, &result);
 		if (!t_result) {
 			cout << "\n Group::applyJacobianTranspose: cast of result failed" << endl;
 			throw ExceptionT::kGeneralFail;
@@ -304,7 +304,7 @@ bool Group::applyJacobianDiagonalInverse(const NOX::Abstract::Vector& input, NOX
 	else
 	{
 		/* cast to Tahoe vector */
-		Vector* t_result = dynamic_cast<Vector*>(&result);
+		Vector* t_result = TB_DYNAMIC_CAST(Vector*, &result);
 		if (!t_result) {
 			cout << "\n Group::applyJacobianDiagonalInverse: cast of result failed" << endl;
 			throw ExceptionT::kGeneralFail;

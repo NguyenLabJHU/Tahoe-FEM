@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.18 2003-12-11 00:38:06 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.19 2003-12-28 08:23:20 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -126,7 +126,7 @@ MaterialSupportT* FiniteStrainT::NewMaterialSupport(MaterialSupportT* p) const
 	SolidElementT::NewMaterialSupport(p);
 	
 	/* set FiniteStrainT fields */
-	FSMatSupportT* ps = dynamic_cast<FSMatSupportT*>(p);
+	FSMatSupportT* ps = TB_DYNAMIC_CAST(FSMatSupportT*, p);
 	if (ps) {
 		ps->SetDeformationGradient(&fF_List);
 		ps->SetDeformationGradient_last(&fF_last_List);
@@ -142,7 +142,7 @@ MaterialListT* FiniteStrainT::NewMaterialList(int nsd, int size)
 	{
 		/* material support */
 		if (!fFSMatSupport) {
-			fFSMatSupport = dynamic_cast<FSMatSupportT*>(NewMaterialSupport());
+			fFSMatSupport = TB_DYNAMIC_CAST(FSMatSupportT*, NewMaterialSupport());
 			if (!fFSMatSupport) ExceptionT::GeneralFail("FiniteStrainT::NewMaterialList");
 		}
 

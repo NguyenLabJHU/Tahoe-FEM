@@ -1,4 +1,4 @@
-// $Id: NOX_Tahoe_Vector.cpp,v 1.6 2002-10-20 22:49:48 paklein Exp $
+// $Id: NOX_Tahoe_Vector.cpp,v 1.7 2003-12-28 08:24:18 paklein Exp $
 #include "NOX_Tahoe_Vector.h"
 
 /* optional */
@@ -36,7 +36,7 @@ NOX::Abstract::Vector& Vector::operator=(const dArrayT& source)
 
 NOX::Abstract::Vector& Vector::operator=(const NOX::Abstract::Vector& source)
 {
-	return operator=(dynamic_cast<const Vector&>(source));
+	return operator=(TB_DYNAMIC_CAST(const Vector&, source));
 }
 
 NOX::Abstract::Vector& Vector::operator=(const Vector& source)
@@ -53,7 +53,7 @@ NOX::Abstract::Vector& Vector::init(double value)
 
 NOX::Abstract::Vector& Vector::abs(const NOX::Abstract::Vector& base)
 {
-	return abs(dynamic_cast<const Vector&>(base));
+	return abs(TB_DYNAMIC_CAST(const Vector&, base));
 }
 
 NOX::Abstract::Vector& Vector::abs(const Vector& base)
@@ -69,7 +69,7 @@ NOX::Abstract::Vector& Vector::abs(const Vector& base)
 
 NOX::Abstract::Vector& Vector::reciprocal(const NOX::Abstract::Vector& base)
 {
-	return reciprocal(dynamic_cast<const Vector&>(base));
+	return reciprocal(TB_DYNAMIC_CAST(const Vector&, base));
 }
 
 NOX::Abstract::Vector& Vector::reciprocal(const Vector& base)
@@ -91,7 +91,7 @@ NOX::Abstract::Vector& Vector::scale(double alpha)
 
 NOX::Abstract::Vector& Vector::update(double alpha, const NOX::Abstract::Vector& a, double gamma)
 {
-	return update(alpha, dynamic_cast<const Vector&>(a), gamma);
+	return update(alpha, TB_DYNAMIC_CAST(const Vector&, a), gamma);
 }
 
 NOX::Abstract::Vector& Vector::update(double alpha, const Vector& a, double gamma)
@@ -104,8 +104,8 @@ NOX::Abstract::Vector& Vector::update(double alpha, const NOX::Abstract::Vector&
 				 double beta, const NOX::Abstract::Vector& b,
 				 double gamma)
 {
-  	return update(alpha, dynamic_cast<const Vector&>(a), 
-                   beta, dynamic_cast<const Vector&>(b), gamma);
+  	return update(alpha, TB_DYNAMIC_CAST(const Vector&, a), 
+                   beta, TB_DYNAMIC_CAST(const Vector&, b), gamma);
 }
 
 NOX::Abstract::Vector& Vector::update(double alpha, const Vector& a, 
@@ -143,7 +143,7 @@ double Vector::norm(NOX::Abstract::Vector::NormType type) const
 
 double Vector::norm(const NOX::Abstract::Vector& weights, NOX::Abstract::Vector::NormType type) const
 {
-	return norm(dynamic_cast<const Vector&>(weights), type);
+	return norm(TB_DYNAMIC_CAST(const Vector&, weights), type);
 }
 
 double Vector::norm(const Vector& weights, NOX::Abstract::Vector::NormType type) const
@@ -171,7 +171,7 @@ double Vector::norm(const Vector& weights, NOX::Abstract::Vector::NormType type)
 
 double Vector::dot(const Abstract::Vector& y) const
 {
-	return dot(dynamic_cast<const Vector&>(y));
+	return dot(TB_DYNAMIC_CAST(const Vector&, y));
 }
 
 double Vector::dot(const Vector& y) const

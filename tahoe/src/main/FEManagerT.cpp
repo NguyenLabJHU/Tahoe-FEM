@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.67 2003-12-02 01:20:37 cjkimme Exp $ */
+/* $Id: FEManagerT.cpp,v 1.68 2003-12-28 08:23:46 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -934,28 +934,16 @@ int FEManagerT::GetGlobalNumEquations(int group) const
 eIntegratorT* FEManagerT::eIntegrator(int index) const
 {
 	/* cast to eIntegratorT */
-#ifdef __NO_RTTI__
-	eIntegratorT* e_integrator = (eIntegratorT*) fIntegrators[index];
-		//NOTE: cast should be safe for all cases
-#else
-	eIntegratorT* e_integrator = dynamic_cast<eIntegratorT*>(fIntegrators[index]);
+	eIntegratorT* e_integrator = TB_DYNAMIC_CAST(eIntegratorT*, fIntegrators[index]);
 	if (!e_integrator) ExceptionT::GeneralFail();
-#endif
-
 	return e_integrator;
 }
 
 nIntegratorT* FEManagerT::nIntegrator(int index) const
 {
 	/* cast to nIntegratorT */
-#ifdef __NO_RTTI__
-	nIntegratorT* n_integrator = (nIntegratorT*) fIntegrators[index];
-		//NOTE: cast should be safe for all cases
-#else
-	nIntegratorT* n_integrator = dynamic_cast<nIntegratorT*>(fIntegrators[index]);
+	nIntegratorT* n_integrator = TB_DYNAMIC_CAST(nIntegratorT*, fIntegrators[index]);
 	if (!n_integrator) ExceptionT::GeneralFail();
-#endif
-
 	return n_integrator;
 }
 

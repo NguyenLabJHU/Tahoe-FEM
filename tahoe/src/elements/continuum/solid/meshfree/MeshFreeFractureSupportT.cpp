@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.cpp,v 1.10 2003-11-21 22:47:04 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.cpp,v 1.11 2003-12-28 08:23:37 paklein Exp $ */
 /* created: paklein (02/15/2000) */
 #include "MeshFreeFractureSupportT.h"
 
@@ -467,7 +467,7 @@ bool MeshFreeFractureSupportT::CheckFronts(SolidMaterialT& material,
 #endif
 
 	/* check for finite deformation */
-	FSSolidMatT* FD_material = dynamic_cast<FSSolidMatT*>(&material);
+	FSSolidMatT* FD_material = TB_DYNAMIC_CAST(FSSolidMatT*, &material);
 	
 	/* dimensions */
 	int nsd = fMFShapes->NumSD();
@@ -651,7 +651,7 @@ bool MeshFreeFractureSupportT::CheckSurfaces(SolidMaterialT& material,
 #endif
 
 	/* check for finite deformation */
-	FSSolidMatT* FD_material = dynamic_cast<FSSolidMatT*>(&material);
+	FSSolidMatT* FD_material = TB_DYNAMIC_CAST(FSSolidMatT*, &material);
 
 	/* sampling point data */
 	iArrayT neighbors;

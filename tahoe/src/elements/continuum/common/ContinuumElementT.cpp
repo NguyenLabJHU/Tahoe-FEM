@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.32 2003-12-02 17:15:41 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.33 2003-12-28 08:23:07 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -494,14 +494,14 @@ void ContinuumElementT::ApplyTractionBC(void)
 #else
 			/* use thickness for 2D solid deformation elements */
 			double thick = 1.0;
-			if (ndof == 2 && ndof == 2) //better to do this once elsewhere?
+			if (ndof == 2 && nsd == 2) //better to do this once elsewhere?
 			{
 				/* get material pointer */
 				const ElementCardT& elem_card = fElementCards[elem];
 				ContinuumMaterialT* pmat = (*fMaterialList)[elem_card.MaterialNumber()];
 			
 				/* thickness from 2D material */
-				Material2DT* pmat2D = dynamic_cast<Material2DT*>(pmat);
+				Material2DT* pmat2D = TB_DYNAMIC_CAST(Material2DT*, pmat);
 				if (pmat2D) thick = pmat2D->Thickness();
 			}
 #endif

@@ -1,4 +1,4 @@
-/* $Id: SolidMatSupportT.cpp,v 1.4 2003-01-29 07:34:57 paklein Exp $ */
+/* $Id: SolidMatSupportT.cpp,v 1.5 2003-12-28 08:23:29 paklein Exp $ */
 #include "SolidMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -29,7 +29,7 @@ void SolidMatSupportT::SetContinuumElement(const ContinuumElementT* p)
 
 #ifdef CONTINUUM_ELEMENT
 	/* cast to elastic element pointer */
-	fSolidElement = dynamic_cast<const SolidElementT*>(p);
+	fSolidElement = TB_DYNAMIC_CAST(const SolidElementT*, p);
 #endif
 }
 

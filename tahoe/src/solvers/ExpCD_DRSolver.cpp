@@ -1,4 +1,4 @@
-/* $Id: ExpCD_DRSolver.cpp,v 1.8 2003-03-31 22:59:32 paklein Exp $ */
+/* $Id: ExpCD_DRSolver.cpp,v 1.9 2003-12-28 08:24:14 paklein Exp $ */
 /* created: paklein (08/19/1998) */
 
 #include "ExpCD_DRSolver.h"
@@ -31,17 +31,14 @@ ExpCD_DRSolver::ExpCD_DRSolver(FEManagerT& fe_manager, int group):
 	}
 	else
 	{
-#ifdef __NO_RTTI__
-		DiagonalMatrixT* diagonal_matrix = (DiagonalMatrixT*) fLHS;
-#else	
-		DiagonalMatrixT* diagonal_matrix = dynamic_cast<DiagonalMatrixT*>(fLHS);
+		DiagonalMatrixT* diagonal_matrix = TB_DYNAMIC_CAST(DiagonalMatrixT*, fLHS);
 		if (!fLHS)
 		{
 			cout << "\n ExpCD_DRSolver::ExpCD_DRSolver: cast of global matrix to\n"
 			     <<   "    diagonal matrix failed" << endl;
 			throw ExceptionT::kGeneralFail;
 		}
-#endif
+
 		/* reset assembly mode */
 		diagonal_matrix->SetAssemblyMode(DiagonalMatrixT::kAbsRowSum);
 	}

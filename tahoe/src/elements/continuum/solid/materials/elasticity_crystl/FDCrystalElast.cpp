@@ -1,4 +1,4 @@
-/* $Id: FDCrystalElast.cpp,v 1.8 2003-01-29 07:34:56 paklein Exp $ */
+/* $Id: FDCrystalElast.cpp,v 1.9 2003-12-28 08:23:25 paklein Exp $ */
 #include "FDCrystalElast.h"
 
 #include <stdlib.h>
@@ -69,7 +69,7 @@ FDCrystalElast::FDCrystalElast(ifstreamT& in, const FSMatSupportT& support):Crys
   // set 2nd order unit tensor (sym matrix)
   fISym.Identity();
 
-  fExFieldElement = dynamic_cast<const UpLagr_ExternalFieldT*>(FSMatSupport().FiniteStrain());
+  fExFieldElement = TB_DYNAMIC_CAST(const UpLagr_ExternalFieldT*, FSMatSupport().FiniteStrain());
   if (!fExFieldElement)
     {
       cout << "\n FDCrystalElast::FDCrystalElast: could not cast element group to \n"

@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.15 2003-11-21 22:48:06 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.16 2003-12-28 08:24:00 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #include "CCNSMatrixT.h"
 
@@ -338,7 +338,7 @@ GlobalMatrixT& CCNSMatrixT::operator=(const GlobalMatrixT& rhs)
 	throw ExceptionT::kGeneralFail;
 #endif
 
-	const CCNSMatrixT* ccns = dynamic_cast<const CCNSMatrixT*>(&rhs);
+	const CCNSMatrixT* ccns = TB_DYNAMIC_CAST(const CCNSMatrixT*, &rhs);
 	if (!ccns) {
 		cout << "\n CCNSMatrixT::operator= : cast failed" << endl;
 		throw ExceptionT::kGeneralFail;

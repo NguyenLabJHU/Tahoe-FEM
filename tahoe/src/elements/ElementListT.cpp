@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.75 2003-12-10 06:44:03 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.76 2003-12-28 08:22:54 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -122,7 +122,8 @@ using namespace Tahoe;
 
 /* constructors */
 ElementListT::ElementListT(FEManagerT& fe):
-	ParameterInterfaceT("element_list")
+	ParameterInterfaceT("element_list"),
+	fHasContact(false)
 {
 	/* initialize element support */
 	fSupport.SetFEManager(&fe);
@@ -498,7 +499,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 					fArray[group] = new PenaltyContact2DT(fSupport, *field);
 				else
 					fArray[group] = new PenaltyContact3DT(fSupport, *field);
-					
+				fHasContact = true;
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
@@ -512,6 +513,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 					fArray[group] = new MFPenaltyContact2DT(fSupport, *field);
 				else
 					ExceptionT::BadInputValue(caller, "meshfree contact not implemented in 3D");
+				fHasContact = true;
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT or CONTINUUM_ELEMENT not enabled: %d", code);
@@ -527,6 +529,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 					fArray[group] = new PenaltyContactDrag3DT(fSupport, *field);
 				else
 					ExceptionT::GeneralFail(caller, "kPenaltyContactDrag only 2D and 3D");
+				fHasContact = true;
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
@@ -540,7 +543,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 					fArray[group] = new AugLagContact2DT(fSupport, *field);
 				else
 					fArray[group] = new AugLagContact3DT(fSupport, *field);
-
+				fHasContact = true;
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT not enabled: %d", code);
@@ -599,6 +602,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 #ifdef CONTACT_ELEMENT
 #ifdef __ACME__
 				fArray[group] = new ACME_Contact3DT(fSupport, *field);
+				fHasContact = true;
 #else
 				ExceptionT::GeneralFail(caller, "ACME not installed");
 #endif /* __ACME__ */			
@@ -611,6 +615,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			{
 #ifdef CONTACT_ELEMENT_DEV
 				fArray[group] = new MultiplierContactElement3DT(fSupport, *field);
+				fHasContact = true;
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT_DEV not enabled: %d", code);
@@ -620,6 +625,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			{
 #ifdef CONTACT_ELEMENT_DEV
 				fArray[group] = new MultiplierContactElement2DT(fSupport, *field);
+				fHasContact = true;
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT_DEV not enabled: %d", code);
@@ -629,6 +635,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			{
 #ifdef CONTACT_ELEMENT_DEV
 				fArray[group] = new PenaltyContactElement2DT(fSupport, *field);
+				fHasContact = true;
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT_DEV not enabled: %d", code);
@@ -638,6 +645,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			{
 #ifdef CONTACT_ELEMENT_DEV
 				fArray[group] = new PenaltyContactElement3DT(fSupport, *field);
+				fHasContact = true;
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTACT_ELEMENT_DEV not enabled: %d", code);
@@ -650,7 +658,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			int solid_group = -99;
 			in >> solid_group;
 
-			const SolidElementT* solid = dynamic_cast<const SolidElementT*>(&(fSupport.ElementGroup(--solid_group)));
+			const SolidElementT* solid = TB_DYNAMIC_CAST(const SolidElementT*, &(fSupport.ElementGroup(--solid_group)));
 			if (!solid)
 				ExceptionT::BadInputValue(caller, "unable to cast pointer to group %d to type SolidElementT", solid_group+1);
 
@@ -667,7 +675,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			int solid_group = -99;
 			in >> solid_group;
 
-			const SolidElementT* solid = dynamic_cast<const SolidElementT*>(&(fSupport.ElementGroup(--solid_group)));
+			const SolidElementT* solid = TB_DYNAMIC_CAST(const SolidElementT*, &(fSupport.ElementGroup(--solid_group)));
 			if (!solid)
 				ExceptionT::BadInputValue(caller, "unable to cast pointer to group %d to type SolidElementT", solid_group+1);
 
@@ -811,7 +819,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 	for (int i = 0; i < Length(); i++)
 	{
 		ElementBaseT* e_group = fArray[i];
-		ParticleT* particle = dynamic_cast<ParticleT*>(e_group);
+		ParticleT* particle = TB_DYNAMIC_CAST(ParticleT*, e_group);
 		if (particle) count++;
 	}
 //	if (count > 1) ExceptionT::BadInputValue(caller, "only one particle group allowed: %d", count);
@@ -827,26 +835,6 @@ bool ElementListT::InterpolantDOFs(void) const
 		if (!fArray[i]->InterpolantDOFs()) are_interp = false;
 
 	return are_interp;
-}
-
-/* returns true if contact group present */
-bool ElementListT::HasContact(void) const
-{
-#ifdef __NO_RTTI__
-	cout << "\n ElementListT::HasContact: needs RTTI: returning false" << endl;
-	return false; // safe default??
-#else /* __NO_RTTI__ */
-#ifdef CONTACT_ELEMENT
-	for (int i = 0; i < Length(); i++)
-	{
-		ContactT* contact_elem = dynamic_cast<ContactT*>(fArray[i]);
-		if (contact_elem) return true;
-	}
-	return false;
-#else  /* CONTACT_ELEMENT */
-	return false;
-#endif /* CONTACT_ELEMENT */
-#endif /* __NO_RTTI__ */
 }
 
 /* change the number of active element groups */

@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.13 2003-11-21 22:48:06 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.14 2003-12-28 08:24:01 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 #include "FullMatrixT.h"
 #include <iostream.h>
@@ -302,7 +302,7 @@ GlobalMatrixT& FullMatrixT::operator=(const GlobalMatrixT& rhs)
 	throw ExceptionT::kGeneralFail;
 #endif
 
-	const FullMatrixT* full = dynamic_cast<const FullMatrixT*>(&rhs);
+	const FullMatrixT* full = TB_DYNAMIC_CAST(const FullMatrixT*, &rhs);
 	if (!full) {
 		cout << "\n FullMatrixT::operator= : cast failed" << endl;
 		throw ExceptionT::kGeneralFail;

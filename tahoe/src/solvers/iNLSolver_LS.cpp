@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.cpp,v 1.12 2003-03-31 22:59:32 paklein Exp $ */
+/* $Id: iNLSolver_LS.cpp,v 1.13 2003-12-28 08:24:14 paklein Exp $ */
 /* created: paklein (01/01/2001) */
 
 #include "iNLSolver_LS.h"
@@ -136,8 +136,8 @@ bool iNLSolver_LS::iDoCommand(const CommandSpecT& command, StringT& line)
 			return false;
 #else
 			/* get matrix pointer */
-			const CCSMatrixT*   CCS_mat = dynamic_cast<const CCSMatrixT*>(fLHS);
-			const CCNSMatrixT* CCNS_mat = dynamic_cast<const CCNSMatrixT*>(fLHS);
+			const CCSMatrixT*   CCS_mat = TB_DYNAMIC_CAST(const CCSMatrixT*, fLHS);
+			const CCNSMatrixT* CCNS_mat = TB_DYNAMIC_CAST(const CCNSMatrixT*, fLHS);
 			double min, max, abs_min, abs_max;
 			if (CCNS_mat) CCNS_mat->FindMinMaxPivot(min, max, abs_min, abs_max);
 			else if (CCS_mat) CCS_mat->FindMinMaxPivot(min, max, abs_min, abs_max);

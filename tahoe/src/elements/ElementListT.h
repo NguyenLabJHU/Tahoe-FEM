@@ -1,4 +1,4 @@
-/* $Id: ElementListT.h,v 1.8 2003-10-28 23:30:53 paklein Exp $ */
+/* $Id: ElementListT.h,v 1.9 2003-12-28 08:22:54 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #ifndef _ELEMENTLIST_T_H_
 #define _ELEMENTLIST_T_H_
@@ -41,7 +41,7 @@ public:
 	bool InterpolantDOFs(void) const;
 
 	/** returns true if contact group present */
-	bool HasContact(void) const;
+	bool HasContact(void) const { return fHasContact; };
 
 	/** change the active element groups.
 	 * \param mask list with length of the \e total number of element
@@ -69,6 +69,9 @@ private:
 
 	/** cached pointers to element groups */
 	ArrayT<ElementBaseT*> fAllElementGroups;
+	
+	/** true if list contains contact elements */
+	bool fHasContact;
 };
 
 } /* namespace Tahoe */

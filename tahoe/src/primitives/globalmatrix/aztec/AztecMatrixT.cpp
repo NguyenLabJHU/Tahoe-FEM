@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.cpp,v 1.14 2003-11-01 16:09:39 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.15 2003-12-28 08:24:09 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 #include "AztecMatrixT.h"
 
@@ -319,7 +319,7 @@ GlobalMatrixT& AztecMatrixT::operator=(const GlobalMatrixT& rhs)
 	throw ExceptionT::kGeneralFail;
 #endif
 
-	const AztecMatrixT* az = dynamic_cast<const AztecMatrixT*>(&rhs);
+	const AztecMatrixT* az = TB_DYNAMIC_CAST(const AztecMatrixT*,&rhs);
 	if (!az) {
 		cout << "\n AztecMatrixT::operator= : cast failed" << endl;
 		throw ExceptionT::kGeneralFail;

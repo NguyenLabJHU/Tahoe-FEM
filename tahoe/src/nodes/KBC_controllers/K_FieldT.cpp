@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.13 2003-09-02 07:03:12 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.14 2003-12-28 08:23:56 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 #include "NodeManagerT.h"
@@ -357,13 +357,8 @@ void K_FieldT::ResolveMaterialReference(int element_group,
 	const FEManagerT& fe_man = fNodeManager.FEManager();
 	const ElementBaseT* element = fe_man.ElementGroup(element_group);
 	if (!element) throw ExceptionT::kGeneralFail;
-#ifdef __NO_RTTI__
-	cout << "\n K_FieldT::ResolveReference: WARNING: environment does not support RTTI:\n"
-	     <<   "     assuming cast of element group " << element_group+1
-	     << " to ContinuumElementT is safe" << endl;
-	const ContinuumElementT* cont_element = (const ContinuumElementT*) element;
-#else
-	const ContinuumElementT* cont_element = dynamic_cast<const ContinuumElementT*>(element);
+
+	const ContinuumElementT* cont_element = TB_DYNAMIC_CAST(const ContinuumElementT*, element);
 	if (!cont_element)
 	{
 		cout << "\n K_FieldT::ResolveReference: could not cast element group "
@@ -371,20 +366,12 @@ void K_FieldT::ResolveMaterialReference(int element_group,
 		     << endl;
 		throw ExceptionT::kGeneralFail;
 	}
-#endif
 
 	/* resolve material reference */
 	const MaterialListT& material_list = cont_element->MaterialsList();
 	ContinuumMaterialT* cont_mat = material_list[material_num];
 	if (!cont_mat) throw ExceptionT::kGeneralFail;
-#ifdef __NO_RTTI__
-	cout << "\n K_FieldT::ResolveReference: WARNING: environment does not support RTTI:\n"
-	     <<   "     assuming cast of material " << material_num+1
-	     << " to IsotropicT and Material2DT is safe" << endl;
-	*iso = (IsotropicT*) cont_mat;
-	if (fNodeManager.NumSD() == 2) *mat = (Material2DT*) cont_mat;
-#else
-	*iso = dynamic_cast<IsotropicT*>(cont_mat);
+	*iso = TB_DYNAMIC_CAST(IsotropicT*, cont_mat);
 	if (!(*iso))
 	{
 		cout << "\n K_FieldT::ResolveReference: could not cast material "
@@ -396,7 +383,7 @@ void K_FieldT::ResolveMaterialReference(int element_group,
 	
 	if (fNodeManager.NumSD() == 2)
 	{
-		*mat = dynamic_cast<Material2DT*>(cont_mat);
+		*mat = TB_DYNAMIC_CAST(Material2DT*, cont_mat);
 		if (!(*mat))
 		{
 			cout << "\n K_FieldT::ResolveReference: could not cast material "
@@ -406,7 +393,6 @@ void K_FieldT::ResolveMaterialReference(int element_group,
 			throw ExceptionT::kGeneralFail;
 		}
 	}
-#endif
 #else /* CONTINUUM_ELEMENT */
 #pragma unused(element_group)
 #pragma unused(material_num)

@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.4 2003-11-21 22:47:52 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.5 2003-12-28 08:23:46 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -159,7 +159,7 @@ void MultiManagerT::FormLHS(int group, GlobalT::SystemTypeT sys_type) const
 	/* fine scale */
 	SolverT* fine_solver = fFine->Solver(group);
 	const GlobalMatrixT& lhs_1 = fFine->LHS(group);
-	DiagonalMatrixT* diag_1 = dynamic_cast<DiagonalMatrixT*>((DiagonalMatrixT*) &lhs_1);
+	DiagonalMatrixT* diag_1 = TB_DYNAMIC_CAST(DiagonalMatrixT*, (DiagonalMatrixT*) &lhs_1);
 	if (!diag_1) ExceptionT::GeneralFail(caller);
 	diag_1->Clear();
 	fine_solver->UnlockLHS();
@@ -171,7 +171,7 @@ void MultiManagerT::FormLHS(int group, GlobalT::SystemTypeT sys_type) const
 	/* coarse scale */
 	SolverT* coarse_solver = fCoarse->Solver(group);
 	const GlobalMatrixT& lhs_2 = fCoarse->LHS(group);
-	DiagonalMatrixT* diag_2 = dynamic_cast<DiagonalMatrixT*>((DiagonalMatrixT*) &lhs_2);
+	DiagonalMatrixT* diag_2 = TB_DYNAMIC_CAST(DiagonalMatrixT*, (DiagonalMatrixT*) &lhs_2);
 	if (!diag_2) ExceptionT::GeneralFail(caller);
 	diag_2->Clear();
 	coarse_solver->UnlockLHS();
