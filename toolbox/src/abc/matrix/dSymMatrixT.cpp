@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.25 2003-11-04 01:20:59 paklein Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.26 2003-11-07 20:14:08 paklein Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
@@ -45,17 +45,6 @@ void dSymMatrixT::Dimension(DimensionT nsd)
 
 	/* inherited */
 	dArrayT::Dimension(NumValues(fNumSD));
-}
-
-/* set fields */
-void dSymMatrixT::Set(DimensionT nsd, double* array)
-{
-	fNumSD = int2DimensionT(nsd);
-	if (fNumSD < 1 || fNumSD > 4) 
-		ExceptionT::GeneralFail("dSymMatrixT::Set", "invalid dimension %d", nsd);
-	
-	/* inherited */
-	dArrayT::Set(NumValues(fNumSD), array);
 }
 
 /* accessor */
