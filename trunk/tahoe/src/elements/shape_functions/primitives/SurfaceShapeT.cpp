@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.cpp,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
+/* $Id: SurfaceShapeT.cpp,v 1.2 2001-03-15 21:39:34 paklein Exp $ */
 /* created: paklein (11/21/1997)                                          */
 /* Class to manage CSE integrals, where the dimension of                  */
 /* the field variable is 1 greater than the dimension of the parent       */
@@ -174,7 +174,7 @@ double SurfaceShapeT::Jacobian(dMatrixT& Q, ArrayT<dMatrixT>& dQ)
 	/* get Jacobian matrix of the surface transformation */
 	fDomain->DomainJacobian(fFacetCoords, fCurrIP, fJacobian);	
 	double j = fDomain->SurfaceJacobian(fJacobian, Q);
-	if (j < kSmall) throw eBadJacobianDet;
+	if (j <= 0.0) throw eBadJacobianDet;
 
 //NOTE: everything from here down depends only on Q
 
@@ -222,7 +222,7 @@ double SurfaceShapeT::Jacobian(dMatrixT& Q, ArrayT<dMatrixT>& dQ)
 		double* v_m1 = fJacobian(0);
 		double* v_m2 = fJacobian(1);
 		double    m1 = sqrt(v_m1[0]*v_m1[0] + v_m1[1]*v_m1[1] + v_m1[2]*v_m1[2]);
-		if (m1 < kSmall) throw eBadJacobianDet;
+		if (m1 <= 0.0) throw eBadJacobianDet;
 
 		/* tangent gradients */
 		dMatrixT& dm1_du = fgrad_dd(CurrIP(), 0);
