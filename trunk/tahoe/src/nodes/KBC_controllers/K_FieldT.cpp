@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.20 2004-07-15 08:31:21 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.21 2004-07-22 21:07:49 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 
@@ -220,7 +220,7 @@ void K_FieldT::DefineSubs(SubListT& sub_list) const
 ParameterInterfaceT* K_FieldT::NewSub(const StringT& name) const
 {
 	if (name == "initial_tip_coordinates" || name == "crack_extension_direction")
-		return new VectorParameterT(name, 'x', 2);
+		return new VectorParameterT(name, 2, 'x');
 	else if (name == "K_I" || name == "K_II")
 	{
 		ParameterContainerT* K_spec = new ParameterContainerT(name);
@@ -334,7 +334,7 @@ void K_FieldT::TakeParameterList(const ParameterListT& list)
 		ExceptionT::GeneralFail(caller, "neither \"K_I\" or \"K_II\" K-field defined");
 
 	/* initial tip coordinates */
-	VectorParameterT vec('x', 2);
+	VectorParameterT vec(2, 'x');
 	vec.SetName("initial_tip_coordinates");
 	vec.TakeParameterList(list.GetList(vec.Name()));
 	fInitTipCoords = vec;
