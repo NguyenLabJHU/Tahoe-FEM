@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.1.1.1.6.2 2001-11-06 16:08:23 sawimme Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.1.1.1.6.3 2001-11-06 20:26:10 sawimme Exp $ */
 /* created: paklein (04/05/1997)                                          */
 
 #include "UnConnectedRodT.h"
@@ -67,6 +67,8 @@ GlobalT::RelaxCodeT UnConnectedRodT::RelaxSystem(void)
 		/* update model manager */
 		ModelManagerT* model = fFEManager.ModelManager ();
 		model->UpdateConnectivity (fBlockData (0, kID) - 1, rodconnects);
+		fBlockData (0, kBlockDim) = rodconnects.MajorDim();
+		fNumElements = rodconnects.MajorDim();
 
 		/* reset local equation number lists */	
 		ConfigureElementData();
@@ -163,6 +165,7 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	fBlockData (0, kStartNum) = 0;
 	fBlockData (0, kBlockDim) = rodconnects.MajorDim();
 	fBlockData (0, kBlockMat) = -1;
+	fNumElements = rodconnects.MajorDim();
 
 	/* set up fConnectivities */
 	fConnectivities.Allocate (1);
