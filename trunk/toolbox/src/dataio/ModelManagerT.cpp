@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.46 2004-11-19 22:56:08 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.47 2005-01-13 01:47:36 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -804,7 +804,7 @@ void ModelManagerT::ElementGroupIDsWithNodes(const ArrayT<int>& nodes, ArrayT<St
 	ArrayT<char> hit_node(NumNodes());
 	hit_node = 'f';
 	for (int i = 0; i < nodes.Length(); i++)
-		hit_node[i] = 't';
+		hit_node[nodes[i]] = 't';
 		
 	/* search through blocks */
 	iArrayT has_node(fElementNames.Length());
