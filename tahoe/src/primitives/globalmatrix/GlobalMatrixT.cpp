@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.2 2001-02-28 02:36:00 paklein Exp $ */
 /* created: paklein (03/23/1997)                                          */
 /* Virtual base class for all global matrix objects                       */
 
@@ -107,9 +107,10 @@ void GlobalMatrixT::Solve(dArrayT& result)
 //out << result << endl;
 }
 
-/* strong manipulation functions */
-//TEMP should be pure virtual, but no time to update others
-//     so just throw exception for now
+/* strong manipulation functions 
+ * NOTE: These must be overridden to provide support for these functions.
+ *       By default, these all throw exceptions. These could be pure
+ *       virtual, but that requires updating all derived matrix types */
 void GlobalMatrixT::OverWrite(const ElementMatrixT& elMat, const iArrayT& eqnos)
 {
 #pragma unused(elMat)
@@ -123,6 +124,14 @@ void GlobalMatrixT::Disassemble(dMatrixT& elMat, const iArrayT& eqnos) const
 #pragma unused(elMat)
 #pragma unused(eqnos)
 	cout << "\n GlobalMatrixT::Disassemble: not implemented" << endl;
+	throw eGeneralFail;
+}
+
+void GlobalMatrixT::DisassembleDiagonal(dArrayT& diagonals, const iArrayT& eqnos) const
+{
+#pragma unused(diagonals)
+#pragma unused(eqnos)
+	cout << "\n GlobalMatrixT::DisassembleDiagonal: not implemented" << endl;
 	throw eGeneralFail;
 }
 

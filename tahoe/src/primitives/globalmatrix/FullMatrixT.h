@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: FullMatrixT.h,v 1.2 2001-02-28 02:36:00 paklein Exp $ */
 /* created: paklein (03/07/1998)                                          */
 /* Virtual base class for all global matrix objects                       */
 
@@ -42,7 +42,8 @@ public:
 	//TEMP should be pure virtual, but no time to update others
 	//     so just throw exception for now
 	virtual void OverWrite(const ElementMatrixT& elMat, const iArrayT& eqnos);
-	virtual void Disassemble(dMatrixT& elMat, const iArrayT& eqnos) const;
+	virtual void Disassemble(dMatrixT& matrix, const iArrayT& eqnos) const;
+	virtual void DisassembleDiagonal(dArrayT& diagonals, const iArrayT& eqnos) const;
 
 	/* assignment operator */
 	virtual GlobalMatrixT& operator=(const GlobalMatrixT& RHS);

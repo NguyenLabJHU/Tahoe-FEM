@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.2 2001-02-28 02:36:00 paklein Exp $ */
 /* created: paklein (03/07/1998)                                          */
 /* Virtual base class for all global matrix objects                       */
 
@@ -197,6 +197,24 @@ void FullMatrixT::Disassemble(dMatrixT& elMat, const iArrayT& eqnos) const
 		else
 			/* clear column */
 			elMat.SetCol(col, 0.0);
+	}
+}
+
+void FullMatrixT::DisassembleDiagonal(dArrayT& diagonals, const iArrayT& eqnos) const
+{
+#if __option(extended_errorcheck)
+	/* dimension checking */
+	if (diagonals.Length() != eqnos.Length()) throw eSizeMismatch;
+#endif
+
+	for (int i = 0; i < eqnos.Length(); i++)
+	{
+		/* ignore requests for inactive equations */	
+		int eq = eqnos[i];	
+		if (eq-- > 0)
+			diagonals[i] = fMatrix(eq,eq);
+		else
+			diagonals[i] = 0.0;
 	}
 }
 
