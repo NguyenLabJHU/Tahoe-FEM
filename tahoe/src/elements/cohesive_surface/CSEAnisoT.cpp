@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.8 2001-10-11 23:21:58 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.9 2001-10-24 01:58:27 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -218,6 +218,30 @@ void CSEAnisoT::CloseStep(void)
 	CSEBaseT::CloseStep();
 
 	/* reset state variables from history */
+	fStateVariables_last = fStateVariables;
+}
+
+/* write restart data to the output stream. */
+void CSEAnisoT::WriteRestart(ostream& out) const
+{
+	/* inherited */
+	CSEBaseT::WriteRestart(out);
+	
+	/* write state variable data */
+	fStateVariables.WriteData(out);
+	out << '\n';
+}
+
+/* read restart data to the output stream */
+void CSEAnisoT::ReadRestart(istream& in)
+{
+	/* inherited */
+	CSEBaseT::ReadRestart(in);
+
+	/* read state variable data */
+	fStateVariables.ReadData(in);
+
+	/* set history */
 	fStateVariables_last = fStateVariables;
 }
 
