@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.18.12.2 2003-11-24 17:55:17 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.18.12.3 2003-12-03 01:44:08 paklein Exp $ */
 #include "ABAQUS_VUMAT_BaseT.h"
 
 #ifdef __F2C__
@@ -121,7 +121,10 @@ ABAQUS_VUMAT_BaseT::ABAQUS_VUMAT_BaseT(ifstreamT& in, const FSMatSupportT& suppo
 
 //DEBUG
 #if VUMAT_DEBUG
-flog.open("VUMAT.log");
+StringT VUMAT_file;
+VUMAT_file.Root(in.filename());
+VUMAT_file.Append(".VUMAT.log");
+flog.open(VUMAT_file);
 flog.precision(DBL_DIG);
 flog.setf(ios::showpoint);
 flog.setf(ios::right, ios::adjustfield);
