@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2003-03-04 07:37:49 paklein Exp $
+# $Id: makefile,v 1.7 2004-01-27 01:26:19 cjkimme Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -24,7 +24,8 @@ OBJ = \
 	MeshFreeFractureSupportT.o \
 	MeshFreeSSSolidT.o \
 	MeshFreeFSSolidT.o \
-	D2MeshFreeFSSolidT.o
+	D2MeshFreeFSSolidT.o \
+	SCNIMFT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -48,7 +49,8 @@ SRC = \
 	MeshFreeFractureSupportT.cpp \
 	MeshFreeSSSolidT.cpp \
 	MeshFreeFSSolidT.cpp \
-	D2MeshFreeFSSolidT.cpp
+	D2MeshFreeFSSolidT.cpp \
+	SCNIMFT.cpp
 
 ##################### (3) headers
 #
@@ -64,7 +66,8 @@ HDR = \
 	MeshFreeFractureSupportT.h \
 	MeshFreeSSSolidT.h \
 	MeshFreeFSSolidT.h \
-	D2MeshFreeFSSolidT.h
+	D2MeshFreeFSSolidT.h \
+	SCNIMFT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
