@@ -1,5 +1,5 @@
-#ifndef _GEAR6_CONTROLLER_H_
-#define _GEAR6_CONTROLLER_H_
+#ifndef _GEAR_06_CONTROLLER_H_
+#define _GEAR_06_CONTROLLER_H_
 
 #include "Environment.h"
 
@@ -29,4 +29,4 @@ protected:
 
 } // namespace Tahoe
 
-#endif /* _GEAR6_CONTROLLER_H_ */
+#endif /* _GEAR_06_CONTROLLER_H_ */

@@ -1,5 +1,5 @@
-#ifndef _E_GEAR6_H_
-#define _E_GEAR6_H_
+#ifndef _E_GEAR_06_H_
+#define _E_GEAR_06_H_
 
 /* base classes */
 #include "Gear6.h"
@@ -48,4 +48,4 @@ private:
 
 } // namespace Tahoe
 
-#endif /* _E_Gear6_H_ */
+#endif /* _E_Gear_06_H_ */
