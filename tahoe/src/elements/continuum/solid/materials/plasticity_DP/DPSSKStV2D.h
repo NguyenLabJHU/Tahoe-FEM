@@ -1,5 +1,5 @@
-/* $Id: DPSSKStV2D.h,v 1.4 2001-07-11 22:02:34 paklein Exp $ */
-/* created: myip (06/01/1999)                                             */
+/* $Id: DPSSKStV2D.h,v 1.5 2001-07-13 23:15:06 cfoster Exp $ */
+/* created: myip (06/01/1999)                                    */
 
 #ifndef _DP_SS_KSTV_2D_H_
 #define _DP_SS_KSTV_2D_H_
@@ -10,7 +10,7 @@
 
 class DPSSKStV2D: public DPSSKStV, public Material2DT
 {
-public:
+  public:
 
 	/* constructor */
 	DPSSKStV2D(ifstreamT& in, const SmallStrainT& element);
@@ -19,7 +19,8 @@ public:
 	virtual void Initialize(void);
 
 	/* returns elastic strain (3D) */
-	virtual const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain,
+	virtual const dSymMatrixT& ElasticStrain(
+                const dSymMatrixT& totalstrain, 
 		const ElementCardT& element, int ip);
 
 	/* print parameters */
@@ -28,18 +29,18 @@ public:
 	
 	/* modulus */
 	virtual const dMatrixT& c_ijkl(void);
-	
+  	
 	/* stress */
 	virtual const dSymMatrixT& s_ij(void);
 
 	/* returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void);
 
-private:
-
-	/* return values */
-	dSymMatrixT	fStress2D;
-	dMatrixT	fModulus2D;
+  private:
+  
+  	/* return values */
+  	dSymMatrixT	fStress2D;
+  	dMatrixT	fModulus2D;
 
 	/* work space */
 	dSymMatrixT	fTotalStrain3D;

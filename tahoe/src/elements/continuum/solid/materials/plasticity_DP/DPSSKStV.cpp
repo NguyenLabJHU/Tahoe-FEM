@@ -1,5 +1,6 @@
-/* $Id: DPSSKStV.cpp,v 1.4 2001-07-11 22:02:33 paklein Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.5 2001-07-13 23:14:13 cfoster Exp $ */
 /* created: myip (06/01/1999)                                             */
+
 
 #include "DPSSKStV.h"
 #include "ElementCardT.h"
@@ -9,10 +10,10 @@
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
-const int kNumOutput = 4;
+const int kNumOutput = 3;
 static const char* Labels[kNumOutput] = {
-	"alpha_dev",  // deviatoric part of equivalent plastic strain
-	"alpha_vol",  // volumetric part of equivalent plastic strain
+	    "alpha",  // stress-like internal state variable
+                      //  (isotropic linear hardening)
 	       "VM",  // Von Mises stress
 	    "press"}; // pressure
 
@@ -104,9 +105,9 @@ double DPSSKStV::StrainEnergyDensity(void)
 }
 
 /* returns the number of variables computed for nodal extrapolation
-* during for element output, ie. internal variables. Returns 0
-* by default. */
-int DPSSKStV::NumOutputVariables(void) const  { return kNumOutput; }
+ * during for element output, ie. internal variables. Returns 0
+ * by default. */
+int DPSSKStV::NumOutputVariables(void) const  { return kNumOutput; } 
 void DPSSKStV::OutputLabels(ArrayT<StringT>& labels) const
 {
 	/* set size */
@@ -123,35 +124,31 @@ void DPSSKStV::ComputeOutput(dArrayT& output)
 	s_ij();
 
 	/* pressure */
-	output[3] = fStress.Trace()/3.0;
+	output[2] = fStress.Trace()/3.0;
 	
 	/* deviatoric Von Mises stress */
 	fStress.Deviatoric();
 	double J2 = fStress.Invariant2();
 	J2 = (J2 < 0.0) ? 0.0 : J2;
-	output[2] = sqrt(3.0*J2);
+	output[1] = sqrt(3.0*J2);
 	
-	/* equivalent plastic strains */
+	/* stress-like internal variable alpha */
 	const ElementCardT& element = CurrentElement();
 	if (element.IsAllocated())
 	{
-		output[0] = fInternal[kalpha_dev];
-	  	output[1] = fInternal[kalpha_vol];
-
+		output[0] = fInternal[kalpha];
 		/* status flags */
 		iArrayT& flags = element.IntegerData();
 		if (flags[CurrIP()] == kIsPlastic) // output with update
 		{
-			output[0] -= fH_prime*fInternal[kdgamma];
-		  	output[1] -= sqrt(3.0)*fdilation*fK_prime*fInternal[kdgamma];
+			output[0] -= fH_prime*fInternal[kdgamma]; 
 		}
-		// alpha not incremented until Update(), which
+		// alpha not incremented until Update(), which 
 		// hasn't occurred yet
 	}
 	else
 	{
 		output[0] = 0.0;
-		output[1] = 0.0;
 	}
 }
 
@@ -164,3 +161,4 @@ void DPSSKStV::SetModulus(dMatrixT& modulus)
 {
 	IsotropicT::ComputeModuli(modulus);
 }
+
