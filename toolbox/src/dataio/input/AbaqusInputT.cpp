@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.cpp,v 1.5 2001-09-06 20:13:26 sawimme Exp $ */
+/* $Id: AbaqusInputT.cpp,v 1.6 2001-09-10 15:41:59 sawimme Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #include "AbaqusInputT.h"
@@ -75,13 +75,7 @@ void AbaqusInputT::ReadNodeSet (StringT& name, iArrayT& nodes)
   // account for discontinuous numbering
   iArrayT map (fNumNodes);
   ReadNodeMap (map);
-  for (int n=0; n < nodes.Length(); n++)
-    {
-      int index;
-      map.HasValue (nodes[n], index);
-      if (index < 0 || index >= map.Length()) throw eOutOfRange;
-      nodes[n] = index;
-    }
+  MapOffset (nodes, map);
 }
 
 void AbaqusInputT::ReadCoordinates (dArray2DT& coords, iArrayT& nodemap)
@@ -110,13 +104,7 @@ void AbaqusInputT::ReadGlobalElementSet (StringT& name, iArrayT& set)
   // account for discontinuous numbering
   iArrayT map (fNumElements);
   ReadAllElementMap (map);
-  for (int n=0; n < set.Length(); n++)
-    {
-      int index;
-      map.HasValue (set[n], index);
-      if (index < 0 || index >= map.Length()) throw eOutOfRange;
-      set[n] = index;
-    }
+  MapOffset (set, map);
 }
 
 void AbaqusInputT::ReadConnectivity (StringT& name, iArray2DT& connects)
@@ -156,13 +144,7 @@ void AbaqusInputT::ReadConnectivity (StringT& name, iArray2DT& connects)
 	{
 	  // offset and map to start numbering at zero
 	  // account for discontinuous numbering
-	  for (int k=0; k < n.Length(); k++)
-	    {
-	      int index;
-	      map.HasValue (n[k], index);
-	      if (index < 0 || index >= map.Length()) throw eOutOfRange;
-	      n[k] = index;
-	    }
+	  MapOffset (n, map);
 	  connects.CopyPart (j, n, 0, cm);
 	  j += cm;
 
@@ -226,8 +208,18 @@ void AbaqusInputT::ReadAllNodeVariables (int step, dArray2DT& values)
 
 void AbaqusInputT::ReadNodeVariables (int step, StringT& elsetname, dArray2DT& values)
 {
-  fout << "AbaqusInputT::ReadNodeVariables not yet programmed\n";
-  throw eDatabaseFail;
+  iArray2DT connects (NumElements (elsetname), NumElementNodes (elsetname));
+  ReadConnectivity (elsetname, connects);
+
+  iArrayT nodesused;
+  NodesUsed (connects, nodesused);
+
+  // read all values
+  dArray2DT temp (NumNodes(), values.MinorDim());
+  ReadAllNodeVariables (step, temp);
+
+  values.Allocate (nodesused.Length(), NumNodeVariables());
+  values.RowCollect (nodesused, temp);
 }
 
 void AbaqusInputT::ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& values)
@@ -254,10 +246,10 @@ void AbaqusInputT::ReadElementVariables (int step, StringT& name, dArray2DT& eva
 
 void AbaqusInputT::ReadAllQuadratureVariables (int step, dArray2DT& values)
 {
-  //StringT name ("\0");
-  //fData.ReadVariables (AbaqusResultsT::kQuadVar, step, values, name);
-  fout << "AbaqusInputT::ReadAllQuadratureVariables not yet programmed\n";
-  throw eDatabaseFail;
+  int numv = NumQuadratureVariables ();
+  if (values.MinorDim() != numv) throw eSizeMismatch;
+  StringT name ("\0");
+  fData.ReadVariables (AbaqusResultsT::kQuadVar, step, values, name);
 }
 
 void AbaqusInputT::ReadQuadratureVariables (int step, StringT& name, dArray2DT& qvalues)
@@ -292,3 +284,39 @@ void AbaqusInputT::SetLabelName (const ArrayT<AbaqusResultsT::VariableKeyT>& key
     }
 }
 
+void AbaqusInputT::MapOffset (ArrayT<int>& set, const iArrayT& map) const
+{
+  int index;
+  for (int n=0; n < set.Length(); n++)
+    {
+      map.HasValue (set[n], index);
+      if (index < 0 || index >= map.Length()) throw eOutOfRange;
+      set[n] = index;
+    }
+}
+
+void AbaqusInputT::NodesUsed (const nArrayT<int>& connects, iArrayT& nodesused) const
+{
+	/* quick exit */
+	if (connects.Length() == 0) return;
+
+	/* compressed number range */
+	int min, max;
+	connects.MinMax(min, max);
+	int range = max - min + 1;
+
+	/* local map */
+	iArrayT node_map(range);
+
+	/* determine used nodes */
+	node_map = 0;
+	for (int i = 0; i < connects.Length(); i++)
+		node_map[connects[i] - min] = 1;
+
+	/* collect list */
+	nodesused.Allocate(node_map.Count(1));
+	int dex = 0;
+	int*  p = node_map.Pointer();
+	for (int j = 0; j < node_map.Length(); j++)
+		if (*p++ == 1) nodesused[dex++] = j + min;
+}
