@@ -24,7 +24,7 @@ class VMF_Virtual_Work_EqT	: public CoarseScaleT
 							 	kBI_tau_3hat,
 							 	kBbII_2hat,
 							 	kBaII_3hat,
-							 	kBIII_2bar,
+							 	kBaIII_2bar,
 						   	kB_Temp0,
 	             	kNUM_B_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
 

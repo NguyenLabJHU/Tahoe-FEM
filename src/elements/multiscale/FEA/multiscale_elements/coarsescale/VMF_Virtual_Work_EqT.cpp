@@ -71,11 +71,11 @@ void VMF_Virtual_Work_EqT::Form_LHS_Ka_Kb	( dMatrixT &Ka, dMatrixT &Kb, double d
 {
 #pragma unused(delta_t)
 
-	/* Term I. 		*/		Ka 	= Integral.of( 	B[kB_1hat], B[kBI_tau_3hat] 					);  	
-	/* Term IIb. 	*/	 	Kb  = Integral.of( 	B[kB_1hat], B[kBbII_2hat] 						);  	
-	/* Term IIa. 	*/	 	Ka -= Integral.of( 	B[kB_1hat], B[kBaII_3hat] 						);  	
-	/* Term IIIb.	*/	 	Kb += Integral.of( 	B[kB_1hat], T4[kd_1bar],	B[kB_1hat] 		);  	
-	/* Term IIIa.	*/	 	Ka -= Integral.of( 	B[kB_1hat], T4[kd_1bar],	B[kBbII_2hat] );  	
+	/* Term I. 		*/		Ka 	= Integral.of( 	B[kB_1hat], B[kBI_tau_3hat] 								);  	
+	/* Term IIb. 	*/	 	Kb  = Integral.of( 	B[kB_1hat], B[kBbII_2hat] 									);  	
+	/* Term IIa. 	*/	 	Ka -= Integral.of( 	B[kB_1hat], B[kBaII_3hat] 									);  	
+	/* Term IIIb.	*/	 	Kb += Integral.of( 	B[kB_1hat], T4[kd_1bar],		B[kB_1hat] 			);  	
+	/* Term IIIa.	*/	 	Ka -= Integral.of( 	B[kB_1hat], T4[kd_1bar],		B[kBaIII_2bar] 	);  	
 }
 
 //---------------------------------------------------------------------
@@ -104,7 +104,7 @@ void VMF_Virtual_Work_EqT::Form_B_List (void)
 	 	Data_Pro.A_grad_u_T_B 		( 	A[kSigma], 		A[kFbT],  	B[kBI_tau_3hat] 	);
 	 	Data_Pro.grad_u_A			 		( 	A[kSigma], 								B[kBbII_2hat] 		);
 	 	Data_Pro.A_grad_u_B			 	( 	A[kF_sharp],	A[kSigma], 	B[kBaII_3hat] 		);
-	 	Data_Pro.A_grad_u				 	( 	A[kF_sharp],						 	B[kBIII_2bar] 		);
+	 	Data_Pro.A_grad_u				 	( 	A[kF_sharp],						 	B[kBaIII_2bar] 		);
 }
 						
 //##################################################################################

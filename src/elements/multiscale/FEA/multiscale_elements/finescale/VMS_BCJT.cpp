@@ -44,12 +44,10 @@ void VMS_BCJT::Construct (FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, VM
 
 	//cout <<"C Constants: "<<C<<"\n\n"; 
 	//B.Print("B Matricies");
-	A.Print("A Matricies");
+	//A.Print("A Matricies");
 	//S.Print("S FEA Scalars");
 	//T4.Print("T4 Matricies");
 
-
- 
 	Integral.Construct (Shapes.j, Shapes.W); 
 /*
 */
@@ -62,20 +60,20 @@ void VMS_BCJT::Construct (FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, VM
 
 void VMS_BCJT::Form_LHS_Ka_Kb ( dMatrixT &Ka, dMatrixT &Kb )
 {
- 	/* del(grad_wa) 		*/ 	Ka  = Integral.of( B[kB_1hat], B[kB00_2hat] );  	
-													Kb  = Integral.of( B[kB_1hat], B[kB00_2hat] ); 
+ /* del(grad_wa) 		*/ 	Ka  = Integral.of( B[kB_1hat], B[kB00_2hat] );  	
+												Kb  = Integral.of( B[kB_1hat], B[kB00_2hat] ); 
 
-	/* del(Dm+1) 				*/ 	if (Time_Integration_Scheme != FEA::kBackward_Euler)
-														Ka += Integral.of( B[kB_1hat], B[kB_IIA] 		);   	
+ /* del(Dm+1) 			*/ 	if (Time_Integration_Scheme != FEA::kBackward_Euler)
+													Ka += Integral.of( B[kB_1hat], B[kB_IIA] );   	
 
-	/* del(Dm) 					*/ 	if (Time_Integration_Scheme != FEA::kForward_Euler)
-														Ka += Integral.of( B[kB_1hat], B[kB_IIB] 		); 		
+ /* del(Dm) 				*/ 	if (Time_Integration_Scheme != FEA::kForward_Euler)
+													Ka += Integral.of( B[kB_1hat], B[kB_IIB] ); 		
 
-	/* del(DEV(S-Zeta) 	*/	Ka += Integral.of( B[kB_1hat], delta_t, S[kBeta4b], T4[kN_1hat0], B[kB_H_bar_prime_a] ); 	
- 													Kb += Integral.of( B[kB_1hat], delta_t, S[kBeta4b], T4[kN_1hat0], B[kB_H_bar_prime_b] ); 
- 	/* del(Kappa)  			*/ 	Ka += Integral.of( B[kB_1hat], delta_t*C[kBeta3]*0.5*C[kc_zeta]*C[kMu]*C[kh], T4[kN_1hat0], B[kB21_2hat] ); 	 
- 	/* del(N) 					*/	Ka += Integral.of( B[kB_1hat], delta_t, S[kAlpha], T4[kP_O_N1hat], B[kB_H_bar_prime_a] ); 						
-													Kb += Integral.of( B[kB_1hat], delta_t, S[kAlpha], T4[kP_O_N1hat], B[kB_H_bar_prime_b] ); 
+ /* del(DEV(S-Zeta) */	Ka += Integral.of( B[kB_1hat], delta_t, S[kBeta4b], T4[kN_1hat0], B[kB_H_bar_prime_a] ); 	
+ 												Kb += Integral.of( B[kB_1hat], delta_t, S[kBeta4b], T4[kN_1hat0], B[kB_H_bar_prime_b] ); 
+ /* del(Kappa)  		*/ 	Ka += Integral.of( B[kB_1hat], delta_t*C[kBeta3]*0.5*C[kc_zeta]*C[kMu]*C[kh], T4[kN_1hat0], B[kB21_2hat] ); 
+ /* del(N) 				  */	Ka += Integral.of( B[kB_1hat], delta_t, S[kAlpha], T4[kP_O_N1hat], B[kB_H_bar_prime_a] ); 						
+												Kb += Integral.of( B[kB_1hat], delta_t, S[kAlpha], T4[kP_O_N1hat], B[kB_H_bar_prime_b] ); 
 }
 
 //---------------------------------------------------------------------
