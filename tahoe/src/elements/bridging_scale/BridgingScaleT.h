@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.9 2002-08-08 23:24:11 hspark Exp $ */
+/* $Id: BridgingScaleT.h,v 1.10 2002-08-10 02:37:38 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -105,9 +105,11 @@ protected:
 
 	/** "element" group calculating particle solution */
 	const RodT& fParticle;
+	iArray2DT fParticlesUsed;
 	
 	/** continuum group solving displacements */
-	const ElasticT& fSolid; 
+	const ElasticT& fSolid;
+	iArray2DT fSolidNodesUsed;
 
 	/** list of particles per element: [n_cell] x [n_part_i] */
 	RaggedArray2DT<int> fParticlesInCell;
@@ -140,8 +142,11 @@ protected:
 
 private:
 
-	/** output ID */
-	int fOutputID;
+	/** \name output ID's */
+	/*@{*/
+	int fParticleOutputID;
+	int fSolidOutputID;
+	/*@}*/
 };
 
 /* inlines */
