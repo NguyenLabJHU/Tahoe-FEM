@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.13 2003-05-28 23:15:23 cjkimme Exp $ */
+/* $Id: CSEBaseT.h,v 1.14 2003-08-08 00:58:46 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -87,11 +87,6 @@ public:
 #endif
 
 protected:
-
-	/** element status flags */
-	enum StatusT {kOFF = 0,
-                   kON = 1,
-               kMarked = 2};
 
 	/** print element group data */
 	virtual void PrintControlData(ostream& out) const;
