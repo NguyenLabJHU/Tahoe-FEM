@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.cpp,v 1.18 2003-11-06 21:57:40 rjones Exp $ */
+/* $Id: MultiplierContactElement2DT.cpp,v 1.19 2003-11-20 18:14:51 rjones Exp $ */
 // created by : rjones 2001
 #include "MultiplierContactElement2DT.h"
 
@@ -124,20 +124,25 @@ void MultiplierContactElement2DT::SetContactStatus(void)
 /* called before LHSDriver during iteration process */
 void MultiplierContactElement2DT::RHSDriver(void)
 { /* form RESIDUAL */ 
-  /* update kinematic data */
-  UpdateContactConfiguration();
+/* update kinematic data */
+UpdateContactConfiguration();
 
-  /* set status of all surface nodes */
-  SetContactStatus();
+/* set status of all surface nodes */
+SetContactStatus();
 
-  bool elem_in_contact = 0;
-  int opp_surf_tag=-1, status=-1;
-  int num_nodes;
-  ContactNodeT* node;
-  double gap, /*pen,*/ pre, opp_pre=0.0;
+bool elem_in_contact = 0;
+int opp_surf_tag=-1, status=-1;
+int num_nodes;
+ContactNodeT* node;
+double gap, /*pen,*/ pre, opp_pre=0.0;
 
-	int nsd = NumSD();
-  for(int surf_tag = 0; surf_tag < fSurfaces.Length(); surf_tag++) {
+iArrayT node_tag(1);
+iArrayT xc(1);
+iArray2DT xe(1,fNumMultipliers);
+dArrayT xR(1);
+
+int nsd = NumSD();
+for(int surf_tag = 0; surf_tag < fSurfaces.Length(); surf_tag++) {
 	ContactSurfaceT& surface = fSurfaces[surf_tag];
 	/* all faces on a surface the same size */
 	const ArrayT<FaceT*>& faces = surface.Faces();
@@ -159,6 +164,29 @@ void MultiplierContactElement2DT::RHSDriver(void)
 	/*form residual for this surface */
 	for (int f = 0;  f < faces.Length(); f++) {
 		const FaceT* face = faces[f];
+		bool has_projections = 1, has_multipliers = 1;
+		for (int i = 0 ; i < num_nodes ; i++) {
+			node = nodes[face->Node(i)];
+			if (!(node->HasProjection())) has_projections = 0;
+			if (!(node->HasMultiplier())) has_multipliers = 0;
+		}
+		if ( ! has_projections || ! has_multipliers ) {
+			for (int i = 0 ; i < num_nodes ; i++) {
+				node = nodes[face->Node(i)];
+				if (node->EnforcementStatus() == kPZero) {
+					node_tag[0] = node->Tag();
+					surface.MultiplierTags(node_tag,xc);
+					double pScale = fEnforcementParameters(0,1)[kPScale];
+					double pj = - node->Pressure() ;
+					xR[0] = pScale*pj;
+					const ElementSupportT& support = ElementSupport();
+					support.XDOF_Manager().XDOF_SetLocalEqnos
+						(Group(), xc, xe);
+					support.AssembleRHS(Group(), xR, xe);
+				}
+			} 
+		}
+		else {
 		face->Quadrature(points,weights);
 		/* primary face */
 		const iArrayT& conn1 = face->GlobalConnectivity();
@@ -166,14 +194,13 @@ void MultiplierContactElement2DT::RHSDriver(void)
 
 		RHS = 0.0;
 		xRHS = 0.0;
-		elem_in_contact = 0;
+		elem_in_contact = 1;
 		/*loop over (nodal) quadrature points */
 		/*NOTE: these CORRESPOND to local node numbers */
 		for (int i = 0 ; i < weights.Length() ; i++) {
 			node = nodes[face->Node(i)];
 			status = node->EnforcementStatus();
 			if (status > kPZero )  {
-				elem_in_contact = 1;
 				const ContactSurfaceT* opp_surf = node->OpposingSurface();
 				opp_surf_tag = opp_surf->Tag();
 				dArrayT& parameters = 
@@ -183,6 +210,10 @@ void MultiplierContactElement2DT::RHSDriver(void)
 				if (status == kGapZero || status == kPJump){
 					/* pressure */
 					pre = node->Pressure() ;
+#if PRINT_DEBUG
+					cout << "node: " << node->Tag() << ", pressure: "
+							<< pre << "\n"; 
+#endif
 					/* gap */
 					gap = node->Gap();
 					/* pressure =  Lagrange multiplier + penalty */
@@ -220,6 +251,9 @@ void MultiplierContactElement2DT::RHSDriver(void)
 				double pj = - node->Pressure() ;
 				P1.SetToScaled(pScale*pj, P1);
 				xRHS += P1;
+			} 
+			else {
+				elem_in_contact = 0;
 			}
 		} 
 		/* assemble */
@@ -241,35 +275,41 @@ cout << " xRHS : " << xeqnums1[0] << ", " << xeqnums1[1] << "\n";
 cout << " xRHS : " << xRHS[0] << ", " << xRHS[1] << "\n";
 #endif
 		}
+		}
 	}
-  }
+}
 }
 
 void MultiplierContactElement2DT::LHSDriver(GlobalT::SystemTypeT)
 { /* form STIFFNESS */
-  bool elem_in_contact = 0;
-  int opp_surf_tag=-1, status=-1;
-  int consistent, num_nodes, opp_num_nodes;
-  ContactNodeT* node;
-  double sfac, gap;
-  double l1[3],lm2[3];
-  dArrayT n1alphal1;
-  n1alphal1.Dimension(NumSD());
+bool elem_in_contact = 0;
+int opp_surf_tag=-1, status=-1;
+int consistent, num_nodes, opp_num_nodes;
+ContactNodeT* node;
+double sfac, gap;
+double l1[3],lm2[3];
+dArrayT n1alphal1;
+n1alphal1.Dimension(NumSD());
 
-  /* for consistent stiffness */    
-  dArrayT N1nl;
-  VariArrayT<double> N1nl_man(kMaxNumFaceDOF,N1nl);
-  dMatrixT T1;
-  nVariMatrixT<double> T1_man(kMaxNumFaceDOF,T1);
-  dArrayT T1n;
-  VariArrayT<double> T1n_man(kMaxNumFaceDOF,T1n);
-  dMatrixT Perm(NumSD());
-  Perm(0,0) = 0.0 ; Perm(0,1) = -1.0;
-  Perm(1,0) = 1.0 ; Perm(1,1) =  0.0;
-  double alpha;
+/* for consistent stiffness */    
+dArrayT N1nl;
+VariArrayT<double> N1nl_man(kMaxNumFaceDOF,N1nl);
+dMatrixT T1;
+nVariMatrixT<double> T1_man(kMaxNumFaceDOF,T1);
+dArrayT T1n;
+VariArrayT<double> T1n_man(kMaxNumFaceDOF,T1n);
+dMatrixT Perm(NumSD());
+Perm(0,0) = 0.0 ; Perm(0,1) = -1.0;
+Perm(1,0) = 1.0 ; Perm(1,1) =  0.0;
+double alpha;
 
-	int nsd = NumSD();
-  for(int surf_tag = 0; surf_tag < fSurfaces.Length(); surf_tag++) {
+iArrayT node_tag(1);
+iArrayT xc(1);
+iArray2DT xe(1,fNumMultipliers);
+ElementMatrixT xL(fNumMultipliers,ElementMatrixT::kNonSymmetric);
+
+int nsd = NumSD();
+for(int surf_tag = 0; surf_tag < fSurfaces.Length(); surf_tag++) {
 	ContactSurfaceT& surface = fSurfaces[surf_tag];
 	/* all faces on a surface the same size */
 	const ArrayT<FaceT*>& faces = surface.Faces();
@@ -290,6 +330,28 @@ void MultiplierContactElement2DT::LHSDriver(GlobalT::SystemTypeT)
 	for (int f = 0;  f < faces.Length(); f++) {
 		/* primary face */
 		const FaceT* face = faces[f];
+		bool has_projections = 1, has_multipliers = 1;
+		for (int i = 0 ; i < num_nodes ; i++) {
+			node = nodes[face->Node(i)];
+			if (!(node->HasProjection())) has_projections = 0;
+			if (!(node->HasMultiplier())) has_multipliers = 0;
+		}
+		if ( ! has_projections || ! has_multipliers ) {
+			for (int i = 0 ; i < num_nodes ; i++) {
+				node = nodes[face->Node(i)];
+				if (node->EnforcementStatus() == kPZero) {
+					node_tag[0] = node->Tag();
+					surface.MultiplierTags(node_tag,xc);
+					double pScale = fEnforcementParameters(0,1)[kPScale];
+					xL(0,0) = pScale;
+					const ElementSupportT& support = ElementSupport();
+					support.XDOF_Manager().XDOF_SetLocalEqnos
+						(Group(), xc, xe);
+					support.AssembleLHS(Group(), xL, xe,xe);
+				}
+			} 
+		}
+		else {
 		const iArrayT& conn1 = face->GlobalConnectivity();
 		surface.MultiplierTags(face->Connectivity(),xconn1);
 		ElementSupport().XDOF_Manager().XDOF_SetLocalEqnos(Group(), xconn1, xeqnums1);
@@ -496,5 +558,6 @@ cout << "P1 (x) P1 " << xeqnums1[0] << ", " << xeqnums1[1] << "\n"
 			}
 		}
 	}
- }
+	}
+}
 }

@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.42 2003-07-03 00:04:38 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.43 2003-11-20 18:14:51 rjones Exp $ */
 #include "ContactElementT.h"
 
 #include <math.h>
@@ -224,6 +224,7 @@ void ContactElementT::SetDOFTags(void)
 	for (int i = 0; i < fSurfaces.Length(); i++) {
 	    fSurfaces[i].AllocateMultiplierTags();
 	}
+
 }
 
 /* (2) this function allows the external manager to set the Tags */
@@ -248,6 +249,8 @@ void ContactElementT::GenerateElementData(void)
 /* set DOF values to the last converged solution, this is called after SetDOF */
 void ContactElementT::ResetDOF(dArray2DT& XDOF, int tag_set) const
 {
+//	fSurfaces[tag_set].PrintMultipliers(cout);
+
 	fSurfaces[tag_set].ResetMultipliers(XDOF);
 }
 
@@ -393,7 +396,6 @@ void ContactElementT::WriteOutput(void)
                 ofstream pressure_file (pressure_out);
                 surface.PrintMultipliers(pressure_file);
 		}
-#endif
 
 		if (fOutputFlags[kNormals]) {
                 StringT normal_out;
@@ -402,15 +404,11 @@ void ContactElementT::WriteOutput(void)
                 ofstream normal_file (normal_out);
                 surface.PrintNormals(normal_file);
 		}
+#endif
 
-		if (fOutputFlags[kStatus]) {
-				surface.PrintStatus(cout);
-		}
-
-
-		if (fOutputFlags[kArea]) {
-              surface.PrintContactArea(cout);
-		}
+		if (fOutputFlags[kMultipliers]) { surface.PrintMultipliers(cout);}
+		if (fOutputFlags[kStatus]) { surface.PrintStatus(cout); }
+		if (fOutputFlags[kArea]) { surface.PrintContactArea(cout); }
 	}
 }
 

@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.37 2003-11-06 21:57:40 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.38 2003-11-20 18:14:51 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
@@ -212,8 +212,8 @@ ContactSurfaceT::InitializeMultiplierMap(void)
 	fMultiplierMap = -1;
 
 	/* set last muliplier array to local node map and store values */
-	fLastMultiplierMap    = fMultiplierMap; // these should be "copy"s
-	fLastMultiplierValues = fMultiplierValues;
+	fLastMultiplierMap.Copy(fMultiplierMap.Pointer()); 
+	fLastMultiplierValues.Copy(fMultiplierValues.Pointer());
 }
 
 /* tag MultiplierMap for potential contacting nodes (after SetPot.Conn.) */
@@ -287,7 +287,6 @@ ContactSurfaceT::ResetMultipliers(dArray2DT& multiplier_values)
                 if (old_map > -1 && new_map > -1)
 					multiplier_values[new_map] = fLastMultiplierValues[old_map];
         }
-
 }
 
 void

@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.33 2003-07-03 00:04:38 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.34 2003-11-20 18:14:51 rjones Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -114,7 +114,7 @@ void SurfaceT::InputSideSets
 //TEMP
 	int elem_group;
 	in >> elem_group;
-	cout << "\n SurfaceT::InputSideSets: element group number required, but not used" << endl;
+//	cout << "\n SurfaceT::InputSideSets: element group number required, but not used" << endl;
 
 	/* read side set: element, local face pair */
 	iArray2DT side_set;
