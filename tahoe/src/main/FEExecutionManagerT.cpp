@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.36.2.8 2003-02-15 02:41:05 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.36.2.9 2003-02-17 17:15:16 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -332,7 +332,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 			continuum.ReadRestart();
 
 			/* loop over time increments */
-			AutoArrayT<int> loop_count;
+			AutoArrayT<int> loop_count, atom_iter_count, continuum_iter_count;
 			bool seq_OK = true;
 			while (seq_OK && 
 				atom_time->Step() &&
@@ -406,6 +406,8 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 				}
 				
 				loop_count.Append(count);
+				atom_iter_count.Append(atom_last_iter);
+				continuum_iter_count.Append(continuum_last_iter);
 			
 				/* close step */
 				if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();
@@ -419,9 +421,15 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 			}
 			
 			cout << "\n Number of bridging iterations:\n";
-			cout << setw(kIntWidth) << "step" << setw(kIntWidth) << "#" << '\n';
+			cout << setw(kIntWidth) << "step" 
+			     << setw(kIntWidth) << "cycles" 
+			     << setw(kIntWidth) << "a-its."
+			     << setw(kIntWidth) << "c-its"<< '\n';
 			for (int i = 0; i < loop_count.Length(); i++)
-				cout << setw(kIntWidth) << i+1 << ": " << setw(kIntWidth) << loop_count[i] << '\n';
+				cout << setw(kIntWidth) << i+1 << ": " 
+				     << setw(kIntWidth) << loop_count[i]
+				     << setw(kIntWidth) << atom_iter_count[i]
+				     << setw(kIntWidth) << continuum_iter_count[i] << '\n';
 		}
 
 		t2 = clock();
