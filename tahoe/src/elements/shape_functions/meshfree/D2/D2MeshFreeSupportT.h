@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.h,v 1.9 2004-08-14 00:09:54 raregue Exp $ */
+/* $Id: D2MeshFreeSupportT.h,v 1.10 2004-12-24 20:32:45 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #ifndef _D2_MF_SUPPORT_T_H_
 #define _D2_MF_SUPPORT_T_H_
@@ -27,6 +27,13 @@ public:
 	D2MeshFreeSupportT(const ParentDomainT* domain, const dArray2DT& coords,
 		const iArray2DT& connects, const iArrayT& nongridnodes);
 
+	//************************************************************************************//
+	// kyonten
+	/** construct object sufficient for calling methods inherited from ParameterInterfaceT
+	 * to collect the class parameters, but not for doing any meshfree calculations */
+	D2MeshFreeSupportT(void);
+	//************************************************************************************//
+	
 	/** determine nodal support parameters based window function parameters */
 	virtual void InitNeighborData(void);
 
@@ -61,6 +68,24 @@ public:
 	 * SetFieldAt or SetFieldUsing
 	 * \return 2D array dimension: [nstr] x [nnd] */
 	const dArray2DT& DDFieldAt(void) const;
+	
+	//*****************************************************************//
+	// kyonten: to inherit the ParameterInterfaceT from MeshFreeSupportT
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+	//*****************************************************************//
 
 protected:
 
@@ -85,6 +110,9 @@ private:
 
 protected:
 
+	/* meshfree type */
+	//FormulationT fMeshfreeType; //kyonten
+	
 	/* higher order MLS solver */
 	D2OrthoMLSSolverT* fD2EFG;
 	
