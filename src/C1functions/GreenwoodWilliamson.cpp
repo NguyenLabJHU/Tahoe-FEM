@@ -1,4 +1,4 @@
-/* $Id: GreenwoodWilliamson.cpp,v 1.12 2002-05-17 22:45:01 dzeigle Exp $ */
+/* $Id: GreenwoodWilliamson.cpp,v 1.13 2002-05-21 18:46:58 dzeigle Exp $ */
 
 #include "GreenwoodWilliamson.h"
 #include <math.h>
@@ -87,7 +87,7 @@ double GreenwoodWilliamson::Function(double x) const
 		throw eBadInputValue;
 	}
 	
-	return (-value);
+	return value;
 }
 
 double GreenwoodWilliamson::DFunction(double x) const

@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.22 2002-05-15 18:09:18 dzeigle Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.23 2002-05-21 18:46:57 dzeigle Exp $ */
 // created by : rjones 2001
 
 #include "PenaltyContactElement2DT.h"
@@ -65,11 +65,11 @@ void PenaltyContactElement2DT::Initialize(void)
                 double gw_dens = parameters[kAsperityDensity];
                 double gw_mod = parameters[kHertzianModulus];
                 double gw_rad = parameters[kAsperityTipRadius];
-                double material_coeff=(4.0/3.0)*gw_dens*gw_mod*sqrt(gw_rad*gw_s)*gw_s;
-          		double area_coeff = PI*gw_dens*gw_rad*gw_s;
+                double material_coeff=(4.0/3.0)*gw_dens*gw_mod*sqrt(gw_rad);
+          		double area_coeff = PI*gw_dens*gw_rad;
 				parameters[kPenalty] *= material_coeff; // overwrite pen value
 				fPenaltyFunctions[LookUp(i,j,num_surfaces)]
-                                        = new GreenwoodWilliamson(1.5,gw_m/gw_s,1.0);
+                                        = new GreenwoodWilliamson(1.5,gw_m,gw_s);
 				}
 				break;
 			default:
@@ -230,8 +230,8 @@ void PenaltyContactElement2DT::RHSDriver(void)
 			double gw_mod = parameters[kHertzianModulus];
 			double gw_rad = parameters[kAsperityTipRadius];
 
-			GreenwoodWilliamson GWArea(1.0,gw_m/gw_s,1.0); 	
-  		  	double area_coeff = PI*gw_dens*gw_rad*gw_s;
+			GreenwoodWilliamson GWArea(1.0,gw_m,gw_s); 	
+  		  	double area_coeff = PI*gw_dens*gw_rad;
 		  	fRealArea[s] += (area_coeff*GWArea.Function(gap)*weights[i]);
 		  }
 		}
