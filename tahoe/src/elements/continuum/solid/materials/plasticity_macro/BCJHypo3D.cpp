@@ -1,4 +1,4 @@
-/* $Id: BCJHypo3D.cpp,v 1.14 2003-01-29 07:35:06 paklein Exp $ */
+/* $Id: BCJHypo3D.cpp,v 1.15 2003-02-19 19:22:54 ebmarin Exp $ */
 #include "BCJHypo3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -53,6 +53,9 @@ BCJHypo3D::BCJHypo3D(ifstreamT& in, const FSMatSupportT& support) :
   fSigTrDev (kNSD),
   fXiTr     (kNSD),
 
+  // trial backstress
+  falphaTr  (kNSD),
+
   // incremental strains
   fDEBar (kNSD),
   fDE    (kNSD),
@@ -79,6 +82,7 @@ BCJHypo3D::BCJHypo3D(ifstreamT& in, const FSMatSupportT& support) :
   fInternal   (fNumInternal),
   fInt_save   (fNumInternal),
   fEQValues   (fNumEQValues),
+  fInternalTr (fNumInternal),
 
   // work spaces
   fRHS       (fNumInternal),
@@ -565,7 +569,7 @@ void BCJHypo3D::IntegrateConstitutiveEqns(bool& converged, int subIncr,
   ElasticTrialStress();
 
   // check for inelastic process
-  if ( fEQXiTr > (1.+1.e-6)*fKineticEqn->h(fInternal_n[kDEQP]/fdt,fInternal_n[kKAPP]) )
+  if ( fEQXiTr > (1.+1.e-6)*fKineticEqn->h(fInternal_n[kDEQP]/fdt,fInternalTr[kKAPP]) )
     {
       // step 5. forward gradient estimate
       if (subIncr == 1) ForwardGradientEstimate();
@@ -589,18 +593,10 @@ void BCJHypo3D::IntegrateConstitutiveEqns(bool& converged, int subIncr,
     }
   else  // elastic process
     {
-      // step 5. reset values
-      fInternal = fInternal_n;
-      if (subIncr < totSubIncrs) return;
+      // step 5. Elastic update
+      UpdateElasticProcess(subIncr, totSubIncrs);
 
-      falph_ij  = falph_ij_n;
-      fEQValues[kEQXi] = fEQXiTr;
-      fEQValues[kEQP]  = fEQValues[kEQP_n];
-      
-      // step 6. Cauchy stress
-      fs_ij = fSigTr;
-
-      // step 7. elastic moduli
+      // step 6. elastic moduli
       ElasticModuli(fmu, fbulk);
     }
 
@@ -686,8 +682,29 @@ void BCJHypo3D::ElasticTrialStress()
   fSigTrDev.Deviatoric(fSigTr);
   fEQValues[kPress] = -fSigTr.Trace() / 3.;
 
+  // trial state variables
+  fInternalTr[kDEQP] = 0.0;
+  double a = fdt*fMatProp[2];
+  double b = 1.0;
+  double c = -fInternal_n[kALPH];
+  if (fabs(a) < 1.0e-16)
+     fInternalTr[kALPH] = -c;
+  else
+     fInternalTr[kALPH] = (-b+sqrt(b*b-4.0*a*c))/(2.0*a);
+  a = fdt*fMatProp[5];
+  b = 1.0;
+  c = -fInternal_n[kKAPP];
+  if (fabs(a) < 1.0e-16)
+     fInternalTr[kKAPP] = -c;
+  else
+     fInternalTr[kKAPP] = (-b+sqrt(b*b-4.0*a*c))/(2.0*a);
+
+  // trial back stress
+  double factor = 1.0/(1.0 + fMatProp[2]*fdt*fInternalTr[kALPH]);
+  falphaTr.SetToScaled(factor, falpha_n);
+
   // trial (elastic) equivalent stress
-  fXiTr.SetToCombination(1., fSigTrDev, -2./3., falpha_n);
+  fXiTr.SetToCombination(1., fSigTrDev, -2./3., falphaTr);
   fEQXiTr = sqrt32*sqrt(fXiTr.ScalarProduct());
 }
 
@@ -761,6 +778,7 @@ void BCJHypo3D::TangentModuli()
   ffactor = fradial + fMatProp[1]*(1.-fEta)*fInternal[kDEQP]/fEQXiTr;
   
   double tmpa = sqrt32*(2.*fmu);
+  if (fXMag <= 1.e-16) fXMag = 1.0;
   double tmpb = 1.5*(2.*fmu)/fXMag*(ffactor-fradial);
 
   double a1 = tmpa*Jaci(0,0);
@@ -819,6 +837,23 @@ void BCJHypo3D::ForwardGradientEstimate()
   fInternal.SetToCombination(1., fInternal_n, -1., farray);
 }
 
+void BCJHypo3D::UpdateElasticProcess(int subIncr, int totSubIncrs)
+{
+   // update state variables
+   fInternal = fInternalTr;
+   if (subIncr < totSubIncrs) return;
+
+   // update backstress
+   falph_ij  = falphaTr;
+
+   //update useful scalar qnts
+   fEQValues[kEQXi] = fEQXiTr;
+   fEQValues[kEQP]  = fEQValues[kEQP_n];
+
+   // update Cauchy stress
+   fs_ij = fSigTr;
+}
+
 bool BCJHypo3D::IsSolnVariableNegative()
 {
   // test for negative values of internal variables
@@ -833,8 +868,8 @@ bool BCJHypo3D::IsSolnVariableNegative()
   // check for zero values of internal variables
   if (!isNegative) {
      if (fInternal[kDEQP] < 1.e-16) fInternal[kDEQP] = 1.e-16;
-     if (fInternal[kALPH] < 1.e-16) fInternal[kALPH] = 1.e-16;
-     if (fInternal[kKAPP] < 1.e-16) fInternal[kKAPP] = 1.e-16;
+//     if (fInternal[kALPH] < 1.e-16) fInternal[kALPH] = 1.e-16;
+//     if (fInternal[kKAPP] < 1.e-16) fInternal[kKAPP] = 1.e-16;
   }
 
   return isNegative;
@@ -856,7 +891,7 @@ void BCJHypo3D::ComputeInternalQntsRHS(const dArrayT& array)
   // factor (tensor) in integrated eqn for backstress: alpha=(1-eta)*X
   fX.SetToCombination(1., falpha_n, sqrt32*fMatProp[1]*array[kDEQP], fUnitNorm);
   fXMag = sqrt(fX.ScalarProduct());
-  if (fXMag <= 1.e-16) fXMag = 1.;  // to avoid NaN in fUnitM in first incr
+//  if (fXMag <= 1.e-16) fXMag = 1.;  // to avoid NaN in fUnitM in first incr
 }
 
 void BCJHypo3D::ComputeInternalQntsLHS(const dArrayT& array)
@@ -866,7 +901,13 @@ void BCJHypo3D::ComputeInternalQntsLHS(const dArrayT& array)
   fDEtaDALPH = (1.-fEta)*(1.-fEta)*(fMatProp[0]*array[kDEQP]+fMatProp[2]*fdt);
 
   // unit normal M: M=X/||X||
-  fUnitM.SetToScaled(1./fXMag, fX);
+//  fUnitM.SetToScaled(1./fXMag, fX);
+  double tmp;
+  if (fXMag <= 1.e-16) 
+     tmp = 0.0;
+  else
+     tmp = 1.0/fXMag;
+  fUnitM.SetToScaled(tmp, fX);
 
   // derivative factor (tensor) for unit normal: dN/d()=A*dEta/d()
   //  fRank4.Outer(fUnitNorm, fUnitNorm);
