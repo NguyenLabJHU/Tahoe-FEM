@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.32.2.10 2002-05-07 07:21:30 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.32.2.11 2002-05-11 20:59:30 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -845,9 +845,23 @@ void FEManagerT::WriteSystemConfig(ostream& out, int group) const
 	/* loop over fields */
 	for (int i = 0; i < fields.Length(); i++)
 	{
-		const ArrayT<StringT>& labels = fields[i]->Labels();
-		for (int j = 0; j < labels.Length(); j++)
-			out << setw(d_width) << labels[j];
+		const FieldT& field = *(fields[i]);
+	
+		/* labels */
+		const ArrayT<StringT>& labels = field.Labels();
+		
+		/* loop over time derivatives */
+		StringT suffix = "_";
+		for (int k = 0; k <= field.Order(); k++)
+		{
+			for (int j = 0; j < labels.Length(); j++)
+			{
+				StringT label = labels[j];
+				if (k > 0) label.Append(suffix);
+				out << setw(d_width) << label;
+			}
+			suffix.Append("t");
+		}
 	}
 
 	for (int i3 = 0; i3 < ndf; i3++)
@@ -883,9 +897,13 @@ void FEManagerT::WriteSystemConfig(ostream& out, int group) const
 		/* displacements - loop over fields */
 		for (int k = 0; k < fields.Length(); k++)
 		{
-			const dArray2DT& u = (*fields[k])[0]; /* displacement */
-			for (int j = 0; j < u.MinorDim(); j++)
-				out << setw(d_width) << u(i,j);
+			const FieldT& field = *(fields[k]);
+			for (int l = 0; l <= field.Order(); l++)
+			{
+				const dArray2DT& u = field[l];
+				for (int j = 0; j < u.MinorDim(); j++)
+					out << setw(d_width) << u(i,j);
+			}
 		}
 
 		/* force */
