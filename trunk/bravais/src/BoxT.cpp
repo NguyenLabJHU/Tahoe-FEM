@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.43 2004-03-11 22:46:26 jzimmer Exp $ */
+/* $Id: BoxT.cpp,v 1.44 2004-03-19 17:33:29 jzimmer Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -341,9 +341,9 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
   Ind[is] = nATOMS;
   is++;
 
-  x = 0;
-  y = 0;
-  z = 0;
+  x = 0.0;
+  y = 0.0;
+  z = 0.0;
   typ = 0;
   int p = 0;
   for(int n = 0; n < is-1; n++)
@@ -412,9 +412,9 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
     Ind[is] = nATOMS;
     is++;
     
-    x = 0;
-    y = 0;
-    z = 0;
+    x = 0.0;
+    y = 0.0;
+    z = 0.0;
     typ = 0;
     int p = 0;
     for(int n = 0; n < is-1; n++)

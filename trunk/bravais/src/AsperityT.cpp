@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: AsperityT.cpp,v 1.17 2003-09-08 20:14:51 jzimmer Exp $ */
+/* $Id: AsperityT.cpp,v 1.18 2004-03-19 17:33:29 jzimmer Exp $ */
 #include "AsperityT.h"
 #include "VolumeT.h"
 
@@ -358,9 +358,9 @@ void AsperityT::SortLattice(CrystalLatticeT* pcl)
   Ind[is] = nATOMS;
   is++;
 
-  x = 0;
-  y = 0;
-  z = 0;
+  x = 0.0;
+  y = 0.0;
+  z = 0.0;
   typ = 0;
   int p = 0;
   for(int n = 0; n < is-1; n++)
@@ -434,9 +434,9 @@ void AsperityT::SortLattice(CrystalLatticeT* pcl)
     Ind[is] = nATOMS;
     is++;
     
-    x = 0;
-    y = 0;
-    z = 0;
+    x = 0.0;
+    y = 0.0;
+    z = 0.0;
     typ = 0;
     int p = 0;
     for(int n = 0; n < is-1; n++)
