@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LS.cpp,v 1.10 2002-12-13 02:42:55 paklein Exp $ */
+/* $Id: NLSolver_LS.cpp,v 1.11 2003-03-31 22:59:32 paklein Exp $ */
 /* created: paklein (08/18/1999) */
 
 #include "NLSolver_LS.h"
@@ -50,39 +50,40 @@ NLSolver_LS::NLSolver_LS(FEManagerT& fe_manager, int group):
 }
 
 /* form and solve the equation system */
-double NLSolver_LS::SolveAndForm(bool newtangent, bool clear_LHS)
-{		
-	/* form the stiffness matrix */
-	if (newtangent)
-	{
-		if (clear_LHS) fLHS->Clear();
+double NLSolver_LS::SolveAndForm(void)
+{	
+	/* form the stiffness matrix (must be cleared previously) */
+	if (fLHS_update) {
 		fLHS_lock = kOpen;
-		fFEManager.FormLHS(Group(), GlobalT::kNonSymmetric);
-		fLHS_lock = kIgnore;
+		fFEManager.FormLHS(Group(), fLHS->MatrixType());
+		fLHS_lock = kLocked;
 	}
 	
 	/* store residual */
 	fR = fRHS;
-		 		
+
 	/* solve equation system */
-	if (!fLHS->Solve(fRHS)) throw ExceptionT::kBadJacobianDet;
+	if (!fLHS->Solve(fRHS)) ExceptionT::BadJacobianDet("NLSolver_LS::SolveAndForm");
 
 	/* apply update to system */
 	fRHS_lock = kOpen;
 	Update(fRHS, &fR);
-								
-	/* compute new residual */
-	fLHS->Clear();
+									
+	/* recalculate residual */
+	fNumIteration++;
+	if (fLHS_update) {
+		fLHS->Clear();
+		fLHS_lock = kOpen; /* LHS open for assembly, too! */
+	}
+	else
+		fLHS_lock = kIgnore; /* ignore assembled values */
 	fRHS = 0.0;
-	fLHS_lock = kOpen;
-	fFEManager.FormRHS(Group());
+	fFEManager.FormRHS(Group());	
 	fLHS_lock = kLocked;
 	fRHS_lock = kLocked;
-
-	/* combine residual magnitude with update magnitude */
-	/* e = a1 |R| + a2 |delta_d|                        */
-	//not implemented!
-			
+	
+	/* could combine residual magnitude with update magnitude
+	 * e = a1 |R| + a2 |delta_d|  --> not implemented */	
 	return Residual(fRHS);
 }
 

@@ -1,4 +1,4 @@
-/* $Id: NLSolver.h,v 1.6 2002-12-13 02:42:55 paklein Exp $ */
+/* $Id: NLSolver.h,v 1.7 2003-03-31 22:59:32 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #ifndef _NL_SOLVER_H_
@@ -17,15 +17,27 @@ public:
 	/* constructor */
 	NLSolver(FEManagerT& fe_manager, int group);
 	
+	/** \name solution steps */
+	/*@{*/
+	/** start solution step */
+	virtual void InitStep(void);
+
 	/** solve the system over the current time increment.
 	 * \param num_iterations maximum number of iterations to execute. Hitting this limit
 	 *        does not signal a SolverT::kFailed status, unless solver's internal parameters
 	 *        also indicate the solution procedure has failed.
 	 * \return one of SolverT::IterationsStatusT */
-	virtual SolutionStatusT Solve(int num_iterations);
+	virtual SolutionStatusT Solve(int max_iterations);
 
-	/* error handler */
-	virtual void ResetStep(void);
+	/** end solution step */
+	virtual void CloseStep(void);
+
+	/** error handler */
+	virtual void ResetStep(void);	
+	/*@}*/
+
+	/** (re-)set the reference error */
+	void SetReferenceError(double error);
 
 protected:
 
@@ -43,7 +55,7 @@ protected:
 
 	/* form and solve the equation system - returns the magnitude of the
 	 * residual */
-	virtual double SolveAndForm(bool newtangent, bool clear_LHS);
+	virtual double SolveAndForm(void);
 
 	/* divert output for iterations */
 	void InitIterationOutput(void);

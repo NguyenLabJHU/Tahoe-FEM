@@ -1,4 +1,4 @@
-/* $Id: ExpCD_DRSolver.cpp,v 1.7 2002-11-28 17:30:31 paklein Exp $ */
+/* $Id: ExpCD_DRSolver.cpp,v 1.8 2003-03-31 22:59:32 paklein Exp $ */
 /* created: paklein (08/19/1998) */
 
 #include "ExpCD_DRSolver.h"
@@ -328,6 +328,7 @@ double ExpCD_DRSolver::SolveAndForm(void)
 	fFEManager.Update(Group(), fDis);
 
 	/* compute new residual */
+	fNumIteration++;
 	fRHS = 0.0;
 	fFEManager.FormRHS(Group());
 
