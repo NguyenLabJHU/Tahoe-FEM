@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2004-10-30 20:51:19 raregue Exp $
+# $Id: makefile,v 1.5 2004-10-31 00:57:53 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -23,7 +23,7 @@ OBJ = \
 	D3MeshFreeShapeFunctionT.o \
 	D3MeshFreeSupportT.o \
 	D3MeshFreeSupport2DT.o \
-	MFGP_ToolsT.cpp
+	MFGP_ToolsT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
