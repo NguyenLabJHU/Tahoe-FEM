@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.8 2002-10-20 22:49:29 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.9 2002-12-12 21:46:30 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #include "K_FieldT.h"
@@ -181,7 +181,7 @@ void K_FieldT::WriteRestart(ostream& out) const
 	KBC_ControllerT::WriteRestart(out);
 
 	/* write tip coordinates */
-	out << fTipCoords;
+	out << fTipCoords << '\n';
 }
 
 /* initialize/finalize/reset step */
