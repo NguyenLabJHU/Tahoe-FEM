@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.4 2004-07-27 03:16:09 paklein Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.5 2004-07-29 18:34:11 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -82,9 +82,15 @@
 
 #ifdef SIERRA_MATERIAL
 #include "SIERRA_HypoElasticT.h"
+
 #ifdef __FOSSUM__
 #include "SIERRA_Isotropic_Geomaterial.h"
 #endif /* __FOSSUM__ */
+
+#ifdef __SIERRA__
+#include "SIERRA_BCJ.h"
+#endif /* __SIERRA__ */
+
 #endif /* SIERRA_MATERIAL */
 
 using namespace Tahoe;
@@ -156,6 +162,11 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef SIERRA_MATERIAL
 	sub_lists.AddSub("SIERRA_hypoelastic");
+
+#ifdef __SIERRA__
+	sub_lists.AddSub("SIERRA_BCJ");
+#endif /* __SIERRA__ */
+
 #endif
 
 	}
@@ -258,6 +269,12 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 #ifdef SIERRA_MATERIAL
 	else if (name == "SIERRA_hypoelastic")
 		mat= new SIERRA_HypoElasticT;
+
+#ifdef __SIERRA__
+	else if (name == "SIERRA_BCJ")
+		mat= new SIERRA_BCJ;
+#endif /* __SIERRA__ */
+
 #endif
 
 	/* set support */
