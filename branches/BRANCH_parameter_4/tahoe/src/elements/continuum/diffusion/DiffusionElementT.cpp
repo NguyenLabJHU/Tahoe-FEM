@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.20.2.2 2004-07-07 15:28:03 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.20.2.3 2004-07-08 16:11:26 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -642,8 +642,11 @@ ParameterInterfaceT* DiffusionElementT::NewSub(const StringT& list_name) const
 		ParameterContainerT* node_output = new ParameterContainerT(list_name);
 		
 		/* all false by default */
-		for (int i = 0; i < NumNodalOutputCodes; i++)
-			node_output->AddParameter(ParameterT::Boolean, NodalOutputNames[i], ParameterListT::ZeroOrOnce);
+		for (int i = 0; i < NumNodalOutputCodes; i++) {
+			ParameterT output(ParameterT::Integer, NodalOutputNames[i]);
+			output.SetDefault(1);
+			node_output->AddParameter(output, ParameterListT::ZeroOrOnce);
+		}
 
 		return node_output;
 	}
@@ -693,7 +696,7 @@ void DiffusionElementT::TakeParameterList(const ParameterListT& list)
 			/* look for entry */
 			const ParameterT* nodal_value = node_output->Parameter(NodalOutputNames[i]);
 			if (nodal_value) {
-				bool do_write = *nodal_value;
+				int do_write = *nodal_value;
 				if (do_write)
 					fNodalOutputCodes[i] = 1;
 			}

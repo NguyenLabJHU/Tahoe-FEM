@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.62.2.3 2004-07-08 00:41:52 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.62.2.4 2004-07-08 16:11:25 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -374,8 +374,11 @@ ParameterInterfaceT* SolidElementT::NewSub(const StringT& list_name) const
 		node_output->AddSub(wave_direction, ParameterListT::ZeroOrOnce);
 		
 		/* all false by default */
-		for (int i = 0; i < NumNodalOutputCodes; i++)
-			node_output->AddParameter(ParameterT::Integer, NodalOutputNames[i], ParameterListT::ZeroOrOnce);
+		for (int i = 0; i < NumNodalOutputCodes; i++) {
+			ParameterT output(ParameterT::Integer, NodalOutputNames[i]);
+			output.SetDefault(1);
+			node_output->AddParameter(output, ParameterListT::ZeroOrOnce);
+		}
 
 		return node_output;
 	}
@@ -384,8 +387,11 @@ ParameterInterfaceT* SolidElementT::NewSub(const StringT& list_name) const
 		ParameterContainerT* element_output = new ParameterContainerT(list_name);
 		
 		/* all false by default */
-		for (int i = 0; i < NumElementOutputCodes; i++)
-			element_output->AddParameter(ParameterT::Integer, ElementOutputNames[i], ParameterListT::ZeroOrOnce);
+		for (int i = 0; i < NumElementOutputCodes; i++) {
+			ParameterT output(ParameterT::Integer, ElementOutputNames[i]);
+			output.SetDefault(1);
+			element_output->AddParameter(output, ParameterListT::ZeroOrOnce);
+		}
 
 		return element_output;	
 	}
