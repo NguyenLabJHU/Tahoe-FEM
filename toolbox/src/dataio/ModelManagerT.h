@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.11 2002-01-09 12:17:49 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.12 2002-01-09 22:20:37 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -39,7 +39,8 @@ class ModelManagerT
    * used in conjuction with a Tahoe parameter file. The readonly option controls
    * whether or not the InputBaseT* is initialized. If readonly is true, the pointer
    * is not cast and no data from the model file is registered. This option is
-   * used when decomposing or joining parallel jobs.
+   * used when decomposing or joining parallel jobs. The database file path is read 
+   * from in and is taken as relative the source of in.
    * \param in stream containing input file format and model file name 
    * \param readonly flag to only read data, if false the InputBaseT class is initialized 
    * \return true if model database is open, false otherwise */
