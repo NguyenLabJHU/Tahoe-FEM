@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.14.2.1 2003-05-24 17:58:37 hspark Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.14.2.2 2003-05-24 18:51:41 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
@@ -91,12 +91,12 @@ private:
 	/** \name bridging scale with different integrators */
 	/*@{*/
 	/** quasistatic multi-Tahoe bridging scale */
-	void RunStaticBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms,
+	void RunStaticBridging(FEManagerT_bridging& continuum, FEManagerT_THK& atoms,
 		ofstream& log_out) const;
         
 	/** dynamic multi-Tahoe bridging scale */
-	void RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms,
-		FEManagerT_THK& thk, ofstream& log_out) const;
+	void RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_THK& atoms,
+		ofstream& log_out) const;
 				
 	/** calculate MD internal force as a function of total displacement u */
 	const dArray2DT& InternalForce(dArray2DT& totalu, FEManagerT_bridging& atoms) const;
