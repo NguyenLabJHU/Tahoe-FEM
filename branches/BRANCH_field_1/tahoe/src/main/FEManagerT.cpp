@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.32.2.6 2002-04-30 08:22:02 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.32.2.7 2002-05-03 07:17:13 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1203,6 +1203,7 @@ void FEManagerT::SetController(void)
 		in >> n_int;
 		
 		fControllers.Dimension(n_int);
+		fControllers = NULL;
 		for (int i = 0; i < fControllers.Length(); i++)
 		{
 			int dex = -1;
@@ -1222,6 +1223,7 @@ void FEManagerT::SetController(void)
 	{
 		/* just one */
 		fControllers.Dimension(1);
+		fControllers = NULL;
 		
 		/* set by analysis type */
 		ControllerT* controller = NULL;
