@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.3 2003-04-01 18:23:48 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.3.2.1 2003-04-07 22:47:11 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -65,9 +65,11 @@ void FEManagerT_bridging::InitGhostNodes(void)
 	const char caller[] = "FEManagerT_bridging::InitGhostNodes";
 
 	/* collect ghost nodes */
-	ArrayT<StringT> id_list;
-	fModelManager->NodeSetList(fBridgingIn, id_list);
-	fModelManager->ManyNodeSets(id_list, fGhostNodes);
+	if (fBridgingIn.is_open()) {
+		ArrayT<StringT> id_list;
+		fModelManager->NodeSetList(fBridgingIn, id_list);
+		fModelManager->ManyNodeSets(id_list, fGhostNodes);
+	}
 
 	/* assume atomistic field is "displacement" */
 	StringT field = "displacement";
