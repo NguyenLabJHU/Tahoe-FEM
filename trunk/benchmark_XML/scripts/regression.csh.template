@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: regression.csh.template,v 1.7 2002-03-15 19:36:04 paklein Exp $
+# $Id: regression.csh.template,v 1.8 2002-03-22 17:29:06 paklein Exp $
 
 # username on Tahoe server
 set TAHOE_USER =
@@ -19,7 +19,7 @@ setenv ACCESS
 ######### hopefully no changes will be required below #########
 
 # set path
-set path=(/bin /usr/bin /usr/local/bin /usr/ccs/bin /usr/sbin /usr/local/ssh /usr/ucb /etc /usr/openwin/bin /project/local/bin $path)
+set path=(${W_DIR}/benchmark/scripts /bin /usr/bin /usr/local/bin /usr/ccs/bin /usr/sbin /usr/local/ssh /usr/ucb /etc /usr/openwin/bin /project/local/bin $path)
 
 # CVS
 setenv CVSROOT ${TAHOE_USER}@tahoe.ca.sandia.gov:/usr/local/cvsrep
@@ -87,3 +87,5 @@ endif
 # send it
 scp ${W_DIR}/benchmark/tmp_mail ${TAHOE_USER}@tahoe.ca.sandia.gov:/home/paklein/admin/distribute/mail.${HOST}
 
+# run additional tests
+# cd ${W_DIR}/benchmark/scripts; csh -f parallel.csh >& parallel.LOG
