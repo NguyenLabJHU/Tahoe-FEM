@@ -1,13 +1,15 @@
-/* $Id: SpatialGridT.h,v 1.1 2004-10-06 21:07:10 paklein Exp $ */
+/* $Id: SpatialGridT.h,v 1.2 2004-10-06 21:28:57 paklein Exp $ */
 #ifndef _SPATIAL_GRID_T_H_
 #define _SPATIAL_GRID_T_H_
+
+/* direct members */
+#include "iArrayT.h"
+#include "dArrayT.h"
+#include "dArray2DT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
-template <class TYPE> class ArrayT;
-class dArray2DT;
-class iArrayT;
 class CommunicatorT;
 
 /** class to sort points into bins for 1D/2D/3D */

@@ -1,4 +1,4 @@
-/* $Id: DecomposeT.h,v 1.4 2004-10-06 21:07:10 paklein Exp $ */
+/* $Id: DecomposeT.h,v 1.5 2004-10-06 21:28:57 paklein Exp $ */
 #ifndef _FE_DECOMPOSE_T_H_
 #define _FE_DECOMPOSE_T_H_
 
@@ -17,6 +17,8 @@ class CommunicatorT;
 class GraphT;
 class FEManagerT;
 class ParameterListT;
+class iArrayT;
+class dArray2DT;
 
 /** class to handle decomposition of models for parallel execution */
 class DecomposeT
