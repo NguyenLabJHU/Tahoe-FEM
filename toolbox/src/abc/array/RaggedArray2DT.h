@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.3 2001-07-07 17:30:07 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.4 2001-07-19 01:02:13 paklein Exp $ */
 /* created: paklein (09/10/1998)                                          */
 /* 2D array with arbitrary "row" lengths. NO functions are provided       */
 /* for data retrieval. derived classes should use RowAlias()              */
@@ -48,6 +48,9 @@ public:
 	void Copy(const RowAutoFill2DT<TYPE>& source);
 	void Copy(const ArrayT<int>& rowcounts, const ArrayT<TYPE*>& data);
 	void CopyCompressed(const AutoFill2DT<TYPE>& source); // removes empty rows
+
+	/* generate adjacency offset vector */
+	void GenerateOffsetVector(ArrayT<int>& offsets) const;
 
 	/* write data */
 	void SetRow(int row, const ArrayT<TYPE>& array);
@@ -418,6 +421,20 @@ void RaggedArray2DT<TYPE>::CopyCompressed(const AutoFill2DT<TYPE>& source) // re
 		cout << "\n RaggedArray2DT<TYPE>::CopyCompressed: memory partitioning error" << endl;
 		throw eGeneralFail;
 	}
+}
+
+/* generate adjacency offset vector */
+template <class TYPE>
+void RaggedArray2DT<TYPE>::GenerateOffsetVector(ArrayT<int>& offsets) const
+{
+	/* same length as pointers */
+	offsets.Allocate(fPtrs.Length());
+
+	/* pointer to base address */
+	TYPE* base = fData.Pointer();
+	int length = offsets.Length();
+	for (int i = 0; i < length; i++)
+		offsets = fPtrs[i] - base;
 }
 
 /* write data */
