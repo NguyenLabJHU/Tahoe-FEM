@@ -1,4 +1,4 @@
-/* $Id: EAM_particle.cpp,v 1.1.2.3 2004-02-26 00:19:23 hspark Exp $ */
+/* $Id: EAM_particle.cpp,v 1.1.2.4 2004-02-26 14:20:47 hspark Exp $ */
 /* created: hspark(02/25/2004) */
 #include "EAM_particle.h"
 #include <iostream.h> //TEMP
@@ -75,9 +75,9 @@ double EAM_particle::ComputeUnitEnergy(void)
 	{
 		int ci = *pcount++;
 
-		double   r = fBonds[i];
-		double phi = fPairEnergy(r, NULL, NULL);
-		double rho = fEDEnergy(r, NULL, NULL);	// WHICH EDEnergyFunction?
+		double  ri = fBonds[i];
+		double phi = fPairEnergy(ri, NULL, NULL);
+		double rho = fEDEnergy(ri, NULL, NULL);	// Using ElectronDensityEnergy - could be wrong
 
 		rho    += ci*rho;
 		energy += ci*0.5*phi;
@@ -97,18 +97,18 @@ void EAM_particle::ComputeUnitStress(dSymMatrixT& stress)
 {
 	/* total atomic density */
 	double rho = TotalElectronDensity();
-	double dFdrho = fEmbeddingEnergy->DFunction(rho);	
+	double dFdrho = fEmbedForce(rho, NULL, NULL);
 
 	/* assemble stress */
 	stress = 0.0;
-	
-	dArrayT& DPotential = fPairPotential->MapDFunction(fBonds, fBond1);
-	dArrayT& DDensity   = fElectronDensity->MapDFunction(fBonds, fBond2);
+
 	for (int i = 0; i < fNumBonds; i++)
 	{
 		double ri = fBonds[i];
-		int    ci = fCounts[i];		
-		double coeff = (1.0/ri)*ci*(0.5*DPotential[i] + dFdrho*DDensity[i]);
+		int    ci = fCounts[i];	
+		double DPotential = fPairForce(ri, NULL, NULL);
+		double DDensity = fEDForce(ri, NULL, NULL);	
+		double coeff = (1.0/ri)*ci*(0.5*DPotential + dFdrho*DDensity);
 		fLattice.BondComponentTensor2(i,fBondTensor2);
 		stress.AddScaled(coeff,fBondTensor2);
 	}
@@ -145,13 +145,8 @@ void EAM_particle::ComputeUnitModuli(dMatrixT& moduli)
 */
 void EAM_particle::FormMixedDerivatives(double rho)
 {
-	double dFdrho   = fEmbeddingEnergy->DFunction(rho);
-	double d2Fdrho2 = fEmbeddingEnergy->DDFunction(rho);
-
-	/* batched calls */
-	dArrayT& DDensity    = fElectronDensity->MapDFunction(fBonds, fBond1);
-	dArrayT& DDDensity   = fElectronDensity->MapDDFunction(fBonds, fBond2);
-	dArrayT& DDPotential = fPairPotential->MapDDFunction(fBonds, fBond3);
+	double dFdrho = fEmbedForce(rho, NULL, NULL);
+	double d2Fdrho2 = fEmbedStiffness(rho, NULL, NULL);
 
 	/* form upper triangle only */
 	for (int j = 0; j < fNumBonds; j++)
@@ -159,9 +154,9 @@ void EAM_particle::FormMixedDerivatives(double rho)
 		double rj = fBonds[j];
 		int    cj = fCounts[j];
 
-		double DDPj = DDPotential[j];
-		double DDDj = DDDensity[j];
-		double DDj  = DDensity[j];
+		double DDPj = fPairStiffness(rj, NULL, NULL);
+		double DDDj = fEDStiffness(rj, NULL, NULL);
+		double DDj = fEDForce(rj, NULL, NULL);
 	
 		for (int i = 0; i <= j; i++)
 		{
@@ -178,9 +173,10 @@ void EAM_particle::FormMixedDerivatives(double rho)
 				/* embedding energy */
 				Amn += cj*dFdrho*DDDj;
 			}
+			double DDensity = fEDForce(ri, NULL, NULL);
 		
 			/* mixed embedding energy term */
-			Amn += ci*cj*d2Fdrho2*DDensity[i]*DDj;
+			Amn += ci*cj*d2Fdrho2*DDensity*DDj;
 		
 			fAmn(i,j) = Amn/(ri*rj);
 		}
@@ -194,16 +190,15 @@ void EAM_particle::FormMixedDerivatives(double rho)
 */
 double EAM_particle::TotalElectronDensity(void)
 {
-	/* compute total atomic density */
-	dArrayT& ElectronDensity = fElectronDensity->MapFunction(fBonds, fBond1);
-
 	double rho = 0.0;
 	const int* pcount = fCounts.Pointer();
-	double* pedensity = ElectronDensity.Pointer();
 
 	for (int i = 0; i < fNumBonds; i++)
-		rho += (*pcount++)*(*pedensity++);
-
+	{
+		double ri = fBonds[i];
+		double pedensity = fEDEnergy(ri, NULL, NULL);
+		rho += (*pcount++)*pedensity;
+	}
 	return rho;
 }
 
@@ -212,20 +207,15 @@ double EAM_particle::TotalElectronDensity(void)
 */
 void EAM_particle::FormSingleBondContribution(double rho, dMatrixT& moduli)
 {
-	/* batch fetch */
-	dArrayT& DPotential = fPairPotential->MapDFunction(fBonds, fBond1);
-	dArrayT& DDensity   = fElectronDensity->MapDFunction(fBonds, fBond2);
-	
 	/* Embedding energy derivative */
-	double dFdrho = fEmbeddingEnergy->DFunction(rho);	
+	double dFdrho = fEmbedForce(rho, NULL, NULL);
 	
 	for (int i = 0; i < fNumBonds; i++)
 	{
 		double ri = fBonds[i];
-	
-		double coeff = -fCounts[i]*(0.5*DPotential[i] +
-		                              dFdrho*DDensity[i])/(ri*ri*ri);
-	
+		double DPotential = fPairForce(ri, NULL, NULL);
+		double DDensity = fEDForce(ri, NULL, NULL);
+		double coeff = -fCounts[i]*(0.5*DPotential + dFdrho*DDensity)/(ri*ri*ri);
 		fLattice.BondComponentTensor4(i,fBondTensor4);		
 		moduli.AddScaled(coeff,fBondTensor4);
 	}

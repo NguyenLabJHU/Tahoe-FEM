@@ -1,4 +1,4 @@
-/* $Id: EAM_particle.h,v 1.1.2.3 2004-02-26 00:19:23 hspark Exp $ */
+/* $Id: EAM_particle.h,v 1.1.2.4 2004-02-26 14:20:47 hspark Exp $ */
 /* created: hspark(02/25/2004) */
 #ifndef _EAM_PARTICLE_H_
 #define _EAM_PARTICLE_H_
@@ -84,13 +84,13 @@ private:
 	
 	PairEnergyFunction    fPairEnergy;
 	PairForceFunction     fPairForce;
-	PairEnergyFunction fPairStiffness;
-	EmbedEnergyFunction fEmbedStiffness;	
+	PairStiffnessFunction fPairStiffness;
+	EmbedStiffnessFunction fEmbedStiffness;	
 	EmbedEnergyFunction   fEmbedEnergy;
 	EmbedForceFunction fEmbedForce;
 	EDEnergyFunction fEDEnergy;
-	EDEnergyFunction fEDForce;
-	EDEnergyFunction fEDStiffness;
+	EDForceFunction fEDForce;
+	EDStiffnessFunction fEDStiffness;
 	
 	/*@{*/
 
