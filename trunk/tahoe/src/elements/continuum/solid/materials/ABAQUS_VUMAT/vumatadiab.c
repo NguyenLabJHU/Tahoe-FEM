@@ -3,13 +3,16 @@
 	-lf2c -lm   (in that order)
 */
 
+/* library support options */
+#ifdef __F2C__
+
 #include "f2c.h"
 
 /* Table of constant values */
 
 static doublereal c_b17 = .5;
 
-/* $Id: vumatadiab.c,v 1.3 2001-07-19 21:23:56 paklein Exp $ */
+/* $Id: vumatadiab.c,v 1.4 2001-07-25 16:07:42 paklein Exp $ */
 
 /* 23456789012345678901234567890123456789012345678901234567890123456789012 */
 /* revision a  2000/12/6  correct problems */
@@ -606,3 +609,5 @@ L20:
 
     return 0;
 } /* vumat_ */
+
+#endif /* __F2C__ */
