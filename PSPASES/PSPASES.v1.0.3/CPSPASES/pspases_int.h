@@ -1,4 +1,4 @@
-/* $Id: pspases_int.h,v 1.2 2005-01-05 16:51:31 paklein Exp $ */
+/* $Id: pspases_int.h,v 1.3 2005-01-15 00:22:29 paklein Exp $ */
 
 #ifndef PSPASES_INT_H
 #define PSPASES_INT_H
@@ -13,6 +13,7 @@
 
 /* skip MPI wrappers */
 #define myMPI_Isend     MPI_Isend
+#define myMPI_Send      MPI_Send
 #define myMPI_Get_count MPI_Get_count
 
 #endif
