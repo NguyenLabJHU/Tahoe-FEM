@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.1.2.9 2002-05-17 01:29:57 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.1.2.10 2002-06-02 20:30:48 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nControllerT.h"
@@ -589,14 +589,6 @@ void FieldT::Apply_IC(const IC_CardT& card)
 /* mark global equations with the specified BC */
 void FieldT::SetBCCode(const KBC_CardT& card)
 {
-	KBC_CardT::CodeT code = card.Code();
-	if (code != KBC_CardT::kFix && code != KBC_CardT::kDsp)
-	{
-		cout << "\n FieldT::SetBCCode: unknown BC code: ";
-		cout << code << endl;
-		throw eGeneralFail;
-	}
-	
 	/* mark equation */
 	fEqnos(card.Node(), card.DOF()) = kPrescribed;
 }
