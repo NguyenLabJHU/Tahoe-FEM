@@ -1,4 +1,4 @@
-/* $Id: iAutoArrayT.cpp,v 1.2 2002-07-02 19:56:40 cjkimme Exp $ */
+/* $Id: iAutoArrayT.cpp,v 1.3 2002-07-05 15:05:15 paklein Exp $ */
 /* created: paklein (02/08/1999)                                          */
 
 #include "iAutoArrayT.h"
@@ -71,6 +71,7 @@ int	iAutoArrayT::Count(int value) const
 	return count;
 }
 
+namespace Tahoe {
 ostream& operator<<(ostream& out, const iAutoArrayT& array)
 {
 	int* p = array.Pointer();
@@ -79,3 +80,4 @@ ostream& operator<<(ostream& out, const iAutoArrayT& array)
 
 	return out;
 };
+} /* namespace Tahoe */

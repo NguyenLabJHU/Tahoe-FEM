@@ -1,4 +1,4 @@
-/* $Id: zArrayT.cpp,v 1.6 2002-07-02 19:56:42 cjkimme Exp $ */
+/* $Id: zArrayT.cpp,v 1.7 2002-07-05 15:05:30 paklein Exp $ */
 /* created: PAK/AFLP (05/19/1997)                                         */
 
 #include "zArrayT.h"
@@ -23,9 +23,8 @@ zArrayT::zArrayT(const dArrayT& re, const dArrayT& im)
 }
 zArrayT::zArrayT(const zArrayT& source): nArrayT<ComplexT>(source) { }
 
-/*
-* I/O operators
-*/
+/* I/O operators */
+namespace Tahoe {
 istream& operator>>(istream& in, zArrayT& array)
 {
 	for (int i = 0; i < array.Length(); i++)
@@ -41,6 +40,7 @@ ostream& operator<<(ostream& out, const zArrayT& array)
 
 	return (out);
 }
+} /* namespace Tahoe */
 
 /*
 * Returning the Real and Imaginary parts

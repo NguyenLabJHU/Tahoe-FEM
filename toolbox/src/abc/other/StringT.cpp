@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.21 2002-07-02 19:56:50 cjkimme Exp $ */
+/* $Id: StringT.cpp,v 1.22 2002-07-05 15:05:32 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 
 #include "StringT.h"
@@ -119,20 +119,24 @@ int StringT::operator==(const char* string) const
 	return (strcmp(*this,string) == 0);
 }
 
+namespace Tahoe {
 int operator==(const char* str_lhs, const StringT& str_rhs)
 {
 	return (str_rhs == str_lhs);
 }
+} /* namespace Tahoe */
 
 int StringT::operator!=(const char* string) const
 {
 	return (strcmp(*this,string) != 0);
 }
 
+namespace Tahoe {
 int operator!=(const char* str_lhs, const StringT& str_rhs)
 {
 	return (str_rhs != str_lhs);
 }
+} /* namespace Tahoe */
 
 /* convert all to uppercase */
 const StringT& StringT::ToUpper(void)
