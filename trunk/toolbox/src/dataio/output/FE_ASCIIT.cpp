@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.cpp,v 1.9 2002-03-02 19:40:28 paklein Exp $ */
+/* $Id: FE_ASCIIT.cpp,v 1.10 2002-03-04 06:32:03 paklein Exp $ */
 /* created: sawimme (05/20/1999) */
 
 #include "FE_ASCIIT.h"
@@ -286,10 +286,21 @@ void FE_ASCIIT::WriteGeometryData(ostream& out, int ID)
 	dArray2DT set_coords(nodes_used.Length(), fCoordinates->MinorDim());
 	set_coords.RowCollect(nodes_used, *fCoordinates);
 
+	/* collect set ids */
+	iArrayT node_id;
+	if (!fNodeID) {
+		node_id = nodes_used;
+		node_id++;
+	}
+	else {
+		node_id.Dimension(nodes_used.Length());
+		node_id.Collect(nodes_used, *fNodeID);
+	}
+
 	/* write coords */
 	out << "\n Nodal coordinates:\n";	
 	WriteNodeHeader(out, set_coords.MajorDim(), coord_labels);
-	WriteNodeValues(out, nodes_used, set_coords);
+	WriteNodeValues(out, node_id, set_coords);
 	
 	const ArrayT<StringT>& blockIDs = fElementSets[ID]->BlockID();
 	for (int b=0; b < fElementSets[ID]->NumBlocks(); b++)
@@ -305,17 +316,26 @@ void FE_ASCIIT::WriteGeometryData(ostream& out, int ID)
 		<< c->MinorDim() << '\n';
 	    out << " Geometry code . . . . . . . . . . . . . . . . . = "
 		<< fElementSets[ID]->Geometry() << "\n\n";
-	    out << setw(kIntWidth) << "element";
+	    out << setw(kIntWidth) << "index" << setw(kIntWidth) << "element";
 	    for (int j = 0; j < c->MinorDim(); j++)
 	      out << setw(kIntWidth - 1) << "n" << j+1;
 	    out << '\n';
 			
-	    /* correct offset for output */
+	    /* map to local numbering */
 	    iArray2DT connects_temp;
-	    connects_temp.Alias(*c);	
+	    connects_temp.Dimension(*c);
+	    LocalConnectivity(nodes_used, *c, connects_temp);
+	
+		/* write */
 	    connects_temp++;
-	    connects_temp.WriteNumbered(out);
+		for (int i = 0; i < connects_temp.MajorDim(); i++)
+		{
+			out << setw(kIntWidth) << i + 1  // index
+				<< setw(kIntWidth) << i + 1; // element number
+			connects_temp.PrintRow(i, out);	
+		}
 	    connects_temp--;
+
 	  }
 	out.flush();
 }
@@ -330,9 +350,21 @@ void FE_ASCIIT::WriteOutputData(ostream& out, int ID, const dArray2DT& n_values,
 	/* write node vars */
 	if (n_values.MajorDim () > 0)
 	{
+		/* collect set ids */
 		const iArrayT& nodes_used = fElementSets[ID]->NodesUsed();
-		WriteNodeHeader(out, nodes_used.Length(), node_labels);
-		WriteNodeValues(out, nodes_used, n_values);
+		iArrayT node_id;
+		if (!fNodeID) {
+			node_id = nodes_used;
+			node_id++;
+		}
+		else {
+			node_id.Dimension(nodes_used.Length());
+			node_id.Collect(nodes_used, *fNodeID);
+		}
+
+		/* write values */
+		WriteNodeHeader(out, node_id.Length(), node_labels);
+		WriteNodeValues(out, node_id, n_values);
 	}
 	else
 		WriteNodeHeader(out, 0, node_labels);
@@ -377,7 +409,7 @@ void FE_ASCIIT::WriteNodeHeader(ostream& out, int num_output_nodes,
 
 	if (labels.Length())
 	{
-		out << setw(kIntWidth) << "node";
+		out << setw(kIntWidth) << "index" << setw(kIntWidth) << "node";
 		for (int i = 0; i < labels.Length(); i++)
 			out << setw(d_width) << labels[i];
 		out << '\n';
@@ -397,7 +429,7 @@ void FE_ASCIIT::WriteElementHeader(ostream& out, int num_output_elems,
 
 	if (labels.Length() > 0)
 	{
-		out << setw(kIntWidth) << "element";
+		out << setw(kIntWidth) << "index" << setw(kIntWidth) << "element";
 		for (int i = 0; i < labels.Length(); i++)
 			out << setw(d_width) << labels[i];
 		out << '\n';
@@ -416,7 +448,8 @@ void FE_ASCIIT::WriteNodeValues(ostream& out, const iArrayT& node_numbers,
 	/* write */
 	for (int i = 0; i < node_numbers.Length(); i++)
 	{
-		out << setw(kIntWidth) << node_numbers[i] + 1;
+		out << setw(kIntWidth) << i+1
+		    << setw(kIntWidth) << node_numbers[i];
 		values.PrintRow(i, out);	
 	}
 }
@@ -429,7 +462,8 @@ void FE_ASCIIT::WriteElementValues(ostream& out, const dArray2DT& values) const
 	/* write */
 	for (int i = 0; i < values.MajorDim(); i++)
 	{
-		out << setw(kIntWidth) << i + 1;
+		out << setw(kIntWidth) << i + 1  // index
+		    << setw(kIntWidth) << i + 1; // element number
 		values.PrintRow(i, out);	
 	}
 }
