@@ -1,4 +1,4 @@
-/* $Id: MSRBuilderT.h,v 1.5 2004-03-14 00:44:31 paklein Exp $ */
+/* $Id: MSRBuilderT.h,v 1.6 2004-03-16 19:26:33 paklein Exp $ */
 /* created: paklein (07/30/1998) */
 #ifndef _MSR_BUILDER_T_H_
 #define _MSR_BUILDER_T_H_
@@ -35,10 +35,16 @@ public:
 		const iArrayT& MSRdata) const;
 	/*@}*/
 
-	/** \name PSPASES structure */
+	/** \name PSPASES (compressed row) structure */
 	/*@{*/
 	/** return the PSPASES data structure */
 	void SetPSPASESData(const iArrayT& activerows, iArray2DT& aptrs, iArrayT& ainds);
+	/*@}*/
+
+	/** \name distributed SuperLU (compressed row) structure */
+	/*@{*/
+	/** return the distributed SuperLU data structure */
+	void SetSuperLUData(const iArrayT& activerows, iArrayT& rowptr, iArrayT& colind);
 	/*@}*/
 
 private:
@@ -53,6 +59,10 @@ private:
 	/** generate PSPASES structure */
 	void GeneratePSPASES(int row_shift, const RaggedArray2DT<int>& edgelist, const iArrayT& activerows, 
 		iArray2DT& aptrs, iArrayT& ainds);
+
+	/** generate SuperLU structure */
+	void GenerateSuperLU(int row_shift, const RaggedArray2DT<int>& edgelist, const iArrayT& activerows,
+		iArrayT& rowptr, iArrayT& colind);
 
 	/** This routine was taken from Knuth: Sorting and Searching. It puts the input
 	 * data list into a heap and then sorts it. */

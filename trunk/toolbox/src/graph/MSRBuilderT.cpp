@@ -1,4 +1,4 @@
-/* $Id: MSRBuilderT.cpp,v 1.7 2004-03-14 00:44:31 paklein Exp $ */
+/* $Id: MSRBuilderT.cpp,v 1.8 2004-03-16 19:26:32 paklein Exp $ */
 /* created: paklein (07/30/1998) */
 #include "MSRBuilderT.h"
 #include "toolboxConstants.h"
@@ -56,7 +56,7 @@ void MSRBuilderT::WriteMSRData(ostream& out, const iArrayT& activerows,
 /* return the PSPASES data structure */
 void MSRBuilderT::SetPSPASESData(const iArrayT& activerows, iArray2DT& aptrs, iArrayT& ainds)
 {
-	/* set the graph data */
+	/* set the graph data - data for each row in activerows needs to be sequential */
 	MakeGraph(activerows, true, fUpperOnly);
 
 	/* within range and in ascending order */
@@ -67,7 +67,7 @@ void MSRBuilderT::SetPSPASESData(const iArrayT& activerows, iArray2DT& aptrs, iA
 	int row_shift;
 	const RaggedArray2DT<int>& edgelist = EdgeList(row_shift);
 	
-	/* dimension - data for each row in activerows needs to be sequential */
+	/* dimension */
 	aptrs.Dimension(activerows.Length(), 2);
 	int ainds_dim = 0;
 	for (int i = 0; i < activerows.Length(); i++)
@@ -76,6 +76,31 @@ void MSRBuilderT::SetPSPASESData(const iArrayT& activerows, iArray2DT& aptrs, iA
 	
 	/* generate compressed MSR structure data */
 	GeneratePSPASES(row_shift, edgelist, activerows, aptrs, ainds);
+}
+
+/* return the SuperLU data structure */
+void MSRBuilderT::SetSuperLUData(const iArrayT& activerows, iArrayT& rowptr, iArrayT& colind)
+{
+	/* set the graph data */
+	MakeGraph(activerows, true, fUpperOnly);
+
+	/* within range and in ascending order */
+	CheckActiveSet(activerows);
+	int numinactive = NumNodes() - activerows.Length();
+	
+	/* graph data */
+	int row_shift;
+	const RaggedArray2DT<int>& edgelist = EdgeList(row_shift);
+
+	/* dimension */
+	rowptr.Dimension(activerows.Length() + 1); /* last entry points just beyond last row */
+	int colind_dim = 0;
+	for (int i = 0; i < activerows.Length(); i++)
+		colind_dim += edgelist.MinorDim(activerows[i] - row_shift);
+	colind.Dimension(colind_dim);
+
+	/* generate compressed MSR structure data */
+	GenerateSuperLU(row_shift, edgelist, activerows, rowptr, colind);
 }
 
 /************************************************************************
@@ -183,6 +208,37 @@ void MSRBuilderT::GeneratePSPASES(int row_shift, const RaggedArray2DT<int>& edge
 		/* next row */
 		index += count;
 		painds += count;
+		pactive++;
+	}
+}
+
+/* generate SuperLU structure */
+void MSRBuilderT::GenerateSuperLU(int row_shift, const RaggedArray2DT<int>& edgelist, const iArrayT& activeeqs,
+	iArrayT& rowptr, iArrayT& colind)
+{
+	/* dimensions */
+	int numactive = activeeqs.Length();
+
+	/* save, sort, and count */
+	const int* pactive = activeeqs.Pointer();	
+	int* pcolind = colind.Pointer();
+	rowptr[0] = 0;
+	for (int i = 0; i < numactive; i++)
+	{
+		/* row information */	
+		int dex = *pactive - row_shift;
+		int count = edgelist.MinorDim(dex);
+		const int* pdata = edgelist(dex);
+			
+		/* copy and sort column data */
+		memcpy(pcolind, pdata, count*sizeof(int));
+		SortAscending(pcolind, count);
+
+		/* set rowptr data */
+		rowptr[i+1] = rowptr[i] + count;
+
+		/* next row */
+		pcolind += count;
 		pactive++;
 	}
 }
