@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.25.14.2 2004-05-22 01:17:37 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.25.14.3 2004-06-07 13:47:34 paklein Exp $ */
 #include "FieldT.h"
 
 #include "fstreamT.h"
@@ -796,6 +796,7 @@ void FieldT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& ord
 		sub_sub_list.AddSub("bi-material_K-field");	
 		sub_sub_list.AddSub("torsion");	
 		sub_sub_list.AddSub("mapped_nodes");
+		sub_sub_list.AddSub("scaled_velocity");
 	}
 	else if (sub == "FBC_controllers")
 	{

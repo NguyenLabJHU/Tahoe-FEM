@@ -1,5 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.20 2003-08-08 00:33:27 paklein Exp $ */
-
+/* $Id: TiedNodesT.h,v 1.20.32.1 2004-06-07 13:47:35 paklein Exp $ */
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
 
@@ -51,7 +50,7 @@ class TiedNodesT: public KBC_ControllerT
 public:	
 
 	/** constructor */
-	TiedNodesT(NodeManagerT& node_manager, BasicFieldT& field);
+	TiedNodesT(const BasicSupportT& support, BasicFieldT& field);
 
 	/** initialize data. Must be called immediately after construction */
 	virtual void Initialize(ifstreamT& in);
@@ -170,8 +169,6 @@ protected:
 	
 	/** needed to generate KBC_ControllerT::fKBC_Cards */
 	ScheduleT fDummySchedule;	
-	
-	const FEManagerT& fFEManager;
 
 	/* false if TiedPotentialT cohesive law is being used 
 	 * to determine release condition

@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.18.2.6 2004-05-26 18:09:42 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.18.2.7 2004-06-07 13:47:35 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 
@@ -497,6 +497,9 @@ void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
 	/* signal to accumulate nodal values */
 	neartip_group->SendOutput(fNearTipOutputCode);
 
+	/* the nodes */
+	NodeManagerT& node_manager = fSupport.NodeManager();
+
 	/* find new tip coordinates */
 	tip_coords = fTipCoords;
 	switch (fTrackingCode)
@@ -506,7 +509,7 @@ void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
 			/* find the node with maximum value */
 			int maxrow;
 			double maxval;
-			fNodeManager.MaxInColumn(fTipColumnNum, maxrow, maxval);
+			node_manager.MaxInColumn(fTipColumnNum, maxrow, maxval);
 			if (maxrow == -1) ExceptionT::GeneralFail(caller);
 
 			/* get new tip coordinates */
@@ -522,7 +525,7 @@ void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
 			const dArray2DT& initial_coordinates = fSupport.InitialCoordinates();
 		
 			/* get all nodal values */
-			const dArray2DT& nodal_values = fNodeManager.OutputAverage(); 
+			const dArray2DT& nodal_values = node_manager.OutputAverage(); 
 		
 			/* test threshold */
 			double threshold = fTrackingParameters[0];

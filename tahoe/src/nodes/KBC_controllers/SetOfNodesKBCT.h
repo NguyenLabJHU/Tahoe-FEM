@@ -1,4 +1,4 @@
-/* $Id: SetOfNodesKBCT.h,v 1.2.34.1 2004-05-13 16:43:36 paklein Exp $ */
+/* $Id: SetOfNodesKBCT.h,v 1.2.34.2 2004-06-07 13:47:35 paklein Exp $ */
 #ifndef _SET_OF_NODES_KBC_T_H_
 #define _SET_OF_NODES_KBC_T_H_
 
@@ -20,7 +20,7 @@ class SetOfNodesKBCT: public KBC_ControllerT
 public:	
 
 	/** constructor */
-	SetOfNodesKBCT(NodeManagerT& node_manager, BasicFieldT& field);
+	SetOfNodesKBCT(const BasicSupportT& support, BasicFieldT& field);
 
 	/** destructor */
  	~SetOfNodesKBCT(void);

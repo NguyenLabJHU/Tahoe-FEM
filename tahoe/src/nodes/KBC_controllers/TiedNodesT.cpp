@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.26.20.2 2004-05-13 16:43:36 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.26.20.3 2004-06-07 13:47:35 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -22,11 +22,10 @@
 using namespace Tahoe;
 
 /* constructor */
-TiedNodesT::TiedNodesT(NodeManagerT& node_manager, BasicFieldT& field):
-	KBC_ControllerT(node_manager),
+TiedNodesT::TiedNodesT(const BasicSupportT& support, BasicFieldT& field):
+	KBC_ControllerT(support),
 	fField(field),
-	fDummySchedule(1.0),
-	fFEManager(node_manager.FEManager())
+	fDummySchedule(1.0)
 {
 #ifndef COHESIVE_SURFACE_ELEMENT
 	ExceptionT::BadInputValue("TiedNodesT::TiedNodesT", "COHESIVE_SURFACE_ELEMENT not enabled");
@@ -36,6 +35,7 @@ TiedNodesT::TiedNodesT(NodeManagerT& node_manager, BasicFieldT& field):
 /* initialize data. Must be called immediately after construction */
 void TiedNodesT::Initialize(ifstreamT& in)
 {
+#if 0
 	/* read "leader" nodes */
 	iArrayT leader_nodes;
 	ReadNodes(in, fLeaderIds, leader_nodes);
@@ -98,6 +98,7 @@ void TiedNodesT::Initialize(ifstreamT& in)
 	
 	/* generate BC cards */
 	SetBCCards();
+#endif
 }
 
 /* initialize directly instead of using TiedNodesT::Initialize */
@@ -344,11 +345,11 @@ void TiedNodesT::InitTiedNodePairs(const iArrayT& leader_nodes,
 	iArrayT& follower_nodes)
 {
 	/* coordinates */
-	const dArray2DT& coords = fNodeManager.InitialCoordinates();
+	const dArray2DT& coords = fSupport.InitialCoordinates();
 	
 	/* get processor number */
-	int np = fNodeManager.Rank();
-	const ArrayT<int>* pMap = fNodeManager.ProcessorMap();
+	int np = fSupport.Rank();
+	const ArrayT<int>* pMap = fSupport.ProcessorMap();
 
 	/* dumb search */
 	int nsd = coords.MinorDim();
@@ -431,14 +432,9 @@ bool TiedNodesT::ChangeStatus(void)
       	dArray2DT freeNodeQ;
       	for (int j = 0; j < iElemGroups.Length(); j++) 
       	{
-			ElementBaseT* surroundingGroup = fFEManager.ElementGroup(iElemGroups[j]);
-  			if (!surroundingGroup)
-        	{
-           		cout <<"TiedPotentialT::ChangeStatus: Element group "<<iElemGroups[j]<<" doesn't exist \n";
-      	  		throw ExceptionT::kGeneralFail;
-       	 	}
-	  		surroundingGroup->SendOutput(CSEBaseT::InternalData);
-	  		freeNodeQ = fNodeManager.OutputAverage();
+			ElementBaseT& surroundingGroup = fSupport.ElementGroup(iElemGroups[j]);
+	  		surroundingGroup.SendOutput(CSEBaseT::InternalData);
+	  		freeNodeQ = fSupport.NodeManager().OutputAverage();
 	    }
 	    
 	    for (int i = 0; i < fNodePairs.MajorDim();i++) 

@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.cpp,v 1.11.22.5 2004-05-26 18:09:42 paklein Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.11.22.6 2004-06-07 13:47:35 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "KBC_ControllerT.h"
 #include "BasicSupportT.h"
@@ -26,6 +26,8 @@ KBC_ControllerT::CodeT KBC_ControllerT::Code(const char* name)
 		return kTorsion;
 	else if (strcmp("mapped_nodes", name) == 0)
 		return kMappedPeriodic;
+	else if (strcmp("scaled_velocity", name) == 0)
+		return kScaledVelocityNodes;
 	else
 		return kNone;
 }

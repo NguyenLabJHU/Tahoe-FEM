@@ -1,4 +1,4 @@
-/* $Id: TorsionKBCT.cpp,v 1.3.32.5 2004-05-26 18:09:43 paklein Exp $ */
+/* $Id: TorsionKBCT.cpp,v 1.3.32.6 2004-06-07 13:47:35 paklein Exp $ */
 #include "TorsionKBCT.h"
 #include "NodeManagerT.h"
 #include "ifstreamT.h"
@@ -53,11 +53,11 @@ void TorsionKBCT::InitStep(void)
 	dArrayT x(3), X(3), c(3);
 
 	/* coordinates */
-	const dArray2DT& init_coords = fNodeManager.InitialCoordinates();
+	const dArray2DT& init_coords = fSupport.InitialCoordinates();
 
 	/* compute point by point */
 	int dex = 0;
-	double theta = (fTime-fStartTime)*fw;
+	double theta = (fSupport.Time() - fStartTime)*fw;
 	for (int i = 0; i < fNodes.Length(); i++)
 	{
 		/* node */
@@ -144,7 +144,7 @@ void TorsionKBCT::TakeParameterList(const ParameterListT& list)
 	KBC_ControllerT::TakeParameterList(list);
 
 	/* 3D only */
-	if (fNodeManager.NumSD() != 3) ExceptionT::BadInputValue(caller, "3D only");
+	if (fSupport.NumSD() != 3) ExceptionT::BadInputValue(caller, "3D only");
 
 	/* rotation rate and axis */
 	fw = list.GetParameter("rotation_rate");

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.23.18.1 2004-04-08 07:33:50 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.23.18.2 2004-06-07 13:47:34 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -223,9 +223,6 @@ public:
 
 	/** register the local coordinate array with its source */
 	void RegisterCoordinates(LocalArrayT& array) const;
-	
-	/** the local node to home processor map */
-	const ArrayT<int>* ProcessorMap(void) const;
 	
 	/** the communications manager */
 	CommManagerT& CommManager(void) const;

@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.h,v 1.3.38.2 2004-05-26 18:09:43 paklein Exp $ */
+/* $Id: ScaledVelocityNodesT.h,v 1.3.38.3 2004-06-07 13:47:35 paklein Exp $ */
 #ifndef _SCALED_VELOCITY_NODES_T_H_
 #define _SCALED_VELOCITY_NODES_T_H_
 
@@ -9,6 +9,7 @@
 #include "ScheduleT.h"
 #include "iArrayT.h"
 #include "BasicFieldT.h"
+#include "RandomNumberT.h"
 
 namespace Tahoe {
 
@@ -24,7 +25,7 @@ class ScaledVelocityNodesT: public KBC_ControllerT
 public:	
 
 	/** constructor */
-	ScaledVelocityNodesT(NodeManagerT& node_manager, BasicFieldT& field);
+	ScaledVelocityNodesT(const BasicSupportT& support, BasicFieldT& field);
 
 	/** initialize data. Must be called immediately after construction */
 	virtual void Initialize(ifstreamT& in);
@@ -53,6 +54,11 @@ public:
 	/*@}*/
 
 protected:
+
+	/** \name node picking methods */
+	/*@{*/
+	void InitNodeSets(const ParameterListT& pick_nodes);
+	/*@}*/
 	
 	void SetBCCards(void);
 
@@ -75,7 +81,6 @@ protected:
 
 	/** temperature evolution controlled by a schedule */
 	const ScheduleT* fTempSchedule;
-	int fnumTempSchedule;
 	double fTempScale;
 	
 	/** temperature schedule is not the BC value. Need a dummy schedule, too */

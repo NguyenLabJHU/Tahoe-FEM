@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.h,v 1.2.32.1 2004-05-13 16:43:35 paklein Exp $ */
+/* $Id: ConveyorT.h,v 1.2.32.2 2004-06-07 13:47:35 paklein Exp $ */
 #ifndef _CONVEYOR_T_H_
 #define _CONVEYOR_T_H_
 
@@ -24,7 +24,7 @@ class ConveyorT: public KBC_ControllerT
 public:
 
 	/** constructor */
-	ConveyorT(NodeManagerT& node_manager, FieldT& field);
+	ConveyorT(const BasicSupportT& support, FieldT& field);
 
 	/** initialization */
 	virtual void Initialize(ifstreamT& in);
