@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.21.2.7 2002-05-03 23:05:59 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.21.2.8 2002-05-11 20:47:10 paklein Exp $ */
 /* created: paklein (05/28/1996) */
 
 #include "SolidElementT.h"
@@ -48,10 +48,6 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	/* control parameters */
 	in >> fMassType;		
 	in >> fStrainDispOpt;
-
-	/* checks */
-	if (fMassType < kNoMass ||
-	    fMassType > kLumpedMass) throw eBadInputValue;
 	
 	if (fStrainDispOpt != ShapeFunctionT::kStandardB &&
 	    fStrainDispOpt != ShapeFunctionT::kMeanDilBbar) throw eBadInputValue;
@@ -170,7 +166,7 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 				if (formBody) AddBodyForce(fLocAcc);
 				
 				/* calculate inertial forces */
-				FormMa(fMassType, fCurrMaterial->Density(), fLocAcc);
+				FormMa(fMassType, constMa*fCurrMaterial->Density(), &fLocAcc, NULL);
 			}
 
 			/* components for node */
@@ -621,6 +617,16 @@ void SolidElementT::RHSDriver(void)
 /* form the residual force vector */
 void SolidElementT::ElementRHSDriver(void)
 {
+	/* heat source if needed */
+	const FieldT* temperature = ElementSupport().Field("temperature");
+	dArray2DT incremental_heat;
+	if (temperature) {
+		incremental_heat.Dimension(NumElements(), fShapes->NumIP());
+		fElementHeat.Dimension(fShapes->NumIP());
+		fElementHeat = 0.0;
+		incremental_heat = 0.0;
+	}
+
 	/* set components and weights */
 	double constMa = 0.0;
 	double constCv = 0.0;
@@ -646,20 +652,6 @@ void SolidElementT::ElementRHSDriver(void)
 	Top();
 	while (NextElement())
 	{
-		/* effective accelerations and displacements */
-		//ComputeEffectiveDVA(formBody, formMa, constMa, formCv, constCv, formKd, constKd);
-		//DEV - Rayleigh damping should be moved to the constitutive level
-	
-		/* last check w/ effective a and d - override controller */
-		//int eformMa = fLocAcc.AbsMax() > 0.0;
-		//int eformCv = fLocVel.AbsMax() > 0.0;
-		//int eformKd = (fLocDisp.AbsMax() > 0.0 ||
-		//              fCurrMaterial->HasInternalStrain());
-		//DEV - although this may speed things up in some cases
-		//      it's a pain in general -> these could be moved
-		//      within FormKd, FormCv, or FormMa since the state
-		//      of the local nodal vectors should be fixed by then
-
 		/* initialize */
 		fRHS = 0.0;
 		
@@ -667,12 +659,8 @@ void SolidElementT::ElementRHSDriver(void)
 		SetGlobalShape();
 			
 		/* internal force contribution */	
-		if (formKd) FormKd(-1.0);
+		if (formKd) FormKd(-constKd);
 				
-		/* damping */
-		//if (formCv) FormCv(-1.0);
-		//DEV - computed at constitutive level
-
 		/* inertia forces */
 		if (formMa || formBody)
 		{
@@ -685,12 +673,34 @@ void SolidElementT::ElementRHSDriver(void)
 			/* body force contribution */
 			if (formBody) AddBodyForce(fLocAcc);
 		
-			FormMa(fMassType, -(fCurrMaterial->Density()), fLocAcc);			  		
+			FormMa(fMassType, -constMa*fCurrMaterial->Density(), &fLocAcc, NULL);
 		}
-								
+		
+		/* store incremental heat */
+		if (temperature) {
+			incremental_heat.SetRow(CurrElementNumber(), fElementHeat);
+			fElementHeat = 0.0;
+		}
+
 		/* assemble */
 		AssembleRHS();
 	}
+
+	/* set source to temperature field */
+	if (temperature) {
+
+		/* loop over blocks */
+		for (int i = 0; i < fBlockData.Length(); i++)
+		{
+			/* dimensions */
+			int start = fBlockData[i].StartNumber();
+			int size = fBlockData[i].Dimension();
+
+			/* block info */
+			dArray2DT tmp(size, incremental_heat.MinorDim(), incremental_heat(start));
+			temperature->AccumulateSource(fBlockData[i].ID(), tmp);
+		}
+	} 
 }
 
 /* current element operations */
@@ -741,68 +751,6 @@ void SolidElementT::FormStiffness(double constK)
 	}
 }
 
-//DEV - Rayleigh damping should be added to the constitutive level
-#if 0		
-/* compute the effective acceleration and velocities based
-* on the algorithmic flags formXx and the given constants
-* constXx.
-*
-*		acc_eff  = constMa acc  + constCv a vel
-*      vel_eff  = 0
-*      disp_eff = constKd disp + constCv b vel
-*
-* where a and b are the Rayleigh damping coefficients.  No
-* effective velocity since it's accounted for in the effective
-* a and d.
-*
-* Note: In the process, the function collects the required
-*       local arrays */
-void SolidElementT::ComputeEffectiveDVA(int formBody,
-	int formMa, double constMa, int formCv, double constCv,
-	int formKd, double constKd)
-{
-	/* acceleration */
-	if (formMa || formBody)
-	{
-		if (formMa)
-			SetLocalU(fLocAcc);
-		else
-			fLocAcc = 0.0;
-		
-		if (formBody) AddBodyForce(fLocAcc);
-
-		fLocAcc *= constMa;	
-	}
-	else
-		fLocAcc = 0.0;
-	
-	/* displacement */
-	if (formKd)
-	{
-		SetLocalU(fLocDisp);
-		fLocDisp *= constKd;
-	}
-	else
-		fLocDisp = 0.0;
-	
-	/* Rayleigh damping */
-	if (formCv)
-	{
-		SetLocalU(fLocVel);
-		fLocVel *= constCv;
-		
-		/* effective a and d */
-		fLocAcc.AddScaled(fCurrMaterial->MassDamping(), fLocVel);
-		fLocDisp.AddScaled(fCurrMaterial->StiffnessDamping(), fLocVel);
-		
-		/* effective v */
-		fLocVel = 0.0;
-	}
-	else
-		fLocVel = 0.0;
-}	
-#endif
-
 /* form of tangent matrix */
 GlobalT::SystemTypeT SolidElementT::TangentType(void) const
 {
@@ -850,8 +798,11 @@ void SolidElementT::FormKd(double constK)
 	const double* Det    = fShapes->IPDets();
 	const double* Weight = fShapes->IPWeights();
 	
+	/* collect incremental heat */
+	bool need_heat = fElementHeat.Length() == fShapes->NumIP();
+	
 	fShapes->TopIP();
-	while ( fShapes->NextIP() )
+	while (fShapes->NextIP())
 	{
 		/* get strain-displacement matrix */
 		fShapes->B(fB);
@@ -861,6 +812,10 @@ void SolidElementT::FormKd(double constK)
 		
 		/* accumulate */
 		fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);
+		
+		/* incremental heat generation */
+		if (need_heat) 
+			fElementHeat[fShapes->CurrIP()] += fCurrMaterial->IncrementalHeat();
 	}	
 }
 
