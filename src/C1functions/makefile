@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.10 2002-02-01 19:59:56 dzeigle Exp $
+# $Id: makefile,v 1.11 2002-02-05 15:26:56 dzeigle Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -9,6 +9,7 @@ OBJ = \
 	CubicSplineT.o \
 	C1FunctionT.o \
 	ConHyperGeom.o \
+	ErrorFunc.o \
 	GaoKlein.o \
 	GenHyperGeom.o \
 	GreenwoodWilliamson.o \
@@ -33,6 +34,7 @@ SRC = \
 	CubicSplineT.cpp \
 	C1FunctionT.cpp \
 	CONHyperGeom.cpp \
+	ErrorFunc.cpp \
 	GaoKlein.cpp \
 	GenHyperGeom.cpp \
 	GreenwoodWilliamson.cpp \
@@ -51,6 +53,7 @@ HDR = \
 	CubicSplineT.h \
 	C1FunctionT.h \
 	ConHyperGeom.h \
+	ErrorFunc.h \
 	GaoKlein.h \
 	GenHyperGeom.h \
 	GreenwoodWilliamson.h \

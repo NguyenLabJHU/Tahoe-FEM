@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.6 2002-02-01 20:03:39 dzeigle Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.7 2002-02-05 15:26:54 dzeigle Exp $ */
 
 #include "PenaltyContactElement2DT.h"
 
@@ -119,7 +119,7 @@ void PenaltyContactElement2DT::RHSDriver(void)
 			fEnforcementParameters(s,
                         node->OpposingFace()->Surface().Tag());
 
-                  /* parameters for Smith-Ferrante Potential */
+                  /* parameters for Greenwood-Williamson load formulation */
                   gw_m = parameters[kAsperityHeightMean];
                   gw_s = parameters[kAsperityHeightStandardDeviation];
 		  

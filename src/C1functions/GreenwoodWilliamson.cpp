@@ -1,4 +1,4 @@
-/* $Id: GreenwoodWilliamson.cpp,v 1.4 2002-02-04 17:38:28 dzeigle Exp $ */
+/* $Id: GreenwoodWilliamson.cpp,v 1.5 2002-02-05 15:26:56 dzeigle Exp $ */
 
 #include "GreenwoodWilliamson.h"
 #include <math.h>
@@ -8,6 +8,7 @@
 #include "ModBessel.h"
 #include "ConHyperGeom.h"
 #include "GenHyperGeom.h"
+#include "ErrorFunc.h"
 
 /* constants */
 const double PI = 2.0*acos(0.0);
@@ -331,6 +332,47 @@ double GreenwoodWilliamson::DDFunction(double x) const
 		return yval;
 }
 
+double GreenwoodWilliamson::ContactArea(double x) const
+{
+	double xval, diff, yval;
+	
+	if (fS==0)
+	{
+		cout << "\n*** Bad SIGMA value in GreenwoodWilliamson.cpp.\n";
+		throw eBadInputValue;
+	}
+	else
+	{
+		diff = x - fM;
+		xval = pow(diff/(sqrt(2.0)*fS),2.0);
+		
+		if (diff > 0)
+		{
+			ErrorFunc Erf(1.0);
+			double f0 = 2.0*fS+exp(xval)*diff*sqrt(2.0*PI)*(Erf.Function(sqrt(xval))-1.0);
+	
+			yval = exp(-xval)*f0/(2.0*sqrt(2.0*PI));
+		}
+		else if (diff == 0)
+			yval = fS/sqrt(2.0*PI);
+		else
+		{	/* decompose "negative domain": [h,mu] + [mu,inf]	*/
+			ErrorFunc Erf(1.0);
+			double dom1;
+			
+			double g0 = fS*(exp(-xval)-1.0)/sqrt(2.0*PI);
+			double g1 = 0.5*diff*Erf.Function(-sqrt(xval));
+			dom1 = g0+g1;
+
+			double dom2 = (fS*sqrt(2.0)-diff*sqrt(PI))/(2.0*sqrt(PI));
+
+			yval = dom1+dom2;
+		}
+	}
+		return yval;
+}
+
+
 /*
 * Returning values in groups - derived classes should define
 * their own non-virtual function called within this functon
@@ -647,7 +689,53 @@ dArrayT& GreenwoodWilliamson::MapDDFunction(const dArrayT& in, dArrayT& out) con
 	return(out);
 }
 
+dArrayT& GreenwoodWilliamson::MapContactArea(const dArrayT& in, dArrayT& out) const
+{
+	/* dimension checks */
+	if (in.Length() != out.Length()) throw eGeneralFail;
 
+	double* pl  = in.Pointer();
+	double* pdU = out.Pointer();
+	
+	for (int i = 0; i < in.Length(); i++)
+	{	
+		double xval, diff, yval;
+	
+		if (fS==0)
+		{
+			cout << "\n*** Bad SIGMA value in GreenwoodWilliamson.cpp.\n";
+			throw eBadInputValue;
+		}
+		else
+		{
+			diff = *pl++ - fM;
+			xval = pow(diff/(sqrt(2.0)*fS),2.0);
+		
+			if (diff > 0)
+			{
+				ErrorFunc Erf(1.0);
+				double f0 = 2.0*fS+exp(xval)*diff*sqrt(2.0*PI)*(Erf.Function(sqrt(xval))-1.0);
+		
+				yval = exp(-xval)*f0/(2.0*sqrt(2.0*PI));
+			}
+			else if (diff == 0)
+				yval = fS/sqrt(2.0*PI);
+			else
+			{	/* decompose "negative domain": [h,mu] + [mu,inf]	*/
+				ErrorFunc Erf(1.0);
+				double dom1;
+			
+				double g0 = fS*(exp(-xval)-1.0)/sqrt(2.0*PI);
+				double g1 = 0.5*diff*Erf.Function(-sqrt(xval));
+				dom1 = g0+g1;
 
-
+				double dom2 = (fS*sqrt(2.0)-diff*sqrt(PI))/(2.0*sqrt(PI));
+	
+				yval = dom1+dom2;
+			}
+		}	
+		*pdU++ = yval;
+	}
+	return(out);
+}
 
