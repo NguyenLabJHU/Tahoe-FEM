@@ -1,4 +1,4 @@
-/* $Id: ParameterT.h,v 1.6 2003-04-22 22:13:35 paklein Exp $ */
+/* $Id: ParameterT.h,v 1.7 2003-04-26 02:07:57 paklein Exp $ */
 #ifndef _PARAMETER_T_H_
 #define _PARAMETER_T_H_
 
@@ -42,6 +42,10 @@ public:
 	/*@{*/
 	/** add limit to parameter */
 	void AddLimit(const LimitT& limit);
+
+	void AddLimit(int a, LimitT::BoundT bound);
+	void AddLimit(double x, LimitT::BoundT bound);
+	void AddLimit(const StringT& s, LimitT::BoundT bound);
 
 	/** return the list of limits */
 	const ArrayT<LimitT>& Limits(void) const { return fLimits; };
@@ -93,6 +97,22 @@ protected:
 };
 
 /* inlines */
+inline void ParameterT::AddLimit(int a, LimitT::BoundT bound)
+{
+	LimitT limit(a, bound);
+	AddLimit(limit);
+}
+inline void ParameterT::AddLimit(double x, LimitT::BoundT bound)
+{
+	LimitT limit(x, bound);
+	AddLimit(limit);
+}
+inline void ParameterT::AddLimit(const StringT& s, LimitT::BoundT bound)
+{
+	LimitT limit(s, bound);
+	AddLimit(limit);
+}
+
 inline ParameterT& ParameterT::operator=(int a) { 
 	ValueT::operator=(a); 
 	return *this;
