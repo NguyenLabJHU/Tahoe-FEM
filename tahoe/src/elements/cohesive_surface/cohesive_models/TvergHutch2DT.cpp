@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.cpp,v 1.3 2001-10-11 00:53:41 paklein Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.4 2001-10-11 23:19:51 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch2DT.h"
@@ -40,7 +40,7 @@ double TvergHutch2DT::FractureEnergy(void)
 	return fd_c_n*fsigma_max*0.5*(1 - fL_1 + fL_2); 
 }
 
-double TvergHutch2DT::Potential(const dArrayT& jump_u, const dArrayT& state)
+double TvergHutch2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
@@ -75,7 +75,7 @@ double TvergHutch2DT::Potential(const dArrayT& jump_u, const dArrayT& state)
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& TvergHutch2DT::Traction(const dArrayT& jump_u, dArrayT& state)
+const dArrayT& TvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
@@ -109,7 +109,7 @@ const dArrayT& TvergHutch2DT::Traction(const dArrayT& jump_u, dArrayT& state)
 }
 
 /* potential stiffness */
-const dMatrixT& TvergHutch2DT::Stiffness(const dArrayT& jump_u, const dArrayT& state)
+const dMatrixT& TvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
@@ -236,7 +236,7 @@ const dMatrixT& TvergHutch2DT::Stiffness(const dArrayT& jump_u, const dArrayT& s
 
 /* surface status */
 SurfacePotentialT::StatusT TvergHutch2DT::Status(const dArrayT& jump_u, 
-	const dArrayT& state)
+	const ArrayT<double>& state)
 {
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
@@ -284,7 +284,7 @@ void TvergHutch2DT::OutputLabels(ArrayT<StringT>& labels) const
 	labels[0] = "lambda";
 }
 
-void TvergHutch2DT::ComputeOutput(const dArrayT& jump_u, const dArrayT& state,
+void TvergHutch2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
 	dArrayT& output)
 {
 #if __option(extended_errorcheck)

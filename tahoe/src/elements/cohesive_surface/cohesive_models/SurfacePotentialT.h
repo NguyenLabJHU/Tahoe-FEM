@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.3 2001-10-11 00:53:41 paklein Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.4 2001-10-11 23:19:51 paklein Exp $ */
 /* created: paklein (06/20/1999) */
 
 #ifndef _SURFACE_POTENTIAL_T_H_
@@ -25,7 +25,8 @@ public:
 	/** surface potential types - derived classes */
 	enum CodeT {kXuNeedleman = 0, /**< elastic potential developed by Xu and Needleman */
 	    kTvergaardHutchinson = 1, /**< tri-linear potential */
-	           kLinearDamage = 2  /**< irreversible linear decay */};
+	           kLinearDamage = 2, /**< irreversible linear decay */
+	kViscTvergaardHutchinson = 3  /**< T-H with viscous dissipation */};
 
 	/** surface element status codes */
 	enum StatusT {Precritical = 0, /**< loading phase */
@@ -43,23 +44,23 @@ public:
 
 	/** initialize the state variable array. By default, initialization
 	 * involves only setting the array to zero. */
-	virtual void InitStateVariables(dArrayT& state);
+	virtual void InitStateVariables(ArrayT<double>& state);
 	
 	/** dissipated energy */
 	virtual double FractureEnergy(void) = 0;
 
 	/** potential energy */
-	virtual double Potential(const dArrayT& jump, const dArrayT& state) = 0;
+	virtual double Potential(const dArrayT& jump, const ArrayT<double>& state) = 0;
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump, dArrayT& state) = 0;
+	virtual const dArrayT& Traction(const dArrayT& jump, ArrayT<double>& state) = 0;
 
 	/** tangent stiffness */
-	virtual const dMatrixT& Stiffness(const dArrayT& jump, const dArrayT& state) = 0;
+	virtual const dMatrixT& Stiffness(const dArrayT& jump, const ArrayT<double>& state) = 0;
 
 	/** surface status */
-	virtual StatusT Status(const dArrayT& jump, const dArrayT& state) = 0;
+	virtual StatusT Status(const dArrayT& jump, const ArrayT<double>& state) = 0;
 	
 	/** write model name to output */
 	virtual void PrintName(ostream& out) const = 0;
@@ -77,7 +78,7 @@ public:
 
 	/** compute the output variables.
 	 * \param destination of output values. Allocated by the host code */
-	virtual void ComputeOutput(const dArrayT& jump, const dArrayT& state, 
+	virtual void ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
 		dArrayT& output);
 
 	/** returns true if two materials have compatible nodal outputs */

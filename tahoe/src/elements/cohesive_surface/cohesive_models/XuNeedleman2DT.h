@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman2DT.h,v 1.3 2001-10-11 00:53:41 paklein Exp $ */
+/* $Id: XuNeedleman2DT.h,v 1.4 2001-10-11 23:19:51 paklein Exp $ */
 /* created: paklein (11/14/1997) */
 
 #ifndef _XU_NEEDLE_2D_T_H_
@@ -25,17 +25,17 @@ public:
 	virtual double FractureEnergy(void);
 
 	/** potential energy */
-	virtual double Potential(const dArrayT& jump_u, const dArrayT& state);
+	virtual double Potential(const dArrayT& jump_u, const ArrayT<double>& state);
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump_u, dArrayT& state);
+	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state);
 
 	/** tangent stiffness */
-	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const dArrayT& state);
+	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state);
 
 	/** surface status */
-	virtual StatusT Status(const dArrayT& jump_u, const dArrayT& state);
+	virtual StatusT Status(const dArrayT& jump_u, const ArrayT<double>& state);
 
 	/** write model name to output */
 	virtual void PrintName(ostream& out) const;

@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.h,v 1.3 2001-10-11 00:53:41 paklein Exp $ */
+/* $Id: TvergHutch2DT.h,v 1.4 2001-10-11 23:19:51 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 
 #ifndef _TVERG_HUTCH_2D_T_H_
@@ -27,17 +27,17 @@ public:
 	virtual double FractureEnergy(void);
 
 	/** potential energy */
-	virtual double Potential(const dArrayT& jump_u, const dArrayT& state);
+	virtual double Potential(const dArrayT& jump_u, const ArrayT<double>& state);
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump_u, dArrayT& state);
+	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state);
 
 	/** tangent stiffness */
-	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const dArrayT& state);
+	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state);
 
 	/** surface status */
-	virtual StatusT Status(const dArrayT& jump_u, const dArrayT& state);
+	virtual StatusT Status(const dArrayT& jump_u, const ArrayT<double>& state);
 
 	/** write model name to output */
 	virtual void PrintName(ostream& out) const;
@@ -55,30 +55,31 @@ public:
 
 	/** compute the output variables.
 	 * \param destination of output values. Allocated by the host code */
-	virtual void ComputeOutput(const dArrayT& jump, const dArrayT& state, 
+	virtual void ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
 		dArrayT& output);
 
 protected:
 
-	/* return true if the potential has compatible (type and sequence)
+	/** return true if the potential has compatible (type and sequence)
 	 * nodal output - FALSE by default */
 	virtual bool CompatibleOutput(const SurfacePotentialT& potential) const;
 	
 private:
 
 	/* traction potential parameters */
-	double fsigma_max; // cohesive stress
-	double fd_c_n;     // characteristic normal opening to failure
-	double fd_c_t;     // characteristic tangential opening to failure
+	double fsigma_max; /**< cohesive stress */
+	double fd_c_n;     /**< characteristic normal opening to failure */
+	double fd_c_t;     /**< characteristic tangential opening to failure */
 	
 	/* non-dimensional opening parameters */
-	double fL_1; // opening to initial peak traction
-	double fL_2; // opening to final peak traction
-	double fL_fail; // opening to irreversible failure
+	double fL_1;    /**< non-dimensional opening to initial peak traction */
+	double fL_2;    /**< non-dimensional opening to final peak traction */
+	double fL_fail; /**< non-dimensional opening to irreversible failure */
 
 	/* penetration stiffness */
-	double fpenalty; // stiffening multiplier
-	double fK;       // penetration stiffness
+	double fpenalty; /**< stiffening multiplier */
+	double fK;       /**< penetration stiffness calculated as a function of penalty
+	                  * and the initial stiffness of the cohesive potential */
 };
 
 #endif /* _TVERG_HUTCH_2D_T_H_ */

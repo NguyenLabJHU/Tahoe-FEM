@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.cpp,v 1.3 2001-10-11 00:53:41 paklein Exp $ */
+/* $Id: SurfacePotentialT.cpp,v 1.4 2001-10-11 23:19:51 paklein Exp $ */
 /* created: paklein (06/20/1999) */
 
 #include "SurfacePotentialT.h"
@@ -15,7 +15,7 @@ SurfacePotentialT::SurfacePotentialT(int ndof):
 SurfacePotentialT::~SurfacePotentialT(void) { }
 
 /* initialize the state variable array */
-void SurfacePotentialT::InitStateVariables(dArrayT& state)
+void SurfacePotentialT::InitStateVariables(ArrayT<double>& state)
 {
 	int num_state = NumStateVariables();
 	if (state.Length() != num_state) {
@@ -48,7 +48,7 @@ void SurfacePotentialT::OutputLabels(ArrayT<StringT>& labels) const
 #pragma unused(labels)
 }
 
-void SurfacePotentialT::ComputeOutput(const dArrayT& jump, const dArrayT& state, 
+void SurfacePotentialT::ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
 	dArrayT& output)
 {
 #pragma unused(jump)

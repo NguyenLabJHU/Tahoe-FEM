@@ -1,4 +1,4 @@
-/* $Id: LinearDamageT.cpp,v 1.3 2001-10-11 00:53:41 paklein Exp $ */
+/* $Id: LinearDamageT.cpp,v 1.4 2001-10-11 23:19:51 paklein Exp $ */
 /* created: paklein (08/21/2000) */
 
 #include "LinearDamageT.h"
@@ -40,7 +40,7 @@ int LinearDamageT::NumStateVariables(void) const
 }
 
 /* initialize the state variable array */
-void LinearDamageT::InitStateVariables(dArrayT& state)
+void LinearDamageT::InitStateVariables(ArrayT<double>& state)
 {
 	/* initialization traction */
 	double* ptraction = state.Pointer(kInitTraction);
@@ -57,7 +57,7 @@ double LinearDamageT::FractureEnergy(void)
 	return 0.5*fInitTraction.Magnitude()*fd_c_n;
 }
 
-double LinearDamageT::Potential(const dArrayT& jump_u, const dArrayT& state)
+double LinearDamageT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
 {
 #pragma unused(jump_u)
 #pragma unused(state)
@@ -67,7 +67,7 @@ double LinearDamageT::Potential(const dArrayT& jump_u, const dArrayT& state)
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u, dArrayT& state)
+const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u, ArrayT<double>& state)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != fTraction.Length()) throw eSizeMismatch;
@@ -117,7 +117,7 @@ const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u, dArrayT& state)
 }
 
 /* potential stiffness */
-const dMatrixT& LinearDamageT::Stiffness(const dArrayT& jump_u, const dArrayT& state)
+const dMatrixT& LinearDamageT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != fTraction.Length()) throw eSizeMismatch;
@@ -187,7 +187,7 @@ const dMatrixT& LinearDamageT::Stiffness(const dArrayT& jump_u, const dArrayT& s
 
 /* surface status */
 SurfacePotentialT::StatusT LinearDamageT::Status(const dArrayT& jump_u, 
-	const dArrayT& state)
+	const ArrayT<double>& state)
 {
 #pragma unused(state)
 
