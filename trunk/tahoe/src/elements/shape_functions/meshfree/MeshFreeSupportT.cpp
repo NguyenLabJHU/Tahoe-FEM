@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.10 2001-07-12 22:29:02 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.11 2001-07-13 02:17:36 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -217,25 +217,25 @@ void MeshFreeSupportT::WriteParameters(ostream& out) const
 
 /* steps to initialization - modifications to the support size must
 * occur before setting the neighbor data */
-void MeshFreeSupportT::SetSupportSize(void)
+void MeshFreeSupportT::InitSupportParameters(void)
 {
 	/* collect numbers for used nodes */
 	SetNodesUsed();
 
 	/* set search grid */
 	SetSearchGrid();
-//NOTE: do this every time SetSupportSize is called???
+//NOTE: do this every time SetSupportParameters is called???
 	
 	/* initialize support size for nodes in connectivity set */
-	cout << "\n MeshFreeSupportT::SetSupportSize: setting nodal support" << endl;
+	cout << "\n MeshFreeSupportT::InitSupportParameters: setting nodal support" << endl;
 	if (fMeshfreeType == kEFG || fRKPM->SearchType() == WindowT::kSpherical)
 	{
-		cout << "\n MeshFreeSupportT::SetSupportSize: spherical search" << endl;
+		cout << "\n MeshFreeSupportT::InitSupportParameters: spherical search" << endl;
 		SetSupport_Spherical_Search();
 	}
 	else if (fRKPM->SearchType() == WindowT::kConnectivity)
 	{
-		cout << "\n MeshFreeSupportT::SetSupportSize: connectivity search" << endl;
+		cout << "\n MeshFreeSupportT::InitSupportParameters: connectivity search" << endl;
 		SetSupport_Cartesian_Connectivities();
 	} 
 	else throw eGeneralFail;
@@ -249,15 +249,15 @@ void MeshFreeSupportT::SetSupportSize(void)
 		throw eGeneralFail;
 }
 
-void MeshFreeSupportT::SetNeighborData(void)
+void MeshFreeSupportT::InitNeighborData(void)
 {
 	/* data and nodal shape functions */
-	cout << " MeshFreeSupportT::SetNeighborData: setting nodal data" << endl;
+	cout << " MeshFreeSupportT::InitNeighborData: setting nodal data" << endl;
 //	SetNodeNeighborData(fCoords);
 	SetNodeNeighborData_2(fCoords);
 
 	/* data and element integration point shape functions */
-	cout << " MeshFreeSupportT::SetNeighborData: setting integration point data" << endl;
+	cout << " MeshFreeSupportT::InitNeighborData: setting integration point data" << endl;
 //	SetElementNeighborData(fConnects);
 	SetElementNeighborData_2(fConnects);
 }
@@ -318,13 +318,13 @@ void MeshFreeSupportT::SynchronizeSupportParameters(dArray2DT& nodal_params)
 	else throw eGeneralFail;
 }
 
-void MeshFreeSupportT::SetNodalParameters(const iArrayT& node, const dArray2DT& nodal_params)
+void MeshFreeSupportT::SetSupportParameters(const iArrayT& node, const dArray2DT& nodal_params)
 {
 	/* checks */
 	if (node.Length() != nodal_params.MajorDim()) throw eSizeMismatch;
 	if (node.Length() != fCoords.MajorDim())
 	{
-		cout << "\n MeshFreeSupportT::SetNodalParameters: must initialize field parameters\n"
+		cout << "\n MeshFreeSupportT::SetSupportParameters: must initialize field parameters\n"
 		     << " for ALL nodes" << endl;
 		throw eGeneralFail;
 	}
@@ -341,7 +341,7 @@ void MeshFreeSupportT::SetNodalParameters(const iArrayT& node, const dArray2DT& 
 	fNodalParameters.Assemble(node, nodal_params);
 }
 
-void MeshFreeSupportT::GetNodalParameters(const iArrayT& node, dArray2DT& nodal_params) const
+void MeshFreeSupportT::GetSupportParameters(const iArrayT& node, dArray2DT& nodal_params) const
 {
 	/* copy selected rows */
 	nodal_params.RowCollect(node, fNodalParameters);
@@ -505,6 +505,13 @@ void MeshFreeSupportT::LoadNodalData(int node, iArrayT& neighbors, dArrayT& phi,
 	}
 	else
 	{
+		/* check work space */
+		if (fndShapespace.Length() < nnd*(nsd + 1))
+		{
+			cout << " MeshFreeSupportT::LoadNodalData: work space is not allocated" << endl;
+			throw eGeneralFail;
+		}
+	
 		/* set shallow data */
 		double* pdata = fndShapespace.Pointer();
 		phi.Set(nnd, pdata);
@@ -577,6 +584,13 @@ void MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 		{
 			Dphi[i].Set(nsd, nnd, pelspace);
 			pelspace += Dphi[i].Length();
+		}
+
+		/* check */
+		if (pelspace - felShapespace.Pointer() > felShapespace.Length())
+		{
+			cout << " MeshFreeSupportT::LoadElementData: element work space is not allocated" << endl;
+			throw eGeneralFail;
 		}
 		
 		/* compute */

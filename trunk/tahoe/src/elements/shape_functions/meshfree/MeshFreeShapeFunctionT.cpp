@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.cpp,v 1.3 2001-07-03 01:35:50 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.cpp,v 1.4 2001-07-13 02:17:36 paklein Exp $ */
 /* created: paklein (09/10/1998)                                          */
 
 #include "MeshFreeShapeFunctionT.h"
@@ -41,13 +41,13 @@ MeshFreeShapeFunctionT::~MeshFreeShapeFunctionT(void) { delete fMFSupport; }
 void MeshFreeShapeFunctionT::SetSupportSize(void)
 {
 	/* initialize MLS data */
-	fMFSupport->SetSupportSize();
+	fMFSupport->InitSupportParameters();
 }
 
 void MeshFreeShapeFunctionT::SetNeighborData(void)
 {
 	/* initialize MLS data */
-	fMFSupport->SetNeighborData();
+	fMFSupport->InitNeighborData();
 }
 
 void MeshFreeShapeFunctionT::SetExactNodes(const iArrayT& exact_nodes)
@@ -665,12 +665,12 @@ void MeshFreeShapeFunctionT::BlendNodalData(int node, const iArrayT& nodes, dArr
 /* read/write nodal meshfree parameters */
 void MeshFreeShapeFunctionT::SetNodalParameters(const iArrayT& node, const dArray2DT& nodal_params)
 {
-	fMFSupport->SetNodalParameters(node, nodal_params);
+	fMFSupport->SetSupportParameters(node, nodal_params);
 }
 
 void MeshFreeShapeFunctionT::GetNodalParameters(const iArrayT& node, dArray2DT& nodal_params) const
 {
-	fMFSupport->GetNodalParameters(node, nodal_params);
+	fMFSupport->GetSupportParameters(node, nodal_params);
 }
 
 const dArray2DT& MeshFreeShapeFunctionT::NodalParameters(void) const 
