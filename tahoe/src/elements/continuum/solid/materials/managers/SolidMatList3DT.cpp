@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.10 2001-07-19 18:55:05 hspark Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.11 2001-08-20 15:09:41 rdorgan Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList3DT.h"
@@ -29,6 +29,7 @@
 #include "SKStVT3D.h"
 #include "HyperEVP3D.h"
 #include "BCJHypo3D.h"
+#include "FDCrystalElast.h"
 #include "LocalCrystalPlast.h"
 #include "LocalCrystalPlast_C.h"
 #include "GradCrystalPlast.h"
@@ -290,6 +291,14 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 			}
+                        case kFDXtalElast:
+                        {
+                                /* check */
+                                if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+
+                                fArray[matnum] = new FDCrystalElast(in, *fFiniteStrain);
+                                break;
+                        }
 			case kLocXtalPlast:
 			{
 				/* check */
