@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.8 2001-07-19 18:55:05 hspark Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.9 2001-09-10 16:36:49 hspark Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList2DT.h"
@@ -38,6 +38,7 @@
 #include "OgdenViscVIB2D.h"
 #include "SKStVT2D.h"
 #include "tevp2D.h"
+#include "povirk2D.h"
 
 #include "HyperEVP2D.h"
 #include "BCJHypo2D.h"
@@ -293,6 +294,15 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
 			
 				fArray[matnum] = new tevp2D(in, *fFiniteStrain);
+				fHasHistory = true;
+				break;
+			}
+		        case kPovirk2D:
+			{
+				/* check */
+				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+			
+				fArray[matnum] = new povirk2D(in, *fFiniteStrain);
 				fHasHistory = true;
 				break;
 			}
