@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.13.2.8 2002-06-05 09:20:37 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.13.2.9 2002-06-08 02:55:57 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -357,13 +357,13 @@ protected:
 	ModelManagerT* fModelManager;
 	/*@}*/
 	
-	/** \name multi-solver parameters */
+	/** \name multi-solver phases */
 	/*@{*/
-	/** multi-solver template. For cases with more than one solver, this
+	/** multi-solver phases. For cases with more than one solver, this
 	 * array contains information about how the multiple solvers should be
 	 * handled to determine the final solution. When there is only one solver
 	 * this array will be empty. */
-	iArray2DT fSolverInfo;
+	iArray2DT fSolverPhases;
 
 	/** maximum number of loops through the solvers. This is either a number
 	 * greater than zero or -1, for no limit. */

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.32.2.12 2002-06-05 09:20:37 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.32.2.13 2002-06-08 02:55:56 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -254,44 +254,6 @@ GlobalT::SystemTypeT FEManagerT::GlobalSystemType(int group) const
 	return type;
 }
 
-#if 0
-/* exception handling */
-void FEManagerT::HandleException(int exception)
-{
-	/* state */
-	fStatus = GlobalT::kException;
-
-	switch (exception)
-	{
-		case eBadJacobianDet:
-		{
-			cout << "\n FEManagerT::HandleException: detected bad jacobian determinant" << endl;
-		
-			if (fAnalysisCode == GlobalT::kLinExpDynamic   ||
-			    fAnalysisCode == GlobalT::kNLExpDynamic    ||
-			    fAnalysisCode == GlobalT::kPML)
-			{
-				cout << " FEManagerT::HandleException: no adaptive step for analysis code "
-				     << fAnalysisCode << endl;
-				throw eGeneralFail;
-			}
-			else
-			{
-				ResetStep();
-				DecreaseLoadStep();
-			}
-			break;
-		}
-		default:
-			cout << "\n FEManagerT::HandleException: unrecoverable exception: "
-			     << Exception(exception) << '\n';
-			cout <<   "      time: " << Time() << '\n';
-			cout <<   "      step: " << StepNumber() << endl;
-			throw eGeneralFail;
-	}
-}
-#endif
-
 void FEManagerT::WriteExceptionCodes(ostream& out) const
 {
 	out << "\nE x c e p t i o n   c o d e s :\n\n";
@@ -443,7 +405,7 @@ int FEManagerT::SolveStep(void)
 		SolverT::SolutionStatusT status = SolverT::kContinue;
 
 		/* status */
-		iArray2DT solve_status(fSolverInfo.MajorDim(), 3);
+		iArray2DT solve_status(fSolverPhases.MajorDim(), 3);
 
 		while (!all_pass && 
 			loop_count < fMaxSolverLoops &&
@@ -454,12 +416,12 @@ int FEManagerT::SolveStep(void)
 		 
 			/* one solver after the next */
 			all_pass = true;
-			for (int i = 0; status != SolverT::kFailed && i < fSolverInfo.MajorDim(); i++)
+			for (int i = 0; status != SolverT::kFailed && i < fSolverPhases.MajorDim(); i++)
 			{
 				/* group parameters */
-				int group = fSolverInfo(i,0);
-				int iter  = fSolverInfo(i,1);
-				int pass  = fSolverInfo(i,2);
+				int group = fSolverPhases(i,0);
+				int iter  = fSolverPhases(i,1);
+				int pass  = fSolverPhases(i,2);
 			
 				/* call solver */
 				status = fSolvers[group]->Solve(iter);
@@ -488,7 +450,7 @@ int FEManagerT::SolveStep(void)
 			loop_count++;
 			
 			/* write status */
-			if (fSolverInfo.MajorDim() > 1)
+			if (fSolverPhases.MajorDim() > 1)
 			{
 				cout << "\n Solver status: pass " << loop_count << '\n';
 				cout << setw(kIntWidth) << "#"
@@ -1180,13 +1142,21 @@ void FEManagerT::SetSolver(void)
 		}
 	}
 	
-	/* read solver templates */
+	/* read solver phases */
+	AutoArrayT<int> solver_list;
 	if (fSolvers.Length() > 1) {
 	
-		AutoArrayT<int> solver_list;
-		fSolverInfo.Dimension(fSolvers.Length(), 3);
-		fSolverInfo = -99;
-		for (int i = 0; i < fSolverInfo.MajorDim(); i++) {
+		int num_phases = -99;
+		fMainIn >> num_phases;
+		if (num_phases < fSolvers.Length()) {
+			cout << "\n FEManagerT::SetSolver: expecting at least " << fSolvers.Length()
+			     << " solver phases: " << num_phases << endl;
+			throw eBadInputValue;
+		}
+		fSolverPhases.Dimension(num_phases, 3);
+		fSolverPhases = -99;
+
+		for (int i = 0; i < fSolverPhases.MajorDim(); i++) {
 			int solver = -99; 
 			int iters = -99;
 			int pass_iters = -99;
@@ -1194,13 +1164,9 @@ void FEManagerT::SetSolver(void)
 			solver--;
 
 			/* checks */
-			if (solver < 0 || solver >= fSolverInfo.MajorDim()) {
+			if (solver < 0 || solver >= fSolverPhases.MajorDim()) {
 				cout << "\n FEManagerT::SetSolver: solver number is out of range: " << solver+1 << endl;
 				throw eBadInputValue;
-			}
-			if (!solver_list.AppendUnique(solver)) {
-				cout << "\n FEManagerT::SetSolver: solver " << solver+1<< " is already set" << endl;
-				throw eBadInputValue;			
 			}
 			if (iters < 1 && iters != -1) {
 				cout << "\n FEManagerT::SetSolver: solver iterations for solver " 
@@ -1214,9 +1180,10 @@ void FEManagerT::SetSolver(void)
 			}
 			
 			/* store values */
-			fSolverInfo(i,0) = solver;
-			fSolverInfo(i,1) = iters;
-			fSolverInfo(i,2) = pass_iters;
+			solver_list.AppendUnique(solver);
+			fSolverPhases(i,0) = solver;
+			fSolverPhases(i,1) = iters;
+			fSolverPhases(i,2) = pass_iters;
 		}
 		
 		/* number of loops through the solvers */
@@ -1229,25 +1196,32 @@ void FEManagerT::SetSolver(void)
 	}
 	else /* set default values for single solver */
 	{
-		fSolverInfo.Dimension(fSolvers.Length(), 3);	
-		fSolverInfo(0,0) = 0;
-		fSolverInfo(0,1) =-1;
-		fSolverInfo(0,2) =-1;
+		fSolverPhases.Dimension(1, 3);	
+		fSolverPhases(0,0) = 0;
+		fSolverPhases(0,1) =-1;
+		fSolverPhases(0,2) =-1;
 		fMaxSolverLoops  = 1;
+		solver_list.Append(0);
 	}
-	
+		
 	/* echo solver information */
-	fMainOut << "\n Multi-solver parameters: " << fSolverInfo.MajorDim() << '\n';
+	fMainOut << "\n Multi-solver parameters: " << fSolverPhases.MajorDim() << '\n';
 	fMainOut << setw(kIntWidth) << "rank"
 	         << setw(kIntWidth) << "group"
 	         << setw(2*kIntWidth) << "loop its."
 	         << setw(2*kIntWidth) << "pass its." << endl;
-	for (int i = 0; i < fSolverInfo.MajorDim(); i++)
+	for (int i = 0; i < fSolverPhases.MajorDim(); i++)
 		fMainOut << setw(kIntWidth) << i+1
-	             << setw(kIntWidth) << fSolverInfo(i,0)
-	             << setw(2*kIntWidth) << fSolverInfo(i,1)
-	             << setw(2*kIntWidth) << fSolverInfo(i,2) << endl;
+	             << setw(kIntWidth) << fSolverPhases(i,0)
+	             << setw(2*kIntWidth) << fSolverPhases(i,1)
+	             << setw(2*kIntWidth) << fSolverPhases(i,2) << endl;
 	fMainOut << " Maximum number of solver loops. . . . . . . . . = " << fMaxSolverLoops << '\n';
+	
+	/* check that all solvers hit at least once */
+	if (solver_list.Length() != fSolvers.Length()) {
+		cout << "\n FEManagerT::SetSolver: must have at least one phase per solver" << endl;
+		throw eBadInputValue;
+	}	
 	
 	/* initialize */
 	for (int i = 0; i < fSolvers.Length(); i++)
