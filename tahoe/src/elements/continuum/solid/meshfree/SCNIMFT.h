@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.18 2004-10-13 00:20:15 cjkimme Exp $ */
+/* $Id: SCNIMFT.h,v 1.19 2004-10-26 22:07:51 paklein Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -260,7 +260,6 @@ protected:
 
 	/** list of materials */
 	MaterialListT* fMaterialList;
-	ArrayT<ArrayT<bool> > fMaterialNeeds;
 	
 	/** workspaces for strain smoothing */
 	ArrayT< LinkedListT<int> > nodeWorkSpace; // should be local?

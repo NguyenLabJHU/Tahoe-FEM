@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.35 2004-10-26 17:20:46 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.36 2004-10-26 22:07:51 paklein Exp $ */
 #include "SCNIMFT.h"
 
 
@@ -737,6 +737,8 @@ void SCNIMFT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>&
 	fDeloneVertices.Dimension(fNodes.Length(), fSD);
 	fDeloneVertices.RowCollect(fNodes, model.Coordinates());
 
+	/* set up element cards for state variable storage */
+	fElementCards.Dimension(fNodes.Length()); /* one card per node */
 }
 
 /* collecting element group equation numbers */
