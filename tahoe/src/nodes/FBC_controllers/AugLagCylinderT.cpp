@@ -1,4 +1,4 @@
-/* $Id: AugLagCylinderT.cpp,v 1.3 2004-10-14 20:25:02 paklein Exp $ */
+/* $Id: AugLagCylinderT.cpp,v 1.4 2004-12-16 07:12:03 paklein Exp $ */
 #include "AugLagCylinderT.h"
 #include "FieldT.h"
 #include "eIntegratorT.h"
@@ -35,8 +35,6 @@ void AugLagCylinderT::SetEquationNumbers(void)
 void AugLagCylinderT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
 {
-#pragma unused(eq_2)
-
 	/* Uzawa algorithm has local update */
 	if (fUzawa)
 		/* inherited */
@@ -343,8 +341,6 @@ ParameterInterfaceT* AugLagCylinderT::NewSub(const StringT& name) const
 /* accept parameter list */
 void AugLagCylinderT::TakeParameterList(const ParameterListT& list)
 {
-	const char caller[] = "AugLagCylinderT::TakeParameterList";
-
 	/* inherited */
 	PenaltyCylinderT::TakeParameterList(list);
 
