@@ -1,4 +1,4 @@
-/* $Id: PartitionT.cpp,v 1.2 2001-02-13 17:50:13 paklein Exp $ */
+/* $Id: PartitionT.cpp,v 1.3 2001-07-09 17:21:39 paklein Exp $ */
 /* created: paklein (11/16/1999)                                          */
 /* graph partition information (following NEMESIS data model)             */
 
@@ -8,6 +8,8 @@
 #include "GraphT.h"
 #include "AutoArrayT.h"
 #include "iArray2DT.h"
+#include "dArray2DT.h"
+#include "RaggedArray2DT.h"
 #include "StringT.h"
 
 /* parameters */
@@ -63,7 +65,8 @@ const iArrayT* PartitionT::NodesOut(int ID) const
 }
 
 /* set node info */
-void PartitionT::Set(int num_parts, int id, const iArrayT& part_map, const GraphT& graph)
+void PartitionT::Set(int num_parts, int id, const iArrayT& part_map, 
+	const GraphT& graph)
 {
 	/* total number of partitions */
 	fNumPartitions = num_parts;
@@ -78,6 +81,32 @@ void PartitionT::Set(int num_parts, int id, const iArrayT& part_map, const Graph
 
 	/* resolve internal/boundary nodes */
 	ClassifyNodes(part_map, graph);
+	
+	/* set send information */
+	SetReceive(part_map);
+	
+	/* clear inverse maps */
+	fInvNodeMap.Free();
+	for (int i = 0; i < fInvElementMap.Length(); i++)
+		fInvElementMap.Free();
+}
+
+void PartitionT::Set(int num_parts, int id, const iArrayT& part_map, const ArrayT<const iArray2DT*>& connects_1,
+	const ArrayT<const RaggedArray2DT<int>*>& connects_2)
+{
+	/* total number of partitions */
+	fNumPartitions = num_parts;
+	if (fNumPartitions < 1) throw eGeneralFail;
+
+	/* set ID */
+	fID = id;
+	if (fID < 0 || fID >= fNumPartitions) throw eOutOfRange;
+		
+	/* numbering is global */
+	fScope = kGlobal;
+
+	/* resolve internal/boundary nodes */
+	ClassifyNodes(part_map, connects_1, connects_2);
 	
 	/* set send information */
 	SetReceive(part_map);
@@ -709,10 +738,175 @@ void PartitionT::ClassifyNodes(const iArrayT& part_map,
 	nodes_b.CopyInto(fNodes_b);	
 
 	fNodes_e.Allocate(nodes_e.Length());
-	nodes_e.CopyInto(fNodes_e);	
+	nodes_e.CopyInto(fNodes_e);
 
 	fCommID.Allocate(commID.Length());
 	commID.CopyInto(fCommID);
+
+#if 0
+//NOTE: the other version of ClassifyNodes() inherently sorts the node
+//      lists in ascending order and this step allows the two approaches
+//      to be verified against each other.
+	cout << "\n PartitionT::ClassifyNodes: NOTE: sorting node lists in ascending order" << endl;
+	fNodes_i.SortAscending();
+	fNodes_b.SortAscending();
+	fNodes_e.SortAscending();
+	fCommID.SortAscending();
+#endif
+	
+	/* generate node map (just number sequentially through _i, _b, _e) */
+	fNodeMap.Allocate(fNodes_i.Length() +
+	                  fNodes_b.Length() +
+	                  fNodes_e.Length()); // sets sequence for local node
+	                                      // numbers - DO NOT CHANGE
+	
+	/* copy in (with no resequencing) */
+	fNodeMap.CopyPart(0, fNodes_i, 0, fNodes_i.Length());
+	fNodeMap.CopyPart(fNodes_i.Length(), fNodes_b, 0, fNodes_b.Length());
+	fNodeMap.CopyPart(fNodes_i.Length() + fNodes_b.Length(), fNodes_e, 0, fNodes_e.Length());
+}
+
+void PartitionT::ClassifyNodes(const iArrayT& part_map, const ArrayT<const iArray2DT*>& connects_1,
+	const ArrayT<const RaggedArray2DT<int>*>& connects_2)
+{
+	/* node classification */
+	int nnd = part_map.Length();
+	ArrayT<StatusT> status(nnd);
+	status = kUnset;
+	
+	/* mark all partition nodes as internal */
+	for (int i = 0; i < nnd; i++)
+		if (part_map[i] == fID)
+			status[i] = kInternal;
+
+	/* run through connectivities in group 1 */
+	for (int j = 0; j < connects_1.Length(); j++)
+	{
+		/* set dimensions */
+		const iArray2DT& connects = *(connects_1[j]);
+		int nel = connects.MajorDim();
+		int nen = connects.MinorDim();
+	
+		/* scan elements */
+		const int* pel = connects.Pointer();
+		for (int i = 0; i < nel; i++)
+		{
+			/* look for mixed elements */
+			bool has_internal = false;
+			bool has_external = false;
+			for (int a = 0; a < nen && (!has_internal || !has_external); a++)
+			{
+				int node = pel[a];
+				if (status[node] == kInternal || status[node] == kBorder)
+					has_internal = true;
+				else
+					has_external = true;
+			}
+		
+			/* re-mark nodes */
+			if (has_internal && has_external)
+			{
+				for (int a = 0; a < nen; a++)
+				{
+					int node = pel[a];
+					if (status[node] == kInternal)
+						status[node] = kBorder;
+					else if (status[node] == kUnset)
+						status[node] = kExternal;
+				}
+			}
+		
+			/* next */
+			pel += nen;
+		}
+	}
+
+	/* run through connectivities in group 1 */
+	for (int k = 0; k < connects_2.Length(); k++)
+	{
+		/* set dimensions */
+		const RaggedArray2DT<int>& connects = *(connects_2[k]);
+		int nel = connects.MajorDim();
+	
+		/* scan elements */
+		for (int i = 0; i < nel; i++)
+		{
+			/* current element */
+			int nen = connects.MinorDim(i);
+			const int* pel = connects(i);
+
+			/* look for mixed elements */
+			bool has_internal = false;
+			bool has_external = false;
+			for (int a = 0; a < nen && (!has_internal || !has_external); a++)
+			{
+				int node = pel[a];
+				if (status[node] == kInternal || status[node] == kBorder)
+					has_internal = true;
+				else
+					has_external = true;
+			}
+		
+			/* re-mark nodes */
+			if (has_internal && has_external)
+			{
+				for (int a = 0; a < nen; a++)
+				{
+					int node = pel[a];
+					if (status[node] == kInternal)
+						status[node] = kBorder;
+					else if (status[node] == kUnset)
+						status[node] = kExternal;
+				}
+			}
+		}
+	}
+
+	/* count-em up */
+	iArrayT comm_list(fNumPartitions);
+	comm_list = 0;
+	int n_i, n_b, n_e;
+	n_i = n_b = n_e = 0;
+	StatusT* pstat = status.Pointer();
+	for (int l = 0; l < nnd; l++)
+	{
+		if (*pstat == kInternal)
+			n_i++;
+		else if (*pstat == kBorder)
+			n_b++;
+		else if (*pstat == kExternal)
+		{
+			n_e++;
+			comm_list[part_map[l]] = 1;
+		}
+		pstat++;
+	}
+
+	/* store (sorted) comm list */
+	fCommID.Allocate(comm_list.Count(1));
+	int dex = 0;
+	for (int ll = 0; ll < fNumPartitions; ll++)
+		if (comm_list[ll] == 1)
+			fCommID[dex++] = ll;
+
+	/* allocate node lists */
+	fNodes_i.Allocate(n_i);
+	fNodes_b.Allocate(n_b);
+	fNodes_e.Allocate(n_e);
+
+	/* sort-em out */
+	n_i = n_b = n_e = 0;
+	pstat = status.Pointer();
+	for (int m = 0; m < nnd; m++)
+	{
+		if (*pstat == kInternal)
+			fNodes_i[n_i++] = m;
+		else if (*pstat == kBorder)
+			fNodes_b[n_b++] = m;
+		else if (*pstat == kExternal)
+			fNodes_e[n_e++] = m;
+		pstat++;
+	}
 	
 	/* generate node map (just number sequentially through _i, _b, _e) */
 	fNodeMap.Allocate(fNodes_i.Length() +

@@ -1,4 +1,4 @@
-/* $Id: GraphT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: GraphT.h,v 1.2 2001-07-09 17:21:39 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 /* generates graphs for the connectivities registered with AddGroup().    */
 /* connectivies can have an arbitrary MinorDim(), but the labels in       */
@@ -55,6 +55,13 @@ public:
 	/* using external graph to classify nodes */
 	void Partition(const iArrayT& config, const iArrayT& weight,
 		const GraphT& node_graph, ArrayT<PartitionT>& partition,
+		bool verbose);
+
+	/* using raw connectivities to classify nodes */
+	void Partition(const iArrayT& config, const iArrayT& weight,
+		const ArrayT<const iArray2DT*>& connects_1,
+		const ArrayT<const RaggedArray2DT<int>*>& connects_2,
+		ArrayT<PartitionT>& partition,
 		bool verbose);
 
 private:
