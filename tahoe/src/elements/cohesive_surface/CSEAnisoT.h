@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.24 2003-04-07 23:37:28 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.25 2003-04-17 20:11:31 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -114,9 +114,7 @@ protected:
 #ifndef _SIERRA_TEST_
 	pArrayT<TiedPotentialBaseT**> fTiedPots;
 	TiedPotentialBaseT* tiedpot;
-#endif
 
-#ifndef _SIERRA_TEST_
 	/** state variable storage array. 
 	 * Array has dimensions: [nel] x [nip * nvar] */
 	RaggedArray2DT<double> fStateVariables;

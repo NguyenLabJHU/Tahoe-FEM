@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.15 2003-04-14 17:27:07 cjkimme Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.16 2003-04-17 20:11:33 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -17,6 +17,7 @@ using namespace Tahoe;
 
 const int    knumDOF = 2;
 const double kExpMax = 100;
+const int nTiedFlag = 0;
 
 /* constructor */
 TiedPotentialT::TiedPotentialT(ifstreamT& in): 
@@ -83,6 +84,11 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in):
 /* return the number of state variables needed by the model */
 int TiedPotentialT::NumStateVariables(void) const { return 1; }
 
+void TiedPotentialT::InitStateVariables(ArrayT<double>& state)
+{
+	state[nTiedFlag] = kTiedNode;
+}
+
 /* surface potential */ 
 double TiedPotentialT::FractureEnergy(const ArrayT<double>& state) 
 {
@@ -122,7 +128,7 @@ const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 #endif
 
 
-	if (state[0] != 1. && state[0] != -10.)
+	if (state[nTiedFlag] != kFreeNode && state[nTiedFlag] != kReleaseNextStep)
 	{
 			fTraction = 0.;
 	}
@@ -163,8 +169,8 @@ const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 						fTraction = 0.;
 		}
 		
-		if (state[0] == -10. && qIntegrate)
-			state[0] = 1.;
+		if (state[nTiedFlag] == kReleaseNextStep && qIntegrate)
+			state[nTiedFlag] = kFreeNode;
 	}
 
 	return fTraction;
@@ -180,7 +186,7 @@ const dMatrixT& TiedPotentialT::Stiffness(const dArrayT& jump_u, const ArrayT<do
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif 
 	
-	if (state[0] != -10. && state[0] != 1.)
+	if (state[nTiedFlag] != kReleaseNextStep && state[nTiedFlag] != kFreeNode)
 	{
 		fStiffness = 0.;
 	}
@@ -338,7 +344,7 @@ void TiedPotentialT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& 
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif	
 
-	output[0] = 0.;//state[0];
+	output[0] = 0.;//state[nTiedFlag];
 }
 
 bool TiedPotentialT::NeedsNodalInfo(void) { return true; }
