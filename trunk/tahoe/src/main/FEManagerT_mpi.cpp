@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.31 2003-08-14 06:06:43 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.32 2003-10-28 07:39:38 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -163,15 +163,24 @@ void FEManagerT_mpi::DivertOutput(const StringT& outfile)
 {
 	/* do local IO */
 	if (!fExternIOManager)
-	  {
+	{
 		/* need processor designation for split output */
 		StringT outfile_p = outfile;
 		if (Size() > 1) outfile_p.Append(".p", Rank());
 
 		FEManagerT::DivertOutput(outfile_p);
-	  }
-	else /* external I/O */
-		fExternIOManager->DivertOutput(outfile);
+	}
+	else 
+	{
+		/* external I/O */
+		fExternIOManager->DivertOutput(outfile);	
+
+		/* system output */
+		if (fCurrentGroup != -1) /* resolved group */
+			fSO_DivertOutput[fCurrentGroup]	= true;
+		else /* all groups */
+			fSO_DivertOutput = true;
+	}
 }
 
 void FEManagerT_mpi::RestoreOutput(void)
@@ -179,8 +188,17 @@ void FEManagerT_mpi::RestoreOutput(void)
 	/* do local IO */
 	if (!fExternIOManager)
 		FEManagerT::RestoreOutput();
-	else /* external I/O */
+	else
+	{
+		/* external I/O */
 		fExternIOManager->RestoreOutput();
+
+		/* system output */
+		if (fCurrentGroup != -1) /* resolved group */
+			fSO_DivertOutput[fCurrentGroup]	= false;
+		else /* all groups */
+			fSO_DivertOutput = false;
+	}
 }
 
 /* domain decomposition */
