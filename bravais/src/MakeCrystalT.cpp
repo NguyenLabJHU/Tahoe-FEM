@@ -241,7 +241,7 @@ void MakeCrystalT::Run() {
   nb_atoms = mesh_atom.CreateMeshAtom();
   cout << nb_atoms << " atoms in mesh\n";
 
-  cout << "\nFinal Lengths\n";
+  cout << "\nActual Length of Atoms\n";
   if(nsd==2) 
     {
       cout << "[" << mesh_atom.Length()(0,0) << "," << mesh_atom.Length()(0,1) << "]\n";
@@ -253,7 +253,6 @@ void MakeCrystalT::Run() {
       cout << "[" << mesh_atom.Length()(1,0) << "," << mesh_atom.Length()(1,1) << "]\n";
       cout << "[" << mesh_atom.Length()(2,0) << "," << mesh_atom.Length()(2,1) << "]\n";
     }
-  
 
   cout << "\nThe total volume of the domain is " 
        << mesh_atom.Volume_of_Mesh()
