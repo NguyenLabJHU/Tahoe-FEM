@@ -1,4 +1,4 @@
-# $Id: DARWIN-3.3.LAM.macros,v 1.1 2002-12-08 17:22:40 paklein Exp $
+# $Id: DARWIN-3.3.LAM.macros,v 1.2 2003-01-27 07:33:59 paklein Exp $
 #
 # macros for Mac OS X using the GNU distribution provided with
 # the Apple Developer tools in addition to the LAM implementation
@@ -15,8 +15,8 @@ DEPENDFLAGS = -I$(GCC_ROOT) -I$(GCC_ROOT)/backward -I$(GCC_ROOT)/bits -I$(GCC_RO
 COMP_C      = mpicc
 COMP_CC     = mpic++
 COMP_F      = mpif77
-DEFINES     = -D__GNU__ -D__DARWIN__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -D__GCC_3__
-MORE_CFLAGS = -O -DNDEBUG -g
+DEFINES     = -D__GNU__ -D__DARWIN__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -D__GCC_3__ -DCHECK_MPI_STATUS -DCHECK_MPI_RETURN
+MORE_CFLAGS = -DNDEBUG -g
 #MORE_CFLAGS = -g
 MY_CFLAGS   = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(MY_CFLAGS)
@@ -28,12 +28,13 @@ AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = ranlib
 RANLIBFLAGS =
-MAKE_OPTS   = -s
+MAKE_OPTS   =
 RM          = rm
 RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = ln -sf
 ECHO        = /usr/local/bin/echo -e
 CAT         = cat
+PERL        = perl -w
 
 # command needed build library
 BUILD_LIBRARY = BUILD_LIBRARY_RANLIB

@@ -1,4 +1,4 @@
-# $Id: AIX.mpi.macros,v 1.5 2002-11-28 16:43:22 paklein Exp $
+# $Id: AIX.mpi.macros,v 1.6 2003-01-27 07:33:59 paklein Exp $
 # DEC
 MPI_CFLAGS  = -D__TAHOE_MPI__
 MPI_LFLAGS  =
@@ -36,6 +36,7 @@ RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = ln -sf
 ECHO        = echo
 CAT         = cat
+PERL        = perl -w
 
 # command needed build library
 #BUILD_LIBRARY = BUILD_LIBRARY_RANLIB
