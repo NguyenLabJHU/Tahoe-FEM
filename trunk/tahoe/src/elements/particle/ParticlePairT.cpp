@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.10 2002-12-04 06:35:24 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.11 2002-12-04 18:55:26 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -10,8 +10,14 @@
 #include "HarmonicPairT.h"
 #include "ParadynPairT.h"
 
+using namespace Tahoe;
+
 /* parameters */
 const int kMemoryHeadRoom = 15; /* percent */
+
+/* utility */
+static inline int Min(int a, int b) { return (a < b) ? a : b; };
+static inline double Min(double a, double b) { return (a < b) ? a : b; };
 
 /* constructor */
 ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field):
@@ -574,6 +580,9 @@ void ParticlePairT::RHSDriver3D_3(void)
 	/* pair properties function pointers */
 	int current_property = -1;
 	PairPropertyT::ForceFunction force_function = NULL;
+	const double* Paradyn_table = NULL;
+	double dr = 1.0;
+	int row_size = 0, num_rows = 0;
 
 	/* run through neighbor list */
 	fForce = 0.0;
@@ -602,7 +611,8 @@ void ParticlePairT::RHSDriver3D_3(void)
 			int property = fPropertiesMap(type_i, type_j);
 			if (property != current_property)
 			{
-				force_function = fProperties[property]->getForceFunction();
+				if (!fProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
+					force_function = fProperties[property]->getForceFunction();
 				current_property = property;
 			}
 		
@@ -613,7 +623,19 @@ void ParticlePairT::RHSDriver3D_3(void)
 			double r = sqrt(r_ij_0*r_ij_0 + r_ij_1*r_ij_1 + r_ij_2*r_ij_2);
 			
 			/* interaction force */
-			double F = force_function(r, NULL, NULL);
+			double F;
+			if (Paradyn_table)
+			{
+				double pp = r*dr + 1.0;
+				int kk = int(pp);
+				kk = Min(kk, num_rows-2);
+				pp -= kk;
+				pp = Min(pp, 1.0);
+				const double* c = Paradyn_table + kk*row_size;
+				F = c[4] + pp*(c[5] + pp*c[6]);
+			}
+			else
+				F = force_function(r, NULL, NULL);
 			double Fbyr = formKd*F/r;
 
 			r_ij_0 *= Fbyr;
