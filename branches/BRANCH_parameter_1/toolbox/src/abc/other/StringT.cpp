@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.31 2003-03-09 17:09:02 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.31.2.1 2003-05-03 09:04:39 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #include "StringT.h"
 #include "ifstreamT.h"
@@ -61,6 +61,12 @@ ostream& operator<<(ostream& out, const StringT& string)
 } // namespace Tahoe
 
 /* assignment operator */
+void StringT::Fill(char a)
+{
+	int len = Length()-1;
+	if (len > 0) memset(Pointer(), a, len);
+}
+	
 StringT& StringT::operator=(const char* string)
 {
 	if (string == NULL)
@@ -1015,7 +1021,7 @@ bool StringT::Tail(char key, StringT& value) const
 	char* p = first + StringLength() - 1;
 	while (p != first && *p != key) p--;
 
-	value = 0;
+	value.Clear();
 	if (*p == key)
 	{
 		istrstream in(p + 1);
