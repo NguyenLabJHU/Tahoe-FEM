@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2001-02-22 23:45:25 paklein Exp $
+# $Id: makefile,v 1.6 2001-06-12 17:32:25 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,6 +6,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
+	FileCrawlerT.o \
 	GroupAverageT.o \
 	LocalParabolaT.o \
 	MonitorT.o \
@@ -20,6 +21,7 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
+	FileCrawlerT.cpp \
 	GroupAverageT.cpp \
 	LocalParabolaT.cpp \
 	MonitorT.cpp \
@@ -29,6 +31,7 @@ SRC = \
 
 # headers
 HDR = \
+	FileCrawlerT.h \
 	GroupAverageT.h \
 	LocalParabolaT.h \
 	MonitorT.h \
