@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.31 2003-11-05 20:34:44 paklein Exp $ */
+/* $Id: ElementT.h,v 1.30 2003-10-02 21:05:04 hspark Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -64,7 +64,6 @@ kPenaltyContactElement3D = 34,
 				kAPSgrad = 68,	     
    kHyperElasticInitCSE = 111, /**< large strain solid that triggers CSE */
 	kPenaltyContactDrag = 114, /**< contact with constant drag traction */
-kMeshfreePenaltyContact = 115, /**< contact with meshfree strikers */
 kTotLagSplitIntegration = 117 };
 
 /** stream extraction operator */ 
