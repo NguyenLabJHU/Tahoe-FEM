@@ -1,5 +1,5 @@
 @
-# $Id: run.batch,v 1.4 2004-09-10 19:17:10 paklein Exp $
+# $Id: run.batch,v 1.5 2004-09-10 20:27:07 paklein Exp $
 CSE.1.xml
 CSE.1a.xml
 CSE.1b.xml
@@ -10,6 +10,7 @@ cse-quad.2.xml
 cse-quad.3.xml
 cse.1.sym.xml
 cse.2.sym.xml
+cse.3.sym.xml
 gravity.0.xml
 gravity.0a.xml
 gravity.1.xml
