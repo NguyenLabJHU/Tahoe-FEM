@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.5 2001-04-29 21:11:08 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.6 2001-05-09 17:30:17 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #include "SolidElementT.h"
@@ -475,7 +475,17 @@ void SolidElementT::SetGlobalShape(void)
 
 	/* material dependent local arrays */
 	if (fCurrMaterial->NeedLastDisp()) SetLocalU(fLocLastDisp);	
-	if (fCurrMaterial->NeedVel()) SetLocalU(fLocVel);	
+	if (fCurrMaterial->NeedVel())
+	{
+		/* have velocity */
+		if (fLocVel.IsRegistered())
+			SetLocalU(fLocVel);
+		else /* finite difference approximation */
+		{
+			double onebydt = 1.0/fFEManager.TimeStep();
+			fLocVel.SetToCombination(onebydt, fLocDisp, -onebydt, fLocLastDisp);
+		}
+	}	
 }
 
 /* construct the effective mass matrix */
