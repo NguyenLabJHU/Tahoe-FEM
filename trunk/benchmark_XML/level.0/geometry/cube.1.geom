@@ -8,7 +8,7 @@
 1   # number of element sets
 # [ID] [nel] [nen]
 1   8   8
-7   # number of node sets
+8   # number of node sets
 # [ID] [nnd]
 1   9
 2   9
@@ -17,6 +17,7 @@
 5   9
 6   9
 7  26
+8   1
 1   # number of side sets
 1  1  4
 # end dimensions
@@ -56,6 +57,9 @@
  1  2  3  4  5  6  7  8  9
 10 11 12 13    15 16 17 18
 19 20 21 22 23 24 25 26 27
+*set
+1
+14
 # end node sets
 *sidesets
 *set
