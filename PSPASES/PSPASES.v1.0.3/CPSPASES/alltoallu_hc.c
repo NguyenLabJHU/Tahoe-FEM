@@ -1,4 +1,4 @@
-/* $Id: alltoallu_hc.c,v 1.1 2005-01-03 00:08:11 paklein Exp $ */
+/* $Id: alltoallu_hc.c,v 1.2 2005-01-03 00:18:22 paklein Exp $ */
 /* alltoallu_hc.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -57,7 +57,7 @@ static integer c__1 = 1;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: alltoallu_hc.c,v 1.1 2005-01-03 00:08:11 paklein Exp $ +/ */
+/* /+ $Id: alltoallu_hc.c,v 1.2 2005-01-03 00:18:22 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -126,7 +126,7 @@ static integer lbit_shift(integer a, integer b) {
 /*<         end if >*/
 	}
 /*<         call mpi_get_count(mpistat,MPI_INTEGER,tmpsize,ierr) >*/
-	MPI_Get_count__(mpistat, MPI_INT, &tmpsize);
+	MPI_Get_count(mpistat, MPI_INT, &tmpsize);
 /*<         call mergelists(tmp,tmpsize,tgt,tgtsize,src,srcsize) >*/
 	mergelists_(&tmp[1], &tmpsize, &tgt[1], tgtsize, &src[1], srcsize);
 /*<         do j=1,srcsize >*/
