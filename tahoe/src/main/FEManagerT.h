@@ -1,6 +1,5 @@
-/* $Id: FEManagerT.h,v 1.35 2003-07-11 16:46:07 hspark Exp $ */
+/* $Id: FEManagerT.h,v 1.36 2003-08-08 00:37:27 paklein Exp $ */
 /* created: paklein (05/22/1996) */
-
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
 
@@ -113,6 +112,9 @@ public:
 
 	/** pointer to an element group */
 	ElementBaseT* ElementGroup(int groupnumber) const;
+
+	/** return the number of element groups */
+	int NumElementGroups(void) const { return fElementGroups.Length(); };
 
 	/** resolve the index of the given element group */
 	int ElementGroupNumber(const ElementBaseT* pgroup) const;
