@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.15 2002-02-18 09:37:33 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.16 2002-02-18 21:54:18 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 
 #include "IOManager_mpi.h"
@@ -1086,13 +1086,63 @@ void IOManager_mpi::CheckAssemblyMaps(void)
 				/* redundant check */
 				if (fill_check.Count(0) != 0)
 				{
-					cout << "\n IOManager_mpi::CheckAssemblyMaps: node maps error" << endl;
+					cout << "\n IOManager_mpi::CheckAssemblyMaps: node maps are incomplete" << endl;
 					throw eGeneralFail;
 				}
 			}
 			
 			/* check element maps */
-			//TEMP - not supported yet
+			if (set.NumElementValues() > 0)
+			{			
+				/* assembly map */
+				const MapSetT& map_set = fMapSets[i];
+			
+				/* check overall length */
+				int element_count = 0;
+				for (int j = 0; j < map_set.NumElementMaps(); j++)
+					element_count += map_set.ElementMap(j).Length();
+
+				/* sum elements may have redudant assembly, but there should be
+				 * at least as many entries in the maps as there are elements */
+				int num_elements = set.NumElements(); 
+				if (element_count < num_elements)
+				{
+					cout << "\n IOManager_mpi::CheckAssemblyMaps: element maps size error: " << element_count
+					     << " should be at least " << num_elements << " for set " << i << endl;
+					throw eGeneralFail;
+				}
+
+				/* check fill */
+				iArrayT fill_check(num_elements);
+				fill_check = 0;
+			
+				/* check for overlap */
+				for (int k = 0; k < map_set.NumElementMaps(); k++)
+				{
+					const iArrayT& elem_assem_map = map_set.ElementMap(k);
+					for (int j = 0; j < elem_assem_map.Length(); j++)
+					{
+						int& check = fill_check[elem_assem_map[j]];
+						if (check != 0)
+						{
+							cout << "\n IOManager_mpi::CheckAssemblyMaps: duplicated fill for element "
+							     << elem_assem_map[j] + 1 << "\n"
+							     <<   "     in assembly map " << k << " for output set ID "
+							     << set.ID() << endl;
+							throw eGeneralFail;
+						}
+						else
+							check = 1;
+					}
+				}
+			
+				/* redundant check */
+				if (fill_check.Count(0) != 0)
+				{
+					cout << "\n IOManager_mpi::CheckAssemblyMaps: element maps are incomplete" << endl;
+					throw eGeneralFail;
+				}
+			}
 		}
 }
 
