@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.28 2002-07-16 15:44:23 recampb Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.29 2002-09-03 07:10:36 paklein Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -37,6 +37,8 @@ VTKFrameT::VTKFrameT(VTKConsoleT& console):
 	fRenderer(NULL),
 	fLabelMapper(NULL),
 	fLabelActor(NULL),
+	fTimeLabelMapper(NULL),
+	fTimeLabelActor(NULL),
 	scalarBar(NULL)
 {
 	/* set up display classes */
@@ -75,15 +77,23 @@ VTKFrameT::VTKFrameT(VTKConsoleT& console):
   iAddCommand(CommandSpecT("HideAxes"));
   iAddCommand(CommandSpecT("ShowContours"));
   iAddCommand(CommandSpecT("HideContours"));
-//   iAddCommand(CommandSpecT("ShowCuttingPlane"));
-//   iAddCommand(CommandSpecT("HideCuttingPlane"));
 
-
+	/* display/undisplay time */
+	CommandSpecT show_time("ShowTime", false);
+	ArgSpecT pos_x(ArgSpecT::double_, "dx");
+	pos_x.SetPrompt("x position");
+	pos_x.SetDefault(0.1);
+	ArgSpecT pos_y(ArgSpecT::double_, "dy");
+	pos_y.SetPrompt("y position");
+	pos_y.SetDefault(0.1);
+	show_time.AddArgument(pos_x);
+	show_time.AddArgument(pos_y);
+	iAddCommand(show_time);
+	iAddCommand(CommandSpecT("HideTime"));
 
   CommandSpecT show_color_bar("ShowColorBar");
   ArgSpecT body(ArgSpecT::string_);
   body.SetDefault("<DEFAULT>");
-  body.SetPrompt("body to reference scalar range");
   show_color_bar.AddArgument(body);
   ArgSpecT location(ArgSpecT::string_, "location");
   location.SetDefault("L");
@@ -170,6 +180,10 @@ VTKFrameT::~VTKFrameT(void)
   	/* frame label */
 	if (fLabelMapper) fLabelMapper->Delete();
 	if (fLabelActor) fLabelActor->Delete();
+
+	/* time label */
+	if (fTimeLabelMapper) fTimeLabelMapper->Delete();
+	if (fTimeLabelActor) fTimeLabelActor->Delete();
 	
 	/* free bodies */
 	for (int i = 0; i < bodies.Length(); i++)
@@ -254,7 +268,8 @@ void VTKFrameT::ShowFrameLabel(const StringT& label)
 		fLabelMapper->SetFontSize(16);
 #endif
 	}
-	fLabelMapper->SetInput(label);
+	fFrameLabel = label;
+	fLabelMapper->SetInput(fFrameLabel);
 	
 	if (!fLabelActor) {
 		fLabelActor = vtkActor2D::New();
@@ -330,6 +345,60 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
   	}
   	return OK;
   }
+
+ 	else if (command.Name() == "ShowTime")
+	{
+	  	if (bodies.Length() == 0) {
+			cout << "frame must contain bodies to show time" << endl;
+			return false;
+		}
+	
+		if (!fTimeLabelMapper)
+		{
+			fTimeLabelMapper = vtkTextMapper::New();
+//			fTimeLabelMapper->SetInput(fTimeLabel);
+#if __DARWIN__
+	  		fTimeLabelMapper->SetFontSize(11);
+#else
+			fTimeLabelMapper->SetFontSize(16);
+#endif
+		}
+		
+		if (!fTimeLabelActor) {
+			fTimeLabelActor = vtkActor2D::New();
+  			fTimeLabelActor->SetMapper(fTimeLabelMapper);
+			fTimeLabelActor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
+			fTimeLabelActor->GetProperty()->SetColor(0,1,0);
+  			fRenderer->AddActor(fTimeLabelActor);
+		}
+
+		/* (re-)set label position */
+		double dx, dy;
+		command.Argument(0).GetValue(dx);
+		command.Argument(1).GetValue(dy);
+		dx = (dx < 0.0) ? 0.0 : dx;
+		dx = (dx > 1.0) ? 1.0 : dx;
+		dy = (dy < 0.0) ? 0.0 : dy;
+		dy = (dy > 1.0) ? 1.0 : dy;
+		fTimeLabelActor->GetPositionCoordinate()->SetValue(dx, dy);
+		Render();
+		return true;
+	}
+
+ 	else if (command.Name() == "HideTime")
+	{
+		if (fTimeLabelActor)
+		{
+  			fRenderer->RemoveActor(fTimeLabelActor);
+  			fTimeLabelActor->Delete();
+  			fTimeLabelActor = NULL;
+			fTimeLabelMapper->Delete();
+			fTimeLabelMapper = NULL;
+			Render();
+		}
+		return true;
+	}
+
   else if (command.Name() == "ShowColorBar")
   {
   	if (bodies.Length() == 0) {
@@ -342,8 +411,7 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 		StringT location;
 		command.Argument(0).GetValue(body);
 		command.Argument("location").GetValue(location);
-		
-		
+
   		/* use default */
   		VTKBodyDataT* body_data = NULL;
   		if (body == "<DEFAULT>")
@@ -926,7 +994,7 @@ void VTKFrameT::ValuePrompt(const CommandSpecT& command, int index, ostream& out
 }
 
 /* call to re-render the window contents */
-void VTKFrameT::Render(void) const
+void VTKFrameT::Render(void)
 {
 	CommandSpecT* spec = fConsole.iCommand("Update");
 	if (!spec)
@@ -934,8 +1002,22 @@ void VTKFrameT::Render(void) const
 		cout << "VTKFrameT::Render: \"Update\" command not found" << endl;
 		throw eGeneralFail;
 	}
+	
+	/* update frame data */
+	UpdateData();
+
 	StringT line;
 	fConsole.iDoCommand(*spec, line);
+}
+
+/* update data. Only updates data managed directly by the frame. */
+void VTKFrameT::UpdateData(void)
+{
+	/* update time label */
+	if (fTimeLabelMapper) {
+		GetCurrentTime(fTimeLabel);
+		fTimeLabelMapper->SetInput(fTimeLabel);		
+	}
 }
 
 // Description:
@@ -966,4 +1048,19 @@ void VTKFrameT::ComputeWorldToDisplay(double x, double y, double z,
 	fRenderer->SetWorldPoint(x, y, z, 1.0);
 	fRenderer->WorldToDisplay();
 	fRenderer->GetDisplayPoint(displayPt);
+}
+
+/* get the current time string */
+void VTKFrameT::GetCurrentTime(StringT& string) const
+{
+	if (bodies.Length() == 0)
+		string = "n/a";
+	else
+	{
+		VTKBodyDataT* body = bodies[0]->BodyData();
+		double time = body->CurrentTime();
+		
+		string = "time = ";
+		string.Append(time);
+	}
 }

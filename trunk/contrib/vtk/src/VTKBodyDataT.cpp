@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.29 2002-07-11 15:57:41 recampb Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.30 2002-09-03 07:10:36 paklein Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -160,7 +160,9 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
   
 	/* number of results sets */
 	int num_time_steps = model.NumTimeSteps();
-
+	fTimeList.Dimension(num_time_steps);
+	model.TimeSteps(fTimeList);
+	
     cout << "read time steps" << endl;
 
 	/* variables defined at the nodes */
@@ -302,7 +304,6 @@ void VTKBodyDataT::RemoveFromRenderer(vtkRenderer* renderer) const
   }
 		
 }
-
 
 void VTKBodyDataT::UpdateData(void)
 {
@@ -461,7 +462,6 @@ bool VTKBodyDataT::iDoCommand(const CommandSpecT& command, StringT& line)
 				fUGrids[i]->SetRepresentation(VTKUGridT::kPoint);
 		return true;
 	}
-
 
 // 	else if (command.Name() == "ShowContours")
 // 	  {

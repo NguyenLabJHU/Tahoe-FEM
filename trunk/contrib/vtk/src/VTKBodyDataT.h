@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.h,v 1.20 2002-07-11 15:57:41 recampb Exp $ */
+/* $Id: VTKBodyDataT.h,v 1.21 2002-09-03 07:10:36 paklein Exp $ */
 #ifndef _VTK_BODY_DATA_T_H_
 #define _VTK_BODY_DATA_T_H_
 
@@ -60,6 +60,9 @@ public:
  
 	/** return the number of time steps of results data */
 	int NumTimeSteps(void) const { return fScalars.MajorDim(); };
+
+	/** return current time */
+	double CurrentTime(void) const;
 
 	/** return current step number */
 	int CurrentStepNumber(void) const { return currentStepNum; };
@@ -152,6 +155,9 @@ protected:
 	/** point numbering map */
 	iArrayT fPointNumberMap;
 
+	/** array of output times */
+	dArrayT fTimeList;
+
 	/** scalar data per node */
 	ArrayT<StringT> fNodeLabels; /**< labels for the nodal output variables */
 
@@ -213,6 +219,15 @@ inline vtkFloatArray* VTKBodyDataT::VectorField(const char* name)
 		return fVectorFields(currentStepNum, dex);
 	else
 		return NULL;
+}
+
+/* return current time */
+inline double VTKBodyDataT::CurrentTime(void) const
+{
+	if (fTimeList.Length() == 0) 
+		return 0.0;
+	else
+		return fTimeList[currentStepNum];
 }
 
 #endif
