@@ -1,4 +1,4 @@
-/* $Id: SSLinearVE3D.cpp,v 1.1 2003-04-05 20:05:37 thao Exp $ */
+/* $Id: SSLinearVE3D.cpp,v 1.2 2003-04-14 17:28:33 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSLinearVE3D.h"
 #include "SSMatSupportT.h"
@@ -133,8 +133,8 @@ const dMatrixT& SSLinearVE3D::c_ijkl(void)
 	falphaB = exp(-0.5*taudtB);
 
         /*equilibrium component*/
-	double& mu = fMu[kEquilibrium];
-	double& kappa = fKappa[kEquilibrium];
+	double mu = fMu[kEquilibrium];
+	double kappa = fKappa[kEquilibrium];
 
         /*deviatoric part*/
 	fModulus = 0.0;
@@ -183,8 +183,8 @@ const dSymMatrixT& SSLinearVE3D::s_ij(void)
 	fe = e();
 	
 	/*equilibrium components*/
-	double& mu = fMu[kEquilibrium];
-	double& kappa = fKappa[kEquilibrium];
+	double mu = fMu[kEquilibrium];
+	double kappa = fKappa[kEquilibrium];
 
 	double I1 = fe[0]+fe[1]+fe[2]; 
 
