@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.cpp,v 1.5 2002-01-03 19:33:06 paklein Exp $ */
+/* $Id: ExecutionManagerT.cpp,v 1.6 2002-02-18 09:20:14 paklein Exp $ */
 /* created: paklein (08/27/1997) */
 
 #include "ExecutionManagerT.h"
@@ -299,22 +299,28 @@ void ExecutionManagerT::RunBatch(ifstreamT& in, ostream& status)
 	/* repeat to end of file */
 	while (in.good())
 	{
-		/* file path format */
-		nextinfilename.ToNativePathName();
+		/* adjusting execution options */
+		if (nextinfilename[0] == '-')
+			AddCommandLineOption(nextinfilename);
+		else /* execute regular file */
+		{	
+			/* file path format */
+			nextinfilename.ToNativePathName();
 
-		/* path to source file */
-		StringT path;
-		path.FilePath(in.filename());
+			/* path to source file */
+			StringT path;
+			path.FilePath(in.filename());
 	
-		/* open new input stream */
-		nextinfilename.Prepend(path);
-		ifstreamT nextin('#', nextinfilename);
+			/* open new input stream */
+			nextinfilename.Prepend(path);
+			ifstreamT nextin('#', nextinfilename);
 	
-		/* process if valid */
-		if (nextin.is_open())
-			JobOrBatch(nextin, cout);
-		else
-			cout << " File not found: " << nextinfilename << '\n';
+			/* process if valid */
+			if (nextin.is_open())
+				JobOrBatch(nextin, cout);
+			else
+				cout << " File not found: " << nextinfilename << '\n';
+		}
 			
 		/* get next entry */
 		in >> nextinfilename;
