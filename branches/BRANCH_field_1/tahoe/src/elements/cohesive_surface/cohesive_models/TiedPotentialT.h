@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.h,v 1.1.2.1 2002-05-07 19:00:19 cjkimme Exp $ */
+/* $Id: TiedPotentialT.h,v 1.1.2.2 2002-05-11 20:49:19 paklein Exp $ */
 /* created: cjkimme (04/15/2002) */
 
 #ifndef _TIED_POTENTIAL_T_H_
@@ -75,6 +75,9 @@ protected:
 	virtual bool CompatibleOutput(const SurfacePotentialT& potential) const;
 		
 private:
+
+	/** the time step */
+	const double& fTimeStep;
 
 	/* traction potential parameters */
 	double q;     // phi_t/phi_n
