@@ -1,6 +1,9 @@
-/* $Id: MapNodeT.h,v 1.2 2003-03-06 17:25:14 paklein Exp $ */
+/* $Id: MapNodeT.h,v 1.3 2003-03-09 20:36:41 paklein Exp $ */
 #ifndef _MAP_NODE_T_H_
 #define _MAP_NODE_T_H_
+
+/* direct members */
+#include "ExceptionT.h"
 
 namespace Tahoe {
 
@@ -48,7 +51,15 @@ public:
 	/** true if (the key of this) == (the key of rhs) */
 	bool operator==(const MapNodeT& rhs) const;
 	/*@}*/
-	 	 	
+
+	/** \name accessors */
+	/*@{*/
+	const key_TYPE& Key(void) const { return fKey; };
+	
+	/** value must be set otherwise an exception will be thrown */
+	const value_TYPE& Value(void) const;
+	/*@}*/
+
 private:
 
 	/** \name key-value pair */
@@ -99,7 +110,7 @@ inline MapNodeT<key_TYPE, value_TYPE>::MapNodeT(void):
 
 /* destructor */
 template <class key_TYPE, class value_TYPE>
-MapNodeT<key_TYPE, value_TYPE>::~MapNodeT(void)
+inline MapNodeT<key_TYPE, value_TYPE>::~MapNodeT(void)
 {
 	delete fValue;
 }
@@ -123,16 +134,24 @@ inline bool MapNodeT<key_TYPE, value_TYPE>::operator>(const MapNodeT& rhs) const
 
 /* true if (the key of this) < (the key of rhs) */
 template <class key_TYPE, class value_TYPE>
-bool MapNodeT<key_TYPE, value_TYPE>::operator<(const MapNodeT& rhs) const
+inline bool MapNodeT<key_TYPE, value_TYPE>::operator<(const MapNodeT& rhs) const
 {
 	return this->fKey < rhs.fKey;
 }
 
 /* true if (the key of this) == (the key of rhs) */
 template <class key_TYPE, class value_TYPE>
-bool MapNodeT<key_TYPE, value_TYPE>::operator==(const MapNodeT& rhs) const
+inline bool MapNodeT<key_TYPE, value_TYPE>::operator==(const MapNodeT& rhs) const
 {
 	return this->fKey == rhs.fKey;
+}
+
+/* value must be set otherwise an exception will be thrown */
+template <class key_TYPE, class value_TYPE>
+inline const value_TYPE& MapNodeT<key_TYPE, value_TYPE>::Value(void) const
+{
+	if (!fValue) ExceptionT::GeneralFail("MapNodeT::Value", "value not set");
+	return *fValue;
 }
 
 } /* namespace Tahoe */
