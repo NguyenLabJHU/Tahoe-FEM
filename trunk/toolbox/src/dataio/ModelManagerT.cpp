@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.10 2002-01-05 06:36:39 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.11 2002-01-09 12:18:35 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -347,9 +347,9 @@ void ModelManagerT::ElementBlockList (ifstreamT& in, iArrayT& indexes, iArrayT& 
       indexes[i] = ElementGroupIndex (name);
       if (indexes[i] < 0)
 	{
-	  fMessage << "\n ModelManagerT::ElementBlockList: "
+	  cout << "\n ModelManagerT::ElementBlockList: "
 		   << " block " << i+1 << ": " << name << '\n';
-	  fMessage << "      does not match Model database " << endl;
+	  cout << "      does not match Model database " << endl;
 	  throw eBadInputValue;
 	}
     }
@@ -489,12 +489,12 @@ int ModelManagerT::ReadCards (ifstreamT& in, ostream& out, ArrayT<iArrayT>& node
 	  int index = NodeSetIndex (ID);
 	  if (index < 0) 
 	    {
-	      fMessage << "ModelManagerT::ReadCards, cannot find node set\n";
-	      fMessage << "   asking for : " << ID << ".\n";
-	      fMessage << "   available sets: \n";
+	      cout << "ModelManagerT::ReadCards, cannot find node set\n";
+	      cout << "   asking for : " << ID << ".\n";
+	      cout << "   available sets: \n";
 	      for (int ig=0; ig < fNumNodeSets; ig++)
-		fMessage << "       " << fNodeSetNames[ig] << ".\n";
-	      fMessage << endl;
+		    cout << "       " << fNodeSetNames[ig] << ".\n";
+	      cout << endl;
 	      throw eBadInputValue;
 	    }
 	  nodes[i] = NodeSet (index);
@@ -561,9 +561,9 @@ void ModelManagerT::ReadTractionSideSet (ifstreamT& in, int& blockindex, iArray2
       index = SideSetIndex (name);
       if (index < 0) 
 	{
-	  fMessage << "\n ModelManagerT::ReadTractionSideSet: ";
-	  fMessage << "Side Set Name is not found in registered list: ";
-	  fMessage << name << "\n";
+	  cout << "\n ModelManagerT::ReadTractionSideSet: ";
+	  cout << "Side Set Name is not found in registered list: ";
+	  cout << name << "\n";
 	  throw eBadInputValue;
 	}
       blockindex = SideSetGroupIndex (index);
@@ -606,7 +606,7 @@ void ModelManagerT::ReadCoordinates (void)
     {
       if (fCoordinates.Length() == 0)
 	{
-	  fMessage << "\n ModelManagerT::Coordinates, coords not registered yet" << endl;
+	  cout << "\n ModelManagerT::Coordinates, coords not registered yet" << endl;
 	  throw eGeneralFail;
 	}
       else
@@ -614,7 +614,7 @@ void ModelManagerT::ReadCoordinates (void)
     }
   fCoordinates.Allocate (fCoordinateDimensions[0], fCoordinateDimensions[1]); 
 	if (!fInput) {
-    	fMessage << "\n ModelManagerT::ReadCoordinates: input source is not initialized" << endl;
+    	cout << "\n ModelManagerT::ReadCoordinates: input source is not initialized" << endl;
 		throw eDatabaseFail;
 	}
 	fInput->ReadCoordinates (fCoordinates);
@@ -686,12 +686,12 @@ void ModelManagerT::ReadConnectivity (int index)
     {
       if (fFormat == IOBaseT::kTahoe)
 	{
-	  fMessage << "\n ModelManagerT::ReadConnectivity, elems not registered yet" << endl;
+	  cout << "\n ModelManagerT::ReadConnectivity, elems not registered yet" << endl;
 	  throw eGeneralFail;
 	}
       fElementSets[index].Allocate (fElementLengths[index], fElementNodes[index]);
      if (!fInput) {
-    	fMessage << "\n ModelManagerT::ReadConnectivity: input source is not initialized" << endl;
+    	cout << "\n ModelManagerT::ReadConnectivity: input source is not initialized" << endl;
 		throw eDatabaseFail;
       }
       fInput->ReadConnectivity (fElementNames[index], fElementSets[index]);
@@ -708,7 +708,7 @@ const iArray2DT* ModelManagerT::ElementGroupPointer (int index) const
 void ModelManagerT::AllNodeMap (iArrayT& map)
 {
 	if (!fInput) {
-    	fMessage << "\n ModelManagerT::AllNodeMap: input source is not initialized" << endl;
+    	cout << "\n ModelManagerT::AllNodeMap: input source is not initialized" << endl;
 		throw eDatabaseFail;
 	}
 	fInput->ReadNodeMap (map);
@@ -717,7 +717,7 @@ void ModelManagerT::AllNodeMap (iArrayT& map)
 void ModelManagerT::AllElementMap (iArrayT& map)
 {
 	if (!fInput) {
-    	fMessage << "\n ModelManagerT::AllElementMap: input source is not initialized" << endl;
+    	cout << "\n ModelManagerT::AllElementMap: input source is not initialized" << endl;
 		throw eDatabaseFail;
 	}
 	fInput->ReadAllElementMap (map);
@@ -726,7 +726,7 @@ void ModelManagerT::AllElementMap (iArrayT& map)
 void ModelManagerT::ElementMap (StringT& name, iArrayT& map)
 {
 	if (!fInput) {
-    	fMessage << "\n ModelManagerT::ElementMap: input source is not initialized" << endl;
+    	cout << "\n ModelManagerT::ElementMap: input source is not initialized" << endl;
 		throw eDatabaseFail;
 	}
 	fInput->ReadGlobalElementMap (name, map);
@@ -767,12 +767,12 @@ const iArrayT& ModelManagerT::NodeSet (int index)
     {
       if (fFormat == IOBaseT::kTahoe)
 	{
-	  fMessage << "\n ModelManagerT::NodeSet, set not registered yet" << endl;
+	  cout << "\n ModelManagerT::NodeSet, set not registered yet" << endl;
 	  throw eGeneralFail;
 	}
       fNodeSets[index].Allocate (fNodeSetDimensions[index]);
       if (!fInput) {
-    	fMessage << "\n ModelManagerT::NodeSet: input source is not initialized" << endl;
+    	cout << "\n ModelManagerT::NodeSet: input source is not initialized" << endl;
 		throw eDatabaseFail;
 	  }
       fInput->ReadNodeSet (fNodeSetNames[index], fNodeSets[index]);
@@ -830,12 +830,12 @@ const iArray2DT& ModelManagerT::SideSet (int index) const
     {
       if (fFormat == IOBaseT::kTahoe)
 	{
-	  fMessage << "\n ModelManagerT::SideSet, set not registered yet" << endl;
+	  cout << "\n ModelManagerT::SideSet, set not registered yet" << endl;
 	  throw eGeneralFail;
 	}
       fSideSets[index].Allocate (fSideSetDimensions[index], 2);
       if (!fInput) {
-    	fMessage << "\n ModelManagerT::SideSet: input source is not initialized" << endl;
+    	cout << "\n ModelManagerT::SideSet: input source is not initialized" << endl;
 		throw eDatabaseFail;
 	  }
       if (fSideSetIsLocal[index])
@@ -881,7 +881,7 @@ void ModelManagerT::SideSetGlobalToLocal (int& localelemindex, iArray2DT& local,
 #pragma unused(localelemindex)
 #pragma unused(local)
 #pragma unused(global)
-  fMessage << "\n ModelManagerT::SideSetGlobalToLocal not implemented" << endl;
+  cout << "\n ModelManagerT::SideSetGlobalToLocal not implemented" << endl;
   throw eGeneralFail;
 }
 
@@ -1048,7 +1048,7 @@ ifstreamT& ModelManagerT::OpenExternal (ifstreamT& in, ifstreamT& in2, ostream& 
 		in2.open(file);
 		if (!in2.is_open())
 		{
-			if (verbose && fail) fMessage << "\n " << fail << ": " << file << endl;
+			if (verbose && fail) cout << "\n " << fail << ": " << file << endl;
 			throw eBadInputValue;
 		}
 
@@ -1093,7 +1093,7 @@ bool ModelManagerT::ScanModel (const StringT& database)
       break;
     default:
       {
-	fMessage << "\n ModelManagerT::Unsupported model format" 
+	cout << "\n ModelManagerT::Unsupported model format: " 
 		 << fFormat << endl;
 	throw eGeneralFail;
       }
