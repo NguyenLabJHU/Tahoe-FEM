@@ -1,4 +1,4 @@
-/* $Id: InverseMapT.cpp,v 1.4 2004-02-25 14:11:43 paklein Exp $ */
+/* $Id: InverseMapT.cpp,v 1.5 2004-04-23 20:22:31 paklein Exp $ */
 #include "InverseMapT.h"
 #include "iArrayT.h"
 
@@ -37,6 +37,7 @@ void InverseMapT::Forward(ArrayT<int>& forward) const
 	iArrayT tmp;
 	tmp.Alias(*this);
 	int dim = tmp.Length() - tmp.Count(-1);
+	forward.Dimension(dim);
 
 	int dex = 0;
 	for (int i = 0; i < tmp.Length(); i++)
