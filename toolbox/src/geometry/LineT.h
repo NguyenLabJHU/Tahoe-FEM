@@ -1,4 +1,4 @@
-/* $Id: LineT.h,v 1.3 2002-10-20 22:32:08 paklein Exp $ */
+/* $Id: LineT.h,v 1.4 2004-02-28 21:52:26 paklein Exp $ */
 /* created: paklein (04/25/1999) */
 #ifndef _LINE_T_H_
 #define _LINE_T_H_
@@ -8,7 +8,7 @@
 
 namespace Tahoe {
 
-/** 1D line element */
+/** 1D line geometry */
 class LineT: public GeometryBaseT
 {
 public:
@@ -50,7 +50,13 @@ public:
 	/* return geometry and number of nodes on each facet */
 	virtual void FacetGeometry(ArrayT<CodeT>& facet_geom,
 		iArrayT& facet_nodes) const;
+
+	/** return true if the given point is within the domain defined by
+	 * the list of coordinates.
+	 * \param coords list of coordinates defining the domain
+	 * \param point test point coordinates */
+	virtual bool PointInDomain(const LocalArrayT& coords, const dArrayT& point) const;
 };
 
 } // namespace Tahoe 
-#endif /* _QUAD_T_H_ */
+#endif /* _LINE_T_H_ */

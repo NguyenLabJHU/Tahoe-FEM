@@ -1,6 +1,5 @@
-/* $Id: HexahedronT.cpp,v 1.3 2002-10-20 22:32:08 paklein Exp $ */
+/* $Id: HexahedronT.cpp,v 1.4 2004-02-28 21:52:26 paklein Exp $ */
 /* created: paklein (10/22/1997) */
-
 #include "HexahedronT.h"
 #include <math.h>
 #include "ExceptionT.h"
@@ -9,7 +8,7 @@
 #include "iArray2DT.h"
 #include "dArray2DT.h"
 #include "dMatrixT.h"
-
+#include "LocalArrayT.h"
 
 using namespace Tahoe;
 
@@ -31,20 +30,22 @@ HexahedronT::HexahedronT(int numnodes): GeometryBaseT(numnodes, kNumFacets) {}
 /* evaluate the shape functions and gradients. */
 void HexahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
 {
+	const char caller[] = "HexahedronT::EvaluateShapeFunctions";
+
 #if __option(extended_errorcheck)
 	if (coords.Length() != 3 ||
-	        Na.Length() != fNumNodes) throw ExceptionT::kSizeMismatch;
+	        Na.Length() != fNumNodes) ExceptionT::SizeMismatch(caller);
 	if (fNumNodes != kNumVertexNodes && 
-	    fNumNodes != 20) throw ExceptionT::kGeneralFail;
+	    fNumNodes != 20) ExceptionT::GeneralFail(caller);
 #endif
 
 	/* coordinates */	
 	double r = coords[0];
 	double s = coords[1];
 	double t = coords[2];
-	if (r < -1.0 || r > 1.0) throw ExceptionT::kOutOfRange;
-	if (s < -1.0 || s > 1.0) throw ExceptionT::kOutOfRange;
-	if (t < -1.0 || t > 1.0) throw ExceptionT::kOutOfRange;
+	if (r < -1.0 || r > 1.0) ExceptionT::OutOfRange(caller);
+	if (s < -1.0 || s > 1.0) ExceptionT::OutOfRange(caller);
+	if (t < -1.0 || t > 1.0) ExceptionT::OutOfRange(caller);
 
 	/* vertex nodes */
 	double* na  = Na.Pointer();
@@ -405,6 +406,8 @@ void HexahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na,
 void HexahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 	dArrayT& weights) const
 {
+	const char caller[] = "HexahedronT::SetLocalShape";
+
 	/* dimensions */
 	int numnodes  = Na.MinorDim();
 	int numint    = weights.Length();
@@ -412,24 +415,16 @@ void HexahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 
 	/* dimension checks */
 	if (numnodes != 8 && numnodes != 20)
-	{
-		cout << "\n HexahedronT::SetLocalShape: unsupported number of element nodes: "
-		     << numnodes << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "unsupported number of element nodes: %d", numnodes);
 
 	if (numint != 1 &&
 	    numint != 8 &&
 	    numint != 9 &&
 	    numint != 27 &&
 	    numint != 64)
-	{
-		cout << "\n HexahedronT::SetLocalShape: unsupported number of integration points: "
-		     << numint << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	    ExceptionT::GeneralFail(caller, "unsupported number of integration points: %d", numint);
 	
-	if (nsd != kHexnsd) throw ExceptionT::kGeneralFail;
+	if (nsd != kHexnsd) ExceptionT::GeneralFail(caller);
 
 	/* initialize */
 	Na = 0.0;
@@ -564,7 +559,7 @@ void HexahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 			break;
 		}	
 		default:
-			throw ExceptionT::kGeneralFail;
+			ExceptionT::GeneralFail(caller);
 	}
 	
 	/* evaluate shape functions at integration points */
@@ -587,14 +582,12 @@ void HexahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 /* compute gradients of the "bubble" modes */
 void HexahedronT::BubbleModeGradients(ArrayT<dArray2DT>& Na_x) const
 {
+	const char caller[] = "HexahedronT::BubbleModeGradients";
+
 	/* limit integration rules */
 	int nip = Na_x.Length();
 	if (nip != 8 && nip != 9)
-	{
-		cout << "\n HexahedronT::BubbleModeGradients: only 8 or 9 point rules defined: "
-		     << nip << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "only 8 or 9 point rules defined: %d", nip);
 
 	/* integration rules */
 	double	ra[9] = {-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0,-1.0, 0.0};
@@ -607,10 +600,8 @@ void HexahedronT::BubbleModeGradients(ArrayT<dArray2DT>& Na_x) const
 	{
 		dArray2DT& na_x = Na_x[i];
 		if (na_x.MajorDim() != 3 || na_x.MinorDim() != 3)
-		{
-			cout << "\n QuadT::BubbleModeGradients: gradients array must be 3x3" << endl;
-			throw ExceptionT::kGeneralFail;
-		}
+			ExceptionT::GeneralFail(caller, "gradients array must be 3x3: %dx%d", 
+				na_x.MajorDim(), na_x.MinorDim());
 
 		/* integration point coordinates */
 		double r = g*ra[i];
@@ -638,14 +629,12 @@ void HexahedronT::BubbleModeGradients(ArrayT<dArray2DT>& Na_x) const
 * nodes, mid-edge nodes, mid-face nodes */
 void HexahedronT::NodesOnFacet(int facet, iArrayT& facetnodes) const
 {
+	const char caller[] = "HexahedronT::NodesOnFacet";
 	if (fNumNodes != 8 && fNumNodes != 20)
-	{
-		cout << "\n HexahedronT::NodesOnFacet: only implemented 8 and 20 element nodes" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "only implemented 8 and 20 element nodes: %d", fNumNodes);
 
 #if __option(extended_errorcheck)
-	if (facet < 0 || facet > 5) throw ExceptionT::kOutOfRange;
+	if (facet < 0 || facet > 5) ExceptionT::OutOfRange(caller);
 #endif
 
 	/* nodes-facet data */
@@ -678,10 +667,7 @@ void HexahedronT::NumNodesOnFacets(iArrayT& num_nodes) const
 {
 //TEMP
 	if (fNumNodes != 8 && fNumNodes != 20)
-	{
-		cout << "\n HexahedronT::NumNodesOnFacets: only implemented 8 and 20 element nodes" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("HexahedronT::NumNodesOnFacets", "only implemented 8 and 20 element nodes: %d", fNumNodes);
 
 	num_nodes.Dimension(6);
 	if (fNumNodes == 8)
@@ -710,10 +696,7 @@ void HexahedronT::NeighborNodeMap(iArray2DT& facetnodes) const
 void HexahedronT::FacetGeometry(ArrayT<CodeT>& facet_geom, iArrayT& facet_nodes) const
 {
 	if (fNumNodes != 8 && fNumNodes != 20)
-	{
-		cout << "\n HexahedronT::FacetGeometry: only implemented for 8 and 20 nodes" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("HexahedronT::FacetGeometry", "only implemented for 8 and 20 nodes: %d", fNumNodes);
 
 	facet_geom.Dimension(fNumFacets);
 	facet_geom = kQuadrilateral;
@@ -725,12 +708,14 @@ void HexahedronT::FacetGeometry(ArrayT<CodeT>& facet_geom, iArrayT& facet_nodes)
 /* set the values of the nodal extrapolation matrix */
 void HexahedronT::SetExtrapolation(dMatrixT& extrap) const
 {
+	const char caller[] = "HexahedronT::SetExtrapolation";
+
 	/* dimensions */
 	int numnodes = extrap.Rows();
 	int numint   = extrap.Cols();
 
 	/* dimension checks */
-	if (numnodes < 8 || numnodes > 20) throw ExceptionT::kGeneralFail;
+	if (numnodes < 8 || numnodes > 20) ExceptionT::GeneralFail(caller);
 
 	/* initialize */
 	extrap = 0.0;
@@ -995,9 +980,79 @@ void HexahedronT::SetExtrapolation(dMatrixT& extrap) const
 			smooth_540.CopyBlock(0, 0, extrap);
 			break;
 		}
-		default:
-				
-			cout << "\n QuadT::SetExtrapolation: no nodal extrapolation with Gauss rule: ";
-			cout << numint << endl;			
+		default:		
+			ExceptionT::GeneralFail(caller, "no nodal extrapolation with Gauss rule: %d", numint);
 	}
+}
+
+/* return true if the given point is within the domain */
+bool HexahedronT::PointInDomain(const LocalArrayT& coords, const dArrayT& point) const
+{
+#if __option(extended_errorcheck)
+		if (coords.NumberOfNodes() != 8) 
+			ExceptionT::GeneralFail("HexahedronT::PointInDomain", "expecting 8 element nodes: %d", coords.NumberOfNodes());
+#endif
+
+	/* nodes-facet data - ordered for outward normals */
+	int dat8[] = {
+		0, 3, 2, 1,
+		4, 5, 6, 7,
+		0, 1, 5, 4,
+		1, 2, 6, 5,
+		2, 3, 7, 6,
+		3, 0, 4, 7};
+
+	/* method: check all faces and see of point lies inside, breaking
+	*          each face into 2 triangular facets */
+	bool in_domain = true;
+	int* facet_nodes = dat8;
+	for (int i = 0; in_domain && i < 6; i++)
+	{
+		/* facet 1 */
+		double ab_0 = coords(facet_nodes[1], 0) - coords(facet_nodes[0], 0);
+		double ab_1 = coords(facet_nodes[1], 1) - coords(facet_nodes[0], 1);
+		double ab_2 = coords(facet_nodes[1], 2) - coords(facet_nodes[0], 2);
+
+		double ac_0 = coords(facet_nodes[3], 0) - coords(facet_nodes[0], 0);
+		double ac_1 = coords(facet_nodes[3], 1) - coords(facet_nodes[0], 1);
+		double ac_2 = coords(facet_nodes[3], 2) - coords(facet_nodes[0], 2);
+
+		double ap_0 = point[0] - coords(facet_nodes[0], 0);
+		double ap_1 = point[1] - coords(facet_nodes[0], 1);
+		double ap_2 = point[2] - coords(facet_nodes[0], 2);
+			
+		/* vector triple product */
+		double ac_ab_0 = ac_1*ab_2 - ac_2*ab_1;
+		double ac_ab_1 = ac_2*ab_0 - ac_0*ab_2;
+		double ac_ab_2 = ac_0*ab_1 - ac_1*ab_0;			
+		double triple_product = ac_ab_0*ap_0 + ac_ab_1*ap_1 + ac_ab_2*ap_2;
+		in_domain = triple_product >= 0.0;
+
+		/* facet 2 */
+		if (in_domain) {
+
+			ab_0 = coords(facet_nodes[3], 0) - coords(facet_nodes[2], 0);
+			ab_1 = coords(facet_nodes[3], 1) - coords(facet_nodes[2], 1);
+			ab_2 = coords(facet_nodes[3], 2) - coords(facet_nodes[2], 2);
+
+			ac_0 = coords(facet_nodes[1], 0) - coords(facet_nodes[2], 0);
+			ac_1 = coords(facet_nodes[1], 1) - coords(facet_nodes[2], 1);
+			ac_2 = coords(facet_nodes[1], 2) - coords(facet_nodes[2], 2);
+
+			ap_0 = point[0] - coords(facet_nodes[2], 0);
+			ap_1 = point[1] - coords(facet_nodes[2], 1);
+			ap_2 = point[2] - coords(facet_nodes[2], 2);
+
+			/* vector triple product */
+			ac_ab_0 = ac_1*ab_2 - ac_2*ab_1;
+			ac_ab_1 = ac_2*ab_0 - ac_0*ab_2;
+			ac_ab_2 = ac_0*ab_1 - ac_1*ab_0;			
+			triple_product = ac_ab_0*ap_0 + ac_ab_1*ap_1 + ac_ab_2*ap_2;
+			in_domain = triple_product >= 0.0;
+		}
+		
+		facet_nodes += 4;
+	}
+	
+	return in_domain;
 }

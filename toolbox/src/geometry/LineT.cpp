@@ -1,4 +1,4 @@
-/* $Id: LineT.cpp,v 1.4 2003-11-10 22:14:29 cjkimme Exp $ */
+/* $Id: LineT.cpp,v 1.5 2004-02-28 21:52:26 paklein Exp $ */
 /* created: paklein (04/25/1999) */
 #include "LineT.h"
 
@@ -10,7 +10,7 @@
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 #include "dMatrixT.h"
-
+#include "LocalArrayT.h"
 
 using namespace Tahoe;
 
@@ -282,4 +282,25 @@ void LineT::FacetGeometry(ArrayT<CodeT>& facet_geom, iArrayT& facet_nodes) const
 	
 	facet_nodes.Dimension(fNumFacets);
 	facet_nodes = 1;
+}
+
+/* return true if the given point is within the domain */
+bool LineT::PointInDomain(const LocalArrayT& coords, const dArrayT& point) const
+{
+#if __option(extended_errorcheck)
+	if (coords.NumberOfNodes() != 2) 
+		ExceptionT::GeneralFail("LineT::PointInDomain", "expecting only 2 points: %d", coords.NumberOfNodes());
+#endif
+
+	if (coords[1] > coords[0]) {
+		if (point[0] >= coords[0] && point[0] <= coords[1])
+			return true;
+		else
+			return false;
+	} else {
+		if (point[0] >= coords[1] && point[0] <= coords[0])
+			return true;
+		else
+			return false;
+	}
 }
