@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.6 2001-07-19 06:48:06 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.7 2001-07-19 16:08:59 paklein Exp $ */
 /* created: paklein (09/21/1997)                                          */
 
 #include "FEExecutionManagerT.h"
@@ -447,11 +447,24 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	map_file.Append(".n", size);
 	map_file.Append(".io.map");
 
-	/* set output map and and generate decomposition */
+	/* set output map and generate decomposition */
 	token = 1;
 	if (rank == 0)
 	{
-		try { Decompose(in, size, model_file, global_model_file, format, map_file); }
+		/* prompt for method if alternative is available */
+		int method = 0;
+#ifdef __METIS__
+		cout << "\n Decomposition method (0: native, 1: METIS): ";
+#endif
+#if (defined __SGI__ && defined __MPI__)
+		cout << '\n';
+#endif
+		cin >> method;
+		char line[255];
+		cin.getline(line, 254);
+
+		/* run decomp */
+		try { Decompose(in, size, model_file, global_model_file, format, map_file, method); }
 		catch (int code)
 		{
 			cout << " ::RunJob_parallel: exception on decomposition: " << code << endl;
