@@ -22,7 +22,9 @@ CLINKER = $(CC) -v
 # --------------------- BLAS Selection        -------------------------
 
 ## for Intel's Math Kernel Library (MKL)
-BLAS = -L/apps/blas -lblas
+BLAS = -L/apps/intel/mkl/lib/32 -lmkl_lapack32 -lmkl_ia32 -lguide
+
+#BLAS = -L/apps/blas -lblas
 #BLAS = /apps/blas/mkl_libblas.a
 #BLAS = -L/apps/intel/mkl/lib/32 -lmkl_lapack -lmkl_ia32 lib/libaux32_intel.a
 #BLAS = -L/apps/intel/mkl/lib/32 -lmkl -lmkl_lapack32 -lmkl_def
@@ -71,8 +73,8 @@ CLFL = -L/apps/intel/fce_80/lib -lifport -lifcore
 # ---------------------------------------------------------------------
 
 INCLUDE_DIR = -I.
-PSPASESDIR = ../PSPASES
-PSPASESLIB = pspases
+PSPASESDIR = ../CPSPASES
+PSPASESLIB = cpspases
 PARMETISDIR = ../parMetis
 METISDIR = ../metis
 LIB_DIR = -L$(METISDIR) -L$(PARMETISDIR) -L$(PSPASESDIR)
@@ -88,7 +90,10 @@ TARGET2 = frpspases_test
 S3 = pspases_testc.o 
 TARGET3 = cpspases_test
 
-all : $(TARGET1) $(TARGET2) $(TARGET3)
+all : libs $(TARGET1) $(TARGET2) $(TARGET3)
+
+libs:
+	cd ../; make
 
 $(TARGET1) : $(S1) $(LIB_DEP)
 	$(FLINKER) -o $@ $(S1) $(LIB_DIR) $(LIBS) $(FLFL)
