@@ -27,6 +27,11 @@ class GRAD_MRSSKStV2D: public GRAD_MRSSKStV, public Material2DT
 	virtual const dSymMatrixT& ElasticStrain(
                 const dSymMatrixT& totalstrain, 
 		const ElementCardT& element, int ip);
+		
+	/* returns 3D gradient of strain (3D) */
+	virtual const dSymMatrixT& GradElasticStrain(
+                const dSymMatrixT& del2_totalstrain, 
+		const ElementCardT& element, int ip);
 	
 	/* modulus */
 	virtual const dMatrixT& c_ijkl(void);
@@ -36,7 +41,7 @@ class GRAD_MRSSKStV2D: public GRAD_MRSSKStV, public Material2DT
 	virtual const dSymMatrixT& s_ij(void);
 	
 	/* yield function */
-	virtual const double& YieldFunction(void);
+	virtual const double& Yield_Function(void);
 
 	/* returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void);

@@ -11,6 +11,7 @@ GRAD_MRSSKStV2D::GRAD_MRSSKStV2D(ifstreamT& in, const SSMatSupportT& support):
 	Material2DT(in, kPlaneStrain),
 	fStress2D(2),
 	fModulus2D(dSymMatrixT::NumValues(2)),
+	fYieldFunction2D(0.0),
 	fTotalStrain3D(3)
 {
 	/* account for thickness */
@@ -26,7 +27,7 @@ void GRAD_MRSSKStV2D::Initialize(void)
 
 /* returns 3D total strain (3D) */
 const dSymMatrixT& GRAD_MRSSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain, 
-	const ElementCardT& element, int ip) //gradtotalstrain??
+	const ElementCardT& element, int ip) //del2_totalstrain??
 {
 	/* 2D -> 3D (plane strain) */
 	fTotalStrain3D.ExpandFrom2D(totalstrain);
@@ -34,6 +35,19 @@ const dSymMatrixT& GRAD_MRSSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain
 	/* inherited */
 	/*return fTotalStrain3D;*/
 	return GRAD_MRSSKStV::ElasticStrain(fTotalStrain3D, element, ip);
+
+}
+
+/* returns 3D  gradient of total strain (3D) */
+const dSymMatrixT& GRAD_MRSSKStV2D::GradElasticStrain(const dSymMatrixT& del2_totalstrain, 
+	const ElementCardT& element, int ip) //del2_totalstrain??
+{
+	/* 2D -> 3D (plane strain) */
+	fTotalStrain3D.ExpandFrom2D(del2_totalstrain);
+
+	/* inherited */
+	/*return fTotalStrain3D;*/
+	return GRAD_MRSSKStV::GradElasticStrain(fTotalStrain3D, element, ip);
 
 }
 
@@ -80,11 +94,11 @@ const dSymMatrixT& GRAD_MRSSKStV2D::s_ij(void)
 	return fStress2D;
 }
 
-//include yield function here
-const double& GRAD_MRSSKStV2D::YieldFunction(void)
+/* yield function */
+const double& GRAD_MRSSKStV2D::Yield_Function(void)
 {
 	
-	fYieldFunction2D = fYieldFunction;
+	fYieldFunction2D = GRAD_MRSSKStV::YieldF();
 	return fYieldFunction2D;
 }
 
