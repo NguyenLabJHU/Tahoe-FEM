@@ -1,4 +1,4 @@
-/* $Id: PartitionT.h,v 1.3 2002-01-07 20:38:06 paklein Exp $ */
+/* $Id: PartitionT.h,v 1.4 2002-01-09 12:11:57 paklein Exp $ */
 /* created: paklein (11/16/1999) */
 
 #ifndef _PARTITION_T_H_
@@ -35,6 +35,9 @@ public:
 
 	/* returns true if version if current */
 	static bool CheckVersion(const StringT& version);
+	
+	/** return the comment character used for partition files */
+	static char CommentMarker(void) { return '#'; };
 	
 	/* accessors */
 	int ID(void) const;

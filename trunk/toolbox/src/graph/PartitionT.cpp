@@ -1,4 +1,4 @@
-/* $Id: PartitionT.cpp,v 1.4 2001-09-25 01:29:10 paklein Exp $ */
+/* $Id: PartitionT.cpp,v 1.5 2002-01-09 12:11:57 paklein Exp $ */
 /* created: paklein (11/16/1999)                                          */
 /* graph partition information (following NEMESIS data model)             */
 
@@ -417,6 +417,10 @@ ostream& operator<<(ostream& out, const PartitionT& partition)
 /* operator support */
 ifstreamT& PartitionT::Read(ifstreamT& in)
 {
+	/* set comment marker */
+	char old_marker = in.comment_marker();
+	in.set_marker(CommentMarker());
+
 	/* check version */
 	StringT version;
 	in >> version;
@@ -497,7 +501,7 @@ ifstreamT& PartitionT::Read(ifstreamT& in)
 	in >> fNodeMap; // global[local]
 	if (length != (fNodes_i.Length() +
 	               fNodes_b.Length() +
-fNodes_e.Length())) throw eBadInputValue;
+                   fNodes_e.Length())) throw eBadInputValue;
 
 	// block global element numbering map
 	for (int m = 0; m < fElementMap.Length(); m++)
@@ -507,6 +511,12 @@ fNodes_e.Length())) throw eBadInputValue;
 		fElementMap[m].Allocate(dim);
 		in >> fElementMap[m];
 	}
+
+	/* restore comment marker */
+	if (in.skip_comments())
+		in.set_marker(old_marker);
+	else
+		in.clear_marker();
 	
 	return in;
 }
