@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.21.4.3 2004-11-08 02:16:07 d-farrell2 Exp $ */
+/* $Id: FieldT.h,v 1.21.4.4 2004-11-15 04:15:03 d-farrell2 Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -164,8 +164,9 @@ public:
 	 * The algorithm properly assembles duplicated numbers in the equations array. */
 	void AssembleUpdate(const dArrayT& update);
 	
-	/** apply the full update to the field */
-	void ApplyUpdate(void);
+	/** apply the full update to the field, only do for specfied group */
+	
+	void ApplyUpdate(int fPartFieldStart = 0, int fPartFieldEnd = -1);
 
 	/** copy nodal information. Copy all field information from the source 
 	 * nodes to the targets. Equation are not copied. */

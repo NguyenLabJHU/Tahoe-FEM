@@ -1,4 +1,4 @@
-/* $Id: nLinearHHTalpha.h,v 1.10.4.1 2004-11-08 02:15:57 d-farrell2 Exp $ */
+/* $Id: nLinearHHTalpha.h,v 1.10.4.2 2004-11-15 04:14:54 d-farrell2 Exp $ */
 /* created: paklein (10/14/1996) */
 #ifndef _N_LINEARHHT_A_H_
 #define _N_LINEARHHT_A_H_
@@ -33,7 +33,7 @@ public:
 	virtual void Predictor(BasicFieldT& field, int fieldstart = 0, int fieldend = -1);
 
 	/** corrector. Maps ALL degrees of freedom forward. */
-	virtual void Corrector(BasicFieldT& field, const dArray2DT& update);
+	virtual void Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart = 0, int fieldend = -1, int dummy = 0);
 
 	/** corrector - map ACTIVE. See nIntegratorT::Corrector for more
 	 * documentation */

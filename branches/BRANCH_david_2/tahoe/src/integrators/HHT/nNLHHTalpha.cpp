@@ -1,4 +1,4 @@
-/* $Id: nNLHHTalpha.cpp,v 1.13.4.1 2004-11-08 02:15:57 d-farrell2 Exp $ */
+/* $Id: nNLHHTalpha.cpp,v 1.13.4.2 2004-11-15 04:14:54 d-farrell2 Exp $ */
 /* created: paklein (10/17/1996) */
 #include "nNLHHTalpha.h"
 #include "dArrayT.h"
@@ -97,21 +97,35 @@ void nNLHHTalpha::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int fiel
 		field[1].AddScaled(vpred_a, field[2], fieldstart, fieldend);
 		
 		/* acceleratior predictor */
-		field[2] = 0.0;	
+		field[2].SetToScaled(0.0, field[1], fieldstart, fieldend);	
 	}
 }		
 
 /* corrector. Maps ALL degrees of freedom forward. */
-void nNLHHTalpha::Corrector(BasicFieldT& field, const dArray2DT& update)
+void nNLHHTalpha::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
 {
-	/* displacement corrector */
-	field[0].AddScaled(dcorr_a, update);
-
-	/* velocity corrector */
-	field[1].AddScaled(vcorr_a, update);
-	
-	/* acceleration corrector */
-	field[2] += update;
+	if (fieldend == -1) // operate on full arrays
+	{
+		/* displacement corrector */
+		field[0].AddScaled(dcorr_a, update);
+		
+		/* velocity corrector */
+		field[1].AddScaled(vcorr_a, update);
+		
+		/* acceleration corrector */
+		field[2] += update;
+	}
+	else // operate on restricted contiguous block of the arrays
+	{
+		/* displacement corrector */
+		field[0].AddScaled(dcorr_a, update, fieldstart, fieldend);
+		
+		/* velocity corrector */
+		field[1].AddScaled(vcorr_a, update, fieldstart, fieldend);
+		
+		/* acceleration corrector */
+		field[2].AddScaled(1.0, update, fieldstart, fieldend);
+	}
 }
 
 /* correctors - map ACTIVE */

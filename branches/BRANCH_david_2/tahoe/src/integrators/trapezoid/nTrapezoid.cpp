@@ -1,4 +1,4 @@
-/* $Id: nTrapezoid.cpp,v 1.10.34.1 2004-11-08 02:16:03 d-farrell2 Exp $ */
+/* $Id: nTrapezoid.cpp,v 1.10.34.2 2004-11-15 04:15:00 d-farrell2 Exp $ */
 /* created: paklein (10/03/1999) */
 #include "nTrapezoid.h"
 #include "dArrayT.h"
@@ -69,18 +69,29 @@ void nTrapezoid::Predictor(BasicFieldT& field, int fieldstart /*= 0*/, int field
 		field[0].AddScaled(dpred_v, field[1], fieldstart, fieldend);
 		
 		/* velocity predictor */
-		field[1] = 0.0;	
+		field[1].SetToScaled(0.0, field[0], fieldstart, fieldend);;	
 	}
 }		
 
 /* correctors - map ALL */
-void nTrapezoid::Corrector(BasicFieldT& field, const dArray2DT& update)
+void nTrapezoid::Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart /*= 0*/, int fieldend /*= -1*/, int dummy /*= 0*/)
 {
-	/* displacement corrector */
-	field[0].AddScaled(dcorr_v, update);
-	
-	/* velocity corrector */
-	field[1] += update;
+	if (fieldend == -1) // operate on full arrays
+	{
+		/* displacement corrector */
+		field[0].AddScaled(dcorr_v, update);
+		
+		/* velocity corrector */
+		field[1] += update;
+	}
+	else // operate on restricted contiguous block of the arrays
+	{
+		/* displacement corrector */
+		field[0].AddScaled(dcorr_v, update, fieldstart, fieldend);
+		
+		/* velocity corrector */
+		field[1].AddScaled(1.0, update, fieldstart, fieldend);
+	}
 }
 
 /* correctors - map ACTIVE */

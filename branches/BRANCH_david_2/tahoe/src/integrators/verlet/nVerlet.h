@@ -1,4 +1,4 @@
-/* $Id: nVerlet.h,v 1.6.4.1 2004-11-08 02:16:05 d-farrell2 Exp $ */
+/* $Id: nVerlet.h,v 1.6.4.2 2004-11-15 04:15:02 d-farrell2 Exp $ */
 #ifndef _N_VERLET_H_
 #define _N_VERLET_H_
 
@@ -26,8 +26,8 @@ public:
 	/** predictor. Maps ALL degrees of freedom forward, Unless specified otherwise*/
 	virtual void Predictor(BasicFieldT& field, int fieldstart = 0, int fieldend = -1);
 
-	/** corrector. Maps ALL degrees of freedom forward. */
-	virtual void Corrector(BasicFieldT& field, const dArray2DT& update);
+	/** corrector. Maps ALL degrees of freedom forward, Unless specified otherwise  */
+	virtual void Corrector(BasicFieldT& field, const dArray2DT& update, int fieldstart = 0, int fieldend = -1, int dummy = 0);
 
 	/** corrector - map ACTIVE. See nIntegratorT::Corrector for more
 	 * documentation */
