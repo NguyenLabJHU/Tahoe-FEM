@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.36.2.6 2003-02-12 23:44:20 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.36.2.7 2003-02-14 02:46:48 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -273,6 +273,13 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 	else
 		ExceptionT::BadInputValue(caller, "file not found: %s", bridge_continuum_file);
 
+	/* brigding solver log file */
+	StringT log_file;
+	log_file.Root(in.filename());
+	log_file.Append(".log");
+	ofstreamT log_out;
+	log_out.open(log_file);
+
 	clock_t t0 = 0, t1 = 0, t2 = 0;
 
 	/* start day/date info */
@@ -330,45 +337,77 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 				atom_time->Step() &&
 				continuum_time->Step()) //TEMP - same clock
 			{
+				log_out << "\n Step = " << atom_time->StepNumber() << '\n'
+				        << " Time = " << atom_time->Time() << endl;
+			
 				/* running status flag */
 				ExceptionT::CodeT error = ExceptionT::kNoError;		
 
 				/* initialize step */
-				if (1 || error == ExceptionT::kNoError) error = atoms.InitStep();
-				if (1 || error == ExceptionT::kNoError) error = continuum.InitStep();
+				if (error == ExceptionT::kNoError) error = atoms.InitStep();
+				if (error == ExceptionT::kNoError) error = continuum.InitStep();
 			
 				/* first exchange */
 				continuum.InterpolateField(bridging_field, field_at_ghosts);
 				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
 				continuum.ProjectField(bridging_field, *atoms.NodeManager());
 			
-				/* first solve */
-				if (1 || error == ExceptionT::kNoError) error = atoms.SolveStep();
-				if (1 || error == ExceptionT::kNoError) error = continuum.SolveStep();
+				/* first residual */
+				int group_num = 0;
+				atoms.FormRHS(group_num);
+				const dArrayT& atom_residual = atoms.Residual(group_num);
+				double atoms_res, atoms_res_0;
+				atoms_res = atoms_res_0 = atom_residual.Magnitude(); //serial
+
+				continuum.FormRHS(group_num);
+				const dArrayT& continuum_residual = continuum.Residual(group_num);
+				double continuum_res, continuum_res_0;
+				continuum_res = continuum_res_0 = continuum_residual.Magnitude(); //serial
 			
 				/* solver phase status */
 				const iArray2DT& atom_phase_status = atoms.SolverPhasesStatus();
 				const iArray2DT& continuum_phase_status = continuum.SolverPhasesStatus();
+
+				/* log initial residual */
+				int d_width = OutputWidth(log_out, &atoms_res_0);
+				log_out << " Absolute error (A) = " << setw(d_width) << atoms_res_0 << '\n';
+				log_out << " Absolute error (C) = " << setw(d_width) << continuum_res_0 << '\n';
 			
 				/* loop until both solved */
 				int count = 0;
-				while ( atom_phase_status(0, FEManagerT::kIteration) > 0 ||
-					continuum_phase_status(0, FEManagerT::kIteration) > 0) //TEMP - assume just one phase
+				while (count == 0 ||
+					(atom_phase_status(0, FEManagerT::kIteration) > 0 ||
+					continuum_phase_status(0, FEManagerT::kIteration) > 0)) //TEMP - assume just one phase
 
 //				while (1 || error == ExceptionT::kNoError &&
 //					(atom_phase_status(0, FEManagerT::kIteration) > 0 ||
 //					continuum_phase_status(0, FEManagerT::kIteration) > 0)) //TEMP - assume just one phase
 				{
 					count++;
+
+					/* solve atoms */
+					if (1 || error == ExceptionT::kNoError) error = atoms.SolveStep();
+					
+					/* apply solution to continuum */
+					continuum.ProjectField(bridging_field, *atoms.NodeManager());
+					continuum.FormRHS(group_num);
+					continuum_res = continuum_residual.Magnitude(); //serial
+					
+					/* solve continuum */
+					if (1 || error == ExceptionT::kNoError) error = continuum.SolveStep();
 				
-					/* exchange */
+					/* apply solution to atoms */
 					continuum.InterpolateField(bridging_field, field_at_ghosts);
 					atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
-					continuum.ProjectField(bridging_field, *atoms.NodeManager());
-
-					/* solve */
-					if (1 || error == ExceptionT::kNoError) error = atoms.SolveStep();
-					if (1 || error == ExceptionT::kNoError) error = continuum.SolveStep();
+					atoms.FormRHS(group_num);
+					atoms_res = atom_residual.Magnitude(); //serial
+					
+					/* log residual */
+					log_out << setw(kIntWidth) << count << ": "
+					        << setw(d_width) << atoms_res << " (A) | "
+					        << setw(d_width) << continuum_res << " (C) | "
+					        << setw(d_width) << atoms_res + continuum_res << endl;
+					        
 				}
 				
 				loop_count.Append(count);
