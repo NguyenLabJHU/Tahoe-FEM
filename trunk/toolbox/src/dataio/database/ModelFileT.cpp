@@ -1,4 +1,4 @@
-/* $Id: ModelFileT.cpp,v 1.5 2002-01-09 12:13:00 paklein Exp $ */
+/* $Id: ModelFileT.cpp,v 1.6 2002-01-09 22:20:38 paklein Exp $ */
 /* created: paklein (12/15/1999)                                          */
 
 #include "ModelFileT.h"
@@ -780,6 +780,10 @@ void ModelFileT::WriteFile(bool extern_file) const
 	/* open and format stream */
 	ofstream out;
 	OpenStream(out, fFileName);
+	StringT path, root(fFileName);
+	path.FilePath(fFileName);
+	root.Drop(path.StringLength());
+	root.ToNativePathName();
 
 	out << "*" << keyword[kversion] << '\n';
 	out << sVersion << '\n';
@@ -805,7 +809,7 @@ void ModelFileT::WriteFile(bool extern_file) const
 		const iArrayT& set = *(fNodeSets[i]);
 		if (extern_file)
 		{
-			StringT extern_file_name(fFileName);
+			StringT extern_file_name(root);
 			extern_file_name.Append(".ns", i);
 			out << extern_file_name << '\n';			
 		}		
@@ -824,7 +828,7 @@ void ModelFileT::WriteFile(bool extern_file) const
 		const iArray2DT& set = *(fSideSets[j]);
 		if (extern_file)
 		{
-			StringT extern_file_name(fFileName);
+			StringT extern_file_name(root);
 			extern_file_name.Append(".ss", j);
 			out << extern_file_name << '\n';			
 		}		
@@ -843,7 +847,7 @@ void ModelFileT::WriteFile(bool extern_file) const
 		const iArray2DT& set = *(fElementSets[k]);
 		if (extern_file)
 		{
-			StringT extern_file_name(fFileName);
+			StringT extern_file_name(root);
 			extern_file_name.Append(".es", k);
 			out << extern_file_name << '\n';
 		}		
@@ -858,7 +862,7 @@ void ModelFileT::WriteFile(bool extern_file) const
 	out << "*" << keyword[knodes] << '\n';
 	if (extern_file)
 	{
-		StringT extern_file_name(fFileName);
+		StringT extern_file_name(root);
 		extern_file_name.Append(".nd");
 		out << extern_file_name << '\n';
 	}		
