@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.4.2.1 2001-10-02 19:43:49 sawimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.4.2.2 2001-10-04 20:40:39 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -17,7 +17,8 @@ ModelManagerT::ModelManagerT (ostream& message) :
   fNumSideSets (0),
   fInput (NULL),
   fInputName (""),
-  fMessage (message)
+  fMessage (message),
+  fFormat (IOBaseT::kTahoe)
 {
   fCoordinateDimensions = -1;
 }
@@ -29,29 +30,28 @@ ModelManagerT::~ModelManagerT (void)
 
 void ModelManagerT::Initialize (ifstreamT& in)
 {
-  IOBaseT::FileTypeT format;
   StringT database;
-  in >> format;
+  in >> fFormat;
   in >> database;
-  ScanModel (format, database);
+  ScanModel (database);
 }
 
 void ModelManagerT::Initialize (const IOBaseT::FileTypeT format, const StringT& database)
 {
-  ScanModel (format, database);
+  fFormat = format;
+  ScanModel (database);
 }
 
 void ModelManagerT::Initialize (void)
 {
   IOBaseT temp (cout);
   temp.InputFormats (cout);
-  IOBaseT::FileTypeT format;
   StringT database;
   cout << "\n Enter the Model Format Type: ";
-  cin >> format;
+  cin >> fFormat;
   cout << "\n Enter the Model File Name: ";
   cin >> database;
-  ScanModel (format, database);
+  ScanModel (database);
 }
 
 bool ModelManagerT::RegisterNodes (int length, int dof)
@@ -187,14 +187,27 @@ void ModelManagerT::CoordinateDimensions (int& length, int& dof) const
   dof = fCoordinateDimensions[1];
 }
 
+const dArray2DT& ModelManagerT::CoordinateReference (void) const
+{
+  return fCoordinates;
+}
+
 const dArray2DT& ModelManagerT::Coordinates (void)
 {
   if (fCoordinates.Length() == 0)
-    {
-      fCoordinates.Allocate (fCoordinateDimensions [0], fCoordinateDimensions[1]);
-      fInput->ReadCoordinates (fCoordinates);
-    }
+    ReadCoordinates ();
   return fCoordinates;
+}
+
+void ModelManagerT::ReadCoordinates (void)
+{
+  if (fCoordinates.Length() == 0 && fFormat == IOBaseT::kTahoe)
+    {
+      fMessage << "\n\nModelManagerT::Coordinates, coords not registered yet\n\n";
+      throw eGeneralFail;
+    }
+  fCoordinates.Allocate (fCoordinateDimensions[0], fCoordinateDimensions[1]);      
+  fInput->ReadCoordinates (fCoordinates);
 }
 
 void ModelManagerT::ElementGroupNames (ArrayT<StringT>& names) const
@@ -237,6 +250,11 @@ const iArray2DT& ModelManagerT::ElementGroup (int index)
     throw eOutOfRange;
   if (fElementSets[index].Length() == 0)
     {
+      if (fFormat == IOBaseT::kTahoe)
+	{
+	  fMessage << "\n\nModelManagerT::ElementGroup, elems not registered yet\n\n";
+	  throw eGeneralFail;
+	}
       fElementSets[index].Allocate (fElementLengths[index], fElementNodes[index]);
       fInput->ReadConnectivity (fElementNames[index], fElementSets[index]);
     }
@@ -288,6 +306,11 @@ const iArrayT& ModelManagerT::NodeSet (int index)
     throw eOutOfRange;
   if (fNodeSets[index].Length() == 0)
     {
+      if (fFormat == IOBaseT::kTahoe)
+	{
+	  fMessage << "\n\nModelManagerT::NodeSet, set not registered yet\n\n";
+	  throw eGeneralFail;
+	}
       fNodeSets[index].Allocate (fNodeSetDimensions[index]);
       fInput->ReadNodeSet (fNodeSetNames[index], fNodeSets[index]);
     }
@@ -324,6 +347,11 @@ const iArray2DT& ModelManagerT::SideSet (int index) const
     throw eOutOfRange;
   if (fSideSets[index].Length() == 0)
     {
+      if (fFormat == IOBaseT::kTahoe)
+	{
+	  fMessage << "\n\nModelManagerT::SideSet, set not registered yet\n\n";
+	  throw eGeneralFail;
+	}
       fSideSets[index].Allocate (fSideSetDimensions[index], 2);
       if (fSideSetIsLocal[index])
 	fInput->ReadSideSetLocal (fSideSetNames[index], fSideSets[index]);
@@ -425,9 +453,9 @@ void ModelManagerT::CloseModel (void)
 
 /*********** PRIVATE **************/
 
-void ModelManagerT::ScanModel (const IOBaseT::FileTypeT format, const StringT& database)
+void ModelManagerT::ScanModel (const StringT& database)
 {
-  switch (format)
+  switch (fFormat)
     {
     case IOBaseT::kTahoe:
       /* do nothing, arrays will be registered via ElementBaseT and NodeManager */
@@ -454,12 +482,12 @@ void ModelManagerT::ScanModel (const IOBaseT::FileTypeT format, const StringT& d
     default:
       {
 	fMessage << "\n\nModelManagerT::Unsupported model format. " 
-		 << format << "\n\n";
+		 << fFormat << "\n\n";
 	throw eGeneralFail;
       }
     }
 
-  if (format != IOBaseT::kTahoe)
+  if (fFormat != IOBaseT::kTahoe)
     {
       fInput->Close ();
       fInput->Open (database);
