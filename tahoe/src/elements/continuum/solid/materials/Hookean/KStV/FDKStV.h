@@ -1,4 +1,4 @@
-/* $Id: FDKStV.h,v 1.5.30.1 2004-02-18 16:33:44 paklein Exp $ */
+/* $Id: FDKStV.h,v 1.5.30.2 2004-03-04 06:45:25 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #ifndef _FD_KSTV_H_
 #define _FD_KSTV_H_
@@ -13,8 +13,9 @@ class FDKStV: public FDHookeanMatT, public IsotropicT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	FDKStV(ifstreamT& in, const FSMatSupportT& support);
+	FDKStV(void);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

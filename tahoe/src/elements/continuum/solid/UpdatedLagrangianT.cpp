@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.11.30.1 2004-03-03 16:18:25 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.11.30.2 2004-03-04 06:45:20 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpdatedLagrangianT.h"
 
@@ -62,12 +62,16 @@ void UpdatedLagrangianT::TakeParameterList(const ParameterListT& list)
 	FiniteStrainT::TakeParameterList(list);
 	
 	/* allocate workspace */
-	fCauchyStress.Dimension(NumSD());
+	int nsd = NumSD();
+	int nen = NumElementNodes();
+	fCauchyStress.Dimension(nsd);
+	fGradNa.Dimension(nsd, nen);
+	fStressStiff.Dimension(nen);
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* initialize local arrays */
 void UpdatedLagrangianT::SetLocalArrays(void)

@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.10.4.1 2004-01-21 19:10:26 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.10.4.2 2004-03-04 06:45:37 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
 #include <iostream.h>
@@ -7,6 +7,12 @@
 #include "ThermalDilatationT.h"
 
 using namespace Tahoe;
+
+/* array behavior */
+namespace Tahoe {
+DEFINE_TEMPLATE_STATIC const bool ArrayT<FSSolidMatT>::fByteCopy = false;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<FSSolidMatT*>::fByteCopy = true;
+} /* namespace Tahoe */
 
 /* constructor */
 FSSolidMatT::FSSolidMatT(ifstreamT& in, const FSMatSupportT& support):
@@ -34,6 +40,28 @@ FSSolidMatT::FSSolidMatT(void):
 	fTemperatureField(false)
 {
 
+}
+
+/* set the material support or pass NULL to clear */
+void FSSolidMatT::SetFSMatSupport(const FSMatSupportT* support)
+{
+	/* set inherited material support */
+	SetMaterialSupport(support);
+
+	fFSMatSupport = support;
+	
+	/* dimension */
+	int nsd = NumSD();
+	TensorTransformT::Dimension(nsd);
+	fQ.Dimension(nsd);
+	fF_therm_inv.Dimension(nsd);
+	fF_therm_inv_last.Dimension(nsd);
+	fF_mechanical.Dimension(nsd);
+
+	/* initialize */
+	fF_therm_inv.Identity();
+	fF_therm_inv_last.Identity();	
+	fF_mechanical.Identity();
 }
 
 /* initialization */

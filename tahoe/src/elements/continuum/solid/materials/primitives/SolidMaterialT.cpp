@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.10.2.4 2004-02-26 17:31:13 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.10.2.5 2004-03-04 06:45:37 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
@@ -168,7 +168,7 @@ void SolidMaterialT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(density);
 
 	/* 2D constraint option */
-	ParameterT constraint(ParameterT::Enumeration, "2D_constraint");
+	ParameterT constraint(ParameterT::Enumeration, "constraint_2D");
 	constraint.AddEnumeration("none", kNoConstraint);
 	constraint.AddEnumeration("plane_stress", kPlaneStress);
 	constraint.AddEnumeration("plane_strain", kPlaneStrain);
@@ -212,7 +212,7 @@ void SolidMaterialT::TakeParameterList(const ParameterListT& list)
 	fDensity = list.GetParameter("density");
 
 	/* 2D constraint - default to plane strain for 2D materials */
-	list.GetParameter("2D_constraint", enum2int<ConstraintT>(fConstraint));
+	list.GetParameter("constraint_2D", enum2int<ConstraintT>(fConstraint));
 	if (NumSD() == 3)
 		fConstraint = kNoConstraint;
 	else if (NumSD() == 2 && fConstraint == kNoConstraint)

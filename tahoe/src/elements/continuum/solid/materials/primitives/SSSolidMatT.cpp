@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.8.2.3 2004-02-18 16:33:51 paklein Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.8.2.4 2004-03-04 06:45:37 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "SSSolidMatT.h"
 #include <iostream.h>
@@ -50,9 +50,9 @@ void SSSolidMatT::SetSSMatSupport(const SSMatSupportT* support)
 	/* dimension */
 	int nsd = NumSD();
 	fModulus.Dimension(dSymMatrixT::NumValues(nsd));
-	fStrainTemp.Dimension(dSymMatrixT::int2DimensionT(nsd));
-	fQ.Dimension(dSymMatrixT::int2DimensionT(nsd));
-	fThermalStrain.Dimension(dSymMatrixT::int2DimensionT(nsd));
+	fStrainTemp.Dimension(nsd);
+	fQ.Dimension(nsd);
+	fThermalStrain.Dimension(nsd);
 }
 
 /* I/O */

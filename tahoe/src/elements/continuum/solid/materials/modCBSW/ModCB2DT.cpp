@@ -1,4 +1,4 @@
-/* $Id: ModCB2DT.cpp,v 1.8.30.2 2004-03-02 17:46:20 paklein Exp $ */
+/* $Id: ModCB2DT.cpp,v 1.8.30.3 2004-03-04 06:45:31 paklein Exp $ */
 /* created: paklein (05/31/1997) */
 #include "ModCB2DT.h"
 
@@ -112,7 +112,7 @@ void ModCB2DT::DefineParameters(ParameterListT& list) const
 	NL_E_MatT::DefineParameters(list);
 	
 	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("2D_constraint");
+	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStrain);
 }
 

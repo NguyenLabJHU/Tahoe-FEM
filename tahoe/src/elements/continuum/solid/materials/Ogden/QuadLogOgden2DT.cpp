@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden2DT.cpp,v 1.5.30.2 2004-03-02 17:46:16 paklein Exp $ */
+/* $Id: QuadLogOgden2DT.cpp,v 1.5.30.3 2004-03-04 06:45:27 paklein Exp $ */
 /* created: paklein (02/18/2001) */
 #include "QuadLogOgden2DT.h"
 #include <math.h>
@@ -51,7 +51,7 @@ void QuadLogOgden2DT::DefineParameters(ParameterListT& list) const
 	OgdenIsotropicT::DefineParameters(list);
 	
 	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("2D_constraint");
+	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStrain);
 }
 

@@ -1,4 +1,4 @@
-/* $Id: FDHookeanMatT.cpp,v 1.9.30.1 2004-01-21 19:10:04 paklein Exp $ */
+/* $Id: FDHookeanMatT.cpp,v 1.9.30.2 2004-03-04 06:45:24 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "FDHookeanMatT.h"
 
@@ -29,6 +29,20 @@ void FDHookeanMatT::Initialize(void)
 	/* inherited */
 	FSSolidMatT::Initialize();
 	HookeanMatT::Initialize();
+}
+
+/* set the material support or pass NULL to clear */
+void FDHookeanMatT::SetFSMatSupport(const FSMatSupportT* support)
+{
+	/* inherited */
+	FSSolidMatT::SetFSMatSupport(support);
+	
+	/* dimension */
+	int nsd = NumSD();
+	HookeanMatT::Dimension(nsd);
+	fE.Dimension(nsd);
+	fStress.Dimension(nsd);
+	fModulus.Dimension(dSymMatrixT::NumValues(nsd));
 }
 
 /* spatial description */
@@ -125,4 +139,14 @@ double FDHookeanMatT::StrainEnergyDensity(void)
 	
 	/* compute strain energy density */
 	return HookeanEnergy(fE);
+}
+
+/* accept parameter list */
+void FDHookeanMatT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	FSSolidMatT::TakeParameterList(list);
+	
+	/* set the modulus */
+	HookeanMatT::Initialize();
 }

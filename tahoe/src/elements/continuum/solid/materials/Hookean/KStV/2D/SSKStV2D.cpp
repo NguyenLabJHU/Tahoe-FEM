@@ -1,4 +1,4 @@
-/* $Id: SSKStV2D.cpp,v 1.5.32.3 2004-03-03 16:14:57 paklein Exp $ */
+/* $Id: SSKStV2D.cpp,v 1.5.32.4 2004-03-04 06:45:26 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "SSKStV2D.h"
 #include "StringT.h"
@@ -71,7 +71,7 @@ void SSKStV2D::DefineParameters(ParameterListT& list) const
 	SSKStV::DefineParameters(list);
 	
 	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("2D_constraint");
+	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStress);
 }
 

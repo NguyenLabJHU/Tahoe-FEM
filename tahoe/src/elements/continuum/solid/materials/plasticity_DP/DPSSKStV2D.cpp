@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV2D.cpp,v 1.8.32.2 2004-03-03 16:14:59 paklein Exp $ */
+/* $Id: DPSSKStV2D.cpp,v 1.8.32.3 2004-03-04 06:45:32 paklein Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV2D.h"
 #include "ElementCardT.h"
@@ -75,6 +75,6 @@ void DPSSKStV2D::DefineParameters(ParameterListT& list) const
 	DPSSKStV::DefineParameters(list);
 	
 	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("2D_constraint");
+	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStrain);
 }

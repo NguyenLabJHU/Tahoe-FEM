@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast2D.cpp,v 1.6.30.2 2004-03-03 16:15:04 paklein Exp $ */
+/* $Id: LocalCrystalPlast2D.cpp,v 1.6.30.3 2004-03-04 06:45:35 paklein Exp $ */
 #include "LocalCrystalPlast2D.h"
 #include "ElementCardT.h"
 #include "ifstreamT.h"
@@ -55,6 +55,6 @@ void LocalCrystalPlast2D::DefineParameters(ParameterListT& list) const
 	LocalCrystalPlast::DefineParameters(list);
 	
 	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("2D_constraint");
+	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStrain);
 }

@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.9.4.2 2004-03-02 17:46:19 paklein Exp $ */
+/* $Id: J2IsoVIB2DLinHardT.cpp,v 1.9.4.3 2004-03-04 06:45:29 paklein Exp $ */
 /* created: paklein (10/18/1998) */
 #include "J2IsoVIB2DLinHardT.h"
 
@@ -293,7 +293,7 @@ void J2IsoVIB2DLinHardT::DefineParameters(ParameterListT& list) const
 	IsoVIB3D::DefineParameters(list);
 	
 	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("2D_constraint");
+	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStrain);
 }
 

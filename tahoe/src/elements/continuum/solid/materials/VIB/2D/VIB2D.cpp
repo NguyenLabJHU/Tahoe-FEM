@@ -1,4 +1,4 @@
-/* $Id: VIB2D.cpp,v 1.8.4.2 2004-03-02 17:46:19 paklein Exp $ */
+/* $Id: VIB2D.cpp,v 1.8.4.3 2004-03-04 06:45:29 paklein Exp $ */
 /* created: paklein (04/09/1997) */
 #include "VIB2D.h"
 
@@ -188,7 +188,7 @@ void VIB2D::DefineParameters(ParameterListT& list) const
 	NL_E_MatT::DefineParameters(list);
 	
 	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("2D_constraint");
+	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStress);
 }
 

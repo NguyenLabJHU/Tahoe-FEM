@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.cpp,v 1.9.4.2 2004-03-02 17:46:18 paklein Exp $ */
+/* $Id: IsoVIB2D.cpp,v 1.9.4.3 2004-03-04 06:45:29 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "IsoVIB2D.h"
 
@@ -308,7 +308,7 @@ void IsoVIB2D::DefineParameters(ParameterListT& list) const
 	FSSolidMatT::DefineParameters(list);
 	
 	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("2D_constraint");
+	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStress);
 }
 
