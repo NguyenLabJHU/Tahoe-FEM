@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.14 2003-03-27 16:08:12 cjkimme Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.15 2003-04-14 17:27:07 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -66,7 +66,6 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in):
 	}
 	else
 	{
-	  	double q, r;
 	  	in >> q;	// phi_t/phi_n
 	  	in >> r; //delta_n* /d_n
 	  	if (q < 0.0 || r < 0.0) throw ExceptionT::kBadInputValue;
@@ -270,7 +269,7 @@ SurfacePotentialT::StatusT TiedPotentialT::Status(const dArrayT& jump_u,
 	double u_t  = sqrt(u_t1*u_t1);
 	double u_n ;
 	if (!qTv)
-		u_n = jump_u[1]+d_n;
+		u_n = jump_u[1] + d_n;
 	else
 		u_n = jump_u[1] + fL_0*d_n;
 	
@@ -295,10 +294,27 @@ void TiedPotentialT::PrintName(ostream& out) const
 void TiedPotentialT::Print(ostream& out) const
 {
 #ifndef _SIERRA_TEST_
-	out << " Characteristic normal opening to failure. . . . = " << d_n     << '\n';
-	out << " Characteristic tangential opening to failure. . = " << d_t     << '\n';
-	out << " Mode I work to fracture (phi_n) . . . . . . . . = " << phi_n   << '\n';
-	out << " Failure ratio (d_n/delta_n or d_t/delta_t). . . = " << r_fail   << '\n';
+	out <<  " Tangential Component of traction direction. . . = " << fnvec1 << '\n';
+	out <<  " Normal Component of traction direction. . . . . = " << fnvec2 << '\n';	
+	out << 	" Critical traction mag for nodal release . . . . = " << fsigma_critical << '\n';		
+	if (qTv)
+	{
+		out << " Cohesive stress . . . . . . . . . . . . . . . . = " << fsigma << '\n';
+		out << " Normal opening to failure . . . . . . . . . . . = " << d_n     << '\n';
+		out << " Tangential opening to failure . . . . . . . . . = " << d_t     << '\n';
+		out << " Non-dimensional opening to peak traction. . . . = " << fL_1       << '\n';
+		out << " Non-dimensional opening to declining traction . = " << fL_2       << '\n';
+		out << " Non-dimensional opening to failure. . . . . . . = " << r_fail    << '\n';
+	}
+	else
+	{
+		out << " Surface energy ratio (phi_t/phi_n). . . . . . . = " << q       << '\n';
+		out << " Critical opening ratio (delta_n* /d_n). . . . . = " << r       << '\n';
+		out << " Characteristic normal opening to failure. . . . = " << d_n     << '\n';
+		out << " Characteristic tangential opening to failure. . = " << d_t     << '\n';
+		out << " Mode I work to fracture (phi_n) . . . . . . . . = " << phi_n   << '\n';
+		out << " Failure ratio (d_n/delta_n or d_t/delta_t). . . = " << r_fail   << '\n';
+	}
 #endif
 }
 
