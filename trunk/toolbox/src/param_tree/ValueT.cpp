@@ -1,16 +1,17 @@
-/* $Id: ValueT.cpp,v 1.11 2004-02-24 19:05:47 paklein Exp $ */
+/* $Id: ValueT.cpp,v 1.12 2004-03-27 04:11:50 paklein Exp $ */
 #include "ValueT.h"
 #include <stdlib.h>
 #include <ctype.h>
 
 /* exceptions strings */
-static const char* type_names[6] = {
+static const char* type_names[7] = {
 /* 0 */ "none",
 /* 1 */ "integer",
 /* 2 */ "double",
 /* 3 */ "string",
 /* 4 */ "boolean",
-/* 5 */ "enumeration"};
+/* 5 */ "enumeration",
+/* 6 */ "word"};
 
 /* array behavior */
 namespace Tahoe {
@@ -39,13 +40,22 @@ ValueT::ValueT(double x):
 }
 
 ValueT::ValueT(const char* s):
-	fType(String),
 	fInteger(0),
 	fDouble(0.0),
 	fString(s),
 	fBoolean(false)
 {
+	/* look for white space */
+	while (*s != '\0') {
+		if (isspace(*s)) {
+			fType = String;
+			return;
+		}
+		s++;
+	}
 
+	/* no space */
+	fType = Word;
 }
 
 ValueT::ValueT(bool b):
@@ -113,6 +123,7 @@ void ValueT::Write(ostream& out) const
 			break;
 
 		case String:
+		case Word:
 			out << fString;
 			break;
 
@@ -189,6 +200,10 @@ ValueT& ValueT::operator=(const char* s)
 
 	if (fType == String)
 		fString = s;
+	else if (fType == Word) {
+		int count;
+		fString.FirstWord(s, count, false);
+	}
 	else if (fType == Boolean)
 		FromString(s);
 	else if (fType == Enumeration)
@@ -251,6 +266,7 @@ void ValueT::FromString(const char* source)
 			break;
 		}
 		case String:
+		case Word:
 		{
 			/* just copy */
 			operator=(source);			
@@ -277,7 +293,7 @@ void ValueT::FromString(const char* source)
 			} 
 			else 
 			{
-				fType = String;
+				fType = Word;
 				FromString(source); /* treat as string */
 				fType = Enumeration;
 			}
@@ -324,7 +340,7 @@ ValueT::operator const double() const
 
 ValueT::operator const StringT&() const
 {
-	if (fType != String && fType != Enumeration)
+	if (fType != String && fType != Word && fType != Enumeration)
 		ExceptionT::TypeMismatch("ValueT::StringT&()", "cannot convert from %s", TypeName(fType));
 	return fString;
 }
@@ -354,6 +370,7 @@ bool ValueT::operator==(const ValueT& rhs) const
 			return fDouble == a;
 		}
 		case String:
+		case Word:
 		{
 			const StringT& s = rhs;
 			return fString == s;

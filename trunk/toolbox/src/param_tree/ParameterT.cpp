@@ -1,4 +1,4 @@
-/* $Id: ParameterT.cpp,v 1.12 2004-01-21 17:10:28 paklein Exp $ */
+/* $Id: ParameterT.cpp,v 1.13 2004-03-27 04:11:50 paklein Exp $ */
 #include "ParameterT.h"
 
 /* array behavior */
@@ -251,8 +251,14 @@ void ParameterT::SetDefault(const char* s)
 		/* error if not found */
 		ExceptionT::GeneralFail(caller, "value \"%s\" does not appear in enumeration \"%s\"", s, fName.Pointer());
 	}
-	else if (fType == String)
+	else if (fType == String || fType == Word) {
 		fDefault = new ValueT(s);
+
+		/* check result of conversion to ValueT */
+		if (fType != fDefault->Type())
+			ExceptionT::GeneralFail(caller, "default \"%s\" is of type \"%s\" not \"%s\"",
+				s, TypeName(fDefault->Type()), TypeName(fType));
+	}
 	else if (fType == Boolean)
 	{	
 		fDefault = new ValueT(Boolean);
@@ -273,6 +279,7 @@ void ParameterT::SetDefault(const ValueT& v)
 			SetDefault(double(v));
 			break;
 		case String:
+		case Word:
 		{
 			const StringT& v_str = v;		
 			SetDefault(v_str);
