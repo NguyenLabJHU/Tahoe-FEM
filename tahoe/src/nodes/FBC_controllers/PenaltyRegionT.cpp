@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.5 2002-01-27 18:51:10 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.5.2.1 2002-04-22 07:06:06 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltyRegionT.h"
@@ -167,11 +167,6 @@ void PenaltyRegionT::Initialize(void)
 	fContactForce2D.Allocate(fNumContactNodes,numDOF);
 	fContactForce.Set(fNumContactNodes*numDOF, fContactForce2D.Pointer());
 	fContactForce2D = 0.0; // will be generate impulse at ApplyPreSolve
-}
-
-void PenaltyRegionT::Reinitialize(void)
-{
-	// do nothing
 }
 
 /* form of tangent matrix */

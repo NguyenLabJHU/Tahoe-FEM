@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.8 2002-04-17 23:55:55 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.8.2.1 2002-04-22 07:05:59 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -74,13 +74,6 @@ public:
 
 	/** set the time integration controller */
 	virtual void SetController(eControllerT* controller);
-
-	/** re-initialize. signal to element group that the global
-	 * equations numbers are going to be reset so that the group
-	 * has the opportunity to reconnect and should reinitialize
-	 * an dependencies on global equation numbers obtained from the
-	 * NodeManagerT */
-	virtual void Reinitialize(void);
 
 	/** form of tangent matrix, symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const = 0;

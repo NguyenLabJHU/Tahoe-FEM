@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.8 2002-01-27 18:51:04 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.8.2.1 2002-04-22 07:06:04 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 /* Interface for a general continuum element type, meaning the presence   */
 /* of shape functions, and the implied presence of a continuum mechanics  */
@@ -64,8 +64,12 @@ public:
 	/** initialization. called immediately after constructor */
 	virtual void Initialize(void);
 
-	/* set element group for new global equations numbers */
-	virtual void Reinitialize(void);
+	/** collecting element group equation numbers. This call from the FEManagerT
+	 * is a signal to the element group that the equation system is up to date
+	 * for the current time increment. See ElementBaseT::Equations for more
+	 * information. */
+	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
+		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
 	/* form of tangent matrix - symmetric by default */
 	virtual GlobalT::SystemTypeT TangentType(void) const;

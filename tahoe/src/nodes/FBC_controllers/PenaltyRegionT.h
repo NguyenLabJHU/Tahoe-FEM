@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.h,v 1.2 2001-09-11 06:00:49 paklein Exp $ */
+/* $Id: PenaltyRegionT.h,v 1.2.4.1 2002-04-22 07:06:06 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #ifndef _PENALTY_REGION_T_H_
@@ -42,7 +42,6 @@ public:
 
 	/* initialize data */
 	virtual void Initialize(void);
-	virtual void Reinitialize(void);
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;

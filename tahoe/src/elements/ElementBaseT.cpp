@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.15 2002-04-17 23:55:55 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.15.2.1 2002-04-22 07:05:59 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -68,23 +68,6 @@ void ElementBaseT::Initialize(void)
 	/* dimension */
 	fLHS.Allocate(fNumElemEqnos);	
 	fRHS.Allocate(fNumElemEqnos);
-}
-
-/*
-* Re-initialize: signal to element group that the global
-* equations numbers are going to be reset so that the group
-* has the opportunity to reconnect and should reinitialize
-* an dependencies on global equation numbers obtained from the
-* NodeManagerT.
-*
-* NOTE: any memory allocated after initial construction (or since
-* the last Reinitialize) should be "shuffled down" at this point, ie.
-* reallocated and copied, to make room for the global stiffness
-* matrix.
-*/
-void ElementBaseT::Reinitialize(void)
-{
-	/* do nothing by default */
 }
 
 /* set the controller */
