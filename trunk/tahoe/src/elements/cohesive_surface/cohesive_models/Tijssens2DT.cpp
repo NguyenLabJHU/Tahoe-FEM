@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.16 2002-10-23 00:18:03 cjkimme Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.17 2003-01-22 00:52:42 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -321,7 +321,7 @@ void Tijssens2DT::UpdateStateVariables(const dArrayT& IPdata, ArrayT<double>& st
         state[7] = IPdata[0];
 }*/
 
-void Tijssens2DT::SetElementGroupsNeeded(iArrayT iGroups) 
+void Tijssens2DT::SetElementGroupsNeeded(iArrayT& iGroups) 
 {	
 	iGroups[0] = 1;
 }
