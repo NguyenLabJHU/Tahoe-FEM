@@ -1,4 +1,4 @@
-/* $Id: nLinearStaticIntegrator.h,v 1.1.4.1 2002-04-24 01:29:22 paklein Exp $ */
+/* $Id: nLinearStaticIntegrator.h,v 1.1.4.2 2002-06-05 09:23:21 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _N_LINEAR_STATIC_CONTROLLER_H_
@@ -20,6 +20,11 @@ public:
 
 	/** predictor. Maps ALL degrees of freedom forward. */
 	virtual void Predictor(BasicFieldT& field);	  	
+
+	/** corrector - map ACTIVE. See nIntegratorT::Corrector for more
+	 * documentation */
+	virtual void Corrector(BasicFieldT& field, const dArrayT& update, 
+		int eq_start, int num_eq);
 };
 
 #endif /* _N_LINEAR_STATIC_CONTROLLER_H_ */
