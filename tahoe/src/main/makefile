@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2003-03-31 23:20:27 paklein Exp $
+# $Id: makefile,v 1.8 2003-10-28 07:35:10 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -30,7 +30,8 @@ OBJ = \
 	IOManager_mpi.o \
 	main.o \
 	TimeManagerT.o \
-	CommManagerT.o
+	CommManagerT.o \
+	MultiManagerT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -60,7 +61,8 @@ SRC = \
 	IOManager_mpi.cpp \
 	main.cpp \
 	TimeManagerT.cpp \
-	CommManagerT.cpp
+	CommManagerT.cpp \
+	MultiManagerT.cpp
 
 ##################### (3) headers
 #
@@ -81,7 +83,8 @@ HDR = \
 	IOManager.h \
 	IOManager_mpi.h \
 	TimeManagerT.h \
-	CommManagerT.h
+	CommManagerT.h \
+	MultiManagerT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
