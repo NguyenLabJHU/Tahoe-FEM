@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.h,v 1.1.4.6 2004-06-16 00:30:35 paklein Exp $ */
+/* $Id: BasicSupportT.h,v 1.1.4.7 2004-06-24 04:47:20 paklein Exp $ */
 #ifndef _TAHOE_SUPPORT_T_H_
 #define _TAHOE_SUPPORT_T_H_
 
@@ -46,6 +46,15 @@ public:
 
 	/** (re-)set the NodeManagerT */
 	void SetNodeManager(NodeManagerT* nodes);
+	
+	/** set the return value for BasicSupportT::NumSD. By default, BasicSupportT::NumSD
+	 * returns the number of spatial dimensions basic on the dimensions of 
+	 * BasicSupportT::InitialCoordinates. This method can be used to override/restore
+	 * the default behavior
+	 * \param nsd pass -1 to restore the default return value of BasicSupportT::NumSD, or
+	 *        pass a number > 0 to override the return value. All other values will result
+	 *        in an exception. */
+	void SetNumSD(int nsd);
 	/*@}*/
 
 	/** \name accessors */
@@ -230,9 +239,10 @@ private:
 	GlobalT::AnalysisCodeT fAnalysis;
 	const GlobalT::StateT* fRunState;
 
+	/** number of spatial dimensions */
+	int fNumSD;
 #ifdef _FRACTURE_INTERFACE_LIBRARY_
 	int fNumNodes;
-	int fNumSD;
 	double fTimeStep;
 	int fIterationNumber;
 	ifstreamT *ifst;
@@ -291,7 +301,10 @@ inline int BasicSupportT::NumSD(void) const {
 #ifdef _FRACTURE_INTERFACE_LIBRARY_
 	return fNumSD;
 #else
-	return InitialCoordinates().MinorDim();
+	if (fNumSD == -1)
+		return InitialCoordinates().MinorDim();
+	else
+		return fNumSD;
 #endif
 }
 

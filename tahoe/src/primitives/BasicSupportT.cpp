@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.cpp,v 1.1.4.4 2004-06-16 00:30:35 paklein Exp $ */
+/* $Id: BasicSupportT.cpp,v 1.1.4.5 2004-06-24 04:47:20 paklein Exp $ */
 #include "BasicSupportT.h"
 
 #include "dArray2DT.h"
@@ -34,7 +34,8 @@ BasicSupportT::BasicSupportT(void):
 	fCommManager(NULL),
 	fCommunicator(NULL),
 	fAnalysis(GlobalT::kNoAnalysis),
-	fRunState(NULL)
+	fRunState(NULL),
+	fNumSD(-1)
 {
 	/* clear */
 	SetFEManager(NULL);
@@ -95,6 +96,16 @@ void BasicSupportT::SetFEManager(const FEManagerT* fe)
 
 /* (re-)set the NodeManagerT */
 void BasicSupportT::SetNodeManager(NodeManagerT* nodes) { fNodeManager = nodes; }
+
+void BasicSupportT::SetNumSD(int nsd)
+{
+	/* error check */
+	if (nsd < -1 || nsd == 0)
+		ExceptionT::GeneralFail("BasicSupportT::SetNumSD", "expecting n > 0 or n = -1, not n = %d", nsd);
+
+	/* set cached value */
+	fNumSD = nsd;
+}
 
 /* Tahoe version string */
 const char* BasicSupportT::Version(void) const 
