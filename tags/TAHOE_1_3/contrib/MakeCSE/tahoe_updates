@@ -1,0 +1,135 @@
+1. Updated IOManager, see /u/sawimme/fracture/MakeCSEv5/src/dataio
+    public:
+	a. remove const StringT values from top of .cpp
+	b. remove kHeadRoom
+	c. add IOManager::IOManager (ostream& out)
+	d. modify AddNodeSet (const iArrayT& nodeset, int setID)
+	e. modify AddSideSet (const iArray2DT& set, int setID, groupID)
+	f. remove ReadInputFile (void)
+	f2. add ReadTimeSteps
+	f3. add ReadLabels
+	f4. add ReadVariables
+	h. add ReadParameters
+	i. add Interactive
+	j. modify ReadInput (ifstream_x& in)
+	k. add InputData (int& data, int key) const
+	l. add InputData (iArrayT& data, int key) const
+	m. modify SetInput
+	m2. add Translate
+	n. remove InputData (const StringT& word1, const StringT& word2, ...
+    protected:
+	o. add ReadWord1
+	p. add Parse
+    private:
+	q. add ReadOutputFormat
+	r. add ReadInputFormat
+	s. add PrintFormat
+	t. add InteractiveIO
+	u. modify SetOutput
+	v. remove ScanInputFile
+    object variables:
+	w. remove fKeyWord, fMinorKey, fInKeyFile, fInKeyFile3, fIntData, fInKeFile2
+	x. add ofstream fEchoInput, fOut; bool fExternTahoeII; StringT fTitle;
+
+2. add kAbaqus and kAbaqusBinary to IOBaseT.h and IOBaseT.cpp
+
+3. altered ExodusInputT, see /u/sawimme/fracture/MakeCSEv5/src/dataio/input
+	a. to be conduit to ExodusT
+	b. remove ExodusBaseT,
+
+4. altered TextInputT, see /u/sawimme/fracture/MakeCSEv5/src/dataio/input
+	a. to be conduit to ModelFileT 
+	b. should really include geometry code data in this database.
+		for now, the geometry code is found from DOF and numelemnodes
+
+5. altered InputBaseT, see /u/sawimme/fracture/MakeCSEv5/src/dataio/input
+	a. to pass geometrycode at GeometryT::GeometryCode not int
+	b. add ReadTimeStep
+	c. add ReadLabels
+	d. add ReadVariables
+
+6. altered ModelFileT, see /u/sawimme/fracture/MakeCSEv5/src/dataio/database
+	a. to make GetElementSetID, GetSideSetID, SetNodeSetID to be const
+
+7. alter ExodusT, see /u/sawimme/fracture/MakeCSEv5/src/dataio/database
+	a. to account for Higher Order Element Numbering Conversion
+	b. make Read QA/Info public and rewrite
+	c. make GlobalToBlock/BlockToGlobal public (nned with ExodusInput)
+	d. rewrite Write QA/Info 
+	e. added enum Dimensions { MAX_QA_REC = 5, MAX_INFO = 5 };
+
+8. ExodusOutputT, see /u/sawimme/fracture/MakeCSEv5/src/dataio/output
+	a. extracted WriteConnectivity and WriteCoordinates from CreateResultsFile for use with CreateGeometryFile
+	b. filled in WriteGeometry and CreateGeometryFile
+	c. cleaned excess lines from file
+	d. added assembly of QA for CreateGeometryFile and CreateResultsFile
+
+9. OutputBaseT and IOManager
+	a. AddNodeSet and AddSideSet now save set ID value
+		keep set ID's the same coming/going from MakeCSE (Jay's request)
+	b. cleaned excess functions from file
+
+10. TetrahedronT::FacetGeometry (ArrayT<GeometryCode>& facet_geom, iArrayT& facet_nodes) const
+{
+	if (fNumNodes != 4 && fNumNodes != 10)
+	{
+		cout << "\n TetrahedronT::FacetGeometry: only implemented for 4 nodes" << endl;
+		throw eGeneralFail;
+	}
+
+	facet_geom.Allocate(fNumFacets);
+	facet_geom = kTriangle;
+	
+	facet_nodes.Allocate(fNumFacets);
+	if (fNumNodes == 4)
+	  facet_nodes = 3;
+	else
+	  facet_nodes = 6;
+}
+
+11. void PentahedronT::NumNodesOnFacets(iArrayT& num_nodes) const
+{
+	if (fNumNodes != 6 && fNumNodes != 15)
+	{
+		cout << "\n PentahedronT::NodesOnFacet: only implemented 6 and 15 element nodes" << endl;
+		throw eGeneralFail;
+	}
+
+	num_nodes.Allocate(5);
+	if (fNumNodes == 6)
+	  {
+	    num_nodes = 4;
+	    num_nodes[0] = 3;
+	    num_nodes[1] = 3;
+	  }
+	else
+	  {
+	    num_nodes = 8;
+	    num_nodes[0] = 6;
+	    num_nodes[1] = 6;
+	  }
+}
+
+12. ExodusBaseT no longer needed.
+
+13. FE_ASCIIT 
+	instead of creating TahoeOutputT, I figured that since Tahoe I output
+	was only results and Tahoe II output was only geometry. That FE_ASCIIT
+	could handle both. If you want you can split into two classes. But I
+	figure that Tahoe I will die out.
+
+	WriteGeometry ---> TahoeII
+	WriteOutput   ---> TahoeI (movie/run file)
+
+	a. modify WriteGeometry
+	b. modify constructor to allow fExternTahoeII flag to be passed.
+
+14. Add classes: 
+	EnSightT, 
+	EnSightInputT, 
+	EnSightOutputT, 
+	AbaqusT,
+	AbaqusInputT, 
+	AbaqusOutputT
+	TecPlotT
+	TecPlotOutputT

@@ -1,0 +1,126 @@
+# $Id: makefile.template,v 1.2 2004-01-02 04:58:02 paklein Exp $
+# INSTALLATION INSTRUCTIONS
+#
+# (0) copy makefile.template to a local makefile.
+# (1) set HOME_DIR to the full path to this makefile.
+# (2) set MACRO_DIR to the full path to directory
+#     containing the machine specific compiler macros.
+# (3) select ARCH from list of supported platforms.
+# (4) select installed "build options".
+# (5) "make init" to (re-)initialize headers and file
+#     dependencies.
+# (6) "make build" to (re-)compiler binaries.
+
+# full path to the top level of this module
+HOME_DIR =
+
+# build architecture - see macros directory for choices $(ARCH).macros
+ARCH =
+
+# destination for the build 
+BLD_DIR = $(HOME_DIR)
+
+# working directories:
+INC_DIR = $(HOME_DIR)/inc
+SRC_DIR = $(HOME_DIR)/src
+OBJ_DIR = $(BLD_DIR)/obj
+BLD_SRC_DIR = $(BLD_DIR)/src-mirror
+LIB_DIR = $(BLD_DIR)/lib
+
+# default target name - root of library name or executable name
+TARGET  = atom_field
+LIBRARY = $(LIB_DIR)/lib$(TARGET).a
+
+# path to main, needed if primary target is an executable (not 
+# a library)
+MAIN    = $(BLD_SRC_DIR)/main.o
+
+# target of "make build", i.e., the library $(LIBRARY) or
+# the executable $(TARGET)
+BUILD   = $(TARGET)
+
+# full path to compiler macros
+MACRO_DIR = $(HOME_DIR)/../../macros
+
+############################### build options ###########################
+# uncomment macros for installed models
+
+# this is HACK!
+# "$(MACRO_DIR)/make.targets" is only expecting the "standard" set of
+# modules, so I've added the information for the using the tahoe
+# library into the macros for the toolbox module
+
+##### toolbox and tahoe
+TB_DIR      = $(HOME_DIR)/../../toolbox
+TAHOE_DIR   = $(HOME_DIR)/../../tahoe
+TB_INC      = -I$(TB_DIR)/inc -I$(TAHOE_DIR)/inc
+TB_CFLAGS   = $(TB_INC)
+TB_LIB_NAME    = toolbox
+TAHOE_LIB_NAME = tahoe
+TB_LIB      = $(TAHOE_DIR)/lib/lib$(TAHOE_LIB_NAME).a $(TB_DIR)/lib/lib$(TB_LIB_NAME).a
+TB_LFLAGS   = -L$(TAHOE_DIR)/lib -l$(TAHOE_LIB_NAME) -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
+
+##### F2C 1.4.3
+#F2C_DIR      = $(HOME_DIR)/../../f2c
+#F2C_INC      = -I$(F2C_DIR)/inc
+#F2C_CFLAGS   = $(F2C_INC) -D__F2C__
+#F2C_LIB_NAME = f2c_
+#F2C_LIB      = $(F2C_DIR)/lib/lib$(F2C_LIB_NAME).a
+#F2C_LFLAGS   = -L$(F2C_DIR)/lib -l$(F2C_LIB_NAME)
+
+#### BLAS
+#BLAS_DIR      = $(HOME_DIR)/../../CBLAS
+#BLAS_INC      = -I$(BLAS_DIR)/inc
+#BLAS_CFLAGS   = $(BLAS_INC) -D__BLAS__
+#BLAS_LIB_NAME = CBLAS
+#BLAS_LIB      = $(BLAS_DIR)/lib/lib$(BLAS_LIB_NAME).a
+#BLAS_LFLAGS   = -L$(BLAS_DIR)/lib -l$(BLAS_LIB_NAME)
+
+##### Aztec iterative linear algebra library
+#AZ_DIR      = $(HOME_DIR)/../../aztec
+#AZ_INC      = -I$(AZ_DIR)/inc
+#AZ_CFLAGS   = $(AZ_INC) -D__AZTEC__
+#AZ_LIB_NAME = aztec
+#AZ_LIB      = $(AZ_DIR)/lib/lib$(AZ_LIB_NAME).a
+#AZ_LFLAGS   = -L$(AZ_DIR)/lib -l$(AZ_LIB_NAME)
+
+#### SPOOLES
+#SPOOLES_DIR      = $(HOME_DIR)/../../spooles
+#SPOOLES_INC      = -I$(SPOOLES_DIR)/inc
+#SPOOLES_CFLAGS   = $(SPOOLES_INC) -D__SPOOLES__
+#SPOOLES_LIB_NAME = spooles
+#SPOOLES_LIB      = $(SPOOLES_DIR)/lib/lib$(SPOOLES_LIB_NAME).a
+#SPOOLES_LFLAGS   = -L$(SPOOLES_DIR)/lib -l$(SPOOLES_LIB_NAME)
+
+#### SPOOLES MPI
+#SPOOLESMPI_DIR      = $(HOME_DIR)/../../spoolesMPI
+#SPOOLESMPI_INC      = -I$(SPOOLESMPI_DIR)/inc
+#SPOOLESMPI_CFLAGS   = $(SPOOLESMPI_INC) -D__SPOOLES_MPI__
+#SPOOLESMPI_LIB_NAME = spoolesMPI
+#SPOOLESMPI_LIB      = $(SPOOLESMPI_DIR)/lib/lib$(SPOOLESMPI_LIB_NAME).a
+#SPOOLESMPI_LFLAGS   = -L$(SPOOLESMPI_DIR)/lib -l$(SPOOLESMPI_LIB_NAME)
+
+#### METIS
+#METIS_DIR      = $(HOME_DIR)/../../metis
+#METIS_INC      = -I$(METIS_DIR)/inc
+#METIS_CFLAGS   = $(METIS_INC) -D__METIS__
+#METIS_LIB_NAME = metis
+#METIS_LIB      = $(METIS_DIR)/lib/lib$(METIS_LIB_NAME).a
+#METIS_LFLAGS   = -L$(METIS_DIR)/lib -l$(METIS_LIB_NAME)
+
+##### SEACAS/ACCESS software
+#AX_INC    = -I$(ACCESS)/inc
+#AX_CFLAGS = $(AX_INC) -D__ACCESS__
+#AX_LFLAGS = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
+
+#### NOX nonlinear solver
+#NOX_DIR      = $(HOME_DIR)/../../nox
+#NOX_INC      = -I$(NOX_DIR)/include -I$(NOX_DIR)/include/nox
+#NOX_CFLAGS   = $(NOX_INC) -D__NOX__
+#NOX_LIB_NAME = nox
+#NOX_LIB      = $(NOX_DIR)/lib/lib$(NOX_LIB_NAME).a
+#NOX_LFLAGS   = -L$(NOX_DIR)/lib -l$(NOX_LIB_NAME)
+############################### build options ###########################
+
+# include common target definitions
+include $(MACRO_DIR)/make.targets
