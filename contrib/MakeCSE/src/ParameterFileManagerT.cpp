@@ -1,4 +1,4 @@
-// $Id: ParameterFileManagerT.cpp,v 1.5 2002-10-29 21:38:02 sawimme Exp $
+// $Id: ParameterFileManagerT.cpp,v 1.6 2003-09-05 22:08:31 paklein Exp $
 #include "ParameterFileManagerT.h"
 #include "ExceptionT.h"
 #include "ifstreamT.h"
@@ -213,15 +213,15 @@ void ParameterFileManagerT::SplitBlocks (sArrayT& names, ArrayT<CSEConstants::Sp
 
 bool ParameterFileManagerT::AdvanceTo (ifstreamT& in, const StringT& key) const
 {
-  StringT test;
-  while (in.good())
-    {
-      in >> test;
-      test.ToUpper();
-      if (strncmp (test.Pointer(), key.Pointer(), key.StringLength()) == 0)
-	return true;
-    }
-  return false;
+	StringT test;
+	while (in.good())
+	{
+		in >> test;
+		test.ToUpper();
+		if (test == key)
+			return true;
+	}
+	return false;
 }
 
 void ParameterFileManagerT::ReadIDValues (ifstreamT& in, sArrayT& names) const
