@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.19 2003-08-14 05:34:22 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.20 2003-08-18 03:48:18 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -19,6 +19,7 @@
 #include "GlobalT.h"
 #include "IntegratorT.h"
 #include "nVariArray2DT.h"
+#include "FieldSupportT.h"
 
 namespace Tahoe {
 
@@ -274,6 +275,12 @@ public:
 	virtual void XDOF_SetLocalEqnos(int group, const RaggedArray2DT<int>& nodes, RaggedArray2DT<int>& eqnos) const;
 	/*@}*/
 
+	/** \name construct BC controllers */
+	/*@{*/
+	virtual KBC_ControllerT* NewKBC_Controller(FieldT& field, int code);
+	virtual FBC_ControllerT* NewFBC_Controller(FieldT& field, int code);
+	/*@}*/
+
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** information about subordinate parameter lists */
@@ -295,12 +302,6 @@ protected:
 	/** simple output function */
 	virtual void WriteData(ostream& out, const char* title, const char* name,
 		const dArray2DT& data, const iArrayT* rowlabels) const;
-
-	/** \name construct BC controllers */
-	/*@{*/
-	virtual KBC_ControllerT* NewKBC_Controller(FieldT& field, int code);
-	virtual FBC_ControllerT* NewFBC_Controller(FieldT& field, int code);
-	/*@}*/
 
 	/** \name renumbering equation
 	 * methods over the specified group */
@@ -342,6 +343,10 @@ protected:
 
 	/** \name fields */
 	/*@{*/
+	/** support for fields */
+	FieldSupportT fFieldSupport;
+	
+	/** array of fields */
 	ArrayT<FieldT*> fFields;
 
 	/** ID for the field exchange obtained from NodeManagerT::fCommManager */
