@@ -1,4 +1,4 @@
-# $Id: JANUS.macros,v 1.4 2001-02-07 17:37:19 paklein Exp $
+# $Id: JANUS.macros,v 1.5 2001-02-07 22:07:43 paklein Exp $
 MPI_CFLAGS = -D__MPI__
 MPI_LFLAGS = -lmpi
 
@@ -23,3 +23,4 @@ RM          = rm
 LN          = ln -sf
 ECHO        = echo
 CAT         = cat
+INC_FLAGS   = -I/usr/local/intel/tflop/current/tflops/include -I/usr/local/intel/tflop/current/tflops/include/CC
