@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.h,v 1.4 2001-06-07 03:00:28 paklein Exp $ */
+/* $Id: SpectralDecompT.h,v 1.5 2001-06-13 00:09:27 paklein Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
@@ -95,7 +95,9 @@ void DecompAndModPrep(const dSymMatrixT& rank2, bool perturb_repeated)
 
 	/** principal spatial tensor.
 	 * \param b source stretch tensor
-	 * \param A eigenvalue number */
+	 * \param A eigenvalue number
+	 * \note Derivation of this tensor assumes the roots are distinct.
+	 * Repeated roots must be perturbed to avoid division by zero. */
 	const dMatrixT& SpatialTensor(const dSymMatrixT& b, int A);
 
 	/* access to fixed forms */
