@@ -1,5 +1,5 @@
 /* Fortran <--> C/C++ interfacing stuff */
-/* $Id: fortran.h,v 1.1 2003-03-08 04:31:12 paklein Exp $ */
+/* $Id: fortran.h,v 1.2 2003-03-08 04:53:16 paklein Exp $ */
 
 /* this header file is idempotent */
 #ifndef FORTRAN_H_SEEN
@@ -68,6 +68,13 @@
   #define FORTRAN_LOGICAL_TRUE	1
   #define FORTRAN_LOGICAL_FALSE	0
 
+#elif defined(__DARWIN__)
+  #define FORTRAN_INTEGER_IS_INT	TRUE
+  typedef int integer;
+  typedef unsigned int logical;
+  #define FORTRAN_LOGICAL_TRUE	1
+  #define FORTRAN_LOGICAL_FALSE	0
+
 #else
   #error "don't know Fortran integer/logical datatypes for this system!"
 #endif
@@ -118,6 +125,14 @@ typedef logical fortran_logical_t;
   #endif
 
 #elif defined(__linux__) && defined(__i386__) && defined(__GNUC__)
+  /* C code should reference Fortran names in lower case */
+  #ifdef __STDC__
+    #define FORTRAN_NAME(n_)	n_ ## _
+  #else
+    #define FORTRAN_NAME(n_)	n_/**/_
+  #endif
+
+#elif defined(__DARWIN__)
   /* C code should reference Fortran names in lower case */
   #ifdef __STDC__
     #define FORTRAN_NAME(n_)	n_ ## _
