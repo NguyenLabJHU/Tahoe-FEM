@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.3 2001-09-04 14:31:27 sawimme Exp $ */
+/* $Id: ModelManagerT.h,v 1.4 2001-09-06 17:25:20 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -57,6 +57,10 @@ class ModelManagerT
   GeometryT::CodeT ElementGroupGeometry (int index) const;
   const iArray2DT& ElementGroup (int index);
 
+  void AllNodeMap (iArrayT& map);
+  void AllElementMap (iArrayT& map);
+  void ElementMap (StringT& name, iArrayT& map);
+
   int NumNodeSets (void) const;
   void NodeSetNames (ArrayT<StringT>& names) const;
   int NodeSetIndex (const StringT& name) const;
@@ -84,6 +88,7 @@ class ModelManagerT
  protected:
   ostream& fMessage;
   InputBaseT *fInput;
+  StringT fInputName;
 
  private:
   /* dimensional information */
