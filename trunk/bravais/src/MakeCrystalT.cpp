@@ -122,7 +122,7 @@ void MakeCrystalT::Run()
   else if (latticetype=="HEX") 
     {
       if(nsd == 2) b=2;
-      if(nsd == 3) b=2;
+      if(nsd == 3) b=4;
     }
  else if (latticetype=="CORUN") 
     {
