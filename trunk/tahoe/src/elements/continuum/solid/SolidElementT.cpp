@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.46 2003-05-23 22:59:21 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.47 2003-05-27 06:56:45 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -267,9 +267,12 @@ void SolidElementT::SendOutput(int kincode)
 		case iPrincipal:
 			flags[iPrincipal] = 1;
 			break;
+		case iMaterialData:
+			flags[iMaterialData] = 1;
+			break;
 		default:
-			cout << "\n SolidElementT::SendKinematic: invalid output code: ";
-			cout << kincode << endl;
+			cout << "\n SolidElementT::SendOutput: invalid output code: " 
+			     << kincode << endl;
 	}
 
 	/* number of output values */
