@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.29 2005-02-13 22:16:25 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.30 2005-02-14 00:30:55 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -186,22 +186,28 @@ void FEManagerT_bridging::SetExternalForce(const StringT& field, const dArray2DT
 /* initiate the process of writing output from all output sets */
 void FEManagerT_bridging::WriteOutput(double time)
 {
-	/* the continuum element solving the coarse scale */
-	const ContinuumElementT* coarse = fDrivenCellData.ContinuumElement();
-	ContinuumElementT* non_const_coarse = const_cast<ContinuumElementT*>(coarse);
-	if (non_const_coarse)
+	/* modified element status */
+	if (fElementStatus.Length() > 0)
 	{
-		/* enable all coarse scale elements for output */
-		ArrayT<ElementCardT::StatusT> status(non_const_coarse->NumElements());
-		status = ElementCardT::kON;
-		non_const_coarse->SetStatus(status);
+		/* the continuum element solving the coarse scale */
+		const ContinuumElementT* coarse = fDrivenCellData.ContinuumElement();
+		ContinuumElementT* non_const_coarse = const_cast<ContinuumElementT*>(coarse);
+		if (non_const_coarse)
+		{
+			/* enable all coarse scale elements for output */
+			ArrayT<ElementCardT::StatusT> status(non_const_coarse->NumElements());
+			status = ElementCardT::kON;
+			non_const_coarse->SetStatus(status);
+		}
+
+		/* inherited - write output */
+		FEManagerT::WriteOutput(time);
+
+		/* restore active element map */
+		if (non_const_coarse) non_const_coarse->SetStatus(fElementStatus);
 	}
-
-	/* inherited - write output */
-	FEManagerT::WriteOutput(time);
-
-	/* restore active element map */
-	if (non_const_coarse) non_const_coarse->SetStatus(fElementStatus);
+	else /* inherited - write output */
+		FEManagerT::WriteOutput(time);
 }
 
 /* write results for a single output set */
