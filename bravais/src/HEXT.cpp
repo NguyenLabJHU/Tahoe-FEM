@@ -52,7 +52,7 @@ HEXT::HEXT(int nlsd,int nuca,dArrayT alat,
       vBasis(1,0) = 0.0;
       vBasis(2,0) = 0.0;
 
-      vBasis(0,1) =-0.5;
+      vBasis(0,1) = 0.5;
       vBasis(1,1) = 0.5;
       vBasis(2,1) = 0.0;
 

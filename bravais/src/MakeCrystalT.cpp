@@ -191,7 +191,7 @@ void MakeCrystalT::Run()
   StringT misc;
   in >> misc;
 
-  int irot= 0;
+  int irot= -1;
 
   iArrayT isort(nsd);
   isort = 0;

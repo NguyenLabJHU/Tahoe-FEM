@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: AsperityT.cpp,v 1.7 2003-07-02 23:02:14 saubry Exp $ */
+/* $Id: AsperityT.cpp,v 1.8 2003-07-02 23:46:57 saubry Exp $ */
 #include "AsperityT.h"
 #include "VolumeT.h"
 
@@ -41,9 +41,10 @@ AsperityT::AsperityT(int dim, dArray2DT len,
 
   for(int i=0;i<nSD;i++)
     {
-      length(i,0) = -ncells[i]*lattice_parameter[i]*0.5;
-      length(i,1) = ncells[i]*lattice_parameter[i]*0.5;
-    }
+      length(i,0) = len(i,0);
+      double dist = len(i,1)-len(i,0)+1;
+      length(i,1) = len(i,0) + ncells[i]*lattice_parameter[i];
+    }  
 }
 
 AsperityT::AsperityT(int dim, iArrayT cel,
@@ -62,8 +63,9 @@ AsperityT::AsperityT(int dim, iArrayT cel,
 
   for(int i=0;i<nSD;i++)
     {
-      length(i,0) = -cel[i]*lattice_parameter[i]*0.5;
-      length(i,1) =  (cel[i]-1.0)*lattice_parameter[i]*0.5;
+      double dist = ncells[i]*lattice_parameter[i]*0.5;
+      length(i,0) = -dist;
+      length(i,1) = length(i,0) + (dist - length(i,0));
     }
 }
 
@@ -444,7 +446,7 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 	    c[0] = (double)q; c[1] = (double)p;
 	    for (int m=0;m<nuca;m++) 
 	      {
-		if ( natom >= temp_nat) {throw eSizeMismatch;}
+		if ( natom >= temp_nat) {cout << "natoms wrong ";throw eSizeMismatch;}
 		
 		x = length(0,0);
 		y = length(1,0);
@@ -595,8 +597,8 @@ int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 
   if (nSD==2) 
     {
-      for (int p=-ncells[1];p<ncells[1]+1;p++) 
-	for (int q=-ncells[0];q<ncells[0]+1;q++) 
+      for (int p=0;p<ncells[1];p++) 
+	for (int q=0;q<ncells[0];q++) 
 	  {
 	    dArrayT c(nlsd);
 	    c[0] = (double)q; c[1] = (double)p;
@@ -633,9 +635,9 @@ int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,
     }
   else if (nSD==3) 
     {
-      for (int p=-ncells[2];p<ncells[2]+1;p++) 
-	for (int q=-ncells[1];q<ncells[1]+1;q++) 
-	  for (int r=-ncells[0];r<ncells[0]+1;r++) 
+      for (int p=0;p<ncells[2];p++) 
+	for (int q=0;q<ncells[1];q++) 
+	  for (int r=0;r<ncells[0];r++) 
 	    {
 	      dArrayT c(nlsd);
 	      c[0] = (double)r; c[1] = (double)q; c[2] = (double)p;
