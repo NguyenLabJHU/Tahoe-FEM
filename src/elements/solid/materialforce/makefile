@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2003-08-08 22:57:28 thao Exp $
+# $Id: makefile,v 1.6 2003-08-10 23:34:15 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -24,6 +24,9 @@ OBJ = \
 	FiniteStrainMF.o \
 	SmallStrainMF.o \
 	SmallStrainMF2.o \
+	MFSupportT.o \
+	SSMF.o \
+	SSQ2P1MF.o \
 	UpdatedLagrangianMF.o \
 	SmallStrainQ2P1.o 
 
@@ -48,6 +51,9 @@ SRC = \
 	FiniteStrainMF.cpp \
 	SmallStrainMF.cpp \
 	SmallStrainMF2.cpp \
+	MFSupportT.cpp \
+	SSMF.cpp \
+	SSQ2P1MF.cpp \
 	UpdatedLagrangianMF.cpp \
 	SmallStrainQ2P1.cpp  
 
@@ -64,6 +70,9 @@ HDR = \
 	FiniteStrainMF.h \
 	SmallStrainMF2.h \
 	SmallStrainMF.h \
+	MFSupportT.h \
+	SSMF.h \
+	SSQ2P1MF.h \
 	UpdatedLagrangianMF.h \
 	SmallStrainQ2P1.h  
 
