@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LSX.h,v 1.1 2003-09-09 22:46:43 paklein Exp $ */
+/* $Id: NLSolver_LSX.h,v 1.2 2004-01-05 07:07:19 paklein Exp $ */
 #ifndef _NL_SOLVER_LSX_H_
 #define _NL_SOLVER_LSX_H_
 
@@ -23,7 +23,7 @@ protected:
 
 	/** allows continuation of NLSolver_LSX::fMinStepRelError is less
 	 * that NLSolver_LSX::fPuntTol */
-	SolutionStatusT ExitIteration(double error);
+	SolutionStatusT ExitIteration(double error, int iteration);
 
 private:
 
