@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.33.2.1 2003-09-25 17:29:23 cjkimme Exp $ */
+/* $Id: StringT.cpp,v 1.33.2.2 2003-09-25 21:24:18 cjkimme Exp $ */
 /* created: paklein (08/01/1996) */
 #include "StringT.h"
 #include "ifstreamT.h"
@@ -1061,16 +1061,16 @@ void StringT::IntegerToString(int number, char* string) const
 	}
 	else
 	{
-		size_t lens = (number > 0) ? size_t(log10(double(number)) + 2) : 1;
+		int lens = (number > 0) ? int(log10(double(number)) + 2) : 1;
 			// extra space for '\0';
 	
 		/* check that string has enough space */
-		if (strlen(string) + 1 < lens) ExceptionT::SizeMismatch();
+		if (int(strlen(string)) + 1 < lens) ExceptionT::SizeMismatch();
 		
 		/* set all bytes to 0! */
 		memset(string, '\0', sizeof(char)*lens);
 			
-		for (size_t i = 0; i < lens-1; i++)
+		for (int i = 0; i < lens-1; i++)
 		{
 			int power = int(pow(10.0,lens-2-i));
 			int digit = number/power;
