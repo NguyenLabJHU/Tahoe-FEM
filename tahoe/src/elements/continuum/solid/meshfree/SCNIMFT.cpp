@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.50 2005-01-26 20:21:00 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.51 2005-01-27 02:07:13 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -192,16 +192,21 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	/** store shape functions at nodes */
 	int nNodes = fNodes.Length();
 	dArrayT nodalCoords;
+	const RaggedArray2DT<int>& nodeSupport = fNodalShapes->NodeNeighbors();
+	ArrayT<int> neighbor_list;
 	ArrayT< LinkedListT<double> > nodal_phi;
 	ArrayT< LinkedListT<int> > nodal_supports;
 	nodal_phi.Dimension(nNodes);
 	nodal_supports.Dimension(nNodes);
 	for (int i = 0; i < nNodes; i++) {
+		int node_i = fNodes[i];
 		nodalCoords.Set(fSD, fNodalCoordinates(i));
 	
-		if (!fNodalShapes->SetFieldAt(nodalCoords, NULL)) // shift = 0 or not ?
+		neighbor_list.Dimension(nodeSupport.MinorDim(node_i));
+		neighbor_list.Copy(nodeSupport(node_i));
+		if (!fNodalShapes->SetFieldUsing(nodalCoords, neighbor_list)) // shift = 0 or not ?
 			ExceptionT::GeneralFail("SCNIMFT::TakeParameterList","Shape Function evaluation"
-				"failed at Delone edge %d\n",fNodes[i]);		
+				"failed at node %d\n",fNodes[i]);		
 		
 		nodal_phi[i].AppendArray(fNodalShapes->FieldAt().Length(),
 									const_cast <double *> (fNodalShapes->FieldAt().Pointer()));
