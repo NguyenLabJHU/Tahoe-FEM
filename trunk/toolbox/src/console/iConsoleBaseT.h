@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.h,v 1.3 2001-11-07 02:33:23 paklein Exp $ */
+/* $Id: iConsoleBaseT.h,v 1.4 2001-11-28 22:05:44 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_BASE_T_H_
@@ -8,31 +8,88 @@
 #include "AutoArrayT.h"
 #include "StringT.h"
 
+/* forward declarations */
+class CommandSpecT;
+class ArgSpecT;
+
 /** base class for interactive console and console objects */
 class iConsoleBaseT
 {
 public:
 
-	/* constructor */
+	/** console variable types */
+	enum VariableType {int_ = 0, double_ = 1, string_ = 2, bool_ = 3, float_ = 4};
+
+	/** constructor */
 	iConsoleBaseT(void);
 
-	/* command list */
-	const ArrayT<StringT>& iCommands(void) const;
+	/** command list */
+	const ArrayT<CommandSpecT*>& iCommands(void) const;
 
-	/* variable specifications */
-	enum VariableType {int_ = 0, double_ = 1, string_ = 2, bool_ = 3, float_ = 4};
+	/** variable list */
 	const ArrayT<StringT>& iVariables(void) const;
 
-	/* write variables */
+	/** write variables */
 	virtual void iWriteVariables(ostream& out) const;
 
-	/* execute given command - returns false on fail */
-	virtual bool iDoCommand(const StringT& command, StringT& line);
+	/** execute given command.
+	 * \return true if command executes normally, false otherwise */
+	virtual bool iDoCommand(const CommandSpecT& command, StringT& line);
 
-	/* operate on given variable */
+	/** operate on given variable
+	 * \return true if executed normally, false otherwise */
 	virtual bool iDoVariable(const StringT& variable, StringT& line);
 
+	/** resolve name into function specification. Map function name onto
+	 * the list of function specifications, resolve all function arguments
+	 * and return a complete function specification. See CommandSpecT for
+	 * more information about function specifications.
+	 * \param command_name name of function to resolve
+	 * \param line pointer command line to probe for function arguments. 
+	 * \return a pointer command specification if the function and
+	 *         all of its arguments were resolved without problems,
+	 *         NULL otherwise. */
+	const CommandSpecT* ResolveCommand(const StringT& command_name, 
+		StringT& line) const;
+
+	/** return the command specification with the given name. Returns
+	 * NULL if the name is not found */
+	CommandSpecT* Command(const StringT& command_name) const;
+
 protected:
+
+	/** resolve command arguments. Look in line passed in for required
+	 * function arguments. If not present in line, use default argument
+	 * values. Otherwise, prompt for argument values interactively.
+	 * \param command command specification 
+	 * \param line command line to probe for arguments 
+	 * \param out output stream for prompts
+	 * \param in input stream for interactive input 
+	 * \return true if all arguments resolved correctly, false otherwise */
+	bool ResolveArguments(CommandSpecT& command, StringT& line, ostream& out, 
+		istream& in) const;
+
+	/** resolve named argument value. Just checks name and then uses 
+	 * iConsoleBaseT::ResolveValue to resolve the argument. */
+	bool ResolveNamedValue(CommandSpecT& command, int index, StringT& line, 
+		ostream& out, istream& in, bool prompt) const;
+		
+	/** resolve unnamed argument value.
+	 * \param command command being resolved
+	 * \param index index of the argument being resolved
+	 * \param line source string to probe for values
+	 * \param out output stream for prompts
+	 * \param in input stream for interactive input 
+	 * \param prompt pass true to produce prompt if value not found in line */
+	bool ResolveValue(CommandSpecT& command, int index, StringT& line, ostream& out, 
+		istream& in, bool prompt) const;
+
+	/** write prompt for the specific argument of the command
+	 * to the output stream. A simple value prompt always appears 
+	 * <i>after</i> any information written during this call. By
+	 * default, no additional information is written to the output
+	 * stream. */
+	virtual void ValuePrompt(const CommandSpecT& command, int index, ostream& out) const;
 
 	/** clear the input stream. Remove the next 254 characters from the
 	 * stream including any trailing newline. This is useful for clearing
@@ -40,8 +97,9 @@ protected:
 	 * >>, which does not grab the trailing newline. */
 	void Clean(istream& in) const;
 
-	/* add command to the dictionary - true if added */
-	bool iAddCommand(const StringT& command);
+	/** add command to the dictionary.
+	 * \return true if added, false otherwise */
+	bool iAddCommand(const CommandSpecT& command);
 	
 	/* adding variables */
 	bool iAddVariable(const StringT& name, bool& variable);
@@ -59,30 +117,35 @@ protected:
 	bool iAddVariable(const StringT& name, StringT& variable);
 	bool iAddVariable(const StringT& name, const StringT& variable);
 
-	/* alphabetize the list */
+	/** alphabetize the list */
 	void Sort(ArrayT<StringT>& list) const;
 
-	/* resolving arguments in () */
-	bool ResolveArgument(StringT& source, bool& arg, bool* default_arg);
-	bool ResolveArgument(StringT& source, int& arg, int* default_arg);
-	bool ResolveArgument(StringT& source, double& arg, double* default_arg);
-	bool ResolveArgument(StringT& source, StringT& arg, StringT* default_arg);
-//	bool ResolveArgument(StringT& source, ArrayT<ArgumentType>& types, pArrayT<void*>& args);
+	/** sort command list by command name */
+	void SortCommands(ArrayT<CommandSpecT*>& list) const;
 
-	/* write list of strings with tab and wrap */
+	/** write list of strings with tab and wrap */
 	void WriteList(ostream& out, const ArrayT<StringT>& list, int tab,
 		int wrap) const;
 
-	/* write single variable */
+	/** write list of command names with tab and wrap */
+	void WriteList(ostream& out, const ArrayT<CommandSpecT*>& list, int tab,
+		int wrap) const;
+
+	/** write single variable
+	 * \param out output stream
+	 * \param i index of the variable to write */
 	void WriteVariable(ostream& out, int i) const;
 
-	/* operators */
+	/** operator types */
 	enum VariableOperator {kEQ = 0, kPlusEQ, kMinusEQ, kTimesEQ, kDivEQ, kFail};
+
+	/** resolve the operator type from the input line */
 	VariableOperator ResolveOperator(StringT& line) const;
 
 private:
 
-	/* find first position - returns false if not found */
+	/** find first position.
+	 * \return false if not found, true otherwise */
 	bool Position(char* str, char a, int& position);
 
 	/* add variable */
@@ -97,10 +160,10 @@ private:
 
 protected:
 
-	/* commands */
-	AutoArrayT<StringT> fCommands;
+	/** commands */
+	AutoArrayT<CommandSpecT*> fCommands;
 
-	/* variables */
+	/** variables */
 	AutoArrayT<StringT>      fVariables;
 	AutoArrayT<VariableType> fVariableTypes;
 	AutoArrayT<void*>        fVariableValues;
@@ -108,7 +171,7 @@ protected:
 };
 
 /* inlines */
-inline const ArrayT<StringT>& iConsoleBaseT::iCommands(void) const
+inline const ArrayT<CommandSpecT*>& iConsoleBaseT::iCommands(void) const
 {
 	return fCommands;
 }

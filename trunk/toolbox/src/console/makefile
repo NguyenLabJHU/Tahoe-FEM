@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2001-02-22 23:45:19 paklein Exp $
+# $Id: makefile,v 1.6 2001-11-28 22:05:45 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,6 +6,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
+	ArgSpecT.o \
+	CommandSpecT.o \
 	iConsoleBaseT.o \
 	iConsoleObjectT.o \
 	iConsoleT.o
@@ -17,12 +19,16 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
+	ArgSpecT.cpp \
+	CommandSpecT.cpp \
 	iConsoleBaseT.cpp \
 	iConsoleObjectT.cpp \
 	iConsoleT.cpp
 
 # headers
 HDR = \
+	ArgSpecT.h \
+	CommandSpecT.h \
 	iConsoleBaseT.h \
 	iConsoleObjectT.h \
 	iConsoleT.h

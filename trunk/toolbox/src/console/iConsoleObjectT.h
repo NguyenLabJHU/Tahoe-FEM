@@ -1,6 +1,5 @@
-/* $Id: iConsoleObjectT.h,v 1.1.1.1 2001-01-25 20:56:28 paklein Exp $ */
-/* created: paklein (12/21/2000)                                          */
-/* iConsoleObjectT.h                                                      */
+/* $Id: iConsoleObjectT.h,v 1.2 2001-11-28 22:05:44 paklein Exp $ */
+/* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_OBJECT_T_H_
 #define _I_CONSOLE_OBJECT_T_H_
@@ -8,23 +7,26 @@
 /* base class */
 #include "iConsoleBaseT.h"
 
+/** interface for a console object */
 class iConsoleObjectT: public iConsoleBaseT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	iConsoleObjectT(void);
 
-	/* subs control - return true if changed */
+	/** add a sub console.
+	 * \return true if successfully added, false otherwise */
 	bool iAddSub(iConsoleObjectT& sub);
+
+	/** remove a sub console.
+	 * \return true if successfully removed, false otherwise */
 	bool iDeleteSub(iConsoleObjectT& sub);
 
-	/* accessors */
+	/** return a pointer to the console super */
 	iConsoleObjectT* iSuper(void) const;
 	const ArrayT<iConsoleObjectT*>& iSubs(void) const;
 	const StringT& iName(void) const;
-
-//  protected:
 
 	/* set name string */
 	void iSetName(const StringT& name);	
