@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.17 2001-12-17 00:15:55 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.18 2002-01-03 00:22:49 cjkimme Exp $ */
 /* created: paklein (05/28/1996) */
 
 #include "SolidElementT.h"
@@ -269,7 +269,7 @@ void SolidElementT::SendOutput(int kincode)
 	switch (kincode)
 	{
 		case iNodalDisp:
-		    flags[iNodalDisp] = fNumDOF;
+		    flags[iNodalDisp] = 1;
 			break;
 		case iNodalStress:
 		    flags[iNodalStress] = 1;
@@ -278,7 +278,7 @@ void SolidElementT::SendOutput(int kincode)
 		    flags[iEnergyDensity] = 1;
 			break;
 		case iPrincipal:
-			flags[iPrincipal] = fNumSD;
+			flags[iPrincipal] = 1;
 			break;
 		default:
 			cout << "\n SolidElementT::SendKinematic: invalid output code: ";
