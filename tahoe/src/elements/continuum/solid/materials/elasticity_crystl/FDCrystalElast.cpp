@@ -1,3 +1,4 @@
+/* $Id: FDCrystalElast.cpp,v 1.3 2001-08-20 22:15:41 rdorgan Exp $ */
 /*
   File: FDCrystalElast.cpp
 */

@@ -1,3 +1,4 @@
+/* $Id: CrystalElastMat.h,v 1.2 2001-08-20 22:15:40 rdorgan Exp $ */
 /*
   File: CrystalElastMat.h
 */
