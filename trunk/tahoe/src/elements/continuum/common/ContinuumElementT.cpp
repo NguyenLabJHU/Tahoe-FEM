@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.13 2001-12-17 00:15:54 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.14 2002-01-09 12:02:33 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "ContinuumElementT.h"
@@ -8,6 +8,7 @@
 
 #include "fstreamT.h"
 #include "FEManagerT.h"
+#include "ModelManagerT.h"
 #include "NodeManagerT.h"
 #include "StructuralMaterialT.h"
 #include "ShapeFunctionT.h"
@@ -46,7 +47,7 @@ ContinuumElementT::ContinuumElementT(FEManagerT& fe_manager):
 	ostream&    out = fFEManager.Output();
 		
 	/* control parameters */
-	in >> fGeometryCode;
+	in >> fGeometryCode; //TEMP - should actually come from the geometry database
 	in >> fNumIP;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.3 2001-12-17 00:09:18 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.4 2002-01-09 12:07:27 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltyRegionT.h"
@@ -11,6 +11,7 @@
 #include "Constants.h"
 #include "GlobalT.h"
 #include "FEManagerT.h"
+#include "ModelManagerT.h"
 #include "fstreamT.h"
 #include "LoadTime.h"
 #include "eControllerT.h"

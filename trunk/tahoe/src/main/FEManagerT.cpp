@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.22 2002-01-07 20:36:48 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.23 2002-01-09 12:04:36 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
@@ -14,6 +14,7 @@
 
 #include "fstreamT.h"
 #include "TimeManagerT.h"
+#include "ModelManagerT.h"
 #include "ElementBaseT.h"
 #include "IOManager.h"
 #include "OutputSetT.h"
@@ -135,7 +136,7 @@ void FEManagerT::Initialize(InitCodeT init)
 	cout << "\n Title: " << fTitle << endl;
 	
 	/* set model manager */
-	fModelManager = new ModelManagerT(cout);
+	fModelManager = new ModelManagerT(fMainOut);
 	if (!fModelManager) throw eOutOfMemory;
 	if (verbose) cout << "    FEManagerT::Initialize: input" << endl;
 

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.10 2002-01-07 02:36:56 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.11 2002-01-09 12:04:36 paklein Exp $ */
 /* created: paklein (01/12/2000)                                          */
 
 #include "FEManagerT_mpi.h"
@@ -9,6 +9,7 @@
 #include "mpi.h"
 #endif
 
+#include "ModelManagerT.h"
 #include "AutoArrayT.h"
 #include "RaggedArray2DT.h"
 #include "fstreamT.h"

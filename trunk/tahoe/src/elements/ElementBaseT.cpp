@@ -1,5 +1,5 @@
-/* $Id: ElementBaseT.cpp,v 1.9 2002-01-08 22:30:03 paklein Exp $ */
-/* created: paklein (05/24/1996)                                          */
+/* $Id: ElementBaseT.cpp,v 1.10 2002-01-09 12:02:31 paklein Exp $ */
+/* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
 
@@ -7,10 +7,12 @@
 #include <iomanip.h>
 #include <ctype.h>
 
+#include "ModelManagerT.h"
 #include "fstreamT.h"
 #include "Constants.h"
 #include "FEManagerT.h"
 #include "NodeManagerT.h"
+#include "LocalArrayT.h"
 
 /* array behavior */
 const bool ArrayT<const RaggedArray2DT<int>*>::fByteCopy = true;
@@ -362,7 +364,7 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
 	{
 	    /* check number of nodes */
 	    int num_elems, num_nodes;
-	    model->ElementGroupDimensions (indexes[b], num_elems, num_nodes);
+	    model->ElementGroupDimensions(indexes[b], num_elems, num_nodes);
 	    
 	    /* set if unset */
 	    if (nen == 0) nen = num_nodes;

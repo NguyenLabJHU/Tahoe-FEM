@@ -1,10 +1,11 @@
-/* $Id: KBC_ControllerT.cpp,v 1.2 2001-12-17 00:09:19 paklein Exp $ */
-/* created: paklein (09/05/2000)                                          */
+/* $Id: KBC_ControllerT.cpp,v 1.3 2002-01-09 12:07:28 paklein Exp $ */
+/* created: paklein (09/05/2000) */
 
 #include "KBC_ControllerT.h"
 
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
+#include "ModelManagerT.h"
 #include "fstreamT.h"
 
 /* constructor */
