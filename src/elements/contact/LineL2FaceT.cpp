@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.13 2001-04-30 21:27:16 rjones Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.14 2001-05-21 21:50:35 rjones Exp $ */
 
 #include "LineL2FaceT.h"
 #include "FaceT.h"
@@ -92,7 +92,7 @@ LineL2FaceT::ComputeNormal(double* local_coordinates, double& normal) const
 
 void
 LineL2FaceT::ComputeShapeFunctions
-(double* local_coordinates, dArrayT& shape_functions) const
+(const double* local_coordinates, dArrayT& shape_functions) const
 {
 	double xi  = local_coordinates[0];
 	shape_functions[0] = 0.5 * (1.0 - xi );
@@ -101,7 +101,7 @@ LineL2FaceT::ComputeShapeFunctions
 
 void
 LineL2FaceT::ComputeShapeFunctions
-(double* local_coordinates, dMatrixT& shape_functions) const
+(const double* local_coordinates, dMatrixT& shape_functions) const
 {
 	dArrayT shape_f;
 	ComputeShapeFunctions(local_coordinates, shape_f);
@@ -136,8 +136,9 @@ LineL2FaceT::InterpolateVector
 double
 LineL2FaceT::ComputeJacobian (double* local_coordinates) const
 {
-	//HACK
-	return 1.0;
+	double t1[2];
+	Diff(fx[0],fx[1],t1);
+	return 0.5*Mag(t1);
 }
 
 bool
@@ -152,7 +153,7 @@ LineL2FaceT::Projection
         if ( Dot(nm,fnormal) < 0.0 ) {
           const double* x0 = node->Position();
           /* compute local coordinates */
-          double a[3], b[3];
+          double a[2], b[2];
           Polynomial(a,b);
           /* components */
           double a1,b1,x1;
@@ -196,8 +197,8 @@ void
 LineL2FaceT::Quadrature
 (dArray2DT& points, dArrayT& weights) const
 {
-        points = fIntegrationPoints;
-        for (int i = 0; i < fIntegrationPoints.Length(); i++) {
+        points = fIntegrationPoints; // this is dangerous
+        for (int i = 0; i < fIntegrationPoints.MajorDim(); i++) {
                 weights[i] = ComputeJacobian(points(i));
         }
 }

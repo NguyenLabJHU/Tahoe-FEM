@@ -1,4 +1,4 @@
-/* $Id: vector2D.h,v 1.2 2001-04-25 17:26:44 rjones Exp $ */
+/* $Id: vector2D.h,v 1.3 2001-05-21 21:50:36 rjones Exp $ */
 
 #ifndef _VECTOR_2D_H_
 #define _VECTOR_2D_H_
@@ -34,6 +34,13 @@ inline static void Add(const double* v1, const double* v2, double* v)
         v[0] = v1[0] + v2[0];
         v[1] = v1[1] + v2[1];
 };
+
+inline static void Add(double* v1, double scale, const double* v2)
+{
+        v1[0] +=  scale*v2[0];
+        v1[1] +=  scale*v2[1];
+};
+
 
 inline static void Ave(const double* v1, const double* v2, double* v)
 {

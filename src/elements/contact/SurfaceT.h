@@ -1,4 +1,4 @@
-/* $Id: SurfaceT.h,v 1.12 2001-04-30 19:30:20 rjones Exp $ */
+/* $Id: SurfaceT.h,v 1.13 2001-05-21 21:50:36 rjones Exp $ */
 
 #ifndef _SURFACE_T_H_
 #define _SURFACE_T_H_
@@ -62,8 +62,8 @@ class SurfaceT
 		{return fFaces[0]->NumNodes();}
 	inline GeometryT::CodeT GeometryType(void) const
 		{return fFaces[0]->GeometryType();}
-	inline int NumIPs(void) const
-		{return fFaces[0]->NumIPs();}
+//inline int NumIPs(void) const
+//{return fFaces[0]->NumIPs();}
 
 
   protected:

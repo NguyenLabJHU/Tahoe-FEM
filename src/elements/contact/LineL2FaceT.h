@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.h,v 1.12 2001-04-30 21:27:16 rjones Exp $ */
+/* $Id: LineL2FaceT.h,v 1.13 2001-05-21 21:50:36 rjones Exp $ */
 
 #ifndef _LINEL2_FACE_T_H_
 #define _LINEL2_FACE_T_H_
@@ -40,15 +40,16 @@ public:
 	void LocalBasis
 		(double* normal, double* tangent1, double* tangent2) const;
 	void ComputeShapeFunctions
-		(double* local_coordinates, dArrayT& shape_functions) const;
+	  (const double* local_coordinates, dArrayT& shape_functions) const;
 	void ComputeShapeFunctions
-		(double* local_coordinates, dMatrixT& shape_functions) const;
+	  (const double* local_coordinates, dMatrixT& shape_functions) const;
 	double ComputeJacobian (double* local_coordinates) const;
         bool Projection (ContactNodeT* node, dArrayT& parameters) const ;
         inline void Polynomial
                 (double* a, double* b) const ;
         void Quadrature
                 (dArray2DT& points, dArrayT& weights) const;
+		// points should be const
 
 protected:
 
@@ -57,7 +58,7 @@ private:
 	double*  fx[2];
 	
 	/* integration points */  
-	static dArray2DT fIntegrationPoints;// SHOULD BE STATIC
+	static dArray2DT fIntegrationPoints;
 
 };
 

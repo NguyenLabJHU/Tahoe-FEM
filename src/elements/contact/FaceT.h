@@ -1,10 +1,11 @@
-/* $Id: FaceT.h,v 1.13 2001-04-30 19:30:19 rjones Exp $ */
+/* $Id: FaceT.h,v 1.14 2001-05-21 21:50:35 rjones Exp $ */
 
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
 
 /* direct members */
 #include "iArrayT.h"
+#include "dArrayT.h"
 #include "dArray2DT.h"
 #include "ArrayT.h"
 #include "GeometryT.h"
@@ -49,9 +50,9 @@ public:
 #endif
 
 	virtual void ComputeShapeFunctions
-		(double* local_coordinates, dArrayT& shape_functions) const =0;
+	  (const double* local_coordinates, dArrayT& shape_functions)  const=0;
 	virtual void ComputeShapeFunctions
-		(double* local_coordinates, dMatrixT& shape_functions) const=0;
+	  (const double* local_coordinates, dMatrixT& shape_functions) const=0;
 #if 0
         void ComputeShapeFunctionDerivatives
                 (double* local_coordinates, ArrayT& shape_derivatives) const;
@@ -76,8 +77,8 @@ public:
 		{return fNeighborFaces;}
 	inline const GeometryT::CodeT GeometryType(void) const 
 		{return fGeometryType;}
-	inline const int NumIPs(void) const 
-		{return fIntegrationPoints.Length();}
+//inline const int NumIPs(void) const 
+//{return fIntegrationPoints.Length();}
  	inline const iArrayT& Connectivity(void) const {return fConnectivity;} 
  	inline const int Node(int i) const {return fConnectivity[i];} 
 	inline const int NumVertexNodes(void) const {return fNumVertexNodes;}
@@ -119,9 +120,10 @@ protected:
 	/* face normal */
 	double fnormal[3] ;
 
-	dArray2DT fIntegrationPoints;
+//const dArray2DT fIntegrationPoints;
 
 	/* workspace */
+
 private:
 };
 

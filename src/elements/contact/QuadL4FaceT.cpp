@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.cpp,v 1.13 2001-04-30 21:27:17 rjones Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.14 2001-05-21 21:50:36 rjones Exp $ */
 
 #include "QuadL4FaceT.h"
 #include "FaceT.h"
@@ -98,7 +98,7 @@ QuadL4FaceT::ComputeNormal(double* local_coordinates,double& normal) const
 
 void
 QuadL4FaceT::ComputeShapeFunctions 
-(double* local_coordinates, dArrayT& shape_functions) const
+(const double* local_coordinates, dArrayT& shape_functions) const
 {
 	double xi  = local_coordinates[0];
 	double eta = local_coordinates[1];
@@ -110,11 +110,22 @@ QuadL4FaceT::ComputeShapeFunctions
 
 void
 QuadL4FaceT::ComputeShapeFunctions
-(double* local_coordinates, dMatrixT& shape_functions) const
+(const double* local_coordinates, dMatrixT& shape_functions) const
 {
-	dArrayT shape_f;
+	dArrayT shape_f(4);
 	ComputeShapeFunctions(local_coordinates, shape_f);
-//MORE
+	shape_functions(0,0) = shape_f[0];
+	shape_functions(1,1) = shape_f[0];
+	shape_functions(2,2) = shape_f[0];
+	shape_functions(3,0) = shape_f[1];
+	shape_functions(4,1) = shape_f[1];
+	shape_functions(5,2) = shape_f[1];
+	shape_functions(6,0) = shape_f[2];
+	shape_functions(7,1) = shape_f[2];
+	shape_functions(8,2) = shape_f[2];
+	shape_functions(9,0) = shape_f[3];
+	shape_functions(10,1)= shape_f[3];
+	shape_functions(11,2)= shape_f[3];
 }
 
 double
@@ -211,8 +222,8 @@ void
 QuadL4FaceT::Quadrature
 (dArray2DT& points, dArrayT& weights) const
 {
-	points = fIntegrationPoints;
-	for (int i = 0; i < fIntegrationPoints.Length(); i++) {
+	points = fIntegrationPoints;//this is dangerous
+	for (int i = 0; i < fIntegrationPoints.MajorDim(); i++) {
 		weights[i] = ComputeJacobian(points(i));
 	}
 }
