@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.15.4.4 2004-04-05 00:35:25 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.15.4.5 2004-04-07 15:36:17 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltyRegionT.h"
 
@@ -300,8 +300,6 @@ ParameterInterfaceT* PenaltyRegionT::NewSub(const StringT& list_name) const
 		
 		return motion;
 	}
-	if (list_name == "node_ID_list")
-		return new StringListT(list_name);
 	else /* inherited */
 		return FBC_ControllerT::NewSub(list_name);
 }

@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.35.2.4 2004-03-17 18:03:30 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.35.2.5 2004-04-07 15:36:14 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -294,9 +294,6 @@ public:
 	 * default implementation for ElementBaseT::CollectBlockInfo. Otherwise, ElementBaseT::CollectBlockInfo
 	 * must be overridden. */
 	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
 	
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);

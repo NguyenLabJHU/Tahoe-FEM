@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.43.2.6 2004-03-31 16:16:19 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.43.2.7 2004-04-07 15:36:14 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -404,15 +404,6 @@ void ElementBaseT::DefineParameters(ParameterListT& list) const
 
 	/* associated fields */
 	list.AddParameter(ParameterT::Word, "field_name");
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* ElementBaseT::NewSub(const StringT& list_name) const
-{
-	if (list_name == "block_ID_list") /* predefine list of block ID's */
-		return new StringListT(list_name);
-	else
-		return ParameterInterfaceT::NewSub(list_name);
 }
 
 /* accept parameter list */
