@@ -1,4 +1,4 @@
-/* $Id: ParabolaT.cpp,v 1.3 2002-10-20 22:38:48 paklein Exp $ */
+/* $Id: ParabolaT.cpp,v 1.4 2003-05-21 06:41:35 thao Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #include "ParabolaT.h"
@@ -10,7 +10,7 @@
 
 using namespace Tahoe;
 
-ParabolaT::ParabolaT(double k): fk(k) { }
+ParabolaT::ParabolaT(double k, double B, double l0): fk(k),fl0(l0) { }
 
 /* I/O */
 void ParabolaT::Print(ostream& out) const
@@ -35,7 +35,8 @@ dArrayT& ParabolaT::MapFunction(const dArrayT& in, dArrayT& out) const
 	
 	for (int i = 0; i < in.Length(); i++)
 	{
-		*pU++ = fk*(*pl)*(*pl);
+		double x = *pl-fl0;
+		*pU++ = 0.5*fk*x*x-0.5*fk*fB;
 		pl++;
 	}
 
@@ -51,8 +52,11 @@ dArrayT& ParabolaT::MapDFunction(const dArrayT& in, dArrayT& out) const
 	double* pdU = out.Pointer();
 	
 	for (int i = 0; i < in.Length(); i++)
-		*pdU++ = fk*(*pl++);
-
+	{
+		double x = *pl - fl0;
+		*pdU++ = fk*x;
+		pl++;
+	}
 	return out;
 }
 
