@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.8 2001-11-09 20:11:13 recampb Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.9 2001-11-15 17:38:30 recampb Exp $ */
 
 #include "VTKBodyT.h"
 
@@ -219,7 +219,7 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
   else if (geometry == GeometryT::kTetrahedron) cell_types = VTK_TETRA; 
   else if (geometry == GeometryT::kPentahedron) cell_types = VTK_WEDGE;
   else cout << "Bad geometry";
-  
+ 
 
   /* set default variable to be displayed */ 
   if (num_node_variables > 0)  
@@ -391,5 +391,12 @@ void VTKBodyT::SelectTimeStep(int stepNum)
 
 void VTKBodyT::ChangeDataColor(int color)
 {
-ugridActor->GetProperty()->SetColor(1,0,0);
+  if (color ==1)
+    ugridActor->GetProperty()->SetColor(1,0,0);
+  else if (color==2)
+    ugridActor->GetProperty()->SetColor(0,1,0);
+  else if (color==3)
+    ugridActor->GetProperty()->SetColor(0,0,1);
+  else
+    cout << "invalid color";
 }

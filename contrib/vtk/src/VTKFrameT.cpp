@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.11 2001-11-09 20:11:13 recampb Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.12 2001-11-15 17:38:30 recampb Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -53,6 +53,7 @@ VTKFrameT::VTKFrameT(void):
   iAddCommand("X_axis_rotation");
   iAddCommand("Y_axis_rotation");
   iAddCommand("Z_axis_rotation");
+  iAddCommand("Zoom");
   iAddCommand("Change_background_color");
   iAddCommand("ChangeDataColor");
   iAddCommand("Select_time_step");
@@ -92,12 +93,12 @@ bool VTKFrameT::AddBody(VTKBodyT* body)
       // so that at most one is visible and SBActors() can be exhanged
       // in renderer
       ResetView();
-      StringT name = "body";
-      int index = bodies.PositionOf(body);
+//       StringT name = "body";
+//       int index = bodies.PositionOf(body);
 
-      name.Append(index);
-      bodies[index]->iSetName(name);
-      iAddSub(*bodies[index]);
+//       name.Append(index);
+//       bodies[index]->iSetName(name);
+//       iAddSub(*bodies[index]);
       return true;
     }
   else
@@ -112,7 +113,7 @@ bool VTKFrameT::RemoveBody(VTKBodyT* body)
   else
     {
       VTKBodyT* body = bodies[index];
-      iDeleteSub(*bodies[index]);
+      // iDeleteSub(*bodies[index]);
       /* remove from renderer */
       renderer->RemoveActor(body->Actor());
       renderer->RemoveActor(body->SBActor()); // if added to the renderer earlier
@@ -144,7 +145,7 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
 {
   int sfbTest;
   int  varNum;
-  double xRot, yRot, zRot;
+  double xRot, yRot, zRot, zoom;
   double timeStep;
 
   if (command == "Update")
@@ -342,53 +343,64 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
 
   else if (command == "ChangeDataColor")
     {
-      bodies[0]->ChangeDataColor(0);
+      int color;
+      char line[255];
+      cout << "Choose color: \n 1: Red\n 2: Green\n 3: Blue: ";
+      cin >> color;
+      cin.getline(line, 254);
+      bodies[0]->ChangeDataColor(color);
       fRenWin->Render();
       return true;
     }
 
-//   else if (command == "X_axis_rotation")
-//     {
+  else if (command == "X_axis_rotation")
+    {
  
-//       cout << "Using the right-hand rule, rotate by how many degrees?: ";
-//       cin >> xRot;
-//       char line[255];
-//       cin.getline(line, 254);
-//       renderer->GetActiveCamera()->Elevation(xRot);
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       //iren->Start();
-//       return true;
-//     }
+      cout << "Using the right-hand rule, rotate by how many degrees?: ";
+      cin >> xRot;
+      char line[255];
+      cin.getline(line, 254);
+      renderer->GetActiveCamera()->Elevation(xRot);
+      fRenWin->Render();
+      return true;
+    }
 
 
-//   else if (command == "Y_axis_rotation")
-//     {
+  else if (command == "Y_axis_rotation")
+    {
 
-//       cout << "Using the right-hand rule, rotate by how many degrees?: ";
-//       cin >> yRot;
-//       char line[255];
-//       cin.getline(line, 254);
-//       renderer->GetActiveCamera()->Azimuth(yRot);
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       //iren->Start();
-//       return true;
-//     }
+      cout << "Using the right-hand rule, rotate by how many degrees?: ";
+      cin >> yRot;
+      char line[255];
+      cin.getline(line, 254);
+      renderer->GetActiveCamera()->Azimuth(-yRot);
+      fRenWin->Render();
+      return true;
+    }
 
-//   else if (command == "Z_axis_rotation")
-//     {
+  else if (command == "Z_axis_rotation")
+    {
 
-//       cout << "Using the right-hand rule, rotate by how many degrees?: ";
-//       cin >> zRot;
-//       char line[255];
-//       cin.getline(line, 254);
-//       renderer->GetActiveCamera()->Roll(zRot);
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       //iren->Start();
-//       return true;
-//     }
+      cout << "Using the right-hand rule, rotate by how many degrees?: ";
+      cin >> zRot;
+      char line[255];
+      cin.getline(line, 254);
+      renderer->GetActiveCamera()->Roll(-zRot);
+      fRenWin->Render();
+      return true;
+    }
+
+  else if (command == "Zoom")
+    {
+
+      cout << "Zoom by what magnitude?: ";
+      cin >> zoom;
+      char line[255];
+      cin.getline(line, 254);
+      renderer->GetActiveCamera()->Zoom(zoom);
+      fRenWin->Render();
+      return true;
+    }
 
   //  else if (command == "Flip_book")
   //{
@@ -398,38 +410,36 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
   //{
   //}
 	 
-//   else if (command=="Change_background_color")
-//     {
-//       int bgColor;
-//       do {
-// 	cout << "choose background color:\n 1: black\n 2: white\n 3: red\n 4: green\n 5: blue\n";
-// 	cin >> bgColor;
-// 	char line[255];
-// 	cin.getline(line, 254);
-//       } while (bgColor != 1 && bgColor !=2 && bgColor != 3 && bgColor !=4 && bgColor !=5);
+  else if (command=="Change_background_color")
+    {
+      int bgColor;
+      do {
+	cout << "choose background color:\n 1: black\n 2: white\n 3: red\n 4: green\n 5: blue\n";
+	cin >> bgColor;
+	char line[255];
+	cin.getline(line, 254);
+      } while (bgColor != 1 && bgColor !=2 && bgColor != 3 && bgColor !=4 && bgColor !=5);
       
-//       switch (bgColor) {
-//       case 1: 
-// 	renderer->SetBackground(0,0,0);
-// 	break;
-//       case 2:
-// 	renderer->SetBackground(1,1,1);
-// 	break;
-//       case 3:
-// 	renderer->SetBackground(1,0,0);
-// 	break;
-//       case 4:
-// 	renderer->SetBackground(0,1,0);
-// 	break;
-//       default:
-// 	renderer->SetBackground(0,0,1);
-// 	break;
-//       }
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       iren->Start();
-//       return true;
-//     }
+      switch (bgColor) {
+      case 1: 
+	renderer->SetBackground(0,0,0);
+	break;
+      case 2:
+	renderer->SetBackground(1,1,1);
+	break;
+      case 3:
+	renderer->SetBackground(1,0,0);
+	break;
+      case 4:
+	renderer->SetBackground(0,1,0);
+	break;
+      default:
+	renderer->SetBackground(0,0,1);
+	break;
+      }
+      fRenWin->Render();
+      return true;
+    }
 
   else if (command == "Select_time_step")
     {
@@ -443,8 +453,6 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
  
      
       fRenWin->Render();
-      cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-      fIren->Start();
       return true;
       
     }
@@ -463,37 +471,35 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
  
 //     }
   
-//   else if (command == "Show_axes")
-//   {
-
-//   // x,y,z axes
+  else if (command == "Show_axes")
+    {
       
-//       axes->SetInput(ugrid);
-//      axes->SetCamera(renderer->GetActiveCamera());
-//     //  axes->SetLabelFormat("%6.4g");
-//      // axes->ShadowOn();
-//      // axes->SetFlyModeToOuterEdges();
-//       axes->SetFlyModeToClosestTriad();
-//       axes->SetFontFactor(3.8);
-//       axes->GetProperty()->SetColor(0,1,1);
-//       // axes->SetBounds(0,1,0,1,0,1);
-//       //axes->ZAxisVisibilityOff();
-//       axes->VisibilityOn();
-//       renderer->AddActor2D(axes);
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       iren->Start();
-//       return true;
-//   }
-
-//   else if (command == "Hide_axes")
-//     {
-//       axes->VisibilityOff();
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       iren->Start();
-//       return true;
-//     }
+      // x,y,z axes
+      axes = vtkCubeAxesActor2D::New();
+      axes->SetInput(bodies[0]->ugrid);
+      axes->SetCamera(renderer->GetActiveCamera());
+      axes->SetLabelFormat("%6.4g");
+      //axes->SetCornerOffset(.2);
+      // axes->ShadowOn();
+      // axes->SetFlyModeToOuterEdges();
+      axes->SetFlyModeToClosestTriad();
+      //axes->SetFontFactor(1.8);
+      axes->GetProperty()->SetColor(0,1,1);
+      // axes->SetBounds(0,1,0,1,0,1);
+      //axes->ZAxisVisibilityOff();
+      axes->VisibilityOn();
+      renderer->AddActor2D(axes);
+      fRenWin->Render();
+      return true;
+    }
+  
+  else if (command == "Hide_axes")
+    {
+      axes->VisibilityOff();
+      axes->Delete();
+      fRenWin->Render();
+      return true;
+    }
 
   else if (command == "Choose_variable")
     {
