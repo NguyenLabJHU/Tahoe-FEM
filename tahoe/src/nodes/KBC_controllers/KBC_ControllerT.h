@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.8 2002-07-05 22:28:31 paklein Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.9 2002-08-21 22:34:10 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #ifndef _KBC_CONTROLLER_T_H_
@@ -50,6 +50,9 @@ public:
 	/** initialize data. Must be called immediately after construction */
 	virtual void Initialize(ifstreamT& in) = 0;
 	virtual void WriteParameters(ostream& out) const;
+	
+	/** inform controller of external nodes */
+	virtual void SetExternalNodes(const iArrayT& ex_nodes) const;
 
 	/** set to initial conditions */
 	virtual void InitialCondition(void) = 0;
@@ -140,6 +143,11 @@ inline void KBC_ControllerT::InitialCondition(void) { }
 inline void KBC_ControllerT::Initialize(ifstreamT& in) 
 {
 #pragma unused(in)
+}
+
+inline void KBC_ControllerT::SetExternalNodes(const iArrayT& ex_nodes) const
+{
+#pragma unused(ex_nodes)
 }
 
 } // namespace Tahoe 
