@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.28 2001-11-15 19:37:02 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.29 2001-11-20 01:04:04 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -19,6 +19,7 @@
 #include "dArrayT.h"
 #include "GeometryT.h"
 #include "VTKBodyT.h"
+#include "VTKBodyDataT.h"
 
 VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   fArguments(arguments)
@@ -94,52 +95,52 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 	}
   else if (command == "Update")
     {
-	  for (int i = 0; i < fBodies.Length(); i++)
-		fBodies[i]->UpdateData();
+      for (int i = 0; i < fBodies.Length(); i++)
+	fBodies[i]->UpdateData();
       renWin->Render();
       return true;
     }
   else if (command == "ResetView")
-	{
-	  for (int i = 0; i < fFrames.Length(); i++)
-		fFrames[i]->ResetView();
-	  renWin->Render();
-	  return true;
+    {
+      for (int i = 0; i < fFrames.Length(); i++)
+	fFrames[i]->ResetView();
+      renWin->Render();
+      return true;
 	}
   else if (command == "AddBody")
-	{
-	  StringT path;
-	  cout << "path to data file: ";
-	  cin >> path;
-	  Clean(cin);
-	  path.ToNativePathName();
+    {
+      StringT path;
+      cout << "path to data file: ";
+      cin >> path;
+      Clean(cin);
+      path.ToNativePathName();
 	  
-	  return AddBody(path);
-	}
+      return AddBody(path);
+    }
   else if (command == "RemoveBody")
-	{
-	  int index;
-	  cout << "select body to remove (0," << fBodies.Length()-1 << "): ";
-	  cin >> index;
-	  Clean(cin);
-	  if (index < 0 && index >= fBodies.Length())
-		return false;
-	  else {
-
-		/* remove body from all frames */
-		int count = 0;
-		for (int i = 0; i < fFrames.Length(); i++)
-		  if (fFrames[i]->RemoveBody(fBodies[index])) count++;
-		cout << "body " << index << " removed from " << count << " frames" << endl;
-
-		/* free */
-		delete fBodies[index];
-		
-		/* resize array */
-		fBodies.DeleteAt(index);
-		return true;
-	  }
-	}
+    {
+      int index;
+      cout << "select body to remove (0," << fBodies.Length()-1 << "): ";
+      cin >> index;
+      Clean(cin);
+      if (index < 0 && index >= fBodies.Length())
+	return false;
+      else {
+	
+	/* remove body from all frames */
+	int count = 0;
+	for (int i = 0; i < fFrames.Length(); i++)
+	  if (fFrames[i]->RemoveBody(fBodies[index])) count++;
+	cout << "body " << index << " removed from " << count << " frames" << endl;
+	
+	/* free */
+	delete fBodies[index];
+	
+	/* resize array */
+	fBodies.DeleteAt(index);
+	return true;
+      }
+    }
   else if (command == "Flip_book")
     {
       double timeStep;
@@ -150,26 +151,26 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
      
       int sfbTest;
       cin >> sfbTest;
-	  Clean(cin);
-
+      Clean(cin);
+      
       /* if default camera desired */
       if (sfbTest == 2) {
-		for (int i = 0; i < fFrames.Length(); i++)
-		  fFrames[i]->ResetView();
-		renWin->Render();
+	for (int i = 0; i < fFrames.Length(); i++)
+	  fFrames[i]->ResetView();
+	renWin->Render();
       }	
-
+      
       /* assume all the bodies have the same number of steps as body 0 */
       for (int j = 0; j<fBodies[0]->num_time_steps; j++){
         /* time delay */
-		clock_t start_time, cur_time;
-		start_time = clock();
-		while((clock() - start_time) < timeStep * CLOCKS_PER_SEC)
-		  {
-		  }
-		for (int i = 0; i < fBodies.Length(); i++)
-		  fBodies[i]->SelectTimeStep(j);
-		renWin->Render();
+	clock_t start_time, cur_time;
+	start_time = clock();
+	while((clock() - start_time) < timeStep * CLOCKS_PER_SEC)
+	  {
+	  }
+	for (int i = 0; i < fBodies.Length(); i++)
+	  fBodies[i]->SelectTimeStep(j);
+	renWin->Render();
       }
       return true;
     }
@@ -191,10 +192,9 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 	renWin->Render();
       }	
       
-      /* window to image filter */
       vtkRendererSource* image = vtkRendererSource::New();
       image->SetInput(fFrames[0]->Renderer());
-	  image->WholeWindowOn();
+      image->WholeWindowOn();
       
       /* construct TIFF writer */
       vtkTIFFWriter* writer = vtkTIFFWriter::New();
@@ -202,19 +202,17 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       
       /* assume all the bodies have the same number of steps as body 0 */
       for (int j = 0; j<fBodies[0]->num_time_steps; j++){
-
-		for (int i = 0; i < fBodies.Length(); i++)
-		  fBodies[i]->SelectTimeStep(j);
-
-		renWin->Render();  
-  
-		StringT name = fbName;
-		name.Append(j,3); // pad to a width of 3 digits
-		name.Append(".tif");
-		writer->SetFileName(name);
-		writer->Write();
 	
-		cout << name << " has been saved" << endl;
+	for (int i = 0; i < fBodies.Length(); i++)
+	  fBodies[i]->SelectTimeStep(j);
+	
+	renWin->Render();  
+	StringT name = fbName;
+	name.Append(j,3); // pad to a width of 3 digits
+	name.Append(".tif");
+	writer->SetFileName(name);
+	writer->Write();
+	cout << name << " has been saved" << endl;
       }
       
       /* clean up */
@@ -232,12 +230,12 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
     for (int i = 0; i < fFrames.MajorDim(); i++)
       for (int j = 0; j < fFrames.MinorDim(); j++)
 	{
-		/* name */
-		StringT name = "frame";
-		name.Append(".",i);
-		name.Append(".",j);
-		
-		fFrames(i,j)->ShowFrameNum(name);
+	  /* name */
+	  StringT name = "frame";
+	  name.Append(".",i);
+	  name.Append(".",j);
+	  
+	  fFrames(i,j)->ShowFrameNum(name);
 	}
     return true;
   }
@@ -309,67 +307,6 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 
     }
 
-//   else if (command=="Change_background_color")
-//     {
-//       int bgColor;
-//       do {
-// 	cout << "choose background color:\n 1: black\n 2: white\n 3: red\n 4: green\n 5: blue\n";
-// 	cin >> bgColor;
-// 	char line[255];
-// 	cin.getline(line, 254);
-//       } while (bgColor != 1 && bgColor !=2 && bgColor != 3 && bgColor !=4 && bgColor !=5);
-//       switch (bgColor) {
-//       case 1: 
-// 	renderer->SetBackground(0,0,0);
-// 	break;
-//       case 2:
-// 	renderer->SetBackground(1,1,1);
-// 	break;
-//       case 3:
-// 	renderer->SetBackground(1,0,0);
-// 	break;
-//       case 4:
-// 	renderer->SetBackground(0,1,0);
-// 	break;
-//       default:
-// 	renderer->SetBackground(0,0,1);
-// 	break;
-//       }
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       iren->Start();
-//       return true;
-//     }
-
-//   else if (command == "Show_axes")
-//   {
-//   // x,y,z axes
-//       axes->SetInput(ugrid);
-//      axes->SetCamera(renderer->GetActiveCamera());
-//     //  axes->SetLabelFormat("%6.4g");
-//      // axes->ShadowOn();
-//      // axes->SetFlyModeToOuterEdges();
-//       axes->SetFlyModeToClosestTriad();
-//       axes->SetFontFactor(3.8);
-//       axes->GetProperty()->SetColor(0,1,1);
-//       // axes->SetBounds(0,1,0,1,0,1);
-//       //axes->ZAxisVisibilityOff();
-//       axes->VisibilityOn();
-//       renderer->AddActor2D(axes);
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       iren->Start();
-//       return true;
-//   }
-//   else if (command == "Hide_axes")
-//     {
-//       axes->VisibilityOff();
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       iren->Start();
-//       return true;
-//     }
-
   else
     /* drop through to inherited */
     return iConsoleObjectT::iDoCommand(command, line);
@@ -383,11 +320,11 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
 bool VTKConsoleT::AddBody(const StringT& file)
 {
   /* temp */
-  VTKBodyT* body;
+  VTKBodyDataT* body;
 
   /* try to construct body */
   try {
-	body = new VTKBodyT(file);
+	body = new VTKBodyDataT(file);
 	fBodies.Append(body);
 
 	/* add bodies to frame 0 by default */

@@ -1,13 +1,11 @@
-/* $Id: VTKBodyT.h,v 1.8 2001-11-20 01:04:04 recampb Exp $ */
-
-#ifndef _VTK_BODY_T_H_
-#define _VTK_BODY_T_H_
+#ifndef _VTK_BODY_DATA_T_H_
+#define _VTK_BODY_DATA_T_H_
 
 /* direct members */
 #include "StringT.h"
 #include "iConsoleObjectT.h"
 #include "ExodusT.h"
-#include "VTKBodyDataT.h"
+#include "VTKBodyT.h"
 
 
 /* forward declarations */
@@ -26,16 +24,16 @@ class vtkWarpVector;
 class vtkVectors;
 class vtkScalarBarActor;
 class ExodusT;
-class VTKBodyDataT;
-class VTKBodyT: public iConsoleObjectT
+class VTKBodyT;
+class VTKBodyDataT: public iConsoleObjectT
 {
  public:
 
   /** constructor */
-   VTKBodyT(VTKBodyDataT* body_data); 
+   VTKBodyDataT(const StringT& file_name); 
 
   /** destructor */
-  ~VTKBodyT(void);
+  ~VTKBodyDataT(void);
   
   void SetLookupTable(void);
   void UpdateData(void);
@@ -43,8 +41,7 @@ class VTKBodyT: public iConsoleObjectT
   bool ChangeVars(const StringT& var);
   void SelectTimeStep(int);
   void ChangeDataColor(int);
-
-  /** list of node variables */
+ 
   const ArrayT<StringT>& NodeLabels(void) const { return node_labels; };
 
   /** return pointer to actor for the body */

@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.h,v 1.12 2001-11-15 17:38:30 recampb Exp $ */
+/* $Id: VTKFrameT.h,v 1.13 2001-11-20 01:04:04 recampb Exp $ */
 
 #ifndef _VTK_FRAME_T_H_
 #define _VTK_FRAME_T_H_
@@ -10,6 +10,7 @@
 /* direct members */
 #include "AutoArrayT.h"
 #include "VTKBodyT.h"
+#include "VTKBodyDataT.h"
 
 /* VTK forward declarations */
 class vtkRenderer;
@@ -22,6 +23,7 @@ class vtkCubeAxesActor2D;
 
 /* forward declarations */
 class VTKBodyT;
+class VTKBodyDataT;
 class VTKConsoleT;
 
 class VTKFrameT: public iConsoleObjectT
@@ -35,16 +37,16 @@ class VTKFrameT: public iConsoleObjectT
   ~VTKFrameT(void);
 
   /** return a pointer to the specified frame body */
-  VTKBodyT* Body(int bodyNum) { return bodies[bodyNum]; };
+  VTKBodyDataT* Body(int bodyNum) { return bodies[bodyNum]; };
   
   /** add body to the frame.
    * returns true if the body was added the frame, false
    * otherwise */
-  bool AddBody(VTKBodyT* body);
+  bool AddBody(VTKBodyDataT* body);
 
   /** delete body from the frame. returns true if body was found and
    * and removed, false otherwise. */
-  bool RemoveBody(VTKBodyT* body);
+  bool RemoveBody(VTKBodyDataT* body);
 
   vtkRenderer* getRen(void) {return renderer;};
   //private:
@@ -69,8 +71,6 @@ class VTKFrameT: public iConsoleObjectT
 
    StringT getName(void) {return bodies[0]->inFile;};
 
-
-   
  private:
 
    /** controlling console object */
@@ -80,26 +80,11 @@ class VTKFrameT: public iConsoleObjectT
 
   vtkRenderWindow *fRenWin;
   vtkRenderWindowInteractor *fIren;
-  AutoArrayT<VTKBodyT*> bodies;
+  AutoArrayT<VTKBodyDataT*> bodies;
   vtkActor2D* pointLabels;
   vtkSelectVisiblePoints* visPts;
   vtkLabeledDataMapper* ldm;
   vtkCubeAxesActor2D* axes;
-
- /*  vtkIdFilter *ids; */
-
-/*   vtkUnstructuredGrid *ugrid; */
-/*   vtkScalars *scalars [1000][100]; */
-/*   vtkVectors *vectors [1000][100]; */
-/*   vtkCamera *cam; */
-/*   vtkCubeAxesActor2D *axes; */
-/*   vtkPoints *points; */
-/*   vtkWarpVector *warp; */
-/*   int frameNum; */
-
-  //AutoArrayT<VTKBodyT*> pBodies;
-
-  /** pointers to bodies displayed in the frame */
 
 
 };
