@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.h,v 1.1.2.1 2004-03-31 16:14:38 paklein Exp $ */
+/* $Id: BasicSupportT.h,v 1.1.2.2 2004-04-01 08:35:21 paklein Exp $ */
 #ifndef _TAHOE_SUPPORT_T_H_
 #define _TAHOE_SUPPORT_T_H_
 
@@ -23,6 +23,7 @@ class OutputSetT;
 class ModelManagerT;
 class CommManagerT;
 class TimeManagerT;
+class ElementBaseT;
 template <class TYPE> class nArrayT;
 
 /** Base class for support within tahoe. Provides a limited interface to get 
@@ -33,9 +34,6 @@ public:
 
 	/** constructor */
 	BasicSupportT(void);
-
-	/** desstructor */
-	~BasicSupportT(void);
 
 	/** \name initialization 
 	 * Cached values are reset when source are reset */
@@ -191,6 +189,9 @@ public:
 
 	/** comm information */
 	CommManagerT& CommManager(void) const;
+
+	/** the element group at the specified index in the element list */
+	ElementBaseT& ElementGroup(int index) const;
 	/*@}*/
 
 private:
@@ -242,7 +243,7 @@ inline const FEManagerT& BasicSupportT::FEManager(void) const {
 
 /* the nodes */
 inline NodeManagerT& BasicSupportT::NodeManager(void) const {
-	if (!fNodeManager) ExceptionT::GeneralFail("BasicSupportT::Nodes", "pointer not set");
+	if (!fNodeManager) ExceptionT::GeneralFail("BasicSupportT::NodeManager", "pointer not set");
 	return *fNodeManager;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.27.2.1 2004-03-31 16:14:35 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.27.2.2 2004-04-01 08:35:20 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -21,7 +21,6 @@ class eIntegratorT;
 class dMatrixT;
 class GroupAverageT;
 class dArrayT;
-class ElementBaseT;
 class iArrayT;
 class StringT;
 class OutputSetT;
@@ -38,9 +37,6 @@ public:
 
 	/** destructor */
 	~ElementSupportT(void);
-
-	/** the element group at the specified index in the element list */
-	ElementBaseT& ElementGroup(int index) const;
 
 	/** return the index of the given element group */
 	int ElementGroupNumber(const ElementBaseT* group) const;
