@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: export_module.csh,v 1.1 2002-04-04 08:08:30 paklein Exp $
+# $Id: export_module.csh,v 1.2 2002-04-04 20:11:19 paklein Exp $
 # This shell script creates a tar.gz file from a tahoe module
 # USAGE EXAMPLE: export_module.csh [path to toolbox] toolbox.Darwin
 # will create toolbox.Darwin.tar.gz from the toolbox module. 
@@ -15,10 +15,19 @@ endif
 if (! -d $sourceDir/inc) then
 	echo "Did not find $sourceDir/inc"
 	exit 1
-endif 
+endif
+
+if (-e $sourceDir/makefile) then
+	set makef=makefile
+else if (-e $sourceDir/Makefile) then
+	set makef=Makefile
+else
+	echo "Did not find $sourceDir/makefile or $sourceDir/Makefile"
+	exit 1
+endif
 
 # get library name from the makefile
-set library=`grep -E "TARGET[[:space:]]*=" $sourceDir/makefile | sed 's/TARGET[[:space:]]*=[[:space:]]*\(.*\)/\1/'`
+set library=`grep -E "TARGET[[:space:]]*=" $sourceDir/$makef | sed 's/TARGET[[:space:]]*=[[:space:]]*\(.*\)/\1/'`
 
 # check for library
 if (! -e $sourceDir/lib/lib$library.a) then
