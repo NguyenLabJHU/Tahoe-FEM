@@ -228,8 +228,9 @@ void AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
 	  }
 	case OUTPUTDEFINE: 
 	  {
+	    StringT outsetname;
 	    if (fStartCount == 1)
-	      ReadOutputDefinitions (outputmode);
+	      ReadOutputDefinitions (outputmode, outsetname);
 	    break;
 	  }
 	}
@@ -532,6 +533,62 @@ void AbaqusResultsT::QuadratureVariables (iArrayT& keys, iArrayT& dims) const
       }
 }
 
+void AbaqusResultsT::VariablesUsed (StringT& name, AbaqusVariablesT::TypeT vt, iArrayT& used)
+{
+  used = 0;
+  iArrayT done (fVariableTable.Length());
+  done = 0;
+
+  /* examine the first time step/inc, variables should be same for all steps/incs */
+  ResetFile ();
+  int inc;
+  double time;
+  if (fModeIncs.Length() > 0)
+    NextMode (inc, time);
+  else
+    NextTimeSteps (inc, time);
+  
+  int key;
+  int ID, objnum, intpt, secpt, location, outputmode;
+  StringT outsetname;
+  while (ReadNextRecord (key) == OKAY)
+    {
+      switch (key)
+	{
+	case ENDINCREMENT:
+	case MODAL:
+	  return;
+	case ELEMENTHEADER:
+	  ReadElementHeader (objnum, intpt, secpt, location);
+	  break;
+	case OUTPUTDEFINE:
+	  ReadOutputDefinitions (outputmode, outsetname);
+	  break;
+	default:
+	  {
+	    /* is this the setname we are interested in */
+	    int l = (name.Length() < outsetname.Length()) ? name.Length() : outsetname.Length();
+	    if (strncmp (outsetname.Pointer(), name.Pointer(), l-1) == 0)
+	      {
+		/* make sure it is a variable */
+		int index = VariableKeyIndex (key);
+		if (index > 0 && index < done.Length() && done[index] < 1)
+		  {
+		    /* make sure the variable is of the type we are interested in */
+		    if (CorrectType (outputmode, objnum, intpt, location, vt, ID))
+		      {
+			int offset = fVariableTable[index].IOIndex();
+			int dim = fVariableTable[index].Dimension();
+			for (int bj=0; bj < dim; bj++)
+			  used [offset + bj] = fVariableTable[index].Dimension();
+		      }
+		  }
+	      }
+	  }
+	}
+    }
+}
+
 void AbaqusResultsT::ReadVariables (AbaqusVariablesT::TypeT vt, int step, dArray2DT& values, StringT& name)
 {
   bool subset = true;
@@ -592,6 +649,7 @@ void AbaqusResultsT::ReadVariables (AbaqusVariablesT::TypeT vt, int step, dArray
 
   int key;
   int ID, objnum, intpt, secpt, location, outputmode;
+  StringT outsetname;
   while (ReadNextRecord (key) == OKAY)
     {
       switch (key)
@@ -603,7 +661,7 @@ void AbaqusResultsT::ReadVariables (AbaqusVariablesT::TypeT vt, int step, dArray
 	  ReadElementHeader (objnum, intpt, secpt, location);
 	  break;
 	case OUTPUTDEFINE:
-	  ReadOutputDefinitions (outputmode);
+	  ReadOutputDefinitions (outputmode, outsetname);
 	  break;
 	default:
 	  {
@@ -1047,9 +1105,8 @@ void AbaqusResultsT::ScanElement (void)
   fElementNumber.Append (number);
 }
 
-void AbaqusResultsT::ReadOutputDefinitions (int &outputmode)
+void AbaqusResultsT::ReadOutputDefinitions (int &outputmode, StringT& setname)
 {
-  StringT setname, elemname;
   if (!Read (outputmode)|| !Read (setname, 1) )
     throw eDatabaseFail;
 }
