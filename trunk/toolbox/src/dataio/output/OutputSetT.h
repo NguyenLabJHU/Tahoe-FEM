@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.12 2002-09-12 16:10:03 paklein Exp $ */
+/* $Id: OutputSetT.h,v 1.13 2002-10-20 22:36:55 paklein Exp $ */
 /* created: paklein (03/07/2000) */
 
 #ifndef _OUTPUTSET_T_H_
@@ -236,7 +236,7 @@ inline const StringT& OutputSetT::BlockID(int index) const
 {
 	if (index < 0 || index >= fBlockID.Length()) {
 		cout << "\n OutputSetT::BlockID: index out of range: " << index << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 	return fBlockID[index];
 

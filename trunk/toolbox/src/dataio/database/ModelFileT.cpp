@@ -1,4 +1,4 @@
-/* $Id: ModelFileT.cpp,v 1.8 2002-07-02 19:57:01 cjkimme Exp $ */
+/* $Id: ModelFileT.cpp,v 1.9 2002-10-20 22:36:53 paklein Exp $ */
 /* created: paklein (12/15/1999)                                          */
 
 #include "ModelFileT.h"
@@ -279,7 +279,7 @@ ModelFileT::StatusT ModelFileT::GetCoordinates(dArray2DT& coords) const
 
 		int num_nodes, dimension;
 		src >> num_nodes >> dimension;
-		coords.Allocate(num_nodes, dimension);
+		coords.Dimension(num_nodes, dimension);
 		if (coords.Length() > 0) coords.ReadNumbered(src);
 		
 		return in2.good() ? kOK : kFail;
@@ -302,7 +302,7 @@ ModelFileT::StatusT ModelFileT::PutElementSet(int ID, const iArray2DT& set)
 		/* store set info */
 		int dim = fElementID.MajorDim();
 		if (dim == 0)
-			fElementID.Allocate(1, 3);
+			fElementID.Dimension(1, 3);
 		else
 			fElementID.Resize(dim + 1);
 		
@@ -342,7 +342,7 @@ ModelFileT::StatusT ModelFileT::GetElementSetID(iArrayT& ID) const
 		return kFail;
 	else
 	{
-		ID.Allocate(fElementID.MajorDim());
+		ID.Dimension(fElementID.MajorDim());
 		if (fElementID.MajorDim() > 0)
 		  fElementID.ColumnCopy(0, ID);
 		return kOK;
@@ -393,7 +393,7 @@ ModelFileT::StatusT ModelFileT::GetElementSet(int ID, iArray2DT& set) const
 				return kFail;
 			}
 			
-			set.Allocate(num_elements, num_element_nodes);
+			set.Dimension(num_elements, num_element_nodes);
 			if (set.Length() > 0) set.ReadNumbered(src);
 		
 			return src.good() ? kOK : kFail;
@@ -417,7 +417,7 @@ ModelFileT::StatusT ModelFileT::PutNodeSet(int ID, const iArrayT& set)
 		/* store set info */
 		int dim = fNodeSetID.MajorDim();
 		if (dim == 0)
-			fNodeSetID.Allocate(1, 2);
+			fNodeSetID.Dimension(1, 2);
 		else
 			fNodeSetID.Resize(dim + 1);
 			
@@ -457,7 +457,7 @@ ModelFileT::StatusT ModelFileT::GetNodeSetID(iArrayT& ID) const
 	else
 	{
 		int num_sets = fNodeSetID.MajorDim();
-		ID.Allocate(num_sets);
+		ID.Dimension(num_sets);
 		if (num_sets > 0) fNodeSetID.ColumnCopy(0, ID);
 		return kOK;
 	}
@@ -508,7 +508,7 @@ cout << "\n ModelFileT::GetNodeSet: wrong mode or ID not found" << endl;
 				return kFail;
 			}
 			
-			set.Allocate(num_nodes);
+			set.Dimension(num_nodes);
 			if (set.Length() > 0) src >> set;
 		
 			return src.good() ? kOK : kFail;
@@ -533,7 +533,7 @@ ModelFileT::StatusT ModelFileT::GetNodeSets(const iArrayT& ID, iArrayT& set) con
 	}		
 
 	/* allocate */
-	set.Allocate(num_nodes);
+	set.Dimension(num_nodes);
 	iArrayT tmp_set;
 	int count = 0;
 	for (int j = 0; j < ID.Length(); j++)
@@ -565,7 +565,7 @@ ModelFileT::StatusT ModelFileT::PutSideSet(int ID, int element_set_ID,
 		/* store set info */
 		int dim = fSideSetID.MajorDim();
 		if (dim == 0)
-			fSideSetID.Allocate(1, 3);
+			fSideSetID.Dimension(1, 3);
 		else
 			fSideSetID.Resize(dim + 1);
 
@@ -606,7 +606,7 @@ ModelFileT::StatusT ModelFileT::GetSideSetID(iArrayT& ID) const
 	else
 	{
 		int num_sets = fSideSetID.MajorDim();
-		ID.Allocate(num_sets);
+		ID.Dimension(num_sets);
 		if (num_sets > 0) fSideSetID.ColumnCopy(0, ID);
 		return kOK;
 	}
@@ -657,7 +657,7 @@ ModelFileT::StatusT ModelFileT::GetSideSet(int ID, int& element_set_ID,
 				return kFail;
 			}
 			
-			set.Allocate(num_sides, 2);
+			set.Dimension(num_sides, 2);
 			if (set.Length() > 0) src >> set;
 		
 			return src.good() ? kOK : kFail;
@@ -754,12 +754,12 @@ ModelFileT::StatusT ModelFileT::GetInformation(void)
 		
 		int num_elem_sets;
 		in >> num_elem_sets;
-		fElementID.Allocate(num_elem_sets, 3);
+		fElementID.Dimension(num_elem_sets, 3);
 		if (fElementID.Length() > 0) in >> fElementID;
 
 		int num_node_sets;
 		in >> num_node_sets;
-		fNodeSetID.Allocate(num_node_sets, 2);
+		fNodeSetID.Dimension(num_node_sets, 2);
 		if (fNodeSetID.MajorDim() > 0)
 		{
 			iArrayT row(fNodeSetID.MinorDim());
@@ -774,7 +774,7 @@ ModelFileT::StatusT ModelFileT::GetInformation(void)
 
 		int num_side_sets;
 		in >> num_side_sets;
-		fSideSetID.Allocate(num_side_sets, 3);
+		fSideSetID.Dimension(num_side_sets, 3);
 		if (fSideSetID.MajorDim() > 0)
 		{
 			iArrayT row(fSideSetID.MinorDim());
@@ -918,7 +918,7 @@ ifstreamT& ModelFileT::OpenExternal(ifstreamT& in,  ifstreamT& in2,
 		if (!in2.is_open())
 		{
 			if (fail) cout << fail << ": " << file << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 
 		/* set comments */

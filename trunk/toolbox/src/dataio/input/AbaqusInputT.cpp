@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.cpp,v 1.13 2002-07-02 19:57:03 cjkimme Exp $ */
+/* $Id: AbaqusInputT.cpp,v 1.14 2002-10-20 22:36:54 paklein Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #include "AbaqusInputT.h"
@@ -42,25 +42,25 @@ void AbaqusInputT::Close (void)
 
 void AbaqusInputT::ElementGroupNames (ArrayT<StringT>& groupnames) const
 {
-  if (groupnames.Length() != fData.NumElementSets ()) throw eSizeMismatch;
+  if (groupnames.Length() != fData.NumElementSets ()) throw ExceptionT::kSizeMismatch;
   fData.ElementSetNames (groupnames);
 }
 
 void AbaqusInputT::NodeSetNames (ArrayT<StringT>& nodenames) const
 {
-  if (nodenames.Length() != fData.NumNodeSets ()) throw eSizeMismatch;
+  if (nodenames.Length() != fData.NumNodeSets ()) throw ExceptionT::kSizeMismatch;
   fData.NodeSetNames (nodenames);
 }
 
 void AbaqusInputT::ReadNodeID (iArrayT& node_id)
 {
-	if (node_id.Length() != fNumNodes) throw eSizeMismatch;
+	if (node_id.Length() != fNumNodes) throw ExceptionT::kSizeMismatch;
 	fData.NodeMap(node_id);
 }
 
 void AbaqusInputT::ReadCoordinates (dArray2DT& coords)
 {
-  if (coords.MajorDim() != fNumNodes) throw eSizeMismatch;
+  if (coords.MajorDim() != fNumNodes) throw ExceptionT::kSizeMismatch;
   fData.ResetFile ();
   
   dArrayT c;
@@ -78,7 +78,7 @@ void AbaqusInputT::ReadNodeSet (const StringT& name, iArrayT& nodes)
   if (nodes.Length() != NumNodesInSet (name)) 
     {
       fout << "\nAbaqusInputT::ReadNodeSet, array size mismatch\n";
-      throw eSizeMismatch;
+      throw ExceptionT::kSizeMismatch;
     }
   fData.NodeSet (name, nodes);
 
@@ -97,13 +97,13 @@ void AbaqusInputT::ReadCoordinates (dArray2DT& coords, iArrayT& node_id)
 
 void AbaqusInputT::ReadAllElementMap (iArrayT& elemmap)
 {
-  if (elemmap.Length() != fNumElements) throw eSizeMismatch;
+  if (elemmap.Length() != fNumElements) throw ExceptionT::kSizeMismatch;
   fData.ElementMap (elemmap);
 }
 
 void AbaqusInputT::ReadGlobalElementMap (const StringT& name, iArrayT& elemmap)
 {
-  if (elemmap.Length() != NumElements (name)) throw eSizeMismatch;
+  if (elemmap.Length() != NumElements (name)) throw ExceptionT::kSizeMismatch;
   fData.ElementSet (name, elemmap);
 }
 
@@ -145,7 +145,7 @@ void AbaqusInputT::ReadConnectivity (const StringT& name, iArray2DT& connects)
 	  fout << "AbaqusInputT::ReadConnectivity, geo code does not match\n";
 	  fout << "Group " << name << " firstcode = " << firstcode << " code= " << code;
 	  fout << "\nElement " << el << "\n\n";
-	  throw eDatabaseFail;
+	  throw ExceptionT::kDatabaseFail;
 	}
 
       //cout << n << endl;
@@ -168,7 +168,7 @@ void AbaqusInputT::ReadConnectivity (const StringT& name, iArray2DT& connects)
 void AbaqusInputT::ReadTimeSteps (dArrayT& steps)
 {
   int num = NumTimeSteps ();
-  if (steps.Length() != num) throw eSizeMismatch;
+  if (steps.Length() != num) throw ExceptionT::kSizeMismatch;
   
   int number;
   if (fNumModes > 0)
@@ -181,7 +181,7 @@ void AbaqusInputT::ReadTimeSteps (dArrayT& steps)
 
 void AbaqusInputT::ReadNodeLabels (ArrayT<StringT>& nlabels) const
 {
-  if (nlabels.Length() != NumNodeVariables()) throw eSizeMismatch;
+  if (nlabels.Length() != NumNodeVariables()) throw ExceptionT::kSizeMismatch;
 
   iArrayT keys (nlabels.Length());
   iArrayT dims (nlabels.Length());
@@ -191,7 +191,7 @@ void AbaqusInputT::ReadNodeLabels (ArrayT<StringT>& nlabels) const
 
 void AbaqusInputT::ReadElementLabels (ArrayT<StringT>& elabels) const
 {
-  if (elabels.Length() != NumElementVariables()) throw eSizeMismatch;
+  if (elabels.Length() != NumElementVariables()) throw ExceptionT::kSizeMismatch;
 
   iArrayT keys (elabels.Length());
   iArrayT dims (elabels.Length());
@@ -201,7 +201,7 @@ void AbaqusInputT::ReadElementLabels (ArrayT<StringT>& elabels) const
 
 void AbaqusInputT::ReadQuadratureLabels (ArrayT<StringT>& qlabels) const
 {
-  if (qlabels.Length() != NumQuadratureVariables()) throw eSizeMismatch;
+  if (qlabels.Length() != NumQuadratureVariables()) throw ExceptionT::kSizeMismatch;
 
   iArrayT keys (qlabels.Length());
   iArrayT dims (qlabels.Length());
@@ -211,19 +211,19 @@ void AbaqusInputT::ReadQuadratureLabels (ArrayT<StringT>& qlabels) const
 
 void AbaqusInputT::NodeVariablesUsed (const StringT& name, iArrayT& used)
 {
-  if (used.Length() != NumNodeVariables()) throw eSizeMismatch;
+  if (used.Length() != NumNodeVariables()) throw ExceptionT::kSizeMismatch;
   fData.VariablesUsed (name, AbaqusVariablesT::kNode, used);
 }
 
 void AbaqusInputT::ElementVariablesUsed (const StringT& name, iArrayT& used)
 { 
-  if (used.Length() != NumElementVariables()) throw eSizeMismatch;
+  if (used.Length() != NumElementVariables()) throw ExceptionT::kSizeMismatch;
   fData.VariablesUsed (name, AbaqusVariablesT::kElement, used);
 }
 
 void AbaqusInputT::QuadratureVariablesUsed (const StringT& name, iArrayT& used)
 { 
-  if (used.Length() != NumQuadratureVariables()) throw eSizeMismatch;
+  if (used.Length() != NumQuadratureVariables()) throw ExceptionT::kSizeMismatch;
   fData.VariablesUsed (name, AbaqusVariablesT::kQuadrature, used);
 }
 
@@ -261,7 +261,7 @@ void AbaqusInputT::ReadAllNodeVariables (int step, dArray2DT& values)
 {
   StringT name ("\0");
   int numv = NumNodeVariables ();
-  if (values.MinorDim() != numv) throw eSizeMismatch;
+  if (values.MinorDim() != numv) throw ExceptionT::kSizeMismatch;
   fData.ReadVariables (AbaqusVariablesT::kNode, step, values, name);
 }
 
@@ -284,7 +284,7 @@ void AbaqusInputT::ReadNodeVariables (int step, const StringT& elsetname, dArray
 void AbaqusInputT::ReadNodeSetVariables (int step, const StringT& nsetname, dArray2DT& values)
 {
   int numv = NumNodeVariables ();
-  if (values.MinorDim() != numv) throw eSizeMismatch;
+  if (values.MinorDim() != numv) throw ExceptionT::kSizeMismatch;
   fData.ReadVariables (AbaqusVariablesT::kNode, step, values, nsetname);
 }
 
@@ -322,14 +322,14 @@ void AbaqusInputT::ReadAllElementVariables (int step, dArray2DT& values)
 {
   StringT name ("\0");
   int numv = NumElementVariables ();
-  if (values.MinorDim() != numv) throw eSizeMismatch;
+  if (values.MinorDim() != numv) throw ExceptionT::kSizeMismatch;
   fData.ReadVariables (AbaqusVariablesT::kElement, step, values, name);
 }
 
 void AbaqusInputT::ReadElementVariables (int step, const StringT& name, dArray2DT& evalues)
 {
   int numv = NumElementVariables ();
-  if (evalues.MinorDim() != numv) throw eSizeMismatch;
+  if (evalues.MinorDim() != numv) throw ExceptionT::kSizeMismatch;
   fData.ReadVariables (AbaqusVariablesT::kElement, step, evalues, name);
 }
 
@@ -366,7 +366,7 @@ void AbaqusInputT::ReadQuadratureVariable (int step, const StringT& elsetname, i
 void AbaqusInputT::ReadAllQuadratureVariables (int step, dArray2DT& values)
 {
   int numv = NumQuadratureVariables ();
-  if (values.MinorDim() != numv) throw eSizeMismatch;
+  if (values.MinorDim() != numv) throw ExceptionT::kSizeMismatch;
   StringT name ("\0");
   fData.ReadVariables (AbaqusVariablesT::kQuadrature, step, values, name);
 }
@@ -374,7 +374,7 @@ void AbaqusInputT::ReadAllQuadratureVariables (int step, dArray2DT& values)
 void AbaqusInputT::ReadQuadratureVariables (int step, const StringT& name, dArray2DT& qvalues)
 {
   int numv = NumQuadratureVariables ();
-  if (qvalues.MinorDim() != numv) throw eSizeMismatch;
+  if (qvalues.MinorDim() != numv) throw ExceptionT::kSizeMismatch;
   fData.ReadVariables (AbaqusVariablesT::kQuadrature, step, qvalues, name);
 }
 
@@ -409,7 +409,7 @@ void AbaqusInputT::MapOffset (ArrayT<int>& set, const iArrayT& map) const
   for (int n=0; n < set.Length(); n++)
     {
       map.HasValue (set[n], index);
-      if (index < 0 || index >= map.Length()) throw eOutOfRange;
+      if (index < 0 || index >= map.Length()) throw ExceptionT::kOutOfRange;
       set[n] = index;
     }
 }
@@ -433,7 +433,7 @@ void AbaqusInputT::NodesUsed (const nArrayT<int>& connects, iArrayT& nodesused) 
 		node_map[connects[i] - min] = 1;
 
 	/* collect list */
-	nodesused.Allocate(node_map.Count(1));
+	nodesused.Dimension(node_map.Count(1));
 	int dex = 0;
 	int*  p = node_map.Pointer();
 	for (int j = 0; j < node_map.Length(); j++)
