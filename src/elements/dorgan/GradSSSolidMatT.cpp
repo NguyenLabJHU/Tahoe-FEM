@@ -1,4 +1,4 @@
-/* $Id: GradSSSolidMatT.cpp,v 1.3 2003-09-29 19:58:57 rdorgan Exp $ */
+/* $Id: GradSSSolidMatT.cpp,v 1.4 2003-10-08 21:04:46 rdorgan Exp $ */ 
 #include "GradSSSolidMatT.h"
 #include <iostream.h>
 #include "GradSSMatSupportT.h"
@@ -8,13 +8,13 @@ using namespace Tahoe;
 
 /* constructor */
 GradSSSolidMatT::GradSSSolidMatT(ifstreamT& in, const GradSSMatSupportT& support):
-	SSSolidMatT(in, support),
-	fGradSSMatSupport(support),
+        SSSolidMatT(in, support),
+        fGradSSMatSupport(support),
 
- 	fNumDOF_R(support.NumDOF_R()),
+        fNumDOF_R(support.NumDOF_R()),
         fNumDOF_Total(support.NumDOF() + fNumDOF_R),
 
-       	fNumIP_R(support.NumIP_R())
+        fNumIP_R(support.NumIP_R())
 {
 
 }
@@ -25,17 +25,17 @@ GradSSSolidMatT::~GradSSSolidMatT(void) { }
 /* initialization */
 void GradSSSolidMatT::Initialize(void)
 {
-	/* inherited */
-	SSSolidMatT::Initialize();
+        /* inherited */
+        SSSolidMatT::Initialize();
 }
 
 /* I/O */
 void GradSSSolidMatT::PrintName(ostream& out) const
 {
-	/* inherited */
-	SSSolidMatT::PrintName(out);
+        /* inherited */
+        SSSolidMatT::PrintName(out);
 	
-	out << "    Gradient Enhanced\n";
+        out << "    Gradient Enhanced\n";
 }
 
 /* isotropic hardening */
@@ -85,6 +85,6 @@ double& GradSSSolidMatT::LaplacianR_last(int ip)
 /* apply pre-conditions at the current time step */
 void GradSSSolidMatT::InitStep(void)
 {
-	/* inherited */
-	SSSolidMatT::InitStep();
+        /* inherited */
+        SSSolidMatT::InitStep();
 }
