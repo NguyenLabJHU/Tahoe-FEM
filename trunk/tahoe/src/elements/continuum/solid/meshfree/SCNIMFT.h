@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.19 2004-10-26 22:07:51 paklein Exp $ */
+/* $Id: SCNIMFT.h,v 1.20 2004-10-27 16:30:43 cjkimme Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -160,6 +160,9 @@ protected: /* for derived classes only */
 
 	/** assemble particle mass matrix into LHS of global equation system */
 	void AssembleParticleMass(const double rho);
+
+	/** transfers data from QHULL and computes any new data structures */
+	void InitializeVoronoiData(void);
 	
 	/** compute B matrices for strain smoothing/nodal integration */
 	virtual void ComputeBMatrices(void);
