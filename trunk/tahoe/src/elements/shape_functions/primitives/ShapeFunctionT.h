@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.2 2001-03-15 17:48:46 paklein Exp $ */
 /* created: paklein (06/26/1996)                                          */
 /* interface for element shape functions. controls domain representation  */
 /* and field representation and spatial derivatives. integration control  */
@@ -111,7 +111,7 @@ private:
 	dArray2DT fB_workspace;
 
 	/* local coordinates */
-const LocalArrayT& fCoords;
+	const LocalArrayT& fCoords;
 
 	/* global shape function derivatives */
 	dArrayT	fDet;	         // d(fCoords) = j d(parent domain)

@@ -1,4 +1,4 @@
-/* $Id: DomainIntegrationT.cpp,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
+/* $Id: DomainIntegrationT.cpp,v 1.2 2001-03-15 17:48:46 paklein Exp $ */
 /* created: paklein (09/04/1998)                                          */
 /* class to manage the parent domain including construction for           */
 /* shared parent domains, integration point iterations, and some          */
@@ -16,8 +16,8 @@ DomainIntegrationT::DomainIntegrationT(GeometryT::CodeT geometry_code, int numIP
 	fDeleteDomain(1),
 	frefCurrIP(0)
 {
-/* set parent geometry */
-fDomain = new ParentDomainT(geometry_code, fNumIP, numnodes);
+	/* set parent geometry */
+	fDomain = new ParentDomainT(geometry_code, fNumIP, numnodes);
 	if (!fDomain) throw eOutOfMemory;
 	
 	/* set parent domain shape functions and derivatives */
@@ -48,15 +48,15 @@ DomainIntegrationT::DomainIntegrationT(const DomainIntegrationT& link):
 /* destructor */
 DomainIntegrationT::~DomainIntegrationT(void)
 {
-if (fDeleteDomain) delete fDomain;
+	if (fDeleteDomain) delete fDomain;
 
-/* surface shapefunctions */
-for (int i = 0; i < fSurfShapes.Length(); i++)
-	if (fDelete[i] == 1)
-	{
-		delete fSurfShapes[i];
-		fSurfShapes[i] = NULL;
-	}
+	/* surface shapefunctions */
+	for (int i = 0; i < fSurfShapes.Length(); i++)
+		if (fDelete[i] == 1)
+		{
+			delete fSurfShapes[i];
+			fSurfShapes[i] = NULL;
+		}
 }
 
 /* set all local parameters */
