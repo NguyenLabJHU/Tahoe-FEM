@@ -1,4 +1,4 @@
-/* $Id: ParameterUtils.cpp,v 1.9 2004-07-22 21:06:43 paklein Exp $ */
+/* $Id: ParameterUtils.cpp,v 1.10 2004-12-01 02:01:16 cjkimme Exp $ */
 #include "ParameterUtils.h"
 
 using namespace Tahoe;
@@ -164,7 +164,7 @@ void VectorParameterT::DefineParameters(ParameterListT& list) const
 		StringT v = "v_";
 		v[0] = fVariable;
 		v.Append(i+1);
-		ParameterT v_i = ParameterT(ParameterT::Double, v);
+		ParameterT v_i(ParameterT::Double, v);
 		v_i.SetDefault(0.0);
 		list.AddParameter(v_i);
 	}
@@ -276,7 +276,7 @@ void MatrixParameterT::DefineParameters(ParameterListT& list) const
 			A[0] = fVariable;
 			A.Append(j+1);
 			A.Append("_", i+1);
-			ParameterT A_ji = ParameterT(ParameterT::Double, A);
+			ParameterT A_ji(ParameterT::Double, A);
 			A_ji.SetDefault(0.0);
 			list.AddParameter(A_ji);
 		}
