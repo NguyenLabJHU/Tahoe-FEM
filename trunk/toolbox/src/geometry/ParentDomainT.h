@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.h,v 1.17 2005-01-24 06:58:17 paklein Exp $ */
+/* $Id: ParentDomainT.h,v 1.18 2005-01-26 19:55:26 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #ifndef _PARENT_DOMAIN_T_H_
 #define _PARENT_DOMAIN_T_H_
@@ -236,6 +236,19 @@ class ParentDomainT
 	 * \param coords coordinates of the domain nodes
 	 * \param avg returns with the coordinate average */
 	double AverageRadius(const LocalArrayT& coords, dArrayT& avg) const;
+
+	/** \name nodal subdomains, see GeometryBaseT for more information */
+	/*@{*/
+	/** subdomain geometry */
+	GeometryT::CodeT NodalSubDomainGeometry(void) const;
+
+	/** number of nodes defining the nodal subdomain */
+	int NodalSubDomainNumPoints(void) const;
+	
+	/** compute the coordinates of the points defining the nodal subdomain */
+	void NodalSubDomainCoordinates(const LocalArrayT& coords, int node,
+		LocalArrayT& subdomain_coords) const;
+	/*@}*/
 	
   private:
 
@@ -366,6 +379,22 @@ inline bool ParentDomainT::PointInDomain(const LocalArrayT& coords, const dArray
 inline int ParentDomainT::IPDomain(const dArrayT& coords) const {
 	return fGeometry->IPDomain(fNumIP, coords);
 }
+
+/* subdomain geometry */
+inline GeometryT::CodeT ParentDomainT::NodalSubDomainGeometry(void) const {
+	return fGeometry->NodalSubDomainGeometry();
+}
+
+/* number of nodes defining the nodal subdomain */
+inline int ParentDomainT::NodalSubDomainNumPoints(void) const {
+	return fGeometry->NodalSubDomainNumPoints();
+}
+	
+/* compute the coordinates of the points defining the nodal subdomain */
+inline void ParentDomainT::NodalSubDomainCoordinates(const LocalArrayT& coords, int node,
+	LocalArrayT& subdomain_coords) const {
+	fGeometry->NodalSubDomainCoordinates(coords, node, subdomain_coords);
+}	
 
 } /* namespace Tahoe */
 
