@@ -120,7 +120,7 @@ void VoronoiDiagramT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, Ragged
 	        ExceptionT::GeneralFail(caller,"Requires the QHull library\n");
 #else 
 
-		fVoronoi = new CompGeomT(fNodalCoordinates);
+		fVoronoi = new CompGeomT(*fNodalCoordinates);
 		fVoronoi->ComputeVoronoiDiagram(); 
 		
 		// Determine which cells are clipped by the boundary
@@ -171,7 +171,7 @@ void VoronoiDiagramT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, Ragged
 	const RaggedArray2DT<int>& nodeSupport = fNodalShapes->NodeNeighbors();
 	cellVolumes.Alias(fVoronoiCellVolumes);
 	
-	int nNodes = fNodalCoordinates.MajorDim();
+	int nNodes = fNodalCoordinates->MajorDim();
 	
 	ArrayT< LinkedListT<int> > nodeWorkSpace; 
 	ArrayT< LinkedListT<dArrayT> > facetWorkSpace; 
@@ -186,7 +186,7 @@ void VoronoiDiagramT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, Ragged
 	double zeroSingle = 0.;
 	zeroFacet = 0.0;
 	for (int i = 0; i < nNodes; i++) {
-		int node_i = fNodes[i];
+		int node_i = (*fNodes)[i];
 		int l_supp_i = nodeSupport.MinorDim(node_i);
 		iArrayT supp_i(l_supp_i);
 		supp_i.Copy(nodeSupport(node_i));
@@ -218,7 +218,7 @@ void VoronoiDiagramT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, Ragged
 		n_0 = fDeloneEdges(i,0);
 		n_1 = fDeloneEdges(i,1); 
 		
-		facetNormal.DiffOf(fNodalCoordinates(n_1), fNodalCoordinates(n_0));
+		facetNormal.DiffOf((*fNodalCoordinates)(n_1), (*fNodalCoordinates)(n_0));
 		facetNormal.UnitVector();
 
 		/* copy face coordinates with local ordering */
@@ -546,8 +546,8 @@ void VoronoiDiagramT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, Ragged
 		// calculate Psi/R terms. These are evaluated nodally, so this additional loop
 		// is required
 		dArrayT phis, nodal_init_coords;
-		for (int i = 0; i < fNodalCoordinates.MajorDim(); i++) {
-			nodal_init_coords.Set(nsd, fNodalCoordinates(i)); // This is the nodal coordinate.
+		for (int i = 0; i < fNodalCoordinates->MajorDim(); i++) {
+			nodal_init_coords.Alias(nsd, (*fNodalCoordinates)(i)); // This is the nodal coordinate.
 			double R_i = nodal_init_coords[0];
 			
 			if (R_i >! kSmall)
@@ -661,7 +661,7 @@ void VoronoiDiagramT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, Ragged
 void VoronoiDiagramT::VoronoiDiagramToFile(ofstreamT& vout)
 {
 	
-	int nNodes = fNodalCoordinates.MajorDim();
+	int nNodes = fNodalCoordinates->MajorDim();
     int nVertices = fVoronoiVertices.MajorDim();
     int nSD = fVoronoiVertices.MinorDim();
 
@@ -740,13 +740,13 @@ void VoronoiDiagramT::VoronoiDiagramFromFile(ifstreamT& vin)
     vin >> nNodes;
     
     /* minor consistency checks */
-    if (nNodes != fNodalCoordinates.MajorDim()) {
+    if (nNodes != fNodalCoordinates->MajorDim()) {
 		vin.close();
 		ExceptionT::GeneralFail(caller,"Input Voronoi file does not match node number\n");
     }
     
     vin >> nSD;
-    if (nSD != fNodalCoordinates.MinorDim()) {
+    if (nSD != fNodalCoordinates->MinorDim()) {
 		vin.close();
 		ExceptionT::GeneralFail(caller,"Input Voronoi file does not match SD\n");
     }
