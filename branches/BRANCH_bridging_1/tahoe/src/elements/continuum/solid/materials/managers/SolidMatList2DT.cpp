@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.32 2003-02-05 02:38:27 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.32.2.1 2003-02-19 01:16:19 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 #include "fstreamT.h"
@@ -19,7 +19,7 @@
 #ifdef CAUCHY_BORN_MATERIAL
 #include "EAMFCC2D.h"
 #include "LJTr2D.h"
-#include "LJFCC111.h"
+#include "Hex2D.h"
 #endif
 
 #ifdef MODCBSW_MATERIAL
@@ -240,13 +240,13 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				ExceptionT::BadInputValue(caller, "CAUCHY_BORN_MATERIAL not enabled: %d", matcode);
 #endif
 			}
-			case kLJFCC111:
+			case kHex2D:
 			{
 #ifdef CAUCHY_BORN_MATERIAL
 				/* check */
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
 
-				fArray[matnum] = new LJFCC111(in, *fFSMatSupport);
+				fArray[matnum] = new Hex2D(in, *fFSMatSupport);
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CAUCHY_BORN_MATERIAL not enabled: %d", matcode);

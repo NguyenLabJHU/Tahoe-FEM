@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.29 2003-01-31 10:00:33 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.29.2.1 2003-02-19 01:16:19 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 #include "fstreamT.h"
@@ -121,7 +121,7 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		switch (matcode)
 		{
 			case kLJTr2D:
-			case kLJFCC111:
+			case kHex2D:
 			{
 				ExceptionT::BadInputValue(caller, "material is 2D only: %d", matcode);
 			}

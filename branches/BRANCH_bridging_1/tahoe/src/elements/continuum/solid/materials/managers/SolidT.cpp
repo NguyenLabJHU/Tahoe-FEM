@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.22 2003-01-29 07:34:58 paklein Exp $ */
+/* $Id: SolidT.cpp,v 1.22.2.1 2003-02-19 01:16:19 paklein Exp $ */
 /* created: paklein (03/10/2001) */
 #include "SolidT.h"
 
@@ -50,8 +50,8 @@ istream& operator>>(istream& in, SolidT::TypeT& code)
 		case SolidT::kLJTr2D:
 			code = SolidT::kLJTr2D;
 			break;
-		case SolidT::kLJFCC111:
-			code = SolidT::kLJFCC111;
+		case SolidT::kHex2D:
+			code = SolidT::kHex2D;
 			break;
 		case SolidT::kmodCauchyBornDC:
 			code = SolidT::kmodCauchyBornDC;
