@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.h,v 1.6 2002-12-09 01:50:06 creigh Exp $ */ 
+/* $Id: StaggeredMultiScaleT.h,v 1.7 2002-12-13 02:40:49 paklein Exp $ */ 
 #ifndef _STAGGERED_MULTISCALE_T_H_ 
 #define _STAGGERED_MULTISCALE_T_H_ 
 //DEVELOPMENT
@@ -128,11 +128,11 @@ private:
 
 	/** \name element displacements in local ordering */
 	/*@{*/
-	LocalArrayT ua;     /**< coarse scale displacement */
-	LocalArrayT ua_n; 	/**< coarse scale displacement from previous increment */
+	LocalArrayT ua;     /**< fine scale displacement */
+	LocalArrayT ua_n; 	/**< fine scale displacement from previous increment */
 	LocalArrayT del_ua; /**< the Newton-R update i.e. del_ua = ua - ua_n (ua subcript n+1 implied) */
-	LocalArrayT ub;     /**< fine scale displacement */
-	LocalArrayT ub_n; 	/**< fine scale displacement from previous increment */
+	LocalArrayT ub;     /**< coarse scale displacement */
+	LocalArrayT ub_n; 	/**< coarse scale displacement from previous increment */
 	LocalArrayT del_ub; /**< the Newton-R update i.e. del_ub = ub - ub_n (ub subcript n+1 implied) */
 	dArrayT			del_ua_vec;  	/** need in vector for i.e. { {ua1_1,ua1_2},{ua2_1,ua2_2}, ... } */
 	dArrayT			del_ub_vec;		/** need in vector for i.e. { {ub1_1,ub1_2},{ub2_1,ub2_2}, ... } */
