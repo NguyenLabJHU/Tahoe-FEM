@@ -9,6 +9,8 @@
 #include "ArrayT.h"
 #include "dArrayT.h"
 #include "Array2DT.h"
+#include "ofstreamT.h"
+#include "StringT.h"
 
 
 namespace Tahoe {
@@ -65,7 +67,8 @@ class LatticeOrient
   ArrayT<dArrayT> fAngles;
 
   // stream to output texture data
-  ofstream fTextOut;
+  ofstreamT fTextOut;
+  StringT   fOutFilename;
 };
 
 } // namespace Tahoe 

@@ -4,7 +4,6 @@
 
 #include "LatticeOrient.h"
 #include "PolyCrystalMatT.h"
-#include "StringT.h"
 #include "Array2DT.h"
 #include "dArray2DT.h"
 #include "dMatrixT.h"
@@ -33,20 +32,23 @@ LatticeOrient::LatticeOrient(PolyCrystalMatT& poly)
   ifstreamT& input = OpenExternal(in, tmp, "LatticeOrient data");
 
   // ouput file for texture data
-  StringT outfilename;
-  outfilename.Root(input.filename());
+  fOutFilename.Root(input.filename());
   if (poly.Size() > 1) 
     {
-      outfilename.Append(".n", poly.Size());
-      outfilename.Append(".p", poly.Rank());
+      fOutFilename.Append(".n", poly.Size());
+      fOutFilename.Append(".p", poly.Rank());
     }
-  outfilename.Append(".dat");
-  fTextOut.open(outfilename);
+  fOutFilename.Append(".dat");
+  fTextOut.open(fOutFilename);
   SetStreamPrefs(fTextOut);
 
   // read/write initial texture
   ReadTexture(input, numgrain);
   //WriteTexture(-1, -1, -1, fNumAngle, 0, fAngles);
+
+  // close input texture file
+  input.close();
+  fTextOut.close();
 }
 
 LatticeOrient::~LatticeOrient() {}
@@ -98,10 +100,10 @@ void LatticeOrient::AssignEulerAngles(int kcode, int nelem, int nint,
     }
 
     // print initial assigned orientations
-    fTextOut << "\nINITIAL ASSIGNED ORIENTATIONS " << endl;
-    fTextOut << "   ang1      ang2      ang3    elem   intpt   ngrn " << endl;
+    // fTextOut << "\nINITIAL ASSIGNED ORIENTATIONS " << endl;
+    // fTextOut << "   ang1      ang2      ang3    elem   intpt   ngrn " << endl;
   
-    for (int ie = 0; ie < nelem; ie++)
+    /*for (int ie = 0; ie < nelem; ie++)
       for (int ip = 0; ip < nint; ip++)
         for (int ig = 0; ig < ngrn; ig++)
           {
@@ -111,11 +113,16 @@ void LatticeOrient::AssignEulerAngles(int kcode, int nelem, int nint,
                       << angles[2]/pi180 << "    " 
                       << ie << "   " << ip << "   " << ig << endl;
           }   
+    */
 }
 
 void LatticeOrient::WriteTexture(int group, int elem, int intpt, int ngrn,
                                  int step, const ArrayT<dArrayT>& angle)
 {
+  // open output file for texture
+  fTextOut.open_append(fOutFilename);
+  SetStreamPrefs(fTextOut);
+
   // output heading
   if (elem == 0 && intpt == 0) {
      fTextOut << "\nEULER ANGLES AT STEP # " << step << endl;
@@ -133,6 +140,9 @@ void LatticeOrient::WriteTexture(int group, int elem, int intpt, int ngrn,
                << group << "   " << elem << "   " << intpt << "   " 
                << ngrn << endl;
     }  
+
+  // close file
+  fTextOut.close();
 }
 
 void LatticeOrient::AnglesToRotMatrix(const dArrayT& angle, dMatrixT& C) const 
