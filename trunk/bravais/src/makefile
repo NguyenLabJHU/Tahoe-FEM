@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2003-01-08 00:28:13 saubry Exp $
+# $Id: makefile,v 1.7 2003-06-06 23:16:03 saubry Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -12,6 +12,7 @@ OBJ = \
 	VolumeT.o \
 	CrystalLatticeT.o \
 	BoxT.o \
+	AsperityT.o \
 	CUBT.o \
 	FCCT.o \
 	BCCT.o \
@@ -35,6 +36,7 @@ SRC = \
 	VolumeT.cpp \
         CrystalLatticeT.cpp \
         BoxT.cpp \
+	AsperityT.cpp \
 	CUBT.cpp \
 	FCCT.cpp \
 	BCCT.cpp \
@@ -47,7 +49,19 @@ SRC = \
 # headers
 HDR = \
 	PeriodicTableT.h \
-	PerTabEntryT.h 
+	PerTabEntryT.h \
+	VolumeT.h \
+        CrystalLatticeT.h \
+        BoxT.h \
+	AsperityT.h \
+	CUBT.h \
+	FCCT.h \
+	BCCT.h \
+	DIAT.h \
+	HEXT.h \
+	OutPutLatticeT.h \
+	MeshAtom.h \
+	MakeCrystalT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
