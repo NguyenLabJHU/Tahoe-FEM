@@ -63,7 +63,7 @@ BLAS = -L/apps/blas -lblas
 # CLFL = -lf90 -lF77 -lm
 
 ## for Intel compilers
-CLFL = -lIEPCF90 -lF90
+CLFL = -L/apps/intel/fce_80/lib -lifport -lifcore
 # --------------------- External libraries    -------------------------
 ## for SGI Origin 
 # EXTLIB = -lmpi
@@ -71,8 +71,8 @@ CLFL = -lIEPCF90 -lF90
 # ---------------------------------------------------------------------
 
 INCLUDE_DIR = -I.
-PSPASESDIR = ../CPSPASES
-PSPASESLIB = cpspases
+PSPASESDIR = ../PSPASES
+PSPASESLIB = pspases
 PARMETISDIR = ../parMetis
 METISDIR = ../metis
 LIB_DIR = -L$(METISDIR) -L$(PARMETISDIR) -L$(PSPASESDIR)

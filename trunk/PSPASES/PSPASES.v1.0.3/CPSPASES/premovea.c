@@ -1,4 +1,4 @@
-/* $Id: premovea.c,v 1.4 2004-12-30 00:19:54 paklein Exp $ */
+/* $Id: premovea.c,v 1.5 2004-12-30 23:15:11 paklein Exp $ */
 /* premovea.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -60,7 +60,7 @@ static integer c__0 = 0;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: premovea.c,v 1.4 2004-12-30 00:19:54 paklein Exp $ +/ */
+/* /+ $Id: premovea.c,v 1.5 2004-12-30 23:15:11 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 static int max(int a, int b) {
 	return (a > b) ? a : b;
@@ -592,7 +592,7 @@ static integer lbit_shift(integer a, integer b) {
 	if (sizes[i__] <= 0) {
 	
 	if (*myid == 0) {
-		printf("%d: Cannot solve this problem on %d processors\n", *myid);
+		printf("%d: Cannot solve this problem on %d processors\n", *myid, *pp);
 		printf("%d: Reason: Zero size partition encountered. Probably the\n", *myid);
 		printf("%d: matrix is too small, or it has a block that is too dense\n", *myid);
 		printf("%d: to form required number of partitions\n", *myid);
