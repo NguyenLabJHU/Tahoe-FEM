@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.33 2002-12-11 23:13:17 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.34 2003-01-22 00:54:33 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -363,10 +363,9 @@ void CSEAnisoT::Initialize(void)
 /* Get state variables from ElementSupportT here */
 void CSEAnisoT::InitStep(void) 
 {
-	ElementSupportT* nonConstEST = const_cast<ElementSupportT*>(&(ElementSupport()));
 	
 	fStateVariables_last.Set(fStateVariables.MajorDim(),fStateVariables.MinorDim(),
-		nonConstEST->StateVariableArray());
+		ElementSupport().StateVariableArray());
 };
 #endif
 
@@ -612,11 +611,9 @@ void CSEAnisoT::RHSDriver(void)
 #endif
 	
 #ifdef _SIERRA_TEST_
-    /*Read in SIERRA's new state variables. We need their memory. */
-    ElementSupportT* nonConstEST = const_cast<ElementSupportT*>(&(ElementSupport()));
-	
+    /*Read in SIERRA's new state variables. We need their memory. */	
 	fStateVariables.Set(fStateVariables.MajorDim(),fStateVariables.MinorDim(),
-		nonConstEST->StateVariableArray());
+		ElementSupport().StateVariableArray());
 #endif
 
 	/* set state to start of current step */

@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.21 2002-12-11 23:13:17 cjkimme Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.22 2003-01-22 00:54:33 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -69,9 +69,7 @@ CSEBaseT::CSEBaseT(ElementSupportT& support):
 	fFractureArea(0.0),
 	fShapes(NULL)
 {
-	/*ElementSupportT is const here; cast it away */
-	ElementSupportT* nonConstEst = const_cast<ElementSupportT*>(&(ElementSupport()));
-	int i_code = nonConstEst->ReturnInputInt(ElementSupportT::kGeometryCode);
+	int i_code = ElementSupport().ReturnInputInt(ElementSupportT::kGeometryCode);
 	switch (i_code)
 	{
 		case GeometryT::kNone:
@@ -101,9 +99,9 @@ CSEBaseT::CSEBaseT(ElementSupportT& support):
 		default:
 			throw ExceptionT::kBadInputValue;	
 	}
-	fNumIntPts =  nonConstEst->ReturnInputInt(ElementSupportT::kNumIntPts);
-	fCloseSurfaces =  nonConstEst->ReturnInputInt(ElementSupportT::kCloseSurface);
-	fOutputArea =  nonConstEst->ReturnInputInt(ElementSupportT::kOutputArea);
+	fNumIntPts =  ElementSupport().ReturnInputInt(ElementSupportT::kNumIntPts);
+	fCloseSurfaces =  ElementSupport().ReturnInputInt(ElementSupportT::kCloseSurface);
+	fOutputArea =  ElementSupport().ReturnInputInt(ElementSupportT::kOutputArea);
 
 	/* checks */
 	if (NumSD() == 2 && fGeometryCode != GeometryT::kLine)
