@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.cpp,v 1.11 2003-04-17 17:31:28 cjkimme Exp $*/
+/*$Id: MR_RP2DT.cpp,v 1.12 2003-04-17 18:29:43 manzari Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
@@ -227,6 +227,12 @@ else
 		    normdup  = dup.Magnitude();
 		    dlam     = normdup;
 		    dlam    /= normflow;
+		    
+		    if (normdup <=kSmall) {
+		    fTraction[0] = state[0];
+		    fTraction[1] = state[1];
+		    return fTraction;
+		    }
 		    
 		/* calculate residuals */    
 		    for (i = 0; i<=1; ++i) {
@@ -589,7 +595,7 @@ dMatrixT& MR_RP2DT::dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& d
 }
 
 
-/* elastoplastic consistent tangent operator*/
+/* rigidplastic consistent tangent operator*/
 const dMatrixT& MR_RP2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
 {
 #pragma unused(sigma)
