@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.4 2002-10-23 05:03:29 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.5 2002-10-23 17:52:27 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -543,7 +543,7 @@ void AdhesionT::RHSDriver(void)
 					fRHS.AddScaled(dphi/d, fNEE_vec);
 					
 					/* integrate force on face */
-					double f = dphi/constKd/d;
+					double f =-dphi/constKd/d;
 					fFaceForce[s1].AddToRowScaled(i1, f, v_12);
 					fFaceForce[s2].AddToRowScaled(i2,-f, v_12);
 				}
