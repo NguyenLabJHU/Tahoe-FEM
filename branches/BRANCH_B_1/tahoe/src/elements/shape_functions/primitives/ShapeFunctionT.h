@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.13.2.1 2002-09-21 08:59:07 paklein Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.13.2.2 2002-09-23 06:28:31 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -125,32 +125,12 @@ public:
 	 *        dimensioned during the call: [nsd] x [num_modes] */
 	void TransformDerivatives(const dMatrixT& changeofvar, dArray2DT& derivatives);
 
-#if 0
-	/** set strain displacement matrix as in Hughes (2.8.20). If ShapeFunctionT::kMeanDilBbar
-	 * passed in during construction, the mean dilatations calculated with the last call to
-	 * ShapeFunctionT::SetMeanDilatation are used to compute B-bar using Hughes (4.5.11-16). */
-	void B(dMatrixT& B_matrix) const;
-
-	/** set strain displacement matrix as in Hughes (2.8.20). If ShapeFunctionT::kMeanDilBbar
-	 * passed in during construction, the mean dilatations calculated with the last call to
-	 * ShapeFunctionT::SetMeanDilatation are used to compute B-bar using Hughes (4.5.11-16).
-	 * \param derivatives shape function derivatives: [nsd] x [nnd] */
-	void B(const dArray2DT& derivatives, dMatrixT& B_matrix) const;
-#endif
-
 	/** shape function gradients matrix at the current integration point
 	 * as in Hughes (4.90) */
 	void GradNa(dMatrixT& grad_Na) const;
 
 	/** shape function gradients matrix as in Hughes (4.90) */
 	void GradNa(const dArray2DT& derivatives, dMatrixT& grad_Na) const;
-
-#if 0
-	//TEMP - need better way to support different types of
-	//       "strain"-"displacement" matrices
-	void B_q(dMatrixT& B_matrix) const;
-	void B_q(const dArray2DT& derivatives, dMatrixT& B_matrix) const;
-#endif
 
 /*******************************************/
 
