@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.18 2003-05-31 18:19:40 paklein Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.19 2003-08-08 00:32:26 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #ifndef _KBC_CONTROLLER_T_H_
@@ -41,7 +41,9 @@ public:
              kPrescribed = 6,
     kScaledVelocityNodes = 7,
           kSetOfNodesKBC = 8,
-                kTorsion = 9};
+                kTorsion = 9,
+               kConyevor = 10
+                };
 
 	/** constructor */
 	KBC_ControllerT(NodeManagerT& node_manager);
@@ -60,7 +62,7 @@ public:
 	virtual void WriteParameters(ostream& out) const;
 	
 	/** inform controller of external nodes */
-	virtual void SetExternalNodes(const iArrayT& ex_nodes) const;
+	virtual void SetExternalNodes(const ArrayT<int>& ex_nodes) const;
 
 	/** set to initial conditions */
 	virtual void InitialCondition(void) = 0;
@@ -169,7 +171,7 @@ inline void KBC_ControllerT::SetEquations(void)
 {
 }
 
-inline void KBC_ControllerT::SetExternalNodes(const iArrayT& ex_nodes) const
+inline void KBC_ControllerT::SetExternalNodes(const ArrayT<int>& ex_nodes) const
 {
 #pragma unused(ex_nodes)
 }
