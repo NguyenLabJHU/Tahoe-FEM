@@ -1,4 +1,4 @@
-/* $Id: SimoShapeFunctionT.h,v 1.2 2001-07-13 02:19:10 paklein Exp $ */
+/* $Id: SimoShapeFunctionT.h,v 1.3 2001-07-19 01:09:08 paklein Exp $ */
 
 #ifndef _SIMO_SHAPE_FUNCTION_T_H_
 #define _SIMO_SHAPE_FUNCTION_T_H_
@@ -27,6 +27,21 @@ public:
 	/** shape function gradients matrix associated with the enhanced 
 	 * modes, as in (4.18) at the current integration point */
 	void GradNa_enhanced(dMatrixT& grad_Na) const;
+
+	/** enhanced part of the field gradients at the current integration point.
+	 * This part of the deformation gradient is associated only with the
+	 * bubble enhancement.
+	 * \param nodal array of nodal values: [nnd] x [nu]
+	 * \param grad_U field gradient matrix: [nu] x [nsd] */
+	void GradU_enhanced(const LocalArrayT& nodal, dMatrixT& grad_U) const;
+
+	/** enhanced part of the field gradients at the specified integration point. 
+	 * This part of the deformation gradient is associated only with the
+	 * bubble enhancement.
+	 * \param nodal array of nodal values: [nnd] x [nu]
+	 * \param grad_U field gradient matrix: [nu] x [nsd] 
+	 * \param IPnumber integration point number */
+	void GradU_enhanced(const LocalArrayT& nodal, dMatrixT& grad_U, int IPnumber) const;
 
 	/** write shape function values to the output stream */
 	virtual void Print(ostream& out) const;
@@ -58,6 +73,21 @@ inline void SimoShapeFunctionT::GradNa_enhanced(dMatrixT& grad_Na) const
 {
 	/* inherited */
 	GradNa(fDNaX_bubble[fCurrIP], grad_Na);
+}
+
+/* enhanced part of the field gradients at the current integration point */
+inline void SimoShapeFunctionT::GradU_enhanced(const LocalArrayT& nodal, 
+	dMatrixT& grad_U) const
+{
+	/* computed  by parent domain */
+	fDomain->Jacobian(nodal, fDNaX_bubble[fCurrIP], grad_U);
+}
+
+inline void SimoShapeFunctionT::GradU_enhanced(const LocalArrayT& nodal, 
+	dMatrixT& grad_U, int IPnumber) const
+{
+	/* computed  by parent domain */
+	fDomain->Jacobian(nodal, fDNaX_bubble[IPnumber], grad_U);
 }
 
 #endif /* _SIMO_SHAPE_FUNCTION_T_H_ */
