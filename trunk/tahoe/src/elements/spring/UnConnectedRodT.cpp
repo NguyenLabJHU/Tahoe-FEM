@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.13 2003-11-21 22:47:27 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.14 2004-01-05 07:19:56 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 
 #include "UnConnectedRodT.h"
@@ -38,7 +38,7 @@ void UnConnectedRodT::InitStep(void)
 }
 
 /* resets to the last converged solution */
-void UnConnectedRodT::ResetStep(void)
+GlobalT::RelaxCodeT UnConnectedRodT::ResetStep(void)
 {
 	/* pre-condition */
 	fReconnectCount--;
@@ -46,6 +46,9 @@ void UnConnectedRodT::ResetStep(void)
 		// condition implies that equilibrium could not be
 		// established with a reconnected system for which
 		// there is no last converged solution to go back to
+
+	/* inherited */
+	return RodT::ResetStep();
 }
 
 /* element level reconfiguration for the current solution */
