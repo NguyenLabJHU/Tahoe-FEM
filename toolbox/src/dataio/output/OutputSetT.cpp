@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.cpp,v 1.21 2003-11-21 22:41:49 paklein Exp $ */
+/* $Id: OutputSetT.cpp,v 1.22 2003-12-01 23:51:43 cjkimme Exp $ */
 /* created: paklein (03/07/2000) */
 #include "OutputSetT.h"
 #include "iArrayT.h"
@@ -89,6 +89,57 @@ OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
 	fChanging = changing;
 }
 
+OutputSetT::OutputSetT(GeometryT::CodeT geometry_code,
+		       const ArrayT<StringT>& block_ID, const ArrayT<StringT>& sideset_ID,
+	const ArrayT<const iArray2DT*>& connectivities, 
+	const ArrayT<StringT>& n_labels, 
+	const ArrayT<StringT>& e_labels, bool changing):
+	fMode(kElementFromSideSet),
+	fPrintStep(-1),
+	fID("1"), /* dummy ID */
+	fChanging(changing),
+	fGeometry(geometry_code),
+	fBlockID(block_ID),
+	fSSID(sideset_ID),
+	fConnectivities(connectivities),
+	fBlockNodesUsed(fConnectivities.Length()),
+	fBlockIndexToSetIndexMap(fConnectivities.Length())
+{
+
+ cout << " fSSID Length is " << SideSetID().Length()  <<  "\n"; 
+
+	if (fConnectivities.Length() != fBlockID.Length() &&
+		fBlockID.Length() != fSSID.Length()) 
+	  {
+	    cout << "\n\nOutputSetT::OutputSetT size mismatch: \n";
+	    cout << " fConnectivities.Length = " << fConnectivities.Length();
+	    cout << "\n    fBlockID.Length = " << fBlockID.Length();
+	    cout << "\n    fSSID.Length = " << fSSID.Length() << endl;
+	    throw ExceptionT::kSizeMismatch;
+	  }
+
+	fNodeOutputLabels.Dimension(n_labels.Length());
+	for (int i = 0; i < fNodeOutputLabels.Length(); i++)
+	  {
+		fNodeOutputLabels[i] = n_labels[i];
+		fNodeOutputLabels[i].Replace (' ', '_');
+	  }
+
+	fElementOutputLabels.Dimension(e_labels.Length());
+	for (int j = 0; j < fElementOutputLabels.Length(); j++)
+	  {
+		fElementOutputLabels[j] = e_labels[j];
+		fElementOutputLabels[j].Replace (' ', '_');
+	  }
+
+	/* set the nodes used array */
+	fChanging = true; // force calculation of nodes used
+	NodesUsed();
+	for (int i = 0; i < fConnectivities.Length(); i++)
+		BlockNodesUsed(fBlockID[i]);
+	fChanging = changing; // reset
+}
+
 OutputSetT::OutputSetT(const OutputSetT& source):
 	fMode(source.fMode),
 	fPrintStep(-1),
@@ -96,6 +147,7 @@ OutputSetT::OutputSetT(const OutputSetT& source):
 	fChanging(source.fChanging),
 	fGeometry(source.fGeometry),
 	fBlockID(source.fBlockID),
+        fSSID(source.fSSID),
 	fConnectivities(source.NumBlocks()),
 	fNodesUsed(source.fNodesUsed),
 	fBlockNodesUsed(fConnectivities.Length()),
@@ -236,7 +288,7 @@ void OutputSetT::SetNodesUsed(const ArrayT<const iArray2DT*>& connects_list,
 * Private
 *************************************************************************/
 
-/* returns the index for the element block for the given */
+/* returns the index for the element block for the given ID */
 int OutputSetT::BlockIndex(const StringT& ID) const
 {
 	if (fMode == kFreeSet)
@@ -255,3 +307,23 @@ int OutputSetT::BlockIndex(const StringT& ID) const
 		return index;
 	}
 }
+
+/* returns the index for the side set for the given ID */
+/*int OutputSetT::SideSetIndex(const StringT& ID) const
+{
+	if (fMode == kFreeSet || fMode == kElementBlock)
+		return 0;
+	else
+	{
+		int index = -1;
+		for (int i = 0; index == -1 && i < fSSID.Length(); i++)
+			if (fSSID[i] == ID)
+				index = i;
+
+		if (index == -1) {
+			cout << "\n OutputSetT::SideSetIndex: side set ID not found: " << ID << endl;
+			throw ExceptionT::kGeneralFail;
+		}
+		return index;
+	}
+}*/

@@ -1,4 +1,4 @@
-/* $Id: OutputSetT.h,v 1.18 2003-11-21 22:41:49 paklein Exp $ */
+/* $Id: OutputSetT.h,v 1.19 2003-12-01 23:51:43 cjkimme Exp $ */
 /* created: paklein (03/07/2000) */
 
 #ifndef _OUTPUTSET_T_H_
@@ -38,7 +38,7 @@ class iArray2DT;
  * for use by the output formatter, not the class sending the data for
  * output. 
  *
- * There are two modes for output sets, denoted by the OutputSetT::ModeT
+ * There are three modes for output sets, denoted by the OutputSetT::ModeT
  * enum:
  * - OutputSetT::kElementBlock - data written over element blocks defined
  *     in the global geometry database. Both nodal and element output is
@@ -47,6 +47,9 @@ class iArray2DT;
  * - OutputSetT::kFreeSet - data written over an arbitrary set of nodes.
  *     Only nodal output is supported in this mode since no map from local
  *     to global elements is available in the PartitionT files.
+ * - OutputSetT::kElementFromSideSet - data written over element blocks not
+ *     defined in the global geometry database but derived from a sideset
+ *     of a specific element block that IS in the global geometry database
  */
 class OutputSetT
 {
@@ -55,7 +58,8 @@ public:
 	/** set mode */
 	enum ModeT {kElementBlock = 0, /**< writing data over element blocks defined in the
 	                                * global geometry file */
-	            kFreeSet = 1 /**< writing data over arbitrary sets of nodes */
+	            kFreeSet = 1, /**< writing data over arbitrary sets of nodes */
+	            kElementFromSideSet = 2 /**< writing data over element blocks created from side sets */
 	            };
 
 	/** generate output data record.
@@ -90,6 +94,29 @@ public:
 	 *        from output step to output step. */
 	OutputSetT(GeometryT::CodeT geometry_code,
 		const iArray2DT& connectivities, const ArrayT<StringT>& n_labels, bool changing = false);
+
+
+	/** generate output data record.
+	 * \param geometry_code GeometryT::CodeT defining the geometry associated
+	 *        with the connectivities.
+	 * \param block_ID list of element block ID's. Presumably, these are NOT 
+	 *        in the global geometry database.
+	 * \param sideset_ID list of side set IDs that, presumably, ARE in the global
+	 *        geometry database
+	 * \param connectivities elements over which data will be written. The
+	 *        output formatters retain a reference to these connectivities
+	 *        for use during output. These connectivities are not copied.
+	 * \param n_labels list of labels for the nodal variables. The length of
+	 *        this list defines the number of nodal output variables.
+	 * \param e_labels list of labels for the element variables. The length of
+	 *        this list defines the number of element output variables.
+	 * \param changing flag to indicate whether the connectivities may change
+	 *        from output step to output step. */
+	OutputSetT(GeometryT::CodeT geometry_code,
+		const ArrayT<StringT>& block_ID, const ArrayT<StringT>& sideset_ID,
+		const ArrayT<const iArray2DT*>& connectivities, 
+		const ArrayT<StringT>& n_labels, const ArrayT<StringT>& e_labels, 
+		bool changing);
 
 	/** copy constructor */
 	OutputSetT(const OutputSetT& source);
@@ -130,8 +157,14 @@ public:
 	/** return the list of element block ID's used by the set */
 	const ArrayT<StringT>& BlockID(void) const { return fBlockID; };
 	
+	/** return the list of side set ID's used by the set */
+	const ArrayT<StringT>& SideSetID(void) const { return fSSID; };
+	
 	/** return the ID of the specified block */
 	const StringT& BlockID(int index) const;
+	
+	/** return the ID of the specified side set */
+	const StringT& SideSetID(int index) const;
 
 	/** return a pointer to the connectivities for the specified block */
 	const iArray2DT* Connectivities(const StringT& ID) const;
@@ -199,6 +232,9 @@ private:
 	/** pointers to the connectivity data */
 	ArrayT<const iArray2DT*> fConnectivities;
 	
+	/** list of ID's for the side sets of each element block */
+	ArrayT<StringT> fSSID;
+	
 	/** labels for nodal output variables */
 	ArrayT<StringT> fNodeOutputLabels;
 
@@ -255,6 +291,18 @@ inline const StringT& OutputSetT::BlockID(int index) const
 	return fBlockID[index];
 
 }
+
+/* return the ID of the specified side set */
+inline const StringT& OutputSetT::SideSetID(int index) const
+{
+	if (index < 0 || index >= fSSID.Length()) {
+		cout << "\n OutputSetT::SideSetID: index out of range: " << index << endl;
+		throw ExceptionT::kOutOfRange;
+	}
+	return fSSID[index];
+
+}
+
 
 } // namespace Tahoe 
 #endif /* _OUTPUTSET_T_H_ */
