@@ -1,4 +1,4 @@
-/* $Id: InputBaseT.h,v 1.3 2001-08-07 23:11:54 paklein Exp $ */
+/* $Id: InputBaseT.h,v 1.4 2001-09-04 14:46:38 sawimme Exp $ */
 /* created: sawimme (08/12/1999) */
 
 #ifndef _INPUTBASE_T_H_
@@ -20,7 +20,7 @@ class ModelManagerT;
 
 /** derived classes must:\n
  * 1. offset connectivity to start node numbering at zero\n
- * 2. consecutively number elements within a group\n
+ * 2. consecutively number elements\n
  * 3. consecutively number coordinates\n
  * 4. offset node sets to start node numbering at zero\n
  * 5. offset side sets to start element and facet numbering at zero\n
@@ -29,7 +29,7 @@ class ModelManagerT;
  * 8. Connectivity uses offset global consecutive node numbering.\n
  * 9. The derived class must check dimension arrays before setting arrays.\n
  *10. ReadVariable functions return node values for all nodes
- *        not just nodes used by a particular element group.\n
+ *        or nodes in node set or just nodes used by an element group.\n
  *11. ReadVariable functions return only elements in group for element
  *        and quadrature data.\n
  *12. For ReadVariable functions, the step is an integer starting at zero,
@@ -46,81 +46,72 @@ public:
   virtual void Open (const StringT& filename) = 0;
   virtual void Close (void) = 0;
 
-  /* virtual with derived classes */
-  virtual void ElementGroupNames (ArrayT<StringT>& groupnames);
-  virtual void SideSetNames (ArrayT<StringT>& sidenames);
-  virtual void NodeSetNames (ArrayT<StringT>& nodenames);
+  /* return names, Array must be preallocated */
+  virtual void ElementGroupNames (ArrayT<StringT>& groupnames) const = 0;
+  virtual void SideSetNames (ArrayT<StringT>& sidenames) const = 0;
+  virtual void NodeSetNames (ArrayT<StringT>& nodenames) const = 0;
 
-  virtual int  NumElementGroups (void) = 0;
-  virtual int  NumSideSets (void) = 0;
-  virtual int  NumNodeSets (void) = 0;
+  /* return dimenesions */
+  virtual int  NumElementGroups (void) const = 0;
+  virtual int  NumSideSets (void) const = 0;
+  virtual int  NumNodeSets (void) const = 0;
 
-  virtual int  NumNodes (void) = 0;
-  virtual int  NumDimensions (void) = 0;
-  virtual void ReadNodeMap (iArrayT& nodemap) = 0;
+  /* NODES */
+  virtual int  NumNodes (void) const = 0;
+  virtual int  NumDimensions (void) const = 0; /* should return num dims to be used */
+  virtual void ReadNodeMap (iArrayT& nodemap) = 0; /* all nodes, not offset, can be discontinuous */
   virtual void ReadCoordinates (dArray2DT& coords) = 0;
   virtual void ReadCoordinates (dArray2DT& coords, iArrayT& nodemap) = 0;
 
-  virtual int  NumGlobalElements (void) = 0;
-  virtual int  NumElements (StringT& name);
-  virtual int  NumElementNodes (StringT& name);
-  virtual void ReadAllElementMap (iArrayT& elemmap) = 0;
-  virtual void ReadGlobalElementMap (StringT& name, iArrayT& elemmap);
-  virtual void ReadConnectivity (StringT& name, iArray2DT& connects);
-  virtual void ReadGeometryCode (StringT& name, GeometryT::CodeT& geocode);
+  /* ELEMENTS */
+  virtual int  NumGlobalElements (void) const = 0; /* for all element sets */
+  virtual int  NumElements (StringT& name) = 0; /* for the set specified */
+  virtual int  NumElementNodes (StringT& name) = 0; /* typically for the first element in the set */
+  virtual void ReadAllElementMap (iArrayT& elemmap) = 0; /* all elements, not offset, can be discontinuous */
+  virtual void ReadGlobalElementMap (StringT& name, iArrayT& elemmap) = 0; /* set elements, not offset, can be discontinuous */
+  virtual void ReadGlobalElementSet (StringT& name, iArrayT& set) = 0; /* offset, continuous */
+  virtual void ReadConnectivity (StringT& name, iArray2DT& connects) = 0; /* offset nodes, continuous */
+  virtual void ReadGeometryCode (StringT& name, GeometryT::CodeT& geocode) = 0;
 
-  virtual int  NumNodesInSet (StringT& name);
-  virtual void ReadNodeSet (StringT& name, iArrayT& nodes);
+  virtual int  NumNodesInSet (StringT& name) = 0;
+  virtual void ReadNodeSet (StringT& name, iArrayT& nodes) = 0; /* offset nodes, continuous */
 
-  virtual bool AreSideSetsLocal (void) = 0;
-  virtual int  NumSidesInSet (StringT& name);
-  virtual int  SideSetGroupIndex (StringT& name);
-  virtual void ReadSideSetLocal (StringT& name, iArray2DT& sides);
-  virtual void ReadSideSetGlobal (StringT& name, iArray2DT& sides);
+  virtual bool AreSideSetsLocal (void) const = 0;
+  virtual int  NumSidesInSet (StringT& setname) const = 0;
+  virtual int  SideSetGroupIndex (StringT& setname) const = 0;
+  virtual void ReadSideSetLocal (StringT& setname, iArray2DT& sides) const = 0; /* offset elements & facets, continuous */
+  virtual void ReadSideSetGlobal (StringT& setname, iArray2DT& sides) const = 0; /* offset elements & facets, continuous */
   
-  virtual void QARecords (ArrayT<StringT>& records);
+  /* record[0] = progname, record[1] = version, record[2] = date, record[3] = time */
+  virtual void QARecords (ArrayT<StringT>& records) = 0;
 
-  virtual int  NumTimeSteps (void);
-  virtual void ReadTimeSteps (dArrayT& steps);
+  virtual int  NumTimeSteps (void) const = 0;
+  virtual void ReadTimeSteps (dArrayT& steps) = 0;
 
-  virtual int  NumNodeVariables (void);
-  virtual int  NumElementVariables (void);
-  virtual int  NumQuadratureVariables (void);
+  /* for all nodes or elements */
+  virtual int  NumNodeVariables (void) const = 0;
+  virtual int  NumElementVariables (void) const = 0;
+  virtual int  NumQuadratureVariables (void) const = 0;
 
-  //virtual void ReadNodeLabels (ArrayT<StringT>& nlabels) = 0;
-  virtual void ReadElementLabels (StringT& name, ArrayT<StringT>& elabels);
-  virtual void ReadQuadratureLabels (StringT& name, ArrayT<StringT>& qlabels);  
+  /* for all nodes or elements */
+  virtual void ReadNodeLabels (ArrayT<StringT>& nlabels) const = 0;
+  virtual void ReadElementLabels (ArrayT<StringT>& elabels) const = 0;
+  virtual void ReadQuadratureLabels (ArrayT<StringT>& qlabels) const = 0;  
 
-  //virtual void ReadAllNodeVariables (int step, dArray2DT& nvalues) = 0;
-  //virtual void ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues);
-  virtual void ReadElementVariables (int step, StringT& name, dArray2DT& evalues);
-  virtual void ReadQuadratureVariables (int step, StringT& name, dArray2DT& qvalues);
+  /* step starts at zero and increases by one */
+  virtual void ReadAllNodeVariables (int step, dArray2DT& nvalues) = 0; /* all nodes */
+  virtual void ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues) = 0; /* nodes in an element set */
+  virtual void ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& nvalues) = 0; /* nodes in a node set */
 
- private:
-  virtual void ElementGroupIDs (iArrayT& groupnums);
-  virtual void SideSetIDs (iArrayT& sidenums);
-  virtual void NodeSetIDs (iArrayT& nodenums);
+  virtual void ReadAllElementVariables (int step, dArray2DT& evalues) = 0; /* all elements */
+  virtual void ReadElementVariables (int step, StringT& name, dArray2DT& evalues) = 0; /* elements in set */
 
-  virtual int  NumElements_ID (int ID);
-  virtual int  NumElementNodes_ID (int ID);
-  virtual void ReadGlobalElementMap_ID (int ID, iArrayT& elemmap);
-  virtual void ReadConnectivity_ID (int ID, iArray2DT& connects);
-  virtual void ReadGeometryCode_ID (int ID, GeometryT::CodeT& geocode);
-
-  virtual int  NumNodesInSet_ID (int ID);
-  virtual void ReadNodeSet_ID (int ID, iArrayT& nodes);
-
-  virtual int  NumSidesInSet_ID (int ID);
-  virtual int  SideSetGroupIndex_ID (int ID);
-  virtual void ReadSideSetLocal_ID (int ID, iArray2DT& sides);
-  virtual void ReadSideSetGlobal_ID (int ID, iArray2DT& sides);
-
-  virtual void ReadElementLabels_ID (int ID, ArrayT<StringT>& elabels);
-  virtual void ReadQuadratureLabels_ID (int ID, ArrayT<StringT>& qlabels);  
-
-  virtual void ReadElementVariables_ID (int step, int ID, dArray2DT& evalues);
-  virtual void ReadQuadratureVariables_ID (int step, int ID, dArray2DT& qvalues);
+  virtual void ReadAllQuadratureVariables (int step, dArray2DT& qvalues) = 0; /* all quad points */
+  virtual void ReadQuadratureVariables (int step, StringT& name, dArray2DT& qvalues) = 0; /* elements in set */
 
 };
+
+inline InputBaseT::InputBaseT (ostream& out) : IOBaseT (out) { }
+inline InputBaseT::~InputBaseT (void) { }
 
 #endif

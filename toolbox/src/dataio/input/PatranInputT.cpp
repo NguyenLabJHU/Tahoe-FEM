@@ -1,4 +1,4 @@
-/* $Id: PatranInputT.cpp,v 1.2 2001-08-07 23:11:54 paklein Exp $ */
+/* $Id: PatranInputT.cpp,v 1.3 2001-09-04 14:46:38 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "PatranInputT.h"
@@ -21,42 +21,42 @@ void PatranInputT::Close (void)
 {
 }
 
-void PatranInputT::ElementGroupNames (ArrayT<StringT>& groupnames)
+void PatranInputT::ElementGroupNames (ArrayT<StringT>& groupnames) const
 {
   int count = 0, numelems, numelemnodes;
   int numcomps = fPatran.NumNamedComponents ();
   ArrayT<StringT> names (numcomps);
-  if (!fPatran.NamedComponents (names)) throw eGeneralFail;
+  if (!fPatran.NamedComponents (names)) throw eDatabaseFail;
   for (int i=0; i < numcomps; i++)
     {
       if (!fPatran.ReadElementBlockDims (names[i], numelems, numelemnodes)) 
-	throw eGeneralFail;
+	throw eDatabaseFail;
       if (numelems > 0)
 	  groupnames[count++] = names[i];
     }
 }
 
-void PatranInputT::NodeSetNames (ArrayT<StringT>& nodenames)
+void PatranInputT::NodeSetNames (ArrayT<StringT>& nodenames) const
 {
   int count = 0;
   int numcomps = fPatran.NumNamedComponents ();
   ArrayT<StringT> names (numcomps);
   iArrayT nodes;
-  if (!fPatran.NamedComponents (names)) throw eGeneralFail;
+  if (!fPatran.NamedComponents (names)) throw eDatabaseFail;
   for (int i=0; i < numcomps; i++)
     {
-      if (!fPatran.ReadNodeSet (names[i], nodes)) throw eGeneralFail;
+      if (!fPatran.ReadNodeSet (names[i], nodes)) throw eDatabaseFail;
       if (nodes.Length() > 0)
 	nodenames[count++] = names[i];
     }
 }
 
-int  PatranInputT::NumElementGroups (void)
+int  PatranInputT::NumElementGroups (void) const
 {
   int count = 0, numelems, numelemnodes;
   int numcomps = fPatran.NumNamedComponents ();
   ArrayT<StringT> names (numcomps);
-  if (!fPatran.NamedComponents (names)) throw eGeneralFail;
+  if (!fPatran.NamedComponents (names)) throw eDatabaseFail;
   for (int i=0; i < numcomps; i++)
     {
       if (!fPatran.ReadElementBlockDims (names[i], numelems, numelemnodes)) 
@@ -67,16 +67,16 @@ int  PatranInputT::NumElementGroups (void)
   return count;
 }
 
-int  PatranInputT::NumNodeSets (void)
+int  PatranInputT::NumNodeSets (void) const
 {
   int count = 0;
   int numcomps = fPatran.NumNamedComponents ();
   ArrayT<StringT> names (numcomps);
   iArrayT nodes;
-  if (!fPatran.NamedComponents (names)) throw eGeneralFail;
+  if (!fPatran.NamedComponents (names)) throw eDatabaseFail;
   for (int i=0; i < numcomps; i++)
     {
-      if (!fPatran.ReadNodeSet (names[i], nodes)) throw eGeneralFail;
+      if (!fPatran.ReadNodeSet (names[i], nodes)) throw eDatabaseFail;
       if (nodes.Length() > 0)
 	count++;
     }
@@ -85,16 +85,13 @@ int  PatranInputT::NumNodeSets (void)
 
 void PatranInputT::ReadNodeMap (iArrayT& nodemap)
 {
-  if (!fPatran.ReadGlobalNodeMap (nodemap)) throw eGeneralFail;
-  nodemap += -1;
-
-  /* later adjust to be consecutive numbering?? */
+  if (!fPatran.ReadGlobalNodeMap (nodemap)) throw eDatabaseFail;
 }
 
 void PatranInputT::ReadCoordinates (dArray2DT& coords)
 {
   if (!fPatran.ReadCoordinates (coords, coords.MinorDim()))
-    throw eGeneralFail;
+    throw eDatabaseFail;
 }
 
 void PatranInputT::ReadCoordinates (dArray2DT& coords, iArrayT& nodemap)
@@ -107,7 +104,7 @@ int PatranInputT::NumElements (StringT& name)
 {
   int num, numnodes;
   if (!fPatran.ReadElementBlockDims (name, num, numnodes))
-    throw eGeneralFail;
+    throw eDatabaseFail;
   return num;
 }
 
@@ -115,7 +112,7 @@ int PatranInputT::NumElementNodes (StringT& name)
 {
   int num, numnodes;
   if (!fPatran.ReadElementBlockDims (name, num, numnodes))
-    throw eGeneralFail;
+    throw eDatabaseFail;
   return numnodes;  
 }
 
@@ -129,18 +126,31 @@ void PatranInputT::ReadGlobalElementMap (StringT& name, iArrayT& elemmap)
 {
   int namedtype;
   if (!fPatran.ReadElementSet (name, namedtype, elemmap))
-    throw eGeneralFail;
+    throw eDatabaseFail;
+}
 
-  /* someday, convert from discontinuous to continuous numbering */
+void PatranInputT::ReadGlobalElementSet (StringT& name, iArrayT& set)
+{
+  ReadGlobalElementMap (name, set);
 
-  elemmap += -1;
+  // offset and map to start numbering at zero
+  // account for discontinuous numbering
+  iArrayT map;
+  ReadAllElementMap (map);
+  for (int n=0; n < set.Length(); n++)
+    {
+      int index;
+      map.HasValue (set[n], index);
+      if (index < 0 || index >= set.Length()) throw eOutOfRange;
+      set[n] = index;
+    }  
 }
 
 void PatranInputT::ReadConnectivity (StringT& name, iArray2DT& connects)
 {
   int namedtype;
   if (!fPatran.ReadConnectivity (name, namedtype, connects))
-    throw eGeneralFail;
+    throw eDatabaseFail;
 
   /* someday, convert from discontinuous to continuous numbering */
 
@@ -152,7 +162,7 @@ void PatranInputT::ReadGeometryCode (StringT& name, GeometryT::CodeT& code)
   iArrayT elems;
   int namedtype;
   if (!fPatran.ReadElementSet (name, namedtype, elems))
-    throw eGeneralFail;
+    throw eDatabaseFail;
 
   SetCode (namedtype, code);
 }
@@ -161,49 +171,57 @@ void PatranInputT::ReadGeometryCode (StringT& name, GeometryT::CodeT& code)
 int PatranInputT::NumNodesInSet (StringT& name)
 {
   int num;
-  if (!fPatran.NumNodesInSet (name, num)) throw eGeneralFail;
+  if (!fPatran.NumNodesInSet (name, num)) throw eDatabaseFail;
   return num;
 }
 
 void PatranInputT::ReadNodeSet (StringT& name, iArrayT& nodes)
 {
-  if (!fPatran.ReadNodeSet (name, nodes)) throw eGeneralFail;
+  if (!fPatran.ReadNodeSet (name, nodes)) throw eDatabaseFail;
 
-  /* someday, convert from discontinuous to continuous numbering */
 
-  nodes += -1;
+  // offset and map to start numbering at zero
+  // account for discontinuous numbering
+  iArrayT map;
+  ReadNodeMap (map);
+  for (int n=0; n < nodes.Length(); n++)
+    {
+      int index;
+      map.HasValue (nodes[n], index);
+      if (index < 0 || index >= nodes.Length()) throw eOutOfRange;
+      nodes[n] = index;
+    }
 }
 
-int PatranInputT::NumSidesInSet (StringT& anme)
+int PatranInputT::NumSidesInSet (StringT& anme) const
 {
 #pragma unused(anme)
   cout << "\n\n PatranInputT::Not programmed to read side sets\n\n";
   return 0;
 }
 
-int PatranInputT::SideSetGroupIndex (StringT& name)
+int PatranInputT::SideSetGroupIndex (StringT& name) const
 {
 #pragma unused(name)
   cout << "\n\n PatranInputT::Not programmed to read side sets\n\n";
   return 0;
 }
 
-void PatranInputT::ReadSideSetLocal (StringT& name, iArray2DT& sides)
+void PatranInputT::ReadSideSetLocal (StringT& name, iArray2DT& sides) const
 {
 #pragma unused(name)
 #pragma unused(sides)
   cout << "\n\n PatranInputT::Not programmed to read side sets\n\n";
-  throw eGeneralFail;
+  throw eDatabaseFail;
 }
 
-void PatranInputT::ReadSideSetGlobal (StringT& name, iArray2DT& sides)
+void PatranInputT::ReadSideSetGlobal (StringT& name, iArray2DT& sides) const
 {
 #pragma unused(name)
 #pragma unused(sides)
   cout << "\n\n PatranInputT::Not programmed to read side sets\n\n";
-  throw eGeneralFail;
+  throw eDatabaseFail;
 }
-
 
 /**************** PRIVATE *******************/
 

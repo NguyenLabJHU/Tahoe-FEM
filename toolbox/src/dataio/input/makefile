@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2001-08-08 11:47:12 sawimme Exp $
+# $Id: makefile,v 1.8 2001-09-04 14:46:38 sawimme Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,7 +6,6 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	InputBaseT.o \
 	TahoeInputT.o \
 	PatranInputT.o \
 	ExodusInputT.o \
@@ -20,7 +19,6 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	InputBaseT.cpp \
 	TahoeInputT.cpp \
 	PatranInputT.cpp \
 	ExodusInputT.cpp \
