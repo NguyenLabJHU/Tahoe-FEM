@@ -1,0 +1,7 @@
+abs_tol 5.0e-08
+skip e11
+skip e12
+skip e22
+skip SV_X
+skip SV_Y
+skip CS

@@ -16,9 +16,9 @@
                 <String value="D_Y"/>
             </dof_labels>
             <kinematic_BC dof="1" node_ID="1"/>
-            <kinematic_BC dof="2" node_ID="1"/>
+            <kinematic_BC dof="2" node_ID="1" schedule="1" type="u" value="-0.1"/>
             <kinematic_BC dof="1" node_ID="2"/>
-            <force_BC dof="2" node_ID="2" schedule="1" value="0.1"/>
+            <kinematic_BC dof="2" node_ID="2" schedule="1" type="u" value="0.1"/>
         </field>
     </nodes>
     <element_list>
@@ -26,10 +26,35 @@
             max_neighbor_distance="1.1" re-neighbor_displacement="1.0" re-neighbor_increment="0">
             <particle_type label="A">
                 <node_ID_list>
-                    <String value="3"/>
+                    <String value="4"/>
+                </node_ID_list>
+            </particle_type>
+            <particle_type label="B">
+                <node_ID_list>
+                    <String value="5"/>
+                </node_ID_list>
+            </particle_type>
+            <particle_type label="C">
+                <node_ID_list>
+                    <String value="6"/>
                 </node_ID_list>
             </particle_type>
             <pair_particle_interaction label_1="A" label_2="A">
+                <harmonic mass="1.0" rest_length="1.0" stiffness="1.0"/>
+            </pair_particle_interaction>
+            <pair_particle_interaction label_1="A" label_2="B">
+                <harmonic mass="1.0" rest_length="1.0" stiffness="0.0"/>
+            </pair_particle_interaction>
+            <pair_particle_interaction label_1="A" label_2="C">
+                <harmonic mass="1.0" rest_length="1.0" stiffness="1.0"/>
+            </pair_particle_interaction>
+            <pair_particle_interaction label_1="B" label_2="B">
+                <harmonic mass="1.0" rest_length="1.0" stiffness="1.0"/>
+            </pair_particle_interaction>
+            <pair_particle_interaction label_1="B" label_2="C">
+                <harmonic mass="1.0" rest_length="1.0" stiffness="1.0"/>
+            </pair_particle_interaction>
+            <pair_particle_interaction label_1="C" label_2="C">
                 <harmonic mass="1.0" rest_length="1.0" stiffness="1.0"/>
             </pair_particle_interaction>
         </particle_pair>
