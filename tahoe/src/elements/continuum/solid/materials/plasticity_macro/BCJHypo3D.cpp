@@ -1,4 +1,4 @@
-/* $Id: BCJHypo3D.cpp,v 1.15 2003-02-19 19:22:54 ebmarin Exp $ */
+/* $Id: BCJHypo3D.cpp,v 1.16 2003-03-03 20:45:13 ebmarin Exp $ */
 #include "BCJHypo3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -12,7 +12,7 @@ using namespace Tahoe;
 const double sqrt32 = sqrt(3.0/2.0);
 
 /* printing for debugging */
-const bool BCJ_MESSAGES = false;
+const bool BCJ_MESSAGES = true;
 const int IPprint = -1;
 
 /* spatial dimensions of the problem */
@@ -385,14 +385,14 @@ GlobalT::SystemTypeT BCJHypo3D::TangentType() const
 void BCJHypo3D::ComputeMaterialProperties(double theta)
 {
   // kinematic hardening matl properties
-  fMatProp[0] = fC7*exp(-fC8/theta);     // rd
-  fMatProp[1] = fC9 - fC10*theta;        // h
-  fMatProp[2] = fC11*exp(-fC12/theta);   // rs
+  fMatProp[0] = fC7*exp(-fC8/theta);         // rd
+  fMatProp[1] = max(0.0, fC9 - fC10*theta);  // h
+  fMatProp[2] = fC11*exp(-fC12/theta);       // rs
 
   // isotropic hardening matl properties
-  fMatProp[3] = fC13*exp(-fC14/theta);   // Rd
-  fMatProp[4] = fC15 - fC16*theta;       // H
-  fMatProp[5] = fC17*exp(-fC18/theta);   // Rs
+  fMatProp[3] = fC13*exp(-fC14/theta);       // Rd
+  fMatProp[4] = max(0.0, fC15 - fC16*theta); // H
+  fMatProp[5] = fC17*exp(-fC18/theta);       // Rs
 
   // local fix for rd & rs
   fMatProp[0] *= 1./sqrt32;
