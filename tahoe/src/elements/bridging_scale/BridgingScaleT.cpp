@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.23 2002-08-19 21:26:32 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.24 2002-08-19 23:53:58 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -60,10 +60,13 @@ void BridgingScaleT::Initialize(void)
 	iArrayT atoms_used, nodes_used;
 	fParticle.NodesUsed(atoms_used);
 	fSolid.NodesUsed(nodes_used);
-	iArrayT node1(nodes_used.Max() + 1); // +1 because starts from 0
-	node1 = -1;
+	iArrayT node1(nodes_used.Max() + 1), atom1(atoms_used.Max() + 1);
+	node1 = -1, atom1 = -1;
 	for (int i = 0; i < nodes_used.Length(); i++)
-	    node1[nodes_used[i]] = i + 1;
+	  node1[nodes_used[i]] = i + 1;
+	
+        for (int i = 0; i < atoms_used.Length(); i++)
+	  atom1[atoms_used[i]] = i + 1;
 
 	atoms_used++;
 	out << " Particles used:\n" << atoms_used.wrap(5) << '\n';
@@ -130,13 +133,15 @@ void BridgingScaleT::Initialize(void)
 	// (2) compute the inverse map using list fParticlesInCell
 	LocalArrayT cell_coord(LocalArrayT::kInitCoords, fSolid.NumElementNodes(), NumSD());
 	cell_coord.SetGlobal(init_coords); // Sets address of cell_coords
-	iArrayT atom_nums;
+	iArrayT atom_nums, atoms;
 	dArrayT mapped(NumSD()), point(NumSD());
 	dArray2DT atom_coords(fParticlesInCell.MaxMinorDim(), NumSD());
 	AutoFill2DT<double> inverse(fParticlesInCell.MajorDim(),10,10);
+	fAtomConnect.Dimension(fParticlesInCell.MajorDim(), fParticlesInCell.MaxMinorDim());
 	for (int i = 0; i < fParticlesInCell.MajorDim(); i++) {
-
+	 
 	                fParticlesInCell.RowAlias(i,atom_nums);
+			atoms = atom_nums;
 	                atom_coords.RowCollect(atom_nums,init_coords);
 			/* gives domain (global) nodal coordinates */
 	                cell_coord.SetLocal(fSolid.ElementCard(i).NodesX()); 
@@ -145,6 +150,8 @@ void BridgingScaleT::Initialize(void)
 			{
 			    //need a ColumnAlias function in nArray2DT similar to RowAlias!
 			    atom_coords.RowAlias(j, point);
+			    int x = atoms[j];
+			    fAtomConnect(i,j) = atom1[x];
 			    if (parent.MapToParentDomain(cell_coord,point,mapped))
 				inverse.Append(i,mapped);   
 			}
@@ -300,7 +307,15 @@ void BridgingScaleT::CoarseFineFields(void)
   const ParentDomainT& parent = ShapeFunction().ParentDomain();
   const FieldT& field = Field();
   iArrayT atoms, elemconnect(parent.NumNodes());
+  dArray2DT velocities, accelerations;
   const dArray2DT& displacements = field[0];
+  if (field.Order() > 0)
+    {
+      const dArray2DT& ve = field[1];
+      const dArray2DT& ac = field[2];
+      velocities = ve;
+      accelerations = ac;
+    }
   fFineScaleU.Dimension(fParticlesUsed.MajorDim(), displacements.MinorDim());
   fFineScaleV.Dimension(fParticlesUsed.MajorDim(), displacements.MinorDim());
   fFineScaleA.Dimension(fParticlesUsed.MajorDim(), displacements.MinorDim());
@@ -332,8 +347,6 @@ void BridgingScaleT::CoarseFineFields(void)
 	  fWtempU += Nd;
 	  if (field.Order() > 0)
 	    {
-	      const dArray2DT& velocities = field[1];
-	      const dArray2DT& accelerations = field[2];
 	      velocities.RowAlias(atoms[j], vel);
 	      accelerations.RowAlias(atoms[j], acc);
 	      Nv.Outer(shape, vel);
@@ -405,7 +418,7 @@ void BridgingScaleT::CoarseFineFields(void)
   /* Compute resulting fine scale fields = MD - FE */
   dArrayT ux(parent.NumNodes()), uy(parent.NumNodes()), vx(parent.NumNodes()), vy(parent.NumNodes());
   dArrayT ax(parent.NumNodes()), ay(parent.NumNodes());
-  iArrayT conn(parent.NumNodes());
+  iArrayT atomconn, conn;
   double nux, nuy, nvx, nvy, nax, nay;
 
   for (int i = 0; i < fParticlesInCell.MajorDim(); i++)
@@ -413,6 +426,8 @@ void BridgingScaleT::CoarseFineFields(void)
     fParticlesInCell.RowAlias(i,atoms);
     fInverseMapInCell.RowAlias(i,map);
     fConnect.RowCopy(i,conn);
+    fAtomConnect.RowCopy(i,atomconn);
+    atomconn -= 1;
     conn -= 1; // so that array indices start from 0
     ux.Collect(conn, fUx);
     if (field.Order() > 0)
@@ -426,13 +441,11 @@ void BridgingScaleT::CoarseFineFields(void)
 	temp.CopyPart(0, map, NumSD()*j, NumSD());
 	parent.EvaluateShapeFunctions(temp,shape);
 	nux = dArrayT::Dot(shape,ux);
-	int which = atoms[j];
+	int which = atomconn[j];
 	double fux = disp[0] - nux;
 	fFineScaleU(which,0) = fux;
 	if (field.Order() > 0)
 	  {
-	    const dArray2DT& velocities = field[1];
-	    const dArray2DT& accelerations = field[2];
 	    velocities.RowAlias(atoms[j],vel);
 	    accelerations.RowAlias(atoms[j],acc);
 	    nvx = dArrayT::Dot(shape,vx);
@@ -450,8 +463,6 @@ void BridgingScaleT::CoarseFineFields(void)
 	    fFineScaleU(which,1) = fuy; 
 	    if (field.Order() > 0)
 	      {
-		const dArray2DT& velocities = field[1];
-		const dArray2DT& accelerations = field[2];
 		velocities.RowAlias(atoms[j],vel);
 		accelerations.RowAlias(atoms[j],acc);
 		vy.Collect(conn, fVy);
@@ -466,10 +477,10 @@ void BridgingScaleT::CoarseFineFields(void)
 	  }
       }
   }
-  //cout << "MD U = \n" << displacements << endl;
+  cout << "MD U = \n" << displacements << endl;
   //cout << "MD V = \n" << field[1] << endl;
   //cout << "MD A = \n" << field[2] << endl;
-  //cout << "fine scale U = \n" << fFineScaleU << endl; 
+  cout << "fine scale U = \n" << fFineScaleU << endl; 
   //cout << "fine scale V = \n" << fFineScaleV << endl;
   //cout << "fine scale A = \n" << fFineScaleA << endl;
 }

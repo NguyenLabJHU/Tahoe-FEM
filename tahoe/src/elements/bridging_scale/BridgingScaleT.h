@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.17 2002-08-19 21:26:32 hspark Exp $ */
+/* $Id: BridgingScaleT.h,v 1.18 2002-08-19 23:53:58 hspark Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -122,7 +122,7 @@ protected:
 	dArray2DT fFineScaleU, fFineScaleV, fFineScaleA;
 
 	int fTotalNodes;
-	iArray2DT fConnect;
+	iArray2DT fConnect, fAtomConnect;
 	ElementMatrixT fElMatU;
 	CCSMatrixT fGlobalMass;
 
