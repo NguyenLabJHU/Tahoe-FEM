@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.22 2003-10-28 07:42:16 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.23 2004-01-10 17:13:11 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #ifndef _FE_EXECMAN_T_H_
 #define _FE_EXECMAN_T_H_
@@ -80,10 +80,10 @@ private:
 	void RunJob_parallel(ifstreamT& in, ostream& status) const;
 
 	/** generate decomposition files */
-	void RunDecomp_serial(ifstreamT& in, ostream& status) const;
+	void RunDecomp_serial(ifstreamT& in, ostream& status, CommunicatorT& comm, int size = -1) const;
 
 	/** join parallel results files */
-	void RunJoin_serial(ifstreamT& in, ostream& status) const;
+	void RunJoin_serial(ifstreamT& in, ostream& status, CommunicatorT& comm, int size = -1) const;
 
 	/** multi-Tahoe, bridging scale test */
 	void RunBridging(ifstreamT& in, ostream& status) const;
@@ -129,14 +129,14 @@ private:
 	/** \name generate decomposition data */
 	/*@{*/
 	/** name calls one of decomposition methods below based on user input */
-	void Decompose(ifstreamT& in, int size, int decomp_type, const StringT& model_file,
-		IOBaseT::FileTypeT format) const;
+	void Decompose(ifstreamT& in, int size, int decomp_type, CommunicatorT& comm,
+		const StringT& model_file, IOBaseT::FileTypeT format) const;
 
 	/** graph-based decomposition. Partition model based on the connectivites
 	 * in the model files and those generated at run time. The actual
 	 * decomposition is calculated by a FEManagerT_mpi. */
-	void Decompose_graph(ifstreamT& in, int size, const StringT& model_file,
-		IOBaseT::FileTypeT format) const;
+	void Decompose_graph(ifstreamT& in, int size, CommunicatorT& comm, 
+		const StringT& model_file, IOBaseT::FileTypeT format) const;
 
 	/** "atom" decomposition. Partition model by dividing global list
 	 * of coordinates into sequential, nearly equal length lists. The
