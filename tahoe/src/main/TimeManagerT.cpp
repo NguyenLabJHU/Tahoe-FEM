@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.9 2002-07-02 19:55:30 cjkimme Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.10 2002-07-12 21:55:47 hspark Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "TimeManagerT.h"
@@ -21,6 +21,9 @@
 #include "LinearHHTalpha.h"
 #include "NLHHTalpha.h"
 #include "ExplicitCDController.h"
+#include "VerletController.h"
+#include "Gear6Controller.h"
+
 
 	/** enum of integrator types */
 	enum CodeT {
@@ -29,7 +32,9 @@
            kTrapezoid = 2,
            kLinearHHT = 3,
 		kNonlinearHHT = 4,
-		  kExplicitCD = 5
+		  kExplicitCD = 5,
+		kVerlet = 6,
+		kGear6 = 7
 	};
 
 /* stream extraction operator */
@@ -61,6 +66,12 @@ istream& operator>>(istream& in, TimeManagerT::CodeT& code)
 			break;
 		case TimeManagerT::kExplicitCD:
 			code = TimeManagerT::kExplicitCD;
+			break;
+	        case TimeManagerT::kVerlet:
+	                code = TimeManagerT::kVerlet;
+	                break;
+		case TimeManagerT::kGear6:
+			code = TimeManagerT::kGear6;
 			break;
 		default:
 			cout << "\n operator>>TimeManagerT::CodeT: unknown code: "
@@ -380,6 +391,16 @@ ControllerT* TimeManagerT::New_Controller(CodeT type) const
 			controller = new ExplicitCDController(theBoss.Output());
 			break;		
 		}
+	        case kVerlet:
+	        {
+	                controller = new VerletController(theBoss.Output());
+	                break;
+	        }
+		case kGear6:
+	        {
+	                controller = new Gear6Controller(theBoss.Output());
+	                break;
+	        }
 		default:
 		{
 			cout << "\n TimeManagerT::New_Controller: unrecognized type: " << type << endl;

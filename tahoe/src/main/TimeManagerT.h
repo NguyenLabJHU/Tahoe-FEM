@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.h,v 1.5 2002-07-05 22:28:07 paklein Exp $ */
+/* $Id: TimeManagerT.h,v 1.6 2002-07-12 21:55:47 hspark Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _TIMEMANAGER_T_H_
@@ -40,7 +40,9 @@ public:
            kTrapezoid = 2,
            kLinearHHT = 3,
 		kNonlinearHHT = 4,
-		  kExplicitCD = 5
+		  kExplicitCD = 5,
+		kVerlet = 6,
+		kGear6 = 7
 	};
 
 	/** stream extraction operator */
