@@ -1,4 +1,4 @@
-/* $Id: LU_MPI_driver_solve.c,v 1.2 2004-11-21 07:04:36 paklein Exp $ */
+/* $Id: LU_MPI_driver_solve.c,v 1.3 2005-04-05 16:02:35 paklein Exp $ */
 #include "LU_MPI_driver_int.h"
 
 #if 0
@@ -685,8 +685,6 @@ IV_free(ownedColumnsIV);
 /* PAK - end */
 /*--------------------------------------------------------------------*/
 /* MPI_Finalize() ; */
-
-/* need to free mtxX????? */
 
 /* close message stream */
 fclose(msgFile);
