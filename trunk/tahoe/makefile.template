@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.25 2003-10-16 18:27:18 cjkimme Exp $
+# $Id: makefile.template,v 1.26 2003-11-21 22:24:48 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -241,6 +241,7 @@ clean_config:
 do_up_to_date:
 	@ for module in $(UP_TO_DATE); do \
 		if test -d $$module; then \
+			$(ECHO) "executing \"make $(COMMAND)\" in $$module"; \
 			cd $$module; \
 			$(MAKE) $(COMMAND) "HOME_DIR = $$module" || exit 1; \
 		else \
