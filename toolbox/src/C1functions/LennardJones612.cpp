@@ -1,26 +1,30 @@
-/* $Id: LennardJones612.cpp,v 1.4 2003-11-21 22:41:27 paklein Exp $ */
-/* created: paklein (10/30/1997)                                          */
-
+/* $Id: LennardJones612.cpp,v 1.5 2004-03-17 17:55:41 paklein Exp $ */
+/* created: paklein (10/30/1997) */
 #include "LennardJones612.h"
 #include <math.h>
 #include <iostream.h>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 
-/* constants */
-
 using namespace Tahoe;
 
+/* constants */
 const double twoe1by6 = pow(2.0,1.0/6.0);
 
-/*
-* constructors
-*/
-LennardJones612::LennardJones612(double A): fA(A) { }
+/* constructors */
+LennardJones612::LennardJones612(void): 
+	fA(0.0) 
+{ 
+	SetName("Lennard_Jones_6-12");
+}
 
-/*
-* I/O
-*/
+LennardJones612::LennardJones612(double A): 
+	fA(A) 
+{ 
+	SetName("Lennard_Jones_6-12");
+}
+
+/* I/O */
 void LennardJones612::Print(ostream& out) const
 {
 	/* parameters */
@@ -32,9 +36,7 @@ void LennardJones612::PrintName(ostream& out) const
 	out << "    Lennard-Jones 6-12\n";
 }
 
-/*
-* Returning values
-*/
+/* returning values */
 double LennardJones612::Function(double x) const
 {
 	return fA*(0.5*pow(x,-12.0) - pow(x,-6.0));
@@ -50,13 +52,7 @@ double LennardJones612::DDFunction(double x) const
 	return fA*(78.0*pow(x,-14.0) - 42.0*pow(x,-8.0));
 }
 
-/*
-* Returning values in groups - derived classes should define
-* their own non-virtual function called within this functon
-* which maps in to out w/o requiring a virtual function call
-* everytime. Default behavior is just to map the virtual functions
-* above.
-*/
+/* returning values in groups */
 dArrayT& LennardJones612::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
@@ -103,4 +99,23 @@ dArrayT& LennardJones612::MapDDFunction(const dArrayT& in, dArrayT& out) const
 		*pddU++ = fA*(78.0*pow(r,-14.0) - 42.0*pow(r,-8.0));
 	}
 	return out;
+}
+
+void LennardJones612::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	C1FunctionT::DefineParameters(list);
+
+	list.AddParameter(fA, "scaling");
+	
+	/* set the description */
+	list.SetDescription("f(x) = a*((1/x)^12 - (1/x)^6)");	
+}
+
+void LennardJones612::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	C1FunctionT::TakeParameterList(list);
+
+	fA = list.GetParameter("scaling");
 }
