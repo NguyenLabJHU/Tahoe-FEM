@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.21 2003-05-09 18:39:13 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.21.2.1 2003-05-12 16:27:12 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -370,6 +370,16 @@ void ParticleT::SetConfiguration(void)
 		ofstreamT& out = ElementSupport().Output();
 		fGrid->WriteStatistics(out);
 	}
+}
+
+/* contribution to the nodal residual forces */
+const dArray2DT& ParticleT::InternalForce(int group)
+{
+	/* check */
+	if (group != Group())
+		ExceptionT::GeneralFail("ParticleT::InternalForce", 
+			"expecting solver group %d not %d", Group(), group);
+	return fForce;
 }
 
 /***********************************************************************
