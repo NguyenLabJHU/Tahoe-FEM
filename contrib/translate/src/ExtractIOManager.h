@@ -3,6 +3,7 @@
 #define _EXTRACT_IOMANAGER_H_
 
 #include "TranslateIOManager.h"
+#include "ofstreamT.h"
 
 class ExtractIOManager : public TranslateIOManager
 {
@@ -16,9 +17,11 @@ class ExtractIOManager : public TranslateIOManager
   virtual void InitializeNodePoints (void);
   virtual void TranslateVariables (void);
 
+  void PrepFiles (void) const;
+  void OpenFile (ofstreamT& o, int index, int digits, StringT& ext, bool append) const;
+
  private:
   int fOutputFormat;
-  ofstream fOutFile;
 
   int fNumNP;
   iArrayT fNodePoints;
