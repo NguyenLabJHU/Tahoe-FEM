@@ -1,9 +1,9 @@
-# $Id: XJANUS.debug.macros,v 1.1 2004-01-23 21:58:22 cjkimme Exp $
+# $Id: XJANUS.debug.macros,v 1.2 2004-01-26 19:44:00 cjkimme Exp $
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpi
 
 # ASCI Red - JANUS (sasn100, sasn101)
-MAKE        = make
+MAKE        = make -r
 DEFINES     = -D__TAHOE_MPI__ -D__JANUS__ -D__ROGUE_STL__ 
 XCDIR       = /usr/local/x-comp/intel/tflop/current/tflops
 MAKEDEPEND = makedepend

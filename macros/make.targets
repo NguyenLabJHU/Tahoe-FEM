@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.38 2004-01-23 22:47:54 cjkimme Exp $
+# $Id: make.targets,v 1.39 2004-01-26 19:44:00 cjkimme Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -133,7 +133,7 @@ $(TARGET): $(OPT_LIB) $(LIBRARY)
 
 # include object list and create archive
 $(LIBRARY): $(LIB_DIR)/lib.junk
-	$(MAKE) archive "OBJECT_LIST = $(BLD_DIR)/object_list"
+	$(MAKE) archive "OBJECT_LIST = $(BLD_DIR)/object_list" "ARCH = $(ARCH)" "MACRO_DIR = $(MACRO_DIR)" "HOME_DIR = $(HOME_DIR)"
 
 # create archive
 archive:
