@@ -1,4 +1,4 @@
-/* $Id: SSEnhLocCraigT.cpp,v 1.3 2004-12-20 19:44:51 cfoster Exp $ */
+/* $Id: SSEnhLocCraigT.cpp,v 1.4 2005-02-08 22:44:49 cfoster Exp $ */
 #include "SSEnhLocCraigT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -452,7 +452,7 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 	}
 
 	//cout << "fLHS =\n" << fLHS << endl;
-	cout << "area =" << area << endl;
+	//cout << "area =" << area << endl;
 
 	k_d_zeta *= 1.0/area;
 
@@ -463,13 +463,13 @@ void SSEnhLocCraigT::FormStiffness(double constK)
 	//cout << "gradActiveTensorFlowDir =\n" << gradActiveTensorFlowDir << endl;
 	//cout << "dGdSigma =\n" << dGdSigma << endl;
 	//cout << "k_d_zeta =\n" << k_d_zeta << endl;
-	cout << "k_zeta_zeta =\n" << k_zeta_zeta << endl;
+	//cout << "k_zeta_zeta =\n" << k_zeta_zeta << endl;
 	//cout << "k_zeta_d =\n" << k_zeta_d << endl;
 	
 
 
 	fLHS.Outer(k_d_zeta, k_zeta_d, -1.0/k_zeta_zeta, dMatrixT::kAccumulate);
-	cout << "fLHS =\n" << fLHS << endl;
+	//cout << "fLHS =\n" << fLHS << endl;
     }
 
 
@@ -556,23 +556,36 @@ void SSEnhLocCraigT::SetGlobalShape(void)
 	    /* loop over integration points */
 		for (int i = 0; i < NumIP(); i++)
 		{
-		  area += (*Det)*(*Weight);
+		  //area += (*Det)*(*Weight);
 		  double scale = (*Det++)*(*Weight++);
+		  area += scale;
 		  dSymMatrixT strainIncr = fStrain_List [i];
 		  strainIncr -= fStrain_last_List [i];
 		  strainIncr.ScaleOffDiagonal(2.0);
 
 		  gradActiveTensorFlowDir = FormGradActiveTensorFlowDir(ndof);
 
+		  //cout << "scale = " << scale << endl;
+		  //cout << "dGfD = " << dGfD << endl << endl;
+		  //cout << "strainIncr = " << strainIncr << endl;
+ 
+
 		  fJumpIncrement += scale * strainIncr.Dot(dGfD, strainIncr);
 		  jumpWork += scale * gradActiveTensorFlowDir.Dot(dGfD,gradActiveTensorFlowDir);
 		  
 		}
+		
+		//cout << "fJumpIncrement = " << fJumpIncrement << endl ;
+		//cout << "jumpWork = " << jumpWork << endl;		
+		 
+		
 		//fJumpIncrement /= area;
-		fJumpIncrement += fBand->Jump()*jumpWork;
+		//fJumpIncrement += fBand->Jump()*jumpWork; //already incorporated into strain??
 		fJumpIncrement /= (jumpWork + area * fH_Delta);
+		//fJumpIncrement *= 1.1182;   
 
-		cout << "fJumpIncrement = " << fJumpIncrement << endl <<endl;
+		cout << "fJumpIncrement = " << fJumpIncrement <<endl;
+		//cout << "fBand->Jump() = " << fBand->Jump() << endl <<endl;
 
 		/* loop over integration points again */
 		for (int i = 0; i < NumIP(); i++)
@@ -590,7 +603,7 @@ void SSEnhLocCraigT::SetGlobalShape(void)
 				 fStrain_List[i].AddScaled(-(fBand->Jump() + fJumpIncrement), gradActiveTensorFlowDir);
 			  }
 
-			/* "last" deformation gradient */
+			/* "last" deformation gradient */ //is this right?
 			if (needs[fNeedsOffset + kstrain_last])
 			{
 				 fStrain_last_List[i].AddScaled(-(fBand->Jump()), gradActiveTensorFlowDir);
@@ -889,8 +902,8 @@ void SSEnhLocCraigT::ChooseNormals(AutoArrayT <dArrayT> &normals, AutoArrayT <dA
   dArrayT slipDir = slipDirs.Current();
   dArrayT perpSlipDir;
 
-  cout << "normal = \n" << normal;
-  cout << "slipDir = \n" << slipDir; 
+  //cout << "normal = \n" << normal;
+  //cout << "slipDir = \n" << slipDir; 
 
   perpSlipDir = slipDir;
   perpSlipDir.AddScaled(-1.0*slipDir.Dot(slipDir, normal), normal);
