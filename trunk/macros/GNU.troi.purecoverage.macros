@@ -1,4 +1,4 @@
-# $Id: GNU.troi.purecoverage.macros,v 1.1 2003-04-22 16:49:39 paklein Exp $
+# $Id: GNU.troi.purecoverage.macros,v 1.2 2003-12-28 10:05:37 paklein Exp $
 # GNU
 MAKE        = make
 MAKE_DEPEND = makedepend
@@ -6,7 +6,7 @@ DEPENDFLAGS = -I/usr/local/include/g++-3 -I/usr/include/g++-2 -I/usr/include -I/
 COMP_C      = gcc
 COMP_CC     = g++
 COMP_F      = g77
-DEFINES     = -D__GNU__ -D__SUN__
+DEFINES     = -D__GNU__ -D__SUN__ -D__NO_RTTI__
 #MORE_CFLAGS = -O3 -DNDEBUG
 MORE_CFLAGS = -g
 #LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -Wunused -Wuninitialized
