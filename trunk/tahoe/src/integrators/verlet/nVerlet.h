@@ -5,8 +5,8 @@
 #include "Verlet.h"
 #include "nControllerT.h"
 
-/** Node controller for an explicit 2nd order accurate, central 
- * difference time-stepping algorithm. */
+/** Node controller for an explicit 4th order accurate, Verlet time integration
+ * algorithm. */
 class nVerlet: public virtual Verlet, public nControllerT
 {
 public:

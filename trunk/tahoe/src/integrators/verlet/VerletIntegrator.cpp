@@ -5,7 +5,7 @@
 /* constructor */
 VerletIntegrator::VerletIntegrator(ostream& out)
 {
-	out << "\n Explicit central-difference parameters: NONE" << endl;
+	out << "\n Verlet parameters: NONE" << endl;
 }
 
 /***********************************************************************
