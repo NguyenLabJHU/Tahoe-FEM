@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.h,v 1.3 2001-05-04 19:12:46 paklein Exp $ */
+/* $Id: QuadLog3D.h,v 1.3.2.1 2001-06-07 03:01:20 paklein Exp $ */
 /* created: paklein (06/27/1997)                                          */
 /* Hyperelastic material governed by quadratic logarithmic potential.     */
 
@@ -51,7 +51,10 @@ protected:
 	/* spectral decomposition solver */
 	SpectralDecompT fSpectral;
 
-	/* return value */
+	/* left stretch */
+	dSymMatrixT fb;
+
+	/* return values */
 	dSymMatrixT	fStress;
 	dMatrixT	fModulus;
 

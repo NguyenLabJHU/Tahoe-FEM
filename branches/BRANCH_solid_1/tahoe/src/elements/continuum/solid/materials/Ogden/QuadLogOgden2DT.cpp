@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden2DT.cpp,v 1.1 2001-02-20 00:26:51 paklein Exp $ */
+/* $Id: QuadLogOgden2DT.cpp,v 1.1.2.1 2001-06-07 03:01:18 paklein Exp $ */
 /* created: paklein (02/18/2001)                                          */
 /* plane strain QuadLog with Ogden principal stretch formulation          */
 
@@ -32,8 +32,11 @@ void QuadLogOgden2DT::PrintName(ostream& out) const
 /* strain energy density */
 double QuadLogOgden2DT::StrainEnergyDensity(void)
 {
+	/* stretch */
+	Compute_C(fC);
+
 	/* principal stretches */
-	C().PrincipalValues(fEigs);
+	fC.PrincipalValues(fEigs);
 	
 	/* log strain */
 	flogE[0] = 0.5*log(fEigs[0]);

@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden3DT.cpp,v 1.1 2001-02-20 00:26:51 paklein Exp $ */
+/* $Id: QuadLogOgden3DT.cpp,v 1.1.2.1 2001-06-07 03:01:18 paklein Exp $ */
 /* created: paklein (02/17/2001)                                          */
 /* principal stretch version of Quad Log model                            */
 
@@ -29,8 +29,11 @@ void QuadLogOgden3DT::PrintName(ostream& out) const
 /* strain energy density */
 double QuadLogOgden3DT::StrainEnergyDensity(void)
 {
+	/* stretch */
+	Compute_C(fC);
+
 	/* principal stretches */
-	C().PrincipalValues(fEigs);
+	fC.PrincipalValues(fEigs);
 	
 	/* log strain */
 	flogE[0] = 0.5*log(fEigs[0]);

@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.h,v 1.1.1.1.2.1 2001-06-06 16:32:12 paklein Exp $ */
+/* $Id: IsoVIB2D.h,v 1.1.1.1.2.2 2001-06-07 03:01:23 paklein Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* 2D Isotropic VIB solver using spectral decomposition formulation       */
 
@@ -69,6 +69,9 @@ protected:
 	SpectralDecompT	fSpectral;
 	
 private:
+
+	/* stretch */
+	dSymMatrixT fb;
 
 	/* return values */
 	dMatrixT    fModulus;

@@ -1,4 +1,4 @@
-/* $Id: NL_E_MatT.cpp,v 1.1.1.1.2.1 2001-06-06 16:31:17 paklein Exp $ */
+/* $Id: NL_E_MatT.cpp,v 1.1.1.1.2.2 2001-06-07 03:01:26 paklein Exp $ */
 /* created: paklein (06/13/1997)                                          */
 /* Base class for materials with nonlinear elastic behavior               */
 /* which is computed from Langrangian coordinates (by the pure            */
@@ -21,6 +21,7 @@
 /* constructors */
 NL_E_MatT::NL_E_MatT(ifstreamT& in, const ElasticT& element):
 	FDStructMatT(in, element),
+	fE(NumSD()),
 	fPK2(NumSD()),
 	fModuli(dSymMatrixT::NumValues(NumSD()))
 {
@@ -30,46 +31,59 @@ NL_E_MatT::NL_E_MatT(ifstreamT& in, const ElasticT& element):
 /* spatial description */
 const dMatrixT& NL_E_MatT::c_ijkl(void)
 {
+	/* strain */
+	Compute_E(fE);
+
 	/* derived class function */
-	ComputeModuli(E(), fModuli);
+	ComputeModuli(fE, fModuli);
 	
 	/* material -> spatial */
-	fModuli.SetToScaled(1.0/F().Det(), PushForward(F(), fModuli));	
+	const dMatrixT& Fmat = F();
+	fModuli.SetToScaled(1.0/Fmat.Det(), PushForward(Fmat, fModuli));	
 	return fModuli;
 }
 	
 const dSymMatrixT& NL_E_MatT::s_ij(void)
 {
+	/* strain */
+	Compute_E(fE);
+
 	/* derived class function */
-	ComputePK2(E(), fPK2);
+	ComputePK2(fE, fPK2);
 
 	/* material -> spatial */
-	fPK2.SetToScaled(1.0/F().Det(), PushForward(F(), fPK2));	
+	const dMatrixT& Fmat = F();
+	fPK2.SetToScaled(1.0/Fmat.Det(), PushForward(Fmat, fPK2));	
 	return fPK2;
 }
 
 /* material description */
 const dMatrixT& NL_E_MatT::C_IJKL(void)
 {
+	/* strain */
+	Compute_E(fE);
+
 	/* derived class function */
-	ComputeModuli(E(), fModuli);
-	
-	/* spatial -> material */
+	ComputeModuli(fE, fModuli);
 	return fModuli;
 }
 	
 const dSymMatrixT& NL_E_MatT::S_IJ(void)
 {
-	/* derived class function */
-	ComputePK2(E(), fPK2);
+	/* strain */
+	Compute_E(fE);
 
-	/* spatial -> material */
+	/* derived class function */
+	ComputePK2(fE, fPK2);
 	 return fPK2;
 }
 
 /* returns the strain energy density for the specified strain */
 double NL_E_MatT::StrainEnergyDensity(void)
 {
+	/* strain */
+	Compute_E(fE);
+
 	/* derived class function */
-	return ComputeEnergyDensity(E());
+	return ComputeEnergyDensity(fE);
 }

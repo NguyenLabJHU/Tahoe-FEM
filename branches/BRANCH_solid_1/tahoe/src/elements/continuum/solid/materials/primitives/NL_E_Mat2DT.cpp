@@ -1,4 +1,4 @@
-/* $Id: NL_E_Mat2DT.cpp,v 1.1.1.1.2.1 2001-06-06 16:31:17 paklein Exp $ */
+/* $Id: NL_E_Mat2DT.cpp,v 1.1.1.1.2.2 2001-06-07 03:01:26 paklein Exp $ */
 /* created: paklein (06/13/1997)                                          */
 /* Base class for materials with 2D nonlinear elastic behavior.           */
 /* (See notes in NL_E_MatT.h)                                             */
@@ -25,28 +25,39 @@ void NL_E_Mat2DT::Print(ostream& out) const
 /* modulus */
 const dMatrixT& NL_E_Mat2DT::c_ijkl(void)
 {
+	/* strain */
+	Compute_E(fE);
+
 	/* derived class function */
-	ComputeModuli(E(), fModuli);
-		
-	/* spatial -> material */
-	fModuli.SetToScaled(fThickness/F().Det(), PushForward(F(), fModuli));	
+	ComputeModuli(fE, fModuli);
+	
+	/* material -> spatial */
+	const dMatrixT& Fmat = F();
+	fModuli.SetToScaled(1.0/Fmat.Det(), PushForward(Fmat, fModuli));	
 	return fModuli;
 }
 	
 /* stress */
 const dSymMatrixT& NL_E_Mat2DT::s_ij(void)
 {
-	/* derived class function */
-	ComputePK2(E(), fPK2);
+	/* strain */
+	Compute_E(fE);
 
-	/* spatial -> material */
-	fPK2.SetToScaled(fThickness/F().Det(), PushForward(F(), fPK2));	
+	/* derived class function */
+	ComputePK2(fE, fPK2);
+
+	/* material -> spatial */
+	const dMatrixT& Fmat = F();
+	fPK2.SetToScaled(1.0/Fmat.Det(), PushForward(Fmat, fPK2));	
 	return fPK2;
 }
 
 /* strain energy density */
 double NL_E_Mat2DT::StrainEnergyDensity(void)
 {
+	/* strain */
+	Compute_E(fE);
+
 	/* derived class function */
-	return fThickness*ComputeEnergyDensity(E());
+	return ComputeEnergyDensity(fE);
 }

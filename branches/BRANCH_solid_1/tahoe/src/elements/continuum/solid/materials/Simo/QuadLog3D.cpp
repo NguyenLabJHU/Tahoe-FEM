@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.cpp,v 1.3.2.1 2001-06-06 16:31:42 paklein Exp $ */
+/* $Id: QuadLog3D.cpp,v 1.3.2.2 2001-06-07 03:01:20 paklein Exp $ */
 /* created: paklein (06/27/1997)                                          */
 /* Hyperelastic material governed by quadratic logarithmic potential.     */
 
@@ -14,6 +14,7 @@ QuadLog3D::QuadLog3D(ifstreamT& in, const ElasticT& element):
 	FDStructMatT(in, element), //in principal stress space
 	IsotropicT(in),
 	fSpectral(3),
+	fb(3),
 	fStress(3),
 	fModulus(dSymMatrixT::NumValues(3)),
 	fDevOp3(3),
@@ -50,14 +51,16 @@ void QuadLog3D::PrintName(ostream& out) const
 /* modulus */
 const dMatrixT& QuadLog3D::c_ijkl(void)
 {
-	ComputeModuli(b(), fModulus);	
+	Compute_b(fb);
+	ComputeModuli(fb, fModulus);	
 	return fModulus;
 }
 	
 /* stresses */
 const dSymMatrixT& QuadLog3D::s_ij(void)
 {
-	ComputeCauchy(b(), fStress);	
+	Compute_b(fb);
+	ComputeCauchy(fb, fStress);	
 	return fStress;
 }
 
@@ -81,8 +84,10 @@ const dSymMatrixT& QuadLog3D::S_IJ(void)
 /* strain energy density for the specified strain */
 double QuadLog3D::StrainEnergyDensity(void)
 {
+	Compute_b(fb);
+
 	/* principal values */
-	b().PrincipalValues(fEigs);
+	fb.PrincipalValues(fEigs);
 
 	/* logarithmic stretches */
 	LogStretches(fEigs);

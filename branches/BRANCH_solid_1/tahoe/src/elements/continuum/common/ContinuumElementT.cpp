@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.4 2001-03-15 17:47:24 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.4.2.1 2001-06-07 03:01:15 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 
 #include "ContinuumElementT.h"
@@ -61,10 +61,22 @@ ContinuumElementT::~ContinuumElementT(void)
 /* accessors */
 const int& ContinuumElementT::CurrIP(void) const
 {
-#if __option(extended_errorcheck)
-	if (!fShapes) throw eGeneralFail;
-#endif
-	return fShapes->CurrIP();
+	return ShapeFunction().CurrIP();
+}
+
+/* the coordinates of the current integration points */
+void ContinuumElementT::IP_Coords(dArrayT& ip_coords) const
+{
+	/* computed by shape functions */
+	return ShapeFunction().IPCoords(ip_coords);
+}
+
+/* field gradients */
+void ContinuumElementT::IP_ComputeGradient(const LocalArrayT& field, 
+	dMatrixT& gradient) const
+{
+	/* computed by shape functions */
+	ShapeFunction().GradU(field, gradient);
 }
 
 /* allocates space and reads connectivity data */
@@ -318,7 +330,7 @@ void ContinuumElementT::SideSetToFacets(int block_ID, const iArray2DT& sideset,
 		int nft = sideset(i,1);
 	
 		/* get facet node map */
-		fShapes->NodesOnFacet(nft, facet_nodes);
+		ShapeFunction().NodesOnFacet(nft, facet_nodes);
 		
 		/* dimension check */
 		if (i == 0)
@@ -343,7 +355,7 @@ void ContinuumElementT::FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry,
 	iArrayT& num_facet_nodes) const
 {
 	/* from integration domain */
-	fShapes->FacetGeometry(facet_geometry, num_facet_nodes);
+	ShapeFunction().FacetGeometry(facet_geometry, num_facet_nodes);
 }
 
 /* initial condition/restart functions (per time sequence) */
@@ -389,7 +401,7 @@ void ContinuumElementT::SurfaceFacets(GeometryT::CodeT& geometry,
 	/* surface facets must all have same geometry */
 	ArrayT<GeometryT::CodeT> facet_geom;
 	iArrayT facet_nodes;
-	fShapes->FacetGeometry(facet_geom, facet_nodes);
+	ShapeFunction().FacetGeometry(facet_geom, facet_nodes);
 	if (facet_nodes.Count(facet_nodes[0]) != facet_geom.Length())
 	{
 		cout << "\n ContinuumElementT::SurfaceFacets: only support identical\n";
@@ -405,13 +417,13 @@ void ContinuumElementT::SurfaceFacets(GeometryT::CodeT& geometry,
 	BoundingElements(border_elems, border_neighs);
 	
 	/* check */
-	if (fShapes->NumFacets() != border_neighs.MinorDim())
+	if (ShapeFunction().NumFacets() != border_neighs.MinorDim())
 		throw eSizeMismatch;
 		
 	/* collect nodes on facets info */
-	ArrayT<iArrayT> facetnodemap(fShapes->NumFacets());
+	ArrayT<iArrayT> facetnodemap(ShapeFunction().NumFacets());
 	for (int i2 = 0; i2 < facetnodemap.Length(); i2++)
-		fShapes->NodesOnFacet(i2, facetnodemap[i2]);	
+		ShapeFunction().NodesOnFacet(i2, facetnodemap[i2]);	
 
 	/* collect surface facets (with "outward" normal ordering) */
 	int surf_count = 0;
@@ -533,13 +545,13 @@ void ContinuumElementT::SurfaceNodes(iArrayT& surface_nodes) const
 	BoundingElements(border_elems, border_neighs);
 	
 	/* check */
-	if (fShapes->NumFacets() != border_neighs.MinorDim())
+	if (ShapeFunction().NumFacets() != border_neighs.MinorDim())
 		throw eSizeMismatch;
 		
 	/* collect nodes on facets map */
-	ArrayT<iArrayT> facetnodemap(fShapes->NumFacets());
+	ArrayT<iArrayT> facetnodemap(ShapeFunction().NumFacets());
 	for (int i2 = 0; i2 < facetnodemap.Length(); i2++)
-		fShapes->NodesOnFacet(i2, facetnodemap[i2]);
+		ShapeFunction().NodesOnFacet(i2, facetnodemap[i2]);
 			
 	/* collect surface nodes from border elems */
 	border_nodes.Allocate(0);
@@ -675,7 +687,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 			}
 			
 			/* boundary shape functions */
-			const ParentDomainT& surf_shape = fShapes->FacetShapeFunction(facet);
+			const ParentDomainT& surf_shape = ShapeFunction().FacetShapeFunction(facet);
 			int nip = surf_shape.NumIP();
 			
 			/* all ip tractions: (nip x ndof) */

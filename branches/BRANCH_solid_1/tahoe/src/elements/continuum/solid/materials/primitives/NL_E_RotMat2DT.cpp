@@ -1,4 +1,4 @@
-/* $Id: NL_E_RotMat2DT.cpp,v 1.1.1.1.2.1 2001-06-06 16:31:17 paklein Exp $ */
+/* $Id: NL_E_RotMat2DT.cpp,v 1.1.1.1.2.2 2001-06-07 03:01:27 paklein Exp $ */
 /* created: paklein (06/13/1997)                                          */
 /* Base class for materials with 2D nonlinear elastic behavior            */
 /* with in-plane orientation with respect to global coordinate            */
@@ -28,8 +28,11 @@ void NL_E_RotMat2DT::Print(ostream& out) const
 /* modulus */
 const dMatrixT& NL_E_RotMat2DT::c_ijkl(void)
 {
+	/* compute strain */
+	Compute_E(fE);
+
 	/* compute strain in natural coords */
-	const dSymMatrixT& E_nat = TransformIn(E());
+	const dSymMatrixT& E_nat = TransformIn(fE);
 
 	/* derived class function */
 	ComputeModuli(E_nat, fModuli);
@@ -46,8 +49,11 @@ const dMatrixT& NL_E_RotMat2DT::c_ijkl(void)
 /* stresses */
 const dSymMatrixT& NL_E_RotMat2DT::s_ij(void)
 {
+	/* compute strain */
+	Compute_E(fE);
+
 	/* compute strain in natural coords */
-	const dSymMatrixT& E_nat = TransformIn(E());
+	const dSymMatrixT& E_nat = TransformIn(fE);
 
 	/* derived class function */
 	ComputePK2(E_nat, fPK2);
@@ -64,8 +70,11 @@ const dSymMatrixT& NL_E_RotMat2DT::s_ij(void)
 /* strain energy density */
 double NL_E_RotMat2DT::StrainEnergyDensity(void)
 {
+	/* compute strain */
+	Compute_E(fE);
+
 	/* compute strain in natural coords */
-	const dSymMatrixT& E_nat = TransformIn(E());
+	const dSymMatrixT& E_nat = TransformIn(fE);
 
 	/* derived class function */
 	return fThickness*ComputeEnergyDensity(E_nat);

@@ -1,4 +1,4 @@
-/* $Id: NL_E_MatT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: NL_E_MatT.h,v 1.1.1.1.2.1 2001-06-07 03:01:26 paklein Exp $ */
 /* created: paklein (06/13/1997)                                          */
 /* Base class for materials with nonlinear elastic behavior               */
 /* which is computed from Langrangian coordinates (by the pure            */
@@ -20,31 +20,24 @@
 #define _NL_E_MAT_T_H_
 
 /* base classes */
-//#include "FDStructMatT.h"
 #include "FDStructMatT.h"
-//NOTE: PAK (01/25/2000)
-//  Changed the base class for NL_E_MatT to allow
-//  for multiplicative thermal strains with VIB.
 
-//class NL_E_MatT: public FDStructMatT
 class NL_E_MatT: public FDStructMatT
 {
-	friend class MaterialTesterT;
+  public:
 
-public:
-
-	/* constructor */
+	/** constructor */
 	NL_E_MatT(ifstreamT& in, const ElasticT& element);
 	
 	/* spatial description */
-	virtual const dMatrixT& c_ijkl(void); // spatial tangent moduli
-	virtual const dSymMatrixT& s_ij(void); // Cauchy stress
+	virtual const dMatrixT& c_ijkl(void);  /**< spatial tangent modulus */
+	virtual const dSymMatrixT& s_ij(void); /**< Cauchy stress */
 
 	/* material description */
-	virtual const dMatrixT& C_IJKL(void); // material tangent moduli
-	virtual const dSymMatrixT& S_IJ(void); // PK2 stress
+	virtual const dMatrixT& C_IJKL(void);  /**< material tangent moduli */
+	virtual const dSymMatrixT& S_IJ(void); /**< 2nd Piola-Kirchhoff stress */
 
-	/* returns the strain energy density for the specified strain */
+	/** strain energy density */
 	virtual double StrainEnergyDensity(void);
 
 protected:
@@ -59,6 +52,9 @@ protected:
 	virtual double ComputeEnergyDensity(const dSymMatrixT& E) = 0;
 
 protected:
+
+	/* Green-Lagrangian strain */
+	dSymMatrixT fE;
 
 	/* return values */
 	dSymMatrixT	fPK2;

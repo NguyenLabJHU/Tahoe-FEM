@@ -1,4 +1,4 @@
-/* $Id: FDHookeanMatT.h,v 1.1.1.1.2.1 2001-06-06 16:22:00 paklein Exp $ */
+/* $Id: FDHookeanMatT.h,v 1.1.1.1.2.2 2001-06-07 03:01:17 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #ifndef _FD_HOOKEAN_MAT_H_
@@ -30,6 +30,9 @@ public:
 	virtual double StrainEnergyDensity(void);
 	
 private:
+
+	/* Green-Lagrangian strain */
+	dSymMatrixT fE;
 
 	/* return values */
 	dSymMatrixT fStress;	

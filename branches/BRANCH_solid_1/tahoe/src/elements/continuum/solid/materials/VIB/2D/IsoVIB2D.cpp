@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.cpp,v 1.1.1.1.2.1 2001-06-06 16:32:12 paklein Exp $ */
+/* $Id: IsoVIB2D.cpp,v 1.1.1.1.2.2 2001-06-07 03:01:22 paklein Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* 2D Isotropic VIB solver using spectral decomposition formulation       */
 
@@ -21,9 +21,11 @@ IsoVIB2D::IsoVIB2D(ifstreamT& in, const ElasticT& element):
 	FDStructMatT(in, element),
 	Material2DT(in, kPlaneStress),
 	VIB(in, 2, 2, 3),
+	fCircle(NULL),
 	fEigs(2),
 	fEigmods(2),
 	fSpectral(2),
+	fC(2),
 	fModulus(dSymMatrixT::NumValues(2)),
 	fStress(2)
 {
@@ -35,10 +37,7 @@ IsoVIB2D::IsoVIB2D(ifstreamT& in, const ElasticT& element):
 }
 
 /* destructor */
-IsoVIB2D::~IsoVIB2D(void)
-{
-	delete fCircle;
-}
+IsoVIB2D::~IsoVIB2D(void) { delete fCircle; }
 
 /* print parameters */
 void IsoVIB2D::Print(ostream& out) const
@@ -54,8 +53,13 @@ void IsoVIB2D::Print(ostream& out) const
 /* modulus */
 const dMatrixT& IsoVIB2D::c_ijkl(void)
 {
+	/* stretch */
+	Compute_b(fb);
+	
+	/* compute spectral decomposition */
+
 	/* principal stretches */
-	C().PrincipalValues(fEigs);
+	fb.PrincipalValues(fEigs);
 
 	/* stretched bonds */
 	ComputeLengths(fEigs);
@@ -136,13 +140,13 @@ const dMatrixT& IsoVIB2D::c_ijkl(void)
 		c22 += 2.0*fEigs[1];
 
 		/* set spectral decomp of b */
-		const dSymMatrixT& b_2D = b();
-		fSpectral.DecompAndModPrep(b_2D, false);
+//		fSpectral.DecompAndModPrep(b_2D, false);
+//DEV - what to put here?
 
 		/* construct moduli */
 		fModulus = fSpectral.EigsToRank4(fEigmods);		
-		fModulus.AddScaled(2.0*fEigs[0],fSpectral.SpatialTensor(b_2D, 0));
-		fModulus.AddScaled(2.0*fEigs[1],fSpectral.SpatialTensor(b_2D, 1));
+		fModulus.AddScaled(2.0*fEigs[0], fSpectral.SpatialTensor(b_2D, 0));
+		fModulus.AddScaled(2.0*fEigs[1], fSpectral.SpatialTensor(b_2D, 1));
 	}
 	
 	return fModulus;

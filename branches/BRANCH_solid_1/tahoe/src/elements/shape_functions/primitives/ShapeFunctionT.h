@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.3 2001-05-17 19:18:15 ebmarin Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.3.2.1 2001-06-07 03:01:28 paklein Exp $ */
 /* created: paklein (06/26/1996)                                          */
 /* interface for element shape functions. controls domain representation  */
 /* and field representation and spatial derivatives. integration control  */
@@ -28,9 +28,6 @@ public:
 		// synchronized during integration and shared parent domain,
 		// but different coordinates.
 
-	/* accessors */
-//	int NumDOF(void) const;	
-
 	/* type of the domain coordinates */
 	LocalArrayT::TypeT DomainCoordType(void) const;
 
@@ -50,7 +47,7 @@ public:
 	const double* IPShapeU(void) const;	// at field nodes
 
 	void GradU(const LocalArrayT& nodal, dMatrixT& grad_U) const;
-        void GradU(const LocalArrayT& nodal, dMatrixT& grad_U, int IPnumber) const;
+	void GradU(const LocalArrayT& nodal, dMatrixT& grad_U, int IPnumber) const;
 
 	/* extrapolate integration point values to the nodes
 	 *    IPvalues[numvals] : values from a single integration point
