@@ -52,6 +52,21 @@ BCCT::BCCT(int nlsd,int nuca,dArrayT alat,
       // Rotate axis if necessary  (put a flag later...)
       double norm = sqrt(norm_vec[0] + norm_vec[1] + norm_vec[2]);
       if (norm > 1.e-5) vAxis = AxisRotation(vAxis);
+
+
+      // Define primitive lattice vectors
+      a[0] =-1.0;a[1]= 1.0;a[2]= 1.0;
+      b[0] = 1.0;b[1]=-1.0;b[2]= 1.0;
+      c[0] = 1.0;c[1]= 1.0;c[2]=-1.0;
+
+      if(norm > 1.e-5) 
+	{
+	  a = VectorRotation(a);
+	  b = VectorRotation(b);
+	  c = VectorRotation(c);
+	}
+
+
    }
 
 }

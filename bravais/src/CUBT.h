@@ -20,6 +20,10 @@ public:
 
 	CUBT(const CUBT& source);
 
+	const dArrayT& GetVector_a(){ return a;};
+	const dArrayT& GetVector_b(){ return b;};	
+	const dArrayT& GetVector_c(){ return c;};
+
         const dArrayT& GetLatticeParameters();
         const dArray2DT& GetBasis();
 	const dArray2DT& GetAxis();

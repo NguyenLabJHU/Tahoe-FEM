@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.41 2003-09-08 20:14:51 jzimmer Exp $ */
+/* $Id: BoxT.cpp,v 1.42 2004-02-06 22:00:13 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -495,11 +495,35 @@ int BoxT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,iArrayT* tem
   const dArray2DT& vA = pcl->GetAxis();
   const iArrayT& vT = pcl->GetType();
 
+  const dArrayT& vec_a = pcl->GetVector_a();
+  const dArrayT& vec_b = pcl->GetVector_b();
+  const dArrayT& vec_c = pcl->GetVector_c();
+
   double x,y,z;
   double eps = 1.e-6;
 
   int natom= 0;
   int type= 0;
+
+  //cout << "Rotating Atoms in Box \n";
+
+  // Redefine lengths according to rotation
+  dArrayT PerLen(nlsd);
+  dArrayT vec(nlsd); 
+
+  vec[0] = 1.0;vec[1] = 0.0; vec[2] = 0.0;
+  PerLen[0] = CalculatePeriodicLength(pcl,vec);  
+  vec[0] = 0.0;vec[1] = 1.0; vec[2] = 0.0;
+  PerLen[1] = CalculatePeriodicLength(pcl,vec);  
+  vec[0] = 0.0;vec[1] = 0.0; vec[2] = 1.0;
+  PerLen[2] = CalculatePeriodicLength(pcl,vec);  
+
+  for (int i=0;i<nlsd;i++) 
+    {    
+      PerLen[i] *= ncells[i];
+      length(i,0) = -PerLen[i]/2.;
+      length(i,1) =  PerLen[i]/2.;
+    }
 
   // Define a slightly shorter box
   double l00,l01,l10,l11;
@@ -507,6 +531,24 @@ int BoxT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,iArrayT* tem
   if(length(0,1) >= 0.0) l01 = length(0,1) + eps; else l01 = length(0,1) - eps;
   if(length(1,0) >= 0.0) l10 = length(1,0) + eps; else l10 = length(1,0) - eps;
   if(length(1,1) >= 0.0) l11 = length(1,1) + eps; else l11 = length(1,1) - eps;
+
+  // Define new number of cells after rotation
+  double xlen = Max(fabs(vec_a[0]),fabs(vec_a[1]),fabs(vec_a[2]))*vLP[0]/2.;
+  double ylen = Max(fabs(vec_b[0]),fabs(vec_b[1]),fabs(vec_b[2]))*vLP[1]/2.;
+  double zlen = Max(fabs(vec_c[0]),fabs(vec_c[1]),fabs(vec_c[2]))*vLP[2]/2.;
+
+  iArrayT new_cel;
+  new_cel.Dimension(nlsd);
+  new_cel[0] = (int)((length(0,1)-length(0,0))/xlen) + 1;
+  new_cel[1] = (int)((length(1,1)-length(1,0))/ylen) + 1;
+  new_cel[0] = max(new_cel[0],new_cel[1]);
+  if(nlsd == 3) 
+    {
+      new_cel[2] = (int)((length(2,1)-length(2,0))/zlen) + 1;
+      new_cel[0] = max(new_cel[0],new_cel[2]);
+    }
+  new_cel[0] = 2*new_cel[0];
+  int ncentx = new_cel[0]/2;
 
   if (nlsd==2) 
     {
@@ -542,46 +584,49 @@ int BoxT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,iArrayT* tem
     }
   else if (nlsd==3) 
     {
-      double l20,l21;
-      if(length(2,0) >= 0.0) l20 = length(2,0) + eps; else l20 = length(2,0) - eps;
-      if(length(2,1) >= 0.0) l21 = length(2,1) + eps; else l21 = length(2,1) - eps;
-
+      double epsx = 0.01*(length(0,1)-length(0,0));
+      double epsy = 0.01*(length(1,1)-length(1,0));
+      double epsz = 0.01*(length(2,1)-length(2,0));
+     
+      double l00 = length(0,0);//+ epsx;
+      double l01 = length(0,1);//- epsx;
+      
+      double l10 = length(1,0);//+ epsy;
+      double l11 = length(1,1);//- epsy;
+      
+      double l20 = length(2,0);//+ epsz;
+      double l21 = length(2,1);//- epsz;
+	
       // Rotate coordinates
-      for (int p=-2*ncells[2];p<2*ncells[2];p++) 
-	for (int q=-2*ncells[1];q<2*ncells[1];q++)    
-	  for (int r=-2*ncells[0];r<2*ncells[0];r++) 
+      for (int r=0;r<new_cel[0];r++) 
+	for (int q=0;q<new_cel[0];q++)    
+	  for (int p=0;p<new_cel[0];p++) 	
 	    {
+	      if (natom > temp_nat) {cout << "natoms wrong ";throw eSizeMismatch;}
+	      
 	      dArrayT c(nlsd);
-	      c[0] = (double)r; c[1] = (double)q; c[2] = (double)p;
-	      for (int m=0;m<nuca;m++) 
-		{
-		  if (natom > temp_nat) {cout << "natoms wrong ";throw eSizeMismatch;}
+	      int rr = r - ncentx;
+	      int qq = q - ncentx;
+	      int pp = p - ncentx;
+	      
+	      x = (rr*vec_a[0] + qq*vec_b[0] + pp*vec_c[0])*vLP[0]/2.;
+	      y = (rr*vec_a[1] + qq*vec_b[1] + pp*vec_c[1])*vLP[1]/2.;
+	      z = (rr*vec_a[2] + qq*vec_b[2] + pp*vec_c[2])*vLP[2]/2.;
 
-		  x = length(0,0);
-		  y = length(1,0);
-		  z = length(2,0);
-		  
-		  for (int k=0;k<nlsd;k++) 
-		    {
-		      x += (c[k] + vB(k,m))*vA(k,0);
-		      y += (c[k] + vB(k,m))*vA(k,1);
-		      z += (c[k] + vB(k,m))*vA(k,2);
-		      type = vT[m];
-		    }
-		  
-		  if(x >= l00 && x <= l01 && y >= l10 && y <= l11 &&
-		     z >= l20 && z <= l21)
-		    {
-		      (*temp_atom)(natom)[0] = x;
-		      (*temp_atom)(natom)[1] = y;
-		      (*temp_atom)(natom)[2] = z;
-		      (*temp_type)[natom] = type;
-		      natom++;                     
-		    }
+	      type = 1;
+	      
+	      if(x > l00 && x < l01 && y > l10 && y < l11 &&
+		 z > l20 && z < l21)
+		{
+		  (*temp_atom)(natom)[0] = x;
+		  (*temp_atom)(natom)[1] = y;
+		  (*temp_atom)(natom)[2] = z;
+		  (*temp_type)[natom] = type;
+		  natom++;                     
 		}
 	    }
     }
-
+  cout << "natom=" << natom <<"\n";
   return natom;
 }
 
@@ -595,6 +640,9 @@ int BoxT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,iArrayT* tem
   const dArray2DT& vA = pcl->GetAxis();
   const dArray2DT& vB = pcl->GetBasis();
   const iArrayT& vT = pcl->GetType();
+
+
+  //cout << "Rotating Box of Atoms\n";
 
   if (nSD==2) 
     {
@@ -696,4 +744,130 @@ dArray2DT BoxT::ComputeMinMax()
     }
 
   return minmax;  
+}
+
+double BoxT::CalculatePeriodicLength(CrystalLatticeT* pcl,dArrayT Rot)
+{
+  double PerLen = 0.0;
+  double tol = 1.e-5;
+  int nlsd = pcl->GetNLSD();
+
+  const dArrayT& vec_a = pcl->GetVector_a();
+  const dArrayT& vec_b = pcl->GetVector_b();
+  const dArrayT& vec_c = pcl->GetVector_c();
+  const dArrayT& vLP = pcl->GetLatticeParameters();
+
+  dArrayT p(nlsd);
+  double rmax = 100.0;
+
+  dArrayT capa(nlsd);
+  capa = CrossProduct(vec_b,vec_c);
+  dArrayT capb(nlsd);
+  capb = CrossProduct(vec_c,vec_a);
+  dArrayT capc(nlsd);
+  capc = CrossProduct(vec_a,vec_b);
+  
+  double rl = DotProduct(capa,Rot);
+  double rm = DotProduct(capb,Rot);
+  double rn = DotProduct(capc,Rot);
+
+  double ql = fabs(rl);
+  double qm = fabs(rm);
+  double qn = fabs(rn);
+  
+  // Find smallest non-zero
+  if(ql<tol) ql = 1.e6;
+  if(qm<tol) qm = 1.e6;
+  if(qn<tol) qn = 1.e6;
+  double small = Min(ql,qm,qn);
+
+  // Multiply by 1/small
+  rl /= small;
+  rm /= small;
+  rn /= small;
+
+  ql=rl;
+  qm=rm;
+  qn=rn;
+
+  double rmult = 1.0;
+  // Check to see if integer
+  while (rmult < rmax)
+    {
+      int Integer = 1;
+      double tql=abs(ql);
+      double tqm=abs(qm);
+      double tqn=abs(qn);
+  
+      if(fabs(Mod(tql+0.5,1.0)-0.5) > tol) Integer = 0;
+      if(fabs(Mod(tqm+0.5,1.0)-0.5) > tol) Integer = 0;
+      if(fabs(Mod(tqn+0.5,1.0)-0.5) > tol) Integer = 0;
+ 
+      if(Integer == 1) 
+	{
+	  for (int j=0; j < nlsd; j++)
+	    p[j] = ql*vec_a[j]*vLP[0]/2. + qm*vec_b[j]*vLP[1]/2. + qn*vec_c[j]*vLP[2]/2.;
+	  PerLen = sqrt( p[0]*p[0] + p[1]*p[1] + p[2]*p[2]);
+	  return PerLen;
+	}
+      else
+	{
+	  ql=rmult*rl;
+	  qm=rmult*rm;
+	  qn=rmult*rn;
+	  rmult = rmult + 1.0;
+	}
+    }
+  
+  for (int j=0; j < nlsd; j++)
+    p[j] = rl*vec_a[j] + rm*vec_b[j] + rn*vec_c[j];
+  PerLen = sqrt( p[0]*p[0] + p[1]*p[1] + p[2]*p[2]);
+  return PerLen;
+}
+
+double BoxT::Mod(double a,double p)
+{
+  double b;
+  b = a - (int)(a/p)*p;
+  return b;
+}
+
+
+dArrayT BoxT::CrossProduct(dArrayT x,dArrayT y)
+{
+  dArrayT z(x.Length());
+
+  z[0] = x[1]*y[2] - x[2]*y[1];
+  z[1] = x[2]*y[0] - x[0]*y[2];
+  z[2] = x[0]*y[1] - x[1]*y[0];
+  return z;
+}
+
+double BoxT::DotProduct(dArrayT x,dArrayT y)
+{
+  return  x[0]*y[0] + x[1]*y[1] + x[2]*y[2];
+}
+
+double BoxT::Max(double a,double b,double c)
+{
+  double maxi;
+  if(a>b) 
+    maxi = a;
+  else
+    maxi = b;
+  
+  if(maxi<c) maxi = c;
+  return maxi;
+}
+
+double BoxT::Min(double a,double b,double c)
+{
+  double mini;
+  if(a<b) 
+    mini = a;
+  else
+    mini = b;
+  
+  if(mini>c) mini = c;
+  return mini;
 }

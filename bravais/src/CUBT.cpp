@@ -70,7 +70,24 @@ CUBT::CUBT(int nlsd,int nuca,dArrayT alat,
       double norm = sqrt(norm_vec[0] + norm_vec[1] + norm_vec[2]);
       if (norm > 1.e-5) vAxis = AxisRotation(vAxis);
 
+      // Define primitive lattice vectors
+      a[0] = 1.0;a[1]=1.0;a[2]=0.0;
+      b[0] = 1.0;b[1]=0.0;b[2]=1.0;
+      c[0] = 0.0;c[1]=1.0;c[2]=1.0;
+      for (int i=0; i<nLSD; i++)
+	{
+	  a[i] *= vLatticeParameters[i]*0.5;
+	  b[i] *= vLatticeParameters[i]*0.5;
+	  c[i] *= vLatticeParameters[i]*0.5;
+	}
 
+
+      if(norm > 1.e-5) 
+	{
+	  a = VectorRotation(a);
+	  b = VectorRotation(b);
+	  c = VectorRotation(c);
+	}
     }
 }
 
