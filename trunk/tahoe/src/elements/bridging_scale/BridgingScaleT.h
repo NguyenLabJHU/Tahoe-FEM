@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.31 2004-03-04 08:54:20 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.32 2004-03-17 22:47:06 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -107,6 +107,14 @@ public:
 
 	/** compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int) {};
+
+#ifdef __NO_RTTI__
+	/** \name fixes for environments without working RTTI */
+	/*@{*/
+	/** cast this to BridgingScaleT* */
+	virtual BridgingScaleT* dynamic_cast_BridgingScaleT(void) { return this; };
+	/*@}*/
+#endif
 
 protected:
 
