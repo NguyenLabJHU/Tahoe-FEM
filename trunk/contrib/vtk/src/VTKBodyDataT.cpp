@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.8 2002-01-02 06:38:49 paklein Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.9 2002-01-15 18:52:28 paklein Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -112,6 +112,10 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
     cout << "read element blocks" << endl;
 
 	/* load node sets */
+//TEMP - since switching to the model manager, node sets cause the console to crash.
+//       it's probably something to do with the node numbering offset. Before the model
+//       manager, nodes where numbered from 1, and how they're numbering from 0.
+#if 0
 	for (int i = 0; i < num_node_sets; i++)
     {
 		/* read nodes */
@@ -131,6 +135,7 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 		fUGrids[ii]->SetConnectivities(geom_code, connectivities);
 	}    
     cout << "read node sets" << endl;
+#endif
   
 	/* number of results sets */
 	int num_time_steps = model.NumTimeSteps();
