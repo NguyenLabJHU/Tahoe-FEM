@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.7.2.4 2002-05-07 18:58:52 cjkimme Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.7.2.5 2002-05-10 00:08:18 cjkimme Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -229,6 +229,13 @@ void TiedNodesT::Equations(AutoArrayT<const iArray2DT*>& equations) const
 		}
 }
 
+/* output current configuration */
+void TiedNodesT::WriteOutput(ostream& out)
+{
+#pragma unused(out)
+	CopyKinematics();
+}
+
 /**********************************************************************
  * Protected
  **********************************************************************/
@@ -236,8 +243,7 @@ void TiedNodesT::Equations(AutoArrayT<const iArray2DT*>& equations) const
 /* check status of pairs */
 bool TiedNodesT::ChangeStatus(void)
 {
-//TEMP - no check implemented
-
+/* To pass the benchmarks, the line below must be uncommented */
 	return false;
 
   	bool changeQ = false;
@@ -251,15 +257,9 @@ bool TiedNodesT::ChangeStatus(void)
   	dArray2DT fNodalQs = fNodeManager.OutputAverage();
 
   	for (int i = 0; i < fNodePairs.MajorDim();i++) 
-    {
-  
-//	    if (fNodalQs.RowSum(fNodePairs(i,0)) + fNodalQs.RowSum(fNodePairs(i,1)) > 1000) 
-//		{ 
-//	  		fPairStatus[i] = kFree;
-//	  		changeQ = true;
-//		}
+    {  
 	    dArrayT sigma(fNodalQs.MinorDim(),fNodalQs(fNodePairs(i,0)));
-		if (TiedPotentialT::InitiationQ(sigma))     
+		if (fPairStatus[i] == kTied && TiedPotentialT::InitiationQ(sigma))     
 		{ 
 	  		fPairStatus[i] = kFree;
 	  		changeQ = true;
@@ -283,6 +283,8 @@ void TiedNodesT::SetBCCards(void)
 	int ndof = fField.NumDOF();
 	fKBC_Cards.Dimension(n_tied*ndof);
 
+//	dArray2DT& u = fField[0];
+	
 	/* generate BC cards */
 	if (n_tied > 0)
 	{
@@ -293,7 +295,7 @@ void TiedNodesT::SetBCCards(void)
 				for (int j = 0; j < ndof; j++)
 				{
 					/* set values */
-				  pcard->SetValues(fNodePairs(i,0), j, KBC_CardT::kDsp, 0, 0.0);
+				  pcard->SetValues(fNodePairs(i,0), j, KBC_CardT::kDsp, 0,0./*u(fNodePairs(i,1),j)*/);
 	
 					/* dummy schedule */
 				  pcard->SetSchedule(&fDummySchedule);
@@ -302,6 +304,8 @@ void TiedNodesT::SetBCCards(void)
 		}
 	}
 }
+
+
 
 /* copy kinematic information from the leader nodes to the follower nodes */
 void TiedNodesT::CopyKinematics(void)

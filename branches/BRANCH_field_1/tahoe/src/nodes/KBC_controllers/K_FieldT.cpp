@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.5.2.3 2002-04-30 01:30:21 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.5.2.4 2002-05-10 00:08:18 cjkimme Exp $ */
 /* created: paklein (09/05/2000) */
 
 #include "K_FieldT.h"
@@ -280,7 +280,7 @@ GlobalT::RelaxCodeT K_FieldT::RelaxSystem(void)
 }
 
 /* output current configuration */
-void K_FieldT::WriteOutput(ostream& out) const
+void K_FieldT::WriteOutput(ostream& out) 
 {
 	/* inherited */
 	KBC_ControllerT::WriteOutput(out);

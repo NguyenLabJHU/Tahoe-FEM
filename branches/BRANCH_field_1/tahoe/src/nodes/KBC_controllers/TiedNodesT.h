@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.5.2.5 2002-05-07 18:58:52 cjkimme Exp $ */
+/* $Id: TiedNodesT.h,v 1.5.2.6 2002-05-10 00:08:18 cjkimme Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -119,6 +119,9 @@ protected:
 	virtual void CopyKinematics(void);
 	
 	friend bool TiedPotentialT::InitiationQ(const dArrayT& sigma); 
+
+	/** output current configuration */
+	virtual void WriteOutput(ostream& out);
 
 protected:
 
