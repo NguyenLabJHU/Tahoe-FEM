@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.9 2002-02-22 19:27:42 xiang Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.10 2002-06-26 23:25:26 hspark Exp $ */
 /* created: paklein (03/03/1997)                                          */
 
 #include "dSymMatrixT.h"
@@ -50,11 +50,14 @@ void dSymMatrixT::Set(int nsd, double* array)
 double& dSymMatrixT::operator()(int row, int col) const
 {
 /* rigorous range checking */
+/* 1D modifications made by HSP 6-25-02 */
 #if __option (extended_errorcheck)
 	if (row < 0 || row >= fNumSD ||
 	    col < 0 || col >= fNumSD) throw eOutOfRange;
 #endif
-
+        /* added by HSP for 1D cases */
+        int map1D[1][1] = {{0}};
+        /* original 2 and 3 D stuff below */
 	int map2D[2][2] = {{0,2},
 	                   {2,1}};
 
@@ -63,7 +66,9 @@ double& dSymMatrixT::operator()(int row, int col) const
 	                   {4,3,2}};
 
 	if (fNumSD == 0) throw eGeneralFail; //not configured
-	if (fNumSD == 2)
+	if (fNumSD == 1)
+                return fArray[map1D[row][col]];
+        else if (fNumSD == 2)
 		return fArray[map2D[row][col]];		
 	else
 		return fArray[map3D[row][col]];		
@@ -71,11 +76,17 @@ double& dSymMatrixT::operator()(int row, int col) const
 
 void dSymMatrixT::ExpandIndex(int nsd, int dex, int& dex_1, int& dex_2)
 {
+/* 1D modifications made by HSP 6-25-02 */  
 #if __option(extended_errorcheck)
 	/* consistency check */
 	if (dex >= NumValues(nsd)) throw eOutOfRange;
 #endif	
-
+	
+        if (nsd == 1)
+	{
+	        cout << "\n dSymMatrixT::ExpandIndex not implemented yet for 1D" << endl;
+	        throw eGeneralFail;
+	}
 	int  map_2D[6] = {0,0,1,1,0,1};
 	int map_3D[18] = {0,0,1,1,2,2,
 	                  1,2,0,2,0,1};
