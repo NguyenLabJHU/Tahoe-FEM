@@ -1,4 +1,4 @@
-/* $Id: LinearT.h,v 1.2 2002-07-02 19:56:31 cjkimme Exp $ */
+/* $Id: LinearT.h,v 1.3 2002-09-12 16:00:20 paklein Exp $ */
 
 #ifndef _LINEAR_T_H_
 #define _LINEAR_T_H_
@@ -46,7 +46,10 @@ inline double LinearT::Function(double x) const
 inline double LinearT::DFunction(double x) const 
 { return (fA*x); }
 inline double LinearT::DDFunction(double x) const
-{ return (0.0); }
+{ 
+#pragma unused(x)
+	return (0.0); 
+}
 
 } // namespace Tahoe 
 #endif /* _LINEAR_T_H_ */
