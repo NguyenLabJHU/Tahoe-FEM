@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2001-10-11 00:52:36 paklein Exp $
+# $Id: makefile,v 1.6 2001-10-11 23:19:52 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -9,6 +9,7 @@ OBJ = \
 	LinearDamageT.o \
 	SurfacePotentialT.o \
 	TvergHutch2DT.o \
+	ViscTvergHutch2DT.o \
 	XuNeedleman2DT.o \
 	XuNeedleman3DT.o
 OBJ_LINK = $(OBJ)
@@ -22,6 +23,7 @@ SRC = \
 	LinearDamageT.cpp \
 	SurfacePotentialT.cpp \
 	TvergHutch2DT.cpp \
+	ViscTvergHutch2DT.cpp \
 	XuNeedleman2DT.cpp \
 	XuNeedleman3DT.cpp
 
@@ -30,6 +32,7 @@ HDR = \
 	LinearDamageT.h \
 	SurfacePotentialT.h \
 	TvergHutch2DT.h \
+	ViscTvergHutch2DT.h \
 	XuNeedleman2DT.h \
 	XuNeedleman3DT.h
 HDR_LINK = $(HDR:.h=.h_link)
