@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.6 2002-11-26 01:55:36 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.7 2002-11-26 22:56:26 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -125,7 +125,7 @@ void ParticlePairT::WriteOutput(void)
 		if (velocities)
 		{
 			velocities->RowAlias(tag_i, vec);
-			values_i[ndof] = 0.5*mass[type_i]*vec.Magnitude();
+			values_i[ndof+1] = 0.5*mass[type_i]*dArrayT::Dot(vec, vec);
 		}
 		
 		/* run though neighbors for one atom - first neighbor is self
@@ -155,8 +155,8 @@ void ParticlePairT::WriteOutput(void)
 			
 			/* split interaction energy */
 			double uby2 = 0.5*energy_function(r, NULL, NULL);
-			values_i[ndof+1] += uby2;
-			n_values(local_j, ndof+1) += uby2;
+			values_i[ndof] += uby2;
+			n_values(local_j, ndof) += uby2;
 		}
 	}	
 
