@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.14 2003-12-28 08:23:56 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.15 2003-12-29 04:53:47 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 #include "NodeManagerT.h"
@@ -352,6 +352,8 @@ void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
 void K_FieldT::ResolveMaterialReference(int element_group,
 	int material_num, const IsotropicT** iso, const Material2DT** mat) const
 {
+	const char caller[] = "K_FieldT::ResolveMaterialReference";
+
 #ifdef CONTINUUM_ELEMENT
 	/* resolve element group */
 	const FEManagerT& fe_man = fNodeManager.FEManager();
@@ -360,12 +362,7 @@ void K_FieldT::ResolveMaterialReference(int element_group,
 
 	const ContinuumElementT* cont_element = TB_DYNAMIC_CAST(const ContinuumElementT*, element);
 	if (!cont_element)
-	{
-		cout << "\n K_FieldT::ResolveReference: could not cast element group "
-		     << element_group+1<< " to\n" <<   "     ContinuumElementT"
-		     << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "could not cast element group %d to ContinuumElementT", element_group+1);
 
 	/* resolve material reference */
 	const MaterialListT& material_list = cont_element->MaterialsList();
@@ -380,7 +377,11 @@ void K_FieldT::ResolveMaterialReference(int element_group,
 		cout.flush();
 		throw ExceptionT::kGeneralFail;
 	}
-	
+
+#ifdef __NO_RTTI__
+	ExceptionT::GeneralFail("K_FieldT::ResolveMaterialReference", "requires RTTI");
+#endif
+
 	if (fNodeManager.NumSD() == 2)
 	{
 		*mat = TB_DYNAMIC_CAST(Material2DT*, cont_mat);
