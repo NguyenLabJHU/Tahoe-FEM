@@ -1,5 +1,5 @@
-top#!/usr/bin/perl
-# $Id: regression_trigger.pl.template,v 1.3 2003-04-01 22:04:37 paklein Exp $
+#!/usr/bin/perl
+# $Id: regression_trigger.pl.template,v 1.4 2003-04-01 22:16:17 paklein Exp $
 
 # configurations that must be defines
 $TAHOE_USER = "ENTER_YOUR_TAHOE_USER_NAME_HERE";
@@ -17,7 +17,7 @@ $MESG_FILE = $THE_SCRIPT;
 $MESG_FILE =~ s/pl$/msg/;
 $LOCK_FILE = $THE_SCRIPT;
 $LOCK_FILE =~ s/pl$/lock/;
-$BENCHMARK_SCRIPT = "regression.csh";
+$BENCHMARK_SCRIPT = "csh -f regression.csh";
 
 # check if this script is already running
 if (-e $LOCK_FILE) 
@@ -93,7 +93,7 @@ if (-e $TRIGGER_FILE)
 		system("$SCP status.tmp $TAHOE_USER\@$TAHOE_HOST:$STATUS_PATH/$HOST");
 
 		print MESG "running tests...\n";
-		system("csh -f $BENCHMARK_SCRIPT");
+		system("$BENCHMARK_SCRIPT");
 		print MESG "tests done\n";
 
 		# send status to server
