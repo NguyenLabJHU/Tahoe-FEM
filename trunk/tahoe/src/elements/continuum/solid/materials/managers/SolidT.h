@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.32 2003-07-29 21:17:49 rdorgan Exp $ */
+/* $Id: SolidT.h,v 1.33 2003-08-13 00:20:30 thao Exp $ */
 /* created: paklein (03/10/2001) */
 #ifndef _MATERIAL_T_H_
 #define _MATERIAL_T_H_
@@ -56,7 +56,8 @@ kLocXtalPlastFp_C = 56,
        kFDSVKStV = 63,
        kSSSVKStV = 64,
        kOgdenMat = 65,
-    kSSJ2LinHard = 66,
+    kSSJ2LinHard = 67,
+  kSSJ2LinHardplane = 66,
   kLocJ2SSNlHard = 70,
   kGrdJ2SSNlHard = 71,
        kGradJ2SS = 72,
