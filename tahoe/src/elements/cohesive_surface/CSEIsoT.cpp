@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.18.20.1 2004-04-08 07:32:24 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.18.20.2 2004-05-11 03:59:25 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
@@ -94,12 +94,12 @@ void CSEIsoT::Initialize(void)
 		{
 			case C1FunctionT::kLennardJones:
 			{	
-				double A;
+				double A, B;
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-				in >> A;
+				in >> A >> B;
 #else
 #endif				
-				fSurfPots[num] = new LennardJones612(A);
+				fSurfPots[num] = new LennardJones612(A,B);
 				break;
 			}	
 			case C1FunctionT::kSmithFerrante:
