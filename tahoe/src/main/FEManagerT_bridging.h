@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.4.2.3 2003-05-25 00:23:59 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.4.2.4 2003-05-25 19:26:53 hspark Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -79,7 +79,7 @@ public:
 	/*@}*/
 
 	/** write field values for the given nodes */
-	void SetFieldValues(const StringT& field, const iArrayT& nodes, 
+	void SetFieldValues(const StringT& field, const iArrayT& nodes, int order,
 		const dArray2DT& values);
 
 	/** \name interpolation and projection operators */
@@ -110,7 +110,7 @@ public:
 
 	/** project the point values onto the mesh. Project to the nodes using
 	 * projection initialized with the latest call to FEManagerT_bridging::InitProjection. */
-	void ProjectField(const StringT& field, NodeManagerT& node_manager);
+	void ProjectField(const StringT& field, NodeManagerT& node_manager, int order);
 	/*@}*/
 
 	/** calculate the fine scale part of MD solution as well as total displacement u.  Does not
@@ -120,7 +120,8 @@ public:
 	
 	/** calculate the initial FEM displacement via projection of initial MD displacement.  Differs 
 	  * from BridgingFields in that projected FE nodal values written into displacement field */
-	void InitialProject(const StringT& field, NodeManagerT& atom_node_manager, dArray2DT& projectedu);
+	void InitialProject(const StringT& field, NodeManagerT& atom_node_manager, dArray2DT& projectedu,
+		int order);
 	/*@}*/
 
 	/** (re-)set the equation number for the given group */
