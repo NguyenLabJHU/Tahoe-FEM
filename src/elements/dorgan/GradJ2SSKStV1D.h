@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSKStV1D.h,v 1.5 2004-08-05 17:26:11 rdorgan Exp $ */
+/* $Id: GradJ2SSKStV1D.h,v 1.6 2004-08-05 23:18:59 paklein Exp $ */
 #ifndef _GRAD_J2_SS_KSTV_1D_H_
 #define _GRAD_J2_SS_KSTV_1D_H_
 
@@ -23,8 +23,7 @@ class dSymMatrixT;
 
 class GradJ2SSKStV1D: public GradSSSolidMatT,
 		public IsotropicT,
-		public HookeanMatT,
-		virtual public ParameterInterfaceT
+		public HookeanMatT
 {
 public:
 

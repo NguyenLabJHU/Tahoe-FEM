@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV1D.cpp,v 1.11 2004-07-22 21:10:23 paklein Exp $ */
+/* $Id: J2SSKStV1D.cpp,v 1.12 2004-08-05 23:18:59 paklein Exp $ */
 #include "J2SSKStV1D.h"
 #include "SSMatSupportT.h"
 #include "ElementCardT.h"
@@ -168,14 +168,10 @@ void J2SSKStV1D::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT
 	SubListT& sub_lists) const
 {
 	/* inherited */
-	if (sub_lists.Length() == 0)
-		SSSolidMatT::DefineInlineSub(name, order, sub_lists);
-	if (sub_lists.Length() == 0)
-		IsotropicT::DefineInlineSub(name, order, sub_lists);
-	if (sub_lists.Length() == 0)
-		HookeanMatT::DefineInlineSub(name, order, sub_lists);
-	if (sub_lists.Length() == 0)
-		J2SSC0Hardening1DT::DefineInlineSub(name, order, sub_lists);
+	SSSolidMatT::DefineInlineSub(name, order, sub_lists);
+	IsotropicT::DefineInlineSub(name, order, sub_lists);
+	HookeanMatT::DefineInlineSub(name, order, sub_lists);
+	J2SSC0Hardening1DT::DefineInlineSub(name, order, sub_lists);
 }
 
 /*************************************************************************

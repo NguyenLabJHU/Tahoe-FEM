@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSKStV1D.cpp,v 1.6 2004-08-05 17:26:11 rdorgan Exp $ */
+/* $Id: GradJ2SSKStV1D.cpp,v 1.7 2004-08-05 23:18:59 paklein Exp $ */
 #include "GradJ2SSKStV1D.h"
 #include "GradSSMatSupportT.h"
 #include "ElementCardT.h"
@@ -365,7 +365,6 @@ void GradJ2SSKStV1D::DefineParameters(ParameterListT& list) const
 	GradSSSolidMatT::DefineParameters(list);
 	IsotropicT::DefineParameters(list);
 	HookeanMatT::DefineParameters(list);
-	ParameterInterfaceT::DefineParameters(list);
 
 	ParameterT isotropic_hardening_length_scale(fc_r, "isotropic_hardening_length_scale");
 	isotropic_hardening_length_scale.SetDefault(0.0);
@@ -385,7 +384,6 @@ void GradJ2SSKStV1D::DefineSubs(SubListT& sub_list) const
 	GradSSSolidMatT::DefineSubs(sub_list);
 	IsotropicT::DefineSubs(sub_list);
 	HookeanMatT::DefineSubs(sub_list);
-	ParameterInterfaceT::DefineSubs(sub_list);
 
 	/* hardening function */
 	sub_list.AddSub("hardening_function_choice", ParameterListT::Once, true);
@@ -396,12 +394,10 @@ void GradJ2SSKStV1D::DefineInlineSub(const StringT& name, ParameterListT::ListOr
 	SubListT& sub_lists) const
 {
 	/* inherited */
-	if (sub_lists.Length() == 0)
-		GradSSSolidMatT::DefineInlineSub(name, order, sub_lists);
-	if (sub_lists.Length() == 0)
-		IsotropicT::DefineInlineSub(name, order, sub_lists);
-	if (sub_lists.Length() == 0)
-		HookeanMatT::DefineInlineSub(name, order, sub_lists);
+	GradSSSolidMatT::DefineInlineSub(name, order, sub_lists);
+	IsotropicT::DefineInlineSub(name, order, sub_lists);
+	HookeanMatT::DefineInlineSub(name, order, sub_lists);
+
 	if (name == "hardening_function_choice")
 	{
 		order = ParameterListT::Choice;
@@ -413,8 +409,6 @@ void GradJ2SSKStV1D::DefineInlineSub(const StringT& name, ParameterListT::ListOr
 		sub_lists.AddSub("power_law");
 		sub_lists.AddSub("piecewise_linear");
 	}
-	else /* inherited */
-		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
@@ -422,10 +416,10 @@ ParameterInterfaceT* GradJ2SSKStV1D::NewSub(const StringT& name) const
 {
 	ParameterInterfaceT* sub = NULL;
 
+	/* try each base class */
 	sub = GradSSSolidMatT::NewSub(name);
 	if (sub) return sub;
 
-	/* try each base class */
 	sub = IsotropicT::NewSub(name);
 	if (sub) return sub;
 	
@@ -433,11 +427,7 @@ ParameterInterfaceT* GradJ2SSKStV1D::NewSub(const StringT& name) const
 	if (sub) return sub;
 	
 	/* try to construct C1 function */
-	C1FunctionT* function = C1FunctionT::New(name);
-	if (function)
-		return function;
-	else /* inherited */
-		return ParameterInterfaceT::NewSub(name);
+	return C1FunctionT::New(name);
 }
 
 /* accept parameter list */
@@ -451,7 +441,6 @@ void GradJ2SSKStV1D::TakeParameterList(const ParameterListT& list)
 	GradSSSolidMatT::TakeParameterList(list);
 	IsotropicT::TakeParameterList(list);
 	HookeanMatT::TakeParameterList(list);
-	ParameterInterfaceT::TakeParameterList(list);
 	
 	/* construct hardening function */
 	const ParameterListT& hardening = list.GetListChoice(*this, "hardening_function_choice");
