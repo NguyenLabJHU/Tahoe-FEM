@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.48 2002-12-02 10:19:35 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.49 2002-12-02 15:09:05 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1081,6 +1081,7 @@ void FEManagerT::SetSolver(void)
 	/* no predefined solvers */ 
 	if (fAnalysisCode == GlobalT::kMultiField)
 	{
+		if (fCurrentGroup != -1) throw;
 		for (fCurrentGroup = 0; fCurrentGroup < fSolvers.Length(); fCurrentGroup++)
 		{
 			int index = -1;
@@ -1095,8 +1096,8 @@ void FEManagerT::SetSolver(void)
 	
 			/* construct solver */
 			fSolvers[index] = New_Solver(type, fCurrentGroup);
-			fCurrentGroup = -1;
 		}
+		fCurrentGroup = -1;
 	}
 	else /* support for legacy analysis codes */
 	{
