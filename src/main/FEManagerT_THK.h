@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.h,v 1.11 2004-07-25 06:42:54 paklein Exp $ */
+/* $Id: FEManagerT_THK.h,v 1.12 2004-09-28 15:35:14 paklein Exp $ */
 
 #ifndef _FE_MANAGER_THK_H_
 #define _FE_MANAGER_THK_H_
@@ -23,7 +23,7 @@ public:
 
 	/** constructor */
 	FEManagerT_THK(const StringT& input, ofstreamT& output, CommunicatorT& comm,
-		const ArrayT<StringT>& argv);
+		const ArrayT<StringT>& argv, TaskT task);
 
 	/** return array containing atom numbers of boundary and ghost atoms - 2D version **/
 	const iArrayT& InterpolationNodes2D(void);

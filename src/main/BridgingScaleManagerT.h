@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleManagerT.h,v 1.2 2004-07-27 17:58:23 paklein Exp $ */
+/* $Id: BridgingScaleManagerT.h,v 1.3 2004-09-28 15:35:13 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_MANAGER_H_
 #define _BRIDGING_SCALE_MANAGER_H_
 
@@ -21,7 +21,7 @@ public:
 
 	/** constructor */
 	BridgingScaleManagerT(const StringT& input_file, ofstreamT& output, CommunicatorT& comm,
-		const ArrayT<StringT>& argv);
+		const ArrayT<StringT>& argv, TaskT task);
 
 	/** destructor */
 	virtual ~BridgingScaleManagerT(void);

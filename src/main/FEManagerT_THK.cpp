@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_THK.cpp,v 1.18 2004-07-25 06:42:53 paklein Exp $ */
+/* $Id: FEManagerT_THK.cpp,v 1.19 2004-09-28 15:35:13 paklein Exp $ */
 #include "FEManagerT_THK.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -26,8 +26,8 @@ const double root32 = sqrt(3.0)/2.0;    // for neighbor searching tolerance
 
 /* constructor */
 FEManagerT_THK::FEManagerT_THK(const StringT& input, ofstreamT& output, CommunicatorT& comm,
-	const ArrayT<StringT>& argv):
-	FEManagerT_bridging(input, output, comm, argv)
+	const ArrayT<StringT>& argv, TaskT task):
+	FEManagerT_bridging(input, output, comm, argv, task)
 {
 	SetName("tahoe_THK");
 }
@@ -561,7 +561,7 @@ void FEManagerT_THK::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
 	FEManagerT_bridging::TakeParameterList(list);
-
+	
 	/* extract THK parameters */
 	fNcrit = list.GetParameter("N_crit");
 	fLatticeParameter = list.GetParameter("lattice_parameter");

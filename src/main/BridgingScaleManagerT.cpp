@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleManagerT.cpp,v 1.3 2004-07-27 17:58:23 paklein Exp $ */
+/* $Id: BridgingScaleManagerT.cpp,v 1.4 2004-09-28 15:35:13 paklein Exp $ */
 #include "BridgingScaleManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -12,13 +12,14 @@
 #include "FieldT.h"
 #include "dSPMatrixT.h"
 #include "CommunicatorT.h"
+#include "CommManagerT.h"
 
 using namespace Tahoe;
 
 /* constructor */
 BridgingScaleManagerT::BridgingScaleManagerT(const StringT& input_file, ofstreamT& output, CommunicatorT& comm,
-	const ArrayT<StringT>& argv):
-	MultiManagerT(input_file, output, comm, argv),
+	const ArrayT<StringT>& argv, TaskT task):
+	MultiManagerT(input_file, output, comm, argv, task),
 	fFine_THK(NULL)
 {
 	SetName("tahoe_bridging_scale");
@@ -55,7 +56,15 @@ void BridgingScaleManagerT::Solve(void)
 	int order2 = 1;
 	int order3 = 2;
 	double dissipation = 0.0;
-	dArray2DT field_at_ghosts, totalu, fubig, fu, projectedu, boundghostdisp, boundghostvel, boundghostacc;
+	
+	/* internal force vector - communicated within atomistic side */
+	dArray2DT fubig(0,nsd);
+	CommManagerT* fine_comm_manager = fFine_THK->CommManager();
+	if (!fine_comm_manager) ExceptionT::GeneralFail(caller, "could not resolve fine scale comm manager");
+	int fubig_ID = fine_comm_manager->Init_AllGather(fubig);
+	
+	/* other work space */
+	dArray2DT field_at_ghosts, totalu, fu, projectedu, boundghostdisp, boundghostvel, boundghostacc;
 	dArray2DT thkforce, totaldisp, elecdens, embforce, wavedisp;
 	dSPMatrixT ntf;
 	iArrayT activefenodes, boundaryghostatoms;
@@ -146,6 +155,7 @@ void BridgingScaleManagerT::Solve(void)
 	ghostonmap = promap; // copy original properties map
 	promap = ghostoffmap;  // turn ghost atoms off for f(u) calculation
 	fubig = InternalForce(bridging_field, projectedu, *fFine_THK);
+	fine_comm_manager->AllGather(fubig_ID, fubig);	
 	promap = ghostonmap;   // turn ghost atoms back on for MD force calculations
 
 	/* calculate global interpolation matrix ntf */
@@ -284,6 +294,7 @@ void BridgingScaleManagerT::Solve(void)
 		/* calculate FE internal force as function of total displacement u here */
 		promap = ghostoffmap;  // turn off ghost atoms for f(u) calculations
 		fubig = InternalForce(bridging_field, totalu, *fFine_THK);
+		fine_comm_manager->AllGather(fubig_ID, fubig);	
 		promap = ghostonmap;   // turn on ghost atoms for MD force calculations
 		fu.RowCollect(fFine_THK->NonGhostNodes(), fubig); 
 
