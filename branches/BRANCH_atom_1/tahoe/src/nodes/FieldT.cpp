@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.8.2.2 2003-01-05 23:44:04 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.8.2.3 2003-01-11 01:17:12 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nControllerT.h"
@@ -18,7 +18,10 @@ FieldT::FieldT(const StringT& name, int ndof, nControllerT& controller):
 	fEquationStart(0),
 	fNumEquations(0)
 {
-
+	/* register arrays */
+	for (int i = 0; i < fField_last.Length(); i++)
+		RegisterArray2D(fField_last[i]);
+	RegisterArray2D(fUpdate);
 }
 
 /* destructor */
@@ -26,24 +29,6 @@ FieldT::~FieldT(void)
 { 
 	for (int i = 0; i < fSourceOutput.Length(); i++)
 		delete fSourceOutput[i];
-}
-
-/* set number of nodes */
-void FieldT::Dimension(int nnd)
-{
-	/* inherited */
-	BasicFieldT::Dimension(nnd);
-	
-	/* initialize equations */
-	fEqnos = kInit;
-
-	/* dimension field history */
-	for (int i = 0; i < fField_last.Length(); i++)
-		fField_last[i].Dimension(fField[i]);
-		
-	/* allocate update array */
-	fUpdate.Dimension(NumNodes(), NumDOF());
-	fUpdate = 0.0;
 }
 
 void FieldT::RegisterLocal(LocalArrayT& array) const	
@@ -261,6 +246,24 @@ void FieldT::ApplyUpdate(void)
 {
 	/* corrector */
 	fnController.Corrector(*this, fUpdate);
+}
+
+/* copy nodal information */
+void FieldT::CopyNodeToNode(const ArrayT<int>& source, const ArrayT<int>& target)
+{
+	/* copy data from source nodes to target nodes */
+	for (int i = 0 ; i < fField.Length() ; i++ )
+	{
+		dArray2DT& field = fField[i];
+		dArray2DT& field_last = fField_last[i];
+		for (int j = 0; j < source.Length(); j++)
+		{
+			int from = source[j];
+			int to = target[j];
+			field.CopyRowFromRow(to,from);
+			field_last.CopyRowFromRow(to,from);
+		}
+	}
 }
 
 /* check for relaxation */
