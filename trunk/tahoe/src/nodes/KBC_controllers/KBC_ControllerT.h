@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.22 2004-07-15 08:31:21 paklein Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.23 2004-07-22 08:29:56 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #ifndef _KBC_CONTROLLER_T_H_
 #define _KBC_CONTROLLER_T_H_
@@ -62,7 +62,7 @@ public:
 	virtual void SetExternalNodes(const ArrayT<int>& ex_nodes) const;
 
 	/** set to initial conditions */
-	virtual void InitialCondition(void) = 0;
+	virtual void InitialCondition(void) {};
 
 	/** \name restart functions */
 	/*@{*/

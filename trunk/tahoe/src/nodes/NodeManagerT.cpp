@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.49 2004-07-15 08:31:10 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.50 2004-07-22 08:29:52 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -326,19 +326,11 @@ void NodeManagerT::InitStep(int group)
 /* compute the nodal contribution to the tangent */
 void NodeManagerT::FormLHS(int group, GlobalT::SystemTypeT sys_type)
 {
-	int analysiscode = fFEManager.Analysis();
-
-//NOTE: this test should really be coming from the controller
-
 	/* skip for explicit dynamics */
-	if (analysiscode != GlobalT::kLinExpDynamic   &&
-	    analysiscode != GlobalT::kNLExpDynamic    &&
-	    analysiscode != GlobalT::kVarNodeNLExpDyn &&
-	    analysiscode != GlobalT::kPML)
-	{
-		for (int i = 0; i < fFields.Length(); i++)
-			if (fFields[i]->Group() == group)
-				fFields[i]->FormLHS(sys_type);
+	for (int i = 0; i < fFields.Length(); i++) {
+		FieldT* field = fFields[i];
+		if (field->Group() == group && field->Integrator().ImplicitExplicit() == IntegratorT::kImplicit)
+			field->FormLHS(sys_type);
 	}
 }
 	
@@ -1341,6 +1333,9 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 {
 	switch(code)
 	{
+		case KBC_ControllerT::kPrescribed:
+			return new KBC_ControllerT(fFieldSupport);
+	
 		case KBC_ControllerT::kK_Field:
 			return new K_FieldT(fFieldSupport);
 
