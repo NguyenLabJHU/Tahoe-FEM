@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.17.4.3 2003-08-13 19:45:12 hspark Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.17.4.4 2003-08-15 15:41:40 hspark Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -220,7 +220,7 @@ void ParticlePairT::WriteOutput(void)
 	const StringT& input_file = in.filename();
 	fsummary_file.Root(input_file);
         fsummary_file.Append(".sum");
-	double xcoord = 84.18465;
+	double xcoord = coords(nodelist[0],0);
 	double ydispcrit = .13;
 	const double& time = ElementSupport().Time();
 	for (int i = 0; i < nodelist.Length(); i++)
