@@ -1098,12 +1098,12 @@ void ParticleT::CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CPara
 	}
 
     }
-  if(fabs(Eta.Det())>ksmall)
+  if(fabs(Eta.Det())>kSmall)
     {
       dMatrixT EtaInverse = Eta.Inverse();
       F_iI.MultAB(Omega, EtaInverse);
       b_ij.MultABT(F_iI, F_iI);
-      if(fabs(b_ij.Det())>0) {
+      if(fabs(b_ij.Det())>kSmall) {
 	dMatrixT Id(ndof);
 	Id=0.0;
 	for(int i=0; i<ndof;i++) Id(i,i)=1.0;
