@@ -66,7 +66,13 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
   void AllocateElements();
 
   // deformation gradient
-  virtual const dMatrixT& DeformationGradient(const LocalArrayT& disp);
+//  virtual const dMatrixT& DeformationGradient(const LocalArrayT& disp);
+//DEV - let's see who needs this
+
+	// function to compute 3D deformation regardless of dimensionality of the
+	// problem. For 2D, the out-of-plane direction is x3 and the deformation
+	// is assumed to be plane strain
+	void Compute_Ftot_3D(dMatrixT& F_3D) const;	
 
  private:
   // solver for nonlinear constitutive equations
@@ -109,7 +115,7 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
   // handle to NLCSolver
   NLCSolverWrapperPtr fSolverPtr;
 
-  // total deformation gradient
+  // 3D total deformation gradient
   dMatrixT fFtot;
 
   // Cauchy stress

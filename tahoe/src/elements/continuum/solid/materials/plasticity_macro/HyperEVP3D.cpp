@@ -113,8 +113,11 @@ const dSymMatrixT& HyperEVP3D::s_ij()
 
       // total deformation gradient
       // fFtot = F();
-      fFtot = DeformationGradient(fLocDisp);
+      //fFtot = DeformationGradient(fLocDisp);
       // fFtot = fContinuumElement.FEManager().DeformationGradient();
+
+      //compute 3D total deformation gradient
+      Compute_Ftot_3D(fFtot);
 
       // time step
       fdt = fContinuumElement.FEManager().TimeStep();

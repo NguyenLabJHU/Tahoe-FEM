@@ -32,7 +32,8 @@ LatticeOrient::LatticeOrient(PolyCrystalMatT& poly)
 
   // ouput file for texture data
   StringT outfilename;
-  fTextOut.open(outfilename.DefaultName(input.filename()));
+  outfilename.Root(input.filename());
+  outfilename.Append(".out");
   SetStreamPrefs(fTextOut);
 
   // read/write initial texture

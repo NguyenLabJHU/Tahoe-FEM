@@ -156,8 +156,11 @@ const dSymMatrixT& BCJHypo3D::s_ij()
       // fFtot_n = fContinuumElement.FEManager().LastDeformationGradient();
       // fFtot = fContinuumElement.FEManager().DeformationGradient();
       // fFtot_n = DeformationGradient(fLocLastDisp);
-      fFtot   = DeformationGradient(fLocDisp);
+      //fFtot   = DeformationGradient(fLocDisp);
       //fFtot   = F();
+      
+      //compute 3D total deformation gradient
+      Compute_Ftot_3D(fFtot);
 
       // compute state (stress and state variables)
       SolveState();

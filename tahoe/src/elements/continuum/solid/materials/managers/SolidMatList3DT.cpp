@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.6 2001-05-17 19:13:47 ebmarin Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.6.2.1 2001-06-14 00:34:12 paklein Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList3DT.h"
@@ -14,7 +14,6 @@
 #include "QuadLog3D.h"
 #include "VIB3D.h"
 #include "IsoVIB3D.h"
-#include "IsoVIB3D_X.h"
 #include "J2IsoVIB3DLinHardT.h"
 #include "ModCB3DT.h"
 #include "EAMFCC3DMatT.h"

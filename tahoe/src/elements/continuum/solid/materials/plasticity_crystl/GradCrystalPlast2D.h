@@ -32,8 +32,10 @@ class GradCrystalPlast2D: public GradCrystalPlast, public Material2DT
   virtual void PrintName(ostream& out) const;
 
  protected: 
+
+//DEV - deprecated
   // deformation gradient 
-  virtual const dMatrixT& DeformationGradient(const LocalArrayT& disp);
+  //virtual const dMatrixT& DeformationGradient(const LocalArrayT& disp);
 
  protected: 
   // crystal Cauchy stress in 2D

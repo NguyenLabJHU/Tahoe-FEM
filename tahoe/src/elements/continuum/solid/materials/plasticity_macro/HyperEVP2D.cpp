@@ -62,6 +62,8 @@ void HyperEVP2D::PrintName(ostream& out) const
   out << "    Plane Strain\n";
 }
 
+//DEV - deprecated?
+#if 0
 const dMatrixT& HyperEVP2D::DeformationGradient(const LocalArrayT& disp)
 {
   // expand total deformation gradient: 2D -> 3D (plane strain)
@@ -70,3 +72,4 @@ const dMatrixT& HyperEVP2D::DeformationGradient(const LocalArrayT& disp)
 
   return fmatx1;
 }
+#endif

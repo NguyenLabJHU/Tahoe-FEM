@@ -181,8 +181,10 @@ const dSymMatrixT& LocalCrystalPlast::s_ij()
       // total deformation gradient
       // fFtot_n = fContinuumElement.FEManager().LastDeformationGradient();
       // fFtot = fContinuumElement.FEManager().DeformationGradient();
-      fFtot_n = DeformationGradient(fLocLastDisp); 
-      fFtot = DeformationGradient(fLocDisp);
+      //fFtot_n = DeformationGradient(fLocLastDisp); 
+      //fFtot = DeformationGradient(fLocDisp);
+      Compute_Ftot_last_3D(fFtot_n);
+      Compute_Ftot_3D(fFtot);
 
       for (int igrn = 0; igrn < fNumGrain; igrn++)
 	{
@@ -1265,9 +1267,58 @@ void LocalCrystalPlast::PolarDecomp()
   fRe.MultAB(fFe, fmatx1); 
 }
 
+//DEV - deprecated
+#if 0
 const dMatrixT& LocalCrystalPlast::DeformationGradient(const LocalArrayT& disp)
 { 
   return F(disp); 
+}
+#endif
+
+// compute 3D deformation gradient
+void LocalCrystalPlast::Compute_Ftot_3D(dMatrixT& F_3D) const
+{
+	int nsd = NumSD();
+	if (nsd == 3)
+		F_3D =  F();
+	else if (nsd == 2)
+	{
+		// expand total deformation gradient: 2D -> 3D (plane strain)
+		F_3D.Rank2ExpandFrom2D(F());    // fFtot or fFtot_n
+		F_3D(2, 2) = 1.0;
+	}
+	else 
+		throw eGeneralFail;
+}
+
+void LocalCrystalPlast::Compute_Ftot_3D(dMatrixT& F_3D, int ip) const
+{
+	int nsd = NumSD();
+	if (nsd == 3)
+		F_3D =  F(ip);
+	else if (nsd == 2)
+	{
+		// expand total deformation gradient: 2D -> 3D (plane strain)
+		F_3D.Rank2ExpandFrom2D(F(ip));    // fFtot or fFtot_n
+		F_3D(2, 2) = 1.0;
+	}
+	else 
+		throw eGeneralFail;
+}
+
+void LocalCrystalPlast::Compute_Ftot_last_3D(dMatrixT& F_3D) const
+{
+	int nsd = NumSD();
+	if (nsd == 3)
+		F_3D =  F_last();
+	else if (nsd == 2)
+	{
+		// expand total deformation gradient: 2D -> 3D (plane strain)
+		F_3D.Rank2ExpandFrom2D(F_last());    // fFtot or fFtot_n
+		F_3D(2, 2) = 1.0;
+	}
+	else 
+		throw eGeneralFail;
 }
 
 void LocalCrystalPlast::Set_I_b_Tensor(const dSymMatrixT& b, dMatrixT& c)

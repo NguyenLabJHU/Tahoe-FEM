@@ -63,6 +63,8 @@ void GradCrystalPlast2D::PrintName(ostream& out) const
   out << "    Plane Strain\n";
 }
 
+//DEV - deprecated
+#if 0
 const dMatrixT& GradCrystalPlast2D::DeformationGradient(const LocalArrayT& disp)
 {
   // 2D displacement gradient at IP
@@ -74,3 +76,4 @@ const dMatrixT& GradCrystalPlast2D::DeformationGradient(const LocalArrayT& disp)
 
   return fmatx1;
 }
+#endif
