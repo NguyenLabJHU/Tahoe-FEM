@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.3 2001-05-01 23:22:59 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.4 2002-02-11 01:23:03 paklein Exp $ */
 /* created: paklein (05/23/1996)                                          */
 
 #include "SolverT.h"
@@ -419,7 +419,8 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 			GlobalT::SystemTypeT type = fFEManager.GlobalSystemType();
 
 			/* solver options */
-			bool pivoting = false; //TEMP: solve with pivoting??
+			bool pivoting = true; //NOTE: SPOOLES v2.2 does not seem to solve non-symmetric
+			                      //      systems correctly in parallel if pivoting is disabled
 			bool symmetric;
 			if (type == GlobalT::kDiagonal || type == GlobalT::kSymmetric)
 				symmetric = true;
