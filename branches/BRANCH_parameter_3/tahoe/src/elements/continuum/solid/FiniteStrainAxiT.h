@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainAxiT.h,v 1.4.14.1 2004-04-08 07:32:34 paklein Exp $ */
+/* $Id: FiniteStrainAxiT.h,v 1.4.14.2 2004-05-06 16:03:20 paklein Exp $ */
 #ifndef _FINITE_STRAIN_AXI_T_H_
 #define _FINITE_STRAIN_AXI_T_H_
 
@@ -14,6 +14,7 @@ class FiniteStrainAxiT: public FiniteStrainT
       
 	/** constructor */
 	FiniteStrainAxiT(const ElementSupportT& support, const FieldT& field);
+	FiniteStrainAxiT(const ElementSupportT& support);
 
 	/** initialization. called immediately after constructor */
 	virtual void Initialize(void);
