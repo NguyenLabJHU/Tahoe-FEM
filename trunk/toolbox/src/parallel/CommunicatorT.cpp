@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.cpp,v 1.10 2003-09-24 23:58:26 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.11 2003-11-11 07:38:01 paklein Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionT.h"
 #include <iostream.h>
@@ -182,6 +182,37 @@ int CommunicatorT::Sum(int a) const
 
 	Log(kModerate, "Sum", "out = %d", a);
 	return a;
+}
+
+/* element-by-element sum of a vector */
+void CommunicatorT::Sum(const nArrayT<double>& my_values, nArrayT<double>& sum) const
+{
+	const char caller[] = "CommunicatorT::Sum";
+
+	/* dimension check */
+	if (my_values.Length() != sum.Length())
+		Log(kFail, caller, "sum %d insufficient size to hold %d", my_values.Length(), sum.Length());
+
+	/* log input */
+	if (LogLevel() == kLow)
+		Log() << setw(10) << "in:\n" << my_values.wrap(5) << '\n';
+
+	if (Size() == 1)
+		sum = my_values;
+#ifdef __TAHOE_MPI__
+	else if (Size() > 1)
+	{
+		int ret = MPI_Allreduce(my_values.Pointer(), sum.Pointer(), my_values.Length(), MPI_DOUBLE, MPI_SUM, fComm);
+		
+#ifdef CHECK_MPI_RETURN
+		if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Allreduce failed");
+#endif
+	}
+#endif
+
+	/* log sum */
+	if (LogLevel() == kLow)
+		Log() << setw(10) << "sum:\n" << sum.wrap(5) << '\n';
 }
 
 /* maximum over single doubles */
