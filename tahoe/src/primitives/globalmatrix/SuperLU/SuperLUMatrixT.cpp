@@ -1,5 +1,4 @@
-/* $Id: SuperLUMatrixT.cpp,v 1.1 2004-03-16 06:54:11 paklein Exp $ */
-/* created: rbridson (06/30/2000) */
+/* $Id: SuperLUMatrixT.cpp,v 1.2 2004-03-16 10:03:21 paklein Exp $ */
 #include "SuperLUMatrixT.h"
 
 /* library support */
@@ -126,13 +125,6 @@ void SuperLUMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	/* A note on memory allocation: since SuperLU is a C library, */
 	/* I use malloc/free instead of new/delete for the structures */
 	/* that SuperLU accesses, just in case. */	
-	fA.nrow = fLocNumEQ;
-	fA.ncol = fLocNumEQ;
-	NCformat *A = (NCformat*) fA.Store;
-
-	free(A->colptr);
-	A->colptr = (int*) calloc(fLocNumEQ+1, sizeof(int));
-	if (!A->colptr) ExceptionT::OutOfMemory(caller);
 
 	/* solution vector */
 	fX.nrow = fLocNumEQ;
@@ -147,10 +139,6 @@ void SuperLUMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	fperm_r.Dimension(fLocNumEQ);
 	fetree.Dimension(fLocNumEQ);
 
-	/* scalings */
-	fR.Dimension(fA.nrow);
-	fC.Dimension(fA.ncol);
-
 	/* structure could be changing, so get rid of old factors etc. */
 	if (fIsNumFactorized) {
 		Destroy_SuperNode_Matrix(&fL);
@@ -163,6 +151,15 @@ void SuperLUMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 		fU.Store = NULL;
 		fIsNumFactorized = false;
 	}
+
+	/* configure A */
+	fA.nrow = fLocNumEQ;
+	fA.ncol = fLocNumEQ;
+	NCformat *A = (NCformat*) fA.Store;
+
+	free(A->colptr);
+	A->colptr = (int*) calloc(fLocNumEQ+1, sizeof(int));
+	if (!A->colptr) ExceptionT::OutOfMemory(caller);
 
 	/* We now construct the sparsity pattern of A from the equation sets */
 	/* check if A is already allocated */
@@ -200,6 +197,10 @@ void SuperLUMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 
 	A->nzval = (void*) malloc (A->nnz*sizeof(double));
 	if (!A->nzval) ExceptionT::OutOfMemory(caller);
+
+	/* scalings */
+	fR.Dimension(fA.nrow);
+	fC.Dimension(fA.ncol);
 
 	/* output */
 	fOut <<" Number of nonzeros in global matrix = "<< A->nnz <<"\n"<<endl;

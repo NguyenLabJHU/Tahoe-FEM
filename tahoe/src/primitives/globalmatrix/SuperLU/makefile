@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2004-03-16 06:54:11 paklein Exp $
+# $Id: makefile,v 1.2 2004-03-16 10:03:21 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,7 +20,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-	SuperLUMatrixT.o
+	SuperLUMatrixT.o \
+	SuperLU_DISTMatrixT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -40,7 +41,8 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	SuperLUMatrixT.cpp
+	SuperLUMatrixT.cpp \
+	SuperLU_DISTMatrixT.cpp
 
 ##################### (3) headers
 #
@@ -52,7 +54,8 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	SuperLUMatrixT.h
+	SuperLUMatrixT.h \
+	SuperLU_DISTMatrixT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
