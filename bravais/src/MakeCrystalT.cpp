@@ -159,8 +159,8 @@
       out << "   shape of the domain: " << shape <<  "\n";
       
    		//if we are making a polycrystalline material, get the number of grains
-   		int NumberofGrains=0;
-   		if (shape=="POLY") in>>NumberofGrains;
+      int NumberofGrains=0;
+      if (shape=="POLY") in>>NumberofGrains;
    		
    //read output format
       int intformat = 0;

@@ -22,6 +22,7 @@
 #include "BoxT.h"
 #include "AsperityT.h"
 
+
 #include "OutputSetT.h"
 #include "OutPutLatticeT.h"
 #include "OutputBaseT.h"
@@ -54,7 +55,7 @@
          if (whichunit==1)
             Shape = new PolyT(nsd,len,latticeparameter,isort,which_latticetype,per, NumberofGrains);
          else
-            throw eBadInputValue;
+            Shape = new PolyT(nsd,cel,latticeparameter,isort,which_latticetype,per, NumberofGrains);
       }
       else
       {
@@ -74,7 +75,7 @@
          Crystal = new CORUNT(nsd,nuca,latticeparameter,irot,mat_rot,angle);
       else
          throw eBadInputValue;
-
+   
    	
       
       Set = 0;
