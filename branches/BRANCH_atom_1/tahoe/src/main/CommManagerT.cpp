@@ -1,7 +1,8 @@
-/* $Id: CommManagerT.cpp,v 1.1.2.9 2003-01-09 09:43:03 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.1.2.10 2003-01-11 01:18:41 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
+#include "NodeManagerT.h"
 #include "PartitionT.h"
 #include "InverseMapT.h"
 #include <float.h>
@@ -16,6 +17,7 @@ CommManagerT::CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager):
 	fComm(comm),
 	fModelManager(model_manager),
 	fPartition(NULL),
+	fNodeManager(NULL),
 	fPeriodicBoundaries(0,2),
 	fFirstConfigure(true)
 {
@@ -33,6 +35,10 @@ CommManagerT::~CommManagerT(void)
 	/* free any remaining communications */
 	for (int i = 0; i < fCommunications.Length(); i++)
 		delete fCommunications[i];
+
+	/* free any remaining ghost communications */
+	for (int i = 0; i < fGhostCommunications.Length(); i++)
+		delete fGhostCommunications[i];
 }
 
 /* set or clear partition information */
@@ -77,6 +83,12 @@ void CommManagerT::SetPartition(PartitionT* partition)
 	fPartitionNodes_inv.ClearMap();
 }
 
+/* set or clear node manager information */
+void CommManagerT::SetNodeManager(NodeManagerT* node_manager)
+{
+	fNodeManager = node_manager;
+}
+
 /* set boundaries */
 void CommManagerT::SetPeriodicBoundaries(int i, double x_i_min, double x_i_max)
 {
@@ -106,6 +118,7 @@ void CommManagerT::ClearPeriodicBoundaries(int i) { fIsPeriodic[i] = false; }
 void CommManagerT::EnforcePeriodicBoundaries(dArray2DT& displacement, double skin)
 {
 	const char caller[] = "CommManagerT::EnforcePeriodicBoundaries";
+	if (!fNodeManager) ExceptionT::GeneralFail(caller, "node manager node set");
 
 	/* only implemented for atom decomposition (or serial) */
 	if (fPartition && fPartition->DecompType() != PartitionT::kAtom) return;
@@ -181,12 +194,15 @@ void CommManagerT::EnforcePeriodicBoundaries(dArray2DT& displacement, double ski
 		for (int i = 0; i < fPBCNodes_ghost.Length(); i++)
 			fPBCNodes_ghost[i] = ghost_num++;
 
-		/* set up exchange */
-		int nsd = fModelManager.NumDimensions();
-		AllGatherT all_gather(fComm);
+		/* resize all coordinate and field arrays */
+		fNodeManager->ResizeNodes(nrn + fPBCNodes_ghost.Length());
 
-		/* reference coordinates */
-		fModelManager.ResizeNodes(nrn + fPBCNodes_ghost.Length());
+		/* copy nodal information */
+		fNodeManager->CopyNodeToNode(fPBCNodes, fPBCNodes_ghost);
+
+		/* generate reference coordinates - write access to the coordinates from the
+		 * model manager, not from the node manager. The node manager does not change
+		 * the initial coordinates during CopyNodeToNode */
 		const dArray2DT& coords = fModelManager.Coordinates();
 		dArray2DT ghost_coords(fPBCNodes_ghost.Length(), coords.MinorDim(), coords(ghost_num_start));
 		for (int i = 0; i < fPBCNodes_ghost.Length(); i++)
@@ -200,17 +216,22 @@ void CommManagerT::EnforcePeriodicBoundaries(dArray2DT& displacement, double ski
 			int shift = (face > 0) ? -1 : 1;
 			ghost_coords(i,dim) += shift*fPeriodicLength[dim];
 		}
+
+		/* exchange */
+		AllGatherT all_gather(fComm);
 		all_gather.Initialize(ghost_coords);
 		all_gather.AllGather(ghost_coords);
 
-#pragma message("CommManagerT::EnforcePeriodicBoundaries: finish me")		
-
-		/* current coordinates */
-		
-		/* fields */
-		
 		/* persistent communications */
-		
+		for (int i = 0; i < fGhostCommunications.Length(); i++)
+		{
+			/* retrieve communications pointer */
+			AllGatherT* all_gather = dynamic_cast<AllGatherT*>(fGhostCommunications[i]);
+			if (!all_gather) ExceptionT::GeneralFail(caller, "could not recover ghost communication");
+
+			/* (re-)set message size */
+			all_gather->Initialize(fPBCNodes.Length()*fNumValues[i]);
+		}
 	}
 }
 
@@ -274,6 +295,9 @@ int CommManagerT::Init_AllGather(MessageT::TypeT t, int num_vals)
 	/* not multiprocessor - return dummy id */
 	if (!fPartition) return -1;
 
+	/* store the number of values */
+	fNumValues.Append(num_vals);
+
 	PartitionT::DecompTypeT decomp_type = fPartition->DecompType();
 	if (decomp_type == PartitionT::kGraph) /* non-blocking send-receive */
 	{
@@ -285,6 +309,9 @@ int CommManagerT::Init_AllGather(MessageT::TypeT t, int num_vals)
 	
 		/* store */
 		fCommunications.Append(p2p);
+		
+		/* no ghost nodes allowed */
+		fGhostCommunications.Append(NULL);
 	}
 	else if (decomp_type == PartitionT::kAtom) /* all gather */
 	{
@@ -296,6 +323,15 @@ int CommManagerT::Init_AllGather(MessageT::TypeT t, int num_vals)
 		
 		/* store */
 		fCommunications.Append(all_gather);
+
+		/* new all gather for gh */
+		AllGatherT* ghost_all_gather = new AllGatherT(fComm);
+
+		/* set message size */
+		all_gather->Initialize(fPBCNodes.Length()*num_vals);
+		
+		/* store */
+		fGhostCommunications.Append(all_gather);
 	}
 	else if (decomp_type == PartitionT::kAtom) /* shifts */
 	{
@@ -318,11 +354,16 @@ void CommManagerT::Clear_AllGather(int id)
 	if (id < 0 || id >= fCommunications.Length())
 		ExceptionT::OutOfRange("CommManagerT::Clear_AllGather");
 
-	/* free memory */
+	/* clear the number of values */
+	fNumValues[id] = 0;
+
+	/* free memory and purge from array */
 	delete fCommunications[id];
-	
-	/* purge from array */
 	fCommunications[id] = NULL;
+
+	/* ghost nodes - free memory and purge from array */
+	delete fGhostCommunications[id];
+	fGhostCommunications[id] = NULL;
 }
 
 /* perform the all gather */
@@ -359,7 +400,8 @@ void CommManagerT::AllGather(int id, nArray2DT<double>& values)
 		if (!all_gather) ExceptionT::GeneralFail(caller);
 		
 		/* exchange */
-		all_gather->AllGather(values);
+		fdExchange.Set(fPartition->NumPartitionNodes(), values.MinorDim(), values.Pointer());
+		all_gather->AllGather(fdExchange);
 
 		/* ghost nodes */
 		if (fPBCNodes.Length() > 0) {
@@ -375,8 +417,8 @@ void CommManagerT::AllGather(int id, nArray2DT<double>& values)
 
 			/* exchange */
 			int nrn = fModelManager.NumNodes() - fPBCNodes.Length();
-			dArray2DT gh_values(fPBCNodes.Length(), values.MinorDim(), values(nrn));
-			all_gather->AllGather(gh_values);
+			fdExchange.Set(fPBCNodes.Length(), values.MinorDim(), values(nrn));
+			all_gather->AllGather(fdExchange);
 		}		
 	}
 	else if (decomp_type == PartitionT::kSpatial) /* shifts */
@@ -420,6 +462,7 @@ void CommManagerT::AllGather(int id, nArray2DT<int>& values)
 		if (!all_gather) ExceptionT::GeneralFail(caller);
 		
 		/* exchange */
+		fiExchange.Set(fPartition->NumPartitionNodes(), values.MinorDim(), values.Pointer());
 		all_gather->AllGather(values);
 		
 		/* ghost nodes */
@@ -436,8 +479,8 @@ void CommManagerT::AllGather(int id, nArray2DT<int>& values)
 
 			/* exchange */
 			int nrn = fModelManager.NumNodes() - fPBCNodes.Length();
-			iArray2DT gh_values(fPBCNodes.Length(), values.MinorDim(), values(nrn));
-			all_gather->AllGather(gh_values);
+			fiExchange.Set(fPBCNodes.Length(), values.MinorDim(), values(nrn));
+			all_gather->AllGather(fiExchange);
 		}		
 	}
 	else if (decomp_type == PartitionT::kSpatial) /* shifts */

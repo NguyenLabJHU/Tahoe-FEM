@@ -1,9 +1,10 @@
-/* $Id: CommManagerT.h,v 1.1.2.8 2003-01-09 09:43:03 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.1.2.9 2003-01-11 01:18:41 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
 /* direct members */
 #include "dArray2DT.h"
+#include "iArray2DT.h"
 #include "AutoArrayT.h"
 #include "InverseMapT.h"
 #include "MessageT.h" /* message enum's */
@@ -14,6 +15,7 @@ namespace Tahoe {
 class PartitionT;
 class CommunicatorT;
 class ModelManagerT;
+class NodeManagerT;
 class iArrayT;
 class MessageT;
 
@@ -32,6 +34,9 @@ public:
 
 	/** set or clear partition information */
 	void SetPartition(PartitionT* partition);
+
+	/** set or clear node manager information */
+	void SetNodeManager(NodeManagerT* node_manager);
 
 	/** the communicator */
 	const CommunicatorT& Communicator(void) const { return fComm; };
@@ -96,7 +101,6 @@ public:
 	 * list, indicating \e all nodes are owned by this partition */
 	const ArrayT<int>* BorderNodes(void) const;
 	/*@}*/
-
 
 	/** \name configuring persistent communications */
 	/*@{*/
@@ -180,6 +184,9 @@ private:
 
 	/** partition information */
 	PartitionT* fPartition;
+
+	/** node manager */
+	NodeManagerT* fNodeManager;
 	
 	/** true if CommManagerT::Configure has not been called yet */
 	bool fFirstConfigure;
@@ -207,12 +214,21 @@ private:
 	
 	/** \name persistent communications */
 	/*@{*/
+	/** number of values per node for each message */
+	AutoArrayT<int> fNumValues;
+	
 	/** communications for nodal values */
 	AutoArrayT<MessageT*> fCommunications;
 
 	/** communications for ghost nodes associated with the communications
 	 * in CommManagerT::fCommunications */
 	AutoArrayT<MessageT*> fGhostCommunications;
+	
+	/** dummy array for double exchanges */
+	dArray2DT fdExchange;
+
+	/** dummy array for double exchanges */
+	iArray2DT fiExchange;
 	/*@}*/
 };
 
