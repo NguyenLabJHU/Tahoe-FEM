@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.4 2003-04-29 16:30:01 saubry Exp $ */
+/* $Id: EAMT.h,v 1.5 2003-05-06 17:36:06 paklein Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -90,6 +90,11 @@ private:
 
 	/** equation numbers */
 	RaggedArray2DT<int> fEqnos;
+
+	/** electron density */
+	dArray2DT fElectronDensity;
+	nVariArray2DT<double> fElectronDensity_man;
+	int fElectronDensityMessageID;
 
 	/** \name workspace for EAMT::RHSDriver. Used to accumulate the force for
 	 * a single row of EAMT::fNeighbors. */

@@ -24,7 +24,8 @@ EAMT::EAMT(const ElementSupportT& support, const FieldT& field):
   ParticleT(support, field),
   fNeighbors(kMemoryHeadRoom),
   fEqnos(kMemoryHeadRoom),
-  fForce_list_man(0, fForce_list)
+  fForce_list_man(0, fForce_list),
+  fElectronDensity_man(kMemoryHeadRoom, fElectronDensity, 1)
 {
 
 }
@@ -65,6 +66,10 @@ void EAMT::Initialize(void)
   one *= -1;
   fOneOne.SetBlock(0, ndof, one);
   fOneOne.SetBlock(ndof, 0, one);
+
+	/* set up communication of electron density information */
+	fElectronDensityMessageID = fCommManager.Init_AllGather(MessageT::Double, 1);
+	fElectronDensity_man.SetMajorDimension(ElementSupport().NumNodes(), false);
 }
 
 /* collecting element geometry connectivities */
@@ -142,9 +147,11 @@ void EAMT::WriteOutput(void)
 
   /* EAM properties function pointers */
   int Dist = static_cast<int>(fNeighborDistance) + 1;
-  dArrayT rho(Dist*fNeighbors.MajorDim());
-  if(ndof == 2) rho = GetRho2D(coords);
-  if(ndof == 3) rho = GetRho3D(coords);
+  if(ndof == 2) fElectronDensity = GetRho2D(coords);
+  if(ndof == 3) fElectronDensity = GetRho3D(coords);
+
+	/* exchange electron density information */
+	fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
 
   EAMPropertyT::PairEnergyFunction  pair_energy_i = NULL;
   EAMPropertyT::PairEnergyFunction  pair_energy_j = NULL;
@@ -183,7 +190,7 @@ void EAMT::WriteOutput(void)
       if(iEmb == 1)
 	{     
 	  embed_energy_i = fEAMProperties[type_i]->getEmbedEnergy();
-	  double Em = embed_energy_i(rho[tag_i], NULL, NULL);
+	  double Em = embed_energy_i(fElectronDensity(tag_i,0), NULL, NULL);
 	  values_i[ndof] += Em;
 	  n_values(local_i, ndof) += Em;
 	}
@@ -1549,6 +1556,14 @@ void EAMT::SetConfiguration(void)
       tmp--;
       out.flush();
     }
+
+	/* reset the electron density array */
+	int nnd = ElementSupport().NumNodes();
+	fElectronDensity_man.SetMajorDimension(nnd, true);
+	fElectronDensity.Resize(nnd);
+	
+	/* exchange type information */
+	fCommManager.AllGather(fElectronDensityMessageID, fElectronDensity);
 }
 
 /* construct the list of properties from the given input stream */
