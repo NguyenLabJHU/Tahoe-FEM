@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.18.2.5 2004-07-12 16:06:28 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.18.2.6 2004-07-13 19:04:18 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #include "MeshFreeSSSolidT.h"
 
@@ -36,13 +36,6 @@ MeshFreeSSSolidT::MeshFreeSSSolidT(const ElementSupportT& support):
 	fMeshfreeParameters(NULL)	
 {
 	SetName("small_strain_meshfree");
-
-	/* disable any strain-displacement options */
-	if (fStrainDispOpt != kStandardB)
-	{
-		cout << "\n MeshFreeSSSolidT::MeshFreeSSSolidT: no strain-displacement options\n" << endl;
-		fStrainDispOpt = kStandardB;
-	}
 }
 
 MeshFreeSSSolidT::~MeshFreeSSSolidT(void)
@@ -271,6 +264,9 @@ void MeshFreeSSSolidT::TakeParameterList(const ParameterListT& list)
 
 	/* inherited */
 	SmallStrainT::TakeParameterList(list);
+
+	/* override any strain-displacement options */
+	fStrainDispOpt = kStandardB;
 
 	/* make field at border nodes nodally exact */
 	fAutoBorder = list.GetParameter("auto_border");
