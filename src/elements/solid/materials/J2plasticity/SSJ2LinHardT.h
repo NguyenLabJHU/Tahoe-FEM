@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardT.h,v 1.3 2003-06-28 17:28:54 thao Exp $ */
+/* $Id: SSJ2LinHardT.h,v 1.4 2003-08-08 22:56:06 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -27,6 +27,7 @@ public:
 
 	/*free energy density*/
 	virtual double StrainEnergyDensity(void);
+	virtual double Pressure(void) const;
 
 	/*evaluates stress and consistent modulus*/
 	virtual const dMatrixT& c_ijkl(void);

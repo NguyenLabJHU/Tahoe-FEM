@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHard2D.h,v 1.2 2003-05-15 05:18:14 thao Exp $ */
+/* $Id: SSJ2LinHard2D.h,v 1.3 2003-08-08 22:56:06 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -26,11 +26,7 @@ public:
 	/* constructor */
 	SSJ2LinHard2D(ifstreamT& in, const SSMatSupportT& support);
 
-	virtual double Pressure(void) const {
-	  cout << "\nSSJ2LinHardT::Pressure: not implemented" <<endl;
-	  throw ExceptionT::kGeneralFail;
-	  return 0.0;
-	};
+	virtual double Pressure(void) const;
 
 	/*free energy density*/
 	virtual double StrainEnergyDensity(void);
@@ -54,10 +50,6 @@ protected:
     dSymMatrixT fStress;
     dMatrixT fModulus;  
     
-    /*work space*/
-    dSymMatrixT fStrain3D;
-    dSymMatrixT fStress3D;
-    dMatrixT fModulus3D;  
 };
 
 } // namespace Tahoe 

@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardT.cpp,v 1.2 2003-05-15 05:18:14 thao Exp $ */
+/* $Id: SSJ2LinHardT.cpp,v 1.3 2003-08-08 22:56:06 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -59,6 +59,11 @@ double SSJ2LinHardT::StrainEnergyDensity(void)
     return energy;		
 }
 
+double SSJ2LinHardT::Pressure(void) const
+{
+  /*call s_ij before calling this function*/
+  return (fthird*fStress.Trace());
+}
 const dMatrixT& SSJ2LinHardT::c_ijkl(void)
 {
   s_ij();
@@ -193,6 +198,8 @@ void SSJ2LinHardT::ComputeOutput(dArrayT& output)
 
 	fDevStrain = e();
 	double I1 = fDevStrain.Trace();
+	output[2] = fKappa*I1;
+
 	fDevStrain[0] -= fthird*I1;
 	fDevStrain[1] -= fthird*I1;
 	fDevStrain[2] -= fthird*I1;
@@ -200,13 +207,8 @@ void SSJ2LinHardT::ComputeOutput(dArrayT& output)
 
 	fStress = fDevStrain;
 	fStress *= 2.0*fMu;
-	fStress.PlusIdentity(fKappa*I1);
-	
-	/* pressure */
-	output[2] = fStress.Trace()/3.0;
 	
 	/* deviatoric Von Mises stress */
-	fStress.Deviatoric();
 	double J2 = fStress.Invariant2();
 	J2 = (J2 < 0.0) ? 0.0 : J2;
 	output[1] = sqrt(3.0*J2);

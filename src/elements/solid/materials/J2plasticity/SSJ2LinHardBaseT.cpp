@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardBaseT.cpp,v 1.6 2003-06-28 17:28:54 thao Exp $ */
+/* $Id: SSJ2LinHardBaseT.cpp,v 1.7 2003-08-08 22:56:06 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -29,13 +29,7 @@ const double fsqrt23 = sqrt(2.0/3.0);
 SSJ2LinHardBaseT::SSJ2LinHardBaseT(ifstreamT& in, const SSMatSupportT& support):
 	SSSolidMatT(in, support),
 	fthird(1.0/3.0),
-	fplastic(false),
-	fUnitNorm(3),
-	fStressCorr(3),
-	fRelStress(3),
-	fDevStrain(3),
-	fModuliCorr(dSymMatrixT::NumValues(3)),
-	fTensorTemp(dSymMatrixT::NumValues(3))
+	fplastic(false)
 {
 	/* read parameters */	
 	in >> fMu;
@@ -45,19 +39,28 @@ SSJ2LinHardBaseT::SSJ2LinHardBaseT(ifstreamT& in, const SSMatSupportT& support):
 	in >> ftheta;	if (ftheta < 0.0 || ftheta > 1.0) throw ExceptionT::kBadInputValue;
         IsotropicT::Set_mu_kappa(fMu,fKappa);
 
+	/*dimension workspace*/
+        int nsd = (NumSD()==2) ? 4 :3;
+	int numstress = dSymMatrixT::NumValues(nsd);
+
+	fStressCorr.Dimension(nsd);
+	fUnitNorm.Dimension(nsd);
+	fRelStress.Dimension(nsd);
+	fDevStrain.Dimension(nsd);
+	fModuliCorr.Dimension(numstress);
+	fTensorTemp.Dimension(numstress);
+
 	/*set internal dofs*/
-	int ndof =3;
-	int numstress = dSymMatrixT::NumValues(ndof);
 	fInternalDOF.Dimension(3);
 	fInternalDOF[0] = 1;
 	fInternalDOF[1] = numstress;
 	fInternalDOF[2] = numstress;
+
         fInternalStressVars.Dimension(2*numstress+1);
         fInternalStrainVars.Dimension(2*numstress+1);
 
 	/*allocates storage for history variables*/
 	fnstatev = 0;
-//	fnstatev += fNumIP;        // fFlags
     
 	/* previous time step*/       
 	fnstatev ++;               // alpha: equivalent plastic strain
@@ -76,22 +79,17 @@ SSJ2LinHardBaseT::SSJ2LinHardBaseT(ifstreamT& in, const SSMatSupportT& support):
 	/*current time step*/
 	falpha.Set(1,pstatev);
 	pstatev ++;
-	fBeta.Set(ndof,pstatev);
+	fBeta.Set(nsd,pstatev);
 	pstatev += numstress;
-	fPlasticStrain.Set(ndof,pstatev);
+	fPlasticStrain.Set(nsd,pstatev);
 	pstatev += numstress;
 	
 	/*previous time step*/
 	falpha_n.Set(1,pstatev);
 	pstatev ++;
-	fBeta_n.Set(ndof,pstatev);
+	fBeta_n.Set(nsd,pstatev);
 	pstatev += numstress;
-	fPlasticStrain_n.Set(ndof,pstatev);
-}
-
-double SSJ2LinHardBaseT::mPressure(void)
-{
-        return(fKappa*e().Trace());
+	fPlasticStrain_n.Set(nsd,pstatev);
 }
 
 /* output parameters to stream */
@@ -266,7 +264,7 @@ const dSymMatrixT& SSJ2LinHardBaseT::StressCorrection(const dSymMatrixT& devtria
 const dMatrixT& SSJ2LinHardBaseT::ModuliCorrection(void)
 {
 	/* initialize */
-	fModuliCorr = 0.0;
+        fModuliCorr = 0.0;
 
 	if (fplastic)
 	{
@@ -276,10 +274,26 @@ const dMatrixT& SSJ2LinHardBaseT::ModuliCorrection(void)
 	  double hardmod = (dK()+dH())/(3.0*fMu);
 	  double thetabar = (1.0 / (1.0 + hardmod )) - thetahat;
 	
+	  int nsd = (NumSD()==2) ? 4 : 3;
+
 	  /* moduli corrections */
-	  fTensorTemp.ReducedIndexDeviatoric();
-	  fTensorTemp *= 2.0*fMu*thetahat;
-	  fModuliCorr -= fTensorTemp;
+	  fTensorTemp = 0.0;
+
+	  if (nsd == 4){
+	    fModuliCorr(0,0)=fModuliCorr(1,1)=fModuliCorr(3,3)=2.0*fthird;
+	    fModuliCorr(0,1)=fModuliCorr(0,3)= -fthird;
+	    fModuliCorr(1,0)=fModuliCorr(1,3)= -fthird;
+	    fModuliCorr(3,0)=fModuliCorr(3,1)= -fthird;
+	    fModuliCorr(2,2)=0.5;
+	  }
+	  else {
+	    fModuliCorr(0,0)=fModuliCorr(1,1)=fModuliCorr(2,2)=2.0*fthird;
+	    fModuliCorr(0,1)=fModuliCorr(0,2)= -fthird;
+	    fModuliCorr(1,0)=fModuliCorr(1,2)= -fthird;
+	    fModuliCorr(2,0)=fModuliCorr(2,1)= -fthird;
+	    fModuliCorr(3,3)=fModuliCorr(4,4)=fModuliCorr(5,5)=0.5;
+	  }
+	  fModuliCorr *= 2.0*fMu*(-thetahat);
 	  
 	  fTensorTemp.Outer(fUnitNorm,fUnitNorm);
 	  fTensorTemp *= 2.0*fMu*thetabar;
