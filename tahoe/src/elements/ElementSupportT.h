@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.17 2002-12-11 23:13:15 cjkimme Exp $ */
+/* $Id: ElementSupportT.h,v 1.18 2002-12-17 08:58:18 paklein Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -302,6 +302,11 @@ public:
 	 * \param n_values nodal output values
 	 * \param e_values element output values */
 	void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const;
+	
+#ifndef _SIERRA_TEST_
+	/** return a reference to the output set with the given ID */
+	const OutputSetT& OutputSet(int ID) const;
+#endif
 	/*@}*/
 
 private:
