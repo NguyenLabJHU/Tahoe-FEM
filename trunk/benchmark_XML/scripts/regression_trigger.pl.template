@@ -1,12 +1,12 @@
 #!/usr/bin/perl
-# $Id: regression_trigger.pl.template,v 1.5 2003-04-01 23:12:13 paklein Exp $
+# $Id: regression_trigger.pl.template,v 1.6 2003-04-01 23:41:11 paklein Exp $
 
 # configurations that must be defines
 $TAHOE_USER = "ENTER_YOUR_TAHOE_USER_NAME_HERE";
 $HOST = "ENTER_YOUR_HOST_NAME_HERE";
 
 # configurations that should not need changes
-SCP = "scp"; # scp in path
+$SCP = "scp"; # scp in path
 #$SCP = "export PATH=/scratch_qt/paklein/local/bin:/usr/bin:/usr/local/bin; scp"; # SGI
 #$SCP="PATH=/scratch_qt/paklein/local/bin:/bin:/usr/bin:/usr/local/bin; export PATH; scp"; # DEC
 $TAHOE_HOST = "tahoe.ca.sandia.gov";
