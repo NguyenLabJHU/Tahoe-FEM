@@ -1,4 +1,4 @@
-/* $Id: TecPlotOutputT.cpp,v 1.1.1.1.2.3 2001-11-01 19:44:36 sawimme Exp $ */
+/* $Id: TecPlotOutputT.cpp,v 1.1.1.1.2.4 2001-11-06 14:25:44 sawimme Exp $ */
 /* created: sawimme (06/06/2000)                                          */
 
 #include "TecPlotOutputT.h"
@@ -97,6 +97,7 @@ void TecPlotOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
       // nodes used by this block
       iArrayT nodes_used;
       fElementSets[ID]->BlockNodesUsed (b, nodes_used);
+      const iArray2DT* c = fElementSets[ID]->Connectivities(b);
 
       // write zone header
       StringT zonetitle = "Grp ";
@@ -113,12 +114,13 @@ void TecPlotOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
   
       // write variable data, since we are using BLOCK format,
       // can write separately from coordinate list
-      dArray2DT local_vars (nodes_used.Length(), n_values.MinorDim());
-      local_vars.RowCollect (nodes_used, n_values);
+      iArrayT rows_used = nodes_used;
+      rows_used += -c->Min();
+      dArray2DT local_vars (rows_used.Length(), n_values.MinorDim());
+      local_vars.RowCollect (rows_used, n_values);
       tec.WriteData (out, local_vars);
   
       // write the connectivity block
-      const iArray2DT* c = fElementSets[ID]->Connectivities(b);
       iArray2DT local_connects(c->MajorDim(), c->MinorDim());
       LocalConnectivity(nodes_used, *c, local_connects);
       local_connects++;

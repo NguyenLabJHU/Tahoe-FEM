@@ -1,11 +1,11 @@
-/* $Id: AbaqusOutputT.cpp,v 1.2.2.1 2001-10-25 19:49:00 sawimme Exp $ */
+/* $Id: AbaqusOutputT.cpp,v 1.2.2.2 2001-11-06 14:25:43 sawimme Exp $ */
 /* created: sawimme (05/31/2000)                                          */
 
 #include "AbaqusOutputT.h"
 
 #include <fstream.h>
 
-#include "AbaqusT.h"
+#include "AbaqusResultsT.h"
 #include "OutputSetT.h"
 #include "ios_fwd_decl.h"
 #include "iArray2DT.h"
@@ -14,10 +14,10 @@
 #include "ofstreamT.h"
 
 AbaqusOutputT::AbaqusOutputT(ostream& out, const ArrayT<StringT>& out_strings, bool binary):
-OutputBaseT(out, out_strings),
-fBinary (binary),
-fBufferWritten (0),
-fOldTime (0)
+  OutputBaseT(out, out_strings),
+  fBinary (binary),
+  fBufferWritten (0),
+  fOldTime (0)
 {
 
 }
@@ -25,226 +25,278 @@ fOldTime (0)
 /* print geometry from multiple element groups to one file */
 void AbaqusOutputT::WriteGeometry(void)
 {
-AbaqusT aba (fout, fBinary);
-ofstreamT out;
-CreateResultsFile (0, aba, out);
-
-// write node sets
-for (int i=0; i < fNodeSets.Length(); i++)
-{
-StringT name ("NodeSet ");
-name.Append (fNodeSetIDs[i]);
-iArrayT& set = *((iArrayT*) fNodeSets[i]);
-set++;
-aba.WriteNodeSet (out, name, set);
-set--;
-}
+  AbaqusResultsT aba (fout);
+  CreateResultsFile (0, aba);
+  
+  // write node sets
+  for (int i=0; i < fNodeSets.Length(); i++)
+    {
+      StringT name ("NodeSet ");
+      name.Append (fNodeSetIDs[i]);
+      iArrayT& set = *((iArrayT*) fNodeSets[i]);
+      set++;
+      aba.WriteNodeSet (name, set);
+      set--;
+    }
 }
 
 void AbaqusOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 const dArray2DT& e_values)
 {
-	/* inherited */
-	OutputBaseT::WriteOutput(time, ID, n_values, e_values);
-	if (fElementSets[ID]->NumNodes() == 0) return;
+  /* inherited */
+  OutputBaseT::WriteOutput(time, ID, n_values, e_values);
+  if (fElementSets[ID]->NumNodes() == 0) return;
+  
+  // open file
+  AbaqusResultsT aba (fout);
+  if (fElementSets[ID]->PrintStep() == 0)
+    CreateResultsFile (ID, aba);
+  else
+    {
+      StringT filename;
+      FileName (ID, filename);
+      aba.OpenWrite (filename, fBinary, fBufferWritten);
+    }
+  
+  // start time increment
+  int inc = fElementSets[ID]->PrintStep() + 1;
+  int step = fSequence + 1;
+  double timeincrement = time - fOldTime;
+  AbaqusResultsT::AnalysisTypeT analysistype = AbaqusResultsT::kDynamic;
+  aba.WriteStartIncrement (step, inc, time, time, timeincrement, analysistype);
+  fOldTime = time;
+  
+  // gather variable data
+  const ArrayT<StringT>& n_labels = fElementSets[ID]->NodeOutputLabels();	
+  const ArrayT<StringT>& e_labels = fElementSets[ID]->ElementOutputLabels();
+  
+  // if stress or strain variable, define num direct and num shear components 
+  int numdir = 0;
+  int numshear = 0;
+  if (fCoordinates->MinorDim() == 2)
+    {
+      numdir = 2;
+      numshear = 1;
+    }
+  else
+    {
+      numdir = 3;
+      numshear = 3;
+    }
 
-	// open file
-	AbaqusT aba (fout, fBinary);
-	ofstreamT out;
-	if (fElementSets[ID]->PrintStep() == 0)
-	  CreateResultsFile (ID, aba, out);
-	else
-	  {
-	    StringT filename;
-	    FileName (ID, filename);
-	    out.open_append(filename);
-	    aba.ResetBufferSize (fBufferWritten);
-	  }
+  // break up variables by block
+  const iArrayT& blockids = fElementSets[ID]->BlockID();
+  for (int ec=0; ec < fElementSets[ID]->NumBlocks(); ec++)
+    {
+      const iArray2DT* connects = fElementSets[ID]->Connectivities(ec);
+      int numelemnodes = connects->MinorDim();
+      StringT setname = "Grp";
+      setname.Append (blockids[ec]);
+      GeometryT::CodeT code = fElementSets[ID]->Geometry();
+      
+      // nodal variables
+      if (n_labels.Length() > 0)
+	{
+	  // set labels
+	  iArrayT nkeys (n_labels.Length()); 
+	  SetRecordKey (aba, n_labels, nkeys);
 
-	// start time increment
-	int inc = fElementSets[ID]->PrintStep() + 1;
-	int step = fSequence + 1;
-	double timeincrement = time - fOldTime;
-	AbaqusT::Analysis analysistype = AbaqusT::aDynamic;
-	aba.WriteStartIncrement (out, step, inc, time, time, timeincrement, analysistype);
-	fOldTime = time;
+	  // collect node numbers
+	  iArrayT nodes_used;
+	  fElementSets[ID]->BlockNodesUsed(ec, nodes_used);
 
-	// gather variable data
-	const ArrayT<StringT>& n_labels = fElementSets[ID]->NodeOutputLabels();	
-	const ArrayT<StringT>& e_labels = fElementSets[ID]->ElementOutputLabels();
-	const iArray2DT* connects = fElementSets[ID]->Connectivities(0);
-	int numelemnodes = connects->MinorDim();
+	  // change nodes_used from global to local numbering
+	  int offset = connects->Min();
+	  iArrayT rows_used = nodes_used;
+	  rows_used += -offset;
 
-	// write variable data
-	if (n_labels.Length() > 0)
-	  {
-	    ArrayT<AbaqusT::VariableKeyT> nkeys (n_labels.Length());
-	    SetRecordKey (n_labels, nkeys);
-	    iArrayT nodes_used;
-	    nodes_used.Alias(fElementSets[ID]->NodesUsed());
-	    nodes_used++;
-	    aba.WriteNodalData (out, nkeys, n_values, nodes_used, fElementSets[ID]->Geometry(), numelemnodes);
-	    nodes_used--;
-	  }
+	  // break up group into block
+	  dArray2DT blockvals (rows_used.Length(), n_values.MinorDim());
+	  blockvals.RowCollect (rows_used, n_values);
 
-	if (e_labels.Length() > 0)
-	  {
-	    ArrayT<AbaqusT::VariableKeyT> ekeys (e_labels.Length());
-	    SetRecordKey (e_labels, ekeys);
-	    aba.WriteElementData (out, ekeys, e_values);
-	  }
-
-	// write end increment
-	aba.WriteEndIncrement (out, false);
-
-	// store amount of buffer written
-	fBufferWritten = aba.GetBufferSize ();
+	  nodes_used++;
+	  for (int n=0; n < nkeys.Length(); n++)
+	    {
+	      aba.WriteOutputDefinition (nkeys[n], setname, code, numelemnodes);
+	      
+	      // if stress or strain variable, define num direct and num shear components 
+	      if (nkeys[n] == aba.VariableKey ("S") || nkeys[n] == aba.VariableKey ("E"))
+		aba.WriteNodeVariables (n, nkeys, blockvals, nodes_used, numdir, numshear);
+	      else
+		{
+		  int index = aba.VariableKeyIndex (nkeys[n]);
+		  int dimension = aba.VariableDimension (index);
+		  aba.WriteNodeVariables (n, nkeys, blockvals, nodes_used, dimension, 0);
+		}
+	    }
+	  nodes_used--;
+	}
+      
+      if (e_labels.Length() > 0)
+	{
+	  iArrayT ekeys (e_labels.Length());
+	  SetRecordKey (aba, e_labels, ekeys);
+	  
+	}
+    }
+  
+  // write end increment
+  aba.WriteEndIncrement ();
+  
+  // store amount of buffer written
+  fBufferWritten = aba.Close ();
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /*************************************************************************
-* Private
-*************************************************************************/
+ * Private
+ *************************************************************************/
 
 /* generate database file name for the given ID */
 void AbaqusOutputT::FileName(int ID, StringT& filename) const
 {
-	/* root */
-	filename = fOutroot;
-
-	/* tack on sequence number */
-	if (fSequence > 0) filename.Append(".sq", fSequence + 1);
-
-	/* I/O ID */
-	filename.Append(".io", ID);
-
-	/* changing geometry */
-	if (fElementSets[ID]->Changing())
-		filename.Append(".ps", fElementSets[ID]->PrintStep() + 1);
-
-	/* extension */
-	if (fBinary)
+  /* root */
+  filename = fOutroot;
+  
+  /* tack on sequence number */
+  if (fSequence > 0) filename.Append(".sq", fSequence + 1);
+  
+  /* I/O ID */
+  filename.Append(".io", ID);
+  
+  /* changing geometry */
+  if (fElementSets[ID]->Changing())
+    filename.Append(".ps", fElementSets[ID]->PrintStep() + 1);
+  
+  /* extension */
+  if (fBinary)
 	  filename.Append(".fil");
-	else
-	  filename.Append(".fin");
+  else
+    filename.Append(".fin");
 }
 
-bool AbaqusOutputT::OpenFile (ofstreamT& out, const StringT& filename, AbaqusT& aba)
-{
-	if (out.is_open()) out.close();
-	aba.ResetBufferSize (fBufferWritten);
-	out.open (filename);
-	if (out.is_open()) 
-		return true;
-	else 
-		return false;
-}
-
-void AbaqusOutputT::CreateResultsFile (int ID, AbaqusT& aba, ofstreamT& out)
+void AbaqusOutputT::CreateResultsFile (int ID, AbaqusResultsT& aba)
 {
   // file name
   StringT filename;
   FileName (ID, filename);
-
   fBufferWritten = 0;
-  if (!OpenFile (out, filename, aba)) return;
 
   // create new file
   int numelems = fElementSets[ID]->NumElements();
   int numnodes = fElementSets[ID]->NumNodes();
   double elemsize = 1; // default for now
-  aba.Create (out, numelems, numnodes, elemsize);
+  aba.Create (filename, fBinary, numelems, numnodes, elemsize);
   
   // write element records
-  int startelemnum = 1;
+  int startnum = 1;
   for (int ic=0; ic < fElementSets[ID]->NumBlocks(); ic++)
     {
       const iArray2DT* connects = fElementSets[ID]->Connectivities(ic);
       iArray2DT unoffset = *connects;
       unoffset++;
-      aba.WriteConnectivity (out, fElementSets[ID]->Geometry(), startelemnum, unoffset);
-      startelemnum += connects->MajorDim();
+      aba.WriteConnectivity (fElementSets[ID]->Geometry(), startnum, unoffset);
+      startnum += connects->MajorDim();
+      unoffset--;
     }
 
   // write coordinate records
   iArrayT nodes_used;
   nodes_used.Alias(fElementSets[ID]->NodesUsed());
   nodes_used++;
-  aba.WriteCoordinates (out, nodes_used, *fCoordinates);
+  aba.WriteCoordinates (nodes_used, *fCoordinates);
   nodes_used--;
   
-  // write element set
-  iArrayT elem_map (numelems);
-  elem_map.SetValueToPosition ();
-  elem_map++;
-  StringT name = "Grp ";
-  name.Append (fElementSets[ID]->ID());
-  aba.WriteElementSet (out, name, elem_map);
+  // write element sets
+  startnum = 1;
+  const iArrayT& blockids = fElementSets[ID]->BlockID();
+  for (int ec=0; ec < fElementSets[ID]->NumBlocks(); ec++)
+    {
+      iArrayT elem_map (fElementSets[ID]->NumBlockElements (ec));
+      elem_map.SetValueToPosition ();
+      elem_map += startnum;
+      StringT name = "Grp";
+      name.Append (blockids[ec]);
+      aba.WriteElementSet (name, elem_map);
+      startnum += elem_map.Length();
+    }
+
+  // write node_used as node sets
+  for (int nc=0; nc < fElementSets[ID]->NumBlocks(); nc++)
+    {
+      iArrayT nodemap;
+      fElementSets[ID]->BlockNodesUsed (nc, nodemap);
+      nodemap++;
+      StringT name = "Grp";
+      name.Append (blockids[nc]);
+      aba.WriteNodeSet (name, nodemap);
+      nodemap--;
+    }
   
   // write active dof
   iArrayT activedof (fCoordinates->MinorDim());
   activedof.SetValueToPosition();
   activedof++;
-  aba.WriteActiveDOF (out, activedof);
+  aba.WriteActiveDOF (activedof);
   
   // write heading
-  aba.WriteHeading (out, fTitle);
+  aba.WriteHeading (fTitle);
   
   // write end increment
-  aba.WriteEndIncrement (out, true);
+  aba.WriteEndIncrement ();
 }
 
-void AbaqusOutputT::SetRecordKey (const ArrayT<StringT>& labels, ArrayT<AbaqusT::VariableKeyT>& keys) const
+void AbaqusOutputT::SetRecordKey (AbaqusResultsT& aba, const ArrayT<StringT>& labels, iArrayT& keys) const
 {
-keys = AbaqusT::aUnknown;
-for (int i=0; i < labels.Length(); i++)
-{
-const char* l = labels[i];
-if (strncmp (l, "D_X", 3) == 0 ||
+  keys = -1;
+  for (int i=0; i < labels.Length(); i++)
+    {
+      const char* l = labels[i];
+      if (strncmp (l, "D_X", 3) == 0 ||
 	  strncmp (l, "D_Y", 3) == 0 ||
 	  strncmp (l, "D_Z", 3) == 0 )
-	keys[i] = AbaqusT::aDisplacement;
-else if (strncmp (l, "s11", 3) == 0 ||
+	keys[i] = aba.VariableKey ("U");
+      else if (strncmp (l, "s11", 3) == 0 ||
 	       strncmp (l, "s22", 3) == 0 ||
 	       strncmp (l, "s33", 3) == 0 ||
 	       strncmp (l, "s12", 3) == 0 ||
 	       strncmp (l, "s13", 3) == 0 ||
 	       strncmp (l, "s23", 3) == 0 )
-	keys[i] = AbaqusT::aStress;
-else if (strncmp (l, "e11", 3) == 0 ||
+	keys[i] = aba.VariableKey ("S");
+      else if (strncmp (l, "e11", 3) == 0 ||
 	       strncmp (l, "e22", 3) == 0 ||
 	       strncmp (l, "e33", 3) == 0 ||
 	       strncmp (l, "e12", 3) == 0 ||
 	       strncmp (l, "e13", 3) == 0 ||
 	       strncmp (l, "e23", 3) == 0 )
-	keys[i] = AbaqusT::aTotalStrain;
-else if (strncmp (l, "V_X", 3) == 0 ||
+	keys[i] = aba.VariableKey ("E");
+      else if (strncmp (l, "V_X", 3) == 0 ||
 	       strncmp (l, "V_Y", 3) == 0 ||
 	       strncmp (l, "V_Z", 3) == 0 )
-	keys[i] = AbaqusT::aVelocity;
-else if (strncmp (l, "A_X", 3) == 0 ||
+	keys[i] = aba.VariableKey ("V");
+      else if (strncmp (l, "A_X", 3) == 0 ||
 	       strncmp (l, "A_Y", 3) == 0 ||
 	       strncmp (l, "A_Z", 3) == 0 )
-	keys[i] = AbaqusT::aAcceleration;
-else if (strncmp (l, "x_X", 3) == 0 ||
+	keys[i] = aba.VariableKey ("A");
+      else if (strncmp (l, "x_X", 3) == 0 ||
 	       strncmp (l, "x_Y", 3) == 0 ||
 	       strncmp (l, "x_Z", 3) == 0 )
-	keys[i] = AbaqusT::aCoordVariable;
-else if (strncmp (l, "p1", 2) == 0 ||
+	keys[i] = aba.VariableKey ("COORD");
+      else if (strncmp (l, "p1", 2) == 0 ||
 	       strncmp (l, "p2", 2) == 0 ||
 	       strncmp (l, "p3", 2) == 0)
-	keys[i] = AbaqusT::aPrinStress;
-else
+	keys[i] = aba.VariableKey ("SP");
+      else
 	{
-	  keys[i] = AbaqusT::aUVARM;
+	  keys[i] = aba.VariableKey ("UVARM");
 	  if (fElementSets[0]->PrintStep() == 0)
 	    fout << "AbaqusOutputT::SetLabelName, unknown label "
-	       << labels[i] << ", writing as UVARM\n";
+		 << labels[i] << ", writing as UVARM\n";
 	}
-}
+    }
 }
 
 
