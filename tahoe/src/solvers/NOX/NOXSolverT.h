@@ -1,23 +1,31 @@
-/* $Id: NOXSolverT.h,v 1.1 2002-03-28 16:40:35 paklein Exp $ */
+/* $Id: NOXSolverT.h,v 1.2 2002-04-02 23:30:55 paklein Exp $ */
 #ifndef _NOX_SOLVER_T_H_
 #define _NOX_SOLVER_T_H_
 
+/* optional */
+#ifdef __NOX__
+
 /* base classes */
 #include "SolverT.h"
-#include "NOXInterfaceT.h"
+#include "SolverInterfaceT.h"
 
 /* forward declarations */
 namespace NOX {
-	namespace Solver { 
-		class Manager; 
+	namespace Parameter {
+		class List;
 	}
-	namespace Tahoe { 
-		class Group; 
+	namespace Solver {
+		class Manager;
+	}
+	namespace Status {
+		class AbsResid;
+//		class RelResid;
+		class MaxIters;
 	}
 }
 
-/** interface to the Sandia NOX nonlinear solver library */
-class NOXSolverT: public SolverT, public NOXInterfaceT
+/** interface to the Sandia NOX nonlinear solver library. */
+class NOXSolverT: public SolverT, protected SolverInterfaceT
 {
 public:
 
@@ -33,25 +41,35 @@ public:
 	/** error handler */
 	virtual void ResetStep(void);
 
-	/** compute RHS for the given solution vector x.
-	 * \param x solution vector to apply the system
+	/** (re-)configure the global equation system */
+	virtual void Initialize(int tot_num_eq, int loc_num_eq, int start_eq);
+
+protected:
+	
+	/*@{ \name concrete implementation of the SolverInterfaceT.*/
+	/** compute RHS for the given update to the solution. 
+	 * \param x the solution vector to apply the system
 	 * \param rhs returns with the residual associated with the given solution vector
 	 * \return true if computation was successful */
 	virtual bool computeRHS(const dArrayT& x, dArrayT& rhs);
   
-	/** compute the Jacobian given the specified solution vector x.  
-	 * \param x solution vector to apply the system
+	/** compute the Jacobian associated with the solution used for the most
+	 * recent call to NOXInterfaceT::computeRHS.  
 	 * \param jacobian returns with the Jacobian associated with the given solution vector
 	 * \return true if computation was successful */
-	virtual bool computeJacobian(const dArrayT& x, GlobalMatrixT& jacobian);
+	virtual bool computeJacobian(GlobalMatrixT& jacobian);
+	/*@}*/
 
 private:
 
-	/* iteration status flags */
+	/** iteration status flags */
 	enum SolutionStatusT {kContinue = 0,
                          kConverged = 1,
                             kFailed = 2};
-
+                            
+	/** run solver */                            
+	SolutionStatusT Solve(NOX::Solver::Manager& nox);
+	
 	/** handle situation if solution for the current time increment
 	 * is successfully determined.
 	 * \return true if step is ready to be closed */
@@ -68,21 +86,47 @@ private:
 	void CloseIterationOutput(void);
 
 protected:
-	
-	/** NOX solver */
-	NOX::Solver::Manager* fNOX;
 
-	/** seed NOX group sent to the solver */
-	NOX::Tahoe::Group* fGroup;
+	/** parameter list for the NOX solver. The parameters may specify the method:
+	 *  <ul>
+	 *  <li> "Nonlinear %Solver" - Name of the solver method. Valid choices are
+	 *  <ul> 
+	 *  <li> "%Newton" (NOX::Solver::Newton) [Default]
+	 *  <li> "Nonlinear CG" (NOX::Solver::NonlinearCG)
+	 *  <li> "Trust Region" (NOX::Solver::TrustRegion)
+	 *  </ul> </ul> 
+	 *
+	 * Additional parameters can be added to the sublists "Direction" and
+	 * "Line Search", see NOX::Direction::Manager and NOX::Linesearch::Manager
+	 * for more information. */
+	NOX::Parameter::List* fNOXParameters;
 	
 private:
 
-	/* parameters */
-	int fIterationOutputIncrement; /**< "movies" of convergence steps */
+	/** \name stopping criteria */
+	/*@{*/
+	int    fMaxIterations; /**< maximum number of iterations */
+	double fAbsResidual;   /**< magnitude of the residual */
+	double fRelResidual;   /**< relative magnitude of the residual */
+	/*@}*/
 
-	/* runtime data */
-	GlobalMatrixT* fSeed_LHS;  /**< seed LHS matrix */
+	/** \name step growth parameters. 	
+	 * Step cuts occur if the solution fails to converge. Step growth is controlled
+	 * by a dependent, two-parameter condition. */
+	/*@{*/
+	int fQuickSolveTol;  /**< iterations considered "easy" solution */
+	int fQuickSeriesTol; /**< number "easy" solutions before step increase */
+	/*@}*/
+
+	/** "movies" of convergence steps */
+	int fIterationOutputIncrement; 
+
+	/** \name runtime data */
+	/*@{*/
 	int fIterationOutputCount; /**< output count for NOXSolverT::fIterationOutputIncrement */
+	dArrayT fLastSolution;     /**< the last solution applied to the system */
+	/*@}*/
 };
 
+#endif /* __NOX__ */
 #endif /* _NOX_SOLVER_T_H_ */

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:59 paklein Exp $
+# $Id: makefile,v 1.5 2002-04-02 23:30:54 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -37,6 +37,7 @@ SRC = \
 
 # headers
 HDR = \
+	SolverInterfaceT.h \
 	DRSolver.h \
 	ExpCD_DRSolver.h \
 	iNLSolver_LS.h \
@@ -50,10 +51,12 @@ HDR = \
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
-SUB_DIR = 
-#subdir_driver: subdir_loop
+SUB_DIR = \
+	NOX
+
+subdir_driver: subdir_loop
 # SUB_DIR is empty
-subdir_driver: 
+#subdir_driver: 
 
 # instructions for subdirectories
 include $(MACRO_DIR)/subdir.targets

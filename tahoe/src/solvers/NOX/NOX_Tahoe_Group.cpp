@@ -1,7 +1,11 @@
-/* $Id: NOX_Tahoe_Group.cpp,v 1.1 2002-03-28 16:40:35 paklein Exp $ */
+/* $Id: NOX_Tahoe_Group.cpp,v 1.2 2002-04-02 23:30:55 paklein Exp $ */
 #include "NOX_Tahoe_Group.h"
-#include "NOXInterfaceT.h"
+
+/* optional */
+#ifdef __NOX__
+
 #include "NOX_Tahoe_Vector.h"
+#include "SolverInterfaceT.h"
 #include "dArrayT.h"
 #include "GlobalMatrixT.h"
 
@@ -9,12 +13,14 @@ using namespace NOX;
 using namespace NOX::Tahoe;
 
 /* constructor */
-Group::Group(NOXInterfaceT& interface, dArrayT& X, GlobalMatrixT& J):
+Group::Group(SolverInterfaceT& interface, dArrayT& X, GlobalMatrixT& J):
 	fTahoeInterface(interface),
 	fOwnJ(false),
-	fSolution(X),
 	fJ(&J),
-	fJCopy(NULL),
+	fSolution(X),
+	fRHS(fSolution, CopyShape),
+	fGradient(fSolution, CopyShape),
+	fNewton(fSolution, CopyShape),
 	fIsRHS(false), fIsJacobian(false), fIsGrad(false), fIsNewton(false),
 	fRHSNorm(0.0)
 {
@@ -22,12 +28,12 @@ Group::Group(NOXInterfaceT& interface, dArrayT& X, GlobalMatrixT& J):
 }
 
 /* copy constructor */
-Group::Group(const Group& source):
+Group::Group(const Group& source, CopyType type):
 	fTahoeInterface(source.fTahoeInterface),
 	fOwnJ(true),
-	fJ(NULL),
-	fJCopy(NULL)
+	fJ(NULL)
 {
+#pragma unused(type)
 	Group::operator=(source);
 }
 
@@ -35,7 +41,6 @@ Group::Group(const Group& source):
 Group::~Group(void)
 {
 	if (fOwnJ) delete fJ;
-	delete fJCopy;
 }
 
 /* assignment operator */
@@ -64,18 +69,6 @@ Abstract::Group& Group::operator=(const Group& source)
 		
 		/* copy */
 		*fJ = *(source.fJ);
-	}
-
-	/* copy of Jacobian */
-	if (source.fJCopy) {
-		if (fJCopy)
-			*fJCopy = *(source.fJCopy);
-		else
-			fJCopy = source.fJCopy->Clone();
-	}
-	else {
-		delete fJCopy;
-		fJCopy = NULL;
 	}
 	
 	/* copy vectors */
@@ -112,8 +105,10 @@ Abstract::Group& Group::operator=(const Abstract::Group& source)
 /* compute x where this.x = grp.x() + step * d */
 bool Group::computeX(const Group& grp, const Vector& d, double step)
 {
+	/* dimens
+
 	/* compute new solution */
-	fSolution.get_dArrayT().SetToCombination(1.0, grp.getX(), step, d);
+	fSolution.get_dArrayT().SetToCombination(1.0, grp.fSolution, step, d);
 
 	/* set flags */
 	fIsRHS = fIsJacobian = fIsGrad = fIsNewton = false;
@@ -145,7 +140,7 @@ bool Group::computeX(const Abstract::Group& grp, const Abstract::Vector& d, doub
 	return computeX(*t_grp, *t_d, step);
 }
 
-/** Compute and return RHS */
+/* Compute and return RHS */
 bool Group::computeRHS(void) 
 {
 	/* not up to date */
@@ -169,7 +164,7 @@ bool Group::computeRHS(void)
 	return fIsRHS;
 }
 
-/** Compute and return RHS */
+/* Compute and return RHS */
 bool Group::computeJacobian(void) 
 {
 	/* not up to date */
@@ -180,7 +175,7 @@ bool Group::computeJacobian(void)
 	}
 
 	/* message */
-	if (!fIsRHS) cout << "NOX::Tahoe::Group::computeJacobian: failed" << endl;
+	if (!fIsJacobian) cout << "NOX::Tahoe::Group::computeJacobian: failed" << endl;
 
 	return fIsJacobian;
 }
@@ -188,19 +183,154 @@ bool Group::computeJacobian(void)
 /* Compute and return gradient - J^T RHS*/
 bool Group::computeGrad(void)
 {
-	//TEMP
-	return false;
-
 	/* not up to date */
-	if (!fIsGrad) 
+	if (!fIsGrad)
 	{
-	
-		//fIsGrad = fIsRHS && fIsJacobian
-	
-	
-	
-	
+		/* Jacobian (and RHS) must be up to date */
+		fIsGrad = computeJacobian() && fJ->MultTx(fRHS, fGradient);	
 	}
+
+	/* message */
+	if (!fIsGrad) cout << "NOX::Tahoe::Group::computeGrad: failed" << endl;
+
 	return fIsGrad;
 }
 
+/* compute the Newton direction */
+bool Group::computeNewton(Parameter::List& params)
+{
+#pragma unused(params)
+
+	/* not up to date */
+	if (!fIsNewton)
+	{
+		/* Jacobian (and RHS) must be up to date */
+		if (computeJacobian()) {
+
+			/* initialize with RHS */
+			fNewton = fRHS;
+			
+			/* copy Jacobian if needed */
+			if (fJ->SolvePreservesData())
+			{
+				/* linear solve */
+				if (!fJ->Solve(fNewton)) {
+					cout << "\n Group::computeNewton: solve failed" << endl;
+					throw eBadJacobianDet;
+				}
+			}
+			else /* need to make copy */
+			{
+				/* copy */
+				GlobalMatrixT* A = fJ->Clone();
+
+				/* linear solve */
+				if (!A->Solve(fNewton)) {
+					cout << "\n Group::computeNewton: solve failed" << endl;
+					throw eBadJacobianDet;
+				}
+
+				/* free */
+				delete A;
+			}
+			
+			/* success */
+			fIsNewton = true;
+		}
+	}
+
+	/* message */
+	if (!fIsNewton) cout << "NOX::Tahoe::Group::computeNewton: failed" << endl;
+		
+	return fIsNewton;
+}
+
+/* compute result = Jacobian * input */
+bool Group::applyJacobian(const Abstract::Vector& input, Abstract::Vector& result) const
+{
+	/* Jacobian must be up to date and cannot be calculated here */
+	if (!fIsJacobian)
+		return false;
+	else
+	{
+		/* cast to Tahoe vectors */
+		const Vector* t_input = dynamic_cast<const Vector*>(&input);
+		if (!t_input) {
+			cout << "\n Group::applyJacobian: cast of input failed" << endl;
+			throw eGeneralFail;
+		}
+		Vector* t_result = dynamic_cast<Vector*>(&result);
+		if (!t_result) {
+			cout << "\n Group::applyJacobian: cast of result failed" << endl;
+			throw eGeneralFail;
+		}
+	
+		/* compute */
+		return fJ->Multx(*t_input, *t_result);
+	}
+}
+
+/* compute result = Jacobian^T * input */
+bool Group::applyJacobianTranspose(const Abstract::Vector& input, Abstract::Vector& result) const
+{
+	/* Jacobian must be up to date and cannot be calculated here */
+	if (!fIsJacobian)
+		return false;
+	else
+	{
+		/* cast to Tahoe vectors */
+		const Vector* t_input = dynamic_cast<const Vector*>(&input);
+		if (!t_input) {
+			cout << "\n Group::applyJacobianTranspose: cast of input failed" << endl;
+			throw eGeneralFail;
+		}
+		Vector* t_result = dynamic_cast<Vector*>(&result);
+		if (!t_result) {
+			cout << "\n Group::applyJacobianTranspose: cast of result failed" << endl;
+			throw eGeneralFail;
+		}
+	
+		/* compute */
+		return fJ->MultTx(*t_input, *t_result);
+	}
+}
+  
+ /* Applies the Jacobian Diagonal to the given input vector */
+bool Group::applyJacobianDiagonalInverse(const Abstract::Vector& input, Abstract::Vector& result) const
+{
+	/* Jacobian must be up to date and cannot be calculated here */
+	if (!fIsJacobian)
+		return false;
+	else
+	{
+		/* cast to Tahoe vector */
+		Vector* t_result = dynamic_cast<Vector*>(&result);
+		if (!t_result) {
+			cout << "\n Group::applyJacobianDiagonalInverse: cast of result failed" << endl;
+			throw eGeneralFail;
+		}
+
+		/* collect */
+		dArrayT diags;
+		if (fJ->CopyDiagonal(diags))
+		{
+			/* copy in */
+			result = input;
+
+			/* apply */
+			t_result->get_dArrayT() /= diags;
+			return true;	
+		}
+		else
+			return false;
+	}
+}
+
+/* create a new %Group of the same derived type as this one by cloning */
+NOX::Abstract::Group* Group::clone(CopyType type) const
+{
+	Group* new_clone = new Group(*this, type);
+	return new_clone;
+}
+
+#endif /* __NOX__ */
