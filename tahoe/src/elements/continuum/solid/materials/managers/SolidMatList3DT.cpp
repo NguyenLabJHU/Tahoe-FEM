@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.15.2.1 2002-04-29 17:22:13 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.15.2.2 2002-05-17 01:23:27 paklein Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList3DT.h"
@@ -45,7 +45,7 @@
 
 /* constructors */
 SolidMatList3DT::SolidMatList3DT(int length, const ElasticT& element_group):
-	SolidMatListT(length),
+	StructuralMatListT(length),
 	fElementGroup(element_group)
 {
 #ifdef __NO_RTTI__
