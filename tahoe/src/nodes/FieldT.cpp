@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.31 2004-08-08 02:06:42 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.32 2004-08-14 23:58:57 paklein Exp $ */
 #include "FieldT.h"
 
 #include "ifstreamT.h"
@@ -879,8 +879,16 @@ ParameterInterfaceT* FieldT::NewSub(const StringT& name) const
 	else if (name == "initial_condition")
 	{
 		ParameterContainerT* ic = new ParameterContainerT(name);
-		
-		ic->AddParameter(ParameterT::Word, "node_ID");
+
+		/* description */
+		ic->SetDescription("apply to node set or all");
+
+		/* define as node set or all */		
+		ic->AddParameter(ParameterT::Word, "node_ID", ParameterListT::ZeroOrOnce);
+		ParameterT all_nodes(ParameterT::Boolean, "all_nodes");
+		all_nodes.SetDefault(true);
+		ic->AddParameter(all_nodes, ParameterListT::ZeroOrOnce);
+
 		ic->AddParameter(ParameterT::Integer, "dof");
 		ParameterT IC_type(ParameterT::Enumeration, "type");
 		IC_type.AddEnumeration("u", 0);
@@ -1030,9 +1038,21 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 		/* look for other sublists */
 		if (!resolved) {
 			if (name == "initial_condition") {			
-				const StringT& node_ID = subs[i].GetParameter("node_ID");
-				ModelManagerT& model_manager = fFieldSupport.ModelManager();
-				num_IC += model_manager.NodeSet(node_ID).Length();
+
+				/* node set or all nodes */				
+				const ParameterT* node_ID = subs[i].Parameter("node_ID");
+				const ParameterT* all_nodes = subs[i].Parameter("all_nodes");
+				if ((node_ID && all_nodes) || (!node_ID && !all_nodes))
+					ExceptionT::GeneralFail(caller, "expecting either \"node_ID\" or \"all_nodes\" in \"initial_condition\"");
+				else if (node_ID) /* get size of the node set */ {
+					const StringT& ID = *node_ID;
+					ModelManagerT& model_manager = fFieldSupport.ModelManager();
+					num_IC += model_manager.NodeSet(ID).Length();
+				}
+				else /* single card for all nodes */ {
+					bool all = *all_nodes;
+					if (all) num_IC++;
+				}
 			}
 			else if (name == "kinematic_BC") {
 				const StringT& node_ID = subs[i].GetParameter("node_ID");
@@ -1062,15 +1082,23 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 			if (name == "initial_condition") {
 
 				/* extract values */
-				const StringT& node_ID = sub.GetParameter("node_ID");
 				int dof = sub.GetParameter("dof"); dof--;
 				int order = sub.GetParameter("type");
 				double value = sub.GetParameter("value");
-			
-				/* set cards */
-				const iArrayT& set = model_manager.NodeSet(node_ID);
-				for (int i = 0; i < set.Length(); i++)
-					fIC[num_IC++].SetValues(set[i], dof, order, value);
+
+				/* look for node set ID - exclusive choice checked above */
+				const ParameterT* node_ID = sub.Parameter("node_ID");
+				const ParameterT* all_nodes = sub.Parameter("all_nodes");
+				if (node_ID) /* set cards */ {
+					const StringT& ID = *node_ID;
+					const iArrayT& set = model_manager.NodeSet(ID);
+					for (int i = 0; i < set.Length(); i++)
+						fIC[num_IC++].SetValues(set[i], dof, order, value);
+				}
+				else /* all nodes */ {
+					bool all = *all_nodes;
+					if (all) fIC[num_IC++].SetValues(-1, dof, order, value); /* -1 => "all" */
+				}
 			}
 			else if (name == "kinematic_BC") {
 
