@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.h,v 1.3 2001-12-16 23:56:27 paklein Exp $ */
+/* $Id: OutputBaseT.h,v 1.4 2002-02-09 19:19:00 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #ifndef _OUTPUTBASE_T_H_
@@ -48,8 +48,8 @@ public:
 	const dArray2DT& Coordinates(void) const;
 	const iArrayT* NodeMap(void) const;
 
-	/* register the output for an element set. returns the output ID */
-	int AddElementSet(const OutputSetT& output_set);
+	/** register the output for an element set. returns the output ID */
+	virtual int AddElementSet(const OutputSetT& output_set);
 	const ArrayT<OutputSetT*>& ElementSets(void) const;
 	int NumElements(void) const;
 
