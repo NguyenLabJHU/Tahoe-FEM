@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainAxiT.cpp,v 1.2 2004-02-03 08:24:57 paklein Exp $ */
+/* $Id: FiniteStrainAxiT.cpp,v 1.3 2004-02-22 00:17:39 paklein Exp $ */
 #include "FiniteStrainAxiT.h"
 
 #include "ShapeFunctionT.h"
@@ -126,7 +126,7 @@ void FiniteStrainAxiT::SetGlobalShape(void)
 		const double* NaU = fShapes->IPShapeU(i);
 		const double* X_r = fLocInitCoords(kRadialDirection);
 		const double* u_r = fLocDisp(kRadialDirection);
-		const double* u_r_last = fLocLastDisp(kRadialDirection);
+		const double* u_r_last = (needs_F_last) ? fLocLastDisp(kRadialDirection) : u_r; /* fLocLastDisp not used */
 		double R = 0.0;
 		double u = 0.0;
 		double u_last = 0.0;
