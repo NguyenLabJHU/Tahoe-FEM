@@ -1,4 +1,4 @@
-/* $Id: IOManager.h,v 1.9 2002-03-02 20:26:24 paklein Exp $ */
+/* $Id: IOManager.h,v 1.10 2002-03-04 06:53:55 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 
 #ifndef _IOMANAGER_H_
@@ -49,9 +49,12 @@ public:
 	/** increment the time sequence */
 	void NextTimeSequence(int sequence_number);
 
-	/** set model coordinates */
-//	void SetCoordinates(const dArray2DT& coordinates, const iArrayT* node_map);
-	void SetCoordinates(const dArray2DT& coordinates);
+	/** set nodal coordinates
+	 * \param coordinate array of nodal coordinates
+	 * \param node_id list of ids for the rows in the coordinate array, passing NULL
+	 *        implies the row number is the id. The number of ids must match the
+	 *        number of rows in the coordinate array */
+	void SetCoordinates(const dArray2DT& coordinates, const iArrayT* node_id);
 	
 	/** register the output for an element set. returns the output ID */
 	int AddElementSet(const OutputSetT& output_set);
