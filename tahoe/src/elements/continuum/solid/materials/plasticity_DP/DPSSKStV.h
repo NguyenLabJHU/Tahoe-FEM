@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.h,v 1.13 2004-07-22 21:10:09 paklein Exp $ */
+/* $Id: DPSSKStV.h,v 1.14 2005-02-25 18:41:18 cfoster Exp $ */
 /* created: myip (06/01/1999) */
 #ifndef _DP_SS_KSTV_H_
 #define _DP_SS_KSTV_H_
@@ -23,6 +23,10 @@ class DPSSKStV: public SSIsotropicMatT,
 	/** constructor */
 	~DPSSKStV(void);
 
+
+	/* required parameter flags */
+
+
 	/* form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
@@ -45,6 +49,9 @@ class DPSSKStV: public SSIsotropicMatT,
 	/** spatial tangent modulus */
 	virtual const dMatrixT& c_ijkl(void);
 	
+	/* elastic modulus */
+	virtual const dMatrixT& ce_ijkl(void);
+
 	/** Cauchy stress */
 	virtual const dSymMatrixT& s_ij(void);
 
