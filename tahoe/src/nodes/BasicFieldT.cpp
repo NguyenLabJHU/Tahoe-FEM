@@ -1,4 +1,4 @@
-/* $Id: BasicFieldT.cpp,v 1.5 2003-01-27 07:00:29 paklein Exp $ */
+/* $Id: BasicFieldT.cpp,v 1.6 2003-03-04 08:37:16 paklein Exp $ */
 #include "BasicFieldT.h"
 #include "iArrayT.h"
 
@@ -37,6 +37,13 @@ void BasicFieldT::Dimension(int nnd, bool copy_in)
 	
 	/* resize integer arrays */
 	fiArray2DGroup.SetMajorDimension(nnd, copy_in);
+}
+
+/* set all field values to 0.0 */
+void BasicFieldT::Clear(void)
+{
+	for (int i = 0; i < fField.Length(); i++)
+		fField[i] = 0.0;
 }
 
 void BasicFieldT::WriteEquationNumbers(ostream& out, const ArrayT<int>* node_map) const
