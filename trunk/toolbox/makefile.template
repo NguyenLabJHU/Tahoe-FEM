@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.14 2003-04-22 18:32:57 paklein Exp $
+# $Id: makefile.template,v 1.15 2004-01-02 01:23:26 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -11,30 +11,34 @@
 #     dependencies.
 # (6) "make build" to (re-)compiler binaries.
 
-# full path to current directory
+# full path to the top level of this module
 HOME_DIR =
 
+# build architecture - see macros directory for choices $(ARCH).macros
+ARCH =
+
+# destination for the build 
+BLD_DIR = $(HOME_DIR)
+
 # working directories:
-OBJ_DIR = $(HOME_DIR)/obj
 INC_DIR = $(HOME_DIR)/inc
 SRC_DIR = $(HOME_DIR)/src
-LIB_DIR = $(HOME_DIR)/lib
-
-# build architecture
-ARCH =
-# see macros directory for choices $(ARCH).macros
+OBJ_DIR = $(BLD_DIR)/obj
+BLD_SRC_DIR = $(BLD_DIR)/src-mirror
+LIB_DIR = $(BLD_DIR)/lib
 
 # default target name - root of library name or executable name
 TARGET  = toolbox
-LIBRARY = $(HOME_DIR)/lib/lib$(TARGET).a
+LIBRARY = $(LIB_DIR)/lib$(TARGET).a
+PCH     = $(TARGET)Prefix.h
 
 # path to main, needed if primary target is an executable (not 
 # a library)
-MAIN    = $(SRC_DIR)/main/main.o
+MAIN = $(BLD_SRC_DIR)/main/main.o
 
 # target of "make build", i.e., the library $(LIBRARY) or
 # the executable $(TARGET)
-BUILD   = $(LIBRARY)
+BUILD = $(LIBRARY)
 
 # full path to compiler macros
 MACRO_DIR = $(HOME_DIR)/../macros
@@ -42,11 +46,11 @@ MACRO_DIR = $(HOME_DIR)/../macros
 ############################### build options ###########################
 # uncomment macros for installed models
 
-##### any additional user C, C++, fortran, or linker flags
-#MY_CFLAGS  =
-#MY_CCFLAGS = --load-pch $(HOME_DIR)/pch
-#MY_FFLAGS  =
-#MY_LFLAGS  =
+##### any additional C, C++, fortran, or linker flags specific to the module
+MOD_CFLAGS_C  =
+MOD_CFLAGS_CC =
+MOD_CFLAGS_F  =
+MOD_LFLAGS    =
 
 ##### expat XML parsing library
 #EXPAT_DEFINES  = -D__EXPAT__
@@ -81,9 +85,11 @@ MACRO_DIR = $(HOME_DIR)/../macros
 #METIS_LFLAGS   = -L$(METIS_DIR)/lib -l$(METIS_LIB_NAME)
 
 ##### SEACAS/ACCESS software
-#AX_INC    = -I$(ACCESS)/inc
-#AX_CFLAGS = $(AX_INC) -D__ACCESS__
-#AX_LFLAGS = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
+#AX_INC     = -I$(ACCESS)/inc
+#AX_DEFINES = -D__ACCESS__
+#AX_CFLAGS  = $(AX_INC) $(AX_DEFINES)
+#AX_LFLAGS  = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
+
 ############################### build options ###########################
 
 # extra macros for specific modules
@@ -91,27 +97,14 @@ include $(MACRO_DIR)/toolbox.extras
 
 # "make build" extras - target brought up to date before other makefile
 # targets associated with "make build"
-MAKE_INIT_XTRAS        = update_config
-MAKE_HEADERS_XTRAS     = dummy
-MAKE_DEPEND_INIT_XTRAS = dummy
-MAKE_CLEAN_XTRAS       = dummy
-MAKE_BUILD_XTRAS       = dummy
-#MAKE_BUILD_XTRAS       = make_build_pch
+MOD_MAKE_INIT_XTRAS        = nothing
+MOD_MAKE_HEADERS_XTRAS     = nothing
+MOD_MAKE_DEPEND_INIT_XTRAS = nothing
+MOD_CLEAN_XTRAS            = nothing
+MOD_BUILD_XTRAS            = nothing
 
 # include common target definitions
 include $(MACRO_DIR)/make.targets
 
 # init extras target
-update_config:
-	@ $(ECHO) "nothing to do for update_config in toolbox"
-
-# build precompiled header file
-make_build_pch:
-	@cd $(HOME_DIR)/pch; make \
-	"COMP_CC = $(COMP_CC)" \
-	"CFLAGS_CC = $(CFLAGS_CC)" \
-	"INC_DIR = $(INC_DIR)" \
-	"MAKE_DEPEND = $(MAKE_DEPEND) $(DEPEND_PATH)"
-
-dummy:
-	-@date
+update_config: nothing
