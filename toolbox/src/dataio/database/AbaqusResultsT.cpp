@@ -29,7 +29,7 @@ AbaqusResultsT::AbaqusResultsT (ostream& message) :
   SetVariableNames ();
 }
 
-void AbaqusResultsT::Initialize (char *filename)
+void AbaqusResultsT::Initialize (const char *filename)
 {
   fIn.open (filename);
   if (!fIn)
@@ -61,7 +61,7 @@ void AbaqusResultsT::Initialize (char *filename)
     }
 }
 
-void AbaqusResultsT::Create (char* filename, bool binary, int numelems, int numnodes, double elemsize)
+void AbaqusResultsT::Create (const char* filename, bool binary, int numelems, int numnodes, double elemsize)
 {
   fOut.open (filename);
   if (!fOut)
@@ -100,7 +100,7 @@ void AbaqusResultsT::Create (char* filename, bool binary, int numelems, int numn
   fOut.flush();
 }
  
-void AbaqusResultsT::OpenWrite (char *filename, bool binary, int bufferwritten)
+void AbaqusResultsT::OpenWrite (const char *filename, bool binary, int bufferwritten)
 {
   fOut.open (filename);
   if (!fOut)
@@ -180,7 +180,15 @@ void AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
 	    if (!Read (name, 1))
 	      throw eDatabaseFail;
 	    fNodeSetNames.Append (name);
+	    iArrayT tempset (0);
+	    fNodeSets.Append (tempset);
+	    StoreSet (fNodeSets[fNumNodeSets]);
 	    fNumNodeSets++; 
+	    break;
+	  }
+	case NODESETCONT:
+	  {
+	    StoreSet (fNodeSets[fNumNodeSets-1]);
 	    break;
 	  }
 	case ELEMENTSET: 
@@ -189,7 +197,15 @@ void AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
 	    if (!Read (name, 1))
 	      throw eDatabaseFail;
 	    fElementSetNames.Append (name);
+	    iArrayT tempset (0);
+	    fElementSets.Append (tempset);
+	    StoreSet (fElementSets[fNumElementSets]);
 	    fNumElementSets++; 
+	    break;
+	  }
+	case ELEMSETCONT:
+	  {
+	    StoreSet (fElementSets[fNumElementSets-1]);
 	    break;
 	  }
 	case MODAL: 
@@ -266,56 +282,38 @@ void AbaqusResultsT::NodeMap (iArrayT& n) const
   n.CopyPart (0, fNodeNumber, 0, fNumNodes);
 }
 
-int AbaqusResultsT::NumNodesInSet (StringT& name)
+int AbaqusResultsT::NumNodesInSet (const StringT& name) const
 {
-  ResetFile ();
-  StringT setname = "";
+  int index;
+  bool found = false;
+  for (int i = 0; i < fNumNodeSets && !found; i++)
+    if (strncmp (fNodeSetNames[i].Pointer(), name.Pointer(), name.StringLength()) == 0)
+      {
+	found = true;
+	index = i;
+      }
 
-  while (strncmp (setname.Pointer(), name.Pointer(), name.Length()) != 0)
-    {
-      AdvanceTo (NODESET);
-      if (!Read (setname, 1))
-	throw eDatabaseFail;
-    }
-
-  int num = fCurrentLength;
-  int key;
-  ReadNextRecord (key);
-  while (key == NODESETCONT)
-    {
-      num += fCurrentLength;
-      ReadNextRecord (key);
-    }
-  
-  return num;
+  if (found)
+    return fNodeSets[index].Length();
+  else
+    return 0;
 }
 
-void AbaqusResultsT::NodeSet (StringT& name, iArrayT& nset)
+void AbaqusResultsT::NodeSet (const StringT& name, iArrayT& nset) const
 {
-  ResetFile ();
-  StringT setname = "";
+  int index;
+  bool found = false;
+  for (int i = 0; i < fNumNodeSets && !found; i++)
+    if (strncmp (fNodeSetNames[i].Pointer(), name.Pointer(), name.StringLength()) == 0)
+      {
+	found = true;
+	index = i;
+      }
 
-  while (strncmp (setname.Pointer(), name.Pointer(), name.Length()) != 0)
-    {
-      AdvanceTo (NODESET);
-      if (!Read (setname, 1))
-	throw eDatabaseFail;
-    }
-
-  int e = 0;
-  int num = fCurrentLength;
-  for (int j=0; j < num; j++)
-    if (!Read (nset[e++])) throw eDatabaseFail;
-
-  int key;
-  ReadNextRecord (key);
-  while (key == NODESETCONT)
-    {
-      num = fCurrentLength;
-      for (int i=0; i < num; i++)
-	if (!Read (nset[e++])) throw eDatabaseFail;
-      ReadNextRecord (key);
-    }
+  if (found)
+    nset = fNodeSets[index];
+  else
+    nset.Free();
 }
 
 void AbaqusResultsT::ElementMap (iArrayT& e) const
@@ -323,31 +321,24 @@ void AbaqusResultsT::ElementMap (iArrayT& e) const
   e.CopyPart (0, fElementNumber, 0, fNumElements);
 }
 
-int AbaqusResultsT::NumElements (StringT& name) 
+int AbaqusResultsT::NumElements (const StringT& name) const
 {
-  ResetFile ();
-  StringT setname = "";
+  int index;
+  bool found = false;
+  for (int i = 0; i < fNumElementSets && !found; i++)
+    if (strncmp (fElementSetNames[i].Pointer(), name.Pointer(), name.StringLength()) == 0)
+      {
+	found = true;
+	index = i;
+      }
 
-  while (strncmp (setname.Pointer(), name.Pointer(), name.Length()) != 0)
-    {
-      AdvanceTo (ELEMENTSET);
-      if (!Read (setname, 1))
-	throw eDatabaseFail;
-    }
-
-  int num = fCurrentLength;
-  int key;
-  ReadNextRecord (key);
-  while (key == ELEMSETCONT)
-    {
-      num += fCurrentLength;
-      ReadNextRecord (key);
-    }
-  
-  return num;
+  if (found)
+    return fElementSets[index].Length();
+  else
+    return 0;
 }
 
-int AbaqusResultsT::NumElementNodes (StringT& name)
+int AbaqusResultsT::NumElementNodes (const StringT& name)
 {
   ResetFile ();
   StringT setname = "";
@@ -372,70 +363,45 @@ int AbaqusResultsT::NumElementNodes (StringT& name)
   return fCurrentLength - 1;
 }
 
-int AbaqusResultsT::NumElementQuadPoints (StringT& name)
+int AbaqusResultsT::NumElementQuadPoints (const StringT& name) const
 {
-  ResetFile ();
-  StringT setname = "";
+  int index;
+  bool found = false;
+  for (int i = 0; i < fNumElementSets && !found; i++)
+    if (strncmp (fElementSetNames[i].Pointer(), name.Pointer(), name.StringLength()) == 0)
+      {
+	found = true;
+	index = i;
+      }
 
-  while (strncmp (setname.Pointer(), name.Pointer(), name.Length()) != 0)
+  if (found)
     {
-      AdvanceTo (ELEMENTSET);
-      if (!Read (setname, 1)) throw eDatabaseFail;
+      const iArrayT& set = fElementSets[index];
+      for (int i=0; i < fElementNumber.Length(); i++)
+	if (fElementNumber[i] == set[0])
+	  return fNumElementQuadPoints [i];
     }
-
-  int el;
-  if (!Read (el)) throw eDatabaseFail;
-
-  ResetFile ();
-  int cel=-1;
-  while (cel != el)
-    {
-      AdvanceTo (ELEMENT);
-      if (!Read (cel)) throw eDatabaseFail;
-    }
-
-  int numintpts;
-  GeometryT::CodeT code;
-  StringT elname;
-  if (!Read (elname, 1)) throw eDatabaseFail;
-  if (TranslateElementName (elname.Pointer(), code, numintpts) == BAD)
-    {
-      fMessage << "\nAbaqusResultsT::GeometryCode Unable to translate element name.\n\n";
-      throw eDatabaseFail;
-    }
-
-  return numintpts;
+  return 0;
 }
 
-void AbaqusResultsT::ElementSet (StringT& name, iArrayT& elset) 
+void AbaqusResultsT::ElementSet (const StringT& name, iArrayT& elset) const
 {
-  ResetFile ();
-  StringT setname = "";
+  int index;
+  bool found = false;
+  for (int i = 0; i < fNumElementSets && !found; i++)
+    if (strncmp (fElementSetNames[i].Pointer(), name.Pointer(), name.StringLength()) == 0)
+      {
+	found = true;
+	index = i;
+      }
 
-  while (strncmp (setname.Pointer(), name.Pointer(), name.Length()) != 0)
-    {
-      AdvanceTo (ELEMENTSET);
-      if (!Read (setname, 1))
-	throw eDatabaseFail;
-    }
-
-  int e = 0;
-  int num = fCurrentLength;
-  for (int j=0; j < num; j++)
-    if (!Read (elset[e++])) throw eDatabaseFail;
-
-  int key;
-  ReadNextRecord (key);
-  while (key == ELEMSETCONT)
-    {
-      num = fCurrentLength;
-      for (int i=0; i < num; i++)
-	if (!Read (elset[e++])) throw eDatabaseFail;
-      ReadNextRecord (key);
-    }
+  if (found)
+    elset = fElementSets[index];
+  else
+    elset.Free();
 }
 
-void AbaqusResultsT::GeometryCode (StringT& name, GeometryT::CodeT& code)
+void AbaqusResultsT::GeometryCode (const StringT& name, GeometryT::CodeT& code)
 {
   ResetFile ();
   StringT setname = "";
@@ -533,7 +499,7 @@ void AbaqusResultsT::QuadratureVariables (iArrayT& keys, iArrayT& dims) const
       }
 }
 
-void AbaqusResultsT::VariablesUsed (StringT& name, AbaqusVariablesT::TypeT vt, iArrayT& used)
+void AbaqusResultsT::VariablesUsed (const StringT& name, AbaqusVariablesT::TypeT vt, iArrayT& used)
 {
   used = 0;
   iArrayT done (fVariableTable.Length());
@@ -589,63 +555,22 @@ void AbaqusResultsT::VariablesUsed (StringT& name, AbaqusVariablesT::TypeT vt, i
     }
 }
 
-void AbaqusResultsT::ReadVariables (AbaqusVariablesT::TypeT vt, int step, dArray2DT& values, StringT& name)
+void AbaqusResultsT::ReadVariables (AbaqusVariablesT::TypeT vt, int step, dArray2DT& values, const StringT& name)
 {
-  bool subset = true;
-  if (name.Length() < 2) subset = false;
+  /* read for all elements or nodes or just a set */
   iArrayT set;
+  bool subset = DataPoints (vt, name, set);
+
+  /* number of quadrature points */
   int numquadpts = 0;
-  switch (vt)
+  if (vt == AbaqusVariablesT::kQuadrature)
     {
-    case AbaqusVariablesT::kNode:
-      {
-	if (subset)
-	  {
-	    set.Allocate (NumNodesInSet (name));
-	    NodeSet (name, set);
-	  }
-	else
-	  {
-	    set.Allocate (fNumNodes);
-	    NodeMap (set);
-	  }
-	break;
-      }
-    case AbaqusVariablesT::kElement:
-    case AbaqusVariablesT::kQuadrature:
-      {
-	if (subset)
-	  {
-	    set.Allocate (NumElements (name));
-	    ElementSet (name, set);
-	    numquadpts = NumElementQuadPoints (name);
-	  }
-	else
-	  {
-	    set.Allocate (fNumElements);
-	    ElementMap (set);
-	    numquadpts = NumElementQuadPoints (fElementSetNames[0]);
-	  }
-	break;
-      }
+      numquadpts = NumElementQuadPoints (name);
+      if (numquadpts < 1) throw eDatabaseFail;
     }
 
-  // don't need to rewind after reading set
-  int number;
-  double time;
-  if (fModeIncs.Length() > 0)
-    ModeData (step, number, time);
-  else
-    TimeData (step, number, time);
-
-  int currentinc = -1;
-  while (currentinc != number)
-    {
-      if (fModeIncs.Length() > 0)
-	NextMode (currentinc, time);
-      else
-	NextTimeSteps (currentinc, time);
-    }
+  /* advance istream to time step */
+  AdvanceToTimeIncrement (step);
 
   int key;
   int ID, objnum, intpt, secpt, location, outputmode;
@@ -1105,6 +1030,24 @@ void AbaqusResultsT::ScanElement (void)
     }
   fNumElements++;
   fElementNumber.Append (number);
+  fNumElementQuadPoints.Append (numintpts);
+}
+
+void AbaqusResultsT::StoreSet (iArrayT& set)
+{
+  iAutoArrayT newset;
+  newset.Append (set);
+
+  int num = fCurrentLength;
+  int temp;
+  for (int j=0; j < num; j++)
+    {
+      if (!Read (temp)) throw eDatabaseFail;
+      newset.Append (temp);
+    }
+
+  set.Allocate (newset.Length());
+  set.CopyPart (0, newset, 0, newset.Length());
 }
 
 void AbaqusResultsT::ReadOutputDefinitions (int &outputmode, StringT& setname)
@@ -1218,6 +1161,87 @@ bool AbaqusResultsT::VariableWrittenWithNodeNumber (int key) const
   return false;
 }
 
+bool AbaqusResultsT::DataPoints (AbaqusVariablesT::TypeT vt, const StringT& name, iArrayT& set) const
+{
+  bool subset = true;
+  if (name.Length() < 2) subset = false;
+  int numquadpts = 0;
+  switch (vt)
+    {
+    case AbaqusVariablesT::kNode:
+      {
+	if (subset)
+	  {
+	    set.Allocate (NumNodesInSet (name));
+	    NodeSet (name, set);
+	  }
+	else
+	  {
+	    set.Allocate (fNumNodes);
+	    NodeMap (set);
+	  }
+	break;
+      }
+    case AbaqusVariablesT::kElement:
+    case AbaqusVariablesT::kQuadrature:
+      {
+	if (subset)
+	  {
+	    set.Allocate (NumElements (name));
+	    ElementSet (name, set);
+	    numquadpts = NumElementQuadPoints (name);
+	  }
+	else
+	  {
+	    set.Allocate (fNumElements);
+	    ElementMap (set);
+	    numquadpts = NumElementQuadPoints (fElementSetNames[0]);
+	  }
+	break;
+      }
+    }
+  return subset;
+}
+
+void AbaqusResultsT::AdvanceToTimeIncrement (int step)
+{
+  int number;
+  double xtime;
+  if (fModeIncs.Length() > 0)
+    ModeData (step, number, xtime);
+  else
+    TimeData (step, number, xtime);
+
+  int currentinc = -1;
+  int numrewind = 0;
+  double time;
+  while (currentinc != number)
+    {
+      if (fModeIncs.Length() > 0)
+	NextMode (currentinc, time);
+      else
+	NextTimeSteps (currentinc, time);
+
+      /* starting in file after this time step */
+      if (currentinc > number && numrewind == 0)
+	{
+	  if (numrewind == 0)
+	    {
+	      ResetFile ();
+	      numrewind ++;
+	    }
+	  else
+	    {
+	      fMessage << "\n AbaqusResultsT::ReadVariable: Searching for number = "
+		       << number << ", " << xtime
+		       << " currently at " << currentinc << ", " << time
+		       << endl;
+	      throw eDatabaseFail;
+	    }
+	}
+    }
+}
+
 bool AbaqusResultsT::CorrectType (int outputmode, int objnum, int intpt, int location, AbaqusVariablesT::TypeT vt, int& ID) const
 {
   switch (outputmode)
@@ -1272,7 +1296,7 @@ bool AbaqusResultsT::CorrectType (int outputmode, int objnum, int intpt, int loc
   return false;
 }
 
-int AbaqusResultsT::TranslateElementName (char *name, GeometryT::CodeT &type, int &numintpts)
+int AbaqusResultsT::TranslateElementName (const char *name, GeometryT::CodeT &type, int &numintpts) const
 {
   if (strncmp (name, "C", 1) == 0)
     return TranslateContinuum (name+1, type, numintpts);
@@ -1287,7 +1311,7 @@ int AbaqusResultsT::TranslateElementName (char *name, GeometryT::CodeT &type, in
   return BAD;
 }
 
-int AbaqusResultsT::TranslateContinuum (char *name, GeometryT::CodeT &type, int &numintpts)
+int AbaqusResultsT::TranslateContinuum (const char *name, GeometryT::CodeT &type, int &numintpts) const
 {
   if (strncmp (name, "PE", 2) == 0)
     return Translate2D (name+2, type, numintpts);
@@ -1302,7 +1326,7 @@ int AbaqusResultsT::TranslateContinuum (char *name, GeometryT::CodeT &type, int 
   return BAD;
 }
 
-int AbaqusResultsT::Translate2D (char *name, GeometryT::CodeT &type, int &numintpts)
+int AbaqusResultsT::Translate2D (const char *name, GeometryT::CodeT &type, int &numintpts) const
 {
   if (strncmp (name, "3", 1) == 0)
     {
@@ -1335,7 +1359,7 @@ int AbaqusResultsT::Translate2D (char *name, GeometryT::CodeT &type, int &numint
   return BAD;
 }
 
-int AbaqusResultsT::Translate3D (char *name, GeometryT::CodeT &type, int &numintpts)
+int AbaqusResultsT::Translate3D (const char *name, GeometryT::CodeT &type, int &numintpts) const
 {
   if (strncmp (name, "4", 1) == 0)
     {
@@ -1380,7 +1404,7 @@ int AbaqusResultsT::Translate3D (char *name, GeometryT::CodeT &type, int &numint
   return BAD;
 }
 
-int AbaqusResultsT::TranslateShell (char *name, GeometryT::CodeT &type, int &numintpts)
+int AbaqusResultsT::TranslateShell (const char *name, GeometryT::CodeT &type, int &numintpts) const
 {
   if (strncmp (name, "3", 1) == 0)
     {
