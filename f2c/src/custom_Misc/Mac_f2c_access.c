@@ -9,11 +9,14 @@
 #if defined(TPM_F2C) || defined(SPM_F2C) || defined(CW_F2C_MAC)
 
 #include <Files.h>
+#include <stdio.h>
 
 static StringPtr CopyCtoPstr( StringPtr pStr, char *cStr );
 
-int f2c_access( char *fileName, int notUsed )
-{	
+int Mac_f2c_access( char *fileName, int notUsed )
+{
+//NOTE: this is not carbonized
+
 	OSErr 	err;
 	short 	vRefNum;
 	FInfo 	info;
