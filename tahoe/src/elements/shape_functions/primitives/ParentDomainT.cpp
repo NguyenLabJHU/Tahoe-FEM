@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.7 2002-07-18 23:42:20 hspark Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.8 2002-07-19 20:17:22 hspark Exp $ */
 /* created: paklein (07/03/1996)                                          */
 
 #include "ParentDomainT.h"
@@ -571,10 +571,10 @@ void ParentDomainT::Print(ostream& out) const
 }
 
 /* return true if the given point is within the domain */
-bool ParentDomainT::PointInDomain(const LocalArrayT& coords, const dArrayT& point) const
+bool ParentDomainT::PointInDomain(const dArray2DT& coords, const dArrayT& point) const
 {
   int dim = point.Length();
-  int numpoints = coords.Length();
+  int numpoints = coords.MajorDim();
   if (dim == 1) /* 1D case */
   {
     dArrayT temp(2);
@@ -583,6 +583,8 @@ bool ParentDomainT::PointInDomain(const LocalArrayT& coords, const dArrayT& poin
 
     temp.SortAscending();
     /* if atom and node coincide, return true */
+    //cout << "Coordinates of field point: " << point << endl;
+    //cout << "Coordinates of element's nodes: " << coords << endl;
     if (point[0] >= temp[0] && point[0] <= temp[1])
       return true;
     else
