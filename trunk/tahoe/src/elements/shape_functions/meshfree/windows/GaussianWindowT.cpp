@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.cpp,v 1.14 2004-11-03 01:21:07 raregue Exp $ */
+/* $Id: GaussianWindowT.cpp,v 1.15 2004-11-03 16:09:54 raregue Exp $ */
 #include "GaussianWindowT.h"
 #include "ExceptionT.h"
 #include <math.h>

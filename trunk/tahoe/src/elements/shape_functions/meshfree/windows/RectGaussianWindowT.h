@@ -1,4 +1,4 @@
-/* $Id: RectGaussianWindowT.h,v 1.9 2004-11-03 01:21:07 raregue Exp $ */
+/* $Id: RectGaussianWindowT.h,v 1.10 2004-11-03 16:09:54 raregue Exp $ */
 
 #ifndef _RECT_GAUSSIAN_WINDOW_T_H_
 #define _RECT_GAUSSIAN_WINDOW_T_H_

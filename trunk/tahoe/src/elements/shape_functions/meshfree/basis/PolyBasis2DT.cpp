@@ -1,4 +1,4 @@
-/* $Id: PolyBasis2DT.cpp,v 1.6 2004-11-03 01:21:01 raregue Exp $ */
+/* $Id: PolyBasis2DT.cpp,v 1.7 2004-11-03 16:09:48 raregue Exp $ */
 /* created: paklein (12/13/1999)                                          */
 
 #include "PolyBasis2DT.h"
