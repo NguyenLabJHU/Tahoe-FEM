@@ -1,4 +1,4 @@
-# $Id: DARWIN-3.3.gprof.macros,v 1.4 2003-03-15 16:54:30 paklein Exp $
+# $Id: DARWIN-3.3.gprof.macros,v 1.5 2003-03-20 19:21:57 paklein Exp $
 # GNU
 MAKE        = make
 MAKE_DEPEND = /usr/X11R6/bin/makedepend
@@ -24,7 +24,7 @@ MAKE_OPTS   =
 RM          = rm
 RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = ln -sf
-ECHO        = /usr/local/bin/echo -e
+ECHO        = echo
 CAT         = cat
 PERL        = perl -w
 PRINTF      = printf
