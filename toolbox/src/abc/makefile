@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1.1.1 2001-01-25 20:56:22 paklein Exp $
+# $Id: makefile,v 1.2 2001-01-29 07:21:13 paklein Exp $
 # object directory makefile - compilation instructions
 
 .SUFFIXES: .c .cpp .C .f .F .o .d .h .h_link
@@ -21,6 +21,7 @@ DEP = /dev/null
 # subdirectories
 SUB_DIR = \
 	array \
+	complex \
 	managers \
 	matrix \
 	other \
