@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeShapeFunctionT.cpp,v 1.4 2005-02-16 21:41:43 paklein Exp $ */
+/* $Id: D3MeshFreeShapeFunctionT.cpp,v 1.5 2005-04-06 01:03:55 kyonten Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D3MeshFreeShapeFunctionT.h"
 #include "D3MeshFreeSupport2DT.h"
@@ -31,13 +31,17 @@ D3MeshFreeShapeFunctionT::D3MeshFreeShapeFunctionT(GeometryT::CodeT geometry_cod
 	/* delete MLS support for base class */
 	delete fMFSupport;
 	fMFSupport = fD2MFSupport = fD3MFSupport;
+	
+	/* set as field shape function */
+	//SetUShapeFunctions(fNaU, fDNaU, fDDNaU, fDDDNaU);
 }
 
 /* class-dependent initializations */
 void D3MeshFreeShapeFunctionT::Initialize(void)
 {
 	/* inherited */
-	D2MeshFreeShapeFunctionT::Initialize();
+	//D2MeshFreeShapeFunctionT::Initialize();
+	ShapeFunctionT::Initialize();
 	
 	/* check */
 	if (!fD3MFSupport)
@@ -49,7 +53,8 @@ void D3MeshFreeShapeFunctionT::Initialize(void)
 void D3MeshFreeShapeFunctionT::SetDerivatives(void)
 {
 	/* inherited (set geometry shape functions) */
-	D2MeshFreeShapeFunctionT::SetDerivatives();
+	//D2MeshFreeShapeFunctionT::SetDerivatives();
+	ShapeFunctionT::SetDerivatives();
 	//TEMP - need to redesign things here. Skipping base
 	//       class and going to base-base class
 
@@ -113,7 +118,7 @@ void D3MeshFreeShapeFunctionT::NodalField(const dArray2DT& DOF, dArray2DT& field
 	field.Dimension(nnd, ndf);
 	Dfield.Dimension(nnd, ndf*nsd);
 	DDfield.Dimension(nnd, ndf*nxx);
-	DDDfield.Dimension(nnd, ndf*(nsd*nsd));  //kyonten (uncommented)
+	DDDfield.Dimension(nnd, ndf*(nsd*nsd));  
 
 	/* MLS nodal data */
 	iArrayT   neighbors;
@@ -148,7 +153,7 @@ void D3MeshFreeShapeFunctionT::NodalField(const dArray2DT& DOF, dArray2DT& field
 		/* compute nodal values */
 		Du.Set(ndf, nsd, Dfield(i));
 		DDu.Set(ndf, nxx, DDfield(i));
-		DDDu.Set(ndf, nsd*nsd, DDDfield(i)); //kyonten
+		DDDu.Set(ndf, nsd*nsd, DDDfield(i)); 
 		for (int j = 0; j < ndf; j++)
 		{
 			dof.Set(len, locdisp(j));
@@ -171,7 +176,7 @@ void D3MeshFreeShapeFunctionT::NodalField(const dArray2DT& DOF, dArray2DT& field
 			}
 			
 			/* third derivatives */
-			for (int l = 0; l < nsd*nsd; l++)  //kyonten
+			for (int l = 0; l < nsd*nsd; l++)  
 			{
 				DDDphi.RowAlias(l, tmp);
 				DDDu(j, l) = dArrayT::Dot(dof, tmp);
