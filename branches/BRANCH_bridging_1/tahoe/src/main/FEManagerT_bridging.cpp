@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.1.2.4 2003-02-11 02:46:12 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.1.2.5 2003-02-12 02:48:54 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #include "ModelManagerT.h"
 #include "NodeManagerT.h"
@@ -81,10 +81,11 @@ void FEManagerT_bridging::InitGhostNodes(void)
 }
 
 /* set the field at the ghost nodes */
-void FEManagerT_bridging::SetGhostNodeField(const StringT& field, const dArray2DT& values)
+void FEManagerT_bridging::SetFieldValues(const StringT& field, const iArrayT& nodes, 
+	const dArray2DT& values)
 {
 #if __option(extended_errorcheck)
-	if (fGhostNodes.Length() != values.MajorDim())
+	if (nodes.Length() != values.MajorDim())
 		ExceptionT::SizeMismatch("FEManagerT_bridging::SetGhostNodeField");
 #endif
 
@@ -95,7 +96,7 @@ void FEManagerT_bridging::SetGhostNodeField(const StringT& field, const dArray2D
 	dArray2DT& update = the_field->Update();
 	update = 0.0;
 	for (int i = 0; i < values.MajorDim(); i++)
-		update.SetRow(fGhostNodes[i], values(i));
+		update.SetRow(nodes[i], values(i));
 
 	/* apply the update to the field */
 	the_field->ApplyUpdate();
@@ -121,8 +122,6 @@ void FEManagerT_bridging::InitInterpolation(const iArrayT& nodes, const StringT&
 /* field interpolations */
 void FEManagerT_bridging::InterpolateField(const StringT& field, dArray2DT& nodal_values)
 {
-#pragma unused(field)
-
 	/* interpolate in bridging scale element */
 	BridgingScale().InterpolateField(field, fFollowerCellData, nodal_values);
 }
@@ -141,6 +140,13 @@ void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& fi
 	/* compute interpolation data */
 	BridgingScale().InitInterpolation(nodes, fDrivenCellData);
 
+	/* collect nodes in non-empty cells and generate cell connectivities 
+	 * in local numbering*/
+	fDrivenCellData.GenerateCellConnectivities();
+
+	/* compute the mass matrix used for the projection */
+	BridgingScale().InitProjection(fDrivenCellData);
+
 	/* get the associated field */
 	FieldT* the_field = fNodeManager->Field(field);
 	if (!the_field) ExceptionT::GeneralFail(caller, "could not resolve field \"%s\"", field.Pointer());
@@ -155,10 +161,6 @@ void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& fi
 		the_field->AddKBCController(fSolutionDriver);
 	}
 
-	/* collect nodes in non-empty cells and generate cell connectivities 
-	 * in local numbering*/
-	fDrivenCellData.GenerateCellConnectivities();
-
 	/* generate KBC cards - all degrees of freedom */
 	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
 	int ndof = the_field->NumDOF();
@@ -168,6 +170,9 @@ void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& fi
 	for (int j = 0; j < ndof; j++)
 		for (int i = 0; i < cell_nodes.Length(); i++)
 			KBC_cards[dex++].SetValues(cell_nodes[i], j, KBC_CardT::kDsp, 0, 0.0);
+
+	/* dimension work space */
+	fProjection.Dimension(cell_nodes.Length(), ndof);
 	
 	/* reset the group equations numbers */
 	SetEquationSystem(the_field->Group());
@@ -176,8 +181,19 @@ void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& fi
 /* project the point values onto the mesh */
 void FEManagerT_bridging::ProjectField(const StringT& field, NodeManagerT& node_manager)
 {
-#pragma unused(field)
-#pragma unused(node_manager)
+	const char caller[] = "FEManagerT_bridging::ProjectField";
+
+	/* get the source field */
+	FieldT* source_field = node_manager.Field(field);
+	if (!source_field) ExceptionT::GeneralFail(caller, "could not resolve source field \"%s\"", field.Pointer());
+
+	/* compute the projection onto the mesh */
+	const dArray2DT& source_field_values = (*source_field)[0];
+	BridgingScale().ProjectField(field, fDrivenCellData, source_field_values, fProjection);
+
+	/* write values into the field */
+	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
+	SetFieldValues(field, cell_nodes, fProjection);
 }
 
 /*************************************************************************

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.1.2.3 2003-02-11 02:46:12 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.1.2.4 2003-02-12 02:48:54 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -34,10 +34,11 @@ public:
 
 	/** return list of ghost nodes */
 	const iArrayT& NonGhostNodes(void) const { return fNonGhostNodes; };
-
-	/** set the field at the ghost nodes */
-	void SetGhostNodeField(const StringT& field, const dArray2DT& values);
 	/*@}*/
+
+	/** write field values for the given nodes */
+	void SetFieldValues(const StringT& field, const iArrayT& nodes, 
+		const dArray2DT& values);
 
 	/** \name interpolation and projection operators */
 	/*@{*/
@@ -101,6 +102,9 @@ private:
 	
 	/** map data of driver points into the mesh */
 	PointInCellDataT fDrivenCellData;
+	
+	/** projected solution */
+	dArray2DT fProjection;
 	/*@}*/
 };
 

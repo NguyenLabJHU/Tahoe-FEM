@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.36.2.4 2003-02-11 02:46:12 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.36.2.5 2003-02-12 02:48:54 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -338,7 +338,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 			
 				/* first exchange */
 				continuum.InterpolateField(bridging_field, field_at_ghosts);
-				atoms.SetGhostNodeField(bridging_field, field_at_ghosts);
+				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
 				continuum.ProjectField(bridging_field, *atoms.NodeManager());
 			
 				/* first solve */
@@ -356,7 +356,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 				{
 					/* exchange */
 					continuum.InterpolateField(bridging_field, field_at_ghosts);
-					atoms.SetGhostNodeField(bridging_field, field_at_ghosts);
+					atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
 					continuum.ProjectField(bridging_field, *atoms.NodeManager());
 
 					/* solve */
