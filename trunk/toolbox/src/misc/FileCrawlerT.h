@@ -1,4 +1,4 @@
-/* $Id: FileCrawlerT.h,v 1.5 2002-07-05 22:26:31 paklein Exp $ */
+/* $Id: FileCrawlerT.h,v 1.6 2004-02-26 08:56:02 paklein Exp $ */
 
 #ifndef _FILE_CRAWLER_T_H_
 #define _FILE_CRAWLER_T_H_
@@ -50,8 +50,6 @@ protected:
 	bool CommandLineOption(const char* str) const;
 	bool CommandLineOption(const char* str, int& index) const;
 	void AddCommandLineOption(const char* str);
-
-private:
 
 	/** recursive dispatch */
 	virtual void JobOrBatch(ifstreamT& in, ostream& status);
