@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.19 2001-12-13 09:56:22 paklein Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.20 2002-01-16 00:33:57 cjkimme Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -18,7 +18,7 @@
 //#include "vtkRendererSource.h"
 #include "vtkLookupTable.h"
 //#include "vtkWarpVector.h"
-#include "vtkVectors.h"
+//#include "vtkVectors.h"
 #include "vtkTextMapper.h"
 
 #include <iostream.h>
