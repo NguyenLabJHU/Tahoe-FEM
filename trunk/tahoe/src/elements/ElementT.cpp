@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.35 2004-01-14 22:04:41 rdorgan Exp $ */
+/* $Id: ElementT.cpp,v 1.36 2004-01-27 01:27:58 cjkimme Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -175,6 +175,9 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		case ElementT::kTotLagSplitIntegration:
 		    type = ElementT::kTotLagSplitIntegration;
 		    break;
+		case ElementT::kSCNIMF:
+			type = ElementT::kSCNIMF;
+			break;
 		case ElementT::kTotLagFlat:
 		    type = ElementT::kTotLagFlat;
 		    break;
