@@ -1,6 +1,5 @@
-/* $Id: MeshFreeFSSolidT.h,v 1.9 2004-01-05 07:16:47 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.h,v 1.9.18.1 2004-05-01 06:33:13 paklein Exp $ */
 /* created: paklein (09/16/1998) */
-
 #ifndef _EFG_FDELASTIC_T_H_
 #define _EFG_FDELASTIC_T_H_
 
@@ -24,6 +23,7 @@ public:
 
 	/* constructor */
 	MeshFreeFSSolidT(const ElementSupportT& support, const FieldT& field);
+	MeshFreeFSSolidT(const ElementSupportT& support);
 	
 	/* data initialization */
 	virtual void Initialize(void);
@@ -56,11 +56,23 @@ public:
 	virtual void InitStep(void);
 	virtual void CloseStep(void);
 	virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 					
 protected:
-
-	/* print element group data */
-	virtual void PrintControlData(ostream& out) const;
 
 	/* initialization functions */
 	virtual void SetShape(void);
@@ -78,6 +90,9 @@ private:
 	 virtual void WriteField(void); //TEMP?
 	
 protected:
+
+	/** make field at bounding nodes nodally exact */
+	bool fAutoBorder;
 
 	/* wrappers */
 	nVariMatrixT<double>  fStressStiff_wrap;

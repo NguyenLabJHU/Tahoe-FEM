@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.h,v 1.10.16.1 2004-04-28 15:43:24 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.h,v 1.10.16.2 2004-05-01 06:33:12 paklein Exp $ */
 /* created: paklein (11/12/1999) */
 #ifndef _MFREE_SUPPORT_T_H_
 #define _MFREE_SUPPORT_T_H_
@@ -30,7 +30,7 @@ class MeshFreeElementSupportT
 public:
 
 	/** constructor */
-	MeshFreeElementSupportT(ifstreamT& in);
+	MeshFreeElementSupportT(void);
 
 	/** destructor */
 	virtual ~MeshFreeElementSupportT(void) { };
@@ -38,13 +38,7 @@ public:
 	/* accessors */
 	MeshFreeSupportT& MeshFreeSupport(void) const;
 
-	/** return the auto-border flag */
-	int AutoBorder(void) const { return fAutoBorder; };
-
 protected:
-
-	 /* write parameters to stream */
-	virtual void PrintControlData(ostream& out) const;
 
 	/* initialization */
 	virtual void InitSupport(ifstreamT& in, ostream& out,
@@ -82,9 +76,6 @@ private:
 	void SetAllFENodes(const iArrayT& fe_nodes);
 
 protected:
-
-	/* mesh-free parameters */
-	int fAutoBorder; // 1 => make all "surface" nodes exact
 
 	/* mesh-free shape functions */
 	MeshFreeShapeFunctionT* fMFShapes;

@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.12 2003-11-21 22:47:04 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.12.20.1 2004-05-01 06:33:12 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2MeshFreeFSSolidT.h"
 #include "SolidMaterialsConfig.h"
@@ -159,6 +159,8 @@ void D2MeshFreeFSSolidT::ElementRHSDriver(void)
 /* initialization functions */
 void D2MeshFreeFSSolidT::SetShape(void)
 {
+#pragma message("fix me")
+#if 0
 	/* only support single list of integration cells for now */
 	if (fConnectivities.Length() > 1) {
 		cout << "\n D2MeshFreeFSSolidT::SetShape: multiple element blocks within an"
@@ -179,6 +181,7 @@ void D2MeshFreeFSSolidT::SetShape(void)
 	/* set base class pointers */
 	fShapes   = fD2MFShapes;
 	fMFShapes = fD2MFShapes;
+#endif
 }
 
 /* current element operations */
