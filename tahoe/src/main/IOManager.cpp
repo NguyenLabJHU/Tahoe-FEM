@@ -1,4 +1,4 @@
-/* $Id: IOManager.cpp,v 1.2 2001-02-27 00:16:14 paklein Exp $ */
+/* $Id: IOManager.cpp,v 1.3 2001-05-30 23:25:10 paklein Exp $ */
 /* created: sawimme (10/12/1999)                                          */
 /* this class creates InputBaseT and OutputBaseT pointers                 */
 
@@ -31,6 +31,7 @@ IOManager::IOManager(ostream& outfile, const StringT& program_name,
 	fInputFormat(IOBaseT::kTahoe),
 	fInput(NULL),
 	fEcho (false),
+	fOutputTime(0.0),
 	fOutput_tmp(NULL)
 {
 	/* construct output formatter */
@@ -44,6 +45,7 @@ IOManager::IOManager(ifstreamT& in, const IOManager& io_man):
 	fInputFormat(io_man.fInputFormat),
 	fInput(NULL),
 	fEcho (false),
+	fOutputTime(0.0),
 	fOutput_tmp(NULL)
 {
 	/* construct output formatter */
@@ -129,10 +131,9 @@ void IOManager::WriteGeometryFile(const StringT& file_name,
 	fOutput->WriteGeometryFile(file_name, format);
 }
 
-void IOManager::WriteOutput(double time, int ID, const dArray2DT& n_values,
-	const dArray2DT& e_values)
+void IOManager::WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values)
 {
-	fOutput->WriteOutput(time, ID, n_values, e_values);
+	fOutput->WriteOutput(fOutputTime, ID, n_values, e_values);
 }
 
 /* (temporarily) re-route output */
@@ -476,7 +477,10 @@ for (int t=0; t < timesteps.Length(); t++)
 	    fLog << "   Element Group: " << eids[g] << endl;
 	    dArray2DT nvalues (0,0), evalues (0,0);
 	    ReadVariables (t, eids[g], nvalues, evalues);
-	    WriteOutput (timesteps[t], outputID[g], nvalues, evalues);
+	    
+	    /* write output */
+	    SetOutputTime(timesteps[t]);
+	    WriteOutput(outputID[g], nvalues, evalues);
 	  }
 }
 else
