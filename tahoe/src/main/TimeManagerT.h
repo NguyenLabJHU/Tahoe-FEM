@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.h,v 1.10 2003-08-14 06:02:49 paklein Exp $ */
+/* $Id: TimeManagerT.h,v 1.10.10.1 2003-10-21 18:56:06 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _TIMEMANAGER_T_H_
@@ -99,8 +99,8 @@ public:
 	void ReadRestart(istream& in);
 	void WriteRestart(ostream& out) const;
 
-	/* finalize step (trigger output) */
-	void CloseStep(void); //TEMP? - let FEManager control/monitor output?
+	/** return true if output should be written for the current step */
+	bool WriteOutput(void) const;
 
 	/** return a pointer to a integrator of the specified type */
 	IntegratorT* New_Integrator(CodeT type) const;
@@ -142,20 +142,23 @@ private:
 	ArrayT<TimeSequence> fSequences;
 	pArrayT<ScheduleT*>  fSchedule;
 
-	/* copied from current sequence */
+	/** \name copied from current sequence */
+	/*@{*/
 	int	   fNumSteps;
 	int	   fOutputInc;
 	int	   fMaxCuts;
 	double fTimeStep;
+	/*@}*/
 	
-	/* runtime data for the current sequence */
+	/** \name runtime data for the current sequence */
+	/*@{*/
 	int	   fCurrentSequence;
 	int	   fStepNum;
 	double fTime;
 	int    fNumStepCuts;
 	int	   fStepCutStatus;
-	int    fOutputCount;	
-	
+	/*@}*/
+
 	/* time stepper */
 	int	   fIsTimeShifted;
 	double fTimeShift;

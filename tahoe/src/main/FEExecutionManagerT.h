@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.21 2003-10-02 21:05:17 hspark Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.21.6.2 2003-10-28 05:51:08 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #ifndef _FE_EXECMAN_T_H_
 #define _FE_EXECMAN_T_H_
@@ -100,8 +100,12 @@ private:
 #ifdef BRIDGING_ELEMENT
 	/** \name bridging scale with different integrators */
 	/*@{*/
-	/** quasistatic multi-Tahoe bridging scale */
-	void RunStaticBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms,
+	/** quasistatic multi-Tahoe bridging scale using a staggered solution strategy */
+	void RunStaticBridging_staggered(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms,
+		ofstream& log_out) const;
+
+	/** quasistatic multi-Tahoe bridging scale using a monolithic solution strategy */
+	void RunStaticBridging_monolithic(ifstreamT& in, FEManagerT_bridging& continuum, FEManagerT_bridging& atoms,
 		ofstream& log_out) const;
         
 #ifdef __DEVELOPMENT__
@@ -126,13 +130,13 @@ private:
 	/*@{*/
 	/** name calls one of decomposition methods below based on user input */
 	void Decompose(ifstreamT& in, int size, int decomp_type, const StringT& model_file,
-		IOBaseT::FileTypeT format, const StringT& output_map_file) const;
+		IOBaseT::FileTypeT format) const;
 
 	/** graph-based decomposition. Partition model based on the connectivites
 	 * in the model files and those generated at run time. The actual
 	 * decomposition is calculated by a FEManagerT_mpi. */
 	void Decompose_graph(ifstreamT& in, int size, const StringT& model_file,
-		IOBaseT::FileTypeT format, const StringT& output_map_file) const;
+		IOBaseT::FileTypeT format) const;
 
 	/** "atom" decomposition. Partition model by dividing global list
 	 * of coordinates into sequential, nearly equal length lists. The
@@ -145,11 +149,11 @@ private:
 	 \f]
 	 */
 	void Decompose_atom(ifstreamT& in, int size, const StringT& model_file,
-		IOBaseT::FileTypeT format, const StringT& output_map_file) const;
+		IOBaseT::FileTypeT format) const;
 
 	/** spatial decomposition. Partition model based on a grid. */
 	void Decompose_spatial(ifstreamT& in, int size, const StringT& model_file,
-		IOBaseT::FileTypeT format, const StringT& output_map_file) const;
+		IOBaseT::FileTypeT format) const;
 	/*@}*/
 
 	/** returns true if a new decomposition is needed */
@@ -157,23 +161,6 @@ private:
 
 	/** returns true if the global output model file is not found */
 	bool NeedModelFile(const StringT& model_file, IOBaseT::FileTypeT format) const;
-
-	/** returns true if a new decomposition is needed */
-	bool NeedOutputMap(ifstreamT& in, const StringT& map_file,
-		int size) const;
-
-	/** read the map of I/O ID to processor. Used only is the output is
-	 * joined at run time. */
-	void ReadOutputMap(ifstreamT& in, const StringT& map_file,
-		iArrayT& map) const;
-
-	/** set output map based on length of map. The map defines the output prcoessor
-	 * for each OutputSetT.
-	 * \param output_sets list of OutputSetT's
-	 * \param output_map returns with the output processor for each OutputSetT
-	 * \param size number of output processors. */
-	void SetOutputMap(const ArrayT<OutputSetT*>& output_sets,
-		iArrayT& output_map, int size) const;
 
 	/** construct and return the local IOManager */
 	IOManager* NewLocalIOManager(const FEManagerT* global_FEman,

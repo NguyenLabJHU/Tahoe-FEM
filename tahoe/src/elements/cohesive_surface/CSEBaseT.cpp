@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.28 2003-10-20 23:31:07 cjkimme Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.27 2003-09-03 23:45:18 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -153,7 +153,7 @@ void CSEBaseT::Initialize(void)
 	ElementBaseT::Initialize();
 
 	/* dimensions */
-	int num_facet_nodes = NumFacetNodes();
+	int num_facet_nodes = NumElementNodes()/2;
 
 	/* initialize local arrays */
 	fLocInitCoords1.Dimension(num_facet_nodes, NumSD());
@@ -162,8 +162,8 @@ void CSEBaseT::Initialize(void)
 	ElementSupport().RegisterCoordinates(fLocCurrCoords);
 
 	/* construct surface shape functions */
-	fShapes = new SurfaceShapeT(fGeometryCode, fNumIntPts, NumElementNodes(), 
-		num_facet_nodes, NumDOF(), fLocInitCoords1);
+	fShapes = new SurfaceShapeT(fGeometryCode, fNumIntPts, NumElementNodes(), NumDOF(),
+		fLocInitCoords1);
 	if (!fShapes) throw ExceptionT::kOutOfMemory;
 	fShapes->Initialize();
 

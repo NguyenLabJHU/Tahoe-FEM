@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.15 2003-10-20 23:32:04 cjkimme Exp $ */
+/* $Id: AdhesionT.cpp,v 1.14 2003-08-14 05:49:46 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -801,10 +801,9 @@ void AdhesionT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		fLocCurrCoords[i].Dimension(fSurfaces[i].MinorDim(), NumSD());
 		ElementSupport().RegisterCoordinates(fLocCurrCoords[i]);
 	
-		int nen = 2*fLocInitCoords[i].NumberOfNodes();
 		/* surface shape functions over undeformed configuration */
 		fShapes[i] = new SurfaceShapeT(geom[i], NumIP(geom[i]), 
-			nen, nen/2, NumSD(), fLocInitCoords[i]);
+			2*fLocInitCoords[i].NumberOfNodes(), NumSD(), fLocInitCoords[i]);
 
 		/* initialize */
 		fShapes[i]->Initialize();

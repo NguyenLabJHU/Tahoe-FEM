@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.21 2003-10-20 23:21:53 cjkimme Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.20 2003-08-18 03:45:16 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #ifndef _KBC_CONTROLLER_T_H_
 #define _KBC_CONTROLLER_T_H_
@@ -38,6 +38,7 @@ public:
       kBimaterialK_Field = 1,
          kMappedPeriodic = 2,
               kTiedNodes = 3,
+         kSymmetricNodes = 4,
           kPeriodicNodes = 5,
              kPrescribed = 6,
     kScaledVelocityNodes = 7,

@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.16 2003-10-20 23:31:07 cjkimme Exp $ */
+/* $Id: CSEBaseT.h,v 1.15 2003-08-14 05:51:27 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -26,8 +26,7 @@ public:
 	/* flags for derived class support */
 	enum FormulationT {Isotropic = 0,
 	                 Anisotropic = 1, 
-	         NoRotateAnisotropic = 2,
-	         	ModeIAnisotropic = 3};
+	         NoRotateAnisotropic = 2};
 
 	/** indicies for nodal output */
 	enum NodalOutputCodeT {
@@ -128,9 +127,6 @@ protected:
 
 	/* write current element information to the output */
 	void CurrElementInfo(ostream& out) const;
-	
-	/* number of facet nodes as a function of number of element nodes */
-	virtual int NumFacetNodes(void) { return NumElementNodes()/2; }
 	
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.7 2003-10-20 23:32:54 cjkimme Exp $ */
+/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.6 2003-01-27 07:00:30 paklein Exp $ */
 /* created: paklein (06/03/2000)                                          */
 
 #include "MeshFreeSurfaceShapeT.h"
@@ -31,8 +31,7 @@ MeshFreeSurfaceShapeT::MeshFreeSurfaceShapeT(GeometryT::CodeT geometry_code,
 
 	fFacetCoords(LocalArrayT::kInitCoords, num_facet_nodes,
 		GeometryT::GeometryToNumSD(geometry_code) + 1),
-	fRefSurfaceShape(geometry_code, num_ip, 2*num_facet_nodes, num_facet_nodes, 
-					fFieldDim, fFacetCoords),
+	fRefSurfaceShape(geometry_code, num_ip, 2*num_facet_nodes, fFieldDim, fFacetCoords),
 	fCurrIP(fRefSurfaceShape.CurrIP()),
 
 	/* dynamics work space managers */

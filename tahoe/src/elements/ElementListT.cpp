@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.66 2003-10-23 00:05:46 cjkimme Exp $ */
+/* $Id: ElementListT.cpp,v 1.64.6.1 2003-10-16 12:51:41 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -23,7 +23,6 @@
 #ifdef COHESIVE_SURFACE_ELEMENT
 #include "CSEIsoT.h"
 #include "CSEAnisoT.h"
-#include "CSESymAnisoT.h"
 #include "MeshFreeCSEAnisoT.h"
 #include "ThermalSurfaceT.h"
 #endif
@@ -286,11 +285,11 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			}
 			case ElementT::kHyperElasticInitCSE:
 			{
-#ifdef CONTINUUM_ELEMENT
+#if defined(CONTINUUM_ELEMENT) && defined(COHESIVE_SURFACE_ELEMENT)
 				fArray[group] = new UpLagAdaptiveT(fSupport, *field);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT or COHESIVE_SURFACE_ELEMENT not enabled: %d", code);
 #endif
 			}
 			case ElementT::kTotLagHyperElastic:
@@ -447,7 +446,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				out << "    eq. " << CSEBaseT::Isotropic   << ", isotropic\n";
 				out << "    eq. " << CSEBaseT::Anisotropic << ", anisotropic\n";
 				out << "    eq. " << CSEBaseT::NoRotateAnisotropic << ", fixed-frame anisotropic\n";
-				out << "    eq. " << CSEBaseT::ModeIAnisotropic << ", anisotropic mode I\n";
 
 				if (CSEcode == CSEBaseT::Isotropic)
 					fArray[group] = new CSEIsoT(fSupport, *field);	
@@ -455,8 +453,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 					fArray[group] = new CSEAnisoT(fSupport, *field, true);
 				else if (CSEcode == CSEBaseT::NoRotateAnisotropic)
 					fArray[group] = new CSEAnisoT(fSupport, *field, false);
-				else if (CSEcode == CSEBaseT::ModeIAnisotropic)
-					fArray[group] = new CSESymAnisoT(fSupport, *field, false);
 				else
 				{
 					ExceptionT::BadInputValue(caller, "unknown CSE formulation: %d", CSEcode);
