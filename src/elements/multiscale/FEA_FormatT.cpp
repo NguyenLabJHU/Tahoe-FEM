@@ -1,4 +1,4 @@
-// $Id: FEA_FormatT.cpp,v 1.17 2003-10-08 23:11:23 paklein Exp $
+// $Id: FEA_FormatT.cpp,v 1.18 2003-10-09 16:40:21 raregue Exp $
 #include "FEA_FormatT.h"
 
 using namespace Tahoe;
@@ -19,33 +19,55 @@ void FEA_FormatT::Shapes	(ShapeFunctionT *fShapes, FEA_ShapeFunctionT &FEA_Shape
 
 //---------------------------------------------------------------------
 
-void FEA_FormatT::SurfShapes	(const ParentDomainT& fSurfShapes, FEA_SurfShapeFunctionT &FEA_SurfShapes, 
+void FEA_FormatT::SurfShapes	(int n_en, const ParentDomainT& fSurfShapes, 
+								FEA_SurfShapeFunctionT &FEA_SurfShapes, 
 								LocalArrayT& face_coords )
 {
 	dMatrixT face_jacobian(2, 1);
 	dMatrixT face_Q(2);
 	dArrayT fNormal(2);
 	
+	int nip_surf = fSurfShapes.NumIP();
+	
 	//fNormal.Dimension ( n_sd );
 
 	FEA_SurfShapes.W = fSurfShapes.Weight(); 	// IPWeights() returns double*
-	int nip_surf = fSurfShapes.NumIP();
 	
-	for	(int l=0; l<nip_surf; l++) {
-	
+	for	(int l=0; l<nip_surf; l++) 
+	{
 		fSurfShapes.DomainJacobian(face_coords, l, face_jacobian);
 		FEA_SurfShapes.j[l] = fSurfShapes.SurfaceJacobian(face_jacobian, face_Q); 	// IPDets() returns double*
-
-		//fix this
-//		fSurfShapes.SetIP(l);
-		fSurfShapes.GradNa		( FEA_SurfShapes.dNdx[l] 	); 
-		
+			
 		/* last column is the normal (I think) */
 		face_Q.ColumnAlias(face_Q.Cols()-1, fNormal);
 		FEA_SurfShapes.normal[l] = fNormal;
-						
+		
+		for (int a=0; a<n_en; a++) 
+		{
+			FEA_SurfShapes.dNdx[l][0][a] = fSurfShapes.DShape(l,0);
+			FEA_SurfShapes.dNdx[l][1][a] = fSurfShapes.DShape(l,1);
+			FEA_SurfShapes.N[l][a] = fSurfShapes.Shape(l); 
+		}					
 	}
+	
+}
 
+//---------------------------------------------------------------------
+
+void FEA_FormatT::GradientSurface (	ShapeFunctionT *fShapes, const ParentDomainT& fSurfShapes,
+									LocalArrayT &u_np1,LocalArrayT &u_n, 
+									FEA_dMatrixT &GRAD_u_np1, FEA_dMatrixT &GRAD_u_n)
+{
+	int nip_surf = fSurfShapes.NumIP();
+	dArrayT ip_coords;
+	for	(int l=0; l<nip_surf; l++) 
+	{
+		//how determine ip_coords from ParentDomain??
+		//fSurfShapes.SetIP(l);
+		//fSurfShapes.IPCoords(ip_coords);
+		fShapes->GradU	( u_n, 		GRAD_u_n[l], ip_coords);
+		fShapes->GradU 	( u_np1, 	GRAD_u_np1[l], ip_coords );
+	}
 }
 
 
@@ -63,6 +85,7 @@ void FEA_FormatT::Na	(int n_en, ShapeFunctionT *fShapes, FEA_ShapeFunctionT &FEA
 			FEA_Shapes.N[l][a] = fN[a]; 
 	}
 }
+
 
 //---------------------------------------------------------------------
 
@@ -132,18 +155,7 @@ void FEA_FormatT::Gradients (	ShapeFunctionT *fShapes,LocalArrayT &u_np1,LocalAr
 	}
 }
 
-//---------------------------------------------------------------------
 
-void FEA_FormatT::GradientSurface (	const ParentDomainT& fSurfShapes ,LocalArrayT &u_np1,LocalArrayT &u_n, 
-								FEA_dMatrixT &GRAD_u_np1, FEA_dMatrixT &GRAD_u_n)
-{
-	int nip_surf = fSurfShapes.NumIP();
-	for	(int l=0; l<nip_surf; l++) {
-//		fSurfShapes.SetIP(l);
-		fSurfShapes.GradU	( u_n, 		GRAD_u_n[l], l );
-		fSurfShapes.GradU 	( u_np1, 	GRAD_u_np1[l], l );
-	}
-}
 
 //---------------------------------------------------------------------
 
