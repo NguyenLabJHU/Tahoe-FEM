@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.11 2005-02-23 00:16:41 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.12 2005-03-08 16:09:24 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -22,6 +22,7 @@ const double smallnum = 1.0e-4;
 /* initialize static variables */
 bool SmallStrainEnhLocT::fFirstPass = true;
 bool SmallStrainEnhLocT::fDeBug = true;
+bool SmallStrainEnhLocT::fFirstTrace = false;
 
 /* constructor */
 SmallStrainEnhLocT::SmallStrainEnhLocT(const ElementSupportT& support):
@@ -87,21 +88,24 @@ void SmallStrainEnhLocT::CloseStep(void)
 		
 		/* get displacements */
         SetLocalU(fLocDisp);
+        
+        /* get nodal coordinates */
+        SetLocalX(fLocInitCoords);
 		
 		elem_num = CurrElementNumber();
 		nen = NumElementNodes();
 		loc_flag = fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kLocFlag];
 			
-		if ( loc_flag == 1)
+		if ( fabs(loc_flag - 1.0) < smallnum )
 		{
 			/* choose normal and slip direction based on current element deformation */
 			ChooseNormalAndSlipDir(fLocDisp, elem_num, nen);
 		}
 	
-		if ( loc_flag == 1 )
+		if ( fabs(loc_flag - 1.0) < smallnum )
 		{
 			/* determine active nodes and band trace */
-			DetermineActiveNodesTrace(elem_num, nen);
+			DetermineActiveNodesTrace(fLocInitCoords, elem_num, nen);
 		}
 		
 	} // while next element
@@ -185,12 +189,13 @@ GlobalT::RelaxCodeT SmallStrainEnhLocT::RelaxSystem(void)
 		const ElementCardT& element = CurrentElement();
 
 		/* until element is traced, i.e. loc_flag = 2, check for localization */
-		if ( loc_flag < 2 && element.IsAllocated() )
+		if ( loc_flag < 2.0 && element.IsAllocated() )
 		{
 			/* initialize element localization data */
-			loc_flag = 0;
-			//fElementLocScalars[elem_num,kLocFlag] = loc_flag;
+			loc_flag = 0.0;
 			fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kLocFlag] = loc_flag;
+			
+			fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kdetAmin] = 1.0e99;
 			
 			normal1 = 0.0;
 			fElementLocNormal1.SetRow(elem_num, normal1);
@@ -409,6 +414,12 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	fElementLocEdgeIntersect.Dimension(NumElements(),numedges);
 	fElementLocEdgeIntersect = 0.0;
 	
+	fElementLocStartSurface.Dimension(NumElements(),NumSD());
+	fElementLocStartSurface = 0.0;
+	
+	fElementLocNodesActive.Dimension(NumElements(),NumElementNodes());
+	fElementLocNodesActive = 0;
+	
 	/** variable from time step to time step */
 	fElementLocScalars.Dimension(NumElements(),kNUM_SCALAR_TERMS);	
 	fElementLocScalars = 0.0;
@@ -451,6 +462,10 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	
 	mu_dir.Dimension(NumSD());
 	
+	start_surface_vect.Dimension(NumSD());
+	
+	start_surface_vect_read.Dimension(NumSD());
+	
 	grad_enh.Dimension(NumSD()*NumIP());
 	
 	q_isv.Dimension(kNUM_ISV_TERMS);
@@ -474,8 +489,12 @@ void SmallStrainEnhLocT::TakeParameterList(const ParameterListT& list)
 	displ_u.Dimension (NumElementNodes(), NumSD());
 	//fDispl->RegisterLocal(displ_u);
 	
-	node_displ.Dimension(NumDOF());
+	node_displ.Dimension(NumSD());
 	node_displ = 0.0;
+	node_coords.Dimension(NumSD());
+	node_coords = 0.0;
+	node_coords.Dimension(NumSD());
+	node_shape_deriv = 0.0;
 	
 	/* need to initialize previous volume */
 	Top();
@@ -615,17 +634,19 @@ MaterialListT* SmallStrainEnhLocT::NewMaterialList(const StringT& name, int size
 
 
 /* check for localization */
-void SmallStrainEnhLocT::CheckLocalization(int elem)
+void SmallStrainEnhLocT::CheckLocalization(int& elem)
 {
 	fShapes->TopIP();
 	while ( fShapes->NextIP() )
 	{
 		// check for localization
-		bool checkloc = fCurrMaterial->IsLocalized(normals,slipdirs);
-		if (checkloc)
+		//bool checkloc = fCurrMaterial->IsLocalized(normals,slipdirs);
+		bool checkloc = fCurrMaterial->IsLocalized(normals,slipdirs,detAmin);
+		if (checkloc && detAmin < fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdetAmin])
 		{
-			loc_flag = 1; // localized, not traced
+			loc_flag = 1.0; // localized, not traced
 			fElementLocScalars[kNUM_SCALAR_TERMS*elem + kLocFlag] = loc_flag;
+			fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdetAmin] = detAmin;
 			normals.Top();
 			slipdirs.Top();
 			int num_normals = normals.Length();
@@ -825,6 +846,7 @@ void SmallStrainEnhLocT::CheckLocalization(int elem)
 				ss_enh_out	<< endl 
 							<< setw(outputFileWidth) << "element " << elem 
 							<< setw(outputFileWidth) <<  "IP" << ip;
+				ss_enh_out	<< endl << "detAmin: " << setw(outputFileWidth) << detAmin; 			
 				ss_enh_out	<< endl << "normal1: " << setw(outputFileWidth) << normal1[0] 
 							<< setw(outputFileWidth) << normal1[1] <<  setw(outputFileWidth) << normal1[2]
 							<< setw(outputFileWidth) << "slipdir1: " << setw(outputFileWidth) << slipdir1[0] 
@@ -853,21 +875,21 @@ void SmallStrainEnhLocT::CheckLocalization(int elem)
 
 
 /* choose the normal and slipdir given normals and slipdirs from bifurcation condition */
-void SmallStrainEnhLocT::ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int elem, int nen)
+void SmallStrainEnhLocT::ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int& elem, int& nen)
 {
 	int i, nodeindex;
 	double product, sum1, sum2, sum3;
 
 	/* fetch normals and slipdirs for element */
-	fElementLocNormal1.RowAlias(elem, normal1);
-	fElementLocNormal2.RowAlias(elem, normal2);
-	fElementLocNormal3.RowAlias(elem, normal3);
-	fElementLocTangent1.RowAlias(elem, tangent1);
-	fElementLocTangent2.RowAlias(elem, tangent2);
-	fElementLocTangent3.RowAlias(elem, tangent3);
-	fElementLocSlipDir1.RowAlias(elem, slipdir1);
-	fElementLocSlipDir2.RowAlias(elem, slipdir2);
-	fElementLocSlipDir3.RowAlias(elem, slipdir3);
+	fElementLocNormal1.RowCopy(elem, normal1);
+	fElementLocNormal2.RowCopy(elem, normal2);
+	fElementLocNormal3.RowCopy(elem, normal3);
+	fElementLocTangent1.RowCopy(elem, tangent1);
+	fElementLocTangent2.RowCopy(elem, tangent2);
+	fElementLocTangent3.RowCopy(elem, tangent3);
+	fElementLocSlipDir1.RowCopy(elem, slipdir1);
+	fElementLocSlipDir2.RowCopy(elem, slipdir2);
+	fElementLocSlipDir3.RowCopy(elem, slipdir3);
 
 	sum1 = 0.0;
 	sum2 = 0.0;
@@ -957,18 +979,55 @@ void SmallStrainEnhLocT::ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int ele
 }
 
 /* given the normal and one point, determine active nodes */
-void SmallStrainEnhLocT::DetermineActiveNodesTrace(int elem, int nen)
+void SmallStrainEnhLocT::DetermineActiveNodesTrace(LocalArrayT& coords_elem, int& elem, int& nen)
 {
 	/* fetch chosen normal */
-	fElementLocNormal.RowAlias(elem, normal_chosen);
+	fElementLocNormal.RowCopy(elem, normal_chosen);
 	
-	/* loop through nodes and determine active nodes */
-	/*
-	for (int i = 0; i < nen; i++)
+	/* fetch slip surface starting intersection point */
+	if (!fFirstTrace)
+	{
+		fElementLocStartSurface.SetRow(elem, start_surface_vect_read);
+		fFirstTrace = true;
+	}
+	else
 	{
 		
 	}
+	
+	fElementLocStartSurface.RowCopy(elem, start_surface_vect);
+	/*
+	read first start point from input file;
+	calculate others based on slip surface intersection with adjacent elements
 	*/
+	
+	dArrayT diff_vector;
+	double product;
+	
+	/* loop through nodes and determine active nodes */
+	for (int i=0; i < nen; i++)
+	{
+		if (NumSD() == 2)
+		{
+			node_coords[0] = coords_elem[i];
+			node_coords[1] = coords_elem[i+nen];
+			
+			diff_vector.DiffOf(node_coords,start_surface_vect);
+			product = dArrayT::Dot(normal_chosen,diff_vector);
+			if (product > 0.0)
+			{
+				fElementLocNodesActive[NumElementNodes()*elem + i] = 1;
+				//calculate enhancement in FormKd
+			}
+		}
+		else if (NumSD() == 3)
+		{
+			node_coords[0] = coords_elem[i];
+			node_coords[1] = coords_elem[i+nen];
+			node_coords[2] = coords_elem[i+2*nen];
+		}
+		
+	}
 	
 	/* loop through nodes and determine edge intersectons */
 	/*
@@ -987,7 +1046,7 @@ void SmallStrainEnhLocT::DetermineActiveNodesTrace(int elem, int nen)
 	/*
 	if (trace)
 	{
-		loc_flag = 2;
+		loc_flag = 2.0;
 		fElementLocScalars[kNUM_SCALAR_TERMS*elem + kLocFlag] = loc_flag;
 	}
 	*/
@@ -1005,11 +1064,12 @@ void SmallStrainEnhLocT::FormKd(double constK)
 	/* current element number */
 	int elem = CurrElementNumber();
 	loc_flag = fElementLocScalars[kNUM_SCALAR_TERMS*elem + kLocFlag];
+	int nen = NumElementNodes();
 	
 	/* fetch normal and slipdir for element */
-	fElementLocNormal.RowAlias(elem, normal_chosen);
-	fElementLocSlipDir.RowAlias(elem, slipdir_chosen);
-	fElementLocTangent.RowAlias(elem, tangent_chosen);
+	fElementLocNormal.RowCopy(elem, normal_chosen);
+	fElementLocSlipDir.RowCopy(elem, slipdir_chosen);
+	fElementLocTangent.RowCopy(elem, tangent_chosen);
 	
 	fShapes->TopIP();
 	while (fShapes->NextIP())
@@ -1026,8 +1086,22 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		/* accumulate */
 		fRHS.AddScaled(constK*(*Weight++)*(*Det++), fNEEvec);
 		
-		if (loc_flag == 2) 
+		if ( fabs(loc_flag - 2.0) < smallnum ) 
 		{
+			const int ip = fShapes->CurrIP(); 
+			const dArray2DT& DNa = fShapes->Derivatives_U();
+
+			/* loop through nodes and calculate enhancement function */
+			for (int i=0; i < nen; i++)
+			{
+				DNa.RowCopy(i,node_shape_deriv);
+				if ( fElementLocNodesActive[NumElementNodes()*elem + i] == 1 )
+				{
+					grad_enh += node_shape_deriv;
+				}		
+			}
+			fElementLocGradEnhIP.SetRow(ip, grad_enh);
+			
 			//modify stiffness matrix
 			
 		}
@@ -1036,6 +1110,9 @@ void SmallStrainEnhLocT::FormKd(double constK)
 		if (need_heat) 
 			fElementHeat[fShapes->CurrIP()] += fCurrMaterial->IncrementalHeat();
 	}	
+	
+	fElementLocGradEnh.SetRow(elem, fElementLocGradEnhIP);
+
 }
 
 /* form the element stiffness matrix */
@@ -1064,16 +1141,16 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 	double vol = fElementVolume[elem];
 
 	/* element has localized and has been traced, thus fetch data to modify the stiffness matrix */
-	//if (loc_flag == 2) 
-	if (loc_flag == 1) 
+	//if ( fabs(loc_flag - 2.0) < smallnum ) 
+	if ( fabs(loc_flag - 1.0) < smallnum ) 
 	{
 		/* fetch normal and slipdir for element */
-		fElementLocNormal.RowAlias(elem, normal_chosen);
-		fElementLocSlipDir.RowAlias(elem, slipdir_chosen);
-		fElementLocTangent.RowAlias(elem, tangent_chosen);
-		fElementLocMuDir.RowAlias(elem, mu_dir);
+		fElementLocNormal.RowCopy(elem, normal_chosen);
+		fElementLocSlipDir.RowCopy(elem, slipdir_chosen);
+		fElementLocTangent.RowCopy(elem, tangent_chosen);
+		fElementLocMuDir.RowCopy(elem, mu_dir);
 		
-		fElementLocGradEnh.RowAlias(elem, grad_enh);
+		fElementLocGradEnh.RowCopy(elem, grad_enh);
 	
 		if (fDeBug)
 		{
@@ -1082,8 +1159,9 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 						<< setw(outputFileWidth) << "element " << elem;
 						
 			ss_enh_out	<< endl << endl << "element volume:" << setw(outputFileWidth) << vol; 
-			
-			ss_enh_out	<< endl << endl << " normal_chosen: " << setw(outputFileWidth) << normal_chosen[0] 
+						
+			ss_enh_out	<< endl << endl << "detA_min:" << setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdetAmin]; 
+			ss_enh_out	<< endl << " normal_chosen: " << setw(outputFileWidth) << normal_chosen[0] 
 						<< setw(outputFileWidth) << normal_chosen[1] <<  setw(outputFileWidth) << normal_chosen[2]; 
 			ss_enh_out	<< endl << "slipdir_chosen: " << setw(outputFileWidth) << slipdir_chosen[0] 
 						<< setw(outputFileWidth) << slipdir_chosen[1] <<  setw(outputFileWidth) << slipdir_chosen[2]; 
@@ -1135,7 +1213,7 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 		check for localization if element has not localized, or has localized
 		but not yet traced
 		*/
-		if (loc_flag == 2) 
+		if ( fabs(loc_flag - 2.0) < smallnum ) 
 		{
 			//modify stiffness matrix
 			

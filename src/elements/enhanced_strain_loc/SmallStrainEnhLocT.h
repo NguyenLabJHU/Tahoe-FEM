@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.10 2005-02-22 23:21:01 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.11 2005-03-08 16:09:24 raregue Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
@@ -20,6 +20,7 @@ public:
 
 	enum fElementLocScalars_T {
 							kLocFlag,
+							kdetAmin,
 							kJumpDispl,
 							kgamma_delta,
 							kQ,
@@ -128,13 +129,13 @@ protected:
 	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
 
 	/* check for localization */
-	void CheckLocalization(int elem);
+	void CheckLocalization(int& elem);
 	
 	/* choose the normal and slipdir given normals and slipdirs from bifurcation condition */
-	void ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int elem, int nen);
+	void ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int& elem, int& nen);
 	
 	/* given the normal and one point, determine active nodes */
-	void DetermineActiveNodesTrace(int elem, int nen);
+	void DetermineActiveNodesTrace(LocalArrayT& coords_elem, int& elem, int& nen);
 
 	/** calculate the internal force contribution ("-k*d") */
 	void FormKd(double constK);
@@ -158,7 +159,7 @@ private:
 	/** write output for debugging */
 	/*@{*/
 	/** flag to indicate first pass, and debugging */
-	static bool fFirstPass, fDeBug;
+	static bool fFirstPass, fDeBug, fFirstTrace;
 	/** output file stream */
 	ofstreamT ss_enh_out;
 	/** line output formating variables */
@@ -215,7 +216,10 @@ protected:
 	dArray2DT fElementLocGradEnh; // varies for each IP
 	dArray2DT fElementLocGradEnhIP; // for each IP for one element
 	dArray2DT fElementLocEdgeIntersect;
+	dArray2DT fElementLocStartSurface;
 	dArrayT fElementVolume;
+	
+	iArray2DT fElementLocNodesActive;
 	
 	double psi1, psi2, psi3;
 	
@@ -229,6 +233,7 @@ protected:
 	
 	dArrayT fCohesiveSurface_Params;
 	
+	double detAmin;
 	AutoArrayT <dArrayT> normals;
 	AutoArrayT <dArrayT> slipdirs;
 	dArrayT grad_enh, mu_dir;
@@ -236,7 +241,8 @@ protected:
 	dArrayT slipdir1, slipdir2, slipdir3, slipdir_chosen;
 	dArrayT tangent1, tangent2, tangent3, tangent_chosen;
 	int loc_flag, numedges;
-	dArrayT node_displ;
+	dArrayT node_displ, node_coords, node_shape_deriv;
+	dArrayT start_surface_vect, start_surface_vect_read;
 	
 	double fYieldTrial, residual_slip, K_zetazeta;
 	double DgammadeltaDzeta, DpsiDzeta, DPDzeta;
