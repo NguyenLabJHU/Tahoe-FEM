@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.12.2.2 2003-02-10 09:25:38 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.12.2.3 2003-02-12 23:40:58 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -170,6 +170,10 @@ public:
 
 	/** update the active degrees of freedom */
 	virtual void Update(int group, const dArrayT& update);
+	
+	/** update the current configuration. This is called by NodeManagerT::Update
+	 * and does not usually need to be called explicitly. */
+	void UpdateCurrentCoordinates(void);
 
 	/** copy nodal information. Copy all field information from the source 
 	 * nodes to the targets. The current coordinates are updated, but the
