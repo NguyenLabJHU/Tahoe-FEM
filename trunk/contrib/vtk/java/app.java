@@ -32,9 +32,9 @@ public static void main(String args[]) throws IOException {
 		JLabel emptyLabel = new JLabel("TEST");
 		emptyLabel.setPreferredSize(new Dimension(175, 100));
 		emptyLabel.setHorizontalAlignment(JLabel.CENTER);
-		frame.getContentPane().add(emptyLabel, BorderLayout.CENTER);		
+		//frame.getContentPane().add(emptyLabel, BorderLayout.CENTER);		
 
-		frame.getContentPane().add(new test(), BorderLayout.NORTH);
+		frame.getContentPane().add(new test());
                 frame.pack();
                 frame.setVisible(true);
 
