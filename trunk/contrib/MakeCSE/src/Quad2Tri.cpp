@@ -1,4 +1,4 @@
-// $Id: Quad2Tri.cpp,v 1.6 2002-10-28 21:36:33 sawimme Exp $
+// $Id: Quad2Tri.cpp,v 1.7 2004-04-08 23:45:35 paklein Exp $
 // created: SAW 12/21/99
 #include "Quad2Tri.h"
 
@@ -165,7 +165,7 @@ int Quad2Tri::ElementCentroid (int* quad, int numQuadNodes, const dArray2DT& coo
 {
       int dof = coords.MinorDim();
       dArrayT xbar (dof);
-      xbar = 0;
+      xbar = 0.0;
       for (int k=0; k < numQuadNodes; k++)
 	for (int y=0; y < dof; y++)
 	  xbar[y] += coords (quad[k], y);
