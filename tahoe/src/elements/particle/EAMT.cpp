@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.52.2.1 2004-03-05 15:06:46 hspark Exp $ */
+/* $Id: EAMT.cpp,v 1.52.2.2 2004-03-06 23:01:25 hspark Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -736,6 +736,28 @@ void EAMT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
 	ParticleT::DefineParameters(list);
+}
+
+/* assemble external electron density into fElectronDensity */
+void EAMT::AssembleElecDensity(const dArray2DT& elecdens, const iArrayT& ghostatoms)
+{
+	dArrayT asdf(1);
+	for (int i = 0; i < ghostatoms.Length(); i++)
+	{
+		elecdens.RowAlias(i, asdf);
+		fElectronDensity.SetRow(ghostatoms[i], asdf);
+	}
+}
+
+/* assemble external embedding force into fEmbeddingForce */
+void EAMT::AssembleEmbedForce(const dArray2DT& embforce, const iArrayT& ghostatoms)
+{
+	dArrayT asdf(1);
+	for (int i = 0; i < ghostatoms.Length(); i++)
+	{
+		embforce.RowAlias(i, asdf);
+		fEmbeddingForce.SetRow(ghostatoms[i], asdf);
+	}
 }
 
 /***********************************************************************
@@ -1479,14 +1501,14 @@ void EAMT::RHSDriver3D(void)
       /* get electron density */
       fElectronDensity = 0.0;
       GetRho3D(coords,fElectronDensity);
-
+	
       /* exchange electron density information */
       comm_manager.AllGather(fElectronDensityMessageID, fElectronDensity);
 	  
       /* get embedding force */
       fEmbeddingForce = 0.0;
       GetEmbForce(coords,fElectronDensity,fEmbeddingForce);
-	 
+
 	  /* exchange embedding energy information */
       comm_manager.AllGather(fEmbeddingForceMessageID, fEmbeddingForce);
     }

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.14.2.3 2004-03-06 01:22:48 hspark Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.14.2.4 2004-03-06 23:01:26 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -15,8 +15,10 @@
 #include "ParticleT.h"
 #include "dSPMatrixT.h"
 #include "EAMFCC3D.h"
+#include "EAMT.h"
 #include "ShapeFunctionT.h"
 #include "dSymMatrixT.h"
+#include "ElementSupportT.h"
 
 using namespace Tahoe;
 
@@ -27,9 +29,18 @@ FEManagerT_bridging::FEManagerT_bridging(ifstreamT& input, ofstreamT& output, Co
 	fBridgingIn(bridging_input),
 	fBridgingScale(NULL),
 	fSolutionDriver(NULL),
-	fEAMFCC3D(NULL)
+	fEAMFCC3D(NULL),
+	fEAMT(NULL),
+	fExternalElecDensity(NULL),
+	fExternalEmbedForce(NULL)
 {
 
+}
+
+/* destructor */
+FEManagerT_bridging::~FEManagerT_bridging(void)
+{
+	delete fEAMFCC3D;
 }
 
 /* send update of the solution to the NodeManagerT */
@@ -327,11 +338,6 @@ void FEManagerT_bridging::InitInterpolation(const iArrayT& nodes, const StringT&
 	/* compute interpolation data (using reference coordinates) */
 	const dArray2DT& init_coords = node_manager.InitialCoordinates();
 	BridgingScale().InitInterpolation(nodes, &init_coords, NULL, fFollowerCellData);
-	
-	/* construct EAMFCC3D pointer */
-	ifstreamT& in = Input();
-	fEAMFCC3D = new EAMFCC3D(in, 4, 3, 54);
-	fEAMFCC3D->InitBondTables();
 }
 
 /* field interpolations */
@@ -444,7 +450,7 @@ void FEManagerT_bridging::Ntf(dSPMatrixT& ntf, const iArrayT& atoms, iArrayT& ac
 
 /* initialize data for the driving field */
 void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& field, 
-	NodeManagerT& node_manager, bool make_inactive)
+	NodeManagerT& node_manager, bool make_inactive, int length)
 {
 	const char caller[] = "FEManagerT_bridging::SetExactSolution";
 	fMainOut << "\n Number of projection points . . . . . . . . . . = " << nodes.Length() << '\n';
@@ -485,6 +491,11 @@ void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& fi
 	
 	/* reset the group equations numbers */
 	SetEquationSystem(the_field->Group());
+	
+	/* construct EAMFCC3D pointer */
+	ifstreamT& in = Input();
+	fEAMFCC3D = new EAMFCC3D(in, 4, 3, 54);
+	fEAMFCC3D->InitBondTables();
 }
 
 /* project the point values onto the mesh */
@@ -602,7 +613,7 @@ nMatrixT<int>& FEManagerT_bridging::PropertiesMap(int element_group)
 }
 
 /* calculate EAM total electron density at ghost atoms */
-double FEManagerT_bridging::ElecDensity(ifstreamT& in, const iArrayT& ghostatoms)
+void FEManagerT_bridging::ElecDensity(int length, dArray2DT& elecdens, dArray2DT& embforce)
 {
 	/* try constructing an EAMFCC3D here - need to construct new EAMFCC3D for each ghost atom? */
 	StringT field = "displacement";
@@ -627,7 +638,7 @@ double FEManagerT_bridging::ElecDensity(ifstreamT& in, const iArrayT& ghostatoms
 	eye.Identity(1.0);
 	dArray2DT DNa;
 	dSymMatrixT green1(dSymMatrixT::k3D);
-	double ed, embforce;
+	double ed, ef;
 	
 	/* loop over all elements which contain atoms/ghost atoms */
 	for (int i = 0; i < inversemap.MajorDim(); i++)
@@ -642,36 +653,80 @@ double FEManagerT_bridging::ElecDensity(ifstreamT& in, const iArrayT& ghostatoms
 			for (int j = 0; j < np1; j++)
 			{
 				int point_dex = global_to_local.Map(points[j]);
-			
-				/* determine the element the ghost atom lies in */
-				const ElementCardT& element_card = continuum->ElementCard(cell[point_dex]);
-				const iArrayT& nodes = element_card.NodesU();
+				
+				/* because ghost atoms stored first in boundaryghost atoms /*
+				/* global to local map has ghost atoms first, boundary atoms second */
+				/* this loop ignores the boundary atoms */
+				if (point_dex < length)
+				{
+					/* determine the element the ghost atom lies in */
+					const ElementCardT& element_card = continuum->ElementCard(cell[point_dex]);
+					const iArrayT& nodes = element_card.NodesU();
 
-				/* collect local displacements */
-				loc_field.SetLocal(nodes);
+					/* collect local displacements */
+					loc_field.SetLocal(nodes);
 			
-				/* obtain parent coordinates */
-				sourceb.CopyPart(0, sourcea, j*nsd, nsd);
+					/* obtain parent coordinates */
+					sourceb.CopyPart(0, sourcea, j*nsd, nsd);
 				
-				/* calculate gradient of displacement field */
-				shape.GradU(loc_field, fgrad, sourceb, Na, DNa);
+					/* calculate gradient of displacement field */
+					shape.GradU(loc_field, fgrad, sourceb, Na, DNa);
 				
-				/* calculate deformation gradient = 1 + GradU */
-				fgrad+=eye;
+					/* calculate deformation gradient = 1 + GradU */
+					fgrad+=eye;
 	
-				/* calculate green strain = .5*(F^{T}F-I) */
-				green.MultATB(fgrad, fgrad, 0);
-				green-=eye;
-				green*=.5;
-				green1.Symmetrize(green);
+					/* calculate green strain = .5*(F^{T}F-I) */
+					green.MultATB(fgrad, fgrad, 0);
+					green-=eye;
+					green*=.5;
+					green1.Symmetrize(green);
 				
-				/* calculate/store electron density/embedding force for each ghost atom */
-				fEAMFCC3D->ElectronDensity(green1, ed, embforce);
-
+					/* calculate/store electron density/embedding force for each ghost atom */
+					fEAMFCC3D->ElectronDensity(green1, ed, ef);
+					elecdens(point_dex, 0) = ed;
+					embforce(point_dex, 0) = ef;
+				}
 			}
 		}
 	}
+}
 
+/* add external electron density contribution to ghost atoms */
+void FEManagerT_bridging::SetExternalElecDensity(const dArray2DT& elecdens, const iArrayT& ghostatoms)
+{
+	const char caller[] = "FEManagerT_bridging::SetExternalElecDensity";
+
+	/* check */
+	if (ghostatoms.Length() != elecdens.MajorDim()) 
+		ExceptionT::SizeMismatch(caller);
+
+	/* store pointers */
+	fExternalElecDensity = &elecdens;
+}
+
+/* add external embedding force contribution to ghost atoms */
+void FEManagerT_bridging::SetExternalEmbedForce(const dArray2DT& embforce, const iArrayT& ghostatoms)
+{
+	const char caller[] = "FEManagerT_bridging::SetExternalForce";
+
+	/* check */
+	if (ghostatoms.Length() != embforce.MajorDim()) 
+		ExceptionT::SizeMismatch(caller);
+
+	/* store pointers */
+	fExternalEmbedForce = &embforce;
+}
+
+/* call EAMT function to assemble electron density */
+void FEManagerT_bridging::AssembleElecDensity(const iArrayT& ghostatoms)
+{
+	EAM().AssembleElecDensity(*fExternalElecDensity, ghostatoms);
+}
+
+/* call EAMT function to assemble embedding force */
+void FEManagerT_bridging::AssembleEmbedForce(const iArrayT& ghostatoms)
+{
+	EAM().AssembleEmbedForce(*fExternalEmbedForce, ghostatoms);
 }
 
 /*************************************************************************
@@ -726,6 +781,33 @@ BridgingScaleT& FEManagerT_bridging::BridgingScale(void) const
 	}
 	
 	return *fBridgingScale;
+}
+
+/* the EAMT element group */
+EAMT& FEManagerT_bridging::EAM(void) const
+{
+	/* find EAMT group */
+	if (!fEAMT) 
+	{
+	
+		/* search through element groups */
+		for (int i = 0; !fEAMT && i < fElementGroups->Length(); i++)
+		{
+			/* try cast */
+			ElementBaseT* element_base = (*fElementGroups)[i];
+			
+			/* need non-const pointer to this */
+			FEManagerT_bridging* fe = (FEManagerT_bridging*) this;
+			fe->fEAMT = dynamic_cast<EAMT*>(element_base);
+		}
+		
+		/* not found */
+		if (!fEAMT)
+			ExceptionT::GeneralFail("FEManagerT_bridging::EAM",
+				"did not find EAMT element group");
+	}
+	
+	return *fEAMT;
 }
 
 #endif  /* BRIDGING_ELEMENT */

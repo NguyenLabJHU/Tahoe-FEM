@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.18 2004-01-23 19:47:37 paklein Exp $ */
+/* $Id: EAMT.h,v 1.18.2.1 2004-03-06 23:01:25 hspark Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -59,6 +59,12 @@ public:
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
 	/*@}*/
+
+	/** assemble external electron density into fElectronDensity */
+	void AssembleElecDensity(const dArray2DT& elecdens, const iArrayT& ghostatoms);
+	
+	/** assemble external embedding force into fEmbeddingForce */
+	void AssembleEmbedForce(const dArray2DT& embforce, const iArrayT& ghostatoms);
 
 protected:
 
