@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.3 2001-04-27 10:50:11 paklein Exp $ */
+/* $Id: main.cpp,v 1.4 2001-05-31 21:15:49 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include <iostream.h>
@@ -65,7 +65,7 @@ static void StartUp(int* argc, char*** argv)
 	if (MPI_Comm_rank(MPI_COMM_WORLD, &rank) != MPI_SUCCESS)
 		throw eMPIFail;
 	
-#ifndef _MACOS_
+#if !defined(_MACOS_) && !(defined(__DEC__) && defined (__USE_STD_IOSTREAM))
 	/* redirect cout and cerr */
 	if (rank > 0)
 	{

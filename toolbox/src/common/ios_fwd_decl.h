@@ -1,4 +1,4 @@
-/* $Id: ios_fwd_decl.h,v 1.2 2001-03-01 01:17:49 hspark Exp $ */
+/* $Id: ios_fwd_decl.h,v 1.3 2001-05-31 21:14:52 paklein Exp $ */
 /* created: paklein (08/11/1999)                                          */
 /* iosfwd.h                                                               */
 /* include this header instead of writing forward declarations            */
@@ -20,6 +20,8 @@
 //PAK(02/28/2001): this header does not seem to work
 //#include <iosfwd.h>
 #include <iostream.h>
+#elif defined(__DEC__) && defined (__USE_STD_IOSTREAM)
+#include <iosfwd>
 #else // forward declarations OK
 class istream;
 class ostream;
