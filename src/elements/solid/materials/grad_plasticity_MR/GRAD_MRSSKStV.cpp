@@ -249,7 +249,8 @@ void GRAD_MRSSKStV::ComputeOutput(dArrayT& output)
 		//output[6] = checker.IsLocalized_SS(normals,slipdirs);
 		bool checkloc;
 		double detA;
-		checkloc = checker.IsLocalized_SS(normals,slipdirs,detA);
+		//checkloc = checker.IsLocalized_SS(normals,slipdirs,detA);
+		checkloc = checker.IsLocalized_SS(normals,slipdirs);
 		if (checkloc) output[18] = 1.0;
 		else output[18] = 0.0;
 	}	
