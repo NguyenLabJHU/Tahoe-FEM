@@ -109,6 +109,23 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
       }
 	}
     
+    if (!PlasticLoading(trialstrain, element, ip) && 
+	    element.IsAllocated())
+	{
+		/* initialize element data */
+		double enp  = 0.;
+        double esp  = 0.;
+        double fchi = fchi_r + (fchi_p - fchi_r)*exp(-falpha_chi*enp);
+        double fc   = fc_r + (fc_p - fc_r)*exp(-falpha_c*esp);
+        double ftan_phi = tan(fphi_r) + (tan(fphi_p) - tan(fphi_r))*exp(-falpha_phi*esp);
+        double ftan_psi = (tan(fphi_p))*exp(-falpha_psi*esp);
+        state = 0.;
+        state[18] = fchi;
+        state[19] = fc;
+        state[20] = ftan_phi;
+        state[21] = ftan_psi;
+	}
+	
 	if (!PlasticLoading(trialstrain, element, ip) && 
 	    !element.IsAllocated())
 	{
@@ -538,12 +555,12 @@ dMatrixT& MRSSNLHardT::dQdSigdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrix
   double Sig_p;
   Sig_p = (Sig[0]+Sig[1]+Sig[2])/3.0;
   dQdSigdq = 0.;
-  dQdSigdq(1,0) = 2.*qn[3]/3.;
+  dQdSigdq(0,1) = 2.*qn[3]/3.;
   dQdSigdq(1,1) = 2.*qn[3]/3.;
-  dQdSigdq(1,2) = 2.*qn[3]/3.; 
-  dQdSigdq(3,0) = (2.*qn[1] - 4.*Sig_p*qn[3])/3.;
-  dQdSigdq(3,1) = (2.*qn[1] - 4.*Sig_p*qn[3])/3.;
-  dQdSigdq(3,2) = (2.*qn[1] - 4.*Sig_p*qn[3])/3.;
+  dQdSigdq(2,1) = 2.*qn[3]/3.; 
+  dQdSigdq(0,3) = (2.*qn[1] - 4.*Sig_p*qn[3])/3.;
+  dQdSigdq(1,3) = (2.*qn[1] - 4.*Sig_p*qn[3])/3.;
+  dQdSigdq(2,3) = (2.*qn[1] - 4.*Sig_p*qn[3])/3.;
     
   return dQdSigdq;
 }
