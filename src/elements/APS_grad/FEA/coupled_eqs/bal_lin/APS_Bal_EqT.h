@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.h,v 1.7 2003-09-22 20:53:15 raregue Exp $
+// $Id: APS_Bal_EqT.h,v 1.8 2003-09-26 00:31:12 raregue Exp $
 #ifndef _APS_BALEQ_T_H_ 
 #define _APS_BALEQ_T_H_ 
 
@@ -54,6 +54,11 @@ class APS_Bal_EqT	: public BalLinMomT
 								kV_Temp2,
 	             				kNUM_V_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
 	             				
+	enum VS_T {
+								kVS_Temp1,
+								kVS_Temp2,
+	             				kNUM_VS_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
+	             				
 	enum S_T {
 								knuepsgradu,
 								knuepseps,
@@ -89,7 +94,7 @@ class APS_Bal_EqT	: public BalLinMomT
 	protected:
 
   		FEA_dMatrix_ArrayT B_d, B_eps, B_gradu; 
-  		FEA_dVector_ArrayT VB_d, VB_eps, V;
+  		FEA_dVector_ArrayT VB_d, VB_eps, V, VS;
   		FEA_dScalar_ArrayT S; 
   		dArrayT 			C;
 

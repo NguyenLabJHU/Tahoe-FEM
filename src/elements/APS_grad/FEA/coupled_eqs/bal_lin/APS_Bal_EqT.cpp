@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.cpp,v 1.9 2003-09-25 20:40:22 raregue Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.10 2003-09-26 00:31:12 raregue Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
@@ -40,14 +40,15 @@ void APS_Bal_EqT::Construct ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_M
 
 	delta_t = fdelta_t;
 	
-	Data_Pro.Construct ( Shapes.dNdx );
-
+	Data_Pro.Construct ( Shapes.dNdx 	);
+	Data_Pro.Insert_N  ( Shapes.N 		);
+	Integral.Construct ( Shapes.j, Shapes.W ); 
+	
 	Form_C_List		( Shear_Matl );
 	Form_B_List		(  );
-	Form_VB_List	(  );
 	Form_V_S_List	( np1 );
+	Form_VB_List	(  );
 
-	Integral.Construct ( Shapes.j, Shapes.W ); 
 
 }
 
@@ -110,6 +111,8 @@ void APS_Bal_EqT::Form_V_S_List (APS_VariableT &npt)
 {
 		S.Construct 	( kNUM_S_TERMS, 	n_ip 		);
 		V.Construct 	( kNUM_V_TERMS, 	n_ip, n_sd 	);
+		int dum=1;
+		VS.Construct 	( kNUM_VS_TERMS, 	n_ip, dum 	);
 		
 		#pragma message("APS_Bal_EqT::Form_V_S_List: V[knueps] and V[keps] must be input for BC")
 		V[knueps](0) = 1.0;
@@ -119,8 +122,8 @@ void APS_Bal_EqT::Form_V_S_List (APS_VariableT &npt)
 		//V[kgrad_u] = npt.Get ( APS::kgrad_u );
 		B_gradu[kgrad_u] = npt.Get ( APS::kgrad_u );
 		//V[knueps].Dot( V[kgrad_u], S[knuepsgradu] );
-		V[knueps].Dot( B_gradu[kgrad_u], V[kV_Temp1] );
-		S[knuepsgradu]=V[kV_Temp1](0);
+		V[knueps].Dot( B_gradu[kgrad_u], VS[kVS_Temp1] );
+		S[knuepsgradu]=VS[kVS_Temp1](0);
 		V[knueps].Dot( V[keps], S[knuepseps] );
 }
 
