@@ -40,10 +40,8 @@ void MFGP_ToolsT::ExpandIndex3(int nsd, int dex, int& dex_1, int& dex_2, int& de
 void MFGP_ToolsT::ExpandIndex2(int nsd, int dex_1, int dex_2, int dex_3, 
             int& dex_12, int& dex_23, int& dex_31)
 {
-#if __option(extended_errorcheck)
-	/* consistency check */
 	const char caller[] = "MFGP_ToolsT::ExpandIndex2";
-#endif	
+
 	switch (nsd)
 	{
 		case 1:
