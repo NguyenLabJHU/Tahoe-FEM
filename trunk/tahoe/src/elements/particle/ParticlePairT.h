@@ -1,4 +1,6 @@
-/* $Id: ParticlePairT.h,v 1.13 2003-10-28 23:31:48 paklein Exp $ */
+
+
+
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -99,6 +101,11 @@ protected:
 	/** generate labels for output data */
 	virtual void GenerateOutputLabels(ArrayT<StringT>& labels) const;
 
+
+	/*nearest neighbor list*/
+	RaggedArray2DT<int> NearestNeighbors;
+
+
 	/** return a new pair property or NULL if the name is invalid */
 	PairPropertyT* New_PairProperty(const StringT& name, bool throw_on_fail) const;
 
@@ -109,6 +116,7 @@ private:
 
 	/** neighbor lists */
 	RaggedArray2DT<int> fNeighbors;
+
 
 	/** equation numbers */
 	RaggedArray2DT<int> fEqnos;
@@ -127,6 +135,9 @@ private:
 	ofstreamT fout, fout2;
 	StringT fsummary_file, fsummary_file2;
 	/*@}*/
+
+	
+	
 };
 
 } /* namespace Tahoe */
