@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.16 2003-05-28 23:15:23 cjkimme Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.17 2003-08-14 05:51:27 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
@@ -26,13 +26,19 @@ using namespace Tahoe;
 CSEIsoT::CSEIsoT(const ElementSupportT& support, const FieldT& field):
 	CSEBaseT(support, field)
 {
+	SetName("isotropic_CSE");
+}
 
+CSEIsoT::CSEIsoT(const ElementSupportT& support):
+	CSEBaseT(support)
+{
+	SetName("isotropic_CSE");
 }
 #else
 CSEIsoT::CSEIsoT(ElementSupportT& support):
 	CSEBaseT(support)
 {
-
+	SetName("isotropic_CSE");
 }
 #endif
 

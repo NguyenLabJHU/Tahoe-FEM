@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.14 2003-08-08 00:58:46 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.15 2003-08-14 05:51:27 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -47,6 +47,7 @@ public:
 	/* constructors */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	CSEBaseT(const ElementSupportT& support, const FieldT& field);
+	CSEBaseT(const ElementSupportT& support);
 #else
 	CSEBaseT(ElementSupportT& support);
 #endif
@@ -86,6 +87,12 @@ public:
 	virtual void InitStep(void);
 #endif
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
+	
 protected:
 
 	/** print element group data */
