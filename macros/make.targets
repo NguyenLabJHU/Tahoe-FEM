@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.28 2003-09-05 22:02:24 cjkimme Exp $
+# $Id: make.targets,v 1.29 2003-10-16 18:26:38 cjkimme Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -17,6 +17,7 @@ OPT_CFLAGS = \
 	$(NOX_CFLAGS) \
 	$(T_CFLAGS) \
 	$(ACME_CFLAGS) \
+	$(QHULL_CFLAGS) \
 	$(SPOOLESMPI_CFLAGS) \
 	$(SPOOLESMT_CFLAGS) \
 	$(SPOOLES_CFLAGS) \
@@ -35,6 +36,7 @@ OPT_LFLAGS = \
 	$(NOX_LFLAGS) \
 	$(T_LFLAGS) \
 	$(ACME_LFLAGS) \
+	$(QHULL_LFLAGS) \
 	$(SPOOLESMPI_LFLAGS) \
 	$(SPOOLESMT_LFLAGS) \
 	$(SPOOLES_LFLAGS) \
@@ -59,6 +61,7 @@ OPT_LIB = \
 	$(SPOOLES_LIB) \
 	$(SPOOLESMPI_LIB) \
 	$(SPOOLESMT_LIB) \
+	$(QHULL_LIB) \
 	$(ACME_LIB) \
 	$(VTK_LIB)
 
@@ -76,6 +79,7 @@ OPT_INC = \
 	$(SPOOLES_INC) \
 	$(SPOOLESMPI_INC) \
 	$(SPOOLESMT_INC) \
+	$(QHULL_INC) \
 	$(ACME_INC) \
 	$(AX_INC) \
 	$(VTK_INC)
@@ -88,6 +92,7 @@ OPT_DEFINES = \
 	$(NOX_DEFINES) \
 	$(T_DEFINES) \
 	$(ACME_DEFINES) \
+	$(QHULL_DEFINES) \
 	$(SPOOLESMPI_DEFINES) \
 	$(SPOOLESMT_DEFINES) \
 	$(SPOOLES_DEFINES) \
