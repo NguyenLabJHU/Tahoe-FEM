@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.19 2003-04-29 23:09:34 cjkimme Exp $ */
+/* $Id: ParticleT.cpp,v 1.20 2003-05-06 19:55:46 cjkimme Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -742,41 +742,25 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 				ExceptionT::BadInputValue(caller,"Damping type does not exist or is not valid");
 			}
 		}
-		int nodesOrRegion;
-		in >> nodesOrRegion;
+		char peekahead = in.next_char();
+		int nodesOrRegion = atoi(&peekahead);
 		switch (nodesOrRegion)
 		{
 			case ThermostatBaseT::kNodes:
 			{
+				in >> nodesOrRegion; // read in what I didn't above
 				if (thermostat_i == ThermostatBaseT::kRampedDamping)
 					ExceptionT::BadInputValue(caller,"Ramped Damping requires spatial region");
-				int all_or_some = -99;
-				in >> all_or_some; 
-				if (all_or_some != 0 && all_or_some != 1) ExceptionT::BadInputValue(caller);
-		
-				if (all_or_some == 0) /* ALL */
-				{
-					if (nThermostats != 1)
-						ExceptionT::GeneralFail(caller,"For all particles damped, must have only 1 controller"); 
-	 			
-				}
-				else
-				{
-					/* access to the model database */
-					ModelManagerT& model = ElementSupport().Model();
-
-					/* read node set ids */
-					ArrayT<StringT> ids;
-					model.NodeSetList(in, ids);
-					iArrayT tags;
-					model.ManyNodeSets(ids, fThermostats[i]->NodeList());	
-				}
+				
+				fThermostats[i]->InitNodeSets(in, ElementSupport().Model());
 				
 				break;
 			}
 			case ThermostatBaseT::kRegion:
 			{
-				fThermostats[i]->InitRegion(in,ElementSupport().InitialCoordinates(),
+				int nregions;
+				in >> nregions;
+				fThermostats[i]->InitRegion(in, ElementSupport().InitialCoordinates(),
 											fCommManager.PartitionNodes());
 				break;
 			}
