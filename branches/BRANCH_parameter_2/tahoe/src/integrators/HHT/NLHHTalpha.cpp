@@ -1,4 +1,4 @@
-/* $Id: NLHHTalpha.cpp,v 1.5.40.1 2004-01-28 01:34:03 paklein Exp $ */
+/* $Id: NLHHTalpha.cpp,v 1.5.40.2 2004-03-09 08:55:19 paklein Exp $ */
 /* created: paklein (10/11/1996) */
 #include "NLHHTalpha.h"
 
@@ -17,8 +17,6 @@ NLHHTalpha::NLHHTalpha(double alpha):
 	eNLHHTalpha(alpha),
 	fTimeBoss(NULL)
 {
-	ExceptionT::GeneralFail("NLHHTalpha::NLHHTalpha", "not supported");
-
 #if 0
 	/* time-shifting not supported for NL */
 	if (falpha*falpha > kSmall)
