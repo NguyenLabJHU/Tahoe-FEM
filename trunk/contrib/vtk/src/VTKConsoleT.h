@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.h,v 1.13 2001-10-16 22:27:00 recampb Exp $ */
+/* $Id: VTKConsoleT.h,v 1.14 2001-10-23 00:23:08 recampb Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -7,6 +7,10 @@
 #include "iConsoleObjectT.h"
 #include "StringT.h"
 
+/* direct members */
+#include "VTKFrameT.h"
+
+/* forward declarations */
 class vtkRenderer;
 class vtkRenderWindow;
 class vtkRenderWindowInteractor;
@@ -50,11 +54,12 @@ class VTKConsoleT: public iConsoleObjectT
   double alphaRange1, alphaRange2;
   double scalarRange1[100], scalarRange2[100];
   double time;
-  // float scale_factor;
+  double scale_factor;
   int numColors;
   int num_node_variables;
   int currentVarNum;
   int test;
+  double numRen;
   StringT source_file;
   StringT output_file;
   StringT outFileName;
@@ -63,6 +68,8 @@ class VTKConsoleT: public iConsoleObjectT
   vtkUnstructuredGridReader *ugr;
   vtkRenderer *renderer;
   vtkRenderer *renderer2;
+  vtkRenderer *renderer3;
+  vtkRenderer *renderer4;
   vtkRenderWindow *renWin;
   vtkRenderWindowInteractor *iren;
   vtkLookupTable *lut;
@@ -89,6 +96,8 @@ class VTKConsoleT: public iConsoleObjectT
   vtkPoints *dPoints;
   vtkWarpVector *warp;
   int frameNum;
+
+  ArrayT<VTKFrameT> fFrames;
 };
 
 #endif
