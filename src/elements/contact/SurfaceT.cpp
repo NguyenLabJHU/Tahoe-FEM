@@ -1,10 +1,11 @@
-/*  $Id: SurfaceT.cpp,v 1.19 2001-12-17 00:15:53 paklein Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.20 2002-01-09 12:02:32 paklein Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
 
+#include "ModelManagerT.h"
 #include "fstreamT.h"
 #include "IOBaseT.h"
 #include "FEManagerT.h"
