@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.4.2.1 2001-10-11 20:04:39 sawimme Exp $ */
+/* $Id: ElementBaseT.h,v 1.4.2.2 2001-10-25 20:23:38 sawimme Exp $ */
 /* created: paklein (05/24/1996)                                          */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -205,8 +205,8 @@ protected:
 	AutoArrayT<ElementCardT> fElementCards;
 	
 	/* grouped element arrays */
-	iArray2DT fConnectivities;		
-	iArray2DT fEqnos;			
+	ArrayT<const iArray2DT*> fConnectivities;		
+	ArrayT<iArray2DT> fEqnos;			
 	
 	/* element tangent matrix and force vector */								
 	ElementMatrixT fLHS;
