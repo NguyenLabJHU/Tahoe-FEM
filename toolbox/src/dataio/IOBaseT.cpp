@@ -1,5 +1,5 @@
-/* $Id: IOBaseT.cpp,v 1.4 2001-12-16 23:52:02 paklein Exp $ */
-/* created: sawimme (09/28/1999)                                          */
+/* $Id: IOBaseT.cpp,v 1.5 2002-01-02 06:28:04 paklein Exp $ */
+/* created: sawimme (09/28/1999) */
 
 #include "IOBaseT.h"
 
@@ -8,6 +8,7 @@
 #include <iomanip.h>
 
 #include "ExceptionCodes.h"
+#include "StringT.h"
 
 IOBaseT::IOBaseT(ostream& out): fout(out) { }
 IOBaseT::~IOBaseT(void) { }
@@ -88,6 +89,30 @@ void IOBaseT::OutputFormats (ostream& log) const
   log << "    eq. " << setw (2) << IOBaseT::kAVS           << ". AVS UCD ASCII\n";
   //log << "    eq. " << setw (2) << IOBaseT::kAVSBinary     << ". AVS UCD Binary\n";
   //log << "    eq. " << setw (2) << IOBaseT::kPatranNeutral << ". PATRAN Neutral\n";
+}
+
+/* try to guess the file format based on the file extension */
+IOBaseT::FileTypeT IOBaseT::name_to_FileTypeT(const char* file_name)
+{
+	StringT ext;
+	ext.Suffix(file_name);
+	
+	if (ext == ".exo" || ext == ".e")
+		return kExodusII;
+	else if (ext == ".geom")
+		return kTahoeII;
+	else if (ext == ".case")
+		return kEnSight;
+	else if (ext == ".run")
+		return kTahoeResults;
+	else {
+		cout << "\n IOBaseT::name_to_FileTypeT: could not guess file type from name: " 
+		    << file_name << endl;
+		throw eGeneralFail;
+	}
+
+	/* dummy */
+	return kTahoe;
 }
 
 /*************************************************************************

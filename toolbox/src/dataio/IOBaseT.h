@@ -1,6 +1,5 @@
-/* $Id: IOBaseT.h,v 1.4 2001-12-16 23:52:02 paklein Exp $ */
-/* created: sawimme (09/28/1999)                                          */
-/* Base class for InputBaseT and OutputBaseT                              */
+/* $Id: IOBaseT.h,v 1.5 2002-01-02 06:28:05 paklein Exp $ */
+/* created: sawimme (09/28/1999) */
 
 #ifndef _IOBASE_T_H_
 #define _IOBASE_T_H_
@@ -8,6 +7,7 @@
 /* forward declarations */
 #include "ios_fwd_decl.h"
 
+/** database types and simple functions */
 class IOBaseT
 {
 public:
@@ -17,6 +17,7 @@ public:
 	                 kAtNever = 0,
 	                   kAtInc = 1};
 
+	/** I/O file types */
 	enum FileTypeT {kTahoe = 0,
 	              kTahoeII = 1,
 	              kTecPlot = 2,
@@ -36,12 +37,18 @@ public:
 	/* destructor */
 	virtual ~IOBaseT(void);
 
-	/* convert integer to FileTypeT */
+	/** convert integer to FileTypeT */
 	static FileTypeT int_to_FileTypeT(int i);
 	friend istream& operator>>(istream& in, IOBaseT::FileTypeT& file_type);
 
+	/** write list of input formats to log */
 	void InputFormats (ostream &log) const;
+
+	/** write list of output formats to log */
 	void OutputFormats (ostream &log) const;
+	
+	/** try to guess the file format based on the file extension */
+	static FileTypeT name_to_FileTypeT(const char* file_name);
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.6 2001-12-19 15:11:42 sawimme Exp $ */
+/* $Id: ModelManagerT.h,v 1.7 2002-01-02 06:28:05 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -197,6 +197,12 @@ class ModelManagerT
    * \return blockindex element block index the set is contained within for model file data
    * \return localsides array of facets from model file or just one facet from inline text, locally numbered */
   void ReadTractionSideSet (ifstreamT& in, int& blockindex, iArray2DT& localsides);
+
+	/** number of nodes */
+	int NumNodes(void) const;
+
+	/** number of spatial dimensions */
+	int  NumDimensions (void) const;
 
   /** access coordinate dimensions
    * \return length number of nodes
@@ -408,6 +414,9 @@ inline void ModelManagerT::Format (IOBaseT::FileTypeT& format, StringT& name) co
   format = fFormat;
   name = fInputName;
 }
+
+inline int ModelManagerT::NumNodes(void) const { return fCoordinateDimensions[0]; };
+inline int ModelManagerT::NumDimensions (void) const { return fCoordinateDimensions[1]; };
 
 inline int ModelManagerT::NumElementGroups (void) const { return fNumElementSets; }
 inline int ModelManagerT::NumNodeSets (void) const { return fNumNodeSets; }

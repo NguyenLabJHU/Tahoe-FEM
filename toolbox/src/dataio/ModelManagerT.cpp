@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.7 2001-12-16 23:52:02 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.8 2002-01-02 06:28:05 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -570,8 +570,8 @@ void ModelManagerT::ReadTractionSideSet (ifstreamT& in, int& blockindex, iArray2
 
 void ModelManagerT::CoordinateDimensions (int& length, int& dof) const
 {
-  length = fCoordinateDimensions[0];
-  dof = fCoordinateDimensions[1];
+	length = fCoordinateDimensions[0];
+	dof = fCoordinateDimensions[1];
 }
 
 const dArray2DT& ModelManagerT::CoordinateReference (void) const
