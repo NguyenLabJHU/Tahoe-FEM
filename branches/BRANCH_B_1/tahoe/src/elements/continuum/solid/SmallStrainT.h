@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.7.2.2 2002-09-22 23:08:57 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.7.2.3 2002-09-23 06:29:51 paklein Exp $ */
 
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
@@ -50,11 +50,8 @@ class SmallStrainT: public ElasticT
 	enum MaterialNeedsT {kstrain = 0,
 	                kstrain_last = 1};
 
-	/** compute mean dilatation, Hughes (4.5.23) */
-	void SetMeanDilatation(dArray2DT& mean_dilatation) const;
-
-	/** set B-bar as given by Hughes (4.5.11-16)*/
-	void Set_B_bar(const dArray2DT& derivatives, const dArray2DT& mean_dilatation, dMatrixT& B);
+	/** compute mean shape function gradient, Hughes (4.5.23) */
+	void SetMeanGradient(dArray2DT& mean_gradient) const;
 
   private:
     
@@ -69,7 +66,7 @@ class SmallStrainT: public ElasticT
   	/*@{*/
   	dMatrixT fGradU;
   	dArrayT fLocDispTranspose; /**< used for B-bar method */
-	dArray2DT fMeanDilatation;/**< store mean dilatation */
+	dArray2DT fMeanGradient;   /**< store mean shape function gradient */
   	/*@}*/
 };
 
