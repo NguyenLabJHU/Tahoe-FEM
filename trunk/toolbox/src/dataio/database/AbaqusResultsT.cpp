@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.cpp,v 1.13 2002-01-09 18:36:06 paklein Exp $ */
+/* $Id: AbaqusResultsT.cpp,v 1.14 2002-02-12 20:07:35 sawimme Exp $ */
 /* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
@@ -180,7 +180,7 @@ bool AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
 	case NODESET: 
 	  {
 	    StringT name;
-	    if (!Read (name, 1)) return false;
+	    if (!ReadSetName (name, 1)) return false;
 	    fNodeSetNames.Append (name);
 	    iArrayT tempset (0);
 	    fNodeSets.Append (tempset);
@@ -196,7 +196,7 @@ bool AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
 	case ELEMENTSET: 
 	  {
 	    StringT name;
-	    if (!Read (name, 1)) return false;
+	    if (!ReadSetName (name, 1)) return false;
 	    fElementSetNames.Append (name);
 	    iArrayT tempset (0);
 	    fElementSets.Append (tempset);
@@ -346,10 +346,14 @@ int AbaqusResultsT::NumElementNodes (const StringT& name)
   ResetFile ();
   StringT setname = "";
 
-  while (strncmp (setname.Pointer(), name.Pointer(), name.Length()) != 0)
+  while (strncmp (setname.Pointer(), name.Pointer(), name.StringLength()) != 0)
     {
-      AdvanceTo (ELEMENTSET);
-      if (!Read (setname, 1)) throw eDatabaseFail;
+      if (!AdvanceTo (ELEMENTSET))
+	{
+	  fMessage << "\nAbaqusResultsT::NumElementNodes, unable to advance to ELEMENTSET\n\n";
+	  throw eDatabaseFail;
+	}
+      if (!ReadSetName (setname, 1)) throw eDatabaseFail;
     }
 
   int el;
@@ -359,7 +363,11 @@ int AbaqusResultsT::NumElementNodes (const StringT& name)
   int cel=-1;
   while (cel != el)
     {
-      AdvanceTo (ELEMENT);
+      if (!AdvanceTo (ELEMENT))
+	{
+	  fMessage << "\nAbaqusResultsT::NumElementNodes, unable to advance to ELEMENT\n\n";
+	  throw eDatabaseFail;
+	}
       if (!Read (cel)) throw eDatabaseFail;
     }
 
@@ -409,10 +417,14 @@ void AbaqusResultsT::GeometryCode (const StringT& name, GeometryT::CodeT& code)
   ResetFile ();
   StringT setname = "";
 
-  while (strncmp (setname.Pointer(), name.Pointer(), name.Length()) != 0)
+  while (strncmp (setname.Pointer(), name.Pointer(), name.StringLength()) != 0)
     {
-      AdvanceTo (ELEMENTSET);
-      if (!Read (setname, 1)) throw eDatabaseFail;
+      if (!AdvanceTo (ELEMENTSET))
+	{
+	  fMessage << "\nAbaqusResultsT::GeometryCode, unable to advance to ELEMENTSET\n\n";
+	  throw eDatabaseFail;
+	}
+      if (!ReadSetName (setname, 1)) throw eDatabaseFail;
     }
 
   int el;
@@ -422,7 +434,11 @@ void AbaqusResultsT::GeometryCode (const StringT& name, GeometryT::CodeT& code)
   int cel=-1;
   while (cel != el)
     {
-      AdvanceTo (ELEMENT);
+      if (!AdvanceTo (ELEMENT))
+	{
+	  fMessage << "\nAbaqusResultsT::NumElementNodes, unable to advance to ELEMENT\n\n";
+	  throw eDatabaseFail;
+	}
       if (!Read (cel)) throw eDatabaseFail;
     }
 
@@ -513,9 +529,9 @@ void AbaqusResultsT::VariablesUsed (const StringT& name, AbaqusVariablesT::TypeT
   int inc;
   double time;
   if (fModeIncs.Length() > 0)
-    NextMode (inc, time);
+    if (!NextMode (inc, time)) throw eDatabaseFail;
   else
-    NextTimeSteps (inc, time);
+    if (!NextTimeSteps (inc, time)) throw eDatabaseFail;
   
   int key;
   int ID, objnum, intpt, secpt, location, outputmode;
@@ -536,8 +552,8 @@ void AbaqusResultsT::VariablesUsed (const StringT& name, AbaqusVariablesT::TypeT
 	default:
 	  {
 	    /* is this the setname we are interested in */
-	    int l = (name.Length() < outsetname.Length()) ? name.Length() : outsetname.Length();
-	    if (strncmp (outsetname.Pointer(), name.Pointer(), l-1) == 0)
+	    int l = (name.StringLength() < outsetname.StringLength()) ? name.StringLength() : outsetname.StringLength();
+	    if (strncmp (outsetname.Pointer(), name.Pointer(), l) == 0)
 	      {
 		/* make sure it is a variable */
 		int index = VariableKeyIndex (key);
@@ -576,8 +592,8 @@ void AbaqusResultsT::ReadVariables (AbaqusVariablesT::TypeT vt, int step, dArray
   AdvanceToTimeIncrement (step);
 
   int key;
-  int ID, objnum, intpt, secpt, location, outputmode;
-  StringT outsetname;
+  int ID, objnum, intpt, secpt, location, outputmode, itemp;
+  StringT outsetname, ctemp;
   while (ReadNextRecord (key) == OKAY)
     {
       switch (key)
@@ -594,13 +610,34 @@ void AbaqusResultsT::ReadVariables (AbaqusVariablesT::TypeT vt, int step, dArray
 	default:
 	  {
 	    /* make sure it is a variable */
-	    if (VariableKeyIndex(key) > 0)
+	    int index = VariableKeyIndex (key);
+	    if (index > 0 && index < NVT)
 	      {
 		/* is the record found, one that you want to read */
 		if (CorrectType (outputmode, objnum, intpt, location, vt, ID))
 		  {
-		    if (VariableWrittenWithNodeNumber (key)) 
-		      if (!Read (ID)) throw eDatabaseFail;
+		    switch (fVariableTable[index].FirstAttribute())
+		      {
+		      case AbaqusVariablesT::kNodeNumber:
+			if (!Read (ID)) throw eDatabaseFail;
+			break;
+		      case AbaqusVariablesT::kIntType:
+			if (!Read (itemp)) 
+			  {
+			    cout << fBuffer << endl;
+			    cout << fBufferDone << endl;
+			    throw eDatabaseFail;
+			  }
+			break;
+		      case AbaqusVariablesT::kCharType:
+			if (!Read (ctemp, 1))
+			  {
+			    cout << fBuffer << endl;
+			    cout << fBufferDone << endl;
+			    throw eDatabaseFail;
+			  }
+			break;
+		      }
 		    
 		    bool save = true;
 		    int row;
@@ -619,7 +656,6 @@ void AbaqusResultsT::ReadVariables (AbaqusVariablesT::TypeT vt, int step, dArray
 			for (int i=0; i < num; i++)
 			  if (!Read (v[i])) throw eDatabaseFail;
 			
-			int index = VariableKeyIndex (key);
 			int offset = fVariableTable[index].IOIndex();
 			values.CopyPart (row*values.MinorDim() + offset, v, 0, num); 
 		      }
@@ -643,7 +679,7 @@ int AbaqusResultsT::VariableKey (const char* name) const
   for (int i=0; i < NVT; i++)
     {
       const StringT& n = fVariableTable[i].Name();
-      if (strncmp (name, n.Pointer(), n.Length() - 1) == 0)
+      if (strncmp (name, n.Pointer(), n.StringLength() - 1) == 0)
 	return fVariableTable[i].Key();
     }
   return -1;
@@ -667,7 +703,11 @@ int AbaqusResultsT::VariableKeyIndex (int key) const
 
 bool AbaqusResultsT::NextCoordinate (int &number, dArrayT &nodes)
 {
-  AdvanceTo (NODE);
+  if (!AdvanceTo (NODE))
+    {
+      fMessage << "\nAbaqusResultsT::NextCoordinate, unable to advance to NODE\n\n";
+      throw eDatabaseFail;
+    }
 
   if (!Read (number))
     throw eDatabaseFail;
@@ -682,7 +722,11 @@ bool AbaqusResultsT::NextCoordinate (int &number, dArrayT &nodes)
 
 bool AbaqusResultsT::NextElement (int &number, GeometryT::CodeT &type, iArrayT &nodes)
 {
-  AdvanceTo (ELEMENT);
+  if (!AdvanceTo (ELEMENT))
+    {
+      fMessage << "\nAbaqusResultsT::NextElement, unable to advance to ELEMENT\n\n";
+      throw eDatabaseFail;
+    }
 
   StringT name;
   if (!Read (number) || !Read (name, 1) )
@@ -952,7 +996,11 @@ void AbaqusResultsT::WriteEndIncrement (void)
 void AbaqusResultsT::VersionNotes (ArrayT<StringT>& records)
 {
   ResetFile ();
-  AdvanceTo (VERSION);
+  if (!AdvanceTo (VERSION))
+    {
+      fMessage << "\nAbaqusResultsT::Version, unable to advance to VERSION\n\n";
+      throw eDatabaseFail;
+    }
   records.Allocate (4);
   int numelems, numnodes;
   double elemleng;
@@ -1000,21 +1048,25 @@ bool AbaqusResultsT::ReadVersion (void)
   return true;
 }
 
-void AbaqusResultsT::NextMode (int &number, double &mode)
+bool AbaqusResultsT::NextMode (int &number, double &mode)
 {
-  AdvanceTo (MODAL);
+  if (!AdvanceTo (MODAL))
+    return false;
   if (!Read (number) || !Read (mode) )
-    throw eDatabaseFail;
+    return false;
+  return true;
 }
 
-void AbaqusResultsT::NextTimeSteps (int &number, double &time)
+bool AbaqusResultsT::NextTimeSteps (int &number, double &time)
 {
   int procedure, step;
   double steptime, creep, amp; 
-  AdvanceTo (STARTINCREMENT);
+  if (!AdvanceTo (STARTINCREMENT))
+    return false;
   if (!Read (time) || !Read (steptime) || !Read (creep) || !Read (amp) ||
       !Read (procedure) || !Read (step) || !Read (number) )
-    throw eDatabaseFail;
+    return false;
+  return true;
 }
 
 void AbaqusResultsT::ScanElement (void)
@@ -1055,7 +1107,7 @@ void AbaqusResultsT::StoreSet (iArrayT& set)
 
 void AbaqusResultsT::ReadOutputDefinitions (int &outputmode, StringT& setname)
 {
-  if (!Read (outputmode)|| !Read (setname, 1) )
+  if (!Read (outputmode)|| !ReadSetName (setname, 1) )
     throw eDatabaseFail;
 }
 
@@ -1080,13 +1132,23 @@ void AbaqusResultsT::ScanVariable (int key, int outputmode, int location)
       fVariableTable[index].Type() != AbaqusVariablesT::kNotUsed &&
       fVariableTable[index].IOIndex() != AbaqusVariablesT::kNotUsed) return;
 
-  int dim, ioindex;
+  /* number of components for this variable */
+  int dim = fCurrentLength;
+  switch (fVariableTable[index].FirstAttribute())
+    {
+    case AbaqusVariablesT::kNodeNumber:
+    case AbaqusVariablesT::kIntType:
+    case AbaqusVariablesT::kCharType:
+      dim --;
+      break;
+    }
+
+  int ioindex;
   AbaqusVariablesT::TypeT t;
   switch (outputmode)
     {
     case kElementOutput:
       {
-	dim = fCurrentLength;
 	switch (location)
 	  {
 	  case kElementQuadrature:  /* quadrature point */
@@ -1117,7 +1179,6 @@ void AbaqusResultsT::ScanVariable (int key, int outputmode, int location)
       }
     case kNodalOutput:
       {
-	dim = fCurrentLength - 1;
 	t = AbaqusVariablesT::kNode;
 	ioindex = fNumNodeVars;
 	fNumNodeVars += dim;
@@ -1159,8 +1220,9 @@ void AbaqusResultsT::WriteElementHeader (int key, int number, int intpt, int sec
 bool AbaqusResultsT::VariableWrittenWithNodeNumber (int key) const
 {
   int index = VariableKeyIndex (key);
-  if (index > 0 && index < NVT)
-    return fVariableTable[index].NodeNumberFlag();
+  if (index > 0 && index < NVT &&
+      fVariableTable[index].FirstAttribute() == AbaqusVariablesT::kNodeNumber)
+    return true;
   return false;
 }
 
@@ -1221,12 +1283,18 @@ void AbaqusResultsT::AdvanceToTimeIncrement (int step)
   while (currentinc != number)
     {
       if (fModeIncs.Length() > 0)
-	NextMode (currentinc, time);
+	{
+	  if (!NextMode (currentinc, time))
+	    currentinc = -1;
+	}
       else
-	NextTimeSteps (currentinc, time);
+	{
+	  if (!NextTimeSteps (currentinc, time))
+	    currentinc = -1;
+	}
 
       /* starting in file after this time step */
-      if (currentinc > number && numrewind == 0)
+      if ((currentinc == -1 || currentinc > number) && numrewind == 0)
 	{
 	  if (numrewind == 0)
 	    {
@@ -1485,16 +1553,16 @@ void AbaqusResultsT::GetElementName (GeometryT::CodeT geometry_code, int elemnod
     }
 }
 
-void AbaqusResultsT::AdvanceTo (int target)
+bool AbaqusResultsT::AdvanceTo (int target)
 {
   int key = 0, error = OKAY;
   while (error == OKAY)
     {
       error = ReadNextRecord (key);
-      if (key == target) return;
+      if (key == target) return true;
     }
-  fMessage << "\n AbaqusResultsT::AdvanceTo: anable to advance to " << target << endl;
-  throw eDatabaseFail;
+  //fMessage << "\n AbaqusResultsT::AdvanceTo: anable to advance to " << target << endl;
+  return false;
 }
 
 bool AbaqusResultsT::SkipAttributes (void)
@@ -1538,6 +1606,14 @@ int AbaqusResultsT::ReadNextRecord (int& key)
   if (!Read (length) || !Read (key)) return BAD;
   fCurrentLength += length;
   return OKAY;
+}
+
+bool AbaqusResultsT::ReadSetName (StringT& s, int n)
+{
+  if (!Read (s, n)) return false;
+  s.DropTrailingSpace ();
+  s.DropLeadingSpace ();
+  return true;
 }
 
 bool AbaqusResultsT::Read (StringT& s, int n)
@@ -1849,31 +1925,32 @@ void AbaqusResultsT::SetVariableNames (void)
   
   int i=0;
   /* Record Type, Record Key, First Attribute is a Node Number, Origin of Data */
-  fVariableTable[i++].Set ("S", 11, false, AbaqusVariablesT::kElementIntegration);
-  fVariableTable[i++].Set ("SP", 401, false, AbaqusVariablesT::kElementIntegration);
-  fVariableTable[i++].Set ("SINV", 12, false, AbaqusVariablesT::kElementIntegration);
-  fVariableTable[i++].Set ("MISES", 75, false, AbaqusVariablesT::kElementIntegration);
-  fVariableTable[i++].Set ("ALPHA", 86, false, AbaqusVariablesT::kElementIntegration);
-  fVariableTable[i++].Set ("ALPHAP", 402, false, AbaqusVariablesT::kElementIntegration);
-  fVariableTable[i++].Set ("E", 21, false, AbaqusVariablesT::kElementIntegration);
-  fVariableTable[i++].Set ("EP", 409, false, AbaqusVariablesT::kElementIntegration);
-  fVariableTable[i++].Set ("LE", 89, false, AbaqusVariablesT::kElementIntegration);
-  fVariableTable[i++].Set ("DG", 30, false, AbaqusVariablesT::kElementIntegration);
-  fVariableTable[i++].Set ("EE", 25, false, AbaqusVariablesT::kElementIntegration);
-  fVariableTable[i++].Set ("IE", 24, false, AbaqusVariablesT::kElementIntegration);
-  fVariableTable[i++].Set ("PE", 22, false, AbaqusVariablesT::kElementIntegration);
-  fVariableTable[i++].Set ("ENER", 14, false, AbaqusVariablesT::kElementIntegration);
-  fVariableTable[i++].Set ("SDV", 5, false, AbaqusVariablesT::kElementIntegration);
-  fVariableTable[i++].Set ("TEMP", 2, false, AbaqusVariablesT::kElementIntegration);
-  fVariableTable[i++].Set ("FV", 9, false, AbaqusVariablesT::kElementIntegration);
-  fVariableTable[i++].Set ("UVARM", 87, false, AbaqusVariablesT::kElementIntegration);
+  fVariableTable[i++].Set ("S", 11, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // stress components
+  fVariableTable[i++].Set ("SP", 401, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // Principal stress components
+  fVariableTable[i++].Set ("SINV", 12, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // mises, tresca, hydrostatic
+  fVariableTable[i++].Set ("MISES", 75, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // 5.8 mises
+  fVariableTable[i++].Set ("ALPHA", 86, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // back-stress tensor
+  fVariableTable[i++].Set ("ALPHAP", 402, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // principal back-stress
+  fVariableTable[i++].Set ("E", 21, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // strain components
+  fVariableTable[i++].Set ("EP", 409, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // principle strain components
+  fVariableTable[i++].Set ("LE", 89, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // logarithmic strains
+  fVariableTable[i++].Set ("DG", 30, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // deformation gradient
+  fVariableTable[i++].Set ("EE", 25, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // total elastic strains
+  fVariableTable[i++].Set ("IE", 24, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // total inelastic strains
+  fVariableTable[i++].Set ("PE", 22, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // plastic strains
+  fVariableTable[i++].Set ("ENER", 14, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // energy densities
+  fVariableTable[i++].Set ("SDV", 5, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // state dependent variables
+  fVariableTable[i++].Set ("TEMP", 2, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // temperature
+  fVariableTable[i++].Set ("FV", 9, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // field variables
+  fVariableTable[i++].Set ("UVARM", 87, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // user defined
+  fVariableTable[i++].Set ("LOCALDIR", 85, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // local coordinate directions
   	   
-  fVariableTable[i++].Set ("LOADS", 3, false, AbaqusVariablesT::kElementWhole);
+  fVariableTable[i++].Set ("LOADS", 3, AbaqusVariablesT::kCharType, AbaqusVariablesT::kElementWhole); // distributed loads
   	   
-  fVariableTable[i++].Set ("U", 101, true, AbaqusVariablesT::kNodePoint);
-  fVariableTable[i++].Set ("V", 102, true, AbaqusVariablesT::kNodePoint);
-  fVariableTable[i++].Set ("A", 103, true, AbaqusVariablesT::kNodePoint);
-  fVariableTable[i++].Set ("NT", 201, true, AbaqusVariablesT::kNodePoint);
+  fVariableTable[i++].Set ("U", 101, AbaqusVariablesT::kNodeNumber, AbaqusVariablesT::kNodePoint); // displacment
+  fVariableTable[i++].Set ("V", 102, AbaqusVariablesT::kNodeNumber, AbaqusVariablesT::kNodePoint); // velocity
+  fVariableTable[i++].Set ("A", 103, AbaqusVariablesT::kNodeNumber, AbaqusVariablesT::kNodePoint); // acceleration
+  fVariableTable[i++].Set ("NT", 201, AbaqusVariablesT::kNodeNumber, AbaqusVariablesT::kNodePoint); // nodal temperature
 
   if (i != NVT)
     {

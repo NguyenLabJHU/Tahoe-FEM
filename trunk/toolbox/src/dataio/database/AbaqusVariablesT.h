@@ -20,8 +20,13 @@ class AbaqusVariablesT
 	       kElement,
 	       kQuadrature };
 
+  enum FirstAttributeT { kNodeNumber = 0,
+			 kIntType,
+			 kCharType,
+			 kData };
+
   AbaqusVariablesT (void);
-  void Set (const char* name, int key, bool nodenumberflag, AbaqusVariablesT::PointT point);
+  void Set (const char* name, int key, AbaqusVariablesT::FirstAttributeT f, AbaqusVariablesT::PointT point);
   void SetIOData (int dimension, AbaqusVariablesT::TypeT t, int index);
 
   /** variable name */
@@ -31,7 +36,7 @@ class AbaqusVariablesT
   int Key (void) const;
 
   /** is the variable written with a node number at the start of the record */
-  bool NodeNumberFlag (void) const;
+  int FirstAttribute (void) const;
 
   /** point of origin of the variable */
   PointT Point (void) const;
@@ -48,7 +53,7 @@ class AbaqusVariablesT
  private:
   StringT fName;
   int fKey;
-  bool fNodeNumberFlag;
+  int fFirstAttribute;
   PointT fPoint;
 
   int fDimension;
@@ -59,7 +64,7 @@ class AbaqusVariablesT
 inline AbaqusVariablesT::AbaqusVariablesT (void) :
   fName (""),
   fKey (kNotUsed),
-  fNodeNumberFlag (false),
+  fFirstAttribute (kData),
   fPoint (kNodePoint),
   fDimension (kNotUsed),
   fType (kNotUsed),
@@ -67,11 +72,11 @@ inline AbaqusVariablesT::AbaqusVariablesT (void) :
 {
 }
 
-inline void AbaqusVariablesT::Set (const char* name, int key, bool nodenumberflag, AbaqusVariablesT::PointT point)
+inline void AbaqusVariablesT::Set (const char* name, int key, AbaqusVariablesT::FirstAttributeT f, AbaqusVariablesT::PointT point)
 {
   fName = name;
   fKey = key;
-  fNodeNumberFlag = nodenumberflag;
+  fFirstAttribute = f;
   fPoint = point;
 }
 
@@ -84,7 +89,7 @@ inline void AbaqusVariablesT::SetIOData (int dim, AbaqusVariablesT::TypeT t, int
 
 inline const StringT& AbaqusVariablesT::Name (void) const { return fName; }
 inline int AbaqusVariablesT::Key (void) const { return fKey; }
-inline bool AbaqusVariablesT::NodeNumberFlag (void) const { return fNodeNumberFlag; }
+inline int AbaqusVariablesT::FirstAttribute (void) const { return fFirstAttribute; }
 inline AbaqusVariablesT::PointT AbaqusVariablesT::Point (void) const { return fPoint; }
 inline int AbaqusVariablesT::Dimension (void) const { return fDimension; }
 inline AbaqusVariablesT::TypeT AbaqusVariablesT::Type (void) const { return fType; }

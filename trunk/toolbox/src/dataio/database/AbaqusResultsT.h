@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.h,v 1.8 2002-01-09 18:36:06 paklein Exp $ */
+/* $Id: AbaqusResultsT.h,v 1.9 2002-02-12 20:07:36 sawimme Exp $ */
 /*
    CREATED: S. Wimmer 9 Nov 2000
 
@@ -171,7 +171,7 @@ class AbaqusResultsT
  private:
 
   /** number of variables defined */
-  enum NumVariables { NVT = 23 };
+  enum NumVariables { NVT = 24 };
 
   /** Type of element output records */
   enum OutputType { kElementOutput = 0,
@@ -212,10 +212,10 @@ class AbaqusResultsT
   bool ReadVersion (void);
 
   /** read next mode record found in file */
-  void NextMode (int &number, double &mode);
+  bool NextMode (int &number, double &mode);
 
   /** read next time increment found in file */
-  void NextTimeSteps (int &number, double &time);
+  bool NextTimeSteps (int &number, double &time);
 
   /** scan the element for dimensions */
   void ScanElement (void);
@@ -261,13 +261,14 @@ class AbaqusResultsT
 		       int& num_output_nodes, StringT& elem_name) const;
   
   /** advance to the next record of type target in the file */
-  void AdvanceTo (int target);
+  bool AdvanceTo (int target);
   /** skip the rest of the record */
   bool SkipAttributes (void);
   
   /** read the start of the next record to figure out what it is */
   int ReadNextRecord (int &key);
 
+  bool ReadSetName (StringT& s, int n); /**< read the string attribute and delete leading/trailing spaces */
   bool Read (StringT& s, int n); /**< read the string attribute, n blocks */
   bool Read (int& i); /**< read the integer attribute */
   bool Read (double& d); /**< read the double attribute */
