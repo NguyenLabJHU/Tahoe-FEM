@@ -1,4 +1,4 @@
-/* $Id: ParadynPairT.h,v 1.6.22.1 2004-04-16 18:12:12 paklein Exp $ */
+/* $Id: ParadynPairT.h,v 1.6.22.2 2004-06-16 00:25:42 paklein Exp $ */
 #ifndef _PARADYN_PAIR_T_H_
 #define _PARADYN_PAIR_T_H_
 
@@ -26,11 +26,8 @@ public:
 	/** constructor. Reads parameters from file and computes the
 	 * coefficients of a cubic spline through the evenly spaced
 	 * values of the potential read from the file. */
-	ParadynPairT(const BasicSupportT& support, const StringT& param_file);
-	ParadynPairT(const BasicSupportT& support);
-
-	/** write properties to output */
-	virtual void Write(ostream& out) const;
+	ParadynPairT(const BasicSupportT* support, const StringT& param_file);
+	ParadynPairT(const BasicSupportT* support);
 
 	/** \name return interaction functions */
 	/*@{*/
@@ -83,7 +80,7 @@ private:
 private:
 
 	/** host code support */
-	const BasicSupportT& fSupport;
+	const BasicSupportT* fSupport;
 
 	/** description from parameters file */
 	StringT fDescription;

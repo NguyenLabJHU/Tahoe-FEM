@@ -1,4 +1,4 @@
-/* $Id: ParadynPairT.cpp,v 1.8.22.2 2004-04-16 18:12:12 paklein Exp $ */
+/* $Id: ParadynPairT.cpp,v 1.8.22.3 2004-06-16 00:25:42 paklein Exp $ */
 #include "ParadynPairT.h"
 #include "toolboxConstants.h"
 #include "ifstreamT.h"
@@ -21,7 +21,7 @@ double* ParadynPairT::s_coeff = NULL;
 const int knum_coeff = 9;
 
 /* constructor */
-ParadynPairT::ParadynPairT(const BasicSupportT& support, const StringT& param_file):
+ParadynPairT::ParadynPairT(const BasicSupportT* support, const StringT& param_file):
 	fSupport(support),
 	f_cut(0.0)
 {
@@ -31,12 +31,13 @@ ParadynPairT::ParadynPairT(const BasicSupportT& support, const StringT& param_fi
 	ReadParameters(param_file);
 }
 
-ParadynPairT::ParadynPairT(const BasicSupportT& support):
+ParadynPairT::ParadynPairT(const BasicSupportT* support):
 	fSupport(support)
 {
 	SetName("Paradyn_pair");
 }
 
+#if 0
 /* write properties to output */
 void ParadynPairT::Write(ostream& out) const
 {
@@ -51,6 +52,7 @@ void ParadynPairT::Write(ostream& out) const
 	out << " Number of intervals in the potential table. . . = " << fCoefficients.MajorDim() << '\n';
 	out << " Interval size . . . . . . . . . . . . . . . . . = " << 1.0/f_1bydr << '\n';
 }
+#endif
 
 /* return a pointer to the energy function */
 PairPropertyT::EnergyFunction ParadynPairT::getEnergyFunction(void)
@@ -121,8 +123,10 @@ void ParadynPairT::TakeParameterList(const ParameterListT& list)
 	file.ToNativePathName();
 	
 	/* prepend path from input file */
+	if (!fSupport) ExceptionT::GeneralFail("ParadynPairT::TakeParameterList",
+		"pointer to BasicSupportT not set");
 	StringT path;
-	path.FilePath(fSupport.Input().filename());	
+	path.FilePath(fSupport->Input().filename());	
 	file.Prepend(path);
 
 	/* read parameters */
