@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.17 2001-09-14 00:27:17 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.18 2001-09-19 15:27:16 rjones Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -94,7 +94,7 @@ void SurfaceT::PrintConnectivityData(ostream& out)
 
 	/* face connectivities */
 	out << " faces:" << setw(kIntWidth) << fFaces.Length() 
-	    << ", geometry type :" << GeometryType() <<  '\n' ;
+	    << ", geometry type :" << GeometryT::ToString(fGeometryType) <<  '\n' ;
 	for (int i = 0 ; i < fFaces.Length() ; i++) {
 		iArrayT connectivity = fFaces[i]->Connectivity();
 		connectivity++;
@@ -208,8 +208,8 @@ void SurfaceT::InputSideSets
 			side_set--;
 
 			/* echo dimensions */
-			out << " side set ID: " << set_ID << '\n';
-			out << "  element ID: " << block_ID << '\n';
+			out << " side set ID: " << set_ID ;
+			out << "  element ID: " << block_ID ;
 			out << "       sides: " << side_set.MajorDim() << '\n';
 			break;
 		}
@@ -274,49 +274,49 @@ void SurfaceT::InputSideSets
 	pelem_group->FacetGeometry(geometry_code, num_face_nodes);
         fFaces.Allocate(num_faces);
 	/* assuming all faces have same code */
-	int number_of_face_nodes = num_face_nodes[0];
-	GeometryT::CodeT face_geometry_code = geometry_code[0];
+	fNumNodesPerFace = num_face_nodes[0];
+	fGeometryType = geometry_code[0];
 	for (int i = 0 ; i < num_faces ; i++) 
 	{
-	  switch (face_geometry_code) //
+	  switch (fGeometryType)
 	  {
 		case GeometryT::kLine :
-		  switch (number_of_face_nodes)
+		  switch (fNumNodesPerFace)
 	 	  { 
 			case 2:
 			fFaces[i] = 
 			  new LineL2FaceT(*this,fCoordinates, 
-			  number_of_face_nodes,faces_tmp(i));
+			  fNumNodesPerFace,faces_tmp(i));
 			break;
 			case 3:
 			fFaces[i] = 
 			  new LineQ3FaceT(*this,fCoordinates, 
-			  number_of_face_nodes,faces_tmp(i) );
+			  fNumNodesPerFace,faces_tmp(i) );
 			break;
 			default:               
 			cout << "\n SurfaceT::InputSideSets:" 
-			     << " no LineFace " << face_geometry_code 
-			     << " with " << number_of_face_nodes 
+			     << " no LineFace " << fGeometryType 
+			     << " with " << fNumNodesPerFace 
 			     << " face nodes \n" ;
 			throw eGeneralFail;
 
 		  }
 		  break;
 		case GeometryT::kTriangle :
-		  switch (number_of_face_nodes)
+		  switch (fNumNodesPerFace)
 	 	  { 
 #if 0
                         case 3:
                         fFaces[i] =
                           new TriaL3FaceT(*this,fCoordinates, 
-			  number_of_face_nodes,faces_tmp(i) );
+			  fNumNodesPerFace,faces_tmp(i) );
                         break;
 #endif
 
                         default:
                         cout << "\n SurfaceT::InputSideSets:"
-                             << " no TriangleFace " << face_geometry_code
-                             << " with " << number_of_face_nodes 
+                             << " no TriangleFace " << fGeometryType
+                             << " with " << fNumNodesPerFace 
                              << " face nodes \n" ;
 
                         throw eGeneralFail;
@@ -324,19 +324,19 @@ void SurfaceT::InputSideSets
 		  }
 		  break;
 		case GeometryT::kQuadrilateral :
-		  switch (number_of_face_nodes)
+		  switch (fNumNodesPerFace)
 	 	  { 
 
 			case 4:
 			fFaces[i] = 
 			  new QuadL4FaceT(*this,fCoordinates, 
-			  number_of_face_nodes,faces_tmp(i));
+			  fNumNodesPerFace,faces_tmp(i));
 			break;
 
 			default:
 			cout << "\n SurfaceT::InputSideSets:"
-			     << " no QuadFace " << face_geometry_code
-                             << " with " << number_of_face_nodes 
+			     << " no QuadFace " << fGeometryType
+                             << " with " << fNumNodesPerFace 
                              << " face nodes \n" ;
 
 			throw eGeneralFail;                    
@@ -344,7 +344,7 @@ void SurfaceT::InputSideSets
 		  break;
 		default:
 		   cout << "\n SurfaceT::InputSideSets:"
-			<< " unknown face type \n";
+			<< " unknown face type " << fGeometryType <<"\n";
 		   throw eGeneralFail;                    
 	  }
 	}
@@ -461,20 +461,20 @@ void SurfaceT::ComputeNeighbors(void)
 void SurfaceT::ComputeSurfaceBasis(void)
 { 
 	double normal_i[3];
-        for (int i = 0; i < fNodeNeighbors.MajorDim(); i++) {
-	  double* normal = fNormals(i);
-	  Zero(normal,fNumSD);
-          for (int j = 0; j < fNodeNeighbors.MinorDim(i); j++) {
-		FaceT* face = fNodeNeighbors(i)[j];
-		int lnn = fLocalNodeInNeighbors(i)[j];
-		face->NodeNormal(lnn,normal_i);
-		Add(normal,normal_i,normal,fNumSD);
-          }
-	  Normalize(normal,fNumSD);
-	  /* compute tangents */
-	  double* tangent1 = fTangent1s(i);
-	  double* tangent2 = (fNumSD ==3) ? fTangent2s(i) : NULL; 
-	  FaceT* face = fNodeNeighbors(i)[0];
-	  face->LocalBasis(normal,tangent1,tangent2);
-        }
+	for (int i = 0; i < fNodeNeighbors.MajorDim(); i++) {
+		double* normal = fNormals(i);
+		Zero(normal,fNumSD);
+  		for (int j = 0; j < fNodeNeighbors.MinorDim(i); j++) {
+			FaceT* face = fNodeNeighbors(i)[j];
+			int lnn = fLocalNodeInNeighbors(i)[j];
+			face->NodeNormal(lnn,normal_i);
+			Add(normal,normal_i,normal,fNumSD);
+		}
+		Normalize(normal,fNumSD);
+		/* compute tangents */
+		double* tangent1 = fTangent1s(i);
+		double* tangent2 = (fNumSD ==3) ? fTangent2s(i) : NULL; 
+		FaceT* face = fNodeNeighbors(i)[0];
+		face->LocalBasis(normal,tangent1,tangent2);
+  	}
 }

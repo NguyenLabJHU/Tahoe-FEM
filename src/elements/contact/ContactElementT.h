@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.15 2001-09-14 00:27:16 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.16 2001-09-19 15:27:15 rjones Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -67,20 +67,20 @@ public:
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);  // not implemented
 
-        /* append element equations numbers to the list */
-        virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
+	/* append element equations numbers to the list */
+	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
                 AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
 	/* append connectivities */
 	virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
+	/* returns no (NULL) geometry connectivies */
 	virtual void ConnectsX(AutoArrayT<const iArray2DT*>& connects) const;
-		// returns no (NULL) geometry connectivies
 	 	
-        /* surface specification modes */
+	/* surface specification modes */
 	enum SearchParametersT { kGapTol = 0,
-				kXiTol ,
-				kSearchNumParameters};
+							kXiTol ,
+							kSearchNumParameters};
 	int fNumEnfParameters;
 
 	iArrayT fOutputFlags;

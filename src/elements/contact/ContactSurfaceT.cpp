@@ -1,11 +1,10 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.16 2001-09-14 17:42:14 paklein Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.17 2001-09-19 15:27:15 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
-#include "SurfaceT.h"
-#include "ContactNodeT.h"
 #include <iostream.h>
 #include "ofstreamT.h"
-#include "nMatrixT.h"
+
+#include "ContactNodeT.h"
 
 /* parameters */
 
@@ -41,23 +40,6 @@ ContactSurfaceT::Initialize(const NodeManagerT* node_manager)
 	for(int i = 0; i < fContactNodes.Length(); i++){
 		fRealGhostNodePairs(i,0) = fGlobalNodes[i];
 	}
-}
-
-void
-ContactSurfaceT::SetContactStatus(nMatrixT<dArrayT>& enforcement_parameters)
-{
-	for (int i = 0 ; i < fContactNodes.Length() ; i++) {
-		fContactNodes[i]->AssignStatus(enforcement_parameters);
-		fContactNodes[i]->AssignOriginalStatus();
-	}
-}
-
-void
-ContactSurfaceT::UpdateContactStatus(nMatrixT<dArrayT>& enforcement_parameters)
-{
-        for (int i = 0 ; i < fContactNodes.Length() ; i++) {
-                fContactNodes[i]->AssignStatus(enforcement_parameters);
-        }
 }
 
 
@@ -260,7 +242,7 @@ ContactSurfaceT::PrintNormals(ofstream& out) const
                 for (int i = 0; i < fNumSD; i++) {
                         out << fContactNodes[n]->Normal()[i] << " ";
                 }
-		out << '\n';
+				out << '\n';
         }
 }
 
@@ -271,11 +253,7 @@ ContactSurfaceT::PrintStatus(ostream& out) const
 
         for (int n = 0 ; n < fContactNodes.Length(); n++) {
                 out << fContactNodes[n]->Tag()<< " ";
-                out << " status " << fContactNodes[n]->Status()  << " ";
-		out << " gap "    << fContactNodes[n]->Gap() <<'\n';
-		double slip[3];
-		fContactNodes[n]->ComputeSlip(slip);
-		out << "slip " << slip[0] << " "<< slip[1] << '\n';
+                out << " status " << fContactNodes[n]->Status()  << "\n";
         }
 }
 

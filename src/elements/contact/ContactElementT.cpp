@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.21 2001-09-14 00:27:16 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.22 2001-09-19 15:27:15 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -6,6 +6,7 @@
 #include <iostream.h>
 #include <iomanip.h>
 
+#include "ofstreamT.h"
 #include "fstreamT.h"
 #include "IOBaseT.h"
 #include "FEManagerT.h"
@@ -80,7 +81,7 @@ void ContactElementT::Initialize(void)
 	fContactSearch = 
 	  new ContactSearchT(fSurfaces, fSearchParameters);
 
-        /* workspace matrices */
+	/* workspace matrices */
 	SetWorkspace();
 
 	/* for bandwidth reduction in the case of no contact 
@@ -95,8 +96,6 @@ void ContactElementT::Initialize(void)
 			fSurfaceLinks(i,1) = fSurfaces[i+1].GlobalNodes()[0];
 		}
 	}
-
-
 
 	if (fXDOF_Nodes) {
 		iArrayT numDOF(fSurfaces.Length());
@@ -330,7 +329,7 @@ void ContactElementT::WriteOutput(IOBaseT::OutputModeT mode)
            }
 
            if (fOutputFlags[kStatus]) {
-                surface.PrintStatus(cout);
+				surface.PrintStatus(cout);
            }
 
 
@@ -442,7 +441,7 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
 {
 	int num_surfaces = fSearchParameters.Rows();
 	/* surfaces */
-	out << " Surface connectivity data .............................\n";
+	out << " Surface connectivity data .........................\n";
 	fSurfaces.Allocate(num_surfaces); 
 	for (int i = 0; i < fSurfaces.Length(); i++)
 	{
@@ -479,7 +478,6 @@ bool ContactElementT::SetContactConfiguration(void)
 		/* form potential connectivity for step */
   		for (int i = 0; i < fSurfaces.Length(); i++) {
 			fSurfaces[i].SetPotentialConnectivity(fNumMultipliers);
-//			fSurfaces[i].SetContactStatus(fEnforcementParameters);
   		}
 	}
 
@@ -488,11 +486,6 @@ bool ContactElementT::SetContactConfiguration(void)
 
 bool ContactElementT::UpdateContactConfiguration(void)
 {
-        bool changed = fContactSearch->UpdateInteractions();
-  	for (int i = 0; i < fSurfaces.Length(); i++) {
-		fSurfaces[i].UpdateContactStatus(fEnforcementParameters);
-  	}
-
-        return changed;
+	bool changed = fContactSearch->UpdateInteractions();
+	return changed;
 }
-

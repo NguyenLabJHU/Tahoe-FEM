@@ -1,9 +1,9 @@
-/* $Id: LineQ3FaceT.cpp,v 1.5 2001-09-14 00:27:17 rjones Exp $ */
+/* $Id: LineQ3FaceT.cpp,v 1.6 2001-09-19 15:27:15 rjones Exp $ */
 
 #include "LineQ3FaceT.h"
-#include "FaceT.h"
 
 #include "ContactElementT.h"
+#include "ContactNodeT.h"
 #include "dArrayT.h"
 #include "dMatrixT.h"
 

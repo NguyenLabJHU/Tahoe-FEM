@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.14 2001-09-14 00:27:16 rjones Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.15 2001-09-19 15:27:15 rjones Exp $ */
 
 
 #ifndef _CONTACT_SURFACE_T_H_
@@ -9,14 +9,12 @@
 
 /* direct members */
 #include "ArrayT.h"
-#include "SurfaceT.h"
-#include "ContactNodeT.h"
 #include "nMatrixT.h"
 
 /* forward declarations */
 class ofstreamT;
 class FEManagerT;
-//class nMatrixT<dArrayT>;
+class ContactNodeT;
 
 /* 
 a ContactSurface will only have one opposing face per
@@ -35,10 +33,6 @@ class ContactSurfaceT : public SurfaceT
 
 	/* allocate contact node array */
 	void Initialize(const NodeManagerT* node_manager);
-
-	/* set contact status */
-	void SetContactStatus(nMatrixT<dArrayT>& enforcement_parameters);
-	void UpdateContactStatus(nMatrixT<dArrayT>& enforcement_parameters);
 
 	/* potential connectivities based on growing/sliding contact */
 	void SetPotentialConnectivity(int num_multipliers);
@@ -73,10 +67,12 @@ class ContactSurfaceT : public SurfaceT
 	void ResetMultipliers(dArray2DT& multiplier_values);
 	void MultiplierTags(iArrayT& local_nodes, iArrayT& multiplier_tags);
 	iArray2DT& RealGhostNodePairs(void);
+	inline bool HasMultiplier(int i) 
+		{return fMultiplierMap[i] > -1;} 
 
 
   protected:
-        /* nodal arrays */
+	/* nodal arrays */
 	ArrayT <ContactNodeT*>  fContactNodes ; 
 
 	int fNumPotentialContactNodes;

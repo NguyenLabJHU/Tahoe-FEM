@@ -1,4 +1,4 @@
-/* $Id: FaceT.h,v 1.17 2001-08-06 20:55:13 rjones Exp $ */
+/* $Id: FaceT.h,v 1.18 2001-09-19 15:27:15 rjones Exp $ */
 
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
@@ -22,29 +22,29 @@ class FaceT
 {
 public:
 
-        /* constructor */
-        FaceT	(SurfaceT& surface, 	
+	/* constructor */
+	FaceT	(SurfaceT& surface, 	
 		dArray2DT& surface_coordinates,
 		int num_face_nodes,
 		int* connectivity);
 
 
-        /* (virtual) destructor */
-        virtual ~FaceT(void);
+	/* (virtual) destructor */
+  	virtual ~FaceT(void);
 
 	/* initialization after construction */
 	virtual void Initialize(void)=0;
 
 	/* geometric computation */
-        virtual void ComputeCentroid(double* centroid) const =0; 
+	virtual void ComputeCentroid(double* centroid) const =0; 
 	virtual double ComputeRadius(void) const =0;
-        virtual void ComputeNormal
+	virtual void ComputeNormal
 		(const double* local_coordinates, double* normal) const =0; 
-        virtual void ComputeTangent1 
+	virtual void ComputeTangent1 
                 (const double* local_coordinates, double* tangent1) const =0;
-        virtual void ComputeTangent2 
+  	virtual void ComputeTangent2 
                 (const double* local_coordinates, double* tangent2) const =0;
-        virtual void NodeNormal(int local_node_number,double* normal) const =0; 
+  	virtual void NodeNormal(int local_node_number,double* normal) const =0; 
 	virtual void CalcFaceNormal(void)=0; 
 	virtual void LocalBasis
 		(double* normal, double* tangent1, double* tangent2) const=0;
@@ -54,23 +54,23 @@ public:
 	virtual void ComputeShapeFunctions
 	  	(const double* local_coordinates, dMatrixT& shape_functions) 
 		const=0;
-        virtual void ComputeShapeFunctionDerivatives
-                (const double* local_coordinates, dArrayT& shape_derivatives) 
+	virtual void ComputeShapeFunctionDerivatives
+		(const double* local_coordinates, dArrayT& shape_derivatives) 
 		const =0;
-        virtual void ComputeShapeFunctionDerivatives
-                (const double* local_coordinates, dMatrixT& shape_derivatives) 
+	virtual void ComputeShapeFunctionDerivatives
+		(const double* local_coordinates, dMatrixT& shape_derivatives) 
 		const =0;
 	virtual void InterpolatePosition(const double* local_coordinates,
 		double* x) const =0;
 	virtual double Interpolate
-                (const double* local_coordinates, dArrayT& nodal_values) 
+		(const double* local_coordinates, dArrayT& nodal_values) 
 		const =0;
 	virtual void InterpolateVector
-                (const double* local_coordinates, dArray2DT& nodal_vectors, 
+		(const double* local_coordinates, dArray2DT& nodal_vectors, 
 		double* vector) const=0;
 	virtual double ComputeJacobian 
 		(const double* local_coordinates) const =0;
-        virtual bool Projection 
+	virtual bool Projection 
 		(ContactNodeT* node, dArrayT& parameters) const =0; 
 	virtual void Quadrature
 		(dArray2DT& points, dArrayT& weights) const =0;

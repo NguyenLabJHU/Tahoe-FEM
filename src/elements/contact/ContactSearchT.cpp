@@ -1,8 +1,9 @@
-/* $Id: ContactSearchT.cpp,v 1.16 2001-09-14 00:27:16 rjones Exp $ */
+/* $Id: ContactSearchT.cpp,v 1.17 2001-09-19 15:27:15 rjones Exp $ */
 
 #include "ContactSearchT.h"
 
 #include "ContactSurfaceT.h"
+#include "ContactNodeT.h"
 #include "iGridManagerT.h"
 #include "AutoArrayT.h"
 #include "iNodeT.h"

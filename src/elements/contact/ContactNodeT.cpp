@@ -1,16 +1,15 @@
-/*  $Id: ContactNodeT.cpp,v 1.12 2001-09-10 23:26:18 rjones Exp $ */
+/*  $Id: ContactNodeT.cpp,v 1.13 2001-09-19 15:27:15 rjones Exp $ */
 #include "ContactNodeT.h"
 
 #include "FaceT.h"
-#include "ContactElementT.h"
 
 /* parameters */
 
-ContactNodeT::ContactNodeT(SurfaceT& surface, int node_tag):
+ContactNodeT::ContactNodeT(ContactSurfaceT& surface, int node_tag):
 	fSurface(surface)
 {
 	fNodeTag         = node_tag;
-	fStatus 	 = kNoProjection;
+	fStatus 	 	= kNoProjection;
 	fOpposingSurface = NULL;
 	fOpposingFace    = NULL;
 	fOriginalOpposingFace    = NULL;
@@ -37,27 +36,17 @@ ContactNodeT::AssignOpposing
 (const SurfaceT& opposing_surface, const FaceT& opposing_face,
 double* xi, double g)
 { // should compare to see if better, (requires initialization)
-	fStatus = kContact;
+	fStatus = kProjection;
 	/* cast SurfaceT to ContactSurfaceT */
-        fOpposingSurface = ((ContactSurfaceT*) &opposing_surface) ;
-        fOpposingFace    = &opposing_face ;
-        fxi[0] = xi[0] ;
+	fOpposingSurface = ((ContactSurfaceT*) &opposing_surface) ;
+	fOpposingFace    = &opposing_face ;
+	fxi[0] = xi[0] ;
 	if (fOpposingSurface->NumSD() == 3 ) {fxi[1] = xi[1] ; }
-        fGap = g ;
+	fGap = g ;
 #if 0
 	PrintData(cout);
 #endif
 	return 1;
-}
-
-void 
-ContactNodeT::UpdateOpposing
-(double* xi, double g)
-{
-                fxi[0] = xi[0] ;
-                if (fOpposingSurface->NumSD() == 3 )
-                        {fxi[1] = xi[1] ; }
-                fGap = g ;
 }
 
 void 
@@ -68,27 +57,6 @@ ContactNodeT::AssignOriginal(void)
 	fxiO[1] = fxi[1]; 
 }
 
-
-void 
-ContactNodeT::AssignStatus(nMatrixT<dArrayT>& enforcement_parameters)
-{
-	if (fOpposingSurface) {
-		dArrayT& parameters = enforcement_parameters
-			(fSurface.Tag(),fOpposingSurface->Tag()) ;
-#if 0
-		if(fGap < parameters[ContactElementT::ktol_gap]) {
-			fStatus = kContact;
-		}
-		else {
-			fStatus = kProjection;
-		}
-#endif 
-		fStatus = kProjection;
-	}
-	else {
-		fStatus = kNoProjection;
-	}
-}
 
 void 
 ContactNodeT::ComputeSlip(double* slip)

@@ -1,9 +1,9 @@
-/* $Id: QuadL4FaceT.cpp,v 1.18 2001-09-14 00:27:17 rjones Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.19 2001-09-19 15:27:16 rjones Exp $ */
 
 #include "QuadL4FaceT.h"
-#include "FaceT.h"
 
 #include "ContactElementT.h"
+#include "ContactNodeT.h"
 #include "dArrayT.h"
 #include "dMatrixT.h"
 #include <math.h>

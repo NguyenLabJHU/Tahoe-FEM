@@ -1,24 +1,23 @@
-/* $Id: ContactNodeT.h,v 1.9 2001-09-14 00:27:16 rjones Exp $ */
+/* $Id: ContactNodeT.h,v 1.10 2001-09-19 15:27:15 rjones Exp $ */
 
 
 #ifndef _CONTACT_NODE_T_H_
 #define _CONTACT_NODE_T_H_
 
 /* direct members */
-#include "SurfaceT.h"
+#include "ContactSurfaceT.h"
 #include "FaceT.h"
 #include "nMatrixT.h"
 
 /* forward declarations */
 class ofstreamT;
-class ContactSurfaceT;
 
 class ContactNodeT 
 {
   public:
 
 	/* constructor */
-	ContactNodeT(SurfaceT& surface, int node_tag);
+	ContactNodeT(ContactSurfaceT& surface, int node_tag);
 
 	/* constructor */
 	~ContactNodeT(void);
@@ -26,10 +25,8 @@ class ContactNodeT
 	/* print data */
 	void PrintData(ostream& out);
 
-	enum ContactNodeStatusT { kNoProjection = -1,
-				  kProjection,
-				  kContact,
-				  kSlip};
+	enum ContactNodeStatusT { 	kNoProjection = -1,
+								kProjection};
 
 	/* clear opposing data */
 	inline void ClearOpposing(void) 
@@ -42,32 +39,18 @@ class ContactNodeT
 		const FaceT& opposing_face,
 		double* xi, double g) ;
 
-	void UpdateOpposing(double* xi, double g);
-
 	/* can't jump surfaces */
 	void AssignOriginal(void);
-
-	void AssignStatus(nMatrixT<dArrayT>& enforcement_parameters);
-	inline void AssignOriginalStatus(void)
-		{fOriginalStatus = fStatus;}
 
 	inline void ResetStatus(void)
 		{fStatus = kNoProjection; fGap = 1.0e8;}
 
 	void ComputeSlip(double* slip);
 
-	bool HasProjection(void) {return fStatus > kNoProjection;}
 	
-#if 0
-	inline void MyFaces(ArrayT<FaceT*>& faces)
-		{faces.Set;}
-	inline void OppFaces(ArrayT<FaceT*>& faces)
-		{faces.Set;}
-#endif
-				  
   protected:
-        /* data */
-	SurfaceT&  fSurface;
+	/* data */
+	ContactSurfaceT&  fSurface;
 	int        fNodeTag; // need to protect the value of the tag?
 	const ContactSurfaceT*  fOpposingSurface ; 
 	const FaceT*     fOpposingFace ; 
@@ -80,7 +63,9 @@ class ContactNodeT
 	
 
   public:
-        /* access functions */ 
+	/* access functions */ 
+	bool HasProjection(void) {return fStatus > kNoProjection;}
+	bool HasMultiplier(void) {return fSurface.HasMultiplier(fNodeTag);}
 	inline const int Tag(void) const
 		{return fNodeTag;}
 	inline const double* Position(void) const
@@ -91,23 +76,22 @@ class ContactNodeT
 		{return fSurface.Tangent1(fNodeTag);}
 	inline const double* Tangent2(void) const
 		{return fSurface.Tangent2(fNodeTag);}
-        inline const ContactSurfaceT* OpposingSurface(void) const
+	inline const ContactSurfaceT* OpposingSurface(void) const
 		{return fOpposingSurface;}
-        inline const FaceT* OpposingFace(void) const 
+  	inline const FaceT* OpposingFace(void) const 
 		{return fOpposingFace;}
-        inline const double* OpposingLocalCoordinates(void) const
+	inline const double* OpposingLocalCoordinates(void) const
 		{return fxi;}
-        inline const double Gap(void) const 		
+	inline const double Gap(void) const 		
 		{return fGap;}
-        inline const int Status(void) const 		
+	inline const int Status(void) const 		
 		{return fStatus;}
-        inline const FaceT* OriginalOpposingFace(void) const 
+	inline const FaceT* OriginalOpposingFace(void) const 
 		{return fOriginalOpposingFace;}
-        inline const double* OriginalLocalCoordinates(void) const
+	inline const double* OriginalLocalCoordinates(void) const
 		{return fxiO;}
-        inline const int OriginalStatus(void) const 		
+	inline const int OriginalStatus(void) const 		
 		{return fOriginalStatus;}
-
 
   private:
 

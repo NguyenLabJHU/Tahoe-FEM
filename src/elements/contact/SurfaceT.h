@@ -1,4 +1,4 @@
-/* $Id: SurfaceT.h,v 1.13 2001-05-21 21:50:36 rjones Exp $ */
+/* $Id: SurfaceT.h,v 1.14 2001-09-19 15:27:16 rjones Exp $ */
 
 #ifndef _SURFACE_T_H_
 #define _SURFACE_T_H_
@@ -59,16 +59,20 @@ class SurfaceT
 	inline const double* Tangent2(int i) const {return fTangent2s(i);}
 	/* these are predicated on the surfaces being homogeneous */
 	inline int NumNodesPerFace(void) const
-		{return fFaces[0]->NumNodes();}
+		{return fNumNodesPerFace;}
 	inline GeometryT::CodeT GeometryType(void) const
-		{return fFaces[0]->GeometryType();}
+		{return fGeometryType;}
 //inline int NumIPs(void) const
 //{return fFaces[0]->NumIPs();}
 
 
   protected:
-        /* surface specification modes */
-        enum SurfaceSpecModeT {kNodesOnFacet = 0,
+	int fNumNodesPerFace;
+
+	GeometryT::CodeT fGeometryType;
+
+	/* surface specification modes */
+   	enum SurfaceSpecModeT {kNodesOnFacet = 0,
                                kSideSets = 1,
                            kBodyBoundary = 2};
 
