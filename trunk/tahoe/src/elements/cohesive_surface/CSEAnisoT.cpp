@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.3 2001-02-27 00:06:24 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.4 2001-03-08 00:52:14 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 /* Cohesive surface elements with scalar traction potentials,             */
 /* i.e., the traction potential is a function of the gap magnitude,       */
@@ -181,7 +181,7 @@ void CSEAnisoT::LHSDriver(void)
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 
 	Top();
-	while ( NextElement() )
+	while (NextElement())
 	{
 		/* current element */
 		const ElementCardT& element = CurrentElement();
@@ -445,6 +445,10 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	double phi_tmp, area;
 	double& phi = (e_codes[CohesiveEnergy]) ? *pall++ : phi_tmp;
 
+	/* node map of facet 1 */
+	iArrayT facet1;
+	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
+
 	Top();
 	while (NextElement())
 	{
@@ -453,6 +457,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	
 		/* initialize */
 	    nodal_space = 0.0;
+	    element_values = 0.0;
 
 		/* coordinates for whole element */
 		if (n_codes[NodalCoord])
@@ -467,12 +472,20 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			SetLocalU(loc_disp);
 			loc_disp.ReturnTranspose(disp);
 		}
+		
+		//NOTE: will not get any element output if the element not kON
+		//      although quantities like the element centroid could
+		//      still be safely calculated.
 
 		/* compute output */
 		if (element.Flag() == kON)
 		{
 	  		/* surface potential */
 			SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
+
+			/* get ref geometry (1st facet only) */
+			fNodes1.Collect(facet1, element.NodesX());
+			fLocInitCoords1.SetLocal(fNodes1);
 
 			/* get current geometry */
 			SetLocalX(fLocCurrCoords); //EFFECTIVE_DVA
