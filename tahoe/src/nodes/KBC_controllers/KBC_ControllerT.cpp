@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.cpp,v 1.15 2004-09-09 16:20:25 paklein Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.16 2004-12-21 17:24:51 thao Exp $ */
 /* created: paklein (09/05/2000) */
 #include "KBC_ControllerT.h"
 #include "BasicSupportT.h"
@@ -31,7 +31,9 @@ KBC_ControllerT::CodeT KBC_ControllerT::Code(const char* name)
 	else if (strcmp("periodic_nodes", name) == 0)
 		return kPeriodicNodes;
 	else if (strcmp("conveyor", name) == 0)
-		return kConyevor;
+		return kConveyor;
+	else if (strcmp("symmetric_conveyor", name) == 0)
+		return kConveyorSym;
 	else
 		return kNone;
 }

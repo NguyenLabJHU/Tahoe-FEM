@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.8 2004-11-17 23:34:56 paklein Exp $ */
+/* $Id: ConveyorT.cpp,v 1.9 2004-12-21 17:24:51 thao Exp $ */
 #include "ConveyorT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
@@ -10,6 +10,8 @@
 #include "ParameterUtils.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
+#include "ContinuumElementT.h"
+#include "CSEAnisoT.h"
 
 using namespace Tahoe;
 
@@ -222,9 +224,21 @@ void ConveyorT::ReadRestart(ifstreamT& in)
 	iArrayT tmp;
 	int num_shifted = -1;
 	my_in >> num_shifted;
-	tmp.Dimension(num_shifted);
-	my_in >> tmp;
-	fShiftedNodes = tmp;
+
+        ArrayT<KBC_CardT>& cards = fRightEdge->KBC_Cards();
+	//      cards.Dimension(fShiftedNodes.Length());
+        if (num_shifted > 0) {
+	  tmp.Dimension(num_shifted);
+	  my_in >> tmp;
+	  fShiftedNodes = tmp;
+
+	  /*reset cards for right edge*/
+	  for (int i=0; i< cards.Length(); i++) {
+	    KBC_CardT& card = cards[i];
+	    //              card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, NULL, 0.0);
+	    card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, 0, 0.0);
+	  }
+        }
 
 	int reset, num_damped = -1;
 	my_in >> reset;
@@ -252,14 +266,6 @@ void ConveyorT::ReadRestart(ifstreamT& in)
 	fTrackingPoint_last = fTrackingPoint;
 	fX_Left_last = fX_Left;
 	fX_Right_last = fX_Right;
-
-	/* reset cards for right edge */
-	ArrayT<KBC_CardT>& cards = fRightEdge->KBC_Cards();
-	cards.Dimension(fShiftedNodes.Length());
-	for (int i = 0; i < cards.Length(); i++) {
-		KBC_CardT& card = cards[i];
-		card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, NULL, 0.0);
-	}
 
 //TEMP - need to reset the equation system because it was set before
 //       reading the restart files and does not reflect the equations
@@ -496,11 +502,11 @@ void ConveyorT::TakeParameterList(const ParameterListT& list)
 	/* set stretching tangent cards */
 	for (int i = 0; i < fBottomNodes.Length(); i++) {
 		KBC_CardT& card = fKBC_Cards[node++];
-		card.SetValues(fBottomNodes[i], 0, KBC_CardT::kFix, NULL, 0);
+		card.SetValues(fBottomNodes[i], 0, KBC_CardT::kFix, 0, 0);
 	}
 	for (int i = 0; i < fTopNodes.Length(); i++) {
 		KBC_CardT& card = fKBC_Cards[node++];
-		card.SetValues(fTopNodes[i], 0, KBC_CardT::kFix, NULL, 0);
+		card.SetValues(fTopNodes[i], 0, KBC_CardT::kFix, 0, 0);
 	}
 
 	/* find boundaries */
@@ -524,7 +530,28 @@ void ConveyorT::TakeParameterList(const ParameterListT& list)
 	/* create controller for the right edge of the domain */
 	fRightEdge = new KBC_ControllerT(fSupport);
 	fField.AddKBCController(fRightEdge);
-#pragma message("find and fix nodes originally on the right edge (set fShiftedNodes)")
+
+	/*find the right edge*/
+	int nnd = init_coords.MajorDim();
+	iAutoArrayT rightnodes(0);
+	const double* px = init_coords.Pointer();
+	//double rightmost = TrackPoint(kRightMost,kSmall);
+	/* find and store right edge */
+	for (int i = 0; i < nnd; i++)
+	  {
+	    //if (fabs(*px - rightmost) < kSmall) rightnodes.Append(i);
+	    if (fabs(*px - fX_Right) < kSmall) rightnodes.Append(i);
+	    px += nsd;
+	  }
+	/*fix the right edge*/
+	ArrayT<KBC_CardT>& cards = fRightEdge->KBC_Cards();
+	cards.Dimension(rightnodes.Length());
+	for (int i=0; i< cards.Length(); i++) {
+	  KBC_CardT& card = cards[i];
+	  card.SetValues(rightnodes[i], 0, KBC_CardT::kFix, 0, 0.0);
+	}
+        fShiftedNodes.Dimension(rightnodes);
+        rightnodes.CopyInto(fShiftedNodes);
 }
 
 /**********************************************************************
@@ -663,7 +690,7 @@ bool ConveyorT::SetSystemFocus(double focus)
 	{
 		/* node outside the window */
 		if (*px < fX_Left - fMeshRepeatLength/10.0)
-		{
+		{ 
 			/* store */
 			fShiftedNodes.Append(i);
 		
@@ -701,7 +728,7 @@ bool ConveyorT::SetSystemFocus(double focus)
 	cards.Dimension(fShiftedNodes.Length());
 	for (int i = 0; i < cards.Length(); i++) {
 		KBC_CardT& card = cards[i];
-		card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, NULL, 0.0);
+		card.SetValues(fShiftedNodes[i], 0, KBC_CardT::kFix, 0, 0.0);
 	}
 
 	/* mark elements linking left to right edge as inactive */
@@ -768,9 +795,16 @@ void ConveyorT::MarkElements(void)
 				status[j] = ElementBaseT::kON;
 		}
 		
-		/* reset element status */
-		element_group->SetStatus(status);
-	}
+                ContinuumElementT* cont_elem = TB_DYNAMIC_CAST(ContinuumElementT*, element_group);
+                if (!cont_elem) {
+                        CSEAnisoT* cse_aniso_elem = TB_DYNAMIC_CAST(CSEAnisoT*, element_group);
+                        if (!cse_aniso_elem)
+                                ExceptionT::GeneralFail("ConveyorT::MarkElements", "could not cast element group %d to ContinuumEleme\
+ntT", element_group+1);
+                        else cse_aniso_elem->SetStatus(status);
+                }
+                else cont_elem->SetStatus(status);
+ 	}
 }
 
 /* deactivate elements to create a pre-crack */
