@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.86 2004-12-26 21:09:32 d-farrell2 Exp $ */
+/* $Id: FEManagerT.cpp,v 1.87 2005-01-04 00:51:26 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -2015,7 +2015,7 @@ void FEManagerT::SetEquationSystem(int group, int start_eq_shift)
 	fGlobalNumEquations[group]  = GetGlobalNumEquations(group);
 
 	/* renumber locally */
-	if (fSolvers[group]->RenumberEquations())
+	if (fSolvers[group]->RenumberEquations() && fGlobalNumEquations[group] > 0)
 	{
 		int num_fields = fNodeManager->NumFields(group);
 		if (num_fields == 1)
