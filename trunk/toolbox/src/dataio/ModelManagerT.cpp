@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.14 2002-02-03 00:04:37 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.15 2002-02-04 19:25:19 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -701,44 +701,93 @@ const iArray2DT* ModelManagerT::ElementGroupPointer (const StringT& ID) const
 
 void ModelManagerT::AllNodeMap (iArrayT& map)
 {
-	if (!fInput) {
-    	cout << "\n ModelManagerT::AllNodeMap: input source is not initialized" << endl;
-		throw eDatabaseFail;
+	/* no input for kTahoe format */
+	if (fFormat == IOBaseT::kTahoe)
+	{
+		if (map.Length() != fCoordinates.MajorDim()) {
+    		cout << "\n ModelManagerT::AllNodeMap: map array is length " << map.Length()
+    	         << ", expecting length " << fCoordinates.MajorDim() << endl;
+			throw eSizeMismatch;	
+		}
+
+		/* default map */
+		map.SetValueToPosition();
 	}
-	if (map.Length() != fInput->NumNodes()) {
-    	cout << "\n ModelManagerT::AllNodeMap: map array is length " << map.Length()
-             << ", expecting length " << fInput->NumNodes() << endl;
-		throw eSizeMismatch;	
+	else
+	{
+		if (!fInput) {
+    		cout << "\n ModelManagerT::AllNodeMap: input source is not initialized" << endl;
+			throw eDatabaseFail;
+		}
+		if (map.Length() != fInput->NumNodes()) {
+    		cout << "\n ModelManagerT::AllNodeMap: map array is length " << map.Length()
+    	         << ", expecting length " << fInput->NumNodes() << endl;
+			throw eSizeMismatch;	
+		}
+		fInput->ReadNodeMap (map);
 	}
-	fInput->ReadNodeMap (map);
 }
 
 void ModelManagerT::AllElementMap (iArrayT& map)
 {
-	if (!fInput) {
-    	cout << "\n ModelManagerT::AllElementMap: input source is not initialized" << endl;
-		throw eDatabaseFail;
+	/* no input for kTahoe format */
+	if (fFormat == IOBaseT::kTahoe)
+	{
+		int num_elem = 0;
+		for (int i = 0; i < fElementSets.Length(); i++)
+			num_elem += fElementSets[i].MajorDim();
+		if (map.Length() != num_elem) {
+	    	cout << "\n ModelManagerT::AllElementMap: map array is length " << map.Length()
+	             << ", expecting length " << num_elem << endl;
+			throw eSizeMismatch;	
+		}
+	
+		/* default map */
+		map.SetValueToPosition();
 	}
-	if (map.Length() != fInput->NumGlobalElements()) {
-    	cout << "\n ModelManagerT::AllElementMap: map array is length " << map.Length()
-             << ", expecting length " << fInput->NumGlobalElements() << endl;
-		throw eSizeMismatch;	
+	else
+	{
+		if (!fInput) {
+    		cout << "\n ModelManagerT::AllElementMap: input source is not initialized" << endl;
+			throw eDatabaseFail;
+		}
+		if (map.Length() != fInput->NumGlobalElements()) {
+	    	cout << "\n ModelManagerT::AllElementMap: map array is length " << map.Length()
+	             << ", expecting length " << fInput->NumGlobalElements() << endl;
+			throw eSizeMismatch;	
+		}
+		fInput->ReadAllElementMap (map);
 	}
-	fInput->ReadAllElementMap (map);
 }
 
 void ModelManagerT::ElementMap (const StringT& ID, iArrayT& map)
 {
-	if (!fInput) {
-    	cout << "\n ModelManagerT::ElementMap: input source is not initialized" << endl;
-		throw eDatabaseFail;
+	/* no input for kTahoe format */
+	if (fFormat == IOBaseT::kTahoe)
+	{
+		const iArray2DT& connects = ElementGroup(ID);
+		if (map.Length() != connects.MajorDim()) {
+    		cout << "\n ModelManagerT::ElementMap: map array is length " << map.Length()
+    	         << ", expecting length " << connects.MajorDim() << endl;
+			throw eSizeMismatch;		
+		}
+		
+		/* default map */
+		map.SetValueToPosition();
 	}
-	if (map.Length() != fInput->NumElements(ID)) {
-    	cout << "\n ModelManagerT::ElementMap: map array is length " << map.Length()
-             << ", expecting length " << fInput->NumElements(ID) << endl;
-		throw eSizeMismatch;	
+	else
+	{
+		if (!fInput) {
+    		cout << "\n ModelManagerT::ElementMap: input source is not initialized" << endl;
+			throw eDatabaseFail;
+		}
+		if (map.Length() != fInput->NumElements(ID)) {
+    		cout << "\n ModelManagerT::ElementMap: map array is length " << map.Length()
+    	         << ", expecting length " << fInput->NumElements(ID) << endl;
+			throw eSizeMismatch;	
+		}
+		fInput->ReadGlobalElementMap (ID, map);
 	}
-	fInput->ReadGlobalElementMap (ID, map);
 }
 
 int ModelManagerT::NodeSetIndex (const StringT& ID) const
@@ -1122,9 +1171,11 @@ bool ModelManagerT::ScanModel (const StringT& database)
     case IOBaseT::kEnSightBinary:
       fInput = new EnSightInputT (fMessage, true);
       break;
+#ifdef __ACCESS__
     case IOBaseT::kExodusII:
       fInput = new ExodusInputT (fMessage);
       break;
+#endif
     case IOBaseT::kPatranNeutral:
       fInput = new PatranInputT (fMessage);
       break;
