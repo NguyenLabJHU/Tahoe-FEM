@@ -1,4 +1,4 @@
-/* $Id: FileCrawlerT.h,v 1.1 2001-06-12 17:32:25 paklein Exp $ */
+/* $Id: FileCrawlerT.h,v 1.2 2001-06-14 20:44:18 paklein Exp $ */
 
 #ifndef _FILE_CRAWLER_T_H_
 #define _FILE_CRAWLER_T_H_
@@ -19,8 +19,7 @@ class FileCrawlerT
 public:
 
 	/* constructor */
-	FileCrawlerT(int argc, char* argv[], char job_char, char batch_char,
-		int jobcharputback = 1);
+	FileCrawlerT(int argc, char* argv[], char job_char, char batch_char);
 
 	/* destructor */
 	virtual ~FileCrawlerT(void);
@@ -51,9 +50,6 @@ protected:
 	/* filetype character codes */
 	char fJobChar;
 	char fBatchChar;
-
-	/* put back flag */
-	int fJobCharPutBack;
 
 	/* command line arguments */
 	ArrayT<StringT> fCommandLineOptions;
