@@ -1,6 +1,5 @@
-/* $Id: CSEBaseT.h,v 1.4 2001-04-04 22:13:24 paklein Exp $ */
-/* created: paklein (11/19/1997)                                          */
-/* Base class for cohesive surface elements                               */
+/* $Id: CSEBaseT.h,v 1.4.8.1 2002-04-28 22:26:21 paklein Exp $ */
+/* created: paklein (11/19/1997) */
 
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -18,6 +17,7 @@
 class SurfaceShapeT;
 class StringT;
 
+/** base class for cohesive surface elements */
 class CSEBaseT: public ElementBaseT
 {
 public:
@@ -27,20 +27,22 @@ public:
 	                 Anisotropic = 1, 
 	         NoRotateAnisotropic = 2};
 
+	/** indicies for nodal output */
 	enum NodalOutputCodeT {
-	                  NodalCoord = 0,  // (reference) coordinates
-                       NodalDisp = 1,  // displacements
-                   NodalDispJump = 2,  // opening displacements
-                   NodalTraction = 3,  // traction
-                    MaterialData = 4}; // output from constitutive relations
+	                  NodalCoord = 0, /**< reference coordinates */
+                       NodalDisp = 1, /**< displacements */
+                   NodalDispJump = 2, /**< opening displacements */
+                   NodalTraction = 3, /**< traction */
+                    MaterialData = 4  /**< output from constitutive relations */ };
 
+	/** indicies for element output */
 	enum ElementOutputCodeT {
-	             Centroid = 0,  // (reference) coordinates
-           CohesiveEnergy = 1,  // dissipated energy
-                 Traction = 2}; // element-averaged traction
+	             Centroid = 0, /**< reference coordinates of centroid */
+           CohesiveEnergy = 1, /**< dissipated energy */
+                 Traction = 2  /**< element-averaged traction */ };
 
 	/* constructor */
-	CSEBaseT(FEManagerT& fe_manager);
+	CSEBaseT(const ElementSupportT& support, const FieldT& field);
 
 	/* destructor */
 	~CSEBaseT(void);

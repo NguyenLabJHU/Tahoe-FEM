@@ -1,6 +1,5 @@
-/* $Id: PenaltyContact3DT.h,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
-/* created: paklein (02/09/2000)                                          */
-/* penalty based contact element                                          */
+/* $Id: PenaltyContact3DT.h,v 1.1.1.1.8.1 2002-04-28 22:26:19 paklein Exp $ */
+/* created: paklein (02/09/2000) */
 
 #ifndef _PENALTY_CONTACT3D_T_H_
 #define _PENALTY_CONTACT3D_T_H_
@@ -13,7 +12,7 @@ class PenaltyContact3DT: public Contact3DT
 public:
 
 	/* constructor */
-	PenaltyContact3DT(FEManagerT& fe_manager);
+	PenaltyContact3DT(const ElementSupportT& support, const FieldT& field);
 
 	/* writing output */
 	virtual void WriteOutput(IOBaseT::OutputModeT mode);

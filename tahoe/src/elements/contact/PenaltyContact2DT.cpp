@@ -1,5 +1,5 @@
-/* $Id: PenaltyContact2DT.cpp,v 1.2 2001-12-17 00:15:53 paklein Exp $ */
-/* created: paklein (12/11/1997)                                          */
+/* $Id: PenaltyContact2DT.cpp,v 1.2.2.1 2002-04-28 22:26:19 paklein Exp $ */
+/* created: paklein (12/11/1997) */
 
 #include "PenaltyContact2DT.h"
 
@@ -8,21 +8,19 @@
 #include <iomanip.h>
 
 #include "fstreamT.h"
-#include "FEManagerT.h"
 #include "eControllerT.h"
-#include "NodeManagerT.h"
 
 /* parameters (duplicated from Contact2DT) */
 const int kNumFacetNodes = 2;
 
 /* constructor */
-PenaltyContact2DT::PenaltyContact2DT(FEManagerT& fe_manager):
-	Contact2DT(fe_manager),
-	fElCoord(fNumFacetNodes + 1, fNumSD),
-	fElDisp(fNumFacetNodes + 1, fNumDOF)
+PenaltyContact2DT::PenaltyContact2DT(const ElementSupportT& support, const FieldT& field):
+	Contact2DT(support, field),
+	fElCoord(fNumFacetNodes + 1, NumSD()),
+	fElDisp(fNumFacetNodes + 1, NumDOF())
 	
 {
-	fFEManager.Input() >> fK;
+	ElementSupport().Input() >> fK;
 	if (fK < 0.0)
 	{
 		cout << "\n PenaltyContact2DT::PenaltyContact2DT: reguralization must be > 0: "
@@ -38,7 +36,7 @@ void PenaltyContact2DT::WriteOutput(IOBaseT::OutputModeT mode)
 	Contact2DT::WriteOutput(mode);
 
 	/* contact statistics */
-	ostream& out = fFEManager.Output();
+	ostream& out = ElementSupport().Output();
 	out << " Number of contact interactions = " << fnum_contact << '\n';
 	out << " Maximum penetration depth      = " << fh_max << '\n';
 }
@@ -65,10 +63,10 @@ void PenaltyContact2DT::LHSDriver(void)
 	if (!formK) return;
 
 	/* get reference to global coordinates */
-	const dArray2DT& coords = fNodes->CurrentCoordinates(); //EFFECTIVE_DVA
+	const dArray2DT& coords = ElementSupport().CurrentCoordinates(); //EFFECTIVE_DVA
 
 	/* loop over active elements */
-	dArrayT tangent(fNumSD);
+	dArrayT tangent(NumSD());
 	iArrayT eqnos;
 	int* pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
@@ -147,7 +145,7 @@ void PenaltyContact2DT::LHSDriver(void)
 			fLHS *= constK;
 			
 			/* assemble */
-			fFEManager.AssembleLHS(fLHS, eqnos);
+			ElementSupport().AssembleLHS(Group(), fLHS, eqnos);
 		}
 	}
 }
@@ -160,15 +158,15 @@ void PenaltyContact2DT::RHSDriver(void)
 	if (!formKd) return;
 
 	/* references to global nodal data */
-	const dArray2DT& init_coords = fNodes->InitialCoordinates();
-	const dArray2DT& disp = fNodes->Displacements();
+	const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
+	const dArray2DT& disp = Field()[0]; /* displacements */
 
 	/* reset tracking data */
 	fnum_contact = 0;
 	fh_max = 0.0;
 
 	/* loop over active elements */
-	dArrayT tangent(fNumSD);
+	dArrayT tangent(NumSD());
 	iArrayT eqnos;
 	int* pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
@@ -230,7 +228,7 @@ void PenaltyContact2DT::RHSDriver(void)
 			fEqnos[0].RowAlias(i, eqnos);
 			
 			/* assemble */
-			fFEManager.AssembleRHS(fRHS, eqnos);
+			ElementSupport().AssembleRHS(Group(), fRHS, eqnos);
 		}
 	}
 }

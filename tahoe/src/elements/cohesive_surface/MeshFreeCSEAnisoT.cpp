@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.8 2002-04-17 23:53:44 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.8.2.1 2002-04-28 22:26:21 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -10,13 +10,12 @@
 
 #include "fstreamT.h"
 #include "Constants.h"
-#include "FEManagerT.h"
-#include "NodeManagerT.h"
-#include "SurfacePotentialT.h"
+#include "ElementSupportT.h"
 #include "eControllerT.h"
 #include "MeshFreeSurfaceShapeT.h"
 
 /* potential functions */
+#include "SurfacePotentialT.h"
 #include "XuNeedleman2DT.h"
 #include "XuNeedleman3DT.h"
 #include "TvergHutch2DT.h"
@@ -34,17 +33,17 @@ const bool ArrayT<MeshFreeCSEAnisoT::StatusFlagT>::fByteCopy = true;
 const int kHeadRoom = 0;
 
 /* constructor */
-MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(FEManagerT& fe_manager):
-	ElementBaseT(fe_manager),
+MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(const ElementSupportT& support, const FieldT& field):
+	ElementBaseT(support, field),
 	fMFSurfaceShape(NULL),
 	fSurfacePotential(NULL),
 	fLocDisp(LocalArrayT::kDisp),
 	fFractureArea(0.0),
-	fQ(fNumSD),
-	fdelta(fNumSD),
-	fT(fNumSD),
-	fddU_l(fNumSD), fddU_g(fNumSD),
-	fdQ(fNumSD),
+	fQ(NumSD()),
+	fdelta(NumSD()),
+	fT(NumSD()),
+	fddU_l(NumSD()), fddU_g(NumSD()),
+	fdQ(NumSD()),
 	fElemEqnosEX(kHeadRoom),
 	fActiveFlag(kHeadRoom, true),
 
@@ -58,20 +57,20 @@ MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(FEManagerT& fe_manager):
 	fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
 
 	/* read control parameters */
-	ifstreamT& in = fFEManager.Input();
+	ifstreamT& in = ElementSupport().Input();
 	in >> fGeometryCode;
 	in >> fNumIntPts;
 	in >> fOutputArea;
 	in >> fMFElementGroup;
 
 	/* checks */
-	if (fNumSD == 2 && fGeometryCode != GeometryT::kLine)
+	if (NumSD() == 2 && fGeometryCode != GeometryT::kLine)
 	{
 		cout << "\n MeshFreeCSEAnisoT::MeshFreeCSEAnisoT: expecting geometry code "
 		     << GeometryT::kLine<< " for 2D: " << fGeometryCode << endl;
 		throw eBadInputValue;
 	}
-	else if (fNumSD == 3 &&
+	else if (NumSD() == 3 &&
 	         fGeometryCode != GeometryT::kQuadrilateral &&
 	         fGeometryCode != GeometryT::kTriangle)
 	{
@@ -85,13 +84,7 @@ MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(FEManagerT& fe_manager):
 
 	/* check element group */
 	fMFElementGroup--;
-	ElementBaseT* element_group = fFEManager.ElementGroup(fMFElementGroup);
-	if (!element_group)
-	{
-		cout << "\n MeshFreeCSEAnisoT::MeshFreeCSEAnisoT: domain element group\n"
-		     <<   "     " << fMFElementGroup + 1 << " not found" << endl;
-		throw eBadInputValue;
-	}
+	ElementBaseT* element_group = &(ElementSupport().ElementGroup(fMFElementGroup));
 	
 	/* check cast to meshfree group */
 #ifdef __NO_RTTI__
@@ -134,12 +127,12 @@ void MeshFreeCSEAnisoT::Initialize(void)
 	ElementBaseT::Initialize();
 
 	/* streams */
-	ifstreamT& in = fFEManager.Input();
-	ostream&   out = fFEManager.Output();
+	ifstreamT& in = ElementSupport().Input();
+	ostream&   out = ElementSupport().Output();
 		
 	/* initialize local arrays */
-	fLocDisp.Allocate(0, fNumDOF); // set minor dimension
-	fFEManager.RegisterLocal(fLocDisp);
+	fLocDisp.Allocate(0, NumDOF()); // set minor dimension
+	Field().RegisterLocal(fLocDisp);
 	fLocGroup.Register(fLocDisp);
 
 	/* check */
@@ -169,16 +162,16 @@ void MeshFreeCSEAnisoT::Initialize(void)
 	fNEEArray.Register(fNEEvec);
 	fMatrixManager.Register(fnsd_nee_1);
 	fMatrixManager.Register(fnsd_nee_2);
-	for (int k = 0; k < fNumSD; k++)
+	for (int k = 0; k < NumSD(); k++)
 		fMatrixManager.Register(fdQ[k]);
 
 	/* output stream */
 	if (fOutputArea == 1)
 	{
 		/* generate file name */
-		StringT name = (fFEManager.Input()).filename();
+		StringT name = (ElementSupport().Input()).filename();
 		name.Root();
-		name.Append(".grp", fFEManager.ElementGroupNumber(this) + 1);
+		name.Append(".grp", ElementSupport().ElementGroupNumber(this) + 1);
 		name.Append(".fracture");
 		
 		/* initialize file */
@@ -192,7 +185,7 @@ void MeshFreeCSEAnisoT::Initialize(void)
 	{
 		case SurfacePotentialT::kXuNeedleman:
 		{			
-			if (fNumDOF == 2)
+			if (NumDOF() == 2)
 				fSurfacePotential = new XuNeedleman2DT(in);
 			else
 				fSurfacePotential = new XuNeedleman3DT(in);
@@ -200,7 +193,7 @@ void MeshFreeCSEAnisoT::Initialize(void)
 		}
 		case SurfacePotentialT::kTvergaardHutchinson:
 		{
-			if (fNumDOF == 2)
+			if (NumDOF() == 2)
 				fSurfacePotential = new TvergHutch2DT(in);
 			else
 			{
@@ -212,7 +205,7 @@ void MeshFreeCSEAnisoT::Initialize(void)
 		}
 		case SurfacePotentialT::kLinearDamage:
 		{
-			fInitTraction.Allocate(fNumDOF);
+			fInitTraction.Allocate(NumDOF());
 			LinearDamageT* lin_damage = new LinearDamageT(in, fInitTraction);
 			if (!lin_damage) throw eOutOfMemory;
 			
@@ -222,8 +215,8 @@ void MeshFreeCSEAnisoT::Initialize(void)
 		}
 		case SurfacePotentialT::kTijssens:
 		{	
-		       if (fNumDOF == 2)
-			 fSurfacePotential = new Tijssens2DT(in,FEManager().TimeStep(),fFEManager);
+		       if (NumDOF() == 2)
+			 fSurfacePotential = new Tijssens2DT(in, ElementSupport().TimeStep());
 		       else
 		       {
 			  cout << "MeshFreeCSEAnisoT::Initialize potential not implemented for 3D: " << code << endl;
@@ -234,8 +227,8 @@ void MeshFreeCSEAnisoT::Initialize(void)
 		}
 	        case SurfacePotentialT::kRateDep:
 		{
-		       if (fNumDOF == 2)
-			 fSurfacePotential = new RateDep2DT(in,FEManager().TimeStep());
+		       if (NumDOF() == 2)
+			 fSurfacePotential = new RateDep2DT(in, ElementSupport().TimeStep());
 		       else
 		       {
 			 cout << "\n MeshFreeCSEAnisoT::Initialize potential not implemented for 3D: " << code << endl;
@@ -372,7 +365,7 @@ void MeshFreeCSEAnisoT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	/* configure equation array */
 	ArrayT<int> counts;
 	fMFSurfaceShape->NeighborCounts(counts);
-	fElemEqnosEX.Configure(counts, fNumDOF);
+	fElemEqnosEX.Configure(counts, NumDOF());
 
 //TEMP - assume all cutting facets are configured.
 //       is this the best place to do this???
@@ -384,7 +377,7 @@ void MeshFreeCSEAnisoT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	fMFSurfaceShape->Neighbors(neighbors);
 
 	/* get local equations numbers */
-	fNodes->SetLocalEqnos(neighbors, fElemEqnosEX);
+	Field().SetLocalEqnos(neighbors, fElemEqnosEX);
 
 	/* add to list */
 	eq_2.Append(&fElemEqnosEX);
@@ -402,9 +395,9 @@ void MeshFreeCSEAnisoT::WriteOutput(IOBaseT::OutputModeT mode)
 	if (fOutputArea && mode == IOBaseT::kAtInc)
 	{
 		/* generate file name */
-		StringT name = (fFEManager.Input()).filename();
+		StringT name = (ElementSupport().Input()).filename();
 		name.Root();
-		name.Append(".grp", fFEManager.ElementGroupNumber(this) + 1);
+		name.Append(".grp", ElementSupport().ElementGroupNumber(this) + 1);
 		name.Append(".fracture");
 		
 		/* open output file */
@@ -420,7 +413,7 @@ void MeshFreeCSEAnisoT::WriteOutput(IOBaseT::OutputModeT mode)
 				count++;
 
 		/* header */
-		out << "\n time = " << setw(kDoubleWidth) << fFEManager.Time() << '\n';
+		out << "\n time = " << setw(kDoubleWidth) << ElementSupport().Time() << '\n';
 		out << " fracture area = " << setw(kDoubleWidth) << fFractureArea << '\n';
 		out << " number of facets = " << count << '\n';
 
@@ -435,11 +428,11 @@ void MeshFreeCSEAnisoT::WriteOutput(IOBaseT::OutputModeT mode)
 		const char* traction_labels[] = {"t[1]", "t[2]", "t[3]"};
 		out << setw(kIntWidth) << "facet";
 		out << setw(kIntWidth) << "ip";
-		for (int j1 = 0; j1 < fNumSD && j1 < 3; j1++)
+		for (int j1 = 0; j1 < NumSD() && j1 < 3; j1++)
 			out << setw(d_width) << coord_labels[j1];
-		for (int j2 = 0; j2 < fNumDOF && j2 < 3; j2++)
+		for (int j2 = 0; j2 < NumDOF() && j2 < 3; j2++)
 			out << setw(d_width) << gap_labels[j2];
-		for (int j3 = 0; j3 < fNumSD && j3 < 3; j3++)
+		for (int j3 = 0; j3 < NumSD() && j3 < 3; j3++)
 			out << setw(d_width) << traction_labels[j3];
 		out << '\n';
 
@@ -629,7 +622,7 @@ void MeshFreeCSEAnisoT::LHSDriver(void)
 
 		/* assemble */
 		fElemEqnosEX.RowAlias(i, eqnos);
-		fFEManager.AssembleLHS(fLHS, eqnos);
+		ElementSupport().AssembleLHS(Group(), fLHS, eqnos);
 	}
 }
 
@@ -711,7 +704,7 @@ void MeshFreeCSEAnisoT::RHSDriver(void)
 									
 			/* assemble */
 			fElemEqnosEX.RowAlias(i, eqnos);
-			fFEManager.AssembleRHS(fRHS, eqnos);
+			ElementSupport().AssembleRHS(Group(), fRHS, eqnos);
 
 			/* mark elements */
 			if (all_failed)
@@ -810,11 +803,11 @@ void MeshFreeCSEAnisoT::SetNumberOfNodes(int nnd)
 {
 	fLocGroup.SetNumberOfNodes(nnd);
 	
-	int nee = nnd*fNumDOF;
+	int nee = nnd*NumDOF();
 
 	fNEEArray.Dimension(nee, false);
 	fNEEMatrix.Dimension(nee, nee);
-	fMatrixManager.Dimension(fNumSD, nee);
+	fMatrixManager.Dimension(NumSD(), nee);
 }
 
 /* operations with pseudo rank 3 (list in j) matrices */

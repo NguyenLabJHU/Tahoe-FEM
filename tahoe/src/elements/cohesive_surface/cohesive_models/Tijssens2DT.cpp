@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.10 2002-04-16 21:19:33 cjkimme Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.10.2.1 2002-04-28 22:26:22 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -10,16 +10,14 @@
 #include "fstreamT.h"
 #include "StringT.h"
 #include "SecantMethodT.h"
-#include "FEManagerT.h"
 
 /* class parameters */
 const int knumDOF = 2;
 
 /* constructor */
-Tijssens2DT::Tijssens2DT(ifstreamT& in, double time_step, FEManagerT& FE_Manager): 
+Tijssens2DT::Tijssens2DT(ifstreamT& in, const double& time_step): 
 	SurfacePotentialT(knumDOF),
-	fTimeStep(time_step),
-	fFEManager(FE_Manager)
+	fTimeStep(time_step)
 {
 	/* traction rate parameters */
         in >> fk_t0; if (fk_t0 < 0) throw eBadInputValue;
@@ -82,8 +80,6 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 
 	double du_t = jump_u[0]-state[2];
 	double du_n = jump_u[1]-state[3];
-
-	fTimeStep = fFEManager.TimeStep();
 
 	/* see if crazing has been initiated */
 	//if (state[7] < kSmall || (state[8] <= kSmall && (1.5*state[7] - fA + fB/state[7] - state[1]) > kSmall) || (state[5] >= fDelta_n_ccr && state[9] <= kSmall))

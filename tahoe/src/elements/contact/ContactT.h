@@ -1,7 +1,5 @@
-/* $Id: ContactT.h,v 1.2 2001-12-17 00:15:53 paklein Exp $ */
-/* created: paklein (12/11/1997)                                          */
-/* Cohesive surface element group - non-directional cohesive              */
-/* energy function, ie. fails in compression.                             */
+/* $Id: ContactT.h,v 1.2.2.1 2002-04-28 22:26:18 paklein Exp $ */
+/* created: paklein (12/11/1997) */
 
 #ifndef _CONTACT_T_H_
 #define _CONTACT_T_H_
@@ -20,7 +18,7 @@ class ContactT: public ElementBaseT
 public:
 
 	/* constructor */
-	ContactT(FEManagerT& fe_manager, int numfacetnodes);
+	ContactT(const ElementSupportT& support, const FieldT& field, int numfacetnodes);
 
 	/* destructor */
 	virtual ~ContactT(void);
