@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.cpp,v 1.7 2001-12-12 19:29:00 paklein Exp $ */
+/* $Id: iConsoleBaseT.cpp,v 1.8 2002-01-03 23:06:13 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleBaseT.h"
@@ -21,6 +21,14 @@ iConsoleBaseT::iConsoleBaseT(void):
 	fVariableIsConst(0)
 {
 
+}
+
+/* destructor */
+iConsoleBaseT::~iConsoleBaseT(void)
+{
+	/* free command specs */
+	for (int i = 0; i < fCommands.Length(); i++)
+		delete fCommands[i];
 }
 
 /* write scope variables */
