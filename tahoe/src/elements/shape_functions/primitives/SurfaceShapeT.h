@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.h,v 1.3 2001-07-11 01:03:31 paklein Exp $ */
+/* $Id: SurfaceShapeT.h,v 1.4 2001-11-06 17:43:37 paklein Exp $ */
 /* created: paklein (11/21/1997)                                          */
 
 #ifndef _SURFACE_SHAPE_T_H_
@@ -27,53 +27,96 @@ class SurfaceShapeT: public DomainIntegrationT
 {
 public:
 
-	/* constructors */	
+	/** constructor. 
+	 * \param geometry_code geometry of the parent domain
+	 * \param num_ip number of integration points 
+	 * \param num_nodes total number of element nodes on both faces
+	 * \param field_dim number of field dimensions
+	 * \param coords array of nodal coordinates in local ordering.
+	 *        The number of nodes in the array is either the number
+	 *        of face nodes or the total number of nodes. The class
+	 *        handles each case accordingly. */
 	SurfaceShapeT(GeometryT::CodeT geometry_code, int num_ip, int num_nodes,
 		int field_dim, const LocalArrayT& coords);
+		
+	/** constructor. 
+	 * \param link shared parent domain and "synch-ed" CurrIP and shared
+	 *        parent domain.
+	 * \param coords array of nodal coordinates in local ordering.
+	 *        The number of nodes in the array is either the number
+	 *        of face nodes or the total number of nodes. The class
+	 *        handles each case accordingly. */	 
 	SurfaceShapeT(const SurfaceShapeT& link, const LocalArrayT& coords);
-		// synchronized during integration and shared parent domain,
-		// but different coordinates.
 
-	/* accessors */
+	/** total number of element nodes */
 	int TotalNodes(void) const;
+	
+	/** number of nodes on one face. This is usually just SurfaceShapeT::TotalNodes/2 */
 	int NumFacetNodes(void) const;
+
+	/** dimension of the field */
 	int FieldDim(void) const;
 
-	/* set all local parameters */
+	/** set all local parameters */
 	virtual void Initialize(void);
 
 /**** for the current integration point ***/
 
-	/* jump in the nodal values */
-	const dArrayT& InterpolateJumpU(const LocalArrayT& nodal);
+	/** interpolate the jump in the field values to the current integration point 
+	 * \param nodal array of nodal values: [nnd] x [nu]
+	 * \return interpolated jump in the nodal values: [nu] */
+	const dArrayT& InterpolateJumpU(const LocalArrayT& nodal) const;
 
-	/* integration point coordinates */
+	/** interpolate field values to the current integration point. 
+	 * \param nodal array of nodal values. The number of nodal
+	 *        values passed in must be either SurfaceShapeT::TotalNodes
+	 *        or SurfaceShapeT::NumFacetNodes, that is: [nnd] x [nu].
+	 *        If nnd is SurfaceShapeT::NumFacetNodes, then the values
+	 *        passed in are assumed to be on the "first" face, i.e.,
+	 *        the nodes defined in the first half of the connectivities
+	 *        of an element.
+	 * \return interpolated jump in the nodal values: [nu] */
+	void Interpolate(const LocalArrayT& nodal, dArrayT& u) const;
+
+	/** coordinates of the current integration point */
 	const dArrayT& IPCoords(void);
 
-	/* extrapolate integration point values to the nodes
-	 *    IPvalues[numvals] : values from a single integration point
-	 *    nodalvalues[fNumNodes x numvals] : extrapolated values */
+	/** extrapolate integration point values to the nodes.
+	 * \param IPvalues values from a single integration point: [numvals]
+	 * \param nodalvalues extrapolated values: [fNumNodes] x [numvals] */
 	void Extrapolate(const dArrayT& IPvalues, dArray2DT& nodalvalues);
 
-	/* jump gradient tables:
+	/** jump gradient table:
 	 *
 	 *     fgrad_d = d delta_i/d u_j	[i] = FieldDim
-	 *                              	[j] = NumNodes*FieldDim
-     *
-	 *     fgrad_dTgrad_d = d delta_k/d u_i	d delta_k/d u_j
-	 *                          	[i],[j] = NumNodes*FieldDim
-	 */
+	 *                              	[j] = NumNodes*FieldDim */
 	const dMatrixT& Grad_d(void) const;
+
+    /** jump gradient table:
+	 *
+	 *     fgrad_dTgrad_d = d delta_k/d u_i	d delta_k/d u_j
+	 *                          	[i],[j] = NumNodes*FieldDim */
 	const dMatrixT& Grad_dTGrad_d(void) const;
 
-	/* jacobian of the area transformation using the nodes on the 1st facet */
+	/** jacobian of the area transformation using the nodes on the 1st facet */
 	double Jacobian(void);
+
+	/** jacobian of the area transformation using the nodes on the 1st facet 
+	 * \param Q returns with the transformation from the global coordinates
+	 *        to the local coordinates of the element */
 	double Jacobian(dMatrixT& Q);
+
+	/** jacobian of the area transformation using the nodes on the 1st facet 
+	 * \param Q returns with the transformation from the global coordinates
+	 *        to the local coordinates of the element
+	 * \param dQ the third rank linearization of the transformation Q with
+	 *        respect to coordinates of the surface. Each matrix in the list
+	 *        if the linearization of a column vector of Q. */
 	double Jacobian(dMatrixT& Q, ArrayT<dMatrixT>& dQ);
 
 /*******************************************/
 
-	/* local node numbers on each facet */
+	/** local node numbers on each facet */
 	const iArray2DT& NodesOnFacets(void) const;
 
 private:

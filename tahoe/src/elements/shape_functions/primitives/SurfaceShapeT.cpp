@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.cpp,v 1.2 2001-03-15 21:39:34 paklein Exp $ */
+/* $Id: SurfaceShapeT.cpp,v 1.3 2001-11-06 17:43:37 paklein Exp $ */
 /* created: paklein (11/21/1997)                                          */
 /* Class to manage CSE integrals, where the dimension of                  */
 /* the field variable is 1 greater than the dimension of the parent       */
@@ -129,11 +129,45 @@ void SurfaceShapeT::Initialize(void)
 /**** for the current integration point ***/
 
 /* jump in the nodal values */
-const dArrayT& SurfaceShapeT::InterpolateJumpU(const LocalArrayT& nodalU)
+const dArrayT& SurfaceShapeT::InterpolateJumpU(const LocalArrayT& nodalU) const
 {
 	for (int i = 0; i < fFieldDim; i++)
 		fInterp[i] = fjumpNa.DotRow(fCurrIP, nodalU(i));
 	return fInterp;
+}
+
+/* interpolate field values to the current integration point */
+void SurfaceShapeT::Interpolate(const LocalArrayT& nodal, dArrayT& u) const
+{
+#if __option(extended_errorcheck)
+	if (u.Length() != nodal.MinorDim()) throw eSizeMismatch;
+	if (nodal.NumberOfNodes() != TotalNodes() &&
+	    nodal.NumberOfNodes() != NumFacetNodes()) throw eSizeMismatch;
+#endif
+
+	/* average across both sides if all values given */
+	bool both_sides = nodal.NumberOfNodes() == TotalNodes();
+	double scale = (both_sides) ? 0.5 : 1.0;
+
+	/* reference to the shape functions for one face */
+	const dArray2DT& shapes = Na();
+
+	/* a little tricky here because node numbering across
+	 * both faces is inconsistent between 2D and 3D */
+	int* face_nodes = fFacetNodes(1); /* nodes on 2nd face */
+	for (int i = 0; i < u.Length(); i++)
+	{	
+		/* first face */
+		double* p = nodal(i);
+		u[i] = scale*shapes.DotRow(fCurrIP, p);
+		
+		/* second face */
+		if (both_sides)
+		{
+			for (int j = 0; j < NumFacetNodes(); j++)
+				u[i] += scale*p[face_nodes[j]]*shapes(fCurrIP, j);
+		}
+	}	
 }
 
 /* extrapolate integration point values to the nodes
