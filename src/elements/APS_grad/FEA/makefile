@@ -1,11 +1,11 @@
-#/* $Id: makefile,v 1.4 2003-09-22 20:53:12 raregue Exp $ */
+#/* $Id: makefile,v 1.5 2003-12-06 01:00:47 raregue Exp $ */
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
 include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
-OBJ =  all_depend.o
+OBJ =  
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -14,7 +14,7 @@ DEP = $(OBJ:.o=.d)
 #DEP = /dev/null
 
 # sources
-SRC =  all_depend.cpp
+SRC =  
 
 # headers
 HDR = APS_FEA.h
