@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2004-06-23 17:04:41 raregue Exp $
+# $Id: makefile,v 1.2 2004-06-29 17:15:15 raregue Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -23,7 +23,8 @@ OBJ = \
 	CubicSplineWindowGPT.o \
 	GaussianWindowGPT.o \
 	RectCubicSplineWindowGPT.o \
-	RectGaussianWindowGPT.o 
+	RectGaussianWindowGPT.o \
+	WindowGPT.o
 	
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -45,7 +46,8 @@ SRC = \
 	CubicSplineWindowGPT.cpp \
 	GaussianWindowGPT.cpp \
 	RectCubicSplineWindowGPT.cpp \
-	RectGaussianWindowGPT.cpp 
+	RectGaussianWindowGPT.cpp \
+	WindowGPT.cpp
 #
 ##################### (3) headers
 #
