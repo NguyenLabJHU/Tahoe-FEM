@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.cpp,v 1.14 2002-02-12 20:07:35 sawimme Exp $ */
+/* $Id: AbaqusResultsT.cpp,v 1.15 2002-02-22 15:45:24 sawimme Exp $ */
 /* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
@@ -155,15 +155,15 @@ int AbaqusResultsT::Close (void)
 
 bool AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, int &nummodes)
 {
-  int key = 0, error = OKAY, outputmode = -1;
-  int location = -1;
+  int key = 0, oldkey = 0, error = OKAY, outputmode = -1, location = -1;
   fNumElements = 0;
   fNumNodes = 0;
   fModalCount = 0;
   fStartCount = 0;
   fEndCount = 0;
-  int count = 0;
   error = ReadNextRecord (key);
+
+  // kick out of loop if END or BAD error flag returned
   while (error == OKAY)
     {
       switch (key)
@@ -257,16 +257,32 @@ bool AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
 	if (VariableKeyIndex (key) > 0)
 	  ScanVariable (key, outputmode, location);
 
+      oldkey = key;
       error = ReadNextRecord (key);
+      if (error == BAD)
+	{
+	  cout << "\nAbaqusResultsT::ScanFile unable to read next record \n";
+	  cout << " or it was unsuccessful in identifying EOF.\n";
+	  cout << "Old key " << oldkey << " Key " << key << endl;
+	  return false;
+	}
     }
   numelems = fNumElements;
   numnodes = fNumNodes;
   numtimesteps = fStartCount;
   nummodes = fModalCount;
-  
-  /* OK if the we make it here? */
-  return true; // better to return error != BAD ????
-}
+
+  // error should equal END at this point, but add this statement for surety
+  // if error == BAD, then a problem was encountered and false should be returned
+  if (error == BAD)
+    {
+      cout << "\nAbaqusResultsT::ScanFile was unsuccessful in scanning to the end of the file.\n";
+      return false;
+    }
+
+  // if error == END, then you scanned the file until EOF was encountered, 
+  // and you have successfully scanned the file.
+  return true;}
 
 void AbaqusResultsT::ElementSetNames (ArrayT<StringT>& names) const
 {
@@ -1602,8 +1618,12 @@ int AbaqusResultsT::ReadNextRecord (int& key)
 
   if (!fIn.good() || fIn.eof()) return END;
 
-  int length;
-  if (!Read (length) || !Read (key)) return BAD;
+  int length = 0;
+  if (!Read (length) || !Read (key)) 
+    {
+      if (!fIn.good() || fIn.eof()) return END;
+      return BAD;
+    }
   fCurrentLength += length;
   return OKAY;
 }
@@ -1741,7 +1761,7 @@ bool AbaqusResultsT::CheckBufferSize (istream& in, int numchars)
 	strcpy (&temp[0], fBuffer.Pointer (fBufferDone));
       char nextline [90];
 
-      //if (!fIn.getline (&nextline[0], 89, '\n')) return false; //does not return false on fail
+      if (!fIn.good() || fIn.eof()) return false;
       fIn.getline (&nextline[0], 89, '\n');
       
       strcat (temp, &nextline[0]);
