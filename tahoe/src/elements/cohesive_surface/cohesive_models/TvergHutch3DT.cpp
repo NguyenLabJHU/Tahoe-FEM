@@ -1,4 +1,4 @@
-/* $Id: TvergHutch3DT.cpp,v 1.11 2003-05-28 23:15:27 cjkimme Exp $ */
+/* $Id: TvergHutch3DT.cpp,v 1.9 2003-03-19 00:53:27 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch3DT.h"
@@ -16,7 +16,7 @@ using namespace Tahoe;
 
 const int knumDOF = 3;
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 /* constructor */
 TvergHutch3DT::TvergHutch3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 {
@@ -102,7 +102,7 @@ double TvergHutch3DT::Potential(const dArrayT& jump_u, const ArrayT<double>& sta
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& TvergHutch3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate)
+const dArrayT& TvergHutch3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
 {
 #pragma unused(state)
 #pragma unused(sigma)
@@ -242,7 +242,7 @@ SurfacePotentialT::StatusT TvergHutch3DT::Status(const dArrayT& jump_u,
 
 void TvergHutch3DT::PrintName(ostream& out) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	out << "    Tvergaard-Hutchinson 3D\n";
 #else
 #pragma unused(out)
@@ -252,7 +252,7 @@ void TvergHutch3DT::PrintName(ostream& out) const
 /* print parameters to the output stream */
 void TvergHutch3DT::Print(ostream& out) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	out << " Cohesive stress . . . . . . . . . . . . . . . . = " << fsigma_max << '\n';
 	out << " Normal opening to failure . . . . . . . . . . . = " << fd_c_n     << '\n';
 	out << " Tangential opening to failure . . . . . . . . . = " << fd_c_t     << '\n';

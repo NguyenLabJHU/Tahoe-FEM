@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.13 2003-05-28 23:15:23 cjkimme Exp $ */
+/* $Id: CSEBaseT.h,v 1.12 2003-04-07 23:37:28 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -45,7 +45,7 @@ public:
                  Traction = 2  /**< element-averaged traction */ };
 
 	/* constructors */
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	CSEBaseT(const ElementSupportT& support, const FieldT& field);
 #else
 	CSEBaseT(ElementSupportT& support);
@@ -66,7 +66,7 @@ public:
 	/* resets to the last converged solution */
 	virtual void ResetStep(void);
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	/* solution calls */
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
 #endif
@@ -81,7 +81,7 @@ public:
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
 
-#ifdef _FRACTURE_INTERFACE_LIBRARY_	
+#ifdef _SIERRA_TEST_	
 	/* Initialize fields passed in from the outside */
 	virtual void InitStep(void);
 #endif
@@ -96,7 +96,7 @@ protected:
 	/** print element group data */
 	virtual void PrintControlData(ostream& out) const;
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	/** read element connectivity data. Cohesive elements with higher order
 	 * elements may need to revise the connectivity read from the geometry
 	 * file. The problem is that the element topologies resulting from

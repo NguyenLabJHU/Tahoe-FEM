@@ -1,4 +1,4 @@
-/* $Id: YoonAllen3DT.h,v 1.10 2003-05-28 23:15:27 cjkimme Exp $ */
+/* $Id: YoonAllen3DT.h,v 1.8 2003-03-19 00:53:27 cjkimme Exp $ */
 /* created: cjkimme (05/28/2002) */
 
 #ifndef _YOON_ALLEN_3D_T_H_
@@ -20,7 +20,7 @@ class YoonAllen3DT: public SurfacePotentialT
 public:
 
 	/** constructors */
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	YoonAllen3DT(ifstreamT& in, const double &fTimeStep);
 #endif
 	YoonAllen3DT(dArrayT& fparams, iArrayT& iparams, const double &fTimeStep);
@@ -38,7 +38,7 @@ public:
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate);
+	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate);
 
 	/** tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);

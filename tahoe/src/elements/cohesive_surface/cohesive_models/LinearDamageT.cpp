@@ -1,4 +1,4 @@
-/* $Id: LinearDamageT.cpp,v 1.15 2003-05-28 23:15:26 cjkimme Exp $ */
+/* $Id: LinearDamageT.cpp,v 1.13 2003-03-19 00:53:27 cjkimme Exp $ */
 /* created: paklein (08/21/2000) */
 
 #include "LinearDamageT.h"
@@ -72,7 +72,7 @@ double LinearDamageT::Potential(const dArrayT& jump_u, const ArrayT<double>& sta
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate)
+const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
@@ -220,7 +220,7 @@ SurfacePotentialT::StatusT LinearDamageT::Status(const dArrayT& jump_u,
 
 void LinearDamageT::PrintName(ostream& out) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	out << "    Linear Damage\n";
 #endif
 }
@@ -228,7 +228,7 @@ void LinearDamageT::PrintName(ostream& out) const
 /* print parameters to the output stream */
 void LinearDamageT::Print(ostream& out) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	out << " Normal opening to failure . . . . . . . . . . . = " << fd_c_n     << '\n';
 	out << " Tangential opening to failure . . . . . . . . . = " << fd_c_t     << '\n';
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fpenalty   << '\n';

@@ -1,10 +1,10 @@
-/* $Id: ElementSupportT.cpp,v 1.24 2003-05-28 23:26:42 cjkimme Exp $ */
+/* $Id: ElementSupportT.cpp,v 1.23 2003-02-07 21:50:51 cjkimme Exp $ */
 #include "ElementSupportT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
 #include "ofstreamT.h"
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 #include "FEManagerT.h"
 #include "CommManagerT.h"
 #include "NodeManagerT.h"
@@ -27,7 +27,7 @@ ElementSupportT::ElementSupportT(void):
 	fCurrentCoordinates(NULL),
 	fInitialCoordinates(NULL)
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	/* clear */
 	SetFEManager(NULL);
 #else
@@ -41,7 +41,7 @@ ElementSupportT::ElementSupportT(void):
 #endif
 }
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 /* (re-)set the FEManagerT */
 void ElementSupportT::SetFEManager(FEManagerT* fe)
 {
@@ -97,11 +97,11 @@ const char* ElementSupportT::Version(void) const
 {
 	return FEManager().Version();
 }
-#endif // _FRACTURE_INTERFACE_LIBRARY_
+#endif // _SIERRA_TEST_
 
 bool ElementSupportT::PrintInput(void) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return FEManager().PrintInput();
 #else
 	return false;
@@ -111,7 +111,7 @@ bool ElementSupportT::PrintInput(void) const
 /*Should return something not in the NodeManager*/
 const dArray2DT& ElementSupportT::InitialCoordinates(void) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return Nodes().InitialCoordinates();
 #else
 	return *fInitialCoordinates;
@@ -120,7 +120,7 @@ const dArray2DT& ElementSupportT::InitialCoordinates(void) const
 
 const dArray2DT& ElementSupportT::CurrentCoordinates(void) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return Nodes().CurrentCoordinates();
 #else
 	return *fCurrentCoordinates;
@@ -129,7 +129,7 @@ const dArray2DT& ElementSupportT::CurrentCoordinates(void) const
 
 void ElementSupportT::RegisterCoordinates(LocalArrayT& array) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	Nodes().RegisterCoordinates(array);
 #else
     switch (array.Type())
@@ -153,7 +153,7 @@ void ElementSupportT::RegisterCoordinates(LocalArrayT& array) const
 /* return a  schedule function */
 const ScheduleT* ElementSupportT::Schedule(int num) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return FEManager().Schedule(num);
 #else
 #pragma unused(num)
@@ -164,7 +164,7 @@ const ScheduleT* ElementSupportT::Schedule(int num) const
 /* return the iteration number for the current solver group */
 int ElementSupportT::IterationNumber(void) const
 { 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return FEManager().IterationNumber(); 
 #else
 	return fItNum;
@@ -173,7 +173,7 @@ int ElementSupportT::IterationNumber(void) const
 
 const int& ElementSupportT::IterationNumber(int group) const 
 { 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return FEManager().IterationNumber(group); 
 #else
 #pragma unused(group)
@@ -184,7 +184,7 @@ const int& ElementSupportT::IterationNumber(int group) const
 /* the group number being solved or -1 if not defined */
 int ElementSupportT::CurrentGroup(void) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return FEManager().CurrentGroup();
 #else
 	return -1;
@@ -198,7 +198,7 @@ const char* ElementSupportT::Exception(ExceptionT::CodeT exception) const
 
 int ElementSupportT::ElementGroupNumber(const ElementBaseT* element) const
 { 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return FEManager().ElementGroupNumber(element); 
 #else
 #pragma unused(element)
@@ -208,7 +208,7 @@ int ElementSupportT::ElementGroupNumber(const ElementBaseT* element) const
 
 const double& ElementSupportT::Time(void) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return FEManager().Time();
 #else
 	return fTimeStep;
@@ -217,7 +217,7 @@ const double& ElementSupportT::Time(void) const
 
 const double& ElementSupportT::TimeStep(void) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return FEManager().TimeStep();
 #else	
 	return fTimeStep;
@@ -226,7 +226,7 @@ const double& ElementSupportT::TimeStep(void) const
 
 const int& ElementSupportT::StepNumber(void) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return FEManager().StepNumber();
 #else
 	return fItNum;
@@ -235,14 +235,14 @@ const int& ElementSupportT::StepNumber(void) const
 
 const int& ElementSupportT::NumberOfSteps(void) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return FEManager().NumberOfSteps();
 #else
 	return fItNum;
 #endif
 }
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 /* the element group at the specified index in the element list */
 ElementBaseT& ElementSupportT::ElementGroup(int index) const
 {
@@ -252,7 +252,7 @@ ElementBaseT& ElementSupportT::ElementGroup(int index) const
 }
 #endif
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 /* XDOF support */
 XDOF_ManagerT& ElementSupportT::XDOF_Manager(void) const
 {
@@ -263,7 +263,7 @@ XDOF_ManagerT& ElementSupportT::XDOF_Manager(void) const
 /* node number map. returns NULL if there is not a map */
 const ArrayT<int>* ElementSupportT::NodeMap(void) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return FEManager().NodeMap();
 #else
 	return NULL;
@@ -271,7 +271,7 @@ const ArrayT<int>* ElementSupportT::NodeMap(void) const
 }
 
 /* return a pointer to the field */
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 const FieldT* ElementSupportT::Field(const char* name) const
 {
 	return Nodes().Field(name);
@@ -285,7 +285,7 @@ const eIntegratorT* ElementSupportT::eIntegrator(const FieldT& field) const
 	return e_cont;
 }
 
-#else //_FRACTURE_INTERFACE_LIBRARY_
+#else //_SIERRA_TEST_
 
 void ElementSupportT::SetNumNodes(int nn)
 {
@@ -314,22 +314,22 @@ void ElementSupportT::SetCurrentCoordinates(dArray2DT* currentCoords)
  */
 void ElementSupportT::SetInitialCoordinates(double *initialCoords)
 {	
-	double *finit = fInitialCoordinates->Pointer();
+//	double *finit = fInitialCoordinates->Pointer();
 
-	for (int i = 0; i < fInitialCoordinates->Length();i++)
-		*finit++ = *initialCoords++;		
+//	for (int i = 0; i < fInitialCoordinates->Length();i++)
+//		*finit++ = *initialCoords++;		
 /* Try it without copying memory. Just use set */
-//    fInitialCoordinates->Set(fNumNodes,fNumSD,initialCoords);
+    fInitialCoordinates->Set(fNumNodes,fNumSD,initialCoords);
 }
 
 void ElementSupportT::SetCurrentCoordinates(double *currentCoords)
 {
-	double *fcurr = fCurrentCoordinates->Pointer();
+//	double *fcurr = fCurrentCoordinates->Pointer();
 	
-	for (int i = 0; i < fCurrentCoordinates->Length(); i++)
-		*fcurr++ = *currentCoords++;
+//	for (int i = 0; i < fCurrentCoordinates->Length(); i++)
+//		*fcurr++ = *currentCoords++;
 /* Try it without copying memory. Just use set */
-//    fCurrentCoordinates->Set(fNumNodes,fNumSD,currentCoords);
+    fCurrentCoordinates->Set(fNumNodes,fNumSD,currentCoords);
 }
 
 /* This function isn't currently being used. Don't know if it needs to
@@ -453,7 +453,7 @@ void ElementSupportT::SetOutputPointers(double *nodalOutput, double *elemOutput)
 /* element number map for the given block ID */
 const iArrayT* ElementSupportT::ElementMap(const StringT& block_ID) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return FEManager().ElementMap(block_ID);
 #else
 #pragma unused(block_ID)
@@ -461,11 +461,11 @@ const iArrayT* ElementSupportT::ElementMap(const StringT& block_ID) const
 #endif
 }
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 /* MP */
 int ElementSupportT::Size(void) const 
 { 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return FEManager().Size(); 
 #else
 	return 1;
@@ -474,7 +474,7 @@ int ElementSupportT::Size(void) const
 
 int ElementSupportT::Rank(void) const 
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return FEManager().Rank();
 #else
 	return 1;
@@ -483,7 +483,7 @@ int ElementSupportT::Rank(void) const
 
 const ArrayT<int>* ElementSupportT::ExternalNodes(void) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	if (fCommManager)
 		return fCommManager->ExternalNodes();
 	else
@@ -495,7 +495,7 @@ const ArrayT<int>* ElementSupportT::ExternalNodes(void) const
 
 const ArrayT<int>* ElementSupportT::BorderNodes(void) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	if (fCommManager)
 		return fCommManager->BorderNodes();
 	else
@@ -509,7 +509,7 @@ const ArrayT<int>* ElementSupportT::BorderNodes(void) const
 void ElementSupportT::AssembleLHS(int group, const ElementMatrixT& elMat, 
 	const nArrayT<int>& eqnos) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	FEManager().AssembleLHS(group, elMat, eqnos);
 #else
 #pragma unused(eqnos)
@@ -537,7 +537,7 @@ void ElementSupportT::AssembleLHS(int group, const ElementMatrixT& elMat,
 	const nArrayT<int>& row_eqnos,
 	const nArrayT<int>& col_eqnos) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	FEManager().AssembleLHS(group, elMat, row_eqnos, col_eqnos);
 #else
 #pragma unused(group)
@@ -550,7 +550,7 @@ void ElementSupportT::AssembleLHS(int group, const ElementMatrixT& elMat,
 void ElementSupportT::AssembleLHS(int group, const nArrayT<double>& diagonal_elMat, 
 	const nArrayT<int>& eqnos) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	FEManager().AssembleLHS(group, diagonal_elMat, eqnos);
 #else
 #pragma unused(group)
@@ -562,7 +562,7 @@ void ElementSupportT::AssembleLHS(int group, const nArrayT<double>& diagonal_elM
 void ElementSupportT::AssembleRHS(int group, const nArrayT<double>& elRes, 
 	const nArrayT<int>& eqnos) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	FEManager().AssembleRHS(group, elRes, eqnos);
 #else
 #pragma unused(eqnos)
@@ -581,7 +581,7 @@ void ElementSupportT::AssembleRHS(int group, const nArrayT<double>& elRes,
 /* initialize work space to the number of values to be averaged */
 void ElementSupportT::ResetAverage(int n_values) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	Nodes().ResetAverage(n_values);
 #else
 	fGroupAverage->ResetAverage(n_values);
@@ -591,7 +591,7 @@ void ElementSupportT::ResetAverage(int n_values) const
 /* assemble values */
 void ElementSupportT::AssembleAverage(const iArrayT& nodes, const dArray2DT& vals) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	Nodes().AssembleAverage(nodes, vals);
 #else
     fGroupAverage->AssembleAverage(nodes,vals);
@@ -601,7 +601,7 @@ void ElementSupportT::AssembleAverage(const iArrayT& nodes, const dArray2DT& val
 /* average assembled values */
 const dArray2DT& ElementSupportT::OutputAverage(void) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return Nodes().OutputAverage();
 #else
 	return fGroupAverage->OutputAverage();
@@ -611,7 +611,7 @@ const dArray2DT& ElementSupportT::OutputAverage(void) const
 /* return averaged values for the nodes with assembled values */
 void ElementSupportT::OutputUsedAverage(dArray2DT& average_values) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	Nodes().OutputUsedAverage(average_values);
 #else
 	fGroupAverage->OutputUsedAverage(average_values);
@@ -620,7 +620,7 @@ void ElementSupportT::OutputUsedAverage(dArray2DT& average_values) const
 
 ifstreamT& ElementSupportT::Input(void) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return FEManager().Input();
 #else
 	return *ifst;
@@ -629,14 +629,14 @@ ifstreamT& ElementSupportT::Input(void) const
 
 ofstreamT& ElementSupportT::Output(void) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return FEManager().Output();
 #else
 	return *ofst;
 #endif
 }
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 int ElementSupportT::RegisterOutput(const OutputSetT& output_set) const
 {
 	return FEManager().RegisterOutput(output_set);
@@ -660,7 +660,7 @@ int ElementSupportT::RegisterOutput(ArrayT<StringT>& n_labels,
 void ElementSupportT::WriteOutput(int ID, const dArray2DT& n_values, 
 	const dArray2DT& e_values) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	FEManager().WriteOutput(ID, n_values, e_values);
 #else
 #pragma unused(ID)
@@ -676,7 +676,7 @@ void ElementSupportT::WriteOutput(int ID, const dArray2DT& n_values,
 #endif
 }
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 const OutputSetT& ElementSupportT::OutputSet(int ID) const
 {
 	return FEManager().OutputSet(ID);

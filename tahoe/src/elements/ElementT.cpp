@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.22 2003-07-09 23:19:42 paklein Exp $ */
+/* $Id: ElementT.cpp,v 1.18 2003-04-03 01:09:07 saubry Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -77,9 +77,6 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		case ElementT::kLinearDiffusion:
 			type = ElementT::kLinearDiffusion;
 			break;
-		case ElementT::kNonLinearDiffusion:
-			type = ElementT::kNonLinearDiffusion;
-			break;
 		case ElementT::kMFCohesiveSurface:
 			type = ElementT::kMFCohesiveSurface;
 			break;
@@ -115,9 +112,6 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		case ElementT::kBridgingScale:
 			type = ElementT::kBridgingScale;
 			break;	
-		case ElementT::kMeshfreeBridging:
-			type = ElementT::kMeshfreeBridging;
-			break;	
 		case ElementT::kSimoQ1P0:
 			type = ElementT::kSimoQ1P0;
 			break;	
@@ -135,12 +129,6 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		    break;
 		case ElementT::kSSMatForce:
 		    type = ElementT::kSSMatForce;
-		    break;
-		case ElementT::kDorganVoyiadjisMarin:
-		    type = ElementT::kDorganVoyiadjisMarin;
-		    break;
-		case ElementT::kTest:
-		    type = ElementT::kTest;
 		    break;
 		default:
 			cout << "\n operator>>ElementT::TypeT: unknown type: "

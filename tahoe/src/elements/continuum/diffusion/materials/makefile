@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.3 2003-06-09 06:51:44 paklein Exp $
+# $Id: makefile,v 1.2 2003-03-04 07:37:04 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -22,8 +22,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	DiffusionMatListT.o \
 	DiffusionMatSupportT.o \
-	DiffusionMaterialT.o \
-	NLDiffusionMaterialT.o
+	DiffusionMaterialT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -45,8 +44,7 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	DiffusionMatListT.cpp \
 	DiffusionMatSupportT.cpp \
-	DiffusionMaterialT.cpp \
-	NLDiffusionMaterialT.cpp
+	DiffusionMaterialT.cpp
 
 ##################### (3) headers
 #
@@ -60,8 +58,7 @@ SRC = \
 HDR = \
 	DiffusionMatListT.h \
 	DiffusionMatSupportT.h \
-	DiffusionMaterialT.h \
-	NLDiffusionMaterialT.h
+	DiffusionMaterialT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

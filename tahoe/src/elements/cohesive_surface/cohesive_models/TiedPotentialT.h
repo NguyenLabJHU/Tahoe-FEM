@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.h,v 1.17 2003-06-09 06:44:36 paklein Exp $ */
+/* $Id: TiedPotentialT.h,v 1.14 2003-04-22 19:02:06 cjkimme Exp $ */
 /* created: cjkimme (04/15/2002) */
 
 #ifndef _TIED_POTENTIAL_T_H_
@@ -40,7 +40,7 @@ public:
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate);
+	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate);
 
 	/** tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);
@@ -67,23 +67,17 @@ public:
 	virtual void ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
 		dArrayT& output);
 
-	virtual bool NeedsNodalInfo(void) const;
+	virtual bool NeedsNodalInfo(void);
 	
-	virtual int NodalQuantityNeeded(void) const;
-
-	/** rotate nodal values to local frame */
-	virtual bool RotateNodalQuantity(void) const { return true; };
+	virtual int NodalQuantityNeeded(void);
 	
-	virtual bool InitiationQ(const nArrayT<double>& sigma) const;
+	virtual bool InitiationQ(const double* sigma);
 	
 	/** whether or not potential may retie nodes */
-	virtual bool NodesMayRetie(void) const;
+	virtual bool NodesMayRetie(void);
 	
 	/** returns true if criterium for retieing is met */
-	virtual bool RetieQ(const nArrayT<double>& sigma, const ArrayT<double>& state, const dArrayT& jump_u) const;
-
-	/** location in state variable array of the state flag */
-	virtual int TiedStatusPosition(void) const;
+	virtual bool RetieQ(const double* sigma, const ArrayT<double>& state, const dArrayT& jump_u);
 	
 protected:
 

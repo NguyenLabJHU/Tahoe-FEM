@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.cpp,v 1.14 2003-05-28 23:15:27 cjkimme Exp $ */
+/* $Id: ViscTvergHutch2DT.cpp,v 1.12 2003-05-20 23:53:35 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "ViscTvergHutch2DT.h"
@@ -95,7 +95,7 @@ double ViscTvergHutch2DT::Potential(const dArrayT& jump_u, const ArrayT<double>&
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate)
+const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
 {
 	const char caller[] = "ViscTvergHutch2DT::Traction";
 #pragma unused(sigma)
@@ -103,7 +103,7 @@ const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>
 	if (jump_u.Length() != knumDOF) ExceptionT::SizeMismatch(caller);
 	if (state.Length() != NumStateVariables()) ExceptionT::SizeMismatch(caller);
 	if (fTimeStep < 0.0) {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 		ExceptionT::BadInputValue(caller, "expecting non-negative time increment: %g", fTimeStep);
 #endif		     
 		throw ExceptionT::kBadInputValue;
@@ -362,7 +362,7 @@ SurfacePotentialT::StatusT ViscTvergHutch2DT::Status(const dArrayT& jump_u,
 
 void ViscTvergHutch2DT::PrintName(ostream& out) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	out << "    Tvergaard-Hutchinson 2D with viscous damping\n";
 #endif
 }
@@ -370,7 +370,7 @@ void ViscTvergHutch2DT::PrintName(ostream& out) const
 /* print parameters to the output stream */
 void ViscTvergHutch2DT::Print(ostream& out) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	out << " Cohesive stress . . . . . . . . . . . . . . . . = " << fsigma_max << '\n';
 	out << " Normal opening to failure . . . . . . . . . . . = " << fd_c_n     << '\n';
 	out << " Tangential opening to failure . . . . . . . . . = " << fd_c_t     << '\n';
@@ -405,7 +405,7 @@ void ViscTvergHutch2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double
 
 	double r_t = u_t/fd_c_t;
 	double r_n = u_n/fd_c_n;
-	double L = sqrt(r_t*r_t + r_n*r_n); // (1.1)
+	double   L = sqrt(r_t*r_t + r_n*r_n); // (1.1)
 	output[0] = L;
 	
 	/* approximate incremental viscous dissipation, assuming a constant

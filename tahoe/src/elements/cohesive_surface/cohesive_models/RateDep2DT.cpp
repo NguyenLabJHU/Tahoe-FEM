@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.cpp,v 1.15 2003-05-29 06:41:17 paklein Exp $  */
+/* $Id: RateDep2DT.cpp,v 1.12 2003-03-19 00:53:27 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "RateDep2DT.h"
@@ -58,7 +58,7 @@ void RateDep2DT::InitStateVariables(ArrayT<double>& state)
   	int num_state = NumStateVariables();
 	if (state.Length() != num_state) 
 	{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_	
+#ifndef _SIERRA_TEST_	
 	  	cout << "\n SurfacePotentialT::InitStateVariables: expecting state variable array\n"
 		     <<   "     length " << num_state << ", found length " << state.Length() << endl;
 #endif
@@ -134,15 +134,15 @@ double RateDep2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate)
+const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
-	if (fTimeStep < 0.0) {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_	
-		cout << "\n RateDep2DT::Traction: expecting non-negative time increment: "
+	if (fTimeStep <= 0.0) {
+#ifndef _SIERRA_TEST_	
+		cout << "\n RateDep2DT::Traction: expecting positive time increment: "
 		     << fTimeStep << endl;
 #endif
 		throw ExceptionT::kBadInputValue;
@@ -161,14 +161,11 @@ const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state
 		sigbyL = state[ksigma_max]/state[kL_1];
 	else if (L < state[kL_2]) /* we're at or beyond the plateau stress */
 	{ 
-		if (state[kd_c_n + 1] == 0.) 
-		{
-			double u_n_dot = 0.0;
-			if (fabs(fTimeStep) > kSmall) 
-				u_n_dot = (u_n-state[qIntegrate ? kDelta : kDelta + 2])/fTimeStep;
-			
-			if (u_n_dot > kSmall)
-			{
+	  	if (state[kd_c_n + 1] == 0.) 
+	  	{ 
+	    	double u_n_dot = (u_n-state[qIntegrate ? kDelta : kDelta + 2])/fTimeStep;
+	      	if (u_n_dot > kSmall) 
+	      	{
 				if (qIntegrate) 
 				{
 					state[kd_c_n + 1] = 1.;
@@ -176,28 +173,28 @@ const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state
 					/* make sure new length scale is greater than current
 		 		 	 * gap vector 
                  	 */
-					state[kL_1] *= fd_c_n/state[kd_c_n];
+	        		state[kL_1] *= fd_c_n/state[kd_c_n];
 	        	}
 	        	r_n = u_n/state[kd_c_n];
 	        	L = sqrt(r_t*r_t+r_n*r_n);
 	        	sigbyL = state[ksigma_max]*(1+fslope*(L-state[kL_1]))/L;
 				if (state[kd_c_n] < u_n || state[kd_c_n] < fd_c_n*fL_1)
 				{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 		  			cout <<  "\n RateDep2DT::Traction: rate-dependent length scale " << state[kd_c_n] << " is incompatible with rate-independent one. Check input parameters. \n ";
 #endif	
 					if (qIntegrate)
-					{	
-						state[kd_c_n] = fd_c_n;
-						state[kL_2] = state[kL_1]; /* start unloading now */
+					{
+	          			state[kd_c_n] = fd_c_n;
+	          			state[kL_2] = state[kL_1]; /* start unloading now */
 	          		}
 	          		r_n = u_n/state[kd_c_n];
 	          		L = sqrt(r_t*r_t+r_n*r_n);
-	          		sigbyL = state[ksigma_max]*(1-L)/(1-state[kL_2])/L;
+                  	sigbyL = state[ksigma_max]*(1-L)/(1-state[kL_2])/L;
 				}
-			}
-		}
-		else 
+	      	}
+	  	}
+	  	else 
 	    	sigbyL = state[ksigma_max]*(1+fslope*(L-state[kL_1]))/L;
 	}
 	else if (L < 1)
@@ -321,7 +318,7 @@ SurfacePotentialT::StatusT RateDep2DT::Status(const dArrayT& jump_u,
 
 void RateDep2DT::PrintName(ostream& out) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	out << "    RateDep 2D \n";
 #endif
 }
@@ -329,7 +326,7 @@ void RateDep2DT::PrintName(ostream& out) const
 /* print parameters to the output stream */
 void RateDep2DT::Print(ostream& out) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	out << " Cohesive stress . . . . . . . . . . . . . . . . = " << fsigma_max << '\n';
 	out << " Normal opening to failure . . . . . . . . . . . = " << fd_c_n     << '\n';
 	out << " Tangential opening to failure . . . . . . . . . = " << fd_c_t     << '\n';

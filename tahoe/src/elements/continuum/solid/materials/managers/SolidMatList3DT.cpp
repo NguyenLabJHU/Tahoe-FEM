@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.39 2003-06-03 23:45:12 manzari Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.38 2003-05-12 23:44:05 thao Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 #include "fstreamT.h"
@@ -101,10 +101,6 @@
 
 #ifdef FOSSUM_MATERIAL_DEV
 #include "FossumSSIsoT.h"
-#endif
-
-#ifdef PLASTICITY_MR_MATERIAL_DEV
-#include "MRSSKStV.h"
 #endif
 
 using namespace Tahoe;
@@ -252,19 +248,6 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "PLASTICITY_DP_MATERIAL not enabled: %d", matcode);
-#endif
-			}
-			case kMRSSKStV:
-			{
-#ifdef PLASTICITY_MR_MATERIAL_DEV
-				/* check */
-				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
-	
-				fArray[matnum] = new MRSSKStV(in, *fSSMatSupport);
-				fHasHistory = true;															
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "PLASTICITY_MR_MATERIAL not enabled: %d", matcode);
 #endif
 			}
 			case kFCCEAM:

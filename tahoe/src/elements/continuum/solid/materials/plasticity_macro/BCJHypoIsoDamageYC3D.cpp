@@ -1,4 +1,4 @@
-/* $Id: BCJHypoIsoDamageYC3D.cpp,v 1.8 2003-05-22 09:06:27 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageYC3D.cpp,v 1.7 2003-01-29 07:35:06 paklein Exp $ */
 #include "BCJHypoIsoDamageYC3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -392,7 +392,7 @@ void BCJHypoIsoDamageYC3D::IntegrateConstitutiveEqns(bool& converged, int subInc
   ElasticTrialStress();
 
   // check for inelastic process (note: use deviatoric part for this check)
-  if ( fEQXieTr > (1.+1.e-6)*fKineticEqn->h(((fabs(fdt) > kSmall) ? fInternal_n[kDEQPe]/fdt : 0.0),fInternal_n[kKAPP])
+  if ( fEQXieTr > (1.+1.e-6)*fKineticEqn->h(fInternal_n[kDEQPe]/fdt,fInternal_n[kKAPP])
 	&& fFSMatSupport.IterationNumber() > -1 )
     {
       // step 5. forward gradient estimate

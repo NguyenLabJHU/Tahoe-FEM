@@ -1,14 +1,15 @@
-/* $Id: PointInCellDataT.cpp,v 1.5 2003-05-23 22:56:11 paklein Exp $ */
+/* $Id: PointInCellDataT.cpp,v 1.4 2003-05-21 23:48:07 paklein Exp $ */
 #include "PointInCellDataT.h"
 #include "ContinuumElementT.h"
 #include "InverseMapT.h"
 
 using namespace Tahoe;
 
-/* collect the list of nodes in cells containing points */
-int PointInCellDataT::CollectCellNodes(void)
+/* collect a list of the nodes used in cells containing a non-zero number
+ * of points */
+void PointInCellDataT::GenerateCellConnectivities(void)
 {
-	const char caller[] = "PointInCellDataT::CollectCellNodes";
+	const char caller[] = "PointInCellDataT::GenerateCellConnectivities";
 	if (!fContinuumElement) ExceptionT::GeneralFail(caller, "element pointer not set");
 
 	const ElementSupportT& elem_support = fContinuumElement->ElementSupport();
@@ -35,19 +36,6 @@ int PointInCellDataT::CollectCellNodes(void)
 		if (nodes_used[i] == 1)
 			fCellNodes[dex++] = i;
 
-	return cell_count;
-}
-
-/* collect a list of the nodes used in cells containing a non-zero number
- * of points */
-void PointInCellDataT::GenerateCellConnectivities(void)
-{
-	const char caller[] = "PointInCellDataT::GenerateCellConnectivities";
-	if (!fContinuumElement) ExceptionT::GeneralFail(caller, "element pointer not set");
-
-	/* collect nodes */
-	int cell_count = CollectCellNodes();
-
 	/* dimension local connectivities */
 	fCellConnectivities.Dimension(cell_count, fContinuumElement->NumElementNodes());
 
@@ -56,7 +44,7 @@ void PointInCellDataT::GenerateCellConnectivities(void)
 	global_to_local.SetMap(fCellNodes);
 
 	/* create connectivities in local numbering */
-	int dex = 0;
+	dex = 0;
 	for (int i = 0; i < fPointInCell.MajorDim(); i++) 
 	{
 		if (fPointInCell.MinorDim(i) > 0) 

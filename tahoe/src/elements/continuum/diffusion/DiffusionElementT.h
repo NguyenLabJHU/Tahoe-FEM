@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.h,v 1.9 2003-06-09 06:58:12 paklein Exp $ */
+/* $Id: DiffusionElementT.h,v 1.8 2002-11-30 16:41:28 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSE_T_H_
 #define _DIFFUSE_T_H_
@@ -128,7 +128,7 @@ protected:
 	/*@}*/
 
 	/** field gradients over the element. The gradients are only computed
-	 * an integration point at a time and stored. */
+	 * an integration point at a time. */
   	ArrayT<dArrayT> fGradient_list;
 
 	/** parameters */
@@ -141,6 +141,5 @@ private:
 	DiffusionMatSupportT* fDiffusionMatSupport;
 };
 
-} /* namespace Tahoe */
-
+} // namespace Tahoe 
 #endif /* _DIFFUSE_T_H_ */

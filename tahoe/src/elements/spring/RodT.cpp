@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.29 2003-05-22 09:05:46 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.28 2003-05-20 10:30:33 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -521,11 +521,8 @@ void RodT::ComputeInstKE(void)
 
 void RodT::ComputeAvgKE(void)
 {
-	double& tempavg = fAvgKE;
-	if (fStepNumber) /* only for positive steps */
-  		tempavg = fSumKE / fStepNumber;
-	else
-		tempavg = 0.0;
+  double& tempavg = fAvgKE;
+  tempavg = fSumKE / fStepNumber;
 }
 
 void RodT::ComputeInstPE(void)
@@ -556,11 +553,8 @@ void RodT::ComputeInstPE(void)
 
 void RodT::ComputeAvgPE(void)
 {
-	double& tempavg = fAvgPE;
-  	if (fStepNumber > 0) /* only for positive steps */
-  		tempavg = fSumPE / fStepNumber;
-	else
-		tempavg = 0.0;
+  double& tempavg = fAvgPE;
+  tempavg = fSumPE / fStepNumber;
 }
 
 void RodT::ComputeInstTotalE(void)
@@ -575,11 +569,9 @@ void RodT::ComputeInstTotalE(void)
 
 void RodT::ComputeAvgTotalE(void)
 {
-  	double& tempavg = fAvgTotalE;
-	if (fStepNumber > 0) /* only for positive steps */
-		tempavg = fSumTotalE / fStepNumber;
-	else
-		tempavg;
+  double& tempavg = fAvgTotalE;
+  tempavg = fSumTotalE / fStepNumber;
+
 }
 
 void RodT::ComputeInstTemperature(void)

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.22 2003-05-23 22:59:21 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.21 2003-01-29 07:34:34 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -86,14 +86,6 @@ public:
 	 * not to allow input files to be unchanged. */
 	enum StrainOptionT {kStandardB = 0, /**< standard strain-displacement matrix */
 	                  kMeanDilBbar = 1  /**< mean dilatation for near incompressibility */ };
-
-	/** set storage flag for internal force */
-	void SetStoreInternalForce(bool do_store) { fStoreInternalForce = do_store; };
-
-	/** contribution to the nodal residual forces. Return the contribution of this element
-	 * group to the residual for the given solver group. ParticleT::InternalForce 
-	 * returns the internal force calculated with the latest call to ElementBaseT::FormRHS. */
-	virtual const dArray2DT& InternalForce(int group);
 
 protected:
 
@@ -208,13 +200,6 @@ protected:
 	dMatrixT fD; /**< constitutive matrix */
 	dMatrixT fB; /**< strain-displacement matrix */
 	dSymMatrixT fStress; /**< stress vector */	
-	/*@}*/
-	
-	/** \name total force 
-	 * Storage for the internal force calculated by this element group. */
-	/*@{*/
-	bool fStoreInternalForce;
-	dArray2DT fForce;
 	/*@}*/
 
 	/* parameters */

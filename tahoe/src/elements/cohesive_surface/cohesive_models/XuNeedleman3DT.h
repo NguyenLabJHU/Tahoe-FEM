@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.h,v 1.15 2003-05-28 23:15:27 cjkimme Exp $ */
+/* $Id: XuNeedleman3DT.h,v 1.13 2003-03-19 00:53:27 cjkimme Exp $ */
 /* created: paklein (06/23/1999) */
 
 #ifndef _XU_NEEDLE_3D_T_H_
@@ -18,7 +18,7 @@ class XuNeedleman3DT: public SurfacePotentialT
 public:
 
 	/** constructors */
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	XuNeedleman3DT(ifstreamT& in);
 #endif
 	/** constructor for use in SIERRA */
@@ -35,7 +35,7 @@ public:
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate);
+	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate);
 
 	/** tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);
@@ -59,11 +59,11 @@ private:
 	double d_t; // characteristic tangent opening
 	
 	double phi_n;  // mode I work to fracture
-	double r_fail; // d/d_(n/t) for which surface is considered failed
+double r_fail; // d/d_(n/t) for which surface is considered failed
 
-	/* additional penetration stiffness */
-	double fKratio; // stiffening ratio
-	double fK;      // penetration stiffness
+/* additional penetration stiffness */
+double fKratio; // stiffening ratio
+double fK;      // penetration stiffness
 };
 
 } // namespace Tahoe 

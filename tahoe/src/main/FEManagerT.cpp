@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.58 2003-06-09 07:02:13 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.57 2003-05-20 10:48:35 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1152,8 +1152,6 @@ void FEManagerT::SetSolver(void)
 			case GlobalT::kNLDynamic:
 			case GlobalT::kNLStaticKfield:
 			case GlobalT::kVarNodeNLStatic:
-			case GlobalT::kNLStaticHeat:
-			case GlobalT::kNLTransHeat:
 			{
 				int NL_solver_code;
 				fMainIn >> NL_solver_code;
@@ -1364,13 +1362,11 @@ void FEManagerT::SetIntegrator(void)
 			case GlobalT::kNLStatic:
 			case GlobalT::kNLStaticKfield:
 			case GlobalT::kLinStaticHeat:
-			case GlobalT::kNLStaticHeat:
 			{
 				integrator = fTimeManager->New_Integrator(TimeManagerT::kStatic);
 				break;
 			}
 			case GlobalT::kLinTransHeat:
-			case GlobalT::kNLTransHeat:
 			{
 				integrator = fTimeManager->New_Integrator(TimeManagerT::kTrapezoid);
 				break;

@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.cpp,v 1.6 2003-06-09 06:54:30 paklein Exp $ */
+/* $Id: DiffusionMaterialT.cpp,v 1.5 2002-11-14 17:06:39 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionMaterialT.h"
 #include "DiffusionMatSupportT.h"
@@ -20,6 +20,8 @@ DiffusionMaterialT::DiffusionMaterialT(ifstreamT& in, const DiffusionMatSupportT
 	in >> fDensity;		 if (fDensity <= 0.0) throw ExceptionT::kBadInputValue;
 	in >> fSpecificHeat; if (fDensity <= 0.0) throw ExceptionT::kBadInputValue;
 	in >> fConductivity;
+
+	fCapacity = fDensity*fSpecificHeat;
 }
 
 /* I/O functions */
@@ -37,13 +39,13 @@ void DiffusionMaterialT::Print(ostream& out) const
 const dArrayT& DiffusionMaterialT::q_i(void)
 {
 	/* should be 1 row */
-	fConductivity.Multx(fDiffusionMatSupport.Gradient(), fq_i, -1.0);
+	fConductivity.Multx(fDiffusionMatSupport.Gradient(), fq_i);
 	return fq_i;
 }
 
 /*************************************************************************
- * Protected
- *************************************************************************/
+* Protected
+*************************************************************************/
 
 void DiffusionMaterialT::PrintName(ostream& out) const
 {

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.16 2003-05-28 23:13:07 cjkimme Exp $
+# $Id: makefile,v 1.15 2003-03-26 20:02:01 cjkimme Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -32,8 +32,7 @@ OBJ = \
 	YoonAllen2DT.o \
 	YoonAllen3DT.o \
 	TvergHutch3DT.o \
-	TiedPotentialBaseT.o \
-	From2Dto3DT.o 
+	TiedPotentialBaseT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -65,8 +64,7 @@ SRC = \
 	YoonAllen2DT.cpp \
 	YoonAllen3DT.cpp \
 	TvergHutch3DT.cpp \
-	TiedPotentialBaseT.cpp \
-	From2Dto3DT.cpp 
+	TiedPotentialBaseT.cpp 
 
 ##################### (3) headers
 #
@@ -90,8 +88,7 @@ HDR = \
 	YoonAllen2DT.h \
 	YoonAllen3DT.h \
 	TvergHutch3DT.h \
-	TiedPotentialBaseT.h \
-	From2Dto3DT.h
+	TiedPotentialBaseT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

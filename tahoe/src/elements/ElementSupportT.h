@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.23 2003-05-28 23:26:42 cjkimme Exp $ */
+/* $Id: ElementSupportT.h,v 1.22 2003-02-07 21:50:51 cjkimme Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -9,7 +9,7 @@
 /* direct members */
 #include "GlobalT.h"
 #include "dArray2DT.h"
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 #include "FieldT.h"
 #else
 #include "StringT.h"
@@ -19,7 +19,7 @@
 namespace Tahoe {
 
 /* forward declarations */
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 class FEManagerT;
 class NodeManagerT;
 class XDOF_ManagerT;
@@ -49,7 +49,7 @@ class ElementSupportT
 {
 public:
 
-#ifdef _FRACTURE_INTERFACE_LIBRARY_
+#ifdef _SIERRA_TEST_
 	/* Parameters normally read from input stream must be passed through ElementSupport */
 	enum CodeT { kGeometryCode = 0, /**< Topology of surface element */
 	    		    kNumIntPts = 1, /**< Number of integration points */
@@ -61,7 +61,7 @@ public:
 	/** constructor */
 	ElementSupportT(void);
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 
 	/** \name initialization 
 	 * Cached values are reset when source are reset */
@@ -78,12 +78,12 @@ public:
 	/** Tahoe version string */
 	const char* Version(void) const;
 
-#endif // ndef _FRACTURE_INTERFACE_LIBRARY_
+#endif // ndef _SIERRA_TEST_
 
 	/** verbose echo */
 	bool PrintInput(void) const;
 	
-#ifdef _FRACTURE_INTERFACE_LIBRARY_
+#ifdef _SIERRA_TEST_
 
 	/** set the number of nodes in the fracture interface */
 	void SetNumNodes(int nn);	
@@ -148,7 +148,7 @@ public:
 	
 	void SetResidual(double *nodalForces);
 
-#endif // def _FRACTURE_INTERFACE_LIBRARY_
+#endif // def _SIERRA_TEST_
 
 	/** number of nodes */
 	int NumNodes(void) const;
@@ -203,7 +203,7 @@ public:
 	/** index of the element group in the list of elements */
 	int ElementGroupNumber(const ElementBaseT* element) const;
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 
 	/** the element group at the specified index in the element list */
 	ElementBaseT& ElementGroup(int index) const;
@@ -288,7 +288,7 @@ public:
 
 	/** register the output set. returns the ID that should be used with
 	 * ElementSupport::WriteOutput */
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	int RegisterOutput(const OutputSetT& output_set) const;
 #else
 	/** for SIERRA interface, we're just holding the data till they want it */
@@ -301,7 +301,7 @@ public:
 	 * \param e_values element output values */
 	void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const;
 	
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	/** return a reference to the output set with the given ID */
 	const OutputSetT& OutputSet(int ID) const;
 #endif
@@ -309,7 +309,7 @@ public:
 
 private:
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
  	/** \name verified access 
 	 * Use these if you don't want to keep checking that the pointers
 	 * have been initialized. */
@@ -324,7 +324,7 @@ private:
 
 private:
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 
 	/** \name managers */
 	/*@{*/
@@ -352,7 +352,7 @@ private:
 	const GlobalT::StateT* fRunState;
 	/*@}*/
 
-#ifdef _FRACTURE_INTERFACE_LIBRARY_	
+#ifdef _SIERRA_TEST_	
  
 	dArrayT *fResidual;
 	dMatrixT *fStiffness;
@@ -385,7 +385,7 @@ private:
 	
 };
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 /* the top-level manager */
 inline FEManagerT& ElementSupportT::FEManager(void) const
 {
@@ -411,7 +411,7 @@ inline iArrayT *ElementSupportT::IntInput(void) const { return iparams; }
 inline const GlobalT::StateT& ElementSupportT::RunState(void) const
 {
 	if (!fRunState)
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 		ExceptionT::GeneralFail("ElementSupportT::RunState", "not set");
 #else
 	        throw ExceptionT::kGeneralFail;
@@ -431,7 +431,7 @@ inline ModelManagerT& ElementSupportT::Model(void) const
 inline CommManagerT& ElementSupportT::CommManager(void) const
 {
 	if (!fCommManager) 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 		ExceptionT::GeneralFail("ElementSupportT::CommManager", "pointer not set");
 #else
 	        throw ExceptionT::kGeneralFail;
@@ -446,7 +446,7 @@ inline int ElementSupportT::NumNodes(void) const
 	if (!fInitialCoordinates) ExceptionT::GeneralFail("ElementSupportT::NumNodes", 
 		"no initial coordinates");
 #endif
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return fInitialCoordinates->MajorDim();
 #else
 	return fNumNodes;
@@ -460,7 +460,7 @@ inline int ElementSupportT::NumSD(void) const
 	if (!fInitialCoordinates) ExceptionT::GeneralFail("ElementSupportT::NumSD", 
 		"no initial coordinates");
 #endif
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	return fInitialCoordinates->MinorDim();
 #else
 	return fNumSD;

@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.cpp,v 1.8 2003-06-24 23:46:06 saubry Exp $ */
+/* $Id: ParadynEAMT.cpp,v 1.5 2003-05-08 01:07:19 saubry Exp $ */
 #include "ParadynEAMT.h"
 
 #include "toolboxConstants.h"
@@ -38,8 +38,6 @@ ParadynEAMT::ParadynEAMT(const StringT& param_file):
   if (!in.is_open())
     ExceptionT::BadInputValue(caller, "error opening file: %s", fParams.Pointer());
   
-  dArrayT tmp;	
-
   /* read comment line */
   fDescription.GetLineFromStream(in);
   
@@ -47,7 +45,7 @@ ParadynEAMT::ParadynEAMT(const StringT& param_file):
   double mass;
   in >> fAtomicNumber >> mass 
      >> fLatticeParameter >> fStructure;
-  
+
   /* Adjust mass like in interpolate.F of ParaDyn */
   double conmas = 1.0365e-4;
   mass *= conmas;
@@ -63,33 +61,36 @@ ParadynEAMT::ParadynEAMT(const StringT& param_file):
       dr < 0.0 ||
       f_cut < 0.0) ExceptionT::BadInputValue(caller);
   
+  /* read tables of F(rho),z(r) and rho(r) */
+  dArrayT tmp;	
+
   /* Embedding Energy, frhoin in ParaDyn */
   tmp.Dimension(np);
   in >> tmp;
   /* compute spline coefficients for Embedded energy */
   ComputeCoefficients(tmp, dp, fEmbedCoeff);
   rho_inc = 1.0/dp;
-  
+    
   /* Pair Energy, zrin in ParaDyn 
      Note: It is only z at this point, not phi = z^2/r */
   tmp.Dimension(nr);
   in >> tmp;
-  
+
   /* adjust units */
   for (int j = 0; j < nr; j++)
     tmp[j] *= sqrt(27.2*0.529);
-  
+
   f_inc = 1.0/dr;
-  
-  /* compute spline coefficients for z */
+
+  /* compute spline coefficients for z^2 */
   ComputeCoefficients(tmp, dr, fPairCoeff);
-  
+
   /* Electron Density, rhoin in ParaDyn, 
      assume that z and rho grids coincide */
   in >> tmp;
   /* compute spline coefficients for Electron Density  */
   ComputeCoefficients(tmp, dr, fElectronDensityCoeff);
-  
+
   /* inherited */
   SetMass(mass);
   SetRange(f_cut);

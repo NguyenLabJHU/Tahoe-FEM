@@ -1,4 +1,4 @@
-/* $Id: YoonAllen2DT.cpp,v 1.12 2003-05-28 23:15:27 cjkimme Exp $ */
+/* $Id: YoonAllen2DT.cpp,v 1.10 2003-05-20 10:34:35 paklein Exp $ */
 #include "YoonAllen2DT.h"
 
 #include <iostream.h>
@@ -122,7 +122,7 @@ double YoonAllen2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& stat
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate)
+const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
 {
 	const char caller[] = "YoonAllen2DT::Traction";
 #pragma unused(sigma)
@@ -466,7 +466,7 @@ SurfacePotentialT::StatusT YoonAllen2DT::Status(const dArrayT& jump_u,
 
 void YoonAllen2DT::PrintName(ostream& out) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	out << " Yoon-Allen 2D \n";
 #endif
 }
@@ -474,7 +474,7 @@ void YoonAllen2DT::PrintName(ostream& out) const
 /* print parameters to the output stream */
 void YoonAllen2DT::Print(ostream& out) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	out << " Cohesive stress . . . . . . . . . . . . . . . . = " << fsigma_0   << '\n';
 	out << " Normal length scale . . . . . . . . . . . . . . = " << fd_c_n     << '\n';
 	out << " Tangential length scale . . . . . . . . . . . . = " << fd_c_t     << '\n';
@@ -515,7 +515,7 @@ void YoonAllen2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& st
 	dArrayT& output)
 {
 #pragma unused(jump_u)
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif	

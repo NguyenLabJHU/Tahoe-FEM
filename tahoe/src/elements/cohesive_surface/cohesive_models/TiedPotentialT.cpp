@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.22 2003-06-09 06:44:36 paklein Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.18 2003-04-22 19:02:06 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -73,9 +73,9 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in):
 	}
 	else
 	{
-		in >> q;	// phi_t/phi_n
-		in >> r; //delta_n* /d_n
-		if (q < 0.0 || r < 0.0) throw ExceptionT::kBadInputValue;
+	  	in >> q;	// phi_t/phi_n
+	  	in >> r; //delta_n* /d_n
+	  	if (q < 0.0 || r < 0.0) throw ExceptionT::kBadInputValue;
 	
 		in >> d_n; if (d_n <= kSmall) throw ExceptionT::kBadInputValue;
 		in >> d_t; if (d_t <= kSmall) throw ExceptionT::kBadInputValue;
@@ -125,7 +125,7 @@ double TiedPotentialT::Potential(const dArrayT& jump_u, const ArrayT<double>& st
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate)
+const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
@@ -301,7 +301,7 @@ SurfacePotentialT::StatusT TiedPotentialT::Status(const dArrayT& jump_u,
 
 void TiedPotentialT::PrintName(ostream& out) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	out << "    TiedPotentialT (modified Xu-Needleman) 2D \n";
 #endif
 }
@@ -309,7 +309,7 @@ void TiedPotentialT::PrintName(ostream& out) const
 /* print parameters to the output stream */
 void TiedPotentialT::Print(ostream& out) const
 {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	out <<  " Tangential Component of traction direction. . . = " << fnvec1 << '\n';
 	out <<  " Normal Component of traction direction. . . . . = " << fnvec2 << '\n';	
 	out << 	" Critical traction mag for nodal release . . . . = " << fsigma_critical << '\n';		
@@ -357,17 +357,17 @@ void TiedPotentialT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& 
 	output[0] = 0.;//state[nTiedFlag];
 }
 
-bool TiedPotentialT::NeedsNodalInfo(void) const { return true; }
+bool TiedPotentialT::NeedsNodalInfo(void) { return true; }
 
-bool TiedPotentialT::NodesMayRetie(void) const { return qRetieNodes; }
+bool TiedPotentialT::NodesMayRetie(void) { return qRetieNodes; }
 
 
-int TiedPotentialT::NodalQuantityNeeded(void) const
+int TiedPotentialT::NodalQuantityNeeded(void) 
 { 
         return kAverageCode; /*get stress tensor from bulk */ 
 }
 
-bool TiedPotentialT::InitiationQ(const nArrayT<double>& sigma) const
+bool TiedPotentialT::InitiationQ(const double* sigma) 
 {
 	double t1 = sigma[0]*fnvec1+sigma[2]*fnvec2;
 	double t2 = sigma[2]*fnvec1+sigma[1]*fnvec2;
@@ -375,8 +375,8 @@ bool TiedPotentialT::InitiationQ(const nArrayT<double>& sigma) const
 	return t1*t1 + t2*t2 >= fsigma_critical;
 }
 
-bool TiedPotentialT::RetieQ(const nArrayT<double>& sigma, const ArrayT<double>& state,
-							const dArrayT& jump_u) const
+bool TiedPotentialT::RetieQ(const double* sigma, const ArrayT<double>& state,
+							const dArrayT& jump_u)
 {
 #pragma unused(state)
 #pragma unused(sigma)
@@ -387,9 +387,6 @@ bool TiedPotentialT::RetieQ(const nArrayT<double>& sigma, const ArrayT<double>& 
 	else 
 		return false;
 }
-
-/* location in state variable array of the state flag */
-int TiedPotentialT::TiedStatusPosition(void) const { return nTiedFlag; }
 
 bool TiedPotentialT::CompatibleOutput(const SurfacePotentialT& potential) const
 {

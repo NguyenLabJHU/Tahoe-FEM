@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.21 2003-05-26 01:51:46 paklein Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.20 2003-03-26 20:00:08 cjkimme Exp $ */
 /* created: paklein (06/20/1999) */
 
 #ifndef _SURFACE_POTENTIAL_T_H_
@@ -71,7 +71,7 @@ public:
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate) = 0;
+	virtual const dArrayT& Traction(const dArrayT& jump, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate) = 0;
 
 	/** tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump, const ArrayT<double>& state, const dArrayT& sigma) = 0;

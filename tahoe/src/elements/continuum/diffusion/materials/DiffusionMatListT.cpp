@@ -1,4 +1,4 @@
-/* $Id: DiffusionMatListT.cpp,v 1.5 2003-06-09 06:53:11 paklein Exp $ */
+/* $Id: DiffusionMatListT.cpp,v 1.4 2002-11-14 17:06:22 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "DiffusionMatListT.h"
 #include "DiffusionMatSupportT.h"
@@ -6,9 +6,13 @@
 
 /* diffusion materials */
 #include "DiffusionMaterialT.h"
-#include "NLDiffusionMaterialT.h"
 
 using namespace Tahoe;
+
+/* diffusion materials */
+const int kLinear      = 1;
+const int kMaterialMin = 1;
+const int kMaterialMax = 1;
 
 /* constructors */
 DiffusionMatListT::	DiffusionMatListT(int length, const DiffusionMatSupportT& support):
@@ -21,8 +25,6 @@ DiffusionMatListT::	DiffusionMatListT(int length, const DiffusionMatSupportT& su
 /* read material data from the input stream */
 void DiffusionMatListT::ReadMaterialData(ifstreamT& in)
 {
-	const char caller[] = "DiffusionMatListT::ReadMaterialData";
-
 	/* read material data */
 	for (int i = 0; i < fLength; i++)
 	{
@@ -31,11 +33,17 @@ void DiffusionMatListT::ReadMaterialData(ifstreamT& in)
 		in >> matcode;
 		
 		/* checks */
-		if (matnum < 0  || matnum >= fLength) ExceptionT::BadInputValue(caller);
+		if (matnum < 0  || matnum >= fLength) throw ExceptionT::kBadInputValue;
+		if (matcode < kMaterialMin ||
+		    matcode > kMaterialMax) throw ExceptionT::kBadInputValue;
 
 		/* repeated material number */
 		if (fArray[matnum] != NULL)
-			ExceptionT::BadInputValue(caller, "repeated material number: %d", matnum+1);
+		{
+			cout << "\n DiffusionMatListT::ReadMaterialData: repeated material number: ";
+			cout << matnum + 1 << endl;
+			throw ExceptionT::kBadInputValue;
+		}
 		
 		/* add to the list of materials */
 		switch (matcode)
@@ -45,16 +53,14 @@ void DiffusionMatListT::ReadMaterialData(ifstreamT& in)
 				fArray[matnum] = new DiffusionMaterialT(in, fDiffusionMatSupport);
 				break;
 			}
-			case kNonLinear:
-			{
-				fArray[matnum] = new NLDiffusionMaterialT(in, fDiffusionMatSupport);
-				break;
-			}
 			default:
-				ExceptionT::BadInputValue(caller, "unknown material code: %d", matcode);
+			
+				cout << "\n DiffusionMatListT::ReadMaterialData: unknown material code: ";
+				cout << matcode << '\n' << endl;
+				throw ExceptionT::kBadInputValue;
 		}
 
 		/* verify construction */
-		if (!fArray[matnum]) ExceptionT::OutOfMemory(caller);
+		if (!fArray[matnum]) throw ExceptionT::kOutOfMemory;
 	}
 }

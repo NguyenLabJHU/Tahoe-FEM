@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.4 2003-05-21 23:48:15 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.4.2.9 2003-07-03 00:14:11 hspark Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -11,6 +11,7 @@
 
 /* direct members */
 #include "PointInCellDataT.h"
+#include "nMatrixT.h"
 
 namespace Tahoe {
 
@@ -20,6 +21,7 @@ class BridgingScaleT;
 class KBC_PrescribedT;
 class dSPMatrixT;
 
+/** extension of FEManagerT for bridging scale calculations */
 class FEManagerT_bridging: public FEManagerT
 {
 public:
@@ -61,6 +63,13 @@ public:
 	/** initialize the ghost node information */
 	void InitGhostNodes(void);
 
+	/** prescribe the motion of ghost nodes. Generate KBC cards to control the
+	 * ghost node motion. Assumes all components of the ghost node motion are
+	 * prescribed, and that all are prescribed with the same KBC_CardT::CodeT. 
+	 * Ghost node information must be initialized by calling 
+	 * FEManagerT_bridging::InitGhostNodes first. */
+	void SetGhostNodeKBC(KBC_CardT::CodeT code, const dArray2DT& values);
+
 	/** return list of ghost nodes */
 	const iArrayT& GhostNodes(void) const { return fGhostNodes; };
 
@@ -68,11 +77,11 @@ public:
 	const iArrayT& NonGhostNodes(void) const { return fNonGhostNodes; };
 
 	/** compute the ghost-nonghost part of the stiffness matrix */
-	void Form_G_NG_Stiffness(const StringT& field, dSPMatrixT& K_G_NG);
+	void Form_G_NG_Stiffness(const StringT& field, int element_group, dSPMatrixT& K_G_NG);
 	/*@}*/
 
 	/** write field values for the given nodes */
-	void SetFieldValues(const StringT& field, const iArrayT& nodes, 
+	void SetFieldValues(const StringT& field, const iArrayT& nodes, int order,
 		const dArray2DT& values);
 
 	/** \name interpolation and projection operators */
@@ -85,7 +94,7 @@ public:
 
 	/** field interpolations. Interpolate the field to the nodes initialized
 	 * with the latest call to FEManagerT_bridging::InitInterpolation. */
-	void InterpolateField(const StringT& field, dArray2DT& nodal_values);
+	void InterpolateField(const StringT& field, int order, dArray2DT& nodal_values);
 
 	/** return the interpolation matrix associated with the active degrees
 	 * of freedom */
@@ -103,7 +112,7 @@ public:
 
 	/** project the point values onto the mesh. Project to the nodes using
 	 * projection initialized with the latest call to FEManagerT_bridging::InitProjection. */
-	void ProjectField(const StringT& field, NodeManagerT& node_manager);
+	void ProjectField(const StringT& field, NodeManagerT& node_manager, int order);
 	/*@}*/
 
 	/** calculate the fine scale part of MD solution as well as total displacement u.  Does not
@@ -113,7 +122,8 @@ public:
 	
 	/** calculate the initial FEM displacement via projection of initial MD displacement.  Differs 
 	  * from BridgingFields in that projected FE nodal values written into displacement field */
-	void InitialProject(const StringT& field, NodeManagerT& atom_node_manager, dArray2DT& projectedu);
+	void InitialProject(const StringT& field, NodeManagerT& atom_node_manager, dArray2DT& projectedu,
+		int order);
 	/*@}*/
 
 	/** (re-)set the equation number for the given group */
@@ -133,20 +143,19 @@ public:
 	 * most recent call to FEManagerT_bridging::FormRHS. */
 	const dArray2DT& InternalForce(int group) const;
 
+	/** return the properties map for the given element group. The element group must be
+	 * a particle type; otherwise, an exception will be thrown. */
+	nMatrixT<int>& PropertiesMap(int element_group);
+
 protected:
 
 	/** initialize solver information */
 	virtual void SetSolver(void);
 
-private:
-
 	/** map coordinates into elements. Temporarily limited to elements
 	 * within a single element block */
 	void MaptoCells(const iArrayT& nodes, const dArray2DT& coords, iArrayT& cell_num,
 		dArray2DT& cell_coords) const;
-
-	/** the particle element group */
-	ParticleT& Particle(void) const;
 
 	/** the bridging scale element group */
 	BridgingScaleT& BridgingScale(void) const;
@@ -158,8 +167,6 @@ private:
 
 	/** \name ghost node information */
 	/*@{*/
-	ParticleT* fParticle;
-	
 	/** list of my ghost nodes */
 	iArrayT fGhostNodes;
 

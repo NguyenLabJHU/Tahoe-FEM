@@ -1,4 +1,4 @@
-/* $Id: YoonAllen2DT.h,v 1.8 2003-05-26 01:51:46 paklein Exp $ */
+/* $Id: YoonAllen2DT.h,v 1.7 2003-03-19 00:53:27 cjkimme Exp $ */
 /* created: cjkimme (05/28/2002) */
 
 #ifndef _YOON_ALLEN_2D_T_H_
@@ -35,7 +35,7 @@ public:
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate);
+	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate);
 
 	/** tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);

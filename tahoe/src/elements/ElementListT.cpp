@@ -1,8 +1,7 @@
-/* $Id: ElementListT.cpp,v 1.55 2003-07-09 23:30:42 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.50.6.2 2003-06-17 17:02:40 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
-
 #ifdef __DEVELOPMENT__
 #include "DevelopmentElementsConfig.h"
 #endif
@@ -35,7 +34,6 @@
 #include "SimoFiniteStrainT.h"
 #include "SimoQ1P0.h"
 #include "DiffusionElementT.h"
-#include "NLDiffusionElementT.h"
 #include "MeshFreeSSSolidT.h"
 #include "MeshFreeFSSolidT.h"
 #include "D2MeshFreeFSSolidT.h"
@@ -44,7 +42,6 @@
 
 #ifdef BRIDGING_ELEMENT
 #include "BridgingScaleT.h"
-#include "MeshfreeBridgingT.h"
 #endif
 
 #ifdef CONTACT_ELEMENT
@@ -84,14 +81,9 @@
 #include "StaggeredMultiScaleT.h"
 #endif
 
-#ifdef DORGAN_VOYIADJIS_MARIN_DEV
-#include "DorganVoyiadjisMarin.h"
-#endif
-
 #ifdef SOLID_ELEMENT_DEV
 #include "UpdatedLagrangianMF.h"
 #include "SmallStrainMF.h"
-#include "SmallStrainMF2.h"
 #endif
 
 using namespace Tahoe;
@@ -100,6 +92,17 @@ using namespace Tahoe;
 ElementListT::ElementListT(void)
 {
 
+}
+
+/* destructor */
+ElementListT::~ElementListT(void)
+{
+	/* activate all */
+	if (fAllElementGroups.Length() > 0) {
+		ArrayT<bool> mask(fAllElementGroups.Length());
+		mask = true;
+		SetActiveElementGroupMask(mask);
+	}
 }
 
 /* initialization functions */
@@ -152,8 +155,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				}
 				case GlobalT::kLinStaticHeat:
 				case GlobalT::kLinTransHeat:
-				case GlobalT::kNLStaticHeat:
-				case GlobalT::kNLTransHeat:
 				{
 					field = fSupport.Field("temperature");
 					break;
@@ -460,15 +461,6 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
 #endif
 			}
-			case ElementT::kNonLinearDiffusion:
-			{
-#ifdef CONTINUUM_ELEMENT
-				fArray[group] = new NLDiffusionElementT(fSupport, *field);
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
-#endif
-			}
 			case ElementT::kMFCohesiveSurface:
 			{
 #ifdef COHESIVE_SURFACE_ELEMENT
@@ -538,7 +530,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			}
 		case ElementT::kBridgingScale:
 		{
-#if defined (BRIDGING_ELEMENT) && defined (CONTINUUM_ELEMENT)
+#if defined (BRIDGING_ELEMENT) && defined (CONTINUUM_ELEMENT) && defined(SPRING_ELEMENT)
 			/* associated group numbers */
 			int solid_group = -99;
 			in >> solid_group;
@@ -550,24 +542,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			fArray[group] = new BridgingScaleT(fSupport, *field, *solid);
 		    break;
 #else
-				ExceptionT::BadInputValue(caller, "BRIDGING_ELEMENT or CONTINUUM_ELEMENT not enabled: %d", code);
-#endif				
-		}
-		case ElementT::kMeshfreeBridging:
-		{
-#if defined (BRIDGING_ELEMENT) && defined (CONTINUUM_ELEMENT)
-			/* associated group numbers */
-			int solid_group = -99;
-			in >> solid_group;
-
-			const SolidElementT* solid = dynamic_cast<const SolidElementT*>(&(fSupport.ElementGroup(--solid_group)));
-			if (!solid)
-				ExceptionT::BadInputValue(caller, "unable to cast pointer to group %d to type SolidElementT", solid_group+1);
-
-			fArray[group] = new MeshfreeBridgingT(fSupport, *field, *solid);
-		    break;
-#else
-				ExceptionT::BadInputValue(caller, "BRIDGING_ELEMENT or CONTINUUM_ELEMENT not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "BRIDGING_ELEMENT, CONTINUUM_ELEMENT, or SPRING_ELEMENT not enabled: %d", code);
 #endif				
 		}
 		case ElementT::kAdhesion:
@@ -604,7 +579,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				fArray[group] = new UpdatedLagrangianMF(fSupport, *field);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
 #endif
 			}
 			case ElementT::kSSMatForce:
@@ -613,37 +588,9 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				fArray[group] = new SmallStrainMF(fSupport, *field);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
 #endif
 			}
-		case ElementT::kDorganVoyiadjisMarin:
-		{
-#ifdef DORGAN_VOYIADJIS_MARIN_DEV
-			/* displacement field read above */
-			const FieldT* disp = field;
-
-			/* hardness field */				
-			StringT hardness_field_name;
-			in >> hardness_field_name;
-			const FieldT* hardness = fSupport.Field(hardness_field_name);
-			if (!disp || !hardness)
-				ExceptionT::BadInputValue(caller, "error resolving field names");
-
-			fArray[group] = new DorganVoyiadjisMarin(fSupport, *disp, *hardness);
-			break;
-#else
-			ExceptionT::BadInputValue(caller, "DORGAN_VOYIADJIS_MARIN_DEV not enabled: %d", code);
-#endif			
-			}
-			case ElementT::kTest:
-			{
-#ifdef SOLID_ELEMENT_DEV
-				fArray[group] = new SmallStrainMF2(fSupport, *field);
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
-#endif
-		}
 		default:
 			ExceptionT::BadInputValue(caller, "unknown element type: %d", code);
 		}
@@ -661,7 +608,8 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		ParticleT* particle = dynamic_cast<ParticleT*>(e_group);
 		if (particle) count++;
 	}
-	if (count > 1) ExceptionT::BadInputValue(caller, "only one particle group allowed: %d", count);
+//	if (count > 1) ExceptionT::BadInputValue(caller, "only one particle group allowed: %d", count);
+	if (count > 1) cout << "\n " << caller << ": WARNING found more than 1 particle group" << endl;
 #endif
 }
 
@@ -693,4 +641,39 @@ bool ElementListT::HasContact(void) const
 	return false;
 #endif /* CONTACT_ELEMENT */
 #endif /* __NO_RTTI__ */
+}
+
+/* change the number of active element groups */
+void ElementListT::SetActiveElementGroupMask(const ArrayT<bool>& mask)
+{
+	/* first time */
+	if (fAllElementGroups.Length() == 0) 
+	{
+		/* cache all pointers */
+		fAllElementGroups.Dimension(Length());
+		for (int i = 0; i < fAllElementGroups.Length(); i++)
+		{
+			ElementBaseT* element = (*this)[i];
+			fAllElementGroups[i] = element;
+		}
+	}
+
+	/* check */
+	if (mask.Length() != fAllElementGroups.Length())
+		ExceptionT::SizeMismatch("ElementListT::SetActiveElementGroupMask",
+			"expecting mask length %d not %d", fAllElementGroups.Length(), mask.Length());
+
+	/* reset active element groups */
+	int num_active = 0;
+	for (int i = 0; i < mask.Length(); i++)
+		if (mask[i])
+			num_active++;
+			
+	/* cast this to an ArrayT */
+	ArrayT<ElementBaseT*>& element_list = *this;
+	element_list.Dimension(num_active);
+	num_active = 0;
+	for (int i = 0; i < mask.Length(); i++)
+		if (mask[i])
+			element_list[num_active++] = fAllElementGroups[i];
 }

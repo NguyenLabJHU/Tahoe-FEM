@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.33 2003-06-09 07:03:14 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.30 2003-05-21 23:48:17 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -38,8 +38,6 @@
 #include "SymmetricNodesT.h"
 #include "PeriodicNodesT.h"
 #include "ScaledVelocityNodesT.h"
-#include "SetOfNodesKBCT.h"
-#include "TorsionKBCT.h"
 
 using namespace Tahoe;
 
@@ -291,8 +289,6 @@ void NodeManagerT::RegisterCoordinates(LocalArrayT& array) const
 
 /* the local node to home processor map */
 const ArrayT<int>* NodeManagerT::ProcessorMap(void) const { return fFEManager.ProcessorMap(); }
-
-CommManagerT& NodeManagerT::CommManager(void) const { return fCommManager; }
 
 /* read/write access to the coordinate update field */
 dArray2DT* NodeManagerT::CoordinateUpdate(void)
@@ -1292,9 +1288,12 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 				ExceptionT::BadInputValue(caller, "field at index %d is already set", index+1);
 
 			/* check for field with same name */
-			if (Field(name)) 
-				ExceptionT::BadInputValue(caller, "field name %s already exists", name.Pointer());
-
+			if (Field(name)) {
+				cout << "\n NodeManagerT::EchoFields: field with name " << name 
+				     << " already exists" << endl;
+				throw ExceptionT::kBadInputValue;
+			}
+			
 			/* read: dof labels */
 			ArrayT<StringT> labels(ndof);
 			for (int j = 0; j < labels.Length(); j++)
@@ -1302,7 +1301,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			
 			/* get integrator */
 			nIntegratorT* controller = fFEManager.nIntegrator(cont_num);
-			if (!controller) ExceptionT::GeneralFail(caller);
+			if (!controller) throw ExceptionT::kGeneralFail;
 
 			/* new field */			
 			FieldT* field = new FieldT(name, ndof, *controller);
@@ -1314,7 +1313,10 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 
 			/* coordinate update field */
 			if (name == "displacement") {
-				if (fCoordUpdate) ExceptionT::BadInputValue(caller, "\"displacement\" field already set");
+				if (fCoordUpdate) {
+					cout << "\n NodeManagerT::EchoFields: \"displacement\" field already set" << endl;
+					throw ExceptionT::kBadInputValue;
+				}
 				fCoordUpdate = field;
 				fCurrentCoords = new dArray2DT;
 				fCurrentCoords_man.SetWard(0, *fCurrentCoords, NumSD());
@@ -1343,7 +1345,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 		fFields = NULL;
 		fMessageID.Dimension(1);
 		nIntegratorT* controller = fFEManager.nIntegrator(0);
-		if (!controller) ExceptionT::GeneralFail(caller);
+		if (!controller) throw ExceptionT::kGeneralFail;
 		
 		/* field config set by analysis type */
 		FieldT* field = NULL;
@@ -1372,8 +1374,6 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			}
 			case GlobalT::kLinTransHeat:
 			case GlobalT::kLinStaticHeat:
-			case GlobalT::kNLStaticHeat:
-			case GlobalT::kNLTransHeat:
 			{
 				field = new FieldT("temperature", 1, *controller);				
 
@@ -1383,8 +1383,15 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 				field->SetLabels(labels);
 				break;
 			}
+			case GlobalT::kPML:
+			{
+				cout << "\n NodeManagerT::EchoFields: don't know how to configure\n"
+				     <<   "     fields for PML analysis code: " << GlobalT::kPML << endl;
+				throw ExceptionT::kGeneralFail;
+			}			
 			default:
-				ExceptionT::GeneralFail(caller, "unrecognized analysis code %d", fFEManager.Analysis());
+				cout << "\nFEManagerT::SetController: unknown controller type\n" << endl;
+				throw ExceptionT::kBadInputValue;
 		}
 		
 		/* check */
@@ -1402,7 +1409,10 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 
 		/* coordinate update field */
 		if (field->Name() == "displacement") {
-			if (fCoordUpdate) ExceptionT::BadInputValue(caller, "\"displacement\" field already set");
+			if (fCoordUpdate) {
+				cout << "\n NodeManagerT::EchoFields: \"displacement\" field already set" << endl;
+				throw ExceptionT::kBadInputValue;
+			}
 			fCoordUpdate = field;
 			fCurrentCoords = new dArray2DT(InitialCoordinates());
 		}
@@ -1759,16 +1769,6 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 		case KBC_ControllerT::kScaledVelocityNodes:
 		{
 			ScaledVelocityNodesT* kbc = new ScaledVelocityNodesT(*this, field);
-			return kbc;
-		}
-		case KBC_ControllerT::kSetOfNodesKBC:
-		{
-			SetOfNodesKBCT* kbc = new SetOfNodesKBCT(*this, field);
-			return kbc;
-		}
-		case KBC_ControllerT::kTorsion:
-		{
-			TorsionKBCT* kbc = new TorsionKBCT(*this, fFEManager.Time());
 			return kbc;
 		}
 		default:

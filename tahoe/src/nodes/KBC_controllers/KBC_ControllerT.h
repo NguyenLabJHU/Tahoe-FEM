@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.18 2003-05-31 18:19:40 paklein Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.16 2003-04-24 20:40:24 cjkimme Exp $ */
 /* created: paklein (09/05/2000) */
 
 #ifndef _KBC_CONTROLLER_T_H_
@@ -39,9 +39,7 @@ public:
          kSymmetricNodes = 4,
           kPeriodicNodes = 5,
              kPrescribed = 6,
-    kScaledVelocityNodes = 7,
-          kSetOfNodesKBC = 8,
-                kTorsion = 9};
+    kScaledVelocityNodes = 7};
 
 	/** constructor */
 	KBC_ControllerT(NodeManagerT& node_manager);

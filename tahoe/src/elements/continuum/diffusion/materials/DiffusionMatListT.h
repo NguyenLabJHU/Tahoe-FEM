@@ -1,4 +1,4 @@
-/* $Id: DiffusionMatListT.h,v 1.5 2003-06-09 06:53:11 paklein Exp $ */
+/* $Id: DiffusionMatListT.h,v 1.4 2002-11-14 17:06:22 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSE_MAT_LIST_T_H_
 #define _DIFFUSE_MAT_LIST_T_H_
@@ -15,11 +15,6 @@ class DiffusionMatSupportT;
 class DiffusionMatListT: public MaterialListT
 {
 public:
-
-	/** enum defining material types */
-	enum TypeT {
-        kLinear = 1,
-     kNonLinear = 2};
 
 	/** constructors */
 	DiffusionMatListT(int length, const DiffusionMatSupportT& support);

@@ -1,4 +1,4 @@
-/* $Id: DiffusionMatSupportT.cpp,v 1.5 2003-06-09 06:53:58 paklein Exp $ */
+/* $Id: DiffusionMatSupportT.cpp,v 1.4 2003-01-29 07:34:33 paklein Exp $ */
 #include "DiffusionMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -11,17 +11,10 @@ using namespace Tahoe;
 /* constructor */
 DiffusionMatSupportT::DiffusionMatSupportT(int nsd, int ndof, int nip):
 	MaterialSupportT(nsd, ndof, nip),
-	fField_list(NULL),
 	fGradient_list(NULL),
 	fDiffusion(NULL)
 {
 
-}
-
-/* set the source for the gradient information */
-void DiffusionMatSupportT::SetField(const dArrayT* field_list)
-{
-	fField_list = field_list;
 }
 
 /* set the source for the gradient information */

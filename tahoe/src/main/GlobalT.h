@@ -1,4 +1,4 @@
-/* $Id: GlobalT.h,v 1.9 2003-06-09 07:01:17 paklein Exp $ */
+/* $Id: GlobalT.h,v 1.8 2002-07-05 22:28:07 paklein Exp $ */
 /* created: paklein (02/03/1999) */
 
 #ifndef _GLOBAL_T_H_
@@ -24,10 +24,8 @@ public:
 		             kDR = 5,  /**< this will be converted to a nonlinear solver method */
 		  kLinExpDynamic = 6,
 		   kNLExpDynamic = 7,
-		  kLinStaticHeat = 19, /**< linear steady-state heat conduction */
+		  kLinStaticHeat = 19, /**< linear static heat conduction */
 		   kLinTransHeat = 20, /**< linear transient heat conduction */
-		   kNLStaticHeat = 21, /**< nonlinear steady-state heat conduction */
-		    kNLTransHeat = 22, /**< nonlinear transient heat conduction */
 		            kPML = 30, /**< perfectly matched layer formulation */
 			 kMultiField = 99  /**< generalized analysis code */
 		   };
