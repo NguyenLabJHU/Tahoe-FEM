@@ -1,0 +1,1 @@
+/* $Id: tahoe.CW8.Mach-O.pch,v 1.1 2002-09-12 17:32:52 paklein Exp $ *//* pch wrapper needed for Mach-O * based on: * File: tahoe.CW8.pch * Date: 2002/02/04 21:29:13 * Revision: 1.2 */#define _MSL_USING_MW_C_HEADERS 1#include "tahoe.CW8.pch"
