@@ -1,4 +1,4 @@
-/* $Id: ScheduleT.cpp,v 1.8 2004-07-29 20:28:05 paklein Exp $ */
+/* $Id: ScheduleT.cpp,v 1.9 2004-10-20 21:21:02 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ScheduleT.h"
 #include "dArray2DT.h"
@@ -43,6 +43,9 @@ void ScheduleT::SetTime(double time)
 }
 
 double ScheduleT::Value(double time) const { return fFunction->Function(time); }
+
+double ScheduleT::Rate(void) const { return fFunction->DFunction(fCurrentTime); }
+double ScheduleT::Rate(double time) const { return fFunction->DFunction(time); }
 
 /* information about subordinate parameter lists */
 void ScheduleT::DefineSubs(SubListT& sub_list) const
