@@ -1,20 +1,18 @@
 2
-0
-6 3 
+1
+-5 2
+4 15
 FCC
 3.52
 BOX
 3
 PERIODICITY
 1 1
-ROTATION
-0
-45
 OUTPUT
 mesh2D
 #
 
-NOTE: Test 2D rotation of atoms in box
+NOTE: Test of length in 2D, output file, no rotation
 ------------------------------------------------------------
 * nsd
 * whichunit: length(1) or ncell(0)
@@ -26,6 +24,7 @@ NOTE: Test 2D rotation of atoms in box
 * one of these key works:
 PERIODICITY
 ROTATION
+SORT
 OUTPUT
 #
 
@@ -39,10 +38,16 @@ if ROTATION  (default is identity)
 * read either rotation angle in 2D or rotation matrix in 3D.
 (rk: if no rotation put either 0 or identity matrix).
 
+if SORT
+* isort(nsd) 
+example: isort = 2 1 0: sorts coordinates according to z (2) direction.
+(one criterion only up to now)
+Careful: code in c: x <=> 0, y <=> 1 and z <=> 2 !
+
 if OUTPUT (default is example)
 * name of output file
 
-Test of lengths in 2D, no rotation. 
+Test of rotation in 3D : cells, no rotation. 
 
 
 		case 0:
@@ -71,3 +76,4 @@ Test of lengths in 2D, no rotation.
 	                return IOBaseT::kTahoeResults;
 	       case 12:
 	                return IOBaseT::kParaDyn;
+
