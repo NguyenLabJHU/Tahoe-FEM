@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2003-01-29 09:10:59 paklein Exp $
+# $Id: makefile,v 1.1 2003-01-29 09:10:48 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,9 +6,10 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	eExplicitCD.o \
-	ExplicitCDIntegrator.o \
-	nExplicitCD.o
+	DiffusionMatListT.o \
+	DiffusionMatSupportT.o \
+	DiffusionMaterialT.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -17,16 +18,15 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	eExplicitCD.cpp \
-	ExplicitCDIntegrator.cpp \
-	nExplicitCD.cpp
+	DiffusionMatListT.cpp \
+	DiffusionMatSupportT.cpp \
+	DiffusionMaterialT.cpp
 
 # headers
 HDR = \
-	ExplicitCD.h \
-	eExplicitCD.h \
-	ExplicitCDIntegrator.h \
-	nExplicitCD.h
+	DiffusionMatListT.h \
+	DiffusionMatSupportT.h \
+	DiffusionMaterialT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

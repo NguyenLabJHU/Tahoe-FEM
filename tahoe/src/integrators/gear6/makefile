@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2002-07-05 22:22:06 hspark Exp $
+# $Id: makefile,v 1.2 2003-01-29 09:11:00 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,8 +7,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	eGear6.o \
-	Gear6Controller.o \
+	Gear6Integrator.o \
 	nGear6.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -18,15 +19,16 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	eGear6.cpp \
-	Gear6Controller.cpp \
+	Gear6Integrator.cpp \
 	nGear6.cpp
 
 # headers
 HDR = \
 	Gear6.h \
 	eGear6.h \
-	Gear6Controller.h \
+	Gear6Integrator.h \
 	nGear6.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories

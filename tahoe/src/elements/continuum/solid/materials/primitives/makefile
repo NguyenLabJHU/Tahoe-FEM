@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2001-07-03 01:35:43 paklein Exp $
+# $Id: makefile,v 1.6 2003-01-29 09:10:55 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,19 +7,18 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	Anisotropic2DT.o \
-	ContinuumMaterialT.o \
 	DetCheckT.o \
-	DiffusionMaterialT.o \
-	FDStructMatT.o \
+	FSSolidMatT.o \
+	SSSolidMatT.o \
 	IsotropicT.o \
 	Material2DT.o \
 	NL_E_MatT.o \
 	NL_E_Mat2DT.o \
 	NL_E_RotMat2DT.o \
-	SSStructMatT.o \
-	StructuralMaterialT.o \
+	SolidMaterialT.o \
 	ThermalDilatationT.o \
 	TensorTransformT.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -29,34 +28,30 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	Anisotropic2DT.cpp \
-	ContinuumMaterialT.cpp \
 	DetCheckT.cpp \
-	DiffusionMaterialT.cpp \
-	FDStructMatT.cpp \
+	FSSolidMatT.cpp \
+	SSSolidMatT.cpp \
 	IsotropicT.cpp \
 	Material2DT.cpp \
 	NL_E_MatT.cpp \
 	NL_E_Mat2DT.cpp \
 	NL_E_RotMat2DT.cpp \
-	SSStructMatT.cpp \
-	StructuralMaterialT.cpp \
+	SolidMaterialT.cpp \
 	ThermalDilatationT.cpp \
 	TensorTransformT.cpp
 
 # headers
 HDR = \
 	Anisotropic2DT.h \
-	ContinuumMaterialT.h \
 	DetCheckT.h \
-	DiffusionMaterialT.h \
-	FDStructMatT.h \
+	FSSolidMatT.h \
+	SSSolidMatT.h \
 	IsotropicT.h \
 	Material2DT.h \
 	NL_E_MatT.h \
 	NL_E_Mat2DT.h \
 	NL_E_RotMat2DT.h \
-	SSStructMatT.h \
-	StructuralMaterialT.h \
+	SolidMaterialT.h \
 	ThermalDilatationT.h \
 	TensorTransformT.h
 

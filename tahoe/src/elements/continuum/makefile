@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2003-01-29 09:10:44 paklein Exp $
+# $Id: makefile,v 1.1 2003-01-29 09:10:45 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -21,13 +21,9 @@ DEP = /dev/null
 
 # subdirectories
 SUB_DIR = \
-	config \
-	primitives \
-	integrators \
-	elements \
-	main \
-	nodes \
-	solvers
+	common \
+	diffusion \
+	solid
 
 subdir_driver: subdir_loop
 # SUB_DIR is empty

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2002-11-14 17:06:21 paklein Exp $
+# $Id: makefile,v 1.3 2003-01-29 09:10:51 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,12 +6,10 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	D2FDMatSupportT.o \
-	DiffusionMatSupportT.o \
-	FDMatSupportT.o \
-	MaterialSupportT.o \
+	SolidMatSupportT.o \
+	FSMatSupportT.o \
 	SSMatSupportT.o \
-	StructuralMatSupportT.o
+	D2FSMatSupportT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -21,21 +19,17 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	D2FDMatSupportT.cpp \
-	DiffusionMatSupportT.cpp \
-	FDMatSupportT.cpp \
-	MaterialSupportT.cpp \
+	SolidMatSupportT.cpp \
+	FSMatSupportT.cpp \
 	SSMatSupportT.cpp \
-	StructuralMatSupportT.cpp
+	D2FSMatSupportT.cpp
 
 # headers
 HDR = \
-	D2FDMatSupportT.h \
-	DiffusionMatSupportT.h \
-	FDMatSupportT.h \
-	MaterialSupportT.h \
+	SolidMatSupportT.h \
+	FSMatSupportT.h \
 	SSMatSupportT.h \
-	StructuralMatSupportT.h
+	D2FSMatSupportT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

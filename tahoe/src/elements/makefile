@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.12 2003-01-27 07:00:24 paklein Exp $
+# $Id: makefile,v 1.13 2003-01-29 09:10:44 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -11,6 +11,7 @@ OBJ = \
 	ElementBaseT.o \
 	DOFElementT.o \
 	ElementListT.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -32,16 +33,18 @@ HDR = \
 	ElementBaseT.h \
 	DOFElementT.h \
 	ElementListT.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # element configuration file
-include ../config/ElementsConfig.make
+include $(SRC_DIR)/config/ElementsConfig.make
 
 # subdirectories
 SUB_DIR = \
 	BEM_element \
-	rod \
 	adhesion \
+	spring \
+	shape_functions \
 	$(ELEMENTS_CONFIG_DIRECTORIES)
 
 subdir_driver: subdir_loop

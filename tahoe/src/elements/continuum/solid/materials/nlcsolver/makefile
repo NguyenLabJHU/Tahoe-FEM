@@ -8,7 +8,8 @@ OBJ = \
 	NLCSolverWrapper.o \
 	NLCSolverWrapperPtr.o \
 	NewtonMethodBase.o \
-	NewtonMethod.o
+	NewtonMethod.o \
+	Utils.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -23,7 +24,8 @@ SRC = \
 	NLCSolverWrapper.cpp \
 	NLCSolverWrapperPtr.cpp \
 	NewtonMethodBase.cpp \
-	NewtonMethod.cpp
+	NewtonMethod.cpp \
+	Utils.cpp
 
 # headers
 HDR = \
@@ -32,7 +34,8 @@ HDR = \
 	NLCSolverWrapper.h \
 	NLCSolverWrapperPtr.h \
 	NewtonMethodBase.h \
-	NewtonMethod.h
+	NewtonMethod.h \
+	Utils.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

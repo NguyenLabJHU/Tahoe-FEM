@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2002-06-27 01:21:05 hspark Exp $
+# $Id: makefile,v 1.8 2003-01-29 09:10:52 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,13 +6,12 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	DiffusionMatListT.o \
-	MaterialListT.o \
-	MaterialList1DT.o \
-	MaterialList2DT.o \
-	MaterialList3DT.o \
-	StructuralMatListT.o \
-	MaterialT.o
+	SolidMatListT.o \
+	SolidMatList1DT.o \
+	SolidMatList2DT.o \
+	SolidMatList3DT.o \
+	SolidMatListT.o \
+	SolidT.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -21,23 +20,22 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	DiffusionMatListT.cpp \
-	MaterialListT.cpp \
-	MaterialList1DT.cpp \
-	MaterialList2DT.cpp \
-	MaterialList3DT.cpp \
-	StructuralMatListT.cpp \
-	MaterialT.cpp
+	SolidMatListT.cpp \
+	SolidMatList1DT.cpp \
+	SolidMatList2DT.cpp \
+	SolidMatList3DT.cpp \
+	SolidMatListT.cpp \
+	SolidT.cpp
 
 # headers
 HDR = \
-	DiffusionMatListT.h \
-	MaterialListT.h \
-	MaterialList1DT.h \
-	MaterialList2DT.h \
-	MaterialList3DT.h \
-	StructuralMatListT.h \
-	MaterialT.h
+	SolidMatListT.h \
+	SolidMatList1DT.h \
+	SolidMatList2DT.h \
+	SolidMatList3DT.h \
+	SolidMatListT.h \
+	SolidT.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
