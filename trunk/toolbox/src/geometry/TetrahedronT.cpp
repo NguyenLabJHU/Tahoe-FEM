@@ -1,4 +1,4 @@
-/* $Id: TetrahedronT.cpp,v 1.6 2004-05-12 22:20:15 paklein Exp $ */
+/* $Id: TetrahedronT.cpp,v 1.7 2004-10-05 17:20:57 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "TetrahedronT.h"
 #include "QuadT.h"
@@ -27,7 +27,7 @@ void TetrahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) co
 #if __option(extended_errorcheck)
 	if (coords.Length() != 3 ||
 	        Na.Length() != fNumNodes) ExceptionT::SizeMismatch(caller);
-	if (fNumNodes != kNumVertexNodes) ExceptionT::GeneralFail(caller);
+	if (fNumNodes != 4 && fNumNodes != 10) ExceptionT::GeneralFail(caller);
 #endif
 
 	/* coordinates */	
@@ -38,11 +38,33 @@ void TetrahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) co
 	if (s < 0.0 || s > 1.0) ExceptionT::OutOfRange(caller);
 	if (t < 0.0 || t > 1.0) ExceptionT::OutOfRange(caller);
 
-	/* shape functions */
-	Na[0] = r;
-	Na[1] = s;
-	Na[3] = t;
-	Na[2] = 1 - r - s - t;
+	if (fNumNodes == 4)
+	{
+		/* shape functions */
+		Na[0] = r;
+		Na[1] = s;
+		Na[3] = t;
+		Na[2] = 1.0 - r - s - t;
+	}
+	else if (fNumNodes == 10)
+	{
+		double u = 1.0 - r - s - t;
+	
+		/* shape functions */
+		Na[0] = r*(2.0*r - 1.0);
+		Na[1] = s*(2.0*s - 1.0);
+		Na[2] = u*(2.0*u - 1.0);
+		Na[3] = t*(2.0*t - 1.0);
+
+		Na[4] = 4.0*r*s;
+		Na[5] = 4.0*s*u;
+		Na[6] = 4.0*r*u;
+		Na[7] = 4.0*r*t;
+		Na[8] = 4.0*s*t;
+		Na[9] = 4.0*t*u;
+	}
+	else
+		ExceptionT::GeneralFail(caller);
 }
 
 /* evaluate the shape functions and gradients. */
@@ -55,7 +77,7 @@ void TetrahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dA
 	        Na.Length() != fNumNodes ||
 	     DNa.MajorDim() != 3 ||
 	     DNa.MinorDim() != fNumNodes) ExceptionT::SizeMismatch(caller);
-	if (fNumNodes != kNumVertexNodes) ExceptionT::GeneralFail(caller);
+	if (fNumNodes != 4 && fNumNodes != 10) ExceptionT::GeneralFail(caller);
 #endif
 
 	/* coordinates */	
@@ -66,35 +88,101 @@ void TetrahedronT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dA
 	if (s < 0.0 || s > 1.0) ExceptionT::OutOfRange(caller);
 	if (t < 0.0 || t > 1.0) ExceptionT::OutOfRange(caller);
 
-	/* shape functions */
-	Na[0] = r;
-	Na[1] = s;
-	Na[3] = t;
-	Na[2] = 1 - r - s - t;
+	if (fNumNodes == 4)
+	{
+		/* shape functions */
+		Na[0] = r;
+		Na[1] = s;
+		Na[3] = t;
+		Na[2] = 1.0 - r - s - t;
 
-	/* derivatives */
-	double* nax = DNa(0);
-	double* nay = DNa(1);
-	double* naz = DNa(2);
+		/* derivatives */
+		double* nax = DNa(0);
+		double* nay = DNa(1);
+		double* naz = DNa(2);
 
-	/* Na,r */
-	nax[0] = 1.0;
-	nax[1] = 0.0;
-	nax[3] = 0.0;
-	nax[2] =-1.0;
+		/* Na,r */
+		nax[0] = 1.0;
+		nax[1] = 0.0;
+		nax[3] = 0.0;
+		nax[2] =-1.0;
 	
-	/* Na,s */
-	nay[0] = 0.0;
-	nay[1] = 1.0;
-	nay[3] = 0.0;
-	nay[2] =-1.0;
+		/* Na,s */
+		nay[0] = 0.0;
+		nay[1] = 1.0;
+		nay[3] = 0.0;
+		nay[2] =-1.0;
 
-	/* Na,t */
-	naz[0] = 0.0;
-	naz[1] = 0.0;
-	naz[3] = 1.0;
-	naz[2] =-1.0;
-}
+		/* Na,t */
+		naz[0] = 0.0;
+		naz[1] = 0.0;
+		naz[3] = 1.0;
+		naz[2] =-1.0;
+	}
+	else if (fNumNodes == 10)
+	{
+		double u = 1.0 - r - s - t;
+	
+		/* shape functions */
+		Na[0] = r*(2.0*r - 1.0);
+		Na[1] = s*(2.0*s - 1.0);
+		Na[2] = u*(2.0*u - 1.0);
+		Na[3] = t*(2.0*t - 1.0);
+
+		Na[4] = 4.0*r*s;
+		Na[5] = 4.0*s*u;
+		Na[6] = 4.0*r*u;
+		Na[7] = 4.0*r*t;
+		Na[8] = 4.0*s*t;
+		Na[9] = 4.0*t*u;
+
+		/* derivatives */
+		double* nax = DNa(0);
+		double* nay = DNa(1);
+		double* naz = DNa(2);
+
+		/* Na,r */
+		nax[0] = 4.0*r - 1.0;
+		nax[1] = 0.0;
+		nax[2] = 4.0*(r + s + t) - 3.0;
+		nax[3] = 0.0;
+
+		nax[4] = 4.0*s;
+		nax[5] =-4.0*s;
+		nax[6] =-4.0*(2.0*r + s + t - 1.0);
+		nax[7] = 4.0*t;
+		nax[8] = 0.0;
+		nax[9] =-4.0*t;
+	
+		/* Na,s */
+		nay[0] = 0.0;
+		nay[1] = 4.0*s - 1.0;
+		nay[2] = 4.0*(r + s + t) - 3.0;
+		nay[3] = 0.0;
+
+		nay[4] = 4.0*r;
+		nay[5] =-4.0*(r + 2.0*s + t - 1.0);
+		nay[6] =-4.0*r;
+		nay[7] = 0.0;
+		nay[8] = 4.0*t;
+		nay[9] =-4.0*t;
+
+		/* Na,t */
+		naz[0] = 0.0;
+		naz[1] = 0.0;
+		naz[2] = 4.0*(r + s + t) - 3.0;
+		naz[3] = 4.0*t - 1.0;
+
+		naz[4] = 0.0;
+		naz[5] =-4.0*s;
+		naz[6] =-4.0*r;
+		naz[7] = 4.0*r;
+		naz[8] = 4.0*s;
+		naz[9] =-4.0*(r + s + 2.0*t - 1.0);
+	}
+	else
+		ExceptionT::GeneralFail(caller);
+}	
 
 /* compute local shape functions and derivatives */
 void TetrahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
@@ -108,11 +196,10 @@ void TetrahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 	int nsd      = Na_x[0].MajorDim();
 
 	/* dimension checks */
-	if (numnodes != 4)
+	if (numnodes != 4 && numnodes != 10)
 		ExceptionT::GeneralFail(caller, "unsupported number of element nodes: %d", numnodes);
 	
-	if (numint != 1 &&
-	    numint != 4)
+	if (numint != 1 && numint != 4)
 		ExceptionT::GeneralFail(caller, "unsupported number of integration points: %d", numint);
 
 	if (nsd != kTetnsd) ExceptionT::GeneralFail(caller);
@@ -125,14 +212,14 @@ void TetrahedronT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 	/* integration point coordinates */
 	
 	/* 1 point */
-	double r1[1] = {1.0/4.0};
-	double s1[1] = {1.0/4.0};
-	double t1[1] = {1.0/4.0};
+	double r1[1] = {0.25};
+	double s1[1] = {0.25};
+	double t1[1] = {0.25};
 	
 	/* 4 point */
-double r4[4] = {0.58541020, 0.13819660, 0.13819660, 0.13819660};
-double s4[4] = {0.13819660, 0.58541020, 0.13819660, 0.13819660};
-double t4[4] = {0.13819660, 0.13819660, 0.13819660, 0.58541020};
+	double r4[4] = {0.58541020, 0.13819660, 0.13819660, 0.13819660};
+	double s4[4] = {0.13819660, 0.58541020, 0.13819660, 0.13819660};
+	double t4[4] = {0.13819660, 0.13819660, 0.13819660, 0.58541020};
 		
 	double* r;
 	double* s;
@@ -142,65 +229,44 @@ double t4[4] = {0.13819660, 0.13819660, 0.13819660, 0.58541020};
 	switch (numint)
 	{
 		case 1:	
-			
-		weights[0] = 1.0/6.0;
+		{	
+			weights[0] = 1.0/6.0;
 
 			/* set coordinates */
-		r = r1;
-		s = s1;
-		t = t1;
+			r = r1;
+			s = s1;
+			t = t1;
 		
-		break;
-
+			break;
+		}
 		case 4:
-
-		weights = (1.0/24.0);
+		{
+			weights = 1.0/24.0;
 		
 			/* set coordinates */
-		r = r4;
-		s = s4;
-		t = t4;
-		
-		break;
-
+			r = r4;
+			s = s4;
+			t = t4;
+			
+			break;
+		}
 		default:
-		
 			ExceptionT::GeneralFail(caller);
 	}	
 
 	/* shape functions and derivatives */
+	dArrayT Na_i;
+	dArrayT ip_coords(3);
 	for (int i = 0; i < numint; i++)
 	{
-		double* na  = Na(i);
-		double* nax = Na_x[i](0);
-		double* nay = Na_x[i](1);
-		double* naz = Na_x[i](2);
-
-		/* vertex nodes */
-
-	/* Na */
-	na[0] += r[i];
-	na[1] += s[i];
-	na[3] += t[i];
-	na[2] += 1 - r[i] - s[i] - t[i];
-
-	/* Na,r */
-	nax[0] += 1.0;
-	nax[1] += 0.0;
-	nax[3] += 0.0;
-	nax[2] +=-1.0;
+		/* integration point coordinates */
+		ip_coords[0] = r[i];
+		ip_coords[1] = s[i];
+		ip_coords[2] = t[i];
 	
-	/* Na,s */
-	nay[0] += 0.0;
-	nay[1] += 1.0;
-	nay[3] += 0.0;
-	nay[2] +=-1.0;
-
-	/* Na,t */
-	naz[0] += 0.0;
-	naz[1] += 0.0;
-	naz[3] += 1.0;
-	naz[2] +=-1.0;    	
+		/* compute shape functions and derivatives */
+		Na.RowAlias(i, Na_i);
+		TetrahedronT::EvaluateShapeFunctions(ip_coords, Na_i, Na_x[i]);
 	}
 }
 
@@ -214,7 +280,7 @@ void TetrahedronT::SetExtrapolation(dMatrixT& extrap) const
 	int numint   = extrap.Cols();
 
 	/* dimension checks */
-	if (numnodes != 4) ExceptionT::GeneralFail(caller);
+	if (numnodes != 4 && numnodes != 10) ExceptionT::GeneralFail(caller);
 	if (numint != 1 &&
 	    numint != 4) ExceptionT::GeneralFail(caller);	
 	
@@ -230,19 +296,26 @@ void TetrahedronT::SetExtrapolation(dMatrixT& extrap) const
 
 		case 4:	
 		{		
-			double dat[16] = {
-	 1.92705096625,  -0.30901698875,  -0.30901698875,  -0.30901698875,
-	-0.30901698875,   1.92705096625,  -0.30901698875,  -0.30901698875,
-	-0.30901698875,  -0.30901698875,   1.92705096625,  -0.30901698875,
-	-0.30901698875,  -0.30901698875,  -0.30901698875,   1.92705096625};
-	
-			dMatrixT smooth(4,4,dat);
+			double dat[4*10] = {
+ 1.9270509662496849, -0.3090169887498948, -0.3090169887498948, -0.3090169887498948, 
+ 0.809016988749895,  -0.3090169887498948,  0.809016988749895,   0.809016988749895, 
+-0.3090169887498948, -0.3090169887498948, -0.3090169887498949,  1.9270509662496846,
+-0.3090169887498949, -0.3090169887498949,  0.8090169887498949,  0.8090169887498949, 
+-0.3090169887498949, -0.3090169887498949,  0.8090169887498949, -0.3090169887498949, 
+-0.309016988749895,  -0.309016988749895,   1.9270509662496846, -0.309016988749895,
+-0.309016988749895,   0.8090169887498948,  0.8090169887498948, -0.309016988749895, 
+-0.309016988749895,   0.8090169887498948, -0.3090169887498949, -0.3090169887498949, 
+-0.3090169887498949,  1.9270509662496846, -0.3090169887498949, -0.3090169887498949,
+-0.3090169887498949,  0.8090169887498949,  0.8090169887498949,  0.8090169887498949
+			};	
+
+			dMatrixT smooth(10, 4, dat);
+			smooth.CopyBlock(0, 0, extrap);
 			extrap = smooth;
 			
 			break;
-}	
+		}	
 		default:
-		
 			ExceptionT::GeneralFail(caller);
 	}
 }
