@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.21 2004-08-10 23:13:08 raregue Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.22 2004-11-07 21:18:46 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -144,7 +144,7 @@ public:
 	 *  Note: Return curl(T) will be 3x3 */
 	void CurlU(const ArrayT<dMatrixT>& T, dMatrixT& curl_T, int IPnumber) const;
 
-	/** convert derivatives of the enhanced modes by applying a chain rule
+	/** convert shape function derivatives by applying a chain rule
 	 * transformation:
 		\f[
 			\frac{\partial N_A}{\partial x_i} =
