@@ -1,4 +1,4 @@
-// $Id: testImpl.cpp,v 1.12 2002-08-13 10:11:20 paklein Exp $
+// $Id: testImpl.cpp,v 1.13 2002-08-13 23:33:54 paklein Exp $
 #include "test.h"
 #include "testClass.h"
 // #include "vtkRenderWindow.h"
@@ -11,6 +11,20 @@
 #include "VTKConsoleT.h"
 
 using namespace Tahoe;
+
+static iConsoleObjectT& GetCurrentConsoleObject(JNIEnv * env, jobject obj)
+{
+	jclass cls = env->GetObjectClass(obj);
+	jfieldID fid = env->GetFieldID(cls, "console", "J");
+  	if (fid == 0) {
+		cout << " GetCurrentConsoleObject: error resolving field ID" << endl;
+		throw;
+	}
+  
+	jlong p_long = env->GetLongField(obj, fid);
+	iConsoleT* p_console = (iConsoleT*) p_long;
+	return p_console->Current();
+}
 
 JNIEXPORT void JNICALL Java_test_InitCpp(JNIEnv * env, jobject obj)
 {
@@ -322,4 +336,30 @@ JNIEXPORT void JNICALL Java_test_CommandLine(JNIEnv * env, jobject obj)
 	p_console->DoInteractive();
 
 	cout << "\n Control returned to GUI" << endl;
+}
+
+JNIEXPORT void JNICALL Java_test_DoCommand(JNIEnv *env, 
+	jobject obj, jstring command, jstring arguments)
+{
+    const char *command_str = env->GetStringUTFChars(command, 0);
+    const char *arguments_str = env->GetStringUTFChars(arguments, 0);
+
+	cout << "   command " << "(" << strlen(command_str) <<  "):" << command_str << '\n'
+	     << " arguments " << "(" << strlen(arguments_str) <<  "):" << arguments_str << endl;
+
+	/* get current console object */
+	iConsoleObjectT& current = GetCurrentConsoleObject(env, obj);
+
+	/* resolve command */
+	StringT com = command_str;
+	StringT arg = arguments_str;	
+	const CommandSpecT* command_spec = current.iResolveCommand(com, arg);
+	StringT empty_line;
+	if (command_spec && current.iDoCommand(*command_spec, empty_line))
+		cout << " " << command_str << " OK\n" << endl;
+ 	else
+		cout << " " << command_str << " FAILED\n" << endl;
+
+    env->ReleaseStringUTFChars(command, command_str);
+    env->ReleaseStringUTFChars(arguments, arguments_str);
 }
