@@ -1,21 +1,19 @@
 3
-0
-2 2 2
+1
+-5 5
+-10 0
+12 25
 FCC
 3.52
 BOX
 3
 PERIODICITY
 1 1 0
-ROTATION
-1 1 0
--1 1 0
-0 0 1
 OUTPUT
 mesh3D
 #
 
-
+NOTE: Test of length in 3D, output file, no rotation
 ------------------------------------------------------------
 * nsd
 * whichunit: length(1) or ncell(0)
@@ -24,9 +22,23 @@ mesh3D
 * alat
 * shape
 * format output (see below)
+* one of these key works:
+PERIODICITY
+ROTATION
+OUTPUT
+#
+
+
+if PERIODICITY (default is 0)
 * periodic condition: per(nsd)
+
+if ROTATION  (default is identity)
+*integer irot   irot = 0: rotate atoms in box
+                irot = 1: rotate box of atoms
 * read either rotation angle in 2D or rotation matrix in 3D.
 (rk: if no rotation put either 0 or identity matrix).
+
+if OUTPUT (default is example)
 * name of output file
 
 Test of rotation in 3D : cells, no rotation. 

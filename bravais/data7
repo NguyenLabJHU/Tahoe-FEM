@@ -1,14 +1,22 @@
-2
+3
 0
-6 3
+2 2 2
 FCC
 3.52
 BOX
 3
+PERIODICITY
+1 1 0
+ROTATION
+0
+1 1 0
+-1 1 0
+0 0 1
+OUTPUT
+mesh3D
 #
 
-
-NOTE: Test of cells in 2D, no rotation
+NOTE: Test 3D rotation of atoms in box
 ------------------------------------------------------------
 * nsd
 * whichunit: length(1) or ncell(0)
@@ -17,7 +25,6 @@ NOTE: Test of cells in 2D, no rotation
 * alat
 * shape
 * format output (see below)
-
 * one of these key works:
 PERIODICITY
 ROTATION
@@ -35,7 +42,9 @@ if ROTATION  (default is identity)
 (rk: if no rotation put either 0 or identity matrix).
 
 if OUTPUT (default is example)
-* name of output file 
+* name of output file
+
+Test of rotation in 3D : cells, no rotation. 
 
 
 		case 0:
