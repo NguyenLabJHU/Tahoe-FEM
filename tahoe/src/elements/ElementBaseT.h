@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.31 2003-08-14 05:57:04 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.32 2003-09-03 22:54:11 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -35,6 +35,7 @@ template <class TYPE> class RaggedArray2DT;
 class iAutoArrayT;
 class dArray2DT;
 class StringT;
+class SubListT;
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 class FieldT;

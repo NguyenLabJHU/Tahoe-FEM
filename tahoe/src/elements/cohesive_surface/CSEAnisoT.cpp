@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.52 2003-08-14 05:51:27 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.53 2003-09-03 22:54:13 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -487,7 +487,7 @@ void CSEAnisoT::CloseStep(void)
 	/* inherited */
 	CSEBaseT::CloseStep();
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* update flags */
 	if (freeNodeQ.IsAllocated())
 	{
@@ -541,7 +541,7 @@ void CSEAnisoT::CloseStep(void)
 		/* update history */
 		freeNodeQ_last = freeNodeQ;
 	}
-#endif /* _SIERRA_TEST_	*/
+#endif /* _FRACTURE_INTERFACE_LIBRARY__	*/
 	
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* store history */
