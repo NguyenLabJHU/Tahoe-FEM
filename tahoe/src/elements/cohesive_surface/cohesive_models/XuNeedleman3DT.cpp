@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.cpp,v 1.17 2003-03-19 00:53:27 cjkimme Exp $ */
+/* $Id: XuNeedleman3DT.cpp,v 1.18 2003-05-26 01:51:46 paklein Exp $ */
 /* created: paklein (06/23/1999)*/
 
 #include "XuNeedleman3DT.h"
@@ -120,7 +120,7 @@ double XuNeedleman3DT::Potential(const dArrayT& jump_u, const ArrayT<double>& st
 }
 
 /* traction vector given displacement jump vector */	
-const dArrayT& XuNeedleman3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
+const dArrayT& XuNeedleman3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate)
 {
 #pragma unused(state)
 #pragma unused(sigma)

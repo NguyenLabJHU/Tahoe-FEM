@@ -1,4 +1,4 @@
-/* $Id: YoonAllen2DT.cpp,v 1.10 2003-05-20 10:34:35 paklein Exp $ */
+/* $Id: YoonAllen2DT.cpp,v 1.11 2003-05-26 01:51:46 paklein Exp $ */
 #include "YoonAllen2DT.h"
 
 #include <iostream.h>
@@ -122,7 +122,7 @@ double YoonAllen2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& stat
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
+const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate)
 {
 	const char caller[] = "YoonAllen2DT::Traction";
 #pragma unused(sigma)

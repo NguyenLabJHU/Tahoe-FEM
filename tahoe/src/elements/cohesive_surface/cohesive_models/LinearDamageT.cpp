@@ -1,4 +1,4 @@
-/* $Id: LinearDamageT.cpp,v 1.13 2003-03-19 00:53:27 cjkimme Exp $ */
+/* $Id: LinearDamageT.cpp,v 1.14 2003-05-26 01:51:46 paklein Exp $ */
 /* created: paklein (08/21/2000) */
 
 #include "LinearDamageT.h"
@@ -72,7 +72,7 @@ double LinearDamageT::Potential(const dArrayT& jump_u, const ArrayT<double>& sta
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
+const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate)
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)

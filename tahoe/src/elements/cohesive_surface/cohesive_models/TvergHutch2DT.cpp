@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.cpp,v 1.17 2003-04-24 20:45:20 cjkimme Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.18 2003-05-26 01:51:46 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch2DT.h"
@@ -80,7 +80,7 @@ double TvergHutch2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& sta
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& TvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
+const dArrayT& TvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate)
 {
 #pragma unused(state)
 #pragma unused(sigma)
