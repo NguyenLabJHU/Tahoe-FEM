@@ -1,4 +1,4 @@
-/* $Id: IOManager.cpp,v 1.17 2002-10-20 22:48:32 paklein Exp $ */
+/* $Id: IOManager.cpp,v 1.18 2003-08-08 00:38:38 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 #include "IOManager.h"
 
@@ -18,7 +18,8 @@ IOManager::IOManager(ostream& outfile, const StringT& program_name,
 	fOutput(NULL),
 	fEcho (false),
 	fOutputTime(0.0),
-	fOutput_tmp(NULL)
+	fOutput_tmp(NULL),
+	fChangingFlag(kNoChangingFlag)
 {
 	/* construct output formatter */
 	fOutput = IOBaseT::NewOutput(program_name, version, title, input_file, fOutputFormat, fLog);
@@ -47,6 +48,22 @@ IOManager::~IOManager(void)
 	fOutput = NULL;
 }
 
+/* how to override changing geometry flags */
+void IOManager::SetChangingFlag(ChangingFlagT changing_flag)
+{
+	const char caller[] = "ModelManagerT::SetChangingFlag";
+
+	/* can only override once */
+	if (fChangingFlag != kNoChangingFlag) 
+		ExceptionT::GeneralFail(caller, "changing flag has already been overridden");
+	
+	/* can only override before sets register */
+	if (fOutput->ElementSets().Length() != 0)
+		ExceptionT::GeneralFail(caller, "can only override flag before sets register");
+	
+	fChangingFlag = changing_flag;
+}
+
 void IOManager::EchoData (ostream& o) const
 {
   IOBaseT temp (o);
@@ -71,6 +88,17 @@ void IOManager::SetCoordinates(const dArray2DT& coordinates, const iArrayT* node
 /* register the output for an element set. returns the output ID */
 int IOManager::AddElementSet(const OutputSetT& output_set)
 {
+	/* attempt to override changing geometry flag */
+	bool changing = output_set.Changing();
+	if (changing && fChangingFlag == kForceNotChanging)
+		ExceptionT::GeneralFail("IOManager::AddElementSet", "cannot override changing flag");
+	else if (fChangingFlag == kForceChanging)
+	{
+		/* not so const */
+		OutputSetT* os = (OutputSetT*) &output_set;
+		os->SetChanging(true);
+	}
+
 	return fOutput->AddElementSet(output_set);
 }
 
