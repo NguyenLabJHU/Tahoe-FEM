@@ -1,4 +1,4 @@
-/* $Id: dMatrixEXT.cpp,v 1.6 2002-02-22 19:26:16 xiang Exp $ */
+/* $Id: dMatrixEXT.cpp,v 1.7 2002-02-26 01:46:19 raregue Exp $ */
 /* created: paklein (03/06/1998)                                          */
 
 #include "dMatrixEXT.h"
@@ -6,6 +6,7 @@
 #include "LAdMatrixT.h"
 #include "dArray2DT.h"
 #include <math.h>
+#include "dTensor4DT.h"
 //#include "nrutil.h"
 
 /* Numerical Recipies macros */
@@ -835,10 +836,10 @@ s3=b*b/4+a*a*a/27;
  if (s3>=0){
 
    // s3 > 0 => two complex conjugate roots, one real root
-   if (s3>0.0) 
-     cout << "Warning: complex roots detected \n";
-   else
-     cout << "Repeated eigenvalue detected \n";
+  // if (s3>0.0) 
+    // cout << "Warning: complex roots detected \n";
+   //else
+     //cout << "Repeated eigenvalue detected \n";
 
 s2=sqrt(s3);
 
@@ -931,8 +932,8 @@ reroot[2]=reroot[2]-p/3;
  
  cangle=cangle+2*pi/3;
 n++;
-if (n==3 && flag==0)
-  cout << "eigenvalues not found \n";
+//if (n==3 && flag==0)
+ // cout << "eigenvalues not found \n";
 
  }
 
@@ -964,7 +965,7 @@ matrix(2,2)=matrix(2,2)-value;
 
 if (fabs(matrix.Det()/Jdet)>tol && fabs(matrix.Det())>tol)
  {
-   cout << "Value entered not an eigenvalue \n";
+   //cout << "Value entered not an eigenvalue \n";
    numvector=0;
 
    //dummy- i.e. not real eigenvalues
@@ -1035,7 +1036,7 @@ vector3[2]=0;
      //used if 2nd submatrix also close to 0
      if (fabs((matrix(1,1)*matrix(2,2)-matrix(2,1)*matrix(1,2))/Jdet) > tol && fabs(matrix(1,1)*matrix(2,2)-matrix(2,1)*matrix(1,2)) > tol)
      {
-        cout << " stage 3 \n";
+       // cout << " stage 3 \n";
 
        vector[0]=1;
        
@@ -1057,7 +1058,7 @@ vector3[2]=0;
      else
        {
 	 // vector not found-additional possible submatrices not yet implemented
-	 cout << "vector seems to exist but is not found \n";
+	 //cout << "vector seems to exist but is not found \n";
 	 /* dummy*/
 
 	 //cout << " stage 4 \n";
@@ -1101,20 +1102,16 @@ vector3[2]=vector3[2]/norm;
 
 }
 
-        /*forms acoustic tensor from rank 4 tangent modulus, normal */
 
-void dMatrixEXT::formacoustictensor(dMatrixEXT& A, double C [3] [3] [3] [3], dArrayT& normal)
+/*forms acoustic tensor from rank 4 tangent modulus, normal */
+//void dMatrixEXT::formacoustictensor(dMatrixEXT& A, double C [3] [3] [3] [3], dArrayT& normal)
+void dMatrixEXT::formacoustictensor(dMatrixEXT& A, dTensor4DT& C, dArrayT& normal)
 {
-
  int k,l,m,n; //counters
 
- // initialize acoustic tensor A
-
- for (m=0;m<3;m++){
-   for (n=0;n<3;n++){
-     A (m,n) =0;
-   }
- }
+	// initialize acoustic tensor A
+	A = 0.0;
+	
 	    
  // A=normal*C*normal
               
@@ -1122,7 +1119,8 @@ void dMatrixEXT::formacoustictensor(dMatrixEXT& A, double C [3] [3] [3] [3], dAr
    for (n=0;n<3;n++){
      for (k=0;k<3;k++){
        for (l=0;l<3;l++){
-	 A (m,n)+=normal[k]*C [k] [m] [n] [l]*normal[l]; 
+		//A (m,n)+=normal[k]*C [k] [m] [n] [l]*normal[l]; 
+		A (m,n)+=normal[k]*C(k,m,n,l)*normal[l]; 
        }
      }
    }
