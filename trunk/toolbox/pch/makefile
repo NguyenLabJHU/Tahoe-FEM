@@ -1,24 +1,33 @@
-# $Id: makefile,v 1.2 2002-10-20 22:38:46 paklein Exp $
+# $Id: makefile,v 1.3 2002-11-25 07:11:43 paklein Exp $
 #
 # NOTE: calling makefile must define:
 #
-#   COMP_CC - the c++ compiler
-# CFLAGS_CC - c++ compiler flags
-#   INC_DIR - path to the include directory
+#     COMP_CC - the c++ compiler
+#   CFLAGS_CC - c++ compiler flags
+#     INC_DIR - path to the include directory
+# MAKE_DEPEND - makedepend (usu. in X11)
 #
-PCH_FILE = cc1plus_ppc.pfe
-PCH_INCL = \
-	$(INC_DIR)/Environment.h \
-	$(INC_DIR)/ios_fwd_decl.h \
-	$(INC_DIR)/ArrayT.h \
-	$(INC_DIR)/nArrayT.h \
-	$(INC_DIR)/iArrayT.h \
-	$(INC_DIR)/dArrayT.h \
-	$(INC_DIR)/StringT.h
 
-$(PCH_FILE): pch.cpp $(PCH_INCL)
-	@echo " rebuilding precompiled header file"
-	$(COMP_CC) --dump-pch . $(CFLAGS_CC) -c pch.cpp
+.SUFFIXES: .pfe .cpp .d
+
+PCH_FILE = cc1plus_ppc.pfe
+
+all: $(PCH_FILE)
 
 clean:
-	rm $(PCH_FILE)
+	rm $(PCH_FILE) *.d *.d.bak
+
+force:
+
+.cpp.d:
+	@echo " rebuilding precompiled header dependencies"; \
+	echo "# DO NOT DELETE" > $@; \
+	$(MAKE_DEPEND) -o .pfe -f$@ $<
+
+.cpp.pfe:
+	@echo " rebuilding precompiled header file"; \
+	$(COMP_CC) --dump-pch . $(CFLAGS_CC) -c $<; \
+	echo " pch: `du -sk $(PCH_FILE)`"
+
+# dependencies
+include cc1plus_ppc.d
