@@ -1,4 +1,4 @@
-/* $Id: FCC3D.cpp,v 1.6.2.1 2004-07-06 06:53:23 paklein Exp $ */
+/* $Id: FCC3D.cpp,v 1.6.2.2 2004-07-07 18:02:46 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D.h"
 
@@ -127,12 +127,6 @@ void FCC3D::TakeParameterList(const ParameterListT& list)
 	/* compute stress-free dilatation */
 	double stretch = ZeroStressStretch();
 	fNearestNeighbor *= stretch;
-	ofstream blah;
-	blah.open("alpha.dat");
-	blah.precision(15);
-	blah << fNearestNeighbor << endl;
-	blah << fNearestNeighbor/2.0 << endl;
-	blah.close();
 	cube_edge = fNearestNeighbor*sqrt(2.0);
 	fAtomicVolume = cube_edge*cube_edge*cube_edge/4.0;
 
