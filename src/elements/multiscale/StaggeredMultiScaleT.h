@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.h,v 1.5 2002-12-04 17:09:34 creigh Exp $ */ 
+/* $Id: StaggeredMultiScaleT.h,v 1.6 2002-12-09 01:50:06 creigh Exp $ */ 
 #ifndef _STAGGERED_MULTISCALE_T_H_ 
 #define _STAGGERED_MULTISCALE_T_H_ 
 //DEVELOPMENT
@@ -198,6 +198,7 @@ private:
 
 	iArray2DT fiState_new;
 	iArray2DT fiState;
+
 	/*@}*/
 };
 

@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.11 2002-12-05 23:37:25 paklein Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.12 2002-12-09 01:50:06 creigh Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -172,6 +172,15 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 		SetLocalU (ua);			 SetLocalU (ua_n);
 		SetLocalU (ub);			 SetLocalU (ub_n);
 
+#if 1	// Debugging Code
+		if (e==1) {
+			cout << "ua = \n" << ua << "\n\n";
+			cout << "ub = \n" << ub << "\n\n";
+			cout << "ua_n = \n" << ua_n << "\n\n";
+			cout << "ub_n = \n" << ub_n << "\n\n";
+		}
+#endif
+
 		del_ua.DiffOf (ua, ua_n);
 		del_ub.DiffOf (ub, ub_n);
 
@@ -203,7 +212,7 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 			fEquation_I -> Form_LHS_Ka_Kb ( fKa_I, fKb_I );
 			fEquation_I -> Form_RHS_F_int ( fFint_I );
 
-#if 0	// Debugging Code
+#if 1	// Debugging Code
 			cout << "|||||||||||||||||| COARSE ||||||||||||||||| Elmt number = "<<e<<"\n";
 
 			if (e==1) {
@@ -211,8 +220,6 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 				cout << "  fKb_I = \n" << fKb_I << "\n\n";
 				cout << "  fFint_I = \n" << fFint_I << "\n\n";
 			}
-			cout << "ua = \n" << ua << "\n\n";
-			cout << "ub = \n" << ub << "\n\n";
 
 #endif
 
@@ -236,7 +243,7 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 			fEquation_II -> Form_LHS_Ka_Kb ( fKa_II, 	fKb_II );
 			fEquation_II -> Form_RHS_F_int ( fFint_II );
 
-#if 0	// Debugging Code
+#if  1	// Debugging Code
 			cout << ".................. FINE ................. Elmt number = "<<e<<"\n";
 
 			if (e==1) {
@@ -312,14 +319,14 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 
 		case FineScaleT::kVMS_BCJ :
 			fEquation_II 	= new VMS_BCJT;
-			fFineMaterial = new BCJ_MatlT;
-			fFineMaterial -> Assign (		BCJ_MatlT::kE, 			29000000.0 	);
-			fFineMaterial -> Assign ( 	BCJ_MatlT::kPr, 		0.30 				); 
+			fFineMaterial = new BCJ_MatlT;																	// Tantalum 
+			fFineMaterial -> Assign (		BCJ_MatlT::kE, 			1.0 				); 	// 1.68e11 
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kPr, 		0.30 				); 	// .34 
 			fFineMaterial -> Assign ( 	BCJ_MatlT::kl, 			0.001 			); 
 			fFineMaterial -> Assign ( 	BCJ_MatlT::kc_zeta, 0.001 			); 
-			fFineMaterial -> Assign ( 	BCJ_MatlT::kf, 			1.0 				); 
-			fFineMaterial -> Assign ( 	BCJ_MatlT::kV, 			1.0 				); 
-			fFineMaterial -> Assign ( 	BCJ_MatlT::kY, 			1.0 				); 
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kf, 			1.0 				); 	// 1.6e-5
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kV, 			1.0 				); 	// 9.78e6 
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kY, 			1.0 				); 	// 2.59e7
 			fFineMaterial -> E_Nu_2_Lamda_Mu	( BCJ_MatlT::kE,			BCJ_MatlT::kPr,	
 																					BCJ_MatlT::kLamda, 	BCJ_MatlT::kMu 	);
 			break;

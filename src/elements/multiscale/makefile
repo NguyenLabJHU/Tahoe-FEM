@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2002-12-04 17:09:34 creigh Exp $
+# $Id: makefile,v 1.3 2002-12-09 01:50:06 creigh Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,7 +7,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	StaggeredMultiScaleT.o \
-	FEA_FormatT.o
+	FEA_FormatT.o 
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
