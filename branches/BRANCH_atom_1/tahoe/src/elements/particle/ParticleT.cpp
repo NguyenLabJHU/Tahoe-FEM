@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.10.2.2 2002-12-27 23:20:58 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.10.2.3 2003-01-05 23:41:45 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -155,7 +155,7 @@ void ParticleT::WriteOutput(void)
 {
 	/* max distance traveled since last reneighboring */
 	ofstreamT& out = ElementSupport().Output();
-	out << " Maximum displacement since last re-neighboring. = " << fDmax << '\n';
+	out << "\n Maximum displacement since last re-neighboring. = " << fDmax << '\n';
 	
 	/* reset connectivities */
 	if (ChangingGeometry())
@@ -196,7 +196,7 @@ GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
 
 	/* generate contact element data */
 	fReNeighborCounter++;
-	if (fReNeighborIncr != 0 && fReNeighborCounter >= fReNeighborIncr)
+	if (fReNeighborIncr != -1 && fReNeighborCounter >= fReNeighborIncr)
 	{
 		/* (re-)set the neighborlists */
 		SetConfiguration();
@@ -423,9 +423,13 @@ double ParticleT::MaxDisplacement(void) const
 			for (int i = 0; i < nnd; i++)
 			{
 				double* p_new = curr_coords((*part_nodes)[i]);
-				double d2 = (*p_old++) - (*p_new++);
-				d2 += (*p_old++) - (*p_new++);
-				d2 += (*p_old++) - (*p_new++);
+				double dx, d2 = 0.0;
+				dx = (*p_old++) - (*p_new++);
+				d2 += dx*dx;
+				dx = (*p_old++) - (*p_new++);
+				d2 += dx*dx;
+				dx = (*p_old++) - (*p_new++);
+				d2 += dx*dx;
 				dmax2 = (d2 > dmax2) ? d2 : dmax2;
 			}
 		}
@@ -434,8 +438,11 @@ double ParticleT::MaxDisplacement(void) const
 			for (int i = 0; i < nnd; i++)
 			{
 				double* p_new = curr_coords((*part_nodes)[i]);
-				double d2 = (*p_old++) - (*p_new++);
-				d2 += (*p_old++) - (*p_new++);
+				double dx, d2 = 0.0;
+				dx = (*p_old++) - (*p_new++);
+				d2 += dx*dx;
+				dx = (*p_old++) - (*p_new++);
+				d2 += dx*dx;
 				dmax2 = (d2 > dmax2) ? d2 : dmax2;
 			}		
 		}
@@ -444,7 +451,9 @@ double ParticleT::MaxDisplacement(void) const
 			for (int i = 0; i < nnd; i++)
 			{
 				double* p_new = curr_coords((*part_nodes)[i]);
-				double d2 = (*p_old++) - (*p_new++);
+				double dx, d2 = 0.0;
+				dx = (*p_old++) - (*p_new++);
+				d2 += dx*dx;
 				dmax2 = (d2 > dmax2) ? d2 : dmax2;
 			}		
 		}
@@ -458,9 +467,13 @@ double ParticleT::MaxDisplacement(void) const
 		{
 			for (int i = 0; i < nnd; i++)
 			{
-				double d2 = (*p_old++) - (*p_new++);
-				d2 += (*p_old++) - (*p_new++);
-				d2 += (*p_old++) - (*p_new++);
+				double dx, d2 = 0.0;
+				dx = (*p_old++) - (*p_new++);
+				d2 += dx*dx;
+				dx = (*p_old++) - (*p_new++);
+				d2 += dx*dx;
+				dx = (*p_old++) - (*p_new++);
+				d2 += dx*dx;
 				dmax2 = (d2 > dmax2) ? d2 : dmax2;
 			}
 		}
@@ -468,8 +481,11 @@ double ParticleT::MaxDisplacement(void) const
 		{
 			for (int i = 0; i < nnd; i++)
 			{
-				double d2 = (*p_old++) - (*p_new++);
-				d2 += (*p_old++) - (*p_new++);
+				double dx, d2 = 0.0;
+				dx = (*p_old++) - (*p_new++);
+				d2 += dx*dx;
+				dx = (*p_old++) - (*p_new++);
+				d2 += dx*dx;
 				dmax2 = (d2 > dmax2) ? d2 : dmax2;
 			}		
 		}
@@ -477,7 +493,9 @@ double ParticleT::MaxDisplacement(void) const
 		{
 			for (int i = 0; i < nnd; i++)
 			{
-				double d2 = (*p_old++) - (*p_new++);
+				double dx, d2 = 0.0;
+				dx = (*p_old++) - (*p_new++);
+				d2 += dx*dx;
 				dmax2 = (d2 > dmax2) ? d2 : dmax2;
 			}		
 		}
