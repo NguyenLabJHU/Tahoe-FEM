@@ -21,10 +21,10 @@ SlipKinetics::~SlipKinetics()
 
 void SlipKinetics::MaxMinArgPowerLaw(const double &xm)
 {
-   double EXP = 150.0;
+   double EXPON = 300.0;
 
-   fArgMax = exp( EXP/(1./xm-1.0)*log(10.0));
-   fArgMin = exp(-EXP/(1./xm-1.0)*log(10.0));
+   fArgMax = exp( EXPON/(1./xm-1.0)*log(10.0));
+   fArgMin = exp(-EXPON/(1./xm-1.0)*log(10.0));
 }
 
 /*  evaluates  x^y */

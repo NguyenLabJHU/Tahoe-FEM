@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.17 2004-04-13 18:41:21 ebmarin Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.18 2004-04-14 17:24:25 ebmarin Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -709,7 +709,7 @@ void LocalCrystalPlastFp::IterateOnCrystalState(bool& stateConverged, int subInc
   int iterState = 0;
   int ierr = 0;
 
-//  while (++iterState <= fMaxIterState && !stateConverged)
+  while (++iterState <= fMaxIterState && !stateConverged)
      {
        try
           {
@@ -728,8 +728,8 @@ void LocalCrystalPlastFp::IterateOnCrystalState(bool& stateConverged, int subInc
             SolveForHardening();
       
             // check convergence of state
-//            stateConverged = (Converged(fTolerState) && fHardening->Converged(fTolerState));
-              stateConverged = true;
+            stateConverged = (Converged(fTolerState) && fHardening->Converged(fTolerState));
+//              stateConverged = true;
          }
 	  
        catch(ExceptionT::CodeT code)
@@ -738,7 +738,7 @@ void LocalCrystalPlastFp::IterateOnCrystalState(bool& stateConverged, int subInc
                cout << " ...... failed at subIncr # " << subIncr 
 	            << ";  elem # " << CurrElementNumber() 
                     << ";  IP # " << CurrIP() << endl;
-	    //break;
+	    break;
           }
      }
 

@@ -45,9 +45,13 @@ double PowerLawIKinetics::Phi(double tau, int is)
 //  return  fMatProp[1]*(tau/tauIso)*qnt;
 
   double tmp = tau/tauIso;
-  double sign = fabs(tau)/tau;
+  double sign;
+  if (fabs(tau) == 0.0) 
+     sign = 1.0;
+  else
+     sign = fabs(tau)/tau;
 
-  CheckArgumentRange(tmp, sign);
+  if ( !(fabs(tau) == 0.0) ) CheckArgumentRange(tmp, sign);
 
   double qnt = Power( fabs(tmp), (1./fMatProp[0]-1.) );
   return  fMatProp[1]*(tmp)*qnt;
@@ -64,9 +68,13 @@ double PowerLawIKinetics::DPhiDTau(double tau, int is)
 //  return  fMatProp[1]/(fMatProp[0]*tauIso)*qnt;
 
   double tmp = tau/tauIso;
-  double sign = fabs(tau)/tau;
+  double sign;
+  if (fabs(tau) == 0.0) 
+     sign = 1.0;
+  else
+     sign = fabs(tau)/tau;
 
-  CheckArgumentRange(tmp, sign);
+  if ( !(fabs(tau) == 0.0) ) CheckArgumentRange(tmp, sign);
 
   double qnt = Power( fabs(tmp), (1./fMatProp[0]-1.) );
   return  fMatProp[1]/(fMatProp[0]*tauIso)*qnt;
@@ -83,9 +91,13 @@ double PowerLawIKinetics::DPhiDIso(double tau, int is)
 //  return  -fMatProp[1]/(fMatProp[0]*tauIso)*(tau/tauIso)*qnt;
 
   double tmp = tau/tauIso;
-  double sign = fabs(tau)/tau;
+  double sign;
+  if (fabs(tau) == 0.0) 
+     sign = 1.0;
+  else
+     sign = fabs(tau)/tau;
 
-  CheckArgumentRange(tmp, sign);
+  if ( !(fabs(tau) == 0.0) ) CheckArgumentRange(tmp, sign);
 
   double qnt = Power( fabs(tmp), (1./fMatProp[0]-1.) );
   return  -fMatProp[1]/(fMatProp[0]*tauIso)*(tmp)*qnt;
