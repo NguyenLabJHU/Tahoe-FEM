@@ -1,4 +1,4 @@
-/* $Id: EnSightOutputT.cpp,v 1.12 2003-11-10 22:14:25 cjkimme Exp $ */
+/* $Id: EnSightOutputT.cpp,v 1.13 2004-07-01 16:39:43 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "EnSightOutputT.h"
@@ -212,7 +212,7 @@ void EnSightOutputT::WriteConnectivity (ostream& geo, EnSightT& ens, const iArra
   iArray2DT localconn (connects->MajorDim(), connects->MinorDim());
   LocalConnectivity (nodes_used, *connects, localconn);
   localconn++;
-  ens.WriteConnectivity (geo, outputnodes, localconn);
+  ens.WriteConnectivity (geo, fElementSets[i]->Geometry(), outputnodes, localconn);
 }
 
 void EnSightOutputT::WriteVariable (EnSightT& ens, bool nodal, int ID,
