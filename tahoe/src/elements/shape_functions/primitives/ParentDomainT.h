@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.h,v 1.8 2002-07-16 22:22:57 paklein Exp $ */
+/* $Id: ParentDomainT.h,v 1.9 2002-07-18 17:44:40 paklein Exp $ */
 /* created: paklein (07/03/1996)                                          */
 /* interface for a finite element parent domain. manages integration      */
 /* information (points, weights, etc..) and mapping between the real      */
@@ -142,6 +142,14 @@ class ParentDomainT
 	 * \param nodalvalues extrapolated values: [nnd] */
 	void NodalValues(const dArrayT& IPvalues, dArrayT& nodalvalues) const; 	
 
+	/** evaluate the shape functions. Compute the values of the
+	 * shape functions at an arbirary point in the
+	 * in the parent domain. Coordinates must fall within the domain.
+	 * \param coords point in the parent domain
+	 * \param Na destination for shape function values for each of the domain
+	 *        nodes. Must be dimensioned: [nnd] */
+	void EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const;
+
 	/** evaluate the shape functions and gradients. Compute the values of the
 	 * shape functions and their gradients at an arbirary point in the
 	 * in the parent domain. Coordinates must fall within the domain.
@@ -175,6 +183,21 @@ class ParentDomainT
 	
 	/** return geometry and number of nodes on each facet */
 	void FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geom, iArrayT& facet_nodes) const;
+	
+	/** return true if the given point is within the domain defined by
+	 * the list of coordinates
+	 * \param coords list of coordinates defining the domain
+	 * \param point test point coordinates */
+	bool PointInDomain(const LocalArrayT& coords, const dArrayT& point) const;
+
+	/** map domain coordinates into the parent coordinates.
+	 * Return true if the given point is within the domain defined by
+	 * the list of coordinates
+	 * \param coords list of coordinates defining the domain
+	 * \param point test point coordinates 
+	 * \param mapped point coordinates in the parent coordinates */
+	bool MapToParentDomain(const LocalArrayT& coords, const dArrayT& point,
+		dArrayT& mapped) const;
 	
   private:
 
@@ -229,6 +252,11 @@ dMatrixT& jacobian) const
 }
 
 /* evaluate the shape functions and gradients. */
+inline void ParentDomainT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
+{
+	fGeometry->EvaluateShapeFunctions(coords, Na);
+}
+
 inline void ParentDomainT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, 
 	dArray2DT& DNa) const
 {

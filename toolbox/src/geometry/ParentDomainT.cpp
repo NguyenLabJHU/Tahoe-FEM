@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.5 2002-07-02 19:57:09 cjkimme Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.6 2002-07-18 17:44:40 paklein Exp $ */
 /* created: paklein (07/03/1996)                                          */
 
 #include "ParentDomainT.h"
@@ -568,4 +568,24 @@ void ParentDomainT::Print(ostream& out) const
 	out << "\n Parent domain shape function derivatives:\n";
 	for (int i = 0; i < fDNa.Length(); i++)
 		fDNa[i].WriteNumbered(out);
+}
+
+/* return true if the given point is within the domain */
+bool ParentDomainT::PointInDomain(const LocalArrayT& coords, const dArrayT& point) const
+{
+//TEMP - not implemented
+#pragma unused(coords)
+#pragma unused(point)
+	return false;
+}
+
+/* map domain coordinates into the parent coordinates */
+bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& point,
+	dArrayT& mapped) const
+{
+//TEMP - not implemented
+#pragma unused(coords)
+#pragma unused(point)
+#pragma unused(mapped)
+	return false;
 }
