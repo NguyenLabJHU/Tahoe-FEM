@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.cpp,v 1.14.20.1 2004-07-06 06:54:22 paklein Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.14.20.2 2004-07-15 06:26:11 paklein Exp $ */
 /* created: paklein (12/08/1999) */
 #include "MLSSolverT.h"
 
@@ -30,6 +30,7 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 	fNumNeighbors(0),
 	fBasis(NULL),
 	fWindow(NULL),
+	fOrigin(fNumSD),
 	fOrder(0),
 	fDb(fNumSD),
 	fDDb(dSymMatrixT::NumValues(fNumSD)),
@@ -44,6 +45,8 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 	/* work space */
 	fNSDsym(fNumSD)
 {
+	const char caller[] = "MLSSolverT::MLSSolverT";
+
 	/* construct basis functions */
 	switch (fNumSD)
 	{
@@ -57,11 +60,9 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 			fBasis = new PolyBasis3DT(fComplete);
 			break;
 		default:
-			cout << "\n MLSSolverT::MLSSolverT: unsupported spatial dimensions "
-			     << fNumSD << endl;
-			throw ExceptionT::kBadInputValue;
+			ExceptionT::BadInputValue(caller, " unsupported spatial dimensions %d", fNumSD);
 	}
-	if (!fBasis) throw ExceptionT::kOutOfMemory;
+	if (!fBasis) ExceptionT::OutOfMemory(caller);
 
 	/* construct window function */
 	switch (fWindowType)
@@ -69,7 +70,7 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 		case MeshFreeT::kGaussian:
 		{
 			fWindow = new GaussianWindowT(window_params[0], window_params[1], window_params[2]);
-			if (!fWindow) throw ExceptionT::kGeneralFail;
+			if (!fWindow) ExceptionT::GeneralFail(caller);
 			break;
 		}
 		case MeshFreeT::kBrick:
@@ -85,7 +86,7 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 
 			/* construct window function */
 			fWindow = new RectGaussianWindowT(scalings, sharpening_factor, cut_off_factor);
-			if (!fWindow) throw ExceptionT::kGeneralFail;
+			if (!fWindow) ExceptionT::GeneralFail(caller);
 			break;
 		}
 		case MeshFreeT::kRectCubicSpline:
@@ -101,20 +102,19 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 
 			/* construct window function */
 			fWindow = new RectCubicSplineWindowT(scalings, sharpening_factor, cut_off_factor);
-			if (!fWindow) throw ExceptionT::kGeneralFail;
+			if (!fWindow) ExceptionT::GeneralFail(caller);
 			break;
 		}
 		case MeshFreeT::kCubicSpline:
 		{
 			fWindow = new CubicSplineWindowT(window_params[0]);
-			if (!fWindow) throw ExceptionT::kGeneralFail;
+			if (!fWindow) ExceptionT::GeneralFail(caller);
 			break;
 		}
 		default:
-			cout << "\n MLSSolverT::MLSSolverT: unsupported window function type: "
-			     << fWindowType << endl;
-			throw ExceptionT::kBadInputValue;
+			ExceptionT::BadInputValue(caller, "unsupported window function type %d", fWindowType);
 	}
+	fOrigin = 0.0;
 	
 	/* dimension arrays */
 	int m = fBasis->BasisDimension();
@@ -201,22 +201,7 @@ int MLSSolverT::SetField(const dArray2DT& coords, const dArray2DT& nodal_param,
 	fLocCoords.AddToRowsScaled(1.0, fieldpt);
 
 	/* window functions */
-	bool new_windows = true; //TEMP - keep for testing
-	int numactive;
-	if (new_windows)
-	{
-		dArrayT origin(fLocCoords.MinorDim()); //TEMP - waste? Could make Window to assume this
-		origin = 0.0;
-		numactive = fWindow->Window(fLocCoords, nodal_param, origin, fOrder, fw, fDw, fDDw);
-	}
-	else numactive = SetWindow(nodal_param);
-	//NOTE - this isn't exactly the same as the "old" way. previously,
-	//       the distance use to determine coverage was just the distance
-	//       between points compared to dmax (the support size), while the 
-	//       Gaussian window functionw was evaluated to 4*dmax. the revised 
-	//       code evaluates both based on how distance compares with
-	//       GaussianWindowT::fCutOffFactor*dmax.
-
+	int numactive = fWindow->Window(fLocCoords, nodal_param, fOrigin, fOrder, fw, fDw, fDDw);
 	if (numactive < fBasis->BasisDimension())
 	{
 		cout << "\n MLSSolverT::SetField: not enough nodes for fit: ";
@@ -263,14 +248,9 @@ void MLSSolverT::SynchronizeSupportParameters(dArray2DT& params_1,
 	else
 		fWindow->SynchronizeSupportParameters(params_1, params_2);
 }
-
-/***********************************************************************
-* Protected
-***********************************************************************/
-
-/***********************************************************************
-* Private
-***********************************************************************/
+ /***********************************************************************
+ * Private
+ ***********************************************************************/
 
 /* configure solver for current number of neighbors */
 void MLSSolverT::Dimension(void)
@@ -286,72 +266,6 @@ void MLSSolverT::Dimension(void)
 	if (fOrder > 0) fArray2DGroup2.Dimension(fNumSD, fNumNeighbors);
 	if (fOrder > 1) fArray2DGroup3.Dimension(dSymMatrixT::NumValues(fNumSD),
 		fNumNeighbors);
-}
-
-/* set window functions */
-int MLSSolverT::SetWindow(const dArray2DT& support_params)
-{
-//TEMP
-dArrayT dmax;
-dmax.Alias(support_params);
-
-	dArrayT dx;
-	dArrayT Dw(fNumSD); //make into work space variables
-	int count = 0;
-	for (int i = 0; i < fNumNeighbors; i++)
-	{
-		/* fetch local coords */
-		fLocCoords.RowAlias(i, dx);
-		
-		double dm = dmax[i];
-		double di = dx.Magnitude();
-	
-		/* out of influence range (or inactive) */
-		if (di > 2.0*dm)
-		{
-			 fw[i] = 0.0;
-			 if (fOrder > 0)
-			 {
-			 	fDw.SetColumn(i, 0.0);
-			 	
-			 	if (fOrder > 1)
-			 		fDDw.SetColumn(i, 0.0);
-			 }
-		}
-		/* Gaussian window function and derivatives */
-		else
-		{
-			double    a = 0.4;
-//			double    a = 1.0;
-			double  adm = a*dm;
-			double adm2 = adm*adm;
-			double    q = di/adm;
-			double&   w = fw[i];
-			
-			/* window */
-			w = exp(-q*q)/(sqrtPi*adm);
-
-			if (fOrder > 0)
-			{
-				/* 1st derivative */
-				Dw.SetToScaled(-2.0*w/adm2, dx);
-				fDw.SetColumn(i, Dw);
-
-				if (fOrder > 1)
-				{
-					/* 2nd derivative */
-					fNSDsym.Outer(dx);
-					fNSDsym *= 4.0*w/(adm2*adm2);
-					fNSDsym.PlusIdentity(-2.0*w/adm2);
-					fDDw.SetColumn(i, fNSDsym);
-				}
-			}
-
-			count++;
-		}
-	}
-	
-	return count;
 }
 
 /* set moment matrix, inverse, and derivatives */
