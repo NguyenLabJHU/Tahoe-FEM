@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.38 2002-09-10 13:43:56 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.39 2002-09-12 17:49:56 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -8,7 +8,7 @@
 #include <float.h>
 #include <ctype.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 
 #include "fstreamT.h"

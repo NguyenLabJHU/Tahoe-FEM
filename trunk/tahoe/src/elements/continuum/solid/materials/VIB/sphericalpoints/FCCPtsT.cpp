@@ -1,11 +1,11 @@
-/* $Id: FCCPtsT.cpp,v 1.2 2002-07-02 19:56:00 cjkimme Exp $ */
+/* $Id: FCCPtsT.cpp,v 1.3 2002-09-12 17:50:02 paklein Exp $ */
 /* created: paklein (03/26/1999)                                          */
 /* FCC lattice of points                                                  */
 
 #include "FCCPtsT.h"
 #include <math.h>
 #include <iostream.h>
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 
 

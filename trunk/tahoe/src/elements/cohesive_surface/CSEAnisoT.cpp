@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.23 2002-08-22 23:56:39 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.24 2002-09-12 17:49:52 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -8,7 +8,7 @@
 #include <iomanip.h>
 
 #include "fstreamT.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "SurfaceShapeT.h"
 #include "SurfacePotentialT.h"
 #include "eControllerT.h"

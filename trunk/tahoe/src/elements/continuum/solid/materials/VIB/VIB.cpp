@@ -1,11 +1,11 @@
-/* $Id: VIB.cpp,v 1.5 2002-07-02 19:55:55 cjkimme Exp $ */
+/* $Id: VIB.cpp,v 1.6 2002-09-12 17:49:58 paklein Exp $ */
 /* created: paklein (10/30/1997) */
 #include "VIB.h"
 
 #include <math.h>
 #include <iostream.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 
 #include "fstreamT.h"

@@ -1,4 +1,4 @@
-/* $Id: D2VIB2D.cpp,v 1.2 2002-07-02 19:55:59 cjkimme Exp $ */
+/* $Id: D2VIB2D.cpp,v 1.3 2002-09-12 17:50:01 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2VIB2D.h"
@@ -6,7 +6,7 @@
 #include <math.h>
 #include <iostream.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "fstreamT.h"
 #include "D2MeshFreeFDElasticT.h"
 

@@ -1,4 +1,4 @@
-/* $Id: KBC_CardT.cpp,v 1.8 2002-07-05 17:18:40 paklein Exp $ */
+/* $Id: KBC_CardT.cpp,v 1.9 2002-09-12 17:50:06 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "KBC_CardT.h"
@@ -6,7 +6,7 @@
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 
 #include "ScheduleT.h"

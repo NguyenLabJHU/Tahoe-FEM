@@ -1,4 +1,4 @@
-/* $Id: DRSolver.cpp,v 1.4 2002-07-02 19:57:11 cjkimme Exp $ */
+/* $Id: DRSolver.cpp,v 1.5 2002-09-12 17:50:12 paklein Exp $ */
 /* created: PAK/CBH (10/03/1996) */
 
 #include "DRSolver.h"
@@ -6,7 +6,7 @@
 #include <iostream.h>
 #include <math.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 #include "FEManagerT.h"
 #include "CCSMatrixT.h"

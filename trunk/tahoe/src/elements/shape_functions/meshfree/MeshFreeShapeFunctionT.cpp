@@ -1,8 +1,8 @@
-/* $Id: MeshFreeShapeFunctionT.cpp,v 1.5 2002-07-02 19:56:55 cjkimme Exp $ */
+/* $Id: MeshFreeShapeFunctionT.cpp,v 1.6 2002-09-12 17:50:09 paklein Exp $ */
 /* created: paklein (09/10/1998)                                          */
 
 #include "MeshFreeShapeFunctionT.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "MeshFreeSupport2DT.h"
 #include "MeshFreeSupport3DT.h"
 #include "LocalArrayT.h"

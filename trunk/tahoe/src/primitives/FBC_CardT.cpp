@@ -1,4 +1,4 @@
-/* $Id: FBC_CardT.cpp,v 1.8 2002-07-05 17:18:39 paklein Exp $ */
+/* $Id: FBC_CardT.cpp,v 1.9 2002-09-12 17:50:06 paklein Exp $ */
 /* created: paklein (06/15/1996) */
 
 #include "FBC_CardT.h"
@@ -6,7 +6,7 @@
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "NodeManagerT.h" // needed for schedule information
 #include "fstreamT.h"
 #include "ScheduleT.h"

@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.11 2002-07-02 19:56:45 cjkimme Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.12 2002-09-12 17:50:08 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 
 #include "CCSMatrixT.h"
@@ -9,7 +9,7 @@
 #include <iomanip.h>
 #include <string.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 
 #include "dMatrixT.h"
 #include "dArrayT.h"

@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.5 2002-07-02 19:56:28 cjkimme Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.6 2002-09-12 17:50:05 paklein Exp $ */
 /* created: paklein (02/25/1997)                                          */
 
 #include "PenaltyWallT.h"
@@ -7,7 +7,7 @@
 #include <iostream.h>
 #include <iomanip.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "fstreamT.h"
 #include "FEManagerT.h"
 #include "eControllerT.h"

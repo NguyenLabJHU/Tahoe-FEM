@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.19 2002-07-02 19:55:24 cjkimme Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.20 2002-09-12 17:49:53 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -6,7 +6,7 @@
 #include <iomanip.h>
 
 #include "fstreamT.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "StructuralMaterialT.h"
 #include "MaterialListT.h" //NOTE - only needed for check in Initialize?
 #include "SimoShapeFunctionT.h"

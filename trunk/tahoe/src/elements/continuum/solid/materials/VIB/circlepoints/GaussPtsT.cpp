@@ -1,10 +1,10 @@
-/* $Id: GaussPtsT.cpp,v 1.2 2002-07-02 19:55:59 cjkimme Exp $ */
+/* $Id: GaussPtsT.cpp,v 1.3 2002-09-12 17:50:01 paklein Exp $ */
 /* created: paklein (11/02/1997)                                          */
 
 #include "GaussPtsT.h"
 #include <math.h>
 #include <iostream.h>
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 
 

@@ -1,11 +1,11 @@
-/* $Id: NLK0Solver.cpp,v 1.5 2002-07-02 19:57:11 cjkimme Exp $ */
+/* $Id: NLK0Solver.cpp,v 1.6 2002-09-12 17:50:12 paklein Exp $ */
 /* created: paklein (10/01/1996) */
 
 #include "NLK0Solver.h"
 #include <iostream.h>
 #include <iomanip.h>
 #include <math.h>
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 #include "FEManagerT.h"
 #include "fstreamT.h"

@@ -1,4 +1,4 @@
-/* $Id: Aztec_fe.cpp,v 1.4 2002-07-02 19:56:49 cjkimme Exp $ */
+/* $Id: Aztec_fe.cpp,v 1.5 2002-09-12 17:50:09 paklein Exp $ */
 /* created: paklein (08/01/1998) */
 
 #include "Aztec_fe.h"
@@ -10,7 +10,7 @@
 #include <iomanip.h>
 #include <stdlib.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 #include "az_aztec.h"
 

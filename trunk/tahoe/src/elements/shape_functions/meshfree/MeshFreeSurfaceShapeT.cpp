@@ -1,9 +1,9 @@
-/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.3 2002-07-02 19:56:56 cjkimme Exp $ */
+/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.4 2002-09-12 17:50:10 paklein Exp $ */
 /* created: paklein (06/03/2000)                                          */
 
 #include "MeshFreeSurfaceShapeT.h"
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "ExceptionCodes.h"
 
 #include "SurfaceShapeT.h"

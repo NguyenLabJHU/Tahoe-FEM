@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.16 2002-07-02 19:56:56 cjkimme Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.17 2002-09-12 17:50:10 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -6,7 +6,7 @@
 #include <math.h>
 #include <string.h>
 #include "ExceptionCodes.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "dArray2DT.h"
 #include "fstreamT.h"
 

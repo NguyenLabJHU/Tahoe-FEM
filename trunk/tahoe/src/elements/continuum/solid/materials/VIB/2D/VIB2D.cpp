@@ -1,4 +1,4 @@
-/* $Id: VIB2D.cpp,v 1.3 2002-07-02 19:55:56 cjkimme Exp $ */
+/* $Id: VIB2D.cpp,v 1.4 2002-09-12 17:49:59 paklein Exp $ */
 /* created: paklein (04/09/1997)                                          */
 /* 2D VIB solver                                                          */
 
@@ -7,7 +7,7 @@
 #include <math.h>
 #include <iostream.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 
 #include "fstreamT.h"
 #include "C1FunctionT.h"

@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.10 2002-07-12 21:55:47 hspark Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.11 2002-09-12 17:49:56 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "TimeManagerT.h"
@@ -9,7 +9,7 @@
 
 #include "fstreamT.h"
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "FEManagerT.h"
 #include "TimeSequence.h"
 #include "dArrayT.h"

@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.7 2002-07-02 19:56:28 cjkimme Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.8 2002-09-12 17:50:05 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltyRegionT.h"
@@ -8,7 +8,7 @@
 #include <iomanip.h>
 #include <ctype.h>
 
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "GlobalT.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"

@@ -1,4 +1,4 @@
-/* $Id: IsoVIB3D.cpp,v 1.4 2002-07-02 19:55:57 cjkimme Exp $ */
+/* $Id: IsoVIB3D.cpp,v 1.5 2002-09-12 17:50:00 paklein Exp $ */
 /* created: paklein (03/15/1998)                                          */
 /* 3D Isotropic VIB solver using spectral decomposition formulation       */
 
@@ -6,7 +6,7 @@
 
 #include <math.h>
 #include <iostream.h>
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "fstreamT.h"
 #include "C1FunctionT.h"
 #include "dMatrixT.h"

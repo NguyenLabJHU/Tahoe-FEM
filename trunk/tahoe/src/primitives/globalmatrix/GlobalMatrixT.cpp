@@ -1,11 +1,11 @@
-/* $Id: GlobalMatrixT.cpp,v 1.11 2002-07-02 19:56:45 cjkimme Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.12 2002-09-12 17:50:08 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #include "GlobalMatrixT.h"
 #include <iostream.h>
 #include <fstream.h>
 #include <iomanip.h>
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "dArrayT.h"
 
 /* cconstructor */
