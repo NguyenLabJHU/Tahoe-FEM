@@ -1,4 +1,4 @@
-/* $Id: C1FunctionT.h,v 1.9 2002-09-12 16:00:20 paklein Exp $ */
+/* $Id: C1FunctionT.h,v 1.10 2002-09-12 18:14:44 paklein Exp $ */
 /* created: paklein (12/04/1996) */
 
 #ifndef _C2_FUNCTION_T_H_
@@ -7,8 +7,6 @@
 #include "Environment.h"
 
 #include "ios_fwd_decl.h"
-
-using namespace std;
 
 namespace Tahoe {
 
