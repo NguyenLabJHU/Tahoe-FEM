@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.35.2.3 2004-02-26 08:58:04 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.35.2.4 2004-03-02 17:45:20 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -25,7 +25,6 @@
 /* materials lists */
 #include "MaterialSupportT.h"
 #include "MaterialListT.h"
-#include "Material2DT.h"
 
 using namespace Tahoe;
 
@@ -506,24 +505,6 @@ void ContinuumElementT::ApplyTractionBC(void)
 			int elem, facet;
 			BC_card.Destination(elem, facet);
 			
-#ifdef __NO_RTTI__
-			/* default thickness */
-			double thick = 1.0;
-#else
-			/* use thickness for 2D solid deformation elements */
-			double thick = 1.0;
-			if (ndof == 2 && nsd == 2) //better to do this once elsewhere?
-			{
-				/* get material pointer */
-				const ElementCardT& elem_card = fElementCards[elem];
-				ContinuumMaterialT* pmat = (*fMaterialList)[elem_card.MaterialNumber()];
-			
-				/* thickness from 2D material */
-				Material2DT* pmat2D = TB_DYNAMIC_CAST(Material2DT*, pmat);
-				if (pmat2D) thick = pmat2D->Thickness();
-			}
-#endif
-			
 			/* boundary shape functions */
 			const ParentDomainT& surf_shape = ShapeFunction().FacetShapeFunction(facet);
 			int nip = surf_shape.NumIP();
@@ -545,7 +526,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 					double detj = surf_shape.SurfaceJacobian(jacobian);
 	
 					/* ip weight */
-					double jwt = detj*w[j]*thick;
+					double jwt = detj*w[j];
 					
 					/* ip traction */
 					const double* tj = ip_tract(j);
@@ -578,7 +559,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 					double detj = surf_shape.SurfaceJacobian(jacobian, Q);
 	
 					/* ip weight */
-					double jwt = detj*w[j]*thick;
+					double jwt = detj*w[j];
 					
 					/* transform ip traction out of local frame */
 					ip_tract.RowAlias(j, tract_loc);
