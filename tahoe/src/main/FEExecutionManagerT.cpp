@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.60.2.1 2004-04-10 20:56:38 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.60.2.2 2004-04-17 16:52:27 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -726,14 +726,17 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	//dArrayT mdmass;
 	//atoms.LumpedMass(atoms.NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
 	continuum.InitProjection(*atoms.CommManager(), atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive);		
-	nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
+	//nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
 	//nMatrixT<int> ghostonmap(5), ghostoffmap(5);  // for fracture problem
 	//nMatrixT<int> ghostonmap(4), ghostoffmap(4);    // for planar wave propagation problem
-	//nMatrixT<int> ghostonmap(7), ghostoffmap(7);	// 3D fracture problem
+	nMatrixT<int> ghostonmap(7), ghostoffmap(7);	// 3D fracture problem
 	ghostonmap = 0;
 	ghostoffmap = 0;
-	//ghostonmap(4,5) = ghostonmap(5,4) = 1;
-	ghostoffmap(1,0) = ghostoffmap(0,1) = 1;  // for wave propagation problem
+	ghostonmap(4,5) = ghostonmap(5,4) = 1;	// 3D fracture problem
+	ghostoffmap(0,6) = ghostoffmap(6,0) = ghostoffmap(1,6) = ghostoffmap(6,1) = 1;
+	ghostoffmap(2,6) = ghostoffmap(6,2) = ghostoffmap(3,6) = ghostoffmap(6,3) = 1;
+	ghostoffmap(4,6) = ghostoffmap(6,4) = ghostoffmap(5,6) = ghostoffmap(6,5) = 1;
+	//ghostoffmap(1,0) = ghostoffmap(0,1) = 1;  // for wave propagation problem
 	//ghostoffmap(4,0) = ghostoffmap(0,4) = ghostoffmap(4,1) = ghostoffmap(1,4) = 1;  // center MD crack
 	//ghostoffmap(4,2) = ghostoffmap(2,4) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
 	//ghostoffmap(4,3) = ghostoffmap(3,4) = 1;
