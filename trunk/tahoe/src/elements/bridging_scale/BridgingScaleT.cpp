@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.6 2002-07-19 20:17:21 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.7 2002-07-20 00:33:19 hspark Exp $ */
 #include "BridgingScaleT.h"
 #include "ShapeFunctionT.h"
 #include "RodT.h"
@@ -43,21 +43,32 @@ void BridgingScaleT::Initialize(void)
 	const ParentDomainT& parent=ShapeFunction().ParentDomain();
 	/* current nodal coordinates of the element */
 	const dArray2DT& curr_coords=ElementSupport().CurrentCoordinates();
+	// will the above ALWAYS give the current coordinates for both atoms and nodes?
 	/* distinguish FEM nodes vs. atoms to separate their respective coordinates */
 	iArrayT atoms_used, nodes_used;
 	fParticle.NodesUsed(atoms_used);
 	fSolid.NodesUsed(nodes_used);
 	dArray2DT atom_coords, node_coords;
-	atom_coords.RowCollect(atoms_used,curr_coords);
+	//curr_coords.RowCollect(atoms_used,atom_coords);
 	//curr_coords.RowCollect(nodes_used,node_coords);
-	cout << "Atomic coordinates = " << atom_coords << endl;
-	cout << "FEM nodal coordinates = " << curr_coords << endl;
-	/* now take one "node" (atom) at a time */
-	//int length = atom_coords.MajorDim();
-	//for (int i = 0; i < length; i++) {
-	//  dArrayT coords;
-	  //curr_atom_coords.RowCopy(i,coords);
-	//  bool in = parent.PointInDomain(curr_coords,coords);
+	cout << "Atoms used = " << atoms_used << endl;
+	cout << "Nodes used = " << nodes_used << endl;
+	/* now take an atom, check against every element */
+	//int totalatoms = atom_coords.MajorDim();
+	//int totalnodes = node_coords.MajorDim();
+	//for (int i = 0; i < totalnodes-1; i++) {
+	//int count = 0;
+	//dArrayT cell;
+	//node_coords.RowCopy(i,cell);
+	//for (int j = 0; j < totalatoms; i++) {
+	//  dArrayT point,cell;
+	//  atom_coords.RowCopy(j,coords);
+	//  bool in = parent.PointInDomain(cell,coords);
+	//  if(in) {
+	//      fParticlesInCell[i,count]=atomsused[j];
+	//        count++;
+	//  }
+	//}
 	//}
 	// (2) compute the inverse map (shape functions)
 	//bool try = parent.MapToParentDomain(coords,point,mapped);

@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.h,v 1.10 2002-07-19 20:17:22 hspark Exp $ */
+/* $Id: ParentDomainT.h,v 1.11 2002-07-20 00:33:20 hspark Exp $ */
 /* created: paklein (07/03/1996)                                          */
 /* interface for a finite element parent domain. manages integration      */
 /* information (points, weights, etc..) and mapping between the real      */
@@ -188,7 +188,7 @@ class ParentDomainT
 	 * the list of coordinates
 	 * \param coords list of coordinates defining the domain
 	 * \param point test point coordinates */
-	bool PointInDomain(const dArray2DT& coords, const dArrayT& point) const;
+	bool PointInDomain(const LocalArrayT& coords, const dArrayT& point) const;
 
 	/** map domain coordinates into the parent coordinates.
 	 * Return true if the given point is within the domain defined by
