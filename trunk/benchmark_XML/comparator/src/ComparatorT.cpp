@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.8 2001-09-05 18:40:56 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.9 2001-10-11 16:32:25 paklein Exp $ */
 
 #include "ComparatorT.h"
 
@@ -59,7 +59,7 @@ void ComparatorT::Run(void)
 			fRelTol = rel_tol;
 
 			/* compare */
-			PassOrFail(file_1, file_2);
+			PassOrFail(file_1, file_2, false, true);
 		}
 		else
 		{
@@ -167,6 +167,13 @@ bool ComparatorT::PassOrFail(ifstreamT& in) //const
 	tol_file.ToNativePathName();
 	tol_file.Prepend(path);
 	ifstreamT tol_in(in.comment_marker(), tol_file);
+
+	/* clear skip list */
+	fSkipLabels.Resize(0);
+
+	/* set comparison method */
+	bool do_relative = true;
+	bool do_absolute = false;
 	if (tol_in.is_open())
 	{
 		cout << "found local tolerance file: " << tol_file << '\n';
@@ -174,18 +181,38 @@ bool ComparatorT::PassOrFail(ifstreamT& in) //const
 		tol_in >> key;
 		while (tol_in.good())
 		{
+			
 			if (key == "abs_tol")
+			{
 				tol_in >> fAbsTol;
+			
+				/* for now, disable relative tolerance if found */	
+				do_relative = false;
+				do_absolute = true;
+			}
 			else if (key == "rel_tol")
+			{
 				tol_in >> fRelTol;
+
+				/* for now, disable relative tolerance if found */	
+				do_relative = true;
+				do_absolute = false;
+			}
+			else if (key == "skip")
+			{
+				StringT skip_label;
+				tol_in >> skip_label;
+				fSkipLabels.Append(skip_label);
+			}
 			tol_in >> key;
 		}
 	}
 	else
 		cout << "did not find local tolerance file: " << tol_file << '\n';
-	cout << "using tolerances:\n"
-	     << "    abs_tol = " << fAbsTol << '\n'
-	     << "    rel_tol = " << fRelTol << '\n';
+	cout << "using tolerances:\n";
+	if (do_absolute) cout << "    abs_tol = " << fAbsTol << '\n';
+	if (do_relative) cout << "    rel_tol = " << fRelTol << '\n';
+	cout.flush();
 	
 	/* job file name */
 	StringT file_root = in.filename();
@@ -209,11 +236,12 @@ bool ComparatorT::PassOrFail(ifstreamT& in) //const
 		benchmark.Append(file_root, ".run");
 
 	/* do compare */
-	 return PassOrFail(current, benchmark);
+	 return PassOrFail(current, benchmark, do_relative, do_absolute);
 }
 
 /* compare results */
-bool ComparatorT::PassOrFail(const StringT& file_1, const StringT& file_2)
+bool ComparatorT::PassOrFail(const StringT& file_1, const StringT& file_2,
+	bool do_rel, bool do_abs)
 {
 	/* open file_1 -> "current" */
 	ifstreamT current_in(file_1);
@@ -271,7 +299,8 @@ bool ComparatorT::PassOrFail(const StringT& file_1, const StringT& file_2)
 		}
 
 		/* compare nodal blocks */
-		if (!CompareDataBlocks(b_node_labels, b_node_data, c_node_labels, c_node_data)) {
+		if (!CompareDataBlocks(b_node_labels, b_node_data, c_node_labels, c_node_data, 
+			do_rel, do_abs)) {
 			cout << "nodal data check: FAIL" << '\n';
 			return false;
 		}
@@ -293,7 +322,8 @@ bool ComparatorT::PassOrFail(const StringT& file_1, const StringT& file_2)
 		}
 
 		/* compare element blocks */
-		if (!CompareDataBlocks(b_element_labels, b_element_data, c_element_labels, c_element_data)) {
+		if (!CompareDataBlocks(b_element_labels, b_element_data, c_element_labels, c_element_data, 
+			do_rel, do_abs)) {
 			cout << "element data check: FAIL" << '\n';
 			return false;
 		}
@@ -387,7 +417,7 @@ bool ComparatorT::ReadElementData(ifstreamT& in, ArrayT<StringT>& labels, dArray
 
 /* compare blocks - normalized by data set 1 */
 bool ComparatorT::CompareDataBlocks(const ArrayT<StringT>& labels_1, const dArray2DT& data_1,
-	const ArrayT<StringT>& labels_2, const dArray2DT& data_2) const
+	const ArrayT<StringT>& labels_2, const dArray2DT& data_2, bool do_rel, bool do_abs) const
 {
 	/* compare labels */
 	if (labels_1.Length() != labels_2.Length()) {
@@ -416,65 +446,95 @@ bool ComparatorT::CompareDataBlocks(const ArrayT<StringT>& labels_1, const dArra
 	{
 		cout << "comparing: \"" << labels_1[j] << "\"\n";
 
-		double error_norm = 0.0, bench_norm = 0.0;
-		int max_rel_error_index = -1, max_abs_error_index = -1;
-		double max_rel_error_var = 0.0, max_abs_error_var = 0.0;
-		for (int i = 0; i < data_1.MajorDim(); i++)
-		{
-			/* error */
-			double abs_error = data_2(i,j) - data_1(i,j);
-			double rel_error = (fabs(data_1(i,j)) > kSmall) ? abs_error/data_1(i,j) : 0.0;
-
-			/* norms */
-			bench_norm += data_1(i,j)*data_1(i,j);
-			error_norm += abs_error*abs_error;
-			
-			/* track maximums */
-			if (fabs(abs_error) > fabs(max_abs_error_var)) {
-				max_abs_error_var = abs_error;
-				max_abs_error_index = i;
-			}
-			if (fabs(rel_error) > fabs(max_rel_error_var)) {
-				max_rel_error_var = rel_error;
-				max_rel_error_index = i;
-			}		
-		}
-		
-		/* compute norms */
-		bench_norm = sqrt(bench_norm);
-		error_norm = sqrt(error_norm);
-		
-		cout << "abs error norm: " << error_norm << '\n';
-		cout << "rel error norm: ";
-		if (bench_norm > kSmall)
-			cout << error_norm/bench_norm << '\n';
+		if (fSkipLabels.HasValue(labels_1[j]))
+			cout << "comparing: \"" << labels_1[j] << "\": SKIPPED\n";
 		else
-			cout << "-" << '\n';
+		{
+			double error_norm = 0.0, bench_norm = 0.0;
+			int max_rel_error_index = -1, max_abs_error_index = -1;
+			double max_rel_error_var = 0.0, max_abs_error_var = 0.0;
+			for (int i = 0; i < data_1.MajorDim(); i++)
+			{
+				/* error */
+				double abs_error = data_2(i,j) - data_1(i,j);
+				double rel_error = (fabs(data_1(i,j)) > kSmall) ? abs_error/data_1(i,j) : 0.0;
+
+				/* norms */
+				bench_norm += data_1(i,j)*data_1(i,j);
+				error_norm += abs_error*abs_error;
 			
-		/* maximum errors */
-		cout << "         max abs error: " << max_abs_error_var << '\n';
-		cout << "index of max abs error: " << max_abs_error_index + 1 << '\n';
-		cout << "         max rel error: " << max_rel_error_var << '\n';
-		cout << "index of max rel error: " << max_rel_error_index + 1 << '\n';
+				/* track maximums */
+				if (fabs(abs_error) > fabs(max_abs_error_var)) {
+					max_abs_error_var = abs_error;
+					max_abs_error_index = i;
+				}
+				if (fabs(rel_error) > fabs(max_rel_error_var)) {
+					max_rel_error_var = rel_error;
+					max_rel_error_index = i;
+				}		
+			}
 		
-		/* running max */
-		max_abs_error = (fabs(max_abs_error_var) > fabs(max_abs_error)) ? max_abs_error_var : max_abs_error;
-		max_rel_error = (fabs(max_rel_error_var) > fabs(max_rel_error)) ? max_rel_error_var : max_rel_error;
+			/* compute norms */
+			bench_norm = sqrt(bench_norm);
+			error_norm = sqrt(error_norm);
+		
+			cout << "abs error norm: " << error_norm << '\n';
+			cout << "rel error norm: ";
+			if (bench_norm > kSmall)
+				cout << error_norm/bench_norm << '\n';
+			else
+				cout << "0.0" << '\n';
+			
+			/* maximum errors */
+			cout << "         max abs error: " << max_abs_error_var << '\n';
+			cout << "index of max abs error: " << max_abs_error_index + 1 << '\n';
+			cout << "         max rel error: " << max_rel_error_var << '\n';
+			cout << "index of max rel error: " << max_rel_error_index + 1 << '\n';
+		
+			/* running max */
+			max_abs_error = (fabs(max_abs_error_var) > fabs(max_abs_error)) ? max_abs_error_var : max_abs_error;
+			max_rel_error = (fabs(max_rel_error_var) > fabs(max_rel_error)) ? max_rel_error_var : max_rel_error;
+		}
 	}
-
-	/* assess results */
-	if (fabs(max_abs_error) > fAbsTol)
-		cout << "absolute error exceeds tolerance " << fAbsTol << ": " << max_abs_error << ": FAIL\n";
-	else
-		cout << "absolute error within tolerance " << fAbsTol << ": " << max_abs_error << ": PASS\n";
 	
-	if (fabs(max_rel_error) > fRelTol) 
-		cout << "relative error exceeds tolerance " << fRelTol << ": " << max_rel_error << ": IGNORED\n";
+	/* results strings */
+	const char* judge[] = {"PASS", "FAIL", "IGNORE", "OVERRIDE"};
+	
+	/* absolute tolerance test */
+	const char* abs_judge = judge[0];
+	if (do_abs)
+	{
+		if (fabs(max_abs_error) > fAbsTol)
+		{
+			if (fabs(max_rel_error) > fRelTol)
+				abs_judge = judge[1];
+			else
+				abs_judge = judge[3];
+		}
+	}
 	else
-		cout << "relative error within tolerance " << fRelTol << ": " << max_rel_error << ": PASS\n";
+		abs_judge = judge[2];
 
-	/* return */
-	if (fabs(max_abs_error) > fAbsTol)
+	/* relative tolerance test */
+	const char* rel_judge = judge[0];
+	if (do_rel)
+	{
+		if (fabs(max_rel_error) > fRelTol)
+		{
+			if (fabs(max_abs_error) > fAbsTol)
+				rel_judge = judge[1];
+			else
+				rel_judge = judge[3];
+		}
+	}
+	else
+		rel_judge = judge[2];
+	
+	/* report */
+	cout << "absolute tolerance result: " << fAbsTol << " : " << max_abs_error << " : " << abs_judge << '\n';
+	cout << "relative tolerance result: " << fRelTol << " : " << max_rel_error << " : " << rel_judge << '\n';
+
+	if (abs_judge == judge[1] || rel_judge == judge[1])
 		return false;
 	else
 		return true;
