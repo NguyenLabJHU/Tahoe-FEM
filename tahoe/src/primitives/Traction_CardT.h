@@ -1,4 +1,4 @@
-/* $Id: Traction_CardT.h,v 1.1.1.1.8.1 2002-04-25 01:36:32 paklein Exp $ */
+/* $Id: Traction_CardT.h,v 1.1.1.1.8.2 2002-04-26 02:24:25 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 
 #ifndef _TRACTION_T_H_
@@ -15,7 +15,7 @@
 class ifstreamT;
 class ScheduleT;
 class DomainIntegrationT;
-class FEManagerT;
+class ElementSupportT;
 
 /** natural boundary condition information */
 class Traction_CardT
@@ -31,9 +31,10 @@ public:
 	Traction_CardT(void);
 
 	/* modifiers */
-	void EchoValues(const FEManagerT& theBoss, const DomainIntegrationT& domain,
+	void EchoValues(const ElementSupportT& support, const DomainIntegrationT& domain,
 		int element, int ndof, ifstreamT& in, ostream& out);
-	void EchoValues(const FEManagerT& theBoss, int elem, int facet, int nLTf,
+
+	void EchoValues(const ElementSupportT& support, int elem, int facet, int nLTf,
 		 CoordSystemT coord_sys, const iArrayT& locnodenums, const dArray2DT& valuesT,
 		 ostream& out);
 

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.21 2002-04-02 23:32:59 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.21.2.1 2002-04-26 02:24:18 paklein Exp $ */
 /* created: paklein (05/28/1996) */
 
 #include "SolidElementT.h"
@@ -31,19 +31,19 @@ const int SolidElementT::NumNodalOutputCodes = 7;
 const int SolidElementT::NumElementOutputCodes = 7;
 
 /* constructor */
-SolidElementT::SolidElementT(FEManagerT& fe_manager):
-	ContinuumElementT(fe_manager),
+SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field):
+	ContinuumElementT(support, field),
 	fLocLastDisp(LocalArrayT::kLastDisp),
 	fLocVel(LocalArrayT::kVel),
 	fLocAcc(LocalArrayT::kAcc),
-	fStress(fNumSD),
-	fD(dSymMatrixT::NumValues(fNumSD))
+	fStress(NumSD()),
+	fD(dSymMatrixT::NumValues(NumSD()))
 {
 	/* check base class initializations */
-	if (fNumDOF != fNumSD) throw eGeneralFail;
+	if (NumDOF() != NumSD()) throw eGeneralFail;
 
-	ifstreamT& in  = fFEManager.Input();
-	ostream&    out = fFEManager.Output();
+	ifstreamT& in  = ElementSupport().Input();
+	ostream&    out = ElementSupport().Output();
 	
 	/* control parameters */
 	in >> fMassType;		
@@ -64,7 +64,7 @@ void SolidElementT::Initialize(void)
 	ContinuumElementT::Initialize();
 
 	/* allocate strain-displacement matrix */
-	fB.Allocate(dSymMatrixT::NumValues(fNumSD), fNumSD*fNumElemNodes);
+	fB.Allocate(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
 
 	/* override */
 	if (fController->ImplicitExplicit() == eControllerT::kExplicit &&
@@ -90,6 +90,9 @@ void SolidElementT::Initialize(void)
 	}	
 }
 
+
+//NOTE - note needed anymore
+#if 0
 /* set the controller */
 void SolidElementT::SetController(eControllerT* controller)
 {
@@ -106,7 +109,7 @@ void SolidElementT::SetController(eControllerT* controller)
 		if (fMassType == kNoMass)
 		{
 			cout << "\n SolidElementT::SetController: WARNING: element group ";
-			cout << fFEManager.ElementGroupNumber(this) + 1 << " has mass type " << kNoMass << endl;
+			cout << ElementSupport().ElementGroupNumber(this) + 1 << " has mass type " << kNoMass << endl;
 		}
 		else if (fMassType != kLumpedMass) /* override all others */
 //{
@@ -115,6 +118,8 @@ void SolidElementT::SetController(eControllerT* controller)
 //}
 	}
 }
+#endif
+#pragma message("SolidElementT::SetController: move lumped mass check elsewhere")
 
 /* solution calls */
 void SolidElementT::AddNodalForce(int node, dArrayT& force)
@@ -138,7 +143,7 @@ void SolidElementT::AddNodalForce(int node, dArrayT& force)
 	/* body forces */
 	int formBody = 0;
 	if (fMassType != kNoMass &&
-	   (fBodyForceLTf > -1 && fBody.Magnitude() > kSmall))
+	   (fBodySchedule && fBody.Magnitude() > kSmall))
 	{	
 		formBody = 1;
 		if (!formMa) constMa = 1.0; /* override */
@@ -190,7 +195,7 @@ void SolidElementT::AddNodalForce(int node, dArrayT& force)
 			}
 
 			/* components for node */
-			nodalforce.Set(fNumDOF, &fRHS[fNumDOF*nodeposition]);
+			nodalforce.Set(NumDOF(), &fRHS[NumDOF()*nodeposition]);
 	
 			/* accumulate */
 			force += nodalforce;
@@ -201,7 +206,7 @@ void SolidElementT::AddNodalForce(int node, dArrayT& force)
 void SolidElementT::AddLinearMomentum(dArrayT& momentum)
 {
 	/* check */
-	if (momentum.Length() != fNumDOF) throw eSizeMismatch;
+	if (momentum.Length() != NumDOF()) throw eSizeMismatch;
 		
 	/* loop over elements */
 	Top();
@@ -230,7 +235,7 @@ void SolidElementT::AddLinearMomentum(dArrayT& momentum)
 
 			double* p    = momentum.Pointer();
 			double* pvel = fDOFvec.Pointer();					
-			for (int dof = 0; dof < fNumDOF; dof++)			
+			for (int dof = 0; dof < NumDOF(); dof++)			
 				*p++ += temp*(*pvel++);
 		}
 	}
@@ -363,7 +368,7 @@ void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 	
 		if (i == iWaveSpeeds && fNodalOutputCodes[iWaveSpeeds] != IOBaseT::kAtNever)
 		{
-			fNormal.Allocate(fNumSD);
+			fNormal.Allocate(NumSD());
 			in >> fNormal;
 			fNormal.UnitVector();
 		}
@@ -386,7 +391,7 @@ void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 	if (fNodalOutputCodes[iWaveSpeeds] == 1)
 	{
 		out << " Wave speed sampling direction:\n";
-		for (int i = 0; i < fNumSD; i++)
+		for (int i = 0; i < NumSD(); i++)
 			out << "   N[" << i+1 << "] = " << fNormal[i] << '\n';
 	}
 
@@ -395,7 +400,7 @@ void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 	fElementOutputCodes = IOBaseT::kAtNever;
 
 //TEMP - backward compatibility
-	if (StringT::versioncmp(fFEManager.Version(), "v3.01") < 1)
+	if (StringT::versioncmp(ElementSupport().Version(), "v3.01") < 1)
 	{
 		/* message */
 		cout << "\n SolidElementT::EchoOutputCodes: use input file version newer than v3.01\n" 
@@ -405,7 +410,7 @@ void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 	}
 	else
 	{
-		int num_codes = (StringT::versioncmp(fFEManager.Version(), "v3.4.1") < 0) ? 5 : 7;
+		int num_codes = (StringT::versioncmp(ElementSupport().Version(), "v3.4.1") < 0) ? 5 : 7;
 	
 		/* read in at a time to allow comments */
 		for (int j = 0; j < num_codes; j++)
@@ -450,17 +455,17 @@ void SolidElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT
 
 	/* set output flags */
 	if (flags[iNodalCoord] == mode)
-		counts[iNodalCoord] = fNumSD;
+		counts[iNodalCoord] = NumSD();
 	if (flags[iNodalDisp] == mode)
-		counts[iNodalDisp] = fNumDOF;
+		counts[iNodalDisp] = NumDOF();
 	if (flags[iNodalStress] == mode)
-		counts[iNodalStress] = dSymMatrixT::NumValues(fNumSD);
+		counts[iNodalStress] = dSymMatrixT::NumValues(NumSD());
 	if (flags[iPrincipal] == mode)
-		counts[iPrincipal] = fNumSD;
+		counts[iPrincipal] = NumSD();
 	if (flags[iEnergyDensity] == mode)
 		counts[iEnergyDensity] = 1;
 	if (flags[iWaveSpeeds] == mode)
-		counts[iWaveSpeeds] = fNumSD;
+		counts[iWaveSpeeds] = NumSD();
 	if (flags[iMaterialData] == mode)
 		counts[iMaterialData] = (*fMaterialList)[0]->NumOutputVariables();
 }
@@ -473,14 +478,14 @@ void SolidElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArra
 	counts = 0;
 
 	/* set output flags */
-	if (fElementOutputCodes[iCentroid] == mode) counts[iCentroid] = fNumSD;
-	if (fElementOutputCodes[iMass] == mode) counts[iMass] = fNumIP;
+	if (fElementOutputCodes[iCentroid] == mode) counts[iCentroid] = NumSD();
+	if (fElementOutputCodes[iMass] == mode) counts[iMass] = NumIP();
 	if (fElementOutputCodes[iStrainEnergy] == mode) counts[iStrainEnergy] = 1;
 	if (fElementOutputCodes[iKineticEnergy] == mode) counts[iKineticEnergy] = 1;
-	if (fElementOutputCodes[iLinearMomentum] == mode) counts[iLinearMomentum] = fNumDOF;
-	if (fElementOutputCodes[iIPStress] == mode) counts[iIPStress] = dSymMatrixT::NumValues(fNumSD)*fNumIP;
+	if (fElementOutputCodes[iLinearMomentum] == mode) counts[iLinearMomentum] = NumDOF();
+	if (fElementOutputCodes[iIPStress] == mode) counts[iIPStress] = dSymMatrixT::NumValues(NumSD())*NumIP();
 	if (fElementOutputCodes[iIPMaterialData] == mode) 
-		counts[iIPMaterialData] = (*fMaterialList)[0]->NumOutputVariables()*fNumIP;
+		counts[iIPMaterialData] = (*fMaterialList)[0]->NumOutputVariables()*NumIP();
 }
 
 /* initialize local arrays */
@@ -490,14 +495,14 @@ void SolidElementT::SetLocalArrays(void)
 	ContinuumElementT::SetLocalArrays();
 
 	/* dimension */
-	fLocLastDisp.Allocate(fNumElemNodes, fNumDOF);
-	fLocVel.Allocate(fNumElemNodes, fNumDOF);
-	fLocAcc.Allocate(fNumElemNodes, fNumDOF);
+	fLocLastDisp.Allocate(NumElementNodes(), NumDOF());
+	fLocVel.Allocate(NumElementNodes(), NumDOF());
+	fLocAcc.Allocate(NumElementNodes(), NumDOF());
 
 	/* set source */
-	fFEManager.RegisterLocal(fLocLastDisp);
-	fFEManager.RegisterLocal(fLocVel);
-	fFEManager.RegisterLocal(fLocAcc);
+	Field().RegisterLocal(fLocLastDisp);
+	Field().RegisterLocal(fLocVel);
+	Field().RegisterLocal(fLocAcc);
 }
 
 /* set the correct shape functions */
@@ -506,7 +511,7 @@ void SolidElementT::SetShape(void)
 	/* construct shape functions */
 	ShapeFunctionT::StrainOptionT strain_opt = (fStrainDispOpt == 0) ? 
 		ShapeFunctionT::kStandardB : ShapeFunctionT::kMeanDilBbar;
-	fShapes = new ShapeFunctionT(fGeometryCode, fNumIP,
+	fShapes = new ShapeFunctionT(GeometryCode(), NumIP(),
 		fLocInitCoords, strain_opt);
 	if (!fShapes) throw eOutOfMemory;
 
@@ -533,7 +538,7 @@ void SolidElementT::SetGlobalShape(void)
 			SetLocalU(fLocVel);
 		else /* finite difference approximation */
 		{
-			double onebydt = 1.0/fFEManager.TimeStep();
+			double onebydt = 1.0/ElementSupport().TimeStep();
 			fLocVel.SetToCombination(onebydt, fLocDisp, -onebydt, fLocLastDisp);
 		}
 	}	
@@ -629,7 +634,7 @@ void SolidElementT::ElementRHSDriver(void)
 	/* body forces */
 	int formBody = 0;
 	if (fMassType != kNoMass &&
-	   (fBodyForceLTf > -1 && fBody.Magnitude() > kSmall))
+	   (fBodySchedule && fBody.Magnitude() > kSmall))
 	{	
 		formBody = 1;
 		if (!formMa) constMa = 1.0; /* override */
@@ -863,9 +868,9 @@ void SolidElementT::FormKd(double constK)
 MaterialListT* SolidElementT::NewMaterialList(int size) const
 {
 	/* allocate */
-	if (fNumSD == 2)
+	if (NumSD() == 2)
 		return new MaterialList2DT(size, *this);
-	else if (fNumSD == 3)
+	else if (NumSD() == 3)
 		return new MaterialList3DT(size, *this);
 	else
 		return NULL;		
@@ -886,29 +891,29 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	fNodes->ResetAverage(n_out);
 	
 	/* allocate element results space */
-	e_values.Allocate(fNumElements, e_out);
+	e_values.Allocate(NumElements(), e_out);
 
 	/* nodal work arrays */
-	dArray2DT nodal_space(fNumElemNodes, n_out);
-	dArray2DT nodal_all(fNumElemNodes, n_out);
+	dArray2DT nodal_space(NumElementNodes(), n_out);
+	dArray2DT nodal_all(NumElementNodes(), n_out);
 	dArray2DT coords, disp;
 	dArray2DT nodalstress, princstress, matdat;
 	dArray2DT energy, speed;
 
 	/* ip values */
-	dSymMatrixT cauchy(fNumSD);
+	dSymMatrixT cauchy(NumSD());
 	dArrayT ipmat(n_codes[iMaterialData]), ipenergy(1);
-	dArrayT ipspeed(fNumSD), ipprincipal(fNumSD);
+	dArrayT ipspeed(NumSD()), ipprincipal(NumSD());
 
 	/* set shallow copies */
 	double* pall = nodal_space.Pointer();
-	coords.Set(fNumElemNodes, n_codes[iNodalCoord], pall)      ; pall += coords.Length();
-	disp.Set(fNumElemNodes, n_codes[iNodalDisp], pall)         ; pall += disp.Length();
-	nodalstress.Set(fNumElemNodes, n_codes[iNodalStress], pall); pall += nodalstress.Length();
-	princstress.Set(fNumElemNodes, n_codes[iPrincipal], pall)  ; pall += princstress.Length();
-	energy.Set(fNumElemNodes, n_codes[iEnergyDensity], pall)   ; pall += energy.Length();
-	speed.Set(fNumElemNodes, n_codes[iWaveSpeeds], pall)       ; pall += speed.Length();
-	matdat.Set(fNumElemNodes, n_codes[iMaterialData], pall);
+	coords.Set(NumElementNodes(), n_codes[iNodalCoord], pall)      ; pall += coords.Length();
+	disp.Set(NumElementNodes(), n_codes[iNodalDisp], pall)         ; pall += disp.Length();
+	nodalstress.Set(NumElementNodes(), n_codes[iNodalStress], pall); pall += nodalstress.Length();
+	princstress.Set(NumElementNodes(), n_codes[iPrincipal], pall)  ; pall += princstress.Length();
+	energy.Set(NumElementNodes(), n_codes[iEnergyDensity], pall)   ; pall += energy.Length();
+	speed.Set(NumElementNodes(), n_codes[iWaveSpeeds], pall)       ; pall += speed.Length();
+	matdat.Set(NumElementNodes(), n_codes[iMaterialData], pall);
 
 	/* element work arrays */
 	dArrayT element_values(e_values.MinorDim());
@@ -916,12 +921,12 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	dArrayT centroid, ip_centroid, ip_mass;
 	if (e_codes[iCentroid])
 	{
-		centroid.Set(fNumSD, pall); pall += fNumSD;
-		ip_centroid.Allocate(fNumSD);
+		centroid.Set(NumSD(), pall); pall += NumSD();
+		ip_centroid.Allocate(NumSD());
 	}
 	if (e_codes[iMass]) {
-		ip_mass.Set(fNumIP, pall); 
-		pall += fNumIP;
+		ip_mass.Set(NumIP(), pall); 
+		pall += NumIP();
 	}
 	double w_tmp, ke_tmp;
 	double mass;
@@ -930,19 +935,19 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	dArrayT linear_momentum, ip_velocity;
 	if (e_codes[iLinearMomentum])
 	{
-		linear_momentum.Set(fNumDOF, pall); pall += fNumDOF;
-		ip_velocity.Allocate(fNumDOF);
+		linear_momentum.Set(NumDOF(), pall); pall += NumDOF();
+		ip_velocity.Allocate(NumDOF());
 	}
 	dArray2DT ip_stress;
 	if (e_codes[iIPStress])
 	{
-		ip_stress.Set(fNumIP, e_codes[iIPStress]/fNumIP, pall);
+		ip_stress.Set(NumIP(), e_codes[iIPStress]/NumIP(), pall);
 		pall += ip_stress.Length();
 	}
 	dArray2DT ip_material_data;
 	if (e_codes[iIPMaterialData])
 	{
-		ip_material_data.Set(fNumIP, e_codes[iIPMaterialData]/fNumIP, pall);
+		ip_material_data.Set(NumIP(), e_codes[iIPMaterialData]/NumIP(), pall);
 		pall += ip_material_data.Length();
 		ipmat.Allocate(ip_material_data.MinorDim());
 	}
@@ -1112,16 +1117,16 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 	int count = 0;
 	if (n_codes[iNodalDisp])
 	{
-		if (fNumDOF > 3) throw eGeneralFail;
+		if (NumDOF() > 3) throw eGeneralFail;
 		const char* dlabels[3] = {"D_X", "D_Y", "D_Z"};
-		for (int i = 0; i < fNumDOF; i++)
+		for (int i = 0; i < NumDOF(); i++)
 			n_labels[count++] = dlabels[i];
 	}
 
 	if (n_codes[iNodalCoord])
 	{
 		const char* xlabels[] = {"x1", "x2", "x3"};
-		for (int i = 0; i < fNumSD; i++)
+		for (int i = 0; i < NumSD(); i++)
 			n_labels[count++] = xlabels[i];
 	}
 
@@ -1129,15 +1134,15 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 	{
 		const char* slabels2D[] = {"s11", "s22", "s12"};
 		const char* slabels3D[] = {"s11", "s22", "s33", "s23", "s13", "s12"};
-		const char**    slabels = (fNumSD == 2) ? slabels2D : slabels3D;
-		for (int i = 0; i < dSymMatrixT::NumValues(fNumSD); i++)
+		const char**    slabels = (NumSD() == 2) ? slabels2D : slabels3D;
+		for (int i = 0; i < dSymMatrixT::NumValues(NumSD()); i++)
 			n_labels[count++] = slabels[i];
 	}
 		
 	if (n_codes[iPrincipal])
 	{
 		const char* plabels[] = {"s1", "s2", "s3"};
-		for (int i = 0; i < fNumSD; i++)
+		for (int i = 0; i < NumSD(); i++)
 			n_labels[count++] = plabels[i];
 	}
 		
@@ -1146,8 +1151,8 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 	{
 		const char* clabels2D[] = {"cd", "cs"};
 		const char* clabels3D[] = {"cd", "cs_min", "cs_max"};
-		const char**    clabels = (fNumSD == 2) ? clabels2D : clabels3D;
-		for (int i = 0; i < fNumSD; i++)
+		const char**    clabels = (NumSD() == 2) ? clabels2D : clabels3D;
+		for (int i = 0; i < NumSD(); i++)
 			n_labels[count++] = clabels[i];		
 	}
 
@@ -1167,13 +1172,13 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 	if (e_codes[iCentroid])
 	{
 		const char* xlabels[] = {"xc_1", "xc_2", "xc_3"};
-		for (int i = 0; i < fNumSD; i++)
+		for (int i = 0; i < NumSD(); i++)
 			e_labels[count++] = xlabels[i];
 	}
 	if (e_codes[iMass])
 	{
 		/* over integration points */
-		for (int j = 0; j < fNumIP; j++)
+		for (int j = 0; j < NumIP(); j++)
 		{
 			StringT ip_label;
 			ip_label.Append("ip", j+1);
@@ -1186,23 +1191,23 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 	if (e_codes[iLinearMomentum])
 	{
 		const char* plabels[] = {"L_X", "L_Y", "L_Z"};
-		for (int i = 0; i < fNumDOF; i++)
+		for (int i = 0; i < NumDOF(); i++)
 			e_labels[count++] = plabels[i];
 	}
 	if (e_codes[iIPStress])
 	{
 		const char* slabels2D[] = {"s11", "s22", "s12"};
 		const char* slabels3D[] = {"s11", "s22", "s33", "s23", "s13", "s12"};
-		const char**    slabels = (fNumSD == 2) ? slabels2D : slabels3D;
+		const char**    slabels = (NumSD() == 2) ? slabels2D : slabels3D;
 
 		/* over integration points */
-		for (int j = 0; j < fNumIP; j++)
+		for (int j = 0; j < NumIP(); j++)
 		{
 			StringT ip_label;
 			ip_label.Append("ip", j+1);
 			
 			/* over stress components */
-			for (int i = 0; i < dSymMatrixT::NumValues(fNumSD); i++)
+			for (int i = 0; i < dSymMatrixT::NumValues(NumSD()); i++)
 			{
 				e_labels[count].Clear();
 				e_labels[count].Append(ip_label, ".", slabels[i]);
@@ -1218,7 +1223,7 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 		(*fMaterialList)[0]->OutputLabels(matlabels);	
 
 		/* over integration points */
-		for (int j = 0; j < fNumIP; j++)
+		for (int j = 0; j < NumIP(); j++)
 		{
 			StringT ip_label;
 			ip_label.Append("ip", j+1);

@@ -1,5 +1,5 @@
-/* $Id: PenaltyWallT.h,v 1.4 2001-09-11 23:42:51 paklein Exp $ */
-/* created: paklein (02/25/1997)                                          */
+/* $Id: PenaltyWallT.h,v 1.4.4.1 2002-04-26 02:24:24 paklein Exp $ */
+/* created: paklein (02/25/1997) */
 
 #ifndef _PENATLY_WALL_T_H_
 #define _PENATLY_WALL_T_H_
@@ -15,7 +15,7 @@ class PenaltyWallT: public PenaltyRegionT
 public:
 
 	/* constructor */
-	PenaltyWallT(FEManagerT& fe_manager, const iArray2DT& eqnos,
+	PenaltyWallT(FEManagerT& fe_manager, int group, const iArray2DT& eqnos,
 		const dArray2DT& coords, const dArray2DT* vels);
 
 	/* input processing */

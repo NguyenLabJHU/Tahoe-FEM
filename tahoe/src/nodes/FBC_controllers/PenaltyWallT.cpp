@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.3 2001-09-11 06:01:45 paklein Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.3.4.1 2002-04-26 02:24:24 paklein Exp $ */
 /* created: paklein (02/25/1997)                                          */
 
 #include "PenaltyWallT.h"
@@ -17,10 +17,11 @@ const double Pi = acos(-1.0);
 
 /* constructor */
 PenaltyWallT::PenaltyWallT(FEManagerT& fe_manager,
+	int group,
 	const iArray2DT& eqnos,
 	const dArray2DT& coords,
 	const dArray2DT* vels):
-	PenaltyRegionT(fe_manager, eqnos, coords, vels),
+	PenaltyRegionT(fe_manager, group, eqnos, coords, vels),
 
 	/* wall normal and tangents */	
 	fnormal(rCoords.MinorDim()),
@@ -66,7 +67,7 @@ void PenaltyWallT::ApplyLHS(void)
 					
 			/* assemble */
 			rEqnos.RowAlias(fContactNodes[i], fi_sh);
-			fFEManager.AssembleLHS(fLHS, fi_sh);
+			fFEManager.AssembleLHS(fGroup, fLHS, fi_sh);
 		}
 	}
 }

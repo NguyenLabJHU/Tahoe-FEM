@@ -1,4 +1,4 @@
-/* $Id: AugLagSphereT.cpp,v 1.3.4.1 2002-04-25 01:32:44 paklein Exp $ */
+/* $Id: AugLagSphereT.cpp,v 1.3.4.2 2002-04-26 02:24:23 paklein Exp $ */
 /* created: paklein (03/24/1999) */
 
 #include "AugLagSphereT.h"
@@ -18,7 +18,8 @@ const int kNumAugLagDOF = 1;
 /* constructor */
 AugLagSphereT::AugLagSphereT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes,
 	const FieldT& field, const dArray2DT& coords):
-	PenaltySphereT(fe_manager, 
+	PenaltySphereT(fe_manager,
+		field.Group(),
 		field.Equations(), 
 		coords, 
 		(field.Order() > 0) ? &(field[1]): NULL),
@@ -200,7 +201,7 @@ void AugLagSphereT::ApplyLHS(void)
 		
 		/* send to global equations */
 		fContactEqnos2D.RowAlias(i,fi_sh);
-		fFEManager.AssembleLHS(fLHS,fi_sh);
+		fFEManager.AssembleLHS(fGroup, fLHS,fi_sh);
 	}	
 }
 

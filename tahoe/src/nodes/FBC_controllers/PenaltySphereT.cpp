@@ -1,5 +1,5 @@
-/* $Id: PenaltySphereT.cpp,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
-/* created: paklein (04/30/1998)                                          */
+/* $Id: PenaltySphereT.cpp,v 1.1.1.1.8.1 2002-04-26 02:24:24 paklein Exp $ */
+/* created: paklein (04/30/1998) */
 
 #include "PenaltySphereT.h"
 
@@ -13,10 +13,11 @@
 
 /* constructor */
 PenaltySphereT::PenaltySphereT(FEManagerT& fe_manager,
+	int group,
 	const iArray2DT& eqnos,
 	const dArray2DT& coords,
 	const dArray2DT* vels):
-	PenaltyRegionT(fe_manager, eqnos, coords, vels),
+	PenaltyRegionT(fe_manager, group, eqnos, coords, vels),
 	fv_OP(rCoords.MinorDim()),
 	fLHS(eqnos.MinorDim(),ElementMatrixT::kSymmetric)
 {
@@ -80,7 +81,7 @@ void PenaltySphereT::ApplyLHS(void)
 		
 			/* assemble */
 			rEqnos.RowAlias(fContactNodes[i], fi_sh);
-			fFEManager.AssembleLHS(fLHS, fi_sh);
+			fFEManager.AssembleLHS(fGroup, fLHS, fi_sh);
 		}
 	}
 }

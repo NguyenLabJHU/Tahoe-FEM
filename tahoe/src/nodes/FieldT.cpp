@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.1.2.4 2002-04-25 01:31:27 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.1.2.5 2002-04-26 02:24:23 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nControllerT.h"
@@ -201,7 +201,7 @@ void FieldT::FormRHS(const FieldSupportT& support)
 			fFBCValues[i] = fFBC[i].CurrentValue();	
 	
 		/* assemble */
-		support.AssembleRHS(fFBCValues, fFBCEqnos);
+		support.AssembleRHS(Group(), fFBCValues, fFBCEqnos);
 	}
 
 	/* KBC controllers */

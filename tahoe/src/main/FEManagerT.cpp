@@ -1,6 +1,5 @@
-/* $Id: FEManagerT.cpp,v 1.32.2.2 2002-04-25 01:28:56 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.32.2.3 2002-04-26 02:24:21 paklein Exp $ */
 /* created: paklein (05/22/1996) */
-
 #include "FEManagerT.h"
 
 #include <iostream.h>
@@ -189,7 +188,8 @@ void FEManagerT::Solve(void)
 		ReadRestart();
 
 		/* step through sequence */
-		fSolutionDriver->Run();
+//		fSolutionDriver->Run();
+#pragma message("FEManagerT::Solve????")
 		
 		/* write restart file */
 		//WriteRestart();
@@ -343,7 +343,10 @@ const int& FEManagerT::StepNumber(void) const { return fTimeManager->StepNumber(
 const int& FEManagerT::NumberOfSteps(void) const { return fTimeManager->NumberOfSteps(); }
 int FEManagerT::SequenceNumber(void) const { return fTimeManager->SequenceNumber(); }
 int FEManagerT::NumSequences(void) const { return fTimeManager->NumSequences(); }
-const int& FEManagerT::IterationNumber(void) const { return fSolutionDriver->IterationNumber(); }
+const int& FEManagerT::IterationNumber(int group) const 
+{ 
+	return fSolvers[group]->IterationNumber(); 
+}
 
 void FEManagerT::SetLocalEqnos(const iArray2DT& nodes,
 	iArray2DT& eqnos) const
@@ -461,45 +464,45 @@ GlobalT::RelaxCodeT FEManagerT::RelaxSystem(void) const
 void FEManagerT::AssembleLHS(int group, const ElementMatrixT& elMat,
 	const nArrayT<int>& eqnos) const
 {
-	fSolutionDriver->AssembleLHS(elMat, eqnos);
+	fSolvers[group]->AssembleLHS(elMat, eqnos);
 }
 
 void FEManagerT::AssembleLHS(int group, const ElementMatrixT& elMat,
 	const nArrayT<int>& row_eqnos, const nArrayT<int>& col_eqnos) const
 {
-	fSolutionDriver->AssembleLHS(elMat, row_eqnos, col_eqnos);
+	fSolvers[group]->AssembleLHS(elMat, row_eqnos, col_eqnos);
 }
 
 void FEManagerT::OverWriteLHS(int group, const ElementMatrixT& elMat,
 	const nArrayT<int>& eqnos) const
 {
-	fSolutionDriver->OverWriteLHS(elMat, eqnos);
+	fSolvers[group]->OverWriteLHS(elMat, eqnos);
 }
 
 void FEManagerT::DisassembleLHS(int group, dMatrixT& elMat, const nArrayT<int>& eqnos) const
 {
-	fSolutionDriver->DisassembleLHS(elMat, eqnos);
+	fSolvers[group]->DisassembleLHS(elMat, eqnos);
 }
 
 void FEManagerT::DisassembleLHSDiagonal(int group, dArrayT& diagonals, const nArrayT<int>& eqnos) const
 {
-	fSolutionDriver->DisassembleLHSDiagonal(diagonals, eqnos);
+	fSolvers[group]->DisassembleLHSDiagonal(diagonals, eqnos);
 }
 
 void FEManagerT::AssembleRHS(int group, const dArrayT& elRes,
 	const nArrayT<int>& eqnos) const
 {
-	fSolutionDriver->AssembleRHS(elRes, eqnos);
+	fSolvers[group]->AssembleRHS(elRes, eqnos);
 }
 
 void FEManagerT::OverWriteRHS(int group, const dArrayT& elRes, const nArrayT<int>& eqnos) const
 {
-	fSolutionDriver->OverWriteRHS(elRes, eqnos);
+	fSolvers[group]->OverWriteRHS(elRes, eqnos);
 }
 
 void FEManagerT::DisassembleRHS(int group, dArrayT& elRes, const nArrayT<int>& eqnos) const
 {
-	fSolutionDriver->DisassembleRHS(elRes, eqnos);
+	fSolvers[group]->DisassembleRHS(elRes, eqnos);
 }
 
 /* writing results */
@@ -533,7 +536,7 @@ void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values,
 	fIOManager->WriteOutput(ID, n_values, e_values);
 }
 
-int FEManagerT::RegisterOutput(const OutputSetT& output_set)
+int FEManagerT::RegisterOutput(const OutputSetT& output_set) const
 {
 	/* check */
 	if (!fIOManager) {
@@ -688,9 +691,9 @@ void FEManagerT::Wait(void)
 }
 
 /* global number of first local equation */
-GlobalT::EquationNumberScopeT FEManagerT::EquationNumberScope(void) const
+GlobalT::EquationNumberScopeT FEManagerT::EquationNumberScope(int group) const
 {
-	return fSolutionDriver->EquationNumberScope();
+	return fSolvers[group]->EquationNumberScope();
 }
 
 int FEManagerT::GetGlobalEquationStart(void) const

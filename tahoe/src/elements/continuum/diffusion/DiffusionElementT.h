@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.h,v 1.2 2001-02-20 00:42:13 paklein Exp $ */
+/* $Id: DiffusionElementT.h,v 1.2.8.1 2002-04-26 02:24:18 paklein Exp $ */
 /* created: paklein (10/02/1999)                                          */
 
 #ifndef _DIFFUSE_T_H_
@@ -27,13 +27,13 @@ public:
                     iMaterialData = 2};// material model output
 
 	/* constructor */
-	DiffusionElementT(FEManagerT& fe_manager);
+	DiffusionElementT(const ElementSupportT& support, const FieldT& field);
 	
 	/* data initialization */
 	virtual void Initialize(void);
 
 	/* set the controller */
-	virtual void SetController(eControllerT* controller);
+//	virtual void SetController(eControllerT* controller);
 
 	/* compute nodal force */
 	virtual void AddNodalForce(int node, dArrayT& force);

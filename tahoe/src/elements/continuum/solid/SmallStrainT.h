@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.3 2002-04-16 16:35:59 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.3.2.1 2002-04-26 02:24:18 paklein Exp $ */
 
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
@@ -12,7 +12,7 @@ class SmallStrainT: public ElasticT
   public:
       
 	/** constructor */
-	SmallStrainT(FEManagerT& fe_manager);
+	SmallStrainT(const ElementSupportT& support, const FieldT& field);
 
 	/** initialization. called immediately after constructor */
 	virtual void Initialize(void);

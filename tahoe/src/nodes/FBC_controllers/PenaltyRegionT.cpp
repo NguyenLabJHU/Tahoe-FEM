@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.5.2.2 2002-04-25 01:32:44 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.5.2.3 2002-04-26 02:24:24 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltyRegionT.h"
@@ -21,10 +21,11 @@ const double Pi = acos(-1.0);
 
 /* constructor */
 PenaltyRegionT::PenaltyRegionT(FEManagerT& fe_manager,
+	int group,
 	const iArray2DT& eqnos,
 	const dArray2DT& coords,
 	const dArray2DT* vels):
-	FBC_ControllerT(fe_manager),
+	FBC_ControllerT(fe_manager, group),
 	
 	/* references to NodeManagerT data */
 	rEqnos(eqnos),
@@ -238,7 +239,7 @@ void PenaltyRegionT::ApplyRHS(void)
 	ComputeContactForce(constKd);
 
 	/* assemble */
-	fFEManager.AssembleRHS(fContactForce, fContactEqnos);
+	fFEManager.AssembleRHS(fGroup, fContactForce, fContactEqnos);
 }
 
 /* apply kinematic boundary conditions */

@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.cpp,v 1.3.2.1 2002-04-25 01:32:44 paklein Exp $ */
+/* $Id: AugLagWallT.cpp,v 1.3.2.2 2002-04-26 02:24:24 paklein Exp $ */
 #include "AugLagWallT.h"
 
 #include <iostream.h>
@@ -17,6 +17,7 @@ const int kNumAugLagDOF = 1;
 AugLagWallT::AugLagWallT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes,
 	const FieldT& field, const dArray2DT& coords):
 	PenaltyWallT(fe_manager, 
+		field.Group(),
 		field.Equations(), 
 		coords, 
 		(field.Order() > 0) ? &(field[1]): NULL),
@@ -210,7 +211,7 @@ void AugLagWallT::ApplyLHS(void)
 		
 		/* send to global equations */
 		fContactEqnos2D.RowAlias(i,fi_sh);
-		fFEManager.AssembleLHS(fLHS,fi_sh);
+		fFEManager.AssembleLHS(fGroup, fLHS, fi_sh);
 	}	
 }
 

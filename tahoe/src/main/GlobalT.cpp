@@ -1,4 +1,4 @@
-/* $Id: GlobalT.cpp,v 1.4.2.2 2002-04-24 01:29:23 paklein Exp $ */
+/* $Id: GlobalT.cpp,v 1.4.2.3 2002-04-26 02:24:21 paklein Exp $ */
 /* created: paklein (04/01/2000) */
 
 #include "GlobalT.h"
@@ -11,6 +11,9 @@ istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code)
 	in >> i_code;
 	switch (i_code)
 	{
+		case GlobalT::kNoAnalysis:
+			code = GlobalT::kNoAnalysis;
+			break;
 		case GlobalT::kLinStatic:
 			code = GlobalT::kLinStatic;
 			break;

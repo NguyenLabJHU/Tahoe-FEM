@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.3 2001-09-15 01:18:15 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.3.4.1 2002-04-26 02:24:22 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 
 #ifndef _STRUCTURAL_MATERIALT_H_
@@ -18,7 +18,7 @@ class ifstreamT;
 class ElementBaseT;
 class dMatrixT;
 class ThermalDilatationT;
-class LoadTime;
+class ScheduleT;
 class dSymMatrixT;
 class LocalArrayT;
 class ElasticT;
@@ -76,7 +76,7 @@ public:
 	int ThermalStrainSchedule(void) const;
 
 	/** set the schedule for the prescribed temperature */
-	void SetThermalSchedule(const LoadTime* LTfPtr);
+	void SetThermalSchedule(const ScheduleT* LTfPtr);
 	
 	/** return the thermal expansion rate as a percentage */
 	double ThermalElongation(void) const;
@@ -127,8 +127,8 @@ inline double SolidMaterialT::StiffnessDamping(void) const { return fStiffDamp;}
 
 /* imposed thermal strains */
 inline int SolidMaterialT::HasThermalStrain(void) const { return fThermal->IsActive(); }
-inline int SolidMaterialT::ThermalStrainSchedule(void) const { return fThermal->LTfNumber(); }
-inline void SolidMaterialT::SetThermalSchedule(const LoadTime* LTfPtr) { fThermal->SetLTfPtr(LTfPtr); }
+inline int SolidMaterialT::ThermalStrainSchedule(void) const { return fThermal->ScheduleNum(); }
+inline void SolidMaterialT::SetThermalSchedule(const ScheduleT* LTfPtr) { fThermal->SetSchedule(LTfPtr); }
 inline double SolidMaterialT::ThermalElongation(void) const { return fThermal->PercentElongation(); }
 
 #endif /* _STRUCTURAL_MATERIALT_H_ */

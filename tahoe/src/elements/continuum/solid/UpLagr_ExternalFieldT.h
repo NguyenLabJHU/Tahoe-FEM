@@ -1,4 +1,4 @@
-/* $Id: UpLagr_ExternalFieldT.h,v 1.1 2001-07-14 01:16:40 paklein Exp $ */
+/* $Id: UpLagr_ExternalFieldT.h,v 1.1.4.1 2002-04-26 02:24:18 paklein Exp $ */
 
 #ifndef _UPDATED_LAGR_EX_FIELD_T_H_
 #define _UPDATED_LAGR_EX_FIELD_T_H_
@@ -20,7 +20,7 @@ class UpLagr_ExternalFieldT: public UpdatedLagrangianT
 public:
 
 	/** constructor */
-	UpLagr_ExternalFieldT(FEManagerT& fe_manager);
+	UpLagr_ExternalFieldT(const ElementSupportT& support, const FieldT& field);
 
 	/** initialization */
 	virtual void Initialize(void);
