@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.27 2004-01-02 02:58:47 paklein Exp $
+# $Id: makefile.template,v 1.28 2004-01-02 03:31:46 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -194,8 +194,8 @@ include $(MACRO_DIR)/tahoe.extras
 MOD_MAKE_INIT_XTRAS        = update_config
 MOD_MAKE_HEADERS_XTRAS     = make_headers_extras
 MOD_MAKE_DEPEND_INIT_XTRAS = make_depend_init_extras
-MOD_CLEAN_XTRAS            = clean_config
-MOD_BUILD_XTRAS            = make_build_extras
+MOD_MAKE_CLEAN_XTRAS       = clean_config
+MOD_MAKE_BUILD_XTRAS       = make_build_extras
 
 # include common target definitions
 include $(MACRO_DIR)/make.targets
