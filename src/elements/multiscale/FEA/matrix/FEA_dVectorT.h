@@ -1,4 +1,4 @@
-// $Id: FEA_dVectorT.h,v 1.4 2003-09-15 15:17:51 raregue Exp $
+// $Id: FEA_dVectorT.h,v 1.5 2003-09-15 16:22:32 paklein Exp $
 #ifndef _FEA_DVECTORT_H_
 #define _FEA_DVECTORT_H_
 
@@ -32,8 +32,8 @@ class FEA_dVectorT: public ArrayT <dArrayT>
 
 		double* FEA_Pointer   (int offset) { return (*this)[0].Pointer(offset); }
 
-		int IPs  (void) { return n_ip; } 
-		int Rows (void) { return n_sd; } 
+		int IPs  (void) const { return n_ip; } 
+		int Rows (void) const { return n_sd; } 
 
    	// vector operations
 /*		
@@ -79,15 +79,14 @@ class FEA_dVectorT: public ArrayT <dArrayT>
 		void operator /=  (const FEA_dScalarT &s);   
 
     FEA_EquateT& operator () (const int i); 
-
-    int n_ip; // this is a redundant value of fLength 
-		int n_sd; // this is a redundant value of (*this)[0].fLength
 		
 	protected:
 
 		dArrayT  Block_Memory; // Don't really need this w/ new way of FEA_EquateT setup	
     FEA_EquateT  ip_components; 
 
+   	int n_ip; // this is a redundant value of fLength 
+	int n_sd; // this is a redundant value of (*this)[0].fLength
 };
 
 }

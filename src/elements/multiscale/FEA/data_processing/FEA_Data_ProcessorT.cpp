@@ -1,4 +1,4 @@
-// $Id: FEA_Data_ProcessorT.cpp,v 1.8 2003-04-23 23:34:21 creigh Exp $
+// $Id: FEA_Data_ProcessorT.cpp,v 1.9 2003-09-15 16:22:31 paklein Exp $
 #include "FEA.h"  
 
 using namespace Tahoe;
@@ -459,11 +459,11 @@ void FEA_Data_ProcessorT::Identity	(FEA_dVectorT &I_vec, double scale)
 {
 	int l,i;
 	double *p = I_vec[0].Pointer();
-
+	int nsd_vec = I_vec.Rows();
 	for (l=0; l<n_ip; l++) {
 		for (i=0; i<n_sd; i++)  
 			(*p++) = scale; 
-		for (i=n_sd; i<I_vec.n_sd; i++)  
+		for (i = n_sd; i < nsd_vec; i++)  
 			(*p++) = 0.0; 
 	}
 }
