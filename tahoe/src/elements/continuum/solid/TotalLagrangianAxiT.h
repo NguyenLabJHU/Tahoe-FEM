@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianAxiT.h,v 1.2 2004-02-03 08:24:57 paklein Exp $ */
+/* $Id: TotalLagrangianAxiT.h,v 1.2.14.1 2004-05-06 16:03:20 paklein Exp $ */
 #ifndef _TOTAL_LAGRANGRIAN_AXI_T_H_
 #define _TOTAL_LAGRANGRIAN_AXI_T_H_
 
@@ -14,6 +14,7 @@ public:
 
 	/** constructors */
 	TotalLagrangianAxiT(const ElementSupportT& support, const FieldT& field);
+	TotalLagrangianAxiT(const ElementSupportT& support);
 
 	/** data initialization */
 	virtual void Initialize(void);

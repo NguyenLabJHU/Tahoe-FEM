@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainAxiT.cpp,v 1.3 2004-02-22 00:17:39 paklein Exp $ */
+/* $Id: FiniteStrainAxiT.cpp,v 1.3.14.1 2004-05-06 16:03:20 paklein Exp $ */
 #include "FiniteStrainAxiT.h"
 
 #include "ShapeFunctionT.h"
@@ -17,6 +17,14 @@ const int kNSD = 2;
 /* constructor */
 FiniteStrainAxiT::FiniteStrainAxiT(const ElementSupportT& support, const FieldT& field):
 	FiniteStrainT(support, field),
+	fMat2D(kNSD),
+	fLocCurrCoords(LocalArrayT::kCurrCoords)	
+{
+	SetName("large_strain_axi");
+}
+
+FiniteStrainAxiT::FiniteStrainAxiT(const ElementSupportT& support):
+	FiniteStrainT(support),
 	fMat2D(kNSD),
 	fLocCurrCoords(LocalArrayT::kCurrCoords)	
 {
@@ -84,9 +92,9 @@ MaterialSupportT* FiniteStrainAxiT::NewMaterialSupport(MaterialSupportT* p) cons
 }
 
 /* construct materials manager and read data */
-MaterialListT* FiniteStrainAxiT::NewMaterialList(int nsd, int size)
+MaterialListT* FiniteStrainAxiT::NewMaterialList(const StringT& name, int size)
 {
-#pragma unused(nsd)
+#pragma message("fix me")
 
 	if (size > 0)
 	{
