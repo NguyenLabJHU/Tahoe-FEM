@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.10 2002-11-25 07:28:57 paklein Exp $ */
+/* $Id: SolverT.h,v 1.11 2002-11-28 01:14:07 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -95,7 +95,7 @@ public:
 	void DisassembleLHS(dMatrixT& matrix, const nArrayT<int>& eqnos) const;
 	void DisassembleLHSDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const;
 
-	void AssembleRHS(const dArrayT& elRes, const nArrayT<int>& eqnos);
+	void AssembleRHS(const nArrayT<double>& elRes, const nArrayT<int>& eqnos);
 	void OverWriteRHS(const dArrayT& elRes, const nArrayT<int>& eqnos);
 	void DisassembleRHS(dArrayT& elRes, const nArrayT<int>& eqnos) const;
 	/*@}*/
