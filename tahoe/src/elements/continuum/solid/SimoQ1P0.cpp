@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.cpp,v 1.5 2002-10-10 17:28:41 paklein Exp $ */
+/* $Id: SimoQ1P0.cpp,v 1.5.2.1 2002-10-17 04:28:54 paklein Exp $ */
 #include "SimoQ1P0.h"
 
 #include "ShapeFunctionT.h"
@@ -27,20 +27,20 @@ void SimoQ1P0::Initialize(void)
 		if (NumElementNodes() != 4) {
 			cout << "\n SimoQ1P0::Initialize: expecting 4 node quad: " 
 			     << NumElementNodes() << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}	
 	}
 	else if (GeometryCode() == GeometryT::kHexahedron) {
 		if (NumElementNodes() != 8) {
 			cout << "\n SimoQ1P0::Initialize: expecting 8 node hex: " 
 			     << NumElementNodes() << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}	
 	}
 	else {
 		cout << "\n SimoQ1P0::Initialize: expecting hex or quad geometry: "
 		     << GeometryCode() << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	
 	/* need to store last deformed element volume */
@@ -311,7 +311,7 @@ void SimoQ1P0::ReadMaterialData(ifstreamT& in)
 	/* make sure 2D materials are plane strain */
 	if (StructuralMaterialList().HasPlaneStress()) {
 		cout << "\n SimoQ1P0::ReadMaterialData: 2D materials must be plane strain" << endl;
-		throw eBadInputValue;					
+		throw ExceptionT::kBadInputValue;					
 	}	
 }
 
@@ -351,7 +351,7 @@ void SimoQ1P0::bSp_bRq_to_KSqRp(const dMatrixT& b, dMatrixT& K) const
 #if __option(extended_errorcheck)
 	/* dimension check */
 	if (b.Length() != K.Rows() ||
-	    K.Rows() != K.Cols()) throw eSizeMismatch;
+	    K.Rows() != K.Cols()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	int dim = K.Rows();

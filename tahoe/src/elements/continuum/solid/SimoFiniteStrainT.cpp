@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.21 2002-09-23 06:58:25 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.21.2.1 2002-10-17 04:28:54 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -41,7 +41,7 @@ SimoFiniteStrainT::SimoFiniteStrainT(const ElementSupportT& support, const Field
 		//TEMP
 		cout << "\n SimoFiniteStrainT::SimoFiniteStrainT: solution method not implemented: " 
 		     << fModeSolveMethod << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	else if (solver_method == kLocalIteration)
 		fModeSolveMethod = kLocalIteration;
@@ -51,7 +51,7 @@ SimoFiniteStrainT::SimoFiniteStrainT(const ElementSupportT& support, const Field
 	{
 		cout << "\n SimoFiniteStrainT::SimoFiniteStrainT: unrecognized method to solve\n"
 		     <<   "     for the enhanced element modes: " << solver_method << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 		
 	/* parameters for local iteration */
@@ -68,19 +68,19 @@ SimoFiniteStrainT::SimoFiniteStrainT(const ElementSupportT& support, const Field
 	}
 
 	/* checks */
-	if (inc_mode != 0 && inc_mode != 1) throw eBadInputValue;
-	if (fLocalIterationMax < 1) throw eGeneralFail;
+	if (inc_mode != 0 && inc_mode != 1) throw ExceptionT::kBadInputValue;
+	if (fLocalIterationMax < 1) throw ExceptionT::kGeneralFail;
 	fIncompressibleMode = (inc_mode == 1);
 	if (NumSD() == 2) fIncompressibleMode = false;
-	if (fAbsTol < 0 || fAbsTol > 1.0) throw eBadInputValue;
-	if (fRelTol < 0 || fRelTol > 1.0) throw eBadInputValue;
+	if (fAbsTol < 0 || fAbsTol > 1.0) throw ExceptionT::kBadInputValue;
+	if (fRelTol < 0 || fRelTol > 1.0) throw ExceptionT::kBadInputValue;
 	
 	/* set number of mode shapes */
 	if (NumSD() == 2)
 		fNumModeShapes = 2;
 	else if (NumSD() == 3)
 		fNumModeShapes = (fIncompressibleMode) ? 4 : 3;
-	else throw eGeneralFail;
+	else throw ExceptionT::kGeneralFail;
 }
 
 /* destructor */
@@ -187,7 +187,7 @@ void SimoFiniteStrainT::Initialize(void)
 		{
 			cout << "\n SimoFiniteStrainT::Initialize: element modes array is not\n" 
 			     <<   "     the correct dimension" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}		
 	}
 	else /* all other solution methods split dof's */
@@ -331,7 +331,7 @@ iArrayT& SimoFiniteStrainT::DOFTags(int tag_set)
 	{
 		cout << "\n SimoFiniteStrainT::DOFTags: expecting tag set 0: " 
 		     << tag_set << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 
 	/* return the tags array */
@@ -363,7 +363,7 @@ const iArray2DT& SimoFiniteStrainT::DOFConnects(int tag_set) const
 	{
 		cout << "\n SimoFiniteStrainT::DOFConnects: expecting tag set 0: " 
 		     << tag_set << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 
 	/* partial info */
@@ -378,7 +378,7 @@ void SimoFiniteStrainT::ResetDOF(dArray2DT& DOF, int tag_set) const
 	{
 		cout << "\n SimoFiniteStrainT::ResetDOF: expecting tag set 0: " 
 		     << tag_set << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 
 	/* restore last solution */
@@ -459,7 +459,7 @@ void SimoFiniteStrainT::SetShape(void)
 	/* construct shape functions */
 	fEnhancedShapes = new SimoShapeFunctionT(GeometryCode(), NumIP(),
 		fLocInitCoords, fCurrElementModes);
-	if (!fEnhancedShapes) throw eOutOfMemory;
+	if (!fEnhancedShapes) throw ExceptionT::kOutOfMemory;
 
 	/* initialize */
 	fEnhancedShapes->Initialize();
@@ -568,7 +568,7 @@ void SimoFiniteStrainT::FormStiffness(double constK)
 		
 			cout << "\n SimoFiniteStrainT::FormStiffness: no implementation for solution method: "
 			     << fModeSolveMethod << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -590,7 +590,7 @@ void SimoFiniteStrainT::FormKd(double constK)
 		
 			cout << "\n SimoFiniteStrainT::FormKd: no implementation for solution method: "
 			     << fModeSolveMethod << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -869,7 +869,7 @@ void SimoFiniteStrainT::FormKd_monolithic(double constK)
 		if (J <= 0.0)
 		{
 			cout << "\n SimoFiniteStrainT::FormKd_enhanced: negative jacobian determinant" << endl;
-			throw eBadJacobianDet;
+			throw ExceptionT::kBadJacobianDet;
 		}
 		else
 			fTempMat2.Inverse();
@@ -907,7 +907,7 @@ void SimoFiniteStrainT::ModifiedEnhancedDeformation(void)
 	if (NumSD() != 3)
 	{
 		cout << "\n SimoFiniteStrainT::ModifiedEnhancedDeformation: for 3D only" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	/* skip base class implementation because the deformation gradient
@@ -915,7 +915,7 @@ void SimoFiniteStrainT::ModifiedEnhancedDeformation(void)
 	ElasticT::SetGlobalShape();
 	
 	cout << "\n SimoFiniteStrainT::ModifiedEnhancedDeformation: not done" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 /* compute enhanced part of F and total F */
@@ -973,7 +973,7 @@ void SimoFiniteStrainT::FormKd_enhanced(ArrayT<dMatrixT>& PK1_list, dArrayT& RHS
 		if (J <= 0.0)
 		{
 			cout << "\n SimoFiniteStrainT::FormKd_enhanced: negative jacobian determinant" << endl;
-			throw eBadJacobianDet;
+			throw ExceptionT::kBadJacobianDet;
 		}
 		else
 			fTempMat2.Inverse();

@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.7 2002-09-12 17:49:54 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.7.4.1 2002-10-17 04:28:56 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 
 #include "D2MeshFreeFSSolidT.h"
@@ -9,7 +9,7 @@
 
 #include "fstreamT.h"
 #include "toolboxConstants.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "D2MeshFreeShapeFunctionT.h"
 
 //TEMP
@@ -43,7 +43,7 @@ void D2MeshFreeFSSolidT::Initialize(void)
 //TEMP - must be a cleaner way
 #ifdef __NO_RTTI__
 	cout << "\n D2MeshFreeFSSolidT::Initialize: requires RTTI" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 #endif		
 
 	/* inherited */
@@ -59,7 +59,7 @@ void D2MeshFreeFSSolidT::Initialize(void)
 		{
 			cout << "\n D2MeshFreeFSSolidT::Initialize: all materials must";
 			cout << " be D2VIB2D" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 	}
 }
@@ -151,14 +151,14 @@ void D2MeshFreeFSSolidT::SetShape(void)
 		cout << "\n D2MeshFreeFSSolidT::SetShape: multiple element blocks within an"
 		     <<   "     element group not supported. Number of blocks: " 
 		     << fConnectivities.Length() << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* constructors */
 	fD2MFShapes = new D2MeshFreeShapeFunctionT(GeometryCode(), NumIP(),
 		fLocInitCoords, ElementSupport().InitialCoordinates(), *fConnectivities[0], fOffGridNodes,
 		fElementCards.Position(), ElementSupport().Input());
-	if (!fD2MFShapes) throw eOutOfMemory;
+	if (!fD2MFShapes) throw ExceptionT::kOutOfMemory;
 	
 	/* initialize (set internal database) */
 	fD2MFShapes->Initialize();
@@ -230,7 +230,7 @@ void D2MeshFreeFSSolidT::A_ijk_B_jkl(const dMatrixT& A, const dMatrixT& B,
 	/* dimension checks */
 	if (C.Rows() != A.Rows() ||
 	    C.Cols() != B.Cols() ||
-	    A.Cols() != B.Rows()) throw eSizeMismatch;
+	    A.Cols() != B.Rows()) throw ExceptionT::kSizeMismatch;
 #endif		
 
 	double scale_2D[3] = {1.0, 1.0, 2.0};

@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.12 2002-09-23 06:58:25 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.12.2.1 2002-10-17 04:28:54 paklein Exp $ */
 
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
@@ -110,7 +110,7 @@ inline const dMatrixT& FiniteStrainT::DeformationGradient(void) const
 	{
 		cout << "\n FiniteStrainT::DeformationGradient: material " << mat_num + 1 
 		     << " did not specify this need" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 
@@ -127,7 +127,7 @@ inline const dMatrixT& FiniteStrainT::DeformationGradient(int ip) const
 	{
 		cout << "\n FiniteStrainT::DeformationGradient: material " << mat_num + 1 
 		     << " did not specify this need" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 
@@ -144,7 +144,7 @@ inline const dMatrixT& FiniteStrainT::DeformationGradient_last(void) const
 	{
 		cout << "\n FiniteStrainT::DeformationGradient_last: material " << mat_num + 1 
 		     << " did not specify this need" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 
@@ -161,7 +161,7 @@ inline const dMatrixT& FiniteStrainT::DeformationGradient_last(int ip) const
 	{
 		cout << "\n FiniteStrainT::DeformationGradient_last: material " << mat_num + 1 
 		     << " did not specify this need" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 #endif
 

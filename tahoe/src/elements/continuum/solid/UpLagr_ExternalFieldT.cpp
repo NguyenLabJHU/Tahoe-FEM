@@ -1,4 +1,4 @@
-/* $Id: UpLagr_ExternalFieldT.cpp,v 1.6 2002-09-23 06:58:25 paklein Exp $ */
+/* $Id: UpLagr_ExternalFieldT.cpp,v 1.6.2.1 2002-10-17 04:28:55 paklein Exp $ */
 #include "UpLagr_ExternalFieldT.h"
 
 #include "fstreamT.h"
@@ -34,12 +34,12 @@ void UpLagr_ExternalFieldT::Initialize(void)
 	if (fExternalFieldFormat != IOBaseT::kExodusII) {
 		cout << "\n UpLagr_ExternalFieldT::Initialize: external field file format must be ExodusII" 
 		     << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 
 	/* read variable labels */
 	int num_variables = -1;
-	in >> num_variables; if (num_variables < 0) throw eBadInputValue;
+	in >> num_variables; if (num_variables < 0) throw ExceptionT::kBadInputValue;
 	fExternalFieldLabels.Allocate(num_variables);
 	for (int i = 0; i < num_variables; i++)
 		in >> fExternalFieldLabels[i];
@@ -56,7 +56,7 @@ void UpLagr_ExternalFieldT::Initialize(void)
 	{
 		cout << "\n UpLagr_ExternalFieldT::Initialize: error opening external field file: " 
 		     << fExternalFieldFile << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	else /* resolve index of variables in database */
 	{
@@ -84,7 +84,7 @@ void UpLagr_ExternalFieldT::Initialize(void)
 			{
 				cout << "\n UpLagr_ExternalFieldT::Initialize: variable not found in\n"
 				     <<   "     external database: " << fExternalFieldLabels[i] << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 		}
 	}
@@ -164,7 +164,7 @@ void UpLagr_ExternalFieldT::InitStep(void)
 	{
 		cout << "\n UpLagr_ExternalFieldT::InitStep: error opening file: " 
 		     << fExternalFieldFile << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* loop over variables */
@@ -216,8 +216,8 @@ void UpLagr_ExternalFieldT::AssembleField(int col, double scale,
 	const dArrayT& values)
 {
 	/* checks */
-	if (col < 0 || col >= fExternalField.MinorDim()) throw eOutOfRange;
-	if (values.Length() != fNodeMap.Length()) throw eSizeMismatch;
+	if (col < 0 || col >= fExternalField.MinorDim()) throw ExceptionT::kOutOfRange;
+	if (values.Length() != fNodeMap.Length()) throw ExceptionT::kSizeMismatch;
 
 	for (int i = 0; i < fNodeMap.Length(); i++)
 	{

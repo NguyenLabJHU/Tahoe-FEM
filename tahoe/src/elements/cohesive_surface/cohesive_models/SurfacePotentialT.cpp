@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.cpp,v 1.11 2002-08-05 19:27:55 cjkimme Exp $ */
+/* $Id: SurfacePotentialT.cpp,v 1.11.6.1 2002-10-17 04:28:50 paklein Exp $ */
 /* created: paklein (06/20/1999) */
 
 #include "SurfacePotentialT.h"
@@ -26,7 +26,7 @@ void SurfacePotentialT::InitStateVariables(ArrayT<double>& state)
 		cout << "\n SurfacePotentialT::InitStateVariables: expecting state variable array\n"
 		     <<   "     length " << num_state << ", found length " << state.Length() << endl;
 #endif
-		throw eSizeMismatch;	
+		throw ExceptionT::kSizeMismatch;	
 	}
 
 	/* clear */

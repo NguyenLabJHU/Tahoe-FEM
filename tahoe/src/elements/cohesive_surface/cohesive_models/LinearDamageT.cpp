@@ -1,4 +1,4 @@
-/* $Id: LinearDamageT.cpp,v 1.10 2002-08-05 19:27:55 cjkimme Exp $ */
+/* $Id: LinearDamageT.cpp,v 1.10.6.1 2002-10-17 04:28:50 paklein Exp $ */
 /* created: paklein (08/21/2000) */
 
 #include "LinearDamageT.h"
@@ -6,7 +6,7 @@
 #include <iostream.h>
 #include <math.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "fstreamT.h"
 
 /* map to internal variables */
@@ -23,11 +23,11 @@ LinearDamageT::LinearDamageT(ifstreamT& in, const dArrayT& init_traction):
 	fInitTraction(init_traction)
 {
 	/* traction potential parameters */
-	in >> fd_c_n; if (fd_c_n < 0.0) throw eBadInputValue;
-	in >> fd_c_t; if (fd_c_t < 0.0) throw eBadInputValue;
+	in >> fd_c_n; if (fd_c_n < 0.0) throw ExceptionT::kBadInputValue;
+	in >> fd_c_t; if (fd_c_t < 0.0) throw ExceptionT::kBadInputValue;
 	
 	/* stiffness multiplier */
-	in >> fpenalty; if (fpenalty < 0.0) throw eBadInputValue;
+	in >> fpenalty; if (fpenalty < 0.0) throw ExceptionT::kBadInputValue;
 
 	/* penetration stiffness */
 	fK = 0.0;
@@ -76,8 +76,8 @@ const dArrayT& LinearDamageT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != fTraction.Length()) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
+	if (jump_u.Length() != fTraction.Length()) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double u_n = jump_u.Last();
@@ -127,8 +127,8 @@ const dMatrixT& LinearDamageT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != fTraction.Length()) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
+	if (jump_u.Length() != fTraction.Length()) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	int nsd = jump_u.Length();

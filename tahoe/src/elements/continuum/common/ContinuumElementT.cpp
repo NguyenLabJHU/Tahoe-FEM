@@ -1,6 +1,5 @@
-/* $Id: ContinuumElementT.cpp,v 1.22 2002-09-23 06:58:25 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.22.2.1 2002-10-17 04:28:54 paklein Exp $ */
 /* created: paklein (10/22/1996) */
-
 #include "ContinuumElementT.h"
 
 #include <iostream.h>
@@ -10,7 +9,6 @@
 #include "ModelManagerT.h"
 #include "StructuralMaterialT.h"
 #include "ShapeFunctionT.h"
-#include "DomainIntegrationT.h"
 #include "eControllerT.h"
 #include "Traction_CardT.h"
 #include "iAutoArrayT.h"
@@ -21,10 +19,6 @@
 #include "VariArrayT.h"
 #include "nVariArray2DT.h"
 #include "VariLocalArrayT.h"
-
-/* services */
-#include "EdgeFinderT.h"
-#include "GraphT.h"
 
 /* materials lists */
 #include "MaterialListT.h"
@@ -45,8 +39,8 @@ ContinuumElementT::ContinuumElementT(const ElementSupportT& support,
 	fLocDisp(LocalArrayT::kDisp),
 	fDOFvec(NumDOF())
 {
-	ifstreamT&  in = ElementSupport().Input();
-	ostream&    out = ElementSupport().Output();
+	ifstreamT& in = ElementSupport().Input();
+	ostream&  out = ElementSupport().Output();
 		
 	/* control parameters */
 	in >> fGeometryCode; //TEMP - should actually come from the geometry database
@@ -333,11 +327,12 @@ void ContinuumElementT::WriteOutput(IOBaseT::OutputModeT mode)
 }
 
 /* side set to nodes on facets data */
+#if 0
 void ContinuumElementT::SideSetToFacets(const StringT& block_ID, const iArray2DT& sideset,
 	iArray2DT& facets) const
 {
 	/* checks */
-	if (sideset.MinorDim() != 2) throw eGeneralFail;
+	if (sideset.MinorDim() != 2) throw ExceptionT::kGeneralFail;
 	
 	/* empty set */
 	if (sideset.MajorDim() == 0)
@@ -370,7 +365,7 @@ void ContinuumElementT::SideSetToFacets(const StringT& block_ID, const iArray2DT
 		{
 			cout << "\n ContinuumElementT::SideSetToFacets: all sides in set must have\n"
 			     <<   "     the same number of nodes in element block" << block_ID << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 		
 		/* shape check */
@@ -380,6 +375,7 @@ void ContinuumElementT::SideSetToFacets(const StringT& block_ID, const iArray2DT
 		facet_tmp.Collect(facet_nodes, fElementCards[nel].NodesX());
 	}
 }
+#endif
 
 /* return geometry and number of nodes on each facet */
 void ContinuumElementT::FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry, 
@@ -424,6 +420,7 @@ void ContinuumElementT::InitialCondition(void)
 	}
 }
 
+#if 0
 /* surface facets */
 void ContinuumElementT::SurfaceFacets(GeometryT::CodeT& geometry,
 	iArray2DT& surface_facets, iArrayT& surface_nodes) const
@@ -436,7 +433,7 @@ void ContinuumElementT::SurfaceFacets(GeometryT::CodeT& geometry,
 	{
 		cout << "\n ContinuumElementT::SurfaceFacets: only support identical\n";
 		cout <<   "     facet shapes" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	geometry = facet_geom[0];
 
@@ -444,11 +441,13 @@ void ContinuumElementT::SurfaceFacets(GeometryT::CodeT& geometry,
 	AutoArrayT<int> border_nodes;
 	iArrayT   border_elems;
 	iArray2DT border_neighs;
-	BoundingElements(border_elems, border_neighs);
+	ArrayT<StringT> IDs;
+	ElementBlockIDs(IDs);
+	ElementSupport().Model().BoundingElements(IDs, border_elems, border_neighs);
 	
 	/* check */
 	if (ShapeFunction().NumFacets() != border_neighs.MinorDim())
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 		
 	/* collect nodes on facets info */
 	ArrayT<iArrayT> facetnodemap(ShapeFunction().NumFacets());
@@ -496,7 +495,7 @@ void ContinuumElementT::SurfaceFacets(GeometryT::CodeT& geometry,
 		if (!found_open)
 		{
 			cout << "\n ContinuumElementT::SurfaceFacets: error building surface facet list" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}	
 	}
 
@@ -573,11 +572,13 @@ void ContinuumElementT::SurfaceNodes(iArrayT& surface_nodes) const
 	iArray2DT border_neighs;
 
 	/* find bounding elements */
-	BoundingElements(border_elems, border_neighs);
+	ArrayT<StringT> IDs;
+	ElementBlockIDs(IDs);
+	ElementSupport().Model().BoundingElements(IDs, border_elems, border_neighs);
 	
 	/* check */
 	if (ShapeFunction().NumFacets() != border_neighs.MinorDim())
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 		
 	/* collect nodes on facets map */
 	ArrayT<iArrayT> facetnodemap(ShapeFunction().NumFacets());
@@ -617,7 +618,7 @@ void ContinuumElementT::SurfaceNodes(iArrayT& surface_nodes) const
 		if (!found_open)
 		{
 			cout << "\n ContinuumElementT::SurfaceNodes: error building surface node list" << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}	
 	}
 	
@@ -625,6 +626,7 @@ void ContinuumElementT::SurfaceNodes(iArrayT& surface_nodes) const
 	surface_nodes.Allocate(border_nodes.Length());
 	border_nodes.CopyInto(surface_nodes);
 }
+#endif
 
 /***********************************************************************
 * Protected
@@ -651,7 +653,7 @@ istream& operator>>(istream& in, ContinuumElementT::MassTypeT& mtype)
 		default:
 			cout << "\n ContinuumElementT::MassTypeT: unknown type: "
 			<< i_type<< endl;
-			throw eBadInputValue;	
+			throw ExceptionT::kBadInputValue;	
 	}
 	return in;
 }
@@ -832,7 +834,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 				}
 			}
 			else
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 
 			/* assemble */
 			ElementSupport().AssembleRHS(Group(), rhs, BC_card.Eqnos());
@@ -854,7 +856,7 @@ void ContinuumElementT::SetGlobalShape(void)
 void ContinuumElementT::FormMass(int mass_type, double constM)
 {
 #if __option(extended_errorcheck)
-	if (fLocDisp.Length() != fLHS.Rows()) throw eSizeMismatch;
+	if (fLocDisp.Length() != fLHS.Rows()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	switch (mass_type)
@@ -950,7 +952,7 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 		default:
 		
 			cout << "\n Elastic::FormMass: unknown mass matrix code\n" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
 }
 
@@ -985,12 +987,12 @@ void ContinuumElementT::FormMa(MassTypeT mass_type, double constM,
 	/* dimension checks */
 	if (nodal_values && 
 		fRHS.Length() != nodal_values->Length()) 
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 
 	if (ip_values &&
 		(ip_values->MajorDim() != fShapes->NumIP() ||
 		 ip_values->MinorDim() != NumDOF()))
-		throw eSizeMismatch;
+		throw ExceptionT::kSizeMismatch;
 #endif
 
 	switch (mass_type)
@@ -1040,13 +1042,13 @@ void ContinuumElementT::FormMa(MassTypeT mass_type, double constM,
 				nodal_values->ReturnTranspose(fNEEvec);
 			else {
 				cout << "\n ContinuumElementT::FormMa: expecting nodal values for lumped mass" << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 				
 //TEMP - what to do with ip values?
 if (ip_values) {
 	cout << "\n ContinuumElementT::FormMa: lumped mass not implemented for ip sources" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 			double* pAcc = fNEEvec.Pointer();
@@ -1087,7 +1089,7 @@ void ContinuumElementT::ReadMaterialData(ifstreamT& in)
 	int size;
 	in >> size;
 	fMaterialList = NewMaterialList(size);
-	if (!fMaterialList) throw eOutOfMemory;
+	if (!fMaterialList) throw ExceptionT::kOutOfMemory;
 
 	/* read */
 	fMaterialList->ReadMaterialData(in);
@@ -1100,7 +1102,7 @@ void ContinuumElementT::ReadMaterialData(ifstreamT& in)
 			cout << "\n ContinuumElementT::ReadMaterialData: material number "
 			     << fBlockData[i].MaterialID() + 1 << '\n';
 			cout<<    "     for element block " << i + 1 << " is out of range" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 }
 
@@ -1129,7 +1131,7 @@ void ContinuumElementT::EchoBodyForce(ifstreamT& in, ostream& out)
 		if (!fBodySchedule) {
 			cout << "\n ContinuumElementT::EchoBodyForce: could not resolve schedule " 
 			     << n_sched + 1 << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}	
 	}
 	
@@ -1207,7 +1209,7 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 			    cout << "\n ContinuumElementT::EchoTractionBC_TahoeII: node numbers\n";
 			    cout <<   "     {"<< min << "," << max << "} are out of range in ";
 			    cout << " dataline " << line << endl;
-			    throw eBadInputValue;
+			    throw ExceptionT::kBadInputValue;
 			  }
 			/* shift */
 			elems += block_data.StartNumber();
@@ -1221,7 +1223,7 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 			      cout << "\n ContinuumElementT::EchoTractionBC_TahoeII: sides specified\n";
 			      cout <<   "     in line " << line << " have differing numbers of nodes";
 			      cout << endl;
-			      throw eBadInputValue;
+			      throw ExceptionT::kBadInputValue;
 			    }
 		      }
 		    else
@@ -1233,7 +1235,7 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 			  {
 			    cout << "\n ContinuumElementT::EchoTractionBC_TahoeII: cannot determine number of\n"
 				 <<   "     facet nodes for empty side set at line " << line << endl;
-			    throw eBadInputValue;
+			    throw ExceptionT::kBadInputValue;
 			  }
 			else
 			  num_nodes = min;
@@ -1296,42 +1298,9 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 				     <<   "    Cartesian:" << Traction_CardT::kCartesian
 				     << " if (spatial dimensions != degrees of freedom)\n"
 				     <<   "    for card " << i+1 << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 	}
-}
-
-/* return the "bounding" elements and the corresponding
-* neighbors, both dimensioned internally */
-void ContinuumElementT::BoundingElements(iArrayT& elements, iArray2DT& neighbors) const
-{
-	//TEMP - not parallelized
-	if (ElementSupport().Size() > 1)
-		cout << "\n ContinuumElementT::BoundingElements: not extended to parallel" << endl;
-
-	/* build element neighbor list */
-	iArray2DT nodefacetmap;
-	fShapes->NeighborNodeMap(nodefacetmap);
-	EdgeFinderT edger(fConnectivities, nodefacetmap);
-	const iArray2DT& all_neighbors = edger.Neighbors();
-
-	/* collect list of bounding elements */
-	AutoArrayT<int> borders;
-	iArrayT element;
-	int nel = NumElements();
-	for (int i = 0; i < nel; i++)
-	{
-		all_neighbors.RowAlias(i, element);
-	
-		/* has "free" edge */
-		if (element.HasValue(-1)) borders.Append(i);
-	}
-	elements.Allocate(borders.Length());
-	borders.CopyInto(elements);
-	
-	/* copy bounding element neighbor lists */
-	neighbors.Allocate(elements.Length(), all_neighbors.MinorDim());
-	neighbors.RowCollect(elements, all_neighbors);
 }
 
 /* write all current element information to the stream */

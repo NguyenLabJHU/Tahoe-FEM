@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.5 2002-08-16 17:11:26 cjkimme Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.5.6.1 2002-10-17 04:28:50 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -6,7 +6,7 @@
 #include <iostream.h>
 #include <math.h>
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "fstreamT.h"
 #include "StringT.h"
 
@@ -42,12 +42,12 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in, const double& time_step):
 	
 	if (!qXu)
 	{
-		in >> fsigma; if (fsigma < kSmall) throw eBadInputValue;
-		in >> d_n;  if (d_n < kSmall) throw eBadInputValue;
-		in >> d_t;  if (d_t < kSmall) throw eBadInputValue;
-		in >> fL_1; if (fL_1 < kSmall || fL_1 > 1.) throw eBadInputValue;
-		in >> fL_2; if (fL_2 > 1. || fL_2 < fL_1) throw eBadInputValue;
-		in >> fL_0; if (fL_0 < 0. || fL_0 > 1.) throw eBadInputValue;
+		in >> fsigma; if (fsigma < kSmall) throw ExceptionT::kBadInputValue;
+		in >> d_n;  if (d_n < kSmall) throw ExceptionT::kBadInputValue;
+		in >> d_t;  if (d_t < kSmall) throw ExceptionT::kBadInputValue;
+		in >> fL_1; if (fL_1 < kSmall || fL_1 > 1.) throw ExceptionT::kBadInputValue;
+		in >> fL_2; if (fL_2 > 1. || fL_2 < fL_1) throw ExceptionT::kBadInputValue;
+		in >> fL_0; if (fL_0 < 0. || fL_0 > 1.) throw ExceptionT::kBadInputValue;
 		r_fail = 1.;
 		if (fL_0 < fL_1)
 			fsigma_critical = fsigma/fL_1*fL_0;
@@ -59,10 +59,10 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in, const double& time_step):
 	}
 	else
 	{
-		in >> phi_n; if (phi_n <= kSmall) throw eBadInputValue;
-		in >> d_n; if (d_n <= kSmall) throw eBadInputValue;
-		in >> d_t; if (d_t <= kSmall) throw eBadInputValue;
-		in >> r_fail; if (r_fail < 1.0) throw eBadInputValue;
+		in >> phi_n; if (phi_n <= kSmall) throw ExceptionT::kBadInputValue;
+		in >> d_n; if (d_n <= kSmall) throw ExceptionT::kBadInputValue;
+		in >> d_t; if (d_t <= kSmall) throw ExceptionT::kBadInputValue;
+		in >> r_fail; if (r_fail < 1.0) throw ExceptionT::kBadInputValue;
 		fsigma_critical = phi_n/d_n/exp(1.); 
 	}
 	
@@ -98,8 +98,8 @@ double TiedPotentialT::FractureEnergy(const ArrayT<double>& state)
 double TiedPotentialT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
 {
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
+	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	return 0.;
@@ -108,15 +108,16 @@ double TiedPotentialT::Potential(const dArrayT& jump_u, const ArrayT<double>& st
 /* traction vector given displacement jump vector */	
 const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
 {
+#pragma unused(sigma)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
+	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 	if (fTimeStep <= 0.0) {
 #ifndef _TAHOE_FRACTURE_INTERFACE_
 		cout << "\n TiedPotentialT::Traction: expecting positive time increment: "
 		     << fTimeStep << endl;
 #endif
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 #endif
 
@@ -173,9 +174,10 @@ const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 /* potential stiffness */
 const dMatrixT& TiedPotentialT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
 {
+#pragma unused(sigma)
 #if __option(extended_errorcheck)
-	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
+	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif 
 	
 	if (state[0] != -10. && state[0] != 1.)
@@ -259,7 +261,7 @@ SurfacePotentialT::StatusT TiedPotentialT::Status(const dArrayT& jump_u,
 {
 #pragma unused(jump_u)
 #if __option(extended_errorcheck)
-	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
     
 	double u_t1 = jump_u[0];
@@ -314,7 +316,7 @@ void TiedPotentialT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& 
 {
 #pragma unused(jump_u)
 #if __option(extended_errorcheck)
-	if (state.Length() != NumStateVariables()) throw eGeneralFail;
+	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif	
 
 	output[0] = state[1];

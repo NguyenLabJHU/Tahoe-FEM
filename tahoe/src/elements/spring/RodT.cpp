@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.23 2002-09-12 17:46:13 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.23.4.1 2002-10-17 04:28:58 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -309,7 +309,7 @@ void RodT::RHSDriver(void)
 //TEMP - inertia term in residual
 if (formMa) {
 	cout << "\n ParticleT::RHSDriver: M*a term not implemented" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 	/* coordinates arrays */
@@ -389,11 +389,11 @@ void RodT::ReadMaterialData(ifstreamT& in)
 			default:
 			
 				cout << "\n RodT::ReadMaterialData: unknown material type\n" << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 		}
 
 		/* check */
-		if (!fMaterialsList[matnum]) throw(eOutOfMemory);
+		if (!fMaterialsList[matnum]) throw ExceptionT::kOutOfMemory;
 	
 		/* set thermal LTf pointer */
 		int LTfnum = fMaterialsList[matnum]->ThermalScheduleNumber();

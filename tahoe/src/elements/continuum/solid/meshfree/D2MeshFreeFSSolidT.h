@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeFSSolidT.h,v 1.5 2002-07-05 22:28:04 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.h,v 1.5.4.1 2002-10-17 04:28:56 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 
 #ifndef _D2_EFG_FDELASTIC_T_H_
@@ -73,7 +73,7 @@ protected:
 /* inline  */
 inline const D2MeshFreeShapeFunctionT& D2MeshFreeFSSolidT::D2MLSShapeFunction() const
 {
-	if (!fD2MFShapes) throw eGeneralFail;
+	if (!fD2MFShapes) throw ExceptionT::kGeneralFail;
 	return *fD2MFShapes;
 }
 

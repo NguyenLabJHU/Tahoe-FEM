@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.10 2002-07-03 22:26:07 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.10.4.1 2002-10-17 04:28:58 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 
 #include "UnConnectedRodT.h"
@@ -22,8 +22,8 @@ UnConnectedRodT::UnConnectedRodT(const ElementSupportT& support, const FieldT& f
 	ElementSupport().Input() >> fReconnectInc >> fMaxNeighborCount >> fNeighborDist;
 
 	/* checks */
-	if (fMaxNeighborCount <  1  ) throw eBadInputValue;
-	if (fNeighborDist     <= 0.0) throw eBadInputValue;
+	if (fMaxNeighborCount <  1  ) throw ExceptionT::kBadInputValue;
+	if (fNeighborDist     <= 0.0) throw ExceptionT::kBadInputValue;
 }
 
 /* apply pre-conditions at the current time step.  Signal
@@ -42,7 +42,7 @@ void UnConnectedRodT::ResetStep(void)
 {
 	/* pre-condition */
 	fReconnectCount--;
-	if (fReconnectCount < 0) throw eGeneralFail;
+	if (fReconnectCount < 0) throw ExceptionT::kGeneralFail;
 		// condition implies that equilibrium could not be
 		// established with a reconnected system for which
 		// there is no last converged solution to go back to
@@ -57,7 +57,7 @@ GlobalT::RelaxCodeT UnConnectedRodT::RelaxSystem(void)
 	/* redetermine connectivities */
 	if (++fReconnectCount == fReconnectInc)
 	{
-		if (fNumNodesUsed != -1) throw eGeneralFail;
+		if (fNumNodesUsed != -1) throw ExceptionT::kGeneralFail;
 			//not storing NodesUsed yet
 			//so cannot reconnect.	 	
 	
@@ -107,7 +107,7 @@ void UnConnectedRodT::ReadMaterialData(ifstreamT& in)
 	RodT::ReadMaterialData(in);
 	
 	/* should only be one material */
-	if (fMaterialsList.Length() != 1) throw eGeneralFail;
+	if (fMaterialsList.Length() != 1) throw ExceptionT::kGeneralFail;
 	
 	/* set current material (once) */
 	fCurrMaterial = fMaterialsList[0];
@@ -117,7 +117,7 @@ void UnConnectedRodT::ReadMaterialData(ifstreamT& in)
 void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 {
 	in >> fNumNodesUsed;
-	if (fNumNodesUsed != -1 && fNumNodesUsed < 1) throw eBadInputValue;
+	if (fNumNodesUsed != -1 && fNumNodesUsed < 1) throw ExceptionT::kBadInputValue;
 
 	/* temp space */
 	iArray2DT rodconnects;

@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.9 2002-10-10 01:38:22 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.9.2.1 2002-10-17 04:28:55 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpdatedLagrangianT.h"
 
@@ -69,7 +69,7 @@ void UpdatedLagrangianT::SetShape(void)
 
 	/* linked shape functions */
 	fCurrShapes = new ShapeFunctionT(*fShapes, fLocCurrCoords);
-	if (!fCurrShapes) throw eOutOfMemory ;
+	if (!fCurrShapes) throw ExceptionT::kOutOfMemory ;
 
 	fCurrShapes->Initialize();
 }

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.12 2002-09-12 17:49:52 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.12.4.1 2002-10-17 04:28:49 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #include "MeshFreeCSEAnisoT.h"
@@ -73,7 +73,7 @@ MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(const ElementSupportT& support, const Field
 	{
 		cout << "\n MeshFreeCSEAnisoT::MeshFreeCSEAnisoT: expecting geometry code "
 		     << GeometryT::kLine<< " for 2D: " << fGeometryCode << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	else if (NumSD() == 3 &&
 	         fGeometryCode != GeometryT::kQuadrilateral &&
@@ -83,9 +83,9 @@ MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(const ElementSupportT& support, const Field
              << GeometryT::kQuadrilateral
 		     << " or\n" <<   "     " << GeometryT::kTriangle << " for 3D: "
 		     << fGeometryCode << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
-	if (fOutputArea != 0 && fOutputArea != 1) throw eBadInputValue;
+	if (fOutputArea != 0 && fOutputArea != 1) throw ExceptionT::kBadInputValue;
 
 	/* check element group */
 	fMFElementGroup--;
@@ -103,7 +103,7 @@ MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(const ElementSupportT& support, const Field
 	{
 		cout << "\n MeshFreeCSEAnisoT::MeshFreeCSEAnisoT: domain element group\n"
 		     <<   "    " << fMFElementGroup + 1 << " is not meshfree" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 #endif
 }
@@ -147,7 +147,7 @@ void MeshFreeCSEAnisoT::Initialize(void)
 		     <<   "     domain from element group " << fMFElementGroup+1
 		     << " must have at least one cutting\n"
 		     <<   "     facet or sampling surface" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 
 	/* construct surface shape functions */
@@ -155,7 +155,7 @@ void MeshFreeCSEAnisoT::Initialize(void)
 	fMFSurfaceShape = new MeshFreeSurfaceShapeT(fGeometryCode, fNumIntPts,
 		mf_support, fLocDisp, fMFFractureSupport->Facets(),
 		fMFFractureSupport->NumFacetNodes(), true);	
-	if (!fMFSurfaceShape) throw eOutOfMemory;
+	if (!fMFSurfaceShape) throw ExceptionT::kOutOfMemory;
 	
 	/* set up initial cutting facets */
 	fMFSurfaceShape->Initialize();
@@ -204,7 +204,7 @@ void MeshFreeCSEAnisoT::Initialize(void)
 			{
 				cout << "\n MeshFreeCSEAnisoT::Initialize: Tvergaard-Hutchinson potential not\n"
 				     <<   "     implemented for 3D: " << code << endl; 				
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 			break;
 		}
@@ -212,7 +212,7 @@ void MeshFreeCSEAnisoT::Initialize(void)
 		{
 			fInitTraction.Allocate(NumDOF());
 			LinearDamageT* lin_damage = new LinearDamageT(in, fInitTraction);
-			if (!lin_damage) throw eOutOfMemory;
+			if (!lin_damage) throw ExceptionT::kOutOfMemory;
 			
 			/* cast down */
 			fSurfacePotential = lin_damage;
@@ -226,7 +226,7 @@ void MeshFreeCSEAnisoT::Initialize(void)
 		       {
 			  cout << "MeshFreeCSEAnisoT::Initialize potential not implemented for 3D: " << code << endl;
 
-	                 throw eBadInputValue;
+	                 throw ExceptionT::kBadInputValue;
 		       }
 		       break;
 		}
@@ -238,15 +238,15 @@ void MeshFreeCSEAnisoT::Initialize(void)
 		       {
 			 cout << "\n MeshFreeCSEAnisoT::Initialize potential not implemented for 3D: " << code << endl;
 
-			 throw eBadInputValue;
+			 throw ExceptionT::kBadInputValue;
 		       }
 		       break;
 		}
 		default:
 			cout << "\n MeshFreeCSEAnisoT::Initialize: unknown potential code: " << code << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 	}
-	if (!fSurfacePotential) throw eOutOfMemory;
+	if (!fSurfacePotential) throw ExceptionT::kOutOfMemory;
 
 	/* configure material storage */
 	int num_state = fSurfacePotential->NumStateVariables();
@@ -307,7 +307,7 @@ void MeshFreeCSEAnisoT::ResetStep(void)
 	/* mismatch could occur with misuse of managers */
 	if (fd_Storage.MajorDim() != fd_Storage_last.MajorDim()) {
 		cout << "\n MeshFreeCSEAnisoT::ResetStep: state variable storage mismatch" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	
 	/* restore last state */
@@ -473,7 +473,7 @@ void MeshFreeCSEAnisoT::WriteOutput(IOBaseT::OutputModeT mode)
 					if (j0 <= 0.0 || j <= 0.0)
 					{
 						cout << "\n MeshFreeCSEAnisoT::WriteOutput: jacobian error" << endl;
-						throw eBadJacobianDet;
+						throw ExceptionT::kBadJacobianDet;
 					}
 	
 					/* gap vector (from side 1 to 2) */
@@ -589,7 +589,7 @@ void MeshFreeCSEAnisoT::LHSDriver(void)
 			double w = fMFSurfaceShape->IPWeight();		
 			double j0, j;
 			fMFSurfaceShape->Jacobian(j0, j, fQ, fdQ);
-			if (j0 <= 0.0 || j <= 0.0) throw eBadJacobianDet;
+			if (j0 <= 0.0 || j <= 0.0) throw ExceptionT::kBadJacobianDet;
 		
 			/* gap vector (from side 1 to 2) */
 			const dArrayT& delta = fMFSurfaceShape->InterpolateJumpU(fLocDisp);
@@ -682,7 +682,7 @@ void MeshFreeCSEAnisoT::RHSDriver(void)
 				if (j0 <= 0.0 || j <= 0.0)
 				{
 					cout << "\n MeshFreeCSEAnisoT::RHSDriver: jacobian error" << endl;
-					throw eBadJacobianDet;
+					throw ExceptionT::kBadJacobianDet;
 				}
 	
 				/* gap vector (from side 1 to 2) */
@@ -835,5 +835,5 @@ void MeshFreeCSEAnisoT::Q_ijk__u_j(const ArrayT<dMatrixT>& Q, const dArrayT& u,
 	else if (Q.Length() == 3)
 		Qu.SetToCombination(u[0], Q[0], u[1], Q[1], u[2], Q[2]);
 	else
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 }

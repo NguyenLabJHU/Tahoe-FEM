@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.34 2002-10-05 20:07:44 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.34.2.1 2002-10-17 04:28:54 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -21,7 +21,8 @@
 #include "MaterialList3DT.h"
 
 /* exception codes */
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
+
 
 using namespace Tahoe;
 
@@ -41,7 +42,7 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	fD(dSymMatrixT::NumValues(NumSD()))
 {
 	/* check base class initializations */
-	if (NumDOF() != NumSD()) throw eGeneralFail;
+	if (NumDOF() != NumSD()) throw ExceptionT::kGeneralFail;
 
 	ifstreamT& in = ElementSupport().Input();
 	ostream&  out = ElementSupport().Output();
@@ -51,7 +52,7 @@ SolidElementT::SolidElementT(const ElementSupportT& support, const FieldT& field
 	in >> fStrainDispOpt;
 	
 	if (fStrainDispOpt != kStandardB &&
-	    fStrainDispOpt != kMeanDilBbar) throw eBadInputValue;
+	    fStrainDispOpt != kMeanDilBbar) throw ExceptionT::kBadInputValue;
 
 	/* checks for dynamic analysis */
 	if (fController->Order() > 0 &&
@@ -85,7 +86,7 @@ void SolidElementT::Initialize(void)
 		if (!CheckMaterialOutput())
 		{
 			cout << "\n SolidElementT::Initialize: error with material output" << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		/* no material output variables */
 		else if ((*fMaterialList)[0]->NumOutputVariables() == 0)
@@ -178,7 +179,7 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 void SolidElementT::AddLinearMomentum(dArrayT& momentum)
 {
 	/* check */
-	if (momentum.Length() != NumDOF()) throw eSizeMismatch;
+	if (momentum.Length() != NumDOF()) throw ExceptionT::kSizeMismatch;
 		
 	/* loop over elements */
 	Top();
@@ -304,7 +305,7 @@ istream& operator>>(istream& in, SolidElementT::StrainOptionT& opt)
 		default:
 			cout << "\n SolidElementT::StrainOptionT: unknown option: "
 			<< i_type<< endl;
-			throw eBadInputValue;	
+			throw ExceptionT::kBadInputValue;	
 	}
 	return in;
 }
@@ -388,7 +389,7 @@ void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 		
 	/* checks */
 	if (fNodalOutputCodes.Min() < IOBaseT::kAtFail ||
-	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw eBadInputValue;
+	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw ExceptionT::kBadInputValue;
 
 	/* echo */
 	out << " Number of nodal output codes. . . . . . . . . . = " << fNodalOutputCodes.Length() << '\n';
@@ -443,7 +444,7 @@ void SolidElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 
 		/* checks */
 		if (fElementOutputCodes.Min() < IOBaseT::kAtFail ||
-		    fElementOutputCodes.Max() > IOBaseT::kAtInc) throw eBadInputValue;
+		    fElementOutputCodes.Max() > IOBaseT::kAtInc) throw ExceptionT::kBadInputValue;
 	}
 
 	/* echo */
@@ -539,7 +540,7 @@ void SolidElementT::SetShape(void)
 {
 	/* construct shape functions */
 	fShapes = new ShapeFunctionT(GeometryCode(), NumIP(), fLocInitCoords);
-	if (!fShapes) throw eOutOfMemory;
+	if (!fShapes) throw ExceptionT::kOutOfMemory;
 
 	/* initialize */
 	fShapes->Initialize();
@@ -580,7 +581,7 @@ void SolidElementT::Set_B(const dArray2DT& DNa, dMatrixT& B) const
 #if __option(extended_errorcheck)
 	if (B.Rows() != dSymMatrixT::NumValues(DNa.MajorDim()) ||
 	    B.Cols() != DNa.Length())
-	    throw eSizeMismatch;
+	    throw ExceptionT::kSizeMismatch;
 #endif
 
 	int nnd = DNa.MinorDim();
@@ -652,7 +653,7 @@ void SolidElementT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_gradie
 	    B.Cols() != DNa.Length() ||
 	    mean_gradient.MinorDim() != DNa.MinorDim() ||
 	    mean_gradient.MajorDim() != DNa.MajorDim())
-	    throw eSizeMismatch;
+	    throw ExceptionT::kSizeMismatch;
 #endif
 
 	int nnd = DNa.MinorDim();
@@ -662,7 +663,7 @@ void SolidElementT::Set_B_bar(const dArray2DT& DNa, const dArray2DT& mean_gradie
 	if (DNa.MajorDim() == 1)
 	{
 		cout << "\n SolidElementT::Set_B_bar: not implemented yet for 1D B-bar" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	/* 2D */
 	else if (DNa.MajorDim() == 2)

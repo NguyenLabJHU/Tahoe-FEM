@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.h,v 1.7 2002-07-05 22:28:01 paklein Exp $ */
+/* $Id: AugLagContact2DT.h,v 1.7.4.1 2002-10-17 04:28:52 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 
 #ifndef _AUGLAG_CONTACT2D_T_H_
@@ -66,7 +66,7 @@ public:
 	virtual void ReadRestart(istream& in);
 	virtual void WriteRestart(ostream& out) const;
 	//TEMP - restarts have not been tested. these functions
-	//       throw exceptions
+	//       throw ExceptionT::xceptions
 		 	
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.8 2002-07-02 19:55:26 cjkimme Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.8.4.1 2002-10-17 04:28:56 paklein Exp $ */
 /* created: paklein (11/12/1999) */
 
 #include "MeshFreeElementSupportT.h"
@@ -36,7 +36,7 @@ MeshFreeElementSupportT::MeshFreeElementSupportT(ifstreamT& in):
 	in >> fAutoBorder;
 
 	/* check values */
-	if (fAutoBorder != 0 && fAutoBorder != 1) throw eBadInputValue;
+	if (fAutoBorder != 0 && fAutoBorder != 1) throw ExceptionT::kBadInputValue;
 
 #ifdef __MPI__
 	//TEMP
@@ -158,7 +158,7 @@ void MeshFreeElementSupportT::GetNodalField(const dArray2DT& dof,
 		/* field data might be "free"-ed */
 		if (nodes.Length() > fGlobalToNodesUsedMap.Length() ||
 		    field.MinorDim() != fNodalU.MinorDim() ||
-		    fMapShift < 0) throw eGeneralFail;
+		    fMapShift < 0) throw ExceptionT::kGeneralFail;
 #endif	
 
 		for (int i = 0; i < nodes.Length(); i++)
@@ -332,7 +332,7 @@ void MeshFreeElementSupportT::EchoNodesData(ifstreamT& in, ostream& out, int max
 	    if (fOffGridNodes.Min() < 0 || fOffGridNodes.Max() >= max_node_num)
 	      {
 		cout << "\n MeshFreeElementSupportT::EchoNodesData: off grid EFG node out of range" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	      }
 	  }
 	
@@ -348,7 +348,7 @@ void MeshFreeElementSupportT::EchoNodesData(ifstreamT& in, ostream& out, int max
 	    if (fFENodes.Min() < 0 || fFENodes.Max() >= max_node_num)
 	      {
 		cout << "\n MeshFreeElementSupportT::EchoNodesData: interpolant node out of range" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	      }
 	  }
 
@@ -364,7 +364,7 @@ void MeshFreeElementSupportT::EchoNodesData(ifstreamT& in, ostream& out, int max
 	    if (fEFGNodes.Min() < 0 || fEFGNodes.Max() > max_node_num)
 	      {
 		cout << "\n MeshFreeElementSupportT::EchoNodesData: set EFG node out of range" << endl;
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	      }
 	  }
 }

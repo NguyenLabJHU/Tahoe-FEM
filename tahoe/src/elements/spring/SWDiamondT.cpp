@@ -1,4 +1,4 @@
-/* $Id: SWDiamondT.cpp,v 1.8 2002-09-12 17:46:03 paklein Exp $ */
+/* $Id: SWDiamondT.cpp,v 1.8.4.1 2002-10-17 04:28:57 paklein Exp $ */
 /* created: paklein (03/19/1997) */
 
 #include "SWDiamondT.h"
@@ -31,7 +31,7 @@ SWDiamondT::SWDiamondT(const ElementSupportT& support, const FieldT& field):
 	fHessian_3Body(3)
 {
 	/* check base class initializations */
-	if (NumSD() != knsd) throw eGeneralFail;
+	if (NumSD() != knsd) throw ExceptionT::kGeneralFail;
 
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
@@ -275,18 +275,18 @@ void SWDiamondT::PrintControlData(ostream& out) const
 void SWDiamondT::ReadMaterialData(ifstreamT& in)
 {
 	/* unit scaling */
-	in >> feps;	if (feps <= 0.0) throw eBadInputValue;
+	in >> feps;	if (feps <= 0.0) throw ExceptionT::kBadInputValue;
 
 	/* 2 body potential */
-	in >> fA;		if (fA     <= 0.0) throw eBadInputValue;
-	in >> fdelta;	if (fdelta <= 0.0) throw eBadInputValue;
+	in >> fA;		if (fA     <= 0.0) throw ExceptionT::kBadInputValue;
+	in >> fdelta;	if (fdelta <= 0.0) throw ExceptionT::kBadInputValue;
 	
 	/* 3 body potential */
-	in >> fgamma;	if (fgamma  <= 0.0) throw eBadInputValue;
-	in >> flambda;	if (flambda <= 0.0) throw eBadInputValue;
+	in >> fgamma;	if (fgamma  <= 0.0) throw ExceptionT::kBadInputValue;
+	in >> flambda;	if (flambda <= 0.0) throw ExceptionT::kBadInputValue;
 	
-	in >> frcut;	if (frcut <= 0.0) throw eBadInputValue;		
-	in >> fa;		if (fa    <= 0.0) throw eBadInputValue;
+	in >> frcut;	if (frcut <= 0.0) throw ExceptionT::kBadInputValue;		
+	in >> fa;		if (fa    <= 0.0) throw ExceptionT::kBadInputValue;
 
 	/* set B factor */
 	double a0 = pow(2.0,1.0/6.0);
@@ -321,7 +321,7 @@ void SWDiamondT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	int num_nodes_used;
 	in >> num_nodes_used;
 	if (num_nodes_used != -1 &&
-	    num_nodes_used  < 1) throw eBadInputValue;
+	    num_nodes_used  < 1) throw ExceptionT::kBadInputValue;
 
 	/* neighbor distance */
 	double tolerance = 1.01*pow(2.0,1.0/6.0)*fa;

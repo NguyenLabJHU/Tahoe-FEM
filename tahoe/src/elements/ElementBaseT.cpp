@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.21 2002-09-12 17:49:50 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.21.4.1 2002-10-17 04:28:47 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -85,11 +85,19 @@ const int& ElementBaseT::IterationNumber(void) const
 	return ElementSupport().IterationNumber(Group());
 }
 
+/* collect the list of element block ID's used by the element group */
+void ElementBaseT::ElementBlockIDs(ArrayT<StringT>& IDs) const
+{
+	IDs.Dimension(fBlockData.Length());
+	for (int i = 0; i < IDs.Length(); i++)
+		IDs[i] = fBlockData[i].ID();
+}
+
 /* solution calls */
 void ElementBaseT::FormLHS(void)
 {
 	try { LHSDriver(); }
-	catch (int error)
+	catch (ExceptionT::CodeT error)
 	{
 		cout << "\n ElementBaseT::FormLHS: " << fSupport.Exception(error);
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
@@ -119,7 +127,7 @@ void ElementBaseT::FormLHS(void)
 void ElementBaseT::FormRHS(void)
 {
 	try { RHSDriver(); }
-	catch (int error)
+	catch (ExceptionT::CodeT error)
 	{
 		cout << "\n ElementBaseT::FormRHS: " << fSupport.Exception(error);
 		cout << " in element " << fElementCards.Position() + 1 << " of group ";
@@ -165,7 +173,7 @@ void ElementBaseT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 #pragma unused(eq_2)
 
 #if __option(extended_errorcheck)
-	if (fConnectivities.Length() != fEqnos.Length()) throw eSizeMismatch;
+	if (fConnectivities.Length() != fEqnos.Length()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	/* loop over connectivity blocks */
@@ -198,13 +206,13 @@ void ElementBaseT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 void ElementBaseT::ReadRestart(istream& in)
 {
 	/* stream check */
-	if (!in.good()) throw eGeneralFail;
+	if (!in.good()) throw ExceptionT::kGeneralFail;
 }
 
 void ElementBaseT::WriteRestart(ostream& out) const
 {
 	/* stream check */
-	if (!out.good()) throw eGeneralFail;
+	if (!out.good()) throw ExceptionT::kGeneralFail;
 }
 
 /* returns 1 if DOF's are interpolants of the nodal values */
@@ -214,7 +222,7 @@ void ElementBaseT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 {
 #if __option(extended_errorcheck)
 	if (nodes.Length() != DOFs.MajorDim() ||
-	    DOFs.MinorDim() != NumDOF()) throw eSizeMismatch;
+	    DOFs.MinorDim() != NumDOF()) throw ExceptionT::kSizeMismatch;
 
 #endif
 
@@ -232,7 +240,7 @@ const StringT& ElementBaseT::ElementBlockID(int element) const
 	if (element < 0 || element >= NumElements()) {
 		cout << "\n ElementBaseT::ElementBlockID: element number " << element << " is out of range {0,"
 		    << NumElements() - 1 << "}" << endl;
-		throw eOutOfRange;
+		throw ExceptionT::kOutOfRange;
 	}
 	
 	bool found = false;
@@ -244,7 +252,7 @@ const StringT& ElementBaseT::ElementBlockID(int element) const
 	if (!found) {
 		cout << "\n ElementBaseT::ElementBlockID: could not resolve block ID for element "
 		     << element << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	return fBlockData[0].ID(); /* dummy */
 }
@@ -397,7 +405,7 @@ void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
                  << num_nodes << " of block " << b+1 << '\n';
 			cout <<   "     does not match dimension of previous blocks "
                  << nen << endl;
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 	    
 	    /* store block data */
@@ -555,7 +563,7 @@ const ElementBlockDataT& ElementBaseT::BlockData(const StringT& block_ID) const
                  << setw(kIntWidth) << fBlockData[i].MaterialID() << '\n';
 
 		cout.flush();
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 
 	/* return */
@@ -632,7 +640,7 @@ void ElementBaseT::SetElementCards(void)
       cout << "\n           element group: " << fSupport.ElementGroupNumber(this) + 1;      
       cout << "\n fConnectivities length = " << fConnectivities.Length();
       cout << "\n          fEqnos length = " << fEqnos.Length() << endl;
-      throw eSizeMismatch;
+      throw ExceptionT::kSizeMismatch;
     }
 
 	/* allocate */
@@ -655,7 +663,7 @@ void ElementBaseT::SetElementCards(void)
 		    cout << "\n           block: " << i+1;
 		    cout << "\n  blockconn dim = " << blockconn->MajorDim() << " " << blockconn->MinorDim();
 		    cout << "\n blockeqnos dim = " << blockeqnos.MajorDim() << " " << blockeqnos.MinorDim() << endl;
-		    throw eSizeMismatch;
+		    throw ExceptionT::kSizeMismatch;
 		  }
 
 		for (int j = 0; j < dim; j++)
@@ -679,7 +687,7 @@ void ElementBaseT::SetElementCards(void)
 				     << "," << max + 1 << "} in element " << dim + 1 << "\n";
 				cout <<   "     (" << j + 1 << " in block " <<  i + 1 << ") of group "
 				     << fSupport.ElementGroupNumber(this) + 1 << " are out of range" << endl;
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 
 			count ++; /* next element */

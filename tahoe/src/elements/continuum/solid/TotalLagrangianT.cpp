@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianT.cpp,v 1.9 2002-09-23 06:58:25 paklein Exp $ */
+/* $Id: TotalLagrangianT.cpp,v 1.9.2.1 2002-10-17 04:28:55 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #include "TotalLagrangianT.h"
 
@@ -127,7 +127,7 @@ void TotalLagrangianT::FormKd(double constK)
 		if (J <= 0.0)
 		{
 			cout << "\n TotalLagrangianT::FormKd: negative jacobian determinant" << endl;
-			throw eBadJacobianDet;
+			throw ExceptionT::kBadJacobianDet;
 		}
 		else
 			fTempMat2.Inverse();

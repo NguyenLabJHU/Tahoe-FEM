@@ -1,4 +1,4 @@
-/* $Id: ACME_Contact3DT.cpp,v 1.3 2002-07-02 19:55:18 cjkimme Exp $ */
+/* $Id: ACME_Contact3DT.cpp,v 1.3.4.1 2002-10-17 04:28:52 paklein Exp $ */
 /* created: paklein (10/15/2000) */
 
 #include "ACME_Contact3DT.h"
@@ -42,14 +42,14 @@ void ACME_Contact3DT::ReadRestart(istream& in)
 {
 #pragma unused(in)
 	cout << "\n ACME_Contact3DT::ReadRestart: not implemented" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 void ACME_Contact3DT::WriteRestart(ostream& out) const
 {
 #pragma unused(out)
 	cout << "\n AugLagContact2DT::WriteRestart: not implemented" << endl;
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
 }
 
 /***********************************************************************
@@ -63,7 +63,7 @@ void ACME_Contact3DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	in >> num_surfaces;
 	out << " Number of contact surfaces. . . . . . . . . . . = "
 	    << num_surfaces << '\n';
-	if (num_surfaces < 1) throw eBadInputValue;
+	if (num_surfaces < 1) throw ExceptionT::kBadInputValue;
 
 	/* read contact surfaces */
 	fSurfaces.Allocate(num_surfaces);
@@ -158,7 +158,7 @@ bool ACME_Contact3DT::SetActiveInteractions(void)
 	{
 		cout << "\n ACME_Contact3DT::SetActiveInteractions: Set_Node_Block_Configuration\n"
 		     <<   "     returned error code: " << error << endl;
-		throw eGeneralFail;	
+		throw ExceptionT::kGeneralFail;	
 	}
 
 	/* search for interactions */
@@ -167,7 +167,7 @@ bool ACME_Contact3DT::SetActiveInteractions(void)
 	{
 		cout << "\n ACME_Contact3DT::SetActiveInteractions: Static_Search_1_Configuration\n"
 		     <<   "     returned error code: " << error << endl;
-		throw eGeneralFail;	
+		throw ExceptionT::kGeneralFail;	
 	}
 
 	/* number of interactions */
@@ -202,7 +202,7 @@ bool ACME_Contact3DT::SetActiveInteractions(void)
 		{
 			cout << "\n ACME_Contact3DT::SetActiveInteractions: unexpected node\n"
 			     <<   "     block ID: " << fnode_block_ids[i] << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 		
 		/* striker */
@@ -281,12 +281,12 @@ void ACME_Contact3DT::SetWorkSpace(void)
 		Communication_Nodes.Pointer(),
 		mpi_communicator,
 		error);
-	if (!fContactSearch) throw eOutOfMemory;
+	if (!fContactSearch) throw ExceptionT::kOutOfMemory;
 	if (error != ContactSearch::NO_ERROR)
 	{
 		cout << "\n ACME_Contact3DT::InitContactSearch: ContactSearch constructor\n"
 		     <<   "     returned error code: " << error << endl;
-		throw eGeneralFail;	
+		throw ExceptionT::kGeneralFail;	
 	}
 
 	/* set search data */
@@ -328,7 +328,7 @@ void ACME_Contact3DT::SetWorkSpace(void)
 	{
 		cout << "\n ACME_Contact3DT::InitContactSearch: Check_Search_Data_Size\n"
 		     <<   "     returned error code: " << error << endl;
-		throw eGeneralFail;	
+		throw ExceptionT::kGeneralFail;	
 	}
 	
 	/* set data */
@@ -367,7 +367,7 @@ void ACME_Contact3DT::GenerateACMEConnectivities(iArrayT& connectivities)
 			cout << "\n ACME_Contact3DT::GenerateACMEConnectivities: striker\n"
 			     <<   "     tag " << fStrikerTags[j]
 			     << " appears more than once in the list of strikers." << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 		else
 			index = j;
@@ -391,7 +391,7 @@ void ACME_Contact3DT::GenerateACMEConnectivities(iArrayT& connectivities)
 		cout << "\n ACME_Contact3DT::GenerateACMEConnectivities: error\n"
 		     <<   "     generating ACME connectivies {min, max} = {" << min
 		     << ", " << max << "}" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
