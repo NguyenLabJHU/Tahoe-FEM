@@ -1,5 +1,5 @@
-/* $Id: ShapeFunctionT.cpp,v 1.6 2002-04-16 16:35:01 paklein Exp $ */
-/* created: paklein (06/26/1996)                                          */
+/* $Id: ShapeFunctionT.cpp,v 1.6.2.1 2002-05-03 09:49:56 paklein Exp $ */
+/* created: paklein (06/26/1996) */
 
 #include "ShapeFunctionT.h"
 #include "ParentDomainT.h"
@@ -78,6 +78,19 @@ void ShapeFunctionT::InterpolateU(const LocalArrayT& nodal,
 	int num_u = nodal.MinorDim();
 	for (int i = 0; i < num_u; i++)
 		u[i] = pNaU->DotRow(fCurrIP, nodal(i));
+}
+
+void ShapeFunctionT::InterpolateU(const LocalArrayT& nodal,
+	dArrayT& u, int ip) const
+{
+#if __option(extended_errorcheck)
+	if (nodal.MinorDim() != u.Length() ||
+	    nodal.NumberOfNodes() != pNaU->MinorDim()) throw eSizeMismatch;
+#endif
+
+	int num_u = nodal.MinorDim();
+	for (int i = 0; i < num_u; i++)
+		u[i] = pNaU->DotRow(ip, nodal(i));
 }
 
 /* strain displacement matrix B */
