@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.h,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.h,v 1.2 2001-02-20 00:42:14 paklein Exp $ */
 /* created: paklein (09/16/1998)                                          */
 /* large deformation elasticity with MLS shapefunctions for the           */
 /* field (displacement) representation                                    */
@@ -31,14 +31,14 @@ public:
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
 	/* appends group connectivities to the array */
-virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
+	virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 	AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
 
 	/* write output */
 	virtual void WriteOutput(IOBaseT::OutputModeT mode);
 
 	/* returns true if the internal force has been changed since
-* the last time step */
+	 * the last time step */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 
 	/* returns 1 if DOF's are interpolants of the nodal values */
@@ -66,8 +66,9 @@ protected:
 	/* increment current element */
 	virtual bool NextElement(void);
 
-	/* driver for nodal value calculations */
-	virtual void ComputeNodalValues(const iArrayT& codes);
+	/* driver for calculating output values */
+	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+	                           const iArrayT& e_codes, dArray2DT& e_values);
 
 private:
 

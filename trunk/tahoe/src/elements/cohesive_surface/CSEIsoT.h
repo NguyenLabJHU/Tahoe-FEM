@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.h,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* $Id: CSEIsoT.h,v 1.2 2001-02-20 00:42:11 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 /* Cohesive surface elements with scalar traction potentials,             */
 /* i.e., the traction potential is a function of the gap magnitude,       */
@@ -37,8 +37,9 @@ protected:
 	/* force vector */
 	virtual void RHSDriver(void);
 
-	/* driver for nodal value calculations */
-	virtual void ComputeNodalValues(const iArrayT& codes);
+	/* compute output values */
+	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+		const iArrayT& e_codes, dArray2DT& e_values);
 	
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.cpp,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: SurfacePotentialT.cpp,v 1.2 2001-02-20 00:42:12 paklein Exp $ */
 /* created: paklein (06/20/1999)                                          */
 /* base class for surface potential with jump vector arguments            */
 
@@ -47,8 +47,7 @@ void SurfacePotentialT::ComputeOutput(const dArrayT& jump_u, dArrayT& output)
 
 /* return true if the potential has compatible (type and sequence)
 * nodal output - FALSE by default */
-bool SurfacePotentialT::CompatibleOutput(const SurfacePotentialT& potential) const
+bool SurfacePotentialT::CompatibleOutput(const SurfacePotentialT&) const
 {
-#pragma unused(potential)
 	return false;
 }

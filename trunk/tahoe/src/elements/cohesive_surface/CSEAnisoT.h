@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* $Id: CSEAnisoT.h,v 1.2 2001-02-20 00:42:11 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 /* Cohesive surface elements with vector traction potentials,             */
 /* i.e., like Xu-Needleman's potential.                                   */
@@ -37,21 +37,22 @@ protected:
 	virtual void LHSDriver(void);
 	virtual void RHSDriver(void);
 
-	/* driver for nodal value calculations */
-	virtual void ComputeNodalValues(const iArrayT& codes);
+	/* nodal value calculations */
+	virtual void SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+		iArrayT& counts) const;
+
+	/* compute output values */
+	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+		const iArrayT& e_codes, dArray2DT& e_values);
+
+	/* construct output labels array */
+	virtual void GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_labels,
+		const iArrayT& e_codes, ArrayT<StringT>& e_labels) const;
 
 	/* write all current element information to the stream */
 	virtual void CurrElementInfo(ostream& out) const;
 
 private:
-
-	/* nodal value calculations */
-	virtual void SetOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
-		iArrayT& counts) const;
-
-	/* construct output labels array */
-	virtual void GenerateOutputLabels(const iArrayT& codes,
-		ArrayT<StringT>& labels) const;
 
 	/* operations with pseudo rank 3 (list in j) matrices */
 	void u_i__Q_ijk(const dArrayT& u, const ArrayT<dMatrixT>& Q,

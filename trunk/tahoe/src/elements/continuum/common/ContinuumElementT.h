@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.2 2001-02-20 00:42:13 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 /* Interface for a general continuum element type, meaning the presence   */
 /* of shape functions, and the implied presence of a continuum mechanics  */
@@ -135,16 +135,22 @@ protected:
 	/* write all current element information to the stream */
 	virtual void CurrElementInfo(ostream& out) const;
 
-	/* driver for nodal value calculations */
-	virtual void ComputeNodalValues(const iArrayT& output) = 0;
+	/* driver for calculating output values */
+	virtual void SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+		iArrayT& counts) const = 0;
+	virtual void SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+		iArrayT& counts) const = 0;
+	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+	                           const iArrayT& e_codes, dArray2DT& e_values) = 0;
+
+	/* check material outputs - return true if OK */
+	virtual bool CheckMaterialOutput(void) const;
 
 private:
 
 	/* construct output labels array */
-	virtual void SetOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
-		iArrayT& counts) = 0;
-	virtual void GenerateOutputLabels(const iArrayT& counts,
-		ArrayT<StringT>& labels) const = 0;
+	virtual void GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_labels, 
+		const iArrayT& e_codes, ArrayT<StringT>& e_labels) const = 0;
 
 	void EchoTractionBC_ASCII(ifstreamT& in, ostream& out);
 	void EchoTractionBC_TahoeII(ifstreamT& in, ostream& out);
@@ -170,7 +176,8 @@ protected:
 	MaterialListT* fMaterialList; 	
 
 	/* output control */
-	iArrayT	fOutputCodes;
+	iArrayT	fNodalOutputCodes;
+	iArrayT	fElementOutputCodes;
 	  	
 	/* body force vector */
 	int	    fBodyForceLTf;
