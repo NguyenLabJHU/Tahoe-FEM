@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.8 2004-02-22 00:19:50 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.8.2.1 2004-02-25 07:55:27 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -53,7 +53,7 @@ void MultiManagerT::Initialize(InitCodeT)
 	fFine->InitGhostNodes(fCoarse->ProjectImagePoints());
 	fCoarse->InitInterpolation(fFine->GhostNodes(), bridging_field, *(fFine->NodeManager()));
 	//fFine->LumpedMass(fFine->NonGhostNodes(), mdmass);
-	fCoarse->InitProjection(fFine->NonGhostNodes(), bridging_field, *(fFine->NodeManager()), make_inactive);
+	fCoarse->InitProjection(*(fFine->CommManager()), fFine->NonGhostNodes(), bridging_field, *(fFine->NodeManager()), make_inactive);
 
 	/* send coarse/fine output through the fFine output */
 	int ndof = fFine->NodeManager()->NumDOF(group);
