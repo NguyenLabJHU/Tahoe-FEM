@@ -1,14 +1,16 @@
-/* $Id: K_FieldT.cpp,v 1.21 2004-07-22 21:07:49 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.22 2004-09-09 16:20:25 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 
-
 #include "IsotropicT.h"
 #include "SolidMaterialT.h"
 #include "ElementsConfig.h"
+#include "ifstreamT.h"
+#include "ofstreamT.h"
+
 #ifdef CONTINUUM_ELEMENT
 #include "MaterialListT.h"
 #include "ContinuumMaterialT.h"
@@ -24,7 +26,6 @@ using namespace Tahoe;
 
 /* parameters */
 const double Pi = acos(-1.0);
-//const double TipNoise = 1.0e-06;
 
 /* constructor */
 K_FieldT::K_FieldT(const BasicSupportT& support):
@@ -57,7 +58,7 @@ void K_FieldT::InitialCondition(void)
 }
 
 /* restart operations */
-void K_FieldT::ReadRestart(istream& in)
+void K_FieldT::ReadRestart(ifstreamT& in)
 {
 	/* inherited */
 	KBC_ControllerT::ReadRestart(in);
@@ -70,7 +71,7 @@ void K_FieldT::ReadRestart(istream& in)
 	ComputeDisplacementFactors(fTipCoords);
 }
 
-void K_FieldT::WriteRestart(ostream& out) const
+void K_FieldT::WriteRestart(ofstreamT& out) const
 {
 	/* inherited */
 	KBC_ControllerT::WriteRestart(out);
@@ -127,7 +128,7 @@ GlobalT::RelaxCodeT K_FieldT::RelaxSystem(void)
 
 	/* no fracture path group */
 	if (fNearTipGroupNum == -1) return relax;
-		
+
 	/* new tip coordinates */
 	dArrayT tip_coords(fTipCoords.Length());
 	GetNewTipCoordinates(tip_coords);
@@ -235,8 +236,7 @@ ParameterInterfaceT* K_FieldT::NewSub(const StringT& name) const
 	
 		/* define tracking data */
 		tracking->AddParameter(fNearTipGroupNum, "near_tip_group");
-		tracking->AddParameter(fNearTipOutputCode, "near_tip_output_code");
-		tracking->AddParameter(fTipColumnNum, "tip_output_column");
+		tracking->AddParameter(ParameterT::Word, "near_tip_output_variable");
 
 		/* growth limits */
 		tracking->AddParameter(fMaxGrowthDistance, "max_growth_distance");
@@ -355,8 +355,7 @@ void K_FieldT::TakeParameterList(const ParameterListT& list)
 	
 		/* define tracking data */
 		fNearTipGroupNum = tracking->GetParameter("near_tip_group"); fNearTipGroupNum--;
-		fNearTipOutputCode = tracking->GetParameter("near_tip_output_code"); fNearTipOutputCode--;
-		fTipColumnNum = tracking->GetParameter("tip_output_column"); fTipColumnNum--;
+		fNearTipOutputVariable = tracking->GetParameter("near_tip_output_variable");
 
 		/* growth limits */
 		fMaxGrowthDistance = tracking->GetParameter("max_growth_distance");
@@ -484,13 +483,23 @@ void K_FieldT::GetNewTipCoordinates(dArrayT& tip_coords)
 	const char caller[] = "K_FieldT::GetNewTipCoordinates";
 
 	/* near tip element group */
-	const FEManagerT& fe_man = fSupport.FEManager();
-	ElementBaseT* neartip_group = fe_man.ElementGroup(fNearTipGroupNum);
-	if (!neartip_group)
-		ExceptionT::GeneralFail(caller, "could not resolve near tip element group number %d", fNearTipGroupNum+1);
+	ElementBaseT& neartip_group = fSupport.ElementGroup(fNearTipGroupNum);	
+
+	/* resolve output code and offset */
+	if (fNearTipOutputCode == -1 || fTipColumnNum == -1) {
+
+		/* try to resolve output variable */
+		neartip_group.ResolveOutputVariable(fNearTipOutputVariable, fNearTipOutputCode, fTipColumnNum);
+		
+		/* check */
+		if (fNearTipOutputCode == -1 || fTipColumnNum == -1)
+			ExceptionT::GeneralFail(caller, 
+				"could not resolve output variable \"%s\" in element group %d",
+					fNearTipOutputVariable.Pointer(), fNearTipGroupNum+1);
+	}
 
 	/* signal to accumulate nodal values */
-	neartip_group->SendOutput(fNearTipOutputCode);
+	neartip_group.SendOutput(fNearTipOutputCode);
 
 	/* the nodes */
 	NodeManagerT& node_manager = fSupport.NodeManager();
