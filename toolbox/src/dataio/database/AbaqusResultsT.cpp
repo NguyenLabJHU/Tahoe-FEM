@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.cpp,v 1.22.2.1 2003-09-25 17:29:27 cjkimme Exp $ */
+/* $Id: AbaqusResultsT.cpp,v 1.22.2.2 2003-11-10 21:14:04 cjkimme Exp $ */
 /* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
@@ -921,9 +921,7 @@ void AbaqusResultsT::WriteStartIncrement (int step, int inc, double totaltime,
 
 void AbaqusResultsT::WriteOutputDefinition (int key, const StringT& setname, GeometryT::CodeT code, int numelemnodes)
 {
-#ifdef __MWERKS__
 #pragma unused(setname)
-#endif
 
   WriteASCII (fMarker);
   Write (5);
@@ -1811,9 +1809,8 @@ bool AbaqusResultsT::Read (double& d)
 
 bool AbaqusResultsT::CheckBufferSize (istream& in, int numchars)
 {
-#ifdef __MWERKS__
 #pragma unused(in)
-#endif
+  
   if (fBinary) 
     return true;
 

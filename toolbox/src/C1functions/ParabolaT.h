@@ -1,4 +1,4 @@
-/* $Id: ParabolaT.h,v 1.5.2.1 2003-09-25 17:29:20 cjkimme Exp $ */
+/* $Id: ParabolaT.h,v 1.5.2.2 2003-11-10 21:13:59 cjkimme Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #ifndef _PARABOLA_T_H_
@@ -47,9 +47,7 @@ inline double ParabolaT::Function(double x) const {
 inline double ParabolaT::DFunction(double x) const { return fk*(x-fl0); }
 inline double ParabolaT::DDFunction(double x) const
 {
-#ifdef __MWERKS__
 #pragma unused(x)
-#endif
         return fk;
 }
 

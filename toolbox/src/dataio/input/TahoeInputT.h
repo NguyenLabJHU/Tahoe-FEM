@@ -1,4 +1,4 @@
-/* $Id: TahoeInputT.h,v 1.12.10.1 2003-09-25 17:29:28 cjkimme Exp $ */
+/* $Id: TahoeInputT.h,v 1.12.10.2 2003-11-10 21:14:05 cjkimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _TAHOEINPUT_T_H_
@@ -101,16 +101,12 @@ inline bool TahoeInputT::AreSideSetsLocal (void) const
 
 inline int TahoeInputT::NumElementQuadPoints (const StringT& name)
 {
-#ifdef __MWERKS__
 #pragma unused (name)
-#endif
   return (0);
 }
 inline void TahoeInputT::QARecords (ArrayT<StringT>& records)
 {
-#ifdef __MWERKS__
 #pragma unused(records)
-#endif
 }
 
 inline int  TahoeInputT::NumTimeSteps (void) const
@@ -125,23 +121,17 @@ inline int  TahoeInputT::NumQuadratureVariables (void) const
 { return 0; }
 inline void TahoeInputT::NodeVariablesUsed (const StringT& name, iArrayT& used)
 {
-#ifdef __MWERKS__
 #pragma unused (name)
-#endif
   used = 0;
 }
 inline void TahoeInputT::ElementVariablesUsed (const StringT& name, iArrayT& used)
 {
-#ifdef __MWERKS__
 #pragma unused (name)
-#endif
   used = 0;
 }
 inline void TahoeInputT::QuadratureVariablesUsed (const StringT& name, iArrayT& used)
 {
-#ifdef __MWERKS__
 #pragma unused (name)
-#endif
   used = 0;
 }
 inline void TahoeInputT::ReadNodeLabels (ArrayT<StringT>& nlabels) const
@@ -152,106 +142,80 @@ inline void TahoeInputT::ReadQuadratureLabels (ArrayT<StringT>& qlabels) const
 { qlabels.Free (); }
 inline void TahoeInputT::ReadAllNodeVariable (int step, int varindex, dArrayT& values)
 {
-#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (varindex)
-#endif
   values.Free();
 }
 inline void TahoeInputT::ReadNodeVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
-#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
 #pragma unused (varindex)
-#endif
   values.Free();
 }
 inline void TahoeInputT::ReadAllNodeVariables (int step, dArray2DT& nvalues)
 {
-#ifdef __MWERKS__
 #pragma unused (step)
-#endif
   nvalues.Free (); 
 }
 inline void TahoeInputT::ReadNodeVariables (int step, const StringT& name, dArray2DT& nvalues)
 {
-#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
-#endif
   nvalues.Free (); 
 }
 inline void TahoeInputT::ReadNodeSetVariables (int step, const StringT& nsetname, dArray2DT& nvalues)
 {
-#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (nsetname)
-#endif
   nvalues.Free (); 
 }
 inline void TahoeInputT::ReadAllElementVariable (int step, int varindex, dArrayT& values)
 {
-#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (varindex)
-#endif
   values.Free();
 }
 inline void TahoeInputT::ReadElementVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
-#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
 #pragma unused (varindex)
-#endif
   values.Free();
 }
 inline void TahoeInputT::ReadAllElementVariables (int step, dArray2DT& evalues)
 {
-#ifdef __MWERKS__
 #pragma unused (step)
-#endif
   evalues.Free (); 
 }
 inline void TahoeInputT::ReadElementVariables (int step, const StringT& name, dArray2DT& evalues)
 {
-#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
-#endif
   evalues.Free (); 
 }
 inline void TahoeInputT::ReadAllQuadratureVariable (int step, int varindex, dArrayT& values)
 {
-#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (varindex)
-#endif
   values.Free();
 }
 inline void TahoeInputT::ReadQuadratureVariable (int step, const StringT& name, int varindex, dArrayT& values)
 {
-#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
 #pragma unused (varindex)
-#endif
   values.Free();
 }
 inline void TahoeInputT::ReadAllQuadratureVariables (int step, dArray2DT& qvalues)
 {
-#ifdef __MWERKS__
 #pragma unused (step)
-#endif
   qvalues.Free (); 
 }
 inline void TahoeInputT::ReadQuadratureVariables (int step, const StringT& name, dArray2DT& qvalues)
 {
-#ifdef __MWERKS__
 #pragma unused (step)
 #pragma unused (name)
-#endif
   qvalues.Free (); 
 }
 } // namespace Tahoe 

@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.cpp,v 1.17.8.1 2003-09-25 17:29:28 cjkimme Exp $ */
+/* $Id: ExodusInputT.cpp,v 1.17.8.2 2003-11-10 21:14:05 cjkimme Exp $ */
 /* created: sawimme (12/04/1998) */
 
 #include "ExodusInputT.h"
@@ -227,20 +227,18 @@ void ExodusInputT::ReadTimeSteps (dArrayT& steps)
 
 void ExodusInputT::NodeVariablesUsed (const StringT& name, iArrayT& used)
 {
-#ifdef __MWERKS__ 
 #pragma unused(name)
 #pragma unused(used)
-#endif
+
   // TEMP
   used = 1;
 }
 
 void ExodusInputT::ElementVariablesUsed (const StringT& name, iArrayT& used)
 { 
-#ifdef __MWERKS__
 #pragma unused(name)
 #pragma unused(used)
-#endif
+
   // TEMP: I think there is a variable table that could be used ???
   used = 1;
 }

@@ -1,4 +1,4 @@
-/* $Id: RandomNumberT.cpp,v 1.6.6.1 2003-09-25 17:29:23 cjkimme Exp $ */
+/* $Id: RandomNumberT.cpp,v 1.6.6.2 2003-11-10 21:14:02 cjkimme Exp $ */
 #include "RandomNumberT.h"
 #include "ifstreamT.h"
 #include <math.h>
@@ -13,9 +13,7 @@ const double TWOPI = 6.283185307179586476925286;
 
 RandomNumberT::RandomNumberT(ifstreamT& in)
 {
-#ifdef __MWERKS__
 #pragma unused(in)
-#endif
 	ExceptionT::GeneralFail("RandomNumberT::RandomNumberT","not implemented yet");
 }
 

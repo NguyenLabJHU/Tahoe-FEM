@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.36.2.1 2003-09-25 17:29:26 cjkimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.36.2.2 2003-11-10 21:14:03 cjkimme Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -1259,11 +1259,9 @@ void ModelManagerT::SideSetLocalToGlobal (const StringT& element_ID, const iArra
 void ModelManagerT::SideSetGlobalToLocal(const iArray2DT& global, iArray2DT& local, 
 	StringT& element_ID)
 {
-#ifdef __MWERKS__
 #pragma unused(element_ID)
 #pragma unused(local)
 #pragma unused(global)
-#endif
 	ExceptionT::GeneralFail("ModelManagerT::SideSetGlobalToLocal", "not implemented");
 }
 
@@ -1412,11 +1410,9 @@ void ModelManagerT::UpdateNodeSet(const StringT& ID, iArrayT& node_set, bool kee
 /* update the nodes in an existing side set */
 void ModelManagerT::UpdateSideSet(const StringT& ID, iArray2DT& side_set, bool keep)
 {
-#ifdef __MWERKS__
 #pragma unused (ID)
 #pragma unused (side_set)
 #pragma unused (keep)
-#endif
 	ExceptionT::Stop("ModelManagerT::UpdateSideSet", "not implemented");
 }
 

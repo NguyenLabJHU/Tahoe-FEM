@@ -1,4 +1,4 @@
-/* $Id: PriorityQueueT.cpp,v 1.4.8.1 2003-09-25 17:29:31 cjkimme Exp $ */
+/* $Id: PriorityQueueT.cpp,v 1.4.8.2 2003-11-10 21:14:08 cjkimme Exp $ */
 /* created: paklein (8/06/1996) */
 
 #include "PriorityQueueT.h"
@@ -20,9 +20,7 @@ PriorityQueueT::PriorityQueueT(iArrayT& priorities, int size):
 	fQueue(50),
 	fPriorities(priorities)
 {
-#ifdef __MWERKS__
 #pragma unused(size)
-#endif
 }
 
 PriorityQueueT::PriorityQueueT(const iArrayT& values, iArrayT& priorities): 

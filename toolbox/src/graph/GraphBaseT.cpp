@@ -1,4 +1,4 @@
-/* $Id: GraphBaseT.cpp,v 1.11.2.1 2003-09-25 17:29:31 cjkimme Exp $ */
+/* $Id: GraphBaseT.cpp,v 1.11.2.2 2003-11-10 21:14:08 cjkimme Exp $ */
 /* created: paklein (04/13/1999) */
 
 #include "GraphBaseT.h"
@@ -188,12 +188,11 @@ void GraphBaseT::Partition_METIS(int num_partitions, const iArrayT& weight,
 	iArrayT& partition, int volume_or_edgecut)
 {
 #ifndef __METIS__
-#ifdef __MWERKS__
 #pragma unused(num_partitions)
 #pragma unused(weight)
 #pragma unused(partition)
 #pragma unused(volume_or_edgecut)
-#endif
+
 	/* error message */
 	cout << "\n GraphBaseT::Partition_METIS: requires metis module" << endl;
 	throw ExceptionT::kGeneralFail;

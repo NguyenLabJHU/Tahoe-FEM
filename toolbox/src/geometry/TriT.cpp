@@ -1,4 +1,4 @@
-/* $Id: TriT.cpp,v 1.3.8.1 2003-09-25 17:29:31 cjkimme Exp $ */
+/* $Id: TriT.cpp,v 1.3.8.2 2003-11-10 21:14:08 cjkimme Exp $ */
 /* created: paklein (07/03/1996) */
 
 #include "TriT.h"
@@ -21,10 +21,8 @@ TriT::TriT(int numnodes): GeometryBaseT(numnodes, kNumVertexNodes) {}
 /* evaluate the shape functions and gradients. */
 void TriT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
 {
-#ifdef __MWERKS__
 #pragma unused(coords)
 #pragma unused(Na)
-#endif
 
 	cout << "\n TriT::EvaluateShapeFunctions: not implemented" << endl;
 	throw ExceptionT::kGeneralFail;
@@ -33,11 +31,9 @@ void TriT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
 /* evaluate the shape functions and gradients. */
 void TriT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT& DNa) const
 {
-#ifdef __MWERKS__
 #pragma unused(coords)
 #pragma unused(Na)
 #pragma unused(DNa)
-#endif
 
 	cout << "\n TriT::EvaluateShapeFunctions: not implemented" << endl;
 	throw ExceptionT::kGeneralFail;

@@ -114,9 +114,7 @@ void AVSOutputT::CountVariables (int &num, const ArrayT<StringT>& labels) const
 
 void AVSOutputT::WriteCoordinates (ostream &avsout, AVST &avs, int index, iArrayT &nodes_used) const
 {
-#ifdef __MWERKS__
 #pragma unused(index)
-#endif
 
   dArray2DT local (nodes_used.Length(), fCoordinates->MinorDim());
   for (int i=0; i < nodes_used.Length(); i++)

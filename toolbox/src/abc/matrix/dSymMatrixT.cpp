@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.23.2.1 2003-09-25 17:29:22 cjkimme Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.23.2.2 2003-11-10 21:14:01 cjkimme Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
@@ -207,9 +207,7 @@ void dSymMatrixT::PrincipalValues(dArrayT& val) const // will get phased out
 void dSymMatrixT::Eigenvalues(dArrayT& val, bool sort_descending) const
 {
 	const char caller[] = "dSymMatrixT::Eigenvalues";
-#ifdef __MWERKS__
 #pragma unused(sort_descending)
-#endif
 	if (fNumSD == 1)
 		val[0] = fArray[0];
 	else if (fNumSD == 2 || fNumSD == dSymMatrixT:: k3D_plane)
