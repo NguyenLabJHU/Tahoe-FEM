@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT.h,v 1.6.46.1 2004-06-09 23:17:32 paklein Exp $ */
+/* $Id: EAMFCC3DMatT.h,v 1.6.46.2 2004-06-16 00:31:52 paklein Exp $ */
 /* created: paklein (10/25/1998) */
 #ifndef _EAMFCC3DMatT_H_
 #define _EAMFCC3DMatT_H_
@@ -16,20 +16,22 @@ class EAMFCC3DMatT: public NL_E_MatT
 {
 public:
 
-	/** orientation codes - for crystal axes rotated wrt global axes*/
-	enum OrientationCodeT {
-	kFCC3Dnatural = 0,
-	    kFCC3D110 = 1,
-	  kFCC3D111_a = 2, // x,y,z = <-1 1 0> <-1-1 2> < 1 1 1>
-	  kFCC3D111_b = 3, // x,y,z = < 1-1 0> < 1 1-2> < 1 1 1>
-	  kPrescribed = 4};
-
 	/* constructor */
 	EAMFCC3DMatT(ifstreamT& in, const FSMatSupportT& support);
+	EAMFCC3DMatT(void);
 
 	/* destructor */
 	virtual ~EAMFCC3DMatT(void);
-	
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/* compute the symetric Cij reduced index matrix */

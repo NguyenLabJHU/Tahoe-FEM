@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT.cpp,v 1.7.46.2 2004-06-09 23:17:32 paklein Exp $ */
+/* $Id: EAMFCC3DMatT.cpp,v 1.7.46.3 2004-06-16 00:31:52 paklein Exp $ */
 /* created: paklein (10/25/1998) */
 #include "EAMFCC3DMatT.h"
 
@@ -19,12 +19,16 @@ const int knsd = 3;
 const double sqrt2 = sqrt(2.0);
 const double sqrt3 = sqrt(3.0);
 
+//TEMP
+#pragma message("rename me")
+
 /* constructor */
 EAMFCC3DMatT::EAMFCC3DMatT(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("EAM_FCC_3D"),
 	NL_E_MatT(in, support),
 	fEAM(NULL)
 {
+#if 0
 	/* read parameters */
 	in >> fOrientCode;
 	in >> fEAMCode;
@@ -120,11 +124,29 @@ EAMFCC3DMatT::EAMFCC3DMatT(ifstreamT& in, const FSMatSupportT& support):
 	
 	if (!fEAM) throw ExceptionT::kOutOfMemory;
 	fEAM->Initialize();	
+#endif
 }
 
 /* destructor */
 EAMFCC3DMatT::~EAMFCC3DMatT(void) { delete fEAM; }
 
+/* describe the parameters needed by the interface */
+void EAMFCC3DMatT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	NL_E_MatT::DefineSubs(sub_list);
+
+	/* lattice orientation choice */
+	
+}
+
+/* accept parameter list */
+void EAMFCC3DMatT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	NL_E_MatT::TakeParameterList(list);
+
+}
 
 /*************************************************************************
  * Private

@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.cpp,v 1.8.46.2 2004-06-09 23:17:32 paklein Exp $ */
+/* $Id: EAMFCC2D.cpp,v 1.8.46.3 2004-06-16 00:31:52 paklein Exp $ */
 /* created: paklein (12/09/1996) */
 #include "EAMFCC2D.h"
 
@@ -19,6 +19,9 @@ const int knsd = 2;
 const double sqrt2 = sqrt(2.0);
 const double sqrt3 = sqrt(3.0);
 
+//TEMP
+#pragma message("rename me")
+
 /* constructor */
 EAMFCC2D::EAMFCC2D(ifstreamT& in, const FSMatSupportT& support, PlaneCodeT plane_code):
 	ParameterInterfaceT("EAM_FCC_2D"),
@@ -26,14 +29,18 @@ EAMFCC2D::EAMFCC2D(ifstreamT& in, const FSMatSupportT& support, PlaneCodeT plane
 	fPlaneCode(plane_code),
 	fEAM(NULL)
 {
-	/* read EAM code */
+	/* construct Cauchy-Born EAM solver */
 	in >> fEAMCode;
+	fEAM = new EAMFCC3DSym(in, fEAMCode, knsd);
+	if (!fEAM) throw ExceptionT::kOutOfMemory;
 	
+	/* transformation matrix */
+	dMatrixT Q(3);
 	switch (fPlaneCode)
 	{
 		case kFCC001:
 		{
-			fEAM = new EAMFCC3DSym(in, fEAMCode, knsd);
+			Q.Identity();
 			break;
 		}	
 		case kFCC101:
@@ -49,8 +56,6 @@ EAMFCC2D::EAMFCC2D(ifstreamT& in, const FSMatSupportT& support, PlaneCodeT plane
 			Q(1,1) = Q(2,2) = cos45;
 			Q(1,2) =-cos45;
 			Q(2,1) = cos45;
-			
-			fEAM = new EAMFCC3DSym(in, Q, fEAMCode, knsd);
 			break;
 		}	
 		case kFCC111:
@@ -74,8 +79,6 @@ EAMFCC2D::EAMFCC2D(ifstreamT& in, const FSMatSupportT& support, PlaneCodeT plane
 			Q(2,0) = 0.0;
 			Q(2,1) = rt23;
 			Q(2,2) = rt3b3;
-			
-			fEAM = new EAMFCC3DSym(in, Q, fEAMCode, knsd);
 			break;
 		}	
 		default:
@@ -86,9 +89,8 @@ EAMFCC2D::EAMFCC2D(ifstreamT& in, const FSMatSupportT& support, PlaneCodeT plane
 		}
 	}
 	
-	if (!fEAM) throw ExceptionT::kOutOfMemory;
-	
-	fEAM->Initialize();	
+	/* construct bond lattice */	
+	fEAM->Initialize(&Q);	
 }
 
 /* destructor */

@@ -1,7 +1,5 @@
-/* $Id: ErcolessiAdamsAl.h,v 1.2 2002-07-02 19:55:37 cjkimme Exp $ */
-/* created: paklein (12/04/1996)                                          */
-/* ErcolessiAdamsAl.h                                                     */
-
+/* $Id: ErcolessiAdamsAl.h,v 1.2.56.1 2004-06-16 00:31:53 paklein Exp $ */
+/* created: paklein (12/04/1996) */
 #ifndef _ERCOLESSIADAMS_AL_H_
 #define _ERCOLESSIADAMS_AL_H_
 
@@ -10,12 +8,13 @@
 
 namespace Tahoe {
 
+/** Ercolessi and Adams EAM aluminum potentials */
 class ErcolessiAdamsAl: public EAM
 {
 public:
 
 	/* Constructor */
-	ErcolessiAdamsAl(CBLatticeT& lattice);
+	ErcolessiAdamsAl(CBLatticeT& lattice, int nsd);
 
 	/*
 	 * Unstressed lattice parameter.

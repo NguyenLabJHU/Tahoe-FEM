@@ -1,7 +1,5 @@
-/* $Id: EAM.h,v 1.3 2002-07-05 22:28:10 paklein Exp $ */
-/* created: paklein (12/02/1996)                                          */
-/* EAM.h                                                                  */
-
+/* $Id: EAM.h,v 1.3.56.1 2004-06-16 00:31:52 paklein Exp $ */
+/* created: paklein (12/02/1996) */
 #ifndef _EAM_H_
 #define _EAM_H_
 
@@ -18,12 +16,17 @@ class C1FunctionT;
 class iArrayT;
 class dSymMatrixT;
 
+/** Cauchy-Born calculations for EAM potentials */
 class EAM
 {
 public:
 
-	/* constructor */
-	EAM(CBLatticeT& lattice);
+	/** constructor.
+	* \param lattice crystal used to compute Cauchy-Born geometry information
+	* \param nsd number of spatial dimensions needed for the stress and modulus calculations.
+	*        This can be different from the dimensions of lattice, i.e., for 2D plane strain
+	*        calculations nsd = 2, but the lattice will have 3 dimensions. */
+	EAM(CBLatticeT& lattice, int nsd);
 
 	/* destructor */
 	virtual ~EAM(void);
@@ -73,30 +76,32 @@ private:
 
 protected:
 
-	/* glue functions */
-	C1FunctionT*	fPairPotential;
-	C1FunctionT*	fEmbeddingEnergy;
-	C1FunctionT*	fElectronDensity;
+	/** \name glue functions */
+	/*@{*/
+	C1FunctionT* fPairPotential;
+	C1FunctionT* fEmbeddingEnergy;
+	C1FunctionT* fElectronDensity;
+	/*@}*/
 	
 private:   	
 
 	CBLatticeT&	fLattice;
-	const iArrayT&	fCounts;		
-	const dArrayT&	fBonds;
+//	const iArrayT& fCounts;		
+//	const dArrayT& fBonds;
 
 	/* parameters */
-	int		fNumSpatialDim;
-	int		fNumBonds;
-	int		fModuliDim;
+//	int	fNumSpatialDim;
+//	int	fNumBonds;
+//	int	fModuliDim;
 	
-	dMatrixT	fBondTensor4;
-	dMatrixT	fAmn; /* mixed derivative matrix */
+	dMatrixT fBondTensor4;
+	dMatrixT fAmn; /* mixed derivative matrix */
 
-	dArrayT		fBondTensor2;
-//	dArrayT		fBondTensor2b;
+	dArrayT fBondTensor2;
+//	dArrayT fBondTensor2b;
 
 	/* 2nk rank bond component tensor */
-	dArray2DT	fTensor2Table;	
+	dArray2DT fTensor2Table;	
 
 	/* for batch evaluation of bond data */
 	dArrayT	fBond1;

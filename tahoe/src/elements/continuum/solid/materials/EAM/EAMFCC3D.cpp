@@ -1,7 +1,5 @@
-/* $Id: EAMFCC3D.cpp,v 1.4 2002-10-20 22:48:39 paklein Exp $ */
-/* created: paklein (12/02/1996)                                          */
-/* EAMFCC3D.cpp                                                           */
-
+/* $Id: EAMFCC3D.cpp,v 1.4.50.1 2004-06-16 00:31:52 paklein Exp $ */
+/* created: paklein (12/02/1996) */
 #include "EAMFCC3D.h"
 
 #include <iostream.h>
@@ -16,24 +14,30 @@
 #include "VoterChenCu.h"
 #include "FBD_EAMGlue.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
-EAMFCC3D::EAMFCC3D(ifstreamT& in, int EAMcode, int numspatialdim, int numbonds):
-	CBLatticeT(kEAMFCC3DNumLatticeDim, numspatialdim, numbonds),
-	fEAMcode(EAMcode)
+/* bond parameters */
+const int kEAMFCC3DNumBonds			= 54;
+const int kEAMFCC3DNumLatticeDim 	=  3;
+const int kEAMFCC3DNumAtomsPerCell	=  4;
+
+//TEMP
+#pragma message("rename me to indicate this is a Cauchy-Born solver")
+
+/* constructor */
+EAMFCC3D::EAMFCC3D(ifstreamT& in, int EAMcode, int nsd):
+	fEAM(NULL)
 {
 	/* set EAM solver functions */
-	SetGlueFunctions(in);
+	SetGlueFunctions(in, EAMcode, nsd);
 	
 	/* lattice parameter and cell volume */
 	fLatticeParameter = fEAM->LatticeParameter();
 	fCellVolume       = fLatticeParameter*fLatticeParameter*fLatticeParameter;
 }
 
-EAMFCC3D::EAMFCC3D(ifstreamT& in, const dMatrixT& Q, int EAMcode, int numspatialdim,
-	int numbonds):
+#if 0
+EAMFCC3D::EAMFCC3D(ifstreamT& in, const dMatrixT& Q, int EAMcode, int nsd):
 	CBLatticeT(Q, numspatialdim, numbonds), fEAMcode(EAMcode)
 {
 	/* dimension check */
@@ -47,6 +51,7 @@ EAMFCC3D::EAMFCC3D(ifstreamT& in, const dMatrixT& Q, int EAMcode, int numspatial
 	fLatticeParameter = fEAM->LatticeParameter();
 	fCellVolume       = fLatticeParameter*fLatticeParameter*fLatticeParameter;
 }
+#endif
 
 /* destructor */
 EAMFCC3D::~EAMFCC3D(void) { delete fEAM; }
@@ -57,8 +62,7 @@ double EAMFCC3D::EnergyDensity(const dSymMatrixT& strain)
 	/* compute deformed lattice geometry */
 	ComputeDeformedLengths(strain);
 
-	return  (kEAMFCC3DNumAtomsPerCell/fCellVolume)*
-			 fEAM->ComputeUnitEnergy();
+	return (kEAMFCC3DNumAtomsPerCell/fCellVolume)*fEAM->ComputeUnitEnergy();
 }
 
 /* return the material tangent moduli in Cij */
@@ -87,22 +91,17 @@ void EAMFCC3D::SetStress(const dSymMatrixT& strain, dSymMatrixT& stress)
 	stress *= kEAMFCC3DNumAtomsPerCell/fCellVolume;
 }
 
-/* I/O functions */
-void EAMFCC3D::Print(ostream& out) const
-{
-	out << " EAM glue function code. . . . . . . . . . . . . = " << fEAMcode << '\n';
-	out << "    eq. " << kErcolessiAdamsAl << ", Ercolessi & Adams Al\n";
-	out << "    eq. " << kVoterChenAl      << ", Voter & Chen Al\n";   	
-	out << "    eq. " << kVoterChenCu      << ", Voter & Chen Cu\n";   	
-	out << "    eq. " << kFoilesBaskesDaw  << ", Foiles, Baskes, Daw\n";   	
-}
-
 /**********************************************************************
-* Protected
-**********************************************************************/
+ * Protected
+ **********************************************************************/
 	
 void EAMFCC3D::LoadBondTable(void)
 {
+	/* dimension work space */
+	fBondCounts.Dimension(kEAMFCC3DNumBonds);
+	fDefLength.Dimension(kEAMFCC3DNumBonds);
+	fBonds.Dimension(kEAMFCC3DNumBonds, kEAMFCC3DNumLatticeDim);
+
 	/* all bonds appear once */
 	fBondCounts = 1;
 	
@@ -167,13 +166,9 @@ void EAMFCC3D::LoadBondTable(void)
 		{1., 0.5, -0.5},
 		{1., 0.5, 0.5}
 	};
-
-	/* dimension check */				     		
-	if (fBonds.MajorDim() != fNumBonds ||
-	    fBonds.MinorDim() != kEAMFCC3DNumLatticeDim) throw ExceptionT::kGeneralFail;
 				     		
 	/* copy into reference table */
-	for (int i = 0; i < fNumBonds; i++)
+	for (int i = 0; i < kEAMFCC3DNumBonds; i++)
 		for (int j = 0; j < kEAMFCC3DNumLatticeDim; j++)
 			fBonds(i,j) = bonddata[i][j];
 			
@@ -186,20 +181,20 @@ void EAMFCC3D::LoadBondTable(void)
 **********************************************************************/
 
 /* Set glue functions */
-void EAMFCC3D::SetGlueFunctions(ifstreamT& in)
+void EAMFCC3D::SetGlueFunctions(ifstreamT& in, int EAMcode, int nsd)
 {
-	switch (fEAMcode)
+	switch (EAMcode)
 	{
 		case kErcolessiAdamsAl:
-			fEAM = new ErcolessiAdamsAl(*this);
+			fEAM = new ErcolessiAdamsAl(*this, nsd);
 			break;
 			
 		case kVoterChenAl:
-			fEAM = new VoterChenAl(*this);
+			fEAM = new VoterChenAl(*this, nsd);
 			break;
 	
 		case kVoterChenCu:
-			fEAM = new VoterChenCu(*this);
+			fEAM = new VoterChenCu(*this, nsd);
 			break;
 	
 		case kFoilesBaskesDaw:
@@ -221,12 +216,12 @@ void EAMFCC3D::SetGlueFunctions(ifstreamT& in)
 				     << data_file << endl;
 				throw ExceptionT::kBadInputValue;
 			}
-			fEAM = new FBD_EAMGlue(*this, data);
+			fEAM = new FBD_EAMGlue(*this, nsd, data);
 			break;
 		}
 		default:
 		
-			cout << "\nEAMFCC3D::EAMFCC3D: unknown EAM code: " << fEAMcode << endl;
+			cout << "\nEAMFCC3D::EAMFCC3D: unknown EAM code: " << EAMcode << endl;
 			throw ExceptionT::kBadInputValue;
 	}
 	

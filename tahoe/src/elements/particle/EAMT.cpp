@@ -1,4 +1,4 @@
-/* $Id: EAMT.cpp,v 1.55.2.3 2004-04-14 22:38:46 paklein Exp $ */
+/* $Id: EAMT.cpp,v 1.55.2.4 2004-06-16 00:31:56 paklein Exp $ */
 #include "EAMT.h"
 
 #include "fstreamT.h"
@@ -1838,6 +1838,7 @@ void EAMT::EchoProperties(ifstreamT& in, ofstreamT& out)
 {
   /* read potentials : one potential corresponds to one type, 
                        cannot mix different potentials here*/
+#if 0
   int num_potentials = -1;
   in >> num_potentials;  
 
@@ -1859,7 +1860,6 @@ void EAMT::EchoProperties(ifstreamT& in, ofstreamT& out)
       fEAMProperties[i] = new ParadynEAMT(ElementSupport(), file);
     }
 
-
   /* echo particle properties */
   out << "\n Particle properties:\n\n";
   out << " Number of properties. . . . . . . . . . . . . . = " 
@@ -1869,6 +1869,7 @@ void EAMT::EchoProperties(ifstreamT& in, ofstreamT& out)
       out << " Property: " << i+1 << '\n';
       fEAMProperties[i]->Write(out);
     }
+#endif
 	
   /* copy into base class list */
   fParticleProperties.Dimension(fEAMProperties.Length());

@@ -1,15 +1,12 @@
-/* $Id: VoterChenCu.cpp,v 1.4 2003-11-21 22:46:22 paklein Exp $ */
-/* created: paklein (12/04/1996)                                          */
-/* VoterChenCu.cpp                                                        */
-
+/* $Id: VoterChenCu.cpp,v 1.4.20.1 2004-06-16 00:31:53 paklein Exp $ */
+/* created: paklein (12/04/1996) */
 #include "VoterChenCu.h"
 #include <math.h>
 #include "CubicSplineT.h"
 
-/* lattice parameters */
-
 using namespace Tahoe;
 
+/* lattice parameters */
 const double kLatticeParameterCu = 3.615;  /* angstrom */
 const double kCutoffRadiusCu     = 4.961;  /* angstrom */
 
@@ -17,8 +14,8 @@ const double kCutoffRadiusCu     = 4.961;  /* angstrom */
 #include "VoterChenCu.dat"
 
 /* constructor */
-VoterChenCu::VoterChenCu(CBLatticeT& lattice):
-	EAM(lattice)
+VoterChenCu::VoterChenCu(CBLatticeT& lattice, int nsd):
+	EAM(lattice, nsd)
 {
 
 }

@@ -1,22 +1,20 @@
-/* $Id: VoterChenCu.h,v 1.2 2002-07-02 19:55:37 cjkimme Exp $ */
-/* created: paklein (10/25/1998)                                          */
-/* VoterChenCu.h                                                          */
-
+/* $Id: VoterChenCu.h,v 1.2.56.1 2004-06-16 00:31:53 paklein Exp $ */
+/* created: paklein (10/25/1998) */
 #ifndef _VOTERCHEN_CU_H_
 #define _VOTERCHEN_CU_H_
 
 /* base class */
 #include "EAM.h"
 
-
 namespace Tahoe {
 
+/** Voter and Chen EAM copper  */
 class VoterChenCu: public EAM
 {
 public:
 
 	/* constructor */
-	VoterChenCu(CBLatticeT& lattice);
+	VoterChenCu(CBLatticeT& lattice, int nsd);
 
 	/* unstressed lattice parameter */
 	 virtual double LatticeParameter(void) const;
@@ -26,8 +24,7 @@ private:
 	/* set the spline data - called by the constructor */
 	virtual void SetPairPotential(void);
 	virtual void SetEmbeddingEnergy(void);
-	virtual void SetElectronDensity(void); 	
-	
+	virtual void SetElectronDensity(void); 
 };
 
 } // namespace Tahoe
