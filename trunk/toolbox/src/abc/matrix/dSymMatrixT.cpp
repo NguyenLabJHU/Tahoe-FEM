@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.cpp,v 1.18 2003-03-21 06:33:36 thao Exp $ */
+/* $Id: dSymMatrixT.cpp,v 1.19 2003-04-07 17:32:01 cjkimme Exp $ */
 /* created: paklein (03/03/1997) */
 #include "dSymMatrixT.h"
 #include <iostream.h>
@@ -177,6 +177,7 @@ void dSymMatrixT::PrincipalValues(dArrayT& val) const // will get phased out
 
 void dSymMatrixT::Eigenvalues(dArrayT& val, bool sort_descending) const
 {
+#pragma unused(sort_descending)
 	if (fNumSD == 1)
 		val[0] = fArray[0];
 	else if (fNumSD == 2)
