@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.33 2004-06-17 07:41:45 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.34 2004-06-26 06:21:03 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -379,10 +379,10 @@ ExceptionT::CodeT FEManagerT_mpi::InitialCondition(void)
 }
 
 /* global number of first local equation */
-int FEManagerT_mpi::GetGlobalEquationStart(int group) const
+int FEManagerT_mpi::GetGlobalEquationStart(int group, int start_eq_shift) const
 {
 	if (Size() == 1)
-		return FEManagerT::GetGlobalEquationStart(group);
+		return FEManagerT::GetGlobalEquationStart(group, start_eq_shift);
 	else
 	{
 		/* number of local equations */
@@ -399,7 +399,7 @@ int FEManagerT_mpi::GetGlobalEquationStart(int group) const
 			offset += all_num_eq[i];
 
 		/* equation start */
-		return offset + 1; //OFFSET
+		return offset + 1 + start_eq_shift;
 	}
 }
 
