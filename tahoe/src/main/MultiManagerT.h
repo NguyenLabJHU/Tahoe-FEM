@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.h,v 1.3 2003-11-04 01:13:16 paklein Exp $ */
+/* $Id: MultiManagerT.h,v 1.3.16.1 2004-03-17 01:58:03 paklein Exp $ */
 #ifndef _MULTI_MANAGER_H_
 #define _MULTI_MANAGER_H_
 
@@ -29,7 +29,7 @@ public:
 	virtual void Initialize(InitCodeT init = kFull);
 
 	/** (re-)set the equation number for the given group */
-	virtual void SetEquationSystem(int group);
+	virtual void SetEquationSystem(int group, int start_eq_shift = 0);
 
 	/** \name solution steps */
 	/*@{*/
@@ -93,7 +93,20 @@ private:
 	iArray2DT fAtomConnectivities;
 	int fOutputID;
 	bool fDivertOutput;
-	/*@}*/ 
+	/*@}*/
+	
+	/** \name workspace for cross terms */
+	/*@{*/
+	/** transpose of data for interpolating data from the coarse scale
+	 * onto the fine scale points */
+	//InterpolationDataT fFollowerCellTranspose;
+
+	dArray2DT fR_U; /**< coarse scale forces */
+	dArray2DT fR_Q; /**< fine scale forces */
+	
+	const FieldT* fFineField;
+	const FieldT* fCoarseField;
+	/*@}*/
 };
 
 } /* namespace Tahoe */

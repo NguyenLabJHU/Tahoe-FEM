@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.9.4.1 2004-03-08 17:10:22 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.9.4.2 2004-03-17 01:58:03 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -18,8 +18,12 @@ MultiManagerT::MultiManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT&
 	FEManagerT(input, output, comm),
 	fFine(fine),
 	fCoarse(coarse),
-	fDivertOutput(false)
+	fDivertOutput(false),
+	fFineField(NULL),
+	fCoarseField(NULL)
 {
+	const char caller[] = "MultiManagerT::MultiManagerT";
+
 	/* borrow parameters from coarse scale solver */
 	fAnalysisCode = fCoarse->Analysis();
 	fTimeManager = fCoarse->TimeManager();
@@ -28,6 +32,12 @@ MultiManagerT::MultiManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT&
 	/* don't compute initial conditions */
 	fFine->SetComputeInitialCondition(false);
 	fCoarse->SetComputeInitialCondition(false);
+
+	StringT bridging_field = "displacement";
+	fFineField = fFine->NodeManager()->Field(bridging_field);
+	if (!fFineField) ExceptionT::GeneralFail(caller, "could not resolve fine scale \"%s\" field", bridging_field.Pointer());
+	fCoarseField = fCoarse->NodeManager()->Field(bridging_field);
+	if (!fFineField) ExceptionT::GeneralFail(caller, "could not resolve coarse scale \"%s\" field", bridging_field.Pointer());
 }
 
 /* destructor */
@@ -47,16 +57,13 @@ void MultiManagerT::Initialize(InitCodeT)
 	/* configure projection/interpolation */
 	int group = 0;
 	int order1 = 0;
-	StringT bridging_field = "displacement";
 	bool make_inactive = true;
 	fFine->InitGhostNodes(fCoarse->ProjectImagePoints());
-	fCoarse->InitInterpolation(fFine->GhostNodes(), bridging_field, *(fFine->NodeManager()));
-	fCoarse->InitProjection(*(fFine->CommManager()), fFine->NonGhostNodes(), bridging_field, *(fFine->NodeManager()), make_inactive);
+	fCoarse->InitInterpolation(fFine->GhostNodes(), fFineField->Name(), *(fFine->NodeManager()));
+	fCoarse->InitProjection(*(fFine->CommManager()), fFine->NonGhostNodes(), fFineField->Name(), *(fFine->NodeManager()), make_inactive);
 
 	/* transposed shape function arrays needed for cross terms */
-	InterpolationDataT follower_cell_transpose;
-	fCoarse->TransposeFollowerCellData(follower_cell_transpose);
-	
+	//fCoarse->TransposeFollowerCellData(fFollowerCellTranspose);
 
 	/* send coarse/fine output through the fFine output */
 	int ndof = fFine->NodeManager()->NumDOF(group);
@@ -81,13 +88,14 @@ void MultiManagerT::Initialize(InitCodeT)
 }
 
 /* (re-)set the equation number for the given group */
-void MultiManagerT::SetEquationSystem(int group)
+void MultiManagerT::SetEquationSystem(int group, int start_eq_shift)
 {
-	fFine->SetEquationSystem(group);
-	fCoarse->SetEquationSystem(group);
-
+	fFine->SetEquationSystem(group, start_eq_shift);
 	int neq1 = fFine->GlobalNumEquations(group);
+	
+	fCoarse->SetEquationSystem(group, neq1 + start_eq_shift);
 	int neq2 = fCoarse->GlobalNumEquations(group);
+
 	fGlobalNumEquations[group] = neq1 + neq2;
 
 	/* set total equation numbers */
@@ -95,8 +103,8 @@ void MultiManagerT::SetEquationSystem(int group)
 	fEqnos2.Dimension(neq2);
 	fEqnos1.SetValueToPosition();
 	fEqnos2.SetValueToPosition();
-	fEqnos1 += 1;
-	fEqnos2 += (1+neq1);
+	fEqnos1 += (1 + start_eq_shift);
+	fEqnos2 += (1 + start_eq_shift + neq1);
 
 	/* final step in solver configuration */
 	fSolvers[group]->Initialize(
@@ -164,7 +172,7 @@ void MultiManagerT::FormLHS(int group, GlobalT::SystemTypeT sys_type) const
 	/* fine scale */
 	SolverT* fine_solver = fFine->Solver(group);
 	const GlobalMatrixT& lhs_1 = fFine->LHS(group);
-	DiagonalMatrixT* diag_1 = TB_DYNAMIC_CAST(DiagonalMatrixT*, (DiagonalMatrixT*) &lhs_1);
+	DiagonalMatrixT* diag_1 = TB_DYNAMIC_CAST(DiagonalMatrixT*, const_cast<GlobalMatrixT*>(&lhs_1));
 	if (!diag_1) ExceptionT::GeneralFail(caller);
 	diag_1->Clear();
 	fine_solver->UnlockLHS();
@@ -176,7 +184,7 @@ void MultiManagerT::FormLHS(int group, GlobalT::SystemTypeT sys_type) const
 	/* coarse scale */
 	SolverT* coarse_solver = fCoarse->Solver(group);
 	const GlobalMatrixT& lhs_2 = fCoarse->LHS(group);
-	DiagonalMatrixT* diag_2 = TB_DYNAMIC_CAST(DiagonalMatrixT*, (DiagonalMatrixT*) &lhs_2);
+	DiagonalMatrixT* diag_2 = TB_DYNAMIC_CAST(DiagonalMatrixT*, const_cast<GlobalMatrixT*>(&lhs_2));
 	if (!diag_2) ExceptionT::GeneralFail(caller);
 	diag_2->Clear();
 	coarse_solver->UnlockLHS();
@@ -219,17 +227,28 @@ void MultiManagerT::FormRHS(int group) const
 	const dArray2DT& resid_coarse = fCoarse->InternalForce(continuum_group);
 
 	/* fine scale contribution to the coarse scale residual */
+	dArray2DT& R_U = const_cast<dArray2DT&>(fR_U);
+	R_U.Dimension(resid_coarse.MajorDim(), resid_coarse.MinorDim());
+	R_U = 0.0;
+	const iArrayT& ghost_atoms = fFine->GhostNodes();
+	const PointInCellDataT& interpolation_data = fCoarse->InterpolationData();
+	fCoarse->MultNTf(interpolation_data, resid_fine, ghost_atoms, R_U);
+	fSolvers[group]->AssembleRHS(R_U, fCoarseField->Equations());	
 
-
-	/* mixed contribution to the coarse scale residual */
+	/* mixed contribution to the fine scale residual */
+	dArray2DT& R_Q = const_cast<dArray2DT&>(fR_Q);
+	R_Q.Dimension(resid_fine.MajorDim(), resid_fine.MinorDim());
+	R_Q = 0.0;
+	R_U += resid_coarse;
+	const PointInCellDataT& projection_data = fCoarse->ProjectionData();
+	fCoarse->MultNTf(projection_data.PointToNode(), R_U, projection_data.CellNodes(), R_Q);	
+	fSolvers[group]->AssembleRHS(R_Q, fFineField->Equations());	
 }
 
 /* send update of the solution to the NodeManagerT */
 void MultiManagerT::Update(int group, const dArrayT& update)
 {
-	StringT bridging_field = "displacement";
 	int order = 0;
-
 	int neq1 = fEqnos1.Length();
 	int neq2 = fEqnos2.Length();
 
@@ -241,11 +260,11 @@ void MultiManagerT::Update(int group, const dArrayT& update)
 	fCoarse->Update(group, update_tmp);
 
 	/* project fine scale solution on to the coarse grid */
-	fCoarse->ProjectField(bridging_field, *(fFine->NodeManager()), order);
+	fCoarse->ProjectField(fFineField->Name(), *(fFine->NodeManager()), order);
 
 	/* interpolate coarse scale solution to the fine */
-	fCoarse->InterpolateField(bridging_field, order, fFieldAtGhosts);
-	fFine->SetFieldValues(bridging_field, fFine->GhostNodes(), order, fFieldAtGhosts);
+	fCoarse->InterpolateField(fFineField->Name(), order, fFieldAtGhosts);
+	fFine->SetFieldValues(fFineField->Name(), fFine->GhostNodes(), order, fFieldAtGhosts);
 }
 
 /* system relaxation */
@@ -292,18 +311,15 @@ void MultiManagerT::WriteOutput(double time)
 	const NodeManagerT& nodes = *(fFine->NodeManager());
 	int order = 0;
 	int group = 0;
-	StringT field = "displacement";
 	int ndof = nodes.NumDOF(group);
 	const iArrayT& source_points = fFine->NonGhostNodes();
 	dArray2DT n_values(source_points.Length(), 2*ndof), coarse;
-	fCoarse->CoarseField(field, nodes, order, coarse);
+	fCoarse->CoarseField(fFineField->Name(), nodes, order, coarse);
 	if (source_points.Length() != coarse.MajorDim())
 		ExceptionT::GeneralFail(caller);
 
 	/* get the total field */
-	const FieldT* source_field = nodes.Field(field);
-	if (!source_field) ExceptionT::GeneralFail(caller, "could not resolve source field \"%s\"", field.Pointer());
-	const dArray2DT& total = (*source_field)[order];
+	const dArray2DT& total = (*fFineField)[order];
 
 	/* compute the fine scale part of the field */
 	for (int i = 0; i < source_points.Length(); i++)
