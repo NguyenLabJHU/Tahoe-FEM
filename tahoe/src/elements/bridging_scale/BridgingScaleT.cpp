@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.41.4.3 2004-04-17 04:45:02 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.41.4.4 2004-04-23 20:24:06 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -320,7 +320,6 @@ void BridgingScaleT::InitProjection(CommManagerT& comm, const iArrayT& points_us
 	int cell_dex = 0;
 	iArrayT cell_eq;
 	dArrayT Na;
-	//double atommass;
 	for (int i = 0; i < point_in_cell.MajorDim(); i++)
 	{
 		int np = point_in_cell.MinorDim(i);
