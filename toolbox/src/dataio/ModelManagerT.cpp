@@ -1,10 +1,12 @@
-/* $Id: ModelManagerT.cpp,v 1.4.2.13 2001-11-06 19:52:14 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.4.2.14 2001-11-07 12:49:15 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
 #include <ctype.h>
 
 #include "ifstreamT.h"
+#include "nVariArray2DT.h"
+
 #include "TahoeInputT.h"
 #include "ExodusInputT.h"
 #include "PatranInputT.h"
@@ -913,6 +915,34 @@ void ModelManagerT::AdjustCoordinatesto2D (void)
   RegisterNodes (temp);
 }
 
+bool ModelManagerT::RegisterVariElements (const StringT& name, nVariArray2DT<int>& conn, 
+					  GeometryT::CodeT code, int numelemnodes,
+					  int headroom)
+{
+  if (!CheckName (fElementNames, name, "Element Group")) return false;
+  
+  fElementNames.Append (name);
+  fElementLengths.Append (0);
+  fElementNodes.Append (numelemnodes);
+  fElementCodes.Append (code);
+
+  int index = fElementSets.Length();
+  iArray2DT temp;
+  fElementSets.Append (temp);
+
+  fNumElementSets++;
+  if (fNumElementSets != fElementNames.Length() ||
+      fNumElementSets != fElementLengths.Length() ||
+      fNumElementSets != fElementNodes.Length() ||
+      fNumElementSets != fElementCodes.Length() ||
+      fNumElementSets != fElementSets.Length() )
+    return false;
+
+  conn.SetWard (headroom, fElementSets [index], numelemnodes);
+
+  return true;
+}
+
 /* call this function after the connectivity has been changed by outside classes */
 void ModelManagerT::UpdateConnectivity (int index, const iArray2DT& connects)
 {
@@ -1080,7 +1110,7 @@ bool ModelManagerT::ScanElements (void)
 	{
 	  fElementLengths[e] = fInput->NumElements (fElementNames[e]);
 	  fElementNodes[e] = fInput->NumElementNodes (fElementNames[e]);
-      fInput->ReadGeometryCode (fElementNames[e], fElementCodes[e]);
+	  fInput->ReadGeometryCode (fElementNames[e], fElementCodes[e]);
 	}
     }
   return true;
