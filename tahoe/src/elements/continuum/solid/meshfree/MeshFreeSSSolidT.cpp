@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.2 2001-02-20 00:42:14 paklein Exp $ */
 /* created: paklein (09/11/1998)                                          */
 /* small strain elasticity with MLS shapefunctions for the                */
 /* field (displacement) representation                                    */
@@ -347,16 +347,17 @@ bool MeshFreeSSSolidT::NextElement(void)
 }
 
 /* driver for nodal value calculations */
-void MeshFreeSSSolidT::ComputeNodalValues(const iArrayT& codes)
+void MeshFreeSSSolidT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+	const iArrayT& e_codes, dArray2DT& e_values)
 {
 	/* set nodal displacements data */
-	if (codes[iNodalDisp] == fNumDOF) SetNodalField(fNodes->Displacements());
+	if (n_codes[iNodalDisp] == fNumDOF) SetNodalField(fNodes->Displacements());
 
 	/* inherited */
-	SolidT::ComputeNodalValues(codes);
+	SolidT::ComputeOutput(n_codes, n_values, e_codes, e_values);
 
 	/* free work space memory */
-	if (codes[iNodalDisp] == fNumDOF) FreeNodalField();
+	if (n_codes[iNodalDisp] == fNumDOF) FreeNodalField();
 }
 
 /***********************************************************************
