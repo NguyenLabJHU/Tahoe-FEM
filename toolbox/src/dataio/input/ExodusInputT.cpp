@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.cpp,v 1.3 2001-09-04 14:46:37 sawimme Exp $ */
+/* $Id: ExodusInputT.cpp,v 1.3.2.1 2001-10-15 19:01:27 sawimme Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusInputT.h"
@@ -157,13 +157,16 @@ void ExodusInputT::ReadNodeSet (StringT& name, iArrayT& nodes)
   nodes += -1;
 }
 
-int ExodusInputT::SideSetGroupIndex (StringT& name) const
+StringT ExodusInputT::SideSetGroupName (StringT& name) const
 {
   int setnum = atoi (name.Pointer());
   int block_ID;
   iArray2DT sides (fData.NumSidesInSet (setnum), 2);
   fData.ReadSideSet (setnum, block_ID, sides);
-  return block_ID;
+
+  StringT elname;
+  elname.Append (block_ID);
+  return elname;
 }
 
 void ExodusInputT::ReadSideSetLocal (StringT& name, iArray2DT& sides) const

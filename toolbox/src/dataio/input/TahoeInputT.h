@@ -1,4 +1,4 @@
-/* $Id: TahoeInputT.h,v 1.5 2001-09-21 13:48:51 sawimme Exp $ */
+/* $Id: TahoeInputT.h,v 1.5.2.1 2001-10-15 19:01:28 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _TAHOEINPUT_T_H_
@@ -46,7 +46,7 @@ class TahoeInputT : public InputBaseT
 
   virtual bool AreSideSetsLocal (void) const;
   virtual int  NumSidesInSet (StringT& name) const;
-  virtual int  SideSetGroupIndex (StringT& name) const;
+  virtual StringT SideSetGroupName (StringT& name) const;
   virtual void ReadSideSetLocal (StringT& name, iArray2DT& sides) const;
   virtual void ReadSideSetGlobal (StringT& name, iArray2DT& sides) const;
 

@@ -1,4 +1,4 @@
-/* $Id: PatranInputT.cpp,v 1.4 2001-09-06 17:28:26 sawimme Exp $ */
+/* $Id: PatranInputT.cpp,v 1.4.2.1 2001-10-15 19:01:28 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "PatranInputT.h"
@@ -208,11 +208,12 @@ int PatranInputT::NumSidesInSet (StringT& anme) const
   return 0;
 }
 
-int PatranInputT::SideSetGroupIndex (StringT& name) const
+StringT PatranInputT::SideSetGroupName (StringT& name) const
 {
 #pragma unused(name)
   cout << "\n\n PatranInputT::Not programmed to read side sets\n\n";
-  return 0;
+  StringT elname ("");
+  return elname; 
 }
 
 void PatranInputT::ReadSideSetLocal (StringT& name, iArray2DT& sides) const

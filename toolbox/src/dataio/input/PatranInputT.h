@@ -1,4 +1,4 @@
-/* $Id: PatranInputT.h,v 1.4 2001-09-21 13:48:51 sawimme Exp $ */
+/* $Id: PatranInputT.h,v 1.4.2.1 2001-10-15 19:01:28 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _PATRANINPUT_T_H_
@@ -46,7 +46,7 @@ class PatranInputT : public InputBaseT
 
   virtual bool AreSideSetsLocal (void) const;
   virtual int  NumSidesInSet (StringT& name) const;
-  virtual int  SideSetGroupIndex (StringT& name) const;
+  virtual StringT SideSetGroupName (StringT& name) const;
   virtual void ReadSideSetLocal (StringT& name, iArray2DT& sides) const;
   virtual void ReadSideSetGlobal (StringT& name, iArray2DT& sides) const;
 

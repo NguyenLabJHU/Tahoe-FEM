@@ -1,4 +1,4 @@
-/* $Id: InputBaseT.h,v 1.5 2001-09-21 13:48:51 sawimme Exp $ */
+/* $Id: InputBaseT.h,v 1.5.2.1 2001-10-15 19:01:27 sawimme Exp $ */
 /* created: sawimme (08/12/1999) */
 
 #ifndef _INPUTBASE_T_H_
@@ -79,7 +79,7 @@ public:
 
   virtual bool AreSideSetsLocal (void) const = 0;
   virtual int  NumSidesInSet (StringT& setname) const = 0;
-  virtual int  SideSetGroupIndex (StringT& setname) const = 0;
+  virtual StringT SideSetGroupName (StringT& setname) const = 0;
   virtual void ReadSideSetLocal (StringT& setname, iArray2DT& sides) const = 0; /* offset elements & facets, continuous */
   virtual void ReadSideSetGlobal (StringT& setname, iArray2DT& sides) const = 0; /* offset elements & facets, continuous */
   
