@@ -1,4 +1,4 @@
-/* $Id: WindowT.h,v 1.4 2001-06-18 17:04:19 hspark Exp $ */
+/* $Id: WindowT.h,v 1.5 2001-06-18 18:21:27 paklein Exp $ */
 
 #ifndef _WINDOW_T_H_
 #define _WINDOW_T_H_
@@ -79,7 +79,7 @@ class WindowT
 	 * \param x field point of evaluation
 	 * \param covers array of coverage test results: [npts] */
 	virtual void Covers(const dArray2DT& x_n, const dArrayT& x, 
-			    const dArrayT& param_n, ArrayT<bool>& covers) = 0;
+			    const dArray2DT& param_n, ArrayT<bool>& covers) = 0;
 };
 
 #endif /* _WINDOW_T_H_ */

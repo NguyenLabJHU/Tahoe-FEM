@@ -1,4 +1,4 @@
-/* $Id: GaussianWindowT.cpp,v 1.5 2001-06-18 18:02:53 hspark Exp $ */
+/* $Id: GaussianWindowT.cpp,v 1.6 2001-06-18 18:21:27 paklein Exp $ */
 
 #include "GaussianWindowT.h"
 #include "ExceptionCodes.h"
@@ -17,9 +17,9 @@ GaussianWindowT::GaussianWindowT(double dilation_scaling, double sharpening_fact
 
 void GaussianWindowT::WriteParameters(ostream& out) const
 {
-  /* Not sure what to do here */
-  cout << "Dilation scaling factor = " << fDilationScaling << '\n';
-  cout << "Fudge factor used = " << fSharpeningFudgeFactor << '\n';
+	/* Not sure what to do here */
+	out << "Dilation scaling factor = " << fDilationScaling << '\n';
+	out << "Fudge factor used = " << fSharpeningFudgeFactor << '\n';
 }
 
 /* Single point evaluations */
@@ -128,7 +128,7 @@ bool GaussianWindowT::Covers(const dArrayT& x_n, const dArrayT& x, const dArrayT
 }
 
 void GaussianWindowT::Covers(const dArray2DT& x_n, const dArrayT& x, 
-			     const dArray2DT& param_n, const ArrayT<bool>& covers)
+			     const dArray2DT& param_n, ArrayT<bool>& covers)
 {
   int count = 0;    // # of point covered...
   int numwindows = x_n.MinorDim();        // Could be MajorDim!
