@@ -1,4 +1,4 @@
-# $Id: SHASTA.debug.macros,v 1.7 2004-08-10 06:37:03 paklein Exp $
+# $Id: SHASTA.debug.macros,v 1.8 2004-08-10 19:02:18 paklein Exp $
 MAKE        = make
 DEFINES     = -D__TAHOE_MPI__ -D__SHASTA__ -D__INTEL_CC__ -DNON_UNIX_STDIO -D__NO_RTTI__
 COMP_C      = mpicc
@@ -18,9 +18,9 @@ MAKEDEPEND_OUTPUT_C  = -MF
 MAKEDEPEND_CC        = mpiCC -MM
 MAKEDEPENDFLAGS_CC   = -I$(INC_DIR) $(DEFINES)
 MAKEDEPEND_OUTPUT_CC = -MF
-MAKEDEPEND_F         = mpif77 -MM
-MAKEDEPENDFLAGS_F    = -I$(INC_DIR) $(DEFINES)
-MAKEDEPEND_OUTPUT_F  = -MF
+MAKEDEPEND_F         =  echo
+MAKEDEPENDFLAGS_F    = 
+MAKEDEPEND_OUTPUT_F  =
 AR          = ar
 ARFLAGS     = -cruv
 RANLIB      = echo
