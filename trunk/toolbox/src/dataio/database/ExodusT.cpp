@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.8 2001-06-14 14:49:51 sawimme Exp $ */
+/* $Id: ExodusT.cpp,v 1.9 2001-07-05 22:02:35 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -692,7 +692,7 @@ void ExodusT::ReadNodalVariable(int step, int index, dArrayT& fValues) const
 
 	/* the time_step must correspond to the time_value of the printed increment
 	 * index corresponds to the variable name list */
-	Try("ExodusT::WriteNodalVariable",
+	Try("ExodusT::ReadNodalVariable",
 		ex_get_nodal_var(exoid, step, index, fValues.Length(), fValues.Pointer()),
 		true);
 }
@@ -1162,12 +1162,14 @@ void ExodusT::Try(const char* caller, int code, bool do_warning) const
 {
 	if (code < 0)
 	{
-		fOut << "\n " << caller << ": returned error: " << code << endl;
+		fOut << "\n " << caller << ": returned error: " << code << '\n'
+		     <<   "     file: " << file_name << endl;
 		throw eGeneralFail;
 	}
 
 	if (code > 0 && do_warning)
-		fOut << "\n " << caller << ": returned warning: " << code << endl;
+		fOut << "\n " << caller << ": returned warning: " << code << '\n'
+		     <<   "     file: " << file_name << endl;
 }
 #else
 #pragma warn_unusedarg off
