@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.2 2001-08-07 23:11:52 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.3 2001-09-04 14:31:27 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -17,8 +17,6 @@
 #include "ios_fwd_decl.h"
 class ifstreamT;
 
-/** still need to add global node and element maps
- * assume for now that side sets are globally numbered */
 class ModelManagerT
 {
  public:
@@ -60,11 +58,13 @@ class ModelManagerT
   const iArray2DT& ElementGroup (int index);
 
   int NumNodeSets (void) const;
+  void NodeSetNames (ArrayT<StringT>& names) const;
   int NodeSetIndex (const StringT& name) const;
   int NodeSetLength (int index) const;
   const iArrayT& NodeSet (int index);
 
   int NumSideSets (void) const;
+  void SideSetNames (ArrayT<StringT>& names) const;
   int SideSetIndex (const StringT& name) const;
   int SideSetLength (int index) const;
   const iArray2DT& SideSet (int index) const;
@@ -81,10 +81,11 @@ class ModelManagerT
   bool ScanNodeSets (void);
   bool ScanSideSets (void);
 
- private:
+ protected:
   ostream& fMessage;
   InputBaseT *fInput;
 
+ private:
   /* dimensional information */
   iArrayT fCoordinateDimensions;
   iAutoArrayT fElementLengths;
