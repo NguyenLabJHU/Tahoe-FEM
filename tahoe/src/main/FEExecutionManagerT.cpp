@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.13 2002-01-09 12:06:23 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.14 2002-01-09 18:30:07 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #include "FEExecutionManagerT.h"
@@ -33,6 +33,7 @@
 #include "ExodusT.h"
 #include "JoinOutputT.h"
 #include "dArrayT.h"
+#include "OutputBaseT.h"
 
 /* Constructor */
 FEExecutionManagerT::FEExecutionManagerT(int argc, char* argv[], char job_char,
@@ -349,11 +350,16 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 	try
 	{
 		t0 = clock();
-	
-		/* get the model file name */
-		StringT model_file, suffix;
+
+		/* to read file parameters */
+		ofstreamT out;
+		FEManagerT fe_man(in, out);
+		fe_man.Initialize(FEManagerT::kParametersOnly);
+		
+		/* model file parameters */
+		StringT model_file;
 		IOBaseT::FileTypeT format;
-		GetModelFile(in, model_file, format);
+		fe_man.ModelManager()->Format(format, model_file);
 
 		/* prompt for decomp size */
 		int size;
@@ -369,11 +375,21 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 
 		if (size < 2) return;
 		
+		/* construct output formatter */
+		StringT program = "tahoe";
+		StringT version = fe_man.Version();
+		StringT title   = fe_man.Title();
+		StringT input   = in.filename();
+		OutputBaseT* output = IOManager::NewOutput(program, version, title, input, format, cout);
+		
 		/* construct joiner */
-		JoinOutputT output_joiner(in.filename(), model_file, format, format, size);
+		JoinOutputT output_joiner(in.filename(), model_file, format, format, output, size);
 		
 		/* join files */
 		output_joiner.Join();
+		
+		/* free output formatter */
+		delete output;
 
 		t1 = clock();
 	}
@@ -513,19 +529,10 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	partial_file.Append(suffix);
 	if (NeedModelFile(partial_file, format))
 	{
-		if (CommandLineOption("-split_io"))
-		{
-			cout << "\n ::RunJob_parallel: missing partial geometry files are not regenerated\n"
-			     <<   "     with command line option \"-split_io\": \n"
-			     << partial_file << endl;
-			throw eBadInputValue;
-		}
-		else {
-			cout << "\n ::RunJob_parallel: writing partial geometry file: " << partial_file << endl;
-			EchoPartialGeometry(partition, model_file, partial_file, format);
-			cout << " ::RunJob_parallel: writing partial geometry file: partial_file: "
-			     << partial_file << ": DONE" << endl;
-		}
+		cout << "\n ::RunJob_parallel: writing partial geometry file: " << partial_file << endl;
+		EchoPartialGeometry(partition, model_file, partial_file, format);
+		cout << " ::RunJob_parallel: writing partial geometry file: partial_file: "
+			 << partial_file << ": DONE" << endl;
 	}
 	
 	/* construct local problem (Initialize() changes the file name) */
