@@ -12,7 +12,7 @@
 
 #include "MakeCSE.h"
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "MakeCSE_IOManager.h"
 #include "MakeCSE_FEManager.h"
 
@@ -139,8 +139,23 @@ void MakeCSE::InitializeContact (MakeCSE_IOManager& theInput)
 {
   theInput.Contact (fContact);
 
+  // collect existing side set ID's
   fSSetID = 1;
+  for (int e=0; e < theElements.Length(); e++)
+    for (int s=0; s < theElements[e]->NumSideSets(); s++)
+      {
+        int id = atoi (theElements[e]->SideSetID(s));
+        while (fSSetID <= id) fSSetID++;
+      }
+
+  // collect existing node set ID's
   fNSetID = 1;
+  for (int n=0; n < theNodes->NumNodeSets(); n++)
+    {
+      int id = atoi (theNodes->NodeSetID(n));
+      while (fNSetID <= id) fNSetID++;
+    }
+
 
   out << " CSE Block ID's to prep for contact surfaces . . = "
       << fContact.Length() << '\n';
@@ -184,7 +199,7 @@ void MakeCSE::CollectFacets (ModelManagerT& theInput, const sArrayT& facetdata)
 	  cout << "MakeCSE::CollectFacets, side set " << facetdata[i] 
 	       << " fails CheckSideSet for element group id: " 
 	       << facetdata [i + 1] << endl;
-	  throw eBadInputValue;
+	  throw ExceptionT::kBadInputValue;
 	}
 
       // convert to global numbering 
@@ -354,39 +369,68 @@ void MakeCSE::CollectBoundaries (const sArrayT& boundarydata)
       << boundarydata.Length()/4 << '\n';
   if (fPrintUpdate)
     {
-      out << "  BlockID1 BlkID2Min BlkID2Max  OutputID\n";
-      boundarydata.WriteWrapped (out, 4);
+      out << "       BlockID1       BlockID2       OutputID\n";
+      boundarydata.WriteWrapped (out, 3);
       out << '\n';
     }
 
   iArray2DT set;
   int cs = theEdger->TotalElements();
-  for (int i=0; i < boundarydata.Length(); i += 4)
+  iArray2DT groupsdone;
+  for (int i=0; i < boundarydata.Length(); i += 3)
     {
       const StringT& groupid = boundarydata[i];
       const StringT& bordergroupid = boundarydata[i + 1];
       int group = theEdger->ElementGroup (groupid);
       int bordergroup = theEdger->ElementGroup (bordergroupid);
 
-      int cselemgroup = theEdger->ElementGroup (boundarydata [i+2]) - theElements.Length();
-      InitializeSet (group, cselemgroup);
-
-      theEdger->BoundaryFacets (groupid, bordergroupid, set);
-      
-      // insert cse
-      int *pelem = set.Pointer();
-      int *pface = set.Pointer(1);
-      AddElements (set.MajorDim(), cselemgroup);
-      for (int e=0; e < set.MajorDim(); e++, pelem += 2, pface += 2, cs++)
+      if (group != bordergroup &&
+	  !GroupComboDone (group, bordergroup, groupsdone))
 	{
-	  InitializeFacet (*pelem, *pface, group, cs, cselemgroup);
-	  if ((set.MajorDim() > kPrint && (e+1)%kPrint == 0) ||
-	      e+1 == set.MajorDim())
-	    cout << "   " << e+1 << " done initializing of " << set.MajorDim() << " facets " << endl;
+	  int cselemgroup = theEdger->ElementGroup (boundarydata [i+2]) - theElements.Length();
+	  InitializeSet (group, cselemgroup);
+
+	  theEdger->BoundaryFacets (groupid, bordergroupid, set);
+      
+	  // insert cse
+	  int *pelem = set.Pointer();
+	  int *pface = set.Pointer(1);
+	  AddElements (set.MajorDim(), cselemgroup);
+	  for (int e=0; e < set.MajorDim(); e++, pelem += 2, pface += 2, cs++)
+	    {
+	      InitializeFacet (*pelem, *pface, group, cs, cselemgroup);
+	      if ((set.MajorDim() > kPrint && (e+1)%kPrint == 0) ||
+		  e+1 == set.MajorDim())
+		cout << "   " << e+1 << " done initializing of " << set.MajorDim() << " facets " << endl;
+	    }
 	}
     }
-  
   cout << "  Done with Boundary Data" << endl;
+}
+
+bool MakeCSE::GroupComboDone (int g, int b, iArray2DT& groupsdone) const
+{
+  if (groupsdone.Length() == 0)
+    {
+      groupsdone.Dimension (1,2);
+      groupsdone(0,0) = g;
+      groupsdone(0,1) = b;
+      return false;
+    }
+  
+  int length = groupsdone.MajorDim();
+  for (int i=0; i < length; i++)
+    {
+      if (groupsdone (i, 0) == g && groupsdone (i, 1) == b)
+	return true;
+      if (groupsdone (i, 0) == b && groupsdone (i, 1) == g)
+	return true;
+    }
+
+  //append to groups done
+  groupsdone.Resize (length + 1, CSEConstants::kNotSet);
+  groupsdone(length, 0) = g;
+  groupsdone(length, 1) = b;
 }
 
 void MakeCSE::InitializeSet (int group, int cselemgroup)
@@ -658,7 +702,7 @@ void MakeCSE::CollectMassLessNodes (void)
 	   << fNoMassNodes.Length() << '\n';
       cout << "\n Number of Massless Nodes Found. . . . . . . . . = "
 	   << fNoMassNodes.Length() << '\n';
-      StringT nsetid = "MassLess_";
+      StringT nsetid;
       nsetid.Append (fNSetID++);
       theNodes->AddNodeSet (nsetid, fNoMassNodes, CSEConstants::kSurface2);
     }
@@ -723,7 +767,7 @@ void MakeCSE::CollectSurfaceData (void)
       {
 	iArray2DT temp;
 	temp.Set (faces1[j].Length()/2, 2, faces1[j].Pointer());
-	StringT setid = "Contact1_";
+	StringT setid;
 	setid.Append (fSSetID++);
 	theElements[j]->AddSideSet (setid, temp);
       }
@@ -735,7 +779,7 @@ void MakeCSE::CollectSurfaceData (void)
       {
 	iArray2DT temp;
 	temp.Set (faces2[j2].Length()/2, 2, faces2[j2].Pointer());
-	StringT setid = "Contact2_";
+	StringT setid;
 	setid.Append (fSSetID++);
 	theElements[j2]->AddSideSet (setid, temp);
       }
@@ -745,7 +789,7 @@ void MakeCSE::CollectSurfaceData (void)
   if (nodes1.Length() > 0)
     {
       RemoveRepeats (nodes1);
-      StringT nsetid = "Contact1_";
+      StringT nsetid;
       nsetid.Append (fNSetID++);
       theNodes->AddNodeSet (nsetid, nodes1, CSEConstants::kSurface1);
     }
@@ -755,7 +799,7 @@ void MakeCSE::CollectSurfaceData (void)
   if (nodes2.Length() > 0)
     {
       RemoveRepeats (nodes2);
-      StringT nsetid = "Contacts_";
+      StringT nsetid;
       nsetid.Append (fNSetID++);
       theNodes->AddNodeSet (nsetid, nodes2, CSEConstants::kSurface2);
     }

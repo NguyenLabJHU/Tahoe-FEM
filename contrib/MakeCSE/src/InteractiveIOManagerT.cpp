@@ -1,6 +1,6 @@
-// $Id: InteractiveIOManagerT.cpp,v 1.3 2002-10-25 21:02:59 paklein Exp $
+// $Id: InteractiveIOManagerT.cpp,v 1.4 2002-10-28 21:36:33 sawimme Exp $
 #include "InteractiveIOManagerT.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 
 using namespace Tahoe;
 
@@ -22,6 +22,7 @@ void InteractiveIOManagerT::Initialize (void)
       cout << " Enter file name for input file: ";
       cin.getline (filename.Pointer(), 80, '\n');
       fEchoInput.open (filename);
+      fEchoInput << '%\n';
       fEcho = true;
     }
   else
@@ -339,7 +340,7 @@ void  InteractiveIOManagerT::ReadIDValues (const sArrayT& q, sArrayT& names)
 void InteractiveIOManagerT::ReadID_Parameter (const sArrayT& q, sArrayT& names, iArrayT& vals)
 {
   if (q.Length() != names.Length() ||
-      q.Length() != vals.Length() ) throw eSizeMismatch;
+      q.Length() != vals.Length() ) throw ExceptionT::kSizeMismatch;
 
   int num = q.Length();
   StringT answer (81);

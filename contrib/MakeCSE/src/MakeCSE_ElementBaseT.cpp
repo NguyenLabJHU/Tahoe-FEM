@@ -1,8 +1,8 @@
-// $Id: MakeCSE_ElementBaseT.cpp,v 1.5 2002-10-25 21:02:59 paklein Exp $
+// $Id: MakeCSE_ElementBaseT.cpp,v 1.6 2002-10-28 21:36:33 sawimme Exp $
 // created: SAW 10/06/99
 #include "MakeCSE_ElementBaseT.h"
 
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "OutputSetT.h"
 #include "GeometryBaseT.h"
 #include "TriT.h"
@@ -67,16 +67,16 @@ void MakeCSE_ElementBaseT::SetNodes (int e1local, const iArrayT& nodes)
     {
       cout << "MakeCSE_ElementBaseT::Cannot set nodes, wrong length" << endl;
       cout << nodes.Length() << " " << fNumElemNodes << endl;
-      throw eSizeMismatch;
+      throw ExceptionT::kSizeMismatch;
     }
 
-  if (!IsElementValid (e1local)) throw eSizeMismatch;
+  if (!IsElementValid (e1local)) throw ExceptionT::kSizeMismatch;
   fNodeNums.SetRow (e1local, nodes);
 }
 
 void MakeCSE_ElementBaseT::FacesWithNode (int e1local, int node, iArrayT& faces) const
 {
-  if (!IsElementValid (e1local)) throw eSizeMismatch;
+  if (!IsElementValid (e1local)) throw ExceptionT::kSizeMismatch;
   iAutoArrayT f;
   int *conn = fNodeNums(e1local);
   for (int i=0; i < fNumElemNodes; i++)
@@ -92,7 +92,7 @@ bool MakeCSE_ElementBaseT::FaceHasNode (int e1local, int f1, int node) const
   if (!IsElementValid (e1local) || !IsFaceValid (f1)) 
     { 
       cout << "FaceHasNode" << endl;
-      throw eSizeMismatch;
+      throw ExceptionT::kSizeMismatch;
     }
   int *pfN = fFacetNodes[f1].Pointer();
   for (int n=0; n < fFacetNodes[f1].Length(); n++, pfN++)
@@ -106,7 +106,7 @@ void MakeCSE_ElementBaseT::ResetOneFaceNode (int e1local, int f1, int oldnode, i
   if (!IsElementValid (e1local) || !IsFaceValid (f1)) 
     { 
       cout << "ResetOneFaceNode" << endl;
-      throw eSizeMismatch;
+      throw ExceptionT::kSizeMismatch;
     }
   int reset = 0;
   int *pfN = fFacetNodes[f1].Pointer();
@@ -124,7 +124,7 @@ void MakeCSE_ElementBaseT::ResetOneFaceNode (int e1local, int f1, int oldnode, i
       cout << fGroupID << " " << e1local << " " << f1 
 	   << " " << oldnode << " " << newnode << endl;
       fNodeNums.PrintRow (e1local, cout);
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
   
   else if (reset > 1)
@@ -133,7 +133,7 @@ void MakeCSE_ElementBaseT::ResetOneFaceNode (int e1local, int f1, int oldnode, i
       cout << fGroupID << " " << e1local << " " << f1 
 	   << " " << oldnode << " " << newnode << endl;
       fNodeNums.PrintRow (e1local, cout);
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
 }
 
@@ -142,7 +142,7 @@ void MakeCSE_ElementBaseT::ElementNodes (int e1local, iArrayT& nodes) const
   if (!IsElementValid (e1local)) 
     { 
       cout << "ElementNodes" << endl;
-      throw eSizeMismatch;
+      throw ExceptionT::kSizeMismatch;
     }
   nodes.Set (fNodeNums.MinorDim(), fNodeNums(e1local));
 }
@@ -152,7 +152,7 @@ void MakeCSE_ElementBaseT::FaceNodes (int e1local, int f1, iArrayT& nodes) const
   if (!IsElementValid (e1local) || !IsFaceValid (f1)) 
     { 
       cout << "FaceNodes" << endl;
-      throw eSizeMismatch;
+      throw ExceptionT::kSizeMismatch;
     }
   int *pfN = fFacetNodes[f1].Pointer();
   nodes.Allocate (fFacetNodes[f1].Length());
@@ -168,7 +168,7 @@ void MakeCSE_ElementBaseT::AbbrFaceNodes (int e1local, int f1, iArrayT& nodes) c
   if (!IsElementValid (e1local) || !IsFaceValid (f1)) 
     { 
       cout << "AbbrFaceNodes" << endl;
-      throw eSizeMismatch;
+      throw ExceptionT::kSizeMismatch;
     }
   iArrayT& vertexfacenodes = fVertexFaceNodes[f1];
 
@@ -369,8 +369,9 @@ void MakeCSE_ElementBaseT::ReadSideSetData (ModelManagerT& model, MakeCSE_IOMana
       sid.Append (ids[i]);
       const iArray2DT temp = model.SideSet (sid);
       bool local = model.IsSideSetLocal (sid);
+      const StringT elgroupid = model.SideSetGroupID (sid);
       if (local)
-	model.SideSetLocalToGlobal (sid, temp, Data[i]);
+	model.SideSetLocalToGlobal (elgroupid, temp, Data[i]);
       else
 	Data[i] = temp;
       out << "    Side Set . . . . . . . . . . . . . . . . . . = " 
@@ -391,7 +392,7 @@ void MakeCSE_ElementBaseT::CheckAllSideSets (void)
 	       << "\nfails CheckSideSet for element group id: " 
 	       << fGroupID << " " << NumElements() << " " << NumElemFaces() << endl;
 	  fSideSetData[i].WriteNumbered(cout);
-	  throw eBadInputValue;
+	  throw ExceptionT::kBadInputValue;
 	}
     }    
 }
@@ -425,7 +426,7 @@ void MakeCSE_ElementBaseT::SetFace (void)
       {
 	cout << "\n\n MakeCSE_ElementBaseT::SetFace does not like GeoCode " 
 	     << fGeometryCode << " " << fNumElemNodes << endl;
-	throw eBadInputValue;
+	throw ExceptionT::kBadInputValue;
       }
     }
   

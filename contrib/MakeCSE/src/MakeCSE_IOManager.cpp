@@ -1,6 +1,6 @@
-/* $Id: MakeCSE_IOManager.cpp,v 1.2 2002-10-25 21:02:59 paklein Exp $ */
+/* $Id: MakeCSE_IOManager.cpp,v 1.3 2002-10-28 21:36:33 sawimme Exp $ */
 #include "MakeCSE_IOManager.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "ifstreamT.h"
 
 using namespace Tahoe;
@@ -19,7 +19,7 @@ CSEConstants::CSEMethodT MakeCSE_IOManager::int2CSEMethodT (int i)
     default:
       {
 	cout << "\n Invalid Method \n";
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
       }
     }
   return CSEConstants::kFacet;
@@ -36,7 +36,7 @@ CSEConstants::ZoneEdgeT MakeCSE_IOManager::int2ZoneEdgeT (int i)
     default:
       {
 	cout << "\n Invalid Zone Edging \n";
-	throw eGeneralFail;
+	throw ExceptionT::kGeneralFail;
       }
     } 
   return CSEConstants::kSingleZE;
@@ -63,8 +63,8 @@ CSEConstants::RenumberMethodT MakeCSE_IOManager::int2RenumberMethodT (int i)
     case CSEConstants::kRenumberAll:   return	 CSEConstants::kRenumberAll;
     default:
       {
-	cout << "\n Invalid Renumbering Option \n";
-	throw eGeneralFail;
+	cout << "\n Invalid Renumbering Option " << i << "\n";
+	throw ExceptionT::kGeneralFail;
       }
     }
   return CSEConstants::kNoRenumber;

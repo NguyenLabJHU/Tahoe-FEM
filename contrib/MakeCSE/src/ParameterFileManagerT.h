@@ -31,6 +31,7 @@ class ParameterFileManagerT : public MakeCSE_IOManager
   bool AdvanceTo (ifstreamT& in, const StringT& key) const; /**< advance in file to keyword */
   void ReadIDValues (ifstreamT& in, sArrayT& names) const; /**< generic read */
   void ReadID_Parameter (ifstreamT& in, sArrayT& names, iArrayT& params) const; /**< generic read */
+  void CheckIDList (sArrayT& names, int numcols, int check) const;
 
  private:
   const StringT fInFile;

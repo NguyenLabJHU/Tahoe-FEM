@@ -49,6 +49,8 @@ class NodeManagerPrimitive
   /* accessors */
   int NumNodes (void) const; /** current number of nodes */
   const dArray2DT& InitialCoordinates (void) const; /** current coordinate list */
+  int NumNodeSets (void) const;
+  const StringT& NodeSetID (int index) const;
 
   /** register coordinates and node sets to output manager
       create node sets of element blocks if desired */
@@ -81,9 +83,14 @@ class NodeManagerPrimitive
   dArray2DT fCoordinates;
   int fNumInitCoordinates;
 
+  /** Temporary output node tags, not currently saved values */
+  iArrayT fOutputNodeMap;
+
   /* MakeCSE items */
   ArrayT<iArrayT> fNodeSetData; /**< node set data */
   sArrayT fNodeSetID; /**< node set ids */
+
+  /* contain index values, not node tags */
   iArrayT fNew2Old; /**< map stating what the original node was before the node was split */
   iAutoArrayT fSplitNodes; /**< nodes that were split */
   ArrayT<iAutoArrayT> fOld2New; /**< reverse of fNew2Old */
@@ -94,5 +101,7 @@ class NodeManagerPrimitive
 
 inline int NodeManagerPrimitive::NumNodes (void) const { return fCoordinates.MajorDim(); }
 inline const dArray2DT& NodeManagerPrimitive::InitialCoordinates (void) const { return fCoordinates; }
+inline  int NodeManagerPrimitive::NumNodeSets (void) const { return fNodeSetID.Length(); }
+inline  const StringT& NodeManagerPrimitive::NodeSetID (int index) const { return fNodeSetID[index]; }
 }
 #endif

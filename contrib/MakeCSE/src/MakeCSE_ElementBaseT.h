@@ -1,4 +1,4 @@
-// $Id: MakeCSE_ElementBaseT.h,v 1.5 2002-10-25 21:02:59 paklein Exp $
+// $Id: MakeCSE_ElementBaseT.h,v 1.6 2002-10-28 21:36:33 sawimme Exp $
 // created: SAW 10/06/00
 #ifndef _MakeCSE_ELEMENTBASET_H_
 #define _MakeCSE_ELEMENTBASET_H_
@@ -76,6 +76,8 @@ class MakeCSE_ElementBaseT
   virtual void CSElemFaces (iArrayT& faces) const; /**< returns CSE facets if class is MakeCSE_CSEBaseT, otherwise nothing happens */
   GeometryT::CodeT GeometryCode (void) const; /**< geometry code */
   const StringT& GroupNumber (void) const; /**< group id */
+  int NumSideSets (void) const; /**< number of side sets */
+  const StringT& SideSetID (int index) const; /**< return side set id */
 
   /** number of face nodes, accounts for elements with differing number 
      of face nodes */
@@ -158,6 +160,9 @@ inline int MakeCSE_ElementBaseT::NumElemFaces (void) const { return fFacetNodes.
 inline void MakeCSE_ElementBaseT::CSElemFaces (iArrayT& faces) const { };
 inline GeometryT::CodeT MakeCSE_ElementBaseT::GeometryCode (void) const { return fGeometryCode; }
 inline const StringT& MakeCSE_ElementBaseT::GroupNumber (void) const { return fGroupID; }
+inline int MakeCSE_ElementBaseT::NumSideSets (void) const { return fSideSetID.Length(); }
+inline const StringT& MakeCSE_ElementBaseT::SideSetID (int index) const { return fSideSetID[index]; } 
+
 inline int MakeCSE_ElementBaseT::NumFaceNodes (int face) const 
 { 
   if(IsFaceValid (face)) 
