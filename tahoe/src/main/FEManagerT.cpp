@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.58 2003-06-09 07:02:13 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.59 2003-08-08 00:37:04 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -139,6 +139,12 @@ void FEManagerT::Initialize(InitCodeT init)
 	if (init == kParametersOnly) return;
 	WriteParameters();
 	if (verbose) cout << "    FEManagerT::Initialize: execution parameters" << endl;
+
+	/* construct IO manager - configure in SetOutput below */
+	StringT file_name(fMainIn.filename());
+	fIOManager = new IOManager(fMainOut, kProgramName, kCurrentVersion, fTitle,
+		file_name, fOutputFormat);	
+	if (!fIOManager) throw ExceptionT::kOutOfMemory;
 
 	/* set communication manager */
 	fCommManager = New_CommManager();
@@ -1405,12 +1411,7 @@ void FEManagerT::SetIntegrator(void)
 
 /* construct output */
 void FEManagerT::SetOutput(void)
-{
-	StringT file_name(fMainIn.filename());
-	fIOManager = new IOManager(fMainOut, kProgramName, kCurrentVersion, fTitle,
-		file_name, fOutputFormat);	
-	if (!fIOManager) throw ExceptionT::kOutOfMemory;
-	
+{	
 	/* set global coordinates */
 	fIOManager->SetCoordinates(fNodeManager->InitialCoordinates(), NULL);
 	
