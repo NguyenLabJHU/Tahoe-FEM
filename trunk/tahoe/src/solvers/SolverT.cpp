@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.29 2005-04-05 16:08:20 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.30 2005-04-05 18:25:40 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -290,8 +290,10 @@ ParameterInterfaceT* SolverT::NewSub(const StringT& name) const
 
 		return choice;
 	}
+#ifdef __AZTEC__
 	else if (name == "Aztec_matrix")
 		return new AztecParamsT;
+#endif
 	else /* inherited */
 		return ParameterInterfaceT::NewSub(name);
 }
