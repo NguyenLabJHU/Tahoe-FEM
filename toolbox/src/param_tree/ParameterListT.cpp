@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.cpp,v 1.12 2004-01-31 07:15:57 paklein Exp $ */
+/* $Id: ParameterListT.cpp,v 1.13 2004-02-11 16:34:45 paklein Exp $ */
 #include "ParameterListT.h"
 
 using namespace Tahoe;
@@ -159,17 +159,30 @@ bool ParameterListT::AddReference(const char* ref, OccurrenceT occur)
 	return true;
 }
 
-/* return the pointer to the given list or NULL if the list is not found */
-const ParameterListT* ParameterListT::List(const char* name, int instance) const
+/* search for list by name */
+const ParameterListT* ParameterListT::FindList(const char* search_name, int instance) const
 {
 	/* search list */
+	int search_name_length = strlen(search_name);
 	int count = 0;
-	for (int i = 0; i < fParameterLists.Length(); i++)
-		if (fParameterLists[i].Name() == name)
-			if (count++ == instance) 
-				return fParameterLists.Pointer(i);
-
-	/* fail */
+	for (int i = 0; i < fParameterLists.Length(); i++) {
+	
+		/* candidate list */
+		const ParameterListT& list = fParameterLists[i];
+		const char* list_name = list.Name();
+		int scan_length = strlen(list_name) - search_name_length;
+	
+		/* look for start */
+		for (int j = 0; (*search_name != *list_name) && j < scan_length; j++)
+			list_name++;
+	
+		/* look for match */
+		if (*search_name == *list_name && strncmp(search_name, list_name, search_name_length) == 0)
+			if (count++ == instance)
+				return &list;
+	}
+	
+	/* not match */
 	return NULL;
 }
 
