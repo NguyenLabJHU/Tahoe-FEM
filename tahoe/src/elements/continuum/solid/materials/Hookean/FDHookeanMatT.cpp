@@ -1,4 +1,4 @@
-/* $Id: FDHookeanMatT.cpp,v 1.10 2004-07-15 08:26:56 paklein Exp $ */
+/* $Id: FDHookeanMatT.cpp,v 1.11 2004-07-22 21:09:32 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "FDHookeanMatT.h"
 
@@ -6,7 +6,7 @@ using namespace Tahoe;
 
 /* constructor */
 FDHookeanMatT::FDHookeanMatT(void):
-	ParameterInterfaceT("large_strain_Hookean_material"),
+	ParameterInterfaceT("large_strain_Hookean"),
 	fLastCall(kNone)	
 {
 
@@ -122,12 +122,28 @@ double FDHookeanMatT::StrainEnergyDensity(void)
 	return HookeanEnergy(fE);
 }
 
+/* information about subordinate parameter lists */
+void FDHookeanMatT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	FSSolidMatT::DefineSubs(sub_list);
+	HookeanMatT::DefineSubs(sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* FDHookeanMatT::NewSub(const StringT& name) const
+{
+	ParameterInterfaceT* sub = FSSolidMatT::NewSub(name);
+	if (sub)
+		return sub;
+	else
+		return HookeanMatT::NewSub(name);
+}
+
 /* accept parameter list */
 void FDHookeanMatT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
 	FSSolidMatT::TakeParameterList(list);
-	
-	/* set the modulus */
-	HookeanMatT::Initialize();
+	HookeanMatT::TakeParameterList(list);
 }
