@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.9 2001-10-24 01:58:27 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.10 2001-10-25 22:16:28 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -20,6 +20,7 @@
 #include "XuNeedleman3DT.h"
 #include "TvergHutch2DT.h"
 #include "ViscTvergHutch2DT.h"
+#include "Tijssens2DT.h"
 
 /* constructor */
 CSEAnisoT::CSEAnisoT(FEManagerT& fe_manager, bool rotate):
@@ -126,6 +127,18 @@ void CSEAnisoT::Initialize(void)
 				{
 					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: "
 					     << code << endl; 				
+					throw eBadInputValue;
+				}
+				break;
+			}
+			case SurfacePotentialT::kTijssens:
+			{	
+				if (fNumDOF == 2)
+					fSurfPots[num] = new Tijssens2DT(in,FEManager().TimeStep());
+				else
+				{
+					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code <<  endl;
+
 					throw eBadInputValue;
 				}
 				break;
