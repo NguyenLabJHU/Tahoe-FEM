@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.17 2002-02-12 02:05:35 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.18 2002-02-18 09:09:39 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -14,23 +14,18 @@
 #include "AbaqusInputT.h"
 #include "InputFEASCIIT.h"
 
-ModelManagerT::ModelManagerT (ostream& message) :
-  fCoordinateDimensions (2),
-  fNumElementSets (0),
-  fNumNodeSets (0),
-  fNumSideSets (0),
-  fInput (NULL),
-  fInputName (""),
-  fMessage (message),
-  fFormat (IOBaseT::kTahoe)
+/* array behavior */
+const bool ArrayT<ModelManagerT::SideSetScopeT>::fByteCopy = true;
+
+ModelManagerT::ModelManagerT (ostream& message):
+	fMessage(message),
+	fCoordinateDimensions (2),
+	fInput(NULL)
 {
   fCoordinateDimensions = -1;
 }
 
-ModelManagerT::~ModelManagerT (void)
-{
-  delete fInput;
-}
+ModelManagerT::~ModelManagerT(void) { Clear(); }
 
 bool ModelManagerT::Initialize (const IOBaseT::FileTypeT format, const StringT& database, bool scan_model)
 {
@@ -76,152 +71,6 @@ void ModelManagerT::EchoData (ostream& o) const
     o << " Geometry file . . . . . . . . . . . . . . . . . = " << fInputName  << '\n';
 }
 
-bool ModelManagerT::RegisterNodes (int length, int dof)
-{
-  fCoordinateDimensions[0] = length;
-  fCoordinateDimensions[1] = dof;
-  return true;
-}
-
-bool ModelManagerT::RegisterElementGroup (const StringT& ID, int numelems, 
-	int numelemnodes, GeometryT::CodeT code)
-{
-  if (!CheckID (fElementNames, ID, "Element Group")) return false;
-  
-  fElementNames.Append (ID);
-  fElementLengths.Append (numelems);
-  fElementNodes.Append (numelemnodes);
-  fElementCodes.Append (code);
-
-  iArray2DT temp;
-  fElementSets.Append (temp);
-
-  fNumElementSets++;
-  if (fNumElementSets != fElementNames.Length() ||
-      fNumElementSets != fElementLengths.Length() ||
-      fNumElementSets != fElementNodes.Length() ||
-      fNumElementSets != fElementCodes.Length() ||
-      fNumElementSets != fElementSets.Length() )
-    return false;
-  return true;
-}
-
-bool ModelManagerT::RegisterNodeSet (const StringT& ID, int length)
-{
-  if (!CheckID (fNodeSetNames, ID, "Node Set")) return false;
-  
-  fNodeSetNames.Append (ID);
-  fNodeSetDimensions.Append (length);
-
-  iArrayT temp;
-  fNodeSets.Append (temp);
-
-  fNumNodeSets++;
-  if (fNumNodeSets != fNodeSetNames.Length() ||
-      fNumNodeSets != fNodeSetDimensions.Length() ||
-      fNumNodeSets != fNodeSets.Length() )
-    return false;
-  return true;
-}
-
-bool ModelManagerT::RegisterSideSet (const StringT& ss_ID, int length, bool local, 
-	const StringT& element_ID)
-{
-  if (!CheckID (fSideSetNames, ss_ID, "Side Set")) return false;
-  
-  fSideSetNames.Append (ss_ID);
-  fSideSetDimensions.Append (length);
-  fSideSetIsLocal.Append (local);
-  if (local)
-  {
-  	int index = ElementGroupIndex(element_ID);
-  	if (index == -1) {
-  		cout << "\n ModelManagerT::RegisterSideSet: element ID not found: " << element_ID << endl;
-  		throw eOutOfRange;
-  	}
-    fSideSetGroupIndex.Append (index);
-  }
-  else
-    fSideSetGroupIndex.Append (-1);
-
-  iArray2DT temp;
-  fSideSets.Append (temp);
-
-  fNumSideSets++;
-  if (fNumSideSets != fSideSetNames.Length() ||
-      fNumSideSets != fSideSetDimensions.Length() ||
-      fNumSideSets != fSideSets.Length() ||
-      fNumSideSets != fSideSetIsLocal.Length() ||
-      fNumSideSets != fSideSetGroupIndex.Length() )
-    return false;
-  return true;
-}
-
-bool ModelManagerT::RegisterNodes (const dArray2DT& coords)
-{
-  if (!RegisterNodes (coords.MajorDim(), coords.MinorDim())) return false;
-  fCoordinates = coords;
-  return true;
-}
-
-bool ModelManagerT::RegisterElementGroup (const StringT& ID, const iArray2DT& conn, 
-	GeometryT::CodeT code)
-{
-  if (!CheckID (fElementNames, ID, "Element Group")) return false;
-  
-  fElementNames.Append (ID);
-  fElementLengths.Append (conn.MajorDim());
-  fElementNodes.Append (conn.MinorDim());
-  fElementCodes.Append (code);
-  fElementSets.Append (conn);
-
-  fNumElementSets++;
-  if (fNumElementSets != fElementNames.Length() ||
-      fNumElementSets != fElementLengths.Length() ||
-      fNumElementSets != fElementNodes.Length() ||
-      fNumElementSets != fElementCodes.Length() ||
-      fNumElementSets != fElementSets.Length() )
-    return false;
-  return true;
-}
-
-bool ModelManagerT::RegisterNodeSet (const StringT& ID, const iArrayT& set)
-{
-  if (!CheckID (fNodeSetNames, ID, "Node Set")) return false;
-  
-  fNodeSetNames.Append (ID);
-  fNodeSetDimensions.Append (set.Length());
-  fNodeSets.Append (set);
-
-  fNumNodeSets++;
-  if (fNumNodeSets != fNodeSetNames.Length() ||
-      fNumNodeSets != fNodeSetDimensions.Length() ||
-      fNumNodeSets != fNodeSets.Length() )
-    return false;
-  return true;
-}
-
-bool ModelManagerT::RegisterSideSet (const StringT& ss_ID, const iArray2DT& set, 
-	bool local, const StringT& element_ID)
-{
-	bool result = RegisterSideSet(ss_ID, set.MajorDim(), local, element_ID);
-	fSideSets.Append (set);
-	return result && fNumSideSets == fSideSets.Length();
-}
-
-/* reads dimensions and numbered array, then offsets array */
-bool ModelManagerT::RegisterNodes (ifstreamT& in)
-{
-  ifstreamT tmp;
-  ifstreamT& in2 = OpenExternal (in, tmp, fMessage, true, "ModelManagerT::RegisterNodes(ifstreamT): count not open file");
-
-  in2 >> fCoordinateDimensions[0] >> fCoordinateDimensions[1];
-  fCoordinates.Allocate (fCoordinateDimensions[0], fCoordinateDimensions[1]);
-  fCoordinates.ReadNumbered (in2);
-  return true;
-}
-
-/* read dimensions and numbered array, then offsets array */
 bool ModelManagerT::RegisterElementGroup (ifstreamT& in, const StringT& ID, GeometryT::CodeT code)
 {
   ifstreamT tmp;
@@ -232,7 +81,52 @@ bool ModelManagerT::RegisterElementGroup (ifstreamT& in, const StringT& ID, Geom
   iArray2DT temp (length, numnodes);
   temp.ReadNumbered (in2);
   temp += -1;
-  return RegisterElementGroup (ID, temp, code);
+  return RegisterElementGroup (ID, temp, code, true);
+}
+
+bool ModelManagerT::RegisterElementGroup (const StringT& ID, iArray2DT& conn, 
+	GeometryT::CodeT code, bool keep)
+{
+	if (!CheckID (fElementNames, ID, "Element Group")) return false;
+  
+  	/* element group parameters */
+	fElementNames.Append (ID);
+	fElementLengths.Append (conn.MajorDim());
+	fElementNodes.Append (conn.MinorDim());
+	fElementCodes.Append (code);
+
+	iArray2DT* set = NULL;
+	if (!keep || !conn.IsAllocated()) /* make copy */
+		set = new iArray2DT(conn);
+	else /* take memory */
+	{
+		set = new iArray2DT;
+		set->Swap(conn);
+		conn.Alias(*set);
+	}
+	fElementSets.Append(set);
+
+	return true;
+}
+
+bool ModelManagerT::RegisterNodeSet (const StringT& ID, iArrayT& set, bool keep)
+{
+	if (!CheckID (fNodeSetNames, ID, "Node Set")) return false;
+  
+	fNodeSetNames.Append (ID);
+	fNodeSetDimensions.Append (set.Length());
+
+	iArrayT* new_set = NULL;
+	if (!keep || !set.IsAllocated()) /* make copy */
+		new_set = new iArrayT(set);
+	else /* take memory */
+	{
+		new_set = new iArrayT;
+		new_set->Swap(set);
+		set.Alias(*new_set);
+	}
+  	fNodeSets.Append(new_set);
+  	return true;
 }
 
 /* read dimensions and array, then offsets array */
@@ -248,14 +142,80 @@ bool ModelManagerT::RegisterNodeSet (ifstreamT& in, const StringT& ID)
       iArrayT n (length);
       in2 >> n;
       n--;
-      return RegisterNodeSet (ID, n);
+      return RegisterNodeSet(ID, n, true);
     }
   else
     return false;
 }
 
-/* read dimensions and array, then offsets array */
-bool ModelManagerT::RegisterSideSet (ifstreamT& in, const StringT& ss_ID, bool local, 
+void ModelManagerT::ReadInlineCoordinates (ifstreamT& in)
+{
+  if (fFormat == IOBaseT::kTahoe)
+    RegisterNodes (in);
+}
+
+bool ModelManagerT::RegisterNodes (ifstreamT& in)
+{
+  ifstreamT tmp;
+  ifstreamT& in2 = OpenExternal (in, tmp, fMessage, true, "ModelManagerT::RegisterNodes(ifstreamT): count not open file");
+
+  in2 >> fCoordinateDimensions[0] >> fCoordinateDimensions[1];
+  fCoordinates.Dimension(fCoordinateDimensions[0], fCoordinateDimensions[1]);
+  fCoordinates.ReadNumbered (in2);
+  return true;
+}
+
+bool ModelManagerT::RegisterNodes(dArray2DT& coords, bool keep)
+{
+	if (!keep || !coords.IsAllocated())
+		fCoordinates = coords;
+	else
+	{
+		fCoordinates.Swap(coords);
+		coords.Alias(fCoordinates);
+	}
+	
+	fCoordinateDimensions[0] = fCoordinates.MajorDim();
+	fCoordinateDimensions[1] = fCoordinates.MinorDim();
+
+	return true;
+}
+
+bool ModelManagerT::RegisterSideSet (const StringT& ss_ID, iArray2DT& set, 
+	SideSetScopeT scope, const StringT& element_ID, bool keep)
+{
+	if (!CheckID (fSideSetNames, ss_ID, "Side Set")) return false;
+
+	/* side set parameters */
+ 	fSideSetNames.Append(ss_ID);
+	fSideSetDimensions.Append(set.MajorDim());
+	fSideSetScope.Append(scope);
+ 	if (scope == kLocal)
+	{
+		int index = ElementGroupIndex(element_ID);
+		if (index == kNotFound) {
+			cout << "\n ModelManagerT::RegisterSideSet: element ID not found: " << element_ID << endl;
+			throw eOutOfRange;
+		}
+    	fSideSetGroupIndex.Append (index);
+  	}
+  	else
+		fSideSetGroupIndex.Append (kNotFound);
+
+	iArray2DT* new_set = NULL;
+	if (!keep || !set.IsAllocated()) /* make copy */
+		new_set = new iArray2DT(set);
+	else /* take memory */
+	{
+		new_set = new iArray2DT;
+		new_set->Swap(set);
+		set.Alias(*new_set);
+	}
+	fSideSets.Append(new_set);
+	return true;
+}
+
+bool ModelManagerT::RegisterSideSet (ifstreamT& in, const StringT& ss_ID, SideSetScopeT scope, 
 	const StringT& element_ID)
 {
   ifstreamT tmp;
@@ -268,16 +228,10 @@ bool ModelManagerT::RegisterSideSet (ifstreamT& in, const StringT& ss_ID, bool l
       iArray2DT s (length, 2);
       in2 >> s;
       s--;
-      return RegisterSideSet (ss_ID, s, local, element_ID);
+      return RegisterSideSet (ss_ID, s, scope, element_ID, true);
     }
   else
     return false;
-}
-
-void ModelManagerT::ReadInlineCoordinates (ifstreamT& in)
-{
-  if (fFormat == IOBaseT::kTahoe)
-    RegisterNodes (in);
 }
 
 void ModelManagerT::ElementBlockList (ifstreamT& in, ArrayT<StringT>& ID, iArrayT& matnums)
@@ -288,8 +242,8 @@ void ModelManagerT::ElementBlockList (ifstreamT& in, ArrayT<StringT>& ID, iArray
   fMessage << " Number of connectivity data blocks. . . . . . . = " << num_blocks << '\n';
   if (num_blocks < 1) throw eBadInputValue;
 
-  ID.Allocate (num_blocks);
-  matnums.Allocate (num_blocks);
+  ID.Dimension (num_blocks);
+  matnums.Dimension (num_blocks);
   for (int i=0; i < num_blocks; i++)
     {
       /* read mat id */
@@ -301,7 +255,7 @@ void ModelManagerT::ElementBlockList (ifstreamT& in, ArrayT<StringT>& ID, iArray
       if (fFormat == IOBaseT::kTahoe)
 	{
 	  name = "ElementGroup";
-	  name.Append (fNumElementSets+1);
+	  name.Append (NumElementGroups() + 1);
 	  RegisterElementGroup (in, name, GeometryT::kNone);
 	}
       else
@@ -319,15 +273,15 @@ void ModelManagerT::NodeSetList (ifstreamT& in, ArrayT<StringT>& ID)
 	{
 		/* read set */
 		StringT name = "InlineNS";
-		name.Append (fNumNodeSets+1);
+		name.Append (NumNodeSets() + 1);
 		RegisterNodeSet (in, name);
 
 		/* account for no sets or all nodes */
 		int index = NodeSetIndex(name);
-		if (index > -1)
+		if (index > kNotFound)
 		{
 			/* return name */
-			ID.Allocate(1);
+			ID.Dimension(1);
 			ID[0] = name;
 		
 			fMessage << " Node Set Name . . . . . . . . . . . . . . . . . = ";
@@ -338,14 +292,14 @@ void ModelManagerT::NodeSetList (ifstreamT& in, ArrayT<StringT>& ID)
 			fMessage << fNodeSetDimensions[index] << '\n';
 		}
 		else /* empty list */
-			ID.Allocate(0);
+			ID.Dimension(0);
     }
   else
     {
       int num_sets;
       in >> num_sets;
 
-      ID.Allocate (num_sets);
+      ID.Dimension (num_sets);
       for (int i=0; i < num_sets; i++)
 	{
 	  StringT& name = ID[i];
@@ -371,20 +325,18 @@ void ModelManagerT::SideSetList (ifstreamT& in, ArrayT<StringT>& ID,
 {
   if (fFormat == IOBaseT::kTahoe)
     {
-      bool local = true;
-
       StringT blockID;
       in >> blockID;
 
       StringT name = "InlineSS";
-      name.Append (fNumSideSets+1);
-      RegisterSideSet (in, name, local, blockID);
+      name.Append (NumSideSets() + 1);
+      RegisterSideSet (in, name, kLocal, blockID);
 
       /* account for no sets */
       int index = SideSetIndex (name);
-      if (index > -1)
+      if (index > kNotFound)
 	{
-      ID.Allocate (1);
+      ID.Dimension (1);
       ID[0] = name;
 
 	  fMessage << " Side Set Name . . . . . . . . . . . . . . . . . = ";
@@ -397,7 +349,7 @@ void ModelManagerT::SideSetList (ifstreamT& in, ArrayT<StringT>& ID,
 	  fMessage << fSideSetDimensions[index] << '\n';
 	}
 	else /* empty list */
-		ID.Allocate(0);
+		ID.Dimension(0);
     }
   else
     {
@@ -407,7 +359,7 @@ void ModelManagerT::SideSetList (ifstreamT& in, ArrayT<StringT>& ID,
       else
 		num_sets = 1;
 
-      ID.Allocate (num_sets);
+      ID.Dimension (num_sets);
       for (int i=0; i < num_sets; i++)
 	{
 	  StringT& name = ID[i];
@@ -423,7 +375,7 @@ void ModelManagerT::SideSetList (ifstreamT& in, ArrayT<StringT>& ID,
 	  fMessage << " Side Set Index. . . . . . . . . . . . . . . . . = ";
 	  fMessage << index << '\n';
 	  fMessage << " Side Set Element Group Name . . . . . . . . . . = ";
-	  fMessage << fInput->SideSetGroupName (name) << '\n';
+	  fMessage << Input().SideSetGroupName (name) << '\n';
 	  fMessage << " Side Set Length . . . . . . . . . . . . . . . . = ";
 	  fMessage << fSideSetDimensions[index] << '\n';
 	}
@@ -439,13 +391,6 @@ int ModelManagerT::ReadCards (ifstreamT& in, ostream& out, ArrayT<iArrayT>& node
   data = 0;
   value = 0;
 
-//external file needs to opened before ReadCards is called
-#if 0
-  /* account for text file name instead of data */
-  ifstreamT tmp;
-  ifstreamT& in2 = OpenExternal (in, tmp, out, true, "ModelManagerT::ReadCards: could not open file");
-#endif
-
   int count = 0;
   int *pd = data.Pointer();
   StringT ID;
@@ -457,7 +402,7 @@ int ModelManagerT::ReadCards (ifstreamT& in, ostream& out, ArrayT<iArrayT>& node
       /* read nodes in set or create a set from node number */
       if (fFormat == IOBaseT::kTahoe)
 	{
-	  nodes[i].Allocate (1);
+	  nodes[i].Dimension (1);
 	  nodes[i] = atoi (ID) - 1; // offset
 	  count++;
 	}
@@ -515,7 +460,7 @@ void ModelManagerT::ReadTractionSideSet (ifstreamT& in, StringT& element_ID, iAr
 {
   if (fFormat == IOBaseT::kTahoe)
     {
-      localsides.Allocate (2,1);
+      localsides.Dimension (2,1);
       in >> localsides[0] >> localsides[1];
       // blockindex is already set
     }
@@ -562,29 +507,30 @@ const dArray2DT& ModelManagerT::CoordinateReference (void) const
 
 const dArray2DT& ModelManagerT::Coordinates (void)
 {
-  if (fCoordinates.Length() == 0)
-    ReadCoordinates ();
-  return fCoordinates;
+	ReadCoordinates ();
+	return fCoordinates;
 }
 
-void ModelManagerT::ReadCoordinates (void)
+void ModelManagerT::ReadCoordinates(void)
 {
-  if (fFormat == IOBaseT::kTahoe)
-    {
-      if (fCoordinates.Length() == 0)
+	/* not yet loaded */
+	if (fCoordinates.MajorDim() != fCoordinateDimensions[0] ||
+	    fCoordinates.MajorDim() != fCoordinateDimensions[1])
 	{
-	  cout << "\n ModelManagerT::Coordinates, coords not registered yet" << endl;
-	  throw eGeneralFail;
+		if (fFormat == IOBaseT::kTahoe)
+		{
+			if (fCoordinates.Length() == 0)
+			{
+				cout << "\n ModelManagerT::Coordinates, coords not registered yet" << endl;
+				throw eGeneralFail;
+			}
+			else
+				return; // do nothing, already loaded
+		}
+	
+		fCoordinates.Dimension(fCoordinateDimensions[0], fCoordinateDimensions[1]); 
+		Input("ReadCoordinates").ReadCoordinates (fCoordinates);
 	}
-      else
-	return; // do nothing, already loaded
-    }
-  fCoordinates.Allocate (fCoordinateDimensions[0], fCoordinateDimensions[1]); 
-	if (!fInput) {
-    	cout << "\n ModelManagerT::ReadCoordinates: input source is not initialized" << endl;
-		throw eDatabaseFail;
-	}
-	fInput->ReadCoordinates (fCoordinates);
 }
 
 /* used to reduce 3D database coordinates (Patran, Abaqus, etc.) */
@@ -593,7 +539,7 @@ bool ModelManagerT::AreElements2D (void) const
   if (fCoordinateDimensions[1] < 3) return true;
 
   /* look over registered element sets */
-  for (int i=0; i < fNumElementSets; i++)
+  for (int i=0; i < NumElementGroups(); i++)
     if (fElementCodes[i] == GeometryT::kPoint ||
 	fElementCodes[i] == GeometryT::kTriangle ||
 	fElementCodes[i] == GeometryT::kQuadrilateral )
@@ -602,21 +548,41 @@ bool ModelManagerT::AreElements2D (void) const
   return false;
 }
 
+/* return an unused element ID */
+StringT ModelManagerT::FreeElementID(const StringT& prefix) const
+{
+	int tail = 0;
+	bool free = false;
+	StringT ID;
+	while (!free)
+	{
+		ID.Clear();
+		ID.Append(prefix, tail);
+		free = true;
+		for (int i = 0; free && i < fElementNames.Length(); i++)
+			if (ID == fElementNames[i])
+				free = false;
+		tail++;
+	}
+	return ID;
+}
+
 int ModelManagerT::ElementGroupIndex (const StringT& ID) const
 {
 	/* scan element names */
-  	for (int i=0; i < fNumElementSets; i++)
+	int num_sets = NumElementGroups();
+  	for (int i=0; i < num_sets; i++)
 		if (ID_Match(ID, fElementNames[i]))
 			return i;
 	
 	/* not found */
-	return -1;
+	return kNotFound;
 }
 
 void ModelManagerT::ElementGroupDimensions (const StringT& ID, int& numelems, int& numelemnodes) const
 {
 	int index = ElementGroupIndex(ID);
-	if (index == -1) {
+	if (index == kNotFound) {
 		cout << "\n ModelManagerT::ElementGroupDimensions: ID not found: " << ID << endl;
 		throw eDatabaseFail;
 	}
@@ -627,7 +593,7 @@ void ModelManagerT::ElementGroupDimensions (const StringT& ID, int& numelems, in
 #if 0
   numelems = -1;
   numelemnodes = -1;
-  if (index == -1)
+  if (index == kNotFound)
     return;
   numelems = fElementLengths[index];
   numelemnodes = fElementNodes[index];
@@ -637,7 +603,7 @@ void ModelManagerT::ElementGroupDimensions (const StringT& ID, int& numelems, in
 GeometryT::CodeT ModelManagerT::ElementGroupGeometry (const StringT& ID) const
 {
 	int index = ElementGroupIndex(ID);
-	if (index == -1) {
+	if (index == kNotFound) {
 		cout << "\n ModelManagerT::ElementGroupGeometry: ID not found: " << ID << endl;
 		throw eDatabaseFail;
 	}
@@ -645,7 +611,7 @@ GeometryT::CodeT ModelManagerT::ElementGroupGeometry (const StringT& ID) const
 
 //why accept a bad index?
 #if 0
-  if (index == -1)
+  if (index == kNotFound)
     return GeometryT::kNone;
   return fElementCodes[index];
 #endif
@@ -655,45 +621,64 @@ const iArray2DT& ModelManagerT::ElementGroup (const StringT& ID)
 {
 	ReadConnectivity (ID);
 	int index = ElementGroupIndex(ID);
-	if (index == -1) {
+	if (index == kNotFound) {
     	cout << "\n ModelManagerT::ElementGroup: ID not found: " << ID<< endl;
     	throw eOutOfRange;
     }
-	return fElementSets [index];
+    
+    iArray2DT* set = fElementSets[index];
+    if (!set) {
+    	cout << "\n ModelManagerT::ElementGroup: set " << ID 
+    	     << " not initialized" << endl;
+    }
+    
+	return *set;
 }
 
 void ModelManagerT::ReadConnectivity (const StringT& ID)
 {
 	int index = ElementGroupIndex(ID);
-	if (index == -1) {
+	if (index == kNotFound) {
     	cout << "\n ModelManagerT::ReadConnectivity: ID not found: " << ID<< endl;
     	throw eOutOfRange;
     }
+    if (!fElementSets[index]) {
+    	cout << "\n ModelManagerT::ReadConnectivity: set " << ID 
+    	     << " is not initialized" << endl;    
+    	throw eGeneralFail;
+    }
 	
-  if (fElementSets[index].Length() == 0)
-    {
-      if (fFormat == IOBaseT::kTahoe)
+	/* data not yet loaded */
+	if (fElementSets[index]->MajorDim() != fElementLengths[index] ||
+	    fElementSets[index]->MinorDim() != fElementNodes[index])
 	{
-	  cout << "\n ModelManagerT::ReadConnectivity, elems not registered yet" << endl;
-	  throw eGeneralFail;
-	}
-      fElementSets[index].Allocate (fElementLengths[index], fElementNodes[index]);
-     if (!fInput) {
-    	cout << "\n ModelManagerT::ReadConnectivity: input source is not initialized" << endl;
-		throw eDatabaseFail;
-      }
-      fInput->ReadConnectivity (ID, fElementSets[index]);
+		if (fFormat == IOBaseT::kTahoe)
+		{
+			cout << "\n ModelManagerT::ReadConnectivity, elems not registered yet" << endl;
+			throw eGeneralFail;
+		}
+		
+		/* allocate space */
+		fElementSets[index]->Dimension(fElementLengths[index], fElementNodes[index]);
+
+		/* do read */
+		try { Input("ReadConnectivity").ReadConnectivity (ID, *fElementSets[index]); }
+		catch (int exception) {
+			cout << "\n ModelManagerT::ReadConnectivity: exception reading ID " << ID 
+			     << ": " << exception << endl;
+			throw eDatabaseFail;
+		}
     }
 }
 
 const iArray2DT* ModelManagerT::ElementGroupPointer (const StringT& ID) const
 {
 	int index = ElementGroupIndex(ID);
-	if (index == -1) {
-    	cout << "\n ModelManagerT::ElementGroupPointer: ID not found: " << ID<< endl;
+	if (index == kNotFound) {
+    	cout << "\n ModelManagerT::ElementGroupPointer: ID not found: " << ID << endl;
     	throw eOutOfRange;
     }
-	return fElementSets.Pointer(index);
+	return fElementSets[index];
 }
 
 void ModelManagerT::AllNodeMap (iArrayT& map)
@@ -712,16 +697,13 @@ void ModelManagerT::AllNodeMap (iArrayT& map)
 	}
 	else
 	{
-		if (!fInput) {
-    		cout << "\n ModelManagerT::AllNodeMap: input source is not initialized" << endl;
-			throw eDatabaseFail;
-		}
-		if (map.Length() != fInput->NumNodes()) {
+		InputBaseT& input = Input("AllNodeMap");
+		if (map.Length() != input.NumNodes()) {
     		cout << "\n ModelManagerT::AllNodeMap: map array is length " << map.Length()
-    	         << ", expecting length " << fInput->NumNodes() << endl;
+    	         << ", expecting length " << input.NumNodes() << endl;
 			throw eSizeMismatch;	
 		}
-		fInput->ReadNodeMap (map);
+		input.ReadNodeMap(map);
 	}
 }
 
@@ -732,7 +714,7 @@ void ModelManagerT::AllElementMap (iArrayT& map)
 	{
 		int num_elem = 0;
 		for (int i = 0; i < fElementSets.Length(); i++)
-			num_elem += fElementSets[i].MajorDim();
+			num_elem += fElementSets[i]->MajorDim();
 		if (map.Length() != num_elem) {
 	    	cout << "\n ModelManagerT::AllElementMap: map array is length " << map.Length()
 	             << ", expecting length " << num_elem << endl;
@@ -744,16 +726,13 @@ void ModelManagerT::AllElementMap (iArrayT& map)
 	}
 	else
 	{
-		if (!fInput) {
-    		cout << "\n ModelManagerT::AllElementMap: input source is not initialized" << endl;
-			throw eDatabaseFail;
-		}
-		if (map.Length() != fInput->NumGlobalElements()) {
+		InputBaseT& input = Input("AllElementMap");
+		if (map.Length() != input.NumGlobalElements()) {
 	    	cout << "\n ModelManagerT::AllElementMap: map array is length " << map.Length()
-	             << ", expecting length " << fInput->NumGlobalElements() << endl;
+	             << ", expecting length " << input.NumGlobalElements() << endl;
 			throw eSizeMismatch;	
 		}
-		fInput->ReadAllElementMap (map);
+		input.ReadAllElementMap (map);
 	}
 }
 
@@ -774,34 +753,33 @@ void ModelManagerT::ElementMap (const StringT& ID, iArrayT& map)
 	}
 	else
 	{
-		if (!fInput) {
-    		cout << "\n ModelManagerT::ElementMap: input source is not initialized" << endl;
-			throw eDatabaseFail;
-		}
-		if (map.Length() != fInput->NumElements(ID)) {
+		InputBaseT& input = Input("ElementMap");
+		if (map.Length() != input.NumElements(ID)) {
     		cout << "\n ModelManagerT::ElementMap: map array is length " << map.Length()
-    	         << ", expecting length " << fInput->NumElements(ID) << " for ID " << ID << endl;
+    	         << ", expecting length " << input.NumElements(ID) << " for ID " 
+    	         << ID << endl;
 			throw eSizeMismatch;	
 		}
-		fInput->ReadGlobalElementMap (ID, map);
+		input.ReadGlobalElementMap (ID, map);
 	}
 }
 
 int ModelManagerT::NodeSetIndex (const StringT& ID) const
 {
-	/* scan node set names */ 
-  	for (int i = 0; i < fNumNodeSets; i++)
+	/* scan node set names */
+	int num_sets = NumNodeSets(); 
+  	for (int i = 0; i < num_sets; i++)
   		if (ID_Match(ID, fNodeSetNames[i]))
   			return i;
   			
   	/* not found */
-  	return -1;
+  	return kNotFound;
 }
 
 int ModelManagerT::NodeSetLength (const StringT& ID) const
 {
 	int index = NodeSetIndex(ID);	
-	if (index == -1) {
+	if (index == kNotFound) {
 		cout << "\n ModelManagerT::NodeSetLength: ID not found: " << ID << endl;
 		throw eDatabaseFail;
 	}
@@ -813,26 +791,33 @@ int ModelManagerT::NodeSetLength (const StringT& ID) const
 const iArrayT& ModelManagerT::NodeSet (const StringT& ID)
 {
 	int index = NodeSetIndex(ID);	
-	if (index == -1) {
+	if (index == kNotFound) {
 		cout << "\n ModelManagerT::NodeSet: ID not found: " << ID << endl;
 		throw eDatabaseFail;
 	}
-
-  if (fNodeSets[index].Length() == 0)
-    {
-      if (fFormat == IOBaseT::kTahoe)
-	{
-	  cout << "\n ModelManagerT::NodeSet, set not registered yet" << endl;
-	  throw eGeneralFail;
-	}
-      fNodeSets[index].Allocate (fNodeSetDimensions[index]);
-      if (!fInput) {
-    	cout << "\n ModelManagerT::NodeSet: input source is not initialized" << endl;
-		throw eDatabaseFail;
-	  }
-      fInput->ReadNodeSet (ID, fNodeSets[index]);
+    if (!fNodeSets[index]) {
+    	cout << "\n ModelManagerT::NodeSet: set " << ID 
+    	     << " is not initialized" << endl;    
+    	throw eGeneralFail;
     }
-  return fNodeSets [index];
+
+	/* not yet loaded */
+	if (fNodeSets[index]->Length() != fNodeSetDimensions[index])
+	{
+		if (fFormat == IOBaseT::kTahoe)
+		{
+			cout << "\n ModelManagerT::NodeSet, set not registered yet" << endl;
+			throw eGeneralFail;
+		}
+		fNodeSets[index]->Dimension (fNodeSetDimensions[index]);
+		try { Input("NodeSet").ReadNodeSet(ID, *fNodeSets[index]); }
+		catch (int exception) {
+			cout << "\n ModelManagerT::NodeSet: exception reading ID " << ID 
+			     << ": " << exception << endl;
+			throw eDatabaseFail;
+		}
+	}
+	return *fNodeSets[index];
 }
 
 void ModelManagerT::ManyNodeSets (const ArrayT<StringT>& ID, iArrayT& nodes)
@@ -845,7 +830,7 @@ void ModelManagerT::ManyNodeSets (const ArrayT<StringT>& ID, iArrayT& nodes)
       temp.AppendUnique(tn);
     }
 
-  nodes.Allocate (temp.Length());
+  nodes.Dimension (temp.Length());
   nodes.CopyPart (0, temp, 0, temp.Length());
   nodes.SortAscending ();
 }
@@ -853,18 +838,19 @@ void ModelManagerT::ManyNodeSets (const ArrayT<StringT>& ID, iArrayT& nodes)
 int ModelManagerT::SideSetIndex (const StringT& ID) const
 {
 	/* scan side set names */
-	for (int i = 0; i < fNumSideSets; i++)
+	int num_sets = NumSideSets();
+	for (int i = 0; i < num_sets; i++)
 		if (ID_Match(ID, fSideSetNames[i]))
 			return i;
 
 	/* not found */
-	return -1;
+	return kNotFound;
 }
 
 int ModelManagerT::SideSetLength (const StringT& ID) const
 {
 	int index = SideSetIndex(ID);
-	if (index == -1) {
+	if (index == kNotFound) {
     	cout << "\n ModelManagerT::SideSetLength: ID not found: " << ID<< endl;
     	throw eOutOfRange;
     }
@@ -874,45 +860,54 @@ int ModelManagerT::SideSetLength (const StringT& ID) const
 const iArray2DT& ModelManagerT::SideSet (const StringT& ID) const
 {
 	int index = SideSetIndex(ID);
-	if (index == -1) {
+	if (index == kNotFound) {
     	cout << "\n ModelManagerT::SideSet: ID not found: " << ID<< endl;
     	throw eOutOfRange;
     }
-
-  if (fSideSets[index].Length() == 0)
-    {
-      if (fFormat == IOBaseT::kTahoe)
-	{
-	  cout << "\n ModelManagerT::SideSet, set not registered yet" << endl;
-	  throw eGeneralFail;
-	}
-      fSideSets[index].Allocate (fSideSetDimensions[index], 2);
-      if (!fInput) {
-    	cout << "\n ModelManagerT::SideSet: input source is not initialized" << endl;
-		throw eDatabaseFail;
-	  }
-      if (fSideSetIsLocal[index])
-	fInput->ReadSideSetLocal (fSideSetNames[index], fSideSets[index]);
-      else
-	fInput->ReadSideSetGlobal (fSideSetNames[index], fSideSets[index]);
+    if (!fSideSets[index]) {
+    	cout << "\n ModelManagerT::SideSet: set " << ID 
+    	     << " is not initialized" << endl;    
+    	throw eGeneralFail;
     }
-  return fSideSets [index];
+
+	if (fSideSets[index]->MajorDim() != fSideSetDimensions[index])
+    {
+		if (fFormat == IOBaseT::kTahoe)
+		{
+			cout << "\n ModelManagerT::SideSet, set not registered yet" << endl;
+			throw eGeneralFail;
+		}
+		InputBaseT& input = Input("SideSet");
+		fSideSets[index]->Dimension (fSideSetDimensions[index], 2);
+		try {
+			if (fSideSetScope[index] == kLocal)
+				input.ReadSideSetLocal (fSideSetNames[index], *fSideSets[index]);
+			else
+				input.ReadSideSetGlobal (fSideSetNames[index], *fSideSets[index]);
+		}
+		catch (int exception) {
+			cout << "\n ModelManagerT::SideSet: exception reading ID " << ID 
+			     << ": " << exception << endl;
+			throw eDatabaseFail;
+		}
+	}
+	return *fSideSets[index];
 }
 
 bool ModelManagerT::IsSideSetLocal (const StringT& ID) const
 {
 	int index = SideSetIndex(ID);
-	if (index == -1) {
+	if (index == kNotFound) {
     	cout << "\n ModelManagerT::IsSideSetLocal: ID not found: " << ID << endl;
     	throw eOutOfRange;
     }
-	return fSideSetIsLocal [index];
+	return fSideSetScope[index] == kLocal;
 }
 
 const StringT& ModelManagerT::SideSetGroupID (const StringT& ss_ID) const
 {
 	int index = SideSetIndex(ss_ID);
-	if (index == -1) {
+	if (index == kNotFound) {
     	cout << "\n ModelManagerT::SideSetGroupID: ID not found: " << ss_ID << endl;
     	throw eOutOfRange;
     }
@@ -934,7 +929,7 @@ const StringT& ModelManagerT::SideSetGroupID (const StringT& ss_ID) const
 void ModelManagerT::SideSetLocalToGlobal (const StringT& element_ID, const iArray2DT& local, iArray2DT& global)
 {
 	int localelemindex = ElementGroupIndex(element_ID);
-	if (localelemindex == -1) {
+	if (localelemindex == kNotFound) {
 		cout << "\n ModelManagerT::SideSetLocalToGlobal: element ID not found " << element_ID << endl;
 		throw eOutOfRange;
 	}
@@ -1022,7 +1017,7 @@ void ModelManagerT::AdjustCoordinatesto2D (void)
     }
   
   /* overwrite registered values */
-  RegisterNodes (temp);
+  RegisterNodes (temp, true);
 }
 
 bool ModelManagerT::RegisterVariElements (const StringT& ID, nVariArray2DT<int>& conn, 
@@ -1037,50 +1032,50 @@ bool ModelManagerT::RegisterVariElements (const StringT& ID, nVariArray2DT<int>&
   fElementCodes.Append (code);
 
   int index = fElementSets.Length();
-  iArray2DT temp;
-  fElementSets.Append (temp);
+  iArray2DT* set = new iArray2DT;
+  fElementSets.Append(set);
 
-  fNumElementSets++;
-  if (fNumElementSets != fElementNames.Length() ||
-      fNumElementSets != fElementLengths.Length() ||
-      fNumElementSets != fElementNodes.Length() ||
-      fNumElementSets != fElementCodes.Length() ||
-      fNumElementSets != fElementSets.Length() )
-    return false;
-
-  conn.SetWard (headroom, fElementSets [index], numelemnodes);
-
+  conn.SetWard (headroom, *fElementSets[index], numelemnodes);
   return true;
 }
 
 /* call this function after the connectivity has been changed by outside classes */
-void ModelManagerT::UpdateConnectivity (const StringT& ID, const iArray2DT& connects)
+void ModelManagerT::UpdateConnectivity (const StringT& ID, iArray2DT& connects, bool keep)
 {
 	int index = ElementGroupIndex(ID);
-	if (index == -1) {
+	if (index == kNotFound) {
 		cout << "\n ModelManagerT::UpdateConnectivity: element ID not found " << ID << endl;
 		throw eOutOfRange;
 	}
-	fElementSets[index] = connects;
-	fElementLengths[index] = fElementSets[index].MajorDim();
-	fElementNodes[index] = fElementSets[index].MinorDim();
+	if (!fElementSets[index]) throw eGeneralFail;
+	
+	if (!keep || !connects.IsAllocated())
+		*fElementSets[index] = connects;
+	else
+	{
+		fElementSets[index]->Swap(connects);
+		connects.Alias(*fElementSets[index]);
+	}
+	fElementLengths[index] = fElementSets[index]->MajorDim();
+	fElementNodes[index] = fElementSets[index]->MinorDim();
 }
 
 void ModelManagerT::AddElement (const StringT& ID, const iArray2DT& connects, 
 	iArrayT& new_elem_tags, int& numelems)
 {
 	int index = ElementGroupIndex(ID);
-	if (index == -1) {
+	if (index == kNotFound) {
 		cout << "\n ModelManagerT::AddElement: element ID not found " << ID << endl;
 		throw eOutOfRange;
 	}
+	if (!fElementSets[index]) throw eGeneralFail;
 
   if (connects.MajorDim() != new_elem_tags.Length() ||
-      connects.MinorDim() != fElementSets[index].MinorDim() ) throw eSizeMismatch;
+      connects.MinorDim() != fElementSets[index]->MinorDim() ) throw eSizeMismatch;
 
   /* set new elem tags to the old last elem number + 1 */
   new_elem_tags.SetValueToPosition ();
-  new_elem_tags += fElementSets[index].MajorDim();
+  new_elem_tags += fElementSets[index]->MajorDim();
 
   /* reset the number of elements */
   int newelems = connects.MajorDim();
@@ -1088,12 +1083,12 @@ void ModelManagerT::AddElement (const StringT& ID, const iArray2DT& connects,
   numelems = fElementLengths[index];
 
   /* reallocate */
-  fElementSets[index].Resize (newelems);
+  fElementSets[index]->Resize (newelems);
 
   /* copy in */
   int *pc = connects.Pointer();
   for (int i=0; i < newelems; i++, pc += connects.MinorDim())
-    fElementSets[index].SetRow (new_elem_tags[i], pc);
+    fElementSets[index]->SetRow (new_elem_tags[i], pc);
 }
 
 void ModelManagerT::CloseModel (void)
@@ -1254,24 +1249,27 @@ bool ModelManagerT::ScanElements (void)
 	/* check if input has been initialized */
 	if (!fInput) return false;
 	
-  fNumElementSets = fInput->NumElementGroups ();
-  fElementLengths.Allocate (fNumElementSets);
-  fElementNodes.Allocate (fNumElementSets);
-  fElementNames.Allocate (fNumElementSets);
-  fElementCodes.Allocate (fNumElementSets);
-  fElementSets.Allocate (fNumElementSets);
-
-  if (fNumElementSets > 0)
-    {
-      fInput->ElementGroupNames (fElementNames);
-      for (int e=0; e < fNumElementSets; e++)
+  int num_elem_sets = fInput->NumElementGroups ();
+  fElementLengths.Dimension (num_elem_sets);
+  fElementNodes.Dimension (num_elem_sets);
+  fElementNames.Dimension (num_elem_sets);
+  fElementCodes.Dimension (num_elem_sets);
+  fElementSets.Dimension (num_elem_sets);
+  fElementSets = NULL;
+	if (num_elem_sets > 0)
 	{
-	  fElementLengths[e] = fInput->NumElements (fElementNames[e]);
-	  fElementNodes[e] = fInput->NumElementNodes (fElementNames[e]);
-	  fInput->ReadGeometryCode (fElementNames[e], fElementCodes[e]);
+		fInput->ElementGroupNames (fElementNames);
+		for (int e=0; e < num_elem_sets; e++)
+		{
+			fElementLengths[e] = fInput->NumElements (fElementNames[e]);
+			fElementNodes[e] = fInput->NumElementNodes (fElementNames[e]);
+			fInput->ReadGeometryCode (fElementNames[e], fElementCodes[e]);
+			
+			/* create empty set */
+			fElementSets[e] = new iArray2DT;
+		}
 	}
-    }
-  return true;
+	return true;
 }
 
 bool ModelManagerT::ScanNodeSets (void)
@@ -1279,17 +1277,23 @@ bool ModelManagerT::ScanNodeSets (void)
 	/* check if input has been initialized */
 	if (!fInput) return false;
 
-  fNumNodeSets = fInput->NumNodeSets();
-  fNodeSetNames.Allocate (fNumNodeSets);
-  fNodeSetDimensions.Allocate (fNumNodeSets);
-  fNodeSets.Allocate (fNumNodeSets);
-  if (fNumNodeSets > 0)
+  int num_node_sets = fInput->NumNodeSets();
+  fNodeSetNames.Dimension (num_node_sets);
+  fNodeSetDimensions.Dimension (num_node_sets);
+  fNodeSets.Dimension (num_node_sets);
+  fNodeSets = NULL;
+	if (num_node_sets > 0)
     {
-      fInput->NodeSetNames (fNodeSetNames);
-      for (int i=0; i < fNumNodeSets; i++)
-	fNodeSetDimensions[i] = fInput->NumNodesInSet (fNodeSetNames[i]);
+		fInput->NodeSetNames(fNodeSetNames);
+		for (int i=0; i < num_node_sets; i++)
+		{
+			fNodeSetDimensions[i] = fInput->NumNodesInSet (fNodeSetNames[i]);
+			
+			/* create empty set */
+			fNodeSets[i] = new iArrayT;
+		}
     }
-  return true;
+ 	 return true;
 }
 
 bool ModelManagerT::ScanSideSets (void)
@@ -1297,30 +1301,35 @@ bool ModelManagerT::ScanSideSets (void)
 	/* check if input has been initialized */
 	if (!fInput) return false;
 
-  fNumSideSets = fInput->NumSideSets();
-  fSideSetNames.Allocate (fNumSideSets);
-  fSideSetDimensions.Allocate (fNumSideSets);
-  fSideSets.Allocate (fNumSideSets);
-  fSideSetIsLocal.Allocate (fNumSideSets);
-  fSideSetGroupIndex.Allocate (fNumSideSets);
-
-  if (fNumSideSets > 0)
-    {
-      fInput->SideSetNames (fSideSetNames);
-      bool t = fInput->AreSideSetsLocal ();
-      fSideSetIsLocal = t;
-      fSideSetGroupIndex = -1;
+  int num_side_sets = fInput->NumSideSets();
+  fSideSetNames.Dimension (num_side_sets);
+  fSideSetDimensions.Dimension (num_side_sets);
+  fSideSetScope.Dimension (num_side_sets);
+  fSideSetGroupIndex.Dimension (num_side_sets);
+  fSideSets.Dimension (num_side_sets);
+  fSideSets = NULL;	
+	if (num_side_sets > 0)
+	{
+		fInput->SideSetNames (fSideSetNames);
+		if (fInput->AreSideSetsLocal())
+			fSideSetScope = kLocal;
+		else
+			fSideSetScope = kGlobal;
+		fSideSetGroupIndex = kNotFound;
 
   		/* gather side set info */
-		for (int i=0; i < fNumSideSets; i++)
+		for (int i=0; i < num_side_sets; i++)
 		{
 			fSideSetDimensions[i] = fInput->NumSidesInSet (fSideSetNames[i]);
-			if (fSideSetIsLocal[i] && 
+			if (fSideSetScope[i] == kLocal && 
 			    fSideSetDimensions[i] > 0) /* don't try this with an empty set */
 			{
 				const StringT& name = fInput->SideSetGroupName(fSideSetNames[i]);
 				fSideSetGroupIndex[i] = ElementGroupIndex(name);
 			}
+			
+			/* create empty set */
+			fSideSets[i] = new iArray2DT(0,2);
 		}
     }
   return true;
@@ -1347,9 +1356,34 @@ bool ModelManagerT::CheckID (const ArrayT<StringT>& list, const StringT& ID, con
 /* clear database parameters */
 void ModelManagerT::Clear(void)
 {
-	/* close the input */
+	/* protected attributes */
+	fFormat = IOBaseT::kNone;
 	delete fInput;
 	fInput = NULL;
+	fInputName.Clear();
+	fCoordinateDimensions = -1;
 
-	//TO DO: clear all memory and set arrays back to empty
+	fElementLengths.Dimension(0);
+	fElementNodes.Dimension(0);
+	fNodeSetDimensions.Dimension(0);
+	fSideSetDimensions.Dimension(0);
+	fSideSetScope.Dimension(0);
+	fSideSetGroupIndex.Dimension(0);
+
+	fElementNames.Dimension(0);
+	fNodeSetNames.Dimension(0);
+	fSideSetNames.Dimension(0);
+	fElementCodes.Dimension(0);
+	
+	for (int i = 0; i < fElementSets.Length(); i++)
+		delete fElementSets[i];
+	fElementSets.Dimension(0);
+
+	for (int i = 0; i < fNodeSets.Length(); i++)
+		delete fNodeSets[i];
+	fNodeSets.Dimension(0);
+
+	for (int i = 0; i < fSideSets.Length(); i++)
+		delete fSideSets[i];
+	fSideSets.Dimension(0);
 }
