@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.5 2005-02-03 15:46:00 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.6 2005-02-10 23:53:22 raregue Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
@@ -151,8 +151,8 @@ private:
 	
 	/** write output for debugging */
 	/*@{*/
-	/** flag to indicate first pass */
-	static bool fFirstPass;
+	/** flag to indicate first pass, and debugging */
+	static bool fFirstPass, fDeBug;
 	/** output file stream */
 	ofstreamT ss_enh_out;
 	/** line output formating variables */
@@ -203,13 +203,16 @@ protected:
 	dArray2DT fElementLocSlipDir1;
 	dArray2DT fElementLocSlipDir2;
 	dArray2DT fElementLocSlipDir3;
+	dArray2DT fElementLocPsiSet;
 	dArray2DT fElementLocMuDir;
 	dArray2DT fElementLocInternalVars;
 	dArray2DT fElementLocGradEnh; // varies for each IP
 	dArray2DT fElementLocGradEnhIP; // for each IP for one element
 	dArray2DT fElementLocEdgeIntersect;
 	dArrayT fElementVolume;
-
+	
+	double psi1, psi2, psi3;
+	
 	/** from the last time step */
 	dArray2DT fElementLocScalars_last;
 	dArray2DT fElementLocSlipDir_last;
@@ -227,6 +230,14 @@ protected:
 	dArrayT slipdir1, slipdir2, slipdir3, slipdir_chosen;
 	dArrayT tangent1, tangent2, tangent3, tangent_chosen;
 	int loc_flag, numedges;
+	
+	double fYieldTrial, residual_slip, K_zetazeta;
+	double DgammadeltaDzeta, DpsiDzeta, DPDzeta;
+	dArrayT q_isv, h_q, DqDzeta, DhqDzeta, DslipdirDzeta;
+	dMatrixT F_mun, G_enh, fDe;
+	dSymMatrixT F_nn;
+	
+	ElementMatrixT fK_dd, fK_dzeta, fK_zetad;
 
 };
 
