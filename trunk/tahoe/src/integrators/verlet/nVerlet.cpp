@@ -38,31 +38,29 @@ void nVerlet::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 			   compute velocities and accelerations given a
 			   prescribed displacement...*/
 		}
-		
 		case KBC_CardT::kVel: /* prescribed velocity */
 		{
 			double v_next = KBC.Value();
-			a = (v_next - v)/vcorr_a;
+			
+			if (fabs(vcorr_a) > kSmall) /* for dt -> 0.0 */
+				a = (v_next - v)/vcorr_a;
+			else
+				a = 0.0;
 			v = v_next;
 			break;
 		}
-		
 		case KBC_CardT::kAcc: /* prescribed acceleration */
 		{
-		        a  = KBC.Value();
+			a  = KBC.Value();
 			v += vcorr_a*a;
-                 	break;
+			break;
 		}
-		
 		case KBC_CardT::kNull: /* do nothing */
 		{
 			break;
 		}
-
 		default:
-		
-			cout << "\n nVerlet::ConsistentKBC:unknown BC code\n" << endl;
-			throw ExceptionT::kBadInputValue;
+			ExceptionT::GeneralFail("nVerlet::ConsistentKBC", "unknown BC code %d", KBC.Code());
 	}
 }		
 
