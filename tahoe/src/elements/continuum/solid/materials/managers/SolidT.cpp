@@ -1,5 +1,5 @@
-/* $Id: SolidT.cpp,v 1.16 2002-06-27 00:34:31 paklein Exp $ */
-/* created: paklein (03/10/2001) */
+/* $Id: SolidT.cpp,v 1.14 2002-06-20 01:18:58 thao Exp $ */
+/* created: paklein (03/10/2001)                                          */
 
 #include "SolidT.h"
 

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.29 2002-06-26 23:29:44 hspark Exp $ */
+/* $Id: SolidElementT.cpp,v 1.28 2002-06-12 16:17:46 paklein Exp $ */
 
 #include "SolidElementT.h"
 
@@ -17,7 +17,6 @@
 #include "iAutoArrayT.h"
 
 /* materials lists */
-#include "MaterialList1DT.h"
 #include "MaterialList2DT.h"
 #include "MaterialList3DT.h"
 
@@ -838,10 +837,8 @@ void SolidElementT::FormKd(double constK)
 /* return a pointer to a new material list */
 MaterialListT* SolidElementT::NewMaterialList(int size) const
 {
-	/* allocate - 1D added by HSP 6-26-02 */
-	if (NumSD() == 1)
-                return new MaterialList1DT(size, *this);
-        else if (NumSD() == 2)
+	/* allocate */
+	if (NumSD() == 2)
 		return new MaterialList2DT(size, *this);
 	else if (NumSD() == 3)
 		return new MaterialList3DT(size, *this);
