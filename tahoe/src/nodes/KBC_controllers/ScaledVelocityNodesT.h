@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.h,v 1.2 2003-04-30 16:06:12 cjkimme Exp $ */
+/* $Id: ScaledVelocityNodesT.h,v 1.3 2003-05-06 19:59:44 cjkimme Exp $ */
 #ifndef _SCALED_VELOCITY_NODES_T_H_
 #define _SCALED_VELOCITY_NODES_T_H_
 
@@ -58,9 +58,12 @@ protected:
 	
 	/** flag to let this controller only influence ICs */
 	bool qFirstTime;
+	
+	/** true if allNodes needs to be initialized or rescaled */
+	bool qAllNodes;
 
-	/** rescale every iIncs timesteps */
-	int fIncs, fSteps;
+	/** rescale every fIncs timesteps */
+	int fIncs, fIncCt;
 
 	/** temperature evolution controlled by a schedule */
 	const ScheduleT* fTempSchedule;

@@ -1,8 +1,11 @@
-/* $Id: ScaledVelocityNodesT.cpp,v 1.3 2003-04-30 16:06:12 cjkimme Exp $ */
+/* $Id: ScaledVelocityNodesT.cpp,v 1.4 2003-05-06 19:59:44 cjkimme Exp $ */
 #include "ScaledVelocityNodesT.h"
 #include "NodeManagerT.h"
+#include "FEManagerT.h"
+#include "ModelManagerT.h"
 #include "ifstreamT.h"
 #include "RandomNumberT.h"
+#include "iArrayT.h"
 
 const double fkB = 0.00008617385;
 
@@ -12,11 +15,13 @@ using namespace Tahoe;
 ScaledVelocityNodesT::ScaledVelocityNodesT(NodeManagerT& node_manager, BasicFieldT& field):
 	KBC_ControllerT(node_manager),
 	fField(field),
-	fSteps(0),
 	fNodes(),
 	fDummySchedule(1.0),
 	fRandom(NULL),
-	qFirstTime(false)
+	qFirstTime(false),
+	qAllNodes(false),
+	fIncs(0),
+	fIncCt(0)
 {
 	// nein
 }
@@ -41,7 +46,53 @@ void ScaledVelocityNodesT::Initialize(ifstreamT& in)
 	//int nodesOrRegion; 
 
 	/* Get node sets */
-	ReadNodes(in, fNodeIds, fNodes);
+	char nextun = in.next_char();
+	int allOrSome;
+	if (nextun == '-')
+		in >> allOrSome;
+	else
+		allOrSome = atoi(&nextun);
+	if (!allOrSome)
+	{   // use all the nodes
+		in >> allOrSome; // fast-forward the stream
+		qAllNodes = true;
+		fNodes.Dimension(fNodeManager.NumNodes());
+		fNodes.SetValueToPosition();
+	}
+	else	
+		if (allOrSome > 0)
+		{   // Read in Node Sets and use them
+			ReadNodes(in, fNodeIds, fNodes);
+		}
+		else
+		{   // Read in Node Sets and use all nodes but theirs
+			ArrayT<StringT> notTheseSets;
+			int numNotSets = -allOrSome;
+			numNotSets = abs(numNotSets);
+			notTheseSets.Dimension(numNotSets);
+			ModelManagerT* model = fNodeManager.FEManager().ModelManager();
+			for (int i=0; i < numNotSets; i++)
+			{
+	  			StringT& name = notTheseSets[i];
+	  			in >> name;
+	  			int index = model->NodeSetIndex(name);
+	  			if (index < 0) {
+	  				cout << "\n ScaledVelocityT::Initialize: error retrieving node set " << name << endl;
+	  				throw ExceptionT::kDatabaseFail;
+	  			}
+			}
+			// get all the nodes we don't want
+			iArrayT fNotNodes;
+			model->ManyNodeSets(notTheseSets, fNotNodes);
+			// get all the nodes
+			fNodes.Dimension(model->NumNodes());
+			fNodes.SetValueToPosition();
+			// Take the complement
+			for (int i = 0; i < fNotNodes.Length(); i++)
+				fNodes[fNotNodes[i]] = -fNodes[fNotNodes[i]] - 1; // if the node is to be deleted, make it < 0
+			fNodes.SortDescending();
+			fNodes.Resize(fNodes.Length() - fNotNodes.Length());
+		}
 	
 	in >> fMass; 
 	if (fMass < kSmall) ExceptionT::BadInputValue("ScaledVelocityNodesT::Initialize","mass must be positive");
@@ -79,15 +130,26 @@ void ScaledVelocityNodesT::InitStep(void)
 {
 	/* really bad, this */
 	if (qIConly)
+	{
 		if (!qFirstTime)
 			qFirstTime = true;
 		else
 			qFirstTime = false;
-			
+	}
+	else
+	{
+		fIncCt++;
+		if (fIncCt == fIncs) // time to rescale velocities
+		{
+			fIncCt = 0;
+			SetBCCards();
+		}
+	}
+					
 	/* inherited */
 	KBC_ControllerT::InitStep();
 	
-	if (!qFirstTime)
+	if (qIConly && !qFirstTime)
 		fKBC_Cards.Dimension(0);
 
 }
@@ -97,53 +159,78 @@ void ScaledVelocityNodesT::InitialCondition(void)
 {
 	if (!qIConly)
 	{
-		fT_0 = fTempSchedule->Value();
+		fT_0 = fTempScale*fTempSchedule->Value();
 	}
 	
+	/* get processor number */
+	int np = fNodeManager.Rank();
+	const ArrayT<int>* pMap = fNodeManager.ProcessorMap();
+	
 	/* number of scaled nodes */
-	int n_scaled = fNodes.Length();
+	int n_scaled = 0;
 	int ndof = fField.NumDOF();
-	fKBC_Cards.Dimension(n_scaled*ndof);
 	
 	/* workspace to generate velocities */
-	dArray2DT velocities(n_scaled, ndof);
+	dArray2DT velocities(fNodeManager.NumNodes(), ndof); 
 	dArrayT vCOM(ndof);
 	
 	/* generate gaussian dist of random vels */
 	fRandom->RandomArray(velocities);
-//	velocities *= sqrt(fT_0*fkB/fMass);
 	
-	/* get centre of mass v */
-	for (int j = 0; j < ndof; j++)
-		vCOM[j] = velocities.ColumnSum(j)/n_scaled;
-
-	/* subtract it off and calculate resultant total kinetic energy */
 	double tKE = 0.;
-	for (int i = 0; i < n_scaled; i++)
-		for (int j = 0; j < ndof; j++)
-		{	
-			velocities(i,j) -= vCOM[j];
-			tKE += velocities(i,j)*velocities(i,j);
+	vCOM = 0.;
+	//double totalMass = fMass*n_scaled;
+	for (int i = 0; i < fNodes.Length(); i++)
+	{
+		int node_i = fNodes[i];
+		if (!pMap || (*pMap)[node_i] == np)
+		{
+			double* v_i = velocities(node_i);
+		
+	    	for (int j = 0; j < ndof; j++)
+			{	
+				tKE += (*v_i)*(*v_i);
+				vCOM[j] += *v_i++;
+			} 
+			
+			n_scaled++;
 		}
+	}
+	vCOM /= n_scaled;
+	
+	for (int i = 0; i < fNodes.Length(); i++)
+		for (int j = 0; j < ndof; j++)
+			if (!pMap || (*pMap)[fNodes[i]] == np)
+				velocities(fNodes[i],j) -= vCOM[j];
+	
+	/* adjust KE to COM frame  and convert it to a temperature */
+	for (int j = 0; j < ndof; j++)
+		tKE -= n_scaled*vCOM[j]*vCOM[j];
 	tKE *= fMass/n_scaled/ndof/fkB;
-
+	
 	/* set the temperature */
 	velocities *= sqrt(fT_0/tKE);
 
 	/* generate BC cards */
+	fKBC_Cards.Dimension(n_scaled*ndof);
 	KBC_CardT* pcard = fKBC_Cards.Pointer();
-	for (int i = 0; i < n_scaled; i++)
+	for (int i = 0; i < fNodes.Length(); i++)
 	{
-		double* v_i = velocities(i);	
+		int node_i = fNodes[i];
+		
+		if (!pMap || (*pMap)[node_i] == np)
+		{
+			double* v_i = velocities(node_i);	
 			
-	    for (int j = 0; j < ndof; j++)
-		{	
-			/* set values */
-			pcard->SetValues(fNodes[i], j, KBC_CardT::kVel, 0, *v_i++);
+	    	for (int j = 0; j < ndof; j++)
+			{	
+				/* set values */
+				pcard->SetValues(node_i, j, KBC_CardT::kVel, 0, *v_i++);
 
-			/* dummy schedule */
-			pcard->SetSchedule(&fDummySchedule);
-			pcard++;
+				/* dummy schedule */
+				pcard->SetSchedule(&fDummySchedule);
+				pcard++;
+			}
 		} 
 	}
 
@@ -156,10 +243,13 @@ void ScaledVelocityNodesT::InitialCondition(void)
 /* initialize the current step */
 void ScaledVelocityNodesT::SetBCCards(void)
 {
+	/* get processor number */
+	int np = fNodeManager.Rank();
+	const ArrayT<int>* pMap = fNodeManager.ProcessorMap();
+
 	/* number of scaled nodes */
-	int n_scaled = fNodes.Length();
+	int n_scaled = 0; 
 	int ndof = fField.NumDOF();
-	fKBC_Cards.Dimension(n_scaled*ndof);
 
 	/* grab the velocities */
 	const dArray2DT* velocities = NULL;
@@ -167,30 +257,38 @@ void ScaledVelocityNodesT::SetBCCards(void)
 		velocities = &fField[1];		
 	if (!velocities)
 		ExceptionT::GeneralFail("ScaledVelocityNodesT::SetBCCards","Cannot get velocity field ");
-
+		
 	/* 	assume uniform mass for now */
 
 	/* calculate CM velocity and temperature */
 	dArrayT vCOM(ndof);
 	double tKE = 0.; // total kinetic energy
 	double vscale; // scale velocity by this after subtracting off vCOM
-	if (n_scaled > 0)
+	if (fNodes.Length() > 0)
 	{
 		vCOM = 0.;
 		//double totalMass = fMass*n_scaled;
 		for (int i = 0; i < n_scaled; i++)
 		{
-			double* v_j = (*velocities)(fNodes[i]);
+			int node_i = fNodes[i];
+			
+			if (!pMap || (*pMap)[node_i] == np)
+			{
+				double* v_i = (*velocities)(node_i);
 		
-	    	for (int j = 0; j < ndof; j++)
-			{	
-				tKE += (*v_j)*(*v_j);
-				vCOM[j] += *v_j++;
-			} 
+	    		for (int j = 0; j < ndof; j++)
+				{	
+					tKE += (*v_i)*(*v_i);
+					vCOM[j] += *v_i++;
+				} 
+				
+				n_scaled++;
+			}
 		}
+		vCOM /= n_scaled;
 		
 		/* adjust KE to COM frame */
-		for (int j = 0; j < n_scaled; j++)
+		for (int j = 0; j < ndof; j++)
 			tKE -= n_scaled*vCOM[j]*vCOM[j];
 		tKE *= fMass;
 		
@@ -198,19 +296,24 @@ void ScaledVelocityNodesT::SetBCCards(void)
 		vscale = sqrt(ndof*n_scaled*fkB*fTempScale*(fTempSchedule->Value())/tKE);
 		
 		/* generate BC cards */
+		fKBC_Cards.Dimension(n_scaled*ndof);
 		KBC_CardT* pcard = fKBC_Cards.Pointer();
 		for (int i = 0; i < n_scaled; i++)
 		{
-			double* v_i = (*velocities)(fNodes[i]);	
-			
-	    	for (int j = 0; j < ndof; j++)
-			{	
-				/* set values */
-				pcard->SetValues(fNodes[i], j, KBC_CardT::kVel, 0, (*v_i++-vCOM[j])*vscale);
+			int node_i = fNodes[i];
+			if (!pMap || (*pMap)[node_i] == np)
+			{
+				double* v_i = (*velocities)(node_i);	
+				
+		    	for (int j = 0; j < ndof; j++)
+				{	
+					/* set values */
+					pcard->SetValues(node_i, j, KBC_CardT::kVel, 0, (*v_i++-vCOM[j])*vscale);
 
-				/* dummy schedule */
-				pcard->SetSchedule(&fDummySchedule);
-				pcard++;
+					/* dummy schedule */
+					pcard->SetSchedule(&fDummySchedule);
+					pcard++;
+				}
 			} 
 		}
 	}
