@@ -1,4 +1,4 @@
-// $Id: APS_Bal_EqT.cpp,v 1.15 2003-10-09 16:40:57 raregue Exp $
+// $Id: APS_Bal_EqT.cpp,v 1.16 2003-10-09 21:46:52 raregue Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
@@ -35,6 +35,7 @@ void APS_Bal_EqT::Construct ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_M
 	n_sd_x_n_sd = n_sd * n_sd;
 	n_sd_x_n_en = n_sd * n_en;
 	
+	//tmp
 	n_en_surf=2;
 
 	delta_t = fdelta_t;
@@ -89,17 +90,18 @@ void APS_Bal_EqT::Form_LHS_Kd_Surf	( dMatrixT &Kd, FEA_SurfShapeFunctionT &SurfS
 
  		V[knueps].Dot( B_d_surf[kB_surf], VB_d[knuB] ); 
  		
- 		dMatrixT Kd_tmp;
-		Kd_tmp	= SurfIntegral.of( VB_d[kN], C[kMu], VB_d[knuB] );
-		Kd_tmp	*= -1.0;
+ 		dMatrixT Kd_surfdof(n_en_surf), Kd_eldof(n_en);
+		Kd_surfdof	= SurfIntegral.of( VB_d[kN], C[kMu], VB_d[knuB] );
+		Kd_surfdof	*= -1.0;
 		
 		//put Kd_tmp in proper eqnos of Kd
 		if (face_equations.Length() == 2)
 		{
 		for (int i=0; i<face_equations.Length(); i++)
 			for (int j=0; j<face_equations.Length(); j++)
-				Kd[face_equations[i]][face_equations[j]] = Kd_tmp[i][j];
+				Kd_eldof[face_equations[i]][face_equations[j]] = Kd_surfdof[i][j];				
 		}
+		Kd += Kd_eldof;
 }
 
 //---------------------------------------------------------------------
@@ -117,17 +119,18 @@ void APS_Bal_EqT::Form_RHS_F_int_Surf ( dArrayT &F_int, APS_VariableT &npt, doub
 		V[knueps].Dot( V[kV_Temp2], S[knuepsgradu] );
 		V[knueps].Dot( V[keps], S[knuepseps] );
 
-		dArrayT F_int_tmp;
-		F_int_tmp = SurfIntegral.of( VB_d[kN], C[kMu], S[knuepsgradu] ); 
-		F_int_tmp *= -1.0;
-		F_int_tmp += SurfIntegral.of( VB_d[kN], C[kMu], S[knuepseps] );
+		dArrayT F_int_surfdof(n_en_surf), F_int_eldof(n_en);
+		F_int_surfdof = SurfIntegral.of( VB_d[kN], C[kMu], S[knuepsgradu] ); 
+		F_int_surfdof *= -1.0;
+		F_int_surfdof += SurfIntegral.of( VB_d[kN], C[kMu], S[knuepseps] );
 		
 		//put components of F_int_tmp in proper eqnos of F_int
 		if (face_equations.Length() == 2)
 		{
 		for (int i=0; i<face_equations.Length(); i++)
-			F_int[face_equations[i]] = F_int_tmp[i];
+			F_int_eldof[face_equations[i]] = F_int_surfdof[i];
 		}
+		F_int += F_int_eldof;
 }
 
 
