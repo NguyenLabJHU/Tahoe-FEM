@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.14 2004-11-17 23:40:33 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.15 2004-11-18 16:41:01 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -820,17 +820,17 @@ void CommManagerT::InitConfigure(iArray2DT& i_values, nVariArray2DT<int>& i_valu
 	}
 
 	/* size of double data per node */
-	int pack_size = fNodeManager->PackSize();
+	int pack_size = NodeManager().PackSize();
 	int d_size = nsd + nsd + pack_size; /* {X, x, {kinematic data}} */
 
 	/* work space for collecting processor coordinates */
 	new_init_coords_man.SetWard(10, new_init_coords, nsd);
 	new_init_coords_man.SetMajorDimension(npn, false);
-	new_init_coords.BlockRowCopyAt(fNodeManager->InitialCoordinates(), 0, npn);
+	new_init_coords.BlockRowCopyAt(NodeManager().InitialCoordinates(), 0, npn);
 
 	new_curr_coords_man.SetWard(10, new_curr_coords, nsd);
 	new_curr_coords_man.SetMajorDimension(npn, false);
-	new_curr_coords.BlockRowCopyAt(fNodeManager->CurrentCoordinates(), 0, npn);
+	new_curr_coords.BlockRowCopyAt(NodeManager().CurrentCoordinates(), 0, npn);
 
 	/* initialize exchange buffers - 10% of atoms */
 	fd_send_buffer_man.Dimension(npn/10, d_size);
