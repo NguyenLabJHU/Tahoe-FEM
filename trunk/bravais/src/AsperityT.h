@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: AsperityT.h,v 1.3 2003-06-12 20:30:42 saubry Exp $ */
+/* $Id: AsperityT.h,v 1.4 2003-06-13 01:34:37 saubry Exp $ */
 
 #ifndef _ASPERITY_T_H_
 #define _ASPERITY_T_H_
@@ -23,8 +23,9 @@ class AsperityT : public VolumeT
 
  protected:
 
-  double radius;
-  dArrayT center;
+  double fRadius;
+  dArrayT fCenterPlus;
+  dArrayT fCenterMinus;
 
  public:
   

@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: AsperityT.cpp,v 1.3 2003-06-12 20:30:41 saubry Exp $ */
+/* $Id: AsperityT.cpp,v 1.4 2003-06-13 01:34:37 saubry Exp $ */
 #include "AsperityT.h"
 #include "VolumeT.h"
 
@@ -382,17 +382,23 @@ double AsperityT::ComputeCircleParameters()
 {
   double rx,rz,h0;
 
-  center.Dimension(nSD);  
+  fCenterPlus.Dimension(nSD);  
+  fCenterMinus.Dimension(nSD);  
 
   h0 = length(nSD-1,0) + (length(nSD-1,1) - length(nSD-1,0))*0.5;
   rx = (length(0,1)-length(0,0))*0.5;
   rz = length(nSD-1,1)-h0;
-  radius = (rx*rx+rz*rz)*0.5/rz;
+  fRadius = (rx*rx+rz*rz)*0.5/rz;
 
-  center[0] = length(0,0) + (length(0,1) - length(0,0))*0.5;
+  fCenterPlus[0] = length(0,0) + (length(0,1) - length(0,0))*0.5;
   if(nSD == 3)
-    center[1] = length(1,0) + (length(1,1) - length(1,0))*0.5;
-  center[nSD-1] = h0 + radius;
+    fCenterPlus[1] = length(1,0) + (length(1,1) - length(1,0))*0.5;
+  fCenterPlus[nSD-1] = h0 + fRadius;
+
+  fCenterMinus[0] = length(0,0) + (length(0,1) - length(0,0))*0.5;
+  if(nSD == 3)
+    fCenterMinus[1] = length(1,0) + (length(1,1) - length(1,0))*0.5;
+  fCenterMinus[nSD-1] = h0 - fRadius;
 
   return h0;
 }
@@ -444,12 +450,12 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 		    y += (c[k] + vB(k,m))*vA(k,1);
 		  }
 
-		double r0 = x - center[0]; 
-		double r1 = y - center[1]; 
+		double r0 = x - fCenterPlus[0]; 
+		double r1 = y - fCenterPlus[1]; 
 		double R = r0*r0 + r1*r1;
 
 		if(x >= l00 && x <= l01 && y >= l10 && y <= l11)
-		   if(R <= radius*radius || z <= h0 )
+		   if(R <= fRadius*fRadius || z <= h0 )
 		  {
 		    (*temp_atom)(natom)[0] = x;
 		    (*temp_atom)(natom)[1] = y;
@@ -488,13 +494,15 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 		      z += (c[k] + vB(k,m))*vA(k,2);
 		    }
 
-		  double r0 = x - center[0]; 
-		  double r1 = y - center[1]; 
-		  double r2 = z - center[2]; 
+		  double r0 = x - fCenterPlus[0]; 
+		  double r1 = y - fCenterPlus[1]; 
+		  double r2 = z - fCenterPlus[2]; 
 		  double R = r0*r0 + r1*r1 + r2*r2;
 
+		  // Asperity against a block
+		  /*
 		  if(x >= l00 && x <= l01 && y >= l10 && y <= l11 && z >= l20 && z <= l21)
-		    if(R <= radius*radius || z <= h0 + eps)
+		    if(R <= fRadius*fRadius || z <= h0 + eps)
 		      {
 			(*temp_atom)(natom)[0] = x;
 			(*temp_atom)(natom)[1] = y;
@@ -503,21 +511,48 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 			if (z<= h0 + eps) (*temp_parts)[natom] = -1;
 			natom++;                     
 		      }
+		  */
+
+
+		  double rp0 = x - fCenterPlus[0]; 
+		  double rp1 = y - fCenterPlus[1]; 
+		  double rp2 = z - fCenterPlus[2]; 
+		  double Rplus = rp0*rp0 + rp1*rp1 + rp2*rp2;
+
+		  double rm0 = x - fCenterMinus[0]; 
+		  double rm1 = y - fCenterMinus[1]; 
+		  double rm2 = z - fCenterMinus[2]; 
+		  double Rmin = rm0*rm0 + rm1*rm1 + rm2*rm2;
+
+		  // Two Asperities
+
+		  if(x >= l00 && x <= l01 && y >= l10 && y <= l11 && z >= l20 && z <= l21)
+		    if( (Rplus <= fRadius*fRadius && z >= h0) || 
+		        (Rmin  <= fRadius*fRadius && z <= h0) )
+		      {
+			(*temp_atom)(natom)[0] = x;
+			(*temp_atom)(natom)[1] = y;
+			(*temp_atom)(natom)[2] = z;
+			(*temp_parts)[natom] = 1;
+			if (Rmin <= fRadius*fRadius && z <= h0 + eps) (*temp_parts)[natom] = -1;
+			natom++;                     
+		      }
 		}
 	    }
-    }
 
 
-  // Shift asperity
-  for (int k=0;k<natom;k++) 
-    {
-      if((*temp_parts)[k] == 1)
+      // Shift asperity
+      for (int k=0;k<natom;k++) 
 	{
-	  (*temp_atom)(k)[0] += 3.52/4.;
-	  (*temp_atom)(k)[1] += 3.52/4.;
+	  if((*temp_parts)[k] == 1)
+	    {
+	      (*temp_atom)(k)[0] += vLP[0]*0.25;
+	      (*temp_atom)(k)[1] += vLP[1]*0.25;
+	    }
 	}
-    }
+      
 
+    }
   return natom;
 }
 
@@ -536,8 +571,8 @@ int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 
   // Call circle parameters
   double h0 = ComputeCircleParameters();
-  dArrayT rotated_center(nlsd);
-  rotated_center = pcl->VectorRotation(center);
+  dArrayT rotated_fCenterPlus(nlsd);
+  rotated_fCenterPlus = pcl->VectorRotation(fCenterPlus);
 
   if (nSD==2) 
     {
@@ -559,11 +594,11 @@ int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 		    y += (c[k] + vB(k,m))*vA(k,1);
 		  }
 
-		double r0 = x - rotated_center[0]; 
-		double r1 = y - rotated_center[1]; 
+		double r0 = x - rotated_fCenterPlus[0]; 
+		double r1 = y - rotated_fCenterPlus[1]; 
 		double R = r0*r0 + r1*r1;
 
-		if(R <= radius*radius || z <= h0 )
+		if(R <= fRadius*fRadius || z <= h0 )
 		  {
 		    for (int k=0;k<nlsd;k++) 
 		      {
@@ -601,12 +636,12 @@ int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 		      z += (c[k] + vB(k,m))*vA(k,2);
 		    }
 		  
-		  double r0 = x - rotated_center[0]; 
-		  double r1 = y - rotated_center[1]; 
-		  double r2 = z - rotated_center[2]; 
+		  double r0 = x - rotated_fCenterPlus[0]; 
+		  double r1 = y - rotated_fCenterPlus[1]; 
+		  double r2 = z - rotated_fCenterPlus[2]; 
 		  double R = r0*r0 + r1*r1 + r2*r2;
 		  
-		  if( (R <= radius*radius) || (z <= h0) ) 
+		  if( (R <= fRadius*fRadius) || (z <= h0) ) 
 		    {
 		      for (int k=0;k<nlsd;k++) 
 			{
