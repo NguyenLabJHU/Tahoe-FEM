@@ -1,4 +1,4 @@
-/* $Id: SmallStrainMF.cpp,v 1.4 2003-04-05 20:39:11 thao Exp $ */
+/* $Id: SmallStrainMF.cpp,v 1.5 2003-04-09 22:19:46 thao Exp $ */
 #include "SmallStrainMF.h"
 
 #include "OutputSetT.h"
@@ -20,9 +20,6 @@ using namespace Tahoe;
 /* constructor */
 SmallStrainMF::SmallStrainMF(const ElementSupportT& support, const FieldT& field):
 	SmallStrainT(support, field),
-	fdevQ(NULL),
-	fviscstress(NULL),
-	fgrad_viscstretch(NULL),
 	fNumGroupNodes(0),
 	fMatForceOutputID(-1){}
 	
