@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.19 2003-03-09 17:09:02 paklein Exp $ */
+/* $Id: StringT.h,v 1.20 2003-05-04 22:54:54 paklein Exp $ */
 /* created: paklein (08/01/1996) */
 #ifndef _STRING_T_H_
 #define _STRING_T_H_
@@ -38,8 +38,11 @@ public:
 	friend istream& operator>>(istream& in, StringT& string);
 	friend ostream& operator<<(ostream& out, const StringT& string);
 
-	/** \name assignment operators */
+	/** \name assignment operators
+	 * There's no operator=(char) because it leads to ambiguous conversion
+	 * of int's and pointers. */
 	/*@{*/
+	void Fill(char a);
 	StringT& operator=(const char* string);
 	StringT& operator=(const StringT& string);
 	/*@}*/
