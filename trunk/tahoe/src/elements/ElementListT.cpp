@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.65 2003-10-20 23:32:22 cjkimme Exp $ */
+/* $Id: ElementListT.cpp,v 1.66 2003-10-23 00:05:46 cjkimme Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -456,7 +456,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 				else if (CSEcode == CSEBaseT::NoRotateAnisotropic)
 					fArray[group] = new CSEAnisoT(fSupport, *field, false);
 				else if (CSEcode == CSEBaseT::ModeIAnisotropic)
-					fArray[group] = new CSESymAnisoT(fSupport, *field, true);
+					fArray[group] = new CSESymAnisoT(fSupport, *field, false);
 				else
 				{
 					ExceptionT::BadInputValue(caller, "unknown CSE formulation: %d", CSEcode);
