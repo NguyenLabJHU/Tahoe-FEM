@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.15 2002-01-27 22:36:34 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.16 2002-02-08 22:01:34 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -479,6 +479,12 @@ class ModelManagerT
   void QARecords (ArrayT<StringT>& records);
 
  private:
+ 
+ 	/** return true of the ID's match */
+ 	bool ID_Match(const StringT& a, const StringT& b) const;
+ 
+	/** return the length of the ID string not including any trailing white-space padding */
+ 	int ID_Length(const StringT& ID) const;
 
   /** sets the InputBaseT pointer, scans the model file, registers array data found
    * \return true if successful, false otherwise */
