@@ -1,4 +1,4 @@
-/* $Id: dSPMatrixT.cpp,v 1.2 2003-02-22 23:53:44 paklein Exp $ */
+/* $Id: dSPMatrixT.cpp,v 1.3 2003-03-04 00:40:36 cjkimme Exp $ */
 /* created MLK 10/3/00 */
 #include "dSPMatrixT.h"
 
