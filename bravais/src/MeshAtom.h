@@ -1,5 +1,5 @@
-#ifndef _ATOMMESH_H_
-#define _ATOMMESH_H_
+#ifndef _MESHATOM_H_
+#define _MESHATOM_H_
 
 #include <iostream>
 #include <fstream.h>
@@ -18,6 +18,7 @@
 
 #include "CrystalLatticeT.h"
 #include "FCCT.h"
+#include "BCCT.h"
 #include "VolumeT.h"
 #include "BoxT.h"
 #include "OutputSetT.h"
@@ -26,23 +27,15 @@
 
 namespace Tahoe {
 
+
 /** Class to construct a mesh of atoms defined by
  *  its crytallography and its shape. 
- *  Create an output file in different formats.
- *  
- *  Note: To create a mesh with another types than
- *        FCC or Box, declare another constructor
- *        with the right parameters. 
- *        Example: to create an FCC lattice in a box, 
- *                 call   MeshAtom(const FCCT& crystal,
- *  	                           const BoxT& shape,
- *	                           const OutputSetT& outset); 
- *				   
- *                 to create a BCC  lattice in a sphere,
- *                 call   MeshAtom(const BCCT& crystal,
- *  	                           const SphereT& shape,
- *	                           const OutputSetT& outset); 
+ *  Create an output file in different formats. 
  *
+ *  Remark: To use this class, firt create a mesh 
+ *  (with CreateMeshAtom), gives you number of atoms.
+ *  Call one the defined functions to get mesh data such
+ *  as coordinates,connectivities, volume etc.
  **/
 
 class MeshAtom {
@@ -57,21 +50,29 @@ class MeshAtom {
  public:
 
   // Constructor
-    MeshAtom(const FCCT& crystal,const BoxT& shape); 
-    //MeshAtom(const CrystalLatticeT& crystal,const VolumeT& shape); 
+  MeshAtom(StringT which_latticetype,int nsd,int nuca,
+	   dArrayT latticeparameter,StringT which_shape,
+	   int whichunit,dArrayT len_cel);
   
-  // Destructor
+  // Destructor: not done yet. 
   ~MeshAtom(){};
 
-// Create a mesh of atoms. Return ids if i_id = 1, coordinates if icoor = 1 
-// connectivities if iconnect = 1 and printout file if iprint = 1.
-void MeshAtom::CreateMeshAtom(int i_id,iArrayT* atomid,
-			      int icoor,dArray2DT* coords,
-			      int iconnect,iArray2DT* connects,			     
-			      int iprint,StringT& program_name,
-			      StringT& version, StringT& title, 
-			      StringT& input_file,
-			      IOBaseT::FileTypeT output_format);
+  // Create the mesh of atoms and return number of atoms.
+  int CreateMeshAtom();
+
+  // Access to mesh
+  double Volume_of_Mesh();
+
+  iArrayT* MeshAtom::ReturnAtomID();
+  dArray2DT* MeshAtom::ReturnCoordinates();
+  iArray2DT* MeshAtom::ReturnConnectivities();
+  void BuildIOFile(StringT& program_name,
+			     StringT& version, StringT& title, 
+			     StringT& input_file,
+			     IOBaseT::FileTypeT output_format);
+  
+
+				
 
 };
 

@@ -1,4 +1,4 @@
-/* $Id: CrystalLatticeT.cpp,v 1.2 2002-07-24 01:14:59 saubry Exp $ */
+/* $Id: CrystalLatticeT.cpp,v 1.3 2002-07-24 23:14:56 saubry Exp $ */
 #include "CrystalLatticeT.h"
 
 #include <iostream>
@@ -36,9 +36,8 @@ CrystalLatticeT::CrystalLatticeT(const CrystalLatticeT& source)
 void CrystalLatticeT::CalculateDensity() 
 {
 	double ucvolume = 1.0;
-	for (int i=0; i<nLSD; i++) {
-		ucvolume *= vLatticeParameters[i];
-	}
+	for (int i=0; i<nLSD; i++) 
+	  ucvolume *= vLatticeParameters[i];
 	density = ((double) nUCA)/ucvolume;
 }
 

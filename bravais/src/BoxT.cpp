@@ -1,4 +1,4 @@
-/* $Id: BoxT.cpp,v 1.2 2002-07-24 01:14:59 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.3 2002-07-24 23:14:56 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -22,10 +22,7 @@ BoxT::BoxT(int dim, int whichunit, dArrayT len_cel,
   for(int i=0;i<nSD;i++)
     {
       length[i] = len_cel[i]*lattice_parameter[i];
-
-      double d1 = len_cel[i]/lattice_parameter[i];
-      int i1 = static_cast<int>((2.0*d1+1.0)/2.0);
-      ncells[i] = i1;
+      ncells[i] = static_cast<int>(len_cel[i]);
     }
 }
 

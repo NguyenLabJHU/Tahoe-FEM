@@ -12,6 +12,8 @@
 
 #include "CrystalLatticeT.h"
 #include "FCCT.h"
+#include "BCCT.h"
+#include "DIAT.h"
 #include "VolumeT.h"
 #include "BoxT.h"
 #include "OutputSetT.h"
@@ -19,70 +21,76 @@
 
 using namespace Tahoe;
 
-  // Constructor
-MeshAtom::MeshAtom(const FCCT& crystal,const BoxT& shape) 
-//  MeshAtom::MeshAtom(const CrystalLatticeT& crystal,const VolumeT& shape)
+// Constructor
+MeshAtom::MeshAtom(StringT which_latticetype,int nsd,int nuca,
+		   dArrayT latticeparameter,StringT which_shape,
+		   int whichunit,dArrayT len_cel)
 {
-  Crystal = new FCCT(crystal);
-  Shape = new BoxT(shape);
+  if(which_latticetype == "FCC")
+    Crystal = new FCCT(nsd,nuca,latticeparameter[0]);
+  else if(which_latticetype == "BCC")
+    Crystal = new BCCT(nsd,nuca,latticeparameter[0]);
+  else if(which_latticetype == "DIA")
+    Crystal = new DIAT(nsd,nuca,latticeparameter[0]);
+  else
+    {
+      throw eBadInputValue;
+    }
+  
+  if(which_shape == "BOX")
+    Shape = new BoxT(nsd,whichunit,len_cel,latticeparameter);
+  else
+    {
+      cout << "Shape can only be BOX and not: " << which_shape << "\n";
+      throw eBadInputValue;
+    }
+  
+}
+
+int MeshAtom::CreateMeshAtom()
+{
+  Shape->CreateLattice(Crystal);
+  return Shape->GetNumberAtoms();
+}
+
+double MeshAtom::Volume_of_Mesh()
+{
+  Shape->CalculateVolume();
+  return Shape->GetVolume();
 }
 
 
-// Create a mesh of atoms. Return ids if i_id = 1, coordinates if icoor = 1 
-// connectivities if iconnect = 1 and printout file if iprint = 1.
-
-void MeshAtom::CreateMeshAtom(int i_id,iArrayT* atomid,
-			      int icoor,dArray2DT* coords,
-			      int iconnect,iArray2DT* connects,			     
-			      int iprint,StringT& program_name,
-			      StringT& version, StringT& title, 
-			      StringT& input_file,
-			      IOBaseT::FileTypeT output_format)
+iArrayT* MeshAtom::ReturnAtomID()
 {
-  
-  if (i_id == 1) 
-    {
-      if( ( (Shape->GetNumberAtoms()) != atomid->Length()))
-	throw eSizeMismatch;
-      
-      atomid = Shape->GetAtomID();
-      
-    }
-  if (icoor == 1) 
-    {
-      if( (Shape->GetNumberAtoms()) != coords->MajorDim())
-	throw eSizeMismatch;
-      if( (Shape->GetDimensions()) != coords->MinorDim())
-	throw eSizeMismatch;
-      
-      coords = Shape->GetAtomCoordinates();
-    }
-  
-  if (iconnect == 1) 
-    {
-      if( (Shape->GetNumberAtoms()) != connects->MajorDim())
-	throw eSizeMismatch;
-      if( (Shape->GetDimensions()) != connects->MinorDim())
-	throw eSizeMismatch;
-      
-      connects = Shape->GetAtomConnectivities();
-    }
-  
-  
-  if (iprint == 1) 
-    {
-      IOLattice = new OutPutLatticeT(cout,program_name,version,title,
-				     input_file,output_format);
+  return Shape->GetAtomID();
+}  
 
-      ArrayT<StringT> n_labels(1);
-      n_labels[0] = "Atom";
-      
-      Set=new OutputSetT(*(Shape->GetAtomNames()), GeometryT::kPoint, 
-	                 *(Shape->GetAtomConnectivities()), n_labels);
-
-      IOLattice->SetCoordinates(*(Shape->GetAtomCoordinates()),(Shape->GetAtomID()));
-      IOLattice->AddElementSet(*Set);
-      IOLattice->WriteGeometry();
-    }
+dArray2DT* MeshAtom::ReturnCoordinates()
+{   
+  return Shape->GetAtomCoordinates();
+}
   
+iArray2DT* MeshAtom::ReturnConnectivities()
+{
+  return Shape->GetAtomConnectivities();
+}
+  
+void MeshAtom::BuildIOFile(StringT& program_name,
+			   StringT& version, StringT& title, 
+			   StringT& input_file,
+			   IOBaseT::FileTypeT output_format)
+{
+  IOLattice = new OutPutLatticeT(cout,program_name,version,title,
+				 input_file,output_format);
+  
+  ArrayT<StringT> n_labels(1);
+  n_labels[0] = "Atom";
+      
+  Set=new OutputSetT(*(Shape->GetAtomNames()), GeometryT::kPoint, 
+		     *(Shape->GetAtomConnectivities()), n_labels);
+  
+  IOLattice->SetCoordinates(*(Shape->GetAtomCoordinates()),(Shape->GetAtomID()));
+  IOLattice->AddElementSet(*Set);
+  
+  IOLattice->WriteGeometry();
 }
