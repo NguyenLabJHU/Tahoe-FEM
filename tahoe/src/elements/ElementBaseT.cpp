@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.22 2002-10-20 22:48:14 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.23 2002-10-21 23:45:58 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementBaseT.h"
@@ -581,6 +581,7 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 	/* block data */
 	const StringT& block_ID = ElementBlockID(fElementCards.Position());
 	const ElementBlockDataT& block_data = BlockData(block_ID);
+	int local_el_number = fElementCards.Position() - block_data.StartNumber();
 
 	/* model manager - block processor number */
 	ModelManagerT& model = fSupport.Model();
@@ -591,11 +592,11 @@ void ElementBaseT::CurrElementInfo(ostream& out) const
 	const iArrayT* global_map = fSupport.ElementMap(block_ID);
 
 	/* report */
-	out << "\n element (in partition block): " << elem_map[fElementCards.Position()] << '\n';
+	out << "\n element (in partition block): " << elem_map[local_el_number] << '\n';
 	if (global_map)
-		out << " element (in global block): " << (*global_map)[fElementCards.Position()] << '\n';
+		out << " element (in global block): " << (*global_map)[local_el_number] << '\n';
 	else
-		out << " element (in global block): " << elem_map[fElementCards.Position()] << '\n';
+		out << " element (in global block): " << elem_map[local_el_number] << '\n';
 
 	/* node number map */
 	const iArrayT* node_map = fSupport.NodeMap();
