@@ -1,7 +1,8 @@
-/* $Id: Scroller.cpp,v 1.1 2004-11-15 09:21:19 paklein Exp $ */
+/* $Id: Scroller.cpp,v 1.2 2004-11-16 01:04:35 paklein Exp $ */
 #include "Scroller.h"
 #include "ExceptionT.h"
 #include "OutputSetT.h"
+#include "LocalArrayT.h"
 
 using namespace Tahoe;
 
@@ -9,8 +10,7 @@ Scroller::Scroller(ostream& out, istream& in, bool write):
 	TranslateIOManager(out, in, write),
 	fOutputID(-1),
 	fCleavagePlane(0.0),
-	fDirection(0),
-	fJumpThreshold(0.0)
+	fDirection(0)
 {
 
 }
@@ -46,49 +46,124 @@ void Scroller::Translate(const StringT& program, const StringT& version, const S
 			dy_index = j;
 	if (dy_index == -1)
 		ExceptionT::GeneralFail(caller, "\"D_Y\" not found in nodal output");
-
-	/* set changing coordinates */
-	iArrayT map;
-	fModel.AllNodeMap(map);
-	dArray2DT coordinates = fModel.Coordinates();
-	fOutput->SetCoordinates(coordinates, &map);
-
-	/* work space */
+	
+	/* dimensions */
 	int nnv = fModel.NumNodeVariables();
 	int nev = fModel.NumElementVariables();
 	int nnd = fModel.NumNodes();
 	int nel = fModel.NumElements();
+	
+	/* set changing coordinates */
+	iArrayT map(nnd);
+	fModel.AllNodeMap(map);
+	dArray2DT coordinates = fModel.Coordinates();
+	fOutput->SetCoordinates(coordinates, &map);
+	LocalArrayT curr_coords(LocalArrayT::kUnspecified, 0, coordinates.MinorDim());
+	curr_coords.SetGlobal(coordinates);
+
+	/* original connectivities */
+	const ArrayT<StringT>& ids = fModel.ElementGroupIDs();
+	ArrayT<const iArray2DT*> connectivities;
+	fModel.ElementGroupPointers(ids, connectivities);
+	iArrayT element_nodes;
+
+	/* work space */
 	dArray2DT n_values(nnd, nnv), n_values_last;
-	dArray2DT e_values(nel, nev);
+	dArray2DT e_values, e_values_all(nel, nev);
+	nVariArray2DT<double> e_values_man(0, e_values, nev);
 
 //TEMP
-ExceptionT::GeneralFail(caller, "propagation direction must be +1: %d", fDirection);
+if (fDirection != 1)
+	ExceptionT::GeneralFail(caller, "propagation direction must be +1: %d", fDirection);
 
 	/* run through increments */
+	int incr = time_steps.Length()/10;
+	incr = (incr < 1) ? 1 : incr;
+	AutoArrayT<int> keep_block(nel,0), keep_all(nel,0);
 	for (int j = 0; j < time_steps.Length(); j++) 
 	{
+		/* progress */
+		if ((j+1)%incr == 0)
+			cout << "step " << j+1 << endl;
+	
 	    /* read node values (across all blocks) */
 		input->ReadAllNodeVariables(j, n_values);
 
 	    /* read element values (across all blocks) */
-		input->ReadAllElementVariables(j, e_values);
+		input->ReadAllElementVariables(j, e_values_all);
 
 		/* check for scrolling */
 		if (j > 0) {
-			int hit = -1;
-			for (int i = 0; i < fNodes.Length(); i++)
-			{
-				double jump = n_values(fNodes[i], dy_index) - n_values_last(fNodes[i], dy_index);
-				if (fabs(jump) > fJumpThreshold)
+			double x_shift = fXLeft - fMeshSize;
+			bool shift = false;
+			for (int i = 0; i < fNodes.Length(); i++) 
+				if (fabs(n_values_last(fNodes[i], dy_index)) > fOpenLB && /* was "open" */
+					fabs(n_values(fNodes[i], dy_index)) < fCloseUB && /* now "closed" */
+				    coordinates(fNodes[i],0) > x_shift) /* point is farthest right */
 				{
-					//check for hit == -1
-					//keep track of right most jump
+					x_shift = coordinates(fNodes[i],0);	
+					shift = true;
+				}
+					
+			
+			/* shift coordinates */
+			if (shift)
+			{
+				/* include one more column of elements */
+				x_shift += fMeshSize;
+
+				/* reset reference coordinates */
+				double divider = fXLeft - fMeshSize/10.0;
+				for (int i = 0; i < coordinates.MajorDim(); i++)
+				{
+					double& x = coordinates(i,0);
+					x -= x_shift; /* scroll mesh */
+					if (x < divider)
+						x += fPeriodicLength; /* move ahead of crack */
 				}
 			}
-			
-			//process hit
 		}
 		n_values_last = n_values;
+		
+		/* remove the "back" element */
+		int index_all = 0;
+		keep_all.Dimension(0);
+		for (int i = 0; i < connectivities.Length(); i++)
+		{
+			keep_block.Dimension(0);
+			const iArray2DT& connects = *(connectivities[i]);
+			int nen = connects.MinorDim();
+			curr_coords.Dimension(nen, coordinates.MinorDim());
+			for (int k = 0; k < connects.MajorDim(); k++)
+			{
+				/* collect current reference coordinates */
+				connects.RowAlias(k, element_nodes);
+				curr_coords.SetLocal(element_nodes);
+
+				/* find element bounds */
+				const double* px = curr_coords(0);
+				double x_min = *px;
+				double x_max = *px;
+				px++;
+				for (int l = 1; l < nen; l++) {
+					/* bounds */
+					x_min = (*px < x_min) ? *px : x_min;
+					x_max = (*px > x_max) ? *px : x_max;
+					px++;
+				}
+				
+				/* not connecting ends of the mesh */
+				if (x_max - x_min < fPeriodicLength/2.0) {
+					keep_all.Append(index_all);
+					keep_block.Append(k);
+				}
+				index_all++;
+			}
+			fConnectivities_man[i].SetMajorDimension(keep_block.Length(), false);
+			fConnectivities[i].RowCollect(keep_block, connects);
+		}
+		e_values_man.SetMajorDimension(keep_all.Length(), false);
+		e_values.RowCollect(keep_all, e_values_all);
 
 		/* write to output */
 		fOutput->WriteOutput(time_steps[j], fOutputID, n_values, e_values);
@@ -107,7 +182,7 @@ void Scroller::SetInput(void)
 	const char caller[] = "Scroller::SetInput";
 
 	/* source file */
-	cout << "\n Source files: ";
+	cout << "\n Source file: ";
 	fIn >> fSource;
 	if (fEcho) fEchoOut << fSource << "\n";
 
@@ -125,11 +200,19 @@ void Scroller::SetInput(void)
 		ExceptionT::GeneralFail(caller, "bad direction %d", fDirection);
 	else if (fEcho) 
 		fEchoOut << fDirection << "\n";
+
+	cout << "\n smallest displacement considered \"open\": ";
+	fIn >> fOpenLB;
+	if (fEcho) fEchoOut << fOpenLB << "\n";
+
+	cout << "\n largest displacement considered \"closed\": ";
+	fIn >> fCloseUB;
+	if (fEcho) fEchoOut << fCloseUB << "\n";
 	
-	cout << "\n displacement jump threshold: ";
-	fIn >> fJumpThreshold;
-	if (fEcho) fEchoOut << fJumpThreshold << "\n";
-	
+	if (fOpenLB < fCloseUB)
+		ExceptionT::GeneralFail(caller, "open lower bound < closed upper bound: %g < %g",
+			fOpenLB, fCloseUB);
+
 	/* try to guess file format */
 	fFileType = IOBaseT::name_to_FileTypeT(fSource);
 
@@ -151,6 +234,27 @@ void Scroller::SetInput(void)
 		ExceptionT::GeneralFail(caller, "no nodes found on the cleavage plane y = %g", fCleavagePlane);
 	fNodes.Dimension(nodes.Length());
 	nodes.CopyInto(fNodes);
+
+	/* get bounds and periodic distance */
+	fMeshSize = 0.0;
+	double x0 = coordinates(fNodes[0],0);
+	fXLeft = fXRight = x0;
+	for (int i = 1; i < fNodes.Length(); i++)
+	{
+		double x = coordinates(fNodes[i],0);
+		double dx = fabs(x - x0);
+
+		/* bounds */
+		if (x < fXLeft)
+			fXLeft = x;
+		else if (x > fXRight)
+			fXRight = x;
+		
+		/* mesh size */	
+		if (dx > kSmall && (dx < fMeshSize || fMeshSize < kSmall))
+			fMeshSize = dx;
+	}
+	fPeriodicLength = fXRight - fXLeft + fMeshSize;
 }
 
 /************************************************************************
@@ -175,9 +279,22 @@ void Scroller::InitOutputSets(void)
 	fModel.NodeLabels(n_labels);
 	fModel.ElementLabels(e_labels);
 	
+	/* collect pointers to changing connectivities */
+	int neg = connectivities.Length();
+	fConnectivities.Dimension(neg);
+	fConnectivities_man.Dimension(neg);
+	ArrayT<const iArray2DT*> connectivities_tmp(neg);
+	for (int i = 0; i < neg; i++) {
+		const iArray2DT& connects = *(connectivities[i]);
+		fConnectivities_man[i].SetWard(0, fConnectivities[i], connects.MinorDim());
+		fConnectivities_man[i].SetMajorDimension(connects.MajorDim(), false);
+		fConnectivities[i] = connects;
+		connectivities_tmp[i] = fConnectivities.Pointer(i);
+	}
+	
 	/* define output */
 	bool changing_geometry = true;
-	OutputSetT output_set(fModel.ElementGroupGeometry(ids[0]), ids, connectivities, 
+	OutputSetT output_set(fModel.ElementGroupGeometry(ids[0]), ids, connectivities_tmp, 
 		n_labels, e_labels, changing_geometry);
 
 	/* register output */

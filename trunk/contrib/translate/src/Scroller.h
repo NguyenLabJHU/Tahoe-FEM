@@ -1,4 +1,4 @@
-/* $Id: Scroller.h,v 1.1 2004-11-15 09:21:19 paklein Exp $ */
+/* $Id: Scroller.h,v 1.2 2004-11-16 01:04:35 paklein Exp $ */
 #ifndef _SCROLLER_H_
 #define _SCROLLER_H_
 
@@ -49,11 +49,23 @@ private:
 	double fCleavagePlane;
 	
 	/** displacement jump threshold */
-	double fJumpThreshold;
+	double fOpenLB;
+	double fCloseUB;
 	
 	/** +1 for traveling right, -1 for traveling left */
 	int fDirection;
 	/*@}*/
+
+	/** \name dimensions */
+	/**@{*/
+	double fXLeft, fXRight;
+	double fMeshSize;
+	double fPeriodicLength;
+	/**@}*/
+	
+	/** changing connectivities */
+	ArrayT<iArray2DT> fConnectivities;
+	ArrayT<nVariArray2DT<int> > fConnectivities_man;
 };
 
 } /* namespace Tahoe */
