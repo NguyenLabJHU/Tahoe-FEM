@@ -1,4 +1,4 @@
-/* $Id: TvergHutch3DT.h,v 1.5 2003-01-24 18:01:30 cjkimme Exp $ */
+/* $Id: TvergHutch3DT.h,v 1.6 2003-03-19 00:53:27 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #ifndef _TVERG_HUTCH_3D_T_H_
@@ -36,7 +36,7 @@ public:
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma);
+	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate);
 
 	/** tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);

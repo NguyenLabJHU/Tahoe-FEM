@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.h,v 1.8 2003-03-03 21:49:32 cjkimme Exp $ */
+/* $Id: TiedPotentialT.h,v 1.9 2003-03-19 00:53:27 cjkimme Exp $ */
 /* created: cjkimme (04/15/2002) */
 
 #ifndef _TIED_POTENTIAL_T_H_
@@ -25,8 +25,6 @@ public:
 	/** constructor */
 	TiedPotentialT(ifstreamT& in, const double &fTimeStep);
 
-	virtual void InitStateVariables(ArrayT<double>& state);
-
 	/** return the number of state variables needed by the model */
 	int NumStateVariables(void) const;
 
@@ -38,7 +36,7 @@ public:
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma);
+	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate);
 
 	/** tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);

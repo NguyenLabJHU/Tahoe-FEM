@@ -1,4 +1,4 @@
-/* $Id: YoonAllen2DT.cpp,v 1.8 2002-11-01 19:46:07 cjkimme Exp $ */
+/* $Id: YoonAllen2DT.cpp,v 1.9 2003-03-19 00:53:27 cjkimme Exp $ */
 #include "YoonAllen2DT.h"
 
 #include <iostream.h>
@@ -84,8 +84,8 @@ void YoonAllen2DT::InitStateVariables(ArrayT<double>& state)
 	 *	The next kNumDOF slots are the previous step's components of
 	 *  the gap vector.   iNumRelaxTimes..iNumRelaxTimes+knumDOF-1
 	 *	The next kNumDOF slots are the ith components of the previous
-	 *	step's tractions. iNumRelaxTimes+knumDOF..iNumRelaxTimes+2knumDOF-1
-	 *  The next slot is the rate of change of the previous step's
+	 *	step's tractions. iNumRelaxTimes+knumDOF..iNumRelaxTimes+2 knumDOF-1
+	 *  The next slot is the previous step's
 	 *  lambda. iNumRelaxTimes+2knumDOF
 	 *	The next slot is the previous step's value of alpha, the damage
 	 *	coefficient.  iNumRelaxTimes+2knumDOF+1
@@ -97,13 +97,13 @@ void YoonAllen2DT::InitStateVariables(ArrayT<double>& state)
 /* return the number of state variables needed by the model */
 int YoonAllen2DT::NumStateVariables(void) const 
 { 
-	return 2*knumDOF + iNumRelaxTimes + 3; 
+	return 4*knumDOF + iNumRelaxTimes + 5; 
 }
 
 /* surface potential */ 
 double YoonAllen2DT::FractureEnergy(const ArrayT<double>& state) 
 {
-   	return state[2*knumDOF + iNumRelaxTimes + 2]; 
+   	return state[4*knumDOF + iNumRelaxTimes + 4]; 
 }
 
 double YoonAllen2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
@@ -122,7 +122,7 @@ double YoonAllen2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& stat
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
+const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
@@ -137,115 +137,132 @@ const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 	}
 #endif
 
-	double u_t = jump_u[0];
-	double u_n = jump_u[1];
-	
-	double *state2 = state.Pointer(iNumRelaxTimes);
-
-	/*double u_t_dot = (u_t - state2[0])/fTimeStep;
-	double u_n_dot = (u_n - state2[1])/fTimeStep;
-	*/
-	
-	double l_0 = u_t/fd_c_t;
-	double l_1 = u_n/fd_c_n;
-	double l = sqrt(l_0*l_0+l_1*l_1); // l stands for lambda 
-	
-	fTraction = 0.;
-	
-	double l_0_old = state2[0]/fd_c_t;
-	double l_1_old = state2[1]/fd_c_n;
-	double l_old = sqrt(l_0_old*l_0_old+l_1_old*l_1_old);
-	double prefactold = 1./(1-state2[2*knumDOF+1]);
-	double l_dot = (l-l_old)/fTimeStep;
-
-	/* do the bulk of the computation now */
-	if (l_old > kSmall) 
+	if (!qIntegrate)
 	{
-		prefactold *= l_old;
-		if (fabs(l_0_old) > kSmall)
-			fTraction[0] = prefactold/l_0_old*state2[knumDOF]; 
-		if (fabs(l_1_old) > kSmall)
-			fTraction[1] = prefactold/l_1_old*state2[knumDOF+1];  
-	}
-	else
-	{
-		fTraction[0] = prefactold*state2[knumDOF];
-		fTraction[1] = prefactold*state2[knumDOF+1];
-	}
-		
-	double tmpSum = fE_infty*fTimeStep;
-	for (int i = 0; i < iNumRelaxTimes; i++)
-	  tmpSum -= fexp_tau[i]*ftau[i];
-	tmpSum *= l_dot;
-	
-	fTraction += tmpSum;
-	
-	/* update the S coefficients */
-	for (int i = 0; i < iNumRelaxTimes; i++)
-	{
-		state[i] += (state[i]-state2[2*knumDOF]*ftau[i])*fexp_tau[i];
-		fTraction += state[i]*fexp_tau[i];	
-	}
-	
-	/* evolve the damage parameter */
-	double alpha = state2[2*knumDOF+1];
-	if (l_dot > kSmall)
-	{
-		switch (idamage) 
-		{
-			case 1:
-			{
-				alpha += fTimeStep*falpha_0*pow(l,falpha_exp);
-				break;
-			}
-			case 2:
-			{
-				alpha += fTimeStep*falpha_0*pow(1.-alpha,falpha_exp)*pow(1.-flambda_0*l,flambda_exp);
-				break;
-			}
-			case 3:
-			{
-				alpha += fTimeStep*falpha_0*pow(l_dot,falpha_exp);
-				break;
-			}
-		}
-	}
-	 	
-	if (alpha >= 1.)
-	{
-		fTraction = 0.;
+		fTraction[0] = state[iNumRelaxTimes+knumDOF];
+		fTraction[1] = state[iNumRelaxTimes+knumDOF+1];
 		return fTraction;
 	}
-	
-	/* scale the final tractions */
-	fTraction *= 1.-alpha;
-	if (l > kSmall)
-	{
-		fTraction[0] *= l_0/l;
-		fTraction[1] *= l_1/l;
-	}
 	else
 	{
-		if (fabs(l_0 - l_0_old) < kSmall)
-			fTraction[0] = 0.;
-		if (fabs(l_1 - l_1_old) < kSmall)
-			fTraction[1] = 0.;
-	}
+		double u_t = jump_u[0];
+		double u_n = jump_u[1];
+	
+		double *state2 = state.Pointer(iNumRelaxTimes);
+		
+		// optional way to calculate rates
+		/*
+		double u_t_dot = (u_t - state2[0])/fTimeStep;
+		double u_n_dot = (u_n - state2[1])/fTimeStep;
+		*/
+		
+		double l_0 = u_t/fd_c_t;
+		double l_1 = u_n/fd_c_n;
+		double l = sqrt(l_0*l_0+l_1*l_1); // l stands for lambda 
+		
+		fTraction = 0.;
+		
+		double l_0_old = state2[0]/fd_c_t;
+		double l_1_old = state2[1]/fd_c_n;
+		double l_old = sqrt(l_0_old*l_0_old+l_1_old*l_1_old);
+		double prefactold = 1./(1-state2[2*knumDOF+1]);
+		double l_dot = (l-l_old)/fTimeStep;
 
-	/* handle penetration */
-//	if (u_n < 0) fTraction[1] += fK*u_n;
-	
-	
-	/* update the rest of the state variables */
-	state2[0] = u_t;
-	state2[1] = u_n;
-	state2[2] = fTraction[0];
-	state2[3] = fTraction[1];
-	state2[4] = l_dot;
-	state2[5] = alpha;
-	state2[6] += fTraction[0]*(u_t - state2[0]) + fTraction[1]*(u_n - state2[1]);
-	
-	return fTraction;
+		/* do the bulk of the computation now */
+		if (l_old > kSmall) 
+		{
+			prefactold *= l_old;
+			if (fabs(l_0_old) > kSmall)
+				fTraction[0] = prefactold/l_0_old*state2[knumDOF]; 
+			if (fabs(l_1_old) > kSmall)
+				fTraction[1] = prefactold/l_1_old*state2[knumDOF+1];  
+		}
+		else
+		{
+			fTraction[0] = prefactold*state2[knumDOF];
+			fTraction[1] = prefactold*state2[knumDOF+1];
+		}
+			
+		
+		double tmpSum = fE_infty*fTimeStep;
+		for (int i = 0; i < iNumRelaxTimes; i++)
+		  	tmpSum -= fexp_tau[i]*ftau[i];
+		tmpSum *= l_dot;
+		
+		fTraction += tmpSum;
+		
+		/* update the S coefficients */
+		for (int i = 0; i < iNumRelaxTimes; i++)
+		{
+			state[i] += (state[i]-state2[2*knumDOF]*ftau[i])*fexp_tau[i];
+			fTraction += state[i]*fexp_tau[i];	
+		}
+		
+		/* evolve the damage parameter */
+		double alpha = state2[2*knumDOF+1];
+		if (l_dot > kSmall)
+		{
+			switch (idamage) 
+			{
+				case 1:
+				{
+					alpha += fTimeStep*falpha_0*pow(l,falpha_exp);
+					break;
+				}
+				case 2:
+				{
+					alpha += fTimeStep*falpha_0*pow(1.-alpha,falpha_exp)*pow(1.-flambda_0*l,flambda_exp);
+					break;
+				}
+				case 3:
+				{
+					alpha += fTimeStep*falpha_0*pow(l_dot,falpha_exp);
+					break;
+				}
+			}
+		}
+			 	
+		if (alpha >= 1.)
+		{
+			fTraction = 0.;
+			return fTraction;
+		}
+		
+		/* scale the final tractions */
+		fTraction *= 1.-alpha;
+		if (l > kSmall)
+		{
+			fTraction[0] *= l_0/l;
+			fTraction[1] *= l_1/l;
+		}
+		else
+		{
+			if (fabs(l_0 - l_0_old) < kSmall)
+				fTraction[0] = 0.;
+			if (fabs(l_1 - l_1_old) < kSmall)
+				fTraction[1] = 0.;
+		}
+
+		/* handle penetration */
+	//	if (u_n < 0) fTraction[1] += fK*u_n;
+		
+		/* update the rest of the state variables */
+		state2[6] = state2[0];
+		state2[7] = state2[1];
+		state2[8] = state2[2];
+		state2[9] = state2[3];
+		state2[10] = state2[4];
+		state2[11] = state2[5];
+		state2[0] = u_t;
+		state2[1] = u_n;
+		state2[2] = fTraction[0];
+		state2[3] = fTraction[1];
+		state2[4] = l_dot;
+		state2[5] = alpha;
+		state2[12] += fTraction[0]*(u_t - state2[6]) + fTraction[1]*(u_n - state2[7]);
+		
+		return fTraction;
+	}
 	
 }
 
@@ -261,7 +278,6 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	double u_t = jump_u[0];
 	double u_n = jump_u[1];
 
-	/* fStiffness = {dT_0/d_0d_0,dT_0/d_0d_1,dT_1/d_1d_0,dT_1/d_1d_1} */
 	/* compute the current tractions first */
 	double *state2 = state.Pointer(iNumRelaxTimes);
 
@@ -283,10 +299,10 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	
 //	double l_dot = (l_0*u_t_dot/fd_c_t+l_1*u_n_dot/fd_c_n)/l;
 	
-	double l_0_old = state2[0]/fd_c_t;
-	double l_1_old = state2[1]/fd_c_n;
+	double l_0_old = state2[6]/fd_c_t; 
+	double l_1_old = state2[7]/fd_c_n; 
 	double l_old = sqrt(l_0_old*l_0_old+l_1_old*l_1_old);
-	double prefactold = 1./(1-state2[2*knumDOF+1]);
+	double prefactold = 1./(1-state2[2*knumDOF+7]);
 	double l_dot = (l-l_old)/fTimeStep;
 
 	dArrayT currTraction(2);
@@ -297,14 +313,14 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	{
 		prefactold *= l_old;
 		if (fabs(l_0_old) > kSmall)
-			currTraction[0] = prefactold/l_0_old*state2[knumDOF]; 
+			currTraction[0] = prefactold/l_0_old*state2[knumDOF+6]; 
 		if (fabs(l_1_old) > kSmall)
-			currTraction[1] = prefactold/l_1_old*state2[knumDOF+1];  
+			currTraction[1] = prefactold/l_1_old*state2[knumDOF+7];  
 	}
 	else
 	{
-		currTraction[0] = prefactold*state2[knumDOF];
-		currTraction[1] = prefactold*state2[knumDOF+1];
+		currTraction[0] = prefactold*state2[knumDOF+6];
+		currTraction[1] = prefactold*state2[knumDOF+7];
 	}
 		
 	double tmpSum = fE_infty*fTimeStep;
@@ -315,36 +331,13 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	currTraction += tmpSum;
 
 	/* update the S coefficients */
-	double ftmp;
 	for (int i = 0; i < iNumRelaxTimes; i++)
 	{
-		ftmp = state[i] + (state[i]-state2[2*knumDOF]*ftau[i])*fexp_tau[i];
-		currTraction += ftmp*fexp_tau[i];	
+		currTraction += state[i]*fexp_tau[i];	
 	}
 	
-	/* evolve the damage parameter */
+	/* grab the damage parameter */
 	double alpha = state[iNumRelaxTimes+2*knumDOF+1];
-	if (l_dot > kSmall)
-	{
-		switch (idamage) 
-		{
-			case 1:
-			{
-				alpha += fTimeStep*falpha_0*pow(l,falpha_exp);
-				break;
-			}
-			case 2:
-			{
-				alpha += fTimeStep*falpha_0*pow(1.-alpha,falpha_exp)*pow(1.-flambda_0*l,flambda_exp);
-				break;
-			}
-			case 3:
-			{
-				alpha += fTimeStep*falpha_0*pow(l_dot,falpha_exp);
-				break;
-			}
-		}
-	}
 		
 	if (alpha >= 1.)
 	{
@@ -531,11 +524,11 @@ void YoonAllen2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& st
 	double l_n = u_n/fd_c_n;
 
 	output[0] = sqrt(l_t*l_t + l_n*l_n); 
-	output[1] = state[iNumRelaxTimes+2*knumDOF];
-	output[2] = state[iNumRelaxTimes+2*knumDOF+1];
+	output[1] = state[iNumRelaxTimes+2*knumDOF+6];
+	output[2] = state[iNumRelaxTimes+2*knumDOF+7];
 	
-	double u_t_dot = (u_t - state[iNumRelaxTimes])/fTimeStep;
-	double u_n_dot = (u_n - state[iNumRelaxTimes+1])/fTimeStep;
+	double u_t_dot = (u_t - state[iNumRelaxTimes+6])/fTimeStep;
+	double u_n_dot = (u_n - state[iNumRelaxTimes+7])/fTimeStep;
 	double l_dot = (l_t*u_t_dot/fd_c_t+l_t*u_n_dot/fd_c_n)/output[0];
 	if (l_dot > kSmall)
 		output[2] += falpha_0*pow(output[0],falpha_exp);

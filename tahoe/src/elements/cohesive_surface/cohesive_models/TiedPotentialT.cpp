@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.11 2003-03-03 21:49:32 cjkimme Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.12 2003-03-19 00:53:27 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -90,13 +90,8 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in, const double& time_step):
 	fsigma_critical *= fsigma_critical;
 }
 
-void TiedPotentialT::InitStateVariables(ArrayT<double>& state)
-{
-	state = 0.;
-}
-
 /* return the number of state variables needed by the model */
-int TiedPotentialT::NumStateVariables(void) const { return 3; }
+int TiedPotentialT::NumStateVariables(void) const { return 1; }
 
 /* surface potential */ 
 double TiedPotentialT::FractureEnergy(const ArrayT<double>& state) 
@@ -128,7 +123,7 @@ double TiedPotentialT::Potential(const dArrayT& jump_u, const ArrayT<double>& st
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
+const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
@@ -152,7 +147,7 @@ const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 	{
 		if (!qTv)
 		{
-			double du_n = jump_u[1]+/*.608341*/d_n;
+			double du_n = jump_u[1]+d_n;
 			double fexpf = exp(-du_n/d_n)* exp(-jump_u[0]*jump_u[0]/d_t/d_t);
 		
 			fTraction[0] = 2.*phi_n*jump_u[0]/d_t*fexpf/d_t;
@@ -185,7 +180,7 @@ const dArrayT& TiedPotentialT::Traction(const dArrayT& jump_u, ArrayT<double>& s
 						fTraction = 0.;
 		}
 		
-		if (state[0] == -10.)
+		if (state[0] == -10. && qIntegrate)
 			state[0] = 1.;
 	}
 
@@ -211,7 +206,7 @@ const dMatrixT& TiedPotentialT::Stiffness(const dArrayT& jump_u, const ArrayT<do
 		fStiffness = 0.;
 		if (!qTv)
 		{
-			double du_n = jump_u[1]+/*.608341*/d_n;
+			double du_n = jump_u[1]+d_n;
 			double fexpf = exp(-du_n/d_n)* exp(-jump_u[0]*jump_u[0]/d_t/d_t);
 		
 			fStiffness[0] = 2.*phi_n/d_t/d_t*fexpf*(1.-2.*jump_u[0]*jump_u[0]/d_t/d_t);
@@ -342,7 +337,7 @@ void TiedPotentialT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& 
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif	
 
-	output[0] = state[1];
+	output[0] = 0.;//state[0];
 }
 
 bool TiedPotentialT::NeedsNodalInfo(void) { return true; }

@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.cpp,v 1.9 2002-10-23 00:18:03 cjkimme Exp $ */
+/* $Id: ViscTvergHutch2DT.cpp,v 1.10 2003-03-19 00:53:27 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "ViscTvergHutch2DT.h"
@@ -42,7 +42,7 @@ ViscTvergHutch2DT::ViscTvergHutch2DT(ifstreamT& in, const double& time_step):
 }
 
 /* return the number of state variables needed by the model */
-int ViscTvergHutch2DT::NumStateVariables(void) const { return knumDOF + 1; }
+int ViscTvergHutch2DT::NumStateVariables(void) const { return 2*knumDOF + 1; }
 
 /* incremental heat */
 double ViscTvergHutch2DT::IncrementalHeat(const dArrayT& jump, const ArrayT<double>& state)
@@ -95,7 +95,7 @@ double ViscTvergHutch2DT::Potential(const dArrayT& jump_u, const ArrayT<double>&
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
+const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
 {
 #pragma unused(sigma)
 #if __option(extended_errorcheck)
@@ -134,8 +134,8 @@ const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>
 	if (u_n < 0) fTraction[1] += fK*u_n;
 
 	/* incremental opening */
-	double dd_t = u_t - state[0];
-	double dd_n = u_n - state[1];
+	double dd_t = u_t - state[qIntegrate ? 0 : 2];
+	double dd_n = u_n - state[qIntegrate ? 1 : 3];
 
 	/* viscous part */
 	double T_visc_t = 0.0;
@@ -148,17 +148,24 @@ const dArrayT& ViscTvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>
 	}
 	
 	/* compute heat generation */
-	double& d_heat = state[kIncHeat] = T_visc_t*dd_t + T_visc_n*dd_n;
+	double d_heat = T_visc_t*dd_t + T_visc_n*dd_n;
+	if (qIntegrate)
+		state[kIncHeat] = d_heat;
 	if (dd_n > 0) /* only heat on opening */
 		d_heat += fTraction[1]*dd_n;
 	if (u_t*dd_t > 0)
 		d_heat += fabs(fTraction[0]*dd_t); /* too lazy to figure out the correct sign ;) */
 	d_heat *= 0.9; /* work to heat conversion factor */
 	
-	/* update last opening displacement */
-	state[0] = u_t;
-	state[1] = u_n;
-
+	if (qIntegrate)
+	{
+		/* integrate rest of state variables */
+		state[2] = state[0];
+		state[3] = state[1];
+		state[0] = u_t;
+		state[1] = u_n;
+	}
+	
 	/* add viscous stress */
 	fTraction[0] += T_visc_t;
 	fTraction[1] += T_visc_n;
@@ -297,8 +304,8 @@ const dMatrixT& ViscTvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT
 		fStiffness.PlusIdentity(eta_dt);
 
 		/* viscous part that needs special treatment near small openings */
-		double v0 = -feta0*(jump_u[0] - state[0])/fTimeStep;
-		double v1 = -feta0*(jump_u[1] - state[1])/fTimeStep;
+		double v0 = -feta0*(jump_u[0] - state[2])/fTimeStep;
+		double v1 = -feta0*(jump_u[1] - state[3])/fTimeStep;
 		if (L < kSmall) /* small openings */
 		{
 			fStiffness[0] += v0/fd_c_t;

@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.h,v 1.6 2002-07-05 22:28:00 paklein Exp $ */
+/* $Id: ViscTvergHutch2DT.h,v 1.7 2003-03-19 00:53:27 cjkimme Exp $ */
 
 #ifndef _VISC_TVERG_HUTCH_2D_T_H_
 #define _VISC_TVERG_HUTCH_2D_T_H_
@@ -46,7 +46,7 @@ public:
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma);
+	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate);
 
 	/** tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);
@@ -84,7 +84,7 @@ private:
 	/** index of state variables */
 	enum VariableIndexT {
 		    kd_n = 1,
-		kIncHeat = 2
+		kIncHeat = 4
 	};
 
 	/** the time step */

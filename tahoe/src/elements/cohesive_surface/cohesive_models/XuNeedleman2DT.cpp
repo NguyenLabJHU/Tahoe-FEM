@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman2DT.cpp,v 1.13 2002-10-23 00:18:03 cjkimme Exp $ */
+/* $Id: XuNeedleman2DT.cpp,v 1.14 2003-03-19 00:53:27 cjkimme Exp $ */
 /* created: paklein (11/14/1997) */
 
 #include "XuNeedleman2DT.h"
@@ -86,10 +86,11 @@ double XuNeedleman2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& st
 }
 	
 /* traction vector given displacement jump vector */	
-const dArrayT& XuNeedleman2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
+const dArrayT& XuNeedleman2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, const bool& qIntegrate)
 {
 #pragma unused(state)
 #pragma unused(sigma)
+#pragma unused(qIntegrate)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;

@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.20 2003-02-21 22:32:20 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.21 2003-03-19 00:53:25 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -117,6 +117,8 @@ protected:
 	dArray2DT fStateVariables_last;
 #endif
 
+	const GlobalT::StateT& fRunState;
+
 	/** incremental heat sources for each element block */
 	ArrayT<dArray2DT> fIncrementalHeat;
 	
@@ -144,6 +146,8 @@ protected:
 	
 	/* if nodes are constrained by symmetry, so be it */
 	static bool fModeIQ;
+	
+	
 };
 
 } // namespace Tahoe 
