@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.8.2.7 2002-05-03 07:16:22 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.8.2.8 2002-05-05 23:39:09 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _ELEMENTBASE_T_H_
@@ -331,7 +331,8 @@ inline void ElementBaseT::RHSDriver(void) { }
 /* number of nodes per element */
 inline int ElementBaseT::NumElementNodes(void) const
 {
-#if __option(extended_errorcheck)
+#if 1
+//#if __option(extended_errorcheck)
 	if (fConnectivities.Length() > 0 && fConnectivities[0])
 		return fConnectivities[0]->MinorDim();
 	else
