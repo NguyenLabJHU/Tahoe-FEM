@@ -1,4 +1,4 @@
-/* $Id: Aztec_fe.cpp,v 1.10 2004-07-15 08:31:46 paklein Exp $ */
+/* $Id: Aztec_fe.cpp,v 1.11 2004-07-19 04:16:45 paklein Exp $ */
 /* created: paklein (08/01/1998) */
 #include "Aztec_fe.h"
 
@@ -12,7 +12,7 @@
 #include "toolboxConstants.h"
 #include "ExceptionT.h"
 #include "az_aztec.h"
-
+#include "ifstreamT.h"
 
 #include "MSRBuilderT.h"
 #include "AztecReaderT.h"
