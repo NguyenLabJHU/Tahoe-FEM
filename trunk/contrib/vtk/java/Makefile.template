@@ -1,4 +1,4 @@
-# $Id: Makefile.template,v 1.2 2002-07-20 02:33:17 paklein Exp $
+# $Id: Makefile.template,v 1.3 2002-07-25 01:01:58 paklein Exp $
 .SUFFIXES: .cpp .h .java .class .o .sig
 
 # choose platform specific macros file
@@ -19,7 +19,7 @@ CPP_DSO = libtestClass.$(DSO_EXT)
 all: $(JAVA_OBJ) $(JAVA_JNI_HDR) $(CPP_DSO)
 
 $(CPP_DSO): $(CPP_OBJ)
-	$(LD) $(LD_FLAGS) -o libtestClass.$(DSO_EXT) $(CPP_OBJ)
+	$(LD) $(LD_FLAGS) -o libtestClass.$(DSO_EXT) $(CPP_OBJ) -L../../../toolbox/lib -ltoolbox
 
 run:
 	java app
