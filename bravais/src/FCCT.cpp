@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: FCCT.cpp,v 1.10 2003-01-08 00:28:13 saubry Exp $ */
+/* $Id: FCCT.cpp,v 1.11 2003-07-02 23:02:14 saubry Exp $ */
 #include "FCCT.h"
 #include "CrystalLatticeT.h"
 
@@ -40,15 +40,7 @@ FCCT::FCCT(int nlsd,int nuca,dArrayT alat,
 
       // Rotate axis
       if (fabs(angle_rotation) >=1.e-5) 
-      	{
-	  vAxis = AxisRotation(vAxis);
-	  cout << "Axis:\n";
-	  cout << vAxis(0,0) << "\n";
-	  cout << vAxis(1,0) << "\n\n";
-
-	  cout << vAxis(0,1) << "\n";
-	  cout << vAxis(1,1) << "\n";
-	}
+	vAxis = AxisRotation(vAxis);
     }
   
   if (nlsd==3) 

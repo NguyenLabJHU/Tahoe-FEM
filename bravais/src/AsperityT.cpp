@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: AsperityT.cpp,v 1.6 2003-06-24 17:53:20 saubry Exp $ */
+/* $Id: AsperityT.cpp,v 1.7 2003-07-02 23:02:14 saubry Exp $ */
 #include "AsperityT.h"
 #include "VolumeT.h"
 
@@ -41,9 +41,8 @@ AsperityT::AsperityT(int dim, dArray2DT len,
 
   for(int i=0;i<nSD;i++)
     {
-      length(i,0) = len(i,0);
-      double dist = len(i,1)-len(i,0)+1;
-      length(i,1) = len(i,0) + ncells[i]*lattice_parameter[i];
+      length(i,0) = -ncells[i]*lattice_parameter[i]*0.5;
+      length(i,1) = ncells[i]*lattice_parameter[i]*0.5;
     }
 }
 
@@ -146,27 +145,6 @@ void AsperityT::CreateLattice(CrystalLatticeT* pcl)
   atom_parts.Dimension(nATOMS);
   for(int m=0; m < nATOMS ; m++) 
     atom_parts[m] = temp_parts[m];
-
-  // Create array of connectivities 
-  int npart = 0;
-  for(int m=0; m < nATOMS ; m++) 
-    if(atom_parts[m] < 0) npart++;
-  /*
-  atom_part_connect.Dimension(2);
-  atom_part_connect[0]->Dimension(npart,1);
-  atom_part_connect[1]->Dimension(nATOMS-npart,1);
-
-  for(int m=0; m < nATOMS ; m++) 
-    if(atom_parts[m] < 0) 
-      {
-	atom_part_connect(m)[0] = m;
-      }
-    else
-      {
-	atom_part_connect(m)[1] = m;
-      }
-  */
-
 
   // Update lengths
   length = ComputeMinMax();
@@ -444,7 +422,6 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
   double x,y,z;
   double eps = 1.e-6;
 
-
   // Call circle parameters
   double h0 = ComputeCircleParameters();
 
@@ -487,8 +464,8 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 		  {
 		    (*temp_atom)(natom)[0] = x;
 		    (*temp_atom)(natom)[1] = y;
-		    (*temp_parts)[natom] = 10;
-		    if (z<= h0) (*temp_parts)[natom] = 20;
+		    (*temp_parts)[natom] = 1; 
+		    if (z<= h0) (*temp_parts)[natom] = -1;
 		    natom++;
 		  }
 	      }
@@ -529,18 +506,20 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 		  double R = r0*r0 + r1*r1 + r2*r2;
 
 		  if(x >= l00 && x <= l01 && y >= l10 && y <= l11 && z >= l20 && z <= l21)
-		    if(R <= fRadius*fRadius || z <= h0 + eps)
+		    if(R <= fRadius*fRadius - eps|| z <= h0 + eps)
 		      {
-			(*temp_atom)(natom)[0] = x;
-			(*temp_atom)(natom)[1] = y;
-			(*temp_atom)(natom)[2] = z;
-			(*temp_parts)[natom] = 10;
-			if (z<= h0 + eps) (*temp_parts)[natom] = 20;
-			if ( fabs(z-length(2,0)) <= 1.e-5 ) 
-			     (*temp_parts)[natom]= 30;
-
-			natom++;                     
-
+			if( fabs(x-length(0,0)) >= 1.e-5 && fabs(y-length(1,0)) >= 1.e-5 ) 
+			  {
+			    (*temp_atom)(natom)[0] = x;
+			    (*temp_atom)(natom)[1] = y;
+			    (*temp_atom)(natom)[2] = z;
+			    (*temp_parts)[natom] = 1; 
+			    if (z<= h0 + eps) (*temp_parts)[natom] = -1; 
+			    if ( fabs(z-length(2,0)) <= 1.e-5 ) 
+			      (*temp_parts)[natom]= -2;
+			    
+			    natom++;                     
+			  }
 		      }
 		 
 
@@ -579,13 +558,18 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
       // Shift asperity
       for (int k=0;k<natom;k++) 
 	{
-	  if((*temp_parts)[k] == 10)
+	  if((*temp_parts)[k] > 0) 
 	    {
 	      (*temp_atom)(k)[0] += vLP[0]*0.25;
 	      (*temp_atom)(k)[1] += vLP[1]*0.25;
+
+	      //x = (*temp_atom)(k)[0];
+	      //y = (*temp_atom)(k)[1];
+	      //(*temp_atom)(k)[0] = 0.5*sqrt(2.0)*(x - y);
+	      //(*temp_atom)(k)[1] = 0.5*sqrt(2.0)*(x + y);
 	    }
 	}
-      
+
 
     }
   return natom;
