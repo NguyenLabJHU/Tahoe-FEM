@@ -1,44 +1,46 @@
-/* $Id: VariArrayT.h,v 1.2.2.1 2002-10-17 01:51:28 paklein Exp $ */
-/* created: paklein (04/18/1998)                                          */
-/* WRAPPER for ArrayT<>'s to add dynamic sizing using                     */
-/* some headroom to cut down calls for memory                             */
-/* de/re-allocation                                                       */
-
+/* $Id: VariArrayT.h,v 1.2.2.2 2002-10-18 01:23:59 paklein Exp $ */
+/* created: paklein (04/18/1998) */
 #ifndef _VARI_ARRAY_T_H_
 #define _VARI_ARRAY_T_H_
 
 /* base class */
 #include "VariBaseT.h"
 
-
 namespace Tahoe {
 
+/** wrapper for ArrayT<>'s to add dynamic sizing.
+ * Implemented efficient dynamic resizing of an ArrayT using
+ * some headroom to cut down calls for memory de/re-allocation */
 template <class TYPE>
 class VariArrayT: public VariBaseT<TYPE>
 {
 public:
 
-	/* constructors */
+	/** \name constructors */
+	/*@{*/
 	VariArrayT(void);
 	VariArrayT(int headroom, ArrayT<TYPE>& ward);
+	/*@}*/
 
-	/* set the managed array - can only be set ONCE */
+	/** set the managed array. \note can only be set once. */
 	void SetWard(int headroom, ArrayT<TYPE>& ward);
 	
-	/* set length of the ward, fill extra space and copy in old
-	 * data if specified */
+	/** \name set length of the ward
+	 * Fill extra space and copy in old data if specified */
+	/*@{*/	
 	void SetLength(int length, bool copy_in);
 	void SetLength(int length, const TYPE& fill, bool copy_in);
+	/*@}*/	
 
-	/* return the current length of the ward */
+	/** return the current length of the ward */
 	int Length(void) const;
 
-	/* free memory of self and ward */
+	/** free memory of self and ward */
 	void Free(void);
 
 private:
 
-	/* the managed array */
+	/** the managed array */
 	ArrayT<TYPE>* fWard;
 };
 

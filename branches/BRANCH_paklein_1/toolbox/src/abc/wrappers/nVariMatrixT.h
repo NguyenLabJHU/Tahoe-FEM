@@ -1,9 +1,5 @@
-/* $Id: nVariMatrixT.h,v 1.4.2.1 2002-10-17 01:51:28 paklein Exp $ */
-/* created: paklein (07/05/1998)                                          */
-/* WRAPPER for nMatrixT<>'s to add dynamic re-sizing of the               */
-/* major dimension, using some headroom to cut down calls for             */
-/* memory de/re-allocation                                                */
-
+/* $Id: nVariMatrixT.h,v 1.4.2.2 2002-10-18 01:23:59 paklein Exp $ */
+/* created: paklein (07/05/1998) */
 #ifndef _N_VARI_MATRIX_T_H_
 #define _N_VARI_MATRIX_T_H_
 
@@ -13,43 +9,49 @@
 /* direct members */
 #include "nMatrixT.h"
 
-
 namespace Tahoe {
 
+/** wrapper for nMatrixT<>'s for dynamic re-sizing.
+/* Manage changing memory using some headroom to cut down calls for
+/* memory de/re-allocation */
 template <class nTYPE>
 class nVariMatrixT: public VariBaseT<nTYPE>
 {
 public:
 
-	/* constructors */
+	/** \name constructors */
+	/*@{*/
 	nVariMatrixT(void);
 	nVariMatrixT(int headroom, nMatrixT<nTYPE>& ward);
+	/*@}*/
 
-	/* set the managed array - can only be set ONCE */
+	/** set the managed array. \note can only be set once */
 	void SetWard(int headroom, nMatrixT<nTYPE>& ward);
 	
-	/* set length of the ward */
+	/** \name set dimensions of the ward */
+	/*@{*/
 	void SetDimensions(int rows, int cols);
 	void SetDimensions(int squaredim);
+	/*@}*/
 
-	/* dimensions accessors - of the ward */
+	/** \name dimension accessors of the ward */
+	/*@{*/
 	int Rows(void) const;
 	int Cols(void) const;
+	/*@}*/
 	
-	/* reference to the ward */
+	/** reference to the ward */
 	const nMatrixT<nTYPE>& TheWard(void) const;
 		
 private:
 
-	/* the managed array */
+	/** the managed array */
 	nMatrixT<nTYPE>* fWard;
 };
 
 /*************************************************************************
-*
-* Implementation
-*
-*************************************************************************/
+ * Implementation
+ *************************************************************************/
 
 /* constructors */
 template <class nTYPE>

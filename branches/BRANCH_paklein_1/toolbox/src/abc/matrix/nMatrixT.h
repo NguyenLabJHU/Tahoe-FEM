@@ -1,6 +1,5 @@
-/* $Id: nMatrixT.h,v 1.16.2.1 2002-10-17 01:51:25 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.16.2.2 2002-10-18 01:23:58 paklein Exp $ */
 /* created: paklein (05/24/1996) */
-
 #ifndef _NMATRIX_T_H_
 #define _NMATRIX_T_H_
 
@@ -9,7 +8,7 @@
 
 namespace Tahoe {
 
-/** 2 dimensional matrix mathematics template object */
+/** two-dimensional matrix mathematics template object */
 template <class nTYPE>
 class nMatrixT: public nArrayT<nTYPE>
 {
@@ -59,7 +58,7 @@ public:
 	int Cols(void) const;
 	/*@}*/
 
-	/** \name \e deprecated dimensioning methods */
+	/** \name deprecated dimensioning methods */
 	/*@{*/
 	/** \deprecated replaced by nMatrixT::Dimension on 02/13/2002 */
 	void Allocate(int numrows, int numcols) { Dimension(numrows, numcols); } ;
@@ -67,9 +66,14 @@ public:
 	void Allocate(int squaredim) { Dimension(squaredim); } ;
 	/*@}*/
 
-	/* element and column accessor */
+	/** \name accessors */
+	/*@{*/
+	/** return a single element of the matrix */
 	nTYPE& operator()(int nrow, int ncol) const;
+
+	/** return a pointer a column in the matrix */
 	nTYPE* operator()(int ncol) const;
+	/*@}*/
 
 	/** \name accessing blocks
 	 * row and col in the upper left */
@@ -90,7 +94,6 @@ public:
 	/** exchange data */
 	void Swap(nMatrixT<nTYPE>& source);
 	/*@}*/
-
 	
 	/** \name accessing rows and columns */
 	/*@{*/
@@ -160,10 +163,7 @@ public:
 	   		
 	/** dyadic product
 	 * Set thisd to the the outer product of the 2 vectors, or
-	 * in dyadic notation:
-	 * \f[
-	 *        \mathbf{v}_1 \otimes \mathbf{v}_2 
-	 * \f] */
+	 * in dyadic notation \f$ \mathbf{v}_1 \otimes \mathbf{v}_2 \f$. */
 	void Outer(const nArrayT<nTYPE>& v1, const nArrayT<nTYPE>& v2);
 
 	/** \name identity operations
