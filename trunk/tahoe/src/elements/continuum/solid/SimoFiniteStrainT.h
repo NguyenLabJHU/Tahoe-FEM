@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.h,v 1.4 2001-08-20 06:47:16 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.h,v 1.5 2001-09-04 06:49:48 paklein Exp $ */
 
 #ifndef _SIMO_FINITE_STRAIN_T_H_
 #define _SIMO_FINITE_STRAIN_T_H_
@@ -13,10 +13,20 @@
 class SimoShapeFunctionT;
 
 /** enhanced strain, finite deformation quad/hex element.
- * formulation due to Simo, Armero, and Taylor, CMAME \b 110, 359-386, 1993 */
+ * formulation due to Simo, Armero, and Taylor, CMAME \b 110, 359-386, 1993. 
+ * The enhanced element modes can be solved by two methods, either a static
+ * condensation (which recomputes, rather than stores blocks of the element
+ * stiffness matrices), or the local iteration procedure described in the
+ * paper above. */
 class SimoFiniteStrainT: public FiniteStrainT
 {
 public:
+
+	/** solution method for the enhanced modes */
+	enum SolutionMethodT {
+		kStaticCondensation = 0, /**< solve internal mode by static condensation */
+            kLocalIteration = 1  /**< solve internal mode with a staggered, local iteration */
+		};                
 
 	/** constructor */
 	SimoFiniteStrainT(FEManagerT& fe_manager);
@@ -85,14 +95,17 @@ private:
 	/** form the stiffness associated with the enhanced modes
 	 * \param K_22 destination for the 2,2 block of the stiffness matrix
 	 * \param K_12 destination for the 1,2 (or transposed 2,1) block of 
-	 *             the stiffness matrix. Passing NULL skips calculation */
+	 *        the stiffness matrix. Passing NULL skips calculation */
 	void FormStiffness_enhanced(dMatrixT& K_22, dMatrixT* K_12);
 	
 protected:
 
 	/* user-defined parameters */
 	bool fIncompressibleMode; /**< flag to include incompressible mode (3D only) */
-	int  fLocalIterationMax;  /**< sub-iterations to solve for the element modes */
+	SolutionMethodT fModeSolveMethod; /**< approach to solving for the enhanced modes */
+	
+	/* parameters needed for the kLocalIteration mode solver method */
+	int fLocalIterationMax;  /**< sub-iterations to solve for the element modes */
 	double fAbsTol; /**< absolute tolerance on residual of enhanced modes */
 	double fRelTol; /**< relative tolerance on residual of enhanced modes */
 	
@@ -100,11 +113,11 @@ protected:
 	int fNumModeShapes; /**< number of mode shapes per element */
 	
 	/* element degrees of freedom */
-	dArray2DT   fElementModes;     /**< all element modes */
+	dArray2DT   fElementModes;     /**< all element modes stored in \a local \a ordering */
 	LocalArrayT fCurrElementModes; /**< modes for current element */
 
 	/* element degrees of freedom from last time step */
-	dArray2DT   fElementModes_last;     /**< all element modes */
+	dArray2DT   fElementModes_last;     /**< all element modes stored in \a local \a ordering */
 	LocalArrayT fCurrElementModes_last; /**< modes for current element */
 
 	/** enhanced shape functions */
@@ -121,15 +134,6 @@ protected:
   	dArrayT          fF_Galerkin_all;
   	ArrayT<dMatrixT> fF_Galerkin_last_List;
   	dArrayT          fF_Galerkin_last_all;
-
-//need:
-//(1) element, enhanced DOF's
-//    - include incompressible mode for 3D
-//(2) shape functions with enhanced gradients
-//    - include both standard and higher accuracy integration schemes
-//(3) calculate standard and enhanced parts of element force and stiffness
-//(4) internal iteration for enhanced modes
-//(5) element output of enhanced mode information??
 
 	/** storage for the 1st Piola-Kirchhoff stresses at all integration points
 	 * of all elements. These are "loaded" fPK1_list for element calculations
@@ -160,7 +164,6 @@ protected:
 	dMatrixT fStressStiff_22; /**< compact stress stiffness contribution */
 	dMatrixT fGradNa;         /**< shape function gradients matrix */
 	
-//	dArrayT   fTemp2;
 	dMatrixT  fTempMat1, fTempMat2;
 	dArray2DT fDNa_x, fDNa_x_enh;
 	
