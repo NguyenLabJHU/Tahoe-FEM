@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.50.6.1 2003-06-14 18:46:24 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.50.6.2 2003-06-17 17:02:40 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -608,7 +608,8 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		ParticleT* particle = dynamic_cast<ParticleT*>(e_group);
 		if (particle) count++;
 	}
-	if (count > 1) ExceptionT::BadInputValue(caller, "only one particle group allowed: %d", count);
+//	if (count > 1) ExceptionT::BadInputValue(caller, "only one particle group allowed: %d", count);
+	if (count > 1) cout << "\n " << caller << ": WARNING found more than 1 particle group" << endl;
 #endif
 }
 
