@@ -1,8 +1,13 @@
-/* $Id: ParameterInterfaceT.cpp,v 1.2.2.1 2003-04-27 22:13:45 paklein Exp $ */
+/* $Id: ParameterInterfaceT.cpp,v 1.2.2.2 2003-04-28 08:39:47 paklein Exp $ */
 #include "ParameterInterfaceT.h"
 #include "ParameterListT.h"
 
 using namespace Tahoe;
+
+/* array behavior */
+namespace Tahoe {
+const bool ArrayT<ParameterInterfaceT*>::fByteCopy = true;
+}
 
 /* constructor */
 ParameterInterfaceT::ParameterInterfaceT(const StringT& name):
@@ -39,7 +44,7 @@ void ParameterInterfaceT::SubNames(ArrayT<StringT>& names, ArrayT<ParameterListT
 }
 	
 /* return a pointer to the ParameterInterfaceT */
-ParameterInterfaceT* ParameterInterfaceT::NewSub(const StringT& list_name)
+ParameterInterfaceT* ParameterInterfaceT::NewSub(const StringT& list_name) const
 {
 #pragma unused(list_name)
 	return NULL;
