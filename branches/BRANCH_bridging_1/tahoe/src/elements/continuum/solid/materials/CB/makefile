@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4.24.1 2003-02-19 01:12:59 paklein Exp $
+# $Id: makefile,v 1.4.24.2 2003-02-19 01:22:01 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -8,7 +8,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	BondLatticeT.o \
 	CBLatticeT.o \
-	HexLatticeT.o \
+	HexLattice2DT.o \
 	Hex2D.o \
 	LJTr2D.o \
 	SWDiamond100.o \
@@ -24,7 +24,7 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	BondLatticeT.cpp \
 	CBLatticeT.cpp \
-	HexLatticeT.cpp \
+	HexLattice2DT.cpp \
 	Hex2D.cpp \
 	LJTr2D.cpp \
 	SWDiamond100.cpp \
@@ -35,7 +35,7 @@ SRC = \
 HDR = \
 	BondLatticeT.h \
 	CBLatticeT.h \
-	HexLatticeT.h \
+	HexLattice2DT.h \
 	Hex2D.h \
 	LJTr2D.h \
 	SWDiamond100.h \
