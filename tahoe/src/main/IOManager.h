@@ -1,4 +1,4 @@
-/* $Id: IOManager.h,v 1.3 2001-08-03 20:01:02 sawimme Exp $ */
+/* $Id: IOManager.h,v 1.4 2001-09-07 13:22:32 sawimme Exp $ */
 /* created: sawimme (10/12/1999)                                          */
 
 #ifndef _IOMANAGER_H_
@@ -65,27 +65,10 @@ public:
 
 	// input
 	ModelManagerT* ModelManager (void) const;
-	void ReadParameters (ifstreamT& in, bool interactive, const StringT& program_name, const StringT& version);
-	virtual void Interactive (void);
-	virtual void ReadInputFile(ifstreamT& in);
-
-	// use int instead of enum, so can pass derived class enum values.
-	virtual void InputData (int& data, int key) const;
-	virtual void InputData (iArrayT& data, int key) const;
-
-	void Translate (void);
-
-protected:
-
-	bool ReadWord1 (ifstreamT& in, StringT& word1) const;
-	virtual void Parse (ifstreamT& in, StringT& word1);
-	void InteractiveIO (void);
+	void SetInput (ifstreamT& in);
+	void SetInput (const IOBaseT::FileTypeT format, const StringT& database);
 
 private:
-
-	void ReadOutputFormat (ifstreamT& in);
-	void ReadInputFormat (ifstreamT& in);
-	void PrintFormat (ostream& log) const;
 
 	/* return new output formatter */
 	OutputBaseT* SetOutput(const StringT& program_name, const StringT& version,
