@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.2 2001-10-25 07:16:43 paklein Exp $ */
 /* created: paklein (04/05/1997)                                          */
 
 #include "UnConnectedRodT.h"
@@ -65,6 +65,9 @@ GlobalT::RelaxCodeT UnConnectedRodT::RelaxSystem(void)
 
 		/* reset local equation number lists */	
 		ConfigureElementData();
+
+		/* set block data */
+		fBlockData(0, kBlockDim) = fConnectivities.MajorDim();
 		
 		/* reset count */
 		fReconnectCount = 0;
@@ -140,12 +143,18 @@ void UnConnectedRodT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		/* connect nodes - dimensions lists */
 		Connector.GetNeighors(fConnectivities, fNeighborDist);		
 	}
-	
+			
 	/* set element equation and node lists */
 	ConfigureElementData();
 
+	/* set block data */
+	fBlockData.Allocate(1, kBlockDataSize);
+	fBlockData(0, kStartNum) = 0;
+	fBlockData(0, kBlockDim) = fConnectivities.MajorDim();
+	fBlockData(0, kBlockMat) = 0;
+
 	/* print connectivity data */
-	PrintConnectivityData(out);
+	WriteConnectivity(out);
 }
 
 /***********************************************************************
@@ -167,22 +176,8 @@ void UnConnectedRodT::ConfigureElementData(void)
 		/* node and equation numbers */			
 		(fElementCards[i].NodesX()).Set(fNumElemNodes, fConnectivities(i) );		
 		(fElementCards[i].Equations()).Set(fNumElemEqnos, fEqnos(i) );
+		
+		/* all have same material number */
+		fElementCards[i].SetMaterialNumber(0);
 	}
 }
-
-/* print connectivity element data */
-void UnConnectedRodT::PrintConnectivityData(ostream& out)
-{
-	out << " Number of 2 body interactions . . . . . . . . . = " << fConnectivities.MajorDim() << '\n';
-
-	/* 2-body connectivities */
-	out << "\n Connectivities:\n\n";
-	out << setw(kIntWidth) << "no.";
-	for (int i = 1; i <= 2; i++)
-	{
-		out << setw(kIntWidth - 2) << "n[";
-		out << i << "]";
-	}
-	out << '\n';
-	fConnectivities.WriteNumbered(out);
-}	
