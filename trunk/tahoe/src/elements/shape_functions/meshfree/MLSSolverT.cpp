@@ -1,11 +1,9 @@
-/* $Id: MLSSolverT.cpp,v 1.18 2004-10-30 20:53:23 raregue Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.19 2004-10-31 20:48:25 paklein Exp $ */
 /* created: paklein (12/08/1999) */
 #include "MLSSolverT.h"
 
 #include "ExceptionT.h"
 #include "dSymMatrixT.h"
-
-#include "MFGP_ToolsT.h"  //kyonten
 
 /* basis functions */
 #include "PolyBasis1DT.h"
@@ -36,22 +34,19 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 	fOrder(0),
 	fDb(fNumSD),
 	fDDb(dSymMatrixT::NumValues(fNumSD)),
-	fDDDb(fNumSD*fNumSD),// kyonten 
 	fDM(fNumSD),
 	fDDM(dSymMatrixT::NumValues(fNumSD)),
-	fDDDM(fNumSD*fNumSD), // kyonten 
 	/* variable memory managers */
 	fArrayGroup(0, true),
 	fArray2DGroup2(0, 0),
 	fArray2DGroup3(0, 0),
-	fArray2DGroup4(0, 0), // kyonten (for the third derivative)
 	fLocCoords_man(0, fLocCoords, fNumSD),
 	
 	/* work space */
 	fNSDsym(fNumSD)
 {
 	const char caller[] = "MLSSolverT::MLSSolverT";
-	
+
 	/* construct basis functions */
 	switch (fNumSD)
 	{
@@ -96,17 +91,8 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 		}
 		case MeshFreeT::kRectCubicSpline:
 		{
-			/* one per direction */
-			dArrayT scalings(fNumSD);
-			for (int i = 0; i < fNumSD; i++)
-				scalings[i] = window_params[i*3];
-
-			/* same for all directions */
-			double sharpening_factor = window_params[1];
-			double    cut_off_factor = window_params[2];
-
 			/* construct window function */
-			fWindow = new RectCubicSplineWindowT(scalings, sharpening_factor, cut_off_factor);
+			fWindow = new RectCubicSplineWindowT(window_params);
 			if (!fWindow) ExceptionT::GeneralFail(caller);
 			break;
 		}
@@ -127,33 +113,20 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 	for (int j = 0; j < fDb.Length(); j++)
 		fDb[j].Dimension(m);
 	for (int jj = 0; jj < fDDb.Length(); jj++)
-		fDDb[jj].Dimension(m);	
-	for (int jjj = 0; jjj < fDDDb.Length(); jjj++) // kyonten
-		fDDDb[jjj].Dimension(m);	
+		fDDb[jj].Dimension(m);
 
 	fMinv.Dimension(m);
 	for (int i = 0; i < fDM.Length(); i++)
 		fDM[i].Dimension(m);
-		
 	for (int ii = 0; ii < fDDM.Length(); ii++)
 		fDDM[ii].Dimension(m);
-		
-	for (int iii = 0; iii < fDDDM.Length(); iii++) // kyonten
-		fDDDM[iii].Dimension(m);
-		
+
 	/* work space */
 	fMtemp.Dimension(m);
 	fbtemp1.Dimension(m);
 	fbtemp2.Dimension(m);
 	fbtemp3.Dimension(m);
 	fbtemp4.Dimension(m);
-	// kyonten (DDDb)
-	fbtemp5.Dimension(m);
-	fbtemp6.Dimension(m);
-	fbtemp7.Dimension(m);
-	fbtemp8.Dimension(m);
-	fbtemp9.Dimension(m);
-	fbtemp10.Dimension(m);
 }
 	
 /* destructor */
@@ -184,20 +157,17 @@ void MLSSolverT::Initialize(void)
 	/* window function */
 	fArrayGroup.Register(fw);
 	fArray2DGroup2.Register(fDw);		
-	fArray2DGroup3.Register(fDDw);
-	fArray2DGroup4.Register(fDDDw); // kyonten	
+	fArray2DGroup3.Register(fDDw);		
 
 	/* correction function */
 	fArrayGroup.Register(fC);
 	fArray2DGroup2.Register(fDC);		
-	fArray2DGroup3.Register(fDDC);
-	fArray2DGroup4.Register(fDDDC); // kyonten	
+	fArray2DGroup3.Register(fDDC);		
 
 	/* shape function */
 	fArrayGroup.Register(fphi);
 	fArray2DGroup2.Register(fDphi);		
-	fArray2DGroup3.Register(fDDphi);
-	fArray2DGroup4.Register(fDDDphi); // kyonten		
+	fArray2DGroup3.Register(fDDphi);		
 }
 
 /* set MLS at coords given sampling points */
@@ -209,7 +179,7 @@ int MLSSolverT::SetField(const dArray2DT& coords, const dArray2DT& nodal_param,
 	if (nodal_param.MinorDim() != fWindow->NumberOfSupportParameters()) throw ExceptionT::kSizeMismatch;
 	if (volume.Length()  != coords.MajorDim()) throw ExceptionT::kSizeMismatch;
 	if (fieldpt.Length() != fNumSD) throw ExceptionT::kSizeMismatch;
-	if (order < 0 || order > 3) throw ExceptionT::kOutOfRange; // order increased to 3: kyonten
+	if (order < 0 || order > 2) throw ExceptionT::kOutOfRange;
 #endif
 	
 	/* dimension work space */
@@ -222,7 +192,7 @@ int MLSSolverT::SetField(const dArray2DT& coords, const dArray2DT& nodal_param,
 	fLocCoords.AddToRowsScaled(1.0, fieldpt);
 
 	/* window functions */
-	int numactive = fWindow->Window(fLocCoords, nodal_param, fOrigin, fOrder, fw, fDw, fDDw, fDDDw);
+	int numactive = fWindow->Window(fLocCoords, nodal_param, fOrigin, fOrder, fw, fDw, fDDw);
 	if (numactive < fBasis->BasisDimension())
 	{
 		cout << "\n MLSSolverT::SetField: not enough nodes for fit: ";
@@ -271,8 +241,8 @@ void MLSSolverT::SynchronizeSupportParameters(dArray2DT& params_1,
 }
 
 /***********************************************************************
-* Private
-***********************************************************************/
+ * Private
+ ***********************************************************************/
 
 /* configure solver for current number of neighbors */
 void MLSSolverT::Dimension(void)
@@ -288,8 +258,6 @@ void MLSSolverT::Dimension(void)
 	if (fOrder > 0) fArray2DGroup2.Dimension(fNumSD, fNumNeighbors);
 	if (fOrder > 1) fArray2DGroup3.Dimension(dSymMatrixT::NumValues(fNumSD),
 		fNumNeighbors);
-	if (fOrder > 2) fArray2DGroup4.Dimension(fNumSD*fNumSD,	
-		fNumNeighbors); // kyonten
 }
 
 /* set moment matrix, inverse, and derivatives */
@@ -301,14 +269,7 @@ int MLSSolverT::SetMomentMatrix(const dArrayT& volume)
 	{
 		ComputeDM(volume);
 		if (fOrder > 1)
-		{
 			ComputeDDM(volume);
-			if (fOrder > 2) //kyonten
-			{
-				ComputeDDDM(volume);
-			}
-		}
-			
 	}
 
 	/* compute inverse */
@@ -585,90 +546,6 @@ void MLSSolverT::ComputeDDM(const dArrayT& volume)
 	}
 }
 
-void MLSSolverT::ComputeDDDM(const dArrayT& volume) // kyonten (DDDM)
-{
-	int dim = fBasis->BasisDimension();
-	const dArray2DT& basis = fBasis->P();
-	for (int rst = 0; rst < (fNumSD*fNumSD); rst++)
-	{
-		dMatrixT& DDDM = fDDDM[rst];
-
-		/* resolve components */
-		int r, s, t, rs, st, rt;
-		MFGP_ToolsT::ExpandIndex3(fNumSD, rst, r, s, t);
-		MFGP_ToolsT::ExpandIndex2(fNumSD, r, s, t, rs, st, rt);
-		
-		const dArray2DT& Dbasis_r = fBasis->DP(r);
-		const dArray2DT& Dbasis_s = fBasis->DP(s);
-		const dArray2DT& Dbasis_t = fBasis->DP(t);
-		const dArray2DT& DDbasis_rs  = fBasis->DDP(rs);
-		const dArray2DT& DDbasis_st  = fBasis->DDP(st);
-		const dArray2DT& DDbasis_rt  = fBasis->DDP(rt);
-		const dArray2DT& DDDbasis  = fBasis->DDDP(rst);
-
-		for (int i = 0; i < dim; i++)
-			for (int j = i; j < dim; j++)
-			{
-				double*   w = fw.Pointer();
-				double*  Dw_r = fDw(r);
-				double*  Dw_s = fDw(s);
-				double*  Dw_t = fDw(t);
-				double*  DDw_rs  = fDDw(rs);
-				double*  DDw_st  = fDDw(st);
-				double*  DDw_rt  = fDDw(rt);
-				double*  DDDw  = fDDDw(rst);
-				
-				const double*    pi = basis(i);
-				const double*    pj = basis(j);
-				const double* Dpi_r = Dbasis_r(i);
-				const double* Dpi_s = Dbasis_s(i);
-				const double* Dpi_t = Dbasis_t(i);
-				const double* Dpj_r = Dbasis_r(j);
-				const double* Dpj_s = Dbasis_s(j);
-				const double* Dpj_t = Dbasis_t(j);
-				const double* DDpi_rs = DDbasis_rs(i);
-				const double* DDpi_st = DDbasis_st(i);
-				const double* DDpi_rt = DDbasis_rt(i);
-				const double* DDpj_rs = DDbasis_rs(j);
-				const double* DDpj_st = DDbasis_st(j);
-				const double* DDpj_rt = DDbasis_rt(j);
-				const double* DDDpi = DDDbasis(i);
-				const double* DDDpj = DDDbasis(j);
-
-				const double* vol = volume.Pointer();
-				double DDDmij = 0.0;
-				for (int k = 0; k < fNumNeighbors; k++)
-				{
-					DDDmij += ((*DDDpi)*(*w)*(*pj) + (*DDpi_rs)*(*w)*(*Dpj_t) 
-							+ (*DDpi_rs)*(*Dw_t)*(*pj) + (*DDpi_rt)*(*w)*(*Dpj_s) 
-							+ (*Dpi_r)*(*w)*(*DDpj_st) + (*Dpi_r)*(*Dw_t)*(*Dpj_s)
-					        + (*DDpi_rt)*(*Dw_s)*(*pj) + (*Dpi_r)*(*Dw_s)*(*Dpj_t) 
-					        + (*Dpi_r)*(*DDw_rt)*(*pj) + (*DDpi_rs)*(*w)*(*Dpj_r) 
-					        + (*Dpi_s)*(*w)*(*DDpj_rs) + (*Dpi_s)*(*Dw_t)*(*Dpj_r)
-					        + (*Dpi_t)*(*w)*(*DDpj_rs) + (*pi)*(*w)*(*DDDpj) 
-					        + (*pi)*(*Dw_t)*(*DDpj_rs) + (*Dpi_t)*(*Dw_s)*(*Dpj_r) 
-					        + (*pi)*(*Dw_s)*(*DDpj_rt) + (*pi)*(*DDw_st)*(*Dpj_r)
-					        + (*DDpi_st)*(*Dw_r)*(*pj) + (*Dpi_s)*(*Dw_r)*(*Dpj_t) 
-					        + (*Dpi_s)*(*DDw_rt)*(*pj) + (*Dpi_t)*(*Dw_r)*(*Dpj_t) 
-					        + (*pi)*(*Dw_r)*(*DDpj_st) + (*pi)*(*DDw_rs)*(*Dpj_s)
-					        + (*Dpi_t)*(*DDw_rs)*(*pj) + (*pi)*(*DDw_rs)*(*Dpj_t) 
-					        + (*pi)*(*DDDw)*(*pj))*(*vol);
-					
-					w++; Dw_r++; Dw_s++; Dw_t++; 
-					DDw_rs++; DDw_st++; DDw_rt++; DDDw++;
-					pi++; pj++;
-					Dpi_r++; Dpi_s++; Dpi_t++;
-					Dpj_r++; Dpj_s++; Dpj_t++;
-					DDpi_rs++; DDpi_st++; DDpi_rt++; 
-					DDpj_rs++; DDpj_st++; DDpj_rt++;
-					DDDpi++; DDDpj;
-					vol++;
-				}
-				DDDM(i,j) = DDDM(j,i) = DDDmij;
-			}
-	}
-}
-
 /* set correction function coefficients */
 void MLSSolverT::SetCorrectionCoefficient(void)
 {
@@ -701,35 +578,6 @@ void MLSSolverT::SetCorrectionCoefficient(void)
 				                         -1.0, fbtemp2,
 				                         -1.0, fbtemp3);
 				fMinv.Multx(fbtemp4, fDDb[ij]);
-			}
-			if (fOrder > 2)
-			{
-				/* third derivative */ // kyonten
-				for (int ijk = 0; ijk < fNumSD*fNumSD; ijk++)
-				{
-					/* resolve indices */
-					int i, j, k, ij, jk, ik;
-					MFGP_ToolsT::ExpandIndex3(fNumSD, ijk, i, j, k);
-					MFGP_ToolsT::ExpandIndex2(fNumSD, i, j, k, ij, jk, ik);
-		
-					fDDM[ijk].Multx(fb, fbtemp1);
-					fDDM[ij].Multx(fDb[k], fbtemp2);
-					fDDM[ik].Multx(fDb[j], fbtemp3);
-					fDDM[j].Multx(fDb[ik], fbtemp4);
-					fDM[i].Multx(fDDb[jk], fbtemp5);
-					fDM[jk].Multx(fDDb[i], fbtemp6);
-					fDM[k].Multx(fDDb[ij], fbtemp7);
-					fbtemp8.SetToCombination(-1.0, fbtemp1,
-				                         -1.0, fbtemp2,
-				                         -1.0, fbtemp3);
-				    fbtemp9.SetToCombination(-1.0, fbtemp4,
-				                         -1.0, fbtemp5,
-				                         -1.0, fbtemp6);
-				    fbtemp10 = fbtemp8;
-				    fbtemp10 += fbtemp9;
-				    fbtemp10 -= fbtemp7;                        
-					fMinv.Multx(fbtemp10, fDDDb[ijk]);
-				}
 			}
 		}
 	}
@@ -804,61 +652,9 @@ void MLSSolverT::SetCorrection(void)
 					
 				}
 			}
-			if (fOrder > 2) // kyonten
-			{
-				/* 3rd derivative */
-				fDDDC = 0.0;
-				for (int ijk = 0; ijk < (fNumSD*fNumSD); ijk++)
-				{
-					/* expand index */
-					int i, j, k, ij, jk, ik;
-					MFGP_ToolsT::ExpandIndex3(fNumSD, ijk, i, j, k);
-					MFGP_ToolsT::ExpandIndex2(fNumSD, i, j, k, ij, jk, ik);
-					
-					const dArray2DT& Dbasis_i = fBasis->DP(i);
-					const dArray2DT& Dbasis_j = fBasis->DP(j);
-					const dArray2DT& Dbasis_k = fBasis->DP(k);
-					const dArray2DT&  DDbasis_ij = fBasis->DDP(ij);
-					const dArray2DT&  DDbasis_jk = fBasis->DDP(jk);
-					const dArray2DT&  DDbasis_ik = fBasis->DDP(ik);
-					const dArray2DT&  DDbasis = fBasis->DDDP(ijk);
-					
-					for (int m = 0; m < fb.Length(); m++)
-					{
-						double* DDDC = fDDDC(ijk);
-						const double*   P = basis(m);
-						const double* DPi = Dbasis_i(m);
-						const double* DPj = Dbasis_j(m);
-						const double* DPk = Dbasis_k(m);
-						const double* DDPij = DDbasis_ij(m);
-						const double* DDPjk = DDbasis_jk(m);
-						const double* DDPik = DDbasis_ik(m);
-						const double* DDDP = DDbasis(m);
-						double    b = fb[m];
-						double  Dbi = fDb[i][m];
-						double  Dbj = fDb[j][m];
-						double  Dbk = fDb[k][m];
-						double  DDbij = fDDb[ij][m];
-						double  DDbjk = fDDb[jk][m];
-						double  DDbik = fDDb[ik][m];
-						double  DDDb = fDDDb[ijk][m];
-						for (int n = 0; n < fNumNeighbors; n++)
-							*DDDC++ += (*DDDP++)*b
-						        	+ (*DDPij++)*Dbk
-						        	+ (*DDPik++)*Dbj
-						        	+ (*DPi++)*DDbjk
-						        	+ (*DDPjk++)*Dbi
-						        	+ (*DPj++)*DDbik
-						        	+ (*DPk++)*DDbij
-						        	+ (*P++)*DDDb;
-					
-					}
-				}
-			} // end of 3rd derivative
-			
 		}
 	}
-} //end of set:correction
+}
 
 /* set shape functions */
 void MLSSolverT::SetShapeFunctions(const dArrayT& volume)
@@ -910,44 +706,6 @@ void MLSSolverT::SetShapeFunctions(const dArrayT& volume)
 					          + (*DC_j++)*(*Dw_i++)
 					          + (*C++)*(*DDw++))*(*vol++);
 			}
-			if (fOrder > 2) // kyonten
-			{
-				for (int ijk = 0; ijk < fNumSD*fNumSD; ijk++)
-				{
-					/* resolve index */
-					int i, j, k, ij, jk, ik;
-					MFGP_ToolsT::ExpandIndex3(fNumSD, ijk, i, j, k);
-					MFGP_ToolsT::ExpandIndex2(fNumSD, i, j, k, ij, jk, ik);
-			
-					double* DDDphi = fDDDphi(ijk);
-					double*     C = fC.Pointer();
-					double*  DC_i = fDC(i);
-					double*  DC_j = fDC(j);
-					double*  DC_k = fDC(k);
-					double*  DDC_ij = fDDC(ij);
-					double*  DDC_jk = fDDC(jk);
-					double*  DDC_ik = fDDC(ik);
-					double*  DDDC = fDDDC(ijk);
-					double*     w = fw.Pointer();
-					double*  Dw_i = fDw(i);
-					double*  Dw_j = fDw(j);
-					double*  Dw_k = fDw(k);
-					double*  DDw_ij = fDDw(ij);
-					double*  DDw_jk = fDDw(jk);
-					double*  DDw_ik = fDDw(ik);
-					double*  DDDw = fDDw(ijk);
-					const double*   vol = volume.Pointer();
-					for (int n = 0; n < fNumNeighbors; n++)
-						*DDDphi++ = ((*DDDC++)*(*w++)
-					          		+ (*DDC_ij++)*(*Dw_k++)
-					          		+ (*DDC_ik++)*(*Dw_j++)
-					          		+ (*DC_i++)*(*DDw_jk++)
-					          		+ (*DDC_jk++)*(*Dw_i++)
-					          		+ (*DC_j++)*(*DDw_ik++)
-					          		+ (*DC_k++)*(*DDw_ij++)
-					          		+ (*C++)*(*DDDw++))*(*vol++);
-				}
-			} // end of 3rd derivative of the shape function
 		}
 	}
 }
