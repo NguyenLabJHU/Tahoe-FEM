@@ -23,6 +23,9 @@ CORUNT::CORUNT(int nlsd,int nuca,dArrayT alat,
   // Define Lattice Type
   sLATTYPE = "CORUN";
 
+  // Number of types
+  nType = 2;
+
   if (nlsd==2)
     {
       cout << "Cannot create a 2-dimensional CORUN lattice!" << "\n";
@@ -147,9 +150,11 @@ CORUNT::CORUNT(int nlsd,int nuca,dArrayT alat,
 
 
 CORUNT::CORUNT(const CORUNT& source) : CrystalLatticeT(source.nLSD,source.nUCA,
-						 source.WhichRot,source.matrix_rotation,
-						 source.angle_rotation)
+						       source.WhichRot,source.matrix_rotation,
+						       source.angle_rotation)
 {
+  nType = source.nType;
+
   for (int i=0; i<source.nLSD; i++) 
     for (int j=0; j<source.nUCA; j++) 
       vBasis(i,j) = source.vBasis(i,j);

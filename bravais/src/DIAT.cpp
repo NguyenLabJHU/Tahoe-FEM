@@ -87,6 +87,8 @@ DIAT::DIAT(const DIAT& source) : CrystalLatticeT(source.nLSD,source.nUCA,
 						 source.WhichRot,source.matrix_rotation,
 						 source.angle_rotation)
 {
+  nType = source.nType;
+
   for (int i=0; i<source.nLSD; i++) 
     for (int j=0; j<source.nUCA; j++) 
       vBasis(i,j) = source.vBasis(i,j);
