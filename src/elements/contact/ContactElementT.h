@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.34 2003-12-20 01:22:14 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.35 2004-01-05 17:04:29 paklein Exp $ */
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
 
@@ -94,6 +94,9 @@ public:
 
 	/** return the contact elements */
   	virtual const iArray2DT& DOFConnects(int tag_set) const;
+
+	/** restore any state data to the previous converged state */
+	virtual void ResetState(void) { }; 
 
    	/** restore the DOF values to the last converged solution */
    	virtual void ResetDOF(dArray2DT& DOF, int tag_set) const;
