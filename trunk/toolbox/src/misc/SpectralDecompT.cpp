@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.cpp,v 1.2 2001-03-15 21:40:42 paklein Exp $ */
+/* $Id: SpectralDecompT.cpp,v 1.3 2001-05-04 19:18:40 paklein Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
@@ -115,7 +115,7 @@ void SpectralDecompT::SpectralDecomp(const dSymMatrixT& rank2, bool perturb_repe
 }
 
 /* compute spectral decomposition using Jacobi iterations */
-void SpectralDecompT::SpectralDecomp_new(const dSymMatrixT& rank2)
+void SpectralDecompT::SpectralDecomp_new(const dSymMatrixT& rank2, bool perturb_repeated)
 {
 	bool sort_descending = false;
 	rank2.Eigensystem(fEigs, fEvecMatrix, sort_descending);
@@ -134,7 +134,7 @@ void SpectralDecompT::SpectralDecomp_new(const dSymMatrixT& rank2)
 		dSymMatrixT& n1n1 = fm[1];
 		n1n1[0] = pvec[0]*pvec[0];
 		n1n1[1] = pvec[1]*pvec[1];
-		n1n1[2] = pvec[0]*pvec[1];
+		n1n1[2] = pvec[0]*pvec[1];		
 	}
 	else if (nsd == 3)
 	{
@@ -167,12 +167,16 @@ void SpectralDecompT::SpectralDecomp_new(const dSymMatrixT& rank2)
 	}
 	else
 		throw eGeneralFail;
+		
+	/* perturb repeated roots */
+	if (perturb_repeated) PerturbRepeated(fEigs);
 }
 
 void SpectralDecompT::DecompAndModPrep(const dSymMatrixT& rank2, bool perturb_repeated)
 {
 	/* set spectral decomposition */
-	SpectralDecomp(rank2, perturb_repeated);
+	//SpectralDecomp(rank2, perturb_repeated);
+	SpectralDecomp_new(rank2, perturb_repeated);
 	
 	/* modulus tensors */
 	if (rank2.Rows() == 2)
@@ -219,7 +223,8 @@ void SpectralDecompT::PolarDecomp(const dMatrixT& F, dMatrixT& R, dSymMatrixT& U
 	U.MultATA(F);
 	
 	/* spectral decomposition */
-	SpectralDecomp(U, perturb_repeated);
+	//SpectralDecomp(U, perturb_repeated);
+	SpectralDecomp_new(U, perturb_repeated);
 
 	/* eigenvalues to stretches */
 	if (fEigs[0] <= 0.0) throw eBadJacobianDet; fEigs[0] = sqrt(fEigs[0]);
@@ -425,6 +430,9 @@ void SpectralDecompT::SpectralDecomp3D(const dSymMatrixT& rank2, dArrayT& eigs,
 		n0xn0(0,0) = 1.0;
 		n1xn1(1,1) = 1.0;
 		n2xn2(2,2) = 1.0;
+		
+		/* remove repeated */
+		//if (perturb_repeated) PerturbRepeated(eigs);
 	}
 	else
 	{
@@ -619,6 +627,53 @@ void SpectralDecompT::SchmidtDecompose(const dSymMatrixT& rank2,
 			
 	/* second rank 1 tensor */
 	n1xn1.SetToCombination(1.0/l, rank2,
--l2/l, n2xn2,
--1.0, n0xn0);
+                           -l2/l, n2xn2,
+                            -1.0, n0xn0);
 }	
+
+/* function to perturb repeated roots */
+void SpectralDecompT::PerturbRepeated(dArrayT& roots)
+{
+	if (roots.Length() != 2 && roots.Length() != 3)
+	{
+		cout << "\n SpectralDecompT::PerturbRepeated: expecting array length 2 or 3" << endl;
+		throw eGeneralFail;
+	}
+
+	/* perturb repeated roots */
+	if (roots.Length() == 2 && fabs(fEigs[0] - fEigs[1]) < kSameRoot)
+	{
+		fEigs[0] *= (1.0 + kpert);
+		fEigs[1] /= (1.0 + kpert);
+	}
+	else
+	{
+		if (fabs(fEigs[0] - fEigs[1]) < kSameRoot)
+		{
+			fEigs[0] *= (1.0 + kpert);
+			fEigs[1] /= (1.0 + kpert);
+			if (fabs(fEigs[0] - fEigs[2]) < kSameRoot)
+				fEigs[0] /= (1.0 + kpert);
+			else if (fabs(fEigs[1] - fEigs[2]) < kSameRoot)
+				fEigs[1] *= (1.0 + kpert);
+		}
+		else if (fabs(fEigs[0] - fEigs[2]) < kSameRoot)
+		{
+			fEigs[0] *= (1.0 + kpert);
+			fEigs[2] /= (1.0 + kpert);
+			if (fabs(fEigs[0] - fEigs[1]) < kSameRoot)
+				fEigs[0] /= (1.0 + kpert);
+			else if (fabs(fEigs[2] - fEigs[1]) < kSameRoot)
+				fEigs[2] *= (1.0 + kpert);
+		}
+		else if (fabs(fEigs[1] - fEigs[2]) < kSameRoot)
+		{
+			fEigs[1] *= (1.0 + kpert);
+			fEigs[2] /= (1.0 + kpert);
+			if (fabs(fEigs[1] - fEigs[0]) < kSameRoot)
+				fEigs[1] /= (1.0 + kpert);
+			else if (fabs(fEigs[2] - fEigs[0]) < kSameRoot)
+				fEigs[2] *= (1.0 + kpert);
+		}
+	}
+}
