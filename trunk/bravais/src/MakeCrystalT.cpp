@@ -29,12 +29,12 @@
 #include "MeshAtomT.h"
 #include "time.h"
 
-    void MakeCrystalT::Run() 
+    void MakeCrystalT::Run(StringT& inputfile) 
    {
-   // Get name of input data file
-      cout << "Enter the name of the input date file:" << endl;
-      StringT inputfile;
-      cin >> inputfile;
+//   // Get name of input data file
+//      cout << "Enter the name of the input date file:" << endl;
+//      StringT inputfile;
+//     cin >> inputfile;
    
       ifstreamT in('%');
       in.open(inputfile);
