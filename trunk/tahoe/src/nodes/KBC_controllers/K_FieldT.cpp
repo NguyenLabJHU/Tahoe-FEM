@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.11 2003-05-20 10:20:06 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.12 2003-08-18 03:45:17 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 #include "NodeManagerT.h"
@@ -31,6 +31,8 @@ K_FieldT::K_FieldT(NodeManagerT& node_manager):
 	fMaterial2D(NULL),
 	fDummySchedule(1.0)
 {
+	SetName("K_field");
+
 #ifndef CONTINUUM_ELEMENT
 	ExceptionT::BadInputValue("TiedNodesT::TiedNodesT", "CONTINUUM_ELEMENT not enabled");
 #endif
@@ -295,6 +297,19 @@ void K_FieldT::WriteOutput(ostream& out) const
 	out << " Crack tip coordinates: \n" << fTipCoords << '\n';
 	out << " K I . . . . . . . . . . . . . . . . . . . . . . = " << fK1*fLTf1->Value() << '\n';
 	out << " K II. . . . . . . . . . . . . . . . . . . . . . = " << fK2*fLTf2->Value() << '\n';
+}
+
+/* describe the parameters needed by the interface */
+void K_FieldT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	KBC_ControllerT::DefineParameters(list);
+
+	list.AddParameter(fNearTipGroupNum, "near_tip_group");
+	list.AddParameter(fNearTipOutputCode, "near_tip_output_code");
+	list.AddParameter(fTipColumnNum, "tip_output_column");
+	list.AddParameter(fMaxGrowthDistance, "max_growth_distance");
+	list.AddParameter(fMaxGrowthSteps, "max_growth_steps");
 }
 
 /**********************************************************************

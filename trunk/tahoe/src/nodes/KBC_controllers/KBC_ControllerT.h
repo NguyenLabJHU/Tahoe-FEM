@@ -1,11 +1,13 @@
-/* $Id: KBC_ControllerT.h,v 1.19 2003-08-08 00:32:26 paklein Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.20 2003-08-18 03:45:16 paklein Exp $ */
 /* created: paklein (09/05/2000) */
-
 #ifndef _KBC_CONTROLLER_T_H_
 #define _KBC_CONTROLLER_T_H_
 
 #include "Environment.h"
 #include "GlobalT.h"
+
+/* base class */
+#include "ParameterInterfaceT.h"
 
 /* direct members */
 #include "ArrayT.h"
@@ -27,7 +29,7 @@ template <class TYPE> class AutoArrayT;
 
 /** base class for all kinematic BC controllers. Classes that
  * implement more than simple boundary conditions */
-class KBC_ControllerT
+class KBC_ControllerT: public ParameterInterfaceT
 {
 public:
 

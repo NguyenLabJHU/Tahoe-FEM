@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.h,v 1.6 2002-07-05 22:28:31 paklein Exp $ */
+/* $Id: K_FieldT.h,v 1.7 2003-08-18 03:45:17 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #ifndef _K_FIELD_T_H_
@@ -52,6 +52,12 @@ public:
 
 	/* output current configuration */
 	virtual void WriteOutput(ostream& out) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
 protected:
 
