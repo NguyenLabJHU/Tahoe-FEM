@@ -1,4 +1,4 @@
-/* $Id: ParameterUtils.h,v 1.8 2004-05-21 19:45:01 paklein Exp $ */
+/* $Id: ParameterUtils.h,v 1.9 2004-07-12 21:49:59 paklein Exp $ */
 #ifndef _PARAMETER_UTILS_H_
 #define _PARAMETER_UTILS_H_
 
@@ -147,7 +147,7 @@ public:
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 	/*@}*/
 
 private:
@@ -200,13 +200,13 @@ void NamedListT<TYPE>::DefineSubs(SubListT& sub_list) const
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 template <class TYPE>
-ParameterInterfaceT* NamedListT<TYPE>::NewSub(const StringT& list_name) const
+ParameterInterfaceT* NamedListT<TYPE>::NewSub(const StringT& name) const
 {
 	TYPE list_entry;
-	if (list_name == list_entry.Name())
+	if (name == list_entry.Name())
 		return new TYPE;
 	else
-		return ParameterInterfaceT::NewSub(list_name);
+		return ParameterInterfaceT::NewSub(name);
 }
 
 /* accept parameter list */
