@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.34.18.1 2004-04-08 07:32:24 paklein Exp $ */
+/* $Id: CSEAnisoT.h,v 1.34.18.2 2004-05-25 16:35:59 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -39,9 +39,6 @@ public:
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
-
-	/** initialize class data */
-	virtual void Initialize(void);
 
 	/** prepare for a sequence of time steps */
 	virtual void InitialCondition(void);

@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.18.20.2 2004-05-11 03:59:25 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.18.20.3 2004-05-25 16:35:59 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
@@ -48,92 +48,6 @@ GlobalT::SystemTypeT CSEIsoT::TangentType(void) const
 {
 	/* tangent matrix is symmetric */
 	return GlobalT::kSymmetric;
-}
-
-void CSEIsoT::Initialize(void)
-{
-	/* inherited */
-	CSEBaseT::Initialize();
-
-	/* check output codes */
-	if (fNodalOutputCodes[MaterialData])
-	{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-		cout << "\n CSEIsoT::Initialize: material outputs not supported, overriding" << endl;
-#endif
-		fNodalOutputCodes[MaterialData] = IOBaseT::kAtNever;
-	}
-
-	/* streams */
-	ifstreamT& in = ElementSupport().Input();
-	ostream&   out = ElementSupport().Output();
-	
-	/* construct props */
-	int numpots;
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	in >> numpots;
-#else
-	numpots = 1;
-#endif
-	fSurfPots.Dimension(numpots);
-	for (int i = 0; i < fSurfPots.Length(); i++)
-	{
-		int num, code;
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-		in >> num >> code;
-#else
-		num = 1; 
-		code = ElementSupport().ReturnInputInt(ElementSupportT::kMaterialCode);
-#endif
-
-		/* check for repeated number */
-		if (fSurfPots[--num] != NULL) throw ExceptionT::kBadInputValue;
-	
-		/* construct surface potential function */
-		switch (code)
-		{
-			case C1FunctionT::kLennardJones:
-			{	
-				double A, B;
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-				in >> A >> B;
-#else
-#endif				
-				fSurfPots[num] = new LennardJones612(A,B);
-				break;
-			}	
-			case C1FunctionT::kSmithFerrante:
-			{
-				double A, B;
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-				in >> A >> B;
-#else
-#endif			
-				fSurfPots[num] = new SmithFerrante(A,B,0.0);
-				break;
-			}
-			default:
-			
-				throw ExceptionT::kBadInputValue;	
-		}
-	
-		if (!fSurfPots[num]) throw ExceptionT::kOutOfMemory;
-	}
-
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	/* echo */
-	out << "\n Cohesive surface potentials:\n";
-	out << " Number of potentials. . . . . . . . . . . . . . = ";
-	out << fSurfPots.Length() << '\n';
-	for (int j = 0; j < fSurfPots.Length(); j++)
-	{
-		out << "\n Potential number. . . . . . . . . . . . . . . . = "
-		    << j + 1 << '\n';
-		out << " Potential name:\n";
-		fSurfPots[j]->PrintName(out);
-		fSurfPots[j]->Print(out);
-	}
-#endif
 }
 
 /* information about subordinate parameter lists */
