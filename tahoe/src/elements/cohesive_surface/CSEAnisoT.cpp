@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.18.2.3 2002-05-03 23:05:58 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.18.2.4 2002-05-07 07:25:54 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -453,6 +453,14 @@ void CSEAnisoT::RHSDriver(void)
 	int formKd = fController->FormKd(constKd);
 	if (!formKd) return;
 	//SurfacePotentialT::ResetTimeFlags();
+
+	/* heat source if needed */
+	const FieldT* temperature = ElementSupport().Field("temperature");
+	dArray2DT incremental_heat;
+	if (temperature) {
+		incremental_heat.Dimension(NumElements(), fShapes->NumIP());
+		incremental_heat = 0.0;
+	}
 	
 	/* set state to start of current step */
 	fStateVariables = fStateVariables_last;
@@ -581,7 +589,7 @@ void CSEAnisoT::RHSDriver(void)
 				}
 
 				/* traction vector in/out of local frame */
-				fQ.Multx(surfpot->Traction(fdelta, state,vectorIP), fT);
+				fQ.Multx(surfpot->Traction(fdelta, state, vectorIP), fT);
 
 				/* expand */
 				fShapes->Grad_d().MultTx(fT, fNEEvec);
@@ -596,6 +604,11 @@ void CSEAnisoT::RHSDriver(void)
 				/* fracture area */
 				if (fOutputArea && status != SurfacePotentialT::Precritical)
 					fFractureArea += j0*w;
+					
+				/* incremental heat */
+				if (temperature) 
+					incremental_heat(CurrElementNumber(), fShapes->CurrIP()) = 
+					surfpot->IncrementalHeat(fdelta, state);
 			}
 
 			/* assemble */
@@ -619,7 +632,22 @@ void CSEAnisoT::RHSDriver(void)
 
 	//if (fNeedsNewTimeStep)
 	 // ElementSupport().CSESendsTimeStep(fNewTimeStep);
-	  
+
+	/* set source to temperature field */
+	if (temperature) {
+
+		/* loop over blocks */
+		for (int i = 0; i < fBlockData.Length(); i++)
+		{
+			/* dimensions */
+			int start = fBlockData[i].StartNumber();
+			int size = fBlockData[i].Dimension();
+
+			/* block info */
+			dArray2DT tmp(size, incremental_heat.MinorDim(), incremental_heat(start));
+			temperature->AccumulateSource(fBlockData[i].ID(), tmp);
+		}
+	} 
 }
 
 /* nodal value calculations */
