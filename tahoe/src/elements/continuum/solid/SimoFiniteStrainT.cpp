@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.21.2.1 2002-10-17 04:28:54 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.21.2.2 2002-10-19 17:54:11 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -687,9 +687,9 @@ void SimoFiniteStrainT::FormStiffness_staggered(double constK)
 	}
 						
 	/* stress stiffness into fLHS */
-	fLHS.Expand(fStressStiff_11, NumDOF());
-	fK22.Expand(fStressStiff_22, NumDOF());
-	fK12.Expand(fStressStiff_12, NumDOF());
+	fLHS.Expand(fStressStiff_11, NumDOF(), dMatrixT::kAccumulate);
+	fK22.Expand(fStressStiff_22, NumDOF(), dMatrixT::kAccumulate);
+	fK12.Expand(fStressStiff_12, NumDOF(), dMatrixT::kAccumulate);
 
 	/* condensation of element modes */
 	fK22.Inverse();
@@ -702,7 +702,7 @@ void SimoFiniteStrainT::FormStiffness_staggered(double constK)
 		fStressStiff_21.Transpose(fStressStiff_12);
 
 		/* expand stress stiffness part */
-		fK21.Expand(fStressStiff_21, NumDOF());
+		fK21.Expand(fStressStiff_21, NumDOF(), dMatrixT::kAccumulate);
 
 		/* assemble */
 		fLHS.MultABC(fK12, fK22, fK21, dMatrixT::kWhole, dMatrixT::kAccumulate);
@@ -783,9 +783,9 @@ void SimoFiniteStrainT::FormStiffness_monolithic(double constK)
 	}
 						
 	/* expand/assemble stress stiffness */
-	fK11.Expand(fStressStiff_11, NumDOF());
-	fK22.Expand(fStressStiff_22, NumDOF());
-	fK12.Expand(fStressStiff_12, NumDOF());
+	fK11.Expand(fStressStiff_11, NumDOF(), dMatrixT::kAccumulate);
+	fK22.Expand(fStressStiff_22, NumDOF(), dMatrixT::kAccumulate);
+	fK12.Expand(fStressStiff_12, NumDOF(), dMatrixT::kAccumulate);
 	
 	/* assemble into element stiffness matrix */
 	fLHS.AddBlock(0          , 0          , fK11);
@@ -799,7 +799,7 @@ void SimoFiniteStrainT::FormStiffness_monolithic(double constK)
 		fStressStiff_21.Transpose(fStressStiff_12);
 	
 		/* expand stress stiffness term */
-		fK21.Expand(fStressStiff_21, NumDOF());
+		fK21.Expand(fStressStiff_21, NumDOF(), dMatrixT::kAccumulate);
 
 		/* assemble */
 		fLHS.AddBlock(fK11.Rows(), 0, fK21);
@@ -1072,6 +1072,6 @@ void SimoFiniteStrainT::FormStiffness_enhanced(dMatrixT& K_22, dMatrixT* K_12)
 	}
 						
 	/* expand and add in stress stiffness parts */
-	K_22.Expand(fStressStiff_22, NumDOF());
-	if (K_12) K_12->Expand(fStressStiff_12, NumDOF());
+	K_22.Expand(fStressStiff_22, NumDOF(), dMatrixT::kAccumulate);
+	if (K_12) K_12->Expand(fStressStiff_12, NumDOF(), dMatrixT::kAccumulate);
 }
