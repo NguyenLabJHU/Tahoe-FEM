@@ -1,4 +1,4 @@
-/* $Id: ParameterT.h,v 1.4 2002-11-18 09:59:03 paklein Exp $ */
+/* $Id: ParameterT.h,v 1.5 2003-04-22 18:32:16 paklein Exp $ */
 #ifndef _PARAMETER_T_H_
 #define _PARAMETER_T_H_
 
@@ -6,7 +6,7 @@
 #include "ValueT.h"
 
 /* direct members */
-#include "LinkedListT.h"
+#include "AutoArrayT.h"
 #include "LimitT.h"
 
 namespace Tahoe {
@@ -44,11 +44,8 @@ public:
 	void AddLimit(const LimitT& limit);
 
 	/** return the list of limits */
-	const LinkedListT<LimitT>& Limits(void) const { return fLimits; };
+	const ArrayT<LimitT>& Limits(void) const { return fLimits; };
 	
-	/** return non-const version of the list. Needed to traverse the list */
-	LinkedListT<LimitT>& Limits(void) { return fLimits; };
-
 	/** assess if the value satisties all limits */
 	bool InBounds(const ValueT& value) const;
 	/*@}*/
@@ -57,9 +54,11 @@ public:
 	 * Only type conversion from int to double is allowed. All other
 	 * type mismatched will through an exception. */
 	/*@{*/
-	int operator=(int a);
-	double operator=(double x);
-	const StringT& operator=(const StringT& s);
+	ParameterT& operator=(int a);
+	ParameterT& operator=(double x);
+	ParameterT& operator=(const StringT& s);
+	ParameterT& operator=(const ValueT& rhs);
+	ParameterT& operator=(const ParameterT& rhs);
 	/*@}*/
 
 	/** \name description */
@@ -78,9 +77,6 @@ public:
 	const ValueT* Default(void) const { return fDefault; };
 	/*@}*/
 
-	/** assignment operator */
-	const ParameterT& operator=(const ParameterT& rhs);
-
 protected:
 
 	/** value name */
@@ -93,13 +89,26 @@ protected:
 	ValueT* fDefault;
 
 	/** value limit specifications */
-	LinkedListT<LimitT> fLimits;
+	AutoArrayT<LimitT> fLimits;
 };
 
 /* inlines */
-inline int ParameterT::operator=(int a) { return ValueT::operator=(a); }
-inline double ParameterT::operator=(double x) { return ValueT::operator=(x); }
-inline const StringT& ParameterT::operator=(const StringT& s) { return ValueT::operator=(s); }
+inline ParameterT& ParameterT::operator=(int a) { 
+	ValueT::operator=(a); 
+	return *this;
+}
+inline ParameterT& ParameterT::operator=(double x) { 
+	ValueT::operator=(x); 
+	return *this;
+}
+inline ParameterT& ParameterT::operator=(const StringT& s) { 
+	ValueT::operator=(s); 
+	return *this;
+}
+inline ParameterT& ParameterT::operator=(const ValueT& rhs) { 
+	ValueT::operator=(rhs); 
+	return *this;
+}
 
 } // namespace Tahoe 
 #endif /* _PARAMETER_T_H_ */

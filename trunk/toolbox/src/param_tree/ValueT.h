@@ -1,4 +1,4 @@
-/* $Id: ValueT.h,v 1.4 2003-03-08 01:57:27 paklein Exp $ */
+/* $Id: ValueT.h,v 1.5 2003-04-22 18:32:16 paklein Exp $ */
 #ifndef _VALUE_T_H_
 #define _VALUE_T_H_
 
@@ -18,7 +18,7 @@ public:
 		Integer,
 		Double,
 		String,
-		Enumeration /**< stores values as integer or string */
+		Enumeration /**< string-integer pair */
 	};
 
 	/** \name constructors */
@@ -26,6 +26,10 @@ public:
 	ValueT(int a);
 	ValueT(double x);
 	ValueT(const StringT& s);
+
+	/** enumeration. Enumerations are string-integer pairs. For all operators
+	 * below, enumerations cast to both integers and strings. */
+	ValueT(const StringT& name, int value);
 
 	/** set type without assigning value */
 	ValueT(TypeT t);
@@ -50,13 +54,14 @@ public:
 	 * Only type conversion from int to double is allowed. All other
 	 * type mismatched will through an exception. */
 	/*@{*/
-	int operator=(int a);
-	double operator=(double x);
-	const StringT& operator=(const StringT& s);
+	ValueT& operator=(int a);
+	ValueT& operator=(double x);
+	ValueT& operator=(const StringT& s);
+	ValueT& operator=(const ValueT& rhs);
+
+	/** extract value from string, performing required type conversion */
+	void FromString(const StringT& source);
 	/*@}*/
-	
-	/** assignment operator */
-//	const ValueT& operator=(const ValueT& rhs);
 	
 	/** \name type conversion operators not lvalues */
 	/*@{*/

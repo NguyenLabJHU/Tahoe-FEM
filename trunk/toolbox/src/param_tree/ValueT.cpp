@@ -1,5 +1,7 @@
-/* $Id: ValueT.cpp,v 1.5 2003-03-08 01:57:27 paklein Exp $ */
+/* $Id: ValueT.cpp,v 1.6 2003-04-22 18:32:16 paklein Exp $ */
 #include "ValueT.h"
+#include <stdlib.h>
+#include <ctype.h>
 
 /* array behavior */
 namespace Tahoe {
@@ -30,6 +32,16 @@ ValueT::ValueT(const StringT& s):
 	fString(s)
 {
 
+}
+
+/* enumeration */
+ValueT::ValueT(const StringT& name, int value):
+	fType(Enumeration),
+	fInteger(value),
+	fDouble(0.0)
+{
+	/* assign */
+	operator=(name);
 }
 
 ValueT::ValueT(TypeT t):
@@ -66,7 +78,6 @@ void ValueT::Write(ostream& out) const
 			break;
 			
 		case Integer:
-		case Enumeration:
 			out << fInteger;
 			break;
 
@@ -77,9 +88,18 @@ void ValueT::Write(ostream& out) const
 		case String:
 			out << fString;
 			break;
-	
+
+		case Enumeration:
+		{
+			/* write string if available */
+			if (fString.StringLength() > 0)
+				out << fString;
+			else
+				out << fInteger;
+			break;
+		}	
 		default:
-			ExceptionT::GeneralFail();	
+			ExceptionT::GeneralFail("ValueT::Write", "unsupported type %d", fType);
 	}
 }
 
@@ -91,7 +111,7 @@ ostream& operator<<(ostream& out, const ValueT& value)
 }
 }
 
-int ValueT::operator=(int a)
+ValueT& ValueT::operator=(int a)
 {
 	switch (fType)
 	{
@@ -107,42 +127,114 @@ int ValueT::operator=(int a)
 		default:
 			ExceptionT::GeneralFail("ValueT::operator=(int)", "type mismatch");	
 	}
-	return a;
+	return *this;
 }
 
-double ValueT::operator=(double x)
+ValueT& ValueT::operator=(double x)
 {
 	if (fType == Double)
 		fDouble = x;
 	else
 		ExceptionT::GeneralFail("ValueT::operator=(double)", "type mismatch");	
-	return x;
+	return *this;
 }
 
-const StringT& ValueT::operator=(const StringT& s)
+ValueT& ValueT::operator=(const StringT& s)
 {
-	if (fType == String || fType == Enumeration)
+	const char caller[] = "ValueT::operator=(StringT)";
+
+	if (fType == String)
 		fString = s;
+	else if (fType == Enumeration)
+	{
+		fString = s;
+		fString.Replace(' ', '_');
+
+		/* checks */
+		if (fString.StringLength() == 0)
+			ExceptionT::GeneralFail(caller, "enumeration name cannot be empty");
+		if (isdigit(fString[0]))
+			ExceptionT::GeneralFail(caller, "enumeration name cannot start with [0-9]: \"%s\"",
+				fString.Pointer());
+	}
 	else
-		ExceptionT::GeneralFail("ValueT::operator=(StringT)", "type mismatch");	
-	return s;
+		ExceptionT::GeneralFail(caller, "type mismatch");	
+	return *this;
 }
 
-#if 0
-const ValueT& ValueT::operator=(const ValueT& rhs)
+ValueT& ValueT::operator=(const ValueT& rhs)
 {
-	/* copy contents */
+	/* copy all values */
 	fType = rhs.fType;
 	fInteger = rhs.fInteger;
 	fDouble = rhs.fDouble;
 	fString = rhs.fString;
+	
+	/* dummy */
+	return *this;
 }
-#endif
+
+/* extract value from string, performing required type conversion */
+void ValueT::FromString(const StringT& source)
+{
+	const char caller[] = "ValueT::FromString";
+
+	/* cannot be empty */
+	if (source.StringLength() == 0)
+		ExceptionT::GeneralFail(caller, "source cannot be an empty string");
+
+	switch (fType)
+	{
+		case Integer:
+		{
+			/* type conversion */
+			int i = atoi(source.Pointer());
+			
+			/* assign */
+			operator=(i);			
+			break;
+		}
+		case Double:
+		{
+			/* type conversion */
+			double d = atof(source.Pointer());
+			
+			/* assign */
+			operator=(d);			
+			break;
+		}
+		case String:
+		{
+			/* just copy */
+			operator=(source);			
+			break;
+		}
+		case Enumeration:
+		{
+			/* read number */
+			if (isdigit(source[0])) 
+			{	
+				fType = Integer;
+				FromString(source); /* treat as integer */
+				fType = Enumeration;
+			} 
+			else 
+			{
+				fType = String;
+				FromString(source); /* treat as string */
+				fType = Enumeration;
+			}
+			break;
+		}
+		default:
+			ExceptionT::GeneralFail(caller, "unsupported type %d", fType);
+	}
+}
 
 /* type conversion operators not lvalues */
 ValueT::operator const int&() const
 {
-	if (fType != Integer)
+	if (fType != Integer && fType != Enumeration)
 		ExceptionT::GeneralFail("ValueT::operator const int&()", "type mismatch");	
 	return fInteger;
 }
@@ -156,7 +248,7 @@ ValueT::operator const double&() const
 
 ValueT::operator const StringT&() const
 {
-	if (fType != String)
+	if (fType != String && fType != Enumeration)
 		ExceptionT::GeneralFail("ValueT::operator const StringT&()", "type mismatch");	
 	return fString;
 }

@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.5 2003-03-08 02:34:15 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.6 2003-04-22 18:32:16 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -21,7 +21,7 @@ public:
 	/** parameter occurrence */
 	enum OccurrenceT {
 		Once,       /**< exactly once */
-		ZeroOrOnce, /**< zero or more times */
+		ZeroOrOnce, /**< zero or one time */
 		OnePlus,    /**< one or more times */
 		Any         /**< zero or any number of times */
 	};
@@ -32,8 +32,11 @@ public:
 	/** default constructor. Needed to allow making lists of lists */
 	ParameterListT(void) {};
 	
-	/** list name */
+	/** \name list name */
+	/*@{*/
 	const StringT& Name(void) const { return fName; };
+	void SetName(const StringT& name) { fName = name; };
+	/*@}*/
 	
 	/** \name dimensions */
 	/*@{*/
@@ -46,17 +49,6 @@ public:
 	/** number of references to parameter lists */
 	int NumReferences(void) const { return fReferences.Length(); };
 	/*@}*/
-
-#if 0	
-	/** \name name space */
-	/*@{*/
-	/** (re-)set name space name */
-	void SetNameSpace(const StringT& ns_name) { fNameSpace = ns_name; };
-
-	/** return the name space name */
-	const StringT& NameSpace(void) const { return fNameSpace; };
-	/*@}*/
-#endif
 
 	/** \name adding items to the list */
 	/*@{*/
@@ -84,18 +76,50 @@ public:
 	const ArrayT<ParameterListT::OccurrenceT>& ListOccurrences(void) const { return fParameterListsOccur; };
 	const ArrayT<StringT>&                     References(void) const { return fReferences; };
 	const ArrayT<ParameterListT::OccurrenceT>& ReferenceOccurrences(void) const { return fReferencesOccur; };
+
+	/** return the pointer to the given list or NULL if the list is not found */
+	const ParameterListT* List(const StringT& name) const;
+
+	/** return the non-const pointer to the given list or NULL if the list is not found */
+	ParameterListT* List(const StringT& name);
+
+	/** return the pointer to the given parameter or NULL if the list is not found */
+	const ParameterT* Parameter(const StringT& name) const;
+
+	/** return the non-const pointer to the given parameter or NULL if the list is not found */
+	ParameterT* Parameter(const StringT& name);
 	/*@}*/
+
+	/** \name retrieving parameter values 
+	 * Methods throw ExceptionT::kGeneralFail if the parameter is not found. */
+	/*@{*/
+	void GetParameter(const StringT& name, int& a) const;
+	void GetParameter(const StringT& name, double& a) const;
+	void GetParameter(const StringT& name, StringT& a) const;
+	/*@}*/	
 
 	/** \name description */
 	/*@{*/
 	void SetDescription(const StringT& description) { fDescription = description; };
 	const StringT& Description(void) const { return fDescription; };
 	/*@}*/
+	
+	/** create a validated parameter list. Take a raw list of parameters and a parameter 
+	 * description and produce a validated parameter list. If the validated list cannot be 
+	 * produced for any reason, the class throws a ExceptionT::kBadInputValue 
+	 * \param source raw source list in which all parameters are stored as
+	 *        strings as read from a file. 
+	 * \param description parameter description list which is used to translate
+	 *        values from the source to the appropriate data type, validating
+	 *        against constraints and applying any unspecified default values. */
+	void Validate(const ParameterListT& source, const ParameterListT& description);
+
+private:
+
+	/** clear all lists */
+	void Clear(void);
 
 protected:
-
-	/** parameters name space */
-//	StringT fNameSpace;
 
 	/** list name */
 	StringT fName;
@@ -122,5 +146,22 @@ protected:
 	/*@}*/
 };
 
+inline ParameterListT* ParameterListT::List(const StringT& name)
+{
+	/* const this */
+	const ParameterListT* const this_ = (const ParameterListT* const) this;
+	const ParameterListT* list = this_->List(name);
+	return (ParameterListT*) list;
+}
+
+inline ParameterT* ParameterListT::Parameter(const StringT& name)
+{
+	/* const this */
+	const ParameterListT* const this_ = (const ParameterListT* const) this;
+	const ParameterT* parameter = this_->Parameter(name);
+	return (ParameterT*) parameter;
+}
+
 } /* namespace Tahoe */
+
 #endif /* _PARAMETER_LIST_T_H_ */

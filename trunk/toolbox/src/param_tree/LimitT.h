@@ -1,4 +1,4 @@
-/* $Id: LimitT.h,v 1.3 2002-11-18 09:59:03 paklein Exp $ */
+/* $Id: LimitT.h,v 1.4 2003-04-22 18:32:16 paklein Exp $ */
 #ifndef _LIMIT_T_H_
 #define _LIMIT_T_H_
 
@@ -27,6 +27,9 @@ public:
 	LimitT(double x, BoundT bound);
 	LimitT(const StringT& s, BoundT bound);
 	
+	/** enumeration value. String-integer pair that bounds as LimitT::Only */
+	LimitT(const StringT& name, int value);
+	
 	/** default constructor */
 	LimitT(void): fBound(None) {};
 	/*@}*/
@@ -36,6 +39,16 @@ public:
 	
 	/** assess if the value satisfies the limit */
 	bool InBound(const ValueT& value) const;
+
+private:
+
+	/** \name bounds tests
+	 * Return true if value satisfies bound */
+	/*@{*/
+	bool CheckLower(const ValueT& value) const;
+	bool CheckUpper(const ValueT& value) const;
+	bool CheckOnly(const ValueT& value) const;
+	/*@}*/
 
 protected:
 

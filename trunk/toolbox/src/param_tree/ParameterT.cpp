@@ -1,4 +1,4 @@
-/* $Id: ParameterT.cpp,v 1.4 2002-11-18 09:59:03 paklein Exp $ */
+/* $Id: ParameterT.cpp,v 1.5 2003-04-22 18:32:16 paklein Exp $ */
 #include "ParameterT.h"
 
 /* array behavior */
@@ -57,20 +57,43 @@ ParameterT::~ParameterT(void) { delete fDefault; }
 /* add limit to parameter */
 void ParameterT::AddLimit(const LimitT& limit)
 {
+	/* check for enumerations */
+	if (fType == Enumeration && limit.Bound() != LimitT::Only)
+		ExceptionT::GeneralFail("ParameterT::AddLimit", 
+			"limits on enumerations must be type \"only\"");
+
 	fLimits.Append(limit);
 }
 
 void ParameterT::SetDefault(int a)
 {
+	const char caller[] = "ParameterT::SetDefault";
+
 	switch (fType)
 	{
 		case Integer:
-		case Enumeration:
 		{
 			if (fDefault)
 				*fDefault = a;
 			else
 				fDefault = new ValueT(a);
+			break;
+		}
+		case Enumeration:
+		{
+			/* look for value in limits */
+			for (int i = 0; i < fLimits.Length(); i++)
+			{
+				int i_limit = fLimits[i];
+				if (i_limit == a) {
+					const StringT& s_limit = fLimits[i];
+					SetDefault(s_limit);
+					return;
+				}
+			}
+			
+			/* error on fall through */
+			ExceptionT::GeneralFail(caller, "value %d does not appear in enumeration");
 			break;
 		}
 		case Double:
@@ -82,7 +105,7 @@ void ParameterT::SetDefault(int a)
 			break;
 		}
 		default:
-			ExceptionT::GeneralFail("ParameterT::SetDefault(int)", "type mismatch");	
+			ExceptionT::GeneralFail(caller, "type mismatch");	
 	}
 }
 
@@ -101,6 +124,26 @@ void ParameterT::SetDefault(double x)
 
 void ParameterT::SetDefault(const StringT& s)
 {
+	const char caller[] = "ParameterT::SetDefault(StringT)";
+
+	/* check enumerations */
+	if (fType == Enumeration)
+	{
+		/* look for value in limits */
+		bool found = false;
+		for (int i = 0; !found && i < fLimits.Length(); i++)
+		{
+			const StringT& s_limit = fLimits[i];
+			found = (s_limit == s);
+		}
+			
+		/* error */
+		if (!found)
+			ExceptionT::GeneralFail(caller, "value \"%s\" does not appear in enumeration",
+				s.Pointer());
+	}
+
+	/* assign */
 	if (fType == String || fType == Enumeration)
 	{
 		if (fDefault)
@@ -109,11 +152,11 @@ void ParameterT::SetDefault(const StringT& s)
 			fDefault = new ValueT(s);
 	}
 	else
-		ExceptionT::GeneralFail("ParameterT::SetDefault(StringT)", "type mismatch");
+		ExceptionT::GeneralFail(caller, "type mismatch");
 }
 
 /* assignment operator */
-const ParameterT& ParameterT::operator=(const ParameterT& rhs)
+ParameterT& ParameterT::operator=(const ParameterT& rhs)
 {
 	/* inherited */
 	ValueT::operator=(rhs);
@@ -130,4 +173,3 @@ const ParameterT& ParameterT::operator=(const ParameterT& rhs)
 
 	return *this;
 }
-
