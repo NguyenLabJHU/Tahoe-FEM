@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.20 2002-08-01 23:13:05 rdorgan Exp $ */
+/* $Id: SolidT.h,v 1.21 2002-09-04 16:28:03 cfoster Exp $ */
 /* created: paklein (03/10/2001) */
 
 #ifndef _MATERIAL_T_H_
@@ -34,6 +34,7 @@ kmodCauchyBornDC = 15,
      kIsoVIBSimo = 17,
     kIsoVIBOgden = 18,
    kIsoVIBSimoJ2 = 19,
+    kFossumSSIso = 26,
 kThermoViscoPlastic = 30,
        kPovirk2D = 31,
        kHyperEVP = 40,

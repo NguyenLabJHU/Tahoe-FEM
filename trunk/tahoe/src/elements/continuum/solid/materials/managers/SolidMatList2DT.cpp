@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.21 2002-08-01 23:13:05 rdorgan Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.22 2002-09-04 16:28:03 cfoster Exp $ */
 /* created: paklein (02/14/1997) */
 
 #include "SolidMatList2DT.h"
@@ -26,6 +26,7 @@
 #include "J2SSKStV2D.h"
 #include "J2Simo2D.h"
 #include "QuadLog2D.h"
+#include "FossumSSIso2DT.h"
 #include "J2QL2DLinHardT.h"
 #include "IsoVIB2D.h"
 #include "J2IsoVIB2DLinHardT.h"
@@ -309,7 +310,16 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				fHasLocalizers = true;
 				fHasHistory = true;
 				break;
-			}	
+			}
+		        case kFossumSSIso:
+			{
+				/* check */
+				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
+			
+				fArray[matnum] = new FossumSSIso2DT(in, *fSmallStrain);
+				fHasHistory = true;		       		      				break;
+			}
+	
 			case kThermoViscoPlastic:
 			{
 				/* check */
