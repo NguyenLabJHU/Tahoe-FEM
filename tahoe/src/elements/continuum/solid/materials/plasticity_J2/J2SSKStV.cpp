@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.cpp,v 1.9.18.1 2004-04-08 07:33:09 paklein Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.9.18.2 2004-06-08 16:01:34 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV.h"
 #include "SSMatSupportT.h"
@@ -23,8 +23,16 @@ J2SSKStV::J2SSKStV(ifstreamT& in, const SSMatSupportT& support):
 	SSSolidMatT(in, support),
 	IsotropicT(in),
 	HookeanMatT(3),
-//	J2SSLinHardT(in, NumIP(), Mu()),
-	J2SSC0HardeningT(in, NumIP(), Mu()),
+//	J2SSC0HardeningT(in, NumIP(), Mu()),
+	fStress(3),
+	fModulus(dSymMatrixT::NumValues(3))
+{
+#pragma message("delete me")
+}
+
+J2SSKStV::J2SSKStV(void):
+	ParameterInterfaceT("small_strain_J2_StVenant"),
+	HookeanMatT(3),
 	fStress(3),
 	fModulus(dSymMatrixT::NumValues(3))
 {
@@ -52,26 +60,6 @@ void J2SSKStV::ResetHistory(void)
 	/* reset if plastic */
 	ElementCardT& element = CurrentElement();
 	if (element.IsAllocated()) Reset(element);
-}
-
-/* print parameters */
-void J2SSKStV::Print(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::Print(out);
-	IsotropicT::Print(out);
-//	J2SSLinHardT::Print(out);
-	J2SSC0HardeningT::Print(out);
-}
-
-/* print name */
-void J2SSKStV::PrintName(ostream& out) const
-{
-	/* inherited */
-	SSSolidMatT::PrintName(out);
-//	J2SSLinHardT::PrintName(out);
-	J2SSC0HardeningT::PrintName(out);
-	out << "    Kirchhoff-St.Venant\n";
 }
 
 /* modulus */
@@ -155,6 +143,7 @@ void J2SSKStV::DefineSubs(SubListT& sub_list) const
 	/* inherited */
 	SSSolidMatT::DefineSubs(sub_list);
 	IsotropicT::DefineSubs(sub_list);
+	J2SSC0HardeningT::DefineSubs(sub_list);
 }
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
@@ -174,6 +163,11 @@ void J2SSKStV::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	SSSolidMatT::TakeParameterList(list);
 	IsotropicT::TakeParameterList(list);
+	J2SSC0HardeningT::TakeParameterList(list);
+	
+HookeanMatT::Initialize(void)
+{
+	SetModulus(fModulus);	
 }
 
 /*************************************************************************

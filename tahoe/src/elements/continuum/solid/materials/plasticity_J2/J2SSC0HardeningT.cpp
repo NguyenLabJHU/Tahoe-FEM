@@ -1,4 +1,4 @@
-/* $Id: J2SSC0HardeningT.cpp,v 1.5 2003-11-21 22:46:48 paklein Exp $ */
+/* $Id: J2SSC0HardeningT.cpp,v 1.5.20.1 2004-06-08 16:01:34 paklein Exp $ */
 #include "J2SSC0HardeningT.h"
 
 #include <iostream.h>
@@ -13,10 +13,9 @@
 #include "CubicSplineT.h"
 #include "LinearExponentialT.h"
 
-/* class constants */
-
 using namespace Tahoe;
 
+/* class constants */
 const int    kNumInternal = 4; // number of internal variables
 const double sqrt23       = sqrt(2.0/3.0);
 const double kYieldTol    = 1.0e-10;
@@ -24,10 +23,12 @@ const double kYieldTol    = 1.0e-10;
 const int kNSD = 3;
 
 /* constructor */
-J2SSC0HardeningT::J2SSC0HardeningT(ifstreamT& in, int num_ip, double mu):
-	fNumIP(num_ip),
-	fmu(mu),
+J2SSC0HardeningT::J2SSC0HardeningT(void):
+	ParameterInterfaceT("J2_small_strain_hardening"),
+	fNumIP(-1),
+	fmu(-1.0),
 	ftheta(1.0),
+	fIsLinear(false),
 	fK(NULL),
 	fElasticStrain(kNSD),
 	fStressCorr(kNSD),
@@ -36,8 +37,7 @@ J2SSC0HardeningT::J2SSC0HardeningT(ifstreamT& in, int num_ip, double mu):
 	fDevStrain(kNSD),
 	fTensorTemp(dSymMatrixT::NumValues(kNSD))
 {
-	/* construct hardening function from stream */
-	ConstructHardeningFunction(in);
+
 }
 
 /* destructor */
@@ -68,6 +68,8 @@ const dSymMatrixT& J2SSC0HardeningT::ElasticStrain(const dSymMatrixT& totalstrai
 const dSymMatrixT& J2SSC0HardeningT::StressCorrection(const dSymMatrixT& trialstrain,
 	ElementCardT& element, int ip)
 {
+	const char caller[] = "J2SSC0HardeningT::StressCorrection";
+
 	/* check consistency and initialize plastic element */
 	if (PlasticLoading(trialstrain, element, ip) &&
 	    !element.IsAllocated())
@@ -92,7 +94,7 @@ const dSymMatrixT& J2SSC0HardeningT::StressCorrection(const dSymMatrixT& trialst
 		/* return mapping (single step) */
 		if (ftrial > kYieldTol)
 		{
-			if (fType == kLinear)
+			if (fIsLinear)
 			{
 				/* plastic increment */
 				dgamma = 0.5*ftrial/(fmu + dK(alpha)/3.0);
@@ -110,10 +112,7 @@ const dSymMatrixT& J2SSC0HardeningT::StressCorrection(const dSymMatrixT& trialst
 					/* stiffness */
 					double df = 2.0*(dK(alpha + sqrt23*dgamma)/3.0 + fmu);
 					if (df < kSmall)
-					{
-						cout << "\n J2SSC0HardeningT::StressCorrection: consistency function is nonconvex" << endl;
-						throw ExceptionT::kGeneralFail;
-					}
+						ExceptionT::GeneralFail(caller, "yield function is nonconvex");
 				
 					/* increment update */
 					dgamma -= f/df;
@@ -124,11 +123,7 @@ const dSymMatrixT& J2SSC0HardeningT::StressCorrection(const dSymMatrixT& trialst
 				
 				/* check for failure */
 				if (count == max_iteration)
-				{
-					cout << "\n J2SSC0HardeningT::StressCorrection: local iteration failed after " 
-					     << max_iteration << " iterations" << endl;
-					throw ExceptionT::kGeneralFail;
-				}
+					ExceptionT::GeneralFail(caller, "local iteration failed after %d iterations", max_iteration);
 			}
 	
 			/* plastic increment stress correction */
@@ -197,48 +192,75 @@ void J2SSC0HardeningT::AllocateElement(ElementCardT& element)
 	element.DoubleData()  = 0.0;
 }
 
+/* information about subordinate parameter lists */
+void J2SSC0HardeningT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ParameterInterfaceT::DefineSubs(sub_list);
+
+	/* hardening function */
+	sub_list.AddSub("hardening_function_choice", ParameterListT::Once, true);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void J2SSC0HardeningT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+	SubListT& sub_sub_list) const
+{
+	if (sub == "hardening_function_choice")
+	{
+		order = ParameterListT::Choice;
+	
+		/* function types */
+		sub_sub_list.AddSub("linear_function");
+		sub_sub_list.AddSub("cubic_spline");
+		sub_sub_list.AddSub("linear_exponential");
+	}
+	else /* inherited */
+		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* J2SSC0HardeningT::NewSub(const StringT& list_name) const
+{
+	/* try to construct C1 function */
+	C1FunctionT* function = C1FunctionT::New(list_name);
+	if (function)
+		return function;
+	else /* inherited */
+		return ParameterInterfaceT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void J2SSC0HardeningT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "J2SSC0HardeningT::TakeParameterList";
+
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	/* construct hardening function */
+	const ParameterListT* hardening = list.ResolveListChoice(*this, "hardening_function_choice");
+	if (hardening) {
+		fK = C1FunctionT::New(hardening->Name());
+		if (!fK) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", hardening->Name().Pointer());
+		fK->TakeParameterList(*hardening);
+
+		/* set flag */
+		if (hardening->Name() == "linear_function") 
+			fIsLinear = true;
+	}
+	else
+		ExceptionT::GeneralFail(caller, "could not resolve \"hardening_function_choice\"");
+}
+
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 double J2SSC0HardeningT::YieldCondition(const dSymMatrixT& relstress,
 	double alpha) const
 {
 	return sqrt(relstress.ScalarProduct()) - sqrt23*K(alpha);
-}
-
-/* write parameters */
-void J2SSC0HardeningT::Print(ostream& out) const
-{
-	/* hardening function parameters */
-	out << " Hardening function:\n";
-	fK->Print(out);
-	
-	/* print out spline coefficients */
-	if (fType == kCubicSpline)
-	{
-#ifndef __NO_RTTI__
-		const CubicSplineT* spline = dynamic_cast<const CubicSplineT*>(fK);
-		if (spline)
-		{
-			/* spline coefficients */
-			const dArray2DT& coefficients = spline->Coefficients();
-			out << " Spline coefficients:\n";
-			coefficients.WriteNumbered(out);
-		}
-		else
-			out << " Error: could not cast hardening function to cubic spline" << endl;
-#else /* __NO_RTTI__ */
-		out << " Note: RTTI not available. Cannot write spline coefficients" << endl;
-#endif /* __NO_RTTI__ */
-	}
-}
-
-void J2SSC0HardeningT::PrintName(ostream& out) const
-{
-	out << "    J2 Isotropic/Kinematic\n";
-	out << "    Hardening with Radial Return\n";
-	out << "    Small Strain\n";
 }
 
 /* element level data */
@@ -381,70 +403,4 @@ dSymMatrixT& J2SSC0HardeningT::RelativeStress(const dSymMatrixT& trialstrain,
 		fRelStress.SetToScaled(2.0*fmu, fDevStrain);
 
 	return fRelStress;
-}
-
-/* construct isotropic hardening function */
-void J2SSC0HardeningT::ConstructHardeningFunction(ifstreamT& in)
-{
-	/* construct hardening function */
-	int type;
-	in >> type;
-	switch (type)
-	{
-		case kLinear:
-		{
-			fType = kLinear;
-			
-			/* parameters */
-			double yield = -1;
-			double dK = -1;
-			in >> yield >> dK;
-			if (yield < 0) throw ExceptionT::kBadInputValue;
-			
-			dArray2DT points(2,2);
-			points(0,0) = 0.0;
-			points(0,1) = yield;
-			points(1,0) = 1.0;
-			points(1,1) = yield + dK;
-			
-			/* construct spline */
-			fK = new CubicSplineT(points, CubicSplineT::kFreeRun);
-			break;
-		}
-		case kLinearExponential:
-		{
-			fType = kLinearExponential;
-			double a, b, c, d;
-			a = b = c = d = 0.0;
-			in >> a >> b >> c >> d;
-			
-			/* construct function */
-			fK = new LinearExponentialT(a, b, c, d);
-			break;
-		}
-		case kCubicSpline:
-		{
-			fType = kCubicSpline;
-			
-			/* point data */
-			int num_points = -1;
-			in >> num_points;
-			if (num_points < 2) 
-			{
-				cout << "\n J2SSC0HardeningT::ConstructHardeningFunction: expecting at least 2 spline points:"
-				     << num_points << endl;
-				throw ExceptionT::kBadInputValue;
-			}
-			dArray2DT points(num_points, 2);
-			in >> points;
-			
-			/* construct spline */
-			fK = new CubicSplineT(points, CubicSplineT::kFreeRun);
-			break;
-		}
-		default:
-			cout << "\n J2SSC0HardeningT::ConstructHardeningFunction: unknown hardening function type: " 
-			     << type << endl;
-			throw ExceptionT::kBadInputValue;
-	}
 }
