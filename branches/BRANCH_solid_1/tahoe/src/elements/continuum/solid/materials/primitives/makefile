@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:47 paklein Exp $
+# $Id: makefile,v 1.4.2.1 2001-07-02 16:18:13 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -17,7 +17,8 @@ OBJ = \
 	NL_E_RotMat2DT.o \
 	SSStructMatT.o \
 	StructuralMaterialT.o \
-	ThermalDilatationT.o
+	ThermalDilatationT.o \
+	TensorTransformT.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -37,7 +38,8 @@ SRC = \
 	NL_E_RotMat2DT.cpp \
 	SSStructMatT.cpp \
 	StructuralMaterialT.cpp \
-	ThermalDilatationT.cpp
+	ThermalDilatationT.cpp \
+	TensorTransformT.cpp
 
 # headers
 HDR = \
@@ -52,7 +54,9 @@ HDR = \
 	NL_E_RotMat2DT.h \
 	SSStructMatT.h \
 	StructuralMaterialT.h \
-	ThermalDilatationT.h
+	ThermalDilatationT.h \
+	TensorTransformT.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
