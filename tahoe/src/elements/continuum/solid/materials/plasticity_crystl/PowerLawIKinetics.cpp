@@ -144,19 +144,6 @@ double PowerLawIKinetics::DPsiDKin(double gamdot, int is)
   return  0.;
 }
 
-void PowerLawIKinetics::Print(ostream& out) const
-{
-  // print input values for kinetic equation of slip
-  out << "       Rate sensitivity exponent (m) . . . . . . = " << fMatProp[0] << "\n";
-  out << "       Gdot_0. . . . . . . . . . . . . . . . . . = " << fMatProp[1] << "\n";
-}
-
-void PowerLawIKinetics::PrintName(ostream& out) const
-{
-  // print model name
-  out << "    Power law K.E. with nondirectional hardening\n";
-}
-
 void PowerLawIKinetics::SetUpRateSensitivity()
 {
   if (fkmax > 50.e0) 

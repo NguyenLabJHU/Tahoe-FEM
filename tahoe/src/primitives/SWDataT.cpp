@@ -1,7 +1,5 @@
-/* $Id: SWDataT.cpp,v 1.5 2004-06-17 07:14:05 paklein Exp $ */
-/* created: paklein (03/22/1997)                                          */
-/* Container class for Stillinger-Weber potential parameters              */
-
+/* $Id: SWDataT.cpp,v 1.5.2.1 2004-07-06 06:54:46 paklein Exp $ */
+/* created: paklein (03/22/1997) */
 #include "SWDataT.h"
 
 #include <math.h>
@@ -13,17 +11,20 @@
 
 #include "ifstreamT.h"
 
-/* constructor */
 
 using namespace Tahoe;
 
-SWDataT::SWDataT(void): feps(0.0), fA(0.0), fdelta(0.0), fgamma(0.0),
+/* constructor */
+SWDataT::SWDataT(void): 
+	ParameterInterfaceT("Stillinger-Weber"),
+	feps(0.0), fA(0.0), fdelta(0.0), fgamma(0.0),
 	flambda(0.0), frcut(0.0), fa(0.0), fB(0.0)
 {
 
 }
 
-SWDataT::SWDataT(ifstreamT& in)
+SWDataT::SWDataT(ifstreamT& in):
+	ParameterInterfaceT("Stillinger-Weber")
 {
 	Read(in);
 }
@@ -72,4 +73,39 @@ void SWDataT::Write(ostream& out) const
 	out << " Lattice scaling and cut-off terms:\n";
 	out << "      r_cut = " << frcut << '\n';
 	out << "         a0 = " << fa << '\n';
+}
+
+/* describe the parameters needed by the interface */
+void SWDataT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	ParameterInterfaceT::DefineParameters(list);
+
+	list.AddParameter(feps, "epsilon");
+	list.AddParameter(fA, "A");
+	list.AddParameter(fdelta, "delta");
+	list.AddParameter(fgamma, "gamma");
+	list.AddParameter(flambda, "lambda");
+	list.AddParameter(frcut, "r_cut");
+	list.AddParameter(fa, "a");
+}
+ 
+/* accept parameter list */
+void SWDataT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	feps    = list.GetParameter("epsilon");
+	fA      = list.GetParameter("A");
+	fdelta  = list.GetParameter("delta");
+	fgamma  = list.GetParameter("gamma");
+	flambda = list.GetParameter("lambda");
+	frcut   = list.GetParameter("r_cut");
+	fa      = list.GetParameter("a");
+
+	/* compute B factor */
+	double a0 = pow(2.0,1.0/6.0);
+	fB =-(fdelta*pow(a0,5))/(-(a0*fdelta) - 4.0*a0*a0 +
+	           8.0*a0*frcut - 4.0*frcut*frcut);
 }

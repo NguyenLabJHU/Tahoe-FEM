@@ -1,4 +1,4 @@
-/* $Id: FSMatSupportT.h,v 1.3 2003-01-29 07:34:57 paklein Exp $ */
+/* $Id: FSMatSupportT.h,v 1.3.54.1 2004-07-06 06:53:50 paklein Exp $ */
 #ifndef _FD_MAT_SUPPORT_T_H_
 #define _FD_MAT_SUPPORT_T_H_
 
@@ -20,7 +20,7 @@ class FSMatSupportT: public SolidMatSupportT
 public:
 
 	/** constructor */
-	FSMatSupportT(int nsd, int ndof, int nip);
+	FSMatSupportT(int ndof, int nip);
 
 	/** \name deformation gradients */
 	/*@{*/

@@ -1,26 +1,20 @@
-/* $Id: FCCPtsT.h,v 1.2 2002-07-02 19:56:00 cjkimme Exp $ */
-/* created: paklein (03/26/1999)                                          */
-/* FCC lattice of points                                                  */
-
+/* $Id: FCCPtsT.h,v 1.2.64.1 2004-07-06 06:53:48 paklein Exp $ */
+/* created: paklein (03/26/1999) */
 #ifndef _FCC_PTS_T_H_
 #define _FCC_PTS_T_H_
 
 /* base class */
 #include "SpherePointsT.h"
 
-
 namespace Tahoe {
 
+/** FCC lattice of points */
 class FCCPtsT: public SpherePointsT
 {
 public:
 
 	/* constructor */
 	FCCPtsT(int num_shells, double bond_length);
-
-	/* print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;	
 
 	/* generate sphere points:
 	 *

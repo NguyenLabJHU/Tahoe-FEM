@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.92 2004-06-26 18:27:45 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.92.2.1 2004-07-06 06:53:06 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -184,8 +184,9 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		group--;
 
 		/* read code */
-		ElementT::TypeT code;
-		in >> code;
+		int i_code;
+		in >> i_code;
+		ElementT::TypeT code = ElementT::int2TypeT(i_code);
 
 		/* check */
 		if (group < 0 || group >= Length())
@@ -1074,20 +1075,42 @@ void ElementListT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrder
 #ifdef COHESIVE_SURFACE_ELEMENT
 		sub_sub_list.AddSub("isotropic_CSE");
 		sub_sub_list.AddSub("anisotropic_CSE");
+		sub_sub_list.AddSub("anisotropic_symmetry_CSE");
+		sub_sub_list.AddSub("thermal_CSE");
 #endif
 
 #ifdef ADHESION_ELEMENT
 		sub_sub_list.AddSub("adhesion");
 #endif
 
+#ifdef CONTACT_ELEMENT
+		sub_sub_list.AddSub("contact_2D_penalty");
+		sub_sub_list.AddSub("contact_3D_penalty");
+
+		sub_sub_list.AddSub("contact_2D_multiplier");
+		sub_sub_list.AddSub("contact_3D_multiplier");
+
+		sub_sub_list.AddSub("contact_drag_2D_penalty");
+		sub_sub_list.AddSub("contact_drag_3D_penalty");
+#endif
+
 #ifdef PARTICLE_ELEMENT
 		sub_sub_list.AddSub("particle_pair");
+		sub_sub_list.AddSub("particle_EAM");
 #endif
 
 #ifdef CONTINUUM_ELEMENT
 		sub_sub_list.AddSub("diffusion");
 		sub_sub_list.AddSub("nonlinear_diffusion");
 		sub_sub_list.AddSub("small_strain");
+		sub_sub_list.AddSub("updated_lagrangian");
+		sub_sub_list.AddSub("updated_lagrangian_Q1P0");
+		sub_sub_list.AddSub("total_lagrangian");
+		sub_sub_list.AddSub("small_strain_meshfree");
+		sub_sub_list.AddSub("large_strain_meshfree");
+		sub_sub_list.AddSub("small_strain_axi");
+		sub_sub_list.AddSub("updated_lagrangian_axi");
+		sub_sub_list.AddSub("total_lagrangian_axi");
 #endif
 	}
 	else /* inherited */
@@ -1096,6 +1119,45 @@ void ElementListT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrder
 
 /* a pointer to the ParameterInterfaceT of the given subordinate */
 ParameterInterfaceT* ElementListT::NewSub(const StringT& list_name) const
+{
+	/* try to construct element */
+	ElementBaseT* element = NewElement(list_name);
+	if (element)
+		return element;
+	else /* inherited */	
+		return ParameterInterfaceT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void ElementListT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	/* dimension */
+	const ArrayT<ParameterListT>& subs = list.Lists();
+	Dimension(subs.Length());
+	for (int i = 0; i < Length(); i++) {
+
+		/* construct element */
+		ElementBaseT* element = NewElement(subs[i].Name());
+		if (!element)
+			ExceptionT::GeneralFail("ElementListT::TakeParameterList", "could not construct \"%s\"");
+		
+		/* initialize */
+		element->TakeParameterList(subs[i]);
+		
+		/* store */
+		fArray[i] = element;
+	}
+}
+
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
+
+/* return a pointer to a new element group or NULL if the request cannot be completed */
+ElementBaseT* ElementListT::NewElement(const StringT& list_name) const
 {
 	if (false) /* dummy */
 		return NULL;
@@ -1106,6 +1168,12 @@ ParameterInterfaceT* ElementListT::NewSub(const StringT& list_name) const
 		
 	else if (list_name == "anisotropic_CSE")
 		return new CSEAnisoT(fSupport);
+
+	else if (list_name == "anisotropic_symmetry_CSE")
+		return new CSESymAnisoT(fSupport);
+
+	else if (list_name == "thermal_CSE")
+		return new ThermalSurfaceT(fSupport);
 #endif
 
 #ifdef ADHESION_ELEMENT
@@ -1113,9 +1181,28 @@ ParameterInterfaceT* ElementListT::NewSub(const StringT& list_name) const
 		return new AdhesionT(fSupport);
 #endif
 
+#ifdef CONTACT_ELEMENT
+	else if (list_name == "contact_2D_penalty")
+		return new PenaltyContact2DT(fSupport);
+	else if (list_name == "contact_3D_penalty")
+		return new PenaltyContact3DT(fSupport);
+
+	else if (list_name == "contact_2D_multiplier")
+		return new AugLagContact2DT(fSupport);
+	else if (list_name == "contact_3D_multiplier")
+		return new AugLagContact3DT(fSupport);
+
+	else if (list_name == "contact_drag_2D_penalty")
+		return new PenaltyContactDrag2DT(fSupport);
+	else if (list_name == "contact_drag_3D_penalty")
+		return new PenaltyContactDrag3DT(fSupport);
+#endif
+
 #ifdef PARTICLE_ELEMENT
 	else if (list_name == "particle_pair")
 		return new ParticlePairT(fSupport);
+	else if (list_name == "particle_EAM")
+		return new EAMT(fSupport);
 #endif
 
 #ifdef CONTINUUM_ELEMENT
@@ -1125,9 +1212,25 @@ ParameterInterfaceT* ElementListT::NewSub(const StringT& list_name) const
 		return new NLDiffusionElementT(fSupport);
 	else if (list_name == "small_strain")
 		return new SmallStrainT(fSupport);
+	else if (list_name == "updated_lagrangian")
+		return new UpdatedLagrangianT(fSupport);
+	else if (list_name == "updated_lagrangian_Q1P0")
+		return new SimoQ1P0(fSupport);
+	else if (list_name == "total_lagrangian")
+		return new TotalLagrangianT(fSupport);
+	else if (list_name == "small_strain_meshfree")
+		return new MeshFreeSSSolidT(fSupport);
+	else if (list_name == "large_strain_meshfree")
+		return new MeshFreeFSSolidT(fSupport);
+	else if (list_name == "small_strain_axi")
+		return new SmallStrainAxiT(fSupport);
+	else if (list_name == "updated_lagrangian_axi")
+		return new UpdatedLagrangianAxiT(fSupport);
+	else if (list_name == "total_lagrangian_axi")
+		return new TotalLagrangianAxiT(fSupport);
 #endif
 
-	/* inherited */	
+	/* default */	
 	else
-		return ParameterInterfaceT::NewSub(list_name);
+		return NULL;
 }

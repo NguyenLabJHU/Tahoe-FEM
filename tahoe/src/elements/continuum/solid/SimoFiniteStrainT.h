@@ -1,5 +1,4 @@
-/* $Id: SimoFiniteStrainT.h,v 1.15 2004-01-05 07:27:58 paklein Exp $ */
-
+/* $Id: SimoFiniteStrainT.h,v 1.15.26.1 2004-07-06 06:53:19 paklein Exp $ */
 #ifndef _SIMO_FINITE_STRAIN_T_H_
 #define _SIMO_FINITE_STRAIN_T_H_
 

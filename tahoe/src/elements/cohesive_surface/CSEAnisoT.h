@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.34 2004-01-05 07:34:30 paklein Exp $ */
+/* $Id: CSEAnisoT.h,v 1.34.26.1 2004-07-06 06:53:08 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -40,9 +40,6 @@ public:
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
-	/** initialize class data */
-	virtual void Initialize(void);
-
 	/** prepare for a sequence of time steps */
 	virtual void InitialCondition(void);
 
@@ -83,6 +80,19 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:

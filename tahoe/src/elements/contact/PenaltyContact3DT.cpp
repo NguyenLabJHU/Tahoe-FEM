@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.12 2004-06-17 07:13:39 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.12.2.1 2004-07-06 06:53:13 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 #include "PenaltyContact3DT.h"
 
@@ -40,6 +40,8 @@ PenaltyContact3DT::PenaltyContact3DT(const ElementSupportT& support, const Field
 	fM2(NumSD(), fElDisp.Length()),
 	fV1(fElDisp.Length())
 {
+	SetName("contact_3D_penalty");
+
 	const char caller[] = "PenaltyContact3DT::PenaltyContact3DT";
 	ElementSupport().Input() >> fK;
 	if (fK < 0.0)
@@ -86,6 +88,85 @@ PenaltyContact3DT::PenaltyContact3DT(const ElementSupportT& support, const Field
 	
 	/* set console access */
 	iAddVariable("penalty_parameter", fK);
+}
+
+PenaltyContact3DT::PenaltyContact3DT(const ElementSupportT& support):
+	Contact3DT(support),
+	fK(0.0)
+{
+	SetName("contact_3D_penalty");
+}
+
+/* describe the parameters needed by the interface */
+void PenaltyContact3DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	Contact3DT::DefineParameters(list);
+
+	/* penalty stiffness */
+	ParameterT stiffness(ParameterT::Double, "penalty_stiffness");
+	stiffness.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(stiffness);
+}
+
+/* accept parameter list */
+void PenaltyContact3DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	Contact3DT::TakeParameterList(list);
+
+	/* contact stiffness */
+	fK = list.GetParameter("penalty_stiffness");
+
+	/* dimension workspace */
+	fElCoord.Dimension(fNumFacetNodes + 1, NumSD());
+	fElRefCoord.Dimension(fNumFacetNodes + 1, NumSD());
+	fElDisp.Dimension(fNumFacetNodes + 1, NumDOF());
+
+	fdc_du.Dimension(NumSD(), fElDisp.Length());
+	fdn_du.Dimension(NumSD(), fElDisp.Length());
+	fM1.Dimension(NumSD());
+	fM2.Dimension(NumSD(), fElDisp.Length());
+	fV1.Dimension(fElDisp.Length());
+
+	double third = 1.0/3.0;
+	double* p = fdc_du.Pointer();
+	*p++ =-third;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ =-third;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ =-third;
+	*p++ =-third;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ =-third;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ =-third;
+	*p++ =-third;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ =-third;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ =-third;
+	*p++ = 1;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 1;
+	*p++ = 0;
+	*p++ = 0;
+	*p++ = 0;
+	*p   = 1;
 }
 
 /***********************************************************************

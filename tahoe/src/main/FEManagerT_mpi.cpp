@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.35 2004-06-26 18:38:08 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.35.2.1 2004-07-06 06:54:37 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -53,6 +53,8 @@ FEManagerT_mpi::FEManagerT_mpi(ifstreamT& input, ofstreamT& output,
 		/* log */
 		TimeStamp(caller);
 	}
+	else if (fTask == kDecompose)
+		fInitCode = kAllButSolver;
 }
 
 /* destructor */
@@ -147,7 +149,7 @@ void FEManagerT_mpi::WriteOutput(double time)
 }
 	
 void FEManagerT_mpi::WriteOutput(int ID, const dArray2DT& n_values,
-	const dArray2DT& e_values)
+	const dArray2DT& e_values) const
 {
 	/* output assembly mode */
 	if (!fExternIOManager)
@@ -205,24 +207,19 @@ void FEManagerT_mpi::RestoreOutput(void)
 void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 	bool verbose, int method)
 {
+	const char caller[] = "FEManagerT_mpi::Decompose";
+
 	//TEMP
 	//TimeStamp("FEManagerT_mpi::Decompose");
 
 	/* check */
 	if (partition.Length() == 1)
-	{
-		cout << "\n FEManagerT_mpi::Decompose: expecting more than 1 partition" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "expecting more than 1 partition");
 
 	/* geometry file must be ascii external */
 	if (fInputFormat != IOBaseT::kTahoeII && fInputFormat != IOBaseT::kExodusII)
-	{
-		cout << "\n FEManagerT_mpi::Decompose: requires input format with external\n";
-		cout <<   "     geometry information. Use code " << IOBaseT::kTahoeII
-		     << " or " << IOBaseT::kExodusII << endl;
-		throw ExceptionT::kBadInputValue;
-	}	
+		ExceptionT::BadInputValue(caller, "expecting file format %d or %d, not %d",
+			IOBaseT::kTahoeII, IOBaseT::kExodusII, fInputFormat);
 
 	/* decomposition method */
 	bool use_new_methods = false; //TEMP
@@ -243,7 +240,7 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 			
 			/* set number of element sets */
 			iArrayT elementID;
-			if (model_ALL.GetElementSetID(elementID) != ModelFileT::kOK) throw ExceptionT::kGeneralFail;
+			if (model_ALL.GetElementSetID(elementID) != ModelFileT::kOK) ExceptionT::GeneralFail(caller);
 			ArrayT<StringT> IDlist(elementID.Length());
 			for (int i = 0; i < IDlist.Length(); i++)
 				IDlist[i].Append(elementID[i]);
@@ -253,7 +250,7 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 				/* get element set */
 				iArray2DT set;
 				if (model_ALL.GetElementSet(elementID[i], set) != ModelFileT::kOK)
-					throw ExceptionT::kGeneralFail;
+					ExceptionT::GeneralFail(caller);
 					
 				/* correct node numbering offset */
 				set--;	
@@ -299,12 +296,23 @@ void FEManagerT_mpi::Decompose(ArrayT<PartitionT>& partition, GraphT& graphU,
 			}
 		}
 	}
-	else throw ExceptionT::kGeneralFail;
+	else ExceptionT::GeneralFail(caller);
+}
+
+/* accept parameter list */
+void FEManagerT_mpi::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	FEManagerT::TakeParameterList(list);
+
+	/* collect model file and input format from ModelManager */
+	fInputFormat = fModelManager->DatabaseFormat();
+	fModelFile = fModelManager->DatabaseName();
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 void FEManagerT_mpi::ReadParameters(InitCodeT init)
 {

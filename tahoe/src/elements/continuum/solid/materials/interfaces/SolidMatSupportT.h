@@ -1,4 +1,4 @@
-/* $Id: SolidMatSupportT.h,v 1.5 2003-06-28 17:32:16 thao Exp $ */
+/* $Id: SolidMatSupportT.h,v 1.5.42.1 2004-07-06 06:53:50 paklein Exp $ */
 #ifndef _STRUCT_MAT_SUPPORT_T_H_
 #define _STRUCT_MAT_SUPPORT_T_H_
 
@@ -16,7 +16,7 @@ class SolidMatSupportT: public MaterialSupportT
 public:
 
 	/** constructor */
-	SolidMatSupportT(int nsd, int ndof, int nip);
+	SolidMatSupportT(int ndof, int nip);
 
 	/** \name host code information */
 	/*@{*/

@@ -1,4 +1,4 @@
-/* $Id: From2Dto3DT.cpp,v 1.4 2004-06-17 07:13:28 paklein Exp $ */
+/* $Id: From2Dto3DT.cpp,v 1.4.2.1 2004-07-06 06:53:10 paklein Exp $ */
 /* created: paklein (06/23/1999)*/
 #include "From2Dto3DT.h"
 
@@ -228,23 +228,4 @@ void From2Dto3DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& sta
 	new_jump_u[1] = jump_u[2];
 	
 	f2DModel->ComputeOutput(new_jump_u, state, output);
-}
-void From2Dto3DT::PrintName(ostream& out) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	out << " 3D up-conversion of ";
-	f2DModel->PrintName(out);
-#else
-#pragma unused(out)
-#endif
-}
-
-/* print parameters to the output stream */
-void From2Dto3DT::Print(ostream& out) const
-{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	f2DModel->Print(out);
-#else
-#pragma unused(out)
-#endif
 }

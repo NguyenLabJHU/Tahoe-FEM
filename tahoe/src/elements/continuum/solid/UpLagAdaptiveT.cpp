@@ -1,4 +1,4 @@
-/* $Id: UpLagAdaptiveT.cpp,v 1.5 2004-06-17 07:40:08 paklein Exp $ */
+/* $Id: UpLagAdaptiveT.cpp,v 1.5.2.1 2004-07-06 06:53:19 paklein Exp $ */
 #include "UpLagAdaptiveT.h"
 
 /* requires cohesive surface elements */
@@ -91,7 +91,7 @@ void UpLagAdaptiveT::Initialize(void)
 	FieldT* field = (FieldT*) &(Field());
 
 	/* create tied node constraint */
-	fTied = new TiedNodesT(ElementSupport().Nodes(), *field);
+	fTied = new TiedNodesT(ElementSupport(), *field);
 	const ArrayT<int>* ex_nodes = ElementSupport().ExternalNodes();
 	if (ex_nodes) fTied->SetExternalNodes(*ex_nodes);
 	field->AddKBCController(fTied);

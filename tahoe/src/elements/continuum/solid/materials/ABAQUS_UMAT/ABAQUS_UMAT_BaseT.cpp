@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.17 2004-01-05 23:36:01 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.17.26.1 2004-07-06 06:53:21 paklein Exp $ */
 /* created: paklein (05/14/2000) */
 #include "ABAQUS_UMAT_BaseT.h"
 
@@ -357,10 +357,10 @@ const dSymMatrixT& ABAQUS_UMAT_BaseT::s_ij(void)
 	/* call UMAT */
 	if (MaterialSupport().RunState() == GlobalT::kFormRHS)
 	{
-		double  t = fFSMatSupport.Time();
-		double dt = fFSMatSupport.TimeStep();
-		int  step = fFSMatSupport.StepNumber();
-		int  iter = fFSMatSupport.IterationNumber();
+		double  t = fFSMatSupport->Time();
+		double dt = fFSMatSupport->TimeStep();
+		int  step = fFSMatSupport->StepNumber();
+		int  iter = fFSMatSupport->IterationNumber();
 		Call_UMAT(t, dt, step, iter);
 	}
 	else

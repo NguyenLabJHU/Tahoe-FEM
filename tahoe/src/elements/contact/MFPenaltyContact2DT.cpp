@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.9 2004-06-26 18:39:53 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.9.2.1 2004-07-06 06:53:13 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
@@ -201,6 +201,7 @@ void MFPenaltyContact2DT::RHSDriver(void)
 /* set contact surfaces and strikers */
 void MFPenaltyContact2DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 {
+#if 0
 	const char caller[] = "MFPenaltyContact2DT::EchoConnectivityData";
 
 	int num_surfaces;
@@ -329,7 +330,7 @@ void MFPenaltyContact2DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	}
 
 	/* set connectivity name */
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 	StringT name ("Contact");
 	name.Append (ElementSupport().ElementGroupNumber(this) + 1);
 
@@ -349,6 +350,7 @@ void MFPenaltyContact2DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	/* set managed equation numbers array */
 	fEqnos.Dimension(1);
 	fEqnos_man.SetWard(0, fEqnos[0], nen*NumDOF());
+#endif
 }
 
 /* generate contact element data */

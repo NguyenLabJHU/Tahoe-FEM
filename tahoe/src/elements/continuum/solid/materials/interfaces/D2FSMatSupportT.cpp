@@ -1,4 +1,4 @@
-/* $Id: D2FSMatSupportT.cpp,v 1.6 2003-12-28 08:23:29 paklein Exp $ */
+/* $Id: D2FSMatSupportT.cpp,v 1.6.26.1 2004-07-06 06:53:50 paklein Exp $ */
 #include "D2FSMatSupportT.h"
 #include "ElementsConfig.h"
 
@@ -9,8 +9,8 @@
 using namespace Tahoe;
 
 /* constructor */
-D2FSMatSupportT::D2FSMatSupportT(int nsd, int ndof, int nip):
-	FSMatSupportT(nsd, ndof, nip),
+D2FSMatSupportT::D2FSMatSupportT(int ndof, int nip):
+	FSMatSupportT(ndof, nip),
 	fD2MeshFreeFDElastic(NULL)
 {
 

@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.h,v 1.3 2003-12-10 07:14:24 paklein Exp $ */
+/* $Id: NLDiffusionElementT.h,v 1.3.26.1 2004-07-06 06:53:16 paklein Exp $ */
 #ifndef _NL_DIFFUSE_T_H_
 #define _NL_DIFFUSE_T_H_
 
@@ -30,6 +30,18 @@ public:
 	 * diffusion is generally nonsymmetric */
 	virtual GlobalT::SystemTypeT TangentType(void) const { return GlobalT::kNonSymmetric; };
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/** construct the effective mass matrix */
@@ -54,6 +66,8 @@ private:
 
 	/** \name mixed boundary conditions */
 	/*@{*/
+	void TakeTractionBC(const ParameterListT& list);
+
 	void EchoTractionBC(ifstreamT& in, ostream& out);
 
 	/** compute contribution to RHS from mixed BC's */

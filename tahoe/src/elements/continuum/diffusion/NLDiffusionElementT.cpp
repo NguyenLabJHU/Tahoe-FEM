@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.cpp,v 1.5 2004-06-17 07:39:59 paklein Exp $ */
+/* $Id: NLDiffusionElementT.cpp,v 1.5.2.1 2004-07-06 06:53:16 paklein Exp $ */
 #include "NLDiffusionElementT.h"
 
 #include <iostream.h>
@@ -14,6 +14,8 @@
 #include "eIntegratorT.h"
 #include "iAutoArrayT.h"
 #include "ModelManagerT.h"
+#include "ParameterContainerT.h"
+#include "ParameterUtils.h"
 
 /* materials */
 #include "NLDiffusionMaterialT.h"
@@ -47,8 +49,6 @@ void NLDiffusionElementT::Initialize(void)
 	/* inherited */
 	DiffusionElementT::Initialize();
 
-//check to make sure all materials in the materials list are NLDiffusionMaterialT
-
 	/* dimension work space */
 	fField_list.Dimension(NumIP());
 	
@@ -67,6 +67,50 @@ void NLDiffusionElementT::Equations(AutoArrayT<const iArray2DT*>& eq_1, AutoArra
 	/* collect equation numbers for nonlinear boundary conditions */
 	fBCEqnos.Dimension(fBCFaces);
 	Field().SetLocalEqnos(fBCFaces, fBCEqnos);
+}
+
+/* information about subordinate parameter lists */
+void NLDiffusionElementT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	DiffusionElementT::DefineSubs(sub_list);
+
+	/* mixed boundary condition */
+	sub_list.AddSub("mixed_bc", ParameterListT::ZeroOrOnce);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* NLDiffusionElementT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "mixed_bc") {
+		ParameterContainerT* mixed_bc = new ParameterContainerT(list_name);
+		mixed_bc->SetDescription("outward flux: h = epsilon*(T - T_0)^alpha");
+		mixed_bc->SetSubSource(this);
+	
+		/* side sets */
+		mixed_bc->AddSub("side_set_ID_list", ParameterListT::Once);
+	
+		/* flux parameters */
+		mixed_bc->AddParameter(  feps, "epsilon");
+		mixed_bc->AddParameter(   fT0, "T0");
+		mixed_bc->AddParameter(falpha, "alpha");
+		return mixed_bc;
+	}
+	else /* inherited */
+		return DiffusionElementT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void NLDiffusionElementT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	DiffusionElementT::TakeParameterList(list);
+
+	/* dimension work space */
+	fField_list.Dimension(NumIP());
+
+	/* extract information about mixed bc's */
+	TakeTractionBC(list);
 }
 
 /***********************************************************************
@@ -342,7 +386,7 @@ void NLDiffusionElementT::FormStiffness(double constK)
 MaterialSupportT* NLDiffusionElementT::NewMaterialSupport(MaterialSupportT* p) const
 {
 	/* allocate */
-	if (!p) p = new DiffusionMatSupportT(NumSD(), NumDOF(), NumIP());
+	if (!p) p = new DiffusionMatSupportT(NumDOF(), NumIP());
 
 	/* inherited initializations */
 	DiffusionElementT::NewMaterialSupport(p);
@@ -360,6 +404,61 @@ MaterialSupportT* NLDiffusionElementT::NewMaterialSupport(MaterialSupportT* p) c
  * Private
  ***********************************************************************/
 
+void NLDiffusionElementT::TakeTractionBC(const ParameterListT& list)
+{
+	const char caller[] = "NLDiffusionElementT::TakeTractionBC";
+
+	/* quick exit */
+	const ParameterListT* mixed_bc = list.List("mixed_bc");
+	if (!mixed_bc)
+		return;
+
+	/* extract BC parameters */
+	feps   = mixed_bc->GetParameter("epsilon");
+	fT0    = mixed_bc->GetParameter("T0");
+	falpha = mixed_bc->GetParameter("alpha");
+	
+	const ParameterListT& ss_ID_list = mixed_bc->GetList("side_set_ID_list");
+	int num_sides = ss_ID_list.NumLists("String");
+	if (num_sides > 0)
+	{
+		/* model manager */
+		ModelManagerT& model = ElementSupport().ModelManager();
+
+		/* total number of faces */
+		int num_faces = 0;
+		ArrayT<StringT> side_ID(num_sides);
+		for (int i = 0; i < side_ID.Length(); i++) {
+			side_ID[i] = ss_ID_list.GetList("String", i).GetParameter("value");
+			num_faces += model.SideSetLength(side_ID[i]);
+		}
+
+		/* element topology */
+		iArrayT nodes_on_faces(fShapes->NumFacets());
+		fShapes->NumNodesOnFacets(nodes_on_faces);
+		int min, max;
+		nodes_on_faces.MinMax(min, max);
+		if (min != max) ExceptionT::GeneralFail(caller, "all faces must have same shape");
+		
+		/* collect nodes on faces */
+		int face_num = 0;
+		fBCFaces.Dimension(num_faces, nodes_on_faces[0]);
+		for (int i = 0; i < side_ID.Length(); i++)
+		{
+			int num_sides = model.SideSetLength(side_ID[i]);
+			iArray2DT faces(num_sides, fBCFaces.MinorDim(), fBCFaces(face_num));
+		
+			/* read side set */
+			ArrayT<GeometryT::CodeT> facet_geom;
+			iArrayT facet_nodes;
+			model.SideSet(side_ID[i], facet_geom, facet_nodes, faces);		
+		
+			/* next set */
+			face_num += num_sides;
+		}		
+	}
+}
+
 void NLDiffusionElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 {
 	const char caller[] = "NLDiffusionElementT::EchoTractionBC";
@@ -368,7 +467,7 @@ void NLDiffusionElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 	if (num_sides > 0)
 	{
 		/* model manager */
-		ModelManagerT& model = ElementSupport().Model();
+		ModelManagerT& model = ElementSupport().ModelManager();
 
 		/* total number of faces */
 		int num_faces = 0;

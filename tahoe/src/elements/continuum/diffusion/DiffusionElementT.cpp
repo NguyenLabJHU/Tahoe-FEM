@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.20 2004-06-17 07:39:59 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.20.2.1 2004-07-06 06:53:16 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -13,6 +13,7 @@
 #include "ShapeFunctionT.h"
 #include "eIntegratorT.h"
 #include "iAutoArrayT.h"
+#include "ParameterContainerT.h"
 
 /* materials */
 #include "DiffusionMaterialT.h"
@@ -22,7 +23,11 @@
 using namespace Tahoe;
 
 /* initialize static data */
-const int DiffusionElementT::NumOutputCodes = 3;
+const int DiffusionElementT::NumNodalOutputCodes = 3;
+static const char* NodalOutputNames[] = {
+	"coordinates",
+	"displacement",
+	"material_output"};
 
 /* parameters */
 const int kDiffusionNDOF = 1;
@@ -90,6 +95,7 @@ void DiffusionElementT::Initialize(void)
 	}
 }
 
+#if 0
 /* TEMPORARY */
 void DiffusionElementT::InitialCondition(void)
 {
@@ -99,6 +105,7 @@ void DiffusionElementT::InitialCondition(void)
 	/* set the source for the iteration number */
 	fDiffusionMatSupport->SetIterationNumber(ElementSupport().IterationNumber(Group()));
 }
+#endif
 
 /* compute nodal force */
 void DiffusionElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
@@ -192,7 +199,7 @@ void DiffusionElementT::PrintControlData(ostream& out) const
 void DiffusionElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 {
 	/* allocate */
-	fNodalOutputCodes.Dimension(NumOutputCodes);
+	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
 
 	/* read in at a time to allow comments */
 	for (int i = 0; i < fNodalOutputCodes.Length(); i++)
@@ -209,7 +216,7 @@ void DiffusionElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
 	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw ExceptionT::kBadInputValue;
 
 	/* control parameters */
-	out << " Number of nodal output codes. . . . . . . . . . = " << NumOutputCodes << '\n';
+	out << " Number of nodal output codes. . . . . . . . . . = " << NumNodalOutputCodes << '\n';
 	out << "    [" << fNodalOutputCodes[iNodalCoord   ] << "]: initial nodal coordinates\n";
 	out << "    [" << fNodalOutputCodes[iNodalDisp    ] << "]: nodal displacements\n";
 	out << "    [" << fNodalOutputCodes[iMaterialData ] << "]: nodal material output parameters\n";
@@ -279,6 +286,7 @@ void DiffusionElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	int formK = fIntegrator->FormK(constK);
 
 	/* loop over elements */
+	bool axisymmetric = Axisymmetric();
 	Top();
 	while (NextElement())
 	{
@@ -289,7 +297,7 @@ void DiffusionElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		SetGlobalShape();
 
 		/* element mass */
-		if (formC) FormMass(kConsistentMass, constC*(fCurrMaterial->Capacity()));
+		if (formC) FormMass(kConsistentMass, constC*(fCurrMaterial->Capacity()), axisymmetric);
 
 		/* element stiffness */
 		if (formK) FormStiffness(constK);
@@ -328,6 +336,7 @@ void DiffusionElementT::RHSDriver(void)
 	if (block_source) ip_source.Dimension(NumIP(), 1);
 	int block_count = 0;
 
+	bool axisymmetric = Axisymmetric();
 	double dt = ElementSupport().TimeStep();
 	Top();
 	while (NextElement())
@@ -369,7 +378,7 @@ void DiffusionElementT::RHSDriver(void)
 			else fLocVel = 0.0;
 			if (formBody) AddBodyForce(fLocVel);
 
-			FormMa(kConsistentMass, -constCv*fCurrMaterial->Capacity(), 
+			FormMa(kConsistentMass, -constCv*fCurrMaterial->Capacity(), axisymmetric,
 				&fLocVel,
 				(block_source) ? &ip_source : NULL);			  		
 		}
@@ -494,7 +503,7 @@ void DiffusionElementT::FormKd(double constK)
 MaterialSupportT* DiffusionElementT::NewMaterialSupport(MaterialSupportT* p) const
 {
 	/* allocate */
-	if (!p) p = new DiffusionMatSupportT(NumSD(), NumDOF(), NumIP());
+	if (!p) p = new DiffusionMatSupportT(NumDOF(), NumIP());
 
 	/* inherited initializations */
 	ContinuumElementT::NewMaterialSupport(p);
@@ -510,9 +519,12 @@ MaterialSupportT* DiffusionElementT::NewMaterialSupport(MaterialSupportT* p) con
 }
 
 /* return a pointer to a new material list */
-MaterialListT* DiffusionElementT::NewMaterialList(int nsd, int size)
+MaterialListT* DiffusionElementT::NewMaterialList(const StringT& name, int size)
 {
-#pragma unused(nsd)
+	/* no match */
+	if (name != "diffusion_material") 
+		return NULL;
+
 	if (size > 0)
 	{
 		/* material support */
@@ -617,25 +629,107 @@ void DiffusionElementT::DefineSubs(SubListT& sub_list) const
 	/* inherited */
 	ContinuumElementT::DefineSubs(sub_list);
 
-	sub_list.AddSub("diffusion_materials");
+	/* nodal output codes (optional) */
+	sub_list.AddSub("diffusion_element_nodal_output", ParameterListT::ZeroOrOnce);
+
+	/* element block/material specification */
+	sub_list.AddSub("diffusion_element_block", ParameterListT::OnePlus);
 }
 
-/* a pointer to the ParameterInterfaceT of the given subordinate */
+/* return the description of the given inline subordinate parameter list */
 ParameterInterfaceT* DiffusionElementT::NewSub(const StringT& list_name) const
 {
-	if (list_name == "diffusion_materials")
+	if (list_name == "diffusion_element_nodal_output")
 	{
-		/* non-const this */
-		DiffusionElementT* non_const_this = const_cast<DiffusionElementT*>(this);
-		return non_const_this->NewMaterialList(0,0);
+		ParameterContainerT* node_output = new ParameterContainerT(list_name);
+		
+		/* all false by default */
+		for (int i = 0; i < NumNodalOutputCodes; i++)
+			node_output->AddParameter(ParameterT::Boolean, NodalOutputNames[i], ParameterListT::ZeroOrOnce);
+
+		return node_output;
+	}
+	else if (list_name == "diffusion_element_block")
+	{
+		ParameterContainerT* block = new ParameterContainerT(list_name);
+		
+		/* list of element block ID's (defined by ElementBaseT) */
+		block->AddSub("block_ID_list", ParameterListT::Once);
+	
+		/* choice of materials lists (inline) */
+		block->AddSub("diffusion_material", ParameterListT::Once);
+	
+		/* set this as source of subs */
+		block->SetSubSource(this);
+		
+		return block;
 	}
 	else /* inherited */
 		return ContinuumElementT::NewSub(list_name);
 }
 
+/* accept parameter list */
+void DiffusionElementT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ContinuumElementT::TakeParameterList(list);
+
+	/* dimensions */
+	int nsd = NumSD();
+	int nen = NumElementNodes();
+	int nip = NumIP();
+	fD.Dimension(nsd);
+	fq.Dimension(nsd);
+	fB.Dimension(nsd, nen);
+	fGradient_list.Dimension(nip);
+	for (int i = 0; i < fGradient_list.Length(); i++)
+		fGradient_list[i].Dimension(nsd);
+	
+	/* nodal output codes */
+	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
+	fNodalOutputCodes = 0;
+	const ParameterListT* node_output = list.List("diffusion_element_nodal_output");
+	if (node_output)
+		for (int i = 0; i < NumNodalOutputCodes; i++)
+		{
+			/* look for entry */
+			const ParameterT* nodal_value = node_output->Parameter(NodalOutputNames[i]);
+			if (nodal_value) {
+				bool do_write = *nodal_value;
+				if (do_write)
+					fNodalOutputCodes[i] = 1;
+			}
+		}	
+}
+
+/* extract the list of material parameters */
+void DiffusionElementT::CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const
+{
+	const char caller[] = "DiffusionElementT::CollectMaterialInfo";
+	
+	/* initialize */
+	mat_params.Clear();
+
+	/* set materials list name */
+	mat_params.SetName("diffusion_material");
+	
+	/* collected material parameters */
+	int num_blocks = all_params.NumLists("diffusion_element_block");
+	for (int i = 0; i < num_blocks; i++) {
+
+		/* block information */	
+		const ParameterListT& block = all_params.GetList("diffusion_element_block", i);
+		
+		/* collect material parameters */
+		const ParameterListT& mat_list = block.GetList(mat_params.Name());
+		const ArrayT<ParameterListT>& mat = mat_list.Lists();
+		mat_params.AddList(mat[0]);
+	}
+}
+
 /***********************************************************************
-* Private
-***********************************************************************/
+ * Private
+ ***********************************************************************/
 
 /* construct output labels array */
 void DiffusionElementT::GenerateOutputLabels(const iArrayT& n_codes,

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.10 2003-03-04 07:37:38 paklein Exp $
+# $Id: makefile,v 1.10.52.1 2004-07-06 06:53:52 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -24,6 +24,11 @@ OBJ = \
 	SolidMatList1DT.o \
 	SolidMatList2DT.o \
 	SolidMatList3DT.o \
+	FSSolidMatList2DT.o \
+	FSSolidMatList3DT.o \
+	SSSolidMatList1DT.o \
+	SSSolidMatList2DT.o \
+	SSSolidMatList3DT.o \
 	SolidT.o
 
 OBJ_LINK = $(OBJ)
@@ -48,6 +53,11 @@ SRC = \
 	SolidMatList1DT.cpp \
 	SolidMatList2DT.cpp \
 	SolidMatList3DT.cpp \
+	FSSolidMatList2DT.cpp \
+	FSSolidMatList3DT.cpp \
+	SSSolidMatList1DT.cpp \
+	SSSolidMatList2DT.cpp \
+	SSSolidMatList3DT.cpp \
 	SolidT.cpp
 
 ##################### (3) headers
@@ -64,6 +74,11 @@ HDR = \
 	SolidMatList1DT.h \
 	SolidMatList2DT.h \
 	SolidMatList3DT.h \
+	FSSolidMatList2DT.h \
+	FSSolidMatList3DT.h \
+	SSSolidMatList1DT.h \
+	SSSolidMatList2DT.h \
+	SSSolidMatList3DT.h \
 	SolidT.h
 
 HDR_LINK = $(HDR:.h=.h_link)

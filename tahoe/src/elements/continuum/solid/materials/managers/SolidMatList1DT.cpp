@@ -1,5 +1,4 @@
-/* $Id: SolidMatList1DT.cpp,v 1.21 2004-06-28 22:41:30 hspark Exp $ */
-
+/* $Id: SolidMatList1DT.cpp,v 1.21.2.1 2004-07-06 06:53:52 paklein Exp $ */
 #include "SolidMatList1DT.h"
 
 #include "SolidMaterialsConfig.h"
@@ -29,19 +28,19 @@ using namespace Tahoe;
 SolidMatList1DT::SolidMatList1DT(int length, const SolidMatSupportT& support):
 	SolidMatListT(length, support)
 {
-	SetName("solid_materials_1D");
+	SetName("solid_material_1D");
 }
 
 SolidMatList1DT::SolidMatList1DT(void)
 {
-	SetName("solid_materials_1D");
+	SetName("solid_material_1D");
 }
 
 /* read material data from the input stream */
 void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 {
-	const char caller[] = "SolidMatList1DT::ReadMaterialData";
-
+#pragma message("delete me")
+#if 0
 	int i, matnum;
 	SolidT::TypeT matcode;
 	try {
@@ -142,6 +141,7 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 		     << '\n' << "     index " << matnum+1 << ", code " << matcode << endl;
 		throw error;
 	}
+#endif
 }
 
 /* information about subordinate parameter lists */

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.26 2004-06-26 06:30:16 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.26.2.1 2004-07-06 06:53:19 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -82,12 +82,6 @@ public:
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
 
-	/** strain-displacement options.
-	 * \note This really belongs in SmallStrainT; however, will be here for
-	 * not to allow input files to be unchanged. */
-	enum StrainOptionT {kStandardB = 0, /**< standard strain-displacement matrix */
-	                  kMeanDilBbar = 1  /**< mean dilatation for near incompressibility */ };
-
 	/** set storage flag for internal force */
 	void SetStoreInternalForce(bool do_store) { fStoreInternalForce = do_store; };
 
@@ -100,15 +94,17 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
-
-	/** return the materials list */
-	const SolidMatListT& StructuralMaterialList(void) const;
-
 protected:
-
-	/** stream extraction operator */
-	friend istream& operator>>(istream& in, SolidElementT::StrainOptionT& type);
 
 	/** construct list of materials from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);
@@ -174,6 +170,9 @@ protected:
 	/** internal force */
 	virtual void FormKd(double constK) = 0;
 
+	/** return the materials list. \return NULL if fail */
+	const SolidMatListT& StructuralMaterialList(void) const;
+
 	/** driver for calculating output values */
 	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	                           const iArrayT& e_codes, dArray2DT& e_values);
@@ -195,11 +194,8 @@ protected:
 
 protected:
 
-	/** \name class parameters */
-	/*@{*/
-	MassTypeT     fMassType;	
-	StrainOptionT fStrainDispOpt;
-	/*@}*/
+	/** mass type */
+	MassTypeT fMassType;	
 
 	/* propagation direction for wave speeds */
 	dArrayT fNormal;
