@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.16.6.2 2003-07-03 21:04:04 hspark Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.16.6.3 2003-07-06 19:25:36 hspark Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -214,10 +214,10 @@ void ParticlePairT::WriteOutput(void)
 	ifstreamT& in = ElementSupport().Input();
 	ModelManagerT& model = ElementSupport().Model();
 	const ArrayT<StringT> id_list = model.NodeSetIDs();
-        iArrayT nodelist;
+	iArrayT nodelist;
 	dArray2DT partial;
 	//nodelist = model.NodeSet(id_list[id_list.Length()-1]);
-	nodelist = model.NodeSet(id_list[3]);
+	nodelist = model.NodeSet(id_list[3]);  // id_list[3]
 	partial.Dimension(nodelist.Length(), n_values.MinorDim());
 	partial.RowCollect(nodelist, n_values);
 	const StringT& input_file = in.filename();
