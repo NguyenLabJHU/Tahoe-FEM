@@ -45,11 +45,11 @@ void MakeCSE_ExecutionT::RunInteractive (void)
 	   << "(\"quit\" to exit, \"nothing\" for interactive): ";
       cin >> answer;
       
-      if (strncmp (answer.Pointer(), "quit", 4) == 0)
+      if (answer == "quit")
 	{
 	  done = true;
 	}
-      else if (strncmp (answer.Pointer(), "nothing", 7) == 0)
+      else if (answer == "nothing")
 	{
 	  fInteractive = true;
 	  ifstreamT in ('#');

@@ -1,4 +1,4 @@
-// $Id: MakeCSE_FEManager.cpp,v 1.6 2003-09-05 19:48:55 paklein Exp $
+// $Id: MakeCSE_FEManager.cpp,v 1.7 2003-09-05 22:08:31 paklein Exp $
 // created: 11/10/99 SAW
 #include "MakeCSE_FEManager.h"
 #include "ExceptionT.h"
@@ -80,7 +80,7 @@ void MakeCSE_FEManager::InitializeOutput (const StringT& title, const StringT& p
   IOBaseT::FileTypeT format;
   StringT name;
   fParameters->OutputFormat (format, name);
-  if (strncmp (name.Pointer(), "default", 7) == 0)
+  if (name == "default")
     {
       name = title;
       name.Root ();
@@ -222,8 +222,9 @@ void MakeCSE_FEManager::SetElementGroups (void)
   fParameters->SplitBlocks (split, methods);
 
   // set up and initialize regular element groups
-  fElementGroups.Allocate (fNumRegular + fNumCSE);
   fNumElementGroups = fNumRegular + fNumCSE;
+  fElementGroups.Dimension(fNumElementGroups);
+  fElementGroups = NULL;
   for (int e=0; e < fNumRegular; e++)
     {
       // see if element group is to be split
