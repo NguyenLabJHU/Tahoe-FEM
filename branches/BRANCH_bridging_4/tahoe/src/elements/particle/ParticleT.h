@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.23.6.1 2004-02-25 07:53:30 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.23.6.2 2004-02-28 00:08:53 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -289,14 +289,15 @@ protected:
 	};
 	
 	/*This parameter is defined at input, and is used to determine the nearest neighbors in the neighbor list*/
-	double latticeParameter;
+	double fLatticeParameter;
 	double NearestNeighborDistance; 
 	
 	/*insert into linked list*/
         static void LLInsert (CSymmParamNode *ListStart, double value);
 	/*given linked list, generate centrosymmetry value*/
 	double GenCSymmValue (CSymmParamNode *CSymmParam, int ndof);
-	void CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CParamStart, dMatrixT *Strain, dArrayT *SlipVector, RaggedArray2DT<int> *NearestNeighbors);
+	void CalcValues(int i, const dArray2DT& coords, CSymmParamNode *CParamStart, dMatrixT *Strain, dArrayT *SlipVector, 
+		RaggedArray2DT<int> *NearestNeighbors, double& J);
 
 private:
 
