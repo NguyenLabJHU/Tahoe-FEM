@@ -1,4 +1,4 @@
-# $Id: Makefile.template,v 1.7 2002-08-12 23:24:02 recampb Exp $
+# $Id: Makefile.template,v 1.8 2002-08-13 08:20:43 paklein Exp $
 .SUFFIXES: .cpp .h .java .class .o .sig
 
 # choose platform specific macros file
@@ -63,7 +63,7 @@ L_FLAGS_ALL = \
 
 all: $(JAVA_OBJ) $(JAVA_JNI_HDR) $(CPP_DSO)
 
-$(CPP_DSO): $(CPP_OBJ)
+$(CPP_DSO): $(CPP_OBJ) $(TB_LIB)
 	$(LD) $(LD_FLAGS) -o libtestClass.$(DSO_EXT) $(CPP_OBJ) $(L_FLAGS_ALL)
 
 run:
