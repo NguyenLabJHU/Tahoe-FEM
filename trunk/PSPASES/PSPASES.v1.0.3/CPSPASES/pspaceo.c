@@ -39,7 +39,7 @@
 /* conditions are subject to change at any time without prior notice.        */
 /*                                                                           */
 /*****************************************************************************/
-/* $Id: pspaceo.c,v 1.2 2005-01-15 07:37:34 paklein Exp $ */
+/* $Id: pspaceo.c,v 1.3 2005-01-15 07:49:02 paklein Exp $ */
 /*****************************************************************************/
 
 #include "pspaces.h"
@@ -72,10 +72,9 @@ int power2;
     printf("The number of processors must be > 1, and a power of 2.\n");
     MPI_Abort(comm,0);
   }
-#endif
-
+#else
 	power2 = 2;
-	dd = 0;
+	dd = 1;
 	while (pp != power2) {
 		if (power2 > pp) {
 			printf("The number of processors must be > 1, and a power of 2.\n");
@@ -84,6 +83,7 @@ int power2;
 		dd++;
 		power2 *= 2;
 	}
+#endif
 
   ntemp = pp+1+O_NOPTS;
   if(!(temparr1 = (int *)malloc(ntemp*sizeof(int)))) {
