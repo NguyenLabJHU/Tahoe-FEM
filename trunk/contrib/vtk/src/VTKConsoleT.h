@@ -1,5 +1,5 @@
 
-/* $Id: VTKConsoleT.h,v 1.27 2002-06-10 18:55:11 recampb Exp $ */
+/* $Id: VTKConsoleT.h,v 1.28 2002-06-12 19:04:08 recampb Exp $ */
 
 #ifndef _VTK_CONSOLE_T_H_
 #define _VTK_CONSOLE_T_H_
@@ -21,6 +21,8 @@ class VTKBodyT;
 class VTKBodyDataT;
 class vtkPointPicker;
 class vtkCellPicker;
+class vtkActor;
+class vtkActorCollection;
 
 class VTKConsoleT: public iConsoleObjectT
 {
@@ -59,6 +61,8 @@ class VTKConsoleT: public iConsoleObjectT
   /** prints picked point and scalar value to screen */
   static void PickPoints(void *);
 
+  static void PickCells(void *);
+
   /** returns the index of the requested option */
   bool CommandLineOption(const char* str, int& index, int start = 0) const;
 
@@ -83,6 +87,9 @@ class VTKConsoleT: public iConsoleObjectT
   vtkPointPicker* pointPicker;
   vtkCellPicker* cellPicker;
 
+  static AutoArrayT<vtkActor*> pickedPoints;
+  //static vtkActorCollection* pickedPoints;
+ 
 };
 
 #endif
