@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:17 paklein Exp $
+# $Id: makefile,v 1.5 2001-04-09 22:28:56 rjones Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,6 +6,14 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
+	MultiplierContact3DT.o \
+	ContactElementT.o \
+	ContactSearchT.o \
+	SurfaceT.o \
+	ContactSurfaceT.o \
+	FaceT.o \
+	LineL2FaceT.o \
+	QuadL4FaceT.o \
 	ACME_Contact3DT.o \
 	AugLagContact2DT.o \
 	ContactT.o \
@@ -22,6 +30,14 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
+	MultiplierContact3DT.cpp \
+	ContactElementT.cpp \
+	ContactSearchT.cpp \
+	SurfaceT.cpp \
+	ContactSurfaceT.cpp \
+	FaceT.cpp \
+	LineL2FaceT.cpp \
+	QuadL4FaceT.cpp \
 	ACME_Contact3DT.cpp \
 	AugLagContact2DT.cpp \
 	ContactT.cpp \
@@ -33,6 +49,15 @@ SRC = \
 
 # headers
 HDR = \
+	MultiplierContact3DT.h \
+        ContactSurfaceT.h \
+        ContactElementT.h \
+        ContactSearchT.h \
+	SurfaceT.h \
+	ContactSurfaceT.h \
+        FaceT.h \
+        LineL2FaceT.h \
+        QuadL4FaceT.h \
 	ACME_Contact3DT.h \
 	AugLagContact2DT.h \
 	ContactT.h \

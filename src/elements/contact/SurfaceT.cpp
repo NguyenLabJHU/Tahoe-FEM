@@ -1,8 +1,5 @@
-/* 
- * File : SurfaceT.cpp
- */
+/*  $Id: SurfaceT.cpp,v 1.2 2001-04-09 22:28:55 rjones Exp $ */
 #include "SurfaceT.h"
-#include "ContactT.h"
 
 #include <math.h>
 #include <iostream.h>
@@ -15,10 +12,17 @@
 #include "ExodusT.h"
 #include "ModelFileT.h"
 #include "ContinuumElementT.h" // For conversion of side sets to facets.
+#include "FaceT.h"
+#include "LineL2FaceT.h"
+#include "QuadL4FaceT.h"
 
 /* parameters */
 
 SurfaceT::SurfaceT(void)
+{
+}
+
+SurfaceT::~SurfaceT(void)
 {
 }
 
@@ -31,15 +35,18 @@ void SurfaceT::PrintData(ostream& out)
             << setw(kIntWidth) << "size" << '\n';
  
 	out << setw(kIntWidth) << "X"
-	<< setw(kIntWidth) << fFaces.MajorDim()
-	<< setw(kIntWidth) << fFaces.MinorDim() << "\n\n";
+	<< setw(kIntWidth) << fFaces.Length() << "\n\n";
 
 	/* set offset for output */
 	{
+
+#if 0
+// need iArray connectivities
                         fFaces++;
                         fFaces.WriteNumbered(out);
                         fFaces--;
                         out << '\n';
+# endif
 	}
 	out << "\n Surface nodes:\n";
 	fNodes++;
@@ -51,7 +58,7 @@ void SurfaceT::PrintData(ostream& out)
 
 /* surface input functions */
 void SurfaceT::InputSideSets 
-(const FEManagerT& kFEManager,ifstreamT& in, ostream& out)
+(const FEManagerT& fe_manager, ifstreamT& in, ostream& out)
 {
 // parent element determines number of face nodes per face
 #ifdef __NO_RTTI__
@@ -66,7 +73,7 @@ void SurfaceT::InputSideSets
 	elem_group--;
 	ContinuumElementT* pelem_group =
 		dynamic_cast<ContinuumElementT*>
-                (kFEManager.ElementGroup(elem_group));
+                (fe_manager.ElementGroup(elem_group));
 
 	/* checks */
 	if (!pelem_group)
@@ -80,14 +87,14 @@ void SurfaceT::InputSideSets
 	/* read side set: element, local face pair */
 	iArray2DT side_set;
 	int block_ID;
-	int input_format = kFEManager.InputFormat();
+	int input_format = fe_manager.InputFormat();
 	switch (input_format)
 	{
 		case IOBaseT::kExodusII:
 		{
 			/* ExodusII database info */
-			const StringT& file = kFEManager.ModelFile();
-			ostream& out = kFEManager.Output();
+			const StringT& file = fe_manager.ModelFile();
+			ostream& out = fe_manager.Output();
 			ExodusT database(out);
 			if (!database.OpenRead(file))
 			{
@@ -131,12 +138,12 @@ void SurfaceT::InputSideSets
 		{
 			/* open database */
 			ModelFileT database;
-			if (database.OpenRead(kFEManager.ModelFile()) 
+			if (database.OpenRead(fe_manager.ModelFile()) 
 			    != ModelFileT::kOK)
 			{
 				cout << "\n ContactT::InputSideSets:"
 				     << " error opening file: "
-		     		     << kFEManager.ModelFile() << endl;
+		     		     << fe_manager.ModelFile() << endl;
 				throw eGeneralFail;
 			}		
 
@@ -161,22 +168,21 @@ void SurfaceT::InputSideSets
 			throw eGeneralFail;
 	}
 	
-	////???????????????????????
-	pelem_group->SurfaceFacets(geometry_code, 
-			surface_facets, surface_nodes); 
 	/* global node numbers of faces from element group */
 	/* allocates to number of nodes per face */
+	iArray2DT faces_tmp;
 	pelem_group->SideSetToFacets(block_ID, side_set, faces_tmp);
+	fNumFaces = faces_tmp.MajorDim();
 
 	/* make node list and convert connectivities to local numbering */
-        int num_nodes = (kFEManager.NodeManager())->NumNodes();
+        int num_nodes = (fe_manager.NodeManager())->NumNodes();
         iArrayT counts(num_nodes);
         iArrayT global2local(num_nodes);
         counts = 0;
 
         /* tally occurrences */
-        int* pnode  = fFaces.Pointer();
-        int  length = fFaces.Length();
+        int* pnode  = faces_tmp.Pointer();
+        int  length = faces_tmp.Length();
         for (int j = 0; j < length; j++)
         {
                 counts[*pnode]++;
@@ -187,88 +193,162 @@ void SurfaceT::InputSideSets
         int  node_count = 0;
         int* pcount = counts.Pointer();
         for (int j = 0; j < num_nodes; j++)
-                if (*pcount++ > 0)
-                        node_count++;
+	{
+                if (*pcount++ > 0) node_count++;
+	}
 
         /* collect */
         fNodes.Allocate(node_count);
         pcount = counts.Pointer();
         int nsurf_nodes = 0;
         for (int k = 0; k < num_nodes; k++)
+	{
                 if (*pcount++ > 0)
                 {
                         fNodes[nsurf_nodes] = k;
                         global2local[k] = nsurf_nodes;
                         nsurf_nodes++;
                 }
+	}
         /* convert connectvities to local numbering */
-        for (int k = 0; k < length; k++) {
-                fFaces[k] = global2local[fFaces[k]];
+        for (int k = 0; k < length; k++) 
+	{
+                faces_tmp[k] = global2local[faces_tmp[k]];
         }
 
 	/* create faces */
-	switch (geometry_code)
+	ArrayT <GeometryT::CodeT> geometry_code;
+	iArrayT num_face_nodes;
+	pelem_group->FacetGeometry(geometry_code, num_face_nodes);
+        fFaces.Allocate(fNumFaces);
+	/* assuming all faces have same code */
+	int number_of_face_nodes = num_face_nodes[0];
+	GeometryT::CodeT face_geometry_code = geometry_code[0];
+	for (int i = 0 ; i < fNumFaces ; i++) 
 	{
+	  switch (face_geometry_code) //
+	  {
 		case GeometryT::kLine :
-		  switch (num_nodes)
+		  switch (number_of_face_nodes)
 	 	  { 
 			case 2:
-			fFace[i] = new LineL2Face (XXX )
-		  }
-		case GeometryT::kTriangle :
-		  switch (num_nodes)
-	 	  { 
+			fFaces[i] = 
+			  new LineL2FaceT(*this,fCoordinates, 
+			  number_of_face_nodes,faces_tmp(i));
+			break;
+#if 0
 			case 3:
-			fFace[i] = new TriaL3Face (XXX )
+			fFaces[i] = 
+			  new LineQ3FaceT(*this,fCoordinates, 
+			  number_of_face_nodes,faces_tmp(i) );
+#endif
+			default:               
+			cout << "\n SurfaceT::InputSideSets:" 
+			     << " no " << face_geometry_code 
+			     << number_of_face_nodes << endl;
+			throw eGeneralFail;
+
 		  }
-		case GeometryT::kQuadrilateral :
-		  switch (num_nodes)
+#if 0
+		case GeometryT::kTriangle :
+		  switch (number_of_face_nodes)
 	 	  { 
-			case 4:
-			fFace[i] = new QuadL4Face (XXX )
+                        case 3:
+                        fFaces[i] =
+                          new TriaL3FaceT(*this,fCoordinates, 
+			  number_of_face_nodes,faces_tmp(i) );
+                        break;
+
+                        default:
+                        cout << "\n SurfaceT::InputSideSets:"
+                             << " no " << face_geometry_code
+                             << number_of_face_nodes << endl;
+                        throw eGeneralFail;
+
 		  }
+#endif
+		case GeometryT::kQuadrilateral :
+		  switch (number_of_face_nodes)
+	 	  { 
+
+			case 4:
+			fFaces[i] = 
+			  new QuadL4FaceT(*this,fCoordinates, 
+			  number_of_face_nodes,faces_tmp(i));
+			break;
+
+			default:
+			cout << "\n SurfaceT::InputSideSets:"
+			     << " no " << face_geometry_code
+			     << number_of_face_nodes << endl;
+			throw eGeneralFail;                    
+		  }
+	  }
 	}
 
         // allocate space for add'l data members
- 	int NumNodes = fNodes.Length();
+ 	int fNumNodes = fNodes.Length();
 
-        fJacobians.Allocate(NumNodes);
-	fNumSD = kFEManager.NodeManager()->NumSD();
-        fNormals.Allocate(NumNodes,NumSD);
 
 }
 
-void SurfaceT::Initialize (void) 
+void SurfaceT::Initialize (const NodeManagerT* node_manager) 
 {
 	ComputeNeighbors();
+	kNodeManager = node_manager;
+//fNumSD = fe_manager.NodeManager()->NumSD();
+	fNumSD = kNodeManager->NumSD();
+        fNormals.Allocate(fNumNodes,fNumSD);
+	UpdateConfiguration();
 }
 
-void SurfaceT::UpdateConfiguration (void)
+void SurfaceT::UpdateConfiguration ()
 {
-   // use NodeManager to get current coordinates
-   // and the RowCollect function
-   fCoordinates.RowCollect(fNodes,CurrentCoordinates);
-   ComputeSurfaceNormals();
+ 	/* update current coordinates */ 
+	fCoordinates.RowCollect(fNodes,kNodeManager->CurrentCoordinates());
+	/* update averaged outward normals */
+	ComputeSurfaceNormals();
 }
 
 void SurfaceT::ComputeNeighbors (void)
-{
-	// need to allocate
-	// HOW TO DESTINGUISH BETWEEN VERTEX, EDGE, & INTERIOR NODES
-	for (i = 0; i < fNumFaces ; i++) {
-		nVNodes =  face.NumVertexNodes();
-		for (j = 0; j < nVNodes; j++) {
-		// treat connectivities as a CCW ring
-			curr = conn(j);
-			next = conn(mod(j + 1,nVNodes) + 1)
-			prev = mod(j - 1,nVNodes) + 1
-			fNodeNeighbor(curr) = next;
-			fNodeNeighbor(curr) = prev;
+{ // assume vertex nodes are ordered CCW and first in connectivity lists
 
+# if (0)
+  switch(NumSD) {
+     case 3:
+	RaggedArray2DT<int> set_data;
+       	set_data.Configure(count);
+
+	/* determine node neighbors CCW ordered */
+	/*       and face neighbors */
+        //HACK : need type and 2d storage for each node
+	iArray2DT ahead;
+	iArray2DT behind;
+	for (i = 0; i < fNumFaces ; i++) {
+		face = fFace[i];
+		conn = face.Connectivity();
+		for (j = 0; j < nVNodes; j++) {
+			curr = conn(j);
+			next = conn(mod(j + 1,nVNodes) + 1);
+			prev = conn(mod(j - 1,nVNodes) + 1);
+			ahead(curr)  = next;
+			behind(curr) = prev;
+			faces = face
 		}
 	}
-	// node neigbors need to be ordered CCW for 3D
-	// face neigbor ++ common node
+	/* search next and previous to get ring */
+	/* condense associated faces for member nodes */
+	break;
+     case 2:
+	break;
+     default:
+	cout << "\n SurfaceT::ComputeNeighbors, not 2D or 3D geometry \n";
+  }
+#endif
 
 }
 
+void SurfaceT::ComputeSurfaceNormals(void)
+{
+	/*compute each normal, add, then normalize*/
+}

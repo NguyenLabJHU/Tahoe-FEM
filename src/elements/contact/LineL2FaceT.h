@@ -3,12 +3,16 @@
 #ifndef _LINEL2_FACE_T_H_
 #define _LINEL2_FACE_T_H_
 
+/* base class */
+#include "FaceT.h"
+
 /* direct members */
-#include "iArray2DT.h"
 
 /* forward declarations */
-class VectorT;
-class FaceT;
+class SurfaceT;
+class iArrayT;
+class dArrayT;
+class dMatrixT;
 
 /*  connectivity
  *  1--2
@@ -20,38 +24,45 @@ public:
 
         /* constructor */
         LineL2FaceT
-	 (SurfaceT& surface,iArrayT& connectivity, dArrayT& coordinates);
+		(SurfaceT& surface,
+		dArray2DT& surface_coordinates,
+		int num_face_nodes,
+		int* connectivity);
 
         /* destructor */
-        LineL2FaceT(void);
+        ~LineL2FaceT(void);
 
-        void ComputeCentroid(Vector& centroid); 
+        void ComputeCentroid(double& centroid); 
 	double ComputeRadius();
-        void ComputeNormal(double& local_coordinates, Vector& normal); 
+        void ComputeNormal(dArrayT& local_coordinates, double& normal); 
+#if 0
         void ComputeTangents // ?????????
-		(double& local_coordinates, Vector& tangent1,Vector& tangent2); 
-	double ComputeJacobian (double& local_coordinates);
+		(double& local_coordinates, double& tangent1,double& tangent2); 
+#endif
 	void ComputeShapeFunctions
-		(double& local_coordinates, double& shape_functions);
+		(dArrayT& local_coordinates, dArrayT& shape_functions);
 	void ComputeShapeFunctions
-		(double& local_coordinates, MatrixT& shape_functions);
+		(dArrayT& local_coordinates, dMatrixT& shape_functions);
+#if 0
 	void ComputeShapeFunctionDerivatives
-		(double& local_coordinates, double& shape_derivatives);
+		(ArrayT& local_coordinates, ArrayT& shape_derivatives);
 	void ComputeShapeFunctionDerivatives
-		(double& local_coordinates, MatrixT& shape_derivatives);
+		(ArrayT& local_coordinates, MatrixT& shape_derivatives);
+#endif
+	double ComputeJacobian (dArrayT& local_coordinates);
         bool Projection
-		(Vector& point, Vector& normal, 
-		double& local_coordinates, double gap); 
-	/*
+		(double& point, double& normal, 
+		dArrayT& local_coordinates, double gap); 
+#if 0
         bool Projection
-		(Vector& point, 
+		(double& point, 
 		double& local_coordinates, double gap); 
-	*/
+#endif
 protected:
 
 private:
 	/* nodal coordinates */
-	double* fx1, fx2;
+	double*  fx[2];
 
 };
 

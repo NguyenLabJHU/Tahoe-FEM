@@ -1,50 +1,57 @@
-/* $Id */
+/* $Id: ContactSearchT.h,v 1.2 2001-04-09 22:28:55 rjones Exp $ */
 
 #ifndef _CONTACT_SEARCH_T_H_
 #define _CONTACT_SEARCH_T_H_
 
-/* base class */
-#include "ContactT.h"
 
 /* direct members */
-#include "AutoArrayT.h"
-#include "nVariArray2DT.h"
+#include "nMatrixT.h"
+#include "dArrayT.h"
+#include "iGridManagerT.h"
 
 /* forward declarations */
-class iGridManagerT;
+class FEManagerT;
+class ContactSurfaceT;
 
-class ContactSearchT: public ContactElementT // ?????
+class ContactSearchT
 {
 public:
 
 	/* constructor */
-	ContactSearchT(FEManagerT& fe_manager);
+	ContactSearchT(FEManagerT& fe_manager, 
+		ArrayT<ContactSurfaceT>& surfaces,
+		nMatrixT<dArrayT>& search_parameters);
 
 	/* destructor */
 	~ContactSearchT(void);
 
+	/* determines contact configuration */
+	bool SetInteractions(void);
+
+	/* updates contact configuration */
+	bool UpdateInteractions(void); 
 protected:
-	/* steps in setting contact configuration */
-	void SetInteractions(void); // determine interactions
-	void UpdateProjection(void); // updates interactions
 
 private:
 
-	void UpdateKinematicData(void); 
+	void Initialize(void); 
 
 	/* nodes on surface 1 projected onto faces of surface 2*/
 	void NodeFaceSearch
-		(ContactSurfaceT* surf1, ContactSurfaceT* surf2, parameters); 
+		(ContactSurfaceT& surface1, ContactSurfaceT& surface2); 
 
+	/* update gaps and local coordinates of projection */
 	void UpdateProjection
-		(ContactSurfaceT* surf1, ContactSurfaceT* surf2, parameters); 
-	
-protected:
+		(ContactSurfaceT& surface1, ContactSurfaceT& surface2); 
 	
 	/* search grid */
 	iGridManagerT* fGrid;
 
-	MatrixT SearchParameters;
+	/* surface (data) */
+	const ArrayT<ContactSurfaceT>& fSurfaces;
+
+	/* search parameters from contact element */
+	const nMatrixT<dArrayT>& fSearchParameters;
 
 };
 

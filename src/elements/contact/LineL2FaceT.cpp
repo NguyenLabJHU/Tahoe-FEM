@@ -1,7 +1,10 @@
-/* LineL2FaceT.cpp */
+/* $Id: LineL2FaceT.cpp,v 1.2 2001-04-09 22:28:55 rjones Exp $ */
 
+#include "LineL2FaceT.h"
 #include "FaceT.h"
-#include "Vector.h"
+
+#include "dArrayT.h"
+#include "dMatrixT.h"
 
 /* vector functions */
 inline static void Cross(const double* v,  double* vXe3)
@@ -11,7 +14,9 @@ inline static void Cross(const double* v,  double* vXe3)
 };
 
 inline static double Dot(const double* v1, const double* v2)
-{ 	return v1[0]*v2[0] + v1[1]*v2[1]; };
+{ 	
+	return v1[0]*v2[0] + v1[1]*v2[1]; 
+};
 
 inline static void Diff(const double* start, const double* end, double* v)
 {
@@ -19,99 +24,118 @@ inline static void Diff(const double* start, const double* end, double* v)
 	v[1] = end[1] - start[1];
 };
 
+inline static void Add(const double* v1, const double* v2, double* v)
+{
+	v[0] = v1[0] + v2[0];
+	v[1] = v1[1] + v2[1];
+};
+
+inline static void Ave(const double* v1, const double* v2, double* v)
+{
+	v[0] = 0.5 * ( v1[0] - v2[0]);
+	v[1] = 0.5 * ( v1[1] - v2[1]);
+};
+
+
 inline static double Mag(const double* v)
 {
 	return  sqrt (Dot(v,v)) ;
 };
 
-inline static void Cross(const double* v,  double* nv)
+inline static void Normalize(double* v)
 {
-	scale = 1.0/ Mag(v) ;
-	nv[0] *= scale ;
-	nv[1] *= scale ;
+	double scale = 1.0/ Mag(v) ;
+	v[0] *= scale ;
+	v[1] *= scale ;
 };
 
 
-
-
+/* use vector functions -----------------------------------------*/
 
 LineL2FaceT::LineL2FaceT
-(SurfaceT& surface,iArrayT& connectivity, dArrayT& coordinates);
+(SurfaceT& surface, dArray2DT& surface_coordinates, 
+int number_of_face_nodes, int* connectivity):
+	FaceT(surface,surface_coordinates,
+	number_of_face_nodes,connectivity)
 {
-	fSurface = surface ;
-	fConnectivity.Allocate(4);
-	for (i = 0; i<fNumNodes ; i++) {
-		fConnectivity[i] = connectivity[i];
+	for (int i = 0; i < fNumNodes; i++) {
+	fx[i] = fSurfaceCoordinates(fConnectivity[i]);
 	}
-	fCoordinates = coordinates;
 }
 
-LineL2FaceT::LineL2FaceT (void)
+LineL2FaceT::~LineL2FaceT (void)
 {
-	delete [] fSurface;
-	delete [] fConnectivity;
-	delete [] fCoordinates;
-	delete [] fNeigbors;
+	delete [] fx;
 }
 
 void
-LineL2FaceT::ComputeCentroid(Vector& centroid)
+LineL2FaceT::ComputeCentroid(double& centroid)
 {
-	centroid[0] = 0.5 * (fCoordinates[0][0] 
-			   + fCoordinates[1][0] );
-	centroid[1] = 0.5 * (fCoordinates[0][1] 
-			   + fCoordinates[1][1] );
+	Ave(fx[0],fx[1],&centroid); 
 }
 
 double
 LineL2FaceT::ComputeRadius(void)
 {
-	Diff (fCoordinates[0],fCoordinates[1],diagonal);
-	radius = 0.5* Mag(diagonal);
+	double diagonal[2];
+	Diff (fx[0],fx[1],diagonal);
+	double radius = 0.5* Mag(diagonal);
 	return radius;
 }
 
 void
-LineL2FaceT::ComputeNormal(double& local_coordinates, Vector& normal)
+LineL2FaceT::ComputeNormal(dArrayT& local_coordinates, double& normal)
 {
-	t1[0] = fCoordinates[1][0] - fCoordinates[0][0];
-	t1[1] = fCoordinates[1][1] - fCoordinates[0][1];
-	Cross(t1,normal);
-	Norm(normal,normal);
+	double t1[2];
+	Diff(fx[0],fx[1],t1);
+	Cross(t1,&normal);
+	Normalize(&normal);
 }
 
 void
 LineL2FaceT::ComputeShapeFunctions
-(double& local_coordinates, double& shape_functions);
+(dArrayT& local_coordinates, dArrayT& shape_functions)
 {
-	xi  = local_coordinate[0];
-	shape_function[0] = 0.5 * (1.0 - xi );
-	shape_function[1] = 0.5 * (1.0 + xi );
+	double xi  = local_coordinates[0];
+	shape_functions[0] = 0.5 * (1.0 - xi );
+	shape_functions[1] = 0.5 * (1.0 + xi );
 }
 
 void
+LineL2FaceT::ComputeShapeFunctions
+(dArrayT& local_coordinates, dMatrixT& shape_functions)
+{
+	dArrayT shape_f;
+	ComputeShapeFunctions(local_coordinates, shape_f);
+// MORE
+}
+
+#if 0
+void
 LineL2FaceT::InterpolateVector
-(double& local_coordinates, double& nodal_vectors, double& vector);
+(dArrayT& local_coordinates, dArray2DT& nodal_vectors, double& vector);
 {
 	ComputeShapeFunctions
-		(double& local_coordinates, double& shape_functions);
+		(dArrayT& local_coordinates, dArrayT& shape_functions);
 	vector[0] = shape_function[0]*nodal_vector[0][0];
 	          + shape_function[1]*nodal_vector[1][0];
 	vector[1] = shape_function[0]*nodal_vector[0][1];
 	          + shape_function[1]*nodal_vector[1][1];
 }
+#endif
 
-
-void
-LineL2FaceT::ComputeShapeFunctions
-(double& local_coordinates, Matrix& shape_functions);
-{
-	ComputeShapeFunctions
-		(double& local_coordinates, double& shape_functions);
-	// MORE
-}
 
 double
-LineL2FaceT::ComputeJacobian (double& local_coordinates);
+LineL2FaceT::ComputeJacobian (dArrayT& local_coordinates)
 {
-	
+	//HACK
+	return 1.0;
+}
+
+bool
+LineL2FaceT::Projection 
+(double& point, double& normal, dArrayT& local_coordinates, double gap)
+{
+	//HACK
+	return 0;
+}

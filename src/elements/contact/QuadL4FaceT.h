@@ -3,12 +3,19 @@
 #ifndef _QUADL4_FACE_T_H_
 #define _QUADL4_FACE_T_H_
 
+/* base class */
+#include "FaceT.h"
+
+
 /* direct members */
 #include "iArray2DT.h"
 
 /* forward declarations */
-class VectorT;
-class FaceT;
+class SurfaceT;
+class iArrayT;
+class dArrayT;
+class dMatrixT;
+
 
 /*  connectivity
  *  4--3
@@ -22,38 +29,47 @@ public:
 
         /* constructor */
         QuadL4FaceT
-	 (SurfaceT& surface,iArrayT& connectivity, dArrayT& coordinates);
+		(SurfaceT& surface,
+		dArray2DT& surface_coordinates,
+		int num_face_nodes,	
+		int* connectivity);
 
         /* destructor */
-        QuadL4FaceT(void);
+        ~QuadL4FaceT(void);
 
-        void ComputeCentroid(Vector& centroid); 
+        void ComputeCentroid(double& centroid); 
 	double ComputeRadius();
-        void ComputeNormal(double& local_coordinates, Vector& normal); 
-        void ComputeTangents
-		(double& local_coordinates, Vector& tangent1,Vector& tangent2); 
-	double ComputeJacobian (double& local_coordinates);
-	void ComputeShapeFunctions
-		(double& local_coordinates, double& shape_functions);
-	void ComputeShapeFunctions
-		(double& local_coordinates, MatrixT& shape_functions);
-	void ComputeShapeFunctionDerivatives
-		(double& local_coordinates, double& shape_derivatives);
-	void ComputeShapeFunctionDerivatives
-		(double& local_coordinates, MatrixT& shape_derivatives);
+        void ComputeNormal(dArrayT& local_coordinates, double& normal);
+#if 0
+        void ComputeTangents // ?????????
+                (double& local_coordinates, double& tangent1,double& tangent2);
+#endif
+        void ComputeShapeFunctions
+                (dArrayT& local_coordinates, dArrayT& shape_functions);
+        void ComputeShapeFunctions
+                (dArrayT& local_coordinates, dMatrixT& shape_functions);
+#if 0
+        void ComputeShapeFunctionDerivatives
+                (ArrayT& local_coordinates, ArrayT& shape_derivatives);
+        void ComputeShapeFunctionDerivatives
+                (ArrayT& local_coordinates, MatrixT& shape_derivatives);
+#endif
+        double ComputeJacobian (dArrayT& local_coordinates);
         bool Projection
-		(Vector& point, Vector& normal, 
-		double& local_coordinates, double gap); 
-	/*
+                (double& point, double& normal,
+                dArrayT& local_coordinates, double gap);
+#if 0
         bool Projection
-		(Vector& point, 
-		double& local_coordinates, double gap); 
-	*/
+                (double& point,
+                double& local_coordinates, double gap);
+#endif
+
+
 protected:
 
 private:
         /* nodal coordinates */
-        double* fx1, fx2, fx3, fx4;
+        double* fx[4];
 
 
 };

@@ -1,7 +1,10 @@
-/* QuadL4FaceT.cpp */
+/* $Id: QuadL4FaceT.cpp,v 1.2 2001-04-09 22:28:55 rjones Exp $ */
 
+#include "QuadL4FaceT.h"
 #include "FaceT.h"
-#include "Vector.h"
+
+#include "dArrayT.h"
+#include "dMatrixT.h"
 
 /* vector functions */
 inline static void Cross(const double* A, const double* B, double* AxB)
@@ -28,87 +31,122 @@ inline static void Add(const double* start, const double* end, double* v)
         v[2] = end[2] + start[2];
 };
 
+inline static void Ave(double* v1,double* v2, double* v3,double* v4, double* v)
+{
+	v[0] = 0.25*(v1[0] + v2[0] + v3[0] + v4[0]); 
+	v[1] = 0.25*(v1[1] + v2[1] + v3[1] + v4[1]);
+	v[2] = 0.25*(v1[2] + v2[2] + v3[2] + v4[2]);
+};
+
+inline static double Mag(const double* v)
+{
+	return  sqrt (Dot(v,v)) ;
+};
+
+
+inline static void Normalize(double* v)
+{
+	double scale = 1.0/ Mag(v) ;
+	v[0] *= scale ;
+	v[1] *= scale ;
+	v[2] *= scale ;
+};
+
+
+
+/* use vector functions----------------------------------------*/
+
 
 QuadL4FaceT::QuadL4FaceT
-(SurfaceT& surface,iArrayT& connectivity, dArrayT& coordinates);
+(SurfaceT& surface, dArray2DT& surface_coordinates, 
+int number_of_face_nodes, int* connectivity):
+        FaceT(surface,surface_coordinates,
+	number_of_face_nodes,connectivity)
 {
-	FaceT::FaceT
-	   (SurfaceT& surface,iArrayT& connectivity, dArrayT& coordinates);
-	fx1 =  fConnectivity[0];
-	fx2 =  fConnectivity[1];
-	fx3 =  fConnectivity[2];
-	fx4 =  fConnectivity[3];
+	for (int i = 0; i < fNumNodes; i++) {
+		fx[i] = fSurfaceCoordinates(fConnectivity[i]);
+	}
 }
 
-QuadL4FaceT::QuadL4FaceT (void)
+QuadL4FaceT::~QuadL4FaceT (void)
 {
-	delete [] fSurface;
-	delete [] fConnectivity;
-	delete [] fCoordinates;
-	delete [] fNeigbors;
+	delete [] fx;
 }
 
 void
-QuadL4FaceT::ComputeCentroid(Vector& centroid)
+QuadL4FaceT::ComputeCentroid(double& centroid)
 {
-	centroid[0] = 0.25 * (fx1[0] + fx2[0] + fx3[0] + fx4[0] );
-	centroid[1] = 0.25 * (fx1[1] + fx2[1] + fx3[1] + fx4[1] );
-	centroid[2] = 0.25 * (fx1[2] + fx2[2] + fx3[2] + fx4[2] );
+	Ave(fx[0],fx[1],fx[2],fx[3],&centroid);
 }
 
 double
 QuadL4FaceT::ComputeRadius(void)
 {
-	Diff (fx1,fx3,diagonal);
-	return radius = 0.5*Mag(diagonal);
+	double diagonal[3];
+	Diff (fx[0],fx[2],diagonal);
+	double radius = 0.5*Mag(diagonal);
+	return radius;
 }
 
+#if 0
 void
-QuadL4FaceT::ComputeNormal(Vector& normal)
+QuadL4FaceT::ComputeNormal(double& normal)
 { /* compute face average normal */
-	Add(fx1,fx2,e1);
-	Add(fx2,fx3,e2);
-	Add(fx3,fx4,e3);
-	Add(fx4,fx1,e4);
+	double e1[3], e2[3], e3[3], e4[3], v1[3], v2[3];
+	Add(fx[0],fx[1],e1);
+	Add(fx[1],fx[2],e2);
+	Add(fx[2],fx[3],e3);
+	Add(fx[3],fx[0],e4);
 	Diff(e4,e2,v1);
 	Diff(e1,e3,v2);
-	Cross(v1,v2,normal);
-	Norm(normal,normal);
+	Cross(v1,v2,&normal);
+	Normlize(&normal);
 }
+#endif
 
+#if 0
 void
-QuadL4FaceT::ComputeNormal(int local_node, Vector& normal)
+QuadL4FaceT::ComputeNormal(int local_node, double& normal)
 { /* compute face node normal */
 }
+#endif
+
 void
-QuadL4FaceT::ComputeNormal(double& local_coordinates,Vector& normal)
+QuadL4FaceT::ComputeNormal(dArrayT& local_coordinates,double& normal)
 {
 }
 
 void
 QuadL4FaceT::ComputeShapeFunctions
-(double& local_coordinates, double& shape_functions);
+(dArrayT& local_coordinates, dArrayT& shape_functions)
 {
-	xi  = local_coordinate[0];
-	eta = local_coordinate[1];
-	shape_function[0] = 0.25 * (1.0 - xi ) * (1.0 - eta) ;
-	shape_function[1] = 0.25 * (1.0 + xi ) * (1.0 - eta) ;
-	shape_function[2] = 0.25 * (1.0 + xi ) * (1.0 + eta) ;
-	shape_function[3] = 0.25 * (1.0 - xi ) * (1.0 + eta) ;
+	double xi  = local_coordinates[0];
+	double eta = local_coordinates[1];
+	shape_functions[0] = 0.25 * (1.0 - xi ) * (1.0 - eta) ;
+	shape_functions[1] = 0.25 * (1.0 + xi ) * (1.0 - eta) ;
+	shape_functions[2] = 0.25 * (1.0 + xi ) * (1.0 + eta) ;
+	shape_functions[3] = 0.25 * (1.0 - xi ) * (1.0 + eta) ;
 }
 
 void
 QuadL4FaceT::ComputeShapeFunctions
-(double& local_coordinates, Matrix& shape_functions);
+(dArrayT& local_coordinates, dMatrixT& shape_functions)
 {
-	ComputeShapeFunctions
-		(double& local_coordinates, double& shape_functions);
-	// MORE
+	dArrayT shape_f;
+	ComputeShapeFunctions(local_coordinates, shape_f);
+//MORE
 }
 
 double
-QuadL4FaceT::ComputeJacobian (double& local_coordinates);
+QuadL4FaceT::ComputeJacobian (dArrayT& local_coordinates)
 {
-	
-
 }
+
+bool
+QuadL4FaceT::Projection 
+(double& point, double& normal, dArrayT& local_coordinates, double gap)
+{
+        //HACK
+        return 0;
+}
+

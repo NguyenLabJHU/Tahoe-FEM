@@ -1,21 +1,20 @@
-/*
- * File: ContactSurfaceT.h
- */
+/* $Id: ContactSurfaceT.h,v 1.2 2001-04-09 22:28:55 rjones Exp $ */
 
 
 #ifndef _CONTACT_SURFACE_T_H_
 #define _CONTACT_SURFACE_T_H_
 
-/* forward declarations */
-#include "ios_fwd_decl.h"
-class ifstreamT;
-class FEManagerT;
+/* base class */
+#include "SurfaceT.h"
 
 /* direct members */
-#include "iArrayT.h"
-#include "iArray2DT.h"
-#include "dArrayT.h"
+#include "ArrayT.h"
 #include "dArray2DT.h"
+#include "dArrayT.h"
+
+/* forward declarations */
+class ofstreamT;
+class FEManagerT;
 
 /* 
 a ContactSurface will only have one opposing face per
@@ -32,6 +31,15 @@ class ContactSurfaceT : public SurfaceT
 
 	/* print data */
 	void PrintData(ostream& out);
+	
+        /* access functions */
+        const SurfaceT* OpposingSurface(int node_number) 
+		{return fOpposingSurface[node_number];}
+        const FaceT* OpposingFace(int node_number) 
+		{return fOpposingFace[node_number];}
+	double Gap(int node_number)
+		{return fGaps[node_number];}
+
 
   protected:
         /* nodal arrays */

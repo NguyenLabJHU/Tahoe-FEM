@@ -1,64 +1,78 @@
-/* $Id */
+/* $Id: FaceT.h,v 1.2 2001-04-09 22:28:55 rjones Exp $ */
 
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
 
 /* direct members */
-#include "iArray2DT.h"
+#include "iArrayT.h"
+#include "dArray2DT.h"
+#include "ArrayT.h"
+#include "GeometryT.h"
+
 
 /* forward declarations */
-class VectorT;
+class SurfaceT;
+class iArrayT;
+class dArrayT;
+class dMatrixT;
 
-/* derived from SurfaceT ? */
-class FaceT : public SurfaceT
+class FaceT 
 {
 public:
 
         /* constructor */
-        FaceT(SurfaceT& surface,iArrayT& connectivity, dArrayT& coordinates);
+        FaceT	(SurfaceT& surface, 	
+		dArray2DT& surface_coordinates,
+		int num_face_nodes,
+		int* connectivity);
 
-        /* destructor */
+
+        /* (virtual) destructor */
         virtual ~FaceT(void);
 
-        virtual void ComputeCentroid(Vector& centroid) =0; 
+	/* geometric computation */
+        virtual void ComputeCentroid(double& centroid) =0; 
 	virtual double ComputeRadius(void)=0;
-        virtual void ComputeNormal(Vector& normal)=0; 
+        virtual void ComputeNormal
+		(dArrayT& local_coordinates,double& normal)=0; 
 	virtual void ComputeShapeFunctions
-		(double& local_coordinates, double& shape_functions)=0;
+		(dArrayT& local_coordinates, dArrayT& shape_functions)=0;
 	virtual void ComputeShapeFunctions
-		(double& local_coordinates, MatrixT shape_functions)=0;
-	virtual void ComputeJacobians
-		(double& local_coordinates, double& jacobians)=0;
+		(dArrayT& local_coordinates, dMatrixT& shape_functions)=0;
+	virtual double ComputeJacobian
+		(dArrayT& local_coordinates)=0;
         virtual bool Projection
-		(Vector& point, Vector& normal, 
-		double& local_coordinates, double gap)=0; 
-	virtual int NumNodes() {return fNumNodes;}
+		(double& point, double& normal, 
+		dArrayT& local_coordinates, double gap)=0; 
+
 	/* access functions */
- 	inline const iArrayT& Connectivity() { return fConnectivity:} const;
+	inline int NumNodes(void) const 
+		{return fNumNodes;}
+	inline GeometryT::CodeT GeometryType(void) const 
+		{return fGeometryType;}
+ 	inline const iArrayT& Connectivity(void) const 
+		{return fConnectivity;} 
+
 protected:
 
-private:
 	/* number of nodes */
 	int fNumNodes;
-	int fNumVertexNodes;
-	int fNumEdgeNodes;
-	int fNumInteriorNodes;
+
+	/* geometry type */
+	GeometryT::CodeT fGeometryType;
 
 	/* reference to parent surface */
         const SurfaceT& fSurface;
 
-	/* list of node numbers local to the surface */
-	/* these are a CCW ring */
+	/* reference to nodal coordinates of surface */
+        const dArray2DT& fSurfaceCoordinates;
+
+	/* connectivity, in node numbers local to surface */
 	iArrayT fConnectivity;
 
-	/* reference to nodal coordinates of surface */
-        const dArray2DT& fCoordinates;
-
+private:
 	/* face neighbors */
-        ArrayT<FaceT*> fNeighbors;
-
-	
-
+//ArrayT<FaceT*> fNeighbors;
 
 };
 
