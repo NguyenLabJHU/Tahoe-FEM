@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.cpp,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.1.1.1.6.1 2001-10-09 19:17:14 sawimme Exp $ */
 /* created: paklein (09/05/2000)                                          */
 
 #include "KBC_ControllerT.h"
@@ -65,69 +65,43 @@ void KBC_ControllerT::ReadNodes(ifstreamT& in, iArrayT& id_list,
 	const FEManagerT& fe_man = fNodeManager.FEManager();
 
 	/* resolve format */
-	IOBaseT::FileTypeT type = fe_man.InputFormat();
-	switch (type)
-	{
-		case IOBaseT::kTahoe:
-		{
-			ifstreamT tmp;
-			ifstreamT& in2 = fe_man.OpenExternal(in, tmp, cout, true,
-				"KBC_ControllerT::ReadNodes: could not open file");
+	if (fe_man.InputFormat() == IOBaseT::kTahoe)
+	  {
+	    ifstreamT tmp;
+	    ifstreamT& in2 = fe_man.OpenExternal(in, tmp, cout, true,
+		  "KBC_ControllerT::ReadNodes: could not open file");
+	    
+	    int num_nodes;
+	    in2 >> num_nodes;
+	    nodes.Allocate(num_nodes);
+	    in2 >> nodes;
+	  }
+	else
+	  {
+	    /* number of node sets */
+	    int num_sets;
+	    in >> num_sets;
+	    if (num_sets > 0)
+	      {
+		/* echo set ID's */
+		id_list.Allocate(num_sets); // future: change to string
+		ArrayT<StringT> id_name (num_sets);
 
-			int num_nodes;
-			in2 >> num_nodes;
-			nodes.Allocate(num_nodes);
-			in2 >> nodes;
-			break;
-		}
-		case IOBaseT::kTahoeII:
-		{
-			/* number of node sets */
-			int num_sets;
-			in >> num_sets;
-			if (num_sets > 0)
-			{
-				/* open database */
-				ModelFileT model_file;
-				model_file.OpenRead(fe_man.ModelFile());
+		/* collect sets */
+		ModelManagerT* model = fe_man.ModelManager();
+		iAutoArrayT temp;
+		for (int i=0; i < num_sets; i++)
+		  {
+		    in >> id_name[i];
+		    int index = model->NodeSetIndex (id_name[i]);
+		    id_list[i] = index+1;
+		    iArrayT tn = model->NodeSet (index);
+		    temp.AppendUnique (tn);
+		  }
 
-				/* echo set ID's */
-				id_list.Allocate(num_sets);
-				in >> id_list;
-				
-				/* collect */
-				if (model_file.GetNodeSets(id_list, nodes) !=
-				    ModelFileT::kOK) throw eBadInputValue;
-			}
-			break;
-		}
-		case IOBaseT::kExodusII:
-		{
-			/* number of node sets */
-			int num_sets;
-			in >> num_sets;
-			if (num_sets > 0)
-			{
-				/* echo set ID's */
-				id_list.Allocate(num_sets);
-				in >> id_list;
-
-				/* open database */
-				ExodusT database(cout);
-				database.OpenRead(fe_man.ModelFile());
-				
-				/* read collect all nodes in sets */
-				database.ReadNodeSets(id_list, nodes);
-			}
-			break;
-		}
-		default:
-
-			cout << "\n KBC_ControllerT::ReadNodes: unsupported input format: ";
-			cout << type << endl;
-			throw eGeneralFail;
-	}
-
-	/* internal numbering */
-	nodes--;
+		nodes.Allocate (temp.Length());
+		nodes.CopyPart (0, temp, 0, temp.Length());
+		nodes.SortAscending ();
+	      }
+	  }
 }
