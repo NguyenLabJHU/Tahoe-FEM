@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupport2DT.cpp,v 1.4 2002-02-20 23:06:30 paklein Exp $ */
+/* $Id: MeshFreeSupport2DT.cpp,v 1.5 2002-02-21 02:42:08 paklein Exp $ */
 /* created: paklein (09/10/1998)                                          */
 /* MLS shape function support for 2D                                      */
 
@@ -60,7 +60,7 @@ void MeshFreeSupport2DT::ProcessBoundaries(const dArray2DT& coords,
 #endif
 
 	/* quick exit */
-	if (!fCutCoords) return;
+	if (!fCutCoords || fCutCoords->MajorDim() == 0) return;
 	
 	/* exhaustive search for now */
 	double eps = 0.01;
@@ -79,7 +79,7 @@ void MeshFreeSupport2DT::ProcessBoundaries(const dArray2DT& coords,
 int MeshFreeSupport2DT::Visible(const double* x1, const double* x2)
 {
 	/* quick exit */
-	if (!fCutCoords) return 1;
+	if (!fCutCoords || fCutCoords->MajorDim() == 0) return 1;
 
 	/* exhaustive search for now */
 	double eps = 0.01;
