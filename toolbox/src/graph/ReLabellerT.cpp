@@ -1,4 +1,4 @@
-/* $Id: ReLabellerT.cpp,v 1.4 2002-10-20 22:39:01 paklein Exp $ */
+/* $Id: ReLabellerT.cpp,v 1.5 2003-09-25 01:02:10 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "ReLabellerT.h"
@@ -91,8 +91,10 @@ int ReLabellerT::Renumber(ArrayT<iArray2DT*>& oldsequences)
 		if (k > 0) maxrow[k] += maxrow[k-1];
 		
 		/* find max */
-		int max = oldsequences[k]->Max();
-		max_in_sequence = (max > max_in_sequence) ? max: max_in_sequence;
+		if (oldsequences[k]->Length() > 0) {
+			int max = oldsequences[k]->Max();
+			max_in_sequence = (max > max_in_sequence) ? max: max_in_sequence;
+		}
 	}
 
 	/* make graph */
