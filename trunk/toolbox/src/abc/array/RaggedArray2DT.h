@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.19 2004-04-21 07:34:57 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.20 2004-04-23 20:22:53 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 #ifndef _RAGGED_ARRAY_2D_T_H_
 #define _RAGGED_ARRAY_2D_T_H_
@@ -23,12 +23,17 @@ class RaggedArray2DT
 {
 public:
 
-	/** constructor. Constructs empty array */
+	/** \name constructors */
+	/*@{*/
+	/** construct empty array */
 	RaggedArray2DT(int headroom = 0);
 	
-	/** constructor. Construct array with the same dimensions for
-	 * every row. */
+	/** construct array with the same dimensions for every row. */
 	RaggedArray2DT(int majordim, int minordim, int headroom = 0, int blocksize = 1);
+
+	/** copy king */
+	RaggedArray2DT(const RaggedArray2DT& source);
+	/*@}*/
 
 	/** set the array size with fixed row dimensions. No change occurs if the array
 	 * is already the specified size. The previous contents of the array is
@@ -201,9 +206,6 @@ private:
 
 	/** setting pointers for equal row sizes */
 	void SetEvenPointers(int minordim);
-
-	/** disallowed */
-	RaggedArray2DT(const RaggedArray2DT& source);
 	  	
 protected:
 
@@ -250,6 +252,18 @@ RaggedArray2DT<TYPE>::RaggedArray2DT(int majordim, int minordim, int headroom,
 	Dimension(majordim, minordim*blocksize);
 }
 
+/** copy king */
+template <class TYPE>
+RaggedArray2DT<TYPE>::RaggedArray2DT(const RaggedArray2DT& source):
+	fMajorDim(0),
+	fMinMinorDim(0),
+	fMaxMinorDim(0),
+	fPtrs(0),
+	fData(0)
+{
+	operator=(source);
+}
+	
 /* allocate array with fixed row dimensions */
 template <class TYPE>
 void RaggedArray2DT<TYPE>::Dimension(int majordim, int minordim)
@@ -445,6 +459,10 @@ void RaggedArray2DT<TYPE>::Alias(const nArray2DT<TYPE>& source)
 template <class TYPE>
 RaggedArray2DT<TYPE>& RaggedArray2DT<TYPE>::operator=(const RaggedArray2DT& source)
 {
+	/* copy parameters */
+	fPtrs.SetHeadRoom(source.fPtrs.HeadRoom());
+	fData.SetHeadRoom(source.fData.HeadRoom());
+
 	/* quick copy for repeated, even-spaced copies */
 	if (source.fMinMinorDim == source.fMaxMinorDim &&
 	    fMinMinorDim == fMaxMinorDim &&
