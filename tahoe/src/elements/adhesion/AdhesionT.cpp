@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.16.20.1 2004-04-08 07:32:23 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.16.20.2 2004-04-27 16:02:28 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -10,6 +10,8 @@
 #include "iGridManagerT.h"
 #include "OutputSetT.h"
 #include "ScheduleT.h"
+#include "ParameterContainerT.h"
+#include "ParameterUtils.h"
 
 /* interaction functions */
 #include "LennardJones612.h"
@@ -97,6 +99,16 @@ AdhesionT::AdhesionT(const ElementSupportT& support):
 	fGrad_d_man(0, fGrad_d)
 {
 	SetName("adhesion");
+
+	/* register dynamically resized arrays */
+	fNEE_vec_man.Register(fRHS);
+	fNEE_vec_man.Register(fNEE_vec);
+
+	fNEE_mat_man.Register(fLHS);
+	fNEE_mat_man.Register(fNEE_mat);
+
+	fFace2_man.Register(fIPCoords2);
+	fFace2_man.Register(fIPNorm2);	
 }
 
 /* destructor */
@@ -343,6 +355,104 @@ void AdhesionT::DefineParameters(ParameterListT& list) const
 	ParameterT cut_off(ParameterT::Double, "cut_off");
 	cut_off.AddLimit(kSmall, LimitT::Lower);
 	list.AddParameter(cut_off);
+}
+
+/* information about subordinate parameter lists */
+void AdhesionT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ElementBaseT::DefineSubs(sub_list);
+
+	/* interaction potential choice */
+	sub_list.AddSub("adhesion_potential", ParameterListT::Once);
+
+	/* surfaces */
+	sub_list.AddSub("adhesion_surface", ParameterListT::OnePlus);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* AdhesionT::NewSub(const StringT& list_name) const
+{
+	/* try C1 function */
+	C1FunctionT* function = C1FunctionT::New(list_name);
+	if (function) 
+		return function;
+
+	/* other subs */
+	if (list_name == "adhesion_potential") {
+	
+		ParameterContainerT* adhesion_potential = new ParameterContainerT(list_name);
+		adhesion_potential->SetListOrder(ParameterListT::Choice);
+		adhesion_potential->SetSubSource(this);
+	
+		/* choice of parameters */
+		adhesion_potential->AddSub("Lennard-Jones_6-12");
+		adhesion_potential->AddSub("Smith-Ferrante");
+		adhesion_potential->AddSub("modified_Smith-Ferrante");
+	
+		return adhesion_potential;
+	}
+	else if (list_name == "adhesion_surface")
+	{
+		ParameterContainerT* adhesion_surface = new ParameterContainerT(list_name);
+		adhesion_surface->SetListOrder(ParameterListT::Choice);
+		
+		/* schedule function to scale the surface interaction */
+		adhesion_surface->AddParameter(ParameterT::Integer, "interaction_scaling_schedule", ParameterListT::ZeroOrOnce);
+		
+		/* surface from side set  */
+		ParameterContainerT surface_side_set("surface_side_set");
+		surface_side_set.AddParameter(ParameterT::Word, "side_set_ID");
+		adhesion_surface->AddSub(surface_side_set);
+	
+		/* surfaces from body block boundaries */
+		ParameterContainerT block_boundaries("block_boundaries");
+		block_boundaries.AddSub("block_ID_list");
+		adhesion_surface->AddSub(block_boundaries);
+	
+		return adhesion_surface;	
+	}
+	else /* inherited */
+		return ElementBaseT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void AdhesionT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "AdhesionT::TakeParameterList";
+
+	/* inherited */
+	ElementBaseT::TakeParameterList(list);
+
+	/* dimensioning */
+	fFace2_man.SetMinorDimension(NumSD());
+
+	/* parameters */
+	fPenalizePenetration = list.GetParameter("penalize_penetration");
+	fAllowSameSurface= list.GetParameter("self_interaction");
+	fCutOff = list.GetParameter("cut_off");
+
+	/* construct potential */
+	const ParameterListT* adhesion_potential = list.ResolveListChoice(*this, "adhesion_potential");
+	if (!adhesion_potential) ExceptionT::GeneralFail(caller, "could not resolve \"adhesion_potential\"");
+	fAdhesion = C1FunctionT::New(adhesion_potential->Name());
+	if (!fAdhesion) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", adhesion_potential->Name().Pointer());
+	fAdhesion->TakeParameterList(*adhesion_potential);
+
+	/* construct the adhesive surfaces */
+	ExtractSurfaces(list);
+	
+	/* set up work space */
+	SetWorkSpace();
+	
+	/* set initial configuration */
+	SetConfiguration();	
+
+	/* write statistics */
+	ostream& out = ElementSupport().Output();
+	out << "\n Surface adhesion: group " << ElementSupport().ElementGroupNumber(this) + 1 << '\n';
+	out << " Time                           = " << ElementSupport().Time() << '\n';
+	out << " Active face pairs              = " << fSurface1.Length() << '\n';
 }
 
 /***********************************************************************
@@ -637,28 +747,13 @@ void AdhesionT::RHSDriver(void)
 	}
 }
 
-/* print element group data */
-void AdhesionT::PrintControlData(ostream& out) const
+/** construct the adhesive surfaces */
+void AdhesionT::ExtractSurfaces(const ParameterListT& list)
 {
-	/* inherited */
-	ElementBaseT::PrintControlData(out);
+	const char caller[] = "AdhesionT::ExtractSurfaces";
 
-	/* adhesive force information */
-	out << " Adhesive interaction. . . . . . . . . . . . . . =\n";
-	fAdhesion->PrintName(out);
-	out << " Parameters:\n";
-	fAdhesion->Print(out);
-	out << " Interaction cut-off distance. . . . . . . . . . = " << fCutOff << endl;
-}
-
-/* echo bodies and striker nodes */
-void AdhesionT::EchoConnectivityData(ifstreamT& in, ostream& out)
-{
-	int num_surfaces;
-	in >> num_surfaces;
-	out << " Number of surfaces. . . . . . . . . . . . . . . = "
-	    << num_surfaces << '\n';
-	if (num_surfaces < 1) throw ExceptionT::kBadInputValue;
+	/* get surfaces */
+	int num_surfaces = list.NumLists("adhesion_surface");
 
 	/* read surfaces */
 	AutoArrayT<int> schedules;
@@ -666,40 +761,28 @@ void AdhesionT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	AutoArrayT<GeometryT::CodeT> geom;
 	for (int i = 0; i < num_surfaces; i++)
 	{
+		const ParameterListT* surface_spec = list.ResolveListChoice(*this, "adhesion_surface", i);
+		if (!surface_spec) ExceptionT::GeneralFail(caller, "could not find \"adhesion_surface\" %d", i+1);
+	
 		ArrayT<GeometryT::CodeT> new_geom;
 		ArrayT<iArray2DT> new_surfaces;
 	
-		int spec_mode;
-		in >> spec_mode;
-		switch (spec_mode)
+		if (surface_spec->Name() == "surface_side_set") 
 		{
-			case kNodesOnFacet:
-			{
-				new_geom.Dimension(1);
-				new_surfaces.Dimension(1);
-				InputNodesOnFacet(in, new_geom[0], new_surfaces[0]);
-				break;
-			}
-			case kSideSets:
-			{
-				new_geom.Dimension(1);
-				new_surfaces.Dimension(1);
-				InputSideSets(in, new_geom[0], new_surfaces[0]);
-				break;
-			}
-			case kBodyBoundary:
-			{
-				/* may resize the surfaces array */
-				InputBodyBoundary(in, new_geom, new_surfaces);
-				num_surfaces = fSurfaces.Length();
-				break;
-			}
-			default:
-				cout << "\n AdhesionT::EchoConnectivityData: unknown surface specification\n";
-				cout <<   "     mode " << spec_mode << " for surface " << i+1 << '\n';
-				throw ExceptionT::kBadInputValue;
+			new_geom.Dimension(1);
+			new_surfaces.Dimension(1);
+			InputSideSets(*surface_spec, new_geom[0], new_surfaces[0]);
 		}
-		
+		else if (surface_spec->Name() == "block_boundaries")
+		{		
+			/* may resize the surfaces array */
+			InputBodyBoundary(*surface_spec, new_geom, new_surfaces);
+			num_surfaces += new_surfaces.Length() - 1;
+		}
+		else
+			ExceptionT::GeneralFail(caller, "unrecognized adhesion surface \"%s\"",
+				surface_spec->Name().Pointer());
+
 		/* collect */
 		geom.Append(new_geom);
 		for (int j = 0; j < new_surfaces.Length(); j++)
@@ -710,12 +793,14 @@ void AdhesionT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		}
 		
 		/* scaling schedule */
-		int sched = -1;
-		in >> sched;
-		if (sched < 0) throw ExceptionT::kBadInputValue;
-		sched--;
-		schedules.Append(sched);
-		
+		const ParameterT* scaling = list.Parameter("interaction_scaling_schedule");
+		if (scaling) {
+			int schedule = *scaling;
+			schedules.Append(schedule);	
+		}
+		else
+			schedules.Append(-1);
+
 		/* next */
 		num_surfaces += new_surfaces.Length() - 1;
 		i += new_surfaces.Length() - 1;
@@ -731,13 +816,16 @@ void AdhesionT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		/* delete temp space */
 		delete surfaces[i];
 	}
+
+	/* output stream */
+	ofstreamT& out = ElementSupport().Output();
+	bool print_input = ElementSupport().PrintInput();
 	
-	/* echo data and correct numbering offset */
+	/* echo data */
 	out << " Adhesive surfaces:\n";
 	out << setw(kIntWidth) << "surface"
 	    << setw(kIntWidth) << "facets"
 	    << setw(kIntWidth) << "size" << '\n';
-	int surface_count = 0;
 	for (int j = 0; j < fSurfaces.Length(); j++)
 	{		
 	  	iArray2DT& surface = fSurfaces[j];
@@ -746,18 +834,20 @@ void AdhesionT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	  	    << setw(kIntWidth) << surface.MajorDim()
 	  	    << setw(kIntWidth) << surface.MinorDim() << "\n\n";
 	  	
-	  	/* set offset for output */
-	  	if (ElementSupport().PrintInput())
-	  	{
-	  		surface++;
+	 	 /* set offset for output */
+	 	 if (print_input) {
+	 	 	surface++;
 	  		surface.WriteNumbered(out);
-	  		surface--;
+	 	 	surface--;
 	  		out << '\n';
-	  	}
-	  	
-	  	/* count non-empty */
-	  	if (surface.MajorDim() > 0) surface_count++;
-	}	
+		}	
+	}
+	
+	/* count non-empty */
+	int surface_count = 0;
+	for (int j = 0; j < fSurfaces.Length(); j++)
+	  	if (fSurfaces[j].MajorDim() > 0) 
+	  		surface_count++;
 	
 	/* remove empty surfaces */
 	if (surface_count != fSurfaces.Length())
@@ -826,6 +916,7 @@ void AdhesionT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		/* get scaling function */
 		if (schedules[i] > -1) fScaling[i] = ElementSupport().Schedule(schedules[i]);
 	}
+
 	fOutputID.Dimension(fSurfaces.Length());
 	fOutputID = -1;
 }
@@ -980,57 +1071,31 @@ bool AdhesionT::SetConfiguration(void)
 }
 
 /***********************************************************************
-* Private
-***********************************************************************/
+ * Private
+ ***********************************************************************/
 
-/* surface input functions */
-void AdhesionT::InputNodesOnFacet(ifstreamT& in, GeometryT::CodeT& geom, iArray2DT& facets)
+void AdhesionT::InputSideSets(const ParameterListT& list, GeometryT::CodeT& geom, iArray2DT& facets)
 {
-	int num_facets = -1;
-	int num_facet_nodes = -1;
-	in >> geom >> num_facets >> num_facet_nodes;
-	if (num_facets < 0 || num_facet_nodes < 0) throw ExceptionT::kBadInputValue;
-	
-	/* dimension */
-	facets.Dimension(num_facets, num_facet_nodes);
-	
-	/* read */
-	in >> facets;
-	
-	/* correct numbering */
-	facets--;
-}
+	const char caller[] = "AdhesionT::InputSideSets";
 
-void AdhesionT::InputSideSets(ifstreamT& in, GeometryT::CodeT& geom, iArray2DT& facets)
-{
-	/* read data from parameter file */
-	ArrayT<StringT> ss_ID;
-	bool multidatabasesets = false; /* change to positive and the parameter file format changes */
-	ModelManagerT& model = ElementSupport().ModelManager();
-	model.SideSetList(in, ss_ID, multidatabasesets);
-
-	if (ss_ID.Length () != 1) {
-		cout << "\n AdhesionT::InputSideSets: Model Manager read more than one side set, not programmed for this." << endl;
-		throw ExceptionT::kBadInputValue;
-	}
+	/* extract side set ID */
+	StringT ss_ID;
+	ss_ID = list.GetParameter("side_set_ID");
 
 	/* read side set faces */
+	ModelManagerT& model = ElementSupport().ModelManager();
 	ArrayT<GeometryT::CodeT> facet_geom;
 	iArrayT facet_nodes;
-	model.SideSet(ss_ID[0], facet_geom, facet_nodes, facets);
+	model.SideSet(ss_ID, facet_geom, facet_nodes, facets);
 	geom = facet_geom[0];
 }
 
-void AdhesionT::InputBodyBoundary(ifstreamT& in, ArrayT<GeometryT::CodeT>& geom,
+void AdhesionT::InputBodyBoundary(const ParameterListT& list, ArrayT<GeometryT::CodeT>& geom,
 	ArrayT<iArray2DT>& surfaces)
 {
-	/* gather element group info */
-	int num_blocks = -1;
-	in >> num_blocks;
-	if (num_blocks < 1) throw ExceptionT::kBadInputValue;
-	ArrayT<StringT> IDs(num_blocks);
-	for (int i = 0; i < IDs.Length(); i++)
-		in >> IDs[i];
+	/* collect block ID's */
+	ArrayT<StringT> IDs;
+	StringListT::Extract(list.GetList("block_ID_list"), IDs);
 
 	/* get sets of facet */
 	GeometryT::CodeT geometry;
