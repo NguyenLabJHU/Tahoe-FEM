@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.h,v 1.11 2002-10-23 00:18:03 cjkimme Exp $ */
+/* $Id: Tijssens2DT.h,v 1.12 2003-01-22 00:52:42 cjkimme Exp $ */
 
 #ifndef _TIJSSENS_2D_T_H_
 #define _TIJSSENS_2D_T_H_
@@ -68,7 +68,7 @@ public:
 	virtual int NodalQuantityNeeded(void);
 	//        virtual double ComputeNodalValue(const dArrayT &);
 	//	virtual void UpdateStateVariables(const dArrayT &, ArrayT<double> &);
-	virtual void SetElementGroupsNeeded(iArrayT iGroups);
+	virtual void SetElementGroupsNeeded(iArrayT& iGroups);
 
 protected:
 
