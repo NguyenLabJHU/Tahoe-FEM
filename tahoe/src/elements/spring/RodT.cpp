@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.8 2002-06-29 16:16:05 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.9 2002-06-30 03:08:05 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -45,12 +45,28 @@ void RodT::Initialize(void)
 	/* echo material properties */
 	ReadMaterialData(ElementSupport().Input());	
 	WriteMaterialData(ElementSupport().Output());
+
+	/* get form of tangent */
+	GlobalT::SystemTypeT type = TangentType();
+	
+	/* set form of element stiffness matrix */
+	if (type == GlobalT::kSymmetric)
+		fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
+	else if (type == GlobalT::kNonSymmetric)
+		fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
+	else if (type == GlobalT::kDiagonal)
+		fLHS.SetFormat(ElementMatrixT::kDiagonal);
 }
 
 /* form of tangent matrix */
 GlobalT::SystemTypeT RodT::TangentType(void) const
 {
-	return GlobalT::kSymmetric;
+	/* special case */
+	if (fController->Order() > 0 &&
+	    fController->ImplicitExplicit() ==  eControllerT::kExplicit)
+		return GlobalT::kDiagonal;
+	else
+		return GlobalT::kSymmetric;
 }
 
 /* NOT implemented. Returns an zero force vector */
@@ -199,7 +215,7 @@ void RodT::LHSDriver(void)
 			fLHS = 0.0;
 	
 		/* mass contribution */
-		if (formM) fLHS.PlusIdentity(constK*mass);
+		if (formM) fLHS.PlusIdentity(constM*mass);
 	
 		/* add to global equations */
 		AssembleLHS();
