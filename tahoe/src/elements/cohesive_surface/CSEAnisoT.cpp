@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.5 2001-03-08 17:22:12 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.6 2001-04-04 22:13:24 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 /* Cohesive surface elements with scalar traction potentials,             */
 /* i.e., the traction potential is a function of the gap magnitude,       */
@@ -393,6 +393,16 @@ void CSEAnisoT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& fl
 		counts[MaterialData] = fSurfPots[0]->NumOutputVariables();
 }
 
+void CSEAnisoT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+	iArrayT& counts) const
+{
+	/* inherited */
+	CSEBaseT::SetElementOutputCodes(mode, flags, counts);
+	
+	/* resize for vectors not magnitudes */
+	if (flags[Traction] == mode) counts[Traction] = fNumDOF;
+}
+
 /* extrapolate the integration point stresses and strains and extrapolate */
 void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	const iArrayT& e_codes, dArray2DT& e_values)
@@ -444,6 +454,12 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	}
 	double phi_tmp, area;
 	double& phi = (e_codes[CohesiveEnergy]) ? *pall++ : phi_tmp;
+	dArrayT traction;
+	if (e_codes[Traction])
+	{
+		traction.Set(fNumDOF, pall); 
+		pall += fNumDOF;
+	}
 
 	/* node map of facet 1 */
 	iArrayT facet1;
@@ -474,7 +490,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		}
 		
 		//NOTE: will not get any element output if the element not kON
-		//      although quantities like the element centroid could
+		//      although quantities like the reference element centroid could
 		//      still be safely calculated.
 
 		/* compute output */
@@ -491,8 +507,9 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			SetLocalX(fLocCurrCoords); //EFFECTIVE_DVA
 
 			/* initialize element values */
-			phi = area = 0;
+			phi = area = 0.0;
 			if (e_codes[Centroid]) centroid = 0.0;
+			if (e_codes[Traction]) traction = 0.0;
 
 			/* integrate */
 			fShapes->TopIP();
@@ -500,6 +517,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			{
 				/* element integration weight */
 				double ip_w = fShapes->Jacobian()*fShapes->IPWeight();
+				area += ip_w;
 
 				/* gap */
 				const dArrayT& gap = fShapes->InterpolateJumpU(fLocCurrCoords);
@@ -513,8 +531,19 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					fShapes->Extrapolate(fdelta, jump);				
 				
 				/* traction */
-				if (n_codes[NodalTraction])
-					fShapes->Extrapolate(surfpot->Traction(fdelta), T);
+				if (n_codes[NodalTraction] || e_codes[Traction])
+				{
+					/* compute traction in local frame */
+					const dArrayT& tract = surfpot->Traction(fdelta);
+				
+					/* project to nodes */
+					if (n_codes[NodalTraction])
+						fShapes->Extrapolate(tract, T);
+					
+					/* element average */
+					if (e_codes[Traction])
+						traction.AddScaled(ip_w, tract);
+				}
 					
 				/* material output data */
 				if (n_codes[MaterialData])
@@ -523,15 +552,9 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 					fShapes->Extrapolate(ipmat, matdat);
 				}
 
-				/* area-averaged centroid */
+				/* moment */
 				if (e_codes[Centroid])
-				{
-					/* mass */
-					area += ip_w;
-				
-					/* moment */
 					centroid.AddScaled(ip_w, fShapes->IPCoords());
-				}
 				
 				/* cohesive energy */
 				if (e_codes[CohesiveEnergy])
@@ -546,6 +569,51 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			
 			/* element values */
 			if (e_codes[Centroid]) centroid /= area;
+			if (e_codes[Traction]) traction /= area;
+		}
+		/* element has failed */
+		else
+		{
+			/* can still be calculated */
+			if (e_codes[Centroid] || e_codes[CohesiveEnergy])
+			{
+				/* get ref geometry (1st facet only) */
+				fNodes1.Collect(facet1, element.NodesX());
+				fLocInitCoords1.SetLocal(fNodes1);
+
+				/* initialize element values */
+				phi = area = 0.0;
+				if (e_codes[Centroid]) centroid = 0.0;
+		
+		  		/* surface potential */
+				SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
+		
+				/* integrate */
+				fShapes->TopIP();
+				while (fShapes->NextIP())
+				{
+					/* element integration weight */
+					double ip_w = fShapes->Jacobian()*fShapes->IPWeight();
+					area += ip_w;
+		
+					/* moment */
+					if (e_codes[Centroid])
+						centroid.AddScaled(ip_w, fShapes->IPCoords());
+
+					/* cohesive energy */
+					if (e_codes[CohesiveEnergy])
+					{
+						/* surface potential */
+						double potential = surfpot->FractureEnergy();
+	
+						/* integrate */
+						phi += potential*ip_w;
+					}
+				}
+				
+				/* element values */
+				if (e_codes[Centroid]) centroid /= area;
+			}		
 		}
 
 		/* copy in the cols (in sequence of output) */
@@ -630,6 +698,32 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 		fSurfPots[0]->OutputLabels(matlabels);
 		for (int i = 0; i < n_codes[MaterialData]; i++)
 			n_labels[count++] = matlabels[i];
+	}
+	
+	/* allocate nodal output labels */
+	e_labels.Allocate(e_codes.Sum());
+	count = 0;
+	if (e_codes[Centroid])
+	{
+		const char* xlabels[] = {"xc_1", "xc_2", "xc_3"};
+		for (int i = 0; i < fNumSD; i++)
+			e_labels[count++] = xlabels[i];
+	}
+	if (e_codes[CohesiveEnergy]) e_labels[count++] = "phi";
+	if (e_codes[Traction])
+	{
+		const char* t_2D[2] = {"T_t", "T_n"};
+		const char* t_3D[3] = {"T_t1", "T_t2", "T_n"};
+		const char** tlabels;
+		if (fNumDOF == 2)
+			tlabels = t_2D;
+		else if (fNumDOF == 3)
+			tlabels = t_3D;
+		else
+			throw eGeneralFail;
+
+		for (int i = 0; i < fNumDOF; i++)
+			e_labels[count++] = tlabels[i];
 	}
 }
 
