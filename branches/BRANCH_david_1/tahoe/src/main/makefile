@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.11 2004-07-25 06:44:12 paklein Exp $
+# $Id: makefile,v 1.11.2.1 2004-08-05 23:36:53 d-farrell2 Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -25,7 +25,7 @@ OBJ = \
 	FEManagerT.o \
 	FEManagerT.New.o \
 	FEManagerT.ParseInput.o \
-	FEManagerT_mpi.o \
+	FEDecomposeT.o \
 	FEManagerT_bridging.o \
 	FEManagerT_bridging_1.o \
 	FEManagerT_bridging_2.o \
@@ -63,7 +63,7 @@ SRC = \
 	FEManagerT.cpp \
 	FEManagerT.New.cpp \
 	FEManagerT.ParseInput.cpp \
-	FEManagerT_mpi.cpp \
+	FEDecomposeT.cpp \
 	FEManagerT_bridging.cpp \
 	FEManagerT_bridging_1.cpp \
 	FEManagerT_bridging_2.cpp \
@@ -91,7 +91,7 @@ HDR = \
 	ExecutionManagerT.h \
 	FEExecutionManagerT.h \
 	FEManagerT.h \
-	FEManagerT_mpi.h \
+	FEDecomposeT.h \
 	FEManagerT_bridging.h \
 	GlobalT.h \
 	IOManager.h \
