@@ -1,4 +1,4 @@
-/* $Id: GraphT.cpp,v 1.4 2001-07-08 01:02:16 paklein Exp $ */
+/* $Id: GraphT.cpp,v 1.5 2001-07-08 01:05:37 paklein Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "GraphT.h"
@@ -74,7 +74,7 @@ void GraphT::MakeGraph(void)
 	int range = fMaxNodeNum - fMinNodeNum + 1;
 	//AutoFill2DT<int> edgedata(range, 25, 5);
 	RowAutoFill2DT<int> edgedata(range, 25, 5);
-	edgedata.SetFlushSize(8*100000000); //flush every 100MB
+	//edgedata.SetFlushSize(8*100000000); //flush every 100MB
 
 	/* create adjacency lists */	
 	const iArray2DT* currgroup;

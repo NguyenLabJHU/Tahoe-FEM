@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.8 2001-07-07 17:31:28 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.9 2001-07-08 01:06:13 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -29,7 +29,7 @@
 #include "LocalArrayT.h"
 
 /* use disk to reduce memory usage */
-#define _USE_DISK_
+#undef _USE_DISK_
 
 /* parameters */
 const int kMaxNumGrid   = 100;
