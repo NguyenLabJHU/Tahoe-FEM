@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.19 2002-03-04 06:37:17 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.20 2002-06-08 19:33:38 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -233,11 +233,8 @@ class ModelManagerT
    * \param dof returned spatial degree of freedom */
   void CoordinateDimensions (int& length, int& dof) const;
 
-  /** return a reference to the coordinate array, whether it is filled or empty */
-  const dArray2DT& CoordinateReference (void) const;
-
   /** read the coordinate array if not yet read from the model file and returns a reference to the array */
-  const dArray2DT& Coordinates (void);
+  const dArray2DT& Coordinates(void);
   
   /** reads the coordinate array if not yet read from the model file, no return accessor */
   void ReadCoordinates (void);
