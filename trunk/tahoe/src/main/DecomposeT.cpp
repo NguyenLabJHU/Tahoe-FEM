@@ -1,4 +1,4 @@
-/* $Id: DecomposeT.cpp,v 1.4 2004-10-06 21:07:10 paklein Exp $ */
+/* $Id: DecomposeT.cpp,v 1.5 2004-11-17 23:37:35 paklein Exp $ */
 #include "DecomposeT.h"
 
 #include "ofstreamT.h"
@@ -298,7 +298,8 @@ void DecomposeT::Decompose_spatial(const StringT& input_file, const iArrayT& gri
 	model.ElementGroupPointers(IDs, connects_1);
 	ArrayT<const RaggedArray2DT<int>*> connects_2;
 
-	/* set partition information and write partial geometry files*/
+	/* set partition information and write partial geometry files */
+	iArrayT grid_pos(nsd);
 	for (int i = 0; i < size; i++)
 	{
 		/* partition data */
@@ -321,6 +322,13 @@ void DecomposeT::Decompose_spatial(const StringT& input_file, const iArrayT& gri
 		
 		/* set decomposition type */
 		partition.SetDecompType(PartitionT::kSpatial);
+	
+		/* set grid dimensions */
+		partition.SetGridDimensions(grid_dims);
+		
+		/* grid grid position */
+		grid.Processor2Grid(i, grid_pos);
+		partition.SetGridPosition(grid_pos);
 	
 		/* output file name */
 		StringT geom_file, suffix;
