@@ -1,4 +1,5 @@
-/* $Id: SolidMatList1DT.cpp,v 1.20 2004-06-26 06:03:10 paklein Exp $ */
+/* $Id: SolidMatList1DT.cpp,v 1.21 2004-06-28 22:41:30 hspark Exp $ */
+
 #include "SolidMatList1DT.h"
 
 #include "SolidMaterialsConfig.h"

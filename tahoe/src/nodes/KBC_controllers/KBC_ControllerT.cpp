@@ -1,11 +1,11 @@
-/* $Id: KBC_ControllerT.cpp,v 1.11 2003-11-04 01:37:05 paklein Exp $ */
+/* $Id: KBC_ControllerT.cpp,v 1.12 2004-06-28 22:41:56 hspark Exp $ */
 /* created: paklein (09/05/2000) */
 #include "KBC_ControllerT.h"
 
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
-#include "fstreamT.h"
+#include "ifstreamT.h"
 
 using namespace Tahoe;
 

@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.64 2004-06-26 18:53:46 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.65 2004-06-28 22:41:51 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -18,7 +18,7 @@
 #include <Profiler.h>
 #endif
 
-#include "fstreamT.h"
+#include "ifstreamT.h"
 #include "FEManagerT.h"
 #include "FEManagerT_mpi.h"
 #include "IOManager_mpi.h"
@@ -753,24 +753,28 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	batoms.CopyPart(0, allatoms, numgatoms, numbatoms);
 	gatoms.CopyPart(0, allatoms, 0, numgatoms);      
 	boundatoms.CopyPart(0, boundaryghostatoms, numgatoms, numbatoms);
-	elecdens.Dimension(gatoms.Length(), 1);
-	embforce.Dimension(gatoms.Length(), 1);
+	//elecdens.Dimension(gatoms.Length(), 1);
+	//embforce.Dimension(gatoms.Length(), 1);
 	continuum.InitInterpolation(boundaryghostatoms, bridging_field, *atoms.NodeManager());
 	//dArrayT mdmass;
 	//atoms.LumpedMass(atoms.NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
 	continuum.InitProjection(*atoms.CommManager(), atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive);		
-	//nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
-	nMatrixT<int> ghostonmap(5), ghostoffmap(5);  // for fracture problem
+	nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // 3D wave propagation
+	//nMatrixT<int> ghostonmap(5), ghostoffmap(5);  // for 2D fracture problem
 	//nMatrixT<int> ghostonmap(4), ghostoffmap(4);    // for planar wave propagation problem
 	//nMatrixT<int> ghostonmap(7), ghostoffmap(7);	// 3D fracture problem
 	ghostonmap = 0;
 	ghostoffmap = 0;
-	//ghostonmap(4,5) = ghostonmap(5,4) = 1;
+	ghostoffmap(0,1) = ghostoffmap(1,0) = 1;	// 3D wave propagation
+	//ghostonmap(4,5) = ghostonmap(5,4) = 1;	// 3D fracture problem
+	//ghostoffmap(0,6) = ghostoffmap(6,0) = ghostoffmap(1,6) = ghostoffmap(6,1) = 1;
+	//ghostoffmap(2,6) = ghostoffmap(6,2) = ghostoffmap(3,6) = ghostoffmap(6,3) = 1;
+	//ghostoffmap(4,6) = ghostoffmap(6,4) = ghostoffmap(5,6) = ghostoffmap(6,5) = 1;
 	//ghostoffmap(1,0) = ghostoffmap(0,1) = 1;  // for wave propagation problem
-	ghostoffmap(4,0) = ghostoffmap(0,4) = ghostoffmap(4,1) = ghostoffmap(1,4) = 1;  // center MD crack
-	ghostoffmap(4,2) = ghostoffmap(2,4) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
-	ghostoffmap(4,3) = ghostoffmap(3,4) = 1;
-	ghostonmap(2,3) = ghostonmap(3,2) = 1;
+	//ghostoffmap(4,0) = ghostoffmap(0,4) = ghostoffmap(4,1) = ghostoffmap(1,4) = 1;  // center MD crack
+	//ghostoffmap(4,2) = ghostoffmap(2,4) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
+	//ghostoffmap(4,3) = ghostoffmap(3,4) = 1;
+	//ghostonmap(2,3) = ghostonmap(3,2) = 1;
 	//ghostoffmap(1,0) = ghostoffmap(0,1) = ghostoffmap(3,0) = ghostoffmap(0,3) = 1; // left edge MD crack
 	//ghostoffmap(1,3) = ghostoffmap(3,1) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
 	//ghostonmap(1,0) = ghostonmap(0,1) = 1;
@@ -778,9 +782,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	if (nsd == 3)
 	{
 		/* set pointers to embedding force/electron density in FEManagerT_bridging atoms */
-		atoms.SetExternalElecDensity(elecdens, atoms.GhostNodes());
-		atoms.SetExternalEmbedForce(embforce, atoms.GhostNodes());
-		continuum.ElecDensity(gatoms.Length(), elecdens, embforce);
+		//atoms.SetExternalElecDensity(elecdens, atoms.GhostNodes());
+		//atoms.SetExternalEmbedForce(embforce, atoms.GhostNodes());
+		//continuum.ElecDensity(gatoms.Length(), elecdens, embforce);
 	}
 	
 	/* time managers */
@@ -836,7 +840,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		if (nsd == 3)
 		{
 			/* Calculate EAM electron density/embedding terms for ghost atoms using continuum information */
-			continuum.ElecDensity(gatoms.Length(), elecdens, embforce);
+			//continuum.ElecDensity(gatoms.Length(), elecdens, embforce);
 		}
 		
 		/* Interpolate FEM values to MD ghost nodes which will act as MD boundary conditions */
@@ -851,7 +855,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		badisp.RowCollect(batoms, boundghostdisp);
 		bavel.RowCollect(batoms, boundghostvel);
 		baacc.RowCollect(batoms, boundghostacc);
-		
+
 		/* Removed atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp); here */	
 			
 		if (nsd == 2)
@@ -863,9 +867,10 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		else
 		{
 			/* thkdisp = fine scale part of ghost atom displacement */
-			totaldisp = atoms.THKDisp(badisp);
-			totaldisp+=gadisp;	// add FEM coarse scale part of displacement
-			atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, totaldisp);
+			thkforce = atoms.THKDisp(badisp);
+			atoms.SetExternalForce(bridging_field, thkforce, boundatoms);
+			//totaldisp+=gadisp;	// add FEM coarse scale part of displacement
+			//atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, totaldisp);
 		}
 		
 		/* figure out timestep ratio between fem and md simulations */
@@ -903,12 +908,11 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				}
 				else
 				{
-					/* calculate fine scale part of MD ghost atom displacements */
-					totaldisp = atoms.THKDisp(badisp);
-					totaldisp+=gadisp;	// FEM solution interpolated to ghost atom positions
-					
 					/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
-					atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, totaldisp);
+					atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);
+					
+					/* calculate thkforces */
+					thkforce = atoms.THKDisp(badisp);
 				}
 				
 				/* solve MD equations of motion */
@@ -970,7 +974,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			if (nsd == 3)
 			{
 				/* Calculate EAM electron density/embedding terms for ghost atoms using updated continuum information */
-				continuum.ElecDensity(gatoms.Length(), elecdens, embforce);
+				//continuum.ElecDensity(gatoms.Length(), elecdens, embforce);
 			}
 			
 			/* close fe step */

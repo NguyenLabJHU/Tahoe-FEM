@@ -1,5 +1,6 @@
-/* $Id: CubicT.cpp,v 1.5 2004-06-17 07:40:26 paklein Exp $ */
+/* $Id: CubicT.cpp,v 1.6 2004-06-28 22:41:22 hspark Exp $ */
 /* created: paklein (06/11/1997) */
+
 #include "CubicT.h"
 
 #include <iostream.h>

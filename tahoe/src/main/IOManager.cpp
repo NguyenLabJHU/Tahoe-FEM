@@ -1,8 +1,7 @@
-/* $Id: IOManager.cpp,v 1.21 2004-03-04 19:10:56 paklein Exp $ */
+/* $Id: IOManager.cpp,v 1.22 2004-06-28 22:41:51 hspark Exp $ */
 /* created: sawimme (10/12/1999) */
 #include "IOManager.h"
 
-#include "fstreamT.h"
 #include "ifstreamT.h"
 #include "OutputSetT.h"
 #include "dArrayT.h"
