@@ -1,6 +1,4 @@
-/*
- * File: SurfaceT.h
- */
+/* $Id: SurfaceT.h,v 1.2 2001-03-22 22:30:00 rjones Exp $ */
 
 
 #ifndef _SURFACE_T_H_
