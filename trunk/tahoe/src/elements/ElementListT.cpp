@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.93 2004-07-15 08:25:44 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.94 2004-07-16 00:17:48 cjkimme Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -117,7 +117,7 @@
 #endif
 
 #ifdef MESHFREE_GRAD_PLAST_DEV
-#include "MeshfreeGradP_AssemblyT.h"
+#include "MFGP_AssemblyT.h"
 #endif
 
 #ifdef ENHANCED_STRAIN_LOC_DEV
