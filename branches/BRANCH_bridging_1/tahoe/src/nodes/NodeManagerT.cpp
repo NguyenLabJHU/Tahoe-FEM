@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.21 2003-01-29 07:35:21 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.21.2.1 2003-02-10 02:15:18 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -1818,7 +1818,7 @@ void NodeManagerT::EchoKinematicBCControllers(FieldT& field, ifstreamT& in, ostr
 	ModelManagerT* model = fFEManager.ModelManager();
 
 	/* controller list */
-	pArrayT<KBC_ControllerT*>& controllers = field.KBC_Controllers();
+	ArrayT<KBC_ControllerT*>& controllers = field.KBC_Controllers();
 
 	/* account for text file name instead of data */
 	ifstreamT tmp;
@@ -1867,7 +1867,7 @@ void NodeManagerT::EchoForceBCControllers(FieldT& field, ifstreamT& in, ostream&
 	ModelManagerT* model = fFEManager.ModelManager();
 
 	/* controller list */
-	pArrayT<FBC_ControllerT*>& controllers = field.FBC_Controllers();
+	ArrayT<FBC_ControllerT*>& controllers = field.FBC_Controllers();
 
 	/* account for text file name instead of data */
 	ifstreamT tmp;
