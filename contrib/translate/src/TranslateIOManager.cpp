@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.9 2001-12-17 20:10:52 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.10 2002-01-05 10:08:37 paklein Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -74,6 +74,7 @@ void TranslateIOManager::SetOutput (const StringT& program_name, const StringT& 
     }
   cout << "\n Enter the root of the output files: ";
   cin >> fOutputName;
+  fOutputName.Append(".ext"); //trimmed off by fOutput
 
   ArrayT<StringT> outstrings (4);
   outstrings[0] = fOutputName;
@@ -447,12 +448,13 @@ void TranslateIOManager::WriteNodeSets (void)
   cout << "\n1. Translate All\n";
   cout << "2. Translate Some\n";
   cout << "3. Translate None\n";
+  cout << "\n selection: ";
   cin >> selection;
 
   if (selection == 3) return;
   for (int i=0; i < num; i++)
     {
-      StringT answer ("no");
+      StringT answer("yes");
       if (selection == 2)
 	{
 	  cout << "    Translate Node Set " << names[i] << " (y/n) ? ";
@@ -475,7 +477,7 @@ void TranslateIOManager::WriteElements (void)
   cout << "\n Number of Element Groups: " << num << endl;
   cout << "\n1. Translate All\n";
   cout << "2. Translate Some\n";
-  cout << "\n How many element groups do you want to translate: ";
+  cout << "\n selection: ";
   cin >> selection;
 
   bool changing = false;
@@ -483,7 +485,7 @@ void TranslateIOManager::WriteElements (void)
   for (int e=0; e < num; e++)
     {
       // allow user to select element groups
-      answer[0] = 'y';
+      answer = "yes";
       if (selection == 2)
 	{
 	  cout << "    Translate Element Group " << names[e] << " (y/n) ? ";
