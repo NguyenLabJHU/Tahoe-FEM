@@ -1,17 +1,16 @@
-/* $Id: APS_AssemblyT.cpp,v 1.1 2003-07-10 17:14:47 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.2 2003-09-03 00:02:53 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
 #include "Traction_CardT.h"
+
 #include "ifstreamT.h"
+#include "ofstreamT.h"
 
 #include "APS_Bal_EqT.h"
 #include "APS_BCJT.h"
-#include "Shear_MatlT.h"
-#include "APS_MatlT.h"
-#include "OutputSetT.h"
 
-#include "ofstreamT.h"
+#include "OutputSetT.h"
 
 using namespace Tahoe;
 

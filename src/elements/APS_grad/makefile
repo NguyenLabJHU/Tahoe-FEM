@@ -1,12 +1,11 @@
-# $Id: makefile,v 1.2 2003-07-10 17:16:39 raregue Exp $
+# $Id: makefile,v 1.3 2003-09-03 00:02:53 raregue Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
 include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
-OBJ = \
-	APS_AssemblyT.o \
+OBJ = APS_AssemblyT.o FEA_FormatT.o \
 	APS_Traction_and_Body_Force.o
 
 OBJ_LINK = $(OBJ)
@@ -16,20 +15,17 @@ DEP = $(OBJ:.o=.d)
 #DEP = /dev/null
 
 # sources
-SRC = \
-	APS_AssemblyT.cpp \
+SRC = APS_AssemblyT.cpp FEA_FormatT.cpp \
 	APS_Traction_and_Body_Force.cpp
 
 # headers
-HDR = \
-	APS_AssemblyT.h
-
+HDR = APS_AssemblyT.h  FEA_FormatT.h
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
-SUB_DIR = \
-	FEA \
-	materials
+SUB_DIR = FEA \
+	materials \
+	continuum
 
 subdir_driver: subdir_loop
 

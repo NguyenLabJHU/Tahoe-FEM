@@ -1,4 +1,4 @@
-// $Id: APS_MaterialT.h,v 1.1 2003-07-10 17:26:55 raregue Exp $
+// $Id: APS_MaterialT.h,v 1.2 2003-09-03 00:02:57 raregue Exp $
 #ifndef _APS_MATERIALT_
 #define _APS_MATERIALT_
 
@@ -48,8 +48,9 @@ class APS_MaterialT
 
 };
 
-
+#if 0
 class APS_VariableT : public APS_MaterialT { public: };  // Exact same thing different name
+#endif
 
 }
 #endif

@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.1 2003-07-10 17:14:47 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.2 2003-09-03 00:02:53 raregue Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -15,8 +15,11 @@
 #include "GeometryT.h"
 
 /* base multiscale classes */
-#include "FEA.h"
-#include "APS.h"
+#include "APS_FEA.h"
+#include "APS_EnumT.h"
+#include "APS_VariableT.h"
+#include "BalLinMomT.h"
+#include "PlastT.h"
 #include "FEA_FormatT.h"
 
 namespace Tahoe {

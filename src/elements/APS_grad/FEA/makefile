@@ -1,11 +1,11 @@
-#/* $Id: makefile,v 1.1 2003-07-10 17:18:01 raregue Exp $ */
+#/* $Id: makefile,v 1.2 2003-09-03 00:02:54 raregue Exp $ */
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
 include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
-OBJ = 
+OBJ =  all_depend.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -14,16 +14,19 @@ DEP = $(OBJ:.o=.d)
 #DEP = /dev/null
 
 # sources
-SRC = 
+SRC =  all_depend.cpp
 
 # headers
-HDR = FEA.h 
+HDR = FEA.h
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
 SUB_DIR = \
 	data_process \
-	coupled_eqs 
+	coupled_eqs \
+	integration \
+	matrix \
+	shape_funs
 
 subdir_driver: subdir_loop
 
@@ -33,3 +36,4 @@ include $(MACRO_DIR)/subdir.targets
 # dependencies (none this directory)
 DEPEND = /dev/null
 include $(DEPEND)
+
