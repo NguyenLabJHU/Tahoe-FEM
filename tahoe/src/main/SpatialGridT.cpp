@@ -1,4 +1,4 @@
-/* $Id: SpatialGridT.cpp,v 1.1 2004-10-06 21:07:10 paklein Exp $ */
+/* $Id: SpatialGridT.cpp,v 1.2 2004-11-17 23:36:27 paklein Exp $ */
 #include "SpatialGridT.h"
 #include "dArray2DT.h"
 #include "iArrayT.h"
@@ -10,7 +10,8 @@ using namespace Tahoe;
 
 /* constructor */
 SpatialGridT::SpatialGridT(GridBoundT grid_bound):
-	fGridBound(grid_bound)
+	fGridBound(grid_bound),
+	fSize(0)
 {
 
 }
@@ -23,7 +24,9 @@ void SpatialGridT::Dimension(const iArrayT& num_cells)
 	/* grid dimensions */
 	fNx = num_cells;
 	if (fNx.Min() < 1) ExceptionT::GeneralFail(caller, "bad dimension %d", fNx.Min());
-	
+	fSize = fNx.Product();
+
+#if 0
 	/* set numbering indexing offsets */
 	fN_offset.Dimension(fNx.Length() - 1);
 	int offset = 1;
@@ -31,6 +34,7 @@ void SpatialGridT::Dimension(const iArrayT& num_cells)
 		offset *= fNx[i+1];
 		fN_offset[i] = offset;
 	}
+#endif
 	
 	/* dimension other work space */
 	fMinMax.Dimension(fNx.Length(), 2);
@@ -67,10 +71,10 @@ void SpatialGridT::SetBounds(CommunicatorT& comm, const dArray2DT& points, const
 	const char caller[] = "SpatialGridT::SetBounds";
 	if (points.MinorDim() != fMinMax.MajorDim()) ExceptionT::SizeMismatch(caller);
 
-	/* initialize */
+	/* work space */
 	dArray2DT min_max(points.MinorDim(), 2);
-	min_max.SetColumn(0, DBL_MAX);
-	min_max.SetColumn(1,-DBL_MAX);
+	min_max.SetColumn(0, DBL_MAX); /* init min */
+	min_max.SetColumn(1,-DBL_MAX); /* init max */
 
 	/* search */
 	int npt = (points_used) ? points_used->Length() : points.MajorDim();
@@ -90,16 +94,36 @@ void SpatialGridT::SetBounds(CommunicatorT& comm, const dArray2DT& points, const
 			else if (x > max)
 				max = x;
 		}	
-	}
-
-	/* globalize */
-	for (int i = 0; i < min_max.MajorDim(); i++) {
-		min_max(i,0) = comm.Min(min_max(i,0));
-		min_max(i,1) = comm.Max(min_max(i,1));
+		
+		/* globalize */
+		min = comm.Min(min);
+		max = comm.Max(max);
 	}
 
 	/* set limits */
 	SetBounds(min_max);
+}
+
+/* return the bounds of the given grid */
+void SpatialGridT::GridBounds(const ArrayT<int>& grid_position, dArray2DT& bounds) const
+{
+	/* checks */
+	const char caller[] = "SpatialGridT::GridBounds";
+	if (fNx.Length() != grid_position.Length() ||
+	    fNx.Length() != bounds.MajorDim()) ExceptionT::SizeMismatch(caller);
+
+	/* loop over directions */
+	for (int i = 0; i < bounds.MajorDim(); i++) {
+
+		/* grid cell index */
+		int cell = grid_position[i];
+		if (cell < 0 || cell >= fNx[i])
+			ExceptionT::OutOfRange(caller, "cell %d is out of range {0,%d} in direction %d",
+				cell, fNx[i]-1, i+1);
+		
+		bounds(i,0) = cell*fdx[i];     /* lower bound */
+		bounds(i,1) = (cell+1)*fdx[i]; /* upper bound */
+	}
 }
 
 /* sort coordinates into bins */
@@ -125,6 +149,82 @@ void SpatialGridT::Bin(const dArray2DT& points, iArrayT& bin, iArrayT& bin_count
 	else
 		ExceptionT::GeneralFail(caller, "unsupported dimension %d", nsd);
 }
+
+/* grid position to processor number maps */
+int SpatialGridT::Grid2Processor(int i) const 
+{
+#if __option(extended_errorcheck)
+	if (fNx.Length() != 1) ExceptionT::GeneralFail("SpatialGridT::Grid2Processor");
+#endif
+
+	if (i < 0 || i >= fNx[0])
+		return -1; /* off the grid */
+	else
+		return i;
+}
+
+int SpatialGridT::Grid2Processor(int i, int j) const 
+{
+#if __option(extended_errorcheck)
+	if (fNx.Length() != 2) ExceptionT::GeneralFail("SpatialGridT::Grid2Processor");
+#endif
+
+	if (i < 0 || i >= fNx[0] || j < 0 || j >= fNx[1])
+		return -1; /* off the grid */
+	else
+		return j*fNx[0] + i; /* column major */
+}
+
+int SpatialGridT::Grid2Processor(int i, int j, int k) const 
+{
+#if __option(extended_errorcheck)
+	if (fNx.Length() != 3) ExceptionT::GeneralFail("SpatialGridT::Grid2Processor");
+#endif
+
+	if (i < 0 || i >= fNx[0] || j < 0 || j >= fNx[1] || k < 0 || k >= fNx[2])
+		return -1; /* off the grid */
+	else
+		return k*fNx[0]*fNx[1] + j*fNx[0] + i; /* column major */
+}
+
+/* processor number to grid position map */
+void SpatialGridT::Processor2Grid(int p, int& i) const
+{
+#if __option(extended_errorcheck)
+	if (p < 0 || p >= fSize) ExceptionT::GeneralFail("SpatialGridT::Processor2Grid");
+#endif
+
+	i = p;
+}
+
+void SpatialGridT::Processor2Grid(int p, int& i, int& j) const
+{
+#if __option(extended_errorcheck)
+	if (p < 0 || p >= fSize) ExceptionT::GeneralFail("SpatialGridT::Processor2Grid");
+#endif
+
+	i = p%fNx[0];
+	j = (p - i)/fNx[0];
+}
+
+void SpatialGridT::Processor2Grid(int p, int& i, int& j, int& k) const
+{
+#if __option(extended_errorcheck)
+	if (p < 0 || p >= fSize) ExceptionT::GeneralFail("SpatialGridT::Processor2Grid");
+#endif
+
+	int n0 = fNx[0];
+	int n0n1 = fNx[0]*fNx[1];
+
+	int ji = p%n0n1;
+	i = ji%n0;
+	j = (ji - i)/n0;
+	k = (p - ji)/n0n1;
+}
+
+/*************************************************************************
+ * Private
+ *************************************************************************/
 
 void SpatialGridT::Bin2D(const dArray2DT& points, iArrayT& bin, iArrayT& bin_counts,  
 	const ArrayT<int>* points_used)
