@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.20 2003-11-01 21:12:53 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.21 2003-11-04 17:45:09 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -203,6 +203,10 @@ protected:
 	/*@{*/
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
