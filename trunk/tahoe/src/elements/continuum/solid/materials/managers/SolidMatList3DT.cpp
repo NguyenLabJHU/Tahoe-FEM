@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.15 2002-04-04 00:49:33 ebmarin Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.16 2002-05-31 07:09:51 thao Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList3DT.h"
@@ -25,7 +25,6 @@
 #include "J2QLLinHardT.h"
 #include "OgdenIsoVIB3D.h"
 #include "QuadLogOgden3DT.h"
-#include "OgdenViscVIB3D.h"
 #include "SKStVT3D.h"
 #include "HyperEVP3D.h"
 #include "BCJHypo3D.h"
@@ -42,6 +41,8 @@
 
 #include "ABAQUS_BCJ.h"
 #include "ABAQUS_VUMAT_BCJ.h"
+
+//#include "OgdenViscVIB3D.h"
 
 /* constructors */
 SolidMatList3DT::SolidMatList3DT(int length, const ElasticT& element_group):
@@ -225,12 +226,16 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 			}
 			case kOgdenViscVIB:
 			{
-				/* check */
+			  /*				// check 
 				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
 
 				fArray[matnum] = new OgdenViscVIB3D(in, *fFiniteStrain);
 				fHasLocalizers = true;
 				fHasHistory = true;
+			  */
+			  cout << "\n Viscoelastic VIB model not yet implemented in 3D\n";
+			  throw eGeneralFail;
+			  break;
 			}
 			case kIsoVIBSimo:
 			{

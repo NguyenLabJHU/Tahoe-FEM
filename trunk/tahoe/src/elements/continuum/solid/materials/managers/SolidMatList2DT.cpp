@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.15 2002-03-27 00:57:25 ebmarin Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.16 2002-05-31 07:09:51 thao Exp $ */
 /* created: paklein (02/14/1997) */
 
 #include "SolidMatList2DT.h"
@@ -50,6 +50,8 @@
 #include "GradCrystalPlast2D.h"
 #include "LocalCrystalPlastFp2D.h"
 #include "GradCrystalPlastFp2D.h"
+
+#include "OgdenViscVIB2Dold.h"
 
 /* constructor */
 SolidMatList2DT::SolidMatList2DT(int length, const ElasticT& element_group):
@@ -485,6 +487,15 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			}
 
 #endif //TEMP
+			case kOgdenViscVIBold:
+			{
+				/* check */
+				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new OgdenViscVIB2Dold(in, *fFiniteStrain);
+				fHasHistory = true;
+				break;
+			}
 
 			default:
 			
