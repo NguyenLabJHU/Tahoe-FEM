@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.10 2002-01-08 23:11:41 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.11 2002-01-09 12:17:49 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -30,8 +30,10 @@ class ModelManagerT
   /** constructor.
    * \param message error messages ostream */
   ModelManagerT (ostream& message);
+  
+  /** destructor */
   ~ModelManagerT (void);
-
+  
   /** initialize
    * Use only 1 of the 3 initialize functions. This function is meant to be
    * used in conjuction with a Tahoe parameter file. The readonly option controls
@@ -49,7 +51,6 @@ class ModelManagerT
    * \param format IO database format.
    * \param database Name of model file (null for inline text files
    * \return true if model database is open, false otherwise */
-
   bool Initialize (const IOBaseT::FileTypeT format, const StringT& database);
 
   /** initialize
@@ -67,7 +68,13 @@ class ModelManagerT
   /** access function
    * \param format returns database format
    * \param name returns model file name */
-  void Format (IOBaseT::FileTypeT& format, StringT& name) const;
+  void Format(IOBaseT::FileTypeT& format, StringT& name) const;
+
+  /** return the database file name */
+  const StringT& DatabaseName(void) const { return fInputName; };
+  
+  /** return the database file format */
+  IOBaseT::FileTypeT DatabaseFormat(void) const { return fFormat; };
 
   /** InputBaseT node registration
    * called by InputBaseT* to register data
@@ -209,16 +216,19 @@ class ModelManagerT
 	int NumNodes(void) const;
 
 	/** number of spatial dimensions */
-	int  NumDimensions (void) const;
+	int NumDimensions (void) const;
 
   /** access coordinate dimensions
    * \param length returned number of nodes
    * \param dof returned spatial degree of freedom */
   void CoordinateDimensions (int& length, int& dof) const;
+
   /** return a reference to the coordinate array, whether it is filled or empty */
   const dArray2DT& CoordinateReference (void) const;
+
   /** read the coordinate array if not yet read from the model file and returns a reference to the array */
   const dArray2DT& Coordinates (void);
+  
   /** reads the coordinate array if not yet read from the model file, no return accessor */
   void ReadCoordinates (void);
 
@@ -228,6 +238,7 @@ class ModelManagerT
 
   /** returns the number of element groups/blocks/sets */
   int NumElementGroups (void) const;
+
   /** returns an array of element groups names */
   void ElementGroupNames (ArrayT<StringT>& names) const;
   /** returns the index for the element group name */
@@ -323,7 +334,7 @@ class ModelManagerT
   void AddElement (int index, const iArray2DT& connects, iArrayT& new_elem_tags, int& newtotalnumelems);
 
   /** This closes the link to InputBaseT, it does not clear any stored data */
-  void CloseModel (void);
+  void CloseModel(void);
 
   /** checks to see if external file or actual data */
   ifstreamT& OpenExternal (ifstreamT& in, ifstreamT& in2, ostream& out, bool verbose, const char* fail) const;
