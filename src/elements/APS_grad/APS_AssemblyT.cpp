@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.55 2004-07-29 14:57:12 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.56 2004-07-29 18:49:51 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "APS_MatlT.h"
@@ -26,6 +26,8 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support):
 	fTractionBCSet(0),
 	fDispl(NULL),
 	fPlast(NULL),
+	fShapes_displ(NULL),
+	fShapes_plast(NULL),
 	fKdd(ElementMatrixT::kNonSymmetric),
 	fKdd_face(ElementMatrixT::kNonSymmetric),
 	fKdeps(ElementMatrixT::kNonSymmetric),
@@ -47,13 +49,11 @@ APS_AssemblyT::~APS_AssemblyT(void)
 	delete fPlast;
 	delete fEquation_d; 
 	delete fEquation_eps; 
-	
 	delete fShapes_displ;
 	delete fShapes_plast; 
 	delete fBalLinMomMaterial; 
 	delete fPlastMaterial;
 	
-
 	/* free the global stack object (once) */
 	extern FEA_StackT* fStack;
 	if (fStack) {
@@ -974,7 +974,8 @@ void APS_AssemblyT::DefineParameters(ParameterListT& list) const
 	ElementBaseT::DefineParameters(list);
 
 	/* displacement field */
-	list.AddParameter(ParameterT::Word, "displ_field_name");
+	//already done in ElementBaseT
+	//list.AddParameter(ParameterT::Word, "displ_field_name");
 	
 	/* plastic gradient field */
 	list.AddParameter(ParameterT::Word, "plastic_grad_field_name");
@@ -1093,10 +1094,13 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 		fLHS.SetFormat(ElementMatrixT::kDiagonal);
 	
 	/* get displacement field */
-	const StringT& field_name = list.GetParameter("field_name");
-	fDispl = ElementSupport().Field(field_name);
+	/* already done in ElementBaseT
+	const StringT& displ_field_name = list.GetParameter("displ_field_name");
+	fDispl = ElementSupport().Field(displ_field_name);
 	if (!fDispl)
-		ExceptionT::GeneralFail(caller, "could not resolve \"%s\" field", field_name.Pointer());
+		ExceptionT::GeneralFail(caller, "could not resolve \"%s\" displ_field", 
+		displ_field_name.Pointer());
+	*/
 
 	/* get plastic gradient field */
 	const StringT& plastic_grad_field_name = list.GetParameter("plastic_grad_field_name");
