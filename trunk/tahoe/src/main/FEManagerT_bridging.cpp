@@ -1,5 +1,7 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.2 2003-03-31 23:20:27 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.3 2003-04-01 18:23:48 paklein Exp $ */
 #include "FEManagerT_bridging.h"
+#ifdef BRIDGING_ELEMENT
+
 #include "ModelManagerT.h"
 #include "NodeManagerT.h"
 #include "KBC_PrescribedT.h"
@@ -429,3 +431,5 @@ BridgingScaleT& FEManagerT_bridging::BridgingScale(void) const
 	
 	return *fBridgingScale;
 }
+
+#endif  /* BRIDGING_ELEMENT */

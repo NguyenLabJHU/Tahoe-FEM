@@ -1,6 +1,9 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.37 2003-03-31 23:20:27 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.38 2003-04-01 18:23:48 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
+
+/* element configuration header */
+#include "ElementsConfig.h"
 
 #include <iostream.h>
 #include <time.h>
@@ -31,12 +34,14 @@
 #include "OutputBaseT.h"
 #include "CommunicatorT.h"
 
-//TEMP - bridging scale Tahoe
+/* needed for bridging calculations FEExecutionManagerT::RunBridging */
+#ifdef BRIDGING_ELEMENT
 #include "FEManagerT_bridging.h"
 #include "TimeManagerT.h"
 #include "NodeManagerT.h"
 #include "dSPMatrixT.h"
 #include "FieldT.h"
+#endif
 
 using namespace Tahoe;
 
@@ -230,6 +235,7 @@ bool FEExecutionManagerT::RemoveCommandLineOption(const char* str)
 **********************************************************************/
 
 /* 2 Tahoe bridging calculation */
+#ifdef BRIDGING_ELEMENT
 void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 {
 	const char caller[] = "FEExecutionManagerT::RunBridging";
@@ -526,6 +532,16 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 	status << "    Stop time: " << ctime(&stoptime);
 	status << "\n End Execution\n" << endl;
 }
+#else /* bridging element not enabled */
+void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
+{
+#pragma unused(in)
+#pragma unused(status)
+
+	const char caller[] = "FEExecutionManagerT::RunBridging";
+	ExceptionT::GeneralFail(caller, "BRIDGING_ELEMENT not enabled");
+}
+#endif
 
 /* standard serial driver */
 void FEExecutionManagerT::RunJob_serial(ifstreamT& in,
