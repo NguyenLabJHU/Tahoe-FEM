@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.2 2001-02-28 02:36:00 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.3 2001-04-27 10:48:23 paklein Exp $ */
 /* created: paklein (03/23/1997)                                          */
 /* Virtual base class for all global matrix objects                       */
 
@@ -76,16 +76,23 @@ void GlobalMatrixT::Solve(dArrayT& result)
 {
 	if (!fIsFactorized)
 	{
+		/* store original precision */
+		int old_precision = fOut.precision();
+	
 		/* rank checks before factorization */
+		fOut.precision(12);
 		PrintLHS();
+		fOut.precision(old_precision);
 	
 		/* factorize */
 		fIsFactorized = 1;
 		Factorize();
 		
 		/* rank checks after factorization */
+		fOut.precision(12);
 		PrintZeroPivots();
 		PrintAllPivots();
+		fOut.precision(old_precision);
 	}
 
 	/* output before solution */

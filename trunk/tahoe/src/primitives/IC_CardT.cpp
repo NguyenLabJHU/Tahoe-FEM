@@ -1,4 +1,4 @@
-/* $Id: IC_CardT.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* $Id: IC_CardT.cpp,v 1.2 2001-04-27 10:48:22 paklein Exp $ */
 /* created: paklein (07/16/1997)                                          */
 /* Container class for kinematic initial condition data.                  */
 /* Handles mainly I/O and provides access to data via                     */
@@ -32,7 +32,7 @@ void IC_CardT::SetValues(ifstreamT& in)
 	in >> node >> dof >> code >> value;
 	
 	/* correct offset */
-	node--;
+	if (node > 0) node--;
 	dof--;
 	
 	/* set and echo */
