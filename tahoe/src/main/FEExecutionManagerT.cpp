@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.44 2003-07-11 16:46:07 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.44.4.1 2003-07-15 16:18:11 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -600,10 +600,14 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	boundatoms.CopyPart(0, boundaryghostatoms, numgatoms, numbatoms);
 	continuum.InitInterpolation(boundaryghostatoms, bridging_field, *atoms.NodeManager());
 	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive);
-	nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
+	//nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
+	nMatrixT<int> ghostonmap(4), ghostoffmap(4);  // for fracture problem
 	ghostonmap = 0;
 	ghostoffmap = 0;
-	ghostoffmap(1,0) = ghostoffmap(0,1) = 1;
+	//ghostoffmap(1,0) = ghostoffmap(0,1) = 1;  // for wave propagation problem
+	ghostoffmap(1,0) = ghostoffmap(0,1) = ghostoffmap(3,0) = ghostoffmap(0,3) = 1;  // below is for fracture problem
+	ghostoffmap(1,3) = ghostoffmap(3,1) = ghostoffmap(3,2) = ghostoffmap(2,3) = 1;
+	ghostonmap(1,0) = ghostonmap(0,1) = 1;
 
 	/* time managers */
 	TimeManagerT* atom_time = atoms.TimeManager();
