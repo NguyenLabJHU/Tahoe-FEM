@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.1 2001-04-27 10:53:30 paklein Exp $ */
+/* $Id: SolidT.cpp,v 1.2 2001-04-30 19:29:23 paklein Exp $ */
 /* created: paklein (03/10/2001)                                          */
 
 #include "SolidT.h"
@@ -69,6 +69,9 @@ istream& operator>>(istream& in, SolidT::SolidT& code)
 			break;
 		case SolidT::kABAQUS_BCJ:
 			code = SolidT::kABAQUS_BCJ;
+			break;
+		case SolidT::kThermoViscoPlastic:
+			code = SolidT::kThermoViscoPlastic;
 			break;
 		default:
 			cout << "\n operator>>SolidT::SolidT: unknown code: "

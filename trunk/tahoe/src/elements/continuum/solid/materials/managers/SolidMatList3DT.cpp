@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.3 2001-04-27 10:53:29 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.4 2001-04-30 19:29:23 paklein Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList3DT.h"
@@ -65,6 +65,7 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 			case kJ2Simo:
 			case kLJTr2D:
 			case kLJFCC111:
+			case kThermoViscoPlastic:
 				cout << "\n SolidMatList3DT::ReadMaterialData: model " << matcode
 				     << " is not implemented in 3D" << endl;
 				throw eBadInputValue;

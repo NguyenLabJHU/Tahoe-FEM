@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.3 2001-04-27 10:53:29 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.4 2001-04-30 19:29:23 paklein Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList2DT.h"
@@ -33,6 +33,7 @@
 #include "OgdenIsoVIB2D.h"
 #include "ABAQUS_BCJ.h"
 #include "QuadLogOgden2DT.h"
+#include "tevp2D.h"
 
 /* constructor */
 SolidMatList2DT::SolidMatList2DT(int length, const ElasticT& element_group):
@@ -179,6 +180,11 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			case kIsoVIBSimoJ2:
 				fArray[matnum] = new J2IsoVIB2DLinHardT(in, fElementGroup);
 				fHasLocalizers = true;
+				fHasHistory = true;
+				break;
+				
+			case kThermoViscoPlastic:
+				fArray[matnum] = new tevp2D(in, fElementGroup);
 				fHasHistory = true;
 				break;
 
