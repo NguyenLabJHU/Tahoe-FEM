@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.52 2003-01-29 07:35:20 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.52.2.1 2003-02-11 02:46:12 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -189,6 +189,8 @@ void FEManagerT::Initialize(InitCodeT init)
 /* solve all the time sequences */
 void FEManagerT::Solve(void)
 {
+	const char caller[] = "FEManagerT::Solve";
+
 	fTimeManager->Top();
 	while (fTimeManager->NextSequence())
 	{	
@@ -227,7 +229,7 @@ void FEManagerT::Solve(void)
 				case ExceptionT::kGeneralFail:
 				case ExceptionT::kBadJacobianDet:
 				{
-					cout << "\n FEManagerT::Solve: trying to recover: error: " << ExceptionT::ToString(error) << endl;
+					cout << '\n' << caller << ": trying to recover from error: " << ExceptionT::ToString(error) << endl;
 				
 					/* reset system configuration */
 					error = ResetStep();
@@ -240,7 +242,7 @@ void FEManagerT::Solve(void)
 					break;
 				}
 				default:
-					cout << "\n FEManagerT::Solve: no recovery for error: " << ExceptionT::ToString(error) << endl;
+					cout << '\n' << caller <<  ": no recovery for error: " << ExceptionT::ToString(error) << endl;
 					seq_OK = false;
 			}
 		}
@@ -424,15 +426,12 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 		bool all_pass = false;
 		SolverT::SolutionStatusT status = SolverT::kContinue;
 
-		/* status */
-		iArray2DT solve_status(fSolverPhases.MajorDim(), 3);
-
 		while (!all_pass && 
 			loop_count < fMaxSolverLoops &&
 			status != SolverT::kFailed)
 		{
 			/* clear status */
-			solve_status = 0;
+			fSolverPhasesStatus = 0;
 		 
 			/* one solver after the next */
 			all_pass = true;
@@ -447,22 +446,22 @@ ExceptionT::CodeT FEManagerT::SolveStep(void)
 				status = fSolvers[fCurrentGroup]->Solve(iter);
 				
 				/* check result */
-				solve_status(i,0) = fCurrentGroup;
-				solve_status(i,1) = fSolvers[fCurrentGroup]->IterationNumber();
+				fSolverPhasesStatus(i, kGroup) = fCurrentGroup;
+				fSolverPhasesStatus(i, kIteration) = fSolvers[fCurrentGroup]->IterationNumber();
 				if (status == SolverT::kFailed) {
 					all_pass = false;
-					solve_status(i,2) = -1;					
+					fSolverPhasesStatus(i, kPass) = -1;					
 				}
 				else if (status == SolverT::kConverged && 
-					(pass == -1 || solve_status(i,1) <= pass))
+					(pass == -1 || solve_status(i, kPass) <= pass))
 				{
 					all_pass = all_pass && true; /* must all be true */
-					solve_status(i,2) = 1;
+					fSolverPhasesStatus(i, kPass) = 1;
 				}
 				else
 				{
 					all_pass = false;
-					solve_status(i,2) = 0;
+					fSolverPhasesStatus(i, kPass) = 0;
 				}
 			}
 
@@ -1200,6 +1199,9 @@ void FEManagerT::SetSolver(void)
 		fMaxSolverLoops  = 1;
 		solver_list.Append(0);
 	}
+	
+	/* dimension solver phase status array */
+	fSolverPhasesStatus.Dimension(fSolverPhases.MajorDim(), kNumStatusFlags);
 		
 	/* echo solver information */
 	fMainOut << "\n Multi-solver parameters: " << fSolverPhases.MajorDim() << '\n';

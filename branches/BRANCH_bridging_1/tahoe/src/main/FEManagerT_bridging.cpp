@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.1.2.3 2003-02-10 09:25:37 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.1.2.4 2003-02-11 02:46:12 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #include "ModelManagerT.h"
 #include "NodeManagerT.h"
@@ -80,6 +80,29 @@ void FEManagerT_bridging::InitGhostNodes(void)
 			fNonGhostNodes[dex++] = i;
 }
 
+/* set the field at the ghost nodes */
+void FEManagerT_bridging::SetGhostNodeField(const StringT& field, const dArray2DT& values)
+{
+#if __option(extended_errorcheck)
+	if (fGhostNodes.Length() != values.MajorDim())
+		ExceptionT::SizeMismatch("FEManagerT_bridging::SetGhostNodeField");
+#endif
+
+	/* get the associated field */
+	FieldT* the_field = fNodeManager->Field(field);
+
+	/* field's update array */
+	dArray2DT& update = the_field->Update();
+	update = 0.0;
+	for (int i = 0; i < values.MajorDim(); i++)
+		update.SetRow(fGhostNodes[i], values(i));
+
+	/* apply the update to the field */
+	the_field->ApplyUpdate();
+
+	//NOTE: write the values into the KBC controller as well?
+}
+
 /* initialize nodes that follow the field computed by this instance */
 void FEManagerT_bridging::InitInterpolation(const iArrayT& nodes, const StringT& field, NodeManagerT& node_manager)
 {
@@ -90,6 +113,18 @@ void FEManagerT_bridging::InitInterpolation(const iArrayT& nodes, const StringT&
 	/* map nodes into cells (using reference coordinates) */
 	const dArray2DT& init_coords = node_manager.InitialCoordinates();
 	BridgingScale().MaptoCells(nodes, &init_coords, NULL, fFollowerCellData);
+
+	/* compute interpolation data */
+	BridgingScale().InitInterpolation(nodes, fFollowerCellData);
+}
+
+/* field interpolations */
+void FEManagerT_bridging::InterpolateField(const StringT& field, dArray2DT& nodal_values)
+{
+#pragma unused(field)
+
+	/* interpolate in bridging scale element */
+	BridgingScale().InterpolateField(field, fFollowerCellData, nodal_values);
 }
 
 /* initialize data for the driving field */
@@ -102,6 +137,9 @@ void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& fi
 	/* map nodes into cells (using reference coordinates) */
 	const dArray2DT& init_coords = node_manager.InitialCoordinates();
 	BridgingScale().MaptoCells(nodes, &init_coords, NULL, fDrivenCellData);
+
+	/* compute interpolation data */
+	BridgingScale().InitInterpolation(nodes, fDrivenCellData);
 
 	/* get the associated field */
 	FieldT* the_field = fNodeManager->Field(field);
@@ -117,20 +155,29 @@ void FEManagerT_bridging::InitProjection(const iArrayT& nodes, const StringT& fi
 		the_field->AddKBCController(fSolutionDriver);
 	}
 
-	/* collect nodes in non-empty cells */
-	fDrivenCellData.CollectCellNodes(fDrivenCellNodes);
+	/* collect nodes in non-empty cells and generate cell connectivities 
+	 * in local numbering*/
+	fDrivenCellData.GenerateCellConnectivities();
 
 	/* generate KBC cards - all degrees of freedom */
+	const iArrayT& cell_nodes = fDrivenCellData.CellNodes();
 	int ndof = the_field->NumDOF();
 	ArrayT<KBC_CardT>& KBC_cards = fSolutionDriver->KBC_Cards();
-	KBC_cards.Dimension(fDrivenCellNodes.Length()*ndof);
+	KBC_cards.Dimension(cell_nodes.Length()*ndof);
 	int dex = 0;
 	for (int j = 0; j < ndof; j++)
-		for (int i = 0; i < fDrivenCellNodes.Length(); i++)
-			KBC_cards[dex++].SetValues(fDrivenCellNodes[i], j, KBC_CardT::kDsp, 0, 0.0);
+		for (int i = 0; i < cell_nodes.Length(); i++)
+			KBC_cards[dex++].SetValues(cell_nodes[i], j, KBC_CardT::kDsp, 0, 0.0);
 	
 	/* reset the group equations numbers */
 	SetEquationSystem(the_field->Group());
+}
+
+/* project the point values onto the mesh */
+void FEManagerT_bridging::ProjectField(const StringT& field, NodeManagerT& node_manager)
+{
+#pragma unused(field)
+#pragma unused(node_manager)
 }
 
 /*************************************************************************

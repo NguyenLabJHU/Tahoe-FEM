@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.36.2.3 2003-02-10 09:25:37 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.36.2.4 2003-02-11 02:46:12 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -33,6 +33,7 @@
 
 //TEMP - bridging scale Tahoe
 #include "FEManagerT_bridging.h"
+#include "TimeManagerT.h"
 
 using namespace Tahoe;
 
@@ -285,46 +286,94 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 
 		/* construction */
 		phase = 0;
-		char jpb_char;
-		atom_in >> jpb_char;
+		char job_char;
+		atom_in >> job_char;
 		FEManagerT_bridging atoms(atom_in, atom_out, fComm, bridge_atom_in);
 		atoms.Initialize();
 
-		continuum_in >> jpb_char;
+		continuum_in >> job_char;
 		FEManagerT_bridging continuum(continuum_in, continuum_out, fComm, bridge_continuum_in);
 		continuum.Initialize();
 
 		/* configure ghost nodes */
+		StringT bridging_field = "displacement";
 		atoms.InitGhostNodes();
-		continuum.InitInterpolation(atoms.GhostNodes(), "displacement", *atoms.NodeManager());
-		continuum.InitProjection(atoms.NonGhostNodes(), "displacement", *atoms.NodeManager());
+		continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
+		continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager());
 
 		t1 = clock();
 
 		/* solution */
 		phase = 1;
 
-#if 0
-		/* communicate configuration */
-		msmd_object.SetGhostNodeDisplacement(ghost_atom_disp);
-		tahoe_object.SetParticleCoords(msmd_object.Coordinates());
-	
-		/* loop until both are equilibrated */
-		while (!msmd_object.Equilibrated() && !tahoe_object.Equilibrated())
-		{
-			/* equilibrate */
-			msmd_object.Solve();
-			tahoe_object.Solve();
+		/* time managers */
+		TimeManagerT* atom_time = atoms.TimeManager();
+		TimeManagerT* continuum_time = continuum.TimeManager();
 
-			/* new ghost atom displacements */
-			const dArray2DT& ghost_atom_coords = msmd_object.GhostAtomsCoordinates();
-			const dArray2DT& ghost_atom_disp = tahoe_object.InterpolateField("displacement", ghost_atom_coords);
+		dArray2DT field_at_ghosts;
+		atom_time->Top();
+		continuum_time->Top();
+		while (atom_time->NextSequence() && continuum_time->NextSequence())
+		{	
+			/* set to initial condition */
+			atoms.InitialCondition();
+			continuum.InitialCondition();
 
-			/* communicate configuration */
-			msmd_object.SetGhostNodeDisplacement(ghost_atom_disp);
-			tahoe_object.SetParticleCoords(msmd_object.Coordinates());
+			/* read restart information */
+			atoms.ReadRestart();
+			continuum.ReadRestart();
+
+			/* loop over time increments */
+			bool seq_OK = true;
+			while (seq_OK && 
+				atom_time->Step() &&
+				continuum_time->Step()) //TEMP - same clock
+			{
+				/* running status flag */
+				ExceptionT::CodeT error = ExceptionT::kNoError;		
+
+				/* initialize step */
+				if (error == ExceptionT::kNoError) error = atoms.InitStep();
+				if (error == ExceptionT::kNoError) error = continuum.InitStep();
+			
+				/* first exchange */
+				continuum.InterpolateField(bridging_field, field_at_ghosts);
+				atoms.SetGhostNodeField(bridging_field, field_at_ghosts);
+				continuum.ProjectField(bridging_field, *atoms.NodeManager());
+			
+				/* first solve */
+				if (error == ExceptionT::kNoError) error = atoms.SolveStep();
+				if (error == ExceptionT::kNoError) error = continuum.SolveStep();
+			
+				/* solver phase status */
+				const iArray2DT& atom_phase_status = atoms.SolverPhasesStatus();
+				const iArray2DT& continuum_phase_status = atoms.SolverPhasesStatus();
+			
+				/* loop until both solved */
+				while (error == ExceptionT::kNoError &&
+					atom_phase_status(0, FEManagerT::kIteration) > 0 &&
+					continuum_phase_status(0, FEManagerT::kIteration) > 0) //TEMP - assume just one phase
+				{
+					/* exchange */
+					continuum.InterpolateField(bridging_field, field_at_ghosts);
+					atoms.SetGhostNodeField(bridging_field, field_at_ghosts);
+					continuum.ProjectField(bridging_field, *atoms.NodeManager());
+
+					/* solve */
+					if (error == ExceptionT::kNoError) error = atoms.SolveStep();
+					if (error == ExceptionT::kNoError) error = continuum.SolveStep();
+				}
+			
+				/* close step */
+				if (error == ExceptionT::kNoError) error = atoms.CloseStep();
+				if (error == ExceptionT::kNoError) error = continuum.CloseStep();
+
+				/* check for error */
+				if (error != ExceptionT::kNoError)
+					ExceptionT::GeneralFail(caller, "hit error %d", error);
+				//TEMP - no error recovery yet
+			}
 		}
-#endif
 
 		t2 = clock();
 	}
