@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-09-21 15:49:25 sawimme Exp $
+# $Id: makefile,v 1.5 2001-11-08 13:36:13 sawimme Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -8,6 +8,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	TranslateIOManager.o \
 	ExtractIOManager.o \
+	ExtractNode.o \
+	ExtractQuad.o \
 	PointPlots.o \
 	main.o
 OBJ_LINK = $(OBJ)
@@ -20,6 +22,8 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	TranslateIOManager.cpp \
 	ExtractIOManager.cpp \
+	ExtractNode.cpp \
+	ExtractQuad.cpp \
 	PointPlots.cpp \
 	main.cpp
 
@@ -27,8 +31,9 @@ SRC = \
 HDR = \
 	TranslateIOManager.h \
 	ExtractIOManager.h \
-	PointPlots.h \
-	DataManagerT.h
+	ExtractNode.h \
+	ExtractQuad.h \
+	PointPlots.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

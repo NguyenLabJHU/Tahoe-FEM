@@ -4,41 +4,43 @@
 #include <stdio.h>
 
 ExtractIOManager::ExtractIOManager (ostream& out) :
-  TranslateIOManager (out),
-  fCoords (0)
+  TranslateIOManager (out)
 {
 }
 
 void ExtractIOManager::Translate (const StringT& program, const StringT& version, const StringT& title)
 {
+  // set input
   fModel.Initialize ();
+  
+  cout << "\n" << setw (10) << fModel.NumNodeVariables () << " Node Variables\n";
+  cout << setw (10) << fModel.NumElementVariables () << " Element Variables\n";
+  cout << setw (10) << fModel.NumQuadratureVariables () << " Quadrature Varaibles\n";
+
+  // set output
   SetOutput (program, version, title);
 
-  InitializeVariables ();
-  if (fNumNV < 1)
-    {
-      fMessage << "\n No nodal variables found.";
-      return;
-    }
-
+  // set time steps
   InitializeTime();
   if (fNumTS < 1)
     {
       fMessage << "\n No time steps found.";
       return;
     }
+  // keep user informed
+  if (fNumTS < 10) fCheck = fNumTS;
+  else if (fNumTS < 100) fCheck = fNumTS * 0.1;
+  else if (fNumTS < 1000) fCheck = fNumTS * 0.05;
+  else fCheck = 100;
 
-  InitializeNodePoints();
-  if (fNumNP < 1)
-    {
-      fMessage << "\n No node points found.";
-      return;
-    }
+  // set variables
+  Initialize ();
 
+  // go
   TranslateVariables ();
 }
 
-/**************** PRIVATE **********************/
+/**************** PROTECTED **********************/
 
 void ExtractIOManager::SetOutput (const StringT& program, const StringT& version, const StringT& title)
 {
@@ -48,180 +50,31 @@ void ExtractIOManager::SetOutput (const StringT& program, const StringT& version
   cin >> fOutputFormat;
   cout << "\n Enter the root of the output files: ";
   cin >> fOutputName;
-}
 
-void ExtractIOManager::InitializeVariables (void)
-{
-  fNumNV = fModel.NumNodeVariables ();
-  cout << "\n" << setw (10) << fNumNV << " Node Variables\n\n";
-  fNodeLabels.Allocate (fNumNV);
-  if (fNumNV > 0) fModel.NodeLabels (fNodeLabels);
-
-  // query user as to which variables to translate
-  VariableQuery (fNodeLabels, fNVUsed);
-
-  StringT answer;
-  cout << "\n Do you wish to translate coordinate values (y/n) ? ";
-  cin >> answer;
-  
-  if (answer[0] == 'y' || answer[0] == 'Y')
-    {
-      fCoords = true;
-      int numnodes;
-      fModel.CoordinateDimensions (numnodes, fCoords);
-    }
-  else
-    fCoords = 0;
-}
-
-void ExtractIOManager::InitializeNodePoints (void)
-{
-  int selection;
-  cout << "\n One file will be written per node point.\n";
-  cout << "1. List of nodes\n";
-  cout << "2. Node Set\n";
-  cout << "3. Every nth node\n";
-  cout << "\n How do you want to define your list of nodes: ";
-  cin >> selection;
-
-  int numnodes, numdims;
-  fModel.CoordinateDimensions (numnodes, numdims);
-  fNodeMap.Allocate (numnodes);
-  fModel.AllNodeMap (fNodeMap);
-  switch (selection)
-    {
-    case 1:
-      {
-	cout << "\n Enter the number of nodes: ";
-	cin >> fNumNP;
-	fNodePoints.Allocate (fNumNP);
-	fNodePointIndex.Allocate (fNumNP);
-	for (int n=0; n < fNumNP; n++)
-	  {
-	    cout << " Enter node " << n+1 << ": ";
-	    cin >> fNodePoints[n];
-
-	    // translate node numbers to index
-	    int index;
-	    fNodeMap.HasValue (fNodePoints[n], index);
-	    if (index < 0 || index >= numnodes) 
-	      {
-		cout << " ExtractIOManager::InitializeNodePoints\n";
-		cout << " Node " << fNodePoints[n] << " was not found.\n";
-		throw eOutOfRange;
-	      }
-	    fNodePointIndex [n] = index;
-	  }
-	break;
-      }
-    case 2:
-      {
-	int num = fModel.NumNodeSets ();
-	ArrayT<StringT> nodesetnames (num);
-	fModel.NodeSetNames (nodesetnames);
-	cout << "\n";
-	for (int h=0; h < num; h++)
-	  cout << "    " << h+1 << ". " << nodesetnames[h] << "\n";
-	cout << "\n Enter the number of the node set: ";
-	int ni;
-	cin >> ni;
-	ni--;
-	fNumNP = fModel.NodeSetLength (ni);
-	fNodePoints.Allocate (fNumNP);
-	fNodePointIndex.Allocate (fNumNP);
-	fNodePointIndex = fModel.NodeSet (ni);
-	for (int n=0; n < fNumNP; n++)
-	  fNodePoints[n] = fNodeMap [fNodePointIndex[n]];
-	break;
-      }
-    case 3:
-      {
-	int freq;
-	cout << "\n Number of Nodes: " << numnodes << "\n";
-	cout << "   Enter n: ";
-	cin >> freq;
-	fNumNP = numnodes/freq;
-	fNodePoints.Allocate (fNumNP);
-	fNodePointIndex.Allocate (fNumNP);
-	for (int n=0; n < fNumNP; n++)
-	  {
-	    fNodePoints[n] = fNodeMap[n*freq];
-	    fNodePointIndex[n] = n*freq;
-	  }
-	break;
-      }
-    default:
-      throw eGeneralFail;
-    }
-}
-
-void ExtractIOManager::TranslateVariables (void)
-{
-  // open files, one per node
-  StringT temp, ext;
-  temp.Append (fNodePoints[fNumNP-1]);
-  int digits = temp.Length()-1;
   switch (fOutputFormat)
     {
-    case IOBaseT::kTecPlot: ext = "dat"; break;
-    case IOBaseT::kTahoe: ext = "txt"; break;
-    }
-  PrepFiles (ext, digits);
-
-  // keep user informed
-  int check = 1;
-  if (fNumTS > 100) check = 10;
-  else if (fNumTS > 1000) check = 100;
-  else if (fNumTS > 10000) check = 1000;
-
-  // read data
-  int numnodes, numdims;
-  int numused = fNVUsed.Length();
-  fModel.CoordinateDimensions (numnodes, numdims);
-  dArray2DT nv (numnodes, fNumNV);
-  const dArray2DT& coords = fModel.Coordinates ();
-
-  for (int t=0; t < fNumTS; t++)
-    {
-      if ((t+1)%check == 0 || t == fNumTS-1)
-	cout << "Time Step " << fTimeIncs[t]+1 << ": " << fTimeSteps[t] << endl;
-      fModel.AllNodeVariables (fTimeIncs[t], nv);
-
-      // write files
-      switch (fOutputFormat)
-	{
-	case IOBaseT::kTecPlot: // point format
-	case IOBaseT::kTahoe:
-	  {
-	    for (int n=0; n < fNumNP; n++)
-	      {
-		ofstreamT outfile;
-		OpenFile (outfile, n, digits, ext, true);
-		outfile << fTimeSteps[t] << " ";
-		for (int ic=0; ic < fCoords; ic++)
-		  outfile << coords (fNodePointIndex[n], ic) << " ";
-		for (int g=0; g < numused; g++)
-		  outfile << nv (fNodePointIndex[n], fNVUsed[g]) << " ";
-		outfile << "\n";
-	      }
-	    break;
-	  }
-	default:
-	  throw eGeneralFail;
-	}
+    case IOBaseT::kTecPlot: fOutfileExtension = "dat"; break;
+    case IOBaseT::kTahoe: fOutfileExtension = "txt"; break;
     }
 }
 
-void ExtractIOManager::PrepFiles (StringT& ext, int digits) const
+void ExtractIOManager::PrepFiles (iArrayT& varsused, ArrayT<StringT>& labels)
 {
-  int numused = fNVUsed.Length() + 1;
-  if (fCoords > 0)
+  cout << "\n";
+
+  // open files, one per item = node or element or int point
+  fNumDigits = fItemNames[0].Length();
+  for (int d=1; d < fItemNames.Length(); d++)
+    if (fItemNames[d].Length() > fNumDigits) fNumDigits = fItemNames[d].Length();
+
+  int numused = varsused.Length() + 1; // account for time variable
+  if (fCoords > 0) // account for coordinates as a variable
     numused += fCoords;
 
-  for (int i=0; i < fNumNP; i++)
+  for (int i=0; i < fNumItems; i++)
     {
       ofstreamT outfile;
-      OpenFile (outfile, i, digits, ext, false);
+      OpenFile (outfile, fItemNames[i], false);
       switch (fOutputFormat)
 	{
 	case IOBaseT::kTecPlot:
@@ -230,30 +83,63 @@ void ExtractIOManager::PrepFiles (StringT& ext, int digits) const
 	    ijk[0] = fNumTS;
 	    ijk[1] = 1;
 
-	    ArrayT<StringT> labels (numused);
-	    labels[0] = "Time";
+	    ArrayT<StringT> printlabels (numused);
+	    printlabels[0] = "Time";
 	    for (int ic=0; ic < fCoords; ic++)
 	      {
-		labels[ic + 1] = "X";
-		labels[ic + 1].Append (ic+1);
+		printlabels[ic + 1] = "X";
+		printlabels[ic + 1].Append (ic+1);
 	      }
-	    for (int il=0; il < fNVUsed.Length(); il++)
-	      labels[il + 1 + fCoords] = fNodeLabels [fNVUsed[il]];
+	    for (int il=0; il < varsused.Length(); il++)
+	      printlabels[il + 1 + fCoords] = labels [varsused[il]];
 
 	    TecPlotT tec (fMessage, true);
-	    tec.WriteHeader (outfile, outfile.filename(), labels);
-	    tec.WriteIJKZone (outfile, outfile.filename(), ijk);
+	    tec.WriteHeader (outfile, outfile.filename(), printlabels);
+	    tec.WriteIJKZone (outfile, fItemNames[i], ijk);
 	    break;
 	  }
 	}
     }
 }
 
-void ExtractIOManager::OpenFile (ofstreamT& o, int index, int digits, StringT& ext, bool append) const
+void ExtractIOManager::WriteVarData (iArrayT& varsused, int ts) const
+{
+  if ((ts+1)%fCheck == 0 || ts == fNumTS-1)
+    cout << "Time Step " << fTimeIncs[ts]+1 << ": " << fTimeSteps[ts] << endl;
+
+  switch (fOutputFormat)
+    {
+    case IOBaseT::kTecPlot: // point format
+    case IOBaseT::kTahoe:
+      {
+	for (int n=0; n < fNumItems; n++)
+	  {
+	    ofstreamT outfile;
+	    OpenFile (outfile, fItemNames[n], true);
+
+	    outfile << fTimeSteps[ts] << " ";
+
+	    for (int ic=0; ic < fCoords; ic++)
+	      outfile << fCoordinates (fItemIndex[n], ic) << " ";
+
+	    for (int g=0; g < varsused.Length(); g++)
+	      outfile << fVarData (fItemIndex[n], varsused[g]) << " ";
+	    outfile << "\n";
+	  }
+	break;
+      }
+    default:
+      throw eGeneralFail;
+    }
+}
+
+/**************** PRIVATE **********************/
+
+void ExtractIOManager::OpenFile (ofstreamT& o, StringT& name, bool append) const
 {
   StringT filename (fOutputName);
-  filename.Append ("_", fNodePoints[index], digits);
-  filename.Append (".", ext);
+  filename.Append ("_", name);
+  filename.Append (".", fOutfileExtension);
   if (!append)
     {
       remove (filename); // remove any pre-existing file
@@ -268,3 +154,4 @@ void ExtractIOManager::OpenFile (ofstreamT& o, int index, int digits, StringT& e
       throw eGeneralFail;
     }
 }
+

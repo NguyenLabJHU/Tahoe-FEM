@@ -13,7 +13,7 @@ void PointPlots::Translate (const StringT& program, const StringT& version, cons
 {
   fModel.Initialize ();
   SetOutput (program, version, title);
-  InitializeVariables ();
+  InitializeQuadVariables ();
   cout << "\n One file will be written per time step.\n";
   InitializeTime();
   if (fNumTS < 1)
@@ -21,7 +21,8 @@ void PointPlots::Translate (const StringT& program, const StringT& version, cons
       fMessage << "\n No time steps found.";
       return;
     }
-  InitializeElements();
+  StringT name;
+  InitializeElements(fElementGroup, name);
   TranslateVariables ();
 }
 
@@ -36,36 +37,6 @@ void PointPlots::SetOutput (const StringT& program, const StringT& version, cons
   cin >> fOutputFormat;
   cout << "\n Enter the root of the output files: ";
   cin >> fOutputName;
-}
-
-void PointPlots::InitializeVariables (void)
-{
-  fNumQV = fModel.NumQuadratureVariables ();
-  cout << "\n" << setw (10) << fNumQV << " Quadrature Variables\n\n";
-  fQuadratureLabels.Allocate (fNumQV);
-  if (fNumQV > 0) fModel.QuadratureLabels (fQuadratureLabels);
-
-  // query user as to which variables to translate
-  if (fNumQV < 1)
-    {
-      fMessage << "\n No nodal variables found.";
-      throw eGeneralFail;
-    }
-  //cout << fNumQV << " " << fQuadratureLabels[0] <<endl;
-  VariableQuery (fQuadratureLabels, fQVUsed);
-}
-
-void PointPlots::InitializeElements (void)
-{
-  int num = fModel.NumElementGroups ();
-  ArrayT<StringT> elemsetnames (num);
-  fModel.ElementGroupNames (elemsetnames);
-  cout << "\n";
-  for (int h=0; h < num; h++)
-    cout << "    " << h+1 << ". " << elemsetnames[h] << "\n";
-  cout << "\n You must have one type of element within the group you select.\n";
-  cout << "\n Enter the number of the element group: ";
-  cin >> fElementGroup;
 }
 
 void PointPlots::TranslateVariables (void)
