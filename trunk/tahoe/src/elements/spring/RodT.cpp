@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.17 2002-07-03 23:25:04 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.18 2002-07-05 17:24:03 hspark Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -40,7 +40,6 @@ RodT::RodT(const ElementSupportT& support, const FieldT& field):
 	fSumTemp(0.0),
 	fSumPressure(0.0),
 	fStepNumber(support.StepNumber()),
-	fNumNodes(NumElements()),
 	fLocVel(LocalArrayT::kVel)
 {
 	/* set matrix format */
@@ -84,9 +83,8 @@ void RodT::Initialize(void)
 		fLHS.SetFormat(ElementMatrixT::kDiagonal);
 
 	/* initialize and allocate velocity array IF dynamic (MD) calculation*/
-	double constM = 0.0;
-	int formM = fController->FormM(constM);
-	if(formM) {
+	const FieldT& field = Field();
+	if (field.Order() > 0) {
 	  fLocVel.Allocate(NumElementNodes(), NumDOF());
 	  Field().RegisterLocal(fLocVel);
 	}
@@ -206,14 +204,9 @@ void RodT::CloseStep(void)
   /* set material variables */
   //fMaterialList->CloseStep(); 
   Top();
-  double constM = 0.0;
-  int formM = fController->FormM(constM);
-  if(formM) {
-    fLocVel.Allocate(NumElementNodes(), NumDOF());
-    Field().RegisterLocal(fLocVel);
-  }
-  while (NextElement())
-    if(formM) { // Only do for dynamic (MD) calculations
+  const FieldT& field = Field();
+  while (NextElement()) {
+    if (field.Order() > 0)
       {
      	/* get velocities */
 	SetLocalU(fLocVel);
@@ -225,12 +218,12 @@ void RodT::CloseStep(void)
 	ComputeInstTemperature();
 	//ComputeInstPressure();
       }
-      ComputeAvgPE();
-      ComputeAvgKE();
-      ComputeAvgTotalE();
-      ComputeAvgTemperature();
-      //ComputeAvgPressure();
-      PrintMDToFile();
+    ComputeAvgPE();
+    ComputeAvgKE();
+    ComputeAvgTotalE();
+    ComputeAvgTemperature();
+    //ComputeAvgPressure();
+    PrintMDToFile();
     }
 }
 
@@ -439,7 +432,7 @@ void RodT::ComputeInstKE(void)
 	double& ke = fInstKE;
 	double& total = fSumKE;
   
-	ke = 0;
+	ke = 0.0;
 	const FieldT& field = Field();
 	if (field.Order() > 0) {
    
@@ -458,8 +451,8 @@ void RodT::ComputeInstKE(void)
 
 void RodT::ComputeAvgKE(void)
 {
-  double* tempavg = &fAvgKE;
-  *tempavg = fSumKE / fStepNumber;
+  double& tempavg = fAvgKE;
+  tempavg = fSumKE / fStepNumber;
 }
 
 void RodT::ComputeInstPE(void)
@@ -469,8 +462,9 @@ void RodT::ComputeInstPE(void)
   /* coordinates arrays */
   const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
   const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
-  double* pe = &fInstPE;
-  double* total = &fSumPE;
+  double& pe = fInstPE;
+  double& total = fSumPE;
+  pe = 0.0;
 
   /* node numbers */
   const iArrayT& nodes = CurrentElement().NodesX();
@@ -483,43 +477,45 @@ void RodT::ComputeInstPE(void)
   /* current bond */
   fBond.DiffOf(curr_coords(n1), curr_coords(n0));
 
-  (*pe) += fCurrMaterial->Potential(fBond.Magnitude(), fBond0.Magnitude());
-  *total += *pe;
+  pe += fCurrMaterial->Potential(fBond.Magnitude(), fBond0.Magnitude());
+  total += pe;
 }
 
 void RodT::ComputeAvgPE(void)
 {
-  double* tempavg = &fAvgPE;
-  *tempavg = fSumPE / fStepNumber;
+  double& tempavg = fAvgPE;
+  tempavg = fSumPE / fStepNumber;
 }
 
 void RodT::ComputeInstTotalE(void)
 {
   /* computes instantaneous total energy = kinetic energy + potential energy of the system */
-  double* totale = &fInstTotalE;
-  double* total = &fSumTotalE;
-  *totale = fInstKE + fInstPE;
-  *total += *totale;
+  double& totale = fInstTotalE;
+  double& total = fSumTotalE;
+  totale = 0.0;
+  totale = fInstKE + fInstPE;
+  total += totale;
 }
 
 void RodT::ComputeAvgTotalE(void)
 {
-  double* tempavg = &fAvgTotalE;
-  *tempavg = fSumTotalE / fStepNumber;
+  double& tempavg = fAvgTotalE;
+  tempavg = fSumTotalE / fStepNumber;
 
 }
 
 void RodT::ComputeInstTemperature(void)
 {
   /* computes instantaneous temperature of the atomic system */
-  double* temp = &fInstTemp;
-  *temp = 2 * fInstKE / (fKb * NumSD() * fNumNodes);
+  double& temp = fInstTemp;
+  temp = 0.0;
+  temp = 2 * fInstKE / (fKb * NumSD() * fGroupNodes.Length());
 }
 
 void RodT::ComputeAvgTemperature(void)
 {
-  double* temp = &fAvgTemp;
-  *temp = 2 * fAvgKE / (fKb * NumSD() * fNumNodes);
+  double& temp = fAvgTemp;
+  temp = 2 * fAvgKE / (fKb * NumSD() * fGroupNodes.Length());
 }
 
 void RodT::ComputeInstPressure(void)

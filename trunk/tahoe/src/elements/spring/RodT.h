@@ -1,4 +1,4 @@
-/* $Id: RodT.h,v 1.11 2002-07-03 22:26:07 paklein Exp $ */
+/* $Id: RodT.h,v 1.12 2002-07-05 17:24:04 hspark Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _ROD_T_H_
@@ -132,7 +132,6 @@ private:
 	double fAvgKE, fAvgPE, fAvgTotalE, fAvgTemp, fAvgPressure;
 	double fSumKE, fSumPE, fSumTotalE, fSumTemp, fSumPressure;
 	LocalArrayT fLocVel;
-	int fNumNodes;
 	const int& fStepNumber;
 };
 
