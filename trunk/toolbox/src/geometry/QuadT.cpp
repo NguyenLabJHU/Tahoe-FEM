@@ -1,4 +1,4 @@
-/* $Id: QuadT.cpp,v 1.8 2004-04-10 23:20:08 paklein Exp $ */
+/* $Id: QuadT.cpp,v 1.9 2004-04-13 16:00:21 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "QuadT.h"
 #include <math.h>
@@ -654,9 +654,9 @@ void QuadT::IPGradientTransform(int ip, dMatrixT& transform) const
 	}
 	else if (nip == 9) {
 
-		double a = 3.0*sqrt(3.0)/2.0;
-		double b = 2.0*sqrt(3.0);
-		double c = sqrt(3.0)/2.0;
+		double a = 3.0*sqrt(3.0/5.0)/2.0;
+		double b = 2.0*sqrt(3.0/5.0);
+		double c = sqrt(3.0/5.0)/2.0;
 
 		double m0[2*9] = {-a, -a, -c, 0, 0, 0, 0, -c, b, 0, 0, 0, 0, 0, 0, b, 0, 0};
 		double m1[2*9] = {c, 0, a, -a, 0, -c, 0, 0, -b, 0, 0, b, 0, 0, 0, 0, 0, 0};
