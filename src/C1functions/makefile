@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.20 2002-10-04 01:32:58 thao Exp $
+# $Id: makefile,v 1.21 2002-10-04 05:21:59 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -21,20 +21,10 @@ OBJ = \
 	ModSmithFerrante.o \
 	LinearExponentialT.o \
 	Triantafyllidis.o \
-<<<<<<< makefile
-	Linear.o \
-=======
 	LinearT.o \
-	QuadraticT.o \
-	ConstantT.o \
-	BiQuadraticT.o \
-	ConstQuadT.o \
-	QuadraticDecreaseT.o \
->>>>>>> 1.19
 	GaoVicky.o \
 	GaoJi.o \
-	GaoJi2.o \
-	SF2.o  
+	GaoJi2.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -59,20 +49,10 @@ SRC = \
 	ModSmithFerrante.cpp \
 	LinearExponentialT.cpp \
 	Triantafyllidis.cpp \
-<<<<<<< makefile
-	Linear.cpp \
-=======
 	LinearT.cpp \
-	QuadraticT.cpp \
-	ConstantT.cpp \
-	BiQuadraticT.cpp \
-	ConstQuadT.cpp \
-	QuadraticDecreaseT.cpp \
->>>>>>> 1.19
 	GaoVicky.cpp \
 	GaoJi.cpp \
-	GaoJi2.cpp \
-	SF2.cpp \
+	GaoJi2.cpp
 
 # headers
 HDR = \
@@ -91,20 +71,10 @@ HDR = \
 	ModSmithFerrante.h \
 	LinearExponentialT.h \
 	Triantafyllidis.h \
-<<<<<<< makefile
-	Linear.h \
-=======
 	LinearT.h \
-	QuadraticT.h \
-	ConstantT.h \
-	BiQuadraticT.h \
-	ConstQuadT.h \
-	QuadraticDecreaseT.h \
->>>>>>> 1.19
 	GaoVicky.h \
 	GaoJi.h \
-	GaoJi2.h \
-	SF2.h \
+	GaoJi2.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
