@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.h,v 1.4 2001-11-16 00:22:42 cjkimme Exp $ */
+/* $Id: Tijssens2DT.h,v 1.5 2001-12-17 20:03:51 cjkimme Exp $ */
 
 #ifndef _TIJSSENS_2D_T_H_
 #define _TIJSSENS_2D_T_H_
@@ -97,7 +97,8 @@ private:
 	double fastar; /* Material parameter */
 	double ftemp; /* Temperature */
 //	double fY; /* Bulk yield strength */
-	int fGroup;
+	int fGroup; /* element group to obtain hydrostatic stress from */
+	int fSteps; /* number of steps for k_n to go to 0 after failure */
 
 };
 
