@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.h,v 1.2 2002-01-09 12:39:20 paklein Exp $ */
+/* $Id: JoinOutputT.h,v 1.3 2002-01-09 18:28:01 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 
 #ifndef _JOIN_OUTPUT_T_H_
@@ -12,7 +12,7 @@
 #include "StringT.h"
 
 /* forward declarations */
-class IOManager;
+class OutputBaseT;
 class ModelManagerT;
 
 /** class to join results from a parallel calculation */
@@ -23,7 +23,7 @@ public:
 	/** constructor */
 	JoinOutputT(const StringT& param_file, const StringT& model_file,
 		IOBaseT::FileTypeT model_file_type, IOBaseT::FileTypeT results_file_type, 
-		int size);
+		OutputBaseT* output, int size);
 
 	/** destructor */
 	~JoinOutputT(void);
@@ -84,8 +84,8 @@ private:
 	ArrayT<PartitionT> fPartitions;
 	
 	/** output formatter */
-	IOManager* fIO;
-	
+	OutputBaseT* fOutput;
+
 	/** maps (for each output set) from processor to global position */
 	ArrayT<MapSetT> fMapSets;	
 };

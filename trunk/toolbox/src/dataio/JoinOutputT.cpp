@@ -1,10 +1,10 @@
-/* $Id: JoinOutputT.cpp,v 1.2 2002-01-09 12:39:20 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.3 2002-01-09 18:28:01 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 
 #include "JoinOutputT.h"
 
 #include "fstreamT.h"
-#include "IOManager.h"
+#include "OutputBaseT.h"
 #include "ModelManagerT.h"
 #include "OutputSetT.h"
 #include "StringT.h"
@@ -16,11 +16,12 @@
 
 /* constructor */
 JoinOutputT::JoinOutputT(const StringT& param_file, const StringT& model_file,
-	IOBaseT::FileTypeT model_file_type, IOBaseT::FileTypeT results_file_type, int size):
+	IOBaseT::FileTypeT model_file_type, IOBaseT::FileTypeT results_file_type, 
+	OutputBaseT* output, int size):
 	fJobFile(param_file),
 	fResultsFileType(results_file_type),
 	fPartitions(size),
-	fIO(NULL)
+	fOutput(output)
 {
 	/* set model database manager */
 	fModel = new ModelManagerT(cout);
@@ -66,9 +67,6 @@ JoinOutputT::JoinOutputT(const StringT& param_file, const StringT& model_file,
 JoinOutputT::~JoinOutputT(void)
 {
 	delete fModel;
-	delete fIO;
-	
-	fIO = NULL;
 	fModel = NULL;
 }
 
@@ -82,7 +80,7 @@ void JoinOutputT::Join(void)
 	nVariArray2DT<double> part_e_man(0, part_e_values, 0);	
 
 	/* output sets data */
-	const ArrayT<OutputSetT*>& element_sets = fIO->ElementSets();
+	const ArrayT<OutputSetT*>& element_sets = fOutput->ElementSets();
 	for (int i = 0; i < element_sets.Length(); i++)
 	{
 		cout << "\n JoinOutputT: output set: " << i+1 << endl;
@@ -230,8 +228,7 @@ void JoinOutputT::Join(void)
 				}
 
 				/* write assembled data */
-				fIO->SetOutputTime(time);
-				fIO->WriteOutput(i, all_n_values, all_e_values);
+				fOutput->WriteOutput(time, i, all_n_values, all_e_values);
 			}	
 		}
 	}
@@ -244,14 +241,8 @@ void JoinOutputT::Join(void)
 /* set output */
 void JoinOutputT::SetOutput(void)
 {
-	/* construct I/O */
-	StringT program_name("tahoe");
-	StringT nothing("none");
-	fIO = new IOManager(cout, program_name, nothing, nothing, fJobFile, fResultsFileType);
-	if (!fIO) throw eOutOfMemory;
-	
 	/* set coordinates */
-	fIO->SetCoordinates(fModel->Coordinates(), NULL);
+	fOutput->SetCoordinates(fModel->Coordinates(), NULL);
 	
 	/* block ID's in io groups */
 	StringT io_file;
@@ -296,13 +287,13 @@ void JoinOutputT::SetOutput(void)
 				     << block_ID[i] << endl;
 				throw eDatabaseFail;
 			}
-			
+
 			/* geometry code */
 			geometry_code = fModel->ElementGroupGeometry(index);
 			
 			/* load element group */
-			 const iArray2DT& connects = fModel->ElementGroup(index);
-			 connects_list[i] = &connects;
+			const iArray2DT& connects = fModel->ElementGroup(index);
+			connects_list[i] = &connects;
 		}
 
 		/* construct output set */
@@ -310,7 +301,7 @@ void JoinOutputT::SetOutput(void)
 		OutputSetT output_set(++count, geometry_code, block_ID, connects_list, n_labels, e_labels, changing);
 	
 		/* register */
-		fIO->AddElementSet(output_set);
+		fOutput->AddElementSet(output_set);
 	
 		/* next block */
 		io >> ID;
@@ -323,10 +314,10 @@ void JoinOutputT::SetOutput(void)
 void JoinOutputT::SetMaps(void)
 {
 	/* check */
-	if (!fIO) throw eGeneralFail;
+	if (!fOutput) throw eGeneralFail;
 
 	/* output sets data */
-	const ArrayT<OutputSetT*>& element_sets = fIO->ElementSets();
+	const ArrayT<OutputSetT*>& element_sets = fOutput->ElementSets();
 
 	/* dimensions */
 	int num_parts = fPartitions.Length();
@@ -634,7 +625,7 @@ void JoinOutputT::OutputLabels(int group, ArrayT<StringT>& node_labels,
 void JoinOutputT::CheckAssemblyMaps(void)
 {
 	/* global output sets */
-	const ArrayT<OutputSetT*>& element_sets = fIO->ElementSets();
+	const ArrayT<OutputSetT*>& element_sets = fOutput->ElementSets();
 
 	for (int i = 0; i < element_sets.Length(); i++)
 	{
