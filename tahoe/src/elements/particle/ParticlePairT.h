@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.18 2004-07-15 08:29:44 paklein Exp $ */
+/* $Id: ParticlePairT.h,v 1.19 2004-12-09 09:19:45 paklein Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -72,6 +72,17 @@ public:
 	
 protected:
 
+	/** list/index of output values */
+	enum ParticlePairOutputCodeT {
+		kDisplacement = 0,
+		kPE = 1,
+		kKE = 2,
+		kStress = 3,
+		kStrain = 4,
+		kSlipVector = 5,
+		kCS = 6
+	};
+
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
 	/*@{*/
 	/** form group contribution to the LHS matrix */
@@ -92,6 +103,9 @@ protected:
 	/** extract the properties information from the parameter list. See ParticleT::ExtractProperties */
 	virtual void ExtractProperties(const ParameterListT& list, const ArrayT<StringT>& type_names,
 		ArrayT<ParticlePropertyT*>& properties, nMatrixT<int>& properties_map);
+
+	/** return number of values for each output variable */
+	void SetOutputCount(const iArrayT& flags, iArrayT& counts) const;
 
 	/** generate labels for output data */
 	virtual void GenerateOutputLabels(ArrayT<StringT>& labels) const;
@@ -128,6 +142,9 @@ private:
 	ofstreamT fout, fout2;
 	StringT fsummary_file, fsummary_file2;
 	/*@}*/
+
+	/** output flags */
+	iArrayT fOutputFlags;
 };
 
 } /* namespace Tahoe */

@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.45 2004-10-14 20:21:58 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.46 2004-12-09 09:19:45 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -16,6 +16,7 @@
 #include "CommunicatorT.h"
 #include "ParameterContainerT.h"
 #include "ParameterUtils.h"
+#include "dSymMatrixT.h"
 
 /* Thermostatting stuff */
 #include "RandomNumberT.h"
@@ -913,10 +914,11 @@ ThermostatBaseT* ParticleT::New_Thermostat(const StringT& name, bool throw_on_fa
 
 void ParticleT::Calc_Slip_and_Strain(dArray2DT &s_values, RaggedArray2DT<int> &RefNearestNeighbors, const int &kEulerLagr)
 {
-  int non = s_values.MajorDim();
-  int num_s_vals = s_values.MinorDim();
-  int ndof = NumDOF();
-  int num_strains = num_s_vals - ndof - 1;
+	/* dimensions */
+	int non = s_values.MajorDim();
+	int ndof = NumDOF();
+	int num_strains = dSymMatrixT::NumValues(ndof);
+
   iArrayT neighbors;
   dArrayT x_i(ndof), x_j(ndof), r_ij(ndof), R_ij(ndof), X_i(ndof), X_j(ndof);  
   dArrayT slipvector(ndof), svtemp(ndof);
@@ -1051,11 +1053,10 @@ int ParticleT::Combination(int n,int k)
    return combo_nk;
   }
 
-void ParticleT::Calc_CSP(dArray2DT &s_values, RaggedArray2DT<int> &NearestNeighbors)
+void ParticleT::Calc_CSP(const RaggedArray2DT<int> &NearestNeighbors, dArrayT& csp)
 {
 	const char caller[] = "ParticleT::Calc_CSP";
 
-  int num_s_vals = s_values.MinorDim();
   int ndof = NumDOF();
   iArrayT neighbors;
   dArrayT x_i(ndof), x_j(ndof), r_ij(ndof), rvec(ndof);  
@@ -1124,16 +1125,15 @@ void ParticleT::Calc_CSP(dArray2DT &s_values, RaggedArray2DT<int> &NearestNeighb
    } /* end of j looop */
    if (icombos != ncombos) ExceptionT::SizeMismatch(caller);
    ndsum.SortAscending();
-   double csp = 0.0;
+   double csp_i = 0.0;
    if (ncspairs >= ncombos) ncspairs = ncombos;
-   for (int m = 0; m < ncspairs; m++) csp += ndsum[m];
-   if (fabs(fLatticeParameter) > kSmall) csp /= pow(fLatticeParameter,2);  
+   for (int m = 0; m < ncspairs; m++) csp_i += ndsum[m];
+   if (fabs(fLatticeParameter) > kSmall) csp_i /= fLatticeParameter*fLatticeParameter;  
 
    /* put centrosymmetry parameter into global s_values array */
-   s_values(local_i, num_s_vals-1) = csp;
+   csp[local_i] = csp_i;
   //cout << i << "   " << csp << endl;
   } /* end of i loop */
- 
 }
 
 void ParticleT::SetRefNN(RaggedArray2DT<int> &NearestNeighbors,RaggedArray2DT<int> &RefNearestNeighbors)
