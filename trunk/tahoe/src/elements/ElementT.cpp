@@ -1,4 +1,5 @@
-/* $Id: ElementT.cpp,v 1.28 2003-09-24 21:40:15 raregue Exp $ */
+/* $Id: ElementT.cpp,v 1.29 2003-10-02 21:05:04 hspark Exp $ */
+
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -162,6 +163,8 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		    break;
 		case ElementT::kPenaltyContactDrag:
 		    type = ElementT::kPenaltyContactDrag;
+		case ElementT::kTotLagSplitIntegration:
+		    type = ElementT::kTotLagSplitIntegration;
 		    break;
 		default:
 			cout << "\n operator>>ElementT::TypeT: unknown type: "

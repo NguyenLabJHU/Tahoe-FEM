@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.20 2003-08-19 08:03:49 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.21 2003-10-02 21:05:17 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #ifndef _FE_EXECMAN_T_H_
 #define _FE_EXECMAN_T_H_
@@ -11,6 +11,7 @@
 
 /* direct members */
 #include "IOBaseT.h"
+#include "ofstreamT.h"
 
 namespace Tahoe {
 
@@ -27,6 +28,8 @@ class dArray2DT;
 #ifdef __DEVELOPMENT__
 class FEManagerT_THK;
 #endif
+class dArray2DT;
+class StringT;
 
 /** class to handle file driven finite element simulations */
 class FEExecutionManagerT: public ExecutionManagerT

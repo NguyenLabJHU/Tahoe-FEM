@@ -1,4 +1,5 @@
-/* $Id: ParticlePairT.cpp,v 1.22 2003-09-18 21:21:44 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.23 2003-10-02 21:05:10 hspark Exp $ */
+
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -226,7 +227,7 @@ void ParticlePairT::WriteOutput(void)
 			double r = r_ij.Magnitude();
 			
 			/* split interaction energy */
-			double uby2 = 0.5*energy_function(r, NULL, NULL);
+			double uby2 = 0.5*energy_function(r, NULL, NULL); 
 			values_i[ndof] += uby2;
 			
 	      	/* interaction force */
@@ -254,6 +255,7 @@ void ParticlePairT::WriteOutput(void)
 				}
 			}
 		}
+
 		 /* copy stress into array */
 		 for (int cc = 0; cc < num_stresses; cc++) {
 			int ndex = ndof+2+cc;
@@ -261,6 +263,107 @@ void ParticlePairT::WriteOutput(void)
 		 }
 	}
 
+	
+#if 0
+	/* Temporary to calculate crack propagation velocity */
+	ifstreamT& in = ElementSupport().Input();
+	ModelManagerT& model = ElementSupport().Model();
+	const ArrayT<StringT> id_list = model.NodeSetIDs();
+	iArrayT nodelist;
+	dArray2DT partial;
+	nodelist = model.NodeSet(id_list[id_list.Length()-1]); // want last nodeset
+	const StringT& input_file = in.filename();
+	fsummary_file.Root(input_file);
+	fsummary_file.Append(".crack");
+	double xcoord = coords(nodelist[0],0);
+	double ydispcrit = .13;
+	const double& time = ElementSupport().Time();
+	for (int i = 0; i < nodelist.Length(); i++)
+	{
+	    int node = nodelist[i];
+	    if (fabs(displacement(node,1)) >= ydispcrit)
+	      xcoord = coords(node,0);
+	}
+
+	if (fopen)
+	{
+		fout.open_append(fsummary_file);
+	  	fout.precision(13);
+	  	fout << xcoord 
+	  	     << setw(25) << time
+	  	     << endl;
+	}
+	else
+	{
+	  	fout.open(fsummary_file);
+		fopen = true;
+	  	fout.precision(13);
+	  	fout << "x-coordinate"
+	  	     << setw(25) << "Time"
+	  	     << endl;
+	  	fout << xcoord 
+	  	     << setw(25) << time
+	  	     << endl;
+	}
+#endif
+
+#if 0
+	/* Temporary to calculate MD energy history and write to file */
+	ifstreamT& in = ElementSupport().Input();
+	ModelManagerT& model = ElementSupport().Model();
+	const ArrayT<StringT> id_list = model.NodeSetIDs();
+	iArrayT nodelist;
+	dArray2DT partial;
+	nodelist = model.NodeSet(id_list[id_list.Length()-1]);
+	nodelist = model.NodeSet(id_list[3]);  // id_list[3]
+	partial.Dimension(nodelist.Length(), n_values.MinorDim());
+	partial.RowCollect(nodelist, n_values);
+	const StringT& input_file = in.filename();
+	fsummary_file.Root(input_file);
+	fsummary_file2.Root(input_file);
+	fsummary_file.Append(".sum");
+	fsummary_file2.Append(".full");
+	if (fopen)
+	{
+	        fout.open_append(fsummary_file);
+			fout2.open_append(fsummary_file2);
+			fout.precision(13);
+			fout2.precision(13);
+			fout << n_values.ColumnSum(3) 
+				 << setw(25) << n_values.ColumnSum(2)
+				 << setw(25) << n_values.ColumnSum(3) + n_values.ColumnSum(2)
+				 << endl;
+			fout2 << partial.ColumnSum(3) 
+				 << setw(25) << partial.ColumnSum(2)
+				 << setw(25) << partial.ColumnSum(3) + partial.ColumnSum(2)
+				 << endl;
+	}
+	else
+	{
+			fout.open(fsummary_file);
+			fout2.open(fsummary_file2);
+			fopen = true;
+			fout.precision(13);
+			fout2.precision(13);
+			fout << "Kinetic Energy"
+				 << setw(25) << "Potential Energy"
+				 << setw(25) << "Total Energy"
+				 << endl;
+			fout << n_values.ColumnSum(3) 
+				 << setw(25) << n_values.ColumnSum(2)
+				 << setw(25) << n_values.ColumnSum(3) + n_values.ColumnSum(2)
+				 << endl;
+			fout2 << "Kinetic Energy"
+				 << setw(25) << "Potential Energy"
+				 << setw(25) << "Total Energy"
+				 << endl;
+			fout2 << partial.ColumnSum(3) 
+				 << setw(25) << partial.ColumnSum(2)
+				 << setw(25) << partial.ColumnSum(3) + partial.ColumnSum(2)
+				 << endl;
+	}
+#endif
+	   
 	/* send */
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
 }
@@ -601,7 +704,7 @@ void ParticlePairT::RHSDriver(void)
 		ExceptionT::GeneralFail("ParticlePairT::RHSDriver");
 		
 	ApplyDamping(fNeighbors);
-		
+	
 	/* assemble */
 	ElementSupport().AssembleRHS(Group(), fForce, Field().Equations());
 }
