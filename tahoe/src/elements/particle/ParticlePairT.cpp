@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.9 2002-11-30 16:37:25 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.10 2002-12-04 06:35:24 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -8,6 +8,7 @@
 /* pair property types */
 #include "LennardJonesPairT.h"
 #include "HarmonicPairT.h"
+#include "ParadynPairT.h"
 
 /* parameters */
 const int kMemoryHeadRoom = 15; /* percent */
@@ -639,12 +640,22 @@ void ParticlePairT::SetConfiguration(void)
 	/* reset neighbor lists */
 	GenerateNeighborList(fGlobalTag, fNeighborDistance, false, fNeighbors);
 
+	ofstreamT& out = ElementSupport().Output();
+	out << "\n Neighbor statistics:\n";
+	out << " Neighbor cut-off distance . . . . . . . . . . . = " << fNeighborDistance << '\n';
+
+	out << " Total number of neighbors . . . . . . . . . . . = " << fNeighbors.Length() << '\n';
+	out << " Minimum number of neighbors . . . . . . . . . . = " << fNeighbors.MinMinorDim(0) << '\n';
+	out << " Maximum number of neighbors . . . . . . . . . . = " << fNeighbors.MaxMinorDim() << '\n';
+	if (fNeighbors.MajorDim() > 0)
+	out << " Average number of neighbors . . . . . . . . . . = " << double(fNeighbors.Length())/fNeighbors.MajorDim() << '\n';
+	else
+	out << " Average number of neighbors . . . . . . . . . . = " << 0 << '\n';
+
 	/* verbose */
 	if (ElementSupport().PrintInput())
 	{
-		ofstreamT& out = ElementSupport().Output();
-		out << "\n Neighbor lists (self as leading neighbor):\n";
-		out << " Neighbor cut-off distance . . . . . . . . . . . = " << fNeighborDistance << '\n';
+		out << " Neighbor lists (self as leading neighbor):\n";
 		out << setw(kIntWidth) << "row" << "  n..." << '\n';
 		iArrayT tmp(fNeighbors.Length(), fNeighbors.Pointer());
 		tmp++;
@@ -680,6 +691,19 @@ void ParticlePairT::EchoProperties(ifstreamT& in, ofstreamT& out)
 				double mass, eps, sigma, alpha;
 				in >> mass >> eps >> sigma >> alpha;
 				fProperties[i] = new LennardJonesPairT(mass, eps, sigma, alpha);
+				break;
+			}
+			case ParticleT::kParadynPair:
+			{
+				StringT file;
+				in >> file;
+				file.ToNativePathName();
+
+				StringT path;
+				path.FilePath(in.filename());				
+				file.Prepend(path);
+			
+				fProperties[i] = new ParadynPairT(file);
 				break;
 			}
 			default:
