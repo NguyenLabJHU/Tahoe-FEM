@@ -1,4 +1,4 @@
-/* $Id: SV_NeoHookean2D.h,v 1.1 2002-10-05 00:49:22 thao Exp $ */
+/* $Id: SV_NeoHookean2D.h,v 1.2 2002-10-05 18:10:26 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #ifndef _SV_NEOHOOKEAN2D_H_
@@ -34,7 +34,7 @@ class SV_NeoHookean2D: public FDSimoVisco2D
 	virtual double dUdJ(const double& J, const int SpringType);
 	virtual double ddUddJ(const double& J, const int SpringType);
 
-	virtual void OutOfPlaneStretch(const dMatrixT Fbar,const double& J, 
+	virtual void OutOfPlaneStretch(const dMatrixT& Fbar,const double& J, 
 					const int SpringType);
 
         protected:

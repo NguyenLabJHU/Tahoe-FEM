@@ -1,4 +1,4 @@
-/* $Id: SV_NeoHookean2D.cpp,v 1.1 2002-10-05 00:49:22 thao Exp $ */
+/* $Id: SV_NeoHookean2D.cpp,v 1.2 2002-10-05 18:10:26 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 /* Phi(I1,J) = mu/2*(I1-3)+kappa/4*(J^2-1-2*ln(J)) */
 /* I1 = trace(C); J=sqrt(det(C)) */
@@ -111,9 +111,12 @@ double SV_NeoHookean2D::ddUddJ(const double& J, const int SpringType)
          return (0.5*fKappa[SpringType]*(1.0+iJ*iJ));
 }
 
-void SV_NeoHookean2D::OutOfPlaneStretch(const dMatrixT Fbar,const double& J,
+void SV_NeoHookean2D::OutOfPlaneStretch(const dMatrixT& Fbar,const double& J,
 				       const int SpringType)
 {
+#pragma unused(Fbar)
+#pragma unused(SpringType)
+
 	double& l2_bar = fCbar33;
 	double l2 = 1.0;
 	double m = pow(J,2.0*fthird);
