@@ -1,4 +1,4 @@
-/* $Id: moveav.c,v 1.2 2004-12-12 23:00:41 paklein Exp $ */
+/* $Id: moveav.c,v 1.3 2004-12-12 23:20:06 paklein Exp $ */
 /* moveav.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -58,11 +58,11 @@ static integer c__13 = 13;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: moveav.c,v 1.2 2004-12-12 23:00:41 paklein Exp $ +/ */
+/* /+ $Id: moveav.c,v 1.3 2004-12-12 23:20:06 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 /*<    >*/
 
-integer lbit_shift(integer a, integer b) {
+static integer lbit_shift(integer a, integer b) {
 	return b >= 0 ? a << b : (integer)((uinteger)a >> -b);
 };
 
@@ -200,7 +200,7 @@ integer lbit_shift(integer a, integer b) {
 /*<       if(is1.ne.0) then >*/
     if (!tainds) {
 /*<         print *,'Error in allocate' >*/
-		printfd("%d: Error in allocate", *myid);
+		printf("%d: Error in allocate", *myid);
 /*<         call mpi_abort(comm,1,ierr) >*/
 		MPI_Abort(*comm, 1);
 /*<       end if >*/
@@ -341,7 +341,7 @@ integer lbit_shift(integer a, integer b) {
      +                  1,MPI_INTEGER,comm,ierr) */
 /*   mpi_alltoall__(&wrkint[pscv], &c__1, &c__11, &wrkint[prcv], &c__1, &c__11,
 	     comm, &ierr); */
-	MPI_Alltall(&wrkint[pscv], 1, MPI_INT, &wrkint[prcv], 1, MPI_INT, *comm);
+	MPI_Alltoall(&wrkint[pscv], 1, MPI_INT, &wrkint[prcv], 1, MPI_INT, *comm);
 
 /*<       wrkint(prdv) = 0 >*/
     wrkint[prdv] = 0;
