@@ -15,8 +15,11 @@
                 <String value="D_X"/>
                 <String value="D_Y"/>
             </dof_labels>
-		<kinematic_BC dof="1" node_ID="18" schedule="1" type="u" value="0.0"/>
-		<kinematic_BC dof="2" node_ID="18" schedule="1" type="u" value="0.0"/>
+		<augmented_Lagrangian_KBC_meshfree element_group="1" regularization="100.0">
+			<kinematic_BC dof="1" node_ID="18" schedule="1" type="u" value="0.0"/>
+			<kinematic_BC dof="2" node_ID="18" schedule="1" type="u" value="0.0"/>
+			<kinematic_BC dof="2" node_ID="19" schedule="1" type="u" value="0.0"/>
+		</augmented_Lagrangian_KBC_meshfree>
         </field>
     </nodes>
     <element_list>
@@ -32,9 +35,9 @@
             </mf_particle_ID_list>
 		<natural_bc schedule="1" side_set_ID="1">
                 <DoubleList>
-                    <Double value="200.000000000000"/>
-                    <Double value="100.000000000000"/>
-			  <Double value="50.0"/>
+                    <Double value="1.33333333333333333"/>
+                    <Double value="0.3333333333333333"/>
+			  <Double value="0.0"/>
                 </DoubleList>
             </natural_bc>
             <ss_connectivity_element_block>
