@@ -2,12 +2,13 @@
 # GNU
 #
 MAKE        = make
-DEFINES     = -D__GNU__ -DNON_UNIX_STDIO -D__GCC_3__ 
+DEFINES     = -DNON_UNIX_STDIO 
 COMP_C      = /usr/local/gcc-3.1/bin/gcc
 COMP_CC     = /usr/local/gcc-3.1/bin/g++
 COMP_F      = /usr/local/gcc-3.1/bin/g77
+COMP_FLAG   = -c
 MORE_CFLAGS = -O3 -DNDEBUG
-LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -Wunused -Wuninitialized -Wno-deprecated
+LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -Wunused -Wuninitialized -Wno-deprecated
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS)
 CFLAGS_F    = $(LOC_CFLAGS)

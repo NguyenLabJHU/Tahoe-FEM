@@ -1,13 +1,14 @@
-# $Id: QT.debug.macros,v 1.2 2004-08-10 06:37:03 paklein Exp $
+# $Id: QT.debug.macros,v 1.3 2004-11-12 20:54:54 paklein Exp $
 # DEC
 MAKE        = make
 DEFINES     = -D__DEC__ -D__USE_STD_IOSTREAM
 COMP_C      = cxx
 COMP_CC     = cxx
 COMP_F      = f77
+COMP_FLAG   = -c
 TR          = $(MACRO_DIR)/cxx_repository
 MORE_CFLAGS = -g
-LOC_CFLAGS  = -c -arch host -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
+LOC_CFLAGS  = -arch host -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS) -ptr $(TR) -distinguish_nested_enums -msg_disable 161,111
 CFLAGS_F    = $(LOC_CFLAGS)

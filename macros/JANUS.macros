@@ -1,4 +1,4 @@
-# $Id: JANUS.macros,v 1.18 2004-08-10 06:37:03 paklein Exp $
+# $Id: JANUS.macros,v 1.19 2004-11-12 20:54:54 paklein Exp $
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpi
 
@@ -8,8 +8,9 @@ DEFINES     = -D__JANUS__ -D__TAHOE_MPI__
 COMP_C      = cicc
 COMP_CC     = ciCC
 COMP_F      = cif77
+COMP_FLAG   = -c
 MORE_CFLAGS = -O2 -DNDEBUG
-LOC_CFLAGS = -c $(DEFINES) -I$(INC_DIR) $(MORE_CFLAGS)
+LOC_CFLAGS  = $(DEFINES) -I$(INC_DIR) $(MORE_CFLAGS)
 CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -Wc,-tlocal --display_error_number --diag_suppress 815
 CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS)

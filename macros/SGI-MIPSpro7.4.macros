@@ -1,12 +1,13 @@
-# $Id: SGI-MIPSpro7.4.macros,v 1.1 2004-10-11 17:07:13 paklein Exp $
+# $Id: SGI-MIPSpro7.4.macros,v 1.2 2004-11-12 20:54:54 paklein Exp $
 
 MAKE        = make
 DEFINES     = -D__SGI__ -DNEW_STATIC_TEMPLATE_SYNTAX
 COMP_C      = cc
 COMP_CC     = CC
 COMP_F      = f77
+COMP_FLAG   = -c
 MORE_CFLAGS = -O3 -OPT:Olimit=10000 -DNDEBUG 
-LOC_CFLAGS  = -c -mips4 $(DEFINES) -I$(INC_DIR) $(MORE_CFLAGS)
+LOC_CFLAGS  = -mips4 $(DEFINES) -I$(INC_DIR) $(MORE_CFLAGS)
 CFLAGS_C    = $(LOC_CFLAGS) -woff 1110,1116
 CFLAGS_CC   = $(LOC_CFLAGS) -ptused -woff 1110,1155,1174,1188,1682,3303 -LANG:exceptions=ON -LANG:ansi-for-init-scope=ON
 CFLAGS_F    = $(LOC_CFLAGS) -DEIGHT_BYTE_REAL

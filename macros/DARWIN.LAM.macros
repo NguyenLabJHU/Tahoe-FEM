@@ -1,4 +1,4 @@
-# $Id: DARWIN.LAM.macros,v 1.14 2004-08-10 06:37:02 paklein Exp $
+# $Id: DARWIN.LAM.macros,v 1.15 2004-11-12 20:54:53 paklein Exp $
 #
 # macros for Mac OS X using the GNU distribution provided with
 # the Apple Developer tools in addition to the LAM implementation
@@ -9,12 +9,13 @@
 # OS X does not distinguish mpicc from mpiCC.
 #
 MAKE        = make
-DEFINES     = -D__GNU__ -D__DARWIN__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -D__GCC_3__ -DAZTEC_MPI -DNEW_STATIC_TEMPLATE_SYNTAX
+DEFINES     = -D__DARWIN__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__LAM__ -DAZTEC_MPI -DNEW_STATIC_TEMPLATE_SYNTAX
 COMP_C      = mpicc
 COMP_CC     = mpic++
 COMP_F      = mpif77
+COMP_FLAG   = -c
 MORE_CFLAGS = -O -DNDEBUG
-LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
+LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS)
 CFLAGS_F    = $(LOC_CFLAGS) -DEIGHT_BYTE_REAL

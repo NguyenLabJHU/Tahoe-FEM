@@ -1,11 +1,12 @@
-# $Id: SHASTA.serial.debug.macros,v 1.2 2004-08-10 06:37:03 paklein Exp $
+# $Id: SHASTA.serial.debug.macros,v 1.3 2004-11-12 20:54:54 paklein Exp $
 MAKE        = make
 DEFINES     = -D__SHASTA__ -D__INTEL_CC__ -DNON_UNIX_STDIO -D__NO_RTTI__
 COMP_C      = icc
 COMP_CC     = icc
 COMP_F      = ifc
+COMP_FLAG   = -c
 MORE_CFLAGS = -g
-LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
+LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS) -wr161
 CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -wr161,858
 CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS)

@@ -1,14 +1,15 @@
-# $Id: GNU.SHASTA.mpi.macros,v 1.4 2004-08-10 20:33:54 paklein Exp $
+# $Id: GNU.SHASTA.mpi.macros,v 1.5 2004-11-12 20:54:53 paklein Exp $
 # GNU
 COMP_DIR    = /apps/mpich-gcc-3.1
 GNU_DIR     = /projects/gnu/bin
 MAKE        = make
-DEFINES     = -D__GNU__ -DNON_UNIX_STDIO -D__TAHOE_MPI__ -D__GCC_3__
+DEFINES     = -DNON_UNIX_STDIO -D__TAHOE_MPI__
 COMP_C      = $(COMP_DIR)/bin/mpicc
 COMP_CC     = $(COMP_DIR)/bin/mpiCC
 COMP_F      = $(COMP_DIR)/bin/mpif77
+COMP_FLAG   = -c
 MORE_CFLAGS = -O3 -DNDEBUG
-LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
+LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS) -Wno-deprecated
 CFLAGS_F    = $(LOC_CFLAGS) -DEIGHT_BYTE_REAL

@@ -1,4 +1,4 @@
-# $Id: ASILOMAR.SON.macros,v 1.8 2004-08-10 06:37:02 paklein Exp $
+# $Id: ASILOMAR.SON.macros,v 1.9 2004-11-12 20:54:53 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpich -lgm
@@ -8,12 +8,13 @@ MAKE        = make
 COMP_C      = cxx
 COMP_CC     = cxx
 COMP_F      = f77
+COMP_FLAG   = -c
 LINK        = $(COMP_CC)
 TR          = $(MACRO_DIR)/cxx_repository
 MORE_CFLAGS = -O3 -DNDEBUG -D__USE_STD_IOSTREAM -arch ev56
 #MORE_CFLAGS = -g 
 DEFINES     = -D__DEC__ -D__CPLANT__ -D__CA_CPLANT__ -D__ASILOMAR__ -D__ALPHA_LINUX__ 
-LOC_CFLAGS  = -c -I$(INC_DIR) -I/usr/local/asilomar/build/LINUX/ch_gm/include -I/usr/local/asilomar/include -msg_display_number $(DEFINES) $(MORE_CFLAGS)
+LOC_CFLAGS  = -I$(INC_DIR) -I/usr/local/asilomar/build/LINUX/ch_gm/include -I/usr/local/asilomar/include -msg_display_number $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS)
 CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -ptr $(TR) -msg_disable 161,111
 CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS)

@@ -1,10 +1,11 @@
-# $Id: AIX.macros,v 1.10 2004-08-10 06:37:02 paklein Exp $
+# $Id: AIX.macros,v 1.11 2004-11-12 20:54:52 paklein Exp $
 # macros for IBM
 MAKE        = make
 DEFINES     = -D__AIX__ 
 COMP_C      = xlc
 COMP_CC     = xlC
 COMP_F      = xlf
+COMP_FLAG   = -c
 TR          =
 MORE_CFLAGS = -O -DNDEBUG -qsuppress=1500-036
 #
@@ -15,7 +16,7 @@ MORE_CFLAGS = -O -DNDEBUG -qsuppress=1500-036
 #       See the class toolbox/src/misc/SpectralDecompT. Even higher levels
 #       of optimization were not tested.
 #
-LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -qmaxmem=10000
+LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) -qmaxmem=10000
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS) -qrtti -qsuppress=1540-0080 -qsuppress=1540-1401
 CFLAGS_F    = $(LOC_CFLAGS)

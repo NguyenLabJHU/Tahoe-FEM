@@ -1,12 +1,13 @@
-# $Id: GNU.troi.purifyplus.macros,v 1.5 2004-08-10 07:04:57 paklein Exp $
+# $Id: GNU.troi.purifyplus.macros,v 1.6 2004-11-12 20:54:54 paklein Exp $
 # GNU 2.95
 MAKE        = make
-DEFINES     = -D__GNU__ -D__SUN__
+DEFINES     = -D__SUN__
 COMP_C      = gcc
 COMP_CC     = g++
 COMP_F      = g77
+COMP_FLAG   = -c
 MORE_CFLAGS = -g
-LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
+LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS)
 CFLAGS_F    = $(LOC_CFLAGS)

@@ -1,4 +1,4 @@
-# $Id: GNU.linux.MT.macros,v 1.10 2004-08-10 07:15:34 paklein Exp $
+# $Id: GNU.linux.MT.macros,v 1.11 2004-11-12 20:54:53 paklein Exp $
 # GNU
 
 # additional flags for multithreaded code (spoolesMT in particular)
@@ -8,12 +8,13 @@ MT_CFLAGS = -D__POSIX_THREADS__ -D__NUM_THREADS__="2"
 MT_LFLAGS = -lpthread
 
 MAKE        = make
-DEFINES     = -D__GNU__ -DNON_UNIX_STDIO 
+DEFINES     = -DNON_UNIX_STDIO 
 COMP_C      = gcc
 COMP_CC     = g++
 COMP_F      = g77
+COMP_FLAG   = -c
 MORE_CFLAGS = -O3 -DNDEBUG
-LOC_CFLAGS  = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) $(MT_CFLAGS)
+LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS) $(MT_CFLAGS)
 CFLAGS_C    = $(LOC_CFLAGS)
 CFLAGS_CC   = $(LOC_CFLAGS)
 CFLAGS_F    = $(LOC_CFLAGS)
