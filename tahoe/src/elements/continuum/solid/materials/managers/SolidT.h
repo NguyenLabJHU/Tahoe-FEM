@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.4 2001-05-17 19:10:56 ebmarin Exp $ */
+/* $Id: SolidT.h,v 1.5 2001-06-23 01:34:54 thao Exp $ */
 /* created: paklein (03/10/2001)                                          */
 
 #ifndef _MATERIAL_T_H_
@@ -38,6 +38,8 @@ kThermoViscoPlastic = 30,
    kLocXtalPlast = 50,
  kLocXtalPlast_C = 51,
    kGrdXtalPlast = 52,
+   kOgdenViscVIB = 60,
+         kSKStVT = 61,
      kABAQUS_BCJ = 80
 		};
 
