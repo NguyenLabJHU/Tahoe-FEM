@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.31 2003-05-13 23:14:09 creigh Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.32 2003-05-14 01:04:10 paklein Exp $ */
 #include "StaggeredMultiScaleT.h"
 
 #include "ShapeFunctionT.h"
@@ -1044,7 +1044,7 @@ void StaggeredMultiScaleT::AddNodalForce(const FieldT& field, int node, dArrayT&
 			}			
 		}
 	}
-	cout << "F_int = \n" << fFint_I << endl;
+//	cout << "F_int = \n" << fFint_I << endl;
 }
 
 //---------------------------------------------------------------------
@@ -1238,11 +1238,13 @@ void StaggeredMultiScaleT::WriteOutput(void)
 	for (k=0; k<num_scalars_to_render; k++) 
 		var_plot_file << Render_Scalar[Elmt2Write][k][ElmtIP2Write] << " ";
 
+#if 0
 	cout << "FLAG 3 "<<endl;
 	cout << "Node Forces "<< fForces_at_Node << endl;
 
 	if  (iDesired_Force_Direction > -1 && 	iDesired_Force_Node_Num > -1)
 		var_plot_file << fForces_at_Node[iDesired_Force_Direction] << " "; 
+#endif
 
 	var_plot_file <<endl; 
 
@@ -1477,12 +1479,13 @@ void StaggeredMultiScaleT::RHSDriver_staggered(void)
 				for (v=0; v<num_scalars_to_render; v++ ) 
 					fEquation_I -> Get ( Render_Scalar_Names[v], Render_Scalar[e][v] ); 
 
+#if 0
 				if (iDesired_Force_Node_Num != -1)
 					AddNodalForce(fCoarse, iDesired_Force_Node_Num, fForces_at_Node);
 
 				cout << "FLAG 2 "<<endl;
 				cout << "Node Forces "<< fForces_at_Node << endl;
-
+#endif
 				//-- Store/Register data in classic tahoe manner 
 				out_variable_all.Set(fNumIP, n_stress, fIPVariable(CurrElementNumber()));
 				for (l=0; l < fNumIP; l++) {
