@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.63.2.3 2003-10-15 23:56:25 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.63.2.4 2003-12-03 01:43:17 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1639,17 +1639,24 @@ bool FEManagerT::ReadRestart(const StringT* file_name)
 			fTimeManager->ReadRestart(restart);		  	                  		  	
 			fNodeManager->ReadRestart(restart);
 			for (int i = 0 ; i < fElementGroups->Length(); i++)
-				(*fElementGroups)[i]->ReadRestart(restart);
+			{
+				/* open new stream for each group */
+				StringT file_name = restart.filename();
+				file_name.Append(".elem", i);
+				ifstreamT restart_elem(file_name);
+				restart_elem.precision(DBL_DIG - 1);
+
+				
+				/* write element restart data */
+				(*fElementGroups)[i]->ReadRestart(restart_elem);
+			}
 
 			cout <<   "         Restart file: " << rs_file
 			     << ": DONE"<< endl;
 		}
 		else
-		{
-			cout << "\n FEManagerT::ReadRestart: could not open file: "
-			     << rs_file << endl;
-			throw ExceptionT::kBadInputValue;
-		}
+			ExceptionT::BadInputValue("FEManagerT::ReadRestart", "could not open file: \"%s\"",
+				rs_file.Pointer());
 		
 		/* relax system with new configuration */
 		for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
@@ -1704,7 +1711,16 @@ bool FEManagerT::WriteRestart(const StringT* file_name) const
 				fTimeManager->WriteRestart(restart);
 				fNodeManager->WriteRestart(restart);			
 				for (int i = 0 ; i < fElementGroups->Length(); i++)
-					(*fElementGroups)[i]->WriteRestart(restart);
+				{
+					/* open new stream for each group */
+					StringT file_name = restart.filename();
+					file_name.Append(".elem", i);
+					ofstreamT restart_elem(file_name);
+					restart_elem.precision(DBL_DIG - 1);
+				
+					/* write element restart data */
+					(*fElementGroups)[i]->WriteRestart(restart_elem);
+				}
 					
 				return true;
 			}
@@ -1732,7 +1748,16 @@ bool FEManagerT::WriteRestart(const StringT* file_name) const
 			fTimeManager->WriteRestart(restart);
 			fNodeManager->WriteRestart(restart);			
 			for (int i = 0 ; i < fElementGroups->Length(); i++)
-				(*fElementGroups)[i]->WriteRestart(restart);
+			{
+				/* open new stream for each group */
+				StringT file_name = restart.filename();
+				file_name.Append(".elem", i);
+				ofstreamT restart_elem(file_name);
+				restart_elem.precision(DBL_DIG - 1);
+				
+				/* write element restart data */
+				(*fElementGroups)[i]->WriteRestart(restart_elem);
+			}
 				
 			return true;
 		}
