@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList3DT.cpp,v 1.9 2004-08-19 20:40:22 raregue Exp $ */
+/* $Id: SSSolidMatList3DT.cpp,v 1.10 2005-01-06 22:30:00 kyonten Exp $ */
 #include "SSSolidMatList3DT.h"
 #include "SSMatSupportT.h"
 #include "SolidMaterialsConfig.h"
@@ -50,10 +50,6 @@
 #include "MRSSKStV.h"
 #endif
 
-#ifdef GRAD_PLASTICITY_MR_MATERIAL_DEV
-#include "GRAD_MRSSKStV.h"
-#endif
-
 using namespace Tahoe;
 
 /* constructors */
@@ -102,10 +98,6 @@ void SSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 
 #ifdef PLASTICITY_MR_MATERIAL_DEV
 		sub_lists.AddSub("small_strain_StVenant_MR");
-#endif
-
-#ifdef GRAD_PLASTICITY_MR_MATERIAL_DEV
-		sub_lists.AddSub("small_strain_StVenant_MR_grad");
 #endif
 
 #ifdef PLASTICITY_DP_LOC_MATERIAL_DEV
@@ -195,11 +187,6 @@ SSSolidMatT* SSSolidMatList3DT::NewSSSolidMat(const StringT& name) const
 #ifdef PLASTICITY_MR_MATERIAL_DEV
 	else if (name == "small_strain_StVenant_MR")
 		mat = new MRSSKStV;
-#endif
-
-#ifdef GRAD_PLASTICITY_MR_MATERIAL_DEV
-	else if (name == "small_strain_StVenant_MR_grad")
-		mat = new GRAD_MRSSKStV;
 #endif
 
 #ifdef PLASTICITY_DP_LOC_MATERIAL_DEV
