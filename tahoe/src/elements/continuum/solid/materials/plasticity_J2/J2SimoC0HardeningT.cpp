@@ -1,4 +1,4 @@
-/* $Id: J2SimoC0HardeningT.cpp,v 1.2 2001-05-07 04:59:35 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.cpp,v 1.3 2001-06-03 21:06:28 paklein Exp $ */
 /* created: paklein (05/01/2001) */
 
 #include "J2SimoC0HardeningT.h"
