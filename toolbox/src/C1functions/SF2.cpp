@@ -1,4 +1,4 @@
-/* $Id: SF2.cpp,v 1.2 2002-10-20 22:38:48 paklein Exp $ */
+/* $Id: SF2.cpp,v 1.3 2003-11-19 22:10:39 thao Exp $ */
 /* created: paklein (10/30/1997)                                          */
 
 #include "SF2.h"
@@ -39,8 +39,12 @@ void SF2::PrintName(ostream& out) const
 double SF2::Function(double x) const
 {
 	double dl = x - fl_0;
-	if (dl > 0)
+	/*	if (dl > 0)
 	  return(-(0.5*fA*fB)/exp((dl*dl)/fB));
+	else
+	return (0.5*fA*dl*dl-fA*fB*0.5);*/
+	if (dl > 0)
+	  return (-0.5*fA*fB/exp((dl*dl)/fB) + 0.5*fA*fB);
 	else
 	  return (0.5*fA*dl*dl);
 }
