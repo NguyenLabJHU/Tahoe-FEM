@@ -1,4 +1,6 @@
-/* $Id: J2Simo3D.h,v 1.11 2003-10-12 01:39:03 paklein Exp $ */
+
+/* $Id: J2Simo3D.h,v 1.10.20.2 2003-11-04 19:47:16 bsun Exp $ */
+
 /* created: paklein (04/30/2001) */
 #ifndef _J2_SIMO_3D_H_
 #define _J2_SIMO_3D_H_

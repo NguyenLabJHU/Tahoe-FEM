@@ -1,4 +1,6 @@
-/* $Id: ContinuumElementT.cpp,v 1.30 2003-11-04 17:45:09 paklein Exp $ */
+
+/* $Id: ContinuumElementT.cpp,v 1.28.8.1 2003-11-04 19:47:11 bsun Exp $ */
+
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -1118,6 +1120,7 @@ bool ContinuumElementT::CheckMaterialOutput(void) const
 	return true;
 }
 
+
 /* information about subordinate parameter lists */
 void ContinuumElementT::DefineSubs(SubListT& sub_list) const
 {
@@ -1245,6 +1248,7 @@ ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
 	else /* inherited */
 		return ElementBaseT::NewSub(list_name);
 }
+
 
 /***********************************************************************
  * Private

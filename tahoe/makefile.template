@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.25 2003-10-16 18:27:18 cjkimme Exp $
+# $Id: makefile.template,v 1.24.4.1 2003-11-04 19:47:04 bsun Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.

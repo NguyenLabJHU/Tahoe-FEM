@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.7 2003-10-28 07:18:05 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.6.6.1 2003-11-04 19:47:22 bsun Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"

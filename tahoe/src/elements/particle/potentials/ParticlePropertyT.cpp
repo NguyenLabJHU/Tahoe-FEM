@@ -1,4 +1,4 @@
-/* $Id: ParticlePropertyT.cpp,v 1.10 2003-11-04 01:34:29 paklein Exp $ */
+/* $Id: ParticlePropertyT.cpp,v 1.7.6.1 2003-11-04 19:47:18 bsun Exp $ */
 #include "ParticlePropertyT.h"
 #include "ArrayT.h"
 #include <iostream.h>

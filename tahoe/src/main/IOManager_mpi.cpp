@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.27 2003-10-28 07:47:53 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.26.20.1 2003-11-04 19:47:22 bsun Exp $ */
 /* created: paklein (03/14/2000) */
 #include "IOManager_mpi.h"
 

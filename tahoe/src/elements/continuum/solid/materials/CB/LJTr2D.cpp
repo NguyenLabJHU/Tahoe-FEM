@@ -1,4 +1,4 @@
-/* $Id: LJTr2D.cpp,v 1.9 2003-10-15 23:03:41 cjkimme Exp $ */
+/* $Id: LJTr2D.cpp,v 1.8.20.1 2003-11-04 19:47:15 bsun Exp $ */
 /* created: paklein (07/01/1996) */
 #include "LJTr2D.h"
 

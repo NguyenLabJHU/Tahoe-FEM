@@ -1,4 +1,4 @@
-/* $Id: RampedDampingT.h,v 1.3 2003-10-30 17:15:21 paklein Exp $ */
+/* $Id: RampedDampingT.h,v 1.2.14.1 2003-11-04 19:47:19 bsun Exp $ */
 #ifndef _RAMPED_DAMPING_T_H_
 #define _RAMPED_DAMPING_T_H_
 

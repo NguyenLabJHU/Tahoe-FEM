@@ -1,4 +1,4 @@
-/* $Id: HarmonicPairT.cpp,v 1.4 2003-10-28 23:31:51 paklein Exp $ */
+/* $Id: HarmonicPairT.cpp,v 1.3.18.1 2003-11-04 19:47:18 bsun Exp $ */
 #include "HarmonicPairT.h"
 #include <iostream.h>
 

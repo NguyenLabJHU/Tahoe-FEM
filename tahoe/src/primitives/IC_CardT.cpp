@@ -1,4 +1,4 @@
-/* $Id: IC_CardT.cpp,v 1.13 2003-11-04 01:32:06 paklein Exp $ */
+/* $Id: IC_CardT.cpp,v 1.11.24.1 2003-11-04 19:47:28 bsun Exp $ */
 /* created: paklein (07/16/1997) */
 #include "IC_CardT.h"
 

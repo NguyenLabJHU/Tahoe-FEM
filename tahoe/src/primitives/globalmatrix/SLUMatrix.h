@@ -1,4 +1,4 @@
-/* $Id: SLUMatrix.h,v 1.8 2003-10-31 20:53:14 paklein Exp $ */
+/* $Id: SLUMatrix.h,v 1.7.22.1 2003-11-04 19:47:30 bsun Exp $ */
 /* created: rbridson (06/30/2000) */
 
 #ifndef _SLU_MATRIX_H_

@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.h,v 1.9 2003-10-20 23:32:57 cjkimme Exp $ */
+/* $Id: SurfaceShapeT.h,v 1.8.24.1 2003-11-04 19:47:21 bsun Exp $ */
 /* created: paklein (11/21/1997) */
 
 #ifndef _SURFACE_SHAPE_T_H_

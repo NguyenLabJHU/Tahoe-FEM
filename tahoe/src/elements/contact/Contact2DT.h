@@ -1,4 +1,4 @@
-/* $Id: Contact2DT.h,v 1.5 2003-11-04 17:37:50 paklein Exp $ */
+/* $Id: Contact2DT.h,v 1.4.30.1 2003-11-04 19:47:10 bsun Exp $ */
 /* created: paklein (05/26/1999) */
 #ifndef _CONTACT2D_T_H_
 #define _CONTACT2D_T_H_

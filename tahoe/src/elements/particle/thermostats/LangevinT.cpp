@@ -1,4 +1,4 @@
-/* $Id: LangevinT.cpp,v 1.5 2003-10-30 17:15:21 paklein Exp $ */
+/* $Id: LangevinT.cpp,v 1.4.12.1 2003-11-04 19:47:19 bsun Exp $ */
 #include "LangevinT.h"
 #include "ArrayT.h"
 #include <iostream.h>

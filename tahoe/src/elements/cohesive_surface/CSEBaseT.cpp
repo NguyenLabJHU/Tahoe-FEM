@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.28 2003-10-20 23:31:07 cjkimme Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.27.6.1 2003-11-04 19:47:08 bsun Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"

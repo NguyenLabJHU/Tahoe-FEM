@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.h,v 1.16 2003-10-28 07:47:53 paklein Exp $ */
+/* $Id: IOManager_mpi.h,v 1.15.20.1 2003-11-04 19:47:22 bsun Exp $ */
 /* created: paklein (03/14/2000) */
 
 #ifndef _IOMANAGER_MPI_H_

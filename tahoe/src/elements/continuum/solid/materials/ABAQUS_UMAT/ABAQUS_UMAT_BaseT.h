@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.8 2003-11-04 17:53:09 cjkimme Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.h,v 1.7.4.1 2003-11-04 19:47:13 bsun Exp $ */
 /* created: paklein (05/09/2000) */
 #ifndef _ABAQUS_UMAT_BASE_T_H_
 #define _ABAQUS_UMAT_BASE_T_H_

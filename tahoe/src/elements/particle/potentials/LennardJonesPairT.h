@@ -1,4 +1,4 @@
-/* $Id: LennardJonesPairT.h,v 1.6 2003-10-28 23:31:51 paklein Exp $ */
+/* $Id: LennardJonesPairT.h,v 1.5.18.1 2003-11-04 19:47:18 bsun Exp $ */
 #ifndef _LENNARD_JONES_PAIR_T_H_
 #define _LENNARD_JONES_PAIR_T_H_
 

@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.h,v 1.13 2003-11-01 16:09:36 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.h,v 1.11.22.1 2003-11-04 19:47:31 bsun Exp $ */
 /* created: paklein (09/13/2000) */
 #ifndef _SPOOLES_MATRIX_T_H_
 #define _SPOOLES_MATRIX_T_H_

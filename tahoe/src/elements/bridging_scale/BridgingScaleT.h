@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.27 2003-10-28 07:30:35 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.26.8.1 2003-11-04 19:47:07 bsun Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 

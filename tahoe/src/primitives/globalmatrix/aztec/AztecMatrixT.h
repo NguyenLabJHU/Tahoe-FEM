@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.h,v 1.10 2003-10-31 20:53:20 paklein Exp $ */
+/* $Id: AztecMatrixT.h,v 1.9.18.1 2003-11-04 19:47:31 bsun Exp $ */
 /* created: paklein (08/10/1998) */
 #ifndef _AZTEC_MATRIX_T_H_
 #define _AZTEC_MATRIX_T_H_

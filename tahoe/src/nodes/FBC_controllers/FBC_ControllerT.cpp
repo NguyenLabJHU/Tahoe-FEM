@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.cpp,v 1.9 2003-11-04 01:37:02 paklein Exp $ */
+/* $Id: FBC_ControllerT.cpp,v 1.7.6.1 2003-11-04 19:47:24 bsun Exp $ */
 /* created: paklein (11/17/1997) */
 #include "FBC_ControllerT.h"
 #include "ArrayT.h"

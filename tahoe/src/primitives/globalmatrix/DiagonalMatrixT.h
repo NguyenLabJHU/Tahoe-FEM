@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.h,v 1.12 2003-10-31 20:53:14 paklein Exp $ */
+/* $Id: DiagonalMatrixT.h,v 1.11.22.1 2003-11-04 19:47:29 bsun Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _DIAGONAL_MATRIX_H_

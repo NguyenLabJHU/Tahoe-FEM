@@ -1,4 +1,4 @@
-/* $Id: GaussIsokineticT.cpp,v 1.7 2003-10-30 17:15:21 paklein Exp $ */
+/* $Id: GaussIsokineticT.cpp,v 1.6.12.1 2003-11-04 19:47:19 bsun Exp $ */
 #include "GaussIsokineticT.h"
 #include "ArrayT.h"
 #include <iostream.h>

@@ -1,4 +1,4 @@
-/* $Id: NoseHooverT.h,v 1.4 2003-10-30 17:15:21 paklein Exp $ */
+/* $Id: NoseHooverT.h,v 1.3.14.1 2003-11-04 19:47:19 bsun Exp $ */
 #ifndef _NOSE_HOOVER_T_H_
 #define _NOSE_HOOVER_T_H_
 

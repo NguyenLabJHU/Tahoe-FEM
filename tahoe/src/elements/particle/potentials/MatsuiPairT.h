@@ -1,4 +1,4 @@
-/* $Id: MatsuiPairT.h,v 1.2 2003-10-28 23:31:51 paklein Exp $ */
+/* $Id: MatsuiPairT.h,v 1.1.6.1 2003-11-04 19:47:18 bsun Exp $ */
 #ifndef _MATSUI_PAIR_T_H_
 #define _MATSUI_PAIR_T_H_
 

@@ -1,4 +1,4 @@
-/* $Id: GaussIsokineticT.h,v 1.3 2003-10-30 17:15:21 paklein Exp $ */
+/* $Id: GaussIsokineticT.h,v 1.2.14.1 2003-11-04 19:47:19 bsun Exp $ */
 #ifndef _GAUSS_ISOKINETIC_T_H_
 #define _GAUSS_ISOKINETIC_T_H_
 

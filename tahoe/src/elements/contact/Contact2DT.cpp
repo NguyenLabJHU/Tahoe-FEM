@@ -1,4 +1,4 @@
-/* $Id: Contact2DT.cpp,v 1.7 2003-11-04 17:37:50 paklein Exp $ */
+/* $Id: Contact2DT.cpp,v 1.6.20.1 2003-11-04 19:47:10 bsun Exp $ */
 /* created: paklein (05/26/1999) */
 #include "Contact2DT.h"
 

@@ -1,4 +1,4 @@
-/* $Id: KBC_CardT.cpp,v 1.13 2003-11-04 01:32:06 paklein Exp $ */
+/* $Id: KBC_CardT.cpp,v 1.11.16.1 2003-11-04 19:47:28 bsun Exp $ */
 /* created: paklein (05/23/1996) */
 #include "KBC_CardT.h"
 

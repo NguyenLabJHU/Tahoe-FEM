@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.7 2003-10-20 23:32:54 cjkimme Exp $ */
+/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.6.20.1 2003-11-04 19:47:20 bsun Exp $ */
 /* created: paklein (06/03/2000)                                          */
 
 #include "MeshFreeSurfaceShapeT.h"

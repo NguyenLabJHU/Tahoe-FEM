@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.15 2003-10-31 20:53:14 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.14.22.1 2003-11-04 19:47:29 bsun Exp $ */
 /* created: paklein (03/23/1997) */
 #include "GlobalMatrixT.h"
 #include <iostream.h>

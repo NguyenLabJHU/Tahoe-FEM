@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.40 2003-11-04 17:53:49 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.39.6.1 2003-11-04 19:47:05 bsun Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 

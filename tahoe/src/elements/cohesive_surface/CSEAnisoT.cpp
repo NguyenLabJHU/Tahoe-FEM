@@ -1,4 +1,6 @@
-/* $Id: CSEAnisoT.cpp,v 1.57 2003-11-04 17:34:42 cjkimme Exp $ */
+
+/* $Id: CSEAnisoT.cpp,v 1.55.6.1 2003-11-04 19:47:08 bsun Exp $ */
+
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 

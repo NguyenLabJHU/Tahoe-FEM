@@ -1,4 +1,6 @@
-/* $Id: EAMT.h,v 1.16 2003-10-28 23:31:48 paklein Exp $ */
+
+/* $Id: EAMT.h,v 1.15.6.2 2003-11-04 19:47:17 bsun Exp $ */
+
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -83,6 +85,9 @@ protected:
 
 	/** generate labels for output data */
 	virtual void GenerateOutputLabels(ArrayT<StringT>& labels) const;
+
+	/**nearest neighbor list**/
+	RaggedArray2DT<int> NearestNeighbors;
 
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: ElementCardT.cpp,v 1.14 2003-11-04 01:32:06 paklein Exp $ */
+/* $Id: ElementCardT.cpp,v 1.12.6.1 2003-11-04 19:47:28 bsun Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementCardT.h"
 #include <iostream.h>

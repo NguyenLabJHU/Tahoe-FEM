@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.16 2003-11-04 17:35:35 paklein Exp $ */
+/* $Id: FieldT.h,v 1.15.2.1 2003-11-04 19:47:23 bsun Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 

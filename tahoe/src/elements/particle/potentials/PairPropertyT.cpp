@@ -1,4 +1,4 @@
-/* $Id: PairPropertyT.cpp,v 1.4 2003-10-28 23:31:51 paklein Exp $ */
+/* $Id: PairPropertyT.cpp,v 1.3.24.1 2003-11-04 19:47:18 bsun Exp $ */
 #include "PairPropertyT.h"
 #include <stddef.h>
 

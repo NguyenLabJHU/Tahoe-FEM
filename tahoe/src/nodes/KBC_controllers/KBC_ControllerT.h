@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.21 2003-10-20 23:21:53 cjkimme Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.20.6.1 2003-11-04 19:47:25 bsun Exp $ */
 /* created: paklein (09/05/2000) */
 #ifndef _KBC_CONTROLLER_T_H_
 #define _KBC_CONTROLLER_T_H_

@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.h,v 1.3 2003-10-28 07:32:08 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.h,v 1.2.8.1 2003-11-04 19:47:08 bsun Exp $ */
 #ifndef _MESHFREE_BRIDGING_SCALE_T_H_
 #define _MESHFREE_BRIDGING_SCALE_T_H_
 

@@ -1,4 +1,6 @@
-/* $Id: ShapeFunctionT.h,v 1.18 2003-10-09 18:12:16 paklein Exp $ */
+
+/* $Id: ShapeFunctionT.h,v 1.16.24.2 2003-11-04 19:47:21 bsun Exp $ */
+
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_

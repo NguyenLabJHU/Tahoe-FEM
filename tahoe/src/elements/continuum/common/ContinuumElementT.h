@@ -1,4 +1,6 @@
-/* $Id: ContinuumElementT.h,v 1.21 2003-11-04 17:45:09 paklein Exp $ */
+
+/* $Id: ContinuumElementT.h,v 1.19.22.1 2003-11-04 19:47:11 bsun Exp $ */
+
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -199,6 +201,7 @@ protected:
 	 * \return true if output variables of all materials for the group matches */
 	virtual bool CheckMaterialOutput(void) const;
 
+
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
 	/** information about subordinate parameter lists */
@@ -211,6 +214,7 @@ protected:
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
 	/*@}*/
+
 
 private:
 

@@ -1,4 +1,6 @@
-/* $Id: main.cpp,v 1.20 2003-10-07 18:46:05 paklein Exp $ */
+
+/* $Id: main.cpp,v 1.19.8.2 2003-11-04 19:47:22 bsun Exp $ */
+
 /* created: paklein (05/22/1996) */
 #include <iostream.h>
 #include <fstream.h>

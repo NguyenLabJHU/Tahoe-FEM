@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.cpp,v 1.3 2003-10-21 23:31:49 cjkimme Exp $ */
+/* $Id: CSESymAnisoT.cpp,v 1.3.2.1 2003-11-04 19:47:08 bsun Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSESymAnisoT.h"
 

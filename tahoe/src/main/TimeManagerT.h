@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.h,v 1.11 2003-10-28 07:36:49 paklein Exp $ */
+/* $Id: TimeManagerT.h,v 1.10.6.1 2003-11-04 19:47:22 bsun Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _TIMEMANAGER_T_H_

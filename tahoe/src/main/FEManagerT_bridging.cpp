@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.10 2003-10-28 07:38:02 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.9.6.1 2003-11-04 19:47:22 bsun Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 

@@ -1,4 +1,4 @@
-/* $Id: UpLagAdaptiveT.cpp,v 1.2 2003-10-28 07:24:05 paklein Exp $ */
+/* $Id: UpLagAdaptiveT.cpp,v 1.1.6.1 2003-11-04 19:47:13 bsun Exp $ */
 #include "UpLagAdaptiveT.h"
 
 /* requires cohesive surface elements */

@@ -1,4 +1,4 @@
-/* $Id: SamplingSurfaceT.cpp,v 1.5 2003-10-20 23:32:54 cjkimme Exp $ */
+/* $Id: SamplingSurfaceT.cpp,v 1.4.24.1 2003-11-04 19:47:20 bsun Exp $ */
 /* created: paklein (10/19/2000)                                          */
 
 #include "SamplingSurfaceT.h"

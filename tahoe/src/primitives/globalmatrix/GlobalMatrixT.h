@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.h,v 1.13 2003-11-01 16:09:24 paklein Exp $ */
+/* $Id: GlobalMatrixT.h,v 1.11.22.1 2003-11-04 19:47:29 bsun Exp $ */
 /* created: paklein (03/23/1997) */
 #ifndef _GLOBAL_MATRIX_H_
 #define _GLOBAL_MATRIX_H_

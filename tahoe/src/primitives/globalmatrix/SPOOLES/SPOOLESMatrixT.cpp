@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.16 2003-11-01 16:09:36 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.14.4.1 2003-11-04 19:47:31 bsun Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT.h"

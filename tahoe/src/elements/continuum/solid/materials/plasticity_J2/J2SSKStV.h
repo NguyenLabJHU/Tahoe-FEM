@@ -1,4 +1,6 @@
-/* $Id: J2SSKStV.h,v 1.8 2003-10-12 01:39:03 paklein Exp $ */
+
+/* $Id: J2SSKStV.h,v 1.7.20.2 2003-11-04 19:47:16 bsun Exp $ */
+
 /* created: paklein (06/18/1997) */
 #ifndef _J2_SS_KSTV_H_
 #define _J2_SS_KSTV_H_

@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.h,v 1.11 2003-10-31 20:53:14 paklein Exp $ */
+/* $Id: CCNSMatrixT.h,v 1.10.22.1 2003-11-04 19:47:29 bsun Exp $ */
 /* created: paklein (03/04/1998) */
 #ifndef _CCNSMATRIX_T_H_
 #define _CCNSMATRIX_T_H_

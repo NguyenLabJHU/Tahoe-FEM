@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.22 2003-11-04 17:36:48 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.21.6.1 2003-11-04 19:47:24 bsun Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_

@@ -1,4 +1,4 @@
-/* $Id: FBC_CardT.cpp,v 1.12 2003-11-04 01:32:06 paklein Exp $ */
+/* $Id: FBC_CardT.cpp,v 1.10.16.1 2003-11-04 19:47:28 bsun Exp $ */
 /* created: paklein (06/15/1996) */
 #include "FBC_CardT.h"
 

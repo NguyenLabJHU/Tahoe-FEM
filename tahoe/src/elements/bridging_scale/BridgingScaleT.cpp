@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.37 2003-10-31 20:49:23 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.35.2.1 2003-11-04 19:47:07 bsun Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>

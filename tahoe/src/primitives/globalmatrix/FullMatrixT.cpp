@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.12 2003-10-31 20:53:14 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.11.22.1 2003-11-04 19:47:29 bsun Exp $ */
 /* created: paklein (03/07/1998) */
 #include "FullMatrixT.h"
 #include <iostream.h>

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.38 2003-10-28 07:45:12 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.37.6.1 2003-11-04 19:47:22 bsun Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_

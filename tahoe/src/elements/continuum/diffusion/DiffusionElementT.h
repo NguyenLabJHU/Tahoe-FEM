@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.h,v 1.10 2003-11-01 21:12:56 paklein Exp $ */
+/* $Id: DiffusionElementT.h,v 1.9.8.1 2003-11-04 19:47:12 bsun Exp $ */
 /* created: paklein (10/02/1999) */
 #ifndef _DIFFUSE_T_H_
 #define _DIFFUSE_T_H_

@@ -1,4 +1,6 @@
-/* $Id: ShapeFunctionT.cpp,v 1.13 2003-10-09 18:12:16 paklein Exp $ */
+
+/* $Id: ShapeFunctionT.cpp,v 1.11.24.2 2003-11-04 19:47:21 bsun Exp $ */
+
 /* created: paklein (06/26/1996) */
 
 #include "ShapeFunctionT.h"

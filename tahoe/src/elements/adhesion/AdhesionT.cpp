@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.15 2003-10-20 23:32:04 cjkimme Exp $ */
+/* $Id: AdhesionT.cpp,v 1.14.6.1 2003-11-04 19:47:07 bsun Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"

@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.h,v 1.6 2003-10-30 17:15:21 paklein Exp $ */
+/* $Id: ThermostatBaseT.h,v 1.5.12.1 2003-11-04 19:47:19 bsun Exp $ */
 #ifndef _THERMOSTAT_BASE_T_H_
 #define _THERMOSTAT_BASE_T_H_
 

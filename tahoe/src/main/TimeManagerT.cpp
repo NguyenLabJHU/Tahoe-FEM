@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.19 2003-10-28 07:36:49 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.18.6.1 2003-11-04 19:47:22 bsun Exp $ */
 /* created: paklein (05/23/1996) */
 #include "TimeManagerT.h"
 

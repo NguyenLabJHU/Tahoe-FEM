@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.6 2003-10-28 07:38:02 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.5.8.1 2003-11-04 19:47:22 bsun Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 

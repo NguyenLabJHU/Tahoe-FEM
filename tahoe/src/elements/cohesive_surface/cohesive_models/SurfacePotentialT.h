@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.23 2003-11-04 17:34:45 cjkimme Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.22.6.1 2003-11-04 19:47:09 bsun Exp $ */
 /* created: paklein (06/20/1999) */
 
 #ifndef _SURFACE_POTENTIAL_T_H_

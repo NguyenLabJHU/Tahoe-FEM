@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.16 2003-10-20 23:31:07 cjkimme Exp $ */
+/* $Id: CSEBaseT.h,v 1.15.6.1 2003-11-04 19:47:08 bsun Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_

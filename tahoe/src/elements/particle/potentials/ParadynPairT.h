@@ -1,4 +1,4 @@
-/* $Id: ParadynPairT.h,v 1.6 2003-10-28 23:31:52 paklein Exp $ */
+/* $Id: ParadynPairT.h,v 1.5.18.1 2003-11-04 19:47:18 bsun Exp $ */
 #ifndef _PARADYN_PAIR_T_H_
 #define _PARADYN_PAIR_T_H_
 

@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.13 2003-11-04 17:53:12 cjkimme Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.12.4.1 2003-11-04 19:47:14 bsun Exp $ */
 #ifndef _ABAQUS_VUMAT_BASE_T_H_
 #define _ABAQUS_VUMAT_BASE_T_H_
 

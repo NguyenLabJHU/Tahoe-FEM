@@ -1,4 +1,4 @@
-/* $Id: LennardJonesPairT.cpp,v 1.10 2003-10-31 20:51:11 paklein Exp $ */
+/* $Id: LennardJonesPairT.cpp,v 1.8.2.1 2003-11-04 19:47:18 bsun Exp $ */
 #include "LennardJonesPairT.h"
 #include "toolboxConstants.h"
 #include <iostream.h>
