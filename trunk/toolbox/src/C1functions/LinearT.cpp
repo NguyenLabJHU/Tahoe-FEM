@@ -1,4 +1,4 @@
-/* $Id: LinearT.cpp,v 1.8 2004-03-17 17:54:49 paklein Exp $ */
+/* $Id: LinearT.cpp,v 1.9 2004-06-09 06:23:51 paklein Exp $ */
 /* created: paklein (03/25/1999) */
 #include "LinearT.h"
 #include <iostream.h>
@@ -75,8 +75,8 @@ void LinearT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	C1FunctionT::DefineParameters(list);
 
-	list.AddParameter(fA, "slope");
-	list.AddParameter(fB, "intercept");
+	list.AddParameter(fA, "a");
+	list.AddParameter(fB, "b");
 	
 	/* set the description */
 	list.SetDescription("f(x) = a*x + b");	
@@ -87,6 +87,6 @@ void LinearT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	C1FunctionT::TakeParameterList(list);
 
-	fA = list.GetParameter("slope");
-	fB = list.GetParameter("intercept");
+	fA = list.GetParameter("a");
+	fB = list.GetParameter("b");
 }
