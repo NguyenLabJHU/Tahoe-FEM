@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.cpp,v 1.1.4.3 2004-06-07 13:51:21 paklein Exp $ */
+/* $Id: BasicSupportT.cpp,v 1.1.4.4 2004-06-16 00:30:35 paklein Exp $ */
 #include "BasicSupportT.h"
 
 #include "dArray2DT.h"
@@ -42,7 +42,7 @@ BasicSupportT::BasicSupportT(void):
 #ifdef _FRACTURE_INTERFACE_LIBRARY_
 	fNumSD = 3;
 	fTimeStep = 0.0;
-	fIterationNumber = 0.0;
+	fIterationNumber = 0;
 	fCurrentCoordinates = NULL;
 	fInitialCoordinates = NULL;
 #endif
