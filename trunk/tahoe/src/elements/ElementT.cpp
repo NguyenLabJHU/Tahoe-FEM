@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.3 2002-01-29 18:10:28 rjones Exp $ */
+/* $Id: ElementT.cpp,v 1.4 2002-03-18 19:24:07 rjones Exp $ */
 
 #include "ElementT.h"
 
@@ -82,9 +82,6 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		case ElementT::kMultiplierContact3D:
 			type = ElementT::kMultiplierContact3D;
 			break;
-		case ElementT::kAdhesionContact2D:
-			type = ElementT::kAdhesionContact2D;
-			break;
 		case ElementT::kPenaltyContactElement2D:
 			type = ElementT::kPenaltyContactElement2D;
 			break;
@@ -94,8 +91,8 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		case ElementT::kNonsingularContinuum:
 			type = ElementT::kNonsingularContinuum;
 			break;
-		case ElementT::kMultiplierContact2D:
-			type = ElementT::kMultiplierContact2D;
+		case ElementT::kMultiplierContactElement2D:
+			type = ElementT::kMultiplierContactElement2D;
 			break;
 		case ElementT::kSimoFiniteStrain:
 			type = ElementT::kSimoFiniteStrain;

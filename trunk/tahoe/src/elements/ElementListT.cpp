@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.17 2002-01-23 00:01:51 rjones Exp $ */
+/* $Id: ElementListT.cpp,v 1.18 2002-03-18 19:24:07 rjones Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
@@ -33,8 +33,7 @@
 #include "AugLagContact2DT.h"
 #include "ACME_Contact3DT.h"
 #include "MultiplierContact3DT.h"
-#include "MultiplierContact2DT.h"
-#include "AdhesionContact2DT.h"
+#include "MultiplierContactElement2DT.h"
 #include "PenaltyContactElement2DT.h"
 
 //TEMP
@@ -98,11 +97,8 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 
 		out << "    eq. " << ElementT::kACME_Contact       << ", 3D contact using ACME\n";
 		out << "    eq. " << ElementT::kMultiplierContact3D       << ", 3D contact using Lagrange multipliers\n";
-		out << "    eq. " << ElementT::kAdhesionContact2D       << ", 2D adhesion contact elements\n";
-
+		out << "    eq. " << ElementT::kMultiplierContactElement2D       << ", 2D Lagrange multiplier contact elements\n";
 		out << "    eq. " << ElementT::kPenaltyContactElement2D       << ", 2D penalty contact elements\n";
-		
-		out << "    eq. " << ElementT::kMultiplierContact2D       << ", 2D contact using Lagrange multipliers\n";
 		
 		/* check */
 		if (group < 0 || group >= Length())
@@ -250,7 +246,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 				fArray[group] = new MultiplierContact3DT(fFEManager);
 				break;
 
-			case ElementT::kMultiplierContact2D:
+			case ElementT::kMultiplierContactElement2D:
 			{
 #ifdef __NO_RTTI__
 				if (fFEManager.Analysis() != GlobalT::kAugLagStatic) throw eGeneralFail;
@@ -263,19 +259,16 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 				      << "failed to cast node manager to "
 			              << "XDOF_ManagerT\n"
 				      << "     as needed with analysis code: " 
-				      << ElementT::kMultiplierContact2D << endl;
+				      << ElementT::kMultiplierContactElement2D << endl;
 				throw eBadInputValue;
 				}
 #endif /* __NO_RTTI__ */
 
 				fArray[group]
-				= new MultiplierContact2DT
+				= new MultiplierContactElement2DT
 				          (fFEManager,XDOF_man);
 				break;
 			}
-			case ElementT::kAdhesionContact2D:
-				fArray[group] = new AdhesionContact2DT(fFEManager);
-				break;
 
             case ElementT::kPenaltyContactElement2D:
                 fArray[group] = new PenaltyContactElement2DT(fFEManager);
