@@ -1,4 +1,4 @@
-/* $Id: ParameterTreeT.cpp,v 1.4 2003-08-18 03:33:37 paklein Exp $ */
+/* $Id: ParameterTreeT.cpp,v 1.5 2004-01-27 19:10:43 paklein Exp $ */
 #include "ParameterTreeT.h"
 #include "ParameterInterfaceT.h"
 
@@ -456,6 +456,11 @@ void ParameterTreeT::BuildBranch(const ParameterInterfaceT& source, ParameterLis
 			if (!sub_interface)
 				ExceptionT::GeneralFail(caller, "source \"%s\" did not return sublist \"%s\"",
 					source.Name().Pointer(), sub.Name().Pointer());
+					
+			/* name of sub is not same as requested */
+			if (sub_interface->Name() != sub.Name())
+				ExceptionT::GeneralFail(caller, "source \"%s\" returned \"%s\" not \"%s\"",
+					source.Name().Pointer(), sub_interface->Name().Pointer(), sub.Name().Pointer());
 					
 			/* build the sublist */
 			ParameterListT sub_params(sub_interface->Name());
