@@ -1,4 +1,4 @@
-# $Id: CA-CPLANT.macros,v 1.2 2001-01-25 18:17:00 paklein Exp $
+# $Id: CA-CPLANT.macros,v 1.3 2001-01-30 17:23:22 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__MPI__
 MPI_LFLAGS = -lmpi
@@ -10,7 +10,7 @@ COMP_C      = cxx
 COMP_CC     = cxx
 COMP_C      = f77
 LINK        = $(COMP_CC)
-TR          = $(OBJ_DIR)/cxx_repository
+TR          = $(MACRO_DIR)/cxx_repository
 MORE_CFLAGS = -O3 -DNDEBUG 
 #MORE_CFLAGS = -g 
 DEFINES     = -D__DEC__ -D__CPLANT__ -D__CA_CPLANT__
