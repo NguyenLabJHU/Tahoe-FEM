@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.h,v 1.12 2004-07-15 08:31:03 paklein Exp $ */
+/* $Id: TimeManagerT.h,v 1.13 2004-07-22 08:27:59 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _TIMEMANAGER_T_H_
 #define _TIMEMANAGER_T_H_
@@ -39,11 +39,6 @@ public:
 	/** set to initial conditions */
 	void InitialCondition(void);
 
-	/* run through the time sequences */
-	void Top(void);
-	
-	bool NextSequence(void);
-
 	/* time sequence */
 	bool Step(void);
 	void ResetStep(void);
@@ -70,10 +65,6 @@ public:
 	ScheduleT* Schedule(int num) const;
 	double ScheduleValue(int num) const;
 	/*@}*/
-
-	/* accessors */
-	int SequenceNumber(void) const;
-	int NumSequences(void) const;
 			
 	/* initialize/restart functions
 	 *
@@ -121,9 +112,9 @@ private:
 
 private:
 
-	FEManagerT& theBoss;
-	
-	ArrayT<TimeSequence> fSequences; //TEMP - remove multiple time sequences
+	FEManagerT& fFEManager;
+
+	/* schedules */
 	pArrayT<ScheduleT*>  fSchedule;
 
 	/** \name copied from current sequence */
@@ -136,7 +127,6 @@ private:
 	
 	/** \name runtime data for the current sequence */
 	/*@{*/
-	int	   fCurrentSequence;
 	int	   fStepNum;
 	double fTime;
 	int    fNumStepCuts;
@@ -172,7 +162,7 @@ inline const int& TimeManagerT::StepNumber(void) const { return fStepNum; }
 inline const int& TimeManagerT::NumberOfSteps(void) const { return fNumSteps; }
 
 inline int TimeManagerT::NumSchedule(void) const { return fSchedule.Length() ; }
-inline int TimeManagerT::SequenceNumber(void) const { return fCurrentSequence; }
-inline int TimeManagerT::NumSequences(void) const { return fSequences.Length(); }
-} // namespace Tahoe 
+
+} /* namespace Tahoe */
+
 #endif /* _TIMEMANAGER_T_H_ */
