@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.9 2002-01-15 18:52:28 paklein Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.10 2002-01-16 00:33:57 cjkimme Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -89,7 +89,8 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 	/* dimensions */
 	int num_elem_blocks = model.NumElementGroups();
 	int num_node_sets = model.NumNodeSets();
-	fUGrids.Allocate(num_elem_blocks + num_node_sets);	
+//	fUGrids.Allocate(num_elem_blocks + num_node_sets);	
+	fUGrids.Allocate(num_elem_blocks);
   
 	/* load element connectivities */
 	for (int i = 0 ; i < num_elem_blocks; i++)
