@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.53.2.4 2004-03-16 19:34:30 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.53.2.5 2004-03-18 17:54:19 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -1153,6 +1153,11 @@ void FEExecutionManagerT::RunWriteDescription(int doc_type) const
 	const ArrayT<ParameterListT*>& branches = tree.Branches();
 	for (int i = 0; i < branches.Length(); i++)
 		attribute.WriteDescription(out, *(branches[i]));
+
+	/* write statistics */
+	cout << " " << attribute.ElementCount() << " elements" << '\n';
+	cout << " " <<  attribute.AttributeCount() << " attributes" << '\n';
+	cout << " " <<  attribute.LimitCount() << " limits" << '\n';
 
 	attribute.CloseDescriptionFile(out);
 	out.close();
