@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.8 2004-01-10 04:41:25 paklein Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.8.28.1 2004-09-22 06:13:33 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #include "SSSolidMatT.h"
 #include <iostream.h>
@@ -120,12 +120,12 @@ const dMatrixT& SSSolidMatT::c_ijkl(void)
 	const dSymMatrixT& stress = s_ij();
 	
 	/* compute modulus from finite difference */
-	int nsdm1 = NumSD() - 1;
+	int nsd = NumSD();
 	double den = strain_perturbation;
 	for (int i = 0; i < fModulus.Cols(); i++) {
 
 		/* shear strains */
-		if (i == nsdm1) den *= 2.0;
+		if (i == nsd) den *= 2.0;
 
 		for (int j = 0; j < fModulus.Rows(); j++)
 			fModulus(j,i) = (fModulus(j,i) - stress[j])/den;
