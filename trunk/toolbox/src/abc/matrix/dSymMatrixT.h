@@ -1,4 +1,4 @@
-/* $Id: dSymMatrixT.h,v 1.19 2004-08-01 00:52:39 paklein Exp $ */
+/* $Id: dSymMatrixT.h,v 1.20 2004-08-08 01:59:30 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _DSYM_MATRIX_T_H_
 #define _DSYM_MATRIX_T_H_
@@ -185,8 +185,7 @@ public:
 	void Set(int nsd, double* array);
 	void Set(DimensionT nsd, double* array);
 	static int NumValues(int nsd) { return NumValues(int2DimensionT(nsd)); };
-	static void ExpandIndex(int nsd, int dex, int& dex_1, int& dex_2) { 
-	  ExpandIndex(int2DimensionT(nsd), dex, dex_1, dex_2); };
+	static void ExpandIndex(int nsd, int dex, int& dex_1, int& dex_2);
 	/*@}*/
 
 private:
@@ -300,6 +299,10 @@ inline void dSymMatrixT::ExpandIndex(DimensionT nsd, int dex, int& dex_1, int& d
 	dex_1 = p[0];
 	dex_2 = p[1];
 }
+
+inline void dSymMatrixT::ExpandIndex(int nsd, int dex, int& dex_1, int& dex_2) { 
+	ExpandIndex(int2DimensionT(nsd), dex, dex_1, dex_2); 
+};
 
 } /* namespace Tahoe */
 
