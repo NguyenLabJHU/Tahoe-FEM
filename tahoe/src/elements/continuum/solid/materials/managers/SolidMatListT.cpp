@@ -1,17 +1,8 @@
-/* $Id: SolidMatListT.cpp,v 1.10 2003-08-07 17:09:39 paklein Exp $ */
+/* $Id: SolidMatListT.cpp,v 1.7 2003-01-29 07:34:58 paklein Exp $ */
 #include "SolidMatListT.h"
-
-#ifdef __DEVELOPMENT__
-#include "DevelopmentMaterialsConfig.h"
-#include "DevelopmentElementsConfig.h"
-#endif
-
 #include "SolidMaterialT.h"
 #include "SSMatSupportT.h"
 #include "FSMatSupportT.h"
-#ifdef DORGAN_VOYIADJIS_MARIN_DEV
-#include "GradSSMatSupportT.h"
-#endif
 
 using namespace Tahoe;
 
@@ -22,8 +13,7 @@ SolidMatListT::SolidMatListT(int length, const SolidMatSupportT& support):
 	fHasThermal(false),
 	fSolidMatSupport(support),
 	fSSMatSupport(NULL),
-	fFSMatSupport(NULL),
-	fGradSSMatSupport(NULL)
+	fFSMatSupport(NULL)
 {
 #ifdef __NO_RTTI__
 	cout << "\n SolidMatListT::SolidMatListT: WARNING: environment has no RTTI. Some\n" 
@@ -32,7 +22,6 @@ SolidMatListT::SolidMatListT(int length, const SolidMatSupportT& support):
 	/* cast and hope for the best */
 	fSSMatSupport = (const SSMatSupportT*) &fSolidMatSupport;
 	fFSMatSupport = (const FSMatSupportT*) &fSolidMatSupport;
-	fGradSSMatSupport = (const GradSSMatSupportT*) &fSolidMatSupport;
 #else
 
 	/* cast to small strain support */
@@ -40,13 +29,9 @@ SolidMatListT::SolidMatListT(int length, const SolidMatSupportT& support):
 
 	/* cast to finite strain support */
 	fFSMatSupport = dynamic_cast<const FSMatSupportT*>(&fSolidMatSupport);
-#ifdef DORGAN_VOYIADJIS_MARIN_DEV
-	/* cast to gradient enhanced small strain support */
-	fGradSSMatSupport = dynamic_cast<const GradSSMatSupportT*>(&fSolidMatSupport);
-#endif
-
+	
 	/* must have at least one */
-	if (!fSSMatSupport && !fFSMatSupport && !fGradSSMatSupport)
+	if (!fSSMatSupport && !fFSMatSupport)
 	{
 		cout << "\n SolidMatListT::SolidMatListT: could not cast element group to\n" 
 		     <<   "     neither SSMatSupportT nor SSMatSupportT" << endl;

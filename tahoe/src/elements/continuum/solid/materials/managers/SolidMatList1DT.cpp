@@ -1,4 +1,4 @@
-/* $Id: SolidMatList1DT.cpp,v 1.11 2003-08-16 01:33:20 rdorgan Exp $ */
+/* $Id: SolidMatList1DT.cpp,v 1.8 2003-05-21 23:48:11 paklein Exp $ */
 #include "SolidMatList1DT.h"
 #include "SolidMatSupportT.h"
 #include "fstreamT.h"
@@ -6,15 +6,6 @@
 /* 1D material types codes */
 /* Add small strain linear elastic material here */
 #include "SSHookean1D.h"
-
-#ifdef __DEVELOPMENT__
-#include "DevelopmentElementsConfig.h"
-#endif
-
-#ifdef DORGAN_VOYIADJIS_MARIN_DEV
-#include "GradJ2SS1D.h"
-#include "J2SSKStV1D.h"
-#endif
 
 using namespace Tahoe;
 
@@ -48,7 +39,7 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 			throw ExceptionT::kBadInputValue;
 		}
 		
-		/* add to the list of matxxerials */
+		/* add to the list of materials */
 		switch (matcode)
 		{
 			case kSSKStV:
@@ -58,32 +49,6 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 				fArray[matnum] = new SSHookean1D(in, *fSSMatSupport);
 				break;
 		  	}
-			case kGradJ2SS:
-			{
-#ifdef DORGAN_VOYIADJIS_MARIN_DEV
-				/* check */
-				if (!fGradSSMatSupport) Error_no_small_strain(cout, matcode);
-
-				fArray[matnum] = new GradJ2SS1D(in, *fGradSSMatSupport);
-				fHasHistory = true;
-				break;
-#else
-				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "DORGAN_VOYIADJIS_MARIN_DEV not enabled: %d", matcode);
-#endif
-			}
-			case kJ2SSKStV1D:
-			{
-#ifdef DORGAN_VOYIADJIS_MARIN_DEV
-				/* check */
-				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
-			
-				fArray[matnum] = new J2SSKStV1D(in, *fSSMatSupport);
-				fHasHistory = true;															
-				break;
-#else
-				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "DORGAN_VOYIADJIS_MARIN_DEV not enabled: %d", matcode);
-#endif
-			}
 			default:
 			{
 				cout << "\n SolidMatList1DT::ReadMaterialData: unknown material code: ";

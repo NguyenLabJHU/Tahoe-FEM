@@ -1,10 +1,7 @@
-/* $Id: FBC_ControllerT.h,v 1.11 2003-09-12 18:10:22 paklein Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.9 2003-04-07 17:25:48 cjkimme Exp $ */
 /* created: paklein (11/17/1997) */
 #ifndef _FBC_CONTROLLER_T_H_
 #define _FBC_CONTROLLER_T_H_
-
-/* base class */
-#include "ParameterInterfaceT.h"
 
 #include "Environment.h"
 #include "GlobalT.h"
@@ -24,7 +21,7 @@ class eIntegratorT;
 class StringT;
 
 /** base class for all force BC controllers */
-class FBC_ControllerT: public ParameterInterfaceT
+class FBC_ControllerT
 {
 public:
 
@@ -33,8 +30,7 @@ public:
 	          kPenaltySphere = 1,
                kAugLagSphere = 2,
             kMFPenaltySphere = 3,
-                 kAugLagWall = 4,
-            kPenaltyCylinder = 5};
+                 kAugLagWall = 4};
 
 	/* constructor */
 	FBC_ControllerT(FEManagerT& fe_manager, int group);

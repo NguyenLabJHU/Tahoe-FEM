@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.49 2003-08-19 08:03:49 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.44.4.7 2003-09-19 02:48:26 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -6,7 +6,9 @@
 #include <iomanip.h>
 #include <time.h>
 #include <ctype.h>
+#include <stdlib.h>
 
+#include "ofstreamT.h"
 #include "fstreamT.h"
 #include "Environment.h"
 #include "toolboxConstants.h"
@@ -31,11 +33,6 @@
 #include "dArrayT.h"
 #include "OutputBaseT.h"
 #include "CommunicatorT.h"
-
-/* parameters */
-#include "ParameterListT.h"
-#include "ParameterTreeT.h"
-#include "XML_Attribute_FormatterT.h"
 
 /* needed for bridging calculations FEExecutionManagerT::RunBridging */
 #ifdef BRIDGING_ELEMENT
@@ -65,12 +62,6 @@ FEExecutionManagerT::FEExecutionManagerT(int argc, char* argv[], char job_char,
 
 	/* set communicator log level */
 	if (CommandLineOption("-verbose")) comm.SetLogLevel(CommunicatorT::kLow);
-
-	/* check for -dtd */
-	if (CommandLineOption("-dtd")) AddCommandLineOption("-dtd");
-
-	/* check for -xsd */
-	if (CommandLineOption("-xsd")) AddCommandLineOption("-xsd");
 }
 
 /**********************************************************************
@@ -212,14 +203,6 @@ bool FEExecutionManagerT::AddCommandLineOption(const char* str)
 				fCommandLineOptions.DeleteAt(index);
 		}
 	}
-	else if (option == "-dtd") {
-		RunWriteDescription(XML_Attribute_FormatterT::DTD);
-		return true;
-	}
-	else if (option == "-xsd") {
-		RunWriteDescription(XML_Attribute_FormatterT::XSD);
-		return true;
-	}
 	
 	/* inherited */
 	return ExecutionManagerT::AddCommandLineOption(option);
@@ -354,46 +337,30 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		/* construction */
 		phase = 0;
 		char job_char;
-
-		/* construct continuum solver */
+		atom_in >> job_char;
+		
+		/* initialize FEManager_THK using atom values */
+		FEManagerT_THK atoms(atom_in, atom_out, fComm, bridge_atom_in);
+		atoms.Initialize();
 		continuum_in >> job_char;
 		FEManagerT_bridging continuum(continuum_in, continuum_out, fComm, bridge_continuum_in);
 		continuum.Initialize();
-
+		t1 = clock();
+		phase = 1;
+                
 		/* split here depending on whether integrators are explicit or implicit
 		 * check only one integrator assuming they both are the same */
-		const IntegratorT* mdintegrate = continuum.Integrator(0);
+		const IntegratorT* mdintegrate = atoms.Integrator(0);
 		IntegratorT::ImpExpFlagT impexp = mdintegrate->ImplicitExplicit();
-
+       
 		if (impexp == IntegratorT::kImplicit)
-		{
-			/* construct atomistic solver */
-			atom_in >> job_char;
-			FEManagerT_bridging atoms(atom_in, atom_out, fComm, bridge_atom_in);
-			atoms.Initialize();
-
-			t1 = clock();
-			phase = 1;
-			RunStaticBridging(continuum, atoms, log_out);	
-		}
+			RunStaticBridging(continuum, atoms, log_out);
 		else if (impexp == IntegratorT::kExplicit)
-		{
-#ifdef __DEVELOPMENT__
-			/* initialize FEManager_THK using atom values */
-			atom_in >> job_char;
-			FEManagerT_THK atoms(atom_in, atom_out, fComm, bridge_atom_in);
-			atoms.Initialize();
-		
-			t1 = clock();
-			phase = 1;
 			RunDynamicBridging(continuum, atoms, log_out);
-#else
-			ExceptionT::GeneralFail(caller, "dynamic bridging requires the DEVELOPMENT module");
-#endif
-		}
 		else
 			ExceptionT::GeneralFail(caller, "unknown integrator type %d", impexp);
-
+		
+	
 		t2 = clock();
 	}
         
@@ -431,7 +398,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 	status << "\n End Execution\n" << endl;
 }
 
-void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms, ofstream& log_out) const
+void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEManagerT_THK& atoms, ofstream& log_out) const
 {
 	const char caller[] = "FEExecutionManagerT::RunStaticBridging";
 	    
@@ -604,16 +571,15 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 	}
 }
 
-#ifdef __DEVELOPMENT__
 void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_THK& atoms, ofstream& log_out) const
 {
 	const char caller[] = "FEExecutionManagerT::RunDynamicBridging";
-
 	/* configure ghost nodes */
 	int group = 0;
 	int order1 = 0;	// For InterpolateField, 3 calls to obtain displacement/velocity/acceleration
 	int order2 = 1;
 	int order3 = 2;
+	double dissipation = 0.0;
 	dArray2DT field_at_ghosts, totalu, fubig, fu, projectedu, boundghostdisp, boundghostvel, boundghostacc;
 	dArray2DT thkforce, gaussdisp;
 	dSPMatrixT ntf;
@@ -621,26 +587,46 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	StringT bridging_field = "displacement";
 	atoms.InitGhostNodes();
 	bool makeinactive = false;	
-	
 	/* figure out boundary atoms for use with THK boundary conditions, 
 	   ghost atoms for usage with MD force calculations */
 	const iArrayT& boundaryghostatoms = atoms.InterpolationNodes();
 	int numgatoms = (atoms.GhostNodes()).Length();	// total number of ghost atoms
 	int numbatoms = boundaryghostatoms.Length() - numgatoms;	// total number of boundary atoms
 	dArray2DT gadisp(numgatoms,2), gavel(numgatoms,2), gaacc(numgatoms,2);
-	dArray2DT badisp(numbatoms,2), bavel(numbatoms,2), baacc(numbatoms,2);
+	dArray2DT badisp(numbatoms,2), bavel(numbatoms,2), baacc(numbatoms,2), mdu0(numbatoms,2), mdu1(numbatoms,2);
+	dArray2DT bdisplast(numbatoms,2), bdispcurr(numbatoms,2);
 	iArrayT allatoms(boundaryghostatoms.Length()), gatoms(numgatoms), batoms(numbatoms), boundatoms(numbatoms);
 	allatoms.SetValueToPosition();
-	batoms.CopyPart(0, allatoms, numgatoms, numbatoms);  
-	gatoms.CopyPart(0, allatoms, 0, numgatoms);          
+	batoms.CopyPart(0, allatoms, numgatoms, numbatoms);
+	gatoms.CopyPart(0, allatoms, 0, numgatoms);        
 	boundatoms.CopyPart(0, boundaryghostatoms, numgatoms, numbatoms);
 	continuum.InitInterpolation(boundaryghostatoms, bridging_field, *atoms.NodeManager());
 	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive);
-	nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
+	//nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
+	nMatrixT<int> ghostonmap(5), ghostoffmap(5);  // for fracture problem
+	//nMatrixT<int> ghostonmap(4), ghostoffmap(4);    // for planar wave propagation problem
 	ghostonmap = 0;
 	ghostoffmap = 0;
-	ghostoffmap(1,0) = ghostoffmap(0,1) = 1;
+	//ghostoffmap(1,0) = ghostoffmap(0,1) = 1;  // for wave propagation problem
+	ghostoffmap(4,0) = ghostoffmap(0,4) = ghostoffmap(4,1) = ghostoffmap(1,4) = 1;  // center MD crack
+	ghostoffmap(4,2) = ghostoffmap(2,4) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
+	ghostoffmap(4,3) = ghostoffmap(3,4) = 1;
+	ghostonmap(2,3) = ghostonmap(3,2) = 1;
+	//ghostoffmap(1,0) = ghostoffmap(0,1) = ghostoffmap(3,0) = ghostoffmap(0,3) = 1; // left edge MD crack
+	//ghostoffmap(1,3) = ghostoffmap(3,1) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
+	//ghostonmap(1,0) = ghostonmap(0,1) = 1;
 
+#if 0
+	/* temporary code to output dissipation due to THK forces */
+	bool fopen = false;
+	ofstreamT fout;
+	StringT fsummary_file;
+	ifstreamT& in = atoms.Input();
+	const StringT& input_file = in.filename();
+	fsummary_file.Root(input_file);
+	fsummary_file.Append(".diss");
+#endif
+	
 	/* time managers */
 	TimeManagerT* atom_time = atoms.TimeManager();
 	TimeManagerT* continuum_time = continuum.TimeManager();
@@ -652,7 +638,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	{	
 		/* set to initial condition */
 		atoms.InitialCondition();
-
+		
 		/* calculate fine scale part of MD displacement and total displacement u */
 		continuum.InitialProject(bridging_field, *atoms.NodeManager(), projectedu, order1);
 		
@@ -696,7 +682,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		badisp.RowCollect(batoms, boundghostdisp);
 		bavel.RowCollect(batoms, boundghostvel);
 		baacc.RowCollect(batoms, boundghostacc);
-
+	
 		/* Write interpolated FEM values at MD ghost nodes into MD field - displacement only */
 		atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);
 		
@@ -714,7 +700,16 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 		/* running status flag */
 		ExceptionT::CodeT error = ExceptionT::kNoError;	
 		
-		/* now loop over continuum and atoms after initialization */
+#if 0
+		/* first obtain the MD displacement field */
+		FieldT* atomfield = atoms.NodeManager()->Field(bridging_field);
+		dArray2DT mddisplast = (*atomfield)[0];	
+		dArrayT aa(boundatoms.Length()), ab(boundatoms.Length()), sub1(boundatoms.Length()); 
+		dArrayT ac(boundatoms.Length()), ad(boundatoms.Length()), sub2(boundatoms.Length());
+		dArrayT ua(boundatoms.Length()), ub(boundatoms.Length()), uc(boundatoms.Length()), ud(boundatoms.Length());
+		dArrayT sub3(boundatoms.Length()), sub4(boundatoms.Length()), sub5(boundatoms.Length()), sub6(boundatoms.Length());
+#endif
+			
 		for (int i = 0; i < nfesteps; i++)	
 		{
 			for (int j = 0; j < ratio; j++)	// MD update first
@@ -727,9 +722,10 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				/* update FEM solution interpolated at boundary atoms and ghost atoms assuming 
 				constant acceleration - because of constant acceleration assumption, predictor and 
 				corrector are combined into one function */
+				bdisplast = badisp;
 				atoms.BAPredictAndCorrect(mddt, badisp, bavel, baacc);
 				atoms.BAPredictAndCorrect(mddt, gadisp, gavel, gaacc);
-	
+				
 				/* Write interpolated FEM values at MD ghost nodes into MD field - displacements only */
 				atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), order1, gadisp);				
 				
@@ -741,7 +737,56 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 						atoms.ResetCumulativeUpdate(group);
 						error = atoms.SolveStep();
 				}
+
+#if 0
+				/* first obtain the MD displacement field */
+				FieldT* atomfielda = atoms.NodeManager()->Field(bridging_field);
+				dArray2DT mddispcurr = (*atomfielda)[0];	
+				mdu0.RowCollect(boundatoms,mddisplast);
+				mdu1.RowCollect(boundatoms,mddispcurr); 
+				mdu0.ColumnCopy(0,aa);
+				mdu0.ColumnCopy(1,ab);
+				mdu1.ColumnCopy(0,ac);
+				mdu1.ColumnCopy(1,ad);
+				sub1.DiffOf(ac,aa); // q(n+1)-q(n) (x-comp)
+				sub2.DiffOf(ad,ab); // q(n+1)-q(n) (y-comp)
+				bdisplast.ColumnCopy(0,ua);
+				bdisplast.ColumnCopy(1,ub);
+				badisp.ColumnCopy(0,uc);
+				badisp.ColumnCopy(1,ud);
+				sub3.DiffOf(ua,uc);  // ubar(n)-ubar(n+1) (x-comp)
+				sub4.DiffOf(ub,ud);  // ubar(n)-ubar(n+1) (x-comp)
+				sub5.SumOf(sub1,sub3);
+				sub6.SumOf(sub2,sub4);
+				double d0 = thkforce.DotColumn(0,sub5);
+				double d1 = thkforce.DotColumn(1,sub6);
+				dissipation += d0;
+				dissipation += d1;
 				
+				const double& time = atoms.Time();
+				if (fopen)
+				{
+					fout.open_append(fsummary_file);
+					fout.precision(13);
+					fout << dissipation
+					     << setw(25) << time
+					     << endl;
+				}
+				else
+				{
+					fout.open(fsummary_file);
+					fopen = true;
+					fout.precision(13);
+					fout << "Dissipation"
+					     << setw(25) << "Time"
+					     << endl;
+					fout << dissipation
+					     << setw(25) << time
+					     << endl;
+				}
+				mddisplast = mddispcurr;
+#endif
+
 				/* close  md step */
 				if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();    
 			}
@@ -801,7 +846,6 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
                 
 	}
 }
-#endif
 
 /* calculate MD internal force as function of total bridging scale displacement u */
 const dArray2DT& FEExecutionManagerT::InternalForce(dArray2DT& totalu, FEManagerT_bridging& atoms) const
@@ -945,57 +989,6 @@ void FEExecutionManagerT::RunTHK(ifstreamT& in, ostream& status) const
 }
 #endif /* BRIDGING_ELEMENT */
 #endif /* __DEVELOPMENT__ */
-
-/* dump current DTD file */
-void FEExecutionManagerT::RunWriteDescription(int doc_type) const
-{
-	try {
-//TEMP - parameters currently needed to construct an FEManagerT
-	ifstreamT input;
-	ofstreamT output;
-	CommunicatorT comm;
-//TEMP
-
-	/* parameter source */
-	FEManagerT fe_man(input, output, comm);
-
-	/* collect parameters */
-	cout << " collecting parameters..." << endl;
-	ParameterTreeT tree;
-	tree.BuildDescription(fe_man);
-
-	/* write description */
-	cout << " writing description..." << endl;
-	StringT out_path("tahoe");
-	XML_Attribute_FormatterT::DocTypeT doc_type_ = XML_Attribute_FormatterT::Undefined;
-	if (doc_type == XML_Attribute_FormatterT::DTD) {
-		doc_type_ = XML_Attribute_FormatterT::DTD;
-		out_path.Append(".dtd");
-	}
-	else if (doc_type == XML_Attribute_FormatterT::XSD) {
-		doc_type_ = XML_Attribute_FormatterT::XSD;
-		out_path.Append(".xsd");
-	}
-	XML_Attribute_FormatterT attribute(doc_type_);
-
-	ofstreamT out;
-	out.open(out_path);
-	attribute.InitDescriptionFile(out);
-	
-	const ArrayT<ParameterListT*>& branches = tree.Branches();
-	for (int i = 0; i < branches.Length(); i++)
-		attribute.WriteDescription(out, *(branches[i]));
-
-	attribute.CloseDescriptionFile(out);
-	out.close();
-	cout << " wrote \"" << out_path << '"' << endl;	
-	}
-	
-	catch (ExceptionT::CodeT exc) {
-		cout << "\n FEExecutionManagerT::RunDTD: caught exception: " 
-		     << ExceptionT::ToString(exc) << endl;
-	}
-}
 
 /* standard serial driver */
 void FEExecutionManagerT::RunJob_serial(ifstreamT& in,

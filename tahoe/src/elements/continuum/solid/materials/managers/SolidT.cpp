@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.32 2003-08-16 01:33:20 rdorgan Exp $ */
+/* $Id: SolidT.cpp,v 1.29 2003-06-03 23:45:12 manzari Exp $ */
 /* created: paklein (03/10/2001) */
 #include "SolidT.h"
 
@@ -37,9 +37,6 @@ istream& operator>>(istream& in, SolidT::TypeT& code)
 			break;
 		case SolidT::kJ2SSKStV:
 			code = SolidT::kJ2SSKStV;
-			break;
-		case SolidT::kJ2SSKStV1D:
-			code = SolidT::kJ2SSKStV1D;
 			break;
 		case SolidT::kJ2Simo:
 			code = SolidT::kJ2Simo;
@@ -143,17 +140,11 @@ istream& operator>>(istream& in, SolidT::TypeT& code)
 		case SolidT::kSSJ2LinHard:
 			code = SolidT::kSSJ2LinHard;
 			break;
-		case SolidT::kSSJ2LinHardplane:
-			code = SolidT::kSSJ2LinHardplane;
-			break;
 		case SolidT::kLocJ2SSNlHard:
 			code = SolidT::kLocJ2SSNlHard;
 			break;
 		case SolidT::kGrdJ2SSNlHard:
 			code = SolidT::kGrdJ2SSNlHard;
-			break;
-		case SolidT::kGradJ2SS:
-			code = SolidT::kGradJ2SS;
 			break;
 		case SolidT::kSIERRA_Hypoelastic:
 			code = SolidT::kSIERRA_Hypoelastic;

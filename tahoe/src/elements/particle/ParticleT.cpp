@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.23 2003-09-18 21:21:44 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.22 2003-05-21 23:48:14 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -249,15 +249,6 @@ GlobalT::RelaxCodeT ParticleT::RelaxSystem(void)
 	if ((fReNeighborDisp > 0.0 && fDmax > fReNeighborDisp) || 
 		(fReNeighborIncr != -1 && fReNeighborCounter >= fReNeighborIncr))
 	{
-		/* output stream */
-		ofstreamT& out = ElementSupport().Output();
-		if (fReNeighborDisp > 0.0 && fDmax > fReNeighborDisp)
-			out << "\n ParticleT::RelaxSystem: max displacement since re-neighboring "
-			    << fDmax << " > " << fReNeighborDisp << '\n';
-		if (fReNeighborIncr != -1 && fReNeighborCounter >= fReNeighborIncr)
-			out << "\n ParticleT::RelaxSystem: number of steps since re-neighboring "
-			    << fReNeighborCounter << " >= " << fReNeighborIncr << '\n';
-	
 		/* (re-)set the neighborlists */
 		SetConfiguration();
 
@@ -373,6 +364,12 @@ void ParticleT::SetConfiguration(void)
 	}
 	else /* use ALL nodes */
 		fReNeighborCoords = curr_coords;
+
+	/* write the search grid statistics */
+	if (fGrid) {
+		ofstreamT& out = ElementSupport().Output();
+		fGrid->WriteStatistics(out);
+	}
 }
 
 /* contribution to the nodal residual forces */

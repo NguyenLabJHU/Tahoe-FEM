@@ -1,4 +1,4 @@
-/* $Id: ContactT.cpp,v 1.13 2003-08-23 16:15:34 paklein Exp $ */
+/* $Id: ContactT.cpp,v 1.12 2003-03-02 18:55:11 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "ContactT.h"
 
@@ -8,8 +8,8 @@
 
 #include "ModelManagerT.h"
 #include "fstreamT.h"
-#include "ParentDomainT.h"
-#include "InverseMapT.h"
+#include "IOBaseT.h"
+#include "iGridManager2DT.h"
 
 using namespace Tahoe;
 
@@ -522,70 +522,4 @@ void ContactT::StrikersFromSideSets(ifstreamT& in, ostream& out)
 	for (int i = 0; i < nodes_used.Length(); i++)
 		if (nodes_used[i] == 1)
 			fStrikerTags[dex++] = i;
-}
-
-/* compute the nodal area associated with each striker node */
-void ContactT::ComputeNodalArea(const ArrayT<StringT>& striker_blocks, 
-	dArrayT& nodal_area, InverseMapT& inverse_map)
-{
-	/* initialize nodal area */
-	nodal_area.Dimension(fStrikerTags.Length());
-	nodal_area = 0.0;
-
-	/* get surface faces */
-	GeometryT::CodeT geometry;
-	ArrayT<iArray2DT> surfaces;
-	iArrayT surface_nodes;
-	ElementSupport().Model().SurfaceFacets(striker_blocks, geometry, surfaces, surface_nodes);
-
-	/* no surfaces */
-	if (surfaces.Length() == 0) return;
-
-	/* map to local id of striker nodes */
-	inverse_map.SetOutOfRange(InverseMapT::MinusOne);
-	inverse_map.SetMap(fStrikerTags);
-
-	/* shape functions over the faces */
-	int nip = 1;
-	int nfn = surfaces[0].MinorDim();
-	ParentDomainT surf_shape(geometry, nip, nfn);
-	surf_shape.Initialize();
-
-	/* coordinates over the face */
-	int nsd = NumSD();
-	LocalArrayT ref_coords(LocalArrayT::kInitCoords, nfn, nsd);
-	ElementSupport().RegisterCoordinates(ref_coords);
-	dMatrixT jacobian(nsd, nsd-1);
-
-	/* loop over surfaces */
-	const double* Na = surf_shape.Shape(0);
-	const double* w  = surf_shape.Weight();
-	iArrayT facet_nodes;
-	for (int i = 0; i < surfaces.Length(); i++)
-	{
-		const iArray2DT& surface = surfaces[i];
-
-		/* loop over faces */
-		for (int j = 0; j < surface.MajorDim(); j++)
-		{
-			/* face nodes */
-			surface.RowAlias(j, facet_nodes);
-		
-			/* gather coordinates */
-			ref_coords.SetLocal(facet_nodes);
-		
-			/* coordinate mapping */
-			surf_shape.DomainJacobian(ref_coords, 0, jacobian);
-			double detj = surf_shape.SurfaceJacobian(jacobian);	
-		
-			/* loop over face nodes */
-			for (int k = 0; k < facet_nodes.Length(); k++)
-			{
-				/* striker node index */
-				int index = inverse_map.Map(facet_nodes[k]);
-				if (index != -1)
-					nodal_area[index] += w[0]*detj*Na[k];
-			}
-		}
-	}
 }

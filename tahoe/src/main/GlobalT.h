@@ -1,4 +1,4 @@
-/* $Id: GlobalT.h,v 1.11 2003-09-09 22:43:48 paklein Exp $ */
+/* $Id: GlobalT.h,v 1.9 2003-06-09 07:01:17 paklein Exp $ */
 /* created: paklein (02/03/1999) */
 
 #ifndef _GLOBAL_T_H_
@@ -34,20 +34,6 @@ public:
 		
 	/** stream extraction operator */
 	friend istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code);
-
-	/** solver codes */
-	enum SolverTypeT {kNewtonSolver = 0, /**< standard Newton solver */
-                   kK0_NewtonSolver = 1, /**< initial tangent, Newton solver */
-                   kModNewtonSolver = 2, /**< modified Newton solver (development) */
-                    kExpCD_DRSolver = 3, /**< central difference, dynamic relaxation */
-                   kNewtonSolver_LS = 4, /**< Newton solver with line search */
-                      kPCGSolver_LS = 5, /**< preconditioned, nonlinear conjugate gradient */
-                  kiNewtonSolver_LS = 6, /**< interactive Newton solver (with line search) */
-                         kNOXSolver = 7, /**< NOX library solver */
-                      kLinearSolver = 8, /**< linear problems */
-                          kDRSolver = 9,  /**< dynamic relaxation */                               
-                  kNewtonSolver_LSX = 104 /**< temporary extention to GlobalT::kNewtonSolver_LS */
-                               };
 	
 	/** deprecated analysis codes */
 	enum OldAnalysisCodeT {

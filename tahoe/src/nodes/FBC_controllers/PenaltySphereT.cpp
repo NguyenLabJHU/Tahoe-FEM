@@ -1,4 +1,4 @@
-/* $Id: PenaltySphereT.cpp,v 1.8 2003-08-18 03:44:36 paklein Exp $ */
+/* $Id: PenaltySphereT.cpp,v 1.7 2003-01-29 07:35:22 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltySphereT.h"
@@ -24,7 +24,7 @@ PenaltySphereT::PenaltySphereT(FEManagerT& fe_manager,
 	fv_OP(rCoords.MinorDim()),
 	fLHS(eqnos.MinorDim(),ElementMatrixT::kSymmetric)
 {
-	SetName("sphere_penalty");
+
 }
 
 /* input processing */
@@ -91,18 +91,9 @@ void PenaltySphereT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 	}
 }
 
-/* describe the parameters needed by the interface */
-void PenaltySphereT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	PenaltyRegionT::DefineParameters(list);
-	
-	list.AddParameter(fRadius, "radius");
-}
-
 /**********************************************************************
- * Protected
- **********************************************************************/
+* Protected
+**********************************************************************/
 
 /* compute the nodal contribution to the residual force vector */
 void PenaltySphereT::ComputeContactForce(double kforce)

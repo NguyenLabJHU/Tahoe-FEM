@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2003-09-12 18:10:22 paklein Exp $
+# $Id: makefile,v 1.6 2003-03-04 07:38:15 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -26,8 +26,7 @@ OBJ = \
 	MFPenaltySphereT.o \
 	PenaltyRegionT.o \
 	PenaltySphereT.o \
-	PenaltyWallT.o \
-	PenaltyCylinderT.o
+	PenaltyWallT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -53,8 +52,7 @@ SRC = \
 	MFPenaltySphereT.cpp \
 	PenaltyRegionT.cpp \
 	PenaltySphereT.cpp \
-	PenaltyWallT.cpp \
-	PenaltyCylinderT.cpp
+	PenaltyWallT.cpp
 
 ##################### (3) headers
 #
@@ -72,8 +70,7 @@ HDR = \
 	MFPenaltySphereT.h \
 	PenaltyRegionT.h \
 	PenaltySphereT.h \
-	PenaltyWallT.h \
-	PenaltyCylinderT.h
+	PenaltyWallT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

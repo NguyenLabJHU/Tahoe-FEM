@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.cpp,v 1.7 2003-08-18 03:44:36 paklein Exp $ */
+/* $Id: FBC_ControllerT.cpp,v 1.6 2003-04-07 17:25:48 cjkimme Exp $ */
 /* created: paklein (11/17/1997) */
 #include "FBC_ControllerT.h"
 #include "ArrayT.h"
@@ -15,7 +15,6 @@ const bool ArrayT<FBC_ControllerT*>::fByteCopy = true;
 
 /* constructor */
 FBC_ControllerT::FBC_ControllerT(FEManagerT& fe_manager, int group):
-	ParameterInterfaceT("FBC_controller"),
 	fFEManager(fe_manager),
 	fGroup(group),
 	fIntegrator(NULL)

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.13 2003-08-08 00:32:48 paklein Exp $
+# $Id: makefile,v 1.12 2003-05-31 18:19:40 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -30,8 +30,7 @@ OBJ = \
 	KBC_PrescribedT.o \
 	ScaledVelocityNodesT.o \
 	SetOfNodesKBCT.o \
-	TorsionKBCT.o \
-	ConveyorT.o
+	TorsionKBCT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -61,8 +60,7 @@ SRC = \
 	KBC_PrescribedT.cpp \
 	ScaledVelocityNodesT.cpp \
 	SetOfNodesKBCT.cpp \
-	TorsionKBCT.cpp \
-	ConveyorT.cpp
+	TorsionKBCT.cpp
 
 ##################### (3) headers
 #
@@ -84,8 +82,7 @@ HDR = \
 	KBC_PrescribedT.h \
 	ScaledVelocityNodesT.h \
 	SetOfNodesKBCT.h \
-	TorsionKBCT.h \
-	ConveyorT.h
+	TorsionKBCT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

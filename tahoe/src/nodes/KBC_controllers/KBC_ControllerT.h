@@ -1,13 +1,11 @@
-/* $Id: KBC_ControllerT.h,v 1.20 2003-08-18 03:45:16 paklein Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.18 2003-05-31 18:19:40 paklein Exp $ */
 /* created: paklein (09/05/2000) */
+
 #ifndef _KBC_CONTROLLER_T_H_
 #define _KBC_CONTROLLER_T_H_
 
 #include "Environment.h"
 #include "GlobalT.h"
-
-/* base class */
-#include "ParameterInterfaceT.h"
 
 /* direct members */
 #include "ArrayT.h"
@@ -29,7 +27,7 @@ template <class TYPE> class AutoArrayT;
 
 /** base class for all kinematic BC controllers. Classes that
  * implement more than simple boundary conditions */
-class KBC_ControllerT: public ParameterInterfaceT
+class KBC_ControllerT
 {
 public:
 
@@ -43,9 +41,7 @@ public:
              kPrescribed = 6,
     kScaledVelocityNodes = 7,
           kSetOfNodesKBC = 8,
-                kTorsion = 9,
-               kConyevor = 10
-                };
+                kTorsion = 9};
 
 	/** constructor */
 	KBC_ControllerT(NodeManagerT& node_manager);
@@ -64,7 +60,7 @@ public:
 	virtual void WriteParameters(ostream& out) const;
 	
 	/** inform controller of external nodes */
-	virtual void SetExternalNodes(const ArrayT<int>& ex_nodes) const;
+	virtual void SetExternalNodes(const iArrayT& ex_nodes) const;
 
 	/** set to initial conditions */
 	virtual void InitialCondition(void) = 0;
@@ -173,7 +169,7 @@ inline void KBC_ControllerT::SetEquations(void)
 {
 }
 
-inline void KBC_ControllerT::SetExternalNodes(const ArrayT<int>& ex_nodes) const
+inline void KBC_ControllerT::SetExternalNodes(const iArrayT& ex_nodes) const
 {
 #pragma unused(ex_nodes)
 }

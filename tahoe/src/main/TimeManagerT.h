@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.h,v 1.10 2003-08-14 06:02:49 paklein Exp $ */
+/* $Id: TimeManagerT.h,v 1.9 2003-05-20 10:37:45 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _TIMEMANAGER_T_H_
@@ -6,7 +6,6 @@
 
 /* base class */
 #include "iConsoleObjectT.h"
-#include "ParameterInterfaceT.h"
 
 /* direct members */
 #include "StringT.h"
@@ -26,7 +25,7 @@ class CoordinatorT;
 class nLinearHHTalpha;
 class NodeManagerT;
 
-class TimeManagerT: public iConsoleObjectT, public ParameterInterfaceT
+class TimeManagerT: public iConsoleObjectT
 {
 	/* time shifters */
 	friend class LinearHHTalpha;
@@ -49,11 +48,8 @@ public:
 	/** stream extraction operator */
 	friend istream& operator>>(istream& in, TimeManagerT::CodeT& code);
 
-	/** constructor */
+	/* constructor */
 	TimeManagerT(FEManagerT& FEM);
-
-	/** initialization */
-	void Initialize(void);
 
 	/* run through the time sequences */
 	void Top(void);
@@ -104,15 +100,6 @@ public:
 
 	/** return a pointer to a integrator of the specified type */
 	IntegratorT* New_Integrator(CodeT type) const;
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
 
 private:	
 

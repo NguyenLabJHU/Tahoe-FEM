@@ -1,4 +1,4 @@
-/* $Id: ElementCardT.cpp,v 1.12 2003-09-03 22:54:15 cjkimme Exp $ */
+/* $Id: ElementCardT.cpp,v 1.11 2002-11-09 18:13:48 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementCardT.h"
 #include <iostream.h>
@@ -6,10 +6,8 @@
 #include "toolboxConstants.h"
 #include "dArrayT.h"
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* for the BC codes */
 #include "KBC_CardT.h"
-#endif
 
 using namespace Tahoe;
 

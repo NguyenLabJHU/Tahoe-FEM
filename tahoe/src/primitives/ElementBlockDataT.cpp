@@ -1,9 +1,11 @@
-/* $Id: ElementBlockDataT.cpp,v 1.6 2003-08-14 05:32:30 paklein Exp $ */
+/* $Id: ElementBlockDataT.cpp,v 1.5 2002-07-05 17:18:39 paklein Exp $ */
+
 #include "ElementBlockDataT.h"
+
+/* copy behavior for arrays FBC_CardT's */
 
 using namespace Tahoe;
 
-/* copy behavior for arrays FBC_CardT's */
 namespace Tahoe {
 const bool ArrayT<ElementBlockDataT*>::fByteCopy = true;
 const bool ArrayT<ElementBlockDataT>::fByteCopy = false;
@@ -11,7 +13,6 @@ const bool ArrayT<ElementBlockDataT>::fByteCopy = false;
 
 /* constructor */
 ElementBlockDataT::ElementBlockDataT(void):
-	ParameterInterfaceT("element_block"),
 	fStartNum(-1),
 	fDimension(-1),
 	fMaterial(-1)
@@ -20,8 +21,7 @@ ElementBlockDataT::ElementBlockDataT(void):
 }
 
 /* copy constructor */
-ElementBlockDataT::ElementBlockDataT(ElementBlockDataT& source):
-	ParameterInterfaceT("element_block")
+ElementBlockDataT::ElementBlockDataT(ElementBlockDataT& source)
 {
 	operator=(source);
 }
@@ -33,14 +33,4 @@ void ElementBlockDataT::Set(const StringT& ID, int start, int dim, int material)
 	fStartNum = start;
 	fDimension = dim;
 	fMaterial = material;
-}
-
-/* describe the parameters needed by the interface */
-void ElementBlockDataT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	ParameterInterfaceT::DefineParameters(list);
-
-	list.AddParameter(fID, "block_ID");
-	list.AddParameter(fMaterial, "material");
 }

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.50 2003-08-12 19:49:55 thao Exp $ */
+/* $Id: SolidElementT.cpp,v 1.48 2003-07-12 00:24:10 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -815,31 +815,30 @@ void SolidElementT::ElementLHSDriver(void)
 	/* loop over elements */
 	Top();
 	while (NextElement())
-		if (CurrentElement().Flag() != kOFF)
-		{
-			double constKe = constK;
-			double constMe = constM;
+	{
+		double constKe = constK;
+		double constMe = constM;
 	
-			/* initialize */
-			fLHS = 0.0;
+		/* initialize */
+		fLHS = 0.0;
 		
-			/* set shape function derivatives */
-			SetGlobalShape();
+		/* set shape function derivatives */
+		SetGlobalShape();
 
-			/* compute strain and B matricies */
-			//SetDeformation();
+		/* compute strain and B matricies */
+		//SetDeformation();
 		
-			/* element mass */
-			if (fabs(constMe) > kSmall)
-				FormMass(fMassType, constMe*(fCurrMaterial->Density()));
+		/* element mass */
+		if (fabs(constMe) > kSmall)
+			FormMass(fMassType, constMe*(fCurrMaterial->Density()));
 
-			/* element stiffness */
-			if (fabs(constKe) > kSmall)
-				FormStiffness(constKe);
+		/* element stiffness */
+		if (fabs(constKe) > kSmall)
+			FormStiffness(constKe);
 
-			/* add to global equations */
-			AssembleLHS();
-		}
+		/* add to global equations */
+		AssembleLHS();		
+	}
 }
 
 void SolidElementT::RHSDriver(void)
@@ -912,56 +911,50 @@ void SolidElementT::ElementRHSDriver(void)
 			block_dex++;
 		}
 
-		/* current element */
-		ElementCardT& element = CurrentElement();
-
-		if (element.Flag() != kOFF)
-		{
-			/* initialize */
-			fRHS = 0.0;
-			fElementHeat = 0.0;
+		/* initialize */
+		fRHS = 0.0;
+		fElementHeat = 0.0;
 		
-			/* global shape function values */
-			SetGlobalShape();
+		/* global shape function values */
+		SetGlobalShape();
 		
-			/* internal force contribution */	
-			if (formKd) FormKd(-constKd);
+		/* internal force contribution */	
+		if (formKd) FormKd(-constKd);
 				
-			/* inertia forces */
-			if (formMa || formBody)
-			{
-				/* nodal accelerations */
-				if (formMa)
-					SetLocalU(fLocAcc);
-				else 
-					fLocAcc = 0.0;
+		/* inertia forces */
+		if (formMa || formBody)
+		{
+			/* nodal accelerations */
+			if (formMa)
+				SetLocalU(fLocAcc);
+			else 
+				fLocAcc = 0.0;
 			
-				/* body force contribution */
-				if (formBody) AddBodyForce(fLocAcc);
+			/* body force contribution */
+			if (formBody) AddBodyForce(fLocAcc);
 		
-				FormMa(fMassType, -constMa*fCurrMaterial->Density(), &fLocAcc, NULL);
-			}
-		
-			/* store incremental heat */
-			if (temperature)
-				fIncrementalHeat[block_dex].SetRow(block_count, fElementHeat);
-
-			/* global assembly */
-			if (fStoreInternalForce) 
-			{
-				double* pRHS = fRHS.Pointer();
-				int ndof = NumDOF();
-				const iArrayT& nodes_u = CurrentElement().NodesU();
-				for (int i = 0; i < nodes_u.Length(); i++) 
-				{
-					double* pForce = fForce(nodes_u[i]);
-					for (int j = 0; j < ndof; j++)
-						*pForce++ += *pRHS++;
-				}
-			}
-			else /* assemble element-by-element */
-				AssembleRHS();
+			FormMa(fMassType, -constMa*fCurrMaterial->Density(), &fLocAcc, NULL);
 		}
+		
+		/* store incremental heat */
+		if (temperature)
+			fIncrementalHeat[block_dex].SetRow(block_count, fElementHeat);
+
+		/* global assembly */
+		if (fStoreInternalForce) 
+		{
+			double* pRHS = fRHS.Pointer();
+			int ndof = NumDOF();
+			const iArrayT& nodes_u = CurrentElement().NodesU();
+			for (int i = 0; i < nodes_u.Length(); i++) 
+			{
+				double* pForce = fForce(nodes_u[i]);
+				for (int j = 0; j < ndof; j++)
+					*pForce++ += *pRHS++;
+			}
+		}
+		else /* assemble element-by-element */
+			AssembleRHS();
 		
 		/* next block */
 		block_count++;
@@ -1141,7 +1134,6 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
         Top();
         while (NextElement())
-        if (CurrentElement().Flag() != kOFF)
         {
 			/* initialize */
             nodal_space = 0.0;
@@ -1203,16 +1195,7 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
                         }
                 
                         /* get Cauchy stress */
-			const dSymMatrixT& stress = fCurrMaterial->s_ij();
-			int dim = stress.Length();
-			if (dim == 4)
-			{
-			  cauchy[0] = stress[0];
-			  cauchy[1] = stress[1];
-			  cauchy[2] = stress[2];
-			} 
-			else
-			  cauchy = stress;
+                        cauchy = fCurrMaterial->s_ij();
 
                         /* stresses */
                         if (n_codes[iNodalStress])

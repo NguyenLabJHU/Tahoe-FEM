@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.15 2003-08-04 16:36:10 saubry Exp $ */
+/* $Id: EAMT.h,v 1.12 2003-05-27 21:11:59 saubry Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -79,6 +79,8 @@ protected:
 
 private:
 
+	dArrayT fRHS2;
+
 	void GetRho2D(const dArray2DT& coords,dArray2DT& rho);
 	void GetRho3D(const dArray2DT& coords,dArray2DT& rho);
 	void GetRhop_r(const dArray2DT& coords,dArray2DT& rho);
@@ -89,6 +91,16 @@ private:
 			 dArray2DT& Emb);
 	void GetEmbStiff(const dArray2DT& coords,const dArray2DT rho,
 			       dArray2DT& Emb);
+
+	void CheckDerivatives();
+	void CheckDiagonalStiffnesses();
+	void CheckStiffnesses(dArrayT& d0,dArrayT& d1,dArrayT& d2,
+			      dArrayT& d3,dArrayT& d4,dArrayT& d5);
+	
+	/* check derivatives functions */
+	void GetNumRho3D(const dArray2DT& coords,dArray2DT& frho_i);
+	void GetNumEmbForce(const dArray2DT& coords,const dArray2DT rho,
+			 dArray2DT& Emb);
 
 	/** particle pair-properties list */
 	ArrayT<EAMPropertyT*> fEAMProperties;
@@ -123,6 +135,31 @@ private:
 	dArray2DT frhop_r;
 	nVariArray2DT<double> frhop_r_man;
 	int frhop_rMessageID;
+
+	/** Check Derivatives **/
+	/*@{*/
+	/** embedding force */
+	dArray2DT fEmbeddingForce_i;
+	nVariArray2DT<double> fEmbeddingForce_i_man;
+	int fEmbeddingForce_iMessageID;
+
+	dArray2DT fdFdx;
+	nVariArray2DT<double> fdFdx_man;
+	int fdFdxMessageID;
+
+	dArray2DT frho_i;
+	nVariArray2DT<double> frho_i_man;
+	int frho_iMessageID;
+
+	dArray2DT fEmb;
+	nVariArray2DT<double> fEmb_man;
+	int fEmbMessageID;
+
+	dArray2DT fEmb_i;
+	nVariArray2DT<double> fEmb_i_man;
+	int fEmb_iMessageID;
+	/*@}*/	
+
 
 	/** \name workspace for EAMT::RHSDriver. Used to accumulate the force for
 	 * a single row of EAMT::fNeighbors. */

@@ -1,4 +1,4 @@
-/* $Id: ParticlePropertyT.cpp,v 1.7 2003-08-07 21:11:35 fwdelri Exp $ */
+/* $Id: ParticlePropertyT.cpp,v 1.6 2003-04-18 19:01:54 cjkimme Exp $ */
 #include "ParticlePropertyT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -46,9 +46,6 @@ istream& operator>>(istream& in, ParticlePropertyT::TypeT& property)
 		case ParticlePropertyT::kParadynEAM:
 			property = ParticlePropertyT::kParadynEAM;
 			break;
-		case ParticlePropertyT::kMatsuiPair:
-			property = ParticlePropertyT::kMatsuiPair;
-			break;	
 		default:
 			ExceptionT::BadInputValue("operator>>ParticlePropertyT::TypeT", 
 				"unknown code: %d", i_property);

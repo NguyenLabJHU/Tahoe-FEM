@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.43 2003-09-06 07:12:12 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.41 2003-06-09 06:59:33 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 #include "fstreamT.h"
@@ -84,14 +84,11 @@
 
 #ifdef J2PLASTICITY_MATERIALS_DEV
 #include "SSJ2LinHard2D.h"
-#include "SSJ2LinHard3Dplane.h"
 #endif
 
 #ifdef ABAQUS_MATERIAL
-#ifdef ABAQUS_BCJ_MATERIAL_DEV
 #include "ABAQUS_BCJ.h"
 #include "ABAQUS_VUMAT_BCJ.h"
-#endif
 #endif
 
 #ifdef THERMO_VISCO_PLASTIC_MATERIAL
@@ -584,7 +581,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			case kABAQUS_BCJ:
 			{
 #ifdef __F2C__
-#if defined(ABAQUS_MATERIAL) && defined(ABAQUS_BCJ_MATERIAL_DEV)
+#ifdef ABAQUS_MATERIAL
 				/* check */
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
 
@@ -592,7 +589,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "ABAQUS_MATERIAL or ABAQUS_BCJ_MATERIAL_DEV not enabled: %d", matcode);
+				ExceptionT::BadInputValue(caller, "ABAQUS_MATERIAL not enabled: %d", matcode);
 #endif
 #else
 				ExceptionT::BadInputValue(caller, "model requires f2c support: %d", kABAQUS_BCJ);
@@ -601,7 +598,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			case kABAQUS_VUMAT_BCJ:
 			{
 #ifdef __F2C__
-#if defined(ABAQUS_MATERIAL) && defined(ABAQUS_BCJ_MATERIAL_DEV)
+#ifdef ABAQUS_MATERIAL
 				/* check */
 				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
 
@@ -609,7 +606,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "ABAQUS_MATERIAL or ABAQUS_BCJ_MATERIAL_DEV not enabled: %d", matcode);
+				ExceptionT::BadInputValue(caller, "ABAQUS_MATERIAL not enabled: %d", matcode);
 #endif
 #else
 				ExceptionT::BadInputValue(caller, "model requires f2c support: %d", kABAQUS_BCJ);
@@ -686,19 +683,6 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 
 				fArray[matnum] = new SSJ2LinHard2D(in, *fSSMatSupport);
-				fHasHistory = true;
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "J2PLASITICITY_MATERIALS_DEV not enabled: %d", matcode);
-#endif
-			}
-			case kSSJ2LinHardplane:
-			{
-#ifdef J2PLASTICITY_MATERIALS_DEV
-				/* check */
-				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
-
-				fArray[matnum] = new SSJ2LinHard3Dplane(in, *fSSMatSupport);
 				fHasHistory = true;
 				break;
 #else

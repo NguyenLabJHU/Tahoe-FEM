@@ -1,4 +1,4 @@
-/* $Id: SolidMatListT.h,v 1.7 2003-07-29 21:17:49 rdorgan Exp $ */
+/* $Id: SolidMatListT.h,v 1.6 2003-01-29 07:34:58 paklein Exp $ */
 #ifndef _STRUCT_MAT_LIST_T_H_
 #define _STRUCT_MAT_LIST_T_H_
 
@@ -11,7 +11,6 @@ namespace Tahoe {
 class SolidMatSupportT;
 class SSMatSupportT;
 class FSMatSupportT;
-class GradSSMatSupportT;
 
 /** list of materials for structural analysis */
 class SolidMatListT: public MaterialListT
@@ -55,9 +54,6 @@ protected:
 
 	/** support for finite strain materials */
 	const FSMatSupportT* fFSMatSupport;
-
-	/** support for gradient enhanced small strain materials */
-	const GradSSMatSupportT* fGradSSMatSupport;
 	/*@}*/
 };
 

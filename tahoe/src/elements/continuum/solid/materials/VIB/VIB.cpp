@@ -1,4 +1,4 @@
-/* $Id: VIB.cpp,v 1.11 2003-08-04 01:33:30 thao Exp $ */
+/* $Id: VIB.cpp,v 1.10 2003-05-21 16:08:55 thao Exp $ */
 /* created: paklein (10/30/1997) */
 #include "VIB.h"
 
@@ -18,7 +18,7 @@
 #include "GaoJi.h"
 #include "GaoJi2.h"
 #include "GaoVicky.h"
-#include "ParabolaT.h"
+#include "ParabolaPotT.h"
 #include "Triantafyllidis.h"
 #include "SF2.h"
 
@@ -61,7 +61,7 @@ VIB::VIB(ifstreamT& in, int nsd, int numstress, int nummoduli):
 			double A, B;
 			in >> A;		
 	                in >> B;
-			fPotential = new ParabolaT(A,B,1.0);
+			fPotential = new ParabolaPotT(A,B);
 			break;
 		}
 		case C1FunctionT::kTriantafyllidis:

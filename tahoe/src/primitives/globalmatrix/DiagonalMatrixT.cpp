@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.cpp,v 1.13 2003-07-12 08:24:51 paklein Exp $ */
+/* $Id: DiagonalMatrixT.cpp,v 1.12 2003-04-08 23:00:53 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "DiagonalMatrixT.h"
 #include <iostream.h>
@@ -258,14 +258,12 @@ void DiagonalMatrixT::Factorize(void)
 	bool first = true;
 	for (int i = 0; i < fLocNumEQ; i++)
 	{
-		/* check for zero pivots */
-		if (fabs(*pMatrix) > kSmall)
-			*pMatrix = 1.0/(*pMatrix);
-		else
+		/* check zero pivots */
+		if (fabs(*pMatrix) < kSmall)
 		{
 			if (first)
 			{
-				cout << "\n DiagonalMatrixT::Factorize: WARNING: skipping small pivots. See out file."
+				cout << "\n DiagonalMatrixT::Factorize: WARNING: small pivots. See out file."
 				     << endl;
 				
 				fOut << "\n DiagonalMatrixT::Factorize: small pivots\n";
@@ -277,8 +275,8 @@ void DiagonalMatrixT::Factorize(void)
 			fOut << setw(kIntWidth) << i+1
 			     << setw(OutputWidth(fOut, pMatrix)) << *pMatrix << '\n';
 		}
-
-		/* next */
+	
+		*pMatrix = 1.0/(*pMatrix);
 		pMatrix++;
 	}
 

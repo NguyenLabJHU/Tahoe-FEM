@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.22 2003-09-18 21:21:44 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.17.4.6 2003-09-19 02:48:24 hspark Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -12,15 +12,11 @@
 #include <iostream.h>
 #include <iomanip.h>
 #include <stdlib.h>
-#include "dSymMatrixT.h"
-#include "dArray2DT.h"
-#include "iGridManagerT.h"
 
 /* pair property types */
 #include "LennardJonesPairT.h"
 #include "HarmonicPairT.h"
 #include "ParadynPairT.h"
-#include "MatsuiPairT.h"
 
 using namespace Tahoe;
 
@@ -115,11 +111,6 @@ void ParticlePairT::WriteOutput(void)
 	/* map from partition node index */
 	const InverseMapT* inverse_map = fCommManager.PartitionNodes_inv();
 
-	dSymMatrixT vs_i(ndof), temp(ndof);
-	int num_stresses = vs_i.NumValues(ndof);
-	//dArray2DT vsvalues(non, num_stresses);
-	num_output += num_stresses;
-
 	/* output arrays length number of active nodes */
 	dArray2DT n_values(non, num_output), e_values;
 	n_values = 0.0;
@@ -129,29 +120,19 @@ void ParticlePairT::WriteOutput(void)
 
 	/* pair properties function pointers */
 	int current_property = -1;
-	PairPropertyT::EnergyFunction energy_function = NULL;	
-	PairPropertyT::ForceFunction force_function = NULL;
-	//const double* Paradyn_table = NULL;
-	//double dr = 1.0;
-	//int row_size = 0, num_rows = 0;
-
+	PairPropertyT::EnergyFunction energy_function = NULL;
+	
 	/* the field */
 	const FieldT& field = Field();
 	const dArray2DT& displacement = field[0];
 	const dArray2DT* velocities = NULL;
 	if (field.Order() > 0) velocities = &(field[1]);
 
-	/* collect mass per particle */
-	dArrayT mass(fNumTypes);
-	for (int i = 0; i < fNumTypes; i++)
-		mass[i] = fPairProperties[fPropertiesMap(i,i)]->Mass();
-
 	/* collect displacements */
 	dArrayT vec, values_i;
 	for (int i = 0; i < non; i++) {
 		int   tag_i = (parition_nodes) ? (*parition_nodes)[i] : i;
 		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
-		int  type_i = fType[tag_i];
 
 		/* values for particle i */
 		n_values.RowAlias(local_i, values_i);
@@ -159,22 +140,16 @@ void ParticlePairT::WriteOutput(void)
 		/* copy in */
 		vec.Set(ndof, values_i.Pointer());
 		displacement.RowCopy(tag_i, vec);
-
-		/* kinetic contribution to the virial */
-		if (velocities) {
-			velocities->RowAlias(tag_i, vec);
-			temp.Outer(vec);
-		 	for (int cc = 0; cc < num_stresses; cc++) {
-				int ndex = ndof+2+cc;
-		   		values_i[ndex] = -mass[type_i]*temp[cc];
-		 	}
-		} 
 	}
+
+	/* collect mass per particle */
+	dArrayT mass(fNumTypes);
+	for (int i = 0; i < fNumTypes; i++)
+		mass[i] = fPairProperties[fPropertiesMap(i,i)]->Mass();
 	
 	/* run through neighbor list */
 	iArrayT neighbors;
 	dArrayT x_i, x_j, r_ij(ndof);
-
 	for (int i = 0; i < fNeighbors.MajorDim(); i++)
 	{
 		/* row of neighbor list */
@@ -182,10 +157,7 @@ void ParticlePairT::WriteOutput(void)
 
 		/* tags */
 		int   tag_i = neighbors[0]; /* self is 1st spot */
-		int  type_i = fType[tag_i];
-		//double* f_i = fForce(tag_i);
-		vs_i = 0.0;
-
+		int  type_i = fType[tag_i];		
 		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
 		
 		/* values for particle i */
@@ -205,16 +177,13 @@ void ParticlePairT::WriteOutput(void)
 		{
 			/* tags */
 			int   tag_j = neighbors[j];
-			int  type_j = fType[tag_j];
+			int  type_j = fType[tag_j];		
 			
 			/* set pair property (if not already set) */
 			int property = fPropertiesMap(type_i, type_j);
 			if (property != current_property)
 			{
 				energy_function = fPairProperties[property]->getEnergyFunction();
-
-				//if (!fPairProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
-				force_function = fPairProperties[property]->getForceFunction();
 				current_property = property;
 			}
 		
@@ -229,38 +198,119 @@ void ParticlePairT::WriteOutput(void)
 			double uby2 = 0.5*energy_function(r, NULL, NULL);
 			values_i[ndof] += uby2;
 			
-	      	/* interaction force */
-			double F = force_function(r, NULL, NULL);
-			double Fbyr = F/r;
-			temp.Outer(r_ij);
-			vs_i.AddScaled(0.5*Fbyr, temp);
-
 			/* second node may not be on processor */
 			if (!proc_map || (*proc_map)[tag_j] == rank) {
 				int local_j = (inverse_map) ? inverse_map->Map(tag_j) : tag_j;
 				
 				if (local_j < 0 || local_j >= n_values.MajorDim())
 					cout << caller << ": out of range: " << local_j << '\n';
-				else {
-
-					/* potential energy */
+				else
 					n_values(local_j, ndof) += uby2;
 
-			 		/* accumulate into stress into array */
-		 			for (int cc = 0; cc < num_stresses; cc++) {
-						int ndex = ndof+2+cc;
-		   				n_values(local_j, ndex) += 0.5*Fbyr*temp[cc];		   
-		 			}
-				}
 			}
 		}
-		 /* copy stress into array */
-		 for (int cc = 0; cc < num_stresses; cc++) {
-			int ndex = ndof+2+cc;
-		   	values_i[ndex] += vs_i[cc];
-		 }
+	}	
+	
+#if 0
+	/* Temporary to calculate crack propagation velocity */
+	ifstreamT& in = ElementSupport().Input();
+	ModelManagerT& model = ElementSupport().Model();
+	const ArrayT<StringT> id_list = model.NodeSetIDs();
+	iArrayT nodelist;
+	dArray2DT partial;
+	nodelist = model.NodeSet(id_list[id_list.Length()-1]); // want last nodeset
+	const StringT& input_file = in.filename();
+	fsummary_file.Root(input_file);
+	fsummary_file.Append(".crack");
+	double xcoord = coords(nodelist[0],0);
+	double ydispcrit = .13;
+	const double& time = ElementSupport().Time();
+	for (int i = 0; i < nodelist.Length(); i++)
+	{
+	    int node = nodelist[i];
+	    if (fabs(displacement(node,1)) >= ydispcrit)
+	      xcoord = coords(node,0);
 	}
 
+	if (fopen)
+	{
+		fout.open_append(fsummary_file);
+	  	fout.precision(13);
+	  	fout << xcoord 
+	  	     << setw(25) << time
+	  	     << endl;
+	}
+	else
+	{
+	  	fout.open(fsummary_file);
+		fopen = true;
+	  	fout.precision(13);
+	  	fout << "x-coordinate"
+	  	     << setw(25) << "Time"
+	  	     << endl;
+	  	fout << xcoord 
+	  	     << setw(25) << time
+	  	     << endl;
+	}
+#endif
+
+#if 0
+	/* Temporary to calculate MD energy history and write to file */
+	ifstreamT& in = ElementSupport().Input();
+	ModelManagerT& model = ElementSupport().Model();
+	const ArrayT<StringT> id_list = model.NodeSetIDs();
+	iArrayT nodelist;
+	dArray2DT partial;
+	nodelist = model.NodeSet(id_list[id_list.Length()-1]);
+	nodelist = model.NodeSet(id_list[3]);  // id_list[3]
+	partial.Dimension(nodelist.Length(), n_values.MinorDim());
+	partial.RowCollect(nodelist, n_values);
+	const StringT& input_file = in.filename();
+	fsummary_file.Root(input_file);
+	fsummary_file2.Root(input_file);
+	fsummary_file.Append(".sum");
+	fsummary_file2.Append(".full");
+	if (fopen)
+	{
+	        fout.open_append(fsummary_file);
+			fout2.open_append(fsummary_file2);
+			fout.precision(13);
+			fout2.precision(13);
+			fout << n_values.ColumnSum(3) 
+				 << setw(25) << n_values.ColumnSum(2)
+				 << setw(25) << n_values.ColumnSum(3) + n_values.ColumnSum(2)
+				 << endl;
+			fout2 << partial.ColumnSum(3) 
+				 << setw(25) << partial.ColumnSum(2)
+				 << setw(25) << partial.ColumnSum(3) + partial.ColumnSum(2)
+				 << endl;
+	}
+	else
+	{
+			fout.open(fsummary_file);
+			fout2.open(fsummary_file2);
+			fopen = true;
+			fout.precision(13);
+			fout2.precision(13);
+			fout << "Kinetic Energy"
+				 << setw(25) << "Potential Energy"
+				 << setw(25) << "Total Energy"
+				 << endl;
+			fout << n_values.ColumnSum(3) 
+				 << setw(25) << n_values.ColumnSum(2)
+				 << setw(25) << n_values.ColumnSum(3) + n_values.ColumnSum(2)
+				 << endl;
+			fout2 << "Kinetic Energy"
+				 << setw(25) << "Potential Energy"
+				 << setw(25) << "Total Energy"
+				 << endl;
+			fout2 << partial.ColumnSum(3) 
+				 << setw(25) << partial.ColumnSum(2)
+				 << setw(25) << partial.ColumnSum(3) + partial.ColumnSum(2)
+				 << endl;
+	}
+#endif
+	   
 	/* send */
 	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
 }
@@ -371,46 +421,21 @@ void ParticlePairT::FormStiffness(const InverseMapT& col_to_col_eq_row_map,
 /* generate labels for output data */
 void ParticlePairT::GenerateOutputLabels(ArrayT<StringT>& labels) const
 {
-  int ndof=NumDOF();
-	if (ndof > 3) ExceptionT::GeneralFail("ParticlePairT::GenerateOutputLabels");
+	if (NumDOF() > 3) ExceptionT::GeneralFail("ParticlePairT::GenerateOutputLabels");
 
 	/* displacement labels */
 	const char* disp[3] = {"D_X", "D_Y", "D_Z"};
 	
 	int num_labels =
-		ndof // displacements
+		NumDOF() // displacements
 		+ 2;     // PE and KE
-	int num_stress=0;
-	const char* stress[6];
-	if (ndof==3){
-	  num_stress=6;
-	  stress[0]="s11";
-	  stress[1]="s22";
-	  stress[2]="s33";
-	  stress[3]="s23";
-	  stress[4]="s13";
-	  stress[5]="s12";
-	  }
-	  else if (ndof==2) {
-	   num_stress=3;
-	  stress[0]="s11";
-	  stress[1]="s22";
-	  stress[2]="s12";
-	  }
-	  else if (ndof==1) {
-	   num_stress=1;
-	  stress[0] = "s11";
-	  }
-	num_labels+=num_stress;
+
 	labels.Dimension(num_labels);
 	int dex = 0;
 	for (dex = 0; dex < NumDOF(); dex++)
 		labels[dex] = disp[dex];
 	labels[dex++] = "PE";
 	labels[dex++] = "KE";
-
-	for (int ns =0 ; ns<num_stress; ns++)
-	  labels[dex++]=stress[ns];
 }
 
 /* form group contribution to the stiffness matrix */
@@ -818,13 +843,8 @@ void ParticlePairT::SetConfiguration(void)
 	if (fActiveParticles) 
 		part_nodes = fActiveParticles;
 	GenerateNeighborList(part_nodes, fNeighborDistance, fNeighbors, false, true);
-
-	/* output stream */
-	ofstreamT& out = ElementSupport().Output();
-
-	/* write the search grid statistics */
-	if (fGrid) fGrid->WriteStatistics(out);
 	
+	ofstreamT& out = ElementSupport().Output();
 	out << "\n Neighbor statistics:\n";
 	out << " Total number of neighbors . . . . . . . . . . . = " << fNeighbors.Length() << '\n';
 	out << " Minimum number of neighbors . . . . . . . . . . = " << fNeighbors.MinMinorDim(0) << '\n';
@@ -886,13 +906,6 @@ void ParticlePairT::EchoProperties(ifstreamT& in, ofstreamT& out)
 				file.Prepend(path);
 			
 				fPairProperties[i] = new ParadynPairT(file);
-				break;
-			}
-			case ParticlePropertyT::kMatsuiPair:
-			{
-				double mass, sqr_q, two_A, two_B, sqr_C, f, rc;
-				in >> mass >> sqr_q >> two_A >> two_B >> sqr_C >> f >> rc;
-				fPairProperties[i] = new MatsuiPairT(mass, sqr_q, two_A, two_B, sqr_C, f, rc);
 				break;
 			}
 			default:

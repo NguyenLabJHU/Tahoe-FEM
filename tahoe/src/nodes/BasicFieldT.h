@@ -1,4 +1,4 @@
-/* $Id: BasicFieldT.h,v 1.8 2003-08-14 05:34:21 paklein Exp $ */
+/* $Id: BasicFieldT.h,v 1.7 2003-05-20 10:22:59 paklein Exp $ */
 #ifndef _BASIC_FIELD_T_H_
 #define _BASIC_FIELD_T_H_
 
@@ -19,16 +19,13 @@ class BasicFieldT
 public:
 
 	/** constructor */
-	BasicFieldT(void);
+	BasicFieldT(const StringT& name, int ndof, int order);
 
 	/** destructor */
 	virtual ~BasicFieldT(void) {};
 
 	/** \name initialization */
 	/*@{*/
-	/** initialize field */
-	void Initialize(const StringT& name, int ndof, int order);
-	
 	/** set field labels */
 	void SetLabels(const ArrayT<StringT>& labels);
 

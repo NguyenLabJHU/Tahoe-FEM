@@ -1,5 +1,6 @@
-/* $Id: HHTalpha.cpp,v 1.5 2003-08-08 00:19:23 paklein Exp $ */
+/* $Id: HHTalpha.cpp,v 1.4 2002-10-20 22:48:08 paklein Exp $ */
 /* created: paklein (10/14/1996) */
+
 #include "HHTalpha.h"
 
 #include <iostream.h>
@@ -7,9 +8,10 @@
 #include "fstreamT.h"
 #include "dArrayT.h"
 
+/* constructor */
+
 using namespace Tahoe;
 
-/* constructor */
 HHTalpha::HHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder):
 	fAuto2ndOrder(auto2ndorder),
 	fgamma(0.5),
@@ -28,7 +30,7 @@ HHTalpha::HHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder):
 	out << " alpha . . . . . . . . . . . . . . . . . . . . . = " << falpha << endl;
 
 	/* range checks (incomplete) */
-	if (falpha > 0.0 || falpha < -1.0) ExceptionT::BadInputValue("HHTalpha::HHTalpha");
+	if (falpha < 0.0 || falpha > 1.0) throw ExceptionT::kBadInputValue;
 }
 
 /*************************************************************************

@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.18 2003-08-14 06:02:49 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.17 2003-05-20 10:37:45 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "TimeManagerT.h"
 
@@ -23,11 +23,25 @@
 #include "VerletIntegrator.h"
 #include "Gear6Integrator.h"
 
+
+	/** enum of integrator types */
+	enum CodeT {
+		kLinearStatic = 0,
+		      kStatic = 1,
+           kTrapezoid = 2,
+           kLinearHHT = 3,
+		kNonlinearHHT = 4,
+		  kExplicitCD = 5,
+		kVerlet = 6,
+		kGear6 = 7
+	};
+
+/* stream extraction operator */
+
 using namespace Tahoe;
 
 namespace Tahoe {
 
-/* stream extraction operator */
 istream& operator>>(istream& in, TimeManagerT::CodeT& code)
 {
 	int i_code = -1;
@@ -70,7 +84,6 @@ istream& operator>>(istream& in, TimeManagerT::CodeT& code)
 
 /* constructor */
 TimeManagerT::TimeManagerT(FEManagerT& FEM):
-	ParameterInterfaceT("time"),
 	theBoss(FEM),
 
 	/* runtime data for the current sequence */
@@ -83,12 +96,6 @@ TimeManagerT::TimeManagerT(FEManagerT& FEM):
 	
 	fNumSteps(0), fOutputInc(1), fMaxCuts(0), fTimeStep(1.0),
 	fIsTimeShifted(0), fTimeShift(0.0)
-{
-
-}
-
-/* initialization */
-void TimeManagerT::Initialize(void)
 {
 	ifstreamT& in  = theBoss.Input();
 	ostream&   out = theBoss.Output();
@@ -421,46 +428,9 @@ IntegratorT* TimeManagerT::New_Integrator(CodeT type) const
 	return integrator;
 }
 
-/* describe the parameters needed by the interface */
-void TimeManagerT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	ParameterInterfaceT::DefineParameters(list);
-
-	/* number of steps */
-	ParameterT num_steps(ParameterT::Integer, "num_steps");
-	num_steps.AddLimit(0, LimitT::LowerInclusive);
-	list.AddParameter(num_steps);
-
-	/* results output increment */
-	ParameterT output_inc(ParameterT::Integer, "output_inc");
-	output_inc.AddLimit(0, LimitT::LowerInclusive);
-	list.AddParameter(output_inc);
-
-	/* maximum number of time increment cuts */
-	ParameterT max_step_cuts(ParameterT::Integer, "max_step_cuts");
-	max_step_cuts.SetDefault(0);
-	max_step_cuts.AddLimit(0, LimitT::LowerInclusive);
-	list.AddParameter(max_step_cuts);
-
-	/* (initial) time increment */
-	ParameterT time_step(ParameterT::Double, "time_step");
-	time_step.AddLimit(0, LimitT::LowerInclusive);
-	list.AddParameter(time_step);
-}
-
-/* accept parameter list */
-void TimeManagerT::TakeParameterList(const ParameterListT& list)
-{
-	/* inherited */
-	ParameterInterfaceT::TakeParameterList(list);
-
-	//not implemented
-}
-
 /************************************************************************
- * Private
- ************************************************************************/
+* Private
+************************************************************************/
 
 void TimeManagerT::EchoTimeSequences(ifstreamT& in, ostream& out)
 {

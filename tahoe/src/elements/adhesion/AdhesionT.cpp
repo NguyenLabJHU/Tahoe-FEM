@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.14 2003-08-14 05:49:46 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.13 2003-05-20 10:35:33 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -33,8 +33,6 @@ AdhesionT::AdhesionT(const ElementSupportT& support, const FieldT& field):
 	fFace2_man(0, true, NumSD()),
 	fGrad_d_man(0, fGrad_d)
 {
-	SetName("adhesion");
-	
 	/* register dynamically resized arrays */
 	fNEE_vec_man.Register(fRHS);
 	fNEE_vec_man.Register(fNEE_vec);
@@ -45,6 +43,7 @@ AdhesionT::AdhesionT(const ElementSupportT& support, const FieldT& field):
 	fFace2_man.Register(fIPCoords2);
 	fFace2_man.Register(fIPNorm2);
 
+	
 	/* read cut-off distance */
 	ifstreamT& in = ElementSupport().Input();
 	in >> fPenalizePenetration;
@@ -82,21 +81,6 @@ AdhesionT::AdhesionT(const ElementSupportT& support, const FieldT& field):
 			cout << "\n AdhesionT::Initialize: unrecognized function: " << code << endl;
 			throw ExceptionT::kBadInputValue;	
 	}
-}
-
-AdhesionT::AdhesionT(const ElementSupportT& support):
-	ElementBaseT(support),
-	fGrid(NULL),
-	fCutOff(0.0),
-	fPenalizePenetration(0),
-	fAllowSameSurface(0),
-	fAdhesion(NULL),
-	fNEE_vec_man(0, true),
-	fNEE_mat_man(0, true),
-	fFace2_man(0, true),
-	fGrad_d_man(0, fGrad_d)
-{
-	SetName("adhesion");
 }
 
 /* destructor */
@@ -326,28 +310,9 @@ void AdhesionT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	eq_2.Append(&fFaceEquations);
 }
 
-/* describe the parameters needed by the interface */
-void AdhesionT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	ElementBaseT::DefineParameters(list);
-
-	ParameterT penalize_penetration(ParameterT::Boolean, "penalize_penetration");
-	penalize_penetration.SetDefault(false);
-	list.AddParameter(penalize_penetration);
-
-	ParameterT self_interaction(ParameterT::Boolean, "self_interaction");
-	self_interaction.SetDefault(false);
-	list.AddParameter(self_interaction);
-
-	ParameterT cut_off(ParameterT::Double, "cut_off");
-	cut_off.AddLimit(kSmall, LimitT::Lower);
-	list.AddParameter(cut_off);
-}
-
 /***********************************************************************
- * Protected
- ***********************************************************************/
+* Protected
+***********************************************************************/
 
 /* form group contribution to the stiffness matrix */
 void AdhesionT::LHSDriver(GlobalT::SystemTypeT)

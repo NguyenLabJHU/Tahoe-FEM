@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.39 2003-08-14 05:57:04 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.37 2003-06-09 06:37:07 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -22,9 +22,8 @@ using namespace Tahoe;
 /* constructor */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 ElementBaseT::ElementBaseT(const ElementSupportT& support, const FieldT& field):
-	ParameterInterfaceT("element_base"),
 	fSupport(support),
-	fField(&field),
+	fField(field),
 	fIntegrator(NULL),
 	fElementCards(0),
 	fLHS(ElementMatrixT::kSymmetric)
@@ -32,20 +31,8 @@ ElementBaseT::ElementBaseT(const ElementSupportT& support, const FieldT& field):
 	/* just cast it */
 	fIntegrator = fSupport.eIntegrator(field);
 }
-
-ElementBaseT::ElementBaseT(const ElementSupportT& support):
-	ParameterInterfaceT("element_base"),
-	fSupport(support),
-	fField(NULL),
-	fIntegrator(NULL),
-	fElementCards(0),
-	fLHS(ElementMatrixT::kSymmetric)
-{
-
-}
 #else
 ElementBaseT::ElementBaseT(ElementSupportT& support):
-	ParameterInterfaceT("element_base"),
 	fSupport(support),
 	fIntegrator(NULL),
 	fElementCards(0),
@@ -88,14 +75,6 @@ void ElementBaseT::Initialize(void)
 	fRHS.Dimension(neq);
 }
 
-/* set the active elements */
-void ElementBaseT::SetStatus(const ArrayT<StatusT>& status)
-{
-	if (status.Length() != NumElements()) ExceptionT::SizeMismatch();
-	for (int i = 0; i < fElementCards.Length(); i++)
-		fElementCards[i].Flag() = status[i];
-}
-
 /* initial condition/restart functions
 *
 * Set to initial conditions.  The restart functions
@@ -123,7 +102,7 @@ const int& ElementBaseT::IterationNumber(void) const
 /* return true if the element contributes to the group */
 bool ElementBaseT::InGroup(int group) const
 {
-	return Field().Group() == group;
+	return fField.Group() == group;
 }
 
 #endif
@@ -229,7 +208,7 @@ void ElementBaseT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	for (int i = 0; i < fEqnos.Length(); i++)
 	{
 		/* get local equations numbers */
-		Field().SetLocalEqnos(*fConnectivities[i], fEqnos[i]);
+		fField.SetLocalEqnos(*fConnectivities[i], fEqnos[i]);
 
 		/* add to list of equation numbers */
 		eq_1.Append(&fEqnos[i]);
@@ -293,7 +272,7 @@ void ElementBaseT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
 #endif
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	const dArray2DT& all_DOFs = Field()[0]; // displacements
+	const dArray2DT& all_DOFs = fField[0]; // displacements
 	DOFs.RowCollect(nodes, all_DOFs); // no check of nodes used
 
 //NOTE - This function is added only for completeness. If the
@@ -395,34 +374,6 @@ const dArray2DT& ElementBaseT::InternalForce(int group)
 	return ElementSupport().CurrentCoordinates(); /* dummy */
 }
 
-/* describe the parameters needed by the interface */
-void ElementBaseT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	ParameterInterfaceT::DefineParameters(list);
-
-	/* associated fields */
-	list.AddParameter(ParameterT::String, "field_name");
-}
-
-/*information about subordinate parameter lists */
-void ElementBaseT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	ParameterInterfaceT::DefineSubs(sub_list);
-
-	sub_list.AddSub("element_block", ParameterListT::OnePlus);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* ElementBaseT::NewSub(const StringT& list_name) const
-{
-	if (list_name == "element_block")
-		return new ElementBlockDataT;
-	else
-		return ParameterInterfaceT::NewSub(list_name);
-}
-
 /***********************************************************************
  * Protected
  ***********************************************************************/
@@ -464,7 +415,7 @@ const LocalArrayT& ElementBaseT::SetLocalU(LocalArrayT& localarray)
 void ElementBaseT::AssembleRHS(void) const
 {
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	fSupport.AssembleRHS(fField->Group(), fRHS, CurrentElement().Equations());
+	fSupport.AssembleRHS(fField.Group(), fRHS, CurrentElement().Equations());
 #else
 	fSupport.AssembleRHS(fElementCards.Position(),fRHS,CurrentElement().Equations());
 #endif
@@ -473,7 +424,7 @@ void ElementBaseT::AssembleRHS(void) const
 void ElementBaseT::AssembleLHS(void) const
 {
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	fSupport.AssembleLHS(fField->Group(), fLHS, CurrentElement().Equations());
+	fSupport.AssembleLHS(fField.Group(), fLHS, CurrentElement().Equations());
 #else	
 	fSupport.AssembleLHS(fElementCards.Position(),fLHS,CurrentElement().Equations());
 #endif

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.9 2003-08-14 06:34:49 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.8 2003-07-11 16:46:07 hspark Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -143,10 +143,10 @@ void FEManagerT_bridging::InitGhostNodes(void)
 
 	/* search through element groups for particles */
 	bool found = false;
-	for (int i = 0; i < fElementGroups->Length(); i++)
+	for (int i = 0; i < fElementGroups.Length(); i++)
 	{
 		/* pointer to element group */
-		ElementBaseT* element_base = (*fElementGroups)[i];
+		ElementBaseT* element_base = fElementGroups[i];
 		
 		/* attempt cast to particle type */
 		ParticleT* particle = dynamic_cast<ParticleT*>(element_base);
@@ -251,7 +251,7 @@ void FEManagerT_bridging::Form_G_NG_Stiffness(const StringT& field, int element_
 	K_G_NG = 0.0;
 
 	/* try cast */
-	ElementBaseT* element_base = (*fElementGroups)[element_group];
+	ElementBaseT* element_base = fElementGroups[element_group];
 	ParticleT* particle = dynamic_cast<ParticleT*>(element_base);
 	if (!particle) ExceptionT::GeneralFail(caller, "element group %d is not a particle group", element_group);
 
@@ -532,12 +532,12 @@ const dArray2DT& FEManagerT_bridging::InternalForce(int group) const
 
 	/* search through element groups */
 	ElementBaseT* element = NULL;
-	for (int i = 0; i < fElementGroups->Length(); i++)
-		if ((*fElementGroups)[i]->InGroup(group))
+	for (int i = 0; i < fElementGroups.Length(); i++)
+		if (fElementGroups[i]->InGroup(group))
 		{
 			/* already found element group */
 			if (element) ExceptionT::GeneralFail(caller, "solver group %d contains more than one element group", group);
-			element = (*fElementGroups)[i];
+			element = fElementGroups[i];
 		}
 	
 	/* no elements in the group */
@@ -550,7 +550,7 @@ const dArray2DT& FEManagerT_bridging::InternalForce(int group) const
 nMatrixT<int>& FEManagerT_bridging::PropertiesMap(int element_group)
 {
 	/* try cast to particle type */
-	ElementBaseT* element_base = (*fElementGroups)[element_group];
+	ElementBaseT* element_base = fElementGroups[element_group];
 	ParticleT* particle = dynamic_cast<ParticleT*>(element_base);
 	if (!particle)
 		ExceptionT::GeneralFail("FEManagerT_bridging::PropertiesMap",
@@ -593,10 +593,10 @@ BridgingScaleT& FEManagerT_bridging::BridgingScale(void) const
 	if (!fBridgingScale) {
 	
 		/* search through element groups */
-		for (int i = 0; !fBridgingScale && i < fElementGroups->Length(); i++)
+		for (int i = 0; !fBridgingScale && i < fElementGroups.Length(); i++)
 		{
 			/* try cast */
-			ElementBaseT* element_base = (*fElementGroups)[i];
+			ElementBaseT* element_base = fElementGroups[i];
 			
 			/* need non-const pointer to this */
 			FEManagerT_bridging* fe = (FEManagerT_bridging*) this;

@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.34 2003-07-11 16:45:59 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.34.4.3 2003-09-19 02:48:23 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -207,7 +207,7 @@ void BridgingScaleT::InitInterpolation(const iArrayT& points_used, const dArray2
 	/* point in cells data */
 	const RaggedArray2DT<int>& point_in_cell = cell_data.PointInCell();
 	const RaggedArray2DT<double>& point_in_cell_coords = cell_data.PointInCellCoords();
-	
+
 	/* run through cells */
 	dArrayT Na;
 	dArrayT point_coords;
@@ -219,7 +219,7 @@ void BridgingScaleT::InitInterpolation(const iArrayT& points_used, const dArray2
 		if (np > 0)
 		{
 			int* points = point_in_cell(i);
-		
+			
 			/* mapped coordinates of points in this cell */
 			mapped_coords.Set(np, nsd, point_in_cell_coords(i));
 			
@@ -536,24 +536,28 @@ out << "\n residual =\n" << projection << endl;
 		fGlobalMass.Solve(u_tmp);
 		projection.SetColumn(i, u_tmp);
 	}	
-	//ofstream project, fenodes1, fenodes2;
-	//project.open("project.dat");
-	//fenodes1.open("fenodes1.dat");
-	//fenodes2.open("fenodes2.dat");
-	//project.precision(13);
-	//for (int i = 0; i < projection.MajorDim(); i++)
-	//{
-	//	project << i+1 << " " << 1 << " " << 1 << " " << projection(i,0) << endl;
-	//	project << i+1 << " " << 2 << " " << 1 << " " << projection(i,1) << endl;
-	//	fenodes1 << "*set" << endl;
-	//	fenodes1 << 1 << endl;
-	//	fenodes1 << cell_nodes[i]+1 << endl;
-	//	fenodes2 << i+1 << " " << 1 << endl;
-	//}
+
+#if 0
+	ofstream project, fenodes1, fenodes2;
+	project.open("project.dat");
+	fenodes1.open("fenodes1.dat");
+	fenodes2.open("fenodes2.dat");
+	project.precision(13);
+	for (int i = 0; i < projection.MajorDim(); i++)
+	{
+		project << i+1 << " " << 1 << " " << 1 << " " << projection(i,0) << endl;
+		project << i+1 << " " << 2 << " " << 1 << " " << projection(i,1) << endl;
+		fenodes1 << "*set" << endl;
+		fenodes1 << 1 << endl;
+		fenodes1 << cell_nodes[i]+1 << endl;
+		fenodes2 << i+1 << " " << 1 << endl;
+	}
 	
-	//project.close();
-	//fenodes1.close();
-	//fenodes2.close();
+	project.close();
+	fenodes1.close();
+	fenodes2.close();
+#endif
+	
 	u_tmp.Free();
 
 	fFineScale.Dimension(point_values);

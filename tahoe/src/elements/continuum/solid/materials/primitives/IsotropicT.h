@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.h,v 1.7 2003-08-16 01:31:48 rdorgan Exp $ */
+/* $Id: IsotropicT.h,v 1.6 2002-10-04 20:52:53 thao Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #ifndef _ISOTROPIC_T_H_
@@ -45,7 +45,6 @@ protected:
 	/* compute isotropic moduli tensor */
 	void ComputeModuli(dMatrixT& moduli) const;
 	void ComputeModuli2D(dMatrixT& moduli, Material2DT::ConstraintOptionT constraint) const;
-	void ComputeModuli1D(dMatrixT& moduli) const;
 
 	/* scale factor for constrained dilatation */
 	double DilatationFactor2D(Material2DT::ConstraintOptionT constraint) const;   	

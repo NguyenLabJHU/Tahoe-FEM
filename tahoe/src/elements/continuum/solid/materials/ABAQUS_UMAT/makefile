@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2003-09-06 06:52:03 paklein Exp $
+# $Id: makefile,v 1.5 2003-03-04 07:37:07 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,7 +20,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-	ABAQUS_UMAT_BaseT.o
+	ABAQUS_BCJ.o \
+	ABAQUS_UMAT_BaseT.o \
+	cycdmg7.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -40,7 +42,9 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	ABAQUS_UMAT_BaseT.cpp
+	ABAQUS_BCJ.cpp \
+	ABAQUS_UMAT_BaseT.cpp \
+	cycdmg7.c
 
 ##################### (3) headers
 #
@@ -52,6 +56,7 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
+	ABAQUS_BCJ.h \
 	ABAQUS_UMAT_BaseT.h
 
 HDR_LINK = $(HDR:.h=.h_link)

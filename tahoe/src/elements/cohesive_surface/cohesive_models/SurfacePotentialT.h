@@ -1,4 +1,4 @@
-/* $Id: SurfacePotentialT.h,v 1.22 2003-08-08 00:43:00 paklein Exp $ */
+/* $Id: SurfacePotentialT.h,v 1.21 2003-05-26 01:51:46 paklein Exp $ */
 /* created: paklein (06/20/1999) */
 
 #ifndef _SURFACE_POTENTIAL_T_H_
@@ -38,11 +38,7 @@ public:
 			 kSimoViscoElast = 8, /**< Simo's thermo-visco-elasto model */
            kInelasticDuctile = 9, /**< rate-based ductile fracture model */
            				kMR = 10, /**< Elastoplastic Cohesive Model for Geomaterials*/
-           			 kMR_RP = 11, /**< Rigid-plastic Cohesive Model for Geomaterials*/ 
-  kTvergaardHutchinsonRigid = 101, /**< tri-linear potential */
-       kInelasticDuctile_RP = 109 /**< rate-based ductile fracture model */
-  };
-
+           			 kMR_RP = 11};/**< Rigid-plastic Cohesive Model for Geomaterials*/ 
 			 
 	/** surface element status codes */
 	enum StatusT {Precritical = 0, /**< loading phase */

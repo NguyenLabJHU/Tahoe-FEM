@@ -1,4 +1,4 @@
-/* $Id: MaterialSupportT.h,v 1.7 2003-08-25 21:42:42 paklein Exp $ */
+/* $Id: MaterialSupportT.h,v 1.6 2003-03-08 03:13:29 paklein Exp $ */
 #ifndef _MATERIAL_SUPPORT_T_H_
 #define _MATERIAL_SUPPORT_T_H_
 
@@ -16,7 +16,6 @@ class ElementCardT;
 class ScheduleT;
 class ifstreamT;
 class ofstreamT;
-class CommunicatorT;
 
 /** support for the Tahoe materials classes. */
 class MaterialSupportT
@@ -39,18 +38,6 @@ public:
 
 	/** stress evaluation points per element */
 	int NumIP(void) const { return fNumIP; };
-	/*@}*/
-
-	/** \name multiprocessor support */
-	/*@{*/
-	/** the number of processes */
-	int Size(void) const { return fSize; };
-
-	/** the rank of this process */
-	int Rank(void) const { return fRank; };
-
-	/** the low-level communicator, or NULL if it doesn't exist */
-	const CommunicatorT* Communicator(void) const { return fCommunicator; };
 	/*@}*/
 
 	/** \name run time status */
@@ -188,13 +175,6 @@ public:
 	const int* fNumberOfSteps;
   	/*@}*/
 
-	/** \name multiprocessor information */
-	/*@{*/
-	int fSize;
-	int fRank;
-	const CommunicatorT* fCommunicator;
-	/*@}*/
-
 	/** pointer to element card information */
 	const AutoArrayT<ElementCardT>* fElementCards;	
   
@@ -212,6 +192,11 @@ public:
 inline const ContinuumElementT* MaterialSupportT::ContinuumElement(void) const
 {
 	return fContinuumElement;
+}
+
+inline void MaterialSupportT::SetContinuumElement(const ContinuumElementT* p)
+{
+	fContinuumElement = p;
 }
 
 /* set the source for element cards */

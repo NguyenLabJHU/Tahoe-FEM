@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSNonlinHard.cpp,v 1.11 2003-09-03 23:43:31 paklein Exp $ */
+/* $Id: GradJ2SSNonlinHard.cpp,v 1.10 2003-05-15 22:39:47 rdorgan Exp $ */
 #include "GradJ2SSNonlinHard.h"
 
 #include "iArrayT.h"
@@ -534,7 +534,7 @@ void GradJ2SSNonlinHard::IncrementPlasticParameter(double& varLambda)
 /* computes the increments in the stress and internal variables */
 void GradJ2SSNonlinHard::IncrementState(const double& varLambda)
 {
-#pragma unused(varLambda)
+
         //	/* increment stress */
         //        fsymmatx1.SetToScaled(-2.0*fmu*varLambda, fUnitNorm_n);
         //	fStress += fsymmatx1;

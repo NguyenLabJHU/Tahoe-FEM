@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.24 2003-09-06 08:52:45 paklein Exp $
+# $Id: makefile.template,v 1.22 2003-04-22 18:35:26 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -72,7 +72,7 @@ TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 #DEV_CFLAGS   = $(DEV_INC) $(DEV_DEFINES)
 #DEV_LIB_NAME = development
 #DEV_LIB      = $(DEV_DIR)/lib/lib$(DEV_LIB_NAME).a
-#DEV_LFLAGS   = -L$(DEV_DIR)/lib -l$(DEV_LIB_NAME) -l$(TARGET)
+#DEV_LFLAGS   = -L$(DEV_DIR)/lib -l$(DEV_LIB_NAME)
 
 ##### fossum geomaterial module
 #FOSSUM_DIR      = $(HOME_DIR)/../fossum
@@ -232,8 +232,7 @@ clean_config:
 do_up_to_date:
 	@ for module in $(UP_TO_DATE); do \
 		if test -d $$module; then \
-			cd $$module; \
-			$(MAKE) $(COMMAND) "HOME_DIR = $$module" || exit 1; \
+			cd $$module; $(MAKE) $(COMMAND) || exit 1; \
 		else \
 			if test $$module != "NONE"; then \
 				$(ECHO) "\n*** module not found: $$module"; \

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.21 2003-08-23 20:24:15 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.18 2003-05-28 21:02:45 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -7,7 +7,6 @@
 #include "iConsoleObjectT.h"
 #include "XDOF_ManagerT.h"
 #include "GroupAverageT.h"
-#include "ParameterInterfaceT.h"
 
 /* direct members */
 #include "dArray2DT.h"
@@ -19,7 +18,6 @@
 #include "GlobalT.h"
 #include "IntegratorT.h"
 #include "nVariArray2DT.h"
-#include "FieldSupportT.h"
 
 namespace Tahoe {
 
@@ -44,8 +42,7 @@ class KBC_ControllerT;
 class NodeManagerT: 
 	public iConsoleObjectT, 
 	public XDOF_ManagerT, 
-	public GroupAverageT,
-	public ParameterInterfaceT
+	public GroupAverageT
 {
 public:
 
@@ -275,21 +272,6 @@ public:
 	virtual void XDOF_SetLocalEqnos(int group, const RaggedArray2DT<int>& nodes, RaggedArray2DT<int>& eqnos) const;
 	/*@}*/
 
-	/** \name construct BC controllers */
-	/*@{*/
-	virtual KBC_ControllerT* NewKBC_Controller(FieldT& field, int code);
-	virtual FBC_ControllerT* NewFBC_Controller(FieldT& field, int code);
-	/*@}*/
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
-	/*@}*/
-
 protected:
 
 	/** \name steps of NodeManagerT::Initialize */
@@ -302,6 +284,12 @@ protected:
 	/** simple output function */
 	virtual void WriteData(ostream& out, const char* title, const char* name,
 		const dArray2DT& data, const iArrayT* rowlabels) const;
+
+	/** \name construct BC controllers */
+	/*@{*/
+	virtual KBC_ControllerT* NewKBC_Controller(FieldT& field, int code);
+	virtual FBC_ControllerT* NewFBC_Controller(FieldT& field, int code);
+	/*@}*/
 
 	/** \name renumbering equation
 	 * methods over the specified group */
@@ -343,10 +331,6 @@ protected:
 
 	/** \name fields */
 	/*@{*/
-	/** support for fields */
-	FieldSupportT fFieldSupport;
-	
-	/** array of fields */
 	ArrayT<FieldT*> fFields;
 
 	/** ID for the field exchange obtained from NodeManagerT::fCommManager */
@@ -386,6 +370,7 @@ private:
 	dArray2DT* fCurrentCoords;
 	nVariArray2DT<double> fCurrentCoords_man;
 	/*@}*/
+
 };
 
 /* inlines */
@@ -394,7 +379,7 @@ private:
 inline FieldT* NodeManagerT::Field(const char* name)
 {
 	/* const this */
-	const NodeManagerT* this_ = (const NodeManagerT*) this;
+	const NodeManagerT* const this_ = (const NodeManagerT* const) this;
 	const FieldT* field = this_->Field(name);
 	return (FieldT*) field;
 }

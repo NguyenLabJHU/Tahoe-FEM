@@ -1,4 +1,4 @@
-/* $Id: IOManager.h,v 1.16 2003-08-08 00:38:38 paklein Exp $ */
+/* $Id: IOManager.h,v 1.15 2002-10-20 22:48:32 paklein Exp $ */
 /* created: sawimme (10/12/1999) */
 
 #ifndef _IOMANAGER_H_
@@ -32,13 +32,6 @@ class IOManager
 {
 public:
 
-	/** changing geometry */
-	enum ChangingFlagT {
-		kNoChangingFlag,
-		kForceChanging,
-		kForceNotChanging
-	};
-
 	/** constructor */
 	IOManager(ostream& outfile, const StringT& program_name, const StringT& version,
 		const StringT& title, const StringT& input_file, IOBaseT::FileTypeT output_format);
@@ -51,9 +44,6 @@ public:
 
 	/** destructor */
 	virtual ~IOManager(void);
-
-	/** how to override changing geometry flags in registered output sets */
-	void SetChangingFlag(ChangingFlagT changing_flag);
 
 	/** echo format file type */
 	void EchoData (ostream& o) const;
@@ -125,9 +115,6 @@ protected:
 	/* echo interactive data to input file */
 	ofstream fEchoInput;
 	bool fEcho;
-
-	/** flag for how to override changing geometry flags */
-	ChangingFlagT fChangingFlag;
 	
 private:
 
@@ -147,6 +134,5 @@ private:
 /* inlines */
 inline void IOManager::SetOutputTime(double time) { fOutputTime = time; }
 
-} /* namespace Tahoe */
-
+} // namespace Tahoe 
 #endif

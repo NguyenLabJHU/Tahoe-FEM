@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.h,v 1.8 2003-08-14 05:49:46 paklein Exp $ */
+/* $Id: AdhesionT.h,v 1.7 2003-01-09 18:10:45 rjones Exp $ */
 #ifndef _ADHESION_T_H_
 #define _ADHESION_T_H_
 
@@ -32,7 +32,6 @@ public:
 
 	/** constructor */
 	AdhesionT(const ElementSupportT& support, const FieldT& field);
-	AdhesionT(const ElementSupportT& support);
 
 	/** destructor */
 	~AdhesionT(void);
@@ -70,12 +69,6 @@ public:
 	 * for more documentation. */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
-
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-	/*@}*/
 
 protected:
 

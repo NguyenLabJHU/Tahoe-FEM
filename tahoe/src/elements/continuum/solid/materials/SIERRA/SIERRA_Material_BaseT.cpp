@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.11 2003-07-24 16:48:22 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.10 2003-04-15 13:34:25 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -580,7 +580,7 @@ if (input.Length() != 1)
 	else if (input[0] == "rot_strain_inc")
 	{
 		double dt = fFSMatSupport.TimeStep();
-		double k = (fabs(dt) > kSmall) ? 2.0/dt : 0.0;
+		double k = 2.0/dt;
 		fdstran[0] = k*fU1U2[0]; // 11
 		fdstran[1] = k*fU1U2[1]; // 22
 		fdstran[2] = k*fU1U2[2]; // 33

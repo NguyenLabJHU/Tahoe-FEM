@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.37 2003-09-12 18:10:19 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.33 2003-06-09 07:03:14 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -9,7 +9,6 @@
 
 #include "fstreamT.h"
 #include "FEManagerT.h"
-#include "IOManager.h"
 #include "ModelManagerT.h"
 #include "CommManagerT.h"
 #include "LocalArrayT.h"
@@ -20,8 +19,8 @@
 #include "PartitionT.h"
 #include "ReLabellerT.h"
 #include "OutputSetT.h"
-#include "ParameterUtils.h"
 
+#include "FieldSupportT.h"
 #include "FieldT.h"
 
 /* force BC controllers */
@@ -30,7 +29,6 @@
 #include "PenaltySphereT.h"
 #include "AugLagSphereT.h"
 #include "MFPenaltySphereT.h"
-#include "PenaltyCylinderT.h"
 
 /* kinematic BC controllers */
 #include "K_FieldT.h"
@@ -42,16 +40,13 @@
 #include "ScaledVelocityNodesT.h"
 #include "SetOfNodesKBCT.h"
 #include "TorsionKBCT.h"
-#include "ConveyorT.h"
 
 using namespace Tahoe;
 
 /* constructor */
 NodeManagerT::NodeManagerT(FEManagerT& fe_manager, CommManagerT& comm_manager):
-	ParameterInterfaceT("nodes"),
 	fFEManager(fe_manager),
-	fCommManager(comm_manager),
-	fFieldSupport(fe_manager, *this),
+	fCommManager(comm_manager), 
 	fInitCoords(NULL),
 	fCoordUpdate(NULL),
 	fCurrentCoords(NULL)
@@ -346,18 +341,20 @@ void NodeManagerT::FormLHS(int group, GlobalT::SystemTypeT sys_type)
 	    analysiscode != GlobalT::kVarNodeNLExpDyn &&
 	    analysiscode != GlobalT::kPML)
 	{
+		FieldSupportT support(fFEManager);
 		for (int i = 0; i < fFields.Length(); i++)
 			if (fFields[i]->Group() == group)
-				fFields[i]->FormLHS(sys_type);
+				fFields[i]->FormLHS(support, sys_type);
 	}
 }
 	
 /* compute the nodal contribution to the residual force vector */
 void NodeManagerT::FormRHS(int group)
 {
+	FieldSupportT support(fFEManager);
 	for (int i = 0; i < fFields.Length(); i++)
 		if (fFields[i]->Group() == group)
-			fFields[i]->FormRHS();
+			fFields[i]->FormRHS(support);
 }
 
 /* returns true if the internal force has been changed since
@@ -1190,33 +1187,9 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const RaggedArray2DT<int>& node
 	}
 }
 
-/* information about subordinate parameter lists */
-void NodeManagerT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	ParameterInterfaceT::DefineSubs(sub_list);
-
-	/* the fields */
-	sub_list.AddSub("field", ParameterListT::OnePlus);
-	
-	/* list of history node ID's */
-	sub_list.AddSub("history_node_ID", ParameterListT::Any);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* NodeManagerT::NewSub(const StringT& list_name) const
-{
-	if (list_name == "field")
-		return new FieldT(fFieldSupport);
-	else if (list_name == "history_node_ID")
-		return new IntegerListT("history_node_ID");
-	else
-		return ParameterInterfaceT::NewSub(list_name);
-}
-
 /**********************************************************************
- * Protected
- **********************************************************************/
+* Protected
+**********************************************************************/
 
 void NodeManagerT::EchoCoordinates(ifstreamT& in, ostream& out)
 {
@@ -1332,8 +1305,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			if (!controller) ExceptionT::GeneralFail(caller);
 
 			/* new field */			
-			FieldT* field = new FieldT(fFieldSupport);
-			field->Initialize(name, ndof, *controller);
+			FieldT* field = new FieldT(name, ndof, *controller);
 			field->SetLabels(labels);
 			field->SetGroup(group_num);
 			field->Dimension(NumNodes(), false);
@@ -1386,8 +1358,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			case GlobalT::kNLStaticKfield:
 			case GlobalT::kLinStatic:
 			{
-				field = new FieldT(fFieldSupport);
-				field->Initialize("displacement", NumSD(), *controller);
+				field = new FieldT("displacement", NumSD(), *controller);
 
 				/* label list */
 				ArrayT<StringT> labels(field->NumDOF());
@@ -1404,8 +1375,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			case GlobalT::kNLStaticHeat:
 			case GlobalT::kNLTransHeat:
 			{
-				field = new FieldT(fFieldSupport);
-				field->Initialize("temperature", 1, *controller);
+				field = new FieldT("temperature", 1, *controller);				
 
 				/* set labels */
 				ArrayT<StringT> labels(1);
@@ -1801,11 +1771,6 @@ KBC_ControllerT* NodeManagerT::NewKBC_Controller(FieldT& field, int code)
 			TorsionKBCT* kbc = new TorsionKBCT(*this, fFEManager.Time());
 			return kbc;
 		}
-		case KBC_ControllerT::kConyevor:
-		{
-			ConveyorT* kbc = new ConveyorT(*this, field);
-			return kbc;
-		}
 		default:
 			ExceptionT::BadInputValue("NodeManagerT::NewKBC_Controller", 
 				"KBC controller code %d is not supported", code);
@@ -1839,10 +1804,6 @@ FBC_ControllerT* NodeManagerT::NewFBC_Controller(FieldT& field, int code)
 
 		case FBC_ControllerT::kPenaltySphere:	
 			fbc = new PenaltySphereT(fFEManager, field.Group(), eqnos, coords, velocity);
-			break;
-
-		case FBC_ControllerT::kPenaltyCylinder:	
-			fbc = new PenaltyCylinderT(fFEManager, field.Group(), eqnos, coords, velocity);
 			break;
 
 		case FBC_ControllerT::kAugLagSphere:	
@@ -1912,24 +1873,17 @@ void NodeManagerT::EchoKinematicBCControllers(FieldT& field, ifstreamT& in, ostr
 	/* construct */
 	for (int i = 0; i < numKBC; i++)
 	{
-		int num, KBC_type;
-		in2 >> num >> KBC_type; num--;
+		int num, type;
+		in2 >> num >> type; num--;
 		
 		/* construct */
-		KBC_ControllerT* controller = NewKBC_Controller(field, KBC_type);
+		KBC_ControllerT* controller = NewKBC_Controller(field, type);
 		
 		/* initialize */
 		controller->Initialize(in2);
 		
 		/* store */
 		field.AddKBCController(controller);
-		
-		/* special handling of conveyor */
-		if (false && KBC_type == KBC_ControllerT::kConyevor) {
-		
-			/* force all geometry to be changing */
-			fFEManager.OutputManager()->SetChangingFlag(IOManager::kForceChanging);
-		}
 	}
 
 	/* echo parameters */

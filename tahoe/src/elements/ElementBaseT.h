@@ -1,11 +1,11 @@
-/* $Id: ElementBaseT.h,v 1.32 2003-09-03 22:54:11 cjkimme Exp $ */
+/* $Id: ElementBaseT.h,v 1.29 2003-06-09 06:37:07 paklein Exp $ */
 /* created: paklein (05/24/1996) */
+
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
 
 /* base class */
 #include "iConsoleObjectT.h"
-#include "ParameterInterfaceT.h"
 
 /* direct members */
 #include "GlobalT.h"
@@ -35,7 +35,6 @@ template <class TYPE> class RaggedArray2DT;
 class iAutoArrayT;
 class dArray2DT;
 class StringT;
-class SubListT;
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 class FieldT;
@@ -55,21 +54,13 @@ class FieldT;
  * ElementBaseT::ResetStep must return the element to its state at the start 
  * of the current time increment. There are number of purely virtual
  * functions that must be implemented by derived classes. */
-class ElementBaseT: public iConsoleObjectT, public ParameterInterfaceT
+class ElementBaseT: public iConsoleObjectT
 {
 public:
-
-	/** element status flags */
-	enum StatusT {kOFF = 0,
-                   kON = 1,
-               kMarked = 2,
-               kMarkON = 3,
-              kMarkOFF = 4};
 
 	/** constructors */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	ElementBaseT(const ElementSupportT& support, const FieldT& field);
-	ElementBaseT(const ElementSupportT& support);
 #else
 	ElementBaseT(ElementSupportT& support);
 #endif
@@ -104,7 +95,7 @@ public:
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/** field information */
-	const FieldT& Field(void) const;
+	const FieldT& Field(void) const { return fField; };
 
 	/** return a const reference to the run state flag */
 	const GlobalT::StateT& RunState(void) const { return fSupport.RunState(); };
@@ -128,16 +119,19 @@ public:
 	void ElementBlockIDs(ArrayT<StringT>& IDs) const;
 	
 	/** return the number of degrees of freedom per node */
-	int NumDOF(void) const;
+	int NumDOF(void) const 
+	{ 
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+		return fField.NumDOF();
+#else
+		return fSupport.NumSD();
+#endif 
+	};
 	/*@}*/
 
 	/** class initialization. Among other things, element work space
 	 * is allocated and connectivities are read. */
 	virtual void Initialize(void);
-
-	/** set the active elements.
-	 * \param array of status flags for all elements in the group */
-	virtual void SetStatus(const ArrayT<StatusT>& status);
 
 	/** compute LHS-side matrix and assemble to solver.
 	 * \param sys_type "maximum" LHS matrix type needed by the solver. The GlobalT::SystemTypeT
@@ -282,25 +276,19 @@ public:
 	 *       group and could replace the current approach implemented through ElementBaseT::FormRHS. */
 	virtual const dArray2DT& InternalForce(int group);
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
-	/*@}*/
-
 protected: /* for derived classes only */
 
 	/** map the element numbers from block to group numbering */
 	void BlockToGroupElementNumbers(iArrayT& elems, const StringT& block_ID) const;
 
 	/** solver group */
-	int Group(void) const;
+	int Group(void) const {
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
+		return fField.Group(); 
+#else
+		return 0;
+#endif
+	};
 
 	/** get local element data, X for geometry, U for
 	 * field variables */
@@ -428,7 +416,7 @@ private:
 #endif
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	const FieldT* fField;
+	const FieldT& fField;
 #endif
 	/*@}*/
 };
@@ -462,35 +450,5 @@ inline int ElementBaseT::NumElementNodes(void) const
 #endif
 }
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-/* field information */
-inline const FieldT& ElementBaseT::Field(void) const {
-#if __option(extended_errorcheck)
-	if (!fField) ExceptionT::GeneralFail("ElementBaseT::Field", "field not set");
-#endif
-	return *fField;
-}
-#endif
-
-/* solver group */
-inline int ElementBaseT::Group(void) const {
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return Field().Group(); 
-#else
-	return 0;
-#endif
-};
-
-/* return the number of degrees of freedom per node */
-inline int ElementBaseT::NumDOF(void) const
-{ 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	return Field().NumDOF();
-#else
-	return fSupport.NumSD();
-#endif 
-};
-
-} /* namespace Tahoe */
-
+} // namespace Tahoe 
 #endif /* _ELEMENTBASE_T_H_ */

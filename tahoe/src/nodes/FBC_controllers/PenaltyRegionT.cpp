@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.12 2003-08-23 20:08:57 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.11 2003-01-29 07:35:22 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltyRegionT.h"
@@ -106,33 +106,31 @@ void PenaltyRegionT::EchoData(ifstreamT& in, ostream &out)
 	
 	/* remove "external" nodes */
 	CommManagerT* comm = fFEManager.CommManager();
-	const ArrayT<int>* p_map = comm->ProcessorMap();
-	if (fNumContactNodes > 0 && p_map)
+	const ArrayT<int>* p_nodes_in = comm->BorderNodes();
+	if (fNumContactNodes > 0 && p_nodes_in)
 	{
 		/* wrap it */
-		iArrayT processor;
-		processor.Alias(*p_map);
+		iArrayT nodes_in;
+		nodes_in.Alias(*p_nodes_in);
 	
-		/* count processor nodes */
-		int rank = comm->Rank();
-		int num_local_nodes = 0;
+		/* brute force search */
+		iArrayT is_external(fNumContactNodes);
 		for (int i = 0; i < fNumContactNodes; i++)
-			if (processor[fContactNodes[i]] == rank)
-				num_local_nodes++;
-		
-		/* remove off-processor nodes */
-		if (num_local_nodes != fNumContactNodes)
+			is_external[i] = nodes_in.HasValue(fContactNodes[i]);
+	
+		/* found external nodes */
+		if (is_external.HasValue(1))
 		{
-			/* report */
+			int num_external = is_external.Count(1);
 			out << " Number of external contact nodes (removed). . . = "
-			    << fNumContactNodes - num_local_nodes << '\n';
-
-			/* collect processor nodes */
-			iArrayT nodes_temp(num_local_nodes);
-			int index = 0;
+			    << num_external << '\n';
+		
+			int num_contact_nodes = fNumContactNodes - num_external;
+			iArrayT nodes_temp(num_contact_nodes);
+			int count = 0;
 			for (int i = 0; i < fNumContactNodes; i++)
-				if (processor[fContactNodes[i]] == rank)
-					nodes_temp[index++] = fContactNodes[i];
+				if (!is_external[i])
+					nodes_temp[count++] = fContactNodes[i];
 		
 			/* reset values */
 			fContactNodes.Swap(nodes_temp);

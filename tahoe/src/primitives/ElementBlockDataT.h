@@ -1,9 +1,7 @@
-/* $Id: ElementBlockDataT.h,v 1.4 2003-08-14 05:32:30 paklein Exp $ */
+/* $Id: ElementBlockDataT.h,v 1.3 2002-07-05 22:28:33 paklein Exp $ */
+
 #ifndef _ELEM_BLOCK_DATA_T_H_
 #define _ELEM_BLOCK_DATA_T_H_
-
-/* base class */
-#include "ParameterInterfaceT.h"
 
 /* direct members */
 #include "StringT.h"
@@ -13,7 +11,7 @@ namespace Tahoe {
 /** container for element block information. Used by ElementBaseT to
  * store information about multiple element blocks within an element
  * group. */
-class ElementBlockDataT: public ParameterInterfaceT
+class ElementBlockDataT
 {
 public:
 	
@@ -44,12 +42,6 @@ public:
 	/** assigmnent operator */
 	ElementBlockDataT& operator=(const ElementBlockDataT& rhs);
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-	/*@}*/
-	
 private:
 
 	/** block ID */

@@ -1,4 +1,4 @@
-/* $Id: TorsionKBCT.cpp,v 1.3 2003-08-18 03:45:17 paklein Exp $ */
+/* $Id: TorsionKBCT.cpp,v 1.2 2003-05-31 18:38:29 paklein Exp $ */
 #include "TorsionKBCT.h"
 #include "NodeManagerT.h"
 #include "ifstreamT.h"
@@ -23,19 +23,18 @@ TorsionKBCT::TorsionKBCT(NodeManagerT& node_manager, const double& time):
 	fStartTime(0.0),
 	fw(0.0),
 	fAxis(-1),
+	fPoint(fNodeManager.NumSD()),
 	fDummySchedule(1.0)
 {
-	SetName("torsion");
+	/* 3D only */
+	if (fNodeManager.NumSD() != 3)
+		ExceptionT::BadInputValue("TorsionKBCT::TorsionKBCT", "3D only");
 }
 
 /* initialize data - called immediately after construction */
 void TorsionKBCT::Initialize(ifstreamT& in)
 {
 	const char caller[] = "TorsionKBCT::Initialize";
-
-	/* 3D only */
-	if (fNodeManager.NumSD() != 3)
-		ExceptionT::BadInputValue(caller, "3D only");
 
 	/* rotation rate */
 	in >> fw;
@@ -47,7 +46,6 @@ void TorsionKBCT::Initialize(ifstreamT& in)
 	fAxis--;
 	
 	/* point on the axis of rotation */
-	fPoint.Dimension(fNodeManager.NumSD());
 	in >> fPoint;
 
 	/* nodes */
@@ -155,14 +153,4 @@ void TorsionKBCT::InitStep(void)
 		int dof_2 = card_2.DOF();
 		card_2.SetValues(node, dof_2, KBC_CardT::kDsp, 0, x[dof_2] - X[dof_2]);
 	}
-}
-
-/* describe the parameters needed by the interface */
-void TorsionKBCT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	KBC_ControllerT::DefineParameters(list);
-
-	list.AddParameter(fw, "rotation_rate");
-	list.AddParameter(fAxis, "rotation_axis");
 }

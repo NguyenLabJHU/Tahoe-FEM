@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.55 2003-09-04 07:16:50 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.50 2003-06-09 06:42:47 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -32,12 +32,10 @@
 #include "TiedPotentialBaseT.h"
 #include "YoonAllen2DT.h"
 #include "From2Dto3DT.h"
-#include "TvergHutchRigid2DT.h"
 #endif
 
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
 #include "InelasticDuctile2DT.h"
-#include "InelasticDuctile_RP2DT.h"
 #include "MR2DT.h"
 #include "MR_RP2DT.h"
 #endif
@@ -58,23 +56,10 @@ CSEAnisoT::CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool r
 	fdelta(NumSD()),
 	fT(NumSD()),
 	fddU(NumSD()),
-	fRunState(support.RunState()),
-	fIPArea(0.0)
-{
-	SetName("anisotropic_CSE");
-
-	/* reset format for the element stiffness matrix */
-	if (fRotate) fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
-}
-
-/* constructor */
-CSEAnisoT::CSEAnisoT(const ElementSupportT& support):
-	CSEBaseT(support),
-	fRotate(true),
-	fCurrShapes(NULL),
 	fRunState(support.RunState())
 {
-	SetName("anisotropic_CSE");
+	/* reset format for the element stiffness matrix */
+	if (fRotate) fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
 }
 #else
 CSEAnisoT::CSEAnisoT(ElementSupportT& support, bool rotate):
@@ -86,8 +71,6 @@ CSEAnisoT::CSEAnisoT(ElementSupportT& support, bool rotate):
 	fT(NumSD()),
 	fddU(NumSD())
 {
-	SetName("anisotropic_CSE");
-
 	/* reset format for the element stiffness matrix */
 	if (fRotate) fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
 }
@@ -218,17 +201,6 @@ void CSEAnisoT::Initialize(void)
 				}
 				break;
 			}
-			
-			case SurfacePotentialT::kTvergaardHutchinsonRigid:
-			{
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-				if (NumDOF() != 2) ExceptionT::GeneralFail();	
-				fSurfPots[num] = new TvergHutchRigid2DT(in);
-#else
-				throw ExceptionT::kBadInputValue;
-#endif
-				break;
-			}
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 			case SurfacePotentialT::kViscTvergaardHutchinson:
 			{
@@ -282,19 +254,6 @@ void CSEAnisoT::Initialize(void)
 #ifdef COHESIVE_SURFACE_ELEMENT_DEV
 				if (NumDOF() == 2)
 					fSurfPots[num] = new InelasticDuctile2DT(in, ElementSupport().TimeStep());
-				else
-					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "COHESIVE_SURFACE_ELEMENT_DEV not enabled: %d", code);
-#endif
-			}
-			case SurfacePotentialT::kInelasticDuctile_RP:
-			{
-#ifdef COHESIVE_SURFACE_ELEMENT_DEV
-				if (NumDOF() == 2)
-//					fSurfPots[num] = new InelasticDuctile_RP2DT(in, ElementSupport().TimeStep(), fIPArea);
-					fSurfPots[num] = new InelasticDuctile_RP2DT(in, ElementSupport().TimeStep(), fIPArea, ElementSupport().Output());
 				else
 					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
 				break;
@@ -489,7 +448,7 @@ void CSEAnisoT::CloseStep(void)
 	/* inherited */
 	CSEBaseT::CloseStep();
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
+#ifndef _SIERRA_TEST_
 	/* update flags */
 	if (freeNodeQ.IsAllocated())
 	{
@@ -543,7 +502,7 @@ void CSEAnisoT::CloseStep(void)
 		/* update history */
 		freeNodeQ_last = freeNodeQ;
 	}
-#endif /* _FRACTURE_INTERFACE_LIBRARY__	*/
+#endif /* _SIERRA_TEST_	*/
 	
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/* store history */
@@ -616,17 +575,6 @@ void CSEAnisoT::ReadRestart(double* incomingData)
 //		freeNodeQ_last = freeNodeQ;
 }
 #endif
-
-/* describe the parameters needed by the interface */
-void CSEAnisoT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	CSEBaseT::DefineParameters(list);
-
-	ParameterT rotate_frame(ParameterT::Boolean, "rotate_frame");
-	rotate_frame.SetDefault(true);
-	list.AddParameter(rotate_frame);
-}
 
 /***********************************************************************
  * Protected
@@ -723,7 +671,6 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 			}
 			else
 				j0 = j = fShapes->Jacobian(fQ);
-			fIPArea = w*j0;
 
 			/* check */
 			if (j0 <= 0.0 || j <= 0.0) ExceptionT::BadJacobianDet(caller);
@@ -883,7 +830,7 @@ void CSEAnisoT::RHSDriver(void)
 			int num_state = fNumStateVariables[element.MaterialNumber()];
 	
 			/* get current geometry */
-			SetLocalX(fLocCurrCoords);
+			SetLocalX(fLocCurrCoords); //EFFECTIVE_DVA
 	
 	  		/* initialize */
 	  		fRHS = 0.0;
@@ -932,8 +879,7 @@ void CSEAnisoT::RHSDriver(void)
 				}
 				else
 					j0 = j = fShapes->Jacobian(fQ);
-				fIPArea = w*j0;
-
+				
 				/* check */
 				if (j0 <= 0.0 || j <= 0.0) ExceptionT::BadJacobianDet(caller);
 	
@@ -1057,71 +1003,6 @@ void CSEAnisoT::SendOutput(int kincode)
 		CSEBaseT::SendOutput(kincode);
 	else // TiedNodesT wants its freeNode info
 		ComputeFreeNodesForOutput();
-}
-
-/* set the active elements */
-void CSEAnisoT::SetStatus(const ArrayT<StatusT>& status)
-{
-	/* work space */
-	dArrayT state;
-	dArrayT t_in;
-	iArrayT facet1;
-
-	/* loop over elements and initial state variables */
-	for (int i = 0; i < fElementCards.Length(); i++)
-	{
-		/* current element */
-		ElementCardT& element = fElementCards[i];
-		int& flag = element.Flag();
-		flag = status[i];
-		if (flag == kMarkON)
-		{		
-			/* surface potential */
-			SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
-			int num_state = fNumStateVariables[element.MaterialNumber()];
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-			TvergHutchRigid2DT* surfpot_rot = dynamic_cast<TvergHutchRigid2DT*>(surfpot);
-#else
-			SurfacePotentialT* surfpot_rot = NULL;
-#endif
-	
-			/* initialize state variables by rotating some values by Q */
-			if (surfpot_rot)
-			{
-				/* get geometry */
-				fNodes1.Collect(facet1, element.NodesX());
-				fLocInitCoords1.SetLocal(fNodes1);
-				fLocCurrCoords.SetLocal(element.NodesX());
-
-				/* loop over integration points */
-				double* pstate = fStateVariables(i);
-				fShapes->TopIP();
-				while (fShapes->NextIP())
-				{
-					/* set state variables */
-					state.Set(num_state, pstate);
-					pstate += num_state;
-
-					/* rotate  */
-					if (fRotate)
-					{
-						/* coordinate transformation */
-						fCurrShapes->Jacobian(fQ);
-					
-						/* gap vector in local frame */
-						fQ.MultTx(state, t_in);
-						state = t_in;
-					}
-		
-					/* initialize the state variables */
-					surfpot->InitStateVariables(state);
-				}
-			}
-			flag = kON;
-		}
-		else if (flag == kMarkOFF)
-			flag = kOFF;
-	}
 }
 
 /* extrapolate the integration point stresses and strains and extrapolate */
