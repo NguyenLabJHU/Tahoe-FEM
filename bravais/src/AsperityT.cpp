@@ -1,10 +1,7 @@
 // DEVELOPMENT
-/* $Id: AsperityT.cpp,v 1.16 2003-08-15 01:22:20 saubry Exp $ */
+/* $Id: AsperityT.cpp,v 1.17 2003-09-08 20:14:51 jzimmer Exp $ */
 #include "AsperityT.h"
 #include "VolumeT.h"
-
-#include <iostream>
-#include <fstream>
 
 #include "ExceptionCodes.h"
 #include "ifstreamT.h"

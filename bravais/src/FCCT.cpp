@@ -1,10 +1,7 @@
 // DEVELOPMENT
-/* $Id: FCCT.cpp,v 1.14 2003-08-01 22:54:39 saubry Exp $ */
+/* $Id: FCCT.cpp,v 1.15 2003-09-08 20:14:51 jzimmer Exp $ */
 #include "FCCT.h"
 #include "CrystalLatticeT.h"
-
-#include <iostream>
-#include <fstream>
 
 #include "ifstreamT.h"
 #include "ExceptionCodes.h"

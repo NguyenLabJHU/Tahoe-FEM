@@ -1,9 +1,7 @@
 // DEVELOPMENT
-/* $Id: CrystalLatticeT.cpp,v 1.20 2003-08-01 22:54:39 saubry Exp $ */
+/* $Id: CrystalLatticeT.cpp,v 1.21 2003-09-08 20:14:51 jzimmer Exp $ */
 #include "CrystalLatticeT.h"
 
-#include <iostream>
-#include <fstream>
 #include "StringT.h"
 #include "ifstreamT.h"
 #include "ExceptionCodes.h"

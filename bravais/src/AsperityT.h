@@ -1,10 +1,9 @@
 // DEVELOPMENT
-/* $Id: AsperityT.h,v 1.10 2003-08-15 01:22:20 saubry Exp $ */
+/* $Id: AsperityT.h,v 1.11 2003-09-08 20:14:51 jzimmer Exp $ */
 
 #ifndef _ASPERITY_T_H_
 #define _ASPERITY_T_H_
 
-#include <iostream>
 #include "iArrayT.h"
 #include "dArrayT.h"
 #include "dArray2DT.h"

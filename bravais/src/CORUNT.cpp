@@ -1,8 +1,6 @@
 // DEVELOPMENT
 #include "CORUNT.h"
 #include "CrystalLatticeT.h"
-#include <iostream>
-#include <fstream>
 #include "StringT.h"
 #include "ifstreamT.h"
 #include "ExceptionCodes.h"
