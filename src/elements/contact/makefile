@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.17 2003-12-20 01:22:14 rjones Exp $
+# $Id: makefile,v 1.18 2004-01-02 20:24:58 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -74,7 +74,9 @@ HDR = \
 	PenaltyContactElement3DT.h \
 	QuadL4FaceT.h \
 	SurfaceT.h \
-	TriaL3FaceT.h
+	TriaL3FaceT.h \
+	vector2D.h \
+	vector3D.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
