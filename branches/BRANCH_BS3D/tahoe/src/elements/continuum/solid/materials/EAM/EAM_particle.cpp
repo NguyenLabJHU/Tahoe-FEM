@@ -1,4 +1,4 @@
-/* $Id: EAM_particle.cpp,v 1.1.2.5 2004-02-26 19:08:16 hspark Exp $ */
+/* $Id: EAM_particle.cpp,v 1.1.2.6 2004-02-28 02:58:45 hspark Exp $ */
 /* created: hspark(02/25/2004) */
 #include "EAM_particle.h"
 #include <iostream.h> //TEMP
@@ -86,7 +86,6 @@ double EAM_particle::ComputeUnitEnergy(void)
 	}
 	
 	energy += fEmbedEnergy(rho, NULL, NULL);
-
 	return energy;
 }
 
@@ -99,18 +98,22 @@ void EAM_particle::ComputeUnitStress(dSymMatrixT& stress)
 {
 	/* total atomic density */
 	double rho = TotalElectronDensity();
-	double dFdrho = fEmbedForce(rho, NULL, NULL);
+	double dFdrho = fEmbedForce(rho, NULL, NULL);	// checks out
 
 	/* assemble stress */
 	stress = 0.0;
 
-	for (int i = 0; i < fNumBonds; i++)
+	for (int i = 0; i < fNumBonds; i++)	// fNumBonds, ri, ci check out
 	{
 		double ri = fBonds[i];
 		int    ci = fCounts[i];	
 		double DPotential = fPairForce(ri, NULL, NULL);
+		//cout << "DPotential = " << DPotential << endl;
 		double DDensity = fEDForce(ri, NULL, NULL);	
+		//cout << "DDensity = " << DDensity << endl;
 		double coeff = (1.0/ri)*ci*(0.5*DPotential + dFdrho*DDensity);
+		//double DDPotential = fPairStiffness(ri, NULL, NULL);
+		//cout << "DDPotential = " << DDPotential << endl;
 		fLattice.BondComponentTensor2(i,fBondTensor2);
 		stress.AddScaled(coeff,fBondTensor2);
 	}
@@ -204,7 +207,7 @@ double EAM_particle::TotalElectronDensity(void)
 	{
 		double ri = fBonds[i];
 		double pedensity = fEDEnergy(ri, NULL, NULL);
-		rho += (*pcount++)*pedensity;
+		rho += (*pcount++)*(pedensity);
 	}
 	return rho;
 }

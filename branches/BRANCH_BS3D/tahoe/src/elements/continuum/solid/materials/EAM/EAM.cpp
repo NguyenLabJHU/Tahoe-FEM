@@ -1,4 +1,4 @@
-/* $Id: EAM.cpp,v 1.4 2003-11-21 22:46:19 paklein Exp $ */
+/* $Id: EAM.cpp,v 1.4.6.1 2004-02-28 02:58:45 hspark Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAM.cpp                                                                */
 
@@ -69,7 +69,6 @@ double EAM::ComputeUnitEnergy(void)
 	}
 	
 	energy += fEmbeddingEnergy->Function(rho);
-
 	return energy;
 }
 
@@ -89,10 +88,14 @@ void EAM::ComputeUnitStress(dSymMatrixT& stress)
 	
 	dArrayT& DPotential = fPairPotential->MapDFunction(fBonds, fBond1);
 	dArrayT& DDensity   = fElectronDensity->MapDFunction(fBonds, fBond2);
+	dArrayT& DDPotential  = fPairPotential->MapDDFunction(fBonds, fBond3);
 	for (int i = 0; i < fNumBonds; i++)
 	{
 		double ri = fBonds[i];
-		int    ci = fCounts[i];		
+		int    ci = fCounts[i];	
+		//cout << "DPotential = " << DPotential[i] << endl;
+		//cout << "DDensity = " << DDensity[i] << endl;
+		//cout << "DDPotential = " << DDPotential[i] << endl;
 		double coeff = (1.0/ri)*ci*(0.5*DPotential[i] + dFdrho*DDensity[i]);
 		fLattice.BondComponentTensor2(i,fBondTensor2);
 		stress.AddScaled(coeff,fBondTensor2);

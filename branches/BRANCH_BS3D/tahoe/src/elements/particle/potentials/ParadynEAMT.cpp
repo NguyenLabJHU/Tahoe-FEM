@@ -1,4 +1,4 @@
-/* $Id: ParadynEAMT.cpp,v 1.8 2003-06-24 23:46:06 saubry Exp $ */
+/* $Id: ParadynEAMT.cpp,v 1.8.20.1 2004-02-28 02:58:46 hspark Exp $ */
 #include "ParadynEAMT.h"
 
 #include "toolboxConstants.h"
@@ -32,7 +32,6 @@ ParadynEAMT::ParadynEAMT(const StringT& param_file):
   f_cut(0.0)
 {
   const char caller[] = "ParadynEAMT::ParadynEAMT";
-  
   /* try to open file */
   ifstreamT in(fParams);
   if (!in.is_open())
@@ -47,11 +46,10 @@ ParadynEAMT::ParadynEAMT(const StringT& param_file):
   double mass;
   in >> fAtomicNumber >> mass 
      >> fLatticeParameter >> fStructure;
-  
+
   /* Adjust mass like in interpolate.F of ParaDyn */
   double conmas = 1.0365e-4;
   mass *= conmas;
-  
   
   /* read dimensions */
   int np, nr;
@@ -80,16 +78,16 @@ ParadynEAMT::ParadynEAMT(const StringT& param_file):
     tmp[j] *= sqrt(27.2*0.529);
   
   f_inc = 1.0/dr;
-  
+
   /* compute spline coefficients for z */
   ComputeCoefficients(tmp, dr, fPairCoeff);
-  
+
   /* Electron Density, rhoin in ParaDyn, 
      assume that z and rho grids coincide */
   in >> tmp;
   /* compute spline coefficients for Electron Density  */
   ComputeCoefficients(tmp, dr, fElectronDensityCoeff);
-  
+
   /* inherited */
   SetMass(mass);
   SetRange(f_cut);
@@ -239,7 +237,7 @@ double ParadynEAMT::EmbeddingEnergy(double rho_ab, double* data_a, double* data_
 {
 #pragma unused(data_a)
 #pragma unused(data_b)
-
+  
   return EnergyAux(rho_ab,s_np,s_e_inc,s_Embcoeff);
 }
 
@@ -257,6 +255,7 @@ double ParadynEAMT::PairForce(double r_ab, double* data_a, double* data_b)
 {
 #pragma unused(data_a)
 #pragma unused(data_b)
+
   double zp = ForceAux(r_ab,s_nr,s_f_inc,s_Paircoeff);
   return zp;
 }
