@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.5 2002-01-09 22:19:33 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.6 2002-02-18 09:25:55 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
@@ -34,6 +34,10 @@ protected:
 	/** add the command line option to the list. \returns true if the option was
 	 * added, false otherwise. */
 	virtual bool AddCommandLineOption(const char* str);
+
+	/** remove the command line option to the list. \returns true if the option was
+	 * removed, false otherwise. */
+	virtual bool RemoveCommandLineOption(const char* str);
 
 	/** overloaded */
 	virtual void RunJob(ifstreamT& in, ostream& status);
