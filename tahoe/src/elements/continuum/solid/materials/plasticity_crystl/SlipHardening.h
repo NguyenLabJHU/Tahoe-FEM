@@ -109,6 +109,9 @@ class SlipHardening
   dArrayT fTauIso;
   dArrayT fTauKin;
 
+  // incompatibility stress-like quantity (nonlocal model)
+  dArrayT fTauInc;
+
   // slip hardening material properties
   dArrayT fMatProp;
 

@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp.cpp,v 1.14 2003-12-18 22:22:01 ebmarin Exp $ */
+/* $Id: GradCrystalPlastFp.cpp,v 1.15 2004-04-13 20:37:32 ebmarin Exp $ */
 #include "GradCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -30,42 +30,46 @@ const int ELprnt = 0;
 
 GradCrystalPlastFp::GradCrystalPlastFp(ifstreamT& in, const FSMatSupportT& support) :
   LocalCrystalPlastFp(in, support),  
-  fLocInitX (ContinuumElement().InitialCoordinates()),
-  fLocCurrX (LocalArrayT::kCurrCoords),
-  fGradTool (NULL),
-  fFpIP     (NumIP()),    
-  fGradFp   (kNSD),
-  fCurlFpT  (kNSD),
-  fKe_n     (kNSD,kNSD),  
-  fKe       (kNSD,kNSD),  
-  fXe       (kNSD,kNSD),  
-  fnormFp0  (NumIP()),
-  fnormHard0(NumIP()),
-  fnormFp   (NumIP()),
-  fnormHard (NumIP()),
-  fMatx4    (kNSD,kNSD)
+  fLocInitX   (ContinuumElement().InitialCoordinates()),
+  fLocCurrX   (LocalArrayT::kCurrCoords),
+//  fLocInitXIP (NumIP(), NumSD()),
+//  fLocCurrXIP (NumIP(), NumSD()),
+  fGradTool   (new GradientTools_C(NumIP(), NumSD())),
+  fFpIP       (NumIP()),    
+  fFpC        (kNSD),
+  fGradFp     (kNSD),
+  fCurlFpT    (kNSD),
+  fKe_n       (kNSD,kNSD),  
+  fKe         (kNSD,kNSD),  
+  fXe         (kNSD,kNSD),  
+  fnormFp0    (NumIP()),
+  fnormHard0  (NumIP()),
+  fnormFp     (NumIP()),
+  fnormHard   (NumIP()),
+  fMatx4      (kNSD,kNSD),
+  fX_IP       (NumSD())
 {
   // check number of grains
   if (fNumGrain != 1) 
     throwRunTimeError("GradCrystalPlastFp::GradCrystalPlastFp: NumGrain != 1");
 
-  // number of element vertex nodes for gradient evaluation
-  if (NumSD() == 2) 
-    fNumNodes = 4;
-  else if (NumSD() == 3) 
-    fNumNodes = 8;
-  else 
-    throwRunTimeError("GradCrystalPlastFp::GradCrystalPlastFp: NumSD != 2 or 3");
+  // may need to check element node number(?)
+  int nodes = fLocInitX.NumberOfNodes();
+
+  // check number of IPs used (if #sd=2 -> #ip=4; if #sd=3 -> #ip=8)
+  if (NumSD() == 2)
+    if (NumIP() != 4) 
+      throwRunTimeError("GradCrystalPlastFp::GradCrystalPlastFp: NumSD=2 && NumIP!=4");
+  else if (NumSD() == 3)
+    if (NumIP() != 8) 
+      throwRunTimeError("GradCrystalPlastFp::GradCrystalPlastFp: NumSD=3 && NumIP!=8");
+  else
+      throwRunTimeError("GradCrystalPlastFp::GradCrystalPlastFp: NumSD!=2 or 3");
 
   // allocate space for ...
   // ... Fp values at integration points
   for (int i = 0; i < NumIP(); i++)
     fFpIP[i].Dimension(kNSD,kNSD);
-
-  // ... Fp values at nodal points
-  fFpNodes.Dimension(fNumNodes);
-  for (int i = 0; i < fNumNodes; i++) 
-    fFpNodes[i].Dimension(kNSD,kNSD);
 
   // ... spatial gradients of Fp (note: kNSD instead of NumSD())
   for (int i = 0; i < kNSD; i++)
@@ -74,8 +78,9 @@ GradCrystalPlastFp::GradCrystalPlastFp(ifstreamT& in, const FSMatSupportT& suppo
   // ... current coordinates
   fLocCurrX.Dimension(fLocInitX.NumberOfNodes(), NumSD());
 
-  // create Gradient Tool object
-  fGradTool = new GradientTools(NumIP(), fNumNodes, NumSD());
+  // ... ip coordinates
+  fLocInitXIP.Dimension(NumIP(), NumSD());
+  fLocCurrXIP.Dimension(NumIP(), NumSD());
 }
 
 GradCrystalPlastFp::~GradCrystalPlastFp() {} 
@@ -482,14 +487,32 @@ void GradCrystalPlastFp::SolveCrystalState()
   fIterState = 0;
   fIterCount = 0;
 
-  // shape function derivarives dNa/dXinit at IPs (to compute fGradFp)
-  fGradTool->ComputeGDNa(fLocInitX);
-
   // only one grain per integration point
   int igrn = 0;
 
+  // get coordinates of IPs at initial configuration
+  for (int intpt = 1; intpt < NumIP(); intpt++)
+    { 
+//      dummy = fFSMatSupport.Interpolate(fLocInitX, fX_IP, intpt);
+      ContinuumElement().IP_Interpolate(fLocInitX, fX_IP, intpt);
+      for (int j = 0; j < NumSD(); j++) fLocInitXIP(intpt,j) = fX_IP[j];
+    }
+
+  // shape function derivarives dNa/dXinit at center (to compute fGradFp)
+  fGradTool->ComputeGDNa(fLocInitXIP);
+
+  // elastic curvature
+  for (int intpt = 0; intpt < NumIP(); intpt++) 
+    {
+      LoadCrystalData(element, intpt, igrn);
+      fFpIP[intpt] = fFp_n;
+    }
+  LatticeCurvature(element, igrn);
+
   // get reference to hardening material properties
   const dArrayT& prop = fHardening->MaterialProperties();
+
+  dArrayT array(3);
 
   for (int intpt = 0; intpt < NumIP(); intpt++) 
     {
@@ -504,6 +527,7 @@ void GradCrystalPlastFp::SolveCrystalState()
       for (int i = 0; i < fNumSlip; i++) 
          {
             fZ[i].MultQBQT(fRotMat, fZc[i]);
+            fRotMat.Multx(fSlipMc[i], fSlipM[i]);
          }
 
       // elasticity matrix in Bbar configuration
@@ -518,8 +542,19 @@ void GradCrystalPlastFp::SolveCrystalState()
       // right Cauchy-Green tensor
       fC.MultATA(fFt);
 
-      // conjugate stress to elastic curvature (unsymmetric)
-      fXe.SetToScaled(prop[4]*prop[5]*fMatProp[0], fKe_n); 
+      // conjugate stress to elastic curvature & incompatibility stress-like qnt
+      //fXe.SetToScaled(prop[4]*prop[5]*fMatProp[0], fKe_n); 
+      fXe.SetToScaled(prop[4]*prop[5]*fMatProp[0], fKe); 
+      for (int i = 0; i < fNumSlip; i++)
+         {
+            // Achyara's suggestion
+            fKe.MultTx(fSlipM[i], array);
+            fHardening->fTauInc[i] = prop[6]*fMatProp[0]*array.Magnitude();
+
+            // Gurtin's suggestion
+            //fKe_n.Multx(fSlipM[i], array);
+            //fHardening->fTauInc[i] = prop[6]*fMatProp[0]*dArrayT::Dot(fSlipM[i], array);
+         }
       
       // initial guess for Fp
       InitialEstimateForFp();
@@ -572,7 +607,7 @@ void GradCrystalPlastFp::SolveCrystalState()
 	  SolveForPlasticDefGradient(ierr);
 	  
 	  // bookeeping to compute lattice curvature
-	  fFpIP[intpt] = fFp;
+	  //fFpIP[intpt] = fFp;
 
 	  // norm for Fp
           fnormFp[intpt] = fFpNorm;
@@ -588,7 +623,7 @@ void GradCrystalPlastFp::SolveCrystalState()
 	}
       
       // elastic curvature
-      LatticeCurvature(element, igrn);
+      //LatticeCurvature(element, igrn);
 
       if (XTAL_MESSAGES && CurrElementNumber() == ELprnt)
          cout << "\n\n   === Compute Hardness ===" << endl;
@@ -603,10 +638,21 @@ void GradCrystalPlastFp::SolveCrystalState()
 	  for (int i = 0; i < fNumSlip; i++) 
 	    {
 	      fZ[i].MultQBQT(fRotMat, fZc[i]);
+              fRotMat.Multx(fSlipMc[i], fSlipM[i]);
 	    }
 
-          // conjugate stress to elastic curvature (unsymmetric)
+          // conjugate stress to elastic curvature & incompatibility stress-like qnt
           fXe.SetToScaled(prop[4]*prop[5]*fMatProp[0], fKe); 
+          for (int i = 0; i < fNumSlip; i++)
+             {
+                // Achyara's suggestion
+                fKe.MultTx(fSlipM[i], array);
+                fHardening->fTauInc[i] = prop[6]*fMatProp[0]*array.Magnitude();
+
+                // Gurtin's suggestion
+                //fKe.Multx(fSlipM[i], array);
+                //fHardening->fTauInc[i] = prop[6]*fMatProp[0]*dArrayT::Dot(fSlipM[i], array);
+             }
       
           if (XTAL_MESSAGES && CurrElementNumber() == ELprnt) {
              cout << " IP # " << intpt << "\n";
@@ -758,37 +804,39 @@ void GradCrystalPlastFp::LoadCrystalCurvature(ElementCardT& element,
 // dislocation tensor aBar^p
 void GradCrystalPlastFp::LatticeCurvature(ElementCardT& element, int igrn)
 {
-  // extrapolate ipvalues of Fe to nodal points
-  fGradTool->ExtrapolateTensor(fFpIP, fFpNodes);
+  // interpolate Fp from IPs to center of IP-elemen
+  fGradTool->InterpolateTensorAtCenter(fFpIP, fFpC); 
 
   if (XTAL_MESSAGES && CurrElementNumber() == ELprnt) {
      cout << "\n\n   === Lattice Curvature ===" << endl;
-     for (int i=0; i<fNumNodes; i++)
-        cout << " FpNodes at node # " << i << endl 
-             << fFpNodes[i] << "    Det(Fp) = " << fFpNodes[i].Det() << endl;
+        cout << " FpC " << endl
+             << fFpC << "    Det(FpC) = " << fFpC.Det() << endl;
   }
 
-  // normalize Fp at nodes such that Det(Fp)=1
-  for (int i = 0; i < fNumNodes; i++) 
-    fFpNodes[i] /= pow(fFpNodes[i].Det(), 1./3.);
+  // normalize Fp at center such that Det(Fp)=1
+  fFpC /= pow(fFpC.Det(), 1./3.);
 
-  for(int intpt = 0; intpt < NumIP(); intpt++)
+  // Curl of Fp^T at center of IP-element
+  fGradTool->CurlOfTensorAtCenter(fFpIP, fCurlFpT);
+
+  // curvature tensor Ke at center of IP-element (dislocation tensor aBar^p)
+  fMatx1.MultAB(fFpC, fCurlFpT);
+  fMatx2.SetToScaled(1./fFpC.Det(), fMatx1);
+
+  if (XTAL_MESSAGES && CurrElementNumber() == ELprnt) {
+     cout << " Center " << "\n";
+     cout << "    fCurlFpT: \n" << fCurlFpT << endl;
+     cout << "    Curvature tensor fKe: \n" << fMatx2 << endl;
+   }
+
+  // assigned Ke_center to all IPs
+  for (int intpt = 0; intpt < NumIP(); intpt++)
     {
-      // Curl of Fp^T
-      fGradTool->CurlOfTensorAtIP(fFpNodes, fCurlFpT, intpt);
-
       // fetch crystal curvature
       LoadCrystalCurvature(element, intpt, igrn);
 
       // curvature tensor fKe at IP (dislocation tensor aBar^p)
-      fMatx1.MultAB(fFpIP[intpt], fCurlFpT);
-      fKe.SetToScaled(1./fFpIP[intpt].Det(), fMatx1);
-
-      if (XTAL_MESSAGES && CurrElementNumber() == ELprnt) {
-         cout << " IP # " << intpt << "\n";
-         cout << "    fCurlFpT: \n" << fCurlFpT << endl;
-         cout << "    Curvature tensor fKe: \n" << fKe << endl;
-      }
+      fKe = fMatx2;
     }
 }
 

@@ -1,10 +1,11 @@
-/* $Id: GradCrystalPlastFp.h,v 1.5 2003-01-29 07:35:04 paklein Exp $ */
+/* $Id: GradCrystalPlastFp.h,v 1.6 2004-04-13 20:37:32 ebmarin Exp $ */
 #ifndef _GRAD_CRYSTAL_PLAST_FP_H_
 #define _GRAD_CRYSTAL_PLAST_FP_H_
 
 #include "LocalCrystalPlastFp.h"
 #include "CrystalElasticity.h"
 #include "GradientTools.h"
+#include "GradientTools_C.h"
 
 #include "ArrayT.h"
 #include "dArray2DT.h"
@@ -83,22 +84,22 @@ class GradCrystalPlastFp : public LocalCrystalPlastFp
   virtual void AddGradTermToC_ijkl();
 
  protected:
-  // number of element vertex nodes for spatial gradient evaluation
-  // assumes: Quad in 2D (fNumNodes = 4); Hexa in 3D (fNumNodes = 8)
-  int fNumNodes;
-
   // refs to nodal initial coords of element
   const LocalArrayT& fLocInitX;
 
   // nodal coords at current configuration
   LocalArrayT fLocCurrX;
 
-  // pointer to supporting class for gradient evaluations
-  GradientTools* fGradTool;
+  // coords of IPs at undeformed/current configuration
+  LocalArrayT fLocInitXIP;
+  LocalArrayT fLocCurrXIP;
 
-  // plastic deformation gradients at IPs and nodes
+  // pointer to supporting class for gradient evaluations
+  GradientTools_C* fGradTool;
+
+  // plastic deformation gradients at IPs and center
   ArrayT<dMatrixT> fFpIP;
-  ArrayT<dMatrixT> fFpNodes;
+  dMatrixT fFpC;
 
   // spatial gradient of plastic deformation gradient
   ArrayT<dMatrixT> fGradFp;
@@ -116,6 +117,7 @@ class GradCrystalPlastFp : public LocalCrystalPlastFp
   dArrayT fnormFp0;
   dArrayT fnormHard;
   dArrayT fnormHard0;
+  dArrayT fX_IP;
 
   // worspace
   dMatrixT fMatx4;
