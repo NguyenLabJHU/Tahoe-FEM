@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.16 2002-03-26 17:26:10 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.16.2.1 2002-04-22 07:06:04 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "ContinuumElementT.h"
@@ -130,11 +130,11 @@ void ContinuumElementT::Initialize(void)
 		fLHS.SetFormat(ElementMatrixT::kDiagonal);
 }
 
-/* set element group for new global equations numbers */
-void ContinuumElementT::Reinitialize(void)
+void ContinuumElementT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
+	AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
 {
 	/* inherited */
-	ElementBaseT::Reinitialize();
+	ElementBaseT::Equations(eq_1, eq_2);
 
 	/* mark traction BC data as old */
 	fTractionBCSet = 0;

@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.h,v 1.2 2001-09-11 23:43:48 paklein Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.2.4.1 2002-04-22 07:06:06 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 
 #ifndef _FBC_CONTROLLER_T_H_
@@ -41,7 +41,6 @@ public:
 
 	/* initialize data - called immediately after construction */
 	virtual void Initialize(void) = 0;
-	virtual void Reinitialize(void) = 0;
 
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const = 0;
