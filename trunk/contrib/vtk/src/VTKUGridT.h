@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.h,v 1.2 2001-12-13 02:57:59 paklein Exp $ */
+/* $Id: VTKUGridT.h,v 1.3 2001-12-14 17:37:40 paklein Exp $ */
 #ifndef _VTK_U_GRID_T_H_
 #define _VTK_U_GRID_T_H_
 
@@ -61,6 +61,9 @@ class VTKUGridT
 
 	/** set the scalar data range */
 	void SetScalarRange(double min, double max);
+	
+	/** set the number of color levels */
+	void SetNumberOfColors(int num);
 
 	/** set the vector data */
 	void SetVectors(vtkFloatArray* vectors);
@@ -73,6 +76,9 @@ class VTKUGridT
   	
   	/** return the grid wrap vector */
   	vtkWarpVector* Warp(void) { return fWarp; };
+  	
+  	/** set the wrap displacement scale factor */
+  	void SetScaleFactor(float factor);
   	
   	/** return the unstructured grid */
   	vtkUnstructuredGrid* UGrid(void) { return fUGrid; };

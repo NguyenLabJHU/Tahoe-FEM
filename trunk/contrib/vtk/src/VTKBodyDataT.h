@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.h,v 1.6 2001-12-13 02:57:59 paklein Exp $ */
+/* $Id: VTKBodyDataT.h,v 1.7 2001-12-14 17:37:40 paklein Exp $ */
 #ifndef _VTK_BODY_DATA_T_H_
 #define _VTK_BODY_DATA_T_H_
 
@@ -113,10 +113,10 @@ public:
   	int currentStepNum; /**< current time step on display */
   	int currentVarNum;  /**< current display variable */
 	dArrayT scalarRange1, scalarRange2;
-	double hueRange1, hueRange2;
-	double satRange1, satRange2;
-	double valRange1, valRange2;
-	double alphaRange1, alphaRange2;
+//	double hueRange1, hueRange2;
+//	double satRange1, satRange2;
+//	double valRange1, valRange2;
+//	double alphaRange1, alphaRange2;
 	double scale_factor;
 	int numColors;
 	double opacity;
