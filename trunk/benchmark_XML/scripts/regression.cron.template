@@ -1,0 +1,3 @@
+# $Id: regression.cron.template,v 1.1 2001-09-22 18:36:10 paklein Exp $
+0 1 * * * /bin/csh -f [path to scripts]regression.csh > [path to script]regression.LOG
+
