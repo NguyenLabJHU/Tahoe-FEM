@@ -1,4 +1,4 @@
-/* $ Id $ */
+/* $Id: zArrayT.h,v 1.3 2001-02-01 18:22:29 paklein Exp $ */
 /* created: PAK/AFLP (05/19/1997)                                         */
 
 #ifndef _ZARRAY_T_H_
@@ -45,9 +45,13 @@ public:
 	void toIm(dArrayT& im) const;
 	zArrayT& toZ(const dArrayT& re, const dArrayT& im);
 	
-	zArrayT& Conjugate( const zArrayT& array);
-	
+	/* Conjugate every element in the array */
+	zArrayT& Conjugate(const zArrayT& array);
+	zArrayT& Conjugate(void);
 };
+
+/* Conjugate every element in this */
+inline zArrayT& zArrayT::Conjugate(void) { return Conjugate(*this); }
 
 /*
 * Assigment operators

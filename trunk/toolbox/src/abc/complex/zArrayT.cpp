@@ -1,4 +1,4 @@
-/* $ Id $ */
+/* $Id: zArrayT.cpp,v 1.3 2001-02-01 18:22:29 paklein Exp $ */
 /* created: PAK/AFLP (05/19/1997)                                         */
 
 #include "zArrayT.h"
@@ -65,19 +65,17 @@ zArrayT& zArrayT::toZ(const dArrayT& re, const dArrayT& im)
 	return (*this);
 }
 
-
-zArrayT& zArrayT::Conjugate( const zArrayT& array)
+/* conjugate every element in the array */
+zArrayT& zArrayT::Conjugate(const zArrayT& array)
 {
-	    
-	// dimension  
-	Allocate(array.Length() );
+  /* must have same length */
+  if (array.Length() != Length()) throw eSizeMismatch;
+
+  ComplexT* pLHS = Pointer();
+  ComplexT* pRHS = array.Pointer();
+  int length = Length();
+  for(int i = 0; i < length; i++)
+	(*pLHS++).Conjugate(*pRHS++);
 	
-
-	ComplexT* pthis  = Pointer();
-		
-	for(int i=0;i<Length();i++)
-		 (*pthis++).toZ( array[i].Re(), -1*array[i].Im() );
-			
-	return (*this);
-
+  return *this;
 }

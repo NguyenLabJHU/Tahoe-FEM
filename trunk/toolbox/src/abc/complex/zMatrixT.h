@@ -1,4 +1,4 @@
-/* $ Id $ */
+/* $Id: zMatrixT.h,v 1.3 2001-02-01 18:22:29 paklein Exp $ */
 /* created: paklein (05/19/1997)                                          */
 /* 2 dimensional matrix mathematics object.                               */
 
@@ -47,11 +47,18 @@ public:
 	void toIm(dMatrixT& im) const;
 	zMatrixT& toZ(const dMatrixT& re, const dMatrixT& im);
 
-  	
-  	zMatrixT&   Inverse( const zMatrixT& matrix);
-  	zMatrixT& Conjugate( const zMatrixT& matrix);
-  	
+  	/* matrix inverse */
+  	zMatrixT& Inverse(const zMatrixT& matrix);
+	zMatrixT& Inverse(void);
+
+	/* conjugate every element in the matrix */
+  	zMatrixT& Conjugate(const zMatrixT& matrix);  
+	zMatrixT& Conjugate(void);  	
 };
+
+/* operate on self */
+inline zMatrixT& zMatrixT::Inverse(void) { return Inverse(*this); }
+inline zMatrixT& zMatrixT::Conjugate(void) { return Conjugate(*this); }
 
 /*
 * Assigment operators
