@@ -1,4 +1,4 @@
-/* $Id: J2QL2DLinHardT.cpp,v 1.3 2001-05-04 19:16:05 paklein Exp $ */
+/* $Id: J2QL2DLinHardT.cpp,v 1.4 2001-05-05 19:13:56 paklein Exp $ */
 /* created: paklein (06/29/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -53,9 +53,9 @@ const int kNSD = 3;
 /* element output data */
 const int kNumOutput = 5;
 static const char* Labels[kNumOutput] = {
-"alpha",  // equivalent plastic strain
+        "alpha",  // equivalent plastic strain
 	 "VM_Kirch",  // Kirchhoff Von Mises stress
-	        "p",  // pressure
+	    "press",  // pressure
 	    "s_max",  // max in-plane principal stress
 	    "s_min"}; // min in-plane principal stress
 
@@ -292,8 +292,8 @@ void J2QL2DLinHardT::OutputLabels(ArrayT<StringT>& labels) const
 void J2QL2DLinHardT::ComputeOutput(dArrayT& output)
 {
 	/* compute Cauchy stress (sets fBeta) */
-	const dSymMatrixT& cauchy = s_ij();
-	output[2] = cauchy.Trace()/3.0;
+	s_ij();
+	output[2] = fStress.Trace()/3.0;
 
 	/* in-plane principal values (Cauchy) */
 	if (fBeta[0] > fBeta[1])
