@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.13 2001-09-06 08:49:09 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.14 2001-09-15 01:16:39 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -217,7 +217,7 @@ void SimoFiniteStrainT::CloseStep(void)
 	FiniteStrainT::CloseStep();
 	
 	/* store converged solution */
-	fCurrElementModes_last = fCurrElementModes;
+	fElementModes_last = fElementModes;
 }
 	
 /* restore last converged state */
@@ -227,7 +227,7 @@ void SimoFiniteStrainT::ResetStep(void)
 	FiniteStrainT::ResetStep();
 	
 	/* store converged solution */
-	fCurrElementModes = fCurrElementModes_last;
+	fElementModes = fElementModes_last;
 }
 
 /* read restart information from stream */
@@ -237,10 +237,10 @@ void SimoFiniteStrainT::ReadRestart(istream& in)
 	FiniteStrainT::ReadRestart(in);
 	
 	/* read restart data */
-	in >> fCurrElementModes;
+	in >> fElementModes;
 	
 	/* reset last state */
-	fCurrElementModes_last = fCurrElementModes;
+	fElementModes_last = fElementModes;
 }
 
 /* write restart information from stream */
@@ -250,7 +250,7 @@ void SimoFiniteStrainT::WriteRestart(ostream& out) const
 	FiniteStrainT::WriteRestart(out);
 	
 	/* read restart data */
-	out << fCurrElementModes;
+	out << fElementModes;
 }
 
 /* return field connectivities. */
@@ -565,6 +565,24 @@ void SimoFiniteStrainT::FormKd(double constK)
 			     << fModeSolveMethod << endl;
 			throw eGeneralFail;
 	}
+}
+
+/* write all current element information to the stream */
+void SimoFiniteStrainT::CurrElementInfo(ostream& out) const
+{
+	/* inherited */
+	FiniteStrainT::CurrElementInfo(out);
+
+	/* element modes */
+	out << "\n element modes:\n" << fCurrElementModes << '\n';
+	out << "\n element modes last:\n" << fCurrElementModes_last << '\n';
+
+	/* write deformation gradients */
+	out << "\n i.p. enhanced deformation gradients:\n";
+	for (int i = 0; i < fF_enh_List.Length(); i++)
+		out << " ip: " << i+1 << '\n'
+		    << fF_enh_List[i] << '\n';
+	out << '\n';
 }
 
 /***********************************************************************
