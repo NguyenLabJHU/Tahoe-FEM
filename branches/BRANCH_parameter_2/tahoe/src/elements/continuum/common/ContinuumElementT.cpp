@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.35.2.8 2004-03-18 18:03:30 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.35.2.9 2004-03-27 04:14:07 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -1325,7 +1325,7 @@ ParameterInterfaceT* ContinuumElementT::NewSub(const StringT& list_name) const
 	{
 		ParameterContainerT* natural_bc = new ParameterContainerT(list_name);
 
-		natural_bc->AddParameter(ParameterT::String, "side_set_ID");
+		natural_bc->AddParameter(ParameterT::Word, "side_set_ID");
 		natural_bc->AddParameter(ParameterT::Integer, "schedule");
 
 		ParameterT coord_sys(ParameterT::Enumeration, "coordinate_system");
