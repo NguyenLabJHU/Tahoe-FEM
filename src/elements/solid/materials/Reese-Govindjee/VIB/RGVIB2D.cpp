@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.cpp,v 1.10 2003-11-04 18:02:34 thao Exp $ */
+/* $Id: RGVIB2D.cpp,v 1.11 2003-11-05 19:40:06 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include <math.h>
@@ -12,7 +12,9 @@
 #include "VariViscT.h"
 #include "C1FunctionT.h"
 #include "ContinuumElementT.h"
-#include "DetCheckT2.h"
+//#include "DetCheckT2.h"
+//TEMP
+#include "DetCheckT.h"
 
 /* point generator */
 #include "EvenSpacePtsT.h"
@@ -129,7 +131,9 @@ void RGVIB2D::Initialize(void)
         RGBaseT::Initialize();
 
 	/*initialize DetCheck class*/
-	fDetCheck = new DetCheckT2(fStress, fModulus);
+//	fDetCheck = new DetCheckT2(fStress, fModulus);
+//TEMP
+ExceptionT::GeneralFail("RGVIB2D::Initialize", "fix me");
 
         /* initial modulus */
 
