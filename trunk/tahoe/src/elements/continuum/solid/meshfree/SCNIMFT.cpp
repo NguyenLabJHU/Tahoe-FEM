@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.28 2004-09-29 18:26:52 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.29 2004-10-11 20:51:56 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 
@@ -41,7 +41,12 @@ using namespace Tahoe;
 /* uncomment this line for many, many boundary integration points;
  * --set the number of points in the routine compute B matrices
  */
-//#define SEPARATE_BOUNDARY_INTEGRATION
+#define SEPARATE_BOUNDARY_INTEGRATION
+/* uncomment this line for one point boundary integration rules over
+ * voronoi facets. SEPARATE_BOUNDARY_INTEGRATION must be defined, too,
+ * but its effects are overidden when EVALUATE_AT_NODES is defined
+ */
+#define EVALUATE_AT_NODES
 const int kNoTractionVector = -1;
 
 /* constructors */
@@ -319,15 +324,18 @@ void SCNIMFT::TakeNaturalBC(const ParameterListT& list)
 	int num_natural_bc = list.NumLists("natural_bc");
 	
 	// allocate data structures
-	fTractionVectors.Dimension(num_natural_bc,fSD);
+	fTractionVectors.Dimension(num_natural_bc, fSD == 2 ? 3 : 6);
 	fTractionVectors = 0.;
 	
 	// 
 	fTractionBoundaryCondition.Dimension(fBoundaryIntegrationWeights.Length());
-	fTractionBoundaryCondition = -1;
+	fTractionBoundaryCondition = kNoTractionVector;
 	
 	if (num_natural_bc > 0)
 	{
+		/* TEMP - turn on traction boundary condition for all boundary nodes */
+		fTractionBoundaryCondition = 0;
+		
 		/* model manager */
 		ModelManagerT& model = ElementSupport().ModelManager();
 	
@@ -362,38 +370,39 @@ void SCNIMFT::TakeNaturalBC(const ParameterListT& list)
 				/* switch to elements numbering within the group */
 				iArray2DT& side_set = localsides[i];
 				iArrayT elems(num_sides);
-				side_set.ColumnCopy(0, elems);
-				BlockToGroupElementNumbers(elems, block_ID[i]);
-				side_set.SetColumn(0, elems);
+				//side_set.ColumnCopy(0, elems);
+				//BlockToGroupElementNumbers(elems, block_ID[i]);
+				//side_set.SetColumn(0, elems);
 
 				/* all facets in set must have the same number of nodes */
-				int num_nodes = num_facet_nodes[side_set(0,1)];
-				for (int f = 0; f < num_sides; f++)
-					if (num_facet_nodes[side_set(f,1)] != num_nodes)
-						ExceptionT::BadInputValue(caller, "faces side set \"%s\" have different numbers of nodes",
-							ss_ID.Pointer());
+				//int num_nodes = num_facet_nodes[side_set(0,1)];
+				//for (int f = 0; f < num_sides; f++)
+				//	if (num_facet_nodes[side_set(f,1)] != num_nodes)
+				//		ExceptionT::BadInputValue(caller, "faces side set \"%s\" have different numbers of nodes",
+				//			ss_ID.Pointer());
 
 				/* read traction nodal values */
-				dArray2DT& nodal_values = values[i];
-				nodal_values.Dimension(num_nodes, NumDOF());
+				//dArray2DT& nodal_values = values[i];
+				//nodal_values.Dimension(num_nodes, NumDOF());
 				int num_traction_vectors = natural_bc.NumLists("DoubleList");
-				if (num_traction_vectors != 1 && num_traction_vectors != num_nodes)
-					ExceptionT::GeneralFail(caller, "expecting 1 or %d vectors not %d",
-						num_nodes, num_traction_vectors);
+				//if (num_traction_vectors != 1 && num_traction_vectors != num_nodes)
+				//	ExceptionT::GeneralFail(caller, "expecting 1 or %d vectors not %d",
+				//		num_nodes, num_traction_vectors);
 						
 				/* constant over the face */
 				if (num_traction_vectors == 1) {
 					const ParameterListT& traction_vector = natural_bc.GetList("DoubleList");
 					int dim = traction_vector.NumLists("Double");
-					if (dim != NumDOF())
+						
+					int minor_dim = fSD == 2 ? 3 : 6;
+					if (dim != minor_dim)
 						ExceptionT::GeneralFail(caller, "expecting traction vector length %d not %d",
 							NumDOF(), dim);
-						
-					dArrayT t;
-					for (int j = 0; j < NumDOF(); j++)
+					dArrayT t(minor_dim);
+					for (int j = 0; j < minor_dim; j++)
 						t[j] = traction_vector.GetList("Double", j).GetParameter("value");	
 							
-					fTractionVectors.SetRow(fSD, t);
+					fTractionVectors.SetRow(0, t);
 
 					/* same for all face nodes */
 					//for (int f = 0; f < NumDOF(); f++) {
@@ -706,14 +715,17 @@ void SCNIMFT::RHSDriver(void)
 	
 		for (int i = 0; i < fNonDeloneEdges.Length(); i++) 
 			if (fTractionBoundaryCondition[i] != kNoTractionVector) {
-				dArrayT traction_vector(fSD); 
-				fTractionVectors.RowCopy(fTractionBoundaryCondition[i],traction_vector.Pointer());
+				dArrayT workspace(fSD == 2 ? 3 : 6); 
+				dArrayT traction_vector(fSD);
+				fTractionVectors.RowCopy(fTractionBoundaryCondition[i], workspace.Pointer());
+				traction_vector[0] = workspace[0]*fNonDeloneNormals(i,0) + workspace[2]*fNonDeloneNormals(i,1);
+				traction_vector[1] = workspace[1]*fNonDeloneNormals(i,1) + workspace[2]*fNonDeloneNormals(i,0);
 			
 				int* supp_i = fNodalSupports(fNonDeloneEdges[i]) ;
 				double* phi_i = fNodalPhi(fNonDeloneEdges[i]);
 				double w_i = fBoundaryIntegrationWeights[i];
 				traction_vector *= w_i;
-				for (int j = 0; j < fNodalPhi.MinorDim(i); j++) {
+				for (int j = 0; j < fNodalPhi.MinorDim(fNonDeloneEdges[i]); j++) {
 					double* fint = fForce(*supp_i++);
 					for (int k = 0; k < fSD; k++) 
 						*fint++ += traction_vector[k]*(*phi_i); 
@@ -876,6 +888,7 @@ void SCNIMFT::ComputeBMatrices(void)
 	for (int i = 0; i < fDeloneEdges.MajorDim(); i++) {
 		n_0 = fDeloneEdges(i,0);
 		n_1 = fDeloneEdges(i,1); 
+		
 		facetNormal.DiffOf(fDeloneVertices(n_1), fDeloneVertices(n_0));
 		facetNormal.UnitVector();
 
@@ -989,7 +1002,7 @@ void SCNIMFT::ComputeBMatrices(void)
 			}
 		}
 	}
-	
+//#if 0
 	/** Loop over remaining edges */
 	for (int i = 0; i < fNonDeloneEdges.Length(); i++) {
 		n_0 = fNonDeloneEdges[i];
@@ -997,7 +1010,10 @@ void SCNIMFT::ComputeBMatrices(void)
 		facetNormal.UnitVector();
 		
 #ifdef SEPARATE_BOUNDARY_INTEGRATION
-		int num_bdry_pts = 101;
+		int num_bdry_pts = 101; // set this for trapezoidal rule
+#ifdef EVALUATE_AT_NODES
+		num_bdry_pts = 1;
+#endif
 		double jw = fBoundaryIntegrationWeights[i]/(num_bdry_pts);
 		double dl = 1./double(num_bdry_pts);
 		double* v1 = fVoronoiVertices(fSelfDualFacets(i,0));
@@ -1010,22 +1026,22 @@ void SCNIMFT::ComputeBMatrices(void)
 		/* copy face coordinates with local ordering */
 		fSelfDualFacets.RowAlias(i,keys);
 		facet_coords.SetLocal(keys);
-#ifdef SEPARATE_BOUNDARY_INTEGRATION
-		for (int ii = 1; ii <= num_bdry_pts; ii++)
-#else
-		for (int ii = 0; ii < fNumIP; ii++)
-#endif
-		{
-#ifdef SEPARATE_BOUNDARY_INTEGRATION
-			ip_coords.SetToCombination(1.,ip_coord0,(ii-.5)*dl,edgeVector);
-#else	
+#ifndef SEPARATE_BOUNDARY_INTEGRATION
+		for (int ii = 0; ii < fNumIP; ii++) {
 			/* jacobian of the coordinate transformation */
 			domain.DomainJacobian(facet_coords, ii, jacobian);
 			double jw = ip_weight[ii]*domain.SurfaceJacobian(jacobian);
 
 			/* integration point coordinates */
-			domain.Interpolate(facet_coords, ip_coords, ii);		
-#endif				
+			domain.Interpolate(facet_coords, ip_coords, ii);	
+#else
+		for (int ii = 1; ii <= num_bdry_pts; ii++) {
+#ifndef EVALUATE_AT_NODES
+			ip_coords.SetToCombination(1.,ip_coord0,(ii-.5)*dl,edgeVector);
+#else
+			ip_coords.Set(fSD,fDeloneVertices(n_0));
+#endif
+#endif // SEPARATE_BOUNDARY_INTEGRATION				
 
 			if (!fNodalShapes->SetFieldAt(ip_coords, NULL)) // shift = 0 or not ?
 				ExceptionT::GeneralFail("SCNIMFT::ComputeBMatrices","Shape Function evaluation"
@@ -1081,12 +1097,13 @@ void SCNIMFT::ComputeBMatrices(void)
 					
 				currentI = facetIntegral.Pointer();
 				currentB =  bVectors_0.CurrentValue()->Pointer();
+
 				for (int k = 0; k < fSD; k++)
 					*currentB++ += *currentI++;
 			}
 		}	
 	}
-	
+//#endif // 0
 	// scale integrals by volumes of Voronoi cells
 	dArrayT* currFacetIntegral;
 	for (int i = 0; i < nNodes; i++) {
