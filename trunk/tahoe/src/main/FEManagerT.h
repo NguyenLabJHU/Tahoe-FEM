@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.36 2003-08-08 00:37:27 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.37 2003-08-14 06:05:37 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -6,8 +6,9 @@
 /* program parameters */
 #include "GlobalT.h"
 
-/* base class */
+/* base classes */
 #include "iConsoleObjectT.h"
+#include "ParameterInterfaceT.h"
 
 /* direct members */
 #include "StringT.h"
@@ -44,7 +45,7 @@ class FieldT;
 class CommunicatorT;
 class CommManagerT;
 
-class FEManagerT: public iConsoleObjectT
+class FEManagerT: public iConsoleObjectT, public ParameterInterfaceT
 {
 public:
 
@@ -114,7 +115,7 @@ public:
 	ElementBaseT* ElementGroup(int groupnumber) const;
 
 	/** return the number of element groups */
-	int NumElementGroups(void) const { return fElementGroups.Length(); };
+	int NumElementGroups(void) const { return fElementGroups->Length(); };
 
 	/** resolve the index of the given element group */
 	int ElementGroupNumber(const ElementBaseT* pgroup) const;
@@ -123,7 +124,7 @@ public:
 	 * \param mask list with length of the \e total number of element
 	 *        groups with true|false determining whether the element
 	 *        group is active. */
-	void SetActiveElementGroupMask(const ArrayT<bool>& mask) { fElementGroups.SetActiveElementGroupMask(mask); };
+	void SetActiveElementGroupMask(const ArrayT<bool>& mask) { fElementGroups->SetActiveElementGroupMask(mask); };
 
 	/** pointer to an element group */
 	SolverT* Solver(int group) { return fSolvers[group]; };
@@ -343,6 +344,27 @@ public:
 	bool WriteRestart(const StringT* file_name = NULL) const;
 	/*@}*/
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate
+	 * or NULL if the name is invalid. Responsibility for deleteting instantiations
+	 * resides with the client who requested them. */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const;
+	/*@}*/
+
 protected:
 
 	/** "const" function that sets the status flag */
@@ -386,10 +408,13 @@ private:
 	FEManagerT& operator=(FEManagerT&) const;
 	/*@}*/
 
-	/** construct a solver of the specified type. This function cannot be
-	 * const because a non-const reference to the FEManagerT is passed to
-	 * the solvers. */
+	/** \name construct a solver of the specified type. 
+	 * This function cannot be const because a non-const reference to the 
+	 * FEManagerT is passed to the solvers. */
+	/*@{*/
 	SolverT* New_Solver(int code, int group);
+	SolverT* New_Solver(GlobalT::SolverTypeT solver_type);
+	/*@}*/
 		
 protected:
 
@@ -422,7 +447,7 @@ protected:
 	/*@{*/
 	TimeManagerT* fTimeManager;
 	NodeManagerT* fNodeManager;
-	ElementListT fElementGroups;
+	ElementListT* fElementGroups;
 	ArrayT<SolverT*> fSolvers;
 	ArrayT<IntegratorT*> fIntegrators;
 	IOManager*    fIOManager;
