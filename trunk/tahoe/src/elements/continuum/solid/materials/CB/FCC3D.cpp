@@ -1,4 +1,4 @@
-/* $Id: FCC3D.cpp,v 1.10 2005-02-17 17:38:53 paklein Exp $ */
+/* $Id: FCC3D.cpp,v 1.11 2005-02-28 18:54:12 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "FCC3D.h"
 
@@ -344,7 +344,7 @@ double FCC3D::ZeroStressStretch(void)
 	while (count++ < 10 && error > kSmall && error/error0 > kSmall)
 	{
 		ComputeModuli(E, C);
-		double dE = -PK2(0,0)/(C(0,0) + 2.0*C(0,1));
+		double dE = -PK2(0,0)/(C(0,0) + C(0,1) + C(0,2));
 		E.PlusIdentity(dE);
 		
 		ComputePK2(E, PK2);
