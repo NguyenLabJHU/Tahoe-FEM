@@ -1,4 +1,4 @@
-/* $Id: PSPASESMatrixT.cpp,v 1.8 2004-03-16 06:56:32 paklein Exp $ */
+/* $Id: PSPASESMatrixT.cpp,v 1.9 2004-03-16 10:03:49 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "PSPASESMatrixT.h"
 
@@ -10,6 +10,15 @@
 #include "MSRBuilderT.h"
 
 #include "cpspases.h"
+#ifdef __LINK_DUMMIES__
+void PSPACEO(int*, int*, int*, int*, int*, int*, MPI_Comm*) {}
+void PSPACEY(int*, int*, int*, int*, int*, int*, double*, long*, MPI_Comm*) {}
+void DPSPACEN(int*, int*, int*, double*, long*, long*, MPI_Comm*) {}
+void DPSPACEF(int*, int*, int*, double*, int*, double*, long*, MPI_Comm*) {}
+void DPSPACET(int*, int*, double*, int*, double*, int*, int*, long*, MPI_Comm*) {}
+void PSPACEC(long*, int*) {}
+void CHECKB_AX(int*, int*, int*, double*, int*, int*, double*, int*, double*, int*, double*, MPI_Comm*) {}
+#endif
 
 using namespace Tahoe;
 
