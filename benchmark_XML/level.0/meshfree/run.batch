@@ -1,5 +1,5 @@
 @
-# $Id: run.batch,v 1.19 2005-03-01 08:26:54 paklein Exp $
+# $Id: run.batch,v 1.20 2005-03-15 07:20:15 paklein Exp $
 RKPM.2D.0.xml
 RKPM.2D.0.tri.xml
 #RKPM.2D.1.xml
@@ -24,4 +24,5 @@ SCNI.cell.2D.0.tri.xml
 SCNI.cell.2D.0.xml
 SCNI.cell.2D.J2.1.xml
 SCNI.cell.2D.J2.1.rs.xml
+SCNI.cell.3D.0.xml
 
