@@ -1,4 +1,4 @@
-/* $Id: iNLSolver_LS.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: iNLSolver_LS.cpp,v 1.2 2001-06-12 22:14:18 paklein Exp $ */
 /* created: paklein (01/01/2001)                                          */
 
 #include "iNLSolver_LS.h"
@@ -11,6 +11,10 @@
 #include "ExceptionCodes.h"
 #include "FEManagerT.h"
 #include "iConsoleT.h"
+
+/* matrix types */
+#include "CCSMatrixT.h"
+#include "CCNSMatrixT.h"
 
 /* constructor */
 iNLSolver_LS::iNLSolver_LS(FEManagerT& fe_manager):
@@ -28,6 +32,7 @@ iNLSolver_LS::iNLSolver_LS(FEManagerT& fe_manager):
 	iAddCommand("FormResidual");
 	iAddCommand("InitStep");
 	iAddCommand("Step");
+	iAddCommand("PivotInfo");
 }
 
 /* interactive */
@@ -107,6 +112,36 @@ bool iNLSolver_LS::iDoCommand(const StringT& command, StringT& line)
 
 			/* initialize step */
 			return DoInitStep();
+		}
+		else if (command == "PivotInfo")
+		{
+#ifdef __NO_RTTI__
+			cout << "command not available: requires RTTI" << endl;
+			return false;
+#else
+			/* get matrix pointer */
+			const CCSMatrixT*   CCS_mat = dynamic_cast<const CCSMatrixT*>(fLHS);
+			const CCNSMatrixT* CCNS_mat = dynamic_cast<const CCNSMatrixT*>(fLHS);
+			double min, max, abs_min, abs_max;
+			if (CCNS_mat) CCNS_mat->FindMinMaxPivot(min, max, abs_min, abs_max);
+			else if (CCS_mat) CCS_mat->FindMinMaxPivot(min, max, abs_min, abs_max);
+			else
+			{
+				cout << "requires matrix type: " << kProfileSolver << endl;
+				return false;
+			}
+			
+			/* write results */
+			int d_width = OutputWidth(cout, &min);
+			cout << "\n Matrix pivots:\n" 
+			     <<   "     min = " << setw(d_width) << min << '\n' 
+			     <<   "     max = " << setw(d_width) << max << '\n' 
+			     <<   "   |min| = " << setw(d_width) << abs_min << '\n' 
+			     <<   "   |max| = " << setw(d_width) << abs_max << '\n';
+
+			/* initialize step */
+			return true;
+#endif
 		}
 		else
 			/* inherited */
