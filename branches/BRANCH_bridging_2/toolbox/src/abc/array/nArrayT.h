@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.18 2003-05-04 22:56:18 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.18.2.1 2003-05-12 16:25:16 paklein Exp $ */
 /* created: paklein (05/23/1997) */
 #ifndef _NARRAY_T_H_
 #define _NARRAY_T_H_
@@ -89,8 +89,13 @@ public:
 	/** return the product of the elements in the array */
 	nTYPE Product(void) const;
 
-	/** inner product of two nArrayT's */
+	/** \name inner products */
+	/*@{*/
 	static nTYPE Dot(const nArrayT<nTYPE>& A1, const nArrayT<nTYPE>& A2);
+	static nTYPE Dot(const nTYPE* A1, const nArrayT<nTYPE>& A2);
+	static nTYPE Dot(const nArrayT<nTYPE>& A1, const nTYPE* A2);
+	static nTYPE Dot(const nTYPE* A1, const nTYPE* A2, int length);
+	/*@}*/
 	
 	/** norm of the difference of two nArrayT's */
 	static nTYPE Distance(const nArrayT<nTYPE>& A1, const nArrayT<nTYPE>& A2);
@@ -926,28 +931,40 @@ void nArrayT<nTYPE>::SortDescending(void)
 
 /* compute the inner product of a1 and a2 */
 template <class nTYPE>
-nTYPE nArrayT<nTYPE>::Dot(const nArrayT<nTYPE>& A1, const nArrayT<nTYPE>& A2)
+inline nTYPE nArrayT<nTYPE>::Dot(const nTYPE* A1, const nTYPE* A2, int length)
 {
-/* dimension check */
-#if __option (extended_errorcheck)
-	if (A1.Length() != A2.Length()) ExceptionT::SizeMismatch();
-#endif
-
-	nTYPE* p1 = A1.Pointer();
-	nTYPE* p2 = A2.Pointer();
-	
 	register nTYPE dot = 0.0;
 	register nTYPE temp;
-	
-	int length = A1.Length();
-	for (int i = 0; i < length; i++)
-	{
-		temp  = (*p1++);
-		temp *= (*p2++);
+	for (int i = 0; i < length; i++) {
+		temp  = (*A1++);
+		temp *= (*A2++);
 		dot += temp;
 	}
 	return dot;
 }
+
+template <class nTYPE>
+inline nTYPE nArrayT<nTYPE>::Dot(const nArrayT<nTYPE>& A1, const nArrayT<nTYPE>& A2)
+{
+/* dimension check */
+#if __option (extended_errorcheck)
+	if (A1.Length() != A2.Length()) ExceptionT::SizeMismatch("nArrayT<nTYPE>::Dot");
+#endif
+	return Dot(A1.Pointer(), A2.Pointer(), A1.Length());
+}
+
+template <class nTYPE>
+inline nTYPE nArrayT<nTYPE>::Dot(const nTYPE* A1, const nArrayT<nTYPE>& A2)
+{
+	return Dot(A1, A2.Pointer(), A2.Length());
+}
+
+template <class nTYPE>
+inline nTYPE nArrayT<nTYPE>::Dot(const nArrayT<nTYPE>& A1, const nTYPE* A2)
+{
+	return Dot(A1.Pointer(), A2, A1.Length());
+}
+
 
 /* distance */
 template <class nTYPE>
