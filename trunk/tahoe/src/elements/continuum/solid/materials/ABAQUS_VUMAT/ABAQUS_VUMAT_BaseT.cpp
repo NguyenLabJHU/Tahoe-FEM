@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.1 2001-07-18 21:29:44 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.2 2001-07-19 14:52:51 hspark Exp $ */
 
 #include "ABAQUS_VUMAT_BaseT.h"
 
@@ -24,8 +24,11 @@ ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FiniteStrainT& elem
 	fIPCoordinates(NumSD()),
 	fDecomp(NULL),
 	fF_rel(NumSD()),
+	fROld(NumSD()),
+	fRNew(NumSD()),
 	fA_nsd(NumSD()),
-	fU1(NumSD()), fU2(NumSD()), fU1U2(NumSD())
+	fRelSpin(NumSD()),
+	fU1(NumSD()), fU2(NumSD()), fU1U2(NumSD()), fUOld(NumSD()), fUNew(NumSD())
 {
 	/* read ABAQUS-format input */
 	nstatv = 0;
@@ -60,12 +63,14 @@ ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FiniteStrainT& elem
 	fBlockSize = 0;
 	fBlockSize += ntens;       // fstress
 	fBlockSize += ntens;       // fstrain
-	fBlockSize += 3;           // fsse_pd_cd
+	//fBlockSize += 3;           // fsse_pd_cd
+	/* may not need that (above) */
 	fBlockSize += nstatv;      // fstatv
 	fBlockSize += fModulusDim; // fmodulus
 	fBlockSize += ntens;       // fstress_last
 	fBlockSize += ntens;       // fstrain_last
 	fBlockSize += 3;           // fsse_pd_cd_last
+	/* may not need this (above) */
 	fBlockSize += nstatv;      // fstatv_last
 	
 	/* argument array */
@@ -75,12 +80,12 @@ ABAQUS_VUMAT_BaseT::	ABAQUS_VUMAT_BaseT(ifstreamT& in, const FiniteStrainT& elem
 	doublereal* parg = fArgsArray.Pointer();
 	fstress.Set(ntens, parg);        parg += ntens;
 	fstrain.Set(ntens, parg);        parg += ntens;
-	fsse_pd_cd.Set(3, parg);         parg += 3;
+	//fsse_pd_cd.Set(3, parg);         parg += 3;
 	fstatv.Set(nstatv, parg);        parg += nstatv;
 	fmodulus.Set(fModulusDim, parg); parg += fModulusDim;
 	fstress_last.Set(ntens, parg);   parg += ntens;
 	fstrain_last.Set(ntens, parg);   parg += ntens;
-	fsse_pd_cd_last.Set(3, parg);    parg += 3;
+	//fsse_pd_cd_last.Set(3, parg);    parg += 3;
 	fstatv_last.Set(nstatv, parg);
 	
 
@@ -179,7 +184,7 @@ void ABAQUS_VUMAT_BaseT::UpdateHistory(void)
 		/* assign "current" to "last" */	
 		fstress_last    = fstress;
 		fstrain_last    = fstrain;
-		fsse_pd_cd_last = fsse_pd_cd;
+		//fsse_pd_cd_last = fsse_pd_cd;
 		fstatv_last     = fstatv;
 
 		/* write to storage */
@@ -199,7 +204,7 @@ void ABAQUS_VUMAT_BaseT::ResetHistory(void)
 		/* assign "last" to "current" */
 		fstress    = fstress_last;
 		fstrain    = fstrain_last;
-		fsse_pd_cd = fsse_pd_cd_last;
+		//fsse_pd_cd = fsse_pd_cd_last;
 		fstatv     = fstatv_last;
 
 		/* write to storage */
@@ -336,7 +341,8 @@ double ABAQUS_VUMAT_BaseT::StrainEnergyDensity(void)
 	Load(CurrentElement(), CurrIP());
 
 	/* pull from storage */
-	return double(fsse_pd_cd[0]);
+	//return double(fsse_pd_cd[0]);
+	return 0.0;
 }
 
 /* returns the number of variables computed for nodal extrapolation
@@ -810,12 +816,12 @@ void ABAQUS_VUMAT_BaseT::Call_UMAT(double t, double dt, int step, int iter)
 	Set_UMAT_Arguments();
 
 	/* map UMAT arguments */
-	doublereal* stress = fstress.Pointer();             // i/o: Cauchy stress
-	doublereal* statev = fstatv.Pointer();              // i/o: state variables
+	doublereal* stressold = fstress_last.Pointer();     // i: Cauchy stress - rotated
+	doublereal* statevold = fstatv_last.Pointer();      // i: state variables
 	doublereal* ddsdde = fddsdde.Pointer();             //   o: constitutive Jacobian
-	doublereal  sse = fsse_pd_cd[0];                    // i/o: specific elastic strain energy
-	doublereal  spd = fsse_pd_cd[1];                    // i/o: plastic dissipation
-	doublereal  scd = fsse_pd_cd[2];                    // i/o: creep dissipation
+	//doublereal  sse = fsse_pd_cd[0];                    // i/o: specific elastic strain energy
+	//doublereal  spd = fsse_pd_cd[1];                    // i/o: plastic dissipation
+	//doublereal  scd = fsse_pd_cd[2];                    // i/o: creep dissipation
 
 	// for fully-coupled only
 	doublereal  rpl;                                    // o: volumetric heat generation
@@ -826,6 +832,8 @@ void ABAQUS_VUMAT_BaseT::Call_UMAT(double t, double dt, int step, int iter)
 	doublereal* stran  = fstrain.Pointer();             // i: total integrated strain
 	doublereal* dstran = fdstran.Pointer();             // i: strain increment
 	doublereal  time[2];                                // i: {step time, total time} at the beginning of increment
+	doublereal  stime = doublereal(t);
+	doublereal  totime = doublereal(t);
 	time[0] = time[1]  = doublereal(t);
 	doublereal  dtime  = doublereal(dt);                // i: time step
 	doublereal  temp   = 0.0;                           // i: temperature at start
@@ -847,7 +855,24 @@ void ABAQUS_VUMAT_BaseT::Call_UMAT(double t, double dt, int step, int iter)
 	integer     kspt   = 1;                             // i: section point
 	integer     kstep  = integer(step);                 // i: step number
 	integer     kinc   = integer(iter);                 // i: increment number
-	ftnlen      cmname_len = strlen(fUMAT_name);      // f2c: length of cmname string
+	ftnlen      cmname_len = strlen(fUMAT_name);        // f2c: length of cmname string
+	// below were added by Harold for VUMAT
+	integer     lanneal = 0;                            // i: whether this analysis describes an annealing process
+	integer     nfieldv = 0;                            // i: number of user defined field varibles - default to 0
+	integer     nblock = 1;                             // i: number of material points to be processed - usually 1 IP
+	doublereal  enerInelasOld = 0.0;                    
+	doublereal  enerInelasNew = 0.0;                    // i: dissipated internal energy per unit mass - set to 0
+	doublereal  enerInternOld = 0.0;
+	doublereal  enerInternNew = 0.0;                    // i: these are set to 0 because BCJ does not define these
+	doublereal  tempOld = 0.0;
+	doublereal  tempNew = 0.0;                          // i: these are set to 0 because BCJ VUMAT uses the state
+	                                                    //    variables arrays (SV) to track the temperature evolution
+	doublereal* stretchold = fUOld.Pointer();           // i: Stretch tensor at beginning of increment
+	doublereal* stretchnew = fUNew.Pointer();           // i: Stretch tensor at end of increment
+	doublereal* relspininc = fRelSpin.Pointer();        // i: Relative spin increment
+	doublereal  density = fDensity;                     // i: Density of material
+	doublereal* stressnew = fstress.Pointer();          // o: This is the stress to be updated
+	doublereal* statevnew = fstatv.Pointer();           // o: This is the state variable array to be updated
 
 //DEBUG
 int d_width = OutputWidth(flog, fstress.Pointer());
@@ -864,10 +889,15 @@ flog << fstatv.wrap(5) << '\n';
 //DEBUG
 
 	/* call UMAT wrapper */
-	UMAT(stress, statev, ddsdde, &sse, &spd, &scd, &rpl, ddsddt, drplde,
-		&drpldt, stran, dstran, time, &dtime, &temp, &dtemp, predef, dpred, cmname,
-		&ndi, &nshr, &ntens, &nstatv, props, &nprops, coords, drot, &pnewdt, &celent,
-		dfgrd0, dfgrd1, &noel, &npt, &layer, &kspt, &kstep, &kinc, cmname_len);
+       UMAT(&nblock, &ndi, &nshr, &nstatv, &nfieldv, &nprops, &lanneal, &stime, &totime, &dtime, cmname, coords,
+       &celent, props, &density, dstran, relspininc, &tempOld, stretchold, dfgrd0, predef, stressold, statevold,
+       &enerInternOld, &enerInelasOld, &tempNew, stretchnew, dfgrd1, dpred, stressnew, statevnew, 
+       &enerInternNew, &enerInelasNew);
+ 
+       //UMAT(stress, statev, ddsdde, &sse, &spd, &scd, &rpl, ddsddt, drplde,
+       //       &drpldt, stran, dstran, time, &dtime, &temp, &dtemp, predef, dpred, cmname,
+       //       &ndi, &nshr, &ntens, &nstatv, props, &nprops, coords, drot, &pnewdt, &celent,
+       //       dfgrd0, dfgrd1, &noel, &npt, &layer, &kspt, &kstep, &kinc, cmname_len);
 
 //DEBUG
 if (false && CurrIP() == 0 && (step == 1 || step == 26))
@@ -892,11 +922,15 @@ flog << fstatv.wrap(5) << endl;
 /* set variables to last converged */
 void ABAQUS_VUMAT_BaseT::Reset_UMAT_Increment(void)
 {
-	/* assign "last" to "current" */
-	fstress    = fstress_last;
-	fstrain    = fstrain_last;
-	fsse_pd_cd = fsse_pd_cd_last;
-	fstatv     = fstatv_last;
+  ///* assign "last" to "current" */
+  //fstress    = fstress_last;
+  //fstrain    = fstrain_last;
+	//fsse_pd_cd = fsse_pd_cd_last;
+  //fstatv     = fstatv_last;
+  /* instead, assign "current" to "last" */
+  fstress_last = fstress;
+  fstrain_last = fstrain;
+  fstatv_last = fstatv;
 }
 
 /* set stress/strain arguments */
@@ -912,22 +946,31 @@ void ABAQUS_VUMAT_BaseT::Set_UMAT_Arguments(void)
 	/* deformation gradient at beginning of increment */
 	fA_nsd = F_last();
 	dMatrixT_to_ABAQUS(fA_nsd, fdfgrd0);
-	
+
+	/* stretch at beginning of increment */
+	bool perturb_repeated_roots = false;
+	fDecomp->PolarDecomp(fA_nsd, fROld, fUOld, perturb_repeated_roots);
+
 	/* deformation gradient at end of increment */
 	const dMatrixT& F_n = F();
 	dMatrixT_to_ABAQUS(F_n, fdfgrd1);
+
+	/* stretch at end of increment */
+	fDecomp->PolarDecomp(F_n, fRNew, fUNew, perturb_repeated_roots);
 
 	/* relative deformation gradient */
 	fA_nsd.Inverse();
 	fF_rel.MultAB(F_n, fA_nsd);
 
-	/* polar decomposition */
-	bool perturb_repeated_roots = false;
+	/* polar decomposition - intermediate configuration */
 	fDecomp->PolarDecomp(fF_rel, fA_nsd, fU1, perturb_repeated_roots);
 
 	/* incremental rotation */
 	dMatrixT_to_ABAQUS(fA_nsd, fdrot);
-	
+
+	/* Compute the relative spin here */
+	// BLAH....
+
 	/* incremental strain */
 	fU2 = fU1;
 	fU1.PlusIdentity(-1.0);
@@ -955,10 +998,10 @@ void ABAQUS_VUMAT_BaseT::Set_UMAT_Arguments(void)
 	fU2.MultQBQT(fA_nsd, fU1);
 	dSymMatrixT_to_ABAQUS(fU2, fstrain.Pointer());
 
-	/* rotate stress to current configuration */
-	ABAQUS_to_dSymMatrixT(fstress.Pointer(), fU1);
+	/* rotate LAST stress to current configuration, instead of current stress */
+	ABAQUS_to_dSymMatrixT(fstress_last.Pointer(), fU1);
 	fU2.MultQBQT(fA_nsd, fU1);
-	dSymMatrixT_to_ABAQUS(fU2, fstress.Pointer());
+	dSymMatrixT_to_ABAQUS(fU2, fstress_last.Pointer());
 }
 
 /* store the modulus */

@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BCJ.h,v 1.1 2001-07-18 21:29:44 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BCJ.h,v 1.2 2001-07-19 14:52:51 hspark Exp $ */
 
 #ifndef _ABAQUS_VUMAT_BCJ_H_
 #define _ABAQUS_VUMAT_BCJ_H_
@@ -22,16 +22,23 @@ private:
 
 //this need to be changed to a VUMAT wrapper	
 	
-	virtual void UMAT(doublereal*, doublereal*, doublereal*, doublereal*,
-		doublereal*, doublereal*, doublereal*, doublereal*,
-		doublereal*, doublereal*, doublereal*, doublereal*,
-		doublereal*, doublereal*, doublereal*, doublereal*,
-		doublereal*, doublereal*, char*,
-		integer*, integer*, integer*, integer*,
-		doublereal*, integer*, doublereal*, doublereal*,
-		doublereal*, doublereal*, doublereal*, doublereal*,
-		integer*, integer*, integer*, integer*, integer*,
-		integer*, ftnlen);
+	virtual void UMAT(integer*, integer*, integer*, integer*, integer*, integer*, integer*, doublereal*,
+		doublereal*, doublereal*, char*, doublereal*, doublereal*, doublereal*,
+                doublereal*, doublereal*, doublereal*, doublereal*, doublereal*, doublereal*,
+		doublereal*, doublereal*, doublereal*, doublereal*, doublereal*, doublereal*,
+                doublereal*, doublereal*, doublereal*, doublereal*, doublereal*, doublereal*,
+                doublereal*);
+
+	//	virtual void UMAT(doublereal*, doublereal*, doublereal*, doublereal*,
+	//doublereal*, doublereal*, doublereal*, doublereal*,
+	//doublereal*, doublereal*, doublereal*, doublereal*,
+	//doublereal*, doublereal*, doublereal*, doublereal*,
+	//doublereal*, doublereal*, char*,
+	//integer*, integer*, integer*, integer*,
+	//doublereal*, integer*, doublereal*, doublereal*,
+	//doublereal*, doublereal*, doublereal*, doublereal*,
+	//integer*, integer*, integer*, integer*, integer*,
+	//integer*, ftnlen);
 
 	/* set material output */
 	virtual void SetOutputVariables(iArrayT& variable_index,

@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.1 2001-07-18 21:29:44 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.2 2001-07-19 14:52:51 hspark Exp $ */
 
 #ifndef _ABAQUS_VUMAT_BASE_T_H_
 #define _ABAQUS_VUMAT_BASE_T_H_
@@ -100,17 +100,22 @@ private:
 	void Store_UMAT_Modulus(void);   // write modulus to storage
 
 	/* UMAT function wrapper */
-	virtual void UMAT(doublereal*, doublereal*, doublereal*, doublereal*,
-		doublereal*, doublereal*, doublereal*, doublereal*,
-		doublereal*, doublereal*, doublereal*, doublereal*,
-		doublereal*, doublereal*, doublereal*, doublereal*,
-		doublereal*, doublereal*, char*,
-		integer*, integer*, integer*, integer*,
-		doublereal*, integer*, doublereal*, doublereal*,
-		doublereal*, doublereal*, doublereal*, doublereal*,
-		integer*, integer*, integer*, integer*, integer*,
-		integer*, ftnlen) = 0;
-
+	//virtual void UMAT(doublereal*, doublereal*, doublereal*, doublereal*,
+	//doublereal*, doublereal*, doublereal*, doublereal*,
+	//doublereal*, doublereal*, doublereal*, doublereal*,
+	//doublereal*, doublereal*, doublereal*, doublereal*,
+	//doublereal*, doublereal*, char*,
+	//integer*, integer*, integer*, integer*,
+	//doublereal*, integer*, doublereal*, doublereal*,
+	//doublereal*, doublereal*, doublereal*, doublereal*,
+	//integer*, integer*, integer*, integer*, integer*,
+	//integer*, ftnlen) = 0;
+	virtual void UMAT(integer*, integer*, integer*, integer*, integer*, integer*, integer*, doublereal*,
+		doublereal*, doublereal*, char*, doublereal*, doublereal*, doublereal*,
+                doublereal*, doublereal*, doublereal*, doublereal*, doublereal*, doublereal*,
+		doublereal*, doublereal*, doublereal*, doublereal*, doublereal*, doublereal*,
+                doublereal*, doublereal*, doublereal*, doublereal*, doublereal*, doublereal*,
+                doublereal*) = 0;
 	/* read ABAQUS-format input */
 	void Read_ABAQUS_Input(ifstreamT& in);
 	bool Next_ABAQUS_Keyword(ifstreamT& in) const;
@@ -169,7 +174,7 @@ private:
 	/* UMAT stored array arguments */
 	nArrayT<doublereal> fstress;
 	nArrayT<doublereal> fstrain;
-	nArrayT<doublereal> fsse_pd_cd;
+	//nArrayT<doublereal> fsse_pd_cd;
 	nArrayT<doublereal> fstatv;
 
 	/* stored modulus */
@@ -178,7 +183,7 @@ private:
 	/* reset-able history */
 	nArrayT<doublereal> fstress_last;
 	nArrayT<doublereal> fstrain_last;
-	nArrayT<doublereal> fsse_pd_cd_last;
+	//nArrayT<doublereal> fsse_pd_cd_last;
 	nArrayT<doublereal> fstatv_last;
 	
 	/* UMAT argument array storage */
@@ -186,9 +191,13 @@ private:
 	
 	/* polar decomposition work space */
 	SpectralDecompT* fDecomp;
-	dMatrixT fF_rel;
+	dMatrixT fF_rel, fROld, fRNew;
 	dMatrixT fA_nsd;
-	dSymMatrixT fU1, fU2, fU1U2;
+	dSymMatrixT fU1, fU2, fU1U2, fUOld, fUNew;
+
+	/* relative spin increment */
+	dMatrixT fRelSpin;
+	
 };
 
 /* inlines */
