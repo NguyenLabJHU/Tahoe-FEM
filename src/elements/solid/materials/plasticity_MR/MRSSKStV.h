@@ -3,39 +3,49 @@
 #define _MR_SS_KSTV_H_
 
 /* base classes */
-#include "SSIsotropicMatT.h"
+#include "SSSolidMatT.h"
+#include "IsotropicT.h"
 #include "HookeanMatT.h"
-#include "MRSSNLHardT.h"
 
 namespace Tahoe {
 
-class MRSSKStV: public SSIsotropicMatT,
-				public HookeanMatT,
-				public MRSSNLHardT
+/* forward declarations */
+class MRSSNLHardT;
+
+class MRSSKStV: public SSSolidMatT,
+				public IsotropicT,
+				public HookeanMatT
 {
   public:
 
 	/* constructor */
-	MRSSKStV(ifstreamT& in, const SSMatSupportT& support);
+	MRSSKStV(void);
 	
-	/* initialization */
-	virtual void Initialize(void);
+	/* destructor */
+	~MRSSKStV(void);
 
 	/* form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
+	
+	/** model has history variables */
+	virtual bool HasHistory(void) const { return true; };
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);
 
 	/* reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
+	
+	/** returns elastic strain (3D) */
+	virtual const dSymMatrixT& ElasticStrain(
+                const dSymMatrixT& totalstrain, 
+				const ElementCardT& element, int ip);
 
 	/** \name spatial description */
 	/*@{*/
 	/** spatial tangent modulus */
 	virtual const dMatrixT& c_ijkl(void);
-
-	virtual const dMatrixT& cdisc_ijkl(void);
+	virtual const dMatrixT& c_perfplas_ijkl(void);
 
 	/** Cauchy stress */
 	virtual const dSymMatrixT& s_ij(void);
@@ -55,27 +65,36 @@ class MRSSKStV: public SSIsotropicMatT,
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
 
-        /*
-         * Test for localization using "current" values for Cauchy
-         * stress and the spatial tangent moduli. Returns 1 if the
-         * determinant of the acoustic tensor is negative and returns
-         * the normal for which the determinant is minimum. Returns 0
-         * of the determinant is positive.
-         */
-	 int IsLocalized(dArrayT& normal);
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+	
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
 	/* set modulus */
- 	virtual void SetModulus(dMatrixT& modulus); 
-         int loccheck;
+	virtual void SetModulus(dMatrixT& modulus); 
+	int loccheck;
  
   private:
+  
+  	/** pressure sensitive plasticity with nonlinear hardening and localization*/
+	MRSSNLHardT* fMR;
   
   	/* return values */
   	dSymMatrixT	fStress;
   	dMatrixT	fModulus, fModulusCe;
-    dMatrixT    fModulusdisc;
+    dMatrixT    fModulusPerfPlas;
 
 };
 

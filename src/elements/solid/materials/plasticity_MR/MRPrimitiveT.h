@@ -9,37 +9,38 @@
 #ifndef _MR_PRIMITIVET_H_
 #define _MR_PRIMITIVET_H_
 
-/* project headers */
-#include "Environment.h"
-
-#include "ios_fwd_decl.h"
+/* base class */
+#include "ParameterInterfaceT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
-class ifstreamT;
 class dSymMatrixT;
 
-class MRPrimitiveT
+class MRPrimitiveT: public ParameterInterfaceT
 {
   public:
 
 	/* constructor */
-	MRPrimitiveT(ifstreamT& in);
+	MRPrimitiveT(void);
 
 	/* destructor */
 	virtual ~MRPrimitiveT(void);
 
-	/* write parameters to stream */
-   	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+	
 	double YieldCondition(const dSymMatrixT& devstress, 
 			const double meanstress);
 
   protected:
 	
-	double fE;       /* elastic modulus */
-	double fnu;      /* Poisson's ratio */
 	double fGf_I;    /* Mode_I Fracture Energy */
 	double fGf_II;   /* Mode_II Fracture Energy */
 

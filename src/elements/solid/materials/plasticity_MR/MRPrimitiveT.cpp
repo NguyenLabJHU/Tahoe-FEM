@@ -6,80 +6,116 @@
 /* The model is consistent with the traction sepration   */
 /* cohesive surface models MR2DT and MR_RP2D.            */
 
-
 #include "MRPrimitiveT.h"
 
-#include <iostream.h>
-#include <math.h>
-
-#include "ifstreamT.h"
 #include "dSymMatrixT.h"
-
+#include <math.h>
 
 using namespace Tahoe;
 
-
 /* constructor */
-MRPrimitiveT::MRPrimitiveT(ifstreamT& in)
-
+MRPrimitiveT::MRPrimitiveT(void):
+	ParameterInterfaceT("MP_primitive")
 {
-	/* read parameters */
-	
-	in >> fE;     if (fE < 0) throw ExceptionT::kBadInputValue;
-	in >> fnu;    if (fnu < 0) throw ExceptionT::kBadInputValue;
-	in >> fGf_I;  if (fGf_I < 0) throw ExceptionT::kBadInputValue;
-	in >> fGf_II; if (fGf_II < 0) throw ExceptionT::kBadInputValue;
 
-	/* Inelastic Response initiation parameters */
-	in >> fchi_p; if (fchi_p < 0) throw ExceptionT::kBadInputValue;
-	in >> fchi_r; if (fchi_r < 0) throw ExceptionT::kBadInputValue;
-	in >> fc_p; if (fc_p < 0) throw ExceptionT::kBadInputValue;
-	in >> fc_r; if (fc_r < 0) throw ExceptionT::kBadInputValue;
-    in >> fphi_p; if (fphi_p < 0) throw ExceptionT::kBadInputValue;
-	in >> fphi_r; if (fphi_r < 0) throw ExceptionT::kBadInputValue;
-	in >> fpsi_p; if (fpsi_p < 0) throw ExceptionT::kBadInputValue;
-	in >> falpha_chi; if (falpha_chi < 0) throw ExceptionT::kBadInputValue;
-	in >> falpha_c; if (falpha_c < 0) throw ExceptionT::kBadInputValue;
-	in >> falpha_phi; if (falpha_phi < 0) throw ExceptionT::kBadInputValue;
-	in >> falpha_psi; if (falpha_psi < 0) throw ExceptionT::kBadInputValue;
-	in >> fTol_1; if (fTol_1 < 0) throw ExceptionT::kBadInputValue;
-	in >> fTol_2; if (fTol_2 < 0) throw ExceptionT::kBadInputValue;
 }
 
 /* destructor */
 MRPrimitiveT::~MRPrimitiveT(void) { }
 
-/* write parameters */
-void MRPrimitiveT::Print(ostream& out) const
+/* describe the parameters needed by the interface */
+void MRPrimitiveT::DefineParameters(ParameterListT& list) const
 {
-    out << " Elastic tangential stiffness. . . . . . . . . . = " << fE << '\n';
-	out << " Elastic Normal stiffness . . .. . . . . . . . . = " << fnu     << '\n';
-	out << " Mode_I Fracture Energy            . . . . . . . = " << fGf_I     << '\n';
-	out << " Mode_II Fracture Energy            . . .  . . . = " << fGf_II << '\n';
-	out << " Peak Cohesion                 . . . . . . . . . = " << fc_p    << '\n';
-	out << " Residual Cohesion             . . . . . . . . . = " << fc_r    << '\n';
-	out << " Peak Tensile Strength   . . . . . . . . . . . . = " << fchi_p << '\n';
-	out << " Residual Tensile Strength . . . . . . . . . . . = " << fchi_r << '\n';
-	out << " Peak Friction Angle         . . . . . . . . . . = " << fphi_p   << '\n';
-	out << " Critical State Friction Angle       . . . . . . = " << fphi_r  << '\n';
-	out << " Peak Dilation Angle.. . . . . . . . . . . . . . = " << fpsi_p   << '\n';
-	out << " Coefficient of Tensile Strength Degradation ..  = " << falpha_chi   << '\n';
-	out << " Coefficient of Cohesion Degradation. .. . . . . = " << falpha_c   << '\n';
-	out << " Coefficient for Frictional Angle Degradation .  = " << falpha_phi   << '\n';
-	out << " Coefficient for Dilation Angle Degradation  . . = " << falpha_psi   << '\n';
-	out << " Error Tolerance for Yield Function. . . . . . . = " << fTol_1 << '\n';
-	out << " Error Tolerance for Residual    . . . . . . . . = " << fTol_2 << '\n';
+	/* inherited */
+	ParameterInterfaceT::DefineParameters(list);
+
+	ParameterT Gf_I(fGf_I, "Gf_I");
+	Gf_I.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(Gf_I);
+	
+	ParameterT Gf_II(fGf_II, "Gf_II");
+	Gf_II.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(Gf_II);
+	
+	ParameterT chi_p(fchi_p, "chi_p");
+	chi_p.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(chi_p);
+	
+	ParameterT chi_r(fchi_r, "chi_r");
+	chi_r.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(chi_r);
+	
+	ParameterT c_p(fc_p, "c_p");
+	c_p.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(c_p);
+	
+	ParameterT c_r(fc_r, "c_r");
+	c_r.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(c_r);
+	
+	ParameterT phi_p(fphi_p, "phi_p");
+	phi_p.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(phi_p);
+	
+	ParameterT phi_r(fphi_r, "phi_r");
+	phi_r.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(phi_r);
+	
+	ParameterT psi_p(fpsi_p, "psi_p");
+	psi_p.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(psi_p);
+	
+	ParameterT alpha_chi(falpha_chi, "alpha_chi");
+	alpha_chi.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(alpha_chi);
+	
+	ParameterT alpha_c(falpha_c, "alpha_c");
+	alpha_c.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(alpha_c);
+	
+	ParameterT alpha_phi(falpha_phi, "alpha_phi");
+	alpha_phi.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(alpha_phi);
+	
+	ParameterT alpha_psi(falpha_psi, "alpha_psi");
+	alpha_psi.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(alpha_psi);
+	
+	ParameterT Tol_1(fTol_1, "Tol_1");
+	Tol_1.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(Tol_1);
+	
+	ParameterT Tol_2(fTol_2, "Tol_2");
+	Tol_2.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(Tol_2);
+}
+
+/* accept parameter list */
+void MRPrimitiveT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	fGf_I = list.GetParameter("Gf_I");
+	fGf_II = list.GetParameter("Gf_II");
+	fc_p = list.GetParameter("c_p");
+	fc_r = list.GetParameter("c_r");
+	fchi_p = list.GetParameter("chi_p");
+	fchi_r = list.GetParameter("chi_r");
+	fphi_p = list.GetParameter("phi_p");
+	fphi_r = list.GetParameter("phi_r");
+	fpsi_p = list.GetParameter("psi_p");
+	falpha_chi = list.GetParameter("alpha_chi");
+	falpha_c = list.GetParameter("alpha_c");
+	falpha_phi = list.GetParameter("alpha_phi");
+	falpha_psi = list.GetParameter("alpha_psi");
+	fTol_1 = list.GetParameter("Tol_1");
+	fTol_2 = list.GetParameter("Tol_2");
 }
 
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-void MRPrimitiveT::PrintName(ostream& out) const
-{
-  out << "    Nonassociative Manzari-Regueiro, Pressure-Dependent, Small Strain, \n";
-  out << "    Plasticity Model with Nonlinear Isotropic Hardening/Softening\n";
-}
 
 /*
  * Returns the value of the yield function given the

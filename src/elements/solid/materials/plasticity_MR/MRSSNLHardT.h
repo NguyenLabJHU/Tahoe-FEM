@@ -28,27 +28,25 @@ class MRSSNLHardT: public MRPrimitiveT
 {
 
 public:
+
 	/* constructor */
-	MRSSNLHardT(ifstreamT& in, int num_ip, double mu, double lambda);
-
-  	/* output name */
-	virtual void PrintName(ostream& out) const;
-
-  protected:
+	MRSSNLHardT(int num_ip, double mu, double lambda);
 
 	/* status flags */
 	enum LoadingStatusT {kIsPlastic = 0,
                          kIsElastic = 1,
-                             kReset = 3}; // indicate not to repeat update
-                             
+						 kIsLocalized = 2,                         
+                         kReset = 3}; // indicate not to repeat update
+
+	/* returns elastic strain (3D) */
+	virtual const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain, 
+		const ElementCardT& element, int ip);
+		                             
 	/* return correction to stress vector computed by mapping the
 	 * stress back to the yield surface, if needed */
 	const dSymMatrixT& StressCorrection(const dSymMatrixT& trialstrain, 
 		ElementCardT& element, int ip); 
-		
-	virtual const dSymMatrixT& ElasticStrain(const dSymMatrixT& totalstrain, 
-	                                 const ElementCardT& element, int ip);
-		
+
 	double& Yield_f(const dArrayT& Sig, const dArrayT& qn, double& ff);
     dArrayT& qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar);
     dArrayT& dfdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdSig);
@@ -69,9 +67,8 @@ public:
 	 *       internal variable values */
 	const dMatrixT& Moduli(const ElementCardT& element, int ip); 
 
-        /* Modulus for checking discontinuous bifurcation */
-
-	const dMatrixT& ModuliDisc(const ElementCardT& element, int ip);
+	/* Modulus for checking perfectly plastic bifurcation */
+	const dMatrixT& ModuliPerfPlas(const ElementCardT& element, int ip);
 
 	/* return a pointer to a new plastic element object constructed with
 	 * the data from element */
@@ -86,6 +83,9 @@ public:
                          kplastic = 24,  // Plastic Index
                           kftrial = 27}; // yield function value
 
+	/** internal variables */
+	dArrayT& Internal(void) { return fInternal; };
+	
 	/* element level data */
 	void Update(ElementCardT& element);
 	void Reset(ElementCardT& element);
@@ -104,6 +104,12 @@ public:
 	double MeanStress(const dSymMatrixT& trialstrain,
 		const ElementCardT& element);
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+	
   private:
 
 	/* load element data for the specified integration point */
@@ -130,7 +136,7 @@ public:
   	dSymMatrixT	fElasticStrain;
   	dSymMatrixT	fStressCorr;
   	dMatrixT	fModuli;
-    dMatrixT    fModuliDisc;
+    dMatrixT    fModuliPerfPlas;
   		
 	/* work space */
 	dSymMatrixT fDevStress;

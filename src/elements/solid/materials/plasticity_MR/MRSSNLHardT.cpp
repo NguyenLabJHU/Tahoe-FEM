@@ -21,24 +21,16 @@ const double kYieldTol    = 1.0e-10;
 const int    kNSD         = 3;
 
 /* constructor */
-MRSSNLHardT::MRSSNLHardT(ifstreamT& in, int num_ip, double mu, double lambda):
-	MRPrimitiveT(in),
+MRSSNLHardT::MRSSNLHardT(int num_ip, double mu, double lambda):
 	fNumIP(num_ip),
 	fmu(mu),
 	flambda(lambda),
 	fkappa(flambda + (2.0/3.0*fmu)),
-	fElasticStrain(kNSD),
-	fStressCorr(kNSD),
-	fModuli(dSymMatrixT::NumValues(kNSD)),
-	fModuliDisc(dSymMatrixT::NumValues(kNSD)), //for disc check
-	fDevStress(kNSD),
-	fMeanStress(0.0),
-	fDevStrain(kNSD), 
-	fTensorTemp(dSymMatrixT::NumValues(kNSD)),
-    IdentityTensor2(kNSD),
-	One(kNSD)
+	fMeanStress(0.0)
 {
+	SetName("MR_SS_nonlinear_hardening");
 }
+
 const dSymMatrixT& MRSSNLHardT::ElasticStrain(const dSymMatrixT& totalstrain, 
 	const ElementCardT& element, int ip)
 {
@@ -875,12 +867,11 @@ const dMatrixT& MRSSNLHardT::Moduli(const ElementCardT& element,
  *   bifurcation */
 
 
-const dMatrixT& MRSSNLHardT::ModuliDisc(const ElementCardT& element, 
+const dMatrixT& MRSSNLHardT::ModuliPerfPlas(const ElementCardT& element, 
 	int ip)
 {
 	/* initialize */
-
-fModuliDisc = 0.0;
+	fModuliPerfPlas = 0.0;
 
 	if (element.IsAllocated() && 
 	   (element.IntegerData())[ip] == kIsPlastic)
@@ -888,8 +879,7 @@ fModuliDisc = 0.0;
 
 	}
 
-
-	return fModuliDisc;
+	return fModuliPerfPlas;
 }	
 
  	 	
@@ -914,17 +904,31 @@ void MRSSNLHardT::AllocateElement(ElementCardT& element)
 	element.DoubleData()  = 0.0;  // initialize all double types to 0.0
 }
 
+
+/* accept parameter list */
+void MRSSNLHardT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	MRPrimitiveT::TakeParameterList(list);
+
+	/* dimension work space */
+	fElasticStrain.Dimension(kNSD);
+	fStressCorr.Dimension(kNSD);
+	fModuli.Dimension(dSymMatrixT::NumValues(kNSD));
+	fModuliPerfPlas.Dimension(dSymMatrixT::NumValues(kNSD));
+	fDevStress.Dimension(kNSD);
+	fDevStrain.Dimension(kNSD); 
+	fTensorTemp.Dimension(dSymMatrixT::NumValues(kNSD));
+	IdentityTensor2.Dimension(kNSD);
+	One.Dimension(kNSD);
+    
+	/* initialize constant tensor */
+	One.Identity();
+}
+
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-void MRSSNLHardT::PrintName(ostream& out) const
-{
-	/* inherited */
-	MRPrimitiveT::PrintName(out);
-
-	out << "    Small Strain\n";
-}
 
 /* element level data */
 void MRSSNLHardT::Update(ElementCardT& element)

@@ -2,30 +2,15 @@
 #include "MRSSKStV2D.h"
 #include "ElementCardT.h"
 #include "StringT.h"
+#include "MRSSNLHardT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-MRSSKStV2D::MRSSKStV2D(ifstreamT& in, const SSMatSupportT& support):
-	ParameterInterfaceT("MRSSKStV2D"),
-	MRSSKStV(in, support),
-//	Material2DT(in, kPlaneStrain),
-	fStress2D(2),
-	fModulus2D(dSymMatrixT::NumValues(2)),
-	fTotalStrain3D(3)
+MRSSKStV2D::MRSSKStV2D(void):
+	ParameterInterfaceT("small_strain_StVenant_MR_2D")
 {
-	/* account for thickness */
-//	fDensity *= fThickness;
-}
 
-/* initialization */
-void MRSSKStV2D::Initialize(void)
-{
-ExceptionT::GeneralFail("MRSSKStV2D::Initialize", "out of date");
-#if 0
-	/* inherited */
-	HookeanMatT::Initialize();
-#endif
 }
 
 /* returns 3D total strain (3D) */
@@ -50,10 +35,10 @@ const dMatrixT& MRSSKStV2D::c_ijkl(void)
 	return fModulus2D;
 }
 
-const dMatrixT& MRSSKStV2D::cdisc_ijkl(void)
+const dMatrixT& MRSSKStV2D::c_perfplas_ijkl(void)
 {
 	/* 3D -> 2D */
-	fModulus2D.Rank4ReduceFrom3D(MRSSKStV::cdisc_ijkl());
+	fModulus2D.Rank4ReduceFrom3D(MRSSKStV::c_perfplas_ijkl());
 //	fModulus2D *= fThickness;
 	return fModulus2D;
 }
@@ -68,8 +53,26 @@ const dSymMatrixT& MRSSKStV2D::s_ij(void)
 	return fStress2D;
 }
 
-/* returns the strain energy density for the specified strain */
-double MRSSKStV2D::StrainEnergyDensity(void)
+/* describe the parameters needed by the interface */
+void MRSSKStV2D::DefineParameters(ParameterListT& list) const
 {
-	return MRSSKStV::StrainEnergyDensity();
+	/* inherited */
+	MRSSKStV::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStrain);
+}
+
+/* accept parameter list */
+void MRSSKStV2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	MRSSKStV::TakeParameterList(list);
+
+	/* dimension work space */
+	fStress2D.Dimension(2);
+	fModulus2D.Dimension(dSymMatrixT::NumValues(2));
+	fModulusPerfPlas2D.Dimension(dSymMatrixT::NumValues(2));
+	fTotalStrain3D.Dimension(3);
 }

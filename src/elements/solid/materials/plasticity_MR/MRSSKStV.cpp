@@ -1,6 +1,7 @@
 /* created: Majid T. Manzari (04/16/2001) */
 #include "MRSSKStV.h"
 #include "SSMatSupportT.h"
+#include "MRSSNLHardT.h"
 
 #include "ElementCardT.h"
 #include "StringT.h"
@@ -13,7 +14,7 @@ using namespace Tahoe;
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* element output data */
-const int kNumOutput = 14;
+const int kNumOutput = 7;
 static const char* Labels[kNumOutput] = {
 	    "chi",
 	    "cohesion",
@@ -21,38 +22,19 @@ static const char* Labels[kNumOutput] = {
 	    "Dilation Angle",
 	    "VM",  // Von Mises stress
 	    "press", // pressurefmo
-	    "loccheck",
-	    "loccheckd", // localization check
-	    "n1", // x1 component of normal n for contbif
-	    "n2", // x2 component of normal n for contbif
-	    "n3", // x3 component of normal n for contbif
-	    "nd1", // x1 component of normal n for discbif	
-	    "nd2", // x2 component of normal n for discbif	
-	    "nd3"}; // x3 component of normal n for discbif	    
+	    "loccheck"}; // localization check	    
 
 /* constructor */
-MRSSKStV::MRSSKStV(ifstreamT& in, const SSMatSupportT& support):
-	ParameterInterfaceT("MRSSKStV"),
-//	SSSolidMatT(in, support),
-//	IsotropicT(in),
+MRSSKStV::MRSSKStV(void):
+	ParameterInterfaceT("small_strain_StVenant_MR"),
 	HookeanMatT(3),
-	MRSSNLHardT(in, NumIP(), Mu(), Lambda()),
-	fStress(3),
-	fModulus(dSymMatrixT::NumValues(3)),
-	fModulusdisc(dSymMatrixT::NumValues(3))
+	fMR(NULL)
 {
 
 }
-
-/* initialization */
-void MRSSKStV::Initialize(void)
-{
-ExceptionT::GeneralFail("MRSSKStV::Initialize", "out of date");
-#if 0
-	/* inherited */
-	HookeanMatT::Initialize();
-#endif
-}
+	
+/* destructor */
+MRSSKStV::~MRSSKStV(void) { delete fMR; }
 
 /* form of tangent matrix (symmetric by default) */
 GlobalT::SystemTypeT MRSSKStV::TangentType(void) const { return GlobalT::kNonSymmetric; }
@@ -62,7 +44,7 @@ void MRSSKStV::UpdateHistory(void)
 {
 	/* update if plastic */
 	ElementCardT& element = CurrentElement();
-	if (element.IsAllocated()) Update(element);
+	if (element.IsAllocated()) fMR->Update(element);
 }
 
 /* reset internal variables to last converged solution */
@@ -70,23 +52,26 @@ void MRSSKStV::ResetHistory(void)
 {
 	/* reset if plastic */
 	ElementCardT& element = CurrentElement();
-	if (element.IsAllocated()) Reset(element);
+	if (element.IsAllocated()) fMR->Reset(element);
+}
+
+const dSymMatrixT& MRSSKStV::ElasticStrain(const dSymMatrixT& totalstrain, const ElementCardT& element, int ip) 
+{
+	return fMR->ElasticStrain(totalstrain, element, ip);
 }
 
 /* modulus */
 const dMatrixT& MRSSKStV::c_ijkl(void)
 {
-
-	fModulus =	Moduli(CurrentElement(), CurrIP());
+	fModulus = fMR->Moduli(CurrentElement(), CurrIP());
 	return fModulus;
 }
 
-/*discontinuous modulus */
-const dMatrixT& MRSSKStV::cdisc_ijkl(void)
+/*perfectly plastic modulus */
+const dMatrixT& MRSSKStV::c_perfplas_ijkl(void)
 {
-	/* elastoplastic correction */
-	fModulusdisc =	ModuliDisc(CurrentElement(), CurrIP());
-	return fModulusdisc;
+	fModulusPerfPlas = fMR->ModuliPerfPlas(CurrentElement(), CurrIP());
+	return fModulusPerfPlas;
 }
 
 /* stress */
@@ -96,32 +81,11 @@ const dSymMatrixT& MRSSKStV::s_ij(void)
 	ElementCardT& element = CurrentElement();
 	const dSymMatrixT& e_tot = e();
 	const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
-	
-	/* elastic stress */
-	/*HookeanStress(e_els, fStress);*/
 
 	/* Updated Cauchy stress (return mapping) */
-	fStress = StressCorrection(e_els, element, ip);
+	fStress = fMR->StressCorrection(e_els, element, ip);
 	return fStress;	
 }
-
-
-/*
-* Test for localization using "current" values for Cauchy
-* stress and the spatial tangent moduli. Returns 1 if the
-* determinant of the acoustic tensor is negative and returns
-* the normal for which the determinant is minimum. Returns 0
-* if the determinant is positive.
-*/
-int MRSSKStV::IsLocalized(dArrayT& normal)
-{
-        DetCheckT checker(fStress, fModulus, fModulusCe);
-        checker.SetfStructuralMatSupport(*fSSMatSupport);
-
-        int loccheck= checker.IsLocalized(normal);
-        return loccheck;
-}
-
 
 /* returns the strain energy density for the specified strain */
 double MRSSKStV::StrainEnergyDensity(void)
@@ -145,6 +109,7 @@ void MRSSKStV::OutputLabels(ArrayT<StringT>& labels) const
 
 void MRSSKStV::ComputeOutput(dArrayT& output)
 {
+	dMatrixT Ce = HookeanMatT::Modulus();
 	
 	/* stress tensor (load state) */
 	const dSymMatrixT& stress = s_ij();
@@ -158,37 +123,91 @@ void MRSSKStV::ComputeOutput(dArrayT& output)
 	J2 = (J2 < 0.0) ? 0.0 : J2;
 	output[4] = sqrt(3.0*J2);
 	
-	/* stress-like internal variable Chi */
+	/* stress-like internal variable chi */
 	const ElementCardT& element = CurrentElement();
 	if (element.IsAllocated())
 	{
-		output[0] = fInternal[kchi];
-		output[1] = fInternal[kc];
-		output[2] = fInternal[ktanphi];
-		output[3] = fInternal[ktanpsi];
-		output[6] = fInternal[26];
-		output[7] = 0.0;
-		output[8] = 0.0;
-		output[9] = 0.0;
-		output[10] = 0.0;
-		output[11] = 0.0;
-		output[12] = 0.0;
-		output[13] = 0.0;
+		dArrayT& internal = fMR->Internal();
+		output[0] = internal[MRSSNLHardT::kchi];
+		output[1] = internal[MRSSNLHardT::kc];
+		output[2] = internal[MRSSNLHardT::ktanphi];
+		output[3] = internal[MRSSNLHardT::ktanpsi];
+		
+		// check for localization
+		// compute modulus 
+		const dMatrixT& modulus = c_ijkl();
+		// perfectly plastic modulus not implemented yet
+		//const dMatrixT& modulus = c_perfplas_ijkl();
+
+		/* localization condition checker */
+		DetCheckT checker(stress, modulus, Ce);
+		AutoArrayT <dArrayT> normals;
+		AutoArrayT <dArrayT> slipdirs;
+		normals.Dimension(3);
+		slipdirs.Dimension(3);
+		output[6] = checker.IsLocalized_SS(normals,slipdirs);
 	}	
 	else
 	{
 		output[6] = 0.0;
-		output[7] = 0.0;
-		output[8] = 0.0;
-		output[9] = 0.0;
-		output[10] = 0.0;
-		output[11] = 0.0;
-		output[12] = 0.0;
-		output[13] = 0.0;
 	}
-
-	
 }
+
+/* describe the parameters needed by the interface */
+void MRSSKStV::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	SSSolidMatT::DefineParameters(list);
+	IsotropicT::DefineParameters(list);
+}
+
+/* information about subordinate parameter lists */
+void MRSSKStV::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	IsotropicT::DefineSubs(sub_list);
+	SSSolidMatT::DefineSubs(sub_list);
+	
+	/* parameters for pressure sensitive plasticity with localization */
+	sub_list.AddSub("MR_SS_nonlinear_hardening");
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* MRSSKStV::NewSub(const StringT& name) const
+{
+	if (name == "MR_SS_nonlinear_hardening")
+		return new MRSSNLHardT(0, 0.0, 0.0);
+	else
+	{
+		/* inherited */
+		ParameterInterfaceT* params = SSSolidMatT::NewSub(name);
+		if (params) 
+			return params;
+		else
+			return IsotropicT::NewSub(name);
+	}
+}
+
+/* accept parameter list */
+void MRSSKStV::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	IsotropicT::TakeParameterList(list);
+	SSSolidMatT::TakeParameterList(list);
+	
+	fStress.Dimension(3);
+	fModulus.Dimension(dSymMatrixT::NumValues(3));
+	fModulusCe.Dimension(dSymMatrixT::NumValues(3));
+	fModulusPerfPlas.Dimension(dSymMatrixT::NumValues(3));
+
+	/* set modulus */
+	HookeanMatT::Initialize();
+
+	/* construct MR solver */
+	fMR = new MRSSNLHardT(NumIP(), Mu(), Lambda());
+	fMR->TakeParameterList(list.GetList("MR_SS_nonlinear_hardening"));
+}
+
 
 /*************************************************************************
 * Protected
