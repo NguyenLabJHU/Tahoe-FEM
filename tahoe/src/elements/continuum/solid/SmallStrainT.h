@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.14.24.1 2004-07-06 06:53:19 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.14.24.2 2004-07-12 08:08:47 paklein Exp $ */
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
 
@@ -16,14 +16,10 @@ class SmallStrainT: public SolidElementT
   public:
       
 	/** constructor */
-	SmallStrainT(const ElementSupportT& support, const FieldT& field);
 	SmallStrainT(const ElementSupportT& support);
 
 	/** destructor */
 	~SmallStrainT(void);
-
-	/** initialization. called immediately after constructor */
-	virtual void Initialize(void);
 
 	/** \name total strain */
 	/*@{*/
@@ -81,9 +77,6 @@ class SmallStrainT: public SolidElementT
 	 * \param name list identifier
 	 * \param size length of the list */
 	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
-
-	/** construct list of materials from the input stream */
-	virtual void ReadMaterialData(ifstreamT& in);
 
 	/** calculate the internal force contribution ("-k*d") */
 	void FormKd(double constK);

@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.h,v 1.8.40.1 2004-07-06 06:53:07 paklein Exp $ */
+/* $Id: AdhesionT.h,v 1.8.40.2 2004-07-12 08:08:39 paklein Exp $ */
 #ifndef _ADHESION_T_H_
 #define _ADHESION_T_H_
 
@@ -31,7 +31,6 @@ class AdhesionT: public ElementBaseT
 public:
 
 	/** constructor */
-	AdhesionT(const ElementSupportT& support, const FieldT& field);
 	AdhesionT(const ElementSupportT& support);
 
 	/** destructor */
@@ -42,9 +41,6 @@ public:
 
 	/** element level reconfiguration for the current solution */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
-
-	/** initialization after constructor */
-	virtual void Initialize(void);
 
 	/** return the force exerted on the specified node */
 	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);

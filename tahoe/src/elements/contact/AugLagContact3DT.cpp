@@ -1,4 +1,4 @@
-/* $Id: AugLagContact3DT.cpp,v 1.4.2.2 2004-07-12 05:12:05 paklein Exp $ */
+/* $Id: AugLagContact3DT.cpp,v 1.4.2.3 2004-07-12 08:08:42 paklein Exp $ */
 #include "AugLagContact3DT.h"
 
 #include <math.h>
@@ -33,98 +33,11 @@ inline static void Vector(const double* start, const double* end, double* v)
 const int kNumAugLagDOF = 1;
 
 /* constructor */
-AugLagContact3DT::AugLagContact3DT(const ElementSupportT& support, const FieldT& field):
-	Contact3DT(support, field),
-	fElCoord(fNumFacetNodes + 1, NumSD()),
-	fElRefCoord(fNumFacetNodes + 1, NumSD()),
-	fElDisp(fNumFacetNodes + 1, NumDOF()),
-	fdc_du(NumSD(), fElDisp.Length()),
-	fdn_du(NumSD(), fElDisp.Length()),
-	fM1(NumSD()),
-	fM2(NumSD(), fElDisp.Length()),
-	fV1(fElDisp.Length())
-{
-#pragma message("delete me")
-#if 0
-	SetName("contact_3D_multiplier");
-
-	/* regularization parameter */
-	const char caller[] = "AugLagContact3DT::AugLagContact3DT";
-	ElementSupport().Input() >> fr;
-	if (fr < 0.0)
-		ExceptionT::BadInputValue(caller, "regularization must be > 0: %g", fr);
-
-	double third = 1.0/3.0;
-	double* p = fdc_du.Pointer();
-	*p++ =-third;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ =-third;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ =-third;
-	*p++ =-third;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ =-third;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ =-third;
-	*p++ =-third;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ =-third;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ =-third;
-	*p++ = 1;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ = 1;
-	*p++ = 0;
-	*p++ = 0;
-	*p++ = 0;
-	*p   = 1;
-#endif
-}
-
 AugLagContact3DT::AugLagContact3DT(const ElementSupportT& support):
 	Contact3DT(support),
 	fr(0.0)
 {
 	SetName("contact_3D_multiplier");
-}
-
-/* allocates space and reads connectivity data */
-void AugLagContact3DT::Initialize(void)
-{
-	/* inherited */
-	Contact3DT::Initialize();
-
-	/* reset base class parameters */
-	int neq = NumElementNodes()*NumDOF() + 1; // 1 additional dof
-
-	/* re-size element results */
-	fLHS.Dimension(neq); // or make new variables?
-	fRHS.Dimension(neq);
-
-	/* dynamic work space managers for element arrays */
-	fXDOFConnectivities_man.SetWard(0, fXDOFConnectivities, NumElementNodes() + 1);		
-	fXDOFEqnos_man.SetWard(0, fXDOFEqnos, neq);
-
-	/* only 1 tag set for the group */
-	iArrayT numDOF(1);
-	numDOF = kNumAugLagDOF;
-
-	/* register with node manager - sets initial fContactDOFtags */
-	ElementSupport().XDOF_Manager().XDOF_Register(this, numDOF);
 }
 
 /* append element equations numbers to the list */
@@ -385,16 +298,6 @@ bool AugLagContact3DT::SetActiveInteractions(void)
 
 	/* inherited */
 	return Contact3DT::SetActiveInteractions();
-}
-
-/* print element group data */
-void AugLagContact3DT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	Contact3DT::PrintControlData(out);
-
-	/* regularization */
-	out << " Regularization parameter. . . . . . . . . . . . = " << fr << '\n';	
 }
 
 void AugLagContact3DT::RHSDriver(void)

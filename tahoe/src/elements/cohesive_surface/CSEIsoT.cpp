@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.20.2.2 2004-07-07 15:27:56 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.20.2.3 2004-07-12 08:08:41 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
@@ -24,12 +24,6 @@ using namespace Tahoe;
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* constructor */
-CSEIsoT::CSEIsoT(const ElementSupportT& support, const FieldT& field):
-	CSEBaseT(support, field)
-{
-	SetName("isotropic_CSE");
-}
-
 CSEIsoT::CSEIsoT(const ElementSupportT& support):
 	CSEBaseT(support)
 {

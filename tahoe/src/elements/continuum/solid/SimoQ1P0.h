@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.h,v 1.8.26.1 2004-07-06 06:53:19 paklein Exp $ */
+/* $Id: SimoQ1P0.h,v 1.8.26.2 2004-07-12 08:08:47 paklein Exp $ */
 #ifndef _SIMO_Q1_P0_H_
 #define _SIMO_Q1_P0_H_
 
@@ -44,7 +44,6 @@ class SimoQ1P0: public UpdatedLagrangianT
 public:
 
 	/** constructor */
-	SimoQ1P0(const ElementSupportT& support, const FieldT& field);
 	SimoQ1P0(const ElementSupportT& support);
 
 	/** finalize current step - step is solved */
@@ -76,10 +75,6 @@ protected:
 	/** calculate the internal force contribution ("-k*d") */
 	virtual void FormKd(double constK);
 
-	/** read materials data. For two dimensional problems, checks
-	 * that all materials are plane strain. */
-	virtual void ReadMaterialData(ifstreamT& in);	
-	
 private:
 
 	/** compute mean shape function gradient, H (reference volume), and

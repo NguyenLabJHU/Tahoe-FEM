@@ -1,4 +1,4 @@
-/* $Id: ElementListT.h,v 1.9.26.1 2004-07-06 06:53:06 paklein Exp $ */
+/* $Id: ElementListT.h,v 1.9.26.2 2004-07-12 08:08:37 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #ifndef _ELEMENTLIST_T_H_
 #define _ELEMENTLIST_T_H_
@@ -34,9 +34,6 @@ public:
 	/** destructor */
 	~ElementListT(void);
 
-	/** echo data from the I/O streams */
-	void EchoElementData(ifstreamT& in, ostream& out);
-	
 	/** returns true of ALL element groups have interpolant DOF's */
 	bool InterpolantDOFs(void) const;
 

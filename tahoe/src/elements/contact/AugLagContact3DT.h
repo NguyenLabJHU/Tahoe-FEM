@@ -1,4 +1,4 @@
-/* $Id: AugLagContact3DT.h,v 1.2.26.1 2004-07-06 06:53:13 paklein Exp $ */
+/* $Id: AugLagContact3DT.h,v 1.2.26.2 2004-07-12 08:08:42 paklein Exp $ */
 #ifndef _AUGLAG_CONTACT3D_T_H_
 #define _AUGLAG_CONTACT3D_T_H_
 
@@ -17,12 +17,8 @@ class AugLagContact3DT: public Contact3DT, public DOFElementT
 {
 public:
 
-	/* constructor */
-	AugLagContact3DT(const ElementSupportT& support, const FieldT& field);
+	/** constructor */
 	AugLagContact3DT(const ElementSupportT& support);
-
-	/* allocates space and reads connectivity data */
-	virtual void Initialize(void);
 
 	/** \name implementation of the DOFElementT interface */
 	/*@{*/
@@ -83,9 +79,6 @@ protected:
 	 * the last contact configuration can be stored */
 	virtual bool SetActiveInteractions(void);
 
-	/* print element group data */
-	virtual void PrintControlData(ostream& out) const;
-		 	
 	/* construct the effective mass matrix */
 	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
 

@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.h,v 1.2.32.2 2004-07-12 06:45:01 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.h,v 1.2.32.3 2004-07-12 08:08:43 paklein Exp $ */
 #ifndef _MF_PENALTY_CONTACT2D_T_H_
 #define _MF_PENALTY_CONTACT2D_T_H_
 
@@ -21,7 +21,6 @@ class MFPenaltyContact2DT: public PenaltyContact2DT
 public:
 
 	/** constructor */
-	MFPenaltyContact2DT(const ElementSupportT& support, const FieldT& field);
 	MFPenaltyContact2DT(const ElementSupportT& support);
 
 	/** \name implementation of the ParameterInterfaceT interface */

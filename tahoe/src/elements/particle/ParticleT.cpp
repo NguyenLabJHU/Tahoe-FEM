@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.41.2.4 2004-07-12 05:12:12 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.41.2.5 2004-07-12 08:08:52 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "ifstreamT.h"
@@ -34,42 +34,6 @@ const int kAvgNodesPerCell = 20;
 const int kMaxNumCells     =- 1; /* -1: no max */
 
 /* constructors */
-ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
-	ElementBaseT(support, field),
-	fNeighborDistance(-1),
-	fReNeighborDisp(-1),
-	fReNeighborIncr(-1),
-//	fNumTypes(-1),
-	fGrid(NULL),
-	fReNeighborCounter(0),
-	fDmax(0),
-	fForce_man(0, fForce, field.NumDOF()),
-	fActiveParticles(NULL),
-	fTypeMessageID(CommManagerT::kNULLMessageID)
-{
-#pragma message("delete me")
-#if 0
-	SetName("particle");
-
-	/* set matrix format */
-	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
-
-	/* read class parameters */
-	ifstreamT& in = ElementSupport().Input();
-	in >> fNeighborDistance
-	   >> fReNeighborDisp
-	   >> fReNeighborIncr;
-
-	if (fNeighborDistance < 0) ExceptionT::GeneralFail();
-	
-	/* values < 0 mean ignore */
-	fReNeighborDisp = (fReNeighborDisp < kSmall) ? -1 : fReNeighborDisp;
-	fReNeighborIncr = (fReNeighborIncr <= 0) ? -1 : fReNeighborIncr;
-
-	fPeriodicSkin = fNeighborDistance;
-#endif
-}
-
 ParticleT::ParticleT(const ElementSupportT& support):
 	ElementBaseT(support),
 	fNeighborDistance(-1),

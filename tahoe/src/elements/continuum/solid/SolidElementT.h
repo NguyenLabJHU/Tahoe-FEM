@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.26.2.1 2004-07-06 06:53:19 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.26.2.2 2004-07-12 08:08:47 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -46,7 +46,6 @@ public:
       	};
 
 	/** constructor */
-	SolidElementT(const ElementSupportT& support, const FieldT& field);
 	SolidElementT(const ElementSupportT& support);
 
 	/** destructor */
@@ -65,9 +64,6 @@ public:
 	 * not available */
 	const LocalArrayT* LastTemperatures(void) const { return fLocTemp_last; };
 	/*@}*/
-	
-	/** initialization. called immediately after constructor */
-	virtual void Initialize(void);
 
 	/** form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -105,13 +101,6 @@ public:
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 protected:
-
-	/** construct list of materials from the input stream */
-	virtual void ReadMaterialData(ifstreamT& in);
-
-	/* print element group data */
-	virtual void PrintControlData(ostream& out) const;
-	virtual void EchoOutputCodes(ifstreamT& in, ostream& out);
 
 	/* initialization functions */
 	virtual void SetLocalArrays(void);

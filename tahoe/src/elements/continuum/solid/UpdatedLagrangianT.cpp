@@ -1,11 +1,10 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.13.2.2 2004-07-07 15:28:05 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.13.2.3 2004-07-12 08:08:47 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpdatedLagrangianT.h"
 
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
-
 
 #include "toolboxConstants.h"
 #include "SolidMaterialT.h"
@@ -14,22 +13,6 @@
 using namespace Tahoe;
 
 /* constructor */
-UpdatedLagrangianT::UpdatedLagrangianT(const ElementSupportT& support, const FieldT& field):
-	FiniteStrainT(support, field),
-	fCauchyStress(NumSD()),
-	fLocCurrCoords(LocalArrayT::kCurrCoords)
-{
-	SetName("updated_lagrangian");
-	
-	/* consistency check */
-	if (ElementSupport().Analysis() == GlobalT::kLinStatic ||
-	    ElementSupport().Analysis() == GlobalT::kLinDynamic)
-	{
-		cout << "\nUpdatedLagrangianT::UpdatedLagrangianT: no current coordinates required\n" << endl;
-		fLocCurrCoords.SetType(LocalArrayT::kInitCoords);
-	}	
-}
-
 UpdatedLagrangianT::UpdatedLagrangianT(const ElementSupportT& support):
 	FiniteStrainT(support),
 	fLocCurrCoords(LocalArrayT::kCurrCoords)
@@ -42,17 +25,6 @@ UpdatedLagrangianT::~UpdatedLagrangianT(void)
 {
 	delete fCurrShapes;
 	fCurrShapes = NULL;
-}
-
-/* data initialization */
-void UpdatedLagrangianT::Initialize(void)
-{
-	/* inherited */
-	FiniteStrainT::Initialize();
-
-	/* dimension */
-	fGradNa.Dimension(NumSD(), NumElementNodes());
-	fStressStiff.Dimension(NumElementNodes());
 }
 
 /* accept parameter list */

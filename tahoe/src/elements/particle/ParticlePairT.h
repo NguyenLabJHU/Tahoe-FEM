@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.17.2.2 2004-07-12 05:12:12 paklein Exp $ */
+/* $Id: ParticlePairT.h,v 1.17.2.3 2004-07-12 08:08:52 paklein Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -22,7 +22,6 @@ class ParticlePairT: public ParticleT
 public:
 
 	/** constructor */
-	ParticlePairT(const ElementSupportT& support, const FieldT& field);
 	ParticlePairT(const ElementSupportT& support);
 
 	/** collecting element group equation numbers */

@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.h,v 1.10.40.1 2004-07-06 06:53:08 paklein Exp $ */
+/* $Id: CSEIsoT.h,v 1.10.40.2 2004-07-12 08:08:41 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #ifndef _CSE_ISO_T_H_
@@ -23,8 +23,7 @@ class CSEIsoT: public CSEBaseT
 public:
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	/* constructor */
-	CSEIsoT(const ElementSupportT& support, const FieldT& field);
+	/** constructor */
 	CSEIsoT(const ElementSupportT& support);
 #else
 	CSEIsoT(ElementSupportT& support);

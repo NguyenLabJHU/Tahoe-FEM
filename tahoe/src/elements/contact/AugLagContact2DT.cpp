@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.cpp,v 1.17.2.2 2004-07-12 05:12:05 paklein Exp $ */
+/* $Id: AugLagContact2DT.cpp,v 1.17.2.3 2004-07-12 08:08:42 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 #include "AugLagContact2DT.h"
 
@@ -17,49 +17,11 @@ using namespace Tahoe;
 const int kNumAugLagDOF  = 1;
 
 /* constructor */
-AugLagContact2DT::AugLagContact2DT(const ElementSupportT& support, const FieldT& field):
-	Contact2DT(support, field)
-{
-#pragma message("delete me")
-#if 0
-	SetName("contact_2D_multiplier");
-
-	/* regularization parameter */
-	ElementSupport().Input() >> fr;
-	if (fr < 0.0) throw ExceptionT::kBadInputValue;
-#endif
-}
-
 AugLagContact2DT::AugLagContact2DT(const ElementSupportT& support):
 	Contact2DT(support),
 	fr(0.0)
 {
 	SetName("contact_2D_multiplier");
-}
-
-/* allocates space and reads connectivity data */
-void AugLagContact2DT::Initialize(void)
-{
-	/* inherited */
-	Contact2DT::Initialize();
-
-	/* reset base class parameters */
-	int neq = NumElementNodes()*NumDOF() + 1; // 1 additional dof
-
-	/* re-size element results */
-	fLHS.Dimension(neq); // or make new variables?
-	fRHS.Dimension(neq);
-
-	/* dynamic work space managers for element arrays */
-	fXDOFConnectivities_man.SetWard(0, fXDOFConnectivities, NumElementNodes() + 1);		
-	fXDOFEqnos_man.SetWard(0, fXDOFEqnos, neq);
-
-	/* only 1 tag set for the group */
-	iArrayT numDOF(1);
-	numDOF = kNumAugLagDOF;
-
-	/* register with node manager - sets initial fContactDOFtags */
-	ElementSupport().XDOF_Manager().XDOF_Register(this, numDOF);
 }
 
 /* append element equations numbers to the list */
@@ -282,16 +244,6 @@ bool AugLagContact2DT::SetActiveInteractions(void)
 
 	/* inherited */
 	return Contact2DT::SetActiveInteractions();
-}
-
-/* print element group data */
-void AugLagContact2DT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	Contact2DT::PrintControlData(out);
-
-	/* regularization */
-	out << " Regularization parameter. . . . . . . . . . . . = " << fr << '\n';	
 }
 
 /* called by FormRHS and FormLHS */

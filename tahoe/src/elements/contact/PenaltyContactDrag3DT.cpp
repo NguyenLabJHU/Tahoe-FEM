@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactDrag3DT.cpp,v 1.4.2.2 2004-07-07 15:28:00 paklein Exp $ */
+/* $Id: PenaltyContactDrag3DT.cpp,v 1.4.2.3 2004-07-12 08:08:43 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContactDrag3DT.h"
 
@@ -29,15 +29,6 @@ inline static void Vector(const double* start, const double* end, double* v)
 };
 
 /* constructor */
-PenaltyContactDrag3DT::PenaltyContactDrag3DT(const ElementSupportT& support, const FieldT& field):
-	PenaltyContact3DT(support, field),
-	fDrag(0),
-	fGapTolerance(0),
-	fSlipTolerance(0)
-{
-	SetName("contact_drag_3D_penalty");
-}
-
 PenaltyContactDrag3DT::PenaltyContactDrag3DT(const ElementSupportT& support):
 	PenaltyContact3DT(support),
 	fDrag(0),
@@ -45,33 +36,6 @@ PenaltyContactDrag3DT::PenaltyContactDrag3DT(const ElementSupportT& support):
 	fSlipTolerance(0)
 {
 	SetName("contact_drag_3D_penalty");
-}
-
-/* initialization after constructor */
-void PenaltyContactDrag3DT::Initialize(void)
-{
-#pragma message("delete me")
-#if 0
-	/* inherited */
-	PenaltyContact3DT::Initialize();
-
-	ifstreamT& in = ElementSupport().Input();
-
-	/* drag parameters */
-	in >> fDrag
-	   >> fGapTolerance
-	   >> fSlipTolerance;
-
-	/* node blocks containing striker nodes */
-	int num_blocks = -1;
-	in >> num_blocks;
-	ArrayT<StringT> element_id(num_blocks);
-	for (int i = 0; i < element_id.Length(); i++)
-		in >> element_id[i];
-
-	/* compute associated nodal area (using all element blocks) */
-	ComputeNodalArea(element_id, fNodalArea, fStrikerLocNumber);
-#endif
 }
 
 /* describe the parameters needed by the interface */
@@ -104,18 +68,6 @@ void PenaltyContactDrag3DT::TakeParameterList(const ParameterListT& list)
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-/* print element group data */
-void PenaltyContactDrag3DT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	PenaltyContact3DT::PrintControlData(out);
-
-	/* regularization */
-	out << " Magnitude of the drag traction. . . . . . . . . = " << fDrag << '\n';	
-	out << " Gap tolerance for drag. . . . . . . . . . . . . = " << fGapTolerance << '\n';	
-	out << " Minimum incremental slip for drag . . . . . . . = " << fSlipTolerance << '\n';	
-}
 
 void PenaltyContactDrag3DT::RHSDriver(void)
 {

@@ -1,4 +1,4 @@
-/* $Id: UpLagr_ExternalFieldT.cpp,v 1.9.2.1 2004-07-07 15:28:05 paklein Exp $ */
+/* $Id: UpLagr_ExternalFieldT.cpp,v 1.9.2.2 2004-07-12 08:08:47 paklein Exp $ */
 #include "UpLagr_ExternalFieldT.h"
 
 #include "ifstreamT.h"
@@ -8,7 +8,7 @@ using namespace Tahoe;
 
 /* constructor */
 UpLagr_ExternalFieldT::UpLagr_ExternalFieldT(const ElementSupportT& support, const FieldT& field):
-	UpdatedLagrangianT(support, field),
+	UpdatedLagrangianT(support),
 	fLocExternalField(LocalArrayT::kUnspecified)
 {
 

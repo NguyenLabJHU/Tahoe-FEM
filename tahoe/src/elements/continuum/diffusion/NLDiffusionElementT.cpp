@@ -1,13 +1,9 @@
-/* $Id: NLDiffusionElementT.cpp,v 1.5.2.2 2004-07-07 15:28:03 paklein Exp $ */
+/* $Id: NLDiffusionElementT.cpp,v 1.5.2.3 2004-07-12 08:08:46 paklein Exp $ */
 #include "NLDiffusionElementT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 #include <math.h>
-
-#include "toolboxConstants.h"
-
-
 
 #include "ElementCardT.h"
 #include "ShapeFunctionT.h"
@@ -24,16 +20,6 @@
 using namespace Tahoe;
 
 /* constructor */
-NLDiffusionElementT::NLDiffusionElementT(const ElementSupportT& support, const FieldT& field):
-	DiffusionElementT(support, field),
-	feps(0.0), fT0(0.0), falpha(0.0)
-{
-	SetName("nonlinear_diffusion");
-
-	/* reset structure of element stiffness matrix */
-	fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
-}
-
 NLDiffusionElementT::NLDiffusionElementT(const ElementSupportT& support):
 	DiffusionElementT(support),
 	feps(0.0), 
@@ -41,24 +27,6 @@ NLDiffusionElementT::NLDiffusionElementT(const ElementSupportT& support):
 	falpha(0.0)
 {
 	SetName("nonlinear_diffusion");
-}
-
-/* data initialization */
-void NLDiffusionElementT::Initialize(void)
-{
-#pragma message("delete me")
-#if 0
-	/* inherited */
-	DiffusionElementT::Initialize();
-
-	/* dimension work space */
-	fField_list.Dimension(NumIP());
-	
-	/* echo mixed traction BC's */
-	ifstreamT&  in = ElementSupport().Input();
-	ofstreamT& out = ElementSupport().Output();
-	EchoTractionBC(in, out);
-#endif
 }
 
 /* collecting element group equation numbers */
@@ -460,64 +428,6 @@ void NLDiffusionElementT::TakeTractionBC(const ParameterListT& list)
 			face_num += num_sides;
 		}		
 	}
-}
-
-void NLDiffusionElementT::EchoTractionBC(ifstreamT& in, ostream& out)
-{
-#pragma message("delete me")
-#if 0
-	const char caller[] = "NLDiffusionElementT::EchoTractionBC";
-	int num_sides = -99;
-	in >> num_sides; if (num_sides < 0) ExceptionT::BadInputValue(caller);
-	if (num_sides > 0)
-	{
-		/* model manager */
-		ModelManagerT& model = ElementSupport().ModelManager();
-
-		/* total number of faces */
-		int num_faces = 0;
-		ArrayT<StringT> side_ID(num_sides);
-		for (int i = 0; i < side_ID.Length(); i++) {
-			in >> side_ID[i];
-			num_faces += model.SideSetLength(side_ID[i]);
-		}
-
-		/* element topology */
-		iArrayT nodes_on_faces(fShapes->NumFacets());
-		fShapes->NumNodesOnFacets(nodes_on_faces);
-		int min, max;
-		nodes_on_faces.MinMax(min, max);
-		if (min != max) ExceptionT::GeneralFail(caller, "all faces must have same shape");
-		
-		/* collect nodes on faces */
-		int face_num = 0;
-		fBCFaces.Dimension(num_faces, nodes_on_faces[0]);
-		for (int i = 0; i < side_ID.Length(); i++)
-		{
-			int num_sides = model.SideSetLength(side_ID[i]);
-			iArray2DT faces(num_sides, fBCFaces.MinorDim(), fBCFaces(face_num));
-		
-			/* read side set */
-			ArrayT<GeometryT::CodeT> facet_geom;
-			iArrayT facet_nodes;
-			model.SideSet(side_ID[i], facet_geom, facet_nodes, faces);		
-		
-			/* next set */
-			face_num += num_sides;
-		}
-		
-		/* read BC parameters */
-		in >> feps >> fT0 >> falpha;
-	}
-
-	/* echo */
-	out << " Number of mixed BC side sets. . . . . . . . . . = " << num_sides << '\n';
-	out << " Number of BC faces. . . . . . . . . . . . . . . = " << fBCFaces.MajorDim() << '\n';
-	out << " BC parameters:\n";
-	out << " epsilon . . . . . . . . . . . . . . . . . . . . = " << feps << '\n';
-	out << " T0. . . . . . . . . . . . . . . . . . . . . . . = " << fT0 << '\n';
-	out << " alpha . . . . . . . . . . . . . . . . . . . . . = " << falpha << '\n';
-#endif
 }
 
 /* compute contribution to RHS from mixed BC's */

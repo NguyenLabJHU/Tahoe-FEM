@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.46.2.3 2004-07-12 05:12:01 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.46.2.4 2004-07-12 08:08:37 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -20,18 +20,6 @@ using namespace Tahoe;
 
 /* constructor */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-ElementBaseT::ElementBaseT(const ElementSupportT& support, const FieldT& field):
-	ParameterInterfaceT("element_base"),
-	fSupport(support),
-	fField(&field),
-	fIntegrator(NULL),
-	fElementCards(0),
-	fLHS(ElementMatrixT::kSymmetric)
-{
-	/* just cast it */
-	fIntegrator = &(fField->Integrator().eIntegrator());
-}
-
 ElementBaseT::ElementBaseT(const ElementSupportT& support):
 	ParameterInterfaceT("element_base"),
 	fSupport(support),
@@ -62,39 +50,6 @@ int ElementBaseT::ElementGroupNumber(void) const
 
 /* destructor */
 ElementBaseT::~ElementBaseT(void) {	}
-
-/* allocates space and reads connectivity data */
-void ElementBaseT::Initialize(void)
-{
-#pragma message("delete me")
-#if 0
-	/* set console variables */
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	int index = fSupport.ElementGroupNumber(this) + 1;
-	StringT name;
-	name.Append(index);
-	name.Append("_element_group");
-	iSetName(name);
-
-	/* streams */
-	ifstreamT&  in = fSupport.Input();
-	ofstreamT& out = fSupport.Output();
-
-	/* control data */
-	PrintControlData(out);
-
-	/* element connectivity data */
-	EchoConnectivityData(in, out);
-#else
-	EchoConnectivityData();
-#endif
-
-	/* dimension */
-	int neq = NumElementNodes()*NumDOF();
-	fLHS.Dimension(neq);	
-	fRHS.Dimension(neq);
-#endif
-}
 
 /* set the active elements */
 void ElementBaseT::SetStatus(const ArrayT<StatusT>& status)
@@ -610,12 +565,6 @@ void ElementBaseT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<
 }
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-/* print element group data */
-void ElementBaseT::PrintControlData(ostream& out) const
-{
-#pragma unused(out)
-}
-
 /* echo element connectivity data, resolve material pointers
 * and set the local equation numbers */
 void ElementBaseT::EchoConnectivityData(ifstreamT& in, ostream& out)

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.cpp,v 1.23.2.3 2004-07-12 05:12:04 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.cpp,v 1.23.2.4 2004-07-12 08:08:41 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 #include "MeshFreeCSEAnisoT.h"
 
@@ -38,7 +38,7 @@ const int kHeadRoom = 0;
 
 /* constructor */
 MeshFreeCSEAnisoT::MeshFreeCSEAnisoT(const ElementSupportT& support, const FieldT& field):
-	ElementBaseT(support, field),
+	ElementBaseT(support),
 	fMFSurfaceShape(NULL),
 	fSurfacePotential(NULL),
 	fLocDisp(LocalArrayT::kDisp),
@@ -373,24 +373,8 @@ void MeshFreeCSEAnisoT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 int MeshFreeCSEAnisoT::InterpolantDOFs(void) const { return 0; }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
-
-/* print element group data */
-void MeshFreeCSEAnisoT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	ElementBaseT::PrintControlData(out);
-
-	/* control parameters */
-	out << " Element geometry code . . . . . . . . . . . . . = " << fGeometryCode << '\n';
-	out << "    eq." << GeometryT::kLine          << ", line\n";
-	out << "    eq." << GeometryT::kQuadrilateral << ", quadrilateral\n";
-	out << "    eq." << GeometryT::kTriangle	  << ", triangle\n";
-	out << " Number of integration points. . . . . . . . . . = " << fNumIntPts << '\n';
-	out << " Output fracture surface area. . . . . . . . . . = " << fOutputArea << '\n';
-	out << " Meshfree domain element group . . . . . . . . . = " << fMFElementGroup + 1 << '\n';
-}
+ * Protected
+ ***********************************************************************/
 
 /* element data */
 void MeshFreeCSEAnisoT::EchoConnectivityData(ifstreamT& in, ostream& out)

@@ -1,7 +1,6 @@
-/* $Id: TotalLagrangianT.cpp,v 1.13.2.2 2004-07-07 15:28:05 paklein Exp $ */
+/* $Id: TotalLagrangianT.cpp,v 1.13.2.3 2004-07-12 08:08:47 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #include "TotalLagrangianT.h"
-
 
 #include "toolboxConstants.h"
 #include "SolidMaterialT.h"
@@ -11,15 +10,6 @@
 using namespace Tahoe;
 
 /* constructor */
-TotalLagrangianT::TotalLagrangianT(const ElementSupportT& support, const FieldT& field):
-	FiniteStrainT(support, field),
-	fStressMat(NumSD()),
-	fTempMat1(NumSD()),
-	fTempMat2(NumSD())
-{
-	SetName("total_lagrangian");
-}
-
 TotalLagrangianT::TotalLagrangianT(const ElementSupportT& support):
 	FiniteStrainT(support)
 {

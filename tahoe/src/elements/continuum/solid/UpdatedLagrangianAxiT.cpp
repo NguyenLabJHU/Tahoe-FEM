@@ -1,12 +1,10 @@
-/* $Id: UpdatedLagrangianAxiT.cpp,v 1.2.2.2 2004-07-07 15:28:05 paklein Exp $ */
+/* $Id: UpdatedLagrangianAxiT.cpp,v 1.2.2.3 2004-07-12 08:08:47 paklein Exp $ */
 #include "UpdatedLagrangianAxiT.h"
 
 #include <math.h>
 #include <iostream.h>
 #include <iomanip.h>
 
-
-#include "toolboxConstants.h"
 #include "SolidMaterialT.h"
 #include "ShapeFunctionT.h"
 
@@ -16,22 +14,6 @@ const double Pi2 = 2.0*acos(-1.0);
 const int kRadialDirection = 0; /* x <-> r */
 
 /* constructor */
-UpdatedLagrangianAxiT::UpdatedLagrangianAxiT(const ElementSupportT& support, const FieldT& field):
-	FiniteStrainAxiT(support, field),
-	fStress2D_axi(dSymMatrixT::k3D_plane),
-	fStressMat(3)
-{
-	SetName("updated_lagrangian_axi");
-
-	/* consistency check */
-	if (ElementSupport().Analysis() == GlobalT::kLinStatic ||
-	    ElementSupport().Analysis() == GlobalT::kLinDynamic)
-	{
-		cout << "\nUpLag_FDElasticT::UpdatedLagrangianAxiT: no current coordinates required\n" << endl;
-		fLocCurrCoords.SetType(LocalArrayT::kInitCoords);
-	}	
-}
-
 UpdatedLagrangianAxiT::UpdatedLagrangianAxiT(const ElementSupportT& support):
 	FiniteStrainAxiT(support),
 	fStress2D_axi(dSymMatrixT::k3D_plane),

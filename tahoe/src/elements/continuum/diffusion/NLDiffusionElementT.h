@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.h,v 1.3.26.1 2004-07-06 06:53:16 paklein Exp $ */
+/* $Id: NLDiffusionElementT.h,v 1.3.26.2 2004-07-12 08:08:46 paklein Exp $ */
 #ifndef _NL_DIFFUSE_T_H_
 #define _NL_DIFFUSE_T_H_
 
@@ -16,11 +16,7 @@ class NLDiffusionElementT: public DiffusionElementT
 public:
 	
 	/** constructor */
-	NLDiffusionElementT(const ElementSupportT& support, const FieldT& field);
 	NLDiffusionElementT(const ElementSupportT& support);
-	
-	/** data initialization */
-	virtual void Initialize(void);
 
 	/** collecting element group equation numbers. */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -67,8 +63,6 @@ private:
 	/** \name mixed boundary conditions */
 	/*@{*/
 	void TakeTractionBC(const ParameterListT& list);
-
-	void EchoTractionBC(ifstreamT& in, ostream& out);
 
 	/** compute contribution to RHS from mixed BC's */
 	void TractionBC_RHS(void);

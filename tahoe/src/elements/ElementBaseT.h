@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.38.14.1 2004-07-06 06:53:06 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.38.14.2 2004-07-12 08:08:37 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -73,7 +73,6 @@ public:
 
 	/** constructors */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	ElementBaseT(const ElementSupportT& support, const FieldT& field);
 	ElementBaseT(const ElementSupportT& support);
 #else
 	ElementBaseT(ElementSupportT& support);
@@ -138,10 +137,6 @@ public:
 	/** return the number of degrees of freedom per node */
 	int NumDOF(void) const;
 	/*@}*/
-
-	/** class initialization. Among other things, element work space
-	 * is allocated and connectivities are read. */
-	virtual void Initialize(void);
 
 	/** set the active elements.
 	 * \param array of status flags for all elements in the group */
@@ -389,9 +384,6 @@ protected: /* for derived classes only */
 	/*@}*/
 
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
-	/* print element group data */
-	virtual void PrintControlData(ostream& out) const;
-	
 	/** echo element connectivity data. Calls ElementBaseT::ReadConnectivity
 	 * to read the data and ElementBaseT::WriteConnectivity to write it. */
 	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);

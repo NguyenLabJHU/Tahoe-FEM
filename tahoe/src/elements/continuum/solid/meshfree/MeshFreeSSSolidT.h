@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.h,v 1.8.26.1 2004-07-06 06:54:15 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.h,v 1.8.26.2 2004-07-12 08:08:50 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #ifndef _MF_SMALLSTRAIN_T_H_
 #define _MF_SMALLSTRAIN_T_H_
@@ -24,25 +24,24 @@ class MeshFreeSSSolidT: public SmallStrainT
 {
 public:
 
-	/* constructor */
-	MeshFreeSSSolidT(const ElementSupportT& support, const FieldT& field);
+	/** constructor */
 	MeshFreeSSSolidT(const ElementSupportT& support);
 
-	/* destructor */
+	/** destructor */
 	~MeshFreeSSSolidT(void);
 	
-	/* append element equations numbers to the list */
+	/** append element equations numbers to the list */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 
-	/* appends group connectivities to the array */
+	/** appends group connectivities to the array */
 	virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
 
-	/* write output */
+	/** write output */
 	virtual void WriteOutput(void);
 
-	/* returns true if the internal force has been changed since
+	/** returns true if the internal force has been changed since
 	 * the last time step */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 

@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.cpp,v 1.12.22.1 2004-07-06 06:53:19 paklein Exp $ */
+/* $Id: SimoQ1P0.cpp,v 1.12.22.2 2004-07-12 08:08:47 paklein Exp $ */
 #include "SimoQ1P0.h"
 
 #include "ShapeFunctionT.h"
@@ -8,12 +8,6 @@
 using namespace Tahoe;
 
 /* constructor */
-SimoQ1P0::SimoQ1P0(const ElementSupportT& support, const FieldT& field):
-	UpdatedLagrangianT(support, field)
-{
-	SetName("updated_lagrangian_Q1P0");
-}
-
 SimoQ1P0::SimoQ1P0(const ElementSupportT& support):
 	UpdatedLagrangianT(support)
 {
@@ -305,17 +299,6 @@ void SimoQ1P0::FormKd(double constK)
 	
 	/* volume averaged */
 	p_bar /= fElementVolume[CurrElementNumber()];
-}
-
-/* read materials data */
-void SimoQ1P0::ReadMaterialData(ifstreamT& in)
-{
-	/* inherited */
-	UpdatedLagrangianT::ReadMaterialData(in);
-
-	/* make sure 2D materials are plane strain */
-	if (StructuralMaterialList().HasPlaneStress()) 
-		ExceptionT::BadInputValue("SimoQ1P0::ReadMaterialData", "2D materials must be plane strain");
 }
 
 /***********************************************************************

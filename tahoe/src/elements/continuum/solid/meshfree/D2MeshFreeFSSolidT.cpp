@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.13.2.3 2004-07-12 05:12:11 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.13.2.4 2004-07-12 08:08:50 paklein Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D2MeshFreeFSSolidT.h"
 #include "SolidMaterialsConfig.h"
@@ -28,7 +28,7 @@ using namespace Tahoe;
 
 /* constructor */
 D2MeshFreeFSSolidT::D2MeshFreeFSSolidT(const ElementSupportT& support, const FieldT& field):
-	MeshFreeFSSolidT(support, field),
+	MeshFreeFSSolidT(support),
 	fD2MFShapes(NULL),
 
 	/* work space */
@@ -56,7 +56,7 @@ void D2MeshFreeFSSolidT::Initialize(void)
 #endif		
 
 	/* inherited */
-	MeshFreeFSSolidT::Initialize();
+	//MeshFreeFSSolidT::Initialize();
 
 	/* check material's list */
 	for (int i = 0; i < fMaterialList->Length(); i++)

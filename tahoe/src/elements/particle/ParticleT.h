@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.28.6.2 2004-07-12 05:12:12 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.28.6.3 2004-07-12 08:08:52 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -28,7 +28,6 @@ class ParticleT: public ElementBaseT
 public:
 
 	/** constructor */
-	ParticleT(const ElementSupportT& support, const FieldT& field);
 	ParticleT(const ElementSupportT& support);
 
 	/** destructor */

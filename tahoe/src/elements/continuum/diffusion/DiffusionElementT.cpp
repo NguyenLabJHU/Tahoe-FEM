@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.20.2.3 2004-07-08 16:11:26 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.20.2.4 2004-07-12 08:08:46 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -31,23 +31,6 @@ static const char* NodalOutputNames[] = {
 const int kDiffusionNDOF = 1;
 
 /* constructor */
-DiffusionElementT::DiffusionElementT(const ElementSupportT& support, const FieldT& field):
-	ContinuumElementT(support, field),
-	fLocVel(LocalArrayT::kVel),
-	fD(NumSD()),
-	fq(NumSD()),
-	fDiffusionMatSupport(NULL)
-{
-	SetName("diffusion");
-
-	/* check base class initializations */
-	if (NumDOF() != kDiffusionNDOF) {
-		cout << "\n DiffusionElementT::DiffusionElementT: expecting field with " << kDiffusionNDOF << " dof/node not " 
-		     << NumDOF() << endl;
-		throw ExceptionT::kBadInputValue;
-	}
-}
-
 DiffusionElementT::DiffusionElementT(const ElementSupportT& support):
 	ContinuumElementT(support),
 	fLocVel(LocalArrayT::kVel),
@@ -60,37 +43,6 @@ DiffusionElementT::DiffusionElementT(const ElementSupportT& support):
 DiffusionElementT::~DiffusionElementT(void)
 {
 	delete fDiffusionMatSupport;
-}
-
-/* data initialization */
-void DiffusionElementT::Initialize(void)
-{
-	/* inherited */
-	ContinuumElementT::Initialize();
-
-	/* allocate */
-	fB.Dimension(NumSD(), NumElementNodes());
-	fGradient_list.Dimension(NumIP());
-	for (int i = 0; i < fGradient_list.Length(); i++)
-		fGradient_list[i].Dimension(NumSD());
-
-	/* setup for material output */
-	if (fNodalOutputCodes[iMaterialData])
-	{
-		/* check compatibility of output */
-		if (!CheckMaterialOutput())
-		{
-			cout << "\n DiffusionElementT::Initialize: error with material output" << endl;
-			throw ExceptionT::kBadInputValue;
-		}
-		/* no material output variables */
-	 	else if ((*fMaterialList)[0]->NumOutputVariables() == 0)
-		{
-			cout << "\n DiffusionElementT::ReadMaterialData: there are no material outputs"
-			     << endl;
-			fNodalOutputCodes[iMaterialData] = 0;
-		}
-	}
 }
 
 #if 0
@@ -184,41 +136,6 @@ void DiffusionElementT::SendOutput(int kincode)
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-/* print element group data */
-void DiffusionElementT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	ContinuumElementT::PrintControlData(out);
-
-	// anything else
-}
-
-void DiffusionElementT::EchoOutputCodes(ifstreamT& in, ostream& out)
-{
-	/* allocate */
-	fNodalOutputCodes.Dimension(NumNodalOutputCodes);
-
-	/* read in at a time to allow comments */
-	for (int i = 0; i < fNodalOutputCodes.Length(); i++)
-	{
-		in >> fNodalOutputCodes[i];
-		
-		/* convert all to "at print increment" */
-		if (fNodalOutputCodes[i] != IOBaseT::kAtNever)
-			fNodalOutputCodes[i] = IOBaseT::kAtInc;
-	}		
-
-	/* checks */
-	if (fNodalOutputCodes.Min() < IOBaseT::kAtFail ||
-	    fNodalOutputCodes.Max() > IOBaseT::kAtInc) throw ExceptionT::kBadInputValue;
-
-	/* control parameters */
-	out << " Number of nodal output codes. . . . . . . . . . = " << NumNodalOutputCodes << '\n';
-	out << "    [" << fNodalOutputCodes[iNodalCoord   ] << "]: initial nodal coordinates\n";
-	out << "    [" << fNodalOutputCodes[iNodalDisp    ] << "]: nodal displacements\n";
-	out << "    [" << fNodalOutputCodes[iMaterialData ] << "]: nodal material output parameters\n";
-}
 
 /* initialize local arrays */
 void DiffusionElementT::SetLocalArrays(void)

@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainAxiT.h,v 1.4.22.1 2004-07-06 06:53:19 paklein Exp $ */
+/* $Id: FiniteStrainAxiT.h,v 1.4.22.2 2004-07-12 08:08:47 paklein Exp $ */
 #ifndef _FINITE_STRAIN_AXI_T_H_
 #define _FINITE_STRAIN_AXI_T_H_
 
@@ -13,7 +13,6 @@ class FiniteStrainAxiT: public FiniteStrainT
   public:
       
 	/** constructor */
-	FiniteStrainAxiT(const ElementSupportT& support, const FieldT& field);
 	FiniteStrainAxiT(const ElementSupportT& support);
 
 	/** \name implementation of the ParameterInterfaceT interface */

@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.9.2.3 2004-07-12 06:45:01 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.9.2.4 2004-07-12 08:08:43 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
@@ -25,45 +25,6 @@ const int kMaxNumGrid    = 75;
 using namespace Tahoe;
 
 /* constructor */
-MFPenaltyContact2DT::MFPenaltyContact2DT(const ElementSupportT& support, const FieldT& field):
-	PenaltyContact2DT(support, field),
-	fElementGroup(NULL),
-	fMeshFreeSupport(NULL),
-	fStrikerCoords_man(0, fStrikerCoords, support.NumSD()),
-	fdvT_man(0, true),
-	fRHS_man(0, fRHS)
-{
-	SetName("meshfree_contact_2D_penalty");
-
-#if 0
-	ElementSupport().Input() >> fGroupNumber;
-	fGroupNumber--;
-	ElementBaseT& element = ElementSupport().ElementGroup(fGroupNumber);
-	fElementGroup = &element;
-
-	/* register arrays with memory manager */
-	fdvT_man.Register(fdv1T);
-	fdvT_man.Register(fdv2T);
-	
-	/* cast to meshfree element types */
-	const MeshFreeSSSolidT* mf_ss_solid = dynamic_cast<const MeshFreeSSSolidT*>(fElementGroup);
-	const MeshFreeFSSolidT* mf_fs_solid = dynamic_cast<const MeshFreeFSSolidT*>(fElementGroup);
-	const MeshFreeFSSolidAxiT* mf_fs_axi_solid = dynamic_cast<const MeshFreeFSSolidAxiT*>(fElementGroup);
-	if (mf_ss_solid)
-		fMeshFreeSupport = &(mf_ss_solid->MeshFreeSupport());	
-	else if (mf_fs_solid)
-		fMeshFreeSupport = &(mf_fs_solid->MeshFreeSupport());	
-	else if (mf_fs_axi_solid)
-		fMeshFreeSupport = &(mf_fs_axi_solid->MeshFreeSupport());	
-	else
-		ExceptionT::GeneralFail("MFPenaltyContact2DT::MFPenaltyContact2DT",
-			"element group %d is not meshfree", fGroupNumber+1);
-
-	/* set map of node ID to meshfree point index */
-	fNodeToMeshFreePoint.SetMap(fMeshFreeSupport->NodesUsed());
-#endif
-}
-
 MFPenaltyContact2DT::MFPenaltyContact2DT(const ElementSupportT& support):
 	PenaltyContact2DT(support),
 	fElementGroup(NULL),

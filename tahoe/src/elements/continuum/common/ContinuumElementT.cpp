@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.40.2.4 2004-07-12 05:12:07 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.40.2.5 2004-07-12 08:08:44 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -29,33 +29,6 @@
 const double Pi = acos(-1.0);
 
 using namespace Tahoe;
-
-/* constructor */
-ContinuumElementT::ContinuumElementT(const ElementSupportT& support, 
-	const FieldT& field):
-	ElementBaseT(support, field),
-	fGroupCommunicator(NULL),
-	fMaterialList(NULL),
-	fBodySchedule(NULL),
-	fBody(NumDOF()),
-	fTractionBCSet(0),
-	fShapes(NULL),
-	fLocInitCoords(LocalArrayT::kInitCoords),
-	fLocDisp(LocalArrayT::kDisp),
-	fDOFvec(NumDOF()),
-	fNumIP(0),
-	fOutputID(),
-	fGeometryCode(GeometryT::kNone)
-{
-	SetName("continuum_element");
-#if 0
-	ifstreamT& in = ElementSupport().Input();
-		
-	/* control parameters */
-	in >> fGeometryCode; //TEMP - should actually come from the geometry database
-	in >> fNumIP;
-#endif
-}
 
 /* constructor */
 ContinuumElementT::ContinuumElementT(const ElementSupportT& support):
@@ -129,53 +102,6 @@ void ContinuumElementT::IP_ExtrapolateAll(const dArrayT& ip_values,
 {
 	/* computed by shape functions */
 	ShapeFunction().ExtrapolateAll(ip_values, nodal_values);
-}
-
-/* allocates space and reads connectivity data */
-void ContinuumElementT::Initialize(void)
-{
-#pragma message("delete me")
-#if 0
-	/* inherited */
-	ElementBaseT::Initialize();
-	
-	/* allocate work space */
-	fNEEvec.Dimension(NumElementNodes()*NumDOF());
-
-	/* initialize local arrays */
-	SetLocalArrays();
-
-	/* construct shape functions */
-	SetShape();
-
-	/* streams */
-	ifstreamT& in = ElementSupport().Input();
-	ofstreamT& out = ElementSupport().Output();
-
-	/* output print specifications */
-	EchoOutputCodes(in, out);
-
-	/* body force specification (non virtual) */
-	EchoBodyForce(in, out);
-	
-	/* echo traction B.C.'s (non virtual) */
-	EchoTractionBC(in, out);
-
-	/* echo material properties */
-	ReadMaterialData(in);	
-	WriteMaterialData(out);
-
-	/* get form of tangent */
-	GlobalT::SystemTypeT type = TangentType();
-	
-	/* set form of element stiffness matrix */
-	if (type == GlobalT::kSymmetric)
-		fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
-	else if (type == GlobalT::kNonSymmetric)
-		fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
-	else if (type == GlobalT::kDiagonal)
-		fLHS.SetFormat(ElementMatrixT::kDiagonal);
-#endif
 }
 
 void ContinuumElementT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -930,58 +856,6 @@ if (ip_values)
 			break;
 		}
 	}
-}
-
-/* print element group data */
-void ContinuumElementT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	ElementBaseT::PrintControlData(out);
-
-	out << " Associated field. . . . . . . . . . . . . . . . = \"" << Field().Name() << "\"\n";
-	out << " Element geometry code . . . . . . . . . . . . . = " << fGeometryCode << '\n';
-	out << "    eq." << GeometryT::kPoint         << ", point\n";
-	out << "    eq." << GeometryT::kLine          << ", line\n";
-	out << "    eq." << GeometryT::kQuadrilateral << ", quadrilateral\n";
-	out << "    eq." << GeometryT::kTriangle	  << ", triangle\n";
-	out << "    eq." << GeometryT::kHexahedron	  << ", hexahedron\n";
-	out << "    eq." << GeometryT::kTetrahedron   << ", tetrahedron\n";
-	out << " Number of integration points. . . . . . . . . . = " << fNumIP    << '\n';
-}
-
-void ContinuumElementT::ReadMaterialData(ifstreamT& in)
-{
-#pragma message("delete me")
-#pragma unused(in)
-
-	const char caller[] = "ContinuumElementT::ReadMaterialData";
-	ExceptionT::GeneralFail(caller);
-
-#if 0
-	/* construct material list */
-	int size;
-	in >> size;
-	fMaterialList = NewMaterialList(NumSD(), size);
-	if (!fMaterialList) ExceptionT::OutOfMemory(caller);
-
-	/* read */
-	fMaterialList->ReadMaterialData(in);
-	
-	/* check range */
-	for (int i = 0; i < fBlockData.Length(); i++)
-		if (fBlockData[i].MaterialID() < 0 || fBlockData[i].MaterialID() >= size)
-			ExceptionT::BadInputValue(caller, "material number %d for element block %d is out of range",
-				fBlockData[i].MaterialID()+1, i+1);
-#endif
-}
-
-/* use in conjunction with ReadMaterialData */
-void ContinuumElementT::WriteMaterialData(ostream& out) const
-{
-#pragma message("delete me")
-
-	/* flush buffer */
-	out.flush();
 }
 
 void ContinuumElementT::EchoBodyForce(ifstreamT& in, ostream& out)

@@ -1,8 +1,7 @@
-/* $Id: ParticlePairT.cpp,v 1.38.2.3 2004-07-12 05:12:12 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.38.2.4 2004-07-12 08:08:51 paklein Exp $ */
 #include "ParticlePairT.h"
 
 #include "PairPropertyT.h"
-
 #include "eIntegratorT.h"
 #include "InverseMapT.h"
 #include "CommManagerT.h"
@@ -27,19 +26,6 @@ using namespace Tahoe;
 
 /* parameters */
 const int kMemoryHeadRoom = 15; /* percent */
-
-/* constructor */
-ParticlePairT::ParticlePairT(const ElementSupportT& support, const FieldT& field):
-	ParticleT(support, field),
-	fNeighbors(kMemoryHeadRoom),
-	fNearestNeighbors(kMemoryHeadRoom),
-	fRefNearestNeighbors(kMemoryHeadRoom),
-	fEqnos(kMemoryHeadRoom),
-	fForce_list_man(0, fForce_list)
-{
-	SetName("particle_pair");
-	fopen = false;
-}
 
 /* constructor */
 ParticlePairT::ParticlePairT(const ElementSupportT& support):

@@ -1,4 +1,4 @@
-/* $Id: ViscousDragT.cpp,v 1.3.6.2 2004-07-07 15:28:01 paklein Exp $ */
+/* $Id: ViscousDragT.cpp,v 1.3.6.3 2004-07-12 08:08:44 paklein Exp $ */
 #include "ViscousDragT.h"
 
 #include "ifstreamT.h"
@@ -10,11 +10,11 @@
 using namespace Tahoe;
 
 /* constructor */
-ViscousDragT::ViscousDragT(const ElementSupportT& support, const FieldT& field):
-	ElementBaseT(support, field),
-	fViscosity(0)
+ViscousDragT::ViscousDragT(const ElementSupportT& support):
+	ElementBaseT(support),
+	fViscosity(0.0)
 {
-
+	SetName("viscous_drag");
 }
 
 /* class initialization */

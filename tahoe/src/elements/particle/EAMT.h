@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.20.8.2 2004-07-12 05:12:12 paklein Exp $ */
+/* $Id: EAMT.h,v 1.20.8.3 2004-07-12 08:08:51 paklein Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -20,7 +20,6 @@ class EAMT: public ParticleT
 public:
 
 	/** constructor */
-	EAMT(const ElementSupportT& support, const FieldT& field);
 	EAMT(const ElementSupportT& support);
 
 	/** collecting element group equation numbers */

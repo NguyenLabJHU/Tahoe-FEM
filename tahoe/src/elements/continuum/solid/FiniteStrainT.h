@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.17.22.1 2004-07-06 06:53:19 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.17.22.2 2004-07-12 08:08:47 paklein Exp $ */
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
 
@@ -16,14 +16,10 @@ class FiniteStrainT: public SolidElementT
   public:
       
 	/** constructor */
-	FiniteStrainT(const ElementSupportT& support, const FieldT& field);
 	FiniteStrainT(const ElementSupportT& support);
 
 	/** destructor */
 	~FiniteStrainT(void);
-
-	/** initialization. called immediately after constructor */
-	virtual void Initialize(void);
 
 	/** TEMPORARY. Need this extra call here to set the source for the iteration number
 	 * in SmallStrainT::fSSMatSupport. The solvers are not constructed when the material
@@ -92,9 +88,6 @@ class FiniteStrainT: public SolidElementT
 	 * \param name list identifier
 	 * \param size length of the list */
 	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
-
-	/** construct list of materials from the input stream */
-	virtual void ReadMaterialData(ifstreamT& in);
 
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);

@@ -1,4 +1,4 @@
-/* $Id: SmallStrainAxiT.cpp,v 1.2.22.1 2004-07-06 06:53:19 paklein Exp $ */
+/* $Id: SmallStrainAxiT.cpp,v 1.2.22.2 2004-07-12 08:08:47 paklein Exp $ */
 #include "SmallStrainAxiT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -14,15 +14,6 @@ const int kNSD = 2;
 using namespace Tahoe;
 
 /* constructor */
-SmallStrainAxiT::SmallStrainAxiT(const ElementSupportT& support, const FieldT& field):
-	SmallStrainT(support, field),
-	fIPInterp(kNSD),
-	fStrain2D(kNSD),
-	fStress2D_axi(dSymMatrixT::k3D_plane)
-{
-	SetName("small_strain_axi");
-}
-
 SmallStrainAxiT::SmallStrainAxiT(const ElementSupportT& support):
 	SmallStrainT(support),
 	fIPInterp(kNSD),

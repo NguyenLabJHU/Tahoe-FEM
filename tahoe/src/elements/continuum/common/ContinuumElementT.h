@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.26.22.1 2004-07-06 06:53:15 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.26.22.2 2004-07-12 08:08:44 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -25,7 +25,6 @@ class ContinuumElementT: public ElementBaseT
 public:
 
 	/** constructor */
-	ContinuumElementT(const ElementSupportT& support, const FieldT& field);
 	ContinuumElementT(const ElementSupportT& support);
 
 	/** destructor */
@@ -76,9 +75,6 @@ public:
 	/** element displacements.
 	 * \return nodal displacements of current element: [nen] x [ndof] */
 	const LocalArrayT& Displacements() const;
-
-	/** initialization. called immediately after constructor */
-	virtual void Initialize(void);
 
 	/** collecting element group equation numbers. This call from the FEManagerT
 	 * is a signal to the element group that the equation system is up to date
@@ -183,14 +179,8 @@ protected:
 	void FormMa(MassTypeT mass_type, double constM, bool axisymmetric,
 		const LocalArrayT* nodal_values,
 		const dArray2DT* ip_values);
-	 		
-	/** write element group parameters to out */
-	virtual void PrintControlData(ostream& out) const;
-	
+
 	/* element data */
-	virtual void ReadMaterialData(ifstreamT& in);	
-	virtual void WriteMaterialData(ostream& out) const;
-	virtual void EchoOutputCodes(ifstreamT& in, ostream& out) = 0;
 	void EchoBodyForce(ifstreamT& in, ostream& out);
 	// could also break up. Input and defaults(per output format) are
 	// shared but the output of what each code means is class-dependent

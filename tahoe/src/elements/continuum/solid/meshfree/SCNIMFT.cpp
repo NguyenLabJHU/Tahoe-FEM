@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.17.2.3 2004-07-12 05:12:11 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.17.2.4 2004-07-12 08:08:50 paklein Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -35,7 +35,7 @@ using namespace Tahoe;
 
 /* constructors */
 SCNIMFT::SCNIMFT(const ElementSupportT& support, const FieldT& field):
-	ElementBaseT(support, field),
+	ElementBaseT(support),
 	fSD(ElementSupport().NumSD()),
 	fMaterialList(NULL),
 	fForce_man(0, fForce, field.NumDOF()),

@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.cpp,v 1.15.2.3 2004-07-12 05:12:15 paklein Exp $ */
+/* $Id: UnConnectedRodT.cpp,v 1.15.2.4 2004-07-12 08:08:53 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 #include "UnConnectedRodT.h"
 
@@ -90,20 +90,9 @@ GlobalT::RelaxCodeT UnConnectedRodT::RelaxSystem(void)
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
-/* print data */
-void UnConnectedRodT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	RodT::PrintControlData(out);
-	
-	out << " Reconnection increment. . . . . . . . . . . . . = " << fReconnectInc     << '\n';
-	out << " Maximum number of neighbors . . . . . . . . . . = " << fMaxNeighborCount << '\n';
-	out << " Neighbor cut-off distance . . . . . . . . . . . = " << fNeighborDist     << '\n';
-}
-	
 /* element data */
 void UnConnectedRodT::ReadMaterialData(ifstreamT& in)
 {

@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.h,v 1.6.52.1 2004-07-06 06:53:13 paklein Exp $ */
+/* $Id: PenaltyContact3DT.h,v 1.6.52.2 2004-07-12 08:08:43 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 #ifndef _PENALTY_CONTACT3D_T_H_
 #define _PENALTY_CONTACT3D_T_H_
@@ -14,7 +14,6 @@ class PenaltyContact3DT: public Contact3DT
 public:
 
 	/** constructor */
-	PenaltyContact3DT(const ElementSupportT& support, const FieldT& field);
 	PenaltyContact3DT(const ElementSupportT& support);
 
 	/** \name implementation of the ParameterInterfaceT interface */
@@ -28,13 +27,10 @@ public:
 
 protected:
 
-	/* print element group data */
-	virtual void PrintControlData(ostream& out) const;
-		 	
-	/* construct the effective mass matrix */
+	/** construct the effective mass matrix */
 	virtual void LHSDriver(GlobalT::SystemTypeT sys_type);
 
-	/* construct the residual force vector */
+	/** construct the residual force vector */
 	virtual void RHSDriver(void);
 
 protected:

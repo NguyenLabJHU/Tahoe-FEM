@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact2DT.cpp,v 1.13.2.3 2004-07-09 01:10:10 paklein Exp $ */
+/* $Id: PenaltyContact2DT.cpp,v 1.13.2.4 2004-07-12 08:08:43 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContact2DT.h"
 
@@ -12,21 +12,6 @@
 using namespace Tahoe;
 
 /* constructor */
-PenaltyContact2DT::PenaltyContact2DT(const ElementSupportT& support, const FieldT& field):
-	Contact2DT(support, field),
-	fElCoord(fNumFacetNodes + 1, NumSD()),
-	fElDisp(fNumFacetNodes + 1, NumDOF())	
-{
-	SetName("contact_2D_penalty");
-
-#if 0
-	ElementSupport().Input() >> fK;
-	if (fK < 0.0)
-		ExceptionT::BadInputValue("PenaltyContact2DT::PenaltyContact2DT", 
-			"regularization must be > 0: %g", fK);
-#endif
-}
-
 PenaltyContact2DT::PenaltyContact2DT(const ElementSupportT& support):
 	Contact2DT(support),
 	fK(0.0)

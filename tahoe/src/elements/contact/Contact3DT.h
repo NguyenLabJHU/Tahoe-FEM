@@ -1,4 +1,4 @@
-/* $Id: Contact3DT.h,v 1.5.52.1 2004-07-06 06:53:13 paklein Exp $ */
+/* $Id: Contact3DT.h,v 1.5.52.2 2004-07-12 08:08:43 paklein Exp $ */
 /* created: paklein (07/17/1999) */
 #ifndef _CONTACT3D_T_H_
 #define _CONTACT3D_T_H_
@@ -20,8 +20,7 @@ class Contact3DT: public ContactT
 {
 public:
 
-	/* constructor */
-	Contact3DT(const ElementSupportT& support, const FieldT& field);
+	/** constructor */
 	Contact3DT(const ElementSupportT& support);
 
 	/** destructor */

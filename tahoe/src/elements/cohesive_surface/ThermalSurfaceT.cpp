@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.cpp,v 1.11.2.2 2004-07-07 15:27:56 paklein Exp $ */
+/* $Id: ThermalSurfaceT.cpp,v 1.11.2.3 2004-07-12 08:08:41 paklein Exp $ */
 #include "ThermalSurfaceT.h"
 
 #include <math.h>
@@ -15,13 +15,6 @@
 using namespace Tahoe;
 
 /* constructor */
-ThermalSurfaceT::ThermalSurfaceT(const ElementSupportT& support, const FieldT& field):
-	CSEBaseT(support, field),
-	fLocTemperatures(LocalArrayT::kDisp)
-{
-	SetName("thermal_CSE");
-}
-
 ThermalSurfaceT::ThermalSurfaceT(const ElementSupportT& support):
 	CSEBaseT(support),
 	fLocTemperatures(LocalArrayT::kDisp)
