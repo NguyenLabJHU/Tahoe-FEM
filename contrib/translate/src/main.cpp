@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.2 2001-09-07 13:25:29 sawimme Exp $ */
+/* $Id: main.cpp,v 1.3 2001-09-10 16:57:45 sawimme Exp $ */
 
 #include "TranslateIOManager.h"
 
@@ -6,7 +6,7 @@ int main (void)
 {
   try 
     {
-      cout << "\n\n Program to translate data files or extract xy data.\n\n";
+      cout << "\n\n Program to translate data files.\n\n";
       StringT program = "Translate";
       StringT version = "v1.4";
       TranslateIOManager dataio (cout);
