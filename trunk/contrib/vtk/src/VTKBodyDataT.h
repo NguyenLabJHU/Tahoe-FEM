@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.h,v 1.11 2002-06-04 21:49:07 recampb Exp $ */
+/* $Id: VTKBodyDataT.h,v 1.12 2002-06-17 20:31:40 recampb Exp $ */
 #ifndef _VTK_BODY_DATA_T_H_
 #define _VTK_BODY_DATA_T_H_
 
@@ -11,6 +11,7 @@
 #include "dArrayT.h"
 #include "IOBaseT.h"
 #include "iArrayT.h"
+#include "dArray2DT.h"
 
 /* forward declarations */
 class vtkPoints;
@@ -78,6 +79,8 @@ public:
 	/** return a reference to the point numbering map */
 	const iArrayT& PointNumberMap(void) const { return fPointNumberMap; };
 
+	const dArray2DT& Coordinates(void) const { return coords;};
+
  private:
  
 	/** array type conversion */
@@ -101,6 +104,8 @@ public:
 	/** source file */
 	const StringT fInFile;
   
+	dArray2DT coords;
+	
 	/** point coordinates */
 	vtkPoints* fPoints;
 	

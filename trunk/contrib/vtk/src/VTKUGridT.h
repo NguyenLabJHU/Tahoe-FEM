@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.h,v 1.9 2002-06-13 22:47:24 recampb Exp $ */
+/* $Id: VTKUGridT.h,v 1.10 2002-06-17 20:31:41 recampb Exp $ */
 #ifndef _VTK_U_GRID_T_H_
 #define _VTK_U_GRID_T_H_
 
@@ -6,6 +6,7 @@
 #include "ArrayT.h"
 #include "GeometryT.h"
 #include "iArrayT.h"
+#include "dArray2DT.h"
 
 /* VTK forward declarations */
 class vtkPoints;
@@ -28,6 +29,8 @@ class vtkPlane;
 class vtkCutter;
 class vtkSmoothPolyDataFilter;
 class vtkDataSetToPolyDataFilter;
+class vtkGlyph3D;
+class vtkConeSource;
 
 
 /* toolbox forward declarations */
@@ -80,6 +83,10 @@ class VTKUGridT
 
 	void HideCuttingPlane(void);
 
+	void Glyphing(void);
+
+	void HideGlyphing(void);
+
 	/** set the scalar data range */
 	void SetScalarRange(double min, double max);
 	
@@ -90,7 +97,7 @@ class VTKUGridT
 	void SetVectors(vtkFloatArray* vectors);
 
 	/** set vectors that warp */
-	void SetWarpVectors(vtkFloatArray* vectors);
+	void SetWarpVectors(vtkFloatArray* vectors, dArray2DT coords);
   
 	/** return the grid actor */
   	vtkActor* Actor(void) { return fActor; };
@@ -103,6 +110,8 @@ class VTKUGridT
 	
 	/** return the semi-transparent bounding volume actor */
 	vtkActor* BoundBoxActor(void) {return boundBoxActor;};
+
+	vtkActor* SpikeActor(void) { return spikeActor;};
   	
   	/** return the grid wrap vector */
   	vtkWarpVector* Warp(void) { return fWarp; };
@@ -195,10 +204,20 @@ class VTKUGridT
 	vtkDataSetMapper* boundBoxMapper;
 	vtkActor* boundBoxActor;
 
+	/** cutting plane variables */
 	vtkPlane* plane;
 	vtkCutter* cutter;
 	vtkActor* cut;
 	vtkPolyDataMapper* cutterMapper;
+
+	/** glyphing variables */
+	vtkGlyph3D* glyph;
+	vtkPolyDataMapper* spikeMapper;
+	vtkActor* spikeActor;
+	vtkConeSource* cone;
+	vtkPoints* tempPoints;
+	int warpCount;
+	int numPoints;
 	
 	
       

@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.50 2002-06-13 22:47:24 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.51 2002-06-17 20:31:40 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -910,7 +910,8 @@ void VTKConsoleT::PickPoints(void *arg)
   vtkActor* sphereActor = vtkActor::New();  
   vtkSphereSource *sphere = vtkSphereSource::New();
   sphere->SetThetaResolution(8); sphere->SetPhiResolution(8);
-  sphere->SetRadius(.01);
+  float* bounds = pointPicker->GetDataSet()->GetBounds();
+  sphere->SetRadius(.008*(bounds[1]-bounds[0]));
   sphereMapper->SetInput(sphere->GetOutput());
   sphereActor->SetMapper(sphereMapper);
   sphereActor->GetProperty()->SetColor(1,1,1);
@@ -927,7 +928,9 @@ void VTKConsoleT::PickPoints(void *arg)
       sphereActor->SetPosition(coords);
       pointPicker->GetRenderer()->AddActor(sphereActor);
       pickedPoints.Append(sphereActor);
-
+      iren->GetRenderWindow()->Render();
+ 
+		
       cout <<"Point: " << pointPicker->GetPointId()+1 << endl;
       cout <<"Coordinates: " << "(" << coords[0] << ", " << coords[1] << ", " << coords[2] << ")" << endl;
       cout <<"Value: " << (pointPicker->GetDataSet()->GetPointData()->GetScalars()->GetComponent(pointPicker->GetPointId(), 0)) << endl;
