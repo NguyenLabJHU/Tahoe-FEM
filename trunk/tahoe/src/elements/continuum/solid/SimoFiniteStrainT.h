@@ -1,10 +1,11 @@
-/* $Id: SimoFiniteStrainT.h,v 1.5 2001-09-04 06:49:48 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.h,v 1.6 2001-09-05 00:26:55 paklein Exp $ */
 
 #ifndef _SIMO_FINITE_STRAIN_T_H_
 #define _SIMO_FINITE_STRAIN_T_H_
 
-/* base class */
+/* base classes */
 #include "FiniteStrainT.h"
+#include "DOFElementT.h"
 
 /* direct members */
 #include "LAdMatrixT.h"
@@ -14,18 +15,20 @@ class SimoShapeFunctionT;
 
 /** enhanced strain, finite deformation quad/hex element.
  * formulation due to Simo, Armero, and Taylor, CMAME \b 110, 359-386, 1993. 
- * The enhanced element modes can be solved by two methods, either a static
- * condensation (which recomputes, rather than stores blocks of the element
- * stiffness matrices), or the local iteration procedure described in the
- * paper above. */
-class SimoFiniteStrainT: public FiniteStrainT
+ * The enhanced element modes can be solved by three methods, either as part
+ * of the global system of equations, using a static condensation, or the 
+ * local iteration procedure described in the paper above. Solution of
+ * the enhanced modes as part of the global system of equations is supported
+ * by inheritance of the DOFElementT interface. */
+class SimoFiniteStrainT: public FiniteStrainT, public DOFElementT
 {
 public:
 
 	/** solution method for the enhanced modes */
 	enum SolutionMethodT {
-		kStaticCondensation = 0, /**< solve internal mode by static condensation */
-            kLocalIteration = 1  /**< solve internal mode with a staggered, local iteration */
+	            kMonolithic = 0, /**< solve internal mode as part of global equations */
+		kStaticCondensation = 1, /**< solve internal mode by static condensation */
+            kLocalIteration = 2  /**< solve internal mode with a staggered, local iteration */
 		};                
 
 	/** constructor */
@@ -48,7 +51,41 @@ public:
 
 	/** write restart information from stream */
 	virtual void WriteRestart(ostream& out) const;
-		
+
+	/** return field connectivities. Returns connectivities including
+	 * the tags for the enhanced element modes when using the monolithic
+	 * solver method. */
+	virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
+		AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
+
+	/** append element equations numbers to the list. Returns equations 
+	 * including the tag equation numbers for the enhanced element modes 
+	 * when using the monolithic solver method. */
+	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
+		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
+
+	/** determine number of tags needed. See DOFElementT. */
+	virtual void SetDOFTags(void);
+	
+	/** return the array tag numbers in the specified set currently 
+	 * used/need by the group. See DOFElementT. */
+	virtual iArrayT& DOFTags(int tag_set);
+
+	/** generate nodal connectivities. See DOFElementT. */
+	virtual void GenerateElementData(void);
+
+	/** return the connectivities associated with the element generated
+	 * degrees of freedom. See DOFElementT. */
+	virtual const iArray2DT& DOFConnects(int tag_set) const;
+
+	/** restore the element degrees of freedom. See DOFElementT. */
+	virtual void ResetDOF(dArray2DT& DOF, int tag_set) const;
+
+	/** check element group for tag reconfiguration. See DOFElementT. 
+	 * This function returns 0. No reconfiguration is needed unless
+	 * the number of elements is changing. */
+	virtual int Reconfigure(void) { return 0; };		
+
 protected:
 
 	/** write element parameter to out */
@@ -97,6 +134,14 @@ private:
 	 * \param K_12 destination for the 1,2 (or transposed 2,1) block of 
 	 *        the stiffness matrix. Passing NULL skips calculation */
 	void FormStiffness_enhanced(dMatrixT& K_22, dMatrixT* K_12);
+
+	/** compute and assemble the residual force for the monolithic
+	 * solution scheme */
+	void FormKd_monolithic(double constK);
+
+	/** compute and assemble the element stiffness for the monolithic
+	 * solution scheme */
+	void FormStiffness_monolithic(double constK);
 	
 protected:
 
@@ -111,6 +156,15 @@ protected:
 	
 	/* derived parameters */
 	int fNumModeShapes; /**< number of mode shapes per element */
+	
+	/** tags for the element modes. This array is used only if the
+	 * monolithic solution method is used. There is one tag per
+	 * element. */
+	iArrayT fEnhancedModeTags;
+
+	/** connectivities to link the tags for the enhanced modes to the
+	 * node number of the elements. */
+	iArray2DT fEnhancedConnectivities;
 	
 	/* element degrees of freedom */
 	dArray2DT   fElementModes;     /**< all element modes stored in \a local \a ordering */

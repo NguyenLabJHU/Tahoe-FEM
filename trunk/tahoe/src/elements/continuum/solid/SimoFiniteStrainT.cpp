@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.9 2001-09-04 06:54:08 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.10 2001-09-05 00:26:55 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -8,6 +8,7 @@
 #include "fstreamT.h"
 #include "Constants.h"
 #include "FEManagerT.h"
+#include "NodeManagerT.h"
 #include "StructuralMaterialT.h"
 #include "MaterialListT.h" //NOTE - only needed for check in Initialize?
 #include "SimoShapeFunctionT.h"
@@ -45,8 +46,14 @@ SimoFiniteStrainT::SimoFiniteStrainT(FEManagerT& fe_manager):
 		fModeSolveMethod = kStaticCondensation;
 	else if (solver_method == kLocalIteration)
 		fModeSolveMethod = kLocalIteration;
+	else if (solver_method == kMonolithic)
+		fModeSolveMethod = kMonolithic;
 	else
+	{
+		cout << "\n SimoFiniteStrainT::SimoFiniteStrainT: unrecognized method to solve\n"
+		     <<   "     for the enhanced element modes: " << solver_method << endl;
 		throw eBadInputValue;
+	}
 		
 	/* parameters for local iteration */
 	if (fModeSolveMethod == kLocalIteration)
@@ -96,12 +103,16 @@ void SimoFiniteStrainT::Initialize(void)
 	int nsd = NumSD();
 	int nst = dSymMatrixT::NumValues(nsd);
 
-	/* allocate storage for stress and modulus at the integration
-	 * points of all the elements */
-	fPK1_storage.Allocate(NumElements(), nip*nsd*nsd);
-	fc_ijkl_storage.Allocate(NumElements(), nip*nst*nst);
-	fPK1_list.Allocate(nip);
-	fc_ijkl_list.Allocate(nip);
+	/* this storage not needed for monolithic solution scheme */
+	if (fModeSolveMethod != kMonolithic)
+	{
+		/* allocate storage for stress and modulus at the integration
+		 * points of all the elements */
+		fPK1_storage.Allocate(NumElements(), nip*nsd*nsd);
+		fc_ijkl_storage.Allocate(NumElements(), nip*nst*nst);
+		fPK1_list.Allocate(nip);
+		fc_ijkl_list.Allocate(nip);
+	}
 
 	/* what's needed */
 	bool need_F = false;
@@ -156,6 +167,38 @@ void SimoFiniteStrainT::Initialize(void)
 	
 	fK22.Allocate(fNumModeShapes*fNumDOF);	
 	fK12.Allocate(fNumElemNodes*fNumDOF, fNumModeShapes*fNumDOF);
+	
+	/* gets tags in the global equation system */
+	if (fModeSolveMethod == kMonolithic)
+	{
+		/* register as XDOF group */
+		iArrayT set_dimensions(1);
+		set_dimensions[0] = fNumModeShapes*NumSD();
+		fNodes->XDOF_Register(this, set_dimensions);
+		
+		/* element nodes use space from XDOF manager */
+		const dArray2DT& xdof = fNodes->XDOF(this, 0);
+		fElementModes.Alias(xdof);
+		
+		/* checks */
+		if (fElementModes.MajorDim() != fNumElements || 
+		    fElementModes.MinorDim() != fNumModeShapes*NumSD())
+		{
+			cout << "\n SimoFiniteStrainT::Initialize: element modes array is not\n" 
+			     <<   "     the correct dimension" << endl;
+			throw eGeneralFail;
+		}
+	}
+	else
+	{
+		/* allocate memory for incompressible modes */
+		fElementModes.Allocate(NumElements(), fNumModeShapes*NumSD());
+		fElementModes = 0;
+	}
+
+	/* allocate memory for last incompressible modes */
+	fElementModes_last.Allocate(NumElements(), fNumModeShapes*NumSD());
+	fElementModes_last = 0;
 }
 
 /* finalize current step - step is solved */
@@ -201,6 +244,118 @@ void SimoFiniteStrainT::WriteRestart(ostream& out) const
 	out << fCurrElementModes;
 }
 
+/* return field connectivities. */
+void SimoFiniteStrainT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
+	AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const
+{
+	/* inherited */
+	if (fModeSolveMethod != kMonolithic)
+		FiniteStrainT::ConnectsU(connects_1, connects_2);
+	else
+		/* send connectivities with enhanced mode tags */
+		connects_1.AppendUnique(&fEnhancedConnectivities);
+}
+
+/* append element equations numbers to the list. */
+void SimoFiniteStrainT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
+	AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
+{
+	/* inherited */
+	if (fModeSolveMethod != kMonolithic)
+		FiniteStrainT::Equations(eq_1, eq_2);
+	else
+	{
+		/* resize equations array - displacement DOF's + element modes */
+		fEqnos.Allocate(fNumElements, fNumElemEqnos + fCurrElementModes.Length());
+		
+		/* reset element cards */
+		SetElementCards();
+	
+		/* set displacement equations */
+		fNodes->SetLocalEqnos(fConnectivities, fEqnos);
+
+		/* equations associated with the element modes */
+		const iArray2DT& xdof_eqnos = fNodes->XDOF_Eqnos(this, 0);
+
+		/* fill columns */
+		iArrayT tmp(xdof_eqnos.MajorDim());
+		for (int i = fNumElemEqnos; i < fEqnos.MinorDim(); i++)
+		{
+			xdof_eqnos.ColumnCopy(i - fNumElemEqnos, tmp);
+			fEqnos.SetColumn(i, tmp);
+		}
+
+		/* add to list */
+		eq_1.AppendUnique(&fEqnos);
+	}
+}
+
+/* determine number of tags needed. See DOFElementT. */
+void SimoFiniteStrainT::SetDOFTags(void)
+{
+	/* one tag per element */
+	fEnhancedModeTags.Allocate(fNumElements);
+}
+	
+/* return the array tag numbers in the specified set currently 
+ * used/need by the group. See DOFElementT. */
+iArrayT& SimoFiniteStrainT::DOFTags(int tag_set)
+{
+	/* check */
+	if (tag_set != 0)
+	{
+		cout << "\n SimoFiniteStrainT::DOFTags: expecting tag set 0: " 
+		     << tag_set << endl;
+		throw eOutOfRange;
+	}
+
+	/* return the tags array */
+	return fEnhancedModeTags;
+}
+
+/* generate nodal connectivities. See DOFElementT. */
+void SimoFiniteStrainT::GenerateElementData(void)
+{
+	/* just link tags with (one of) the element nodes */
+	fEnhancedConnectivities.Allocate(fNumElements, 2);
+	
+	iArrayT tmp(fNumElements);
+	fConnectivities.ColumnCopy(0, tmp);
+	fEnhancedConnectivities.SetColumn(0, tmp);
+	fEnhancedConnectivities.SetColumn(1, fEnhancedModeTags);
+}
+
+/* return the connectivities associated with the element generated
+ * degrees of freedom. See DOFElementT. */
+const iArray2DT& SimoFiniteStrainT::DOFConnects(int tag_set) const
+{
+	/* check */
+	if (tag_set != 0)
+	{
+		cout << "\n SimoFiniteStrainT::DOFConnects: expecting tag set 0: " 
+		     << tag_set << endl;
+		throw eOutOfRange;
+	}
+
+	/* partial info */
+	return fEnhancedConnectivities;
+}
+
+/* restore the element degrees of freedom. See DOFElementT. */
+void SimoFiniteStrainT::ResetDOF(dArray2DT& DOF, int tag_set) const
+{
+	/* check */
+	if (tag_set != 0)
+	{
+		cout << "\n SimoFiniteStrainT::ResetDOF: expecting tag set 0: " 
+		     << tag_set << endl;
+		throw eOutOfRange;
+	}
+
+	/* restore last solution */
+	DOF = fElementModes_last;
+}
+
 /***********************************************************************
 * Protected
 ***********************************************************************/
@@ -212,7 +367,7 @@ bool SimoFiniteStrainT::NextElement(void)
 	bool next = FiniteStrainT::NextElement();
 	
 	/* set references to element arrays */
-	if (next)
+	if (fModeSolveMethod != kMonolithic && next)
 	{
 		/* get pointer to current element data */
 		int element = CurrElementNumber();
@@ -258,21 +413,15 @@ void SimoFiniteStrainT::PrintControlData(ostream& out) const
 /* construct shape function */
 void SimoFiniteStrainT::SetShape(void)
 {
-	/* allocate memory for incompressible modes */
-	fElementModes.Allocate(NumElements(), fNumModeShapes*NumSD());
-	fElementModes = 0;
-	
 	/* dimension before sending to the shape functions */
-	fCurrElementModes.Set(fNumModeShapes, NumSD(), fElementModes.Pointer());
+	fCurrElementModes.Allocate(fNumModeShapes, NumSD());
+	fCurrElementModes = 0;
+	fCurrElementModes_last = fCurrElementModes;
 
 	/* construct shape functions */
 	fEnhancedShapes = new SimoShapeFunctionT(fGeometryCode, fNumIP,
 		fLocInitCoords, fCurrElementModes);
 	if (!fEnhancedShapes) throw eOutOfMemory;
-
-	/* modes from the last time step */
-	fElementModes_last = fElementModes;
-	fCurrElementModes_last.Set(fNumModeShapes, NumSD(), fElementModes_last.Pointer());	
 
 	/* initialize */
 	fEnhancedShapes->Initialize();
@@ -289,11 +438,6 @@ void SimoFiniteStrainT::SetShape(void)
 /* form shape functions and derivatives */
 void SimoFiniteStrainT::SetGlobalShape(void)
 {
-	/* set modes for the current element */
-	int current_element = CurrElementNumber();
-	fCurrElementModes.Set(fNumModeShapes, NumSD(), fElementModes(current_element));
-	fCurrElementModes_last.Set(fNumModeShapes, NumSD(), fElementModes_last(current_element));
-
 	/* 3D with incompressible mode */
 	if (fIncompressibleMode)
 		ModifiedEnhancedDeformation();
@@ -316,7 +460,7 @@ void SimoFiniteStrainT::SetGlobalShape(void)
 		if (needs_F) fF_Galerkin_all = fF_all;
 		if (needs_F_last) fF_Galerkin_last_all = fF_last_all;
 
-		/* compute enhanced part of F and total F */
+		/* compute enhanced part of F and total F */		
 		ComputeEnhancedDeformation(needs_F, needs_F_last);
 		
 		/* calculate the residual from the internal force */
@@ -330,7 +474,10 @@ void SimoFiniteStrainT::SetGlobalShape(void)
 			res = fRHS_enh.Magnitude();
 			res_0 = res;
 			res_rel = 1.0;
-			int iter_enh = 0;
+			int iter_enh = 1;
+			
+			//TEMP - how much is the enhanced mode changing
+			//LocalArrayT mode_start(fCurrElementModes);
 
 //#ifdef _SIMO_FINITE_STRAIN_DEBUG_
 #if 1
@@ -361,9 +508,10 @@ void SimoFiniteStrainT::SetGlobalShape(void)
 				cout << "\n d_mode =\n" << fRHS_enh << endl;
 #endif	
 			
-				/* recompute shape functions */
-				fCurrElementModes.AddScaledTranspose(-1.0, fRHS_enh);
+				/* update element modes */
+				//fCurrElementModes.AddScaledTranspose(-1.0, fRHS_enh);
 				//fCurrElementModes -= fRHS_enh;
+				fElementModes.AddToRowScaled(CurrElementNumber(), -1.0, fRHS_enh);
 		
 				/* compute enhanced part of F and total F */
 				ComputeEnhancedDeformation(needs_F, needs_F_last);
@@ -379,6 +527,10 @@ void SimoFiniteStrainT::SetGlobalShape(void)
 //#ifdef _SIMO_FINITE_STRAIN_DEBUG_
 #if 1
 			cout << setw(kIntWidth) << iter_enh << setw(kDoubleWidth) << res << '\n';
+			
+			//TEMP - change in the internal modes
+			//mode_start -= fCurrElementModes;
+			//cout << " increment in internal modes:\n" << mode_start << endl;
 #endif
 		
 			/* form the stiffness associated with the enhanced modes */
@@ -488,6 +640,20 @@ void SimoFiniteStrainT::FormKd(double constK)
 	}
 }
 
+/* compute and assemble the residual force for the monolithic
+ * solution scheme */
+void SimoFiniteStrainT::FormKd_monolithic(double constK)
+{
+
+}
+
+/* compute and assemble the element stiffness for the monolithic
+ * solution scheme */
+void SimoFiniteStrainT::FormStiffness_monolithic(double constK)
+{
+
+}
+
 /***********************************************************************
 * Private
 ***********************************************************************/
@@ -513,9 +679,15 @@ void SimoFiniteStrainT::ModifiedEnhancedDeformation(void)
 /* compute enhanced part of F and total F */
 void SimoFiniteStrainT::ComputeEnhancedDeformation(bool need_F, bool need_F_last)
 {
+	/* set modes for the current element */
+	int current_element = CurrElementNumber();
+
 	/* store Galerkin part/compute enhancement and total F */
 	if (need_F)
 	{
+		/* collect element modes in local ordering */
+		fCurrElementModes.FromTranspose(fElementModes(current_element));
+	
 		/* compute enhanced part of the deformation gradient */
 		for (int i = 0; i < NumIP(); i++)
 			fEnhancedShapes->GradU_enhanced(fCurrElementModes, fF_enh_List[i], i);
@@ -540,6 +712,9 @@ void SimoFiniteStrainT::ComputeEnhancedDeformation(bool need_F, bool need_F_last
 	/* store Galerkin part/compute enhancement and total F from last step */
 	if (need_F_last)
 	{
+		/* collect element modes in local ordering */
+		fCurrElementModes_last.FromTranspose(fElementModes_last(current_element));
+
 		/* compute enhanced part of the deformation gradient */
 		for (int i = 0; i < NumIP(); i++)
 			fEnhancedShapes->GradU_enhanced(fCurrElementModes_last, fF_enh_last_List[i], i);
