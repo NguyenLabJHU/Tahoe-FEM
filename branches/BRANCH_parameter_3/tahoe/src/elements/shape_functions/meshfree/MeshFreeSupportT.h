@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.h,v 1.11.14.1 2004-04-28 15:43:25 paklein Exp $ */
+/* $Id: MeshFreeSupportT.h,v 1.11.14.2 2004-05-01 06:33:14 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #ifndef _MF_SUPPORT_T_H_
 #define _MF_SUPPORT_T_H_
@@ -62,7 +62,11 @@ public:
 	 * \param nongridnodes index of paricles not included in the connectivities
 	 * \param in input stream for class and window function parameters */
 	MeshFreeSupportT(const ParentDomainT* domain, const dArray2DT& coords,
-		const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in);
+		const iArray2DT& connects, const iArrayT& nongridnodes);
+
+	/** construct object sufficient for calling methods inherited from ParameterInterfaceT
+	 * to collect the class parameters, but not for doing any meshfree calculations */
+	MeshFreeSupportT(void);
 
 	/** destructor */
 	virtual ~MeshFreeSupportT(void);
@@ -180,6 +184,21 @@ public:
 	/** nodal coordinates */
 	const dArray2DT& NodalCoordinates(void) const;
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 protected:
 
 	/** state of shape function database */
@@ -237,21 +256,6 @@ private:
 	/* swap data */
 	void SwapData(const iArrayT& counts, iArray2DT** pfrom, iArray2DT** pto);
 
-	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
-	/** describe the parameters needed by the interface */
-	virtual void DefineParameters(ParameterListT& list) const;
-
-	/** information about subordinate parameter lists */
-	virtual void DefineSubs(SubListT& sub_list) const;
-
-	/** a pointer to the ParameterInterfaceT of the given subordinate */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
-
-	/** accept parameter list */
-	virtual void TakeParameterList(const ParameterListT& list);
-	/*@}*/
-
 protected:
 
 	/* common meshfree parameters */
@@ -300,9 +304,9 @@ protected:
 	dArrayT               felShapespace;
 	dArrayT               fndShapespace;
 
-	/* external data */
-	const iArray2DT& fConnects; // element connectivities (global numbering)
-	const iArrayT&   fNonGridNodes; // EFG nodes not on the integration grid (global numbering)
+	/* pointers to external data */
+	const iArray2DT* fConnects; // element connectivities (global numbering)
+	const iArrayT*   fNonGridNodes; // EFG nodes not on the integration grid (global numbering)
 
 	/* nodal attributes */
 	dArrayT fVolume;            // nodal volume (integration weight) -> just 1.0 for now
@@ -328,7 +332,6 @@ protected:
 	/* runtime flags */
 	ShapeState fReformNode;
 	ShapeState fReformElem;
-
 };
 
 /* inlines */

@@ -1,6 +1,5 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.13 2004-01-27 01:26:19 cjkimme Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.13.16.1 2004-05-01 06:33:12 paklein Exp $ */
 /* created: paklein (11/12/1999) */
-
 #include "MeshFreeElementSupportT.h"
 
 #include "fstreamT.h"
@@ -20,7 +19,7 @@ using namespace Tahoe;
 const int kHeadRoom = 10; // percent
 
 /* constructor */
-MeshFreeElementSupportT::MeshFreeElementSupportT(ifstreamT& in):
+MeshFreeElementSupportT::MeshFreeElementSupportT(void):
 	fMFShapes(NULL),
 	fNodalShapes(NULL),
 	fLocGroup(kHeadRoom),
@@ -30,31 +29,17 @@ MeshFreeElementSupportT::MeshFreeElementSupportT(ifstreamT& in):
 	fFieldSet(false),
 	fMapShift(-1)
 {
-	/* read */
-	in >> fAutoBorder;
 
-	/* check values */
-	if (fAutoBorder != 0 && fAutoBorder != 1) throw ExceptionT::kBadInputValue;
 }
 
 /* accessors */
-MeshFreeSupportT& MeshFreeElementSupportT::MeshFreeSupport(void) const
-{
+MeshFreeSupportT& MeshFreeElementSupportT::MeshFreeSupport(void) const {
 	return fMFShapes->MeshFreeSupport();
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
-
-/* print element group data */
-void MeshFreeElementSupportT::PrintControlData(ostream& out) const
-{
-	/* echo */
-	out << " Auto selection/generation of border transition. = " << fAutoBorder;
-	out << ((fAutoBorder == 1) ? " (ACTIVE)" : " (INACTIVE)") << '\n';
-	out.flush();
-}
+ * Protected
+ ***********************************************************************/
 
 /* initialization */
 void MeshFreeElementSupportT::InitSupport(ifstreamT& in, ostream& out,

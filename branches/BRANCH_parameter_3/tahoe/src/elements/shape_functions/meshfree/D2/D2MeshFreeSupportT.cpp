@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.cpp,v 1.10.16.1 2004-04-28 15:43:26 paklein Exp $ */
+/* $Id: D2MeshFreeSupportT.cpp,v 1.10.16.2 2004-05-01 06:33:15 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupportT.h"
@@ -26,8 +26,8 @@ using namespace Tahoe;
 
 /* constructor */
 D2MeshFreeSupportT::D2MeshFreeSupportT(const ParentDomainT* domain, const dArray2DT& coords,
-	const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in):
-	MeshFreeSupportT(domain, coords, connects, nongridnodes, in),
+	const iArray2DT& connects, const iArrayT& nongridnodes):
+	MeshFreeSupportT(domain, coords, connects, nongridnodes),
 	fD2EFG(NULL)
 {
 	/* only EFG solver is different for D2 */
@@ -334,7 +334,7 @@ void D2MeshFreeSupportT::SetElementShapeFunctions(void)
 
 	/* dimensions */
 	int nip = fDomain->NumIP();
-	int nel = fConnects.MajorDim();
+	int nel = fConnects->MajorDim();
 
 	/* work space */
 	iArrayT    neighbors;
@@ -416,7 +416,7 @@ void D2MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 	int nsd = fCoords->MinorDim();
 	int nip = fDomain->NumIP();
 	int nnd = neighbors.Length();
-	int nen = fConnects.MinorDim();
+	int nen = fConnects->MinorDim();
 
 	/* set dimensions */
 	fnodal_param_man.SetMajorDimension(nnd, false);
@@ -433,7 +433,7 @@ void D2MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 	loccoords.SetGlobal(*fCoords);
 		
 	/* integration point coordinates */
-	fConnects.RowAlias(element, elementnodes);
+	fConnects->RowAlias(element, elementnodes);
 	loccoords.SetLocal(elementnodes);
 	fDomain->Interpolate(loccoords, fx_ip_table);
 		

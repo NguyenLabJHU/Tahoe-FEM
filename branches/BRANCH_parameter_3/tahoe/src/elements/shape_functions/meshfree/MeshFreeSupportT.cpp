@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.23.12.1 2004-04-28 15:43:25 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.23.12.2 2004-05-01 06:33:14 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #include "MeshFreeSupportT.h"
 
@@ -31,10 +31,9 @@
 /* use disk to reduce memory usage */
 #undef _USE_DISK_
 
-/* parameters */
-
 using namespace Tahoe;
 
+/* parameters */
 const int kMaxNumGrid   = 100;
 const int kListInitSize =  10; // initial neighbor list size
 const int kListSizeinc  =   5; // list size increment on overflow
@@ -45,8 +44,7 @@ static double AbsMax(double a, double b) { return (fabs(a) > fabs(b)) ? fabs(a) 
 
 /* constructor */
 MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT* domain,  
-	const dArray2DT& coords, const iArray2DT& connects, const iArrayT& nongridnodes, 
-	ifstreamT& in):
+	const dArray2DT& coords, const iArray2DT& connects, const iArrayT& nongridnodes):
 	ParameterInterfaceT("meshfree_support"),
 	fDomain(domain),
 	fDextra(0.0),
@@ -54,8 +52,8 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT* domain,
 	fRKPM(NULL),
 	fGrid(NULL),
 	fCoords(&coords),
-	fConnects(connects),
-	fNonGridNodes(nongridnodes),
+	fConnects(&connects),
+	fNonGridNodes(&nongridnodes),
 	fNumFacetNodes(0),
 	fCutCoords(NULL),
 	fvolume_man(25, fvolume),
@@ -71,10 +69,8 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT* domain,
 		fSD = fDomain->NumSD();
 		
 		/* checks */
-		if (fSD    !=   fCoords->MinorDim() ||
-	    	fDomain->NumNodes() != fConnects.MinorDim()) 
+		if (fSD != fCoords->MinorDim() || fDomain->NumNodes() != fConnects->MinorDim()) 
 	    		ExceptionT::BadInputValue("MeshFreeSupportT::MeshFreeSupportT","Dimension mismatch\n");
-
 	}
 	else // Presumably nodally integrated elements are calling this
 	{
@@ -82,137 +78,25 @@ MeshFreeSupportT::MeshFreeSupportT(const ParentDomainT* domain,
 		fSD = fCoords->MinorDim();
 		fIP = 1;
 	}
-	
-	/* read common parameters */
-	in >> fStoreShape;
-	in >> fMeshfreeType;
+}
 
-	/* construct MLS solver */
-	if (fMeshfreeType == kEFG)
-	{
-		/* read parameters */
-		int complete = -1;
-		fDextra = -1.0;
-		in >> fDextra;
-		in >> complete;
-		
-		/* checks */
-		if (fDextra < 1.0 || complete <= 1) throw ExceptionT::kBadInputValue;
-		
-		/* construct MLS solver */	
-		if (fSD == 2)
-			fEFG = new OrthoMLS2DT(complete);
-		else if (fSD == 3)
-			fEFG = new OrthoMLS3DT(complete);
-		else
-		{
-			cout << "\n MeshFreeSupportT::MeshFreeSupportT: unsupported spatial dimensions: "
-			     << fSD << endl;
-			throw ExceptionT::kGeneralFail;
-		}
-		if (!fEFG) throw ExceptionT::kOutOfMemory;	
-		
-		/* initialize */
-		fEFG->Initialize();
-		
-		/* just one nodal field parameter */
-		fnodal_param_man.SetMinorDimension(1);
-		fNodalParameters.Dimension(fCoords->MajorDim(), 1);
-		fNodalParameters = -1;
-	}
-	else if (fMeshfreeType == kRKPM)
-	{
-		/* common parameters */
-		int complete = -1;
-		WindowTypeT window_type;
-		in >> complete;
-		in >> window_type;
-		
-		/* check */
-		if (complete < 0) throw ExceptionT::kBadInputValue;
-		
-		/* resolve window function parameters */
-		dArrayT window_params;
-		switch (window_type)
-		{
-			case kGaussian:
-			{
-				/* 3 parameter */
-				window_params.Dimension(3);
-				in >> window_params[0]; // support size scaling
-				in >> window_params[1]; // sharpening factor
-				in >> window_params[2]; // cut-off factor
-				break;
-			}
-			case kBrick:
-			{
-				/* parameters = dilation scaling in each direction
-				 *             + sharpening factor
-				 *             + cut-off factor */
-				
-				window_params.Dimension(fSD + 2);
-				
-				/* allow for line-by-line comments */
-				for (int i = 0; i < window_params.Length(); i++)
-					in >> window_params[i];
-					
-				break;
-			}
-		    case kRectCubicSpline:
-			{
-				/* parameters = dilation scaling in each direction
-				 *             + sharpening factor
-				 *             + cut-off factor */
-				window_params.Dimension(fSD + 2);
-				
-				/* allow for line-by-line comments */
-				for (int i = 0; i < window_params.Length(); i++)
-					in >> window_params[i];
-					
-				break;
-			}  
-		    case kCubicSpline:
-			{
-				/* parameters = dilation scaling in each direction */
-				window_params.Dimension(1);
-				
-				/* allow for line-by-line comments */
-				in >> window_params[0];
+MeshFreeSupportT::MeshFreeSupportT(void):
+	ParameterInterfaceT("meshfree_support"),
+	fDomain(NULL),
+	fDextra(0.0),
+	fEFG(NULL),
+	fRKPM(NULL),
+	fGrid(NULL),
+	fCoords(NULL),
+	fConnects(NULL),
+	fNonGridNodes(NULL),
+	fNumFacetNodes(0),
+	fCutCoords(NULL),
+	fnodal_param_man(25, true),
+	fReformNode(kNotInit),
+	fReformElem(kNotInit)	
+{
 
-				break;
-			}  
-			default:
-				cout << "\n MeshFreeSupportT::MeshFreeSupportT: unsupported window function type: "
-				     << window_type << endl;
-				throw ExceptionT::kBadInputValue;
-		}
-
-		/* construct MLS solver */
-		fRKPM = new MLSSolverT(fSD, complete, window_type, window_params);
-		if (!fRKPM) throw ExceptionT::kOutOfMemory;	
-
-		/* initialize */
-		fRKPM->Initialize();
-		
-		/* dimension nodal field parameter */
-		fnodal_param_man.SetMinorDimension(fRKPM->NumberOfSupportParameters());
-		
-		/* allocate work space */
-		fVolume.Dimension(fCoords->MajorDim());
-		fVolume = 1.0;
-		fNodalParameters.Dimension(fCoords->MajorDim(), fRKPM->NumberOfSupportParameters());
-		fNodalParameters = -1;
-	}
-	else
-	{
-		cout << "\n MeshFreeSupportT::MeshFreeSupportT: unsupported spatial dimensions: "
-		     << fMeshfreeType << endl;
-		throw ExceptionT::kBadInputValue;
-	}
-
-	/* variable size manager */
-	fnodal_param_man.Register(fnodal_param   );
-	fnodal_param_man.Register(fnodal_param_ip);
 }
 
 /* destructor */
@@ -291,7 +175,7 @@ void MeshFreeSupportT::InitNeighborData(void)
 	cout << " MeshFreeSupportT::InitNeighborData: setting integration point data" << endl;
 //	SetElementNeighborData(fConnects);
 	if (fDomain)
-		SetElementNeighborData_2(fConnects);
+		SetElementNeighborData_2(*fConnects);
 }
 
 /* specify nodes/cells to skip when doing MLS calculations */
@@ -314,7 +198,7 @@ void MeshFreeSupportT::SetSkipElements(const iArrayT& skip_elements)
 		fSkipElement.Free();
 	else
 	{
-		fSkipElement.Dimension(fConnects.MajorDim());
+		fSkipElement.Dimension(fConnects->MajorDim());
 		fSkipElement = 0;
 		for (int i = 0; i < skip_elements.Length(); i++)
 			fSkipElement[skip_elements[i]] = 1;
@@ -461,7 +345,7 @@ void MeshFreeSupportT::ResetFacets(const ArrayT<int>& facets)
 		{
 			/* collect elements containing any reset nodes */
 			iArrayT elem;
-			int nel = fConnects.MajorDim();
+			int nel = fConnects->MajorDim();
 			for (int k = 0; k < resetnodes.Length(); k++)
 				/* check elements for presence of reset node */
 				for (int i = 0; i < nel; i++)
@@ -846,6 +730,7 @@ ParameterInterfaceT* MeshFreeSupportT::NewSub(const StringT& list_name) const
 	if (list_name == "meshfree_formulation")
 	{
 		ParameterContainerT* window_choice = new ParameterContainerT(list_name);
+		window_choice->SetSubSource(this);
 		window_choice->SetListOrder(ParameterListT::Choice);
 		window_choice->AddSub("EFG");
 		window_choice->AddSub("RKPM");
@@ -871,6 +756,7 @@ ParameterInterfaceT* MeshFreeSupportT::NewSub(const StringT& list_name) const
 	else if (list_name == "RKPM")
 	{
 		ParameterContainerT* rkpm = new ParameterContainerT(list_name);
+		rkpm->SetSubSource(this);
 	
 		ParameterT completeness(ParameterT::Integer, "completeness");
 		completeness.AddLimit(1, LimitT::LowerInclusive);
@@ -878,23 +764,69 @@ ParameterInterfaceT* MeshFreeSupportT::NewSub(const StringT& list_name) const
 		rkpm->AddParameter(completeness);
 	
 		/* window function choice */
-		ParameterContainerT window_choice("window_function_choice");
-		window_choice.SetListOrder(ParameterListT::Choice);
-		window_choice.SetSubSource(this);
-		window_choice.AddSub("gaussian_window");
-		window_choice.AddSub("rect_gaussian_window");
-		window_choice.AddSub("cubic_spline_window");
-		window_choice.AddSub("rect_cubic_spline_window");
-		rkpm->AddSub(window_choice, ParameterListT::Once, true);
+		rkpm->AddSub("window_function_choice", ParameterListT::Once, true);
 	
 		return rkpm;
 	}
+	else if (list_name == "window_function_choice")
+	{
+		ParameterContainerT* window_choice = new ParameterContainerT("window_function_choice");
+		window_choice->SetListOrder(ParameterListT::Choice);
+		window_choice->SetSubSource(this);
+		window_choice->AddSub("gaussian_window");
+		window_choice->AddSub("rect_gaussian_window");
+		window_choice->AddSub("cubic_spline_window");
+		window_choice->AddSub("rect_cubic_spline_window");
+		return window_choice;
+	}
 	else if (list_name == "gaussian_window")
 	{
-		ParameterContainerT* gaussian_window = new ParameterContainerT(list_name);
+		ParameterContainerT* window = new ParameterContainerT(list_name);
 		
+		ParameterT support_scaling(ParameterT::Double, "support_scaling");
+		support_scaling.AddLimit(0.0, LimitT::Lower);
+		support_scaling.SetDefault(1.0);
+		window->AddParameter(support_scaling);
+
+		ParameterT sharpening_factor(ParameterT::Double, "sharpening_factor");
+		sharpening_factor.AddLimit(0.0, LimitT::Lower);
+		sharpening_factor.SetDefault(0.4);
+		window->AddParameter(sharpening_factor);
+
+		ParameterT cutoff_factor(ParameterT::Double, "cutoff_factor");
+		cutoff_factor.AddLimit(0.0, LimitT::Lower);
+		cutoff_factor.SetDefault(2.0);
+		window->AddParameter(cutoff_factor);
 		
-		return gaussian_window;
+		return window;
+	}
+	else if (list_name == "rect_gaussian_window")
+	{
+		ParameterContainerT* window = new ParameterContainerT(list_name);
+		window->SetSubSource(this);
+		window->SetDescription("1 or nsd sets of Gaussian window parameters");
+		
+		/* separate parameters for each coordinate direction */
+		window->AddSub("gaussian_window", ParameterListT::OnePlus);
+
+		return window;
+	}
+	else if (list_name == "cubic_spline_window")
+	{
+		ParameterContainerT* window = new ParameterContainerT(list_name);
+		window->AddParameter(ParameterT::Double, "support_scaling");
+		return window;
+	}
+	else if (list_name == "rect_cubic_spline_window")
+	{
+		ParameterContainerT* window = new ParameterContainerT(list_name);
+		window->SetSubSource(this);
+		window->SetDescription("1 or nsd sets of spline parameters");
+		
+		/* separate parameters for each coordinate direction */
+		window->AddSub("cubic_spline_window", ParameterListT::OnePlus);
+
+		return window;	
 	}
 	else /* inherited */
 		return ParameterInterfaceT::NewSub(list_name);
@@ -940,11 +872,82 @@ void MeshFreeSupportT::TakeParameterList(const ParameterListT& list)
 		fNodalParameters = -1;	
 	}
 	else if (formulation->Name() == "RKPM") {
-	
+
+		int completeness = formulation->GetParameter("completeness");
+		WindowTypeT window_type;
+		dArrayT window_params;
+		const ParameterListT* window = formulation->ResolveListChoice(*this, "window_function_choice");
+		if (!window) ExceptionT::GeneralFail(caller, "could not resolve \"window_function_choice\"");
+		if (window->Name() == "gaussian_window") 
+		{
+			window_type = kGaussian;
+			window_params.Dimension(3);
+			window_params[0] = window->GetParameter("support_scaling");
+			window_params[1] = window->GetParameter("sharpening_factor");
+			window_params[2] = window->GetParameter("cutoff_factor");
+		}
+		else if (window->Name() == "rect_gaussian_window")
+		{
+			window_type = kBrick;
+			int num_params = window->NumLists("gaussian_window");
+			if (num_params != 1 && num_params != nsd)
+				ExceptionT::GeneralFail(caller, "expecting 1 or %d \"gaussian_window\" in \"rect_gaussian_window\"", nsd);
+
+			window_params.Dimension(3*nsd);
+			int index = 0;
+			for (int i = 0; i < nsd; i++) {
+				const ParameterListT& param = window->GetList("gaussian_window", (num_params == 1) ? 0 : i);
+				window_params[index++] = param.GetParameter("support_scaling");
+				window_params[index++] = param.GetParameter("sharpening_factor");
+				window_params[index++] = param.GetParameter("cutoff_factor");
+			}		
+		}
+		else if (window->Name() == "cubic_spline_window")
+		{
+			window_type = kCubicSpline;
+			window_params.Dimension(1);
+			window_params[0] = window->GetParameter("support_scaling");
+		}		
+		else if (window->Name() == "rect_cubic_spline_window")
+		{
+			window_type = kRectCubicSpline;
+			int num_params = window->NumLists("cubic_spline_window");
+			if (num_params != 1 && num_params != nsd)
+				ExceptionT::GeneralFail(caller, "expecting 1 or %d \"cubic_spline_window\" in \"rect_cubic_spline_window\"", nsd);
+
+			window_params.Dimension(nsd);
+			for (int i = 0; i < nsd; i++) {
+				const ParameterListT& param = window->GetList("cubic_spline_window", (num_params == 1) ? 0 : i);
+				window_params[i] = param.GetParameter("support_scaling");
+			}
+		}
+		else
+			ExceptionT::GeneralFail(caller, "unrecognized window function choice \"%s\"",
+				window->Name().Pointer());
+
+		/* construct MLS solver */
+		fRKPM = new MLSSolverT(nsd, completeness, window_type, window_params);
+
+		/* initialize */
+		fRKPM->Initialize();
+
+		/* dimension nodal field parameter */
+		fnodal_param_man.SetMinorDimension(fRKPM->NumberOfSupportParameters());
+		
+		/* allocate work space */
+		fVolume.Dimension(fCoords->MajorDim());
+		fVolume = 1.0;
+		fNodalParameters.Dimension(fCoords->MajorDim(), fRKPM->NumberOfSupportParameters());
+		fNodalParameters = -1;
 	}
 	else
 		ExceptionT::GeneralFail(caller, "unrecognized meshfree formulation \"%s\"",
 			formulation->Name().Pointer());
+
+	/* memory manager */
+	fcoords_man.SetWard(25, fcoords, fCoords->MinorDim());
+	fnodal_param_man.Register(fnodal_param   );
+	fnodal_param_man.Register(fnodal_param_ip);
 }
 
 /*************************************************************************
@@ -1245,7 +1248,7 @@ void MeshFreeSupportT::SetElementNeighborData(const iArray2DT& connects)
 		const int* pelem = connects(i);
 		
 		/* integration point coordinates */
-		fConnects.RowAlias(i, elementnodes);
+		fConnects->RowAlias(i, elementnodes);
 		loccoords.SetLocal(elementnodes);
 		fDomain->Interpolate(loccoords, x_ip_table);
 		
@@ -1386,7 +1389,7 @@ void MeshFreeSupportT::SetElementNeighborData_2(const iArray2DT& connects)
 		const int* pelem = connects(i);
 		
 		/* integration point coordinates */
-		fConnects.RowAlias(i, elementnodes);
+		fConnects->RowAlias(i, elementnodes);
 		loccoords.SetLocal(elementnodes);
 		fDomain->Interpolate(loccoords, x_ip_table);
 		
@@ -1556,7 +1559,7 @@ void MeshFreeSupportT::SetElementShapeFunctions(void)
 	InitElementShapeData();
 
 	/* dimensions */
-	int nel = fConnects.MajorDim();
+	int nel = fConnects->MajorDim();
 
 	/* work space */
 	iArrayT    neighbors;
@@ -1649,7 +1652,7 @@ void MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 
 	/* dimensions */
 	int nnd = neighbors.Length();
-	int nen = fConnects.MinorDim();
+	int nen = fConnects->MinorDim();
 
 	/* set dimensions */
 	fnodal_param_man.SetMajorDimension(nnd, false);
@@ -1666,7 +1669,7 @@ void MeshFreeSupportT::ComputeElementData(int element, iArrayT& neighbors,
 	loccoords.SetGlobal(*fCoords);
 		
 	/* integration point coordinates */
-	fConnects.RowAlias(element, elementnodes);
+	fConnects->RowAlias(element, elementnodes);
 	loccoords.SetLocal(elementnodes);
 	fDomain->Interpolate(loccoords, fx_ip_table);
 
@@ -1994,14 +1997,14 @@ void MeshFreeSupportT::SetSupport_Spherical_Connectivities(void)
 	/* dimensions */
 	int nnd = fCoords->MajorDim();
 	int nsd = fCoords->MinorDim();
-	int nel = fConnects.MajorDim();
-	int nen = fConnects.MinorDim();
+	int nel = fConnects->MajorDim();
+	int nen = fConnects->MinorDim();
 
 	/* loop over elements */
 	dArrayT x_0, x_i;
 	for (int i = 0; i < nel; i++)
 	{
-		const int* pelem = fConnects(i);
+		const int* pelem = (*fConnects)(i);
 		for (int j = 0; j < nen; j++)
 		{
 			/* current node */
@@ -2034,14 +2037,14 @@ void MeshFreeSupportT::SetSupport_Cartesian_Connectivities(void)
 	/* dimensions */
 	int nnd = fCoords->MajorDim();
 	int nsd = fCoords->MinorDim();
-	int nel = fConnects.MajorDim();
-	int nen = fConnects.MinorDim();
+	int nel = fConnects->MajorDim();
+	int nen = fConnects->MinorDim();
 
 	/* loop over elements */
 	dArrayT x_0, x_i, r(nsd), support;
 	for (int i = 0; i < nel; i++)
 	{
-		const int* pelem = fConnects(i);
+		const int* pelem = (*fConnects)(i);
 		for (int j = 0; j < nen; j++)
 		{
 			/* current node */
@@ -2088,14 +2091,14 @@ void MeshFreeSupportT::SetNodesUsed(void)
 	used = 0;
 
 	/* mark nodes used on the integration grid */
-	int  tot = fConnects.Length();
-	const int* pnd = fConnects.Pointer();
+	int  tot = fConnects->Length();
+	const int* pnd = fConnects->Pointer();
 	for (int i = 0; i < tot; i++)
 		used[*pnd++] = 1;
 	
 	/* mark other EFG nodes */
-	tot = fNonGridNodes.Length();
-	pnd = fNonGridNodes.Pointer();
+	tot = fNonGridNodes->Length();
+	pnd = fNonGridNodes->Pointer();
 	for (int j = 0; j < tot; j++)
 		used[*pnd++] = 1;
 

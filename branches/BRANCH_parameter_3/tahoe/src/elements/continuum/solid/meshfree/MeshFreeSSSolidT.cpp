@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.17.18.1 2004-04-08 07:33:27 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.17.18.2 2004-05-01 06:33:13 paklein Exp $ */
 /* created: paklein (09/11/1998) */
 #include "MeshFreeSSSolidT.h"
 
@@ -12,6 +12,10 @@
 #include "MeshFreeShapeFunctionT.h"
 #include "ModelManagerT.h"
 #include "CommManagerT.h"
+#include "ParameterContainerT.h"
+
+#include "MeshFreeSupport2DT.h"
+#include "MeshFreeSupport3DT.h"
 
 //TEMP
 #include "MaterialListT.h"
@@ -25,19 +29,32 @@ const double Pi = acos(-1.0);
 /* constructor */
 MeshFreeSSSolidT::MeshFreeSSSolidT(const ElementSupportT& support, const FieldT& field):
 	SmallStrainT(support, field),
-	MeshFreeFractureSupportT(ElementSupport().Input()),
+	fAutoBorder(false),
 	fB_wrap(10, fB)
 {
+	SetName("small_strain_meshfree");
+
 	/* disable any strain-displacement options */
 	if (fStrainDispOpt != kStandardB)
 	{
 		cout << "\n MeshFreeSSSolidT::MeshFreeSSSolidT: no strain-displacement options\n" << endl;
 		fStrainDispOpt = kStandardB;
 	}
+}
 
-	/* check */
-	if (AutoBorder() && ElementSupport().Size() > 1)
-		ExceptionT::BadInputValue("MeshFreeSSSolidT::MeshFreeSSSolidT", "auto-border not support in parallel");
+MeshFreeSSSolidT::MeshFreeSSSolidT(const ElementSupportT& support):
+	SmallStrainT(support),
+	fAutoBorder(false),
+	fB_wrap(10, fB)
+{
+	SetName("small_strain_meshfree");
+
+	/* disable any strain-displacement options */
+	if (fStrainDispOpt != kStandardB)
+	{
+		cout << "\n MeshFreeSSSolidT::MeshFreeSSSolidT: no strain-displacement options\n" << endl;
+		fStrainDispOpt = kStandardB;
+	}
 }
 
 /* data initialization */
@@ -330,21 +347,81 @@ GlobalT::RelaxCodeT MeshFreeSSSolidT::ResetStep(void)
 	return relax;
 }
 
-/***********************************************************************
-* Protected
-***********************************************************************/
-
-/* print element group data */
-void MeshFreeSSSolidT::PrintControlData(ostream& out) const
+/* describe the parameters needed by the interface */
+void MeshFreeSSSolidT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
-	SmallStrainT::PrintControlData(out);
-	MeshFreeFractureSupportT::PrintControlData(out);
+	SmallStrainT::DefineParameters(list);
+	
+	ParameterT auto_border(fAutoBorder, "auto_border");
+	auto_border.SetDefault(false);
+	list.AddParameter(auto_border);
 }
+
+/* information about subordinate parameter lists */
+void MeshFreeSSSolidT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	SmallStrainT::DefineSubs(sub_list);
+	
+	/* parameters for the meshfree support */
+	sub_list.AddSub("meshfree_support_choice", ParameterListT::Once, true);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* MeshFreeSSSolidT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "meshfree_support_choice")
+	{
+		ParameterContainerT* mf_choice = new ParameterContainerT(list_name);
+		mf_choice->SetSubSource(this);
+		mf_choice->SetListOrder(ParameterListT::Choice);
+		
+		mf_choice->AddSub("meshfree_support_2D");
+		mf_choice->AddSub("meshfree_support_3D");
+		
+		return mf_choice;
+	}
+	else if (list_name == "meshfree_support_2D")
+		return new MeshFreeSupport2DT;
+	else if (list_name == "meshfree_support_3D")
+		return new MeshFreeSupport3DT;
+	else /* inherited */
+		return SmallStrainT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void MeshFreeSSSolidT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "MeshFreeSSSolidT::TakeParameterList";
+
+	/* inherited */
+	SmallStrainT::TakeParameterList(list);
+
+	/* make field at border nodes nodally exact */
+	fAutoBorder = list.GetParameter("auto_border");
+	if (fAutoBorder && ElementSupport().Size() > 1)
+		ExceptionT::BadInputValue(caller, "auto-border not support in parallel");
+
+#if 0
+	/* disable any strain-displacement options */
+	if (fStrainDispOpt != kStandardB)
+	{
+		cout << "\n MeshFreeSSSolidT::MeshFreeSSSolidT: no strain-displacement options\n" << endl;
+		fStrainDispOpt = kStandardB;
+	}
+#endif
+}
+
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
 
 /* initialization functions */
 void MeshFreeSSSolidT::SetShape(void)
 {
+#pragma message("fix me")
+#if 0
 	/* only support single list of integration cells for now */
 	if (fConnectivities.Length() > 1) {
 		cout << "\n MeshFreeSSSolidT::SetShape: multiple element blocks within an\n"
@@ -367,6 +444,7 @@ void MeshFreeSSSolidT::SetShape(void)
 
 	/* set base class pointer */
 	fShapes = fMFShapes;
+#endif
 }
 
 /* current element operations */

@@ -1,6 +1,5 @@
-/* $Id: MeshFreeFractureSupportT.h,v 1.8 2003-12-28 23:37:20 paklein Exp $ */
-/* created: paklein (02/15/2000)                                          */
-
+/* $Id: MeshFreeFractureSupportT.h,v 1.8.18.1 2004-05-01 06:33:13 paklein Exp $ */
+/* created: paklein (02/15/2000) */
 #ifndef _MESHFREE_FRACTURE_T_H_
 #define _MESHFREE_FRACTURE_T_H_
 
@@ -31,7 +30,7 @@ public:
 		MeshFreeFractureSupportT::FractureCriterionT& criterion);
 
 	/** constructor */
-	MeshFreeFractureSupportT(ifstreamT& in);
+	MeshFreeFractureSupportT(void);
 
 	/** destructor */
 	virtual ~MeshFreeFractureSupportT(void);
