@@ -1,30 +1,43 @@
-2
-1
--10 6
--4 29 
+3
+0
+2 2 2
 FCC
 3.52
 BOX
-12
-1 1
+3
+ROT
+1 1 0
+-1 1 0
+0 0 1
 #
 
 * nsd
-* whichunit: length(1) or ncell(0)
-* if (1), enter length(nsd,2) ; if (0) enter ncell(nsd)
+* dimunits: length(1) or ncell(0)
+* dimensions: nsd numbers
 * latticetype
 * alat
 * shape
-* format output (see below)
+* format of the output (see below)
+  if format output = 12, then give nsd periodic conditions
 * either
-  if 12, enter periodic condition per(nsd)
-  or
-  ROT then rotation angle in degree
+  # 
   or 
-  #
+  ROT
+  or
+  OUTPUT
+* if # stop
+  else if ROT then continue to **
+  else if OUTPUT then continue to ***
+**  rotation matrix, 9 components on 3 lines (in 3D) 
+    or 
+    rotation angle in degree (in 2D)
+*** input (default is example)
 
-Test of coordinates in 2D (length). 
 
+
+
+-----------------------------------------------------------
+Test of rotation in 3D, 
 
 		case 0:
 			return IOBaseT::kTahoe;
@@ -52,3 +65,4 @@ Test of coordinates in 2D (length).
 	                return IOBaseT::kTahoeResults;
 	       case 12:
 	                return IOBaseT::kParaDyn;
+       }
