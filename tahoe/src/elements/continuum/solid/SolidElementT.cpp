@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.41 2003-02-18 08:44:18 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.42 2003-03-11 07:19:12 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -134,7 +134,8 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 	while (NextElement())
 	{
 		int nodeposition;
-		if (CurrentElement().NodesU().HasValue(node, nodeposition))
+		const iArrayT& nodes_u = CurrentElement().NodesU();
+		if (nodes_u.HasValue(node, nodeposition))
 		{
 			/* initialize */
 			fRHS = 0.0;
@@ -164,11 +165,20 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 				FormMa(fMassType, constMa*fCurrMaterial->Density(), &fLocAcc, NULL);
 			}
 
-			/* components for node */
-			nodalforce.Set(NumDOF(), &fRHS[NumDOF()*nodeposition]);
+			/* loop over nodes (double-noding OK) */
+			int dex = 0;
+			for (int i = 0; i < nodes_u.Length(); i++)
+			{
+				if (nodes_u[i] == node)
+				{
+					/* components for node */
+					nodalforce.Set(NumDOF(), fRHS.Pointer(dex));
 	
-			/* accumulate */
-			force += nodalforce;
+					/* accumulate */
+					force += nodalforce;
+				}
+				dex += NumDOF();
+			}
 		}
 	}
 }
@@ -807,6 +817,9 @@ void SolidElementT::ElementLHSDriver(void)
 		/* element stiffness */
 		if (fabs(constKe) > kSmall)
 			FormStiffness(constKe);
+
+//TEMP
+ElementSupport().Output() << '\n' << fLHS << '\n';
 	
 		/* add to global equations */
 		AssembleLHS();		
