@@ -1,0 +1,59 @@
+
+%&LaTeX
+% $Id: files.tex,v 1.1 2001-03-13 02:20:51 paklein Exp $
+
+\section{Geometry and results files}
+\label{sect.files}
+The user input consists of a parameters file and a geometry
+file.  The output will consist of results files.  Table 25 describes the
+I/O databases that Tahoe currently reads and writes as geometry files for
+input and as results files for output.
+
+\begin{table}[h]
+\caption{\label{tab.input.file.type} Geometry input file formats.}
+\begin{center}
+\begin{tabular}[c]{|l|c|c|}
+\hline
+ \parbox[b]{0.75in}{\centering \textbf{code}}
+&\parbox[b]{2.0in}{\raggedright \textbf{description}}\\
+\hline
+\parbox[b]{0.75in}{\centering 0} & 
+\parbox[b]{2.0in}{\raggedright TahoeI}\\
+\hline
+\parbox[b]{0.75in}{\centering 1}  & 
+\parbox[b]{2.0in}{\raggedright TahoeII}\\
+\hline
+\parbox[b]{0.75in}{\centering 5}  & 
+\parbox[b]{2.0in}{\raggedright \textsf{ExodusII}~\cite{ExodusII}}\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[h]
+\caption{\label{tab.input.file.type} Result output file formats.}
+\begin{center}
+\begin{tabular}[c]{|l|c|c|}
+\hline
+ \parbox[b]{0.75in}{\centering \textbf{code}}
+&\parbox[b]{2.0in}{\raggedright \textbf{description}}\\
+\hline
+\parbox[b]{0.75in}{\centering 0} & 
+\parbox[b]{2.0in}{\raggedright TahoeI}\\
+\hline
+\parbox[b]{0.75in}{\centering 2}  & 
+\parbox[b]{2.0in}{\raggedright \textsf{TecPlot}~\cite{TecPlot} version 7}\\
+\hline
+\parbox[b]{0.75in}{\centering 3}  & 
+\parbox[b]{2.0in}{\raggedright \textsf{EnSight}~\cite{EnSight} Gold ASCII 
+version 6}\\
+\hline
+\parbox[b]{0.75in}{\centering 4}  & 
+\parbox[b]{2.0in}{\raggedright \textsf{EnSight} Gold Binary version 6}\\
+\hline
+\parbox[b]{0.75in}{\centering 5}  & 
+\parbox[b]{2.0in}{\raggedright \textsf{ExodusII}~\cite{ExodusII}}\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
