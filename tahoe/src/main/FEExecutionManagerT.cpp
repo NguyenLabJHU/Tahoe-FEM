@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.41.2.18 2003-06-16 22:19:45 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.41.2.19 2003-06-17 23:43:13 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -586,16 +586,17 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	dArray2DT gadisp(numgatoms,2), gavel(numgatoms,2), gaacc(numgatoms,2);
 	dArray2DT badisp(numbatoms,2), bavel(numbatoms,2), baacc(numbatoms,2);
 	iArrayT allatoms(boundaryghostatoms.Length()), gatoms(numgatoms), batoms(numbatoms), boundatoms(numbatoms);
-	ArrayT<bool> ghostmask(1), ghostallow(1);
-	ghostmask = false;
-	ghostallow = true;
 	allatoms.SetValueToPosition();
 	batoms.CopyPart(0, allatoms, numgatoms, numbatoms);  
 	gatoms.CopyPart(0, allatoms, 0, numgatoms);          
 	boundatoms.CopyPart(0, boundaryghostatoms, numgatoms, numbatoms);
 	continuum.InitInterpolation(boundaryghostatoms, bridging_field, *atoms.NodeManager());
 	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive);
-	
+	nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
+	ghostonmap = 0;
+	ghostoffmap = 0;
+	ghostoffmap(1,0) = ghostoffmap(0,1) = 1;
+
 	/* time managers */
 	TimeManagerT* atom_time = atoms.TimeManager();
 	TimeManagerT* continuum_time = continuum.TimeManager();
@@ -613,9 +614,10 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 
 		/* solve for initial FEM force f(u) as function of fine scale + FEM */
 		/* use projected totalu instead of totalu for initial FEM displacements */
-		//atoms.SetActiveElementGroupMask(ghostmask);	// turn ghost atoms off (ghostmask)
+		nMatrixT<int>& promap = atoms.PropertiesMap(0);   // element group for particles = 0
+		promap = ghostoffmap;  // turn ghost atoms off for f(u) calculation
 		fubig = InternalForce(projectedu, atoms);
-		//atoms.SetActiveElementGroupMask(ghostallow);	// turn ghost atoms back on	(ghostallow)
+		promap = ghostonmap;   // turn ghost atoms back on for MD force calculations
 
 		/* calculate global interpolation matrix ntf */
 		continuum.Ntf(ntf, atoms.NonGhostNodes(), activefenodes);
@@ -708,9 +710,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			continuum.BridgingFields(bridging_field, *atoms.NodeManager(), *continuum.NodeManager(), totalu);
 			
 			/* calculate FE internal force as function of total displacement u here */
-			//atoms.SetActiveElementGroupMask(ghostmask);	// turn ghost atoms off (ghostmask)
+			promap = ghostoffmap;  // turn off ghost atoms for f(u) calculations
 			fubig = InternalForce(totalu, atoms);
-			//atoms.SetActiveElementGroupMask(ghostallow);	// turn ghost atoms back on (ghostallow)
+			promap = ghostonmap;   // turn on ghost atoms for MD force calculations
 			fu.RowCollect(atoms.NonGhostNodes(), fubig);
 			fu.ColumnCopy(0,tempx);
 			ntf.Multx(tempx,fx);
