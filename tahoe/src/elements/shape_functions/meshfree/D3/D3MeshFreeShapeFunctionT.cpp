@@ -1,4 +1,4 @@
-/* $Id: D3MeshFreeShapeFunctionT.cpp,v 1.3 2004-12-27 20:17:24 paklein Exp $ */
+/* $Id: D3MeshFreeShapeFunctionT.cpp,v 1.2 2004-10-30 20:51:19 raregue Exp $ */
 /* created: paklein (10/23/1999) */
 #include "D3MeshFreeShapeFunctionT.h"
 #include "D3MeshFreeSupport2DT.h"
@@ -26,14 +26,10 @@ D3MeshFreeShapeFunctionT::D3MeshFreeShapeFunctionT(GeometryT::CodeT geometry_cod
 		ExceptionT::BadInputValue(caller, "2D only");
 	if (!fD3MFSupport) ExceptionT::OutOfMemory(caller);
 
-	/* initialize */
-	ParameterListT D3_mf_support_params(mf_support_params);
-	D3_mf_support_params.SetName(fD3MFSupport->Name());
-	fD3MFSupport->TakeParameterList(D3_mf_support_params);
-
 	/* delete MLS support for base class */
 	delete fMFSupport;
-	fMFSupport = fD2MFSupport = fD3MFSupport;
+	fMFSupport = fD3MFSupport;
+	//TEMP - need to destruct the MLS support from the base class
 }
 
 /* compute local shape functions and derivatives */ 	

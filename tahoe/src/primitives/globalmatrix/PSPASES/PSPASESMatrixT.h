@@ -1,4 +1,4 @@
-/* $Id: PSPASESMatrixT.h,v 1.8 2005-01-07 21:22:56 paklein Exp $ */
+/* $Id: PSPASESMatrixT.h,v 1.7 2004-10-04 18:40:57 paklein Exp $ */
 #ifndef _PSPASES_MATRIX_T_H_
 #define _PSPASES_MATRIX_T_H_
 
@@ -80,7 +80,7 @@ public:
 	virtual bool RenumberEquations(void) const { return false; };	
 
 	/** assignment operator */
-	PSPASESMatrixT& operator=(const PSPASESMatrixT& rhs);
+	virtual GlobalMatrixT& operator=(const GlobalMatrixT& rhs);
 	
 	/** return a clone of self. Caller is responsible for disposing of the matrix */
 	virtual GlobalMatrixT* Clone(void) const;

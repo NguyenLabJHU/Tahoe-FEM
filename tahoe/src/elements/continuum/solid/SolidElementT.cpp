@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.68 2005-01-13 19:41:45 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.66 2004-11-19 23:24:31 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -53,7 +53,7 @@ SolidElementT::SolidElementT(const ElementSupportT& support):
 	fLocTemp(NULL),
 	fLocTemp_last(NULL),
 	fStoreInternalForce(false),
-	fMassType(kAutomaticMass)
+	fMassType(kConsistentMass)
 {
 	SetName("solid_element");
 }
@@ -130,17 +130,7 @@ void SolidElementT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 				if (formBody) AddBodyForce(fLocAcc);
 				
 				/* calculate inertial forces */
-				if (!fCurrMaterial->HasChangingDensity())
-					FormMa(fMassType, constMa*fCurrMaterial->Density(), axisymmetric, &fLocAcc, NULL, NULL);
-				else /* need to compute density */
-				{
-					/* collect densities */
-					fShapes->TopIP();
-					while (fShapes->NextIP())
-						fDensity[fShapes->CurrIP()] = fCurrMaterial->Density();
-
-					FormMa(fMassType, constMa, axisymmetric, &fLocAcc, NULL, fDensity.Pointer());
-				}
+				FormMa(fMassType, constMa*fCurrMaterial->Density(), axisymmetric, &fLocAcc, NULL);
 			}
 
 			/* loop over nodes (double-noding OK) */
@@ -292,7 +282,6 @@ void SolidElementT::DefineParameters(ParameterListT& list) const
 
 	/* mass type */
 	ParameterT mass_type(ParameterT::Enumeration, "mass_type");
-	mass_type.AddEnumeration("automatic", kAutomaticMass);
 	mass_type.AddEnumeration("no_mass", kNoMass);
     mass_type.AddEnumeration("consistent_mass", kConsistentMass);
     mass_type.AddEnumeration("lumped_mass", kLumpedMass);
@@ -357,24 +346,16 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 	const char caller[] = "SolidElementT::TakeParameterList";
 
 	/* set mass type before calling ContinuumElementT::TakeParameterList because
-	 * it's needed for SolidElementT::TangentType. If the mass type is kAutomaticMass,
-	 * this needs to be resolved; however, it cannot be resolved before ContinuumElementT::TakeParameterList
-	 * has been called because fIntegrator won't be set. Therefore, kAutomaticMass is resolved
-	 * both here and in SolidElementT::TangentType. */
+	 * it's needed for SolidElementT::TangentType */
 	list.GetParameter("mass_type", enum2int<ContinuumElementT::MassTypeT>(fMassType));
 
 	/* inherited */
 	ContinuumElementT::TakeParameterList(list);
 
-	/* resolve mass type */
-	if (fMassType == kAutomaticMass) {
-		if (fIntegrator->ImplicitExplicit() == IntegratorT::kImplicit)
-			fMassType = kConsistentMass;
-		else
-			fMassType = kLumpedMass;
-	}
-
 	/* allocate work space */
+//	fB_list.Dimension(NumIP());
+//	for (int i = 0; i < fB_list.Length(); i++)
+//		fB_list[i].Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
 	fB.Dimension(dSymMatrixT::NumValues(NumSD()), NumSD()*NumElementNodes());
 	fD.Dimension(dSymMatrixT::NumValues(NumSD()));
 	
@@ -440,8 +421,6 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 		}
 
 	/* generate list of material needs */
-	bool changing_density = false;
-	bool constant_density = false;
 	fMaterialNeeds.Dimension(fMaterialList->Length());
 	for (int i = 0; i < fMaterialNeeds.Length(); i++)
 	{
@@ -457,21 +436,7 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 		needs[kNeedDisp] = mat->NeedDisp();
 		needs[kNeedVel] = mat->NeedVel();
 		needs[KNeedLastDisp] = mat->NeedLastDisp();
-		
-		/* changing density */
-		if (mat->HasChangingDensity()) 
-			changing_density = true;
-		else /* constant density */
-			constant_density = true;
 	}
-	
-	/* all must be the same */
-	if (changing_density == constant_density)
-		ExceptionT::GeneralFail(caller, "cannot mix materials with constant/changing density");
-
-	/* work space for calculating integration point densities */
-	if (changing_density)
-		fDensity.Dimension(NumIP());
 }
 
 /***********************************************************************
@@ -900,19 +865,8 @@ void SolidElementT::ElementLHSDriver(void)
 			SetGlobalShape();
 
 			/* element mass */
-			if (fabs(constMe) > kSmall) {
-				if (!fCurrMaterial->HasChangingDensity())
-					FormMass(fMassType, constMe*(fCurrMaterial->Density()), axisymmetric, NULL);
-				else
-				{
-					/* collect densities */
-					fShapes->TopIP();
-					while (fShapes->NextIP())
-						fDensity[fShapes->CurrIP()] = fCurrMaterial->Density();
-				
-					FormMass(fMassType, constMe, axisymmetric, fDensity.Pointer());
-				}
-			}
+			if (fabs(constMe) > kSmall)
+				FormMass(fMassType, constMe*(fCurrMaterial->Density()), axisymmetric);
 
 			/* element stiffness */
 			if (fabs(constKe) > kSmall)
@@ -1021,17 +975,7 @@ void SolidElementT::ElementRHSDriver(void)
 				/* body force contribution */
 				if (formBody) AddBodyForce(fLocAcc);
 		
-				if (!fCurrMaterial->HasChangingDensity())
-					FormMa(fMassType, -constMa*fCurrMaterial->Density(), axisymmetric, &fLocAcc, NULL, NULL);
-				else
-				{
-					/* collect densities */
-					fShapes->TopIP();
-					while (fShapes->NextIP())
-						fDensity[fShapes->CurrIP()] = fCurrMaterial->Density();
-				
-					FormMa(fMassType, -constMa, axisymmetric, &fLocAcc, NULL, fDensity.Pointer());
-				}
+				FormMa(fMassType, -constMa*fCurrMaterial->Density(), axisymmetric, &fLocAcc, NULL);
 			}
 		
 			/* store incremental heat */
@@ -1085,21 +1029,11 @@ bool SolidElementT::NextElement(void)
 /* form of tangent matrix */
 GlobalT::SystemTypeT SolidElementT::TangentType(void) const
 {
-	/* resolve mass type - see note in SolidElementT::TakeParameterList
-	 * regarding when the mass type is set */
-	MassTypeT mass_type = fMassType;
-	if (mass_type == kAutomaticMass) {
-		if (fIntegrator->ImplicitExplicit() == IntegratorT::kImplicit)
-			mass_type = kConsistentMass;
-		else
-			mass_type = kLumpedMass;
-	}	
-
 	/* special case */
 	if (fIntegrator->Order() > 0 &&
 	    fIntegrator->ImplicitExplicit() ==  eIntegratorT::kExplicit &&
-	    (mass_type == kNoMass ||
-	     mass_type == kLumpedMass))
+	    (fMassType == kNoMass ||
+	     fMassType == kLumpedMass))
 		return GlobalT::kDiagonal;
 	else
 		/* inherited */

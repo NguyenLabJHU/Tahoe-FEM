@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.41 2005-01-03 21:53:15 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.40 2004-12-26 21:09:42 d-farrell2 Exp $ */
 
 #include "FieldT.h"
 
@@ -1251,11 +1251,6 @@ bool FieldT::Apply_IC(const IC_CardT& card)
 /* mark global equations with the specified BC */
 void FieldT::SetBCCode(const KBC_CardT& card)
 {
-	/* check */
-	if (card.DOF() < 0 || card.DOF() >= fEqnos.MinorDim())
-		ExceptionT::OutOfRange("FieldT::SetBCCode", "dof %d != [0,%d]", 
-			card.DOF(), fEqnos.MinorDim()-1);
-
 	/* mark equation */
 	fEqnos(card.Node(), card.DOF()) = kPrescribed;
 }

@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.40 2005-01-07 21:23:16 kyonten Exp $ */
+/* $Id: SolidT.cpp,v 1.39 2004-07-22 21:10:04 paklein Exp $ */
 /* created: paklein (03/10/2001) */
 #include "SolidT.h"
 #include "ExceptionT.h"
@@ -159,10 +159,7 @@ SolidT::TypeT SolidT::int2TypeT(int i)
 
 		case SolidT::kGradJ2SSKStV:
 			return SolidT::kGradJ2SSKStV;
-		
-        case SolidT::kGRAD_MRSSKStV:
-			return SolidT::kGRAD_MRSSKStV; /*mfgp material*/
-			
+
 		case SolidT::kSIERRA_Hypoelastic:
 			return SolidT::kSIERRA_Hypoelastic;
 

@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionMaterialT.cpp,v 1.5 2005-01-07 02:16:03 paklein Exp $ */
+/* $Id: NLDiffusionMaterialT.cpp,v 1.4 2004-07-15 08:26:22 paklein Exp $ */
 #include "NLDiffusionMaterialT.h"
 #include "DiffusionMatSupportT.h"
 #include "ParameterContainerT.h"
@@ -31,14 +31,6 @@ const dMatrixT& NLDiffusionMaterialT::k_ij(void)
 	double field = fDiffusionMatSupport->Field();
 	fScaledConductivity.SetToScaled(fConductivityScaleFunction->Function(field), fConductivity);
 	return fScaledConductivity;
-}
-
-/* change in conductivity with temperature */
-const dMatrixT& NLDiffusionMaterialT::dk_ij(void)
-{
-	double field = fDiffusionMatSupport->Field();
-	fdk_ij.SetToScaled(fConductivityScaleFunction->DFunction(field), fConductivity);
-	return fdk_ij;
 }
 
 /* heat flux */

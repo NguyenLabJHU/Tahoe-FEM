@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.h,v 1.9 2005-01-10 07:38:33 paklein Exp $ */
+/* $Id: ConveyorT.h,v 1.6 2004-12-21 17:24:51 thao Exp $ */
 #ifndef _CONVEYOR_T_H_
 #define _CONVEYOR_T_H_
 
@@ -11,7 +11,6 @@
 #include "dArray2DT.h"
 #include "iArrayT.h"
 #include "ofstreamT.h"
-#include "PiecewiseLinearT.h"
 
 namespace Tahoe {
 
@@ -91,13 +90,7 @@ protected:
 
 	/** deactivate elements to create a pre-crack */
 	void CreatePrecrack(void);
-
-	/** resolve the given node number into the area above or below the
-	 * crack plane
-	 * \return 1 if the node is above the crack plane or -1 if it lies
-	 *         below the crack plane. */
-	int UpperLower(int node) const;
-
+	
 protected:
 
 	/** the field */
@@ -118,7 +111,7 @@ protected:
 	/*@}*/
 
 	/** \name stretching boundary
-	 * Stretching as a displacement, velocity, or acceleration. The prescibed motion is
+	 * Stretching as a displacement, velocity, or acceleration jump 
 	 * split equally between the upper and lower surfaces. */
 	/*@{*/
 	KBC_CardT::CodeT fULBC_Code;
@@ -130,16 +123,7 @@ protected:
 	/** \name boundary condition for the far right edge */
 	/*@{*/
 	KBC_ControllerT* fRightEdge;
-	AutoArrayT<int>  fShiftedNodesU;
-	AutoArrayT<int>  fShiftedNodesL;
-
-//	PiecewiseLinearT fUx_upper;
-//	PiecewiseLinearT fUx_lower;
-	
-	int fNumSamples;
-	int fUy_node_upper, fUy_node_lower;
-	AutoArrayT<double> fUy_samples_upper;
-	AutoArrayT<double> fUy_samples_lower;
+	AutoArrayT<int>  fShiftedNodes;
 	/*@}*/
 
 	/** \name crack tip element group */
@@ -167,9 +151,7 @@ protected:
 	bool fDampingReset;
 	/*@}*/
 
-	/** \name nodes at upper and lower boundaries
-	 * Either of these node lists may be empty if running a case assuming
-	 * symmetry across the cleavage plane */
+	/** \name nodes at upper and lower boundaries */
 	/*@{*/
 	iArrayT fBottomNodes;
 	iArrayT fTopNodes;

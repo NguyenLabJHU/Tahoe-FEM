@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.cpp,v 1.12 2005-01-19 08:57:20 paklein Exp $ */
+/* $Id: IsotropicT.cpp,v 1.11 2004-07-15 08:29:19 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "IsotropicT.h"
 
@@ -165,7 +165,10 @@ void IsotropicT::ComputeModuli(dMatrixT& moduli) const
 		moduli.CopySymmetric();
 	}
 	else
-		ExceptionT::SizeMismatch("IsotropicT::ComputeModuli", "3D only");
+	{
+		cout << "\n IsotropicT::ComputeModuli: for 3D only" << endl;
+		throw ExceptionT::kSizeMismatch;
+	}
 }
 
 void IsotropicT::ComputeModuli2D(dMatrixT& moduli, 

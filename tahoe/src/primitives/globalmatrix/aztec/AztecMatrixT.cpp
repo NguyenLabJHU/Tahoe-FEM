@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.cpp,v 1.20 2005-01-07 21:23:14 paklein Exp $ */
+/* $Id: AztecMatrixT.cpp,v 1.19 2004-10-04 20:57:34 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 #include "AztecMatrixT.h"
 
@@ -304,16 +304,29 @@ GlobalMatrixT::EquationNumberScopeT AztecMatrixT::EquationNumberScope(void) cons
 bool AztecMatrixT::RenumberEquations(void) const { return false; }
 
 /* assignment operator */
-AztecMatrixT& AztecMatrixT::operator=(const AztecMatrixT&)
+GlobalMatrixT& AztecMatrixT::operator=(const GlobalMatrixT& rhs)
 {
 	const char caller[] = "AztecMatrixT::operator=";
-	ExceptionT::GeneralFail(caller, "not implemented");	
+
+#ifdef __NO_RTTI__
+	ExceptionT::GeneralFail(caller, "requires RTTI");
+
+#endif
+
+	const AztecMatrixT* az = TB_DYNAMIC_CAST(const AztecMatrixT*,&rhs);
+	if (!az) ExceptionT::GeneralFail(caller, "cast failed");
+	
+	//TEMP
+	ExceptionT::GeneralFail(caller, "not implemented");
+	
 	return *this;
 }
 	
 /* return a clone of self. Caller is responsible for disposing of the matrix */
-GlobalMatrixT* AztecMatrixT::Clone(void) const {
-	return new AztecMatrixT(*this);
+GlobalMatrixT* AztecMatrixT::Clone(void) const
+{
+	AztecMatrixT* az = new AztecMatrixT(*this);
+	return az;
 }
 
 /*************************************************************************

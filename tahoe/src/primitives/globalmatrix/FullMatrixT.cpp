@@ -1,4 +1,4 @@
-/* $Id: FullMatrixT.cpp,v 1.18 2005-01-07 21:22:49 paklein Exp $ */
+/* $Id: FullMatrixT.cpp,v 1.17 2004-10-04 18:40:51 paklein Exp $ */
 /* created: paklein (03/07/1998) */
 #include "FullMatrixT.h"
 #include <iostream.h>
@@ -291,16 +291,21 @@ GlobalMatrixT::EquationNumberScopeT FullMatrixT::EquationNumberScope(void) const
 bool FullMatrixT::RenumberEquations(void) const { return false; }
 
 /* assignment operator */
-FullMatrixT& FullMatrixT::operator=(const FullMatrixT& rhs)
+GlobalMatrixT& FullMatrixT::operator=(const GlobalMatrixT& rhs)
 {
-	/* no copies of self */
-	if (&rhs == this) return *this;
+	const char caller[] = "FullMatrixT::operator=";
 
 	/* inherited */
 	GlobalMatrixT::operator=(rhs);
 
-	fMatrix = rhs.fMatrix;
-	fIsFactorized = rhs.fIsFactorized;
+#ifdef __NO_RTTI__
+	ExceptionT::GeneralFail(caller, "requires RTTI");
+#endif
+
+	const FullMatrixT* full = TB_DYNAMIC_CAST(const FullMatrixT*, &rhs);
+	if (!full) ExceptionT::GeneralFail(caller, "cast failed");
+	fMatrix = full->fMatrix;
+	fIsFactorized = full->fIsFactorized;
 
 	return *this;
 }

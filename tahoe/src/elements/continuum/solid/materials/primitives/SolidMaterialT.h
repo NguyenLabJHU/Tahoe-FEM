@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.19 2005-01-05 01:25:50 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.18 2004-10-21 18:51:00 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -83,9 +83,6 @@ public:
 	virtual bool NeedDisp(void) const     { return false; };
 	virtual bool NeedLastDisp(void) const { return false; };
 	virtual bool NeedVel(void) const      { return false; };
-	
-	/** return true if the density varies with position */
-	virtual bool HasChangingDensity(void) const { return false; };
 	/*@}*/
 
 	/** incremental heat generation (energy/volume). The value should be the amount of

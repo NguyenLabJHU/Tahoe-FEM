@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.107 2004-12-27 20:17:11 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.106 2004-11-23 01:43:08 cjkimme Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -322,9 +322,11 @@ void ElementListT::DefineInlineSub(const StringT& name, ParameterListT::ListOrde
 #endif
 */
 
+/*
 #ifdef MESHFREE_GRAD_PLAST_DEV
 		sub_lists.AddSub("meshfree_grad_plast");
 #endif
+*/
 
 #ifdef ENHANCED_STRAIN_LOC_DEV
 		sub_lists.AddSub("small_strain_enh_loc");

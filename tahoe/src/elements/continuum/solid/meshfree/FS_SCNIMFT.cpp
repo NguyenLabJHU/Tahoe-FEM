@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.13 2005-01-20 00:42:57 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.12 2004-09-29 18:26:52 cjkimme Exp $ */
 #include "FS_SCNIMFT.h"
 
 //#define VERIFY_B
@@ -162,7 +162,7 @@ void FS_SCNIMFT::WriteOutput(void)
 	/* collect displacements */
 	dArrayT vec, values_i;
 	for (int i = 0; i < nNodes; i++) {
-		int   tag_i = (partition_nodes) ? (*partition_nodes)[fNodes[i]] : fNodes[i];
+		int   tag_i = (partition_nodes) ? (*partition_nodes)[i] : i;
 		int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
 
 		/* values for particle i */

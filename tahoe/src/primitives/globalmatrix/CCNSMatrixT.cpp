@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.24 2005-01-07 21:22:49 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.22 2004-10-04 18:40:51 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #include "CCNSMatrixT.h"
 
@@ -142,7 +142,6 @@ void CCNSMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	fRaggedEqnos.Clear();
 	
 	/* set flag */
-	fIsFactorized = false;
 }
 
 /* set all matrix volues to 0.0 */
@@ -327,51 +326,19 @@ void CCNSMatrixT::FindMinMaxPivot(double& min, double& max, double& abs_min,
 }
 
 /* assignment operator */
-CCNSMatrixT& CCNSMatrixT::operator=(const CCNSMatrixT& rhs)
+GlobalMatrixT& CCNSMatrixT::operator=(const GlobalMatrixT& rhs)
 {
-	/* no copies of self */
-	if (this == &rhs) return *this;
-	
-	/* inherited */
-	int neq = fLocNumEQ;
-	GlobalMatrixT::operator=(rhs);
+#ifdef __NO_RTTI__
+	cout << "\n CCNSMatrixT::operator= : requires RTTI" << endl;
+	throw ExceptionT::kGeneralFail;
+#endif
 
-	/* equation sets */
-	fEqnos = rhs.fEqnos;
-	fRaggedEqnos = rhs.fRaggedEqnos;
-
-	/* sync memory */
-	if (!famax || neq != fLocNumEQ) {
-		delete[] famax;
-		iArrayT i_memory(fLocNumEQ+1);
-		i_memory.ReleasePointer(&famax);
+	const CCNSMatrixT* ccns = TB_DYNAMIC_CAST(const CCNSMatrixT*, &rhs);
+	if (!ccns) {
+		cout << "\n CCNSMatrixT::operator= : cast failed" << endl;
+		throw ExceptionT::kGeneralFail;
 	}
-	if (!fu || neq != fLocNumEQ) {
-		delete[] fu;
-		dArrayT d_memory(fLocNumEQ);
-		d_memory.ReleasePointer(&fu);		
-	}
-	if (!fMatrix || fNumberOfTerms != rhs.fNumberOfTerms) {
-		fNumberOfTerms = rhs.fNumberOfTerms;	
-		delete[] fMatrix;
-		dArrayT d_memory(fNumberOfTerms);
-		d_memory.ReleasePointer(&fMatrix);
-	}
-
-	/* copy data */
-	memcpy(famax, rhs.famax, sizeof(int)*(fLocNumEQ+1));
-	memcpy(fu, rhs.fu, sizeof(double)*fLocNumEQ);
-	memcpy(fMatrix, rhs.fMatrix, sizeof(double)*fNumberOfTerms);
-		
-	/* set pointers */
-	fKU = fMatrix;
-	fKL = fKU + famax[fLocNumEQ];
-	fKD = fKL + famax[fLocNumEQ];
-
-	/* copy flag */
-	fIsFactorized = rhs.fIsFactorized;
-
-	return *this;
+	return operator=(*ccns);
 }
 
 /* return a clone of self. Caller is responsible for disposing of the matrix */

@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.46 2005-01-05 01:24:01 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.45 2004-12-21 17:21:55 thao Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -415,6 +415,38 @@ void ContinuumElementT::InitialCondition(void)
  * Protected
  ***********************************************************************/
 
+#pragma message("delete me")
+#if 0
+namespace Tahoe {
+
+/* stream extraction operator */
+istream& operator>>(istream& in, ContinuumElementT::MassTypeT& mtype)
+{
+	int i_type;
+	in >> i_type;
+	switch (i_type)
+	{
+		case ContinuumElementT::kNoMass:
+			mtype = ContinuumElementT::kNoMass;
+			break;
+		case ContinuumElementT::kConsistentMass:
+			mtype = ContinuumElementT::kConsistentMass;
+			break;
+		case ContinuumElementT::kLumpedMass:
+			mtype = ContinuumElementT::kLumpedMass;
+			break;
+		default:
+			cout << "\n ContinuumElementT::MassTypeT: unknown type: "
+			<< i_type<< endl;
+			throw ExceptionT::kBadInputValue;	
+	}
+	return in;
+}
+
+}
+#endif
+
+
 void ContinuumElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 	iArrayT& counts) const
 {
@@ -635,10 +667,10 @@ void ContinuumElementT::SetGlobalShape(void)
 }
 
 /* form the element mass matrix */
-void ContinuumElementT::FormMass(MassTypeT mass_type, double constM, bool axisymmetric, const double* ip_weight)
+void ContinuumElementT::FormMass(int mass_type, double constM, bool axisymmetric)
 {
 #if __option(extended_errorcheck)
-	if (fLocDisp.Length() != fLHS.Rows()) ExceptionT::SizeMismatch("ContinuumElementT::FormMass");
+	if (fLocDisp.Length() != fLHS.Rows()) throw ExceptionT::kSizeMismatch;
 #endif
 
 	switch (mass_type)
@@ -675,11 +707,8 @@ void ContinuumElementT::FormMass(MassTypeT mass_type, double constM, bool axisym
 					double r = 0.0;
 					for (a = 0; a < nen; a++)
 						r += (*NaX++)*(*x_r++);
-
-					/* integration factor */				
+				
 					double temp = 2.0*Pi*r*constM*(*Weight++)*(*Det++);
-					if (ip_weight) temp *= *ip_weight++;
-
 					const double* Na = fShapes->IPShapeU();		
 					for (a = 0; a < nun; a++)
 						for (int i = 0; i < ndof; i++)
@@ -701,10 +730,7 @@ void ContinuumElementT::FormMass(MassTypeT mass_type, double constM, bool axisym
 				fShapes->TopIP();	
 				while ( fShapes->NextIP() )
 				{
-					/* integration factor */
 					double temp = constM*(*Weight++)*(*Det++);
-					if (ip_weight) temp *= *ip_weight++;
-
 					const double* Na = fShapes->IPShapeU();		
 					for (a = 0; a < nun; a++)
 						for (int i = 0; i < ndof; i++)
@@ -751,10 +777,7 @@ void ContinuumElementT::FormMass(MassTypeT mass_type, double constM, bool axisym
 					for (int a = 0; a < nen; a++)
 						r += (*NaX++)*(*x_r++);
 
-					/* integration factor */
-					double temp1 = 2.0*Pi*r*constM*(*Weight++)*(*Det++);
-					if (ip_weight) temp1 *= *ip_weight++;
-
+					double temp1     = 2.0*Pi*r*constM*(*Weight++)*(*Det++);
 					const double* Na = fShapes->IPShapeU();
 					totmas += temp1;
 					for (int lnd = 0; lnd < nun; lnd++) {
@@ -768,11 +791,7 @@ void ContinuumElementT::FormMass(MassTypeT mass_type, double constM, bool axisym
 			{
 				fShapes->TopIP();
 				while (fShapes->NextIP()) {
-
-					/* integration factor */
-					double temp1 = constM*(*Weight++)*(*Det++);
-					if (ip_weight) temp1 *= *ip_weight++;
-
+					double temp1     = constM*(*Weight++)*(*Det++);
 					const double* Na = fShapes->IPShapeU();
 					totmas += temp1;
 					for (int lnd = 0; lnd < nun; lnd++) {
@@ -801,7 +820,7 @@ void ContinuumElementT::FormMass(MassTypeT mass_type, double constM, bool axisym
 			break;
 		}			
 		default:
-			ExceptionT::BadInputValue("ContinuumElementT::FormMass", "unknown mass matrix code");
+			ExceptionT::BadInputValue("Elastic::FormMass", "unknown mass matrix code");
 	}
 }
 
@@ -827,8 +846,7 @@ void ContinuumElementT::AddBodyForce(LocalArrayT& body_force) const
 /* calculate the body force contribution */
 void ContinuumElementT::FormMa(MassTypeT mass_type, double constM, bool axisymmetric,
 	const LocalArrayT* nodal_values,
-	const dArray2DT* ip_values,
-	const double* ip_weight)
+	const dArray2DT* ip_values)
 {
 	const char caller[] = "ContinuumElementT::FormMa";
 
@@ -883,10 +901,7 @@ void ContinuumElementT::FormMa(MassTypeT mass_type, double constM, bool axisymme
 					double*	res      = fRHS.Pointer();
 					const double* Na = fShapes->IPShapeU();
 				
-					/* integration factor */
-					double temp = 2.0*Pi*r*constM*(*Weight++)*(*Det++);
-					if (ip_weight) temp *= *ip_weight++;
-
+					double temp = 2.0*Pi*r*constM*(*Weight++)*(*Det++);				
 					for (int lnd = 0; lnd < nun; lnd++)
 					{
 						double temp2 = temp*(*Na++);
@@ -913,10 +928,7 @@ void ContinuumElementT::FormMa(MassTypeT mass_type, double constM, bool axisymme
 					double*	res      = fRHS.Pointer();
 					const double* Na = fShapes->IPShapeU();
 				
-					/* integration factor */
-					double temp = constM*(*Weight++)*(*Det++);
-					if (ip_weight) temp *= *ip_weight++;
-					
+					double temp = constM*(*Weight++)*(*Det++);				
 					for (int lnd = 0; lnd < nun; lnd++)
 					{
 						double temp2 = temp*(*Na++);
@@ -931,7 +943,7 @@ void ContinuumElementT::FormMa(MassTypeT mass_type, double constM, bool axisymme
 		case kLumpedMass:
 		{
 			fLHS = 0.0; //hope there's nothing in there!
-			FormMass(kLumpedMass, constM, axisymmetric,ip_weight);
+			FormMass(kLumpedMass, constM, axisymmetric);
 
 			/* init nodal values */
 			if (nodal_values)

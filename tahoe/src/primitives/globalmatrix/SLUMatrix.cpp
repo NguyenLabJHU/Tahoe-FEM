@@ -1,4 +1,4 @@
-/* $Id: SLUMatrix.cpp,v 1.11 2005-01-07 21:22:50 paklein Exp $ */
+/* $Id: SLUMatrix.cpp,v 1.10 2004-07-15 08:31:41 paklein Exp $ */
 /* created: rbridson (06/30/2000) */
 #include "SLUMatrix.h"
 
@@ -282,7 +282,7 @@ void SLUMatrix::Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<in
 }
 
 /* assignment operator */
-SLUMatrix& SLUMatrix::operator=(const SLUMatrix&)
+const GlobalMatrixT& SLUMatrix::operator=(const GlobalMatrixT&)
 {
 	/* not implemented */
 	ExceptionT::GeneralFail("SLUMatrix::operator=", "not implemented");
@@ -298,8 +298,11 @@ GlobalMatrixT::EquationNumberScopeT SLUMatrix::EquationNumberScope(void) const
 bool SLUMatrix::RenumberEquations(void) const { return false; }
 
 /* return a clone of self */
-GlobalMatrixT* SLUMatrix::Clone(void) const {
-	return new SLUMatrix(*this);
+GlobalMatrixT* SLUMatrix::Clone(void) const
+{
+	/* not implemented */
+	ExceptionT::GeneralFail("SLUMatrix::operator=", "not implemented");
+	return (GlobalMatrixT*) this;
 }
 
 /***********************************************************************

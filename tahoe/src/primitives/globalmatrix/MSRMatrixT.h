@@ -1,4 +1,4 @@
-/* $Id: MSRMatrixT.h,v 1.5 2005-01-07 21:22:49 paklein Exp $ */
+/* $Id: MSRMatrixT.h,v 1.4 2004-10-04 18:40:51 paklein Exp $ */
 #ifndef _MSR_MATRIX_T_H_
 #define _MSR_MATRIX_T_H_
 
@@ -66,7 +66,7 @@ public:
 	virtual bool RenumberEquations(void) const { return false; };	
 
 	/** assignment operator */
-	MSRMatrixT& operator=(const MSRMatrixT& rhs);
+	virtual GlobalMatrixT& operator=(const GlobalMatrixT& rhs);
 
 protected:
 

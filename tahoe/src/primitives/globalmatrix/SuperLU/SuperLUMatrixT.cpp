@@ -1,4 +1,4 @@
-/* $Id: SuperLUMatrixT.cpp,v 1.3 2005-01-07 21:23:08 paklein Exp $ */
+/* $Id: SuperLUMatrixT.cpp,v 1.2 2004-03-16 10:03:21 paklein Exp $ */
 #include "SuperLUMatrixT.h"
 
 /* library support */
@@ -316,15 +316,19 @@ GlobalMatrixT::EquationNumberScopeT SuperLUMatrixT::EquationNumberScope(void) co
 
 bool SuperLUMatrixT::RenumberEquations(void) const { return false; }
 
-SuperLUMatrixT& SuperLUMatrixT::operator=(const SuperLUMatrixT&)
+GlobalMatrixT& SuperLUMatrixT::operator=(const GlobalMatrixT& rhs)
 {
+#pragma unused(rhs)
 	ExceptionT::GeneralFail("SuperLUMatrixT::operator=", "not implemented");
 	return *this;
 }
 
 /* return a clone of self */
-GlobalMatrixT* SuperLUMatrixT::Clone(void) const {
-	return new SuperLUMatrixT(*this);
+GlobalMatrixT* SuperLUMatrixT::Clone(void) const
+{
+	/* not implemented */
+	ExceptionT::GeneralFail("SuperLUMatrixT::operator=", "not implemented");
+	return (GlobalMatrixT*) this;
 }
 
 /***********************************************************************

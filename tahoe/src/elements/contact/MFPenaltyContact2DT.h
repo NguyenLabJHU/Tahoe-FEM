@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.h,v 1.5 2005-01-19 17:37:51 cjkimme Exp $ */
+/* $Id: MFPenaltyContact2DT.h,v 1.3 2004-07-15 08:26:08 paklein Exp $ */
 #ifndef _MF_PENALTY_CONTACT2D_T_H_
 #define _MF_PENALTY_CONTACT2D_T_H_
 
@@ -9,13 +9,11 @@
 #include "nMatrixGroupT.h"
 #include "VariArrayT.h"
 #include "InverseMapT.h"
-#include "RaggedArray2DT.h"
 
 namespace Tahoe {
 
 /* forward declarations */
 class MeshFreeSupportT;
-class SCNIMFT;
 
 /** penalty-based striker-on-facet formulation for meshfree striker nodes */
 class MFPenaltyContact2DT: public PenaltyContact2DT
@@ -64,21 +62,12 @@ protected:
 	
 protected:
 
-	/** \name meshfree element group
-	 * Depending on the type of meshless formulation, one of the pointers 
-	 * MFPenaltyContact2DT::fMeshFreeSupport or MFPenaltyContact2DT::fSCNI
-	 * will be non-NULL and will provide access to the meshless shape functions
-	 * need to calculate the penetration and distribution of contact forces. */
+	/** \name meshfree element group */
 	/*@{*/
 	const ElementBaseT* fElementGroup;
 
-	/** meshfree support from MFPenaltyContact2DT::fElementGroup if the group is
-	 * derived from meshless classes using MeshFreeSupportT */
+	/** meshfree support from MFPenaltyContact2DT::fElementGroup */
 	MeshFreeSupportT* fMeshFreeSupport;
-	
-	/** meshfree support from MFPenaltyContact2DT::fElementGroup if the group is
-	 * based on the smoothed, conforming, nodal integration method */
-	const SCNIMFT* fSCNI;
 	/*@}*/
 
 	/** map from global ID to meshfree node index */
@@ -97,14 +86,6 @@ protected:
 
 	/** residual vector */
 	VariArrayT<double> fRHS_man;
-	/*@}*/
-
-	/** \name SCNI data 
-	 * one row for each SCNI striker node */
-	/*@{*/
-	iArrayT fSCNI_LocalID;
-	RaggedArray2DT<int> fSCNI_Support;
-	RaggedArray2DT<double> fSCNI_Phi;
 	/*@}*/
 };
 

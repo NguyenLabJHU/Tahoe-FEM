@@ -1,4 +1,4 @@
-/* $Id: SuperLU_DISTMatrixT.cpp,v 1.5 2005-01-07 22:02:06 paklein Exp $ */
+/* $Id: SuperLU_DISTMatrixT.cpp,v 1.3 2004-03-21 17:03:37 paklein Exp $ */
 #include "SuperLU_DISTMatrixT.h"
 
 /* library support options */
@@ -88,15 +88,6 @@ SuperLU_DISTMatrixT::SuperLU_DISTMatrixT(ostream& out, int check_code, Communica
 	if (npcol*nprow != size)
 		ExceptionT::GeneralFail(caller, "number of processes must be even %d", size);
     superlu_gridinit(fComm.Comm(), nprow, npcol, &fgrid);
-}
-
-/* copy constructor */
-SuperLU_DISTMatrixT::SuperLU_DISTMatrixT(const SuperLU_DISTMatrixT& rhs):
-	GlobalMatrixT(rhs),
-	fComm(rhs.fComm),
-	fBuilder(NULL)
-{
-	SuperLU_DISTMatrixT::operator=(rhs);
 }
 
 /* Destructor */	
@@ -287,15 +278,19 @@ void SuperLU_DISTMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const 
 GlobalMatrixT::EquationNumberScopeT SuperLU_DISTMatrixT::EquationNumberScope(void) const { return kGlobal; }
 bool SuperLU_DISTMatrixT::RenumberEquations(void) const { return false; }
 
-SuperLU_DISTMatrixT& SuperLU_DISTMatrixT::operator=(const SuperLU_DISTMatrixT&)
+GlobalMatrixT& SuperLU_DISTMatrixT::operator=(const GlobalMatrixT& rhs)
 {
+#pragma unused(rhs)
 	ExceptionT::GeneralFail("SuperLU_DISTMatrixT::operator=", "not implemented");
 	return *this;
 }
 
 /* return a clone of self */
-GlobalMatrixT* SuperLU_DISTMatrixT::Clone(void) const {
-	return new SuperLU_DISTMatrixT(*this);
+GlobalMatrixT* SuperLU_DISTMatrixT::Clone(void) const
+{
+	/* not implemented */
+	ExceptionT::GeneralFail("SuperLU_DISTMatrixT::operator=", "not implemented");
+	return (GlobalMatrixT*) this;
 }
 
 /***********************************************************************

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.59 2005-01-06 18:52:27 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.57 2004-12-26 21:09:42 d-farrell2 Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 #include "ElementsConfig.h"
@@ -1277,18 +1277,6 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const RaggedArray2DT<int>& node
 	}
 }
 
-/* describe the parameters needed by the interface*/
-void NodeManagerT::DefineParameters(ParameterListT& list) const
-{
-	/* inherited */
-	ParameterInterfaceT::DefineParameters(list);
-	
-	/* name of the field which updates the coordinates */
-	ParameterT coord_update(ParameterT::Word, "coordinate_update_field");
-	coord_update.SetDefault("displacement");
-	list.AddParameter(coord_update, ParameterListT::ZeroOrOnce);
-}
-
 /* information about subordinate parameter lists */
 void NodeManagerT::DefineSubs(SubListT& sub_list) const
 {
@@ -1375,12 +1363,6 @@ void NodeManagerT::TakeParameterList(const ParameterListT& list)
 		}
 	}
 
-	/* name of the field which updates the coordinates */
-	StringT coords_update_field = "displacement"; /* default update field name - backward compatibility */
-	const ParameterT* coord_update = list.Parameter("coordinate_update_field");
-	if (coord_update)
-		coords_update_field = *coord_update;
-
 	/* construct fields */
 	int num_fields = list.NumLists("field");
 	fFields.Dimension(num_fields);
@@ -1403,20 +1385,24 @@ void NodeManagerT::TakeParameterList(const ParameterListT& list)
 		field->Clear();
 
 		/* coordinate update field */
-		if (field->FieldName() == coords_update_field) {
-			if (fCoordUpdate) ExceptionT::BadInputValue(caller, "coordinate update field already set");
+		if (field->FieldName() == "displacement") {
+			if (fCoordUpdate) ExceptionT::BadInputValue(caller, "\"displacement\" field already set");
 			fCoordUpdate = field;
 			fCurrentCoords = new dArray2DT;
 			fCurrentCoords_man.SetWard(0, *fCurrentCoords, NumSD());
 			fCurrentCoords_man.SetMajorDimension(NumNodes(), false);
 			(*fCurrentCoords) = InitialCoordinates();
-
-			/* set up communication of the current coordinates */
+//DEBUG
+cout << "NodeManagerT::TakeParameterList, before InitAllGather" << endl;
+			// set up communication of the current coordinates
 			fMessageCurrCoordsID = fCommManager.Init_AllGather(*fCurrentCoords);
+#pragma message("need another ID for the updated coords communication??")
 		}
 			
 		/* set up communication of field */
 		fMessageID[i] = fCommManager.Init_AllGather(fFields[i]->Update());
+//DEBUG
+cout << "NodeManagerT::TakeParameterList, after InitAllGather" << endl;			
 	}
 }
 

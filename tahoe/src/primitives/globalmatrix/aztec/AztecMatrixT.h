@@ -1,4 +1,4 @@
-/* $Id: AztecMatrixT.h,v 1.13 2005-01-07 21:23:15 paklein Exp $ */
+/* $Id: AztecMatrixT.h,v 1.12 2004-10-04 18:41:07 paklein Exp $ */
 /* created: paklein (08/10/1998) */
 #ifndef _AZTEC_MATRIX_T_H_
 #define _AZTEC_MATRIX_T_H_
@@ -66,8 +66,8 @@ public:
 	virtual GlobalT::SystemTypeT MatrixType(void) const { return GlobalT::kNonSymmetric; };
 
 	/** assignment operator */
-	AztecMatrixT& operator=(const AztecMatrixT& rhs);
-
+	virtual GlobalMatrixT& operator=(const GlobalMatrixT& rhs);
+	
 	/** return a clone of self. Caller is responsible for disposing of the matrix */
 	virtual GlobalMatrixT* Clone(void) const;
 

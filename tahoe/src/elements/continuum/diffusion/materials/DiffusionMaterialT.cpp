@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.cpp,v 1.10 2005-01-07 02:16:03 paklein Exp $ */
+/* $Id: DiffusionMaterialT.cpp,v 1.9 2004-07-15 08:26:22 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionMaterialT.h"
 #include "DiffusionMatSupportT.h"
@@ -37,13 +37,11 @@ void DiffusionMaterialT::SetDiffusionMatSupport(const DiffusionMatSupportT* supp
 	fConductivity.Dimension(nsd);
 	fq_i.Dimension(nsd);
 	fdq_i.Dimension(nsd);
-	fdk_ij.Dimension(nsd);
 
 	/* initialize */
 	fConductivity = 0.0;
 	fq_i = 0.0;
 	fdq_i = 0.0;
-	fdk_ij = 0.0;
 }
 
 /* heat flux */

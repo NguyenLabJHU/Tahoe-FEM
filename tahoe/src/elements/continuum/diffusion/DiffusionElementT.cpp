@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.24 2005-01-05 01:25:07 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.23 2004-10-20 21:43:15 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -197,7 +197,7 @@ void DiffusionElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		SetGlobalShape();
 
 		/* element mass */
-		if (formC) FormMass(kConsistentMass, constC*(fCurrMaterial->Capacity()), axisymmetric, NULL);
+		if (formC) FormMass(kConsistentMass, constC*(fCurrMaterial->Capacity()), axisymmetric);
 
 		/* element stiffness */
 		if (formK) FormStiffness(constK);
@@ -281,8 +281,7 @@ void DiffusionElementT::RHSDriver(void)
 			/* add internal contribution */
 			FormMa(kConsistentMass, -constCv*pc, axisymmetric,
 				&fLocVel,
-				(block_source) ? &ip_source : NULL,
-				NULL);			  		
+				(block_source) ? &ip_source : NULL);			  		
 		}
 				
 		/* assemble */

@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.46 2005-01-19 17:46:18 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.41 2004-12-22 22:54:06 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -67,7 +67,6 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support, const FieldT& field):
 	fVoronoi(NULL),
 	fNodalShapes(NULL),
 	qComputeVoronoiCell(false),
-	qJustVoronoiDiagram(false),
 	fNumIP(1),
 	vCellFile("voronoidiagram")
 {
@@ -86,7 +85,6 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support):
 	fVoronoi(NULL),
 	fNodalShapes(NULL),
 	qComputeVoronoiCell(false),
-	qJustVoronoiDiagram(false),
 	fNumIP(1),
 	vCellFile("voronoidiagram")
 {
@@ -126,7 +124,6 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	fNumIP = list.GetParameter("num_ip");
 
 	qComputeVoronoiCell = list.GetParameter("compute_voronoi");
-	qJustVoronoiDiagram = list.GetParameter("just_voronoi_diagram");
 	
 	/* get parameters needed to construct shape functions */
 	fMeshfreeParameters = list.ListChoice(*this, "meshfree_support_choice");
@@ -155,9 +152,6 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	/* write parameters */
 	ostream& out = ElementSupport().Output();
 
-	if (qJustVoronoiDiagram)
-	  qComputeVoronoiCell = true;
-
 	// Do the heavy lifting for the Voronoi Diagram now
 	if (qComputeVoronoiCell) {
 #ifndef __QHULL__
@@ -181,15 +175,8 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 		if (vout.is_open())	 {
 			VoronoiDiagramToFile(vout);
 			vout.close();
-			if (qJustVoronoiDiagram)
-			  ExceptionT::GeneralFail(caller,"Thank you. Computation Successful.\n");
-		} else {
+		} else 
   			cout  << " Unable to save data to file " << vCellFile << ". Ignoring error \n"; 
-			if (qJustVoronoiDiagram)
-			  ExceptionT::GeneralFail(caller,"Sorry. Unable to write to file.\n");
-		}
-
-	
 #endif
 	} 
 	else  {	// read in Voronoi information from a file
@@ -657,22 +644,11 @@ GlobalT::RelaxCodeT SCNIMFT::RelaxSystem(void)
 	return relax;
 }
 
-/* construct field */
-void SCNIMFT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
-{
-	/* get local numbers */
-	iArrayT nodes_local = nodes;
-	if (!GlobalToLocalNumbering(nodes_local))
-		ExceptionT::GeneralFail("SCNIMFT::NodalDOFs", "map to local numbering failed");
-
-	/* compute field at nodes */
-	InterpolatedFieldAtNodes(nodes_local, DOFs);
-}
-
 /* write restart data to the output stream */
 void SCNIMFT::WriteRestart(ostream& out) const
 {
 	ElementBaseT::WriteRestart(out);
+	
 }
 
 /* read restart data to the output stream */
@@ -737,9 +713,13 @@ void SCNIMFT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>&
 	}
 
 	/* convert to local numbering for qhull */
-	GlobalToLocalNumbering(fBoundaryNodes);
-	iArrayT trickArray(fBoundaryConnectivity.Length(), fBoundaryConnectivity.Pointer());
-	GlobalToLocalNumbering(trickArray);
+	InverseMapT inv_map;
+	inv_map.SetMap(fNodes);
+	for (int i = 0; i < fBoundaryNodes.Length(); i++)
+	  fBoundaryNodes[i] = inv_map.Map(fBoundaryNodes[i]);
+	int* fbcptr = fBoundaryConnectivity.Pointer();
+	for (int i = 0; i < fBoundaryConnectivity.Length(); i++, fbcptr++)
+	  *fbcptr = inv_map.Map(*fbcptr);
 	
 	/* don't need this information */
 	facet_numbers.Free();
@@ -825,14 +805,51 @@ void SCNIMFT::RHSDriver(void)
 	}
 }
 
-int SCNIMFT::GlobalToLocalNumbering(iArrayT& nodes) const
+int SCNIMFT::GlobalToLocalNumbering(iArrayT& nodes)
 {
-	InverseMapT inv_map;
-	inv_map.SetMap(fNodes);
-	for (int i = 0; i < nodes.Length(); i++)
-	  nodes[i] = inv_map.Map(nodes[i]);
+	if (!fNodes.Length())
+		if (!nodes.Length())
+			return 1;
+		else 
+			ExceptionT::GeneralFail("SCNIMFT::GlobalToLocalNumbering","No nodes exist\n");
 	
-	return 1;
+	// Basic Idea: fNodes is sorted (it came from ModelManagerT::ManyNodeSets)
+	// So, sort nodes with a key array and march down and compare. 
+	iArrayT nodeMap(nodes.Length());
+	nodeMap.SetValueToPosition();
+	iArrayT nodeCopy(nodes.Length());
+	nodeCopy = nodes;
+	nodeMap.SortAscending(nodeCopy);
+
+	// nodes[nodeMap[0]] is the smallest node in global numbering scheme
+	// nodes[nodeMap[0]] should be that global node's position in fNodes
+	int fNodesLen = fNodes.Length();
+	int nodeMapLen = nodeMap.Length();
+	int fNodesCtr = 0;
+	int nodeMapCtr = 0;
+	int *fNodesPtr = fNodes.Pointer();
+	int *nodeMapPtr = nodeCopy.Pointer();
+	
+	if (*nodeMapPtr > *fNodesPtr)
+		return 0;
+	
+	while (fNodesCtr < fNodesLen && nodeMapCtr < nodeMapLen) {
+		while (*nodeMapPtr != *fNodesPtr && fNodesCtr < fNodesLen) {
+			fNodesPtr++; 
+			fNodesCtr++;
+		}
+		
+		if (fNodesCtr != fNodesLen) {
+			nodes[nodeMap[nodeMapCtr]] = fNodesCtr; // local numbering!
+			nodeMapCtr++;
+			nodeMapPtr++;
+		}
+	}
+	
+	if (nodeMapCtr != nodeMapLen)
+		return 0;
+	else
+		return 1;
 }
 
 int SCNIMFT::GlobalToLocalNumbering(RaggedArray2DT<int>& nodes)
@@ -847,7 +864,7 @@ int SCNIMFT::GlobalToLocalNumbering(RaggedArray2DT<int>& nodes)
 	return 1;
 }
 
-void SCNIMFT::InterpolatedFieldAtNodes(const iArrayT& nodes, dArray2DT& fieldAtNodes) const
+void SCNIMFT::InterpolatedFieldAtNodes(const iArrayT& nodes, dArray2DT& fieldAtNodes)
 {
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
@@ -858,18 +875,19 @@ void SCNIMFT::InterpolatedFieldAtNodes(const iArrayT& nodes, dArray2DT& fieldAtN
 		vec = 0.;	
 		
 		int node_i = nodes[i];
-		const int* nodal_supp = fNodalSupports(node_i);
-		const double* phi_i = fNodalPhi(node_i);
+		int* nodal_supp = fNodalSupports(node_i);
+		double* phi_i = fNodalPhi(node_i);
 		for (int j = 0; j < fNodalPhi.MinorDim(node_i); j++)
 			vec.AddScaled(*phi_i++, u(*nodal_supp++));
+
 	}
+
 }
 
 /** localNodes are local Numbers, so GlobalToLocalNumbering needs to have been called in whatever class 
   * calls this function. The node numbers returned in support are global. 
   */
-void SCNIMFT::NodalSupportAndPhi(const iArrayT& localNodes, RaggedArray2DT<int>& support, 
-	RaggedArray2DT<double>& phi) const
+void SCNIMFT::NodalSupportAndPhi(iArrayT& localNodes, RaggedArray2DT<int>& support, RaggedArray2DT<double>& phi)
 {
 	int nlnd = localNodes.Length();
 	iArrayT minorDims(localNodes.Length());
@@ -879,14 +897,15 @@ void SCNIMFT::NodalSupportAndPhi(const iArrayT& localNodes, RaggedArray2DT<int>&
 	support.Configure(minorDims);
 	phi.Configure(minorDims);
 	
-	const int *lndi = localNodes.Pointer();
+	int *lndi = localNodes.Pointer();
 	for (int i = 0; i < nlnd; i++) {
 		support.SetRow(i, fNodalSupports(*lndi));
 		phi.SetRow(i, fNodalPhi(*lndi++));
 	}
 }
 
-int SCNIMFT::SupportSize(int localNode) const {
+int SCNIMFT::SupportSize(int localNode) 
+{
 	return fNodalPhi.MinorDim(localNode);
 }
 
@@ -1357,7 +1376,7 @@ void SCNIMFT::VoronoiDiagramToFile(ofstreamT& vout)
 		vout << i <<"\n";
 
 		for (int j = 0; j < fSD; j++)
-			vout << fVoronoiCellCentroids(i,j) << " ";
+			vout << fVoronoiCellCentroids(i,j);
 
 		// cell volume
 		vout << fVoronoiCellVolumes[i] << "\n";
@@ -1506,10 +1525,6 @@ void SCNIMFT::DefineParameters(ParameterListT& list) const
 	ParameterT num_ip(fNumIP, "num_ip");	
 	num_ip.SetDefault(fNumIP);
 	list.AddParameter(num_ip);
-
-	ParameterT just_voronoi_diagram(qJustVoronoiDiagram,"just_voronoi_diagram");
-	just_voronoi_diagram.SetDefault(qJustVoronoiDiagram);
-	list.AddParameter(just_voronoi_diagram);
 }
 
 /* information about subordinate parameter lists */

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.88 2005-01-06 01:11:43 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.86.2.1 2005-01-21 03:27:45 d-farrell2 Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1297,7 +1297,7 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 							
 						}
 						else
-							ExceptionT::GeneralFail(caller, "decomposition method needed in input or with option \"-decomp_method -[0,1,2]\"");
+							ExceptionT::GeneralFail(caller, "\"decomposition_method\" or \"-decomp_method -[0,1,2]\" required for multiprocessor calculations");
 					}
 
 					/* do decomposition */
@@ -2007,7 +2007,7 @@ void FEManagerT::SetEquationSystem(int group, int start_eq_shift)
 	fGlobalNumEquations[group]  = GetGlobalNumEquations(group);
 
 	/* renumber locally */
-	if (fSolvers[group]->RenumberEquations() && fGlobalNumEquations[group] > 0)
+	if (fSolvers[group]->RenumberEquations())
 	{
 		int num_fields = fNodeManager->NumFields(group);
 		if (num_fields == 1)

@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.19 2005-01-07 21:22:49 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.18 2004-03-16 06:56:28 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 #include "GlobalMatrixT.h"
 #include <iostream.h>
@@ -129,13 +129,12 @@ void GlobalMatrixT::DisassembleDiagonal(dArrayT& diagonals, const nArrayT<int>& 
 }
 
 /* assignment operator */
-GlobalMatrixT& GlobalMatrixT::operator=(const GlobalMatrixT& rhs)
+GlobalMatrixT& GlobalMatrixT::operator=(const GlobalMatrixT& RHS)
 {
-	fCheckCode = rhs.fCheckCode;
-	fLocNumEQ  = rhs.fLocNumEQ;
-	fTotNumEQ  = rhs.fTotNumEQ;
-	fStartEQ   = rhs.fStartEQ;
-
+	fCheckCode    = RHS.fCheckCode;
+	fLocNumEQ     = RHS.fLocNumEQ;
+	fTotNumEQ     = RHS.fTotNumEQ;
+	fStartEQ      = RHS.fStartEQ;
 	return *this;
 }
 
@@ -163,8 +162,8 @@ bool GlobalMatrixT::CopyDiagonal(dArrayT& diags) const
 }
 
 /**************************************************************************
- * Protected
- **************************************************************************/
+* Protected
+**************************************************************************/
 
 void GlobalMatrixT::PrintRHS(const dArrayT& RHS) const
 {

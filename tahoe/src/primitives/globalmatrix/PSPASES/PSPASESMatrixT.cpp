@@ -1,4 +1,4 @@
-/* $Id: PSPASESMatrixT.cpp,v 1.15 2005-01-07 22:02:00 paklein Exp $ */
+/* $Id: PSPASESMatrixT.cpp,v 1.13 2004-11-19 08:30:12 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "PSPASESMatrixT.h"
 
@@ -219,16 +219,24 @@ void PSPASESMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const Array
 }
 
 /* assignment operator */
-PSPASESMatrixT& PSPASESMatrixT::operator=(const PSPASESMatrixT&)
+GlobalMatrixT& PSPASESMatrixT::operator=(const GlobalMatrixT& rhs)
 {
 	const char caller[] = "PSPASESMatrixT::operator=";
-	ExceptionT::GeneralFail(caller, "not implemented");
+
+#ifdef __NO_RTTI__
+	ExceptionT::GeneralFail(caller, "requires RTTI");
+#endif
+
+	const PSPASESMatrixT* sp = TB_DYNAMIC_CAST(const PSPASESMatrixT*, &rhs);
+	if (!sp)  ExceptionT::GeneralFail(caller, "cast const PSPASESMatrixT* failed");
 	return *this;
 }
 
 /** return a clone of self */
-GlobalMatrixT* PSPASESMatrixT::Clone(void) const {
-	return new PSPASESMatrixT(*this);
+GlobalMatrixT* PSPASESMatrixT::Clone(void) const
+{
+	PSPASESMatrixT* new_mat = new PSPASESMatrixT(*this);
+	return new_mat;
 }
 
 /*************************************************************************

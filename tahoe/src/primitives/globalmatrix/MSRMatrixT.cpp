@@ -1,4 +1,4 @@
-/* $Id: MSRMatrixT.cpp,v 1.7 2005-01-07 21:22:49 paklein Exp $ */
+/* $Id: MSRMatrixT.cpp,v 1.6 2004-10-04 18:40:51 paklein Exp $ */
 #include "MSRMatrixT.h"
 
 #include "MSRBuilderT.h"
@@ -346,11 +346,22 @@ bool MSRMatrixT::CopyDiagonal(dArrayT& diags) const
 void MSRMatrixT::Clear(void) { fval = 0.0; }
 
 /* assignment operator */
-MSRMatrixT& MSRMatrixT::operator=(const MSRMatrixT& rhs)
+GlobalMatrixT& MSRMatrixT::operator=(const GlobalMatrixT& rhs)
 {
-#pragma unused(rhs)
 	const char caller[] = "MSRMatrixT::operator=";
+
+	/* inherited */
+	GlobalMatrixT::operator=(rhs);
+
+#ifdef __NO_RTTI__
+	ExceptionT::GeneralFail(caller, "requires RTTI");
+#endif
+
+	const MSRMatrixT* sp = TB_DYNAMIC_CAST(const MSRMatrixT*, &rhs);
+	if (!sp) ExceptionT::GeneralFail(caller, "cast to const MSRMatrixT* failed");
+
 	ExceptionT::GeneralFail(caller, "not implemented");
+	
 	return *this;
 }
 

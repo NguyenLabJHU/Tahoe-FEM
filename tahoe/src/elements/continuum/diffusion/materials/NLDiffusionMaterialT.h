@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionMaterialT.h,v 1.4 2005-01-07 02:16:03 paklein Exp $ */
+/* $Id: NLDiffusionMaterialT.h,v 1.3 2004-07-15 08:26:23 paklein Exp $ */
 #ifndef _NL_DIFFUSION_MATERIALT_H_
 #define _NL_DIFFUSION_MATERIALT_H_
 
@@ -33,9 +33,6 @@ public:
 	
 	/** change in heat flux with temperature */
 	virtual const dArrayT& dq_i_dT(void);
-
-	/** change in conductivity with temperature */
-	virtual const dMatrixT& dk_ij(void);
 
 	/** specific heat */
 	virtual double SpecificHeat(void) const;

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_22.cpp,v 1.5 2005-01-13 19:59:19 paklein Exp $ */
+/* $Id: FEManagerT_bridging_22.cpp,v 1.4 2004-07-22 08:32:55 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -116,7 +116,7 @@ void FEManagerT_bridging::CorrectOverlap_22(const RaggedArray2DT<int>& point_nei
 #ifdef __SPOOLES__
 	SPOOLESMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kZeroPivots, true, true);
 #else
-	CCSMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kZeroPivots);
+	CCSMatrixT ddf_dpdp_i(Output(), GlobalMatrixT::kAllPivots);
 #endif	
 
 	dArray2DT p_i, dp_i, df_dp_i;

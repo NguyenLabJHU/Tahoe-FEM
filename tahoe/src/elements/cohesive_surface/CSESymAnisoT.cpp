@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.cpp,v 1.11 2004-12-27 06:58:18 paklein Exp $ */
+/* $Id: CSESymAnisoT.cpp,v 1.10 2004-11-19 22:50:56 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSESymAnisoT.h"
 
@@ -172,9 +172,6 @@ void CSESymAnisoT::LHSDriver(GlobalT::SystemTypeT)
 	{
 		/* current element */
 		const ElementCardT& element = CurrentElement();
-
-		if (element.Flag() != kOFF)
-		{
 	
 		/* surface potential */
 		SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
@@ -311,8 +308,6 @@ void CSESymAnisoT::LHSDriver(GlobalT::SystemTypeT)
 
 		/* assemble */
 		AssembleLHS();
-		
-		} /* element.Flag() != kOFF */
 	}
 }
 

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.29 2005-01-05 01:26:42 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.28 2004-07-22 08:22:17 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -194,14 +194,7 @@ protected:
 
 	/* propagation direction for wave speeds */
 	dArrayT fNormal;
-
-	/** mass density
-	 * The contents of the array depends on how the constitutive models respond to
-	 * SolidMaterialT::HasChangingDensity. If they return true, this array will be 
-	 * dimensioned to the number of integration points which can then be used to store 
-	 * the varying density of the material. Otherwise, this array will be empty. */
-	dArrayT fDensity;
-
+	
 	/** \name arrays with local ordering */
 	/*@{*/
 	LocalArrayT fLocLastDisp; /**< last converged displacements */
