@@ -1,4 +1,4 @@
-/* $Id: SecantMethodT.cpp,v 1.6 2004-09-29 23:19:05 paklein Exp $ */
+/* $Id: SecantMethodT.cpp,v 1.7 2004-12-19 17:50:43 paklein Exp $ */
 /* created: paklein (12/01/1998)*/
 #include "SecantMethodT.h"
 #include <math.h>
@@ -10,7 +10,8 @@ SecantMethodT::SecantMethodT(int max_iterations, double tolerance):
 	fTol(tolerance),
 	fMaxIts(max_iterations),
 	ferr0(0.0),
-	fcount(-1)
+	fcount(-1),
+	fLastReplaced(0)
 {
 	/* check input values */
 	if (fMaxIts < 1 || fTol < 0.0) ExceptionT::BadInputValue("SecantMethodT::SecantMethodT");
@@ -30,6 +31,7 @@ void SecantMethodT::Reset(void)
 {
 	/* reset count */
 	fcount = -1;
+	fLastReplaced = 0;
 }
 
 /* compute the next x guess, return 1 if converged or 0 if not */
@@ -59,6 +61,7 @@ SecantMethodT::StatusT SecantMethodT::NextPoint(double x, double err)
 		fx1 = fx_best = x;
 		ferr1 = ferr_best = err;
 		fcount++;
+		fLastReplaced = 1;
 		return kInit;
 	}	
 	else if (fcount == 0) /* second guess */
@@ -71,6 +74,7 @@ SecantMethodT::StatusT SecantMethodT::NextPoint(double x, double err)
 			ferr_best = ferr2;
 		}
 		fcount++;
+		fLastReplaced = 2;
 		return kInit;	
 	}
 	else
@@ -94,21 +98,27 @@ SecantMethodT::StatusT SecantMethodT::NextPoint(double x, double err)
 				give_up = 1;
 			else
 			{
+				/* first assume new point is better solution than either previous guess */
 				if (fabs(ferr1) > fabs(err) && fabs(ferr1) > fabs(ferr2))
 				{
 					ferr1 = err;
 					fx1 = x;
+					fLastReplaced = 1;
 				}
 				else if (fabs(ferr2) > fabs(err) && fabs(ferr2) > fabs(ferr1))
 				{
 					ferr2 = err;
 					fx2 = x;
+					fLastReplaced = 2;
 				}
-				else
+				else /* new guess is not better than current ones */
 				{
+					give_up = 1;
+				
 					/* ferr1 and ferr2 don't bracket zero */
 					if (ferr2*ferr1 > 0.0)
 					{
+						give_up = 0;
 						if (ferr1*err < 0)
 						{
 							ferr1 = err;
@@ -122,8 +132,25 @@ SecantMethodT::StatusT SecantMethodT::NextPoint(double x, double err)
 						else /* exit */
 							give_up = 1;
 					}
-					else /* exit */
-						give_up = 1;
+					
+					if (give_up) /* try updating "oldest" data */
+					{
+						give_up = 0;
+						if (fLastReplaced == 1)
+						{
+							ferr2 = err;
+							fx2 = x;
+							fLastReplaced = 2;				
+						}
+						else if (fLastReplaced == 2)
+						{
+							ferr1 = err;
+							fx1 = x;
+							fLastReplaced = 1;				
+						}
+						else /* exit */					
+							give_up = 1;
+					}
 				}
 			}
 			
