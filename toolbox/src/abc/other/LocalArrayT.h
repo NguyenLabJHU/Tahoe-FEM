@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.h,v 1.4 2002-02-18 08:48:43 paklein Exp $ */
+/* $Id: LocalArrayT.h,v 1.5 2002-02-18 21:56:10 paklein Exp $ */
 /* created: paklein (07/10/1996) */
 
 #ifndef _LOCALARRAY_T_H_
@@ -52,8 +52,8 @@ public:
 	void Dimension(int numnodes, int minordim);
 
 	/** \deprecated replaced by LocalArrayT::Dimension on 02/13/2002 */
-	void Allocate(int numnodes, int minordim) { Dimension(numnodes, minordim); };
-
+	void Allocate(int numnodes, int minordim);
+ 
 	/** create a shallow array */
 	void Set(int numnodes, int minordim, double*p);
 
@@ -137,6 +137,12 @@ inline void LocalArrayT::Dimension(int numnodes, int minordim)
 	
 	/* call single argument allocate function */
 	dArrayT::Dimension(fNumNodes*fMinorDim);
+}
+
+/* \deprecated replaced by LocalArrayT::Dimension on 02/13/2002 */
+inline void LocalArrayT::Allocate(int numnodes, int minordim)
+{
+  Dimension(numnodes, minordim); 
 }
 
 inline void LocalArrayT::Set(int numnodes, int minordim, double *p)
