@@ -1,4 +1,4 @@
-/* $Id: BinaryTreeT.h,v 1.2 2002-11-18 10:00:21 paklein Exp $ */
+/* $Id: BinaryTreeT.h,v 1.3 2003-03-08 03:12:13 paklein Exp $ */
 #ifndef _BINARY_TREE_T_H_
 #define _BINARY_TREE_T_H_
 
@@ -6,6 +6,7 @@
 
 /* direct members */
 #include "BTreeNodeT.h"
+#include "ArrayT.h"
 
 namespace Tahoe {
 
