@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.1.2.7 2003-02-19 19:56:07 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.1.2.8 2003-02-23 02:41:23 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -14,6 +14,7 @@ namespace Tahoe {
 class ParticleT;
 class BridgingScaleT;
 class KBC_PrescribedT;
+class dSPMatrixT;
 
 class FEManagerT_bridging: public FEManagerT
 {
@@ -35,6 +36,9 @@ public:
 
 	/** return list of ghost nodes */
 	const iArrayT& NonGhostNodes(void) const { return fNonGhostNodes; };
+
+	/** compute the ghost-nonghost part of the stiffness matrix */
+	void Form_G_NG_Stiffness(const StringT& field, dSPMatrixT& K_G_NG);
 	/*@}*/
 
 	/** write field values for the given nodes */
@@ -52,6 +56,10 @@ public:
 	/** field interpolations. Interpolate the field to the nodes initialized
 	 * with the latest call to FEManagerT_bridging::InitInterpolation. */
 	void InterpolateField(const StringT& field, dArray2DT& nodal_values);
+
+	/** return the interpolation matrix associated with the active degrees
+	 * of freedom */
+	void InterpolationMatrix(const StringT& field, dSPMatrixT& G_Interpolation) const;
 
 	/** initialize projection data. Initialize data structures needed to project
 	 * field values to the given list of points. Requires that this FEManagerT has
@@ -101,6 +109,12 @@ private:
 
 	/** list of my non-ghost nodes */
 	iArrayT fNonGhostNodes;
+	
+	/** ghost nodes pseudo-equations */
+	iArray2DT fGhostNodesEquations;
+	
+	/** map from ghost node id to row in FEManagerT_bridging::fGhostNodesEquations */
+	InverseMapT fGhostIdToIndex;
 	/*@}*/
 
 	/** projection/interpolation operator */

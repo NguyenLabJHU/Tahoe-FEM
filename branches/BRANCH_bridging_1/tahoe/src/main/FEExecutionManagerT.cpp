@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.36.2.10 2003-02-19 01:17:03 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.36.2.11 2003-02-23 02:41:23 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -34,6 +34,9 @@
 //TEMP - bridging scale Tahoe
 #include "FEManagerT_bridging.h"
 #include "TimeManagerT.h"
+#include "NodeManagerT.h"
+#include "dSPMatrixT.h"
+#include "FieldT.h"
 
 using namespace Tahoe;
 
@@ -308,6 +311,12 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
 		continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager());
 
+		/* cross coupling matricies */
+		int neq_A = atoms.NodeManager()->Field(bridging_field)->NumEquations();
+		int neq_C = continuum.NodeManager()->Field(bridging_field)->NumEquations();
+		dSPMatrixT K_AC(neq_A, neq_C, 0), K_G_NG;
+		dSPMatrixT K_CA(neq_C, neq_A, 0), G_Interpolation;
+
 		t1 = clock();
 
 		/* solution */
@@ -374,6 +383,9 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 					continuum.FormRHS(group_num);
 					continuum_res = continuum.Residual(group_num).Magnitude(); //serial
 					
+					/* set cross-coupling */
+					atoms.Form_G_NG_Stiffness(bridging_field, K_G_NG);
+					
 					/* solve continuum */
 					if (1 || error == ExceptionT::kNoError) error = continuum.SolveStep();
 				
@@ -382,7 +394,9 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 					atoms.SetFieldValues(bridging_field, atoms.GhostNodes(), field_at_ghosts);
 					atoms.FormRHS(group_num);
 					atoms_res = atoms.Residual(group_num).Magnitude(); //serial
-					
+
+					/* set cross-coupling */					
+
 					/* reset the reference errors */
 					if (count == 1) {
 						combined_res_0 = atoms_res + continuum_res;
