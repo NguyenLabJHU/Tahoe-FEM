@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.1.1.1 2001-07-24 17:32:20 strohban Exp $
+# $Id: makefile.template,v 1.2 2001-08-01 15:58:38 strohban Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -12,7 +12,7 @@
 # (6) "make build" to (re-)compiler binaries.
 
 # full path to current directory
-HOME_DIR =/home/strohban/RESEARCH/TAHOE/TAHOE_PLAY/spoolesMT
+HOME_DIR =
 
 # working directories:
 OBJ_DIR = $(HOME_DIR)/obj
@@ -21,7 +21,7 @@ SRC_DIR = $(HOME_DIR)/src
 LIB_DIR = $(HOME_DIR)/lib
 
 # build architecture
-ARCH = GNU.linux
+ARCH = 
 # choices:
 #     ALASKA - DEC OSF
 #  CA-CPLANT - DEC OSF
