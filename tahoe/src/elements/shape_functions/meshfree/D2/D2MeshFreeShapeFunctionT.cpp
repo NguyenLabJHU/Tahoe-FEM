@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeShapeFunctionT.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: D2MeshFreeShapeFunctionT.cpp,v 1.2 2001-06-19 23:22:05 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeShapeFunctionT.h"
@@ -11,16 +11,15 @@
 D2MeshFreeShapeFunctionT::D2MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 	const LocalArrayT& coords, const dArray2DT& all_coords,
 	const iArray2DT& connects, const iArrayT& nongridnodes,
-	MeshFreeT::FormulationT code, double dextra, int complete, int store_shape,
-	const int& currelement):
+	const int& currelement, ifstreamT& in):
 	MeshFreeShapeFunctionT(geometry_code, numIP, coords, all_coords, connects,
-		nongridnodes, code, dextra, complete, store_shape, currelement),
+		nongridnodes, currelement, in),
 	fDDNaU(numIP),
 	fDDNa_tmp(numIP)
 {
 	if (all_coords.MinorDim() == 2)
 		fD2MFSupport = new D2MeshFreeSupport2DT(*fDomain, all_coords, connects,
-							nongridnodes, code, dextra, complete, store_shape);
+							nongridnodes, in);
 	else
 	{
 		cout << "\n D2MeshFreeShapeFunctionT::D2MeshFreeShapeFunctionT: no 3D yet" << endl;
