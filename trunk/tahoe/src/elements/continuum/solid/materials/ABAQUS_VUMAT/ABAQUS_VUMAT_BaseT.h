@@ -1,10 +1,11 @@
-/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.5 2001-07-23 23:13:22 hspark Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.h,v 1.6 2001-08-14 22:28:09 paklein Exp $ */
 
 #ifndef _ABAQUS_VUMAT_BASE_T_H_
 #define _ABAQUS_VUMAT_BASE_T_H_
 
 /* base class */
 #include "FDStructMatT.h"
+#include "IsotropicT.h"
 
 /* library support options */
 #ifdef __F2C__
@@ -23,8 +24,10 @@
 /* forward declarations */
 class SpectralDecompT;
 
-/** interface for ABAQUS/Explicit VUMAT's */
-class ABAQUS_VUMAT_BaseT: public FDStructMatT
+/** interface for ABAQUS/Explicit VUMAT's. The class is derived
+ * from IsotropicT because the VUMAT interface assumes elastic
+ * response is approximately isotropic */
+class ABAQUS_VUMAT_BaseT: public FDStructMatT, public IsotropicT
 {
 public:
 
@@ -97,25 +100,15 @@ private:
 	void Call_VUMAT(double t, double dt, int step, int iter);
 	void Reset_VUMAT_Increment(void); // set back to last converged
 	void Set_VUMAT_Arguments(void);   // compute strains, rotated stresses, etc.
-	void Store_VUMAT_Modulus(void);   // write modulus to storage
 
 	/* VUMAT function wrapper */
-	//virtual void UMAT(doublereal*, doublereal*, doublereal*, doublereal*,
-	//doublereal*, doublereal*, doublereal*, doublereal*,
-	//doublereal*, doublereal*, doublereal*, doublereal*,
-	//doublereal*, doublereal*, doublereal*, doublereal*,
-	//doublereal*, doublereal*, char*,
-	//integer*, integer*, integer*, integer*,
-	//doublereal*, integer*, doublereal*, doublereal*,
-	//doublereal*, doublereal*, doublereal*, doublereal*,
-	//integer*, integer*, integer*, integer*, integer*,
-	//integer*, ftnlen) = 0;
 	virtual void VUMAT(integer*, integer*, integer*, integer*, integer*, integer*, integer*, doublereal*,
 		doublereal*, doublereal*, char*, doublereal*, doublereal*, doublereal*,
                 doublereal*, doublereal*, doublereal*, doublereal*, doublereal*, doublereal*,
 		doublereal*, doublereal*, doublereal*, doublereal*, doublereal*, doublereal*,
                 doublereal*, doublereal*, doublereal*, doublereal*, doublereal*, doublereal*,
                 doublereal*) = 0;
+                
 	/* read ABAQUS-format input */
 	void Read_ABAQUS_Input(ifstreamT& in);
 	bool Next_ABAQUS_Keyword(ifstreamT& in) const;
@@ -164,7 +157,7 @@ private:
 	integer nstatv; // number of state variables
 	
 	/* VUMAT array arguments */
-	nMatrixT<doublereal> fddsdde;
+	//nMatrixT<doublereal> fddsdde;
 	nArrayT<doublereal>  fdstran;
 	nMatrixT<doublereal> fdrot;
 	nMatrixT<doublereal> fdfgrd0;
@@ -181,7 +174,7 @@ private:
 	nArrayT<doublereal> fstatv;
 
 	/* stored modulus */
-	nArrayT<doublereal> fmodulus;
+	//nArrayT<doublereal> fmodulus;
 
 	/* reset-able history */
 	nArrayT<doublereal> fstress_last;
