@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.60 2004-04-09 02:03:11 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.60.4.2 2004-05-13 20:41:40 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -651,7 +651,12 @@ void FEExecutionManagerT::RunStaticBridging_monolithic(ifstreamT& in, FEManagerT
 	continuum_time->Top();
 	int d_width = OutputWidth(log_out, field_at_ghosts.Pointer());
 	while (atom_time->NextSequence() && continuum_time->NextSequence())
-	{	
+	{
+		/* check consistency between time managers */
+		if (atom_time->NumberOfSteps() - continuum_time->NumberOfSteps() != 0) 
+			ExceptionT::GeneralFail(caller, "coarse/fine number of steps mismatch: %d != %d",
+				atom_time->NumberOfSteps(), continuum_time->NumberOfSteps());
+	
 		/* set to initial condition */
 		atoms.InitialCondition();
 		continuum.InitialCondition();
@@ -663,6 +668,11 @@ void FEExecutionManagerT::RunStaticBridging_monolithic(ifstreamT& in, FEManagerT
 			atom_time->Step() &&
 			continuum_time->Step()) //TEMP - same clock
 		{
+			/* consistency check */
+			if (fabs(atom_time->TimeStep() - continuum_time->TimeStep()) > kSmall)
+				ExceptionT::GeneralFail(caller, "coarse/fine time step mismatch: %g != %g", 
+					atom_time->TimeStep(), continuum_time->TimeStep());
+
 			/* running status flag */
 			ExceptionT::CodeT error = ExceptionT::kNoError;		
 
@@ -679,8 +689,31 @@ void FEExecutionManagerT::RunStaticBridging_monolithic(ifstreamT& in, FEManagerT
 				error = multi_manager.CloseStep();
 				
 			/* handle errors */
-			if (error != ExceptionT::kNoError)
-				ExceptionT::GeneralFail(caller, "no recovery");
+			switch (error)
+			{
+				case ExceptionT::kNoError:
+					/* nothing to do */
+					break;
+				case ExceptionT::kGeneralFail:					
+				case ExceptionT::kBadJacobianDet:
+				{
+					cout << '\n' << caller << ": trying to recover from error: " << ExceptionT::ToString(error) << endl;
+				
+					/* reset system configuration */
+					error = multi_manager.ResetStep();
+					
+					/* cut time step */
+					if (error == ExceptionT::kNoError) {
+						if (!multi_manager.DecreaseLoadStep())
+							ExceptionT::GeneralFail(caller, "could not decrease load step");
+					}
+					else
+						ExceptionT::GeneralFail(caller, "could not reset step");
+					break;
+				}
+				default: 
+					ExceptionT::GeneralFail(caller, "no recovery from \"%s\"", ExceptionT::ToString(error));
+			}
 		}
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.44 2004-05-17 23:39:06 raregue Exp $ */
+/* $Id: ElementT.h,v 1.43 2004-04-11 22:29:06 raregue Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -68,7 +68,6 @@ kPenaltyContactElement3D = 34,
 			  kFS_SCNIMF = 71, /**< finite deformation ditto */
 			   kAPSVgrad = 80, /* anti-plane shear gradient plasticity, vector element */
 		  kMeshfreeGradP = 85, /* meshfree gradient plasticity */
-		kSS_EnhStrainLoc = 90, /* small strain enhanced strain embedded discontinuity element */
             kElasticAxi = 102, /**< small strain axisymmetric solid */
        kHyperElasticAxi = 103, /**<  updated Lagrangian, large strain axisymmetric solid */
  kTotLagHyperElasticAxi = 104, /**<  total Lagrangian, large strain axisymmetric solid */

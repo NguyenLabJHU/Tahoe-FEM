@@ -1,7 +1,9 @@
-/* $Id: SolidMatList1DT.cpp,v 1.17 2004-04-26 23:06:30 paklein Exp $ */
+/* $Id: SolidMatList1DT.cpp,v 1.16.22.1 2004-04-24 19:57:33 paklein Exp $ */
 #include "SolidMatList1DT.h"
-#include "SolidMatSupportT.h"
+
+#include "SolidMaterialsConfig.h"
 #include "fstreamT.h"
+#include "SolidMatSupportT.h"
 
 /* 1D material types codes */
 /* Add small strain linear elastic material here */
@@ -15,6 +17,10 @@
 #include "GradJ2SS1D.h"
 #include "J2SSKStV1D.h"
 #include "GradC0J2SS1D.h"
+#endif
+
+#ifdef CAUCHY_BORN_MATERIAL
+#include "Chain1D.h"
 #endif
 
 using namespace Tahoe;
@@ -34,8 +40,6 @@ SolidMatList1DT::SolidMatList1DT(void)
 /* read material data from the input stream */
 void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 {
-	const char caller[] = "SolidMatList1DT::ReadMaterialData";
-
 	int i, matnum;
 	SolidT::TypeT matcode;
 	try {
@@ -45,15 +49,16 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
  	{
 		in >> matnum; matnum--;
 		in >> matcode;
-
 		/* checks */
-		if (matnum < 0 || matnum >= fLength) 
-			ExceptionT::BadInputValue(caller, "material number %d is out of range [1, %d]",
-				matnum+1, fLength);
+		if (matnum < 0  || matnum >= fLength) throw ExceptionT::kBadInputValue;
 		
 		/* repeated material number */
 		if (fArray[matnum] != NULL)
-			ExceptionT::BadInputValue(caller, "repeated material number %d", matnum+1);
+		{
+			cout << "\n SolidMatList1DT::ReadMaterialData: repeated material number: ";
+			cout << matnum + 1 << endl;
+			throw ExceptionT::kBadInputValue;
+		}
 		
 		/* add to the list of matxxerials */
 		switch (matcode)
@@ -104,6 +109,19 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "GRAD_SMALL_STRAIN_DEV not enabled: %d", matcode);
 #endif
 			}
+			case kChain1D:
+			{
+#ifdef CAUCHY_BORN_MATERIAL
+				/* check */
+				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new Chain1D(in, *fFSMatSupport);
+				break;
+#else
+				ExceptionT::BadInputValue("SolidMatList1DT::ReadMaterialData", "CAUCHY_BORN_MATERIAL not enabled: %d", matcode);
+#endif
+			}
+
 			default:
 			{
 				cout << "\n SolidMatList1DT::ReadMaterialData: unknown material code: ";

@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.21 2004-05-14 01:05:22 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.20.10.1 2004-06-07 13:54:26 paklein Exp $ */
 /* created: paklein (05/29/1996) */
 #include "CCSMatrixT.h"
 
@@ -264,7 +264,7 @@ void CCSMatrixT::Assemble(const ElementMatrixT& elMat, const ArrayT<int>& row_eq
 				for (int row = 0; row < n_r; row++)
 				{
 					int reqno = row_eqnos[row] - 1;
-					if (reqno > -1 && ceqno >= reqno)
+					if ( reqno > -1)
 						(*this)(reqno,ceqno) += elMat(row,col);
 				}
 		}
@@ -275,7 +275,7 @@ void CCSMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<in
 {
 #if __option(extended_errorcheck)
 	/* dimension check */
-	if (diagonal_elMat.Length() != eqnos.Length()) throw ExceptionT::kSizeMismatch;
+	if (diagonal_elMat.Length() != eqnos.Length()) ExceptionT::SizeMismatch("CCSMatrixT::Assemble");
 #endif
 
 	/* assemble */
@@ -283,7 +283,7 @@ void CCSMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<in
 	{
 		int eqno = eqnos[j] - 1;
 		if (eqno > -1)
-			fMatrix[eqno] += diagonal_elMat[j];
+			fMatrix[fDiags[eqno]] += diagonal_elMat[j];
 	}
 }
 
@@ -292,7 +292,7 @@ void CCSMatrixT::Assemble(const nArrayT<double>& diagonal_elMat, const ArrayT<in
 double CCSMatrixT::ResidualNorm(const dArrayT& result) const
 {
 	/* dimension check */
-	if (result.Length() != fLocNumEQ) throw ExceptionT::kGeneralFail;
+	if (result.Length() != fLocNumEQ) ExceptionT::GeneralFail("CCSMatrixT::ResidualNorm");
 
 	double  norm = 0.0;
 	const double* p = result.Pointer();

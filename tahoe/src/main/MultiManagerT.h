@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.h,v 1.3 2003-11-04 01:13:16 paklein Exp $ */
+/* $Id: MultiManagerT.h,v 1.3.28.2 2004-05-13 20:41:40 paklein Exp $ */
 #ifndef _MULTI_MANAGER_H_
 #define _MULTI_MANAGER_H_
 
@@ -29,7 +29,7 @@ public:
 	virtual void Initialize(InitCodeT init = kFull);
 
 	/** (re-)set the equation number for the given group */
-	virtual void SetEquationSystem(int group);
+	virtual void SetEquationSystem(int group, int start_eq_shift = 0);
 
 	/** \name solution steps */
 	/*@{*/
@@ -71,6 +71,12 @@ public:
 	virtual void RestoreOutput(void);
 	/*@}*/
 
+	/** \name load control functions (returns true if successful) */
+	/*@{*/
+	virtual bool DecreaseLoadStep(void);
+	virtual bool IncreaseLoadStep(void);
+	/*@}*/
+
 private:
 
 	/** \name sub-managers */
@@ -93,7 +99,31 @@ private:
 	iArray2DT fAtomConnectivities;
 	int fOutputID;
 	bool fDivertOutput;
-	/*@}*/ 
+	/*@}*/
+	
+	/** \name workspace for cross terms */
+	/*@{*/
+	/** transpose of data for interpolating data from the coarse scale
+	 * onto the fine scale points */
+	//InterpolationDataT fFollowerCellTranspose;
+
+	dArray2DT fR_U; /**< coarse scale forces */
+	iArrayT   fR_U_eqnos; /**< equations for assembly for MultiManagerT::fR_U */
+	dArray2DT fR_Q; /**< fine scale forces */
+	iArrayT   fR_Q_eqnos; /**< equations for assembly for MultiManagerT::fR_Q */
+	
+	const FieldT* fFineField;
+	const FieldT* fCoarseField;
+	/*@}*/
+	
+	/** \name keep/omit cross terms */
+	/*@{*/
+	bool fFineToCoarse; /**< fine scale contribution to coarse scale equations */ 
+	bool fCoarseToFine; /**< coarse scale contribution to fine scale equations */ 
+	int  fCorrectOverlap; /**< adjust C-B bond densities to account for overlap */ 
+	double fCBTikhonov; /**< regularization used to solve C-B bond densities in the overlap */
+	double fK2; /**< penalization constant for density different from 1.0 */
+	/*@}*/
 };
 
 } /* namespace Tahoe */

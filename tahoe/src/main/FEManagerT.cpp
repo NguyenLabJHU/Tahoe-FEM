@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.71 2004-03-04 08:54:38 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.71.16.1 2004-04-24 19:57:41 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -935,12 +935,12 @@ GlobalT::EquationNumberScopeT FEManagerT::EquationNumberScope(int group) const
 	return fSolvers[group]->EquationNumberScope();
 }
 
-int FEManagerT::GetGlobalEquationStart(int group) const
+int FEManagerT::GetGlobalEquationStart(int group, int start_eq_shift) const
 {
 #pragma unused(group)
 
 	/* no other equations */
-	return 1;
+	return 1 + start_eq_shift;
 }
 
 int FEManagerT::GetGlobalNumEquations(int group) const
@@ -1947,7 +1947,7 @@ bool FEManagerT::WriteRestart(const StringT* file_name) const
 * (3) set numbering scope
 * (4) collect equations and send to solver
 * (5) signal solver for final configuration */
-void FEManagerT::SetEquationSystem(int group)
+void FEManagerT::SetEquationSystem(int group, int start_eq_shift)
 {
 	/* equation number scope */
 	GlobalT::EquationNumberScopeT equation_scope = 
@@ -1955,7 +1955,7 @@ void FEManagerT::SetEquationSystem(int group)
 
 	/* assign (local) equation numbers */
 	fNodeManager->SetEquationNumbers(group);
-	fGlobalEquationStart[group] = GetGlobalEquationStart(group);
+	fGlobalEquationStart[group] = GetGlobalEquationStart(group, start_eq_shift);
 	fActiveEquationStart[group] = (equation_scope == GlobalT::kGlobal) ? 
 		fGlobalEquationStart[group] : 1;
 	fGlobalNumEquations[group]  = GetGlobalNumEquations(group);

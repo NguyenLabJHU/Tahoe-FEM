@@ -1,8 +1,8 @@
-/* $Id: Hex2D.cpp,v 1.2.46.3 2004-05-01 18:57:06 paklein Exp $ */
+/* $Id: Chain1D.cpp,v 1.1.4.3 2004-05-01 18:57:06 paklein Exp $ */
 /* created: paklein (07/01/1996) */
-#include "Hex2D.h"
+#include "Chain1D.h"
 #include "ElementsConfig.h"
-#include "HexLattice2DT.h"
+#include "Lattice1DT.h"
 
 #include <math.h>
 #include <iostream.h>
@@ -14,26 +14,24 @@
 #include "HarmonicPairT.h"
 #include "LennardJonesPairT.h"
 #else
-#pragma message("Hex2D requires PARTICLE_ELEMENT")
-#error "Hex2D requires PARTICLE_ELEMENT"
+#pragma message("Chain1D requires PARTICLE_ELEMENT")
+#error "Chain1D requires PARTICLE_ELEMENT"
 #endif
-
-const double sqrt3 = sqrt(3.0);
 
 using namespace Tahoe;
 
 /* constructor */
-Hex2D::Hex2D(ifstreamT& in, const FSMatSupportT& support):
-	NL_E_Mat2DT(in, support, kPlaneStress),
+Chain1D::Chain1D(ifstreamT& in, const FSMatSupportT& support):
+	NL_E_MatT(in, support),
 	fNearestNeighbor(-1),
-	fQ(2),
-	fHexLattice2D(NULL),
+	fLattice1D(NULL),
 	fPairProperty(NULL),
-	fBondTensor4(dSymMatrixT::NumValues(2)),
-	fBondTensor2(dSymMatrixT::NumValues(2)),
+	fAtomicVolume(0),
+	fBondTensor4(dSymMatrixT::NumValues(1)),
+	fBondTensor2(dSymMatrixT::NumValues(1)),
 	fFullDensityForStressOutput(true)
 {
-	const char caller[] = "Hex2D::Hex2D";
+	const char caller[] = "Chain1D::Chain1D";
 
 	/* read the number of shells */
 	int nshells;
@@ -66,56 +64,54 @@ Hex2D::Hex2D(ifstreamT& in, const FSMatSupportT& support):
 	}
 	
 	/* construct the bond tables */
-	fQ.Identity();
-	fHexLattice2D = new HexLattice2DT(fQ, nshells);
-	fHexLattice2D->Initialize();
+	fLattice1D = new Lattice1DT(nshells);
+	fLattice1D->Initialize();
 
 	/* construct default bond density array */
-	fFullDensity.Dimension(fHexLattice2D->NumberOfBonds());
+	fFullDensity.Dimension(fLattice1D->NumberOfBonds());
 	fFullDensity = 1.0;
 	
 	/* check */
 	if (fNearestNeighbor < kSmall)
 		ExceptionT::BadInputValue(caller, "nearest bond ! (%g > 0)", fNearestNeighbor);
 		
-	/* compute the cell volume */
-	fCellVolume = fNearestNeighbor*fNearestNeighbor*sqrt3/2.0;
+	/* compute the (approx) cell volume */
+	fAtomicVolume = fNearestNeighbor;
 
 	/* compute stress-free dilatation */
 	double stretch = ZeroStressStretch();
 	fNearestNeighbor *= stretch;
-	fCellVolume = fNearestNeighbor*fNearestNeighbor*sqrt3/2.0;
-	
-	/* reset the continuum density (2 atoms per unit cell) */
-	fDensity = 2*fPairProperty->Mass()/fCellVolume;
+	fAtomicVolume = fNearestNeighbor;
+
+	/* reset the continuum density (4 atoms per unit cell) */
+	fDensity = fPairProperty->Mass()/fAtomicVolume;
 }
 
 /* destructor */
-Hex2D::~Hex2D(void)
-{
-	delete fHexLattice2D;
+Chain1D::~Chain1D(void) {
+	delete fLattice1D;
 	delete fPairProperty;
 }
 
 /* I/O functions */
-void Hex2D::PrintName(ostream& out) const
+void Chain1D::PrintName(ostream& out) const
 {
-	NL_E_Mat2DT::PrintName(out);
-	out << "    2D Hexagonal lattice\n";
+	NL_E_MatT::PrintName(out);
+	out << "    1D lattice\n";
 }
 
-void Hex2D::Print(ostream& out) const
+void Chain1D::Print(ostream& out) const
 {
 	/* inherited */
-	NL_E_Mat2DT::Print(out);
+	NL_E_MatT::Print(out);
 
 	/* higher precision */
 	int prec = out.precision();
 	out.precision(12);
 
 	/* lattice parameters */
-	out << " Number of neighbor shells . . . . . . . . . . . = " << fHexLattice2D->NumShells() << '\n';
-	out << " Number of neighbors . . . . . . . . . . . . . . = " << fHexLattice2D->NumberOfBonds() << '\n';
+	out << " Number of neighbor shells . . . . . . . . . . . = " << fLattice1D->NumShells() << '\n';
+	out << " Number of neighbors . . . . . . . . . . . . . . = " << fLattice1D->NumberOfBonds() << '\n';
 	out << " Nearest neighbor distance . . . . . . . . . . . = " << fNearestNeighbor << '\n';
 
 	/* write pair properties to output */
@@ -127,19 +123,19 @@ void Hex2D::Print(ostream& out) const
 }
 
 /* return a reference to the bond lattice */
-const BondLatticeT& Hex2D::BondLattice(void) const {
-	if (!fHexLattice2D) ExceptionT::GeneralFail("Hex2D::BondLattice", "pointer not set");
-	return *fHexLattice2D;
+const BondLatticeT& Chain1D::BondLattice(void) const {
+	if (!fLattice1D) ExceptionT::GeneralFail("Chain1D::BondLattice", "pointer not set");
+	return *fLattice1D;
 }
 
 /*************************************************************************
  * Protected
  *************************************************************************/
 
-void Hex2D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
+void Chain1D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 {	
-	fHexLattice2D->ComputeDeformedLengths(E);
-	const dArrayT& bond_length = fHexLattice2D->DeformedLengths();
+	fLattice1D->ComputeDeformedLengths(E);
+	const dArrayT& bond_length = fLattice1D->DeformedLengths();
 
 	/* fetch function pointers */
 	PairPropertyT::ForceFunction force = fPairProperty->getForceFunction();
@@ -147,21 +143,21 @@ void Hex2D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 
 	/* bond density */
 	const double* density = fFullDensity.Pointer();
-	int nb = fHexLattice2D->NumberOfBonds();
+	int nb = fLattice1D->NumberOfBonds();
 	const ElementCardT* element = MaterialSupport().CurrentElement();
 	if (element && element->IsAllocated()) {
 		const dArrayT& d_array = element->DoubleData();
 		density = d_array.Pointer(CurrIP()*nb);
 	}
-	
-	/* sum over bonds */
+
+	/* sum over bonds */	
 	moduli = 0.0; 
-	double R4byV = fNearestNeighbor*fNearestNeighbor*fNearestNeighbor*fNearestNeighbor/fCellVolume;
-	for (int i = 0; i < nb; i++) 
+	double R4byV = fNearestNeighbor*fNearestNeighbor*fNearestNeighbor*fNearestNeighbor/fAtomicVolume;
+	for (int i = 0; i < nb; i++)
 	{
 		double ri = bond_length[i]*fNearestNeighbor;
 		double coeff = (*density++)*(stiffness(ri, NULL, NULL) - force(ri, NULL, NULL)/ri)/ri/ri;
-		fHexLattice2D->BondComponentTensor4(i, fBondTensor4);
+		fLattice1D->BondComponentTensor4(i, fBondTensor4);
 		moduli.AddScaled(R4byV*coeff, fBondTensor4);
 	}
 	
@@ -170,17 +166,17 @@ void Hex2D::ComputeModuli(const dSymMatrixT& E, dMatrixT& moduli)
 }
 
 /* 2nd Piola-Kirchhoff stress vector */
-void Hex2D::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
+void Chain1D::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
 {
-	fHexLattice2D->ComputeDeformedLengths(E);
-	const dArrayT& bond_length = fHexLattice2D->DeformedLengths();
+	fLattice1D->ComputeDeformedLengths(E);
+	const dArrayT& bond_length = fLattice1D->DeformedLengths();
 
 	/* fetch function pointer */
 	PairPropertyT::ForceFunction force = fPairProperty->getForceFunction();
 
 	/* bond density */
 	const double* density = fFullDensity.Pointer();
-	int nb = fHexLattice2D->NumberOfBonds();
+	int nb = fLattice1D->NumberOfBonds();
 	const ElementCardT* element = MaterialSupport().CurrentElement();
 	bool keep_full_density = MaterialSupport().RunState() == GlobalT::kWriteOutput && fFullDensityForStressOutput;
 	if (!keep_full_density && element && element->IsAllocated()) {
@@ -190,28 +186,28 @@ void Hex2D::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
 	
 	/* sum over bonds */
 	PK2 = 0.0;
-	double R2byV = fNearestNeighbor*fNearestNeighbor/fCellVolume;
+	double R2byV = fNearestNeighbor*fNearestNeighbor/fAtomicVolume;
 	for (int i = 0; i < nb; i++)
 	{
 		double ri = bond_length[i]*fNearestNeighbor;
 		double coeff = (*density++)*force(ri, NULL, NULL)/ri;
-		fHexLattice2D->BondComponentTensor2(i, fBondTensor2);
+		fLattice1D->BondComponentTensor2(i, fBondTensor2);
 		PK2.AddScaled(R2byV*coeff, fBondTensor2);
 	}
 }
 
 /* strain energy density */
-double Hex2D::ComputeEnergyDensity(const dSymMatrixT& E)
+double Chain1D::ComputeEnergyDensity(const dSymMatrixT& E)
 {
-	fHexLattice2D->ComputeDeformedLengths(E);
-	const dArrayT& bond_length = fHexLattice2D->DeformedLengths();
+	fLattice1D->ComputeDeformedLengths(E);
+	const dArrayT& bond_length = fLattice1D->DeformedLengths();
 
 	/* fetch function pointer */
 	PairPropertyT::EnergyFunction energy = fPairProperty->getEnergyFunction();
 
 	/* bond density */
 	const double* density = fFullDensity.Pointer();
-	int nb = fHexLattice2D->NumberOfBonds();
+	int nb = fLattice1D->NumberOfBonds();
 	const ElementCardT* element = MaterialSupport().CurrentElement();
 	if (element && element->IsAllocated()) {
 		const dArrayT& d_array = element->DoubleData();
@@ -220,22 +216,22 @@ double Hex2D::ComputeEnergyDensity(const dSymMatrixT& E)
 
 	/* sum over bonds */
 	double tmpSum  = 0.;	
-	for (int i = 0; i < nb; i++) 
+	for (int i = 0; i < nb; i++)
 	{
 		double r = bond_length[i]*fNearestNeighbor;
 		tmpSum += (*density++)*energy(r, NULL, NULL);
 	}
-	tmpSum /= fCellVolume;
+	tmpSum /= fAtomicVolume;
 	
 	return tmpSum;
 }
 
 /* return the equitriaxial stretch at which the stress is zero */
-double Hex2D::ZeroStressStretch(void)
+double Chain1D::ZeroStressStretch(void)
 {
-	const char caller[] = "Hex2D::ZeroStress";
+	const char caller[] = "Chain1D::ZeroStress";
 
-	int nsd = 2;
+	int nsd = 1;
 	dSymMatrixT E(nsd), PK2(nsd);
 	dMatrixT C(dSymMatrixT::NumValues(nsd));
 
@@ -249,8 +245,12 @@ double Hex2D::ZeroStressStretch(void)
 	while (count++ < 10 && error0 > kSmall && error/error0 > kSmall)
 	{
 		ComputeModuli(E, C);
-		double dE = -PK2(0,0)/(C(0,0) + C(0,1));
+		double dE = -PK2(0,0)/C(0,0);
 		E.PlusIdentity(dE);
+		
+		/* E > -1/2 - go half way to limit */
+		if (E[0] < -0.5)
+			E[0] = ((E[0]-dE) - 0.5)*0.5;
 		
 		ComputePK2(E, PK2);
 		error = fabs(PK2(0,0));

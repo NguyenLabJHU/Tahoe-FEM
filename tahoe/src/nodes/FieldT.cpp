@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.28 2004-05-12 00:22:15 cjkimme Exp $ */
+/* $Id: FieldT.cpp,v 1.25 2004-02-17 18:00:50 cjkimme Exp $ */
 #include "FieldT.h"
 
 #include "fstreamT.h"
@@ -470,32 +470,6 @@ void FieldT::SetLocalEqnos(ArrayT<const iArray2DT*> nodes, iArray2DT& eqnos) con
 }
 
 void FieldT::SetLocalEqnos(const RaggedArray2DT<int>& nodes,
-	RaggedArray2DT<int>& eqnos, const iArrayT& which_dofs) const
-{
-/* consistency checks */
-#if __option(extended_errorcheck)
-	const char caller[] = "FieldT::SetLocalEqnos";
-	if (nodes.MajorDim() != eqnos.MajorDim()) ExceptionT::SizeMismatch(caller);
-	if (which_dofs.Length() != nodes.MajorDim()) ExceptionT::SizeMismatch(caller);
-#endif
-	
-	int numel = nodes.MajorDim();
-	for (int i = 0; i < numel; i++)
-	{
-#if __option(extended_errorcheck)
-		if (eqnos.MinorDim(i) != nodes.MinorDim(i)) ExceptionT::SizeMismatch(caller);
-		//must have enough space (and maybe more)
-#endif
-		int  nen    = nodes.MinorDim(i);
-		const int* pnodes = nodes(i);
-		int* pien   = eqnos(i);
-		int k = which_dofs[i];
-		for (int j = 0; j < nen; j++)
-			*pien++ = fEqnos(*pnodes++, k);
-	}
-}
-
-void FieldT::SetLocalEqnos(const RaggedArray2DT<int>& nodes,
 	RaggedArray2DT<int>& eqnos) const
 {
 /* consistency checks */
@@ -508,14 +482,13 @@ void FieldT::SetLocalEqnos(const RaggedArray2DT<int>& nodes,
 	for (int i = 0; i < numel; i++)
 	{
 #if __option(extended_errorcheck)
-	   	if (eqnos.MinorDim(i) < nodes.MinorDim(i)*NumDOF()) ExceptionT::SizeMismatch(caller);
+		if (eqnos.MinorDim(i) < nodes.MinorDim(i)*NumDOF()) ExceptionT::SizeMismatch(caller);
 		//must have enough space (and maybe more)
 #endif
 		int  nen    = nodes.MinorDim(i);
 		const int* pnodes = nodes(i);
 		int* pien   = eqnos(i);
 		int ndof    = NumDOF();
-		
 		for (int j = 0; j < nen; j++)
 		{
 			int nodenum = *pnodes++;

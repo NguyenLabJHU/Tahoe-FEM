@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.41 2004-03-04 08:54:38 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.41.16.2 2004-05-13 20:41:40 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -137,7 +137,7 @@ public:
 	/** \name equation system */
 	/*@{*/
 	/** (re-)set the equation number for the given group */
-	virtual void SetEquationSystem(int group);
+	virtual void SetEquationSystem(int group, int start_eq_shift = 0);
 
 	/** write the field equations to for the given group to the stream */
 	void WriteEquationNumbers(int group) const;
@@ -162,8 +162,8 @@ public:
 	/** \name time */
 	/*@{*/
 	/* load control functions (returns true if successful) */
-	bool DecreaseLoadStep(void);
-	bool IncreaseLoadStep(void);
+	virtual bool DecreaseLoadStep(void);
+	virtual bool IncreaseLoadStep(void);
 	
 	/* solution accessors */
 	const double& Time(void) const;
@@ -403,7 +403,7 @@ protected:
 	/** (re-) set cached value of the first equation number for the given
 	 * group on this processor. This value is cached because communication 
 	 * is required. */
-	virtual int GetGlobalEquationStart(int group) const;
+	virtual int GetGlobalEquationStart(int group, int start_eq_shift) const;
 
 	/** (re-) set cached value of the total number of equations for the given
 	 * group. This value is cached because communication is required. */

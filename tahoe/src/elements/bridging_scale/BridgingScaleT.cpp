@@ -1,5 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.43 2004-04-09 02:02:54 hspark Exp $ */
-
+/* $Id: BridgingScaleT.cpp,v 1.43.4.2 2004-04-28 05:27:58 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -69,13 +68,13 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 	/* configure search grid */
 	iGridManagerT grid(10, 100, point_coordinates, &points_used);
 	grid.Reset();
-	
+
 	/* verbose output */
 	if (ElementSupport().PrintInput()) {
 		grid.WriteStatistics(out);
 		grid.DumpGrid(out);
 	}
-		
+
 	/* track cell containing each point, so only one cell is associated with each point */
 	iArrayT found_in_cell(points_used.Length());
 	found_in_cell = -1;
@@ -115,6 +114,9 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 			}
 		}
 	}
+
+	/* map should return -1 if point not in map */
+	global_to_local.SetOutOfRange(InverseMapT::MinusOne);
 
 	/* copy/compress contents */
 	point_in_cell.Copy(auto_fill);
@@ -320,7 +322,6 @@ void BridgingScaleT::InitProjection(CommManagerT& comm, const iArrayT& points_us
 	int cell_dex = 0;
 	iArrayT cell_eq;
 	dArrayT Na;
-	//double atommass;
 	for (int i = 0; i < point_in_cell.MajorDim(); i++)
 	{
 		int np = point_in_cell.MinorDim(i);
@@ -482,6 +483,31 @@ void BridgingScaleT::CoarseField(const PointInCellDataT& cell_data, const dArray
 
 	const char caller[] = "BridgingScaleT::CoarseField";
 	ExceptionT::GeneralFail(caller, "not implemented");
+}
+
+/* collect the cells without any free nodes */
+void BridgingScaleT::CollectProjectedCells(const PointInCellDataT& cell_data, iArrayT& cells) const
+{
+	/* mark cells */
+	const RaggedArray2DT<int>& point_in_cell = cell_data.PointInCell();
+	iArrayT projected_cell(point_in_cell.MajorDim());
+	for (int i = 0; i < projected_cell.Length(); i++)
+		if (point_in_cell.MinorDim(i) > 0)
+			projected_cell[i] = 1;
+		else
+			projected_cell[i] = 0;
+
+	/* collect filled cells */
+	cells.Dimension(projected_cell.Count(1));
+	int index = 0;
+	for (int i = 0; i < projected_cell.Length(); i++)
+		if (projected_cell[i])
+			cells[index++] = i;
+}
+
+/* return list of projected nodes */
+void BridgingScaleT::CollectProjectedNodes(const PointInCellDataT& cell_data, iArrayT& nodes) const {
+	nodes = cell_data.CellNodes();
 }
 
 /* Project point values onto mesh, write into displacement field.  Used to compute initial

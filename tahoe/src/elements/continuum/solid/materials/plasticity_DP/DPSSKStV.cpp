@@ -1,10 +1,11 @@
-/* $Id: DPSSKStV.cpp,v 1.23 2004-05-11 18:31:11 raregue Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.22 2004-03-20 23:38:19 raregue Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV.h"
 #include "SSMatSupportT.h"
 
 #include "ElementCardT.h"
 #include "StringT.h"
+#include "DetCheckT.h"
 #include <iostream.h>
 
 using namespace Tahoe;

@@ -1,4 +1,4 @@
-/* $Id: PointInCellDataT.h,v 1.5 2004-03-04 08:54:20 paklein Exp $ */
+/* $Id: PointInCellDataT.h,v 1.5.16.2 2004-05-17 05:12:33 paklein Exp $ */
 #ifndef _POINT_IN_CELL_DATA_T_H_
 #define _POINT_IN_CELL_DATA_T_H_
 
@@ -34,6 +34,7 @@ public:
 	RaggedArray2DT<int>& PointInCell(void) { return fPointInCell; };
 	const RaggedArray2DT<int>& PointInCell(void) const { return fPointInCell; };
 	RaggedArray2DT<double>& PointInCellCoords(void) { return fPointInCellCoords; };
+	const RaggedArray2DT<double>& PointInCellCoords(void) const { return fPointInCellCoords; };
 	/*@}*/
 	
 	/** \name interpolation data
@@ -45,7 +46,8 @@ public:
 	/** const access to interpolation data */
 	const dArray2DT& InterpolationWeights(void) const { return fInterpolationWeights; };
 
-	/** cell containing each point of interpolation */
+	/** cell containing each point of interpolation with points referred to in
+	 * local numbering */
 	iArrayT& InterpolatingCell(void) { return fInterpolatingCell; };
 
 	/** const access to the cells containing each point of interpolation */
@@ -56,9 +58,12 @@ public:
 
 	/** const access to global to local map */
 	const InverseMapT& GlobalToLocal(void) const { return fGlobalToLocal; };
+	
+	/** translate interpolation data to sparse matrix data */
+	void InterpolationDataToMatrix(iArrayT& r, iArrayT& c, dArrayT& v) const;
 	/*@}*/
 
-	/** \name interpolation from to nodes from points in filled cells */
+	/** \name interpolation to nodes from points in filled cells */
 	/*@{*/
 	InterpolationDataT& PointToNode(void) { return fPointToNode; };
 	const InterpolationDataT& PointToNode(void) const { return fPointToNode; };
@@ -117,7 +122,8 @@ private:
 	 * interpolation data */
 	InverseMapT fGlobalToLocal;
 	
-	/** cell containing each point of interpolation */
+	/** cell containing each point of interpolation with points referred to in
+	 * local numbering */
 	iArrayT fInterpolatingCell;
 	
 	/** interpolation weights. Dimension [np] x [nen]. Assumes all cells have the same 
@@ -125,7 +131,7 @@ private:
 	dArray2DT fInterpolationWeights;	
 	/*@}*/
 
-	/** interpolation from to nodes from points in filled cells */
+	/** interpolation to nodes from points in filled cells */
 	InterpolationDataT fPointToNode;
 
 	/** projection from points to points */

@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.31 2004-05-11 17:33:37 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.30 2003-12-28 23:37:35 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -275,18 +275,12 @@ void RodT::LHSDriver(GlobalT::SystemTypeT)
 			double dU = fCurrMaterial->DPotential(l, l0);
 			double ddU = fCurrMaterial->DDPotential(l, l0);
 
-			/* allow zero length springs */
-			if (fabs(l) > kSmall) 
-			{
-				/* 1st term */
-				fLHS.Outer(fRHS, fRHS);
-				fLHS *= constK*(ddU - dU/l)/(l*l);
+			/* 1st term */
+			fLHS.Outer(fRHS, fRHS);
+			fLHS *= constK*(ddU - dU/l)/(l*l);
 		
-				/* 2nd term */
-				fLHS.AddScaled(constK*dU/l, fOneOne);
-			}
-			else /* limit as l->0 */
-				fLHS.AddScaled(constK*ddU, fOneOne);
+			/* 2nd term */
+			fLHS.AddScaled(constK*dU/l, fOneOne);
 		} 
 		else 
 			fLHS = 0.0;
@@ -302,8 +296,6 @@ void RodT::LHSDriver(GlobalT::SystemTypeT)
 /* construct the element force vectors */
 void RodT::RHSDriver(void)
 {
-	const char caller[] = "RodT::RHSDriver";
-
 	/* set components and weights */
 	double constMa = 0.0;
 	double constKd = 0.0;
@@ -338,14 +330,9 @@ void RodT::RHSDriver(void)
 		
 		/* bond force magnitude */
 		double dU = fCurrMaterial->DPotential(l, l0);
-		double f_by_l = 0.0;
-		if (fabs(l) > kSmall)
-			f_by_l = constKd*dU/l;
-		else if (fabs(dU) > kSmall)
-			ExceptionT::GeneralFail(caller, "bond %d has length but %g force", CurrElementNumber(), dU);
 
 		/* particle forces (extra -1 since moved to the RHS) */
-		f0.SetToScaled(f_by_l, fBond);
+		f0.SetToScaled(constKd*dU/l, fBond);
 		f1.SetToScaled(-1.0, f0);
 
 		/* inertial force */

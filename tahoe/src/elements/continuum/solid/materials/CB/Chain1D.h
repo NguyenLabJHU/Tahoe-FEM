@@ -1,6 +1,6 @@
-/* $Id: FCC3D.h,v 1.3.16.2 2004-05-01 18:56:33 paklein Exp $ */
-#ifndef _FCC_3D_H_
-#define _FCC_3D_H_
+/* $Id: Chain1D.h,v 1.1.4.2 2004-05-01 18:57:06 paklein Exp $ */
+#ifndef _CHAIN_1D_H_
+#define _CHAIN_1D_H_
 
 /* base class */
 #include "NL_E_MatT.h"
@@ -8,20 +8,20 @@
 namespace Tahoe {
 
 /* forward declarations */
-class FCCLatticeT;
+class Lattice1DT;
 class PairPropertyT;
 class BondLatticeT;
 
-/** 3D Cauchy-Born material for FCC crystals with pair potential interactions. */
-class FCC3D: public NL_E_MatT
+/** 1D Cauchy-Born material with pair potential interactions. */
+class Chain1D: public NL_E_MatT
 {
 public:
 
 	/** constructor */
-	FCC3D(ifstreamT& in, const FSMatSupportT& support);
+	Chain1D(ifstreamT& in, const FSMatSupportT& support);
 	
 	/** destructor */
-	~FCC3D(void);
+	~Chain1D(void);
 	
 	/** \name write parameters */
 	/*@{*/
@@ -62,8 +62,7 @@ private:
 	double fNearestNeighbor;
 
 	/** bond information */
-	dMatrixT fQ;
-	FCCLatticeT* fFCCLattice;
+	Lattice1DT* fLattice1D;
 
 	/** pair interaction potential */
 	PairPropertyT* fPairProperty;
@@ -79,7 +78,7 @@ private:
 
 	/** dummy full bond density array */
 	dArrayT fFullDensity;
-	
+
 	/** flag to indicate whether stress calculation for output should include
 	 * the full bond density */
 	bool fFullDensityForStressOutput;

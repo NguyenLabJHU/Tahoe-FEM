@@ -1,5 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.36 2004-04-21 08:14:39 paklein Exp $ */
-
+/* $Id: ParticlePairT.cpp,v 1.36.2.1 2004-04-24 19:57:36 paklein Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -891,13 +890,107 @@ void ParticlePairT::RHSDriver(void)
 		RHSDriver3D();
 	else if (nsd == 2)
 		RHSDriver2D();
+	else if (nsd == 1)
+		RHSDriver1D();	
 	else
-		ExceptionT::GeneralFail("ParticlePairT::RHSDriver");
+		ExceptionT::GeneralFail("ParticlePairT::RHSDriver", "unsupported dimension %d", nsd);
 		
 	ApplyDamping(fNeighbors);
 	
 	/* assemble */
 	ElementSupport().AssembleRHS(Group(), fForce, Field().Equations());
+}
+
+void ParticlePairT::RHSDriver1D(void)
+{
+	/* function name */
+	const char caller[] = "ParticlePairT::RHSDriver1D";
+
+	/* check 1D */
+	if (NumDOF() != 1) ExceptionT::GeneralFail(caller, "1D only: %d", NumDOF());
+
+	/* time integration parameters */
+	double constMa = 0.0;
+	double constKd = 0.0;
+	int formMa = fIntegrator->FormMa(constMa);
+	int formKd = fIntegrator->FormKd(constKd);
+
+	//TEMP - interial force not implemented
+	if (formMa) ExceptionT::GeneralFail(caller, "inertial force not implemented");
+
+	/* assembly information */
+	const ElementSupportT& support = ElementSupport();
+	int group = Group();
+	int ndof = NumDOF();
+	
+	/* global coordinates */
+	const dArray2DT& coords = support.CurrentCoordinates();
+
+	/* pair properties function pointers */
+	int current_property = -1;
+	PairPropertyT::ForceFunction force_function = NULL;
+	const double* Paradyn_table = NULL;
+	double dr = 1.0;
+	int row_size = 0, num_rows = 0;
+
+	/* run through neighbor list */
+	fForce = 0.0;
+	iArrayT neighbors;
+	for (int i = 0; i < fNeighbors.MajorDim(); i++)
+	{
+		/* row of neighbor list */
+		fNeighbors.RowAlias(i, neighbors);
+
+		/* type */
+		int   tag_i = neighbors[0]; /* self is 1st spot */
+		int  type_i = fType[tag_i];
+		double* f_i = fForce(tag_i);
+		const double* x_i = coords(tag_i);
+		
+		/* run though neighbors for one atom - first neighbor is self */
+		for (int j = 1; j < neighbors.Length(); j++)
+		{
+			/* global tag */
+			int   tag_j = neighbors[j];
+			int  type_j = fType[tag_j];
+			double* f_j = fForce(tag_j);
+			const double* x_j = coords(tag_j);
+
+			/* set pair property (if not already set) */
+			int property = fPropertiesMap(type_i, type_j);
+			if (property != current_property)
+			{
+				if (!fPairProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
+					force_function = fPairProperties[property]->getForceFunction();
+				current_property = property;
+			}
+		
+			/* connecting vector */
+			double r_ij_0 = x_j[0] - x_i[0];
+			double r = sqrt(r_ij_0*r_ij_0);
+			
+			/* interaction force */
+			double F;
+			if (Paradyn_table)
+			{
+				double pp = r*dr;
+				int kk = int(pp);
+				int max_row = num_rows-2;
+				kk = (kk < max_row) ? kk : max_row;
+				pp -= kk;
+				pp = (pp < 1.0) ? pp : 1.0;				
+				const double* c = Paradyn_table + kk*row_size;
+				F = c[4] + pp*(c[5] + pp*c[6]);
+			}
+			else
+				F = force_function(r, NULL, NULL);
+			double Fbyr = formKd*F/r;
+
+			r_ij_0 *= Fbyr;
+			f_i[0] += r_ij_0;
+			f_j[0] +=-r_ij_0;
+		}
+	}
 }
 
 void ParticlePairT::RHSDriver2D(void)

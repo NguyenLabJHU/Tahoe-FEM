@@ -1,14 +1,11 @@
-/* $Id: BondLatticeT.cpp,v 1.4 2003-03-31 23:14:38 paklein Exp $ */
-/* created: paklein (01/07/1997)                                          */
-/* BondLatticeT.cpp                                                       */
-
+/* $Id: BondLatticeT.cpp,v 1.4.46.2 2004-05-12 22:21:29 paklein Exp $ */
+/* created: paklein (01/07/1997) */
 #include "BondLatticeT.h"
 #include <math.h>
 
-/* Constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 BondLatticeT::BondLatticeT(int numlatticedim, int numspatialdim,
 	int numbonds): fIsInitialized(0), fNumLatticeDim(numlatticedim),
 	fNumSpatialDim(numspatialdim), fNumBonds(numbonds),
@@ -16,30 +13,23 @@ BondLatticeT::BondLatticeT(int numlatticedim, int numspatialdim,
 	fDefLength(fNumBonds), fQ(0), fBondDp(fNumLatticeDim),
 	fLatDimMatrix(fNumLatticeDim), fStrain(fNumLatticeDim)
 {
+	const char caller[] = "BondLatticeT::BondLatticeT";
+
 	/* dimension checks */
 	if (fNumLatticeDim == 3)
-		if (fNumSpatialDim != 2 && fNumSpatialDim != 3) throw ExceptionT::kGeneralFail;
+		if (fNumSpatialDim != 2 && fNumSpatialDim != 3) ExceptionT::GeneralFail(caller);
 	else if (fNumLatticeDim == 2)
-		if (fNumSpatialDim != 2) throw ExceptionT::kGeneralFail;
+		if (fNumSpatialDim != 2) ExceptionT::GeneralFail(caller);
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 
-	if (fNumBonds < 1) throw ExceptionT::kGeneralFail;
+	if (fNumBonds < 1) ExceptionT::GeneralFail(caller);
+	
+	/* initialize values */
+	fBondCounts = 0;
+	fDefLength = 1.0;
 }
 
-/*
-* The Q matrix passed into this constructor is used to rotate the
-* bond vectors into the orientation prescribed by Q.  No check is
-* performed on the orthogonality of Q, only its dimensions.  Q is
-* deep copied.  Q is defined as:
-*
-*			Q = d x_global / d x_natural
-*
-* So that the vectors are transformed by:
-*
-*			r_new = Q.r_natural
-*
-*/
 BondLatticeT::BondLatticeT(const dMatrixT& Q, int numspatialdim,
 	int numbonds): fIsInitialized(0), fNumLatticeDim(Q.Rows()),
 	fNumSpatialDim(numspatialdim), fNumBonds(numbonds),
@@ -47,27 +37,23 @@ BondLatticeT::BondLatticeT(const dMatrixT& Q, int numspatialdim,
 	fDefLength(fNumBonds), fQ(fNumLatticeDim), fBondDp(fNumLatticeDim),
 	fLatDimMatrix(fNumLatticeDim), fStrain(fNumLatticeDim)
 {
+	const char caller[] = "BondLatticeT::BondLatticeT";
+
 	/* check transformation matrix dimensions */
-	if (Q.Rows() != Q.Cols()) throw ExceptionT::kGeneralFail;
+	if (Q.Rows() != Q.Cols()) ExceptionT::GeneralFail(caller);
 	
 	/* deep copy */
 	fQ = Q;
 
 	/* dimension checks */
 	if (fNumLatticeDim == 3)
-		if (fNumSpatialDim != 2 && fNumSpatialDim != 3) throw ExceptionT::kGeneralFail;
+		if (fNumSpatialDim != 2 && fNumSpatialDim != 3) ExceptionT::GeneralFail(caller);
 	else if (fNumLatticeDim == 2)
-		if (fNumSpatialDim != 2) throw ExceptionT::kGeneralFail;
+		if (fNumSpatialDim != 2) ExceptionT::GeneralFail(caller);
 	else
-		throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller);
 
-	if (fNumBonds < 1) throw ExceptionT::kGeneralFail;
-}
-	
-/* Destructor */
-BondLatticeT::~BondLatticeT(void)
-{
-
+	if (fNumBonds < 1) ExceptionT::GeneralFail(caller);
 }
 
 /* initialize bond table */
@@ -93,19 +79,6 @@ void BondLatticeT::Initialize(void)
 	/* set flag */
 	fIsInitialized = 1;
 }
-
-/*
-* References to the lattice lists
-*/
-const iArrayT& BondLatticeT::BondCounts(void) const { return fBondCounts; }
-const dArrayT& BondLatticeT::DeformedLengths(void) const { return fDefLength; }
-
-/*
-* Accessors
-*/
-int BondLatticeT::NumberOfLatticeDim(void) const { return fNumLatticeDim; }
-int BondLatticeT::NumberOfSpatialDim(void) const { return fNumSpatialDim; }
-int BondLatticeT::NumberOfBonds(void) const { return fNumBonds; }
 
 /*
 * Compute deformed bond lengths from the given Green strain
