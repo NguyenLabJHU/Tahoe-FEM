@@ -1,4 +1,4 @@
-/* $Id: CellFromMeshT.cpp,v 1.7 2005-01-30 00:39:39 paklein Exp $ */
+/* $Id: CellFromMeshT.cpp,v 1.8 2005-03-01 08:25:13 paklein Exp $ */
 #include "CellFromMeshT.h"
 
 #include "ArrayT.h"
@@ -108,7 +108,7 @@ void CellFromMeshT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, RaggedAr
 	const double* ip_weight = sub_cell_face_domain.Weight();
 
 	dArrayT ip_coords(nSD);
-	dMatrixT jacobian(nSD, 1);
+	dMatrixT jacobian(nSD, nSD-1); /* jacoban of surface mapping */
 
 	dMatrixT Q(nSD);
 	iArrayT nodes_glb(nElementNodes), nodes_loc(nElementNodes);
