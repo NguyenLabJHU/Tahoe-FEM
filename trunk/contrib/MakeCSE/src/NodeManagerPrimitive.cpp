@@ -7,6 +7,7 @@
 #include "MakeCSE_FEManager.h"
 #include "dArrayT.h"
 #include "CSEConstants.h"
+#include "OutputBaseT.h"
 
 using namespace Tahoe;
 
@@ -218,29 +219,29 @@ void NodeManagerPrimitive::Renumber (CSEConstants::RenumberMethodT option, iArra
     }
 }
 
-void NodeManagerPrimitive::RegisterOutput (MakeCSE_IOManager& theIO)
+void NodeManagerPrimitive::RegisterOutput (OutputBaseT& output, MakeCSE_IOManager& input)
 {
   iArrayT nodemap (0);
-  //theIO.SetCoordinates (fCoordinates, &nodemap);
+  output.SetCoordinates (fCoordinates, &nodemap);
 
   sArrayT blocktonodesets;
-  theIO.BlockToNode (blocktonodesets);
+  input.BlockToNode (blocktonodesets);
 
   iArrayT nodes;
-  //int setID = fNodeSetID.Max();
-  //setID++;
   for (int i=0; i < blocktonodesets.Length(); i++)
     {
+      StringT name = "NS_";
+      name.Append (blocktonodesets[i]);
       out  << "\n Creating Node Set from Element Group ID . . . . = "
 	   << blocktonodesets[i] << '\n';
       cout  << "\n Creating Node Set from Element Group ID . . . . = "
 	    << blocktonodesets[i] << '\n';
       theBoss->NodesUsed (blocktonodesets[i], nodes);
-      //AddNodeSet (setID++, nodes, kSplit);
+      AddNodeSet (name, nodes, CSEConstants::kSplit);
     }
 
-  //for (int n=0; n < fNodeSetData.Length(); n++)
-  //theIO.AddNodeSet (fNodeSetData[n], fNodeSetID[n]);
+  for (int n=0; n < fNodeSetData.Length(); n++)
+    output.AddNodeSet (fNodeSetData[n], fNodeSetID[n]);
 }
 
 /********** private *****************/

@@ -17,44 +17,60 @@ namespace Tahoe {
 class MakeCSE_FEManager;
 class GlobalEdgeFinderT;
 class MakeCSE_IOManager;
+class OutputBaseT;
 
 class NodeManagerPrimitive
 {
  public:
+  /** constructor */
   NodeManagerPrimitive (ostream& out, bool comments, MakeCSE_FEManager& FEM);
 
+  /** read data from model */
   void Initialize (ModelManagerT& model, MakeCSE_IOManager& input);
 
-  /* returns new node number */
+  /** add coordinate and return new node number */
   int AddCoord (const dArrayT& p);
+
+  /** add duplicate coordiante and return new node number */
   int AddDuplicateCoord (const int oldnode);
 
+  /** add nodes to set if set exists, otherwise, add set */
   void AddNodeSet (const StringT& setID, const ArrayT<int>& nodes, CSEConstants::NodeMapMethodT transfermethod);
 
-  /* returns old node number, given the new node number */
+  /** returns old node number, given the new node number (after node has been split or double noded */
   int OriginalNode (const int node) const;
 
+  /** map node sets to new node numbering, after double noding or spliting the nodes */
   void MapNodeSets (const ArrayT<int>& surface1facets, GlobalEdgeFinderT &E);
 
+  /** renumber nodes, so new nodes are inserted into the list */
   void Renumber (CSEConstants::RenumberMethodT option, iArrayT& map);
 
   /* accessors */
-  int NumNodes (void) const;
-  const dArray2DT& InitialCoordinates (void) const;
-  int NumNodeSets (void) const;
-  iArrayT& NodeSet (int set) const;
-  const StringT& NodeSetID (int set) const;
+  int NumNodes (void) const; /** current number of nodes */
+  const dArray2DT& InitialCoordinates (void) const; /** current coordinate list */
 
-  void RegisterOutput (MakeCSE_IOManager& theIO);
+  /** register coordinates and node sets to output manager
+      create node sets of element blocks if desired */
+  void RegisterOutput (OutputBaseT& output, MakeCSE_IOManager& theInput);
   
  private:
+  /** read coordinates from model */
   void EchoCoordinates (ModelManagerT& theInput);
+
+  /** read node sets from model */
   void EchoNodeSets (ModelManagerT& model, MakeCSE_IOManager& theInput);
 
+  /** map node set using surface method, keep node on either surface 1 or surface 2, where CSE's were inserted */
   void SurfaceNodeSet (iArrayT& set, bool surface1, const ArrayT<int>& surface1facets, GlobalEdgeFinderT &E);
+
+  /** map node set, determine which surface the node is on */
   void MapNodeSet (iArrayT& set, const ArrayT<int>& surface1facets, GlobalEdgeFinderT &E);
+
+  /** map node set, add nodes from both surfaces to the set */
   void Split (iArrayT& set);
 
+  /** remove repeats from node set, could move function to nArrayT? */
   void RemoveRepeats (ArrayT<int>& n) const;
 
  private:
@@ -66,20 +82,17 @@ class NodeManagerPrimitive
   int fNumInitCoordinates;
 
   /* MakeCSE items */
-  ArrayT<iArrayT> fNodeSetData;
-  sArrayT fNodeSetID;
-  iArrayT fNew2Old;
-  iAutoArrayT fSplitNodes;
-  ArrayT<iAutoArrayT> fOld2New;
+  ArrayT<iArrayT> fNodeSetData; /**< node set data */
+  sArrayT fNodeSetID; /**< node set ids */
+  iArrayT fNew2Old; /**< map stating what the original node was before the node was split */
+  iAutoArrayT fSplitNodes; /**< nodes that were split */
+  ArrayT<iAutoArrayT> fOld2New; /**< reverse of fNew2Old */
 
-  /* method of node group transfer */
+  /** method of node group transfer */
   ArrayT<CSEConstants::NodeMapMethodT> fTransMethods;
 };
 
 inline int NodeManagerPrimitive::NumNodes (void) const { return fCoordinates.MajorDim(); }
 inline const dArray2DT& NodeManagerPrimitive::InitialCoordinates (void) const { return fCoordinates; }
-inline int NodeManagerPrimitive::NumNodeSets (void) const { return fNodeSetData.Length(); }
-inline iArrayT& NodeManagerPrimitive::NodeSet (int set) const { return fNodeSetData[set]; }
-inline const StringT& NodeManagerPrimitive::NodeSetID (int set) const { return fNodeSetID[set]; }
 }
 #endif

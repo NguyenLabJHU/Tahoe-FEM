@@ -17,6 +17,7 @@ class MakeCSE_IOManager
   virtual void Initialize (void) = 0;
 
   virtual void InputFormat (IOBaseT::FileTypeT &format, StringT& name) = 0;
+  virtual void OutputFormat (IOBaseT::FileTypeT &format, StringT& name) = 0;
   virtual bool Verbose (void) = 0;
   virtual void Facets (sArrayT& names) = 0;
   virtual void Zones (sArrayT& names) = 0;

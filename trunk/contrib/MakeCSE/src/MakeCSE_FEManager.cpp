@@ -12,6 +12,14 @@
 #include "ifstreamT.h"
 #include "sArrayT.h"
 
+#include "ExodusOutputT.h"
+#include "FE_ASCIIT.h"
+#include "EnSightOutputT.h"
+#include "AbaqusOutputT.h"
+#include "TecPlotOutputT.h"
+#include "PatranOutputT.h"
+#include "AVSOutputT.h"
+
 using namespace Tahoe;
 
 MakeCSE_FEManager::MakeCSE_FEManager (ostream& out) :
@@ -65,6 +73,65 @@ void MakeCSE_FEManager::InitializeInput (ifstreamT& in, bool interactive)
   fCSEMakerBoss.Initialize (fModel, *fParameters, *this, fPrintInput);
 }
 
+void MakeCSE_FEManager::InitializeOutput (const StringT& title, const StringT& program_name, const StringT& version)
+{
+  IOBaseT::FileTypeT format;
+  StringT name;
+  fParameters->OutputFormat (format, name);
+
+  name.ToNativePathName();
+  name.Append(".ext"); //trimmed off by fOutput
+
+  sArrayT outstrings (4);
+  outstrings[0] = name;
+  outstrings[1] = title;
+  outstrings[2] = program_name;
+  outstrings[3] = version;
+
+  switch (format)
+    {
+    case IOBaseT::kExodusII:
+      fOutput = new ExodusOutputT (fMainOut, outstrings);
+      break;
+    case IOBaseT::kTahoeII:
+      fOutput = new FE_ASCIIT (fMainOut, true, outstrings);
+      break;
+    case IOBaseT::kEnSight:
+      fOutput = new EnSightOutputT (fMainOut, outstrings, 4, false);
+      break;
+    case IOBaseT::kEnSightBinary:
+      fOutput = new EnSightOutputT (fMainOut, outstrings, 4, true);
+      break;
+    case IOBaseT::kAbaqus:
+      fOutput = new AbaqusOutputT (fMainOut, outstrings, false);
+      break;
+    case IOBaseT::kAbaqusBinary:
+      fOutput = new AbaqusOutputT (fMainOut, outstrings, true);
+      break;
+    case IOBaseT::kTecPlot:
+      fOutput = new TecPlotOutputT (fMainOut, outstrings, 4);
+      break;
+      case IOBaseT::kPatranNeutral:
+	fOutput = new PatranOutputT (fMainOut, outstrings, false);
+	break;
+    case IOBaseT::kAVS:
+    case IOBaseT::kAVSBinary:
+      fOutput = new AVSOutputT (fMainOut, outstrings, false);
+      break;
+    default:
+      {
+	fMainOut << "\n Unknown output format: " << format << "\n";
+	throw eDatabaseFail;
+      }
+    }
+  if (!fOutput) throw eOutOfMemory;  
+  
+  // echo to log file
+  IOBaseT temp (fMainOut);
+  fMainOut << " Output format . . . . . . . . . . . . . . . . . = " << format  << '\n';
+  temp.OutputFormats (fMainOut);
+}
+
 void MakeCSE_FEManager::CreateCSE (void)
 {
   fCSEMakerBoss.Create ();
@@ -100,8 +167,12 @@ void MakeCSE_FEManager::NodesUsed (const StringT& groupID, iArrayT& nodes) const
   if (g > -1) fElementGroups[g]->NodesUsed (nodes);
 }
 
-void MakeCSE_FEManager::WriteOutput (void) const
+void MakeCSE_FEManager::WriteOutput (void)
 {
+  fNodeBoss->RegisterOutput (*fOutput, *fParameters);
+  for (int i=0; i < fElementGroups.Length(); i++)
+    fElementGroups[i]->RegisterOutput (*fOutput);
+  fOutput->WriteGeometry ();
 }
 
 //************** PRIVATE *******************

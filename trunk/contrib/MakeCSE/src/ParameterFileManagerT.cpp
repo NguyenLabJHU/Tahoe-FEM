@@ -44,6 +44,20 @@ void ParameterFileManagerT::InputFormat (IOBaseT::FileTypeT &f, StringT& s)
   in >> f >> s;
 }
 
+void ParameterFileManagerT::OutputFormat (IOBaseT::FileTypeT &f, StringT& s)
+{
+  ifstreamT in ('#', fInFile);
+  if (!AdvanceTo (in, "*OUTPUT"))
+    {
+      cout << "\nParameterFileManagerT::OutputFormat: No *OUTPUT in file.\n";
+      cout << " Using Tahoe II with a file name of defaultoutput. \n\n";
+      f = IOBaseT::kTahoeII;
+      s = "defaultoutput";
+    }
+  else
+    in >> f >> s;
+}
+
 bool ParameterFileManagerT::Verbose (void)
 {
   bool b = false;
