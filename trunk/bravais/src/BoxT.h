@@ -1,4 +1,4 @@
-/* $Id: BoxT.h,v 1.4 2002-08-02 02:07:49 saubry Exp $ */
+/* $Id: BoxT.h,v 1.5 2002-10-16 22:15:51 saubry Exp $ */
 
 #ifndef _BOX_T_H_
 #define _BOX_T_H_
@@ -42,7 +42,9 @@ class BoxT : public VolumeT
 
  private:
 
-  dArray2DT ComputeMinMax();  
+  dArray2DT ComputeMinMax(); 
+  int RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat);
+  int RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat);
 
 };
 

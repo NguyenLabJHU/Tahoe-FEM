@@ -1,4 +1,4 @@
-/* $Id: CrystalLatticeT.cpp,v 1.8 2002-09-18 01:20:42 saubry Exp $ */
+/* $Id: CrystalLatticeT.cpp,v 1.9 2002-10-16 22:15:51 saubry Exp $ */
 #include "CrystalLatticeT.h"
 
 #include <iostream>
@@ -48,7 +48,7 @@ CrystalLatticeT::CrystalLatticeT(int nlsd, int nuca,
 
 	    for (int j=0; j<nLSD; j++)
 	      {	
-		if(norm_vec[j] != 0) 
+		if(norm_vec[j] != 0 || fabs(norm_vec[j]-1.00) <= 1.e-8 ) 
 		  {
 		    for (int i=0; i<nLSD; i++) 
 		      for (int j=0; j<nLSD; j++) 
@@ -83,6 +83,26 @@ CrystalLatticeT::CrystalLatticeT(int nlsd, int nuca,
 	      }
 
 	    angle_rotation = 0;
+
+
+	    cout << "Matrix of rotation:" << "\n";
+	    cout << matrix_rotation(0,0)* norm_vec[0]<< "  " 
+		 <<  matrix_rotation(1,0)* norm_vec[0]<< "  " 
+		 << matrix_rotation(2,0)* norm_vec[0] << "\n";
+	    cout << matrix_rotation(0,1)* norm_vec[1] << "  " 
+		 <<  matrix_rotation(1,1)* norm_vec[1] << "  " 
+		 << matrix_rotation(2,1)* norm_vec[1] << "\n";
+	    cout << matrix_rotation(0,2)* norm_vec[2] << "  " 
+		 <<  matrix_rotation(1,2)* norm_vec[2] << "  " 
+		 << matrix_rotation(2,2)* norm_vec[2] << "\n\n";
+
+	    cout << matrix_rotation(0,0) << "  " <<  matrix_rotation(1,0) << "  " << matrix_rotation(2,0) << "\n";
+	    cout << matrix_rotation(0,1) << "  " <<  matrix_rotation(1,1) << "  " << matrix_rotation(2,1) << "\n";
+	    cout << matrix_rotation(0,2) << "  " <<  matrix_rotation(1,2) << "  " << matrix_rotation(2,2) << "\n";
+
+
+
+
 	  }
 	else if(nLSD == 2)  
 	  {
@@ -139,14 +159,6 @@ dArray2DT  CrystalLatticeT::AxisRotation(dArray2DT A)
 
       for (int i=0; i<nLSD; i++)
 	for (int j=0; j<nLSD; j++)
-	  B(i,j) = 0.0;
-
-      cout << "Q:\n";
-      cout << Q(0,0) << "  " << Q(1,0) << "\n";
-      cout << Q(0,1) << "  " << Q(1,1) << "\n\n";
-
-      for (int i=0; i<nLSD; i++)
-	for (int j=0; j<nLSD; j++)
 	  {
 	    for (int k=0; k<nLSD; k++)
 	      B(i,j) += Q(i,k)*A(k,j);
@@ -165,15 +177,10 @@ dArray2DT  CrystalLatticeT::AxisRotation(dArray2DT A)
       
       for (int i=0; i<nLSD; i++)
 	for (int j=0; j<nLSD; j++)
-	  B(i,j) = 0.0;
-      
-      for (int i=0; i<nLSD; i++)
-	for (int j=0; j<nLSD; j++)
-	  {
-	    for (int k=0; k<nLSD; k++)
-	      B(i,j) += Q(i,k)*A(k,j);
-	  }
+	  for (int k=0; k<nLSD; k++)
+	    B(i,j) += Q(i,k)*A(k,j);
     }
 
   return B;
 }
+
