@@ -1,35 +1,49 @@
-// $Id: FEA_EquateT.cpp,v 1.4 2003-11-21 22:54:43 paklein Exp $
+// $Id: FEA_EquateT.cpp,v 1.5 2004-07-30 17:21:20 paklein Exp $
 #include "FEA.h"
 
 using namespace Tahoe;
 
 //--------------------
 
-FEA_EquateT::FEA_EquateT(void)
+FEA_EquateT::FEA_EquateT(void):
+	length(0),
+	vec_ptrs(NULL)
 {
-length   = 0;
-vec_ptrs = 0;
+
 }
 
 //--------------------
 
-FEA_EquateT::FEA_EquateT(const int len)
+FEA_EquateT::FEA_EquateT(const int len):
+	length(0),
+	vec_ptrs(NULL)
 {
-length = len;
-if (len>0) Allocate(len); 
+	Allocate(len);
 }
 
 //--------------------
 
 /* destructor */
-FEA_EquateT::~FEA_EquateT(void) { delete [] vec_ptrs; }
+FEA_EquateT::~FEA_EquateT(void) 
+{
+	delete [] vec_ptrs; 
+}
 
 //--------------------
 
 void FEA_EquateT::Allocate(const int len)
 {
-length = len;
-vec_ptrs = new double* [len]; 
+	if (len != length)
+	{
+		/* free existing */
+		delete[] vec_ptrs;
+		
+		length = len;
+		if (length > 0)
+			vec_ptrs = new double*[length];
+		else
+			vec_ptrs = NULL;
+	} 
 }
 
 //##################################################################################
