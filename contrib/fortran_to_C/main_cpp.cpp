@@ -1,15 +1,15 @@
-/* $Id: main_cpp.cpp,v 1.3 2003-03-14 21:21:05 paklein Exp $ */
+/* $Id: main_cpp.cpp,v 1.4 2003-03-15 02:21:25 paklein Exp $ */
 #include <iostream.h>
 #include <math.h>
 #include <iomanip.h>
 #include "fortran_names.h"
 
 extern "C" {
-extern void FORTRAN_NAME(double_it)(double*, int*);
-extern void FORTRAN_NAME(sqrt_f)(double*);
-extern void FORTRAN_NAME(sqrt_f_c)(double*);
-extern void FORTRAN_NAME(print_double)(double*);
-extern void FORTRAN_NAME(print_int)(int*);
+void FORTRAN_NAME(double_it)(double*, int*);
+void FORTRAN_NAME(sqrt_f)(double*);
+void FORTRAN_NAME(sqrt_f_c)(double*);
+void FORTRAN_NAME(print_double)(double*);
+void FORTRAN_NAME(print_int)(int*);
 }
 
 static bool d_check(double a_ref, double a_test) {

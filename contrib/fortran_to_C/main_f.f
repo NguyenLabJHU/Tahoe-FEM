@@ -15,5 +15,4 @@
 998   format(i8)
 999   format(e18.13,i8)
 	  
-	  return
 	  end
