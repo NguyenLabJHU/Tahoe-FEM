@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.29 2005-01-05 01:26:42 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.30 2005-02-25 15:38:17 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -50,6 +50,10 @@ public:
 
 	/** destructor */
 	~SolidElementT(void);
+
+	/** close current time increment. Called if the integration over the
+	 * current time increment was successful. */
+	virtual void CloseStep(void);
 
 	/** \name access to nodal values */
 	/*@{*/
@@ -107,6 +111,9 @@ public:
 #endif
 	
 protected:
+
+	/** estimate the largest eigenvalue */
+	double MaxEigenvalue(void);
 
 	/* initialization functions */
 	virtual void SetLocalArrays(void);
@@ -240,6 +247,9 @@ protected:
 
 	/* flags for stress smoothing */
 	bool qUseSimo, qNoExtrap;
+	
+	/** eigenvalue estimation increment */
+	int fEigenvalueInc;
 };
 
 /* accessors */
