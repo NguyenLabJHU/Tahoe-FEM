@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_2.cpp,v 1.1.2.6 2004-05-27 08:13:42 paklein Exp $ */
+/* $Id: FEManagerT_bridging_2.cpp,v 1.1.2.7 2004-05-27 08:45:57 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -282,7 +282,8 @@ if (param.is_open()) {
 		bool set_outer_bounds = false;
 		double outer_bound = bound;
 		double last_bound = bound;
-		int num_continuation = 2;
+		int num_continuation_0 = 2;
+		int num_continuation = num_continuation_0;
 
 		/* solve bond densities */
 		double abs_tol = 1.0e-10;
@@ -516,6 +517,10 @@ if (param.is_open()) {
 				last_bound = bound;
 				last_solution.CopyIn(0, constraint);
 				last_solution.CopyIn(num_eq_p, p_i);
+
+				/* increase step size */
+				if (iter < 3 && num_continuation < num_continuation_0)
+					num_continuation *= 2;
 
 				/* tighten bounds */
 				if (bound > 0.5)
