@@ -1,6 +1,5 @@
-/* $Id: IntegratorT.h,v 1.4 2002-07-05 22:27:53 paklein Exp $ */
+/* $Id: IntegratorT.h,v 1.5 2003-12-28 08:55:56 paklein Exp $ */
 /* created: paklein (10/14/1996) */
-
 #ifndef _CONTROLLER_T_H_
 #define _CONTROLLER_T_H_
 
@@ -11,6 +10,8 @@ namespace Tahoe {
 /* forward declarations */
 class dArrayT;
 class NodeManagerT;
+class eIntegratorT;
+class nIntegratorT;
 
 /** abstract class for time integrators */
 class IntegratorT
@@ -46,6 +47,12 @@ public:
 	 * is formed.  Default action to simply call the NodeManagerT's
 	 * FormRHS function */
 	virtual void FormNodalForce(NodeManagerT* nodeboss) const;
+
+	/** \name casting up */
+	/*@{*/
+	virtual const eIntegratorT& eIntegrator(void) const = 0;
+	virtual const nIntegratorT& nIntegrator(void) const = 0;
+	/*@}*/
 
 protected:
 
