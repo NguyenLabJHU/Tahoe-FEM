@@ -1,4 +1,4 @@
-/* $Id: FBC_CardT.cpp,v 1.5.2.3 2002-04-30 01:30:22 paklein Exp $ */
+/* $Id: FBC_CardT.cpp,v 1.5.2.4 2002-05-03 23:06:40 paklein Exp $ */
 /* created: paklein (06/15/1996) */
 
 #include "FBC_CardT.h"
@@ -71,7 +71,7 @@ double FBC_CardT::CurrentValue(void) const
 }
 
 /* I/O */
-void FBC_CardT::WriteHeader(ostream& out) const
+void FBC_CardT::WriteHeader(ostream& out)
 {
 	double* junk = NULL;
 	int d_width = OutputWidth(out, junk);
