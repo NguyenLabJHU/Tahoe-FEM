@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.5 2001-12-16 23:52:02 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.6 2001-12-19 15:11:42 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -355,6 +355,9 @@ class ModelManagerT
   /** returns quadrature variable values for the stepindex for all elements in the element set */
   void QuadratureVariables (int stepindex, StringT& elsetname, dArray2DT& values); 
 
+  /** returns QA records */
+  void QARecords (ArrayT<StringT>& records);
+
  private:
   /** sets the InputBaseT pointer, scans the model file, registers array data found */
   void ScanModel (const StringT& database);
@@ -432,5 +435,6 @@ inline void ModelManagerT::QuadratureLabels (ArrayT<StringT>& labels) { fInput->
 inline void ModelManagerT::QuadratureVariablesUsed (StringT& name, iArrayT& used) { fInput->QuadratureVariablesUsed (name, used); }
 inline void ModelManagerT::AllQuadratureVariables (int stepindex, dArray2DT& values) { fInput->ReadAllQuadratureVariables (stepindex, values); }
 inline void ModelManagerT::QuadratureVariables (int stepindex, StringT& elsetname, dArray2DT& values) { fInput->ReadQuadratureVariables (stepindex, elsetname, values); }
+inline void ModelManagerT::QARecords (ArrayT<StringT>& records) { fInput->QARecords(records); }
 
 #endif
