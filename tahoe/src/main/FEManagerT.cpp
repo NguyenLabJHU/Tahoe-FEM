@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.50.2.4 2002-12-18 09:52:56 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.50.2.5 2002-12-27 23:12:08 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -155,15 +155,9 @@ void FEManagerT::Initialize(InitCodeT init)
 
 	/* initial configuration of communication manager */
 	if (fModelManager->DatabaseFormat() != IOBaseT::kTahoe)
-	{
-		fComm.SetLog(cout);
 		fCommManager->Configure();
-	}
 
-//TEMP
-else ExceptionT::Stop("FEManagerT::Initialize", "kTahoe format not supported");
-
-	/* resolve node type here */
+	/* set fields */
 	SetNodeManager();
 	if (verbose) cout << "    FEManagerT::Initialize: nodal data" << endl;
 	
@@ -172,7 +166,7 @@ else ExceptionT::Stop("FEManagerT::Initialize", "kTahoe format not supported");
 	if (verbose) cout << "    FEManagerT::Initialize: element groups" << endl;
 
 	/* initial configuration of communication manager */
-	if (fModelManager->DatabaseFormat() == IOBaseT::kTahoe)
+	if (0 && fModelManager->DatabaseFormat() == IOBaseT::kTahoe)
 	{
 		//TEMP
 		ExceptionT::Stop("FEManagerT::Initialize", "kTahoe format not supported");
@@ -628,6 +622,11 @@ void FEManagerT::WriteOutput(double time)
 		/* set output time */
 		fIOManager->SetOutputTime(time);
 
+		/* write marker */
+		ofstreamT& out = Output();
+		out << "\n Time = " << time << '\n';
+		out << " Step " << fTimeManager->StepNumber() << " of " << fTimeManager->NumberOfSteps() << '\n';
+
 		/* nodes */
 		fNodeManager->WriteOutput();
 
@@ -743,13 +742,6 @@ int FEManagerT::ElementGroupNumber(const ElementBaseT* pgroup) const
 	return groupnum;
 }
 
-#if 0
-int FEManagerT::GlobalEquationNumber(int nodenum, int dofnum) const
-{
-	return fNodeManager->GlobalEquationNumber(nodenum, dofnum);
-}
-#endif
-
 int FEManagerT::Rank(void) const { return fComm.Rank(); }
 int FEManagerT::Size(void) const { return fComm.Size(); }
 
@@ -768,35 +760,7 @@ const ArrayT<int>* FEManagerT::PartitionNodes(void) const
 	return fCommManager->PartitionNodes();
 }
 
-//DEV
-#if 0
-void FEManagerT::IncomingNodes(iArrayT& nodes_in ) const {  nodes_in.Free(); }
-void FEManagerT::OutgoingNodes(iArrayT& nodes_out) const { nodes_out.Free(); }
-#endif
-
-void FEManagerT::RecvExternalData(dArray2DT& external_data)
-{
-#pragma unused(external_data)
-	ExceptionT::GeneralFail("FEManagerT::RecvExternalData", "invalid request for external data");
-}
-
-void FEManagerT::SendExternalData(const dArray2DT& all_out_data)
-{
-#pragma unused(all_out_data)
-	ExceptionT::GeneralFail("FEManagerT::RecvExternalData", "invalid send of external data");
-}
-
-void FEManagerT::SendRecvExternalData(const iArray2DT& all_out_data, iArray2DT& external_data)
-{
-#pragma unused(all_out_data)
-#pragma unused(external_data)
-	ExceptionT::GeneralFail("FEManagerT::RecvExternalData", "invalid exchange of external data");
-}
-
-void FEManagerT::Wait(void)
-{
-// do nothing
-}
+void FEManagerT::Wait(void) { fComm.Barrier(); }
 
 /* global number of first local equation */
 GlobalT::EquationNumberScopeT FEManagerT::EquationNumberScope(int group) const

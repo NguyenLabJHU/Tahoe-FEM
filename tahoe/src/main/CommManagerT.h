@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.1.2.5 2002-12-19 03:12:36 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.1.2.6 2002-12-27 23:12:08 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -6,6 +6,7 @@
 #include "dArray2DT.h"
 #include "AutoArrayT.h"
 #include "InverseMapT.h"
+#include "MessageT.h" /* message enum's */
 
 namespace Tahoe {
 
@@ -32,10 +33,20 @@ public:
 	/** set or clear partition information */
 	void SetPartition(PartitionT* partition);
 
-	/** \name setting periodic boundaries */
+	/** the communicator */
+	const CommunicatorT& Communicator(void) const { return fComm; };
+
+	/** \name periodic boundaries */
 	/*@{*/
 	void SetPeriodicBoundaries(int i, double x_i_min, double x_i_max);
 	void ClearPeriodicBoundaries(int i);
+	
+	/** enforce the periodic boundary conditions.
+	 * Enforcement involves the following steps:
+	 * -# shift the displacement of any atoms that have moved outside the box
+	 * -# reset the ghost nodes
+	 * \param field field which provides the displacements of the nodes */
+	void EnforcePeriodicBoundaries(dArray2DT& displacement, double skin);
 	/*@}*/
 
 	/** configure the current local coordinate list and register it with the
@@ -76,7 +87,7 @@ public:
 	/** list of nodes \e not owned by the partition. These are the nodes for which information
 	 * is received from other processors. These nodes are numbered locally
 	 * within the nodes appearing on this processor. Returns NULL if there is no 
-	 * list, indicating \e all nodes are owned by this partition */
+	 * list, indicating \e all nodes are owned by this partition. */
 	const ArrayT<int>* ExternalNodes(void) const;
 
 	/** list of nodes adjacent to nodes in CommManagerT::ExternalNodes. These are the nodes 
@@ -91,19 +102,28 @@ public:
 	/*@{*/
 	/** set up a persistent all gather communication. Distribute the values per
 	 * node for all nodes owned by this process and collect values from nodes
-	 * on other processes.
+	 * on other processes. If called with an nArray2DT argument, the type and minor
+	 * dimension of the array must match the subsequent calls to CommManagerT::AllGather.
+	 * \param t data type to be transmitted
 	 * \param num_vals number of values per node 
 	 * \return ID for this communication */
-	int Init_AllGather(int num_vals);
+	int Init_AllGather(MessageT::TypeT t, int num_vals);
+	int Init_AllGather(const nArray2DT<int>& values);
+	int Init_AllGather(const nArray2DT<double>& values);
 
 	/** clear the persistent communication
 	 * \param ID ID for the communication to be cleared obtained during
-	 *        CommManagerT::Init_AllGather. */
+	 *        CommManagerT::Init_AllGather. 
+	 * \note  Currently, no mechanism is implemented for recovering cleared
+	 *        ID's. The ID's returned by CommManagerT::Init_AllGather will
+	 *        increase sequentially regardless of whether any previous
+	 *        communications have been cleared. */
 	void Clear_AllGather(int id);
 
 	/** perform the all gather. The values from this partition must already by
 	 * in the appropriate location in the destination array */
-	void AllGather(int id, dArray2DT& values);
+	void AllGather(int id, nArray2DT<double>& values);
+	void AllGather(int id, nArray2DT<int>& values);
 	/*@}*/
 
 private:
@@ -120,6 +140,16 @@ private:
 	 * \param local rows of coords to use in determining bounds
 	 * \param bounds returns with the bounds of the given points */
 	void GetBounds(const dArray2DT& coords, const iArrayT& local, dArray2DT& bounds) const;
+
+	/** \name not allowed */
+	/** copy constructor */
+	CommManagerT(CommManagerT&);
+
+	/** assignment operator */
+	const CommManagerT& operator=(const CommManagerT&);
+	/*@{*/
+
+	/*@}*/
 
 private:
 
@@ -215,6 +245,16 @@ inline const ArrayT<int>* CommManagerT::BorderNodes(void) const
 		return &fBorderNodes;
 	else
 		return NULL;
+}
+
+inline int CommManagerT::Init_AllGather(const nArray2DT<int>& values)
+{
+	return Init_AllGather(MessageT::Integer, values.MinorDim());
+}
+
+inline int CommManagerT::Init_AllGather(const nArray2DT<double>& values)
+{
+	return Init_AllGather(MessageT::Double, values.MinorDim());
 }
 
 } /* namespace Tahoe */

@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.h,v 1.14 2002-11-28 17:06:31 paklein Exp $ */
+/* $Id: IOManager_mpi.h,v 1.14.2.1 2002-12-27 23:12:09 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 
 #ifndef _IOMANAGER_MPI_H_
@@ -38,10 +38,8 @@ public:
 	/** destructor */
 	virtual ~IOManager_mpi(void);
 
-#ifdef __TAHOE_MPI__
 	/** distribute/assemble/write output */
 	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
-#endif
 
 private:
 
@@ -85,15 +83,6 @@ private:
 	 * \param format model database format */
 	void ReadOutputGeometry(const StringT& model_file,
 		const ArrayT<OutputSetT*>& element_sets, IOBaseT::FileTypeT format);
-
-#ifdef __TAHOE_MPI__
-	/** clear all outstanding requests - returns 1 of all OK */
-	int Clear(ArrayT<MPI_Request>& requests);
-
-	/** write status information */
-	void WriteStatus(ostream& out, const char* caller, const MPI_Status& status) const;
-
-#endif
 
 private:
 
