@@ -1,12 +1,15 @@
-/* $Id: IOManager_mpi.cpp,v 1.29 2003-11-22 06:44:45 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.30 2003-12-01 23:52:28 cjkimme Exp $ */
 /* created: paklein (03/14/2000) */
 #include "IOManager_mpi.h"
 
+#include "ExceptionT.h"
 #include "fstreamT.h"
 #include "OutputBaseT.h"
 #include "OutputSetT.h"
 #include "PartitionT.h"
 #include "ModelManagerT.h"
+#include "GeometryT.h"
+
 
 using namespace Tahoe;
 
@@ -48,97 +51,169 @@ IOManager_mpi::IOManager_mpi(ifstreamT& in, CommunicatorT& comm,
 			/* output set ID */
 			int IO_ID;
 			
-			/* regular output set */
-			if (set.Mode() == OutputSetT::kElementBlock)
+			switch (set.Mode()) 
 			{
-				/* set block ID's */
-				const ArrayT<StringT>& block_ID = set.BlockID();
+				/* regular output set */
+				case OutputSetT::kElementBlock:
+			 	{
+					/* set block ID's */
+					const ArrayT<StringT>& block_ID = set.BlockID();
 			
-				/* collect connectivities */
-				ArrayT<const iArray2DT*> connect_list(block_ID.Length());
-				for (int j = 0; j < block_ID.Length(); j++)
-				{
-					StringT block_name;
-					block_name.Append(block_ID[j]);
+					/* collect connectivities */
+					ArrayT<const iArray2DT*> connect_list(block_ID.Length());
+					for (int j = 0; j < block_ID.Length(); j++)
+					{
+						StringT block_name;
+						block_name.Append(block_ID[j]);
 			
-					/* collect */
-					connect_list[j] = fOutputGeometry->ElementGroupPointer(block_name);
-				}
+						/* collect */
+						connect_list[j] = fOutputGeometry->ElementGroupPointer(block_name);
+					}
 
-				/* construct output set */
-				OutputSetT global_set(set.Geometry(), block_ID, connect_list,
+					/* construct output set */
+					OutputSetT global_set(set.Geometry(), block_ID, connect_list,
 					set.NodeOutputLabels(), set.ElementOutputLabels(), set.Changing());
 
 //cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: num nodes: " << global_set.NumNodes() << endl;
 //cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: num blocks: " << global_set.NumBlocks() << endl;
 //cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: num elements: " << global_set.NumElements() << endl;
 
-				/* register */
-				IO_ID = AddElementSet(global_set);
-			}
-			else /* construct free set */
-			{
+					/* register */
+					IO_ID = AddElementSet(global_set);
+					
+					break;
+				}
+				/* construct free set */
+				case OutputSetT::kFreeSet: 
+				{
 //cout << fComm.Rank() << ": constructing free set here: " << i << endl;			
 			
-				/* collect number of elements from each processor */
-				iArrayT elem_count(fComm.Size());
-				fComm.Gather(set.NumElements(), elem_count);
+					/* collect number of elements from each processor */
+					iArrayT elem_count(fComm.Size());
+					fComm.Gather(set.NumElements(), elem_count);
 
 //cout << fComm.Rank() << ": counts:\n" << elem_count.wrap(5) << endl;			
 
-				/* allocate space for incoming */
-				const iArray2DT& my_connects = *(set.Connectivities(set.ID()));
-				iArray2DT connects(elem_count.Sum(), my_connects.MinorDim());
+					/* allocate space for incoming */
+					const iArray2DT& my_connects = *(set.Connectivities(set.ID()));
+					iArray2DT connects(elem_count.Sum(), my_connects.MinorDim());
 
-				/* position in buffer */
-				int offset = 0;
-				for (int j = 0; j < fComm.Rank(); j++)
-					offset += elem_count[j];
-				iArrayT send(elem_count[fComm.Rank()], connects.Pointer(offset));	
+					/* position in buffer */
+					int offset = 0;
+					for (int j = 0; j < fComm.Rank(); j++)
+						offset += elem_count[j];
+					iArrayT send(elem_count[fComm.Rank()], connects.Pointer(offset));	
 				
-				/* communicated size */
-				elem_count *= connects.MinorDim();
+					/* communicated size */
+					elem_count *= connects.MinorDim();
 				
-				/* write my connects into send buffer with global node numbering */
-				if (my_connects.Length() > 0)
-				{				
-					/* node map */
-					const iArrayT& node_map = fPartition.NodeMap();
-					for (int j = 0; j < my_connects.Length(); j++)
-						send[j] = node_map[my_connects[j]];
+					/* write my connects into send buffer with global node numbering */
+					if (my_connects.Length() > 0)
+					{				
+						/* node map */
+						const iArrayT& node_map = fPartition.NodeMap();
+						for (int j = 0; j < my_connects.Length(); j++)
+							send[j] = node_map[my_connects[j]];
 
 //cout << fComm.Rank() << ": local:\n" << my_connects.wrap(5) << endl;
 //cout << fComm.Rank() << ": global:\n" << send.wrap(5) << endl;
-				}
+					}
 
-				/* buffer shifts */
-				iArrayT displ(fComm.Size());
-				displ[0] = 0;
-				for (int j = 1; j < displ.Length(); j++)
+					/* buffer shifts */
+					iArrayT displ(fComm.Size());
+					displ[0] = 0;
+					for (int j = 1; j < displ.Length(); j++)
 					displ[j] = displ[j-1] + elem_count[j-1];
 
-				/* collect from all */
-				fComm.Gather(send, connects, elem_count, displ);
+					/* collect from all */
+					fComm.Gather(send, connects, elem_count, displ);
 
 //cout << fComm.Rank() << ": incoming:\n" << connects.wrap(5) << endl;
 
-				/* generate dummy block ID for "connectivities" of free set nodes */
-				StringT dummy_ID = "900"; /* NOTE: same convention used in JoinOutputT::SetOutput */
-				dummy_ID.Append(set.ID());
+					/* generate dummy block ID for "connectivities" of free set nodes */
+					StringT dummy_ID = "900"; /* NOTE: same convention used in JoinOutputT::SetOutput */
+					dummy_ID.Append(set.ID());
 					
-				/* add connectivities to the output model manager */
-				fOutputGeometry->RegisterElementGroup(dummy_ID, connects, set.Geometry(), true);
+					/* add connectivities to the output model manager */
+					fOutputGeometry->RegisterElementGroup(dummy_ID, connects, set.Geometry(), true);
 									
-				/* construct output set */
-				OutputSetT global_set(set.Geometry(), fOutputGeometry->ElementGroup(dummy_ID), 
-					set.NodeOutputLabels());
+					/* construct output set */
+					OutputSetT global_set(set.Geometry(), fOutputGeometry->ElementGroup(dummy_ID), 
+						set.NodeOutputLabels());
 
 //cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: num nodes: " << global_set.NumNodes() << endl;
 //cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: num blocks: " << global_set.NumBlocks() << endl;
 //cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: num elements: " << global_set.NumElements() << endl;
 
-				/* register */
-				IO_ID = AddElementSet(global_set);
+					/* register */
+					IO_ID = AddElementSet(global_set);
+					
+					break;
+				}
+				/* element set derived from Side Set */
+				case OutputSetT::kElementFromSideSet:
+			 	{
+					/* set block ID's */
+					const ArrayT<StringT>& block_ID = set.BlockID();
+					const ArrayT<StringT>& sideSet_ID = set.SideSetID();
+					
+//cout << fComm.Rank() << " block_ID length " << block_ID.Length() << "\n";
+//cout << fComm.Rank() << " SS ID  length : " << sideSet_ID.Length() <<"\n"; 
+//cout << fComm.Rank() << " SSID[0] of " << set.SideSetID(0) <<"\n";
+//cout << fComm.Rank() << " BlockID[0] of " << set.BlockID(0) << "\n";
+					
+					/* Hamstring the model for now */
+					if (sideSet_ID.Length() != 1)
+						ExceptionT::GeneralFail(caller,"Element block not created from 1 sideset\n");
+								
+					/* collect connectivities */
+					ArrayT<const iArray2DT*> connect_list(sideSet_ID.Length());
+					for (int j = 0; j < sideSet_ID.Length(); j++)
+					{
+						StringT block_name;
+						block_name.Append(fOutputGeometry->SideSetGroupID(sideSet_ID[j]));
+			
+						/* get connectivity of element block as facets on nodes */
+						iArrayT facetNodes;
+						iArray2DT faces;
+						ArrayT<GeometryT::CodeT> ssArray;
+
+						fOutputGeometry->SideSet(sideSet_ID[j],ssArray,facetNodes,faces);
+						if (faces.MajorDim() == 0)
+						  ExceptionT::GeneralFail(caller,"Element group created from global side set with no members \n");
+						
+						/* create a real GLOBAL element block with the right connectivity */
+						/* NB that this ID should be the same as the one 
+						 * CSESymAnisoT::ReadConnectivity creates. This is not guaranteed, 
+						 * but we have to live with it like this for now. 
+						 */
+						StringT new_id;
+						new_id.Append(fOutputGeometry->NumElementGroups());
+						new_id = fOutputGeometry->FreeElementID(new_id);
+
+						if (!fOutputGeometry->RegisterElementGroup(new_id,faces,ssArray[0],false))
+						  ExceptionT::GeneralFail(caller,"Cannot create new element group from side set\n");
+						connect_list[j] = fOutputGeometry->ElementGroupPointer(new_id);
+					}
+
+					/* construct output set */
+					OutputSetT global_set(set.Geometry(), block_ID, sideSet_ID, connect_list,
+					set.NodeOutputLabels(), set.ElementOutputLabels(), set.Changing());
+
+//cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: SS num nodes: " << global_set.NumNodes() << endl;
+//cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: SS num blocks: " << global_set.NumBlocks() << endl;
+//cout << fComm.Rank() << ": IOManager_mpi::IOManager_mpi: SS num elements: " << global_set.NumElements() << endl;
+
+					/* register */
+					IO_ID = AddElementSet(global_set);
+					
+					break;
+				}
+				default:
+				{
+					ExceptionT::GeneralFail("IOManager_mpi::IOManager_mpi","Unknown OutputGeometry\n");
+				}
+				
 			}
 
 			/* check */
@@ -847,9 +922,9 @@ void IOManager_mpi::BuildElementAssemblyMap(int set, const StringT& block_ID,
 	const OutputSetT& output_set = *((fOutput->ElementSets())[set]);
 	
 	/* check */
-	if (output_set.Mode() != OutputSetT::kElementBlock) {
+	if (output_set.Mode() != OutputSetT::kElementBlock || output_set.Mode() != OutputSetT::kElementFromSideSet) {
 		cout << "\n IOManager_mpi::BuildElementAssemblyMap: no element assembly map unless\n" 
-		     <<   "     output set mode is " << OutputSetT::kElementBlock 
+		     <<   "     output set mode is " << OutputSetT::kElementBlock << " or " << OutputSetT::kElementFromSideSet  
 		     << ": " << output_set.Mode() << endl;
 		throw ExceptionT::kGeneralFail;
 	}	
@@ -951,7 +1026,7 @@ void IOManager_mpi::CheckAssemblyMaps(void)
 				for (int j = 0; j < map_set.NumElementMaps(); j++)
 					element_count += map_set.ElementMap(j).Length();
 
-				/* sum elements may have redudant assembly, but there should be
+				/* some elements may have redudant assembly, but there should be
 				 * at least as many entries in the maps as there are elements */
 				int num_elements = set.NumElements(); 
 				if (element_count < num_elements)
@@ -1014,11 +1089,13 @@ void IOManager_mpi::ReadOutputGeometry(const StringT& model_file,
 		/* set info */
 		const OutputSetT& output_set = *(element_sets[i]);
 
-		/* free sets are constructed in place */
-		if (output_set.Mode() == OutputSetT::kElementBlock)
+		if (fIO_map[i] == fComm.Rank())
 		{
-			if (fIO_map[i] == fComm.Rank())
+	
+			/* free sets are constructed in place */
+			if (output_set.Mode() == OutputSetT::kElementBlock)
 			{
+			
 				/* element block ID's */
 				const ArrayT<StringT>& block_ID = output_set.BlockID();
 			
@@ -1026,6 +1103,16 @@ void IOManager_mpi::ReadOutputGeometry(const StringT& model_file,
 				for (int j = 0; j < block_ID.Length(); j++)
 					fOutputGeometry->ReadConnectivity(block_ID[j]);
 			}
+			else
+				if (output_set.Mode() == OutputSetT::kElementFromSideSet)
+				{
+					/* side set ID's */
+					const ArrayT<StringT>& sideSet_ID = output_set.SideSetID();
+
+					/* read element block */
+					for (int j = 0; j < sideSet_ID.Length(); j++)
+						fOutputGeometry->SideSet(sideSet_ID[j]);
+				}
 		}
 	}
 }
