@@ -284,6 +284,8 @@ void VoronoiDiagramT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, Ragged
 						
 				// advance supp_0 and supp_1 until they are greater than or equal to current node
 				while (traverseQ_0 && supp_0.Next(s_0) && bVectors_0.Next()) {
+					if (qIsAxisymmetric)
+						circumf_0->Next();
 					next_0 = supp_0.PeekAhead(); 
 					if (!next_0)
 						traverseQ_0 = false;
@@ -318,6 +320,8 @@ void VoronoiDiagramT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, Ragged
 					
 				// advance supp_0 and supp_1 until they are greater than or equal to current node
 				while (traverseQ_1 && supp_1.Next(s_1) && bVectors_1.Next()) {
+					if (qIsAxisymmetric)
+						circumf_1->Next();
 					next_1 = supp_1.PeekAhead(); 
 					if (!next_1)
 						traverseQ_1 = false;
@@ -428,6 +432,9 @@ void VoronoiDiagramT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, Ragged
 			
 			LinkedListT<int>& supp_0 = nodeWorkSpace[n_0];
 			LinkedListT< dArrayT >& bVectors_0 = facetWorkSpace[n_0];
+			LinkedListT<double>* circumf_0;
+			if (qIsAxisymmetric)
+				circumf_0 = &circumferentialWorkSpace[n_0];
 			int s_0;
 			
 			/* Merge support of the boundary node with covering of integration point
@@ -436,6 +443,8 @@ void VoronoiDiagramT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, Ragged
 			int* c_j = ip_cover_key.Pointer();
 			
 			supp_0.Top(); bVectors_0.Top();
+			if (qIsAxisymmetric)
+				circumf_0->Top();
 			next_0 = supp_0.CurrentValue();
 			for (int j = 0; j < n_ip_cover; j++, c++, c_j++) {
 				facetIntegral = facetNormal;
@@ -448,6 +457,8 @@ void VoronoiDiagramT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, Ragged
 						
 				// advance supp_0 and supp_1 until they are greater than or equal to current node
 				while (traverseQ_0 && supp_0.Next(s_0) && bVectors_0.Next()) {
+					if (qIsAxisymmetric)
+						circumf_0->Next();
 					next_0 = supp_0.PeekAhead(); 
 					if (!next_0)
 						traverseQ_0 = false;
@@ -459,10 +470,14 @@ void VoronoiDiagramT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, Ragged
 				if (s_0 != *c) { // means we're not at the end of the linked list
 					supp_0.InsertAtCurrent(*c);
 					bVectors_0.InsertAtCurrent(zeroFacet);
+					if (qIsAxisymmetric)
+						circumf_0->InsertAtCurrent(0.);
 					s_0 = *c;
 					if (supp_0.AtTop()) { // if we're inserting at the front, LinkedListT's behavior requires more work
 						supp_0.Next(); 
 						bVectors_0.Next();
+						if (qIsAxisymmetric)
+							circumf_0->Next();
 					}
 				}
 					
@@ -604,7 +619,6 @@ void VoronoiDiagramT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, Ragged
 				if (s_0 != *n) 
 					ExceptionT::GeneralFail(caller,"Node %d in support of node %d but not in data\n",s_0,*n);
 				
-				currentI = facetIntegral.Pointer();
 				*(circumf_0.CurrentValue()) = phis[*n_j];
 				
 			}
@@ -628,13 +642,16 @@ void VoronoiDiagramT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, Ragged
 			clist = &circumferentialWorkSpace[i];
 			clist->Top();
 			crow_i = circumferential_B(i);
+			cout << cellSupports.MinorDim(i) << " " << bVectors.MinorDim(i) << " " << circumferential_B.MinorDim(i) << "\n";
 		}
 		ilist.Top(); dlist.Top();
 		while (ilist.Next() && dlist.Next()) {
 			*irow_i++ = *(ilist.CurrentValue());
 			*drow_i++ = *(dlist.CurrentValue());
-			if (qIsAxisymmetric)
+			if (qIsAxisymmetric) {
 				*crow_i++ = *(clist->CurrentValue());
+				clist->Next();
+			}
 		}
 	}
 }

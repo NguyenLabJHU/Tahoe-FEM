@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.17 2005-01-25 23:10:01 paklein Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.18 2005-01-26 04:59:52 cjkimme Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 //#define VERIFY_B
@@ -56,24 +56,19 @@ void FS_SCNIMF_AxiT::GenerateOutputLabels(ArrayT<StringT>& labels)
 
 	/* displacement labels */
 	int num_labels = 4; // displacements
-	int num_stress=0;
+	int num_stress=4;
 
-	const char* stress[6];
-	const char* strain[6];
+	const char* stress[4];
+	const char* strain[4];
 	
-	stress[0] = "s11";
-	stress[1] = "s22";
-	strain[0] = "E11";
-	strain[1] = "E22";
-	num_stress=6;
-	stress[2] = "s33";
-	stress[3] = "s23";
-	stress[4] = "s13";
-	stress[5] = "s12";
-	strain[2] = "E33";
-	strain[3] = "E23";
-	strain[4] = "E13";
-	strain[5] = "E12"; 
+	stress[0] = "srr";
+	stress[1] = "szz";
+	stress[2] = "srz";
+	stress[3] = "stt";
+	strain[0] = "Err";
+	strain[1] = "Ezz";
+	strain[2] = "Erz";
+	strain[3] = "Ett";
 	
 	num_labels += 2 * num_stress + 1; 
 	labels.Dimension(num_labels);
@@ -85,7 +80,7 @@ void FS_SCNIMF_AxiT::GenerateOutputLabels(ArrayT<StringT>& labels)
 	for (int ns = 0 ; ns < fSD; ns++)
 	  	labels[dex++] = disp_labels[ns];
 
-	labels[dex++] = "mass";
+	labels[dex++] = "mass/rho";
 	for (int ns = 0 ; ns < num_stress; ns++)
 		labels[dex++] = strain[ns];
 	for (int ns = 0 ; ns < num_stress; ns++)
@@ -98,7 +93,7 @@ void FS_SCNIMF_AxiT::WriteOutput(void)
 	
 	/* dimensions */
 	int ndof = NumDOF();
-	int num_stress = 6;
+	int num_stress = 4;
 	int num_output = 2*ndof + 1 + 2 * num_stress; /* ref. coords, displacements, mass, e, s */
 
 	/* number of output nodes */
@@ -124,8 +119,6 @@ void FS_SCNIMF_AxiT::WriteOutput(void)
 
 	const RaggedArray2DT<int>& nodeSupport = fNodalShapes->NodeNeighbors();
 	
-//	ArrayT<dMatrixT> Flist(1);
-//	Flist[0].Dimension(fSD);
 	dMatrixT& F3D = fF_list[0];
 	dMatrixT F2D(2);
 	dMatrixT BJ(fSD*fSD, fSD);
@@ -166,7 +159,7 @@ void FS_SCNIMF_AxiT::WriteOutput(void)
 		// support size 
 		int n_supp = nodalCellSupports.MinorDim(i);
 		
-		// Compute smoothed deformation gradien
+		// Compute smoothed deformation gradient
 		F2D = 0.0; F_33 = 0.;
 		dArrayT* bVec_i = bVectorArray(i);
 		double* b_33 = circumferential_B(i);
@@ -185,7 +178,6 @@ void FS_SCNIMF_AxiT::WriteOutput(void)
 		E3D.MultATB(F3D, F3D);
 		E3D.PlusIdentity(-1.0);
 		E3D *= 0.5;
-//		fFSMatSupport->SetDeformationGradient(&Flist);
 		
 		/* last deformation gradient */
 		if (fF_last_list.Length() > 0) 
@@ -216,16 +208,19 @@ void FS_SCNIMF_AxiT::WriteOutput(void)
 		double* inp_val = values_i.Pointer() + 2*ndof;
 
 		/* mass */		
-		*inp_val++ = fCellVolumes[i];
+		*inp_val++ = fCellVolumes[i] * 2. * Pi * fCellCentroids(i,0);;
 		
 		/* strain */
 		*inp_val++ = E3D(0,0);
 		*inp_val++ = E3D(1,1);
 		*inp_val++ = E3D(0,1);
+		*inp_val++ = E3D(2,2);
 		
 		/* stress */
-		for (int j = 0; j < num_stress; j++)
-			*inp_val++ = stress[j]; 
+		*inp_val++ = stress[0];
+		*inp_val++ = stress[1];
+		*inp_val++ = stress[2];
+		*inp_val = stress[5];
 	}
 
 	/* send */
@@ -627,8 +622,6 @@ void FS_SCNIMF_AxiT::RHSDriver(void)
 	}
 
 	fForce = 0.0;
-//	ArrayT<dMatrixT> Flist(1);
-//	Flist[0].Dimension(3);
 	dMatrixT& F3D = fF_list[0];
 	dMatrixT BJ(4, 2), fStress3D(3), fStress2D(2), fCauchy(3), Finverse(3);
 	double F_33, S_33, J;
@@ -663,7 +656,6 @@ void FS_SCNIMF_AxiT::RHSDriver(void)
 		J = F3D.Det();
 		if (J <= 0.0)
 			ExceptionT::BadJacobianDet("FS_SCNIMF_AxiT::FormKd");
-//		fFSMatSupport->SetDeformationGradient(&Flist);
 
 		/* last deformation gradient */
 		if (fF_last_list.Length() > 0) 
@@ -719,9 +711,9 @@ void FS_SCNIMF_AxiT::bVectorToMatrix(double *bVector, dMatrixT& BJ)
 {
 #if __option(extended_errorcheck)
 	if (BJ.Rows() != fSD*2) 
-		ExceptionT::SizeMismatch("SCNIMFT::bVectorToMatrix","Matrix has bad majorDim");
+		ExceptionT::SizeMismatch("FS_SCNIMF_AxiT::bVectorToMatrix","Matrix has bad majorDim");
 	if (BJ.Cols() != fSD) 
-		ExceptionT::SizeMismatch("SCNIMFT::bVectorToMatrix","Matrix has bad minorDim");
+		ExceptionT::SizeMismatch("FS_SCNIMF_AxiT::bVectorToMatrix","Matrix has bad minorDim");
 #endif
 
 	double* Bptr = BJ.Pointer();
@@ -734,14 +726,8 @@ void FS_SCNIMF_AxiT::bVectorToMatrix(double *bVector, dMatrixT& BJ)
 		Bptr[2] = *bVector;
 		Bptr[7] = *bVector;
 	}
-	else // fSD == 3
-	{   // I haven't changed this yet
-		Bptr[11] = Bptr[16] = *bVector++;
-		Bptr[7] = *bVector;
-		Bptr[5] = Bptr[15] = *bVector++;
-		Bptr[14] = *bVector;
-		Bptr[4] = Bptr[9] = *bVector;
-	}
+	else
+		ExceptionT::GeneralFail("FS_SCNIMF_AxiT::bVectorToMatrix","Two-D please\n");
 }
 
 /* return a pointer to a new material list */
