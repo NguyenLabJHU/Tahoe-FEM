@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.16 2002-02-18 21:54:18 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.17 2002-03-02 20:25:15 paklein Exp $ */
 /* created: paklein (03/14/2000) */
 
 #include "IOManager_mpi.h"
@@ -1123,16 +1123,13 @@ void IOManager_mpi::CheckAssemblyMaps(void)
 					for (int j = 0; j < elem_assem_map.Length(); j++)
 					{
 						int& check = fill_check[elem_assem_map[j]];
-						if (check != 0)
-						{
-							cout << "\n IOManager_mpi::CheckAssemblyMaps: duplicated fill for element "
-							     << elem_assem_map[j] + 1 << "\n"
-							     <<   "     in assembly map " << k << " for output set ID "
-							     << set.ID() << endl;
-							throw eGeneralFail;
-						}
-						else
-							check = 1;
+						check = 1;
+						
+						/* NOTE: should not check element maps for duplicates because elements
+						 *       are generally reproduced across processor boundaries. However,
+						 *       the values for each of these elements should be identical. The
+						 *       nArray2DT::Assemble used to collect element values in WriteOutput
+						 *       overwrites, not accumulates, values in the global array */
 					}
 				}
 			
