@@ -1,4 +1,4 @@
-/* $Id: vector3D.h,v 1.4 2002-06-17 17:15:07 rjones Exp $ */
+/* $Id: vector3D.h,v 1.5 2002-06-27 16:00:53 rjones Exp $ */
 
 #ifndef _VECTOR_3D_H_
 #define _VECTOR_3D_H_
@@ -66,14 +66,14 @@ inline static void Normalize(double* v)
         v[2] *= scale ;
 };
 
-inline static double TripleProduct(double* v1,double* v2, double* v3)
+inline static double TripleProduct(const double* v1,const double* v2,const double* v3)
 {
         return    v1[1]*v2[2]*v3[0] - v1[2]*v2[1]*v3[0]
                +  v1[2]*v2[0]*v3[1] - v1[0]*v2[2]*v3[1]
                +  v1[0]*v2[1]*v3[2] - v1[1]*v2[0]*v3[2];
 };
 
-inline static void Proj(double* v,double* n, double* proj_v)
+inline static void Proj(const double* v,const double* n, double* proj_v)
 {
         double dot = v[0]*n[0] + v[1]*n[1] + v[2]*n[2];
         proj_v[0] = proj_v[0] - dot * n[0] ;

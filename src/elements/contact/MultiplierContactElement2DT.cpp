@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.cpp,v 1.7 2002-06-08 20:20:19 paklein Exp $ */
+/* $Id: MultiplierContactElement2DT.cpp,v 1.8 2002-06-27 16:00:53 rjones Exp $ */
 // created by : rjones 2001
 #include "MultiplierContactElement2DT.h"
 
@@ -328,7 +328,8 @@ void MultiplierContactElement2DT::LHSDriver(void)
 								(num_nodes*NumSD(),num_nodes*NumSD());
 							for (int j =0; j < NumSD(); j++) 
 								{l1[j] = node->Tangent1()[j];}
-							opp_face->ComputeTangent1(points(i),lm2);
+							opp_face->ComputeTangent1(
+							  node->OpposingLocalCoordinates(),lm2);
 							alpha = Dot(node->Normal(),lm2) 
 							      / Dot(l1.Pointer(),lm2);
 							for (int j =0; j < NumSD(); j++) 

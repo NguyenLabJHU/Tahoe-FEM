@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.25 2002-06-17 17:15:07 rjones Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.26 2002-06-27 16:00:53 rjones Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -347,7 +347,8 @@ void PenaltyContactElement2DT::LHSDriver(void)
 					if (consistent) {
 						for (int j =0; j < nsd; j++) 
 							{l1[j] =node->Tangent1()[j];}
-						node->OpposingFace()->ComputeTangent1(points(i),lm2);
+						node->OpposingFace()->
+						  ComputeTangent1(node->OpposingLocalCoordinates(),lm2);
 						alpha = Dot(node->Normal(),lm2) 
 							/ Dot(l1.Pointer(),  lm2);
 						for (int j =0; j < nsd; j++) 

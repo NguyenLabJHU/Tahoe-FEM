@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement3DT.cpp,v 1.1 2002-06-18 14:25:33 rjones Exp $ */
+/* $Id: PenaltyContactElement3DT.cpp,v 1.2 2002-06-27 16:00:53 rjones Exp $ */
 #include "PenaltyContactElement3DT.h"
 
 #include <math.h>
@@ -11,7 +11,7 @@
 #include "GreenwoodWilliamson.h"
 
 /* vector functions */
-#include "vector2D.h"
+#include "vector3D.h"
 
 /* constants */
 const double PI = 2.0*acos(0.0);
@@ -167,7 +167,7 @@ void PenaltyContactElement3DT::PrintControlData(ostream& out) const
 	out <<'\n';
 }
 
-/* called before LHSDriver during iteration process */
+/* called before LHSdriver during iteration process */
 void PenaltyContactElement3DT::RHSDriver(void)
 { /* form RESIDUAL */ 
   /* update kinematic data */
@@ -259,22 +259,27 @@ void PenaltyContactElement3DT::LHSDriver(void)
   ContactNodeT* node;
   double pre=0.0, dpre_dg=0.0;
   double gap=0.0;
-  double lm2[3];
+  double l11[3], l12[3], l21[3], l22[3];
   dArrayT n1alphal1;
   n1alphal1.Allocate(NumSD());
 
   /* for consistent stiffness */    
-   dArrayT N1nl;
-   VariArrayT<double> N1nl_man(kMaxNumFaceDOF,N1nl);
-   dMatrixT T1;
-   nVariMatrixT<double> T1_man(kMaxNumFaceDOF,T1);
-   dArrayT T1n;
-   VariArrayT<double> T1n_man(kMaxNumFaceDOF,T1n);
+  dArrayT N1nl;
+  VariArrayT<double> N1nl_man(kMaxNumFaceDOF,N1nl);
+  dMatrixT T1;
+  nVariMatrixT<double> T1_man(kMaxNumFaceDOF,T1);
+  dMatrixT T2;
+  nVariMatrixT<double> T2_man(kMaxNumFaceDOF,T2);
+  dMatrixT Z1;
+  nVariMatrixT<double> Z1_man(kMaxNumFaceDOF,Z1);
+  dMatrixT Z2;
+  nVariMatrixT<double> Z2_man(kMaxNumFaceDOF,Z2);
+//dArrayT T1n;
+//VariArrayT<double> T1n_man(kMaxNumFaceDOF,T1n);
 
-   dMatrixT Perm(NumSD());
-   Perm(0,0) = 0.0 ; Perm(0,1) = -1.0;
-   Perm(1,0) = 1.0 ; Perm(1,1) =  0.0;
-   double alpha;
+  dMatrixT W1(NumSD()), W2(NumSD());
+  dMatrixT LL(2), LLi(2);
+  double deti, b[2];
 
 
 	int nsd = NumSD();
@@ -289,10 +294,13 @@ void PenaltyContactElement3DT::LHSDriver(void)
         tmp_LHS_man.SetDimensions(num_nodes*nsd);
         N1_man.SetDimensions(num_nodes*nsd, nsd);
         N1n_man.SetLength(num_nodes*nsd,false);
-		//if consistent
-         N1nl_man.SetLength(num_nodes*nsd,false);
-         T1_man.SetDimensions(num_nodes*nsd, nsd);
-         T1n_man.SetLength(num_nodes*nsd,false);
+        N1nl_man.SetLength(num_nodes*nsd,false);
+  		/* for consistent stiffness */    
+        T1_man.SetDimensions(num_nodes*nsd, nsd);
+        T2_man.SetDimensions(num_nodes*nsd, nsd);
+        Z1_man.SetDimensions(num_nodes*nsd, nsd);
+        Z2_man.SetDimensions(num_nodes*nsd, nsd);
+//      T1n_man.SetLength(num_nodes*nsd,false);
         weights_man.SetLength(num_nodes,false);
         eqnums1_man.SetMajorDimension(num_nodes,false);
         /* form stiffness */
@@ -330,56 +338,84 @@ void PenaltyContactElement3DT::LHSDriver(void)
 						(node->OpposingLocalCoordinates(),N2);
 					const double* nm1 = node->Normal();
 					for (int j =0; j < nsd; j++) {n1[j] = nm1[j];}
+					N1.Multx(n1, N1nl);
+					if (consistent > 2 || consistent == 2) {
+						/* D xi_a,  assuming g approx 0 */
+						/* unique tangents of node on surface 1*/
+						for (int j =0; j < nsd; j++) { 
+							l11[j] =node->Tangent1()[j];
+							l12[j] =node->Tangent2()[j];
+						}
+						/* face tangents on surface 2 */
+						opp_face->
+						  ComputeTangent1(node->OpposingLocalCoordinates(),l21);
+						opp_face->
+						  ComputeTangent2(node->OpposingLocalCoordinates(),l22);
+						LL(0,0) = Dot(l11,l21);
+						LL(1,0) = Dot(l12,l21);
+						LL(0,1) = Dot(l11,l22);
+						LL(1,1) = Dot(l12,l22);
+						deti = 1/(LL(0,0)*LL(1,1)-LL(0,1)*LL(1,0));
+						LLi(0,0) = deti * LL(1,1);
+						LLi(1,1) = deti * LL(0,0);
+						LLi(0,1) = -deti * LL(0,1);
+						LLi(1,0) = -deti * LL(1,0);
+						
+						b[0] = Dot(nm1,l21);
+						b[1] = Dot(nm1,l22);
+						 
+						for (int j =0; j < nsd; j++) {
+							n1[j] -= (b[0]*LLi(0,0) + b[1]*LLi(1,0))*l11[j]
+							       + (b[0]*LLi(0,1) + b[1]*LLi(1,1))*l12[j];
+						}
+					}
 					N1.Multx(n1, N1n);
 					N2.Multx(n1, N2n); 
 
-					/* N1n (x) D g */
 					/* Part:  dx1 (x) dx2 */
 					tmp_LHS_man.SetDimensions(opp_num_nodes*nsd);
-					tmp_LHS.Outer(N1n, N2n);
+					tmp_LHS.Outer(N1nl, N2n);
 					tmp_LHS.SetToScaled(-dpre_dg*weights[i], tmp_LHS);
-
 					/* get equation numbers */
 					Field().SetLocalEqnos(conn2, eqnums2);
 					/* assemble primary-secondary face stiffness */
 					ElementSupport().AssembleLHS(Group(), tmp_LHS, eqnums1,eqnums2);
 
-                    consistent = 0 ; // HACK
 					/* Part:  dx1 (x) dx1 */
-					if (consistent) {
-						for (int j =0; j < nsd; j++) 
-							{l1[j] =node->Tangent1()[j];}
-						node->OpposingFace()->ComputeTangent1(points(i),lm2);
-						alpha = Dot(node->Normal(),lm2) 
-							/ Dot(l1.Pointer(),  lm2);
-						for (int j =0; j < nsd; j++) 
-							{n1alphal1[j] = n1[j] - alpha*l1[j];}
-						N1.Multx(n1alphal1, N1nl);
-						tmp_LHS.Outer(N1n, N1nl);
-						tmp_LHS_man.SetDimensions(num_nodes*nsd);
-						tmp_LHS.SetToScaled(dpre_dg*weights[i], tmp_LHS);
-						LHS += tmp_LHS;
-
-						face->ComputeShapeFunctionDerivatives(points(i),T1);
+					tmp_LHS.Outer(N1n, N1n);
+					tmp_LHS.SetToScaled(dpre_dg*weights[i], tmp_LHS);
+					LHS += tmp_LHS;
+					if (consistent) { /* D jn [dx] */
+						/* D j */
+						face->ComputeShapeFunctionDerivatives(points(i),T1,T2);
+						/* face tangents */
+						face->ComputeTangent1(points(i),l11);
+						face->ComputeTangent2(points(i),l12);
 						double jac = face->ComputeJacobian(points(i));
-
-						T1.Multx(n1, T1n);
-						tmp_LHS.Outer(N1n, T1n);
-						tmp_LHS.SetToScaled(pre*alpha*weights[i]/jac, tmp_LHS);
+						W2 = 0;
+						W2(1,2) = -l12[0]; // -(1),[2,3]
+						W2(2,1) =  l12[0]; // -(1),[3,2]
+						W2(0,2) =  l12[1]; // -(2),[1,3]
+						W2(2,0) = -l12[1]; // -(2),[3,1]
+						W2(0,1) = -l12[2]; // -(3),[1,2]
+						W2(1,0) =  l12[2]; // -(3),[2,1]
+						W1 = 0;
+						W1(1,2) = -l11[0];
+						W1(2,1) =  l11[0];
+						W1(0,2) =  l11[1];
+						W1(2,0) = -l11[1];
+						W1(0,1) = -l11[2];
+						W1(1,0) =  l11[2];
+						Z1.MultABT(T1,W2);
+						Z2.MultABT(T2,W1);
+						Z2.AddScaled(-1.0,Z1);
+						tmp_LHS.MultABT(N1, Z2);
+						tmp_LHS.SetToScaled(-pre*weights[i]/jac, tmp_LHS);
 						LHS += tmp_LHS;
-
-						T1.MultAB(T1,Perm);
-						tmp_LHS.MultABT(N1, T1);
-						tmp_LHS.SetToScaled(-pre*weights[i], tmp_LHS);
-						LHS += tmp_LHS;
-					} else {
-						tmp_LHS.Outer(N1n, N1n);
-						tmp_LHS.SetToScaled(dpre_dg*weights[i], tmp_LHS);
-						LHS += tmp_LHS;
-					}
+					} 
 				}
 			}
-          	/* assemble primary-primary face stiffness */
+			/* assemble primary-primary face stiffness */
 			if (in_contact) ElementSupport().AssembleLHS(Group(), LHS, eqnums1);
 		}
 	}
