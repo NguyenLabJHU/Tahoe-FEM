@@ -1,4 +1,4 @@
 @
-# $Id: run.batch,v 1.1 2004-04-04 03:00:43 paklein Exp $
+# $Id: run.batch,v 1.2 2004-04-21 07:40:19 paklein Exp $
 force.controller/run.batch
-
+contact_simple/run.batch
