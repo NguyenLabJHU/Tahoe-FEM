@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.11 2001-12-20 18:26:22 thao Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.12 2002-01-31 19:01:43 ebmarin Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList2DT.h"
@@ -45,6 +45,8 @@
 #include "BCJHypo2D.h"
 #include "LocalCrystalPlast2D.h"
 #include "GradCrystalPlast2D.h"
+#include "LocalCrystalPlastFp2D.h"
+#include "GradCrystalPlastFp2D.h"
 
 /* constructor */
 SolidMatList2DT::SolidMatList2DT(int length, const ElasticT& element_group):
@@ -346,6 +348,24 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
 
 				fArray[matnum] = new GradCrystalPlast2D(in, *fFiniteStrain);
+				fHasHistory = true;
+				break;
+			}
+			case kLocXtalPlastFp:
+			{
+				/* check */
+				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new LocalCrystalPlastFp2D(in, *fFiniteStrain);
+				fHasHistory = true;
+				break;
+			}
+			case kGrdXtalPlastFp:
+			{
+				/* check */
+				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new GradCrystalPlastFp2D(in, *fFiniteStrain);
 				fHasHistory = true;
 				break;
 			}
