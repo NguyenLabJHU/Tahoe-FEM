@@ -1,4 +1,4 @@
-/* $Id: ComparatorT.cpp,v 1.13 2002-02-21 09:01:32 paklein Exp $ */
+/* $Id: ComparatorT.cpp,v 1.14 2002-03-04 06:59:07 paklein Exp $ */
 
 #include "ComparatorT.h"
 
@@ -7,11 +7,9 @@
 #include <time.h>
 #include <strstream.h>
 
+#include "ModelManagerT.h"
 #include "fstreamT.h"
-#include "Constants.h"
-#include "ExceptionCodes.h"
-#include "StringT.h"
-#include "dArray2DT.h"
+#include "dArrayT.h"
 
 const char kBenchmarkDirectory[] = "benchmark";
 
@@ -84,7 +82,12 @@ void ComparatorT::RunJob(ifstreamT& in, ostream& status)
 
 	/* append to results */
 	cout << "\nSTART: " << in.filename() << '\n';
-	bool result = PassOrFail(in);
+	bool result = false;
+	try { result = PassOrFail(in); }
+	catch (int error) {
+		cout << in.filename() << ": " << "EXCEPTION: " << error << endl;
+		result = false;
+	}
 	fPassFail.Append(result);
 	cout << in.filename() << ": " << ((result) ? "PASS" : "FAIL") << '\n';
 	cout << "\nEND: " << in.filename() << '\n';
@@ -275,6 +278,138 @@ bool ComparatorT::PassOrFail(const StringT& file_1, const StringT& file_2,
 	bool do_rel, bool do_abs)
 {
 	/* open file_1 -> "current" */
+	ModelManagerT res_1(cout);
+	try {
+		/* file format */
+		IOBaseT::FileTypeT format = IOBaseT::name_to_FileTypeT(file_1);
+		if (!res_1.Initialize(format, file_1, true)) throw eDatabaseFail;			
+	}
+	catch (int error) {
+		cout << "\n ComparatorT::PassOrFail: could not initialize file \"" << file_1 << '\"' << endl;	
+		return false;
+	}
+
+	/* open file_2 -> "benchmark" */
+	ModelManagerT res_2(cout);
+	try {
+		/* file format */
+		IOBaseT::FileTypeT format = IOBaseT::name_to_FileTypeT(file_2);
+		if (!res_2.Initialize(format, file_2, true)) throw eDatabaseFail;			
+	}
+	catch (int error) {
+		cout << "\n ComparatorT::PassOrFail: could not initialize file \"" << file_2 << '\"' << endl;	
+		return false;
+	}
+	
+	/* verify node dimensions */
+	if (res_1.NumNodes() != res_2.NumNodes() ||
+	    res_1.NumDimensions() != res_2.NumDimensions()) {
+		cout << "\n ComparatorT::PassOrFail: node dimension mismatch" << endl;	    
+	    return false;
+	}
+	if (res_1.NumNodeVariables() != res_2.NumNodeVariables()) {
+		cout << "\n ComparatorT::PassOrFail: node variable dimension mismatch" << endl;	    
+	    return false;
+	}
+
+	/* verify block IDs and dimensions */
+	if (res_1.NumElementVariables() != res_2.NumElementVariables()) {
+		cout << "\n ComparatorT::PassOrFail: element variable dimension mismatch" << endl;	    
+	    return false;
+	}
+	const ArrayT<StringT>& block_1 = res_1.ElementGroupIDs();
+	const ArrayT<StringT>& block_2 = res_2.ElementGroupIDs();
+	if (block_1.Length() != block_2.Length()) {
+		cout << "\n ComparatorT::PassOrFail: number of element block ID's don't match" << endl;	    
+	    return false;		
+	}
+	for (int i = 0; i < block_1.Length(); i++) {
+		if (block_1[i] != block_2[i]) {
+			cout << "\n ComparatorT::PassOrFail: block ID mismatch" << endl;	    
+	    	return false;		
+		}
+		else {
+			int nel_1, nen_1;
+			res_1.ElementGroupDimensions(block_1[i], nel_1, nen_1);
+			int nel_2, nen_2;
+			res_2.ElementGroupDimensions(block_2[i], nel_2, nen_2);
+			if (nel_1 != nel_2 || nen_1 != nen_2) {
+				cout << "\n ComparatorT::PassOrFail: block dimension mismatch" << endl;
+	    		return false;		
+			}
+		}
+	}
+	
+	/* verify number of results */
+	dArrayT time_1, time_2;
+	res_1.TimeSteps(time_1);
+	res_2.TimeSteps(time_2);
+	if (time_1.Length() != time_2.Length()) {
+		cout << "\n ComparatorT::PassOrFail: number of output steps don't match" << endl;
+		return false;
+	}
+	for (int i = 0; i < time_1.Length(); i++)
+		if (fabs(time_1[i] - time_2[i]) > 1.0e-12) {
+			cout << "\n ComparatorT::PassOrFail: output step time mismatch" << endl;
+			return false;
+		}
+		
+	/* verify node ids */
+	iArrayT ids_1, ids_2;
+	res_1.AllNodeIDs(ids_1);
+	res_2.AllNodeIDs(ids_2);
+	for (int i = 0; i < ids_1.Length(); i++)
+		if (ids_1[i] != ids_2[i]) {
+			cout << "\n ComparatorT::PassOrFail: node id mismatch" << endl;
+			return false;
+		}
+	
+	/* output labels */
+	ArrayT<StringT> n_labels_1, n_labels_2;
+	res_1.NodeLabels(n_labels_1);
+	res_2.NodeLabels(n_labels_2);
+	ArrayT<StringT> e_labels_1, e_labels_2;
+	res_1.ElementLabels(e_labels_1);
+	res_2.ElementLabels(e_labels_2);
+
+	/* run through time steps */
+	for (int i = 0; i < time_1.Length(); i++) {
+
+		/* nodal values */
+		dArray2DT n_values_1(res_1.NumNodes(), res_1.NumNodeVariables());
+		dArray2DT n_values_2(res_2.NumNodes(), res_2.NumNodeVariables());
+		res_1.AllNodeVariables(i, n_values_1);
+		res_2.AllNodeVariables(i, n_values_2);
+
+		/* compare nodal blocks */
+		if (!CompareDataBlocks(n_labels_1, n_values_1, n_labels_2, n_values_2, do_rel, do_abs)) {
+			cout << "nodal data check: FAIL" << '\n';
+			return false;
+		}
+		else cout << "nodal data check: PASS" << '\n';
+
+		/* element values */
+		dArray2DT e_values_1(res_1.NumElements(), res_1.NumElementVariables());
+		dArray2DT e_values_2(res_2.NumElements(), res_2.NumElementVariables());
+		res_1.AllElementVariables(i, e_values_1);
+		res_2.AllElementVariables(i, e_values_2);
+		
+		/* compare element blocks */
+		if (!CompareDataBlocks(e_labels_1, e_values_1, e_labels_2, e_values_2, do_rel, do_abs)) {
+			cout << "element data check: FAIL" << '\n';
+			return false;
+		}
+		else cout << "element data check: PASS" << '\n';
+	}
+
+	/* pass if fails through */
+	return true;
+}
+
+bool ComparatorT::PassOrFail_old(const StringT& file_1, const StringT& file_2,
+	bool do_rel, bool do_abs)
+{
+	/* open file_1 -> "current" */
 	ifstreamT current_in(file_1);
 	cout << "looking for current results: " << file_1 << ": "
 	     << ((current_in.is_open()) ? "found" : "not found") << '\n';
@@ -424,13 +559,13 @@ bool ComparatorT::ReadNodalData(ifstreamT& in, ArrayT<StringT>& labels, dArray2D
 	if (num_values > 0)
 	{
 		/* read labels */
-		labels.Allocate(num_values + 1); // +1 for node number
+		labels.Allocate(num_values + 2); // +2 for index and node number
 		for (int i = 0; i < labels.Length(); i++)
 			in >> labels[i];
 		if (!in.good()) return false;
 	
 		/* read values */
-		data.Allocate(num_nodes, num_values + 1); // +1 for node number
+		data.Allocate(num_nodes, num_values + 2); // +2 for index and node number
 		in >> data;
 	}
 	return true;
@@ -444,7 +579,7 @@ bool ComparatorT::ReadElementData(ifstreamT& in, ArrayT<StringT>& labels, dArray
 	if (!in.FindString("Element data:", str)) return false;
 
 	/* get dimensions */
-	int num_nodes, num_values, i_block_ID;
+	int num_nodes, num_values;
 	if (!in.FindString("Block ID", str)) return false;
 	str.Tail('=', block_ID);
 
@@ -456,13 +591,13 @@ bool ComparatorT::ReadElementData(ifstreamT& in, ArrayT<StringT>& labels, dArray
 	if (num_values > 0)
 	{
 		/* read labels */
-		labels.Allocate(num_values + 1); // +1 for node number
+		labels.Allocate(num_values + 2); // +2 for index and element number
 		for (int i = 0; i < labels.Length(); i++)
 			in >> labels[i];
 		if (!in.good()) return false;
 	
 		/* read values */
-		data.Allocate(num_nodes, num_values + 1); // +1 for node number
+		data.Allocate(num_nodes, num_values + 2); // +2 for index and element number
 		in >> data;
 	}
 	return true;
