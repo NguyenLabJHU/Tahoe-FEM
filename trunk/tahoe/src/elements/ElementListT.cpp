@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.60 2003-08-14 06:00:11 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.61 2003-08-22 20:19:31 thao Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -97,6 +97,8 @@
 #include "SmallStrainMF.h"
 #include "SSMF.h"
 #include "SSQ2P1MF.h"
+#include "SmallStrainQ1P0.h"
+#include "SSQ1P0MF.h"
 #endif /* MATERIAL_FORCE_ELEMENT_DEV */
 #endif
 
@@ -669,6 +671,15 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		  fArray[group] = new SmallStrainQ2P1(fSupport, *field);
 		  break;
 #else
+		  ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
+#endif
+		}
+		case ElementT::kSmallStrainQ1P0:
+		{
+#ifdef SOLID_ELEMENT_DEV
+		  fArray[group] = new SmallStrainQ1P0(fSupport, *field);
+		  break;
+#else
 			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or MATERIAL_FORCE_ELEMENT_DEV not enabled: %d", code);
 #endif
 		}
@@ -676,6 +687,15 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		{
 #if defined (SOLID_ELEMENT_DEV) && defined (MATERIAL_FORCE_ELEMENT_DEV)
 		  fArray[group] = new SSQ2P1MF(fSupport, *field);
+		  break;
+#else
+		  ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
+#endif
+		}
+		case ElementT::kSSQ1P0MF:
+		{
+#ifdef SOLID_ELEMENT_DEV
+		  fArray[group] = new SSQ1P0MF(fSupport, *field);
 		  break;
 #else
 			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or MATERIAL_FORCE_ELEMENT_DEV not enabled: %d", code);
