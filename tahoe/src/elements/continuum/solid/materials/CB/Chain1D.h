@@ -1,4 +1,4 @@
-/* $Id: Chain1D.h,v 1.1.4.1 2004-04-24 19:57:32 paklein Exp $ */
+/* $Id: Chain1D.h,v 1.1.4.2 2004-05-01 18:57:06 paklein Exp $ */
 #ifndef _CHAIN_1D_H_
 #define _CHAIN_1D_H_
 
@@ -78,6 +78,10 @@ private:
 
 	/** dummy full bond density array */
 	dArrayT fFullDensity;
+
+	/** flag to indicate whether stress calculation for output should include
+	 * the full bond density */
+	bool fFullDensityForStressOutput;
 };
 
 } /* namespace Tahoe */

@@ -1,4 +1,4 @@
-/* $Id: Chain1D.cpp,v 1.1.4.2 2004-04-28 05:29:04 paklein Exp $ */
+/* $Id: Chain1D.cpp,v 1.1.4.3 2004-05-01 18:57:06 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Chain1D.h"
 #include "ElementsConfig.h"
@@ -28,7 +28,8 @@ Chain1D::Chain1D(ifstreamT& in, const FSMatSupportT& support):
 	fPairProperty(NULL),
 	fAtomicVolume(0),
 	fBondTensor4(dSymMatrixT::NumValues(1)),
-	fBondTensor2(dSymMatrixT::NumValues(1))	
+	fBondTensor2(dSymMatrixT::NumValues(1)),
+	fFullDensityForStressOutput(true)
 {
 	const char caller[] = "Chain1D::Chain1D";
 
@@ -177,7 +178,8 @@ void Chain1D::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
 	const double* density = fFullDensity.Pointer();
 	int nb = fLattice1D->NumberOfBonds();
 	const ElementCardT* element = MaterialSupport().CurrentElement();
-	if (element && element->IsAllocated()) {
+	bool keep_full_density = MaterialSupport().RunState() == GlobalT::kWriteOutput && fFullDensityForStressOutput;
+	if (!keep_full_density && element && element->IsAllocated()) {
 		const dArrayT& d_array = element->DoubleData();
 		density = d_array.Pointer(CurrIP()*nb);
 	}

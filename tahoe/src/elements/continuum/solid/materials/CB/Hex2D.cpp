@@ -1,4 +1,4 @@
-/* $Id: Hex2D.cpp,v 1.2.46.2 2004-04-28 05:29:04 paklein Exp $ */
+/* $Id: Hex2D.cpp,v 1.2.46.3 2004-05-01 18:57:06 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Hex2D.h"
 #include "ElementsConfig.h"
@@ -30,7 +30,8 @@ Hex2D::Hex2D(ifstreamT& in, const FSMatSupportT& support):
 	fHexLattice2D(NULL),
 	fPairProperty(NULL),
 	fBondTensor4(dSymMatrixT::NumValues(2)),
-	fBondTensor2(dSymMatrixT::NumValues(2))	
+	fBondTensor2(dSymMatrixT::NumValues(2)),
+	fFullDensityForStressOutput(true)
 {
 	const char caller[] = "Hex2D::Hex2D";
 
@@ -181,7 +182,8 @@ void Hex2D::ComputePK2(const dSymMatrixT& E, dSymMatrixT& PK2)
 	const double* density = fFullDensity.Pointer();
 	int nb = fHexLattice2D->NumberOfBonds();
 	const ElementCardT* element = MaterialSupport().CurrentElement();
-	if (element && element->IsAllocated()) {
+	bool keep_full_density = MaterialSupport().RunState() == GlobalT::kWriteOutput && fFullDensityForStressOutput;
+	if (!keep_full_density && element && element->IsAllocated()) {
 		const dArrayT& d_array = element->DoubleData();
 		density = d_array.Pointer(CurrIP()*nb);
 	}
