@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.10 2002-01-07 00:56:22 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.11 2002-01-07 02:14:48 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #include "FEExecutionManagerT.h"
@@ -520,7 +520,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	{
 		if (CommandLineOption("-split_io"))
 		{
-			cout << "\n ::RunJob_parallel: missing partial geometry files are not regenerated"
+			cout << "\n ::RunJob_parallel: missing partial geometry files are not regenerated\n"
 			     <<   "     with command line option \"-split_io\": \n"
 			     << partial_file << endl;
 			throw eBadInputValue;
@@ -581,7 +581,7 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	
 	/* external IO */
 	IOManager_mpi* IOMan = NULL;
-	if (!CommandLineOption("-es"))
+	if (!CommandLineOption("-split_io"))
 	{
 		/* read output map */
 		iArrayT output_map;
