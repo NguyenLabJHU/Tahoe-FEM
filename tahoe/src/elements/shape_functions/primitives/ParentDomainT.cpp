@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.12 2002-08-12 17:43:56 hspark Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.13 2002-08-13 02:58:56 hspark Exp $ */
 /* created: paklein (07/03/1996) */
 
 #include "ParentDomainT.h"
@@ -592,12 +592,11 @@ bool ParentDomainT::PointInDomain(const LocalArrayT& coords, const dArrayT& poin
   else if (dim == 2)
   {
     /* currently assuming square/rectangular elements */
-    cout << "coords = \n" << point << endl;
-    if (point[0] <= coords(0,0) && point[0] >= coords(1,0))
+    if (point[0] >= coords(0,0) && point[0] <= coords(1,0))
       x = 1;
     else
       x = 0;
-    if (point[1] >= coords(0,1) && point[1] <= coords(3,1))
+    if (point[1] >= coords(1,1) && point[1] <= coords(2,1))
       y = 1;
     else
       y = 0;
@@ -633,15 +632,48 @@ bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& 
     }
   if (dim == 2)
     {
+      /* solve iteratively via Newton method */
+      dArrayT Na(NumNodes()), Res(NumSD()), Current(NumSD()), Temp(NumSD());
+      Res = 0.0, Current = 0.0;
+      dArray2DT DNa(NumSD(), NumNodes());
+      dMatrixT Jacob(NumSD()), Jacobinv(NumSD());
+      EvaluateShapeFunctions(Current, Na, DNa);
+      Jacobian(coords, DNa, Jacob);
+      Jacobinv.Inverse(Jacob);
       
+      /* compute initial residual */
+      for (int i = 0; i < NumNodes(); i++)
+	{
+	  Res[0] += Na[i] * coords(i,0);
+	  Res[1] += Na[i] * coords(i,1);
+	}
+      Res[0] -= point[0];
+      Res[1] -= point[1];
+      double magres0 = Res.Magnitude();
 
-
-
+      /* perform Newton iterations */
+      int count = 0;
+      while (count++ < 15 && Res.Magnitude()/magres0 > 10e-14)
+	{
+	  Res *= -1.0;
+	  Jacobinv.Multx(Res,Temp);
+	  Current += Temp;
+	  EvaluateShapeFunctions(Current, Na);
+	  Res = 0.0;
+	  for (int i = 0; i < NumNodes(); i++)
+	    {
+	      Res[0] += Na[i] * coords(i,0);
+	      Res[1] += Na[i] * coords(i,1);
+	    }
+	  Res[0] -= point[0];
+	  Res[1] -= point[1];
+	}
+      mapped = Current;
     }
 #pragma unused(coords)
 #pragma unused(point)
 #pragma unused(mapped)
-	return true;
+  return true;
 }
 
 /* calculate a characteristic domain size */
