@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.13 2002-04-07 19:14:59 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.14 2002-04-11 17:05:52 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleT.h"
@@ -21,7 +21,8 @@
 const bool ArrayT<iConsoleT::CommandScope>::fByteCopy = true;
 
 /* constructor */
-iConsoleT::iConsoleT(const StringT& log_file, iConsoleObjectT& current):
+iConsoleT::iConsoleT(const StringT& log_file, iConsoleObjectT& current,
+	const ArrayT<StringT>* arguments):
 	flog(log_file, true),
 	fmax_recursion_depth(25),
 	fhistory_size(10),
@@ -133,8 +134,16 @@ iConsoleT::iConsoleT(const StringT& log_file, iConsoleObjectT& current):
 	/* clear history */
 	fHistory = NULL;
 	
+	/* pull read command line arguments */
+	StringT command_line;
+	if (arguments) {
+		for (int i = 0; i < arguments->Length(); i++)
+			if ((*arguments)[i] == "-r" && i < arguments->Length() - 1)
+				command_line.Append("read ", (*arguments)[i+1], ";");	
+	}
+	
 	/* run */
-	DoInteractive();
+	DoInteractive(command_line);
 }
 
 /* destructor */
@@ -382,7 +391,7 @@ bool iConsoleT::iDoVariable(const StringT& variable, StringT& line)
 ************************************************************************/
 
 /* main event loop */
-void iConsoleT::DoInteractive(void)
+void iConsoleT::DoInteractive(const StringT& first_line)
 {
 	/* open log stream */
 	time_t the_time;
@@ -390,9 +399,14 @@ void iConsoleT::DoInteractive(void)
 	flog << "\n###################################################\n"
 	     << "# open: " << ctime(&the_time)
 	     << "###################################################\n";
-	
+
+	/* strings that act as command stacks */
 	StringT line, log_line;
-	GetCommandLine(line);
+
+	/* initialize command que */
+	line = first_line;
+
+	/* run interactive */
 	bool end = false;
 	bool line_OK = true;
 	bool do_log = false;
