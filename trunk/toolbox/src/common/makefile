@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.13 2003-03-04 06:41:12 paklein Exp $
+# $Id: makefile,v 1.14 2003-03-08 04:31:12 paklein Exp $
 # object directory makefile - compilation instructions
 #
 
@@ -51,7 +51,8 @@ HDR = \
 	ExceptionCodes.h \
 	ExceptionT.h \
 	ios_fwd_decl.h \
-	NewMemory.h
+	NewMemory.h \
+	fortran.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
