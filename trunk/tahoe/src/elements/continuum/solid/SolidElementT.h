@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.16 2002-10-05 20:07:45 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.17 2002-10-09 16:25:22 paklein Exp $ */
 #ifndef _ELASTIC_T_H_
 #define _ELASTIC_T_H_
 
@@ -81,13 +81,13 @@ public:
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
 
-protected:
-
 	/** strain-displacement options.
 	 * \note This really belongs in SmallStrainT; however, will be here for
 	 * not to allow input files to be unchanged. */
 	enum StrainOptionT {kStandardB = 0, /**< standard strain-displacement matrix */
 	                  kMeanDilBbar = 1  /**< mean dilatation for near incompressibility */ };
+
+protected:
 
 	/** stream extraction operator */
 	friend istream& operator>>(istream& in, SolidElementT::StrainOptionT& type);
