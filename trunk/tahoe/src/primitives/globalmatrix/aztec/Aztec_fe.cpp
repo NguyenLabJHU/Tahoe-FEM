@@ -1,4 +1,4 @@
-/* $Id: Aztec_fe.cpp,v 1.11 2004-07-19 04:16:45 paklein Exp $ */
+/* $Id: Aztec_fe.cpp,v 1.12 2005-04-05 16:07:07 paklein Exp $ */
 /* created: paklein (08/01/1998) */
 #include "Aztec_fe.h"
 
@@ -15,19 +15,18 @@
 #include "ifstreamT.h"
 
 #include "MSRBuilderT.h"
-#include "AztecReaderT.h"
 #include "iArray2DT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-Aztec_fe::Aztec_fe(ifstreamT& in, ostream& msg, CommunicatorT& comm):
+Aztec_fe::Aztec_fe(const ParameterListT& parameters, ostream& msg, CommunicatorT& comm):
 	AztecBaseT(msg, comm),
 	fMSRBuilder(NULL),
 	fMSRSet(0)
 {
-	/* read non-default options and parameters */
-	ReadOptionsParameters(in);
+	/* keep non-default options and parameters */
+	fAztecParams.TakeParameterList(parameters);
 
 	/* construct MSR data builder */
 	fMSRBuilder = new MSRBuilderT(false);
@@ -43,13 +42,8 @@ void Aztec_fe::SetAztecOptions(void)
 	/* inherited (default settings) */
 	AztecBaseT::SetAztecOptions();
 
-	/* non-default options */
-	for (int i = 0; i < AZ_options.Length(); i++)
-		options[AZ_options_dex[i]] = AZ_options[i];
-
-	/* non-default parameters */
-	for (int j = 0; j < AZ_params.Length(); j++)
-		params[AZ_params_dex[j]] = AZ_params[j];
+	/* non-default options and parameters */
+	fAztecParams.SetAztecOptions(options, params);
 }
 
 /* clear values in the matrix */
@@ -188,56 +182,6 @@ fMSRBuilder->WriteMSRData(fMessage, fupdate, fbindx);
 	fMSRBuilder->ClearGroups();
 	
 	return fbindx.Length() - 1;
-}
-
-/* read (non-default) Aztec solver options and parameters */
-void Aztec_fe::ReadOptionsParameters(ifstreamT& in)
-{
-	/* input interpreter */
-	AztecReaderT az_reader;
-
-	/* options */
-	int num_options;
-	in >> num_options;
-	if (num_options < 0 || num_options > AZ_OPTIONS_SIZE)
-		throw ExceptionT::kBadInputValue;
-//TEMP - num_options strictly can't be AZ_OPTIONS_SIZE, should
-//       get this limit from AztecReaderT
-	
-	AZ_options_dex.Dimension(num_options);
-	AZ_options.Dimension(num_options);
-	for (int i = 0; i < num_options; i++)
-	{
-		/* read */
-		int index, value;
-		az_reader.ReadOption(in, index, value);
-		
-		/* store */
-		AZ_options_dex[i] = index;
-		AZ_options[i]     = value;
-	}
-	
-	/* parameters */
-	int num_params;
-	in >> num_params;
-	if (num_params < 0 || num_params > AZ_PARAMS_SIZE)
-		throw ExceptionT::kBadInputValue;
-//TEMP - num_params strictly can't be AZ_PARAMS_SIZE, should
-//       get this limit from AztecReaderT
-
-	AZ_params_dex.Dimension(num_params);
-	AZ_params.Dimension(num_params);
-	for (int j = 0; j < num_params; j++)
-	{
-		/* read */
-		int    index;
-		double value;
-		az_reader.ReadParameter(in, index, value);
-		
-		/* store */
-		AZ_params_dex[j] = index;
-		AZ_params[j]     = value;
-	}
 }
 
 /* copy MSR data to RCV */

@@ -1,6 +1,5 @@
-/* $Id: Aztec_fe.h,v 1.5 2003-02-28 02:07:17 paklein Exp $ */
+/* $Id: Aztec_fe.h,v 1.6 2005-04-05 16:07:07 paklein Exp $ */
 /* created: paklein (08/01/1998) */
-
 #ifndef _AZTEC_FE_H_
 #define _AZTEC_FE_H_
 
@@ -11,8 +10,7 @@
 #ifdef __AZTEC__
 
 /* direct members */
-#include "iArrayT.h"
-#include "dArrayT.h"
+#include "AztecParamsT.h"
 
 namespace Tahoe {
 
@@ -30,7 +28,7 @@ public:
 	/** constuctor 
 	 * \param in stream to read input parameters 
 	 * \param msg output stream for logging messages */
-	Aztec_fe(ifstreamT& in, ostream& msg, CommunicatorT& comm);
+	Aztec_fe(const ParameterListT& parameters, ostream& msg, CommunicatorT& comm);
 
 	/* destructor */
 	virtual ~Aztec_fe(void);
@@ -66,16 +64,10 @@ private:
 	virtual int SetMSRData(int** update, int** bindx, double** val,
 		int& is_sorted);
 
-	/* read (non-default) Aztec solver options and parameters */
-	void ReadOptionsParameters(ifstreamT& in);
-
 private:
 
-	/* Aztec option and parameter overrides */
-	iArrayT AZ_options_dex;
-	iArrayT AZ_options;
-	iArrayT AZ_params_dex;
-	dArrayT AZ_params;
+	/** handle Aztec parameters */
+	AztecParamsT fAztecParams;
 
 	/* Aztec workspace */
 	iArrayT fupdate;

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2003-03-04 07:38:22 paklein Exp $
+# $Id: makefile,v 1.6 2005-04-05 16:07:07 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -23,7 +23,7 @@ OBJ = \
 	AztecBaseT.o \
 	Aztec_fe.o \
 	AztecMatrixT.o \
-	AztecReaderT.o
+	AztecParamsT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -46,7 +46,7 @@ SRC = \
 	AztecBaseT.cpp \
 	Aztec_fe.cpp \
 	AztecMatrixT.cpp \
-	AztecReaderT.cpp
+	AztecParamsT.cpp
 
 ##################### (3) headers
 #
@@ -61,7 +61,7 @@ HDR = \
 	AztecBaseT.h \
 	Aztec_fe.h \
 	AztecMatrixT.h \
-	AztecReaderT.h
+	AztecParamsT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
