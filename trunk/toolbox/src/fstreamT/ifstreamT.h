@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.h,v 1.2 2001-03-01 01:17:50 hspark Exp $ */
+/* $Id: ifstreamT.h,v 1.3 2001-04-10 17:56:13 paklein Exp $ */
 /* created: paklein (03/03/1999)                                          */
 
 #ifndef _IFSTREAM_T_H_
@@ -11,6 +11,9 @@
 #include <fstream.h>
 #include <stddef.h>
 
+/* direct members */
+#include "StringT.h"
+
 class ifstreamT: public ifstream
 {
 public:
@@ -20,9 +23,6 @@ public:
 	ifstreamT(const char* file_name);
 	ifstreamT(char marker);
 	ifstreamT(char marker, const char* file_name);
-
-	/* destructor */
-	~ifstreamT(void);
 
 	/* open stream */
 	void open(const char* file_name);
@@ -63,9 +63,6 @@ public:
 
 private:
 
-	/* copy the string to fFileName */
-	void CopyName(const char* filename);
-
 	/* open stream with prompt - return 1 if successful */
 	int OpenWithPrompt(const char* prompt, const char* skipname,
 		const char* defaultname);
@@ -77,19 +74,13 @@ private:
 	char fMarker;
 	
 	/* the filename */
-	char* fFileName;
-	
-	/* NULL file name */
-	static const char fNULLFileName;
+	StringT fFileName;
 };
 
 /* inlines */
 inline char ifstreamT::comment_marker(void) const { return fMarker; }
 inline int ifstreamT::skip_comments(void) const { return fSkipComments; }
-inline const char* ifstreamT::filename(void) const
-{
-	return (fFileName != NULL) ? fFileName : &fNULLFileName;
-}
+inline const char* ifstreamT::filename(void) const { return fFileName; }
 
 inline void ifstreamT::set_marker(char marker)
 {
