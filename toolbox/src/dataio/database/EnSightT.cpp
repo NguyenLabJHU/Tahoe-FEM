@@ -1,4 +1,4 @@
-/* $Id: EnSightT.cpp,v 1.16 2003-11-21 22:41:46 paklein Exp $ */
+/* $Id: EnSightT.cpp,v 1.17 2003-11-25 19:46:56 paklein Exp $ */
 /* created: sawimme (05/13/1999) */
 #include "EnSightT.h"
 
@@ -753,10 +753,10 @@ code = GeometryT::kTetrahedron;
 numelemnodes = (name[5] == '4') ? 4 : 10;
 return true;
 }
-else if (strncmp (name, "hex", 3) == 0)
+else if (strncmp (name, "hexa", 3) == 0)
 {
 code = GeometryT::kHexahedron;
-numelemnodes = (name[3] == '8') ? 8 : 20;
+numelemnodes = (name[4] == '8') ? 8 : 20;
 return true;
 }
 else if (strncmp (name, "penta", 3) == 0)
