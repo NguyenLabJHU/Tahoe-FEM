@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.23 2003-03-28 00:14:59 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.24 2003-04-07 23:37:28 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -52,8 +52,10 @@ public:
 	/** read restart data to the output stream. */
 	virtual void ReadRestart(istream& in);
 #else
+  	/* send restart array */
 	virtual void WriteRestart(double* outgoingData) const;
 	
+	/* receive restart array */
 	virtual void ReadRestart(double* incomingData);
 #endif	
 
@@ -61,6 +63,9 @@ public:
 	/* Initialize fields passed in from the outside */
 	virtual void InitStep(void);
 #endif
+
+	/** compute specified output parameter and send for smoothing */
+	virtual void SendOutput(int kincode);
 
 protected:
 
@@ -93,6 +98,9 @@ private:
 
 	void Q_ijk__u_j(const ArrayT<dMatrixT>& Q, const dArrayT& u,
 		dMatrixT& Qu);
+		
+	/* Fake output to send to TiedNodesT */
+	void ComputeFreeNodesForOutput();
 
 protected:
 
@@ -149,8 +157,7 @@ protected:
 	iArrayT iBulkGroups;
 	
 	/* if nodes are tied, keep track of free nodes per element */
-	Array2DT<bool> freeNodeQ, freeNodeQ_last;
-	
+	dArray2DT freeNodeQ, freeNodeQ_last;
 };
 
 } // namespace Tahoe 

@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.11 2003-02-07 21:50:52 cjkimme Exp $ */
+/* $Id: CSEBaseT.h,v 1.12 2003-04-07 23:37:28 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_BASE_T_H_
 #define _CSE_BASE_T_H_
@@ -34,8 +34,10 @@ public:
                        NodalDisp = 1, /**< displacements */
                    NodalDispJump = 2, /**< opening displacements */
                    NodalTraction = 3, /**< traction */
-                    MaterialData = 4  /**< output from constitutive relations */ };
-
+                    MaterialData = 4, /**< output from constitutive relations */ 
+                    InternalData = 5  /**< 'output' within Tahoe */
+	};
+	
 	/** indicies for element output */
 	enum ElementOutputCodeT {
 	             Centroid = 0, /**< reference coordinates of centroid */
