@@ -1,4 +1,4 @@
-/* $Id: FDCubic2DT.h,v 1.1.1.1.2.1 2001-06-06 16:22:03 paklein Exp $ */
+/* $Id: FDCubic2DT.h,v 1.1.1.1.2.2 2001-06-22 14:18:01 paklein Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #ifndef _FD_CUBIC_2D_T_H_
@@ -13,7 +13,7 @@ class FDCubic2DT: public FDCubicT, public Material2DT
 public:
 
 	/* constructor */
-	FDCubic2DT(ifstreamT& in, const ElasticT& element);
+	FDCubic2DT(ifstreamT& in, const FiniteStrainT& element);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

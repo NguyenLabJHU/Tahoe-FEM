@@ -31,7 +31,7 @@ class PolyCrystalMatT : public FDHookeanMatT
 {
  public:
   // constructor
-  PolyCrystalMatT(ifstreamT& in, const ElasticT& element);
+  PolyCrystalMatT(ifstreamT& in, const FiniteStrainT& element);
 
   // destructor
   virtual ~PolyCrystalMatT();

@@ -1,11 +1,11 @@
-/* $Id: SSCubic2DT.cpp,v 1.1.1.1.2.1 2001-06-06 16:22:03 paklein Exp $ */
+/* $Id: SSCubic2DT.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:01 paklein Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #include "SSCubic2DT.h"
 #include "ThermalDilatationT.h"
 
 /* constructor */
-SSCubic2DT::SSCubic2DT(ifstreamT& in, const ElasticT& element):
+SSCubic2DT::SSCubic2DT(ifstreamT& in, const SmallStrainT& element):
 	SSCubicT(in, element),
 	Material2DT(in)
 {

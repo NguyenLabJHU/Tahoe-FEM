@@ -6,13 +6,15 @@
 #include "ElementCardT.h"
 #include "ifstreamT.h"
 
-#include "ElasticT.h"
+//#include "ElasticT.h"
+//DEV
+
 #include "FEManagerT.h"
 
 /* spatial dimensions of the problem */
 const int kNSD = 2;
 
-LocalCrystalPlast2D::LocalCrystalPlast2D(ifstreamT& in, const ElasticT& element) :
+LocalCrystalPlast2D::LocalCrystalPlast2D(ifstreamT& in, const FiniteStrainT& element) :
   LocalCrystalPlast (in, element),  
   Material2DT       (in, Material2DT::kPlaneStrain),
   f2Dsavg_ij   (kNSD),
@@ -63,6 +65,8 @@ void LocalCrystalPlast2D::PrintName(ostream& out) const
   out << "    Plane Strain\n";
 }
 
+//DEV - deprecated
+#if 0
 const dMatrixT& LocalCrystalPlast2D::DeformationGradient(const LocalArrayT& disp)
 { 
   // expand total deformation gradient: 2D -> 3D (plane strain)
@@ -71,3 +75,4 @@ const dMatrixT& LocalCrystalPlast2D::DeformationGradient(const LocalArrayT& disp
 
   return fmatx1;
 }
+#endif

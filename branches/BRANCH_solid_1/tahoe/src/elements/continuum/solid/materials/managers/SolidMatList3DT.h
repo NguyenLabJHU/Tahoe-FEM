@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.h,v 1.2 2001-04-27 10:53:30 paklein Exp $ */
+/* $Id: SolidMatList3DT.h,v 1.2.2.1 2001-06-22 14:18:16 paklein Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #ifndef _MATLIST_3D_T_H_
@@ -10,6 +10,8 @@
 
 /* forward declaration */
 class ElasticT;
+class SmallStrainT;
+class FiniteStrainT;
 
 class SolidMatList3DT: public SolidMatListT, public MaterialT
 {
@@ -22,8 +24,16 @@ public:
 	virtual void ReadMaterialData(ifstreamT& in);
 
 private:
+	
+	/* errror messages */
+	void Error_no_small_strain(ostream& out, int matcode) const;
+	void Error_no_finite_strain(ostream& out, int matcode) const;
 
-	const ElasticT& fElementGroup;
+private:
+
+	const ElasticT&      fElementGroup;
+	const SmallStrainT*  fSmallStrain;
+	const FiniteStrainT* fFiniteStrain;
 };
 
 #endif /* _MATLIST_3D_T_H_ */

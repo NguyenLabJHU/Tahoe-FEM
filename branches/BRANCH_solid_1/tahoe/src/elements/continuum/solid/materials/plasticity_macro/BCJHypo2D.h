@@ -19,7 +19,7 @@ class BCJHypo2D : public BCJHypo3D, public Material2DT
 {
  public:
   // constructor
-  BCJHypo2D(ifstreamT& in, const ElasticT& element);
+  BCJHypo2D(ifstreamT& in, const FiniteStrainT& element);
 
   // destructor
   ~BCJHypo2D();

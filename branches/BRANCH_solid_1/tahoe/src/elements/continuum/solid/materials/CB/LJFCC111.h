@@ -1,4 +1,4 @@
-/* $Id: LJFCC111.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: LJFCC111.h,v 1.1.1.1.2.1 2001-06-22 14:17:55 paklein Exp $ */
 /* created: paklein (07/31/1996)                                          */
 
 #ifndef _LJFCC111_H_
@@ -12,7 +12,7 @@ class LJFCC111: public NL_E_RotMat2DT
 public:
 
 	/* constructor */
-	LJFCC111(ifstreamT& in, const ElasticT& element);
+	LJFCC111(ifstreamT& in, const FiniteStrainT& element);
 	
 	/* print parameters */
 	virtual void Print(ostream& out) const;

@@ -1,13 +1,15 @@
-/* $Id: SimoIso3D.cpp,v 1.3.2.1 2001-06-07 03:01:20 paklein Exp $ */
+/* $Id: SimoIso3D.cpp,v 1.3.2.2 2001-06-22 14:18:09 paklein Exp $ */
 /* created: paklein (03/02/1997)                                          */
 
 #include "SimoIso3D.h"
 #include <iostream.h>
 #include <math.h>
-#include "ElasticT.h"
+//#include "ElasticT.h"
+//DEV
+
 
 /* constructor */
-SimoIso3D::SimoIso3D(ifstreamT& in, const ElasticT& element):
+SimoIso3D::SimoIso3D(ifstreamT& in, const FiniteStrainT& element):
 	FDStructMatT(in, element),
 	IsotropicT(in),
 	fStress(3),

@@ -1,4 +1,4 @@
-/* $Id: QuadLog2D.cpp,v 1.1.1.1.2.1 2001-06-07 03:01:19 paklein Exp $ */
+/* $Id: QuadLog2D.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:08 paklein Exp $ */
 /* created: paklein (06/28/1997)                                          */
 /* (2D <-> 3D) translator for the QuadLog3D.                              */
 
@@ -7,7 +7,7 @@
 #include <iostream.h>
 
 /* constructor */
-QuadLog2D::QuadLog2D(ifstreamT& in, const ElasticT& element):
+QuadLog2D::QuadLog2D(ifstreamT& in, const FiniteStrainT& element):
 	QuadLog3D(in, element),
 	Material2DT(in, kPlaneStrain),
 	fb_2D(2),

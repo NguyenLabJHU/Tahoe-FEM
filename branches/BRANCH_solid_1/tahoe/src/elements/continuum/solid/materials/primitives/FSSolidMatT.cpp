@@ -1,19 +1,21 @@
-/* $Id: FSSolidMatT.cpp,v 1.1.1.1.2.3 2001-06-14 00:34:18 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.1.1.1.2.4 2001-06-22 14:18:29 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 
 #include "FSSolidMatT.h"
 #include <iostream.h>
 
-#include "ElasticT.h"
-#include "ShapeFunctionT.h"
+#include "FiniteStrainT.h"
+//#include "ShapeFunctionT.h"
+//DEV
 #include "ThermalDilatationT.h"
 
 /* constructor */
-FSSolidMatT::FSSolidMatT(ifstreamT& in, const ElasticT& element):
+FSSolidMatT::FSSolidMatT(ifstreamT& in, const FiniteStrainT& element):
 //	FDContinuumT(element.NumSD()),
 //DEV
 	StructuralMaterialT(in, element),
 	TensorTransformT(NumSD()),
+	fFiniteStrain(element),
 //	fShapes(element.ShapeFunction()),
 //	fLocDisp(element.Displacements()),
 //DEV
@@ -87,21 +89,17 @@ void FSSolidMatT::InitStep(void)
 	SetInverseThermalTransformation(fFtherminverse);
 }
 
-/***********************************************************************
-* Protected
-***********************************************************************/
-
 /* deformation gradients */
 const dMatrixT& FSSolidMatT::F(void) const
 {
-	return ContinuumElement().F();
+	return fFiniteStrain.DeformationGradient();
 	
 	//DEV - what about corrections for thermal strains?
 }
 
 const dMatrixT& FSSolidMatT::F(int ip) const
 {
-	return ContinuumElement().F(ip);
+	return fFiniteStrain.DeformationGradient(ip);
 	
 	//DEV - what about corrections for thermal strains?
 }
@@ -109,17 +107,21 @@ const dMatrixT& FSSolidMatT::F(int ip) const
 /* deformation gradient from end of previous step */
 const dMatrixT& FSSolidMatT::F_last(void) const
 {
-	return ContinuumElement().F_last();
+	return fFiniteStrain.DeformationGradient_last();
 	
 	//DEV - what about corrections for thermal strains?
 }
 
 const dMatrixT& FSSolidMatT::F_last(int ip) const
 {
-	return ContinuumElement().F_last(ip);
+	return fFiniteStrain.DeformationGradient_last(ip);
 	
 	//DEV - what about corrections for thermal strains?
 }
+
+/***********************************************************************
+* Protected
+***********************************************************************/
 
 /** Green-Lagrangian strain. \param E return value */
 void FSSolidMatT::Compute_E(dSymMatrixT& E) const

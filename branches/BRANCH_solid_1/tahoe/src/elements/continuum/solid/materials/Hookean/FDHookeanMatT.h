@@ -1,4 +1,4 @@
-/* $Id: FDHookeanMatT.h,v 1.1.1.1.2.2 2001-06-07 03:01:17 paklein Exp $ */
+/* $Id: FDHookeanMatT.h,v 1.1.1.1.2.3 2001-06-22 14:17:59 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #ifndef _FD_HOOKEAN_MAT_H_
@@ -13,7 +13,7 @@ class FDHookeanMatT: public FDStructMatT, public HookeanMatT
 public:
 
 	/* constructor */
-	FDHookeanMatT(ifstreamT& in, const ElasticT& element);
+	FDHookeanMatT(ifstreamT& in, const FiniteStrainT& element);
 
 	/* initialization */
 	virtual void Initialize(void);

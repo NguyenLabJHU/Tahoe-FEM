@@ -19,7 +19,7 @@ class HyperEVP2D : public HyperEVP3D, public Material2DT
 {
  public:
   // constructor
-  HyperEVP2D(ifstreamT& in, const ElasticT& element);
+  HyperEVP2D(ifstreamT& in, const FiniteStrainT& element);
 
   // destructor
   ~HyperEVP2D();

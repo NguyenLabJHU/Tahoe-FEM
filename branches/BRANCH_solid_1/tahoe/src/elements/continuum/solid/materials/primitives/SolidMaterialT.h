@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.1.1.1.2.2 2001-06-07 03:01:27 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.1.1.1.2.3 2001-06-22 14:18:31 paklein Exp $ */
 /* created: paklein (11/20/1996)                                          */
 /* Defines the interface for elastic continuum materials.                 */
 
@@ -29,7 +29,7 @@ class SolidMaterialT: public ContinuumMaterialT
 public:
 
 	/** constructor */
-	SolidMaterialT(ifstreamT& in, const ElasticT& element);
+	SolidMaterialT(ifstreamT& in, const ContinuumElementT& element);
 
 	/** destructor */
 	~SolidMaterialT(void);

@@ -3,13 +3,17 @@
 */
 
 #include "HyperEVP3D.h"
+
+#include "ContinuumElementT.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
 #include "ifstreamT.h"
 #include "Utils.h"
 #include "SimplePowerLaw.h"
 
-#include "ElasticT.h"
+//#include "ElasticT.h"
+//DEV
+
 #include "FEManagerT.h"
 
 const double sqrt32 = sqrt(3.0/2.0);
@@ -27,7 +31,7 @@ const int kNumInternal = 5;
 const int kNumOutput = 4;
 static const char* Labels[kNumOutput] = {"EQP_strain","VM_stress","Pressure","Hardness"};
 
-HyperEVP3D::HyperEVP3D(ifstreamT& in, const ElasticT& element) :
+HyperEVP3D::HyperEVP3D(ifstreamT& in, const FiniteStrainT& element) :
   EVPFDBaseT(in, element),  
 
   // elastic def gradients

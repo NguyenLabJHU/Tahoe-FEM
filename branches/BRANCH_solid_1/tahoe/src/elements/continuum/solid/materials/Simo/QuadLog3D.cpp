@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.cpp,v 1.3.2.2 2001-06-07 03:01:20 paklein Exp $ */
+/* $Id: QuadLog3D.cpp,v 1.3.2.3 2001-06-22 14:18:08 paklein Exp $ */
 /* created: paklein (06/27/1997)                                          */
 /* Hyperelastic material governed by quadratic logarithmic potential.     */
 
@@ -7,10 +7,12 @@
 #include <iostream.h>
 #include <math.h>
 
-#include "ElasticT.h"
+//#include "ElasticT.h"
+//DEV
+
 
 /* constructor */
-QuadLog3D::QuadLog3D(ifstreamT& in, const ElasticT& element):
+QuadLog3D::QuadLog3D(ifstreamT& in, const FiniteStrainT& element):
 	FDStructMatT(in, element), //in principal stress space
 	IsotropicT(in),
 	fSpectral(3),

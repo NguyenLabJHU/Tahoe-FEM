@@ -9,7 +9,9 @@
 #include "Utils.h"
 #include "BCJKineticEqn.h"
 
-#include "ElasticT.h"
+//#include "ElasticT.h"
+//DEV
+#include "ContinuumElementT.h"
 #include "FEManagerT.h"
 
 const double sqrt32 = sqrt(3.0/2.0);
@@ -32,7 +34,7 @@ const int kNumOutput = 6;
 static const char* Labels[kNumOutput] = {"EQP_strain","VMises-Xi",
   "Pressure","Iters","Sigma_33","VMises"};
 
-BCJHypo3D::BCJHypo3D(ifstreamT& in, const ElasticT& element) :
+BCJHypo3D::BCJHypo3D(ifstreamT& in, const FiniteStrainT& element) :
   EVPFDBaseT(in, element),  
 
   // array for material parameters
@@ -330,7 +332,7 @@ void BCJHypo3D::ComputeOutput(dArrayT& output)
   output[5] = sqrt(fsymmatx1.Deviatoric(fs_ij).ScalarProduct())*sqrt32;
 
   if (BCJ_MESSAGES && intpt == 0)
-     cerr << " step # " << fContinuumElement.FEManager().StepNumber()
+     cerr << " step # " << ContinuumElement().FEManager().StepNumber()
           << " EQP-strain  "  << output[0] 
           << " VM-stress   "  << output[1] 
           << " pressure    "  << output[2] 
@@ -509,7 +511,7 @@ void BCJHypo3D::SolveState()
     {
       // time step
       double tmp = (float)subIncr/(float)totSubIncrs;
-      fdt = fContinuumElement.FEManager().TimeStep() * tmp;
+      fdt = ContinuumElement().FEManager().TimeStep() * tmp;
 
       // relative deformation gradient for subincrement
       fFr.SetToCombination((1.-tmp), fI, tmp, fF);

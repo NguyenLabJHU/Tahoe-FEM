@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.1.1.1.2.1 2001-06-06 16:25:27 paklein Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:18 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 #include "DPSSKStV.h"
@@ -17,7 +17,7 @@ static const char* Labels[kNumOutput] = {
 	    "press"}; // pressure
 
 /* constructor */
-DPSSKStV::DPSSKStV(ifstreamT& in, const ElasticT& element):
+DPSSKStV::DPSSKStV(ifstreamT& in, const SmallStrainT& element):
 	SSStructMatT(in, element),
 	IsotropicT(in),
 	HookeanMatT(3),

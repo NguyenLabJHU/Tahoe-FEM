@@ -16,7 +16,7 @@ class GradCrystalPlast2D: public GradCrystalPlast, public Material2DT
 {
  public:
   // constructor
-  GradCrystalPlast2D(ifstreamT& in, const ElasticT& element);
+  GradCrystalPlast2D(ifstreamT& in, const FiniteStrainT& element);
 
   // destructor
   ~GradCrystalPlast2D();

@@ -15,7 +15,7 @@ class GradCrystalPlast : public LocalCrystalPlast
 {
  public:
   // constructor
-  GradCrystalPlast(ifstreamT& in, const ElasticT& element);
+  GradCrystalPlast(ifstreamT& in, const FiniteStrainT& element);
 
   // destructor
   ~GradCrystalPlast();

@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.h,v 1.1.1.1.2.1 2001-06-07 03:01:16 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.h,v 1.1.1.1.2.2 2001-06-22 14:17:54 paklein Exp $ */
 /* created: paklein (05/09/2000)                                          */
 /* NOTE: pick the base class for this based on the                        */
 /* weak form equations it's supposed to fit into                          */
@@ -33,7 +33,7 @@ class ABAQUS_UMAT_BaseT: public FDStructMatT
 public:
 
 	/* constructor */
-	ABAQUS_UMAT_BaseT(ifstreamT& in, const ElasticT& element);
+	ABAQUS_UMAT_BaseT(ifstreamT& in, const FiniteStrainT& element);
 
 	/* destructor */
 	~ABAQUS_UMAT_BaseT(void);

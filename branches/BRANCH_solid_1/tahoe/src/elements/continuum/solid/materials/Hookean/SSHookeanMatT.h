@@ -1,4 +1,4 @@
-/* $Id: SSHookeanMatT.h,v 1.1.1.1.2.1 2001-06-06 16:22:00 paklein Exp $ */
+/* $Id: SSHookeanMatT.h,v 1.1.1.1.2.2 2001-06-22 14:17:59 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #ifndef _SS_HOOKEAN_MAT_H_
@@ -13,7 +13,7 @@ class SSHookeanMatT: public SSStructMatT, public HookeanMatT
 public:
 
 	/* constructor */
-	SSHookeanMatT(ifstreamT& in, const ElasticT& element);
+	SSHookeanMatT(ifstreamT& in, const SmallStrainT& element);
 
 	/* initialization */
 	virtual void Initialize(void);

@@ -1,4 +1,4 @@
-/* $Id: LJTr2D.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: LJTr2D.h,v 1.1.1.1.2.1 2001-06-22 14:17:55 paklein Exp $ */
 /* created: paklein (07/01/1996)                                          */
 /* Plane stress hexagonal lattice with LJ potential                       */
 
@@ -16,7 +16,7 @@ class LJTr2D: public NL_E_RotMat2DT
 public:
 
 	/* constructor */
-	LJTr2D(ifstreamT& in, const ElasticT& element);
+	LJTr2D(ifstreamT& in, const FiniteStrainT& element);
 	
 	/* print parameters */
 	virtual void Print(ostream& out) const;

@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.13 2001-06-04 16:01:49 hspark Exp $ */
+/* $Id: tevp2D.cpp,v 1.13.2.1 2001-06-22 14:18:33 paklein Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (04/04/2001) */
 /* Last Updated:  Harold Park (05/29/2001) */
@@ -6,10 +6,17 @@
 
 
 #include "tevp2D.h"
+
 #include <iostream.h>
 #include <math.h>
-#include "ElasticT.h"
-#include "ShapeFunctionT.h"
+
+//#include "ElasticT.h"
+//DEV
+
+//#include "ShapeFunctionT.h"
+//DEV
+
+#include "FiniteStrainT.h"
 #include "FEManagerT.h"
 #include "ElementCardT.h"
 
@@ -24,7 +31,7 @@ static const char* Labels[kNumOutput] = {
   "Eff._Stress"};   // effective stress
 
 /* constructor */
-tevp2D::tevp2D(ifstreamT& in, const ElasticT& element):
+tevp2D::tevp2D(ifstreamT& in, const FiniteStrainT& element):
   FDStructMatT(in, element),
   IsotropicT(in),
   Material2DT(in),        // Currently reads in plane strain from file...
@@ -33,7 +40,8 @@ tevp2D::tevp2D(ifstreamT& in, const ElasticT& element):
   fDt(ContinuumElement().FEManager().TimeStep()),
   fStress(2),
   fModulus(kVoigt),
-  fShapes(element.ShapeFunction()),
+//  fShapes(ContinuumElement().ShapeFunction()),
+//DEV
   fLocVel(element.Velocities()),
   fLocDisp(element.Displacements()),
 
@@ -350,7 +358,7 @@ void tevp2D::ComputeD(void)
   /* Compute rate of deformation */
   fDtot = 0.0;
   dMatrixT* tempd = &fDtot;
-  fShapes.GradU(fLocVel, fGradV_2D);
+	FiniteStrain().ComputeGradient(fLocVel, fGradV_2D);
   fGradV.Rank2ExpandFrom2D(fGradV_2D);
   (*tempd).MultAB(fGradV, fF_temp, 0);
   (*tempd).Symmetrize();
@@ -360,7 +368,7 @@ double tevp2D::ComputeSpin(void)
 {
   /* Compute the spin scalar */
   fSpin = 0.0;
-  fShapes.GradU(fLocVel, fGradV_2D);
+	FiniteStrain().ComputeGradient(fLocVel, fGradV_2D);
   fGradV.Rank2ExpandFrom2D(fGradV_2D);
   fSpin = fGradV(0,0) * fF_temp(0,1) + fGradV(0,1) * fF_temp(1,1);
   fSpin = fSpin - fGradV(1,0) * fF_temp(0,0) - fGradV(1,1) * fF_temp(1,0);
@@ -371,6 +379,9 @@ double tevp2D::ComputeSpin(void)
 
 double tevp2D::ComputeTemperature(const ElementCardT& element, int ip)
 {
+#pragma unused(element)
+#pragma unused(ip)
+
   /* Compute the output temperature - 2 different methods of computing, 
    * which depends upon whether fluid model was used or not */
 
@@ -409,6 +420,9 @@ double tevp2D::ComputeTemperature(const ElementCardT& element, int ip)
 
 double tevp2D::ComputeEffectiveStrain(const ElementCardT& element, int ip)
 {
+#pragma unused(element)
+#pragma unused(ip)
+
   /* Computes the effective strain - 2 different methods of computing,
    * which depends upon whether fluid model was used or not */
 

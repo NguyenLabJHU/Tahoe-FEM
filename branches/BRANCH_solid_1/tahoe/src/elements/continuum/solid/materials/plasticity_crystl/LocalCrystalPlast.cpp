@@ -16,7 +16,10 @@
 #include "ifstreamT.h"
 #include "Utils.h"
 
-#include "ElasticT.h"
+//#include "ElasticT.h"
+//DEV
+
+#include "ContinuumElementT.h"
 #include "FEManagerT.h"
 
 /* spatial dimensions of the problem */
@@ -28,7 +31,7 @@ const double sqrt23 = sqrt(2.0/3.0);
 const int kNumOutput = 3;
 static const char* Labels[kNumOutput] = {"VM_stress", "IterNewton", "IterState"};
 
-LocalCrystalPlast::LocalCrystalPlast(ifstreamT& in, const ElasticT& element) :
+LocalCrystalPlast::LocalCrystalPlast(ifstreamT& in, const FiniteStrainT& element) :
   PolyCrystalMatT(in, element),  
 
   // deformation gradient (continuation method)
@@ -399,7 +402,7 @@ void LocalCrystalPlast::ComputeOutput(dArrayT& output)
   // cout << "    fsavg_ij = " << endl << fsavg_ij << endl;
   // cout << "    fAvgStress = " << endl << fAvgStress << endl;
   if (elem == (NumElements()-1) && intpt == (NumIP()-1))
-     cerr << " step # " << fContinuumElement.FEManager().StepNumber() 
+     cerr << " step # " << ContinuumElement().FEManager().StepNumber() 
           << "    S_eq_avg = " 
           << sqrt(fsymmatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23/4.0 << endl; 
 
@@ -408,8 +411,8 @@ void LocalCrystalPlast::ComputeOutput(dArrayT& output)
   output[2] = fIterState;
 
   // compute texture of aggregate, if requested
-  const int& step = fContinuumElement.FEManager().StepNumber();
-  const int& nsteps = fContinuumElement.FEManager().NumberOfSteps();
+  const int& step = ContinuumElement().FEManager().StepNumber();
+  const int& nsteps = ContinuumElement().FEManager().NumberOfSteps();
 
   if (fmod(step, fODFOutInc) == 0 || step == nsteps)
     {
@@ -631,7 +634,7 @@ void LocalCrystalPlast::SolveCrystalState()
   for(;;)
     {
       // time step
-      fdt = fContinuumElement.FEManager().TimeStep() * (float)subIncr / (float)totSubIncrs;
+      fdt = ContinuumElement().FEManager().TimeStep() * (float)subIncr / (float)totSubIncrs;
 
       // deformation gradients
       fmatx1.SetToCombination(1., fFtot, -1., fFtot_n);

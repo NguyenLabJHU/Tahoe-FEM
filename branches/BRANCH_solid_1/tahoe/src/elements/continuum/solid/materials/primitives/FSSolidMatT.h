@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.1.1.1.2.3 2001-06-14 00:34:18 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.1.1.1.2.4 2001-06-22 14:18:29 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 /* Defines the interface large strain materials which account             */
 /* for thermal strains with the multiplicative split:                     */
@@ -16,16 +16,15 @@
 #include "TensorTransformT.h"
 
 /* forward declarations */
-class ShapeFunctionT;
+class FiniteStrainT;
 
 /** base class for finite deformation constitutive models */
-class FSSolidMatT: /* DEV - protected FDContinuumT */
-public StructuralMaterialT, protected TensorTransformT
+class FSSolidMatT: public StructuralMaterialT, protected TensorTransformT
 {
 public:
 
 	/** constructor */
-	FSSolidMatT(ifstreamT& in, const ElasticT& element);
+	FSSolidMatT(ifstreamT& in, const FiniteStrainT& element);
 
 	/** write name to output stream */
 	virtual void PrintName(ostream& out) const;
@@ -49,8 +48,6 @@ public:
 	/* the shape functions */
 //	const ShapeFunctionT& ShapeFunction(void) const;
 //DEV
-	
-protected:
 
 	/** deformation gradient */
 	const dMatrixT& F(void) const; 
@@ -64,6 +61,8 @@ protected:
 	/** deformation gradient at the given integration point 
 	 * from end of previous step */
 	const dMatrixT& F_last(int ip) const; 
+	
+protected:
 
 	/** left stretch tensor. \param b return value */
 	void Compute_b(dSymMatrixT& b) const { b.MultAAT(F()); };
@@ -84,6 +83,12 @@ protected:
 	 * \param normal wave propagation direction
 	 * \return acoustical tensor */
 	virtual const dSymMatrixT& AcousticalTensor(const dArrayT& normal);
+
+	/** finite strain element group.
+	 * allows access to all const functions of the finite strain element
+	 * class that are not currently supported with wrappers.
+	 * \return a const reference to the supporting element group */
+	const FiniteStrainT& FiniteStrain(void) const { return fFiniteStrain; }
 
 private:
 
@@ -109,6 +114,9 @@ private:
 		const dMatrixT& FkK, const dArrayT& N, dSymMatrixT& Q) const;
 
 private:
+
+	/** reference to finite deformation element group */
+	const FiniteStrainT& fFiniteStrain;
 
 	/* shape functions */
 //	const ShapeFunctionT& fShapes;

@@ -1,4 +1,4 @@
-/* $Id: SSCubicT.h,v 1.1.1.1.2.1 2001-06-06 16:22:02 paklein Exp $ */
+/* $Id: SSCubicT.h,v 1.1.1.1.2.2 2001-06-22 14:18:00 paklein Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #ifndef _SS_CUBIC_T_H_
@@ -13,7 +13,7 @@ class SSCubicT: public SSHookeanMatT, public CubicT
 public:
 
 	/* constructor */
-	SSCubicT(ifstreamT& in, const ElasticT& element);
+	SSCubicT(ifstreamT& in, const SmallStrainT& element);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;

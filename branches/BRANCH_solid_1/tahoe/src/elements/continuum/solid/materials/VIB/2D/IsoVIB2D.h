@@ -1,4 +1,4 @@
-/* $Id: IsoVIB2D.h,v 1.1.1.1.2.2 2001-06-07 03:01:23 paklein Exp $ */
+/* $Id: IsoVIB2D.h,v 1.1.1.1.2.3 2001-06-22 14:18:10 paklein Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* 2D Isotropic VIB solver using spectral decomposition formulation       */
 
@@ -21,7 +21,7 @@ class IsoVIB2D: public FDStructMatT, public Material2DT, public VIB
 public:
 
 	/* constructor */
-	IsoVIB2D(ifstreamT& in, const ElasticT& element);
+	IsoVIB2D(ifstreamT& in, const FiniteStrainT& element);
 
 	/* destructor */
 	~IsoVIB2D(void);

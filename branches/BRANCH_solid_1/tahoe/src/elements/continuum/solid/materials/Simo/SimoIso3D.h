@@ -1,4 +1,4 @@
-/* $Id: SimoIso3D.h,v 1.2.2.1 2001-06-07 03:01:21 paklein Exp $ */
+/* $Id: SimoIso3D.h,v 1.2.2.2 2001-06-22 14:18:09 paklein Exp $ */
 /* created: paklein (03/02/1997)                                          */
 /* Hyperelastic material governed by Simo's split volumetric/deviatoric   */
 /* stored energy function.                                                */
@@ -16,7 +16,7 @@ class SimoIso3D: public FDStructMatT, public IsotropicT
 public:
 
 	/* constructor */
-	SimoIso3D(ifstreamT& in, const ElasticT& element);
+	SimoIso3D(ifstreamT& in, const FiniteStrainT& element);
 	
 	/* print parameters */
 	virtual void Print(ostream& out) const;

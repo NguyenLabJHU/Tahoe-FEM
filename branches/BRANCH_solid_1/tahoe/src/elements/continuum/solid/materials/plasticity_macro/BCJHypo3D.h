@@ -23,7 +23,7 @@ class BCJHypo3D : public EVPFDBaseT
 {
  public:
   // constructor
-  BCJHypo3D(ifstreamT& in, const ElasticT& element);
+  BCJHypo3D(ifstreamT& in, const FiniteStrainT& element);
 
   // destructor
   ~BCJHypo3D();

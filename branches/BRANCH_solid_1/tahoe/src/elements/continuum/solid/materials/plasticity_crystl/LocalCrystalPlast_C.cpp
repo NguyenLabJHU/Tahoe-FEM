@@ -8,8 +8,10 @@
 #include "ElementCardT.h"
 #include "ifstreamT.h"
 #include "Utils.h"
+#include "ContinuumElementT.h"
 
-#include "ElasticT.h"
+//#include "ElasticT.h"
+//DEV
 #include "FEManagerT.h"
 
 /* spatial dimensions of the problem */
@@ -21,9 +23,9 @@ const double sqrt23 = sqrt(2.0/3.0);
 const int kNumOutput = 2;
 static const char* Labels[kNumOutput] = {"VM_stress", "Hardness"};
 
-LocalCrystalPlast_C::LocalCrystalPlast_C(ifstreamT& in, const ElasticT& element) :
+LocalCrystalPlast_C::LocalCrystalPlast_C(ifstreamT& in, const FiniteStrainT& element) :
   LocalCrystalPlast(in, element),
-  fLocInitX (element.InitialCoordinates()),
+  fLocInitX (ContinuumElement().InitialCoordinates()),
   //fNNodes   (element.NumElemNodes()),
   fNNodes   (fLocInitX.NumberOfNodes()),
   fLNa      (1, fNNodes),
@@ -214,8 +216,8 @@ void LocalCrystalPlast_C::ComputeOutput(dArrayT& output)
       output[1] = fIterCount;
 
       // compute texture of aggregate, if requested
-      const int& step = fContinuumElement.FEManager().StepNumber();
-      const int& nsteps = fContinuumElement.FEManager().NumberOfSteps();
+      const int& step = ContinuumElement().FEManager().StepNumber();
+      const int& nsteps = ContinuumElement().FEManager().NumberOfSteps();
 
       if (fmod(step, fODFOutInc) == 0 || step == nsteps)
 	{
@@ -308,6 +310,10 @@ void LocalCrystalPlast_C::InitializeCrystalVariables()
 
 const dMatrixT& LocalCrystalPlast_C::DeformationGradient(const LocalArrayT& disp)
 {
+cout << "not fixed yet" << endl;
+throw;
+//DEV - don't know how to fix this yet. Need a mechanism to
+//      compute the deformation gradient at the element centroid
   return  DefGradientAtCenter(disp);
 }
 
@@ -319,6 +325,10 @@ const dMatrixT& LocalCrystalPlast_C::DefGradientAtCenter(const LocalArrayT& disp
   // displacement gradient dU/dX
   Jacobian(disp, fGDNa, fGradU);
 
+cout << "not fixed yet" << endl;
+throw;
+
   // deformation gradient F = dx/dX
-  return FDContinuumT::F(fGradU);
+  //return FDContinuumT::F(fGradU);
+  return fGradU;
 }

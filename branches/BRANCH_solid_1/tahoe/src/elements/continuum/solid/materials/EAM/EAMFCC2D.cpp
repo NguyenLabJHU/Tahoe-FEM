@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.cpp,v 1.2 2001-04-27 10:54:30 paklein Exp $ */
+/* $Id: EAMFCC2D.cpp,v 1.2.2.1 2001-06-22 14:17:57 paklein Exp $ */
 /* created: paklein (12/09/1996)                                          */
 /* Plane strain EAM material                                              */
 
@@ -20,7 +20,7 @@ const double sqrt2 = sqrt(2.0);
 const double sqrt3 = sqrt(3.0);
 
 /* constructor */
-EAMFCC2D::EAMFCC2D(ifstreamT& in, const ElasticT& element, PlaneCodeT plane_code):
+EAMFCC2D::EAMFCC2D(ifstreamT& in, const FiniteStrainT& element, PlaneCodeT plane_code):
 	NL_E_Mat2DT(in, element, kPlaneStrain),
 	fPlaneCode(plane_code),
 	fEAM(NULL)

@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden3DT.h,v 1.1 2001-02-20 00:26:51 paklein Exp $ */
+/* $Id: QuadLogOgden3DT.h,v 1.1.2.1 2001-06-22 14:18:07 paklein Exp $ */
 /* created: paklein (02/17/2001)                                          */
 /* principal stretch version of Quad Log model                            */
 
@@ -13,7 +13,7 @@ class QuadLogOgden3DT: public OgdenIsotropicT
 public:
 
 	/* constructor */
-	QuadLogOgden3DT(ifstreamT& in, const ElasticT& element);
+	QuadLogOgden3DT(ifstreamT& in, const FiniteStrainT& element);
 	
 	/* print parameters */
 	virtual void PrintName(ostream& out) const;

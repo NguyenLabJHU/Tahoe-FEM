@@ -26,7 +26,7 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
 {
  public:
   // constructor
-  EVPFDBaseT(ifstreamT& in, const ElasticT& element);
+  EVPFDBaseT(ifstreamT& in, const FiniteStrainT& element);
 
   // destructor
   virtual ~EVPFDBaseT();

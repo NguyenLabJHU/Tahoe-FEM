@@ -1,4 +1,4 @@
-/* $Id: NL_E_MatT.cpp,v 1.1.1.1.2.2 2001-06-07 03:01:26 paklein Exp $ */
+/* $Id: NL_E_MatT.cpp,v 1.1.1.1.2.3 2001-06-22 14:18:30 paklein Exp $ */
 /* created: paklein (06/13/1997)                                          */
 /* Base class for materials with nonlinear elastic behavior               */
 /* which is computed from Langrangian coordinates (by the pure            */
@@ -19,7 +19,7 @@
 #include "NL_E_MatT.h"
 
 /* constructors */
-NL_E_MatT::NL_E_MatT(ifstreamT& in, const ElasticT& element):
+NL_E_MatT::NL_E_MatT(ifstreamT& in, const FiniteStrainT& element):
 	FDStructMatT(in, element),
 	fE(NumSD()),
 	fPK2(NumSD()),

@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB3D.h,v 1.2 2001-02-20 00:28:21 paklein Exp $ */
+/* $Id: OgdenIsoVIB3D.h,v 1.2.2.1 2001-06-22 14:18:14 paklein Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* 3D Isotropic VIB using Ogden's spectral formulation                    */
 
@@ -17,7 +17,7 @@ class OgdenIsoVIB3D: public OgdenIsotropicT, public VIB
 public:
 
 	/* constructor */
-	OgdenIsoVIB3D(ifstreamT& in, const ElasticT& element);
+	OgdenIsoVIB3D(ifstreamT& in, const FiniteStrainT& element);
 
 	/* destructor */
 	~OgdenIsoVIB3D(void);

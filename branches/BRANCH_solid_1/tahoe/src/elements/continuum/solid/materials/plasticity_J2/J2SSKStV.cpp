@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.cpp,v 1.1.1.1.2.1 2001-06-06 16:27:57 paklein Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.1.1.1.2.2 2001-06-22 14:18:20 paklein Exp $ */
 /* created: paklein (06/18/1997)                                          */
 
 #include "J2SSKStV.h"
@@ -16,7 +16,7 @@ static const char* Labels[kNumOutput] = {
 	"press"}; // pressure
 
 /* constructor */
-J2SSKStV::J2SSKStV(ifstreamT& in, const ElasticT& element):
+J2SSKStV::J2SSKStV(ifstreamT& in, const SmallStrainT& element):
 	SSStructMatT(in, element),
 	IsotropicT(in),
 	HookeanMatT(3),

@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.h,v 1.1.1.1.2.1 2001-06-06 16:25:27 paklein Exp $ */
+/* $Id: DPSSKStV.h,v 1.1.1.1.2.2 2001-06-22 14:18:18 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 #ifndef _DP_SS_KSTV_H_
@@ -18,7 +18,7 @@ class DPSSKStV: public SSStructMatT,
 public:
 
 	/* constructor */
-	DPSSKStV(ifstreamT& in, const ElasticT& element);
+	DPSSKStV(ifstreamT& in, const SmallStrainT& element);
 
 	/* form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;

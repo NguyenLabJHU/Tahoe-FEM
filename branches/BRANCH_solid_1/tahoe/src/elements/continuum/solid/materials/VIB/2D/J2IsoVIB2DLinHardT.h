@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB2DLinHardT.h,v 1.1.1.1.2.1 2001-06-13 00:08:42 paklein Exp $ */
+/* $Id: J2IsoVIB2DLinHardT.h,v 1.1.1.1.2.2 2001-06-22 14:18:11 paklein Exp $ */
 /* created: paklein (10/18/1998)                                          */
 /* VIB plus principal stretch elasticity                                  */
 /* Interface for a elastoplastic material that is linearly                */
@@ -29,7 +29,7 @@ class J2IsoVIB2DLinHardT: public IsoVIB3D, public Material2DT, public J2Primitiv
 public:
 
 	/* constructor */
-	J2IsoVIB2DLinHardT(ifstreamT& in, const ElasticT& element);
+	J2IsoVIB2DLinHardT(ifstreamT& in, const FiniteStrainT& element);
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);
