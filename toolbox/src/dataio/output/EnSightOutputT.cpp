@@ -1,4 +1,4 @@
-/* $Id: EnSightOutputT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: EnSightOutputT.cpp,v 1.2 2001-02-13 17:50:45 paklein Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #include "EnSightOutputT.h"
@@ -14,7 +14,7 @@ EnSightOutputT::EnSightOutputT (ostream& out, const ArrayT<StringT>& out_strings
 OutputBaseT (out, out_strings),
 fNumDigits (numdigs),
 fBinary (binary),
-fTimeValues (20, true)
+fTimeValues (20)
 {
 }
 
@@ -69,7 +69,7 @@ StringT geocase = OpenGeometryFile (ens, geo);
 WritePart (geo, ens, ID);
 
 // variable files
-AutoArrayT<StringT> names (20, false), files (20, false);
+AutoArrayT<StringT> names (20), files (20);
 AutoArrayT<EnSightT::VariableTypeT> vtypes;
 const ArrayT<StringT>& n_labels = fElementSets[ID]->NodeOutputLabels();
 const ArrayT<StringT>& e_labels = fElementSets[ID]->NodeOutputLabels();

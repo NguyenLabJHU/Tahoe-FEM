@@ -1,4 +1,4 @@
-/* $Id: FrontT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: FrontT.cpp,v 1.2 2001-02-13 17:51:15 paklein Exp $ */
 /* created: paklein (02/11/2000)                                          */
 
 #include "FrontT.h"
@@ -16,7 +16,7 @@ FrontT::FrontT(int nsd, int num_facet_nodes, double cone, double da,
 	fda(da),
 	fda_s(da_s),
 	fnum_pts(num_pts),
-	fFrontNodes(kHeadRoom, false),
+	fFrontNodes(kHeadRoom),
 	fNewFacetMan(20, fNewFacets, nsd*num_facet_nodes)
 {
 	/* checks */
