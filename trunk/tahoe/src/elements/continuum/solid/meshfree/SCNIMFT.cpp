@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.21 2004-07-30 15:17:08 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.22 2004-08-02 22:26:04 paklein Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -16,6 +16,8 @@
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "BasicFieldT.h"
+#include "ParentDomainT.h"
+#include "ParameterUtils.h"
 
 #include "MeshFreeSupport2DT.h"
 #include "MeshFreeNodalShapeFunctionT.h"
@@ -41,7 +43,8 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support, const FieldT& field):
 	fMaterialList(NULL),
 	fForce_man(0, fForce, field.NumDOF()),
 	//fFakeGeometry(NULL),
-	fVoronoi(NULL)
+	fVoronoi(NULL),
+	fNumIP(1)
 {
 	SetName("mfparticle");
 
@@ -55,7 +58,8 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support):
 	fVoronoi(NULL),
 	fMaterialList(NULL),
 	fNodalShapes(NULL),
-	qComputeVoronoiCell(false)
+	qComputeVoronoiCell(false),
+	fNumIP(1)	
 {
 	SetName("mfparticle");
 
@@ -79,6 +83,9 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 {
 	const char caller[] = "SCNIMFT::TakeParameterList";
 	
+	/* number of integration points used for surface integrals */
+	fNumIP = list.GetParameter("num_ip");
+	
 	/* construct meshfree support before calling inherited method because
 	 * support class needed to construct shape functions */
 	fMFSupport = new MeshFreeSupport2DT;
@@ -86,6 +93,12 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 
 	/* get parameters needed to construct shape functions */
 	fMeshfreeParameters = list.List("meshfree_support_2D");
+
+	/* extract particle ID's */
+	const ParameterListT& particle_ID_params = list.GetList("particle_ID_list");
+	ArrayT<StringT> particle_ID_list;
+	StringListT::Extract(particle_ID_params, particle_ID_list);
+	//get nodes from ModelManagerT
 	
 	/* inherited */
 	ElementBaseT::TakeParameterList(list);
@@ -665,21 +678,43 @@ void SCNIMFT::ComputeBMatrices(void)
 		nodeWorkSpace[i].AppendArray(l_supp_i, supp_i.Pointer());
 		facetWorkSpace[i].AppendArray(l_supp_i, zeroFacet);
 	}
-	
-	dArrayT facetCentroid(fSD), facetNormal(fSD), facetIntegral(fSD);
+
+	/* integration */
+	int nfn = 2;
+	int nsd = 2;
+	ParentDomainT domain(GeometryT::kLine, fNumIP, nfn);
+	domain.Initialize();
+	LocalArrayT facet_coords(LocalArrayT::kInitCoords, nfn, nsd);
+	dArrayT ip_coords(nsd);
+	dMatrixT jacobian(nsd);
+	const double* ip_weight = domain.Weight();
+
+	dArrayT /*facetCentroid(fSD), */ facetNormal(fSD), facetIntegral(fSD);
 	double* currentB, *currentI;
 	int n_0, n_1;
 	bool traverseQ_0, traverseQ_1;
 	int *next_0, *next_1;
 	for (int i = 0; i < fDeloneEdges.MajorDim(); i++) {
-		facetCentroid = 0.; 
+//		facetCentroid = 0.; 
 		n_0 = fDeloneEdges(i,0);
 		n_1 = fDeloneEdges(i,1);
-		facetCentroid.Set(fSD, fDualFacetCentroids(i)); 
+//		facetCentroid.Set(fSD, fDualFacetCentroids(i)); 
 		facetNormal.DiffOf(fDeloneVertices(n_1), fDeloneVertices(n_0));
 		facetNormal.UnitVector();
-		
-		if (!fNodalShapes->SetFieldAt(facetCentroid, NULL)) // shift = 0 or not ?
+
+/////////////////////////////
+		/* copy face coordinates with local ordering */
+		//facet_coords...
+		for (int ii = 0; ii < fNumIP; ii++)
+		{
+			/* jacobian of the coordinate transformation */
+			domain.DomainJacobian(facet_coords, ii, jacobian);
+			double jw = ip_weight[ii]*domain.SurfaceJacobian(jacobian);
+
+			/* integration point coordinates */
+			domain.Interpolate(facet_coords, ip_coords, ii);			
+
+		if (!fNodalShapes->SetFieldAt(ip_coords, NULL)) // shift = 0 or not ?
 			ExceptionT::GeneralFail("SCNIMFT::ComputeBMatrices","Shape Function evaluation"
 				"failed at Delone edge %d\n",i);
 				
@@ -713,7 +748,7 @@ void SCNIMFT::ComputeBMatrices(void)
 		for (int j = 0; j < n_centroid_cover; j++, c++, c_j++) {
 		
 			facetIntegral = facetNormal;
-			facetIntegral *= fDualAreas[i]*phiValues[*c_j];	
+			facetIntegral *= fDualAreas[i]*phiValues[*c_j]*jw;	
 			
 			if (next_0)
 				traverseQ_0 = *next_0 <= *c;
@@ -775,17 +810,33 @@ void SCNIMFT::ComputeBMatrices(void)
 			for (int k = 0; k < fSD; k++)
 				*currentB++ -= *currentI++; //NB change in sign; facet normal is inverted!
 		}
+		
+		}
+///////////////////////////////////
+
 	}
 	
 	/** Loop over remaining edges */
 	for (int i = 0; i < fNonDeloneEdges.Length(); i++) {
-		facetCentroid = 0.; 
+//		facetCentroid = 0.; 
 		n_0 = fNonDeloneEdges[i];
-		facetCentroid.Set(fSD, fNonDeloneCentroids(i)); 
+//		facetCentroid.Set(fSD, fNonDeloneCentroids(i)); 
 		facetNormal.Set(fSD, fNonDeloneNormals(i));
 		facetNormal.UnitVector();
 		
-		if (!fNodalShapes->SetFieldAt(facetCentroid, NULL)) // shift = 0 or not ?
+/////////////////////
+		/* copy face coordinates with local ordering */
+		//facet_coords...
+		for (int ii = 0; ii < fNumIP; ii++)
+		{
+			/* jacobian of the coordinate transformation */
+			domain.DomainJacobian(facet_coords, ii, jacobian);
+			double jw = ip_weight[ii]*domain.SurfaceJacobian(jacobian);
+
+			/* integration point coordinates */
+			domain.Interpolate(facet_coords, ip_coords, ii);			
+
+		if (!fNodalShapes->SetFieldAt(ip_coords, NULL)) // shift = 0 or not ?
 			ExceptionT::GeneralFail("SCNIMFT::ComputeBMatrices","Shape Function evaluation"
 				"failed at Delone edge %d\n",i);
 				
@@ -810,7 +861,7 @@ void SCNIMFT::ComputeBMatrices(void)
 		next_0 = supp_0.CurrentValue();
 		for (int j = 0; j < n_centroid_cover; j++, c++, c_j++) {
 			facetIntegral = facetNormal;
-			facetIntegral *= fBoundaryIntegrationWeights[i]*phiValues[*c_j];		
+			facetIntegral *= fBoundaryIntegrationWeights[i]*phiValues[*c_j]*jw;		
 		
 			if (next_0)
 				traverseQ_0 = *next_0 <= *c;
@@ -842,6 +893,10 @@ void SCNIMFT::ComputeBMatrices(void)
 			for (int k = 0; k < fSD; k++)
 				*currentB++ += *currentI++;
 		}
+	
+		}	
+/////////////////////
+
 	}
 	
 	// scale integrals by volumes of Voronoi cells
@@ -1135,6 +1190,10 @@ void SCNIMFT::DefineParameters(ParameterListT& list) const
 	ParameterT voronoi_file(vCellFile, "voronoi_file");
 	voronoi_file.SetDefault("vcell.out");
 	list.AddParameter(voronoi_file);
+
+	ParameterT num_ip(fNumIP, "num_ip");	
+	num_ip.SetDefault(fNumIP);
+	list.AddParameter(num_ip);
 }
 
 /* information about subordinate parameter lists */
@@ -1146,6 +1205,8 @@ void SCNIMFT::DefineSubs(SubListT& sub_list) const
 	/* parameters for the meshfree support */
 	sub_list.AddSub("meshfree_support_2D");
 
+	/* list of node set ID's */
+	sub_list.AddSub("particle_ID_list");
 }
 
 /* return the description of the given inline subordinate parameter list */
