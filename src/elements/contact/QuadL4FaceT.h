@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.h,v 1.15 2002-03-25 16:11:43 rjones Exp $ */
+/* $Id: QuadL4FaceT.h,v 1.16 2002-06-17 17:15:07 rjones Exp $ */
 
 #ifndef _QUADL4_FACE_T_H_
 #define _QUADL4_FACE_T_H_
@@ -35,7 +35,7 @@ public:
 
         /* geometric computation */
         void ComputeCentroid(double* centroid) const; 
-	double ComputeRadius() const;
+		double ComputeRadius() const;
         void ComputeNormal
 		(const double* local_coordinates, double* normal) const;
         void ComputeTangent1 
@@ -44,20 +44,22 @@ public:
 		(const double* local_coordinates, double* tangent2) const;
         void NodeNormal(int local_node_number, double* normal) const;
         void CalcFaceNormal(void);
-	void LocalBasis 
-		(double* normal, double* tangent1, double* tangent2) const;
+		void LocalBasis 
+			(double* normal, double* tangent1, double* tangent2) const;
         void ComputeShapeFunctions
             	(const double* local_coordinates, dArrayT& shape_functions) 
-		const;
+				const;
         void ComputeShapeFunctions
           	(const double* local_coordinates, dMatrixT& shape_functions) 
-		const;
+			const;
         void ComputeShapeFunctionDerivatives
-                (const double* local_coordinates, dArrayT& shape_derivatives) 
-		const;
+                (const double* local_coordinates, 
+				dArrayT& shape_derivatives1,  dArrayT& shape_derivatives2) 
+				const;
         void ComputeShapeFunctionDerivatives
-                (const double* local_coordinates, dMatrixT& shape_derivatives) 
-		const;
+                (const double* local_coordinates, 
+				dMatrixT& shape_derivatives1, dMatrixT& shape_derivatives2) 
+				const;
         void InterpolatePosition
                 (const double* local_coordinates, double* x) const;
         double Interpolate 

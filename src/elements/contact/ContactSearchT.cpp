@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.cpp,v 1.19 2002-03-25 16:11:42 rjones Exp $ */
+/* $Id: ContactSearchT.cpp,v 1.20 2002-06-17 17:15:07 rjones Exp $ */
 
 #include "ContactSearchT.h"
 
@@ -175,6 +175,11 @@ bool ContactSearchT::UpdateProjection (void)
 			dArrayT& parameters = fSearchParameters(i,tag);
 			found = 
 			  node->OpposingFace()->Projection(node,parameters);
+#if 0
+			if (!found) cout << "Warning : "
+				<< surface.GlobalNodes()[j]
+				<< " node does not project in orginal face\n";
+#endif
 			if (!found) {
 				  /* neighborhood face patch */
 				  const ArrayT<FaceT*>& neighbor_faces 
@@ -188,10 +193,10 @@ bool ContactSearchT::UpdateProjection (void)
 				  }
 			}
 			if (!found) node->ResetStatus();
-			if (!found) cout << "Warning : "
+			if (!found) cout << "Warning: "
 				<< surface.GlobalNodes()[j]
-				<< " node lost projection during iteration, "
-				<< " a smaller step may be req'd \n";
+				<< " node lost projection during iteration" << "\n";
+//				<< " (a smaller step may be req'd) \n";
 
             }
         }

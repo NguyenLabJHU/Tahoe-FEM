@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.33 2002-06-08 20:20:19 paklein Exp $ */
+/* $Id: ContactElementT.cpp,v 1.34 2002-06-17 17:15:07 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -15,6 +15,7 @@
 #include "ModelFileT.h"
 #include "SurfaceT.h"
 #include "ContactSearchT.h"
+#include "ContactNodeT.h"
 
 /* parameters */ // unfortunately these are also in the derived classes
 static const int kMaxNumFaceNodes = 4; // 4node quads
@@ -70,6 +71,14 @@ void ContactElementT::Initialize(void)
 	for (int i = 0; i < fSurfaces.Length(); i++) {
 		fSurfaces[i].Initialize(ElementSupport(), fNumMultipliers);
 	}
+
+    for (int i = 0; i < fSurfaces.Length(); i++) {
+    	ArrayT<ContactNodeT*>& nodes = fSurfaces[i].ContactNodes();
+    	for(int n = 0; n < nodes.Length(); n++){
+			nodes[n]->EnforcementStatus() = -10;
+		}
+    }
+
 #if 0
         /* set console access */
         iAddVariable("penalty_parameter", fpenalty);
@@ -106,6 +115,8 @@ void ContactElementT::Initialize(void)
 		/* set initial contact configuration */
 		bool changed = SetContactConfiguration();	
 	}
+
+
 }
 
 void ContactElementT::SetWorkspace(void)

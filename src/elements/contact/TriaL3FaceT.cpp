@@ -1,4 +1,4 @@
-/* $Id: TriaL3FaceT.cpp,v 1.5 2002-03-25 16:11:43 rjones Exp $ */
+/* $Id: TriaL3FaceT.cpp,v 1.6 2002-06-17 17:15:07 rjones Exp $ */
 
 #include "TriaL3FaceT.h"
 
@@ -59,7 +59,7 @@ TriaL3FaceT::ComputeRadius(void) const
 	double centroid[3];
 	ComputeCentroid(centroid);
 	Diff (fx[0],centroid,centroid);
-	double radius = Mag(centroid);
+	double radius = Magnitude(centroid);
 	return radius;
 }
 

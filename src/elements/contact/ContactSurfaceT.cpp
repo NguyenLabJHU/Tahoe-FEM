@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.25 2002-06-08 20:20:19 paklein Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.26 2002-06-17 17:15:07 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
@@ -343,7 +343,7 @@ ContactSurfaceT::PrintContactArea(ostream& out) const
 	dArray2DT points(this->NumNodesPerFace(),fNumSD);
 
 	double total_area = 0.0, contact_area = 0.0;
-        for (int f = 0;  f < fFaces.Length(); f++) {
+    for (int f = 0;  f < fFaces.Length(); f++) {
           const FaceT* face = fFaces[f];
           face->Quadrature(points,weights);
           for (int i = 0 ; i < weights.Length() ; i++) {
@@ -354,9 +354,15 @@ ContactSurfaceT::PrintContactArea(ostream& out) const
              }
           } 
 	}
+    int cn = 0;
+    for (int n = 0;  n < fContactNodes.Length(); n++) {
+		if (fContactNodes[n]->Status() > ContactNodeT::kNoProjection) cn++;
+	}
 	out << "Surface " << this->Tag() << ":" ;
-	out << " total area "<< total_area 
-	    << " contact area " << contact_area << '\n';
+	out << " AREA: total "<< total_area 
+	    << ", contact " << contact_area 
+	    << ", " << cn << " / " << fContactNodes.Length()
+		<< '\n';
 }
 
 void
@@ -424,11 +430,13 @@ ContactSurfaceT::PrintMultipliers(ostream& out) const
         out << "#Surface " << this->Tag() << " PRESSURE \n";
 
         for (int n = 0 ; n < fContactNodes.Length(); n++) {
-            out << "# tag " << fContactNodes[n]->Tag() << "\n";
-			for (int i = 0; i < fNumSD; i++) {
-                        out << fContactNodes[n]->Position()[i] << " ";
+            if (fContactNodes[n]->Status() > ContactNodeT::kNoProjection) {
+            	out << "# tag " << fContactNodes[n]->Tag() << "\n";
+				for (int i = 0; i < fNumSD; i++) {
+                	out << fContactNodes[n]->Position()[i] << " ";
                 }
                 out << "   "<< fContactNodes[n]->nPressure() << "\n";
+			}
         }
 	}
 }
@@ -437,12 +445,26 @@ ContactSurfaceT::PrintMultipliers(ostream& out) const
 void
 ContactSurfaceT::PrintStatus(ostream& out) const
 {
-        out << "#Surface " << this->Tag() << " STATUS \n";
+        out << "Surface " << this->Tag() << " STATUS \n";
 
         for (int n = 0 ; n < fContactNodes.Length(); n++) {
-                out << fContactNodes[n]->Tag()<< " ";
-                out << " status " << fContactNodes[n]->Status()  
-					<< "   " << fContactNodes[n]->EnforcementStatus() << "\n";
+                if ( fContactNodes[n]->Status() == ContactNodeT::kProjection)
+				{
+                	out << fContactNodes[n]->Tag()<< " ";
+                	out << " status " << fContactNodes[n]->Status()  
+					<< " : " << fContactNodes[n]->EnforcementStatus() ;
+
+					out << "\n    face:" <<  
+					fContactNodes[n]->OpposingFace() ;
+					out << ",  xi:" <<  
+					fContactNodes[n]->OpposingLocalCoordinates() [0];
+					if ( fNumSD == 3) out << ", " <<
+					fContactNodes[n]->OpposingLocalCoordinates() [1];
+					out << ", g:" << 
+					fContactNodes[n]->Gap();
+
+					out << "\n";
+				}
         }
 }
 

@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.24 2002-06-08 20:20:20 paklein Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.25 2002-06-17 17:15:07 rjones Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -86,9 +86,13 @@ void PenaltyContactElement2DT::WriteOutput(IOBaseT::OutputModeT mode)
 	/* call base class */
 	ContactElementT::WriteOutput(mode);
 	
-	cout << "\n";
-	for (int i=0; i<fSurfaces.Length(); i++)
-		cout << "real contact area = " << fRealArea[i] << "\n";
+    if (fOutputFlags[kArea] )
+//  (parameters[kPenaltyType]==PenaltyContactElement2DT::kGreenwoodWilliamson))
+ 	{
+		cout << "\n";
+		for (int i=0; i<fSurfaces.Length(); i++)
+			cout << "real contact area = " << fRealArea[i] << "\n";
+	}
 }
 
 /***********************************************************************

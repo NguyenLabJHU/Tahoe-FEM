@@ -1,4 +1,4 @@
-/* $Id: FaceT.h,v 1.19 2002-03-25 16:11:42 rjones Exp $ */
+/* $Id: FaceT.h,v 1.20 2002-06-17 17:15:07 rjones Exp $ */
 
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
@@ -54,12 +54,22 @@ public:
 	virtual void ComputeShapeFunctions
 	  	(const double* local_coordinates, dMatrixT& shape_functions) 
 		const=0;
+// 2D
 	virtual void ComputeShapeFunctionDerivatives
 		(const double* local_coordinates, dArrayT& shape_derivatives) 
-		const =0;
+		const {throw ;}
 	virtual void ComputeShapeFunctionDerivatives
 		(const double* local_coordinates, dMatrixT& shape_derivatives) 
-		const =0;
+		const {throw ;}
+// 3D
+	virtual void ComputeShapeFunctionDerivatives
+		(const double* local_coordinates, 
+		dArrayT& shape_derivatives1, dArrayT& shape_derivatives2) 
+		const {throw ;}
+	virtual void ComputeShapeFunctionDerivatives
+		(const double* local_coordinates, 
+		dMatrixT& shape_derivatives1, dMatrixT& shape_derivatives2) 
+		const {throw ;}
 	virtual void InterpolatePosition(const double* local_coordinates,
 		double* x) const =0;
 	virtual double Interpolate

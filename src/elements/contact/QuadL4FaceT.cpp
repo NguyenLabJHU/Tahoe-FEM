@@ -1,4 +1,4 @@
-/* $Id: QuadL4FaceT.cpp,v 1.20 2002-03-25 16:11:43 rjones Exp $ */
+/* $Id: QuadL4FaceT.cpp,v 1.21 2002-06-17 17:15:07 rjones Exp $ */
 
 #include "QuadL4FaceT.h"
 
@@ -62,7 +62,7 @@ QuadL4FaceT::ComputeRadius(void) const
 {
 	double diagonal[3];
 	Diff (fx[0],fx[2],diagonal);
-	double radius = 0.5*Mag(diagonal);
+	double radius = 0.5*Magnitude(diagonal);
 	return radius;
 }
 
@@ -81,6 +81,7 @@ QuadL4FaceT::NodeNormal(int local_node_number,double* normal) const
 void
 QuadL4FaceT::CalcFaceNormal(void)
 { /* compute face average normal */
+#if 0
 	double e1[3], e2[3], e3[3], e4[3], v1[3], v2[3];
 	Add(fx[0],fx[1],e1);
 	Add(fx[1],fx[2],e2);
@@ -90,30 +91,47 @@ QuadL4FaceT::CalcFaceNormal(void)
 	Diff(e1,e3,v2);
 	Cross(v1,v2,fnormal);
 //Normalize(&fnormal);
+#endif
+	double a[3], b[3], c[3], d[3];
+    Polynomial(a,b,c,d);
+	Cross(b,c,fnormal);
 }
 
 void
 QuadL4FaceT::ComputeNormal
 (const double* local_coordinates,double* normal) const
 {
-cout << "not implemented";
-throw;
+	double a[3], b[3], c[3], d[3];
+	Polynomial(a,b,c,d);
+	double v[3];
+	double xi  = local_coordinates[0];
+	double eta = local_coordinates[1];
+	Add(xi,b,-eta,c,v);
+	Cross(v,d,normal);
+	double fn[3];
+	Cross(b,c,fn);
+	Add(normal,fn,normal);
+	Normalize(normal);
 }
 
 void
 QuadL4FaceT::ComputeTangent1
 (const double* local_coordinates,double* tangent1) const
 {
-cout << "not implemented";
-throw;
+	double a[3], b[3], c[3], d[3];
+	Polynomial(a,b,c,d);
+	double eta = local_coordinates[1];
+	Add(1.0,b,eta,d,tangent1);
 }
 
 void
 QuadL4FaceT::ComputeTangent2
 (const double* local_coordinates,double* tangent2) const
 {
-cout << "not implemented";
-throw;
+	double a[3], b[3], c[3], d[3];
+	Polynomial(a,b,c,d);
+	double xi  = local_coordinates[0];
+	Add(1.0,c,xi,d,tangent2);
 }
 
 void
@@ -221,22 +239,73 @@ QuadL4FaceT::ComputeShapeFunctions
 
 void
 QuadL4FaceT::ComputeShapeFunctionDerivatives
-(const double* local_coordinates, dArrayT& shape_functions) const
+(const double* local_coordinates, 
+dArrayT& shape_derivatives1, dArrayT& shape_derivatives2 ) const
 {
+    double xi  = local_coordinates[0];
+    double eta = local_coordinates[1];
+    shape_derivatives1[0] = -0.25 * (1.0 - eta) ;
+    shape_derivatives1[1] =  0.25 * (1.0 - eta) ;
+    shape_derivatives1[2] =  0.25 * (1.0 + eta) ;
+    shape_derivatives1[3] = -0.25 * (1.0 + eta) ;
+
+    shape_derivatives2[0] = -0.25 * (1.0 - xi ) ;
+    shape_derivatives2[1] = -0.25 * (1.0 + xi ) ;
+    shape_derivatives2[2] =  0.25 * (1.0 + xi ) ;
+    shape_derivatives2[3] =  0.25 * (1.0 - xi ) ;
 }
 
 void
 QuadL4FaceT::ComputeShapeFunctionDerivatives
-(const double* local_coordinates, dMatrixT& shape_functions) const
+(const double* local_coordinates, 
+dMatrixT& shape_derivatives1, dMatrixT& shape_derivatives2) const
 {
+    dArrayT shape_d1(4), shape_d2(4);
+    ComputeShapeFunctionDerivatives(local_coordinates, shape_d1, shape_d2);
+    shape_derivatives1 = 0.0;
+    shape_derivatives1(0,0)  = shape_d1[0];
+    shape_derivatives1(1,1)  = shape_d1[0];
+    shape_derivatives1(2,2)  = shape_d1[0];
+    shape_derivatives1(3,0)  = shape_d1[1];
+    shape_derivatives1(4,1)  = shape_d1[1];
+    shape_derivatives1(5,2)  = shape_d1[1];
+    shape_derivatives1(6,0)  = shape_d1[2];
+    shape_derivatives1(7,1)  = shape_d1[2];
+    shape_derivatives1(8,2)  = shape_d1[2];
+    shape_derivatives1(9,0)  = shape_d1[3];
+    shape_derivatives1(10,1) = shape_d1[3];
+    shape_derivatives1(11,2) = shape_d1[3];
+    shape_derivatives2 = 0.0;
+    shape_derivatives2(0,0)  = shape_d2[0];
+    shape_derivatives2(1,1)  = shape_d2[0];
+    shape_derivatives2(2,2)  = shape_d2[0];
+    shape_derivatives2(3,0)  = shape_d2[1];
+    shape_derivatives2(4,1)  = shape_d2[1];
+    shape_derivatives2(5,2)  = shape_d2[1];
+    shape_derivatives2(6,0)  = shape_d2[2];
+    shape_derivatives2(7,1)  = shape_d2[2];
+    shape_derivatives2(8,2)  = shape_d2[2];
+    shape_derivatives2(9,0)  = shape_d2[3];
+    shape_derivatives2(10,1) = shape_d2[3];
+    shape_derivatives2(11,2) = shape_d2[3];
 }
 
 
 double
 QuadL4FaceT::ComputeJacobian (const double* local_coordinates) const
 {
-	//HACK
-	return 1.0;
+    double a[3], b[3], c[3], d[3];
+    Polynomial(a,b,c,d);
+    double v[3];
+    double xi  = local_coordinates[0];
+    double eta = local_coordinates[1];
+    Add(xi,b,-eta,c,v);
+	double normal[3];
+    Cross(v,d,normal);
+    double fn[3];
+    Cross(b,c,fn);
+    Add(normal,fn,normal);
+    return Magnitude(normal);
 }
 
 bool
@@ -269,19 +338,20 @@ QuadL4FaceT::Projection
 	  p0 = a1 + a2 - x1 - x2;
 	  p1 = b1 + b2; p2 = c1 + c2; p3 = d1 + d2;
 	  /* reduced equation for xi, valid for p0 - p2*eta != 0 */
-	  double qua = p3*m1 - p1*m3;
-	  double lin = p2*m1 - p1*m2 + p3*m0 - p0*m3;
-	  double con = p2*m0 - p0*m2;
+	  double qua = p3*m1 - p1*m3;                 // "a"
+	  double lin = p2*m1 - p1*m2 + p3*m0 - p0*m3; // "b"
+	  double con = p2*m0 - p0*m2;                 // "c"
 	  double xi[2];
-	  if (fabs(qua) < kTol_Quad) { xi[0] = -con/lin; }
+	  if (fabs(qua) < kTol_Quad) { 
+        xi[0] = -con/lin; }
 	  else {
 		double b2a = 0.5*lin/qua;
 		double discrim = lin*lin - 4.0*con*qua;
 		if (discrim < 0.0) { return 0; }
 		else if (b2a > kTol_One ) 
-		  { xi[0] = -b2a + sqrt(b2a*b2a - qua/con); }
+		  { xi[0] = -b2a + sqrt(b2a*b2a - con/qua); }
 		else if (b2a <-kTol_One ) 
-		  { xi[0] = -b2a - sqrt(b2a*b2a - qua/con); }
+		  { xi[0] = -b2a - sqrt(b2a*b2a - con/qua); }
 		else {
 		  double xi1 = 0.5*(-lin + sqrt(discrim))/qua; 
 		  double xi2 = 0.5*(-lin - sqrt(discrim))/qua; 
@@ -298,13 +368,13 @@ QuadL4FaceT::Projection
 	    /* compute gap */
 	    double g =  a3 + b3*xi[0] + c3*xi[1]+ d3*xi[0]*xi[1] - x3;
 	    if (CheckGap(g,tol_g) ) {
-		/*assign opposite (chooses closest)*/
-		bool isbetter = node->AssignOpposing(fSurface,*this,xi,g);
-		return isbetter;
-	    }
-	  }
-	}
-        return 0;
+		 /*assign opposite (chooses closest)*/
+		 bool isbetter = node->AssignOpposing(fSurface,*this,xi,g);
+		 return isbetter;
+	    } // CheckGap failed
+	  } // CheckLocalCoordinates failed
+	} // Normal opposition failed
+    return 0;
 }
 
 
