@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.17 2003-10-09 18:07:08 paklein Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.18 2003-10-09 18:12:16 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -97,12 +97,13 @@ public:
 
 	/** field gradients at arbitrary parent domain coordinates. 
 	 * \param nodal array of nodal values: [nnd] x [nu]
-	 * \param Na array of nodal shape functions (dimensioned during the call): [nnd]
-	 * \param DNa array of shape function derivatives (dimensioned during the call): [nsd] x [nnd]
-	 * \param grad_U field gradient matrix: [nu] x [nsd] 
-	 * \param coord coordinates in the parent domain */
-	void GradU(const LocalArrayT& nodal, dArrayT& Na, dArray2DT& DNa, dMatrixT& grad_U, 
-		const dArrayT& coord) const;
+	 * \param grad_U returns with the field gradient matrix: [nu] x [nsd] 
+	 * \param coord coordinates in the parent domain
+	 * \param Na returns with array of nodal shape functions (dimensioned during the call): [nnd]
+	 * \param DNa returns with array of shape function derivatives 
+	 *        (dimensioned during the call): [nsd] x [nnd] */
+	void GradU(const LocalArrayT& nodal, dMatrixT& grad_U, const dArrayT& coord, 
+		dArrayT& Na, dArray2DT& DNa) const;
 	/*@}*/
 
 	/** compute the curl of a vector that is of dimension 3x1

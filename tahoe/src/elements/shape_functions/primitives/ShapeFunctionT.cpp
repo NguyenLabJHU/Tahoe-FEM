@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.cpp,v 1.12 2003-10-09 18:07:08 paklein Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.13 2003-10-09 18:12:16 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #include "ShapeFunctionT.h"
@@ -45,8 +45,8 @@ void ShapeFunctionT::SetDerivatives(void)
 }
 
 /* field gradients at specific parent domain coordinates. */
-void ShapeFunctionT::GradU(const LocalArrayT& nodal, dArrayT& Na, dArray2DT& DNa, 
-	dMatrixT& grad_U, const dArrayT& coord) const
+void ShapeFunctionT::GradU(const LocalArrayT& nodal, dMatrixT& grad_U, const dArrayT& coord, 
+	dArrayT& Na, dArray2DT& DNa) const
 {
 	/* dimensions */
 	int nnd = fCoords.NumberOfNodes();
