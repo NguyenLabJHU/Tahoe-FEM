@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.5 2001-05-17 19:13:47 ebmarin Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.6 2001-06-23 01:34:54 thao Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList2DT.h"
@@ -33,6 +33,8 @@
 #include "OgdenIsoVIB2D.h"
 #include "ABAQUS_BCJ.h"
 #include "QuadLogOgden2DT.h"
+#include "OgdenViscVIB2D.h"
+#include "SKStVT2D.h"
 #include "tevp2D.h"
 
 #include "HyperEVP2D.h"
@@ -228,6 +230,15 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				throw eBadInputValue;
 #endif /* __F2C__ */
 				break;
+
+			case kOgdenViscVIB:
+				fArray[matnum] = new OgdenViscVIB2D(in, fElementGroup);
+				fHasHistory = true;
+				break;
+
+			case kSKStVT:
+				fArray[matnum] = new SKStVT2D(in, fElementGroup);
+				fHasHistory = true;
 
 //TEMP
 #if 0

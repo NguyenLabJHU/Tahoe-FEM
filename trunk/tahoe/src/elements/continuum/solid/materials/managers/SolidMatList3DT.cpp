@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.6 2001-05-17 19:13:47 ebmarin Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.7 2001-06-23 01:34:54 thao Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList3DT.h"
@@ -25,7 +25,8 @@
 #include "J2QLLinHardT.h"
 #include "OgdenIsoVIB3D.h"
 #include "QuadLogOgden3DT.h"
-
+#include "OgdenViscVIB3D.h"
+#include "SKStVT3D.h"
 #include "HyperEVP3D.h"
 #include "BCJHypo3D.h"
 #include "LocalCrystalPlast.h"
@@ -137,11 +138,21 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				fHasLocalizers = true;
 				break;
 
+			case kOgdenViscVIB:
+				fArray[matnum] = new OgdenViscVIB3D(in, fElementGroup);
+				fHasHistory = true;
+				break;
+
 			case kIsoVIBSimo:
 				fArray[matnum] = new IsoVIB3D(in, fElementGroup);
 				fHasLocalizers = true;
 				break;
-
+	
+			case kSKStVT:
+				fArray[matnum] = new SKStVT3D(in, fElementGroup);
+				fHasHistory = true;
+				break;
+				
 			case kIsoVIBOgden:
 				fArray[matnum] = new OgdenIsoVIB3D(in, fElementGroup);
 				fHasLocalizers = true;
