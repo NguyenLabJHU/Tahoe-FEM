@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.3.2.7 2003-05-12 22:46:11 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.3.2.8 2003-05-13 02:38:56 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -99,7 +99,7 @@ public:
 	 * field values to the given list of points. Requires that this FEManagerT has
 	 * a BridgingScaleT in its element list. */
 	void InitProjection(const iArrayT& nodes, const StringT& field,
-		NodeManagerT& node_manager);
+		NodeManagerT& node_manager, bool make_inactive);
 
 	/** project the point values onto the mesh. Project to the nodes using
 	 * projection initialized with the latest call to FEManagerT_bridging::InitProjection. */
