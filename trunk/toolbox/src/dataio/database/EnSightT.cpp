@@ -1,4 +1,4 @@
-/* $Id: EnSightT.cpp,v 1.8 2002-07-05 17:16:05 paklein Exp $ */
+/* $Id: EnSightT.cpp,v 1.9 2002-07-23 11:28:38 sawimme Exp $ */
 /* created: sawimme (05/13/1999) */
 
 #include "EnSightT.h"
@@ -131,17 +131,29 @@ elementmap.WriteWithFormat (fgeo, iwidth, 0, 1, 0);
 
 void EnSightT::WriteConnectivity (ostream& fgeo, int numelemnodes, const iArray2DT& connects) const
 {
-if (fBinary)
-{
-for (int ic = 0; ic < connects.MajorDim(); ic++)
+  /* do not write all columns of connectivity data,
+     only write up to numelemnodes */
+  if (fBinary)
+    {
+      for (int ic = 0; ic < connects.MajorDim(); ic++)
 	for (int j=0; j < numelemnodes; j++)
 	  {
 	    int itemp = connects (ic,j);
 	    fgeo.write (reinterpret_cast<const char *> (&itemp), sizeof (int));
 	  }
-}
-else
-connects.WriteWithFormat (fgeo, iwidth, 0, connects.MinorDim(), 0);
+    }
+  else
+    {
+      int *pc = connects.Pointer();
+      for (int ic = 0; ic < connects.MajorDim(); ic++)
+	{
+	  for (int j=0; j < numelemnodes; j++)
+	    out << setw (iwidth) << *pc + j;
+	  out << '\n';
+
+	  pc += connects.MinorDim();
+	}
+    }
 }
 
 void EnSightT::WriteVector (ostream& fvar, const dArray2DT& values, int i) const
