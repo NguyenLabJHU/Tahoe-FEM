@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.12 2001-11-15 17:38:30 recampb Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.13 2001-11-15 19:37:02 paklein Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -93,12 +93,12 @@ bool VTKFrameT::AddBody(VTKBodyT* body)
       // so that at most one is visible and SBActors() can be exhanged
       // in renderer
       ResetView();
-//       StringT name = "body";
-//       int index = bodies.PositionOf(body);
+      StringT name = "body";
+      int index = bodies.PositionOf(body);
 
-//       name.Append(index);
-//       bodies[index]->iSetName(name);
-//       iAddSub(*bodies[index]);
+      name.Append(index);
+      bodies[index]->iSetName(name);
+      iAddSub(*bodies[index]);
       return true;
     }
   else
@@ -113,7 +113,7 @@ bool VTKFrameT::RemoveBody(VTKBodyT* body)
   else
     {
       VTKBodyT* body = bodies[index];
-      // iDeleteSub(*bodies[index]);
+      iDeleteSub(*bodies[index]);
       /* remove from renderer */
       renderer->RemoveActor(body->Actor());
       renderer->RemoveActor(body->SBActor()); // if added to the renderer earlier
@@ -503,11 +503,15 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
 
   else if (command == "Choose_variable")
     {
+	  //NOTE: collect list of variables from all bodies???
+
       cout << "choose variable number from 0 to " << bodies[0]->num_node_variables-1 <<" to be displayed\n" << bodies[0]->varList;      
       cin >> varNum;
       char line[255];
       cin.getline(line, 254);
-      bodies[0]->ChangeVars(varNum);
+	  const StringT& var = (bodies[0]->NodeLabels())[varNum];
+	  for (int i = 0; i < bodies.Length(); i++)
+		bodies[i]->ChangeVars(var); // will not return true if body does not have the var
       fRenWin->Render();
       return true;
 
