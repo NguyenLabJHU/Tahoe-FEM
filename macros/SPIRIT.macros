@@ -1,4 +1,4 @@
-# $Id: SPIRIT.macros,v 1.1 2004-12-15 19:08:59 paklein Exp $
+# $Id: SPIRIT.macros,v 1.2 2004-12-18 04:57:08 paklein Exp $
 MAKE        = make
 DEFINES     = -D__TAHOE_MPI__ -D__SHASTA__ -D__INTEL_CC__ -DNON_UNIX_STDIO -D__NO_RTTI__ -DEIGHT_BYTE_REAL
 COMP_C      = mpicc
@@ -10,7 +10,7 @@ LOC_CFLAGS  = -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(MPI_CFLAGS) $(LOC_CFLAGS) -wr161
 CFLAGS_CC   = $(MPI_CFLAGS) $(LOC_CFLAGS) -wr161,858
 CFLAGS_F    = $(MPI_CFLAGS) $(LOC_CFLAGS) -fno-second-underscore
-F2C_LFLAGS  = -lF90
+F2C_LFLAGS  = -L/apps/intel/fce_80/lib -lifport -lifcore
 LINK        = $(COMP_CC)
 LFLAGS      = $(F2C_LFLAGS)
 MAKEDEPEND_C         = mpicc -MM
