@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.18 2002-06-29 01:06:42 paklein Exp $
+# $Id: makefile,v 1.19 2002-07-11 17:57:16 dzeigle Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -12,7 +12,7 @@ OBJ = \
 	GaoKlein.o \
 	Gamma.o \
 	GreenwoodWilliamson.o \
-	Kummer.o \
+	ConHypGeom.o \
 	LennardJones612.o \
 	ModBessel.o \
 	ParabolaT.o \
@@ -45,7 +45,7 @@ SRC = \
 	Gamma.cpp \
 	GaoKlein.cpp \
 	GreenwoodWilliamson.cpp \
-	Kummer.cpp \
+	ConHypGeom.cpp \
 	LennardJones612.cpp \
 	ModBessel.cpp \
 	ParabolaT.cpp \
@@ -72,7 +72,7 @@ HDR = \
 	Gamma.h \
 	GaoKlein.h \
 	GreenwoodWilliamson.h \
-	Kummer.h \
+	ConHypGeom.h \
 	LennardJones612.h \
 	ModBessel.h \
 	ParabolaT.h \
