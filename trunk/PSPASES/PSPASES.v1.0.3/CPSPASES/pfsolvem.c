@@ -1,4 +1,4 @@
-/* $Id: pfsolvem.c,v 1.1 2004-12-30 22:30:06 paklein Exp $ */
+/* $Id: pfsolvem.c,v 1.2 2004-12-30 22:33:39 paklein Exp $ */
 /* pfsolvem.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -62,7 +62,7 @@ static doublereal c_b58 = -1.;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: pfsolvem.c,v 1.1 2004-12-30 22:30:06 paklein Exp $ +/ */
+/* /+ $Id: pfsolvem.c,v 1.2 2004-12-30 22:33:39 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -930,7 +930,7 @@ L10:
 /*<                 call mpi_wait(req(4),mpistat,ierr) >*/
 			    MPI_Wait(&req[3], mpistat);
 /*<                 itag = mpistat(MPI_TAG) >*/
-			    itag = mpistat[MPI_TAG];
+			    itag = mpistat->MPI_TAG;
 /*<    >*/
 			    if (itag != mydown && ! (bvend == suptop && 
 				    lbotsiz == supsiz)) {
@@ -1103,7 +1103,7 @@ L30:
 /*<                 call mpi_wait(req(4),mpistat,ierr) >*/
 			MPI_Wait(&req[3], mpistat);
 /*<                 itag = mpistat(MPI_TAG) >*/
-			itag = mpistat[MPI_TAG];
+			itag = mpistat->MPI_TAG;
 
 /*<                 call mpi_get_count(mpistat,MPI_BYTE,mpistat,ierr) >*/
 /*<                 itag = mpistat(MPI_TAG) >*/
