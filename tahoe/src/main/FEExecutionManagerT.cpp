@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.11 2002-01-07 02:14:48 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.12 2002-01-08 19:44:31 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #include "FEExecutionManagerT.h"
@@ -769,8 +769,8 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 		/* output model file */
 		if (need_model_file)
 		{
-			cout << "\n FEExecutionManagerT::Decompose: SKIPPING global model file" << endl;
-#if 0
+//			cout << "\n FEExecutionManagerT::Decompose: SKIPPING global model file" << endl;
+#if 1
 			cout << "\n Writing output model file: " << global_model_file << endl;
 			global_FEman.WriteGeometryFile(global_model_file, format);
 			cout << " Writing output model file: " << global_model_file << ": DONE" << endl;
