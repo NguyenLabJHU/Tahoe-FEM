@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.12 2002-12-13 02:42:56 paklein Exp $ */
+/* $Id: SolverT.h,v 1.12.2.1 2003-02-14 02:44:23 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -87,6 +87,11 @@ public:
 	
 	/** \name assembling the global equation system */
 	/*@{*/
+	void UnlockRHS(void) { fRHS_lock = kOpen; };
+	void LockRHS(void) { fRHS_lock = kLocked; };
+	void UnlockLHS(void) { fLHS_lock = kOpen; };
+	void LockLHS(void) { fLHS_lock = kLocked; };
+	
 	void AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
 	void AssembleLHS(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 		const nArrayT<int>& col_eqnos);
