@@ -4,7 +4,7 @@
         <schedule_function>
             <piecewise_linear>
                 <OrderedPair x="0.0" y="1.0"/>
-		<OrderedPair x="0.02" y="0.0"/>
+                <OrderedPair x="0.02" y="0.0"/>
             </piecewise_linear>
         </schedule_function>
     </time>
@@ -29,6 +29,7 @@
             <mf_particle_ID_list>
                 <String value="2"/>
             </mf_particle_ID_list>
+            <scni_output displacement="1" mass="1" strain="1" stress="1"/>
             <fd_scni_axi_element_block>
                 <block_ID_list>
                     <String value="1"/>

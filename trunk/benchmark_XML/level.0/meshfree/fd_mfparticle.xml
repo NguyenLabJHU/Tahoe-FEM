@@ -31,6 +31,7 @@
             <mf_particle_ID_list>
                 <String value="9"/>
             </mf_particle_ID_list>
+            <scni_output displacement="1" mass="1" strain="1" stress="1"/>
             <fd_connectivity_element_block>
                 <block_ID_list>
                     <String value="1"/>

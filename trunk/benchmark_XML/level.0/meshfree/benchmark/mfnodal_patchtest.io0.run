@@ -3,10 +3,8 @@
 
  Group number. . . . . . . . . . . . . . . . . . = 0
  Output ID . . . . . . . . . . . . . . . . . . . = 0
- Number of nodal values. . . . . . . . . . . . . = 11
+ Number of nodal values. . . . . . . . . . . . . = 9
  Labels:
-	X
-	Y
 	D_X
 	D_Y
 	mass
@@ -25,4 +23,4 @@
  Number of elements. . . . . . . . . . . . . . . = 169
 
  O U T P U T   D A T A :  T O C
-mfnodal_patchtest.io0.ps0000.run
+mfnodal_patchtest.io0.run.ps0000
