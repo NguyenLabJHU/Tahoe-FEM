@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.12.2.1 2003-02-19 01:14:46 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.12.2.2 2003-02-19 19:57:36 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -31,7 +31,8 @@ ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 	fReNeighborCounter(0),
 	fCommManager(support.CommManager()),
 	fDmax(0),
-	fForce_man(0, fForce, field.NumDOF())
+	fForce_man(0, fForce, field.NumDOF()),
+	fActiveParticles(NULL)
 {
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
@@ -58,6 +59,8 @@ ParticleT::~ParticleT(void)
 	/* free properties list */
 	for (int i = 0; i < fParticleProperties.Length(); i++)
 		delete fParticleProperties[i];
+		
+	delete fActiveParticles;
 }
 
 /* initialization */
@@ -247,14 +250,48 @@ void ParticleT::ReadRestart(istream& in)
 	in >> fReNeighborCounter;
 }
 
-/***********************************************************************
- * Protected
- ***********************************************************************/
-
-/* return true if connectivities are changing */
-bool ParticleT::ChangingGeometry(void) const
+/* define the particles to skip */
+void ParticleT::SetSkipParticles(const iArrayT& skip)
 {
-	return fCommManager.PartitionNodesChanging();
+	if (skip.Length() == 0) {
+		delete fActiveParticles;
+		fActiveParticles = NULL;
+	}
+	else
+	{
+		int nnd = ElementSupport().NumNodes();
+		iArrayT nodes_used(nnd);
+
+		/* mark partition nodes as used */
+		const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
+		if (part_nodes)
+		{
+			nodes_used = 0;
+			int npn = part_nodes->Length();
+			int*  p = part_nodes->Pointer();
+			for (int i = 0; i < npn; i++)
+				nodes_used[*p++] = 1;
+		}
+		else /* all are partition nodes */
+			nodes_used = 1;
+
+		/* mark nodes to skip */
+		int nsn = skip.Length();
+		int* ps = skip.Pointer();
+		for (int i = 0; i < nsn; i++)
+			nodes_used[*ps++] = 0;
+			
+		
+		/* collect active particles */	
+		int nap = nodes_used.Count(1);
+		if (!fActiveParticles)
+			fActiveParticles = new AutoArrayT<int>;
+		fActiveParticles->Dimension(nap);
+		int dex = 0;
+		for (int i = 0; i < nnd; i++)
+			if (nodes_used[i] == 1)
+				(*fActiveParticles)[dex++] = i;
+	}
 }
 
 /* set neighborlists */
@@ -292,6 +329,16 @@ void ParticleT::SetConfiguration(void)
 		ofstreamT& out = ElementSupport().Output();
 		fGrid->WriteStatistics(out);
 	}
+}
+
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
+
+/* return true if connectivities are changing */
+bool ParticleT::ChangingGeometry(void) const
+{
+	return fCommManager.PartitionNodesChanging();
 }
 
 /* echo element connectivity data */

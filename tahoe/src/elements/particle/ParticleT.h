@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.9.2.1 2003-02-19 01:14:46 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.9.2.2 2003-02-19 19:57:36 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -65,7 +65,24 @@ public:
 	 * the corresponding ElementBaseT::WriteRestart implementation. */
 	virtual void ReadRestart(istream& in);
 	/*@}*/
-	 			  	
+
+	/** define the particles to skip. This is a list of nodes though "owned" 
+	 * by this processor and appearing in the list of particles, should be skipped 
+	 * in the calculation of energy, force, etc. This method must be called
+	 * whenever the list changes as it is used to reset some internal data. An
+	 * empty list should be passed to clear any previous lists. The list may
+	 * contain duplicates. Note this method does not trigger recalculation of
+	 * the neighborlists. This can be triggered explicitly with a call to
+	 * ParticleT::SetConfiguration */
+	void SetSkipParticles(const iArrayT& skip);
+
+	/** set neighborlists and any other system configuration information
+	 * based on the current information. ParticleT::SetConfiguration
+	 * simply stores a list of coordinates in the current configuration
+	 * which is used to determine if SetConfiguration needs to be called
+	 * again. */
+	virtual void SetConfiguration(void);
+
 protected: /* for derived classes only */
 
 	/** echo element connectivity data. Reads parameters that define
@@ -77,13 +94,6 @@ protected: /* for derived classes only */
 
 	/** return true if connectivities are changing */
 	virtual bool ChangingGeometry(void) const;
-
-	/** set neighborlists and any other system configuration information
-	 * based on the current information. ParticleT::SetConfiguration
-	 * simply stores a list of coordinates in the current configuration
-	 * which is used to determine if SetConfiguration needs to be called
-	 * again. */
-	virtual void SetConfiguration(void) ;
 
 	/** generate neighborlist
 	 * \param particle_tags global tags for which to determine neighhors. If NULL, find
@@ -161,6 +171,10 @@ protected:
 
 	/** particle properties list */
 	ArrayT<ParticlePropertyT*> fParticleProperties;
+	
+	/** list of active particles. The pointer will be NULL if all nodes in the
+	 * CommManagerT::PartitionNodes list are active. */
+	AutoArrayT<int>* fActiveParticles;
 	/*@}*/
 
 	/** \name cached calculated values */
