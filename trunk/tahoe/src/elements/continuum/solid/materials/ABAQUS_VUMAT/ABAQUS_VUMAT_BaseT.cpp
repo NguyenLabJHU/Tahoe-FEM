@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.17 2003-01-29 07:34:36 paklein Exp $ */
+/* $Id: ABAQUS_VUMAT_BaseT.cpp,v 1.18 2003-03-08 01:54:49 paklein Exp $ */
 #include "ABAQUS_VUMAT_BaseT.h"
 
 #ifdef __F2C__
@@ -271,7 +271,7 @@ const dSymMatrixT& ABAQUS_VUMAT_BaseT::S_IJ(void)
 	const dSymMatrixT& s = ABAQUS_VUMAT_BaseT::s_ij();
 
 	/* spatial -> material */
-	fStress.SetToScaled(F().Det(), PushForward(F(), s));	
+	fStress.SetToScaled(F().Det(), PullBack(F(), s));	
 	return fStress;
 }
 
