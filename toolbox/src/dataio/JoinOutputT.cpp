@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.10 2002-07-02 19:56:59 cjkimme Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.11 2002-08-23 15:40:18 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 
 #include "JoinOutputT.h"
@@ -122,8 +122,9 @@ void JoinOutputT::Join(void)
 				for (int k = 0; k < fPartitions.Length(); k++)
 				{
 					/* file name */
+					int io_ID = atoi(output_set.ID());
 					StringT filename;
-					ResultFileName(k, i, filename);
+					ResultFileName(k, io_ID, filename);
 					
 					/* check if file is present */
 					if (fstreamT::Exists(filename))
@@ -279,7 +280,7 @@ void JoinOutputT::SetOutput(void)
 		 * is tied to element blocks in the geometry file */
 		if (block_ID.Length() == 0)
 		{
-cout << "\n JoinOutputT::SetOutput: configuring free set: " << ID << endl;
+			cout << "\n JoinOutputT::SetOutput: configuring free set: " << ID << endl;
 
 			/* geometry from each part */
 			ArrayT<iArray2DT> part_elems(fPartitions.Length());
@@ -358,13 +359,17 @@ cout << "\n JoinOutputT::SetOutput: configuring free set: " << ID << endl;
 			/* construct output set */
 			const iArray2DT& connects = fModel->ElementGroup(sID);
 			bool changing = false; // changing geometry not supported
-			OutputSetT output_set(sID, geometry_code, connects, n_labels);
+			StringT set_ID;
+			set_ID.Append(ID);
+			OutputSetT output_set(set_ID, geometry_code, connects, n_labels);
 	
 			/* register */
 			fOutput->AddElementSet(output_set);
 		}
 		else
 		{
+			try {
+			
 			/* collect element blocks */
 			GeometryT::CodeT geometry_code;
 			ArrayT<const iArray2DT*> connects_list(block_ID.Length());
@@ -390,6 +395,24 @@ cout << "\n JoinOutputT::SetOutput: configuring free set: " << ID << endl;
 	
 			/* register */
 			fOutput->AddElementSet(output_set);
+			
+			} /* end try */
+			
+			catch (int exc) {
+				cout << "\n JoinOutputT::SetOutput: caught exception " << exc << " configuring\n"
+				     <<   "     output set ID " << ID << " with block ID's:\n";
+				for (int i = 0; i < block_ID.Length(); i++)
+					cout << setw(kIntWidth) << i+1 << "    " << block_ID[i] << '\n';
+				cout << endl;
+				
+				/* register dummy set keep IO ID's the same */
+				StringT set_ID;
+				set_ID.Append(ID);
+				ArrayT<const iArray2DT*> empty_connects_list;
+				ArrayT<StringT> empty_list;
+				OutputSetT output_set(set_ID, GeometryT::kPoint, empty_list, empty_connects_list, empty_list, empty_list, false);
+				fOutput->AddElementSet(output_set);
+			}
 		}
 	
 		/* next block */
@@ -584,16 +607,22 @@ void JoinOutputT::SetNodePartitionMap(iArrayT& node_partition)
 void JoinOutputT::SetInverseMap(const iArrayT& global, iArrayT& inv_global,
 	int& shift, int fill) const
 {
-	/* compressed number range */
-	int max;
-	global.MinMax(shift, max);
-	int range = max - shift + 1;
+	if (global.Length() == 0) {
+		shift = 0;
+		inv_global.Dimension(0);
+	}
+	else {
+		/* compressed number range */
+		int max;
+		global.MinMax(shift, max);
+		int range = max - shift + 1;
 
-	/* determine (all) used nodes */
-	inv_global.Allocate(range);
-	inv_global = fill;
-	for (int i = 0; i < global.Length(); i++)
-		inv_global[global[i] - shift] = i;
+		/* determine (all) used nodes */
+		inv_global.Allocate(range);
+		inv_global = fill;
+		for (int i = 0; i < global.Length(); i++)
+			inv_global[global[i] - shift] = i;
+	}
 }
 
 /* return the global node numbers of the set nodes residing
