@@ -1,4 +1,4 @@
-/* $Id: pfsolve1.c,v 1.2 2005-01-04 18:19:34 paklein Exp $ */
+/* $Id: pfsolve1.c,v 1.3 2005-01-05 16:51:31 paklein Exp $ */
 /* pfsolve1.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -62,7 +62,7 @@ static doublereal c_b60 = 1.;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: pfsolve1.c,v 1.2 2005-01-04 18:19:34 paklein Exp $ +/ */
+/* /+ $Id: pfsolve1.c,v 1.3 2005-01-05 16:51:31 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -357,7 +357,7 @@ static integer lbit_shift(integer a, integer b) {
 /*<                 if(mid.eq.1) then  >*/
 			if (mid == 1) {
 /*<                   call mpi_get_count(mpistat,MPI_INTEGER,usize,ierr) >*/
-			    MPI_Get_count(&mpistat, MPI_INT, &usize);
+			    myMPI_Get_count(&mpistat, MPI_INT, &usize);
 /*<                 end if >*/
 			}
 /*<                 npending = npending-1 >*/
@@ -436,7 +436,7 @@ static integer lbit_shift(integer a, integer b) {
 /*<                 if(mid.eq.1) then >*/
 			if (mid == 1) {
 /*<                   call mpi_get_count(mpistat,MPI_INTEGER,usize,ierr) >*/
-			    MPI_Get_count(&mpistat, MPI_INT, &usize);
+			    myMPI_Get_count(&mpistat, MPI_INT, &usize);
 /*<                 end if >*/
 			}
 /*<                 npending = npending-1 >*/
@@ -473,13 +473,13 @@ static integer lbit_shift(integer a, integer b) {
 /*<             end do >*/
 		}
 /*<    >*/
-		MPI_Isend(&uvl[1], cbsize, MPI_BYTE, partner, 1, *comm, &req[3]);
+		myMPI_Isend(&uvl[1], cbsize, MPI_BYTE, partner, 1, *comm, &req[3]);
 /*<             npending = 1 >*/
 		npending = 1;
 /*<             if(iand(diffbits,ishft(1,level2)).ne.0) then  >*/
 		if ((diffbits & lbit_shift((ftnlen)1, level2)) != 0) {
 /*<    >*/
-		    MPI_Isend(&linds[lpkid], ldauk, MPI_INT, partner, 1, *comm, &req[4]);
+		    myMPI_Isend(&linds[lpkid], ldauk, MPI_INT, partner, 1, *comm, &req[4]);
 /*<               npending = 2 >*/
 		    npending = 2;
 /*<             end if >*/
@@ -500,14 +500,14 @@ static integer lbit_shift(integer a, integer b) {
 	    if (iamkid == 1 && iampar == 1) {
 /*<             partner = ieor(myid,ishft(1,dd-level-1)) >*/
 		partner = *myid ^ lbit_shift((ftnlen)1, *dd - level - 1);
-		MPI_Isend(&linds[lpkid], ldauk, MPI_INT, partner, 1, *comm, &req[3]);
-		MPI_Isend(&uvl[1], cbsize, MPI_BYTE, partner, 1, *comm, &req[4]);
+		myMPI_Isend(&linds[lpkid], ldauk, MPI_INT, partner, 1, *comm, &req[3]);
+		myMPI_Isend(&uvl[1], cbsize, MPI_BYTE, partner, 1, *comm, &req[4]);
 		MPI_Irecv(&uinds[1], *maxvsize, MPI_INT, partner, 1, *comm, req);
 		MPI_Irecv(&recvec[1], msizedp, MPI_BYTE, partner, 1, *comm, &req[1]);
 /*<             call mpi_wait(req(1),mpistat,ierr) >*/
 		MPI_Wait(req, &mpistat);
 /*<             call mpi_get_count(mpistat,MPI_INTEGER,usize,ierr) >*/
-		MPI_Get_count(&mpistat, MPI_INT, &usize);
+		myMPI_Get_count(&mpistat, MPI_INT, &usize);
 /*<             call mpi_wait(req(2),mpistat,ierr) >*/
 		MPI_Wait(&req[1], &mpistat);
 /*<    >*/
@@ -543,15 +543,15 @@ static integer lbit_shift(integer a, integer b) {
 /*<    >*/
 		MPI_Irecv(&recvec[1], msizedp, MPI_BYTE, partner, 1, *comm, &req[1]);
 /*<    >*/
-		MPI_Isend(&hvbndry[bip], ldauk, MPI_INT, partner, 1, *comm, &req[4]);
+		myMPI_Isend(&hvbndry[bip], ldauk, MPI_INT, partner, 1, *comm, &req[4]);
 /*<             call mpi_wait(req(3),mpistat,ierr) >*/
 		MPI_Wait(&req[2], &mpistat);
 /*<    >*/
-		MPI_Isend(&uvl[1], cbsize, MPI_BYTE, partner, 1, *comm, &req[3]);
+		myMPI_Isend(&uvl[1], cbsize, MPI_BYTE, partner, 1, *comm, &req[3]);
 /*<             call mpi_wait(req(1),mpistat,ierr) >*/
 		MPI_Wait(req, &mpistat);
 /*<             call mpi_get_count(mpistat,MPI_INTEGER,usize,ierr) >*/
-		MPI_Get_count(&mpistat, MPI_INT, &usize);
+		myMPI_Get_count(&mpistat, MPI_INT, &usize);
 /*<             call mpi_wait(req(2),mpistat,ierr) >*/
 		MPI_Wait(&req[1], &mpistat);
 /*<    >*/
@@ -579,7 +579,7 @@ static integer lbit_shift(integer a, integer b) {
 /*<             end do >*/
 		}
 /*<    >*/
-		MPI_Isend(&uvl[1], cbsize, MPI_BYTE, partner, 1, *comm, &req[2]);
+		myMPI_Isend(&uvl[1], cbsize, MPI_BYTE, partner, 1, *comm, &req[2]);
 /*<             call mpi_wait(req(3),mpistat,ierr) >*/
 		MPI_Wait(&req[2], &mpistat);
 /*<           end if >*/
@@ -800,7 +800,7 @@ L10:
 /*<                 call mpi_wait(req(1),mpistat,ierr) >*/
 			    MPI_Wait(req, &mpistat);
 /*<                 call mpi_get_count(mpistat,MPI_BYTE,nbrecv,ierr) >*/
-			    MPI_Get_count(&mpistat, MPI_BYTE, &nbrecv);
+			    myMPI_Get_count(&mpistat, MPI_BYTE, &nbrecv);
 /*<                 do i=0,bhsize-1 >*/
 			    i__2 = bhsize - 1;
 			    for (i__ = 0; i__ <= i__2; ++i__) {
@@ -832,7 +832,7 @@ L10:
 				 lbotsiz)) {
 /*<    >*/
 			    i__2 = bhsize << 3;
-			    MPI_Isend(&rhs[rhsst], i__2, MPI_BYTE, mydown, itag, *comm, &req[4]);
+			    myMPI_Isend(&rhs[rhsst], i__2, MPI_BYTE, mydown, itag, *comm, &req[4]);
 /*<                 npendings2 = 1 >*/
 			    npendings2 = 1;
 /*<               end if >*/
@@ -897,7 +897,7 @@ L10:
 				    lbotsiz == supsiz)) {
 /*<    >*/
 				i__2 = bhsize << 3;
-				MPI_Isend(&rhs[rhsst], i__2, MPI_BYTE, mydown, itag, *comm, &req[4]);
+				myMPI_Isend(&rhs[rhsst], i__2, MPI_BYTE, mydown, itag, *comm, &req[4]);
 /*<                   npendings2 = 1 >*/
 				npendings2 = 1;
 /*<                 end if >*/
@@ -925,7 +925,7 @@ L10:
 				}
 /*<    >*/
 				i__2 = recvsize << 3;
-				MPI_Isend(&uvec[uvecst], i__2, MPI_BYTE, myright, 1, *comm, req);
+				myMPI_Isend(&uvec[uvecst], i__2, MPI_BYTE, myright, 1, *comm, req);
 /*<                   npending = 1 >*/
 				npending = 1;
 /*<                 else >*/
@@ -953,7 +953,7 @@ L10:
 				}
 /*<    >*/
 				i__2 = recvsize << 3;
-				MPI_Isend(&uvec[uvecst], i__2, MPI_BYTE, myright, 1, *comm, req);
+				myMPI_Isend(&uvec[uvecst], i__2, MPI_BYTE, myright, 1, *comm, req);
 /*<                   npending = 1 >*/
 				npending = 1;
 /*<                 else >*/
@@ -1021,7 +1021,7 @@ L30:
 			if (itag != mydown) {
 /*<    >*/
 			    i__2 = bhsize << 3;
-			    MPI_Isend(&rhs[rhsst], i__2, MPI_BYTE, mydown, itag, *comm, &req[4]);
+			    myMPI_Isend(&rhs[rhsst], i__2, MPI_BYTE, mydown, itag, *comm, &req[4]);
 /*<                   npendings2 = 1 >*/
 			    npendings2 = 1;
 /*<                 end if >*/
@@ -1081,7 +1081,7 @@ L30:
 /*<                   call mpi_wait(req(1),mpistat,ierr) >*/
 			    MPI_Wait(req, &mpistat);
 /*<                   call mpi_get_count(mpistat,MPI_BYTE,nbrecv,ierr) >*/
-			    MPI_Get_count(&mpistat, MPI_BYTE, &nbrecv);
+			    myMPI_Get_count(&mpistat, MPI_BYTE, &nbrecv);
 /*<                   recvsize = ishft(nbrecv,-loglendp) >*/
 			    recvsize = lbit_shift(nbrecv, (ftnlen)-3);
 /*<                   do i=0,recvsize-1 >*/
@@ -1137,7 +1137,7 @@ L30:
 			if (flags == 1) {
 /*<    >*/
 			    i__2 = recvsize << 3;
-			    MPI_Isend(&uvec[uvecst], i__2, MPI_BYTE, myright, 1, *comm, req);
+			    myMPI_Isend(&uvec[uvecst], i__2, MPI_BYTE, myright, 1, *comm, req);
 /*<                   npending = 1 >*/
 			    npending = 1;
 /*<                 end if >*/
