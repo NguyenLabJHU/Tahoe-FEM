@@ -1,4 +1,4 @@
-/* $Id: DomainIntegrationT.h,v 1.9 2002-10-23 05:00:25 paklein Exp $ */
+/* $Id: DomainIntegrationT.h,v 1.10 2005-01-24 06:55:14 paklein Exp $ */
 /* created: paklein (09/04/1998) */
 #ifndef _DOMAIN_INTEGRATION_T_H_
 #define _DOMAIN_INTEGRATION_T_H_
@@ -68,6 +68,10 @@ public:
 	 * \param IPvalues values from the integration points: [nip] 
 	 * \param nodalvalues extrapolated values: [nnd] */
 	void ExtrapolateAll(const dArrayT& IPvalues, dArrayT& nodalvalues) const;
+
+	/** nodal extrapolation matrix, see ParentDomainT::Extrapolation for more
+	 * information. */
+	const dMatrixT& Extrapolation(void) const;
 
 	/** print shape functions and derivatives to out */
 	virtual void Print(ostream& out) const;
@@ -203,6 +207,11 @@ inline void DomainIntegrationT::ExtrapolateAll(const dArrayT& IPvalues,
 {
 	fDomain->NodalValues(IPvalues, nodalvalues);
 }	
+
+/* nodal extrapolation matrix */
+inline const dMatrixT& DomainIntegrationT::Extrapolation(void) const {
+	return fDomain->Extrapolation();
+}
 
 /* return the local node numbers for each facet of the element
 * numbered to produce at outward normal in the order: vertex
