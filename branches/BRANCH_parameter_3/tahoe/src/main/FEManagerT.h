@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.41.12.1 2004-04-08 07:33:48 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.41.12.2 2004-06-07 23:20:16 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -11,6 +11,7 @@
 #include "ParameterInterfaceT.h"
 
 /* direct members */
+#include "iArrayT.h"
 #include "StringT.h"
 #include "ElementListT.h"
 #include "IOBaseT.h"
@@ -33,7 +34,6 @@ class ScheduleT;
 class SolverT;
 class dMatrixT;
 class LocalArrayT;
-class iArrayT;
 class dArrayT;
 class iArray2DT;
 class ElementMatrixT;

@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.11 2004-04-05 18:12:39 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.11.2.1 2004-06-07 23:20:12 paklein Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -452,7 +452,7 @@ void SCNIMFT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	const char caller[] = "SCNIMFT::EchoConnectivityData";
 	
 	/* access to the model database */
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 
 	/* read node set ids */
 	ArrayT<StringT> ids;

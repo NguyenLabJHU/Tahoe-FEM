@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.19.18.1 2004-04-08 07:32:34 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.19.18.2 2004-06-07 23:20:07 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -134,7 +134,7 @@ void FiniteStrainT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrde
 		sub_sub_list.AddSub("large_strain_material_3D");
 	}
 	else /* inherited */
-		return SolidElementT::DefineInlineSub(sub, order, sub_sub_list);
+		SolidElementT::DefineInlineSub(sub, order, sub_sub_list);
 }
 
 /* return the description of the given inline subordinate parameter list */

@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.13.18.1 2004-04-08 07:32:34 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.13.18.2 2004-06-07 23:20:07 paklein Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -140,7 +140,7 @@ void SmallStrainT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrder
 		sub_sub_list.AddSub("small_strain_material_3D");
 	}
 	else /* inherited */
-		return SolidElementT::DefineInlineSub(sub, order, sub_sub_list);
+		SolidElementT::DefineInlineSub(sub, order, sub_sub_list);
 }
 
 void SmallStrainT::TakeParameterList(const ParameterListT& list)

@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.46.18.1 2004-04-08 07:33:04 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.46.18.2 2004-06-07 23:20:08 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 
@@ -123,6 +123,8 @@ SolidMatList2DT::SolidMatList2DT(void)
 /* read material data from the input stream */
 void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 {
+#pragma message("delete me")
+#if 0
 	const char caller[] = "SolidMatList2DT::ReadMaterialData";
 
 	int i, matnum;
@@ -797,11 +799,14 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 		ExceptionT::Throw(error, caller, "exception constructing material %d, index %d, code %d",
 			i+1, matnum+1, matcode);
 	}
+#endif
 }
 
 /* return true if the list contains plane stress models */
 bool SolidMatList2DT::HasPlaneStress(void) const
 {
+#pragma message("fix me")
+#if 0
 	/* check materials */
 	for (int i = 0; i < Length(); i++)
 	{
@@ -814,6 +819,8 @@ bool SolidMatList2DT::HasPlaneStress(void) const
 			return true;
 	}
 	return false;
+#endif
+return false;
 }
 
 /* information about subordinate parameter lists */

@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.26.14.2 2004-04-09 05:24:36 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.26.14.3 2004-06-07 23:20:05 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -332,7 +332,7 @@ inline const LocalArrayT& ContinuumElementT::Displacements() const
 
 inline const MaterialListT& ContinuumElementT::MaterialsList(void) const
 {
-#ifdef __option(extended_errorcheck)
+#if __option(extended_errorcheck)
 	if (!fMaterialList) 
 		ExceptionT::GeneralFail("ContinuumElementT::MaterialsList", "no material list");
 #endif

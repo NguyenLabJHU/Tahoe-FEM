@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidAxiT.cpp,v 1.1.14.1 2004-05-06 16:00:22 paklein Exp $ */
+/* $Id: MeshFreeFSSolidAxiT.cpp,v 1.1.14.2 2004-06-07 23:20:12 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #include "MeshFreeFSSolidAxiT.h"
 
@@ -195,6 +195,12 @@ GlobalT::RelaxCodeT MeshFreeFSSolidAxiT::ResetStep(void)
 	GlobalT::RelaxCodeT relax = TotalLagrangianAxiT::ResetStep();
 	fMFFractureSupport->ResetStep();
 	return relax;
+}
+
+MeshFreeSupportT& MeshFreeFSSolidAxiT::MeshFreeSupport(void) const
+{
+	if (!fMFShapes) ExceptionT::GeneralFail("MeshFreeFSSolidAxiT::MeshFreeSupport", "shape functions not set");
+	return fMFShapes->MeshFreeSupport();
 }
 
 /* accept parameter list */
