@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.22 2004-07-15 08:31:03 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.23 2004-07-22 08:27:59 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "TimeManagerT.h"
 
@@ -19,10 +19,9 @@ using namespace Tahoe;
 /* constructor */
 TimeManagerT::TimeManagerT(FEManagerT& FEM):
 	ParameterInterfaceT("time"),
-	theBoss(FEM),
+	fFEManager(FEM),
 
 	/* runtime data for the current sequence */
-	fCurrentSequence(-1),
 	fStepNum(0),
 	fTime(0.0),
 	fNumStepCuts(0),
@@ -38,60 +37,18 @@ TimeManagerT::TimeManagerT(FEManagerT& FEM):
 /* set to initial conditions */
 void TimeManagerT::InitialCondition(void)
 {
+	/* broadcast time step */
+	fFEManager.SetTimeStep(fTimeStep);
+
 	/* nodes */
-	const NodeManagerT* nodes = theBoss.NodeManager();
+	const NodeManagerT* nodes = fFEManager.NodeManager();
 	if (!nodes) ExceptionT::GeneralFail("TimeManagerT::InitialCondition");
 
 	/* see if all integrators are explicit */
 	fImpExp = IntegratorT::kExplicit;
-	int num_groups = theBoss.NumGroups();
+	int num_groups = fFEManager.NumGroups();
 	for (int i = 0; i < num_groups && fImpExp == IntegratorT::kExplicit; i++)
 		fImpExp = nodes->ImplicitExplicit(i);
-}
-
-/* run through the time sequences.  NextSequence returns 0
-* if there are no more time sequences */
-void TimeManagerT::Top(void)
-{
-#pragma message("remove me")
-	fCurrentSequence = -1;
-}
-
-bool TimeManagerT::NextSequence(void)
-{
-#pragma message("remove me")
-	fCurrentSequence++;
-	
-	/* initialize next sequence */
-	if (fCurrentSequence < fSequences.Length())
-	{
-		TimeSequence& curr_sequence = fSequences[fCurrentSequence];
-		
-		/* runtime data for the current sequence */
-		fStepNum       = 0;
-		fTime          = 0.0;
-		fNumStepCuts   = 0;
-		fStepCutStatus = kSameStep;
-		
-		/* copy from current sequence */
-		fNumSteps  = curr_sequence.fNumSteps;
-		fOutputInc = curr_sequence.fOutputInc;
-		fMaxCuts   = curr_sequence.fMaxCuts;
-		fTimeStep  = curr_sequence.fTimeStep;
-		
-		/* broadcast time step */
-		theBoss.SetTimeStep(fTimeStep);
-
-		/* print headers */
-		theBoss.Output() << "\n T i m e   S e q u e n c e : ";
-		theBoss.Output() << fCurrentSequence + 1 << "\n\n";
-		cout << "\n T i m e   S e q u e n c e : ";
-		cout << fCurrentSequence + 1 << endl;
-
-		return true;
-	}
-	else
-		return false;
 }
 
 /* advance one time step, return 0 when if the sequence
@@ -114,7 +71,6 @@ bool TimeManagerT::Step(void)
 		IncrementTime(fTimeStep);
 		
 		/* print less often for explicit */
-		//GlobalT::AnalysisCodeT analysiscode = theBoss.Analysis();
 		bool is_explicit = fImpExp == IntegratorT::kExplicit;
 
 		/* verbose flag */
@@ -221,10 +177,6 @@ double TimeManagerT::ScheduleValue(int num) const
 * values */
 void TimeManagerT::ReadRestart(istream& restart_in)
 {	
-	int sequencenumber;
-	restart_in >> sequencenumber;
-	if (sequencenumber != fCurrentSequence) throw ExceptionT::kBadInputValue;
-
 #if 0 
 	/* total desired simulation time */ 
 	double tot_time = fTimeStep*fNumSteps; 
@@ -253,7 +205,6 @@ void TimeManagerT::ReadRestart(istream& restart_in)
 
 void TimeManagerT::WriteRestart(ostream& restart_out) const
 {
-	restart_out << fCurrentSequence << '\n';
 	restart_out << fTime            << '\n';
 	restart_out << fNumStepCuts     << '\n';
 	restart_out << fTimeStep        << '\n';
@@ -306,13 +257,17 @@ void TimeManagerT::TakeParameterList(const ParameterListT& list)
 	/* inherited */
 	ParameterInterfaceT::TakeParameterList(list);
 
-	//TEMP - remove multiple time sequences
-	fSequences.Dimension(1);
-	TimeSequence& seq = fSequences[0];
-	seq.fNumSteps  = list.GetParameter("num_steps");
-	seq.fOutputInc = list.GetParameter("output_inc");
-	seq.fMaxCuts   = list.GetParameter("max_step_cuts");
-	seq.fTimeStep  = list.GetParameter("time_step");	
+	/* set time parameters */
+	fNumSteps  = list.GetParameter("num_steps");
+	fOutputInc = list.GetParameter("output_inc");
+	fMaxCuts   = list.GetParameter("max_step_cuts");
+	fTimeStep  = list.GetParameter("time_step");	
+
+	/* runtime data for the current sequence */
+	fStepNum       = 0;
+	fTime          = 0.0;
+	fNumStepCuts   = 0;
+	fStepCutStatus = kSameStep;
 
 	/* console variables */
 	iSetName("time");
@@ -384,7 +339,7 @@ void TimeManagerT::DoDecreaseStep(void)
 	fStepNum     *= 2;
 	
 	/* broadcast time step change */
-	theBoss.SetTimeStep(fTimeStep);
+	fFEManager.SetTimeStep(fTimeStep);
 	cout << "\n TimeManagerT: step reduced to: " << fTimeStep << endl;
 }
 
@@ -400,8 +355,7 @@ void TimeManagerT::DoIncreaseStep(void)
 	fStepNum     /= 2;
 
 	/* broadcast time step change */
-	theBoss.SetTimeStep(fTimeStep);
-
+	fFEManager.SetTimeStep(fTimeStep);
 	cout << "\n TimeManagerT: step increased to: " << fTimeStep << endl;
 }
 
