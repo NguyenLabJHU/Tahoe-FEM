@@ -1,6 +1,4 @@
-
-
-
+/* $Id: ParticlePairT.h,v 1.14.4.1 2004-04-07 15:39:16 paklein Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -95,16 +93,18 @@ protected:
 	 * to determine the neighborlists. */
 	virtual void SetConfiguration(void);
 
+	/** extract the properties information from the parameter list. See ParticleT::ExtractProperties */
+	virtual void ExtractProperties(const ParameterListT& list, const ArrayT<StringT>& type_names,
+		ArrayT<ParticlePropertyT*>& properties, nMatrixT<int>& properties_map);
+
 	/** construct the list of properties from the given input stream */
-	virtual void EchoProperties(ifstreamT& in, ofstreamT& out);
+	//virtual void EchoProperties(ifstreamT& in, ofstreamT& out);
 
 	/** generate labels for output data */
 	virtual void GenerateOutputLabels(ArrayT<StringT>& labels) const;
 
-
 	/*nearest neighbor list*/
 	RaggedArray2DT<int> NearestNeighbors;
-
 
 	/** return a new pair property or NULL if the name is invalid */
 	PairPropertyT* New_PairProperty(const StringT& name, bool throw_on_fail) const;
@@ -116,7 +116,6 @@ private:
 
 	/** neighbor lists */
 	RaggedArray2DT<int> fNeighbors;
-
 
 	/** equation numbers */
 	RaggedArray2DT<int> fEqnos;
@@ -135,9 +134,6 @@ private:
 	ofstreamT fout, fout2;
 	StringT fsummary_file, fsummary_file2;
 	/*@}*/
-
-	
-	
 };
 
 } /* namespace Tahoe */

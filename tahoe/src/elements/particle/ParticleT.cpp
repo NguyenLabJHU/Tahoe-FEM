@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.33.2.1 2004-03-31 16:16:31 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.33.2.2 2004-04-07 15:39:16 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -13,6 +13,8 @@
 #include "RaggedArray2DT.h"
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
+#include "ParameterContainerT.h"
+#include "ParameterUtils.h"
 
 /* Thermostatting stuff */
 #include "RandomNumberT.h"
@@ -36,7 +38,7 @@ ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 	fNeighborDistance(-1),
 	fReNeighborDisp(-1),
 	fReNeighborIncr(-1),
-	fNumTypes(-1),
+//	fNumTypes(-1),
 	fGrid(NULL),
 	fReNeighborCounter(0),
 	fDmax(0),
@@ -70,7 +72,7 @@ ParticleT::ParticleT(const ElementSupportT& support):
 	fNeighborDistance(-1),
 	fReNeighborDisp(-1),
 	fReNeighborIncr(-1),
-	fNumTypes(-1),
+//	fNumTypes(-1),
 	fGrid(NULL),
 	fReNeighborCounter(0),
 	fDmax(0),
@@ -107,6 +109,8 @@ ParticleT::~ParticleT(void)
 /* initialization */
 void ParticleT::Initialize(void)
 {
+ExceptionT::GeneralFail("ParticleT::Initialize", "delete me");
+#if 0
 	const char caller[] = "ParticleT::Initialize";
 
 	/* inherited */
@@ -123,7 +127,6 @@ void ParticleT::Initialize(void)
 	out << " Re-neighboring interval . . . . . . . . . . . . = " << fReNeighborIncr << '\n';
 
 	/* periodic boundary conditions */
-
 	fPeriodicBounds.Dimension(NumSD(), 2);
 	fPeriodicBounds = 0.0;
 	fPeriodicLengths.Dimension(NumSD());
@@ -182,7 +185,7 @@ void ParticleT::Initialize(void)
 	/* read properties information */
 	EchoProperties(in, out);
 
-
+#if 0
 	StringT key;
 	in>>key;
 	if (key =="lattice") in >> latticeParameter;
@@ -192,6 +195,7 @@ void ParticleT::Initialize(void)
 	    latticeParameter = 4.08; //defaults to gold
 	  }
 	NearestNeighborDistance = latticeParameter*.79;
+#endif
 
 	/* set up communication of type information */
 	fTypeMessageID = ElementSupport().CommManager().Init_AllGather(MessageT::Integer, 1);
@@ -217,7 +221,7 @@ void ParticleT::Initialize(void)
 	SetConfiguration();
 
 	EchoDamping(in, out);
-
+#endif
 }
 
 /* form of tangent matrix */
@@ -503,14 +507,15 @@ void ParticleT::ApplyDamping(const RaggedArray2DT<int>& fNeighbors)
 }
 
 /* return true if connectivities are changing */
-bool ParticleT::ChangingGeometry(void) const
-{
+bool ParticleT::ChangingGeometry(void) const {
 	return ElementSupport().CommManager().PartitionNodesChanging();
 }
 
 /* echo element connectivity data */
 void ParticleT::EchoConnectivityData(ifstreamT& in, ostream& out)
 {
+ExceptionT::GeneralFail("ParticleT::EchoConnectivityData", "delete me");
+#if 0
 #pragma unused(out)
 	const char caller[] = "ParticleT::EchoConnectivityData";
 	
@@ -560,6 +565,7 @@ void ParticleT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		if (fType[i] == -1) not_marked_count++;
 	if (not_marked_count != 0)
 		ExceptionT::BadInputValue(caller, "%d atoms not typed", not_marked_count);
+#endif
 }
 
 /* generate neighborlist */
@@ -942,19 +948,21 @@ void ParticleT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	ElementBaseT::DefineParameters(list);
 
-	ParameterT neighbor_distance(fNeighborDistance, "neighbor_distance");
-	neighbor_distance.AddLimit(0.0, LimitT::Lower);
-	list.AddParameter(neighbor_distance);
+	ParameterT lattice_parameter(fLatticeParameter, "lattice_parameter");
+	lattice_parameter.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(lattice_parameter);
 
-	ParameterT re_neighbor_disp(fReNeighborDisp, "re_neighbor_displacement");
+	ParameterT max_neighbor_distance(fNeighborDistance, "max_neighbor_distance");
+	max_neighbor_distance.AddLimit(0.0, LimitT::Lower);
+	list.AddParameter(max_neighbor_distance);
+
+	ParameterT re_neighbor_disp(fReNeighborDisp, "re-neighbor_displacement");
 	re_neighbor_disp.AddLimit(0.0, LimitT::Lower);
 	list.AddParameter(re_neighbor_disp, ParameterListT::ZeroOrOnce);
 
-
-
-	ParameterT re_neighbor_incr(fReNeighborIncr, "re_neighbor_increment");
-	re_neighbor_incr.AddLimit(0, LimitT::Lower);
-	re_neighbor_incr.SetDefault(1);
+	ParameterT re_neighbor_incr(fReNeighborIncr, "re-neighbor_increment");
+	re_neighbor_incr.AddLimit(0, LimitT::LowerInclusive);
+	re_neighbor_incr.SetDefault(0);
 	list.AddParameter(re_neighbor_incr, ParameterListT::ZeroOrOnce);
 }
 
@@ -964,8 +972,14 @@ void ParticleT::DefineSubs(SubListT& sub_list) const
 	/* inherited */
 	ElementBaseT::DefineSubs(sub_list);
 
+	/* periodic boundary conditions */
+	sub_list.AddSub("periodic_bc", ParameterListT::Any);
+
 	/* thermostats - array of choices */
 	sub_list.AddSub("thermostats", ParameterListT::Any, true);
+
+	/* particle types */
+	sub_list.AddSub("particle_type", ParameterListT::OnePlus);
 }
 
 /* return the description of the given inline subordinate parameter list */
@@ -992,8 +1006,166 @@ ParameterInterfaceT* ParticleT::NewSub(const StringT& list_name) const
 	ThermostatBaseT* thermostat = New_Thermostat(list_name, false);
 	if (thermostat)
 		return thermostat;
+	else if (list_name == "periodic_bc")
+	{
+		ParameterContainerT* pbc = new ParameterContainerT(list_name);
+	
+		pbc->AddParameter(ParameterT::Integer, "direction");
+		pbc->AddParameter(ParameterT::Double, "x_min");
+		pbc->AddParameter(ParameterT::Double, "x_max");
+		pbc->AddParameter(ParameterT::Integer, "stretching_schedule", ParameterListT::ZeroOrOnce);
+
+		return pbc;
+	}
+	else if (list_name == "particle_type")
+	{
+		ParameterContainerT* particle_type = new ParameterContainerT(list_name);
+	
+		particle_type->AddParameter(ParameterT::Word, "label");
+
+		/* include all particles */
+		ParameterT all_particles(ParameterT::Boolean, "all_particles");
+		all_particles.SetDefault(false);
+		particle_type->AddParameter(all_particles, ParameterListT::ZeroOrOnce);
+		
+		/* specify by node set IDs */
+		particle_type->AddSub("node_ID_list", ParameterListT::ZeroOrOnce);
+		
+		return particle_type;
+	}
 	else /* inherited */
 		return ElementBaseT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void ParticleT::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "ParticleT::TakeParameterList";
+
+	/* inherited */
+	ElementBaseT::TakeParameterList(list);
+
+	/* extract parameters */
+	fLatticeParameter = list.GetParameter("lattice_parameter");
+	fNeighborDistance = list.GetParameter("max_neighbor_distance");
+	fReNeighborDisp = list.GetParameter("re-neighbor_displacement");
+	fReNeighborIncr = list.GetParameter("re-neighbor_increment");
+
+	/* allocate work space */
+	fForce_man.SetMajorDimension(ElementSupport().NumNodes(), false);
+
+	/* periodic boundary conditions */
+	fPeriodicBounds.Dimension(NumSD(), 2);
+	fPeriodicBounds = 0.0;
+	fPeriodicLengths.Dimension(NumSD());
+	fPeriodicLengths= 0.0;
+	fStretchSchedule.Dimension(NumSD());
+	fStretchSchedule = NULL;
+	int num_pbc = list.NumLists("periodic_bc");
+	if (num_pbc > NumSD())
+		ExceptionT::BadInputValue(caller, "expecting at most %d \"periodic_bc\" not %d",
+			NumSD(), num_pbc);
+	for (int i = 0; i < num_pbc; i++) {
+	
+		/* periodic bc parameters */
+		const ParameterListT& pbc = list.GetList("periodic_bc", i);
+		
+		/* extract parameters */
+		int direction = pbc.GetParameter("direction"); direction--;
+		double x_min = pbc.GetParameter("x_min");
+		double x_max = pbc.GetParameter("x_max");
+		const ScheduleT* schedule = NULL;
+		const ParameterT* str_sched = pbc.Parameter("stretching_schedule");
+		if (str_sched) {
+			int sched_num = *str_sched;
+			schedule = ElementSupport().Schedule(--sched_num);
+
+			/* check - expecting f(0) = 1 */
+			if (fabs(schedule->Value(0.0) - 1.0) > kSmall)
+				ExceptionT::BadInputValue(caller, "schedule %d does not have value 1 at time 0", sched_num+1);
+		}
+		
+		/* save */
+		fPeriodicLengths[direction] = x_max-x_min;
+		fPeriodicBounds(direction,0) = x_min;
+		fPeriodicBounds(direction,1) = x_max;
+		fStretchSchedule[direction] = schedule;
+	}
+
+	/* set up communication of type information */
+	fTypeMessageID = ElementSupport().CommManager().Init_AllGather(MessageT::Integer, 1);
+
+	/* resolve types */
+	fType.Dimension(ElementSupport().NumNodes());
+	fType = -1;
+	int num_types = list.NumLists("particle_type");
+	fTypeNames.Dimension(num_types);
+	for (int i = 0; i < num_types; i++) {
+		const ParameterListT& particle_type = list.GetList("particle_type", i);
+		
+		/* label */
+		fTypeNames[i] = particle_type.GetParameter("label");
+		for (int j = 0; j < i; j++)
+			if (fTypeNames[j] == fTypeNames[i])
+				ExceptionT::GeneralFail(caller, "types %d and %d have the same label \"%s\"",
+					j+1, i+1, fTypeNames[i].Pointer());
+					
+		/* check "all" particles */
+		const ParameterT* all_particles = particle_type.Parameter("all_partices");
+		bool all = false;
+		if (all_particles) {
+			all = *all_particles;
+			if (all && num_types > 1) {
+			
+				/* only one type can be "all" */
+				ExceptionT::GeneralFail(caller, "\"all\" particles in \"%s\" conflicts with %d other types",
+					fTypeNames[i].Pointer(), num_types-1);
+					
+				/* mark particles with type 0 */
+				fType = 0;
+			}
+		}
+		
+		/* look for node list */
+		const ParameterListT* node_ID_list = list.List("node_ID_list");
+		if (node_ID_list) {
+		
+			/* collect id's */
+			ArrayT<StringT> id_list;
+			StringListT::Extract(*node_ID_list, id_list);
+			if (all && id_list.Length() > 0)
+				ExceptionT::GeneralFail(caller, "label \"%s\" is \"all\" and cannot include %d node ID's",
+					fTypeNames[i].Pointer(), id_list.Length());
+
+			/* access to the model database */
+			ModelManagerT& model = ElementSupport().ModelManager();
+			
+			/* get id's */
+			iArrayT tags;
+			model.ManyNodeSets(id_list, tags);
+			
+			/* mark map */
+			for (int j = 0; j < tags.Length(); j++)
+				fType[tags[j]] = i;			
+		}
+		else if (!all) /* nothing declared */
+			ExceptionT::GeneralFail(caller, "label \"%s\" is empty", fTypeNames[i].Pointer());
+	}
+
+	/* check that all are typed */
+	int not_marked_count = 0;
+	for (int i = 0; i < fType.Length(); i++)
+		if (fType[i] == -1) not_marked_count++;
+	if (not_marked_count != 0)
+		ExceptionT::BadInputValue(caller, "%d atoms not typed", not_marked_count);
+	
+	/* extract properties */
+	fPropertiesMap.Dimension(num_types);
+	fPropertiesMap = -1;
+	ExtractProperties(list, fTypeNames, fParticleProperties, fPropertiesMap);
+
+	/* set the neighborlists */
+	SetConfiguration();
 }
 
 /* return a new pair property or NULL if the name is invalid */
@@ -1012,6 +1184,14 @@ ThermostatBaseT* ParticleT::New_Thermostat(const StringT& name, bool throw_on_fa
 			"unrecognized thermostat \"%s\"", name.Pointer());
 	
 	return NULL;
+}
+
+/* extract element block info from parameter list to be used */
+void ParticleT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  
+	ArrayT<int>& mat_index) const 
+{
+	block_ID.Dimension(0);
+	mat_index.Dimension(0);
 }
 
 double ParticleT::GenCSymmValue (CSymmParamNode *CSymmParam, int ndof) 
@@ -1037,7 +1217,7 @@ double ParticleT::GenCSymmValue (CSymmParamNode *CSymmParam, int ndof)
     CSymmParam = CSymmParam->Next;
     delete CurrentAlias;
   }
-  CSymmValue /=latticeParameter;
+  CSymmValue /= fLatticeParameter;
   return CSymmValue;
 }
 
