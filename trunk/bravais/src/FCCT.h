@@ -1,19 +1,17 @@
 #ifndef _FCC_T_H_
 #define _FCC_T_H_
 
-#include "StringT.h"
-#include "ExceptionCodes.h"
+#include "ifstreamT.h"
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "CrystalLatticeT.h"
-#include "ifstreamT.h"
 
 using namespace Tahoe;
 
 class FCCT : public CrystalLatticeT 
 {
 public:
-	FCCT(int nlsd,int nuca,double alat);
+	FCCT(int nlsd,int nuca,double alat,dArrayT vec_rot);
 
 	~FCCT() { };
 

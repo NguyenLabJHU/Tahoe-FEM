@@ -2,18 +2,16 @@
 #define _DIA_T_H_
 
 #include "StringT.h"
-#include "ExceptionCodes.h"
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "CrystalLatticeT.h"
-#include "ifstreamT.h"
 
 using namespace Tahoe;
 
 class DIAT : public CrystalLatticeT 
 {
 public:
-	DIAT(int nlsd,int nuca,double alat);
+	DIAT(int nlsd,int nuca,double alat,dArrayT vec_rot);
 
 	~DIAT() { };
 
