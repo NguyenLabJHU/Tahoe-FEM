@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.20 2002-12-17 08:56:37 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.21 2003-03-27 21:14:18 cjkimme Exp $ */
 /* created: paklein (07/09/1996) */
 
 #include "NLSolver.h"
@@ -69,7 +69,7 @@ NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 	if (fQuickSeriesTol != -1 && fQuickSeriesTol < 1) throw ExceptionT::kBadInputValue;
 	if (fIterationOutputIncrement < 0)
 	{
-		cout << "\n NLSolver::NLSolver: expecting iteration output increment < 0: "
+		cout << "\n NLSolver::NLSolver: expecting iteration output increment >= 0: "
 		     << fIterationOutputIncrement << endl;
 		throw ExceptionT::kBadInputValue;
 	}
