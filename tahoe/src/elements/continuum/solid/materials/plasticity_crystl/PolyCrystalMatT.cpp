@@ -360,9 +360,9 @@ void PolyCrystalMatT::SolveCrystalState()
 	{
 	  subIncr = 2 * subIncr - 1;
 	  totSubIncrs = 2 * totSubIncrs;
-          //if (totSubIncrs > pow(2,10)) throwRunTimeError
+          //if (totSubIncrs > pow(2.0,10)) throwRunTimeError
           //   ("PolyCrystalMatT::SolveCrystalState: totSubIncrs > 2^10");
-          if (totSubIncrs > pow(2,10)) {
+          if (totSubIncrs > pow(2.0,10)) {
              cout << "PolyCrystalMatT::SolveCrystalState: totSubIncrs > 2^10 \n";
              cout << "  **will throw 'EBadJacobianDet' to force dtime decrease** \n";
              throw eBadJacobianDet;
