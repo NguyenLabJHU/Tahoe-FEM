@@ -3,8 +3,8 @@
   Program:   Visualization Toolkit
   Module:    $RCSfile: VTKMappedIdFilterT.cpp,v $
   Language:  C++
-  Date:      $Date: 2002-02-01 18:13:36 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2002-02-01 18:22:25 $
+  Version:   $Revision: 1.2 $
 
 
 Copyright (c) 1993-2001 Ken Martin, Will Schroeder, Bill Lorensen 
@@ -39,7 +39,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
-#include "vtkMappedIdFilterT.h"
+#include "VTKMappedIdFilterT.h"
 #include "vtkIdTypeArray.h"
 #include "vtkObjectFactory.h"
 

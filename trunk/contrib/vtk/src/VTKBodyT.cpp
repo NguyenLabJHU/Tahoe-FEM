@@ -1,10 +1,10 @@
-/* $Id: VTKBodyT.cpp,v 1.20 2002-02-01 18:11:40 paklein Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.21 2002-02-01 18:22:25 paklein Exp $ */
 
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
 #include "VTKFrameT.h"
 #include "VTKUGridT.h"
-#include "vtkMappedIdFilterT.h"
+#include "VTKMappedIdFilterT.h"
 #include "CommandSpecT.h"
 
 #include "vtkCubeAxesActor2D.h"
