@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.8 2003-03-11 09:32:41 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.9 2003-04-14 23:03:34 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -122,12 +122,6 @@ void SIERRA_Material_BaseT::Initialize(void)
 	double mu = fSIERRA_Material_Data->Property("TWO_MU")/2.0;
 	IsotropicT::Set_mu_kappa(mu, kappa);
 	IsotropicT::ComputeModuli(fModulus);
-
-	/* checks */
-	const AutoArrayT<StringT>& input_vars = fSIERRA_Material_Data->InputVariables();
-	if (input_vars.Length() != 1 ||
-	    input_vars[0] != "rot_strain_inc")
-	    ExceptionT::GeneralFail(caller, "input variable must be \"rot_strain_inc\"");
 
 	/* storage block size (per ip) */
 	int nsv = fSIERRA_Material_Data->NumStateVariables();
@@ -548,6 +542,15 @@ void SIERRA_Material_BaseT::Store(ElementCardT& element, int ip)
 /* set stress/strain arguments */
 void SIERRA_Material_BaseT::Set_Calc_Arguments(void)
 {
+	const char caller[] = "SIERRA_Material_BaseT::Set_Calc_Arguments";
+
+	/* determine material input */
+	const ArrayT<StringT>& input = fSIERRA_Material_Data->InputVariables();
+	
+//TEMP
+if (input.Length() != 1)
+	ExceptionT::GeneralFail(caller, "expecting just 1 material input not %d", input.Length());
+
 	/* relative deformation gradient */
 	fA_nsd = F_total_last();
 	const dMatrixT& F_n = F();
@@ -557,20 +560,37 @@ void SIERRA_Material_BaseT::Set_Calc_Arguments(void)
 	/* polar decomposition */
 	bool perturb_repeated_roots = false;
 	fDecomp->PolarDecomp(fF_rel, fA_nsd, fU1, perturb_repeated_roots);
-
-	/* incremental strain */
 	fU2 = fU1;
 	fU1.PlusIdentity(-1.0);
 	fU2.PlusIdentity( 1.0);
 	fU2.Inverse();
 	fU1U2.MultAB(fU1, fU2);
-
-	fdstran[0] = 2.0*fU1U2[0]; // 11
-	fdstran[1] = 2.0*fU1U2[1]; // 22
-	fdstran[2] = 2.0*fU1U2[2]; // 33
-	fdstran[3] = 2.0*fU1U2[5]; // 12
-	fdstran[4] = 2.0*fU1U2[3]; // 23
-	fdstran[5] = 2.0*fU1U2[4]; // 31
+	
+	/* incremental strain */
+	if (input[0] == "rot_strain_increment")
+	{
+		fdstran[0] = 2.0*fU1U2[0]; // 11
+		fdstran[1] = 2.0*fU1U2[1]; // 22
+		fdstran[2] = 2.0*fU1U2[2]; // 33
+		fdstran[3] = 2.0*fU1U2[5]; // 12
+		fdstran[4] = 2.0*fU1U2[3]; // 23
+		fdstran[5] = 2.0*fU1U2[4]; // 31
+	}
+	/* incremental strain rate */
+	else if (input[0] == "rot_strain_inc")
+	{
+		double dt = fFSMatSupport.TimeStep();
+		double k = 2.0*dt;
+		fdstran[0] = k*fU1U2[0]; // 11
+		fdstran[1] = k*fU1U2[1]; // 22
+		fdstran[2] = k*fU1U2[2]; // 33
+		fdstran[3] = k*fU1U2[5]; // 12
+		fdstran[4] = k*fU1U2[3]; // 23
+		fdstran[5] = k*fU1U2[4]; // 31
+	}
+	else 
+		ExceptionT::GeneralFail(caller, "unrecognized input \"%s\"", 
+			input[0].Pointer());
 
 	/* rotate old stress to current configuration */
 	SIERRA_to_dSymMatrixT(fstress_old.Pointer(), fU1);
