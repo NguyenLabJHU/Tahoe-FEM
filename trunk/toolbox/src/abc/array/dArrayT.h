@@ -1,4 +1,4 @@
-/* $Id: dArrayT.h,v 1.8 2004-03-16 05:37:14 paklein Exp $ */
+/* $Id: dArrayT.h,v 1.9 2004-05-21 19:44:07 paklein Exp $ */
 /* created: paklein (08/11/1996) */
 #ifndef _DARRAY_T_H_
 #define _DARRAY_T_H_
@@ -8,6 +8,7 @@
 
 namespace Tahoe {
 
+/** array of double's */
 class dArrayT: public nArrayT<double>
 {
 public:
@@ -29,7 +30,7 @@ public:
 	dArrayT& operator=(double value);       /**< set all elements in the array to value */
 	/*@}*/
 
-	/** L2 norm of the vector */
+	/** \f$ L_2 \f$ norm of the vector */
 	double Magnitude(void) const;
 
 	/** \name create a unit vectors */
@@ -64,7 +65,11 @@ inline dArrayT& dArrayT::operator=(double value)
 
 inline dArrayT& dArrayT::UnitVector(const dArrayT& vector)
 {
-	SetToScaled(1.0/vector.Magnitude(), vector);
+	double r = vector.Magnitude();
+	if (fabs(r) < kSmall)
+		ExceptionT::GeneralFail("dArrayT::UnitVector", "invalid length %g", r);
+	else
+		SetToScaled(1.0/vector.Magnitude(), vector);
 	return *this;
 }
 
