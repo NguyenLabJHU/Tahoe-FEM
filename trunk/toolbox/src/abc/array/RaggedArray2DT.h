@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.17 2004-02-24 19:05:43 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.18 2004-03-19 02:23:37 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 #ifndef _RAGGED_ARRAY_2D_T_H_
 #define _RAGGED_ARRAY_2D_T_H_
@@ -478,6 +478,7 @@ RaggedArray2DT<TYPE>& RaggedArray2DT<TYPE>::operator=(const RaggedArray2DT& sour
 				fPtrs[i] = ptr;
 				ptr += source.MinorDim(i);
 			}
+			fPtrs[fMajorDim] = ptr;
 		}
 	}
 	return *this;
