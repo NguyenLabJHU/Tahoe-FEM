@@ -1,0 +1,82 @@
+#!/bin/csh
+# $Id: regression.csh.template,v 1.1 2001-09-21 07:14:03 paklein Exp $
+
+# username on Tahoe server
+set TAHOE_USER =
+
+# directory containing working copies of the tahoe modules
+set W_DIR =
+
+# email notification address
+set ADMIN =
+
+######### hopefully no changes will be required below #########
+
+# set path
+set path=(/bin /usr/bin /usr/local/bin /usr/ccs/bin /usr/sbin /usr/local/ssh /usr/ucb /etc $path)
+
+# mail command
+set MAILCMD = /usr/bin/mail
+
+# SEACAS
+setenv ACCESS 
+
+# CVS
+setenv CVSROOT ${TAHOE_USER}@tahoe.ca.sandia.gov:/usr/local/cvsrep
+setenv CVS_RSH ssh
+
+# remove toolbox library
+if (-e ${W_DIR}/toolbox/lib/libtoolbox.a) then
+	/bin/rm ${W_DIR}/toolbox/lib/libtoolbox.a
+endif
+#        remove tahoe
+if (-e ${W_DIR}/tahoe/tahoe) then
+	/bin/rm ${W_DIR}/tahoe/tahoe
+endif
+#        update macros
+echo "updating MACROS"
+cd ${W_DIR}/macros; cvs -q update -Pd
+#        update and build toolbox
+echo "checking out and building TOOLBOX"
+cd ${W_DIR}/toolbox; cvs -q update -Pd ; make -s init ; \
+ (make -s build >!  ../make.stdout) >&! ../make.stderr
+#        update and build tahoe
+if (-e ${W_DIR}/toolbox/lib/libtoolbox.a) then
+	echo "checking out and building TAHOE"
+	cd ${W_DIR}/tahoe;   cvs -q update -Pd ; make -s init ; \
+ 	(make -s build >>! ../make.stdout) >>&! ../make.stderr
+endif
+#        update and build comparator
+if (-e ${W_DIR}/toolbox/lib/libtoolbox.a) then
+	echo "checking out and building COMPARATOR"
+	cd ${W_DIR}/benchmark/comparator;   cvs -q update -Pd ; make -s init ; \
+ 	(make -s build >>! ../make.stdout) >>&! ../make.stderr
+endif
+#        update and run regression tests
+if (-e ${W_DIR}/tahoe/tahoe && -e ${W_DIR}/benchmark/comparator/compare) then
+    echo  "running BENCHMARKs"
+    cd ${W_DIR}/benchmark; \
+	cvs -q update -Pd ; \
+	make -s clean; \
+	${W_DIR}/tahoe/tahoe -f ${W_DIR}/benchmark/run.batch >&! test.stdout
+    echo  "running COMPARATOR"
+    cd ${W_DIR}/benchmark; \
+    rm compare.summary compare.console; \
+    ${W_DIR}/benchmark/comparator/compare -f run.batch >&! compare.console
+    if(! -e ${W_DIR}/benchmark/compare.summary) then
+#       test/s failed - did not complete
+	echo "BENCHMARKs failed"
+		/bin/cat ${W_DIR}/benchmark/scripts/fail.msg ${W_DIR}/benchmark/compare.console | ${MAILCMD} ${ADMIN}
+    else if(`grep -c "FAIL" ${W_DIR}/benchmark/compare.summary` ) then
+#       test/s failed
+	echo "BENCHMARKs failed"
+        /bin/cat ${W_DIR}/benchmark/scripts/fail.msg ${W_DIR}/benchmark/compare.summary | ${MAILCMD} ${ADMIN}
+    else
+	echo "BENCHMARKs passed"
+		/bin/cat ${W_DIR}/benchmark/scripts/pass.msg ${W_DIR}/benchmark/compare.summary | ${MAILCMD} ${ADMIN}
+	endif
+else
+#       make failed
+		/bin/cat ${W_DIR}/benchmark/scripts/build.fail.msg ${W_DIR}/make.stderr | ${MAILCMD} ${ADMIN}
+endif
+
