@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.cpp,v 1.5 2002-02-12 02:13:57 paklein Exp $ */
+/* $Id: ExodusOutputT.cpp,v 1.6 2002-02-18 08:57:39 paklein Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #include "ExodusOutputT.h"
@@ -18,7 +18,7 @@ OutputBaseT(out, out_strings)
 /* print geometry from multiple element groups to one file */
 void ExodusOutputT::WriteGeometry(void)
 {
-ExodusT exo (fout);
+ExodusT exo(cout);
 CreateGeometryFile (exo);
 exo.Close ();
 }
@@ -33,7 +33,7 @@ void ExodusOutputT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 	if (fElementSets[ID]->NumNodes() == 0) return;
 
 	/* ExodusII database */
-	ExodusT exo(fout);
+	ExodusT exo(cout);
 	if (fElementSets[ID]->PrintStep() == 0)
 		/* create new file */
 		CreateResultsFile(ID, exo);
@@ -240,15 +240,15 @@ void ExodusOutputT::WriteCoordinates (ExodusT& exo, iArrayT& nodes_used)
 
 void ExodusOutputT::WriteConnectivity (int ID, ExodusT& exo, const iArrayT& nodes_used)
 {
-  const ArrayT<StringT>& blockIDs = fElementSets[ID]->BlockID ();
-  for (int i=0; i < fElementSets[ID]->NumBlocks (); i++)
+	iArray2DT connects;
+	const ArrayT<StringT>& blockIDs = fElementSets[ID]->BlockID();
+	for (int i = 0; i < fElementSets[ID]->NumBlocks(); i++)
     {
-	const iArray2DT* c = fElementSets[ID]->Connectivities(blockIDs[i]);
-	iArray2DT local_connects(c->MajorDim(), c->MinorDim());
-	LocalConnectivity(nodes_used, *c, local_connects);
+		const iArray2DT* c = fElementSets[ID]->Connectivities(blockIDs[i]);
+		connects.Alias(*c);
 
-	local_connects++;
-	exo.WriteConnectivities(atoi(blockIDs[i]), fElementSets[ID]->Geometry(), local_connects);
-	local_connects--;
+		connects++;
+		exo.WriteConnectivities(atoi(blockIDs[i]), fElementSets[ID]->Geometry(), connects);
+		connects--;
     }
 }
