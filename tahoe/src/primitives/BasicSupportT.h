@@ -1,4 +1,4 @@
-/* $Id: BasicSupportT.h,v 1.1.4.5 2004-06-07 23:20:18 paklein Exp $ */
+/* $Id: BasicSupportT.h,v 1.1.4.6 2004-06-16 00:30:35 paklein Exp $ */
 #ifndef _TAHOE_SUPPORT_T_H_
 #define _TAHOE_SUPPORT_T_H_
 
@@ -84,8 +84,7 @@ public:
 	/** solver iteration number for the specified group */
 	const int& IterationNumber(int group) const;
 	
-	/** return the iteration number for the current solver group. Returns
-	 * -1 of no solver group is current */
+	/** return the iteration number for the current solver group */
 	int IterationNumber(void) const;
 
 	/** the group number being solved or -1 if not defined */
