@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.4.2.8 2001-10-25 19:50:51 sawimme Exp $ */
+/* $Id: ModelManagerT.h,v 1.4.2.9 2001-10-28 23:38:23 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -85,9 +85,9 @@ class ModelManagerT
   int ReadCards (ifstreamT& in, ostream& out, ArrayT<iArrayT>& nodes, iArray2DT& data, dArrayT& value);
 
   /* read traction card type data */
-  void ModelManagerT::ReadNumTractionLines (ifstreamT& in, int& numlines, int& numsets);
-  void ModelManagerT::ReadTractionSetData (ifstreamT& in, int& blockindex, int& setsize);
-  void ModelManagerT::ReadTractionSideSet (ifstreamT& in, int& blockindex, iArray2DT& localsides);
+  void ReadNumTractionLines (ifstreamT& in, int& numlines, int& numsets);
+  void ReadTractionSetData (ifstreamT& in, int& blockindex, int& setsize);
+  void ReadTractionSideSet (ifstreamT& in, int& blockindex, iArray2DT& localsides);
 
   /* access node data */
   void CoordinateDimensions (int& length, int& dof) const;
