@@ -1,4 +1,4 @@
-/* $Id: ParameterT.cpp,v 1.13 2004-03-27 04:11:50 paklein Exp $ */
+/* $Id: ParameterT.cpp,v 1.14 2004-04-04 03:03:12 paklein Exp $ */
 #include "ParameterT.h"
 
 /* array behavior */
@@ -77,6 +77,28 @@ void ParameterT::AddLimit(const LimitT& limit)
 	/* no limits for booleans */
 	if (fType == Boolean)
 		ExceptionT::GeneralFail(caller, "no limits for boolean \"%s\"", fName.Pointer());	
+
+	/* check type */
+	if (fType != limit.Type()) {
+		bool OK = false;
+		switch (fType) {
+			case Boolean:
+				if (limit.Type() == Integer) OK = true;
+				break;
+			case Double:
+				if (limit.Type() == Integer) OK = true;
+				break;
+			case String:
+				if (limit.Type() == Word) OK = true;
+				break;
+			case Word:
+				if (limit.Type() == String) OK = true;
+				break;
+		}
+		if (!OK)
+			ExceptionT::TypeMismatch(caller, "\"%s\" is of type \"%s\" not \"%s\"",
+				Name().Pointer(), ValueT::TypeName(fType), ValueT::TypeName(limit.Type()));
+	}
 
 	fLimits.Append(limit);
 }
