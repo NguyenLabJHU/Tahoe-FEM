@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.cpp,v 1.10 2002-01-06 06:57:53 cbhovey Exp $ */
+/* $Id: AbaqusResultsT.cpp,v 1.11 2002-01-07 20:44:05 paklein Exp $ */
 /* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
@@ -31,7 +31,8 @@ AbaqusResultsT::AbaqusResultsT (ostream& message) :
 bool AbaqusResultsT::Initialize (const char *filename)
 {
 	//TEMP - workaround for problem with CW7
-	fstreamT::FixPath(filename, fFileName);
+	//fstreamT::FixPath(filename, fFileName); //not needed if fIn is ifstreamT
+	fFileName = filename;
 	fIn.open (fFileName);
 	if (!fIn.is_open())
     {
@@ -1492,7 +1493,7 @@ void AbaqusResultsT::AdvanceTo (int target)
       error = ReadNextRecord (key);
       if (key == target) return;
     }
-  fMessage << "Unable to advance to " << target << ".\n";
+  fMessage << "\n AbaqusResultsT::AdvanceTo: anable to advance to " << target << endl;
   throw eDatabaseFail;
 }
 
@@ -1549,15 +1550,18 @@ bool AbaqusResultsT::Read (StringT& s, int n)
 	{
 	  CheckBufferSize (fIn);
 	  fIn.read (ps, sizeof (double));
-	  if (fIn.eof ()) return false;
+	  if (fIn.eof ())
+	  	return false;
 	  fBufferDone += sizeof (double);
 	  ps += sizeof (double);
 	}
       else
 	{
-	  if (!CheckBufferSize (fIn, 9)) return false;
+	  if (!CheckBufferSize (fIn, 9)) 
+	  	return false;
 	  char c = fBuffer [fBufferDone++];
-	  if (c != 'A') return false;
+	  if (c != 'A') 
+	  	return false;
 
 	  for (int j=0; j < 8; j++)
 	    *ps++ = fBuffer [fBufferDone++];
@@ -1576,11 +1580,10 @@ bool AbaqusResultsT::Read (int& i)
     {
       CheckBufferSize (fIn);
       int temp;
-	  double tmp;
       if (fIn.eof()) return false;
-      fIn.read (reinterpret_cast<char *> (&temp), sizeof (tmp));
+      fIn.read (reinterpret_cast<char *> (&temp), sizeof (double));
       i = temp;
-      fBufferDone += sizeof (tmp);
+      fBufferDone += sizeof(double);
     }
   else
     {
@@ -1662,12 +1665,8 @@ bool AbaqusResultsT::CheckBufferSize (istream& in, int numchars)
       if (fBufferSize > 0) 
 	strcpy (&temp[0], fBuffer.Pointer (fBufferDone));
       char nextline [90];
-      //if (!fIn.getline (&nextline[0], 89, '\n')) return false;
-      
-      //temp
-      if (!fIn.is_open()) {
-      	cout << "\n\nfile isn't open!!!!!!!!!!!!" << endl;
-      }
+
+      //if (!fIn.getline (&nextline[0], 89, '\n')) return false; //does not return false on fail
       fIn.getline (&nextline[0], 89, '\n');
       
       strcat (temp, &nextline[0]);
