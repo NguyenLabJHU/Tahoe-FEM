@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.20 2004-02-02 23:45:00 paklein Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.21 2004-08-10 23:13:08 raregue Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -96,7 +96,14 @@ public:
 	/** shape functions defining the field at the given integration point */
 	const double* IPShapeU(int ip) const;
 	/*@}*/
+	
+	/* not active yet */
+    /* laplacian of field at current ip */
+    //void LaplaceU(const LocalArrayT& field, dArrayT& laplacian) const;
 
+    /* laplacian of strain at current ip */
+    //void LaplaceStrain(const dSymMatrixT& field, dSymMatrixT& laplacian) const;
+	
 	/** \name field gradients */
 	/*@{*/
 	/** field gradients at the current integration point. 
