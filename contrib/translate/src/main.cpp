@@ -1,7 +1,8 @@
-/* $Id: main.cpp,v 1.4 2001-09-10 20:33:12 sawimme Exp $ */
+/* $Id: main.cpp,v 1.5 2001-09-21 15:49:25 sawimme Exp $ */
 
 #include "TranslateIOManager.h"
 #include "ExtractIOManager.h"
+#include "PointPlots.h"
 
 int main (void)
 {
@@ -10,7 +11,7 @@ int main (void)
       int selection;
       cout << "\n1. Datafile Translation \n";
       cout << "2. Nodal Data Extraction to XY Data \n";
-      cout << "3. Quadrature Data Extraction (not yet, but soon) \n";
+      cout << "3. Quadrature Data Extraction for Point Plots \n";
       cout << "\n Select type of translation: ";
       cin >> selection;
       
@@ -32,6 +33,14 @@ int main (void)
 	    program = "Extract";
 	    version = "v1.0";
 	    dataio = new ExtractIOManager (cout);
+	    break;
+	  }
+	case 3:
+	  {
+	    cout << "\n\n Program to extract quadrature data for point plots.\n\n";
+	    program = "PointPlot";
+	    version = "v1.0";
+	    dataio = new PointPlots (cout);
 	    break;
 	  }
 	default:

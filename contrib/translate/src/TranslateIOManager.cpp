@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.4 2001-09-13 13:31:55 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.5 2001-09-21 15:49:25 sawimme Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -135,6 +135,9 @@ void TranslateIOManager::InitializeTime (void)
 
       int selection;
       cout << "\n Number of Time Steps Available: " << fNumTS << endl;
+      if (fNumTS < 100)
+	for (int b=0; b < fNumTS; b++)
+	  cout << "    " << b+1 << ". " << fTimeSteps[b] << "\n";
       cout << "\n1. Translate All\n";
       cout << "2. Translate Specified\n";
       cout << "3. Translate Every nth step\n";
@@ -157,16 +160,16 @@ void TranslateIOManager::InitializeTime (void)
 	    dArrayT temp (fNumTS);
 	    fTimeIncs.Allocate (fNumTS);
 	    cout << "\n Increments are numbered consequetively from 1.\n";
-	    cout << "     Enter the time increments (return after each): \n";
 	    for (int i=0; i < fNumTS; i++)
 	      {
+		cout << "    Enter time increment " << i+1 << ": ";
 		cin >> fTimeIncs[i];
+		fTimeIncs[i]--;
 		if (fTimeIncs[i] < 0 || fTimeIncs[i] >= fTimeSteps.Length())
 		  throw eOutOfRange;
 		temp[i] = fTimeSteps[fTimeIncs[i]];
 	      }
 	    fTimeSteps = temp;
-	    fTimeSteps--;
 	    break;
 	  }
 	case 3:
@@ -363,7 +366,7 @@ void TranslateIOManager::WriteSideSets (void)
 void TranslateIOManager::VariableQuery (const ArrayT<StringT>& names, iArrayT& list)
 {
   iAutoArrayT temp;
-  for (int i=0; i < fNumNV; i++)
+  for (int i=0; i < names.Length(); i++)
     {
       StringT answer;
       cout << " Extract variable " << names[i] << " (y/n) ? ";
