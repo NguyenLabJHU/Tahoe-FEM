@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.31 2004-01-03 06:45:38 paklein Exp $
+# $Id: makefile.template,v 1.32 2004-01-05 04:10:11 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -233,7 +233,6 @@ clean_config:
 	@ if test -f $(SRC_DIR)/config/DevelopmentElementsConfig.make; then rm $(SRC_DIR)/config/DevelopmentElementsConfig.make; fi
 	@ if test -f $(SRC_DIR)/config/DevelopmentMaterialsConfig.h; then rm $(SRC_DIR)/config/DevelopmentMaterialsConfig.h; fi
 	@ if test -f $(SRC_DIR)/config/DevelopmentMaterialsConfig.make; then rm $(SRC_DIR)/config/DevelopmentMaterialsConfig.make; fi
-	@ if test -L $(SRC_DIR)/$(DEV_NAME); then rm $(SRC_DIR)/$(DEV_NAME); fi
 
 # loop over up-to-date list - must define $(COMMAND)
 do_up_to_date:
