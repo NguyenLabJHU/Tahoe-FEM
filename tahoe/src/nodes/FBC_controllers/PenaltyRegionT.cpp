@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.15.4.2 2004-04-01 08:35:05 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.15.4.3 2004-04-04 03:05:58 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 #include "PenaltyRegionT.h"
 
@@ -236,7 +236,7 @@ void PenaltyRegionT::DefineParameters(ParameterListT& list) const
 	FBC_ControllerT::DefineParameters(list);
 
 	ParameterT k(fk, "stiffness");
-	k.AddLimit("0.0", LimitT::LowerInclusive);
+	k.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(k);
 }
 

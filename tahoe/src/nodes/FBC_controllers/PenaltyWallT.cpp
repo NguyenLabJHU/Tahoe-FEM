@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.11.12.2 2004-04-01 08:35:05 paklein Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.11.12.3 2004-04-04 03:05:58 paklein Exp $ */
 /* created: paklein (02/25/1997) */
 #include "PenaltyWallT.h"
 #include "FieldT.h"
@@ -221,4 +221,5 @@ void PenaltyWallT::TakeParameterList(const ParameterListT& list)
 	fxyforce.Dimension(nsd);
 	fp_i.Dimension(fNumContactNodes, nsd);
 	fv_i.Dimension(fNumContactNodes, nsd);
+	fLHS.Dimension(nsd);
 }
