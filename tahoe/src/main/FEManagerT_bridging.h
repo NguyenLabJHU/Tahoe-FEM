@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.12.4.5 2004-05-22 03:07:09 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.12.4.6 2004-05-24 06:42:01 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -296,7 +296,7 @@ protected:
 	void ComputeSum_signR_Na(const dArrayT& R_i, const RaggedArray2DT<int>& ghost_neighbors, 
 		const dArray2DT& point_coords, const InverseMapT& overlap_node_map, dArrayT& sum_R_N) const;
 
-	void ComputeSum_signR_Na_4(const RaggedArray2DT<int>& ghost_neighbors, 
+	void ComputeSum_signR_Na_4(double R_i, const RaggedArray2DT<int>& ghost_neighbors, 
 		const dArray2DT& point_coords, const InverseMapT& overlap_node_map, dArray2DT& sum_R_N) const;
 
 	/** compute Cauchy-Born contribution to the nodal internal force
@@ -316,11 +316,18 @@ protected:
 		const dArray2DT& rho, dArrayT& f_a, double smoothing, double k2, dArray2DT& df_dp, 
 		LAdMatrixT& ddf_dpdp) const;
 
-	void Compute_df_dp(const dArrayT& R, double V_0, const ArrayT<char>& cell_type, 
+	void Compute_df_dp_2(const dArrayT& R, double V_0, const ArrayT<char>& cell_type, 
 		const InverseMapT& overlap_cell_map, const ArrayT<int>& overlap_node, const InverseMapT& overlap_node_map,
 		const iArray2DT& cell_eq_active_i,
 		const RaggedArray2DT<int>& inv_connects_i, const RaggedArray2DT<int>& inv_equations_all_i, const RaggedArray2DT<int>& inv_equations_active_i,
 		const dArray2DT& rho, dArrayT& f_a, double smoothing, double k2, dArray2DT& df_dp, 
+		GlobalMatrixT& ddf_dpdp) const;
+
+	void Compute_df_dp_4(const dArray2DT& shell_bonds, double V_0, const ArrayT<char>& cell_type, 
+		const InverseMapT& overlap_cell_map, const ArrayT<int>& overlap_node, const InverseMapT& overlap_node_map,
+		const iArray2DT& cell_eq_active_i,
+		const RaggedArray2DT<int>& inv_connects_i, const RaggedArray2DT<int>& inv_equations_all_i, const RaggedArray2DT<int>& inv_equations_active_i,
+		const dArray2DT& rho, dArray2DT& f_a, double smoothing, double k2, dArray2DT& df_dp, 
 		GlobalMatrixT& ddf_dpdp) const;
 	/*@}*/
 

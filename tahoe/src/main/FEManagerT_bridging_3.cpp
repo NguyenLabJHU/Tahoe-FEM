@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_3.cpp,v 1.1.2.1 2004-05-22 03:07:09 paklein Exp $ */
+/* $Id: FEManagerT_bridging_3.cpp,v 1.1.2.2 2004-05-24 06:42:01 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -239,7 +239,7 @@ void FEManagerT_bridging::CorrectOverlap_3(const RaggedArray2DT<int>& point_neig
 		
 		/* compute residual - add Cauchy-Born contribution */
 		f_a = sum_R_N;
-		Compute_df_dp(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map, 
+		Compute_df_dp_2(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map, 
 			bond_densities_i_eq_active, inv_connects_i, inv_equations_all_i, inv_equations_active_i,
 			p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
 		if (fPrintInput) {
@@ -291,7 +291,7 @@ void FEManagerT_bridging::CorrectOverlap_3(const RaggedArray2DT<int>& point_neig
 
 				/* recompute residual */			
 				f_a = sum_R_N;
-				Compute_df_dp(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map,
+				Compute_df_dp_2(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map,
 					bond_densities_i_eq_active, inv_connects_i, inv_equations_all_i, inv_equations_active_i,
 					p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
 				

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_2.cpp,v 1.1.2.1 2004-05-22 03:07:09 paklein Exp $ */
+/* $Id: FEManagerT_bridging_2.cpp,v 1.1.2.2 2004-05-24 06:42:01 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -217,7 +217,7 @@ void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neig
 		
 		/* compute residual - add Cauchy-Born contribution */
 		f_a = sum_R_N;
-		Compute_df_dp(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map, 
+		Compute_df_dp_2(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map, 
 			bond_densities_i_eq, inv_connects_i, inv_equations_i, inv_equations_i,
 			p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
 		if (fPrintInput) {
@@ -261,7 +261,7 @@ void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neig
 
 				/* recompute residual */			
 				f_a = sum_R_N;
-				Compute_df_dp(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map,
+				Compute_df_dp_2(R_i, V_0, cell_type, overlap_cell_i_map, overlap_node_i, overlap_node_i_map,
 					bond_densities_i_eq, inv_connects_i, inv_equations_i, inv_equations_i,
 					p_i, f_a, smoothing, k2, df_dp_i, ddf_dpdp_i);
 				
@@ -519,6 +519,246 @@ void FEManagerT_bridging::GhostNodeBonds_2(const dArrayT& R_i, const dArray2DT& 
 		if (is_overlap_cell[i] == 't')
 			overlap_cell_i[num_overlap++] = i;
 #endif
+}
+
+void FEManagerT_bridging::Compute_df_dp_2(const dArrayT& R, double V_0, const ArrayT<char>& cell_type, 
+	const InverseMapT& overlap_cell_map, const ArrayT<int>& overlap_node, const InverseMapT& overlap_node_map,
+	const iArray2DT& cell_eq_active_i,
+	const RaggedArray2DT<int>& inv_connects_i, const RaggedArray2DT<int>& inv_equations_all_i, const RaggedArray2DT<int>& inv_equations_active_i,
+	const dArray2DT& rho, dArrayT& f_a, double smoothing, double k2, dArray2DT& df_dp, GlobalMatrixT& ddf_dpdp) const
+{
+	const char caller[] = "FEManagerT_bridging::Compute_df_dp_2";
+
+	/* the continuum element solving the coarse scale */
+	const ContinuumElementT* coarse = fFollowerCellData.ContinuumElement();
+	if (!coarse) ExceptionT::GeneralFail(caller, "interpolation data not set");
+
+	/* dimensions */
+	NodeManagerT* node_manager = NodeManager();
+	int nsd = node_manager->NumSD();
+	int nen = coarse->NumElementNodes();
+	int nip = rho.MinorDim();
+
+	/* element coordinates */
+	LocalArrayT element_coords(LocalArrayT::kInitCoords, nen, nsd);
+	node_manager->RegisterCoordinates(element_coords);
+
+	/* shape functions */
+	ShapeFunctionT shapes = ShapeFunctionT(coarse->GeometryCode(), nip, element_coords);
+	shapes.Initialize();
+
+	/* integrate bond density term */
+	dArrayT rho_1(nip);
+	rho_1 = 1.0;
+	dMatrixT grad_Na(nsd,nen);
+	for (int i = 0; i < cell_type.Length(); i++)
+		if (cell_type[i] != p_0) /* non-zero bond density */ 
+		{
+			/* set element information */
+			const iArrayT& nodesX = coarse->ElementCard(i).NodesX();
+			element_coords.SetLocal(nodesX);
+			shapes.SetDerivatives();
+
+			/* bond density */
+			const double* p = NULL;
+			if (cell_type[i] == p_x) {
+				int overlap_cell_index = overlap_cell_map.Map(i);
+				if (overlap_cell_index == -1) ExceptionT::GeneralFail(caller);
+				p = rho(overlap_cell_index);
+			}
+			else /* rho = 1.0 */
+				p = rho_1.Pointer();
+
+			/* integration parameters */
+			const double* j = shapes.IPDets();
+			const double* w = shapes.IPWeights();
+		
+			/* integrate */
+			shapes.TopIP();
+			while (shapes.NextIP()) {
+
+				/* get shape function gradients */
+				shapes.GradNa(grad_Na);
+		
+				/* integration factor */
+				double jw = (*j++)*(*w++);
+				double p_jw_by_V = (*p++)*jw/V_0;
+		
+				/* loop over nodes */
+				for (int k = 0; k < nodesX.Length(); k++) {
+			
+					int overlap_node_index = overlap_node_map.Map(nodesX[k]);
+					if (overlap_node_index > -1) /* node is in overlap */ {
+				
+						/* inner product of bond and shape function gradient */
+						double R_dot_dN = grad_Na.DotCol(k, R);
+				
+						/* assemble */
+						f_a[overlap_node_index] += (R_dot_dN*p_jw_by_V);
+					}
+				}
+			}
+		}
+	if (fPrintInput) {
+		fMainOut << "f_a =\n" << f_a << endl;
+	}
+
+	/* gradient work space */
+	const ParentDomainT& parent_domain = shapes.ParentDomain();	
+	ArrayT<dMatrixT> ip_gradient(nip);
+	dMatrixT jacobian_inv(nsd);
+	dMatrixT A(nsd,nip), ATA(nip);
+	ElementMatrixT ATA_int(nip, ElementMatrixT::kSymmetric);
+	for (int i = 0; i < nip; i++) {
+		ip_gradient[i].Dimension(nsd, nip);
+		parent_domain.IPGradientTransform(i, ip_gradient[i]);
+	}
+
+	/* initialize return values */
+	df_dp = 0.0;
+	ddf_dpdp.Clear();
+
+	/* regularization contributions to the force and stiffness matrix */
+	dArray2DT df(nen, nip);
+	dMatrixT ddp_i_dpdp(nip);
+	dArrayT element_rho;
+	dArrayT element_force;
+	iArrayT eqnos;
+	for (int i = 0; i < cell_type.Length(); i++)
+		if (cell_type[i] == p_x) /* unknown bond density */ 
+		{
+			/* index within list of overlap cells */
+			int overlap_cell_index = overlap_cell_map.Map(i);
+			if (overlap_cell_index == -1) /* should all be within overlap */
+				ExceptionT::GeneralFail(caller);
+		
+			/* set element information */
+			const iArrayT& nodesX = coarse->ElementCard(i).NodesX();
+			element_coords.SetLocal(nodesX);
+			shapes.SetDerivatives();
+
+			/* integration parameters */
+			const double* p = rho(overlap_cell_index);
+			const double* j = shapes.IPDets();
+			const double* w = shapes.IPWeights();
+		
+			/* integrate */
+			ATA_int = 0.0;
+			ddp_i_dpdp = 0.0;
+			shapes.TopIP();
+			while (shapes.NextIP()) {
+
+				/* integration factor */
+				int ip = shapes.CurrIP();
+				double jw = (*j++)*(*w++);
+				double pm1_jw = ((*p++) - 1)*jw; /* penalization */
+				double jw_by_V = jw/V_0;
+	
+				/* integrate density gradient matrix */
+				parent_domain.DomainJacobian(element_coords, ip, jacobian_inv);
+				jacobian_inv.Inverse();
+				A.MultATB(jacobian_inv, ip_gradient[ip]);
+				ATA.MultATB(A,A);
+				ATA_int.AddScaled(smoothing*jw, ATA);
+			
+				/* add penalized force term */
+				df_dp(overlap_cell_index,ip) += k2*pm1_jw;
+				ddp_i_dpdp(ip,ip) += k2*jw;
+			}
+
+			/* regularization contribution to force */
+			df_dp.RowAlias(overlap_cell_index, element_force);
+			rho.RowAlias(overlap_cell_index, element_rho);		
+			ATA_int.Multx(element_rho, element_force, 1.0, dMatrixT::kAccumulate);
+#pragma message("something not right here for CorrectOverlap_3")
+
+			/* penalty regularization */
+			ATA_int += ddp_i_dpdp;
+		
+			/* assemble stiffness contribution */
+			cell_eq_active_i.RowAlias(overlap_cell_index, eqnos);
+			ddf_dpdp.Assemble(ATA_int, eqnos);
+		}
+
+	/* work space */
+	dArray2DT df_a_dp;
+	nVariArray2DT<double> df_a_dp_man(0, df_a_dp, nip);
+	ElementMatrixT df_a_dp_2(ElementMatrixT::kSymmetric);
+	nVariMatrixT<double> df_a_dp_2_man(0, df_a_dp_2);
+
+	/* add Cauchy-Born contribution from "connectivities" of overlap nodes */
+	iArrayT node_elements;
+	for (int i = 0; i < inv_connects_i.MajorDim(); i++) {
+	
+		int node = overlap_node[i];
+		int node_index = overlap_node_map.Map(node);
+		if (node_index == -1) ExceptionT::GeneralFail(caller);
+	
+		/* elements in the nodal support */
+		inv_connects_i.RowAlias(i, node_elements);
+	
+		/* dimension workspace */
+		df_a_dp_man.SetMajorDimension(inv_connects_i.MinorDim(i), false);
+		
+		/* initialize */
+		df_a_dp = 0.0;
+		for (int e = 0; e < node_elements.Length(); e++) {
+
+			int element = node_elements[e];
+
+			/* index within list of overlap cells */
+			int overlap_cell_index = overlap_cell_map.Map(element);
+			if (overlap_cell_index == -1) /* should all be within overlap */
+				ExceptionT::GeneralFail(caller);
+		
+			/* set element information */
+			const iArrayT& nodesX = coarse->ElementCard(element).NodesX();
+			element_coords.SetLocal(nodesX);
+			shapes.SetDerivatives();
+			
+			/* find the local number of the node within the element */
+			int local_node = -1;
+			for (int k = 0; local_node == -1 && k < nodesX.Length(); k++)
+				if (nodesX[k] == node)
+					local_node = k;
+			if (local_node == -1) ExceptionT::GeneralFail(caller);
+
+			/* integration parameters */
+			const double* p = rho(overlap_cell_index);
+			const double* j = shapes.IPDets();
+			const double* w = shapes.IPWeights();
+
+			shapes.TopIP();
+			while (shapes.NextIP()) {
+
+				/* integration factor */
+				int ip = shapes.CurrIP();
+				double jw = (*j++)*(*w++);
+				double jw_by_V = jw/V_0;
+	
+				/* get shape function gradients */
+				shapes.GradNa(grad_Na);
+
+				/* inner product of bond and shape function gradient */
+				double R_dot_dN = grad_Na.DotCol(local_node, R);
+				
+				/* assemble */
+				df_a_dp(e, ip) += R_dot_dN*jw_by_V;
+			}		
+		}
+
+		/* assemble stiffness */
+		df_a_dp_2_man.SetDimensions(inv_equations_active_i.MinorDim(i));
+		df_a_dp_2.Outer(df_a_dp, df_a_dp);
+		inv_equations_active_i.RowAlias(i, eqnos);
+		ddf_dpdp.Assemble(df_a_dp_2, eqnos);
+		
+		/* force contribution */
+		inv_equations_all_i.RowAlias(i, eqnos);
+		for (int j = 0; j < eqnos.Length(); j++) {
+			df_dp[eqnos[j]-1] += f_a[node_index]*df_a_dp[j];
+		}
+	}
 }
 
 #endif  /* BRIDGING_ELEMENT */
