@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.30 2005-02-14 00:30:55 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.31 2005-03-02 02:28:31 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -1538,9 +1538,11 @@ void FEManagerT_bridging::GhostNodeBonds(const RaggedArray2DT<int>& neighbors, R
 void FEManagerT_bridging::GhostNodeBonds(const RaggedArray2DT<int>& neighbors,
 	RaggedArray2DT<int>& ghost_neighbors, iArrayT& overlap_cell) const
 {
+	const char caller[] = "FEManagerT_bridging::GhostNodeBonds";
+
 	/* the continuum element solving the coarse scale */
 	const ContinuumElementT* coarse = fFollowerCellData.ContinuumElement();
-	if (!coarse) ExceptionT::GeneralFail("FEManagerT_bridging::GhostNodeBonds", "interpolation data not set");
+	if (!coarse) ExceptionT::GeneralFail(caller, "interpolation data not set");
 	int nel = coarse->NumElements();
 	ArrayT<char> is_overlap_cell(nel);
 	is_overlap_cell = 'f';
@@ -1576,6 +1578,7 @@ void FEManagerT_bridging::GhostNodeBonds(const RaggedArray2DT<int>& neighbors,
 			
 				/* mark cell */
 				int cell = interpolating_cell[neighbor_local];
+				if (cell < 0) ExceptionT::GeneralFail(caller, "no cell for point %d", neighbor+1);
 				if (is_overlap_cell[cell] == 'f') num_overlap++;
 				is_overlap_cell[cell] = 't';
 			}
