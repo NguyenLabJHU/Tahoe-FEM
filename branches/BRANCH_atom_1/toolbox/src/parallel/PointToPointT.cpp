@@ -1,4 +1,4 @@
-/* $Id: PointToPointT.cpp,v 1.1.2.2 2002-12-27 23:02:41 paklein Exp $ */
+/* $Id: PointToPointT.cpp,v 1.1.2.3 2003-01-08 02:31:01 paklein Exp $ */
 #include "PointToPointT.h"
 #include "CommunicatorT.h"
 #include "PartitionT.h"
@@ -24,8 +24,8 @@ PointToPointT::PointToPointT(CommunicatorT& comm, const PartitionT& partition):
 PointToPointT::~PointToPointT(void)
 {
 	/* try to clear any incomplete communications */
-	fComm.FreeRequests(fRecvRequest);
-	fComm.FreeRequests(fSendRequest);
+  //fComm.FreeRequests(fRecvRequest);
+  //fComm.FreeRequests(fSendRequest);
 	
 	/* reset max tag */
 	if (--sTagCount == 0) sMaxTag = 0;
