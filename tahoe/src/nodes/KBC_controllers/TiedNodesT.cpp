@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.13 2002-10-20 22:49:29 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.14 2002-10-31 21:07:55 cjkimme Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -8,6 +8,7 @@
 
 //TEMP
 #include "ofstreamT.h"
+#include "ifstreamT.h"
 
 using namespace Tahoe;
 
@@ -42,6 +43,13 @@ void TiedNodesT::Initialize(ifstreamT& in)
 	fPairStatus.Dimension(follower_nodes);
 	fPairStatus = kFree;
 	fPairStatus_last = fPairStatus;
+	
+	int tiedFlag;
+	in >> tiedFlag; 
+	if (tiedFlag)
+		qNoTiedPotential = false;
+	else
+		qNoTiedPotential = true;
 
 	/* read more parameters */
 	ReadParameters(in);
@@ -339,7 +347,7 @@ void TiedNodesT::InitTiedNodePairs(const iArrayT& leader_nodes,
 	    	Fct++;
 	    	fPairStatus[i] = kFree;
 	    	fNodePairs(i,0) = fNodePairs(FLength,0);
-		fNodePairs(i,1) = fNodePairs(FLength,1);
+			fNodePairs(i,1) = fNodePairs(FLength,1);
 	    	if (i != follower_nodes.Length()-1)
 	      		i--;
 	    	FLength--;
@@ -358,29 +366,32 @@ void TiedNodesT::InitTiedNodePairs(const iArrayT& leader_nodes,
 bool TiedNodesT::ChangeStatus(void)
 {
   /* To pass the benchmarks, the line below must be uncommented */
+  	if (qNoTiedPotential)
     	return false;
-
-  	bool changeQ = false;
-	ElementBaseT* surroundingGroup = fFEManager.ElementGroup(0);
-  	if (!surroundingGroup)
+    else
+    {
+  		bool changeQ = false;
+		ElementBaseT* surroundingGroup = fFEManager.ElementGroup(0);
+  		if (!surroundingGroup)
         {
-      //      	cout <<" Group 0 doesn't exist \n";
-      	  throw ExceptionT::kGeneralFail;
+           	cout <<"TiedPotentialT::ChangeStatus: Group 0 doesn't exist \n";
+      	  	throw ExceptionT::kGeneralFail;
         }
-  	surroundingGroup->SendOutput(3);
-  	dArray2DT fNodalQs = fNodeManager.OutputAverage();
+	  	surroundingGroup->SendOutput(3);
+	  	dArray2DT fNodalQs = fNodeManager.OutputAverage();
 
-  	for (int i = 0; i < fNodePairs.MajorDim();i++) 
-        {  
-	    dArrayT sigma(fNodalQs.MinorDim(),fNodalQs(fNodePairs(i,1)));
-		if (fPairStatus[i] == kTied && TiedPotentialT::InitiationQ(sigma.Pointer()))     
-		{ 
-	  		fPairStatus[i] = kFree;
-	  		changeQ = true;
-		}
+	  	for (int i = 0; i < fNodePairs.MajorDim();i++) 
+	    {  
+		    dArrayT sigma(fNodalQs.MinorDim(),fNodalQs(fNodePairs(i,1)));
+			if (fPairStatus[i] == kTied && TiedPotentialT::InitiationQ(sigma.Pointer()))     
+			{ 
+		  		fPairStatus[i] = kFree;
+		  		changeQ = true;
+			}
         }
-
-  	return changeQ;
+        
+        return changeQ;
+    }	
 
 }
 
