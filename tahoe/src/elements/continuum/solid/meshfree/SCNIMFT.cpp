@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.34 2004-10-25 22:11:23 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.35 2004-10-26 17:20:46 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 
@@ -726,8 +726,8 @@ void SCNIMFT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>&
 	for (int i = 0; i < fBoundaryNodes.Length(); i++)
 	  fBoundaryNodes[i] = inv_map.Map(fBoundaryNodes[i]);
 	int* fbcptr = fBoundaryConnectivity.Pointer();
-	for (int i = 0; i < fBoundaryConnectivity.Length(); i++)
-	  *fbcptr++ = inv_map.Map(*fbcptr);
+	for (int i = 0; i < fBoundaryConnectivity.Length(); i++, fbcptr++)
+	  *fbcptr = inv_map.Map(*fbcptr);
 	
 	/* don't need this information */
 	facet_numbers.Free();
