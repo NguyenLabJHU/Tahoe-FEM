@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.29 2002-12-02 10:19:35 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.30 2002-12-05 08:31:13 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -43,6 +43,7 @@ class IOManager;
 class OutputSetT;
 class FieldT;
 class CommunicatorT;
+class CommManagerT;
 
 class FEManagerT: public iConsoleObjectT
 {
@@ -339,6 +340,10 @@ protected:
 	virtual ExceptionT::CodeT ResetStep(void);
 	/*@}*/
 
+	/** construct a new CommManagerT. Should be called some time after the
+	 * ModelManagerT has been constructed */
+	virtual CommManagerT* New_CommManager(void) const;
+
 private:
 
 	/** \name disallowed */
@@ -351,7 +356,7 @@ private:
 	 * const because a non-const reference to the FEManagerT is passed to
 	 * the solvers. */
 	SolverT* New_Solver(int code, int group);
-	
+		
 protected:
 
 	/** \name I/O streams */
@@ -387,6 +392,7 @@ protected:
 	ArrayT<ControllerT*> fControllers;
 	IOManager*    fIOManager;
 	ModelManagerT* fModelManager;
+	CommManagerT* fCommManager;
 	/*@}*/
 	
 	/** \name multi-solver phases */

@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.49 2002-12-02 15:09:05 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.50 2002-12-05 08:31:13 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -22,6 +22,7 @@
 #include "eControllerT.h"
 #include "nControllerT.h"
 #include "CommunicatorT.h"
+#include "CommManagerT.h"
 
 /* nodes */
 #include "NodeManagerT.h"
@@ -56,6 +57,7 @@ FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm)
 	fTimeManager(NULL),
 	fNodeManager(NULL),
 	fIOManager(NULL),
+	fCommManager(NULL),
 	fMaxSolverLoops(0),
 	fRestartCount(0),
 	fGlobalEquationStart(0),
@@ -89,6 +91,7 @@ FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm)
 FEManagerT::~FEManagerT(void)
 {
 	fStatus = GlobalT::kDestruction;
+
 	delete fTimeManager;
 	delete fNodeManager;
 	
@@ -100,6 +103,8 @@ FEManagerT::~FEManagerT(void)
 
 	delete fIOManager;
 	delete fModelManager;
+	delete fCommManager;
+	
 	fStatus = GlobalT::kNone;	
 }
 
@@ -132,6 +137,11 @@ void FEManagerT::Initialize(InitCodeT init)
 	if (init == kParametersOnly) return;
 	WriteParameters();
 	if (verbose) cout << "    FEManagerT::Initialize: execution parameters" << endl;
+
+	/* set communication manager */
+//	fCommManager = New_CommManager();
+//	if (!fCommManager) throw ExceptionT::kOutOfMemory;
+//	if (verbose) cout << "    FEManagerT::Initialize: comm manager" << endl;
 	
 	/* construct the managers */
 	fTimeManager = new TimeManagerT(*this);
@@ -973,8 +983,8 @@ bool FEManagerT::iDoCommand(const CommandSpecT& command, StringT& line)
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /* "const" function that sets the status flag */
 void FEManagerT::SetStatus(GlobalT::StateT status) const
@@ -1595,8 +1605,25 @@ void FEManagerT::SendEqnsToSolver(int group) const
 		fSolvers[group]->ReceiveEqns(*(eq_2[k]));
 }
 
+/* construct a new CommManagerT */
+CommManagerT* FEManagerT::New_CommManager(void) const
+{
+	if (!fModelManager) 
+		ExceptionT::GeneralFail("FEManagerT::New_CommManager", "need ModelManagerT");
+
+	CommManagerT* comm_man = new CommManagerT(fComm, fModelManager->NumDimensions());
+	comm_man->SetModelManager(fModelManager);
+	return comm_man;
+}
+
+/*************************************************************************
+ * Private
+ *************************************************************************/
+
 SolverT* FEManagerT::New_Solver(int code, int group)
 {
+	const char caller[] = "FEManagerT::New_Solver";
+
 	/* construct solver */
 	SolverT* solver = NULL;
 	switch (code)
@@ -1655,22 +1682,15 @@ SolverT* FEManagerT::New_Solver(int code, int group)
 			solver = new NOXSolverT(*this, group, controller.OrderOfUnknown());
 			break;
 #else
-			cout << "\n FEManagerT::New_Solver: NOX not installed: " << SolverT::kNOX << endl;
-			throw ExceptionT::kGeneralFail;
+			ExceptionT::GeneralFail(caller, "NOX not installed: %d", SolverT::kNOX);
 #endif	
 		}		
-		default:			
-			cout << "\n FEManagerT::New_Solver: unknown nonlinear solver code: ";
-			cout << code << endl;
-			throw ExceptionT::kBadInputValue;
+		default:
+			ExceptionT::BadInputValue(caller, "unknown nonlinear solver code: %d", code);
 	}
 
 	/* fail */
-	if (!solver) {
-		cout << "\n FEManagerT::New_Solver: failed" << endl;
-		throw ExceptionT::kGeneralFail;	
-	}
+	if (!solver) ExceptionT::GeneralFail(caller, "failed");
 
 	return solver;
 }
-

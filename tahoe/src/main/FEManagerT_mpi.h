@@ -1,6 +1,5 @@
-/* $Id: FEManagerT_mpi.h,v 1.15 2002-11-28 17:06:30 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.16 2002-12-05 08:31:13 paklein Exp $ */
 /* created: paklein (01/12/2000) */
-
 #ifndef _FE_MANAGER_MPI_H_
 #define _FE_MANAGER_MPI_H_
 
@@ -36,13 +35,13 @@ class FEManagerT_mpi: public FEManagerT
 {
 public:
 
-	/* task codes */
+	/** task codes */
 	enum TaskT {kDecompose = 0,
 	                  kRun = 1};
 
 	/* constructor - partition can be NULL for decomposition */
 	FEManagerT_mpi(ifstreamT& input, ofstreamT& output, CommunicatorT& comm,
-		const PartitionT* partition, TaskT task);
+		PartitionT* partition, TaskT task);
 
 	/* destructor */
 	virtual ~FEManagerT_mpi(void);
@@ -107,20 +106,25 @@ protected:
 	virtual ExceptionT::CodeT SolveStep(void);
 	/*@}*/
 
-	/* initialization functions */
+	/** \name initialization functions */
+	/*@{*/
 	virtual void ReadParameters(InitCodeT init);
 	virtual void SetNodeManager(void);
 	virtual void SetElementGroups(void);  	
+	/*@}*/
 
 	/* (re-)set system to initial conditions */
 	virtual void InitialCondition(void);
 
-	/* reduce single value */
-//	int AllReduce(MPI_Op operation, int value);
-
-	/* equation system information */
+	/** \name equation system information */
+	/*@{*/
 	virtual int GetGlobalEquationStart(int group) const;
 	virtual int GetGlobalNumEquations(int group) const;
+	/*@}*/
+
+	/** construct a new CommManagerT. Should be called some time after the
+	 * ModelManagerT has been constructed */
+	virtual CommManagerT* New_CommManager(void) const;
 
 private:
 
@@ -128,18 +132,20 @@ private:
 	void AllocateBuffers(int minor_dim, ArrayT<dArray2DT>& recv, ArrayT<dArray2DT>& send);
 	void AllocateBuffers(int minor_dim, ArrayT<iArray2DT>& recv, ArrayT<iArray2DT>& send);
 
-	/* write time stamp to log file */
+	/** write time stamp to log file */
 	void TimeStamp(const char* message, bool flush_stream = false) const;
 
-	/* returns the time string */
+	/** returns the time string */
 	const char* WallTime(void) const;
 
-	/* collect computation effort for each node */
+	/** collect computation effort for each node */
 	void WeightNodalCost(iArrayT& weight) const;
 
-	/* decomposition methods */
+	/** \name decomposition methods */
+	/*@{*/
 	void DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose, int method);
 	void DoDecompose_2(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose, int method);
+	/*@}*/
 
 private:
 
@@ -152,7 +158,7 @@ private:
 	StringT fModelFile;
 	
 	/* partition information */
-	const PartitionT* fPartition;
+	PartitionT* fPartition;
 	ArrayT<dArray2DT> fRecvBuffer;
 	ArrayT<dArray2DT> fSendBuffer;
 	ArrayT<MPI_Request> fRecvRequest;
