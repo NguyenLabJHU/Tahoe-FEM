@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.27 2003-09-05 15:31:31 paklein Exp $
+# $Id: make.targets,v 1.28 2003-09-05 22:02:24 cjkimme Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -127,6 +127,9 @@ $(TARGET): $(OPT_LIB) $(LIBRARY)
 # include object list and create archive
 $(LIBRARY): $(LIB_DIR)/lib.junk
 	@ $(MAKE) $(BUILD_LIBRARY) \
+	"HOME_DIR = $(HOME_DIR)" \
+	"MACRO_DIR = $(MACRO_DIR)" \
+	"ARCH = $(ARCH)" \
 	"OBJECT_LIST = $(HOME_DIR)/object_list" \
 	"AR = $(AR)" \
 	"ARFLAGS = $(ARFLAGS)" \
@@ -150,9 +153,12 @@ BUILD_LIBRARY_RANLIB:
 # initialization
 init: $(MAKE_INIT_XTRAS)
 	@ if test -f $(LIBRARY); then rm $(LIBRARY); fi
-	@ $(MAKE) headers
-	@ $(MAKE) depend_init
-	@ $(MAKE) object_list
+	@ $(MAKE) headers "HOME_DIR = $(HOME_DIR)" \
+	"MACRO_DIR = $(MACRO_DIR)" "ARCH = $(ARCH)"
+	@ $(MAKE) depend_init "HOME_DIR = $(HOME_DIR)" \
+	"MACRO_DIR = $(MACRO_DIR)" "ARCH = $(ARCH)"
+	@ $(MAKE) object_list "HOME_DIR = $(HOME_DIR)" \
+	"MACRO_DIR = $(MACRO_DIR)" "ARCH = $(ARCH)"
 
 # clean up - restore to unpacked state
 clean: 
@@ -165,7 +171,8 @@ clean:
 	@- cd $(OBJ_DIR); rm *.o
 	@- cd $(MACRO_DIR)/cxx_repository; rm *.o *.DB
 	@- cd $(INC_DIR); rm *.h
-	make $(MAKE_CLEAN_XTRAS)
+	make $(MAKE_CLEAN_XTRAS) "HOME_DIR = $(HOME_DIR)" \
+	"MACRO_DIR = $(MACRO_DIR)" "ARCH = $(ARCH)"
 
 # build object file list
 object_list: FORCE
@@ -174,6 +181,7 @@ object_list: FORCE
 	@ cd $(SRC_DIR); \
 	$(MAKE) library \
 	"ARCH = $(ARCH)" \
+	"HOME_DIR = $(HOME_DIR)" \
 	"MACRO_DIR = $(MACRO_DIR)" \
 	"LIBRARY = $(HOME_DIR)/object_list" \
 	"SRC_DIR = $(SRC_DIR)" \
