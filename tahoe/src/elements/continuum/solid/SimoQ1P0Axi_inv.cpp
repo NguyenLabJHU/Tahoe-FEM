@@ -1,9 +1,11 @@
-/* $Id: SimoQ1P0Axi_inv.cpp,v 1.1.2.3 2004-05-07 01:27:26 paklein Exp $ */
+/* $Id: SimoQ1P0Axi_inv.cpp,v 1.1.2.4 2004-05-07 01:28:52 paklein Exp $ */
 #include "SimoQ1P0Axi_inv.h"
 
 #include "ShapeFunctionT.h"
 #include "SolidMaterialT.h"
 #include "SolidMatListT.h"
+#include "ofstreamT.h"
+#include "ifstreamT.h"
 
 const double Pi2 = 2.0*acos(-1.0);
 const int kRadialDirection = 0; /* x <-> r */
