@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.1.1.1 2001-01-31 21:31:54 paklein Exp $
+# $Id: makefile.template,v 1.2 2001-08-01 15:47:38 strohban Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -56,3 +56,16 @@ MACRO_DIR = $(HOME_DIR)/../macros
 
 # include common target definitions
 include $(MACRO_DIR)/make.targets
+
+
+
+
+
+
+
+
+
+
+
+
+
