@@ -1,4 +1,4 @@
-/* $Id: InverseMapT.h,v 1.4 2003-03-02 18:50:53 paklein Exp $ */
+/* $Id: InverseMapT.h,v 1.5 2003-11-04 17:32:40 paklein Exp $ */
 #ifndef _INVERSE_MAP_T_H_
 #define _INVERSE_MAP_T_H_
 
@@ -30,8 +30,11 @@ public:
 	/** constructor */
 	InverseMapT(void);
 
-	/** construct the inverse map */
+	/** \name construct the inverse map */
+	/*@{*/
 	void SetMap(const nArrayT<int>& forward);
+	void SetMap(const ArrayT<int>& forward);
+	/*@}*/
 	
 	/** set the flag for handling calls to InverseMapT::Map that
 	 * are out of range */
@@ -73,6 +76,12 @@ inline InverseMapT::InverseMapT(void):
 	fOutOfRange(Throw)
 {
 
+}
+
+inline void InverseMapT::SetMap(const ArrayT<int>& forward) {
+	nArrayT<int> fwd;
+	fwd.Alias(forward);
+	SetMap(fwd);
 }
 
 /* map the global index to the local index */
