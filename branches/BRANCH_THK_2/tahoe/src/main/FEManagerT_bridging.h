@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.4 2003-05-21 23:48:15 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.4.2.1 2003-05-24 04:05:15 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -137,8 +137,6 @@ protected:
 
 	/** initialize solver information */
 	virtual void SetSolver(void);
-
-private:
 
 	/** map coordinates into elements. Temporarily limited to elements
 	 * within a single element block */
