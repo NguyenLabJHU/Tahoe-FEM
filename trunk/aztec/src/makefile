@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:40:03 paklein Exp $
+# $Id: makefile,v 1.5 2003-02-28 01:19:15 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -22,7 +22,7 @@ HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
 SUB_DIR = \
-	az_src \
+	az_src_2.1 \
 	extras \
 	LINPACK_f2c \
 	Y12M_f2c

@@ -7,7 +7,6 @@
       integer  AZ_ver2_1_0_6 
       integer  AZ_ver2_1_0_7 
       integer  AZ_ver2_1_0_8 
-      integer  AZ_ver2_1_0_9 
       integer  AZ_MSG_TYPE 
       integer  AZ_NUM_MSGS 
       integer  AZ_MAX_MEMORY_SIZE 
@@ -32,7 +31,7 @@
       integer  AZ_row_sum 
       integer  AZ_sym_diag 
       integer  AZ_sym_row_sum 
-      integer  AZ_equil 
+      integer  AZ_equil
       integer  AZ_sym_BJacobi 
       integer  AZ_none 
       integer  AZ_Jacobi 
@@ -57,6 +56,7 @@
       integer  AZ_weighted 
       integer  AZ_expected_values 
       integer  AZ_noscaled 
+      integer  AZ_inf_noscaled 
       integer  AZ_all 
       integer  AZ_last 
       integer  AZ_warnings 
@@ -254,6 +254,7 @@
       parameter (AZ_weighted = 4) 
       parameter (AZ_expected_values = 5) 
       parameter (AZ_noscaled = 6) 
+      parameter (AZ_inf_noscaled = 7) 
       parameter (AZ_all = -3) 
       parameter (AZ_last = -1) 
       parameter (AZ_warnings = -2) 
@@ -312,7 +313,8 @@
       parameter (AZ_athresh = 5)
       parameter (AZ_update_reduction = 6)
       parameter (AZ_temp = 7)
-      parameter (AZ_weights = 8) 
+      parameter (AZ_ill_cond_thresh = 8) 
+      parameter (AZ_weights = 9) 
       parameter (AZ_matrix_type = 0)
       parameter (AZ_N_internal = 1)
       parameter (AZ_N_border = 2)
@@ -330,8 +332,10 @@
       parameter (AZ_send_length = (12) + 2*AZ_MAX_NEIGHBORS)
       parameter (AZ_send_list = (12) + 3*AZ_MAX_NEIGHBORS)
       parameter (SIZEOF_MPI_AZCOMM = 20)
-      parameter (AZ_OPTIONS_SIZE = 27)
-      parameter (AZ_PARAMS_SIZE = 9)
+      parameter (AZ_OPTIONS_SIZE = 47)
+      parameter (AZ_FIRST_USER_OPTION = 27)
+      parameter (AZ_PARAMS_SIZE = 30)
+      parameter (AZ_FIRST_USER_PARAM = 10)
       parameter (AZ_PROC_SIZE = (6+SIZEOF_MPI_AZCOMM))
       parameter (AZ_STATUS_SIZE = 11)
       parameter (AZ_COMM_SIZE = AZ_send_list)

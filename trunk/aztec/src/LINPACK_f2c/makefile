@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:40:04 paklein Exp $
+# $Id: makefile,v 1.5 2003-02-28 01:19:16 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -20,7 +20,9 @@ OBJ = \
 	la_dpotrf.o \
 	la_dtrti2.o \
 	la_dtrtri.o \
-	la_ilaenv.o
+	la_ilaenv.o \
+	la_slamch.o
+
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -43,7 +45,8 @@ SRC = \
 	la_dpotrf.c \
 	la_dtrti2.c \
 	la_dtrtri.c \
-	la_ilaenv.c
+	la_ilaenv.c \
+	la_slamch.c
 
 # headers
 HDR = \
