@@ -39,7 +39,7 @@ LatticeOrient::LatticeOrient(PolyCrystalMatT& poly)
 
   // read/write initial texture
   ReadTexture(input, numgrain);
-  WriteTexture(-1, -1, fNumAngle, 0, fAngles);
+  //WriteTexture(-1, -1, fNumAngle, 0, fAngles);
 }
 
 LatticeOrient::~LatticeOrient() {}
@@ -95,10 +95,10 @@ void LatticeOrient::WriteTexture(int elem, int intpt, int ngrn, int step,
 				 const ArrayT<dArrayT>& angle)
 {
   // output heading
-  fTextOut << "EULER ANGLES AT:"
-	   << "  STEP No " << step
-	   << "; ELEM No " << elem 
-	   << "; IP No "   << intpt << endl;
+  if (elem == 0 && intpt == 0) {
+     fTextOut << "\nEULER ANGLES AT STEP # " << step << endl;
+     fTextOut << "   ang1      ang2      ang3    elem   intpt   ngrn " << endl;
+  }
 
   // print euler angles: (Kocks, radians) -> (Kocks, degree)
   double psi, the, phi;
@@ -107,7 +107,8 @@ void LatticeOrient::WriteTexture(int elem, int intpt, int ngrn, int step,
       psi = angle[ig][0] / pi180;
       the = angle[ig][1] / pi180;
       phi = angle[ig][2] / pi180;
-      fTextOut << psi << "  " << the << "  " << phi << endl;
+      fTextOut << psi << "  " << the << "  " << phi << "    "
+               << elem << "   " << intpt << "   " << ngrn << endl;
     }  
 }
 
@@ -159,6 +160,9 @@ void LatticeOrient::ReadTexture(ifstreamT& in, int numgrain)
   if (fNumAngle < numgrain) 
     throwRunTimeError("LatticeOrient: ReadTexture: NumAngle < NumGrain");
 
+  // header to output initial texture
+  fTextOut << "\nINITIAL TEXTURE,  No Euler angles = " << fNumAngle << endl;
+
   // allocate space to read euler angles 
   fAngles.Allocate(fNumAngle);
   for (int i = 0; i < fNumAngle; i++) fAngles[i].Allocate(3);
@@ -180,6 +184,9 @@ void LatticeOrient::ReadTexture(ifstreamT& in, int numgrain)
   for (int i = 0; i < fNumAngle; i++)
     {
       in >> fAngles[i]; 
+      fTextOut << fAngles[i][0] << " " 
+               << fAngles[i][1] << " " 
+               << fAngles[i][2] << endl;
       if (iikc == 1)
 	{
 	  double ph = fAngles[i][0];
