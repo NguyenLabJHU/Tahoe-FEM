@@ -1,4 +1,4 @@
-/* $Id: SolidT.cpp,v 1.32.2.1 2003-11-20 01:41:21 paklein Exp $ */
+/* $Id: SolidT.cpp,v 1.32.2.2 2003-11-24 17:52:56 paklein Exp $ */
 /* created: paklein (03/10/2001) */
 #include "SolidT.h"
 
@@ -174,9 +174,7 @@ istream& operator>>(istream& in, SolidT::TypeT& code)
 			code = SolidT::kFCCEAM;
 			break;
 		default:
-			cout << "\n operator>>SolidT::TypeT: unknown code: "
-			<< i_code<< endl;
-			throw ExceptionT::kBadInputValue;	
+			ExceptionT::BadInputValue("operator>>SolidT::TypeT", "unknown code %d", i_code);
 	}
 	return in;
 }
