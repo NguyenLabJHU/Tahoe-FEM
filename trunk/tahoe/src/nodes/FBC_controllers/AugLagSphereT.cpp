@@ -1,4 +1,4 @@
-/* $Id: AugLagSphereT.cpp,v 1.13 2004-09-15 15:37:52 paklein Exp $ */
+/* $Id: AugLagSphereT.cpp,v 1.14 2004-09-16 16:49:57 paklein Exp $ */
 /* created: paklein (03/24/1999) */
 #include "AugLagSphereT.h"
 #include "FieldT.h"
@@ -142,7 +142,7 @@ void AugLagSphereT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 		if (g <= 0.0)
 		{
 			/* unit gap vector (from the force) */
-			fContactForce2D.RowAlias(i, vec);
+			vec.Alias(nsd, fContactForce2D(i));			
 			norm.SetToScaled(-1.0/g, vec);
 
 			/* the long way */
