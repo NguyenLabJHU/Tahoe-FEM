@@ -1,4 +1,4 @@
-/* $Id: RateDep2DT.cpp,v 1.6.2.1 2002-05-07 07:23:41 paklein Exp $  */
+/* $Id: RateDep2DT.cpp,v 1.6.2.2 2002-06-05 22:04:12 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "RateDep2DT.h"
@@ -34,9 +34,9 @@ RateDep2DT::RateDep2DT(ifstreamT& in, const double& time_step):
 	in >> fpenalty; if (fpenalty < 0) throw eBadInputValue;
 	in >> L_2_b;
 	in >> L_2_m;
-        in >> fslope;	
+  	in >> fslope;	
 	
-        /* penetration stiffness */
+  	/* penetration stiffness */
 	fK = fpenalty*fsigma_max/(fL_1*fd_c_n);
 
 }
@@ -44,9 +44,10 @@ RateDep2DT::RateDep2DT(ifstreamT& in, const double& time_step):
 /*initialize state variables with values from the rate-independent model */
 void RateDep2DT::InitStateVariables(ArrayT<double>& state)
 {
-        int num_state = NumStateVariables();
-	if (state.Length() != num_state) {
-	  cout << "\n SurfacePotentialT::InitStateVariables: expecting state variable array\n"
+  	int num_state = NumStateVariables();
+	if (state.Length() != num_state) 
+	{
+	  	cout << "\n SurfacePotentialT::InitStateVariables: expecting state variable array\n"
 		     <<   "     length " << num_state << ", found length " << state.Length() << endl;
 		throw eSizeMismatch;
 	}
@@ -71,7 +72,7 @@ void RateDep2DT::InitStateVariables(ArrayT<double>& state)
 	/* state[8] = previous timestep's u_t
 	 * state[9] = previous timestep's u_n
 	 */
-        state[10] = fd_c_t;
+  	state[10] = fd_c_t;
 }
 
 /* return the number of state variables needed by the model */
@@ -143,34 +144,33 @@ const dArrayT& RateDep2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state
 		sigbyL = state[4]/state[0];
 	else if (L < state[2]) /*L > state[0] means we're at the plateau stress */
 	{ 
-	  if (state[7] == 0.) 
-	  { 
-	      double u_n_dot = (u_n-state[9])/fTimeStep;
-	      if (u_n_dot > kSmall) 
-	      {
-		state[7] = 1.;
-		state[6] = L_2_b + L_2_m * log(u_n_dot);
-		/* make sure new length scale is greater than current
-		 * gap vector 
+	  	if (state[7] == 0.) 
+	  	{ 
+	    	double u_n_dot = (u_n-state[9])/fTimeStep;
+	      	if (u_n_dot > kSmall) 
+	      	{
+				state[7] = 1.;
+				state[6] = L_2_b + L_2_m * log(u_n_dot);
+				/* make sure new length scale is greater than current
+		 		 * gap vector 
                  */
-	        state[0] *= fd_c_n/state[6];
-	        r_n = u_n/state[6];
-	        L = sqrt(r_t*r_t+r_n*r_n);
-	        sigbyL = state[4]*(1+fslope*(L-state[0]))/L;
-		if (state[6] < u_n || state[6] < fd_c_n*fL_1)
-		{
-		  cout <<  "\n RateDep2DT::Traction: rate-dependent length scale " << state[6] << " " << fTimeStep << " is incompatible with rate-independent one. Check input parameters. \n ";
-	          state[6] = fd_c_n;
-	          state[2] = state[0]; /* start unloading now */
-	          r_n = u_n/state[6];
-	          L = sqrt(r_t*r_t+r_n*r_n);
-                  sigbyL = state[4]*(1-(L-state[2])/(1-state[2]))/L;
-		  //throw eBadInputValue;
-		}
-	      }
-	  }
-	  else 
-	    sigbyL = state[4]*(1+fslope*(L-state[0]))/L;
+	        	state[0] *= fd_c_n/state[6];
+	        	r_n = u_n/state[6];
+	        	L = sqrt(r_t*r_t+r_n*r_n);
+	        	sigbyL = state[4]*(1+fslope*(L-state[0]))/L;
+				if (state[6] < u_n || state[6] < fd_c_n*fL_1)
+				{
+		  			cout <<  "\n RateDep2DT::Traction: rate-dependent length scale " << state[6] << " " << fTimeStep << " is incompatible with rate-independent one. Check input parameters. \n ";
+	          		state[6] = fd_c_n;
+	          		state[2] = state[0]; /* start unloading now */
+	          		r_n = u_n/state[6];
+	          		L = sqrt(r_t*r_t+r_n*r_n);
+                  	sigbyL = state[4]*(1-(L-state[2])/(1-state[2]))/L;
+				}
+	      	}
+	  	}
+	  	else 
+	    	sigbyL = state[4]*(1+fslope*(L-state[0]))/L;
 	}
 	else if (L < 1)
 		sigbyL = state[4]*(1+fslope*(state[2]-state[0]))*(1 - (L - state[2])/(1 - state[2]))/L;
@@ -360,7 +360,7 @@ void RateDep2DT::OutputLabels(ArrayT<StringT>& labels) const
 	labels[0] = "lambda";
 	labels[1] = "D_t_dot";
 	labels[2] = "D_n_dot";
-        labels[3] = "fd_c_n";
+  	labels[3] = "fd_c_n";
 }
 
 void RateDep2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
