@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.29 2002-03-25 16:11:42 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.30 2002-04-01 19:04:29 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -322,7 +322,7 @@ void ContactElementT::WriteOutput(IOBaseT::OutputModeT mode)
                 gap_out = gap_out.Append(filename,".gap");
                 gap_out = gap_out.Append(s);
                 ofstream gap_file (gap_out);
-                surface.PrintGap(gap_file);
+                surface.PrintGaps(gap_file);
            }
 
            if (fOutputFlags[kNormals]) {

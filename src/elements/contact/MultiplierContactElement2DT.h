@@ -1,4 +1,5 @@
-/* $Id: MultiplierContactElement2DT.h,v 1.1 2002-03-18 19:24:23 rjones Exp $ */
+/* $Id: MultiplierContactElement2DT.h,v 1.2 2002-04-01 19:04:29 rjones Exp $ */
+// created by : rjones 2001
 
 #ifndef _MULTIPLIER_CONTACT_ELEMENT_2D_T_H_
 #define _MULTIPLIER_CONTACT_ELEMENT_2D_T_H_

@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.18 2002-03-25 16:11:42 rjones Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.19 2002-04-01 19:04:29 rjones Exp $ */
 
 
 #ifndef _CONTACT_SURFACE_T_H_
@@ -49,8 +49,8 @@ class ContactSurfaceT : public SurfaceT
 		(int primary_local_node, int secondary_global_node) const;
 
 	void PrintContactArea(ostream& out) const;
-	void PrintGap(ostream& out) const;
-	void PrintGap(ofstream& out) const;
+	void PrintGaps(ostream& out) const;
+	void PrintGaps(ofstream& out) const;
 	void PrintNormals(ofstream& out) const;
 	void PrintStatus(ostream& out) const;
 	void PrintMultipliers(ostream& out) const;

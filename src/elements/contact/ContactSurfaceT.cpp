@@ -1,4 +1,4 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.20 2002-03-25 16:11:42 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.21 2002-04-01 19:04:29 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
@@ -206,44 +206,83 @@ ContactSurfaceT::PrintContactArea(ostream& out) const
 }
 
 void
-ContactSurfaceT::PrintGap(ostream& out) const
+ContactSurfaceT::PrintGaps(ostream& out) const
 {
-	out << "#Surface " << this->Tag() << '\n';
-
-	for (int n = 0 ; n < fContactNodes.Length(); n++) {
-	    // HACK this tolerance should agree with the one in Projection
-	    // for 2d these should be sorted
-	    if (fContactNodes[n]->Gap() < 1.e7) {
-		for (int i = 0; i < fNumSD; i++) {
-			out << fContactNodes[n]->Position()[i] << " ";
-		}
-		out << fContactNodes[n]->Gap() << '\n';
-	    }
-	}
-}
-
-void
-ContactSurfaceT::PrintGap(ofstream& out) const
-{
-        out << "#Surface " << this->Tag() << '\n';
+        out << "#Surface " << this->Tag() << " GAP \n";
 
         for (int n = 0 ; n < fContactNodes.Length(); n++) {
-            // HACK this tolerance should agree with the one in Projection
-            // for 2d these should be sorted
-            if (fContactNodes[n]->Gap() < 1.e7) {
+            if (fContactNodes[n]->Status() > ContactNodeT::kNoProjection) {
+				out << n << " ";
                 for (int i = 0; i < fNumSD; i++) {
                         out << fContactNodes[n]->Position()[i] << " ";
                 }
                 out << fContactNodes[n]->Gap() << '\n';
-	    }
+	    	}
+			else {
+                out << "# tag " << fContactNodes[n]->Tag() << " ";
+                out << " no projection " << "\n";
+			}
+        }
+}
+
+void
+ContactSurfaceT::PrintGaps(ofstream& out) const
+{
+        out << "#Surface " << this->Tag() << " GAP \n";
+
+        for (int n = 0 ; n < fContactNodes.Length(); n++) {
+            if (fContactNodes[n]->Status() > ContactNodeT::kNoProjection) {
+				out << n << " ";
+                for (int i = 0; i < fNumSD; i++) {
+                        out << fContactNodes[n]->Position()[i] << " ";
+                }
+                out << fContactNodes[n]->Gap() << '\n';
+	    	}
+			else {
+                out << "# tag " << fContactNodes[n]->Tag() << " ";
+                out << " no projection " << "\n";
+			}
+        }
+}
+
+void
+ContactSurfaceT::PrintMultipliers(ostream& out) const
+{
+        out << "#Surface " << this->Tag() << " MULTIPLIER \n";
+
+        for (int n = 0 ; n < fMultiplierMap.Length(); n++) {
+			int tag = fMultiplierMap[n];
+			if (tag > -1) {
+                out << "# tag " << fContactNodes[n]->Tag() << "\n";
+				out << n << " ";
+                for (int i = 0; i < fNumSD; i++) {
+                        out << fContactNodes[n]->Position()[i] << " ";
+                }
+                out << " " << fMultiplierValues(tag,0) << "\n";
+			}
+			else {
+                out << "# tag " << fContactNodes[n]->Tag() << " ";
+                out << " no multipliers " << "\n";
+			}
         }
 }
 
 
 void
+ContactSurfaceT::PrintStatus(ostream& out) const
+{
+        out << "#Surface " << this->Tag() << " STATUS \n";
+
+        for (int n = 0 ; n < fContactNodes.Length(); n++) {
+                out << fContactNodes[n]->Tag()<< " ";
+                out << " status " << fContactNodes[n]->Status()  << "\n";
+        }
+}
+
+void
 ContactSurfaceT::PrintNormals(ofstream& out) const
 {
-        out << "#Surface " << this->Tag() << '\n';
+        out << "#Surface " << this->Tag() << " NORMAL \n";
 
         for (int n = 0 ; n < fContactNodes.Length(); n++) {
                 for (int i = 0; i < fNumSD; i++) {
@@ -255,37 +294,6 @@ ContactSurfaceT::PrintNormals(ofstream& out) const
 				out << '\n';
         }
 }
-
-void
-ContactSurfaceT::PrintStatus(ostream& out) const
-{
-        out << "#Surface " << this->Tag() << '\n';
-
-        for (int n = 0 ; n < fContactNodes.Length(); n++) {
-                out << fContactNodes[n]->Tag()<< " ";
-                out << " status " << fContactNodes[n]->Status()  << "\n";
-        }
-}
-
-
-void
-ContactSurfaceT::PrintMultipliers(ostream& out) const
-{
-        out << "#Surface " << this->Tag() << '\n';
-
-        for (int n = 0 ; n < fMultiplierMap.Length(); n++) {
-			int tag = fMultiplierMap[n];
-			if (tag > -1) {
-                out << n << " ";
-                out << " pressure " << fMultiplierValues(tag,0) << "\n";
-			}
-			else {
-                out << fContactNodes[n]->Tag()<< " ";
-                out << " no multipliers " << "\n";
-			}
-        }
-}
-
 
 void
 ContactSurfaceT::DetermineMultiplierExtent(void)
