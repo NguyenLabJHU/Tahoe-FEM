@@ -1,4 +1,4 @@
-/* $Id: SurfaceShapeT.cpp,v 1.7.2.1 2002-10-17 04:21:56 paklein Exp $ */
+/* $Id: SurfaceShapeT.cpp,v 1.7.2.2 2002-10-18 01:25:49 paklein Exp $ */
 /* created: paklein (11/21/1997) */
 #include "SurfaceShapeT.h"
 
@@ -72,8 +72,6 @@ void SurfaceShapeT::Initialize(void)
 	dArrayT dshape(fTotalNodes);
 		
 	/* set tables */
-	dArrayT	 shNafacets;
-	dMatrixT shNaMat;
 	for (int i = 0; i < fNumIP; i++)
 	{
 		double* Na = fNa(i);
@@ -94,7 +92,7 @@ void SurfaceShapeT::Initialize(void)
 		}
 
 		/* shape function tables */
-		shNaMat.Set(1, fTotalNodes, fjumpNa(i));
+		dMatrixT shNaMat(1, fTotalNodes, fjumpNa(i));
 		fgrad_d[i] = 0.0;
 		fgrad_d[i].Expand(shNaMat, fFieldDim);
 		fgrad_dTgrad_d[i].MultATB(fgrad_d[i], fgrad_d[i]);
