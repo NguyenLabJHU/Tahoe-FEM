@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.23 2001-09-24 20:37:24 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.24 2002-01-27 18:51:03 paklein Exp $ */
 
 #include "ContactElementT.h"
 
@@ -28,10 +28,11 @@ ContactElementT::ContactElementT
 	ElementBaseT(fe_manager),
 	LHS(ElementMatrixT::kNonSymmetric),
 	tmp_LHS(ElementMatrixT::kNonSymmetric),
-	opp_LHS(ElementMatrixT::kNonSymmetric)
+	opp_LHS(ElementMatrixT::kNonSymmetric),
+	fContactSearch(NULL),
+	fXDOF_Nodes(NULL)
 {
 	fNumEnfParameters = num_enf_params;
-	fXDOF_Nodes = NULL;
 	fNumMultipliers = 0;
 	ReadControlData();
 }
@@ -42,7 +43,8 @@ ContactElementT::ContactElementT
 	fXDOF_Nodes(xdof_nodes),
 	LHS(ElementMatrixT::kNonSymmetric),
 	tmp_LHS(ElementMatrixT::kNonSymmetric),
-	opp_LHS(ElementMatrixT::kNonSymmetric)
+	opp_LHS(ElementMatrixT::kNonSymmetric),
+	fContactSearch(NULL)
 {
 	fNumEnfParameters = num_enf_params;
 	if (!fXDOF_Nodes) throw eGeneralFail;

@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.20 2002-01-09 12:02:32 paklein Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.21 2002-01-27 18:51:03 paklein Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -137,33 +137,31 @@ void SurfaceT::InputSideSets
 
 	/* read side set: element, local face pair */
 	iArray2DT side_set;
-	int block_ID;
 	out <<" Surface: "<< fTag ;
 
 	/* read data from parameter file */
-	iArrayT indexes;
+	ArrayT<StringT> ss_ID;
 	bool multidatabasesets = false; /* change to positive and the parameter file format changes */
 	ModelManagerT* model = fe_manager.ModelManager();
-	model->SideSetList (in, indexes, multidatabasesets);
+	model->SideSetList (in, ss_ID, multidatabasesets);
 
-	if (indexes.Length () != 1) 
+	if (ss_ID.Length () != 1) 
 	  {
 	    cout << "\n\nContactT::InputSideSets: Model Manager read more than one side set, not programmed for this.\n\n";
 	    throw eBadInputValue;
 	  }
 
 	/* read side set */
-	iArray2DT temp = model->SideSet (indexes[0]);
-	int elemindex;
-	if (model->IsSideSetLocal(indexes[0]))
-	  {
+	StringT block_ID;
+	iArray2DT temp = model->SideSet (ss_ID[0]);
+	if (model->IsSideSetLocal(ss_ID[0]))
+	{
 	    side_set = temp;
-	    elemindex = model->SideSetGroupIndex (indexes[0]);
-	  }
+	    block_ID = model->SideSetGroupID(ss_ID[0]);
+	}
 	else
-	  model->SideSetGlobalToLocal (elemindex, side_set, temp);
+		model->SideSetGlobalToLocal(block_ID, side_set, temp);
 	temp.Free();
-	block_ID = elemindex + 1;
 	
 	/* global node numbers of faces from element group */
 	/* allocates to number of nodes per face */

@@ -1,4 +1,4 @@
-/* $Id: PMLT.cpp,v 1.3 2002-01-22 02:34:30 paklein Exp $ */
+/* $Id: PMLT.cpp,v 1.4 2002-01-27 18:51:01 paklein Exp $ */
 
 #include "PMLT.h"
 
@@ -575,9 +575,9 @@ void PMLT::FormStiffness(double constK)
 void PMLT::AddNodalForce(int node, dArrayT& force)
 {
 	/* quick exit */
-        bool hasnode = false;
-	for (int i=0; i < fBlockData.MajorDim() && !hasnode; i++)
-	  if (fConnectivities[i]->HasValue(node)) hasnode = true;
+	bool hasnode = false;
+	for (int i=0; i < fBlockData.Length() && !hasnode; i++)
+		if (fConnectivities[i]->HasValue(node)) hasnode = true;
 	if (!hasnode) return;
 
 	/* set components and weights */
