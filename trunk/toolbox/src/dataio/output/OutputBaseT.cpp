@@ -1,18 +1,15 @@
-/* $Id: OutputBaseT.cpp,v 1.13 2002-10-20 22:36:55 paklein Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.14 2002-11-25 07:09:13 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
-
 #include "OutputBaseT.h"
-
 #include "OutputSetT.h"
 
 /* database types */
 #include "ExodusT.h"
 #include "ModelFileT.h"
-
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 #include "AutoArrayT.h"
-
+#include "InverseMapT.h"
 
 using namespace Tahoe;
 
@@ -235,26 +232,16 @@ void OutputBaseT::LocalConnectivity(const iArrayT& node_map,
 	/* quick exit - nothing to do */
 	if (connects.MajorDim() == 0) return;
 
-	/* compressed number range */
-	int max, shift;
-	node_map.MinMax(shift, max);
-	int range = max - shift + 1;
-
 	/* generate inverse map */
-	iArrayT inv_node_map(range);
-	inv_node_map = -1;
-	
-	int nmap = node_map.Length();
-	int* pmap = node_map.Pointer();
-	for (int i = 0; i < nmap; i++)
-		inv_node_map[*pmap++ - shift] = i;
+	InverseMapT inv_node_map;
+	inv_node_map.SetMap(node_map);
 
 	/* generate local connects */
 	int length = local_connects.Length();
 	int* p_loc = local_connects.Pointer();
 	int* p_glb = connects.Pointer();
 	for (int j = 0; j < length; j++)
-		*p_loc++ = inv_node_map[*p_glb++ - shift];
+		*p_loc++ = inv_node_map.Map(*p_glb++);
 }
 
 void OutputBaseT::ElementBlockValues (int ID, int block, const dArray2DT& allvalues, dArray2DT& blockvalues) const
