@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.8 2002-10-20 22:48:35 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_BaseT.cpp,v 1.9 2002-11-09 01:51:23 paklein Exp $ */
 /* created: paklein (05/14/2000) */
 
 #include "ABAQUS_UMAT_BaseT.h"
@@ -300,7 +300,7 @@ const dSymMatrixT& ABAQUS_UMAT_BaseT::s_ij(void)
 		double  t = support.Time();
 		double dt = support.TimeStep();
 		int  step = support.StepNumber();
-		int  iter = support.IterationNumber(ContinuumElement().Group());
+		int  iter = support.IterationNumber();
 		Call_UMAT(t, dt, step, iter);
 	}
 	else
