@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.33 2005-01-13 19:41:38 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.34 2005-02-13 22:17:21 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #ifndef _CONTINUUM_ELEMENT_T_H_
 #define _CONTINUUM_ELEMENT_T_H_
@@ -115,8 +115,8 @@ public:
 	/** return the geometry code */
 	virtual GeometryT::CodeT GeometryCode(void) const;
 
-        /*set active elements*/
-        virtual void SetStatus(const ArrayT<StatusT>& status);
+	/*set active elements*/
+	virtual void SetStatus(const ArrayT<ElementCardT::StatusT>& status);
 
 	/** initial condition/restart functions (per time sequence) */
 	virtual void InitialCondition(void);
@@ -132,6 +132,9 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
@@ -286,7 +289,10 @@ protected:
 
 	/** shape functions */
 	ShapeFunctionT* fShapes;
-	
+
+	/** store shape function derivatives */
+	bool fStoreShape;
+
 	/** \name arrays with local ordering */
 	/*@{*/
 	LocalArrayT fLocInitCoords;   /**< initial coords with local ordering */
