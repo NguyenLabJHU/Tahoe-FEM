@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.8 2001-12-30 20:19:51 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.9 2002-01-02 08:06:53 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleT.h"
@@ -349,7 +349,7 @@ void iConsoleT::DoInteractive(void)
 	     << "# open: " << ctime(&the_time)
 	     << "###################################################\n";
 	
-	StringT line_copy, line, log_line;
+	StringT line, log_line;
 	GetCommandLine(line);
 	bool end = false;
 	bool line_OK = true;
@@ -371,6 +371,11 @@ void iConsoleT::DoInteractive(void)
 			{
 				cout << "exceeded maximum recursion depth: " << fmax_recursion_depth << endl;
 				line_OK = false;
+			}
+			else if (line[0] == ';') /* command separator */
+			{
+				/* remove separator */
+				line.Drop(1);
 			}
 			else if (line[0] == '!') /* history */
 			{
@@ -451,13 +456,18 @@ void iConsoleT::DoInteractive(void)
 						}
 						else
 						{
+							/* look for separator */
+							StringT command_line;
+							command_line.Root(line, ';');
+							line.Drop(command_line.StringLength());
+						
 							/* fetch command specification */
-							const CommandSpecT* command_spec = iResolveCommand(command_name, line);
+							const CommandSpecT* command_spec = iResolveCommand(command_name, command_line);
 
 							/* execute */
 							if (command_spec) 
 							{
-								line_OK = iDoCommand(*command_spec, line);
+								line_OK = iDoCommand(*command_spec, command_line);
 								
 								/* log */
 								if (line_OK && do_log) {
@@ -487,12 +497,17 @@ void iConsoleT::DoInteractive(void)
 					}
 					case kScopeCommand:
 					{
+						/* look for separator */
+						StringT command_line;
+						command_line.Root(line, ';');
+						line.Drop(command_line.StringLength());
+
 						/* fetch command specification */
-						const CommandSpecT* command_spec = fCurrent->iResolveCommand(command_name, line);
+						const CommandSpecT* command_spec = fCurrent->iResolveCommand(command_name, command_line);
 
 						/* execute */
 						if (command_spec) {
-							line_OK = fCurrent->iDoCommand(*command_spec, line);
+							line_OK = fCurrent->iDoCommand(*command_spec, command_line);
 						
 							/* log */
 							if (line_OK && do_log) {
@@ -556,7 +571,6 @@ void iConsoleT::DoInteractive(void)
 		if (!end)
 		{
 			GetCommandLine(line);
-			line_copy = line;
 			line_OK = true;
 		}
 	}
