@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.63.8.3 2003-10-26 03:44:14 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.63.8.4 2003-10-27 22:23:52 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -688,7 +688,7 @@ void FEManagerT::WriteOutput(double time)
 			{
 				/* get the output set */
 				int ndof = fNodeManager->NumDOF(group);
-				int nnd  = fNodeManager->NumNodes();
+				int nnd  = fSO_Connects.MajorDim();
 				dArray2DT n_values(nnd, 2*ndof);
 				n_values = 0.0;
 		
@@ -700,8 +700,18 @@ void FEManagerT::WriteOutput(double time)
 				{
 					/* displacement */
 					const dArray2DT& disp = (*fields[i])[0];
+
+					/* collect field values for the output nodes */
+					dArray2DT disp_out;
+					if (disp.MajorDim() == nnd)
+						disp_out.Alias(disp);
+					else {
+						disp_out.Dimension(nnd, disp.MinorDim());
+						disp_out.RowCollect(fSO_Connects, disp);
+					}
+				
 					for (int j = 0; j < disp.MinorDim(); j++)
-						n_values.ColumnCopy(column++, disp, j);
+						n_values.ColumnCopy(column++, disp_out, j);
 				}
 			
 				/* collect forces */
@@ -719,11 +729,12 @@ void FEManagerT::WriteOutput(double time)
 					for (int j = 0; j < nnd; j++)
 					{
 						double* f = n_values(j) + column;
-						int* eqno = eqnos(j);
+						int node = fSO_Connects[j];
+						int* eqno = eqnos(node);
 						for (int k = 0; k < ndof_i; k++)
 						{
 							int eq_k = eqno[k] - shift;
-							if (eq_k > -1 && eq_k < num_eq)
+							if (eq_k > -1 && eq_k < num_eq) /* active */
 								f[k] = RHS[eq_k];
 						}
 					}
@@ -1493,10 +1504,16 @@ void FEManagerT::SetSolver(void)
 		/* writing output */
 		if (fSolvers[fCurrentGroup]->Check() != 0)
 		{
-			/* point connectivities for all nodes */
-			if (fSO_Connects.MajorDim() != fNodeManager->NumNodes()) {
-				fSO_Connects.Dimension(fNodeManager->NumNodes(), 1);
-				fSO_Connects.SetValueToPosition();
+			/* point connectivities for all nodes (owned by this processor) */
+			const ArrayT<int>* partition_nodes = fCommManager->PartitionNodes();
+			int nnd = (partition_nodes != NULL) ? partition_nodes->Length() : fNodeManager->NumNodes();
+			if (fSO_Connects.MajorDim() != nnd) {
+				if (partition_nodes)
+					fSO_Connects.Alias(nnd, 1, partition_nodes->Pointer());
+				else {
+					fSO_Connects.Dimension(fNodeManager->NumNodes(), 1);
+					fSO_Connects.SetValueToPosition();
+				}
 			}
 		
 			/* collect the fields */
