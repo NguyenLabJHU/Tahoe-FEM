@@ -1,4 +1,4 @@
-# $Id: JANUS.macros,v 1.5 2001-02-07 22:07:43 paklein Exp $
+# $Id: JANUS.macros,v 1.6 2001-02-22 20:34:27 paklein Exp $
 MPI_CFLAGS = -D__MPI__
 MPI_LFLAGS = -lmpi
 
@@ -11,11 +11,11 @@ COMP_F      = cif77
 MORE_CFLAGS = -O2 -DNDEBUG 
 #MORE_CFLAGS = -g
 MY_CFLAGS = -c -I$(INC_DIR) $(MORE_CFLAGS)
-CFLAGS_C    = $(MY_CFLAGS)
-CFLAGS_CC   = $(MY_CFLAGS) -Wc,-tlocal 
-CFLAGS_F    = $(MY_CFLAGS)
+CFLAGS_C    = $(MPI_CFLAGS) $(MY_CFLAGS)
+CFLAGS_CC   = $(MPI_CFLAGS) $(MY_CFLAGS) -Wc,-tlocal 
+CFLAGS_F    = $(MPI_CFLAGS) $(MY_CFLAGS)
 LINK        = $(COMP_CC)
-LFLAGS      =
+LFLAGS      = $(MPI_LFLAGS)
 AR          = ar
 ARFLAGS     = -cruv
 MAKEOPTS    =
