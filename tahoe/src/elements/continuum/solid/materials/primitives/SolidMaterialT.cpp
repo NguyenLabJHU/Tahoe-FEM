@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.4 2002-06-08 20:20:45 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.5 2002-06-27 14:59:01 hspark Exp $ */
 /* created: paklein (11/20/1996) */
 
 #include "SolidMaterialT.h"
@@ -18,7 +18,6 @@ SolidMaterialT::SolidMaterialT(ifstreamT& in,
 	in >> fMassDamp;	if (fMassDamp  <  0.0) throw eBadInputValue;
 	in >> fStiffDamp;	if (fStiffDamp <  0.0) throw eBadInputValue;
 	in >> fDensity;		if (fDensity   <= 0.0) throw eBadInputValue;
-
 	fThermal = new ThermalDilatationT(in);
 	if (!fThermal) throw eOutOfMemory;
 
