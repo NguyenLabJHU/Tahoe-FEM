@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.33.2.2 2003-09-25 21:24:18 cjkimme Exp $ */
+/* $Id: StringT.cpp,v 1.33.2.3 2003-10-07 18:21:22 cjkimme Exp $ */
 /* created: paklein (08/01/1996) */
 #include "StringT.h"
 #include "ifstreamT.h"
@@ -1065,7 +1065,12 @@ void StringT::IntegerToString(int number, char* string) const
 			// extra space for '\0';
 	
 		/* check that string has enough space */
-		if (int(strlen(string)) + 1 < lens) ExceptionT::SizeMismatch();
+		/* Have to do this in a really stupid roundabout way to 
+		 * suppress GNU warnings and simultaneously not mess up a SASS
+		 * Sun compile. 
+		 */
+		int istrLength = strlen(string);
+		if (istrLength + 1 < lens) ExceptionT::SizeMismatch();
 		
 		/* set all bytes to 0! */
 		memset(string, '\0', sizeof(char)*lens);

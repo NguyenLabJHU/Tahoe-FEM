@@ -1,4 +1,4 @@
-/* $Id: ArrayT.h,v 1.16 2003-09-04 23:55:24 paklein Exp $ */
+/* $Id: ArrayT.h,v 1.16.2.1 2003-10-07 18:21:21 cjkimme Exp $ */
 /* created: paklein (06/19/1996) */
 #ifndef _ARRAY_T_H_
 #define _ARRAY_T_H_
@@ -9,6 +9,10 @@
 
 /* ANSI headers */
 #include <iostream.h>
+#if defined(__JANUS__) && defined(__ROGUE_STL__)
+#include <istream>
+#include <ostream>
+#endif
 #include <string.h>
 #ifdef __NEW_THROWS__
 #include <new.h>

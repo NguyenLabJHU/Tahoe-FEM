@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.cpp,v 1.22 2002-12-02 09:37:02 paklein Exp $ */
+/* $Id: ifstreamT.cpp,v 1.22.8.1 2003-10-07 18:21:26 cjkimme Exp $ */
 /* created: paklein (03/03/1999) */
 
 #include "ifstreamT.h"
@@ -182,7 +182,7 @@ int ifstreamT::rewind(int num_lines)
 	}
 #endif // _MW_MSL_
 #else  // not CodeWarrior
-#if defined(__GCC_3__) || defined( __SUNPRO_CC) || (defined(__GNU__) && defined(__PGI__)) || (defined(__DEC__) && defined (__USE_STD_IOSTREAM))
+#if defined(__GCC_3__) || defined( __SUNPRO_CC) || (defined(__GNU__) && defined(__PGI__)) || (defined(__DEC__) && defined (__USE_STD_IOSTREAM)) || (defined(__JANUS__) && defined(__ROGUE_STL__))
 	streampos pos = tellg();
 	while (pos >= 0 && line_count < num_lines)
 	{
