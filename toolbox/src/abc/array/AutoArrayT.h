@@ -1,4 +1,4 @@
-/* $Id: AutoArrayT.h,v 1.14 2002-11-25 06:59:07 paklein Exp $ */
+/* $Id: AutoArrayT.h,v 1.15 2002-12-05 08:21:16 paklein Exp $ */
 /* created: paklein (12/05/1997) */
 #ifndef _AUTO_ARRAY_T_H_
 #define _AUTO_ARRAY_T_H_
@@ -618,61 +618,5 @@ inline void AutoArrayT<TYPE>::Pop(void)
 {
 	if (Length() > 0) DeleteAt(0);
 }
-
-/***********************************************************************
-* Private
-***********************************************************************/
-
-#if 0
-/* safe memory copying - ie. like memcpy if fByteCopy is 1 */
-template <class TYPE>
-inline void AutoArrayT<TYPE>::MemCopy(TYPE* to, const TYPE* from, int length)
-{
-	if (fByteCopy)	
-		/* byte copy */
-		memcpy(to, from, sizeof(TYPE)*length);
-	else
-		/* overloaded assigment operator */
-		for (int i = 0; i < length; i++)
-			*to++ = *from++;
-}
-
-template <class TYPE>
-inline void AutoArrayT<TYPE>::MemCopy(TYPE* to, const TYPE* from, int length) const
-{
-	if (fByteCopy)	
-		/* byte copy */
-		memcpy(to, from, sizeof(TYPE)*length);
-	else
-		/* overloaded assigment operator */
-		for (int i = 0; i < length; i++)
-			*to++ = *from++;
-}
-
-/* safe memory moving - ie. like memmove if fByteCopy is 1 */
-template <class TYPE>
-void AutoArrayT<TYPE>::MemMove(TYPE* to, const TYPE* from, int length)
-{
-	if (fByteCopy)	
-		memmove(to, from, sizeof(TYPE)*length);
-	else
-	{
-		/* copy from top */
-		if (from > to)
-		{
-			for (int i = 0; i < length; i++)
-				*to++ = *from++; /* requires assigment operator */
-		}
-		/* copy from back */
-		else
-		{
-			to   += length - 1;
-			from += length - 1; 		
-			for (int i = 0; i < length; i++)
-				*to-- = *from--; /* requires assigment operator */
-		}
-	}
-}
-#endif
 
 #endif /* _AUTO_ARRAY_T_H_ */
