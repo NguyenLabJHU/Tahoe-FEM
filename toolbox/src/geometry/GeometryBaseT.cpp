@@ -1,8 +1,7 @@
-/* $Id: GeometryBaseT.cpp,v 1.5 2004-02-28 21:52:26 paklein Exp $ */
+/* $Id: GeometryBaseT.cpp,v 1.6 2004-04-06 00:57:37 paklein Exp $ */
 /* created: paklein (10/21/1997) */
 #include "GeometryBaseT.h"
 #include "ExceptionT.h"
-#include <iostream.h>
 
 using namespace Tahoe;
 
@@ -11,7 +10,6 @@ GeometryBaseT::GeometryBaseT(int numnodes, int numfacets):
 	fNumNodes(numnodes),
 	fNumFacets(numfacets)
 {
-
 
 }
 
@@ -22,7 +20,8 @@ GeometryBaseT::~GeometryBaseT(void) { }
 void GeometryBaseT::BubbleModeGradients(ArrayT<dArray2DT>& Na_x) const
 {
 #pragma unused(Na_x)
-	ExceptionT::GeneralFail("GeometryBaseT::BubbleModeGradients", "no bubble modes for geometry %d", int(Geometry()));
+	ExceptionT::GeneralFail("GeometryBaseT::BubbleModeGradients", 
+		"no bubble modes for geometry \"%s\"", ToString(Geometry()));
 }
 
 /* return true if the given point is within the domain defined by */
@@ -30,6 +29,15 @@ bool GeometryBaseT::PointInDomain(const LocalArrayT& coords, const dArrayT& poin
 {
 #pragma unused(coords)
 #pragma unused(point)
-	ExceptionT::GeneralFail("GeometryBaseT::PointInDomain", "not implemented for geometry %d", int(Geometry()));
+	ExceptionT::GeneralFail("GeometryBaseT::PointInDomain", 
+		"not implemented for geometry \"%s\"", ToString(Geometry()));
 	return false;
+}
+
+/* integration point gradient matrix */
+void GeometryBaseT::IPGradientTransform(int ip, dMatrixT& transform) const
+{
+#pragma unused (ip)
+	ExceptionT::GeneralFail("GeometryBaseT::IPGradientTransform", 
+		"not implemented for geometry \"%s\"", ToString(Geometry()));
 }

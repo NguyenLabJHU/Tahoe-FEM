@@ -1,4 +1,4 @@
-/* $Id: GeometryBaseT.h,v 1.4 2004-02-28 21:52:26 paklein Exp $ */
+/* $Id: GeometryBaseT.h,v 1.5 2004-04-06 00:57:37 paklein Exp $ */
 /* created: paklein (10/21/1997) */
 #ifndef _GEOMETRY_BASE_T_H_
 #define _GEOMETRY_BASE_T_H_
@@ -73,7 +73,19 @@ public:
 
 	/** set the values of the nodal extrapolation matrix */
 	virtual void SetExtrapolation(dMatrixT& extrap) const = 0;
-	
+
+	/** integration point gradient matrix. Returns the matrix which transforms
+	 * a vector of integration point values of a field to the gradient of that
+	 * field wrt to the parent domain coordinates at the specified integration
+	 * point. The matrix is define such that the gradient is given by
+	 \f[
+	 	\frac{\partial f}{\partial \xi_i} = A_{iI} f_I
+	 \f]
+	 * where \f$ f_I \f$ is a vector of the integration point values.
+	 * This method must be overridden by derived types. GeometryBaseT::IPGradientTransform
+	 * throws an exception if called. */
+	virtual void IPGradientTransform(int ip, dMatrixT& transform) const;
+
 	/* return the local node numbers for each facet of the element
 	 * numbered to produce at outward normal in the order: vertex
 	 * nodes, mid-edge nodes, mid-face nodes */
