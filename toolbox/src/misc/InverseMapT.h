@@ -1,4 +1,4 @@
-/* $Id: InverseMapT.h,v 1.9 2004-02-24 19:05:45 paklein Exp $ */
+/* $Id: InverseMapT.h,v 1.10 2005-02-24 17:34:04 paklein Exp $ */
 #ifndef _INVERSE_MAP_T_H_
 #define _INVERSE_MAP_T_H_
 
@@ -58,7 +58,10 @@ public:
 	void Free(void);
 	
 	/** return the logical size of the map */
-	int Length(void) { return AutoArrayT<int>::Length(); };
+	int Length(void) const { return AutoArrayT<int>::Length(); };
+
+	/** return the number of entrees in the map */
+	int Entrees(void) const { return fEntrees; };
 	
 private:
 
@@ -69,6 +72,9 @@ private:
 	
 	/** how to handle out of range */
 	SettingT fOutOfRange;
+	
+	/** number of mapped entries */
+	int fEntrees;
 };
 
 /* inlines */
@@ -76,6 +82,7 @@ private:
 /* constructor */
 inline InverseMapT::InverseMapT(void): 
 	fShift(0),
+	fEntrees(0),
 	fOutOfRange(Throw)
 {
 
@@ -100,7 +107,11 @@ inline int InverseMapT::Map(int global) const
 }
 
 /* release memory */
-inline void InverseMapT::Free(void) { AutoArrayT<int>::Free(); }
+inline void InverseMapT::Free(void) { 
+	AutoArrayT<int>::Free(); 
+	fShift = 0;
+	fEntrees = 0;
+}
 
 } /* namespace Tahoe */
  
