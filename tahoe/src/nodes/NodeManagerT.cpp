@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.34 2003-08-08 00:34:11 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.35 2003-08-14 05:34:21 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -20,6 +20,7 @@
 #include "PartitionT.h"
 #include "ReLabellerT.h"
 #include "OutputSetT.h"
+#include "ParameterUtils.h"
 
 #include "FieldSupportT.h"
 #include "FieldT.h"
@@ -48,7 +49,8 @@ using namespace Tahoe;
 /* constructor */
 NodeManagerT::NodeManagerT(FEManagerT& fe_manager, CommManagerT& comm_manager):
 	fFEManager(fe_manager),
-	fCommManager(comm_manager), 
+	fCommManager(comm_manager),
+	ParameterInterfaceT("nodes"),
 	fInitCoords(NULL),
 	fCoordUpdate(NULL),
 	fCurrentCoords(NULL)
@@ -1189,9 +1191,33 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const RaggedArray2DT<int>& node
 	}
 }
 
+/* information about subordinate parameter lists */
+void NodeManagerT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ParameterInterfaceT::DefineSubs(sub_list);
+
+	/* the fields */
+	sub_list.AddSub("field", ParameterListT::OnePlus);
+	
+	/* list of history node ID's */
+	sub_list.AddSub("history_node_ID", ParameterListT::Any);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* NodeManagerT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "field")
+		return new FieldT;
+	else if (list_name == "history_node_ID")
+		return new IntegerListT("history_node_ID");
+	else
+		return ParameterInterfaceT::NewSub(list_name);
+}
+
 /**********************************************************************
-* Protected
-**********************************************************************/
+ * Protected
+ **********************************************************************/
 
 void NodeManagerT::EchoCoordinates(ifstreamT& in, ostream& out)
 {
@@ -1307,7 +1333,8 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			if (!controller) ExceptionT::GeneralFail(caller);
 
 			/* new field */			
-			FieldT* field = new FieldT(name, ndof, *controller);
+			FieldT* field = new FieldT;
+			field->Initialize(name, ndof, *controller);
 			field->SetLabels(labels);
 			field->SetGroup(group_num);
 			field->Dimension(NumNodes(), false);
@@ -1360,7 +1387,8 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			case GlobalT::kNLStaticKfield:
 			case GlobalT::kLinStatic:
 			{
-				field = new FieldT("displacement", NumSD(), *controller);
+				field = new FieldT;
+				field->Initialize("displacement", NumSD(), *controller);
 
 				/* label list */
 				ArrayT<StringT> labels(field->NumDOF());
@@ -1377,7 +1405,8 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 			case GlobalT::kNLStaticHeat:
 			case GlobalT::kNLTransHeat:
 			{
-				field = new FieldT("temperature", 1, *controller);				
+				field = new FieldT;
+				field->Initialize("temperature", 1, *controller);
 
 				/* set labels */
 				ArrayT<StringT> labels(1);
