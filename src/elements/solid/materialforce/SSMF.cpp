@@ -1,4 +1,4 @@
-/* $Id: SSMF.cpp,v 1.4 2003-11-19 21:37:55 thao Exp $ */
+/* $Id: SSMF.cpp,v 1.5 2003-11-21 02:59:38 thao Exp $ */
 #include "SSMF.h"
 
 #include "OutputSetT.h"
@@ -239,12 +239,12 @@ void SSMF::ComputeMatForce(dArray2DT& output)
     
     /*Set Global Shape Functions for current element*/
     SetGlobalShape();
-
+    SetLocalU(fLocDisp);
+ 
     if (fdynamic)
     {
       SetLocalU(fLocAcc);
       SetLocalU(fLocVel);
-      SetLocalU(fLocDisp);
       MatForceDynamic(felem_rhs);
       AssembleArray(felem_rhs, fDynForce, CurrentElement().NodesX());
     }
@@ -309,6 +309,7 @@ void SSMF::MatForceVolMech(dArrayT& elem_val)
   const char caller[] = "SSMF::MatForceVolMech";
   int nen = NumElementNodes();
   int elem = CurrElementNumber();
+
   elem_val = 0;
   
   /*get density*/
@@ -363,7 +364,12 @@ void SSMF::MatForceVolMech(dArrayT& elem_val)
 	fShapes->InterpolateU(fLocVel, fVel);
 	fEshelby(0,0) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]);
 	fEshelby(1,1) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]);
-	if (elem == 302) cout << "\nfVel: "<<fVel;
+	if (elem ==6) { 
+	  cout << "\nstress: "<<Cauchy;
+	  cout << "\nenergy: "<<energy;
+	  cout << "\nfVel: "<<fVel; 
+	  cout << "\nfEshelby: "<<fEshelby;
+	}
       }
 
       double* pDQaX = DQa(0); 
@@ -372,10 +378,15 @@ void SSMF::MatForceVolMech(dArrayT& elem_val)
       for (int j = 0; j<nen; j++)
       {
 	/*add nEshelby volume integral contribution*/
-       	*(pforce++) += (fEshelby(0,0)*(*pDQaX) + fEshelby(0,1)*(*pDQaY)
+       	*(pforce++) += (Cauchy(0,0)*(*pDQaX) + Cauchy(0,1)*(*pDQaY)
                + (gradU(0,0)*fip_body[0]+gradU(1,0)*fip_body[1])*(*pQa))*(*jac)*(*weight);
 	*(pforce++) += (fEshelby(1,0)*(*pDQaX++) + fEshelby(1,1)*(*pDQaY++)
 	       + (gradU(0,1)*fip_body[0]+gradU(1,1)*fip_body[1])*(*pQa++))*(*jac)*(*weight); 
+
+	/*	*(pforce++) += (fEshelby(0,0)*(*pDQaX) + fEshelby(0,1)*(*pDQaY)
+               + (gradU(0,0)*fip_body[0]+gradU(1,0)*fip_body[1])*(*pQa))*(*jac)*(*weight);
+	*(pforce++) += (fEshelby(1,0)*(*pDQaX++) + fEshelby(1,1)*(*pDQaY++)
+	+ (gradU(0,1)*fip_body[0]+gradU(1,1)*fip_body[1])*(*pQa++))*(*jac)*(*weight); */
       }
     }
     else if (NumSD() ==3)
@@ -444,6 +455,7 @@ void SSMF::MatForceVolMech(dArrayT& elem_val)
     weight++;
     jac++;
   }
+  if (elem ==6) cout << "VolElem: "<<elem_val;
 }
 
 void SSMF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretch)
@@ -551,11 +563,11 @@ void SSMF::MatForceDynamic(dArrayT& elem_val)
   /*intialize shape function data*/
   const double* jac = fShapes->IPDets();
   const double* weight = fShapes->IPWeights();
-    if (elem == 302) {
-    cout << "\nAcc: "<<fLocAcc;
-    cout << "\nVel: "<<fLocVel;
+    if (elem ==6) {
+      cout << "\nAcc: "<<fLocAcc;
+      cout << "\nVel: "<<fLocVel;
       cout <<"\n fDisp: "<<fLocDisp;
-      }
+    }
   fShapes->TopIP();
   while(fShapes->NextIP())
   {
@@ -570,27 +582,30 @@ void SSMF::MatForceDynamic(dArrayT& elem_val)
     fShapes->GradU(fLocVel,fGradVel); 
     fShapes->InterpolateU(fLocVel, fVel);
     fShapes->InterpolateU(fLocAcc, fAcc);
-    /*    if (elem == 6)
+    if (elem ==6)
     {
       cout << "\nelem "<<elem<<" ip "<<CurrIP()<<endl; 
       cout << "\nfGradVel: "<<fGradVel;
-      cout <<"\n F: "<< F;
+      cout <<"\n gradU: "<< gradU;
       cout <<"\n fVel: "<<fVel;
       cout <<"\n fAcc: "<<fAcc;
-      }*/
+      }
     double* pelem_val = elem_val.Pointer();
     if (NumSD() ==2)
     {
       for (int i = 0; i<nen; i++)
       {
-	double xval = density*(-fGradVel[0]*fVel[0]-fGradVel[1]*fVel[1]
+	/*       	double xval = density*(-fGradVel[0]*fVel[0]-fGradVel[1]*fVel[1]
 			       +gradU[0]*fAcc[0]+gradU[1]*fAcc[1]);
 	double yval = density*(-fGradVel[2]*fVel[0]-fGradVel[3]*fVel[1]
-			       +gradU[2]*fAcc[0]+gradU[3]*fAcc[1]);
+	+gradU[2]*fAcc[0]+gradU[3]*fAcc[1]);*/
+
+       	double xval = density*(fAcc[0]);
+	double yval = density*(fAcc[1]);
+
     	*pelem_val++ += xval*(*pQa)*(*jac)*(*weight);
 	*pelem_val++ += yval*(*pQa++)*(*jac)*(*weight);      
       }
-      //      if (elem ==6) cout << "\n elem_val: "<<elem_val;
     }
     else if (NumSD() == 3)
     {
@@ -613,8 +628,7 @@ void SSMF::MatForceDynamic(dArrayT& elem_val)
     jac++;
     weight++;
   }
-  //  cout<<"\nElem: "<<elem;
-  //  cout<<elem_val;
+    if (elem ==6) cout<<"\nDynElem: "<<elem_val;
 }
 
 void SSMF::MatForceSurfMech(dArrayT& global_val)
@@ -847,17 +861,34 @@ void SSMF::MatForceSurfMech(dArrayT& global_val)
 void SSMF::Extrapolate(void)
 {
   const char caller[] = "SSMF::Extrapolate";   
-  
+
+  int nen = NumElementNodes();
+  if (nen != ElementBaseT::fLHS.Rows()) {
+    cout<<"\nSSMF::Extrapolate: Dimension mismatch with fLHS and NumElementNodes()";
+    throw ExceptionT::kGeneralFail;
+  }
+
   Top();
   while (NextElement())
   {
+    /*initialize element mass matrix*/
+    //    felem_mass = 0.0;
+    ElementBaseT::fLHS = 0.0;
+    ContinuumElementT::FormMass(ContinuumElementT::kLumpedMass, 1.0);
+
+    const double* plhs = fLHS.Pointer();
+    for (int i=0; i<nen; i++)
+    {
+      felem_mass[i] = *plhs;
+      plhs += nen+1;
+    }
+
     ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
     fCurrSSMat = dynamic_cast<SSSolidMatT*>(pmat);
     if (!fCurrSSMat) throw ExceptionT::kGeneralFail;
     SmallStrainT::SetGlobalShape();
 
     felem_val = 0.0;
-    felem_mass = 0.0;
 
     const double* jac = fShapes->IPDets();;
     const double* weight = fShapes->IPWeights();
@@ -867,13 +898,13 @@ void SSMF::Extrapolate(void)
 	    const dArrayT& internalstrains = fCurrSSMat->InternalStrainVars();
         const double* pQbU = fShapes->IPShapeU();
 	
-	    for (int i=0; i<NumElementNodes(); i++)
+	    for (int i=0; i<nen; i++)
         {
             const double* pQaU = fShapes->IPShapeU();
 
-            /*lumped element mass matrix*/
+            /*lumped element mass matrix
             for (int j = 0; j<NumElementNodes(); j++)
-                felem_mass[i] += (*pQaU++)*(*pQbU)*(*jac)*(*weight);  
+	    felem_mass[i] += (*pQaU++)*(*pQbU)*(*jac)*(*weight);  */
 
             /*element forcing function*/
             for (int cnt = 0; cnt < fNumInternalVal; cnt++)

@@ -1,4 +1,4 @@
-/* $Id: MFSupportT.cpp,v 1.6 2003-11-19 06:09:46 thao Exp $ */
+/* $Id: MFSupportT.cpp,v 1.7 2003-11-21 02:59:38 thao Exp $ */
 #include "MFSupportT.h"
 
 #include "dArrayT.h"
@@ -64,7 +64,7 @@ MFSupportT::MFSupportT(const  ElementSupportT& support):
   if (index < 0)
   {
     cout << "\nMFSupport::MFSupportT: Node set "<< name << " is undefinded: ";
-    throw ExceptionT::kDatabaseFail;
+    fBoundID = "0";
   }
   else
     fBoundID = nsetIDs[index];
@@ -83,8 +83,7 @@ MFSupportT::~MFSupportT(void)
 void MFSupportT::MapOutput(void)
 {
   const iArrayT& nodes_used = fOutputSet->NodesUsed();
-  const iArrayT& bound_nodes = fSupport.Model().NodeSet(fBoundID);
-  //  cout << "\nboundary nodes: "<<bound_nodes;
+
   fNumGroupNodes = nodes_used.Length();
   /*find maximum node number*/
   int max=0;
@@ -103,11 +102,17 @@ void MFSupportT::MapOutput(void)
   }
   fExclude.Dimension(fNumGroupNodes);
   fExclude = 0;
-  for (int i = 0; i< bound_nodes.Length(); i++)
+
+  if (strncmp(fBoundID,"0",1) != 0)
   {
-    fExclude[fMap[bound_nodes[i]]] = 1;
+      const iArrayT& bound_nodes = fSupport.Model().NodeSet(fBoundID);
+      //  cout << "\nboundary nodes: "<<bound_nodes;
+      for (int i = 0; i< bound_nodes.Length(); i++)
+      {
+	fExclude[fMap[bound_nodes[i]]] = 1;
+      }
+      //  cout << "\nExcluded nodes: "<<fExclude;
   }
-  //  cout << "\nExcluded nodes: "<<fExclude;
 }
 
 void MFSupportT::WriteSummary(dArray2DT& output)

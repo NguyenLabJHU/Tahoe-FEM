@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.cpp,v 1.8 2003-11-19 06:09:46 thao Exp $ */
+/* $Id: UpLagMF.cpp,v 1.9 2003-11-21 02:59:38 thao Exp $ */
 #include <ctype.h>
 
 #include "UpLagMF.h"
@@ -151,9 +151,9 @@ void UpLagMF::WriteOutput(void)
   ComputeMatForce(n_values);
 
   /* send to output */
-  //const CommunicatorT& comm = ElementSupport().Communicator();
-  //if (comm.Size() == 1)
-  //   WriteSummary(n_values);
+  const CommunicatorT& comm = ElementSupport().Communicator();
+  if (comm.Size() == 1)
+     WriteSummary(n_values);
 
   ElementSupport().WriteOutput(fMatForceOutputID, n_values, e_values);
 }
@@ -338,7 +338,6 @@ void UpLagMF::ComputeMatForce(dArray2DT& output)
     //    cout << "\nelem: "<<plocflag[elem]<<endl;
     if (plocflag[elem] == 0)
     {
-      //      cout << "\n Elem "<<elem<<" MatForceVol"<<endl;
       ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
       fCurrFSMat = dynamic_cast<FSSolidMatT*>(pmat);
       if (!fCurrFSMat) ExceptionT::GeneralFail(caller);
@@ -468,18 +467,11 @@ void UpLagMF::MatForceVolMech(dArrayT& elem_val)
       }  
 
       /*form negative of Eshelby stress -SIG_IJ = C_IK S_KJ - Psi Delta_IJ*/
-      fEshelby(0,0) = fC[0]*S[0] + fC[2]*S[2]- energy;
-      fEshelby(0,1) = fC[0]*S[2] + fC[2]*S[1];
-      fEshelby(1,0) = fC[2]*S[0] + fC[1]*S[2];
-      fEshelby(1,1) = fC[2]*S[2] + fC[1]*S[1] - energy;
+      fEshelby(0,0) = fC(0,0)*S(0,0) + fC(0,1)*S(1,0)- energy;
+      fEshelby(0,1) = fC(0,0)*S(0,1) + fC(0,1)*S(1,1);
+      fEshelby(1,0) = fC(1,0)*S(0,0) + fC(1,1)*S(1,0);
+      fEshelby(1,1) = fC(1,0)*S(0,1) + fC(1,1)*S(1,1) - energy;
 
-      if (elem == 0 && 0)
-      {
-	cout << "\nstress: "<<S;
-	cout << "\nenergy: "<<energy;
-	cout << "\nEshelby: "<< fEshelby;
-      }      //      if (elem == 6)
-      //	cout << "\nstatic eshelby: "<< fEshelby;
 
       if (fdynamic)
       {
@@ -488,8 +480,13 @@ void UpLagMF::MatForceVolMech(dArrayT& elem_val)
 	fEshelby(1,1) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]);
       }
 
-      //      if (elem == 6)
-      //	cout << "\n dynamic eshelby: "<< fEshelby;
+      if (elem == 0 )
+      {
+	cout << "\nstress: "<<S;
+	cout << "\nenergy: "<<energy;
+	cout << "\nfVel: "<<fVel;
+	cout << "\nEshelby: "<< fEshelby;
+      }    
 
       double* pDQaX = DQa(0); 
       double* pDQaY = DQa(1);
@@ -563,7 +560,7 @@ void UpLagMF::MatForceVolMech(dArrayT& elem_val)
     weight++;
     jac++;
   }
-  //  if (elem == 6)      cout<< "\nelem_val: "<<elem_val;
+  if (elem == 0)      cout<< "\nVolElem: "<<elem_val;
 }
 
 void UpLagMF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretch)
@@ -671,11 +668,11 @@ void UpLagMF::MatForceDynamic(dArrayT& elem_val)
   /*intialize shape function data*/
   const double* jac = fShapes->IPDets();
   const double* weight = fShapes->IPWeights();
-  /*  if (elem == 6) {
+  if (elem == 0) {
     cout << "\nAcc: "<<fLocAcc;
     cout << "\nVel: "<<fLocVel;
-      cout <<"\n fDisp: "<<fLocDisp;
-      }*/
+    cout <<"\n fDisp: "<<fLocDisp;
+  }
   fShapes->TopIP();
   while(fShapes->NextIP())
   {
@@ -689,14 +686,14 @@ void UpLagMF::MatForceDynamic(dArrayT& elem_val)
     fShapes->GradU(fLocVel,fGradVel); 
     fShapes->InterpolateU(fLocVel, fVel);
     fShapes->InterpolateU(fLocAcc, fAcc);
-    /*    if (elem == 6)
+    if (elem == 0)
     {
       cout << "\nelem "<<elem<<" ip "<<CurrIP()<<endl; 
       cout << "\nfGradVel: "<<fGradVel;
       cout <<"\n F: "<< F;
       cout <<"\n fVel: "<<fVel;
       cout <<"\n fAcc: "<<fAcc;
-      }*/
+    }
     double* pelem_val = elem_val.Pointer();
     if (NumSD() ==2)
     {
@@ -709,7 +706,6 @@ void UpLagMF::MatForceDynamic(dArrayT& elem_val)
     	*pelem_val++ += xval*(*pQa)*(*jac)*(*weight);
 	*pelem_val++ += yval*(*pQa++)*(*jac)*(*weight);      
       }
-      //      if (elem ==6) cout << "\n elem_val: "<<elem_val;
     }
     else if (NumSD() == 3)
     {
@@ -732,8 +728,7 @@ void UpLagMF::MatForceDynamic(dArrayT& elem_val)
     jac++;
     weight++;
   }
-  //  cout<<"\nElem: "<<elem;
-  //  cout<<elem_val;
+  if (elem == 0)  cout<<"\nDynnElem: "<<elem_val;
 }
 
 void UpLagMF::MatForceSurfMech(dArrayT& global_val)
