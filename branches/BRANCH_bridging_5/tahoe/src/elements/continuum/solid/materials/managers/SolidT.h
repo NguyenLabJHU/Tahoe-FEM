@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.36 2004-01-14 22:04:44 rdorgan Exp $ */
+/* $Id: SolidT.h,v 1.36.10.1 2004-04-15 21:12:31 paklein Exp $ */
 /* created: paklein (03/10/2001) */
 #ifndef _MATERIAL_T_H_
 #define _MATERIAL_T_H_
@@ -36,6 +36,7 @@ kmodCauchyBornDC = 15,
             kFCC = 20,
      kSSLinearVE = 21,
       kRGSplitVE = 22,
+        kChain1D = 23,
     kFossumSSIso = 26,
        kMRSSKStV = 28,
 kThermoViscoPlastic = 30,
