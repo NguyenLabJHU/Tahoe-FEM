@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.h,v 1.10 2002-07-05 22:26:24 paklein Exp $ */
+/* $Id: iConsoleT.h,v 1.11 2002-08-08 16:50:05 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_T_H_
@@ -22,7 +22,8 @@ class iConsoleT: public iConsoleBaseT
 
 	/* constructor */
 	iConsoleT(const StringT& log_file, iConsoleObjectT& current,
-		const ArrayT<StringT>* arguments = NULL);
+		const ArrayT<StringT>* arguments = NULL,
+		bool do_interactive = true);
 
 	/* destructor */
 	~iConsoleT(void);
@@ -40,6 +41,12 @@ class iConsoleT: public iConsoleBaseT
 	           kScopeCommand = 3,
 	          kScopeVariable = 4,
 	                  kAlias = 5};
+
+	/** return the name of the current scope */
+	const StringT& Scope(void) { return fScope; };
+	
+	/** reference to the object which is the current scope */
+	iConsoleObjectT& Current(void) { return *fCurrent; };
 
   private:
 

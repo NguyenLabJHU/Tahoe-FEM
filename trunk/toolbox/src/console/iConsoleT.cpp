@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.18 2002-07-05 17:16:01 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.19 2002-08-08 16:50:05 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleT.h"
@@ -27,7 +27,8 @@ const bool ArrayT<iConsoleT::CommandScope>::fByteCopy = true;
 
 /* constructor */
 iConsoleT::iConsoleT(const StringT& log_file, iConsoleObjectT& current,
-	const ArrayT<StringT>* arguments):
+	const ArrayT<StringT>* arguments,
+	bool do_interactive):
 	flog(log_file, true),
 	fmax_recursion_depth(25),
 	fhistory_size(10),
@@ -152,7 +153,7 @@ iConsoleT::iConsoleT(const StringT& log_file, iConsoleObjectT& current,
 	}
 	
 	/* run */
-	DoInteractive();
+	if (do_interactive) DoInteractive();
 }
 
 /* destructor */
