@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.35 2002-08-15 08:59:36 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.36 2002-08-15 23:44:11 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1564,7 +1564,11 @@ void FEManagerT::SetEquationSystem(int group)
 				fElementGroups[i]->ConnectsU(connects_1, connects_2);		
 	
 		/* renumber equations */
-		fNodeManager->RenumberEquations(group, connects_1, connects_2);
+		try { fNodeManager->RenumberEquations(group, connects_1, connects_2); }
+		catch (int exception) {
+			cout << "\n FEManagerT::SetEquationSystem: could not renumber equations: exception: " 
+			     << exception << endl;
+		}
 	}
 
 	/* set equation number scope */
