@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.2 2001-02-20 00:42:11 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.3 2001-03-08 00:52:14 paklein Exp $ */
 /* created: paklein (11/19/1997)                                          */
 /* Cohesive surface elements with scalar traction potentials,             */
 /* i.e., the traction potential is a function of the gap magnitude,       */
@@ -284,6 +284,10 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	double phi_tmp, area;
 	double& phi = (e_codes[CohesiveEnergy]) ? *pall++ : phi_tmp;
 
+	/* node map of facet 1 */
+	iArrayT facet1;
+	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
+
 	Top();
 	while (NextElement())
 	{
@@ -292,6 +296,7 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
 		/* initialize */
 	    nodal_space = 0.0;
+	    element_values = 0.0;
 
 		/* coordinates for whole element */
 		if (n_codes[NodalCoord])
@@ -312,6 +317,10 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		{
 	  		/* surface potential */
 			C1FunctionT* surfpot = fSurfPots[CurrentElement().MaterialNumber()];
+
+			/* get ref geometry (1st facet only) */
+			fNodes1.Collect(facet1, element.NodesX());
+			fLocInitCoords1.SetLocal(fNodes1);
 
 			/* get current geometry */
 			SetLocalX(fLocCurrCoords); //EFFECTIVE_DVA
