@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.15 2002-11-06 00:43:11 cjkimme Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.16 2002-11-06 21:54:55 cjkimme Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -366,12 +366,12 @@ void TiedNodesT::InitTiedNodePairs(const iArrayT& leader_nodes,
 bool TiedNodesT::ChangeStatus(void)
 {
   /* To pass the benchmarks, the line below must be uncommented */
-  	if (qNoTiedPotential)
+    if (qNoTiedPotential)
     	return false;
     else
     {
-  		bool changeQ = false;
-		ElementBaseT* surroundingGroup = fFEManager.ElementGroup(0);
+      bool changeQ = false;
+	ElementBaseT* surroundingGroup = fFEManager.ElementGroup(TiedPotentialT::BulkGroup());
   		if (!surroundingGroup)
         {
            	cout <<"TiedPotentialT::ChangeStatus: Group 0 doesn't exist \n";
