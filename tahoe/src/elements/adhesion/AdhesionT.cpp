@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.16.20.2 2004-04-27 16:02:28 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.16.20.3 2004-04-28 02:58:15 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -762,7 +762,7 @@ void AdhesionT::ExtractSurfaces(const ParameterListT& list)
 	for (int i = 0; i < num_surfaces; i++)
 	{
 		const ParameterListT* surface_spec = list.ResolveListChoice(*this, "adhesion_surface", i);
-		if (!surface_spec) ExceptionT::GeneralFail(caller, "could not find \"adhesion_surface\" %d", i+1);
+		if (!surface_spec) ExceptionT::GeneralFail(caller, "could not resolve \"adhesion_surface\" choice %d", i+1);
 	
 		ArrayT<GeometryT::CodeT> new_geom;
 		ArrayT<iArray2DT> new_surfaces;
@@ -793,9 +793,11 @@ void AdhesionT::ExtractSurfaces(const ParameterListT& list)
 		}
 		
 		/* scaling schedule */
-		const ParameterT* scaling = list.Parameter("interaction_scaling_schedule");
+		const ParameterListT& surface = list.GetList("adhesion_surface", i);
+		const ParameterT* scaling = surface.Parameter("interaction_scaling_schedule");
 		if (scaling) {
 			int schedule = *scaling;
+			schedule--;
 			schedules.Append(schedule);	
 		}
 		else
