@@ -1,4 +1,4 @@
-/* $Id: FEDecomposeT.cpp,v 1.1.2.4 2004-08-09 16:46:04 d-farrell2 Exp $ */
+/* $Id: FEDecomposeT.cpp,v 1.1.2.5 2004-08-11 01:08:05 paklein Exp $ */
 /* created: d-farrell2 (08/03/2004) */
 #include "FEDecomposeT.h"
 
@@ -378,14 +378,14 @@ void FEDecomposeT::Decompose_spatial(const StringT& input_file, int size,
 #pragma unused(size)
 #pragma unused(model_file)
 #pragma unused(format)
-	cout << "\n FEExecutionManagerT::Decompose_spatial: not implemented" << endl;
+	cout << "\n FEDecomposeT::Decompose_spatial: not implemented" << endl;
 }
 
 /* graph-based decomposition */
 void FEDecomposeT::Decompose_graph(const StringT& input_file, int size,
 	CommunicatorT& comm, const StringT& model_file, IOBaseT::FileTypeT format, const ArrayT<StringT>& commandlineoptions) const
 {
-	const char caller[] = "FEExecutionManagerT::Decompose_graph";
+	const char caller[] = "FEDecomposeT::Decompose_graph";
 
 	bool need_decomp = NeedDecomposition(model_file, size);
 	if (need_decomp)
@@ -569,7 +569,11 @@ cout << "\n" << caller << " Prepare to construct global problem \n" << endl;
 				partition[i].SetScope(PartitionT::kLocal);
 			}
 		}
-		
+
+// when generating decomposition during parallel run, this was skipped and each
+// processor wrote it's own partial geometry file. When computing decomposition
+// explicitly ("-decomp"), all partial geometry files are written here. 
+
 		/* write partial geometry files */
 		//if (CommandLineOption("-decomp"))
 		if (true)
