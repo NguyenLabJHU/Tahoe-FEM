@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.22 2002-02-01 18:11:41 paklein Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.23 2002-06-04 17:09:44 recampb Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -71,6 +71,9 @@ VTKFrameT::VTKFrameT(VTKConsoleT& console):
   iAddCommand(CommandSpecT("HideElementNumbers"));
   iAddCommand(CommandSpecT("ShowAxes"));
   iAddCommand(CommandSpecT("HideAxes"));
+  iAddCommand(CommandSpecT("ShowContours"));
+  iAddCommand(CommandSpecT("HideContours"));
+
 
 
 	CommandSpecT show_color_bar("ShowColorBar");
@@ -369,6 +372,7 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 		/* new scalar bar */
 		if (!scalarBar) {
 			scalarBar = vtkScalarBarActor::New();
+			scalarBar->SetNumberOfLabels(15);
 			fRenderer->AddActor(scalarBar);
 		}
 
@@ -379,10 +383,10 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 		const StringT& var_name = (body_data->NodeLabels())[body_data->CurrentVariableNumber()];
 		scalarBar->SetTitle(var_name);
 		scalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
-		scalarBar->GetPositionCoordinate()->SetValue(0.1,0.01);
-		scalarBar->SetOrientationToHorizontal();
-		scalarBar->SetWidth(0.8); 
-		scalarBar->SetHeight(0.17);
+		scalarBar->GetPositionCoordinate()->SetValue(0.01,0.1);
+		scalarBar->SetOrientationToVertical();
+		scalarBar->SetWidth(0.17); 
+		scalarBar->SetHeight(0.8);
 		
 		Render();
 		return true;
@@ -742,6 +746,56 @@ bool VTKFrameT::iDoCommand(const CommandSpecT& command, StringT& line)
 		Render();
 		return true;
     }
+
+  else if (command.Name() == "ShowContours")
+    {
+      	if (bodies.Length() == 0)
+    		return false;
+    	else
+    	{
+    		/* command spec */
+    		CommandSpecT* show = bodies[0]->iCommand("ShowContours");
+    		if (!show)
+    		{
+    			cout << "command not found" << endl;
+    			return false;
+    		}
+    	
+    		/* labels ON */
+    		StringT tmp;
+    		for (int i = 0; i < bodies.Length(); i++)
+    			bodies[i]->iDoCommand(*show, tmp);
+
+			Render();
+			return true;
+    	}    
+    }
+
+  else if (command.Name() == "HideContours")
+    {
+    	if (bodies.Length() == 0)
+    		return false;
+    	else
+    	{
+    		/* command spec */
+    		CommandSpecT* hide = bodies[0]->iCommand("HideContours");
+    		if (!hide)
+    		{
+    			cout << "command not found" << endl;
+    			return false;
+    		}
+    	
+    		/* labels OFF */
+    		StringT tmp;
+    		for (int i = 0; i < bodies.Length(); i++)
+    			bodies[i]->iDoCommand(*hide, tmp);
+
+			Render();
+			return true;
+    	}    
+	}
+
+
 
   else
     /* drop through to inherited */
