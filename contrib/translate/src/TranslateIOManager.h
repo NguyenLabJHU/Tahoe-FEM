@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.h,v 1.2 2001-09-07 13:25:29 sawimme Exp $ */
+/* $Id: TranslateIOManager.h,v 1.3 2001-09-10 16:47:22 sawimme Exp $ */
 
 #ifndef _TRANSLATE_IOMANAGER_H_
 #define _TRANSLATE_IOMANAGER_H_
@@ -16,23 +16,23 @@ class TranslateIOManager
  public:
 
   TranslateIOManager (ostream& message);
-  void Translate (const StringT& program, const StringT& version, const StringT& title);
+  virtual void Translate (const StringT& program, const StringT& version, const StringT& title);
 
- private:
-  void SetOutput (const StringT& program, const StringT& version, const StringT& title);
+ protected:
+  virtual void SetOutput (const StringT& program, const StringT& version, const StringT& title);
 
   void InitializeVariables (void);
   void InitializeTime (void);
 
-  void TranslateVariables (bool xy);
+  virtual void TranslateVariables (void);
 
-  void WriteGeometry (void);
+  virtual void WriteGeometry (void);
   void WriteNodes (void);
   void WriteNodeSets (void);
   void WriteElements (void);
   void WriteSideSets (void);
 
- private:
+ protected:
   ostream& fMessage;
 
   DataManagerT fModel;
@@ -46,13 +46,15 @@ class TranslateIOManager
   int fNumQV;
   ArrayT<StringT> fNodeLabels;
   ArrayT<StringT> fElementLabels;
+  ArrayT<StringT> fQuadratureLabels;
 
   int fNumTS;
   dArrayT fTimeSteps;
+  iArrayT fTimeIncs;
 
-  iArrayT fNodeMap;
-
-  ArrayT<iArray2DT> fGlobalSideSets;
+  iArrayT fNodeMap; // not stored in ModelManager
+  ArrayT<iArray2DT> fGlobalSideSets; 
+  // need to store here instead of in ModelManager so that they are all global
 };
 
 #endif

@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.2 2001-09-07 13:25:29 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.3 2001-09-10 16:47:22 sawimme Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -25,7 +25,7 @@ TranslateIOManager::TranslateIOManager (ostream& out) :
 void TranslateIOManager::Translate (const StringT& program, const StringT& version, const StringT& title)
 {
   fModel.Initialize ();
-  SetOutput (program, version, program);
+  SetOutput (program, version, title);
 
   InitializeVariables ();
   if (fNumNV < 1 && fNumEV < 1) 
@@ -36,18 +36,7 @@ void TranslateIOManager::Translate (const StringT& program, const StringT& versi
       return;
     }
   
-  StringT answer;
-  bool xy = false;
-  // future: extract xy data
-  //cout << "\n Do you want variables extracted as xy data only (y/n)? \n";
-  //cin >> answer;
-  //if (answer[0] == 'y' || answer[0] == 'Y') 
-  //xy = true;
-
-  if (!xy)
-    WriteGeometry ();
-  //else
-  // open Tecplot or text or Matlab ???
+  WriteGeometry ();
 
   InitializeTime ();
   if (fNumTS < 1)
@@ -58,7 +47,7 @@ void TranslateIOManager::Translate (const StringT& program, const StringT& versi
       return;      
     }
   
-  TranslateVariables (xy);
+  TranslateVariables ();
 }
 
 
@@ -123,9 +112,9 @@ void TranslateIOManager::InitializeVariables (void)
   fNumEV = fModel.NumElementVariables ();
   fNumQV = fModel.NumQuadratureVariables ();
 
-  fMessage << "\n" << setw (10) << fNumNV << " Node Variables\n";
-  fMessage << setw (10) << fNumEV << " Element Variables\n";
-  fMessage << setw (10) << fNumQV << " Quadrature Varaibles\n";
+  cout << "\n" << setw (10) << fNumNV << " Node Variables\n";
+  cout << setw (10) << fNumEV << " Element Variables\n";
+  cout << setw (10) << fNumQV << " Quadrature Varaibles\n";
 
   fNodeLabels.Allocate (fNumNV);
   fElementLabels.Allocate (fNumEV);
@@ -141,12 +130,72 @@ void TranslateIOManager::InitializeTime (void)
   fNumTS = fModel.NumTimeSteps ();
   fTimeSteps.Allocate (fNumTS);
   if (fNumTS > 0)
-    fModel.TimeSteps (fTimeSteps);
+    {
+      fModel.TimeSteps (fTimeSteps);
 
-  // future: query user as to which time steps to translate
+      int selection;
+      cout << "\n Number of Time Steps Available: " << fNumTS << endl;
+      cout << "\n1. Translate All\n";
+      cout << "2. Translate Specified\n";
+      cout << "3. Translate Every nth step\n";
+      cout << "4. Translate None (just geometry)\n";
+      cout << "\n Enter Selection: ";
+      cin >> selection;
+
+      switch (selection)
+	{
+	case 1:
+	  {
+	    fTimeIncs.Allocate (fNumTS);
+	    fTimeIncs.SetValueToPosition ();
+	    break;
+	  }
+	case 2:
+	  {
+	    cout << "\n Enter the number of time steps to translate: ";
+	    cin >> fNumTS;
+	    dArrayT temp (fNumTS);
+	    fTimeIncs.Allocate (fNumTS);
+	    cout << "\n Increments are numbered consequetively from 1.\n";
+	    cout << "     Enter the time increments (return after each): \n";
+	    for (int i=0; i < fNumTS; i++)
+	      {
+		cin >> fTimeIncs[i];
+		if (fTimeIncs[i] < 0 || fTimeIncs[i] >= fTimeSteps.Length())
+		  throw eOutOfRange;
+		temp[i] = fTimeSteps[fTimeIncs[i]];
+	      }
+	    fTimeSteps = temp;
+	    fTimeSteps--;
+	    break;
+	  }
+	case 3:
+	  {
+	    int n;
+	    cout << "\n Enter n: ";
+	    cin >> n;
+	    fNumTS = fNumTS / n;
+	    fTimeIncs.Allocate (fNumTS);
+	    dArrayT temp (fNumTS);
+	    for (int i=0; i < fNumTS; i++)
+	      {
+		temp[i] = fTimeSteps [i*n];
+		fTimeIncs = i*n;
+	      }
+	    fTimeSteps = temp;
+	    break;
+	  }
+	default:
+	  {
+	    fNumTS = 0;
+	    fTimeSteps.Free ();
+	    fTimeIncs.Free();
+	  }
+	}
+   }
 }
 
-void TranslateIOManager::TranslateVariables (bool xy)
+void TranslateIOManager::TranslateVariables (void)
 {
   int ng = fModel.NumElementGroups ();
   if (ng < 1)
@@ -160,33 +209,37 @@ void TranslateIOManager::TranslateVariables (bool xy)
   ArrayT<StringT> groupnames (ng);
   fModel.ElementGroupNames (groupnames);
 
+  int numnodes, numdims;
+  fModel.CoordinateDimensions (numnodes, numdims);
   for (int t=0; t < fNumTS; t++)
     {
-      // future: see if user wanted to translate this time step
-
-      fMessage << "Time Step " << t+1 << ": " << fTimeSteps[t] << endl;
+      cout << "Time Step " << fTimeIncs[t]+1 << ": " << fTimeSteps[t] << endl;
       for (int g=0; g < fOutputID.Length(); g++)
 	{
-	  // read all variables for this step
-	  dArray2DT nvalues (0,0), evalues (0,0);
-	  if (fNumNV > 0) 
-	    fModel.NodeVariables (t, groupnames[g], nvalues);
-	  if (fNumEV > 0)
-	    fModel.ElementVariables (t, groupnames[g], evalues);
-
-	  // future: accout for which variables user wanted translated
-
-	  if (!xy)
-	    fOutput->WriteOutput (fTimeSteps[t], fOutputID[g], nvalues, evalues);
-	  //else
-	  // future: extract xy data
+	  // account for user specified element groups not to translate
+	  if (fOutputID [g] > -1) 
+	    {
+	      int numelems, numelemnodes;
+	      fModel.ElementGroupDimensions (g, numelems, numelemnodes);
+	      
+	      // read all variables for this step
+	      dArray2DT nvalues (numnodes, fNumNV); // numnodes is larger than needed
+	      dArray2DT evalues (numelems, fNumEV);
+	      if (fNumNV > 0) 
+		fModel.NodeVariables (fTimeIncs[t], groupnames[g], nvalues);
+	      if (fNumEV > 0) 
+		fModel.ElementVariables (fTimeIncs[t], groupnames[g], evalues);
+	      
+	      // future: accout for which variables user wanted translated
+	      
+	      fOutput->WriteOutput (fTimeSteps[t], fOutputID[g], nvalues, evalues);
+	    }
 	}
     }
 }
 
 void TranslateIOManager::WriteGeometry (void)
 {
-  fMessage << "\n";
   WriteNodes ();
   WriteNodeSets ();
   WriteElements ();
@@ -200,48 +253,109 @@ void TranslateIOManager::WriteNodes (void)
   fNodeMap.Allocate (numnodes);
   fModel.AllNodeMap (fNodeMap);
   fOutput->SetCoordinates (fModel.Coordinates(), &fNodeMap);
-  fMessage << setw (10) << numnodes << " Nodes\n";
-  fMessage << setw (10) << dof << " DOF\n";
+  cout << "\n Number of Nodes: " << numnodes << " DOF: " << dof << endl;
 }
 
 void TranslateIOManager::WriteNodeSets (void)
 {
   int num = fModel.NumNodeSets ();
+  if (num <= 0) return;
+  ArrayT<StringT> names (num);
+  fModel.NodeSetNames (names);
+
+  int selection;
+  cout << "\n Number of Node Sets: " << num << endl;
+  cout << "\n1. Translate All\n";
+  cout << "2. Translate Some\n";
+  cout << "3. Translate None\n";
+  cin >> selection;
+
+  if (selection == 3) return;
   for (int i=0; i < num; i++)
-    fOutput->AddNodeSet (fModel.NodeSet (i), i+1);
-  fMessage << setw (10) << num << " Node Sets\n";
+    {
+      StringT answer ("no");
+      if (selection == 2)
+	{
+	  cout << "    Translate Node Set " << names[i] << " (y/n) ? ";
+	  cin >> answer;
+	}
+      
+      if (answer [0] == 'y' || answer[0] == 'Y')
+	fOutput->AddNodeSet (fModel.NodeSet (i), i+1);
+    }
 }
  
 void TranslateIOManager::WriteElements (void)
 {
   int num = fModel.NumElementGroups ();
   fOutputID.Allocate (num);
+  ArrayT<StringT> names (num);
+  fModel.ElementGroupNames (names);
+
+  int selection;
+  cout << "\n Number of Element Groups: " << num << endl;
+  cout << "\n1. Translate All\n";
+  cout << "2. Translate Some\n";
+  cin >> selection;
+
   bool changing = false;
+  StringT answer;
   for (int e=0; e < num; e++)
     {
       iArrayT block_ID (1);
       block_ID = e+1;
-      //cout << e << " " << ElementGroupGeometry(e) << endl;
+
+      // allow user to select element groups
+      answer[0] = 'y';
+      if (selection == 2)
+	{
+	  cout << "    Translate Element Group " << names[e] << " (y/n) ? ";
+	  cin >> answer;
+	}
       
-      OutputSetT set (e, fModel.ElementGroupGeometry (e), block_ID, 
-		      fModel.ElementGroup (e),
-		      fNodeLabels, fElementLabels, changing);
-      fOutputID[e] = fOutput->AddElementSet (set);
+      if (answer [0] == 'y' || answer[0] == 'Y')
+	{
+	  OutputSetT set (e, fModel.ElementGroupGeometry (e), block_ID, 
+			  fModel.ElementGroup (e), fNodeLabels, fElementLabels, changing);
+	  fOutputID[e] = fOutput->AddElementSet (set);
+	}
+      else
+	fOutputID[e] = -1;
     }
-  fMessage << setw (10) << num << " Element Groups\n";
 }
 
 void TranslateIOManager::WriteSideSets (void)
 {
   int num = fModel.NumSideSets ();
+  if (num <= 0) return;
   fGlobalSideSets.Allocate (num);
+  ArrayT<StringT> names (num);
+  fModel.SideSetNames (names);
+
+  int selection;
+  cout << "\n Number of Side Sets: " << num << endl;
+  cout << "\n1. Translate All\n";
+  cout << "2. Translate Some\n";
+  cout << "3. Translate None\n";
+  cin >> selection;
+
+  if (selection == 3) return;
   for (int i=0; i < num; i++)
     {
-      fGlobalSideSets[i] = fModel.SideSet (i);
-      int g = fModel.SideSetGroupIndex (i);
-      if (fModel.IsSideSetLocal (i))
-	fModel.SideSetLocalToGlobal (g, fGlobalSideSets[i], fGlobalSideSets[i]);
-      fOutput->AddSideSet (fGlobalSideSets [i], i+1, g);
+      StringT answer ("yes");
+      if (selection == 2)
+	{
+	  cout << "    Translate Node Set " << names[i] << " (y/n) ? ";
+	  cin >> answer;
+	}
+      
+      if (answer [0] == 'y' || answer[0] == 'Y')
+	{
+	  fGlobalSideSets[i] = fModel.SideSet (i);
+	  int g = fModel.SideSetGroupIndex (i);
+	  if (fModel.IsSideSetLocal (i))
+	    fModel.SideSetLocalToGlobal (g, fGlobalSideSets[i], fGlobalSideSets[i]);
+	  fOutput->AddSideSet (fGlobalSideSets [i], i+1, g);
+	}
     }
-  fMessage << setw (10) << num << " Side Sets\n";
 }
