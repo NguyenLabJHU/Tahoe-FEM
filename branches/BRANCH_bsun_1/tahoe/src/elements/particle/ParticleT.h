@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.15.8.1 2003-10-06 22:04:53 bsun Exp $ */
+/* $Id: ParticleT.h,v 1.15.8.2 2003-10-07 21:54:14 bsun Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -259,11 +259,13 @@ protected:
 	/*given linked list, generate centrosymmetry value*/
 	double GenCSymmValue (CSymmParamNode *CSymmParam, int ndof);
 
-
 private:
 
 	/** count between resetting neighbor lists */
 	int fReNeighborCounter;
+
+
+
 };
 
 } /* namespace Tahoe */
