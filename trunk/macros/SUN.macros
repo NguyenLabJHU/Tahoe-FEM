@@ -1,4 +1,4 @@
-# $Id: SUN.macros,v 1.18 2004-01-02 01:17:40 paklein Exp $
+# $Id: SUN.macros,v 1.19 2004-01-02 01:37:20 paklein Exp $
 #
 # Load GNU file utilities to get ln -sf to work properly (sunfreeware.com)
 #
@@ -19,7 +19,7 @@ MAKEDEPEND = makedepend
 MAKEDEPEND_OUTPUT = -f
 #
 # studio 8 puts include in the sub directory prod
-MAKEDEPENDFLAGS  = -I/$(COMP_DIR)/prod/include/cc -I/$(COMP_DIR)/prod/include/CC \
+MAKEDEPENDFLAGS  = -I$(INC_DIR) -I/$(COMP_DIR)/prod/include/cc -I/$(COMP_DIR)/prod/include/CC \
                -I/$(COMP_DIR)/prod/include/CC4 -I/$(COMP_DIR)/prod/include/CCios \
                -I/$(COMP_DIR)/prod/include/f77 -I/$(COMP_DIR)/prod/include/f90 \
                -I/$(COMP_DIR)/prod/include/f95 -I/$(COMP_DIR)/prod/include/libdwarf \

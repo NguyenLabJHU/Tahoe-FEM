@@ -1,10 +1,10 @@
-# $Id: DEC.macros,v 1.14 2004-01-02 01:17:39 paklein Exp $
+# $Id: DEC.macros,v 1.15 2004-01-02 01:37:20 paklein Exp $
 # DEC
 MAKE        = make
 DEFINES     = -D__DEC__ -D__USE_STD_IOSTREAM
 MAKEDEPEND  = makedepend
 MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I/usr/include/cxx $(DEFINES)
+MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/include/cxx $(DEFINES)
 COMP_C      = cxx
 COMP_CC     = cxx
 COMP_F      = f77

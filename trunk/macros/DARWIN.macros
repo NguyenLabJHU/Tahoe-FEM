@@ -1,11 +1,11 @@
-# $Id: DARWIN.macros,v 1.15 2004-01-02 01:17:39 paklein Exp $
+# $Id: DARWIN.macros,v 1.16 2004-01-02 01:37:20 paklein Exp $
 # GCC 2.95.2
 MAKE        = make
 DEFINES     = -D__GNU__ -D__DARWIN__ -DNON_UNIX_STDIO -DNEW_STATIC_TEMPLATE_SYNTAX
 MAKEDEPEND  = /usr/X11R6/bin/makedepend
 MAKEDEPEND_OUTPUT = -f
 GCC_ROOT    = /usr/include/gcc/darwin/default/g++-v3
-MAKEDEPENDFLAGS = -I$(GCC_ROOT) -I$(GCC_ROOT)/backward -I$(GCC_ROOT)/bits -I$(GCC_ROOT)/ppc-darwin $(DEFINES)
+MAKEDEPENDFLAGS = -I$(INC_DIR) -I$(GCC_ROOT) -I$(GCC_ROOT)/backward -I$(GCC_ROOT)/bits -I$(GCC_ROOT)/ppc-darwin $(DEFINES)
 COMP_C      = cc
 COMP_CC     = c++
 COMP_F      = g77

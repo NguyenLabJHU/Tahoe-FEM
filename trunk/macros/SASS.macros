@@ -1,4 +1,4 @@
-# $Id: SASS.macros,v 1.5 2004-01-02 01:17:40 paklein Exp $
+# $Id: SASS.macros,v 1.6 2004-01-02 01:37:20 paklein Exp $
 #
 ## Load GNU file utilities to get ln -sf to work properly (sunfreeware.com)
 #
@@ -19,7 +19,7 @@ DEFINES     = -D__SUN__ -D__MPI__ -D__TAHOE_MPI__
 MAKEDEPEND = makedepend
 MAKEDEPEND_OUTPUT = -f
 #
-MAKEDEPENDFLAGS  = -I/$(COMP_DIR)/include/cc -I/$(COMP_DIR)/include/CC \
+MAKEDEPENDFLAGS  = -I$(INC_DIR) -I/$(COMP_DIR)/include/cc -I/$(COMP_DIR)/include/CC \
                -I/$(COMP_DIR)/include/CC4 -I/$(COMP_DIR)/include/CCios \
                -I/$(COMP_DIR)/include/f77 $(DEFINES)
 COMP_C      = $(COMP_DIR)/bin/cc

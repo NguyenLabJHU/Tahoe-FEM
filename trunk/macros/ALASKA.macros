@@ -1,4 +1,4 @@
-# $Id: ALASKA.macros,v 1.13 2004-01-02 01:17:39 paklein Exp $
+# $Id: ALASKA.macros,v 1.14 2004-01-02 01:37:20 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpi
@@ -8,7 +8,7 @@ MAKE        = make
 DEFINES     = -D__DEC__ -D__CPLANT__ -D__ALASKA__ -D__TAHOE_MPI__
 MAKEDEPEND = makedepend
 MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I/usr/include/cxx -I/usr/local/cplant/current/include $(DEFINES)
+MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/include/cxx -I/usr/local/cplant/current/include $(DEFINES)
 COMP_C      = cc
 COMP_CC     = c++
 COMP_F      = f77

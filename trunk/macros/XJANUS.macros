@@ -1,4 +1,4 @@
-# $Id: XJANUS.macros,v 1.2 2004-01-02 01:17:40 paklein Exp $
+# $Id: XJANUS.macros,v 1.3 2004-01-02 01:37:20 paklein Exp $
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = -lmpi
 
@@ -8,7 +8,7 @@ DEFINES     = -D__TAHOE_MPI__ -D__JANUS__ -D__ROGUE_STL__
 XCDIR       = /usr/local/x-comp/intel/tflop/current/tflops
 MAKEDEPEND = makedepend
 MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I$(XCDIR)/include -I$(XCDIR)/include/CC/RW $(DEFINES)
+MAKEDEPENDFLAGS = -I$(INC_DIR) -I$(XCDIR)/include -I$(XCDIR)/include/CC/RW $(DEFINES)
 COMP_C      = $(XCDIR)/bin.solaris/icc
 COMP_CC     = $(XCDIR)/bin.solaris/iCC
 COMP_F      = $(XCDIR)/bin.solaris/if77

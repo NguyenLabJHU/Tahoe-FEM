@@ -1,4 +1,4 @@
-# $Id: SGI.mpich.debug.macros,v 1.7 2004-01-02 01:17:40 paklein Exp $
+# $Id: SGI.mpich.debug.macros,v 1.8 2004-01-02 01:37:20 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__TAHOE_MPI__
 MPI_LFLAGS = 
@@ -8,7 +8,7 @@ MAKE        = make
 DEFINES     = -D__SGI__ -D__TAHOE_MPI__
 MAKEDEPEND  = makedepend
 MAKEDEPEND_OUTPUT = -f
-MAKEDEPENDFLAGS = -I/usr/include/CC -I/usr/local/mpich/include $(DEFINES)
+MAKEDEPENDFLAGS = -I$(INC_DIR) -I/usr/include/CC -I/usr/local/mpich/include $(DEFINES)
 COMP_C      = /usr/local/mpich/bin/mpicc
 COMP_CC     = /usr/local/mpich/bin/mpiCC
 COMP_F      = /usr/local/mpich/bin/mpif77
