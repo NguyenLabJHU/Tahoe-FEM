@@ -82,7 +82,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::LapElasticStrain(const dSymMatrixT& lap_tot
 /* return correction to stress vector computed by mapping the
  * stress back to the yield surface, if needed */
 const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialstrain, 
-                  const dSymMatrixT& lap_trialstrain, double& dlam, double& lap_dlam,
+                  const dSymMatrixT& lap_trialstrain, dArrayT& dlambda, dArrayT& lap_dlambda,
                   ElementCardT& element, int ip)
 {	
 
@@ -108,7 +108,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     dArrayT RSig(6); dArrayT Rq(4);
     dArrayT R(10); dArrayT ls(4);
     
-    double ff; //double mu_ast; double lambda_ast;
+    double ff;//double mu_ast; double lambda_ast;
     
     KE = 0.;
 	KE(2,2) = KE(1,1) = KE(0,0) = flambda + 2.0*fmu;
@@ -251,7 +251,7 @@ const dSymMatrixT& GRAD_MRSSNLHardT::StressCorrection(const dSymMatrixT& trialst
     Sig_trial = Sig;
     
     int iplastic; 
-    //dlam, lap_dlam are passed from the global level 
+    double dlam = dlambda[0]; double lap_dlam = lap_dlambda[0]; 
     
 /* Check the yield function */
      
