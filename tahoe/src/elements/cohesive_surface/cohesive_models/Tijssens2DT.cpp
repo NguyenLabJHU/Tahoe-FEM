@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.8 2002-02-18 19:09:43 cjkimme Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.9 2002-03-07 18:43:07 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -52,7 +52,7 @@ Tijssens2DT::Tijssens2DT(ifstreamT& in, double time_step, FEManagerT& FE_Manager
 }
 
 /* return the number of state variables needed by the model */
-int Tijssens2DT::NumStateVariables(void) const { return 4*knumDOF+4; }
+int Tijssens2DT::NumStateVariables(void) const { return 3*knumDOF+1; }
 
 /* surface potential */ 
 double Tijssens2DT::FractureEnergy(const ArrayT<double>& state) 
@@ -293,9 +293,9 @@ void Tijssens2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& sta
 	output[0] = (jump_u[1]-state[3])/fTimeStep;
 	output[1] = state[4];
 	output[2] = state[5];
-	if (state[7] > kSmall)
-	  output[3] = 1.5*state[7]-fA+fB/state[7]-state[1];
-	else
+	//	if (state[7] > kSmall)
+	// output[3] = 1.5*state[7]-fA+fB/state[7]-state[1];
+	//else
 	  output[3] = 0;
 }
 
