@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.12 2003-03-19 17:09:03 thao Exp $ */
+/* $Id: FSSolidMatT.h,v 1.13 2003-04-05 20:09:26 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -116,8 +116,7 @@ public:
 	 * with an imposed thermal strain. */
 	const dMatrixT& F_mechanical_last(int ip);
 
-	/*inquire if dissipation variables used in material force calculation
-	  are needed*/
+	/*inquire if dissipation variables used in material force calculation are needed*/
 	virtual bool HasDissipVar(void) const {return false;}
 
 	/** return the strain in the material at the current integration point. 
