@@ -1,11 +1,10 @@
-/* $Id: BridgingScaleT.cpp,v 1.30.2.2 2003-02-10 09:25:37 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.30.2.3 2003-02-11 02:45:02 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 
 #include "ShapeFunctionT.h"
-//#include "RodT.h"
 #include "fstreamT.h"
 #include "iAutoArrayT.h"
 #include "OutputSetT.h"
@@ -15,16 +14,15 @@
 #include "iNodeT.h"
 #include "nArrayGroupT.h"
 #include "PointInCellDataT.h"
+#include "InverseMapT.h"
 
 using namespace Tahoe;
 
 /* constructor */
 BridgingScaleT::BridgingScaleT(const ElementSupportT& support, 
 	const FieldT& field,
-//	const RodT& particle,
 	const SolidElementT& solid):
 	ElementBaseT(support, field),
-//	fParticle(particle),
 	fSolid(solid),
 	fElMatU(ShapeFunction().ParentDomain().NumNodes(), ElementMatrixT::kSymmetric),
 	fLocInitCoords(LocalArrayT::kInitCoords),
@@ -167,36 +165,94 @@ void BridgingScaleT::MaptoCells(const iArrayT& points_used, const dArray2DT* ini
 	}
 }
 
-void BridgingScaleT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
-	AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
+/* initialize interpolation data */
+void BridgingScaleT::InitInterpolation(const iArrayT& points_used, 
+	PointInCellDataT& cell_data) const
 {
-	/* inherited */
-	ElementBaseT::Equations(eq_1, eq_2);
-}
-
-/* initialize/finalize step */
-void BridgingScaleT::InitStep(void)
-{
-	/* inherited */
-	ElementBaseT::InitStep();
-}
-
-/* initialize/finalize step */
-void BridgingScaleT::CloseStep(void)
-{
-	/* inherited */
-	ElementBaseT::CloseStep();
+	/* dimension return value */
+	dArray2DT& weights = cell_data.InterpolationWeights();
+	weights.Dimension(points_used.Length(), fSolid.NumElementNodes());
+	iArrayT& cell = cell_data.InterpolatingCell();
+	cell.Dimension(points_used.Length());
+	cell = -1;
 	
-	/* Do Bridging scale calculations after MD displacements
-	   computed using RodT */
-	CoarseFineFields();
+	/* global to local map */
+	InverseMapT global_to_local;
+	global_to_local.SetMap(points_used);
+
+	/* cell shape functions */
+	int nsd = NumSD();
+	const ParentDomainT& parent = ShapeFunction().ParentDomain();
+
+	/* point in cells data */
+	const RaggedArray2DT<int>& point_in_cell = cell_data.PointInCell();
+	const RaggedArray2DT<double>& point_in_cell_coords = cell_data.PointInCellCoords();
+
+	/* run through cells */
+	dArrayT Na;
+	dArrayT point_coords;
+	dArray2DT mapped_coords;
+	for (int i = 0; i < point_in_cell.MajorDim(); i++)
+	{
+		int np = point_in_cell.MinorDim(i);
+		if (np > 0)
+		{
+			int* points = point_in_cell(i);
+		
+			/* mapped coordinates of points in this cell */
+			mapped_coords.Set(np, nsd, point_in_cell_coords(i));
+			
+			/* run through points */
+			for (int j = 0; j < np; j++)
+			{
+				int dex = global_to_local.Map(points[j]);
+				if (cell[dex] == -1) /* not set yet */
+				{
+					cell[dex] = i;
+					
+					/* fetch point data */
+					mapped_coords.RowAlias(j, point_coords);
+					weights.RowAlias(dex, Na);
+					
+					/* evaluate shape functions */
+					parent.EvaluateShapeFunctions(point_coords, Na);
+				}
+			}
+		}
+	}
 }
 
-/* resets to the last converged solution */
-void BridgingScaleT::ResetStep(void)
+void BridgingScaleT::InterpolateField(const StringT& field, const PointInCellDataT& cell_data,
+	dArray2DT& point_values) const
 {
-	/* inherited */
-	ElementBaseT::ResetStep();
+	int nen = fSolid.NumElementNodes();
+
+	/* get the field */
+	const FieldT* the_field = ElementSupport().Field(field);
+	LocalArrayT loc_field(LocalArrayT::kDisp, nen, the_field->NumDOF());
+	loc_field.SetGlobal((*the_field)[0]); /* take zeroth order field */
+	
+	/* interpolation data */
+	const dArray2DT& weights = cell_data.InterpolationWeights();
+	const iArrayT& cell = cell_data.InterpolatingCell();
+	
+	/* dimension return value */
+	point_values.Dimension(weights.MajorDim(), the_field->NumDOF());
+
+	/* loop over points */
+	for (int i = 0; i < point_values.MajorDim(); i++)
+	{
+		/* element nodes */
+		int element = cell[i];
+		const iArrayT& nodes = fSolid.ElementCard(element).NodesU();
+
+		/* collect local values */
+		loc_field.SetLocal(nodes);
+		
+		/* interpolate */
+		for (int j = 0; j < point_values.MinorDim(); j++)
+			point_values(i,j) = weights.DotRow(i, loc_field(j));
+	}
 }
 
 /* writing output */
@@ -284,8 +340,25 @@ void BridgingScaleT::CurrElementInfo(ostream& out) const
 }
 
 /***********************************************************************
-* Private
-***********************************************************************/
+ * Private
+ ***********************************************************************/
+
+/* compute the projection matrix */
+void BridgingScaleT::ComputeProjector(const PointInCellDataT& cell_data, GlobalMatrixT& projector)
+{
+	/* projected part of the mesh */
+	const iArrayT& cell_nodes = cell_data.CellNodes();
+	const iArray2DT& cell_connects = cell_data.CellConnectivities();
+
+	/* configure the matrix */
+	int num_projected_nodes = cell_nodes.Length();
+	projector.AddEquationSet(cell_connects);
+	projector.Initialize(num_projected_nodes, num_projected_nodes, 1);
+	projector.Clear();
+
+
+
+}
 
 void BridgingScaleT::CoarseFineFields(void)
 {
@@ -307,7 +380,8 @@ void BridgingScaleT::CoarseFineFields(void)
 
   for (int i = 0; i < fParticlesInCell.MajorDim(); i++)
   {
-      fElMatU = 0.0, fWtempU = 0.0;
+      fElMatU = 0.0;
+		fWtempU = 0.0;
       fParticlesInCell.RowAlias(i,atoms);
       fInverseMapInCell.RowAlias(i,map);
       fConnect.RowAlias(i,elemconnect);
