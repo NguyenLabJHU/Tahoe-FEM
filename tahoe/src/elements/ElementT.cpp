@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.48 2004-08-23 16:37:29 cfoster Exp $ */
+/* $Id: ElementT.cpp,v 1.49 2004-11-23 01:43:08 cjkimme Exp $ */
 #include "ElementT.h"
 #include "ExceptionT.h"
 
@@ -136,6 +136,9 @@ ElementT::TypeT ElementT::int2TypeT(int i)
 
 		case ElementT::kEAM:
 			return ElementT::kEAM;
+			
+		case ElementT::kParticleThreeBody:
+			return ElementT::kParticleThreeBody;
 
 		case ElementT::kFSMatForce:
 		    return ElementT::kFSMatForce;
