@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.cpp,v 1.10 2003-01-27 07:00:30 paklein Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.10.10.1 2003-05-22 20:30:17 paklein Exp $ */
 /* created: paklein (12/08/1999)                                          */
 
 #include "MLSSolverT.h"
@@ -256,6 +256,11 @@ void MLSSolverT::SynchronizeSupportParameters(dArray2DT& params_1,
 /* configure solver for current number of neighbors */
 void MLSSolverT::Dimension(void)
 {
+	/* check */
+	if (fArrayGroup.NumRegistered() == 0)
+		ExceptionT::GeneralFail("MLSSolverT::Dimension",
+			"Initialize must be called before SetField");
+
 	/* set variable memory */
 	fArrayGroup.Dimension(fNumNeighbors, false);
 	fLocCoords_man.SetMajorDimension(fNumNeighbors, false);
