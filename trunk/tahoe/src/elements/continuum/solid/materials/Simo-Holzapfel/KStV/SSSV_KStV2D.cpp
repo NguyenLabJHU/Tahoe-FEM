@@ -1,4 +1,4 @@
-/* $Id: SSSV_KStV2D.cpp,v 1.3 2002-10-14 16:04:07 thao Exp $ */
+/* $Id: SSSV_KStV2D.cpp,v 1.4 2002-10-14 18:28:08 thao Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "SSSV_KStV2D.h"
@@ -27,14 +27,6 @@ SSSV_KStV2D::SSSV_KStV2D(ifstreamT& in, const SmallStrainT& element):
 
 	in >> ftauS;
 	in >> ftauB;
-
-	double taudtS = fdt/ftauS;
-	double taudtB = fdt/ftauB;
-
-	falphaS = exp(-0.5*taudtS);
-	falphaB = exp(-0.5*taudtB);
-	fbetaS = exp(-double(taudtS));
-	fbetaB = exp(-double(taudtB));
 
 	in >> mu_EQ;
 	in >> kappa_EQ;
@@ -135,6 +127,14 @@ const dMatrixT& SSSV_KStV2D::c_ijkl(void)
 
 const dSymMatrixT& SSSV_KStV2D::s_ij(void)
 {
+	double taudtS = fdt/ftauS;
+	double taudtB = fdt/ftauB;
+
+	falphaS = exp(-0.5*taudtS);
+	falphaB = exp(-0.5*taudtB);
+	fbetaS = exp(-taudtS);
+	fbetaB = exp(-taudtB);
+
         dSymMatrixT strain = e();
 	
 	/*equilibrium components*/

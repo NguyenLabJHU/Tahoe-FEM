@@ -1,4 +1,4 @@
-/* $Id: FDSV_KStV2D.cpp,v 1.3 2002-10-14 16:04:07 thao Exp $ */
+/* $Id: FDSV_KStV2D.cpp,v 1.4 2002-10-14 18:28:08 thao Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "FDSV_KStV2D.h"
@@ -28,14 +28,6 @@ FDSV_KStV2D::FDSV_KStV2D(ifstreamT& in, const FiniteStrainT& element):
 
 	in >> ftauS;
 	in >> ftauB;
-
-	double taudtS = fdt/ftauS;
-	double taudtB = fdt/ftauB;
-
-	falphaS = exp(-0.5*taudtS);
-	falphaB = exp(-0.5*taudtB);
-	fbetaS = exp(-double(taudtS));
-	fbetaB = exp(-double(taudtB));
 
         double& mu_EQ = fMu[kEquilibrium];
 	double& mu_NEQ = fMu[kNonEquilibrium]; 
@@ -131,6 +123,14 @@ const dMatrixT& FDSV_KStV2D::C_IJKL(void)
 
 const dSymMatrixT& FDSV_KStV2D::S_IJ(void)
 {
+	double taudtS = fdt/ftauS;
+	double taudtB = fdt/ftauB;
+
+	falphaS = exp(-0.5*taudtS);
+	falphaB = exp(-0.5*taudtB);
+	fbetaS = exp(-taudtS);
+	fbetaB = exp(-taudtB);
+
         Compute_C(fE);
 	
 	fE[0] -= 1.0;
