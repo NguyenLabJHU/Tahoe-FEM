@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.16 2002-06-19 21:38:22 recampb Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.17 2002-06-22 01:54:48 paklein Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -435,7 +435,7 @@ void VTKUGridT::SetVectors(vtkFloatArray* vectors)
 
 
 /* set vectors that warp */
-void VTKUGridT::SetWarpVectors(vtkFloatArray* vectors, dArray2DT coords)
+void VTKUGridT::SetWarpVectors(vtkFloatArray* vectors, const dArray2DT& coords)
 {
   /* insert in grid */
   SetVectors(vectors);
