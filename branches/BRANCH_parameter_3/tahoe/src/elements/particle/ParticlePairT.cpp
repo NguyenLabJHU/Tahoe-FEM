@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.33.2.3 2004-04-14 22:38:46 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.33.2.4 2004-04-16 18:10:58 paklein Exp $ */
 #include "ParticlePairT.h"
 
 #include "PairPropertyT.h"
@@ -625,7 +625,7 @@ PairPropertyT* ParticlePairT::New_PairProperty(const StringT& name, bool throw_o
 	else if (name == "Lennard_Jones")
 		return new LennardJonesPairT;
 	else if (name == "Paradyn_pair")
-		return new ParadynPairT;
+		return new ParadynPairT(ElementSupport());
 	else if (name == "Matsui")
 		return new MatsuiPairT;
 	else if (throw_on_fail)
