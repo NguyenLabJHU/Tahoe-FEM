@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.63 2004-06-26 18:38:08 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.64 2004-06-26 18:53:46 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -367,11 +367,10 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		/* construction */
 		phase = 0;
 		char job_char;
-		ArrayT<StringT> argv;
 
 		/* construct continuum solver */
 		continuum_in >> job_char;
-		FEManagerT_bridging continuum(continuum_in, continuum_out, fComm, argv, bridge_continuum_in);
+		FEManagerT_bridging continuum(continuum_in, continuum_out, fComm, fCommandLineOptions, bridge_continuum_in);
 		continuum.Initialize();
 
 		/* split here depending on whether integrators are explicit or implicit
@@ -383,7 +382,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		{
 			/* construct atomistic solver */
 			atom_in >> job_char;
-			FEManagerT_bridging atoms(atom_in, atom_out, fComm, argv, bridge_atom_in);
+			FEManagerT_bridging atoms(atom_in, atom_out, fComm, fCommandLineOptions, bridge_atom_in);
 			atoms.Initialize();
 
 			t1 = clock();
@@ -404,7 +403,7 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 #ifdef __DEVELOPMENT__
 			/* initialize FEManager_THK using atom values */
 			atom_in >> job_char;
-			FEManagerT_THK atoms(atom_in, atom_out, fComm, bridge_atom_in);
+			FEManagerT_THK atoms(atom_in, atom_out, fComm, fCommandLineOptions, bridge_atom_in);
 			atoms.Initialize();
 		
 			t1 = clock();
@@ -1063,7 +1062,7 @@ void FEExecutionManagerT::RunTHK(ifstreamT& in, ostream& status) const
 		phase = 0;
 		in.set_marker('#');
 		ifstreamT dummy_bridging_input; // TEMP - this would normally be input about ghost nodes
-		FEManagerT_THK thk(in, out, fComm, dummy_bridging_input);
+		FEManagerT_THK thk(in, out, fComm, fCommandLineOptions, dummy_bridging_input);
 		thk.Initialize();
 
 		t1 = clock();
