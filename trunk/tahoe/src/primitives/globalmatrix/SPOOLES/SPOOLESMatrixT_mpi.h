@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_mpi.h,v 1.2 2001-02-28 00:29:49 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.h,v 1.3 2002-03-22 01:33:40 paklein Exp $ */
 /* created: paklein (09/13/2000)                                          */
 
 #ifndef _SPOOLES_MATRIX_T_MPI_H_
@@ -18,9 +18,6 @@ public:
 	/* constuctor */
 	SPOOLESMatrixT_mpi(ostream& out, int check_code, bool symmetric,
 		bool pivoting);
-
-	/* assignment operator - not implemented */
-	virtual GlobalMatrixT& operator=(const GlobalMatrixT& RHS);
 
 protected:
 

@@ -1,5 +1,5 @@
-/* $Id: CCNSMatrixT.cpp,v 1.5 2002-01-06 06:58:43 cbhovey Exp $ */
-/* created: paklein (03/04/1998)                                          */
+/* $Id: CCNSMatrixT.cpp,v 1.6 2002-03-22 01:33:38 paklein Exp $ */
+/* created: paklein (03/04/1998) */
 
 #include "CCNSMatrixT.h"
 
@@ -255,14 +255,6 @@ int CCNSMatrixT::HasNegativePivot(void) const
 			return 1;
 	
 	return 0;
-}
-
-/* assignment operator */
-GlobalMatrixT& CCNSMatrixT::operator=(const GlobalMatrixT& RHS)
-{
-//not implemented
-	throw eGeneralFail;
-	return GlobalMatrixT::operator=(RHS);
 }
 
 /* number scope and reordering */

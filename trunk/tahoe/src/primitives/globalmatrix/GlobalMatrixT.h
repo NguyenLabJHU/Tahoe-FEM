@@ -1,6 +1,5 @@
-/* $Id: GlobalMatrixT.h,v 1.3 2001-05-01 23:22:56 paklein Exp $ */
-/* created: paklein (03/23/1997)                                          */
-/* Virtual base class for all global matrix objects                       */
+/* $Id: GlobalMatrixT.h,v 1.4 2002-03-22 01:33:39 paklein Exp $ */
+/* created: paklein (03/23/1997) */
 
 #ifndef _GLOBAL_MATRIX_H_
 #define _GLOBAL_MATRIX_H_
@@ -16,6 +15,7 @@ class dArrayT;
 class iArray2DT;
 template <class TYPE> class RaggedArray2DT;
 
+/** virtual base class for global matrix objects */
 class GlobalMatrixT
 {
 public:
@@ -33,8 +33,11 @@ public:
 		kLocal  = 0,
 		kGlobal = 1}; // for parallel solvers
 
-	/* constructor */
+	/** constructor */
 	GlobalMatrixT(ostream& out, int check_code);
+
+	/** copy constructor */
+	GlobalMatrixT(const GlobalMatrixT& source);
 
 	/* destructor */	
 	virtual ~GlobalMatrixT(void);
@@ -72,9 +75,6 @@ public:
 	virtual void Disassemble(dMatrixT& matrix, const nArrayT<int>& eqnos) const;
 	virtual void DisassembleDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const;
 
-	/* assignment operator */
-	virtual GlobalMatrixT& operator=(const GlobalMatrixT& RHS);
-	
 	/* number scope and reordering */
 	virtual EquationNumberScopeT EquationNumberScope(void) const = 0;
 	virtual bool RenumberEquations(void) const = 0;
@@ -83,6 +83,9 @@ public:
 	int CheckCode(void) const;
 	int NumEquations(void) const;
 	int StartEquation(void) const;
+
+	/** assignment operator */
+	GlobalMatrixT& operator=(const GlobalMatrixT& RHS);
 	
 protected:
 
@@ -105,7 +108,7 @@ protected:
 	static double Max(double a, double b);
 	static double Min(double a, double b);
 	static double Dot(double* vec1, double* vec2, int length);	
-	
+
 protected:
 
 	/* output stream */

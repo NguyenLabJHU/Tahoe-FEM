@@ -1,6 +1,5 @@
-/* $Id: DiagonalMatrixT.h,v 1.3 2001-05-01 23:22:55 paklein Exp $ */
-/* created: paklein (03/23/1997)                                          */
-/* Virtual base class for all global matrix objects                       */
+/* $Id: DiagonalMatrixT.h,v 1.4 2002-03-22 01:33:39 paklein Exp $ */
+/* created: paklein (03/23/1997) */
 
 #ifndef _DIAGONAL_MATRIX_H_
 #define _DIAGONAL_MATRIX_H_
@@ -11,6 +10,7 @@
 /* direct members */
 #include "dArrayT.h"
 
+/** diagonal matrix */
 class DiagonalMatrixT: public GlobalMatrixT
 {
 public:
@@ -50,9 +50,6 @@ public:
 	/* fetch values */
 	virtual void DisassembleDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const;
 
-	/* assignment operator */
-	virtual GlobalMatrixT& operator=(const GlobalMatrixT& RHS);
-
 	/* access to the data */
 	dArrayT& TheMatrix(void);
 
@@ -72,6 +69,14 @@ protected:
 	virtual void PrintAllPivots(void) const;
 	virtual void PrintZeroPivots(void) const;
 	virtual void PrintLHS(void) const;
+
+private:
+
+	/** no copy constructor */
+	DiagonalMatrixT(const DiagonalMatrixT&);
+
+	/** no assignment operator */
+	DiagonalMatrixT& operator=(const DiagonalMatrixT&);
 	
 private:
 

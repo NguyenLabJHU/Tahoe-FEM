@@ -1,6 +1,5 @@
-/* $Id: SLUMatrix.h,v 1.2 2001-05-01 23:22:56 paklein Exp $ */
-/* created: rbridson (06/30/2000)                                         */
-/* Interface to SuperLU solver library, extending GlobalMatrixT           */
+/* $Id: SLUMatrix.h,v 1.3 2002-03-22 01:33:39 paklein Exp $ */
+/* created: rbridson (06/30/2000) */
 
 #ifndef _SLU_MATRIX_H_
 #define _SLU_MATRIX_H_
@@ -20,6 +19,7 @@
 /* external SuperLU stuff */
 #include "superlu.h"
 
+/** interface to SuperLU solver library */
 class SLUMatrix: public GlobalMatrixT
 {
 public:
@@ -51,9 +51,6 @@ public:
 	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& eqnos);
 	virtual void Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eqnos,
 		const nArrayT<int>& col_eqnos);
-
-	/* assignment operator */
-	virtual GlobalMatrixT& operator=(const GlobalMatrixT& RHS);
 	
 	/* element accessor - READ ONLY */
 	double Element(int row, int col) const;
@@ -104,6 +101,14 @@ protected:
 
 	/* figure out a good ordering of the columns of the matrix in perm_c */
 	virtual void OrderColumns (void);
+
+private:
+
+	/** no copy constructor */
+	SLUMatrix(const SLUMatrix&);
+	
+	/** no assignment operator */
+	const SLUMatrix& operator=(const SLUMatrix&);
 
 protected:
 

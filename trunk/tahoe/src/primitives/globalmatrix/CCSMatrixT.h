@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.h,v 1.3 2001-06-12 22:15:11 paklein Exp $ */
+/* $Id: CCSMatrixT.h,v 1.4 2002-03-22 01:33:39 paklein Exp $ */
 /* created: paklein (05/29/1996)                                          */
 /* This is the interface for a Symmetric matrix stored in                 */
 /* Compact Column form.                                                   */
@@ -26,10 +26,13 @@ class CCSMatrixT: public GlobalMatrixT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	CCSMatrixT(ostream& out, int check_code);
 
-	/* destructor */	
+	/** copy constructor */
+	CCSMatrixT(const CCSMatrixT& source);
+
+	/** destructor */	
 	virtual ~CCSMatrixT(void);
 	
 	/* set the internal matrix structure.
@@ -74,9 +77,6 @@ public:
 	 * returns 0 */
 	int HasNegativePivot(void) const;
 
-	/* assignment operator */
-	virtual GlobalMatrixT& operator=(const GlobalMatrixT& RHS);
-
 	/* TESTING: write non-zero elements of matrix in Aztec readable
 	 *          format */
 	void WriteAztecFormat(ostream& out) const;
@@ -87,6 +87,9 @@ public:
 
 	/* find the smallest and largest diagonal value */
 	void FindMinMaxPivot(double& min, double& max, double& abs_min, double& abs_max) const;
+
+	/** assignment operator */
+	CCSMatrixT& operator=(const CCSMatrixT& source);
 
 protected:
 

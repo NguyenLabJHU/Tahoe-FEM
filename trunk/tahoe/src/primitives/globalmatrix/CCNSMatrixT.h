@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.h,v 1.3 2001-06-12 22:15:11 paklein Exp $ */
+/* $Id: CCNSMatrixT.h,v 1.4 2002-03-22 01:33:39 paklein Exp $ */
 /* created: paklein (03/04/1998)                                          */
 /* This is the interface for a non-symmetric matrix stored in             */
 /* Compact Column form.                                                   */
@@ -82,9 +82,6 @@ public:
 	 * returns 0 */
 	int HasNegativePivot(void) const;
 
-	/* assignment operator */
-	virtual GlobalMatrixT& operator=(const GlobalMatrixT& RHS);
-
 	/* element accessor - READ ONLY */
 	double Element(int row, int col) const;			
 
@@ -144,6 +141,12 @@ private:
 	void solvLT(double* KI, double* F, int* maxa, int neq);
 	/* solves U u = u' = F       */
 	void solvUT(double* KS, double* KD, double* u, double* F, int* maxa, int neq);
+
+	/** no copy constructor */
+	CCNSMatrixT(const CCNSMatrixT&);
+
+	/** no assignment operator */
+	CCNSMatrixT& operator=(const CCNSMatrixT&);
 
 protected:
 

@@ -1,6 +1,5 @@
-/* $Id: FullMatrixT.h,v 1.3 2001-05-01 23:22:55 paklein Exp $ */
-/* created: paklein (03/07/1998)                                          */
-/* Virtual base class for all global matrix objects                       */
+/* $Id: FullMatrixT.h,v 1.4 2002-03-22 01:33:39 paklein Exp $ */
+/* created: paklein (03/07/1998) */
 
 #ifndef _FULL_MATRIX_T_H_
 #define _FULL_MATRIX_T_H_
@@ -11,6 +10,7 @@
 /* direct members */
 #include "LAdMatrixT.h"
 
+/** full matrix */
 class FullMatrixT: public GlobalMatrixT
 {
 public:
@@ -47,9 +47,6 @@ public:
 	virtual void Disassemble(dMatrixT& matrix, const nArrayT<int>& eqnos) const;
 	virtual void DisassembleDiagonal(dArrayT& diagonals, const nArrayT<int>& eqnos) const;
 
-	/* assignment operator */
-	virtual GlobalMatrixT& operator=(const GlobalMatrixT& RHS);
-
 	/* number scope and reordering */
 	virtual EquationNumberScopeT EquationNumberScope(void) const;
 	virtual bool RenumberEquations(void) const;
@@ -66,6 +63,14 @@ protected:
 	virtual void PrintAllPivots(void) const;
 	virtual void PrintZeroPivots(void) const;
 	virtual void PrintLHS(void) const;
+
+private:
+
+	/** no copy constructor */
+	FullMatrixT(const FullMatrixT&);
+
+	/** no assignment operator */
+	FullMatrixT& operator=(const FullMatrixT&);
 	
 protected:
 

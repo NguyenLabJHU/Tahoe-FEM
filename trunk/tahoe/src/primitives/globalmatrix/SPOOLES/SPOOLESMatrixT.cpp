@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.7 2002-03-04 06:43:16 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.8 2002-03-22 01:33:40 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT.h"
@@ -314,15 +314,6 @@ void SPOOLESMatrixT::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& r
 
 /* set all matrix values to 0.0 */
 void SPOOLESMatrixT::Clear(void) { fval = 0.0; }
-
-/* assignment operator */
-GlobalMatrixT& SPOOLESMatrixT::operator=(const GlobalMatrixT& RHS)
-{
-#pragma unused(RHS)
-
-	cout << "\n SPOOLESMatrixT::operator=: not implemented" << endl;
-	throw eGeneralFail;
-}
 
 /* number scope and reordering */
 GlobalMatrixT::EquationNumberScopeT SPOOLESMatrixT::EquationNumberScope(void) const
