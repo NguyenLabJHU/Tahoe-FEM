@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.3 2001-07-20 00:58:01 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.4 2001-07-23 16:25:38 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -368,7 +368,7 @@ void SimoFiniteStrainT::FormKd(double constK)
 		fShapes->GradNa(fGradNa);
 
 		/* Wi,J PiJ */
-		WP.MultAB(PK1_list[CurrIP()];, fGradNa);
+		WP.MultAB(fPK1_list[CurrIP()], fGradNa);
 
 		/* accumulate */
 		fRHS.AddScaled(J*constK*(*Weight++)*(*Det++), fNEEvec);
