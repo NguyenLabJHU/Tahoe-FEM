@@ -1,4 +1,4 @@
-/* $Id: dMatrixEXT.cpp,v 1.9 2002-06-27 23:41:24 cfoster Exp $ */
+/* $Id: dMatrixEXT.cpp,v 1.10 2002-06-28 23:39:52 cfoster Exp $ */
 /* created: paklein (03/06/1998)                                          */
 
 #include "dMatrixEXT.h"
@@ -442,7 +442,7 @@ void dMatrixEXT::hqr(dMatrixEXT& a, int n, dArrayT& wr, dArrayT& wi)
 	for (i=1;i<n;i++)
 		for (j=(i-1);j<n;j++)
 			anorm += fabs(a(i,j));
-	nn=n;
+	nn=n-1;
 	t=0.0;
 
 	//while (nn >= 1) {
