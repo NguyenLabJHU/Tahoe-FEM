@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.cpp,v 1.4 2004-09-13 23:33:44 raregue Exp $ */
+/* $Id: MLSSolverT.cpp,v 1.5 2004-09-28 22:20:54 kyonten Exp $ */
 /* created: paklein (12/08/1999) */
 #include "MLSSolverT.h"
 
@@ -32,6 +32,7 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 	fNumNeighbors(0),
 	fBasis(NULL),
 	fWindow(NULL),
+	fOrigin(fNumSD),
 	fOrder(0),
 	fDb(fNumSD),
 	fDDb(dSymMatrixT::NumValues(fNumSD)),
@@ -127,8 +128,8 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 		fDb[j].Dimension(m);
 	for (int jj = 0; jj < fDDb.Length(); jj++)
 		fDDb[jj].Dimension(m);	
-	for (int kk = 0; kk < fDDDb.Length(); kk++) // kyonten
-		fDDDb[kk].Dimension(m);	
+	for (int jjj = 0; jjj < fDDDb.Length(); jjj++) // kyonten
+		fDDDb[jjj].Dimension(m);	
 
 	fMinv.Dimension(m);
 	for (int i = 0; i < fDM.Length(); i++)
@@ -137,8 +138,8 @@ MLSSolverT::MLSSolverT(int nsd, int complete, MeshFreeT::WindowTypeT window_type
 	for (int ii = 0; ii < fDDM.Length(); ii++)
 		fDDM[ii].Dimension(m);
 		
-	for (int kk = 0; kk < fDDDM.Length(); kk++) // kyonten
-		fDDDM[kk].Dimension(m);
+	for (int iii = 0; iii < fDDDM.Length(); iii++) // kyonten
+		fDDDM[iii].Dimension(m);
 		
 	/* work space */
 	fMtemp.Dimension(m);
@@ -287,7 +288,7 @@ void MLSSolverT::Dimension(void)
 	if (fOrder > 0) fArray2DGroup2.Dimension(fNumSD, fNumNeighbors);
 	if (fOrder > 1) fArray2DGroup3.Dimension(dSymMatrixT::NumValues(fNumSD),
 		fNumNeighbors);
-	if (fOrder > 2) fArray2DGroup3.Dimension(fNumSD*fNumSD,	
+	if (fOrder > 2) fArray2DGroup4.Dimension(fNumSD*fNumSD,	
 		fNumNeighbors); // kyonten
 }
 
@@ -595,6 +596,7 @@ void MLSSolverT::ComputeDDDM(const dArrayT& volume) // kyonten (DDDM)
 		/* resolve components */
 		int r, s, t, rs, st, rt;
 		MF_dMatrixT::ExpandIndex3(fNumSD, rst, r, s, t);
+		//MF_dMatrixT::ExpandIndex2(fNumSD, r, s, t, rs, st, rt);
 		MF_dMatrixT::ExpandIndex2(r, s, rs);
 		MF_dMatrixT::ExpandIndex2(s, t, st);
 		MF_dMatrixT::ExpandIndex2(r, t, rt);
@@ -706,12 +708,12 @@ void MLSSolverT::SetCorrectionCoefficient(void)
 			if (fOrder > 2)
 			{
 				/* third derivative */ // kyonten
-				int nstr = fNumSD*fNumSD;
-				for (int ijk = 0; ijk < nstr; ijk++)
+				for (int ijk = 0; ijk < fNumSD*fNumSD; ijk++)
 				{
 					/* resolve indices */
 					int i, j, k, ij, jk, ik;
 					MF_dMatrixT::ExpandIndex3(fNumSD, ijk, i, j, k);
+					//MF_dMatrixT::ExpandIndex2(fNumSD, i, j, k, ij, jk, ik);
 					MF_dMatrixT::ExpandIndex2(i, j, ij);
 					MF_dMatrixT::ExpandIndex2(j, k, jk);
 					MF_dMatrixT::ExpandIndex2(i, k, ik);
@@ -817,6 +819,7 @@ void MLSSolverT::SetCorrection(void)
 					/* expand index */
 					int i, j, k, ij, jk, ik;
 					MF_dMatrixT::ExpandIndex3(fNumSD, ijk, i, j, k);
+					//MF_dMatrixT::ExpandIndex2(fNumSD, i, j, k, ij, jk, ik);
 					MF_dMatrixT::ExpandIndex2(i, j, ij);
 					MF_dMatrixT::ExpandIndex2(j, k, jk);
 					MF_dMatrixT::ExpandIndex2(i, k, ik);
@@ -923,6 +926,7 @@ void MLSSolverT::SetShapeFunctions(const dArrayT& volume)
 					/* resolve index */
 					int i, j, k, ij, jk, ik;
 					MF_dMatrixT::ExpandIndex3(fNumSD, ijk, i, j, k);
+					//MF_dMatrixT::ExpandIndex2(fNumSD, i, j, k, ij, jk, ik);
 					MF_dMatrixT::ExpandIndex2(i, j, ij);
 					MF_dMatrixT::ExpandIndex2(j, k, jk);
 					MF_dMatrixT::ExpandIndex2(i, k, ik);

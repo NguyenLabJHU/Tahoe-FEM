@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.h,v 1.4 2004-09-13 23:33:44 raregue Exp $ */
+/* $Id: MLSSolverT.h,v 1.5 2004-09-28 22:20:54 kyonten Exp $ */
 /* created: paklein (12/08/1999) */
 #ifndef _MLS_SOLVER_T_H_
 #define _MLS_SOLVER_T_H_
@@ -23,6 +23,12 @@ class BasisT;
 /** class to calculate MLS shape functions and derivatives. Before
  * MLSSolverT::SetField can used to calculate MLS functions, MLSSolverT::Initialize
  * must be called to initialize some internal work space */
+ 
+ /** NOTE: Added by kyonten
+ /** Calculation of the third derivative of the shape function added.
+ /*  From the 27 components (8 in 2D) of the derivatives, using symmetry 18 components
+ /*  (6 in 2D) are obtained.  Furthermore, to calculate B3 involving Laplacian term
+ /*  only 9 components (4 in 2D) are needed */
 class MLSSolverT
 {
 public:
@@ -69,8 +75,8 @@ public:
 	const dArray2DT& DDphi(void) const;	
 	
 	/** shape function third derivatives.
-	 * \return array of shape functions third derivatives: [nstr] x [nnd] */
-	const dArray2DT& DDDphi(void) const;	//added  [nstr] should change?? KY
+	 * \return array of shape functions third derivatives: [nsd*nsd] x [nnd] */
+	const dArray2DT& DDDphi(void) const;	//kyonten
 		
 	/** neighbor search type needed by the window function */
 	WindowT::SearchTypeT SearchType(void) const;
@@ -176,41 +182,41 @@ protected:
 	dArrayT   fw;   /**< values of window function at the current field point: [nnd] */
 	dArray2DT fDw;  /**< values of window function gradient at the current field point: [nsd] x [nnd] */
 	dArray2DT fDDw; /**< second gradient of window functions at the current field point: [nstr] x [nnd] */
-	dArray2DT fDDDw; /**< third gradient of window functions at the current field point: [nstr] x [nnd] */
-						//[nstr] should change for third derivative?? KY
+	dArray2DT fDDDw; /**< third gradient of window functions at the current field point: [nsd*nsd] x [nnd] */
+						//kyonten
 	
 	/* correction function coefficients */
 	dArrayT fb;           /**< correction function coefficients at the current field point: [nbasis] */
 	ArrayT<dArrayT> fDb;  /**< gradient of correction function coefficients: [nsd] x [nbasis] */
 	ArrayT<dArrayT> fDDb; /**< second gradient of correction function coefficient: [nstr] x [nbasis] */
-	ArrayT<dArrayT> fDDDb; /**< third gradient of correction function coefficient: [nstr] x [nbasis] */
-							//[nstr] should change for third derivative?? KY
+	ArrayT<dArrayT> fDDDb; /**< third gradient of correction function coefficient: [nsd*nsd] x [nbasis] */
+							//kyonten
 	
 	/* inverse of moment matrix */
 	dMatrixT fMinv;        /**< moment matrix at the current field point: [nbasis] x [nbasis] */
 	ArrayT<dMatrixT> fDM;  /**< gradient of moment matrix: [nsd] x [nbasis] x [nbasis] */
 	ArrayT<dMatrixT> fDDM; /**< second gradient of moment matrix: [nstr] x [nbasis] x [nbasis] */
-	ArrayT<dMatrixT> fDDDM; /**< third gradient of moment matrix: [nstr] x [nbasis] x [nbasis] */
-								//[nstr] should change for third derivative?? KY
+	ArrayT<dMatrixT> fDDDM; /**< third gradient of moment matrix: [nsd*nsd] x [nbasis] x [nbasis] */
+								//kyonten
 	/* correction function */
 	dArrayT   fC;   /**< correction function at the current field point: [nnd] */
 	dArray2DT fDC;  /**< gradient of the correction function: [nsd] x [nnd] */
 	dArray2DT fDDC; /**< second gradient of the correction function: [nstr] x [nnd] */
-	dArray2DT fDDDC; /**< third gradient of the correction function: [nstr] x [nnd] */
-						//[nstr] should change for third derivative?? KY
+	dArray2DT fDDDC; /**< third gradient of the correction function: [nsd*nsd] x [nnd] */
+						//kyonten
 	
 	/* return values of all nodes at field pt */
 	dArrayT   fphi;   /**< nodal shape functions at the current field point: [nnd] */
 	dArray2DT fDphi;  /**< nodal shape function gradients at the current field point: [nsd] x [nnd] */
 	dArray2DT fDDphi; /**< second gradient of nodal shape functions: [nstr] x [nnd] */
-	dArray2DT fDDDphi; /**< third gradient of nodal shape functions: [nstr] x [nnd] */
-						//[nstr] should change for third derivative?? KY
+	dArray2DT fDDDphi; /**< third gradient of nodal shape functions: [nsd*nsd] x [nnd] */
+						//kyonten
 	
 	/* variable memory managers */
 	nArrayGroupT<double>   fArrayGroup;    /**< variable memory manager for arrays length [nnd] */
 	nArray2DGroupT<double> fArray2DGroup2; /**< variable memory manager for 2D arrays length [nsd] x [nnd] */
 	nArray2DGroupT<double> fArray2DGroup3; /**< variable memory manager for 2D arrays length [nstr] x [nnd]	*/
-	nArray2DGroupT<double> fArray2DGroup4; /**< variable memory manager for 2D arrays length [nstr] x [nnd]	*/
+	nArray2DGroupT<double> fArray2DGroup4; /**< variable memory manager for 2D arrays length [nsd*nsd] x [nnd]	*/
 	nVariArray2DT<double>  fLocCoords_man; /**< variable memory manager for local coordinates array */
 
 private:
@@ -284,18 +290,9 @@ inline const dArray2DT& MLSSolverT::DDDC(void) const { return fDDDC; }// kyonten
 
 /* correction function coefficients */
 inline const dArrayT& MLSSolverT::b(void) const { return fb; }
-inline const dArrayT& MLSSolverT::Db(int component) const
-{
-	return fDb[component];
-}
-inline const dArrayT& MLSSolverT::DDb(int component) const
-{
-	return fDDb[component];
-}
-inline const dArrayT& MLSSolverT::DDDb(int component) const // kyonten
-{
-	return fDDDb[component];
-}
+inline const dArrayT& MLSSolverT::Db(int component) const{ return fDb[component];}
+inline const dArrayT& MLSSolverT::DDb(int component) const{	return fDDb[component];}
+inline const dArrayT& MLSSolverT::DDDb(int component) const{ return fDDDb[component];} //kyonten
 
 } // namespace Tahoe 
 #endif /* _MLS_SOLVER_T_H_ */
