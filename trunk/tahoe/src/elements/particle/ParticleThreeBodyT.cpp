@@ -1,4 +1,4 @@
-/* $Id: ParticleThreeBodyT.cpp,v 1.1 2004-11-23 01:43:15 cjkimme Exp $ */
+/* $Id: ParticleThreeBodyT.cpp,v 1.2 2004-12-01 02:19:32 cjkimme Exp $ */
 #include "ParticleThreeBodyT.h"
 
 #include "ThreeBodyPropertyT.h"
@@ -999,6 +999,7 @@ void ParticleThreeBodyT::RHSDriver3D(void)
 				{
 					if (!fThreeBodyProperties[property]->getParadynTable(&Paradyn_table, dr, row_size, num_rows))
 						force_function = fThreeBodyProperties[property]->getForceFunction();
+					force_function_3body = fThreeBodyProperties[property]->getThreeBodyForceFunction();
 					current_property = property;
 				}
 			
@@ -1038,7 +1039,7 @@ void ParticleThreeBodyT::RHSDriver3D(void)
 				f_j[2] +=-r_ij_2;
 				
 				// additional loop over neighbors for 3-body terms
-				for (int k = 1; k < neighbors.Length(); j++)
+				for (int k = 1; k < neighbors.Length(); k++)
 				{
 					/* global tag */
 					int   tag_k = neighbors[k];
@@ -1046,14 +1047,6 @@ void ParticleThreeBodyT::RHSDriver3D(void)
 						int  type_k = fType[tag_k];
 						double* f_k = fForce(tag_k);
 						const double* x_k = coords(tag_k);
-
-						/* set pair property (if not already set) */
-						int property = fPropertiesMap(type_i, type_j);
-						if (property != current_property)
-						{
-							force_function_3body = fThreeBodyProperties[property]->getThreeBodyForceFunction();
-							current_property = property;
-						}
 					
 						/* connecting vector */
 						double r_ik[3];
@@ -1174,7 +1167,7 @@ void ParticleThreeBodyT::ExtractProperties(const ParameterListT& list, const Arr
 		properties_map(index_1, index_2) = properties_map(index_2, index_1) = i; /* symmetric */
 		
 		/* read property */
-		const ParameterListT& property = interaction.GetListChoice(*this, "pair_property_choice");
+		const ParameterListT& property = interaction.GetListChoice(*this, "three_body_property_choice");
 		ThreeBodyPropertyT* three_body_prop = ThreeBodyPropertyT::New(property.Name(), &(ElementSupport()));
 		if (!three_body_prop) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", property.Name().Pointer());
 		three_body_prop->TakeParameterList(property);
