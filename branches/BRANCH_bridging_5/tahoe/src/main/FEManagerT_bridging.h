@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.11.4.10 2004-04-17 04:47:10 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.11.4.11 2004-04-19 03:31:10 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -168,8 +168,14 @@ public:
 	
 	/** \name bond density corrections */
 	/*@{*/
-	/** compute internal correction for the overlap region */
-	void CorrectOverlap(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2);
+	/** compute internal correction for the overlap region accounting for ghost node bonds
+	 * extending into the coarse scale region */
+	void CorrectOverlap_ghost(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2);
+
+	/** compute internal correction for the overlap region accounting for ghost node bonds
+	 * extending into the coarse scale region and elements which are partially filled with
+	 * crystal */
+	void CorrectOverlap_all(const RaggedArray2DT<int>& neighbors, const dArray2DT& coords, double smoothing, double k2);
 
 	/** enforce zero bond density in projected cells */
 	void DeactivateFollowerCells(void);
@@ -207,8 +213,13 @@ protected:
 
 	/** \name method needed to correct atomistic/continuum overlap */
 	/*@{*/
-	/** collect nodes and cells in the overlap region */
-	void CollectOverlapRegion(iArrayT& overlap_cell, iArrayT& overlap_node) const;
+	/** collect nodes and cells in the overlap region. This method collects only free
+	 * nodes with ghost atoms in their supports. */
+	void CollectOverlapRegion_free(iArrayT& overlap_cell, iArrayT& overlap_node) const;
+
+	/** collect nodes and cells in the overlap region. This method collects all nodes
+	 * with ghost nodes in their supports, including both free and projected nodes. */
+	void CollectOverlapRegion_all(iArrayT& overlap_cell, iArrayT& overlap_node) const;
 
 	/** collect bonds between real points and follower points */
 	void GhostNodeBonds(const RaggedArray2DT<int>& neighbors, RaggedArray2DT<int>& ghost_neighbors, 
@@ -219,15 +230,20 @@ protected:
 	 * \param ghost_neighbors neighbor list containing only bond from free points to
 	 *        follower points. The follower points only appear in the neighbor lists of the
 	 *        free points. The followers do not have neighbors in this list.
-	 * \param coords global coordinates of all points
+	 * \param point_coords global coordinates of all points
 	 * \param overlap_node_map map of global node number to index in sum_R_N for nodes in the
 	 *        overlap region
 	 * \param sum_R_N returns with the bond contribution to all the nodes in the overlap region
 	 * \param overlap_cell_i list of cells containing bonds to ghost nodes
+	 * \param overlap_atom_i list of atoms with bonds to ghost nodes
 	 */
 	void ComputeSum_signR_Na(const dArrayT& R_i, const RaggedArray2DT<int>& ghost_neighbors, 
-		const dArray2DT& coords, const InverseMapT& overlap_node_map, dArrayT& sum_R_N,
+		const dArray2DT& point_coords, const InverseMapT& overlap_node_map, dArrayT& sum_R_N,
 		AutoArrayT<int>& overlap_cell_i) const;
+
+	void ComputeSum_signR_Na(const dArrayT& R_i, const RaggedArray2DT<int>& ghost_neighbors, 
+		const dArray2DT& point_coords, const InverseMapT& overlap_node_map, dArrayT& sum_R_N,
+		AutoArrayT<int>& overlap_cell_i, AutoArrayT<double>& sum_R, AutoArrayT<int>& overlap_atom_i) const;
 
 	/** compute Cauchy-Born contribution to the nodal internal force
 	 * \param R bond vector
@@ -237,14 +253,14 @@ protected:
 	 * \param overlap_node_map map of global node number to index in sum_R_N for nodes in the
 	 *        overlap region
 	 */
-#if 0
-	void Compute_df_dp(const dArrayT& R, double V_0, const ContinuumElementT& coarse, 
-		const ArrayT<int>& overlap_cell, const InverseMapT& overlap_node_map, const dArray2DT& rho, 
-		dArrayT& f_a, double smoothing, double k2, dArray2DT& df_dp, dArray2DT& ddf_dpdp) const;
-#endif
 	void Compute_df_dp(const dArrayT& R, double V_0, const ContinuumElementT& coarse, 
 		const ArrayT<int>& overlap_cell, const InverseMapT& overlap_node_map, const dArray2DT& rho, 
 		dArrayT& f_a, double smoothing, double k2, dArray2DT& df_dp, LAdMatrixT& ddf_dpdp) const;
+
+	void Compute_df_dp_all(const dArrayT& R, double V_0, const ContinuumElementT& coarse, 
+		const ArrayT<int>& overlap_cell, const ArrayT<int>& overlap_node, const InverseMapT& overlap_node_map,
+		const dArray2DT& rho, dArrayT& f_a, const ArrayT<int>& overlap_atom, const InverseMapT& overlap_atom_map,
+		ArrayT<double>& f_alpha, double smoothing, double k2, dArray2DT& df_dp, LAdMatrixT& ddf_dpdp) const;
 	/*@}*/
 
 private:
