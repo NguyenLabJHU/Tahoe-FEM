@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.25.14.1 2004-04-08 07:33:49 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.25.14.2 2004-05-22 01:17:37 paklein Exp $ */
 #include "FieldT.h"
 
 #include "fstreamT.h"
@@ -791,20 +791,17 @@ void FieldT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& ord
 	{
 		order = ParameterListT::Choice;
 		
-		/* K-field */
-		sub_sub_list.AddSub("K_field");	
-
-		/* torsion */
+		/* choices - KBC_ControllerT::Code must translate names */
+		sub_sub_list.AddSub("K-field");	
+		sub_sub_list.AddSub("bi-material_K-field");	
 		sub_sub_list.AddSub("torsion");	
-
-		/* mapped nodes */
-		sub_sub_list.AddSub("mapped_nodes");	
+		sub_sub_list.AddSub("mapped_nodes");
 	}
 	else if (sub == "FBC_controllers")
 	{
 		order = ParameterListT::Choice;
 		
-		/* choices */
+		/* choices - FBC_controllers::Code must translate names */
 		sub_sub_list.AddSub("sphere_penalty");
 		sub_sub_list.AddSub("sphere_augmented_Lagrangian");
 		sub_sub_list.AddSub("sphere_penalty_meshfree");

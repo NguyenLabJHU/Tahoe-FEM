@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.18.2.4 2004-05-21 21:25:57 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.18.2.5 2004-05-22 01:17:38 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 #include "K_FieldT.h"
 
@@ -44,31 +44,13 @@ K_FieldT::K_FieldT(NodeManagerT& node_manager):
 	fGroupNumber(-1),
 	fMaterialNumber(-1)
 {
-	SetName("K_field");
+	SetName("K-field");
 }
 
 void K_FieldT::InitialCondition(void)
 {
 	/* set initial crack tip position */
 	fTipCoords = fInitTipCoords;
-
-	/* resolve elastic constants */
-	if (fmu < 0.0 && fGroupNumber > -1) 
-	{
-		/* resolve material and isotropy information */
-		const IsotropicT* iso = NULL;
-		const SolidMaterialT* mat = NULL;
-		ResolveMaterialReference(fGroupNumber, fMaterialNumber, &iso, &mat);
-			
-		/* compute elastic constants */
-		fmu = iso->Mu();
-		fnu = iso->Poisson();	
-		fkappa = 3.0 - 4.0*fnu;
-		if (fNodeManager.NumSD() == 2 && mat->Constraint() == SolidMaterialT::kPlaneStress)
-			fkappa = (3.0 - fnu)/(1.0 + fnu);
-	}
-	else
-		ExceptionT::GeneralFail("K_FieldT::InitialCondition", "elastic constants not resolved");	
 
 	/* set displacement factors */
 	ComputeDisplacementFactors(fTipCoords);
@@ -365,39 +347,7 @@ void K_FieldT::TakeParameterList(const ParameterListT& list)
 	fGrowthDirection.UnitVector();
 
 	/* resolve elastic properties */
-	const ParameterListT* elastic = list.ResolveListChoice(*this, "elastic_properties_choice");
-	if (elastic)
-	{
-		if (elastic->Name() == "far_field_element_group") 
-		{
-#ifndef CONTINUUM_ELEMENT
-			ExceptionT::BadInputValue(caller, "\"%s\" requires CONTINUUM_ELEMENT", elastic->Name().Pointer());
-#endif
-			/* extract element group information - the group won't be available until later */
-			fGroupNumber = elastic->GetParameter("group_number"); fGroupNumber--;
-			fMaterialNumber = elastic->GetParameter("material_number"); fMaterialNumber--;
-		}
-		else if (elastic->Name() == "far_field_elastic_properties")
-		{
-			IsotropicT iso;
-			iso.TakeParameterList(elastic->GetList("isotropic"));
-			fmu = iso.Mu();
-			fnu = iso.Poisson();	
-			fkappa = 3.0 - 4.0*fnu;
-			int constraint = elastic->GetParameter("constraint_2D");
-			if (constraint == SolidMaterialT::kPlaneStress)
-				fkappa = (3.0 - fnu)/(1.0 + fnu);
-		}
-		else
-			ExceptionT::GeneralFail(caller, "unrecognized properties choice \"%s\"",
-				elastic->Name().Pointer());
-	}
-	else
-		ExceptionT::GeneralFail(caller, "could not resolve choice \"elastic_properties_choice\"");
-
-	/* nodes */
-	StringListT::Extract(list.GetList("node_ID_list"),  fID_List);	
-	GetNodes(fID_List, fNodes);
+	ResolveElasticProperties(list, fGroupNumber, fMaterialNumber, fmu, fnu, fkappa);
 
 	/* tip tracking */
 	const ParameterListT* tracking = list.List("tip_tracking");
@@ -435,6 +385,13 @@ void K_FieldT::TakeParameterList(const ParameterListT& list)
 		else
 			ExceptionT::GeneralFail(caller, "expecting \"tip_tracking_method\" in \"%s\"",
 				tracking->Name().Pointer());
+	}
+
+	/* nodes */
+	const ParameterListT* nodes = list.List("node_ID_list");
+	if (nodes) {
+		StringListT::Extract(*nodes,  fID_List);	
+		GetNodes(fID_List, fNodes);
 	}
 
 	/* generate BC cards */
@@ -478,6 +435,48 @@ void K_FieldT::TakeParameterList(const ParameterListT& list)
 	out << tmp.wrap(6) << '\n';
 	tmp--;
 #endif
+}
+
+/* extract elastic constants */
+void K_FieldT::ResolveElasticProperties(const ParameterListT& list,
+	int& group_number, int& material_number, double& mu, double& nu, double& kappa) const
+{
+	const char caller[] = "K_FieldT::ResolveElasticProperties";
+	
+	const ParameterListT* elastic = list.ResolveListChoice(*this, "elastic_properties_choice");
+	if (elastic)
+	{
+		if (elastic->Name() == "far_field_element_group") 
+		{
+#ifndef CONTINUUM_ELEMENT
+			ExceptionT::BadInputValue(caller, "\"%s\" requires CONTINUUM_ELEMENT", elastic->Name().Pointer());
+#endif
+			/* extract element group information - the group won't be available until later */
+			group_number = elastic->GetParameter("group_number"); group_number--;
+			material_number = elastic->GetParameter("material_number"); material_number--;
+		}
+		else if (elastic->Name() == "far_field_elastic_properties")
+		{
+			IsotropicT iso;
+			iso.TakeParameterList(elastic->GetList("isotropic"));
+			mu = iso.Mu();
+			nu = iso.Poisson();	
+			kappa = 3.0 - 4.0*nu;
+			int constraint = elastic->GetParameter("constraint_2D");
+			if (constraint == SolidMaterialT::kPlaneStress)
+				kappa = (3.0 - nu)/(1.0 + nu);
+		}
+		else
+			ExceptionT::GeneralFail(caller, "unrecognized properties choice \"%s\"",
+				elastic->Name().Pointer());
+	}
+	else {
+		group_number = -1;
+		material_number = -1;
+		mu = -1.0;
+		nu = -1.0;
+		kappa = -1.0;
+	}
 }
 
 /**********************************************************************
@@ -603,6 +602,24 @@ void K_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 	/* (initial) nodal coordinates */
 	int nsd = fNodeManager.NumSD();
 	const dArray2DT& init_coords = fNodeManager.InitialCoordinates();
+
+	/* resolve elastic constants */
+	if (fmu < 0.0 && fGroupNumber > -1) 
+	{
+		/* resolve material and isotropy information */
+		const IsotropicT* iso = NULL;
+		const SolidMaterialT* mat = NULL;
+		ResolveMaterialReference(fGroupNumber, fMaterialNumber, &iso, &mat);
+			
+		/* compute elastic constants */
+		fmu = iso->Mu();
+		fnu = iso->Poisson();	
+		fkappa = 3.0 - 4.0*fnu;
+		if (fNodeManager.NumSD() == 2 && mat->Constraint() == SolidMaterialT::kPlaneStress)
+			fkappa = (3.0 - fnu)/(1.0 + fnu);
+	}
+	else
+		ExceptionT::GeneralFail("K_FieldT::ComputeDisplacementFactors", "elastic constants not resolved");	
 
 	/* compute K-field displacement factors (Andersen Table 2.2): */
 	dArrayT coords;
