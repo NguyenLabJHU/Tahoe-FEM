@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.50 2004-07-27 20:05:45 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.51 2004-07-27 21:12:43 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -1203,26 +1203,26 @@ void APS_AssemblyT::TakeParameterList(const ParameterListT& list)
 	fSideSetID[4] = list.GetParameter("fSideSetID[4]");
 	fPlasticGradientWght[4] = list.GetParameter("fPlasticGradientWght[4]");
 
- Ê Êint n_en_surf=0;
- Ê ÊArrayT<GeometryT::CodeT> facet_geom;
- Ê ÊiArrayT facet_nodes;
- Ê Êfor (int i = 0; i < num_sidesets; i++)
- Ê Ê{
- Ê Ê Ê Ê// get nodes-on-faces
- Ê Ê Ê Êmodel.SideSet(fSideSetID[i], facet_geom, facet_nodes, fPlasticGradientFaces[i]);
- Ê Ê Ê Ê// get number of facet nodes, assuming each facet has an equal number
- Ê Ê Ê Ên_en_surf=facet_nodes[0];
- Ê Ê Ê Ê
- Ê Ê Ê Ê// get the side set information {element, face number} for each
- Ê Ê Ê Ê// face in the set
- Ê Ê Ê Êconst iArray2DT& side_set = model.SideSet(fSideSetID[i]);
- Ê Ê Ê Ê
- Ê Ê Ê Ê// get side set elements - element numbers in zeroth column
- Ê Ê Ê ÊfSideSetElements[i].Dimension(side_set.MajorDim());
- Ê Ê Ê ÊfSideSetFaces[i].Dimension(side_set.MajorDim());
- Ê Ê Ê Êside_set.ColumnCopy(0, fSideSetElements[i]);
- Ê Ê Ê Êside_set.ColumnCopy(1, fSideSetFaces[i]);
- Ê Ê}
+	int n_en_surf=0;
+	ArrayT<GeometryT::CodeT> facet_geom;
+	iArrayT facet_nodes;
+	for (int i = 0; i < num_sidesets; i++)
+	{
+		// get nodes-on-faces
+		model.SideSet(fSideSetID[i], facet_geom, facet_nodes, fPlasticGradientFaces[i]);
+		// get number of facet nodes, assuming each facet has an equal number
+		n_en_surf=facet_nodes[0];
+
+		// get the side set information {element, face number} for each
+		// face in the set
+		const iArray2DT& side_set = model.SideSet(fSideSetID[i]);
+
+		// get side set elements - element numbers in zeroth column
+		fSideSetElements[i].Dimension(side_set.MajorDim());
+		fSideSetFaces[i].Dimension(side_set.MajorDim());
+		side_set.ColumnCopy(0, fSideSetElements[i]);
+		side_set.ColumnCopy(1, fSideSetFaces[i]);
+	}
 	
 	Echo_Input_Data();
 
