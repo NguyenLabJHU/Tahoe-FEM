@@ -1,4 +1,4 @@
-/* $Id: zArrayT.h,v 1.3 2001-02-01 18:22:29 paklein Exp $ */
+/* $Id: zArrayT.h,v 1.4 2001-06-20 23:38:01 pecore Exp $ */
 /* created: PAK/AFLP (05/19/1997)                                         */
 
 #ifndef _ZARRAY_T_H_
@@ -21,7 +21,7 @@ public:
 	 * Constructors
 	 */
 	zArrayT(void);
-	zArrayT(int length);
+	explicit zArrayT(int length);
 	zArrayT(int length, ComplexT* p);
 	zArrayT(const dArrayT& re, const dArrayT& im);
 	zArrayT(const zArrayT& source);

@@ -1,4 +1,4 @@
-/* $Id: zMatrixT.h,v 1.3 2001-02-01 18:22:29 paklein Exp $ */
+/* $Id: zMatrixT.h,v 1.4 2001-06-20 23:39:30 pecore Exp $ */
 /* created: paklein (05/19/1997)                                          */
 /* 2 dimensional matrix mathematics object.                               */
 
@@ -23,7 +23,7 @@ public:
 	 */
 	zMatrixT(void);
 	zMatrixT(int numrows, int numcols);
-	zMatrixT(int squaredim);
+	explicit zMatrixT(int squaredim);
 	zMatrixT(int numrows, int numcols, ComplexT* p);
 	zMatrixT(const dMatrixT& re, const dMatrixT& im);
 	zMatrixT(const zMatrixT& source);
