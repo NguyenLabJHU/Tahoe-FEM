@@ -1,4 +1,4 @@
-/* $Id: premovea.c,v 1.2 2004-12-30 00:14:29 paklein Exp $ */
+/* $Id: premovea.c,v 1.3 2004-12-30 00:15:46 paklein Exp $ */
 /* premovea.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -60,7 +60,7 @@ static integer c__0 = 0;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: premovea.c,v 1.2 2004-12-30 00:14:29 paklein Exp $ +/ */
+/* /+ $Id: premovea.c,v 1.3 2004-12-30 00:15:46 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 static int max(int a, int b) {
 	return (a > b) ? a : b;
@@ -413,8 +413,14 @@ static integer lbit_shift(integer a, integer b) {
 /*<       end do >*/
     }
 /*<    >*/
-    mpi_allgatherv__(order, mynnodes, &c__11, gorder, wrkint, rowdist, &c__11,
-	     comm, &ierr);
+/*      call mpi_allgatherv(order,mynnodes,MPI_INTEGER,
+     +                    gorder,wrkint,rowdist,MPI_INTEGER,
+     +                    comm,ierr) */
+/*    mpi_allgatherv__(order, mynnodes, &c__11, gorder, wrkint, rowdist, &c__11,
+	     comm, &ierr); */
+	MPI_Allgatherv(order, mynnodes, MPI_INT, 
+	              gorder, wrkint, rowdist, MPI_INT, *comm);
+	     	     
 /*<       do i=0,N-1 >*/
     i__1 = *n - 1;
     for (i__ = 0; i__ <= i__1; ++i__) {
@@ -589,7 +595,7 @@ static integer lbit_shift(integer a, integer b) {
 		printf("%d: Cannot solve this problem on %d processors\n", *myid);
 		printf("%d: Reason: Zero size partition encountered. Probably the\n", *myid);
 		printf("%d: matrix is too small, or it has a block that is too dense\n", *myid);
-		prtinf("%d: to form required number of partitions\n", *myid);
+		printf("%d: to form required number of partitions\n", *myid);
 	    }
 /*<           call mpi_barrier(comm,ierr) >*/
 /*	    mpi_barrier__(comm, &ierr); */
