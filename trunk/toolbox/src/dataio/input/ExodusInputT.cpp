@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.cpp,v 1.5 2001-12-16 23:53:45 paklein Exp $ */
+/* $Id: ExodusInputT.cpp,v 1.6 2002-01-03 01:26:33 paklein Exp $ */
 /* created: sawimme (12/04/1998) */
 
 #include "ExodusInputT.h"
@@ -39,7 +39,7 @@ void ExodusInputT::SideSetNames (ArrayT<StringT>& sidenames) const
 
 void ExodusInputT::NodeSetNames (ArrayT<StringT>& nodenames) const
 {
-  if (nodenames.Length() != NumSideSets ()) throw eSizeMismatch;
+  if (nodenames.Length() != NumNodeSets ()) throw eSizeMismatch;
   iArrayT nodenums (nodenames.Length());
   fData.NodeSetID (nodenums);
   for (int i=0; i < nodenames.Length(); i++)
