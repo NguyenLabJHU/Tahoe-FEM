@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.20 2002-12-17 08:56:37 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.20.2.1 2003-02-13 05:23:30 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #include "NLSolver.h"
@@ -304,6 +304,8 @@ NLSolver::SolutionStatusT NLSolver::Relax(int newtancount)
 * iteration re-entered with the next Step() call */
 NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 {
+	int d_width = cout.precision() + kDoubleExtra;
+
 	/* iteration count */
 	++fNumIteration;
 
@@ -341,13 +343,14 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 	/* iteration limit hit */
 	else if (fNumIteration > fMaxIterations)
 	{
+		cout << setw(kIntWidth) << fNumIteration 
+		     << ": Relative error = " << setw(d_width) << error/fError0 << '\n';	
 		cout << "\n NLSolver::ExitIteration: max iterations hit" << endl;
 		status = kFailed;
 	}
 	/* interpret error */
 	else
 	{
-		int d_width = cout.precision() + kDoubleExtra;
 		double relerror = error/fError0;
 		if (fVerbose) cout << setw(kIntWidth) << fNumIteration 
 		                   << ": Relative error = "
@@ -363,10 +366,8 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 		else if (relerror < fTolerance || error < fZeroTolerance)
 		{
 			if (!fVerbose)
-			{
-				cout << setw(kIntWidth) << fNumIteration;
-				cout << setw(d_width)   << relerror << '\n';
-			}
+				cout << setw(kIntWidth) << fNumIteration  << ": Relative error = " 
+				     << setw(d_width) << relerror << '\n';
 	
 			fFEManager.Output() << "\n Converged at time = " << fFEManager.Time() << endl;
 			status = kConverged;
