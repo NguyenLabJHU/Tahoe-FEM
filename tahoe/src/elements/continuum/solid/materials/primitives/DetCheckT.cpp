@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.41 2005-03-09 19:25:48 raregue Exp $ */
+/* $Id: DetCheckT.cpp,v 1.42 2005-03-10 23:47:22 raregue Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -560,6 +560,9 @@ bool DetCheckT::DetCheck3D_SS(AutoArrayT <dArrayT> &normals,
 			if (realev[1] < eigVal) eigVal = realev[1];
 			if (realev[2] < eigVal) eigVal = realev[2];
 			A.eigenvector3x3(A, eigVal, numev, slipdir, altnormal_i, altnormal_ii);
+			// make sure angle between normal and slipdir is acute
+			double nm = dArrayT::Dot(normal_curr, slipdir);
+			if (nm < 0.0) slipdir.SetToScaled(-1.0,slipdir);
 			slipdirs.Append(slipdir);
 			normal_out << setw(outputFileWidth) <<  slipdir[0] << setw(outputFileWidth) << slipdir[1] 
 					<< setw(outputFileWidth) << slipdir[2];
