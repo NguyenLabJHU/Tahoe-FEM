@@ -1,4 +1,4 @@
-/* $Id: GeometryBaseT.cpp,v 1.4 2003-11-10 22:14:29 cjkimme Exp $ */
+/* $Id: GeometryBaseT.cpp,v 1.5 2004-02-28 21:52:26 paklein Exp $ */
 /* created: paklein (10/21/1997) */
 #include "GeometryBaseT.h"
 #include "ExceptionT.h"
@@ -22,9 +22,14 @@ GeometryBaseT::~GeometryBaseT(void) { }
 void GeometryBaseT::BubbleModeGradients(ArrayT<dArray2DT>& Na_x) const
 {
 #pragma unused(Na_x)
+	ExceptionT::GeneralFail("GeometryBaseT::BubbleModeGradients", "no bubble modes for geometry %d", int(Geometry()));
+}
 
-	cout << "\n GeometryBaseT::BubbleModeGradients: geometry does not have bubble modes\n" 
-	     <<   "     Derived classes must override to define bubble mode derivatives" 
-	     << endl;
-	throw ExceptionT::kGeneralFail;
+/* return true if the given point is within the domain defined by */
+bool GeometryBaseT::PointInDomain(const LocalArrayT& coords, const dArrayT& point) const
+{
+#pragma unused(coords)
+#pragma unused(point)
+	ExceptionT::GeneralFail("GeometryBaseT::PointInDomain", "not implemented for geometry %d", int(Geometry()));
+	return false;
 }

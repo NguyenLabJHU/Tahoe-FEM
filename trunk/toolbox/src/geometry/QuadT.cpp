@@ -1,6 +1,5 @@
-/* $Id: QuadT.cpp,v 1.5 2003-10-15 23:54:36 paklein Exp $ */
+/* $Id: QuadT.cpp,v 1.6 2004-02-28 21:52:26 paklein Exp $ */
 /* created: paklein (07/03/1996) */
-
 #include "QuadT.h"
 #include <math.h>
 #include "ExceptionT.h"
@@ -9,6 +8,7 @@
 #include "iArray2DT.h"
 #include "dArray2DT.h"
 #include "dMatrixT.h"
+#include "LocalArrayT.h"
 
 using namespace Tahoe;
 
@@ -234,6 +234,8 @@ void QuadT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT
 void QuadT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 	dArrayT& weights) const
 {
+	const char caller[] = "QuadT::SetLocalShape";
+
 	/* dimensions */
 	int numnodes  = Na.MinorDim();
 	int numint    = weights.Length();
@@ -241,28 +243,20 @@ void QuadT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 
 	/* dimension checks */
 	if (numnodes < 4 || numnodes >9)
-	{
-		cout << "\n QuadT::SetLocalShape: unsupported number of element nodes: "
-		     << numnodes << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "unsupported number of element nodes: %d", numnodes);
+
 	if (numint != 1 &&
 	    numint != 4 &&
 	    numint != 5 &&
 	    numint != 9 &&
 	    numint != 16)
-	{
-		cout << "\n QuadT::SetLocalShape: unsupported number of integration points: "
-		     << numint << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-	if(numnodes == 9 && (numint !=4 && numint != 9))
-	{
-	    cout << "\n QuadT::SetLocalShape: The requested number of integration points is not supported by quadratic Lagrange element." << endl;
-	    throw ExceptionT::kGeneralFail;
-	} 
+		ExceptionT::GeneralFail(caller, "unsupported number of integration points: %d", numint);
+
+	if (numnodes == 9 && (numint !=4 && numint != 9))
+		ExceptionT::GeneralFail(caller, "number of integration points is not supported by quadratic Lagrange element: %d", numint);
+
 	
-	if (nsd != kQuadnsd) throw ExceptionT::kGeneralFail;
+	if (nsd != kQuadnsd) ExceptionT::GeneralFail(caller);
 
 	/* initialize */
 	Na = 0.0;
@@ -371,7 +365,7 @@ void QuadT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 		}	
 		default:
 		
-			throw ExceptionT::kGeneralFail;
+			ExceptionT::GeneralFail(caller);
 	}
 
 	/* evaluate shape functions at integration points */
@@ -393,14 +387,12 @@ void QuadT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 /* compute gradients of the "bubble" modes */
 void QuadT::BubbleModeGradients(ArrayT<dArray2DT>& Na_x) const
 {
+	const char caller[] = "QuadT::BubbleModeGradients";
+
 	/* limit integration rules */
 	int nip = Na_x.Length();
 	if (nip != 4 && nip != 5)
-	{
-		cout << "\n QuadT::BubbleModeGradients: only 4 or 5 point rules defined: "
-		     << nip << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "only 4 or 5 point rules defined: %d", nip);
 
 	/* integration rules */
 	double ra[5] = {-1.0, 1.0, 1.0,-1.0, 0.0};
@@ -412,10 +404,8 @@ void QuadT::BubbleModeGradients(ArrayT<dArray2DT>& Na_x) const
 	{
 		dArray2DT& na_x = Na_x[i];
 		if (na_x.MajorDim() != 2 || na_x.MinorDim() != 2)
-		{
-			cout << "\n QuadT::BubbleModeGradients: gradients array must be 2x2" << endl;
-			throw ExceptionT::kGeneralFail;
-		}
+			ExceptionT::GeneralFail(caller, "gradients array must be 2x2: %dx%d",
+				na_x.MajorDim(), na_x.MinorDim());
 
 		/* integration point coordinates */
 		double r = g*ra[i];
@@ -434,18 +424,17 @@ void QuadT::BubbleModeGradients(ArrayT<dArray2DT>& Na_x) const
 /* set the values of the nodal extrapolation matrix */
 void QuadT::SetExtrapolation(dMatrixT& extrap) const
 {
+	const char caller[] = "QuadT::SetExtrapolation";
+
 	/* dimensions */
 	int numnodes = extrap.Rows();
 	int numint   = extrap.Cols();
 
 	/* dimension checks */
-	if (numnodes < 4 || numnodes > 9) throw ExceptionT::kGeneralFail;
+	if (numnodes < 4 || numnodes > 9) ExceptionT::GeneralFail(caller);
     
 	if(numnodes == 9 && (numint !=4 && numint != 9))
-	{
-	    cout << "\n QuadT::SetExtrapolation: The requested number of integration points is not supported by quadratic Lagrange element." << endl;
-	    throw ExceptionT::kGeneralFail;
-	} 
+		ExceptionT::GeneralFail(caller, "requested number of integration points is not supported by quadratic Lagrange element: %d", numint);
 	
 	/* initialize */
 	extrap = 0.0;
@@ -635,10 +624,8 @@ void QuadT::SetExtrapolation(dMatrixT& extrap) const
 				smooth.CopyBlock(0, 0, extrap);
 			break;
 		}
-		default:
-		
-			cout << "\n QuadT::SetExtrapolation: no nodal extrapolation with Gauss rule: ";
-			cout << numint << endl;			
+		default:		
+			ExceptionT::GeneralFail(caller, "no nodal extrapolation with Gauss rule: %d", numint);
 	}
 }
 
@@ -648,14 +635,12 @@ void QuadT::SetExtrapolation(dMatrixT& extrap) const
 void QuadT::NodesOnFacet(int facet, iArrayT& facetnodes) const
 {
 // TEMP: not implemented with midside nodes
+	const char caller[] = "QuadT::NodesOnFacet";
 	if (fNumNodes != 4 && fNumNodes != 8 && fNumNodes != 9)
-	{
-		cout << "\n QuadT::NodesOnFacet: only implemented for 4, 8, and 9 element nodes" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "only implemented for 4, 8, and 9 element nodes: %d", fNumNodes);
 
 #if __option(extended_errorcheck)
-	if (facet < 0 || facet > 3) throw ExceptionT::kOutOfRange;
+	if (facet < 0 || facet > 3) ExceptionT::OutOfRange(caller);
 #endif
 
 	/* nodes-facet data */
@@ -677,10 +662,7 @@ void QuadT::NumNodesOnFacets(iArrayT& num_nodes) const
 {
 // TEMP: not implemented with midside nodes
 	if (fNumNodes != 4 && fNumNodes != 8 && fNumNodes != 9)
-	{
-		cout << "\n QuadT::NumNodesOnFacet: only implemented for 4, 8, and 9 element nodes" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("QuadT::NumNodesOnFacet", "only implemented for 4, 8, and 9 element nodes: %d", fNumNodes);
 
 	num_nodes.Dimension(4);
 	if (fNumNodes == 4)
@@ -711,4 +693,30 @@ void QuadT::FacetGeometry(ArrayT<CodeT>& facet_geom, iArrayT& facet_nodes) const
 		facet_nodes[i] = 3;*/
 	if (fNumNodes==8||fNumNodes==9)
 	    facet_nodes=3;
+}
+
+/* return true if the given point is within the domain */
+bool QuadT::PointInDomain(const LocalArrayT& coords, const dArrayT& point) const
+{
+	/* method: run around the perimeter of the element and see if
+	 *         the point always lies to the left of segment a-b */
+	int nen = coords.NumberOfNodes();
+	int a = nen - 1;
+	int b = 0;
+	bool in_domain = true;
+	for (int i = 0; in_domain && i < nen; i++)
+	{
+		double ab_0 = coords(b,0) - coords(a,0);
+		double ab_1 = coords(b,1) - coords(a,1);
+
+		double ap_0 = point[0] - coords(a,0);
+		double ap_1 = point[1] - coords(a,1);
+		
+		double cross = ab_0*ap_1 - ab_1*ap_0;
+		in_domain = cross >= 0.0;
+		a++; 
+		b++;
+		if (a == nen) a = 0;
+	}
+	return in_domain;
 }

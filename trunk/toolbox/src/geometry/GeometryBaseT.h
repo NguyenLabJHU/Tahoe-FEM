@@ -1,4 +1,4 @@
-/* $Id: GeometryBaseT.h,v 1.3 2002-10-20 22:32:08 paklein Exp $ */
+/* $Id: GeometryBaseT.h,v 1.4 2004-02-28 21:52:26 paklein Exp $ */
 /* created: paklein (10/21/1997) */
 #ifndef _GEOMETRY_BASE_T_H_
 #define _GEOMETRY_BASE_T_H_
@@ -16,6 +16,7 @@ class dArrayT;
 class dMatrixT;
 class iArray2DT;
 template <class TYPE> class ArrayT;
+class LocalArrayT;
 
 /** base class for parent domain geometries. Derived classes must 
  * initialize shape function arrays with geometry specific values. */
@@ -90,6 +91,13 @@ public:
 	/** return geometry and number of nodes on each facet */
 	virtual void FacetGeometry(ArrayT<CodeT>& facet_geom,
 		iArrayT& facet_nodes) const = 0;
+
+	/** return true if the given point is within the domain defined by
+	 * the list of coordinates. Method must be overriden by subclasses.
+	 * GeometryBaseT::PointInDomain throws an exception.
+	 * \param coords list of coordinates defining the domain
+	 * \param point test point coordinates */
+	virtual bool PointInDomain(const LocalArrayT& coords, const dArrayT& point) const;
 		
 protected:
 

@@ -1,6 +1,5 @@
-/* $Id: TriT.cpp,v 1.4 2003-11-10 22:14:29 cjkimme Exp $ */
+/* $Id: TriT.cpp,v 1.5 2004-02-28 21:52:26 paklein Exp $ */
 /* created: paklein (07/03/1996) */
-
 #include "TriT.h"
 #include "QuadT.h"
 #include "iArrayT.h"
@@ -8,6 +7,7 @@
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 #include "dMatrixT.h"
+#include "LocalArrayT.h"
 
 using namespace Tahoe;
 
@@ -23,9 +23,7 @@ void TriT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na) const
 {
 #pragma unused(coords)
 #pragma unused(Na)
-
-	cout << "\n TriT::EvaluateShapeFunctions: not implemented" << endl;
-	throw ExceptionT::kGeneralFail;
+	ExceptionT::GeneralFail("TriT::EvaluateShapeFunctions", "not implemented");
 }
 
 /* evaluate the shape functions and gradients. */
@@ -34,15 +32,15 @@ void TriT::EvaluateShapeFunctions(const dArrayT& coords, dArrayT& Na, dArray2DT&
 #pragma unused(coords)
 #pragma unused(Na)
 #pragma unused(DNa)
-
-	cout << "\n TriT::EvaluateShapeFunctions: not implemented" << endl;
-	throw ExceptionT::kGeneralFail;
+	ExceptionT::GeneralFail("TriT::EvaluateShapeFunctions", "not implemented");
 }
 
 /* compute local shape functions and derivatives */
 void TriT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 	dArrayT& weights) const
 {
+	const char caller[] = "TriT::SetLocalShape";
+
 	/* dimensions */
 	int numnodes  = Na.MinorDim();
 	int numint    = weights.Length();
@@ -50,20 +48,14 @@ void TriT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 
 	/* dimension checks */
 	if (numnodes < 3 || numnodes > 6)
-	{
-		cout << "\n TriT::SetLocalShape: unsupported number of element nodes: "
-		     << numnodes << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "unsupported number of element nodes: %d", numnodes);
+
 	if (numint != 1 &&
 	    numint != 4 &&
 	    numint != 6)
-	{
-		cout << "\n TriT::SetLocalShape: unsupported number of integration points: "
-		     << numint << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-	if (nsd != kTrinsd) throw ExceptionT::kGeneralFail;
+		ExceptionT::GeneralFail(caller, "unsupported number of integration points: %d", numint);
+
+	if (nsd != kTrinsd) ExceptionT::GeneralFail(caller);
 
 	/* initialize */
 	Na = 0.0;
@@ -77,16 +69,16 @@ void TriT::SetLocalShape(dArray2DT& Na, ArrayT<dArray2DT>& Na_x,
 	double s1[1] = {1.0/3.0};
 	
 	/* 4 point */
-double r4[4] = {0.6, 0.2, 0.2, 1.0/3.0};
-double s4[4] = {0.2, 0.6, 0.2, 1.0/3.0};
+	double r4[4] = {0.6, 0.2, 0.2, 1.0/3.0};
+	double s4[4] = {0.2, 0.6, 0.2, 1.0/3.0};
 	
 	/* 6 point */
 	double a1 = 0.816847572980459;
 	double a2 = 0.091576213509771;
 	double b1 = 0.108103018168070;
 	double b2 = 0.445948490915965;
-double r6[6] = {a1, a2, a2, b1, b2, b2};
-double s6[6] = {a2, a1, a2, b2, b1, b2};
+	double r6[6] = {a1, a2, a2, b1, b2, b2};
+	double s6[6] = {a2, a1, a2, b2, b1, b2};
 	
 	double* r;
 	double* s;
@@ -98,7 +90,7 @@ double s6[6] = {a2, a1, a2, b2, b1, b2};
 			
 		weights[0] = 0.5; /* single integration point at the centroid */
 
-			/* set coordinates */
+		/* set coordinates */
 		r = r1;
 		s = s1;
 		
@@ -112,7 +104,7 @@ double s6[6] = {a2, a1, a2, b2, b1, b2};
 		weights[3] =-0.56250;  //centroid point
 		weights *= 0.5;
 		
-			/* set coordinates */
+		/* set coordinates */
 		r = r4;
 		s = s4;
 		
@@ -124,14 +116,13 @@ double s6[6] = {a2, a1, a2, b2, b1, b2};
 		weights[3] = weights[4] = weights[5] = 0.223381589678011;
 		weights *= 0.5;
 		
-			/* set coordinates */
+		/* set coordinates */
 		r = r6;
 		s = s6;
 		break;
 
-		default:
-		
-			throw ExceptionT::kGeneralFail;			
+		default:	
+			ExceptionT::GeneralFail(caller);
 	}	
 
 	/* shape functions and derivatives */
@@ -148,7 +139,7 @@ double s6[6] = {a2, a1, a2, b2, b1, b2};
 	na[1] += s[i];
 	na[2] += 1 - r[i] - s[i];
 
-/* Na,r */
+	/* Na,r */
 	nax[0] += 1.0;
 	nax[1] += 0.0;
 	nax[2] +=-1.0;
@@ -161,7 +152,7 @@ double s6[6] = {a2, a1, a2, b2, b1, b2};
 	/* mid-side nodes */
 	if (numnodes > kNumVertexNodes)
 	{
-			/* add node 4 */
+		/* add node 4 */
 		if (numnodes > 3)
 		{
 			na[3] = 4.0*r[i]*s[i];	
@@ -306,15 +297,14 @@ void TriT::SetExtrapolation(dMatrixT& extrap) const
 * nodes, mid-edge nodes, mid-face nodes */
 void TriT::NodesOnFacet(int facet, iArrayT& facetnodes) const
 {
-// TEMP: not implemented with midside nodes
+	const char caller[] = "TriT::NodesOnFacet";
+
+	// TEMP: not implemented with midside nodes
 	if (fNumNodes != 3 && fNumNodes != 6)
-	{
-		cout << "\n TriT::NodesOnFacet: only implemented for 3 and 6 element nodes" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "only implemented for 3 and 6 element nodes: %d", fNumNodes);
 
 #if __option(extended_errorcheck)
-	if (facet < 0 || facet > 2) throw ExceptionT::kOutOfRange;
+	if (facet < 0 || facet > 2) ExceptionT::OutOfRange(caller);
 #endif
 
 	/* nodes-facet data */
@@ -346,10 +336,7 @@ void TriT::NumNodesOnFacets(iArrayT& num_nodes) const
 {
 // TEMP: not implemented with midside nodes
 	if (fNumNodes != 3 && fNumNodes != 6)
-	{
-		cout << "\n TriT::NumNodesOnFacets: only implemented for 3 and 6 element nodes" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("TriT::NumNodesOnFacets", "only implemented for 3 and 6 element nodes: %d", fNumNodes);
 
 	num_nodes.Dimension(3);
 	if (fNumNodes == 3)
@@ -369,4 +356,30 @@ void TriT::FacetGeometry(ArrayT<CodeT>& facet_geom,
 	facet_nodes = 2;
 	for (int i = 0; i < (fNumNodes - kNumVertexNodes); i++)
 		facet_nodes[i] = 3;
+}
+
+/* return true if the given point is within the domain */
+bool TriT::PointInDomain(const LocalArrayT& coords, const dArrayT& point) const
+{
+	/* method: run around the perimeter of the element and see if
+	 *         the point always lies to the left of segment a-b */
+	int nen = coords.NumberOfNodes();
+	int a = nen - 1;
+	int b = 0;
+	bool in_domain = true;
+	for (int i = 0; in_domain && i < nen; i++)
+	{
+		double ab_0 = coords(b,0) - coords(a,0);
+		double ab_1 = coords(b,1) - coords(a,1);
+
+		double ap_0 = point[0] - coords(a,0);
+		double ap_1 = point[1] - coords(a,1);
+		
+		double cross = ab_0*ap_1 - ab_1*ap_0;
+		in_domain = cross >= 0.0;
+		a++; 
+		b++;
+		if (a == nen) a = 0;
+	}
+	return in_domain;
 }
