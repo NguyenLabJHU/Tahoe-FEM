@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList3DT.cpp,v 1.1.2.2 2004-02-10 07:17:54 paklein Exp $ */
+/* $Id: SSSolidMatList3DT.cpp,v 1.1.2.3 2004-03-24 19:53:04 paklein Exp $ */
 #include "SSSolidMatList3DT.h"
 #include "SSMatSupportT.h"
 
@@ -236,4 +236,81 @@ void SSSolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		ExceptionT::Throw(error, caller, "exception constructing material %d, index %d, code %d",
 			i+1, matnum+1, matcode);
 	}
+}
+
+/* information about subordinate parameter lists */
+void SSSolidMatList3DT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	SolidMatListT::DefineSubs(sub_list);
+	
+	/* choice of 2D materials */
+	sub_list.AddSub("ss_material_list_3D", ParameterListT::Once, true);
+}
+
+/* return the description of the given inline subordinate parameter list */
+void SSSolidMatList3DT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const
+{
+	if (sub == "ss_material_list_3D")
+	{
+		order = ParameterListT::Choice;
+	
+		sub_sub_list.AddSub("small_strain_cubic");
+		sub_sub_list.AddSub("small_strain_StVenant");
+	}
+	else /* inherited */
+		SolidMatListT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* SSSolidMatList3DT::NewSub(const StringT& list_name) const
+{
+	/* try to construct material */
+	SSSolidMatT* ss_solid_mat = NewSSSolidMat(list_name);
+	if (ss_solid_mat)
+		return ss_solid_mat;
+	else /* inherited */
+		return SolidMatListT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void SSSolidMatList3DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SolidMatListT::TakeParameterList(list);
+
+	/* construct materials - NOTE: subs have been defined as a choice, but
+	 * here we construct as many materials as are passed in */
+	AutoArrayT<SSSolidMatT*> materials;
+	const ArrayT<ParameterListT>& subs = list.Lists();
+	for (int i = 0; i < subs.Length(); i++) {
+		const ParameterListT& sub = subs[i];
+		SSSolidMatT* mat = NewSSSolidMat(sub.Name());
+		if (mat) {
+			materials.Append(mat);
+			mat->TakeParameterList(sub);
+		}
+	}
+
+	/* transfer */
+	Dimension(materials.Length());
+	for (int i = 0; i < materials.Length(); i++)
+		fArray[i] = materials[i];
+}
+
+/* construct the specified material or NULL if the request cannot be completed */
+SSSolidMatT* SSSolidMatList3DT::NewSSSolidMat(const StringT& list_name) const
+{
+	SSSolidMatT* mat = NULL;
+
+	if (list_name == "small_strain_cubic")
+		mat = new SSCubicT;
+	else if (list_name == "small_strain_StVenant")
+		mat = new SSKStV;
+
+	/* set support */
+	if (mat) mat->SetSSMatSupport(fSSMatSupport);
+
+	return mat;
 }
