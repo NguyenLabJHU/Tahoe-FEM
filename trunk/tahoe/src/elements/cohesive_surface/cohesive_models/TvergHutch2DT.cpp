@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.cpp,v 1.14 2002-10-23 00:18:03 cjkimme Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.15 2002-12-02 17:36:14 cjkimme Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch2DT.h"
@@ -102,7 +102,7 @@ const dArrayT& TvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 		sigbyL = fsigma_max/fL_1;
 	else if (L < fL_2)
 		sigbyL = fsigma_max/L;
-	else if (L < fL_fail)
+	else if (L < 1.)
 		sigbyL = fsigma_max*(1. - L)/(1. - fL_2)/L;
 	else
 		sigbyL = 0.0;	
@@ -158,7 +158,7 @@ const dMatrixT& TvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 			fStiffness[3] += dijTerm*lt_2*lt_2;
 		}
 		else 
-			if (L < fL_fail) // K3
+			if (L < 1.) // K3
 			{
 				double dijTerm = fsigma_max*(1./L-1.)/(1.-fL_2)*fd_c_n;
 			
