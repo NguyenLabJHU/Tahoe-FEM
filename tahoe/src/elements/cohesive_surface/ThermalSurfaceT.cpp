@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.cpp,v 1.1.2.3 2002-05-07 07:26:59 paklein Exp $ */
+/* $Id: ThermalSurfaceT.cpp,v 1.1.2.4 2002-05-11 20:48:09 paklein Exp $ */
 #include "ThermalSurfaceT.h"
 
 #include <math.h>
@@ -217,8 +217,9 @@ void ThermalSurfaceT::RHSDriver(void)
 				/* integration point shape functions */
 				fShapes->Shapes(Na);
 			
-				/* incremental line source */
-				double d_heat = (*block_source)(CurrElementNumber(), fShapes->CurrIP());
+				/* incremental line source (rate) */
+				double d_heat = (*block_source)(CurrElementNumber(), fShapes->CurrIP())/
+								ElementSupport().TimeStep();
 
 				/* accumulate - split heat half onto each face */
 				fRHS.AddScaled(0.5*j*w*constKd*d_heat, Na);			
