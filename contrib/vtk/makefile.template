@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.6 2001-10-03 18:23:35 paklein Exp $
+# $Id: makefile.template,v 1.7 2001-12-10 21:56:20 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -50,16 +50,22 @@ TB_LIB_NAME = toolbox
 TB_LIB      = $(TB_DIR)/lib/lib$(TB_LIB_NAME).a
 TB_LFLAGS   = -L$(TB_DIR)/lib -l$(TB_LIB_NAME)
 
-#### VTK graphics library
-VTK_DIR    = /scr/paklein/vtk3.2
-VTK_INC    = $(X_INC_FLAGS) -I$(VTK_DIR)/common -I$(VTK_DIR) -I$(VTK_DIR)/graphics -I$(VTK_DIR)/imaging -I$(VTK_DIR)/contrib
-VTK_CFLAGS = $(X_CFLAGS) $(THREAD_CFLAGS) $(VTK_INC) -D__VTK__
-VTK_LFLAGS =  -L$(VTK_DIR)/contrib -lVTKContrib -L$(VTK_DIR)/patented -lVTKPatented -L$(VTK_DIR)/imaging -lVTKImaging -L$(VTK_DIR)/graphics -lVTKGraphics -L$(VTK_DIR)/common -lVTKCommon $(X_LIBS) $(THREAD_LFLAGS)
+#### VTK 3.2
+#VTK_DIR    = /scr/paklein/vtk3.2
+#VTK_INC    = $(X_INC_FLAGS) -I$(VTK_DIR)/common -I$(VTK_DIR) -I$(VTK_DIR)/graphics -I$(VTK_DIR)/imaging -I$(VTK_DIR)/contrib
+#VTK_CFLAGS = $(X_CFLAGS) $(THREAD_CFLAGS) $(VTK_INC) -D__VTK__
+#VTK_LFLAGS =  -L$(VTK_DIR)/contrib -lVTKContrib -L$(VTK_DIR)/patented -lVTKPatented -L$(VTK_DIR)/imaging -lVTKImaging -L$(VTK_DIR)/graphics -lVTKGraphics -L$(VTK_DIR)/common -lVTKCommon $(X_LIBS) $(THREAD_LFLAGS)
+
+#### VTK - upcoming release
+VTK_DIR    = /usr/local/src/VTK
+VTK_INC    = $(X_INC_FLAGS) -I$(VTK_DIR) -I$(VTK_DIR)/Common -I$(VTK_DIR)/Graphics -I$(VTK_DIR)/Imaging -I$(VTK_DIR)/Filtering -I$(VTK_DIR)/IO -I$(VTK_DIR)/Rendering
+VTK_CFLAGS = $(X_CFLAGS) $(THREAD_CFLAGS) $(VTK_INC) -D__VTK__ -D__VTK_NEW__
+VTK_LFLAGS = -L/usr/local/src/VTK/bin/ -L/usr/X11R6.tenon/lib -lpthread -lm -lvtkCommon -lvtkFiltering -lvtkGraphics -lvtkRendering -lGL -lXt  -lSM -lICE  -L/usr/X11R6/lib -lX11 -lXext -lvtkImaging -lvtkGraphics -lvtkIO -lvtkFiltering -lvtkCommon -lvtkpng -lvtkzlib -lvtkjpeg -lpthread -lm -lvtkCommon -lvtkFiltering -lvtkGraphics -lvtkRendering -lGL -lXt  -lSM -lICE  -L/usr/X11R6/lib -lX11 -lXext -lvtkImaging -lvtkGraphics -lvtkIO -lvtkFiltering -lvtkCommon -lvtkpng -lvtkzlib -lvtkjpeg
 
 ##### SEACAS/ACCESS software
-#AX_INC    = -I$(ACCESS)/inc
-#AX_CFLAGS = $(AX_INC) -D__ACCESS__
-#AX_LFLAGS = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
+AX_INC    = -I$(ACCESS)/inc
+AX_CFLAGS = $(AX_INC) -D__ACCESS__
+AX_LFLAGS = -L$(ACCESS)/lib -lexoIIv2c -lnetcdf
 ############################### build options ###########################
 
 # include common target definitions
