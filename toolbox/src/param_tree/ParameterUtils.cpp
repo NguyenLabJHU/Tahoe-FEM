@@ -1,4 +1,4 @@
-/* $Id: ParameterUtils.cpp,v 1.2 2003-08-18 03:34:13 paklein Exp $ */
+/* $Id: ParameterUtils.cpp,v 1.3 2003-09-03 23:41:59 paklein Exp $ */
 #include "ParameterUtils.h"
 
 using namespace Tahoe;
@@ -127,13 +127,13 @@ void DoubleListT::TakeParameterList(const ParameterListT& list)
 IntegerT::IntegerT(void):
 	NamedValueT<int>("Integer")
 {
-
+	fValue = 0;
 }
 
 IntegerT::IntegerT(const StringT& name):
 	NamedValueT<int>(name)
 {
-
+	fValue = 0;
 }
 
 /**********************************************************************
@@ -144,11 +144,11 @@ IntegerT::IntegerT(const StringT& name):
 DoubleT::DoubleT(void):
 	NamedValueT<double>("Double")
 {
-
+	fValue = 0;
 }
 
 DoubleT::DoubleT(const StringT& name):
 	NamedValueT<double>(name)
 {
-
+	fValue = 0;
 }
