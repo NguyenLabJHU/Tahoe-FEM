@@ -1,4 +1,4 @@
-/* $Id: SimoIso3D.cpp,v 1.11 2004-07-15 08:27:35 paklein Exp $ */
+/* $Id: SimoIso3D.cpp,v 1.12 2004-08-01 00:58:34 paklein Exp $ */
 /* created: paklein (03/02/1997) */
 #include "SimoIso3D.h"
 #include <math.h>
@@ -49,35 +49,6 @@ const dSymMatrixT& SimoIso3D::s_ij(void)
 
 	ComputeCauchy(J, fb_bar, fStress);
 	
-	return fStress;
-}
-
-/* material description */
-const dMatrixT& SimoIso3D::C_IJKL(void)
-{
-	/* get mechanical part of the deformation gradient */
-	const dMatrixT& F_mech = F_mechanical();
-
-	/* 4th order tensor transformation */
-	const dMatrixT& C = PullBack(F_mech, c_ijkl());
-	
-	/* scale with deformation gradient */
-	fModulus.SetToScaled(F_mech.Det(), C);
-
-	return fModulus;
-}
-
-const dSymMatrixT& SimoIso3D::S_IJ(void)
-{
-	/* get mechanical part of the deformation gradient */
-	const dMatrixT& F_mech = F_mechanical();
-
-	/* 2nd order tensor transformation */
-	const dSymMatrixT& S = PullBack(F_mech, s_ij());
-	
-	/* scale with deformation gradient */
-	fStress.SetToScaled(F_mech.Det(), S);
-
 	return fStress;
 }
 
