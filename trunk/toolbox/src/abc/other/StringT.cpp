@@ -1,4 +1,4 @@
-/* $Id: StringT.cpp,v 1.9 2001-06-11 02:00:12 paklein Exp $ */
+/* $Id: StringT.cpp,v 1.10 2001-11-28 22:24:25 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #include "StringT.h"
@@ -18,6 +18,7 @@
 /* array behavior */
 const bool ArrayT<StringT>::fByteCopy = false;
 const bool ArrayT<StringT*>::fByteCopy = true;
+const bool ArrayT<const StringT*>::fByteCopy = true;
 
 /* line length */
 const int kLineLength = 254;
@@ -569,11 +570,37 @@ StringT& StringT::FirstWord(const StringT& source, int& count, bool C_word_only)
 		}
 		else
 		{
-			while (count < length && !isspace(*str))
+			/* return quoted strings as one word */
+			if (*str == '"')
 			{
+				/* skip forward */
 				str++;
+				start++;
 				count++;
-				word_count++;
+				
+				/* bound whole quoted string */
+				while (count < length && *str != '"')
+				{
+					str++;
+					count++;
+					word_count++;
+				}
+				
+				/* skip trailing quote (if present) */
+				if (*str == '"')
+				{
+					str++;
+					count++;
+				}
+			}
+			else
+			{
+				while (count < length && !isspace(*str))
+				{
+					str++;
+					count++;
+					word_count++;
+				}
 			}
 		}
 		
