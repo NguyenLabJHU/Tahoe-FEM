@@ -1,4 +1,4 @@
-/* $Id: TecPlotOutputT.cpp,v 1.1.1.1.2.5 2001-11-06 17:06:43 sawimme Exp $ */
+/* $Id: TecPlotOutputT.cpp,v 1.1.1.1.2.6 2001-11-06 20:22:52 sawimme Exp $ */
 /* created: sawimme (06/06/2000)                                          */
 
 #include "TecPlotOutputT.h"
@@ -155,7 +155,7 @@ void TecPlotOutputT::FileName(int ID, StringT& filename, int printstep) const
 	filename.Append(".io", ID);
 
 	/* print step */
-	if (printstep > 0) filename.Append(".ps", printstep, fNumDigits);
+	if (printstep > -1) filename.Append(".ps", printstep, fNumDigits);
 
 	/* extension */
 	filename.Append(".dat");
