@@ -1,4 +1,4 @@
-/* $Id: GradSSSolidMatT.h,v 1.12 2004-07-20 23:16:50 rdorgan Exp $ */
+/* $Id: GradSSSolidMatT.h,v 1.13 2004-08-04 22:02:13 rdorgan Exp $ */
 #ifndef _GRAD_SS_SOLID_MAT_T_H_
 #define _GRAD_SS_SOLID_MAT_T_H_
 
@@ -62,19 +62,8 @@ public:
 	virtual double yc(void) = 0;
 	/*@}*/
 	
-	/** incremental change in Lambda_bar */
-	virtual double del_Lambda(void) = 0;
-	/*@}*/
-	
-	/** incremental change in GradLambda */
-	virtual double del_GradLambda(void) = 0;
-	
-	/** incremental change in LapLambda */
-	virtual double del_LapLambda(void) = 0;
-	/*@}*/
-	
-	/** return the strain in the material at the current integration point. 
-	 * Returns the small strain tensor. */
+	/** return the plastic multiplier in the material at the current integration point. 
+	 * Returns the plastic multiplier. */
 	virtual void PMultiplier(dSymMatrixT& pmultiplier) { pmultiplier = Lambda(); };
 	virtual void GradPMultiplier(dSymMatrixT& gradpmultiplier) { gradpmultiplier = GradLambda(); };
 	virtual void LapPMultiplier(dSymMatrixT& lappmultiplier) { lappmultiplier = LapLambda(); };

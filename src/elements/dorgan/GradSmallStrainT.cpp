@@ -69,6 +69,7 @@ GradSmallStrainT::GradSmallStrainT(const ElementSupportT& support):
 	fprint_KdMatrix(false),
 	fprint_Stiffness(false),
 	fprint_StiffnessMatrix(false),
+	fprint_All(false),
 
 	fI(1)
 {
@@ -161,6 +162,10 @@ void GradSmallStrainT::DefineParameters(ParameterListT& list) const
 	ParameterT print_stiffness_matrix(fprint_StiffnessMatrix, "print_stiffness_matrix");
 	print_stiffness_matrix.SetDefault(fprint_StiffnessMatrix);
 	list.AddParameter(print_stiffness_matrix);
+
+	ParameterT print_all(fprint_All, "print_all");
+	print_all.SetDefault(fprint_All);
+	list.AddParameter(print_all);
 }
 
 /* information about subordinate parameter lists */
@@ -235,15 +240,20 @@ void GradSmallStrainT::TakeParameterList(const ParameterListT& list)
 	fprint_KdMatrix            = list.GetParameter("print_kd_matrix");
 	fprint_Stiffness           = list.GetParameter("print_stiffness");
 	fprint_StiffnessMatrix     = list.GetParameter("print_stiffness_matrix");
+	fprint_All                 = list.GetParameter("print_all");
+
+	if (fprint_All == true)
+		fprint_GlobalShape = fprint_Kd = fprint_KdMatrix = fprint_Stiffness = fprint_StiffnessMatrix = true;
 
 	/* dimensions */
 	fNumSD = NumSD();
 	fNumDOF_Disp = fDisplacement->NumDOF();
 	fNumDOF_PMultiplier = fPMultiplier->NumDOF();
 
-	if (fNumSD == 1 && fDegreeOfContinuity_PMultiplier == kC1) fNumElementNodes_PMultiplier = 2;
-	else if (fNumSD == 1 && fDegreeOfContinuity_PMultiplier == kC0) fNumElementNodes_PMultiplier = fNumElementNodes_Disp;
-	else ExceptionT::GeneralFail(caller, " Bad fNumSD or fDegreeOfContinuity_PMultiplier. Unable to assign fNumElementNodes_PMultiplier");
+	fNumElementNodes_PMultiplier = 2;
+	//	if (fNumSD == 1 && fDegreeOfContinuity_PMultiplier == kC1) fNumElementNodes_PMultiplier = 2;
+	//	else if (fNumSD == 1 && fDegreeOfContinuity_PMultiplier == kC0) fNumElementNodes_PMultiplier = fNumElementNodes_Disp;
+	//	else ExceptionT::GeneralFail(caller, " Bad fNumSD or fDegreeOfContinuity_PMultiplier. Unable to assign fNumElementNodes_PMultiplier");
 	
 	/* inherited */
 	SmallStrainT::TakeParameterList(list);
@@ -252,7 +262,7 @@ void GradSmallStrainT::TakeParameterList(const ParameterListT& list)
 	fNumElementNodes_Disp = NumElementNodes();
 	fNumIP_Disp = NumIP();
 	fNumIP_PMultiplier = fNumIP_Disp;
-
+	
 	/* allocate lists */
 	fPMultiplier_List.Dimension(fNumIP_PMultiplier);           // lambda
 	fPMultiplier_last_List.Dimension(fNumIP_PMultiplier);      // "last" lambda
@@ -260,7 +270,7 @@ void GradSmallStrainT::TakeParameterList(const ParameterListT& list)
 	fGradPMultiplier_last_List.Dimension(fNumIP_PMultiplier);  // "last" gradient lambda
 	fLapPMultiplier_List.Dimension(fNumIP_PMultiplier);        // Laplacian lambda
 	fLapPMultiplier_last_List.Dimension(fNumIP_PMultiplier);   // "last" Laplacian lambda
-	fYield_List.Dimension(fNumIP_Disp);              // yield condition lambda
+	fYield_List.Dimension(fNumIP_Disp);                        // yield condition lambda
 
 	/* dimension moduli in workspace */
 	fDM_bb.Dimension(dSymMatrixT::NumValues(fNumSD));
@@ -374,7 +384,7 @@ MaterialListT* GradSmallStrainT::NewMaterialList(const StringT& name, int size)
 		if (nsd == 1)
 			return new GradSSSolidMatList1DT(size, *fGradSSMatSupport);
 	}
-	else
+else
 	{
 		if (nsd == 1)
 			return new GradSSSolidMatList1DT;
@@ -394,60 +404,65 @@ void GradSmallStrainT::DefineElements(const ArrayT<StringT>& block_ID, const Arr
 
 	/* depending whether you need separate connectivities */
 	bool need_separate_connectivities = true;
-	//bool need_separate_connectivities = fNumElementNodes_Disp - fNumElementNodes_PMultiplier;
-	
+
 	fConnectivities_PMultiplier.Dimension(fConnectivities.Length());
-	if (need_separate_connectivities) {
-	
-		//number of vertex nodes (fNumSD == 1)
-		int num_vertex_nodes = 2;
-
-		//list of the vertex nodes
-		iArrayT vertex_nodes(num_vertex_nodes);
-		vertex_nodes[0] = 0;
-		vertex_nodes[1] = 1;
-
-		fConnectivities_All.Dimension(NumElements(), num_vertex_nodes);
-#ifdef DISABLE_NODE
-		fFixedPMultiplier.Dimension(fConnectivities.Length());
-		fFixedPMultiplier = NULL;
-#endif
-		/* translate blocks */
-		int count = 0;
-		for (int i = 0; i < fConnectivities.Length(); i++)
+	if (need_separate_connectivities)
+	{
+		if (fNumSD == 1)
 		{
-			const iArray2DT& connects = *(fConnectivities[i]);
-			iArray2DT& connects_lambda = fConnectivities_PMultiplier[i];
-			connects_lambda.Alias(connects.MajorDim(), num_vertex_nodes, fConnectivities_All(count));
+			//number of vertex nodes (fNumSD == 1)
+			int num_vertex_nodes = 2;
+
+			//list of the vertex nodes
+			iArrayT vertex_nodes(num_vertex_nodes);
+			vertex_nodes[0] = 0;
+			vertex_nodes[1] = 1;
+
+			fConnectivities_All.Dimension(NumElements(), num_vertex_nodes);
+#ifdef DISABLE_NODE
+			fFixedPMultiplier.Dimension(fConnectivities.Length());
+			fFixedPMultiplier = NULL;
+#endif
+			/* translate blocks */
+			int count = 0;
+			for (int i = 0; i < fConnectivities.Length(); i++)
+			{
+				const iArray2DT& connects = *(fConnectivities[i]);
+				iArray2DT& connects_lambda = fConnectivities_PMultiplier[i];
+				connects_lambda.Alias(connects.MajorDim(), num_vertex_nodes, fConnectivities_All(count));
 		
-			/* extract */
-			for (int j = 0; j < vertex_nodes.Length(); j++)
-				connects_lambda.ColumnCopy(j, connects, vertex_nodes[j]);
+				/* extract */
+				for (int j = 0; j < vertex_nodes.Length(); j++)
+					connects_lambda.ColumnCopy(j, connects, vertex_nodes[j]);
 				
-			/* next block */
-			count += connects.MajorDim();
+				/* next block */
+				count += connects.MajorDim();
 
 #ifdef DISABLE_NODE
-			/* prescribe fixed multiplier field at center node */
-			FieldT* non_constPMultiplier = const_cast<FieldT*>(fPMultiplier);
+				if (NumElementNodes() == 3)
+				{					
+					/* prescribe fixed multiplier field at center node */
+					FieldT* non_constPMultiplier = const_cast<FieldT*>(fPMultiplier);
 
-			/* construct new contoller */
-			fFixedPMultiplier[i] = ElementSupport().NodeManager().NewKBC_Controller(*non_constPMultiplier, KBC_ControllerT::kPrescribed);
+					/* construct new contoller */
+					fFixedPMultiplier[i] = ElementSupport().NodeManager().NewKBC_Controller(*non_constPMultiplier, KBC_ControllerT::kPrescribed);
 
-			/* add to field */
-			non_constPMultiplier->AddKBCController(fFixedPMultiplier[i]);
+					/* add to field */
+					non_constPMultiplier->AddKBCController(fFixedPMultiplier[i]);
 
-			/* define fixed conditions */
-			ArrayT<KBC_CardT>& KBC_cards = fFixedPMultiplier[i]->KBC_Cards();
-			KBC_cards.Dimension(connects.MajorDim()*fNumDOF_PMultiplier);
-			int dex = 0;
-			for (int j = 0; j < fNumDOF_PMultiplier; j++)
-				for (int i = 0; i < connects.MajorDim(); i++)
-					KBC_cards[dex++].SetValues(connects(i,2), j, KBC_CardT::kFix, NULL, 0.0);
+					/* define fixed conditions */
+					ArrayT<KBC_CardT>& KBC_cards = fFixedPMultiplier[i]->KBC_Cards();
+					KBC_cards.Dimension(connects.MajorDim()*fNumDOF_PMultiplier);
+					int dex = 0;
+					for (int j = 0; j < fNumDOF_PMultiplier; j++)
+						for (int i = 0; i < connects.MajorDim(); i++)
+							KBC_cards[dex++].SetValues(connects(i,2), j, KBC_CardT::kFix, NULL, 0.0);
+				}
 #endif
-	
-#pragma message("define fixed multipliers")
-		}		
+			}
+		}
+		else
+			ExceptionT::GeneralFail(caller, "fNumSD != 1");
 	}
 	else /* same connectivities - make aliases */
 	{
@@ -708,9 +723,9 @@ void GradSmallStrainT::FormStiffness(double constK)
 		// if (fLocPMultiplier1[nd] <= 0. || fLocPMultiplier1[nd] <= fLocLastPMultiplier1[nd] || fabs(fLocYield[nd]) < kYieldTol) 
 
 		// TAKES LONGER / WORSE TOLERANCE CONVERGENCE
-		// if (fabs(fLocYield[nd]) < kYieldTol)
+		//		if (fabs(fLocYield[nd]) < kYieldTol)
 
-			fK_ct(nd*fNumDOF_PMultiplier)[nd*fNumDOF_PMultiplier] = fNodalConstraint;
+			fK_ct(nd)[nd] = fNodalConstraint;
 
 	fLHS.AddBlock(fK_bb.Rows(), fK_bb.Cols(), fK_ct);
 

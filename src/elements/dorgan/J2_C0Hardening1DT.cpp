@@ -1,4 +1,4 @@
-/* $Id: J2_C0Hardening1DT.cpp,v 1.1 2004-07-20 23:38:26 rdorgan Exp $ */
+/* $Id: J2_C0Hardening1DT.cpp,v 1.2 2004-08-04 22:02:14 rdorgan Exp $ */
 #include "J2_C0Hardening1DT.h"
 
 #include "dSymMatrixT.h"
@@ -45,6 +45,7 @@ void J2_C0Hardening1DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 		sub_lists.AddSub("cubic_spline");
 		sub_lists.AddSub("linear_exponential");
 		sub_lists.AddSub("power_law");
+		sub_lists.AddSub("piecewise_linear");
 	}
 	else /* inherited */
 		ParameterInterfaceT::DefineInlineSub(name, order, sub_lists);

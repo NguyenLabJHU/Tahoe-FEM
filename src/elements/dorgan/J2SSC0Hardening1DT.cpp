@@ -1,4 +1,4 @@
-/* $Id: J2SSC0Hardening1DT.cpp,v 1.1 2004-07-20 23:38:26 rdorgan Exp $ */
+/* $Id: J2SSC0Hardening1DT.cpp,v 1.2 2004-08-04 22:02:13 rdorgan Exp $ */
 #include "J2SSC0Hardening1DT.h"
 
 #include "iArrayT.h"
@@ -10,7 +10,7 @@ using namespace Tahoe;
 
 /* class constants */
 const int    kNumInternal = 4; // number of internal variables
-const double kYieldTol    = 1.0e-10;
+const double kYieldTol    = 1.0e-20;
 
 const int kNSD = 1;
 

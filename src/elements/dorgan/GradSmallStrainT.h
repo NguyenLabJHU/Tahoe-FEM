@@ -1,4 +1,4 @@
-/* $Id: GradSmallStrainT.h,v 1.12 2004-07-27 21:13:57 rdorgan Exp $ */ 
+/* $Id: GradSmallStrainT.h,v 1.13 2004-08-04 22:02:13 rdorgan Exp $ */ 
 #ifndef _GRAD_SMALL_STRAIN_T_H_ 
 #define _GRAD_SMALL_STRAIN_T_H_ 
 
@@ -233,6 +233,7 @@ protected:
 	bool fprint_KdMatrix;	
 	bool fprint_Stiffness;
 	bool fprint_StiffnessMatrix;
+	bool fprint_All;
 	/*@}*/
 };
 
