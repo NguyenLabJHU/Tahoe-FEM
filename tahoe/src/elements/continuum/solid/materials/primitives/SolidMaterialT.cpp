@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.10.2.3 2004-02-26 08:58:37 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.10.2.4 2004-02-26 17:31:13 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
@@ -33,6 +33,7 @@ SolidMaterialT::SolidMaterialT(void):
 	ParameterInterfaceT("solid_material"),
 	fThermal(NULL),
 	fDensity(0.0),
+	fConstraint(kNoConstraint),
 	fMassDamp(0.0),
 	fStiffDamp(0.0)
 {
@@ -165,6 +166,14 @@ void SolidMaterialT::DefineParameters(ParameterListT& list) const
 	ParameterT density(fDensity, "density");
 	density.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(density);
+
+	/* 2D constraint option */
+	ParameterT constraint(ParameterT::Enumeration, "2D_constraint");
+	constraint.AddEnumeration("none", kNoConstraint);
+	constraint.AddEnumeration("plane_stress", kPlaneStress);
+	constraint.AddEnumeration("plane_strain", kPlaneStrain);
+	constraint.SetDefault(kNoConstraint);
+	list.AddParameter(constraint);
 }
 
 /* information about subordinate parameter lists */
@@ -201,6 +210,13 @@ void SolidMaterialT::TakeParameterList(const ParameterListT& list)
 
 	/* density */
 	fDensity = list.GetParameter("density");
+
+	/* 2D constraint - default to plane strain for 2D materials */
+	list.GetParameter("2D_constraint", enum2int<ConstraintT>(fConstraint));
+	if (NumSD() == 3)
+		fConstraint = kNoConstraint;
+	else if (NumSD() == 2 && fConstraint == kNoConstraint)
+		fConstraint = kPlaneStrain;
 
 	/* thermal dilatation */
 	if (!fThermal) fThermal = new ThermalDilatationT;

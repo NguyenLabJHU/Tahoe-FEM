@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.h,v 1.13.2.1 2004-02-18 16:33:51 paklein Exp $ */
+/* $Id: SolidMaterialT.h,v 1.13.2.2 2004-02-26 17:31:13 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #ifndef _STRUCTURAL_MATERIALT_H_
 #define _STRUCTURAL_MATERIALT_H_
@@ -28,6 +28,12 @@ class SolidElementT;
 class SolidMaterialT: public ContinuumMaterialT
 {
 public:
+
+	/** \name 2D constrain options */
+	enum ConstraintT {
+		kNoConstraint = 0, /**< no constraint, material is 3D */
+		kPlaneStress = 1, /**< plane stress */
+		kPlaneStrain = 2  /**< plane strain */};
 
 	/** constructor */
 	SolidMaterialT(ifstreamT& in, const MaterialSupportT& support);
@@ -69,6 +75,10 @@ public:
 	/** 2nd Piola-Kirchhoff stress */
 	virtual const dSymMatrixT& S_IJ(void) = 0;
 	/*@}*/
+
+	/** 2D constrain options or kNoConstraint::kNoConstraint if the material
+	 * is not 2D */
+	ConstraintT Constraint(void) const { return fConstraint; };
 
 	/** incremental heat generation. Associated with the stress calculated with the
 	 * most recent call to SolidMaterialT::s_ij or SolidMaterialT::S_IJ */
@@ -160,6 +170,9 @@ protected:
 
 	/* mass density */
 	double fDensity;
+
+	/** 2D constrain option */
+	ConstraintT fConstraint;
 
 private:	
 
