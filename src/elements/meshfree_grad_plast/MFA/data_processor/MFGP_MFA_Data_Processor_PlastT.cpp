@@ -12,63 +12,73 @@ MFGP_MFA_Data_Processor_PlastT::MFGP_MFA_Data_Processor_PlastT() { };
 MFGP_MFA_Data_Processor_PlastT::~MFGP_MFA_Data_Processor_PlastT() { };
 
 
+MFGP_MFA_Data_Processor_PlastT::MFGP_MFA_Data_Processor_PlastT( double &fN, dArray2DT &fd2Ndx2 ) 
+{
+	Construct ( fN, fd2Ndx2 );
+}
+
+//---------------------------------------------------------------------
+
+void MFGP_MFA_Data_Processor_PlastT::Construct ( double &fN, dArray2DT &fd2Ndx2 )  
+{
+	N = fN;
+	d2N = fd2Ndx2;
+}
+
+
 //---------------------------------------------------------------------
 /* shape function of plastic multiplier */
 // dof of lambda = 1 ??
 // could be directly passed from the MLSSolverGP class??
 
-void MFGP_MFA_Data_Processor_PlastT::Set_N(MLSSolverGPT::SetShapeFunctions
-                        (const dArrayT& volume), dArrayT& N) 
+void MFGP_MFA_Data_Processor_PlastT::Set_phi( dMatrixT &phi ) 
 {
-	int nnd = phi.MinorDim();
-	double* pN = N.Pointer();
+	int nnd = N.MinorDim(); //??
+	double* pphi = phi.Pointer();
 	for (int i = 0; i < nnd; i++)
-	  	*pN++ = *phi++;   			
+	  	*pphi++ = *N++;		
 }
 
 //---------------------------------------------------------------------
 /* Laplacian of the shape function of plastic multiplier */
 
-void MFGP_MFA_Data_Processor_PlastT::Set_B4(MLSSolverGPT::SetShapeFunctions
-                        (const dArrayT& volume), const B4)  
+void MFGP_MFA_Data_Processor_PlastT::Set_B4( dMatrixT &B4 )  
 {
 #if __option(extended_errorcheck)
-	if (B4.Rows() != dSymMatrixT::NumValues(DDphi.MajorDim()) ||
-	    B4.Cols() != DDphi.Length())
+	if (B4.Rows() != dSymMatrixT::NumValues(d2N.MajorDim()) ||
+	    B4.Cols() != d2N.Length())
 	    throw ExceptionT::kSizeMismatch;
 #endif
 
-	int nnd = DDphi.MinorDim();
+	int nnd = d2N.MinorDim();
 	double* pB4 = B4.Pointer();
 
 	/* 1D */
-	if (DDphi.MajorDim() == 1)
+	if (d2N.MajorDim() == 1)
 	{
-		const double* pNax = DDphi(0);
+		const double* pNax = d2N(0);
 		for (int i = 0; i < nnd; i++)
 			*pB4++ = *pNax++;
 	}
 	/* 2D */
-	else if (DDphi.MajorDim() == 2)
+	else if (d2N.MajorDim() == 2)
 	{
-		const double* pNaxx = DDphi(0);
-		const double* pNayy = DDphi(1);
+		const double* pNaxx = d2N(0);
+		const double* pNayy = d2N(1);
 		for (int i = 0; i < nnd; i++)
 		{
-			
 			*pB4++ = *pNaxx + (*pNayy);
 		}
 	}
 	/* 3D */
 	else		
 	{
-		const double* pNaxx = DDphi(0);
-		const double* pNayy = DDphi(1);
-		const double* pNazz = DDphi(2);
+		const double* pNaxx = d2N(0);
+		const double* pNayy = d2N(1);
+		const double* pNazz = d2N(2);
 		
 		for (int i = 0; i < nnd; i++)
 		{
-			
 			*pB4++ = *pNaxx + (*pNayy) + (*pNazz);
 		}
 	}

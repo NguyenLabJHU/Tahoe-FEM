@@ -1,4 +1,4 @@
-/* $Id: MLSSolverGPT.h,v 1.1 2004-06-22 23:17:45 kyonten Exp $ */
+/* $Id: MLSSolverGPT.h,v 1.2 2004-08-09 23:42:43 raregue Exp $ */
 /* created: paklein (12/08/1999) */
 
 #ifndef _MLS_SOLVER_GP_T_H_
@@ -173,7 +173,7 @@ protected:
 	dArrayT fb;           /**< correction function coefficients at the current field point: [nbasis] */
 	ArrayT<dArrayT> fDb;  /**< gradient of correction function coefficients: [nsd] x [nbasis] */
 	ArrayT<dArrayT> fDDb; /**< second gradient of correction function coefficient: [nstr] x [nbasis] */
-	ArrayT<dArrayT> fDDb; /**< third gradient of correction function coefficient: [nstr] x [nbasis] */
+	ArrayT<dArrayT> fDDDb; /**< third gradient of correction function coefficient: [nstr] x [nbasis] */
 							//[nstr] should change for third derivative?? KY
 	/* inverse of moment matrix */
 	dMatrixT fMinv;        /**< moment matrix at the current field point: [nbasis] x [nbasis] */

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2004-06-19 01:23:35 raregue Exp $
+# $Id: makefile,v 1.3 2004-08-09 23:42:17 raregue Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,8 +20,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.2).
 #
 OBJ = \
-	MFGP_AssemblyT.o \
-	MFGP_Traction_and_Body_Force.o
+	MFGP_AssemblyT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -41,8 +40,7 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	MFGP_AssemblyT.cpp \
-	MFGP_Traction_and_Body_Force.cpp
+	MFGP_AssemblyT.cpp
 
 ##################### (3) headers
 #

@@ -33,7 +33,6 @@ GRAD_MRSSKStV::GRAD_MRSSKStV(void):
 	HookeanMatT(3),
 	fGRAD_MR(NULL),
 	fYieldFunction(0.0)
-	
 {
 
 }
@@ -74,7 +73,6 @@ const dSymMatrixT& GRAD_MRSSKStV::LapElasticStrain(const dSymMatrixT& lap_totals
 /* modulus */
 const dMatrixT& GRAD_MRSSKStV::c_ijkl(void)
 {
-
 	fModulus =	fGRAD_MR->Moduli(CurrentElement(), CurrIP());
 	return fModulus;
 }
@@ -90,7 +88,6 @@ const dMatrixT& GRAD_MRSSKStV::c_perfplas_ijkl(void)
 /* yield function */
 const double& GRAD_MRSSKStV::YieldF(void)
 {
-
 	fYieldFunction = fGRAD_MR->YieldFunction(CurrentElement(), CurrIP());
 	return fYieldFunction;
 }

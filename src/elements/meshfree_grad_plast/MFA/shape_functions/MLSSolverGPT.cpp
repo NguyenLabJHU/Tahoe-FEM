@@ -1,4 +1,4 @@
-/* $Id: MLSSolverGPT.cpp,v 1.1 2004-06-22 23:17:45 kyonten Exp $ */
+/* $Id: MLSSolverGPT.cpp,v 1.2 2004-08-09 23:42:43 raregue Exp $ */
 /* created: paklein (12/08/1999) */
 #include "MLSSolverGPT.h"
 
@@ -72,7 +72,7 @@ MLSSolverGPT::MLSSolverGPT(int nsd, int complete, MeshFreeT::WindowTypeT window_
 	{
 		case MeshFreeT::kGaussian:
 		{
-			fWindow = new GaussianWindowT(window_params[0], window_params[1], window_params[2]);
+			fWindow = new GaussianWindowGPT(window_params[0], window_params[1], window_params[2]);
 			if (!fWindow) throw ExceptionT::kGeneralFail;
 			break;
 		}
@@ -81,7 +81,7 @@ MLSSolverGPT::MLSSolverGPT(int nsd, int complete, MeshFreeT::WindowTypeT window_
 			dArrayT scalings(fNumSD, window_params.Pointer());
 			double sharpening_factor = window_params[fNumSD];
 			double cut_off_factor = window_params[fNumSD+1];
-			fWindow = new RectGaussianWindowT(scalings, sharpening_factor, cut_off_factor);
+			fWindow = new RectGaussianWindowGPT(scalings, sharpening_factor, cut_off_factor);
 			if (!fWindow) throw ExceptionT::kGeneralFail;
 			break;
 		}
@@ -90,13 +90,13 @@ MLSSolverGPT::MLSSolverGPT(int nsd, int complete, MeshFreeT::WindowTypeT window_
 			dArrayT scalings(fNumSD, window_params.Pointer());
 			double sharpening_factor = window_params[fNumSD];
 			double cut_off_factor = window_params[fNumSD+1];
-			fWindow = new RectCubicSplineWindowT(scalings, sharpening_factor, cut_off_factor);
+			fWindow = new RectCubicSplineWindowGPT(scalings, sharpening_factor, cut_off_factor);
 			if (!fWindow) throw ExceptionT::kGeneralFail;
 			break;
 		}
 		case MeshFreeT::kCubicSpline:
 		{
-			fWindow = new CubicSplineWindowT(window_params[0]);
+			fWindow = new CubicSplineWindowGPT(window_params[0]);
 			if (!fWindow) throw ExceptionT::kGeneralFail;
 			break;
 		}
@@ -220,7 +220,7 @@ int MLSSolverGPT::SetField(const dArray2DT& coords, const dArray2DT& nodal_param
 	//       between points compared to dmax (the support size), while the 
 	//       Gaussian window functionw was evaluated to 4*dmax. the revised 
 	//       code evaluates both based on how distance compares with
-	//       GaussianWindowT::fCutOffFactor*dmax.
+	//       GaussianWindowGPT::fCutOffFactor*dmax.
 
 	if (numactive < fBasis->BasisDimension())
 	{

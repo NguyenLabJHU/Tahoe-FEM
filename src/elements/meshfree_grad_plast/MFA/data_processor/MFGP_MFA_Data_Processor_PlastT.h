@@ -17,14 +17,15 @@ class MFGP_MFA_Data_Processor_PlastT
 		 MFGP_MFA_Data_Processor_PlastT(); 
 		~MFGP_MFA_Data_Processor_PlastT(); 
 		
-		void MFGP_MFA_Data_Processor_PlastT(MLSSolverGPT::SetShapeFunctions
-                        (const dArrayT& volume))
-		// shape function may be directly passed from
-		// MLSSolverGP class??
-		void MFGP_MFA_Data_Processor_PlastT(MLSSolverGPT::SetShapeFunctions
-                        (const dArrayT& volume))
-        void Set_N (double phi);
-		void Set_B4 (double B3);
+		MFGP_MFA_Data_Processor_PlastT( double &fN, dArray2DT &fd2Ndx2 );
+
+		void Construct ( double &fN, dArray2DT &fd2Ndx2 );
+                        
+        void Set_phi (dMatrixT &phi);
+		void Set_B4 (dMatrixT &B4);
+		
+		double N;
+		dArray2DT d2N;
 	};
 
 }
