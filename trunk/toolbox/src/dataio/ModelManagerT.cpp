@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.13 2002-01-27 22:36:33 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.14 2002-02-03 00:04:37 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -439,9 +439,12 @@ int ModelManagerT::ReadCards (ifstreamT& in, ostream& out, ArrayT<iArrayT>& node
   data = 0;
   value = 0;
 
+//external file needs to opened before ReadCards is called
+#if 0
   /* account for text file name instead of data */
   ifstreamT tmp;
   ifstreamT& in2 = OpenExternal (in, tmp, out, true, "ModelManagerT::ReadCards: could not open file");
+#endif
 
   int count = 0;
   int *pd = data.Pointer();
@@ -449,7 +452,7 @@ int ModelManagerT::ReadCards (ifstreamT& in, ostream& out, ArrayT<iArrayT>& node
   for (int i=0; i < numc; i++)
     {
       /* read node set name or node number */
-      in2 >> ID;
+      in >> ID;
 
       /* read nodes in set or create a set from node number */
       if (fFormat == IOBaseT::kTahoe)
@@ -473,8 +476,8 @@ int ModelManagerT::ReadCards (ifstreamT& in, ostream& out, ArrayT<iArrayT>& node
 
       /* read card data */
       for (int j=0; j < data.MinorDim(); j++)
-	in2 >> *pd++;
-      in2 >> value[i];
+	in >> *pd++;
+      in >> value[i];
     }  
   return count;
 }
