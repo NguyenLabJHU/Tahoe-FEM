@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.cpp,v 1.18 2004-10-14 19:02:54 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.19 2004-11-17 23:22:53 paklein Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionT.h"
 #include <iostream.h>
@@ -254,35 +254,68 @@ int CommunicatorT::Sum(int a) const
 	return a;
 }
 
-/* element-by-element sum of a vector */
-void CommunicatorT::Sum(const nArrayT<double>& my_values, nArrayT<double>& sum) const
+void CommunicatorT::AllReduce(const nArrayT<double>& my_values, nArrayT<double>& reduce, MPI_Op op) const
 {
-	const char caller[] = "CommunicatorT::Sum";
+	const char caller[] = "CommunicatorT::AllReduce";
 
 	/* dimension check */
-	if (my_values.Length() != sum.Length())
-		Log(kFail, caller, "sum %d insufficient size to hold %d", my_values.Length(), sum.Length());
+	if (my_values.Length() != reduce.Length())
+		Log(kFail, caller, "%d insufficient size to hold result length %d", my_values.Length(), reduce.Length());
 
 	/* log input */
 	if (LogLevel() == kLow)
 		Log() << setw(10) << "in:\n" << my_values.wrap(5) << '\n';
 
 	if (Size() == 1)
-		sum = my_values;
+		reduce = my_values;
 #ifdef __TAHOE_MPI__
 	else if (Size() > 1)
 	{
-		int ret = MPI_Allreduce((void*) my_values.Pointer(), sum.Pointer(), my_values.Length(), MPI_DOUBLE, MPI_SUM, fComm);
+		int ret = MPI_Allreduce((void*) my_values.Pointer(), (void*) reduce.Pointer(), my_values.Length(), MPI_DOUBLE, op, fComm);
 		
 #ifdef CHECK_MPI_RETURN
 		if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Allreduce failed");
 #endif
 	}
-#endif
+#else /* __TAHOE_MPI__  */
+#pragma unused(op)
+#endif /* __TAHOE_MPI__ */
 
 	/* log sum */
 	if (LogLevel() == kLow)
-		Log() << setw(10) << "sum:\n" << sum.wrap(5) << '\n';
+		Log() << setw(10) << "sum:\n" << reduce.wrap(5) << '\n';
+}
+
+void CommunicatorT::AllReduce(const nArrayT<int>& my_values, nArrayT<int>& reduce, MPI_Op op) const
+{
+	const char caller[] = "CommunicatorT::AllReduce";
+
+	/* dimension check */
+	if (my_values.Length() != reduce.Length())
+		Log(kFail, caller, "%d insufficient size to hold result length %d", my_values.Length(), reduce.Length());
+
+	/* log input */
+	if (LogLevel() == kLow)
+		Log() << setw(10) << "in:\n" << my_values.wrap(5) << '\n';
+
+	if (Size() == 1)
+		reduce = my_values;
+#ifdef __TAHOE_MPI__
+	else if (Size() > 1)
+	{
+		int ret = MPI_Allreduce((void*) my_values.Pointer(), (void*) reduce.Pointer(), my_values.Length(), MPI_INT, op, fComm);
+		
+#ifdef CHECK_MPI_RETURN
+		if (ret != MPI_SUCCESS) Log(kFail, caller, "MPI_Allreduce failed");
+#endif
+	}
+#else /* __TAHOE_MPI__  */
+#pragma unused(op)
+#endif /* __TAHOE_MPI__ */
+
+	/* log sum */
+	if (LogLevel() == kLow)
+		Log() << setw(10) << "sum:\n" << reduce.wrap(5) << '\n';
 }
 
 /* maximum over single doubles */
