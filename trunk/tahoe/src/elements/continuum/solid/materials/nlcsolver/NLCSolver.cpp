@@ -338,7 +338,7 @@ double NLCSolver::SetDefaultStepTol()
   if (fDigits == -1)
     eta = DBL_EPS;
   else
-    eta = max(DBL_EPS, pow(10, -fDigits));
+    eta = max(DBL_EPS, pow(10.0, -fDigits));
   return eta;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: BCJHypo3D.cpp,v 1.5 2001-07-03 01:35:38 paklein Exp $ */
+/* $Id: BCJHypo3D.cpp,v 1.6 2002-02-22 19:35:17 xiang Exp $ */
 /*
   File: BCJHypo3D.cpp
 */
@@ -515,7 +515,7 @@ void BCJHypo3D::SolveState()
         {
           subIncr = 2 * subIncr - 1;
           totSubIncrs = 2 * totSubIncrs;
-          if (totSubIncrs > pow(2, 30))
+          if (totSubIncrs > pow(2.0, 30))
               throwRunTimeError("BCJHypo3D::SolveState: totSubIncrs > 2^30");
           if (subIncr > 1) {
              fInternal = fInt_save;

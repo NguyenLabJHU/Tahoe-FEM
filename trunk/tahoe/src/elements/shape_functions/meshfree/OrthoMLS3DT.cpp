@@ -1,4 +1,4 @@
-/* $Id: OrthoMLS3DT.cpp,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
+/* $Id: OrthoMLS3DT.cpp,v 1.2 2002-02-22 19:37:20 xiang Exp $ */
 /* created: paklein (07/03/1998)                                          */
 
 #include "OrthoMLS3DT.h"
@@ -45,7 +45,7 @@ void OrthoMLS3DT::SetMonomials(const dArrayT& coords, dArrayT& p, dArray2DT& Dp)
 #if __option(extended_errorcheck)
 	/* dimension checking */
 	if (coords.Length() != fNumSD) throw eGeneralFail;
-	if (   p.Length() != pow(fComplete+1,2)) throw eSizeMismatch;
+	if (   p.Length() != pow(double(fComplete+1),2)) throw eSizeMismatch;
 	if (Dp.MajorDim() != fNumSD ||
 	    Dp.MinorDim() != p.Length()) throw eSizeMismatch;
 #endif

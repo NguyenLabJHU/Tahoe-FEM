@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.cpp,v 1.15 2002-02-22 15:45:24 sawimme Exp $ */
+/* $Id: AbaqusResultsT.cpp,v 1.16 2002-02-22 19:29:16 xiang Exp $ */
 /* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
@@ -1739,9 +1739,9 @@ bool AbaqusResultsT::Read (double& d)
       int exponent = (int) atof (num.Pointer());
 
       if (sign == '+' || sign == ' ')
-	d = base * pow (10, exponent);
+	d = base * pow (10.0, exponent);
       else
-	d = base * pow (10, -exponent);
+	d = base * pow (10.0, -exponent);
     }
   fCurrentLength--;
   return true;
