@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.h,v 1.1.1.1.6.1 2001-10-29 00:10:03 paklein Exp $ */
+/* $Id: UnConnectedRodT.h,v 1.1.1.1.6.2 2001-11-06 16:08:23 sawimme Exp $ */
 /* created: paklein (04/05/1997)                                          */
 /* Interface for a rod element group that connects itself based on the    */
 /* nodes placed in the group. All the rods in the group are assumed to    */
@@ -47,7 +47,7 @@ private:
 protected:
 
 	/** changing connectivities */
-	iArray2DT fRodConnectivities;
+	//iArray2DT fRodConnectivities;
 
 private:
 
