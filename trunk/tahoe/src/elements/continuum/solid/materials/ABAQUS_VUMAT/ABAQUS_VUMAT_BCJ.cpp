@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BCJ.cpp,v 1.2 2001-07-19 14:52:51 hspark Exp $ */
+/* $Id: ABAQUS_VUMAT_BCJ.cpp,v 1.3 2001-07-19 20:32:10 hspark Exp $ */
 /* created: paklein (05/09/2000)                                          */
 
 #include "ABAQUS_VUMAT_BCJ.h"
@@ -18,7 +18,7 @@ extern "C" {
   //celent, doublereal *dfgrd0, doublereal *dfgrd1, integer *noel,
   //integer *npt, integer *layer, integer *kspt, integer *kstep, integer *
   //kinc, ftnlen cmname_len);
-          int umat_(integer *nblock, integer *ndi, integer *nshr, integer *nstatv,
+          int vumat_(integer *nblock, integer *ndi, integer *nshr, integer *nstatv,
 	  integer *nfieldv, integer *nprops, integer *lanneal, doublereal *steptime, doublereal *totaltime,
 	  doublereal *dtime, char *cmname, doublereal *coords, doublereal *celent,
 	  doublereal *props, doublereal *density, doublereal *dstran, doublereal *relspininc,
@@ -47,7 +47,7 @@ ABAQUS_VUMAT_BCJ::ABAQUS_VUMAT_BCJ(ifstreamT& in, const FiniteStrainT& element):
 * Private
 ***********************************************************************/
 
-/* UMAT function wrapper */
+/* VUMAT function wrapper */
 //void ABAQUS_VUMAT_BCJ::UMAT(doublereal *stress, doublereal *statev, doublereal
 //*ddsdde, doublereal *sse, doublereal *spd, doublereal *scd,
 //doublereal *rpl, doublereal *ddsddt, doublereal *drplde, doublereal *
@@ -59,7 +59,7 @@ ABAQUS_VUMAT_BCJ::ABAQUS_VUMAT_BCJ(ifstreamT& in, const FiniteStrainT& element):
 //celent, doublereal *dfgrd0, doublereal *dfgrd1, integer *noel,
 //integer *npt, integer *layer, integer *kspt, integer *kstep, integer *
 //kinc, ftnlen cmname_len)
-void ABAQUS_VUMAT_BCJ::UMAT(integer *nblock, integer *ndi, integer *nshr, integer *nstatv,
+void ABAQUS_VUMAT_BCJ::VUMAT(integer *nblock, integer *ndi, integer *nshr, integer *nstatv,
 	  integer *nfieldv, integer *nprops, integer *lanneal, doublereal *steptime, doublereal *totaltime,
 	  doublereal *dtime, char *cmname, doublereal *coords, doublereal *celent,
 	  doublereal *props, doublereal *density, doublereal *dstran, doublereal *relspininc,
@@ -69,13 +69,13 @@ void ABAQUS_VUMAT_BCJ::UMAT(integer *nblock, integer *ndi, integer *nshr, intege
 	  doublereal *dfgrd1, doublereal *dpred, doublereal *stressnew, doublereal *statevnew,
 	  doublereal *enerInternNew, doublereal *enerInelasNew)
 {
-	/* call UMAT */
+	/* call VUMAT */
   //umat_(stress, statev, ddsdde, sse, spd, scd, rpl, ddsddt, drplde,
   //	drpldt, stran, dstran, time, dtime, temp, dtemp, predef, dpred,
   //	cmname, ndi, nshr, ntens, nstatv, props, nprops, coords, drot,
   //	pnewdt, celent, dfgrd0, dfgrd1, noel, npt, layer, kspt, kstep,
   //	kinc, cmname_len);
-        umat_(nblock, ndi, nshr, nstatv,
+        vumat_(nblock, ndi, nshr, nstatv,
 	  nfieldv, nprops, lanneal, steptime, totaltime,
 	  dtime, cmname, coords, celent,
 	  props, density, dstran, relspininc,

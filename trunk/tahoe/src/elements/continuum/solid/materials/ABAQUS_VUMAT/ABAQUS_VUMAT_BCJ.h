@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BCJ.h,v 1.2 2001-07-19 14:52:51 hspark Exp $ */
+/* $Id: ABAQUS_VUMAT_BCJ.h,v 1.3 2001-07-19 20:32:10 hspark Exp $ */
 
 #ifndef _ABAQUS_VUMAT_BCJ_H_
 #define _ABAQUS_VUMAT_BCJ_H_
@@ -18,11 +18,11 @@ public:
 
 private:
 
-	/* UMAT function wrapper */
+	/* VUMAT function wrapper */
 
 //this need to be changed to a VUMAT wrapper	
 	
-	virtual void UMAT(integer*, integer*, integer*, integer*, integer*, integer*, integer*, doublereal*,
+	virtual void VUMAT(integer*, integer*, integer*, integer*, integer*, integer*, integer*, doublereal*,
 		doublereal*, doublereal*, char*, doublereal*, doublereal*, doublereal*,
                 doublereal*, doublereal*, doublereal*, doublereal*, doublereal*, doublereal*,
 		doublereal*, doublereal*, doublereal*, doublereal*, doublereal*, doublereal*,
