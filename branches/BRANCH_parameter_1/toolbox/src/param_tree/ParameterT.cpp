@@ -1,4 +1,4 @@
-/* $Id: ParameterT.cpp,v 1.7.2.1 2003-04-27 22:21:08 paklein Exp $ */
+/* $Id: ParameterT.cpp,v 1.7.2.2 2003-04-28 08:41:57 paklein Exp $ */
 #include "ParameterT.h"
 
 /* array behavior */
@@ -27,6 +27,14 @@ ParameterT::ParameterT(double x, const StringT& name):
 
 ParameterT::ParameterT(const StringT& s, const StringT& name):
 	ValueT(s),
+	fName(name),
+	fDefault(NULL)
+{
+
+}
+
+ParameterT::ParameterT(bool b, const StringT& name):
+	ValueT(b),
 	fName(name),
 	fDefault(NULL)
 {
@@ -132,6 +140,14 @@ void ParameterT::SetDefault(int a)
 				fDefault = new ValueT(a);
 			break;
 		}
+		case Boolean:
+		{
+			if (fDefault)
+				*fDefault = bool(a);
+			else
+				fDefault = new ValueT(bool(a));
+			break;
+		}
 		case Enumeration:
 		{
 			/* look for value in limits */
@@ -175,6 +191,19 @@ void ParameterT::SetDefault(double x)
 		ExceptionT::GeneralFail("ParameterT::SetDefault(double)", "type mismatch");
 }
 
+void ParameterT::SetDefault(bool b)
+{
+	if (fType == Boolean)
+	{
+		if (fDefault)
+			*fDefault = b;
+		else
+			fDefault = new ValueT(b);
+	}
+	else
+		ExceptionT::GeneralFail("ParameterT::SetDefault(bool)", "type mismatch");
+}
+
 void ParameterT::SetDefault(const StringT& s)
 {
 	const char caller[] = "ParameterT::SetDefault(StringT)";
@@ -203,6 +232,11 @@ void ParameterT::SetDefault(const StringT& s)
 			*fDefault = s;
 		else
 			fDefault = new ValueT(s);
+	}
+	else if (fType == Boolean)
+	{	
+		if (!fDefault) fDefault = new ValueT(Boolean);
+		fDefault->FromString(s);
 	}
 	else
 		ExceptionT::GeneralFail(caller, "type mismatch");
