@@ -24,7 +24,7 @@ CUBT::CUBT(int nlsd,int nuca,dArrayT alat,
     {
       if(nuca != 1) {cout << "Wrong nuca\n"; throw eSizeMismatch;}
 
-      double Pi = 4.*atan(1);
+      double Pi = 4.*atan(1.0);
       double Pio3 = Pi/3.;
 
       // Define basis vectors
