@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.h,v 1.8 2001-12-16 23:53:44 paklein Exp $ */
+/* $Id: AbaqusInputT.h,v 1.9 2002-01-05 06:36:47 paklein Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _ABAQUSINPUT_T_H_
@@ -23,7 +23,7 @@ class AbaqusInputT : public InputBaseT
  public:
   AbaqusInputT (ostream& out);
 
-  void Open (const StringT& file);
+  bool Open (const StringT& file);
   void Close (void);
 
   void ElementGroupNames (ArrayT<StringT>& groupnames) const;

@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.cpp,v 1.6 2002-01-03 01:26:33 paklein Exp $ */
+/* $Id: ExodusInputT.cpp,v 1.7 2002-01-05 06:36:47 paklein Exp $ */
 /* created: sawimme (12/04/1998) */
 
 #include "ExodusInputT.h"
@@ -14,9 +14,13 @@ ExodusInputT::ExodusInputT (ostream& out) :
 {
 }
 
-void ExodusInputT::Open (const StringT& filename)
+bool ExodusInputT::Open (const StringT& filename)
 {
-  fData.OpenRead (filename);
+	if (!fData.OpenRead (filename)) {
+		cout << "\n ExodusInputT::Open: error opening file: " << filename << endl;
+		return false;
+	}
+	else return true;
 }
 
 void ExodusInputT::ElementGroupNames (ArrayT<StringT>& groupnames) const

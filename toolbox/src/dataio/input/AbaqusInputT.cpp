@@ -1,5 +1,5 @@
-/* $Id: AbaqusInputT.cpp,v 1.7 2001-12-16 23:53:44 paklein Exp $ */
-/* created: sawimme (05/18/1998)                                          */
+/* $Id: AbaqusInputT.cpp,v 1.8 2002-01-05 06:36:47 paklein Exp $ */
+/* created: sawimme (05/18/1998) */
 
 #include "AbaqusInputT.h"
 #include "ios_fwd_decl.h"
@@ -14,10 +14,18 @@ AbaqusInputT::AbaqusInputT (ostream& out) :
 {
 }
 
-void AbaqusInputT::Open (const StringT& file)
+bool AbaqusInputT::Open (const StringT& file)
 {
-  fData.Initialize (file);
-  fData.ScanFile (fNumElements, fNumNodes, fNumTimeSteps, fNumModes);
+	if (!fData.Initialize (file))
+	{
+		cout << "\n AbaqusInputT::Open: error initializing file: " << file << endl;
+		return false;
+	}
+	if (!fData.ScanFile (fNumElements, fNumNodes, fNumTimeSteps, fNumModes))
+	{
+		cout << "\n AbaqusInputT::Open: error scanning file: " << file << endl;  
+		return false;  	
+	} return true;
 }
 
 void AbaqusInputT::Close (void) 

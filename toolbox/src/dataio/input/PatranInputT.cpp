@@ -1,4 +1,4 @@
-/* $Id: PatranInputT.cpp,v 1.6 2001-12-16 23:53:45 paklein Exp $ */
+/* $Id: PatranInputT.cpp,v 1.7 2002-01-05 06:36:48 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "PatranInputT.h"
@@ -12,9 +12,12 @@ PatranInputT::PatranInputT (ostream& out) :
 {
 }
 
-void PatranInputT::Open (const StringT& file)
+bool PatranInputT::Open (const StringT& file)
 {
-  fPatran.OpenRead (file);
+	if (!fPatran.OpenRead (file)) {
+		cout << "\n PatranInputT::Open: error opening file: " << file << endl;
+		return false;
+	} else return true;
 }
 
 void PatranInputT::Close (void)

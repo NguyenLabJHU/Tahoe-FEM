@@ -1,4 +1,4 @@
-/* $Id: InputBaseT.h,v 1.7 2001-12-16 23:53:45 paklein Exp $ */
+/* $Id: InputBaseT.h,v 1.8 2002-01-05 06:36:48 paklein Exp $ */
 /* created: sawimme (08/12/1999) */
 
 #ifndef _INPUTBASE_T_H_
@@ -44,7 +44,10 @@ public:
   InputBaseT (ostream& out);
   virtual ~InputBaseT (void);
 
-  virtual void Open (const StringT& filename) = 0;
+  /** open the input source. \return true if successful, false otherwisa */
+  virtual bool Open (const StringT& filename) = 0;
+
+  /** close the input source */
   virtual void Close (void) = 0;
 
   /** return names, Array must be preallocated */

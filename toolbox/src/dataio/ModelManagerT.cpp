@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.9 2002-01-03 02:53:33 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.10 2002-01-05 06:36:39 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -32,8 +32,11 @@ ModelManagerT::~ModelManagerT (void)
   delete fInput;
 }
 
-void ModelManagerT::Initialize (ifstreamT& in, bool readonly)
+bool ModelManagerT::Initialize (ifstreamT& in, bool readonly)
 {
+	/* clear any existing parameters */
+	Clear();
+
   StringT database;
   in >> fFormat;
 
@@ -55,18 +58,27 @@ void ModelManagerT::Initialize (ifstreamT& in, bool readonly)
     database = "\0";
 
 	fInputName = database;
- 	if (!readonly) ScanModel(fInputName);
+ 	if (!readonly)
+ 		return ScanModel(fInputName);
+ 	else
+ 		return true;
 }
 
-void ModelManagerT::Initialize (const IOBaseT::FileTypeT format, const StringT& database)
+bool ModelManagerT::Initialize (const IOBaseT::FileTypeT format, const StringT& database)
 {
+	/* clear any existing parameters */
+	Clear();
+
 	fFormat = format;
 	fInputName = database;
-	ScanModel(fInputName);
+	return ScanModel(fInputName);
 }
 
-void ModelManagerT::Initialize (void)
+bool ModelManagerT::Initialize (void)
 {
+	/* clear any existing parameters */
+	Clear();
+
   IOBaseT temp (cout);
   temp.InputFormats (cout);
   StringT database;
@@ -80,7 +92,7 @@ void ModelManagerT::Initialize (void)
   else
     database = "\0";
 	fInputName = database;
-	ScanModel(fInputName);
+	return ScanModel(fInputName);
 }
 
 void ModelManagerT::EchoData (ostream& o) const
@@ -594,15 +606,18 @@ void ModelManagerT::ReadCoordinates (void)
     {
       if (fCoordinates.Length() == 0)
 	{
-	  fMessage << "\n\nModelManagerT::Coordinates, coords not registered yet\n\n";
+	  fMessage << "\n ModelManagerT::Coordinates, coords not registered yet" << endl;
 	  throw eGeneralFail;
 	}
       else
 	return; // do nothing, already loaded
     }
   fCoordinates.Allocate (fCoordinateDimensions[0], fCoordinateDimensions[1]); 
-  if (!fInput) throw eGeneralFail;
-  fInput->ReadCoordinates (fCoordinates);
+	if (!fInput) {
+    	fMessage << "\n ModelManagerT::ReadCoordinates: input source is not initialized" << endl;
+		throw eDatabaseFail;
+	}
+	fInput->ReadCoordinates (fCoordinates);
 }
 
 /* used to reduce 3D database coordinates (Patran, Abaqus, etc.) */
@@ -671,11 +686,14 @@ void ModelManagerT::ReadConnectivity (int index)
     {
       if (fFormat == IOBaseT::kTahoe)
 	{
-	  fMessage << "\n\nModelManagerT::ReadConnectivity, elems not registered yet\n\n";
+	  fMessage << "\n ModelManagerT::ReadConnectivity, elems not registered yet" << endl;
 	  throw eGeneralFail;
 	}
       fElementSets[index].Allocate (fElementLengths[index], fElementNodes[index]);
-      if (!fInput) throw eGeneralFail;
+     if (!fInput) {
+    	fMessage << "\n ModelManagerT::ReadConnectivity: input source is not initialized" << endl;
+		throw eDatabaseFail;
+      }
       fInput->ReadConnectivity (fElementNames[index], fElementSets[index]);
     }
 }
@@ -689,20 +707,29 @@ const iArray2DT* ModelManagerT::ElementGroupPointer (int index) const
 
 void ModelManagerT::AllNodeMap (iArrayT& map)
 {
-  if (!fInput) throw eGeneralFail;
-  fInput->ReadNodeMap (map);
+	if (!fInput) {
+    	fMessage << "\n ModelManagerT::AllNodeMap: input source is not initialized" << endl;
+		throw eDatabaseFail;
+	}
+	fInput->ReadNodeMap (map);
 }
 
 void ModelManagerT::AllElementMap (iArrayT& map)
 {
-  if (!fInput) throw eGeneralFail;
-  fInput->ReadAllElementMap (map);
+	if (!fInput) {
+    	fMessage << "\n ModelManagerT::AllElementMap: input source is not initialized" << endl;
+		throw eDatabaseFail;
+	}
+	fInput->ReadAllElementMap (map);
 }
 
 void ModelManagerT::ElementMap (StringT& name, iArrayT& map)
 {
-  if (!fInput) throw eGeneralFail;
-  fInput->ReadGlobalElementMap (name, map);
+	if (!fInput) {
+    	fMessage << "\n ModelManagerT::ElementMap: input source is not initialized" << endl;
+		throw eDatabaseFail;
+	}
+	fInput->ReadGlobalElementMap (name, map);
 }
 
 void ModelManagerT::NodeSetNames (ArrayT<StringT>& names) const
@@ -740,11 +767,14 @@ const iArrayT& ModelManagerT::NodeSet (int index)
     {
       if (fFormat == IOBaseT::kTahoe)
 	{
-	  fMessage << "\n\nModelManagerT::NodeSet, set not registered yet\n\n";
+	  fMessage << "\n ModelManagerT::NodeSet, set not registered yet" << endl;
 	  throw eGeneralFail;
 	}
       fNodeSets[index].Allocate (fNodeSetDimensions[index]);
-      if (!fInput) throw eGeneralFail;
+      if (!fInput) {
+    	fMessage << "\n ModelManagerT::NodeSet: input source is not initialized" << endl;
+		throw eDatabaseFail;
+	  }
       fInput->ReadNodeSet (fNodeSetNames[index], fNodeSets[index]);
     }
   return fNodeSets [index];
@@ -800,11 +830,14 @@ const iArray2DT& ModelManagerT::SideSet (int index) const
     {
       if (fFormat == IOBaseT::kTahoe)
 	{
-	  fMessage << "\n\nModelManagerT::SideSet, set not registered yet\n\n";
+	  fMessage << "\n ModelManagerT::SideSet, set not registered yet" << endl;
 	  throw eGeneralFail;
 	}
       fSideSets[index].Allocate (fSideSetDimensions[index], 2);
-      if (!fInput) throw eGeneralFail;
+      if (!fInput) {
+    	fMessage << "\n ModelManagerT::SideSet: input source is not initialized" << endl;
+		throw eDatabaseFail;
+	  }
       if (fSideSetIsLocal[index])
 	fInput->ReadSideSetLocal (fSideSetNames[index], fSideSets[index]);
       else
@@ -848,7 +881,7 @@ void ModelManagerT::SideSetGlobalToLocal (int& localelemindex, iArray2DT& local,
 #pragma unused(localelemindex)
 #pragma unused(local)
 #pragma unused(global)
-  fMessage << "\n\n ModelManagerT not programmed SideSetGlobalToLocal\n\n";
+  fMessage << "\n ModelManagerT::SideSetGlobalToLocal not implemented" << endl;
   throw eGeneralFail;
 }
 
@@ -1028,7 +1061,7 @@ ifstreamT& ModelManagerT::OpenExternal (ifstreamT& in, ifstreamT& in2, ostream& 
 
 /*********** PRIVATE **************/
 
-void ModelManagerT::ScanModel (const StringT& database)
+bool ModelManagerT::ScanModel (const StringT& database)
 {
   switch (fFormat)
     {
@@ -1060,47 +1093,59 @@ void ModelManagerT::ScanModel (const StringT& database)
       break;
     default:
       {
-	fMessage << "\n\nModelManagerT::Unsupported model format. " 
-		 << fFormat << "\n\n";
+	fMessage << "\n ModelManagerT::Unsupported model format" 
+		 << fFormat << endl;
 	throw eGeneralFail;
       }
     }
 
-  if (fFormat != IOBaseT::kTahoe)
-    {
-      if (!fInput) 
+	if (fFormat != IOBaseT::kTahoe)
 	{
-	  fMessage << "\n\nModelManagerT::Scan Model fInput not set ." << endl << endl;
-	  throw eGeneralFail;
-	}
-      fInput->Close ();
-      fInput->Open (database);
+		if (!fInput) 
+		{
+			fMessage << "\n ModelManagerT::Scan Model fInput not set" << endl;
+			return false;
+		}
+
+		fInput->Close();
+		if (!fInput->Open(database))
+		{
+			fMessage << "\n ModelManagerT::ScanModel: error opening database file \"" 
+			         << database << '\"' << endl;
+			return false;
+		}
       
-      fCoordinateDimensions [0] = fInput->NumNodes ();
-      fCoordinateDimensions [1] = fInput->NumDimensions ();
+		fCoordinateDimensions [0] = fInput->NumNodes ();
+		fCoordinateDimensions [1] = fInput->NumDimensions ();
 
-      if (!ScanElements ())
-	{
-	  fMessage << "\n\nModelManagerT::ScanModel: Error Registering Elements.\n\n";
-	  throw eGeneralFail;
-	}
+		if (!ScanElements ())
+		{
+			fMessage << "\n ModelManagerT::ScanModel: Error Registering Elements" << endl;
+			return false;
+		}
  
-      if (!ScanNodeSets ())
-	{
-	  fMessage << "\n\nModelManagerT::ScanModel: Error Registering NodeSets.\n\n";
-	  throw eGeneralFail;
-	}
+		if (!ScanNodeSets ())
+		{
+			fMessage << "\n ModelManagerT::ScanModel: Error Registering NodeSets" << endl;
+			return false;
+		}
 
-      if (!ScanSideSets ())
-	{
-	  fMessage << "\n\nModelManagerT::ScanModel: Error Registering SideSets.\n\n";
-	  throw eGeneralFail;
+		if (!ScanSideSets ())
+		{
+			fMessage << "\n ModelManagerT::ScanModel: Error Registering SideSets" << endl;
+			return false;
+		}
 	}
-    }
+	
+	/* success */
+	return true;
 }
 
 bool ModelManagerT::ScanElements (void)
 {
+	/* check if input has been initialized */
+	if (!fInput) return false;
+	
   fNumElementSets = fInput->NumElementGroups ();
   fElementLengths.Allocate (fNumElementSets);
   fElementNodes.Allocate (fNumElementSets);
@@ -1123,6 +1168,9 @@ bool ModelManagerT::ScanElements (void)
 
 bool ModelManagerT::ScanNodeSets (void)
 {
+	/* check if input has been initialized */
+	if (!fInput) return false;
+
   fNumNodeSets = fInput->NumNodeSets();
   fNodeSetNames.Allocate (fNumNodeSets);
   fNodeSetDimensions.Allocate (fNumNodeSets);
@@ -1138,6 +1186,9 @@ bool ModelManagerT::ScanNodeSets (void)
 
 bool ModelManagerT::ScanSideSets (void)
 {
+	/* check if input has been initialized */
+	if (!fInput) return false;
+
   fNumSideSets = fInput->NumSideSets();
   fSideSetNames.Allocate (fNumSideSets);
   fSideSetDimensions.Allocate (fNumSideSets);
@@ -1187,4 +1238,14 @@ bool ModelManagerT::CheckName (const ArrayT<StringT>& list, const StringT& name,
 	}
     }
   return true;
+}
+
+/* clear database parameters */
+void ModelManagerT::Clear(void)
+{
+	/* close the input */
+	delete fInput;
+	fInput = NULL;
+
+	//TO DO: clear all memory and set arrays back to empty
 }

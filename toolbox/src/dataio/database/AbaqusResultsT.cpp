@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.cpp,v 1.6 2002-01-03 23:07:02 paklein Exp $ */
+/* $Id: AbaqusResultsT.cpp,v 1.7 2002-01-05 06:36:41 paklein Exp $ */
 /* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
@@ -27,36 +27,40 @@ AbaqusResultsT::AbaqusResultsT (ostream& message) :
   SetVariableNames ();
 }
 
-void AbaqusResultsT::Initialize (const char *filename)
+bool AbaqusResultsT::Initialize (const char *filename)
 {
-  fIn.open (filename);
-  if (!fIn)
+	//TEMP - workaround for problem with CW7
+	ifstreamT::FixPath(filename, fFileName);
+	fIn.open (fFileName);
+	if (!fIn.is_open())
     {
-      fMessage << "\n\nAbaqusResultsT::Initialize unable to open file " << filename << "\n\n";
-      throw eDatabaseFail;
+      fMessage << "\n AbaqusResultsT::Initialize unable to open file " << filename << endl;
+      return false;
     }
-  fFileName = filename;
 
-  int key = -1;
-  ReadNextRecord (key);
-  if (key != VERSION) 
+	int key = -1;
+	ReadNextRecord (key);
+	if (key != VERSION) 
     {
-      fMessage << "\n\nAbaqusResultsT::Initialize not ASCII, trying Binary.\n";
+      fMessage << "\n AbaqusResultsT::Initialize not ASCII, trying Binary" << endl;
       fBinary = true;
       ResetFile ();
       ReadNextRecord (key);
       if (key != VERSION)
 	{
-	  fMessage << "\n\nAbaqusResultsT::Initialize not Binary.\n";
-	  throw eDatabaseFail;
+	  fMessage << "\n AbaqusResultsT::Initialize not Binary" << endl;
+	  return false;
 	}
     }
 
   if (!ReadVersion ()) 
     {
-      fMessage << "\n\nAbaqusResultsT::Initialize unreadable file\n";
-      throw eDatabaseFail;
+      fMessage << "\n AbaqusResultsT::Initialize unreadable file" << endl;
+      return false;
     }
+    
+    /* must be OK */
+    return true;
 }
 
 void AbaqusResultsT::Create (const char* filename, bool binary, int numelems, int numnodes, double elemsize)
@@ -64,7 +68,7 @@ void AbaqusResultsT::Create (const char* filename, bool binary, int numelems, in
   fOut.open (filename);
   if (!fOut)
     {
-      fMessage << "\n\nAbaqusResultsT::Create unable to open file " << filename << "\n\n";
+      fMessage << "\n AbaqusResultsT::Create unable to open file " << filename << endl;
       throw eDatabaseFail;
     }
   fFileName = filename;
@@ -103,7 +107,7 @@ void AbaqusResultsT::OpenWrite (const char *filename, bool binary, int bufferwri
   fOut.open (filename);
   if (!fOut)
     {
-      fMessage << "\n\nAbaqusResultsT::OpenWRite unable to open file " << filename << "\n\n";
+      fMessage << "\n AbaqusResultsT::OpenWRite unable to open file " << filename << endl;
       throw eDatabaseFail;
     }
   fFileName = filename;
@@ -147,7 +151,7 @@ int AbaqusResultsT::Close (void)
   return bufferdone;
 }
 
-void AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, int &nummodes)
+bool AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, int &nummodes)
 {
   int key = 0, error = OKAY, outputmode = -1;
   int location = -1;
@@ -261,6 +265,8 @@ void AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
   numnodes = fNumNodes;
   numtimesteps = fStartCount;
   nummodes = fModalCount;
+  
+  return error == OKAY;
 }
 
 void AbaqusResultsT::ElementSetNames (ArrayT<StringT>& names) const
@@ -426,7 +432,7 @@ void AbaqusResultsT::GeometryCode (const StringT& name, GeometryT::CodeT& code)
   if (!Read (elname, 1)) throw eDatabaseFail;
   if (TranslateElementName (elname.Pointer(), code, numintpts) == BAD)
     {
-      fMessage << "\nAbaqusResultsT::GeometryCode Unable to translate element name.\n\n";
+      fMessage << "\n AbaqusResultsT::GeometryCode Unable to translate element name" << endl;
       throw eDatabaseFail;
     }
 }
@@ -686,7 +692,7 @@ bool AbaqusResultsT::NextElement (int &number, GeometryT::CodeT &type, iArrayT &
   int numintpts;
   if (TranslateElementName (name.Pointer(), type, numintpts) == BAD) 
     {
-      fMessage << "\nAbaqusResultsT::NextElement Unable to translate element name.\n\n";
+      fMessage << "\n AbaqusResultsT::NextElement Unable to translate element name" << endl;
       throw eDatabaseFail;
     }
 
@@ -981,7 +987,7 @@ bool AbaqusResultsT::ReadVersion (void)
   if (!Read (version, 1) || !Read (date, 2) || !Read (time, 1) ||
       !Read (numelems) || !Read (numnodes) || !Read (elemleng) )
     {
-      fMessage << "\nAbaqusResultsT::ScanFile Unable to read version record\n\n";
+      fMessage << "\n AbaqusResultsT::ScanFile Unable to read version record" << endl;
       return false;
     }
 
@@ -989,7 +995,7 @@ bool AbaqusResultsT::ReadVersion (void)
       strncmp (version.Pointer(), "6.1", 3) != 0 &&
       strncmp (version.Pointer(), "6.2", 3) != 0 )
     {
-      fMessage << "\nAbaqusResultsT::ScanFile Unrecognized version " << version << "\n\n";
+      fMessage << "\n AbaqusResultsT::ScanFile Unrecognized version " << version << endl;
       return false;
     }
   return true;
@@ -1023,7 +1029,7 @@ void AbaqusResultsT::ScanElement (void)
 
   if (TranslateElementName (name.Pointer(), type, numintpts) == BAD) 
     {
-      fMessage << "\nAbaqusResultsT::ScanElement Encountered unknown element type\n\n";
+      fMessage << "\n AbaqusResultsT::ScanElement Encountered unknown element type" << endl;
       throw eDatabaseFail;
     }
   fNumElements++;
@@ -1065,8 +1071,8 @@ void AbaqusResultsT::ScanVariable (int key, int outputmode, int location)
   int index = VariableKeyIndex (key);
   if (index < 0)
     {
-      fMessage << "\nAbaqusResultsT::ScanVariable Unable to map variable key: "
-	       << key << "\n\n";
+      fMessage << "\n AbaqusResultsT::ScanVariable Unable to map variable key: "
+	       << key << endl;
       throw eDatabaseFail;
     }
 
@@ -1103,8 +1109,8 @@ void AbaqusResultsT::ScanVariable (int key, int outputmode, int location)
 	    break;
 	  default:
 	    {
-	      fMessage << "\nAbaqusResultsT::Scan Variable, unrecognized location"
-		       << location << "\n\n";
+	      fMessage << "\n AbaqusResultsT::Scan Variable, unrecognized location"
+		       << location << endl;
 	      throw eDatabaseFail;
 	    }
 	  }
@@ -1120,8 +1126,8 @@ void AbaqusResultsT::ScanVariable (int key, int outputmode, int location)
       }
     default:
       {
-	fMessage << "\nAbaqusResultsT::Scan Variable, Unrecognize output mode."
-		 << outputmode << "\n\n";
+	fMessage << "\n AbaqusResultsT::Scan Variable, Unrecognize output mode."
+		 << outputmode << endl;
 	throw eDatabaseFail;
       }
     }
@@ -1657,7 +1663,13 @@ bool AbaqusResultsT::CheckBufferSize (istream& in, int numchars)
       if (fBufferSize > 0) 
 	strcpy (&temp[0], fBuffer.Pointer (fBufferDone));
       char nextline [90];
-      if (!fIn.getline (&nextline[0], 89, '\n')) return false;
+      //if (!fIn.getline (&nextline[0], 89, '\n')) return false;
+      
+      //temp
+      if (!fIn.is_open()) {
+      	cout << "\n\nfile isn't open!!!!!!!!!!!!" << endl;
+      }
+      fIn.getline (&nextline[0], 89, '\n');
       
       strcat (temp, &nextline[0]);
       fBuffer = temp;
@@ -1868,7 +1880,7 @@ void AbaqusResultsT::SetVariableNames (void)
 
   if (i != NVT)
     {
-      fMessage << "AbaqusResultsT::SetVariableNames, incorrect allocation\n\n";
+      fMessage << "\n AbaqusResultsT::SetVariableNames, incorrect allocation" << endl;
       throw eDatabaseFail;
     }
 }
