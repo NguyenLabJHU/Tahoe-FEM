@@ -1,4 +1,4 @@
-/* $Id: AdhesionT.cpp,v 1.2 2002-10-20 22:39:28 paklein Exp $ */
+/* $Id: AdhesionT.cpp,v 1.3 2002-10-21 22:03:46 paklein Exp $ */
 #include "AdhesionT.h"
 
 #include "ModelManagerT.h"
@@ -158,6 +158,10 @@ void AdhesionT::WriteOutput(IOBaseT::OutputModeT mode)
 		}
 		out << endl;
 	}
+	
+	out << " Search grid statistics:\n";
+	fGrid->WriteStatistics(out);
+	out.flush();
 }
 
 /* compute specified output parameter and send for smoothing */
@@ -640,10 +644,7 @@ void AdhesionT::SetWorkSpace(void)
 	
 	/* centroid coordinates */
 	fFaceCentroids.Dimension(num_faces, NumSD());
-	
-	/* construct grid */
-	if (!fGrid)
-		fGrid = new iGridManagerT(kAvgCellNodes, -1, fFaceCentroids, NULL);
+	fFaceCentroids = 0.0;
 }
 
 /* generate element data - return true if configuration has
@@ -684,8 +685,9 @@ bool AdhesionT::SetConfiguration(void)
 		shape.Jacobian(Q);
 		Q.CopyColumn(n_index, normal);
 	}
-	
+
 	/* reset the search grids */
+	if (!fGrid) fGrid = new iGridManagerT(kAvgCellNodes, -1, fFaceCentroids, NULL);
 	fGrid->Reset();
 
 	/* store old configuration */
@@ -701,7 +703,7 @@ bool AdhesionT::SetConfiguration(void)
 		int i_surface = fFaceIndex(i, kSurface);
 	
 		/* get potential interactions */
-		const AutoArrayT<iNodeT>& hits = fGrid->HitsInRegion(fFaceCentroids(i), 2.0*fCutOff);
+		const AutoArrayT<iNodeT>& hits = fGrid->HitsInRegion(fFaceCentroids(i), 2.0*fCutOff);		
 		for (int jj = 0; jj < hits.Length(); jj++)
 		{
 			int j = hits[jj].Tag();
