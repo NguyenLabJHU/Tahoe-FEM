@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.h,v 1.4 2001-08-17 00:47:58 cfoster Exp $ */
+/* $Id: DetCheckT.h,v 1.5 2002-02-24 01:00:59 raregue Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _DETCHECK_T_H_
@@ -8,6 +8,7 @@
 class dSymMatrixT;
 class dMatrixT;
 class dArrayT;
+class dTensor4DT;
 
 /** class to support checks of loss of ellipticity.  \note this class does 
  * not dynamically allocate memory on construction */

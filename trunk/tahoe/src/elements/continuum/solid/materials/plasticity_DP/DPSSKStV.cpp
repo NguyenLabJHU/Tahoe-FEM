@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.13 2002-02-21 07:23:34 paklein Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.14 2002-02-24 01:00:17 raregue Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 
@@ -171,7 +171,7 @@ void DPSSKStV::ComputeOutput(dArrayT& output)
 	const dMatrixT& modulus = c_ijkl();
 
 	/* continuous localization condition checker */
-	DetCheckT checker(stress, modulus);
+/*	DetCheckT checker(stress, modulus);
 	dArrayT normal(stress.Rows());
 	output[3] = checker.IsLocalized_SS(normal);
 	output[5] = normal[0];
@@ -180,6 +180,10 @@ void DPSSKStV::ComputeOutput(dArrayT& output)
 		output[7] = normal[2];
 	else
 		output[7] = 0.0;
+*/
+    output[5] = 0.0;
+	output[6] = 0.0;
+	output[7] = 0.0;
 	
 	/* compute discontinuous bifurcation modulus */
 	const dMatrixT& modulusdisc = cdisc_ijkl();
