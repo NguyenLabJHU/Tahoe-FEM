@@ -1,4 +1,4 @@
-/* $Id: nStaticIntegrator.cpp,v 1.5 2002-10-20 22:48:12 paklein Exp $ */
+/* $Id: nStaticIntegrator.cpp,v 1.5.4.1 2002-12-18 09:39:04 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "nStaticIntegrator.h"
@@ -22,7 +22,7 @@ void nStaticIntegrator::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 	int dof  = KBC.DOF();
 	double& d = (field[0])(node, dof);
 	
-	switch ( KBC.Code() )
+	switch (KBC.Code())
 	{
 		case KBC_CardT::kFix: /* zero displacement */
 		{
@@ -35,8 +35,7 @@ void nStaticIntegrator::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 			break;
 		}
 		default:
-			cout << "\n nTrapezoid::ConsistentKBC:unknown BC code\n" << endl;
-			throw ExceptionT::kBadInputValue;
+			ExceptionT::BadInputValue("nTrapezoid::ConsistentKBC", "unknown BC code: %d", KBC.Code());
 	}
 }		
 
@@ -45,6 +44,13 @@ void nStaticIntegrator::Predictor(BasicFieldT& field)
 {
 #pragma unused(field)
 	//nothing to do
+}
+
+/* corrector. Maps ALL degrees of freedom forward. */
+void nStaticIntegrator::Corrector(BasicFieldT& field, const dArray2DT& update)
+{
+	/* update displacements */
+	field[0] += update;
 }
 
 /* correctors - map ACTIVE */

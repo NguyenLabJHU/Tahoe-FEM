@@ -25,6 +25,9 @@ public:
 	/** predictor. Maps ALL degrees of freedom forward. */
 	virtual void Predictor(BasicFieldT& field);
 
+	/** corrector. Maps ALL degrees of freedom forward. */
+	virtual void Corrector(BasicFieldT& field, const dArray2DT& update);
+
 	/** corrector - map ACTIVE. See nControllerT::Corrector for more
 	 * documentation */
 	virtual void Corrector(BasicFieldT& field, const dArrayT& update, 
