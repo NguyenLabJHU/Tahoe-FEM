@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.32.2.1 2004-03-19 01:49:47 jzimmer Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.32.2.2 2004-03-19 17:35:45 jzimmer Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -76,8 +76,7 @@ void ParticlePairT::Initialize(void)
 	ParticleT::Initialize();
 
 	RefNearestNeighbors = NearestNeighbors;
-    cout << NearestNeighbors.MajorDim() << "     " << NearestNeighbors.MinorDim(NearestNeighbors.MajorDim()-1) << endl;
-    cout << RefNearestNeighbors.MajorDim() << "     " << RefNearestNeighbors.MinorDim(RefNearestNeighbors.MajorDim()-1) << endl;
+
 	/* dimension */
 	int ndof = NumDOF();
 	fLHS.Dimension(2*ndof);
