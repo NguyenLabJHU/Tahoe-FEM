@@ -1,4 +1,4 @@
-/* $Id: fortran_names.h,v 1.5 2003-10-03 00:59:47 paklein Exp $ */
+/* $Id: fortran_names.h,v 1.6 2004-11-03 16:50:19 paklein Exp $ */
 #ifndef _FORTRAN_NAMES_H_
 #define _FORTRAN_NAMES_H_
 /*
@@ -53,9 +53,17 @@
 /* GNU - double trailing underscore */
 #elif defined(__GNU__)
 #ifdef __STDC__
+#ifdef NO_SECOND_UNDERSCORE
+#define FORTRAN_NAME(n_)	n_ ## _
+#else
 #define FORTRAN_NAME(n_)	n_ ## __
+#endif
+#else
+#ifdef NO_SECOND_UNDERSCORE
+#define FORTRAN_NAME(n_)	n_/**/_
 #else
 #define FORTRAN_NAME(n_)	n_/**/__
+#endif
 #endif
 
 /* Metrowerks - assume GNU linkage */
