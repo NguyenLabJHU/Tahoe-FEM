@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.1.2.2 2003-10-21 18:58:36 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.1.2.3 2003-10-26 03:41:41 paklein Exp $ */
 #include "MultiManagerT.h"
 #include "SolverT.h"
 #include "DiagonalMatrixT.h"
@@ -14,7 +14,8 @@ MultiManagerT::MultiManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT&
 	FEManagerT_bridging* fine, FEManagerT_bridging* coarse):
 	FEManagerT(input, output, comm),
 	fFine(fine),
-	fCoarse(coarse)
+	fCoarse(coarse),
+	fDivertOutput(false)
 {
 	/* borrow parameters from coarse scale solver */
 	fAnalysisCode = fCoarse->Analysis();
@@ -251,6 +252,8 @@ void MultiManagerT::DivertOutput(const StringT& outfile)
 	StringT coarse_outfile(outfile);
 	coarse_outfile.Append(".coarse");
 	fCoarse->DivertOutput(coarse_outfile);
+	
+	fDivertOutput = true;
 }
 
 /* restore outputs to their regular destinations */
@@ -258,6 +261,7 @@ void MultiManagerT::RestoreOutput(void)
 {
 	fFine->RestoreOutput();
 	fCoarse->RestoreOutput();
+	fDivertOutput = false;
 }
 
 /* initiate the process of writing output */
@@ -299,4 +303,11 @@ void MultiManagerT::WriteOutput(double time)
 	/* send result through output of fine scale solver */
 	dArray2DT e_values;
 	fFine->WriteOutput(fOutputID, n_values, e_values);
+	
+	/* write iteration output for sub's */
+	if (fDivertOutput) {
+		fFine->WriteOutput(time);
+		fCoarse->WriteOutput(time);
+	}
+	
 }

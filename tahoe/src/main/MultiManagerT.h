@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.h,v 1.1.2.2 2003-10-21 18:58:36 paklein Exp $ */
+/* $Id: MultiManagerT.h,v 1.1.2.3 2003-10-26 03:41:41 paklein Exp $ */
 #ifndef _MULTI_MANAGER_H_
 #define _MULTI_MANAGER_H_
 
@@ -88,6 +88,7 @@ private:
 	/*@{*/ 
 	iArray2DT fAtomConnectivities;
 	int fOutputID;
+	bool fDivertOutput;
 	/*@}*/ 
 };
 
