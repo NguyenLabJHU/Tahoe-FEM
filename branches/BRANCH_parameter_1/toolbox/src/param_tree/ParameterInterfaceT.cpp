@@ -1,8 +1,15 @@
-/* $Id: ParameterInterfaceT.cpp,v 1.2 2003-04-26 19:10:35 paklein Exp $ */
+/* $Id: ParameterInterfaceT.cpp,v 1.2.2.1 2003-04-27 22:13:45 paklein Exp $ */
 #include "ParameterInterfaceT.h"
 #include "ParameterListT.h"
 
 using namespace Tahoe;
+
+/* constructor */
+ParameterInterfaceT::ParameterInterfaceT(const StringT& name):
+	fName(name)
+{
+
+}
 
 /* accept completed parameter list */
 void ParameterInterfaceT::SetParameters(const ParameterListT& list) 
@@ -22,15 +29,17 @@ void ParameterInterfaceT::DefineParameters(ParameterListT& list) const
 			list.Name().Pointer(), Name().Pointer());
 }
 
-/* return the list of sub-list names */
-void ParameterInterfaceT::SubListNames(ArrayT<StringT>& list, ArrayT<ParameterListT::OccurrenceT>& occur) const
+/* return the list of subordinate names */
+void ParameterInterfaceT::SubNames(ArrayT<StringT>& names, ArrayT<ParameterListT::OccurrenceT>& occur,
+	ArrayT<bool>& is_inline) const
 {
-	list.Dimension(0);
+	names.Dimension(0);
 	occur.Dimension(0);
+	is_inline.Dimension(0);
 }
 	
 /* return a pointer to the ParameterInterfaceT */
-ParameterInterfaceT* ParameterInterfaceT::SubList(const StringT& list_name)
+ParameterInterfaceT* ParameterInterfaceT::NewSub(const StringT& list_name)
 {
 #pragma unused(list_name)
 	return NULL;
