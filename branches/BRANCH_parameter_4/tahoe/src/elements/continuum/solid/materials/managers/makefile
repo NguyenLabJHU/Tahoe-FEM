@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.10.52.1 2004-07-06 06:53:52 paklein Exp $
+# $Id: makefile,v 1.10.52.2 2004-07-07 21:50:43 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -21,9 +21,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #
 OBJ = \
 	SolidMatListT.o \
-	SolidMatList1DT.o \
-	SolidMatList2DT.o \
-	SolidMatList3DT.o \
+	FSSolidMatList1DT.o \
 	FSSolidMatList2DT.o \
 	FSSolidMatList3DT.o \
 	SSSolidMatList1DT.o \
@@ -50,9 +48,7 @@ DEP = $(OBJ:.o=.d)
 #
 SRC = \
 	SolidMatListT.cpp \
-	SolidMatList1DT.cpp \
-	SolidMatList2DT.cpp \
-	SolidMatList3DT.cpp \
+	FSSolidMatList1DT.cpp \
 	FSSolidMatList2DT.cpp \
 	FSSolidMatList3DT.cpp \
 	SSSolidMatList1DT.cpp \
@@ -71,9 +67,7 @@ SRC = \
 #
 HDR = \
 	SolidMatListT.h \
-	SolidMatList1DT.h \
-	SolidMatList2DT.h \
-	SolidMatList3DT.h \
+	FSSolidMatList1DT.h \
 	FSSolidMatList2DT.h \
 	FSSolidMatList3DT.h \
 	SSSolidMatList1DT.h \

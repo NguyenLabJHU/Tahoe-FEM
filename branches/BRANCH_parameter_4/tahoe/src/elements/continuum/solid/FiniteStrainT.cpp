@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.19.26.1 2004-07-06 06:53:19 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.19.26.2 2004-07-07 21:50:41 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -7,6 +7,7 @@
 #include "ParameterContainerT.h"
 
 /* materials lists */
+#include "FSSolidMatList1DT.h"
 #include "FSSolidMatList2DT.h"
 #include "FSSolidMatList3DT.h"
 
@@ -131,7 +132,7 @@ void FiniteStrainT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrde
 		order = ParameterListT::Choice;
 		
 		/* list of choices */
-		//sub_sub_list.AddSub("large_strain_material_1D");
+		sub_sub_list.AddSub("large_strain_material_1D");
 		sub_sub_list.AddSub("large_strain_material_2D");
 		sub_sub_list.AddSub("large_strain_material_3D");
 	}
@@ -281,7 +282,9 @@ MaterialListT* FiniteStrainT::NewMaterialList(const StringT& name, int size)
 {
 	/* resolve number of spatial dimensions */
 	int nsd = -1;
-	if (name == "large_strain_material_2D")
+	if (name == "large_strain_material_1D")
+		nsd = 1;
+	else if (name == "large_strain_material_2D")
 		nsd = 2;
 	else if (name == "large_strain_material_3D")
 		nsd = 3;
@@ -297,14 +300,18 @@ MaterialListT* FiniteStrainT::NewMaterialList(const StringT& name, int size)
 			if (!fFSMatSupport) ExceptionT::GeneralFail("FiniteStrainT::NewMaterialList");
 		}
 
-		if (nsd == 2)
+		if (nsd == 1)
+			return new FSSolidMatList1DT(size, *fFSMatSupport);
+		else if (nsd == 2)
 			return new FSSolidMatList2DT(size, *fFSMatSupport);
 		else if (nsd == 3)
 			return new FSSolidMatList3DT(size, *fFSMatSupport);
 	}
 	else
 	 {
-		if (nsd == 2)
+	 	if (nsd == 1)
+	 		return new FSSolidMatList1DT;
+		else if (nsd == 2)
 			return new FSSolidMatList2DT;
 		else if (nsd == 3)
 			return new FSSolidMatList3DT;

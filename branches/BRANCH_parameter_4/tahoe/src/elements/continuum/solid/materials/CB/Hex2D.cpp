@@ -1,4 +1,4 @@
-/* $Id: Hex2D.cpp,v 1.4.2.2 2004-07-07 15:28:10 paklein Exp $ */
+/* $Id: Hex2D.cpp,v 1.4.2.3 2004-07-07 21:50:42 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Hex2D.h"
 #include "ElementsConfig.h"
@@ -7,8 +7,6 @@
 
 #include <math.h>
 #include <iostream.h>
-
-
 
 /* pair properties */
 #ifdef PARTICLE_ELEMENT
@@ -32,7 +30,8 @@ Hex2D::Hex2D(void):
 	fPairProperty(NULL),
 	fBondTensor4(dSymMatrixT::NumValues(2)),
 	fBondTensor2(dSymMatrixT::NumValues(2)),
-	fCellVolume(0.0)
+	fCellVolume(0.0),
+	fFullDensityForStressOutput(true)
 {
 
 }
@@ -70,17 +69,6 @@ void Hex2D::DefineSubs(SubListT& sub_list) const
 	sub_list.AddSub("hex_2D_potential_choice", ParameterListT::Once, true);
 }
 
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* Hex2D::NewSub(const StringT& list_name) const
-{
-	/* try to construct pair property */
-	PairPropertyT* pair_prop = PairPropertyT::New(list_name, fMaterialSupport);
-	if (pair_prop)
-		return pair_prop;
-	else /* inherited */
-		return NL_E_MatT::NewSub(list_name);
-}
-
 /* return the description of the given inline subordinate parameter list */
 void Hex2D::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
 	SubListT& sub_sub_list) const
@@ -97,6 +85,17 @@ void Hex2D::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& orde
 	}
 	else /* inherited */
 		NL_E_MatT::DefineInlineSub(sub, order, sub_sub_list);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* Hex2D::NewSub(const StringT& list_name) const
+{
+	/* try to construct pair property */
+	PairPropertyT* pair_prop = PairPropertyT::New(list_name, fMaterialSupport);
+	if (pair_prop)
+		return pair_prop;
+	else /* inherited */
+		return NL_E_MatT::NewSub(list_name);
 }
 
 /* accept parameter list */
@@ -116,14 +115,18 @@ void Hex2D::TakeParameterList(const ParameterListT& list)
 	if (!fPairProperty) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", pair_prop.Name().Pointer());
 	fPairProperty->TakeParameterList(pair_prop);
 
+	/* check */
+	fNearestNeighbor = fPairProperty->NearestNeighbor();
+	if (fNearestNeighbor < kSmall)
+		ExceptionT::BadInputValue(caller, "nearest bond ! (%g > 0)", fNearestNeighbor);
+
 	/* construct the bond tables */
 	fHexLattice2D = new HexLattice2DT(nshells);
 	fHexLattice2D->Initialize();
-	fNearestNeighbor = fPairProperty->NearestNeighbor();
-	
-	/* check */
-	if (fNearestNeighbor < kSmall)
-		ExceptionT::BadInputValue(caller, "nearest bond ! (%g > 0)", fNearestNeighbor);
+
+	/* construct default bond density array */
+	fFullDensity.Dimension(fHexLattice2D->NumberOfBonds());
+	fFullDensity = 1.0;
 
 	/* compute the cell volume */
 	fCellVolume = fNearestNeighbor*fNearestNeighbor*sqrt3/2.0;
