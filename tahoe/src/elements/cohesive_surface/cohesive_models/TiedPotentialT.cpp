@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.7 2002-10-23 00:18:03 cjkimme Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.8 2002-10-31 18:49:18 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -47,6 +47,7 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in, const double& time_step):
 		in >> d_t;  if (d_t < kSmall) throw ExceptionT::kBadInputValue;
 		in >> fL_1; if (fL_1 < kSmall || fL_1 > 1.) throw ExceptionT::kBadInputValue;
 		in >> fL_2; if (fL_2 > 1. || fL_2 < fL_1) throw ExceptionT::kBadInputValue;
+		{int fL_fail; in >> fL_fail;} 
 		in >> fL_0; if (fL_0 < 0. || fL_0 > 1.) throw ExceptionT::kBadInputValue;
 		r_fail = 1.;
 		if (fL_0 < fL_1)
@@ -59,9 +60,14 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in, const double& time_step):
 	}
 	else
 	{
-		in >> phi_n; if (phi_n <= kSmall) throw ExceptionT::kBadInputValue;
+	  {double q, r;
+	  in >> q;// phi_t/phi_n
+	  in >> r; //delta_n* /d_n
+	  if (q < 0.0 || r < 0.0) throw ExceptionT::kBadInputValue;
+	}	
 		in >> d_n; if (d_n <= kSmall) throw ExceptionT::kBadInputValue;
 		in >> d_t; if (d_t <= kSmall) throw ExceptionT::kBadInputValue;
+                in >> phi_n; if (phi_n <= kSmall) throw ExceptionT::kBadInputValue;
 		in >> r_fail; if (r_fail < 1.0) throw ExceptionT::kBadInputValue;
 		fsigma_critical = phi_n/d_n/exp(1.); 
 	}
