@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.cpp,v 1.11 2003-11-21 23:05:04 thao Exp $ */
+/* $Id: UpLagMF.cpp,v 1.12 2003-11-22 16:45:37 thao Exp $ */
 #include <ctype.h>
 
 #include "UpLagMF.h"
@@ -480,7 +480,7 @@ void UpLagMF::MatForceVolMech(dArrayT& elem_val)
 	fEshelby(1,1) -= 0.5*density*(fVel[0]*fVel[0]+fVel[1]*fVel[1]);
       }
 
-      if (elem == 0 )
+      if (elem == 0 && 0)
       {
 	cout << "\nstress: "<<S;
 	cout << "\nenergy: "<<energy;
@@ -560,7 +560,7 @@ void UpLagMF::MatForceVolMech(dArrayT& elem_val)
     weight++;
     jac++;
   }
-  if (elem == 0)      cout<< "\nVolElem: "<<elem_val;
+  if (elem == 0 && 0)      cout<< "\nVolElem: "<<elem_val;
 }
 
 void UpLagMF::MatForceDissip(dArrayT& elem_val, const dArray2DT& internalstretch)
@@ -680,7 +680,7 @@ void UpLagMF::MatForceDynamic(dArrayT& elem_val)
   /*intialize shape function data*/
   const double* jac = fShapes->IPDets();
   const double* weight = fShapes->IPWeights();
-  if (elem == 0) {
+  if (elem == 0 && 0) {
     cout << "\nAcc: "<<fLocAcc;
     cout << "\nVel: "<<fLocVel;
     cout <<"\n fDisp: "<<fLocDisp;
@@ -698,7 +698,7 @@ void UpLagMF::MatForceDynamic(dArrayT& elem_val)
     fShapes->GradU(fLocVel,fGradVel); 
     fShapes->InterpolateU(fLocVel, fVel);
     fShapes->InterpolateU(fLocAcc, fAcc);
-    if (elem == 0)
+    if (elem == 0 && 0)
     {
       cout << "\nelem "<<elem<<" ip "<<CurrIP()<<endl; 
       cout << "\nfGradVel: "<<fGradVel;
