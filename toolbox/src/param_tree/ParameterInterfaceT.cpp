@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.cpp,v 1.10 2003-11-21 22:42:04 paklein Exp $ */
+/* $Id: ParameterInterfaceT.cpp,v 1.11 2004-01-21 17:17:02 paklein Exp $ */
 #include "ParameterInterfaceT.h"
 #include "ParameterListT.h"
 #include "ParameterUtils.h"
@@ -108,6 +108,14 @@ void ParameterInterfaceT::ValidateParameterList(const ParameterListT& raw_list, 
 					/* fix string-value pairs */
 					if (parameter.Type() == ValueT::Enumeration)
 						parameter.FixEnumeration(new_parameter);
+
+					/* copy in limits */
+					new_parameter.AddLimits(parameter.Limits());
+				
+					/* copy in default */
+					const ValueT* default_value = parameter.Default();
+					if (default_value)
+						new_parameter.SetDefault(*default_value);
 				
 					/* add it */
 					valid_list.AddParameter(new_parameter);
@@ -133,8 +141,16 @@ void ParameterInterfaceT::ValidateParameterList(const ParameterListT& raw_list, 
 
 				/* check limits */
 				if (parameter.InBounds(new_parameter))
+				{
+					/* copy in limits */
+					new_parameter.AddLimits(parameter.Limits());
+
+					/* copy in default */
+					new_parameter.SetDefault(*default_value);
+				
 					/* add it */
 					valid_list.AddParameter(new_parameter);
+				}
 				else 
 				{	
 					/* check again, now verbose */
@@ -177,13 +193,15 @@ void ParameterInterfaceT::DefineInlineSub(const StringT& sub, ParameterListT::Li
 ParameterInterfaceT* ParameterInterfaceT::NewSub(const StringT& list_name) const
 {
 	if (list_name == "Integer")
-		return new IntegerT;
+		return new IntegerParameterT;
 	else if (list_name == "IntegerList")
 		return new IntegerListT;
 	else if (list_name == "Double")
-		return new DoubleT;
+		return new DoubleParameterT;
 	else if (list_name == "DoubleList")
 		return new DoubleListT;
+	else if (list_name == "String")
+		return new StringParameterT;
 	else
 		return NULL;
 }
