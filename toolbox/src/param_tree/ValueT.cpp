@@ -1,4 +1,4 @@
-/* $Id: ValueT.cpp,v 1.12 2004-03-27 04:11:50 paklein Exp $ */
+/* $Id: ValueT.cpp,v 1.13 2004-04-04 03:04:17 paklein Exp $ */
 #include "ValueT.h"
 #include <stdlib.h>
 #include <ctype.h>
@@ -348,7 +348,7 @@ ValueT::operator const StringT&() const
 /* convert type name to string */
 const char* ValueT::TypeName(TypeT t)
 {
-	if (t >= None && t <= Enumeration)
+	if (t >= None && t <= Word)
 		return type_names[t];
 	else
 		return type_names[0];
