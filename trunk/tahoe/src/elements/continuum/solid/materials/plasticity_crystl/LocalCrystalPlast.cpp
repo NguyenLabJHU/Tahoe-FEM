@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.5 2001-10-08 00:32:24 ebmarin Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.6 2001-10-09 16:30:13 ebmarin Exp $ */
 /*
   File: LocalCrystalPlast.cpp
 */
@@ -181,15 +181,6 @@ const dSymMatrixT& LocalCrystalPlast::s_ij()
       Compute_Ftot_last_3D(fFtot_n);
       Compute_Ftot_3D(fFtot);
 
-      // CHECKS
-      if (CurrIP() == -1) {
-        const int& step = fContinuumElement.FEManager().StepNumber();
-        cout << "\n\n" <<"**********" << endl;
-        cout << "   Step # "   << step
-             << ";  IP #   "   << CurrIP() << endl;
-        cout << " fFtot : " << endl << fFtot << endl;
-      }
-
       for (int igrn = 0; igrn < fNumGrain; igrn++)
 	{
 	  // recover local data
@@ -214,8 +205,8 @@ const dSymMatrixT& LocalCrystalPlast::s_ij()
 
           // compute crystal Cauchy stress and consistent tangent
           // global iterations start at iter = -1
-          // cout << " Iter # " << fContinuumElement.FEManager().IterationNumber(); 
-          if (fContinuumElement.FEManager().IterationNumber() <= -2)
+          if ( fContinuumElement.FEManager().StepNumber() <= 1 &&
+               fContinuumElement.FEManager().IterationNumber() <= -1)
              {
                // deformation gradient
                fmatx1.SetToCombination(1., fFtot, -1., fFtot_n);
@@ -255,16 +246,6 @@ const dSymMatrixT& LocalCrystalPlast::s_ij()
 	  fsavg_ij.AddScaled(1./fNumGrain, fs_ij);
 	  fcavg_ijkl.AddScaled(1./fNumGrain, fc_ijkl);
 	}
-
-       // CHECKS
-       if (CurrIP() == -1) {
-          const int& step = fContinuumElement.FEManager().StepNumber();
-          cout << "\n\n" <<"**********" << endl;
-          cout << "   Step # "   << step
-               << ";  IP #   "   << CurrIP() << endl;
-          cout << " fc_ijkl E-P (from s_ij)" << endl << fc_ijkl << endl;
-          cout << " fcavg_ijkl E-P (from s_ij)" << endl << fcavg_ijkl << endl;
-       }
     }
 
   // return averaged stress
@@ -280,13 +261,6 @@ const dMatrixT& LocalCrystalPlast::c_ijkl()
   // load aggregate data
   LoadAggregateData(element, intpt);
 
-  if (CurrIP() == -1) {
-     const int& step = fContinuumElement.FEManager().StepNumber();
-     cout << "\n\n" <<"**********" << endl;
-     cout << "   Step # "   << step
-          << ";  IP #   "   << CurrIP() << endl;
-     cout << " fc_ijkl E-P (from c_ijkl)" << endl << fcavg_ijkl << endl;
-  }
   // return averaged moduli
   return fcavg_ijkl;
 }
@@ -960,14 +934,6 @@ void LocalCrystalPlast::ForwardGradientEstimate()
 
   // norm of initial estimate of dgamma
   fMagDGam0 = fDGamma.Magnitude();
-
-  if (CurrIP() == -1) {
-       const int& step = fContinuumElement.FEManager().StepNumber();
-       cout << "\n\n" <<"**********" << endl;
-       cout << "   Step # "   << step
-            << ";  IP #   "   << CurrIP() << endl;
-       cout << " fDGamma (NEW)" << endl << fDGamma << endl;
-  }
 } 
 
 bool LocalCrystalPlast::Converged(double toler)
@@ -1125,19 +1091,18 @@ void LocalCrystalPlast::SolveForDGamma(int& ierr)
   fKinetics->SetUpRateSensitivity();
 
   do {
-      // current value for rate sensitivity exponent
-      fKinetics->ComputeRateSensitivity();
-
-      // solve for incremental shear strain
-      fSolver->Solve(fSolverPtr, fDGamma, ierr);
-
-      if (ierr != 0) {
-        writeWarning("LocalCrystalPlast::SolveForDGamma:");
-        writeWarning("   Convergence problems in NLCSolver");
-        return;
-      }
-
-  } while (!fKinetics->IsMaxRateSensitivity());
+       // current value for rate sensitivity exponent
+       fKinetics->ComputeRateSensitivity();
+ 
+       // solve for incremental shear strain
+       fSolver->Solve(fSolverPtr, fDGamma, ierr);
+ 
+       if (ierr != 0) {
+          writeWarning("LocalCrystalPlast::SolveForDGamma:");
+          writeWarning("   Convergence problems in NLCSolver");
+          return;
+       }
+     } while (!fKinetics->IsMaxRateSensitivity());
 
   // update iteration count from NLCSolver
   fIterCount = max(fIterCount, fSolver->GetIterationCount());
@@ -1339,19 +1304,11 @@ void LocalCrystalPlast::FFFFC_3D(dMatrixT& Co, dMatrixT& Ci, const dMatrixT& F)
   Co.MultQBQT(transform, Ci);
 }
 
+/* to be deleted */
 void LocalCrystalPlast::dTaudCe(const dMatrixT& Z, const dSymMatrixT& P,
                                 dSymMatrixT& symmatx)
-{
+{ }
 
-}
+void LocalCrystalPlast::CrystalC_ijkl_Elastic() { }
 
-void LocalCrystalPlast::CrystalC_ijkl_Elastic()
-{
-
-}
-
-/* implements a rough approximation to consistent tangent */
-void LocalCrystalPlast::CrystalC_ijkl_Plastic()
-{
-
-}
+void LocalCrystalPlast::CrystalC_ijkl_Plastic() { }
