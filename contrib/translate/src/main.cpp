@@ -1,10 +1,11 @@
-/* $Id: main.cpp,v 1.8 2002-02-13 18:08:32 sawimme Exp $ */
+/* $Id: main.cpp,v 1.9 2002-03-04 07:03:45 paklein Exp $ */
 
 #include "TranslateIOManager.h"
 #include "ExtractNode.h"
 #include "ExtractQuad.h"
 #include "PointPlots.h"
 #include "ifstreamT.h"
+#include "StringT.h"
 
 istream& Open (int c, char* a [], ifstreamT& tmp, bool& w);
 
