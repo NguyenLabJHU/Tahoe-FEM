@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.26 2004-11-15 04:16:18 d-farrell2 Exp $ */
+/* $Id: nArrayT.h,v 1.27 2004-12-27 06:08:50 paklein Exp $ */
 /* created: paklein (05/23/1997) */
 #ifndef _NARRAY_T_H_
 #define _NARRAY_T_H_
@@ -134,8 +134,13 @@ public:
 	/** \name sorting */
 	/*@{*/
 	void SortAscending(void);
-	void SortAscending(ArrayT<int>& map);
 	void SortDescending(void); // not efficient
+
+	/** sort the values in this array in ascending order as defined by the keys */
+	void SortAscending(ArrayT<int>& keys);
+
+	/** sort the values in this array in ascending order as defined by the keys */
+	void SortAscending(ArrayT<double>& keys);
 	/*@}*/
 
 	/* commonly used operations:
@@ -859,11 +864,16 @@ void nArrayT<nTYPE>::SortAscending(void)
 	list[0] = RR;
 }
 
-/* sort this and map, by values in map */
+/* sort this and map, by values in keys */
 template <class nTYPE>
-inline void nArrayT<nTYPE>::SortAscending(ArrayT<int>& map)
+inline void nArrayT<nTYPE>::SortAscending(ArrayT<int>& keys)
 {
-	Tahoe::SortAscending(map, *this);
+	Tahoe::SortAscending(keys, *this);
+}
+template <class nTYPE>
+inline void nArrayT<nTYPE>::SortAscending(ArrayT<double>& keys)
+{
+	Tahoe::SortAscending(keys, *this);
 }
 
 /* AZTEC az_sort.c: sort both arrays by the values in the master array */
