@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.25 2002-06-26 18:00:20 recampb Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.26 2002-06-30 03:10:02 paklein Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -44,21 +44,17 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 	cout << "initialized database file: " << fInFile << endl;
   
 
-// 	/* read coordinates */
-// 	dArray2DT coords;
-// 	coords.Alias(model.Coordinates());
-// 	if (coords.MinorDim() == 2) /* fill to 3D */
-
 	/* read and store coordinates */
 	fCoords = model.Coordinates();
-	if (fCoords.MinorDim() == 2) /* fill to 3D */
+	if (fCoords.MinorDim() < 3) /* fill to 3D */
     {
 		/* temp space */ 
 		dArray2DT tmp(fCoords.MajorDim(), 3); 
       
 		/* write in */ 
-		tmp.BlockColumnCopyAt(fCoords, 0);    
-		tmp.SetColumn(2, 0.0); 
+		tmp.BlockColumnCopyAt(fCoords, 0);
+		for (int i = fCoords.MinorDim(); i < 3; i++)
+			tmp.SetColumn(i, 0.0); 
       
 		/* swap memory */
 		fCoords.Free();
