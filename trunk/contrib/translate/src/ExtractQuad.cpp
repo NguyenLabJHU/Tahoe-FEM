@@ -29,7 +29,7 @@ void ExtractQuad::Initialize (void)
   // change from elements to quad points
   int numquadpts = fModel.NumElementQuadPoints (fElementName);
   iArrayT elementmap (numelems);
-  fModel.ElementMap (fElementName, elementmap);
+  fModel.ElementIDs (fElementName, elementmap);
 
   fNumItems = numelems * numquadpts;
   fItemNames.Allocate (fNumItems);
