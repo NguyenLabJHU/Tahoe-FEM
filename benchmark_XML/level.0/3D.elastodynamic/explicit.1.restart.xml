@@ -1,5 +1,6 @@
-<?xml version="1.0"?>
-<tahoe xmlns:x0="http://www.w3.org/2001/XMLSchema" author="paklein" geometry_file="../geometry/beam.1.geom" restart_file="explicit.1.rs50of100" title="3D explicit dynamics">
+<?xml version="1.0" encoding="UTF-8"?>
+<tahoe author="paklein" geometry_file="../geometry/beam.1.geom"
+    restart_file="explicit.1.rs50of100" title="3D explicit dynamics" xmlns:x0="http://www.w3.org/2001/XMLSchema">
     <time num_steps="50" output_inc="50" time_step="0.05">
         <schedule_function>
             <piecewise_linear>
@@ -8,7 +9,7 @@
         </schedule_function>
     </time>
     <nodes>
-        <field field_name="displacement" integrator="central_difference">
+        <field field_name="displacement" integrator="central_difference" total_energy_output_inc="25">
             <dof_labels>
                 <String value="D_X"/>
                 <String value="D_Y"/>
@@ -26,7 +27,8 @@
     <element_list>
         <updated_lagrangian field_name="displacement" mass_type="lumped_mass">
             <hexahedron/>
-            <solid_element_nodal_output displacements="1" material_output="1" stress="1"/>
+            <solid_element_nodal_output displacements="1"
+                material_output="1" stress="1"/>
             <solid_element_element_output linear_momentum="1"/>
             <large_strain_element_block>
                 <block_ID_list>
@@ -40,5 +42,7 @@
             </large_strain_element_block>
         </updated_lagrangian>
     </element_list>
-    <linear_solver><diagonal_matrix/></linear_solver>
+    <linear_solver>
+        <diagonal_matrix/>
+    </linear_solver>
 </tahoe>
