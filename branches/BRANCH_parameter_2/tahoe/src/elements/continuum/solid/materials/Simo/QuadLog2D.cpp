@@ -1,4 +1,4 @@
-/* $Id: QuadLog2D.cpp,v 1.5.30.2 2004-03-02 17:46:17 paklein Exp $ */
+/* $Id: QuadLog2D.cpp,v 1.5.30.3 2004-03-04 06:45:28 paklein Exp $ */
 /* created: paklein (06/28/1997) */
 #include "QuadLog2D.h"
 #include <math.h>
@@ -78,7 +78,7 @@ void QuadLog2D::DefineParameters(ParameterListT& list) const
 	QuadLog3D::DefineParameters(list);
 	
 	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("2D_constraint");
+	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStrain);
 }
 

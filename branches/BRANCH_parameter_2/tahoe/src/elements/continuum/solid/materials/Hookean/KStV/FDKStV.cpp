@@ -1,4 +1,4 @@
-/* $Id: FDKStV.cpp,v 1.5.30.3 2004-02-24 19:09:40 paklein Exp $ */
+/* $Id: FDKStV.cpp,v 1.5.30.4 2004-03-04 06:45:25 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "FDKStV.h"
 
@@ -9,6 +9,12 @@ FDKStV::FDKStV(ifstreamT& in, const FSMatSupportT& support):
 	ParameterInterfaceT("large_strain_StVenant"),
 	FDHookeanMatT(in, support),
 	IsotropicT(in)
+{
+
+}
+
+FDKStV::FDKStV(void):
+	ParameterInterfaceT("large_strain_StVenant")
 {
 
 }

@@ -1,4 +1,4 @@
-/* $Id: FDKStV2D.cpp,v 1.7.30.3 2004-03-03 16:14:57 paklein Exp $ */
+/* $Id: FDKStV2D.cpp,v 1.7.30.4 2004-03-04 06:45:26 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "FDKStV2D.h"
 #include "ThermalDilatationT.h"
@@ -17,6 +17,17 @@ FDKStV2D::FDKStV2D(void):
 	ParameterInterfaceT("large_strain_StVenant_2D")
 {
 
+}
+
+/* describe the parameters needed by the interface */
+void FDKStV2D::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	FDKStV::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStress);
 }
 
 /*************************************************************************

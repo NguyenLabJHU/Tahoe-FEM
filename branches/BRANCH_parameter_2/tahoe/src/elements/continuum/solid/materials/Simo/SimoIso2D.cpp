@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.cpp,v 1.9.30.2 2004-03-02 17:46:17 paklein Exp $ */
+/* $Id: SimoIso2D.cpp,v 1.9.30.3 2004-03-04 06:45:28 paklein Exp $ */
 /* created: paklein (03/04/1997) */
 #include "SimoIso2D.h"
 #include <math.h>
@@ -105,7 +105,7 @@ void SimoIso2D::DefineParameters(ParameterListT& list) const
 	SimoIso3D::DefineParameters(list);
 	
 	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("2D_constraint");
+	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStrain);
 }
 

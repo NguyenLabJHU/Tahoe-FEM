@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.cpp,v 1.19.2.4 2004-03-03 16:18:25 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.19.2.5 2004-03-04 06:45:20 paklein Exp $ */
 #include "FiniteStrainT.h"
 
 #include "ShapeFunctionT.h"
@@ -158,6 +158,126 @@ ParameterInterfaceT* FiniteStrainT::NewSub(const StringT& list_name) const
 	else /* inherited */
 		return SolidElementT::NewSub(list_name);
 
+}
+
+/* accept parameter list */
+void FiniteStrainT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SolidElementT::TakeParameterList(list);
+
+	/* offset to class needs flags */
+	fNeedsOffset = fMaterialNeeds[0].Length();
+	
+	/* set material needs */
+	for (int i = 0; i < fMaterialNeeds.Length(); i++)
+	{
+		/* needs array */
+		ArrayT<bool>& needs = fMaterialNeeds[i];
+
+		/* resize array */
+		needs.Resize(needs.Length() + 2, true);
+
+		/* casts are safe since class contructs materials list */
+		ContinuumMaterialT* pcont_mat = (*fMaterialList)[i];
+		FSSolidMatT* mat = (FSSolidMatT*) pcont_mat;
+
+		/* collect needs */
+		needs[fNeedsOffset + kF     ] = mat->Need_F();
+		needs[fNeedsOffset + kF_last] = mat->Need_F_last();
+		
+		/* consistency */
+		needs[kNeedDisp] = needs[kNeedDisp] || needs[fNeedsOffset + kF];
+		needs[KNeedLastDisp] = needs[KNeedLastDisp] || needs[fNeedsOffset + kF_last];
+	}
+
+	/* what's needed */
+	bool need_F = false;
+	bool need_F_last = false;
+	for (int i = 0; i < fMaterialList->Length(); i++)
+	{
+		need_F = need_F || Needs_F(i);		
+		need_F_last = need_F_last || Needs_F_last(i);
+	}	
+
+	/* allocate deformation gradient list */
+	if (need_F)
+	{
+		int nip = NumIP();
+		int nsd = NumSD();
+		fF_all.Dimension(nip*nsd*nsd);
+		fF_List.Dimension(nip);
+		for (int i = 0; i < nip; i++)
+			fF_List[i].Set(nsd, nsd, fF_all.Pointer(i*nsd*nsd));
+	}
+	
+	/* allocate "last" deformation gradient list */
+	if (need_F_last)
+	{
+		int nip = NumIP();
+		int nsd = NumSD();
+		fF_last_all.Dimension(nip*nsd*nsd);
+		fF_last_List.Dimension(nip);
+		for (int i = 0; i < nip; i++)
+			fF_last_List[i].Set(nsd, nsd, fF_last_all.Pointer(i*nsd*nsd));
+	}
+}
+
+/* extract element block info from parameter list */
+void FiniteStrainT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& block_ID,  ArrayT<int>& mat_index) const
+{
+	/* collect {block_ID, material_index} pairs */
+	int num_blocks = list.NumLists("large_strain_element_block");
+	AutoArrayT<StringT> block_ID_tmp;
+	AutoArrayT<int> mat_index_tmp;
+	ParameterListT material_list; /* collected material parameters */
+	for (int i = 0; i < num_blocks; i++) {
+
+		/* block information */	
+		const ParameterListT& block = list.GetList("large_strain_element_block", i);
+
+		/* collect block ID's */
+		const ArrayT<ParameterListT>& IDs = block.GetList("block_ID_list").Lists();
+		for (int j = 0; j < IDs.Length(); j++) {
+			block_ID_tmp.Append(IDs[j].GetParameter("value"));
+			mat_index_tmp.Append(i);
+		}
+	}
+	
+	/* transfer */
+	block_ID.Swap(block_ID_tmp);
+	mat_index.Swap(mat_index_tmp);
+}
+
+/* extract the list of material parameters */
+void FiniteStrainT::CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const
+{
+	const char caller[] = "SmallStrainT::CollectMaterialInfo";
+	
+	/* initialize */
+	mat_params.Clear();
+	
+	/* collected material parameters */
+	int num_blocks = all_params.NumLists("large_strain_element_block");
+	for (int i = 0; i < num_blocks; i++) {
+
+		/* block information */	
+		const ParameterListT& block = all_params.GetList("large_strain_element_block", i);
+		
+		/* resolve material list name */
+		if (i == 0) {
+			const ParameterListT* mat_list_params = block.ResolveListChoice(*this, "large_strain_material_choice");
+			if (mat_list_params)
+				mat_params.SetName(mat_list_params->Name());
+			else
+				ExceptionT::GeneralFail(caller, "could resolve material list");
+		}
+		
+		/* collect material parameters */
+		const ParameterListT& mat_list = block.GetList(mat_params.Name());
+		const ArrayT<ParameterListT>& mat = mat_list.Lists();
+		mat_params.AddList(mat[0]);
+	}
 }
 
 /***********************************************************************

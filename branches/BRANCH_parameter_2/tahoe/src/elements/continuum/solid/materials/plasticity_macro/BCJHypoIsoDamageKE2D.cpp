@@ -1,4 +1,4 @@
-/* $Id: BCJHypoIsoDamageKE2D.cpp,v 1.4.30.2 2004-03-03 16:15:06 paklein Exp $ */
+/* $Id: BCJHypoIsoDamageKE2D.cpp,v 1.4.30.3 2004-03-04 06:45:36 paklein Exp $ */
 #include "BCJHypoIsoDamageKE2D.h"
 #include "ifstreamT.h"
 #include "Utils.h"
@@ -55,6 +55,6 @@ void BCJHypoIsoDamageKE2D::DefineParameters(ParameterListT& list) const
 	BCJHypoIsoDamageKE3D::DefineParameters(list);
 	
 	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("2D_constraint");
+	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStrain);
 }

@@ -1,4 +1,4 @@
-/* $Id: GradJ2SSNonlinHard2D.cpp,v 1.3.32.2 2004-03-03 16:15:02 paklein Exp $ */
+/* $Id: GradJ2SSNonlinHard2D.cpp,v 1.3.32.3 2004-03-04 06:45:34 paklein Exp $ */
 #include "GradJ2SSNonlinHard2D.h"
 #include "ElementCardT.h"
 #include "StringT.h"
@@ -50,7 +50,7 @@ void GradJ2SSNonlinHard2D::DefineParameters(ParameterListT& list) const
 	GradJ2SSNonlinHard::DefineParameters(list);
 	
 	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("2D_constraint");
+	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStrain);
 }
 

@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.14.4.1 2004-01-21 19:10:26 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.14.4.2 2004-03-04 06:45:37 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _FD_STRUCT_MAT_T_H_
 #define _FD_STRUCT_MAT_T_H_
@@ -37,6 +37,9 @@ public:
 	/** initialization. If active, initialize the history of
 	 * prescribed thermal strains. */
 	virtual void Initialize(void);
+
+	/** set the material support or pass NULL to clear */
+	virtual void SetFSMatSupport(const FSMatSupportT* support);
 
 	/** finite strain materials support */
 	const FSMatSupportT& FSMatSupport(void) const;

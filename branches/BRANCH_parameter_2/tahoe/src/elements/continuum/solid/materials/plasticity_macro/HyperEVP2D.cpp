@@ -1,4 +1,4 @@
-/* $Id: HyperEVP2D.cpp,v 1.5.30.2 2004-03-03 16:15:06 paklein Exp $ */
+/* $Id: HyperEVP2D.cpp,v 1.5.30.3 2004-03-04 06:45:36 paklein Exp $ */
 #include "HyperEVP2D.h"
 #include "ifstreamT.h"
 #include "Utils.h"
@@ -55,6 +55,6 @@ void HyperEVP2D::DefineParameters(ParameterListT& list) const
 	HyperEVP3D::DefineParameters(list);
 	
 	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("2D_constraint");
+	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStrain);
 }

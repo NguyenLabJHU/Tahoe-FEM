@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB2D.cpp,v 1.11.4.2 2004-03-02 17:46:19 paklein Exp $ */
+/* $Id: OgdenIsoVIB2D.cpp,v 1.11.4.3 2004-03-04 06:45:29 paklein Exp $ */
 /* created: paklein (11/08/1997) */
 #include "OgdenIsoVIB2D.h"
 
@@ -88,7 +88,7 @@ void OgdenIsoVIB2D::DefineParameters(ParameterListT& list) const
 	OgdenIsotropicT::DefineParameters(list);
 	
 	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("2D_constraint");
+	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStress);
 }
 

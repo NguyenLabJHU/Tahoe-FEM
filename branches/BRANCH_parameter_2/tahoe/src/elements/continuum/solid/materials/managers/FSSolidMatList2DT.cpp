@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.1.2.3 2004-03-03 16:14:58 paklein Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.1.2.4 2004-03-04 06:45:30 paklein Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -685,7 +685,7 @@ FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& list_name) const
 		mat = new FDKStV2D;
 
 	/* set support */
-	mat->SetSSMatSupport(fFSMatSupport);
+	mat->SetFSMatSupport(fFSMatSupport);
 
 	return mat;
 

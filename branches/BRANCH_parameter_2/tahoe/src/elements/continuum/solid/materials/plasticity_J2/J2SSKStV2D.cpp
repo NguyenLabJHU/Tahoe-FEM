@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV2D.cpp,v 1.4.32.2 2004-03-03 16:15:01 paklein Exp $ */
+/* $Id: J2SSKStV2D.cpp,v 1.4.32.3 2004-03-04 06:45:33 paklein Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV2D.h"
 #include "ElementCardT.h"
@@ -58,7 +58,7 @@ void J2SSKStV2D::DefineParameters(ParameterListT& list) const
 	J2SSKStV::DefineParameters(list);
 	
 	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("2D_constraint");
+	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStrain);
 }
 

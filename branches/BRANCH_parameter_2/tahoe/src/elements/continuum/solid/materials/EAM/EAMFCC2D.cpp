@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.cpp,v 1.8.30.2 2004-03-02 17:46:12 paklein Exp $ */
+/* $Id: EAMFCC2D.cpp,v 1.8.30.3 2004-03-04 06:45:23 paklein Exp $ */
 /* created: paklein (12/09/1996) */
 #include "EAMFCC2D.h"
 
@@ -114,7 +114,7 @@ void EAMFCC2D::DefineParameters(ParameterListT& list) const
 	NL_E_MatT::DefineParameters(list);
 	
 	/* 2D option must be plain stress */
-	ParameterT& constraint = list.GetParameter("2D_constraint");
+	ParameterT& constraint = list.GetParameter("constraint_2D");
 	constraint.SetDefault(kPlaneStrain);
 }
 
