@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardBaseT.cpp,v 1.2 2003-05-15 05:18:14 thao Exp $ */
+/* $Id: SSJ2LinHardBaseT.cpp,v 1.3 2003-05-15 06:31:23 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -43,6 +43,7 @@ SSJ2LinHardBaseT::SSJ2LinHardBaseT(ifstreamT& in, const SSMatSupportT& support):
 	in >> fYield;	if (fYield <= 0.0) throw ExceptionT::kBadInputValue;
 	in >> fH_bar;	if (fH_bar < 0.0) throw ExceptionT::kBadInputValue;
 	in >> ftheta;	if (ftheta < 0.0 || ftheta > 1.0) throw ExceptionT::kBadInputValue;
+        IsotropicT::Set_mu_kappa(fMu,fKappa);
 
 	/*set internal dofs*/
 	int ndof =3;
