@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.16 2003-01-29 07:35:11 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.17 2003-07-12 00:25:45 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #include "MeshFreeFSSolidT.h"
 
@@ -323,6 +323,7 @@ void MeshFreeFSSolidT::PrintControlData(ostream& out) const
 /* initialization functions */
 void MeshFreeFSSolidT::SetShape(void)
 {
+#if 0
 	/* only support single list of integration cells for now */
 	if (fConnectivities.Length() > 1) {
 		cout << "\n MeshFreeFSSolidT::SetShape: multiple element blocks within an\n"
@@ -330,10 +331,31 @@ void MeshFreeFSSolidT::SetShape(void)
 		     << fConnectivities.Length() << endl;
 		throw ExceptionT::kGeneralFail;
 	}
+#endif
+
+	//TEMP - quick and dirty attempt to run with multiple element blocks
+	const iArray2DT* mf_connect = fConnectivities[0];
+	if (fConnectivities.Length() > 1) {
+
+		/* dimension */
+		fConnectsAll.Dimension(NumElements(), TotalLagrangianT::NumElementNodes());
+
+		/* copy connectivities from blocks in */
+		int count = 0;
+		for (int i = 0; i < fConnectivities.Length(); i++)
+		{
+			fConnectsAll.BlockRowCopyAt(*fConnectivities[i], count);
+			count += fConnectivities[i]->MajorDim();
+		}
+		mf_connect = &fConnectsAll;
+
+		//TEMP write warning
+		cout << "\n MeshFreeFSSolidT::SetShape: WARNING multiple element blocks within the element group" << endl;
+	}
 
 	/* constructors */
 	fMFShapes = new MeshFreeShapeFunctionT(GeometryCode(), NumIP(),
-		fLocInitCoords, ElementSupport().InitialCoordinates(), *fConnectivities[0], fOffGridNodes,
+		fLocInitCoords, ElementSupport().InitialCoordinates(), *mf_connect, fOffGridNodes,
 		fElementCards.Position(), ElementSupport().Input());
 	if (!fMFShapes) throw ExceptionT::kOutOfMemory;
 
