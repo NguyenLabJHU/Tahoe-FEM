@@ -1,4 +1,4 @@
-/* $Id: J2SSC0HardeningT.h,v 1.7 2004-07-15 08:28:54 paklein Exp $ */
+/* $Id: J2SSC0HardeningT.h,v 1.8 2005-04-06 23:32:45 thao Exp $ */
 #ifndef _J2_SS_C0_HARD_T_H_
 #define _J2_SS_C0_HARD_T_H_
 
@@ -61,6 +61,11 @@ protected:
 	void Update(ElementCardT& element, int nip);
 	void Reset(ElementCardT& element, int nip);
 
+	/*accessors for internal variables*/
+	const dSymMatrixT& Get_PlasticStrain(const ElementCardT& element, int nip, int ip);
+	const dSymMatrixT& Get_Beta(const ElementCardT& element, int nip, int ip);
+	const dArrayT& Get_Internal(const ElementCardT& element, int nip, int ip);
+
 private:
 
 	/* load element data for the specified integration point */
@@ -83,6 +88,11 @@ protected:
 	dSymMatrixT fUnitNorm;      //unit normal to the stress surface
 	dSymMatrixT fBeta;          //stress surface "center", kinematic hardening
 	dArrayT     fInternal;      //internal variables
+
+        /*internal variables and conjugates for material force calculations*/
+        dArrayT fInternalStressVars;
+        dArrayT fInternalStrainVars;
+        iArrayT fInternalDOF;
 
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.cpp,v 1.12 2004-08-05 23:17:59 paklein Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.13 2005-04-06 23:32:45 thao Exp $ */
 /* created: paklein (06/18/1997) */
 #include "J2SSKStV.h"
 #include "SSMatSupportT.h"
@@ -89,6 +89,81 @@ void J2SSKStV::OutputLabels(ArrayT<StringT>& labels) const
 	/* copy labels */
 	for (int i = 0; i < kNumOutput; i++)
 		labels[i] = Labels[i];
+}
+
+const iArrayT& J2SSKStV::InternalDOF(void) const
+{
+  return(fInternalDOF);
+}
+
+const dArrayT& J2SSKStV::InternalStrainVars(void)
+{
+  ElementCardT& element = CurrentElement();
+  if (element.IsAllocated()) {
+    const dArrayT& Internal = Get_Internal(element, NumIP(),  CurrIP());
+    const dSymMatrixT& PlasticStrain =  Get_PlasticStrain(element, NumIP(), CurrIP());
+
+    double* p = fInternalStrainVars.Pointer();
+
+    *p++ = Internal[kalpha];
+
+    *p++ = PlasticStrain[0];
+    *p++ = PlasticStrain[1];
+    *p++ = PlasticStrain[2];
+    *p++ = PlasticStrain[3];
+    *p++ = PlasticStrain[4];
+    *p++ = PlasticStrain[5];
+
+    *p++ = PlasticStrain[0];
+    *p++ = PlasticStrain[1];
+    *p++ = PlasticStrain[2];
+    *p++ = PlasticStrain[3];
+    *p++ = PlasticStrain[4];
+    *p++ = PlasticStrain[5];
+  }
+  else fInternalStrainVars = 0.0;
+  return(fInternalStrainVars);
+}
+
+const dArrayT& J2SSKStV::InternalStressVars(void)
+{
+  ElementCardT& element = CurrentElement();
+  double* p = fInternalStressVars.Pointer();
+  if (element.IsAllocated()) {
+    const dArrayT& Internal = Get_Internal(element, NumIP(), CurrIP());
+    const dSymMatrixT& Beta =  Get_Beta(element, NumIP(), CurrIP());
+
+    *p++ = -K(Internal[kalpha]);
+
+    *p++ = -Beta[0];
+    *p++ = -Beta[1];
+    *p++ = -Beta[2];
+    *p++ = -Beta[3];
+    *p++ = -Beta[4];
+    *p++ = -Beta[5];
+  }
+  else {
+    *p++ = 0.0;
+
+    *p++ = 0.0;
+    *p++ = 0.0;
+    *p++ = 0.0;
+    *p++ = 0.0;
+    *p++ = 0.0;
+    *p++ = 0.0;
+  }
+  const dSymMatrixT& e_tot = e();
+  const dSymMatrixT& e_els = ElasticStrain(e_tot, CurrentElement(), NumIP(), CurrIP());
+  /* elastic stress */
+  HookeanStress(e_els, fStress);
+  *p++ = fStress[0];
+  *p++ = fStress[1];
+  *p++ = fStress[2];
+  *p++ = fStress[3];
+  *p++ = fStress[4];
+  *p++ = fStress[5];
+
+  return(fInternalStressVars);
 }
 
 void J2SSKStV::ComputeOutput(dArrayT& output)

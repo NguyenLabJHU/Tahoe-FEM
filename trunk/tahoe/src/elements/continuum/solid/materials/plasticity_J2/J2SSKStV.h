@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.h,v 1.10 2004-07-22 21:10:13 paklein Exp $ */
+/* $Id: J2SSKStV.h,v 1.11 2005-04-06 23:32:45 thao Exp $ */
 /* created: paklein (06/18/1997) */
 #ifndef _J2_SS_KSTV_H_
 #define _J2_SS_KSTV_H_
@@ -74,12 +74,18 @@ protected:
 
 	/* set modulus */
 	virtual void SetModulus(dMatrixT& modulus);
-	 	 	
+
+        /*internal variable accessors*/
+        virtual const iArrayT& InternalDOF(void) const;
+        virtual const dArrayT& InternalStrainVars(void);
+        virtual const dArrayT& InternalStressVars(void);
+
 private:
 
 	/* return values */
 	dSymMatrixT	fStress;
 	dMatrixT	fModulus;
+
 };
 
 } // namespace Tahoe 
