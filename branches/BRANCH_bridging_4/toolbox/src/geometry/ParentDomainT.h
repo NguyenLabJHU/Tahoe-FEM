@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.h,v 1.13 2003-03-31 23:07:50 paklein Exp $ */
+/* $Id: ParentDomainT.h,v 1.13.32.1 2004-02-28 21:55:18 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #ifndef _PARENT_DOMAIN_T_H_
 #define _PARENT_DOMAIN_T_H_
@@ -313,5 +313,12 @@ inline void ParentDomainT::NodalValues(const dArrayT& IPvalues, dArrayT& nodalva
 	fNodalExtrap.Multx(IPvalues, nodalvalues);
 }
 
-} // namespace Tahoe 
+/* return true if the given point is within the domain */
+inline bool ParentDomainT::PointInDomain(const LocalArrayT& coords, const dArrayT& point) const
+{
+	return fGeometry->PointInDomain(coords, point);
+}
+
+} /* namespace Tahoe */
+
 #endif /* _PARENT_DOMAIN_T_H_ */
