@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.13.2.1 2003-02-10 02:11:08 paklein Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.13.2.2 2003-02-17 17:11:44 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #ifndef _KBC_CONTROLLER_T_H_
@@ -115,6 +115,14 @@ protected:
 	 * \param id_list returns with the set id's of the nodes
 	 * \param nodes returns with the nodes in the set id's */
 	void ReadNodes(ifstreamT& in, ArrayT<StringT>& id_list, iArrayT& nodes) const;
+
+private:
+
+	/** \name disallowed */
+	/*@{*/
+	KBC_ControllerT(KBC_ControllerT &);
+	KBC_ControllerT& operator=(KBC_ControllerT &);
+	/*@}*/
 	
 protected:
 

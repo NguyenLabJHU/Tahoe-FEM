@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.8.2.1 2003-02-10 02:14:28 paklein Exp $ */
+/* $Id: FieldT.h,v 1.8.2.2 2003-02-17 17:11:42 paklein Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -81,11 +81,11 @@ public:
 
 	/** special kinematic boundary conditions. Controllers put in this array
 	 * are deleted when this field goes out of scope. */
-	ArrayT<KBC_ControllerT*>& KBC_Controllers(void) { return fKBC_Controllers; };
+	const ArrayT<KBC_ControllerT*>& KBC_Controllers(void) const { return fKBC_Controllers; };
 
 	/** special force boundary conditions. Controllers put in this array
 	 * are deleted when this field goes out of scope. */
-	ArrayT<FBC_ControllerT*>& FBC_Controllers(void) { return fFBC_Controllers; };
+	const ArrayT<FBC_ControllerT*>& FBC_Controllers(void) const { return fFBC_Controllers; };
 	/*@}*/
 
 	/** \name time integration */
@@ -250,6 +250,10 @@ public:
 	/** add the KBC controller to the field. The field takes ownership of the
 	 * controller and will take care of de-allocating it */
 	void AddKBCController(KBC_ControllerT* controller) { fKBC_Controllers.AppendUnique(controller); };
+
+	/** add the KBC controller to the field. The field takes ownership of the
+	 * controller and will take care of de-allocating it */
+	void AddFBCController(FBC_ControllerT* controller) { fFBC_Controllers.AppendUnique(controller); };
 
 private:
 

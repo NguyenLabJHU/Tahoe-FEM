@@ -1,10 +1,16 @@
-/* $Id: FBC_ControllerT.cpp,v 1.4 2003-01-29 07:35:22 paklein Exp $ */
+/* $Id: FBC_ControllerT.cpp,v 1.4.2.1 2003-02-17 17:11:43 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 #include "FBC_ControllerT.h"
 
 #include <iostream.h>
 
 using namespace Tahoe;
+
+/* array behavior */
+namespace Tahoe {
+const bool ArrayT<FBC_ControllerT>::fByteCopy = false;
+const bool ArrayT<FBC_ControllerT*>::fByteCopy = true;
+} /* namespace Tahoe */
 
 /* constructor */
 FBC_ControllerT::FBC_ControllerT(FEManagerT& fe_manager, int group):
