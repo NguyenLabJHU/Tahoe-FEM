@@ -1,4 +1,4 @@
-/* $Id: CrystalElast.cpp,v 1.2 2001-08-20 22:15:40 rdorgan Exp $ */
+/* $Id: CrystalElast.cpp,v 1.3 2001-08-21 01:13:51 paklein Exp $ */
 /*
   File: CrystalElast.cpp
 */
@@ -89,7 +89,7 @@ void CrystalElast::Print(ostream& out) const
 /* set (material) tangent modulus */
 void CrystalElast::SetModulus(dMatrixT& modulus)
 {
-#pragma unused(modulus);
+#pragma unused(modulus)
 }
 
 void CrystalElast::PrintName(ostream& out) const
