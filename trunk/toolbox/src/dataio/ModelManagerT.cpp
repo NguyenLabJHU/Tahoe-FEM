@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.40 2003-11-21 22:41:44 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.41 2003-11-25 18:59:35 cjkimme Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -1154,23 +1154,32 @@ void ModelManagerT::SideSet(const StringT& ID, ArrayT<GeometryT::CodeT>& facet_g
 	/* get side set */
 	StringT elemID;
 	iArray2DT ss = SideSet(ID);
-	if (ss.MajorDim() > 0 && IsSideSetLocal(ID))
-	    elemID = SideSetGroupID(ID);
-	else {
-		iArray2DT temp = ss;
-		SideSetGlobalToLocal(temp, ss, elemID);
+	if (ss.MajorDim() > 0)
+	{
+		if (IsSideSetLocal(ID))
+	    	elemID = SideSetGroupID(ID);
+		else 
+		{
+			iArray2DT temp = ss;
+			SideSetGlobalToLocal(temp, ss, elemID);
+		}
 	}
 
-	/* element block information */
-	const iArray2DT& connectivities = ElementGroup(elemID);
-//	int nel = connectivities.MajorDim();
-	int nen = connectivities.MinorDim();
-	GeometryT::CodeT geometry_code = ElementGroupGeometry(elemID);
-	
 	if (ss.MajorDim() == 0)
+	{
 		faces.Dimension(ss.MajorDim(), 0);
+		facet_geom.Dimension(0);
+		facet_nodes.Dimension(0);
+	}
 	else
 	{
+
+		/* element block information */
+		const iArray2DT& connectivities = ElementGroup(elemID);
+		//	int nel = connectivities.MajorDim();
+		int nen = connectivities.MinorDim();
+		GeometryT::CodeT geometry_code = ElementGroupGeometry(elemID);
+	
 		/* geometry object */
 		GeometryBaseT* geometry = GeometryT::NewGeometry(geometry_code, nen);
 
@@ -1228,7 +1237,7 @@ const StringT& ModelManagerT::SideSetGroupID (const StringT& ss_ID) const
 
 	int ss_group_index = fSideSetGroupIndex[index];
 	if (ss_group_index < 0 || ss_group_index >= fElementNames.Length()) 
-		ExceptionT::OutOfRange(caller, "group ID for not defined for set %s",
+		ExceptionT::OutOfRange(caller, "group ID not defined for set %s",
 			ss_ID.Pointer());
 
 	return fElementNames[ss_group_index];
