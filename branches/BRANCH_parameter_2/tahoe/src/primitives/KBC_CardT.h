@@ -1,10 +1,7 @@
-/* $Id: KBC_CardT.h,v 1.5 2003-04-16 18:06:46 cjkimme Exp $ */
+/* $Id: KBC_CardT.h,v 1.5.24.1 2004-03-22 18:36:18 paklein Exp $ */
 /* created: paklein (05/23/1996) */
-
 #ifndef _KBC_CARD_T_H_
 #define _KBC_CARD_T_H_
-
-#include "Environment.h"
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
@@ -13,34 +10,40 @@ namespace Tahoe {
 
 class ScheduleT;
 
+/** container to hold kinematic boundary condition specifications */
 class KBC_CardT
 {
 public:
 
 	friend class NodeManagerT;
 	
-	/* codes */
+	/** codes */
 	enum CodeT {kFix = 0,
                 kDsp = 1,
                 kVel = 2,
                 kAcc = 3,
                 kNull= 4};
 
-	/* constructor */
+	/** \name constructor */
+	/*@{*/
 	KBC_CardT(void);
-	KBC_CardT(int node, int dof, CodeT code, int nLTF, double value);
+	KBC_CardT(int node, int dof, CodeT code, const ScheduleT* schedule, double value);
+	/*@}*/
 
-	/* modifiers */
+	/** \name modifiers */
+	/*@{*/
 	void SetValues(istream& in);
-	void SetValues(int node, int dof, CodeT code, int nLTF, double value);
-	void SetSchedule(const ScheduleT* schedule);
+	void SetValues(int node, int dof, CodeT code, const ScheduleT* schedule, double value);
+	/*@}*/
 	
-	/* accessors */
+	/** \name accessors */
+	/*@{*/
 	int Node(void) const;
 	int DOF(void) const;
 	CodeT Code(void) const;
-	int ScheduleNum(void) const;
-		
+	const ScheduleT* Schedule(void) const { return fSchedule; };
+	/*@}*/
+
 	/* returns the value of the BC */
 	double Value(void) const;
 
@@ -57,7 +60,6 @@ protected:
 	int      fnode;
 	int      fdof;
 	CodeT    fcode;
-	int      fSchedNum;
 	double   fvalue;			
 	const ScheduleT* fSchedule;
 };
@@ -68,7 +70,6 @@ protected:
 inline int KBC_CardT::Node(void) const   { return fnode; }
 inline int KBC_CardT::DOF(void) const    { return fdof;  }
 inline KBC_CardT::CodeT KBC_CardT::Code(void) const   { return fcode; }
-inline int KBC_CardT::ScheduleNum(void) const { return fSchedNum; }
 
 } // namespace Tahoe 
 #endif /* _KBC_CARD_T_H_ */
