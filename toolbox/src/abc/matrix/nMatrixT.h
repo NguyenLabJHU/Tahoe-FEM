@@ -1,4 +1,4 @@
-/* $Id: nMatrixT.h,v 1.11 2002-03-04 01:38:10 paklein Exp $ */
+/* $Id: nMatrixT.h,v 1.12 2002-04-21 06:40:48 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _NMATRIX_T_H_
@@ -13,20 +13,27 @@ class nMatrixT: public nArrayT<nTYPE>
 {
 public:
 
-	/* control flags */
+	/** \name control flags */
+	/*@{*/
 	enum SymmetryFlagT {kWhole = 0, kUpperOnly = 1};
 	enum AssemblyModeT {kOverwrite = 0, kAccumulate = 1};
+	/*@}*/
 
-	/* constructor*/
+	/** \name constructors */
+	/*@{*/
 	nMatrixT(void);
 	nMatrixT(int numrows, int numcols);
 	explicit nMatrixT(int squaredim);
 	nMatrixT(int numrows, int numcols, nTYPE* p);	
 	nMatrixT(const nMatrixT& source);	
+	/*@}*/
 
-	/* destructor*/
+	/** destructor*/
 	~nMatrixT(void);
 
+	/** \name dimensioning methods 
+	 * Also see copy/assignment operators */
+	/*@{*/
 	/** dimension matrix */
 	void Dimension(int numrows, int numcols);
 
@@ -36,42 +43,55 @@ public:
 	/** dimensions this matrix to the same dimensions as the source, but no data is copied */
 	void Dimension(const nMatrixT& source) { Dimension(source.Rows(), source.Cols()); };
 
-	/** \deprecated replaced by nMatrixT::Dimension on 02/13/2002 */
-	void Allocate(int numrows, int numcols) { Dimension(numrows, numcols); } ;
-	/** \deprecated replaced by nMatrixT::Dimension on 02/13/2002 */
-	void Allocate(int squaredim) { Dimension(squaredim); } ;
-
 	/** configure an matrix of the specified dimensions using the 
 	 * given memory */
 	void Set(int numrows, int numcols, nTYPE* p);
 
-	/* free memory (if allocated) and set size to zero */
+	/** free memory (if allocated) and set size to zero */
 	void Free(void);
+
+	/** number of rows */
+	int Rows(void) const;
+
+	/** number of columns */
+	int Cols(void) const;
+	/*@}*/
+
+	/** \name \e deprecated dimensioning methods */
+	/*@{*/
+	/** \deprecated replaced by nMatrixT::Dimension on 02/13/2002 */
+	void Allocate(int numrows, int numcols) { Dimension(numrows, numcols); } ;
+	/** \deprecated replaced by nMatrixT::Dimension on 02/13/2002 */
+	void Allocate(int squaredim) { Dimension(squaredim); } ;
+	/*@}*/
 
 	/* element and column accessor */
 	nTYPE& operator()(int nrow, int ncol) const;
 	nTYPE* operator()(int ncol) const;
 
-	/* block accessing with row and col in the upper left */
+	/** \name accessing blocks
+	 * row and col in the upper left */
+	/*@{*/
 	void AddBlock(int row, int col, const nMatrixT<nTYPE>& block);
 	void SetBlock(int row, int col, const nMatrixT<nTYPE>& block);
 	void CopyBlock(int row, int col, nMatrixT<nTYPE>& block) const;
 	void CopyBlock(const ArrayT<int>& rc, nMatrixT<nTYPE>& block) const; //block must be square
 	void CopyBlock(const ArrayT<int>& r, const ArrayT<int>& c, nMatrixT<nTYPE>& block) const;
+	/*@}*/
 
-	/* dimensions */
-	int Rows(void) const;
-	int Cols(void) const;
-
-	/* copy/assignment operators */
+	/** \name copy/assignment operators */
+	/*@{*/
 	nMatrixT<nTYPE>& operator=(const nMatrixT& RHS);
 	nMatrixT<nTYPE>& operator=(const nTYPE& value);
 	void Alias(const nMatrixT& RHS);
 
-	/* exchange data */
+	/** exchange data */
 	void Swap(nMatrixT<nTYPE>& source);
+	/*@}*/
+
 	
-	/* selected row(s) or column(s) */
+	/** \name accessing rows and columns */
+	/*@{*/
 	void CopyRow(int rownum, ArrayT<nTYPE>& row) const;
 	void CopyFromRow(int rownum, int start_col, ArrayT<nTYPE>& row) const;
 	void CopyRows(const ArrayT<int>& rows,
@@ -80,8 +100,9 @@ public:
 	void CopyColumns(const ArrayT<int>& cols,
 	                 const nMatrixT<nTYPE>& source);
 	void ColumnAlias(int colnum, ArrayT<nTYPE>& col) const;
+	/*@}*/
 
-	/* creates a symmetric matrix, assuming the data is stored
+	/** create a symmetric matrix. assumes the data is stored
 	 * in the upper triangle of the matrix.  Setting IsUpper = 0,
 	 * copies the data from the lower triangle */
 	void CopySymmetric(int IsUpper = 1);
@@ -89,70 +110,95 @@ public:
 	/** set this to the matrix transpose.
 	 * \param matrix source matrix to transpose
 	 * \return reference to *this */
-	nMatrixT<nTYPE>& Transpose(const nMatrixT<nTYPE>& matrix);
+	nMatrixT<nTYPE>& Transpose(const nMatrixT<nTYPE>& matrix, int fillmode = kOverwrite);
 
 	/** set this its matrix transpose.
 	 * \return reference to *this */
-	nMatrixT<nTYPE>& Transpose(void);
+	nMatrixT<nTYPE>& Transpose(int fillmode = kOverwrite);
 	
-	/* matrix-matrix multiplication - operates on this using a and b.
-	 * Operations allowed on entire matrices only, ie no apparent
-	 * dimensions */
+	/** \name matrix-matrix multiplication
+	 * operates on this using \e a and \e b. Operations allowed on entire matrices 
+	 * only, all matrix dimensions must be consistent */
+	/*@{*/
 	void MultAB(const nMatrixT& a, const nMatrixT& b, int upper = 0);
 	void MultATB(const nMatrixT& a, const nMatrixT& b, int upper = 0);
 	void MultABT(const nMatrixT& a, const nMatrixT& b, int upper = 0);
 	void MultATBT(const nMatrixT& a, const nMatrixT& b);
+	/*@}*/
 
-	/* matrix-matrix-matrix operations */
+	/** \name matrix-matrix-matrix operations */
+	/*@{*/
 	void MultABC(const nMatrixT& a, const nMatrixT& b, const nMatrixT& c,
 		int range = kWhole, int fillmode = kOverwrite);
 	void MultABCT(const nMatrixT& a, const nMatrixT& b, const nMatrixT& c,
 		int range = kWhole, int fillmode = kOverwrite);
 	void MultATBC(const nMatrixT& a, const nMatrixT& b, const nMatrixT& c,
 		int range = kWhole, int fillmode = kOverwrite);
+	/*@}*/
 
-	/* symmetric matrix-matrix-matrix operations, ie. tensor basis transformations */
+	/** \name symmetric matrix-matrix-matrix operations
+	 * Useful for tensor basis transformations */
+	/*@{*/	 
 	void MultQBQT(const nMatrixT& q, const nMatrixT& b,
 		int range = kWhole, int fillmode = kOverwrite);
 	void MultQTBQ(const nMatrixT& q, const nMatrixT& b,
 		int range = kWhole, int fillmode = kOverwrite);
+	/*@}*/	 
 	
-	/* matrix-vector multiplication - returns the result in b */
+	/** \name matrix-vector multiplication
+	 * results returned in \e b */
+	/*@{*/
 	void Multx(const nArrayT<nTYPE>& x, nArrayT<nTYPE>& b) const;
 	void MultTx(const nArrayT<nTYPE>& x, nArrayT<nTYPE>& b) const;
+	/*@}*/
 
 	/* vector-matrix-vector product */
 	nTYPE MultmBn(const nArrayT<nTYPE>& m,
 	                 const nArrayT<nTYPE>& n) const;
 	   		
-	/* returns the outer product of the 2 vectors, or
+	/** dyadic product
+	 * Set thisd to the the outer product of the 2 vectors, or
 	 * in dyadic notation:
-	 *
-	 *        v1 (x) v2 */
+	 * \f[
+	 *        \mathbf{v}_1 \otimes \mathbf{v}_2 
+	 * \f] */
 	void Outer(const nArrayT<nTYPE>& v1, const nArrayT<nTYPE>& v2);
 
-	/* identity operations - square matrices ONLY */
+	/** \name identity operations
+	 * For use with square matrices \e only */
+	/*@{*/
 	void PlusIdentity(const nTYPE& value = nTYPE(1.0));
 	nMatrixT<nTYPE>& Identity(const nTYPE& value = nTYPE(1.0));
+	/*@}*/
 
-	/* writing to rows */
+	/** \name writing to rows */
+	/*@{*/	
 	void SetRow(int row, const nArrayT<nTYPE>& vec);
 	void SetRow(int row, const nTYPE* vec);
 	void SetRow(int row, const nTYPE& value);
+	/*@}*/	
 
-	/* writing to cols */
+	/** \name writing to cols */
+	/*@{*/	
 	void SetCol(int col, const nArrayT<nTYPE>& vec);
 	void SetCol(int col, const nTYPE* vec);
 	void SetCol(int col, const nTYPE& value);
+	/*@}*/	
 
-	/* dot the specified row/column number with the array */
+	/** \name row/column products
+	 * dot the specified row/column number with the array */
+	/*@{*/
 	nTYPE DotRow(int rownum, const nArrayT<nTYPE>& array) const;
 	nTYPE DotCol(int colnum, const nArrayT<nTYPE>& array) const;
+	/*@}*/
 
 protected:
 	
+	/** \name dimensions */
+	/*@{*/
 	int	fRows;
 	int	fCols;
+	/*@}*/
 };
 
 /* I/O operators */
@@ -596,7 +642,7 @@ void nMatrixT<nTYPE>::CopySymmetric(int IsUpper)
 
 /* tranposition */
 template <class nTYPE>
-nMatrixT<nTYPE>& nMatrixT<nTYPE>::Transpose(const nMatrixT<nTYPE>& matrix)
+nMatrixT<nTYPE>& nMatrixT<nTYPE>::Transpose(const nMatrixT<nTYPE>& matrix, int fillmode)
 {
 #if __option (extended_errorcheck)	
 	if (fRows != matrix.fCols ||
@@ -604,40 +650,85 @@ nMatrixT<nTYPE>& nMatrixT<nTYPE>::Transpose(const nMatrixT<nTYPE>& matrix)
 #endif
 
 	/* selve transposition */
-	if (fArray == matrix.fArray) return Transpose();
+	if (fArray == matrix.fArray) return Transpose(fillmode);
 
 	nTYPE *pthis = fArray;
 	nTYPE *pm    = matrix.fArray;
-	for (int i = 0; i < matrix.fRows; i++)
+	if (fillmode == kOverwrite)
 	{
-		nTYPE* pmj = pm++;
-		for (int j = 0; j < matrix.fCols; j++)
+		for (int i = 0; i < matrix.fRows; i++)
 		{
-			*pthis++ = *pmj;
-			    pmj += matrix.fRows;
+			nTYPE* pmj = pm++;
+			for (int j = 0; j < matrix.fCols; j++)
+			{
+				*pthis++ = *pmj;
+				    pmj += matrix.fRows;
+			}
 		}
+	}
+	else if (fillmode == kAccumulate)
+	{
+		for (int i = 0; i < matrix.fRows; i++)
+		{
+			nTYPE* pmj = pm++;
+			for (int j = 0; j < matrix.fCols; j++)
+			{
+				*pthis++ += *pmj;
+				    pmj += matrix.fRows;
+			}
+		}
+	}
+	else
+	{
+		cout << "\n nMatrixT<nTYPE>::Transpose: unrecognized fill mode: " << fillmode << endl;
+		throw eGeneralFail;
 	}
 	return *this;
 }
 
 template <class nTYPE>
-nMatrixT<nTYPE>& nMatrixT<nTYPE>::Transpose(void)
+nMatrixT<nTYPE>& nMatrixT<nTYPE>::Transpose(int fillmode)
 {
-	register nTYPE temp;
-	for (int i = 0; i < fRows - 1; i++)
+	if (fillmode == kOverwrite)
 	{
-		nTYPE* prow = (*this)(i+1) + i;
-		nTYPE* pcol = (*this)(i) + i + 1;
-	
-		for (int j = i + 1; j < fCols; j++)
+		register nTYPE temp;
+		for (int i = 0; i < fRows - 1; i++)
 		{
-			temp  = *prow;
-			*prow = *pcol;
-			*pcol = temp;
-			
-			pcol++;
-			prow += fRows;
+			nTYPE* prow = (*this)(i+1) + i;
+			nTYPE* pcol = (*this)(i) + i + 1;
+			for (int j = i + 1; j < fCols; j++)
+			{
+				temp  = *prow;
+				*prow = *pcol;
+				*pcol = temp;
+	
+				pcol++;
+				prow += fRows;
+			}
 		}
+	}
+	else if (fillmode == kAccumulate)
+	{
+		register nTYPE temp;
+		for (int i = 0; i < fRows - 1; i++)
+		{
+			nTYPE* prow = (*this)(i+1) + i;
+			nTYPE* pcol = (*this)(i) + i + 1;
+			for (int j = i + 1; j < fCols; j++)
+			{
+				temp  = *prow;
+				*prow += *pcol;
+				*pcol += temp;
+	
+				pcol++;
+				prow += fRows;
+			}
+		}
+	}
+	else
+	{
+		cout << "\n nMatrixT<nTYPE>::Transpose: unrecognized fill mode: " << fillmode << endl;
+		throw eGeneralFail;
 	}
 
 	return *this;
