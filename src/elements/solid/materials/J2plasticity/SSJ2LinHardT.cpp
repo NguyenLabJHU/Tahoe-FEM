@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardT.cpp,v 1.1 2003-05-12 23:38:36 thao Exp $ */
+/* $Id: SSJ2LinHardT.cpp,v 1.2 2003-05-15 05:18:14 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -38,14 +38,25 @@ double SSJ2LinHardT::StrainEnergyDensity(void)
 {
     double energy = 0.0;
     const dSymMatrixT& strain = e();
-    const dSymMatrixT& stress = s_ij();
-    energy = 0.5*stress.ScalarProduct(strain);
 
     ElementCardT& element = CurrentElement();
     Load(element, CurrIP());	    
-    energy += 0.5*falpha[0]*K(falpha[0]);
-        
-	return energy;		
+    
+    fDevStrain = strain;
+    double I1 = fDevStrain.Trace();
+    fDevStrain[0] -= fthird*I1;
+    fDevStrain[1] -= fthird*I1;
+    fDevStrain[2] -= fthird*I1;
+    fDevStrain -= fPlasticStrain;
+
+    fStress = fDevStrain;
+    fStress *= 2.0*fMu;
+    fStress.PlusIdentity(fKappa*I1);
+  
+    energy = 0.5*fStress.ScalarProduct(strain);
+    energy += 0.5*falpha[0]*dK()*falpha[0];
+    energy += 0.5*fBeta.ScalarProduct(fPlasticStrain);    
+    return energy;		
 }
 
 const dMatrixT& SSJ2LinHardT::c_ijkl(void)
@@ -73,17 +84,13 @@ const dMatrixT& SSJ2LinHardT::c_ijkl(void)
 /* stress */
 const dSymMatrixT& SSJ2LinHardT::s_ij(void)
 {
-  const dSymMatrixT& e_tot = e();
- 
   ElementCardT& element = CurrentElement();
   Load(element, CurrIP());	
-  fTrialStrain = e_tot;
-  fTrialStrain -= fPlasticStrain_n;
-    
-  /* elastic stress */
-  fDevStrain = fTrialStrain;
+
+  fDevStrain = e();
   double I1 = fDevStrain.Trace();
-  fDevStrain.PlusIdentity(-fthird*I1);
+  fDevStrain.PlusIdentity(-fthird*I1);  
+  fDevStrain -= fPlasticStrain_n;
   
   /*evaluate deviatoric part of trial elastic stress*/
   fStress = fDevStrain;
@@ -100,6 +107,73 @@ const dSymMatrixT& SSJ2LinHardT::s_ij(void)
   return fStress;	
 }
 
+/*Note to be called only during post processing*/
+const dArrayT& SSJ2LinHardT::InternalStrainVars(void)
+{
+        /*non-equilibrium components*/
+        ElementCardT& element = CurrentElement();
+        Load(element, CurrIP());
+        
+        /*evaluate viscous strains*/
+	double* pvar = fInternalStrainVars.Pointer();
+
+	*pvar++ = falpha[0];
+
+      	*pvar++ = fPlasticStrain[0];
+	*pvar++ = fPlasticStrain[1];
+	*pvar++ = fPlasticStrain[2];
+	*pvar++ = fPlasticStrain[3];
+	*pvar++ = fPlasticStrain[4];
+	*pvar++ = fPlasticStrain[5];
+        
+      	*pvar++ = fPlasticStrain[0];
+	*pvar++ = fPlasticStrain[1];
+	*pvar++ = fPlasticStrain[2];
+	*pvar++ = fPlasticStrain[3];
+	*pvar++ = fPlasticStrain[4];
+	*pvar = fPlasticStrain[5];
+        
+        return(fInternalStrainVars);
+}
+
+const dArrayT& SSJ2LinHardT::InternalStressVars(void)
+{
+        /*non-equilibrium components*/
+        ElementCardT& element = CurrentElement();
+        Load(element, CurrIP());
+        
+	fDevStrain = e();
+	double I1 = fDevStrain.Trace();
+	fDevStrain[0] -= fthird*I1;
+	fDevStrain[1] -= fthird*I1;
+	fDevStrain[2] -= fthird*I1;
+	fDevStrain -= fPlasticStrain;
+
+	fStress = fDevStrain;
+	fStress *= 2.0*fMu;
+	fStress.PlusIdentity(fKappa*I1);
+	
+	double* pvar = fInternalStressVars.Pointer();
+
+	*pvar++ = -dK()*falpha[0];
+
+	*pvar++ = -fBeta[0];
+	*pvar++ = -fBeta[1];
+	*pvar++ = -fBeta[2];
+	*pvar++ = -fBeta[3];
+	*pvar++ = -fBeta[4];
+	*pvar++ = -fBeta[5];
+
+	*pvar++ = fStress[0];
+	*pvar++ = fStress[1];
+	*pvar++ = fStress[2];
+	*pvar++ = fStress[3];
+	*pvar++ = fStress[4];
+	*pvar = fStress[5];
+       
+        return(fInternalStressVars);
+}
+
 int SSJ2LinHardT::NumOutputVariables(void) const  { return kNumOutput; }
 void SSJ2LinHardT::OutputLabels(ArrayT<StringT>& labels) const
 {
@@ -113,9 +187,21 @@ void SSJ2LinHardT::OutputLabels(ArrayT<StringT>& labels) const
 
 void SSJ2LinHardT::ComputeOutput(dArrayT& output)
 {
-	/* stress tensor (loads element data and sets fStress) */
-	s_ij();
 
+        ElementCardT& element = CurrentElement();
+	Load(element, CurrIP());	    
+
+	fDevStrain = e();
+	double I1 = fDevStrain.Trace();
+	fDevStrain[0] -= fthird*I1;
+	fDevStrain[1] -= fthird*I1;
+	fDevStrain[2] -= fthird*I1;
+	fDevStrain -= fPlasticStrain;
+
+	fStress = fDevStrain;
+	fStress *= 2.0*fMu;
+	fStress.PlusIdentity(fKappa*I1);
+	
 	/* pressure */
 	output[2] = fStress.Trace()/3.0;
 	
@@ -125,7 +211,5 @@ void SSJ2LinHardT::ComputeOutput(dArrayT& output)
 	J2 = (J2 < 0.0) ? 0.0 : J2;
 	output[1] = sqrt(3.0*J2);
 
-    ElementCardT& element = CurrentElement();
-    Load(element, CurrIP());	    
  	output[0] = falpha[0];
 }

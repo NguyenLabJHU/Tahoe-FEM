@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardBaseT.h,v 1.1 2003-05-12 23:38:36 thao Exp $ */
+/* $Id: SSJ2LinHardBaseT.h,v 1.2 2003-05-15 05:18:14 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -29,41 +29,46 @@ class SSJ2LinHardBaseT: public SSSolidMatT, public IsotropicT
 {
 public:
 
-	/* constructor */
-	SSJ2LinHardBaseT(ifstreamT& in, const SSMatSupportT& support);
-
+        /* constructor */
+        SSJ2LinHardBaseT(ifstreamT& in, const SSMatSupportT& support);
+  
 	/* output name */
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
 	
- 	/* apply pre-conditions at the current time step */
+	/* apply pre-conditions at the current time step */
 	virtual void InitStep(void){SSSolidMatT::InitStep();}
-
-   /*manage history variables*/
+       
+	/*manage history variables*/
  	/*initialize history variable*/
 	virtual bool NeedsPointInitialization(void) const {return true;}; // declare true
-    virtual void PointInitialize(void);
-    virtual void UpdateHistory(void);
-    virtual void ResetHistory(void);
-    virtual void Load(ElementCardT& element, int ip);
-    virtual void Store(ElementCardT& element, int ip);
+	virtual void PointInitialize(void);
+	virtual void UpdateHistory(void);
+	virtual void ResetHistory(void);
+	virtual void Load(ElementCardT& element, int ip);
+	virtual void Store(ElementCardT& element, int ip);
+
+        /*inquire if dissipation variables used in material force calculation are n
+eeded*/
+        virtual bool HasDissipVar(void) const {return true;}
+        virtual const iArrayT& InternalDOF(void);
 
 protected:
-    /*radial return mapping*/
-    double YieldCondition(const dSymMatrixT& relstress, double alpha) const;
-    bool PlasticLoading(const dSymMatrixT& devtrialstress);
+	/*radial return mapping*/
+	double YieldCondition(const dSymMatrixT& relstress, double alpha) const;
+	bool PlasticLoading(const dSymMatrixT& devtrialstress);
 	/* return the correction to stress vector computed by the mapping the
 	 * stress back to the yield surface, if needed */
-    const dSymMatrixT& StressCorrection(const dSymMatrixT& devtrialstress);
-
+	const dSymMatrixT& StressCorrection(const dSymMatrixT& devtrialstress);
+	
 	/* return the correction to moduli due to plasticity (if any)
 	 *
 	 * Note: Return mapping occurs during the call to StressCorrection.
 	 *       The element passed in is already assumed to carry current
 	 *       internal variable values */
-    const dMatrixT& ModuliCorrection(void);
+	const dMatrixT& ModuliCorrection(void);
 
-    /*accessors*/
+	/*accessors*/
 	double  H(double a) const;
 	const double dH(void) const;
 	double  K(double a) const;
@@ -87,45 +92,57 @@ protected:
 	double fnstatev;             // number of internal state variables 
 	dArrayT fstatev;             // internal state variable array
 
-    /*current values*/
-    dArrayT falpha;              // equivalent plastic strain
+	/*current values*/
+	dArrayT falpha;              // equivalent plastic strain
 	dSymMatrixT fBeta;           // back stress 
 	dSymMatrixT fPlasticStrain;  // deviatoric part of the plastic strain
     
-    /*previous values*/
-    dArrayT falpha_n;              // equivalent plastic strain
+	/*previous values*/
+	dArrayT falpha_n;              // equivalent plastic strain
 	dSymMatrixT fBeta_n;           // back stress 
 	dSymMatrixT fPlasticStrain_n;  // deviatoric part of the plastic strain
 
+       /*internal dissipation variables*/
+        dArrayT fInternalStressVars;
+        dArrayT fInternalStrainVars;
+        iArrayT fInternalDOF;
+        
+	/* work space */
 	dSymMatrixT fUnitNorm;      //unit normal to the stress surface
 	double ftrial;
 	double fdgamma;
-	dSymMatrixT	fTrialStrain;
 	dSymMatrixT	fStressCorr;
 	dMatrixT	fModuliCorr;
 		
-	/* work space */
 	dSymMatrixT fRelStress;
 	dSymMatrixT fDevStrain; /* deviatoric part of the strain tensor */
-	dMatrixT   fTensorTemp;
-	
+	dMatrixT   fTensorTemp; 
 };
 
-inline double SSJ2LinHardBaseT::H(double a) const
-{
-	return ( (1.0 - ftheta)*fH_bar*a );
-}
+ inline const iArrayT& SSJ2LinHardBaseT::InternalDOF(void) 
+ {
+   return fInternalDOF;
+ }
 
-inline const double SSJ2LinHardBaseT::dH(void) const
-{return ( (1.0 - ftheta)*fH_bar );}
+ inline double SSJ2LinHardBaseT::H(double a) const
+ {
+   return ( (1.0 - ftheta)*fH_bar*a );
+ }
 
-inline double SSJ2LinHardBaseT::K(double a) const
-{
-	return ( fYield + ftheta*fH_bar*a );
-}
+ inline const double SSJ2LinHardBaseT::dH(void) const
+ {
+   return ( (1.0 - ftheta)*fH_bar );
+ }
 
-inline const double SSJ2LinHardBaseT::dK(void) const
-{return ( ftheta*fH_bar );}
+ inline double SSJ2LinHardBaseT::K(double a) const
+ {
+   return ( fYield + ftheta*fH_bar*a );
+ }
+
+ inline const double SSJ2LinHardBaseT::dK(void) const
+ {
+   return ( ftheta*fH_bar );
+ }
 
 } // namespace Tahoe 
 #endif /* _SS_J2_LIN_HARD_Base_T_H_ */

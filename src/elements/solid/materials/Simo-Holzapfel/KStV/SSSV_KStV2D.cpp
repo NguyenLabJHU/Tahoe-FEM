@@ -1,4 +1,4 @@
-/* $Id: SSSV_KStV2D.cpp,v 1.5 2003-04-14 22:32:00 thao Exp $ */
+/* $Id: SSSV_KStV2D.cpp,v 1.6 2003-05-15 05:18:16 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSSV_KStV2D.h"
 #include "SSMatSupportT.h"
@@ -61,7 +61,7 @@ void SSSV_KStV2D::PrintName(ostream& out) const
 {
 	/* inherited */
 	SSSimoViscoT::PrintName(out);
-    out << "2D plane strain formulation\n";
+	out << "2D plane strain formulation\n";
 	out << "Equilibrium/Non-Equilibrium Potential:\n";
 	out << "Kirchoff St. Venant\n";
 	out << "Kirchoff St. Venant\n";
@@ -69,11 +69,11 @@ void SSSV_KStV2D::PrintName(ostream& out) const
 
 double SSSV_KStV2D::StrainEnergyDensity(void)
 {
-    const dSymMatrixT& strain = e();
-    fStrain3D = 0;
-    fStrain3D[0] = strain[0];
-    fStrain3D[1] = strain[1];
-    fStrain3D[5] = strain[2];
+        const dSymMatrixT& strain = e();
+	fStrain3D = 0;
+	fStrain3D[0] = strain[0];
+	fStrain3D[1] = strain[1];
+	fStrain3D[5] = strain[2];
 	
 	/*equilibrium components*/
 	double mu = fMu[kEquilibrium];
@@ -92,34 +92,34 @@ double SSSV_KStV2D::StrainEnergyDensity(void)
 	/*volumetric part*/
 	fStress3D[0] += kappa*I1;
 	fStress3D[1] += kappa*I1;
-    fStress3D[2] += kappa*I1;
+	fStress3D[2] += kappa*I1;
     
-    /*reduce to 2D*/
-    fStress[0] = fStress3D[0];
-    fStress[1] = fStress3D[1];
-    fStress[2] = fStress3D[5];
+	/*reduce to 2D*/
+	fStress[0] = fStress3D[0];
+	fStress[1] = fStress3D[1];
+	fStress[2] = fStress3D[5];
 
-    double energy = 0.5*fStress.ScalarProduct(e());
+	double energy = 0.5*fStress.ScalarProduct(e());
 
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
 
-    mu = fMu[kNonEquilibrium];
-    kappa = fKappa[kNonEquilibrium];
+	mu = fMu[kNonEquilibrium];
+	kappa = fKappa[kNonEquilibrium];
 
-    fStrain3D = fdevQ;
-    fStrain3D /= 2.0*mu;
-    fStrain3D[0] += fmeanQ[0]/kappa*fthird;
-    fStrain3D[1] += fmeanQ[0]/kappa*fthird;
-    fStrain3D[2] += fmeanQ[0]/kappa*fthird;
+	fStrain3D = fdevQ;
+	fStrain3D /= 2.0*mu;
+	fStrain3D[0] += fmeanQ[0]/kappa*fthird;
+	fStrain3D[1] += fmeanQ[0]/kappa*fthird;
+	fStrain3D[2] += fmeanQ[0]/kappa*fthird;
 
 	fStress3D = fdevQ;
 	fStress3D[0] += fmeanQ[0];
 	fStress3D[1] += fmeanQ[0];
 	fStress3D[2] += fmeanQ[0];
 
-    energy += 0.5*fStress3D.ScalarProduct(fStrain3D);
-    return(energy);
+	energy += 0.5*fStress3D.ScalarProduct(fStrain3D);
+	return(energy);
 }
 
 const dMatrixT& SSSV_KStV2D::C_IJKL(void) 
@@ -141,17 +141,17 @@ const dMatrixT& SSSV_KStV2D::c_ijkl(void)
 	falphaS = exp(-0.5*taudtS);
 	falphaB = exp(-0.5*taudtB);
 
-    /*equilibrium component*/
+	/*equilibrium component*/
 	double mu = fMu[kEquilibrium];
 	double kappa = fKappa[kEquilibrium];
-
-    /*deviatoric part*/
+	
+	/*deviatoric part*/
 	fModulus = 0.0;
 	fModulus(0,0) = fModulus(1,1) = 2.0*mu*(1.0 - fthird);
 	fModulus(2,2) = mu;
 	fModulus(0,1) =	fModulus(1,0) = -2.0*mu*fthird;
 
-    /*volumetric part*/
+	/*volumetric part*/
 	fModulus(0,0) += kappa; fModulus(1,1) += kappa; 
 	fModulus(0,1) += kappa; fModulus(1,0) += kappa; 
 	
@@ -165,11 +165,11 @@ const dMatrixT& SSSV_KStV2D::c_ijkl(void)
 	fModMat(2,2) = mu*falphaS;
 	fModMat(0,1) = fModMat(1,0) = -2.0*mu*falphaS*fthird;
 	
-    /*volumetric part*/
+	/*volumetric part*/
 	fModMat(0,0) += kappa*falphaB; fModMat(1,1) += kappa*falphaB; 
 	fModMat(0,1) += kappa*falphaB; fModMat(1,0) += kappa*falphaB; 
 	
-    fModulus += fModMat;
+	fModulus += fModMat;
     
 	return(fModulus);
 }
@@ -185,11 +185,11 @@ const dSymMatrixT& SSSV_KStV2D::s_ij(void)
 	fbetaS = exp(-taudtS);
 	fbetaB = exp(-taudtB);
 
-    const dSymMatrixT& strain = e();
-    fStrain3D = 0;
-    fStrain3D[0] = strain[0];
-    fStrain3D[1] = strain[1];
-    fStrain3D[5] = strain[2];
+	const dSymMatrixT& strain = e();
+	fStrain3D = 0;
+	fStrain3D[0] = strain[0];
+	fStrain3D[1] = strain[1];
+	fStrain3D[5] = strain[2];
 	
 	/*equilibrium components*/
 	double mu = fMu[kEquilibrium];
@@ -208,7 +208,7 @@ const dSymMatrixT& SSSV_KStV2D::s_ij(void)
 	/*volumetric part*/
 	fStress3D[0] += kappa*I1;
 	fStress3D[1] += kappa*I1;
-    fStress3D[2] += kappa*I1;
+	fStress3D[2] += kappa*I1;
 
 	/*non-equilibrium components*/
 	ElementCardT& element = CurrentElement();
@@ -234,19 +234,7 @@ const dSymMatrixT& SSSV_KStV2D::s_ij(void)
 		fmeanSin[0] = kappa*I1;
 		fmeanQ[0] = fbetaB*fmeanQ_n[0] + falphaB * (fmeanSin[0]-fmeanSin_n[0]);
         
-        /*evaluate viscous strains*/
-        fViscStrain = 0.0;
-		fViscStrain -= fdevQ;
-		fViscStrain /= 2.0*mu;
-        fViscStrain[0] -= fmeanQ[0]*fthird/kappa;
-        fViscStrain[1] -= fmeanQ[0]*fthird/kappa;
-        fViscStrain[2] -= fmeanQ[0]*fthird/kappa;
-
-        fViscStrain[0] += strain[0];                
-        fViscStrain[1] += strain[1];
-        fViscStrain[5] += strain[2];
-        
-		Store(element,CurrIP());
+ 		Store(element,CurrIP());
 	}
 	fStress3D += fdevQ;
 
@@ -254,16 +242,58 @@ const dSymMatrixT& SSSV_KStV2D::s_ij(void)
 	fStress3D[1] += fmeanQ[0];
 	fStress3D[2] += fmeanQ[0];
 
-    fStress[0] = fStress3D[0];
-    fStress[1] = fStress3D[1];
-    fStress[2] = fStress3D[5];
-
-    dSymMatrixT stress = fdevQ;
-    stress[0] += fmeanQ[0];
-    stress[1] += fmeanQ[0];
-    stress[2] += fmeanQ[0];
+	fStress[0] = fStress3D[0];
+	fStress[1] = fStress3D[1];
+	fStress[2] = fStress3D[5];
+	
+	dSymMatrixT stress = fdevQ;
+	stress[0] += fmeanQ[0];
+	stress[1] += fmeanQ[0];
+	stress[2] += fmeanQ[0];
 	return(fStress);
 }
+
+/*Note to be called only during post processing*/
+const dArrayT& SSSV_KStV2D::InternalStrainVars(void)
+{
+        double mu = fMu[kNonEquilibrium];
+	double kappa = fKappa[kNonEquilibrium];
+	const dSymMatrixT& strain = e();
+
+	/*non-equilibrium components*/
+	ElementCardT& element = CurrentElement();
+	Load(element, CurrIP());
+	
+        /*evaluate viscous strains*/
+        fViscStrain = 0.0;
+	fViscStrain -= fdevQ;
+	fViscStrain /= 2.0*mu;
+        fViscStrain[0] -= fmeanQ[0]*fthird/kappa;
+        fViscStrain[1] -= fmeanQ[0]*fthird/kappa;
+        fViscStrain[2] -= fmeanQ[0]*fthird/kappa;
+
+        fViscStrain[0] += strain[0];
+	fViscStrain[1] += strain[1];
+	fViscStrain[5] += strain[2];
+
+	return(fInternalStrainVars);
+}
+
+const dArrayT& SSSV_KStV2D::InternalStressVars(void)
+{
+	/*non-equilibrium components*/
+	ElementCardT& element = CurrentElement();
+	Load(element, CurrIP());
+	
+        /*evaluate viscous stresses*/
+	fViscStress = fdevQ;
+	fViscStress[0] += fmeanQ[0];
+	fViscStress[1] += fmeanQ[0];
+	fViscStress[2] += fmeanQ[0];
+	
+	return(fInternalStressVars);
+}
+
 int SSSV_KStV2D::NumOutputVariables() const {return kNumOutputVar;}
 
 void SSSV_KStV2D::OutputLabels(ArrayT<StringT>& labels) const
@@ -278,18 +308,36 @@ void SSSV_KStV2D::OutputLabels(ArrayT<StringT>& labels) const
 	
 void SSSV_KStV2D::ComputeOutput(dArrayT& output)
 {
+        double mu = fMu[kNonEquilibrium];
+	double kappa = fKappa[kNonEquilibrium];
+
 	/*non-equilibrium components*/
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
 
-    double etaS = fMu[kNonEquilibrium]*ftauS;
-    double etaB = fKappa[kNonEquilibrium]*ftauB;
+	dSymMatrixT strain = e();
+        /*evaluate viscous strains*/
+        fViscStrain = 0.0;
+	fViscStrain -= fdevQ;
+	fViscStrain /= 2.0*mu;
+        fViscStrain[0] -= fmeanQ[0]*fthird/kappa;
+        fViscStrain[1] -= fmeanQ[0]*fthird/kappa;
+        fViscStrain[2] -= fmeanQ[0]*fthird/kappa;
+	
+        fViscStrain[0] += strain[0];                
+        fViscStrain[1] += strain[1];
+        fViscStrain[5] += strain[2];
+        
+	double etaS = fMu[kNonEquilibrium]*ftauS;
+	double etaB = fKappa[kNonEquilibrium]*ftauB;
 
-    output[0] = 0.5*(0.5/etaS*fdevQ.ScalarProduct() + 1.0/etaB*fmeanQ[0]*fmeanQ[0]); 
-    double I1 = output[1] = fViscStrain[0]+fViscStrain[1]+fViscStrain[2];
-    I1 *= fthird;
-    output[2] = sqrt(2.0*fthird*((fViscStrain[0]-I1)*(fViscStrain[0]-I1)
-        +(fViscStrain[1]-I1)*(fViscStrain[1]-I1) + (fViscStrain[2]-I1)*(fViscStrain[2]-I1)
-        +2.0*fViscStrain[3]*fViscStrain[3]+2.0*fViscStrain[4]*fViscStrain[4]
-        +2.0*fViscStrain[5]*fViscStrain[5]));
+	output[0] = 0.5*(0.5/etaS*fdevQ.ScalarProduct() + 1.0/etaB*fmeanQ[0]*fmeanQ[0]); 
+	double I1 = output[1] = fViscStrain[0]+fViscStrain[1]+fViscStrain[2];
+	I1 *= fthird;
+	output[2] = sqrt(2.0*fthird*((fViscStrain[0]-I1)*(fViscStrain[0]-I1)
+                  +(fViscStrain[1]-I1)*(fViscStrain[1]-I1) 
+                  + (fViscStrain[2]-I1)*(fViscStrain[2]-I1)
+                  +2.0*fViscStrain[3]*fViscStrain[3]
+                  +2.0*fViscStrain[4]*fViscStrain[4]
+                  +2.0*fViscStrain[5]*fViscStrain[5]));
 }	

@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHard2D.cpp,v 1.1 2003-05-12 23:38:36 thao Exp $ */
+/* $Id: SSJ2LinHard2D.cpp,v 1.2 2003-05-15 05:18:14 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Plane Strain linearly                */
 /* isotropically elasto plastic material model subject to the Huber-von Mises yield             */
@@ -32,7 +32,6 @@ SSJ2LinHard2D::SSJ2LinHard2D(ifstreamT& in, const SSMatSupportT& support):
 	SSJ2LinHardBaseT(in, support),
 	fStress(2),
 	fModulus(dSymMatrixT::NumValues(2)),
-	fStrain3D(3),
 	fStress3D(3),
 	fModulus3D(dSymMatrixT::NumValues(3)){}
 
@@ -42,14 +41,31 @@ double SSJ2LinHard2D::StrainEnergyDensity(void)
 {
     double energy = 0.0;
     const dSymMatrixT& strain = e();
-    const dSymMatrixT& stress = s_ij();
-    energy = 0.5*stress.ScalarProduct(strain);
 
     ElementCardT& element = CurrentElement();
-    Load(element, CurrIP());	    
-    energy += 0.5*falpha[0]*K(falpha[0]);
-        
-	return energy;		
+    Load(element, CurrIP());
+    
+    double I1 = strain.Trace();
+    fDevStrain = 0.0;
+    fDevStrain[0] = strain[0] -fthird*I1;
+    fDevStrain[1] = strain[1] -fthird*I1;
+    fDevStrain[2] -= fthird*I1;
+    fDevStrain[5] = strain[2];
+    
+    fDevStrain -= fPlasticStrain;
+    
+    fStress3D = fDevStrain;
+    fStress3D *= 2.0*fMu;
+    fStress3D.PlusIdentity(fKappa*I1);
+
+    fStress[0] = fStress3D[0];
+    fStress[1] = fStress3D[1];
+    fStress[2] = fStress3D[5];
+
+    energy = 0.5*fStress.ScalarProduct(strain);
+    energy += 0.5*falpha[0]*dK()*falpha[0];
+    energy += 0.5*fBeta.ScalarProduct(fPlasticStrain);
+    return energy;		
 }
 
 const dMatrixT& SSJ2LinHard2D::c_ijkl(void)
@@ -83,22 +99,20 @@ const dMatrixT& SSJ2LinHard2D::c_ijkl(void)
 /* stress */
 const dSymMatrixT& SSJ2LinHard2D::s_ij(void)
 {
-	const dSymMatrixT& e_tot = e();
-    
-    fStrain3D = 0.0;
-    fStrain3D[0] = e_tot[0]; fStrain3D[1] = e_tot[1]; fStrain3D[5] = e_tot[2];
-
+    const dSymMatrixT& strain = e();
+    double I1 = strain.Trace();
+    fDevStrain = 0.0;
+    fDevStrain[0] = strain[0] -fthird*I1;
+    fDevStrain[1] = strain[1] -fthird*I1;
+    fDevStrain[2] -= fthird*I1;
+    fDevStrain[5] = strain[2];
+        
     ElementCardT& element = CurrentElement();
     Load(element, CurrIP());	
 
-    fTrialStrain = fStrain3D;
-    fTrialStrain -= fPlasticStrain_n;
+    fDevStrain -= fPlasticStrain_n;
     
     /* deviatoric part of trial stress */
-    fDevStrain = fTrialStrain;
-    double I1 = fDevStrain.Trace();
-    fDevStrain.PlusIdentity(-fthird*I1);
-    
     fStress3D = fDevStrain;
     fStress3D *= 2.0*fMu;
     
@@ -115,6 +129,75 @@ const dSymMatrixT& SSJ2LinHard2D::s_ij(void)
     return fStress;	
 }
 
+/*Note to be called only during post processing*/
+const dArrayT& SSJ2LinHard2D::InternalStrainVars(void)
+{
+        /*non-equilibrium components*/
+        ElementCardT& element = CurrentElement();
+        Load(element, CurrIP());
+
+	/*evaluate viscous strains*/
+	double* pvar = fInternalStrainVars.Pointer();
+
+	*pvar++ = falpha[0];
+
+      	*pvar++ = fPlasticStrain[0];
+	*pvar++ = fPlasticStrain[1];
+	*pvar++ = fPlasticStrain[2];
+	*pvar++ = fPlasticStrain[3];
+	*pvar++ = fPlasticStrain[4];
+	*pvar++ = fPlasticStrain[5];
+        
+      	*pvar++ = fPlasticStrain[0];
+	*pvar++ = fPlasticStrain[1];
+	*pvar++ = fPlasticStrain[2];
+	*pvar++ = fPlasticStrain[3];
+	*pvar++ = fPlasticStrain[4];
+	*pvar = fPlasticStrain[5];
+
+        return(fInternalStrainVars);
+}
+
+const dArrayT& SSJ2LinHard2D::InternalStressVars(void)
+{
+        /*non-equilibrium components*/
+        ElementCardT& element = CurrentElement();
+        Load(element, CurrIP());
+        
+	const dSymMatrixT& strain = e();
+	double I1 = strain.Trace();
+	fDevStrain = 0.0;
+	fDevStrain[0] = strain[0]-fthird*I1;
+	fDevStrain[1] = strain[1]-fthird*I1;
+	fDevStrain[2] -= fthird*I1;
+	fDevStrain[5] = strain[2];
+	fDevStrain -= fPlasticStrain;
+
+	fStress3D = fDevStrain;
+	fStress3D *= 2.0*fMu;
+	fStress3D.PlusIdentity(fKappa*I1);
+	
+	double* pvar = fInternalStressVars.Pointer();
+
+	*pvar++ = -dK()*falpha[0];
+
+	*pvar++ = -fBeta[0];
+	*pvar++ = -fBeta[1];
+	*pvar++ = -fBeta[2];
+	*pvar++ = -fBeta[3];
+	*pvar++ = -fBeta[4];
+	*pvar++ = -fBeta[5];
+
+	*pvar++ = fStress[0];
+	*pvar++ = fStress[1];
+	*pvar++ = fStress[2];
+	*pvar++ = fStress[3];
+	*pvar++ = fStress[4];
+	*pvar = fStress[5];
+
+        return(fInternalStressVars);
+}
+
 int SSJ2LinHard2D::NumOutputVariables(void) const  { return kNumOutput; }
 void SSJ2LinHard2D::OutputLabels(ArrayT<StringT>& labels) const
 {
@@ -129,7 +212,22 @@ void SSJ2LinHard2D::OutputLabels(ArrayT<StringT>& labels) const
 void SSJ2LinHard2D::ComputeOutput(dArrayT& output)
 {
 	/* stress tensor (loads element data and sets fStress) */
-	s_ij();
+        /*non-equilibrium components*/
+        ElementCardT& element = CurrentElement();
+        Load(element, CurrIP());
+        
+	const dSymMatrixT& strain = e();
+	double I1 = strain.Trace();
+	fDevStrain = 0.0;
+	fDevStrain[0] = strain[0]-fthird*I1;
+	fDevStrain[1] = strain[1]-fthird*I1;
+	fDevStrain[2] -= fthird*I1;
+	fDevStrain[5] = strain[2];
+	fDevStrain -= fPlasticStrain;
+
+	fStress3D = fDevStrain;
+	fStress3D *= 2.0*fMu;
+	fStress3D.PlusIdentity(fKappa*I1);	
 
 	/* pressure */
 	output[2] = fStress3D.Trace()/3.0;
@@ -140,7 +238,5 @@ void SSJ2LinHard2D::ComputeOutput(dArrayT& output)
 	J2 = (J2 < 0.0) ? 0.0 : J2;
 	output[1] = sqrt(3.0*J2);
 
-        ElementCardT& element = CurrentElement();
-        Load(element, CurrIP());	    
         output[0] = falpha[0];
 }

@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardBaseT.cpp,v 1.1 2003-05-12 23:38:36 thao Exp $ */
+/* $Id: SSJ2LinHardBaseT.cpp,v 1.2 2003-05-15 05:18:14 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -31,58 +31,64 @@ SSJ2LinHardBaseT::SSJ2LinHardBaseT(ifstreamT& in, const SSMatSupportT& support):
 	fthird(1.0/3.0),
 	fplastic(false),
 	fUnitNorm(3),
-	fTrialStrain(3),
 	fStressCorr(3),
 	fRelStress(3),
 	fDevStrain(3),
 	fModuliCorr(dSymMatrixT::NumValues(3)),
 	fTensorTemp(dSymMatrixT::NumValues(3))
 {
-	/* read parameters */
-	
+	/* read parameters */	
 	in >> fMu;
 	in >> fKappa;
 	in >> fYield;	if (fYield <= 0.0) throw ExceptionT::kBadInputValue;
 	in >> fH_bar;	if (fH_bar < 0.0) throw ExceptionT::kBadInputValue;
 	in >> ftheta;	if (ftheta < 0.0 || ftheta > 1.0) throw ExceptionT::kBadInputValue;
 
-	/* determine storage */
+	/*set internal dofs*/
 	int ndof =3;
 	int numstress = dSymMatrixT::NumValues(ndof);
+	fInternalDOF.Dimension(3);
+	fInternalDOF[0] = 1;
+	fInternalDOF[1] = numstress;
+	fInternalDOF[2] = numstress;
+        fInternalStressVars.Dimension(numstress+1);
+        fInternalStrainVars.Dimension(numstress+1);
+
+	/*allocates storage for history variables*/
 	fnstatev = 0;
 //	fnstatev += fNumIP;        // fFlags
     
-    /* previous time step*/       
-    fnstatev ++;               // alpha: equivalent plastic strain
-    fnstatev += numstress;     // beta:  back stress
-    fnstatev += numstress;     // plastic strain;
-
-    /* current time step*/
-    fnstatev ++;               // alpha: equivalent plastic strain
-    fnstatev += numstress;     // beta:  back stress
-    fnstatev += numstress;     // plastic strain;
-
-    fstatev.Dimension(fnstatev);
-    double* pstatev = fstatev.Pointer();
-
-    /*assign pointers to current and preceding blocks of state variable array*/	
-    /*current time step*/
-    falpha.Set(1,pstatev);
-    pstatev ++;
-    fBeta.Set(ndof,pstatev);
-    pstatev += numstress;
-    fPlasticStrain.Set(ndof,pstatev);
-    pstatev += numstress;
-
-    /*previous time step*/
-    falpha_n.Set(1,pstatev);
-    pstatev ++;
-    fBeta_n.Set(ndof,pstatev);
-    pstatev += numstress;
-    fPlasticStrain_n.Set(ndof,pstatev);
+	/* previous time step*/       
+	fnstatev ++;               // alpha: equivalent plastic strain
+	fnstatev += numstress;     // beta:  back stress
+	fnstatev += numstress;     // plastic strain;
+	
+	/* current time step*/
+	fnstatev ++;               // alpha: equivalent plastic strain
+	fnstatev += numstress;     // beta:  back stress
+	fnstatev += numstress;     // plastic strain;
+	
+	fstatev.Dimension(fnstatev);
+	double* pstatev = fstatev.Pointer();
+    
+	/*assign pointers to current and preceding blocks of state variable array*/	
+	/*current time step*/
+	falpha.Set(1,pstatev);
+	pstatev ++;
+	fBeta.Set(ndof,pstatev);
+	pstatev += numstress;
+	fPlasticStrain.Set(ndof,pstatev);
+	pstatev += numstress;
+	
+	/*previous time step*/
+	falpha_n.Set(1,pstatev);
+	pstatev ++;
+	fBeta_n.Set(ndof,pstatev);
+	pstatev += numstress;
+	fPlasticStrain_n.Set(ndof,pstatev);
 }
 
-/* outputÊ parameters to stream */
+/* output parameters to stream */
 void SSJ2LinHardBaseT::Print(ostream& out) const
 {
     out << " Shear modulus . . . . . . . . . . . . . . . . . = " << fMu << '\n'; 

@@ -1,4 +1,4 @@
-/* $Id: SSJ2LinHardT.h,v 1.1 2003-05-12 23:38:36 thao Exp $ */
+/* $Id: SSJ2LinHardT.h,v 1.2 2003-05-15 05:18:14 thao Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -37,11 +37,15 @@ public:
 	/*evaluates stress and consistent modulus*/
 	virtual const dMatrixT& c_ijkl(void);
 	virtual const dSymMatrixT& s_ij(void);
+ 
+       /*return internal dissipation variables*/
+        virtual const dArrayT& InternalStressVars(void);
+        virtual const dArrayT& InternalStrainVars(void);
     
-    /*material outputs*/
-    virtual int NumOutputVariables(void) const;
-    virtual void OutputLabels(ArrayT<StringT>& labels) const;
-    virtual void ComputeOutput(dArrayT& output);
+	/*material outputs*/
+	virtual int NumOutputVariables(void) const;
+	virtual void OutputLabels(ArrayT<StringT>& labels) const;
+	virtual void ComputeOutput(dArrayT& output);
 			
 protected:
 

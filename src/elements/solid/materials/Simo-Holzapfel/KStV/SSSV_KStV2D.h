@@ -1,4 +1,4 @@
-/* $Id: SSSV_KStV2D.h,v 1.4 2003-05-12 16:51:29 thao Exp $ */
+/* $Id: SSSV_KStV2D.h,v 1.5 2003-05-15 05:18:16 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #ifndef _SS_SV_KStV_2D_H_
 #define _SS_SV_KStV_2D_H_
@@ -35,6 +35,10 @@ class SSSV_KStV2D: public SSSimoViscoT, public IsotropicT, public Material2DT
 	virtual const dMatrixT& C_IJKL(void); // material tangent moduli 
 	virtual const dSymMatrixT& S_IJ(void); // PK2 stress 
 
+	/*return internal dissipation variables*/
+	virtual const dArrayT& InternalStressVars(void);
+	virtual const dArrayT& InternalStrainVars(void);
+			
 	/*compute output variables*/
 	virtual int NumOutputVariables() const;
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;

@@ -1,4 +1,4 @@
-/* $Id: SSSV_KStV3D.cpp,v 1.4 2003-04-14 17:31:27 thao Exp $ */
+/* $Id: SSSV_KStV3D.cpp,v 1.5 2003-05-15 05:18:16 thao Exp $ */
 /* created: TDN (5/31/2001) */
 #include "SSSV_KStV3D.h"
 #include "SSMatSupportT.h"
@@ -227,15 +227,6 @@ const dSymMatrixT& SSSV_KStV3D::s_ij(void)
 		fmeanSin[0] = kappa*I1;
 		fmeanQ[0] = fbetaB*fmeanQ_n[0] + falphaB * (fmeanSin[0]-fmeanSin_n[0]);
 
-        /*evaluate viscous strains*/
-        fViscStrain = 0.0;
-		fViscStrain -= fdevQ;
-		fViscStrain /= 2.0*mu;
-        fViscStrain[0] -= fmeanQ[0]*fthird/kappa;
-        fViscStrain[1] -= fmeanQ[0]*fthird/kappa;
-        fViscStrain[2] -= fmeanQ[0]*fthird/kappa;
-        fViscStrain += e();                
-        
 		Store(element,CurrIP());
 	}
 	fStress += fdevQ;
@@ -247,6 +238,43 @@ const dSymMatrixT& SSSV_KStV3D::s_ij(void)
 	return(fStress);
 }
 
+/*Note to be called only during post processing*/
+const dArrayT& SSSV_KStV3D::InternalStrainVars(void)
+{
+        double mu = fMu[kNonEquilibrium];
+	double kappa = fKappa[kNonEquilibrium];
+
+	/*non-equilibrium components*/
+	ElementCardT& element = CurrentElement();
+	Load(element, CurrIP());
+	
+        /*evaluate viscous strains*/
+        fViscStrain = 0.0;
+	fViscStrain -= fdevQ;
+	fViscStrain /= 2.0*mu;
+        fViscStrain[0] -= fmeanQ[0]*fthird/kappa;
+        fViscStrain[1] -= fmeanQ[0]*fthird/kappa;
+        fViscStrain[2] -= fmeanQ[0]*fthird/kappa;
+        fViscStrain += e();       
+	
+	return(fInternalStrainVars);
+}
+
+const dArrayT& SSSV_KStV3D::InternalStressVars(void)
+{
+	/*non-equilibrium components*/
+	ElementCardT& element = CurrentElement();
+	Load(element, CurrIP());
+	
+        /*evaluate viscous stresses*/
+	fViscStress = fdevQ;
+	fViscStress[0] += fmeanQ[0];
+	fViscStress[1] += fmeanQ[0];
+	fViscStress[2] += fmeanQ[0];
+	
+	return(fInternalStressVars);
+}
+	
 int SSSV_KStV3D::NumOutputVariables() const {return kNumOutputVar;}
 
 void SSSV_KStV3D::OutputLabels(ArrayT<StringT>& labels) const
@@ -258,21 +286,35 @@ void SSSV_KStV3D::OutputLabels(ArrayT<StringT>& labels) const
 	for (int i = 0; i< kNumOutputVar; i++)
 		labels[i] = Labels[i];
 }
-	
+
 void SSSV_KStV3D::ComputeOutput(dArrayT& output)
 {
+        double mu = fMu[kNonEquilibrium];
+	double kappa = fKappa[kNonEquilibrium];
+
 	/*non-equilibrium components*/
 	ElementCardT& element = CurrentElement();
 	Load(element, CurrIP());
 
-    double etaS = fMu[kNonEquilibrium]*ftauS;
-    double etaB = fKappa[kNonEquilibrium]*ftauB;
+	double etaS = fMu[kNonEquilibrium]*ftauS;
+	double etaB = fKappa[kNonEquilibrium]*ftauB;
 
-    output[0] = 0.5*(0.5/etaS*fdevQ.ScalarProduct() + 1.0/etaB*fmeanQ[0]*fmeanQ[0]); 
-    double I1 = output[1] = fViscStrain[0]+fViscStrain[1]+fViscStrain[2];
-    I1 *= fthird;
-    output[2] = sqrt(2.0*fthird*((fViscStrain[0]-I1)*(fViscStrain[0]-I1)
-        +(fViscStrain[1]-I1)*(fViscStrain[1]-I1) + (fViscStrain[2]-I1)*(fViscStrain[2]-I1)
-        +2.0*fViscStrain[3]*fViscStrain[3]+2.0*fViscStrain[4]*fViscStrain[4]
-        +2.0*fViscStrain[5]*fViscStrain[5]));
+	/*evaluate viscous strains*/
+	fViscStrain = 0.0;
+	fViscStrain -= fdevQ;
+	fViscStrain /= 2.0*mu;
+	fViscStrain[0] -= fmeanQ[0]*fthird/kappa;
+	fViscStrain[1] -= fmeanQ[0]*fthird/kappa;
+	fViscStrain[2] -= fmeanQ[0]*fthird/kappa;
+	fViscStrain += e();       
+	
+	output[0] = 0.5*(0.5/etaS*fdevQ.ScalarProduct() + 1.0/etaB*fmeanQ[0]*fmeanQ[0]); 
+	double I1 = output[1] = fViscStrain[0]+fViscStrain[1]+fViscStrain[2];
+	I1 *= fthird;
+	output[2] = sqrt(2.0*fthird*((fViscStrain[0]-I1)*(fViscStrain[0]-I1)
+		  +(fViscStrain[1]-I1)*(fViscStrain[1]-I1) 
+		  + (fViscStrain[2]-I1)*(fViscStrain[2]-I1)
+		  +2.0*fViscStrain[3]*fViscStrain[3]
+		  +2.0*fViscStrain[4]*fViscStrain[4]
+		  +2.0*fViscStrain[5]*fViscStrain[5]));
 }	

@@ -1,4 +1,4 @@
- /* $Id: SSSimoViscoT.cpp,v 1.2 2003-04-05 20:38:07 thao Exp $ */
+ /* $Id: SSSimoViscoT.cpp,v 1.3 2003-05-15 05:18:15 thao Exp $ */
 #include "SSSimoViscoT.h"
 #include "fstreamT.h"
 #include "ExceptionT.h"
@@ -8,9 +8,18 @@ using namespace Tahoe;
 SSSimoViscoT::SSSimoViscoT(ifstreamT& in, const SSMatSupportT& support):
 	SSSolidMatT(in, support)
 {
+        /*set internal dofs*/
 	int ndof = 3;
-	int numstress = (ndof*(ndof+1))/2;
-		
+	int numstress = dSymMatrixT::NumValues(ndof);
+
+	fInternalDOF.Dimension(1);
+	fInternalDOF = numstress;
+	fInternalStressVars.Dimension(numstress);
+	fInternalStrainVars.Dimension(numstress);
+
+	fViscStrain.Set(ndof,fInternalStrainVars.Pointer());
+	fViscStress.Set(ndof,fInternalStressVars.Pointer());
+	
 	/*allocates storage for state variable array*/
 	fnstatev = 0;
 	fnstatev += numstress;   /*current deviatoric overstress*/
@@ -22,7 +31,6 @@ SSSimoViscoT::SSSimoViscoT(ifstreamT& in, const SSMatSupportT& support):
 	fnstatev += numstress;   /*preceding deviatoric inelastic stress*/
 	fnstatev ++;			 /*preceding mean overstress*/
 	fnstatev ++; 			 /*preceding mean inelastic stress*/
-	fnstatev += numstress;   /*viscous strains*/
 	
 	fstatev.Dimension(fnstatev);
 	double* pstatev = fstatev.Pointer();
@@ -44,10 +52,6 @@ SSSimoViscoT::SSSimoViscoT(ifstreamT& in, const SSMatSupportT& support):
 	fmeanQ_n.Set(1, pstatev);
 	pstatev ++;
 	fmeanSin_n.Set(1, pstatev);
-	pstatev ++;
-	
-	fViscStrain.Set(ndof,pstatev);
-	
 }	
 
 void SSSimoViscoT::Print(ostream& out) const
