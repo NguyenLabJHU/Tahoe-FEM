@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.2 2003-04-05 02:37:47 saubry Exp $ */
+/* $Id: EAMT.h,v 1.3 2003-04-05 08:35:00 paklein Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -12,7 +12,7 @@
 namespace Tahoe {
 
 /* forward declarations */
-class PairPropertyT;
+class EAMPropertyT;
 
 /** base class for particle types */
 class EAMT: public ParticleT
@@ -80,7 +80,7 @@ protected:
 private:
 
 	/** particle pair-properties list */
-	ArrayT<PairPropertyT*> fPairProperties;
+	ArrayT<EAMPropertyT*> fEAMProperties;
 
 	/** neighbor lists */
 	RaggedArray2DT<int> fNeighbors;
