@@ -1,4 +1,4 @@
-/* $Id: SLUMatrix.cpp,v 1.6 2002-11-25 07:13:40 paklein Exp $ */
+/* $Id: SLUMatrix.cpp,v 1.6.16.1 2003-12-04 17:04:32 paklein Exp $ */
 /* created: rbridson (06/30/2000) */
 #include "SLUMatrix.h"
 
@@ -22,53 +22,67 @@
 #include "ElementMatrixT.h"
 
 /***************************************************************************
-* Public
-***************************************************************************/
-
-/* Constructor */
+ * Public
+ ***************************************************************************/
 
 using namespace Tahoe;
 
+/* constructor */
 SLUMatrix::SLUMatrix(ostream& out, int check_code):
-	GlobalMatrixT(out, check_code)
+	GlobalMatrixT(out, check_code),
+	fperm_c(NULL),
+	fperm_r(NULL),
+	fetree(NULL)
 {
 	/* set up NULL structures */
-	fMatrix.Stype = NC;      /* column-wise, no supernodes */
-	fMatrix.Dtype = _DOUBLE; /* storing doubles */
-	fMatrix.Mtype = GE;      /* general matrix */
-	fMatrix.nrow = fLocNumEQ;
-	fMatrix.ncol = fLocNumEQ;
-	fMatrix.Store = malloc(sizeof(NCformat));
-	if (!fMatrix.Store) throw ExceptionT::kOutOfMemory;
+	fA.Stype = SLU_NC; /* column-wise, no supernodes */
+	fA.Dtype = SLU_D;  /* storing doubles */
+	fA.Mtype = SLU_GE; /* general matrix */
+	fA.nrow = 0;
+	fA.ncol = 0;
+	fA.Store = malloc(sizeof(NCformat));
+	if (!fA.Store) ExceptionT::OutOfMemory("SLUMatrix::SLUMatrix");
 
-	NCformat *A = (NCformat*)fMatrix.Store;
+	NCformat *A = (NCformat*) fA.Store;
 	A->nnz = 0;
 	A->nzval = NULL;
 	A->rowind = NULL;
+	A->colptr = NULL;
 
 	/* The only important thing to initialize in L and U are pointers */
-	fLower.Store = NULL;
-	fUpper.Store = NULL;
+	fL.Store = NULL;
+	fU.Store = NULL;
 	fLUallocated = false;
+
+    /* Set the default input options:
+		options.Fact = DOFACT;
+		options.Equil = YES;
+    	options.ColPerm = COLAMD;
+		options.DiagPivotThresh = 1.0;
+    	options.Trans = NOTRANS;
+    	options.IterRefine = NOREFINE;
+    	options.SymmetricMode = NO;
+    	options.PivotGrowth = NO;
+    	options.ConditionNumber = NO;
+    	options.PrintStat = YES; */
+    set_default_options(&foptions);
 }
 
 /* Destructor */	
 SLUMatrix::~SLUMatrix(void)
 {
-	Destroy_CompCol_Matrix (&fMatrix);
+	/* free the matrix */
+	Destroy_CompCol_Matrix(&fA);
 
-	if (fLUallocated)
-	{
-		Destroy_SuperNode_Matrix (&fLower);
-		Destroy_CompCol_Matrix (&fUpper);
+	/* free upper and lower factors */
+	if (fLUallocated) {
+		Destroy_SuperNode_Matrix(&fL);
+		Destroy_CompCol_Matrix(&fU);
 	}
 
-	free(fPerm_c);
-	free(fPerm_r);
-	free(fEtree);
-
-	/* SuperLU statistics */
-	StatFree();
+	free(fperm_c);
+	free(fperm_r);
+	free(fetree);
 }
 
 /* set the internal matrix structure.
@@ -76,63 +90,68 @@ SLUMatrix::~SLUMatrix(void)
 * with AddEquationSet() for all equation sets */
 void SLUMatrix::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 {
+	const char caller[] = "SLUMatrix::Initialize";
+
 	/* inherited */
 	GlobalMatrixT::Initialize(tot_num_eq, loc_num_eq, start_eq);
 
 	/* check */
 	if (tot_num_eq != loc_num_eq)
-	{
-		cout << "\n SLUMatrix::Initialize: expecting total number of equations\n"
-		     <<   "     " << tot_num_eq
-		     << " to be equal to the local number of equations " << loc_num_eq << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail(caller, "tot eq %d != loc eq %d", tot_num_eq, loc_num_eq);
+
+	/* reset options */
+	foptions.Fact = DOFACT;
 
 	/* A note on memory allocation: since SuperLU is a C library, */
 	/* I use malloc/free instead of new/delete for the structures */
 	/* that SuperLU accesses, just in case. */	
-	fMatrix.nrow = fLocNumEQ;
-	fMatrix.ncol = fLocNumEQ;
+	fA.nrow = fLocNumEQ;
+	fA.ncol = fLocNumEQ;
 
-	NCformat *A = (NCformat*)fMatrix.Store;
+	NCformat *A = (NCformat*) fA.Store;
+
+	free(A->colptr);
 	A->colptr = (int*) calloc(fLocNumEQ+1, sizeof(int));
+	if (!A->colptr) ExceptionT::OutOfMemory(caller);
 
-	fPerm_c = (int*) malloc (fLocNumEQ*sizeof(int));
-	if (!fPerm_c) throw ExceptionT::kOutOfMemory;
+	free(fperm_c);
+	fperm_c = (int*) malloc (fLocNumEQ*sizeof(int));
+	if (!fperm_c) ExceptionT::OutOfMemory(caller);
+
 	fIsColOrdered = false;
-	fPerm_r = (int*) malloc (fLocNumEQ*sizeof(int));
-	if (!fPerm_r) throw ExceptionT::kOutOfMemory;
-	fEtree = (int*) malloc (fLocNumEQ*sizeof(int));
-	if (!fEtree) throw ExceptionT::kOutOfMemory;
 
-	/* SuperLU statistics */
-	StatInit (kPanelSize, kSupernodeRelax);
+	free(fperm_r);
+	fperm_r = (int*) malloc (fLocNumEQ*sizeof(int));
+	if (!fperm_r) ExceptionT::OutOfMemory(caller);
+
+	free(fetree);
+	fetree = (int*) malloc (fLocNumEQ*sizeof(int));
+	if (!fetree) ExceptionT::OutOfMemory(caller);
 
 	/* structure could be changing, so get rid of old factors etc. */
-	if (fLUallocated)
-	{
-		Destroy_SuperNode_Matrix (&fLower);
-		Destroy_CompCol_Matrix (&fUpper);
+	if (fLUallocated) {
+		Destroy_SuperNode_Matrix(&fL);
+		Destroy_CompCol_Matrix(&fU);
 		fLUallocated = false;
 	}
 	fIsColOrdered = false;
 
 	/* We now construct the sparsity pattern of A from the equation sets */
 	/* check if A is already allocated */
-	if (A->rowind)
-	{
-		free (A->rowind);
-		free (A->nzval);
+	if (A->rowind) {
+		free(A->rowind);
+		free(A->nzval);
 	}
 
 	/* Begin by (over-)estimating the number of nonzeros per column */
 	int *colLength = (int*) malloc (fLocNumEQ*sizeof(int));
-	EstimateNNZ (colLength, A->nnz);
+	if (!colLength) ExceptionT::OutOfMemory(caller);
+	EstimateNNZ(colLength, A->nnz);
 
 	/* Now allocate enough room for row indices (wait until later for */
 	/* the nonzero values themselves) */
 	A->rowind = (int*) malloc (A->nnz*sizeof(int));
-	if (!A->rowind) throw ExceptionT::kOutOfMemory;
+	if (!A->rowind) ExceptionT::OutOfMemory(caller);
 
 	/* Using the upper bounds in colLength, set up provisional column */
 	/* pointers */
@@ -145,13 +164,14 @@ void SLUMatrix::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 
 	/* Then we can compress A to eliminate spaces between columns */
 	CompressColumns (A, colLength);
-	free (colLength);  // no longer needed
+	free(colLength);  // no longer needed
 
 	/* and finish by reallocating A->rowind and allocating A->nzval */
 	A->rowind = (int*) realloc (A->rowind, A->nnz*sizeof(int));
-	if (!A->rowind) throw ExceptionT::kOutOfMemory;
+	if (!A->rowind) ExceptionT::OutOfMemory(caller);
+
 	A->nzval = (void*) malloc (A->nnz*sizeof(double));
-	if (!A->nzval) throw ExceptionT::kOutOfMemory;
+	if (!A->nzval) ExceptionT::OutOfMemory(caller);
 
 	/* output */
 	fOut <<" Number of nonzeros in global matrix = "<< A->nnz <<"\n"<<endl;
@@ -168,22 +188,24 @@ void SLUMatrix::Clear(void)
 	GlobalMatrixT::Clear();
 
 	/* clear entries */
-	NCformat *ncmat = (NCformat*)fMatrix.Store;
-	memset (ncmat->nzval, 0, sizeof(double)*ncmat->colptr[fLocNumEQ]);
+	NCformat *A = (NCformat*) fA.Store;
+	memset(A->nzval, 0, sizeof(double)*A->colptr[fLocNumEQ]);
 
 	/* if old factors are hanging around, get rid of them now */
-	if (fLUallocated)
-	{
-		Destroy_SuperNode_Matrix (&fLower);
-		Destroy_CompCol_Matrix (&fUpper);
+	if (fLUallocated) {
+		Destroy_SuperNode_Matrix (&fL);
+		Destroy_CompCol_Matrix (&fU);
 		fLUallocated = false;
 	}
+
+	/* set options flag for next call to solve */
+	foptions.Fact = SamePattern;
 }
 
 /* add element group equations to the overall topology.
-* NOTE: assembly positions (equation numbers) = 1...fLocNumEQ
-* equations can be of fixed size (iArray2DT) or
-* variable length (RaggedArray2DT) */
+ * NOTE: assembly positions (equation numbers) = 1...fLocNumEQ
+ * equations can be of fixed size (iArray2DT) or
+ * variable length (RaggedArray2DT) */
 void SLUMatrix::AddEquationSet(const iArray2DT& eqset)
 {
 	fEqnos.AppendUnique (&eqset);
@@ -249,42 +271,22 @@ void SLUMatrix::Assemble(const ElementMatrixT& elMat, const nArrayT<int>& row_eq
 #pragma unused(elMat)
 #pragma unused(row_eqnos)
 #pragma unused(col_eqnos)
-
-	cout << "\n SLUMatrix::Assemble(m,r,c): not implemented" << endl;
-	throw ExceptionT::kGeneralFail;
+	ExceptionT::GeneralFail("SLUMatrix::Assemble", "non-square not implemented");
 }
 
 void SLUMatrix::Assemble(const nArrayT<double>& diagonal_elMat, const nArrayT<int>& eqnos)
 {
 #pragma unused(diagonal_elMat)
 #pragma unused(eqnos)
-
-	ExceptionT::GeneralFail("SLUMatrix::Assemble", "not implemented");
+	ExceptionT::GeneralFail("SLUMatrix::Assemble", "diagonal not implemented");
 }
 
 /* assignment operator */
-GlobalMatrixT& SLUMatrix::operator=(const GlobalMatrixT& RHS)
+const GlobalMatrixT& SLUMatrix::operator=(const GlobalMatrixT&)
 {
-	// not implemented yet
-	throw ExceptionT::kGeneralFail;
-	return GlobalMatrixT::operator=(RHS);
-}
-
-/* element accessor - READ ONLY */
-double SLUMatrix::Element(int row, int col) const
-{
-	try
-	{
-		return (*this)(row,col);
-	}
-	catch (ExceptionT::CodeT code)
-	{
-		if (code == eOutOfRange)
-			return 0.0;
-		else
-			throw code;
-	}
-	return 0.0;
+	/* not implemented */
+	ExceptionT::GeneralFail("SLUMatrix::operator=", "not implemented");
+	return *this;
 }
 
 /* number scope and reordering */
@@ -295,106 +297,95 @@ GlobalMatrixT::EquationNumberScopeT SLUMatrix::EquationNumberScope(void) const
 
 bool SLUMatrix::RenumberEquations(void) const { return false; }
 
-/***********************************************************************
-* Protected
-***********************************************************************/
-
-/* output in sparse format */
-ostream& operator<<(ostream& out, const SLUMatrix& matrix)
+/* return a clone of self */
+GlobalMatrixT* SLUMatrix::Clone(void) const
 {
-	NCformat *A = (NCformat*)(matrix.fMatrix.Store);
-	int i, j;
-
-	for (i = 0; i < matrix.fMatrix.ncol; ++i)
-	{
-//		out << "column " << i+1 << ":  [row] value\n";
-		out << -1 << " " << 0.0 << "\n";
-		for (j = A->colptr[i]; j < A->colptr[i+1]; ++j)
-		{
-//			out << "  [" << A->rowind[j]+1 << "]  ";
-			out << A->rowind[j]+1 << " ";
-			out << ((double*)A->nzval)[j] << "\n";
-		}
-	}
-
-	return out;
+	/* not implemented */
+	ExceptionT::GeneralFail("SLUMatrix::operator=", "not implemented");
+	return (GlobalMatrixT*) this;
 }
+
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
 
 /* decompose matrix into PLU */
-void SLUMatrix::Factorize(void)
-{
-	int info;
-	SuperMatrix AC;
-
-	if (fLUallocated)
-	{
-		Destroy_SuperNode_Matrix (&fLower);
-		Destroy_CompCol_Matrix (&fUpper);
-		fLUallocated = false;
-	}
-
-	if (!fIsColOrdered)  /* if we don't have a column ordering yet */
-	{
-		/* figure out a good column ordering of A */
-		OrderColumns();
-		fIsColOrdered = true;
-		/* compute etree and permute cols of A to get AC */
-		sp_preorder ("N", &fMatrix, fPerm_c, fEtree, &AC);
-	}
-	else
-	{	/* otherwise just use existing fPerm_c to permute cols of A */
-		sp_preorder ("Y", &fMatrix, fPerm_c, fEtree, &AC);
-	}
-
-	/* do the factorization, figuring out the row ordering */
-	dgstrf ("N", &AC, 1, 0.0, kSupernodeRelax, kPanelSize, fEtree,
-	        NULL, 0, fPerm_r, fPerm_c, &fLower, &fUpper, &info);
-	fLUallocated = true;
-
-{
-fOut << "Factorization: n = " << fLocNumEQ;
-fOut << ", nnz(A) = " << ((NCformat*)fMatrix.Store)->nnz;
-fOut << ", nnz(L) = " << ((SCformat*)fLower.Store)->nnz;
-fOut << ", nnz(U) = " << ((NCformat*)fUpper.Store)->nnz;
-fOut << endl;
-}
-
-	/* forget about the column-permuted version of A - but remember that */
-	/* it is pointing to the same arrays as A, so don't free those */
-	free(((NCPformat*)AC.Store)->colbeg);
-	free(((NCPformat*)AC.Store)->colend);
-	free(AC.Store);
-
-	if (info) throw ExceptionT::kGeneralFail;
-}
+void SLUMatrix::Factorize(void) { /* nothing to do here */ }
 
 /* solution driver */
 void SLUMatrix::BackSubstitute(dArrayT& result)
 {
-	int info;
-	SuperMatrix B;
+	const char caller[] = "SLUMatrix::BackSubstitute";
 
-	/* Put result (initially right-hand side) into supermatrix B */
-	B.Stype = DN;
-	B.Dtype = _DOUBLE;
-	B.Mtype = GE;
+	/* put result (initially right-hand side) into supermatrix B */
+	SuperMatrix B;
+	B.Stype = SLU_DN;
+	B.Dtype = SLU_D;
+	B.Mtype = SLU_GE;
 	B.nrow = fLocNumEQ;
 	B.ncol = 1;
-	B.Store = malloc (sizeof(DNformat));
-	if (!B.Store) throw ExceptionT::kGeneralFail;
-	((DNformat*)B.Store)->lda = fLocNumEQ;
-((DNformat*)B.Store)->nzval = result.Pointer();
+	B.Store = malloc(sizeof(DNformat));
+	if (!B.Store) ExceptionT::GeneralFail(caller);
+
+	DNformat* BStore = (DNformat*) B.Store;
+	BStore->lda = fLocNumEQ;
+	BStore->nzval = result.Pointer();
 
 	/* solve */
-	dgstrs ("N", &fLower, &fUpper, fPerm_r, fPerm_c, &B, &info);
+	int info;
+
+
+    /* Initialize the statistics variables. */
+	SuperLUStat_t stat;    
+    StatInit(&stat);
+    
+    /* ------------------------------------------------------------
+       WE SOLVE THE LINEAR SYSTEM FOR THE FIRST TIME: AX = B
+       ------------------------------------------------------------*/
+    dgssvx(&options, &A, perm_c, perm_r, etree, equed, R, C,
+           &L, &U, work, lwork, &B, &X, &rpg, &rcond, ferr, berr,
+           &mem_usage, &stat, &info);
+
+    printf("First system: dgssvx() returns info %d\n", info);
+
+    if ( info == 0 || info == n+1 ) {
+
+        /* This is how you could access the solution matrix. */
+        double *sol = (double*) ((DNformat*) X.Store)->nzval; 
+
+	if ( options.PivotGrowth ) printf("Recip. pivot growth = %e\n", rpg);
+	if ( options.ConditionNumber )
+	    printf("Recip. condition number = %e\n", rcond);
+        Lstore = (SCformat *) L.Store;
+        Ustore = (NCformat *) U.Store;
+	printf("No of nonzeros in factor L = %d\n", Lstore->nnz);
+    	printf("No of nonzeros in factor U = %d\n", Ustore->nnz);
+    	printf("No of nonzeros in L+U = %d\n", Lstore->nnz + Ustore->nnz - n);
+	printf("L\\U MB %.3f\ttotal MB needed %.3f\texpansions %d\n",
+	       mem_usage.for_lu/1e6, mem_usage.total_needed/1e6,
+	       mem_usage.expansions);
+	if ( options.IterRefine ) {
+            printf("Iterative Refinement:\n");
+	    printf("%8s%8s%16s%16s\n", "rhs", "Steps", "FERR", "BERR");
+	    for (i = 0; i < nrhs; ++i)
+	      printf("%8d%8d%16e%16e\n", i+1, stat.RefineSteps, ferr[i], berr[i]);
+	}
+	fflush(stdout);
+
+    } else if ( info > 0 && lwork == -1 ) {
+        printf("** Estimated memory: %d bytes\n", info - n);
+    }
+
+    if ( options.PrintStat ) StatPrint(&stat);
+    StatFree(&stat);
 
 	/* check for errors */
-	if (info) throw ExceptionT::kGeneralFail;
+	//if (info) throw ExceptionT::kGeneralFail;
 
 	/* B (hence result) now contains the solution. */
 
 	/* free up the record we allocated */
-	free (B.Store);
+	free(B.Store);
 }
 
 /* check functions */
@@ -415,26 +406,6 @@ void SLUMatrix::PrintLHS(void) const
 
 	fOut << "\nLHS matrix:\n\n";
 	fOut << (*this) << "\n\n";
-}
-
-/* element accessor - read and write, for assembly. Exception for */
-/* access to unstored zero. row and col are */
-double& SLUMatrix::operator()(int row, int col) const
-{
-	/* range checks */
-	if (row < 0 || row >= fLocNumEQ) throw ExceptionT::kGeneralFail;
-	if (col < 0 || col >= fLocNumEQ) throw ExceptionT::kGeneralFail;
-
-	NCformat *A = (NCformat*)fMatrix.Store;
-
-	/* look through column col for the given row index */
-	for (int i = A->colptr[col]; i < A->colptr[col+1]; ++i)
-	{
-		if (row == A->rowind[i])
-			return ((double*)A->nzval)[i];
-	}
-	/* otherwise this nonzero wasn't present */
-	throw ExceptionT::kOutOfRange;
 }
 
 /* (over)estimate the number of nonzeros, based on the equation sets */
@@ -595,20 +566,6 @@ void SLUMatrix::CompressColumns (NCformat *A, const int *colLength)
 	}
 	/* set the last pointer to writeto, which now should == nnz */
 	A->colptr[fLocNumEQ] = writeto;
-}
-
-/* Figure out a good ordering of the columns in fPerm_c
-* Because of its construction, the stiffness matrix has symmetric structure
-* even if it doesn't have numerical symmetry. This means we have several
-* options: any column ordering of course (e.g. colamd), standard orderings (if
-* we don't think much pivoting will take place), or nested dissection with
-* wide separators (and we don't need to explicitly form the structure of
-* A'*A or A'+A).
-*/
-void SLUMatrix::OrderColumns (void)
-{
-NCformat *A = (NCformat*)fMatrix.Store;
-get_colamd (fLocNumEQ, fLocNumEQ, A->nnz, A->colptr, A->rowind, fPerm_c);
 }
 
 #endif /* __SUPERLU__ */
