@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: DPSSKStV.h,v 1.1.1.1.2.1 2001-06-06 16:25:27 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 #ifndef _DP_SS_KSTV_H_
@@ -6,12 +6,12 @@
 
 /* base classes */
 #include "SSStructMatT.h"
-#include "KStV.h"
+#include "IsotropicT.h"
 #include "HookeanMatT.h"
 #include "DPSSLinHardT.h"
 
 class DPSSKStV: public SSStructMatT,
-				public KStV,
+				public IsotropicT,
 				public HookeanMatT,
 				public DPSSLinHardT
 {
@@ -48,14 +48,16 @@ public:
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
 
+protected:
+
+	/* set modulus */
+	virtual void SetModulus(dMatrixT& modulus);
+
 private:
 
 	/* return values */
 	dSymMatrixT	fStress;
 	dMatrixT	fModulus;
-
-	/* elastic modulus */
-	dMatrixT    fElasticModulus;
 };
 
 #endif /* _DP_SS_KSTV_H_ */

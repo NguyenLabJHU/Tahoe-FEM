@@ -135,6 +135,12 @@ void PolyCrystalMatT::Print(ostream& out) const
   out << "       Tolerance convergence . . . . . . . . . . = " << fTolerState   << "\n";
 }
 
+/* set (material) tangent modulus */
+void PolyCrystalMatT::SetModulus(dMatrixT& modulus)
+{
+	fElasticity->ComputeModuli(modulus);
+}
+
 void PolyCrystalMatT::PrintName(ostream& out) const
 {
   // inherited

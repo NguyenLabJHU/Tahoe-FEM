@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: J2SSKStV.cpp,v 1.1.1.1.2.1 2001-06-06 16:27:57 paklein Exp $ */
 /* created: paklein (06/18/1997)                                          */
 
 #include "J2SSKStV.h"
@@ -18,14 +18,13 @@ static const char* Labels[kNumOutput] = {
 /* constructor */
 J2SSKStV::J2SSKStV(ifstreamT& in, const ElasticT& element):
 	SSStructMatT(in, element),
-	KStV(in),
+	IsotropicT(in),
+	HookeanMatT(3),
 	J2SSLinHardT(in, NumIP(), Mu()),
 	fStress(3),
-	fModulus(dSymMatrixT::NumValues(3)),
-	fElasticModulus(dSymMatrixT::NumValues(3))
+	fModulus(dSymMatrixT::NumValues(3))
 {
-	/* inherited */
-	KStV::SetModulus(fElasticModulus);
+
 }
 
 /* update internal variables */
@@ -49,7 +48,7 @@ void J2SSKStV::Print(ostream& out) const
 {
 	/* inherited */
 	SSStructMatT::Print(out);
-	KStV::Print(out);
+	IsotropicT::Print(out);
 	J2SSLinHardT::Print(out);
 }
 
@@ -58,15 +57,15 @@ void J2SSKStV::PrintName(ostream& out) const
 {
 	/* inherited */
 	SSStructMatT::PrintName(out);
-	KStV::PrintName(out);
 	J2SSLinHardT::PrintName(out);
+	out << "    Kirchhoff-St.Venant\n";
 }
 
 /* modulus */
 const dMatrixT& J2SSKStV::c_ijkl(void)
 {
 	/* elastoplastic correction */
-	fModulus.SumOf(fElasticModulus, ModuliCorrection(CurrentElement(), CurrIP()));	
+	fModulus.SumOf(HookeanMatT::Modulus(), ModuliCorrection(CurrentElement(), CurrIP()));	
 	return fModulus;
 }
 
@@ -79,7 +78,7 @@ const dSymMatrixT& J2SSKStV::s_ij(void)
 	const dSymMatrixT& e_els = ElasticStrain(e_tot, element, ip);
 
 	/* elastic stress */
-	HookeanStress(fElasticModulus, e_els, fStress);
+	HookeanStress(e_els, fStress);
 
 	/* modify Cauchy stress (return mapping) */
 	fStress += StressCorrection(e_els, element, ip);
@@ -89,12 +88,7 @@ const dSymMatrixT& J2SSKStV::s_ij(void)
 /* returns the strain energy density for the specified strain */
 double J2SSKStV::StrainEnergyDensity(void)
 {
-	return HookeanEnergy(fElasticModulus,
-		ElasticStrain(e(), CurrentElement(), CurrIP()));
-		
-	//NOTE: this is really the "trial" strain energy density
-	//      since it only makes use of the plastic strain
-	//      accumulated since the last Update()
+	return HookeanEnergy(ElasticStrain(e(), CurrentElement(), CurrIP()));		
 }
 
 /* returns the number of variables computed for nodal extrapolation
@@ -140,6 +134,12 @@ void J2SSKStV::ComputeOutput(dArrayT& output)
 		output[0] = 0.0;
 }
 
-/***********************************************************************
+/*************************************************************************
 * Protected
-***********************************************************************/
+*************************************************************************/
+
+/* set modulus */
+void J2SSKStV::SetModulus(dMatrixT& modulus)
+{
+	IsotropicT::ComputeModuli(modulus);
+}

@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV2D.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: J2SSKStV2D.cpp,v 1.1.1.1.2.1 2001-06-06 16:27:56 paklein Exp $ */
 /* created: paklein (06/18/1997)                                          */
 
 #include "J2SSKStV2D.h"
@@ -13,7 +13,8 @@ J2SSKStV(in, element),
 	fModulus2D(dSymMatrixT::NumValues(2)),
 	fTotalStrain3D(3)
 {
-
+	/* acccount for thickness */
+	fDensity *= fThickness;
 }
 
 /* returns elastic strain (3D) */
