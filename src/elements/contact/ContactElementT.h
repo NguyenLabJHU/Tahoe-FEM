@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.19 2002-02-06 20:46:00 dzeigle Exp $ */
+/* $Id: ContactElementT.h,v 1.20 2002-02-07 20:59:43 rjones Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -88,6 +88,7 @@ public:
 			kNormals,
 			kStatus,
 			kMultipliers,
+			kArea,
 			kNumOutputFlags};
 
 	/* returns the array for the DOF tags needed for the current config */

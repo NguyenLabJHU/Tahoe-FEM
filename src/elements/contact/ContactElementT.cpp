@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.25 2002-02-06 20:46:00 dzeigle Exp $ */
+/* $Id: ContactElementT.cpp,v 1.26 2002-02-07 20:59:43 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -343,7 +343,9 @@ void ContactElementT::WriteOutput(IOBaseT::OutputModeT mode)
 				surface.PrintMultipliers(cout);
            }
 
+           if (fOutputFlags[kArea]) {
               surface.PrintContactArea(cout);
+		   }
   }
 
 }
@@ -392,6 +394,7 @@ void ContactElementT::ReadControlData(void)
     }
 	out << " Print gaps                 = " << fOutputFlags[kGaps] << '\n';
 	out << " Print normals              = " << fOutputFlags[kNormals] << '\n';
+	out << " Print contact area         = " << fOutputFlags[kArea] << '\n';
 
     int num_surfaces;
     in >> num_surfaces;

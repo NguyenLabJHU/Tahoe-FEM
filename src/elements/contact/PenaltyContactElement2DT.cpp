@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.10 2002-02-07 00:31:12 dzeigle Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.11 2002-02-07 20:59:43 rjones Exp $ */
 
 #include "PenaltyContactElement2DT.h"
 
@@ -74,9 +74,12 @@ void PenaltyContactElement2DT::PrintControlData(ostream& out) const
 					<< enf_parameters[kAsperityHeightMean] << '\n';
 				out << "  Asperity height standard deviation : "
 					<< enf_parameters[kAsperityHeightStandardDeviation] << '\n';
-				out << "  (work of adhesion) : " 
-					<< enf_parameters[kAsperityHeightMean]
-				*enf_parameters[kAsperityHeightStandardDeviation]*enf_parameters[kAsperityHeightStandardDeviation] << '\n';
+				out << "  Asperity density  : "
+					<< enf_parameters[kAsperityDensity] << '\n';
+				out << "  Asperity Radius  : "
+					<< enf_parameters[kAsperityTipRadius] << '\n';
+				out << "  Hertzian Modulus  : "
+					<< enf_parameters[kHertzianModulus] << '\n';
 			}
 		}
 	}
