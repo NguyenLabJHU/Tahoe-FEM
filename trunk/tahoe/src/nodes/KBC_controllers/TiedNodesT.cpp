@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.11 2002-09-30 23:49:03 cjkimme Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.12 2002-10-03 01:41:21 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -334,7 +334,7 @@ void TiedNodesT::WriteOutput(ostream& out) const
        	out <<"\n T i e d  N o d e s  O u t p u t  D a t a : \n\n";
 	out  <<"   " << fPairStatus.Count(kTied) << " tied nodes\n";
 	out <<" Index   Pair Status ( 0 = Free, 1 = Tied, 4 = External Pair) \n";
-	for (int i = 0; i < fNodePairs.Length(); i++) 
+	for (int i = 0; i < fNodePairs.MajorDim(); i++) 
        	    out <<i+1<<" "<< (fPairStatus[i] == kFree ? 0 : 1 )<<"\n";
 
 }
