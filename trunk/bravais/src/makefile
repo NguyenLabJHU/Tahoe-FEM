@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2002-07-24 23:14:56 saubry Exp $
+# $Id: makefile,v 1.6 2003-01-08 00:28:13 saubry Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -12,9 +12,11 @@ OBJ = \
 	VolumeT.o \
 	CrystalLatticeT.o \
 	BoxT.o \
+	CUBT.o \
 	FCCT.o \
 	BCCT.o \
 	DIAT.o \
+	HEXT.o \
 	OutPutLatticeT.o \
 	MeshAtom.o \
 	MakeCrystalT.o
@@ -33,9 +35,11 @@ SRC = \
 	VolumeT.cpp \
         CrystalLatticeT.cpp \
         BoxT.cpp \
+	CUBT.cpp \
 	FCCT.cpp \
 	BCCT.cpp \
 	DIAT.cpp \
+	HEXT.cpp \
 	OutPutLatticeT.cpp \
 	MeshAtom.cpp \
 	MakeCrystalT.cpp

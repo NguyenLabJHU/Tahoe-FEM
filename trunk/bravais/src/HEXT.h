@@ -1,6 +1,6 @@
 // DEVELOPMENT
-#ifndef _DIA_T_H_
-#define _DIA_T_H_
+#ifndef _HEX_T_H_
+#define _HEX_T_H_
 
 #include "StringT.h"
 #include "dArrayT.h"
@@ -9,16 +9,16 @@
 
 using namespace Tahoe;
 
-class DIAT : public CrystalLatticeT 
+class HEXT : public CrystalLatticeT 
 {
 public:
-	DIAT(int nlsd,int nuca,dArrayT alat,
+	HEXT(int nlsd,int nuca,dArrayT alat,
 	     int which_rot,dArray2DT mat_rot,
 	     double angle);
 
-	~DIAT() { };
+	~HEXT() { };
 
-	DIAT(const DIAT& source);
+	HEXT(const HEXT& source);
 
         const dArrayT& GetLatticeParameters();
         const dArray2DT& GetBasis();

@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: FCCT.cpp,v 1.9 2002-11-14 01:47:32 saubry Exp $ */
+/* $Id: FCCT.cpp,v 1.10 2003-01-08 00:28:13 saubry Exp $ */
 #include "FCCT.h"
 #include "CrystalLatticeT.h"
 
@@ -11,14 +11,14 @@
 #include "dArrayT.h"
 #include "dArray2DT.h"
 
-FCCT::FCCT(int nlsd,int nuca,double alat,
+FCCT::FCCT(int nlsd,int nuca,dArrayT alat,
 	   int which_rot,dArray2DT mat_rot,
 	   double angle) : 
   CrystalLatticeT(nlsd,nuca,which_rot,mat_rot,angle)
 {
 
   for (int i=0; i<nlsd; i++) 
-    vLatticeParameters[i] = alat; 
+    vLatticeParameters[i] = alat[i]; 
 
   if (nlsd==2)
     {

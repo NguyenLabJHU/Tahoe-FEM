@@ -16,9 +16,11 @@
 #include "BoxT.h"
 
 #include "CrystalLatticeT.h"
+#include "CUBT.h"
 #include "FCCT.h"
 #include "BCCT.h"
 #include "DIAT.h"
+#include "HEXT.h"
 
 #include "OutputSetT.h"
 #include "OutputBaseT.h"
@@ -101,15 +103,38 @@ void MakeCrystalT::Run() {
       if(nsd == 2) b=2;
       if(nsd == 3) b=8;
     }
+  else if (latticetype=="HEX") 
+    {
+      if(nsd == 2) b=1;
+      if(nsd == 3) b=1;
+    }
+  else if (latticetype=="CUB") 
+    {
+      if(nsd == 2) b=1;
+      if(nsd == 3) b=1;
+    }
   else 
     {
-      cout << "Lattice type has to be FCC or BCC...\n";
+      cout << "Lattice type has to be CUB, FCC, BCC, DIA or HEX...\n";
       throw eBadInputValue;
     }
 	
-  double alat=0.0;
-  in >> alat;
-  cout << "Lattice parameter: " << alat << "\n";
+  dArrayT alat(nsd);
+  if(nsd == 2)
+    {
+      in >> alat[0] >> alat[1];
+      cout << "Lattice parameter: " 
+	   << alat[0] << "  " 
+	   << alat[1] << "\n";
+    }
+  else
+    {
+      in >> alat[0] >> alat[1] >> alat[2];
+      cout << "Lattice parameter: " 
+	   << alat[0] << "  " 
+	   << alat[1] << "  " 
+	   << alat[2] << "\n";
+    }
 
   StringT shape;
   in >> shape;
@@ -222,13 +247,7 @@ void MakeCrystalT::Run() {
 
   //Define Mesh
 
-  dArrayT latticeparameter;
-  latticeparameter.Dimension(nsd);
-
-  for (int i=0; i<nsd; i++)   
-    latticeparameter[i] = alat;
-
-  MeshAtom mesh_atom(latticetype,nsd,b,latticeparameter,
+  MeshAtom mesh_atom(latticetype,nsd,b,alat,
 		     shape,whichunit,len,cel,irot,mat_rot,
 		     angle,isort);
 
@@ -276,6 +295,15 @@ void MakeCrystalT::Run() {
 	  for (int j=0; j<nb_atoms; j++) 
 	    cout << coords(j)[0] <<  "  " << coords(j)[1] <<  "  " << coords(j)[2] << "\n";
 	}
+
+      if(nsd==2)
+	{
+	  cout << "Distance:\n";
+	  for (int j=0; j<nb_atoms; j+=2) 
+	    cout << sqrt(  pow( (coords(j+1)[0] - coords(j)[0]),2)
+			 + pow( (coords(j+1)[1] - coords(j)[1]),2) ) 
+		 <<  "\n";	}
+      
     }
 
   cout << "\nWriting geometry in specified format file...\n";

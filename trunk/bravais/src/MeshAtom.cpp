@@ -15,6 +15,7 @@
 #include "FCCT.h"
 #include "BCCT.h"
 #include "DIAT.h"
+#include "HEXT.h"
 #include "VolumeT.h"
 #include "BoxT.h"
 #include "OutputSetT.h"
@@ -29,11 +30,13 @@ MeshAtom::MeshAtom(StringT which_latticetype,int nsd,int nuca,
 		   dArray2DT mat_rot,double angle,iArrayT isort)
 {
   if(which_latticetype == "FCC")
-    Crystal = new FCCT(nsd,nuca,latticeparameter[0],irot,mat_rot,angle);
+    Crystal = new FCCT(nsd,nuca,latticeparameter,irot,mat_rot,angle);
   else if(which_latticetype == "BCC")
-    Crystal = new BCCT(nsd,nuca,latticeparameter[0],irot,mat_rot,angle);
+    Crystal = new BCCT(nsd,nuca,latticeparameter,irot,mat_rot,angle);
   else if(which_latticetype == "DIA")
-    Crystal = new DIAT(nsd,nuca,latticeparameter[0],irot,mat_rot,angle);
+    Crystal = new DIAT(nsd,nuca,latticeparameter,irot,mat_rot,angle);
+  else if(which_latticetype == "HEX")
+    Crystal = new HEXT(nsd,nuca,latticeparameter,irot,mat_rot,angle);
   else
     {
       throw eBadInputValue;
