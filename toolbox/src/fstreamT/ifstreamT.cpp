@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.cpp,v 1.14 2002-02-27 16:47:17 paklein Exp $ */
+/* $Id: ifstreamT.cpp,v 1.15 2002-03-04 06:18:17 paklein Exp $ */
 /* created: paklein (03/03/1999) */
 
 #include "ifstreamT.h"
@@ -264,6 +264,12 @@ bool ifstreamT::FindString(const char* key, StringT& line)
 	{
 		char buffer[kLineLength];
 		getline(buffer, kLineLength-1);
+		
+		/* long line */
+		if (!good()) {		
+			/* correct anything but eof */
+			if (!eof()) clear();
+		}
 
 		/* found string */
 		if (strstr(buffer, key) != NULL)
