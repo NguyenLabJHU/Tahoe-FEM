@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.44 2004-07-15 08:31:03 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.45 2004-07-22 08:26:12 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -62,14 +62,17 @@ public:
 	/** destructor */
 	virtual ~FEManagerT(void);
 
+	/** parse input file and valid */
+	static void ParseInput(const StringT& path, ParameterListT& params, bool validate, 
+		bool echo_input, bool echo_valid, const ArrayT<StringT>& argv);
+
 	/** solve all the time sequences */
-	void Solve(void);
+	virtual void Solve(void);
 	
 	/** \name accessors */
 	/*@{*/
 	const StringT& InputFile(void) const;
 	ofstreamT& Output(void) const;
-	GlobalT::AnalysisCodeT Analysis(void) const;
 	GlobalT::SystemTypeT GlobalSystemType(int group) const;
 	const GlobalT::StateT& RunState(void) const;
 	
@@ -168,8 +171,6 @@ public:
 	const int& StepNumber(void) const;
 	const int& NumberOfSteps(void) const;
 	void SetTimeStep(double dt) const;
-	int SequenceNumber(void) const;
-	int NumSequences(void) const;
 	/*@}*/
 
 	/** \name solution messaging 
@@ -365,9 +366,7 @@ public:
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
-	/** a pointer to the ParameterInterfaceT of the given subordinate
-	 * or NULL if the name is invalid. Responsibility for deleteting instantiations
-	 * resides with the client who requested them. */
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** return the description of the given inline subordinate parameter list */
@@ -412,13 +411,6 @@ private:
 	FEManagerT(FEManagerT&);
 	FEManagerT& operator=(FEManagerT&) const;
 	/*@}*/
-
-	/** \name construct a solver of the specified type. 
-	 * This function cannot be const because a non-const reference to the 
-	 * FEManagerT is passed to the solvers. */
-	/*@{*/
-	SolverT* New_Solver(int code, int group);
-	/*@}*/
 		
 protected:
 
@@ -449,7 +441,6 @@ protected:
 	
 	/** \name execution parameters */
 	/*@{*/
-	GlobalT::AnalysisCodeT fAnalysisCode;
 	IOBaseT::FileTypeT  fOutputFormat;
 	bool fReadRestart;
 	int  fWriteRestart;
