@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2003-04-05 19:41:26 thao Exp $
+# $Id: makefile,v 1.1.50.1 2005-02-22 00:15:36 thao Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,7 +20,8 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 # objects
-OBJ = NeoHookean.o
+OBJ = NeoHookean.o \
+	Ogden.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -40,7 +41,8 @@ DEP = $(OBJ:.o=.d)
 # (2) If there are sources in this directory list them in the
 #     SRC macro; otherwise, comment the SRC macro.
 #
-SRC = NeoHookean.cpp
+SRC = NeoHookean.cpp \
+	Ogden.cpp
 ##################### (3) headers
 #
 # (3) If there are header files in this directory:
@@ -52,6 +54,7 @@ SRC = NeoHookean.cpp
 #
 # headers
 HDR = NeoHookean.h \
+	Ogden.h \
 	PotentialT.h
 HDR_LINK = $(HDR:.h=.h_link)
 

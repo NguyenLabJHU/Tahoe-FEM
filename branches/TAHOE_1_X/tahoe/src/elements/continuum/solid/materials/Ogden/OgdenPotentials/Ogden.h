@@ -1,19 +1,19 @@
-/* $Id: NeoHookean.h,v 1.1.50.1 2005-02-22 00:15:36 thao Exp $ */
+/* $Id: Ogden.h,v 1.1.2.1 2005-02-22 00:15:36 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
-#ifndef _NeoHookean_
-#define _NeoHookean_
+#ifndef _OGDEN_
+#define _OGDEN_
 
 #include "PotentialT.h"
 
 namespace Tahoe {
 
-class NeoHookean: public PotentialT
+class Ogden: public PotentialT
 {
   public:
 
 	/* constructor */
-	NeoHookean(ifstreamT& in);
+	Ogden(ifstreamT& in);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;
@@ -32,17 +32,20 @@ class NeoHookean: public PotentialT
 	virtual double MeanMod(const double& J);
 
 	virtual const double Kappa(void);
-	virtual const double Mu(void);
-	
+	virtual const double Mu(void);	
+
   private:  
-  	/*inelastic moduli*/
-	double fMu;
-	double fKappa;
+  	/* moduli*/
+	int fr;
+	
+	dArrayT falpha_r;
+	dArrayT fmu_r;
+	double fkappa;
+	double fmu;
 	
 	const double fthird;
 };
-inline const double NeoHookean::Kappa(void) {return fKappa;}
-inline const double NeoHookean::Mu(void) {return fMu;}
-
+inline const double Ogden::Kappa(void) {return fkappa;}
+inline const double Ogden::Mu(void) {return fmu;}
 }
-#endif /* _RG_NeoHookean3D_ */
+#endif /* _OGDEN_ */

@@ -14,7 +14,8 @@ class fstreamT;
 class PotentialT
 {
   public:
-  enum TypesT {kNeoHookean = 1};
+  enum TypesT {kNeoHookean = 1,
+		kOgden = 2};
 
   /* print parameters */
   virtual void Print(ostream& out) const = 0;
@@ -31,6 +32,9 @@ class PotentialT
   /*derivative of Kirchoff stress with log strain*/
   virtual void DevMod(const dArrayT& lambda_bar,dSymMatrixT& eigenmodulus) = 0;
   virtual double MeanMod(const double& J) = 0;
+
+  virtual const double Kappa() = 0;
+  virtual const double Mu() = 0;
 };
 }
 #endif /* _PotentialT_ */
