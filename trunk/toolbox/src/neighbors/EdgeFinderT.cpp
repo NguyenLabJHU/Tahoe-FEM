@@ -1,4 +1,4 @@
-/* $Id: EdgeFinderT.cpp,v 1.9 2003-11-21 22:41:59 paklein Exp $ */
+/* $Id: EdgeFinderT.cpp,v 1.10 2005-04-05 15:57:53 paklein Exp $ */
 /* created: paklein (02/14/1998) */
 #include "EdgeFinderT.h"
 #include "AutoArrayT.h"
@@ -25,8 +25,9 @@ EdgeFinderT::EdgeFinderT(const ArrayT<const iArray2DT*>& connects,
 	fCurrent(kNumFlags)
 {
 	/* check */
-	if (fNumFacets < 3) throw ExceptionT::kGeneralFail; // at least tri's?
-	if (fKeyNodes < fNumFacets) throw ExceptionT::kGeneralFail;
+	const char caller[] = "EdgeFinderT::EdgeFinderT";
+	if (fNumFacets < 3) ExceptionT::GeneralFail(caller); // at least tri's?
+	if (fKeyNodes < fNumFacets) ExceptionT::GeneralFail(caller);
 
 	for (int i=0; i < connects.Length(); i++)
 	  {
@@ -123,14 +124,11 @@ const iArray2DT& EdgeFinderT::Neighbors(void)
 						/* determine neighbor's facet */
 						int facet_l = FindMatchingFacet(j, elem_i, ElementNodes(neighbor));
 				
-					#if __option(extended_errorcheck)
 						/* neighbor's neighbor should be unset */
 						if (fNeighbors(neighbor, facet_l) != -1)
-						{
-							cout << "\n EdgeFinderT::Neighbors: neighbor's neighbor already set" << endl;
-							throw ExceptionT::kGeneralFail;
-						}
-					#endif
+							ExceptionT::GeneralFail("EdgeFinderT::Neighbors",
+								"element %d face %d neighbor element %d face %d is already set to %d",
+								i+1, j+1, neighbor+1, facet_l+1, fNeighbors(neighbor, facet_l)+1);
 						
 						/* cross link */
 						*neigh_i = neighbor;
@@ -240,10 +238,8 @@ void EdgeFinderT::SurfaceFacets(iArray2DT& surface_facets, iArrayT& surface_node
 	
 		/* no open facet */	
 		if (!found_open)
-		{
-			cout << "\n EdgeFinderT::SurfaceFacets: error building surface facet list" << endl;
-			throw ExceptionT::kGeneralFail;
-		}	
+			ExceptionT::GeneralFail("EdgeFinderT::SurfaceFacets", 
+				"error building surface facet list");
 	}
 
 	/* return value */
@@ -309,10 +305,8 @@ void EdgeFinderT::SurfaceFacets(iArray2DT& surface_facets,
 	
 		/* no open facet */	
 		if (!found_open)
-		{
-			cout << "\n EdgeFinderT::SurfaceFacets: error building surface facet list" << endl;
-			throw ExceptionT::kGeneralFail;
-		}	
+			ExceptionT::GeneralFail("EdgeFinderT::SurfaceFacets", 
+				"error building surface facet list");
 	}
 
 	/* return value */
@@ -392,6 +386,7 @@ void EdgeFinderT::SurfaceNodes(iArrayT& surface_nodes)
 /* get dimensions from the connectivity set */
 void EdgeFinderT::SetDimensions(void)
 {
+	const char caller[] = "EdgeFinderT::SetDimensions";
 	if (!fCurrent[kDims])
 	{
 		/* mark as current */
@@ -401,8 +396,8 @@ void EdgeFinderT::SetDimensions(void)
 		int nen = fConnects[0]->MinorDim();
 		for (int i=0; i < fConnects.Length(); i++)
 		  {
-		    if (fKeyNodes > fConnects[i]->MinorDim()) throw ExceptionT::kOutOfRange;
-		    if (nen != fConnects[i]->MinorDim()) throw ExceptionT::kSizeMismatch;
+		    if (fKeyNodes > fConnects[i]->MinorDim()) ExceptionT::OutOfRange(caller);
+		    if (nen != fConnects[i]->MinorDim()) ExceptionT::SizeMismatch(caller);
 		  }
 
 		/* set node number range */
@@ -484,21 +479,17 @@ int EdgeFinderT::FindMatchingFacet(int facet_i, const int* elem_i,
 		}
 	}
 
-#if __option(extended_errorcheck)
 	/* facet not found */
 	if (facet_j == -1)
-	{
-		cout << "\n EdgeFinderT::FindMatchingFacet: failed" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
-#endif
+		ExceptionT::GeneralFail("EdgeFinderT::FindMatchingFacet", "failed");
 
 	return facet_j;	
 }
 
 const int* EdgeFinderT::ElementNodes (int index) const
 {
-  if (index < 0 || index >= fNumElements) throw ExceptionT::kOutOfRange;
+	const char caller[] = "EdgeFinderT::ElementNodes";
+  if (index < 0 || index >= fNumElements) ExceptionT::OutOfRange(caller);
 
   /* find the block */
   int block = 0;
@@ -506,7 +497,7 @@ const int* EdgeFinderT::ElementNodes (int index) const
   while (block+1 < fStartNumber.Length() && index >= fStartNumber[block+1])
     {
       block++;
-      if (block > fConnects.Length()) throw ExceptionT::kOutOfRange;
+      if (block > fConnects.Length()) ExceptionT::OutOfRange(caller);
     }
 
   int localindex = index - fStartNumber[block];
