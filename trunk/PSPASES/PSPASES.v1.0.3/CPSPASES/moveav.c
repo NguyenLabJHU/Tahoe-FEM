@@ -1,4 +1,4 @@
-/* $Id: moveav.c,v 1.3 2004-12-12 23:20:06 paklein Exp $ */
+/* $Id: moveav.c,v 1.4 2004-12-13 00:27:45 paklein Exp $ */
 /* moveav.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -58,7 +58,7 @@ static integer c__13 = 13;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: moveav.c,v 1.3 2004-12-12 23:20:06 paklein Exp $ +/ */
+/* /+ $Id: moveav.c,v 1.4 2004-12-13 00:27:45 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 /*<    >*/
 
@@ -81,13 +81,12 @@ static integer lbit_shift(integer a, integer b) {
     integer i__1, i__2;
 
     /* Local variables */
-    static integer beginrow, i__, j, k, l, m;
+    integer beginrow, i__, j, k, l, m;
     extern /* Subroutine */ int ikeysortf_(integer *, integer *, integer *);
-    static integer is1, col, ppc, ppg, ppr, row, ierr, proc, prcv, pscv, psdv,
-	     prdv;
-    static integer ptr_sendvals__, ptr_c__, nsend, ptr_r__;
-    static integer bmaskc, bmaskr, fptr_r__;
-    static integer itainds, pgrsize;
+    integer is1, col, ppc, ppg, ppr, row, ierr, proc, prcv, pscv, psdv, prdv;
+    integer ptr_sendvals__, ptr_c__, nsend, ptr_r__;
+    integer bmaskc, bmaskr, fptr_r__;
+    integer itainds, pgrsize;
 
 /*<       implicit none >*/
 /*<       include 'mpif.h' >*/

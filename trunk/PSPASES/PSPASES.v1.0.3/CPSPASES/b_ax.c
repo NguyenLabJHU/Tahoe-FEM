@@ -1,4 +1,4 @@
-/* $Id: b_ax.c,v 1.2 2004-12-11 01:21:59 paklein Exp $ */
+/* $Id: b_ax.c,v 1.3 2004-12-13 00:27:45 paklein Exp $ */
 /* b_ax.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -61,7 +61,7 @@ static integer c__21 = 21;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/em */
 /* /+***************************************************************************+/ */
-/* /+ $Id: b_ax.c,v 1.2 2004-12-11 01:21:59 paklein Exp $ +/ */
+/* /+ $Id: b_ax.c,v 1.3 2004-12-13 00:27:45 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 /*<    >*/
 /* Subroutine */ int db_ax_(integer *n, integer *rowdista, integer *rowdistb,
@@ -88,10 +88,10 @@ static integer c__21 = 21;
     doublereal d__1;
 
     /* Local variables */
-    static integer i__, j, k;
-    static integer mynnodesa, mynnodesb, ofs;
-    static doublereal err;
-    static integer ierr;
+    integer i__, j, k;
+    integer mynnodesa, mynnodesb, ofs;
+    doublereal err;
+    integer ierr;
 
 /*<       implicit none >*/
 /*<       include 'mpif.h' >*/
@@ -109,7 +109,7 @@ static integer c__21 = 21;
 /*<       double precision avals(*),b(0:ldb-1,*),x(0:ldx-1,*),err,emax >*/
 /*      double precision, allocatable :: tx(:,:),tb(:,:),bmax(:,:) */
 
-	static doublereal *tx, *tb, *bmax; 
+	doublereal *tx, *tb, *bmax; 
 
 	/* debugging */
 #ifdef __DO_DEBUG__
@@ -375,7 +375,7 @@ fprintf(fp, "%20.14le %20.14le %d\n", *emax, err, dummy);
 	    i__2, i__3;
 
     /* Local variables */
-    static integer i__, j, k, ig, node, ivptr, ivsiz;
+    integer i__, j, k, ig, node, ivptr, ivsiz;
 
 /*<       double precision avals(*),b(0:N-1,*),x(0:N-1,*),ax(0:N-1,*) >*/
 /*<       integer aptrs(2,0:*),ainds(*),mynnodes,ofs >*/
@@ -464,9 +464,9 @@ fprintf(fp, "%20.14le %20.14le %d\n", *emax, err, dummy);
     integer i__1;
 
     /* Local variables */
-    static integer i__;
-    static integer ierr;
-    static integer remains;
+    integer i__;
+    integer ierr;
+    integer remains;
 
 /*<       implicit none >*/
 /*<       include 'mpif.h' >*/

@@ -1,4 +1,4 @@
-/* $Id: order.c,v 1.3 2004-12-11 10:10:51 paklein Exp $ */
+/* $Id: order.c,v 1.4 2004-12-13 00:27:45 paklein Exp $ */
 /* order.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -59,7 +59,7 @@ static integer c__0 = 0;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: order.c,v 1.3 2004-12-11 10:10:51 paklein Exp $ +/ */
+/* /+ $Id: order.c,v 1.4 2004-12-13 00:27:45 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 /*<    >*/
 /* Subroutine */ int porder_(integer *rowdist, integer *aptrs, integer *ainds,
@@ -80,11 +80,11 @@ static integer c__0 = 0;
     integer i__1, i__2;
 
     /* Local variables */
-    static integer mynnodes, i__, j, k, l, m;
+    integer mynnodes, i__, j, k, l, m;
     extern /* Subroutine */ int  
     	parometisf_(integer *, integer *, integer *, integer *, integer *,
 	     integer *, integer *, MPI_Comm *);
-    static integer ierr, opts[5], offdnz, ioasize;
+    integer ierr, opts[5], offdnz, ioasize;
 
 /*<       implicit none >*/
 /*<       include 'mpif.h' >*/
