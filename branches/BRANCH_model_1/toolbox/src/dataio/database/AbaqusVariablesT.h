@@ -7,11 +7,14 @@
 class AbaqusVariablesT
 {
  public:
+
+  /** describes the origin of the variable */
   enum PointT { kElementIntegration = 0,
 		kElementSection,
 		kElementWhole,
 		kNodePoint };
 
+  /** describes what the variables is saved as */
   enum TypeT { kNotUsed = -1,
 	       kNode = 0,
 	       kElement,
@@ -21,12 +24,25 @@ class AbaqusVariablesT
   void Set (const char* name, int key, bool nodenumberflag, AbaqusVariablesT::PointT point);
   void SetIOData (int dimension, AbaqusVariablesT::TypeT t, int index);
 
+  /** variable name */
   const StringT& Name (void) const;
+
+  /** variable record key */
   int Key (void) const;
+
+  /** is the variable written with a node number at the start of the record */
   bool NodeNumberFlag (void) const;
+
+  /** point of origin of the variable */
   PointT Point (void) const;
+
+  /** number of components in the variable record */
   int Dimension (void) const;
+
+  /** variable is saved as */
   TypeT Type (void) const;
+
+  /** column index in variable array */
   int IOIndex (void) const;
 
  private:
