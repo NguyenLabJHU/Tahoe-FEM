@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.34 2003-08-01 22:54:39 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.35 2003-08-01 22:56:35 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -224,7 +224,7 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
     }
 
   if(ntype > 2) 
-    cout << "WARNING: ** nTypes == 2  maximum for ensight output ** \n"
+    cout << "WARNING: ** nTypes == 2  maximum for ensight output ** \n";
 
   atom_array_ID.Dimension(ntype);
   atom_array_connect.Dimension(ntype);
