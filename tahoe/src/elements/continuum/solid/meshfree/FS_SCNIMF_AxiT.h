@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.h,v 1.5 2004-10-24 03:57:06 paklein Exp $ */
+/* $Id: FS_SCNIMF_AxiT.h,v 1.6 2004-10-26 22:09:37 paklein Exp $ */
 #ifndef _FS_SCNIMF_AXI_T_H_
 #define _FS_SCNIMF_AXI_T_H_
 
@@ -51,12 +51,15 @@ public:
 	virtual void RHSDriver(void);
 
 	/** \name implementation of the ParameterInterfaceT interface */
-	/*@{*/
+	/*@{*/	
 	/** information about subordinate parameter lists */
 	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate */
 	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected: /* for derived classes only */
@@ -82,7 +85,10 @@ protected:
 private:
 	ArrayT< LinkedListT<double> > circumferentialWorkSpace;
 	RaggedArray2DT<double> circumferential_B;
-	
+
+	/* deformation gradients passed to the materials */
+	ArrayT<dMatrixT> fF_list;
+	ArrayT<dMatrixT> fF_last_list;
 };
 
 } /* namespace Tahoe */
