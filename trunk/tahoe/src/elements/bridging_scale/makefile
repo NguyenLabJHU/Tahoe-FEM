@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.8 2002-07-16 16:21:43 hspark Exp $
+# $Id: makefile,v 1.1 2002-07-16 16:21:43 hspark Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,10 +6,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	ElementT.o \
-	ElementSupportT.o \
-	ElementBaseT.o \
-	ElementListT.o
+	BridgingScaleT.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
 #OBJ = dummy
@@ -18,31 +15,18 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	ElementT.cpp \
-	ElementSupportT.cpp \
-	ElementBaseT.cpp \
-	ElementListT.cpp
+	BridgingScaleT.cpp
 
 # headers
 HDR = \
-	ElementT.h \
-	ElementSupportT.h \
-	ElementBaseT.h \
-	ElementListT.h
+	BridgingScaleT.h
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
-SUB_DIR = \
-	BEM_element \
-	bridging_scale \
-	cohesive_surface \
-	contact \
-	continuum \
-	lattice \
-	rod
-subdir_driver: subdir_loop
+SUB_DIR = 
+#subdir_driver: subdir_loop
 # SUB_DIR is empty
-#subdir_driver: 
+subdir_driver: 
 
 # instructions for subdirectories
 include $(MACRO_DIR)/subdir.targets
