@@ -1,6 +1,6 @@
-/* $Id: PointPlots.cpp,v 1.10 2002-10-26 00:09:41 paklein Exp $ */
+/* $Id: PointPlots.cpp,v 1.11 2002-10-28 14:19:02 sawimme Exp $ */
 #include "PointPlots.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "TecPlotT.h"
 #include "AVST.h"
 #include <stdio.h>
@@ -142,7 +142,7 @@ void PointPlots::TranslateVariables (void)
 	    break;
 	  }
 	default:
-	  throw eGeneralFail;
+	  throw ExceptionT::kGeneralFail;
 	}
 
       // so far, all output formats use this format
@@ -169,6 +169,6 @@ void PointPlots::OpenFile (ofstreamT& o, int index, int digits, StringT& ext) co
     {
       fMessage << "\nPointPlots::OpenFile cannot open file: "
 	       << filename << "\n\n";
-      throw eGeneralFail;
+      throw ExceptionT::kGeneralFail;
     }
 }

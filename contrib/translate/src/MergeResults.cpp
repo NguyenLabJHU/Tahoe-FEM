@@ -1,6 +1,6 @@
-/* $Id: MergeResults.cpp,v 1.5 2002-10-26 00:09:41 paklein Exp $ */
+/* $Id: MergeResults.cpp,v 1.6 2002-10-28 14:19:02 sawimme Exp $ */
 #include "MergeResults.h"
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "OutputSetT.h"
 
 using namespace Tahoe;
@@ -154,7 +154,7 @@ void MergeResults::SetInput(void)
 	int num_files = 0;
 	cout << "\n Number of source files (> 1): ";
 	fIn >> num_files;
-	if (num_files < 2) throw eGeneralFail;
+	if (num_files < 2) throw ExceptionT::kGeneralFail;
 	
 	fInputs.Dimension(num_files);
 	fInputs = NULL;
@@ -174,7 +174,7 @@ void MergeResults::SetInput(void)
 		{
 			cout << "\n MergeResults::SetInput: could not initialize results file: " 
 			     << database << endl;
-			throw eGeneralFail;
+			throw ExceptionT::kGeneralFail;
 		}
 
 		fInputs[i] = model;
@@ -186,7 +186,7 @@ void MergeResults::SetInput(void)
 	{
 		int this_num_steps = fInputs[i]->NumTimeSteps();
 		if (i > 0 && num_steps != this_num_steps)
-			throw eSizeMismatch;
+			throw ExceptionT::kSizeMismatch;
 		else
 			num_steps = this_num_steps;
 	}
