@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.h,v 1.3 2001-09-10 16:47:22 sawimme Exp $ */
+/* $Id: TranslateIOManager.h,v 1.4 2001-09-13 13:31:55 sawimme Exp $ */
 
 #ifndef _TRANSLATE_IOMANAGER_H_
 #define _TRANSLATE_IOMANAGER_H_
@@ -21,7 +21,7 @@ class TranslateIOManager
  protected:
   virtual void SetOutput (const StringT& program, const StringT& version, const StringT& title);
 
-  void InitializeVariables (void);
+  virtual void InitializeVariables (void);
   void InitializeTime (void);
 
   virtual void TranslateVariables (void);
@@ -31,6 +31,8 @@ class TranslateIOManager
   void WriteNodeSets (void);
   void WriteElements (void);
   void WriteSideSets (void);
+
+  void VariableQuery (const ArrayT<StringT>& names, iArrayT& list);
 
  protected:
   ostream& fMessage;
@@ -47,6 +49,9 @@ class TranslateIOManager
   ArrayT<StringT> fNodeLabels;
   ArrayT<StringT> fElementLabels;
   ArrayT<StringT> fQuadratureLabels;
+  iArrayT fNVUsed;
+  iArrayT fEVUsed;
+  iArrayT fQVUsed;
 
   int fNumTS;
   dArrayT fTimeSteps;

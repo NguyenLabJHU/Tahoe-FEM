@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.3 2001-09-10 16:47:22 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.4 2001-09-13 13:31:55 sawimme Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -358,4 +358,21 @@ void TranslateIOManager::WriteSideSets (void)
 	  fOutput->AddSideSet (fGlobalSideSets [i], i+1, g);
 	}
     }
+}
+
+void TranslateIOManager::VariableQuery (const ArrayT<StringT>& names, iArrayT& list)
+{
+  iAutoArrayT temp;
+  for (int i=0; i < fNumNV; i++)
+    {
+      StringT answer;
+      cout << " Extract variable " << names[i] << " (y/n) ? ";
+      cin >> answer;
+
+      if (answer[0] == 'y' || answer[0] == 'Y')
+	temp.Append (i);
+    }
+
+  list.Allocate (temp.Length());
+  list.CopyPart (0, temp, 0, temp.Length());  
 }
