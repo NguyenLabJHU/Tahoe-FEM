@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.14 2002-02-25 03:39:24 paklein Exp $ */
+/* $Id: DetCheckT.cpp,v 1.15 2002-02-26 01:47:43 raregue Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "DetCheckT.h"
@@ -81,7 +81,7 @@ int DetCheckT::IsLocalized_SS(dArrayT& normal)
 		return check;
 	}
 	else
-          // not ready yet. remove to run problem to debu
+	// not ready yet. remove to run problem to debug
 	return DetCheck3D_SS(normal);
 	//return 7;    
 }
@@ -216,6 +216,7 @@ int DetCheckT::DetCheck3D_SS(dArrayT& normal)
   dTensor4DT C(3,3,3,3);
   
 	// initialize variables
+	normal=0.0;
 	A = 0.0;
 	C = 0.0;
 	Ainverse = 0.0;
@@ -251,7 +252,17 @@ for (m=0;m<72;m++)
 		localmin [m] [n] = 0.0;
 	  }
   }
-
+/*
+	for (m=0;m<3;m++){
+		for (n=0;n<3;n++){
+			for (k=0;k<3;k++){
+				for (l=0;l<3;l++){
+					C [k] [m] [n] [l] = 0.0; 
+				}
+			}
+		}
+	}
+*/
 		
 	// convert tangent modulus from rank 2 to rank 4
 	for (k=0;k<3;k++)
@@ -325,6 +336,82 @@ for (m=0;m<72;m++)
              C(1,0,1,2) = fc_ijkl (5,3);
              C(1,0,2,1) = fc_ijkl (5,3);
 
+
+
+/* use dTensor4DT for C instead of this
+	for (k=0;k<3;k++)
+	  {
+		for (l=0;l<3;l++)
+		  { 
+			C [k] [k] [l] [l]  = fc_ijkl (k,l);
+		  }
+	  }
+	    
+           for (k=0;k<3;k++){
+             C [k] [k] [1] [2]  = fc_ijkl (k,3);
+             C [k] [k] [2] [1]  = fc_ijkl (k,3);
+             C [k] [k] [0] [2]  = fc_ijkl (k,4);
+             C [k] [k] [2] [0]  = fc_ijkl (k,4);
+             C [k] [k] [0] [1]  = fc_ijkl (k,5);
+             C [k] [k] [1] [0]  = fc_ijkl (k,5);
+           }
+
+           for (k=0;k<3;k++){
+             C [1] [2] [k] [k]  = fc_ijkl (3,k);
+             C [2] [1] [k] [k]  = fc_ijkl (3,k);
+             C [0] [2] [k] [k]  = fc_ijkl (4,k);
+             C [2] [0] [k] [k]  = fc_ijkl (4,k);
+             C [0] [1] [k] [k]  = fc_ijkl (5,k);
+             C [1] [0] [k] [k]  = fc_ijkl (5,k);
+           }
+
+             C [1] [2] [1] [2]  = fc_ijkl (3,3);
+             C [1] [2] [2] [1]  = fc_ijkl (3,3);
+             C [2] [1] [1] [2]  = fc_ijkl (3,3);
+             C [2] [1] [2] [1]  = fc_ijkl (3,3);
+             
+			 C [0] [2] [0] [2]  = fc_ijkl (4,4);
+             C [0] [2] [2] [0]  = fc_ijkl (4,4);
+             C [2] [0] [0] [2]  = fc_ijkl (4,4);
+             C [2] [0] [2] [0]  = fc_ijkl (4,4);
+             
+             C [0] [1] [0] [1]  = fc_ijkl (5,5);
+             C [0] [1] [1] [0]  = fc_ijkl (5,5);
+             C [1] [0] [0] [1]  = fc_ijkl (5,5);
+             C [1] [0] [1] [0]  = fc_ijkl (5,5);
+             
+             C [1] [2] [0] [2]  = fc_ijkl (3,4);
+             C [1] [2] [2] [0]  = fc_ijkl (3,4);
+             C [2] [1] [0] [2]  = fc_ijkl (3,4);
+             C [2] [1] [2] [0]  = fc_ijkl (3,4);
+           
+             C [0] [2] [1] [2]  = fc_ijkl (4,3);
+             C [0] [2] [2] [1]  = fc_ijkl (4,3);
+             C [2] [0] [1] [2]  = fc_ijkl (4,3);
+             C [2] [0] [2] [1]  = fc_ijkl (4,3);
+
+             C [0] [2] [0] [1]  = fc_ijkl (4,5);
+             C [0] [2] [1] [0]  = fc_ijkl (4,5);
+             C [2] [0] [0] [1]  = fc_ijkl (4,5);
+             C [2] [0] [1] [0]  = fc_ijkl (4,5);
+             
+             C [0] [1] [0] [2]  = fc_ijkl (5,4);
+             C [0] [1] [2] [0]  = fc_ijkl (5,4);
+             C [1] [0] [0] [2]  = fc_ijkl (5,4);
+             C [1] [0] [2] [0]  = fc_ijkl (5,4);
+
+             C [1] [2] [0] [1]  = fc_ijkl (3,5);
+             C [1] [2] [1] [0]  = fc_ijkl (3,5);
+             C [2] [1] [0] [1]  = fc_ijkl (3,5);
+             C [2] [1] [1] [0]  = fc_ijkl (3,5);
+             
+             C [0] [1] [1] [2]  = fc_ijkl (5,3);
+             C [0] [1] [2] [1]  = fc_ijkl (5,3);
+             C [1] [0] [1] [2]  = fc_ijkl (5,3);
+             C [1] [0] [2] [1]  = fc_ijkl (5,3);
+*/
+
+
  /* initial sweep in 10 degree increments to determine approximate 
   *local minima */
 
@@ -340,25 +427,16 @@ for (m=0;m<72;m++)
       normal[1]=sin(theta)*cos(phi);
       normal[2]=sin(phi);
 
-	     // initialize acoustic tensor A
-		//A = 0.0;
-        /*     for (m=0;m<3;m++){
-	       for (n=0;n<3;n++){
-		 A (m,n) =0;
-	       }
-	     }
-	     */
-	    
+	// initialize acoustic tensor A
+	A = 0.0;
 
-
-	     // A=normal*C*normal
-              
+	// A=normal*C*normal       
 	for (m=0;m<3;m++){
 		for (n=0;n<3;n++){
 			for (k=0;k<3;k++){
 				for (l=0;l<3;l++){
-					//A (m,n)+=normal[k]*C [k] [m] [n] [l]*normal[l]; 
 					A(m,n)+=normal[k]*C(k,m,n,l)*normal[l]; 
+					//A (m,n)+=normal[k]*C [k] [m] [n] [l]*normal[l];
 				}
 			}
 		}
@@ -495,26 +573,28 @@ else
           else
                 localmin [i] [j] = 0;
           break; 
- }
-    }   
-  }
-     /* Newton iteration to refine minima*/
+}
+}   
+}
+     
+     
+/* Newton iteration to refine minima*/
 
-  // cout << "new integration point" << endl;
+// cout << "new integration point" << endl;
 
- for (i=0;i<72;i++){
-    for (j=0;j<19; j++){
+	for (i=0;i<72;i++){
+		for (j=0;j<19; j++){
 
-      // cout << " niv ";
+		// cout << " niv ";
 
-       if (localmin [i] [j] ==1)
-	 {
+		if (localmin [i] [j] ==1)
+		  {
  
-	   // cout << endl;
+	    // cout << endl;
 
-	   // 0 false, 1 true
-
+// 0 false, 1 true
 #if 1
+
             theta=Pi/36*i;
             phi=Pi/36*j;
 
@@ -525,60 +605,30 @@ else
 	    // cout << "initial vector = \n";
 	    // cout << normal << endl;
 
-             prevnormal[0]=1;
-             prevnormal[1]=1;
-             prevnormal[2]=1;
-             /*
-             prevnormal(0)=1;
-             prevnormal(1)=1;
-             prevnormal(2)=1;
-             */
+             prevnormal[0]=1.0;
+             prevnormal[1]=1.0;
+             prevnormal[2]=1.0;
 
              newtoncounter=0;
 	    
-	     resid=0.0;
+	    resid=0.0;
 
-	     while (resid < 1-tol && newtoncounter <= 30){
+		while (resid < 1-tol && newtoncounter <= 30){
 
-               newtoncounter++;
-               if (newtoncounter > 30)
-		 {
-		// cout << "Newton refinement did not converge after 30 iterations-Localization check failed \n"; 
-		// return 8;
-		return 0;
-                 }
+		newtoncounter++;
+		if (newtoncounter > 30)
+		  {
+			cout << "Newton refinement did not converge after 30 iterations-Localization check failed \n"; 
+			return 8;
+			//return 0;
+		  }
 
+	prevnormal=normal;
+ 
+ 	// initialize acoustic tensor A
+	A = 0.0;
 
-	       for (k=0;k<3;k++){
-		 prevnormal[k]=normal[k];
-		 //prevnormal(k)=normal[k];
-	       }
- // initialize acoustic tensor A
-
-		A = 0.0;
-		/*
-             for (m=0;m<3;m++){
-	       for (n=0;n<3;n++){
-		 A (m,n) =0;
-	       }
-	     }
-	     */
-	    
-
-
-	     // A=normal*C*normal
-              
-       /*      for (m=0;m<3;m++){
-	       for (n=0;n<3;n++){
-		 for (k=0;k<3;k++){
-		   for (l=0;l<3;l++){
-                     A (m,n)+=normal[k]*C [k] [m] [n] [l]*normal[l]; 
-		   }
-		 }
-	       }
-	     }
-	     */
-              
+	// A=normal*C*normal    
 	for (m=0;m<3;m++){
 		for (n=0;n<3;n++){
 			for (k=0;k<3;k++){
@@ -590,21 +640,13 @@ else
 		}
 	}
 
-             detA [i] [j]= A.Det();  
- 	     Ainverse.Inverse(A);
+	detA [i] [j]= A.Det();
+	Ainverse.Inverse(A);
 
-   // initialize J
-		J = 0.0;
-		/*
-             for (m=0;m<3;m++){
-	       for (n=0;n<3;n++){
-		 J (m,n) =0;
-	       }
-	     }
-	     */
+	// initialize J
+	J = 0.0;
 
-	     //form Jmn=det(A)*Cmkjn*(A^-1)jk
-
+	//form Jmn=det(A)*Cmkjn*(A^-1)jk
 	for (m=0;m<3;m++){
 		for (n=0;n<3;n++){
 			for (k=0;k<3;k++){
@@ -697,11 +739,11 @@ tempmatrix.eigenvalue3x3(tempmatrix, realev, imev);
 
 #endif
 
-#if 0
+#if 1
 
  // chooses eigvector by one that gives smallest value of det(A)
 
-	if ( (fabs(imev[0])<tol) || (fabs(0.001*imev[0]/realev[0])<tol) )
+	if ( fabs(imev[0])<tol || fabs(0.001*imev[0]/realev[0])<tol )
 	  {
 		tempmatrix.eigenvector3x3(tempmatrix, realev[0], numev, normal0, altnormal, altnormal2);
 		A0.formacoustictensor(A0, C, normal0);
@@ -710,7 +752,7 @@ tempmatrix.eigenvalue3x3(tempmatrix, realev, imev);
 	else
 		detA0 = A0.ScalarProduct()*A0.ScalarProduct();
 
-	if ( (fabs(imev[1])<tol) || (fabs(0.001*imev[1]/realev[1])<tol) )
+	if ( fabs(imev[1])<tol || fabs(0.001*imev[1]/realev[1])<tol )
    	  {
 		tempmatrix.eigenvector3x3(tempmatrix, realev[1], numev, normal1, altnormal, altnormal2);
 		A1.formacoustictensor(A1, C, normal1);
@@ -719,7 +761,7 @@ tempmatrix.eigenvalue3x3(tempmatrix, realev, imev);
 	else
 		detA1 = A1.ScalarProduct()*A1.ScalarProduct();
 
-	if ( (fabs(imev[2])<tol) || (fabs(0.001*imev[2]/realev[2])<tol) )
+	if ( fabs(imev[2])<tol || fabs(0.001*imev[2]/realev[2])<tol )
 	  {
 		tempmatrix.eigenvector3x3(tempmatrix, realev[2], numev, normal2, altnormal, altnormal2);
 		A2.formacoustictensor(A2, C, normal2);
@@ -756,12 +798,12 @@ tempmatrix.eigenvalue3x3(tempmatrix, realev, imev);
 
 #endif
 
+
+
 	if (leastmin > detA [i] [j])
 	  {
 		leastmin = detA [i] [j];
-		finalnormal[0]=normal[0];
-		finalnormal[1]=normal[1];
-		finalnormal[2]=normal[2];
+		finalnormal=normal;
 	  }
 	if (detA [i] [j] < tol)
 	  {
@@ -774,10 +816,10 @@ tempmatrix.eigenvalue3x3(tempmatrix, realev, imev);
 		  }
 		else
 		  {
-			cout << "iloccount = ";
-			cout << iloccount << '\n';
+			//cout << "iloccount = ";
+			//cout << iloccount << '\n';
 		  }
-		iloccount=iloccount+1;
+		iloccount++;
 	  }
 
 
@@ -791,17 +833,13 @@ tempmatrix.eigenvalue3x3(tempmatrix, realev, imev);
 
 	if (leastmin > 0)
 	  {
-		normal[0]=0;
-		normal[1]=0;
-		normal[2]=0;
+		normal=0.0;
 		return 0;
 	  }
 	else
 	  {
-		normal[0]=finalnormal[0];
-		normal[1]=finalnormal[1];
-		normal[2]=finalnormal[2];
-             
+		normal=finalnormal;
+		  
 		/*****
 		A.formacoustictensor(A, C, normal);
 		A.eigenvalue3x3(A, realev, imev);
