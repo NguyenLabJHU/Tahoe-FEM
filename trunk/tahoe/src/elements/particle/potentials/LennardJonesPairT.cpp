@@ -1,4 +1,4 @@
-/* $Id: LennardJonesPairT.cpp,v 1.11 2004-07-15 08:29:49 paklein Exp $ */
+/* $Id: LennardJonesPairT.cpp,v 1.12 2004-07-26 09:26:46 paklein Exp $ */
 #include "LennardJonesPairT.h"
 #include <iostream.h>
 #include <math.h>
@@ -97,7 +97,7 @@ void LennardJonesPairT::DefineParameters(ParameterListT& list) const
 	PairPropertyT::DefineParameters(list);
 
 	ParameterT eps(f_eps, "energy_scaling");
-	eps.AddLimit(0.0, LimitT::Lower);
+	eps.AddLimit(0.0, LimitT::LowerInclusive);
 	list.AddParameter(eps);
 
 	ParameterT sigma(f_sigma, "length_scaling");
