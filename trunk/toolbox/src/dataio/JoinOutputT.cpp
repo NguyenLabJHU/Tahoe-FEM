@@ -1,4 +1,4 @@
-/* $Id: JoinOutputT.cpp,v 1.8 2002-03-04 06:20:24 paklein Exp $ */
+/* $Id: JoinOutputT.cpp,v 1.9 2002-03-06 08:22:34 paklein Exp $ */
 /* created: paklein (03/24/2000) */
 
 #include "JoinOutputT.h"
@@ -257,7 +257,7 @@ void JoinOutputT::SetOutput(void)
 	}
 
 	/* construct output sets for each ID */
-	int ID, count = 0;
+	int ID;
 	io >> ID;
 	while (io.good())
 	{
@@ -276,14 +276,89 @@ void JoinOutputT::SetOutput(void)
 		 * is tied to element blocks in the geometry file */
 		if (block_ID.Length() == 0)
 		{
-//TEMP
-cout << "\n JoinOutputT::SetOutput: cannot join data for free sets"<< endl;		
+cout << "\n JoinOutputT::SetOutput: configuring free set: " << ID << endl;
+
+			/* geometry from each part */
+			ArrayT<iArray2DT> part_elems(fPartitions.Length());
+			
+			/* read geometry */
+			int num_elem_nodes = 0;
+			int num_elem = 0;
+			GeometryT::CodeT geometry_code;
+			ArrayT<StringT> block_ID;
+			for (int i = 0; i < part_elems.Length(); i++) 
+			{
+				/* look for part file */
+				StringT data_file;
+				ResultFileName(i, ID, data_file);
+				if (fstreamT::Exists(data_file))
+				{
+					/* open database */
+					ModelManagerT results(cout);
+					if (!results.Initialize(fResultsFileType, data_file, true)) {
+						cout << "\n JoinOutputT::SetOutput: could not initialize file \""
+						     << data_file << '\"' << endl;
+						throw eDatabaseFail;
+					}
+					
+					/* check */
+					if (results.NumElementGroups() != 1) {
+						cout << "\n JoinOutputT::SetOutput: only expecting 1 element group in free output set: " 
+						     << results.NumElementGroups() << endl;
+						throw eDatabaseFail;
+					}
+				
+					/* part geometry */
+					if (block_ID.Length() == 0) {
+						block_ID.Allocate(1);
+						block_ID[0] = results.ElementGroupID(0);
+						geometry_code = results.ElementGroupGeometry(block_ID[0]);
+					}
+
+					/* set connectivities */
+					iArray2DT& connects = part_elems[i];
+					connects = results.ElementGroup(block_ID[0]);
+					
+					/* file -> partition numbering */
+					iArrayT nodes(results.NumNodes());
+					results.AllNodeIDs(nodes);
+					nodes--; /* id -> index */
+					for (int k = 0; k < connects.Length(); k++) 
+						connects[k] = nodes[connects[k]];
+
+					/* partition -> global numbering */
+					nodes.Alias(fPartitions[i].NodeMap());
+					for (int k = 0; k < connects.Length(); k++) 
+						connects[k] = nodes[connects[k]];
+
+					/* counts */					
+					num_elem += connects.MajorDim();
+					if (num_elem_nodes == 0) num_elem_nodes = connects.MinorDim();
+				}
+			}
+			
+			/* concat connectivities (no check for redundancy for now) */
+			iArray2DT all_connects(num_elem, num_elem_nodes);
+			num_elem = 0;
+			for (int i = 0; i < part_elems.Length(); i++) {
+				all_connects.BlockRowCopyAt(part_elems[i], num_elem);
+				num_elem += part_elems[i].MajorDim();
+			}
+			
+			/* store connectivities in the model manager */
+			StringT sID = block_ID[0];
+			if (!fModel->RegisterElementGroup(sID, all_connects, geometry_code, true)) {
+				cout << "\n JoinOutputT::SetOutput: error registering free set with the model manager: " << sID << endl;
+				throw eDatabaseFail;	
+			}
 		
-// "build" free set from the partial results files
-
-// add to global geometry
-
-// register output set
+			/* construct output set */
+			const iArray2DT& connects = fModel->ElementGroup(sID);
+			bool changing = false; // changing geometry not supported
+			OutputSetT output_set(sID, geometry_code, connects, n_labels);
+	
+			/* register */
+			fOutput->AddElementSet(output_set);
 		}
 		else
 		{
@@ -307,7 +382,7 @@ cout << "\n JoinOutputT::SetOutput: cannot join data for free sets"<< endl;
 			/* construct output set */
 			bool changing = false; // changing geometry not supported
 			StringT set_ID;
-			set_ID.Append(++count);
+			set_ID.Append(ID);
 			OutputSetT output_set(set_ID, geometry_code, block_ID, connects_list, n_labels, e_labels, changing);
 	
 			/* register */
@@ -597,10 +672,13 @@ int JoinOutputT::NumOutputSteps(int group) const
 		StringT filename;
 		ResultFileName(i, group, filename);
 		
-		/* open the database file */
-		ModelManagerT results(cout);
-		if (results.Initialize(fResultsFileType, filename, true))
-			num_steps = results.NumTimeSteps();
+		/* file exists */
+		if (fstreamT::Exists(filename)) {
+			/* open the database file */
+			ModelManagerT results(cout);
+			if (results.Initialize(fResultsFileType, filename, true))
+				num_steps = results.NumTimeSteps();
+		}
 	}
 	return num_steps;
 }
@@ -705,7 +783,7 @@ void JoinOutputT::CheckAssemblyMaps(void)
 		}
 			
 		/* check element maps */
-		if (set.NumNodeValues() > 0)
+		if (set.NumElementValues() > 0)
 		{			
 				/* assembly map */
 				const MapSetT& map_set = fMapSets[i];
