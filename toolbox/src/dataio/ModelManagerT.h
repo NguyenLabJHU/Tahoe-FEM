@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.4.2.9 2001-10-28 23:38:23 paklein Exp $ */
+/* $Id: ModelManagerT.h,v 1.4.2.10 2001-10-29 21:11:21 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -29,16 +29,18 @@ class ModelManagerT
   /* give file name and format, casts and initializes InputBaseT */
   void Initialize (const IOBaseT::FileTypeT format, const StringT& database);
 
-  /* echo format and model file to message file */
-  void EchoData (ostream& o) const;
-  void Format (IOBaseT::FileTypeT& format, StringT& name) const;
-
   /* Query the user interactively for format and file name, 
      for translator programs,
      casts and initializes InputBaseT */
   void Initialize (void);
 
-  /* registration, arrays to be read later as needed  */
+  /* echo format and model file to message file */
+  void EchoData (ostream& o) const;
+
+  /* retrieve format and modle file */
+  void Format (IOBaseT::FileTypeT& format, StringT& name) const;
+
+  /* registration, arrays to be read later as needed from input class */
   bool RegisterNodes (int length, int dof);
   bool RegisterElementGroup (const StringT& name, int numelems, int numelemnodes, GeometryT::CodeT code);
   bool RegisterNodeSet (const StringT& name, int length);
@@ -50,7 +52,7 @@ class ModelManagerT
   bool RegisterNodeSet (const StringT& name, iArrayT& set);
   bool RegisterSideSet (const StringT& name, iArray2DT& set, bool local, int groupindex);
 
-  /* register the actual array from a file */
+  /* register the actual array from a file or inline */
   bool RegisterNodes (ifstreamT& in);
   bool RegisterElementGroup (ifstreamT& in, const StringT& name, GeometryT::CodeT code);
   bool RegisterNodeSet (ifstreamT& in, const StringT& name);
@@ -133,10 +135,14 @@ class ModelManagerT
   void SideSetLocalToGlobal (const int localelemindex, const iArray2DT& local, iArray2DT& global);
   void SideSetGlobalToLocal (int& localelemindex, iArray2DT& local, const iArray2DT& global);
 
-  /* modifiers */
+  /* coordinate modifiers */
   void AddNodes (const dArray2DT& newcoords, iArrayT& new_node_tags, int& newtotalnumnodes);
   void DuplicateNodes (const iArrayT& nodes, iArrayT& new_node_tags, int& newtotalnumnodes);
   void AdjustCoordinatesto2D (void);
+
+  /* connectivity modifiers */
+  void UpdateConnectivityDimensions (int index);
+  void AddElement (int index, const iArray2DT& connects, iArrayT& new_elem_tags, int& newtotalnumelems);
 
   /* This closes link to InputBaseT, it does not clear data */
   void CloseModel (void);
