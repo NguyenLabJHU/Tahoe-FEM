@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: ExodusInputT.h,v 1.2 2001-08-03 19:16:43 sawimme Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #ifndef _EXODUSINPUT_T_H_
@@ -18,41 +18,101 @@ class iArray2DT;
 class ExodusInputT : public InputBaseT
 {
 public:
-ExodusInputT (ostream& out, const char* filename);
+  ExodusInputT (ostream& out);
 
-/* virtual with InputManager base class */
-virtual int  NumElementGroups (void) const;
-virtual int  NumSideSets (void) const;
-virtual int  NumNodeSets (void) const;
-virtual void GroupNumbers (iArrayT& groupnums) const;
-virtual void SideSetNumbers (iArrayT& sidenums) const;
-virtual void NodeSetNumbers (iArrayT& nodenums) const;
+  virtual void Open (const StringT& file);
+  virtual void Close (void);
 
-virtual void ReadCoordinates (dArray2DT& coords, iArrayT& nodemap);
-virtual void ReadConnectivity (int group, GeometryT::CodeT& geocode, iArray2DT& connects, iArrayT& elementmap);
-virtual void ReadNodeSet (int set_num, iArrayT& nodes) const;
-virtual void ReadSideSet (int set_num, iArray2DT& sides) const;
-virtual void ReadSideSetGlobal (int set_num, iArray2DT& sides) const;
-virtual void Close (void);
-virtual void QARecords (ArrayT<StringT>& records) const;
-virtual void ReadTimeSteps (dArrayT& steps);
-virtual void ReadLabels (ArrayT<StringT>& nlabels, ArrayT<StringT>& elabels, int group_id);
-virtual void ReadVariables (int step, int group_id, dArray2DT& nvalues, dArray2DT& evalues);
+  /* virtual with InputManager base class */
+  virtual int  NumElementGroups (void);
+  virtual int  NumSideSets (void);
+  virtual int  NumNodeSets (void);
 
-private:
-void NodesUsed(const iArray2DT& connects, iArrayT& nodesused) const;
+  virtual int  NumNodes (void);
+  virtual int  NumDimensions (void);
+  virtual void ReadNodeMap (iArrayT& nodemap);
+  virtual void ReadCoordinates (dArray2DT& coords);
+  virtual void ReadCoordinates (dArray2DT& coords, iArrayT& nodemap);
 
-private:
-ExodusT fData;
+  virtual bool AreSideSetsLocal (void);
+
+  virtual int  NumGlobalElements (void);
+  virtual void ReadAllElementMap (iArrayT& elemmap);
+
+  virtual void QARecords (ArrayT<StringT>& records);
+
+  virtual int  NumTimeSteps (void);
+  virtual void ReadTimeSteps (dArrayT& steps);
+
+  virtual int  NumNodeVariables (void);
+  virtual int  NumElementVariables (void);
+
+ protected:
+  virtual void ElementGroupIDs (iArrayT& groupnums);
+  virtual void SideSetIDs (iArrayT& sidenums);
+  virtual void NodeSetIDs (iArrayT& nodenums);
+  
+  virtual int NumElements_ID (int ID);
+  virtual int NumElementNodes_ID (int ID);
+  virtual void ReadGlobalElementMap_ID (int ID, iArrayT& elemmap);
+  virtual void ReadConnectivity_ID (int ID, iArray2DT& connects);
+  virtual void ReadGeometryCode_ID (int ID, GeometryT::CodeT& code);
+
+  virtual int  NumNodesInSet_ID (int ID);
+  virtual void ReadNodeSet_ID (int ID, iArrayT& nodes);
+
+  virtual int  NumSidesInSet_ID (int ID);
+  virtual int  SideSetGroupIndex_ID (int ID);
+  virtual void ReadSideSetLocal_ID (int ID, iArray2DT& sides);
+  virtual void ReadSideSetGlobal_ID (int ID, iArray2DT& sides);
+
+  virtual void ReadElementLabels_ID (int ID, ArrayT<StringT>& elabels);
+  virtual void ReadElementVariables_ID (int step, int ID, dArray2DT& evalues);
+
+ private:
+  void NodesUsed(const iArray2DT& connects, iArrayT& nodesused) const;
+  
+ private:
+  ExodusT fData;
 };
 
-inline int ExodusInputT::NumElementGroups (void) const
+inline int ExodusInputT::NumDimensions (void)
+{ return fData.NumDimensions (); }
+
+inline int ExodusInputT::NumElementGroups (void)
 { return fData.NumElementBlocks (); }
 
-inline int ExodusInputT::NumSideSets (void) const
+inline int ExodusInputT::NumSideSets (void)
 { return fData.NumSideSets (); }
 
-inline int ExodusInputT::NumNodeSets (void) const
+inline int ExodusInputT::NumNodeSets (void)
 { return fData.NumNodeSets (); }
+
+inline int ExodusInputT::NumNodes (void)
+{ return fData.NumNodes(); }
+
+inline void ExodusInputT::Close (void)
+{ fData.Close (); }
+
+inline void ExodusInputT::QARecords (ArrayT<StringT>& records)
+{ fData.ReadQA (records); }
+
+inline int ExodusInputT::NumTimeSteps (void)
+{ return fData.NumTimeSteps (); }
+
+inline bool ExodusInputT::AreSideSetsLocal (void)
+{ return true; }
+
+inline int ExodusInputT::NumNodeVariables (void)
+{ return fData.NumNodeVariables (); }
+
+inline int ExodusInputT::NumElementVariables (void)
+{ return fData.NumElementVariables (); }
+
+inline int ExodusInputT::NumNodesInSet_ID (int setnum)
+{ return fData.NumNodesInSet (setnum); }
+
+inline int ExodusInputT::NumSidesInSet_ID (int setnum)
+{ return fData.NumSidesInSet (setnum); }
 
 #endif
