@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_Data.h,v 1.2 2003-03-06 17:23:31 paklein Exp $ */
+/* $Id: SIERRA_Material_Data.h,v 1.3 2003-03-08 01:56:20 paklein Exp $ */
 #ifndef _SIERRA_MAT_DATA_H_
 #define _SIERRA_MAT_DATA_H_
 
@@ -37,8 +37,8 @@ public:
 	/** set the number of state variables */
 	void SetNumStateVariables(int nsv) { fNumStateVars = nsv; }; 
 
-	/** add a material property */
-	void AddProperty(const StringT& name, double value);
+	/** add a material property. Return the index of the value in the parameters array */
+	int AddProperty(const StringT& name, double value);
 	/*@}*/
 
 	/** \name accessors */
@@ -115,10 +115,15 @@ private:
 };
 
 /* add a material property */
-void SIERRA_Material_Data::AddProperty(const StringT& name, double value)
+inline int SIERRA_Material_Data::AddProperty(const StringT& name, double value)
 {
 	if (fPropertyNames.AppendUnique(name))
+	{
 		fPropertyValues.Append(value);
+		return fPropertyValues.Length() - 1;
+	}
+	else 
+		return fPropertyNames.PositionOf(name);
 }
 
 } /* namespace Tahoe */
