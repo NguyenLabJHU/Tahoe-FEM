@@ -1,4 +1,4 @@
-/* $Id: testClass.cpp,v 1.1 2002-07-17 23:28:43 paklein Exp $ */
+/* $Id: testClass.cpp,v 1.2 2002-07-20 01:59:11 paklein Exp $ */
 #include "testClass.h"
 
 testClass::testClass(int a): a_(a)
@@ -6,5 +6,5 @@ testClass::testClass(int a): a_(a)
 
 void testClass::Print(ostream& out)
 {
-	out << a_ << endl;
+	out << "\n testClass::Print: field value is " << a_ << endl;
 }
