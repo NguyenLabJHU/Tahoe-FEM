@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.3 2003-08-14 01:22:43 paklein Exp $ */
+/* $Id: main.cpp,v 1.4 2003-08-14 04:58:04 paklein Exp $ */
 #include "Environment.h"
 #include "ofstreamT.h"
 
@@ -22,8 +22,11 @@ int main(int argc, char** argv)
 #pragma unused(argc)
 #pragma unused(argv)
 
+#ifdef __MWERKS__
 	StringT cwd = "/Volumes/Uster/USERS/paklein/Code/protected-tahoe/contrib/parameter_example/example/";
-	//StringT cwd = "./";
+#else
+	StringT cwd = "./";
+#endif
 
 	/* dump a parameter description */
 	StringT dtd_path;
