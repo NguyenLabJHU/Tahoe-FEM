@@ -30,6 +30,9 @@
             <pair_particle_interaction label_1="Au" label_2="Au">
                 <Lennard_Jones cut_off_distance="2.63" energy_scaling="0.5678950796453064" length_scaling="2.62311730030557" mass="196.97"/>
             </pair_particle_interaction>
+            <particle_pair_output centrosymmetry="1" displacement="1"
+                kinetic_energy="1" potential_energy="1" slip_vector="1"
+                strain="1" stress="1"/>
         </particle_pair>
     </element_list>
     <PCG_solver abs_tolerance="1.0e-12" divergence_tolerance="1.0e+06" line_search_iterations="10" line_search_tolerance="0.1" max_iterations="2500" max_step="2.5" rel_tolerance="1.0e-12" restart="50"><profile_matrix/></PCG_solver>

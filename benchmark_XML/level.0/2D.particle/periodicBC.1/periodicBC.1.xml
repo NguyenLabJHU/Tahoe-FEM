@@ -21,6 +21,9 @@
             <pair_particle_interaction label_1="A" label_2="A">
                 <Lennard_Jones cut_off_distance="2.244924096618746" energy_scaling="0.00017361111111111128" length_scaling="0.22272467953508482" mass="1.0"/>
             </pair_particle_interaction>
+            <particle_pair_output centrosymmetry="1" displacement="1"
+                kinetic_energy="1" potential_energy="1" slip_vector="1"
+                strain="1" stress="1"/>
         </particle_pair>
     </element_list>
     <linear_solver><diagonal_matrix/></linear_solver>
