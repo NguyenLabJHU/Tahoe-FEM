@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact2DT.cpp,v 1.3 2002-06-08 20:20:19 paklein Exp $ */
+/* $Id: PenaltyContact2DT.cpp,v 1.3.2.1 2002-06-27 18:02:41 cjkimme Exp $ */
 /* created: paklein (12/11/1997) */
 
 #include "PenaltyContact2DT.h"
@@ -11,6 +11,9 @@
 #include "eControllerT.h"
 
 /* parameters (duplicated from Contact2DT) */
+
+using namespace Tahoe;
+
 const int kNumFacetNodes = 2;
 
 /* constructor */

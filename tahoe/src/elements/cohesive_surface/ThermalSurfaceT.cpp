@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.cpp,v 1.3 2002-06-10 06:59:24 paklein Exp $ */
+/* $Id: ThermalSurfaceT.cpp,v 1.3.2.1 2002-06-27 18:02:36 cjkimme Exp $ */
 #include "ThermalSurfaceT.h"
 
 #include <math.h>
@@ -12,6 +12,9 @@
 #include "eControllerT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 ThermalSurfaceT::ThermalSurfaceT(const ElementSupportT& support, const FieldT& field):
 	CSEBaseT(support, field),
 	fLocTemperatures(LocalArrayT::kDisp)

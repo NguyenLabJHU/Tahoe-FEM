@@ -1,8 +1,11 @@
-/* $Id: SolverInterfaceT.h,v 1.1 2002-04-02 23:37:01 paklein Exp $ */
+/* $Id: SolverInterfaceT.h,v 1.1.4.1 2002-06-27 18:04:18 cjkimme Exp $ */
 #ifndef SOLVER_INTERFACE_H
 #define SOLVER_INTERFACE_H
   
 /* forward declarations */
+
+namespace Tahoe {
+
 class dArrayT;
 class GlobalMatrixT;  
   
@@ -36,4 +39,5 @@ class SolverInterfaceT {
 
 };
 
+} // namespace Tahoe 
 #endif /* SOLVER_INTERFACE_H */

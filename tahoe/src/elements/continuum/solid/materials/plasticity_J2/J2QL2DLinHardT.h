@@ -1,4 +1,4 @@
-/* $Id: J2QL2DLinHardT.h,v 1.4 2001-07-03 01:35:31 paklein Exp $ */
+/* $Id: J2QL2DLinHardT.h,v 1.4.6.1 2002-06-27 18:03:35 cjkimme Exp $ */
 /* created: paklein (06/29/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -21,6 +21,9 @@
 #include "dMatrixT.h"
 #include "dArrayT.h"
 #include "iArrayT.h"
+
+
+namespace Tahoe {
 
 class J2QL2DLinHardT: public QuadLog2D, public J2PrimitiveT
 {
@@ -123,4 +126,5 @@ private:
 	dMatrixT ffrel_2D;	
 };
 
+} // namespace Tahoe 
 #endif /* _J2_QL_LIN_HARD_2D_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.28 2002-06-12 16:17:46 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.28.2.1 2002-06-27 18:02:46 cjkimme Exp $ */
 
 #include "SolidElementT.h"
 
@@ -24,6 +24,9 @@
 #include "ExceptionCodes.h"
 
 /* initialize static data */
+
+using namespace Tahoe;
+
 const int SolidElementT::NumNodalOutputCodes = 7;
 const int SolidElementT::NumElementOutputCodes = 7;
 

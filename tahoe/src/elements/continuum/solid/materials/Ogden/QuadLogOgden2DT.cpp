@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden2DT.cpp,v 1.2 2001-07-03 01:35:13 paklein Exp $ */
+/* $Id: QuadLogOgden2DT.cpp,v 1.2.6.1 2002-06-27 18:03:14 cjkimme Exp $ */
 /* created: paklein (02/18/2001)                                          */
 /* plane strain QuadLog with Ogden principal stretch formulation          */
 
@@ -8,6 +8,9 @@
 #include "fstreamT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 QuadLogOgden2DT::QuadLogOgden2DT(ifstreamT& in, const FiniteStrainT& element):
 	OgdenIsotropicT(in, element),
 	Material2DT(in, kPlaneStrain),

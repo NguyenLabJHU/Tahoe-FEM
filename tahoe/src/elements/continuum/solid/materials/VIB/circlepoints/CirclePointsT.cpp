@@ -1,9 +1,12 @@
-/* $Id: CirclePointsT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: CirclePointsT.cpp,v 1.1.1.1.10.1 2002-06-27 18:03:23 cjkimme Exp $ */
 /* created: paklein (11/02/1997)                                          */
 /* Base class for circular integration point generators.                  */
 
 #include "CirclePointsT.h"
 #include <math.h>
+
+
+using namespace Tahoe;
 
 const double Pi = acos(-1.0);
 

@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.8 2002-06-08 20:20:51 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.8.2.1 2002-06-27 18:04:00 cjkimme Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -7,6 +7,9 @@
 #include "FEManagerT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 TiedNodesT::TiedNodesT(NodeManagerT& node_manager, BasicFieldT& field):
 	KBC_ControllerT(node_manager),
 	fField(field),

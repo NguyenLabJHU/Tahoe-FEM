@@ -1,4 +1,4 @@
-/* $Id: J2QLLinHardT.cpp,v 1.7 2001-10-24 02:22:28 paklein Exp $ */
+/* $Id: J2QLLinHardT.cpp,v 1.7.4.1 2002-06-27 18:03:35 cjkimme Exp $ */
 /* created: paklein (10/26/2000)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -20,6 +20,9 @@
 #include "StringT.h"
 
 /* flags */
+
+using namespace Tahoe;
+
 const int kNumFlags = 2;
 const int kEP       = 0;
 const int kInit     = 1;

@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.11 2002-06-26 05:41:34 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.11.2.1 2002-06-27 18:04:18 cjkimme Exp $ */
 /* created: paklein (07/09/1996) */
 
 #include "NLSolver.h"
@@ -12,6 +12,9 @@
 #include "FEManagerT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 NLSolver::NLSolver(FEManagerT& fe_manager, int group):
 	SolverT(fe_manager, group),
 	fMaxIterations(-1),

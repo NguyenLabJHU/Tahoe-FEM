@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.8 2002-06-08 20:20:28 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.8.2.1 2002-06-27 18:02:53 cjkimme Exp $ */
 /* created: paklein (01/12/2000) */
 
 #ifndef _FE_MANAGER_MPI_H_
@@ -17,9 +17,16 @@
 #ifdef __MPI__
 #include "mpi.h"
 #else
+
+namespace Tahoe {
+
 typedef int MPI_Request;
 typedef int MPI_Op;
+
+} // namespace Tahoe 
 #endif
+
+namespace Tahoe {
 
 /* forward declarations */
 class IOManager_mpi;
@@ -196,4 +203,5 @@ inline const iArrayT* FEManagerT_mpi::ElementMap(const StringT& block_ID) const
 	}
 }
 
+} // namespace Tahoe 
 #endif /* _FE_MANAGER_H_ */

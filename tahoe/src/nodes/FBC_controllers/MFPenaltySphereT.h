@@ -1,4 +1,4 @@
-/* $Id: MFPenaltySphereT.h,v 1.2 2002-06-08 20:20:49 paklein Exp $ */
+/* $Id: MFPenaltySphereT.h,v 1.2.2.1 2002-06-27 18:03:58 cjkimme Exp $ */
 /* created: paklein (04/17/2000)                                          */
 
 #ifndef _MF_PENALTY_SPHERE_T_H_
@@ -8,6 +8,9 @@
 #include "PenaltySphereT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ElementBaseT;
 
 class MFPenaltySphereT: public PenaltySphereT
@@ -54,4 +57,5 @@ protected:
 
 };
 
+} // namespace Tahoe 
 #endif /* _MF_PENALTY_SPHERE_T_H_ */

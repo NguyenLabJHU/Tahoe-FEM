@@ -1,4 +1,4 @@
-/* $Id: SymmetricNodesT.cpp,v 1.2 2002-06-08 20:20:51 paklein Exp $ */
+/* $Id: SymmetricNodesT.cpp,v 1.2.2.1 2002-06-27 18:03:59 cjkimme Exp $ */
 #include "SymmetricNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -8,6 +8,9 @@
 #include "BasicFieldT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 SymmetricNodesT::SymmetricNodesT(NodeManagerT& node_manager, BasicFieldT& field):
 	TiedNodesT(node_manager, field)
 {
@@ -117,3 +120,4 @@ bool SymmetricNodesT::ChangeStatus(void)
   	return changeQ;
 
 }
+

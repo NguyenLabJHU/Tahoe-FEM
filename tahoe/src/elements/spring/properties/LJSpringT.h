@@ -1,4 +1,4 @@
-/* $Id: LJSpringT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: LJSpringT.h,v 1.1.1.1.10.1 2002-06-27 18:03:54 cjkimme Exp $ */
 /* created: paklein (11/20/1996)                                          */
 
 #ifndef _LJ_SPRINGT_H_
@@ -8,6 +8,9 @@
 #include "RodMaterialT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ThermalDilatationT;
 class ElementBaseT;
 
@@ -37,4 +40,5 @@ private:
 	
 };
 
+} // namespace Tahoe 
 #endif /* _LJ_SPRINGT_H_ */

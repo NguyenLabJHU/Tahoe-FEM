@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.h,v 1.5 2002-06-08 20:20:16 paklein Exp $ */
+/* $Id: CSEBaseT.h,v 1.5.2.1 2002-06-27 18:02:36 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #ifndef _CSE_BASE_T_H_
@@ -14,6 +14,9 @@
 #include "fstreamT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class SurfaceShapeT;
 class StringT;
 
@@ -161,4 +164,5 @@ protected:
 	ArrayT<const iArray2DT*> fOutput_Connectivities;
 };
 
+} // namespace Tahoe 
 #endif /* _CSE_BASE_T_H_ */

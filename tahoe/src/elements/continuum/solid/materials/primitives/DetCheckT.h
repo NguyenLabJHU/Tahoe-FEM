@@ -1,10 +1,13 @@
-/* $Id: DetCheckT.h,v 1.6 2002-02-26 01:47:43 raregue Exp $ */
+/* $Id: DetCheckT.h,v 1.6.4.1 2002-06-27 18:03:50 cjkimme Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _DETCHECK_T_H_
 #define _DETCHECK_T_H_
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class dSymMatrixT;
 class dMatrixT;
 class dArrayT;
@@ -67,4 +70,5 @@ private:
 	double A0, A2, A4;	/* amplitudes   */
 };
 
+} // namespace Tahoe 
 #endif /* _DETCHECK_T_H_ */

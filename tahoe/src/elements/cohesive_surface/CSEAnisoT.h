@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.11 2002-06-08 20:20:16 paklein Exp $ */
+/* $Id: CSEAnisoT.h,v 1.11.2.1 2002-06-27 18:02:36 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #ifndef _CSE_ANISO_T_H_
@@ -15,6 +15,9 @@
 #include "LocalArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class SurfacePotentialT;
 
 /* Cohesive surface elements with vector argument cohesive relations. */
@@ -116,4 +119,5 @@ protected:
 	Array2DT<bool> freeNodeQ, freeNodeQ_last;
 };
 
+} // namespace Tahoe 
 #endif /* _CSE_ANISO_T_H_ */

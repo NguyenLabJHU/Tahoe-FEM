@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.cpp,v 1.3 2001-07-03 01:35:41 paklein Exp $ */
+/* $Id: IsotropicT.cpp,v 1.3.6.1 2002-06-27 18:03:50 cjkimme Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "IsotropicT.h"
@@ -9,6 +9,9 @@
 #include "fstreamT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 IsotropicT::IsotropicT(ifstreamT& in)
 {
 	double E, nu;

@@ -1,4 +1,4 @@
-/* $Id: J2PrimitiveT.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: J2PrimitiveT.h,v 1.1.1.1.10.1 2002-06-27 18:03:35 cjkimme Exp $ */
 /* created: paklein (02/17/1997)                                          */
 /* Base class for a J2 plastic material with linear kinematic/            */
 /* isotropic hardening laws defined by:                                   */
@@ -14,6 +14,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 class dSymMatrixT;
 
@@ -86,4 +89,5 @@ inline double J2PrimitiveT::dK(double a) const
 	return ( ftheta*fH_bar );
 }
 
+} // namespace Tahoe 
 #endif /* _J2_PRIMITIVET_H_ */

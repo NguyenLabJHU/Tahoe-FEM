@@ -1,4 +1,4 @@
-/* $Id: RodMaterialT.h,v 1.2 2002-06-08 20:20:46 paklein Exp $ */
+/* $Id: RodMaterialT.h,v 1.2.2.1 2002-06-27 18:03:54 cjkimme Exp $ */
 /* created: paklein (11/20/1996)                                          */
 
 #ifndef _RODMATERIALT_H_
@@ -8,6 +8,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 class ThermalDilatationT;
 class ScheduleT;
@@ -48,4 +51,5 @@ protected:
 
 };
 
+} // namespace Tahoe 
 #endif /* _RODMATERIALT_H_ */

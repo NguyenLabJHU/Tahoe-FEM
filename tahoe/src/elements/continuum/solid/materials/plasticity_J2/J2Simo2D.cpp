@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.cpp,v 1.7 2002-06-08 20:20:41 paklein Exp $ */
+/* $Id: J2Simo2D.cpp,v 1.7.2.1 2002-06-27 18:03:35 cjkimme Exp $ */
 /* created: paklein (06/22/1997) */
 
 #include "J2Simo2D.h"
@@ -6,6 +6,9 @@
 #include "ElementCardT.h"
 
 /* constants */
+
+using namespace Tahoe;
+
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* constructor */

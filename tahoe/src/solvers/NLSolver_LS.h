@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LS.h,v 1.2 2002-06-08 20:20:55 paklein Exp $ */
+/* $Id: NLSolver_LS.h,v 1.2.2.1 2002-06-27 18:04:18 cjkimme Exp $ */
 /* created: paklein (08/18/1999) */
 
 #ifndef _NL_SOLVER_LS_H_
@@ -11,6 +11,9 @@
 #include "dArray2DT.h"
 
 /** nonlinear Newton solver with line search */
+
+namespace Tahoe {
+
 class NLSolver_LS: public NLSolver
 {
 public:
@@ -54,4 +57,5 @@ private:
 	dArray2DT fSearchData; // line search history
 };
 
+} // namespace Tahoe 
 #endif /* _NL_SOLVER_LS_H_ */

@@ -1,5 +1,5 @@
 
-/* $Id: DPPrimitiveT.cpp,v 1.5 2001-07-13 23:14:13 cfoster Exp $ */
+/* $Id: DPPrimitiveT.cpp,v 1.5.6.1 2002-06-27 18:03:33 cjkimme Exp $ */
 /* created: myip (06/01/1999)                                             */
 /* Base class for Druker-Prager, nonassociative, small strain,        */
 /* pressure dependent plasticity model with linear isotropic hardening.*/
@@ -12,6 +12,9 @@
 
 #include "fstreamT.h"
 #include "dSymMatrixT.h"
+
+
+using namespace Tahoe;
 
 const double sqrt23 = sqrt(2.0/3.0);
 const double sqrt32 = sqrt(3.0/2.0);

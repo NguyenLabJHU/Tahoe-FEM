@@ -1,4 +1,4 @@
-/* $Id: nStaticIntegrator.h,v 1.4 2002-06-08 20:20:12 paklein Exp $ */
+/* $Id: nStaticIntegrator.h,v 1.4.2.1 2002-06-27 18:02:31 cjkimme Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _N_STATIC_CONTROLLER_H_
@@ -9,6 +9,9 @@
 #include "nIntegratorT.h"
 
 /** nodal integrator for quasistatic systems */
+
+namespace Tahoe {
+
 class nStaticIntegrator: public virtual StaticT, public nIntegratorT
 {
 public:
@@ -44,4 +47,5 @@ protected:
 	virtual void nComputeParameters(void);	
 };
 
+} // namespace Tahoe 
 #endif /* _N_STATIC_CONTROLLER_H_ */

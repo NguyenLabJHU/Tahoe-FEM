@@ -6,6 +6,9 @@
 #include "PolyCrystalMatT.h"
 #include "Utils.h"
 
+
+using namespace Tahoe;
+
 const int kNumMatProp = 2;
 
 PowerLawIKinetics::PowerLawIKinetics(PolyCrystalMatT& poly) :

@@ -1,4 +1,4 @@
-/* $Id: nLinearStaticIntegrator.h,v 1.2 2002-06-08 20:20:12 paklein Exp $ */
+/* $Id: nLinearStaticIntegrator.h,v 1.2.2.1 2002-06-27 18:02:31 cjkimme Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _N_LINEAR_STATIC_CONTROLLER_H_
@@ -11,6 +11,9 @@
  * integrator differs from nStaticIntegratorT only in that
  * the predictor for linear systems sets the displacement
  * of every node to 0.0. */
+
+namespace Tahoe {
+
 class nLinearStaticIntegrator: public nStaticIntegrator
 {
 public:
@@ -27,4 +30,5 @@ public:
 		int eq_start, int num_eq);
 };
 
+} // namespace Tahoe 
 #endif /* _N_LINEAR_STATIC_CONTROLLER_H_ */

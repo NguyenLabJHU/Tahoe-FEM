@@ -1,4 +1,4 @@
-/* $Id: NLHHTalpha.cpp,v 1.3 2002-06-08 20:20:10 paklein Exp $ */
+/* $Id: NLHHTalpha.cpp,v 1.3.2.1 2002-06-27 18:02:27 cjkimme Exp $ */
 /* created: paklein (10/11/1996) */
 
 #include "NLHHTalpha.h"
@@ -10,6 +10,9 @@
 #include "TimeManagerT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 NLHHTalpha::NLHHTalpha(TimeManagerT& TM, ifstreamT& in, ostream& out,
 	bool auto2ndorder):
 	HHTalpha(in, out, auto2ndorder),

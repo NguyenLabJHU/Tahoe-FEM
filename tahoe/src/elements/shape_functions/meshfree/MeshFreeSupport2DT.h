@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupport2DT.h,v 1.4 2001-07-13 02:17:36 paklein Exp $ */
+/* $Id: MeshFreeSupport2DT.h,v 1.4.6.1 2002-06-27 18:04:09 cjkimme Exp $ */
 /* created: paklein (09/10/1998) */
 
 #ifndef _MF_SUPPORT_2D_T_H_
@@ -9,6 +9,9 @@
 
 /** Class for support of meshfree methods in two dimensions. See
  * documentation from base class for information about initialization. */
+
+namespace Tahoe {
+
 class MeshFreeSupport2DT: public MeshFreeSupportT
 {
 public:
@@ -47,4 +50,5 @@ private:
 		const double* q, double eps_pq) const;
 };
 
+} // namespace Tahoe 
 #endif /* _MF_SUPPORT_2D_T_H_ */

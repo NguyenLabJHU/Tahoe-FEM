@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.cpp,v 1.5 2001-09-15 01:19:42 paklein Exp $ */
+/* $Id: SimoIso2D.cpp,v 1.5.6.1 2002-06-27 18:03:17 cjkimme Exp $ */
 /* created: paklein (03/04/1997) */
 
 #include "SimoIso2D.h"
@@ -6,6 +6,9 @@
 #include <iostream.h>
 
 /* constructor */
+
+using namespace Tahoe;
+
 SimoIso2D::SimoIso2D(ifstreamT& in, const FiniteStrainT& element):
 	SimoIso3D(in, element),
 	Material2DT(in, kPlaneStrain),

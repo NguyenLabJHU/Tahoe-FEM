@@ -9,6 +9,9 @@
 #include "ifstreamT.h"
 
 // number of material properties and initial hard values
+
+using namespace Tahoe;
+
 const int kNumMatProp    = 5;
 const int kNumInitValues = 1;
 const int kNumInternal   = 2;

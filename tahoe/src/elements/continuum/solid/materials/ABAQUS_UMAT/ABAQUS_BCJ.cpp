@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BCJ.cpp,v 1.2 2001-07-03 01:34:58 paklein Exp $ */
+/* $Id: ABAQUS_BCJ.cpp,v 1.2.6.1 2002-06-27 18:02:55 cjkimme Exp $ */
 /* created: paklein (05/09/2000)                                          */
 
 #include "ABAQUS_BCJ.h"
@@ -6,6 +6,9 @@
 #ifdef __F2C__
 
 /* function prototype */
+
+using namespace Tahoe;
+
 extern "C" {
 int umat_(doublereal *stress, doublereal *statev, doublereal
 	*ddsdde, doublereal *sse, doublereal *spd, doublereal *scd,

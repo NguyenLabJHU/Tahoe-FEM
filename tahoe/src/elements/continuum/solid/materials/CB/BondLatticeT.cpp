@@ -1,4 +1,4 @@
-/* $Id: BondLatticeT.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: BondLatticeT.cpp,v 1.1.1.1.10.1 2002-06-27 18:03:00 cjkimme Exp $ */
 /* created: paklein (01/07/1997)                                          */
 /* BondLatticeT.cpp                                                       */
 
@@ -6,6 +6,9 @@
 #include <math.h>
 
 /* Constructor */
+
+using namespace Tahoe;
+
 BondLatticeT::BondLatticeT(int numlatticedim, int numspatialdim,
 	int numbonds): fIsInitialized(0), fNumLatticeDim(numlatticedim),
 	fNumSpatialDim(numspatialdim), fNumBonds(numbonds),

@@ -1,4 +1,4 @@
-/* $Id: HyperEVP2D.h,v 1.2 2001-07-03 01:35:39 paklein Exp $ */
+/* $Id: HyperEVP2D.h,v 1.2.6.1 2002-06-27 18:03:46 cjkimme Exp $ */
 /*
   File: HyperEVP2D.h
 */
@@ -12,6 +12,9 @@
 #include <iostream.h>
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
+
+
+namespace Tahoe {
 
 class ifstreamT;
 class ElasticT;
@@ -43,4 +46,5 @@ class HyperEVP2D : public HyperEVP3D, public Material2DT
   dMatrixT f2Dc_ijkl; 
 };
 
+} // namespace Tahoe 
 #endif /* _HYPER_EVP_2D_ */

@@ -1,4 +1,4 @@
-/* $Id: LJFCC111.h,v 1.2 2001-07-03 01:34:59 paklein Exp $ */
+/* $Id: LJFCC111.h,v 1.2.6.1 2002-06-27 18:03:00 cjkimme Exp $ */
 /* created: paklein (07/31/1996)                                          */
 
 #ifndef _LJFCC111_H_
@@ -6,6 +6,9 @@
 
 /* base class */
 #include "NL_E_RotMat2DT.h"
+
+
+namespace Tahoe {
 
 class LJFCC111: public NL_E_RotMat2DT
 {
@@ -35,4 +38,5 @@ private:
 	double fScale;
 };
 
+} // namespace Tahoe 
 #endif /* _LJFCC111_H_ */

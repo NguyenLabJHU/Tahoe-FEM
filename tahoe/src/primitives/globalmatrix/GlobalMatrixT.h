@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.h,v 1.6 2002-04-02 23:38:43 paklein Exp $ */
+/* $Id: GlobalMatrixT.h,v 1.6.4.1 2002-06-27 18:04:04 cjkimme Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _GLOBAL_MATRIX_H_
@@ -8,6 +8,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class dMatrixT;
 class ElementMatrixT;
 template <class nTYPE> class nArrayT;
@@ -189,4 +192,5 @@ inline double GlobalMatrixT::Dot(double* vec1, double* vec2, int length)
 	return dot;
 }
 
+} // namespace Tahoe 
 #endif /* _GLOBAL_MATRIX_H_ */

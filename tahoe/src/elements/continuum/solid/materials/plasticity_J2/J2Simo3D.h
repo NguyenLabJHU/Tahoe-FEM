@@ -1,4 +1,4 @@
-/* $Id: J2Simo3D.h,v 1.6 2002-06-08 20:20:41 paklein Exp $ */
+/* $Id: J2Simo3D.h,v 1.6.2.1 2002-06-27 18:03:35 cjkimme Exp $ */
 /* created: paklein (04/30/2001) */
 
 #ifndef _J2_SIMO_3D_H_
@@ -13,6 +13,9 @@
 #include "LocalArrayT.h"
 
 //class J2Simo3D: public SimoIso3D, public J2SimoHardeningT
+
+namespace Tahoe {
+
 class J2Simo3D: public SimoIso3D, public J2SimoC0HardeningT
 {
 public:
@@ -79,4 +82,5 @@ private:
 	dMatrixT fF_temp;
 };
 
+} // namespace Tahoe 
 #endif /* _J2_SIMO_3D_H_ */

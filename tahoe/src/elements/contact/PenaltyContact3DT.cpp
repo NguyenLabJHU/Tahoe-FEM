@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.3 2002-06-08 20:20:19 paklein Exp $ */
+/* $Id: PenaltyContact3DT.cpp,v 1.3.2.1 2002-06-27 18:02:41 cjkimme Exp $ */
 /* created: paklein (02/09/2000) */
 
 #include "PenaltyContact3DT.h"
@@ -11,6 +11,9 @@
 #include "eControllerT.h"
 
 /* vector functions */
+
+using namespace Tahoe;
+
 inline static void CrossProduct(const double* A, const double* B, double* AxB)
 {   AxB[0] = A[1]*B[2] - A[2]*B[1];
 	AxB[1] = A[2]*B[0] - A[0]*B[2];

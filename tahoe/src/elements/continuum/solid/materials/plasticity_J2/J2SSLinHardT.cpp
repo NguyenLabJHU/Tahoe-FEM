@@ -1,4 +1,4 @@
-/* $Id: J2SSLinHardT.cpp,v 1.2 2001-07-25 08:13:34 paklein Exp $ */
+/* $Id: J2SSLinHardT.cpp,v 1.2.6.1 2002-06-27 18:03:35 cjkimme Exp $ */
 /* created: paklein (02/12/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -18,6 +18,9 @@
 #include "StringT.h"
 
 /* class constants */
+
+using namespace Tahoe;
+
 const int    kNumInternal = 4; // number of internal variables
 const double sqrt23       = sqrt(2.0/3.0);
 const double kYieldTol    = 1.0e-10;

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.h,v 1.6 2001-07-13 02:17:36 paklein Exp $ */
+/* $Id: MeshFreeSupportT.h,v 1.6.6.1 2002-06-27 18:04:10 cjkimme Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #ifndef _MF_SUPPORT_T_H_
@@ -19,6 +19,9 @@
 #include "WindowT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ifstreamT;
 class ofstreamT;
 class dArray2DT;
@@ -322,4 +325,5 @@ inline const ArrayT<int>& MeshFreeSupportT::NeighborsAt(void) const { return fne
 inline const ArrayT<int>& MeshFreeSupportT::ResetNodes(void) const { return fResetNodes; }
 inline const ArrayT<int>& MeshFreeSupportT::ResetCells(void) const { return fResetElems; }
 
+} // namespace Tahoe 
 #endif /* _MF_SUPPORT_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_VUMAT_BCJ.cpp,v 1.4 2001-07-20 17:03:52 hspark Exp $ */
+/* $Id: ABAQUS_VUMAT_BCJ.cpp,v 1.4.6.1 2002-06-27 18:02:57 cjkimme Exp $ */
 /* created: paklein (05/09/2000)                                          */
 
 #include "ABAQUS_VUMAT_BCJ.h"
@@ -6,6 +6,9 @@
 #ifdef __F2C__
 
 /* function prototype */
+
+using namespace Tahoe;
+
 extern "C" {
   //int umat_(doublereal *stress, doublereal *statev, doublereal
   //*ddsdde, doublereal *sse, doublereal *spd, doublereal *scd,

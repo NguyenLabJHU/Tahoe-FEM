@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.h,v 1.4 2002-06-08 20:20:25 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.h,v 1.4.2.1 2002-06-27 18:02:49 cjkimme Exp $ */
 /* created: paklein (09/11/1998) */
 
 #ifndef _MF_SMALLSTRAIN_T_H_
@@ -15,6 +15,9 @@
  * field (displacement) representation
  * \note clean up code governing when crack growth algorithm
  * is used, initiation criteria, etc. (PAK 09/28/1999) */
+
+namespace Tahoe {
+
 class MeshFreeSSSolidT: public SmallStrainT, public MeshFreeFractureSupportT
 {
 public:
@@ -83,4 +86,5 @@ private:
 	bool fFieldSet;
 };
 
+} // namespace Tahoe 
 #endif /* _MF_SMALLSTRAIN_T_H_ */

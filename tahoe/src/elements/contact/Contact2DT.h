@@ -1,4 +1,4 @@
-/* $Id: Contact2DT.h,v 1.2 2002-06-08 20:20:19 paklein Exp $ */
+/* $Id: Contact2DT.h,v 1.2.2.1 2002-06-27 18:02:40 cjkimme Exp $ */
 /* created: paklein (05/26/1999) */
 
 #ifndef _CONTACT2D_T_H_
@@ -11,6 +11,9 @@
 #include "AutoArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class iGridManager2DT;
 
 class Contact2DT: public ContactT
@@ -68,4 +71,5 @@ private:
 	ArrayT<dArrayT>   fTanMags;
 };
 
+} // namespace Tahoe 
 #endif /* _CONTACT2D_T_H_ */

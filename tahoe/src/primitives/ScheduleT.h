@@ -1,4 +1,4 @@
-/* $Id: ScheduleT.h,v 1.2 2002-06-08 20:20:53 paklein Exp $ */
+/* $Id: ScheduleT.h,v 1.2.2.1 2002-06-27 18:04:02 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _SCHEDULE_T_H_
@@ -9,6 +9,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 
 /** the class formerly known as LoadTime. Piecewise linear function */
@@ -60,4 +63,5 @@ inline double ScheduleT::Value(double time)
 	return fCurrentValue;
 }
 
+} // namespace Tahoe 
 #endif /* _SCHEDULE_T_H_ */

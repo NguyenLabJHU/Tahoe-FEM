@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeFSSolidT.cpp,v 1.5 2002-06-08 20:20:24 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.cpp,v 1.5.2.1 2002-06-27 18:02:49 cjkimme Exp $ */
 /* created: paklein (10/23/1999) */
 
 #include "D2MeshFreeFSSolidT.h"
@@ -20,6 +20,9 @@
 #include "eControllerT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 D2MeshFreeFSSolidT::D2MeshFreeFSSolidT(const ElementSupportT& support, const FieldT& field):
 	MeshFreeFSSolidT(support, field),
 	fD2MFShapes(NULL),

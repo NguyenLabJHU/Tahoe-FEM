@@ -1,4 +1,4 @@
-/* $Id: BondLengthsT.cpp,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
+/* $Id: BondLengthsT.cpp,v 1.1.1.1.10.1 2002-06-27 18:03:30 cjkimme Exp $ */
 /* created: paklein (05/20/1997)                                          */
 /* Class to compute/manage all bond lengths and derivatives               */
 /* for the 2 unit cell, diamond cubic, modified Cauchy-Born,              */
@@ -9,6 +9,9 @@
 #include "dArrayT.h"
 
 /* internal parameters */
+
+using namespace Tahoe;
+
 const int	kNumAtoms  = 8;
 const int   kNumBonds  = 8;
 const int	kNSD       = 3;

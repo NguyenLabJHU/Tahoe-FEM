@@ -1,4 +1,4 @@
-/* $Id: RodT.h,v 1.5 2002-06-08 20:20:27 paklein Exp $ */
+/* $Id: RodT.h,v 1.5.2.1 2002-06-27 18:02:52 cjkimme Exp $ */
 /* created: paklein (10/22/1996) */
 
 #ifndef _ROD_T_H_
@@ -21,6 +21,9 @@
  * classes to provide contributions to the global equations
  * which are consistent with the time integration algorithm.
  * PAK (05/30/1999) */
+
+namespace Tahoe {
+
 class RodT: public ElementBaseT
 {
 public:
@@ -91,4 +94,5 @@ protected:
 	LocalArrayT fLocDisp;       /* displacements with local ordering */
 };
 
+} // namespace Tahoe 
 #endif /* _ROD_T_H_ */

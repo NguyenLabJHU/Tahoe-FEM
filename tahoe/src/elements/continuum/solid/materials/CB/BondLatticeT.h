@@ -1,4 +1,4 @@
-/* $Id: BondLatticeT.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: BondLatticeT.h,v 1.1.1.1.10.1 2002-06-27 18:03:00 cjkimme Exp $ */
 /* created: paklein (01/07/1997)                                          */
 /* BondLatticeT.h                                                         */
 
@@ -11,6 +11,9 @@
 #include "dSymMatrixT.h"
 #include "dArray2DT.h"
 #include "dMatrixT.h"
+
+
+namespace Tahoe {
 
 class BondLatticeT
 {
@@ -74,4 +77,5 @@ protected:
 	dSymMatrixT	fStrain;		/* needed if LatticeDim != SpatialDim */  		
 };
 
+} // namespace Tahoe 
 #endif /* _BONDLATTICET_H_ */

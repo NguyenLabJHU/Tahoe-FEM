@@ -1,4 +1,4 @@
-/* $Id: J2SimoLinHardT.h,v 1.3 2001-09-25 00:51:55 paklein Exp $ */
+/* $Id: J2SimoLinHardT.h,v 1.3.6.1 2002-06-27 18:03:35 cjkimme Exp $ */
 /* created: paklein (06/19/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -22,6 +22,9 @@
 #include "iArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class ElementCardT;
 
 /** finite strain, J2 elastoplasticity following framework in
@@ -133,4 +136,5 @@ private:
 	dMatrixT    fRed4Temp2;
 };
 
+} // namespace Tahoe 
 #endif /* _J2_SIMO_LIN_HARD_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: Material2DT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: Material2DT.cpp,v 1.1.1.1.10.1 2002-06-27 18:03:50 cjkimme Exp $ */
 /* created: paklein (02/15/1997)                                          */
 /* Mix-in for 2D materials.                                               */
 
@@ -10,6 +10,9 @@
 #include "fstreamT.h"
 
 /* stream extraction operator */
+
+namespace Tahoe {
+
 istream& operator>>(istream& in, Material2DT::ConstraintOptionT& option)
 {
 	int i_option;
@@ -32,6 +35,9 @@ istream& operator>>(istream& in, Material2DT::ConstraintOptionT& option)
 	return in;
 }
 
+} // namespace Tahoe
+
+using namespace Tahoe; 
 
 /* constructor */
 Material2DT::Material2DT(ifstreamT& in)

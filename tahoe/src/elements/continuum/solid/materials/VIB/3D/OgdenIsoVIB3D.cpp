@@ -1,4 +1,4 @@
-/* $Id: OgdenIsoVIB3D.cpp,v 1.3 2001-07-03 01:35:20 paklein Exp $ */
+/* $Id: OgdenIsoVIB3D.cpp,v 1.3.6.1 2002-06-27 18:03:21 cjkimme Exp $ */
 /* created: paklein (11/08/1997)                                          */
 /* 3D Isotropic VIB using Ogden's spectral formulation                    */
 
@@ -17,6 +17,9 @@
 #include "IcosahedralPtsT.h"
 
 /* constructors */
+
+using namespace Tahoe;
+
 OgdenIsoVIB3D::OgdenIsoVIB3D(ifstreamT& in, const FiniteStrainT& element):
 	OgdenIsotropicT(in, element),
 	VIB(in, 3, 3, 6),

@@ -1,4 +1,4 @@
-/* $Id: ErcolessiAdamsAl.h,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* $Id: ErcolessiAdamsAl.h,v 1.1.1.1.10.1 2002-06-27 18:03:08 cjkimme Exp $ */
 /* created: paklein (12/04/1996)                                          */
 /* ErcolessiAdamsAl.h                                                     */
 
@@ -7,6 +7,8 @@
 
 /* base class */
 #include "EAM.h"
+
+namespace Tahoe {
 
 class ErcolessiAdamsAl: public EAM
 {
@@ -31,4 +33,5 @@ private:
 	
 };
 
+} // namespace Tahoe 
 #endif /* _ERCOLESSIADAMS_AL_H_ */

@@ -1,4 +1,4 @@
-/* $Id: HyperEVP2D.cpp,v 1.2 2001-07-03 01:35:39 paklein Exp $ */
+/* $Id: HyperEVP2D.cpp,v 1.2.6.1 2002-06-27 18:03:46 cjkimme Exp $ */
 /*
   File: HyperEVP2D.cpp
 */
@@ -8,6 +8,9 @@
 #include "Utils.h"
 
 /* spatial dimension of problem */
+
+using namespace Tahoe;
+
 const int kNSD = 2;
 
 HyperEVP2D::HyperEVP2D(ifstreamT& in, const FiniteStrainT& element) :

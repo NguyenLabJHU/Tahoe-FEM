@@ -1,4 +1,4 @@
-/* $Id: VoterChenAl.h,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* $Id: VoterChenAl.h,v 1.1.1.1.10.1 2002-06-27 18:03:08 cjkimme Exp $ */
 /* created: paklein (12/04/1996)                                          */
 /* VoterChenAl.h                                                          */
 
@@ -7,6 +7,8 @@
 
 /* base class */
 #include "EAM.h"
+
+namespace Tahoe {
 
 class VoterChenAl: public EAM
 {
@@ -27,10 +29,14 @@ private:
 	
 };
 
+} // namespace Tahoe
+
 /* specific glue functions */
 #include "C1FunctionT.h"
 
-class VCPairPotential: public C1FunctionT
+namespace Tahoe { 
+
+class VCPairPotential: public Tahoe::C1FunctionT
 {
 	friend class VoterChenAl;
 	
@@ -81,7 +87,7 @@ private:
 	    	   	    	
 };
 
-class VCElectronDensity: public C1FunctionT
+class VCElectronDensity: public Tahoe::C1FunctionT
 {
 	friend class VoterChenAl;
 	
@@ -130,4 +136,5 @@ private:
 	  		   	    	
 };
 
+} // namespace Tahoe 
 #endif /* _VOTERCHEN_AL_H_ */

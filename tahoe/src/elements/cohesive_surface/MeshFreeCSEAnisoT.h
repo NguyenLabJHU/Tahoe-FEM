@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.h,v 1.4 2002-06-08 20:20:16 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.h,v 1.4.2.1 2002-06-27 18:02:36 cjkimme Exp $ */
 /* created: paklein (06/08/2000) */
 
 #ifndef _MF_CSE_ANISO_T_H_
@@ -19,6 +19,9 @@
 #include "nVariArray2DT.h"
 
 /* forward declaration */
+
+namespace Tahoe {
+
 class MeshFreeFractureSupportT;
 class MeshFreeSurfaceShapeT;
 class SurfacePotentialT;
@@ -173,4 +176,5 @@ protected:
 	nVariArray2DT<double> fd_Storage_last_man; // [nel] x [nip] : [n_state]
 };
 
+} // namespace Tahoe 
 #endif /* _MF_CSE_ANISO_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: TensorTransformT.h,v 1.3 2001-07-03 01:35:43 paklein Exp $ */
+/* $Id: TensorTransformT.h,v 1.3.6.1 2002-06-27 18:03:51 cjkimme Exp $ */
 
 #ifndef _TENSOR_TRANSFORM_T_H_
 #define _TENSOR_TRANSFORM_T_H_
@@ -8,6 +8,9 @@
 #include "dSymMatrixT.h"
 
 /** class to handle tensor transformations */
+
+namespace Tahoe {
+
 class TensorTransformT
 {
 public:
@@ -63,4 +66,5 @@ inline const dSymMatrixT& TensorTransformT::PullBack(const dMatrixT& fwd,
 	return fRank2;
 }
 
+} // namespace Tahoe 
 #endif /* _TENSOR_TRANSFORM_T_H_ */

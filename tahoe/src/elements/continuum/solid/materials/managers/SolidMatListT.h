@@ -1,10 +1,13 @@
-/* $Id: SolidMatListT.h,v 1.2 2002-06-08 20:20:40 paklein Exp $ */
+/* $Id: SolidMatListT.h,v 1.2.2.1 2002-06-27 18:03:29 cjkimme Exp $ */
 
 #ifndef _STRUCT_MAT_LIST_T_H_
 #define _STRUCT_MAT_LIST_T_H_
 
 /* base class */
 #include "MaterialListT.h"
+
+
+namespace Tahoe {
 
 class SolidMatListT: public MaterialListT
 {
@@ -34,4 +37,5 @@ protected:
 inline bool SolidMatListT::HasLocalizingMaterials(void) const { return fHasLocalizers; }
 inline bool SolidMatListT::HasThermalStrains(void) const { return fHasThermal; }
 
+} // namespace Tahoe 
 #endif /* _STRUCT_MAT_LIST_T_H_ */

@@ -15,6 +15,9 @@
 #include "dMatrixT.h"
 #include "SpectralDecompT.h"
 
+
+namespace Tahoe {
+
 class ifstreamT;
 class ElasticT;
 class ElementCardT;
@@ -134,4 +137,5 @@ class BCJHypoIsoDamageYC3D : public BCJHypo3D
   dArrayT fdEQXih;
 };
 
+} // namespace Tahoe 
 #endif /* _BCJ_HYPO_ISO_DAMAGE_YC_3D_ */

@@ -5,6 +5,9 @@
 #include "NLCSolverWrapperPtr.h"
 #include "ExceptionCodes.h"
 
+
+using namespace Tahoe;
+
 NLCSolverWrapperPtr::NLCSolverWrapperPtr(NLCSolverWrapper* ptr)
   : refCount_(0), ptr_(ptr)
 {

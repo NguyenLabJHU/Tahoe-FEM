@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.8 2002-01-27 18:44:14 paklein Exp $ */
+/* $Id: main.cpp,v 1.8.4.1 2002-06-27 18:02:54 cjkimme Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include <iostream.h>
@@ -12,6 +12,9 @@
 #include <profiler.h>
 #endif
 #ifdef macintosh
+
+using namespace Tahoe;
+
 extern "C" int ccommand(char ***arg);
 #endif
 #endif

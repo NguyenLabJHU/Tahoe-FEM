@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3D.cpp,v 1.2 2002-03-04 06:51:06 paklein Exp $ */
+/* $Id: EAMFCC3D.cpp,v 1.2.4.1 2002-06-27 18:03:07 cjkimme Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* EAMFCC3D.cpp                                                           */
 
@@ -17,6 +17,9 @@
 #include "FBD_EAMGlue.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 EAMFCC3D::EAMFCC3D(ifstreamT& in, int EAMcode, int numspatialdim, int numbonds):
 	CBLatticeT(kEAMFCC3DNumLatticeDim, numspatialdim, numbonds),
 	fEAMcode(EAMcode)

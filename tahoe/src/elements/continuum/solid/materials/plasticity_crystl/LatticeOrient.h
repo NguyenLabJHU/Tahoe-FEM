@@ -10,6 +10,9 @@
 #include "dArrayT.h"
 #include "Array2DT.h"
 
+
+namespace Tahoe {
+
 class PolyCrystalMatT;
 class ifstreamT;
 class dMatrixT;
@@ -65,4 +68,5 @@ class LatticeOrient
   ofstream fTextOut;
 };
 
+} // namespace Tahoe 
 #endif /* _LATTICE_ORIENT_H_ */

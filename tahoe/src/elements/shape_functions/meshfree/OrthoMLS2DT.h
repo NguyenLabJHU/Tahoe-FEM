@@ -1,4 +1,4 @@
-/* $Id: OrthoMLS2DT.h,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
+/* $Id: OrthoMLS2DT.h,v 1.1.1.1.10.1 2002-06-27 18:04:10 cjkimme Exp $ */
 /* created: paklein (07/03/1998)                                          */
 
 #ifndef _ORTHO_MLS_2D_T_H_
@@ -6,6 +6,9 @@
 
 /* base class */
 #include "OrthoMLSSolverT.h"
+
+
+namespace Tahoe {
 
 class OrthoMLS2DT: public OrthoMLSSolverT
 {
@@ -24,4 +27,5 @@ protected:
 
 };
 
+} // namespace Tahoe 
 #endif /* _ORTHO_MLS_2D_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman3DT.cpp,v 1.8 2002-06-08 20:20:17 paklein Exp $ */
+/* $Id: XuNeedleman3DT.cpp,v 1.8.2.1 2002-06-27 18:02:38 cjkimme Exp $ */
 /* created: paklein (06/23/1999)*/
 
 #include "XuNeedleman3DT.h"
@@ -10,6 +10,9 @@
 #include "fstreamT.h"
 
 /* class parameters */
+
+using namespace Tahoe;
+
 const int    knumDOF = 3;
 const double kExpMax = 20;
 

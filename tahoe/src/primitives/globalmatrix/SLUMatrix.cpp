@@ -1,4 +1,4 @@
-/* $Id: SLUMatrix.cpp,v 1.2 2001-05-01 23:22:56 paklein Exp $ */
+/* $Id: SLUMatrix.cpp,v 1.2.10.1 2002-06-27 18:04:04 cjkimme Exp $ */
 /* created: rbridson (06/30/2000)                                         */
 /* Implementation of interface to SuperLU solver library.                 */
 
@@ -28,6 +28,9 @@
 ***************************************************************************/
 
 /* Constructor */
+
+using namespace Tahoe;
+
 SLUMatrix::SLUMatrix(ostream& out, int check_code):
 	GlobalMatrixT(out, check_code)
 {

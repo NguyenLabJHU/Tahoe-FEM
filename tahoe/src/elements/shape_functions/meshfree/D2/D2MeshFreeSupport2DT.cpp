@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupport2DT.cpp,v 1.3 2001-07-03 01:35:52 paklein Exp $ */
+/* $Id: D2MeshFreeSupport2DT.cpp,v 1.3.6.1 2002-06-27 18:04:12 cjkimme Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupport2DT.h"
@@ -10,6 +10,9 @@
 #include "Constants.h"
 #include "dArray2DT.h"
 #include "iArray2DT.h"
+
+
+using namespace Tahoe;
 
 static    int Max(int a, int b) { return (a > b) ? a : b; };
 static double Max(double a, double b) { return (a > b) ? a : b; };

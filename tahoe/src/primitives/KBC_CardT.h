@@ -1,4 +1,4 @@
-/* $Id: KBC_CardT.h,v 1.3 2002-06-08 20:20:53 paklein Exp $ */
+/* $Id: KBC_CardT.h,v 1.3.2.1 2002-06-27 18:04:02 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 
 #ifndef _KBC_CARD_T_H_
@@ -8,6 +8,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ScheduleT;
 
 class KBC_CardT
@@ -66,4 +69,5 @@ inline int KBC_CardT::DOF(void) const    { return fdof;  }
 inline KBC_CardT::CodeT KBC_CardT::Code(void) const   { return fcode; }
 inline int KBC_CardT::ScheduleNum(void) const { return fSchedNum; }
 
+} // namespace Tahoe 
 #endif /* _KBC_CARD_T_H_ */

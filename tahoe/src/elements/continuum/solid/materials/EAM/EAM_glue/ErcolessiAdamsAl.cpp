@@ -1,4 +1,4 @@
-/* $Id: ErcolessiAdamsAl.cpp,v 1.1.1.1 2001-01-29 08:20:24 paklein Exp $ */
+/* $Id: ErcolessiAdamsAl.cpp,v 1.1.1.1.10.1 2002-06-27 18:03:08 cjkimme Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* ErcolessiAdamsAl.cpp                                                   */
 
@@ -8,6 +8,9 @@
 
 /* lattice parameters - angstrom */
 //const double kLatticeParameterAl = 4.032; //given by E&A
+
+using namespace Tahoe;
+
 const double kLatticeParameterAl = 4.03515412; //zero stress
 
 /* Constructor */

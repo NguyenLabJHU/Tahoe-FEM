@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSurfaceSupportT.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: MeshFreeSurfaceSupportT.cpp,v 1.1.1.1.10.1 2002-06-27 18:04:10 cjkimme Exp $ */
 /* created: paklein (02/22/2000)                                          */
 /* supporting functions for cohesive elements in a meshfree domain        */
 
@@ -16,6 +16,9 @@
 //DEBUG
 
 /* parameters */
+
+using namespace Tahoe;
+
 const int kHeadRoom = 20; // percent
 
 /* constructor */

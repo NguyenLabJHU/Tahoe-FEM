@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.h,v 1.3 2002-02-20 09:40:26 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.h,v 1.3.4.1 2002-06-27 18:02:50 cjkimme Exp $ */
 /* created: paklein (02/15/2000)                                          */
 
 #ifndef _MESHFREE_FRACTURE_T_H_
@@ -13,6 +13,9 @@
 #include "dSymMatrixT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class StructuralMaterialT;
 class FrontT;
 class SamplingSurfaceT;
@@ -174,4 +177,5 @@ MeshFreeFractureSupportT::FractureCriterion(void) const
 	return fCriterion;
 }
 
+} // namespace Tahoe 
 #endif /* _MESHFREE_FRACTURE_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: ExpCD_DRSolver.cpp,v 1.3 2002-06-08 20:20:55 paklein Exp $ */
+/* $Id: ExpCD_DRSolver.cpp,v 1.3.2.1 2002-06-27 18:04:17 cjkimme Exp $ */
 /* created: paklein (08/19/1998) */
 
 #include "ExpCD_DRSolver.h"
@@ -13,6 +13,9 @@
 #include "DiagonalMatrixT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 ExpCD_DRSolver::ExpCD_DRSolver(FEManagerT& fe_manager, int group):
 	SolverT(fe_manager, group),
 	fMaxIterations(-1),

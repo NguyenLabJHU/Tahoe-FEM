@@ -1,4 +1,4 @@
-/* $Id: eLinearHHTalpha.cpp,v 1.2 2002-04-02 23:19:20 paklein Exp $ */
+/* $Id: eLinearHHTalpha.cpp,v 1.2.4.1 2002-06-27 18:02:27 cjkimme Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "eLinearHHTalpha.h"
@@ -7,6 +7,9 @@
 #include "ExceptionCodes.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 eLinearHHTalpha::eLinearHHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder):
 	HHTalpha(in, out, auto2ndorder)
 {

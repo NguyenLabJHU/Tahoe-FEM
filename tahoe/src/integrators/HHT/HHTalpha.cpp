@@ -1,4 +1,4 @@
-/* $Id: HHTalpha.cpp,v 1.2 2002-04-02 23:19:20 paklein Exp $ */
+/* $Id: HHTalpha.cpp,v 1.2.4.1 2002-06-27 18:02:27 cjkimme Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "HHTalpha.h"
@@ -9,6 +9,9 @@
 #include "dArrayT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 HHTalpha::HHTalpha(ifstreamT& in, ostream& out, bool auto2ndorder):
 	fAuto2ndOrder(auto2ndorder),
 	fgamma(0.5),

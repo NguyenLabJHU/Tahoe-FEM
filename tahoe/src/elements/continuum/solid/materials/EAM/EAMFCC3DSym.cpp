@@ -1,10 +1,13 @@
-/* $Id: EAMFCC3DSym.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: EAMFCC3DSym.cpp,v 1.1.1.1.10.1 2002-06-27 18:03:07 cjkimme Exp $ */
 /* created: paklein (12/06/1996)                                          */
 /* EAMFCC3DSym.cpp                                                        */
 
 #include "EAMFCC3DSym.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 EAMFCC3DSym::EAMFCC3DSym(ifstreamT& in, int EAMcode, int numspatialdim, int numbonds):
 	EAMFCC3D(in, EAMcode, numspatialdim, numbonds)
 {

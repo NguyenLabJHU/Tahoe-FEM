@@ -1,4 +1,4 @@
-/* $Id: ElementCardT.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: ElementCardT.h,v 1.1.1.1.10.1 2002-06-27 18:04:01 cjkimme Exp $ */
 /* created: paklein (05/24/1996)                                          */
 /* Empty organizer class - needs manager class to control data.           */
 
@@ -11,6 +11,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class dMatrixT;
 class ElementStorageT;
 
@@ -148,4 +151,5 @@ inline ElementStorageT& ElementStorageT::operator=(const ElementStorageT& rhs)
 	return *this;
 }
 
+} // namespace Tahoe 
 #endif /* _ELEMENT_CARD_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: Contact3DT.h,v 1.2 2002-06-08 20:20:19 paklein Exp $ */
+/* $Id: Contact3DT.h,v 1.2.2.1 2002-06-27 18:02:40 cjkimme Exp $ */
 /* created: paklein (07/17/1999) */
 
 #ifndef _CONTACT3D_T_H_
@@ -12,6 +12,9 @@
 #include "nVariArray2DT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class iGridManager3DT;
 
 class Contact3DT: public ContactT
@@ -55,4 +58,5 @@ protected:
 	dArrayT fStriker;      // striker node coords (shallow)
 };
 
+} // namespace Tahoe 
 #endif /* _CONTACT3D_T_H_ */

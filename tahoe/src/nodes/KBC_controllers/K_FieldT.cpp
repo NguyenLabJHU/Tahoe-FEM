@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.6 2002-06-08 20:20:51 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.6.2.1 2002-06-27 18:03:59 cjkimme Exp $ */
 /* created: paklein (09/05/2000) */
 
 #include "K_FieldT.h"
@@ -13,6 +13,9 @@
 #include "Material2DT.h"
 
 /* parameters */
+
+using namespace Tahoe;
+
 const double Pi = acos(-1.0);
 
 /* constructor */

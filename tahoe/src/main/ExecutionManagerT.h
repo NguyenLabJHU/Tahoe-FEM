@@ -1,4 +1,4 @@
-/* $Id: ExecutionManagerT.h,v 1.2 2002-01-03 19:10:28 paklein Exp $ */
+/* $Id: ExecutionManagerT.h,v 1.2.4.1 2002-06-27 18:02:53 cjkimme Exp $ */
 /* created: paklein (08/27/1997) */
 
 #ifndef _EXECMAN_T_H_
@@ -12,6 +12,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 class StringT;
 
@@ -100,4 +103,5 @@ inline bool ExecutionManagerT::CommandLineOption(const char* str) const
 	return CommandLineOption(str, index);
 }
 
+} // namespace Tahoe 
 #endif /* _EXECMAN_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeShapeFunctionT.h,v 1.3 2001-07-03 01:35:52 paklein Exp $ */
+/* $Id: D2MeshFreeShapeFunctionT.h,v 1.3.6.1 2002-06-27 18:04:12 cjkimme Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #ifndef _D2_MF_SHAPE_T_H_
@@ -8,6 +8,9 @@
 #include "MeshFreeShapeFunctionT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class D2MeshFreeSupportT;
 
 class D2MeshFreeShapeFunctionT: public MeshFreeShapeFunctionT
@@ -55,4 +58,5 @@ inline void D2MeshFreeShapeFunctionT::GradGradU(const LocalArrayT& nodal,
 	fDomain->Jacobian(nodal, fDDNaU[fCurrIP], gradgrad_U);	
 }
 
+} // namespace Tahoe 
 #endif /* _D2_MF_SHAPE_T_H_ */

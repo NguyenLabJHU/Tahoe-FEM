@@ -1,4 +1,4 @@
-/* $Id: FCCPtsT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: FCCPtsT.cpp,v 1.1.1.1.10.1 2002-06-27 18:03:24 cjkimme Exp $ */
 /* created: paklein (03/26/1999)                                          */
 /* FCC lattice of points                                                  */
 
@@ -7,6 +7,9 @@
 #include <iostream.h>
 #include "Constants.h"
 #include "ExceptionCodes.h"
+
+
+using namespace Tahoe;
 
 const double Pi = acos(-1.0);
 

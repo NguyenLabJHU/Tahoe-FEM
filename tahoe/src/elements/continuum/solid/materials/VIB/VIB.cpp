@@ -1,4 +1,4 @@
-/* $Id: VIB.cpp,v 1.4 2002-05-28 06:56:05 bhji Exp $ */
+/* $Id: VIB.cpp,v 1.4.2.1 2002-06-27 18:03:19 cjkimme Exp $ */
 /* created: paklein (10/30/1997) */
 #include "VIB.h"
 
@@ -22,6 +22,9 @@
 #include "Triantafyllidis.h"
 
 /* constructors */
+
+using namespace Tahoe;
+
 VIB::VIB(ifstreamT& in, int nsd, int numstress, int nummoduli):
 	fNumSD(nsd),
 	fNumStress(numstress),

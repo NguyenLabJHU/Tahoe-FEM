@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.h,v 1.4 2001-07-03 01:35:14 paklein Exp $ */
+/* $Id: QuadLog3D.h,v 1.4.6.1 2002-06-27 18:03:17 cjkimme Exp $ */
 /* created: paklein (06/27/1997)                                          */
 /* Hyperelastic material governed by quadratic logarithmic potential.     */
 
@@ -9,6 +9,9 @@
 #include "FDStructMatT.h"
 #include "IsotropicT.h"
 #include "SpectralDecompT.h"
+
+
+namespace Tahoe {
 
 class QuadLog3D: public FDStructMatT, public IsotropicT
 {
@@ -68,4 +71,5 @@ protected:
 	dSymMatrixT fEigMod;//modulus in principal stretches
 };
 
+} // namespace Tahoe 
 #endif /* _QUAD_LOG_3D_H_ */

@@ -1,4 +1,4 @@
-/* $Id: NL_E_MatT.h,v 1.2 2001-07-03 01:35:42 paklein Exp $ */
+/* $Id: NL_E_MatT.h,v 1.2.6.1 2002-06-27 18:03:51 cjkimme Exp $ */
 /* created: paklein (06/13/1997)                                          */
 /* Base class for materials with nonlinear elastic behavior               */
 /* which is computed from Langrangian coordinates (by the pure            */
@@ -21,6 +21,9 @@
 
 /* base classes */
 #include "FDStructMatT.h"
+
+
+namespace Tahoe {
 
 class NL_E_MatT: public FDStructMatT
 {
@@ -61,4 +64,5 @@ protected:
 	dMatrixT fModuli;
 };
 
+} // namespace Tahoe 
 #endif /* _NL_E_MAT_T_H_ */

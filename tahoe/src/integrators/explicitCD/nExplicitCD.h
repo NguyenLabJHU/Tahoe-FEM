@@ -1,4 +1,4 @@
-/* $Id: nExplicitCD.h,v 1.4 2002-06-08 20:20:11 paklein Exp $ */
+/* $Id: nExplicitCD.h,v 1.4.2.1 2002-06-27 18:02:30 cjkimme Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _N_EXP_CD_H_
@@ -10,6 +10,9 @@
 
 /** Node controller for an explicit 2nd order accurate, central 
  * difference time-stepping algorithm. */
+
+namespace Tahoe {
+
 class nExplicitCD: public virtual ExplicitCD, public nControllerT
 {
 public:
@@ -58,4 +61,5 @@ private:
 	  	  	
 };
 
+} // namespace Tahoe 
 #endif /* _N_EXP_CD_H_ */

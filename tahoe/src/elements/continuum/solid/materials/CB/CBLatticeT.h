@@ -1,4 +1,4 @@
-/* $Id: CBLatticeT.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: CBLatticeT.h,v 1.1.1.1.10.1 2002-06-27 18:03:00 cjkimme Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* CBLatticeT.h                                                           */
 
@@ -13,6 +13,9 @@
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "dMatrixT.h"
+
+
+namespace Tahoe {
 
 class CBLatticeT: public BondLatticeT
 {
@@ -56,4 +59,5 @@ private:
 	void BatchBondTensor2_3D(dArray2DT& comptable) const;
 };
 
+} // namespace Tahoe 
 #endif /* _EAMLATTICET_H_ */

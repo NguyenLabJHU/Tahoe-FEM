@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp.h,v 1.2 2002-03-26 17:48:17 paklein Exp $ */
+/* $Id: GradCrystalPlastFp.h,v 1.2.4.1 2002-06-27 18:03:38 cjkimme Exp $ */
 #ifndef _GRAD_CRYSTAL_PLAST_FP_H_
 #define _GRAD_CRYSTAL_PLAST_FP_H_
 
@@ -9,6 +9,9 @@
 #include "ArrayT.h"
 #include "dArray2DT.h"
 #include "LocalArrayT.h"
+
+
+namespace Tahoe {
 
 class GradCrystalPlastFp : public LocalCrystalPlastFp
 {
@@ -119,4 +122,5 @@ class GradCrystalPlastFp : public LocalCrystalPlastFp
   dMatrixT fMatx4;
 };
 
+} // namespace Tahoe 
 #endif /* _GRAD_CRYSTAL_PLAST_FP_H_ */

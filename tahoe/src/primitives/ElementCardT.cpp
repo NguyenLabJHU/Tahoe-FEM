@@ -1,4 +1,4 @@
-/* $Id: ElementCardT.cpp,v 1.6 2002-02-27 16:47:49 paklein Exp $ */
+/* $Id: ElementCardT.cpp,v 1.6.4.1 2002-06-27 18:04:01 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "ElementCardT.h"
@@ -11,6 +11,9 @@
 #include "KBC_CardT.h"
 
 /* array behavior */
+
+using namespace Tahoe;
+
 const bool ArrayT<ElementCardT>::fByteCopy = false;
 
 /* initialize static data */
@@ -130,6 +133,8 @@ void ElementCardT::Allocate(int i_size, int d_size)
 	if (!fData) throw eOutOfMemory;
 }
 
+namespace Tahoe {
+
 /* I/O operators */
 istream& operator>>(istream& in, ElementStorageT& data)
 {
@@ -145,4 +150,6 @@ ostream& operator<<(ostream& out, const ElementStorageT& data)
 	    << data.fDoubleData.wrap_tight(1) << '\n';
 
 	return out;
+}
+
 }

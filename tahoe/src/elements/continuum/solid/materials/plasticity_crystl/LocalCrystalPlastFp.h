@@ -14,6 +14,9 @@
 #include "LAdMatrixT.h"
 #include "SpectralDecompT.h"
 
+
+namespace Tahoe {
+
 class ifstreamT;
 class ElasticT;
 class ElementCardT;
@@ -195,5 +198,6 @@ class LocalCrystalPlastFp : public PolyCrystalMatT
   dSymMatrixT fAvgStress;
 };
 
+} // namespace Tahoe 
 #endif /* _LOCAL_CRYSTAL_PLAST_FP_H_ */
 

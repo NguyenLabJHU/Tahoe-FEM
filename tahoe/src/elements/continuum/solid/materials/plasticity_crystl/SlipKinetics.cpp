@@ -5,6 +5,9 @@
 #include "SlipKinetics.h"
 #include "PolyCrystalMatT.h"
 
+
+using namespace Tahoe;
+
 SlipKinetics::SlipKinetics(PolyCrystalMatT& poly):
   fHard (poly.GetSlipHardening())
 {

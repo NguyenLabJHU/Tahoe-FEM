@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.cpp,v 1.13 2001-09-20 23:46:00 cfoster Exp $ */
+/* $Id: DPSSLinHardT.cpp,v 1.13.6.1 2002-06-27 18:03:34 cjkimme Exp $ */
 /* created: myip (06/01/1999)                                        */
 /*
  * Interface for Drucker-Prager, nonassociative, small strain,
@@ -15,6 +15,9 @@
 #include "StringT.h"
 
 /* class constants */
+
+using namespace Tahoe;
+
 const int    kNumInternal = 5; // number of internal state variables
 const double sqrt23       = sqrt(2.0/3.0);
 const double sqrt32       = sqrt(3.0/2.0);

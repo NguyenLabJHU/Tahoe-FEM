@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.15 2002-02-18 09:17:31 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.15.4.1 2002-06-27 18:04:09 cjkimme Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #include "MeshFreeSupportT.h"
@@ -32,6 +32,9 @@
 #undef _USE_DISK_
 
 /* parameters */
+
+using namespace Tahoe;
+
 const int kMaxNumGrid   = 100;
 const int kListInitSize =  10; // initial neighbor list size
 const int kListSizeinc  =   5; // list size increment on overflow

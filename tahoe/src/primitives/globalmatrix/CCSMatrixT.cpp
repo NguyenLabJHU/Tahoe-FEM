@@ -1,4 +1,4 @@
-/* $Id: CCSMatrixT.cpp,v 1.10 2002-04-10 01:11:24 paklein Exp $ */
+/* $Id: CCSMatrixT.cpp,v 1.10.4.1 2002-06-27 18:04:04 cjkimme Exp $ */
 /* created: paklein (05/29/1996) */
 
 #include "CCSMatrixT.h"
@@ -19,6 +19,9 @@
 #include "ElementMatrixT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 CCSMatrixT::CCSMatrixT(ostream& out, int check_code):
 	GlobalMatrixT(out, check_code),
 	fDiags(NULL),
@@ -525,6 +528,8 @@ double CCSMatrixT::operator()(int row, int col) const
 	}	
 }
 
+namespace Tahoe {
+
 ostream& operator<<(ostream& out, const CCSMatrixT& matrix)
 {
 	double* junk = NULL;
@@ -539,6 +544,8 @@ ostream& operator<<(ostream& out, const CCSMatrixT& matrix)
 	}
 
 	return out;
+}
+
 }
 
 /* solution routines */

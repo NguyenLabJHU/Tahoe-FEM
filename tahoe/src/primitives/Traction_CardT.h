@@ -1,4 +1,4 @@
-/* $Id: Traction_CardT.h,v 1.2 2002-06-08 20:20:53 paklein Exp $ */
+/* $Id: Traction_CardT.h,v 1.2.2.1 2002-06-27 18:04:02 cjkimme Exp $ */
 /* created: paklein (05/29/1996) */
 
 #ifndef _TRACTION_T_H_
@@ -12,6 +12,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ifstreamT;
 class ScheduleT;
 class DomainIntegrationT;
@@ -108,4 +111,5 @@ inline iArrayT& Traction_CardT::Eqnos(void) { return fEqnos; }
 inline const iArrayT& Traction_CardT::Nodes(void) const { return fNodes; }
 inline const iArrayT& Traction_CardT::Eqnos(void) const { return fEqnos; }
 
+} // namespace Tahoe 
 #endif /* _TRACTION_T_H_ */

@@ -1,8 +1,11 @@
-/* $Id: NOXInterfaceT.h,v 1.1 2002-03-28 16:40:35 paklein Exp $ */
+/* $Id: NOXInterfaceT.h,v 1.1.4.1 2002-06-27 18:04:20 cjkimme Exp $ */
 #ifndef NOX_TAHOE_INTERFACE_H
 #define NOX_TAHOE_INTERFACE_H
   
 /* forward declarations */
+
+namespace Tahoe {
+
 class dArrayT;
 class GlobalMatrixT;  
   
@@ -35,4 +38,5 @@ class NOXInterfaceT {
 	virtual bool computeJacobian(GlobalMatrixT& jacobian) = 0;
 };
 
+} // namespace Tahoe 
 #endif /* NOX_TAHOE_INTERFACE_H */

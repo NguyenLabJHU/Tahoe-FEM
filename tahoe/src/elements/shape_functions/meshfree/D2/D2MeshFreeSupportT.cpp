@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.cpp,v 1.5 2001-07-13 02:17:38 paklein Exp $ */
+/* $Id: D2MeshFreeSupportT.cpp,v 1.5.6.1 2002-06-27 18:04:12 cjkimme Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupportT.h"
@@ -23,6 +23,9 @@
 #include "MLSSolverT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 D2MeshFreeSupportT::D2MeshFreeSupportT(const ParentDomainT& domain, const dArray2DT& coords,
 	const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in):
 	MeshFreeSupportT(domain, coords, connects, nongridnodes, in),

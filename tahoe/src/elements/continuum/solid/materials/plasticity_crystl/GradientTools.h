@@ -20,6 +20,9 @@
 #include "dArray2DT.h"
 #include "dMatrixT.h"
 
+
+namespace Tahoe {
+
 class GradientTools 
 {
  public:
@@ -94,4 +97,5 @@ class GradientTools
    ArrayT<dMatrixT> fGradT;   // (knsd x knsd), knsd=3
 };
 
+} // namespace Tahoe 
 #endif /* _GRADIENT_TOOLS_H_ */

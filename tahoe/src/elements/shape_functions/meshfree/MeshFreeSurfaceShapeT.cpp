@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.2 2001-03-15 21:39:33 paklein Exp $ */
+/* $Id: MeshFreeSurfaceShapeT.cpp,v 1.2.10.1 2002-06-27 18:04:10 cjkimme Exp $ */
 /* created: paklein (06/03/2000)                                          */
 
 #include "MeshFreeSurfaceShapeT.h"
@@ -11,6 +11,9 @@
 #include "MeshFreeSupportT.h"
 
 /* vector functions */
+
+using namespace Tahoe;
+
 inline static void CrossProduct(const double* A, const double* B, double* AxB)
 {   AxB[0] = A[1]*B[2] - A[2]*B[1];
 	AxB[1] = A[2]*B[0] - A[0]*B[2];

@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.cpp,v 1.9 2002-03-28 16:42:46 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.cpp,v 1.9.4.1 2002-06-27 18:04:05 cjkimme Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT.h"
@@ -15,6 +15,9 @@
 #endif
 
 /* message file name */
+
+using namespace Tahoe;
+
 const char SPOOLES_FILE[] = "SPOOLES.out";
 
 /* constuctor */

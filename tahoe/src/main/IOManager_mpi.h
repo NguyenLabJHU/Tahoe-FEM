@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.h,v 1.9 2002-02-18 09:37:33 paklein Exp $ */
+/* $Id: IOManager_mpi.h,v 1.9.4.1 2002-06-27 18:02:53 cjkimme Exp $ */
 /* created: paklein (03/14/2000) */
 
 #ifndef _IOMANAGER_MPI_H_
@@ -13,9 +13,13 @@
 #include "MapSetT.h"
 #ifdef __MPI__
 #include "mpi.h"
+} // namespace Tahoe 
 #endif
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class PartitionT;
 class ModelManagerT;
 
@@ -41,6 +45,7 @@ public:
 #ifdef __MPI__
 	/** distribute/assemble/write output */
 	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
+} // namespace Tahoe 
 #endif
 
 private:
@@ -96,6 +101,7 @@ private:
 
 	/** write status information */
 	void WriteStatus(ostream& out, const char* caller, const MPI_Status& status) const;
+} // namespace Tahoe 
 #endif
 
 private:
@@ -126,4 +132,5 @@ private:
 	iArrayT fOutNodeCounts;	
 };
 
+} // namespace Tahoe 
 #endif /* _IOMANAGER_MPI_H_ */

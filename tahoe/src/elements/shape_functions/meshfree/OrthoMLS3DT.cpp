@@ -1,9 +1,12 @@
-/* $Id: OrthoMLS3DT.cpp,v 1.2 2002-02-22 19:37:20 xiang Exp $ */
+/* $Id: OrthoMLS3DT.cpp,v 1.2.4.1 2002-06-27 18:04:10 cjkimme Exp $ */
 /* created: paklein (07/03/1998)                                          */
 
 #include "OrthoMLS3DT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 OrthoMLS3DT::OrthoMLS3DT(int complete): OrthoMLSSolverT(3, complete)
 {
 	/* supported bases - linear or quadratic */

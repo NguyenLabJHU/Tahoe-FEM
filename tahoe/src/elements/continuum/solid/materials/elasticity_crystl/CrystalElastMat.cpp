@@ -1,4 +1,4 @@
-/* $Id: CrystalElastMat.cpp,v 1.4 2001-12-17 00:11:57 paklein Exp $ */
+/* $Id: CrystalElastMat.cpp,v 1.4.4.1 2002-06-27 18:03:27 cjkimme Exp $ */
 /*
   File: CrystalElastMat.cpp
 */
@@ -16,6 +16,9 @@
 #include "dArrayT.h"
 #include "ifstreamT.h"
 #include "Utils.h"
+
+
+using namespace Tahoe;
 
 CrystalElastMat::CrystalElastMat(CrystalElast& poly)
 {

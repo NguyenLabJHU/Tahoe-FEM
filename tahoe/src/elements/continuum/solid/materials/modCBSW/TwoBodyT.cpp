@@ -1,9 +1,12 @@
-/* $Id: TwoBodyT.cpp,v 1.1.1.1 2001-01-29 08:20:26 paklein Exp $ */
+/* $Id: TwoBodyT.cpp,v 1.1.1.1.10.1 2002-06-27 18:03:30 cjkimme Exp $ */
 /* created: paklein (10/11/1997)                                          */
 
 #include "TwoBodyT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 TwoBodyT::TwoBodyT(const dArrayT& lengths, const ThermalDilatationT* thermal):
 	fLengths(lengths),
 	fPhi(fLengths.Length()),

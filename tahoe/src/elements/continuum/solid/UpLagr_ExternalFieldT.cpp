@@ -1,10 +1,13 @@
-/* $Id: UpLagr_ExternalFieldT.cpp,v 1.4 2002-06-08 20:20:22 paklein Exp $ */
+/* $Id: UpLagr_ExternalFieldT.cpp,v 1.4.2.1 2002-06-27 18:02:47 cjkimme Exp $ */
 
 #include "UpLagr_ExternalFieldT.h"
 #include "fstreamT.h"
 #include "ExodusT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 UpLagr_ExternalFieldT::UpLagr_ExternalFieldT(const ElementSupportT& support, const FieldT& field):
 	UpdatedLagrangianT(support, field),
 	fLocExternalField(LocalArrayT::kUnspecified)

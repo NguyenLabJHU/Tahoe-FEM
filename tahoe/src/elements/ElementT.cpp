@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.8 2002-06-17 17:15:06 rjones Exp $ */
+/* $Id: ElementT.cpp,v 1.8.2.1 2002-06-27 18:02:34 cjkimme Exp $ */
 
 #include "ElementT.h"
 
@@ -6,6 +6,9 @@
 #include "ExceptionCodes.h"
 
 /* stream extraction operator */ 
+
+namespace Tahoe {
+
 istream& operator>>(istream& in, ElementT::TypeT& type)
 {
 	int i_type;
@@ -118,4 +121,6 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			throw eBadInputValue;	
 	}
 	return in;
+}
+
 }

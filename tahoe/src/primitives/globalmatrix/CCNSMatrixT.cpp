@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.8 2002-04-02 23:38:43 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.8.4.1 2002-06-27 18:04:04 cjkimme Exp $ */
 /* created: paklein (03/04/1998) */
 
 #include "CCNSMatrixT.h"
@@ -17,6 +17,9 @@
 #include "ElementMatrixT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 CCNSMatrixT::CCNSMatrixT(ostream& out, int check_code):
 	GlobalMatrixT(out, check_code),
 	famax(NULL),
@@ -367,6 +370,8 @@ double CCNSMatrixT::Element(int row, int col) const
 		return 0.0;
 }
 
+namespace Tahoe {
+
 ostream& operator<<(ostream& out, const CCNSMatrixT& matrix)
 {
 	double* junk = NULL;
@@ -381,6 +386,8 @@ ostream& operator<<(ostream& out, const CCNSMatrixT& matrix)
 	}
 
 	return out;
+}
+
 }
 
 /* solution routines */

@@ -1,4 +1,4 @@
-/* $Id: LJFCC111.cpp,v 1.2 2001-07-03 01:34:59 paklein Exp $ */
+/* $Id: LJFCC111.cpp,v 1.2.6.1 2002-06-27 18:03:00 cjkimme Exp $ */
 /* created: paklein (07/31/1996)                                          */
 
 #include "LJFCC111.h"
@@ -7,6 +7,9 @@
 #include <iostream.h>
 
 #include "fstreamT.h"
+
+
+using namespace Tahoe;
 
 const double sqrt2 = sqrt(2.0);
 const double sqrt3 = sqrt(3.0);

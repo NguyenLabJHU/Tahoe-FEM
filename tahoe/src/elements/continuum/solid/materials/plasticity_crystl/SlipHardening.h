@@ -10,6 +10,9 @@
 #include "NLCSolverWrapperPtr.h"
 #include "dArrayT.h"
 
+
+namespace Tahoe {
+
 class PolyCrystalMatT;
 class GradCrystalPlast;
 class GradCrystalPlastFp;
@@ -121,5 +124,6 @@ inline const dArrayT& SlipHardening::MaterialProperties() const { return fMatPro
 inline const dArrayT& SlipHardening::IsoHardeningStress() const { return fTauIso; }
 inline const dArrayT& SlipHardening::KinHardeningStress() const { return fTauKin; }
 
+} // namespace Tahoe 
 #endif /* _SLIP_HARDENING_H_ */
 

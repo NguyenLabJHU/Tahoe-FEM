@@ -1,4 +1,4 @@
-/* $Id: SWDataT.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* $Id: SWDataT.cpp,v 1.1.1.1.10.1 2002-06-27 18:04:02 cjkimme Exp $ */
 /* created: paklein (03/22/1997)                                          */
 /* Container class for Stillinger-Weber potential parameters              */
 
@@ -14,6 +14,9 @@
 #include "fstreamT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 SWDataT::SWDataT(void): feps(0.0), fA(0.0), fdelta(0.0), fgamma(0.0),
 	flambda(0.0), frcut(0.0), fa(0.0), fB(0.0)
 {

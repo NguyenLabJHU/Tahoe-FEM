@@ -18,6 +18,9 @@
 #include "ifstreamT.h" 
 #include "LocalArrayT.h"
 
+
+namespace Tahoe {
+
 class SlipGeometry;
 class LatticeOrient;
 class CrystalElasticity;
@@ -232,4 +235,5 @@ inline SlipHardening& PolyCrystalMatT::GetSlipHardening() const { return *fHarde
 inline const dArrayT& PolyCrystalMatT::GetResolvedShearStress() const { return fTau; }
 inline const dArrayT& PolyCrystalMatT::GetIncrSlipShearStrain() const { return fDGamma; }
 
+} // namespace Tahoe 
 #endif /* _POLY_CRYSTAL_MAT_T_H_ */

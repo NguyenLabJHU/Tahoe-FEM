@@ -1,4 +1,4 @@
-/* $Id: superlu.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: superlu.h,v 1.1.1.1.10.1 2002-06-27 18:04:04 cjkimme Exp $ */
 /* created: rbridson (07/06/2000)                                         */
 /* Header file for calling SuperLU                                        */
 
@@ -8,7 +8,11 @@
 #include "supermatrix.h"
 
 #ifdef __cplusplus
+
+namespace Tahoe {
+
 extern "C" {
+} // namespace Tahoe 
 #endif
 
 /****************** functions provided by SuperLU */
@@ -45,6 +49,8 @@ int *rowind, int *perm_c);
 
 #ifdef __cplusplus
 }  /* extern "C" */
+} // namespace Tahoe 
 #endif
 
+} // namespace Tahoe 
 #endif /* _SUPERLU_H_ */

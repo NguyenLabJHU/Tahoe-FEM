@@ -1,4 +1,4 @@
-/* $Id: FDKStV2D.h,v 1.2 2001-07-03 01:35:11 paklein Exp $ */
+/* $Id: FDKStV2D.h,v 1.2.6.1 2002-06-27 18:03:13 cjkimme Exp $ */
 /* created: paklein (06/10/97)                                            */
 
 #ifndef _FD_KSTV_2D_H_
@@ -7,6 +7,9 @@
 /* base classes */
 #include "FDKStV.h"
 #include "IsotropicT.h"
+
+
+namespace Tahoe {
 
 class FDKStV2D: public FDKStV, public Material2DT
 {
@@ -29,4 +32,5 @@ private:
 	virtual bool SetInverseThermalTransformation(dMatrixT& F_trans_inv);  			
 };
 
+} // namespace Tahoe 
 #endif /* _FD_KSTV_2D_H_ */

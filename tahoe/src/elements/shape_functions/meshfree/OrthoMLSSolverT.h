@@ -1,4 +1,4 @@
-/* $Id: OrthoMLSSolverT.h,v 1.3 2001-07-03 01:35:50 paklein Exp $ */
+/* $Id: OrthoMLSSolverT.h,v 1.3.6.1 2002-06-27 18:04:10 cjkimme Exp $ */
 /* created: paklein (07/03/1998)                                          */
 /* base class for orthogonal basis, moving least squares, interpolants    */
 /* (from Lu et al, Comp Meth App Mech Eng, 126, 1995, 131-153)            */
@@ -13,6 +13,9 @@
 #include "nArrayGroupT.h"
 #include "nArray2DGroupT.h"
 #include "nVariArray2DT.h"
+
+
+namespace Tahoe {
 
 class OrthoMLSSolverT
 {
@@ -151,4 +154,5 @@ inline int OrthoMLSSolverT::NumberOfMonomials(void) const
 	return NumberOfMonomials(fComplete);
 }
 
+} // namespace Tahoe 
 #endif /* _ORTHO_MLS_SOLVER_T_H_ */

@@ -1,4 +1,4 @@
-/* $Id: MaterialListT.h,v 1.3 2002-06-08 20:20:40 paklein Exp $ */
+/* $Id: MaterialListT.h,v 1.3.2.1 2002-06-27 18:03:29 cjkimme Exp $ */
 /* created: paklein (02/16/1997) */
 
 #ifndef _MATERIAL_LIST_T_H_
@@ -9,6 +9,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class ContinuumMaterialT;
 class ifstreamT;
 
@@ -46,4 +49,5 @@ protected:
 /* inlines */
 inline bool MaterialListT::HasHistoryMaterials(void) const { return fHasHistory;  }
 
+} // namespace Tahoe 
 #endif /* _MATERIAL_LIST_T_H_ */

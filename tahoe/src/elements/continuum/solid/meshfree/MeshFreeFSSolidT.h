@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.h,v 1.4 2002-06-08 20:20:25 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.h,v 1.4.2.1 2002-06-27 18:02:50 cjkimme Exp $ */
 /* created: paklein (09/16/1998) */
 
 #ifndef _EFG_FDELASTIC_T_H_
@@ -15,6 +15,9 @@
  * field (displacement) representation
  * \note clean up code governing when crack growth algorithm
  * is used, initiation criteria, etc. (PAK 09/28/1999) */
+
+namespace Tahoe {
+
 class MeshFreeFSSolidT: public TotalLagrangianT,
 	public MeshFreeFractureSupportT
 {
@@ -84,4 +87,5 @@ protected:
 	nVariArray2DT<double> fDNa_x_wrap;
 };
 
+} // namespace Tahoe 
 #endif /* _EFG_FDELASTIC_T_H_ */

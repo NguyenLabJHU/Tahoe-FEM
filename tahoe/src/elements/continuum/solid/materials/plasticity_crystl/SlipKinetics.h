@@ -21,6 +21,9 @@
 #include "SlipHardening.h"
 #include "dArrayT.h"
 
+
+namespace Tahoe {
+
 class PolyCrystalMatT;
 
 class SlipKinetics
@@ -77,4 +80,5 @@ class SlipKinetics
 inline const dArrayT& SlipKinetics::MaterialProperties() const
 { return fMatProp; }
 
+} // namespace Tahoe 
 #endif  /* _SLIP_KINETICS_H_ */

@@ -1,10 +1,13 @@
-/* $Id: SSCubic2DT.cpp,v 1.2 2001-07-03 01:35:08 paklein Exp $ */
+/* $Id: SSCubic2DT.cpp,v 1.2.6.1 2002-06-27 18:03:11 cjkimme Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #include "SSCubic2DT.h"
 #include "ThermalDilatationT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 SSCubic2DT::SSCubic2DT(ifstreamT& in, const SmallStrainT& element):
 	SSCubicT(in, element),
 	Anisotropic2DT(in),

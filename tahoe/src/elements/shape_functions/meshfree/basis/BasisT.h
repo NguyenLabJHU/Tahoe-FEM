@@ -1,4 +1,4 @@
-/* $Id: BasisT.h,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: BasisT.h,v 1.1.1.1.10.1 2002-06-27 18:04:13 cjkimme Exp $ */
 /* created: paklein (12/10/1999)                                          */
 /* base class for basis functions                                         */
 
@@ -11,6 +11,9 @@
 #include "nArray2DGroupT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class dArrayT;
 
 class BasisT
@@ -65,4 +68,5 @@ inline const dArray2DT& BasisT::DDP(int component) const
 	return fDDP[component];
 }
 
+} // namespace Tahoe 
 #endif /* _BASIS_T_H_ */

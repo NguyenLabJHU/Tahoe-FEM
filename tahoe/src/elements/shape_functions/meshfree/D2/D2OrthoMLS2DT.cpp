@@ -1,4 +1,4 @@
-/* $Id: D2OrthoMLS2DT.cpp,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
+/* $Id: D2OrthoMLS2DT.cpp,v 1.1.1.1.10.1 2002-06-27 18:04:12 cjkimme Exp $ */
 /* created: paklein (10/17/1999)                                          */
 
 #include "D2OrthoMLS2DT.h"
@@ -7,6 +7,9 @@
 #include "dSymMatrixT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 D2OrthoMLS2DT::D2OrthoMLS2DT(int complete):
 	D2OrthoMLSSolverT(2, complete)
 {

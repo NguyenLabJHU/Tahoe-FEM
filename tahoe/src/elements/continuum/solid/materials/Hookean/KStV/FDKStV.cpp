@@ -1,9 +1,12 @@
-/* $Id: FDKStV.cpp,v 1.2 2001-07-03 01:35:09 paklein Exp $ */
+/* $Id: FDKStV.cpp,v 1.2.6.1 2002-06-27 18:03:12 cjkimme Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "FDKStV.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 FDKStV::FDKStV(ifstreamT& in, const FiniteStrainT& element):
 	FDHookeanMatT(in, element),
 	IsotropicT(in)

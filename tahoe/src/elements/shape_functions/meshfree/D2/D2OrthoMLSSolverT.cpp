@@ -1,4 +1,4 @@
-/* $Id: D2OrthoMLSSolverT.cpp,v 1.3 2001-07-03 01:35:52 paklein Exp $ */
+/* $Id: D2OrthoMLSSolverT.cpp,v 1.3.6.1 2002-06-27 18:04:12 cjkimme Exp $ */
 /* created: paklein (10/17/1999)                                          */
 
 #include "D2OrthoMLSSolverT.h"
@@ -7,6 +7,9 @@
 #include "dSymMatrixT.h"
 
 /* constants */
+
+using namespace Tahoe;
+
 const double sqrtPi = sqrt(acos(-1.0));
 
 /* constructor */

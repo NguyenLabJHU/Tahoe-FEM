@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.10 2002-04-02 23:38:43 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.10.4.1 2002-06-27 18:04:04 cjkimme Exp $ */
 /* created: paklein (03/23/1997) */
 
 #include "GlobalMatrixT.h"
@@ -9,6 +9,9 @@
 #include "dArrayT.h"
 
 /* cconstructor */
+
+using namespace Tahoe;
+
 GlobalMatrixT::GlobalMatrixT(ostream& out, int check_code):
 	fOut(out),
 	fCheckCode(check_code),

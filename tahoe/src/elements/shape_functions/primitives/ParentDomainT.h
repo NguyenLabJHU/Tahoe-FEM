@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.h,v 1.3 2001-08-20 06:54:24 paklein Exp $ */
+/* $Id: ParentDomainT.h,v 1.3.6.1 2002-06-27 18:04:16 cjkimme Exp $ */
 /* created: paklein (07/03/1996)                                          */
 /* interface for a finite element parent domain. manages integration      */
 /* information (points, weights, etc..) and mapping between the real      */
@@ -15,6 +15,9 @@
 #include "GeometryBaseT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class iArrayT;
 class LocalArrayT;
 
@@ -243,4 +246,5 @@ inline void ParentDomainT::FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geom,
 	fGeometry->FacetGeometry(facet_geom, facet_nodes);
 }
 
+} // namespace Tahoe 
 #endif /* _PARENT_DOMAIN_T_H_ */
