@@ -1,0 +1,22 @@
+# $Id: CA-CPLANT.macros,v 1.1.1.1 2001-01-25 01:46:10 paklein Exp $
+# MPI
+MPI_CFLAGS = -D__MPI__
+MPI_LFLAGS = -lmpi
+
+# CA-CPLANT (DEC)
+COMP_CC     = cxx
+COMP_C      = cxx
+AR          = ar
+LINK        = $(COMP_CC)
+TR          = $(OBJ_DIR)/cxx_repository
+MY_CFLAGS   = -c -ptr $(TR) -I$(INC_DIR) -I/usr/local/mpich/include -msg_display_number -msg_disable 161
+DEFINES     = -D__DEC__ -D__CPLANT__ -D__CA_CPLANT__
+CFLAGS      = $(MPI_CFLAGS) $(MY_CFLAGS) $(DEFINES)
+MORE_CFLAGS = -O3 -DNDEBUG 
+#MORE_CFLAGS = -g 
+LFLAGS      = $(MPI_LFLAGS) -lm -ptr $(TR) -L/usr/local/lam/lib
+ARFLAGS     = -cruv
+MAKE_OPTS   = -s
+RM          = rm
+LN          = ln -sf
+INC_FLAGS   = -I/usr/include/cxx
