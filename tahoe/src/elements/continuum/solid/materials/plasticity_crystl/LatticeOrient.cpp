@@ -11,8 +11,7 @@
 #include "ifstreamT.h"
 #include "Utils.h"
 
-// for random generation of numbers
-#define RANDOM_MAX 32767
+#include <stdlib.h>
 
 // some constants
 const double pi = 4.0 * atan(1.0);
@@ -63,7 +62,7 @@ void LatticeOrient::AssignEulerAngles(int kcode, int nelem, int nint,
       for (int ie = 0; ie < nelem; ie++)
 	for (int ig = 0; ig < ngrn; ig++)
 	  {
-	    int random = (int) (rand()/(RANDOM_MAX+1.0)*fNumAngle);
+	    int random = (int) (rand()/(RAND_MAX+1.0)*fNumAngle);
 	    for (int ip = 0; ip < nint; ip++)
 	      euler[ie](ip,ig).SetToScaled(1.0, fAngles[random]);
 	  }
@@ -76,7 +75,7 @@ void LatticeOrient::AssignEulerAngles(int kcode, int nelem, int nint,
 	for (int ip = 0; ip < nint; ip++)
 	  for (int ig = 0; ig < ngrn; ig++)
 	    {
-	      int random = (int) (rand()/(RANDOM_MAX+1.0)*fNumAngle);
+	      int random = (int) (rand()/(RAND_MAX+1.0)*fNumAngle);
 	      euler[ie](ip,ig).SetToScaled(1.0, fAngles[random]);
 	    }
       break;
