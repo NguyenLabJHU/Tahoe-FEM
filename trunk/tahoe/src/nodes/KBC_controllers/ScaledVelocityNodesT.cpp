@@ -1,10 +1,12 @@
-/* $Id: ScaledVelocityNodesT.cpp,v 1.4 2003-05-06 19:59:44 cjkimme Exp $ */
+/* $Id: ScaledVelocityNodesT.cpp,v 1.5 2003-05-14 17:41:11 cjkimme Exp $ */
 #include "ScaledVelocityNodesT.h"
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
 #include "ifstreamT.h"
 #include "RandomNumberT.h"
+#include "MessageT.h"
+#include "CommunicatorT.h"
 #include "iArrayT.h"
 
 const double fkB = 0.00008617385;
@@ -162,32 +164,52 @@ void ScaledVelocityNodesT::InitialCondition(void)
 		fT_0 = fTempScale*fTempSchedule->Value();
 	}
 	
-	/* get processor number */
-	int np = fNodeManager.Rank();
-	const ArrayT<int>* pMap = fNodeManager.ProcessorMap();
-	
 	/* number of scaled nodes */
 	int n_scaled = 0;
 	int ndof = fField.NumDOF();
 	
 	/* workspace to generate velocities */
 	dArray2DT velocities(fNodeManager.NumNodes(), ndof); 
-	dArrayT vCOM(ndof);
-	
+
 	/* generate gaussian dist of random vels */
 	fRandom->RandomArray(velocities);
 	
+	/* get MPI stuff */
+	CommunicatorT& communicator = fNodeManager.FEManager().Communicator();
+	int nProcs = fNodeManager.Size();
+	int thisProc = fNodeManager.Rank();
+	const ArrayT<int>* pMap = fNodeManager.ProcessorMap();
+	
 	double tKE = 0.;
+	dArrayT vCOM(ndof);
 	vCOM = 0.;
 	//double totalMass = fMass*n_scaled;
-	for (int i = 0; i < fNodes.Length(); i++)
+	/* only change velocities for nodes on this processor */
+	iArrayT myNodes; 
+	
+	if (fNodeManager.Size() == 1 || !pMap)
+		myNodes.Set(fNodes.Length(), fNodes.Pointer());
+	else
 	{
-		int node_i = fNodes[i];
-		if (!pMap || (*pMap)[node_i] == np)
-		{
-			double* v_i = velocities(node_i);
+		const ArrayT<int>* nMap = fNodeManager.FEManager().NodeMap();
 		
-	    	for (int j = 0; j < ndof; j++)
+		if (!nMap)
+			ExceptionT::GeneralFail("ScaledVelocityNodesT","Cannot get a node map");
+			
+		for (int i = 0; i < myNodes.Length(); i++)
+			if ((*pMap)[fNodes[i]] == thisProc)
+				myNodes[i] = (*nMap)[fNodes[i]];
+			else
+				myNodes[i] = -1;
+	}
+	
+	for (int i = 0; i < myNodes.Length(); i++)
+	{	
+		if (myNodes[i] >= 0)
+		{
+			double* v_i = velocities(myNodes[i]);
+		
+			for (int j = 0; j < ndof; j++)
 			{	
 				tKE += (*v_i)*(*v_i);
 				vCOM[j] += *v_i++;
@@ -196,36 +218,44 @@ void ScaledVelocityNodesT::InitialCondition(void)
 			n_scaled++;
 		}
 	}
-	vCOM /= n_scaled;
+	int n_total = communicator.Sum(n_scaled);
+	double KE_total = communicator.Sum(tKE);
+	dArray2DT vCOM_all(nProcs, ndof);
+	communicator.AllGather(vCOM, vCOM_all);
 	
-	for (int i = 0; i < fNodes.Length(); i++)
-		for (int j = 0; j < ndof; j++)
-			if (!pMap || (*pMap)[fNodes[i]] == np)
-				velocities(fNodes[i],j) -= vCOM[j];
+	for (int j = 0; j < ndof; j++)
+		vCOM[j] = vCOM_all.ColumnSum(j);
+	
+	vCOM /= n_total;
+
+	for (int i = 0; i < myNodes.Length(); i++)
+	{
+		if (myNodes[i] >= 0)
+			for (int j = 0; j < ndof; j++)
+				velocities(myNodes[i],j) -= vCOM[j];
+	}
 	
 	/* adjust KE to COM frame  and convert it to a temperature */
 	for (int j = 0; j < ndof; j++)
-		tKE -= n_scaled*vCOM[j]*vCOM[j];
-	tKE *= fMass/n_scaled/ndof/fkB;
+		KE_total -= n_total*vCOM[j]*vCOM[j];
+	KE_total *= fMass/n_total/ndof/fkB;
 	
 	/* set the temperature */
-	velocities *= sqrt(fT_0/tKE);
+	velocities *= sqrt(fT_0/KE_total);
 
 	/* generate BC cards */
 	fKBC_Cards.Dimension(n_scaled*ndof);
 	KBC_CardT* pcard = fKBC_Cards.Pointer();
-	for (int i = 0; i < fNodes.Length(); i++)
+	for (int i = 0; i < myNodes.Length(); i++)
 	{
-		int node_i = fNodes[i];
-		
-		if (!pMap || (*pMap)[node_i] == np)
+		if (myNodes[i] >= 0)
 		{
-			double* v_i = velocities(node_i);	
+			double* v_i = velocities(myNodes[i]);	
 			
 	    	for (int j = 0; j < ndof; j++)
 			{	
 				/* set values */
-				pcard->SetValues(node_i, j, KBC_CardT::kVel, 0, *v_i++);
+				pcard->SetValues(myNodes[i], j, KBC_CardT::kVel, 0, *v_i++);
 
 				/* dummy schedule */
 				pcard->SetSchedule(&fDummySchedule);
@@ -243,10 +273,6 @@ void ScaledVelocityNodesT::InitialCondition(void)
 /* initialize the current step */
 void ScaledVelocityNodesT::SetBCCards(void)
 {
-	/* get processor number */
-	int np = fNodeManager.Rank();
-	const ArrayT<int>* pMap = fNodeManager.ProcessorMap();
-
 	/* number of scaled nodes */
 	int n_scaled = 0; 
 	int ndof = fField.NumDOF();
@@ -258,25 +284,49 @@ void ScaledVelocityNodesT::SetBCCards(void)
 	if (!velocities)
 		ExceptionT::GeneralFail("ScaledVelocityNodesT::SetBCCards","Cannot get velocity field ");
 		
+	/* get MPI stuff */
+	CommunicatorT& communicator = fNodeManager.FEManager().Communicator();
+	int nProcs = fNodeManager.Size();
+	int thisProc = fNodeManager.Rank();
+	const ArrayT<int>* pMap = fNodeManager.ProcessorMap();	
+	
 	/* 	assume uniform mass for now */
+
+	/* figure out which nodes to affect */
+	iArrayT myNodes;
+
+	if (fNodeManager.Size() == 1 || !pMap)
+		myNodes.Set(fNodes.Length(), fNodes.Pointer());
+	else
+	{
+		const ArrayT<int>* nMap = fNodeManager.FEManager().NodeMap();
+		
+		if (!nMap)
+			ExceptionT::GeneralFail("ScaledVelocityNodesT","Cannot get a node map");
+			
+		for (int i = 0; i < myNodes.Length(); i++)
+			if ((*pMap)[fNodes[i]] == thisProc)
+				myNodes[i] = (*nMap)[fNodes[i]];
+			else
+				myNodes[i] = -1;
+	}
+
 
 	/* calculate CM velocity and temperature */
 	dArrayT vCOM(ndof);
 	double tKE = 0.; // total kinetic energy
 	double vscale; // scale velocity by this after subtracting off vCOM
-	if (fNodes.Length() > 0)
+	if (myNodes.Count(-1) != myNodes.Length())
 	{
 		vCOM = 0.;
 		//double totalMass = fMass*n_scaled;
-		for (int i = 0; i < n_scaled; i++)
-		{
-			int node_i = fNodes[i];
-			
-			if (!pMap || (*pMap)[node_i] == np)
+		for (int i = 0; i < myNodes.Length(); i++)
+		{	
+			if (myNodes[i] >= 0)
 			{
-				double* v_i = (*velocities)(node_i);
-		
-	    		for (int j = 0; j < ndof; j++)
+				double* v_i = (*velocities)(myNodes[i]);
+			
+				for (int j = 0; j < ndof; j++)
 				{	
 					tKE += (*v_i)*(*v_i);
 					vCOM[j] += *v_i++;
@@ -285,30 +335,37 @@ void ScaledVelocityNodesT::SetBCCards(void)
 				n_scaled++;
 			}
 		}
-		vCOM /= n_scaled;
+		int n_total = communicator.Sum(n_scaled);
+		double KE_total = communicator.Sum(tKE);
+		dArray2DT vCOM_all(nProcs, ndof);
+		communicator.AllGather(vCOM, vCOM_all);
 		
-		/* adjust KE to COM frame */
 		for (int j = 0; j < ndof; j++)
-			tKE -= n_scaled*vCOM[j]*vCOM[j];
-		tKE *= fMass;
+			vCOM[j] = vCOM_all.ColumnSum(j);
 		
+		vCOM /= n_total;
+		
+		/* adjust KE to COM frame  and convert it to a temperature */
+		for (int j = 0; j < ndof; j++)
+			KE_total -= n_total*vCOM[j]*vCOM[j];
+		KE_total *= fMass;
+			
 		/* want new KE to be ndof/2*n_scaled * kT */
-		vscale = sqrt(ndof*n_scaled*fkB*fTempScale*(fTempSchedule->Value())/tKE);
+		vscale = sqrt(ndof*n_total*fkB*fTempScale*(fTempSchedule->Value())/KE_total);
 		
 		/* generate BC cards */
 		fKBC_Cards.Dimension(n_scaled*ndof);
 		KBC_CardT* pcard = fKBC_Cards.Pointer();
-		for (int i = 0; i < n_scaled; i++)
+		for (int i = 0; i < myNodes.Length(); i++)
 		{
-			int node_i = fNodes[i];
-			if (!pMap || (*pMap)[node_i] == np)
+			if (myNodes[i] >= 0)
 			{
-				double* v_i = (*velocities)(node_i);	
+				double* v_i = (*velocities)(myNodes[i]);	
 				
 		    	for (int j = 0; j < ndof; j++)
 				{	
 					/* set values */
-					pcard->SetValues(node_i, j, KBC_CardT::kVel, 0, (*v_i++-vCOM[j])*vscale);
+					pcard->SetValues(myNodes[i], j, KBC_CardT::kVel, 0, (*v_i++-vCOM[j])*vscale);
 
 					/* dummy schedule */
 					pcard->SetSchedule(&fDummySchedule);
