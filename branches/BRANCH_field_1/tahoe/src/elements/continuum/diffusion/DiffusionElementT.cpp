@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.3.8.9 2002-05-16 19:34:23 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.3.8.10 2002-06-05 09:27:16 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -310,40 +310,34 @@ void DiffusionElementT::RHSDriver(void)
 			ip_source /= ElementSupport().TimeStep();
 		}
 		block_count++;
-
-		/* nodal temperature */
-		if (formKd) 
-			SetLocalU(fLocDisp);
-		else
-			fLocDisp = 0.0;
-
-		/* nodal temperature rate */
-		fLocVel = 0.0;
-		if (formBody) AddBodyForce(fLocVel);
-
-		/* last check w/ effective v and d - override controller */
-		bool eformCv = fLocVel.AbsMax() > 0.0 || block_source;
-		bool eformKd = fLocDisp.AbsMax() > 0.0;
-		if (eformCv || eformKd)
-		{
-			/* initialize */
-			fRHS = 0.0;
 		
-			/* global shape function values */
-			SetGlobalShape();
-			
-			/* internal force contribution */	
-			if (eformKd) FormKd(-constKd);
+		/* initialize */
+		fRHS = 0.0;
 
-			/* inertia forces */
-			if (eformCv) 
-				FormMa(kConsistentMass, -constCv*fCurrMaterial->Capacity(), 
-					&fLocVel,
-					(block_source) ? &ip_source : NULL);			  		
-								
-			/* assemble */
-			AssembleRHS();
+		/* global shape function values */
+		SetGlobalShape();
+
+		/* conduction term */
+		if (formKd) 
+		{
+			SetLocalU(fLocDisp);
+			FormKd(-constKd);
 		}
+
+		/* capacity term */
+		if (formCv || formBody)
+		{
+			if (formCv) SetLocalU(fLocVel);
+			else fLocVel = 0.0;
+			if (formBody) AddBodyForce(fLocVel);
+
+			FormMa(kConsistentMass, -constCv*fCurrMaterial->Capacity(), 
+				&fLocVel,
+				(block_source) ? &ip_source : NULL);			  		
+		}
+				
+		/* assemble */
+		AssembleRHS();
 	}
 }
 
