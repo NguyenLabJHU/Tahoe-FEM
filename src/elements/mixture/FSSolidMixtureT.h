@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.h,v 1.3 2005-01-05 01:27:24 paklein Exp $ */
+/* $Id: FSSolidMixtureT.h,v 1.4 2005-01-07 02:18:16 paklein Exp $ */
 #ifndef _FS_SOLID_MIX_T_H_
 #define _FS_SOLID_MIX_T_H_
 
@@ -42,6 +42,9 @@ public:
 
 	/** mass density. Method does retrieve current values of the nodal concentrations. */
 	virtual double Density(void);
+
+	/** variation of the Cauchy for the given species with concentration */
+	const dSymMatrixT& ds_ij_dc(int i);
 
 	/** \name spatial representation */
 	/*@{*/
@@ -123,6 +126,7 @@ protected:
 
 	ArrayT<dMatrixT> fF_species;
 	dMatrixT fF_growth_inv;
+	dSymMatrixT fs_ij_tmp;
 };
 
 #if 0

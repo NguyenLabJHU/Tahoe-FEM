@@ -1,4 +1,4 @@
-/* $Id: FSSolidMixtureT.cpp,v 1.4 2005-01-03 21:54:47 paklein Exp $ */
+/* $Id: FSSolidMixtureT.cpp,v 1.5 2005-01-07 02:18:16 paklein Exp $ */
 #include "FSSolidMixtureT.h"
 #include "ParameterContainerT.h"
 //#include "FSSolidMixtureSupportT.h"
@@ -96,6 +96,51 @@ double FSSolidMixtureT::Density(void)
 	return fDensity;
 }
 
+/* variation of 1st Piola-Kirchhoff for the given species with concentration */
+const dSymMatrixT& FSSolidMixtureT::ds_ij_dc(int i)
+{
+	/* current element information */
+	const ElementCardT& element = CurrentElement();
+	const dArrayT& conc_0 = element.DoubleData();
+
+	/* concentrations */
+	fFSMatSupport->Interpolate(fConc, fIPConc);
+	dArrayT& conc = fIPConc;	
+
+	/* select the perturbation */
+	double eps = 1.0e-08;
+	double c_0 = conc[i];
+	double c_h = c_0 + eps;
+	c_h = (c_h > 1.0) ? c_0 : c_h;
+	double c_l = c_0 - eps;
+	c_l = (c_l < 0.0) ? c_0 : c_l;
+	double rel_conc;
+
+	/* "high" */
+	conc[i] = c_h;
+	rel_conc = conc[i]/conc_0[i];
+	fF_growth_inv.Identity(1.0/rel_conc);
+	fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
+	fs_ij_tmp.SetToScaled(conc[i], fStressFunctions[i]->s_ij());
+
+	/* "low" */
+	conc[i] = c_l;
+	rel_conc = conc[i]/conc_0[i];
+	fF_growth_inv.Identity(1.0/rel_conc);
+	fF_species[0].MultAB(fFSMatSupport->DeformationGradient(), fF_growth_inv);
+	fStress.SetToScaled(conc[i], fStressFunctions[i]->s_ij());
+
+	/* finite difference */
+	double dc_inv = 1.0/(c_h - c_l);
+	for (int i = 0; i < fStress.Length(); i++)
+		fStress[i] = (fs_ij_tmp[i] - fStress[i])*dc_inv;
+
+	/* restore the concentration */
+	conc[i] = c_0;
+	
+	return fStress;
+}
+
 /* strain energy density */
 double FSSolidMixtureT::StrainEnergyDensity(void)
 {
@@ -162,7 +207,6 @@ const dMatrixT& FSSolidMixtureT::c_ijkl(int i)
 	/* concentrations */
 	fFSMatSupport->Interpolate(fConc, fIPConc);
 	const dArrayT& conc = fIPConc;	
-//	const dArrayT& conc = fFSSolidMixtureSupport->Concentration();
 
 	/* compute mechanical strain */
 	double rel_conc = conc[i]/conc_0[i];
@@ -186,7 +230,6 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(void)
 	if (CurrIP() == 0) UpdateConcentrations();
 	fFSMatSupport->Interpolate(fConc, fIPConc);
 	const dArrayT& conc = fIPConc;
-	//const dArrayT& conc = fFSSolidMixtureSupport->Concentration();
 
 	/* sum over species */
 	fStress = 0.0;
@@ -214,7 +257,6 @@ const dSymMatrixT& FSSolidMixtureT::s_ij(int i)
 	/* concentrations */
 	fFSMatSupport->Interpolate(fConc, fIPConc);
 	const dArrayT& conc = fIPConc;	
-//	const dArrayT& conc = fFSSolidMixtureSupport->Concentration();
 
 	/* compute mechanical strain */
 	double rel_conc = conc[i]/conc_0[i];
@@ -334,6 +376,7 @@ void FSSolidMixtureT::TakeParameterList(const ParameterListT& list)
 	fF_growth_inv.Dimension(nsd);
 	fStressSupport->SetContinuumElement(MaterialSupport().ContinuumElement());
 	fStressSupport->SetDeformationGradient(&fF_species);
+	fs_ij_tmp.Dimension(nsd);
 
 	/* species */
 	int num_species = list.NumLists("solid_mixture_species");
