@@ -1,4 +1,4 @@
-/* $Id: J2SSC0HardeningT.h,v 1.6.28.1 2005-04-05 23:29:02 thao Exp $ */
+/* $Id: J2SSC0HardeningT.h,v 1.6.28.2 2005-04-05 23:33:30 thao Exp $ */
 
 #ifndef _J2_SS_C0_HARD_T_H_
 #define _J2_SS_C0_HARD_T_H_
@@ -8,6 +8,7 @@
 #include "dMatrixT.h"
 #include "dArrayT.h"
 #include "C1FunctionT.h"
+#include "iArrayT.h"
 
 #include "ios_fwd_decl.h"
 
