@@ -120,33 +120,60 @@ const dSymMatrixT& GradCrystalPlastFp::s_ij()
   // time step
   fdt = ContinuumElement().FEManager().TimeStep();
 
-  // compute crystal stresses
+  // compute crystal stresses (all IPs at once - elastic predictor at first iter)
   if (fStatus == GlobalT::kFormRHS && CurrIP() == 0)
     {
-      // state at each integration point (all at once)
-      SolveCrystalState();
+       if (fContinuumElement.FEManager().IterationNumber() <= -1)
+         {
+           for (int intpt = 0; intpt < NumIP(); intpt++)
+             {
+               // deformation gradient
+               Compute_Ftot_3D(fFtot, intpt);
 
-      // crystal stresses and moduli (all at once)
-      for (int intpt = 0; intpt < NumIP(); intpt++)
-	{
-          // deformation gradient at intpt
-          Compute_Ftot_3D(fFtot, intpt);
+               // fetch crystal data
+               LoadCrystalData(element, intpt, igrn);
+         
+               // elasticity matrix in Bbar configuration
+               if (!fElasticity->IsIsotropic())
+                  {
+                     fElasticity->ComputeModuli(fRank4);
+                     FFFFC_3D(fcBar_ijkl, fRank4, fRotMat);
+                  }
+               else
+                     fElasticity->ComputeModuli(fcBar_ijkl);
 
-	  // fetch crystal data
-	  LoadCrystalData(element, intpt, igrn);
+               // elastic tensors
+               fFpi.Inverse(fFp_n);
+               fFe.MultAB(fFtot, fFpi);
+               fCeBar.MultATA(fFe);
+
+               // 2nd Piola Kirchhoff Stress
+               fEeBar.SetToCombination(0.5, fCeBar, -0.5, fISym);
+               fSBar.A_ijkl_B_kl(fcBar_ijkl, fEeBar);
+
+               // Cauchy Stress
+               fs_ij.MultQBQT(fFe, fSBar);
+               fs_ij /= fFe.Det();
+             }
+         }
+       else
+         {
+           // state at all integration points
+           SolveCrystalState();
+
+           // crystal stresses 
+           for (int intpt = 0; intpt < NumIP(); intpt++)
+	     {
+               // deformation gradient at intpt
+               Compute_Ftot_3D(fFtot, intpt);
+
+	       // fetch crystal data
+	       LoadCrystalData(element, intpt, igrn);
 	  
-	  // Schmidt tensor and density of GND's
-	  for (int i = 0; i < fNumSlip; i++) 
-	    {
-	      fZ[i].MultQBQT(fRotMat, fZc[i]);
-	    }
-
-	  // compute crystal Cauchy stress
-	  CrystalS_ij();
-
-	  // crystal moduli
-	  CrystalC_ijkl();
-	}
+	       // compute crystal Cauchy stress
+	       CrystalS_ij();
+ 	     }
+         }
     }
 
   // fetch crystal data
@@ -158,8 +185,8 @@ const dSymMatrixT& GradCrystalPlastFp::s_ij()
 
 const dMatrixT& GradCrystalPlastFp::c_ijkl()
 {
-  // fetch current element and intpt
-  ElementCardT & element = CurrentElement();
+  // fetch current element and int point
+  ElementCardT& element = CurrentElement();
   int intpt = CurrIP();
 
   // only one grain per integration point
@@ -167,7 +194,31 @@ const dMatrixT& GradCrystalPlastFp::c_ijkl()
 
   // recover local data
   LoadCrystalData(element, intpt, igrn);
-      
+
+  // elasticity matrix in Bbar configuration
+  if (!fElasticity->IsIsotropic())
+     {
+        fElasticity->ComputeModuli(fRank4);
+        FFFFC_3D(fcBar_ijkl, fRank4, fRotMat);
+     }
+  else
+        fElasticity->ComputeModuli(fcBar_ijkl);
+
+  if (fContinuumElement.FEManager().IterationNumber() <= 0)
+    {
+      // elastic crystal stiffness
+      FFFFC_3D(fc_ijkl, fcBar_ijkl, fFe);
+    }
+  else
+    {
+      // Schmidt tensor in Bbar configuration (sample axes)
+      for (int i = 0; i < fNumSlip; i++)
+         fZ[i].MultQBQT(fRotMat, fZc[i]);
+
+      // compute crystal moduli (consistent tangent)
+      CrystalC_ijkl();
+    }
+
   // return crystal moduli
   return fc_ijkl;
 }
@@ -602,9 +653,7 @@ void GradCrystalPlastFp::SolveCrystalState()
 
   // check if did not converge in max iterations
   if (!stateConverged) {
-    //throwRunTimeError("GradCrystalPlastFp::SolveCrystalState: Didn't converge in MaxIters");
-    cout << "GradCrystalPlastFp::SolveCrystalState: Didn't converge in MaxIters";
-    cout << "  will throw 'eBadJacobianDet' to force dt reduction \n";
+    writeWarning("... in GradCrystalPlastFp::SolveCrystalState: iters > MaxIters\n ...... will throw 'eBadJacobianDet' to cut dtime");
     throw eBadJacobianDet;
   }
 
@@ -616,8 +665,6 @@ void GradCrystalPlastFp::SolveForPlasticDefGradient(int& ierr)
 {
   // 9x1 array form of Fp
   Rank2ToArray9x1(fFp, fFpArray);
-
-  dArrayT fparray_n = fFpArray;
 
   // uses "kind of" continuation method based on rate sensitivity exponent
   fKinetics->SetUpRateSensitivity();
@@ -632,18 +679,14 @@ void GradCrystalPlastFp::SolveForPlasticDefGradient(int& ierr)
        catch(int code)
            {
              fKinetics->RestoreRateSensitivity();
-             cout << " exception caugth, throw 'eBadJacobianDet' to force dt reduction \n";
+             writeWarning("... in GradCrystalPlastFp::SolveForPlasticDefGradient: caugth exception\n ...... will throw 'eBadJacobianDet' to cut dtime");
              throw eBadJacobianDet;
            }
 
-       // return if problems in NCLSolver
-       //if (ierr != 0) return;
+       // throw exception if problems in NCLSolver
        if (ierr != 0) {
-          writeMessage("GradCrystalPlastFp::SolveForFp: Convergence problems");
-          //writeWarning("GradcrystalPlastFp::SolveForFp: Will set:  Fp = Fp_n");
           fKinetics->RestoreRateSensitivity();
-          fFpArray = fparray_n;
-          cout << " did not converged in maxIters, throw 'eBadJacobianDet' to force dt reduction \n";
+          writeWarning("... in GradCrystalPlastFp::SolveForPlasticDefGradient: ierr!=0\n ...... will throw 'eBadJacobianDet' to cut dtime");
           throw eBadJacobianDet;
        }
 
