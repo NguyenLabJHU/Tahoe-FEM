@@ -649,8 +649,7 @@ void GradCrystalPlastFp::SolveForPlasticDefGradient(int& ierr)
           //writeWarning("GradcrystalPlastFp::SolveForFp: Will set:  Fp = Fp_n");
           fKinetics->RestoreRateSensitivity();
           fFpArray = fparray_n;
-          cout << " did not converged in maxIters, throw 
-                             'eBadJacobianDet' to force dt reduction \n";
+          cout << " did not converged in maxIters, throw 'eBadJacobianDet' to force dt reduction \n";
           throw eBadJacobianDet;
        }
 
