@@ -1,4 +1,4 @@
-/* $Id: IsotropicT.cpp,v 1.9.16.3 2004-03-24 19:47:59 paklein Exp $ */
+/* $Id: IsotropicT.cpp,v 1.9.16.4 2004-03-28 09:54:59 paklein Exp $ */
 /* created: paklein (06/10/1997) */
 #include "IsotropicT.h"
 
@@ -100,39 +100,27 @@ ParameterInterfaceT* IsotropicT::NewSub(const StringT& list_name) const
 
 		/* set the choices */		
 		choice->SetListOrder(ParameterListT::Choice);
-		choice->AddSub("E_and_nu");
-		choice->AddSub("bulk_and_shear");
-	
-		return choice;
-	}
-	else if (list_name == "E_and_nu")
-	{
-		ParameterContainerT* E_and_nu = new ParameterContainerT(list_name);
-		
+
+		ParameterContainerT E_and_nu("E_and_nu");
 		ParameterT E(ParameterT::Double, "Young_modulus");
 		E.AddLimit(0.0, LimitT::Lower);
-		E_and_nu->AddParameter(E);
-
+		E_and_nu.AddParameter(E);
 		ParameterT Poisson(ParameterT::Double, "Poisson_ratio");
 		Poisson.AddLimit(-1.0, LimitT::Lower);
 		Poisson.AddLimit( 0.5, LimitT::Upper);
-		E_and_nu->AddParameter(Poisson);		
-
-		return E_and_nu;
-	}
-	else if (list_name == "bulk_and_shear")
-	{
-		ParameterContainerT* bulk_and_shear = new ParameterContainerT(list_name);
+		E_and_nu.AddParameter(Poisson);
+		choice->AddSub(E_and_nu);
 		
+		ParameterContainerT bulk_and_shear("bulk_and_shear");		
 		ParameterT kappa(ParameterT::Double, "bulk_modulus");
 		kappa.AddLimit(0.0, LimitT::Lower);
-		bulk_and_shear->AddParameter(kappa);
-
+		bulk_and_shear.AddParameter(kappa);
 		ParameterT mu(ParameterT::Double, "shear_modulus");
 		mu.AddLimit(0.0, LimitT::Lower);
-		bulk_and_shear->AddParameter(mu);
-
-		return bulk_and_shear;
+		bulk_and_shear.AddParameter(mu);
+		choice->AddSub(bulk_and_shear);
+	
+		return choice;
 	}
 	else /* inherited */
 		return ParameterInterfaceT::NewSub(list_name);
