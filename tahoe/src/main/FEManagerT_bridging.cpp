@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.16 2004-03-04 08:54:38 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.17 2004-03-17 22:47:12 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -25,11 +25,7 @@ FEManagerT_bridging::FEManagerT_bridging(ifstreamT& input, ofstreamT& output, Co
 	fBridgingScale(NULL),
 	fSolutionDriver(NULL)
 {
-/* class requires RTTI */
-#ifdef __NO_RTTI__
-#pragma message("requires RTTI")
-ExceptionT::GeneralFail("FEManagerT_bridging::FEManagerT_bridging", "requires RTTI");
-#endif
+
 }
 
 /* send update of the solution to the NodeManagerT */
@@ -154,7 +150,11 @@ void FEManagerT_bridging::InitGhostNodes(bool include_image_nodes)
 		ElementBaseT* element_base = (*fElementGroups)[i];
 		
 		/* attempt cast to particle type */
+#ifndef __NO_RTTI_
 		ParticleT* particle = dynamic_cast<ParticleT*>(element_base);
+#else /* no RTTI */
+		ParticleT* particle = element_base->dynamic_cast_ParticleT();
+#endif
 		if (particle) 
 		{
 			found = true;
@@ -276,7 +276,11 @@ void FEManagerT_bridging::Form_G_NG_Stiffness(const StringT& field, int element_
 
 	/* try cast */
 	ElementBaseT* element_base = (*fElementGroups)[element_group];
+#ifndef __NO_RTTI_
 	ParticleT* particle = dynamic_cast<ParticleT*>(element_base);
+#else
+	ParticleT* particle = element_base->dynamic_cast_ParticleT();
+#endif
 	if (!particle) ExceptionT::GeneralFail(caller, "element group %d is not a particle group", element_group);
 
 	/* form matrix */
@@ -567,7 +571,7 @@ void FEManagerT_bridging::BridgingFields(const StringT& field, NodeManagerT& ato
 void FEManagerT_bridging::SetReferenceError(int group, double error) const
 {
 	/* retrieve nonlinear solver */
-	NLSolver* solver = dynamic_cast<NLSolver*>(fSolvers[group]);
+  NLSolver* solver = TB_DYNAMIC_CAST(NLSolver*, fSolvers[group]);
 
 	/* silent in failuer */
 	if (solver) solver->SetReferenceError(error);
@@ -600,7 +604,11 @@ nMatrixT<int>& FEManagerT_bridging::PropertiesMap(int element_group)
 {
 	/* try cast to particle type */
 	ElementBaseT* element_base = (*fElementGroups)[element_group];
+#ifdef __NO_RTTI_
 	ParticleT* particle = dynamic_cast<ParticleT*>(element_base);
+#else
+	ParticleT* particle = element_base->dynamic_cast_ParticleT();
+#endif
 	if (!particle)
 		ExceptionT::GeneralFail("FEManagerT_bridging::PropertiesMap",
 			"group %d is not a particle group", element_group);
@@ -649,7 +657,11 @@ BridgingScaleT& FEManagerT_bridging::BridgingScale(void) const
 			
 			/* need non-const pointer to this */
 			FEManagerT_bridging* fe = (FEManagerT_bridging*) this;
+#ifndef __NO_RTTI__
 			fe->fBridgingScale = dynamic_cast<BridgingScaleT*>(element_base);
+#else
+			fe->fBridgingScale = element_base->dynamic_cast_BridgingScaleT();
+#endif
 		}
 		
 		/* not found */

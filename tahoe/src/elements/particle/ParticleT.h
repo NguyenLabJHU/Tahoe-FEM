@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.24 2004-03-04 08:54:26 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.25 2004-03-17 22:47:09 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -108,6 +108,14 @@ public:
 	/** modify the thickness of the image atom layer. The image atom layer is used to enforce
 	 * periodic boundary conditions. Values less that ParticleT::fNeighborDistance are not allowed */
 	void SetPeriodicSkin(double skin) { fPeriodicSkin = (skin > fNeighborDistance) ? skin : fNeighborDistance; };
+
+#ifdef __NO_RTTI__
+	/** \name fixes for environments without working RTTI */
+	/*@{*/
+	/** cast this to ParticleT */
+	virtual ParticleT* dynamic_cast_ParticleT(void) { return this; };
+	/*@}*/
+#endif
 
 protected: /* for derived classes only */
 
