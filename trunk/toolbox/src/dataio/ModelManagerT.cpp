@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.33 2003-06-09 06:10:25 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.34 2003-08-14 01:21:12 paklein Exp $ */
 /* created: sawimme July 2001 */
 #include "ModelManagerT.h"
 #include <ctype.h>
@@ -1051,17 +1051,42 @@ const iArrayT& ModelManagerT::NodeSet (const StringT& ID)
 
 void ModelManagerT::ManyNodeSets (const ArrayT<StringT>& ID, iArrayT& nodes)
 {
-  iAutoArrayT temp;
-  iArrayT tn;
-  for (int i=0; i < ID.Length(); i++)
-    {
-      tn = NodeSet (ID[i]);
-      temp.AppendUnique(tn);
-    }
+	/* quick exits */
+	if (ID.Length() == 0)
+		nodes.Dimension(0);
+	else if (ID.Length() == 1)
+		nodes = NodeSet(ID[0]);
+	else
+	{
+		ArrayT<char> flag(NumNodes());
+		flag = 0;
 
-  nodes.Dimension (temp.Length());
-  nodes.CopyPart (0, temp, 0, temp.Length());
-  nodes.SortAscending ();
+		/* mark included nodes */		
+		for (int i = 0; i < ID.Length(); i++)
+		{
+			const iArrayT& node_set = NodeSet(ID[i]);
+
+			int* p = node_set.Pointer();
+			int len = node_set.Length();
+			for (int j = 0; j < len; j++)
+				flag[*p++] = 1;
+		}
+		
+		/* count included nodes */
+		int count = 0;
+		char* p = flag.Pointer();
+		int len = flag.Length();
+		for (int j = 0; j < len; j++)
+			if (*p++ == 1)
+				count++;
+		
+		/* gather included nodes */
+		nodes.Dimension(count);
+		p = flag.Pointer();
+		for (int j = 0; j < len; j++)
+			if (*p++ == 1)
+				nodes[count++] = j;
+	}
 }
 
 int ModelManagerT::SideSetIndex (const StringT& ID) const
