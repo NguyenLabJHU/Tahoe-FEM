@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.9.4.4 2004-03-31 22:29:31 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.9.4.5 2004-04-03 03:19:59 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -9,6 +9,7 @@
 #include "NodeManagerT.h"
 #include "OutputSetT.h"
 #include "TimeManagerT.h"
+#include "ParticlePairT.h"
 #include "ifstreamT.h"
 
 using namespace Tahoe;
@@ -23,7 +24,8 @@ MultiManagerT::MultiManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT&
 	fFineField(NULL),
 	fCoarseField(NULL),
 	fFineToCoarse(true),
-	fCoarseToFine(true)
+	fCoarseToFine(true),
+	fCorrectOverlap(true)
 {
 	const char caller[] = "MultiManagerT::MultiManagerT";
 
@@ -57,13 +59,16 @@ void MultiManagerT::Initialize(InitCodeT)
 	/* state */
 	fStatus = GlobalT::kInitialization;
 
+	/* fine scale node manager */
+	NodeManagerT& fine_node_manager = *(fFine->NodeManager());
+
 	/* configure projection/interpolation */
 	int group = 0;
 	int order1 = 0;
 	bool make_inactive = true;
 	fFine->InitGhostNodes(fCoarse->ProjectImagePoints());
-	fCoarse->InitInterpolation(fFine->GhostNodes(), fFineField->Name(), *(fFine->NodeManager()));
-	fCoarse->InitProjection(*(fFine->CommManager()), fFine->NonGhostNodes(), fFineField->Name(), *(fFine->NodeManager()), make_inactive);
+	fCoarse->InitInterpolation(fFine->GhostNodes(), fFineField->Name(), fine_node_manager);
+	fCoarse->InitProjection(*(fFine->CommManager()), fFine->NonGhostNodes(), fFineField->Name(), fine_node_manager, make_inactive);
 
 	/* send coarse/fine output through the fFine output */
 	int ndof = fFine->NodeManager()->NumDOF(group);
@@ -88,8 +93,17 @@ void MultiManagerT::Initialize(InitCodeT)
 
 	/* read the cross term flags */
 	ifstreamT& in = Input();
-	in >> fFineToCoarse 
-       >> fCoarseToFine;
+	in >> fFineToCoarse
+	   >> fCoarseToFine
+	   >> fCorrectOverlap;
+
+	/* correct overlap */
+	if (fCorrectOverlap) {
+		const dArray2DT& fine_init_coords = fine_node_manager.InitialCoordinates();
+		const ParticlePairT* particle_pair = fFine->ParticlePair();
+		if (!particle_pair) ExceptionT::GeneralFail(caller, "could not resolve ParticlePairT");
+		fCoarse->CorrectOverlap(particle_pair->Neighbors(), fine_init_coords);
+	}
 }
 
 /* (re-)set the equation number for the given group */
