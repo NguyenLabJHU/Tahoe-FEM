@@ -1,4 +1,4 @@
-/* $Id: RodT.cpp,v 1.16 2002-07-03 22:26:07 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.17 2002-07-03 23:25:04 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "RodT.h"
 
@@ -448,7 +448,7 @@ void RodT::ComputeInstKE(void)
 		for (int i = 0; i < fGroupNodes.Length(); i++)
   		{
   			velocities.RowAlias(fGroupNodes[i], vel);
-  			ke += Dot(vel,vel);
+  			ke += dArrayT::Dot(vel,vel);
 		}
 		ke *= fCurrMaterial->Mass()/2.0;
 	}
