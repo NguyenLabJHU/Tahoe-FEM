@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.6 2003-04-22 18:32:16 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.7 2003-04-26 02:07:36 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -56,6 +56,10 @@ public:
 	 * existing parameters. The names of parameters cannot be repeated.
 	 * By default, the ParameterListT::OccurrenceT is ParameterListT::Once. */
 	bool AddParameter(const ParameterT& param, OccurrenceT occur = Once); 
+
+	bool AddParameter(int a, const StringT& name, OccurrenceT occur = Once);
+	bool AddParameter(double x, const StringT& name, OccurrenceT occur = Once);
+	bool AddParameter(const StringT& s, const StringT& name, OccurrenceT occur = Once);
 
 	/** add a parameter list. Returns true of there where no conflicts with
 	 * existing parameter lists. The names of parameter lists cannot be repeated.
@@ -145,6 +149,22 @@ protected:
 	AutoArrayT<OccurrenceT> fReferencesOccur;
 	/*@}*/
 };
+
+inline bool ParameterListT::AddParameter(int a, const StringT& name, OccurrenceT occur)
+{
+	ParameterT parameter(a, name);
+	return AddParameter(parameter, occur);
+}
+inline bool ParameterListT::AddParameter(double x, const StringT& name, OccurrenceT occur)
+{
+	ParameterT parameter(x, name);
+	return AddParameter(parameter, occur);
+}
+inline bool ParameterListT::AddParameter(const StringT& s, const StringT& name, OccurrenceT occur)
+{
+	ParameterT parameter(s, name);
+	return AddParameter(parameter, occur);
+}
 
 inline ParameterListT* ParameterListT::List(const StringT& name)
 {
