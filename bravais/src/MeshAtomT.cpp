@@ -130,9 +130,9 @@ void MeshAtomT::BuildIOFile(StringT& program_name,
   if(IOLattice != 0) delete IOLattice;
   IOLattice = new OutPutLatticeT(cout,program_name,version,title,
 				 input_file,output_format);
-  const ArrayT<StringT> n_labels(1);
+  ArrayT<StringT> n_labels(1);
   n_labels[0] = "Atom";
-  const ArrayT<StringT> e_labels(1);
+  ArrayT<StringT> e_labels(1);
   e_labels[0] = "point";
 
   //if(Set != 0) delete Set;
