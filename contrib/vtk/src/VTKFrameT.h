@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.h,v 1.6 2001-10-31 21:50:35 recampb Exp $ */
+/* $Id: VTKFrameT.h,v 1.7 2001-11-01 19:16:44 recampb Exp $ */
 
 #ifndef _VTK_FRAME_T_H_
 #define _VTK_FRAME_T_H_
@@ -16,6 +16,7 @@ class vtkRenderer;
 class vtkRendererSource;
 class vtkRenderWindow;
 class vtkRenderWindowInteractor;
+class vtkTIFFWriter;
 
 /* forward declarations */
 class VTKBodyT;
@@ -52,6 +53,7 @@ class VTKFrameT: public iConsoleObjectT
   
   vtkRenderer *renderer;
   vtkRendererSource *renSrc;
+  vtkTIFFWriter *writer;
 
   
 

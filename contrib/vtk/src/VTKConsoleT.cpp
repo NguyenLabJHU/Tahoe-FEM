@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.21 2001-10-31 21:50:35 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.22 2001-11-01 19:16:44 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -95,43 +95,40 @@ VTKConsoleT::VTKConsoleT(void)
     }
 
 
-//  /* prompt for input file */
-//   // StringT file;
-//     //char line[255];
-//     cout << "Choose number of File\n 1: heat.io0.exo\n 2: test.io0.exo\n 3: test2.io0.exo\n 4: big.exo\n 5: enter different .exo: ";
-//     cin >> test;
-//     cin.getline(line, 254);
+ /* prompt for input file */
+  // StringT file;
+    //char line[255];
+    cout << "Choose number of File\n 1: heat.io0.exo\n 2: test.io0.exo\n 3: test2.io0.exo\n 4: big.exo\n 5: enter different .exo: ";
+    cin >> test;
+    cin.getline(line, 254);
     
-//     StringT inFile2;
-//     if (test == 1) inFile2 = "../../example_files/heat/heat.io0.exo";
-//     else if (test ==2) inFile2 ="test.io0.exo";
-//     else if (test == 3) inFile2 = "test2.io0.exo";
-//     else if (test == 4) inFile2 = "big.exo";
-//     else if (test == 5) {
-//       cout << "Enter file name with .exo: ";
-//       cin >> inFile2;
-//       cin.getline(line, 254);
-//     }
-//     else cout << "bad entry";
-  
-//     cout << "How many plots in window (1 or 4)?";
-//     cin >> numRen;
-//     cin.getline(line, 254);
+    StringT inFile2;
+    if (test == 1) inFile2 = "../../example_files/heat/heat.io0.exo";
+    else if (test ==2) inFile2 ="test.io0.exo";
+    else if (test == 3) inFile2 = "test2.io0.exo";
+    else if (test == 4) inFile2 = "big.exo";
+    else if (test == 5) {
+      cout << "Enter file name with .exo: ";
+      cin >> inFile2;
+      cin.getline(line, 254);
+    }
+    else cout << "bad entry";
 
-//     //TEMP - construct one body
-//     try {
-//       VTKBodyT* body2 = new VTKBodyT(inFile2);
-//       fBodies.Append(body2);
-//     }
-//     catch (int) {
-//       cout << "\n exception constructing body" << endl;
-//     }
-//     cout << fBodies[0]->num_node_variables << endl;
-//     cout << fBodies[1]->num_node_variables << endl;
+
+    //TEMP - construct one body
+    try {
+      VTKBodyT* body2 = new VTKBodyT(inFile2);
+      fBodies.Append(body2);
+    }
+    catch (int) {
+      cout << "\n exception constructing body" << endl;
+    }
+    //cout << fBodies[0]->num_node_variables << endl;
+    // cout << fBodies[1]->num_node_variables << endl;
 
    renWin = vtkRenderWindow::New();
    iren = vtkRenderWindowInteractor::New();
-   writer = vtkTIFFWriter::New();
+   // writer = vtkTIFFWriter::New();
 
   //TEMP - adding sub-scopes to the console
   fFrames.Allocate(4);
@@ -163,14 +160,17 @@ VTKConsoleT::VTKConsoleT(void)
   //fBodies[0]->SetLookupTable();	  
 fFrames[0].Renderer()->AddActor(fBodies[0]->SBActor());
 fFrames[1].Renderer()->AddActor(fBodies[0]->SBActor());
-
+fFrames[2].Renderer()->AddActor(fBodies[0]->SBActor());
+fFrames[3].Renderer()->AddActor(fBodies[0]->SBActor());
   //  renSrc = vtkRendererSource::New();
   /* divide window into 4 parts */
 
  fFrames[0].Renderer()->AddActor(fBodies[0]->Actor());
  fFrames[1].Renderer()->AddActor(fBodies[0]->Actor());
+ fFrames[2].Renderer()->AddActor(fBodies[0]->Actor());
+ fFrames[3].Renderer()->AddActor(fBodies[0]->Actor());
  renWin->AddRenderer(fFrames[0].Renderer());
- renWin->AddRenderer(fFrames[1].Renderer());
+ //renWin->AddRenderer(fFrames[1].Renderer());
   if (numRen ==4){
     fFrames[0].Renderer()->SetViewport(0,0,.5,.5);
     fFrames[1].Renderer()->SetViewport(.5,0,1,.5);
@@ -183,7 +183,7 @@ fFrames[1].Renderer()->AddActor(fBodies[0]->SBActor());
   }
 
   if (numRen==4){   
-    //renWin->AddRenderer(fFrames[1].Renderer());
+    renWin->AddRenderer(fFrames[1].Renderer());
     renWin->AddRenderer(fFrames[2].Renderer());
     renWin->AddRenderer(fFrames[3].Renderer());
   }
