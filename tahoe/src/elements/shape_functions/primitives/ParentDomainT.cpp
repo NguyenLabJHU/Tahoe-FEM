@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.cpp,v 1.10 2002-07-20 08:02:46 paklein Exp $ */
+/* $Id: ParentDomainT.cpp,v 1.11 2002-07-21 00:19:20 hspark Exp $ */
 /* created: paklein (07/03/1996) */
 
 #include "ParentDomainT.h"
@@ -583,8 +583,6 @@ bool ParentDomainT::PointInDomain(const LocalArrayT& coords, const dArrayT& poin
 
     temp.SortAscending();
     /* if atom and node coincide, return true */
-    //cout << "Coordinates of field point: " << point << endl;
-    //cout << "Coordinates of element's nodes: " << coords << endl;
     if (point[0] >= temp[0] && point[0] <= temp[1])
       return true;
     else
@@ -611,7 +609,7 @@ bool ParentDomainT::MapToParentDomain(const LocalArrayT& coords, const dArrayT& 
     {
       dArrayT temp(2);
       for (int i = 0; i < 2; i++)
-	temp[i]=coords[i];
+	temp[i]=coords(i,0);
 
       temp.SortAscending();
       mapped[0]=2*point[0]/(temp[1]-temp[0])-(temp[0]+temp[1])/(temp[1]-temp[0]);
@@ -635,7 +633,6 @@ double ParentDomainT::AverageRadius(const LocalArrayT& coords, dArrayT& avg) con
 {
 	/* coordinate averages */
 	coords.Average(avg);
-	
 	/* find max distance to centroid */
 	double radius = 0;
 	for (int i = 0; i < coords.NumberOfNodes(); i++) {
@@ -646,5 +643,5 @@ double ParentDomainT::AverageRadius(const LocalArrayT& coords, dArrayT& avg) con
 		}	
 		radius = (dist > radius) ? dist : radius;
 	}
-	return sqrt(radius);
+	return sqrt(radius); // returns largest characteristic domain size
 }
