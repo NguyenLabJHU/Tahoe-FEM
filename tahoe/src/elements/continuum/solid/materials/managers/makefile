@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.6 2002-06-08 20:20:40 paklein Exp $
+# $Id: makefile,v 1.7 2002-06-27 01:21:05 hspark Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -8,6 +8,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 OBJ = \
 	DiffusionMatListT.o \
 	MaterialListT.o \
+	MaterialList1DT.o \
 	MaterialList2DT.o \
 	MaterialList3DT.o \
 	StructuralMatListT.o \
@@ -22,6 +23,7 @@ DEP = $(OBJ:.o=.d)
 SRC = \
 	DiffusionMatListT.cpp \
 	MaterialListT.cpp \
+	MaterialList1DT.cpp \
 	MaterialList2DT.cpp \
 	MaterialList3DT.cpp \
 	StructuralMatListT.cpp \
@@ -31,6 +33,7 @@ SRC = \
 HDR = \
 	DiffusionMatListT.h \
 	MaterialListT.h \
+	MaterialList1DT.h \
 	MaterialList2DT.h \
 	MaterialList3DT.h \
 	StructuralMatListT.h \
