@@ -1,4 +1,4 @@
-/* $Id: LocalizeT.cpp,v 1.5 2003-11-24 17:34:39 thao Exp $ */
+/* $Id: LocalizeT.cpp,v 1.6 2003-11-24 19:35:13 thao Exp $ */
 /* created: paklein (09/11/1997) */
 
 #include "LocalizeT.h"
@@ -40,9 +40,9 @@ LocalizeT::LocalizeT(const ElementSupportT& support):
     {
       int index;
       in >> index;
-      fBlockList[i] = index -1;
+      fBlockList[i] = index-1;
     }
-    out << "\nIn Blocks\n"<<fBlockList;
+    out << "\nIn Blocks "<<fBlockList<<endl;
 
     const StringT& input_file = in.filename();
     flocalize_file.Root(input_file);

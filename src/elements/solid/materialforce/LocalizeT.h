@@ -1,4 +1,4 @@
-/* $Id: LocalizeT.h,v 1.4 2003-11-24 17:34:40 thao Exp $ */
+/* $Id: LocalizeT.h,v 1.5 2003-11-24 19:35:13 thao Exp $ */
 /* created: paklein (09/11/1997) */
 
 #ifndef _LOCALIZET_H_
@@ -15,8 +15,6 @@ namespace Tahoe {
 
 class ElementSupportT;
 class LocalArrayT;
-class iArrayT;
-class dArray2DT;
 
 class LocalizeT
 {
@@ -63,23 +61,21 @@ public:
 	double dddet(double t) const;
 	
  protected: 
-	/*for use by derived element class*/
 	/*check localization flag*/
 	int fCheck;	
 
 	/*list of index of element blocks for localization check*/
 	iArrayT fBlockList;
+
+	/*localization checks*/
 	iArrayT fcheckflag; /*flag for elements identified by fBlockList*/
 	iArrayT flocflag;   /*flag for elements that have localized in time
-			      step*/
+			  step*/
 	iArrayT flocflagtot; /*flag for localized elements cummulative*/
-
-	/*check for localization at all the ips in the element*/
-	iArrayT fip_loc;  //currently not implemented
 	
 	dArray2DT felem_centers; /*center coordinates of localized elements*/
 	dArray2DT fnormals;      /*normals of localized elements*/
-	
+
  private:
 	
 	/*member data*/

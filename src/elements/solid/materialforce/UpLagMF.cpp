@@ -1,4 +1,4 @@
-/* $Id: UpLagMF.cpp,v 1.13 2003-11-24 17:35:13 thao Exp $ */
+/* $Id: UpLagMF.cpp,v 1.14 2003-11-24 19:35:13 thao Exp $ */
 #include <ctype.h>
 
 #include "UpLagMF.h"
@@ -30,14 +30,14 @@ UpLagMF::UpLagMF(const ElementSupportT& support, const FieldT& field):
   ftraction(LocalArrayT::kUnspecified),
   fsurf_disp(LocalArrayT::kDisp),
   fsurf_coords(LocalArrayT::kInitCoords){
- 
 }
 
 void UpLagMF::Initialize(void)
 {
   UpdatedLagrangianT::Initialize();
 
-  int nel = fElementCards.Length();
+  int nel = ElementBaseT::NumElements();
+  ostream& out = ElementSupport().Output();
 
   /*localization*/
   fcheckflag.Dimension(nel);
@@ -46,17 +46,19 @@ void UpLagMF::Initialize(void)
   felem_centers.Dimension(nel,NumSD());
   fnormals.Dimension(nel, NumSD());
 
-  fcheckflag = 0.0;
-  flocflag = 0.0;
-  flocflagtot = 0.0;
+  fcheckflag = 0;
+  flocflag = 0;
+  flocflagtot = 0;
   felem_centers = 0.0;
   fnormals = 0.0;
   
   if (fCheck == 1)
   {
     /*set check localization flags*/
-    for (int i = 0; i < nel; i++)
+    Top();
+    while(NextElement())
     {
+      int elem = CurrElementNumber();
       int cnt = 0;
       bool match=false;
       while (cnt < fBlockList.Length() && !match)
@@ -66,13 +68,14 @@ void UpLagMF::Initialize(void)
 	  throw ExceptionT::kGeneralFail;
 	}
 	const StringT& A = fBlockData[fBlockList[cnt]].ID();
-	const StringT& B = ElementBlockID(i);
-	if (strlen(A) == strlen(B) && strncmp(A,B,strlen(A)) == 0)
+	const StringT& B = ElementBlockID(elem);
+	if (strlen(A) == strlen(B) && strncmp(A,B,strlen(A)) == 0) {
 	  match = true;
+	}
 	cnt ++;
       }
       if (match)
-	fcheckflag[i] = 1;
+	fcheckflag[elem] = 1;
     }
   }
     
