@@ -1,36 +1,25 @@
-/* created: Majid T. Manzari (04/16/2003) */
+/* created: Karma Yonten (03/04/2004)                   
+   MR version modified to incorporate gradient plasticity 
+   theory.
+*/
 #include "GRAD_MRSSKStV2D.h"
 #include "ElementCardT.h"
 #include "StringT.h"
+#include "GRAD_MRSSNLHardT.h"
 
 using namespace Tahoe;
 
 /* constructor */
-GRAD_MRSSKStV2D::GRAD_MRSSKStV2D(ifstreamT& in, const SSMatSupportT& support):
-	GRAD_MRSSKStV(in, support),
-	Material2DT(in, kPlaneStrain),
-	fStress2D(2),
-	fModulus2D(dSymMatrixT::NumValues(2)),
-	fYieldFunction2D(0.0),
-	fTotalStrain3D(3)
+GRAD_MRSSKStV2D::GRAD_MRSSKStV2D(void):
+	ParameterInterfaceT("small_strain_StVenant_GRAD_MR_2D")
 {
 	/* account for thickness */
-	fDensity *= fThickness;
-}
-
-/* initialization */
-void GRAD_MRSSKStV2D::Initialize(void)
-{
-ExceptionT::GeneralFail("GRAD_MRSSKStV2D::Initialize", "out of date");
-#if 0
-	/* inherited */
-	HookeanMatT::Initialize();
-#endif
+//	fDensity *= fThickness;
 }
 
 /* returns 3D total strain (3D) */
 const dSymMatrixT& GRAD_MRSSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain, 
-	const ElementCardT& element, int ip) //del2_totalstrain??
+	const ElementCardT& element, int ip) 
 {
 	/* 2D -> 3D (plane strain) */
 	fTotalStrain3D.ExpandFrom2D(totalstrain);
@@ -42,32 +31,16 @@ const dSymMatrixT& GRAD_MRSSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain
 }
 
 /* returns 3D  gradient of total strain (3D) */
-const dSymMatrixT& GRAD_MRSSKStV2D::GradElasticStrain(const dSymMatrixT& del2_totalstrain, 
-	const ElementCardT& element, int ip) //del2_totalstrain??
+const dSymMatrixT& GRAD_MRSSKStV2D::LapElasticStrain(const dSymMatrixT& laptotalstrain, 
+	const ElementCardT& element, int ip) //lap_totalstrain??
 {
 	/* 2D -> 3D (plane strain) */
-	fTotalStrain3D.ExpandFrom2D(del2_totalstrain);
+	fTotalStrain3D.ExpandFrom2D(laptotalstrain);
 
 	/* inherited */
 	/*return fTotalStrain3D;*/
-	return GRAD_MRSSKStV::GradElasticStrain(fTotalStrain3D, element, ip);
+	return GRAD_MRSSKStV::LapElasticStrain(fTotalStrain3D, element, ip);
 
-}
-
-/* print parameters */
-void GRAD_MRSSKStV2D::Print(ostream& out) const
-{
-	/* inherited */
-	GRAD_MRSSKStV::Print(out);
-	Material2DT::Print(out);
-}
-
-/* print name */
-void GRAD_MRSSKStV2D::PrintName(ostream& out) const
-{
-	/* inherited */
-	GRAD_MRSSKStV::PrintName(out);
-	out << "    2D\n";
 }
 
 /* moduli */
@@ -75,15 +48,15 @@ const dMatrixT& GRAD_MRSSKStV2D::c_ijkl(void)
 {
 	/* 3D -> 2D */
 	fModulus2D.Rank4ReduceFrom3D(GRAD_MRSSKStV::c_ijkl());
-	fModulus2D *= fThickness;
+//	fModulus2D *= fThickness;
 	return fModulus2D;
 }
 
-const dMatrixT& GRAD_MRSSKStV2D::cdisc_ijkl(void)
+const dMatrixT& GRAD_MRSSKStV2D::c_perfplas_ijkl(void)
 {
 	/* 3D -> 2D */
-	fModulus2D.Rank4ReduceFrom3D(GRAD_MRSSKStV::cdisc_ijkl());
-	fModulus2D *= fThickness;
+	fModulus2D.Rank4ReduceFrom3D(GRAD_MRSSKStV::c_perfplas_ijkl());
+//	fModulus2D *= fThickness;
 	return fModulus2D;
 }
 
@@ -93,7 +66,7 @@ const dSymMatrixT& GRAD_MRSSKStV2D::s_ij(void)
 {
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(GRAD_MRSSKStV::s_ij());
-	fStress2D *= fThickness;  
+//	fStress2D *= fThickness;  
 	return fStress2D;
 }
 
@@ -105,8 +78,28 @@ const double& GRAD_MRSSKStV2D::Yield_Function(void)
 	return fYieldFunction2D;
 }
 
-/* returns the strain energy density for the specified strain */
-double GRAD_MRSSKStV2D::StrainEnergyDensity(void)
+/* describe the parameters needed by the interface */
+void GRAD_MRSSKStV2D::DefineParameters(ParameterListT& list) const
 {
-	return fThickness*GRAD_MRSSKStV::StrainEnergyDensity();
+	/* inherited */
+	GRAD_MRSSKStV::DefineParameters(list);
+	
+	/* 2D option must be plain stress */
+	ParameterT& constraint = list.GetParameter("constraint_2D");
+	constraint.SetDefault(kPlaneStrain);
+}
+
+/* accept parameter list */
+void GRAD_MRSSKStV2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	GRAD_MRSSKStV::TakeParameterList(list);
+
+	/* dimension work space */
+	fStress2D.Dimension(2);
+	fModulus2D.Dimension(dSymMatrixT::NumValues(2));
+	fModulusPerfPlas2D.Dimension(dSymMatrixT::NumValues(2));
+	fTotalStrain3D.Dimension(3);
+	// fYieldFunction2D(0.0);  // scalar
+	
 }
