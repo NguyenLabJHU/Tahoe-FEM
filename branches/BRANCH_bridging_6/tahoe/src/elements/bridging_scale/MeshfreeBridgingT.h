@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.h,v 1.5.16.1 2004-04-24 19:57:28 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.h,v 1.5.16.2 2004-04-28 05:28:16 paklein Exp $ */
 #ifndef _MESHFREE_BRIDGING_SCALE_T_H_
 #define _MESHFREE_BRIDGING_SCALE_T_H_
 
@@ -50,6 +50,9 @@ public:
 
 	/** collect the cells without any free nodes */
 	virtual void CollectProjectedCells(const PointInCellDataT& cell_data, iArrayT& cells) const;
+
+	/** return list of projected nodes */
+	virtual void CollectProjectedNodes(const PointInCellDataT& cell_data, iArrayT& nodes) const;
 	/*@}*/
 
 protected:

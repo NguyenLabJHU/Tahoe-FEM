@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.32.10.1 2004-04-24 19:57:28 paklein Exp $ */
+/* $Id: BridgingScaleT.h,v 1.32.10.2 2004-04-28 05:27:58 paklein Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -77,6 +77,9 @@ public:
 	
 	/** collect the cells without any free nodes */
 	virtual void CollectProjectedCells(const PointInCellDataT& cell_data, iArrayT& cells) const;
+
+	/** return list of projected nodes */
+	virtual void CollectProjectedNodes(const PointInCellDataT& cell_data, iArrayT& nodes) const;
 	/*@}*/
 
 	/** Same as ProjectField, except that computes and returns total solution u 

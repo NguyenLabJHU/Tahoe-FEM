@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.43.4.1 2004-04-24 19:57:28 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.43.4.2 2004-04-28 05:27:58 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -503,6 +503,11 @@ void BridgingScaleT::CollectProjectedCells(const PointInCellDataT& cell_data, iA
 	for (int i = 0; i < projected_cell.Length(); i++)
 		if (projected_cell[i])
 			cells[index++] = i;
+}
+
+/* return list of projected nodes */
+void BridgingScaleT::CollectProjectedNodes(const PointInCellDataT& cell_data, iArrayT& nodes) const {
+	nodes = cell_data.CellNodes();
 }
 
 /* Project point values onto mesh, write into displacement field.  Used to compute initial

@@ -1,4 +1,4 @@
-/* $Id: MeshfreeBridgingT.cpp,v 1.5.16.2 2004-04-25 20:53:28 paklein Exp $ */
+/* $Id: MeshfreeBridgingT.cpp,v 1.5.16.3 2004-04-28 05:28:16 paklein Exp $ */
 #include "MeshfreeBridgingT.h"
 
 #include "ifstreamT.h"
@@ -363,6 +363,14 @@ void MeshfreeBridgingT::CollectProjectedCells(const PointInCellDataT& cell_data,
 {
 //TEMP - for now just assume a cell that contains any projecting points has no free nodes
 	BridgingScaleT::CollectProjectedCells(cell_data, cells);
+}
+
+/* return list of projected nodes */
+void MeshfreeBridgingT::CollectProjectedNodes(const PointInCellDataT& cell_data, iArrayT& nodes) const
+{
+	const InterpolationDataT& point_to_node = cell_data.PointToNode();
+	const InverseMapT& driven_node_map = point_to_node.Map();
+	driven_node_map.Forward(nodes);
 }
 
 /***********************************************************************
