@@ -1,4 +1,4 @@
-/* $Id: nArray2DGroupT.h,v 1.2 2002-07-02 19:56:45 cjkimme Exp $ */
+/* $Id: nArray2DGroupT.h,v 1.2.2.1 2002-10-17 01:51:24 paklein Exp $ */
 /* created: paklein (04/16/1998)                                          */
 /* Class to manage a list of equally-size nArray2DT<>'s. Storage          */
 /* is grouped and all arrays added with Register can be set to new        */
@@ -64,7 +64,7 @@ nArray2DGroupT<TYPE>::nArray2DGroupT(int headroom, int minordim):
 	fMinorDim(minordim)
 {
 	/* error check */
-	if (fMinorDim < 0) throw eGeneralFail;
+	if (fMinorDim < 0) throw ExceptionT::kGeneralFail;
 }
 
 /* add Array2DT to list of managed - function allows only nArray2DT's
@@ -97,7 +97,7 @@ void nArray2DGroupT<TYPE>::SetMinorDimension(int minordim)
 	fMinorDim = minordim;
 
 	/* error check */
-	if (fMinorDim < 0) throw eGeneralFail;
+	if (fMinorDim < 0) throw ExceptionT::kGeneralFail;
 }
 
 template <class TYPE>

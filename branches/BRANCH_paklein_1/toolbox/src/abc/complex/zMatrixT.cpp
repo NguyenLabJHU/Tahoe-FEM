@@ -1,4 +1,4 @@
-/* $Id: zMatrixT.cpp,v 1.7 2002-07-02 19:56:42 cjkimme Exp $ */
+/* $Id: zMatrixT.cpp,v 1.7.2.1 2002-10-17 01:51:23 paklein Exp $ */
 /* created: paklein (05/19/1997)                                          */
 /* 2 dimensional matrix mathematics object.                               */
 
@@ -60,7 +60,7 @@ ostream& operator<<(ostream& out, const zMatrixT& matrix)
 void zMatrixT::toRe(dMatrixT& re) const
 {
 	/* dimension check */
-	if (fRows != re.Rows() || fCols != re.Cols()) throw(eGeneralFail);
+	if (fRows != re.Rows() || fCols != re.Cols()) throw ExceptionT::kOutOfRange;
 
 	/* ComplexT function */
 	ComplexT::z_to_Re(*this, re);
@@ -69,7 +69,7 @@ void zMatrixT::toRe(dMatrixT& re) const
 void zMatrixT::toIm(dMatrixT& im) const
 {
 	/* dimension check */
-	if (fRows != im.Rows() || fCols != im.Cols()) throw(eGeneralFail);
+	if (fRows != im.Rows() || fCols != im.Cols()) throw ExceptionT::kOutOfRange;
 
 	/* ComplexT function */
 	ComplexT::z_to_Im(*this, im);
@@ -79,7 +79,7 @@ zMatrixT& zMatrixT::toZ(const dMatrixT& re, const dMatrixT& im)
 {
 	/* dimension checks */
 	if (re.Rows() != re.Rows() ||
-	    re.Cols() != im.Cols()) throw(eGeneralFail);
+	    re.Cols() != im.Cols()) throw ExceptionT::kOutOfRange;
 	
 	/* dimension */
 	Dimension(re.Rows(),im.Cols());
@@ -95,7 +95,7 @@ zMatrixT& zMatrixT::Inverse( const zMatrixT& matrix)
 {
 	/* dimension check */
 	if (fRows != fCols || 
-	   (fRows != 2 && fRows != 3)) throw(eSizeMismatch);
+	   (fRows != 2 && fRows != 3)) throw ExceptionT::kSizeMismatch;
 	
 	/* (2 x 2) */
 	if (fRows == 2)
@@ -197,7 +197,7 @@ zMatrixT& zMatrixT::Inverse( const zMatrixT& matrix)
 zMatrixT& zMatrixT::Conjugate(const zMatrixT& matrix)
 {
   /* must have same length */
-  if (matrix.Length() != Length()) throw eSizeMismatch;
+  if (matrix.Length() != Length()) throw ExceptionT::kSizeMismatch;
 
   ComplexT* pLHS = Pointer();
   ComplexT* pRHS = matrix.Pointer();

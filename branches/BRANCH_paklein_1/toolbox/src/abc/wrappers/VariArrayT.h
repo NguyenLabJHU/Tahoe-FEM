@@ -1,4 +1,4 @@
-/* $Id: VariArrayT.h,v 1.2 2002-07-02 19:56:54 cjkimme Exp $ */
+/* $Id: VariArrayT.h,v 1.2.2.1 2002-10-17 01:51:28 paklein Exp $ */
 /* created: paklein (04/18/1998)                                          */
 /* WRAPPER for ArrayT<>'s to add dynamic sizing using                     */
 /* some headroom to cut down calls for memory                             */
@@ -68,7 +68,7 @@ void VariArrayT<TYPE>::SetWard(int headroom, ArrayT<TYPE>& ward)
 	if (!fWard)
 		fWard = &ward;
 	else
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 }
 	
 /* set length of the ward, fill extra space if specified */
@@ -76,7 +76,7 @@ template <class TYPE>
 inline void VariArrayT<TYPE>::SetLength(int length, bool copy_in)
 {
 	/* ward must be set */
-	if (!fWard) throw eGeneralFail;
+	if (!fWard) throw ExceptionT::kGeneralFail;
 
 	/* use inherited function */
 	SetAlias(*fWard, length, copy_in);
@@ -86,7 +86,7 @@ template <class TYPE>
 inline void VariArrayT<TYPE>::SetLength(int length, const TYPE& fill, bool copy_in)
 {
 	/* ward must be set */
-	if (!fWard) throw eGeneralFail;
+	if (!fWard) throw ExceptionT::kGeneralFail;
 
 	/* use inherited function */
 	SetAlias(*fWard, length, fill, copy_in);
@@ -97,7 +97,7 @@ template <class TYPE>
 inline int VariArrayT<TYPE>::Length(void) const
 {
 	/* ward must be set */
-	if (!fWard) throw eGeneralFail;
+	if (!fWard) throw ExceptionT::kGeneralFail;
 
 	return(fWard->Length());
 }

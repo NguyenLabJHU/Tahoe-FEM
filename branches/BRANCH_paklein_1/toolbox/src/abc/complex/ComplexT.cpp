@@ -1,4 +1,4 @@
-/* $Id: ComplexT.cpp,v 1.12 2002-09-12 16:40:17 paklein Exp $ */
+/* $Id: ComplexT.cpp,v 1.12.2.1 2002-10-17 01:51:23 paklein Exp $ */
 /* created: PAK/AFLP (05/19/1997) */
 
 #include "ComplexT.h"
@@ -23,7 +23,7 @@ const bool ArrayT<ComplexT>::fByteCopy = true;
 void ComplexT::z_to_Re(const nArrayT<ComplexT>& z, nArrayT<double>& d)
 {
 	/* dimension check */
-	if ( z.Length() != d.Length() ) throw(eGeneralFail);
+	if ( z.Length() != d.Length() ) throw ExceptionT::kOutOfRange;
 	
 	ComplexT* pz = z.Pointer();
 	double*   pd = d.Pointer();
@@ -35,7 +35,7 @@ void ComplexT::z_to_Re(const nArrayT<ComplexT>& z, nArrayT<double>& d)
 void ComplexT::z_to_Im(const nArrayT<ComplexT>& z, nArrayT<double>& d)
 {
 	/* dimension check */
-	if ( z.Length() != d.Length() ) throw(eGeneralFail);
+	if ( z.Length() != d.Length() ) throw ExceptionT::kOutOfRange;
 	
 	ComplexT* pz = z.Pointer();
 	double*   pd = d.Pointer();
@@ -48,7 +48,7 @@ void ComplexT::ReIm_to_z(const nArrayT<double>& re, const nArrayT<double>& im,
 	nArrayT<ComplexT>& z)	
 {
 	/* dimension check */
-	if ( re.Length() != im.Length() || im.Length() != z.Length() ) throw(eGeneralFail);
+	if ( re.Length() != im.Length() || im.Length() != z.Length() ) throw ExceptionT::kOutOfRange;
 
 	ComplexT* pz  = z.Pointer();
 	double*   pre = re.Pointer();

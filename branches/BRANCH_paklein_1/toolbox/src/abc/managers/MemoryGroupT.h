@@ -1,4 +1,4 @@
-/* $Id: MemoryGroupT.h,v 1.2 2002-07-02 19:56:45 cjkimme Exp $ */
+/* $Id: MemoryGroupT.h,v 1.2.2.1 2002-10-17 01:51:24 paklein Exp $ */
 /* created: paklein (04/17/1998)                                          */
 /* Base class to handle memory (re-/de-) allocation for                   */
 /* derived classes managing grouped arrays with memory                    */
@@ -88,7 +88,7 @@ MemoryGroupT<TYPE>::MemoryGroupT(int headroom):
 	fBlockSize(0)
 {
 	/* error check */
-	if (fHeadRoom < 0) throw eGeneralFail;
+	if (fHeadRoom < 0) throw ExceptionT::kGeneralFail;
 }
 
 /* destructor */
@@ -112,7 +112,7 @@ inline void MemoryGroupT<TYPE>::SetHeadRoom(int headroom)
 	fHeadRoom = headroom;
 
 	/* check */
-	if (fHeadRoom < 0) throw eGeneralFail;
+	if (fHeadRoom < 0) throw ExceptionT::kGeneralFail;
 }
 
 
@@ -125,7 +125,7 @@ void MemoryGroupT<TYPE>::Register(ArrayT<TYPE>& array)
 	{
 		cout << "\n MemoryGroupT<TYPE>::Register: all arrays must be registered\n";
 		cout <<   "     before initial allocation\n" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 
 	/* add to list */
@@ -155,7 +155,7 @@ template <class TYPE>
 TYPE* MemoryGroupT<TYPE>::BlockPointer(int block) const
 {
 	/* range check */
-	if (block < 0 || block >= fArrays.Length()) throw(eOutOfRange);
+	if (block < 0 || block >= fArrays.Length()) throw ExceptionT::kOutOfRange;
 	
 	return(fData + fBlockSize*block);
 }
@@ -178,7 +178,7 @@ void MemoryGroupT<TYPE>::SetBlockSize(int newblocksize, bool copy_in)
 	newdata = new TYPE[fArrays.Length()*newblocksize];
 #endif
 
-	if (!newdata) throw(eOutOfMemory);
+	if (!newdata) throw ExceptionT::kOutOfMemory;
 
 	/* copy data in */
 	if (copy_in)

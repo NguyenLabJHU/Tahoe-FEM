@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.21 2002-09-22 23:06:12 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.21.2.1 2002-10-17 01:54:45 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleT.h"
@@ -639,7 +639,7 @@ void iConsoleT::DoInteractive(void)
 						/* locate */
 						int index = fAlias.PositionOf(command_name);
 						if (index == -1)
-							throw eGeneralFail;
+							throw ExceptionT::kGeneralFail;
 						else
 							line.Prepend(fAliasCommand[index], " ");
 						break;
@@ -1140,7 +1140,7 @@ bool iConsoleT::MakeAlias(const StringT& alias, StringT& line)
 	
 		/* find alias */
 		int index = fAlias.PositionOf(alias);
-		if (index == -1) throw eGeneralFail;
+		if (index == -1) throw ExceptionT::kGeneralFail;
 		
 		/* remove */
 		fAlias.DeleteAt(index);

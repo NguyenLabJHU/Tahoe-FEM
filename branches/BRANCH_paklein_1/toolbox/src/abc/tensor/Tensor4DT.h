@@ -1,4 +1,4 @@
-/* $Id: Tensor4DT.h,v 1.5 2002-07-05 22:26:21 paklein Exp $ */
+/* $Id: Tensor4DT.h,v 1.5.2.1 2002-10-17 01:51:27 paklein Exp $ */
 /* created paklein (12/19/96) */
 #ifndef _TENSOR4D_T_H_
 #define _TENSOR4D_T_H_
@@ -85,7 +85,7 @@ void Tensor4DT<MATHTYPE>::Dimension(int dim0, int dim1, int dim2, int dim3)
 	fDim[3] = dim3;
 
 	/* sanity check */
-	if (fDim.Min() < 1) throw eGeneralFail;
+	if (fDim.Min() < 1) throw ExceptionT::kGeneralFail;
 
 	/* offsets */
 	fOffset0 = fDim[1]*fDim[2]*fDim[3];
@@ -102,7 +102,7 @@ inline MATHTYPE& Tensor4DT<MATHTYPE>::
 	if (dim0 < 0 || dim0 >= fDim[0] ||
         dim1 < 0 || dim1 >= fDim[1] ||
         dim2 < 0 || dim2 >= fDim[2] ||
-        dim3 < 0 || dim3 >= fDim[3]) throw eGeneralFail;
+        dim3 < 0 || dim3 >= fDim[3]) throw ExceptionT::kGeneralFail;
 #endif
 
 	return (fArray[dim0*fOffset0 + dim1*fOffset1 + dim2*fOffset2 + dim3]);
@@ -116,7 +116,7 @@ inline MATHTYPE* Tensor4DT<MATHTYPE>::
 #if __option (extended_errorcheck)
 	if (dim0 < 0 || dim0 >= fDim[0] ||
         dim1 < 0 || dim1 >= fDim[1] ||
-        dim2 < 0 || dim2 >= fDim[2]) throw eGeneralFail;
+        dim2 < 0 || dim2 >= fDim[2]) throw ExceptionT::kGeneralFail;
 #endif
 
 	return fArray + dim0*fOffset0 + dim1*fOffset1 + dim2*fOffset2;
@@ -128,7 +128,7 @@ inline MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0, int dim1) const
 /* range checking */
 #if __option (extended_errorcheck)
 	if (dim0 < 0 || dim0 >= fDim[0] ||
-        dim1 < 0 || dim1 >= fDim[1]) throw eGeneralFail;
+        dim1 < 0 || dim1 >= fDim[1]) throw ExceptionT::kGeneralFail;
 #endif
 
 	return fArray + dim0*fOffset0 + dim1*fOffset1;
@@ -139,7 +139,7 @@ inline MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (dim0 < 0 || dim0 >= fDim[0]) throw eGeneralFail;
+	if (dim0 < 0 || dim0 >= fDim[0]) throw ExceptionT::kGeneralFail;
 #endif
 
 	return fArray + dim0*fOffset0;

@@ -1,4 +1,4 @@
-/* $Id: iArrayT.cpp,v 1.13 2002-09-12 16:40:16 paklein Exp $ */
+/* $Id: iArrayT.cpp,v 1.13.2.1 2002-10-17 01:51:22 paklein Exp $ */
 /* created: paklein (08/10/1996) */
 
 #include "iArrayT.h"
@@ -120,7 +120,7 @@ iArrayT& iArrayT::Union(const ArrayT<const nArrayT<int>*>& source)
 			const nArrayT<int>* a = source[i];
 			if (!a) {
 				cout << "\n iArrayT::Union: source array " << i << " is NULL" << endl;
-				throw eGeneralFail;
+				throw ExceptionT::kGeneralFail;
 			}
 			if (a->Length() > 0) empty[i] = 0;
 		}

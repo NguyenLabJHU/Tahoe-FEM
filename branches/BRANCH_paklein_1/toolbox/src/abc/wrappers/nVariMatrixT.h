@@ -1,4 +1,4 @@
-/* $Id: nVariMatrixT.h,v 1.4 2002-07-02 19:56:54 cjkimme Exp $ */
+/* $Id: nVariMatrixT.h,v 1.4.2.1 2002-10-17 01:51:28 paklein Exp $ */
 /* created: paklein (07/05/1998)                                          */
 /* WRAPPER for nMatrixT<>'s to add dynamic re-sizing of the               */
 /* major dimension, using some headroom to cut down calls for             */
@@ -75,7 +75,7 @@ void nVariMatrixT<nTYPE>::SetWard(int headroom, nMatrixT<nTYPE>& ward)
 	if (!fWard)
 		fWard = &ward;
 	else
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 }
 	
 /* set length of the ward, fill extra space if specified */
@@ -83,7 +83,7 @@ template <class nTYPE>
 inline void nVariMatrixT<nTYPE>::SetDimensions(int rows, int cols)
 {
 	/* ward must be set */
-	if (!fWard) throw eGeneralFail;
+	if (!fWard) throw ExceptionT::kGeneralFail;
 
 	/* update ArrayT data (don't copy old data) */
 	SetAlias(*fWard, rows*cols, false);
@@ -104,7 +104,7 @@ template <class nTYPE>
 inline int nVariMatrixT<nTYPE>::Rows(void) const
 {
 	/* ward must be set */
-	if (!fWard) throw eGeneralFail;
+	if (!fWard) throw ExceptionT::kGeneralFail;
 
 	return(fWard->Rows());
 }
@@ -113,7 +113,7 @@ template <class nTYPE>
 inline int nVariMatrixT<nTYPE>::Cols(void) const
 {
 	/* ward must be set */
-	if (!fWard) throw eGeneralFail;
+	if (!fWard) throw ExceptionT::kGeneralFail;
 
 	return(fWard->Cols());
 }
@@ -123,7 +123,7 @@ template <class nTYPE>
 const nMatrixT<nTYPE>& nVariMatrixT<nTYPE>::TheWard(void) const
 {
 	/* ward must be set */
-	if (!fWard) throw eGeneralFail;
+	if (!fWard) throw ExceptionT::kGeneralFail;
 
 	return(*fWard);
 }

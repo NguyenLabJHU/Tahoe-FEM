@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.h,v 1.8 2002-10-04 01:36:34 thao Exp $ */
+/* $Id: dMatrixT.h,v 1.8.2.1 2002-10-17 01:51:25 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #ifndef _DMATRIX_T_H_
@@ -161,8 +161,8 @@ inline void dMatrixT::Rank2ExpandFrom2D(const dMatrixT& mat2D)
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)	
-	if (fRows != fCols || fRows != 3) throw eGeneralFail;
-	if (mat2D.fRows != mat2D.fCols || mat2D.fRows != 2) throw eSizeMismatch;
+	if (fRows != fCols || fRows != 3) throw ExceptionT::kGeneralFail;
+	if (mat2D.fRows != mat2D.fCols || mat2D.fRows != 2) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double* p = fArray;
@@ -183,8 +183,8 @@ inline void dMatrixT::Rank2ReduceFrom3D(const dMatrixT& mat3D)
 {
 	/* dimension checks */
 #if __option (extended_errorcheck)	
-	if (fRows != fCols || fRows != 2) throw eGeneralFail;
-	if (mat3D.fRows != mat3D.fCols || mat3D.fRows != 3) throw eSizeMismatch;
+	if (fRows != fCols || fRows != 2) throw ExceptionT::kGeneralFail;
+	if (mat3D.fRows != mat3D.fCols || mat3D.fRows != 3) throw ExceptionT::kSizeMismatch;
 #endif
 
 	double* p = fArray;

@@ -1,4 +1,4 @@
-/* $Id: dRangeArrayT.cpp,v 1.4 2002-07-02 19:56:50 cjkimme Exp $ */
+/* $Id: dRangeArrayT.cpp,v 1.4.2.1 2002-10-17 01:51:26 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 
 #include "dRangeArrayT.h"
@@ -27,7 +27,7 @@ dRangeArrayT::dRangeArrayT(int colnum, const dArray2DT& values2D)
 	if (!IsSequential())
 	{
 		cout << "\n dRangeArrayT::dRangeArrayT: array values must be sorted in ascending order" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
@@ -50,7 +50,7 @@ void dRangeArrayT::SetValues(const dArrayT& values)
 	if (!IsSequential())
 	{
 		cout << "\n dRangeArrayT::SetValues: array values must be sorted in ascending order" << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 }
 
