@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.8 2001-12-20 02:42:46 thao Exp $
+# $Id: makefile,v 1.9 2002-01-28 18:39:47 dzeigle Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -9,7 +9,9 @@ OBJ = \
 	CubicSplineT.o \
 	C1FunctionT.o \
 	GaoKlein.o \
+	GreenwoodWilliamson.o \
 	LennardJones612.o \
+	ModBessel.o \
 	ParabolaT.o \
 	PhiSplineT.o \
 	SmithFerrante.o \
@@ -29,7 +31,9 @@ SRC = \
 	CubicSplineT.cpp \
 	C1FunctionT.cpp \
 	GaoKlein.cpp \
+	GreenwoodWilliamson.cpp \
 	LennardJones612.cpp \
+	ModBessel.cpp \
 	ParabolaT.cpp \
 	PhiSplineT.cpp \
 	SmithFerrante.cpp \
@@ -43,7 +47,9 @@ HDR = \
 	CubicSplineT.h \
 	C1FunctionT.h \
 	GaoKlein.h \
+	GreenwoodWilliamson.h \
 	LennardJones612.h \
+	ModBessel.h \
 	ParabolaT.h \
 	PhiSplineT.h \
 	SmithFerrante.h \
