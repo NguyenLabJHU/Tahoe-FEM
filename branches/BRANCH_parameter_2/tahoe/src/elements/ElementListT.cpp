@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.78.2.4 2004-03-28 09:55:20 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.78.2.5 2004-04-06 06:57:54 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -951,6 +951,7 @@ void ElementListT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrder
 		sub_sub_list.AddSub("nonlinear_diffusion");
 		sub_sub_list.AddSub("small_strain");
 		sub_sub_list.AddSub("updated_lagrangian");
+		sub_sub_list.AddSub("updated_lagrangian_Q1P0");
 #endif
 	}
 	else /* inherited */
@@ -1035,6 +1036,8 @@ ElementBaseT* ElementListT::NewElement(const StringT& list_name) const
 		return new SmallStrainT(fSupport);
 	else if (list_name == "updated_lagrangian")
 		return new UpdatedLagrangianT(fSupport);
+	else if (list_name == "updated_lagrangian_Q1P0")
+		return new SimoQ1P0(fSupport);
 #endif
 
 	/* default */	
