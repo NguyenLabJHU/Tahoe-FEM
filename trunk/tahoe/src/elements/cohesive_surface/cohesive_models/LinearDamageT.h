@@ -1,4 +1,4 @@
-/* $Id: LinearDamageT.h,v 1.3 2001-10-11 00:53:41 paklein Exp $ */
+/* $Id: LinearDamageT.h,v 1.4 2001-10-11 23:19:51 paklein Exp $ */
 /* created: paklein (08/26/2000) */
 
 #ifndef _LINEAR_DAMAGE_T_H_
@@ -26,23 +26,23 @@ public:
 	virtual int NumStateVariables(void) const;
 
 	/** initialize the state variable array */
-	virtual void InitStateVariables(dArrayT& state);
+	virtual void InitStateVariables(ArrayT<double>& state);
 
 	/** dissipated energy */
 	virtual double FractureEnergy(void);
 
 	/** potential energy */
-	virtual double Potential(const dArrayT& jump, const dArrayT& state);
+	virtual double Potential(const dArrayT& jump, const ArrayT<double>& state);
 	
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
-	virtual const dArrayT& Traction(const dArrayT& jump, dArrayT& state);
+	virtual const dArrayT& Traction(const dArrayT& jump, ArrayT<double>& state);
 
 	/** tangent stiffness */
-	virtual const dMatrixT& Stiffness(const dArrayT& jump, const dArrayT& state);
+	virtual const dMatrixT& Stiffness(const dArrayT& jump, const ArrayT<double>& state);
 
 	/** surface status */
-	virtual StatusT Status(const dArrayT& jump, const dArrayT& state);
+	virtual StatusT Status(const dArrayT& jump, const ArrayT<double>& state);
 	
 	/** write model name to output */
 	virtual void PrintName(ostream& out) const;

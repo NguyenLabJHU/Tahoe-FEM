@@ -1,5 +1,5 @@
-/* $Id: XuNeedleman3DT.cpp,v 1.3 2001-10-11 00:53:42 paklein Exp $ */
-/* created: paklein (06/23/1999)                                          */
+/* $Id: XuNeedleman3DT.cpp,v 1.4 2001-10-11 23:19:51 paklein Exp $ */
+/* created: paklein (06/23/1999)*/
 
 #include "XuNeedleman3DT.h"
 
@@ -37,7 +37,7 @@ XuNeedleman3DT::XuNeedleman3DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 
 /* surface potential */
 double XuNeedleman3DT::FractureEnergy(void) { return phi_n; }
-double XuNeedleman3DT::Potential(const dArrayT& jump_u, const dArrayT& state)
+double XuNeedleman3DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
@@ -86,7 +86,7 @@ double XuNeedleman3DT::Potential(const dArrayT& jump_u, const dArrayT& state)
 }
 
 /* traction vector given displacement jump vector */	
-const dArrayT& XuNeedleman3DT::Traction(const dArrayT& jump_u, dArrayT& state)
+const dArrayT& XuNeedleman3DT::Traction(const dArrayT& jump_u, ArrayT<double>& state)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
@@ -154,7 +154,7 @@ const dArrayT& XuNeedleman3DT::Traction(const dArrayT& jump_u, dArrayT& state)
 
 
 /* potential stiffness */
-const dMatrixT& XuNeedleman3DT::Stiffness(const dArrayT& jump_u, const dArrayT& state)
+const dMatrixT& XuNeedleman3DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state)
 {
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
@@ -246,7 +246,7 @@ const dMatrixT& XuNeedleman3DT::Stiffness(const dArrayT& jump_u, const dArrayT& 
 }
 
 /* surface status */
-SurfacePotentialT::StatusT XuNeedleman3DT::Status(const dArrayT& jump_u, const dArrayT& state)
+SurfacePotentialT::StatusT XuNeedleman3DT::Status(const dArrayT& jump_u, const ArrayT<double>& state)
 {
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
