@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: regression.csh.template,v 1.4 2001-09-23 18:39:43 paklein Exp $
+# $Id: regression.csh.template,v 1.5 2001-09-28 14:33:37 paklein Exp $
 
 # username on Tahoe server
 set TAHOE_USER =
@@ -7,19 +7,16 @@ set TAHOE_USER =
 # directory containing working copies of the tahoe modules
 set W_DIR =
 
-# host name
+# host name - used only for subject line of test report
 set HOST =
 
-# SEACAS
+# SEACAS - Sandia-only, ignore otherwise  
 setenv ACCESS 
 
 ######### hopefully no changes will be required below #########
 
 # set path
 set path=(/bin /usr/bin /usr/local/bin /usr/ccs/bin /usr/sbin /usr/local/ssh /usr/ucb /etc /project/local/bin $path)
-
-# mail command
-set MAILCMD = /usr/bin/mail
 
 # CVS
 setenv CVSROOT ${TAHOE_USER}@tahoe.ca.sandia.gov:/usr/local/cvsrep
@@ -50,7 +47,7 @@ endif
 if (-e ${W_DIR}/toolbox/lib/libtoolbox.a) then
 	echo "checking out and building COMPARATOR"
 	cd ${W_DIR}/benchmark/comparator;   cvs -q update -Pd ; make -s init ; \
- 	(make -s build >>! ../make.stdout) >>&! ../make.stderr
+ 	(make -s build >>! ../../make.stdout) >>&! ../../make.stderr
 endif
 #        update and run regression tests
 if (-e ${W_DIR}/tahoe/tahoe && -e ${W_DIR}/benchmark/comparator/compare) then
