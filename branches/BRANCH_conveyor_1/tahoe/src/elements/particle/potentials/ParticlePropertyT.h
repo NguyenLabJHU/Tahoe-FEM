@@ -1,4 +1,4 @@
-/* $Id: ParticlePropertyT.h,v 1.1 2002-11-25 07:19:46 paklein Exp $ */
+/* $Id: ParticlePropertyT.h,v 1.1.6.1 2003-04-09 16:01:46 cjkimme Exp $ */
 #ifndef _PARTICLE_PROPERTY_T_H_
 #define _PARTICLE_PROPERTY_T_H_
 
@@ -10,6 +10,24 @@ namespace Tahoe {
 class ParticlePropertyT
 {
 public:
+
+	/** enum for particle property types */
+	enum TypeT {
+        kHarmonicPair = 0, /**< harmonic pair potential */
+    kLennardJonesPair = 1, /**< Jennard-Jones 6/12 pair potential */
+         kParadynPair = 2, /**< pair potential in Paradyn (EAM) format */
+          kParadynEAM = 3  /**< EAM potentials in Paradyn format */
+	};
+	
+	enum ThermostatT {
+	    kFreeParticle = 0, /**< you figure it out */
+      kDampedParticle = 1, /**< velocity-dependent damping */
+    kLangevinParticle = 2  /**< Langevin (stochastic) thermostat */
+	};
+	
+	/** stream extraction operators */
+	friend istream& operator>>(istream& in, ParticlePropertyT::TypeT& property);	
+	friend istream& operator>>(istream& in, ParticlePropertyT::ThermostatT& property);	
 
 	/** constructor */
 	ParticlePropertyT(void);

@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.12.4.1 2003-03-14 01:13:19 cjkimme Exp $ */
+/* $Id: ParticleT.cpp,v 1.12.4.2 2003-04-09 16:01:45 cjkimme Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -13,12 +13,15 @@
 #include "RaggedArray2DT.h"
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
+#include "RandomNumberT.h"
 
 using namespace Tahoe;
 
 /* class parameters */
 const int kAvgNodesPerCell = 20;
 const int kMaxNumCells     =- 1; /* -1: no max */
+#pragma message("kB isn't really equal to 1")
+const double fkB = 1.;
 
 /* constructors */
 ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
@@ -31,7 +34,9 @@ ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 	fReNeighborCounter(0),
 	fCommManager(support.CommManager()),
 	fDmax(0),
-	fForce_man(0, fForce, field.NumDOF())
+	fForce_man(0, fForce, field.NumDOF()),
+	fActiveParticles(NULL),
+	fRandom(NULL)
 {
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
@@ -58,6 +63,8 @@ ParticleT::~ParticleT(void)
 	/* free properties list */
 	for (int i = 0; i < fParticleProperties.Length(); i++)
 		delete fParticleProperties[i];
+		
+	delete fActiveParticles;
 }
 
 /* initialization */
@@ -127,6 +134,38 @@ void ParticleT::Initialize(void)
 
 	/* set the neighborlists */
 	SetConfiguration();
+	
+	/* Read in thermostatting/damping parameters */
+	in >> fDampingType;
+	switch (fDampingType)
+	{
+		case ParticlePropertyT::kFreeParticle:
+		{
+			QisDamped = false;
+			break;
+		}
+		case ParticlePropertyT::kDampedParticle:
+		{
+			QisDamped = true;
+			in >> fBeta;
+			break;
+		}
+		case ParticlePropertyT::kLangevinParticle:
+		{
+			QisDamped = true;
+			in >> fBeta;
+			in >> fTemperature; // constant T for now
+			fRandom = new RandomNumberT(RandomNumberT::kParadynGaussian); 
+			fRandom->sRand(1234567); 
+
+			break;
+		}
+		default:
+		{
+			ExceptionT::BadInputValue(caller,"Damping type does not exist");
+		}
+	}
+	
 }
 
 /* form of tangent matrix */
@@ -247,14 +286,48 @@ void ParticleT::ReadRestart(istream& in)
 	in >> fReNeighborCounter;
 }
 
-/***********************************************************************
- * Protected
- ***********************************************************************/
-
-/* return true if connectivities are changing */
-bool ParticleT::ChangingGeometry(void) const
+/* define the particles to skip */
+void ParticleT::SetSkipParticles(const iArrayT& skip)
 {
-	return fCommManager.PartitionNodesChanging();
+	if (skip.Length() == 0) {
+		delete fActiveParticles;
+		fActiveParticles = NULL;
+	}
+	else
+	{
+		int nnd = ElementSupport().NumNodes();
+		iArrayT nodes_used(nnd);
+
+		/* mark partition nodes as used */
+		const ArrayT<int>* part_nodes = fCommManager.PartitionNodes();
+		if (part_nodes)
+		{
+			nodes_used = 0;
+			int npn = part_nodes->Length();
+			int*  p = part_nodes->Pointer();
+			for (int i = 0; i < npn; i++)
+				nodes_used[*p++] = 1;
+		}
+		else /* all are partition nodes */
+			nodes_used = 1;
+
+		/* mark nodes to skip */
+		int nsn = skip.Length();
+		int* ps = skip.Pointer();
+		for (int i = 0; i < nsn; i++)
+			nodes_used[*ps++] = 0;
+			
+		
+		/* collect active particles */	
+		int nap = nodes_used.Count(1);
+		if (!fActiveParticles)
+			fActiveParticles = new AutoArrayT<int>;
+		fActiveParticles->Dimension(nap);
+		int dex = 0;
+		for (int i = 0; i < nnd; i++)
+			if (nodes_used[i] == 1)
+				(*fActiveParticles)[dex++] = i;
+	}
 }
 
 /* set neighborlists */
@@ -292,6 +365,65 @@ void ParticleT::SetConfiguration(void)
 		ofstreamT& out = ElementSupport().Output();
 		fGrid->WriteStatistics(out);
 	}
+}
+
+/***********************************************************************
+ * Protected
+ ***********************************************************************/
+
+/* form group contribution to the residual */
+void ParticleT::RHSDriver(void)
+{
+	int nsd = NumSD();
+	if (nsd == 3)
+		RHSDriver3D();
+	else if (nsd == 2)
+		RHSDriver2D();
+	else
+		ExceptionT::GeneralFail("ParticlePairT::RHSDriver");
+		
+	if (QisDamped)
+	{
+		const dArray2DT* velocities = NULL; 
+     	if (Field().Order() > 0) 
+     	{
+     		velocities = &(Field()[1]);          
+
+			switch (fDampingType)
+			{
+				case ParticlePropertyT::kDampedParticle:
+				{
+					for (int i = 0; i < velocities->MajorDim(); i++) 
+	    			{ 
+	        			fForce[i] -= fBeta*(*velocities)[i]; 
+	    			}
+				}
+				case ParticlePropertyT::kLangevinParticle:
+				{
+					double stochasticAmp = sqrt(2.*fBeta*fkB*fTemperature); 
+#pragma message("ParticleT.cpp : need to divide by fTimeStep")
+					for (int i = 0; i < velocities->MajorDim(); i++) 
+	    			{ 
+	        			fForce[i] -= fBeta*(*velocities)[i]; 
+	         			fForce(i,0) += stochasticAmp*fRandom->Rand(); 
+	        			fForce(i,1) += stochasticAmp*fRandom->Rand(); 
+	    			}
+				}
+				default:
+					ExceptionT::GeneralFail("ParticlePairT::FormRHS","Damping value has changed!");
+			}
+		}
+	}
+		
+	/* assemble */
+	ElementSupport().AssembleRHS(Group(), fForce, Field().Equations());
+}
+
+
+/* return true if connectivities are changing */
+bool ParticleT::ChangingGeometry(void) const
+{
+	return fCommManager.PartitionNodesChanging();
 }
 
 /* echo element connectivity data */
@@ -371,6 +503,19 @@ void ParticleT::GenerateNeighborList(const ArrayT<int>* particle_tags,
 	int num_chunks = num_tags/250;
 	num_chunks = (num_chunks < 1) ? 1 : num_chunks; 
 	AutoFill2DT<int> auto_neighbors(num_tags, num_chunks, 20, init_num_neighbors);
+
+	/* mark nodes owned by this processor, but skipped and still needed to
+	 * ensure a full neighbor list of nodes in particle_tags */
+	if (double_list) full_list = false;
+	ArrayT<int> skipped;
+	const ArrayT<int>* partition_nodes = fCommManager.PartitionNodes();
+	int npn = (partition_nodes) ? partition_nodes->Length() : ElementSupport().NumNodes();
+	if (full_list && particle_tags && npn > num_tags) {
+		skipped.Dimension(npn);
+		skipped = 1;
+		for (int i = 0; i < particle_tags->Length(); i++)
+			skipped[(*particle_tags)[i]] = 0; /* not skipped */
+	}
 	
 	/* loop over tags */
 	int nsd = coords.MinorDim();
@@ -394,7 +539,10 @@ void ParticleT::GenerateNeighborList(const ArrayT<int>* particle_tags,
 			int tag_j = hits[j].Tag();
 			int  pr_j = (n2p_map) ? (*n2p_map)[tag_j] : 0;
 			
-			if (double_list || tag_j > tag_i || (full_list && pr_i != pr_j && tag_j != tag_i))
+			if (double_list || /* double-linked neighbors */
+				tag_j > tag_i || /* upper half */
+				(full_list && tag_j < tag_i && skipped.Length() > 0 && skipped[tag_j]) || /* lower half + bonds to skipped nodes */
+				(full_list && pr_i != pr_j && tag_j != tag_i)) /* lower half + off-processor bonds */
 			{
 				/* hit info */
 				const double* coords_hit = hits[j].Coords();
@@ -413,7 +561,7 @@ void ParticleT::GenerateNeighborList(const ArrayT<int>* particle_tags,
 			}
 		}
 	}
-
+	
 	/* copy/compress into return array */
 	neighbors.Copy(auto_neighbors);
 }
@@ -546,33 +694,3 @@ double ParticleT::MaxDisplacement(void) const
 	
 	return sqrt(dmax2);
 }
-
-namespace Tahoe {
-
-/** stream extraction operator */
-istream& operator>>(istream& in, ParticleT::PropertyT& property)
-{
-	int i_property;
-	in >> i_property;
-	switch (i_property)
-	{
-		case ParticleT::kHarmonicPair:
-			property = ParticleT::kHarmonicPair;
-			break;
-		case ParticleT::kLennardJonesPair:
-			property = ParticleT::kLennardJonesPair;
-			break;
-		case ParticleT::kParadynPair:
-			property = ParticleT::kParadynPair;
-			break;
-		case ParticleT::kDampedPair:
-			property = ParticleT::kDampedPair;
-			break;
-		default:
-			ExceptionT::BadInputValue("operator>>ParticleT::PropertyT", 
-				"unknown code: %d", i_property);
-	}
-	return in;
-}
-
-} /* namespace Tahoe */

@@ -1,5 +1,6 @@
-/* $Id: HarmonicPairT.cpp,v 1.2 2002-11-26 01:55:37 paklein Exp $ */
+/* $Id: HarmonicPairT.cpp,v 1.2.6.1 2003-04-09 16:01:46 cjkimme Exp $ */
 #include "HarmonicPairT.h"
+#include <iostream.h>
 
 using namespace Tahoe;
 
@@ -12,8 +13,8 @@ HarmonicPairT::HarmonicPairT(double mass, double R0, double K):
 	fR0(R0),
 	fK(K)
 {
-	/* assume nearest neighbor - 10% of equilibrium spacing */
-	SetRange(1.1*fR0);
+	/* assume nearest neighbor - 10x of equilibrium spacing */
+	SetRange(10.0*fR0);
 	SetMass(mass);
 }
 
@@ -46,6 +47,15 @@ PairPropertyT::StiffnessFunction HarmonicPairT::getStiffnessFunction(void)
 
 	/* return function pointer */
 	return HarmonicPairT::Stiffness;
+}
+
+/* write properties to output */
+void HarmonicPairT::Write(ostream& out) const
+{
+	/* inherited */
+	PairPropertyT::Write(out);
+	out << " Equilibrium bond length . . . . . . . . . . . . = " << fR0 << '\n';
+	out << " Potential well curvature. . . . . . . . . . . . = " << fK << '\n';	
 }
 
 /***********************************************************************
