@@ -2,9 +2,8 @@
 #include "BoxT.h"
 
 #include "ExceptionCodes.h"
-#include "ifstreamT.h"
 #include "iArrayT.h"
-#include "iArray2DT.h"
+
 #include "dArrayT.h"
 #include "dArray2DT.h"
 #include "CrystalLatticeT.h"
@@ -18,6 +17,7 @@
 #include "nArrayT.h"
 #include "Rotate3DT.h"
 #include "Rotate2DT.h"
+
 #include <math.h>
 #include <stdlib.h>
 
@@ -49,6 +49,7 @@
       VolType = "POLY";
       MaxGrainSeparation=0.0;
       MakeGrains(lattice_parameter);
+      cout<<"nATOMS= " << nATOMS <<"\n";
    
    }//endconstructor
 
@@ -67,7 +68,9 @@
 
     void PolyT::CreateLattice(CrystalLatticeT* templateLattice) 
    {
+   
       dArray2DT virtualGrainBounds(nSD,2);
+   
       for (int i = 0; i < nSD; i++) {
          virtualGrainBounds(i, 0)= -MaxGrainSeparation/2.0;
          virtualGrainBounds(i, 1)= MaxGrainSeparation/2.0;
@@ -78,6 +81,7 @@
      
      //initialize an array to store the atom coordinates associated with each grain   
       nArrayT<dArrayT> AtomsinGrain[NumberofGrains];
+   
       nArrayT<int> TypesinGrain[NumberofGrains];  
       for (int i=0; i<NumberofGrains; i++) {
          AtomsinGrain[i]=*(new nArrayT<dArrayT>);
@@ -87,8 +91,10 @@
       for (int currentGrain =0 ; currentGrain < NumberofGrains; currentGrain++) {
          dArrayT rotation_vector=GenerateRotation();
          int storedAtoms =0;
-         Rotate3DT rotate3(rotation_vector[0], rotation_vector[1], rotation_vector[2]);
-         Rotate2DT rotate2(rotation_vector[0]);
+         Rotate3DT rotate3;
+         Rotate2DT rotate2;
+         if (nSD==2) rotate2 = *(new Rotate2DT(rotation_vector[0])); 
+         if (nSD==3) rotate3= *(new Rotate3DT(rotation_vector[0], rotation_vector[1], rotation_vector[2]));
          for (int currentAtom = 0; currentAtom < nATOMS; currentAtom++ ){
             dArrayT currentCoord(nSD);
          //grab the coordinates of the current atom;
@@ -116,36 +122,34 @@
          //if everything is good, "keep" the atom
             if (noOverlap && atomIsClosestToCurrentGrain && atomIsInside) {
                storedAtoms++;
+            
                AtomsinGrain[currentGrain].Resize(storedAtoms, currentCoord);
                TypesinGrain[currentGrain].Resize(storedAtoms, atom_types[currentAtom]);
+            
             }//endif
          }//endfor
-         
+         cout <<"stored atoms: " <<storedAtoms<<"\n";
       }//endfor
          //now that we've gone through all the grains, copy these temporary atoms back into atom_coords
          //first, calculate total number of atoms
       nATOMS=0;
       for (int currentGrain = 0; currentGrain < NumberofGrains; currentGrain++) 
          nATOMS += AtomsinGrain[currentGrain].Length();
+      cout<<"nATOMS ="<<nATOMS <<"\n";
       atom_coord.Free();
       atom_coord.Dimension(nATOMS, nSD);
-      
+      int totalAtoms=0;
       for (int currentGrain = 0; currentGrain<NumberofGrains; currentGrain++) {
          for (int currentAtom=0; currentAtom< AtomsinGrain[currentGrain].Length();currentAtom++) {
-            if (currentGrain==0) {
-               atom_coord.RowCopy(currentAtom, AtomsinGrain[currentGrain][currentAtom]);
-               atom_types[currentAtom]=TypesinGrain[currentGrain][currentAtom];
-            }
-            else {
-               atom_coord.RowCopy(currentAtom + AtomsinGrain[currentGrain-1].Length(), AtomsinGrain[currentGrain][currentAtom] );
-               atom_types[currentAtom+AtomsinGrain[currentGrain-1].Length()]= TypesinGrain[currentGrain][currentAtom];
-            }
+            atom_coord.SetRow(totalAtoms, AtomsinGrain[currentGrain][currentAtom]);
+            atom_types[totalAtoms]=TypesinGrain[currentGrain][currentAtom];
+            totalAtoms++;
+         
          } //endfor
       }//endfor
-      
+      cout<<"finished copying atoms\n";
       //clean up
-      delete AtomsinGrain;
-      
+      delete AtomsinGrain; 
    
    // Get atoms coordinates
       atom_number.Dimension(nATOMS);
@@ -154,6 +158,7 @@
       for(int m=0; m < nATOMS ; m++) 
       {
          atom_number[m] = m;
+      
       }
    
       atom_names = "Poly";
@@ -213,43 +218,47 @@
       // Create parts
       atom_parts.Dimension(nATOMS);
       atom_parts = 1;
+      cout<<"finished lattice creation";
     
    }//end function
 
-
-    CrystalLatticeT* PolyT:: GenerateLattice (CrystalLatticeT* templateLattice) {
-      dArray2DT rot_matrix = *(new dArray2DT(nSD, nSD));
-   	//create a random rotation matrix
-   	//random euler angles
-      double phi = 3.14159265 / 2.0 * ( (double)rand() / (double)(RAND_MAX + 1));
-      double theta = 3.14159265 / 2.0 * ( (double)rand() / (double)(RAND_MAX + 1));
-      double psi = 3.14159265 / 2.0 * ( (double)rand() / (double)(RAND_MAX + 1));
-      //define the rotation matrix
-      rot_matrix(0,0)=cos(psi)*sin(phi) - cos(theta)*sin(phi)*sin(psi);
-      rot_matrix(0,1) = cos(psi)*sin(phi)+ cos(theta)*cos(phi)*sin(psi);
-      rot_matrix(0,2)=sin(theta)*sin(psi);
-      rot_matrix(1,0)=-sin(psi)*cos(phi)-cos(theta)*sin(phi)*cos(psi);
-      rot_matrix(1,1)= -sin(psi)*sin(phi)+cos(theta)*cos(phi)*cos(psi);
-      rot_matrix(1,2) = sin(theta)*cos(psi);
-      rot_matrix(2,0) = sin(theta)*sin(phi);
-      rot_matrix(2,1)= -sin(theta)*cos(phi);
-      rot_matrix(2,2) =cos(theta);
-        	 				 
-      if(sLATTYPE == "FCC")
-         return new FCCT(nSD, templateLattice->GetNUCA(), templateLattice->GetLatticeParameters(),0, rot_matrix, templateLattice->GetAngleRotation() );
-      else if(sLATTYPE == "BCC")
-         return new BCCT(nSD, templateLattice->GetNUCA(), templateLattice->GetLatticeParameters(),0, rot_matrix, templateLattice->GetAngleRotation() );
-      else if(sLATTYPE == "DIA")
-         return new DIAT(nSD, templateLattice->GetNUCA(), templateLattice->GetLatticeParameters(),0, rot_matrix, templateLattice->GetAngleRotation() );
-      else if(sLATTYPE == "HEX")
-         return new HEXT(nSD, templateLattice->GetNUCA(), templateLattice->GetLatticeParameters(),0, rot_matrix, templateLattice->GetAngleRotation() );
-      else if(sLATTYPE == "CORUN")
-         return new CORUNT(nSD, templateLattice->GetNUCA(), templateLattice->GetLatticeParameters(),0, rot_matrix, templateLattice->GetAngleRotation() );
-   		
-   }
+// 
+    // CrystalLatticeT* PolyT:: GenerateLattice (CrystalLatticeT* templateLattice) {
+      // dArray2DT rot_matrix = *(new dArray2DT(nSD, nSD));
+   // 	//create a random rotation matrix
+   // 	//random euler angles
+      // double phi = 3.14159265 / 2.0 * ( (double)rand() / (double)(RAND_MAX + 1));
+      // double theta = 3.14159265 / 2.0 * ( (double)rand() / (double)(RAND_MAX + 1));
+      // double psi = 3.14159265 / 2.0 * ( (double)rand() / (double)(RAND_MAX + 1));
+   //    //define the rotation matrix
+      // rot_matrix(0,0)=cos(psi)*sin(phi) - cos(theta)*sin(phi)*sin(psi);
+      // rot_matrix(0,1) = cos(psi)*sin(phi)+ cos(theta)*cos(phi)*sin(psi);
+      // rot_matrix(0,2)=sin(theta)*sin(psi);
+      // rot_matrix(1,0)=-sin(psi)*cos(phi)-cos(theta)*sin(phi)*cos(psi);
+      // rot_matrix(1,1)= -sin(psi)*sin(phi)+cos(theta)*cos(phi)*cos(psi);
+      // rot_matrix(1,2) = sin(theta)*cos(psi);
+      // rot_matrix(2,0) = sin(theta)*sin(phi);
+      // rot_matrix(2,1)= -sin(theta)*cos(phi);
+      // rot_matrix(2,2) =cos(theta);
+   //      	 				 
+      // if(sLATTYPE == "FCC")
+         // return new FCCT(nSD, templateLattice->GetNUCA(), templateLattice->GetLatticeParameters(),0, rot_matrix, templateLattice->GetAngleRotation() );
+      // else if(sLATTYPE == "BCC")
+         // return new BCCT(nSD, templateLattice->GetNUCA(), templateLattice->GetLatticeParameters(),0, rot_matrix, templateLattice->GetAngleRotation() );
+      // else if(sLATTYPE == "DIA")
+         // return new DIAT(nSD, templateLattice->GetNUCA(), templateLattice->GetLatticeParameters(),0, rot_matrix, templateLattice->GetAngleRotation() );
+      // else if(sLATTYPE == "HEX")
+         // return new HEXT(nSD, templateLattice->GetNUCA(), templateLattice->GetLatticeParameters(),0, rot_matrix, templateLattice->GetAngleRotation() );
+      // else if(sLATTYPE == "CORUN")
+         // return new CORUNT(nSD, templateLattice->GetNUCA(), templateLattice->GetLatticeParameters(),0, rot_matrix, templateLattice->GetAngleRotation() );
+   // 		
+   // }
 
     dArrayT PolyT::GenerateRotation() {
+   
       dArrayT rot_vector (nSD);
+      
+   
       if (nSD==3) {
       //create a random rotation matrix
       //random euler angles
@@ -261,7 +270,7 @@
          rot_vector[2]=psi;
       }
       if (nSD==2) {
-         double angle=3.14159265 * ( (double)rand() / (double)(RAND_MAX + 1));
+         double angle=3.14159265/2.0 * ( (double)rand() / (double)(RAND_MAX + 1));
          rot_vector[0]=angle;
       }
       return rot_vector;
@@ -272,9 +281,11 @@
       for (int i=0;i<nSD;i++) {
          atomCoord[i]=atom_coord(AtomNumber, i);
       }
-      atomCoord=rotationMatrix.RotateVectorIn(atomCoord);
-      atomCoord+=grainCenter;
-      return atomCoord;
+      dArrayT newCoord(nSD);
+      newCoord=rotationMatrix.RotateVectorIn(atomCoord);
+   
+      newCoord+=grainCenter;
+      return newCoord;
    }
 	
     dArrayT PolyT::GetAtom(Rotate2DT rotationMatrix, dArrayT grainCenter, int AtomNumber) {
@@ -288,7 +299,9 @@
    }
 
     void PolyT::MakeGrains (dArrayT lattice_parameter) {
+   
       for (int i=0; i < NumberofGrains; i++) {
+      	
          GrainCenters[i]=*(new dArrayT(nSD));
          bool doOver;
          do {
@@ -297,7 +310,8 @@
             for (int j=0; j < nSD; j++) {
             //random multiplying factor [0,1) to randomly place the grain center
                double factor = ( (double)rand() / (double)(RAND_MAX + 1));
-               GrainCenters[i][j]=factor * (length(j,1)-length(j,0) );
+               cout <<"factor: "<<factor<<"\n";
+               GrainCenters[i][j]=factor * (length(j,1)-length(j,0) ) + length(j,0);
             }//endfor
          
          //if the grain centers are too close together, do it again
@@ -308,6 +322,7 @@
             }//endfor
          	
          } while (doOver); //end do
+         cout<<"Grain "<<i<<": "<<GrainCenters[i]<<"\n";
       //calculate the maximum grain separation
          for (int tempGrain=0; tempGrain<i; tempGrain++) {
             if (dArrayT::Distance(GrainCenters[i],GrainCenters[tempGrain]) > MaxGrainSeparation ) 
@@ -315,4 +330,6 @@
          	
          }
       }//endfor
+      cout<<"Max Grain Separation: "<<MaxGrainSeparation<<"\n";
+      
    }

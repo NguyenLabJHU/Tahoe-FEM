@@ -15,7 +15,6 @@
 #include "nArrayT.h"
 #include "Rotate3DT.h"
 #include "Rotate2DT.h"
-#include "ifstreamT.h"
 
    using namespace Tahoe;
 
