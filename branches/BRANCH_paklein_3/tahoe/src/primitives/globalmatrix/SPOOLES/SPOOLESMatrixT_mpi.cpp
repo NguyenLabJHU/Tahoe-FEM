@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.10 2003-01-27 07:00:30 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.10.14.1 2003-09-11 22:01:09 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT_mpi.h"
@@ -33,6 +33,8 @@ SPOOLESMatrixT_mpi::SPOOLESMatrixT_mpi(ostream& out, int check_code,
 /* determine new search direction and put the results in result */
 void SPOOLESMatrixT_mpi::BackSubstitute(dArrayT& result)
 {
+	const char caller[] = "SPOOLESMatrixT_mpi::BackSubstitute";
+
 	/* flag should not be set */
 	if (fIsFactorized) throw ExceptionT::kGeneralFail;
 
@@ -72,12 +74,8 @@ void SPOOLESMatrixT_mpi::BackSubstitute(dArrayT& result)
 		int OK = LU_serial_driver(msglvl, spooles_file, matrix_type, symmetry_flag,
 			pivoting_flag, seed, result.Length(), result.Pointer(),
 			r.Length(), r.Pointer(), c.Pointer(), v.Pointer());
-		if (OK != 1)
-		{
-			cout << "\n SPOOLESMatrixT_mpi::BackSubstitute: LU_serial_driver returned: "
-			     << OK << endl;
-			throw ExceptionT::kGeneralFail;
-		}
+		if (OK != 1) 
+			ExceptionT::BadJacobianDet(caller, "LU_serial_driver returned: %d", OK);
 	}
 	else
 	{
@@ -104,11 +102,7 @@ void SPOOLESMatrixT_mpi::BackSubstitute(dArrayT& result)
 		cout << "\n SPOOLESMatrixT_mpi::BackSubstitute: MPI SPOOLES not supported by MacMPI" << endl;
 #endif /* __MWERKS__ */
 		if (OK != 1)
-		{
-			cout << "\n SPOOLESMatrixT_mpi::BackSubstitute: LU_MPI_driver returned: "
-			     << OK << endl;
-			throw ExceptionT::kGeneralFail;
-		}
+			ExceptionT::BadJacobianDet(caller, "LU_MPI_driver returned: %d", OK);
 	}
 }
 #endif /* __TAHOE_MPI__ */
