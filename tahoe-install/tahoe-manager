@@ -6,6 +6,8 @@
 # written by: 
 #    Reese Jones (rjones@sandia.gov) and Patrick Klein (paklein@sandia.gov)
 #------------------------------------------------------------------------------
+# to do: parallel builds, deal with static libs e.g. access,
+#
 use Cwd; # $home = cwd();
 
 # maps & constants
@@ -20,7 +22,7 @@ blas	BLAS_
 access	AX_
 );
 
-@definedmodules = keys (%module2define);
+@defaultmodules = ("macros","expat","toolbox","tahoe");
 
 %syslib2module = qw(
 ACCESS	access
@@ -30,9 +32,6 @@ ACCESS	access
 cvs     cvs
 http	curl
 );
-
-# core modules
-@defaultmodules = ("macros","expat","toolbox","tahoe");
 
 #default repository
 $cvsrep = "tahoe.ca.sandia.gov:/cvs/protected/tahoe"; 
@@ -51,9 +50,11 @@ ARG: while (@ARGV) {
 		$count = @ARGV;
 		if ($script_status > 0 )   { failed();}
 		if (/^u|update/i)          { update(); next ARG; }
-		if (/^r|rebuild/i)         { rebuild(); next ARG; }
+		if (/^c|config/i)          { config(); next ARG; }
 		if (/^b|build/i)           { build(); next ARG; }
+		if (/clean/i)              { clean(); next ARG; }
 		if (/^t|test/i)            { test(); next ARG; }
+		if (/^a|all/i)             { update(); config(); build(); next ARG; }
 		if (/^u|usage|help|^h/i)   { usage();}
 		print "ERROR: unknown option: $_ \n"; usage();
 	}
@@ -66,12 +67,20 @@ sub initialize{
 # username
 $username = getlogin();
 
+# classify modules
+%tmp = %module2define;
+foreach $key (@defaultmodules) {
+	delete $tmp{$key};
+}
+@optionalmodules = keys (%tmp);
+undef %tmp;
+
 # search for system libs 
 foreach $key (sort(keys %ENV)) {
 	foreach $lib (keys %syslib2module) {
 		if ($key =~ /$lib/ ) { 
 			$loc = $ENV{$key};
-			print "* found $lib \@ $loc \n"; 
+			print "* found system library $lib \@ $loc \n"; 
 			push(@syslibs,$lib);
 		}
 	}
@@ -119,7 +128,8 @@ while(<CONFIG>) {
 	s/^\s+//; s/\s+$//; @list = split(/ +/);
  	if (defined($list[0])){
         	if (/^\#/ ){ 
-			if     ($type  =~ /CONNECTION/){$connection = $tmp_list[0];}
+			if     ($type  =~ /CONNECTION/)
+				{$connection = $tmp_list[0];}
 			elsif  ($type  =~ /PROXY/){$proxy = $tmp_list[0];}
 			elsif  ($type  =~ /ARCH/){$arch = $tmp_list[0];}
  			elsif  ($type  =~ /MODU/){@modules = @tmp_list;}
@@ -141,10 +151,6 @@ foreach $core (@defaultmodules) {
  		push(@modules,$core);
  	}
 }
-
-# need to sort modules based on dependencies
-@tmp_modules = @modules;
-@modules = sort by_depend @tmp_modules;
 }
 
 ##############################################################################
@@ -160,9 +166,13 @@ foreach $key (sort(keys %ENV)) {
 	if ($key =~ /TAHOE_ARCH/ ) { 
 		print "* found environmental var : $key = $value\n";
 		$arch = $value;}
+	if ($key =~ /CVS_RSH/) { 
+		print "* found CVS_RSH env var, using cvs connection\n"; 
+		$connection = "cvs"; }
 }
 
 # connection type
+$proxy = "NONE";
 unless(defined($connection)){ 
 @connections = ("cvs", "http");
 $i=0;foreach $choice (@connections) { print "$i $choice\n"; $i++; }
@@ -172,7 +182,6 @@ if (length($i) == 0) { # default
 	$i = 0;
 }
 $connection = $connections[$i];
-$proxy = "NONE";
 if ($connection =~ /http/) { # ask for proxy
 	print "http proxy (proxyhost:port) [NONE]:";
 	$proxy = <STDIN>;
@@ -180,6 +189,16 @@ if ($connection =~ /http/) { # ask for proxy
 	if (length($proxy) == 0) { # default
 		$proxy = "NONE";
 	}
+}
+else {
+        $cvs_OK = 0;
+        foreach $key (sort(keys %ENV)) {
+                if ($key =~ /CVS_RSH/ && $ENV{$key} =~ /ssh/) { $cvs_OK = 1; }
+        }
+        if ($cvs_OK != 1) {
+                print "ERROR: CVS_RSH must be set to ssh\n";
+                exit;
+        }
 }
 }
 
@@ -224,14 +243,21 @@ print "* you chose : $arch\n";
 
 # modules
 @modules = @defaultmodules;
+$choice = 0;
+foreach $key (sort(keys %ENV)) {
+	if ($key =~ /TAHOE_BUILD/ && $ENV{$key} =~ /default/) { $choice = 1; }
+}
+if ($choice != 1) {
+print "* default modules : @defaultmodules\n";
 print "do want to add optional modules ? (y/n) [n] :"; $choice = <STDIN>;
 if ( $choice =~ /y/ ) {
 print "\noptional modules:\n";
-$i=0;foreach $choice (@definedmodules) { print "$i $choice\n"; $i++;}
+$i=0;foreach $choice (@optionalmodules) { print "$i $choice\n"; $i++;}
 print "modules ? "; $choice = <STDIN>; chomp($choice);
-@choices = split(/ +/,$choice);
-foreach $choice (@choices) { push (@modules,$definedmodules[$choice]) ;}
+@choices = split(/ +|,/,$choice);
+foreach $choice (@choices) { push (@modules,$optionalmodules[$choice]) ;}
 print "* you chose : @modules \n";
+}
 }
 
 print "\n";
@@ -322,50 +348,72 @@ sub update_http{
 }
 
 ##############################################################################
-sub rebuild{
+sub build{
 	$time = localtime();
-	print "($count) rebuilding: @modules, at $time\n";
-# winnow out "static" modules??
+# need to sort modules based on dependencies
+	@tmp_modules = @modules;
+	@modules = sort by_depend @tmp_modules;
+	print "($count) building: @modules, at $time\n";
 	foreach $dir (@modules) {
-		chdir $dir;
-		if (-e "makefile") {
-			print "\tmaking $dir";
-			unlink("build.log");
-			system("make build > build.log 2>&1");
-			# check for errors	
-			open(IN,"build.log");
-			@lines = <IN>; $file = "@lines"; close(IN); 
-			$errors = ($file =~ / error /i);
-                	if($errors > 0) {print " ...ERROR\n";$script_status++;}
-			else            {print " ...done\n";}
+		if (-e $dir) {
+			chdir $dir;
+			if (!(-e "makefile") && (-e "makefile.template")) {
+				fillin_makefile();
+			}
+			if (-e "makefile") {
+				print "\tmaking $dir";
+				unlink("build.log");
+				system("make build > build.log 2>&1");
+				# check for errors	
+				open(IN,"build.log");
+				@lines = <IN>; $file = "@lines"; close(IN); 
+				$errors = ($file =~ / error /i);
+                		if($errors > 0) 
+					{print " ...ERROR\n";$script_status++;}
+				else	{print " ...done\n";}
+			}
+			chdir "..";
+		} else {
+			print "ERROR : need checkout for $dir\n"; exit;
 		}
-		chdir "..";
 	}
 }
 
 ##############################################################################
-sub build{
+sub config{
 	$time = localtime();
-	print "($count) building: @modules, at $time\n";
+	print "($count) config'ing: @modules, at $time\n";
 	foreach $dir (@modules) {
-		chdir $dir;
-		if (-e "makefile.template") {
-			fillin_makefile();
-			print "\tmaking $dir";
-			unlink("build.log");
-			system("rm -rf src-mirror obj object_list");
-			system("make init build > build.log 2>&1");
-			# check for errors	
-			open(IN,"build.log");
-			@lines = <IN>; $file = "@lines"; close(IN); 
-			$errors = ($file =~ / error /i);
-                	if($errors > 0) {print " ...ERROR\n";$script_status++;}
-			else            {print " ...done\n";}
+		if (-e $dir) { 
+			chdir $dir; 
+			if (-e "makefile.template") {
+				print "\tcreating makefile in $dir";
+				fillin_makefile();
+				system("make init > build.log 2>&1");
+				print " ...done\n";
+			}
+		 	chdir "..";
 		}
-		chdir "..";
 	}
-}
 
+}
+##############################################################################
+sub clean{
+	$time = localtime();
+	print "($count) config'ing: @modules, at $time\n";
+	foreach $dir (@modules) {
+		if (-e $dir) { 
+			chdir $dir; 
+			if (-e "makefile") {
+				print "\tcleaning $dir";
+				system("make clean");
+				print " ...done\n";
+			}
+		 	chdir "..";
+		}
+	}
+
+}
 ##############################################################################
 sub test{
 	$time = localtime();
@@ -394,7 +442,6 @@ sub test{
 	$_ = <IN>; chomp(); s/^\s+//; s/\s+$//; $fail = $_;   
 	print "* $pass $fail, see compare.summary for more details\n";
 }
-
 ##############################################################################
 sub failed{
 	$time = localtime();
@@ -405,9 +452,12 @@ sub failed{
 sub usage{
 	print "\nusage: tahoe-manager [list of keywords and options]\n";
 	print "       update  : updates or checks out modules\n";
-	print "       build   : builds modules \n";
-	print "       rebuild : rebuilds modules \n";
+	print "       config  : creates makefiles \n";
+	print "       build   : builds modules\n";
 	print "       test    : runs regression tests\n";
+	print "       clean   : cleans modules\n";
+	print "       all     : updates, config's and builds \n";
+	print "\n ... to build tahoe the first time type \" tahoe-manager all \"\n";
 	exit 1;
 }
 
