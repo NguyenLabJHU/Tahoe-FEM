@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.h,v 1.6 2002-06-04 21:49:08 recampb Exp $ */
+/* $Id: VTKUGridT.h,v 1.7 2002-06-05 18:51:32 recampb Exp $ */
 #ifndef _VTK_U_GRID_T_H_
 #define _VTK_U_GRID_T_H_
 
@@ -65,8 +65,10 @@ class VTKUGridT
 	/** set the scalar data */
 	void SetScalars(vtkFloatArray* scalars);
 
+	/** display data as contour surfaces in 3D or contour lines in 2D */
 	void ShowContours(vtkFloatArray* scalars, int numContours);
 	
+	/** remove contours */
 	void HideContours(vtkFloatArray* scalars);
 
 	/** set the scalar data range */
@@ -86,9 +88,11 @@ class VTKUGridT
 
 	/** return the box outline actor */
 	vtkActor* OutlineActor(void) { return fOutlineActor;};
-
+	
+	/** return the bounding wire-frame actor */
 	vtkActor* EdgesActor(void) {return edgesActor;};
 	
+	/** return the semi-transparent bounding volume actor */
 	vtkActor* BoundBoxActor(void) {return boundBoxActor;};
   	
   	/** return the grid wrap vector */
@@ -111,6 +115,8 @@ class VTKUGridT
  	 * \param opacity ranges from 0 to 1 for transparent to opaque */
 	void SetOpacity(double opacity);
 
+	/** set bounding volume opacity
+	 * \param boundingOpacity ranges from 0 to 1 for transparent to opaque */
 	void SetBoundingOpacity(double boundingOpacity);
  
  	/** return a reference to the cell numbering map */
@@ -157,19 +163,24 @@ class VTKUGridT
 	/** displaces grid */
 	vtkWarpVector* fWarp;
 
+	/** contour lines/surfaces */
 	vtkContourFilter* fContour;
 	vtkPolyDataMapper* fContourMapper;
 	vtkActor* fContourActor;
-
 	bool contours;
+	
+	/** bounding box outline */
 	vtkOutlineFilter* outline;
 	vtkDataSetMapper* outlineMapper;
 	vtkActor* fOutlineActor;
 
+	/** bounding volume wireframe */
+	/* not used at the moment */
 	vtkExtractEdges* edges;
 	vtkDataSetMapper* edgesMapper;
 	vtkActor* edgesActor;
 
+	/** bounding semi-transparent volume */
 	vtkDataSetMapper* boundBoxMapper;
 	vtkActor* boundBoxActor;
 	
