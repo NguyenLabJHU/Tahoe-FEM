@@ -1,8 +1,10 @@
-/* $Id: UpdatedLagMixtureT.cpp,v 1.1 2004-11-05 22:53:49 paklein Exp $ */
+/* $Id: UpdatedLagMixtureT.cpp,v 1.2 2004-11-07 17:09:26 paklein Exp $ */
 #include "UpdatedLagMixtureT.h"
 #include "ShapeFunctionT.h"
 #include "FSSolidMixtureT.h"
 #include "SolidMatListT.h"
+#include "ScheduleT.h"
+#include "eIntegratorT.h"
 
 using namespace Tahoe;
 
@@ -69,4 +71,21 @@ void UpdatedLagMixtureT::ProjectPartialStress(int i)
 			/* accumulate - extrapolation done from ip's to corners => X nodes */
 			ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodalstress);
 		}
+}
+
+/* return the nodal accelerations over the current element */
+void UpdatedLagMixtureT::Acceleration(LocalArrayT& acc)
+{
+	if (fIntegrator->Order() == 2) {
+		SetLocalU(fLocAcc);
+		acc = fLocAcc;
+	}
+	else
+		acc = 0.0;
+}
+
+/* return the body force vector */
+void UpdatedLagMixtureT::BodyForce(dArrayT& body_force) const
+{
+	body_force.SetToScaled(fBodySchedule->Value(), fBody);
 }
