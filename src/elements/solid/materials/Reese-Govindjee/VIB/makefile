@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2003-11-04 18:02:34 thao Exp $
+# $Id: makefile,v 1.3 2003-11-05 17:43:51 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,7 +20,6 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = RGVIB2D.o \
-	DetCheckT2.o \
 	ViscVIB.o
 
 OBJ_LINK = $(OBJ)
@@ -42,7 +41,6 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = RGVIB2D.cpp \
-	DetCheckT2.cpp \
 	ViscVIB.cpp
 
 ##################### (3) headers
@@ -55,7 +53,6 @@ SRC = RGVIB2D.cpp \
 # HDR and HDR_LINK macro   
 #
 HDR = RGVIB2D.h \
-	DetCheckT2.h \
 	ViscVIB.h
 
 HDR_LINK = $(HDR:.h=.h_link)
