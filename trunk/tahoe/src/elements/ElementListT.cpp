@@ -1,5 +1,5 @@
-/* $Id: ElementListT.cpp,v 1.6 2001-07-03 01:34:48 paklein Exp $ */
-/* created: paklein (04/20/1998)                                          */
+/* $Id: ElementListT.cpp,v 1.7 2001-07-14 01:16:39 paklein Exp $ */
+/* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
 #include <iostream.h>
@@ -45,6 +45,9 @@
 /* meshfree cohesive surface elements */
 #include "MeshFreeCSEAnisoT.h"
 
+/* class to read external field from file */
+#include "UpLagr_ExternalFieldT.h"
+
 /* Element Types */
 const int kRod                = 1;
 const int kElastic            = 2;
@@ -74,6 +77,8 @@ const int kMFCohesiveSurface  = 22;
 const int kACME_Contact       = 23;
 const int kMultiplierContact3D= 24;
 const int kMultiplierContact2D= 25;
+
+const int kTotLagrExternalField = 26; //experimental and temporary
 
 /* constructors */
 ElementListT::ElementListT(FEManagerT& fe_manager):
@@ -258,6 +263,10 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 
 			case kMFCohesiveSurface:
 				fArray[group] = new MeshFreeCSEAnisoT(fFEManager);
+				break;
+
+			case kTotLagrExternalField:
+				fArray[group] = new UpLagr_ExternalFieldT(fFEManager);
 				break;
 
 			case kACME_Contact:

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2001-07-03 01:34:53 paklein Exp $
+# $Id: makefile,v 1.6 2001-07-14 01:16:40 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -13,7 +13,8 @@ OBJ = \
 	LocalizerT.o \
 	SmallStrainT.o \
 	TotalLagrangianT.o \
-	UpdatedLagrangianT.o
+	UpdatedLagrangianT.o \
+	UpLagr_ExternalFieldT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -30,7 +31,8 @@ SRC = \
 	LocalizerT.cpp \
 	SmallStrainT.cpp \
 	TotalLagrangianT.cpp \
-	UpdatedLagrangianT.cpp
+	UpdatedLagrangianT.cpp \
+	UpLagr_ExternalFieldT.cpp
 
 # headers
 HDR = \
@@ -41,7 +43,8 @@ HDR = \
 	LocalizerT.h \
 	SmallStrainT.h \
 	TotalLagrangianT.h \
-	UpdatedLagrangianT.h
+	UpdatedLagrangianT.h \
+	UpLagr_ExternalFieldT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
