@@ -1,4 +1,4 @@
-/* $Id: MappedPeriodicT.h,v 1.6 2002-07-05 22:28:31 paklein Exp $ */
+/* $Id: MappedPeriodicT.h,v 1.6.40.1 2004-03-24 19:51:40 paklein Exp $ */
 /* created: paklein (04/07/1997) */
 
 #ifndef _MAPPED_PERIODIC_T_H
@@ -50,6 +50,22 @@ public:
 
 	/* output */
 	virtual void WriteOutput(ostream& out) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** return the description of the given inline subordinate parameter list */
+	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	/*@}*/
 	
 protected:
 
