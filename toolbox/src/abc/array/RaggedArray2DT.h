@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.6 2001-10-11 00:06:37 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.7 2001-10-24 01:57:18 paklein Exp $ */
 /* created: paklein (09/10/1998) */
 
 #ifndef _RAGGED_ARRAY_2D_T_H_
@@ -68,45 +68,99 @@ public:
 	/** shallow copy from nArray2DT */
 	void Alias(const nArray2DT<TYPE>& source);
 
-	/* assigment */
+	/** assigment operator from another RaggedArray2DT */
 	RaggedArray2DT<TYPE>& operator=(const RaggedArray2DT& source);
-	void Copy(const AutoFill2DT<TYPE>& source);
-	void Copy(const RowAutoFill2DT<TYPE>& source);
-	void Copy(const ArrayT<int>& rowcounts, const ArrayT<TYPE*>& data);
-	void CopyCompressed(const AutoFill2DT<TYPE>& source); // removes empty rows
 
-	/* generate adjacency offset vector */
+	/** configure and construct using a AutoFill2DT */
+	void Copy(const AutoFill2DT<TYPE>& source);
+
+	/** configure and construct using a RowAutoFill2DT */
+	void Copy(const RowAutoFill2DT<TYPE>& source);
+
+	/** configure and construct using raw data.
+	 * \param rowcounts array of number of entries per row
+	 * \param data array of pointers to the row data */
+	void Copy(const ArrayT<int>& rowcounts, const ArrayT<TYPE*>& data);
+
+	/** configure and construct using a AutoFill2DT. Empty
+	 * rows are removed. */
+	void CopyCompressed(const AutoFill2DT<TYPE>& source);
+
+	/** generate adjacency offset vector */
 	void GenerateOffsetVector(ArrayT<int>& offsets) const;
 
-	/* write data */
+	/** write data to a row of the array. Dimension of the source
+	 * must match the allocated size of the specified row.
+	 * \param row destination row
+	 * \param array source of data */
 	void SetRow(int row, const ArrayT<TYPE>& array);
+
+	/** write data to a row of the array.
+	 * \param row destination row
+	 * \param array source of data. The length of this array is
+	 *        assumed to be at least as long as the size of the
+	 *        specified row. */
 	void SetRow(int row, const TYPE* array);
 
 	/* write rows with numbers to the output stream */
 	void WriteNumbered(ostream& out) const;
 
-	/* data retrieval */
+	/** shallow copy of a row.
+	 * \param row row number to alias
+	 * \param array array to alias to the row data */
 	void RowAlias(int row, ArrayT<TYPE>& rowdata) const;
-	TYPE* operator()(int row) const;
-	TYPE* Pointer(void) const; // pointer to the first data element
 
-	/* free memory (if allocated) */
+	/** return a pointer to first element in the specified row */
+	TYPE* operator()(int row) const;
+	
+	/** return a pointer to the first element in the data array */
+	TYPE* Pointer(void) const;
+
+	/** free memory */
 	void Free(void);
 
-	/* I/O */
+	/** configure from stream. Read the data for the array from the stream.
+	 * This data includes information about the internal structure of the
+	 * array. This is the complement to RaggedArray2DT::Write. */
 	void Read(istream& in);
+
+	/** write to stream. Write the data for the array to the stream.
+	 * This data includes information about the internal structure of the
+	 * array. This is the complement to RaggedArray2DT::Read. */
 	void Write(ostream& out) const;
 	
-	/* binary I/O of data (not offsets) */
+	/** binary input of the data array. Read only the data portion of
+	 * the array from the input stream. The structure of the array
+	 * must be set previously. This is the complement to 
+	 * RaggedArray2DT::WriteDataBinary. */
 	void ReadDataBinary(istream& in) { fData.ReadBinary(in); };
+
+	/** binary output of the data array. Write only the data portion of
+	 * the array from the input stream. Information about the structure 
+	 * of the array is not included in the output. Hence, arrays that read
+	 * this data must be configured previously. This is the complement 
+	 * to RaggedArray2DT::ReadDataBinary. */
 	void WriteDataBinary(ostream& out) const { fData.WriteBinary(out); };
+
+	/** text input of the data array. Read only the data portion of
+	 * the array from the input stream. The structure of the array
+	 * must be set previously. This is the complement to 
+	 * RaggedArray2DT::WriteData. */
+	void ReadData(istream& in);
+
+	/** text output of the data array. Write only the data portion of
+	 * the array from the input stream. Information about the structure 
+	 * of the array is not included in the output. Hence, arrays that read
+	 * this data must be configured previously. This is the complement 
+	 * to RaggedArray2DT::ReadDataBinary. */
+	void WriteData(ostream& out) const;
 
 private:
 
-	/* setting pointers for equal row sizes */
+	/** setting pointers for equal row sizes */
 	void SetEvenPointers(int minordim);
 
-	/* disallowed */
+	/** disallowed */
 	RaggedArray2DT(const RaggedArray2DT& source);
 	  	
 protected:
@@ -609,6 +663,35 @@ void RaggedArray2DT<TYPE>::Write(ostream& out) const
 		
 	for (int j = 0; j < fData.Length(); j++)
 		out << fData[j] << '\n';
+}
+
+template <class TYPE>
+void RaggedArray2DT<TYPE>::ReadData(istream& in)
+{ 
+	/* read */
+	for (int j = 0; j < fData.Length(); j++)
+		 in >> fData[j];
+}
+
+template <class TYPE>
+void RaggedArray2DT<TYPE>::WriteData(ostream& out) const
+{
+	const int wrap = 5;
+	int count = 0;
+	for (int i = 0; i < fData.Length(); i++)
+	{
+		/* wrap */
+		if (count == wrap)
+		{
+			out << '\n';
+			count = 0;
+		}
+		else if (count > 0)
+			out << " ";
+		count++;
+
+		out << fData[i];		
+	}
 }
 
 /*************************************************************************
