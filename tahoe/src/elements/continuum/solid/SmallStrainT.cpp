@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.13.26.5 2004-07-13 20:20:04 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.13.26.6 2004-07-13 20:26:20 paklein Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -98,16 +98,16 @@ void SmallStrainT::TakeParameterList(const ParameterListT& list)
 	/* strain displacement option before calling SolidElementT::TakeParameterList */
 	int b = list.GetParameter("strain_displacement");
 	fStrainDispOpt = (b == kStandardB) ? kStandardB : kMeanDilBbar;
-	if (fStrainDispOpt == kMeanDilBbar) {
-		fLocDispTranspose.Dimension(fLocDisp.Length());
-		fMeanGradient.Dimension(NumSD(), NumElementNodes());
-	}	
 
 	/* inherited */
 	SolidElementT::TakeParameterList(list);
 	
 	/* dimension workspace */
 	fGradU.Dimension(NumSD());	
+	if (fStrainDispOpt == kMeanDilBbar) {
+		fLocDispTranspose.Dimension(fLocDisp.Length());
+		fMeanGradient.Dimension(NumSD(), NumElementNodes());
+	}	
 
 	/* offset to class needs flags */
 	fNeedsOffset = fMaterialNeeds[0].Length();
