@@ -1,4 +1,4 @@
-// $Id: testImpl.cpp,v 1.6 2002-07-29 21:11:50 recampb Exp $
+// $Id: testImpl.cpp,v 1.7 2002-08-08 16:50:32 paklein Exp $
 //#include <StubPreamble.h>
 // not needed for 1.3.1
 
@@ -9,6 +9,7 @@
 #include "iArrayT.h"
 #include "iConsoleT.h"
 #include "iConsoleObjectT.h"
+#include "CommandSpecT.h"
 
 using namespace Tahoe;
 
@@ -46,7 +47,7 @@ JNIEXPORT void JNICALL Java_test_InitCpp(JNIEnv * env, jobject obj)
 
 	StringT log_file = "testClass.log";
 	//iConsoleT console(log_file, *b);
-	iConsoleT* console = new iConsoleT(log_file, *b);
+	iConsoleT* console = new iConsoleT(log_file, *b, NULL, false);
 	//console_(log_file, *b);
 
   	testClass* p = new testClass(val);
@@ -67,6 +68,64 @@ JNIEXPORT void JNICALL Java_test_Print(JNIEnv * env, jobject obj)
 	jlong p_long = env->GetLongField(obj, fid);
 	testClass* p = (testClass*) p_long;
 	p->Print(cout);	
+
+	/* test communication with the console */
+	fid = env->GetFieldID(cls, "console", "J");
+	if (fid == 0) {
+    	return;
+  	}
+	p_long = env->GetLongField(obj, fid);
+	iConsoleT* p_console = (iConsoleT*) p_long;
+
+	cout << " current scope name: " << p_console->Scope() << endl;
+
+	/* try "help" command */	
+	StringT empty_line;
+	const CommandSpecT* help_command = p_console->iResolveCommand("help", empty_line);
+	if (!help_command) throw;
+	if (p_console->iDoCommand(*help_command, empty_line))
+		cout << " help OK\n" << endl;
+	else
+		cout << " help NOT OK\n" << endl;
+
+	/* try "read" command */
+	StringT read_arguments = "file.test";
+	const CommandSpecT* read_command = p_console->iResolveCommand("read", read_arguments);
+	if (!read_command) throw;
+	cout << "read command: ";
+	read_command->WriteCommand(cout);
+	cout << endl;
+	if (p_console->iDoCommand(*read_command, empty_line))
+		cout << " read OK\n" << endl;
+	else
+		cout << " read NOT OK\n" << endl;
+
+	/* try "echo" command */
+	StringT echo_arguments;
+	echo_arguments.Append("X");
+	echo_arguments.Append(" ", 5);
+	echo_arguments.Append("Y");
+	echo_arguments.Append(" ", 10);
+	const CommandSpecT* echo_command = p_console->iResolveCommand("echo", echo_arguments);
+	if (p_console->iDoCommand(*echo_command, empty_line))
+		cout << " echo OK\n" << endl;
+	else
+		cout << " echo NOT OK\n" << endl;
+		
+	/* call command of current console scope */
+	iConsoleObjectT& current_scope = p_console->Current();
+	cout << "current console object name: " << current_scope.iName() << endl;
+	echo_command = current_scope.iResolveCommand("echo", echo_arguments);
+	if (echo_command && current_scope.iDoCommand(*echo_command, empty_line))
+		cout << " echo OK\n" << endl;
+	else
+		cout << " echo NOT OK\n" << endl;
+
+	const CommandSpecT* list_command = current_scope.iResolveCommand("list", empty_line);
+	if (list_command && current_scope.iDoCommand(*list_command, empty_line))
+		cout << " list OK\n" << endl;
+	else
+		cout << " list NOT OK\n" << endl;
 
 	return;
 }
