@@ -1,4 +1,4 @@
-# $Id: DEC.macros,v 1.7 2001-12-10 22:15:16 paklein Exp $
+# $Id: DEC.macros,v 1.8 2002-02-09 01:04:29 paklein Exp $
 # DEC
 MAKE        = make
 MAKE_DEPEND = makedepend
@@ -8,8 +8,8 @@ COMP_F      = f77
 TR          = $(MACRO_DIR)/cxx_repository
 MORE_CFLAGS = -O3 -DNDEBUG 
 #MORE_CFLAGS = -g 
-DEFINES     = -D__DEC__
-MY_CFLAGS   = -c -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
+DEFINES     = -D__DEC__ -D__USE_STD_IOSTREAM
+MY_CFLAGS   = -c -arch host -I$(INC_DIR) $(DEFINES) $(MORE_CFLAGS)
 CFLAGS_C    = $(MY_CFLAGS) -msg_disable 161,111
 CFLAGS_CC   = $(MY_CFLAGS) -ptr $(TR) -distinguish_nested_enums -msg_disable 161,111
 CFLAGS_F    = $(MY_CFLAGS)
