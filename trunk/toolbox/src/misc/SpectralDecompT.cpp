@@ -1,4 +1,4 @@
-/* $Id: SpectralDecompT.cpp,v 1.4 2001-06-07 03:00:28 paklein Exp $ */
+/* $Id: SpectralDecompT.cpp,v 1.5 2001-06-23 00:49:16 thao Exp $ */
 /* created: paklein (11/09/1997)                                          */
 /* Spectral decomposition solver                                          */
 
@@ -335,7 +335,24 @@ const dMatrixT& SpectralDecompT::EigsToRank4(const dSymMatrixT& eigs)
 
 	return fSpatTensor;
 }
-
+/*Created by TDN: 03/05/2001
+ Forms rank 4 tensor from nonsymmetric matrix of derivative of principal stress*/
+const dMatrixT& SpectralDecompT::NonSymEigsToRank4(const dMatrixT& eigs)
+{
+	/*initialize*/
+	fSpatTensor = 0.0;
+	
+	/*stress derivative term*/
+	int nsd = eigs.Rows();
+	for (int B = 0; B < nsd; B++)
+		for (int A = 0; A < nsd; A++)
+		{
+			fRank4.Outer(fm[A],fm[B]);
+			fSpatTensor.AddScaled(eigs(A,B),fRank4);
+		}
+	return fSpatTensor;
+}
+	
 /* compute the principal spatial tensor associated with the Ath
 * eigenvalue */
 const dMatrixT& SpectralDecompT::SpatialTensor(const dSymMatrixT& b, int A)
