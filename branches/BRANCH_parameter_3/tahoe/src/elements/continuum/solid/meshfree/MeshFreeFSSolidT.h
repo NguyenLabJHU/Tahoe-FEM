@@ -1,16 +1,21 @@
-/* $Id: MeshFreeFSSolidT.h,v 1.9.18.2 2004-05-04 15:50:00 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.h,v 1.9.18.3 2004-05-06 16:00:22 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #ifndef _EFG_FDELASTIC_T_H_
 #define _EFG_FDELASTIC_T_H_
 
 /* base classes */
 #include "TotalLagrangianT.h"
-#include "MeshFreeFractureSupportT.h"
 
 /* direct members */
 #include "nVariMatrixT.h"
+#include "nVariArray2DT.h"
 
 namespace Tahoe {
+
+/* forward declarations */
+class MeshFreeSupportT;
+class MeshFreeShapeFunctionT;
+class MeshFreeFractureSupportT;
 
 /** large deformation elasticity with MLS shapefunctions for the
  * field (displacement) representation
@@ -52,6 +57,9 @@ public:
 	virtual void InitStep(void);
 	virtual void CloseStep(void);
 	virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
+
+	/** accessors */
+	MeshFreeSupportT& MeshFreeSupport(void) const;
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/

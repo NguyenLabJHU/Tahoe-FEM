@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.18.18.3 2004-05-04 15:49:59 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.18.18.4 2004-05-06 16:00:22 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #include "MeshFreeFSSolidT.h"
 
@@ -14,6 +14,7 @@
 #include "CommManagerT.h"
 #include "ParameterContainerT.h"
 
+#include "MeshFreeFractureSupportT.h"
 #include "MeshFreeSupport2DT.h"
 #include "MeshFreeSupport3DT.h"
 
@@ -44,7 +45,9 @@ MeshFreeFSSolidT::MeshFreeFSSolidT(const ElementSupportT& support):
 	fAutoBorder(false),
 	fB_wrap(10, fB),
 	fGradNa_wrap(10, fGradNa),
-	fStressStiff_wrap(10, fStressStiff)
+	fStressStiff_wrap(10, fStressStiff),
+	fMFShapes(NULL),
+	fMFFractureSupport(NULL)	
 {
 	SetName("large_strain_meshfree");
 }
@@ -166,16 +169,12 @@ int MeshFreeFSSolidT::InterpolantDOFs(void) const
 }
 
 /* retrieve nodal DOF's */
-void MeshFreeFSSolidT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
-{
-	/* inherited */
+void MeshFreeFSSolidT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const {
 	fMFFractureSupport->GetNodalField(Field()[0], nodes, DOFs); /* displacements */
 }
 
 /* weight the computational effort of every node */
-void MeshFreeFSSolidT::WeightNodalCost(iArrayT& weight) const
-{
-	/* inherited */
+void MeshFreeFSSolidT::WeightNodalCost(iArrayT& weight) const {
 	fMFFractureSupport->WeightNodes(weight);
 }
 

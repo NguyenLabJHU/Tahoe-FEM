@@ -1,28 +1,30 @@
-/* $Id: MeshFreeFSSolidAxiT.h,v 1.1 2004-02-03 01:47:44 paklein Exp $ */
+/* $Id: MeshFreeFSSolidAxiT.h,v 1.1.14.1 2004-05-06 16:00:22 paklein Exp $ */
 #ifndef _MESHFREE_FSSOLID_AXI_T_H_
 #define _MESHFREE_FSSOLID_AXI_T_H_
 
 /* base classes */
 #include "TotalLagrangianAxiT.h"
-#include "MeshFreeFractureSupportT.h"
 
 /* direct members */
 #include "nVariMatrixT.h"
+#include "nVariArray2DT.h"
 
 namespace Tahoe {
 
+/* forward declarations */
+class MeshFreeSupportT;
+class MeshFreeShapeFunctionT;
+class MeshFreeFractureSupportT;
+
 /** large deformation, axisymmetric solid with MLS shapefunctions for the
  * field (displacement) representation */
-class MeshFreeFSSolidAxiT: public TotalLagrangianAxiT,
-	public MeshFreeFractureSupportT
+class MeshFreeFSSolidAxiT: public TotalLagrangianAxiT
 {
 public:
 
 	/* constructor */
 	MeshFreeFSSolidAxiT(const ElementSupportT& support, const FieldT& field);
-	
-	/* data initialization */
-	virtual void Initialize(void);
+	MeshFreeFSSolidAxiT(const ElementSupportT& support);
 
 	/* append element equations numbers to the list */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -52,11 +54,17 @@ public:
 	virtual void InitStep(void);
 	virtual void CloseStep(void);
 	virtual GlobalT::RelaxCodeT ResetStep(void); // restore last converged state
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
+	/** accessors */
+	MeshFreeSupportT& MeshFreeSupport(void) const;
 					
 protected:
-
-	/* print element group data */
-	virtual void PrintControlData(ostream& out) const;
 
 	/* initialization functions */
 	virtual void SetShape(void);
@@ -74,6 +82,15 @@ private:
 	 virtual void WriteField(void); //TEMP?
 	
 protected:
+
+	/** meshless shape functions */
+	MeshFreeShapeFunctionT* fMFShapes;
+
+	/** support for meshless calculations */
+	MeshFreeFractureSupportT* fMFFractureSupport;
+
+	/** make field at bounding nodes nodally exact */
+	bool fAutoBorder;
 
 	/* wrappers */
 	nVariMatrixT<double>  fStressStiff_wrap;
