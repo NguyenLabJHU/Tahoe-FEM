@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.cpp,v 1.2.2.4 2001-11-06 14:25:43 sawimme Exp $ */
+/* $Id: FE_ASCIIT.cpp,v 1.2.2.5 2001-11-06 17:06:43 sawimme Exp $ */
 /* created: sawimme (05/20/1999)                                          */
 
 #include "FE_ASCIIT.h"
@@ -128,6 +128,8 @@ void FE_ASCIIT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 		     << fElementSets[ID]->ID() << '\n';
 		out << " Output ID . . . . . . . . . . . . . . . . . . . = "
 		     << ID << '\n';
+		out << " Number of Blocks. . . . . . . . . . . . . . . . = "
+		     << fElementSets[ID]->NumBlocks() << '\n';
 		if (fElementSets[ID]->Changing())
 		{
 			out << " Print Step. . . . . . . . . . . . . . . . . . . = "
@@ -176,6 +178,8 @@ void FE_ASCIIT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 	    << fElementSets[ID]->PrintStep() << '\n';
 	out << " Time. . . . . . . . . . . . . . . . . . . . . . = "
 	    << time << '\n';
+	out << " Number of Blocks. . . . . . . . . . . . . . . . = "
+	    << fElementSets[ID]->NumBlocks() << '\n';
 
 	/* write data */
 	WriteOutputData(out, ID, n_values, e_values);
@@ -253,14 +257,19 @@ void FE_ASCIIT::WriteOutputData(ostream& out, int ID, const dArray2DT& n_values,
 	    WriteNodeHeader(out, n_values.MajorDim(), node_labels);
 
 	    /* write node vars */
-	    iArrayT nodes_used;
-	    fElementSets[ID]->BlockNodesUsed(b, nodes_used);
-	    const iArray2DT* conn = fElementSets[ID]->Connectivities (b);
-	    nodes_used += -conn->Min(); // offset from global to local
-	    dArray2DT local_vars (nodes_used.Length(), n_values.MinorDim());
-	    local_vars.RowCollect (nodes_used, n_values);
-	    WriteNodeValues(out, nodes_used, local_vars);
-	
+	    if (n_values.MajorDim () > 0)
+	      {
+		iArrayT nodes_used;
+		fElementSets[ID]->BlockNodesUsed(b, nodes_used);
+		const iArray2DT* conn = fElementSets[ID]->Connectivities (b);
+		nodes_used += -conn->Min(); // offset from global to local
+		dArray2DT local_vars (nodes_used.Length(), n_values.MinorDim());
+		cout << n_values.MajorDim() << " " << nodes_used[0] << " " 
+		     << nodes_used[nodes_used.Length() - 1] << endl;
+		local_vars.RowCollect (nodes_used, n_values);
+		WriteNodeValues(out, nodes_used, local_vars);
+	      }
+
 	    /* write element header */
 	    out << "\n Element data:\n";
 	    out << " Block number . . . .  . . . . . . . . . . . . . = "
@@ -269,9 +278,12 @@ void FE_ASCIIT::WriteOutputData(ostream& out, int ID, const dArray2DT& n_values,
 	    WriteElementHeader(out, e_values.MajorDim(), elem_labels);
 
 	    /* write element values */
-	    dArray2DT local_vals (fElementSets[ID]->NumBlockElements (b), e_values.MinorDim());
-	    ElementBlockValues (ID, b, e_values, local_vals);
-	    WriteElementValues(out, local_vals);
+	    if (e_values.MajorDim() > 0)
+	      {
+		dArray2DT local_vals (fElementSets[ID]->NumBlockElements (b), e_values.MinorDim());
+		ElementBlockValues (ID, b, e_values, local_vals);
+		WriteElementValues(out, local_vals);
+	      }
 	  }
 	out.flush();
 }
