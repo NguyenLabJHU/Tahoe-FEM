@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.h,v 1.2 2001-09-04 06:45:35 paklein Exp $ */
+/* $Id: LocalArrayT.h,v 1.3 2001-09-05 00:24:57 paklein Exp $ */
 /* created: paklein (07/10/1996) */
 
 #ifndef _LOCALARRAY_T_H_
@@ -104,6 +104,9 @@ public:
 	/** construct array with local ordering by transposing source */
 	void FromTranspose(const nArrayT<double>& transpose);
 
+	/** construct array with local ordering by transposing source */
+	void FromTranspose(const double* transpose);
+
 	/** scale and accumulate in local ordering by transposing source */
 	void AddScaledTranspose(double scale, const nArrayT<double>& transpose);
 
@@ -193,6 +196,17 @@ inline void LocalArrayT::Alias(const LocalArrayT& source)
 	fNumNodes = source.fNumNodes;
 	fMinorDim = source.fMinorDim;
 	fGlobal   = source.fGlobal;
+}
+
+inline void LocalArrayT::FromTranspose(const nArrayT<double>& transpose)
+{
+#if __option (extended_errorcheck)
+	/* dimension check */
+	if(fLength != transpose.Length()) throw eSizeMismatch;
+#endif
+
+	/* call primitive function */
+	FromTranspose(transpose.Pointer());
 }
 
 #endif /* _LOCALARRAY_T_H_ */

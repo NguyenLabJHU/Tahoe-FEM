@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.cpp,v 1.3 2001-09-04 06:45:35 paklein Exp $ */
+/* $Id: LocalArrayT.cpp,v 1.4 2001-09-05 00:24:57 paklein Exp $ */
 /* created: paklein (07/10/1996) */
 
 #include "LocalArrayT.h"
@@ -91,20 +91,14 @@ void LocalArrayT::ReturnTranspose(nArrayT<double>& transpose) const
 	}
 }
 
-void LocalArrayT::FromTranspose(const nArrayT<double>& transpose)
+void LocalArrayT::FromTranspose(const double* transpose)
 {
-#if __option (extended_errorcheck)
-	/* dimension check */
-	if(fLength != transpose.Length()) throw eSizeMismatch;
-#endif
-
-	double* ptrans = transpose.Pointer();
 	for (int i = 0; i < fNumNodes; i++)
 	{
 		double* pthis = fArray + i;	
 		for (int j = 0; j < fMinorDim; j++)
 		{
-			*pthis = *ptrans++;
+			*pthis = *transpose++;
 			pthis += fNumNodes;
 		}
 	}
