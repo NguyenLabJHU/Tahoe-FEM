@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.16.2.2 2002-11-13 08:44:25 paklein Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.16.2.3 2002-11-13 22:47:18 paklein Exp $ */
 #include "LocalCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -790,6 +790,7 @@ void LocalCrystalPlast::ForwardGradientEstimate()
   const dArrayT& propH = fHardening->MaterialProperties();
   const dArrayT& propKE = fKinetics->MaterialProperties();
   double m = propKE[0];
+  double time = fFDMatSupport.Time();
 
   // some local tensors
   dMatrixT fFe_n (kNSD);
@@ -833,7 +834,7 @@ void LocalCrystalPlast::ForwardGradientEstimate()
       fA[i].ToMatrix(fmatx2);
 
       double tmp =  2. * fdt * dArrayT::Dot(fmatx2, fmatx3);
-      if (ftime >= 0.0) 
+      if (time >= 0.0) 
       //if (ftime <= fdt)
         fDGamma[i] = tmp;
       else
@@ -847,7 +848,7 @@ void LocalCrystalPlast::ForwardGradientEstimate()
 	   // (Z*SBar)_s+0.5*(Cijkl*(CeBar*Z)_s):(2*CeBar*Z)_s
 	   fLHS(i,j) = dArrayT::Dot(fmatx2, fmatx1);
 
-	   if (ftime >= 0.0) {
+	   if (time >= 0.0) {
 	   //if (ftime <= fdt) {
 	      //if (i == j) fLHS(i, j) += fHardening->HardeningModulus();
 	      if (i == j) fLHS(i, j) += 1.;
