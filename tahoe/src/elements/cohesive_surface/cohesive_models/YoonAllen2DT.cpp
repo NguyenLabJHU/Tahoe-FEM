@@ -1,4 +1,4 @@
-/* $Id: YoonAllen2DT.cpp,v 1.1.2.2 2002-06-04 16:16:06 cjkimme Exp $ */
+/* $Id: YoonAllen2DT.cpp,v 1.1.2.3 2002-06-04 22:03:56 cjkimme Exp $ */
 
 #include "YoonAllen2DT.h"
 
@@ -184,9 +184,9 @@ const dArrayT& YoonAllen2DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 	/* evolve the damage parameter */
 	double alpha = state2[2*knumDOF+1];
 	if (l_dot > kSmall)
-//		alpha += fTimeStep*falpha_0*pow(l,falpha_exp);
+		alpha += fTimeStep*falpha_0*pow(l,falpha_exp);
 //		alpha += fTimeStep*falpha_0*pow(1.-alpha,falpha_exp)*pow(1.-flambda_0*l,flambda_exp);
-		alpha += fTimeStep*falpha_0*pow(l_dot,falpha_exp);
+//		alpha += fTimeStep*falpha_0*pow(l_dot,falpha_exp);
 
 	 	
 	if (alpha >= 1.)
@@ -293,9 +293,9 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	double alpha = state[fNumRelaxTimes+2*knumDOF+1];
 	if (l_dot > kSmall)
 	{
-//		alpha += fTimeStep*falpha_0*pow(l,falpha_exp);
+		alpha += fTimeStep*falpha_0*pow(l,falpha_exp);
 //		alpha += fTimeStep*falpha_0*pow(1.-alpha,falpha_exp)*pow(1.-flambda_0*l,flambda_exp);
-		alpha += fTimeStep*falpha_0*pow(l_dot,falpha_exp);
+//		alpha += fTimeStep*falpha_0*pow(l_dot,falpha_exp);
 	}
 		
 	if (alpha >= 1.)
@@ -328,9 +328,9 @@ const dMatrixT& YoonAllen2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doub
 	double scratch;
 	scratch = 1./l/l;
 	if (l_dot > kSmall)
-//		scratch += falpha_exp*pow(l,falpha_exp-2.)*falpha_0*fTimeStep/(1.-alpha);
+		scratch += falpha_exp*pow(l,falpha_exp-2.)*falpha_0*fTimeStep/(1.-alpha);
 //	    scratch -= flambda_0*fTimeStep*flambda_exp*pow(1.-flambda_0*l,flambda_exp-1.)/(1-alpha);
-		scratch += falpha_exp*pow(l_dot,falpha_exp-1)*falpha_0*fTimeStep/(1.-alpha)/l;
+//		scratch += falpha_exp*pow(l_dot,falpha_exp-1)*falpha_0*fTimeStep/(1.-alpha)/l;
 	l_0 *= scratch;
 	l_1 *= scratch;
 	
