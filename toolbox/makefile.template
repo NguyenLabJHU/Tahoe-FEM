@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.1 2001-01-28 17:21:27 paklein Exp $
+# $Id: makefile.template,v 1.2 2001-01-29 19:18:59 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -118,6 +118,7 @@ help:
 	@ echo " make targets:"
 	@ echo "   init - (re-)initialize headers and file dependencies"
 	@ echo "  build - (re-)build binaries "
+	@ echo "objects - (re-)compile object file, but don't link"
 	@ echo "  clean - remove object files and build temporaries"
 	@ echo "   help - display this list"
 
