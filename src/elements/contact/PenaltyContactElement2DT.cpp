@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.40 2003-06-18 21:50:29 dzeigle Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.41 2003-06-23 17:58:23 dzeigle Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -445,10 +445,30 @@ void PenaltyContactElement2DT::LHSDriver(GlobalT::SystemTypeT)
 					if (consistent) {
 						face->ComputeShapeFunctionDerivatives(points(i),T1);
 						double jac = face->ComputeJacobian(points(i));
+						
+						//
+						if (parameters[kPenaltyType] == PenaltyContactElement2DT::kMajumdarBhushan)
+		  				{
+							double frdim = parameters[kFractalDimension];
+							pre *= pow(jac,0.5*(1.0-frdim));
+		  				}
+						//
 
 						Z1.MultABT(T1,Perm);
 						tmp_LHS.MultABT(N1, Z1);
-						tmp_LHS.SetToScaled(-pre*weights[i]/jac, tmp_LHS);
+						
+						//
+						if (parameters[kPenaltyType] == PenaltyContactElement2DT::kMajumdarBhushan)
+						{
+							double frdim = parameters[kFractalDimension];
+							double mbexp = 0.5*(1.0-frdim);
+							tmp_LHS.SetToScaled(-pre*weights[i]*(1.0+mbexp/jac)/jac, tmp_LHS);
+						}
+		  				else
+		  					tmp_LHS.SetToScaled(-pre*weights[i]/jac, tmp_LHS);
+						//
+						
+						//tmp_LHS.SetToScaled(-pre*weights[i]/jac, tmp_LHS);
 						LHS += tmp_LHS;
 					} 
 				}
