@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.19 2002-07-02 19:56:05 cjkimme Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.20 2002-08-01 23:13:05 rdorgan Exp $ */
 /* created: paklein (02/14/1997) */
 
 #include "SolidMatList3DT.h"
@@ -39,6 +39,8 @@
 #include "LocalCrystalPlastFp_C.h"
 #include "GradCrystalPlastFp.h"
 #include "tevp3D.h"
+#include "LocalJ2SSNonlinHard.h"
+#include "GradJ2SSNonlinHard.h"
 
 #include "ABAQUS_BCJ.h"
 #include "ABAQUS_VUMAT_BCJ.h"
@@ -392,6 +394,24 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 
 				fArray[matnum] = new GradCrystalPlastFp(in, *fFiniteStrain);
 				fHasHistory = true;
+				break;
+			}
+			case kLocJ2SSNlHard:
+			{
+				/* check */
+				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
+	
+				fArray[matnum] = new LocalJ2SSNonlinHard(in, *fSmallStrain);
+				fHasHistory = true;														
+				break;
+			}
+			case kGrdJ2SSNlHard:
+			{
+				/* check */
+				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
+	
+				fArray[matnum] = new GradJ2SSNonlinHard(in, *fSmallStrain);
+				fHasHistory = true;														
 				break;
 			}
 			case kABAQUS_BCJ:

@@ -1,4 +1,4 @@
-/* $Id: SolidT.h,v 1.19 2002-07-05 22:28:21 paklein Exp $ */
+/* $Id: SolidT.h,v 1.20 2002-08-01 23:13:05 rdorgan Exp $ */
 /* created: paklein (03/10/2001) */
 
 #ifndef _MATERIAL_T_H_
@@ -50,6 +50,8 @@ kLocXtalPlastFp_C = 56,
    kOgdenViscVIB = 60,
      kSSStandard = 61,
      kFDStandard = 62,
+  kLocJ2SSNlHard = 70,
+  kGrdJ2SSNlHard = 71,
      kABAQUS_BCJ = 80,
 kABAQUS_VUMAT_BCJ = 90
 		};

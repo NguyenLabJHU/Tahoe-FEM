@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.20 2002-07-02 19:56:05 cjkimme Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.21 2002-08-01 23:13:05 rdorgan Exp $ */
 /* created: paklein (02/14/1997) */
 
 #include "SolidMatList2DT.h"
@@ -33,6 +33,8 @@
 #include "DPSSKStV2D.h"
 #include "D2VIB2D_a.h"
 #include "OgdenIsoVIB2D.h"
+#include "LocalJ2SSNonlinHard2D.h"
+#include "GradJ2SSNonlinHard2D.h"
 #include "ABAQUS_BCJ.h"
 #include "ABAQUS_VUMAT_BCJ.h"
 #include "QuadLogOgden2DT.h"
@@ -403,6 +405,24 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 
 				fArray[matnum] = new GradCrystalPlastFp2D(in, *fFiniteStrain);
 				fHasHistory = true;
+				break;
+			}
+			case kLocJ2SSNlHard:
+			{
+				/* check */
+				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
+			
+				fArray[matnum] = new LocalJ2SSNonlinHard2D(in, *fSmallStrain);
+				fHasHistory = true;															
+				break;
+			}
+			case kGrdJ2SSNlHard:
+			{
+				/* check */
+				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
+			
+				fArray[matnum] = new GradJ2SSNonlinHard2D(in, *fSmallStrain);
+				fHasHistory = true;															
 				break;
 			}
 			case kABAQUS_BCJ:
