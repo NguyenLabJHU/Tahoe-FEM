@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2003-09-06 07:09:42 paklein Exp $
+# $Id: makefile,v 1.2 2004-01-05 07:39:36 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -23,7 +23,13 @@ OBJ = \
 	ABAQUS_BCJ.o \
 	ABAQUS_VUMAT_BCJ.o \
 	bcjumat.o \
-	vumatadiab.o
+	vumatadiab.o \
+	ABAQUS_BCJ_ISO.o \
+	ABAQUS_SS_BCJ_ISO.o \
+	bcj_iso.o \
+	rotsig.o \
+	sinv.o \
+	aset.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -46,7 +52,13 @@ SRC = \
 	ABAQUS_BCJ.cpp \
 	ABAQUS_VUMAT_BCJ.cpp \
 	bcjumat.c \
-	vumatadiab.c
+	vumatadiab.c \
+	ABAQUS_BCJ_ISO.cpp \
+	ABAQUS_SS_BCJ_ISO.cpp \
+	bcj_iso.c \
+	rotsig.c \
+	sinv.c \
+	aset.c
 
 ##################### (3) headers
 #
@@ -59,7 +71,9 @@ SRC = \
 #
 HDR = \
 	ABAQUS_BCJ.h \
-	ABAQUS_VUMAT_BCJ.h
+	ABAQUS_VUMAT_BCJ.h \
+	ABAQUS_BCJ_ISO.h \
+	ABAQUS_SS_BCJ_ISO.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 
