@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.h,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* $Id: DiffusionElementT.h,v 1.2 2001-02-20 00:42:13 paklein Exp $ */
 /* created: paklein (10/02/1999)                                          */
 
 #ifndef _DIFFUSE_T_H_
@@ -72,16 +72,19 @@ protected:
 	/* return a pointer to a new material list */
 	virtual MaterialListT* NewMaterialList(int size) const;
 
-	/* driver for nodal value calculations */
-	virtual void ComputeNodalValues(const iArrayT& codes);
+	/* driver for calculating output values */
+	virtual void ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
+	                           const iArrayT& e_codes, dArray2DT& e_values);
 
 private:
 
 	/* construct output labels array */
-	virtual void SetOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
-		iArrayT& counts);
-	virtual void GenerateOutputLabels(const iArrayT& counts,
-		ArrayT<StringT>& labels) const;
+	virtual void SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+		iArrayT& counts) const;
+	virtual void SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
+		iArrayT& counts) const;
+	virtual void GenerateOutputLabels(const iArrayT& n_counts,
+		ArrayT<StringT>& n_labels, const iArrayT& e_counts, ArrayT<StringT>& e_labels) const;
 
 protected:
 
