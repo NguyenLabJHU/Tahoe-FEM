@@ -52,6 +52,12 @@ private:
 	dArray2DT fD3;
 	dArray2DT fD4;
 	dArray2DT fD5;
+
+ protected:
+
+	/* recalculate time stepping constants */
+	virtual void nComputeParameters(void);
+
 };
 
 } // namespace Tahoe

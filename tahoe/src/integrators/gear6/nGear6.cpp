@@ -12,6 +12,8 @@ nGear6::nGear6(void):
   fD3(1, 1),
   fD4(1, 1),
   fD5(1, 1)
+  // NEED TO DEFINE CONSTRUCTORS - USE NODESUSED FUNCTION FROM ELEMENTBASET.H
+  // LIKE IN RODT.H?  
 {
   /* Gear constants */
   F02 = 3.0/16.0;
@@ -57,16 +59,18 @@ void nGear6::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 		case KBC_CardT::kVel: /* prescribed velocity */
 		{
 			double v_next = KBC.Value();
-			a = (v_next - v)/1.0;
-			v = v_next;
+			// NEED ACTUAL, NOT PREDICTED ACCELERATION TO DEFINE
+			// THIS KBC!!! (update array?)
 			break;
 		}
 		
 		case KBC_CardT::kAcc: /* prescribed acceleration */
 		{
-		        a  = KBC.Value();
-			v += 1.0*a;
-                 	break;
+		        double a_next  = KBC.Value();
+			v -= F12 * (a - a_next);
+			d -= F02 * (a - a_next);
+			a = a_next;
+			break;
 		}
 
 		default:
@@ -187,4 +191,15 @@ const dArray2DT& nGear6::MappedCorrectorField(BasicFieldT& field) const
 KBC_CardT::CodeT nGear6::ExternalNodeCondition(void) const
 {
 	return KBC_CardT::kAcc;
+}
+
+/***********************************************************************
+* Protected
+***********************************************************************/
+
+/* recalculate time stepping constants */
+void nGear6::nComputeParameters(void)
+{
+  /* nothing implemented here */
+
 }
