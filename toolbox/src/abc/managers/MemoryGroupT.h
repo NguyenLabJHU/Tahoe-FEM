@@ -1,4 +1,4 @@
-/* $Id: MemoryGroupT.h,v 1.4 2003-01-27 06:42:44 paklein Exp $ */
+/* $Id: MemoryGroupT.h,v 1.5 2003-05-23 22:47:26 paklein Exp $ */
 /* created: paklein (04/17/1998) */
 #ifndef _MEMORYGROUP_T_H_
 #define _MEMORYGROUP_T_H_
@@ -46,6 +46,7 @@ public:
 	/*@{*/
 	void Register(ArrayT<TYPE>& array);
 	bool IsRegistered(const ArrayT<TYPE>& array) const;
+	int NumRegistered(void) const { return fArrays.Length(); };
 	/*@}*/
 
 protected:
