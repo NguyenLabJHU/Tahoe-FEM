@@ -59,9 +59,13 @@ static integer c__1 = 1;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: subpspaces.c,v 1.1 2004-12-28 17:46:01 paklein Exp $ +/ */
+/* /+ $Id: subpspaces.c,v 1.2 2004-12-28 17:58:04 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 /* ------------------------------------------------------------------------------- */
+
+static int max(int a, int b) {
+  return (a > b) ? a : b;
+}; 
 
 /*<       subroutine DPACK(sbuf,dbuf,blklen,offset,blknum) >*/
 /* Subroutine */ int dpack_(doublereal *sbuf, doublereal *dbuf, integer *
@@ -1000,7 +1004,7 @@ static integer c__1 = 1;
 
 /* ------------------------------------------------------------------------------- */
 /*<    >*/
-/* Subroutine */ int fsolvefsolve_(integer *n, doublereal *lvals, integer *
+/* Subroutine */ int fsolve_(integer *n, doublereal *lvals, integer *
 	linds, integer *lptrs, integer *tinds, integer *tptrs, integer *sup, 
 	doublereal *rhs, integer *nrhs, integer *root, integer *lc, integer *
 	iptrs, doublereal *w)
