@@ -1,4 +1,4 @@
-/* $Id: parsymb.c,v 1.1 2005-01-03 01:22:04 paklein Exp $ */
+/* $Id: parsymb.c,v 1.2 2005-01-03 05:15:48 paklein Exp $ */
 /* parsymb.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -61,7 +61,7 @@ static integer c__21 = 21;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: parsymb.c,v 1.1 2005-01-03 01:22:04 paklein Exp $ +/ */
+/* /+ $Id: parsymb.c,v 1.2 2005-01-03 05:15:48 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -76,9 +76,13 @@ static integer lbit_shift(integer a, integer b) {
 	integer *supindsptr, integer *iu, integer *lsize, integer *dd, 
 	integer *n, integer *myid, integer *lgblk, integer *myidr, integer *
 	myidc, integer *mystak, integer *resdcol, integer *info, integer *
-	cinfo, MPI_Comm *comm, integer *temp1, integer *temp2, integer *sinds, 
+	cinfo, MPI_Comm *comm)
+	
+/* dummy arguments added for f2c
+	, integer *temp1, integer *temp2, integer *sinds, 
 	integer *sptrs, doublereal *temp3, doublereal *temp4, doublereal *
 	svals)
+*/
 {
     /* System generated locals */
     integer i__1;
@@ -146,13 +150,13 @@ static integer lbit_shift(integer a, integer b) {
 /*<       integer mpistat(MPI_STATUS_SIZE),ierr >*/
 /*<       node = root >*/
     /* Parameter adjustments */
-    --svals;
-    --temp4;
-    --temp3;
-    --sptrs;
-    --sinds;
-    --temp2;
-    --temp1;
+/*    --svals; */
+/*    --temp4; */
+/*    --temp3; */
+/*    --sptrs; */
+/*    --sinds; */
+/*    --temp2; */
+/*    --temp1; */
     --resdcol;
     --mystak;
     --supinds;
