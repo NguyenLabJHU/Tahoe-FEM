@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.9 2004-11-14 00:32:20 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.10 2004-11-17 23:40:34 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -166,6 +166,9 @@ public:
 
 private:
 
+	/** return the partition or throw an exception if it's not set */
+	PartitionT& Partition(void) const;	
+
 	/** collect partition nodes */
 	void CollectPartitionNodes(const ArrayT<int>& n2p_map, int part, 
 		AutoArrayT<int>& part_nodes) const;
@@ -194,11 +197,11 @@ private:
 	void CloseConfigure(iArray2DT& i_values, dArray2DT& new_init_coords);
 	/*@}*/
 
-	/** determine the local coordinate bounds 
+	/** determine the coordinate bounds of this processor
 	 * \param coords coordinate list
-	 * \param local rows of coords to use in determining bounds
-	 * \param bounds returns with the bounds of the given points */
-	void GetBounds(const dArray2DT& coords, const iArrayT& local, dArray2DT& bounds) const;
+	 * \param bounds returns with the bounds
+	 * \param adjacent_ID ranks of the adjacent processors along each coordinate direction */
+	void GetProcessorBounds(const dArray2DT& coords, dArray2DT& bounds, iArray2DT& adjacent_ID) const;
 
 	/** \name not allowed */
 	/*@{*/
@@ -372,6 +375,12 @@ inline const ArrayT<int>* CommManagerT::GhostNodes(void) const
 		return &fPBCNodes_ghost;
 	else
 		return NULL;
+}
+
+/* return the partition or throw an exception if it's not set */
+inline PartitionT& CommManagerT::Partition(void) const {
+	if (!fPartition) ExceptionT::GeneralFail("CommManagerT::Partition", "partition not set");
+	return *fPartition;
 }
 
 inline int CommManagerT::Init_AllGather(const nArray2DT<int>& values)

@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.13 2004-11-14 00:32:20 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.14 2004-11-17 23:40:33 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -6,6 +6,7 @@
 #include "PartitionT.h"
 #include "InverseMapT.h"
 #include "FieldT.h"
+#include "SpatialGridT.h"
 #include <float.h>
 
 /* message types */
@@ -29,6 +30,8 @@ CommManagerT::CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager):
 	fi_send_buffer_man(fi_send_buffer),
 	fi_recv_buffer_man(fi_recv_buffer)
 {
+//no map needed for serial calculations
+#if 0
 	//TEMP - with inline coordinate information (serial) this map
 	//       need to be set ASAP
 	if (fComm.Size() == 1)
@@ -36,6 +39,7 @@ CommManagerT::CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager):
 		fProcessor.Dimension(fModelManager.NumNodes());
 		fProcessor = fComm.Rank();
 	}
+#endif
 }
 
 CommManagerT::~CommManagerT(void)
@@ -327,19 +331,17 @@ void CommManagerT::EnforcePeriodicBoundaries(void)
 void CommManagerT::Configure(void)
 {
 	/* first time through */
-	if (fFirstConfigure) {
-		FirstConfigure();
-		fFirstConfigure = false;
-	}
+	if (fFirstConfigure) FirstConfigure();
 
 	/* nothing else to do */
-	if (!fPartition) return;
+	if (!fPartition) {
+		fFirstConfigure = false;
+		return;
+	}
 
 	PartitionT::DecompTypeT decomp_type = fPartition->DecompType();
 	if (decomp_type == PartitionT::kSpatial)
 	{
-		/* disable all AllGathers - comm lists are now invalid */
-
 		/* work space */
 		iArray2DT i_values;
 		nVariArray2DT<int> i_values_man;
@@ -348,21 +350,35 @@ void CommManagerT::Configure(void)
 		dArray2DT new_curr_coords;
 		nVariArray2DT<double> new_curr_coords_man;
 
-		/* init data needed for reconfiguring across processors */
-		InitConfigure(i_values, i_values_man, new_init_coords, new_init_coords_man, new_curr_coords, new_curr_coords_man);
+#pragma message("reset grid dimensions?")
+#if 0
+if (!fFirstConfigure && reset grid dimensions?)
+	GetProcessorBounds(const dArray2DT& coords, dArray2DT& bounds, iArray2DT& adjacent_ID)
+#endif 
 
-		/* distribute nodes over the spatial grid */
-		Distribute(i_values, i_values_man, new_init_coords, new_init_coords_man, new_curr_coords, new_curr_coords_man);
-		
-		/* exchange border nodes */
-		SetExchange(i_values, i_values_man, new_init_coords, new_init_coords_man, new_curr_coords, new_curr_coords_man);
-
-		/* finalize configuration */
-		CloseConfigure(i_values, new_init_coords);
+		/* wrap in try block */
+		int token = 1;
+		try {
+			/* init data needed for reconfiguring across processors */
+			InitConfigure(i_values, i_values_man, new_init_coords, new_init_coords_man, new_curr_coords, new_curr_coords_man);
 	
-
-		/* reset comm lists for AllGathers */
+			/* distribute nodes over the spatial grid */
+			Distribute(i_values, i_values_man, new_init_coords, new_init_coords_man, new_curr_coords, new_curr_coords_man);
+			
+			/* exchange border nodes */
+			SetExchange(i_values, i_values_man, new_init_coords, new_init_coords_man, new_curr_coords, new_curr_coords_man);
+	
+			/* finalize configuration */
+			CloseConfigure(i_values, new_init_coords);
+		}		
+		catch (ExceptionT::CodeT error) { token = 0; }
+		
+		/* synch and check */
+		if (fComm.Sum(token) != Size()) ExceptionT::GeneralFail("CommManagerT::Configure");
 	}
+	
+	/* set flag */
+	fFirstConfigure = false;
 }
 
 /* return true if the list of partition nodes may be changing */
@@ -625,6 +641,8 @@ void CommManagerT::CollectPartitionNodes(const ArrayT<int>& n2p_map, int part,
 /* perform actions needed the first time CommManagerT::Configure is called. */
 void CommManagerT::FirstConfigure(void)
 {
+	const char caller[] = "CommManagerT::FirstConfigure";
+
 	/* serial */
 	if (!fPartition) {
 		fNumRealNodes = fModelManager.NumNodes();
@@ -743,7 +761,12 @@ void CommManagerT::FirstConfigure(void)
 	else if (fPartition->DecompType() == PartitionT::kSpatial)
 	{
 		int nsd = fModelManager.NumDimensions();
-	
+
+		/* determine the bounds and neighbors of this processor - (reference coordinates) */
+		fBounds.Dimension(nsd, 2);         /* [nsd] x {low, high} */
+		fAdjacentCommID.Dimension(nsd, 2); /* [nsd] x {low, high} */
+		GetProcessorBounds(fModelManager.Coordinates(), fBounds, fAdjacentCommID);
+
 		/* swap pattern {+x, +y, +z,..., -x, -y, -z,...} */
 		fSwap.Dimension(2*nsd, 2);
 		for (int i = 0; i < nsd; i++)
@@ -879,9 +902,6 @@ void CommManagerT::Distribute(iArray2DT& i_values, nVariArray2DT<int>& i_values_
 	int npn = new_init_coords.MajorDim();
 	int nsd = new_init_coords.MinorDim();
 
-	/* determine the current processor bounds */
-	//GetBounds(current_coords, , fBounds);
-	
 	/* exhange nodes that are out of bounds */
 	dArrayT pack(pack_size), d_alias;
 	MPI_Request request;
@@ -1010,8 +1030,7 @@ void CommManagerT::Distribute(iArray2DT& i_values, nVariArray2DT<int>& i_values_
 					new_curr_coords.SetRow(npn + k, fd_recv_buffer(k) + nsd);
 					d_alias.Alias(pack_size, fd_recv_buffer(k) + 2*nsd);
 					fNodeManager->Unpack(npn + k, d_alias);
-				}
-				
+				}	
 			}
 		}		
 }
@@ -1167,77 +1186,36 @@ void CommManagerT::SetExchange(iArray2DT& i_values, nVariArray2DT<int>& i_values
 	}
 }
 
-/* determine the local coordinate bounds */
-void CommManagerT::GetBounds(const dArray2DT& coords_all, const iArrayT& local, 
-	dArray2DT& bounds) const
+/* determine the coordinate bounds of this processor */
+void CommManagerT::GetProcessorBounds(const dArray2DT& coords, dArray2DT& bounds, iArray2DT& adjacent_ID) const
 {
+	const char caller[] = "CommManagerT::GetProcessorBounds";
+
 	/* dimensions */
-	int nsd = coords_all.MinorDim();
+	int nsd = coords.MinorDim();
 	bounds.Dimension(nsd, 2);
+	adjacent_ID.Dimension(nsd, 2);
 
-	/* initialize */
-	if (local.Length() == 0)
-	{
-		bounds = 0.0;
-		return;
-	}
-	else
-	{
-		bounds.SetColumn(0, DBL_MAX);
-		bounds.SetColumn(1, DBL_MIN);
-	}
+	/* spatial grid */
+	SpatialGridT grid;
+	grid.Dimension(Partition().GridDimensions());
 
-	/* resolve by spatial dimension */
-	if (nsd == 1)
-	{
-		const int* p_i = local.Pointer();
-		double& x_min = bounds(0,0);
-		double& x_max = bounds(0,1);
-		for (int i = 0; i < local.Length(); i++)
-		{
-			const double* x = coords_all(*p_i++);
-			x_min = (*x < x_min) ? *x : x_min;
-			x_max = (*x > x_max) ? *x : x_max;
-		}
+	/* determine global bounds */
+	grid.SetBounds(fComm, coords, NULL);
+	
+	/* grid position of this processor */
+	iArrayT grid_pos = fPartition->GridPosition();
+
+	/* bounds of this grid */
+	grid.GridBounds(grid_pos, bounds);
+
+	/* ID's of surrounding processors */
+	for (int i = 0; i < nsd; i++) {
+		int& cell = grid_pos[i];
+		cell--; /* low side */
+		adjacent_ID(0,0) = grid.Grid2Processor(grid_pos);
+		cell += 2; /* high side */
+		adjacent_ID(0,1) = grid.Grid2Processor(grid_pos);
+		cell--; /* restore */
 	}
-	else if (nsd == 2)
-	{
-		const int* p_i = local.Pointer();
-		double& x_min = bounds(0,0);
-		double& x_max = bounds(0,1);
-		double& y_min = bounds(1,0);
-		double& y_max = bounds(1,1);
-		for (int i = 0; i < local.Length(); i++)
-		{
-			const double* x = coords_all(*p_i++);
-			x_min = (*x < x_min) ? *x : x_min;
-			x_max = (*x > x_max) ? *x : x_max;
-			x++;
-			y_min = (*x < y_min) ? *x : y_min;
-			y_max = (*x > y_max) ? *x : y_max;
-		}
-	}
-	else if (nsd == 3)
-	{
-		const int* p_i = local.Pointer();
-		double& x_min = bounds(0,0);
-		double& x_max = bounds(0,1);
-		double& y_min = bounds(1,0);
-		double& y_max = bounds(1,1);
-		double& z_min = bounds(2,0);
-		double& z_max = bounds(2,1);
-		for (int i = 0; i < local.Length(); i++)
-		{
-			const double* x = coords_all(*p_i++);
-			x_min = (*x < x_min) ? *x : x_min;
-			x_max = (*x > x_max) ? *x : x_max;
-			x++;
-			y_min = (*x < y_min) ? *x : y_min;
-			y_max = (*x > y_max) ? *x : y_max;
-			x++;
-			z_min = (*x < z_min) ? *x : z_min;
-			z_max = (*x > z_max) ? *x : z_max;
-		}
-	}
-	else ExceptionT::OutOfRange("CommManagerT::SetBounds");
 }
