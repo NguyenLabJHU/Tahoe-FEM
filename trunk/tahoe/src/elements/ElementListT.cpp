@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.58 2003-08-08 23:28:38 thao Exp $ */
+/* $Id: ElementListT.cpp,v 1.59 2003-08-12 17:53:01 thao Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -90,10 +90,11 @@
 #endif
 
 #ifdef SOLID_ELEMENT_DEV
+#include "SmallStrainQ2P1.h"
 #include "UpdatedLagrangianMF.h"
 #include "SmallStrainMF.h"
-#include "SmallStrainMF2.h"
-#include "SmallStrainQ2P1.h"
+#include "SSMF.h"
+#include "SSQ2P1MF.h"
 #endif
 
 using namespace Tahoe;
@@ -641,7 +642,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		case ElementT::kSSMatForceS:
 		{
 #ifdef SOLID_ELEMENT_DEV
-		  fArray[group] = new SmallStrainMF2(fSupport, *field);
+		  fArray[group] = new SSMF(fSupport, *field);
 		  break;
 #else
 		  ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
@@ -651,6 +652,15 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		{
 #ifdef SOLID_ELEMENT_DEV
 		  fArray[group] = new SmallStrainQ2P1(fSupport, *field);
+		  break;
+#else
+		  ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
+#endif
+		}
+		case ElementT::kSSQ2P1MF:
+		{
+#ifdef SOLID_ELEMENT_DEV
+		  fArray[group] = new SSQ2P1MF(fSupport, *field);
 		  break;
 #else
 		  ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);

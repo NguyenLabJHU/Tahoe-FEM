@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.25 2003-08-08 23:28:39 thao Exp $ */
+/* $Id: ElementT.h,v 1.26 2003-08-12 17:53:01 thao Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -57,10 +57,11 @@ kPenaltyContactElement3D = 34,
 	     kSSMatForceD = 61,
 	     kSSMatForceS = 62,
 	     kSmallStrainQ2P1 = 64, /*small strain with mat force calculation*/
+	     kSSQ2P1MF = 65,
 	     kDorganVoyiadjisMarin = 63,	     
        kHyperElasticInitCSE = 111 /**< large strain solid that triggers CSE */
 	     };    
-
+	     
  /** stream extraction operator */ 
 	friend istream& operator>>(istream& in, ElementT::TypeT& type);
 };
