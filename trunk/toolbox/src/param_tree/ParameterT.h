@@ -1,4 +1,4 @@
-/* $Id: ParameterT.h,v 1.5 2003-04-22 18:32:16 paklein Exp $ */
+/* $Id: ParameterT.h,v 1.6 2003-04-22 22:13:35 paklein Exp $ */
 #ifndef _PARAMETER_T_H_
 #define _PARAMETER_T_H_
 
@@ -47,7 +47,7 @@ public:
 	const ArrayT<LimitT>& Limits(void) const { return fLimits; };
 	
 	/** assess if the value satisties all limits */
-	bool InBounds(const ValueT& value) const;
+	bool InBounds(const ValueT& value, bool verbose = false) const;
 	/*@}*/
 
 	/** \name set values with assignment operators 
