@@ -1,4 +1,4 @@
-/* $Id: ConHypGeom.cpp,v 1.2 2002-07-11 19:15:01 dzeigle Exp $ */
+/* $Id: ConHypGeom.cpp,v 1.3 2002-10-20 22:38:47 paklein Exp $ */
 
 // CONHYPGEOM is the confluent hypergeometric function of the 1st kind
 // (a.k.a. Kummer function) Because of the rapid growth/decay of individual
@@ -8,7 +8,7 @@
 #include "ConHypGeom.h"
 #include <math.h>
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dArrayT.h"
 #include "Gamma.h"
 
@@ -50,7 +50,7 @@ double ConHypGeom::PochhammerRat(double numer, double denom, int index) const
 	else
 	{
 		cout << "\n Negative index sent to ConHypGeom::PochhammerRat.\n";
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	
 	return value;
@@ -71,7 +71,7 @@ double ConHypGeom::PochhammerProd(double lhs, double rhs, int index) const
 	else
 	{
 		cout << "\n Negative index sent to ConHypGeom::PochhammerProd.\n";
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	
 	return value;
@@ -166,7 +166,7 @@ double ConHypGeom::DDFunction(double x) const
 dArrayT& ConHypGeom::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl = in.Pointer();
 	double* pU = out.Pointer();
@@ -226,7 +226,7 @@ dArrayT& ConHypGeom::MapFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& ConHypGeom::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
@@ -242,7 +242,7 @@ dArrayT& ConHypGeom::MapDFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& ConHypGeom::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl   = in.Pointer();
 	double* pddU = out.Pointer();

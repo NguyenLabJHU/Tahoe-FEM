@@ -1,9 +1,9 @@
-/* $Id: GreenwoodWilliamson.cpp,v 1.17 2002-07-11 17:57:16 dzeigle Exp $ */
+/* $Id: GreenwoodWilliamson.cpp,v 1.18 2002-10-20 22:38:48 paklein Exp $ */
 
 #include "GreenwoodWilliamson.h"
 #include <math.h>
 #include <iostream.h>
-#include "ExceptionCodes.h"
+#include "ExceptionT.h"
 #include "dArrayT.h"
 #include "ErrorFunc.h"
 #include "Gamma.h"
@@ -60,7 +60,7 @@ double GreenwoodWilliamson::Function(double x) const
 		if (fS==0)
 		{
 			cout << "\n*** Bad SIGMA value in GreenwoodWilliamson.cpp.\n";
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		else
 		{
@@ -82,12 +82,12 @@ double GreenwoodWilliamson::Function(double x) const
 	else if (fP==1.5)
 	{
 		cout << "*** ERROR! Greenwood and Williamson load potential unavailable.";
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	else
 	{
 		cout << "\n*** Bad POWER value in GreenwoodWilliamson.cpp.\n";
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	
 	return value;
@@ -102,7 +102,7 @@ double GreenwoodWilliamson::DFunction(double x) const
 	if (fP==1.0)
 	{
 		cout << "*** ERROR! Greenwood and Williamson area gradient unavailable.";
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	else if (fP==1.5)
 	{
@@ -148,7 +148,7 @@ double GreenwoodWilliamson::DFunction(double x) const
 			if (term[3]==0)
 			{
 				cout << "**Error! - Zero denominator in GreenwoodWilliamson. **\n";
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 		
 			value = term[2]/term[3];
@@ -157,7 +157,7 @@ double GreenwoodWilliamson::DFunction(double x) const
 	else
 	{
 		cout << "\n*** Bad POWER value in GreenwoodWilliamson.cpp.\n";
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	
 	return (-value);
@@ -173,7 +173,7 @@ double GreenwoodWilliamson::DDFunction(double x) const
 	if (fP==1.0)
 	{
 		cout << "*** ERROR! Greenwood and Williamson area gradient unavailable.";
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	else if (fP==1.5)
 	{
@@ -235,7 +235,7 @@ double GreenwoodWilliamson::DDFunction(double x) const
 			if (term[3]==0)
 			{
 				cout << "**Error! - Zero denominator in GreenwoodWilliamson. **\n";
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 			
 			value = sqrt(PI)*(term[0]+term[2])/term[3];
@@ -244,7 +244,7 @@ double GreenwoodWilliamson::DDFunction(double x) const
 	else
 	{
 		cout << "\n*** Bad POWER value in GreenwoodWilliamson.cpp.\n";
-		throw eBadInputValue;
+		throw ExceptionT::kBadInputValue;
 	}
 	
 	return (-value);
@@ -263,7 +263,7 @@ double GreenwoodWilliamson::DDFunction(double x) const
 dArrayT& GreenwoodWilliamson::MapFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl   = in.Pointer();
 	double* pddU = out.Pointer();
@@ -278,7 +278,7 @@ dArrayT& GreenwoodWilliamson::MapFunction(const dArrayT& in, dArrayT& out) const
 			if (fS==0)
 			{
 				cout << "\n*** Bad SIGMA value in GreenwoodWilliamson.cpp.\n";
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 			else
 			{
@@ -299,12 +299,12 @@ dArrayT& GreenwoodWilliamson::MapFunction(const dArrayT& in, dArrayT& out) const
 		else if (fP==1.5)
 		{
 			cout << "*** ERROR! Greenwood and Williamson potential load unavailable.";
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		else
 		{
 			cout << "\n*** Bad POWER value in GreenwoodWilliamson.cpp.\n";
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 			
 		*pddU++ = value;
@@ -315,7 +315,7 @@ dArrayT& GreenwoodWilliamson::MapFunction(const dArrayT& in, dArrayT& out) const
 dArrayT& GreenwoodWilliamson::MapDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl = in.Pointer();
 	double* pU = out.Pointer();
@@ -326,7 +326,7 @@ dArrayT& GreenwoodWilliamson::MapDFunction(const dArrayT& in, dArrayT& out) cons
 		if (fP==1.0)
 		{
 			cout << "*** ERROR! Greenwood and Williamson area gradient unavailable.";
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		else if (fP==1.5)
 		{
@@ -379,7 +379,7 @@ dArrayT& GreenwoodWilliamson::MapDFunction(const dArrayT& in, dArrayT& out) cons
 				if (term[3]==0)
 				{
 					cout << "**Error! - Zero denominator in GreenwoodWilliamson. **\n";
-					throw eBadInputValue;
+					throw ExceptionT::kBadInputValue;
 				}
 		
 				value = term[2]/term[3];		
@@ -388,7 +388,7 @@ dArrayT& GreenwoodWilliamson::MapDFunction(const dArrayT& in, dArrayT& out) cons
 			else
 			{
 				cout << "\n*** Bad POWER value in GreenwoodWilliamson.cpp.\n";
-				throw eBadInputValue;
+				throw ExceptionT::kBadInputValue;
 			}
 		
 		*pU++ = (-value);
@@ -399,7 +399,7 @@ dArrayT& GreenwoodWilliamson::MapDFunction(const dArrayT& in, dArrayT& out) cons
 dArrayT& GreenwoodWilliamson::MapDDFunction(const dArrayT& in, dArrayT& out) const
 {
 	/* dimension checks */
-	if (in.Length() != out.Length()) throw eGeneralFail;
+	if (in.Length() != out.Length()) throw ExceptionT::kGeneralFail;
 
 	double* pl  = in.Pointer();
 	double* pdU = out.Pointer();
@@ -410,7 +410,7 @@ dArrayT& GreenwoodWilliamson::MapDDFunction(const dArrayT& in, dArrayT& out) con
 		if (fP==1.0)
 		{
 			cout << "*** ERROR! Greenwood and Williamson area gradient unavailable.";
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		else if (fP==1.5)
 		{
@@ -474,7 +474,7 @@ dArrayT& GreenwoodWilliamson::MapDDFunction(const dArrayT& in, dArrayT& out) con
 				if (term[3]==0)
 				{
 					cout << "**Error! - Zero denominator in GreenwoodWilliamson. **\n";
-					throw eBadInputValue;
+					throw ExceptionT::kBadInputValue;
 				}
 			
 				value = sqrt(PI)*(term[0]+term[2])/term[3];
@@ -483,7 +483,7 @@ dArrayT& GreenwoodWilliamson::MapDDFunction(const dArrayT& in, dArrayT& out) con
 		else
 		{
 			cout << "\n*** Bad POWER value in GreenwoodWilliamson.cpp.\n";
-			throw eBadInputValue;
+			throw ExceptionT::kBadInputValue;
 		}
 		
 		*pdU++ = (-value);
