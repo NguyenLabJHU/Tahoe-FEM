@@ -1,4 +1,4 @@
-/* $Id: AutoArrayT.h,v 1.17 2003-11-21 22:41:30 paklein Exp $ */
+/* $Id: AutoArrayT.h,v 1.18 2004-04-23 20:21:53 paklein Exp $ */
 /* created: paklein (12/05/1997) */
 #ifndef _AUTO_ARRAY_T_H_
 #define _AUTO_ARRAY_T_H_
@@ -61,6 +61,7 @@ public:
 	/** (re-)set size of the memory headroom - new headroom
 	 * not used until the next memory allocation */
 	void SetHeadRoom(int headroom);
+	int HeadRoom(void) const { return fHeadRoom; };
 	/*@}*/
 
 	/** \name assignment operators */
