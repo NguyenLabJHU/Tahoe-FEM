@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.38 2003-06-03 16:32:14 rjones Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.39 2003-06-12 18:56:05 dzeigle Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>
@@ -165,6 +165,8 @@ void PenaltyContactElement2DT::PrintControlData(ostream& out) const
 				  << PenaltyContactElement2DT::kModSmithFerrante << "\n"
 				  << "     GreenwoodWilliamson " 
 			      << PenaltyContactElement2DT::kGreenwoodWilliamson << "\n"
+			      << "     MajumdarBhushan     " 
+			      << PenaltyContactElement2DT::kMajumdarBhushan << "\n"
 				  << "     GWPlastic           " 
 			      << PenaltyContactElement2DT::kGWPlastic           << "\n";
 			  out << "  penalty Type :         "

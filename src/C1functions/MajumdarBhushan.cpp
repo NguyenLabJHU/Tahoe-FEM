@@ -1,4 +1,4 @@
-/* $Id: MajumdarBhushan.cpp,v 1.2 2003-05-12 22:01:28 dzeigle Exp $ */
+/* $Id: MajumdarBhushan.cpp,v 1.3 2003-06-12 18:56:03 dzeigle Exp $ */
 #include "MajumdarBhushan.h"
 #include <math.h>
 #include <iostream.h>
@@ -51,14 +51,14 @@ double MajumdarBhushan::Function(double x) const
 {
 	double value=0.0;
 
-	if ((fD>0.0) && (fS>0.0) && (fC>0.0))
+	if (((fD>1.0) && (fD<2.0)) && (fS>0.0) && (fC>0.0))
 	{
 		ErrorFunc f;
 		value = (1.0/(2.0*fD))*(1.0-f.Function(x/(sqrt(2.0)*fS)));		
 	}
 	else
 	{
-		if (fD<=0.0)
+		if ((fD<=1.0) || (fD>=2.0))	// fD is the fractal dimension of the surface profile
 		{
 			cout << "\n*** Bad DIMENSION value in MajumdarBhushan.cpp.\n";
 			throw ExceptionT::kBadInputValue;
@@ -83,7 +83,7 @@ double MajumdarBhushan::DFunction(double x) const
 {
 	double value=0.0;
 	
-	if ((fD>0.0) && (fS>0.0) && (fC>0.0))
+	if (((fD>1.0) && (fD<2.0)) && (fS>0.0) && (fC>0.0))
 	{			
 		ErrorFunc f;
 			
@@ -98,7 +98,7 @@ double MajumdarBhushan::DFunction(double x) const
 	}
 	else
 	{
-		if (fD<=0.0)
+		if ((fD<=1.0) || (fD>=2.0))
 		{
 			cout << "\n*** Bad DIMENSION value in MajumdarBhushan.cpp.\n";
 			throw ExceptionT::kBadInputValue;
@@ -125,7 +125,7 @@ double MajumdarBhushan::DDFunction(double x) const
 {
 	double value = 0.0;
 
-	if ((fD>0.0) && (fS>0.0) && (fC>0.0))
+	if (((fD>1.0) && (fD<2.0)) && (fS>0.0) && (fC>0.0))
 	{
 		ErrorFunc f;
 		
@@ -141,7 +141,7 @@ double MajumdarBhushan::DDFunction(double x) const
 	}
 	else
 	{
-		if (fD<=0.0)
+		if ((fD<=1.0) || (fD>=2.0))
 		{
 			cout << "\n*** Bad DIMENSION value in MajumdarBhushan.cpp.\n";
 			throw ExceptionT::kBadInputValue;
@@ -184,14 +184,14 @@ dArrayT& MajumdarBhushan::MapFunction(const dArrayT& in, dArrayT& out) const
 	{
 		r = *pl++;
 		
-		if ((fD>0.0) && (fS>0.0) && (fC>0.0))
+		if (((fD>1.0) && (fD<2.0)) && (fS>0.0) && (fC>0.0))
 		{
 			ErrorFunc f;
 			value = (1.0/(2.0*fD))*(1.0-f.Function(r/(sqrt(2.0)*fS)));		
 		}
 		else
 		{
-			if (fD<=0.0)
+			if ((fD<=1.0) || (fD>=2.0))
 			{
 				cout << "\n*** Bad DIMENSION value in MajumdarBhushan.cpp.\n";
 				throw ExceptionT::kBadInputValue;
@@ -224,7 +224,7 @@ dArrayT& MajumdarBhushan::MapDFunction(const dArrayT& in, dArrayT& out) const
 	
 	for (int i = 0; i < in.Length(); i++)
 	{	
-		if ((fD>0.0) && (fS>0.0) && (fC>0.0))
+		if (((fD>1.0) && (fD<2.0)) && (fS>0.0) && (fC>0.0))
 		{
 			r = *pl++;
 			
@@ -241,7 +241,7 @@ dArrayT& MajumdarBhushan::MapDFunction(const dArrayT& in, dArrayT& out) const
 		}
 		else
 		{
-			if (fD<=0.0)
+			if ((fD<=1.0) || (fD>=2.0))
 			{
 				cout << "\n*** Bad DIMENSION value in MajumdarBhushan.cpp.\n";
 				throw ExceptionT::kBadInputValue;
@@ -274,7 +274,7 @@ dArrayT& MajumdarBhushan::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	
 	for (int i = 0; i < in.Length(); i++)
 	{
-		if ((fD>0.0) && (fS>0.0) && (fC>0.0))
+		if (((fD>1.0) && (fD<2.0)) && (fS>0.0) && (fC>0.0))
 		{
 			r = *pl++;
 			ErrorFunc f;
@@ -291,7 +291,7 @@ dArrayT& MajumdarBhushan::MapDDFunction(const dArrayT& in, dArrayT& out) const
 		}
 		else
 		{
-			if (fD<=0.0)
+			if ((fD<=1.0) || (fD>=2.0))
 			{
 				cout << "\n*** Bad DIMENSION value in MajumdarBhushan.cpp.\n";
 				throw ExceptionT::kBadInputValue;
