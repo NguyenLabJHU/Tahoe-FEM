@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.h,v 1.7 2003-02-22 18:20:48 paklein Exp $ */
+/* $Id: SimoQ1P0.h,v 1.8 2004-01-05 07:27:58 paklein Exp $ */
 #ifndef _SIMO_Q1_P0_H_
 #define _SIMO_Q1_P0_H_
 
@@ -53,7 +53,7 @@ public:
 	virtual void CloseStep(void);
 	
 	/** restore last converged state */
-	virtual void ResetStep(void);
+	virtual GlobalT::RelaxCodeT ResetStep(void);
 
 	/** read restart information from stream */
 	virtual void ReadRestart(istream& in);
