@@ -173,14 +173,16 @@ void MakeCrystalT::Run() {
       }
       else if (nsd==3)
       {
+	// Read in the three vectors written in line, 
+	// set them up in a matrix as column vectors.
         in >> mat_rot(0,0) >> mat_rot(1,0) >> mat_rot(2,0);
         in >> mat_rot(0,1) >> mat_rot(1,1) >> mat_rot(2,1);
         in >> mat_rot(0,2) >> mat_rot(1,2) >> mat_rot(2,2); 
       
         cout << "Rotation Matrix:\n";
-        cout << mat_rot(0,0) << "  " <<  mat_rot(1,0) << "  " << mat_rot(2,0) << "\n";
-        cout << mat_rot(0,1) << "  " <<  mat_rot(1,1) << "  " << mat_rot(2,1) << "\n";
-        cout << mat_rot(0,2) << "  " <<  mat_rot(1,2) << "  " << mat_rot(2,2) << "\n";
+        cout << mat_rot(0,0) << "  " <<  mat_rot(0,1) << "  " << mat_rot(0,2) << "\n";
+        cout << mat_rot(1,0) << "  " <<  mat_rot(1,1) << "  " << mat_rot(1,2) << "\n";
+        cout << mat_rot(2,0) << "  " <<  mat_rot(2,1) << "  " << mat_rot(2,2) << "\n";
       }
     }
     else if (misc=="OUTPUT")
