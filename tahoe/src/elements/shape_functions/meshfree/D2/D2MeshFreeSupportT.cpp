@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.cpp,v 1.5 2001-07-13 02:17:38 paklein Exp $ */
+/* $Id: D2MeshFreeSupportT.cpp,v 1.3 2001-07-03 01:35:52 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupportT.h"
@@ -52,10 +52,10 @@ D2MeshFreeSupportT::D2MeshFreeSupportT(const ParentDomainT& domain, const dArray
 
 /* steps to initialization - modifications to the support size must
 * occur before setting the neighbor data */
-void D2MeshFreeSupportT::InitNeighborData(void)
+void D2MeshFreeSupportT::SetNeighborData(void)
 {
 	/* inherited */
-	MeshFreeSupportT::InitNeighborData();
+	MeshFreeSupportT::SetNeighborData();
 
 //TEMP - reset nodal work space for higher order derivatives
 //       this process could be redesigned
@@ -196,32 +196,25 @@ void D2MeshFreeSupportT::LoadElementData(int element, iArrayT& neighbors,
 }
 
 /* return the field derivatives at the specified point */
-int D2MeshFreeSupportT::SetFieldAt(const dArrayT& x, const dArrayT* shift)
+int D2MeshFreeSupportT::SetFieldAt(const dArrayT& x, AutoArrayT<int>& nodes)
+//const dArray2DT& D2MeshFreeSupportT::FieldDerivativesAt(const dArrayT& x, AutoArrayT<int>& tags)
 {
-	/* collect all nodes covering x */
-	int result;
-	if (shift != NULL)
-	{
-		dArrayT x_shift(x.Length());
-		x_shift.SumOf(x, *shift);
-		result = BuildNeighborhood(x_shift, fneighbors);
-	}
-	else
-		result = BuildNeighborhood(x, fneighbors);
+// collect nodes within a cellspan and then collect list of
+// the union of the nodes and neighbors and filter those to
+// find "all" the nodes_i within dmax_i of x. There is now
+// mechanism by which to change the local nodes dmax if the
+// search for a neighborhood fails.
+
+	/* check nodes and their neighbors */
+	BuildNeighborhood(x, nodes);
 			
 	/* check */
 	int dim = (fD2EFG) ? fD2EFG->NumberOfMonomials() :
 	                      fRKPM->BasisDimension();
-	if (fneighbors.Length() < dim)
+	if (nodes.Length() < dim)
 	{
-		cout << "\n D2MeshFreeSupportT::SetFieldUsing: could not build neighborhood at:\n";
-		cout << x << '\n';
-		cout << " insufficient number of nodes: " << fneighbors.Length() << "/" << dim << '\n';
-		iArrayT tmp;
-		tmp.Alias(fneighbors);
-		tmp++;
-		cout << tmp.wrap(5) << endl;
-		tmp--;
+		cout << "\n D2MeshFreeSupportT::SetFieldAt: could not build neighborhood at:\n";
+		cout << x << endl;
 		return 0;
 	}
 	else
@@ -231,13 +224,12 @@ int D2MeshFreeSupportT::SetFieldAt(const dArrayT& x, const dArrayT* shift)
 		fnodal_param_man.SetMajorDimension(fneighbors.Length(), false);
 	
 		/* collect local lists */
-		fcoords.RowCollect(fneighbors, fCoords);
+		fcoords.RowCollect(nodes, fCoords);
 		fnodal_param.RowCollect(fneighbors, fNodalParameters);
 	
 		/* compute MLS field */
-		int OK;
 		if (fD2EFG)
-			OK = fD2EFG->SetField(fcoords, fnodal_param, x);
+			fD2EFG->SetField(fcoords, fnodal_param, x);
 		else
 		{
 			/* nodal volumes */
@@ -245,35 +237,10 @@ int D2MeshFreeSupportT::SetFieldAt(const dArrayT& x, const dArrayT* shift)
 			fvolume.Collect(fneighbors, fVolume);
 
 			/* compute field */
-			OK = fRKPM->SetField(fcoords, fnodal_param, fvolume, x, 2);
+			fRKPM->SetField(fcoords, fnodal_param, fvolume, x, 2);
 		}
 		
-		/* error */
-		if (!OK)
-		{
-			int d_width = cout.precision() + kDoubleExtra;
-			cout << "\n D2MeshFreeSupportT::SetFieldUsing: could not compute:\n";
-			cout << " coordinates :" << x.no_wrap() << '\n';
-			cout << " neighborhood: " << fneighbors.Length() << '\n';
-			cout << setw(kIntWidth) << "node"
-			     << setw(  d_width) << "dist"
-			     << setw(fnodal_param.MinorDim()*d_width) << "nodal parameters"
-			     << setw(fcoords.MinorDim()*d_width) << "x" << '\n';
-			dArrayT dist(x.Length());			
-			for (int i = 0; i < fneighbors.Length(); i++)
-			{
-				cout << setw(kIntWidth) << fneighbors[i] + 1;
-				fcoords.RowCopy(i, dist);
-				dist -= x;		
-				cout << setw(  d_width) << dist.Magnitude();
-				fnodal_param.PrintRow(i, cout);
-				fcoords.PrintRow(i, cout);
-			}
-			cout.flush();
-			return 0;
-		}
-		else
-			return 1;
+		return 1;
 	}
 }
 

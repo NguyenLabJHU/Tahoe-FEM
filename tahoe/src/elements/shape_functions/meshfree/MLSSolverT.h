@@ -1,5 +1,6 @@
-/* $Id: MLSSolverT.h,v 1.4 2001-07-13 02:17:36 paklein Exp $ */
-/* created: paklein (12/08/1999) */
+/* $Id: MLSSolverT.h,v 1.3 2001-07-03 01:35:49 paklein Exp $ */
+/* created: paklein (12/08/1999)                                          */
+/* base class for moving least squares, interpolants                      */
 
 #ifndef _MLS_SOLVER_T_H_
 #define _MLS_SOLVER_T_H_
@@ -84,7 +85,7 @@ public:
 	/** modify nodal shape function parameters */
 	void ModifySupportParameters(dArray2DT& nodal_params) const;
 
-	/* debugging functions */
+	//TEMP: debugging functions
 	
 	/* return field value and derivatives - valid AFTER SetField() */
 	/* the weight function */
@@ -132,54 +133,53 @@ private:
 	
 protected:	
 
-	/* parameters */
-	const int fNumSD;    /**< number of spatial dimensions   */
-	const int fComplete; /**< order of completeness in basis */
+	const int fNumSD;    // spatial dimension
+	const int fComplete; // order of completeness in basis
 
 	/* runtime parameters */
-	int fOrder;        /**< number of derivatives to calculate at the current field point */
-	int fNumNeighbors; /**< number of neighbors at the current field point */
+	int fOrder;        // requested order of derivatives
+	int fNumNeighbors; //(current) number of neighbors
 	
-	/** basis functions */
+	/* basis functions */
 	BasisT* fBasis;
 	
 	/* window function */
-	MeshFreeT::WindowTypeT fWindowType; /**< window function type   */
-	WindowT* fWindow;                   /**< window function object */
+	MeshFreeT::WindowTypeT fWindowType;
+	WindowT* fWindow;
 	
-	/** local nodal coordinates centered at current field point */
+	/* local nodal coordinates (centered at current field pt) */
 	dArray2DT fLocCoords;
 
 	/* window function */
-	dArrayT   fw;   /**< values of window function at the current field point: [nnd] */
-	dArray2DT fDw;  /**< values of window function gradient at the current field point: [nsd] x [nnd] */
-	dArray2DT fDDw; /**< second gradient of window functions at the current field point: [nstr] x [nnd] */
+	dArrayT   fw;   // [nnd]
+	dArray2DT fDw;  // [nsd] x [nnd]
+	dArray2DT fDDw; // [nstr] x [nnd]
 
 	/* correction function coefficients */
-	dArrayT fb;           /**< correction function coefficients at the current field point: [nbasis] */
-	ArrayT<dArrayT> fDb;  /**< gradient of correction function coefficients: [nsd] x [nbasis] */
-	ArrayT<dArrayT> fDDb; /**< second gradient of correction function coefficient: [nstr] x [nbasis] */
+	dArrayT fb;           // [nbasis]
+	ArrayT<dArrayT> fDb;  // [nsd] x [nbasis]
+	ArrayT<dArrayT> fDDb; // [nstr] x [nbasis]
 
 	/* inverse of moment matrix */
-	dMatrixT fMinv;        /**< moment matrix at the current field point: [nbasis] x [nbasis] */
-	ArrayT<dMatrixT> fDM;  /**< gradient of moment matrix: [nsd] x [nbasis] x [nbasis] */
-	ArrayT<dMatrixT> fDDM; /**< second gradient of moment matrix: [nstr] x [nbasis] x [nbasis] */
+	dMatrixT fMinv;        // [nbasis] x [nbasis]
+	ArrayT<dMatrixT> fDM;  // [nsd] x [nbasis] x [nbasis]
+	ArrayT<dMatrixT> fDDM; // [nstr] x [nbasis] x [nbasis]
 	
 	/* correction function */
-	dArrayT   fC;   /**< correction function at the current field point: [nnd] */
-	dArray2DT fDC;  /**< gradient of the correction function: [nsd] x [nnd] */
-	dArray2DT fDDC; /**< second gradient of the correction function: [nstr] x [nnd] */
+	dArrayT   fC;   // [nnd]
+	dArray2DT fDC;  // [nsd] x [nnd]
+	dArray2DT fDDC; // [nstr] x [nnd]
 	
 	/* return values of all nodes at field pt */
-	dArrayT   fphi;   /**< nodal shape functions at the current field point: [nnd] */
-	dArray2DT fDphi;  /**< nodal shape function gradients at the current field point: [nsd] x [nnd] */
-	dArray2DT fDDphi; /**< second gradient of nodal shape functions: [nstr] x [nnd] */
+	dArrayT   fphi;   // [nnd]
+	dArray2DT fDphi;  // [nsd] x [nnd]
+	dArray2DT fDDphi; // [nstr] x [nnd]
 	
 	/* variable memory managers */
-	nArrayGroupT<double>   fArrayGroup;    /**< variable memory manager for arrays length [nnd] */
-	nArray2DGroupT<double> fArray2DGroup2; /**< variable memory manager for 2D arrays length [nsd] x [nnd] */
-	nArray2DGroupT<double> fArray2DGroup3; /**< variable memory manager for 2D arrays length [nstr] x [nnd]	*/
-	nVariArray2DT<double>  fLocCoords_man; /**< variable memory manager for local coordinates array */
+	nArrayGroupT<double>   fArrayGroup;    // [nnd]
+	nArray2DGroupT<double> fArray2DGroup2; // [nsd] x [nnd]
+	nArray2DGroupT<double> fArray2DGroup3; // [nstr] x [nnd]	
+	nVariArray2DT<double>  fLocCoords_man;
 
 private:
 

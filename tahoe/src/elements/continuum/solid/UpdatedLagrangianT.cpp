@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.3 2001-07-10 07:29:55 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.2 2001-07-03 01:34:53 paklein Exp $ */
 /* created: paklein (07/03/1996)                                          */
 
 #include "UpdatedLagrangianT.h"
@@ -11,6 +11,8 @@
 #include "Constants.h"
 #include "FEManagerT.h"
 #include "StructuralMaterialT.h"
+#include "MaterialList2DT.h"
+#include "MaterialList3DT.h"
 #include "ShapeFunctionT.h"
 
 /* constructor */
@@ -92,6 +94,17 @@ void UpdatedLagrangianT::SetGlobalShape(void)
 	/* shape function wrt current config */
 	SetLocalX(fLocCurrCoords);
 	fCurrShapes->SetDerivatives();
+}
+
+/* construct materials manager and read data */
+MaterialListT* UpdatedLagrangianT::NewMaterialList(int size) const
+{
+	if (fNumSD == 2)
+		return new MaterialList2DT(size, *this);
+	else if (fNumSD == 3)
+		return new MaterialList3DT(size, *this);
+	else
+		return NULL;			
 }
 
 /* form the element stiffness matrix */
@@ -208,6 +221,32 @@ void UpdatedLagrangianT::ComputeEffectiveDVA(int formBody,
 		fLocVel = 0.0;
 }	
 #endif
+
+/* calculate the damping force contribution ("-c*v") */
+void UpdatedLagrangianT::FormCv(double constC)
+{
+//DEV - same as Total Lagrangian -> move to base class
+
+//TEMP
+//This is approximate.  No nonlinear Rayleigh damping
+
+	/* clear workspace */
+	fLHS = 0.0;
+	fStressStiff = 0.0;
+
+	/* form tangent stiffness */
+	FormStiffness(constC);
+	fLHS.CopySymmetric();
+
+	/* reorder */
+	fLocVel.ReturnTranspose(fTemp2);
+	
+	/* C*v */
+	fLHS.MultTx(fTemp2, fNEEvec);
+	
+	/* Accumulate */
+	fRHS += fNEEvec;
+}
 
 /* calculate the internal force contribution ("-k*d") */
 void UpdatedLagrangianT::FormKd(double constK)

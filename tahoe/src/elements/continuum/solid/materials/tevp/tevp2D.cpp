@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.21 2001-08-14 01:22:32 hspark Exp $ */
+/* $Id: tevp2D.cpp,v 1.16 2001-07-03 01:35:44 paklein Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (04/04/2001) */
 /* Last Updated:  Harold Park (06/12/2001) */
@@ -7,21 +7,19 @@
 
 #include <iostream.h>
 #include <math.h>
-#include "ifstreamT.h"
 #include "FiniteStrainT.h"
 #include "FEManagerT.h"
 #include "ElementCardT.h"
 
 /* element output data */
-const int kNumOutput = 4;   // # of internal variables
+const int kNumOutput = 3;   // # of internal variables
 const double kYieldTol = 1.0e-16;   // Yield stress criteria
 const int kVoigt = 4;    // 4 components in 2D voigt notation
 const int kNSD = 3;      // 3 2D stress components (11, 12=21, 22)
 static const char* Labels[kNumOutput] = {
   "Temp",       // Temperature
   "Eff._Strain",    // effective strain
-  "Eff._Stress",
-  "Eff._StrainRate"};   // effective stress
+  "Eff._Stress"};   // effective stress
 
 /* constructor */
 tevp2D::tevp2D(ifstreamT& in, const FiniteStrainT& element):
@@ -62,28 +60,9 @@ tevp2D::tevp2D(ifstreamT& in, const FiniteStrainT& element):
   fSymStress2D(2),
   fStressArray(kVoigt),
   fSmlp(kVoigt),
-  fVisc(0.0),
-  fEffectiveStrainRate(0.0),
   fJ(0.0)
   
 {
-	/* read parameters from input stream */
-	in >> Mu_d;
-	fVisc = Mu_d;
-
-	/* check values */
-	if (Mu_d < 0.0) 
-	{
-		cout << "\n tevp2D::tevp2D: Mu must be > 0: " << Mu_d << endl;
-		throw eBadInputValue;
-	}
-
-        in >> Bvisc;
-	if (Bvisc < 0.0)
-        {
-                cout << "\n tevp2D::tevp2D: Bvisc must be > 0: " << Bvisc << endl;
-        }
-
   /* initialize material constants */
   El_E = 2.0E11;
   El_V = .30;
@@ -111,7 +90,7 @@ tevp2D::tevp2D(ifstreamT& in, const FiniteStrainT& element):
   Epsilon_2 = .3;
   Epsilon_rate = 4.0E4;
   Gamma_d = .002;
-  //Mu_d = 500.0;
+  Mu_d = 500.0;
   SigCr = 6.0 * Sb0;
 
   /* used in temperature update */
@@ -232,9 +211,6 @@ const dSymMatrixT& tevp2D::s_ij(void)
       double cm = -Gamma_d * El_E * (1.0 - fJ + Alpha_T * (temp - Temp_0));
       cm /= (fJ * (1.0 - El_V));
 
-      /* add a dynamic viscosity term */
-      double* mu_d = &Mu_d;
-      *mu_d = fVisc * exp(-Bvisc * (temp-Temp_0) / Temp_0);
       dMatrixT eye_cm(3), dtemp(3);
       eye_cm = 0.0;
       eye_cm.PlusIdentity(1.0);
@@ -247,7 +223,7 @@ const dSymMatrixT& tevp2D::s_ij(void)
       fStress3D /= fJ;           // Return the Cauchy, NOT Kirchoff stress!!!
       fInternal[kSb] = ComputeEffectiveStress();
       fInternal[kTemp] = ComputeFluidTemperature();
-      fInternal[kEb] = ComputeFluidEffectiveStrain(fEffectiveStrainRate);
+      fInternal[kEb] = ComputeFluidEffectiveStrain();
     }  
     else {
       /* Incremental stress update part - if critical strain criteria not
@@ -287,14 +263,13 @@ const dSymMatrixT& tevp2D::s_ij(void)
       fStress3D /= fJ;
       fInternal[kSb] = ComputeEffectiveStress();
       fInternal[kTemp] = ComputeViscoTemperature();
-      fInternal[kEb] = ComputeViscoEffectiveStrain(fEffectiveStrainRate);
+      fInternal[kEb] = ComputeViscoEffectiveStrain();
     }
 
     fStress.ReduceFrom3D(fStress3D);     // Take only 2D stress components
     // STORE CAUCHY STRESS HERE (2D version)
     fTempCauchy = fStress;
-    /* check for model switch criteria - visco to fluid and ductile to brittle */
-    CheckCriticalCriteria(element, ip);
+    CheckCriticalStrain(element, ip);
   }
   else
   {
@@ -333,8 +308,6 @@ void tevp2D::ComputeOutput(dArrayT& output)
   output[0] = fInternal[kTemp];        // Temperature
   output[1] = fInternal[kEb];          // Effective strain
   output[2] = fInternal[kSb];          // Effective stress
-  cout << fEffectiveStrainRate << '\n';
-  output[3] = fEffectiveStrainRate;
 }
 
 /*******************************************************************
@@ -361,7 +334,7 @@ void tevp2D::ComputeD(void)
   /* Compute rate of deformation */
   fDtot = 0.0;
   dMatrixT* tempd = &fDtot;
-  FiniteStrain().ComputeGradient(fLocVel, fGradV_2D);
+	FiniteStrain().ComputeGradient(fLocVel, fGradV_2D);
   fGradV.Rank2ExpandFrom2D(fGradV_2D);
   (*tempd).MultAB(fGradV, fF_temp, 0);
   (*tempd).Symmetrize();
@@ -371,7 +344,7 @@ double tevp2D::ComputeSpin(void)
 {
   /* Compute the spin scalar */
   fSpin = 0.0;
-  FiniteStrain().ComputeGradient(fLocVel, fGradV_2D);
+	FiniteStrain().ComputeGradient(fLocVel, fGradV_2D);
   fGradV.Rank2ExpandFrom2D(fGradV_2D);
   fSpin = fGradV(0,0) * fF_temp(0,1) + fGradV(0,1) * fF_temp(1,1);
   fSpin = fSpin - fGradV(1,0) * fF_temp(0,0) - fGradV(1,1) * fF_temp(1,0);
@@ -408,25 +381,23 @@ double tevp2D::ComputeViscoTemperature(void)
   return fTemperature;
 }
 
-double tevp2D::ComputeFluidEffectiveStrain(double& fEffectiveStrainRate)
+double tevp2D::ComputeFluidEffectiveStrain(void)
 {
   /* Computes the effective strain - 2 different methods of computing,
    * which depends upon whether fluid model was used or not */
   const double eb_last = fInternal[kEb];
-  
   double temp1 = fDtot(0,0) * fDtot(0,0);
   double temp2 = fDtot(1,1) * fDtot(1,1);
   double temp3 = fDtot(0,1) * fDtot(0,1);
-  //double ebar = 2.0 * (temp1 + temp2) / 3.0 + 2.0 * temp3;
+  //double ebar = 2.0 * (temp1 + temp2) / 3.0 + 2.0 * temp3;  
   double ebar = 1.5 * (temp1 + temp2) + 2.0 * temp3;
   ebar = sqrt(ebar);
-  fEffectiveStrainRate = ebar;
   fEb = ebar * fDt + eb_last;
 
   return fEb;
 }
 
-double tevp2D::ComputeViscoEffectiveStrain(double& fEffectiveStrainRate)
+double tevp2D::ComputeViscoEffectiveStrain(void)
 {
   /* If fluid model / critical strain is not used */
   const double eb_last = fInternal[kEb];
@@ -434,7 +405,6 @@ double tevp2D::ComputeViscoEffectiveStrain(double& fEffectiveStrainRate)
   
   /* access necessary data */
   double ebtot_c = fEbtot / (1.0 + fXxii) + fCtcon * ecc;
-  fEffectiveStrainRate = ebtot_c;
   fEb = eb_last + fDt * ebtot_c;
 
   return fEb;
@@ -456,7 +426,7 @@ double tevp2D::ComputeEffectiveStress(void)
   return fSb;
 }
 
-void tevp2D::CheckCriticalCriteria(const ElementCardT& element, int ip)
+void tevp2D::CheckCriticalStrain(const ElementCardT& element, int ip)
 {
   /* Returns an indicator to determine whether critical strain criteria
    * has been met, and switch to fluid model happens next time step */

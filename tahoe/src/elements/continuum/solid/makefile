@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.8 2001-08-20 15:43:13 paklein Exp $
+# $Id: makefile,v 1.5 2001-07-03 01:34:53 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -11,12 +11,9 @@ OBJ = \
 	ElasticT.o \
 	FiniteStrainT.o \
 	LocalizerT.o \
-	NonsingularContinuumT.o \
-	SimoFiniteStrainT.o \
 	SmallStrainT.o \
 	TotalLagrangianT.o \
-	UpdatedLagrangianT.o \
-	UpLagr_ExternalFieldT.o
+	UpdatedLagrangianT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -31,12 +28,9 @@ SRC = \
 	ElasticT.cpp \
 	FiniteStrainT.cpp \
 	LocalizerT.cpp \
-	NonsingularContinuumT.cpp \
-	SimoFiniteStrainT.cpp \
 	SmallStrainT.cpp \
 	TotalLagrangianT.cpp \
-	UpdatedLagrangianT.cpp \
-	UpLagr_ExternalFieldT.cpp
+	UpdatedLagrangianT.cpp
 
 # headers
 HDR = \
@@ -45,12 +39,9 @@ HDR = \
 	ElasticT.h \
 	FiniteStrainT.h \
 	LocalizerT.h \
-	NonsingularContinuumT.h \
-	SimoFiniteStrainT.h \
 	SmallStrainT.h \
 	TotalLagrangianT.h \
-	UpdatedLagrangianT.h \
-	UpLagr_ExternalFieldT.h
+	UpdatedLagrangianT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

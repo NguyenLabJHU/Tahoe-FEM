@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.7 2001-07-17 00:12:52 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.5 2001-07-03 01:34:49 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #ifndef _ELASTIC_T_H_
@@ -30,9 +30,8 @@ public:
          iPrincipal = 3, /**< extrapolated principal stresses */
      iEnergyDensity = 4, /**< extrapolated strain energy density */
         iWaveSpeeds = 5, /**< extrapolated local wave speeds */
-      iMaterialData = 6  /**< extrapolated  model output */
-		};
-	
+      iMaterialData = 6};/**< extrapolated  model output */
+
 	/** list/index of element outputs */
 	enum ElementOutputCodeT {
 	      iCentroid = 0, /**< (reference) centroid coordinates */
@@ -41,9 +40,8 @@ public:
 	 iKineticEnergy = 3, /**< integrated kinetic energy */
     iLinearMomentum = 4, /**< integrated linear momentum */
           iIPStress = 5, /**< integration point stresses */
-    iIPMaterialData = 6  /**< integration point material model output */
-      	};
-
+    iIPMaterialData = 6};/**< integration point material model output */
+      
 	/** constructor */
 	SolidElementT(FEManagerT& fe_manager);
 
@@ -143,6 +141,8 @@ protected:
 	enum MaterialNeedsT {kNeedDisp = 0,
 	                     kNeedVel  = 1,
 	                 KNeedLastDisp = 2};
+
+private:
 
 	/* construct output labels array */
 	virtual void SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,

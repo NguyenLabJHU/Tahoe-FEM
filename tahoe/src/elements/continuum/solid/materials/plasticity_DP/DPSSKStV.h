@@ -1,6 +1,4 @@
-/* $Id: DPSSKStV.h,v 1.6 2001-07-25 01:45:31 cfoster Exp $ */
-/* created: myip (06/01/1999)                                  */
-/* $Id: DPSSKStV.h,v 1.6 2001-07-25 01:45:31 cfoster Exp $ */
+/* $Id: DPSSKStV.h,v 1.2 2001-07-03 01:35:30 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 #ifndef _DP_SS_KSTV_H_
@@ -17,7 +15,7 @@ class DPSSKStV: public SSStructMatT,
 				public HookeanMatT,
 				public DPSSLinHardT
 {
-  public:
+public:
 
 	/* constructor */
 	DPSSKStV(ifstreamT& in, const SmallStrainT& element);
@@ -40,8 +38,7 @@ class DPSSKStV: public SSStructMatT,
 	
 	/* modulus */
 	virtual const dMatrixT& c_ijkl(void);
-	virtual const dMatrixT& cdisc_ijkl(void);
-  	
+	
 	/* stress */
 	virtual const dSymMatrixT& s_ij(void);
 
@@ -50,33 +47,20 @@ class DPSSKStV: public SSStructMatT,
 
 	/* returns the number of variables computed for nodal extrapolation
 	 * during for element output, ie. internal variables */
-	virtual int  NumOutputVariables(void) const;
+	virtual int NumOutputVariables(void) const;
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
-
-        /*
-         * Test for localization using "current" values for Cauchy
-         * stress and the spatial tangent moduli. Returns 1 if the
-         * determinant of the acoustic tensor is negative and returns
-         * the normal for which the determinant is minimum. Returns 0
-         * of the determinant is positive.
-         */
-	 int IsLocalized(dArrayT& normal);
 
 protected:
 
 	/* set modulus */
+	virtual void SetModulus(dMatrixT& modulus);
 
- 	virtual void SetModulus(dMatrixT& modulus); 
-         int loccheck;
- 
-  private:
-  
-  	/* return values */
-  	dSymMatrixT	fStress;
-  	dMatrixT	fModulus;
-        dMatrixT        fModulusdisc;
+private:
 
+	/* return values */
+	dSymMatrixT	fStress;
+	dMatrixT	fModulus;
 };
 
 #endif /* _DP_SS_KSTV_H_ */

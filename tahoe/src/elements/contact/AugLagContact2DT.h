@@ -1,5 +1,5 @@
-/* $Id: AugLagContact2DT.h,v 1.3 2001-08-29 07:12:02 paklein Exp $ */
-/* created: paklein (05/31/1998) */
+/* $Id: AugLagContact2DT.h,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
+/* created: paklein (05/31/1998)                                          */
 
 #ifndef _AUGLAG_CONTACT2D_T_H_
 #define _AUGLAG_CONTACT2D_T_H_
@@ -13,15 +13,14 @@
 
 /* forward declarations */
 class iGridManager2DT;
+class XDOF_ManagerT;
 
-/** contact enforcement in 2D using an augmented Lagrangian formulation.
- * Formulation by J. Heegaard and A. Curnier, IJNME \b 36, 569-593, 1993. */
 class AugLagContact2DT: public Contact2DT, public DOFElementT
 {
 public:
 
 	/* constructor */
-	AugLagContact2DT(FEManagerT& fe_manager);
+	AugLagContact2DT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes);
 
 	/* allocates space and reads connectivity data */
 	virtual void Initialize(void);
@@ -31,17 +30,23 @@ public:
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
 	
 	/* returns the array for the DOF tags needed for the current config */
-	virtual void SetDOFTags(void);
-	virtual iArrayT& DOFTags(int tag_set);
+	virtual iArrayT& SetDOFTags(void);
+	virtual const iArrayT& DOFTags(void) const;
 
 	/* generate nodal connectivities */
 	virtual void GenerateElementData(void);
+	// NOTE: since the sequence of setting global equation
+	//       number is controlled externally, responsibility
+	//       for calling the element group to (self-) configure
+	//       is also left to calls from the outside. otherwise
+	//       it's tough to say whether data requested by the group
+	//       is current.
 
 	/* return the contact elements */
-	virtual const iArray2DT& DOFConnects(int tag_set) const;
+	virtual const iArray2DT& DOFConnects(void) const;
 
 	/* restore the DOF values to the last converged solution */
-	virtual void ResetDOF(dArray2DT& DOF, int tag_set) const;
+	virtual void ResetDOF(dArray2DT& DOF) const;
 
 	/* returns 1 if group needs to reconfigure DOF's, else 0 */
 	virtual int Reconfigure(void);
@@ -77,6 +82,9 @@ protected:
 	/* extended interaction data */
 	iArray2DT fXDOFConnectivities;
 	iArray2DT fXDOFEqnos;
+	
+	/* nodemanager with external DOF's */
+	XDOF_ManagerT* fXDOF_Nodes;
 	
 	/* contact DOF tags */
 	iArrayT fContactDOFtags; // VARIABLE

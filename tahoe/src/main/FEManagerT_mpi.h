@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.4 2001-07-19 06:48:06 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.2 2001-05-30 23:27:02 paklein Exp $ */
 /* created: paklein (01/12/2000)                                          */
 
 #ifndef _FE_MANAGER_MPI_H_
@@ -74,7 +74,7 @@ public:
 	virtual void Wait(void);
 
 	/* domain decomposition (graph is returned) */
-	void Decompose(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose, int method);
+	void Decompose(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose);
 
 	/* return reference to partition data */
 	const PartitionT& Partition(void) const;
@@ -121,10 +121,6 @@ private:
 
 	/* collect computation effort for each node */
 	void WeightNodalCost(iArrayT& weight) const;
-
-	/* decomposition methods */
-	void DoDecompose_1(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose, int method);
-	void DoDecompose_2(ArrayT<PartitionT>& partition, GraphT& graph, bool verbose, int method);
 
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: tevp2D.h,v 1.17 2001-08-14 01:22:32 hspark Exp $ */
+/* $Id: tevp2D.h,v 1.14 2001-07-03 01:35:45 paklein Exp $ */
 /* Created:  Harold Park (04/04/2001) */
 
 #ifndef _TEVP_2D_H_
@@ -53,6 +53,12 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   virtual int NumOutputVariables(void) const;
   virtual void OutputLabels(ArrayT<StringT>& labels) const;
   virtual void ComputeOutput(dArrayT& output);
+  
+  /* accessor functions to be inlined - these should return the value from
+   * the previous timestep */
+  //const dMatrixT& GetDmat(void) const;     // Return the elastic modulus tensor
+  //const dMatrixT& GetF(void) const;
+  //const dMatrixT& GetD(void) const;
 
  private:
   /* computational functions */
@@ -78,7 +84,6 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
                              kEb = 2};  // Effective Strain
   enum ModelT {kTevp = 0,          // Thermo-elasto-viscoplastic
                kFluid = 1};        // Fluid model
-
   enum StessComponentsT {kSig11 = 0,
                          kSig12 = 1,
                          kSig22 = 2,   // fTempStress stored like this...
@@ -89,9 +94,9 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   double ComputeFluidTemperature(void);
   double ComputeViscoTemperature(void);
   double ComputeEffectiveStress(void);
-  double ComputeFluidEffectiveStrain(double& effectivestrainrate);
-  double ComputeViscoEffectiveStrain(double& effectivestrainrate);
-  void CheckCriticalCriteria(const ElementCardT& element, int ip);
+  double ComputeFluidEffectiveStrain(void);
+  double ComputeViscoEffectiveStrain(void);
+  void CheckCriticalStrain(const ElementCardT& element, int ip);
   int CheckIfPlastic(const ElementCardT& element, int ip);
   /* load element data for the specified integration point */
   void LoadData(const ElementCardT& element, int ip); 
@@ -148,15 +153,11 @@ class tevp2D: public FDStructMatT, public IsotropicT, public Material2DT
   dArrayT fSmlp;
   dSymMatrixT fSymStress2D;    // 2D symmetrix stress tensor
   double fJ;                   // Jacobian of deformation gradient
-  double fVisc;                // Original viscosity
-  double Bvisc;                // coefficient of viscosity
 
   /* output variables/internal variables */
   double fTemperature;         // Temperature
   double fSb;                  // Effective stress
   double fEb;                  // Effective strain
-  double fEffectiveStrainRate;    // Fluid model effective strain rate
-
   
   /* Global material constants - class scope variables */
   double Temp_0, El_E, El_V, El_K, El_G, Sb0, Rho0, Eb0, Eb0tot, BigN, Smm;

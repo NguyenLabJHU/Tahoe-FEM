@@ -1,4 +1,4 @@
-/* $Id: J2SimoLinHardT.cpp,v 1.6 2001-09-25 00:51:55 paklein Exp $ */
+/* $Id: J2SimoLinHardT.cpp,v 1.5 2001-07-03 01:35:33 paklein Exp $ */
 /* created: paklein (06/19/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -20,6 +20,15 @@ const int kNumFlags = 2;
 const int kEP   = 0;
 const int kInit = 1;
 	//not used
+	
+/* elastic/plastic flag values */
+const int kNotInit   =-1;
+const int kIsPlastic = 0;
+const int kIsElastic = 1;
+
+/* init flag values */
+const int kIsNotInit = 0;
+const int kIsInit    = 1;
 
 const double sqrt23    = sqrt(2.0/3.0);
 const double kYieldTol = 1.0e-10;

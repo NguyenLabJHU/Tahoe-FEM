@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeShapeFunctionT.cpp,v 1.3 2001-07-13 02:17:37 paklein Exp $ */
+/* $Id: D2MeshFreeShapeFunctionT.cpp,v 1.2 2001-06-19 23:22:05 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeShapeFunctionT.h"
@@ -54,17 +54,16 @@ void D2MeshFreeShapeFunctionT::SetDerivatives(void)
 int D2MeshFreeShapeFunctionT::SetDerivativesAt(const dArrayT& x, AutoArrayT<int>& nodes)
 {
 	/* compute derivatives */
-	if (fD2MFSupport->SetFieldAt(x))
+	if (fD2MFSupport->SetFieldAt(x, nodes))
 	{
 		const dArray2DT& Grad_x = fD2MFSupport->DFieldAt();
 	
-		/* copy nodal neighor data */
-		fNeighbors.Alias(fMFSupport->NeighborsAt());
-		nodes.Allocate(fNeighbors.Length());
-		nodes = fNeighbors;
+		/* keep neighbors data */
+		fNeighbors.Alias(nodes);
 		
 		/* set next calls to GradU */
 		SetGrad_x(Grad_x);
+
 		return 1;
 	}
 	else
@@ -76,7 +75,7 @@ void D2MeshFreeShapeFunctionT::D2GradNa(dMatrixT& D2_grad_Na) const
 {
 	/* current integration point data */
 	const dArray2DT& DDNa = fDDNaU[fCurrIP];
-	int numderiv = DDNa.MajorDim();
+int numderiv = DDNa.MajorDim();
 	int numnodes = DDNa.MinorDim();
 	
 	for (int i = 0; i < numderiv; i++)	

@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.11 2001-09-05 22:29:16 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.6 2001-07-03 01:34:49 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 
 #include "ContinuumElementT.h"
@@ -11,7 +11,6 @@
 #include "NodeManagerT.h"
 #include "StructuralMaterialT.h"
 #include "ShapeFunctionT.h"
-#include "DomainIntegrationT.h"
 #include "eControllerT.h"
 #include "Traction_CardT.h"
 #include "ExodusT.h"
@@ -70,13 +69,6 @@ void ContinuumElementT::IP_Coords(dArrayT& ip_coords) const
 {
 	/* computed by shape functions */
 	ShapeFunction().IPCoords(ip_coords);
-}
-
-/* interpolate the nodal field values to the current integration point */
-void ContinuumElementT::IP_Interpolate(const LocalArrayT& nodal_u, dArrayT& ip_u) const
-{
-    /* computed by shape functions */
-    ShapeFunction().InterpolateU(nodal_u, ip_u);
 }
 
 /* field gradients */
@@ -225,11 +217,12 @@ void ContinuumElementT::ReadRestart(istream& in)
 	/* update element level internal variables */
 	if (fMaterialList->HasHistoryMaterials())
 	{
-		for (int i = 0; i < fElementCards.Length(); i++)
+		Top();
+		while (NextElement())
 		{
 			int isallocated;
 			in >> isallocated;
-			if (isallocated) fElementCards[i].ReadRestart(in);
+			if (isallocated) CurrentElement().ReadRestart(in);
 		}
 	}
 }
@@ -245,7 +238,7 @@ void ContinuumElementT::WriteRestart(ostream& out) const
 		for (int i = 0; i < fElementCards.Length(); i++)
 		{
 			const ElementCardT& element = fElementCards[i];
-			out << element.IsAllocated() << '\n';
+			out << setw(kIntWidth) << element.IsAllocated() << '\n';
 			if (element.IsAllocated()) element.WriteRestart(out);
 		}
 	}
@@ -675,24 +668,24 @@ void ContinuumElementT::ApplyTractionBC(void)
 			/* BC destination */
 			int elem, facet;
 			BC_card.Destination(elem, facet);
+			double thick = 1.0;
 			
-#ifdef __NO_RTTI__
-			/* default thickness */
-			double thick = 1.0;
-#else
 			/* use thickness for 2D solid deformation elements */
-			double thick = 1.0;
 			if (fNumSD == 2 && fNumDOF == 2) //better to do this once elsewhere?
 			{
 				/* get material pointer */
 				const ElementCardT& elem_card = fElementCards[elem];
 				ContinuumMaterialT* pmat = (*fMaterialList)[elem_card.MaterialNumber()];
 			
-				/* thickness from 2D material */
+#ifdef __NO_RTTI__
+				/* assume it's OK */
+				Material2DT* pmat2D = (Material2DT*) pmat;
+#else
 				Material2DT* pmat2D = dynamic_cast<Material2DT*>(pmat);
-				if (pmat2D) thick = pmat2D->Thickness();
+				if (!pmat2D) throw eGeneralFail;
+#endif				
+				thick = pmat2D->Thickness();
 			}
-#endif
 			
 			/* boundary shape functions */
 			const ParentDomainT& surf_shape = ShapeFunction().FacetShapeFunction(facet);

@@ -1,4 +1,4 @@
-/* $Id: TotalLagrangianT.h,v 1.3 2001-07-10 07:29:55 paklein Exp $ */
+/* $Id: TotalLagrangianT.h,v 1.2 2001-07-03 01:34:52 paklein Exp $ */
 /* created: paklein (07/03/1996)                                          */
 
 #ifndef _TOTAL_LAGRANGRIAN_T_H_
@@ -22,6 +22,12 @@ public:
 		
 protected:
 
+	/* construct materials manager and read data */
+	virtual void ReadMaterialData(ifstreamT& in);
+
+	/* return a pointer to a new material list */
+	virtual MaterialListT* NewMaterialList(int size) const;
+
 	/* form the element stiffness matrix */
 	virtual void FormStiffness(double constK);
 	
@@ -44,6 +50,9 @@ protected:
 		int formMa, double constMa, int formCv, double constCv,
 		int formKd, double constKd);
 #endif
+
+	/* calculate the damping force contribution ("-c*v") */
+	virtual void FormCv(double constC);
 
 	/* calculate the internal force contribution ("-k*d") */
 	virtual void FormKd(double constK);

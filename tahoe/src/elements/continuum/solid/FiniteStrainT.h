@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.7 2001-09-15 01:15:42 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.2 2001-07-03 01:34:50 paklein Exp $ */
 
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
@@ -35,30 +35,11 @@ class FiniteStrainT: public ElasticT
 
   protected:
 
-	/** return a pointer to a new material list.
-	 * \param size number of materials in the list */
-	virtual MaterialListT* NewMaterialList(int size) const;
-
 	/** construct list of materials from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);
 
 	/** form shape functions and derivatives */
 	virtual void SetGlobalShape(void);
-
-	/** calculate the damping force contribution ("-c*v"). \note arises from
-	 * support for Rayleigh damping, which is on the way out */
-	virtual void FormCv(double constC);
-
-	/** returns true if the material requires the deformation gradient */
-	bool Needs_F(int material_number) const;
-
-	/** returns true if the material requires the deformation gradient 
-	 * from the end of the last time increment */
-	bool Needs_F_last(int material_number) const;
-
-	/** write all current element information to the stream. used to generate
-	 * debugging information after runtime errors */
-	virtual void CurrElementInfo(ostream& out) const;
 
   private:
 
@@ -66,18 +47,14 @@ class FiniteStrainT: public ElasticT
 	enum MaterialNeedsT {kF = 0,
 	                kF_last = 1};
 
-  protected:
-
-  	/* work space  */
-  	ArrayT<dMatrixT> fF_List;      /**< deformation gradient */
-  	dArrayT          fF_all;       /**< grouped memory for all deformation gradients */
-  	ArrayT<dMatrixT> fF_last_List; /**< last deformation gradient */
-  	dArrayT          fF_last_all;  /**< grouped memory for all last deformation gradients */
-  
   private:
   
 	/** offset to material needs */
 	int fNeedsOffset; //NOTE - better to have this or a separate array?
+  
+  	/** return values */
+  	ArrayT<dMatrixT> fF_List;
+  	ArrayT<dMatrixT> fF_last_List;
 };
 
 /* inlines */
@@ -148,23 +125,6 @@ inline const dMatrixT& FiniteStrainT::DeformationGradient_last(int ip) const
 #endif
 
 	return fF_last_List[ip];
-}
-
-/* returns true if the material requires the deformation gradient */
-inline bool FiniteStrainT::Needs_F(int material_number) const
-{
-	/* material information */
-	const ArrayT<bool>& needs = fMaterialNeeds[material_number];
-	return needs[fNeedsOffset + kF];
-}
-
-/* returns true if the material requires the deformation gradient 
- * from the end of the last time increment */
-inline bool FiniteStrainT::Needs_F_last(int material_number) const
-{
-	/* material information */
-	const ArrayT<bool>& needs = fMaterialNeeds[material_number];
-	return needs[fNeedsOffset + kF_last];
 }
 
 #endif /* _FINITE_STRAIN_T_H_ */

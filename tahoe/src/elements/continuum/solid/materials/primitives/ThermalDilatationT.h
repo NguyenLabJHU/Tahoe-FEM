@@ -1,5 +1,5 @@
-/* $Id: ThermalDilatationT.h,v 1.2 2001-09-15 01:17:36 paklein Exp $ */
-/* created: paklein (08/25/1996) */
+/* $Id: ThermalDilatationT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* created: paklein (08/25/1996)                                          */
 
 #ifndef _THERMALDILAT_H_
 #define _THERMALDILAT_H_
@@ -34,6 +34,7 @@ public:
 private:
 	
 	double			fPercentElongation;
+	double			fScaleFactor;
 	int				LTfnum;
 	const LoadTime*	LTfPtr;	
 };
@@ -41,10 +42,6 @@ private:
 /* inline functions */
 
 /* returns true if active */
-inline bool ThermalDilatationT::IsActive(void) const { return fPercentElongation != 0.0; }
-
-/* set LTf pointer */
-inline int ThermalDilatationT::LTfNumber(void) const { return LTfnum; }
-inline void ThermalDilatationT::SetLTfPtr(const LoadTime* LTf) { LTfPtr = LTf; }
+inline bool ThermalDilatationT::IsActive(void) const { return LTfPtr != 0; }
 
 #endif /* _THERMALDILAT_H_ */

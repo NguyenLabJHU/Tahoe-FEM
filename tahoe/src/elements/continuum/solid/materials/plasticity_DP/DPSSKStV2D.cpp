@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV2D.cpp,v 1.6 2001-08-15 16:54:41 cfoster Exp $ */
+/* $Id: DPSSKStV2D.cpp,v 1.2 2001-07-03 01:35:30 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 #include "DPSSKStV2D.h"
@@ -25,7 +25,7 @@ void DPSSKStV2D::Initialize(void)
 }
 
 /* returns elastic strain (3D) */
-const dSymMatrixT& DPSSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain, 
+const dSymMatrixT& DPSSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain,
 	const ElementCardT& element, int ip)
 {
 	/* 2D -> 3D (plane strain) */
@@ -33,7 +33,6 @@ const dSymMatrixT& DPSSKStV2D::ElasticStrain(const dSymMatrixT& totalstrain,
 
 	/* inherited */
 	return DPSSKStV::ElasticStrain(fTotalStrain3D, element, ip);
-
 }
 
 /* print parameters */
@@ -61,21 +60,12 @@ const dMatrixT& DPSSKStV2D::c_ijkl(void)
 	return fModulus2D;
 }
 
-const dMatrixT& DPSSKStV2D::cdisc_ijkl(void)
-{
-	/* 3D -> 2D */
-	fModulus2D.Rank4ReduceFrom3D(DPSSKStV::cdisc_ijkl());
-	fModulus2D *= fThickness;
-	return fModulus2D;
-}
-
-
 /* stress */
 const dSymMatrixT& DPSSKStV2D::s_ij(void)
 {
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(DPSSKStV::s_ij());
-	fStress2D *= fThickness;  
+	fStress2D *= fThickness;
 	return fStress2D;
 }
 

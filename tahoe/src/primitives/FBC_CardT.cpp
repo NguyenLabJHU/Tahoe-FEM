@@ -1,4 +1,4 @@
-/* $Id: FBC_CardT.cpp,v 1.3 2001-07-16 22:41:02 rrsettg Exp $ */
+/* $Id: FBC_CardT.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
 /* created: paklein (06/15/1996)                                          */
 
 #include "FBC_CardT.h"
@@ -11,10 +11,6 @@
 #include "fstreamT.h"
 #include "NodeManagerT.h"
 #include "LoadTime.h"
-
-/* copy behavior for arrays FBC_CardT's */
-const bool ArrayT<FBC_CardT*>::fByteCopy = true;
-const bool ArrayT<FBC_CardT>::fByteCopy = false;
 
 /* constructor */
 FBC_CardT::FBC_CardT(void):
@@ -57,12 +53,6 @@ void FBC_CardT::SetValues(const NodeManagerPrimitive& theBoss, int node, int dof
 	
 	/* resolve the pointer to the LTf */
 	fLTfPtr = theBoss.GetLTfPtr(fLTf);
-}
-
-/* split force value in half */
-void FBC_CardT::SplitForce(void)
-{
-	fValue *= 0.5;
 }
 
 /* return the current value */

@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.15 2001-08-21 01:11:06 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.13 2001-07-03 01:34:49 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #include "SolidElementT.h"
@@ -64,7 +64,7 @@ void SolidElementT::Initialize(void)
 	ContinuumElementT::Initialize();
 
 	/* allocate strain-displacement matrix */
-	fB.Allocate(dSymMatrixT::NumValues(fNumSD), fNumSD*fNumElemNodes);
+	fB.Allocate((fNumSD == 2) ? 3 : 6, fNumSD*fNumElemNodes);
 
 	/* override */
 	if (fController->ImplicitExplicit() == eControllerT::kExplicit &&
@@ -500,10 +500,8 @@ void SolidElementT::SetLocalArrays(void)
 void SolidElementT::SetShape(void)
 {
 	/* construct shape functions */
-	ShapeFunctionT::StrainOptionT strain_opt = (fStrainDispOpt == 0) ? 
-		ShapeFunctionT::kStandardB : ShapeFunctionT::kMeanDilBbar;
 	fShapes = new ShapeFunctionT(fGeometryCode, fNumIP,
-		fLocInitCoords, strain_opt);
+		fLocInitCoords, fStrainDispOpt);
 	if (!fShapes) throw eOutOfMemory;
 
 	/* initialize */

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.h,v 1.6 2001-07-13 02:17:36 paklein Exp $ */
+/* $Id: MeshFreeSupportT.h,v 1.3 2001-07-03 01:35:50 paklein Exp $ */
 /* created: paklein (09/07/1998)                                          */
 
 #ifndef _MF_SUPPORT_T_H_
@@ -35,14 +35,6 @@ class iNodeT;
  * derivative. Shape functions and there derivatives can subsequently
  * be retrieved from storage or calculated as needed.
  *
- * Initialization of the class involves 2 steps:
- * (I) setting the support parameters for every node:
- *     (1) InitSupportParameters - sets support based on window function requirements
- *     (2) SetSupportParameters - overrides any previously defined values
- *     (3) SynchronizeSupportParameters - take "best" support parameters
- * (II) setting nodal neighbor data - this is only needed if shape function data
- *      is going to be stored.
- *
  * \note Currently, fnNeighborData and feNeighborData don't reflect the
  * configuration of the cutting surfaces, so the structure of the
  * global equation matrix doesn't need to be reset when the crack
@@ -53,145 +45,89 @@ class MeshFreeSupportT: public MeshFreeT
 {
 public:
 
-	/** constructor.
-	 * \param domain used to determine the location of integration points
-	 * \param coords array of all particle coordinates 
-	 * \param connects integration cell connectivities 
-	 * \param nongridnodes index of paricles not included in the connectivities
-	 * \param in input stream for class and window function parameters */
+	/* constructor */
 	MeshFreeSupportT(const ParentDomainT& domain, const dArray2DT& coords,
 		const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in);
 
-	/** destructor */
+	/* destructor */
 	virtual ~MeshFreeSupportT(void);
 	
-	/** write parameters to out */
+	/* write parameters */
 	virtual void WriteParameters(ostream& out) const;
 	
-	/** determine nodal support parameters based window function parameters */
-	virtual void InitSupportParameters(void);
+	/* steps to initialization - modifications to the support size must
+	 * occur before setting the neighbor data */
+	virtual void SetSupportSize(void);
+	virtual void SetNeighborData(void);
 
-	/** set neighbor lists for all field points (particles and integration points) */
-	virtual void InitNeighborData(void);
-
-	/** set nodes at which the field should not be calculated */	
-	void SetSkipNodes(const iArrayT& skip_nodes); 
-	const iArrayT& SkipNodes(void) const; /**< list of nodes to skip */ 
-
-	/** cells whose integration points should not be treated as field points */
+	/* specify nodes/cells to skip when doing MLS calculations */
+	void SetSkipNodes(const iArrayT& skip_nodes);
+	const iArrayT& SkipNodes(void) const;
 	void SetSkipElements(const iArrayT& skip_elements);
-	const iArrayT& SkipElements(void) const; /**< list of cells to skip */ 
+	const iArrayT& SkipElements(void) const;
 
-	/** set support parameters using external data. modify both the internal
-	 * support parameters and nodal_params so that both hold the "best" of each. 
-	 * \param nodal_params external list of support parameters: [nnd] x [nparam] */
+	/* read/write nodal meshfree parameters */
 	void SynchronizeSupportParameters(dArray2DT& nodal_params);
-	
-	/** overwrite nodal support parameters.
-	 * \param node list of particles to overwrite : [n] 
-	 * \param nodal_params external support parameters: [n] x [nparam] */
-	void SetSupportParameters(const iArrayT& node, const dArray2DT& nodal_params);
-
-	/** collent nodal support parameters.
-	 * \param node list of particles to collect : [n] 
-	 * \param nodal_params support parameters: [n] x [nparam] */
-	void GetSupportParameters(const iArrayT& node, dArray2DT& nodal_params) const;
+	void SetNodalParameters(const iArrayT& node, const dArray2DT& nodal_params);
+	void GetNodalParameters(const iArrayT& node, dArray2DT& nodal_params) const;
 	const dArray2DT& NodalParameters(void) const;
 
-	/** set field cutting facets. 
-	 * \param facet_coords list of coordinate for each facet: [nfacets] x [num_facet_nodes*nsd] 
-	 * \param num_facet_nodes number of nodes defining each facet */
+	/* cutting facet functions */
 	virtual void SetCuttingFacets(const dArray2DT& facet_coords, int num_facet_nodes);
-
-	/** local stored shape function recalculation.
-	 * \param facets facets for which the stored field values should be recalculated */
 	void ResetFacets(const ArrayT<int>& facets);
-	const ArrayT<int>& ResetNodes(void) const; /**< list of nodes affected by the last call to ResetFacets */
-	const ArrayT<int>& ResetCells(void) const; /**< list of cells affected by the last call to ResetFacets */
+	const ArrayT<int>& ResetNodes(void) const; // after passing in new facets, hold
+	const ArrayT<int>& ResetCells(void) const; // ids of affected nodes and cells
 
-	/* retrieving stored shape function values */
+	/* "load" data for the specified node (global numbering) */
+	void LoadNodalData(int node, iArrayT& neighbors, dArrayT& phi,
+		dArray2DT& Dphi);
 
-	/** fetch data for the specified node. triggers recalculation of any
-	 * nodal shape function that have been reset.
-	 * \param node particle data to fetch
-	 * \param neighbors returns with neighbors of node: [nnd]
-	 * \param phi returns with the shape function values of neighbors at node: [nnd]
-	 * \param Dphi returns with neighbors shape function derivatives at node: [nsd] x [nnd] */
-	void LoadNodalData(int node, iArrayT& neighbors, dArrayT& phi, dArray2DT& Dphi);
+	/* "load" data for the specified element (0...)
+	 * for all integration points in the element */
+	void LoadElementData(int element, iArrayT& neighbors,
+		dArray2DT& phi, ArrayT<dArray2DT>& Dphi);
 
-	/** fetch data for the specified integration cell. triggers recalculation of any
-	 * integration cell shape functions that have been reset.
-	 * \param element cell data to fetch
-	 * \param neighbors returns with neighbors of all integration points in the cell: [nnd]
-	 * \param phi returns with the shape function values of neighbors at the integration points: [nip] x [nnd]
-	 * \param Dphi returns with neighbor shape function derivatives: [nip] x [nsd] x [nnd] */
-	void LoadElementData(int element, iArrayT& neighbors, dArray2DT& phi, ArrayT<dArray2DT>& Dphi);
-
-	/* setting the MLS functions at an arbitrary point */
-
-	/** set field at x.
-	 * \param x arbitrary field point
-	 * \param shift pointer to shift of x to use when determining the neighbor particles. NULL
-	          for no shift.
-     * \return 1 if successful, 0 otherwise */
+	/* setting the MLS functions at an arbitrary point - return 1 if successful */
 	int SetFieldAt(const dArrayT& x, const dArrayT* shift = NULL);
-
-	/** set field at x using the specified neighboring partivles.
-	 * \param x arbitrary field point
-	 * \param nodes list of neighboring particles.
-     * \return 1 if successful, 0 otherwise */
 	int SetFieldUsing(const dArrayT& x, const ArrayT<int>& nodes);
-
-	/** neighbors from the last call to SetFieldAt or SetFieldUsing */
 	const ArrayT<int>& NeighborsAt(void) const;
-
-	/** shape function values for NeighborsAt the last call to SetFieldAt or SetFieldUsing
-	 * \return array length: [nnd] */
 	const dArrayT& FieldAt(void) const;	
-
-	/** shape function derivatives for NeighborsAt the last call to SetFieldAt or SetFieldUsing
-	 * \return 2D array dimension: [nsd] x [nnd] */
 	const dArray2DT& DFieldAt(void) const;
 
-	/** collect all nodes covering an arbitrary point 
-	 * \param x arbitrary field point
-	 * \param nodes returns with the list of covering nodes
-	 * \returns 1 if successful, 0 otherwise */
+	/* collect all nodes covering the point x - returns 0 if not enough found */
 	int BuildNeighborhood(const dArrayT& x, AutoArrayT<int>& nodes);
 
 	/* access to neighbors database */
-	const iArrayT& ElementNeighborsCounts(void) const; /**< list of total neighbors per cell */
-	const RaggedArray2DT<int>& ElementNeighbors(void) const; /**< cell neighborhoods */
-	const RaggedArray2DT<int>& NodeNeighbors(void) const;    /**< nodal neighborhoods */
+	const iArrayT& ElementNeighborsCounts(void) const;
+	const RaggedArray2DT<int>& ElementNeighbors(void) const;
+	const RaggedArray2DT<int>& NodeNeighbors(void) const;
 
-	/** list of nodes used in the connectivities */
+	/* list of nodes used in the connectivities */
 	const iArrayT& NodesUsed(void) const;
 
-	/** write MLS statistics */
+	/* write MLS statistics */
 	void WriteStatistics(ostream& out) const;
 
-	/** nodal coordinates */
+	/* nodal coordinates */
 	const dArray2DT& NodalCoordinates(void) const;
 
 protected:
 
-	/** state of shape function database */
-	enum ShapeState {kNotInit =-1, /**< not initialized */
-	                kNoReform = 0, /**< no recalculation needed */
-	                  kReform = 1  /**< recalculation needed */ };
+	/* shape function state */
+	enum ShapeState {kNotInit =-1,
+	                kNoReform = 0,
+	                  kReform = 1};
 
-	/** initialize search grid */
+	/* initialize search grid */
 	void SetSearchGrid(void);
 
 	/* generate lists of all nodes that fall within Dmax of the
 	 * nodal coords (self included) */
 	void SetNodeNeighborData(const dArray2DT& coords);
-	void SetNodeNeighborData_2(const dArray2DT& coords);
 
 	/* generate lists of all nodes that fall within Dmax of the
 	 * element integration points */
 	void SetElementNeighborData(const iArray2DT& connects);
-	void SetElementNeighborData_2(const iArray2DT& connects);
 
 	/* compute all nodal shape functions and derivatives */
 	virtual void SetNodalShapeFunctions(void);

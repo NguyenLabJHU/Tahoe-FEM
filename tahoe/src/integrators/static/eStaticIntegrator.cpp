@@ -1,5 +1,5 @@
-/* $Id: eStaticIntegrator.cpp,v 1.2 2001-08-27 17:12:15 paklein Exp $ */
-/* created: paklein (10/14/1996) */
+/* $Id: eStaticIntegrator.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (10/14/1996)                                          */
 
 #include "eStaticIntegrator.h"
 #include "Environment.h"

@@ -1,13 +1,12 @@
-/* $Id: ElementListT.cpp,v 1.14 2001-09-24 20:37:23 rjones Exp $ */
-/* created: paklein (04/20/1998) */
+/* $Id: ElementListT.cpp,v 1.6 2001-07-03 01:34:48 paklein Exp $ */
+/* created: paklein (04/20/1998)                                          */
 
 #include "ElementListT.h"
 #include <iostream.h>
 #include "fstreamT.h"
 #include "FEManagerT.h"
-#include "NodeManagerT.h"
+#include "XDOF_FDNodesT.h"
 #include "StringT.h"
-#include "ElementT.h"
 
 /* elements */
 #include "ElementBaseT.h"
@@ -26,7 +25,6 @@
 #include "CSEIsoT.h"
 #include "CSEAnisoT.h"
 #include "GeometryT.h"
-#include "SimoFiniteStrainT.h"
 
 /* contact */
 #include "PenaltyContact2DT.h"
@@ -35,7 +33,6 @@
 #include "ACME_Contact3DT.h"
 #include "MultiplierContact3DT.h"
 #include "MultiplierContact2DT.h"
-#include "AdhesionContact2DT.h"
 
 //TEMP
 #include "MeshFreeElasticT.h"
@@ -48,11 +45,35 @@
 /* meshfree cohesive surface elements */
 #include "MeshFreeCSEAnisoT.h"
 
-/* class to read external field from file */
-#include "UpLagr_ExternalFieldT.h"
+/* Element Types */
+const int kRod                = 1;
+const int kElastic            = 2;
+const int kHyperElastic       = 3;
+const int kLocalizing         = 4;
+const int kVariTri            = 5; //TEMP
 
-/* rrsettg element */
-#include "NonsingularContinuumT.h"
+const int kSWDiamond          = 6;
+const int kMixedSWDiamond     = 7;
+const int kUnConnectedRod     = 8;
+const int kVirtualRod         = 9;
+const int kVirtualSWDC        = 10;
+
+const int kCohesiveSurface    = 11;
+const int kPenaltyContact     = 14;
+const int kBEMelement         = 15;
+const int kAugLagContact2D    = 16;
+const int kTotLagHyperElastic = 17;
+
+const int kMeshFreeElastic    = 18;
+const int kMeshFreeFDElastic  = 19;
+const int kD2MeshFreeFDElastic = 20;
+
+const int kLinearDiffusion    = 21;
+const int kMFCohesiveSurface  = 22;
+
+const int kACME_Contact       = 23;
+const int kMultiplierContact3D= 24;
+const int kMultiplierContact2D= 25;
 
 /* constructors */
 ElementListT::ElementListT(FEManagerT& fe_manager):
@@ -73,37 +94,35 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 	/* construct element groups */
 	for (int i = 0; i < Length(); i++)
 	{
-		int	group;
-		ElementT::TypeT code;
+		int	group, code;
 		in >> group >> code;
 		group--;
 
 		out << "\n Group number. . . . . . . . . . . . . . . . . . = " << group + 1 << '\n';
 		out <<   " Element type code . . . . . . . . . . . . . . . = " <<      code << '\n';
-		out << "    eq. " << ElementT::kRod                << ", rod\n";
-		out << "    eq. " << ElementT::kElastic            << ", elastic\n";
-		out << "    eq. " << ElementT::kHyperElastic       << ", hyperelastic\n";
-		out << "    eq. " << ElementT::kLocalizing         << ", hyperelastic with localization\n";
-		out << "    eq. " << ElementT::kSWDiamond          << ", diamond cubic lattice\n";   	
-		out << "    eq. " << ElementT::kMixedSWDiamond     << ", diamond cubic lattice with evolving params\n";   	
-		out << "    eq. " << ElementT::kUnConnectedRod     << ", self-connecting rods\n";   	
-		out << "    eq. " << ElementT::kVirtualRod         << ", self-connecting rods with periodic BC's\n";   	
-		out << "    eq. " << ElementT::kVirtualSWDC        << ", diamond cubic lattice with periodic BC's\n";   	
-		out << "    eq. " << ElementT::kCohesiveSurface    << ", cohesive surface element\n";   	
-		out << "    eq. " << ElementT::kPenaltyContact     << ", penalty contact\n";
-		out << "    eq. " << ElementT::kAugLagContact2D    << ", augmented Lagrangian contact\n";
-		out << "    eq. " << ElementT::kTotLagHyperElastic << ", hyperelastic (total Lagrangian)\n";
-		out << "    eq. " << ElementT::kMeshFreeElastic    << ", elastic with MLS displacements\n";
-		out << "    eq. " << ElementT::kMeshFreeFDElastic  << ", hyperelastic MLS (total Lagrangian)\n";
-		out << "    eq. " << ElementT::kD2MeshFreeFDElastic << ", hyperelastic MLS (total Lagrangian)\n";
-		out << "    eq. " << ElementT::kLinearDiffusion    << ", linear diffusion element\n";
-		out << "    eq. " << ElementT::kMFCohesiveSurface  << ", meshfree cohesive surface element\n";
+		out << "    eq. " << kRod                << ", rod\n";
+		out << "    eq. " << kElastic            << ", elastic\n";
+		out << "    eq. " << kHyperElastic       << ", hyperelastic\n";
+		out << "    eq. " << kLocalizing         << ", hyperelastic with localization\n";
+		out << "    eq. " << kSWDiamond          << ", diamond cubic lattice\n";   	
+		out << "    eq. " << kMixedSWDiamond     << ", diamond cubic lattice with evolving params\n";   	
+		out << "    eq. " << kUnConnectedRod     << ", self-connecting rods\n";   	
+		out << "    eq. " << kVirtualRod         << ", self-connecting rods with periodic BC's\n";   	
+		out << "    eq. " << kVirtualSWDC        << ", diamond cubic lattice with periodic BC's\n";   	
+		out << "    eq. " << kCohesiveSurface    << ", cohesive surface element\n";   	
+		out << "    eq. " << kPenaltyContact     << ", penalty contact\n";
+		out << "    eq. " << kAugLagContact2D    << ", augmented Lagrangian contact\n";
+		out << "    eq. " << kTotLagHyperElastic << ", hyperelastic (total Lagrangian)\n";
+		out << "    eq. " << kMeshFreeElastic    << ", elastic with MLS displacements\n";
+		out << "    eq. " << kMeshFreeFDElastic  << ", hyperelastic MLS (total Lagrangian)\n";
+		out << "    eq. " << kD2MeshFreeFDElastic << ", hyperelastic MLS (total Lagrangian)\n";
+		out << "    eq. " << kLinearDiffusion    << ", linear diffusion element\n";
+		out << "    eq. " << kMFCohesiveSurface  << ", meshfree cohesive surface element\n";
 
-		out << "    eq. " << ElementT::kACME_Contact       << ", 3D contact using ACME\n";
-		out << "    eq. " << ElementT::kMultiplierContact3D       << ", 3D contact using Lagrange multipliers\n";
-		out << "    eq. " << ElementT::kAdhesionContact2D       << ", 2D adhesion contact elements\n";
+		out << "    eq. " << kACME_Contact       << ", 3D contact using ACME\n";
+		out << "    eq. " << kMultiplierContact3D       << ", 3D contact using quadrature-based elements\n";
+		out << "    eq. " << kMultiplierContact2D       << ", 2D contact using quadrature-based elements\n";
 		
-		out << "    eq. " << ElementT::kMultiplierContact2D       << ", 2D contact using Lagrange multipliers\n";
 		
 		/* check */
 		if (group < 0 || group >= Length())
@@ -117,68 +136,64 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 		   and allocate space in the contructors */
 		switch (code)
 		{
-			case ElementT::kRod:
+			case kRod:
 
 				fArray[group] = new RodT(fFEManager);
 				break;
 
-			case ElementT::kElastic:
+			case kElastic:
 				fArray[group] = new SmallStrainT(fFEManager);
 				break;
 
-			case ElementT::kMeshFreeElastic:
+			case kMeshFreeElastic:
 				fArray[group] = new MeshFreeElasticT(fFEManager);
 				break;
 
-			case ElementT::kHyperElastic:
+			case kHyperElastic:
 				fArray[group] = new UpdatedLagrangianT(fFEManager);
 				break;
 
-			case ElementT::kTotLagHyperElastic:
+			case kTotLagHyperElastic:
 				fArray[group] = new TotalLagrangianT(fFEManager);
 				break;
 
-			case ElementT::kSimoFiniteStrain:
-				fArray[group] = new SimoFiniteStrainT(fFEManager);
-				break;
-
-			case ElementT::kMeshFreeFDElastic:
+			case kMeshFreeFDElastic:
 				fArray[group] = new MeshFreeFDElasticT(fFEManager);
 				break;
 
-			case ElementT::kD2MeshFreeFDElastic:
+			case kD2MeshFreeFDElastic:
 				fArray[group] = new D2MeshFreeFDElasticT(fFEManager);
 				break;
 
-			case ElementT::kLocalizing:
+			case kLocalizing:
 				fArray[group] = new LocalizerT(fFEManager);
 				break;
 
-			case ElementT::kVariTri:
+			case kVariTri:
 				fArray[group] = new VariTriT(fFEManager);
 				break;
 
-			case ElementT::kSWDiamond:
+			case kSWDiamond:
 				fArray[group] = new SWDiamondT(fFEManager);
 				break;
 				
-			case ElementT::kMixedSWDiamond:
+			case kMixedSWDiamond:
 				fArray[group] = new MixedSWDiamondT(fFEManager);
 				break;
 
-			case ElementT::kUnConnectedRod:
+			case kUnConnectedRod:
 				fArray[group] = new UnConnectedRodT(fFEManager);
 				break;
 			
-			case ElementT::kVirtualRod:
+			case kVirtualRod:
 				fArray[group] = new VirtualRodT(fFEManager);
 				break;
 
-			case ElementT::kVirtualSWDC:
+			case kVirtualSWDC:
 				fArray[group] = new VirtualSWDC(fFEManager);
 				break;
 
-			case ElementT::kCohesiveSurface:
+			case kCohesiveSurface:
 			{
 				int CSEcode;
 				in >> CSEcode;
@@ -201,7 +216,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 				}
 				break;
 			}
-			case ElementT::kPenaltyContact:
+			case kPenaltyContact:
 			{
 				int nsd = (fFEManager.NodeManager())->NumSD();
 				if (nsd == 2)
@@ -211,12 +226,25 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 					
 				break;
 			}
-			case ElementT::kAugLagContact2D:
+			case kAugLagContact2D:
 			{
-				fArray[group] = new AugLagContact2DT(fFEManager);	
+#ifdef __NO_RTTI__
+				if (fFEManager.Analysis() != GlobalT::kAugLagStatic) throw eGeneralFail;
+				XDOF_FDNodesT* XDOF_man = (XDOF_FDNodesT*) fFEManager.NodeManager();
+#else
+				XDOF_FDNodesT* XDOF_man = dynamic_cast<XDOF_FDNodesT*>(fFEManager.NodeManager());
+				if (!XDOF_man)
+				{
+					cout << "\n ElementListT::EchoElementData: failed to cast node manager to XDOF_FDNodesT\n"
+					     <<   "     as needed with analysis code: " << kAugLagContact2D << endl;
+					throw eBadInputValue;
+				}
+#endif /* __NO_RTTI__ */
+			
+				fArray[group] = new AugLagContact2DT(fFEManager, XDOF_man);	
 				break;
 			}
-			case ElementT::kBEMelement:
+			case kBEMelement:
 			{
 				StringT BEMfilename;
 				in >> BEMfilename;
@@ -224,23 +252,15 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 				fArray[group] = new BEMelement(fFEManager, BEMfilename);	
 				break;
 			}
-			case ElementT::kLinearDiffusion:
+			case kLinearDiffusion:
 				fArray[group] = new DiffusionT(fFEManager);
 				break;
 
-			case ElementT::kMFCohesiveSurface:
+			case kMFCohesiveSurface:
 				fArray[group] = new MeshFreeCSEAnisoT(fFEManager);
 				break;
 
-			case ElementT::kTotLagrExternalField:
-				fArray[group] = new UpLagr_ExternalFieldT(fFEManager);
-				break;
-
-			case ElementT::kNonsingularContinuum:
-				fArray[group] = new NonsingularContinuumT(fFEManager);
-				break;
-
-			case ElementT::kACME_Contact:
+			case kACME_Contact:
 #ifdef __ACME__
 				fArray[group] = new ACME_Contact3DT(fFEManager);
 #else
@@ -249,36 +269,16 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 #endif /* __ACME__ */			
 				break;
 
-			case ElementT::kMultiplierContact3D:
-				fArray[group] = new MultiplierContact3DT(fFEManager);
-				break;
+                        case kMultiplierContact3D:
+                                fArray[group] 
+				    = new MultiplierContact3DT(fFEManager);
+                                break;
 
-			case ElementT::kMultiplierContact2D:
-			{
-#ifdef __NO_RTTI__
-				if (fFEManager.Analysis() != GlobalT::kAugLagStatic) throw eGeneralFail;
-				XDOF_ManagerT* XDOF_man	= (XDOF_ManagerT*) fFEManager.NodeManager();
-#else
-				XDOF_ManagerT* XDOF_man = dynamic_cast<XDOF_ManagerT*>(fFEManager.NodeManager());
-				if (!XDOF_man)
-				{
-				cout<< "\n ElementListT::EchoElementData: "
-				      << "failed to cast node manager to "
-			              << "XDOF_ManagerT\n"
-				      << "     as needed with analysis code: " 
-				      << ElementT::kMultiplierContact2D << endl;
-				throw eBadInputValue;
-				}
-#endif /* __NO_RTTI__ */
+                        case kMultiplierContact2D:
+                                fArray[group]
+                                    = new MultiplierContact2DT(fFEManager);
+                                break;
 
-				fArray[group]
-				= new MultiplierContact2DT
-				          (fFEManager,XDOF_man);
-				break;
-			}
-			case ElementT::kAdhesionContact2D:
-				fArray[group] = new AdhesionContact2DT(fFEManager);
-				break;
 
 			default:
 			

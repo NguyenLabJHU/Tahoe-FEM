@@ -1,5 +1,5 @@
-/* $Id: nLinearHHTalpha.cpp,v 1.2 2001-08-27 17:12:11 paklein Exp $ */
-/* created: paklein (10/14/1996) */
+/* $Id: nLinearHHTalpha.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* created: paklein (10/14/1996)                                          */
 
 #include "nLinearHHTalpha.h"
 #include "dArrayT.h"
@@ -10,8 +10,7 @@
 
 /* constructor */
 nLinearHHTalpha::nLinearHHTalpha(ifstreamT& in, ostream& out, int auto2ndorder):
-	HHTalpha(in, out, auto2ndorder),
-	nControllerT(2)
+	HHTalpha(in, out, auto2ndorder)
 {
 
 }
@@ -20,9 +19,7 @@ nLinearHHTalpha::nLinearHHTalpha(ifstreamT& in, ostream& out, int auto2ndorder):
 void nLinearHHTalpha::ConsistentKBC(const KBC_CardT& KBC)
 {
 #if __option(extended_errorcheck)
-	if (fU[0] == NULL ||
-	    fU[1] == NULL ||
-	    fU[2] == NULL)
+	if (!fU || !fdU || !fddU)
 	{
 		cout << "\n nLinearHHTalpha::ConsistentKBC: field arrays not set" << endl;
 		throw eGeneralFail;
@@ -32,9 +29,9 @@ void nLinearHHTalpha::ConsistentKBC(const KBC_CardT& KBC)
 	/* destinations */
 	int node = KBC.Node();
 	int dof  = KBC.DOF();
-	double& d = (*fU[0])(node, dof);
-	double& v = (*fU[1])(node, dof);
-	double& a = (*fU[2])(node, dof);
+	double& d = (*fU)(node, dof);
+	double& v = (*fdU)(node, dof);
+	double& a = (*fddU)(node, dof);
 
 	switch (KBC.Code())
 	{
@@ -81,69 +78,65 @@ void nLinearHHTalpha::ConsistentKBC(const KBC_CardT& KBC)
 void nLinearHHTalpha::Predictor(void)
 {
 #if __option (extended_errorcheck)
-	if (fU[0] == NULL ||
-	    fU[1] == NULL ||
-	    fU[2] == NULL)
+	if (!fU || !fdU || !fddU)
 	{
 		cout << "\n nLinearHHTalpha::Predictor: field arrays not set" << endl;
 		throw eGeneralFail;
 	}
-	if (fU[0]->Length() != fU[1]->Length() ||
-	    fU[1]->Length() != fU[2]->Length()) throw eGeneralFail;
+	if (fU->Length() != fdU->Length() ||
+	   fdU->Length() != fddU->Length()) throw eGeneralFail;
 #endif
 	
 	/* save values from t_n (need by HHT-alpha) */
-	dn = *fU[0];
-	vn = *fU[1];
+	dn = *fU;
+	vn = *fdU;
 
 	/* displacement predictor */
-	fU[0]->AddCombination(dpred_v, *fU[1], dpred_a, *fU[2]);
+	fU->AddCombination(dpred_v, *fdU, dpred_a, *fddU);
 
 	/* velocity predictor */
-	fU[1]->AddScaled(vpred_a, *fU[2]);
+	fdU->AddScaled(vpred_a, *fddU);
 }		
 
 /* correctors - map ACTIVE */
-void nLinearHHTalpha::Corrector(const iArray2DT& eqnos, const dArrayT& update,
-	int eq_start, int eq_stop)
+void nLinearHHTalpha::Corrector(const iArray2DT& eqnos, const dArrayT& update)
 {
 #if __option (extended_errorcheck)
-	if (fU[0] == NULL ||
-	    fU[1] == NULL ||
-	    fU[2] == NULL)
+	if (!fU || !fdU || !fddU)
 	{
 		cout << "\n nLinearHHTalpha::Corrector: field arrays not set" << endl;
 		throw eGeneralFail;
 	}
-	if (eqnos.Length() != fU[0]->Length()   ||
-	   fU[0]->Length() != fU[1]->Length()  ||
-	   fU[1]->Length() != fU[2]->Length() ||
-       fU[2]->Length() != dn.Length()    ||
+	if (eqnos.Length() != fU->Length()   ||
+	      fU->Length() != fdU->Length()  ||
+	     fdU->Length() != fddU->Length() ||
+		fddU->Length() != dn.Length()    ||
 		   dn.Length() != vn.Length()) throw eGeneralFail;		
-	/* note: no check on length of update. */
+	/* note: no check on length of update.  could make numequations
+	         a field in ControllerT. */
 #endif
 
 	/* displacement */
-	(*fU[0]) *= dcorr_dpred;
-	fU[0]->AddScaled(dcorr_d, dn);
+	(*fU) *= dcorr_dpred;
+	fU->AddScaled(dcorr_d, dn);
 
 	/* velocity */
-	(*fU[1]) *= vcorr_vpred;
-	fU[1]->AddScaled(vcorr_v, vn);
+	(*fdU) *= vcorr_vpred;
+	fdU->AddScaled(vcorr_v, vn);
 
 	/* add update - assumes that fEqnos maps directly into dva */
 	int    *peq = eqnos.Pointer();
-	double *pd  = fU[0]->Pointer();
-	double *pv  = fU[1]->Pointer();
-	double *pa  = fU[2]->Pointer();
+	double *pd  = fU->Pointer();
+	double *pv  = fdU->Pointer();
+	double *pa  = fddU->Pointer();
 	for (int i = 0; i < eqnos.Length(); i++)
 	{
-		int eq = *peq++ - eq_start;
+		int eq = *peq++;
 		
 		/* active dof */
-		if (eq > -1 && eq < eq_stop)
+		if (eq > 0)
 		{
-			double a = update[eq];
+			double a = update[--eq]; //OFFSET
 		
 			*pd += dcorr_a*a;
 			*pv += vcorr_a*a;
@@ -158,12 +151,10 @@ void nLinearHHTalpha::Corrector(const iArray2DT& eqnos, const dArrayT& update,
 }
 
 void nLinearHHTalpha::MappedCorrector(const iArrayT& map, const iArray2DT& flags,
-	const dArray2DT& update, int eq_start, int eq_stop)
+	const dArray2DT& update)
 {
 #if __option (extended_errorcheck)
-	if (fU[0] == NULL ||
-	    fU[1] == NULL ||
-	    fU[2] == NULL)
+	if (!fU || !fdU || !fddU)
 	{
 		cout << "\n nLinearHHTalpha::MappedCorrector: field arrays not set" << endl;
 		throw eGeneralFail;
@@ -174,7 +165,7 @@ void nLinearHHTalpha::MappedCorrector(const iArrayT& map, const iArray2DT& flags
 	if (flags.MajorDim() != map.Length() ||
 	    flags.MajorDim() != update.MajorDim() ||
 	    flags.MinorDim() != update.MinorDim() ||
-	    flags.MinorDim() != fU[0]->MinorDim()) throw eSizeMismatch;
+	    flags.MinorDim() != fU->MinorDim()) throw eSizeMismatch;
 
 	/* run through map */
 	int minordim = flags.MinorDim();
@@ -185,13 +176,13 @@ void nLinearHHTalpha::MappedCorrector(const iArrayT& map, const iArray2DT& flags
 		int row = map[i];
 		int* pflags = flags(i);
 
-		double* pd = (*fU[0])(row);
-		double* pv = (*fU[1])(row);
-		double* pa = (*fU[2])(row);
+		double* pd = (*fU)(row);
+		double* pv = (*fdU)(row);
+		double* pa = (*fddU)(row);
 		for (int j = 0; j < minordim; j++)
 		{
 			/* active */
-			if (*pflag >= eq_start && *pflag <= eq_stop)
+			if (*pflag++ > 0)
 			{
 				double a = *pupdate;
 			
@@ -201,23 +192,9 @@ void nLinearHHTalpha::MappedCorrector(const iArrayT& map, const iArray2DT& flags
 			}
 			
 			/* next */
-			pflag++; pupdate++; pd++; pv++; pa++;
+			pupdate++; pd++; pv++; pa++;
 		}
 	}
-}
-
-/* return the field array needed by nControllerT::MappedCorrector. */
-const dArray2DT& nLinearHHTalpha::MappedCorrectorField(void) const
-{
-#if __option (extended_errorcheck)
-	if (fU[2] == NULL)
-	{
-		cout << "\n nLinearHHTalpha::MappedCorrectorField: field arrays not set" << endl;
-		throw eGeneralFail;
-	}
-#endif
-
-	return *fU[2];
 }
 
 /* pseudo-boundary conditions for external nodes */

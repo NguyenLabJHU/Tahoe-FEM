@@ -1,10 +1,9 @@
-/* $Id: FiniteStrainT.cpp,v 1.7 2001-09-15 01:13:32 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.2 2001-07-03 01:34:50 paklein Exp $ */
 
 #include "FiniteStrainT.h"
 #include "ShapeFunctionT.h"
 #include "FDStructMatT.h"
-#include "MaterialList2DT.h"
-#include "MaterialList3DT.h"
+#include "MaterialListT.h"
 
 /* constructor */
 FiniteStrainT::FiniteStrainT(FEManagerT& fe_manager):
@@ -21,34 +20,29 @@ void FiniteStrainT::Initialize(void)
 	ElasticT::Initialize();
 
 	/* what's needed */
-	bool need_F = false;
+	bool need_F      = false;
 	bool need_F_last = false;
-	for (int i = 0; i < fMaterialList->Length(); i++)
+	for (int i = 0; i < fMaterialNeeds.Length(); i++)
 	{
-		need_F = need_F || Needs_F(i);		
-		need_F_last = need_F_last || Needs_F_last(i);
-	}	
+		const ArrayT<bool>& needs = fMaterialNeeds[i];
+		need_F = need_F || needs[fNeedsOffset + kF];
+		need_F_last = need_F_last || needs[fNeedsOffset + kF_last];
+	}
 
 	/* allocate deformation gradient list */
 	if (need_F)
 	{
-		int nip = NumIP();
-		int nsd = NumSD();
-		fF_all.Allocate(nip*nsd*nsd);
-		fF_List.Allocate(nip);
-		for (int i = 0; i < nip; i++)
-			fF_List[i].Set(nsd, nsd, fF_all.Pointer(i*nsd*nsd));
+		fF_List.Allocate(NumIP());
+		for (int i = 0; i < NumIP(); i++)
+			fF_List[i].Allocate(NumSD());
 	}
 	
 	/* allocate "last" deformation gradient list */
 	if (need_F_last)
 	{
-		int nip = NumIP();
-		int nsd = NumSD();
-		fF_last_all.Allocate(nip*nsd*nsd);
-		fF_last_List.Allocate(nip);
-		for (int i = 0; i < nip; i++)
-			fF_last_List[i].Set(nsd, nsd, fF_last_all.Pointer(i*nsd*nsd));
+		fF_last_List.Allocate(NumIP());
+		for (int i = 0; i < NumIP(); i++)
+			fF_last_List[i].Allocate(NumSD());
 	}
 }
 
@@ -91,17 +85,6 @@ void FiniteStrainT::ComputeGradient_reference(const LocalArrayT& u, dMatrixT& gr
 * Protected
 ***********************************************************************/
 
-/* construct materials manager and read data */
-MaterialListT* FiniteStrainT::NewMaterialList(int size) const
-{
-	if (fNumSD == 2)
-		return new MaterialList2DT(size, *this);
-	else if (fNumSD == 3)
-		return new MaterialList3DT(size, *this);
-	else
-		return NULL;			
-}
-
 /* construct list of materials from the input stream */
 void FiniteStrainT::ReadMaterialData(ifstreamT& in)
 {
@@ -134,22 +117,21 @@ void FiniteStrainT::ReadMaterialData(ifstreamT& in)
 	}
 }
 
-/* form shape functions and derivatives */
+/* increment current element */
 void FiniteStrainT::SetGlobalShape(void)
 {
 	/* inherited */
 	ElasticT::SetGlobalShape();
-	
-	/* what needs to get computed */
+
+	/* material information */
 	int material_number = CurrentElement().MaterialNumber();
-	bool needs_F = Needs_F(material_number);
-	bool needs_F_last = Needs_F_last(material_number);
+	const ArrayT<bool>& needs = fMaterialNeeds[material_number];
 	
 	/* loop over integration points */
 	for (int i = 0; i < NumIP(); i++)
 	{
 		/* deformation gradient */
-		if (needs_F)
+		if (needs[fNeedsOffset + kF])
 		{
 			dMatrixT& mat = fF_List[i];
 
@@ -161,7 +143,7 @@ void FiniteStrainT::SetGlobalShape(void)
 		}
 
 		/* "last" deformation gradient */
-		if (needs_F_last)
+		if (needs[fNeedsOffset + kF_last])
 		{
 			dMatrixT& mat = fF_last_List[i];
 
@@ -172,47 +154,4 @@ void FiniteStrainT::SetGlobalShape(void)
 			mat.PlusIdentity();
 		}
 	}
-}
-
-/* calculate the damping force contribution ("-c*v") */
-void FiniteStrainT::FormCv(double constC)
-{
-#pragma unused(constC)
-//NOTE: this "linear" damping was needed only to support
-//      Rayleigh damping for linear problems. Will be removed 
-//      soon.
-
-#if 0
-//approximate?
-	/* clear workspace */
-	fLHS = 0.0;
-	fStressStiff = 0.0;
-
-	/* form tangent stiffness */
-	FormStiffness(constC);
-	fLHS.CopySymmetric();
-
-	/* reorder */
-	fLocVel.ReturnTranspose(fTemp2);
-	
-	/* C*v */
-	fLHS.MultTx(fTemp2, fNEEvec);
-	
-	/* Accumulate */
-	fRHS += fNEEvec;
-#endif
-}
-
-/* write all current element information to the stream */
-void FiniteStrainT::CurrElementInfo(ostream& out) const
-{
-	/* inherited */
-	ElasticT::CurrElementInfo(out);
-	
-	/* write deformation gradients */
-	out << "\n i.p. deformation gradients:\n";
-	for (int i = 0; i < fF_List.Length(); i++)
-		out << " ip: " << i+1 << '\n'
-		    << fF_List[i] << '\n';
-	out << '\n';
 }

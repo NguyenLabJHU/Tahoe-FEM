@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.2 2001-07-19 06:48:06 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.1.1.1 2001-01-29 08:20:21 paklein Exp $ */
 /* created: paklein (09/21/1997)                                          */
 /* Manager for file driven finite element simulations                     */
 
@@ -58,7 +58,7 @@ private:
 	/* generate decomposition data */
 	void Decompose(ifstreamT& in, int size, const StringT& model_file,
 		const StringT& global_model_file, IOBaseT::FileTypeT format,
-		const StringT& output_map_file, int method) const;
+		const StringT& output_map_file) const;
 
 	/* returns true if a new decomposition is needed */
 	bool NeedDecomposition(ifstreamT& in, const StringT& model_file,

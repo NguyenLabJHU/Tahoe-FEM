@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.10 2001-09-15 01:20:34 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.7 2001-07-03 01:35:28 paklein Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList2DT.h"
@@ -33,12 +33,10 @@
 #include "D2VIB2D_a.h"
 #include "OgdenIsoVIB2D.h"
 #include "ABAQUS_BCJ.h"
-#include "ABAQUS_VUMAT_BCJ.h"
 #include "QuadLogOgden2DT.h"
 #include "OgdenViscVIB2D.h"
 #include "SKStVT2D.h"
 #include "tevp2D.h"
-#include "povirk2D.h"
 
 #include "HyperEVP2D.h"
 #include "BCJHypo2D.h"
@@ -297,15 +295,6 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				fHasHistory = true;
 				break;
 			}
-		        case kPovirk2D:
-			{
-				/* check */
-				if (!fFiniteStrain) Error_no_finite_strain(cout, matcode);
-			
-				fArray[matnum] = new povirk2D(in, *fFiniteStrain);
-				fHasHistory = true;
-				break;
-			}
 			case kHyperEVP:
 			{
 				/* check */
@@ -357,18 +346,6 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 #else
 				cout << "\n SolidMatList2DT::ReadMaterialData: model requires f2c support: "
 				     << kABAQUS_BCJ << endl;
-				throw eBadInputValue;
-#endif /* __F2C__ */
-				break;
-			}
-			case kABAQUS_VUMAT_BCJ:
-			{
-#ifdef __F2C__
-				fArray[matnum] = new ABAQUS_VUMAT_BCJ(in, *fFiniteStrain);
-				fHasHistory = true;
-#else
-				cout << "\n SolidMatList2DT::ReadMaterialData: model requires f2c support: "
-				     << kABAQUS_VUMAT_BCJ << endl;
 				throw eBadInputValue;
 #endif /* __F2C__ */
 				break;
@@ -439,10 +416,10 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 		if (!pmat) throw eOutOfMemory;
 		
 		/* set thermal LTf pointer */
-		int LTfnum = pmat->ThermalStrainSchedule();
+		int LTfnum = pmat->ThermalLTfNumber();
 		if (LTfnum > -1)
 		{
-			pmat->SetThermalSchedule(fElementGroup.GetLTfPtr(LTfnum));
+			pmat->SetThermalLTfPtr(fElementGroup.GetLTfPtr(LTfnum));
 			
 			/* set flag */
 			fHasThermal = true;

@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.3 2001-09-11 06:01:45 paklein Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
 /* created: paklein (02/25/1997)                                          */
 
 #include "PenaltyWallT.h"
@@ -11,7 +11,6 @@
 #include "fstreamT.h"
 #include "FEManagerT.h"
 #include "eControllerT.h"
-#include "Vector3T.h"
 
 const double Pi = acos(-1.0);
 
@@ -37,14 +36,12 @@ PenaltyWallT::PenaltyWallT(FEManagerT& fe_manager,
 /* tangent */
 void PenaltyWallT::ApplyLHS(void)
 {	
-#if 0
 	//TEMP
 	if (fmu > kSmall)
 	{
 		cout << "\n PenaltyWallT::ApplyLHS: tangent is frictionless only" << endl;
 		throw eGeneralFail;
 	}
-#endif
 
 	double constK = 0.0;
 	int formK = fController->FormK(constK);
@@ -78,35 +75,36 @@ void PenaltyWallT::EchoData(ifstreamT& in, ostream& out)
 	PenaltyRegionT::EchoData(in, out);
 
 	/* echo parameters */
-	in >> fnormal; fnormal.UnitVector();
-	out << " Wall normal:\n" << fnormal << '\n';
+	in >> ftheta;
+	in >> fmu;    if (fmu < 0.0) throw eBadInputValue;
+
+	out << " Orientation of normal wrt x-axis (degrees). . . = " << ftheta << '\n';
+	out << " Penalty stiffness . . . . . . . . . . . . . . . = " << fk << '\n';
+
+	/* compute normal, tangent, and Q */
+	ftheta *= Pi/180.0;
 	
-	/* transformation tensor */
 	if (rCoords.MinorDim() == 2)
 	{
-		/* set column vectors */
-		fQ.SetCol(0, fnormal);
-		fQ(0,1) =-fnormal[1];
-		fQ(1,1) = fnormal[0];
-	}
-	else if (rCoords.MinorDim() == 3)
-	{
-		Vector3T<double> v0(fnormal.Pointer()), v1, v2; 
-		
-		/* find non-colinear directions */
-		int i = 0;
-		v2.Random(++i);
-		while (v2.Norm() < 1.0e-06 || Vector3T<double>::Dot(v0,v2) > 0.99)
-			v2.Random(++i);	
-		v1.Cross(v0,v2);
-		v2.Cross(v0,v1);
+		fnormal[0] = cos(ftheta);
+		fnormal[1] = sin(ftheta);
 
-		/* write column vectors */
-		fQ.SetCol(0,v0);
-		fQ.SetCol(1,v1);
-		fQ.SetCol(2,v2);
+		fQ(0,0) = fQ(1,1) = cos(ftheta);
+		fQ(1,0) = sin(ftheta);
+		fQ(0,1) =-sin(ftheta);
 	}
-	else throw eGeneralFail;
+	else // 3D still only has rotation about z-axis
+	{
+		fnormal[0] = cos(ftheta);
+		fnormal[1] = sin(ftheta);
+		fnormal[2] = 0.0;
+
+		fQ = 0.0;
+		fQ(0,0) = fQ(1,1) = cos(ftheta);
+		fQ(1,0) = sin(ftheta);
+		fQ(0,1) =-sin(ftheta);
+		fQ(2,2) = 1.0;
+	}
 }
 
 /* initialize data */
@@ -128,8 +126,7 @@ void PenaltyWallT::Initialize(void)
 void PenaltyWallT::ComputeContactForce(double kforce)
 {
 	/* with "friction */
-//	if (fmu > kSmall)
-	if (false)
+	if (fmu > kSmall)
 	{
 		//TEMP
 		cout << "\n PenaltyWallT::ComputeContactForce: general (2D/3D) friction implementation\n";

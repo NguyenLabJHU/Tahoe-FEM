@@ -1,4 +1,4 @@
-/* $Id: IOManager_mpi.cpp,v 1.5 2001-07-19 18:12:25 paklein Exp $ */
+/* $Id: IOManager_mpi.cpp,v 1.3 2001-05-30 23:25:10 paklein Exp $ */
 /* created: paklein (03/14/2000)                                          */
 
 #include "IOManager_mpi.h"
@@ -187,7 +187,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 	ArrayT<iArrayT> elements(num_sets);
 	for (int i = 0; i < num_sets; i++)
 	{
-		OutputSetT& set = *(element_sets[i]);
+		const OutputSetT& set = *(element_sets[i]);
 	
 		/* nodal output */
 		if (set.NodeOutputLabels().Length() > 0)
@@ -264,7 +264,7 @@ void IOManager_mpi::SetCommunication(const IOManager& local_IO)
 //###########################################################
 
 			/* global nodes used by the set */
-			OutputSetT& set = *((fOutput->ElementSets())[k]);
+			const OutputSetT& set = *((fOutput->ElementSets())[k]);
 			const iArrayT& global_nodes_used = set.NodesUsed();
 
 			/* allocate assembly maps */
@@ -489,7 +489,7 @@ void IOManager_mpi::CheckAssemblyMaps(void)
 		if (fIO_map[i] == Rank())
 		{
 			/* output set data */
-			OutputSetT& set = *(element_sets[i]);
+			const OutputSetT& set = *(element_sets[i]);
 			
 			/* check node maps */
 			if (set.NumNodeValues() > 0)

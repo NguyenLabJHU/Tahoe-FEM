@@ -1,5 +1,5 @@
-/* $Id: D2MeshFreeSupport2DT.h,v 1.4 2001-07-13 02:17:38 paklein Exp $ */
-/* created: paklein (10/23/1999) */
+/* $Id: D2MeshFreeSupport2DT.h,v 1.3 2001-07-03 01:35:52 paklein Exp $ */
+/* created: paklein (10/23/1999)                                          */
 
 #ifndef _D2_MF_SUPPORT_2D_T_H_
 #define _D2_MF_SUPPORT_2D_T_H_
@@ -7,25 +7,15 @@
 /* base class */
 #include "D2MeshFreeSupportT.h"
 
-/** class for support of meshfree field calculations up to second gradients 
- * in two dimensions. See base class documentation for information  about 
- * class initialization. */
- class D2MeshFreeSupport2DT: public D2MeshFreeSupportT
+class D2MeshFreeSupport2DT: public D2MeshFreeSupportT
 {
 public:
 
-	/** constructor.
-	 * \param domain used to determine the location of integration points
-	 * \param coords array of all particle coordinates 
-	 * \param connects integration cell connectivities 
-	 * \param nongridnodes index of paricles not included in the connectivities
-	 * \param in input stream for class and window function parameters */
+	/* constructor */
 	D2MeshFreeSupport2DT(const ParentDomainT& domain, const dArray2DT& coords,
 		const iArray2DT& connects, const iArrayT& nongridnodes, ifstreamT& in);
 
-	/** set cutting field facets. 
-	 * \param facet_coords list of coordinate for each facet: [nfacets] x [num_facet_nodes*nsd] 
-	 * \param num_facet_nodes number of nodes defining each facet */
+	/* cutting facet functions */
 	virtual void SetCuttingFacets(const dArray2DT& facet_coords, int num_facet_nodes);
 
 private:

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.4 2001-07-13 02:27:27 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.3 2001-07-03 01:34:55 paklein Exp $ */
 /* created: paklein (11/12/1999)                                          */
 
 #include "MeshFreeElementSupportT.h"
@@ -236,7 +236,7 @@ void MeshFreeElementSupportT::TraceNode(ostream& out, int node, const ElementBas
 
 	/* nodal support size */
 	dArray2DT nodal_params(neighbors.Length(), mf_support.NodalParameters().MinorDim());
-	mf_support.GetSupportParameters(neighbors, nodal_params);
+	mf_support.GetNodalParameters(neighbors, nodal_params);
 
 	/* write */
 	out << setw(kIntWidth) << "node"
@@ -276,7 +276,7 @@ void MeshFreeElementSupportT::TraceNode(ostream& out, int node, const ElementBas
 	
 			/* nodal support size */
 			dArray2DT nodal_params(neighbors.Length(), mf_support.NodalParameters().MinorDim());
-			mf_support.GetSupportParameters(neighbors, nodal_params);
+			mf_support.GetNodalParameters(neighbors, nodal_params);
 
 			/* write header */
 			out << setw(kIntWidth) << "node"

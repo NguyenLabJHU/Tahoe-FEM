@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman2DT.cpp,v 1.3 2001-08-23 21:26:30 jwfoulk Exp $ */
+/* $Id: XuNeedleman2DT.cpp,v 1.2 2001-04-04 22:11:19 paklein Exp $ */
 /* created: paklein (11/14/1997)                                          */
 
 #include "XuNeedleman2DT.h"
@@ -11,7 +11,7 @@
 
 /* class parameters */
 const int    knumDOF = 2;
-const double kExpMax = 100;
+const double kExpMax = 20;
 
 /* constructor */
 XuNeedleman2DT::XuNeedleman2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
@@ -228,6 +228,5 @@ void XuNeedleman2DT::Print(ostream& out) const
 	out << " Characteristic normal opening to failure. . . . = " << d_n     << '\n';
 	out << " Characteristic tangential opening to failure. . = " << d_t     << '\n';
 	out << " Mode I work to fracture (phi_n) . . . . . . . . = " << phi_n   << '\n';
-	out << " Failure ratio (d_n/delta_n or d_t/delta_t). . . = " << r_fail   << '\n';
 	out << " Penetration stiffness multiplier. . . . . . . . = " << fKratio << '\n';
 }

@@ -1,14 +1,13 @@
-/* $Id: ShapeFunctionT.cpp,v 1.5 2001-08-21 01:10:32 paklein Exp $ */
+/* $Id: ShapeFunctionT.cpp,v 1.1.1.1 2001-01-29 08:20:31 paklein Exp $ */
 /* created: paklein (06/26/1996)                                          */
 
 #include "ShapeFunctionT.h"
 #include "ParentDomainT.h"
 #include "LocalArrayT.h"
-#include "dSymMatrixT.h"
 
 /* constructor */
 ShapeFunctionT::ShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
-	const LocalArrayT& coords, StrainOptionT B_option):
+	const LocalArrayT& coords, int B_option):
 DomainIntegrationT(geometry_code, numIP, coords.NumberOfNodes()),
 	fCoords(coords),
 	fB_option(B_option),
@@ -55,17 +54,6 @@ void ShapeFunctionT::SetDerivatives(void)
 	fDomain->ComputeDNa(fCoords, fDNaX, fDet);
 }
 
-/* field gradients at specific parent domain coordinates. */
-void ShapeFunctionT::GradU(const LocalArrayT& nodal, dMatrixT& grad_U, 
-	const dArrayT& coord) const
-{
-#pragma unused(nodal)
-#pragma unused(grad_U)
-#pragma unused(coord)
-	cout << "\n ShapeFunctionT::GradU: not implemented yet" << endl;
-	throw eGeneralFail;
-}
-
 /************************ for the current integration point *********************/
 void ShapeFunctionT::InterpolateU(const LocalArrayT& nodal,
 	dArrayT& u) const
@@ -84,13 +72,13 @@ void ShapeFunctionT::InterpolateU(const LocalArrayT& nodal,
 void ShapeFunctionT::B(const dArray2DT& DNa, dMatrixT& B_matrix) const
 {
 #if __option(extended_errorcheck)
-	if (B_matrix.Rows() != dSymMatrixT::NumValues(DNa.MajorDim()) ||
-	    B_matrix.Cols() != DNa.Length())
-	    throw eSizeMismatch;
+	if (DNa.MajorDim() != (*pDNaU)[fCurrIP].MajorDim() ||
+	    DNa.MinorDim() != (*pDNaU)[fCurrIP].MinorDim())
+	    throw eGeneralFail;
 #endif
 
 	int numnodes = DNa.MinorDim();
-	double*   pB = B_matrix.Pointer();
+double*   pB = B_matrix.Pointer();
 
 	/* standard strain-displacement operator */
 	if (fB_option == kStandardB)
@@ -233,12 +221,12 @@ void ShapeFunctionT::B(const dArray2DT& DNa, dMatrixT& B_matrix) const
 void ShapeFunctionT::GradNa(const dArray2DT& DNa, dMatrixT& grad_Na) const
 {
 #if __option(extended_errorcheck)
-	if (DNa.MajorDim() != grad_Na.Rows() ||
-	    DNa.MinorDim() != grad_Na.Cols())
-	    throw eSizeMismatch;
+	if (DNa.MajorDim() != (*pDNaU)[fCurrIP].MajorDim() ||
+	    DNa.MinorDim() != (*pDNaU)[fCurrIP].MinorDim())
+	    throw eGeneralFail;
 #endif
 
-	int numsd    = DNa.MajorDim();
+int numsd    = DNa.MajorDim();
 	int numnodes = DNa.MinorDim();
 	double* p    = grad_Na.Pointer();
 
@@ -314,6 +302,43 @@ double*   pB = B_matrix.Pointer();
 	}
 }
 
+/* extrapolate integration point values to the nodes
+*    IPvalues[numvals] : values from a single integration point
+*    nodalvalues[fNumNodes x numvals] : extrapolated values */
+void ShapeFunctionT::Extrapolate(const dArrayT& IPvalues,
+	dArray2DT& nodalvalues) const
+{
+	fDomain->NodalValues(IPvalues, nodalvalues, CurrIP());
+}	
+
+/* convert shape function derivatives by applying a chain rule
+* transformation:
+*
+*      d Na / d x_i = (d Na / d X_J) (d X_J/d x_i)
+*/
+void ShapeFunctionT::SetChainRule(const dMatrixT& changeofvar,
+	dArray2DT& derivatives)
+{
+	dArray2DT& DNa = (*pDNaU)[fCurrIP];
+	int   numnodes = DNa.MinorDim();
+
+	/* allocate memory */
+	derivatives.Allocate(DNa.MajorDim(),numnodes);
+
+	/* apply chain rule derivative */
+	for (int i = 0; i < numnodes; i++)
+	{
+		/* fetch values */
+		DNa.ColumnCopy(i,fv1);
+
+		/* transform */
+		changeofvar.MultTx(fv1,fv2);
+		
+		/* write back */	
+		derivatives.SetColumn(i,fv2);
+	}
+}
+
 /********************************************************************************/
 
 /* print the shape function values to the output stream */
@@ -335,32 +360,6 @@ void ShapeFunctionT::Print(ostream& out) const
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
-
-void ShapeFunctionT::DoTransformDerivatives(const dMatrixT& changeofvar, 
-	const dArray2DT& original, dArray2DT& transformed)
-{
-	int  numnodes = original.MinorDim();
-
-	/* allocate memory */
-	transformed.Allocate(original.MajorDim(),numnodes);
-
-	/* apply chain rule derivative */
-	for (int i = 0; i < numnodes; i++)
-	{
-		/* fetch values */
-		original.ColumnCopy(i,fv1);
-
-		/* transform */
-		changeofvar.MultTx(fv1,fv2);
-		
-		/* write back */	
-		transformed.SetColumn(i,fv2);
-	}
-}
-
-/***********************************************************************
 * Private
 ***********************************************************************/
 
@@ -373,7 +372,7 @@ void ShapeFunctionT::Construct(void)
 	    fCoords.Type() != LocalArrayT::kCurrCoords) throw eGeneralFail;
 
 	/* dimensions */
-	int numXnodes = fCoords.NumberOfNodes();
+int numXnodes = fCoords.NumberOfNodes();
 	int numUnodes = numXnodes; // assume isoparametric
 	int numsd     = fCoords.MinorDim();
 

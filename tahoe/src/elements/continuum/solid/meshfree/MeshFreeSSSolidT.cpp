@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSSSolidT.cpp,v 1.4 2001-07-05 20:32:00 paklein Exp $ */
+/* $Id: MeshFreeSSSolidT.cpp,v 1.3 2001-06-19 23:22:01 paklein Exp $ */
 /* created: paklein (09/11/1998)                                          */
 /* small strain elasticity with MLS shapefunctions for the                */
 /* field (displacement) representation                                    */
@@ -25,7 +25,7 @@ const double Pi = acos(-1.0);
 
 /* constructor */
 MeshFreeSSSolidT::MeshFreeSSSolidT(FEManagerT& fe_manager):
-	SmallStrainT(fe_manager),
+	SolidT(fe_manager),
 	MeshFreeFractureSupportT(fFEManager.Input()),
 	fB_wrap(10, fB)
 {
@@ -41,7 +41,7 @@ MeshFreeSSSolidT::MeshFreeSSSolidT(FEManagerT& fe_manager):
 void MeshFreeSSSolidT::Initialize(void)
 {
 	/* inherited */
-	SmallStrainT::Initialize();
+	SolidT::Initialize();
 
 	/* free memory associated with "other" eqnos */
 	fEqnos.Free(); // is this OK ? can't be freed earlier b/c of
@@ -206,7 +206,7 @@ void MeshFreeSSSolidT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 void MeshFreeSSSolidT::WriteOutput(IOBaseT::OutputModeT mode)
 {
 	/* inherited */
-	SmallStrainT::WriteOutput(mode);
+	SolidT::WriteOutput(mode);
 
 //TEMP - crack path
 	if (mode == IOBaseT::kAtInc)
@@ -226,7 +226,7 @@ void MeshFreeSSSolidT::WriteOutput(IOBaseT::OutputModeT mode)
 GlobalT::RelaxCodeT MeshFreeSSSolidT::RelaxSystem(void)
 {
 	/* inherited */
-	GlobalT::RelaxCodeT relax = SmallStrainT::RelaxSystem();
+	GlobalT::RelaxCodeT relax = SolidT::RelaxSystem();
 	if (HasActiveCracks())
 	{
 		/* check for crack growth */
@@ -304,7 +304,7 @@ void MeshFreeSSSolidT::ResetStep(void)
 void MeshFreeSSSolidT::PrintControlData(ostream& out) const
 {
 	/* inherited */
-	SmallStrainT::PrintControlData(out);
+	SolidT::PrintControlData(out);
 	MeshFreeFractureSupportT::PrintControlData(out);
 }
 
@@ -331,9 +331,9 @@ void MeshFreeSSSolidT::SetShape(void)
 bool MeshFreeSSSolidT::NextElement(void)
 {
 	/* inherited (skip inactive cells) */
-	bool OK = SmallStrainT::NextElement();
+	bool OK = SolidT::NextElement();
 	while (OK && CurrentElement().Flag() != 1)
-		OK = SmallStrainT::NextElement();
+		OK = SolidT::NextElement();
 	
 	/* configure for current element */
 	if (OK)
@@ -359,7 +359,7 @@ void MeshFreeSSSolidT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values
 	if (n_codes[iNodalDisp] == fNumDOF) SetNodalField(fNodes->Displacements());
 
 	/* inherited */
-	SmallStrainT::ComputeOutput(n_codes, n_values, e_codes, e_values);
+	SolidT::ComputeOutput(n_codes, n_values, e_codes, e_values);
 
 	/* free work space memory */
 	if (n_codes[iNodalDisp] == fNumDOF) FreeNodalField();
