@@ -1,5 +1,5 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.6 2002-01-27 18:51:05 paklein Exp $ */
-/* created: paklein (11/12/1999)                                          */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.7 2002-06-08 20:20:25 paklein Exp $ */
+/* created: paklein (11/12/1999) */
 
 #include "MeshFreeElementSupportT.h"
 
@@ -8,12 +8,9 @@
 #include "MeshFreeShapeFunctionT.h"
 #include "ElementCardT.h"
 #include "MeshFreeSupportT.h"
+#include "ElementBaseT.h"
 
 #include "ModelManagerT.h"
-
-/* needed for TraceNode */
-#include "FEManagerT.h"
-#include "ElementBaseT.h"
 
 /* parameters */
 const int kHeadRoom = 10; // percent
@@ -218,7 +215,7 @@ void MeshFreeElementSupportT::TraceNode(ostream& out, int node, const ElementBas
 	out << "\n MeshFreeElementSupportT::TraceNode: " << node + 1 << endl;
 
 	/* node map */
-	const iArrayT* node_map = element_group.FEManager().NodeMap();
+	const iArrayT* node_map = element_group.ElementSupport().NodeMap();
 
 	/* shape function data */
 	MeshFreeSupportT& mf_support = fMFShapes->MeshFreeSupport();
@@ -258,7 +255,7 @@ void MeshFreeElementSupportT::TraceNode(ostream& out, int node, const ElementBas
 		{
 			/* cell map */
 			const StringT& block_ID = element_group.ElementBlockID(j);
-			const iArrayT* element_map = element_group.FEManager().ElementMap(block_ID);
+			const iArrayT* element_map = element_group.ElementSupport().ElementMap(block_ID);
 		
 			out << "    block ID: " << block_ID << '\n';
 			out << "(local) cell: " << j + 1 << '\n';

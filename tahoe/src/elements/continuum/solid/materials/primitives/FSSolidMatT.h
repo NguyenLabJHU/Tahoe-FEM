@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.4 2001-10-24 02:13:20 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.5 2002-06-08 20:20:45 paklein Exp $ */
 /* created: paklein (06/09/1997) */
 
 #ifndef _FD_STRUCT_MAT_T_H_
@@ -197,6 +197,10 @@ private:
 	 * of the deformation gradient, if there are thermal strain. Otherwise,
 	 * is unused. */
 	dMatrixT fF_mechanical;
+	
+	/** true if temperature field found during FSSolidMatT::Initialize */
+	bool fTemperatureField;
+	dArrayT fTemperature;
 };
 
 #endif /* _FD_STRUCT_MAT_T_H_ */

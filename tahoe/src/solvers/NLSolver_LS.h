@@ -1,5 +1,5 @@
-/* $Id: NLSolver_LS.h,v 1.1.1.1 2001-01-29 08:20:33 paklein Exp $ */
-/* created: paklein (08/18/1999)                                          */
+/* $Id: NLSolver_LS.h,v 1.2 2002-06-08 20:20:55 paklein Exp $ */
+/* created: paklein (08/18/1999) */
 
 #ifndef _NL_SOLVER_LS_H_
 #define _NL_SOLVER_LS_H_
@@ -10,12 +10,13 @@
 /* direct members */
 #include "dArray2DT.h"
 
+/** nonlinear Newton solver with line search */
 class NLSolver_LS: public NLSolver
 {
 public:
 
 	/* constructor */
-	NLSolver_LS(FEManagerT& fe_manager);
+	NLSolver_LS(FEManagerT& fe_manager, int group);
 
 	/* form and solve the equation system - returns the magnitude of the
 	 * residual */

@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.cpp,v 1.8 2002-04-16 21:19:33 cjkimme Exp $ */
+/* $Id: TvergHutch2DT.cpp,v 1.9 2002-06-08 20:20:17 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 
 #include "TvergHutch2DT.h"
@@ -44,6 +44,7 @@ double TvergHutch2DT::FractureEnergy(const ArrayT<double>& state)
 
 double TvergHutch2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
 {
+#pragma unused(state)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
@@ -79,6 +80,8 @@ double TvergHutch2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& sta
 /* traction vector given displacement jump vector */	
 const dArrayT& TvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
 {
+#pragma unused(state)
+#pragma unused(sigma)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
@@ -113,6 +116,8 @@ const dArrayT& TvergHutch2DT::Traction(const dArrayT& jump_u, ArrayT<double>& st
 /* potential stiffness */
 const dMatrixT& TvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
 {
+#pragma unused(state)
+#pragma unused(sigma)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
@@ -242,6 +247,7 @@ const dMatrixT& TvergHutch2DT::Stiffness(const dArrayT& jump_u, const ArrayT<dou
 SurfacePotentialT::StatusT TvergHutch2DT::Status(const dArrayT& jump_u, 
 	const ArrayT<double>& state)
 {
+#pragma unused(state)
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
 #endif
@@ -291,6 +297,7 @@ void TvergHutch2DT::OutputLabels(ArrayT<StringT>& labels) const
 void TvergHutch2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& state,
 	dArrayT& output)
 {
+#pragma unused(state)
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
 #endif

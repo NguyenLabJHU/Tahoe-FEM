@@ -1,5 +1,5 @@
-/* $Id: NLSolver_LS.cpp,v 1.2 2002-04-02 23:27:27 paklein Exp $ */
-/* created: paklein (08/18/1999)                                          */
+/* $Id: NLSolver_LS.cpp,v 1.3 2002-06-08 20:20:55 paklein Exp $ */
+/* created: paklein (08/18/1999) */
 
 #include "NLSolver_LS.h"
 
@@ -12,8 +12,8 @@
 #include "FEManagerT.h"
 
 /* constructor */
-NLSolver_LS::NLSolver_LS(FEManagerT& fe_manager):
-	NLSolver(fe_manager)
+NLSolver_LS::NLSolver_LS(FEManagerT& fe_manager, int group):
+	NLSolver(fe_manager, group)
 {
 	ifstreamT& in = fFEManager.Input();
 	
@@ -53,7 +53,7 @@ double NLSolver_LS::SolveAndForm(bool newtangent)
 	if (newtangent)
 	{
 		fLHS->Clear();
-		fFEManager.FormLHS();
+		fFEManager.FormLHS(Group());
 	}
 	
 	/* store residual */
@@ -67,7 +67,7 @@ double NLSolver_LS::SolveAndForm(bool newtangent)
 								
 	/* compute new residual */
 	fRHS = 0.0;
-	fFEManager.FormRHS();
+	fFEManager.FormRHS(Group());
 
 	/* combine residual magnitude with update magnitude */
 	/* e = a1 |R| + a2 |delta_d|                        */
@@ -232,9 +232,9 @@ double NLSolver_LS::GValue(double step)
 	s_current = step;
 	
 	/* compute residual */
-	fFEManager.Update(fRHS);
+	fFEManager.Update(Group(), fRHS);
 	fRHS = 0.0;
-	try { fFEManager.FormRHS(); }
+	try { fFEManager.FormRHS(Group()); }
 
 	catch (int error)
 	{

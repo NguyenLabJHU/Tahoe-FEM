@@ -1,7 +1,5 @@
-/* $Id: VirtualRodT.cpp,v 1.2 2001-12-17 00:15:59 paklein Exp $ */
-/* created: paklein (05/01/1997)                                          */
-/* UnConnectedRodT plus virtual elements for periodic boundary            */
-/* conditions.                                                            */
+/* $Id: VirtualRodT.cpp,v 1.3 2002-06-08 20:20:27 paklein Exp $ */
+/* created: paklein (05/01/1997) */
 
 #include "VirtualRodT.h"
 
@@ -9,7 +7,6 @@
 
 #include "fstreamT.h"
 #include "Constants.h"
-#include "NodeManagerT.h"
 
 /* decoding VElPair data */
 const int kBoundaryNode = 0;
@@ -17,7 +14,8 @@ const int kVirtualNode  = 1;
 const int kActiveNode   = 2;
 
 /* constructor */
-VirtualRodT::VirtualRodT(FEManagerT& fe_manager): UnConnectedRodT(fe_manager)
+VirtualRodT::VirtualRodT(const ElementSupportT& support, const FieldT& field): 
+	UnConnectedRodT(support, field)
 {
 
 }
@@ -38,7 +36,7 @@ void VirtualRodT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		//accounted for in bandwidth reduction.
 
 	/* set local equations numbers */
-	fNodes->SetLocalEqnos(tempnodes, fEqnos[0]);
+	Field().SetLocalEqnos(tempnodes, fEqnos[0]);
 
 	/* add to list */
 	eq_1.Append(&fEqnos[0]);
@@ -88,12 +86,13 @@ void VirtualRodT::SwapVirtualNodes(iArray2DT& elnodelist) const
 	/* shallow work space */
 	iArrayT nodelist;
 	
+	int nen = NumElements();
 	for (int i = 0; i < fVNodeTriplets.MajorDim(); i++)
 	{
 		/* warning flag */
 		int found = 0;
 		
-		for (int el = 0; el < fNumElements; el++)	
+		for (int el = 0; el < nen; el++)	
 		{
 			/* fetch local node list */
 			elnodelist.RowAlias(el, nodelist);			

@@ -1,14 +1,5 @@
-/* $Id: MappedPeriodicT.h,v 1.3 2001-07-03 01:35:46 paklein Exp $ */
-/* created: paklein (04/07/1997)                                          */
-/* Manager class for finite deformation elasto-static with 2 additional   */
-/* types of kinematic boundary conditions:                                */
-/* (1) nodal position mapped forward using a                              */
-/* prescribed deformation gradient.                                       */
-/* (2) master-slave node pairs - applies to ALL the dof's                 */
-/* of the nodes in each pair.                                             */
-/* The deformation gradient is specified by the perturbation from         */
-/* an identity mapping:                                                   */
-/* F = 1 + LTf*F_perturb                                                  */
+/* $Id: MappedPeriodicT.h,v 1.4 2002-06-08 20:20:51 paklein Exp $ */
+/* created: paklein (04/07/1997) */
 
 #ifndef _MAPPED_PERIODIC_T_H
 #define _MAPPED_PERIODIC_T_H
@@ -21,14 +12,29 @@
 #include "iArrayT.h"
 #include "iArray2DT.h"
 #include "dArrayT.h"
-#include "LoadTime.h"
+#include "ScheduleT.h"
 
+/* forward declarations */
+class BasicFieldT;
+
+/** boundary condition class for finite deformation elasto-static with 2 
+ * additional types of kinematic boundary conditions:
+ * <ul>
+ * <li> nodal position mapped forward using a prescribed deformation gradient.
+ * <li> master-slave node pairs - applies to ALL the dof's of the nodes in each pair.
+ * </ul>
+ * The deformation gradient is specified by the perturbation from
+ * an identity mapping:
+ * \f[
+ * \mathbf{F}(t) = \mathbf{1} + s(t) \mathbf{F}_{perturb}
+ * \f]
+ */
 class MappedPeriodicT: public KBC_ControllerT
 {
 public:
 
 	/* constructor */
-	MappedPeriodicT(NodeManagerT& node_manager);
+	MappedPeriodicT(NodeManagerT& node_manager, BasicFieldT& field);
 
 	/* initialize data - called immediately after construction */
 	virtual void Initialize(ifstreamT& in);
@@ -45,9 +51,12 @@ public:
 	
 protected:
 
+	/** the field */
+	BasicFieldT& fField;
+
 	/* schedule for fFperturb */
 	int fnumLTf;
-	const LoadTime* fLTf;   	
+	const ScheduleT* fSchedule;   	
 	
 	/* specified deformation gradient */
 	dMatrixT fFperturb;
@@ -61,7 +70,7 @@ protected:
 	dArrayT   fD_sm; //used in SlaveNodes, (X_s - X_m)	
 	
 	/* dummy schedule for slave nodes */
-	LoadTime fDummySchedule;
+	ScheduleT fDummySchedule;
 
 	/* shallow copies to main list */
 	ArrayT<KBC_CardT> fMappedCards;

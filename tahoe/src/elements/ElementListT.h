@@ -1,5 +1,5 @@
-/* $Id: ElementListT.h,v 1.1.1.1 2001-01-29 08:20:34 paklein Exp $ */
-/* created: paklein (04/20/1998)                                          */
+/* $Id: ElementListT.h,v 1.2 2002-06-08 20:20:13 paklein Exp $ */
+/* created: paklein (04/20/1998) */
 
 #ifndef _ELEMENTLIST_T_H_
 #define _ELEMENTLIST_T_H_
@@ -8,24 +8,29 @@
 #include "pArrayT.h"
 #include "iArrayT.h"
 
+/* direct members */
+#include "ElementSupportT.h"
+
 /* forward declarations */
 #include "ios_fwd_decl.h"
 class ifstreamT;
-class FEManagerT;
 class ElementBaseT;
 class eControllerT;
 class StringT;
+class FEManagerT;
+class ElementSupportT;
 
+/** list of elements. Constructs list of element objects and
+ * provides some attributes. */
 class ElementListT: public pArrayT<ElementBaseT*>
 {
 public:
 
-	/* constructor */
-	ElementListT(FEManagerT& fe_manager);
-	
+	/** constructor */
+	ElementListT(void);
+
 	/* echo data from the I/O streams */
-	void EchoElementData(ifstreamT& in, ostream& out,
-		eControllerT* e_controller);
+	void EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe);
 	
 	/* returns true of ALL element groups have interpolant DOF's */
 	bool InterpolantDOFs(void) const;
@@ -36,7 +41,7 @@ public:
 private:
 
 	/* data needed for element contructors */
-	FEManagerT& fFEManager;
+	ElementSupportT fSupport;
 };
 
 #endif /* _ELEMENTLIST_T_H_ */

@@ -1,5 +1,5 @@
-/* $Id: AugLagSphereT.cpp,v 1.3 2001-08-29 07:10:52 paklein Exp $ */
-/* created: paklein (03/24/1999)                                          */
+/* $Id: AugLagSphereT.cpp,v 1.4 2002-06-08 20:20:49 paklein Exp $ */
+/* created: paklein (03/24/1999) */
 
 #include "AugLagSphereT.h"
 
@@ -8,20 +8,23 @@
 
 #include "Constants.h"
 #include "FEManagerT.h"
-#include "NodeManagerT.h"
 #include "XDOF_ManagerT.h"
 #include "eControllerT.h"
+#include "FieldT.h"
 
 /* parameters */
 const int kNumAugLagDOF = 1;
 
 /* constructor */
 AugLagSphereT::AugLagSphereT(FEManagerT& fe_manager, XDOF_ManagerT* XDOF_nodes,
-	const iArray2DT& eqnos,
-	const dArray2DT& coords,
-	const dArray2DT* vels):
-	PenaltySphereT(fe_manager, eqnos, coords, vels),
-	fXDOF_Nodes(XDOF_nodes)
+	const FieldT& field, const dArray2DT& coords):
+	PenaltySphereT(fe_manager,
+		field.Group(),
+		field.Equations(), 
+		coords, 
+		(field.Order() > 0) ? &(field[1]): NULL),
+	fXDOF_Nodes(XDOF_nodes),
+	fField(field)
 {
 	/* (re-)dimension the tangent matrix */
 	fLHS.Allocate(rEqnos.MinorDim() + 1); // additional DOF
@@ -66,8 +69,7 @@ void AugLagSphereT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 
 	/* collect displacement DOF's */
 	iArray2DT disp_eq(fContactNodes.Length(), ndof_u);
-	NodeManagerT* nodemanager = fFEManager.NodeManager();
-	nodemanager->SetLocalEqnos(fContactNodes, disp_eq);
+	fField.SetLocalEqnos(fContactNodes, disp_eq);
 
 	int eq_col = 0;
 	iArrayT eq_temp(fContactNodes.Length());
@@ -199,7 +201,7 @@ void AugLagSphereT::ApplyLHS(void)
 		
 		/* send to global equations */
 		fContactEqnos2D.RowAlias(i,fi_sh);
-		fFEManager.AssembleLHS(fLHS,fi_sh);
+		fFEManager.AssembleLHS(fGroup, fLHS,fi_sh);
 	}	
 }
 
@@ -239,6 +241,9 @@ const iArray2DT& AugLagSphereT::DOFConnects(int tag_set) const
 
 /* returns 1 if group needs to reconfigure DOF's, else 0 */
 int AugLagSphereT::Reconfigure(void) { return 0; }
+
+/* return the equation group */
+int AugLagSphereT::Group(void) const { return fField.Group(); };
 
 /**********************************************************************
 * Private

@@ -1,31 +1,23 @@
-/* $Id: nStaticIntegrator.cpp,v 1.2 2001-08-27 17:12:15 paklein Exp $ */
+/* $Id: nStaticIntegrator.cpp,v 1.3 2002-06-08 20:20:12 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "nStaticIntegrator.h"
-#include "ExceptionCodes.h"
+#include "BasicFieldT.h"
 #include "dArrayT.h"
 #include "iArrayT.h"
 #include "dArray2DT.h"
 #include "iArray2DT.h"
 
 /* constructor */
-nStaticIntegrator::nStaticIntegrator(void):nIntegratorT(0) { }
+nStaticIntegrator::nStaticIntegrator(void) { }
 
 /* consistent BC's */
-void nStaticIntegrator::ConsistentKBC(const KBC_CardT& KBC)
+void nStaticIntegrator::ConsistentKBC(BasicFieldT& field, const KBC_CardT& KBC)
 {
-#if __option(extended_errorcheck)
-	if (fU[0] == NULL)
-	{
-		cout << "\n nStaticIntegrator::ConsistentKBC: field arrays not set" << endl;
-		throw eGeneralFail;
-	}
-#endif
-
 	/* destination */
 	int node = KBC.Node();
 	int dof  = KBC.DOF();
-	double& d = (*fU[0])(node, dof);
+	double& d = (field[0])(node, dof);
 	
 	switch ( KBC.Code() )
 	{
@@ -46,64 +38,39 @@ void nStaticIntegrator::ConsistentKBC(const KBC_CardT& KBC)
 }		
 
 /* predictor. Maps ALL degrees of freedom forward. */
-void nStaticIntegrator::Predictor(void)
+void nStaticIntegrator::Predictor(BasicFieldT& field)
 {
-#if __option(extended_errorcheck)
-	if (fU[0] == NULL)
-	{
-		cout << "\n nStaticIntegrator::Predictor: field arrays not set" << endl;
-		throw eGeneralFail;
-	}
-#endif
-
+#pragma unused(field)
 	//nothing to do
 }
 
 /* correctors - map ACTIVE */
-void nStaticIntegrator::Corrector(const iArray2DT& eqnos, const dArrayT& update,
-	int eq_start, int eq_stop)
+void nStaticIntegrator::Corrector(BasicFieldT& field, const dArrayT& update, 
+		int eq_start, int num_eq)
 {
-#if __option (extended_errorcheck)
-	if (fU[0] == NULL)
-	{
-		cout << "\n nStaticIntegrator::Corrector: field arrays not set" << endl;
-		throw eGeneralFail;
-	}
-	if (eqnos.Length() != fU[0]->Length()) throw eSizeMismatch;		
-	//NOTE: no check on length of update.
-#endif
+	const iArray2DT& eqnos = field.Equations();
 
 	/* add update - assumes that fEqnos maps directly into dva */
 	int    *peq = eqnos.Pointer();
-	double *pd  = fU[0]->Pointer();
+	double *pd  = field[0].Pointer();
 	for (int i = 0; i < eqnos.Length(); i++)
 	{
 		int eq = *peq++ - eq_start;
 	
 		/* active dof */
-		if (eq > -1 && eq < eq_stop) *pd += update[eq];
+		if (eq > -1 && eq < num_eq) *pd += update[eq];
 
 		/* next */
 		pd++;
 	}
 }
 
-void nStaticIntegrator::MappedCorrector(const iArrayT& map, const iArray2DT& flags,
-	const dArray2DT& update, int eq_start, int eq_stop)
+void nStaticIntegrator::MappedCorrector(BasicFieldT& field, const iArrayT& map, 
+		const iArray2DT& flags, const dArray2DT& update)
 {
-#if __option (extended_errorcheck)
-	if (fU[0] == NULL)
-	{
-		cout << "\n nStaticIntegrator::MappedCorrector: field arrays not set" << endl;
-		throw eGeneralFail;
-	}
-#endif
-
-	/* checks */
-	if (flags.MajorDim() != map.Length() ||
-	    flags.MajorDim() != update.MajorDim() ||
-	    flags.MinorDim() != update.MinorDim() ||
-	    flags.MinorDim() != fU[0]->MinorDim()) throw eSizeMismatch;
+	/* check dimensions */
+	if (flags.MajorDim() != update.MajorDim() ||
+	    flags.MinorDim() != update.MinorDim()) throw eSizeMismatch;
 
 	/* run through map */
 	int minordim = flags.MinorDim();
@@ -114,11 +81,11 @@ void nStaticIntegrator::MappedCorrector(const iArrayT& map, const iArray2DT& fla
 		int row = map[i];
 		int* pflags = flags(i);
 
-		double* pd = (*fU[0])(row);
+		double* pd = (field[0])(row);
 		for (int j = 0; j < minordim; j++)
 		{
 			/* active */
-			if (*pflag >= eq_start && *pflag <= eq_stop) *pd = *pupdate;
+			if (*pflag > 0) *pd = *pupdate;
 			
 			/* next */
 			pflag++; pupdate++; pd++;
@@ -127,17 +94,9 @@ void nStaticIntegrator::MappedCorrector(const iArrayT& map, const iArray2DT& fla
 }
 
 /* return the field array needed by nIntegrator::MappedCorrector. */
-const dArray2DT& nStaticIntegrator::MappedCorrectorField(void) const
+const dArray2DT& nStaticIntegrator::MappedCorrectorField(BasicFieldT& field) const
 {
-#if __option (extended_errorcheck)
-	if (fU[0] == NULL)
-	{
-		cout << "\n nExplicitCD::MappedCorrectorField: field arrays not set" << endl;
-		throw eGeneralFail;
-	}
-#endif
-
-	return *fU[0];
+	return field[0];
 }
 
 /* pseudo-boundary conditions for external nodes */

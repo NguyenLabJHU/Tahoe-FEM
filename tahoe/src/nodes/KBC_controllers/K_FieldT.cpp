@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.5 2002-02-11 18:48:20 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.6 2002-06-08 20:20:51 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #include "K_FieldT.h"
@@ -13,7 +13,7 @@
 #include "Material2DT.h"
 
 /* parameters */
-const double           Pi = acos(-1.0);
+const double Pi = acos(-1.0);
 
 /* constructor */
 K_FieldT::K_FieldT(NodeManagerT& node_manager):
@@ -40,12 +40,12 @@ void K_FieldT::Initialize(ifstreamT& in)
 
 	/* K1 */
 	in >> fnumLTf1 >> fK1; fnumLTf1--;
-	fLTf1 = fNodeManager.GetLTfPtr(fnumLTf1);	
+	fLTf1 = fNodeManager.Schedule(fnumLTf1);	
 	if (!fLTf1) throw eBadInputValue;
 
 	/* K2 */
 	in >> fnumLTf2 >> fK2; fnumLTf2--;
-	fLTf2 = fNodeManager.GetLTfPtr(fnumLTf2);	
+	fLTf2 = fNodeManager.Schedule(fnumLTf2);	
 	if (!fLTf2) throw eBadInputValue;
 
 	/* coordinates of the crack tip */
@@ -288,8 +288,8 @@ void K_FieldT::WriteOutput(ostream& out) const
 	/* K-field information */
 	out << "\n K - f i e l d   D a t a :\n\n";
 	out << " Crack tip coordinates: \n" << fTipCoords << '\n';
-	out << " K I . . . . . . . . . . . . . . . . . . . . . . = " << fK1*fLTf1->LoadFactor() << '\n';
-	out << " K II. . . . . . . . . . . . . . . . . . . . . . = " << fK2*fLTf2->LoadFactor() << '\n';
+	out << " K I . . . . . . . . . . . . . . . . . . . . . . = " << fK1*fLTf1->Value() << '\n';
+	out << " K II. . . . . . . . . . . . . . . . . . . . . . = " << fK2*fLTf2->Value() << '\n';
 }
 
 /**********************************************************************
@@ -440,8 +440,8 @@ void K_FieldT::ComputeDisplacementFactors(const dArrayT& tip_coords)
 void K_FieldT::SetBCCards(void)
 {
 	/* field intensities */
-	double K1 = fK1*fLTf1->LoadFactor();
-	double K2 = fK2*fLTf2->LoadFactor();
+	double K1 = fK1*fLTf1->Value();
+	double K2 = fK2*fLTf2->Value();
 
 	/* apply K-field displacement */
 	dArrayT disp;

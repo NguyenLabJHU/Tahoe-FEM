@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.13 2002-04-04 00:42:51 ebmarin Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.14 2002-06-08 20:20:42 paklein Exp $ */
 #include "LocalCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -13,7 +13,6 @@
 #include "ifstreamT.h"
 #include "Utils.h"
 #include "ContinuumElementT.h"
-#include "FEManagerT.h"
 #include "SpectralDecompT.h"
 
 /* spatial dimensions of the problem */
@@ -186,16 +185,16 @@ const dSymMatrixT& LocalCrystalPlast::s_ij()
 
           if (XTAL_MESSAGES && CurrIP() == IPprnt) {
              cout << " Step # " << 
-                      fContinuumElement.FEManager().StepNumber() 
+                      ContinuumElement().ElementSupport().StepNumber() 
                   << "    Iter # " << 
-                      fContinuumElement.FEManager().IterationNumber() 
+                      ContinuumElement().ElementSupport().IterationNumber(ContinuumElement().Group()) 
                   << endl;
           }
 
           // compute crystal Cauchy stress and consistent tangent
           // global iterations start at iter = -1
-          if ( fContinuumElement.FEManager().StepNumber() >= 0 &&
-               fContinuumElement.FEManager().IterationNumber() <= -1)
+          if (ContinuumElement().ElementSupport().StepNumber() >= 0 &&
+              ContinuumElement().ElementSupport().IterationNumber(ContinuumElement().Group()) <= -1)
              {
                // deformation gradient
                fmatx1.SetToCombination(1., fFtot, -1., fFtot_n);
@@ -436,7 +435,7 @@ void LocalCrystalPlast::ComputeOutput(dArrayT& output)
   // cout << "    fsavg_ij = " << endl << fsavg_ij << endl;
   // cout << "    fAvgStress = " << endl << fAvgStress << endl;
   if (elem == (NumElements()-1) && intpt == (NumIP()-1))
-     cerr << " step # " << ContinuumElement().FEManager().StepNumber() 
+     cerr << " step # " << ContinuumElement().ElementSupport().StepNumber() 
           << "    S_eq_avg = " 
           << sqrt(fsymmatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23 << endl; 
 
@@ -445,8 +444,8 @@ void LocalCrystalPlast::ComputeOutput(dArrayT& output)
   output[2] = fIterState;
 
   // compute texture of aggregate, if requested
-  const int& step = ContinuumElement().FEManager().StepNumber();
-  const int& nsteps = ContinuumElement().FEManager().NumberOfSteps();
+  const int& step = ContinuumElement().ElementSupport().StepNumber();
+  const int& nsteps = ContinuumElement().ElementSupport().NumberOfSteps();
 
   if (fmod(double(step), fODFOutInc) == 0 || step == nsteps)
     {

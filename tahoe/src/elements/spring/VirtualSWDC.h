@@ -1,6 +1,5 @@
-/* $Id: VirtualSWDC.h,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
-/* created: paklein (05/05/1997)                                          */
-
+/* $Id: VirtualSWDC.h,v 1.2 2002-06-08 20:20:26 paklein Exp $ */
+/* created: paklein (05/05/1997) */
 #ifndef _VIRTUAL_SWDC_H_
 #define _VIRTUAL_SWDC_H_
 
@@ -12,7 +11,7 @@ class VirtualSWDC: public SWDiamondT
 public:
 
 	/* constructor */
-	VirtualSWDC(FEManagerT& fe_manager);
+	VirtualSWDC(const ElementSupportT& support, const FieldT& field);
 
 	/* append element equations numbers to the list */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -34,9 +33,8 @@ private:
 
 private:
 
-	iArray2DT	fPeriodicNodes_3Body;
-	iArray2DT	fVNodePairs;
-
+	iArray2DT fPeriodicNodes_3Body;
+	iArray2DT fVNodePairs;
 };
 
 #endif /* _VIRTUAL_SWDC_H_ */

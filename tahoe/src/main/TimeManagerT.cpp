@@ -1,4 +1,4 @@
-/* $Id: TimeManagerT.cpp,v 1.7 2002-04-21 07:16:32 paklein Exp $ */
+/* $Id: TimeManagerT.cpp,v 1.8 2002-06-08 20:20:28 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "TimeManagerT.h"
@@ -13,7 +13,6 @@
 #include "FEManagerT.h"
 #include "TimeSequence.h"
 #include "dArrayT.h"
-#include "NodeManagerT.h"
 
 /* controllers */
 #include "StaticController.h"
@@ -23,13 +22,48 @@
 #include "NLHHTalpha.h"
 #include "ExplicitCDController.h"
 
-/* step cut status flags */
-const int kDecreaseStep =-1;
-const int kSameStep     = 0;
-const int kIncreaseStep = 1;
+	/** enum of integrator types */
+	enum CodeT {
+		kLinearStatic = 0,
+		      kStatic = 1,
+           kTrapezoid = 2,
+           kLinearHHT = 3,
+		kNonlinearHHT = 4,
+		  kExplicitCD = 5
+	};
 
-/* controllers */
-#include "HHTalpha.h"
+/* stream extraction operator */
+istream& operator>>(istream& in, TimeManagerT::CodeT& code)
+{
+	int i_code = -1;
+	in >> i_code;
+	switch (i_code)
+	{
+		case TimeManagerT::kLinearStatic:
+			code = TimeManagerT::kLinearStatic;
+			break;
+		case TimeManagerT::kStatic:
+			code = TimeManagerT::kStatic;
+			break;
+		case TimeManagerT::kTrapezoid:
+			code = TimeManagerT::kTrapezoid;
+			break;
+		case TimeManagerT::kLinearHHT:
+			code = TimeManagerT::kLinearHHT;
+			break;
+		case TimeManagerT::kNonlinearHHT:
+			code = TimeManagerT::kNonlinearHHT;
+			break;
+		case TimeManagerT::kExplicitCD:
+			code = TimeManagerT::kExplicitCD;
+			break;
+		default:
+			cout << "\n operator>>TimeManagerT::CodeT: unknown code: "
+			<< i_code<< endl;
+			throw eBadInputValue;
+	}
+	return in;
+}
 
 /* constructor */
 TimeManagerT::TimeManagerT(FEManagerT& FEM):
@@ -60,9 +94,9 @@ TimeManagerT::TimeManagerT(FEManagerT& FEM):
 	int num_LTf;
 	in >> num_LTf;
 	if (num_LTf < 1) throw eBadInputValue;
-	fLTf.Allocate(num_LTf); // add: f(t) = 1.0
+	fSchedule.Allocate(num_LTf); // add: f(t) = 1.0
 
-	EchoLoadTime(in, out);
+	EchoSchedule(in, out);
 	
 	/* console variables */
 	iSetName("time");
@@ -220,23 +254,23 @@ bool TimeManagerT::IncreaseLoadStep(void)
 		return false;
 }
 
-/* return a pointer to the specified LoadTime function */
-LoadTime* TimeManagerT::GetLTf(int num) const
+/* return a pointer to the specified ScheduleT function */
+ScheduleT* TimeManagerT::Schedule(int num) const
 {
 	/* range check */
-	if (num < 0 || num >= fLTf.Length())
+	if (num < 0 || num >= fSchedule.Length())
 	{
-		cout << "\n TimeManagerT::GetLTf: function number " << num << " is out of\n"
-		     <<   "     range {" << 0 << "," << fLTf.Length() - 1 << "}" << endl;
+		cout << "\n TimeManagerT::Schedule: function number " << num << " is out of\n"
+		     <<   "     range {" << 0 << "," << fSchedule.Length() - 1 << "}" << endl;
 		throw eOutOfRange;
 	}
 
-	return fLTf[num];
+	return fSchedule[num];
 }
 
-double TimeManagerT::LoadFactor(int nLTf) const
+double TimeManagerT::ScheduleValue(int num) const
 {
-	return fLTf[nLTf]->LoadFactor();
+	return fSchedule[num]->Value();
 }
 
 /* initialize/restart functions
@@ -273,8 +307,8 @@ void TimeManagerT::ReadRestart(istream& restart_in)
 	cout << "    Current step size: " << fTimeStep << '\n';
         
 	/* set load factors */
-	for (int i = 0; i < fLTf.Length(); i++)
-		fLTf[i]->SetLoadFactor(fTime);
+	for (int i = 0; i < fSchedule.Length(); i++)
+		fSchedule[i]->SetTime(fTime);
 }
 
 void TimeManagerT::WriteRestart(ostream& restart_out) const
@@ -389,9 +423,9 @@ void TimeManagerT::EchoTimeSequences(ifstreamT& in, ostream& out)
 	}
 }
 
-void TimeManagerT::EchoLoadTime(ifstreamT& in, ostream& out)
+void TimeManagerT::EchoSchedule(ifstreamT& in, ostream& out)
 {
-	int num_LTf = fLTf.Length();
+	int num_LTf = fSchedule.Length();
 	out << "\n L o a d - T i m e   F u n c t i o n   D a t a :\n\n";
 	out << " Number of load-time functions . . . . . . . . . = " << num_LTf << '\n';
 
@@ -409,15 +443,15 @@ void TimeManagerT::EchoLoadTime(ifstreamT& in, ostream& out)
 		
 		/* echo data */
 		LTfnum--;
-		fLTf[LTfnum] = new LoadTime(numpts);
-		if (!fLTf[LTfnum]) throw(eOutOfMemory);
+		fSchedule[LTfnum] = new ScheduleT(numpts);
+		if (!fSchedule[LTfnum]) throw(eOutOfMemory);
 
-		fLTf[LTfnum]->Read(in);
-		fLTf[LTfnum]->Write(out);
+		fSchedule[LTfnum]->Read(in);
+		fSchedule[LTfnum]->Write(out);
 		out << '\n';
 		
 		/* initialize time */
-		fLTf[LTfnum]->SetLoadFactor(0.0);
+		fSchedule[LTfnum]->SetTime(0.0);
 	}
 }
 
@@ -428,8 +462,8 @@ void TimeManagerT::IncrementTime(double dt)
 	fTime += dt;
 
 	/* set load factors */
-	for (int i = 0; i < fLTf.Length(); i++)
-		fLTf[i]->SetLoadFactor(fTime);
+	for (int i = 0; i < fSchedule.Length(); i++)
+		fSchedule[i]->SetTime(fTime);
 }
 
 /* returns 1 if the number is even, otherwise returns 0	*/

@@ -1,4 +1,4 @@
-/* $Id: ViscTvergHutch2DT.h,v 1.3 2002-04-16 21:19:33 cjkimme Exp $ */
+/* $Id: ViscTvergHutch2DT.h,v 1.4 2002-06-08 20:20:17 paklein Exp $ */
 
 #ifndef _VISC_TVERG_HUTCH_2D_T_H_
 #define _VISC_TVERG_HUTCH_2D_T_H_
@@ -29,8 +29,12 @@ public:
 
 	/** return the number of state variables needed by the model.
 	 * Need to store the opening displacement from the previous
-	 * time increment. */
+	 * time increment. The incremental dissipation is also stored */
 	int NumStateVariables(void) const;
+
+	/** incremental heat. The amount of energy per unit undeformed area
+	 * released as heat over the current increment */
+	virtual double IncrementalHeat(const dArrayT& jump, const ArrayT<double>& state);
 
 	/** dissipated energy */
 	virtual double FractureEnergy(const ArrayT<double>& state);
@@ -74,6 +78,12 @@ protected:
 	virtual bool CompatibleOutput(const SurfacePotentialT& potential) const;
 	
 private:
+
+	/** index of state variables */
+	enum VariableIndexT {
+		    kd_n = 1,
+		kIncHeat = 2
+	};
 
 	/** the time step */
 	const double& fTimeStep;

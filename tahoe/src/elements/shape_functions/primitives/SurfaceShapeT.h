@@ -1,5 +1,5 @@
-/* $Id: SurfaceShapeT.h,v 1.4 2001-11-06 17:43:37 paklein Exp $ */
-/* created: paklein (11/21/1997)                                          */
+/* $Id: SurfaceShapeT.h,v 1.5 2002-06-08 20:20:54 paklein Exp $ */
+/* created: paklein (11/21/1997) */
 
 #ifndef _SURFACE_SHAPE_T_H_
 #define _SURFACE_SHAPE_T_H_
@@ -60,12 +60,18 @@ public:
 	/** set all local parameters */
 	virtual void Initialize(void);
 
-/**** for the current integration point ***/
-
+	/** \name current integration point */
+	/*@{*/
 	/** interpolate the jump in the field values to the current integration point 
-	 * \param nodal array of nodal values: [nnd] x [nu]
+	 * \param nodal array of nodal values: [nen] x [nu]
 	 * \return interpolated jump in the nodal values: [nu] */
-	const dArrayT& InterpolateJumpU(const LocalArrayT& nodal) const;
+	const dArrayT& InterpolateJumpU(const LocalArrayT& nodal);
+
+	/** interpolate the jump in the given nodal values to the current integration
+	 * point.
+	 * \param nodal array of nodal values: [nen] x [nv]
+	 * \param jump  interpolated jump in the nodal values: [nv] */
+	void InterpolateJump(const LocalArrayT& nodal, dArrayT& jump) const;	
 
 	/** interpolate field values to the current integration point. 
 	 * \param nodal array of nodal values. The number of nodal
@@ -114,7 +120,14 @@ public:
 	 *        if the linearization of a column vector of Q. */
 	double Jacobian(dMatrixT& Q, ArrayT<dMatrixT>& dQ);
 
-/*******************************************/
+	/** nodal shape functions at the current integration point. This is the
+	 * this is the number of nodes on both faces */
+	void Shapes(dArrayT& Na) const { fNa.RowAlias(fCurrIP, Na); };
+
+	/** nodal jump shape functions at the current integration point. This is the
+	 * this is the number of nodes on both faces */
+	void JumpShapes(dArrayT& jump_Na) const { fjumpNa.RowAlias(fCurrIP, jump_Na); };
+	/*@}*/
 
 	/** local node numbers on each facet */
 	const iArray2DT& NodesOnFacets(void) const;
@@ -146,9 +159,12 @@ private:
 	const LocalArrayT& fCoords;
 	LocalArrayT fFacetCoords;
 
-	/* jump shape functions */
-	dArray2DT fjumpNa;
+	/** shape functions: [nip] x [n_tot] */
+	dArray2DT fNa;	
 
+	/** jump shape functions: [nip] x [n_tot] */
+	dArray2DT fjumpNa;	
+	
 	/* shape function tables */
 	ArrayT<dMatrixT> fgrad_d;
 	ArrayT<dMatrixT> fgrad_dTgrad_d;
@@ -228,6 +244,12 @@ inline double SurfaceShapeT::Jacobian(dMatrixT& Q)
 inline const iArray2DT& SurfaceShapeT::NodesOnFacets(void) const
 {
 	return fFacetNodes;
+}
+
+inline const dArrayT& SurfaceShapeT::InterpolateJumpU(const LocalArrayT& nodal)
+{
+	InterpolateJump(nodal, fInterp);
+	return fInterp;
 }
 
 #endif /* _SURFACE_SHAPE_T_H_ */

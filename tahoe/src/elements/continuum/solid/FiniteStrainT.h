@@ -1,4 +1,4 @@
-/* $Id: FiniteStrainT.h,v 1.7 2001-09-15 01:15:42 paklein Exp $ */
+/* $Id: FiniteStrainT.h,v 1.8 2002-06-08 20:20:22 paklein Exp $ */
 
 #ifndef _FINITE_STRAIN_T_H_
 #define _FINITE_STRAIN_T_H_
@@ -12,7 +12,7 @@ class FiniteStrainT: public ElasticT
   public:
       
 	/** constructor */
-	FiniteStrainT(FEManagerT& fe_manager);
+	FiniteStrainT(const ElementSupportT& support, const FieldT& field);
 
 	/** initialization. called immediately after constructor */
 	virtual void Initialize(void);

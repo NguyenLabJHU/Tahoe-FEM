@@ -1,13 +1,11 @@
-/* $Id: RodT.cpp,v 1.5 2002-01-27 18:51:07 paklein Exp $ */
+/* $Id: RodT.cpp,v 1.6 2002-06-08 20:20:27 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "RodT.h"
 
 #include <math.h>
 
-#include "NodeManagerT.h"
 #include "fstreamT.h"
-#include "FEManagerT.h"
 #include "eControllerT.h"
 #include "OutputSetT.h"
 #include "dArray2DT.h"
@@ -21,8 +19,8 @@ const int RodT::kRodTndof = 2; /* number of degrees of freedom per node */
 const int RodT::kRodTnsd = 2; /* number of spatial dimensions */
 
 /* constructors */
-RodT::RodT(FEManagerT& fe_manager):
-	ElementBaseT(fe_manager),
+RodT::RodT(const ElementSupportT& support, const FieldT& field):
+	ElementBaseT(support, field),
 	fCurrMaterial(NULL),
 	fLocInitCoords(LocalArrayT::kInitCoords),
 	fLocDisp(LocalArrayT::kDisp)
@@ -32,10 +30,6 @@ RodT::RodT(FEManagerT& fe_manager):
 		cout << "\n RodT::RodT: only 2D" << endl;
 		throw eGeneralFail;
 	}
-
-	/* dimensions */
-	fNumElemNodes = 2;
-	fNumElemEqnos = fNumElemNodes*fNumDOF;
 
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
@@ -48,14 +42,14 @@ void RodT::Initialize(void)
 	ElementBaseT::Initialize();
 
 	/* set local arrays */
-	fLocInitCoords.Allocate(fNumElemNodes, fNumSD);
-	fLocDisp.Allocate(fNumElemNodes, fNumDOF);
-	fFEManager.RegisterLocal(fLocInitCoords);
-	fFEManager.RegisterLocal(fLocDisp);
+	fLocInitCoords.Allocate(NumElementNodes(), NumSD());
+	fLocDisp.Allocate(NumElementNodes(), NumDOF());
+	ElementSupport().RegisterCoordinates(fLocInitCoords);
+	Field().RegisterLocal(fLocDisp);
 
 	/* echo material properties */
-	ReadMaterialData(fFEManager.Input());	
-	WriteMaterialData(fFEManager.Output());
+	ReadMaterialData(ElementSupport().Input());	
+	WriteMaterialData(ElementSupport().Output());
 }
 
 /* form of tangent matrix */
@@ -65,8 +59,9 @@ GlobalT::SystemTypeT RodT::TangentType(void) const
 }
 
 /* NOT implemented. Returns an zero force vector */
-void RodT::AddNodalForce(int node, dArrayT& force)
+void RodT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 {
+#pragma unused(field)
 #pragma unused(node)
 #pragma unused(force)
 }
@@ -106,12 +101,12 @@ void RodT::RegisterOutput(void)
 
 	/* set output specifier */
 	StringT set_ID;
-	set_ID.Append(fFEManager.ElementGroupNumber(this) + 1);
+	set_ID.Append(ElementSupport().ElementGroupNumber(this) + 1);
 	OutputSetT output_set(set_ID, GeometryT::kLine, block_ID, fConnectivities, n_labels, e_labels, 
 		ChangingGeometry());
 		
 	/* register and get output ID */
-	fOutputID = fFEManager.RegisterOutput(output_set);
+	fOutputID = ElementSupport().RegisterOutput(output_set);
 }
 
 void RodT::WriteOutput(IOBaseT::OutputModeT mode)
@@ -132,11 +127,11 @@ void RodT::WriteOutput(IOBaseT::OutputModeT mode)
 	dArray2DT disp(nodes_used.Length(), 2);
 	
 	/* collect group displacements */
-	disp.RowCollect(nodes_used, fNodes->Displacements());
+	disp.RowCollect(nodes_used, Field()[0]);
 
 	/* send */
 	dArray2DT e_values;
-	fFEManager.WriteOutput(fOutputID, disp, e_values);
+	ElementSupport().WriteOutput(fOutputID, disp, e_values);
 }
 
 /* compute specified output parameter and send for smoothing */
@@ -253,9 +248,9 @@ void RodT::ReadMaterialData(ifstreamT& in)
 		if (!fMaterialsList[matnum]) throw(eOutOfMemory);
 	
 		/* set thermal LTf pointer */
-		int LTfnum = fMaterialsList[matnum]->ThermalLTfNumber();
+		int LTfnum = fMaterialsList[matnum]->ThermalScheduleNumber();
 		if (LTfnum > 0)
-			fMaterialsList[matnum]->SetThermalLTfPtr(GetLTfPtr(LTfnum));	
+			fMaterialsList[matnum]->SetThermalSchedule(ElementSupport().Schedule(LTfnum));	
 	}
 }
 

@@ -1,4 +1,4 @@
-/* $Id: UnConnectedRodT.h,v 1.3 2001-12-17 00:15:59 paklein Exp $ */
+/* $Id: UnConnectedRodT.h,v 1.4 2002-06-08 20:20:27 paklein Exp $ */
 /* created: paklein (04/05/1997) */
 
 #ifndef _UNCONN_ROD_T_H_
@@ -15,7 +15,7 @@ class UnConnectedRodT: public RodT
 public:
 
 	/* constructor */
-	UnConnectedRodT(FEManagerT& fe_manager);
+	UnConnectedRodT(const ElementSupportT& support, const FieldT& field);
 
 	/* apply pre-conditions at the current time step.  Signal
 	 * all listeners that the time has just been incremented */

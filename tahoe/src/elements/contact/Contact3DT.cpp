@@ -1,5 +1,6 @@
-/* $Id: Contact3DT.cpp,v 1.2 2001-12-17 00:15:53 paklein Exp $ */
-/* created: paklein (07/17/1999)                                          */
+
+/* $Id: Contact3DT.cpp,v 1.3 2002-06-08 20:20:19 paklein Exp $ */
+/* created: paklein (07/17/1999) */
 
 #include "Contact3DT.h"
 
@@ -8,23 +9,22 @@
 #include <iomanip.h>
 
 #include "fstreamT.h"
-#include "FEManagerT.h"
 #include "eControllerT.h"
-#include "NodeManagerT.h"
 #include "iGridManager3DT.h"
 #include "Vector3T.h"
+#include "ElementSupportT.h"
 
 /* parameters */
 const int kNumFacetNodes = 3;
 const int kMaxNumGrid    = 50;
 
 /* constructor */
-Contact3DT::Contact3DT(FEManagerT& fe_manager):
-	ContactT(fe_manager, kNumFacetNodes),
+Contact3DT::Contact3DT(const ElementSupportT& support, const FieldT& field):
+	ContactT(support, field, kNumFacetNodes),
 	fGrid3D(NULL)
 {
 	/* check base class initializations */
-	if (fNumSD != 3) throw eGeneralFail;
+	if (NumSD() != 3) throw eGeneralFail;
 }
 
 /* destructor */
@@ -103,7 +103,7 @@ bool Contact3DT::SetActiveInteractions(void)
 
 	/* collect current striker node coords */
 	if (fStrikerTags.Length() > 0)
-		fStrikerCoords.RowCollect(fStrikerTags, fNodes->CurrentCoordinates());
+		fStrikerCoords.RowCollect(fStrikerTags, ElementSupport().CurrentCoordinates());
 		
 	/* construct search grid if needed */
 	if (!fGrid3D)
@@ -119,8 +119,8 @@ bool Contact3DT::SetActiveInteractions(void)
 		if (!fGrid3D) throw eOutOfMemory;
 
 		/* search grid statistics */
-		ostream& out = fFEManager.Output();
-		out << "\n Search grid: group " << fFEManager.ElementGroupNumber(this) + 1 << '\n';
+		ostream& out = ElementSupport().Output();
+		out << "\n Search grid: group " << ElementSupport().ElementGroupNumber(this) + 1 << '\n';
 		fGrid3D->WriteStatistics(out);
 	}
 	
@@ -152,6 +152,12 @@ void Contact3DT::SetConnectivities(void)
 
 	int* pelem = fConnectivities[0]->Pointer();
 	int rowlength = fConnectivities[0]->MinorDim();
+	if (fConnectivities[0]->MajorDim() > 0 && rowlength != 4) {
+		cout << "\n Contact2DT::SetConnectivities: expecting connectivites length 4 not " 
+		     << rowlength << endl;
+		throw eSizeMismatch;
+	}
+	
 	for (int i = 0; i < fConnectivities[0]->MajorDim(); i++, pelem += rowlength)
 	{
 		const iArray2DT& surface = fSurfaces[fHitSurface[i]];
@@ -181,7 +187,7 @@ void Contact3DT::SetActiveStrikers(void)
 	fHitFacets.Allocate(0);
 
 	/* reference to current coordinates */
-	const dArray2DT& allcoords = fNodes->CurrentCoordinates(); //EFFECTIVE_DVA
+	const dArray2DT& allcoords = ElementSupport().CurrentCoordinates(); //EFFECTIVE_DVA
 	
 	/* by-striker data */
 	int numstrikers = fStrikerTags.Length();
@@ -223,7 +229,7 @@ void Contact3DT::SetActiveStrikers(void)
 				if (!surface.HasValue(strikertag))
 				{
 					/* possible striker */
-					fStriker.Set(fNumSD, hits[k].Coords());
+					fStriker.Set(NumSD(), hits[k].Coords());
 				
 					double h;
 					if (Intersect(fx1, fx2, fx3, fStriker, h))

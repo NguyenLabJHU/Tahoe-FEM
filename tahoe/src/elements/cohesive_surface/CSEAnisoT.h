@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.10 2002-04-16 21:22:29 cjkimme Exp $ */
+/* $Id: CSEAnisoT.h,v 1.11 2002-06-08 20:20:16 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #ifndef _CSE_ANISO_T_H_
@@ -11,6 +11,7 @@
 #include "pArrayT.h"
 #include "RaggedArray2DT.h"
 #include "dArray2DT.h"
+#include "Array2DT.h"
 #include "LocalArrayT.h"
 
 /* forward declarations */
@@ -22,7 +23,7 @@ class CSEAnisoT: public CSEBaseT
 public:
 
 	/* constructor */
-	CSEAnisoT(FEManagerT& fe_manager, bool rotate);
+	CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate);
 
 	/* destructor */
 	~CSEAnisoT(void);
@@ -88,6 +89,9 @@ protected:
 	 * Array has dimensions: [nel] x [nip * nvar] */
 	RaggedArray2DT<double> fStateVariables;
 	RaggedArray2DT<double> fStateVariables_last;
+
+	/** incremental heat sources for each element block */
+	ArrayT<dArray2DT> fIncrementalHeat;
 	
 	/* coordinate transformation */
 	dMatrixT fQ;     // t'_i = Q_ji t_j, where t' is in the local frame
@@ -106,12 +110,10 @@ protected:
 	bool fCalcNodalInfo;
 	int fNodalInfoCode;
 	int fBulkGroup;
-
-	/* change the time Step */
-	/*double fNewTimeStep;
-	bool fNeedsNewTimeStep;
-	bool NewTimeStepQ(void);
-	double NewTimeStep(void);*/
+	dArray2DT fNodalQuantities;
+	
+	/* if nodes are tied, keep track of free nodes per element */
+	Array2DT<bool> freeNodeQ, freeNodeQ_last;
 };
 
 #endif /* _CSE_ANISO_T_H_ */

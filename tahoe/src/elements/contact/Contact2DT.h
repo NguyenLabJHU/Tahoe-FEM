@@ -1,5 +1,5 @@
-/* $Id: Contact2DT.h,v 1.1.1.1 2001-01-29 08:20:38 paklein Exp $ */
-/* created: paklein (05/26/1999)                                          */
+/* $Id: Contact2DT.h,v 1.2 2002-06-08 20:20:19 paklein Exp $ */
+/* created: paklein (05/26/1999) */
 
 #ifndef _CONTACT2D_T_H_
 #define _CONTACT2D_T_H_
@@ -18,7 +18,7 @@ class Contact2DT: public ContactT
 public:
 
 	/* constructor */
-	Contact2DT(FEManagerT& fe_manager);
+	Contact2DT(const ElementSupportT& support, const FieldT& field);
 
 	/* destructor */
 	virtual ~Contact2DT(void);

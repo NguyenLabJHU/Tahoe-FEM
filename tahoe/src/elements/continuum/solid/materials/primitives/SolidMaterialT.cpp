@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.3 2001-09-15 01:18:15 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.4 2002-06-08 20:20:45 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 
 #include "SolidMaterialT.h"
@@ -23,12 +23,14 @@ SolidMaterialT::SolidMaterialT(ifstreamT& in,
 	if (!fThermal) throw eOutOfMemory;
 
 //DEV - Rayleigh damping is being eliminated
+#if 0
 	if (fMassDamp > kSmall || fStiffDamp > kSmall)
 	{
 		cout << "\n SolidMaterialT::SolidMaterialT: support for Rayleigh damping is\n"
 		     <<   "     being eliminated. damping set to 0.0" << endl;
 		fMassDamp = fStiffDamp = 0.0;
 	}
+#endif
 }
 
 /* destructor */

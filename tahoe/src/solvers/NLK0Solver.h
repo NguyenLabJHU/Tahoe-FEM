@@ -1,4 +1,4 @@
-/* $Id: NLK0Solver.h,v 1.2 2002-03-22 02:27:26 paklein Exp $ */
+/* $Id: NLK0Solver.h,v 1.3 2002-06-08 20:20:55 paklein Exp $ */
 /* created: paklein (10/01/1996) */
 
 #ifndef _NL_K0_SOLVER_H_
@@ -17,7 +17,7 @@ class NLK0Solver: public NLSolver
 public:
 
 	/** constructor */
-	NLK0Solver(FEManagerT& fe_manager);
+	NLK0Solver(FEManagerT& fe_manager, int group);
 
 protected:
 

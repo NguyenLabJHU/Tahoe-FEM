@@ -1,4 +1,4 @@
-/* $Id: ShapeFunctionT.h,v 1.9 2002-04-16 16:35:01 paklein Exp $ */
+/* $Id: ShapeFunctionT.h,v 1.10 2002-06-08 20:20:54 paklein Exp $ */
 /* created: paklein (06/26/1996) */
 
 #ifndef _SHAPE_FUNCTION_T_H_
@@ -57,6 +57,12 @@ public:
 	 * \param nodal array of nodal values: [nnd] x [nu]
 	 * \param u interpolation of the nodal values */
 	void InterpolateU(const LocalArrayT& nodal, dArrayT& u) const;
+
+	/** interpolate field values to the specified integration point 
+	 * \param nodal array of nodal values: [nnd] x [nu]
+	 * \param u interpolation of the nodal values 
+	 * \param ip integration point number */
+	void InterpolateU(const LocalArrayT& nodal, dArrayT& u, int ip) const;
 	
 	/** array of shape function values defining the geometry */
 	const double* IPShapeX(void) const;

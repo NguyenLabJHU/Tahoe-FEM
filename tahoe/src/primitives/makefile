@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2002-01-27 18:43:14 paklein Exp $
+# $Id: makefile,v 1.8 2002-06-08 20:20:53 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -11,7 +11,7 @@ OBJ = \
 	FBC_CardT.o \
 	IC_CardT.o \
 	KBC_CardT.o \
-	LoadTime.o \
+	ScheduleT.o \
 	SWDataT.o \
 	TimeSequence.o \
 	Traction_CardT.o \
@@ -30,7 +30,7 @@ SRC = \
 	FBC_CardT.cpp \
 	IC_CardT.cpp \
 	KBC_CardT.cpp \
-	LoadTime.cpp \
+	ScheduleT.cpp \
 	SWDataT.cpp \
 	TimeSequence.cpp \
 	Traction_CardT.cpp \
@@ -43,7 +43,7 @@ HDR = \
 	FBC_CardT.h \
 	IC_CardT.h \
 	KBC_CardT.h \
-	LoadTime.h \
+	ScheduleT.h \
 	SWDataT.h \
 	TimeSequence.h \
 	Traction_CardT.h \

@@ -1,5 +1,5 @@
-/* $Id: PenaltyContact3DT.cpp,v 1.2 2001-12-17 00:15:53 paklein Exp $ */
-/* created: paklein (02/09/2000)                                          */
+/* $Id: PenaltyContact3DT.cpp,v 1.3 2002-06-08 20:20:19 paklein Exp $ */
+/* created: paklein (02/09/2000) */
 
 #include "PenaltyContact3DT.h"
 
@@ -8,9 +8,7 @@
 #include <iomanip.h>
 
 #include "fstreamT.h"
-#include "FEManagerT.h"
 #include "eControllerT.h"
-#include "NodeManagerT.h"
 
 /* vector functions */
 inline static void CrossProduct(const double* A, const double* B, double* AxB)
@@ -30,19 +28,19 @@ inline static void Vector(const double* start, const double* end, double* v)
 };
 
 /* constructor */
-PenaltyContact3DT::PenaltyContact3DT(FEManagerT& fe_manager):
-	Contact3DT(fe_manager),
-	fElCoord(fNumFacetNodes + 1, fNumSD),
-	fElDisp(fNumFacetNodes + 1, fNumDOF),
-	fdc_du(fNumSD, fElDisp.Length()),
-	fdn_du(fNumSD, fElDisp.Length()),
-	fM1(fNumSD),
-	fM2(fNumSD, fElDisp.Length()),
+PenaltyContact3DT::PenaltyContact3DT(const ElementSupportT& support, const FieldT& field):
+	Contact3DT(support, field),
+	fElCoord(fNumFacetNodes + 1, NumSD()),
+	fElDisp(fNumFacetNodes + 1, NumDOF()),
+	fdc_du(NumSD(), fElDisp.Length()),
+	fdn_du(NumSD(), fElDisp.Length()),
+	fM1(NumSD()),
+	fM2(NumSD(), fElDisp.Length()),
 	fV1(fElDisp.Length()),
 	fnum_contact(0),
 	fh_max(0.0)
 {
-	fFEManager.Input() >> fK;
+	ElementSupport().Input() >> fK;
 	if (fK < 0.0)
 	{
 		cout << "\n PenaltyContact3DT::PenaltyContact3DT: reguralization must be > 0: "
@@ -100,7 +98,7 @@ void PenaltyContact3DT::WriteOutput(IOBaseT::OutputModeT mode)
 	Contact3DT::WriteOutput(mode);
 
 	/* contact statistics */
-	ostream& out = fFEManager.Output();
+	ostream& out = ElementSupport().Output();
 	out << " Number of contact interactions = " << fnum_contact << '\n';
 	out << " Maximum penetration depth      = " << fh_max       << '\n';
 }
@@ -142,7 +140,7 @@ void PenaltyContact3DT::LHSDriver(void)
 			fEqnos[0].RowAlias(i, eqnos);
 			
 			/* assemble */
-			fFEManager.AssembleLHS(fLHS, eqnos);
+			ElementSupport().AssembleLHS(Group(), fLHS, eqnos);
 		}
 	}
 }
@@ -155,8 +153,8 @@ void PenaltyContact3DT::RHSDriver(void)
 	if (!formKd) return;
 
 	/* references to global nodal data */
-	const dArray2DT& init_coords = fNodes->InitialCoordinates();
-	const dArray2DT& disp = fNodes->Displacements();
+	const dArray2DT& init_coords = ElementSupport().InitialCoordinates();
+	const dArray2DT& disp = Field()[0]; /* displacements */
 
 	/* loop over active elements */
 	dArrayT c(3), n(3);
@@ -226,7 +224,7 @@ void PenaltyContact3DT::RHSDriver(void)
 			fEqnos[0].RowAlias(i, eqnos);
 			
 			/* assemble */
-			fFEManager.AssembleRHS(fRHS, eqnos);
+			ElementSupport().AssembleRHS(Group(), fRHS, eqnos);
 		}
 	}
 }

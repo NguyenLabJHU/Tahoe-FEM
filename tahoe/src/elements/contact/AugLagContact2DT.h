@@ -1,4 +1,4 @@
-/* $Id: AugLagContact2DT.h,v 1.4 2001-12-31 17:44:28 paklein Exp $ */
+/* $Id: AugLagContact2DT.h,v 1.5 2002-06-08 20:20:19 paklein Exp $ */
 /* created: paklein (05/31/1998) */
 
 #ifndef _AUGLAG_CONTACT2D_T_H_
@@ -21,11 +21,13 @@ class AugLagContact2DT: public Contact2DT, public DOFElementT
 public:
 
 	/* constructor */
-	AugLagContact2DT(FEManagerT& fe_manager);
+	AugLagContact2DT(const ElementSupportT& support, const FieldT& field);
 
 	/* allocates space and reads connectivity data */
 	virtual void Initialize(void);
 
+	/** \name implementation of the DOFElementT interface */
+	/*@{*/
 	/* append element equations numbers to the list */
 	virtual void Equations(AutoArrayT<const iArray2DT*>& eq_1,
 		AutoArrayT<const RaggedArray2DT<int>*>& eq_2);
@@ -46,8 +48,13 @@ public:
 	/* returns 1 if group needs to reconfigure DOF's, else 0 */
 	virtual int Reconfigure(void);
 
+	/* the group */
+	virtual int Group(void) const { return Contact2DT::Group(); }
+	/*@}*/
+
 	/* element level reconfiguration for the current solution */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
+
 
 	/* append connectivities */
 	virtual void ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,

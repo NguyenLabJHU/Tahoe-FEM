@@ -1,4 +1,4 @@
-/* $Id: MeshFreeCSEAnisoT.h,v 1.3 2001-10-11 00:54:28 paklein Exp $ */
+/* $Id: MeshFreeCSEAnisoT.h,v 1.4 2002-06-08 20:20:16 paklein Exp $ */
 /* created: paklein (06/08/2000) */
 
 #ifndef _MF_CSE_ANISO_T_H_
@@ -31,7 +31,7 @@ class MeshFreeCSEAnisoT: public ElementBaseT
 public:
 
 	/* constructor */
-	MeshFreeCSEAnisoT(FEManagerT& fe_manager);
+	MeshFreeCSEAnisoT(const ElementSupportT& support, const FieldT& field);
 
 	/* destructor */
 	~MeshFreeCSEAnisoT(void);
@@ -55,7 +55,7 @@ public:
 	virtual GlobalT::RelaxCodeT RelaxSystem(void);
 
 	/* solution calls */
-	virtual void AddNodalForce(int node, dArrayT& force);
+	virtual void AddNodalForce(const FieldT& field, int node, dArrayT& force);
 
 	/* returns the energy as defined by the derived class types */
 	virtual double InternalEnergy(void); //not implemented

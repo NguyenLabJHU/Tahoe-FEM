@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.16 2002-03-26 17:26:10 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.17 2002-06-08 20:20:21 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 
 #include "ContinuumElementT.h"
@@ -7,9 +7,8 @@
 #include <iomanip.h>
 
 #include "fstreamT.h"
-#include "FEManagerT.h"
+//#include "FEManagerT.h"
 #include "ModelManagerT.h"
-#include "NodeManagerT.h"
 #include "StructuralMaterialT.h"
 #include "ShapeFunctionT.h"
 #include "DomainIntegrationT.h"
@@ -17,6 +16,7 @@
 #include "Traction_CardT.h"
 #include "iAutoArrayT.h"
 #include "OutputSetT.h"
+#include "ScheduleT.h"
 
 //TEMP: all this for general traction BC implementation?
 #include "VariArrayT.h"
@@ -32,19 +32,20 @@
 #include "Material2DT.h"
 
 /* constructor */
-ContinuumElementT::ContinuumElementT(FEManagerT& fe_manager):
-	ElementBaseT(fe_manager),
+ContinuumElementT::ContinuumElementT(const ElementSupportT& support, 
+	const FieldT& field):
+	ElementBaseT(support, field),
 	fMaterialList(NULL),
-	fBody(fNumDOF),
+	fBodySchedule(NULL),
+	fBody(NumDOF()),
 	fTractionBCSet(0),
 	fShapes(NULL),
 	fLocInitCoords(LocalArrayT::kInitCoords),
 	fLocDisp(LocalArrayT::kDisp),
-	fDOFvec(fNumDOF),
-	fNSDvec(fNumSD)
+	fDOFvec(NumDOF())
 {
-	ifstreamT&  in = fFEManager.Input();
-	ostream&    out = fFEManager.Output();
+	ifstreamT&  in = ElementSupport().Input();
+	ostream&    out = ElementSupport().Output();
 		
 	/* control parameters */
 	in >> fGeometryCode; //TEMP - should actually come from the geometry database
@@ -78,6 +79,12 @@ void ContinuumElementT::IP_Interpolate(const LocalArrayT& nodal_u, dArrayT& ip_u
     ShapeFunction().InterpolateU(nodal_u, ip_u);
 }
 
+void ContinuumElementT::IP_Interpolate(const LocalArrayT& nodal_u, dArrayT& ip_u, int ip) const
+{
+    /* computed by shape functions */
+    ShapeFunction().InterpolateU(nodal_u, ip_u, ip);
+}
+
 /* field gradients */
 void ContinuumElementT::IP_ComputeGradient(const LocalArrayT& field, 
 	dMatrixT& gradient) const
@@ -93,7 +100,7 @@ void ContinuumElementT::Initialize(void)
 	ElementBaseT::Initialize();
 	
 	/* allocate work space */
-	fNEEvec.Allocate(fNumElemNodes*fNumDOF);
+	fNEEvec.Allocate(NumElementNodes()*NumDOF());
 
 	/* initialize local arrays */
 	SetLocalArrays();
@@ -102,8 +109,8 @@ void ContinuumElementT::Initialize(void)
 	SetShape();
 
 	/* streams */
-	ifstreamT& in = fFEManager.Input();
-	ostream&   out = fFEManager.Output();
+	ifstreamT& in = ElementSupport().Input();
+	ostream&  out = ElementSupport().Output();
 
 	/* output print specifications */
 	EchoOutputCodes(in, out);
@@ -130,11 +137,11 @@ void ContinuumElementT::Initialize(void)
 		fLHS.SetFormat(ElementMatrixT::kDiagonal);
 }
 
-/* set element group for new global equations numbers */
-void ContinuumElementT::Reinitialize(void)
+void ContinuumElementT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
+	AutoArrayT<const RaggedArray2DT<int>*>& eq_2)
 {
 	/* inherited */
-	ElementBaseT::Reinitialize();
+	ElementBaseT::Equations(eq_1, eq_2);
 
 	/* mark traction BC data as old */
 	fTractionBCSet = 0;
@@ -278,12 +285,12 @@ void ContinuumElementT::RegisterOutput(void)
 
 	/* set output specifier */
 	StringT set_ID;
-	set_ID.Append(fFEManager.ElementGroupNumber(this) + 1);
+	set_ID.Append(ElementSupport().ElementGroupNumber(this) + 1);
 	OutputSetT output_set(set_ID, fGeometryCode, block_ID, fConnectivities,
 		n_labels, e_labels, false);
 		
 	/* register and get output ID */
-	fOutputID = fFEManager.RegisterOutput(output_set);
+	fOutputID = ElementSupport().RegisterOutput(output_set);
 }
 
 //NOTE - this function is/was identical to CSEBaseT::WriteOutput
@@ -309,7 +316,7 @@ void ContinuumElementT::WriteOutput(IOBaseT::OutputModeT mode)
 	ComputeOutput(n_counts, n_values, e_counts, e_values);
 
 	/* send to output */
-	fFEManager.WriteOutput(fOutputID, n_values, e_values);
+	ElementSupport().WriteOutput(fOutputID, n_values, e_values);
 }
 
 /* side set to nodes on facets data */
@@ -610,16 +617,40 @@ void ContinuumElementT::SurfaceNodes(iArrayT& surface_nodes) const
 * Protected
 ***********************************************************************/
 
+/* stream extraction operator */
+istream& operator>>(istream& in, ContinuumElementT::MassTypeT& type)
+{
+	int i_type;
+	in >> i_type;
+	switch (i_type)
+	{
+		case ContinuumElementT::kNoMass:
+			type = ContinuumElementT::kNoMass;
+			break;
+		case ContinuumElementT::kConsistentMass:
+			type = ContinuumElementT::kConsistentMass;
+			break;
+		case ContinuumElementT::kLumpedMass:
+			type = ContinuumElementT::kLumpedMass;
+			break;
+		default:
+			cout << "\n ContinuumElementT::MassTypeT: unknown type: "
+			<< i_type<< endl;
+			throw eBadInputValue;	
+	}
+	return in;
+}
+
 /* initialize local arrays */
 void ContinuumElementT::SetLocalArrays(void)
 {
 	/* dimension */
-	fLocInitCoords.Allocate(fNumElemNodes, fNumSD);
-	fLocDisp.Allocate(fNumElemNodes, fNumDOF);
+	fLocInitCoords.Allocate(NumElementNodes(), NumSD());
+	fLocDisp.Allocate(NumElementNodes(), NumDOF());
 
 	/* set source */
-	fFEManager.RegisterLocal(fLocInitCoords);
-	fFEManager.RegisterLocal(fLocDisp);	
+	ElementSupport().RegisterCoordinates(fLocInitCoords);
+	Field().RegisterLocal(fLocDisp);	
 }
 
 /* form the residual force vector */
@@ -636,6 +667,10 @@ void ContinuumElementT::ApplyTractionBC(void)
 {
 	if (fTractionList.Length() > 0)
 	{
+		/* dimensions */
+		int nsd = NumSD();
+		int ndof = NumDOF();
+	
 		/* update equation numbers */
 		if (!fTractionBCSet) SetTractionBC();
 	
@@ -645,21 +680,21 @@ void ContinuumElementT::ApplyTractionBC(void)
 		
 		/* local coordinates */
 		LocalArrayT coords(LocalArrayT::kInitCoords);
-		VariLocalArrayT coord_man(25, coords, fNumSD);
-		fFEManager.RegisterLocal(coords);
+		VariLocalArrayT coord_man(25, coords, nsd);
+		ElementSupport().RegisterCoordinates(coords);
 		
 		/* nodal tractions */
 		LocalArrayT tract(LocalArrayT::kUnspecified);
-		VariLocalArrayT tract_man(25, tract, fNumDOF);
+		VariLocalArrayT tract_man(25, tract, ndof);
 
 		/* integration point tractions */
 		dArray2DT ip_tract;
-		nVariArray2DT<double> ip_tract_man(25, ip_tract, fNumDOF);
-		dArrayT tract_loc, tract_glb(fNumDOF);
-		dMatrixT Q(fNumDOF);
+		nVariArray2DT<double> ip_tract_man(25, ip_tract, ndof);
+		dArrayT tract_loc, tract_glb(ndof);
+		dMatrixT Q(ndof);
 		
 		/* Jacobian of the surface mapping */
-		dMatrixT jacobian(fNumSD,fNumSD-1);
+		dMatrixT jacobian(nsd, nsd-1);
 		
 		for (int i = 0; i < fTractionList.Length(); i++)
 		{
@@ -668,7 +703,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 			/* dimension */
 			const iArrayT& nodes = BC_card.Nodes();
 			int nnd = nodes.Length();
-			rhs_man.SetLength(nnd*fNumDOF, false);
+			rhs_man.SetLength(nnd*ndof, false);
 			coord_man.SetNumberOfNodes(nnd);
 			tract_man.SetNumberOfNodes(nnd);
 			
@@ -688,7 +723,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 #else
 			/* use thickness for 2D solid deformation elements */
 			double thick = 1.0;
-			if (fNumSD == 2 && fNumDOF == 2) //better to do this once elsewhere?
+			if (ndof == 2 && ndof == 2) //better to do this once elsewhere?
 			{
 				/* get material pointer */
 				const ElementCardT& elem_card = fElementCards[elem];
@@ -727,7 +762,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 					const double* tj = ip_tract(j);
 					
 					/* accumulate */
-					for (int l = 0; l < fNumDOF; l++)
+					for (int l = 0; l < ndof; l++)
 					{
 						/* nodal shape function */
 						const double* Na = surf_shape.Shape(j);
@@ -737,7 +772,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 						for (int k = 0; k < nnd; k++)
 						{
 							*prhs += fact*(*Na++);
-							prhs += fNumDOF;
+							prhs += ndof;
 						}
 					}				
 				}
@@ -764,7 +799,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 					const double* tj = tract_glb.Pointer();
 					
 					/* accumulate */
-					for (int l = 0; l < fNumDOF; l++)
+					for (int l = 0; l < ndof; l++)
 					{
 						/* nodal shape function */
 						const double* Na = surf_shape.Shape(j);
@@ -774,7 +809,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 						for (int k = 0; k < nnd; k++)
 						{
 							*prhs += fact*(*Na++);
-							prhs += fNumDOF;
+							prhs += ndof;
 						}
 					}				
 				}
@@ -783,7 +818,7 @@ void ContinuumElementT::ApplyTractionBC(void)
 				throw eGeneralFail;
 
 			/* assemble */
-			fFEManager.AssembleRHS(rhs, BC_card.Eqnos());
+			ElementSupport().AssembleRHS(Group(), rhs, BC_card.Eqnos());
 		}
 	}
 }
@@ -820,6 +855,7 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 			const double* Weight = fShapes->IPWeights();
 			
 			int nen = fLocDisp.NumberOfNodes();
+			int ndof = NumDOF();
 			
 			/* matrix form */
 			int a = 0, zero = 0;
@@ -832,16 +868,16 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 				const double* Na = fShapes->IPShapeU();
 								
 				for (a = 0; a < nen; a++)
-					for (int i = 0; i < fNumDOF; i++)
+					for (int i = 0; i < ndof; i++)
 					{
-						int p = a*fNumDOF + i;
+						int p = a*ndof + i;
 						
 						/* upper triangle only */
 						for (int b = b_start; b < nen; b++)
-							for (int j = 0; j < fNumDOF; j++)
+							for (int j = 0; j < ndof; j++)
 								if(i == j)
 								{									
-									int q = b*fNumDOF + j;
+									int q = b*ndof + j;
 									fLHS(p,q) += temp*Na[a]*Na[b];
 								}
 					}
@@ -852,6 +888,7 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 		case kLumpedMass:	/* lumped mass */
 		{
 			int nen = fLocDisp.NumberOfNodes();
+			int ndof = NumDOF();
 
 		    double dsum   = 0.0;
 		    double totmas = 0.0;
@@ -885,7 +922,7 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 			for (int lnd = 0; lnd < nen; lnd++)
 			{
 				double temp = diagmass*fNEEvec[lnd];
-				for (int ed = 0; ed < fNumDOF; ed++)
+				for (int ed = 0; ed < ndof; ed++)
 				{
 					*pmass += temp;
 					pmass += inc;	
@@ -903,16 +940,16 @@ void ContinuumElementT::FormMass(int mass_type, double constM)
 /* add contribution from the body force */
 void ContinuumElementT::AddBodyForce(LocalArrayT& body_force) const
 {
-	if (fBodyForceLTf > -1)
+	if (fBodySchedule)
 	{
+		int ndof = NumDOF();
 		int nen = body_force.NumberOfNodes();
-		double loadfactor = fFEManager.LoadFactor(fBodyForceLTf);
+		double loadfactor = fBodySchedule->Value();
 		double* p = body_force.Pointer();
 
-		for (int i = 0; i < fNumDOF; i++)
+		for (int i = 0; i < ndof; i++)
 		{
 			double temp = -fBody[i]*loadfactor;
-		
 			for (int j = 0; j < nen; j++)
 				*p++ = temp;
 		}
@@ -920,37 +957,57 @@ void ContinuumElementT::AddBodyForce(LocalArrayT& body_force) const
 }
 
 /* calculate the body force contribution */
-void ContinuumElementT::FormMa(int mass_type, double constM, const LocalArrayT& body_force)
+void ContinuumElementT::FormMa(MassTypeT mass_type, double constM, 
+	const LocalArrayT* nodal_values,
+	const dArray2DT* ip_values)
 {
+	/* quick exit */
+	if (!nodal_values && !ip_values) return;
+
+#if __option(extended_errorcheck)
+	/* dimension checks */
+	if (nodal_values && 
+		fRHS.Length() != nodal_values->Length()) 
+		throw eSizeMismatch;
+
+	if (ip_values &&
+		(ip_values->MajorDim() != fShapes->NumIP() ||
+		 ip_values->MinorDim() != NumDOF()))
+		throw eSizeMismatch;
+#endif
+
 	switch (mass_type)
 	{
-		case kConsistentMass:	
+		case kConsistentMass:
 		{
-#if __option(extended_errorcheck)
-			if (fRHS.Length() != body_force.Length()) throw eSizeMismatch;
-#endif
-			int nen = body_force.NumberOfNodes();
+			int ndof = NumDOF();
+			int  nen = NumElementNodes();
 
 			const double* Det    = fShapes->IPDets();
 			const double* Weight = fShapes->IPWeights();
 
 			fShapes->TopIP();
-			while ( fShapes->NextIP() )
+			while (fShapes->NextIP())
 			{					
-				/* integration point accelerations */
-				fShapes->InterpolateU(body_force, fDOFvec);
+				/* interpolate nodal values to ip */
+				if (nodal_values)
+					fShapes->InterpolateU(*nodal_values, fDOFvec);
+					
+				/* ip sources */
+				if (ip_values)
+					fDOFvec -= (*ip_values)(fShapes->CurrIP());
 
 				/* accumulate in element residual force vector */				
 				double*	res      = fRHS.Pointer();
 				const double* Na = fShapes->IPShapeU();
-
+				
 				double temp = constM*(*Weight++)*(*Det++);				
 				for (int lnd = 0; lnd < nen; lnd++)
 				{
-					double  temp2 = temp*(*Na++);
-					double*  pacc = fDOFvec.Pointer();
-					
-					for (int dof = 0; dof < fNumDOF; dof++)			
+					double temp2 = temp*(*Na++);
+					double* pacc = fDOFvec.Pointer();
+
+					for (int dof = 0; dof < ndof; dof++)			
 						*res++ += temp2*(*pacc++);
 				}
 			}
@@ -958,28 +1015,28 @@ void ContinuumElementT::FormMa(int mass_type, double constM, const LocalArrayT& 
 		}	
 		case kLumpedMass:
 		{
-			//cout << "\n ContinuumElementT::FormMa: inertial forces with lumped mass not supported";
-			//cout << endl;
-			//throw eGeneralFail;
-			
-			//for now, no inertial force for lumped mass
-			//but should probably generalize the FormMass and
-			//FormStiffness routines by passing in a target object
-			//in which to place the data
-
-#if __option(extended_errorcheck)
-			if (fLHS.Rows() != body_force.Length()) throw eSizeMismatch;
-#endif
-			
 			fLHS = 0.0; //hope there's nothing in there!
 			FormMass(kLumpedMass, constM);
-			body_force.ReturnTranspose(fNEEvec);
+
+			/* init nodal values */
+			if (nodal_values)
+				nodal_values->ReturnTranspose(fNEEvec);
+			else {
+				cout << "\n ContinuumElementT::FormMa: expecting nodal values for lumped mass" << endl;
+				throw eGeneralFail;
+			}
+				
+//TEMP - what to do with ip values?
+if (ip_values) {
+	cout << "\n ContinuumElementT::FormMa: lumped mass not implemented for ip sources" << endl;
+	throw eGeneralFail;
+}
 
 			double* pAcc = fNEEvec.Pointer();
 			double* pRes = fRHS.Pointer();
 			int     massdex = 0;
 			
-			int nee = body_force.Length();
+			int nee = nodal_values->Length();
 			for (int i = 0; i < nee; i++)
 			{
 				*pRes++ += (*pAcc++)*fLHS(massdex,massdex);
@@ -1041,19 +1098,28 @@ void ContinuumElementT::WriteMaterialData(ostream& out) const
 
 void ContinuumElementT::EchoBodyForce(ifstreamT& in, ostream& out)
 {
-	/* read LTf and force vector */
-	in >> fBodyForceLTf >> fBody;		
-	if (fBodyForceLTf < 0 || fBodyForceLTf > fFEManager.NumberOfLTf())
-		throw eBadInputValue;
-	fBodyForceLTf--;
+	/* schedule number and body force vector */
+	int n_sched;
+	in >> n_sched >> fBody;		
+	n_sched--;
 
 	/* no LTf => no body force */
-	if (fBodyForceLTf < 0) fBody = 0.0;
+	if (n_sched < 0) 
+		fBody = 0.0;
+	else
+	{
+		fBodySchedule = ElementSupport().Schedule(n_sched);
+		if (!fBodySchedule) {
+			cout << "\n ContinuumElementT::EchoBodyForce: could not resolve schedule " 
+			     << n_sched + 1 << endl;
+			throw eBadInputValue;
+		}	
+	}
 	
 	out << "\n Body force vector:\n";
-	out << " Body force load-time function number. . . . . . = " << fBodyForceLTf + 1<< '\n';
+	out << " Body force load-time function number. . . . . . = " << n_sched + 1<< '\n';
 	out << " Body force vector components:\n";
-	for (int j = 0 ; j < fNumDOF; j++)
+	for (int j = 0 ; j < NumDOF(); j++)
 	{
 		out << "   x[" << j+1 << "] direction. . . . . . . . . . . . . . . . = ";
 		out << fBody[j] << '\n';
@@ -1067,8 +1133,8 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 	
 	/* read data from parameter file */
 	int numlines, numsets;
-	ModelManagerT* model = fFEManager.ModelManager();
-	model->ReadNumTractionLines (in, numlines, numsets);
+	ModelManagerT& model = ElementSupport().Model();
+	model.ReadNumTractionLines (in, numlines, numsets);
 
 	if (numlines > 0)
 	  {
@@ -1091,12 +1157,12 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 		/* read num of cards in each block */
 		int setsize = -1;
 		StringT set_ID;
-		model->ReadTractionSetData (in, set_ID, setsize);
+		model.ReadTractionSetData (in, set_ID, setsize);
 		for (int card=0; card < setsize; card++)
 		  {
 		    /* read side set for that card */
 		    block_ID[line] = set_ID;
-		    model->ReadTractionSideSet (in, block_ID[line], localsides[line]);
+		    model.ReadTractionSideSet (in, block_ID[line], localsides[line]);
 
 		    /* increment count */
 		    int num_sides = localsides[line].MajorDim();
@@ -1158,7 +1224,7 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 
 		    /* read traction values */
 		    dArray2DT& valueT = values[line];
-		    valueT.Allocate (num_nodes, fNumDOF);
+		    valueT.Allocate (num_nodes, NumDOF());
 		    in >> valueT;
 		    //NOTE - cannot simply clear to the end of the line with empty side sets
 		    //       because the tractions may be on multiple lines
@@ -1177,7 +1243,7 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 	      {
 		out << '\n';
 		out << setw (kIntWidth) << "no.";
-		fTractionList[0].WriteHeader (out, fNumDOF);
+		fTractionList[0].WriteHeader (out, NumDOF());
 
 		iArrayT loc_node_nums;
 		int dex = 0;
@@ -1194,7 +1260,7 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 			fShapes->NodesOnFacet (side_set (j, 1), loc_node_nums);
 
 			/* set and echo */
-			fTractionList[dex++].EchoValues (fFEManager, side_set(j,0), side_set (j,1), LTf[ii],
+			fTractionList[dex++].EchoValues (ElementSupport(), side_set(j,0), side_set (j,1), LTf[ii],
 							 coord_sys[ii], loc_node_nums, values[ii], out);
 		      }
 		    out << endl;
@@ -1203,7 +1269,7 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 	  }
 
 
-	if (fNumSD != fNumDOF)
+	if (NumSD() != NumDOF())
 	{
 		/* check coordinate system specifications */
 		for (int i = 0; i < fTractionList.Length(); i++)
@@ -1223,7 +1289,7 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 void ContinuumElementT::BoundingElements(iArrayT& elements, iArray2DT& neighbors) const
 {
 	//TEMP - not parallelized
-	if (fFEManager.Size() > 1)
+	if (ElementSupport().Size() > 1)
 		cout << "\n ContinuumElementT::BoundingElements: not extended to parallel" << endl;
 
 	/* build element neighbor list */
@@ -1235,7 +1301,8 @@ void ContinuumElementT::BoundingElements(iArrayT& elements, iArray2DT& neighbors
 	/* collect list of bounding elements */
 	AutoArrayT<int> borders;
 	iArrayT element;
-	for (int i = 0; i < fNumElements; i++)
+	int nel = NumElements();
+	for (int i = 0; i < nel; i++)
 	{
 		all_neighbors.RowAlias(i, element);
 	
@@ -1319,6 +1386,9 @@ void ContinuumElementT::SetTractionBC(void)
 //      only that NodesX in the element cards has the correct global
 //      node numbers.
 
+	/* dimensions */
+	int ndof = NumDOF();
+
 	/* echo values */
 	iArray2DT nd_tmp, eq_tmp;
 	for (int i = 0; i < fTractionList.Length(); i++)
@@ -1339,12 +1409,12 @@ void ContinuumElementT::SetTractionBC(void)
 		
 		/* set global equation numbers */
 		iArrayT& eqnos = BC_card.Eqnos();
-		eqnos.Allocate(fNumDOF*nnd);
+		eqnos.Allocate(ndof*nnd);
 		
 		/* get from node manager */
 		nd_tmp.Set(1, nnd, nodes.Pointer());
-		eq_tmp.Set(1, fNumDOF*nnd, eqnos.Pointer());
-		fNodes->SetLocalEqnos(nd_tmp, eq_tmp);
+		eq_tmp.Set(1, ndof*nnd, eqnos.Pointer());
+		Field().SetLocalEqnos(nd_tmp, eq_tmp);
 	}
 
 	/* set flag */

@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.10 2002-04-16 21:19:33 cjkimme Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.11 2002-06-08 20:20:17 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -10,19 +10,17 @@
 #include "fstreamT.h"
 #include "StringT.h"
 #include "SecantMethodT.h"
-#include "FEManagerT.h"
 
 /* class parameters */
 const int knumDOF = 2;
 
 /* constructor */
-Tijssens2DT::Tijssens2DT(ifstreamT& in, double time_step, FEManagerT& FE_Manager): 
+Tijssens2DT::Tijssens2DT(ifstreamT& in, const double& time_step): 
 	SurfacePotentialT(knumDOF),
-	fTimeStep(time_step),
-	fFEManager(FE_Manager)
+	fTimeStep(time_step)
 {
 	/* traction rate parameters */
-        in >> fk_t0; if (fk_t0 < 0) throw eBadInputValue;
+	in >> fk_t0; if (fk_t0 < 0) throw eBadInputValue;
 	in >> fk_n; if (fk_n < 0) throw eBadInputValue;
 	in >> fc_1; if (fc_1 < 0) throw eBadInputValue;
 	in >> fDelta_n_ccr; if (fDelta_n_ccr < 0) throw eBadInputValue;
@@ -32,18 +30,18 @@ Tijssens2DT::Tijssens2DT(ifstreamT& in, double time_step, FEManagerT& FE_Manager
 	in >> fB_0; if (fB < 0) throw eBadInputValue;
 	in >> fQ_A; if (fQ_A < 0) throw eBadInputValue;
 	in >> fQ_B; if (fQ_B < 0) throw eBadInputValue;
-
-        /* crazing state variables' parameters */
+	
+	/* crazing state variables' parameters */
 	in >> fDelta_0; if (fDelta_0 < 0) throw eBadInputValue;
 	in >> fsigma_c; if (fsigma_c < 0) throw eBadInputValue;
 	in >> fastar; if (fastar < 0) throw eBadInputValue;
-        in >> ftemp; if (ftemp < 0) throw eBadInputValue;
+	in >> ftemp; if (ftemp < 0) throw eBadInputValue;
 	in >> fGroup; if (fGroup <= 0) throw eBadInputValue;
 	in >> fSteps; if (fSteps < 0) throw eBadInputValue;
 
 	fA = fA_0/2.*exp(fQ_A/ftemp);
 	fB = fB_0/6.*exp(fQ_B/ftemp);
-        fc_1 /= fDelta_n_ccr;
+ 	fc_1 /= fDelta_n_ccr;
 	double root3 = sqrt(3.);
 	ftau_c = fsigma_c/root3;
 	fGamma_0 = fDelta_0*root3;
@@ -57,19 +55,20 @@ int Tijssens2DT::NumStateVariables(void) const { return 3*knumDOF+1; }
 /* surface potential */ 
 double Tijssens2DT::FractureEnergy(const ArrayT<double>& state) 
 {
-   	return state[6]; 
+	return state[6]; 
 }
 
 double Tijssens2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
 {
 #pragma unused(jump_u)
 
-        return state[6];
+	return state[6];
 }
 	
 /* traction vector given displacement jump vector */	
 const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma)
 {
+#pragma unused(sigma)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eSizeMismatch;
@@ -83,8 +82,6 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 	double du_t = jump_u[0]-state[2];
 	double du_n = jump_u[1]-state[3];
 
-	fTimeStep = fFEManager.TimeStep();
-
 	/* see if crazing has been initiated */
 	//if (state[7] < kSmall || (state[8] <= kSmall && (1.5*state[7] - fA + fB/state[7] - state[1]) > kSmall) || (state[5] >= fDelta_n_ccr && state[9] <= kSmall))
 	if (jump_u[1] < 1.01*fsigma_c/fk_n) 
@@ -93,42 +90,38 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 	    state[0] += fk_t0*du_t;
 	    /* interpenetration */
 	    if (jump_u[1] < kSmall)
-	      state[1] += 2.*fk_n*du_n;
+	   		state[1] += 2.*fk_n*du_n;
 	}
 	else 
-	  if (state[5] > fDelta_n_ccr)
-	  {
-	    if (state[1] - fk_n/fSteps*du_n > kSmall)
-	    {
-		state[1] -= fk_n/fSteps*du_n;
-		state[0] -= fk_t0*exp(-fc_1)*du_t;
-	    }
-	    else
-	      state[1] = state[0] = 0.;
-	  }
-	  else
-	  { 
+	  	if (state[5] > fDelta_n_ccr)
+	  	{
+	    	if (state[1] - fk_n/fSteps*du_n > kSmall)
+	    	{
+				state[1] -= fk_n/fSteps*du_n;
+				state[0] -= fk_t0*exp(-fc_1)*du_t;
+	    	}
+	    	else
+	      		state[1] = state[0] = 0.;
+	  	}
+	  	else
+	  	{ 
 	    /*NormalTraction*/
-	    if (state[1] < kSmall) 
-	      state[1] = 1.1*fsigma_c;
-	    double Tnp1 = state[1];
-	    SecantMethodT secant(20);
-	    double du_nd = du_n/fTimeStep;//.000001;
+	    	if (state[1] < kSmall) 
+	      		state[1] = 1.1*fsigma_c;
+	    	double Tnp1 = state[1];
+		    SecantMethodT secant(20);
+		    double du_nd = du_n/fTimeStep;//.000001;
 
-	    secant.Reset(fsigma_c,-state[1]-fk_n*fTimeStep*(du_nd-fDelta_0),1.5*state[1],.5*state[1]-fk_n*fTimeStep*(du_nd-fDelta_0*exp(-fastar*(fsigma_c-Tnp1))));
-	    Tnp1 = secant.NextGuess();
-	    while (!secant.NextPoint(Tnp1,Tnp1-state[1]-(fk_n*fTimeStep*(du_nd-fDelta_0*exp(-fastar*(fsigma_c-Tnp1))))))
-	      Tnp1 = secant.NextGuess();
+	    	secant.Reset(fsigma_c,-state[1]-fk_n*fTimeStep*(du_nd-fDelta_0),1.5*state[1],.5*state[1]-fk_n*fTimeStep*(du_nd-fDelta_0*exp(-fastar*(fsigma_c-Tnp1))));
+	    	Tnp1 = secant.NextGuess();
+		    while (!secant.NextPoint(Tnp1,Tnp1-state[1]-(fk_n*fTimeStep*(du_nd-fDelta_0*exp(-fastar*(fsigma_c-Tnp1))))))
+		   		Tnp1 = secant.NextGuess();
 
-	    double du_c = fTimeStep*fDelta_0*exp(-fastar*(fsigma_c-Tnp1));
-	    state[1] += fk_n*(du_nd*fTimeStep-du_c);
+		    double du_c = fTimeStep*fDelta_0*exp(-fastar*(fsigma_c-Tnp1));
+		    state[1] += fk_n*(du_nd*fTimeStep-du_c);
 
-	    state[5] += du_c;
-	    state[6] += state[1]*du_n;
-
-	    //	    cout << "In Traction " << Tnp1 << " " << du_c << "\n";
-
-	    // cout << " Local rate " << du_n << " " << du_c << " " << du_n-du_c << "\n";
+	    	state[5] += du_c;
+	    	state[6] += state[1]*du_n;
 
 	    /* Tangential traction *//*
 	    Tnp1 = state[0];
@@ -142,17 +135,15 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 
 	    /*if a craze will fail, request a smaller timestep*/
 
-	    double dw_t = fk_t0*exp(-fc_1*state[5]/fDelta_n_ccr)*du_t;
-	    state[0] += dw_t;
-	    state[6] += state[0]*du_t;
-	  }
+		 	double dw_t = fk_t0*exp(-fc_1*state[5]/fDelta_n_ccr)*du_t;
+		 	state[0] += dw_t;
+	   	 	state[6] += state[0]*du_t;
+		}
 
 	fTraction[0] = state[0];
 	fTraction[1] = state[1];
 	state[2] = jump_u[0];
 	state[3] = jump_u[1];
-
-	//	cout << "Traction " << fTraction[0] << " " << fTraction[1] << "\n";
 
 	return fTraction;
 }
@@ -160,6 +151,7 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 /* potential stiffness */
 const dMatrixT& Tijssens2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma)
 {
+#pragma unused(sigma)
 #if __option(extended_errorcheck)
 	if (jump_u.Length() != knumDOF) throw eSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw eGeneralFail;
@@ -176,41 +168,39 @@ const dMatrixT& Tijssens2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doubl
 	      fStiffness[3] += 2.*fk_n;
 	}
 	else 
-	  if (state[5] > fDelta_n_ccr) 
-	  {
-	      if (state[1] - fk_n/fSteps*(jump_u[1]-state[3]) > kSmall)
-	      {
-		cout << "Failing \n";
-		
-	      	fStiffness[3] = -fk_n/fSteps;
-		fStiffness[0] = -fk_t0*exp(-fc_1);
-	      }
-	      else 
-		fStiffness[3] = fStiffness[0] = 0.;
-	  }
-	  else
-	  {
-	      /*Normal stiffness*/
-	      double du_n = jump_u[1]-state[3];
-	      if (state[1] < kSmall)
-		state[1] = 1.1 * fsigma_c;
-	      double Tnp1 = state[1];
-	      SecantMethodT secant(20);
+	  	if (state[5] > fDelta_n_ccr) 
+	  	{
+	   		if (state[1] - fk_n/fSteps*(jump_u[1]-state[3]) > kSmall)
+	      	{
+	      		fStiffness[3] = -fk_n/fSteps;
+				fStiffness[0] = -fk_t0*exp(-fc_1);
+	      	}
+	      	else 
+				fStiffness[3] = fStiffness[0] = 0.;
+	  	}
+	  	else
+	  	{
+	   		/*Normal stiffness*/
+	      	double du_n = jump_u[1]-state[3];
+	      	if (state[1] < kSmall)
+				state[1] = 1.1 * fsigma_c;
+		    double Tnp1 = state[1];
+	      	SecantMethodT secant(20);
 	      
-	      secant.Reset(fsigma_c,-state[1]-fk_n*(du_n-fTimeStep*fDelta_0),1.5*state[1],.5*state[1]-(fk_n*(du_n-fTimeStep*fDelta_0*exp(-fastar*(fsigma_c-Tnp1)))));
-	      Tnp1 = secant.NextGuess();
-	      while (!secant.NextPoint(Tnp1,Tnp1-state[1]-(fk_n*(du_n-fTimeStep*fDelta_0*exp(-fastar*(fsigma_c-Tnp1))))))
-		Tnp1 = secant.NextGuess();
+	      	secant.Reset(fsigma_c,-state[1]-fk_n*(du_n-fTimeStep*fDelta_0),1.5*state[1],.5*state[1]-(fk_n*(du_n-fTimeStep*fDelta_0*exp(-fastar*(fsigma_c-Tnp1)))));
+	      	Tnp1 = secant.NextGuess();
+	      	while (!secant.NextPoint(Tnp1,Tnp1-state[1]-(fk_n*(du_n-fTimeStep*fDelta_0*exp(-fastar*(fsigma_c-Tnp1))))))
+				Tnp1 = secant.NextGuess();
 	    
-	      if (state[1] < 1.01*fsigma_c && du_n > kSmall)
-	      { 
+	      	if (state[1] < 1.01*fsigma_c && du_n > kSmall)
+	      	{ 
 		//RequestNewTimeStep((1.01*fsigma_c/fk_n - state[3])/du_n*fTimeStep);
-		fStiffness[3] = (Tnp1-state[1])/(jump_u[1]-state[3]);
+				fStiffness[3] = (Tnp1-state[1])/(jump_u[1]-state[3]);
 	      
-	      }
-	      else
-	      {
-	      fStiffness[3] = fk_n/(1.+fk_n*fTimeStep*fastar*fDelta_0*exp(-fastar*(fsigma_c-Tnp1)));
+	      	}
+	      	else
+	      	{
+	      		fStiffness[3] = fk_n/(1.+fk_n*fTimeStep*fastar*fDelta_0*exp(-fastar*(fsigma_c-Tnp1)));
 
 	      /*Tangential stiffness*//*
 	      Tnp1 = 1.5*state[0];
@@ -226,12 +216,11 @@ const dMatrixT& Tijssens2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doubl
 
 	      fStiffness[0] = fk_t/(1+fTimeStep*fGamma_0*fastar*(exp(-fastar*(ftau_c-Tnp1))+exp(-fastar*(ftau_c+Tnp1))));
 				      */
-	      }
-	      double fk_t = fk_t0*exp(-fc_1*state[5]/fDelta_n_ccr);
-	      fStiffness[0] = fk_t;
+		    }
+	      	
+	      	double fk_t = fk_t0*exp(-fc_1*state[5]/fDelta_n_ccr);
+	      	fStiffness[0] = fk_t;
 	  }
-
-	//	cout << "Stiffness " << fStiffness[0] << " " << fStiffness[3] <<" \n";
 
 	return fStiffness;
 
@@ -250,10 +239,10 @@ SurfacePotentialT::StatusT Tijssens2DT::Status(const dArrayT& jump_u,
 	if (state[1] < 1.1*fsigma_c)
 	         return Precritical;
 	else 
-	  if (state[5] >= fDelta_n_ccr) 
-	    return Failed;
-	  else
-	    return Critical;
+	  	if (state[5] >= fDelta_n_ccr) 
+	    	return Failed;
+	  	else
+	    	return Critical;
 
 }
 
@@ -304,10 +293,7 @@ void Tijssens2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& sta
 	output[0] = (jump_u[1]-state[3])/fTimeStep;
 	output[1] = state[4];
 	output[2] = state[5];
-	//	if (state[7] > kSmall)
-	// output[3] = 1.5*state[7]-fA+fB/state[7]-state[1];
-	//else
-	  output[3] = 0;
+	output[3] = 0;
 }
 
 bool Tijssens2DT::NeedsNodalInfo(void) { return false; }

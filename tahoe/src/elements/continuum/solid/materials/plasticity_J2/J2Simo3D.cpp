@@ -1,4 +1,4 @@
-/* $Id: J2Simo3D.cpp,v 1.8 2002-04-17 23:58:18 paklein Exp $ */
+/* $Id: J2Simo3D.cpp,v 1.9 2002-06-08 20:20:41 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 
 #include "J2Simo3D.h"
@@ -138,6 +138,17 @@ double J2Simo3D::StrainEnergyDensity(void)
 		CurrentElement(), CurrIP());
 
 	return ComputeEnergy(J, b_els);
+}
+
+/* incremental heat generation */
+double J2Simo3D::IncrementalHeat(void)
+{
+	/* trust the "current" element is already loaded */
+	ElementCardT& element = CurrentElement();
+	if (element.IsAllocated())
+		return fInternal[kHeatIncr];
+	else
+		return 0.0;
 }
 
 /* returns the number of output variables */

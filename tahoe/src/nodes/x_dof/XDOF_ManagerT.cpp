@@ -1,4 +1,4 @@
-/* $Id: XDOF_ManagerT.cpp,v 1.8 2002-04-05 22:15:47 rjones Exp $ */
+/* $Id: XDOF_ManagerT.cpp,v 1.9 2002-06-08 20:20:52 paklein Exp $ */
 /* created: paklein (06/01/1998) */
 /* base class which defines the interface for a manager */
 /* of DOF's comprised of FE DOF's plus constrain DOF's */
@@ -88,20 +88,37 @@ const dArray2DT& XDOF_ManagerT::XDOF(const DOFElementT* group, int tag_set) cons
 * Protected
 **********************************************************************/
 
+/* return the number of XDOF equations in the specified group */
+int XDOF_ManagerT::NumEquations(int group) const
+{
+	int neq = 0;
+	for (int j = 0; j < fDOFElements.Length(); j++)
+		if (fDOFElements[j]->Group() == group)
+		{
+			int num_sets = fNumTagSets[j];
+			for (int k = 0; k < num_sets; k++)
+			{
+				int dex = TagSetIndex(fDOFElements[j], k);
+				neq += fXDOF_Eqnos[dex]->Length(); /* all active */
+			}
+		}
+	return neq;
+}
+
 /* prompt element groups to reset tags */
-bool XDOF_ManagerT::ResetTags(void)
+bool XDOF_ManagerT::ResetTags(int group)
 {
 	if (fDOFElements.Length() > 0)
 	{
 		/* query (all) groups to reconfigure */
 		int relax = 0;
-		/* loop over groups */
+
+		/* loop over element in the group */
 		int index = 0;
 		for (int j = 0; j < fDOFElements.Length(); j++)
-		{
-			if (fDOFElements[j]->Reconfigure() == 1)
+			if (fDOFElements[j]->Group() == group && 
+			    fDOFElements[j]->Reconfigure() == 1)
 				relax = 1;
-		}
 	
 		if (relax)
 		{
@@ -118,15 +135,17 @@ bool XDOF_ManagerT::ResetTags(void)
 		
 			/* loop over DOF element groups */
 			for (int i = 0; i < fDOFElements.Length(); i++)
-			{
-				/* reset contact configs */
-				ConfigureElementGroup(i, fNumTags);
-				
-				/* restore values */
-				/* loop over tag sets */
-				for (int j = 0; j < fNumTagSets[i]; j++)
-					fDOFElements[i]->ResetDOF(*fXDOFs[index++], j);
-			}
+				if (fDOFElements[i]->Group() == group)
+				{
+					/* reset contact configs */
+					ConfigureElementGroup(i, fNumTags);
+
+					/* restore values */
+					/* loop over tag sets */
+					for (int j = 0; j < fNumTagSets[i]; j++)
+						fDOFElements[i]->ResetDOF(*fXDOFs[index++], j);
+				}
+
 			return true;
 		}
 		else
@@ -137,33 +156,54 @@ bool XDOF_ManagerT::ResetTags(void)
 }
 
 /* call groups to reset external DOF's */
-void XDOF_ManagerT::Reset(void)
+void XDOF_ManagerT::Reset(int group)
 {
-	/* loop over groups */
+	/* loop over element */
 	int index = 0;
 	for (int i = 0; i < fDOFElements.Length(); i++)
-		/* loop over tag sets */
-		for (int j = 0; j < fNumTagSets[i]; j++)
-			fDOFElements[i]->ResetDOF(*fXDOFs[index++], j);
+	{
+		if (fDOFElements[i]->Group() == group)
+		{
+			/* loop over tag sets */
+			for (int j = 0; j < fNumTagSets[i]; j++)
+				fDOFElements[i]->ResetDOF(*fXDOFs[index++], j);
+		}
+		else /* next element */
+			index += fNumTagSets[i];
+	}
 }
 
 /* update DOF's using the global update vector */
-void XDOF_ManagerT::Update(const dArrayT& update)
+void XDOF_ManagerT::Update(int group, const dArrayT& update)
 {
-	/* loop over all tag sets */
-	for (int i = 0; i < fXDOF_Eqnos.Length(); i++)
+	/* loop over elements */
+	int dex = 0;
+	for (int i = 0; i < fDOFElements.Length(); i++)
 	{
-		/* group data */
-		iArray2DT& XDOF_eqnos = *fXDOF_Eqnos[i];
-		dArray2DT& XDOF = *fXDOFs[i];
+		int nsets = fNumTagSets[i];
+		if (fDOFElements[i]->Group() == group)
+		{
+			for (int j = 0; j < nsets; j++)
+			{
+				/* group data */
+				iArray2DT& XDOF_eqnos = *fXDOF_Eqnos[dex];
+				dArray2DT& XDOF = *fXDOFs[dex];
 
-		int   num_eq = XDOF_eqnos.Length();
-		int*     peq = XDOF_eqnos.Pointer();
-		double* pDOF = XDOF.Pointer();
+				int   num_eq = XDOF_eqnos.Length();
+				int*     peq = XDOF_eqnos.Pointer();
+				double* pDOF = XDOF.Pointer();
 		
-		/* assume mapped sequentially and all are active */
-		for (int j = 0; j < num_eq; j++)
-			*pDOF++ += update[*peq++ - 1]; //OFFSET
+				/* assume mapped sequentially and all are active */
+				for (int k = 0; k < num_eq; k++)
+					*pDOF++ += update[*peq++ - 1]; //OFFSET
+			
+				/* next tag set */
+				dex++;
+			}
+		}
+		else
+			/* next group */
+			dex += nsets;
 	}
 }
 
@@ -206,16 +246,40 @@ void XDOF_ManagerT::ConfigureElementGroup(int group_number, int& tag_num)
 }
 
 /* assign equation numbers */
-void XDOF_ManagerT::SetEquations(int& num_eq)
+void XDOF_ManagerT::SetEquations(int group, int& num_eq)
 {
-	int num_sets = fXDOF_Eqnos.Length();
-	for (int i = 0; i < num_sets; i++)
+	/* loop over elements */
+	int dex = 0;
+	for (int i = 0; i < fDOFElements.Length(); i++)
 	{
-		int* peqno = fXDOF_Eqnos[i]->Pointer();
-		int length = fXDOF_Eqnos[i]->Length();
-		for (int j = 0; j < length; j++)
-			*peqno++ = ++num_eq;
+		int nsets = fNumTagSets[i];
+		if (fDOFElements[i]->Group() == group)
+		{
+			/* assign number sequentially through the set */
+			for (int j = 0; j < nsets; j++)
+			{
+				int* peqno = fXDOF_Eqnos[dex]->Pointer();
+				int length = fXDOF_Eqnos[dex]->Length();
+				for (int k = 0; k < length; k++)
+					*peqno++ = ++num_eq;
+
+				/* next tag set */
+				dex++;
+			}
+		}
+		else
+			/* next group */
+			dex += nsets;
 	}
+}
+
+/* access to global equation numbers */
+void XDOF_ManagerT::EquationNumbers(int group, AutoArrayT<iArray2DT*>& equationsets)
+{
+	/* loop over elements */
+	for (int i = 0; i < fDOFElements.Length(); i++)
+		if (fDOFElements[i]->Group() == group)
+			equationsets.Append(fXDOF_Eqnos[i]);
 }
 
 /* remove external DOF's from first slot of each row */
@@ -352,7 +416,7 @@ int XDOF_ManagerT::TagSetIndex(const DOFElementT* group, int tag_set) const
 }
 
 /* resolve tag into its tag set and tag offset */
-bool XDOF_ManagerT::ResolveTagSet(int tag, int& tag_set, int& tag_set_start)
+bool XDOF_ManagerT::ResolveTagSet(int tag, int& tag_set, int& tag_set_start) const
 {
 	tag_set = tag_set_start = -1;
 	int offset = fStartTag;

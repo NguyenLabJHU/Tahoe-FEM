@@ -1,7 +1,4 @@
-/* $Id: FDCrystalElast.cpp,v 1.3 2001-08-20 22:15:41 rdorgan Exp $ */
-/*
-  File: FDCrystalElast.cpp
-*/
+/* $Id: FDCrystalElast.cpp,v 1.4 2002-06-08 20:20:39 paklein Exp $ */
 
 #include "FDCrystalElast.h"
 
@@ -12,7 +9,6 @@
 #include "ifstreamT.h"
 #include "Utils.h"
 #include "UpLagr_ExternalFieldT.h"
-#include "FEManagerT.h"
 #include "SpectralDecompT.h"
 
   /* spatial dimensions of the problem */
@@ -204,7 +200,7 @@ void FDCrystalElast::ComputeOutput(dArrayT& output)
   output[3] = fsnorm;
 
   // write texture at IP/ELE 
-  const int& step = ContinuumElement().FEManager().StepNumber();
+  const int& step = ContinuumElement().ElementSupport().StepNumber();
   fmatx1.MultAB(fRe, fRotMat);
   dArrayT& angles = fangles[0];
   fCrystalElastLat->RotMatrixToAngles(fmatx1, angles);

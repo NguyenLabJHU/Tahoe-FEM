@@ -1,5 +1,5 @@
-/* $Id: PenaltySphereT.h,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
-/* created: paklein (04/30/1998)                                          */
+/* $Id: PenaltySphereT.h,v 1.2 2002-06-08 20:20:49 paklein Exp $ */
+/* created: paklein (04/30/1998) */
 
 #ifndef _PENATLY_SPHERE_T_H_
 #define _PENATLY_SPHERE_T_H_
@@ -15,8 +15,8 @@ class PenaltySphereT: public PenaltyRegionT
 public:
 
 	/* constructor */
-	PenaltySphereT(FEManagerT& fe_manager, const iArray2DT& eqnos, const dArray2DT& coords,
-		const dArray2DT* vels);
+	PenaltySphereT(FEManagerT& fe_manager, int group, const iArray2DT& eqnos, 
+		const dArray2DT& coords, const dArray2DT* vels);
 
 	/* input processing */
 	virtual void EchoData(ifstreamT& in, ostream& out);

@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.h,v 1.11 2001-11-14 21:52:09 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.h,v 1.12 2002-06-08 20:20:22 paklein Exp $ */
 
 #ifndef _SIMO_FINITE_STRAIN_T_H_
 #define _SIMO_FINITE_STRAIN_T_H_
@@ -32,7 +32,7 @@ public:
 		};                
 
 	/** constructor */
-	SimoFiniteStrainT(FEManagerT& fe_manager);
+	SimoFiniteStrainT(const ElementSupportT& support, const FieldT& field);
 
 	/** destructor */
 	~SimoFiniteStrainT(void);
@@ -85,6 +85,10 @@ public:
 	 * This function returns 0. No reconfiguration is needed unless
 	 * the number of elements is changing. */
 	virtual int Reconfigure(void) { return 0; };		
+
+	/** return the equation group to which the generate degrees of
+	 * freedom belong. */
+	virtual int Group(void) const;
 
 protected:
 

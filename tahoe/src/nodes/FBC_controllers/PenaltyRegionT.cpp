@@ -1,4 +1,4 @@
-/* $Id: PenaltyRegionT.cpp,v 1.5 2002-01-27 18:51:10 paklein Exp $ */
+/* $Id: PenaltyRegionT.cpp,v 1.6 2002-06-08 20:20:49 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltyRegionT.h"
@@ -13,7 +13,7 @@
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
 #include "fstreamT.h"
-#include "LoadTime.h"
+#include "ScheduleT.h"
 #include "eControllerT.h"
 #include "IOBaseT.h"
 
@@ -21,10 +21,11 @@ const double Pi = acos(-1.0);
 
 /* constructor */
 PenaltyRegionT::PenaltyRegionT(FEManagerT& fe_manager,
+	int group,
 	const iArray2DT& eqnos,
 	const dArray2DT& coords,
 	const dArray2DT* vels):
-	FBC_ControllerT(fe_manager),
+	FBC_ControllerT(fe_manager, group),
 	
 	/* references to NodeManagerT data */
 	rEqnos(eqnos),
@@ -62,7 +63,7 @@ void PenaltyRegionT::EchoData(ifstreamT& in, ostream &out)
 	{
 		in >> numLTf;
 		numLTf--;
-		fLTf = fFEManager.GetLTfPtr(numLTf);
+		fLTf = fFEManager.Schedule(numLTf);
 	}
 	else if (fSlow == kImpulse)
 		in >> fMass;
@@ -169,11 +170,6 @@ void PenaltyRegionT::Initialize(void)
 	fContactForce2D = 0.0; // will be generate impulse at ApplyPreSolve
 }
 
-void PenaltyRegionT::Reinitialize(void)
-{
-	// do nothing
-}
-
 /* form of tangent matrix */
 GlobalT::SystemTypeT PenaltyRegionT::TangentType(void) const
 {
@@ -243,7 +239,7 @@ void PenaltyRegionT::ApplyRHS(void)
 	ComputeContactForce(constKd);
 
 	/* assemble */
-	fFEManager.AssembleRHS(fContactForce, fContactEqnos);
+	fFEManager.AssembleRHS(fGroup, fContactForce, fContactEqnos);
 }
 
 /* apply kinematic boundary conditions */
@@ -254,7 +250,7 @@ void PenaltyRegionT::InitStep(void)
 		for (int i = 0; i < rCoords.MinorDim(); i++)
 			fv[i] -= fFEManager.TimeStep()*fContactForce2D.ColumnSum(i)/fMass;
 	else if (fSlow == 2)
-		fv.SetToScaled(fLTf->LoadFactor(), fv0);
+		fv.SetToScaled(fLTf->Value(), fv0);
 	
 	/* compute new position */
 	fx.AddScaled(fFEManager.TimeStep(), fv);

@@ -1,9 +1,5 @@
-/* $Id: MeshFreeSSSolidT.h,v 1.3 2001-07-05 20:32:00 paklein Exp $ */
-/* created: paklein (09/11/1998)                                          */
-/* small strain elasticity with MLS shapefunctions for the                */
-/* field (displacement) representation                                    */
-/* NOTE: clean up code governing when crack growth algorithm              */
-/* is used, initiation criteria, etc. (PAK 09/28/1999)                    */
+/* $Id: MeshFreeSSSolidT.h,v 1.4 2002-06-08 20:20:25 paklein Exp $ */
+/* created: paklein (09/11/1998) */
 
 #ifndef _MF_SMALLSTRAIN_T_H_
 #define _MF_SMALLSTRAIN_T_H_
@@ -15,12 +11,16 @@
 /* direct members */
 #include "nVariMatrixT.h"
 
+/** small strain elasticity with MLS shapefunctions for the
+ * field (displacement) representation
+ * \note clean up code governing when crack growth algorithm
+ * is used, initiation criteria, etc. (PAK 09/28/1999) */
 class MeshFreeSSSolidT: public SmallStrainT, public MeshFreeFractureSupportT
 {
 public:
 
 	/* constructor */
-	MeshFreeSSSolidT(FEManagerT& fe_manager);
+	MeshFreeSSSolidT(const ElementSupportT& support, const FieldT& field);
 	
 	/* data initialization */
 	virtual void Initialize(void);
