@@ -15,12 +15,13 @@ const double kYieldTol    = 1.0e-10;
 const int    kNSD         = 3;
 
 /* element output data */
-const int    kNumOutput = 4;
+const int    kNumOutput = 5;
 static const char* Labels[kNumOutput] = {
         "EqPStrn",  // equivalent plastic strain
 	"VMStrss",  // Von Mises stress
         "Prssure",  // pressure
-        "IsoHard"}; // isotropic hardening
+        "IsoHard",  // isotropic hardening
+        "NlIsoHard"}; // nonlocal isotropic hardening
 
 /* constructor */
 GradJ2SSNonlinHard::GradJ2SSNonlinHard(ifstreamT& in, const SmallStrainT& element):
@@ -69,6 +70,12 @@ void GradJ2SSNonlinHard::Initialize(void)
 
 	// allocate space for all elements
 	AllocateAllElements();
+}
+
+/* form of tangent matrix (symmetric by default) */
+GlobalT::SystemTypeT GradJ2SSNonlinHard::TangentType(void) const
+{
+	return GlobalT::kNonSymmetric;
 }
 
 /* update internal variables */
@@ -240,6 +247,8 @@ void GradJ2SSNonlinHard::ComputeOutput(dArrayT& output)
 
 	/* isotropic hardening */
 	output[3] = fInternal[kIsotHard];
+
+	output[4] = fInternal[kNlIsotHard];
 }
 
 /*************************************************************************

@@ -70,6 +70,12 @@ void LocalJ2SSNonlinHard::Initialize(void)
 	AllocateAllElements();
 }
 
+/* form of tangent matrix (symmetric by default) */
+GlobalT::SystemTypeT LocalJ2SSNonlinHard::TangentType(void) const
+{
+	return GlobalT::kNonSymmetric;
+}
+
 /* update internal variables */
 void LocalJ2SSNonlinHard::UpdateHistory(void)
 {
