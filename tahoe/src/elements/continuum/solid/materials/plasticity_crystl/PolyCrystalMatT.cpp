@@ -30,9 +30,6 @@ const int kIsInit = 1;
 /* spatial dimensions of the problem */
 const int kNSD = 3;
 
-/* array copy behavior */
-const bool ArrayT<dMatrixT>::fByteCopy = true;
-
 PolyCrystalMatT::PolyCrystalMatT(ifstreamT& in, const FiniteStrainT& element) :
   FDHookeanMatT(in, element),
   //fdt           (element.FEManager().TimeStep()),

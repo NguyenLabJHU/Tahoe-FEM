@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.6.2.2 2001-06-22 14:18:16 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.6.2.3 2001-06-26 07:17:37 paklein Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #include "SolidMatList3DT.h"
@@ -353,4 +353,19 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 		     << '\n' << "     index " << matnum+1 << ", code " << matcode << endl;
 		throw error;
 	}
+}
+
+/* errror messages */
+void SolidMatList3DT::Error_no_small_strain(ostream& out, int matcode) const
+{
+	out << "\n SolidMatList3DT: material " << matcode
+		<< " requires a small strain element" << endl;
+	throw eBadInputValue;
+}
+
+void SolidMatList3DT::Error_no_finite_strain(ostream& out, int matcode) const
+{
+	out << "\n SolidMatList3DT: material " << matcode
+		<< " requires a finite strain element" << endl;
+	throw eBadInputValue;
 }
