@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.h,v 1.20 2004-02-06 22:00:13 saubry Exp $ */
+/* $Id: BoxT.h,v 1.21 2004-03-11 22:46:26 jzimmer Exp $ */
 
 #ifndef _BOX_T_H_
 #define _BOX_T_H_
@@ -55,8 +55,9 @@ class BoxT : public VolumeT
     int RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,iArrayT* temp_type,int temp_nat);
 
     double Mod(double a,double p);
-    double Max(double a,double b,double c);
-    double Min(double a,double b,double c);
+    int Maxx(int a,int b);
+    double Maxx(double a,double b,double c);
+    double Minn(double a,double b,double c);
 
     dArrayT CrossProduct(dArrayT,dArrayT);
     double DotProduct(dArrayT x,dArrayT y);
