@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.11 2002-12-05 08:30:46 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.11.2.1 2003-01-05 23:48:39 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
@@ -29,9 +29,6 @@ public:
 	/** constructor */
 	FEExecutionManagerT(int argc, char* argv[], char job_char, char batch_char,
 		CommunicatorT& comm);
-
-	/** prompt input files until "quit" */
-	virtual void Run(void);
 
 protected:
 

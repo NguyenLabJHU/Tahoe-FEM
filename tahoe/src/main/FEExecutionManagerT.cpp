@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.34.2.2 2002-12-16 09:23:51 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.34.2.3 2003-01-05 23:48:39 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -44,43 +44,17 @@ FEExecutionManagerT::FEExecutionManagerT(int argc, char* argv[], char job_char,
 #endif
 }
 
-/* Prompt input files until "quit" */
-void FEExecutionManagerT::Run(void)
-{
-	int size = Size();
-	int rank = Rank();
-
-	/* check command line arguments */
-	if (size > 1)
-	{
-		for (int i = 0; i < fCommandLineOptions.Length(); i++)
-			if (fCommandLineOptions[i] == "-decomp")
-			{
-				if (rank == 0)
-					cout << "\n ::Run: run \"-decomp\" on one processor only" << endl;
-				return;
-			}
-			else if (fCommandLineOptions[i] == "-join")
-			{
-				if (rank == 0)
-					cout << "\n ::Run: run \"-join\" on one processor only" << endl;
-				return;
-			}
-	}
-
-	/* inherited on fall-through */
-	 ExecutionManagerT::Run();
-}
-
 /**********************************************************************
-* Protected
-**********************************************************************/
+ * Protected
+ **********************************************************************/
 
 /* MUST be overloaded */
 void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 {
 	/* run serial by default */
+	int size = fComm.Size();
 	int run_option = 0;
+	if (size > 1) run_option = 1;
 
 	/* check command line options */
 	for (int i = 0; i < fCommandLineOptions.Length(); i++)
@@ -90,7 +64,6 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 		else if (fCommandLineOptions[i] == "-join")
 			run_option = 4;
 	}
-	if (fComm.Size() > 1) run_option = 1;
 
 	switch (run_option)
 	{
@@ -103,13 +76,25 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 			RunJob_parallel(in, status);
 			break;
 		case 3:
+		{
 			cout << "\n RunDecomp_serial: " << in.filename() << endl;
-			RunDecomp_serial(in, status);
-			break;	
+			if (size > 1) cout << " RunDecomp_serial: SERIAL ONLY" << endl;
+				
+			if (fComm.Rank() == 0)
+				RunDecomp_serial(in, status);
+			fComm.Barrier();
+			break;
+		}
 		case 4:
+		{
 			cout << "\n RunJoin_serial: " << in.filename() << endl;
-			RunJoin_serial(in, status);
-			break;	
+			if (size > 1) cout << " RunJoin_serial: SERIAL ONLY" << endl;
+			
+			if (fComm.Rank() == 0)
+				RunJoin_serial(in, status);
+			fComm.Barrier();
+			break;
+		}
 		default:
 			ExceptionT::GeneralFail("FEExecutionManagerT::RunJob", "unknown option: %d", run_option);
 	}
@@ -441,7 +426,7 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 		    results_format == IOBaseT::kTahoeII)
 			results_format = IOBaseT::kTahoeResults;
 
-		int size = 0;
+		int size = fComm.Size();
 		int index;
 		if (!CommandLineOption("-join", index)) 
 			ExceptionT::GeneralFail();
@@ -455,7 +440,7 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 		}
 
 		/* prompt for decomp size */
-		if (size == 0)
+		if (size == 1)
 		{
 			cout << "\n Enter number of partitions > 1 (0 to quit): ";
 #if (defined __SGI__ && defined __TAHOE_MPI__)
