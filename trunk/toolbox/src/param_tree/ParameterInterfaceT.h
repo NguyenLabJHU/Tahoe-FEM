@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.h,v 1.5 2003-08-14 01:22:03 paklein Exp $ */
+/* $Id: ParameterInterfaceT.h,v 1.6 2003-08-14 04:48:36 paklein Exp $ */
 #ifndef _PARAMETER_INTERFACE_T_H_
 #define _PARAMETER_INTERFACE_T_H_
 
@@ -88,29 +88,6 @@ private:
 	StringT fName;
 };
 
-/* forward declarations */
-class SubListDescriptionT;
-
-/** sub list descriptions */
-class SubListT: public AutoArrayT<SubListDescriptionT>
-{
-public:
-
-	/** constructor */
-	SubListT(void) {};
-
-	//TEMP
-	~SubListT(void);
-
-	/** \name add a sublist */
-	/*@{*/
-	void AddSub(const StringT& name, 
-		ParameterListT::OccurrenceT occur = ParameterListT::Once, 
-		bool is_inline = false); 
-	void AddSub(const SubListDescriptionT& sub);
-	/*@}*/
-};
-
 /** container for information about sublists */
 class SubListDescriptionT
 {
@@ -144,6 +121,26 @@ private:
 	StringT fName;
 	ParameterListT::OccurrenceT fOccurrence;
 	bool fIsInline;
+	/*@}*/
+};
+
+/** sub list descriptions */
+class SubListT: public AutoArrayT<SubListDescriptionT>
+{
+public:
+
+	/** constructor */
+	SubListT(void) {};
+
+	//TEMP
+	~SubListT(void);
+
+	/** \name add a sublist */
+	/*@{*/
+	void AddSub(const StringT& name, 
+		ParameterListT::OccurrenceT occur = ParameterListT::Once, 
+		bool is_inline = false); 
+	void AddSub(const SubListDescriptionT& sub);
 	/*@}*/
 };
 
