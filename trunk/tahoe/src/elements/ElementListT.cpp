@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.51 2003-05-23 22:50:28 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.52 2003-06-09 07:00:22 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -34,6 +34,7 @@
 #include "SimoFiniteStrainT.h"
 #include "SimoQ1P0.h"
 #include "DiffusionElementT.h"
+#include "NLDiffusionElementT.h"
 #include "MeshFreeSSSolidT.h"
 #include "MeshFreeFSSolidT.h"
 #include "D2MeshFreeFSSolidT.h"
@@ -145,6 +146,8 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				}
 				case GlobalT::kLinStaticHeat:
 				case GlobalT::kLinTransHeat:
+				case GlobalT::kNLStaticHeat:
+				case GlobalT::kNLTransHeat:
 				{
 					field = fSupport.Field("temperature");
 					break;
@@ -446,6 +449,15 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			{
 #ifdef CONTINUUM_ELEMENT
 				fArray[group] = new DiffusionElementT(fSupport, *field);
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
+#endif
+			}
+			case ElementT::kNonLinearDiffusion:
+			{
+#ifdef CONTINUUM_ELEMENT
+				fArray[group] = new NLDiffusionElementT(fSupport, *field);
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
