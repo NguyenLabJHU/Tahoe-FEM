@@ -1,0 +1,15 @@
+3
+1
+10 10 10
+FCC
+3.52
+box
+
+
+
+nsd
+shape
+dimunits: length(1) or ncell(0)
+dimensions
+latticetype
+alat
