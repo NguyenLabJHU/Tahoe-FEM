@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.30.2.5 2004-03-24 01:59:56 paklein Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.30.2.6 2004-03-31 16:16:22 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEBaseT.h"
 
@@ -392,7 +392,7 @@ void CSEBaseT::RegisterOutput(void)
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 
 	/* collect output connectivities */
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 	ArrayT<const iArray2DT*> output_connects;		
 	model.ElementGroupPointers(fOutputBlockID, output_connects);
 
@@ -690,7 +690,7 @@ void CSEBaseT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>& blo
 	non_const_this->fOutputBlockID = block_ID;
 
 	/* geometry information */
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 	int nel, nen = 0;
 	for (int i = 0; nen == 0 && i < block_ID.Length(); i++)
 		model.ElementGroupDimensions (block_ID[i], nel, nen);

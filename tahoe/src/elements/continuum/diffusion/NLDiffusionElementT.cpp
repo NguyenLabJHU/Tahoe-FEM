@@ -1,4 +1,4 @@
-/* $Id: NLDiffusionElementT.cpp,v 1.4.2.2 2004-03-15 19:45:40 paklein Exp $ */
+/* $Id: NLDiffusionElementT.cpp,v 1.4.2.3 2004-03-31 16:16:26 paklein Exp $ */
 #include "NLDiffusionElementT.h"
 
 #include <iostream.h>
@@ -426,7 +426,7 @@ void NLDiffusionElementT::TakeTractionBC(const ParameterListT& list)
 	if (num_sides > 0)
 	{
 		/* model manager */
-		ModelManagerT& model = ElementSupport().Model();
+		ModelManagerT& model = ElementSupport().ModelManager();
 
 		/* total number of faces */
 		int num_faces = 0;
@@ -470,7 +470,7 @@ void NLDiffusionElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 	if (num_sides > 0)
 	{
 		/* model manager */
-		ModelManagerT& model = ElementSupport().Model();
+		ModelManagerT& model = ElementSupport().ModelManager();
 
 		/* total number of faces */
 		int num_faces = 0;

@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.35.2.9 2004-03-27 04:14:07 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.35.2.10 2004-03-31 16:16:25 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -914,7 +914,7 @@ void ContinuumElementT::TakeNaturalBC(const ParameterListT& list)
 	if (num_natural_bc > 0)
 	{
 		/* model manager */
-		ModelManagerT& model = ElementSupport().Model();
+		ModelManagerT& model = ElementSupport().ModelManager();
 	
 		/* temp space */
 		ArrayT<StringT> block_ID(num_natural_bc);
@@ -1043,7 +1043,7 @@ void ContinuumElementT::EchoTractionBC(ifstreamT& in, ostream& out)
 	
 	/* read data from parameter file */
 	int numlines, numsets;
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 	model.ReadNumTractionLines (in, numlines, numsets);
 
 	if (numlines > 0)

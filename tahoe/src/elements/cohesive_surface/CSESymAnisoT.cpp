@@ -1,4 +1,4 @@
-/* $Id: CSESymAnisoT.cpp,v 1.6.2.1 2004-03-24 01:59:56 paklein Exp $ */
+/* $Id: CSESymAnisoT.cpp,v 1.6.2.2 2004-03-31 16:16:22 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSESymAnisoT.h"
 
@@ -106,7 +106,7 @@ void CSESymAnisoT::RegisterOutput(void)
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 
 	/* collect output connectivities */
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 	ArrayT<const iArray2DT*> output_connects(fOutputBlockID.Length());
 	model.ElementGroupPointers(fOutputBlockID, output_connects);
 	
@@ -831,7 +831,7 @@ void CSESymAnisoT::CollectBlockInfo(const ParameterListT& list, ArrayT<StringT>&
 	CSEAnisoT::CollectBlockInfo(list, block_ID, mat_index);
 
 	/* geometry information */
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 
 	/* register side sets as element blocks */
 	CSESymAnisoT* non_const_this = (CSESymAnisoT*) this;
@@ -891,7 +891,7 @@ void CSESymAnisoT::ReadConnectivity(void)
 	
 	/* read from parameter file */
 	iArrayT matnums;
-	ModelManagerT& model = ElementSupport().Model();
+	ModelManagerT& model = ElementSupport().ModelManager();
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	bool multiDatabaseSets = false;
 	model.SideSetList(in, fSideSet_ID, multiDatabaseSets);
