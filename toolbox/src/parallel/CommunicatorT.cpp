@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.cpp,v 1.6 2002-11-29 19:18:51 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.7 2002-12-05 08:25:19 paklein Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionT.h"
 #include <iostream.h>
@@ -211,8 +211,10 @@ double CommunicatorT::Sum(double a) const
 /* gather single integer. Called by destination process. */
 void CommunicatorT::Gather(int a, ArrayT<int>& gather) const
 {
-	/* allocate */
-	gather.Dimension(Size());
+	/* check */
+	if (gather.Length() != Size()) ExceptionT::SizeMismatch("CommunicatorT::Gather");
+
+	/* this */
 	gather[Rank()] = a;
 
 #ifdef __TAHOE_MPI__
@@ -258,8 +260,10 @@ void CommunicatorT::Barrier(void) const
 /* gather single integer to all processes. */
 void CommunicatorT::AllGather(int a, ArrayT<int>& gather) const
 {
-	/* allocate */
-	gather.Dimension(Size());
+	/* check */
+	if (gather.Length() != Size()) ExceptionT::SizeMismatch("CommunicatorT::AllGather");
+
+	/* this */
 	gather[Rank()] = a;
 
 #ifdef __TAHOE_MPI__
@@ -267,6 +271,112 @@ void CommunicatorT::AllGather(int a, ArrayT<int>& gather) const
 		Log("CommunicatorT::Gather", "MPI_Allgather failed", true);
 		throw ExceptionT::kMPIFail;
 	}
+#endif
+
+//NOTE: need to implement gather with sends and receives for CPLANT and other
+//      platforms where Allgather seems to be troublesome.
+}
+
+/* gather multiple values from all */
+void CommunicatorT::AllGather(const ArrayT<double>& my, ArrayT<double>& gather) const
+{
+	/* check */
+	if (my.Length()*Size() != gather.Length()) ExceptionT::SizeMismatch("CommunicatorT::AllGather");
+
+#ifdef __TAHOE_MPI__
+	int len = my.Length();
+	if (MPI_Allgather(my.Pointer(), len, MPI_DOUBLE, gather.Pointer(), len, MPI_DOUBLE, fComm) != MPI_SUCCESS) {
+		Log("CommunicatorT::Gather", "MPI_Allgather failed", true);
+		throw ExceptionT::kMPIFail;
+	}
+#else
+	/* write my into gather */
+	int len = my.Length();
+	gather.CopyPart(Rank()*len, my, 0, len);
+#endif
+
+//NOTE: need to implement gather with sends and receives for CPLANT and other
+//      platforms where Allgather seems to be troublesome.
+}
+
+/* gather multiple values from all */
+void CommunicatorT::AllGather(const ArrayT<int>& my, ArrayT<int>& gather) const
+{
+	/* check */
+	if (my.Length()*Size() != gather.Length()) ExceptionT::SizeMismatch("CommunicatorT::AllGather");
+
+#ifdef __TAHOE_MPI__
+	int len = my.Length();
+	if (MPI_Allgather(my.Pointer(), len, MPI_INT, gather.Pointer(), len, MPI_INT, fComm) != MPI_SUCCESS) {
+		Log("CommunicatorT::Gather", "MPI_Allgather failed", true);
+		throw ExceptionT::kMPIFail;
+	}
+#else
+	/* write my into gather */
+	int len = my.Length();
+	gather.CopyPart(Rank()*len, my, 0, len);
+#endif
+
+//NOTE: need to implement gather with sends and receives for CPLANT and other
+//      platforms where Allgather seems to be troublesome.
+}
+
+/* gather multiple values from all */
+void CommunicatorT::AllGather(const ArrayT<int>& counts, const ArrayT<int>& displacements, 
+	const ArrayT<double>& my, ArrayT<double>& gather) const
+{
+#if __option(extended_errorcheck)
+	if (counts[Rank()] != my.Length()) ExceptionT::SizeMismatch();
+	if (counts.Length() != displacements.Length()) ExceptionT::SizeMismatch();
+	if (gather.Length() > 1 && 
+		(displacements.Last() + counts.Last() >= gather.Length())) ExceptionT::SizeMismatch();
+		/* assume counts and displacements are OK interms of overlap and assume the
+		 * displacements are monotonically increasing */
+#endif
+
+#ifdef __TAHOE_MPI__
+	int len = my.Length();
+	if (MPI_Allgatherv(my.Pointer(), len, MPI_DOUBLE, 
+		gather.Pointer(), counts.Pointer(), displacements.Pointer(), MPI_DOUBLE, fComm) != MPI_SUCCESS) {
+		Log("CommunicatorT::Gather", "MPI_Allgatherv failed", true);
+		throw ExceptionT::kMPIFail;
+	}
+#else
+	/* write my into gather */
+	int len = my.Length();
+	int offset = displacements[Rank()];
+	gather.CopyPart(offset, my, 0, len);
+#endif
+
+//NOTE: need to implement gather with sends and receives for CPLANT and other
+//      platforms where Allgather seems to be troublesome.
+}
+
+/* gather multiple values from all */
+void CommunicatorT::AllGather(const ArrayT<int>& counts, const ArrayT<int>& displacements, 
+	const ArrayT<int>& my, ArrayT<int>& gather) const
+{
+#if __option(extended_errorcheck)
+	if (counts[Rank()] != my.Length()) ExceptionT::SizeMismatch();
+	if (counts.Length() != displacements.Length()) ExceptionT::SizeMismatch();
+	if (gather.Length() > 1 && 
+		(displacements.Last() + counts.Last() >= gather.Length())) ExceptionT::SizeMismatch();
+		/* assume counts and displacements are OK interms of overlap and assume the
+		 * displacements are monotonically increasing */
+#endif
+
+#ifdef __TAHOE_MPI__
+	int len = my.Length();
+	if (MPI_Allgatherv(my.Pointer(), len, MPI_INT, 
+		gather.Pointer(), counts.Pointer(), displacements.Pointer(), MPI_INT, fComm) != MPI_SUCCESS) {
+		Log("CommunicatorT::Gather", "MPI_Allgatherv failed", true);
+		throw ExceptionT::kMPIFail;
+	}
+#else
+	/* write my into gather */
+	int len = my.Length();
+	int offset = displacements[Rank()];
+	gather.CopyPart(offset, my, 0, len);
 #endif
 
 //NOTE: need to implement gather with sends and receives for CPLANT and other
