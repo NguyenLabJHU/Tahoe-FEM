@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.23 2003-05-01 02:49:17 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.22 2003-02-08 15:57:15 paklein Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -987,10 +987,7 @@ void ExodusT::GetElementName(int elemnodes, GeometryT::CodeT code,
 
 		case GeometryT::kQuadrilateral:
 			elem_name =  "QUAD";
-			if (elemnodes == 9)
-				num_output_nodes = 9;
-			else
-				num_output_nodes = (elemnodes < 8) ? 4 : 8;
+			num_output_nodes = (elemnodes < 8) ? 4 : 8;
 			break;
 
 		case GeometryT::kHexahedron:

@@ -1,4 +1,4 @@
-/* $Id: expat_ParseT.h,v 1.1 2003-04-22 18:32:16 paklein Exp $ */
+/* $Id: expat_ParseT.h,v 1.1.2.1 2003-05-04 22:12:41 paklein Exp $ */
 #ifndef _EXPAT_PARSE_T_H_
 #define _EXPAT_PARSE_T_H_
 
@@ -16,7 +16,8 @@ namespace Tahoe {
 class StringT;
 class ParameterListT;
 
-/** interface to the expat parser library */
+/** interface to the expat parser library. More information about expat is
+ * available from here: http://expat.sourceforge.net/ */
 class expat_ParseT
 {
 public:
@@ -24,7 +25,12 @@ public:
 	/** constructor */
 	expat_ParseT(void) {};
 
-	/** parse the given file placing values into the given parameter tree. */
+	/** parse the given file placing values into the given parameter tree. If
+	 * parsing fails, parser will throw ExceptionT::kBadInputValue. 
+	 * \param file path to source file
+	 * \param params destination for parsed information. All ParameterT's in
+	 *        the parameter list will contain the data from the file as
+	 *        strings. */
 	void Parse(const StringT& file, ParameterListT& params);
 
 private:

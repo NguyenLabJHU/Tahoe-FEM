@@ -1,4 +1,4 @@
-/* $Id: EAMT.h,v 1.4 2003-04-29 16:30:01 saubry Exp $ */
+/* $Id: EAMT.h,v 1.3 2003-04-05 08:35:00 paklein Exp $ */
 #ifndef _EAM_T_H_
 #define _EAM_T_H_
 
@@ -79,9 +79,6 @@ protected:
 
 private:
 
-	dArrayT GetRho2D(const dArray2DT& coords);
-	dArrayT GetRho3D(const dArray2DT& coords);
-
 	/** particle pair-properties list */
 	ArrayT<EAMPropertyT*> fEAMProperties;
 
@@ -105,4 +102,3 @@ private:
 } /* namespace Tahoe */
 
 #endif /* _EAM_T_H_ */
-

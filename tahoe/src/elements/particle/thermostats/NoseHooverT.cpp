@@ -1,4 +1,4 @@
-/* $Id: NoseHooverT.cpp,v 1.5 2003-04-29 23:09:36 cjkimme Exp $ */
+/* $Id: NoseHooverT.cpp,v 1.4 2003-04-24 20:43:20 cjkimme Exp $ */
 #include "NoseHooverT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -67,8 +67,8 @@ void NoseHooverT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArra
 			int tag_j = *neighbors(j);
 	    	double* v_j = (*velocities)(tag_j);
 				
-			for (int i = 0; i < fSD; i++, *v_j++)
-				kineticTemp += (*v_j)*(*v_j);
+			for (int i = 0; i < fSD; i++)
+				kineticTemp += (*v_j++)*(*v_j);
 		}
 	}
 	else
@@ -87,7 +87,7 @@ void NoseHooverT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArra
 	fEtaDot = (kineticTemp-fTemperature)/fBetaOrig;
 	fBeta = fEta += fEtaDot*fTimeStep;
 	
-//	cout << " NoseHooverT::ApplyDamping KE = " << kineticTemp << " " << fBeta << "\n";
+	cout << " NoseHooverT::ApplyDamping KE = " << kineticTemp << " " << fBeta << "\n";
 	
 	ThermostatBaseT::ApplyDamping(neighbors,velocities,forces,
 						types,particleProperties);

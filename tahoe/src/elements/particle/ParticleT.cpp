@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.19 2003-04-29 23:09:34 cjkimme Exp $ */
+/* $Id: ParticleT.cpp,v 1.18 2003-04-22 01:23:15 cjkimme Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -776,8 +776,7 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 			}
 			case ThermostatBaseT::kRegion:
 			{
-				fThermostats[i]->InitRegion(in,ElementSupport().InitialCoordinates(),
-											fCommManager.PartitionNodes());
+				ExceptionT::BadInputValue(caller,"Thermostatted region not implemented yet");
 				break;
 			}
 			default:

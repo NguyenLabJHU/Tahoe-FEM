@@ -1,4 +1,4 @@
-/* $Id: ThermostatBaseT.cpp,v 1.5 2003-04-29 23:09:36 cjkimme Exp $ */
+/* $Id: ThermostatBaseT.cpp,v 1.4 2003-04-24 20:43:20 cjkimme Exp $ */
 #include "ThermostatBaseT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -61,7 +61,7 @@ void ThermostatBaseT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const d
 		for (int j = 0; j < neighbors.MajorDim(); j++) 
 		{
 			tag_j = *neighbors(j);
-			f_j = forces(tag_j);
+			f_j = forces(j);
 	    	v_j = (*velocities)(tag_j);
 	    	if (types[tag_j] != currType)
 			{

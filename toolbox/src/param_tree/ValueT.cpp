@@ -1,18 +1,30 @@
-/* $Id: ValueT.cpp,v 1.6 2003-04-22 18:32:16 paklein Exp $ */
+/* $Id: ValueT.cpp,v 1.6.2.3 2003-05-03 09:06:52 paklein Exp $ */
 #include "ValueT.h"
 #include <stdlib.h>
 #include <ctype.h>
+
+/* exceptions strings */
+static const char* type_names[6] = {
+/* 0 */ "none",
+/* 1 */ "integer",
+/* 2 */ "double",
+/* 3 */ "string",
+/* 4 */ "boolean",
+/* 5 */ "enumeration"};
 
 /* array behavior */
 namespace Tahoe {
 const bool ArrayT<ValueT>::fByteCopy = false;
 }
 
+using namespace Tahoe;
+
 /* constructors */
 ValueT::ValueT(int a): 
 	fType(Integer),
 	fInteger(a),
-	fDouble(0.0)
+	fDouble(0.0),
+	fBoolean(false)
 {
 
 }
@@ -20,25 +32,37 @@ ValueT::ValueT(int a):
 ValueT::ValueT(double x):
 	fType(Double),
 	fInteger(0),
-	fDouble(x)
+	fDouble(x),
+	fBoolean(false)
 {
 
 }
 
-ValueT::ValueT(const StringT& s):
+ValueT::ValueT(const char* s):
 	fType(String),
 	fInteger(0),
 	fDouble(0.0),
-	fString(s)
+	fString(s),
+	fBoolean(false)
+{
+
+}
+
+ValueT::ValueT(bool b):
+	fType(Boolean),
+	fInteger(0),
+	fDouble(0.0),
+	fBoolean(b)
 {
 
 }
 
 /* enumeration */
-ValueT::ValueT(const StringT& name, int value):
+ValueT::ValueT(const char* name, int value):
 	fType(Enumeration),
 	fInteger(value),
-	fDouble(0.0)
+	fDouble(0.0),
+	fBoolean(false)
 {
 	/* assign */
 	operator=(name);
@@ -47,7 +71,8 @@ ValueT::ValueT(const StringT& name, int value):
 ValueT::ValueT(TypeT t):
 	fType(t),
 	fInteger(0),
-	fDouble(0.0)
+	fDouble(0.0),
+	fBoolean(false)
 {
 
 }
@@ -56,7 +81,8 @@ ValueT::ValueT(const ValueT& source):
 	fType(source.fType),
 	fInteger(source.fInteger),
 	fDouble(source.fDouble),
-	fString(source.fString)
+	fString(source.fString),
+	fBoolean(source.fBoolean)
 {
 
 }
@@ -64,7 +90,8 @@ ValueT::ValueT(const ValueT& source):
 ValueT::ValueT(void):
 	fType(None),
 	fInteger(0),
-	fDouble(0.0)
+	fDouble(0.0),
+	fBoolean(false)
 {
 
 }
@@ -87,6 +114,10 @@ void ValueT::Write(ostream& out) const
 
 		case String:
 			out << fString;
+			break;
+
+		case Boolean:
+			out << ((fBoolean) ? "true" : "false");
 			break;
 
 		case Enumeration:
@@ -120,12 +151,16 @@ ValueT& ValueT::operator=(int a)
 			fInteger = a;
 			break;
 
+		case Boolean:
+			fBoolean = bool(a);
+			break;
+
 		case Double:
 			fDouble = double(a);
 			break;
 
 		default:
-			ExceptionT::GeneralFail("ValueT::operator=(int)", "type mismatch");	
+			ExceptionT::TypeMismatch("ValueT::operator=(int)");	
 	}
 	return *this;
 }
@@ -135,16 +170,27 @@ ValueT& ValueT::operator=(double x)
 	if (fType == Double)
 		fDouble = x;
 	else
-		ExceptionT::GeneralFail("ValueT::operator=(double)", "type mismatch");	
+		ExceptionT::TypeMismatch("ValueT::operator=(double)");	
 	return *this;
 }
 
-ValueT& ValueT::operator=(const StringT& s)
+ValueT& ValueT::operator=(bool b)
 {
-	const char caller[] = "ValueT::operator=(StringT)";
+	if (fType == Boolean)
+		fBoolean = b;
+	else
+		ExceptionT::TypeMismatch("ValueT::operator=(bool)");	
+	return *this;
+}
+
+ValueT& ValueT::operator=(const char* s)
+{
+	const char caller[] = "ValueT::operator=(const char*)";
 
 	if (fType == String)
 		fString = s;
+	else if (fType == Boolean)
+		FromString(s);
 	else if (fType == Enumeration)
 	{
 		fString = s;
@@ -158,7 +204,7 @@ ValueT& ValueT::operator=(const StringT& s)
 				fString.Pointer());
 	}
 	else
-		ExceptionT::GeneralFail(caller, "type mismatch");	
+		ExceptionT::TypeMismatch(caller);	
 	return *this;
 }
 
@@ -169,18 +215,19 @@ ValueT& ValueT::operator=(const ValueT& rhs)
 	fInteger = rhs.fInteger;
 	fDouble = rhs.fDouble;
 	fString = rhs.fString;
+	fBoolean = rhs.fBoolean;
 	
 	/* dummy */
 	return *this;
 }
 
 /* extract value from string, performing required type conversion */
-void ValueT::FromString(const StringT& source)
+void ValueT::FromString(const char* source)
 {
 	const char caller[] = "ValueT::FromString";
 
 	/* cannot be empty */
-	if (source.StringLength() == 0)
+	if (strlen(source) == 0)
 		ExceptionT::GeneralFail(caller, "source cannot be an empty string");
 
 	switch (fType)
@@ -188,7 +235,7 @@ void ValueT::FromString(const StringT& source)
 		case Integer:
 		{
 			/* type conversion */
-			int i = atoi(source.Pointer());
+			int i = atoi(source);
 			
 			/* assign */
 			operator=(i);			
@@ -197,7 +244,7 @@ void ValueT::FromString(const StringT& source)
 		case Double:
 		{
 			/* type conversion */
-			double d = atof(source.Pointer());
+			double d = atof(source);
 			
 			/* assign */
 			operator=(d);			
@@ -207,6 +254,16 @@ void ValueT::FromString(const StringT& source)
 		{
 			/* just copy */
 			operator=(source);			
+			break;
+		}
+		case Boolean:
+		{
+			if (source[0] == 't' || source[0] == 'T' || source[0] == '1')
+				fBoolean = true;
+			else if (source[0] == 'f' || source[0] == 'F' || source[0] == '0')
+				fBoolean = false;
+			else
+				ExceptionT::GeneralFail(caller, "could not extract bool from \"%s\"", source);
 			break;
 		}
 		case Enumeration:
@@ -232,23 +289,49 @@ void ValueT::FromString(const StringT& source)
 }
 
 /* type conversion operators not lvalues */
-ValueT::operator const int&() const
+ValueT::operator const int() const
 {
-	if (fType != Integer && fType != Enumeration)
-		ExceptionT::GeneralFail("ValueT::operator const int&()", "type mismatch");	
-	return fInteger;
+	if (fType == Integer || fType == Enumeration)
+		return fInteger;
+	else if (fType == Double)
+		return int(fDouble);
+	else
+		ExceptionT::TypeMismatch("ValueT::operator const int()");
+		
+	return 0;
 }
 
-ValueT::operator const double&() const
+ValueT::operator const bool() const
 {
-	if (fType != Double)
-		ExceptionT::GeneralFail("ValueT::operator const double&()", "type mismatch");	
-	return fDouble;
+	if (fType != Boolean)
+		ExceptionT::TypeMismatch("ValueT::operator const bool()");	
+	return fBoolean;
+}
+
+ValueT::operator const double() const
+{
+	if (fType == Double)
+		return fDouble;
+	else if (fType == Integer)
+		return double(fInteger);
+	else
+		ExceptionT::TypeMismatch("ValueT::operator const double()");	
+
+	return 0.0;
 }
 
 ValueT::operator const StringT&() const
 {
 	if (fType != String && fType != Enumeration)
-		ExceptionT::GeneralFail("ValueT::operator const StringT&()", "type mismatch");	
+		ExceptionT::TypeMismatch("ValueT::operator const StringT&()");	
 	return fString;
+}
+
+/* convert type name to string */
+const char* ValueT::TypeName(TypeT t)
+{
+	if (t >= None && t <= Enumeration)
+		return type_names[t];
+	else
+		return type_names[0];
 }

@@ -1,4 +1,4 @@
-/* $Id: GaussIsokineticT.cpp,v 1.5 2003-04-30 00:06:15 cjkimme Exp $ */
+/* $Id: GaussIsokineticT.cpp,v 1.3 2003-04-24 20:43:20 cjkimme Exp $ */
 #include "GaussIsokineticT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -52,7 +52,7 @@ void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const 
 	double num = 0.;
 	double* v_j;
 	double* f_j;
-	int tag_j, currType, natoms;
+	int tag_j, currType;
 	double mass;
 	
 	/* calculate drag coefficient */
@@ -60,12 +60,11 @@ void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const 
 	{ // All the nodes are damped, use neighbors
 		currType = types[*neighbors(0)];
 		mass = particleProperties[currType]->Mass();
-		natoms = neighbors.MajorDim();
-		for (int j = 0; j < natoms; j++) 
+		for (int j = 0; j < neighbors.MajorDim(); j++) 
 		{
 			tag_j = *neighbors(j);
 	    	v_j = (*velocities)(tag_j);
-	 		f_j = forces(tag_j);
+			f_j = forces(j);
 			if (types[tag_j] != currType)
 			{
 				currType = types[tag_j];
@@ -74,8 +73,8 @@ void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const 
 				
 			for (int i = 0; i < fSD; i++)
 			{
-				denom += mass*(*v_j)*(*v_j);
-				num += (*f_j++)*(*v_j++);
+				denom += (*v_j)*(*v_j);
+				num += mass*(*f_j++)*(*v_j++);
 			}
 		}
 	}
@@ -83,33 +82,30 @@ void GaussIsokineticT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const 
 	{
 		currType = types[fNodes[0]];
 		mass = particleProperties[currType]->Mass();
-		natoms = fNodes.Length();
-		for (int j = 0; j < natoms; j++)
+		for (int j = 0; j < fNodes.Length(); j++)
 		{ 
 			tag_j = fNodes[j];
 			v_j = (*velocities)(tag_j);
-			f_j = forces(tag_j);
+			f_j = forces(j);
 			if (types[tag_j] != currType)
 			{
 				currType = types[tag_j];
 				mass = particleProperties[currType]->Mass();
 			}
-		
+			
 			for (int i = 0; i < fSD; i++)
 			{
-				denom += mass*(*v_j)*(*v_j); 	
-				num += (*f_j++)*(*v_j++); 
+				denom += (*v_j)*(*v_j); 	
+				num += mass*(*f_j++)*(*v_j++); 
 			}
 	    }
 	}
 	
 	/* compute damping coefficient */
-	if (fabs(denom) > kSmall)
+	if (abs(denom) > kSmall)
 		fBeta = num/denom;
 	else
 		fBeta = 0.; 
-
-//	cout <<" temp = "<< denom/fNodes.Length()/fSD/fkB<<"\n";
 	
 	ThermostatBaseT::ApplyDamping(neighbors,velocities,forces,
 							types,particleProperties);

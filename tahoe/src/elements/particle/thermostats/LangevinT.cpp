@@ -1,4 +1,4 @@
-/* $Id: LangevinT.cpp,v 1.4 2003-04-29 23:09:36 cjkimme Exp $ */
+/* $Id: LangevinT.cpp,v 1.3 2003-04-22 01:23:16 cjkimme Exp $ */
 #include "LangevinT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -64,7 +64,7 @@ void LangevinT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2
 		for (int j = 0; j < neighbors.MajorDim(); j++) 
 		{
 			int tag_j = *neighbors(j);
-			double* f_j = forces(tag_j);
+			double* f_j = forces(j);
 	    	double* v_j = (*velocities)(tag_j);
 			if (types[tag_j] != currType)
 			{
@@ -84,14 +84,14 @@ void LangevinT::ApplyDamping(const RaggedArray2DT<int>& neighbors, const dArray2
 	}
 	else
 	{
-		int currType = types[fNodes[0]];
+		double currType = types[fNodes[0]];
 		double mass = particleProperties[currType]->Mass();
 		double amp = fAmp*sqrt(mass);
 		double beta = fBeta*mass;
 		for (int j = 0; j < fNodes.Length(); j++)
 		{ 
 			int tag_j = fNodes[j];
-			double* f_j = forces(tag_j);
+			double* f_j = forces(j);
 			double* v_j = (*velocities)(tag_j);
 			if (types[tag_j] != currType)
 			{

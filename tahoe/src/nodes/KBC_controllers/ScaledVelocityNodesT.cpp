@@ -1,4 +1,4 @@
-/* $Id: ScaledVelocityNodesT.cpp,v 1.3 2003-04-30 16:06:12 cjkimme Exp $ */
+/* $Id: ScaledVelocityNodesT.cpp,v 1.1 2003-04-24 20:40:24 cjkimme Exp $ */
 #include "ScaledVelocityNodesT.h"
 #include "NodeManagerT.h"
 #include "ifstreamT.h"
@@ -19,12 +19,6 @@ ScaledVelocityNodesT::ScaledVelocityNodesT(NodeManagerT& node_manager, BasicFiel
 	qFirstTime(false)
 {
 	// nein
-}
-
-ScaledVelocityNodesT::~ScaledVelocityNodesT(void)
-{
-   if (fRandom)
-      delete fRandom;
 }
 
 void ScaledVelocityNodesT::WriteParameters(ostream& out) const
@@ -111,12 +105,11 @@ void ScaledVelocityNodesT::InitialCondition(void)
 	
 	/* generate gaussian dist of random vels */
 	fRandom->RandomArray(velocities);
-//	velocities *= sqrt(fT_0*fkB/fMass);
+	velocities *= sqrt(fT_0*fkB/fMass);
 	
 	/* get centre of mass v */
 	for (int j = 0; j < ndof; j++)
 		vCOM[j] = velocities.ColumnSum(j)/n_scaled;
-
 	/* subtract it off and calculate resultant total kinetic energy */
 	double tKE = 0.;
 	for (int i = 0; i < n_scaled; i++)
@@ -126,20 +119,29 @@ void ScaledVelocityNodesT::InitialCondition(void)
 			tKE += velocities(i,j)*velocities(i,j);
 		}
 	tKE *= fMass/n_scaled/ndof/fkB;
-
-	/* set the temperature */
+	
 	velocities *= sqrt(fT_0/tKE);
-
+	
+	/* grab the velocities */
+//	const dArray2DT* velocities = NULL;
+//	if (fField.Order() > 0)
+//		velocities = &fField[1];		
+//	if (!velocities)
+//		ExceptionT::GeneralFail("ScaledVelocityNodesT::InitialCondition","Cannot get velocity field ");
+	
+	/* modify them */
+//	dArray2DT* nonconvs = const_cast<dArray2DT*>(velocities);
+	
 	/* generate BC cards */
 	KBC_CardT* pcard = fKBC_Cards.Pointer();
 	for (int i = 0; i < n_scaled; i++)
 	{
-		double* v_i = velocities(i);	
+		double* v_j = velocities.Pointer();	
 			
 	    for (int j = 0; j < ndof; j++)
 		{	
 			/* set values */
-			pcard->SetValues(fNodes[i], j, KBC_CardT::kVel, 0, *v_i++);
+			pcard->SetValues(fNodes[i], j, KBC_CardT::kVel, 0, *v_j++);
 
 			/* dummy schedule */
 			pcard->SetSchedule(&fDummySchedule);
@@ -201,12 +203,12 @@ void ScaledVelocityNodesT::SetBCCards(void)
 		KBC_CardT* pcard = fKBC_Cards.Pointer();
 		for (int i = 0; i < n_scaled; i++)
 		{
-			double* v_i = (*velocities)(fNodes[i]);	
+			double* v_j = (*velocities)(fNodes[i]);	
 			
 	    	for (int j = 0; j < ndof; j++)
 			{	
 				/* set values */
-				pcard->SetValues(fNodes[i], j, KBC_CardT::kVel, 0, (*v_i++-vCOM[j])*vscale);
+				pcard->SetValues(fNodes[i], j, KBC_CardT::kVel, 0, (*v_j++-vCOM[j])*vscale);
 
 				/* dummy schedule */
 				pcard->SetSchedule(&fDummySchedule);
