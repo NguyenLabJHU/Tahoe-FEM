@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.12 2003-09-25 01:21:10 paklein Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.13 2003-09-25 15:39:15 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -152,10 +152,11 @@ void APS_AssemblyT::Initialize(void)
 	n_en_x_n_sd = n_en*n_sd;
 
 	/* set local arrays for coarse scale */
-	u.Dimension (n_en, 1);
-	u_n.Dimension (n_en, 1);
-	DDu.Dimension (n_en, 1);
-	del_u.Dimension (n_en, 1);
+	int dum=1;
+	u.Dimension (n_en, dum);
+	u_n.Dimension (n_en, dum);
+	DDu.Dimension (n_en, dum);
+	del_u.Dimension (n_en, dum);
 	del_u_vec.Dimension (n_en);
 	fDispl.RegisterLocal(u);
 	fDispl.RegisterLocal(u_n);
@@ -164,7 +165,7 @@ void APS_AssemblyT::Initialize(void)
 	gamma_p.Dimension (n_en, n_sd);
 	gamma_p_n.Dimension (n_en, n_sd);
 	del_gamma_p.Dimension (n_en, n_sd);
-	int dum = n_en*n_sd;
+	dum = n_en*n_sd;
 	del_gamma_p_vec.Dimension (dum);
 	fPlast.RegisterLocal(gamma_p);
 	fPlast.RegisterLocal(gamma_p_n);
@@ -211,15 +212,16 @@ void APS_AssemblyT::Initialize(void)
 	// and linear interp for gamma_p
 	
 	//fgrad_u.FEA_Dimension 			( fNumIP, n_sd );
-	fgrad_u.FEA_Dimension 			( fNumIP, n_sd, 1 );
+	dum=1;
+	fgrad_u.FEA_Dimension 			( fNumIP, n_sd, dum );
 	fgamma_p.FEA_Dimension 			( fNumIP, n_sd );
 	fgrad_gamma_p.FEA_Dimension 	( fNumIP, n_sd,n_sd );
 	//fgrad_u_n.FEA_Dimension 		( fNumIP, n_sd );
-	fgrad_u_n.FEA_Dimension 		( fNumIP, n_sd, 1 );
+	fgrad_u_n.FEA_Dimension 		( fNumIP, n_sd, dum );
 	fgamma_p_n.FEA_Dimension 		( fNumIP, n_sd );
 	fgrad_gamma_p_n.FEA_Dimension 	( fNumIP, n_sd,n_sd );
 
-//check these dims
+	//check these dims
 	fKdd.Dimension 			( n_en, n_en );
 	fKdeps.Dimension 		( n_en, n_en_x_n_sd );
 	fKepsd.Dimension 		( n_en_x_n_sd, n_en );
@@ -502,7 +504,7 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 
 	 	SetLocalX(fInitCoords); 
 	 	// coordinates do not change for anti-plane shear
-		fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u); 
+		//fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u); 
 		fShapes->SetDerivatives(); 
 		
 		// ?????
@@ -822,7 +824,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 
 	 	SetLocalX(fInitCoords); 
 	 	// for anti-plane shear, coordinates do not change
-		fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u); 
+		//fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u); 
 		fShapes->SetDerivatives(); 
 		
 		//repackage data to forms compatible with FEA classes (very little cost in big picture)
@@ -960,7 +962,7 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 
 	 	SetLocalX(fInitCoords); 
 	 	// no change in coordinates
-		fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u); 
+		//fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u); 
 		fShapes->SetDerivatives(); 
 		
 		/* repackage data to forms compatible with FEA classes (very little cost in big picture) */
