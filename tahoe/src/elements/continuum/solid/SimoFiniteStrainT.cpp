@@ -1,4 +1,4 @@
-/* $Id: SimoFiniteStrainT.cpp,v 1.4 2001-07-23 16:25:38 paklein Exp $ */
+/* $Id: SimoFiniteStrainT.cpp,v 1.5 2001-07-25 05:57:06 paklein Exp $ */
 #include "SimoFiniteStrainT.h"
 
 #include <math.h>
@@ -76,7 +76,13 @@ void SimoFiniteStrainT::Initialize(void)
 		cout << "     of thermal strains. The solutions appear correct, but the convergence\n";
 		cout << "     is not quadratic. Use updated Lagrangian formulation." << endl;
 		throw eGeneralFail;
-	}	
+	}
+	
+//Allocate element modes
+#if 0
+	dArray2DT   fElementModes;     /**< all element modes */
+	dArray2DT   fElementModes_last;     /**< all element modes */
+#endif	
 
 	/* space for enhanced part of the deformation gradient */
 	if (Needs_F())

@@ -1,11 +1,11 @@
-/* $Id: SimoShapeFunctionT.cpp,v 1.2 2001-07-13 02:19:10 paklein Exp $ */
+/* $Id: SimoShapeFunctionT.cpp,v 1.3 2001-07-25 05:57:06 paklein Exp $ */
 
 #include "SimoShapeFunctionT.h"
 #include "LocalArrayT.h"
 
 /* constructor */
 SimoShapeFunctionT::SimoShapeFunctionT(GeometryT::CodeT geometry_code, 
-	int numIP, const LocalArrayT& coords, const dArray2DT& element_modes):
+	int numIP, const LocalArrayT& coords, const LocalArrayT& element_modes):
 	ShapeFunctionT(geometry_code, numIP, coords, kStandardB),
 	fElementModes(element_modes),
 	fHas3DIncompressibleMode(false)
@@ -22,10 +22,10 @@ SimoShapeFunctionT::SimoShapeFunctionT(GeometryT::CodeT geometry_code,
 		}
 		
 		/* check number of enhanced modes */
-		if (element_modes.MajorDim() != 2)
+		if (element_modes.NumberOfNodes() != 2)
 		{
 			cout << "\n SimoShapeFunctionT::SimoShapeFunctionT: expecting 2 enhanced modes: "
-			     << element_modes.MajorDim() << endl;
+			     << element_modes.NumberOfNodes() << endl;
 			throw eBadInputValue;
 		}
 	}
@@ -40,10 +40,10 @@ SimoShapeFunctionT::SimoShapeFunctionT(GeometryT::CodeT geometry_code,
 		}
 
 		/* check number of enhanced modes */
-		if (element_modes.MajorDim() != 3) //TEMP - no incompressible mode yet
+		if (element_modes.NumberOfNodes() != 3) //TEMP - no incompressible mode yet
 		{
 			cout << "\n SimoShapeFunctionT::SimoShapeFunctionT: expecting 3 enhanced modes: "
-			     << element_modes.MajorDim() << endl;
+			     << element_modes.NumberOfNodes() << endl;
 			throw eBadInputValue;
 			
 			/* set flag */
