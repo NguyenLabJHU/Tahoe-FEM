@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList2DT.cpp,v 1.6 2004-08-01 20:42:03 paklein Exp $ */
+/* $Id: SSSolidMatList2DT.cpp,v 1.7 2004-08-04 02:25:59 cfoster Exp $ */
 #include "SSSolidMatList2DT.h"
 #include "SSMatSupportT.h"
 
@@ -147,12 +147,17 @@ void SSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 #ifdef VISCOELASTICITY
 		sub_lists.AddSub("linear_viscoelastic_2D");
 #endif
+	
+#ifdef FOSSUM_MATERIAL_DEV
+		sub_lists.AddSub("Fossum_small_strain_2D");
+#endif
 
 #ifdef ABAQUS_MATERIAL
 #ifdef ABAQUS_BCJ_MATERIAL_DEV
 		sub_lists.AddSub("ABAQUS_UMAT_SS_BCJ_iso-damage");
 #endif
 #endif
+
 	}
 	else /* inherited */
 		SolidMatListT::DefineInlineSub(name, order, sub_lists);
@@ -238,6 +243,11 @@ SSSolidMatT* SSSolidMatList2DT::NewSSSolidMat(const StringT& name) const
 #ifdef VISCOELASTICITY
 	else if (name == "linear_viscoelastic_2D")
 		mat = new SSLinearVE2D;
+#endif
+	
+#ifdef FOSSUM_MATERIAL_DEV
+	else if (name == "Fossum_small_strain_2D")
+	  mat = new FossumSSIso2DT;
 #endif
 
 #ifdef ABAQUS_MATERIAL

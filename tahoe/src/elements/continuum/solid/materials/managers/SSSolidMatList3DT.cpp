@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList3DT.cpp,v 1.6 2004-08-01 20:42:03 paklein Exp $ */
+/* $Id: SSSolidMatList3DT.cpp,v 1.7 2004-08-04 02:25:59 cfoster Exp $ */
 #include "SSSolidMatList3DT.h"
 #include "SSMatSupportT.h"
 #include "SolidMaterialsConfig.h"
@@ -108,6 +108,10 @@ void SSSolidMatList3DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 		sub_lists.AddSub("linear_viscoelastic");
 #endif
 
+#ifdef FOSSUM_MATERIAL_DEV
+		sub_lists.AddSub("Fossum_small_strain");
+#endif
+
 #ifdef ABAQUS_MATERIAL
 #ifdef ABAQUS_BCJ_MATERIAL_DEV
 		sub_lists.AddSub("ABAQUS_UMAT_SS_BCJ_iso-damage");
@@ -196,13 +200,17 @@ SSSolidMatT* SSSolidMatList3DT::NewSSSolidMat(const StringT& name) const
 		mat = new SSLinearVE3D;
 #endif
 
+#ifdef FOSSUM_MATERIAL_DEV
+	else if (name == "Fossum_small_strain")
+	  mat = new FossumSSIsoT;
+#endif
+
 #ifdef ABAQUS_MATERIAL
 #ifdef ABAQUS_BCJ_MATERIAL_DEV
 	else if (name == "ABAQUS_UMAT_SS_BCJ_iso-damage")
 		mat = new ABAQUS_SS_BCJ_ISO;
 #endif
 #endif
-
 	/* set support */
 	if (mat) mat->SetSSMatSupport(fSSMatSupport);
 
