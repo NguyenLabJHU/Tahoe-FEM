@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.4.2.9 2001-10-24 15:56:06 sawimme Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.4.2.10 2001-10-25 19:50:51 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -654,20 +654,32 @@ GeometryT::CodeT ModelManagerT::ElementGroupGeometry (int index) const
 
 const iArray2DT& ModelManagerT::ElementGroup (int index)
 {
+  ReadConnectivity (index);
+  return fElementSets [index];
+}
+
+void ModelManagerT::ReadConnectivity (int index)
+{
   if (index < 0 && index >= fNumElementSets)
     throw eOutOfRange;
   if (fElementSets[index].Length() == 0)
     {
       if (fFormat == IOBaseT::kTahoe)
 	{
-	  fMessage << "\n\nModelManagerT::ElementGroup, elems not registered yet\n\n";
+	  fMessage << "\n\nModelManagerT::ReadConnectivity, elems not registered yet\n\n";
 	  throw eGeneralFail;
 	}
       fElementSets[index].Allocate (fElementLengths[index], fElementNodes[index]);
       if (!fInput) throw eGeneralFail;
       fInput->ReadConnectivity (fElementNames[index], fElementSets[index]);
     }
-  return fElementSets [index];
+}
+
+const iArray2DT* ModelManagerT::ElementGroupPointer (int index) const
+{
+  if (index < 0 && index >= fNumElementSets)
+    throw eOutOfRange;
+  return &fElementSets[index];
 }
 
 void ModelManagerT::AllNodeMap (iArrayT& map)
