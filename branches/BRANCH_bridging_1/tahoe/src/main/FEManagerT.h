@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.32 2003-01-29 07:35:20 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.32.2.1 2003-02-06 02:39:45 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -62,7 +62,7 @@ public:
 	virtual ~FEManagerT(void);
 
 	/** initialize members */
-	void Initialize(InitCodeT init = kFull);
+	virtual void Initialize(InitCodeT init = kFull);
 	
 	/** solve all the time sequences */
 	void Solve(void);
@@ -303,7 +303,7 @@ protected:
 	/** \name phases of FEManagerT::Initialize. */
 	/*@{*/
 	virtual void ReadParameters(InitCodeT init);
-	void WriteParameters(void) const;
+	virtual void WriteParameters(void) const;
 	void SetIntegrator(void);
 	virtual void SetNodeManager(void);
 	virtual void SetElementGroups(void);
