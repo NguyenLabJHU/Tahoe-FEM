@@ -7,6 +7,7 @@
 #include "iArrayT.h"
 #include "iArray2DT.h"
 #include "dArray2DT.h"
+#include "dArrayT.h"
 class ifstreamT;
 class dArrayT;
 
@@ -75,13 +76,19 @@ public:
   virtual void ReadQuadratureLabels (ArrayT<StringT>& qlabels) const;
 
   /* step starts at zero and increases by one */
+  virtual void ReadAllNodeVariable (int step, int varindex, dArrayT& values);
+  virtual void ReadNodeVariable (int step, StringT& name, int varindex, dArrayT& values);
   virtual void ReadAllNodeVariables (int step, dArray2DT& nvalues);
   virtual void ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues);
   virtual void ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& nvalues);
 
+  virtual void ReadAllElementVariable (int step, int varindex, dArrayT& values);
+  virtual void ReadElementVariable (int step, StringT& name, int varindex, dArrayT& values);
   virtual void ReadAllElementVariables (int step, dArray2DT& evalues);
   virtual void ReadElementVariables (int step, StringT& name, dArray2DT& evalues);
 
+  virtual void ReadAllQuadratureVariable (int step, int varindex, dArrayT& values);
+  virtual void ReadQuadratureVariable (int step, StringT& name, int varindex, dArrayT& values);
   virtual void ReadAllQuadratureVariables (int step, dArray2DT& qvalues);
   virtual void ReadQuadratureVariables (int step, StringT& name, dArray2DT& qvalues);
 
@@ -183,6 +190,19 @@ inline void InputFEASCIIT::ReadNodeSetVariables (int step, StringT& name, dArray
 #pragma unused (step)
 #pragma unused (name)
   nvalues.Free();
+}
+inline void InputFEASCIIT::ReadAllQuadratureVariable (int step, int varindex, dArrayT& values)
+{
+#pragma unused (step)
+#pragma unused (varindex)
+  values.Free();
+}
+inline void InputFEASCIIT::ReadQuadratureVariable (int step, StringT& name, int varindex, dArrayT& values)
+{
+#pragma unused (step)
+#pragma unused (name)
+#pragma unused (varindex)
+  values.Free();
 }
 inline void InputFEASCIIT::ReadAllQuadratureVariables (int step, dArray2DT& vals)
 {

@@ -1,4 +1,4 @@
-/* $Id: InputFEASCIIT.cpp,v 1.7 2002-01-07 03:06:02 paklein Exp $ */
+/* $Id: InputFEASCIIT.cpp,v 1.8 2002-01-23 20:01:59 sawimme Exp $ */
 #include "InputFEASCIIT.h"
 #include "ifstreamT.h"
 #include "dArrayT.h"
@@ -351,6 +351,25 @@ void InputFEASCIIT::ReadAllNodeVariables (int step, dArray2DT& nvalues)
     }
 }
 
+void InputFEASCIIT::ReadAllNodeVariable (int step, int varindex, dArrayT& values)
+{
+#pragma unused (step)
+#pragma unused (varindex)
+  values.Free();
+  cout << "InputFEASIIT::ReadAllNodeVariable not yet programmed\n\n";
+  throw eGeneralFail;
+}
+
+void InputFEASCIIT::ReadNodeVariable (int step, StringT& name, int varindex, dArrayT& values)
+{
+#pragma unused (step)
+#pragma unused (name)
+#pragma unused (varindex)
+  values.Free();
+  cout << "InputFEASIIT::ReadNodeVariable not yet programmed\n\n";
+  throw eGeneralFail;
+}
+
 void InputFEASCIIT::ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues)
 {
 #pragma unused(step)
@@ -371,6 +390,25 @@ void InputFEASCIIT::ReadNodeVariables (int step, StringT& name, dArray2DT& nvalu
     for (int v=0, j=0; v < used.Length(); v++)
       if (used[v] > 0)
 	nvalues (i, v) = vals (i, j++);
+}
+
+void InputFEASCIIT::ReadAllElementVariable (int step, int varindex, dArrayT& values)
+{
+#pragma unused (step)
+#pragma unused (varindex)
+  values.Free();
+  cout << "InputFEASIIT::ReadAllNodeVariable not yet programmed\n\n";
+  throw eGeneralFail;
+}
+
+void InputFEASCIIT::ReadElementVariable (int step, StringT& name, int varindex, dArrayT& values)
+{
+#pragma unused (step)
+#pragma unused (name)
+#pragma unused (varindex)
+  values.Free();
+  cout << "InputFEASIIT::ReadNodeVariable not yet programmed\n\n";
+  throw eGeneralFail;
 }
 
 void InputFEASCIIT::ReadAllElementVariables (int step, dArray2DT& evalues)

@@ -1,4 +1,4 @@
-/* $Id: PatranInputT.h,v 1.7 2002-01-05 06:36:48 paklein Exp $ */
+/* $Id: PatranInputT.h,v 1.8 2002-01-23 20:01:59 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _PATRANINPUT_T_H_
@@ -67,13 +67,19 @@ class PatranInputT : public InputBaseT
   virtual void ElementVariablesUsed (StringT& name, iArrayT& used);
   virtual void QuadratureVariablesUsed (StringT& name, iArrayT& used);  
 
+  virtual void ReadAllNodeVariable (int step, int varindex, dArrayT& values);
+  virtual void ReadNodeVariable (int step, StringT& name, int varindex, dArrayT& values);
   virtual void ReadAllNodeVariables (int step, dArray2DT& nvalues);
   virtual void ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues);
   virtual void ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& nvalues); 
 
+  virtual void ReadAllElementVariable (int step, int varindex, dArrayT& values);
+  virtual void ReadElementVariable (int step, StringT& name, int varindex, dArrayT& values);
   virtual void ReadAllElementVariables (int step, dArray2DT& evalues); 
   virtual void ReadElementVariables (int step, StringT& name, dArray2DT& evalues);
 
+  virtual void ReadAllQuadratureVariable (int step, int varindex, dArrayT& values);
+  virtual void ReadQuadratureVariable (int step, StringT& name, int varindex, dArrayT& values);
   virtual void ReadAllQuadratureVariables (int step, dArray2DT& qvalues); 
   virtual void ReadQuadratureVariables (int step, StringT& name, dArray2DT& qvalues); 
 
@@ -136,6 +142,19 @@ inline void PatranInputT::ReadElementLabels (ArrayT<StringT>& elabels) const
 { elabels.Free (); }
 inline void PatranInputT::ReadQuadratureLabels (ArrayT<StringT>& qlabels) const
 { qlabels.Free (); } 
+inline void PatranInputT::ReadAllNodeVariable (int step, int varindex, dArrayT& values)
+{
+#pragma unused (step)
+#pragma unused (varindex)
+  values.Free();
+}
+inline void PatranInputT::ReadNodeVariable (int step, StringT& name, int varindex, dArrayT& values)
+{
+#pragma unused (step)
+#pragma unused (name)
+#pragma unused (varindex)
+  values.Free();
+}
 inline void PatranInputT::ReadAllNodeVariables (int step, dArray2DT& nvalues)
 {
 #pragma unused (step)
@@ -153,6 +172,19 @@ inline void PatranInputT::ReadNodeSetVariables (int step, StringT& nsetname, dAr
 #pragma unused (nsetname)
   nvalues.Free ();
 }
+inline void PatranInputT::ReadAllElementVariable (int step, int varindex, dArrayT& values)
+{
+#pragma unused (step)
+#pragma unused (varindex)
+  values.Free();
+}
+inline void PatranInputT::ReadElementVariable (int step, StringT& name, int varindex, dArrayT& values)
+{
+#pragma unused (step)
+#pragma unused (name)
+#pragma unused (varindex)
+  values.Free();
+}
 inline void PatranInputT::ReadAllElementVariables (int step, dArray2DT& evalues)
 {
 #pragma unused (step)
@@ -163,6 +195,19 @@ inline void PatranInputT::ReadElementVariables (int step, StringT& name, dArray2
 #pragma unused (step)
 #pragma unused (name)
   evalues.Free ();
+}
+inline void PatranInputT::ReadAllQuadratureVariable (int step, int varindex, dArrayT& values)
+{
+#pragma unused (step)
+#pragma unused (varindex)
+  values.Free();
+}
+inline void PatranInputT::ReadQuadratureVariable (int step, StringT& name, int varindex, dArrayT& values)
+{
+#pragma unused (step)
+#pragma unused (name)
+#pragma unused (varindex)
+  values.Free();
 }
 inline void PatranInputT::ReadAllQuadratureVariables (int step, dArray2DT& qvalues)
 {

@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.h,v 1.8 2002-01-05 06:36:47 paklein Exp $ */
+/* $Id: ExodusInputT.h,v 1.9 2002-01-23 20:01:59 sawimme Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _EXODUSINPUT_T_H_
@@ -10,6 +10,7 @@
 #include "ExodusT.h"
 #include "dArray2DT.h"
 #include "iArrayT.h"
+#include "dArrayT.h"
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
@@ -74,13 +75,19 @@ public:
   virtual void ReadElementLabels (ArrayT<StringT>& elabels) const;
   virtual void ReadQuadratureLabels (ArrayT<StringT>& qlabels) const;
 
+  virtual void ReadAllNodeVariable (int step, int varindex, dArrayT& values);
+  virtual void ReadNodeVariable (int step, StringT& name, int varindex, dArrayT& values);
   virtual void ReadAllNodeVariables (int step, dArray2DT& nvalues);
   virtual void ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues);
   virtual void ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& nvalues);
 
+  virtual void ReadAllElementVariable (int step, int varindex, dArrayT& values);
+  virtual void ReadElementVariable (int step, StringT& name, int varindex, dArrayT& values);
   virtual void ReadAllElementVariables (int step, dArray2DT& evalues);
   virtual void ReadElementVariables (int step, StringT& name, dArray2DT& evalues);
 
+  virtual void ReadAllQuadratureVariable (int step, int varindex, dArrayT& values);
+  virtual void ReadQuadratureVariable (int step, StringT& name, int varindex, dArrayT& values);
   virtual void ReadAllQuadratureVariables (int step, dArray2DT& qvalues);
   virtual void ReadQuadratureVariables (int step, StringT& name, dArray2DT& qvalues);
 
@@ -159,6 +166,19 @@ inline void ExodusInputT::ReadElementLabels (ArrayT<StringT>& elabels) const
 inline void ExodusInputT::ReadQuadratureLabels (ArrayT<StringT>& qlabels) const
 { qlabels.Free (); }
 
+inline void ExodusInputT::ReadAllQuadratureVariable (int step, int varindex, dArrayT& values)
+{
+#pragma unused (step)
+#pragma unused (varindex)
+  values.Free();
+}
+inline void ExodusInputT::ReadQuadratureVariable (int step, StringT& name, int varindex, dArrayT& values)
+{
+#pragma unused (step)
+#pragma unused (name)
+#pragma unused (varindex)
+  values.Free();
+}
 inline void ExodusInputT::ReadAllQuadratureVariables (int step, dArray2DT& vals)
 {
 #pragma unused (step)

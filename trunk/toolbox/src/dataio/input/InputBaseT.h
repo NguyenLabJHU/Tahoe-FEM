@@ -1,4 +1,4 @@
-/* $Id: InputBaseT.h,v 1.8 2002-01-05 06:36:48 paklein Exp $ */
+/* $Id: InputBaseT.h,v 1.9 2002-01-23 20:01:59 sawimme Exp $ */
 /* created: sawimme (08/12/1999) */
 
 #ifndef _INPUTBASE_T_H_
@@ -52,12 +52,16 @@ public:
 
   /** return names, Array must be preallocated */
   virtual void ElementGroupNames (ArrayT<StringT>& groupnames) const = 0;
+  /** return names, Array must be preallocated */
   virtual void SideSetNames (ArrayT<StringT>& sidenames) const = 0;
+  /** return names, Array must be preallocated */
   virtual void NodeSetNames (ArrayT<StringT>& nodenames) const = 0;
 
   /** return dimenesions */
   virtual int  NumElementGroups (void) const = 0;
+  /** return dimenesions */
   virtual int  NumSideSets (void) const = 0;
+  /** return dimenesions */
   virtual int  NumNodeSets (void) const = 0;
 
   /* NODES */
@@ -108,16 +112,23 @@ public:
   virtual void ReadElementLabels (ArrayT<StringT>& elabels) const = 0;
   virtual void ReadQuadratureLabels (ArrayT<StringT>& qlabels) const = 0;  
 
-  /** step starts at zero and increases by one */
-  virtual void ReadAllNodeVariables (int step, dArray2DT& nvalues) = 0; /**< for all nodes */
-  virtual void ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues) = 0; /**< for nodes in an element set */
-  virtual void ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& nvalues) = 0; /**< for nodes in a node set */
+  /** step starts at zero and increases by one,
+   * varindex refers to the variables index position in the Label list */
+  virtual void ReadAllNodeVariable (int step, int varindex, dArrayT& values) = 0; /**< one variables for all nodes */
+  virtual void ReadNodeVariable (int step, StringT& name, int varindex, dArrayT& values) = 0; /**< one variable for nodes in an element set */
+  virtual void ReadAllNodeVariables (int step, dArray2DT& nvalues) = 0; /**< all variables for all nodes */
+  virtual void ReadNodeVariables (int step, StringT& name, dArray2DT& nvalues) = 0; /**< all variables for nodes in an element set */
+  virtual void ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT& nvalues) = 0; /**< all variables for nodes in a node set */
 
-  virtual void ReadAllElementVariables (int step, dArray2DT& evalues) = 0; /**< for all elements */
-  virtual void ReadElementVariables (int step, StringT& name, dArray2DT& evalues) = 0; /**< for elements in set */
+  virtual void ReadAllElementVariable (int step, int varindex, dArrayT& values) = 0; /** < one variable for all elements */
+  virtual void ReadElementVariable (int step, StringT& name, int varindex, dArrayT& values) = 0; /** < one variable for an element set */
+  virtual void ReadAllElementVariables (int step, dArray2DT& evalues) = 0; /**< all variables for all elements */
+  virtual void ReadElementVariables (int step, StringT& name, dArray2DT& evalues) = 0; /**< all variables for elements in set */
 
-  virtual void ReadAllQuadratureVariables (int step, dArray2DT& qvalues) = 0; /**< for all quad points */
-  virtual void ReadQuadratureVariables (int step, StringT& name, dArray2DT& qvalues) = 0; /**< for elements in set */
+  virtual void ReadAllQuadratureVariable (int step, int varindex, dArrayT& values) = 0; /** < one variable for all elements */
+  virtual void ReadQuadratureVariable (int step, StringT& name, int varindex, dArrayT& values) = 0; /** < one variable for an element set */
+  virtual void ReadAllQuadratureVariables (int step, dArray2DT& qvalues) = 0; /**< all variables for all quad points */
+  virtual void ReadQuadratureVariables (int step, StringT& name, dArray2DT& qvalues) = 0; /**< all variables for elements in set */
 
 };
 

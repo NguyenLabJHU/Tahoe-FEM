@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.cpp,v 1.8 2002-01-05 06:36:47 paklein Exp $ */
+/* $Id: AbaqusInputT.cpp,v 1.9 2002-01-23 20:01:58 sawimme Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #include "AbaqusInputT.h"
@@ -224,6 +224,18 @@ void AbaqusInputT::QuadratureVariablesUsed (StringT& name, iArrayT& used)
   fData.VariablesUsed (name, AbaqusVariablesT::kQuadrature, used);
 }
 
+void AbaqusInputT::ReadAllNodeVariable (int step, int varindex, dArrayT& value)
+{
+  cout << "AbaqusInptuT::ReadAllNodeVariable not yet programmed \n\n";
+  throw eDatabaseFail;
+}
+
+void AbaqusInputT::ReadNodeVariable (int step, StringT& elsetname, int varindex, dArrayT& value)
+{
+  cout << "AbaqusInptuT::ReadNodeVariable not yet programmed \n\n";
+  throw eDatabaseFail;
+}
+
 void AbaqusInputT::ReadAllNodeVariables (int step, dArray2DT& values)
 {
   StringT name ("\0");
@@ -255,6 +267,18 @@ void AbaqusInputT::ReadNodeSetVariables (int step, StringT& nsetname, dArray2DT&
   fData.ReadVariables (AbaqusVariablesT::kNode, step, values, nsetname);
 }
 
+void AbaqusInputT::ReadAllElementVariable (int step, int varindex, dArrayT& value)
+{
+  cout << "AbaqusInptuT::ReadAllElementVariable not yet programmed \n\n";
+  throw eDatabaseFail;
+}
+
+void AbaqusInputT::ReadElementVariable (int step, StringT& elsetname, int varindex, dArrayT& value)
+{
+  cout << "AbaqusInptuT::ReadElementVariable not yet programmed \n\n";
+  throw eDatabaseFail;
+}
+
 void AbaqusInputT::ReadAllElementVariables (int step, dArray2DT& values)
 {
   StringT name ("\0");
@@ -268,6 +292,18 @@ void AbaqusInputT::ReadElementVariables (int step, StringT& name, dArray2DT& eva
   int numv = NumElementVariables ();
   if (evalues.MinorDim() != numv) throw eSizeMismatch;
   fData.ReadVariables (AbaqusVariablesT::kElement, step, evalues, name);
+}
+
+void AbaqusInputT::ReadAllQuadratureVariable (int step, int varindex, dArrayT& value)
+{
+  cout << "AbaqusInptuT::ReadAllQuadratureVariable not yet programmed \n\n";
+  throw eDatabaseFail;
+}
+
+void AbaqusInputT::ReadQuadratureVariable (int step, StringT& elsetname, int varindex, dArrayT& value)
+{
+  cout << "AbaqusInptuT::ReadQuadratureVariable not yet programmed \n\n";
+  throw eDatabaseFail;
 }
 
 void AbaqusInputT::ReadAllQuadratureVariables (int step, dArray2DT& values)
