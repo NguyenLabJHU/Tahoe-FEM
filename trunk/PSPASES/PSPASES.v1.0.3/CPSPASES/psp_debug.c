@@ -1,4 +1,4 @@
-/* $Id: psp_debug.c,v 1.6 2005-01-15 05:58:52 paklein Exp $ */
+/* $Id: psp_debug.c,v 1.7 2005-01-15 08:18:28 paklein Exp $ */
 #include <stdio.h>
 #include "pspases_f2c.h"
 #include "mpi.h"
@@ -10,10 +10,10 @@ void dsyrk_(char *UL, char *NT, integer *N, integer *K,
 	ftnlen UL_len, ftnlen NT_len);
 
 /* MPI routines */
-int myMPI_Isend(void* buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm, MPI_Request *request);
-int myMPI_Send(void* buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm);
-int myMPI_Get_count(MPI_Status *status, MPI_Datatype datatype, int *count);
-int myMPI_Waitall(int count, MPI_Request* request, MPI_Status* status);
+int MPI_Isend_d(void* buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm, MPI_Request *request);
+int MPI_Send_d(void* buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm);
+int MPI_Get_count_d(MPI_Status *status, MPI_Datatype datatype, int *count);
+int MPI_Waitall_d(int count, MPI_Request* request, MPI_Status* status);
 
 static const char* type_names[] = {"UNKNOWN", "MPI_BYTE", "MPI_INT", "MPIT_DOUBLE"};
 const char* t2s(MPI_Datatype datatype) {
@@ -28,7 +28,7 @@ const char* t2s(MPI_Datatype datatype) {
 		return type_names[0];
 };
  
-void mydsyrk_(char *UL, char *NT, integer *N, integer *K,
+void dsyrk_d(char *UL, char *NT, integer *N, integer *K,
 	doublereal *alpha, doublereal *A, integer *lda, 
 	doublereal *beta, doublereal *C, integer *ldc, 
 	ftnlen UL_len, ftnlen NT_len)
@@ -52,7 +52,7 @@ void mydsyrk_(char *UL, char *NT, integer *N, integer *K,
 	dsyrk_(UL, NT, N, K, alpha, A, lda, beta, C, ldc, UL_len, NT_len);
 }
 
-int myMPI_Isend(void* buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm, MPI_Request *request)
+int MPI_Isend_d(void* buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm, MPI_Request *request)
 {
 	int ret;
 
@@ -69,7 +69,7 @@ int myMPI_Isend(void* buf, int count, MPI_Datatype datatype, int dest, int tag, 
 	return ret;
 }
 
-int myMPI_Send(void* buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
+int MPI_Send_d(void* buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
 {
 	/* report values */
 	printf("MPI_Send: count = %d, datatype = %s, dest = %d, tag = %d\n", 
@@ -80,7 +80,7 @@ int myMPI_Send(void* buf, int count, MPI_Datatype datatype, int dest, int tag, M
 	return MPI_Send(buf, count, datatype, dest, tag, comm);
 }
 
-int myMPI_Get_count(MPI_Status *status, MPI_Datatype datatype, int *count)
+int MPI_Get_count_d(MPI_Status *status, MPI_Datatype datatype, int *count)
 {
 	int ret;
 
@@ -99,7 +99,7 @@ int myMPI_Get_count(MPI_Status *status, MPI_Datatype datatype, int *count)
 	return ret;
 }
 
-int myMPI_Waitall(int count, MPI_Request* request, MPI_Status* status)
+int MPI_Waitall_d(int count, MPI_Request* request, MPI_Status* status)
 {
 	int ret, i;
 

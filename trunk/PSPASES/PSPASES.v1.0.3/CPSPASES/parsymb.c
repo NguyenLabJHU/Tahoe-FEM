@@ -1,4 +1,4 @@
-/* $Id: parsymb.c,v 1.4 2005-01-05 16:51:31 paklein Exp $ */
+/* $Id: parsymb.c,v 1.5 2005-01-15 08:18:28 paklein Exp $ */
 /* parsymb.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -9,7 +9,7 @@
 /* #define __DO_DEBUG__ 1 */
 
 #include "mpi.h"
-#include "pspases_f2c.h"
+#include "pspases_int.h"
 #include <stdio.h>
 
 /* Table of constant values */
@@ -61,7 +61,7 @@ static integer c__21 = 21;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: parsymb.c,v 1.4 2005-01-05 16:51:31 paklein Exp $ +/ */
+/* /+ $Id: parsymb.c,v 1.5 2005-01-15 08:18:28 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
