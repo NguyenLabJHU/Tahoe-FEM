@@ -1,4 +1,4 @@
-// $Id: MakeCSE_ElementBaseT.h,v 1.6 2002-10-28 21:36:33 sawimme Exp $
+// $Id: MakeCSE_ElementBaseT.h,v 1.7 2003-09-10 21:31:08 paklein Exp $
 // created: SAW 10/06/00
 #ifndef _MakeCSE_ELEMENTBASET_H_
 #define _MakeCSE_ELEMENTBASET_H_
@@ -157,7 +157,7 @@ class MakeCSE_ElementBaseT
 
 inline int MakeCSE_ElementBaseT::NumElements (void) const { return fNodeNums.MajorDim(); }
 inline int MakeCSE_ElementBaseT::NumElemFaces (void) const { return fFacetNodes.Length(); }
-inline void MakeCSE_ElementBaseT::CSElemFaces (iArrayT& faces) const { };
+inline void MakeCSE_ElementBaseT::CSElemFaces (iArrayT&) const { };
 inline GeometryT::CodeT MakeCSE_ElementBaseT::GeometryCode (void) const { return fGeometryCode; }
 inline const StringT& MakeCSE_ElementBaseT::GroupNumber (void) const { return fGroupID; }
 inline int MakeCSE_ElementBaseT::NumSideSets (void) const { return fSideSetID.Length(); }
