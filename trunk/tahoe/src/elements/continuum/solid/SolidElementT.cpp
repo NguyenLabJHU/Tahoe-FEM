@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.35 2002-10-20 22:48:23 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.36 2002-11-09 18:15:20 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -22,7 +22,6 @@
 
 /* exception codes */
 #include "ExceptionT.h"
-
 
 using namespace Tahoe;
 
