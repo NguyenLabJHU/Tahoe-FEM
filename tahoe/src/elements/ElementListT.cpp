@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.92.2.2 2004-07-09 00:26:15 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.92.2.3 2004-07-09 01:10:09 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -1094,6 +1094,12 @@ void ElementListT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrder
 		sub_sub_list.AddSub("contact_drag_3D_penalty");
 #endif
 
+#ifdef CONTACT_ELEMENT
+#ifdef CONTINUUM_ELEMENT /* need meshfree code */
+		sub_sub_list.AddSub("meshfree_contact_2D_penalty");
+#endif
+#endif
+
 #ifdef PARTICLE_ELEMENT
 		sub_sub_list.AddSub("particle_pair");
 		sub_sub_list.AddSub("particle_EAM");
@@ -1200,6 +1206,13 @@ ElementBaseT* ElementListT::NewElement(const StringT& list_name) const
 		return new PenaltyContactDrag2DT(fSupport);
 	else if (list_name == "contact_drag_3D_penalty")
 		return new PenaltyContactDrag3DT(fSupport);
+#endif
+
+#ifdef CONTACT_ELEMENT
+#ifdef CONTINUUM_ELEMENT /* need meshfree code */
+	else if (list_name == "meshfree_contact_2D_penalty")
+		return new MFPenaltyContact2DT(fSupport);
+#endif
 #endif
 
 #ifdef PARTICLE_ELEMENT
