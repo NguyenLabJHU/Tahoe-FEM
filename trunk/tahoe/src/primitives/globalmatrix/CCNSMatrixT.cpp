@@ -1,4 +1,4 @@
-/* $Id: CCNSMatrixT.cpp,v 1.16 2003-12-28 08:24:00 paklein Exp $ */
+/* $Id: CCNSMatrixT.cpp,v 1.17 2004-02-11 16:46:30 paklein Exp $ */
 /* created: paklein (03/04/1998) */
 #include "CCNSMatrixT.h"
 
@@ -522,8 +522,8 @@ double& CCNSMatrixT::operator()(int row, int col) const
 	const char caller[] = "CCNSMatrixT::operator()";
 
 	/* range checks */
-	if (row < 0 || row >= fLocNumEQ) ExceptionT::GeneralFail(caller);
-	if (col < 0 || col >= fLocNumEQ) ExceptionT::GeneralFail(caller);
+	if (row < 0 || row >= fLocNumEQ) ExceptionT::OutOfRange(caller);
+	if (col < 0 || col >= fLocNumEQ) ExceptionT::OutOfRange(caller);
 
 	if (row == col)      /* element on diagonal */
 		return fKD[row];
