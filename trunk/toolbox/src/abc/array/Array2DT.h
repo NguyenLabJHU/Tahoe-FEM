@@ -1,6 +1,5 @@
-/* $Id: Array2DT.h,v 1.8 2002-10-20 22:38:51 paklein Exp $ */
-/* created: paklein (11/02/1998)                                          */
-
+/* $Id: Array2DT.h,v 1.9 2003-09-17 01:26:20 paklein Exp $ */
+/* created: paklein (11/02/1998) */
 #ifndef _ARRAY2D_T_H_
 #define _ARRAY2D_T_H_
 
@@ -9,6 +8,7 @@
 
 namespace Tahoe {
 
+/** 2D array */
 template <class TYPE>
 class Array2DT: public ArrayT<TYPE>
 {
@@ -56,6 +56,11 @@ public:
 	/* accessors */
 	TYPE& operator()(int majordim, int minordim) const;
 	TYPE* operator()(int majordim) const;
+
+	/** shallow copy of a row.
+	 * \param row row number to alias
+	 * \param array array to alias to the row data */
+	void RowAlias(int row, ArrayT<TYPE>& array) const;
 
 	/* copy/assignment operators - by a scalar or element by element */
 	Array2DT<TYPE>& operator=(const Array2DT& RHS);
@@ -288,5 +293,13 @@ inline void Array2DT<TYPE>::SetRow(int row, const ArrayT<TYPE>& array)
 	/* copy */	
 	MemCopy((*this)(row), array.Pointer(), fMinorDim);	
 }
+
+template <class TYPE>
+inline void Array2DT<TYPE>::RowAlias(int row, ArrayT<TYPE>& array) const
+{
+	array.Alias(fMinorDim, (*this)(row));
+}	
+
 }//namespace Tahoe
+
 #endif /* _ARRAY2D_T_H_ */
