@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2002-01-09 12:00:44 paklein Exp $
+# $Id: makefile,v 1.6 2002-01-09 17:13:41 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -41,7 +41,6 @@ HDR = \
 	IC_CardT.h \
 	KBC_CardT.h \
 	LoadTime.h \
-	MapSetT.h \
 	SWDataT.h \
 	TimeSequence.h \
 	Traction_CardT.h
