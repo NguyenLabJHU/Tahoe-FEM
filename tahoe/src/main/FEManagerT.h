@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.39 2003-12-28 10:02:06 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.40 2004-01-05 07:14:40 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #ifndef _FE_MANAGER_H_
 #define _FE_MANAGER_H_
@@ -486,7 +486,6 @@ protected:
 	/** \name run time information */
 	/*@{*/
 	GlobalT::StateT fStatus; /**< state */
-	int fRestartCount; 	     /**< restart output counter */
 	int fCurrentGroup;       /**< current group being operated on */
 	/*@}*/
 	

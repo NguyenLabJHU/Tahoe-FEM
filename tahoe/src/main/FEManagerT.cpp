@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.69 2003-12-28 10:02:06 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.70 2004-01-05 07:14:40 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -65,7 +65,6 @@ FEManagerT::FEManagerT(ifstreamT& input, ofstreamT& output, CommunicatorT& comm)
 	fModelManager(NULL),
 	fCommManager(NULL),
 	fMaxSolverLoops(0),
-	fRestartCount(0),
 	fGlobalEquationStart(0),
 	fActiveEquationStart(0),
 	fGlobalNumEquations(0),
@@ -292,27 +291,38 @@ ExceptionT::CodeT FEManagerT::ResetStep(void)
 {
 	ExceptionT::CodeT error = ExceptionT::kNoError;
 	try{
-	/* state */
-	fStatus = GlobalT::kResetStep;	
+		/* state */
+		fStatus = GlobalT::kResetStep;	
 
-	/* time */
-	fTimeManager->ResetStep();
+		/* time */
+		fTimeManager->ResetStep();
 	
-	/* check group flag */
-	if (fCurrentGroup != -1) throw;
+		/* check group flag */
+		if (fCurrentGroup != -1) throw;
 
-	/* nodes - ALL groups */
-	for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
-		fNodeManager->ResetStep(fCurrentGroup);
-	fCurrentGroup = -1;
+		/* do group-by-group */
+		for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
+		{
+			/* relaxation code */
+			GlobalT::RelaxCodeT relax = GlobalT::kNoRelax;
 	
-	/* elements */
-	for (int i = 0 ; i < fElementGroups->Length(); i++)
-		(*fElementGroups)[i]->ResetStep();
+			/* node manager */
+			relax = GlobalT::MaxPrecedence(relax, fNodeManager->ResetStep(fCurrentGroup));
+	
+			/* elements */
+			for (int i = 0 ; i < fElementGroups->Length(); i++)
+				if ((*fElementGroups)[i]->InGroup(fCurrentGroup))
+					relax = GlobalT::MaxPrecedence(relax, (*fElementGroups)[i]->ResetStep());
+	
+			/* solver */
+			fSolvers[fCurrentGroup]->ResetStep();
 		
-	/* solver - ALL groups */
-	for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
-		fSolvers[fCurrentGroup]->ResetStep();
+			/* check to see if the equation system needs to be reset */
+			if (relax == GlobalT::kReEQ)
+				SetEquationSystem(fCurrentGroup);
+			else if (relax != GlobalT::kNoRelax)
+				ExceptionT::GeneralFail("FEManagerT::ResetStep", "unsupported relaxation code %d", relax);
+		}
 	}
 	
 	catch (ExceptionT::CodeT exc) {
@@ -556,7 +566,7 @@ ExceptionT::CodeT FEManagerT::CloseStep(void)
 	/* elements */
 	for (int i = 0 ; i < fElementGroups->Length(); i++)
 		(*fElementGroups)[i]->CloseStep();
-		
+
 	/* write restart file */
 	WriteRestart();
 	}
@@ -581,9 +591,11 @@ void FEManagerT::GetUnknowns(int group, int order, dArrayT& unknowns) const
 
 GlobalT::RelaxCodeT FEManagerT::RelaxSystem(int group) const
 {
-	GlobalT::RelaxCodeT relax = GlobalT::kNoRelax;
+	/* state */
+	SetStatus(GlobalT::kRelaxSystem);
 	
 	/* check node manager */
+	GlobalT::RelaxCodeT relax = GlobalT::kNoRelax;
 	relax = GlobalT::MaxPrecedence(relax, fNodeManager->RelaxSystem(group));
 		
 	/* check element groups - must touch all of them to reset */
@@ -1719,6 +1731,8 @@ void FEManagerT::SetOutput(void)
 /* (re-)set system to initial conditions */
 ExceptionT::CodeT FEManagerT::InitialCondition(void)
 {
+	const char caller[] = "FEManagerT::InitialCondition";
+
 	/* state */
 	fStatus = GlobalT::kInitialCondition;	
 
@@ -1729,12 +1743,12 @@ ExceptionT::CodeT FEManagerT::InitialCondition(void)
 	fNodeManager->InitialCondition();
 	for (int i = 0 ; i < fElementGroups->Length(); i++)
 		(*fElementGroups)[i]->InitialCondition();
-
-	/* initialize state: solve (t = 0) or read from restart file */
+		
+	/* initialize state: solve (t = 0) unless restarted */
 	ExceptionT::CodeT error = ExceptionT::kNoError;
 	if (!ReadRestart() && fComputeInitialCondition)
 	{
-		cout << "\n FEManagerT::InitialCondition: computing initial conditions" << endl;
+		cout << "\n " << caller << ": computing initial conditions" << endl;
 	
 		/* current step size */
 		double dt = TimeStep();
@@ -1755,10 +1769,11 @@ ExceptionT::CodeT FEManagerT::InitialCondition(void)
 		SetTimeStep(dt);
 
 		if (error != ExceptionT::kNoError)
-			cout << "\n FEManagerT::InitialCondition: error encountered" << endl;
-		cout << "\n FEManagerT::InitialCondition: computing initial conditions: DONE" << endl;
+			cout << "\n " << caller << ": error encountered" << endl;
+
+		cout << "\n " << caller << ": computing initial conditions: DONE" << endl;
 	}
-	
+
 	return error;
 }
 
@@ -1788,17 +1803,24 @@ bool FEManagerT::ReadRestart(const StringT* file_name)
 			fTimeManager->ReadRestart(restart);		  	                  		  	
 			fNodeManager->ReadRestart(restart);
 			for (int i = 0 ; i < fElementGroups->Length(); i++)
-				(*fElementGroups)[i]->ReadRestart(restart);
+			{
+				/* open new stream for each group */
+				StringT file_name = restart.filename();
+				file_name.Append(".elem", i);
+				ifstreamT restart_elem(file_name);
+				restart_elem.precision(DBL_DIG - 1);
+
+				
+				/* write element restart data */
+				(*fElementGroups)[i]->ReadRestart(restart_elem);
+			}
 
 			cout <<   "         Restart file: " << rs_file
 			     << ": DONE"<< endl;
 		}
 		else
-		{
-			cout << "\n FEManagerT::ReadRestart: could not open file: "
-			     << rs_file << endl;
-			throw ExceptionT::kBadInputValue;
-		}
+			ExceptionT::BadInputValue("FEManagerT::ReadRestart", "could not open file: \"%s\"",
+				rs_file.Pointer());
 		
 		/* relax system with new configuration */
 		for (fCurrentGroup = 0; fCurrentGroup < NumGroups(); fCurrentGroup++)
@@ -1829,24 +1851,18 @@ bool FEManagerT::WriteRestart(const StringT* file_name) const
 	/* regular write */
 	if (file_name == NULL)
 	{
-		/* non-const counter */
-		FEManagerT* non_const = (FEManagerT*) this;
-		int& counter = non_const->fRestartCount;
-
 		/* resolve restart flag */
 		bool write = false;
 		if (fabs(TimeStep()) > kSmall && /* no output if clock is not running */
-			fWriteRestart > 0 && ++counter == fWriteRestart) write = true;
+			fWriteRestart > 0 && StepNumber()%fWriteRestart == 0) write = true;
 
 		/* write file */
 		if (write)
 		{
-			/* reset */
-			counter = 0;
-
 			StringT rs_file;
 			rs_file.Root(fMainIn.filename());
 			rs_file.Append(".rs", StepNumber());
+			rs_file.Append("of", NumberOfSteps());
 			ofstreamT restart(rs_file);
 
 			/* skip on fail */
@@ -1859,7 +1875,16 @@ bool FEManagerT::WriteRestart(const StringT* file_name) const
 				fTimeManager->WriteRestart(restart);
 				fNodeManager->WriteRestart(restart);			
 				for (int i = 0 ; i < fElementGroups->Length(); i++)
-					(*fElementGroups)[i]->WriteRestart(restart);
+				{
+					/* open new stream for each group */
+					StringT file_name = restart.filename();
+					file_name.Append(".elem", i);
+					ofstreamT restart_elem(file_name);
+					restart_elem.precision(DBL_DIG - 1);
+				
+					/* write element restart data */
+					(*fElementGroups)[i]->WriteRestart(restart_elem);
+				}
 					
 				return true;
 			}
@@ -1887,7 +1912,16 @@ bool FEManagerT::WriteRestart(const StringT* file_name) const
 			fTimeManager->WriteRestart(restart);
 			fNodeManager->WriteRestart(restart);			
 			for (int i = 0 ; i < fElementGroups->Length(); i++)
-				(*fElementGroups)[i]->WriteRestart(restart);
+			{
+				/* open new stream for each group */
+				StringT file_name = restart.filename();
+				file_name.Append(".elem", i);
+				ofstreamT restart_elem(file_name);
+				restart_elem.precision(DBL_DIG - 1);
+				
+				/* write element restart data */
+				(*fElementGroups)[i]->WriteRestart(restart_elem);
+			}
 				
 			return true;
 		}
