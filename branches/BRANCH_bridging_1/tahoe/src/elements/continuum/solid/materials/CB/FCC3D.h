@@ -1,4 +1,4 @@
-/* $Id: FCC3D.h,v 1.1.2.1 2003-02-21 01:16:32 paklein Exp $ */
+/* $Id: FCC3D.h,v 1.1.2.2 2003-03-29 17:22:28 paklein Exp $ */
 #ifndef _FCC_3D_H_
 #define _FCC_3D_H_
 
@@ -11,7 +11,7 @@ namespace Tahoe {
 class FCCLatticeT;
 class PairPropertyT;
 
-/** plane stress hexagonal lattice */
+/** 3D Cauchy-Born material for FCC crystals with pair potential interactions. */
 class FCC3D: public NL_E_MatT
 {
 public:
