@@ -1,4 +1,4 @@
-/* $Id: HyperbolicDiffusionElementT.cpp,v 1.1 2004-10-20 21:44:42 paklein Exp $ */
+/* $Id: HyperbolicDiffusionElementT.cpp,v 1.2 2005-01-05 01:25:07 paklein Exp $ */
 #include "HyperbolicDiffusionElementT.h"
 
 #include "ElementCardT.h"
@@ -95,7 +95,7 @@ void HyperbolicDiffusionElementT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		/* element mass */
 		if (formM || formC) {
 			double k = fCurrMaterial->Capacity()*(fTau*constM + constC);
-			FormMass(kConsistentMass, k, axisymmetric);
+			FormMass(kConsistentMass, k, axisymmetric, NULL);
 		}
 
 		/* element stiffness */
@@ -190,7 +190,8 @@ void HyperbolicDiffusionElementT::RHSDriver(void)
 			/* add internal contribution */
 			FormMa(kConsistentMass, -constCv, axisymmetric,
 				&fLocAcc,
-				(block_source) ? &ip_source : NULL);			  		
+				(block_source) ? &ip_source : NULL,
+				NULL);			  		
 		}
 				
 		/* assemble */
