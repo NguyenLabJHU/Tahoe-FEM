@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.41.2.12 2003-05-29 12:43:39 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.41.2.13 2003-06-02 13:24:58 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -329,9 +329,6 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		phase = 0;
 		char job_char;
 		atom_in >> job_char;
-		//FEManagerT_bridging atoms(atom_in, atom_out, fComm, bridge_atom_in);
-		//atoms.Initialize();
-
 		
 		/* initialize FEManager_THK using atom values */
 		FEManagerT_THK atoms(atom_in, atom_out, fComm, bridge_atom_in);
@@ -340,7 +337,6 @@ void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
 		continuum_in >> job_char;
 		FEManagerT_bridging continuum(continuum_in, continuum_out, fComm, bridge_continuum_in);
 		continuum.Initialize();
-	
 		t1 = clock();
 		phase = 1;
                 
@@ -568,14 +564,14 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_THK& atoms, ofstream& log_out) const
 {
 	const char caller[] = "FEExecutionManagerT::RunDynamicBridging";
-	
+
 	/* configure ghost nodes */
 	int group = 0;
 	int order1 = 0;	// For InterpolateField, 3 calls to obtain displacement/velocity/acceleration
 	int order2 = 1;
 	int order3 = 2;
 	dArray2DT field_at_ghosts, totalu, fubig, fu, projectedu, boundghostdisp, boundghostvel, boundghostacc;
-	dArray2DT thkforce;
+	dArray2DT thkforce, gaussdisp;
 	dSPMatrixT ntf;
 	iArrayT activefenodes;
 	StringT bridging_field = "displacement";
@@ -606,19 +602,25 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	int d_width = OutputWidth(log_out, field_at_ghosts.Pointer());
 	while (atom_time->NextSequence() && continuum_time->NextSequence())
 	{	
+		/* apply gaussian wave displacement */
+		gaussdisp = atoms.GaussianWave();
+		
+		/* write displacement into field */
+		atoms.SetFieldValues(bridging_field, atoms.NonGhostNodes(), order1, gaussdisp);
+	
 		/* set to initial condition */
 		atoms.InitialCondition();
-		
+	
 		/* calculate fine scale part of MD displacement and total displacement u */
 		continuum.InitialProject(bridging_field, *atoms.NodeManager(), projectedu, order1);
-		
+	
 		/* solve for initial FEM force f(u) as function of fine scale + FEM */
 		/* use projected totalu instead of totalu for initial FEM displacements */
 		fubig = InternalForce(projectedu, atoms);
 		
 		/* calculate global interpolation matrix ntf */
 		continuum.Ntf(ntf, atoms.NonGhostNodes(), activefenodes);
-		cout << "ntf = " << ntf << endl;
+		//cout << "ntf = " << ntf << endl;
 		
 		/* compute FEM RHS force as product of ntf and fu */
 		dArrayT fx(ntf.Rows()), fy(ntf.Rows()), tempx(ntf.Cols()), tempy(ntf.Cols());
@@ -688,7 +690,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				/* UPDATE TIME HISTORY VARIABLES HERE USING BADISP ARRAY */
 														
 				/* calculate THK force on boundary atoms */
-				thkforce = atoms.THKForce(badisp);
+				//thkforce = atoms.THKForce(badisp);
 																			
 				/* solve MD equations of motion */
 				if (1 || error == ExceptionT::kNoError) {
@@ -698,7 +700,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 				
 				FieldT* cmd = atoms.NodeManager()->Field(bridging_field);
 				dArray2DT cacc = (*cmd)[2];
-				cout << "md acc = " << cacc << endl;
+				//cout << "md acc = " << cacc << endl;
 				
 				/* close  md step */
 				if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();    
@@ -720,7 +722,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			fu.ColumnCopy(1,tempy);
 			ntf.Multx(tempy,fy);
 			ntfproduct.SetColumn(1,fy);	// SetExternalForce updated via pointer
-			cout << "fem force = " << ntfproduct << endl;
+			//cout << "fem force = " << ntfproduct << endl;
 			
 			/* solve FE equation of motion using internal force just calculated */
 			if (1 || error == ExceptionT::kNoError) {
@@ -730,7 +732,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
                  
 			FieldT* fem = continuum.NodeManager()->Field(bridging_field);
 			dArray2DT facc1 = (*fem)[2];
-			cout << "fem acc = " << facc1 << endl;
+			//cout << "fem acc = " << facc1 << endl;
 		
 			/* Interpolate FEM values to MD ghost nodes which will act as MD boundary conditions */
 			continuum.InterpolateField(bridging_field, order1, boundghostdisp);
