@@ -1,6 +1,5 @@
-/* $Id: GlobalT.h,v 1.1.1.1 2001-01-29 08:20:21 paklein Exp $ */
-/* created: paklein (02/03/1999)                                          */
-/* GlobalT.h                                                              */
+/* $Id: GlobalT.h,v 1.2 2001-07-17 00:25:09 paklein Exp $ */
+/* created: paklein (02/03/1999) */
 
 #ifndef _GLOBAL_T_H_
 #define _GLOBAL_T_H_
@@ -8,10 +7,12 @@
 #include "Environment.h"
 #include "ios_fwd_decl.h"
 
+/** class to handle "global" enumerated types */
 class GlobalT
 {
 public:
 
+	/** types of analysis */
 	enum AnalysisCodeT {
 		      kLinStatic = 1,
 		     kLinDynamic = 2,
@@ -22,12 +23,14 @@ public:
 		   kNLExpDynamic = 7,
 		kVarNodeNLStatic = 15, // will be gone soon
 		kVarNodeNLExpDyn = 16, // will be gone soon
-		   kAugLagStatic = 17, // will become FBC controller soon?
+		   kAugLagStatic = 17,
 		  kLinStaticHeat = 19, // linear static heat conduction
 		   kLinTransHeat = 20}; // linear transient heat conduction
 		
+	/** stream extraction operator */
 	friend istream& operator>>(istream& in, GlobalT::AnalysisCodeT& code);
 	
+	/** deprecated analysis codes */
 	enum OldAnalysisCodeT {
 		       kCBStatic = 8,   // converted to KBC controller: PAK (12/10/2000)
 	     kNLStaticKfield = 11,  // converted to KBC controller: PAK (09/10/2000)
@@ -39,7 +42,7 @@ public:
 //    (b) nonlinear, small deformation
 //    (c) (nonlinear) large deformation
 
-	/* analysis stage */
+	/** analysis stage */
 	enum StateT {
 	            kNone = 0,
         kConstruction = 1,
@@ -56,26 +59,27 @@ public:
 		   kException =12,
 		 kDestruction =13};
 
-	/* global system types - order by precedence */
+	/** global system types, ordered so n_1 > n_2 implies that n_1 is a
+	 * superset of n_2. */
 	enum SystemTypeT {
 		    kDiagonal = 0,
 		   kSymmetric = 1,
 		kNonSymmetric = 2};
 
-	/* relaxation level */
+	/** relaxation level */
 	enum RelaxCodeT {
-		kNoRelax = 0,  // do nothing
-		   kReEQ = 1,  // reset global equation numbers
-		  kRelax = 2,  // relax, ie. find equilibrium
-	  kReEQRelax = 3}; // reset global equation numbers and relax
+		kNoRelax = 0, /**< do nothing */
+		   kReEQ = 1, /**< reset global equation numbers, but still at force equilirbium */
+		  kRelax = 2, /**< relax, ie. re-find equilibrium */
+	  kReEQRelax = 3  /**< reset global equation numbers and relax */ };
 
-	/* returns flag with precedence */
+	/** returns flag with precedence */
 	static RelaxCodeT MaxPrecedence(RelaxCodeT code1, RelaxCodeT code2);
 
-	/* equation numbering scope */
+	/** equation numbering scope mainly for parallel solvers */
 	enum EquationNumberScopeT {
-		kLocal  = 0,
-		kGlobal = 1}; // for parallel solvers
+		kLocal  = 0, /**< equations numbered per processor */
+		kGlobal = 1  /**< equations numbered over entire system */};
 };
 
 #endif // _GLOBAL_T_H_
