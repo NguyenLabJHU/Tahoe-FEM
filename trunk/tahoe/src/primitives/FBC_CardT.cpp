@@ -1,4 +1,4 @@
-/* $Id: FBC_CardT.cpp,v 1.1.1.1 2001-01-29 08:20:22 paklein Exp $ */
+/* $Id: FBC_CardT.cpp,v 1.2 2001-07-16 20:03:06 paklein Exp $ */
 /* created: paklein (06/15/1996)                                          */
 
 #include "FBC_CardT.h"
@@ -11,6 +11,10 @@
 #include "fstreamT.h"
 #include "NodeManagerT.h"
 #include "LoadTime.h"
+
+/* copy behavior for arrays FBC_CardT's */
+const bool ArrayT<FBC_CardT*>::fByteCopy = true;
+const bool ArrayT<FBC_CardT>::fByteCopy = false;
 
 /* constructor */
 FBC_CardT::FBC_CardT(void):
