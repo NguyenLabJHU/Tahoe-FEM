@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.56 2003-07-11 16:45:57 hspark Exp $ */
+/* $Id: ElementListT.cpp,v 1.56.4.1 2003-09-03 16:15:27 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -92,6 +92,9 @@
 #include "UpdatedLagrangianMF.h"
 #include "SmallStrainMF.h"
 #include "SmallStrainMF2.h"
+#ifdef SPLIT_INTEGRATION_DEV
+#include "SplitIntegrationT.h"
+#endif
 #endif
 
 using namespace Tahoe;
@@ -646,13 +649,22 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			ExceptionT::BadInputValue(caller, "DORGAN_VOYIADJIS_MARIN_DEV not enabled: %d", code);
 #endif			
 			}
-			case ElementT::kTest:
-			{
-#ifdef SOLID_ELEMENT_DEV
-				fArray[group] = new SmallStrainMF2(fSupport, *field);
-				break;
+		case ElementT::kTotLagSplitIntegration:
+		{
+#if defined (SOLID_ELEMENT_DEV) && defined (SPLIT_INTEGRATION_DEV)
+			fArray[group] = new SplitIntegrationT(fSupport, *field);
+		    break;
 #else
-				ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
+			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or SPLIT_INTEGRATION_DEV not enabled: %d", code);
+#endif				
+		}			
+		case ElementT::kTest:
+		{
+#ifdef SOLID_ELEMENT_DEV
+			fArray[group] = new SmallStrainMF2(fSupport, *field);
+			break;
+#else
+			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV not enabled: %d", code);
 #endif
 		}
 		default:
