@@ -1,11 +1,9 @@
-/* $Id: AbaqusResultsT.cpp,v 1.18 2002-07-02 19:57:00 cjkimme Exp $ */
+/* $Id: AbaqusResultsT.cpp,v 1.19 2002-07-18 18:39:37 sawimme Exp $ */
 /* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
 #include "fstreamT.h"
 #include <time.h>
-
-/* these variables are nodal and have a node number before the value list */
 
 using namespace Tahoe;
 
@@ -33,31 +31,38 @@ AbaqusResultsT::AbaqusResultsT (ostream& message) :
 
 bool AbaqusResultsT::Initialize (const char *filename)
 {
-	//TEMP - workaround for problem with CW7
-	//fstreamT::FixPath(filename, fFileName); //not needed if fIn is ifstreamT
-	fFileName = filename;
-	fIn.open (fFileName);
-	if (!fIn.is_open())
+  //TEMP - workaround for problem with CW7
+  //fstreamT::FixPath(filename, fFileName); //not needed if fIn is ifstreamT
+  fFileName = filename;
+  fIn.open (fFileName);
+  if (!fIn.is_open())
     {
       fMessage << "\n AbaqusResultsT::Initialize unable to open file " << filename << endl;
       return false;
     }
-
-	int key = -1;
-	ReadNextRecord (key);
-	if (key != VERSION) 
+  
+  int key = -1;
+  ReadNextRecord (key);
+  if (key != VERSION) 
     {
       fMessage << "\n AbaqusResultsT::Initialize not ASCII, trying Binary" << endl;
       fBinary = true;
       ResetFile ();
-      ReadNextRecord (key);
+
+      if (ReadNextRecord (key) != OKAY)
+	{
+	  fMessage << "\n AbaqusResultsT::Initialize not Binary, unable to read next record" << endl;
+	  cout << "key " << key << endl;
+	  return false;
+	}
+
       if (key != VERSION)
 	{
 	  fMessage << "\n AbaqusResultsT::Initialize not Binary" << endl;
 	  return false;
 	}
     }
-
+  
   if (!ReadVersion ()) 
     {
       fMessage << "\n AbaqusResultsT::Initialize unreadable file" << endl;
@@ -256,9 +261,11 @@ bool AbaqusResultsT::ScanFile (int &numelems, int &numnodes, int &numtimesteps, 
       
       /* scan variable records, but only for the first time step */
       if (fStartCount == 1)
-	/* if the record key is a variable, scan for variable within */
-	if (VariableKeyIndex (key) > 0)
-	  ScanVariable (key, outputmode, location);
+	{
+	  /* if the record key is a variable, scan for variable within */
+	  if (VariableKeyIndex (key) > 0)
+	    ScanVariable (key, outputmode, location);
+	}
 
       oldkey = key;
       error = ReadNextRecord (key);
@@ -1052,12 +1059,15 @@ bool AbaqusResultsT::ReadVersion (void)
   StringT version, date, time;
   int numelems, numnodes;
   double elemleng;
+ 
   if (!Read (version, 1) || !Read (date, 2) || !Read (time, 1) ||
       !Read (numelems) || !Read (numnodes) || !Read (elemleng) )
     {
       fMessage << "\n AbaqusResultsT::ScanFile Unable to read version record" << endl;
       return false;
     }
+  //cout << version << "\n" << date << "\n" << time << "\n" << numelems
+  //   << "\n" << numnodes << "\n" << elemleng << endl;
 
   if (strncmp (version.Pointer(), "5.8", 3) != 0 &&
       strncmp (version.Pointer(), "6.1", 3) != 0 &&
@@ -1670,6 +1680,7 @@ int AbaqusResultsT::ReadNextRecord (int& key)
       if (!fIn.good() || fIn.eof()) return END;
       return BAD;
     }
+  //cout << "length = " << length << " key=" << key << endl;
   fCurrentLength += length;
   return OKAY;
 }
@@ -1998,7 +2009,7 @@ void AbaqusResultsT::SetVariableNames (void)
   fVariableTable[i++].Set ("ALPHA", 86, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // back-stress tensor
   fVariableTable[i++].Set ("ALPHAP", 402, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // principal back-stress
   fVariableTable[i++].Set ("E", 21, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // strain components
-  fVariableTable[i++].Set ("EP", 409, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // principle strain components
+  fVariableTable[i++].Set ("EP", 403, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // principle strain components
   fVariableTable[i++].Set ("LE", 89, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // logarithmic strains
   fVariableTable[i++].Set ("DG", 30, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // deformation gradient
   fVariableTable[i++].Set ("EE", 25, AbaqusVariablesT::kData, AbaqusVariablesT::kElementIntegration); // total elastic strains
