@@ -1,6 +1,7 @@
 @
-# $Id: run.batch,v 1.2 2004-04-13 16:07:34 paklein Exp $
+# $Id: run.batch,v 1.3 2004-12-09 09:21:49 paklein Exp $
 Newton.0.xml
+Newton.0a.xml
 Newton.1.xml
 NewtonPeriodic.xml
 md.0.xml
