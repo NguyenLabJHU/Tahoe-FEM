@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeFSSolidT.h,v 1.1.1.1 2001-01-29 08:20:39 paklein Exp $ */
+/* $Id: D2MeshFreeFSSolidT.h,v 1.1.1.1.2.1 2001-06-29 23:58:49 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #ifndef _D2_EFG_FDELASTIC_T_H_
@@ -24,9 +24,12 @@ public:
 	/* check material's list */
 	virtual void Initialize(void);
 
+//DEV - no need to override
+#if 0
 	/* form the residual force vector */
 	virtual void RHSDriver(void);
 	void ElementRHSDriver(void);
+#endif
 
 protected:
 

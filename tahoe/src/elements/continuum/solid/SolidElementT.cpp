@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.9.2.1 2001-06-29 01:21:14 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.9.2.2 2001-06-29 23:58:46 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #include "SolidElementT.h"
@@ -120,7 +120,7 @@ void SolidElementT::SetController(eControllerT* controller)
 void SolidElementT::AddNodalForce(int node, dArrayT& force)
 {
 	/* quick exit */
-	if ( !fConnectivities.HasValue(node) ) return;
+	if (!fConnectivities.HasValue(node)) return;
 
 	/* set components and weights */
 	double constMa = 0.0;
@@ -138,7 +138,7 @@ void SolidElementT::AddNodalForce(int node, dArrayT& force)
 	   (fBodyForceLTf > -1 && fBody.Magnitude() > kSmall))
 	{	
 		formBody = 1;
-		if (!formMa) constMa = 1.0; // correct value ??
+		if (!formMa) constMa = 1.0; /* override */
 	}
 
 	/* override controller */
@@ -157,7 +157,8 @@ void SolidElementT::AddNodalForce(int node, dArrayT& force)
 			fRHS = 0.0;
 	
 			/* effective accelerations and displacements */
-			ComputeEffectiveDVA(formBody, formMa, constMa, formCv, constCv, formKd, constKd);
+			//ComputeEffectiveDVA(formBody, formMa, constMa, formCv, constCv, formKd, constKd);
+			//DEV - Rayleigh damping is poorly formulated
 
 			/* global shape function values */
 			SetGlobalShape();
@@ -166,10 +167,24 @@ void SolidElementT::AddNodalForce(int node, dArrayT& force)
 			if (formKd) FormKd(1.0);
 				
 			/* damping */
-			if (formCv) FormCv(1.0);
+			//if (formCv) FormCv(1.0);
+			//DEV - computed at constitutive level
 
 			/* inertia forces */
-			if (formMa) FormMa(fMassType, fCurrMaterial->Density(), fLocAcc);
+			if (formMa || formBody)
+			{
+				/* nodal accelerations */
+				if (formMa)
+					SetLocalU(fLocAcc);
+				else 
+					fLocAcc = 0.0;
+			
+				/* body force contribution */
+				if (formBody) AddBodyForce(fLocAcc);
+				
+				/* calculate inertial forces */
+				FormMa(fMassType, fCurrMaterial->Density(), fLocAcc);
+			}
 
 			/* components for node */
 			nodalforce.Set(fNumDOF, &fRHS[fNumDOF*nodeposition]);
@@ -228,9 +243,6 @@ double SolidElementT::InternalEnergy(void)
 	{
 		/* global shape function derivatives, jacobians, local coords */
 		SetGlobalShape();
-		
-		/* get displacements */
-		SetLocalU(fLocDisp);
 		
 		/* integration */
 		const double* Det    = fShapes->IPDets();
@@ -504,6 +516,7 @@ void SolidElementT::SetGlobalShape(void)
 	const ArrayT<bool>& needs = fMaterialNeeds[CurrentElement().MaterialNumber()];
 
 	/* material dependent local arrays */
+	if (needs[kNeedDisp])     SetLocalU(fLocDisp);	
 	if (needs[KNeedLastDisp]) SetLocalU(fLocLastDisp);	
 	if (needs[kNeedVel])
 	{
@@ -562,11 +575,13 @@ void SolidElementT::ElementLHSDriver(void)
 		SetGlobalShape();
 	
 		/* Rayleigh damping */
-		if (formC)
-		{
-			constKe += constC*(fCurrMaterial->StiffnessDamping());
-			constMe += constC*(fCurrMaterial->MassDamping());
-		}
+//		if (formC)
+//		{
+//			constKe += constC*(fCurrMaterial->StiffnessDamping());
+//			constMe += constC*(fCurrMaterial->MassDamping());
+//		}
+//DEV - Rayleigh damping is too ugly to keep, could add some
+//      phenomenological damping to the constitutive models
 		
 		/* element mass */
 		if (fabs(constMe) > kSmall)
@@ -609,7 +624,7 @@ void SolidElementT::ElementRHSDriver(void)
 	   (fBodyForceLTf > -1 && fBody.Magnitude() > kSmall))
 	{	
 		formBody = 1;
-		if (!formMa) constMa = 1.0; //override controller value??
+		if (!formMa) constMa = 1.0; /* override */
 	}
 
 	/* override controller */
@@ -619,34 +634,49 @@ void SolidElementT::ElementRHSDriver(void)
 	while (NextElement())
 	{
 		/* effective accelerations and displacements */
-		ComputeEffectiveDVA(formBody, formMa, constMa, formCv, constCv, formKd, constKd);
+		//ComputeEffectiveDVA(formBody, formMa, constMa, formCv, constCv, formKd, constKd);
+		//DEV - Rayleigh damping should be moved to the constitutive level
 	
 		/* last check w/ effective a and d - override controller */
-		int eformMa = fLocAcc.AbsMax() > 0.0;
-		int eformCv = fLocVel.AbsMax() > 0.0;
-		int eformKd = (fLocDisp.AbsMax() > 0.0 ||
-		               fCurrMaterial->HasInternalStrain());
+		//int eformMa = fLocAcc.AbsMax() > 0.0;
+		//int eformCv = fLocVel.AbsMax() > 0.0;
+		//int eformKd = (fLocDisp.AbsMax() > 0.0 ||
+		//              fCurrMaterial->HasInternalStrain());
+		//DEV - although this may speed things up in some cases
+		//      it's a pain in general -> these could be moved
+		//      within FormKd, FormCv, or FormMa since the state
+		//      of the local nodal vectors should be fixed by then
 
-		if (eformMa || eformCv || eformKd)
-		{
-			/* initialize */
-			fRHS = 0.0;
+		/* initialize */
+		fRHS = 0.0;
 		
-			/* global shape function values */
-			SetGlobalShape();
+		/* global shape function values */
+		SetGlobalShape();
 			
-			/* internal force contribution */	
-			if (eformKd) FormKd(-1.0);
+		/* internal force contribution */	
+		if (formKd) FormKd(-1.0);
 				
-			/* damping */
-			if (eformCv) FormCv(-1.0);
+		/* damping */
+		//if (formCv) FormCv(-1.0);
+		//DEV - computed at constitutive level
 
-			/* inertia forces */
-			if (eformMa) FormMa(fMassType, -(fCurrMaterial->Density()), fLocAcc);			  		
-								
-			/* assemble */
-			AssembleRHS();
+		/* inertia forces */
+		if (formMa || formBody)
+		{
+			/* nodal accelerations */
+			if (formMa)
+				SetLocalU(fLocAcc);
+			else 
+				fLocAcc = 0.0;
+			
+			/* body force contribution */
+			if (formBody) AddBodyForce(fLocAcc);
+		
+			FormMa(fMassType, -(fCurrMaterial->Density()), fLocAcc);			  		
 		}
+								
+		/* assemble */
+		AssembleRHS();
 	}
 }
 
@@ -697,7 +727,9 @@ void SolidElementT::FormStiffness(double constK)
 		fLHS.MultQTBQ(fB, fD, format, dMatrixT::kAccumulate);	
 	}
 }
-		
+
+//DEV - Rayleigh damping should be added to the constitutive level
+#if 0		
 /* compute the effective acceleration and velocities based
 * on the algorithmic flags formXx and the given constants
 * constXx.
@@ -756,6 +788,7 @@ void SolidElementT::ComputeEffectiveDVA(int formBody,
 	else
 		fLocVel = 0.0;
 }	
+#endif
 
 /* form of tangent matrix */
 GlobalT::SystemTypeT SolidElementT::TangentType(void) const
@@ -915,7 +948,6 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		SetGlobalShape();
 		
 		/* collect nodal values */
-		SetLocalU(fLocDisp);
 		if (e_codes[iKineticEnergy] || e_codes[iLinearMomentum])
 			SetLocalU(fLocVel);
 		
