@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.54 2002-06-26 18:00:20 recampb Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.55 2002-07-02 21:23:00 cjkimme Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -40,6 +40,7 @@
 #include "vtkActorCollection.h"
 #include "vtkRendererCollection.h"
 
+using namespace Tahoe;
 
 AutoArrayT<vtkActor*> VTKConsoleT::pickedPoints;
 

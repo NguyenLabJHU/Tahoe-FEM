@@ -1,4 +1,4 @@
-/* $Id: TranslateIOManager.cpp,v 1.24 2002-06-27 15:21:01 sawimme Exp $  */
+/* $Id: TranslateIOManager.cpp,v 1.25 2002-07-02 21:22:59 cjkimme Exp $  */
 
 #include "TranslateIOManager.h"
 #include "IOBaseT.h"
@@ -11,6 +11,8 @@
 #include "TecPlotOutputT.h"
 #include "FE_ASCIIT.h"
 //#include "PatranOutputT.h"
+
+using namespace Tahoe;
 
 TranslateIOManager::TranslateIOManager (ostream& out, istream& in, bool write) :
   fMessage (out),
