@@ -12,7 +12,10 @@
 
 static doublereal c_b17 = .5;
 
-/* $Id: vumatadiab.c,v 1.6 2002-06-27 22:15:37 paklein Exp $ */
+/* small number */
+static doublereal kSmall = 1.0e-12;
+
+/* $Id: vumatadiab.c,v 1.7 2003-05-20 16:15:43 paklein Exp $ */
 
 /* 23456789012345678901234567890123456789012345678901234567890123456789012 */
 /* revision a  2000/12/6  correct problems */
@@ -256,10 +259,15 @@ static doublereal c_b17 = .5;
 	    }
 	}
 	i__2 = ndirnshr;
-	for (isv = 1; isv <= i__2; ++isv) {
-	    d__[ie + isv - 2] = straininc[ie + isv * straininc_dim1] / *dt;
+	if (fabs(*dt) > kSmall)
+		for (isv = 1; isv <= i__2; ++isv) {
+			d__[ie + isv - 2] = straininc[ie + isv * straininc_dim1] / *dt;
 /* L333: */
-	}
+		}
+	else /* allow dt -> 0 */
+		for (isv = 1; isv <= i__2; ++isv) {
+			d__[ie + isv - 2] = 0.0;
+		}
 /* L1: */
     }
 
@@ -512,7 +520,10 @@ L10:
 	sv[ie + sv_dim1 * 6] += dalph * xi31;
 
 /*   plastic strain rate */
-	epsdot = gamma * .8164965809 / *dt;
+	if (fabs(*dt) > kSmall)
+		epsdot = gamma * .8164965809 / *dt;
+	else /* allow dt -> 0 */
+		epsdot = 0.0;
 	sv[ie + sv_dim1 * 9] = epsdot;
 /*   and save equivalent plastic strain */
 	sv[ie + sv_dim1 * 12] += gamma * .8164965809;
