@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.3 2001-02-22 23:46:22 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.4 2001-02-27 00:03:22 paklein Exp $ */
 /* created: paklein (05/22/1996)                                          */
 
 #include "FEManagerT.h"
@@ -16,6 +16,7 @@
 #include "TimeManagerT.h"
 #include "ElementBaseT.h"
 #include "IOManager.h"
+#include "OutputSetT.h"
 
 /* nodes */
 #include "NodeManagerT.h"
@@ -546,7 +547,35 @@ void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values,
 
 int FEManagerT::RegisterOutput(const OutputSetT& output_set)
 {
-	return fIOManager->AddElementSet(output_set);
+	int ID = fIOManager->AddElementSet(output_set);
+	if (Size() > 1 && Rank() == 0)
+	{
+		/* file name */
+		StringT io_file;
+		io_file.Root(fMainIn.filename()); // drop ".in"
+		io_file.Root();                   // drop ".p0"
+		io_file.Append(".io.ID");
+
+		/* open stream */
+		ofstreamT io;
+		if (fIOManager->ElementSets().Length() == 1)
+		{
+			io.open(io_file);
+			
+			/* write header information */
+			io << "# element block ID's for each output ID\n";
+			io << "# [output ID] [num blocks] [list of block ID's]\n";
+		}
+		else
+			io.open_append(io_file);
+			
+		/* write block ID information */
+		const iArrayT& block_ID = output_set.BlockID();
+		io << ID << " " << block_ID.Length() << " "
+		   << block_ID.no_wrap_tight() << '\n';
+	}
+	
+	return ID;
 }
 
 void FEManagerT::WriteGeometryFile(const StringT& file_name,
