@@ -1,4 +1,4 @@
-/* $Id: PartitionT.h,v 1.5 2002-01-11 23:47:12 paklein Exp $ */
+/* $Id: PartitionT.h,v 1.6 2002-01-27 18:26:26 paklein Exp $ */
 /* created: paklein (11/16/1999) */
 
 #ifndef _PARTITION_T_H_
@@ -6,13 +6,13 @@
 
 /* direct members */
 #include "iArrayT.h"
+#include "StringT.h"
 
 /* forward declarations */
 class GraphT;
 class iArray2DT;
 class dArray2DT;
 class ifstreamT;
-class StringT;
 template <class TYPE> class RaggedArray2DT;
 
 /** graph partition information (following NEMESIS data model)
@@ -60,9 +60,9 @@ public:
 	void SetScope(NumberScopeT scope);
 
 	int NumElementBlocks(void) const;
-	const iArrayT& BlockID(void) const { return fElementBlockID; };
-	void InitElementBlocks(const iArrayT& blockID);	
-	void SetElements(int blockID, const iArray2DT& connects);
+	const ArrayT<StringT>& BlockID(void) const { return fElementBlockID; };
+	void InitElementBlocks(const ArrayT<StringT>& blockID);	
+	void SetElements(const StringT& blockID, const iArray2DT& connects);
 
 	/* check cross-references - returns 1 if OK */
 	int CrossCheck(const PartitionT& that) const;
@@ -77,7 +77,7 @@ public:
 	/* maps */
 	const iArrayT& NodeMap(void) const;
 	const iArrayT& InverseNodeMap(int& index_shift) const;
-	const iArrayT& ElementMap(int blockID) const;
+	const iArrayT& ElementMap(const StringT& blockID) const;
 
 	/* returns indeces of global nodes that lie within the partition */
 	void ReturnPartitionNodes(const iArrayT& global_nodes,
@@ -85,12 +85,12 @@ public:
 
 	/* returns indeces of (block) global elements that lie within
 	 * the partition */
-	void ReturnPartitionElements(int blockID, const iArrayT& global_elements,
+	void ReturnPartitionElements(const StringT& blockID, const iArrayT& global_elements,
 		iArrayT& partition_indices) const;
 
 	/* mapping functions (assumes scope is currently the opposite) */
 	void SetNodeScope(NumberScopeT scope, ArrayT<int>& nodes) const;
-	void SetElementScope(NumberScopeT scope, int blockID, ArrayT<int>& elements) const;
+	void SetElementScope(NumberScopeT scope, const StringT& blockID, ArrayT<int>& elements) const;
 
 	/* input operator for scope */
 	friend istream& operator>>(istream& in, PartitionT::NumberScopeT& scope);
@@ -108,7 +108,7 @@ private:
 	//                              external
 
 	/* resolve element block ID to index */
-	int ElementBlockIndex(int blockID, const char* caller = NULL) const;
+	int ElementBlockIndex(const StringT& blockID, const char* caller = NULL) const;
 
 	/* number transformations */
 	void MapValues(const iArrayT& map, int shift, ArrayT<int>& values) const;
@@ -130,7 +130,7 @@ private:
 
 	/* set numbering maps */
 	void SetNodeMap(NumberScopeT scope, iArrayT& map, int& shift) const;
-	void SetElementMap(NumberScopeT scope, int blockID, iArrayT& map, int& shift) const;
+	void SetElementMap(NumberScopeT scope, const StringT& blockID, iArrayT& map, int& shift) const;
 
 private:
 	
@@ -149,7 +149,7 @@ private:
 	ArrayT<iArrayT> fNodes_out; // nodes per comm part
 	
 	// element information
-	iArrayT fElementBlockID;
+	ArrayT<StringT> fElementBlockID;
 	ArrayT<iArrayT> fElements_i; // internal elements per block
 	ArrayT<iArrayT> fElements_b; // border elements per block
 
@@ -178,7 +178,7 @@ inline int PartitionT::NumElementBlocks(void) const { return fElementMap.Length(
 
 /* maps */
 inline const iArrayT& PartitionT::NodeMap(void) const { return fNodeMap; }
-inline const iArrayT& PartitionT::ElementMap(int blockID) const
+inline const iArrayT& PartitionT::ElementMap(const StringT& blockID) const
 {
 	return fElementMap[ElementBlockIndex(blockID, "ElementMap")];
 }

@@ -1,6 +1,5 @@
-/* $Id: PartitionT.cpp,v 1.5 2002-01-09 12:11:57 paklein Exp $ */
-/* created: paklein (11/16/1999)                                          */
-/* graph partition information (following NEMESIS data model)             */
+/* $Id: PartitionT.cpp,v 1.6 2002-01-27 18:26:26 paklein Exp $ */
+/* created: paklein (11/16/1999) */
 
 #include "PartitionT.h"
 
@@ -179,7 +178,7 @@ void PartitionT::SetScope(NumberScopeT scope)
 	fScope = scope;
 }
 
-void PartitionT::InitElementBlocks(const iArrayT& blockID)
+void PartitionT::InitElementBlocks(const ArrayT<StringT>& blockID)
 {
 	/* copy */
 	fElementBlockID = blockID;
@@ -194,7 +193,7 @@ void PartitionT::InitElementBlocks(const iArrayT& blockID)
 }
 
 /* collect internal and border elements */
-void PartitionT::SetElements(int blockID, const iArray2DT& connects)
+void PartitionT::SetElements(const StringT& blockID, const iArray2DT& connects)
 {
 	/* only at global scope for now */
 	if (fScope != kGlobal)
@@ -382,7 +381,16 @@ ostream& operator<<(ostream& out, const PartitionT& partition)
 	out << (partition.fElements_i).Length() << '\n';
 
 	out << "# element block ID's:\n";
-	out << (partition.fElementBlockID).wrap_tight(10) << '\n';
+	int wrap = 0;
+	for (int i = 0; i < partition.fElementBlockID.Length(); i++)
+	{
+		if (wrap++ == 10) {
+			out << '\n';
+			wrap = 0;
+		}
+		out << partition.fElementBlockID[i] << " ";
+	}
+	out << '\n';
 
 	out << "# internal elements (by block):\n";
 	for (int k = 0; k < (partition.fElements_i).Length(); k++)
@@ -476,7 +484,8 @@ ifstreamT& PartitionT::Read(ifstreamT& in)
 	// element information
 	in >> length;
 	fElementBlockID.Allocate(length);
-	in >> fElementBlockID;
+	for (int i = 0; i < fElementBlockID.Length(); i++)
+		in >> fElementBlockID[i];
 	InitElementBlocks(fElementBlockID);	
 
 	for (int k = 0; k < fElements_i.Length(); k++)
@@ -522,10 +531,14 @@ ifstreamT& PartitionT::Read(ifstreamT& in)
 }
 
 /* resolve element block ID to index */
-int PartitionT::ElementBlockIndex(int blockID, const char* caller) const
+int PartitionT::ElementBlockIndex(const StringT& blockID, const char* caller) const
 {
-	int dex = 0;
-	if (!fElementBlockID.HasValue(blockID, dex))
+	int dex = -1;
+	for (int i = 0; dex == -1 && i < fElementBlockID.Length(); i++)
+		if (fElementBlockID[i] == blockID)
+			dex = i;
+
+	if (dex == -1)
 	{
 		const char* this_routine = "ElementBlockIndex";
 		const char* str = (caller != NULL) ? caller : this_routine;
@@ -598,7 +611,7 @@ void PartitionT::ReturnPartitionNodes(const iArrayT& global_nodes,
 
 /* returns indeces of (block) global elements that lie within
 * the partition */
-void PartitionT::ReturnPartitionElements(int blockID,
+void PartitionT::ReturnPartitionElements(const StringT& blockID,
 	const iArrayT& global_elements, iArrayT& partition_indices) const
 {
 	/* make inverse map */
@@ -635,7 +648,7 @@ void PartitionT::SetNodeScope(NumberScopeT scope, ArrayT<int>& nodes) const
 	MapValues(map, shift, nodes);
 }
 
-void PartitionT::SetElementScope(NumberScopeT scope, int blockID, ArrayT<int>& elements) const
+void PartitionT::SetElementScope(NumberScopeT scope, const StringT& blockID, ArrayT<int>& elements) const
 {
 	/* quick exit */
 	if (elements.Length() == 0) return;
@@ -1012,7 +1025,7 @@ void PartitionT::SetNodeMap(NumberScopeT scope, iArrayT& map, int& shift) const
 	}
 }
 
-void PartitionT::SetElementMap(NumberScopeT scope, int blockID, iArrayT& map,
+void PartitionT::SetElementMap(NumberScopeT scope, const StringT& blockID, iArrayT& map,
 	int& shift) const
 {
 	int dex = ElementBlockIndex(blockID, "SetElementMap");
