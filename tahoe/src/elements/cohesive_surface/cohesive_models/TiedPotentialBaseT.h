@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialBaseT.h,v 1.5 2003-05-27 07:01:15 paklein Exp $ */
+/* $Id: TiedPotentialBaseT.h,v 1.6 2003-06-09 06:43:54 paklein Exp $ */
 /* created: cjkimme (04/15/2002) */
 #ifndef _TIED_POTENTIAL_BASE_T_H_
 #define _TIED_POTENTIAL_BASE_T_H_
@@ -50,6 +50,10 @@ public:
 
 	/** \name constants for state variable flags */
 	/*@{*/
+	
+	/** location in state variable array of the state flag */
+	virtual int TiedStatusPosition(void) const = 0;
+	
 	static const double kTiedNode;
 	static const double kReleaseNextStep;
 	static const double kFirstFreeStep;
