@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.3 2002-04-13 15:40:31 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.4 2002-04-15 16:09:10 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -222,6 +222,7 @@ void TiedNodesT::AddKinematics(dArray2DT& u)
 bool TiedNodesT::ChangeStatus(void)
 {
 //TEMP - no check implemented
+	return false;
 
   bool changeQ;
   ElementBaseT* surroundingGroup = fFEManager.ElementGroup(0);
