@@ -840,7 +840,7 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		  double zpp_j = pair_stiffness_j(r,NULL,NULL);
 		  
 		  double E =  z_i * z_j/r;
-		  double F = (z_i * zp_j + zp_i * z_j)/r -E/r;
+		  double F = (z_i * zp_j + zp_i * z_j)/r - E/r;
 		  double K = (zpp_i*z_j + 2*zp_i * zp_j + z_i * zpp_j)/r - 2*F/r;
 
 		  double Fbyr = F/r;
@@ -1209,8 +1209,6 @@ void EAMT::RHSDriver(void)
 
 void EAMT::RHSDriver2D(void)
 {
-  //  cout << "ENTER EAMT::RHSDriver2D\n";
-
   /* function name */
   const char caller[] = "EAMT::RHSDriver2D";
 
@@ -1354,8 +1352,6 @@ void EAMT::RHSDriver2D(void)
 
 void EAMT::RHSDriver3D(void)
 {
-  cout << "ENTER EAMT::RHSDriver3D\n";
-
   /* function name */
   const char caller[] = "EAMT::RHSDriver3D";
 
