@@ -1,0 +1,9 @@
+$Id: ReadMe,v 1.1 2003-01-30 00:43:33 paklein Exp $
+The .conf files in this directory are part of a build configuration system
+that controls which directories are included or excluded in the build 
+process. The configuration of the build is NOT customized by editing these
+files. The build settings are controlled by the .h files in the
+
+	tahoe/src/config
+	
+directory. See the ReadMe file there for more information.

@@ -1,0 +1,52 @@
+#!/usr/bin/perl -w
+# $Id: cwdiff,v 1.2 2004-03-16 23:04:25 paklein Exp $
+# Compare files using CodeWarrior's "Compare Files..."
+
+# need 2 arguments
+if (scalar(@ARGV) != 2) {
+	print STDOUT "usage: cwdiff [file1] [file2]\n";
+	exit;
+}
+
+# get file path
+open(PWD, "pwd |") or die "could not execute pwd\n";
+if (!defined($pwd = <PWD>)) {
+	die "could not get pwd\n";
+}
+close(PWD);
+chomp($pwd);
+
+# file names
+$file1 = $ARGV[0];
+if ($file1 !~ /^\//) {
+	$file1 = $pwd."/".$file1;
+}
+$file2 = $ARGV[1];
+if ($file2 !~ /^\//) {
+	$file2 = $pwd."/".$file2;
+}
+
+# verify they exist
+if (! -f $file1) {
+	print STDOUT "could not find file $file1\n";
+	exit;
+}
+if (! -f $file2) {
+	print STDOUT "could not find file $file2\n";
+	exit;
+}
+print STDOUT "comparing files:\n";
+print STDOUT "file 1: $file1\n";
+print STDOUT "file 2: $file2\n";
+
+# write apple script
+$script = "/tmp/compare.applescript";
+open(SCPT, ">$script") or die "could not open $script\n";
+print SCPT "tell application \"CodeWarrior IDE\"\n";
+print SCPT "activate\n";
+print SCPT "Compare Files \"$file1\" to \"$file2\" with case sensitive\n";
+print SCPT "end tell\n";
+close(SCPT);
+
+# run AppleScript
+system("osascript $script");

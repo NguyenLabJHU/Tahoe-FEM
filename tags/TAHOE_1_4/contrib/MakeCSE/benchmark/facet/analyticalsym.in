@@ -1,0 +1,18 @@
+%
+*VERBOSE        1
+
+*INPUT 1
+../geometry/analyticalsym.geom
+*OUTPUT 1
+*FACET
+         1         1        10
+*MAPNODESET
+         1         3
+         2         3
+         3         1
+         4         3
+         5         3
+*CONTACT 10
+
+
+*EOF

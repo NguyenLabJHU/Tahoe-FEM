@@ -1,0 +1,319 @@
+(************** Content-type: application/mathematica **************
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[      9818,        254]*)
+(*NotebookOutlinePosition[     10483,        277]*)
+(*  CellTagsIndexPosition[     10439,        273]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["$Id: TahoeII.nb,v 1.3 2004-05-07 22:59:59 paklein Exp $", "Subsection"],
+
+Cell["\<\
+This notebook contains functions to read data from a TahoeII \
+results file.\
+\>", "Text"],
+
+Cell[CellGroupData[{
+
+Cell["utilities:", "Subsubsection"],
+
+Cell["\<\
+This function scans forward in the stream from the current position \
+looking for a Record containing string. Returns the Record containing string \
+or EnfOfFile if string is not found.\
+\>", "Text"],
+
+Cell[BoxData[
+    \(\(FindString[stream_InputStream, 
+          string_String] \
+:= \[IndentingNewLine]Module[\[IndentingNewLine]{str}, \[IndentingNewLine]str \
+= "\<\>"; \[IndentingNewLine]While[
+            StringPosition[str, string] == {}, \[IndentingNewLine]str = 
+              Read[stream, Record]]; \[IndentingNewLine]str];\)\)], "Input",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell["Converts the part of string following the clue to a number.", "Text"],
+
+Cell[BoxData[
+    \(\(GetNumber[string_String, 
+          clue_String] := \[IndentingNewLine]Module[\[IndentingNewLine]{pos, 
+            str}, \[IndentingNewLine]pos = 
+            Flatten[StringPosition[string, clue]]; \[IndentingNewLine]str = 
+            StringTake[string, 
+              pos\[LeftDoubleBracket]2\[RightDoubleBracket] - 
+                StringLength[string]]; 
+          If[Length[pos] == 0, {}, 
+            Read[StringToStream[str], Number]]];\)\)], "Input",
+  ImageRegion->{{0, 1}, {0, 1}}],
+
+Cell["\<\
+Advance to the next block marked by \"Nodal data:\" and read \
+values, including the node number.\
+\>", "Text"],
+
+Cell[BoxData[
+    \(\(ReadNodalDataBlock[fp_InputStream]\  := \ 
+        Module[\[IndentingNewLine]{nnd, \ nval, \ str, \ 
+            data}, \[IndentingNewLine]data\  = \ {}; \[IndentingNewLine]str\  \
+= \ FindString[
+              fp, \ "\<Nodal data:\>"]; \[IndentingNewLine]If[\(! \((str\  \
+=== \ EndOfFile)\)\), \[IndentingNewLine]nnd\  = \ 
+              GetNumber[
+                FindString[
+                  fp, \ "\<Number of nodal points\>"], "\<=\>"]; \
+\[IndentingNewLine]nval\  = \ 
+              GetNumber[
+                FindString[
+                  fp, \ "\<Number of values\>"], \ "\<=\>"]; \
+\[IndentingNewLine]FindString[
+              fp, \ "\<index\>"]; \[IndentingNewLine]data\  = \ 
+              Map[Drop[#, 1] &, \ 
+                ReadList[fp, \ Table[Number, \ {nval + 2}], \ 
+                  nnd]]\[IndentingNewLine]]; \[IndentingNewLine]data\
+\[IndentingNewLine]];\)\)], "Input"],
+
+Cell["\<\
+Advance to the next block marked by \"Element data:\" and read \
+values, including the node number.\
+\>", "Text"],
+
+Cell[BoxData[
+    \(\(ReadElementDataBlock[fp_InputStream]\  := \ 
+        Module[\[IndentingNewLine]{nel, \ nval, \ str, \ 
+            data}, \[IndentingNewLine]data\  = \ {}; \[IndentingNewLine]str\  \
+= \ FindString[
+              fp, \ "\<Nodal data:\>"]; \[IndentingNewLine]If[\(! \((str\  \
+=== \ EndOfFile)\)\), \[IndentingNewLine]nel\  = \ 
+              GetNumber[
+                FindString[
+                  fp, \ "\<Number of elements\>"], \ "\<=\>"]; \
+\[IndentingNewLine]nval\  = \ 
+              GetNumber[
+                FindString[
+                  fp, \ "\<Number of values\>"], \ "\<=\>"]; \
+\[IndentingNewLine]FindString[
+              fp, \ "\<index\>"]; \[IndentingNewLine]data\  = \ 
+              Map[Drop[#, 1] &, \ 
+                ReadList[fp, \ Table[Number, \ {nval + 2}], \ 
+                  nel]]\[IndentingNewLine]]; \[IndentingNewLine]data\
+\[IndentingNewLine]];\)\)], "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["user functions:", "Subsubsection"],
+
+Cell["Return the labels for the nodal output data.", "Text"],
+
+Cell[BoxData[
+    \(\(NodeLabels[filename_String]\  := \ 
+        Module[\[IndentingNewLine]{fp, \ str, \ nlabels, \ 
+            labels}, \[IndentingNewLine]labels\  = \ {}; \
+\[IndentingNewLine]fp\  = \ 
+            OpenRead[
+              filename]; \[IndentingNewLine]If[\(! \((fp\  === \ \
+$Failed)\)\), \[IndentingNewLine]str\  = \ 
+              FindString[
+                fp, \ "\<Number of nodal values\>"]; \
+\[IndentingNewLine]If[\(! \((str\  === \ 
+                    EndOfFile)\)\), \[IndentingNewLine]nlabels\  = \ 
+                GetNumber[str, "\<=\>"]; \[IndentingNewLine]If[
+                nlabels\  > \ 0, \[IndentingNewLine]Read[fp, \ 
+                  Record]; \[IndentingNewLine]labels\  = \ 
+                  Read[fp, \ 
+                    Table[Word, \ {nlabels}]]\[IndentingNewLine]]\
+\[IndentingNewLine]]; \[IndentingNewLine]Close[
+              fp]\[IndentingNewLine]]; \[IndentingNewLine]labels\
+\[IndentingNewLine]];\)\)], "Input"],
+
+Cell["Return the labels for the element output data.", "Text"],
+
+Cell[BoxData[
+    \(\(ElementLabels[filename_String]\  := \ 
+        Module[\[IndentingNewLine]{fp, \ str, \ nlabels, \ 
+            labels}, \[IndentingNewLine]labels\  = \ {}; \
+\[IndentingNewLine]fp\  = \ 
+            OpenRead[
+              filename]; \[IndentingNewLine]If[\(! \((fp\  === \ \
+$Failed)\)\), \[IndentingNewLine]str\  = \ 
+              FindString[
+                fp, \ "\<Number of element values\>"]; \[IndentingNewLine]If[\
+\(! \((str\  === \ EndOfFile)\)\), \[IndentingNewLine]nlabels\  = \ 
+                GetNumber[str, "\<=\>"]; \[IndentingNewLine]If[
+                nlabels\  > \ 0, \[IndentingNewLine]Read[fp, \ 
+                  Record]; \[IndentingNewLine]labels\  = \ 
+                  Read[fp, \ 
+                    Table[Word, \ {nlabels}]]\[IndentingNewLine]]\
+\[IndentingNewLine]]; \[IndentingNewLine]Close[
+              fp]\[IndentingNewLine]]; \[IndentingNewLine]labels\
+\[IndentingNewLine]];\)\)], "Input"],
+
+Cell["Return the simulation time for the output data.", "Text"],
+
+Cell[BoxData[
+    \(\(OutputTime[filename_String]\  := \ 
+        Module[\[IndentingNewLine]{fp, \ str, \ 
+            tlist}, \[IndentingNewLine]t\  = \ {}; \[IndentingNewLine]fp\  = \
+\ OpenRead[
+              filename]; \[IndentingNewLine]If[\(! \((fp\  === \ \
+$Failed)\)\), \[IndentingNewLine]str\  = \ 
+              FindString[
+                fp, \ "\<Time\>"]; \[IndentingNewLine]If[\(! \((str\  === \ 
+                    EndOfFile)\)\), \[IndentingNewLine]t\  = \ 
+                GetNumber[
+                  str, "\<=\>"]\[IndentingNewLine]]; \[IndentingNewLine]Close[
+              fp]\[IndentingNewLine]]; \
+\[IndentingNewLine]t\[IndentingNewLine]];\)\)], "Input"],
+
+Cell["\<\
+Read the nodal values from the data for a given output step. Each \
+line of data includes the node number.\
+\>", "Text"],
+
+Cell[BoxData[
+    \(\(NodeValues[filename_String]\  := \ 
+        Module[\[IndentingNewLine]{fp, \ str, \ 
+            nvalues}, \[IndentingNewLine]nvalues\  = \ {}; \
+\[IndentingNewLine]fp\  = \ 
+            OpenRead[
+              filename]; \[IndentingNewLine]If[\(! \((fp\  === \ \
+$Failed)\)\), \[IndentingNewLine]str\  = \ 
+              FindString[
+                fp, \ "\<Time\>"]; \[IndentingNewLine]If[\(! \((str\  === \ 
+                    EndOfFile)\)\), \[IndentingNewLine]nvalues = 
+                ReadNodalDataBlock[
+                  fp]\[IndentingNewLine]]; \[IndentingNewLine]Close[
+              fp]\[IndentingNewLine]]; \[IndentingNewLine]nvalues\
+\[IndentingNewLine]];\)\)], "Input"],
+
+Cell["\<\
+Read element values from the data for a given output step. Each \
+line of data includes the element number.\
+\>", "Text"],
+
+Cell[BoxData[
+    \(\(ElementValues[filename_String]\  := \ 
+        Module[\[IndentingNewLine]{fp, \ str, 
+            nvalues}, \[IndentingNewLine]fp\  = \ 
+            OpenRead[
+              filename]; \[IndentingNewLine]nvalues = {}; \
+\[IndentingNewLine]If[\(! \((fp\  === \ $Failed)\)\), \[IndentingNewLine]str\ \
+ = \ FindString[
+                fp, \ "\<Time\>"]; \[IndentingNewLine]If[\(! \((str\  === \ 
+                    EndOfFile)\)\), \[IndentingNewLine]nvalues = 
+                ReadElementDataBlock[
+                  fp]\[IndentingNewLine]]; \[IndentingNewLine]Close[
+              fp]\[IndentingNewLine]]; \[IndentingNewLine]nvalues\
+\[IndentingNewLine]];\)\)], "Input"]
+}, Closed]]
+}, Open  ]]
+},
+FrontEndVersion->"4.1 for Macintosh",
+ScreenRectangle->{{0, 1280}, {0, 832}},
+AutoGeneratedPackage->None,
+WindowSize->{687, 712},
+WindowMargins->{{Automatic, 281}, {Automatic, 0}}
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[1727, 52, 77, 0, 46, "Subsection"],
+Cell[1807, 54, 100, 3, 30, "Text"],
+
+Cell[CellGroupData[{
+Cell[1932, 61, 35, 0, 42, "Subsubsection"],
+Cell[1970, 63, 209, 4, 46, "Text"],
+Cell[2182, 69, 379, 7, 123, "Input"],
+Cell[2564, 78, 75, 0, 30, "Text"],
+Cell[2642, 80, 514, 10, 107, "Input"],
+Cell[3159, 92, 121, 3, 30, "Text"],
+Cell[3283, 97, 915, 19, 203, "Input"],
+Cell[4201, 118, 123, 3, 30, "Text"],
+Cell[4327, 123, 915, 19, 203, "Input"]
+}, Closed]],
+
+Cell[CellGroupData[{
+Cell[5279, 147, 40, 0, 28, "Subsubsection"],
+Cell[5322, 149, 60, 0, 30, "Text"],
+Cell[5385, 151, 967, 19, 283, "Input"],
+Cell[6355, 172, 62, 0, 30, "Text"],
+Cell[6420, 174, 951, 18, 283, "Input"],
+Cell[7374, 194, 63, 0, 30, "Text"],
+Cell[7440, 196, 679, 13, 219, "Input"],
+Cell[8122, 211, 130, 3, 30, "Text"],
+Cell[8255, 216, 707, 14, 219, "Input"],
+Cell[8965, 232, 131, 3, 30, "Text"],
+Cell[9099, 237, 691, 13, 219, "Input"]
+}, Closed]]
+}, Open  ]]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+

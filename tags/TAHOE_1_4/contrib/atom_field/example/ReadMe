@@ -1,0 +1,6 @@
+# $Id: ReadMe,v 1.1 2002-11-15 01:59:44 paklein Exp $
+to run the example type
+
+	../atom_field < small.cin
+
+and stand back.

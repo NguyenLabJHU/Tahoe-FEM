@@ -1,0 +1,6 @@
+# $Id: regression.cron.template,v 1.4 2003-04-01 19:44:00 paklein Exp $
+#
+# NOTE: replace [path] before submitting
+#
+0 1 * * * cd [path to scripts]; /usr/bin/perl regression_trigger.pl > regression.LOG 2>&1
+
