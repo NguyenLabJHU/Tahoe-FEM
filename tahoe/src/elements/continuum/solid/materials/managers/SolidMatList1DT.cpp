@@ -69,7 +69,7 @@ void SolidMatList1DT::ReadMaterialData(ifstreamT& in)
 		/* add to the list of materials */
 		switch (matcode)
 		{
-		  case kSSHookean1D:
+		  case kSSKStV:
 		  {
 			/* check */
                         if (!fSmallStrain) Error_no_small_strain(cout, matcode);
