@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupportT.cpp,v 1.23.12.2 2004-05-01 06:33:14 paklein Exp $ */
+/* $Id: MeshFreeSupportT.cpp,v 1.23.12.3 2004-05-12 17:52:43 paklein Exp $ */
 /* created: paklein (09/07/1998) */
 #include "MeshFreeSupportT.h"
 
@@ -851,6 +851,9 @@ void MeshFreeSupportT::TakeParameterList(const ParameterListT& list)
 	if (!formulation) ExceptionT::GeneralFail(caller, "could not resolve choice \"meshfree_formulation\"");
 	if (formulation->Name() == "EFG") {
 
+		/* meshfree formulation flag */
+		fMeshfreeType = kEFG;
+	
 		/* EFG parameters */
 		fDextra = formulation->GetParameter("support_scaling");
 		int completeness = formulation->GetParameter("completeness");
@@ -872,6 +875,9 @@ void MeshFreeSupportT::TakeParameterList(const ParameterListT& list)
 		fNodalParameters = -1;	
 	}
 	else if (formulation->Name() == "RKPM") {
+
+		/* meshfree formulation flag */
+		fMeshfreeType = kRKPM;
 
 		int completeness = formulation->GetParameter("completeness");
 		WindowTypeT window_type;
@@ -945,7 +951,6 @@ void MeshFreeSupportT::TakeParameterList(const ParameterListT& list)
 			formulation->Name().Pointer());
 
 	/* memory manager */
-	fcoords_man.SetWard(25, fcoords, fCoords->MinorDim());
 	fnodal_param_man.Register(fnodal_param   );
 	fnodal_param_man.Register(fnodal_param_ip);
 }

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFractureSupportT.h,v 1.8.18.2 2004-05-04 15:50:00 paklein Exp $ */
+/* $Id: MeshFreeFractureSupportT.h,v 1.8.18.3 2004-05-12 17:51:36 paklein Exp $ */
 /* created: paklein (02/15/2000) */
 #ifndef _MESHFREE_FRACTURE_T_H_
 #define _MESHFREE_FRACTURE_T_H_
@@ -28,8 +28,6 @@ public:
 	                       kMaxHoopStress = 1,
 	                         kMaxTraction = 2,
 	                            kAcoustic = 3};
-	friend istream& operator>>(istream& in,
-		MeshFreeFractureSupportT::FractureCriterionT& criterion);
 
 	/** constructor */
 	MeshFreeFractureSupportT(void);
@@ -76,13 +74,30 @@ public:
 	virtual void InitSupport(ostream& out, AutoArrayT<ElementCardT>& elem_cards, 
 		const iArrayT& surface_nodes, int numDOF, int max_node_num, ModelManagerT* model);
 
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
+protected:
+
+	/** translate integer to FractureCriterionT */
+	static FractureCriterionT int2FractureCriterionT(int i);
+
 private:
 
 	/* sampling surface status code */
 	enum SurfaceStatusT {kON, kMarked, kOFF};
 
 	/* steps in InitSupport() */
-	void InitCuttingFacetsAndFronts(ifstreamT& in, ostream& out);
+	void InitCuttingFacetsAndFronts(ostream& out);
 	void InitSamplingSurfaces(ifstreamT& in, ostream& out);
 
 	/* initial active cracks from stream data */

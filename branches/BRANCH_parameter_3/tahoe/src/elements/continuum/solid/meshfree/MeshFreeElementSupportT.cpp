@@ -1,4 +1,4 @@
-/* $Id: MeshFreeElementSupportT.cpp,v 1.13.16.3 2004-05-11 15:57:29 paklein Exp $ */
+/* $Id: MeshFreeElementSupportT.cpp,v 1.13.16.4 2004-05-12 17:51:36 paklein Exp $ */
 /* created: paklein (11/12/1999) */
 #include "MeshFreeElementSupportT.h"
 
@@ -330,9 +330,12 @@ void MeshFreeElementSupportT::CollectNodesData(ostream& out, int max_node_num,
 	ArrayT<StringT> set_ID;
 
 	/* meshfree nodes not on the integration grid */
-	if (!fOffGridID) ExceptionT::GeneralFail(caller, "\"off_grid_node_ID_list\" not defined");
-	StringListT::Extract(*fOffGridID, set_ID);
-	model->ManyNodeSets(set_ID, fOffGridNodes);
+	if (fOffGridID) {
+		StringListT::Extract(*fOffGridID, set_ID);
+		model->ManyNodeSets(set_ID, fOffGridNodes);
+		fOffGridID = NULL;
+	} else
+		fOffGridNodes.Dimension(0);
 	out << "\n Number of nodes off the integration grid. . . . = " << fOffGridNodes.Length() << '\n';
 
 	if (fOffGridNodes.Length() > 0) /* skip empty sets */
@@ -340,13 +343,14 @@ void MeshFreeElementSupportT::CollectNodesData(ostream& out, int max_node_num,
 	    	ExceptionT::BadInputValue(caller, "off grid node is out of range: %d > %d",
 	    		fOffGridNodes.Max()+1, max_node_num);
 	    		
-	/* clear */
-	fOffGridID = NULL;
 	
 	/* interpolant nodes */
-	if (!fInterpolantID) ExceptionT::GeneralFail(caller, "\"interpolant_node_ID_list\" not defined");
-	StringListT::Extract(*fInterpolantID, set_ID);
-	model->ManyNodeSets(set_ID, fFENodes);
+	if (fInterpolantID) {
+		StringListT::Extract(*fInterpolantID, set_ID);
+		model->ManyNodeSets(set_ID, fFENodes);
+		fInterpolantID = NULL;
+	} else
+		fFENodes.Dimension(0);
 	out << " Number of interpolant shape function nodes. . . = " << fFENodes.Length() << '\n';
 
 	if (fFENodes.Length() > 0) /* skip empty sets */
@@ -354,22 +358,20 @@ void MeshFreeElementSupportT::CollectNodesData(ostream& out, int max_node_num,
 	    	ExceptionT::BadInputValue(caller, "interpolant node is out of range: %d > %d",
 	    		fFENodes.Max()+1, max_node_num);
 
-	/* clear */
-	fInterpolantID = NULL;
 
 	/* forced meshless nodes */
-	if (!fMeshlessID) ExceptionT::GeneralFail(caller, "\"meshfree_node_ID_list\" not defined");
-	StringListT::Extract(*fMeshlessID, set_ID);
-	model->ManyNodeSets(set_ID, fEFGNodes);
+	if (fMeshlessID) {
+		StringListT::Extract(*fMeshlessID, set_ID);
+		model->ManyNodeSets(set_ID, fEFGNodes);
+		fMeshlessID = NULL;
+	} else
+		fEFGNodes.Dimension(0);
 	out << " Number of pure EFG shape function nodes . . . . = "  << fEFGNodes.Length() << '\n';
 
 	if (fEFGNodes.Length() > 0) /* skip empty sets */
 		if (fEFGNodes.Min() < 0 || fEFGNodes.Max() > max_node_num) /* check */
 	    	ExceptionT::BadInputValue(caller, "meshless node is out of range: %d > %d",
 	    		fEFGNodes.Max()+1, max_node_num);
-
-	/* clear */
-	fMeshlessID = NULL;
 }
 
 /* set nodes which will have nodally exact shapefunctions */

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.18.18.5 2004-05-11 15:57:29 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.18.18.6 2004-05-12 17:51:36 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #include "MeshFreeFSSolidT.h"
 
@@ -268,7 +268,7 @@ void MeshFreeFSSolidT::TakeParameterList(const ParameterListT& list)
 	fMFFractureSupport->TakeParameterList(list.GetList("meshfree_fracture_support"));
 
 	/* get parameters needed to construct shape functions */
-	fMeshfreeParameters = list.ResolveListChoice(this, "meshfree_support_choice");
+	fMeshfreeParameters = list.ResolveListChoice(*this, "meshfree_support_choice");
 
 	/* inherited */
 	TotalLagrangianT::TakeParameterList(list);
@@ -399,9 +399,10 @@ void MeshFreeFSSolidT::SetShape(void)
 	}
 
 	/* construct */
+	if (!fMeshfreeParameters) ExceptionT::GeneralFail(caller, "shape function parameters not set");
 	fMFShapes = new MeshFreeShapeFunctionT(GeometryCode(), NumIP(),
 		fLocInitCoords, ElementSupport().InitialCoordinates(), *mf_connect, fMFFractureSupport->OffGridNodes(),
-		fElementCards.Position(), /*const ParameterListT& mf_support_params*/);
+		fElementCards.Position(), *fMeshfreeParameters);
 
 	/* echo parameters */
 	fMFShapes->WriteParameters(ElementSupport().Output());
