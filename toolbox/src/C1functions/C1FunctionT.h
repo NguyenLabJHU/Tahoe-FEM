@@ -1,4 +1,4 @@
-/* $Id: C1FunctionT.h,v 1.12 2002-10-20 22:38:47 paklein Exp $ */
+/* $Id: C1FunctionT.h,v 1.13 2003-01-10 16:52:28 paklein Exp $ */
 /* created: paklein (12/04/1996) */
 
 #ifndef _C2_FUNCTION_T_H_
@@ -20,16 +20,17 @@ public:
 
 	/** function codes of derived classes */
 	enum TypesT {kLennardJones = 0,
-	            kSmithFerrante = 1,
-	                 kGaoKlein = 2,
-	                kQuadratic = 3,
-	              kCubicSpline = 4,
-	        kLinearExponential = 5,
-	          kTriantafyllidis = 6,
-                            kGaoJi = 10,
-                           kGaoJi2 = 11,
+                kSmithFerrante = 1,
+                     kGaoKlein = 2,
+                    kQuadratic = 3,
+                  kCubicSpline = 4,
+            kLinearExponential = 5,
+              kTriantafyllidis = 6,
+                        kGaoJi = 10,
+                       kGaoJi2 = 11,
 	                 kGaoVicky = 12,
-		              kSF2 = 13};
+                          kSF2 = 13,
+             kModSmithFerrante = 14};
 
 	/** constructor */
 	C1FunctionT(void);
