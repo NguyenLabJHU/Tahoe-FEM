@@ -1,6 +1,4 @@
-
-
-
+/* $Id: ParticlePairT.h,v 1.15 2004-01-23 06:47:50 paklein Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
