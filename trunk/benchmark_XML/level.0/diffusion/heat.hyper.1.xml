@@ -17,7 +17,7 @@
     </nodes>
     <element_list>
         <hyperbolic_diffusion field_name="temperature" tau="1.0">
-            <quadrilateral/>
+            <quadrilateral num_ip="9"/>
             <natural_bc schedule="1" side_set_ID="1">
                 <DoubleList>
                     <Double value="1.0"/>
