@@ -1,4 +1,4 @@
-/* $Id: FormatterT.cpp,v 1.1 2002-11-16 20:50:20 paklein Exp $ */
+/* $Id: FormatterT.cpp,v 1.2 2002-11-18 09:59:03 paklein Exp $ */
 #include "FormatterT.h"
 
 #include <string.h>
@@ -25,7 +25,7 @@ const char* FormatterT::TabOut(void) const
 	FormatterT* non_const_this = (FormatterT*) this;
 
 	/* grow length of tabs */
-	if (fTabCount < (kMaxTab-1)) (non_const_this->fTabs)[++(non_const_this->fTabCount)] = '\t';
+	if (fTabCount < (kMaxTab-1)) (non_const_this->fTabs)[(non_const_this->fTabCount)++] = '\t';
 	return fTabs;
 }
 

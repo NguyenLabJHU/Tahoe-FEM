@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.3 2002-11-16 20:50:21 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.4 2002-11-18 09:59:03 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -20,9 +20,10 @@ public:
 
 	/** parameter occurrence */
 	enum OccurrenceT {
-		Once,     /**< exactly once */
-		ZeroPlus, /**< zero or more times */
-		OnePlus   /**< one or more times */
+		Once,       /**< exactly once */
+		ZeroOrOnce, /**< zero or more times */
+		OnePlus,    /**< one or more times */
+		Any         /**< zero or any number of times */
 	};
 
 	/** constructor */
@@ -74,12 +75,18 @@ public:
 
 	/** \name access to the list entries and occurrences */
 	/*@{*/
-	const ArrayT<ParameterT>&     Parameters(void) const           { return fParameters;          };
-	const ArrayT<OccurrenceT>&    ParameterOccurrences(void) const { return fParametersOccur;     };
-	const ArrayT<ParameterListT>& Lists(void) const                { return fParameterLists;      };
-	const ArrayT<OccurrenceT>&    ListOccurrences(void) const      { return fParameterListsOccur; };
-	const ArrayT<StringT>&        References(void) const           { return fReferences;          };
-	const ArrayT<OccurrenceT>&    ReferenceOccurrences(void) const { return fReferencesOccur;     };
+	const ArrayT<ParameterT>&                  Parameters(void) const { return fParameters; };
+	const ArrayT<ParameterListT::OccurrenceT>& ParameterOccurrences(void) const { return fParametersOccur; };
+	const ArrayT<ParameterListT>&              Lists(void) const { return fParameterLists; };
+	const ArrayT<ParameterListT::OccurrenceT>& ListOccurrences(void) const { return fParameterListsOccur; };
+	const ArrayT<StringT>&                     References(void) const { return fReferences; };
+	const ArrayT<ParameterListT::OccurrenceT>& ReferenceOccurrences(void) const { return fReferencesOccur; };
+	/*@}*/
+
+	/** \name description */
+	/*@{*/
+	void SetDescription(const StringT& description) { fDescription = description; };
+	const StringT& Description(void) const { return fDescription; };
 	/*@}*/
 
 private:
@@ -94,6 +101,9 @@ protected:
 
 	/** list name */
 	StringT fName;
+
+	/** description */
+	StringT fDescription;
 
 	/** \name simple parameters */
 	/*@{*/

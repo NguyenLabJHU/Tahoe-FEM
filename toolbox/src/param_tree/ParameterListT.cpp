@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.cpp,v 1.2 2002-11-16 20:50:21 paklein Exp $ */
+/* $Id: ParameterListT.cpp,v 1.3 2002-11-18 09:59:03 paklein Exp $ */
 #include "ParameterListT.h"
 
 using namespace Tahoe;
@@ -12,6 +12,12 @@ const bool ArrayT<ParameterListT::OccurrenceT>::fByteCopy = false;
 /* add parameter */
 bool ParameterListT::AddParameter(const ParameterT& param, OccurrenceT occur)
 {
+	/* "description" is reserved */
+	if (param.Name() == "description") {
+		cout << "\n ParameterListT::AddParameter: parameter name \"description\" is reserved" << endl;
+		return false;
+	}
+
 	/* scan name */
 	for (int i = 0; i < fParameters.Length(); i++)
 		if (fParameters[i].Name() == param.Name())

@@ -1,4 +1,4 @@
-/* $Id: XML_Atomic_FormatterT.h,v 1.1 2002-11-16 20:50:21 paklein Exp $ */
+/* $Id: XML_Atomic_FormatterT.h,v 1.2 2002-11-18 09:59:03 paklein Exp $ */
 #ifndef _XML_ATOMIC_FORMATTER_T_H_
 #define _XML_ATOMIC_FORMATTER_T_H_
 
@@ -10,6 +10,9 @@
 
 namespace Tahoe {
 
+/* forward declarations */
+class ParameterListT;
+
 /** formatter for XML for which all values are categorized into the
  * atomic types given by ValueT::TypeT */
 class XML_Atomic_FormatterT: public FormatterT
@@ -17,7 +20,7 @@ class XML_Atomic_FormatterT: public FormatterT
 public:
 
 	/** constructor */
-	XML_Atomic_FormatterT(void) {};
+	XML_Atomic_FormatterT(void);
 	
 	/** DTD settings */
 	void SetDTD(const StringT& dtd_path, const StringT& doc_root);
@@ -31,8 +34,8 @@ public:
 	/** close parameter file */
 	virtual bool CloseParameterFile(ostream& out) const;
 	
-	/** write the value */
-//	virtual bool WriteParameter(ostream& out, const ParameterT& parameter) const;
+	/** write the parameter list */
+	virtual bool WriteParameterList(ostream& out, const ParameterListT& list) const;
 	/*@}*/
 
 	/** \name writing data descriptions 
@@ -43,10 +46,17 @@ public:
 
 	/** close description file */
 	virtual bool CloseDescriptionFile(ostream& out) const;
-	
-	/** write the data description */
-	virtual bool WriteDescription(ostream& out, const ParameterT& parameter) const;
+
+	/** write the data description. Since every ParameterListT is mapped to a
+	 * <parameter_list> tag and every ParameterT is mapped to a <parameter> tag,
+	 * the contents of list does not affect the data description file. */
+	virtual bool WriteDescription(ostream& out, const ParameterListT& list) const;
 	/*@}*/
+
+private:
+
+	/** write the value */
+	void WriteParameter(ostream& out, const ParameterT& parameter) const;
 
 private:
 	

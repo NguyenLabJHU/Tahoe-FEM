@@ -1,4 +1,4 @@
-/* $Id: ValueT.h,v 1.2 2002-11-16 20:50:21 paklein Exp $ */
+/* $Id: ValueT.h,v 1.3 2002-11-18 09:59:03 paklein Exp $ */
 #ifndef _VALUE_T_H_
 #define _VALUE_T_H_
 
@@ -18,7 +18,7 @@ public:
 		Integer,
 		Double,
 		String,
-		Enumeration /**< stores values as integer */
+		Enumeration /**< stores values as integer or string */
 	};
 
 	/** \name constructors */
@@ -29,6 +29,9 @@ public:
 
 	/** set type without assigning value */
 	ValueT(TypeT t);
+
+	/** copy constructor */
+	ValueT(const ValueT& source);
 	
 	/** default constructor */
 	ValueT(void);
@@ -37,8 +40,23 @@ public:
 	/** write the value to the output stream */
 	void Write(ostream& out) const;
 
+	/** stream insertion operator */
+	friend ostream& operator<<(ostream& out, const ValueT& value);
+
 	/** value type */
-	TypeT Type(void) { return fType; };
+	TypeT Type(void) const { return fType; };
+
+	/** \name set values with assignment operators 
+	 * Only type conversion from int to double is allowed. All other
+	 * type mismatched will through an exception. */
+	/*@{*/
+	int operator=(int a);
+	double operator=(double x);
+	const StringT& operator=(const StringT& s);
+	/*@}*/
+	
+	/** assignment operator */
+//	const ValueT& operator=(const ValueT& rhs);
 	
 protected:
 

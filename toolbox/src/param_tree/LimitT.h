@@ -1,4 +1,4 @@
-/* $Id: LimitT.h,v 1.2 2002-09-03 07:54:08 paklein Exp $ */
+/* $Id: LimitT.h,v 1.3 2002-11-18 09:59:03 paklein Exp $ */
 #ifndef _LIMIT_T_H_
 #define _LIMIT_T_H_
 
@@ -14,10 +14,11 @@ public:
 
 	/** enumerator for limit type */
 	enum BoundT {
+	    None,   /**< non-limit, needed for default constructor */
 		Lower,
 		Upper,
-		Only,
-		Default
+		Only,   /**< for fixed number of allowed values or enumerations */
+		Default /**< needed? ParameterT has separate field for default */
 	};
 
 	/** \name constructors */
@@ -25,6 +26,9 @@ public:
 	LimitT(int a, BoundT bound);
 	LimitT(double x, BoundT bound);
 	LimitT(const StringT& s, BoundT bound);
+	
+	/** default constructor */
+	LimitT(void): fBound(None) {};
 	/*@}*/
 	
 	/** return bound type */
