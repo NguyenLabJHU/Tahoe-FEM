@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.19.14.1 2004-07-06 06:54:50 paklein Exp $ */
+/* $Id: SolverT.h,v 1.19.14.2 2004-07-10 08:06:31 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -138,6 +138,12 @@ public:
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
 
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
@@ -176,7 +182,7 @@ private:
 	int CheckMatrixType(int matrix_type, int analysis_code) const;
 
 	/** set global equation matrix */
-	void SetGlobalMatrix(int matrix_type, int check_code);
+	void SetGlobalMatrix(const ParameterListT& params, int check_code);
 
 protected:
 

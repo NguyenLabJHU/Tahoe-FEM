@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.21.2.2 2004-07-07 15:28:52 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.21.2.3 2004-07-10 08:06:31 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -10,6 +10,7 @@
 #include "CommunicatorT.h"
 #include "iArrayT.h"
 #include "ElementMatrixT.h"
+#include "ParameterContainerT.h"
 
 /* global matrix */
 #include "CCSMatrixT.h"
@@ -200,20 +201,6 @@ void SolverT::DefineParameters(ParameterListT& list) const
 	/* inherited */
 	ParameterInterfaceT::DefineParameters(list);
 
-	/* matrix type */
-	ParameterT matrix_type(ParameterT::Enumeration, "matrix_type");
-	matrix_type.AddEnumeration("diagonal", kDiagonalMatrix);
-	matrix_type.AddEnumeration("profile", kProfileSolver);
-	matrix_type.AddEnumeration("full", kFullMatrix);
-#ifdef __AZTEC__
-	matrix_type.AddEnumeration("Aztec", kAztec);
-#endif
-#ifdef __SPOOLES__
-	matrix_type.AddEnumeration("SPOOLES", kSPOOLES);
-#endif
-	matrix_type.SetDefault(kProfileSolver);
-	list.AddParameter(matrix_type);
-
 	/* print equation numbers */
 	ParameterT print_eqnos(ParameterT::Boolean, "print_eqnos");
 	print_eqnos.SetDefault(false);
@@ -237,6 +224,41 @@ void SolverT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(check_LHS_perturbation);
 }
 
+/* information about subordinate parameter lists */
+void SolverT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	ParameterInterfaceT::DefineSubs(sub_list);
+
+	/* linear solver choice */
+	sub_list.AddSub("matrix_type_choice", ParameterListT::Once, true);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* SolverT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "matrix_type_choice")
+	{
+		ParameterContainerT* choice = new ParameterContainerT(list_name);
+		choice->SetListOrder(ParameterListT::Choice);
+	
+		choice->AddSub(ParameterContainerT("profile_matrix"));
+		choice->AddSub(ParameterContainerT("diagonal_matrix"));
+		choice->AddSub(ParameterContainerT("full_matrix"));
+
+#ifdef __AZTEC__
+		choice->AddSub(ParameterContainerT("Aztec_matrix"));
+#endif
+#ifdef __SPOOLES__
+		choice->AddSub(ParameterContainerT("SPOOLES_matrix"));
+#endif
+	
+		return choice;
+	}
+	else /* inherited */
+		return ParameterInterfaceT::NewSub(list_name);
+}
+
 /* accept parameter list */
 void SolverT::TakeParameterList(const ParameterListT& list)
 {
@@ -245,10 +267,9 @@ void SolverT::TakeParameterList(const ParameterListT& list)
 	
 	/* construct matrix */
 	fPrintEquationNumbers = list.GetParameter("print_eqnos");
-	fMatrixType = list.GetParameter("matrix_type");
 	int check_code = list.GetParameter("check_code");
 	fPerturbation = list.GetParameter("check_LHS_perturbation");
-	SetGlobalMatrix(fMatrixType, check_code);
+	SetGlobalMatrix(list.GetListChoice(*this, "matrix_type_choice"), check_code);
 }
 
 /*************************************************************************
@@ -463,40 +484,41 @@ int SolverT::CheckMatrixType(int matrix_type, int analysis_code) const
 }
 
 /* set global equation matrix */
-void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
+void SolverT::SetGlobalMatrix(const ParameterListT& params, int check_code)
 {
 	const char caller[] = "SolverT::SetGlobalMatrix";
 
 	/* streams */
 	ifstreamT&  in = fFEManager.Input();
 	ofstreamT& out = fFEManager.Output();
+
+	/* resolve matrix type */
+	if (params.Name() == "diagonal_matrix")
+	{
+		DiagonalMatrixT* diag = new DiagonalMatrixT(out, check_code, DiagonalMatrixT::kNoAssembly);
+		diag->SetAssemblyMode(DiagonalMatrixT::kDiagOnly);
+		fLHS = diag;
+	}
+	else if (params.Name() == "profile_matrix")
+	{
+		/* global system properties */
+		GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
+		
+		if (type == GlobalT::kNonSymmetric)
+			fLHS = new CCNSMatrixT(out, check_code);
+		else if (type == GlobalT::kSymmetric)
+			fLHS = new CCSMatrixT(out, check_code);
+		else
+			ExceptionT::GeneralFail(caller, "system type %d not compatible with matrix %d", type, kProfileSolver);
+	}
+	else if (params.Name() == "full_matrix")
+		fLHS = new FullMatrixT(out, check_code);
+	else
+		ExceptionT::GeneralFail(caller, "unrecognized matrix type \"%s\"", params.Name().Pointer());
+		
+#if 0
 	switch (matrix_type)
 	{
-		case kDiagonalMatrix:
-		{
-			DiagonalMatrixT* diag = new DiagonalMatrixT(out, check_code, DiagonalMatrixT::kNoAssembly);
-			diag->SetAssemblyMode(DiagonalMatrixT::kDiagOnly);
-			fLHS = diag;
-			break;
-		}
-		case kProfileSolver:
-		{
-			/* global system properties */
-			GlobalT::SystemTypeT type = fFEManager.GlobalSystemType(fGroup);
-		
-			if (type == GlobalT::kNonSymmetric)
-				fLHS = new CCNSMatrixT(out, check_code);
-			else if (type == GlobalT::kSymmetric)
-				fLHS = new CCSMatrixT(out, check_code);
-			else
-				ExceptionT::GeneralFail(caller, "system type %d not compatible with matrix %d", type, kProfileSolver);
-			break;
-		}
-		case kFullMatrix:
-		
-			fLHS = new FullMatrixT(out, check_code);
-			break;
-
 		case kAztec:
 		{
 #ifdef __AZTEC__
@@ -594,6 +616,8 @@ void SolverT::SetGlobalMatrix(int matrix_type, int check_code)
 		default:
 			ExceptionT::GeneralFail(caller, "unknown matrix type: %d", matrix_type);
 	}	
+#endif
+
 	if (!fLHS) ExceptionT::OutOfMemory(caller);
 }
 

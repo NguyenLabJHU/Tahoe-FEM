@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.20.2.2 2004-07-07 15:28:52 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.20.2.3 2004-07-10 08:06:31 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #include "PCGSolver_LS.h"
 
@@ -106,10 +106,6 @@ void PCGSolver_LS::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
 	NLSolver::DefineParameters(list);
-
-	/* set default matrix type to diagonal */
-	ParameterT& matrix_type = list.GetParameter("matrix_type");
-	matrix_type.SetDefault(kDiagonalMatrix);
 
 	/* restart iterations */
 	ParameterT restart(ParameterT::Integer, "restart");
