@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.23 2002-08-22 23:56:39 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.23.2.1 2002-10-11 00:23:12 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEAnisoT.h"
@@ -8,29 +8,33 @@
 #include <iomanip.h>
 
 #include "fstreamT.h"
-#include "Constants.h"
+#include "toolboxConstants.h"
 #include "SurfaceShapeT.h"
 #include "SurfacePotentialT.h"
+#ifndef _SIERRA_TEST_
 #include "eControllerT.h"
+#endif
 #include "ElementSupportT.h"
 
 /* potential functions */
+#ifndef _SIERRA_TEST_
 #include "XuNeedleman2DT.h"
-#include "XuNeedleman3DT.h"
 #include "TvergHutch2DT.h"
-#include "TvergHutch3DT.h"
 #include "ViscTvergHutch2DT.h"
 #include "Tijssens2DT.h"
 #include "RateDep2DT.h"
 #include "TiedPotentialT.h"
 #include "YoonAllen2DT.h"
+#include "TvergHutch3DT.h"
 #include "YoonAllen3DT.h"
-//#include "SimoViscoElast2DT.h"
+#endif
 
-/* constructor */
+#include "XuNeedleman3DT.h"
 
 using namespace Tahoe;
 
+#ifndef _SIERRA_TEST_
+/* constructor */
 CSEAnisoT::CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate):
 	CSEBaseT(support, field),
 	fRotate(rotate),
@@ -43,6 +47,20 @@ CSEAnisoT::CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool r
 	/* reset format for the element stiffness matrix */
 	if (fRotate) fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
 }
+#else
+CSEAnisoT::CSEAnisoT(const ElementSupportT& support, bool rotate):
+	CSEBaseT(support),
+	fRotate(rotate),
+	fCurrShapes(NULL),
+	fQ(NumSD()),
+	fdelta(NumSD()),
+	fT(NumSD()),
+	fddU(NumSD())
+{
+	/* reset format for the element stiffness matrix */
+	if (fRotate) fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
+}
+#endif
 
 /* destructor */
 CSEAnisoT::~CSEAnisoT(void)
@@ -91,18 +109,27 @@ void CSEAnisoT::Initialize(void)
 	/* streams */
 	ifstreamT& in = ElementSupport().Input();
 	ostream&   out = ElementSupport().Output();
-		
+#ifndef _SIERRA_TEST_		
 	fCalcNodalInfo = false;
 
 	/* construct props */
 	int numprops;
 	in >> numprops;
+#else
+	int numprops;
+	numprops = 1;
+	fCalcNodalInfo = false;
+#endif
 	fSurfPots.Allocate(numprops);
 	fNumStateVariables.Allocate(numprops);
 	for (int i = 0; i < fSurfPots.Length(); i++)
 	{
 		int num, code;
+#ifndef _SIERRA_TEST_		
 		in >> num >> code;
+#else
+		num = 1; code = 0;
+#endif
 		num--;
 
 		/* check for repeated number */
@@ -113,17 +140,31 @@ void CSEAnisoT::Initialize(void)
 			case SurfacePotentialT::kXuNeedleman:
 			{			
 				if (NumDOF() == 2)
+				{
+#ifndef _SIERRA_TEST_
 					fSurfPots[num] = new XuNeedleman2DT(in);
+#else
+					cout << "\n CSEAnisoT::Initialize: potential not implemented for 2D: "
+					     << code << endl; 				
+					throw eBadInputValue;
+#endif
+				}
 				else
 				{
 					double params[7];
+#ifndef _SIERRA_TEST_
 					in >> params[0]; in >> params[1]; in >> params[2];
 					in >> params[3]; in >> params[4]; in >> params[5];
 					in >> params[6];
+#else
+					params[0] = params[1] = params[2] = params[3] = params[4] = 0.;
+					params[5] = params[6] = 0.;
+#endif
 					fSurfPots[num] = new XuNeedleman3DT(params);
 				}
 				break;
 			}
+#ifndef _SIERRA_TEST_
 			case SurfacePotentialT::kTvergaardHutchinson:
 			{
 				if (NumDOF() == 2)
@@ -193,18 +234,7 @@ void CSEAnisoT::Initialize(void)
 					fSurfPots[num] = new YoonAllen3DT(in, ElementSupport().TimeStep());
 				break;
 			}
-			/*case SurfacePotentialT::kSimoViscoElast:
-			{	
-				if (NumDOF() == 2)
-					fSurfPots[num] = new SimoViscoElast2DT(in, ElementSupport().TimeStep());
-				else
-				{
-					cout << "\n CSEAnisoT::Initialize: potential not implemented for 3D: " << code <<  endl;
-
-					throw eBadInputValue;
-				}
-				break;
-			}*/
+#endif
 			default:
 				cout << "\n CSEAnisoT::Initialize: unknown potential code: " << code << endl;
 				throw eBadInputValue;
@@ -224,6 +254,7 @@ void CSEAnisoT::Initialize(void)
 		  
 	}
 
+#ifndef _SIERRA_TEST_
 	/* check compatibility of constitutive outputs */
 	if (fSurfPots.Length() > 1 && fNodalOutputCodes[MaterialData])
 		for (int k = 0; k < fSurfPots.Length(); k++)
@@ -254,6 +285,7 @@ void CSEAnisoT::Initialize(void)
 		fSurfPots[j]->PrintName(out);
 		fSurfPots[j]->Print(out);
 	}
+#endif
 	
 	/* initialize state variable space */
 	if (fNumStateVariables.Min() > 0)
@@ -310,17 +342,25 @@ void CSEAnisoT::CloseStep(void)
 /* write restart data to the output stream. */
 void CSEAnisoT::WriteRestart(ostream& out) const
 {
+#pragma unused(out)
+#ifndef _SIERRA_TEST_
 	/* inherited */
 	CSEBaseT::WriteRestart(out);
 	
 	/* write state variable data */
 	fStateVariables.WriteData(out);
 	out << '\n';
+#else
+	cout << "CSEAnisoT::WriteRestart: IO not implemented\n";
+	throw eGeneralFail;
+#endif
 }
 
 /* read restart data to the output stream */
 void CSEAnisoT::ReadRestart(istream& in)
 {
+#pragma unused(in)
+#ifndef _SIERRA_TEST_
 	/* inherited */
 	CSEBaseT::ReadRestart(in);
 
@@ -331,6 +371,10 @@ void CSEAnisoT::ReadRestart(istream& in)
 	fStateVariables_last = fStateVariables;
 	if (freeNodeQ.IsAllocated()) //This is useless
 		freeNodeQ_last = freeNodeQ;
+#else
+	cout << "CSEAnisoT::ReadRestart: IO not implemented\n";
+	throw eGeneralFail;
+#endif
 }
 
 /***********************************************************************
@@ -345,8 +389,10 @@ void CSEAnisoT::LHSDriver(void)
 
 	/* time-integration parameters */
 	double constK = 0.0;
+#ifndef _SIERRA_TEST_
 	int formK = fController->FormK(constK);
 	if (!formK) return;
+#endif
 
 	/* node map of facet 1 */
 	iArrayT facet1;
@@ -381,7 +427,7 @@ void CSEAnisoT::LHSDriver(void)
 
 		bool nodalReleaseQ = false;
 		LocalArrayT fNodalValues(LocalArrayT::kUnspecified);
-		int currElNum;
+/*		int currElNum;
 		if (surfpot->NeedsNodalInfo()) 
 		{
 		  	iArrayT ndIndices = element.NodesX();
@@ -394,18 +440,13 @@ void CSEAnisoT::LHSDriver(void)
 			for (int i = 0; i < facet1.Length(); i++)
 				if (!freeNodeQ(currElNum,i) && TiedPotentialT::InitiationQ(elementVals(i)))  
 					freeNodeQ(currElNum,i) = nodalReleaseQ = true;
-		  //	ndIndices[0] = 3;ndIndices[3] = 0;ndIndices[1] = 2;ndIndices[2] =1;
-		  //	dArray2DT sbntma;
-		  //	sbntma = elementVals;
-		  //	elementVals.Accumulate(ndIndices,sbntma);
 		  	fNodalValues.SetGlobal(elementVals);
 		  	for (int i = 0;i < ndIndices.Length();i++)
 		  	{ 
 		    	ndIndices[i] = i;
-		 //		elementVals.ScaleRow(i,.5);
 		 	}
 		  	fNodalValues.SetLocal(ndIndices);
-		}
+		}*/
 
 		/* loop over integration points */
 		double* pstate = fStateVariables_last(CurrElementNumber());
@@ -446,9 +487,6 @@ void CSEAnisoT::LHSDriver(void)
 				fShapes->Interpolate(fNodalValues,tensorIP);
 			}
 			
-//			if (SymmetricNodesT::qModeI) 
-//				fdelta[0] = 0.;
-
 			/* set a flag to tell traction and stiffness that the node is free */
 			if (nodalReleaseQ && fabs(state[0]) < kSmall)
 			{
@@ -496,6 +534,7 @@ void CSEAnisoT::RHSDriver(void)
 {
 	/* time-integration parameters */
 	double constKd = 0.0;
+#ifndef _SIERRA_TEST_
 	int formKd = fController->FormKd(constKd);
 	if (!formKd) return;
 
@@ -523,6 +562,7 @@ void CSEAnisoT::RHSDriver(void)
 		for (int i = 0; i < fIncrementalHeat.Length(); i++)
 			fIncrementalHeat[i] = 0.0;
 	}
+#endif
 	
 	/* set state to start of current step */
 	fStateVariables = fStateVariables_last;
@@ -533,7 +573,7 @@ void CSEAnisoT::RHSDriver(void)
 	(fShapes->NodesOnFacets()).RowAlias(0, facet1);
 	
 	/* If the potential needs info from the nodes, start to gather it now */
-	if (fCalcNodalInfo) 
+/*	if (fCalcNodalInfo) 
 	{
 		ElementBaseT& surroundingGroup = ElementSupport().ElementGroup(iBulkGroup);
 		surroundingGroup.SendOutput(fNodalInfoCode);
@@ -542,7 +582,7 @@ void CSEAnisoT::RHSDriver(void)
 			fNodalQuantities.Free();
 		}
 		fNodalQuantities = ElementSupport().OutputAverage();
-	}
+	}*/
 
 	/* fracture surface area */
 	fFractureArea = 0.0;
@@ -579,7 +619,7 @@ void CSEAnisoT::RHSDriver(void)
 	  		
 			bool nodalReleaseQ = false;
 			LocalArrayT fNodalValues(LocalArrayT::kUnspecified);
-			int currElNum;
+/*			int currElNum;
 			if (surfpot->NeedsNodalInfo()) 
 			{
 				iArrayT ndIndices = element.NodesX();
@@ -588,10 +628,6 @@ void CSEAnisoT::RHSDriver(void)
 			  	fNodalValues.Allocate(numNodes,fNodalQuantities.MinorDim());
 			  	for (int iIndex = 0; iIndex < numNodes; iIndex++) 
 			    	elementVals.SetRow(iIndex,fNodalQuantities(ndIndices[iIndex]));
-			  //	ndIndices[0] = 3;ndIndices[3] = 0;ndIndices[1] = 2;ndIndices[2] =1;
-			  //	dArray2DT sbntma;
-			  //	sbntma = elementVals;
-			  //	elementVals.Accumulate(ndIndices,sbntma);
 			  	currElNum = CurrElementNumber();
 				for (int i = 0; i < facet1.Length(); i++)
 					if (!freeNodeQ(currElNum,i) && TiedPotentialT::InitiationQ(elementVals(i)))  
@@ -600,10 +636,9 @@ void CSEAnisoT::RHSDriver(void)
 			  	for (int i = 0;i < ndIndices.Length();i++)
 		  		{ 
 		    		ndIndices[i] = i;
-		 		//	elementVals.ScaleRow(i,.5);
 		 		}
 			  	fNodalValues.SetLocal(ndIndices);
-			}
+			}*/
 			
 			/* loop over integration points */
 			double* pstate = fStateVariables(CurrElementNumber());
@@ -640,10 +675,7 @@ void CSEAnisoT::RHSDriver(void)
 	
 				/* gap vector in local frame */
 				fQ.MultTx(delta, fdelta);
-				
-//				if (SymmetricNodesT::qModeI) 
-//					fdelta[0] = 0.;
-	
+					
 				/* Interpolate nodal info to IPs */
 				dArrayT tensorIP(fNodalValues.MinorDim());
 				if (surfpot->NeedsNodalInfo()) 
@@ -674,10 +706,12 @@ void CSEAnisoT::RHSDriver(void)
 				if (fOutputArea && status != SurfacePotentialT::Precritical)
 					fFractureArea += j0*w;
 					
+#ifndef _SIERRA_TEST_
 				/* incremental heat */
 				if (temperature) 
 					fIncrementalHeat[block_dex](block_count, fShapes->CurrIP()) = 
 						surfpot->IncrementalHeat(fdelta, state);
+#endif
 			}
 
 			/* assemble */
@@ -707,6 +741,10 @@ void CSEAnisoT::RHSDriver(void)
 void CSEAnisoT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 	iArrayT& counts) const
 {
+#pragma unused(mode)
+#pragma unused(flags)
+#pragma unused(counts)
+#ifndef _SIERRA_TEST_
 	/* inherited */
 	CSEBaseT::SetNodalOutputCodes(mode, flags, counts);
 
@@ -717,22 +755,38 @@ void CSEAnisoT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& fl
 		counts[NodalTraction] = NumDOF();
 	if (flags[MaterialData] == mode)
 		counts[MaterialData] = fSurfPots[0]->NumOutputVariables();
+#else
+	cout <<"CSEAnisoT::SetNodalOutputCodes: IO not implemented \n";
+	throw eGeneralFail;
+#endif
 }
 
 void CSEAnisoT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
 	iArrayT& counts) const
 {
+#pragma unused(mode)
+#pragma unused(flags)
+#pragma unused(counts)
+#ifndef _SIERRA_TEST_
 	/* inherited */
 	CSEBaseT::SetElementOutputCodes(mode, flags, counts);
 	
 	/* resize for vectors not magnitudes */
 	if (flags[Traction] == mode) counts[Traction] = NumDOF();
+#else
+	cout << "CSEAnisoT::SetElementOutputCodes: IO not implemented \n";
+#endif
 }
 
 /* extrapolate the integration point stresses and strains and extrapolate */
 void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	const iArrayT& e_codes, dArray2DT& e_values)
 {      
+#pragma unused(n_codes)
+#pragma unused(n_values)
+#pragma unused(e_codes)
+#pragma unused(e_values)
+#ifndef _SIERRA_TEST_
 	/* number of output values */
 	int n_out = n_codes.Sum();
 	int e_out = e_codes.Sum();
@@ -847,10 +901,10 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			if (e_codes[Centroid]) centroid = 0.0;
 			if (e_codes[Traction]) traction = 0.0;
 
-			int currElNum;
+//			int currElNum;
 			bool nodalReleaseQ = false;
 			LocalArrayT fNodalValues(LocalArrayT::kUnspecified);
-			if (surfpot->NeedsNodalInfo()) 
+/*			if (surfpot->NeedsNodalInfo()) 
 			{
 			  	int numNodes = element.NodesX().Length();
 			  	dArray2DT elementVals(numNodes,fNodalQuantities.MinorDim());
@@ -858,13 +912,6 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			  	fNodalValues.Allocate(numNodes,fNodalQuantities.MinorDim());
 			  	for (int iIndex = 0; iIndex < numNodes; iIndex++) 
 			    	elementVals.SetRow(iIndex,fNodalQuantities(ndIndices[iIndex])); 
-			  //	ndIndices[0] = 3;ndIndices[3] = 0;ndIndices[1] = 2;ndIndices[2] =1;
-			  //	dArray2DT sbntma;
-			  //	sbntma = elementVals;
-			  //	elementVals.Accumulate(ndIndices,sbntma);
-			  	/* if any nodes are tied, state variables for initial
-			 * conditions may have to be changed
-			 */
 				currElNum = CurrElementNumber();
 				for (int i = 0; i < facet1.Length(); i++)
 					if (!freeNodeQ(currElNum,i) && TiedPotentialT::InitiationQ(elementVals(i)))  
@@ -873,10 +920,9 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			  	for (int i = 0;i < ndIndices.Length();i++)
 		  		{ 
 		    		ndIndices[i] = i;
-		 		//	elementVals.ScaleRow(i,.5);
 		 		}
 			  	fNodalValues.SetLocal(ndIndices);
-			}
+			}*/
 
 			/* integrate */
 			fShapes->TopIP();
@@ -896,9 +942,6 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 				double j = fCurrShapes->Jacobian(fQ);
 				fQ.MultTx(gap, fdelta);
 				
-//				if (SymmetricNodesT::qModeI) 
-//					fdelta[0] = 0.;
-
 				/* gap */				
 				if (n_codes[NodalDispJump])
 					fShapes->Extrapolate(fdelta, jump);
@@ -1036,11 +1079,20 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 
 	/* get nodally averaged values */
 	ElementSupport().OutputUsedAverage(n_values);
+#else
+	cout << "CSEAnisoT::ComputeOuput: IO not implemented\n";
+	throw eGeneralFail;
+#endif
 }
 
 void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_labels,
 	const iArrayT& e_codes, ArrayT<StringT>& e_labels) const
 {
+#pragma unused(n_codes)
+#pragma unused(n_labels)
+#pragma unused(e_codes)
+#pragma unused(e_labels)
+#ifndef _SIERRA_TEST_
 	/* inherited */
 	CSEBaseT::GenerateOutputLabels(n_codes, n_labels, e_codes, e_labels);
 
@@ -1128,11 +1180,17 @@ void CSEAnisoT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>& n_
 		for (int i = 0; i < NumDOF(); i++)
 			e_labels[count++] = tlabels[i];
 	}
+#else
+	cout << "CSEAnisoT::GenerateOutputLabels: IO not implemented\n";
+	throw eGeneralFail;
+#endif
 }
 
 /* write all current element information to the stream */
 void CSEAnisoT::CurrElementInfo(ostream& out) const
 {
+#pragma unused(out)
+#ifndef _SIERRA_TEST_
 	/* inherited */
 	CSEBaseT::CurrElementInfo(out);
 	
@@ -1158,6 +1216,10 @@ void CSEAnisoT::CurrElementInfo(ostream& out) const
 	{
 		out << " CSEAnisoT::CurrElementInfo: error on surface jacobian\n";
 	}
+#else
+	cout <<"CSEAnisoT::CurrElementInfo: IO not implemented\n";
+	throw eGeneralFail;
+#endif
 }
 
 /***********************************************************************

@@ -1,4 +1,4 @@
-/* $Id: ElementSupportT.h,v 1.5 2002-07-05 22:27:56 paklein Exp $ */
+/* $Id: ElementSupportT.h,v 1.5.4.1 2002-10-11 00:23:12 cjkimme Exp $ */
 #ifndef _ELEMENT_SUPPORT_T_H_
 #define _ELEMENT_SUPPORT_T_H_
 
@@ -8,14 +8,21 @@
 
 /* direct members */
 #include "GlobalT.h"
+#include "dArray2DT.h"
+#include "ModelManagerT.h"
+#ifndef _SIERRA_TEST_
+#include "FieldT.h"
+#endif
 
 namespace Tahoe {
 
 /* forward declarations */
+#ifndef _SIERRA_TEST_
 class FEManagerT;
 class NodeManagerT;
+#endif
 class GroupAverageT;
-class XDOF_ManagerT;
+//class XDOF_ManagerT;
 class ElementMatrixT;
 template <class TYPE> class nArrayT;
 class dArrayT;
@@ -41,6 +48,7 @@ public:
 	/** constructor */
 	ElementSupportT(void);
 
+#ifndef _SIERRA_TEST_
 	/** \name initialization 
 	 * Cached values are reset when source are reset */
 	/*@{*/
@@ -55,10 +63,18 @@ public:
 	/*@{*/
 	/** Tahoe version string */
 	const StringT& Version(void) const;
-	
+#endif
 	/** verbose echo */
 	bool PrintInput(void) const;
 	
+#ifdef _SIERRA_TEST_
+	void SetNumNodes(int nn);	
+	void SetInitialCoordinates(double *InitCoords);
+	void SetCurrentCoordinates(double **CurrCoords);
+	void SetTimeStep(double dt);
+	void SetModelManager(ModelManagerT* modelManager);
+#endif
+
 	/** number of nodes */
 	int NumNodes(void) const { return fNumNodes; };
 	
@@ -88,7 +104,7 @@ public:
 	const int& IterationNumber(int group) const;
 	
 	/** exception string */
-	const char* Exception(int exception) const;
+//	const char* Exception(int exception) const;
 	
 	/** simulation time */
 	const double& Time(void) const;
@@ -106,13 +122,15 @@ public:
 	int ElementGroupNumber(const ElementBaseT* element) const;
 
 	/** the element group at the specified index in the element list */
-	ElementBaseT& ElementGroup(int index) const;
+//	ElementBaseT& ElementGroup(int index) const;
 
 	/** geometry information */
 	ModelManagerT& Model(void) const;
-	
+
+#ifndef _SIERRA_TEST_	
 	/** XDOF support */
 	XDOF_ManagerT& XDOF_Manager(void) const;
+#endif
 	
 	/** node number map. returns NULL if there is not map */
 	const iArrayT* NodeMap(void) const;
@@ -120,6 +138,7 @@ public:
 	/** element number map for the given block ID */
 	const iArrayT* ElementMap(const StringT& block_ID) const;
 
+#ifndef _SIERRA_TEST_
 	/** return a pointer to the field with the specified name. returns NULL
 	 * if a field with the given name is not found. */
 	const FieldT* Field(const char* name) const;
@@ -127,6 +146,7 @@ public:
 	/** return the element controller appropriate for the given field */
 	const eControllerT* eController(const FieldT& field) const;
 	/*@}*/
+#endif
 
 	/** \name basic MP support */
 	/*@{*/
@@ -178,7 +198,7 @@ public:
 	 * nodes are ordered by increasing node number */
 	void OutputUsedAverage(dArray2DT& average_values) const;
 	/*@}*/
-	
+//#ifndef _SIERRA_TEST_
 	/** \name input/output */
 	/*@{*/
 	/** the parameters stream */
@@ -186,7 +206,7 @@ public:
 
 	/** the echo file */
 	ofstreamT& Output(void) const;
-
+//#endif
 	/** register the output set. returns the ID that should be used with
 	 * ElementSupport::WriteOutput */
 	int RegisterOutput(const OutputSetT& output_set) const;
@@ -199,7 +219,7 @@ public:
 	/*@}*/
 
 private:
-
+#ifndef _SIERRA_TEST_
 	/** \name verified access 
 	 * Use these if you don't want to keep checking that the pointers
 	 * have been initialized. */
@@ -211,24 +231,36 @@ private:
 	NodeManagerT& Nodes(void) const;
 	/*@}*/
 
-private:
-
+	FieldT* fField;
+	
 	/** the boss */
 	FEManagerT* fFEManager;
 	
 	/** the nodes */
 	NodeManagerT* fNodes;
+#endif
 	
 	/** \name cached parameters
 	 * Pre-set to allow fast access */
 	/*@{*/
 	GlobalT::AnalysisCodeT fAnalysis;
 	const GlobalT::StateT* fRunState;
+
+#ifdef _SIERRA_TEST_	
+	ModelManagerT* fModelManager;
+	dArray2DT* fInitialCoordinates;
+	dArray2DT* fCurrentCoordinates;
 	int fNumSD;
-	int fNumNodes;		
+	int fNumNodes;	
+	int fItNum;	
+	double fTimeStep;
+	ifstreamT *ifst;
+	ofstreamT *ofst;
+#endif
 	/*@}*/
 };
 
+#ifndef _SIERRA_TEST_
 /* the top-level manager */
 inline FEManagerT& ElementSupportT::FEManager(void) const
 {
@@ -248,6 +280,7 @@ inline NodeManagerT& ElementSupportT::Nodes(void) const
 	}
 	return *fNodes;
 }
+#endif
 
 /* return a const reference to the run state flag */
 inline const GlobalT::StateT& ElementSupportT::RunState(void) const
