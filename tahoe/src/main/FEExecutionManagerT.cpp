@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.2 2001-02-22 17:11:13 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.3 2001-02-27 00:01:35 paklein Exp $ */
 /* created: paklein (09/21/1997)                                          */
 
 #include "FEExecutionManagerT.h"
@@ -340,8 +340,13 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 		cout << '\n';
 #endif					
 		cin >> size;
-		if (size < 2) return;
 
+		/* clear to end of line */
+		char line[255];
+		cin.getline(line, 254);		
+
+		if (size < 2) return;
+		
 		/* construct joiner */
 		JoinOutputT output_joiner(in, model_file, global_model_file, format, size);
 		
