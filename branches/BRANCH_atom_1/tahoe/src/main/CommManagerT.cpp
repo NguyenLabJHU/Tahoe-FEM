@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.1.2.3 2002-12-16 09:22:16 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.1.2.4 2002-12-18 09:52:56 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -17,8 +17,8 @@ CommManagerT::CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager):
 	fFirstConfigure(true)
 {
 //TEMP
-cout << "\n CommManagerT::CommManagerT: setting CommunicatorT log level to kLow"<< endl;
-fComm.SetLogLevel(CommunicatorT::kLow);
+//cout << "\n CommManagerT::CommManagerT: setting CommunicatorT log level to kLow"<< endl;
+//fComm.SetLogLevel(CommunicatorT::kLow);
 //TEMP
 
 	//TEMP - with inline coordinate information (serial) this map
@@ -34,7 +34,7 @@ fComm.SetLogLevel(CommunicatorT::kLow);
 void CommManagerT::SetPartition(PartitionT* partition)
 {
 	/* pointer to the partition info */
-	fPartition = partition; 
+	fPartition = partition;
 	
 	/* fetch partition information */
 	if (fPartition)
@@ -44,6 +44,12 @@ void CommManagerT::SetPartition(PartitionT* partition)
 		
 		/* nodes owned by this processor */
 		CollectPartitionNodes(fNodeMap, fComm.Rank(), fPartitionNodes);
+		
+		/* external nodes */
+		fExternalNodes.Alias(fPartition->Nodes_External());
+		
+		/* border nodes */
+		fExternalNodes.Alias(fPartition->Nodes_Border());
 	}
 	else /* clear partition information */
 	{
@@ -52,6 +58,12 @@ void CommManagerT::SetPartition(PartitionT* partition)
 		
 		/* nodes owned by this processor */
 		fPartitionNodes.Dimension(0);
+		
+		/* clear external nodes */
+		fExternalNodes.Dimension(0);
+
+		/* clear external nodes */
+		fBorderNodes.Dimension(0);
 	}
 	
 	/* clear the inverse map */

@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.1.2.3 2002-12-16 09:22:16 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.1.2.4 2002-12-18 09:52:56 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -51,8 +51,9 @@ public:
 	 * numbers are the same. */
 	const ArrayT<int>* NodeMap(void) const;
 
-	/** list of nodes owned by the partition. Returns NULL if there is no list,
-	 * indicating \e all nodes are owned by this partition */
+	/** list of nodes owned by the partition. These nodes are numbered locally
+	 * within the nodes appearing on this processor. Returns NULL if there is no 
+	 * list, indicating \e all nodes are owned by this partition */
 	const ArrayT<int>* PartitionNodes(void) const;
 
 	/** return true if the list of partition nodes may be changing */
@@ -67,6 +68,18 @@ public:
 	 * are owned by this partition.
 	 */
 	const InverseMapT* PartitionNodes_inv(void) const;
+
+	/** list of nodes \e not owned by the partition. These are the nodes for which information
+	 * is received from other processors. These nodes are numbered locally
+	 * within the nodes appearing on this processor. Returns NULL if there is no 
+	 * list, indicating \e all nodes are owned by this partition */
+	const ArrayT<int>* ExternalNodes(void) const;
+
+	/** list of nodes adjacent to nodes in CommManagerT::ExternalNodes. These are the nodes 
+	 * for which information is sent to other processors. These nodes are numbered locally
+	 * within the nodes appearing on this processor. Returns NULL if there is no 
+	 * list, indicating \e all nodes are owned by this partition */
+	const ArrayT<int>* BorderNodes(void) const;
 	/*@}*/
 
 private:
@@ -123,6 +136,12 @@ private:
 
 	/** inverse of CommManagerT::fPartitionNodes list */
 	InverseMapT fPartitionNodes_inv;
+
+	/** list of nodes \e not owned by this partition */
+	AutoArrayT<int> fExternalNodes;
+
+	/** list of nodes adjacent to any external nodes */
+	AutoArrayT<int> fBorderNodes;
 	/*@}*/
 };
 
@@ -149,6 +168,22 @@ inline const ArrayT<int>* CommManagerT::PartitionNodes(void) const
 {
 	if (fPartitionNodes.Length() > 0)
 		return &fPartitionNodes;
+	else
+		return NULL;
+}
+
+inline const ArrayT<int>* CommManagerT::ExternalNodes(void) const
+{
+	if (fExternalNodes.Length() > 0)
+		return &fExternalNodes;
+	else
+		return NULL;
+}
+
+inline const ArrayT<int>* CommManagerT::BorderNodes(void) const
+{
+	if (fBorderNodes.Length() > 0)
+		return &fBorderNodes;
 	else
 		return NULL;
 }

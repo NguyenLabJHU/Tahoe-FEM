@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.30.2.2 2002-12-16 09:23:51 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.30.2.3 2002-12-18 09:52:56 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -287,8 +287,10 @@ public:
 	virtual const iArrayT* ElementMap(const StringT& block_ID) const;
 
 	/* external nodes functions (parallel execution) */
-	virtual void IncomingNodes(iArrayT& nodes_in) const;
-	virtual void OutgoingNodes(iArrayT& nodes_out) const;
+//DEV
+//	virtual void IncomingNodes(iArrayT& nodes_in) const;
+//	virtual void OutgoingNodes(iArrayT& nodes_out) const;
+//DEV
 	virtual void SendExternalData(const dArray2DT& all_out_data);
 	virtual void RecvExternalData(dArray2DT& external_data);
 	virtual void SendRecvExternalData(const iArray2DT& all_out_data, iArray2DT& external_data);

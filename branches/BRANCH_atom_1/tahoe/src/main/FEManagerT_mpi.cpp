@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.26.2.1 2002-12-10 17:13:02 paklein Exp $ */
+/* $Id: FEManagerT_mpi.cpp,v 1.26.2.2 2002-12-18 09:52:57 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #include "FEManagerT_mpi.h"
 #include <time.h>
@@ -248,7 +248,8 @@ void FEManagerT_mpi::RestoreOutput(void)
 		fExternIOManager->RestoreOutput();
 }
 
-/* return list of ID's of external nodes */
+//DEV
+#if 0
 void FEManagerT_mpi::IncomingNodes(iArrayT& nodes_in) const
 {
 	if (fTask == kRun)
@@ -266,6 +267,8 @@ void FEManagerT_mpi::OutgoingNodes(iArrayT& nodes_out) const
 		nodes_out = fPartition->Nodes_Border();
 	}
 }
+#endif
+//DEV
 
 /* get external nodal values */
 void FEManagerT_mpi::RecvExternalData(dArray2DT& external_data)

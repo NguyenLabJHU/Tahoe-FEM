@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_mpi.h,v 1.16.2.2 2002-12-16 09:23:51 paklein Exp $ */
+/* $Id: FEManagerT_mpi.h,v 1.16.2.3 2002-12-18 09:52:57 paklein Exp $ */
 /* created: paklein (01/12/2000) */
 #ifndef _FE_MANAGER_MPI_H_
 #define _FE_MANAGER_MPI_H_
@@ -66,9 +66,10 @@ public:
 	virtual void DivertOutput(const StringT& outfile);
 	virtual void RestoreOutput(void);
 
-	/* return list of ID's of external nodes */
-	virtual void IncomingNodes(iArrayT& nodes_in) const;
-	virtual void OutgoingNodes(iArrayT& nodes_out) const;
+//DEV
+//	virtual void IncomingNodes(iArrayT& nodes_in) const;
+//	virtual void OutgoingNodes(iArrayT& nodes_out) const;
+//DEV
 
 	/** synchronize */
 	virtual void Wait(void);
