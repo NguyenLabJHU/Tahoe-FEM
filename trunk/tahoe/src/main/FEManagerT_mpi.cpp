@@ -1,5 +1,5 @@
-/* $Id: FEManagerT_mpi.cpp,v 1.13 2002-03-04 06:57:33 paklein Exp $ */
-/* created: paklein (01/12/2000)                                          */
+/* $Id: FEManagerT_mpi.cpp,v 1.14 2002-03-22 02:25:48 paklein Exp $ */
+/* created: paklein (01/12/2000) */
 
 #include "FEManagerT_mpi.h"
 
@@ -215,6 +215,15 @@ bool FEManagerT_mpi::Step(void)
 	return result;
 }
 
+void FEManagerT_mpi::InitStep(void) const
+{
+	/* inherited */
+	FEManagerT::InitStep();
+
+	/* set default output time stamp */
+	if (fExternIOManager) fExternIOManager->SetOutputTime(Time());
+}
+
 /* solution update */
 void FEManagerT_mpi::Update(const dArrayT& update)
 {
@@ -274,6 +283,16 @@ const dArray2DT& FEManagerT_mpi::Coordinates(void) const
 	return fNodeManager->InitialCoordinates();
 }
 
+/* initiate the process of writing output from all output sets */
+void FEManagerT_mpi::WriteOutput(double time, IOBaseT::OutputModeT mode)
+{
+	/* set output time for the external IO manager */
+	if (fExternIOManager) fExternIOManager->SetOutputTime(time);
+
+	/* inherited */
+	FEManagerT::WriteOutput(time, mode);
+}
+	
 void FEManagerT_mpi::WriteOutput(int ID, const dArray2DT& n_values,
 	const dArray2DT& e_values)
 {
@@ -288,11 +307,8 @@ void FEManagerT_mpi::WriteOutput(int ID, const dArray2DT& n_values,
 		/* do local IO */
 		FEManagerT::WriteOutput(ID, n_values, e_values);
 	else
-	  {
 		/* distribute/assemble/write */
-		fExternIOManager->SetOutputTime(Time());
 		fExternIOManager->WriteOutput(ID, n_values, e_values);
-	  }
 }
 
 /* (temporarily) direct output away from main out */

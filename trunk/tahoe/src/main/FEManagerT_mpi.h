@@ -1,5 +1,5 @@
-/* $Id: FEManagerT_mpi.h,v 1.6 2002-01-27 18:51:08 paklein Exp $ */
-/* created: paklein (01/12/2000)                                          */
+/* $Id: FEManagerT_mpi.h,v 1.7 2002-03-22 02:25:48 paklein Exp $ */
+/* created: paklein (01/12/2000) */
 
 #ifndef _FE_MANAGER_MPI_H_
 #define _FE_MANAGER_MPI_H_
@@ -46,16 +46,27 @@ public:
 	/* time sequence messaging */
 	virtual bool Step(void);
 
+	/** initialize the new time interval */
+	virtual void InitStep(void) const;
+
 	/* solution update */
 	virtual void Update(const dArrayT& update);
 
 	/* system relaxation */
 	virtual GlobalT::RelaxCodeT RelaxSystem(void) const;
 
-	/* writing results */
+	/** initiate the process of writing output from all output sets 
+	 * \param time time label associated with the output data */
+	virtual void WriteOutput(double time, IOBaseT::OutputModeT mode);
+	
+	/** write results for a single output set
+	 * \param ID output set ID for the given data
+	 * \param n_values nodal output values
+	 * \param e_values element output values */
+	virtual void WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values);
+
+	/** reference to the coordinate array */
 	const dArray2DT& Coordinates(void) const;
-	virtual void WriteOutput(int ID, const dArray2DT& n_values,
-		const dArray2DT& e_values);
 
 	/* (temporarily) direct output away from main out */
 	virtual void DivertOutput(const StringT& outfile);
