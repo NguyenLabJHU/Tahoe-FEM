@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.14 2002-04-11 17:05:52 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.15 2002-04-12 01:42:09 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleT.h"
@@ -137,13 +137,17 @@ iConsoleT::iConsoleT(const StringT& log_file, iConsoleObjectT& current,
 	/* pull read command line arguments */
 	StringT command_line;
 	if (arguments) {
-		for (int i = 0; i < arguments->Length(); i++)
-			if ((*arguments)[i] == "-r" && i < arguments->Length() - 1)
-				command_line.Append("read ", (*arguments)[i+1], ";");	
+		for (int i = arguments->Length() - 2;  i > -1; i--)
+			if ((*arguments)[i] == "-r")
+			{
+				StringT command;
+				command.Append("read ", (*arguments)[i+1], ";");	
+				fDanglingInput.Append(command);
+			}
 	}
 	
 	/* run */
-	DoInteractive(command_line);
+	DoInteractive();
 }
 
 /* destructor */
@@ -391,7 +395,7 @@ bool iConsoleT::iDoVariable(const StringT& variable, StringT& line)
 ************************************************************************/
 
 /* main event loop */
-void iConsoleT::DoInteractive(const StringT& first_line)
+void iConsoleT::DoInteractive(void)
 {
 	/* open log stream */
 	time_t the_time;
@@ -402,9 +406,6 @@ void iConsoleT::DoInteractive(const StringT& first_line)
 
 	/* strings that act as command stacks */
 	StringT line, log_line;
-
-	/* initialize command que */
-	line = first_line;
 
 	/* run interactive */
 	bool end = false;
@@ -682,7 +683,7 @@ void iConsoleT::GetCommandLine(StringT& line)
 	bool done = false;
 	while (!done)
 	{
-		if (fInputStack.Length() == 0)
+		if (fInputStack.Length() == 0 && fDanglingInput.Length() == 0)
 		{
 			/* prompt */
 			cout << fCurrent->iName();
@@ -703,21 +704,27 @@ void iConsoleT::GetCommandLine(StringT& line)
 		}
 		else
 		{
-			ifstreamT* in = fInputStack.Last();
-			if (in->good())
+			/* try read from stream */
+			if (fInputStack.Length() > 0)
 			{
-				line.GetLineFromStream(*in);
-				done = true;
+				ifstreamT* in = fInputStack.Last();
+				if (in->good())
+				{
+					line.GetLineFromStream(*in);
+					done = true;
+				}
+				else
+				{
+					cout << "closing stream: \"" << in->filename()  << "\"" << endl;
+					
+					/* free stream */
+					delete in;
+					in = NULL;
+					fInputStack.DeleteAt(fInputStack.Length() - 1);
+				}	
 			}
-			else
+			else /* grab from dangling input */
 			{
-				cout << "closing stream: \"" << in->filename()  << "\"" << endl;
-				
-				/* free stream */
-				delete in;
-				in = NULL;
-				fInputStack.DeleteAt(fInputStack.Length() - 1);
-				
 				/* restore rest of line */
 				line = fDanglingInput.Last();
 				fDanglingInput.DeleteAt(fDanglingInput.Length() - 1);
