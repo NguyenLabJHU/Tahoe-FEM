@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.cpp,v 1.14 2002-07-02 19:57:03 cjkimme Exp $ */
+/* $Id: ExodusInputT.cpp,v 1.15 2002-07-08 17:16:42 sawimme Exp $ */
 /* created: sawimme (12/04/1998) */
 
 #include "ExodusInputT.h"
@@ -201,7 +201,7 @@ void ExodusInputT::ReadSideSetGlobal (const StringT& name, iArray2DT& sides) con
   int block_ID;
   fData.ReadSideSet (set_num, block_ID, sides);
   
-  iArrayT ids;
+  iArrayT ids (fData.NumElementBlocks());
   fData.ElementBlockID (ids);
   int num_elems, dim, offset = 0;
   for (int i=0; i < ids.Length(); i++)
