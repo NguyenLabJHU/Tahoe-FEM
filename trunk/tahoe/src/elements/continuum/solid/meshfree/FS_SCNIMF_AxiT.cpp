@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMF_AxiT.cpp,v 1.23 2005-02-03 19:53:42 cjkimme Exp $ */
+/* $Id: FS_SCNIMF_AxiT.cpp,v 1.24 2005-02-17 22:56:09 cjkimme Exp $ */
 #include "FS_SCNIMF_AxiT.h"
 
 #include "ArrayT.h"
@@ -379,8 +379,6 @@ void FS_SCNIMF_AxiT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		dMatrixT Tijkl(fSD*fSD), BJTCijkl(fSD, fSD*fSD), K_JK, mod2D(3), Finverse(3);
 		dMatrixT Cijklsigma(fSD*fSD);
 		K_JK.Alias(fLHS);
-		LinkedListT<dArrayT> bVectors_j;
-		LinkedListT<int> nodeSupport_j;
 		double F_33, c_theta_theta, J;
 		for (int i = 0; i < nNodes; i++)
 		{	
@@ -624,7 +622,6 @@ void FS_SCNIMF_AxiT::RHSDriver(void)
 		fStress2D.Rank2ReduceFrom3D(fStress3D);
 		S_33 = fStress3D(2,2);
 
-		fStress2D *= w_i;
 		supp_i = nodalCellSupports(i);
 		bVec_i = bVectorArray(i); b_33 = circumferential_B(i);
 		for (int j = 0; j < n_supp; j++) { 
