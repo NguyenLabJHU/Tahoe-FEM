@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.17 2003-10-09 23:26:19 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.17.2.1 2003-10-16 12:49:21 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -179,6 +179,17 @@ protected:
 
 	/** maximum number of steps between reseting neighbor lists */
 	int fReNeighborIncr;
+
+	/** \name periodic boundary conditions */
+	/*@{*/
+	/** periodic lower and upper bounds for each coordinate direction */
+	dArray2DT fPeriodicBounds;
+	
+	/** schedule for stretching of periodic boundaries. The schedules should
+	 * have a value of 1 at time = 0.0 and increase or decrease from there
+	 * to define the stretch in the periodic BC's as a function of time. */
+	ArrayT<const ScheduleT*> fStretchSchedule;
+	/*@}*/
 
 	/** \name particle properties */
 	/*@{*/
