@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.39 2003-03-26 20:00:06 cjkimme Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.40 2003-03-28 00:14:59 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -247,6 +247,7 @@ void CSEAnisoT::Initialize(void)
 						fNodalInfoCode = (*fTiedPots[num])->NodalQuantityNeeded();
 						iBulkGroups = (*fTiedPots[num])->BulkGroups();
 					}
+					iTiedFlagIndex = surfpot->NumStateVariables()-1;
 				}
 				else
 					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
@@ -323,6 +324,7 @@ void CSEAnisoT::Initialize(void)
 						fNodalInfoCode = (*fTiedPots[num])->NodalQuantityNeeded();
 						iBulkGroups = (*fTiedPots[num])->BulkGroups();
 					}
+					iTiedFlagIndex = surfpot->NumStateVariables()-1;
 				}
 				else
 					ExceptionT::BadInputValue(caller, "potential not implemented for 3D: %d", code);
@@ -833,9 +835,9 @@ void CSEAnisoT::RHSDriver(void)
 				}
 
 				/* set a flag to tell traction and stiffness that the node is free */
-				if (nodalReleaseQ && fabs(state[0]) < kSmall)
+				if (nodalReleaseQ && fabs(state[iTiedFlagIndex]) < kSmall)
 				{
-					state[0] = -10.;
+					state[iTiedFlagIndex] = -10.;
 				}
 
 				/* traction vector in/out of local frame */
