@@ -1,4 +1,4 @@
-/* $Id: ParameterT.cpp,v 1.6 2003-04-22 22:13:35 paklein Exp $ */
+/* $Id: ParameterT.cpp,v 1.7 2003-04-26 19:12:06 paklein Exp $ */
 #include "ParameterT.h"
 
 /* array behavior */
@@ -63,6 +63,13 @@ void ParameterT::AddLimit(const LimitT& limit)
 			"limits on enumerations must be type \"only\"");
 
 	fLimits.Append(limit);
+}
+
+/* add list of limits */
+void ParameterT::AddLimits(const ArrayT<LimitT>& limits)
+{
+	for (int i = 0; i < limits.Length(); i++)
+		AddLimit(limits[i]);
 }
 
 /* assess if the value satisties all limits */
