@@ -1,4 +1,4 @@
-/* $Id: BinaryTreeT.h,v 1.3 2003-03-08 03:12:13 paklein Exp $ */
+/* $Id: BinaryTreeT.h,v 1.4 2003-03-09 20:37:19 paklein Exp $ */
 #ifndef _BINARY_TREE_T_H_
 #define _BINARY_TREE_T_H_
 
@@ -23,7 +23,22 @@ public:
 
 	/** destructor */
 	~BinaryTreeT(void);
-	 	
+
+	/** override or reset the function used to compare tree values during calls
+	 * to BinaryTreeT::Find. It should return
+	 * <ul> 
+	 * <li> <0 : tree_value < test_value
+	 * <li> >0 : tree_value > test_value
+	 * <li>  0 : tree_value == test_value
+	 * </ul>
+	 * Note that the order of the arguments matters in the comparison. Pass NULL to
+	 * clear the comparison function and use the default comparison operators < and >.
+	 * \param compare the comparison function
+	 * \param tree_value value in currently in the tree
+	 * \param test_value value being compared to the tree
+	 */
+	void SetCompareFunction(int (*compare)(const TYPE& tree_value, const TYPE& test_value));
+
 	/** \name insert values into the tree */
 	/*@{*/
 	/** insert single value */
@@ -68,8 +83,6 @@ public:
 	void Descending(ArrayT<TYPE>& array) const;
 	/*@}*/
 	
-protected:
-
 	/** return the tree node with the given value or NULL if not present */
 	BTreeNodeT<TYPE>* Find(const TYPE& value) const;
 
@@ -134,6 +147,9 @@ private:
 
 	/** pointer to the first node in the list */
 	BTreeNodeT<TYPE>* fRoot;
+	
+	/** comparison function used by BinaryTree::Find */
+	int (*fCompare)(const TYPE&, const TYPE&);
 };
 
 /*************************************************************************
@@ -143,13 +159,20 @@ private:
 template <class TYPE>
 BinaryTreeT<TYPE>::BinaryTreeT(void):
 	fSize(0),
-	fRoot(NULL)
+	fRoot(NULL),
+	fCompare(NULL)
 {
 
 }
 	
 template <class TYPE>
 BinaryTreeT<TYPE>::~BinaryTreeT(void) { Clear(); }
+
+template <class TYPE>
+void BinaryTreeT<TYPE>::SetCompareFunction(int (*compare)(const TYPE& tree_value, const TYPE& test_value))
+{
+	fCompare = compare;
+}
 
 /* insert single value */
 template <class TYPE>
@@ -250,10 +273,6 @@ void BinaryTreeT<TYPE>::Descending(ArrayT<TYPE>& array) const
 		if (dex != array.Length()) ExceptionT::GeneralFail();
 	}
 }
-
-/*************************************************************************
- * Protected
- *************************************************************************/
 
 /* return true if the tree contains the given value */
 template <class TYPE>
@@ -369,22 +388,48 @@ int BinaryTreeT<TYPE>::DoInsertUnique(BTreeNodeT<TYPE>* node)
 template <class TYPE>
 BTreeNodeT<TYPE>* BinaryTreeT<TYPE>::DoFind(BTreeNodeT<TYPE>* node, const TYPE& value) const
 {
-	/* look left */
-	if (value < node->fValue)
+	/* user-defined test function */
+	if (fCompare)
 	{
-		if (node->fLeft)
-			return DoFind(node->fLeft, value);
-		else
-			return NULL;
+		int compare = fCompare(node->fValue, value);
+
+		/* look left */
+		if (compare > 0)
+		{
+			if (node->fLeft)
+				return DoFind(node->fLeft, value);
+			else
+				return NULL;
+		}
+		/* look right */
+		if (compare < 0)
+		{
+			if (node->fRight)
+				return DoFind(node->fRight, value);
+			else
+				return NULL;
+		}
 	}
-	/* look right */
-	else if (value > node->fValue)
+	else
 	{
-		if (node->fRight)
-			return DoFind(node->fRight, value);
-		else
-			return NULL;
+		/* look left */
+		if (value < node->fValue)
+		{
+			if (node->fLeft)
+				return DoFind(node->fLeft, value);
+			else
+				return NULL;
+		}
+		/* look right */
+		else if (value > node->fValue)
+		{
+			if (node->fRight)
+				return DoFind(node->fRight, value);
+			else
+				return NULL;
+		}
 	}
+
 	/* same as node->fValue */
 	return node;
 }
