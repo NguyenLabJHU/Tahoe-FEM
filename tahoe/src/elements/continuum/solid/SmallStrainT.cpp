@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.cpp,v 1.14 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: SmallStrainT.cpp,v 1.15 2005-03-02 17:38:36 paklein Exp $ */
 #include "SmallStrainT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -400,10 +400,6 @@ void SmallStrainT::SetGlobalShape(void)
 		}
 	}
 }
-
-/***********************************************************************
- * Private
- ***********************************************************************/
 
 /* compute mean shape function gradient, Hughes (4.5.23) */
 void SmallStrainT::SetMeanGradient(dArray2DT& mean_gradient) const

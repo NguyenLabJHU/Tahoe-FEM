@@ -1,4 +1,4 @@
-/* $Id: SmallStrainT.h,v 1.15 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: SmallStrainT.h,v 1.16 2005-03-02 17:38:36 paklein Exp $ */
 #ifndef _SMALL_STRAIN_T_H_
 #define _SMALL_STRAIN_T_H_
 
@@ -85,8 +85,6 @@ class SmallStrainT: public SolidElementT
 	/** indicies of elements in the list of material needs */
 	enum MaterialNeedsT {kstrain = 0,
 	                kstrain_last = 1};
-
-  private:
 
 	/** compute mean shape function gradient, Hughes (4.5.23) */
 	void SetMeanGradient(dArray2DT& mean_gradient) const;
