@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.23 2002-03-04 06:37:17 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.24 2002-03-26 17:24:08 paklein Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -795,8 +795,11 @@ void ModelManagerT::ElementMap (const StringT& ID, iArrayT& map)
       /* default map */
       map.SetValueToPosition();
     }
-  InputBaseT& input = Input ("Element Set");
-  input.ReadGlobalElementSet (ID, map);
+	else
+	{
+		InputBaseT& input = Input ("Element Set");
+		input.ReadGlobalElementSet (ID, map);
+  	}
 }
 
 int ModelManagerT::NodeSetIndex (const StringT& ID) const
