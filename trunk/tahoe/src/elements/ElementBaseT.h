@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.h,v 1.36 2004-01-27 15:31:05 paklein Exp $ */
+/* $Id: ElementBaseT.h,v 1.37 2004-02-09 08:23:31 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #ifndef _ELEMENTBASE_T_H_
 #define _ELEMENTBASE_T_H_
@@ -393,8 +393,9 @@ protected: /* for derived classes only */
 	virtual void CurrElementInfo(ostream& out) const;
 
 	/** (re-)set element cards array */
-	void SetElementCards(void);
-
+	void SetElementCards(const ArrayT<ElementBlockDataT>& block_data, const ArrayT<const iArray2DT*>& connectivities,		
+		const ArrayT<iArray2DT>& eqnos, AutoArrayT<ElementCardT>& element_cards) const;
+	
 private:
 
 	/** return the default number of element nodes. This function is needed
