@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.2 2003-09-03 00:02:53 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.3 2003-09-04 15:45:38 paklein Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -156,6 +156,7 @@ private:
 	LocalArrayT u_n; 	/**< total out-of-plane displacement from previous increment */
 	LocalArrayT del_u;	/**< the Newton-R update i.e. del_u = u - u_n (u_{n+1}^{k+1} implied) */
 	LocalArrayT gamma_p;		/**< plastic gradient */
+	LocalArrayT gamma_p_n;
 	LocalArrayT del_gamma_p;	/**< the Newton-R update */
 	dArrayT		del_u_vec;  		// vector form 
 	dArrayT		del_gamma_p_vec;	// vector form

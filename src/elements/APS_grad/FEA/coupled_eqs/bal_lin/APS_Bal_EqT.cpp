@@ -1,4 +1,4 @@
-//DEVELOPMENT
+// $Id: APS_Bal_EqT.cpp,v 1.3 2003-09-04 15:45:41 paklein Exp $
 #include "APS_Bal_EqT.h" 
 
 using namespace Tahoe;
@@ -23,7 +23,10 @@ void APS_Bal_EqT::Construct ( FEA_ShapeFunctionT &Shapes, APS_MaterialT *Shear_M
 
 	n_ip 		= np1.fVars[0].IPs(); 
 	n_rows		= np1.fVars[0].Rows(); 
-	n_cols		= np1.fVars[0].Cols();
+
+//	n_cols		= np1.fVars[0].Cols();
+#pragma message("APS_Bal_EqT::Construct: FEA_dVectorT has no Cols() function")
+
 	n_en    	= Shapes.dNdx.Cols();
 	n_sd 		= n_rows;	
 	n_sd_x_n_sd = n_sd * n_sd;
@@ -53,19 +56,24 @@ void APS_Bal_EqT::Form_LHS_Keps_Kd	( dMatrixT &Keps, dMatrixT &Kd )  // Untested
 		Keps 	= Integral.of( 	B[kB], C[kMu], B[kBgamma] );  	
 		Keps 	*= -1.0;
 	 	Kd  	= Integral.of( 	B[kB], C[kMu], B[kB] 	);  	
-	 	Kd		-= Integral.of( VB[kN], C[kMu], VB[knuB] 	); 	
+//	Kd		-= Integral.of( VB[kN], C[kMu], VB[knuB] 	); 	
+#pragma message("APS_Bal_EqT::Form_LHS_Keps_Kd: there is no (FEA_dVectorT, double FEA_dVectorT) version of this method")
 }
 
 //---------------------------------------------------------------------
 
 void APS_Bal_EqT::Form_RHS_F_int ( dArrayT &F_int ) // Untested
 {
+#pragma message("APS_Bal_EqT::Form_RHS_F_int: tmp, Kepstmp, and tmp2 are not defined")
+
+#if 0
 //		F_int = Integral.of	( VB[kN], traction?? );
 //		dArrayT tmp1.MultAb (Kd, d???);
 		F_int -= tmp;
 		Kepstmp = Keps - Integral.of( 	VB[kN], C[kMu], VB[knuNgam] );
 //		dArrayT tmp2.MultAb ( Kepstmp, eps??? );
 		F_int += tmp2;
+#endif
 }
 
 //=== Private =========================================================
@@ -74,14 +82,14 @@ void APS_Bal_EqT::Form_B_List (void)
 {
 		B.Construct ( kNUM_B_TERMS, n_ip, n_sd_x_n_sd, n_sd_x_n_en );	
 		
-		Data_Pro.APS_B[kB];
- 		Data_Pro.APS_Ngamma[kBgamma];
+		Data_Pro.APS_B(B[kB]);
+ 		Data_Pro.APS_Ngamma(B[kBgamma]);
 }
 
 		
-void APS_BCJT::Form_VB_List (void)
+void APS_Bal_EqT::Form_VB_List (void)
 {					
-		Data_Pro.APS_N[kN];
+		Data_Pro.APS_N(VB[kN]);
 		
 // 		VB[knuB].Dot( V[knueps]??, B[kB] );
 // 		VB[knuNgam].Dot( V[knueps]??, B[kBgamma] );

@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.2 2003-09-03 00:02:53 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.3 2003-09-04 15:45:38 paklein Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -476,9 +476,6 @@ void APS_AssemblyT::Select_Equations (const int &iBalScale,const int &iPlastScal
 			fPlastMaterial -> Assign ( 	APS_MatlT::kl, 				fMaterial_Data[k__l] 			); 	
 			fPlastMaterial -> Assign ( 	APS_MatlT::kH, 				fMaterial_Data[k__H] 			); 	
 			break;
-
-#endif
-
 		default :
 			cout << " APS_AssemblyT::Select_Equations() .. ERROR >> bad iPlastScale \n";
 			break;

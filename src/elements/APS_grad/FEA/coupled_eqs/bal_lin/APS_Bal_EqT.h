@@ -1,5 +1,4 @@
-//DEVELOPMENT
-
+// $Id: APS_Bal_EqT.h,v 1.3 2003-09-04 15:45:41 paklein Exp $
 #ifndef _APS_BALEQ_T_H_ 
 #define _APS_BALEQ_T_H_ 
 
@@ -66,7 +65,7 @@ class APS_Bal_EqT	: public BalLinMomT
 	protected:
 
 		FEA_IntegrationT 		Integral;
-		FEA_Data_ProcessorT 	Data_Pro; 
+		APS_FEA_Data_ProcessorT 	Data_Pro; 
 
 		double delta_t;
 		int time_step;
