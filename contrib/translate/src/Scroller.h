@@ -1,4 +1,4 @@
-/* $Id: Scroller.h,v 1.2 2004-11-16 01:04:35 paklein Exp $ */
+/* $Id: Scroller.h,v 1.3 2005-03-14 20:01:07 paklein Exp $ */
 #ifndef _SCROLLER_H_
 #define _SCROLLER_H_
 
@@ -62,6 +62,9 @@ private:
 	double fMeshSize;
 	double fPeriodicLength;
 	/**@}*/
+
+	/** output increment */
+	int fOutputIncrement;
 	
 	/** changing connectivities */
 	ArrayT<iArray2DT> fConnectivities;
