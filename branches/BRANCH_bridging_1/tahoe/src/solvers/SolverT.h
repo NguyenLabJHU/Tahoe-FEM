@@ -1,4 +1,4 @@
-/* $Id: SolverT.h,v 1.12.2.1 2003-02-14 02:44:23 paklein Exp $ */
+/* $Id: SolverT.h,v 1.12.2.2 2003-02-15 02:38:16 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _SOLVER_H_
 #define _SOLVER_H_
@@ -75,16 +75,25 @@ public:
 	void ReceiveEqns(const iArray2DT& equations) const;
 	void ReceiveEqns(const RaggedArray2DT<int>& equations) const;
 
+	/** \name solution steps */
+	/*@{*/
+	/** start solution step */
+	virtual void InitStep(void);
+
 	/** solve the system over the current time increment.
 	 * \param num_iterations maximum number of iterations to execute. Hitting this limit
 	 *        does not signal a SolverT::kFailed status, unless solver's internal parameters
 	 *        also indicate the solution procedure has failed.
 	 * \return one of SolverT::IterationsStatusT */
-	virtual SolutionStatusT Solve(int num_iterations) = 0;
+	virtual SolutionStatusT Solve(int max_iterations) = 0;
 
-	/* error handler */
-	virtual void ResetStep(void);
-	
+	/** end solution step */
+	virtual void CloseStep(void);
+
+	/** error handler */
+	virtual void ResetStep(void);	
+	/*@}*/
+
 	/** \name assembling the global equation system */
 	/*@{*/
 	void UnlockRHS(void) { fRHS_lock = kOpen; };
@@ -153,17 +162,29 @@ protected:
 	/** equation group number */
 	int fGroup;
 
-	/* flags */
+	/** \name flags */
+	/*@{*/
 	int fMatrixType;
 	int fPrintEquationNumbers;
+	/*@}*/
 	
 	/** global equation system */
 	/*@{*/
+	/** global LHS matrix */
 	GlobalMatrixT* fLHS;
-	LockStateT     fLHS_lock;
+	
+	/** write protection for the LHS matrix */
+	LockStateT fLHS_lock;
+
+	/** runtime flag. Set to true to signal LHS matrix needs to be recalculated. By
+	 * default, this is set to true during the call to SolverT::InitStep. */
+	bool fLHS_update;
 		
-	dArrayT        fRHS;
-	LockStateT     fRHS_lock;
+	/** residual */
+	dArrayT fRHS;
+	
+	/** write protection for the RHS vector */
+	LockStateT fRHS_lock;
 	/*@}*/
 
 	/** runtime data */
