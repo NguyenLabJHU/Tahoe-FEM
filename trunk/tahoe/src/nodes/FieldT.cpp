@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.41 2005-01-03 21:53:15 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.42 2005-02-04 22:03:55 paklein Exp $ */
 
 #include "FieldT.h"
 
@@ -16,6 +16,8 @@
 #include "ParameterContainerT.h"
 #include "ParameterUtils.h"
 #include "ModelManagerT.h"
+#include "OutputSetT.h"
+#include "GlobalMatrixT.h"
 
 using namespace Tahoe;
 
@@ -27,7 +29,11 @@ FieldT::FieldT(const FieldSupportT& field_support):
 	fIntegrator(NULL),	
 	fnIntegrator(NULL),
 	fEquationStart(0),
-	fNumEquations(0)
+	fNumEquations(0),
+	fActiveMass(NULL),
+	fTrackTotalEnergy(false),
+	fTotalEnergyOutputInc(0),
+	fTotalEnergyOutputID(-1)	
 {
 
 }
@@ -60,6 +66,8 @@ FieldT::~FieldT(void)
 
 	for (int i = 0; i < fFBC_Controllers.Length(); i++)
 		delete fFBC_Controllers[i];
+
+	delete fActiveMass;
 }
 
 void FieldT::RegisterLocal(LocalArrayT& array) const	
@@ -222,6 +230,38 @@ void FieldT::InitStep(void)
 	/* predictor to all DOF's */
 	integrator.Predictor(*this);
 
+	/* integrate work */
+	if (fTrackTotalEnergy)
+	{
+		/* array of active velocities */
+		fActiveVel.Dimension(fNumEquations);
+
+		/* sum nodal work */
+		double& w_pred = fWork[1];
+		w_pred = fWork[0];
+		double dt_by_2 = FieldSupport().TimeStep()/2.0;
+		const int* eq = fEqnos.Pointer();
+		const double* v = fField[1].Pointer();
+		int length = fEqnos.Length();
+		for (int i = 0; i < length; i++)
+		{
+			/* active equation */
+			if (*eq > -1 && *eq < fNumEquations) {
+			
+				int index = (*eq) - 1;
+
+				/* work */
+				w_pred += dt_by_2*fActiveForce[(*eq)-1]*(*v);
+		
+				/* store velocity predictor */
+				fActiveVel[index] = *v;
+			}
+		
+			/* next */
+			eq++; v++;
+		}
+	}
+
 	/* KBC controllers */
 	for (int i = 0; i < fKBC_Controllers.Length(); i++)
 		fKBC_Controllers[i]->InitStep();
@@ -313,11 +353,78 @@ void FieldT::FormLHS(GlobalT::SystemTypeT sys_type)
 		fFBC_Controllers[i]->ApplyLHS(sys_type);
 }
 
+/* post-process the total system force */
+void FieldT::EndRHS(void)
+{
+	/* copy global residual vector */
+	if (fTrackTotalEnergy) 
+		fActiveForce = FieldSupport().RHS(Group());
+}
+
+/* post-process the total system tangent matrix */
+void FieldT::EndLHS(void)
+{
+	/* copy mass matrix */
+	if (fTrackTotalEnergy) 
+	{
+		/* free existing */
+		delete fActiveMass;
+
+		/* get copy */
+		fActiveMass = FieldSupport().LHS(Group()).Clone();
+	}
+}
+
 /* update history */
 void FieldT::CloseStep(void)
 {
 	/* update history */
 	fField_last = fField;
+
+	/* complete integration of nodal work */
+	if (fTrackTotalEnergy)
+	{	
+		/* sum nodal work */
+		double& w = fWork[1];
+		double dt_by_2 = FieldSupport().TimeStep()/2.0;
+		const int* eq = fEqnos.Pointer();
+		const double* v = fField[1].Pointer();
+		int length = fEqnos.Length();
+		for (int i = 0; i < length; i++)
+		{
+			/* active equation */
+			if (*eq > -1 && *eq < fNumEquations)
+			{
+				int index = (*eq) - 1;
+			
+				/* work */
+				w += dt_by_2*fActiveForce[index]*fActiveVel[index];
+				
+				/* collect current velocity */
+				fActiveVel[index] = *v;
+			}
+		
+			/* next */
+			eq++; v++;
+		}
+
+		/* kinetic energy */
+		double ke = 0.0;
+		if (fActiveMass) {
+			dArrayT n(fNumEquations, fActiveVel.Pointer());
+			ke= 0.5*fActiveMass->MultmBn(n, n);
+		}
+
+		/* write output */
+		if (fTotalEnergyOutputInc > 0 && FieldSupport().StepNumber() % fTotalEnergyOutputInc == 0) {
+			double dat[2] = {w, ke};
+			dArray2DT n_values(1, 2, dat), e_values;
+			FieldSupport().WriteOutput(fTotalEnergyOutputID, n_values, e_values);
+		}
+
+		/* update history */
+		fWork[0] = fWork[1];
+	}
 
 	/* KBC controllers */
 	for (int i = 0; i < fKBC_Controllers.Length(); i++)
@@ -463,6 +570,14 @@ void FieldT::FinalizeEquations(int eq_start, int num_eq)
 	/* store parameters */
 	fEquationStart = eq_start;
 	fNumEquations = num_eq;
+
+	/* storage */
+	if (fTrackTotalEnergy) {
+		fActiveForce.Dimension(fNumEquations);
+		fActiveForce = 0.0;
+		fActiveVel.Dimension(fNumEquations);
+		fActiveVel = 0.0;
+	}
 
 	/* set force boundary condition destinations */
 	SetFBCEquations();
@@ -708,6 +823,21 @@ void FieldT::RegisterOutput(void)
 	/* FBC controllers */
 	for (int i = 0; i < fFBC_Controllers.Length(); i++)
 		fFBC_Controllers[i]->RegisterOutput();
+
+	/* write total system energy */
+	if (fTrackTotalEnergy)
+	{
+		/* specify output data */
+		ArrayT<StringT> labels(2);
+		labels[0] = "W";
+		labels[1] = "KE";
+		fPointConnect.Dimension(1,1);
+		fPointConnect[0] = 0; /* just choose some dummy node number */
+		OutputSetT set(GeometryT::kPoint, fPointConnect, labels);
+		
+		/* register */
+		fTotalEnergyOutputID = FieldSupport().RegisterOutput(set);
+	}
 }
 
 /* write output data */
@@ -817,6 +947,12 @@ void FieldT::DefineParameters(ParameterListT& list) const
 	integrator.AddEnumeration(             "Gear6", IntegratorT::kGear6);
 	integrator.SetDefault(IntegratorT::kStatic);
 	list.AddParameter(integrator);
+
+	/* track the total energy and write it to output */
+	ParameterT energy_output_inc(fTotalEnergyOutputInc, "total_energy_output_inc");
+	energy_output_inc.AddLimit(0, LimitT::LowerInclusive);
+	energy_output_inc.SetDefault(fTotalEnergyOutputInc);
+	list.AddParameter(energy_output_inc);
 }
 
 /* information about subordinate parameter lists */
@@ -1045,6 +1181,17 @@ void FieldT::TakeParameterList(const ParameterListT& list)
 	int order = fIntegrator->Order();
 	Initialize(field_name, ndof, order);
 	if (labels.Length() > 0) SetLabels(labels);
+
+	/* track the total system energy */
+	fWork.Dimension(2);
+	fWork = 0.0;
+	fTotalEnergyOutputInc = list.GetParameter("total_energy_output_inc");
+	if (order > 0 && fTotalEnergyOutputInc > 0) /* skip for quasistatic problems */
+		fTrackTotalEnergy = true;
+	else {
+		fTrackTotalEnergy = false;
+		fTotalEnergyOutputInc = 0;
+	}
 	
 	/* construct controllers and count numbers of IC, KBC, and FBC */
 	int num_IC = 0;

@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.22 2004-12-26 21:09:42 d-farrell2 Exp $ */
+/* $Id: FieldT.h,v 1.23 2005-02-04 22:03:55 paklein Exp $ */
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
 
@@ -28,6 +28,7 @@ template <class TYPE> class LinkedListT;
 class ifstreamT;
 class ofstreamT;
 class FieldSupportT;
+class GlobalMatrixT;
 
 /** field with time integration. Includes application of initial and 
  * boundary conditions, and force boundary conditions. */
@@ -144,6 +145,14 @@ public:
 	/** compute RHS-side, residual force vector and assemble to solver
 	 * \param support host information */
 	void FormRHS(void);
+
+	/** call to signal end of RHS calculation to allow NodeManagerT to post-process
+	 * the total system force */
+	void EndRHS(void);
+
+	/** call to signal end of LHS calculation to allow NodeManagerT to post-process
+	 * the total system tangent matrix */
+	void EndLHS(void);
 	/*@}*/
 
 	/** \name update array.
@@ -416,6 +425,18 @@ private:
 	/** block source terms registerered with FieldT::RegisterSource.
 	 * Each entry is: [nen] x [nip*nval] */
 	AutoArrayT<const dArray2DT*> fSourceBlocks;
+	/*@}*/
+
+	/** \name tracking total energy */
+	/*@{*/
+	bool fTrackTotalEnergy;
+	int fTotalEnergyOutputInc;
+	int fTotalEnergyOutputID;
+	dArrayT fWork; /**< nodal work: {w_n, w_n+1} */
+	iArray2DT fPointConnect;
+	GlobalMatrixT* fActiveMass;
+	AutoArrayT<double> fActiveForce;
+	AutoArrayT<double> fActiveVel;
 	/*@}*/
 };
 

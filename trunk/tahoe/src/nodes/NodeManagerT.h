@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.27 2005-01-06 18:52:27 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.28 2005-02-04 22:03:55 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -162,6 +162,14 @@ public:
 	/** compute RHS-side, residual force vector and assemble to solver
 	 * \param group equation group to solve */
 	virtual void FormRHS(int group);
+
+	/** call to signal end of RHS calculation to allow NodeManagerT to post-process
+	 * the total system force */
+	void EndRHS(int group);
+
+	/** call to signal end of LHS calculation to allow NodeManagerT to post-process
+	 * the total system tangent matrix */
+	void EndLHS(int group);
 	/*@}*/
 
 	/* returns true if the internal force has been changed since
