@@ -1,10 +1,8 @@
-/* $Id: ios_fwd_decl.h,v 1.6 2001-10-22 18:21:08 paklein Exp $ */
-/* created: paklein (08/11/1999)                                          */
-/* iosfwd.h                                                               */
-/* include this header instead of writing forward declarations            */
-/* explicitly. MSL does not allow forward declarations of stream          */
-/* classes.                                                               */
-
+/* $Id: ios_fwd_decl.h,v 1.7 2002-09-12 16:33:52 paklein Exp $ */
+/* created: paklein (08/11/1999) */
+/* Include this header instead of writing forward declarations */
+/* explicitly. Some compilers do not allow forward declarations */
+/* of stream classes. */
 #ifndef _IOSFWD_H_
 #define _IOSFWD_H_
 
@@ -22,7 +20,9 @@
 #include <iostream.h>
 #elif defined(__DEC__) && defined (__USE_STD_IOSTREAM)
 #include <iosfwd>
-#else // forward declarations OK
+#elif defined(__GCC_3__)
+#include <iosfwd>
+#else // plain forward declarations OK
 class istream;
 class ostream;
 class ifstream;
