@@ -1,5 +1,6 @@
-/* $Id: CellGeometryT.cpp,v 1.2 2005-01-25 19:08:14 cjkimme Exp $ */
+/* $Id: CellGeometryT.cpp,v 1.3 2005-01-26 20:21:07 cjkimme Exp $ */
 #include "CellGeometryT.h"
+#include "dArrayT.h"
 
 using namespace Tahoe;
 
@@ -37,8 +38,9 @@ void CellGeometryT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT
 #pragma unused(mat_index)
 }
 
-void CellGeometryT::SetNodesAndShapes(dArray2DT& nodal_coordinates, MeshFreeNodalShapeFunctionT* nodalShapeFunctions)
+void CellGeometryT::SetNodesAndShapes(iArrayT& nodes, dArray2DT& nodal_coordinates, MeshFreeNodalShapeFunctionT* nodalShapeFunctions)
 {
+	fNodes.Alias(nodes);
 	fNodalCoordinates.Alias(nodal_coordinates);
 	fNodalShapes = nodalShapeFunctions;
 }
@@ -85,3 +87,74 @@ void CellGeometryT::TakeParameterList(const ParameterListT& list)
 	fNumIP = list.GetParameter("num_ip");
 }
 
+void CellGeometryT::MergeFacetIntegral(int node_num, double weight, dArrayT& facetNormal, const dArrayT& phiValues,
+						iArrayT& ip_cover, iArrayT& ip_cover_key, ArrayT< LinkedListT<int> >& nodeWorkSpace, 
+						ArrayT< LinkedListT<dArrayT> >& facetWorkSpace,
+						ArrayT< LinkedListT<double> >& circumferentialWorkSpace) 
+{
+	/* If a node covering the integration point is not in the support of the node,
+	 * insert that covering node into the sorted list.
+	 */			 
+
+	LinkedListT<int>& supp = nodeWorkSpace[node_num];
+	LinkedListT< dArrayT >& bVectors = facetWorkSpace[node_num];
+	LinkedListT< double > *circumf;
+	if (qIsAxisymmetric) 
+		circumf = &circumferentialWorkSpace[node_num];
+	int s = -1;
+	
+	supp.Top(); 
+	bVectors.Top();
+	int *next = supp.CurrentValue();
+	if (qIsAxisymmetric) 
+		circumf->Top();
+		
+	bool traverseQ;
+	int n_cover = phiValues.Length();
+	int* c = ip_cover.Pointer();
+	int* c_j = ip_cover_key.Pointer();
+	int nsd = facetNormal.Length();
+	dArrayT facetIntegral(nsd), zeroFacet(3);
+	zeroFacet = 0.;
+	for (int j = 0; j < n_cover; j++, c++, c_j++) {
+		
+		facetIntegral = facetNormal;
+		facetIntegral *= phiValues[*c_j]*weight;	
+		
+		if (next)
+			traverseQ = *next <= *c;
+		else
+			traverseQ = false;
+				
+		// advance supp_0 and supp_1 until they are greater than or equal to current node
+		while (traverseQ && supp.Next(s) && bVectors.Next()) {
+			//if (qIsAxisymmetric)
+			//	circumf->Next();
+			next = supp.PeekAhead(); 
+			if (!next)
+				traverseQ = false;
+			else
+				if (*next > *c)
+					traverseQ = false;
+		}
+			
+		if (s != *c) { // means we're not at the end of the linked list
+			supp.InsertAtCurrent(*c);
+			bVectors.InsertAtCurrent(zeroFacet);
+			if (qIsAxisymmetric) 
+				circumf->InsertAtCurrent(0.);
+			s = *c;
+			if (supp.AtTop()) { // if we're inserting at the front, LinkedListT's behavior requires more work
+				supp.Next(); 
+				bVectors.Next();
+				if (qIsAxisymmetric)
+					circumf->Next();
+			}
+		}
+			
+		double *currentI = facetIntegral.Pointer();
+		double *currentB = bVectors.CurrentValue()->Pointer();
+		for (int k = 0; k < nsd; k++)
+			*currentB++ += *currentI++;
+	}
+}

@@ -182,13 +182,14 @@ void VoronoiDiagramT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, Ragged
 		circumferentialWorkSpace.Dimension(nNodes);
 	}
 	
-	dArrayT zeroFacet(3);
+	dArrayT zeroFacet(2);
 	double zeroSingle = 0.;
 	zeroFacet = 0.0;
 	for (int i = 0; i < nNodes; i++) {
-		int l_supp_i = nodeSupport.MinorDim(i);
+		int node_i = fNodes[i];
+		int l_supp_i = nodeSupport.MinorDim(node_i);
 		iArrayT supp_i(l_supp_i);
-		supp_i.Copy(nodeSupport(i));
+		supp_i.Copy(nodeSupport(node_i));
 		supp_i.SortAscending();
 		nodeWorkSpace[i].AppendArray(l_supp_i, supp_i.Pointer());
 		facetWorkSpace[i].AppendArray(l_supp_i, zeroFacet);
@@ -618,9 +619,10 @@ void VoronoiDiagramT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, Ragged
 					
 				if (s_0 != *n) 
 					ExceptionT::GeneralFail(caller,"Node %d in support of node %d but not in data\n",s_0,*n);
+				if (supp_0.AtTop())
+					circumf_0.Next();
 				
 				*(circumf_0.CurrentValue()) = phis[*n_j];
-				
 			}
 		}
 	}
@@ -642,18 +644,18 @@ void VoronoiDiagramT::ComputeBMatrices(RaggedArray2DT<int>& cellSupports, Ragged
 			clist = &circumferentialWorkSpace[i];
 			clist->Top();
 			crow_i = circumferential_B(i);
-			cout << cellSupports.MinorDim(i) << " " << bVectors.MinorDim(i) << " " << circumferential_B.MinorDim(i) << "\n";
 		}
 		ilist.Top(); dlist.Top();
 		while (ilist.Next() && dlist.Next()) {
 			*irow_i++ = *(ilist.CurrentValue());
 			*drow_i++ = *(dlist.CurrentValue());
 			if (qIsAxisymmetric) {
-				*crow_i++ = *(clist->CurrentValue());
 				clist->Next();
+				*crow_i++ = *(clist->CurrentValue());
 			}
 		}
 	}
+	
 }
 
 void VoronoiDiagramT::VoronoiDiagramToFile(ofstreamT& vout)

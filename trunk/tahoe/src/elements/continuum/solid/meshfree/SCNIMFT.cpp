@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.49 2005-01-25 23:10:01 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.50 2005-01-26 20:21:00 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 #include "ArrayT.h"
@@ -185,7 +185,7 @@ void SCNIMFT::TakeParameterList(const ParameterListT& list)
 	fNodalShapes->WriteStatistics(ElementSupport().Output());
 	
 	/* initialize workspace for strain smoothing */
-	fCellGeometry->SetNodesAndShapes(fNodalCoordinates, fNodalShapes);
+	fCellGeometry->SetNodesAndShapes(fNodes, fNodalCoordinates, fNodalShapes);
 	fCellGeometry->ComputeBMatrices(nodalCellSupports, bVectorArray, fCellVolumes, 
 									fCellCentroids, circumferential_B);	
 	
