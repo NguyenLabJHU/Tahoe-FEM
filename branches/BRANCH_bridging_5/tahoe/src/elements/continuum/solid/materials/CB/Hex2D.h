@@ -1,4 +1,4 @@
-/* $Id: Hex2D.h,v 1.2.34.1 2004-04-03 03:16:23 paklein Exp $ */
+/* $Id: Hex2D.h,v 1.2.34.2 2004-04-03 20:16:16 paklein Exp $ */
 #ifndef _HEX_2D_H_
 #define _HEX_2D_H_
 
@@ -36,6 +36,9 @@ public:
 
 	/** reference volume */
 	double CellVolume(void) const { return fCellVolume; };
+
+	/** nearest neighbor distance */
+	double NearestNeighbor(void) const { return fNearestNeighbor; };
 	/*@}*/
 
 protected:

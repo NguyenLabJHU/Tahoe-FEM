@@ -1,4 +1,4 @@
-/* $Id: FCC3D.h,v 1.3.4.1 2004-04-03 03:16:23 paklein Exp $ */
+/* $Id: FCC3D.h,v 1.3.4.2 2004-04-03 20:16:16 paklein Exp $ */
 #ifndef _FCC_3D_H_
 #define _FCC_3D_H_
 
@@ -36,6 +36,9 @@ public:
 
 	/** reference volume */
 	double CellVolume(void) const { return fAtomicVolume; };
+
+	/** nearest neighbor distance */
+	double NearestNeighbor(void) const { return fNearestNeighbor; };
 	/*@}*/
 
 protected:
