@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.12 2003-01-27 07:00:27 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.12.2.1 2003-02-06 02:39:45 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
@@ -51,6 +51,8 @@ protected:
 
 private:
 
+	/** \name execution modes */
+	/*@{*/
 	/** standard serial driver */
 	void RunJob_serial(ifstreamT& in, ostream& status) const;
 	
@@ -62,6 +64,10 @@ private:
 
 	/** join parallel results files */
 	void RunJoin_serial(ifstreamT& in, ostream& status) const;
+
+	/** multi-Tahoe, bridging scale test */
+	void RunBridging(ifstreamT& in, ostream& status) const;
+	/*@}*/
 
 	/** print message on exception */
 	void Rewind(ifstreamT& in, ostream& status) const;

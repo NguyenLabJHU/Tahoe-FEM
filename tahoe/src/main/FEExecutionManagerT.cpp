@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.36 2003-01-27 23:10:20 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.36.2.1 2003-02-06 02:39:45 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -31,6 +31,9 @@
 #include "OutputBaseT.h"
 #include "CommunicatorT.h"
 
+//TEMP - bridging scale Tahoe
+#include "FEManagerT_bridging.h"
+
 using namespace Tahoe;
 
 /* Constructor */
@@ -54,6 +57,8 @@ FEExecutionManagerT::FEExecutionManagerT(int argc, char* argv[], char job_char,
 /* MUST be overloaded */
 void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 {
+	const char caller[] = "FEExecutionManagerT::RunJob";
+
 	/* run serial by default */
 	int size = fComm.Size();
 	int run_option = 0;
@@ -67,6 +72,9 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 		else if (fCommandLineOptions[i] == "-join")
 			run_option = 4;
 	}
+
+	//TEMP - check for bridging scale
+	if (CommandLineOption("-bridging")) run_option = 5;
 
 	switch (run_option)
 	{
@@ -97,6 +105,13 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 				RunJoin_serial(in, status);
 			fComm.Barrier();
 			break;
+		}
+		case 5: //TEMP - handle bridging scale
+		{
+			cout << "\n RunBridging: " << in.filename() << endl;
+			if (size > 1) ExceptionT::GeneralFail(caller, "RunBridging for SERIAL ONLY");
+
+			RunBridging(in, status);
 		}
 		default:
 			ExceptionT::GeneralFail("FEExecutionManagerT::RunJob", "unknown option: %d", run_option);
@@ -196,6 +211,108 @@ bool FEExecutionManagerT::RemoveCommandLineOption(const char* str)
 * Private
 **********************************************************************/
 
+/* 2 Tahoe bridging calculation */
+void FEExecutionManagerT::RunBridging(ifstreamT& in, ostream& status) const
+{
+	const char caller[] = "FEExecutionManagerT::RunBridging";
+
+	/* read atomistic and continuum source files */
+	StringT atom_file, continuum_file;
+	in >> atom_file
+	   >> continuum_file;
+
+	/* streams for atomistic Tahoe */
+	atom_file.ToNativePathName();
+	ifstreamT atoms_in('#', atom_file);
+	if (atoms_in.is_open())
+		cout << " atomistic parameters file: " << atom_file << endl;
+	else
+		ExceptionT::BadInputValue(caller, "file not found: %s", atom_file);
+	StringT atom_out_file;
+	atom_out_file.Root(atoms_in.filename());
+	atom_out_file.Append(".out");
+	ofstreamT atoms_out;
+	atoms_out.open(atom_out_file);
+
+	/* streams for continuum Tahoe */
+	continuum_file.ToNativePathName();
+	ifstreamT continuum_in('#', continuum_file);
+	if (continuum_in.is_open())
+		cout << " continuum parameters file: " << continuum_file << endl;
+	else
+		ExceptionT::BadInputValue(caller, "file not found: %s", continuum_file);
+	StringT continuum_out_file;
+	continuum_out_file.Root(continuum_in.filename());
+	continuum_out_file.Append(".out");
+	ofstreamT continuum_out;
+	continuum_out.open(continuum_out_file);
+
+	clock_t t0 = 0, t1 = 0, t2 = 0;
+
+	/* start day/date info */
+	time_t starttime;
+	time(&starttime);
+
+	int phase; // job phase
+	try
+	{
+		t0 = clock();
+
+		/* construction */
+		phase = 0;
+		in.set_marker('#');
+		FEManagerT_bridging atoms(atoms_in, atoms_out, fComm);
+		atoms.Initialize();
+		FEManagerT_bridging continuum(continuum_in, continuum_out, fComm);
+		continuum.Initialize();
+
+		continuum.SetFollowers(atoms.GhostNodes(), "displacement", *atoms.NodeManager());
+		continuum.SetExactSolution(atoms.NonGhostNodes(), "displacement", *atoms.NodeManager());
+
+		t1 = clock();
+
+		/* solution */
+		phase = 1;
+		//do something here until total system is solved
+
+		t2 = clock();
+	}
+
+	/* job failure */
+	catch (ExceptionT::CodeT code)
+	{
+		status << "\n \"" << in.filename() << "\" exit on exception during the\n";
+		if (phase == 0)
+		{
+			status << " construction phase. Check the input file for errors." << endl;
+		
+			/* echo some lines from input */
+			if (code == ExceptionT::kBadInputValue) Rewind(in, status);
+		}
+		else
+			status << " solution phase.";
+		
+		/* fix clock values */
+		if (t1 == 0) t1 = clock();
+		if (t2 == 0) t2 = clock();		
+
+		atoms_out << endl;
+		continuum_out << endl;
+	}
+
+	/* stop day/date info */
+	time_t stoptime;
+	time(&stoptime);
+
+	/* output timing */
+	status << "\n     Filename: " << in.filename() << '\n';
+	status <<   "   Start time: " << ctime(&starttime);
+	status <<   " Construction: " << double(t1 - t0)/CLOCKS_PER_SEC << " sec.\n";
+	status <<   "     Solution: " << double(t2 - t1)/CLOCKS_PER_SEC << " sec.\n";
+	status << "    Stop time: " << ctime(&stoptime);
+	status << "\n End Execution\n" << endl;
+}
+
 /* standard serial driver */
 void FEExecutionManagerT::RunJob_serial(ifstreamT& in,
 	ostream& status) const
@@ -290,7 +407,7 @@ void FEExecutionManagerT::RunJob_serial(ifstreamT& in,
 	out <<   " Construction: " << double(t1 - t0)/CLOCKS_PER_SEC << " sec.\n";
 	out <<   "     Solution: "   << double(t2 - t1)/CLOCKS_PER_SEC << " sec.\n";
 	status << "    Stop time: " << ctime(&stoptime);
-out   << "    Stop time: " << ctime(&stoptime);
+	out   << "    Stop time: " << ctime(&stoptime);
 
 	status << "\n End Execution\n" << endl;
 	out    << "\n End Execution\n" << endl;
