@@ -1,10 +1,5 @@
-/* $Id: LinkedListT.h,v 1.4 2002-10-20 22:39:03 paklein Exp $ */
-/* created: paklein (02/07/1996)                                          */
-/* Basic linked list template                                             */
-/* Note: the TYPE stored in the list should have an appropriate           */
-/* copy constructor, an assignment ("=") operator, and a                  */
-/* stream insertion ("<<"), and a test for equality ("==").               */
-
+/* $Id: LinkedListT.h,v 1.5 2002-11-16 20:44:59 paklein Exp $ */
+/* created: paklein (02/07/1996) */
 #ifndef _LINKEDLIST_T_H_
 #define _LINKEDLIST_T_H_
 
@@ -16,55 +11,67 @@
 /* direct members */
 #include "ListNodeT.h"
 
-
 namespace Tahoe {
 
+/** basic templated linked list class
+ * \note the TYPE stored in the list should have an appropriate
+ * copy constructor, an assignment ("=") operator, and a
+ * stream insertion ("<<"), and a test for equality ("==").
+ */
 template <class TYPE>
 class LinkedListT
 {
 public:
 
-	/* constructor */
+	/** \name constructors */
+	/*@{*/
 	LinkedListT(void);
 	LinkedListT(const LinkedListT<TYPE>& source);
+	/*@}*/
 
-	/* destructor */
+	/** destructor */
 	~LinkedListT(void);
 	 	
-	/* append value to the end of the list */
+	/** append value to the end of the list */
 	void Append(const TYPE& value);
 
-	/* append value if not already in the list (using "==").
+	/** append value if not already in the list (using "==").
 	 * returns 1 if the value was added, else returns 0 */
 	int AppendUnique(const TYPE& value);
 
-	/* delete/insert values at - error if out of range */
+	/** delete/insert values at - error if out of range */
 	void InsertAt(const TYPE& value, int position);
 	void DeleteAt(int position);
 		
-	/* top/next loops */
+	/** \name top/next loops */
+	/*@{*/
 	void Top(void);
 	int Next(TYPE& value);
+	/*@}*/
 				
-	/* clears list contents */
+	/** clears list contents */
 	void Clear(void);	
 
-	/* return 1 if the list is empty else return 0 */
+	/** return 1 if the list is empty else return 0 */
 	int	IsEmpty(void) const;
 		
-	/* returns the number of values in the list */	
+	/** returns the number of values in the list */	
 	int Length(void) const;
 	
-	/* assignment operator */
+	/** assignment operator */
 	LinkedListT<TYPE>& operator=(const LinkedListT<TYPE>& source);
 	
 private:
 
-	ListNodeT<TYPE>* fCurrPtr;	/* pointer to the current node in the list */
-	ListNodeT<TYPE>* fFirstPtr;	/* pointer to the first node in the list   */
-	ListNodeT<TYPE>* fLastPtr;	/* pointer to the last node in the list   */
+	/** \name pointers into the list */
+	/*@{*/
+	ListNodeT<TYPE>* fCurrPtr;	/**< pointer to the current node in the list */
+	ListNodeT<TYPE>* fFirstPtr;	/**< pointer to the first node in the list   */
+	ListNodeT<TYPE>* fLastPtr;	/**< pointer to the last node in the list    */
+	/*@}*/
 	
-	int fAtTop; /* flag to indicate that the list has been reset */	
+	/** flag to indicate that the list has been reset */	
+	int fAtTop;
 };
 
 /* output operator */

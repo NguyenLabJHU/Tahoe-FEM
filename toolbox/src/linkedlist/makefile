@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.5 2001-02-22 23:45:25 paklein Exp $
+# $Id: makefile,v 1.6 2002-11-16 20:44:59 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -17,8 +17,13 @@ DEP = /dev/null
 
 # headers
 HDR = \
+	MapT.h \
+	MapNodeT.h \
 	LinkedListT.h \
-	ListNodeT.h
+	ListNodeT.h \
+	BinaryTreeT.h \
+	BTreeNodeT.h
+
 HDR_LINK = $(HDR:.h=.h_link)
 
 # subdirectories
