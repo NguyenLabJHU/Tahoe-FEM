@@ -1,4 +1,4 @@
-// $Id: FEA_dVectorT.h,v 1.2 2003-02-03 04:40:24 paklein Exp $
+// $Id: FEA_dVectorT.h,v 1.3 2003-03-07 22:24:01 creigh Exp $
 #ifndef _FEA_DVECTORT_H_
 #define _FEA_DVECTORT_H_
 
@@ -30,6 +30,8 @@ class FEA_dVectorT: public ArrayT <dArrayT>
 		void Print(void) { Print(" "); }
 		void Print(char*);
 
+		double* FEA_Pointer   (int offset) { return (*this)[0].Pointer(offset); }
+
 		int IPs  (void) { return n_ip; } 
 		int Rows (void) { return n_sd; } 
 
@@ -59,6 +61,7 @@ class FEA_dVectorT: public ArrayT <dArrayT>
 		void DiffOf  (const FEA_dVectorT& a, const FEA_dVectorT& b);
 
 		void MultAb  (const FEA_dMatrixT &A, const FEA_dVectorT &b); 
+		void MultAb  (const FEA_dMatrixT &A, const dArrayT &b); 			// Use for E(l)= B(l)*d
 		void MultATb (const FEA_dMatrixT &A, const FEA_dVectorT &b); 
 
 		// overloaded operators   NOTE: no way to do C=A*B or C=A+B w/o an extra deep copy (slower)

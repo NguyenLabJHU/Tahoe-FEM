@@ -1,7 +1,9 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.23 2003-02-03 04:40:20 paklein Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.24 2003-03-07 22:23:57 creigh Exp $ */
+//DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
 #include "ShapeFunctionT.h"
+#include "Traction_CardT.h"
 #include "ifstreamT.h"
 
 #include "VMF_Virtual_Work_EqT.h"
@@ -22,8 +24,7 @@ int knum_i_state = 1; // int's needed per ip
 //---------------------------------------------------------------------
 
 /* constructor */
-StaggeredMultiScaleT::StaggeredMultiScaleT(const ElementSupportT& support, 
-	const FieldT& coarse, const FieldT& fine):
+StaggeredMultiScaleT::StaggeredMultiScaleT(const ElementSupportT& support, const FieldT& coarse, const FieldT& fine):
 	ElementBaseT(support, coarse), //pass the coarse scale field to the base class
 	ua(LocalArrayT::kDisp),
 	ua_n(LocalArrayT::kLastDisp),
@@ -31,6 +32,9 @@ StaggeredMultiScaleT::StaggeredMultiScaleT(const ElementSupportT& support,
 	ub_n(LocalArrayT::kLastDisp),
 	fInitCoords(LocalArrayT::kInitCoords),
 	fCurrCoords(LocalArrayT::kCurrCoords),
+	fBodySchedule(NULL),
+	fBody(NumDOF()),
+	fTractionBCSet(0),
 	fCoarse(coarse),
 	fFine(fine),
 	fEquation_I(NULL),
@@ -44,6 +48,35 @@ StaggeredMultiScaleT::StaggeredMultiScaleT(const ElementSupportT& support,
 	ifstreamT& in = ElementSupport().Input();
 	in >> fGeometryCode; //TEMP - should actually come from the geometry database
 	in >> fNumIP;
+
+	in >> render_switch; 
+	in >> render_settings_file_name; 
+	in >> surface_file_name; 
+	in >> render_time; 
+	in >> render_variable; // code for variable to render (ex. Fa)
+	in >> component_ij; // ex. {0} --> {11} component of render variable 
+	in >> render_variable_group; 
+	in >> render_variable_order;
+	in >> render_displ;
+
+	render_data_stored = 0; 
+
+	fMaterial_Data.Dimension ( kNUM_FMAT_TERMS );
+	iMaterial_Data.Dimension ( kNUM_IMAT_TERMS );
+
+	in >> fMaterial_Data[k__E];
+	in >> fMaterial_Data[k__Pr];
+	in >> fMaterial_Data[k__f];
+	in >> fMaterial_Data[k__V];
+	in >> fMaterial_Data[k__Y];
+
+	in >> iMaterial_Data[k__BS_Type];
+	in >> fMaterial_Data[k__c_zeta];
+	in >> fMaterial_Data[k__l];
+
+	in >> iMaterial_Data[k__IH_Type];
+	in >> fMaterial_Data[k__K];
+	in >> fMaterial_Data[k__H];
 
 	/* allocate the global stack object (once) */
 	extern FEA_StackT* fStack;
@@ -76,11 +109,15 @@ void StaggeredMultiScaleT::Initialize(void)
 	/* inherited */
 	ElementBaseT::Initialize();
 	
-	/* dimensions */
-	int n_sd = NumSD();
-	int n_df = NumDOF(); 
-	int n_en = NumElementNodes();
-	int n_en_x_n_df = n_en*n_df;
+	/* dimensions (notation as per Hughes' Book) */
+	n_ip = fNumIP;
+	n_sd = NumSD();
+	n_df = NumDOF(); 
+	n_en = NumElementNodes();
+	n_np = ElementSupport().NumNodes();
+	n_el = NumElements();
+
+	n_en_x_n_df = n_en*n_df;
 
 	/* set local arrays for coarse scale */
 	ub.Dimension (n_en, n_df);
@@ -106,15 +143,14 @@ void StaggeredMultiScaleT::Initialize(void)
 	fShapes->Initialize();
 	
 	/* allocate state variable storage */
-	int n_ip = 1; //TEMP - need to decide where to set the number of integration
-	int n_e = NumElements();	
-	fdState_new.Dimension(n_e, n_ip*knum_d_state);
-	fdState.Dimension(n_e, n_ip*knum_d_state);
-	fiState_new.Dimension(n_e, n_ip*knum_i_state);
-	fiState.Dimension(n_e, n_ip*knum_i_state);
+	int num_ip = 1; //TEMP - need to decide where to set the number of integration
+	fdState_new.Dimension(n_el, num_ip*knum_d_state);
+	fdState.Dimension(n_el, num_ip*knum_d_state);
+	fiState_new.Dimension(n_el, num_ip*knum_i_state);
+	fiState.Dimension(n_el, num_ip*knum_i_state);
 	
 	/* storage for the fine scale equation numbers */
-	fEqnos_fine.Dimension(n_e, n_en*n_df);
+	fEqnos_fine.Dimension(n_el, n_en*n_df);
 	fEqnos_fine = -1;
 
 	/* initialize state variables */
@@ -129,16 +165,19 @@ void StaggeredMultiScaleT::Initialize(void)
 		                     
 	/* construct the black boxs */  
 
-	Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq,	FineScaleT::kVMS_BCJ ); 
-	
+	Select_Equations ( CoarseScaleT::kVMF_Virtual_Work_Eq,	FineScaleT::kVMS_BCJ );
+	fEquation_II -> Initialize ( n_ip, n_sd, n_en, ElementSupport().StepNumber() );
+	//step_number_last_iter = 0; 
+	//step_number_last_iter = ElementSupport().StepNumber();  // This may crash or not work
+
 	/* FEA Allocation */
 
-	fSigma.FEA_Dimension 			(fNumIP,n_sd,n_sd);
+	fSigma.FEA_Dimension 			( fNumIP,n_sd,n_sd );
 
-	fGRAD_ua.FEA_Dimension 		(fNumIP,n_sd,n_sd);
-	fGRAD_ub.FEA_Dimension 		(fNumIP,n_sd,n_sd);
-	fGRAD_ua_n.FEA_Dimension 	(fNumIP,n_sd,n_sd);
-	fGRAD_ub_n.FEA_Dimension 	(fNumIP,n_sd,n_sd);
+	fGRAD_ua.FEA_Dimension 		( fNumIP,n_sd,n_sd );
+	fGRAD_ub.FEA_Dimension 		( fNumIP,n_sd,n_sd );
+	fGRAD_ua_n.FEA_Dimension 	( fNumIP,n_sd,n_sd );
+	fGRAD_ub_n.FEA_Dimension 	( fNumIP,n_sd,n_sd );
 
 	fKa_I.Dimension 	( n_en_x_n_df, n_en_x_n_df );
 	fKb_I.Dimension 	( n_en_x_n_df, n_en_x_n_df );
@@ -146,15 +185,19 @@ void StaggeredMultiScaleT::Initialize(void)
 	fKb_II.Dimension 	( n_en_x_n_df, n_en_x_n_df );
 
 	fFint_I.Dimension 	( n_en_x_n_df );
+	fFext_I.Dimension 	( n_en_x_n_df );
 	fFint_II.Dimension 	( n_en_x_n_df );
 
-	fFEA_Shapes.Construct( fNumIP,n_sd,n_en );
-	
+
+	fFEA_Shapes.Construct	( fNumIP,n_sd,n_en 			);
+
 	/* storage for integration point stresses */
-	fIPStress.Dimension(n_e, fNumIP*dSymMatrixT::NumValues(n_sd));
+	fIPStress.Dimension (n_el, fNumIP*dSymMatrixT::NumValues(n_sd));
 	fIPStress = 0.0;
 
-	cout << "############################# Initialize#: \n"; 
+	if (render_switch)
+		Init_Render();
+
 }
 
 //---------------------------------------------------------------------
@@ -166,31 +209,6 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
  
 	int curr_group = ElementSupport().CurrentGroup();
 
-#define OFF      0
-#define DISPL    1 
-#define COARSE   2 
-#define FINE     3 
-#define ALL      4 
-
-#define DEBUG FINE 
-
-#if (DEBUG)
-	int debug_iteration=1;
-	static int loop_num=0;
-	static int current_group=0;
-	//static ofstreamT myout("matrix");
-
-	if (curr_group!=current_group) { // new group
-		//loop_num =0;
-		current_group = curr_group;
-	}
-
-  loop_num++;
-	//loop_num =  ElementSupportT().IterationNumber();
-	
-	cout << "############################# ITERATION#: " << loop_num << "\n";
-#endif
-
 	/* stress output work space */
 	int n_stress = dSymMatrixT::NumValues(NumSD());
 	dArray2DT   ip_stress_all;
@@ -198,8 +216,13 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 
 	/** Time Step Increment */
 	double delta_t = ElementSupport().TimeStep();
+						time = ElementSupport().Time();
+						step_number = ElementSupport().StepNumber();
+
 	iArrayT fine_eq;
 
+	//cout <<" s= " << render_switch <<"; t= "<< time << "; rt= " << render_time << "\n";
+ 
 	/* loop over elements */
 	int e=0;
 	Top();
@@ -208,16 +231,6 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 		e++;
 		SetLocalU (ua);			 SetLocalU (ua_n);
 		SetLocalU (ub);			 SetLocalU (ub_n);
-
-#if (DEBUG==DISPL || DEBUG==ALL) // Debugging Code
-		if ( e==1 && loop_num==debug_iteration ) {
-			cout << "|||||||||||||||||| DISPL ||||||||||||||||| Elmt number = "<<e<<"\n";
-			cout << "ua = \n" << ua << "\n\n";
-			cout << "ub = \n" << ub << "\n\n";
-			cout << "ua_n = \n" << ua_n << "\n\n";
-			cout << "ub_n = \n" << ub_n << "\n\n";
-		}
-#endif
 
 		del_ua.DiffOf (ua, ua_n);
 		del_ub.DiffOf (ub, ub_n);
@@ -233,6 +246,8 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 		Convert.Displacements	(	del_ua, 	del_ua_vec  );
 		Convert.Displacements	(	del_ub, 	del_ub_vec  );
 
+		Convert.Na						(	n_en, fShapes, 	fFEA_Shapes );
+
 		/** Construct data used in BOTH FineScaleT and CoarseScaleT (F,Fa,Fb,grad_ua,...etc.)
 		 * 	Presently, Tahoe cannot exploit this fact.  n and np1 are calculated for coarse field, then
 		 * 	calculated again for fine field -- this is a waste and defeats the putpose of VMS_VariableT. 
@@ -243,37 +258,22 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 		VMS_VariableT   n(	fGRAD_ua_n, fGRAD_ub_n );	// Many variables at time-step n
 		
 		/* which field */
-		if (curr_group == fCoarse.Group())  // <-- ub (obtained by a rearranged Equation I)
+		if (curr_group == fCoarse.Group())  //SolverGroup 1 (gets field 2) <-- ub (obtained by a rearranged Equation I)
 		{
 			/** Compute N-R matrix equations */
+
 			fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, FEA::kBackward_Euler );
 			fEquation_I -> Form_LHS_Ka_Kb ( fKa_I, fKb_I );
 			fEquation_I -> Form_RHS_F_int ( fFint_I );
 
-			//fKa_I.Random(1);
-			//fKb_I.Random(2);
-			
 			/* copy/store stresses */
 			ip_stress_all.Set(fNumIP, n_stress, fIPStress(CurrElementNumber()));
-			fEquation_I ->Sigma(fSigma);
+			fEquation_I -> Get (VMF_Virtual_Work_EqT::kSigma, fSigma, 2); // 2 because Sigma is 2nd order tensor
 			for (int i = 0; i < fNumIP; i++)
 			{
 				ip_stress.Set(NumSD(), ip_stress_all(i));
 				ip_stress.FromMatrix(fSigma[i]);
-			}
-
-#if (DEBUG==ALL || DEBUG==COARSE) // Debugging Code
-
-			if ( e==1 && loop_num==debug_iteration ) {
-				cout << "|||||||||||||||||| COARSE ||||||||||||||||| Elmt number = "<<e<<"\n";
-				cout << "  fKa_I = \n" << fKa_I << "\n\n";
-				cout << "  fKb_I = \n" << fKb_I << "\n\n";
-				cout << "  fFint_I = \n" << fFint_I << "\n\n";
-
-				fSigma.Print("Sigma");
-			}
-
-#endif
+			} 
 
 			/** Set coarse LHS */
 			fLHS = fKb_I;
@@ -283,46 +283,26 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 			fRHS += fFint_I; 
 			fRHS *= -1.0; 
 
+			/** Compute Traction B.C. and Body Forces */
+			Get_Fext_I ( fFext_I );
+			fRHS += fFext_I;
+			
 			/* add to global equations */
 			ElementSupport().AssembleLHS	( fCoarse.Group(), fLHS, CurrentElement().Equations() );
 			ElementSupport().AssembleRHS 	( fCoarse.Group(), fRHS, CurrentElement().Equations() );
 		}
-		else if (curr_group == fFine.Group())	// <-- ua (obtained by a rearranged Equation II)
+		else if (curr_group == fFine.Group())	// SolverGroup 2 (gets field 1) <-- ua (obtained by a rearranged Equation II)
 		{
 
 			/** Compute N-R matrix equations */
-			fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, delta_t, FEA::kBackward_Euler );
+			fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, step_number, delta_t, FEA::kBackward_Euler );
 			fEquation_II -> Form_LHS_Ka_Kb ( fKa_II, 	fKb_II );
 			fEquation_II -> Form_RHS_F_int ( fFint_II );
-
-#if (DEBUG==ALL || DEBUG==FINE) // Debugging Code
-
-			if (e==1 && loop_num==debug_iteration ) {
-
-			cout << ".................. FINE ................. Elmt number = "<<e<<"\n";
-			cout << ">>>>>>>>>>>>> e = "<<e<<"   loop_num =" <<loop_num<<"\n";
-			cout << "fKa_II = \n" << fKa_II << "\n";
-			cout << "fKb_II = \n" << fKb_II << "\n";
-
-			/* // Use for printing on 8.5 x 11
-				FEA_dMatrixT KAII(1, fKa_II.Rows(), fKa_II.Cols() );
-				FEA_dMatrixT KBII(1, fKb_II.Rows(), fKb_II.Cols() );
-
-      	KAII[0] = fKa_II;
-				KAII.print("Ka_II");
-
-      	KBII[0] = fKb_II;
-				KBII.print("Kb_II");
-
-			  myout << fKa_II;
-				*/
-			}
-#endif
 
 			/** Set LHS */
 			fLHS = fKa_II;	
 		
-			/** Compute fine RHS (or Fint_bar_II in FAXed notes) */
+			/** Compute fine RHS (or Fint_bar_II in FAXed notes)  */
 			fKb_II.Multx ( del_ub_vec, fRHS );
 			fRHS += fFint_II; 
 			fRHS *= -1.0; 
@@ -333,9 +313,11 @@ void StaggeredMultiScaleT::RHSDriver(void)	// LHS too!
 			/* add to global equations */
 			ElementSupport().AssembleLHS ( fFine.Group(), fLHS, fine_eq );
 			ElementSupport().AssembleRHS ( fFine.Group(), fRHS, fine_eq );
+
 		}
 		else throw ExceptionT::kGeneralFail;
 	}
+
 }
 
 //---------------------------------------------------------------------
@@ -358,10 +340,10 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 		case CoarseScaleT::kVMF_Virtual_Work_Eq :
 			fEquation_I 		= new VMF_Virtual_Work_EqT;
 			fCoarseMaterial = new Iso_MatlT;
-			//fCoarseMaterial -> Assign ( Iso_MatlT::kE, 	29000000.0 		);
-			//fCoarseMaterial -> Assign ( Iso_MatlT::kPr, 	0.30 				); 
-			fCoarseMaterial -> Assign ( Iso_MatlT::kE, 	 	168.0 	); // 100.0
-			fCoarseMaterial -> Assign ( Iso_MatlT::kPr, 	0.34 		); // .25 
+			//fCoarseMaterial -> Assign ( Iso_MatlT::kE, 	 	168.0 	); // 100.0
+			//fCoarseMaterial -> Assign ( Iso_MatlT::kPr, 	0.34 		); // .25 
+			fCoarseMaterial -> Assign ( Iso_MatlT::kE, 	 	236.4 	); // 100.0
+			fCoarseMaterial -> Assign ( Iso_MatlT::kPr, 	0.249 	); // .25 
 			fCoarseMaterial -> E_Nu_2_Lamda_Mu	( Iso_MatlT::kE,			Iso_MatlT::kPr,	
 																						Iso_MatlT::kLamda, 	Iso_MatlT::kMu 	);
 			break;
@@ -386,6 +368,36 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 	switch ( iFineScale )	{
 
 		case FineScaleT::kVMS_BCJ :
+			fEquation_II 	 = new VMS_BCJT;
+			fFineMaterial  = new BCJ_MatlT;							
+			fFineMaterial -> Assign (		BCJ_MatlT::kE, 				fMaterial_Data[k__E] 			); 	
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kPr, 			fMaterial_Data[k__Pr] 		); 	
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kf, 				fMaterial_Data[k__f] 			); 	
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kV, 				fMaterial_Data[k__V] 			); 	
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kY, 				fMaterial_Data[k__Y] 			); 	
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kl, 				fMaterial_Data[k__l] 			); 	
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kc_zeta, 	fMaterial_Data[k__c_zeta] ); 	
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kH, 				fMaterial_Data[k__H] 			); 	
+			fFineMaterial -> Assign ( 	BCJ_MatlT::kPlastic_Modulus_K, 	fMaterial_Data[k__K] 	); 	
+
+			fFineMaterial -> E_Nu_2_Lamda_Mu	( BCJ_MatlT::kE,			BCJ_MatlT::kPr,	
+																					BCJ_MatlT::kLamda, 	BCJ_MatlT::kMu 	);
+
+			fEquation_II -> Back_Stress_Type 	=  	iMaterial_Data[k__BS_Type]; 	
+			fEquation_II -> Iso_Hard_Type			= 	iMaterial_Data[k__IH_Type];
+
+			//fFineMaterial -> Assign ( 	BCJ_MatlT::kf, 			0.0000001 		); 	
+			//fFineMaterial -> Assign ( 	BCJ_MatlT::kV, 			258870.0   		); 	
+			break;
+
+		case FineScaleT::kVMS_EZ : 
+			fEquation_II 	= new VMS_EZT;
+			fFineMaterial = new Iso_MatlT; // <-- not used
+			break;
+
+#if 0
+
+		case FineScaleT::kVMS_BCJ :
 			fEquation_II 	= new VMS_BCJT;
 			fFineMaterial = new BCJ_MatlT;																	// Tantalum 
 			fFineMaterial -> Assign (		BCJ_MatlT::kE, 			168.0		 		); 	// 1.68e11 (Pa) 
@@ -404,7 +416,6 @@ void StaggeredMultiScaleT::Select_Equations (const int &iCoarseScale,const int &
 			fFineMaterial = new Iso_MatlT; // <-- not used
 			break;
 
-#if 0
 
 		case FineScaleT::kVMS_EZ2 : 
 			fEquation_II 	= new VMS_EZ2T;
@@ -518,128 +529,6 @@ void StaggeredMultiScaleT::PrintControlData(ostream& out) const
 
 //---------------------------------------------------------------------
 
-void StaggeredMultiScaleT::RegisterOutput(void)
-{
-	/* collect block ID's */
-	ArrayT<StringT> block_ID(fBlockData.Length());
-	for (int i = 0; i < block_ID.Length(); i++)
-		block_ID[i] = fBlockData[i].ID();
-
-	/* output per element - stresses at the integration points */
-	int n_stress = dSymMatrixT::NumValues(NumSD());
-	ArrayT<StringT> e_labels(fNumIP*n_stress);
-
-	/* over integration points */
-	const char* slabels2D[] = {"s11", "s22", "s12"};
-	const char* slabels3D[] = {"s11", "s22", "s33", "s23", "s13", "s12"};
-	const char**    slabels = (NumSD() == 2) ? slabels2D : slabels3D;
-	int count = 0;
-	for (int j = 0; j < fNumIP; j++)
-	{
-		StringT ip_label;
-		ip_label.Append("ip", j+1);
-			
-		/* over stress components */
-		for (int i = 0; i < n_stress; i++)
-		{
-			e_labels[count].Clear();
-			e_labels[count].Append(ip_label, ".", slabels[i]);
-			count++;
-		}
-	}		
-
-	/* output per node */
-	int num_node_output = fCoarse.NumDOF() + fFine.NumDOF() + n_stress;
-	ArrayT<StringT> n_labels(num_node_output);
-	count = 0;
-
-	/* labels from fine scale */
-	const ArrayT<StringT>& fine_labels = fFine.Labels();
-	for (int i = 0; i < fine_labels.Length(); i++)
-		n_labels[count++] = fine_labels[i];
-
-	/* labels from coarse scale */
-	const ArrayT<StringT>& coarse_labels = fCoarse.Labels();
-	for (int i = 0; i < coarse_labels.Length(); i++)
-		n_labels[count++] = coarse_labels[i];
-
-	/* labels from stresses at the nodes */
-	for (int i = 0; i < n_stress; i++)
-		n_labels[count++] = slabels[i];
-
-	/* set output specifier */
-	OutputSetT output_set(fGeometryCode, block_ID, fConnectivities, n_labels, e_labels, false);
-		
-	/* register and get output ID */
-	fOutputID = ElementSupport().RegisterOutput(output_set);
-}
-
-//---------------------------------------------------------------------
-
-void StaggeredMultiScaleT::WriteOutput(void)
-{
-	/* my output set */
-	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
-	
-	/* my nodes used */
-	const iArrayT& nodes_used = output_set.NodesUsed();
-
-	/* smooth stresses to nodes */
-	int n_stress = dSymMatrixT::NumValues(NumSD());
-	ElementSupport().ResetAverage(n_stress);
-	dArray2DT ip_stress_all;
-	dSymMatrixT ip_stress;
-	dArray2DT nd_stress(NumElementNodes(), n_stress);
-	Top();
-	while (NextElement())
-	{
-		/* extrapolate */
-		nd_stress = 0.0;
-		ip_stress_all.Set(fNumIP, n_stress, fIPStress(CurrElementNumber()));
-		fShapes->TopIP();
-		while (fShapes->NextIP())
-		{
-			ip_stress.Set(NumSD(), ip_stress_all(fShapes->CurrIP()));
-			fShapes->Extrapolate(ip_stress, nd_stress);
-		}
-	
-		
-		/* accumulate - extrapolation done from ip's to corners => X nodes */
-		ElementSupport().AssembleAverage(CurrentElement().NodesX(), nd_stress);
-	}
-
-	/* get nodally averaged values */
-	dArray2DT extrap_values;
-	ElementSupport().OutputUsedAverage(extrap_values);
-
-	/* temp space for group displacements */
-	int num_node_output = fCoarse.NumDOF() + fFine.NumDOF() + n_stress;
-	dArray2DT n_values(nodes_used.Length(), num_node_output);
-
-	/* collect nodal values */
-	const dArray2DT& ua = fFine[0];
-	const dArray2DT& ub = fCoarse[0];
-	for (int i = 0; i < nodes_used.Length(); i++)
-	{
-		int node = nodes_used[i];
-		double* row = n_values(i);
-		for (int j = 0; j < ua.MinorDim(); j++)
-			*row++ = ua(node,j);
-
-		for (int j = 0; j < ub.MinorDim(); j++)
-			*row++ = ub(node,j);
-
-		double* p_stress = extrap_values(i);
-		for (int j = 0; j < n_stress; j++)
-			*row++ = p_stress[j];
-	}
-
-	/* send */
-	ElementSupport().WriteOutput(fOutputID, n_values, fIPStress);
-}
-
-//---------------------------------------------------------------------
-
 void StaggeredMultiScaleT::SendOutput(int kincode)
 {
 #pragma unused(kincode)
@@ -695,3 +584,252 @@ void StaggeredMultiScaleT::ReadRestart(istream& in)
 	/* write state variable data */
 	in >> fdState;
 }
+
+//---------------------------------------------------------------------
+
+void StaggeredMultiScaleT::RegisterOutput(void)
+{
+	/* collect block ID's */
+	ArrayT<StringT> block_ID(fBlockData.Length());
+	for (int i = 0; i < block_ID.Length(); i++)
+		block_ID[i] = fBlockData[i].ID();
+
+	/* output per element - stresses at the integration points */
+	int n_stress = dSymMatrixT::NumValues(NumSD());
+	ArrayT<StringT> e_labels(fNumIP*n_stress);
+
+	/* over integration points */
+	const char* slabels2D[] = {"s11", "s22", "s12"};
+	const char* slabels3D[] = {"s11", "s22", "s33", "s23", "s13", "s12"};
+	const char** slabels = (NumSD() == 2) ? slabels2D : slabels3D;
+	int count = 0;
+	for (int j = 0; j < fNumIP; j++)
+	{
+		StringT ip_label;
+		ip_label.Append("ip", j+1);
+			
+		/* over stress components */
+		for (int i = 0; i < n_stress; i++)
+		{
+			e_labels[count].Clear();
+			e_labels[count].Append(ip_label, ".", slabels[i]);
+			count++;
+		}
+	}		
+
+	/* output per node */
+	int num_node_output = fCoarse.NumDOF() + fFine.NumDOF() + n_stress;
+	ArrayT<StringT> n_labels(num_node_output);
+	count = 0;
+
+	/* labels from fine scale */
+	const ArrayT<StringT>& fine_labels = fFine.Labels();
+	for (int i = 0; i < fine_labels.Length(); i++)
+		n_labels[count++] = fine_labels[i];
+
+	/* labels from coarse scale */
+	const ArrayT<StringT>& coarse_labels = fCoarse.Labels();
+	for (int i = 0; i < coarse_labels.Length(); i++)
+		n_labels[count++] = coarse_labels[i];
+
+	/* labels from stresses at the nodes */
+	for (int i = 0; i < n_stress; i++)
+		n_labels[count++] = slabels[i];
+
+	/* set output specifier */
+	OutputSetT output_set(fGeometryCode, block_ID, fConnectivities, n_labels, e_labels, false);
+		
+	/* register and get output ID */
+	fOutputID = ElementSupport().RegisterOutput(output_set);
+}
+
+//---------------------------------------------------------------------
+
+void StaggeredMultiScaleT::WriteOutput(void)
+{
+
+	//--------------------- Rendering access (here for now)
+	static int once_flag=0;
+	if (render_switch==1 && render_time==time && once_flag==0) { 
+		cout << "rt = "<<render_time<<": time = "<<time<<"\n";
+		RenderOutput();
+		once_flag++;
+	}	//-------------------- End Rendering
+	
+	
+	/* my output set */
+	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
+	
+	/* my nodes used */
+	const iArrayT& nodes_used = output_set.NodesUsed();
+
+	/* smooth stresses to nodes */
+	int n_stress = dSymMatrixT::NumValues(NumSD());
+	ElementSupport().ResetAverage(n_stress);
+	dArray2DT ip_stress_all;
+	dSymMatrixT ip_stress;
+	dArray2DT nd_stress(NumElementNodes(), n_stress);
+	Top();
+	while (NextElement())
+	{
+		/* extrapolate */
+		nd_stress = 0.0;
+		ip_stress_all.Set(fNumIP, n_stress, fIPStress(CurrElementNumber()));
+		fShapes->TopIP();
+		while (fShapes->NextIP())
+		{
+			ip_stress.Set(NumSD(), ip_stress_all(fShapes->CurrIP()));
+			fShapes->Extrapolate(ip_stress, nd_stress);
+		}
+	
+		
+		/* accumulate - extrapolation done from ip's to corners => X nodes  */
+		ElementSupport().AssembleAverage(CurrentElement().NodesX(), nd_stress);
+	}
+
+	/* get nodally averaged values */
+	dArray2DT extrap_values;
+	ElementSupport().OutputUsedAverage(extrap_values);
+
+	/* temp space for group displacements */
+	int num_node_output = fCoarse.NumDOF() + fFine.NumDOF() + n_stress;
+	dArray2DT n_values(nodes_used.Length(), num_node_output);
+
+	/* collect nodal values */
+	const dArray2DT& ua = fFine[0];
+	const dArray2DT& ub = fCoarse[0];
+	for (int i = 0; i < nodes_used.Length(); i++)
+	{
+		int node = nodes_used[i];
+		double* row = n_values(i);
+		for (int j = 0; j < ua.MinorDim(); j++)
+			*row++ = ua(node,j);
+
+		for (int j = 0; j < ub.MinorDim(); j++)
+			*row++ = ub(node,j);
+
+		double* p_stress = extrap_values(i);
+		for (int j = 0; j < n_stress; j++)
+			*row++ = p_stress[j];
+	}
+
+	/* send */
+	ElementSupport().WriteOutput(fOutputID, n_values, fIPStress);
+
+}
+
+//---------------------------------------------------------------------
+
+void StaggeredMultiScaleT::RenderOutput(void)
+{
+	/* my output set */
+	const OutputSetT& output_set = ElementSupport().OutputSet(fOutputID);
+	
+	/* my nodes used */
+	const iArrayT& nodes_used = output_set.NodesUsed();
+
+	int e,a,i;
+
+	//------- Gather Geometry Data -----------
+
+	Top();
+	while (NextElement()) {
+
+		e = CurrElementNumber();
+		const iArrayT& node = CurrentElement().NodesX(); // global node numbers start at 0 !
+	 	SetLocalX(fInitCoords); 
+
+  	for (a=0; a<n_en; a++) {
+			Geometry.Element_Set[e_set].IEN ( e,a ) = node[a];
+   		for (i=0; i<n_sd; i++)  
+				Geometry.Xo ( node[a],i ) = fInitCoords ( a,i ); 
+		}
+	}
+
+	//------- Smooth Stresses to Nodes -------
+		/* smooth stresses to nodes */
+	int n_stress = dSymMatrixT::NumValues(NumSD());
+	ElementSupport().ResetAverage(n_stress);
+	dArray2DT ip_stress_all;
+	dSymMatrixT ip_stress;
+	dArray2DT nd_stress(NumElementNodes(), n_stress);
+	
+	Top();
+	while (NextElement())
+	{
+		/* extrapolate */
+		nd_stress = 0.0;
+		ip_stress_all.Set(fNumIP, n_stress, fIPStress(CurrElementNumber()));
+		fShapes->TopIP();
+		while (fShapes->NextIP())
+		{
+			ip_stress.Set(NumSD(), ip_stress_all(fShapes->CurrIP()));
+			fShapes->Extrapolate(ip_stress, nd_stress);
+		}
+	
+		/* accumulate - extrapolation done from ip's to corners => X nodes  */
+		ElementSupport().AssembleAverage(CurrentElement().NodesX(), nd_stress);
+	}
+
+	/* get nodally averaged values */
+	dArray2DT extrap_values;
+	ElementSupport().OutputUsedAverage(extrap_values);
+
+#if RENDER
+
+	Render_Boss.time = time;
+	Render_Boss.Assemble_Facets 	( Geometry );
+	Render_Boss.Color_to_T ( extrap_values );
+	Render_Boss.Render ( );
+
+#endif
+
+}
+
+//---------------------------------------------------------------------
+
+void 	StaggeredMultiScaleT::Init_Render ( void )
+{
+	e_set=0; 
+	int n_es=1; 
+
+	Geometry.n_np = n_np;
+	Geometry.n_sd = n_sd;
+	Geometry.Xo.Dimension ( n_np,n_sd );
+	Geometry.n_es = n_es; 
+	Geometry.Element_Set.Dimension (n_es);
+	Geometry.Element_Set[e_set].n_el = n_el; 
+	Geometry.Element_Set[e_set].n_en = n_en; 
+	Geometry.Element_Set[e_set].IEN.Dimension ( n_el, n_en ); 
+
+	Geometry.Read_Surface_Data ( surface_file_name,e_set );
+
+	if ( n_sd == 2 )  
+		Geometry.Element_Set[e_set].element_type = ContinuumT::kQuad; 
+	if ( n_sd == 3 ) 	 
+		Geometry.Element_Set[e_set].element_type = ContinuumT::kHex; 
+		
+#if  RENDER 
+
+	Render_Boss.Read_Render_Settings 	( render_settings_file_name );
+	Render_Boss.active_field_component = component_ij;
+	//Render_Boss.Print_Render_Settings ( );
+
+#endif
+
+}
+
+//---------------------------------------------------------------------
+
+void 	StaggeredMultiScaleT::Get_Fext_I ( dArrayT &fFext_I )
+{
+	fFext_I = 0.0;
+
+	//#############################################################################
+	//#############################################################################
+	//### Code Goes Here to apply Traction b.c. and Body Forces ###################
+	//#############################################################################
+	//#############################################################################
+	
+}
+

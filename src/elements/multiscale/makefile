@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.3 2002-12-09 01:50:06 creigh Exp $
+# $Id: makefile,v 1.4 2003-03-07 22:23:57 creigh Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,6 +7,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	StaggeredMultiScaleT.o \
+	Traction_and_Body_Force.o \
 	FEA_FormatT.o 
 
 OBJ_LINK = $(OBJ)
@@ -18,6 +19,7 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	StaggeredMultiScaleT.cpp \
+	Traction_and_Body_Force.cpp \
 	FEA_FormatT.cpp 
 
 # headers
@@ -30,7 +32,8 @@ HDR_LINK = $(HDR:.h=.h_link)
 # subdirectories
 SUB_DIR = \
 			FEA	\
-			materials
+			materials \
+			continuum
 
 subdir_driver: subdir_loop
 
@@ -44,3 +47,4 @@ include $(MACRO_DIR)/subdir.targets
 # dependencies
 DEPEND = /dev/null
 include $(DEPEND)
+

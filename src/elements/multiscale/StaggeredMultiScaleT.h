@@ -1,9 +1,20 @@
-/* $Id: StaggeredMultiScaleT.h,v 1.11 2003-02-03 04:40:20 paklein Exp $ */ 
+/* $Id: StaggeredMultiScaleT.h,v 1.12 2003-03-07 22:23:57 creigh Exp $ */ 
+//DEVELOPMENT
 #ifndef _STAGGERED_MULTISCALE_T_H_ 
 #define _STAGGERED_MULTISCALE_T_H_ 
 
+#include "ContinuumT.h"
+
+#define RENDER 1  // <-- Turn rendering on/off
+
+#if RENDER
+#include "Render_ManagerT.h"
+#endif
+
 /* base classes */
 #include "ElementBaseT.h"
+
+#include "StringT.h"
 
 /* direct members */
 #include "LocalArrayT.h"
@@ -14,21 +25,41 @@
 #include "VMS.h"
 #include "FEA_FormatT.h"
 
+
 namespace Tahoe {
 
 /* forward declarations */
+
 class ShapeFunctionT;
+class Traction_CardT;	/** mass types */
 
 /** StaggeredMultiScaleT: This class contains methods pertaining to kinematics of
  * a dual field formulation. These include deformation gradients Fe and Fp
  * and gradients such as Grad(ue) and Grad(up) as examples.
  * Sandia National Laboratory and the University of Michigan **/
 
-class StaggeredMultiScaleT: public ElementBaseT 
+class StaggeredMultiScaleT: public ElementBaseT
 {
  //----- Class Methods -----------
 	
  public:
+
+	enum fMat_T 	{ 
+									k__E,
+									k__Pr,
+									k__f,
+									k__V,
+									k__Y,
+									k__c_zeta,
+									k__l,
+									k__K,
+									k__H,
+									kNUM_FMAT_TERMS	};
+
+	enum iMat_T 	{ 
+									k__BS_Type,
+									k__IH_Type,
+									kNUM_IMAT_TERMS	};
 
 	/** constructor */
 	StaggeredMultiScaleT(const ElementSupportT& support, const FieldT& coarse, 
@@ -115,6 +146,7 @@ private:
 
 	/** Gradients with respect to reference coodinates */
 	FEA_dMatrixT fGRAD_ua, fGRAD_ua_n, fGRAD_ub, fGRAD_ub_n, fSigma;
+	//FEA_dScalar_ArrayT  S;
 
 	/** \name  values read from input in the constructor */
 	/*@{*/
@@ -136,7 +168,46 @@ private:
 	dArrayT			del_ua_vec;  	/** need in vector for i.e. { {ua1_1,ua1_2},{ua2_1,ua2_2}, ... } */
 	dArrayT			del_ub_vec;		/** need in vector for i.e. { {ub1_1,ub1_2},{ub2_1,ub2_2}, ... } */
 	/*@}*/
+
+	int n_ip, n_sd, n_df, n_en, n_en_x_n_df; 
+	int n_np, n_el, n_comps;
+	//int step_number_last_iter;
+	//bool New_Step;
+	int step_number;
+
+	//------- Render Variables 
 	
+ 	bool render_switch;	
+	StringT render_settings_file_name;
+	StringT surface_file_name;
+ 	double render_time;	
+ 	int render_variable;	
+	int component_ij;
+ 	int render_variable_group;	
+ 	int render_variable_order;	
+ 	int render_displ;	
+
+	bool render_data_stored;
+ 	double time;	
+
+	int e_set;
+	FEA_dMatrixT rVariable; // Render Variable
+	ContinuumT Geometry; 
+	void 	Init_Render ( void );
+	//void  Update_New_Step ( void );
+	void 	Store_Render_Data ( double &time,LocalArrayT fInitCoords,
+								 						LocalArrayT &ua,LocalArrayT &ub,FineScaleT *fEquation_II );
+	void RenderOutput ( void );
+	void Get_Fext_I 	( dArrayT &fFext_I );
+	
+#if RENDER
+	Render_ManagerT Render_Boss;
+#endif
+
+	//-- Material Parameters 
+
+	dArrayT fMaterial_Data;
+	iArrayT iMaterial_Data;
 	/** \name shape functions wrt to current coordinates */
 	/*@{*/
 	/** shape functions and derivatives. The derivatives are wrt to the 
@@ -163,6 +234,7 @@ private:
 	dMatrixT 	fKa_I, 	fKb_I;  
 	dMatrixT 	fKa_II, fKb_II; 
 	dArrayT 	fFint_I;
+	dArrayT 	fFext_I;
 	dArrayT		fFint_II;
 
 	/* Multi-Field Element Formulators */
@@ -208,7 +280,76 @@ private:
 	 * StaggeredMultiScaleT::RHSDriver */
 	dArray2DT fIPStress;
 	/*@}*/
+
+	//##########################################################################################
+	//############## Attributes from ContinuumElementT.h needed for cut and paste ##############
+	//############## methods in Traction_and_Body_Force.cpp (i.e. methods now in this class) ### 
+	//##########################################################################################
+
+	public:
+
+		/* forward declarations */
+	
+		enum MassTypeT {kNoMass = 0, /**< do not compute mass matrix */
+            kConsistentMass = 1, /**< variationally consistent mass matrix */
+                kLumpedMass = 2  /**< diagonally lumped mass */ };
+
+	/** reference to element shape functions */
+	const ShapeFunctionT& ShapeFunction(void) const;
+
+	protected:
+	
+	/** stream extraction operator */
+	//friend istream& operator>>(istream& in, ContinuumElementT::MassTypeT& type);
+
+		void ApplyTractionBC(void);
+
+	/** add contribution from the body force */
+	void AddBodyForce(LocalArrayT& body_force) const;
+	
+		/** element body force contribution 
+	 * \param mass_type mass matrix type of ContinuumElementT::MassTypeT
+	 * \param constM pre-factor for the element integral
+	 * \param nodal nodal values. Pass NULL for no nodal values: [nen] x [ndof]
+	 * \param ip_values integration point source terms. Pass NULL for no integration
+	 *        point values : [nip] x [ndof] */
+	void FormMa(MassTypeT mass_type, double constM, const LocalArrayT* nodal_values, const dArray2DT* ip_values);
+	 		
+	void EchoTractionBC(ifstreamT& in, ostream& out);
+	// could also break up. Input and defaults(per output format) are
+	// shared but the output of what each code means is class-dependent
+	void EchoBodyForce(ifstreamT& in, ostream& out);
+
+	/** update traction BC data */
+	void SetTractionBC(void);
+
+	/* body force vector */
+	const ScheduleT* fBodySchedule; /**< body force schedule */
+	dArrayT fBody; /**< body force vector   */
+
+	/* traction data */
+	ArrayT<Traction_CardT> fTractionList;
+	int fTractionBCSet;
+
+	dArrayT fDOFvec; /**< work space vector: [nodal DOF]   */
+	
 };
+
+//-- Inlines from ContinuumElementT to satisfy Traction_and_Body_Force
+
+/* accessors */
+inline const ShapeFunctionT& StaggeredMultiScaleT::ShapeFunction(void) const 
+{
+#if __option(extended_errorcheck)
+	if (!fShapes)
+	{
+		cout << "\n ContinuumElementT::ShapeFunction: no shape functions" << endl;
+		throw ExceptionT::kGeneralFail;
+	}
+#endif
+	return *fShapes;
+}
+
 
 } // namespace Tahoe 
 #endif /* _STAGGERED_MULTISCALE_T_H_ */

@@ -1,4 +1,4 @@
-// $Id: FEA.h,v 1.3 2003-02-03 04:40:21 paklein Exp $
+// $Id: FEA.h,v 1.4 2003-03-07 22:23:58 creigh Exp $
 #ifndef _FEA_H_
 #define _FEA_H_
 
@@ -18,6 +18,8 @@ class FEA
 {
 public:
 
+	enum ETypeT 		{ kQuad, kHex, kRod, kTri, kTet 	};  // Quadrilateral
+	enum OrderT 		{ kConstant, kLinear, kQuadratic 	};
 	enum Logic1T 		{ OFF, 		ON 		};
 /*	enum Logic2T 		{ FALSE, 	TRUE 	}; --- already defined */
 	enum Logic3T 		{ NO, 		YES 	};

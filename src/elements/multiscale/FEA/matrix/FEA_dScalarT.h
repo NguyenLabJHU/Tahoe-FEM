@@ -1,4 +1,4 @@
-// $Id: FEA_dScalarT.h,v 1.2 2003-02-03 04:40:24 paklein Exp $
+// $Id: FEA_dScalarT.h,v 1.3 2003-03-07 22:24:01 creigh Exp $
 #ifndef _FEA_DSCALART_H_
 #define _FEA_DSCALART_H_
 
@@ -28,20 +28,23 @@ class FEA_dScalarT: public dArrayT // For the name sake only
     int IPs(void) { return fLength; }
 		void FEA_Dimension(int n_ip) { Dimension(n_ip); }
 
-		void Sin	( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = sin  ( s[i] ); }
-		void Cos	( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = cos  ( s[i] ); }
-		void Tan	( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = tan  ( s[i] ); }
-		void Exp  ( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = exp  ( s[i] ); }
-		void Sinh ( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = sinh ( s[i] ); }
-		void Cosh ( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = cosh ( s[i] ); }
-		void Sqrt	( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = sqrt ( s[i] ); }
-		void Sin	( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = sin  ( (*this)[i] ); }
-		void Cos	( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = cos  ( (*this)[i] ); }
-		void Tan	( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = tan  ( (*this)[i] ); }
-		void Exp	( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = exp  ( (*this)[i] ); }
-		void Sinh	( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = sinh ( (*this)[i] ); }
-		void Cosh	( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = cosh ( (*this)[i] ); }
-		void Sqrt	( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = sqrt ( (*this)[i] ); }
+		void Sin			( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = sin  ( s[i] ); }
+		void Cos			( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = cos  ( s[i] ); }
+		void Tan			( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = tan  ( s[i] ); }
+		void Exp  		( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = exp  ( s[i] ); }
+		void Sinh 		( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = sinh ( s[i] ); }
+		void Cosh 		( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = cosh ( s[i] ); }
+		void Sqrt			( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) (*this)[i] = sqrt ( s[i] ); }
+		void Macaulay ( FEA_dScalarT &s ) { for (int i=0; i<fLength; i++) if (s[i]<0.0) (*this)[i] = s[i]; else (*this)[i] = 0.0; }
+
+		void Sin			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = sin  ( (*this)[i] ); }
+		void Cos			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = cos  ( (*this)[i] ); }
+		void Tan			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = tan  ( (*this)[i] ); }
+		void Exp			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = exp  ( (*this)[i] ); }
+		void Sinh			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = sinh ( (*this)[i] ); }
+		void Cosh			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = cosh ( (*this)[i] ); }
+		void Sqrt			( void ) 						{ for (int i=0; i<fLength; i++) (*this)[i] = sqrt ( (*this)[i] ); }
+		void Macaulay ( void )						{ for (int i=0; i<fLength; i++)  if ((*this)[i]<0.0) (*this)[i]=0.0; }
 
 		void operator  = (const double *a ) 				{ for (int i=0; i<fLength; i++) (*this)[i]  = a[i]; }
 
@@ -63,7 +66,6 @@ class FEA_dScalarT: public dArrayT // For the name sake only
 		void operator *= (const double &a ) 				{ for (int i=0; i<fLength; i++) (*this)[i] *= a; }
 		void operator /= (const double &a ) 				{ for (int i=0; i<fLength; i++) (*this)[i] /= a; }
 
-		void Macaulay_Bracket (void)	{ for (int i=0; i<fLength; i++)  if ((*this)[i]<=0.0) (*this)[i]=0.0; }
 
 		void Dot 				 	( FEA_dVectorT &a, FEA_dVectorT &b ); 
 		void Double_Dot  	( FEA_dMatrixT &A, FEA_dMatrixT &B ); 

@@ -1,4 +1,4 @@
-// $Id: VMF_MaterialT.h,v 1.2 2003-02-03 04:40:28 paklein Exp $
+// $Id: VMF_MaterialT.h,v 1.3 2003-03-07 22:24:04 creigh Exp $
 #ifndef _VMF_MATERIALT_
 #define _VMF_MATERIALT_
 
@@ -50,5 +50,9 @@ class VMF_MaterialT
 		int n_mp; // Number of material parameters (set by derived class during allocation) 
 
 };
+
+
+class VMF_VariableT : public VMF_MaterialT { public: };  // Exact same thing different name
+
 }
 #endif

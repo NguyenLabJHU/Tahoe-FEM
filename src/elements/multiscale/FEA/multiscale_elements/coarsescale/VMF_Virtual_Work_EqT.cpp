@@ -1,4 +1,6 @@
-// $Id: VMF_Virtual_Work_EqT.cpp,v 1.7 2003-02-03 04:40:26 paklein Exp $
+//DEVELOPMENT
+
+
 #include "FEA.h" 
 #include "VMS.h" // <-- Switch name to VMF later 
 

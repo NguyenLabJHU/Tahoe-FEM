@@ -1,4 +1,5 @@
-// $Id: VMF_Virtual_Work_EqT.h,v 1.5 2003-02-03 04:40:26 paklein Exp $
+//DEVELOPMENT
+
 #ifndef _VMF_VWEQ_T_H_ 
 #define _VMF_VWEQ_T_H_ 
 
@@ -66,7 +67,9 @@ class VMF_Virtual_Work_EqT	: public CoarseScaleT
 		void 	Form_B_List 		( void );  // Strain Displacement Matricies
 		void 	Form_A_S_Lists 	( VMS_VariableT &np1, VMS_VariableT &n,int Integration_Scheme=FEA::kBackward_Euler ); // BCDE ---> A 
 
-		void 	Sigma ( FEA_dMatrixT &sigma) 		{ sigma = A[kSigma]; } 
+		void 	Get ( int scalar_code, FEA_dScalarT &scalar  ) { scalar = S[scalar_code]; } 
+		void 	Get ( int tensor_code, FEA_dMatrixT &tensor, int tensor_order ) 		
+								{ tensor = (tensor_order==2) ? A[tensor_code] : T4[tensor_code]; } 
 
 	protected:
 
@@ -84,6 +87,7 @@ class VMF_Virtual_Work_EqT	: public CoarseScaleT
 		int n_ip, n_rows, n_cols, n_sd, n_en, n_sd_x_n_sd, n_sd_x_n_en;
   
 };
+
 
 } // namespace Tahoe 
 #endif /* _VMS_BCJT_H_ */

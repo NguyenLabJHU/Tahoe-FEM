@@ -1,4 +1,4 @@
-// $Id: VMS_BCJT.h,v 1.8 2003-02-03 04:40:27 paklein Exp $
+// $Id: VMS_BCJT.h,v 1.9 2003-03-07 22:24:02 creigh Exp $
 #ifndef _VMS_BCJT_H_ 
 #define _VMS_BCJT_H_ 
 
@@ -33,10 +33,24 @@ class VMS_BCJT : public FineScaleT
 								kBb_Cbi_3hat,
 								kBa_Cbi_tau_3hat,
 								kBb_Cbi_tau_3hat,
+								kBa_H,
+								kBb_H,
 								kBa_S,
 								kBb_S,
-								kBa_DEV_S, 
-								kBb_DEV_S, 
+								kBa_Z,
+								kBb_Z,
+								kBa_Zeta_Jb,
+								kBb_Zeta_Jb,
+								kBa_Zeta_Fbi,
+								kBb_Zeta_Fbi,
+								kBa_Zeta_curl_sE_T,
+								kBb_Zeta_curl_sE_T,
+								kBa_DEV_H, 
+								kBb_DEV_H, 
+
+								kBa_Kappa_tau_3hat,   // Iso Hardening
+								kBa_Kappa_3hat,
+								kBa_Kappa,
 
 								kB_Temp0,
 								kB_Temp1,
@@ -46,13 +60,19 @@ class VMS_BCJT : public FineScaleT
     enum A_T { 
 							 	kDa_m,
 						   	kgrad_ub,
+						   	kF,   	// for Iso hard
+						   	kFT,  	// for Iso hard
+						   	kFa,  	// for Iso hard
+						   	kFaT, 	// for Iso hard
+							 	kFa_n,	// for Iso hard
 						   	kFai,
 						   	kFb,
 								kFbT,
-							 	kFa_n,
 							 	kCa_n,
 								kF_sharp,
+								kF_sharp_T,
 								kN,
+								kNe,
 								kA1,
 								kA2,
 								kA3,
@@ -60,11 +80,21 @@ class VMS_BCJT : public FineScaleT
 								kA2T,
 								kA3T,
 							 	kDa_mp1,
+						   	kCa,
 						   	kCb,
 						   	kCbi,
+						   	kEa,
+						   	kEa_n,
+						   	kEa_dot,
 						   	kEb,
 						   	kS,
-						   	kDEV_S,
+						   	kFbi,					// for Back Stress
+						   	kH_bar,				// for Back Stress
+						   	kDEV_H,				// for Back Stress
+						   	kZeta,				// for Back Stress
+						   	kcurl_sE,			// for Back Stress
+								kA4,					// for Back Stress
+						   	kMu_c_l_Jb_curl_sE_T,	// for Back Stress
 								kG2,
 								kA_Temp0,
 	             	kNUM_A_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
@@ -75,56 +105,102 @@ class VMS_BCJT : public FineScaleT
 								kCC,			//	Doubled upper case represent black bold font 
 								kMM,
 								kPP,
-								kMag_DEV_S_PP,
+								kMag_DEV_H_PP,
 								kN_o_N,		
-								kCbi_o_S,		// Outer product of (C^beta)^-1 and S  
+								kN_o_Ne,		// Used for kappa
+								kCbi_o_H,		// Outer product of (C^beta)^-1 and S  
 								kCbi_o_Cb,
+								kAAe_2bar,			// in Linearization of Zeta
+								kAAf_2bar,			// in Linearization of Zeta
+								kEE_2bar,				// in Linearization of Zeta
+								kZ_o_F_sharp_T,	// in Linearization of Zeta
+								kZ_o_1,					// in Linearization of Zeta
 								kT4_Temp0,
 	             	kNUM_T4_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
 
 								
     enum S_T { 	// Scalar values
 
-								kMag_DEV_S,
+								kMag_DEV_H,
+								kMag_Ea,
+						   	kMag_Ea_dot,
 								kBeta,
 								kBeta2,
-								kSinh_Beta,
-								kCosh_Beta,
-								kCb_i_S,		// Inner product of C^beta and S 
+								kBetaK,
+								kKappa_bar,
+								kMacaulay_Sinh_Beta,
+								kCosh_Beta, // No point in Macaulay Cosh(x) min point is 1.0
+								kCb_i_H,		// Inner product of C^beta and H 
+								kIV_Alpha,
+								kIV_Alpha_n,
+								kJb,
+								kS_Temp0,
+								kS_Temp1,
 	             	kNUM_S_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
 
- 
-    enum C_T { 
+								
+   enum C_T { 
 								kLamda,
 								kMu,
 								kf,
 								kV,
 								kY,
+								kc,
+								kl,
+								kMu_c_l,
+								kKappa,
+								kH,		
 								kNeg_dt_Root3by2_f,
 								kRoot3by2byV,
 								k1byV,
 								kYbyV,
 								k1by3,
 								kRoot3by2,
+								kRoot2by3,
+								k2by3,
 	             	kNUM_C_TERMS };  // <-- Use for loops and count (KEEP THIS ONE LAST!!)
 
+		enum NP_T {
+								ksE_mat,
+								kFbi_hat_mat,
+								kIdentity,
+								kNUM_NP_TERMS };
+
+
+		enum BCK_T {
+								kNo_Back_Stress,
+								kSteinmann,
+								kExp_Back };
+
+		enum ISO_T {
+								kNo_Iso_Hard,
+								kMethod1,
+								kMethod2,
+								kMethod3,
+								kExp_Iso };
 
 	//--------------------------------------------------------------
 	
  	VMS_BCJT	(	) { }
 								
 	VMS_BCJT	( FEA_ShapeFunctionT&, VMF_MaterialT*, VMS_VariableT&, VMS_VariableT&, 
-														 double fdelta_t = 0.0, int IntegrationScheme = FEA::kBackward_Euler);
+							int &fTime_Step, double fdelta_t = 0.0, int IntegrationScheme = FEA::kBackward_Euler);
 
-	void 	Construct ( FEA_ShapeFunctionT&, VMF_MaterialT*, VMS_VariableT&, VMS_VariableT&, 
-								 double fdelta_t = 0.0, int Integration_Scheme = FEA::kBackward_Euler); 
+	void  Initialize	( int &in_ip, int &in_sd, int &in_en, int Initial_Time_Step=1 );
+
+	void 	Construct 	( FEA_ShapeFunctionT&, VMF_MaterialT*, VMS_VariableT&, VMS_VariableT&, 
+								 			int &fTime_Step, double fdelta_t = 0.0, int Integration_Scheme = FEA::kBackward_Euler); 
 
   void 	Form_LHS_Ka_Kb	(	dMatrixT &Ka, dMatrixT &Kb ); 
   void 	Form_RHS_F_int	(	dArrayT &F_int ); 
 	void 	Form_B_List 		( void );  // Strain Displacement Matricies
-	void 	Form_A_S_Lists 	( VMS_VariableT &np1, VMS_VariableT &n ); // BCDE ---> A
+	void 	Form_A_S_Lists 	( VMS_VariableT &np1, VMS_VariableT &n); // BCDE ---> A
 	void 	Form_T4_List 		( void );  // Tensors generated by order reduction of 4th order Tensor
  	void 	Form_C_List 		( VMF_MaterialT *Iso_Matl );  // Constant List
+
+	void 	Get_Iso_Hard_Kappa_bar ( void );
+	void 	Get_Back_Stress	( void );
+	void  Form_del_Zeta_B	( void );  // Calculates B[kBa_Z],  B[kBb_Z]	
 
 	protected:
 
@@ -133,14 +209,19 @@ class VMS_BCJT : public FineScaleT
   	FEA_dMatrix_ArrayT   T4; 	// Dimension: n_sd*n_sd x n_sd*n_sd, e.g. 9x9 Matricies 
 															// (Tensors generated from 3x3 outer 3x3 reduced order)
   	FEA_dScalar_ArrayT    S; 
-  	dArrayT 			      	C; 
-		
+  	dArrayT 			      	C;
+
+		// NP for Nodal Point, This special array has values at node points NOT integration points
+		FEA_dMatrix_ArrayT    NP; 	
+	 					
 	protected:
 
 		FEA_IntegrationT 		Integral;
 		FEA_Data_ProcessorT Data_Pro; 
 
 		int n_ip, n_rows, n_cols, n_sd, n_en, n_sd_x_n_sd, n_sd_x_n_en, Time_Integration_Scheme;
+		int time_step;
+
 		double delta_t;
 };
 

@@ -1,20 +1,30 @@
-// $Id: VMS_EZT.cpp,v 1.3 2003-02-03 04:40:27 paklein Exp $
+// $Id: VMS_EZT.cpp,v 1.4 2003-03-07 22:24:02 creigh Exp $
 #include "FEA.h" 
 #include "VMS.h" 
 
 using namespace Tahoe;
 
-VMS_EZT::VMS_EZT	(FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, VMS_VariableT &np1, VMS_VariableT &n, 
-						double fdelta_t, int Integration_Scheme) 
+VMS_EZT::VMS_EZT	( FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, VMS_VariableT &np1, VMS_VariableT &n, 
+										int &fTime_Step, double fdelta_t, int Integration_Scheme) 
 {
-	Construct (Shapes,BCJ_Matl,np1,n,fdelta_t,Integration_Scheme);
+	Construct (Shapes,BCJ_Matl,np1,n,fTime_Step,fdelta_t,Integration_Scheme);
+}
+ 
+//---------------------------------------------------------------------
+
+void VMS_EZT::Initialize ( int &in_ip, int &in_sd, int &in_en, int Initial_Time_Step )
+{
+#pragma unused(in_ip)
+#pragma unused(in_sd)
+#pragma unused(Initial_Time_Step)
 }
 
 //---------------------------------------------------------------------
 
-void VMS_EZT::Construct (FEA_ShapeFunctionT &Shapes,VMF_MaterialT *EZ_Matl, VMS_VariableT &np1, VMS_VariableT &n, 
-							double fdelta_t, int Integration_Scheme) 
+void VMS_EZT::Construct (	FEA_ShapeFunctionT &Shapes,VMF_MaterialT *EZ_Matl, VMS_VariableT &np1, VMS_VariableT &n, 
+													int &fTime_Step, double fdelta_t, int Integration_Scheme) 
 {
+#pragma unused(fTime_Step)
 #pragma unused(fdelta_t)
 #pragma unused(Integration_Scheme)
 #pragma unused(EZ_Matl)

@@ -1,4 +1,4 @@
-// $Id: FEA_Data_ProcessorT.h,v 1.3 2003-02-03 04:40:22 paklein Exp $
+// $Id: FEA_Data_ProcessorT.h,v 1.4 2003-03-07 22:23:59 creigh Exp $
 #ifndef _FEA_DATAPROCESSRT_H_
 #define _FEA_DATAPROCESSRT_H_
 
@@ -14,6 +14,9 @@ class FEA_Data_ProcessorT
 		FEA_Data_ProcessorT 			(); 
 		FEA_Data_ProcessorT 			( FEA_dMatrixT &fdNdx );
 		void Construct 						( FEA_dMatrixT &fdNdx ); 
+
+		void Mass_B						(int n_ed, FEA_dMatrixT &B);
+		void Insert_N					(FEA_dVectorT &fN) { N = fN; }
 
 		void grad_u     			(FEA_dMatrixT &B,int T_flag=FEA::kNonSymmetric);
 
@@ -36,7 +39,7 @@ class FEA_Data_ProcessorT
 		void II_minus_A_o_B		(FEA_dMatrixT &A, 	FEA_dMatrixT &A1, 	FEA_dMatrixT &P); 
 		void IIsym						(FEA_dMatrixT &II);
 		void Identity					(FEA_dMatrixT &I_mat) { I_mat=I; }
-		void Identity					(FEA_dVectorT &I_vec, double scale=1.0); 
+		void Identity					(FEA_dVectorT &I_vec, double scale=1.0);
 	 	
 	  void C_IJKL 					(const double &lamda,const double &mu,FEA_dMatrixT &D,int kine=FEA::kPlaneStrain);
 		void C_IJKL_E_KL			(double &lamda,double &mu, FEA_dMatrixT &E, FEA_dMatrixT &S); // Hooke's Law
@@ -44,17 +47,27 @@ class FEA_Data_ProcessorT
 		void c_ijkl_Alt				(double &lamda,double &mu, FEA_dScalarT &J, FEA_dMatrixT &F, FEA_dMatrixT &D);
 
 		void Curl			    		(const ArrayT<dMatrixT> &T,	FEA_dMatrixT &curl) const;
+		void Grad			    		(const ArrayT<dArrayT> 	&u,	FEA_dMatrixT &grad) const;
+		void Grad_ij			    (const ArrayT<dMatrixT> &T,	int ii,int ij,int ik, FEA_dScalarT &Tij_k) const;
 		//void Curl			    	(FEA_dVectorT &a2,	FEA_dVectorT &c);
 		//void A2_o_A1_grad_u (FEA_dMatrixT &A2, 	FEA_dMatrixT &A1, 	FEA_dMatrixT &B);
 	
-		void Reduce_Order			(	FEA_dMatrixT &A, 	FEA_dVectorT &a );
+		void Mass							(int n_ed, FEA_dMatrixT &M); 
+		void Reduce_Order			(	FEA_dMatrixT 	&A, 	FEA_dVectorT 	&a );
+		void Element_Nodal_Values_Expand_Order ( dArrayT &T_vec, ArrayT < dMatrixT > &T_mat );
+
 		//void Reduce_Order			(	FEA_dTensorO4T &AA, 	FEA_dMatrixT &A );
 
+		void Form_Permutation_Symbol 	( void ); // Form e_ijk
+		void Form_Order_Reduction_Map	( void );
 
-		void Form_Order_Reduction_Map(void);
     nMatrixT<int> Map;		
 	  FEA_dMatrixT dN;	
-	  FEA_dMatrixT 	I;	
+	  FEA_dVectorT  N;	
+	  FEA_dMatrixT 	I;
+
+		ArrayT < ArrayT < dArrayT > > e_ijk;  // Permutation Symbol
+
 		int n_ip, n_en, n_sd, n_sd_x_n_sd, n_sd_x_n_en;
 
 		//--------------------------------------------------------------------------------------------------------

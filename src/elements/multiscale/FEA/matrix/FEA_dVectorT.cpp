@@ -1,4 +1,4 @@
-// $Id: FEA_dVectorT.cpp,v 1.2 2003-02-03 04:40:24 paklein Exp $
+// $Id: FEA_dVectorT.cpp,v 1.3 2003-03-07 22:24:01 creigh Exp $
 #include "FEA.h"
 
 using namespace Tahoe; 
@@ -151,6 +151,14 @@ void FEA_dVectorT::MultAb  (const FEA_dMatrixT &A, const FEA_dVectorT &b) // Unt
 };
 
 //----------------------------------------------------
+
+void FEA_dVectorT::MultAb  (const FEA_dMatrixT &A, const dArrayT &b) // Untested 
+{
+	for (int i=0; i<n_ip; i++)
+		A[i].Multx ( b, (*this)[i] );
+};
+
+//----------------------------------------------------
 		
 void FEA_dVectorT::MultATb (const FEA_dMatrixT &A, const FEA_dVectorT &b) // Untested 
 {
@@ -230,6 +238,23 @@ void FEA_dVectorT::operator /=  (const FEA_dScalarT &s) {
 
 //----------------------------------------------------
 
+FEA_EquateT& FEA_dVectorT::operator()(const int i) 
+{
+	double *p = FEA_Pointer (i);
+	extern FEA_StackT* fStack;
+	int n = fStack->Next_Shallow_Stack();
+	fStack->Shallow_Stack[n].length = n_ip; 
+
+	for (int l=0; l<n_ip; l++) { 
+    fStack->Shallow_Stack[n].vec_ptrs[l] = p;  // Shallow copy allows data of (*this) LHS matrix to change
+		p += n_sd;
+	}
+
+  return	fStack->Shallow_Stack[n];
+}
+
+#if 0 
+//-- Antiquated method : Changed to new one 28FEB03
 FEA_EquateT& FEA_dVectorT::operator()(const int i) {
   if (fLength==0) cout <<"..ERROR>> FEA_dVectorT: Vector unallocated"; 
 
@@ -238,5 +263,6 @@ FEA_EquateT& FEA_dVectorT::operator()(const int i) {
 
   return(ip_components);
 }
+#endif
 
 

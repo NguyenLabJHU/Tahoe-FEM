@@ -1,4 +1,4 @@
-// $Id: FEA_IntegrationT.h,v 1.2 2003-02-03 04:40:23 paklein Exp $
+// $Id: FEA_IntegrationT.h,v 1.3 2003-03-07 22:24:00 creigh Exp $
 #ifndef _FEA_INTEGRATIONT_H_ 
 #define _FEA_INTEGRATIONT_H_ 
 
@@ -16,6 +16,11 @@ class FEA_IntegrationT
 		FEA_IntegrationT	(FEA_dScalarT &J, FEA_dScalarT &Weights);
 		void Construct 		(FEA_dScalarT &J, FEA_dScalarT &Weights);
 					
+  	dMatrixT of ( FEA_dMatrixT &K );
+  	dMatrixT of ( double c, FEA_dMatrixT &K );
+  	dMatrixT of ( FEA_dScalarT &s, FEA_dMatrixT &K );
+  	dMatrixT of ( double c, FEA_dScalarT &s, FEA_dMatrixT &K );
+
   	dMatrixT of ( FEA_dMatrixT &B1, FEA_dMatrixT &B2 );
   	dMatrixT of ( FEA_dMatrixT &B1,	double c, FEA_dMatrixT &B2 );
   	dMatrixT of ( FEA_dMatrixT &B1,	FEA_dScalarT &s, FEA_dMatrixT &B2 );
@@ -33,6 +38,11 @@ class FEA_IntegrationT
 
 				//-- The following are faster (no copying) but less elegant
 		
+  			void of ( FEA_dMatrixT &K, dMatrixT &k );
+  			void of ( double c, FEA_dMatrixT &K, dMatrixT &k );
+  			void of ( FEA_dScalarT &s, FEA_dMatrixT &K, dMatrixT &k );
+  			void of ( double c, FEA_dScalarT &s, FEA_dMatrixT &K, dMatrixT &k );
+
   			void of ( FEA_dMatrixT &B1, FEA_dMatrixT &B2, dMatrixT &k );
   			void of ( FEA_dMatrixT &B1,	double c, FEA_dMatrixT &B2, dMatrixT &k );
   			void of ( FEA_dMatrixT &B1,	FEA_dScalarT &s, FEA_dMatrixT &B2, dMatrixT &k );

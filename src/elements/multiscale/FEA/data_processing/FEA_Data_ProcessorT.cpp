@@ -1,4 +1,4 @@
-// $Id: FEA_Data_ProcessorT.cpp,v 1.5 2003-02-03 04:40:22 paklein Exp $
+// $Id: FEA_Data_ProcessorT.cpp,v 1.6 2003-03-07 22:23:59 creigh Exp $
 #include "FEA.h"  
 
 using namespace Tahoe;
@@ -27,9 +27,10 @@ void FEA_Data_ProcessorT::Construct ( FEA_dMatrixT &fdNdx )
   n_en = dN.Cols();
   n_sd_x_n_en = n_sd*n_en;
   n_sd_x_n_sd = n_sd*n_sd;
-  I.FEA_Dimension(n_ip,n_sd,n_sd);	
+  I.FEA_Dimension ( n_ip, n_sd, n_sd );	
 	I.Identity();
-	Form_Order_Reduction_Map();
+	Form_Permutation_Symbol 	( );
+	Form_Order_Reduction_Map 	( );
 }
 
 
@@ -62,6 +63,47 @@ void FEA_Data_ProcessorT::Form_Order_Reduction_Map(void)
 	}
 
 };
+
+//---------------------------------------------------------------------
+
+void FEA_Data_ProcessorT::Mass_B (int n_ed, FEA_dMatrixT &B) 
+{
+	int a,i,j;
+	FEA_dMatrixT D ( n_ip, n_ed, n_ed );
+
+
+		for (a=0; a<n_en; a++) {
+			j = n_ed*a;  						// Columns of B for node "a"
+			for (i=0; i<n_ed; i++)
+				D(i,i) = N(a);		// Load diagonal w/ EquateT
+			B.Insert_SubMatrix  (0,j,D); 
+		}
+
+}
+
+//---------------------------------------------------------------------
+// M has dimension ( n_ed*n_en x n_ed*n_en ) same as B_tilde_T.B_tilde )
+
+void FEA_Data_ProcessorT::Mass	(int n_ed, FEA_dMatrixT &M)  // density rho not included
+{
+  FEA_dMatrixT mab(n_ip, n_ed,n_ed);  // Note: For quad, n_ed = 2 for inertial term, n_ed = 4 for mixed stress 
+	mab = 0.0;
+
+	int a,b,i,j,l,ii,p,q;
+
+   for (a=0; a<n_en; a++)
+     for (b=0; b<n_en; b++) {
+				for (ii=0; ii<n_ed; ii++) 
+       		mab(ii,ii) = N(a)*N(b); 	//-- Diagonal only filled here 
+       	for (i=0; i<n_ed; i++) 
+       		for (j=0; j<n_ed; j++) {
+           	p = n_ed*(a) + i; //-- This map is from node and local-node-dof to global dof  (not Order Reduction Map)
+           	q = n_ed*(b) + j;
+           	M(p,q) = mab(i,j);  		//-- Kronecker implicitly applied here since only diagonals are non-zero
+				}
+		}
+
+}
 
 //---------------------------------------------------------------------
 
@@ -405,7 +447,7 @@ void FEA_Data_ProcessorT::IIsym	(FEA_dMatrixT &II)
 	}
 };
 
-//---------------------------------------------------------------------
+//--------------------------------------------------------------------- 
 // 1st Order Idenity Vector (This is an order reduction of the Identity Matrix,
 // saves hassle of using Map.)
 
@@ -420,6 +462,31 @@ void FEA_Data_ProcessorT::Identity	(FEA_dVectorT &I_vec, double scale)
 		for (i=n_sd; i<I_vec.n_sd; i++)  
 			(*p++) = 0.0; 
 	}
+}
+	
+//---------------------------------------------------------------------
+// 3rd Order Permutaion Symbol 
+
+void FEA_Data_ProcessorT::Form_Permutation_Symbol ( void )
+{
+	int i,j;
+
+	e_ijk.Dimension ( 3 );  //-- Recall, no such thing as a 2D permutation symbol
+	for (i=0; i<3; i++) {
+		e_ijk [i].Dimension ( 3 ); 
+		for (j=0; j<3; j++) {
+			e_ijk [i][j].Dimension ( 3 ); 
+			e_ijk [i][j] = 0.0;
+		}
+	}
+
+	e_ijk [k1][k2][k3] =  1.0;
+	e_ijk [k2][k3][k1] =  1.0;
+	e_ijk [k3][k1][k2] =  1.0;
+	e_ijk [k3][k2][k1] = -1.0;
+	e_ijk [k2][k1][k3] = -1.0;
+	e_ijk [k1][k3][k2] = -1.0;
+	
 }	
 
 //---------------------------------------------------------------------
@@ -482,9 +549,26 @@ void FEA_Data_ProcessorT::c_ijkl	(double &lamda,double &mu, FEA_dScalarT &J, FEA
 
 //---------------------------------------------------------------------------
 
+//-- Converts sE_vec( n_en*n_sd*n_sd x 1 ) to sE_mat( n_en x n_sd x n_sd )
+//-- Example: You've just solved for Sigma in Hu-Washizu mixed, now you
+//						need it in matrix form to take Curl or Grad of it.
+
+void FEA_Data_ProcessorT::Element_Nodal_Values_Expand_Order ( dArrayT &T_vec, ArrayT < dMatrixT > &T_mat ) 
+{
+	int a,i,j,n_ed = n_sd_x_n_sd; 
+
+	for (a=0; a<n_en; a++)
+		for (i=0; i<n_sd; i++)
+			for (j=0; j<n_sd; j++)
+				T_mat[a](i,j) = T_vec[ a*n_ed + Map(i,j) ];
+}
+
+//---------------------------------------------------------------------------
+
 /** Given a matrix T evaluated at element nodal points, return Curl(T) 
  *  evaluated at each of the integration points.  Use another utility
- *  to map back to nodes if desired. */
+ *  to map back to nodes if desired. 
+ *  Curl(T)ij = Tir,sErsj : Where Ersj is the Permutation Symbol */
 
 void	FEA_Data_ProcessorT::Curl	(const ArrayT<dMatrixT>& T, FEA_dMatrixT& curl) const
 { 
@@ -498,8 +582,6 @@ void	FEA_Data_ProcessorT::Curl	(const ArrayT<dMatrixT>& T, FEA_dMatrixT& curl) c
 		zero = 0.0;
 		zero_ptr = zero.Pointer(); 
 	}
-
-	cout << "n_ip" << n_ip << "\n\n";
 
 	for (l=0; l<n_ip; l++) {
 
@@ -557,6 +639,137 @@ void	FEA_Data_ProcessorT::Curl	(const ArrayT<dMatrixT>& T, FEA_dMatrixT& curl) c
 
 }
 
+//---------------------------------------------------------------------------
+
+/** Given a vector T evaluated at element nodal points (such as displacement), 
+ *  return Grad(T) evaluated at each of the integration points.  
+ *  Use another utility to map back to nodes if desired. 
+ *  Grad(T)ij = Ti,j */
+
+void	FEA_Data_ProcessorT::Grad	(const ArrayT<dArrayT>& T, FEA_dMatrixT& grad) const
+{ 
+	if ( T[0].Length() != n_sd || grad.Rows() != n_sd ) {
+			cout << " ..FEA_DataprocessorT::Grad() >> Argument's n_sd is incompatable w/ this FEA_Dataprocessor. \n";
+			return;
+	}
+
+  int a,l,n_en=T.Length(); 
+
+	for (l=0; l<n_ip; l++) {
+
+		if ( n_sd == 1 ) {
+
+			double* pgrad = grad[l].Pointer();
+
+			double& u11 = *pgrad;
+	
+			u11 = 0.0;
+
+			double *dx1 = dN[l].Pointer(0); 
+
+			for (a=0; a<n_en; a++) {
+	
+		 		double *pT = T[a].Pointer();
+
+		  	double& T1 = *pT;
+
+		 		u11 += T1*(*dx1);
+			
+	  		dx1+=n_sd; // Goto next column: n_sd = num rows
+			}
+		}
+
+		else if ( n_sd == 2 ) {
+
+			double* pgrad = grad[l].Pointer();
+
+			double& u11 = *pgrad++;
+			double& u21 = *pgrad++;
+			double& u12 = *pgrad++;
+			double& u22 = *pgrad;
+	
+			u11 = u21 = u12 = u22 = 0.0;
+
+			double *dx1 = dN[l].Pointer(0); 
+			double *dx2 = dx1+1; 
+
+			for (a=0; a<n_en; a++) {
+	
+		 		double *pT = T[a].Pointer();
+
+		  	double& T1 = *pT++;
+				double& T2 = *pT;
+
+		 		u11 += T1*(*dx1);
+		 		u21 += T2*(*dx1);
+
+	  		u12 += T1*(*dx2);
+	  		u22 += T2*(*dx2);
+			
+	  		dx1+=n_sd; dx2+=n_sd; // Goto next column: n_sd = num rows
+			}
+		}
+
+		else if ( n_sd == 3 ) {
+
+			double* pgrad = grad[l].Pointer();
+
+			double& u11 = *pgrad++;
+			double& u21 = *pgrad++;
+			double& u31 = *pgrad++;
+			double& u12 = *pgrad++;
+			double& u22 = *pgrad++;
+			double& u32 = *pgrad++;
+			double& u13 = *pgrad++;
+			double& u23 = *pgrad++;
+			double& u33 = *pgrad  ;
+	
+			u11 = u21 = u31 = u12 = u22 = u32 = u13 = u23 = u33 = 0.0;
+
+			double *dx1 = dN[l].Pointer(0); 
+			double *dx2 = dx1+1; 
+			double *dx3 = dx1+2;
+
+			for (a=0; a<n_en; a++) {
+	
+		 		double *pT = T[a].Pointer();
+
+		  	double& T1 = *pT++;
+				double& T2 = *pT++;
+		  	double& T3 = *pT;
+
+		 		u11 += T1*(*dx1);
+		 		u21 += T2*(*dx1);
+		 		u31 += T3*(*dx1);
+
+	  		u12 += T1*(*dx2);
+	  		u22 += T2*(*dx2);
+	  		u32 += T3*(*dx2);
+
+	  		u13 += T1*(*dx3);
+	  		u23 += T2*(*dx3);
+	  		u33 += T3*(*dx3);
+			
+	  		dx1+=n_sd; dx2+=n_sd; dx3+=n_sd;	// Goto next column: n_sd = num rows
+			}
+		}
+
+		else 
+			cout << "...ERROR >> FEA_DataprocessorT::Grad() : Bad n_sd \n";
+	}
+
+}
+
+//---------------------------------------------------------------------------
+
+void FEA_Data_ProcessorT::Grad_ij (const ArrayT<dMatrixT> &T,	int i,int j,int k, FEA_dScalarT &Tij_k) const
+{ 
+	int l,a;
+	Tij_k = 0.0;
+	for (l=0; l<n_ip; l++) 
+		for (a=0; a<n_en; a++) 
+			Tij_k[l] += dN[l](k,a) * T[a](i,j);
+}
 
 //----------------------------------------------- End
 

@@ -1,4 +1,4 @@
-// $Id: FEA_dMatrixT.h,v 1.6 2003-02-03 04:40:24 paklein Exp $
+// $Id: FEA_dMatrixT.h,v 1.7 2003-03-07 22:24:01 creigh Exp $
 #ifndef _FEA_DMATRIXT_H_
 #define _FEA_DMATRIXT_H_
 
@@ -81,9 +81,11 @@ class FEA_dMatrixT: public ArrayT <dMatrixT>
 		void Swap_Cols			(const int &col1,const int &col2); 
 
 
-		void MultAB   		(const FEA_dMatrixT &a, const FEA_dMatrixT &b, int upper=0);
-    void MultATB  		(const FEA_dMatrixT &a, const FEA_dMatrixT &b, int upper=0);
-		void MultABT  		(const FEA_dMatrixT &a, const FEA_dMatrixT &b, int upper=0);
+		void MultAB   		(const FEA_dMatrixT &a, const FEA_dMatrixT &b, 	int upper=0);
+		void MultAB   		(const dMatrixT &a, 		const FEA_dMatrixT &b, 	int upper=0);
+		void MultAB   		(const FEA_dMatrixT &a, const dMatrixT &b, 			int upper=0);
+    void MultATB  		(const FEA_dMatrixT &a, const FEA_dMatrixT &b, 	int upper=0);
+		void MultABT  		(const FEA_dMatrixT &a, const FEA_dMatrixT &b, 	int upper=0);
 		void MultATBT 		(const FEA_dMatrixT &a, const FEA_dMatrixT &b);
 
    	// matrix-matrix-matrix operations 

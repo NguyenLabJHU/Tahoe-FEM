@@ -1,8 +1,11 @@
-// $Id: CoarseScaleT.h,v 1.4 2003-02-03 04:40:26 paklein Exp $
+
+//DEVELOPMENT
+
 #ifndef _COARSESCALE_T_H_ 
 #define _COARSESCALE_T_H_ 
 
 #include "Iso_MatlT.h"
+
 
 namespace Tahoe {
 
@@ -23,7 +26,8 @@ public:
 
 	virtual void Form_LHS_Ka_Kb	(	dMatrixT &Ka, dMatrixT &Kb,double delta_t=0.0	)	=0; 
   virtual void Form_RHS_F_int	(	dArrayT &F_int, double delta_t=0.0	) =0; 
-  virtual void Sigma 					(	FEA_dMatrixT &sigma ) =0; 
+  virtual void Get ( int scalar_code, FEA_dScalarT &scalar ) =0; 
+  virtual void Get ( int tensor_code, FEA_dMatrixT &tensor,int tensor_order ) =0; 
 	
 
 };

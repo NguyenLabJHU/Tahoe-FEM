@@ -1,4 +1,4 @@
-// $Id: FEA_IntegrationT.cpp,v 1.2 2003-02-03 04:40:23 paklein Exp $
+// $Id: FEA_IntegrationT.cpp,v 1.3 2003-03-07 22:24:00 creigh Exp $
 #include "FEA.h" 
 
 using namespace Tahoe;
@@ -30,6 +30,70 @@ J 		= j;
 
 //########################################################## 
 //########################################################## 
+//########################################################## 
+
+dMatrixT FEA_IntegrationT::of ( FEA_dMatrixT &K ) 
+{
+	dMatrixT k(K.Rows(),K.Cols()); 
+	K *= J;
+	K *= W;
+	k = K[0];
+
+	for (int i=1; i<n_ip; i++) // Summation here
+		k += K[i];
+
+return k;
+}
+  	
+//---------------------------------------------------------
+
+dMatrixT FEA_IntegrationT::of ( double c, FEA_dMatrixT &K )
+{
+	dMatrixT k(K.Rows(),K.Cols()); 
+	K *= c;
+	K *= J;
+	K *= W;
+	k = K[0];
+
+	for (int i=1; i<n_ip; i++) // Summation here
+		k += K[i];
+
+return k;
+}
+
+//---------------------------------------------------------
+
+dMatrixT FEA_IntegrationT::of ( FEA_dScalarT &s, FEA_dMatrixT &K )
+{
+	dMatrixT k(K.Rows(),K.Cols()); 
+	K *= s;
+	K *= J;
+	K *= W;
+	k = K[0];
+
+	for (int i=1; i<n_ip; i++) // Summation here
+		k += K[i];
+
+return k;
+}
+
+//---------------------------------------------------------
+
+dMatrixT FEA_IntegrationT::of ( double c,FEA_dScalarT &s, FEA_dMatrixT &K )
+{
+	dMatrixT k(K.Rows(),K.Cols()); 
+	K *= c;
+	K *= s;
+	K *= J;
+	K *= W;
+	k = K[0];
+
+	for (int i=1; i<n_ip; i++) // Summation here
+		k += K[i];
+
+return k;
+}
+
 //########################################################## 
 
 dMatrixT FEA_IntegrationT::of ( FEA_dMatrixT &B1, FEA_dMatrixT &B2 )
@@ -266,8 +330,64 @@ dArrayT FEA_IntegrationT::of ( FEA_dMatrixT &B,double &c,FEA_dScalarT &s,FEA_dVe
 return f;
 }
 
-//########################################################## 
-//########################################################## 
+//########################################################################################################### 
+//########################################################################################################### 
+//########################################################################################################### 
+
+void FEA_IntegrationT::of ( FEA_dMatrixT &K, dMatrixT &k )
+{
+	K *= J;
+	K *= W;
+	k = K[0];
+
+	for (int i=1; i<n_ip; i++) // Summation here
+		k += K[i];
+
+}
+  	
+//---------------------------------------------------------
+
+void FEA_IntegrationT::of ( double c, FEA_dMatrixT &K, dMatrixT &k )
+{
+	K *= c;
+	K *= J;
+	K *= W;
+	k = K[0];
+
+	for (int i=1; i<n_ip; i++) // Summation here
+		k += K[i];
+
+}
+
+//---------------------------------------------------------
+
+void FEA_IntegrationT::of ( FEA_dScalarT &s, FEA_dMatrixT &K, dMatrixT &k )
+{
+	K *= s;
+	K *= J;
+	K *= W;
+	k = K[0];
+
+	for (int i=1; i<n_ip; i++) // Summation here
+		k += K[i];
+
+}
+
+//---------------------------------------------------------
+
+void FEA_IntegrationT::of ( double c,FEA_dScalarT &s, FEA_dMatrixT &K, dMatrixT &k )
+{
+	K *= c;
+	K *= s;
+	K *= J;
+	K *= W;
+	k = K[0];
+
+	for (int i=1; i<n_ip; i++) // Summation here
+		k += K[i];
+
+}
+
 //########################################################## 
 
 void FEA_IntegrationT::of ( FEA_dMatrixT &B1, FEA_dMatrixT &B2, dMatrixT &k )

@@ -1,4 +1,4 @@
-// $Id: FEA_dMatrixT.cpp,v 1.7 2003-02-03 04:40:24 paklein Exp $
+// $Id: FEA_dMatrixT.cpp,v 1.8 2003-03-07 22:24:01 creigh Exp $
 #include "FEA.h"
 
 using namespace Tahoe; 
@@ -399,6 +399,21 @@ void FEA_dMatrixT::MultAB (const FEA_dMatrixT &a, const FEA_dMatrixT &b, int upp
 
 //----------------------------------------------------
 
+void FEA_dMatrixT::MultAB (const dMatrixT &a, const FEA_dMatrixT &b, int upper) {
+				
+	for (int i=0; i<fLength; i++)
+    (*this)[i].MultAB (a, b[i], upper); 
+}
+
+//----------------------------------------------------
+void FEA_dMatrixT::MultAB (const FEA_dMatrixT &a, const dMatrixT &b, int upper) {
+				
+  if (fLength==0) FEA_Dimension (a);
+	for (int i=0; i<fLength; i++)
+    (*this)[i].MultAB (a[i], b, upper); 
+}
+
+//----------------------------------------------------
 void FEA_dMatrixT::MultATB (const FEA_dMatrixT &a, const FEA_dMatrixT &b, int upper) {
 				
   if (fLength==0) FEA_Dimension (a);
@@ -529,7 +544,7 @@ void FEA_dMatrixT::Swap_Cols (const int &col1, const int &col2)
 
 void FEA_dMatrixT::Mag_and_Dir (FEA_dScalarT &mag, FEA_dMatrixT &N) 
 { 
-	Magnitude (mag); 
+	Magnitude (mag);
 	N = (*this);
 	if (mag!=0.0)
 		N /= mag;

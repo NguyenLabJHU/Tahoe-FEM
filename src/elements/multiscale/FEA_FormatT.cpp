@@ -1,4 +1,4 @@
-// $Id: FEA_FormatT.cpp,v 1.4 2003-02-03 04:40:20 paklein Exp $
+// $Id: FEA_FormatT.cpp,v 1.5 2003-03-07 22:23:57 creigh Exp $
 #include "FEA_FormatT.h"
 
 //---------------------------------------------------------------------
@@ -13,6 +13,21 @@ void FEA_FormatT::Shapes	(ShapeFunctionT *fShapes, FEA_ShapeFunctionT &FEA_Shape
 		fShapes->GradNa		( FEA_Shapes.dNdx[l] 	); 
 	}
 
+}
+
+//---------------------------------------------------------------------
+
+void FEA_FormatT::Na	(int n_en, ShapeFunctionT *fShapes, FEA_ShapeFunctionT &FEA_Shapes )
+{
+	int a,l,n_ip = fShapes -> NumIP();
+	FEA_Shapes.N.FEA_Dimension ( n_ip, n_en );
+
+	for	(l=0; l<n_ip; l++) {
+		fShapes->SetIP(l);
+		const double *fN = fShapes -> IPShapeU();
+		for (a=0; a<n_en; a++) 
+			FEA_Shapes.N[l][a] = fN[a]; 
+	}
 }
 
 //---------------------------------------------------------------------
