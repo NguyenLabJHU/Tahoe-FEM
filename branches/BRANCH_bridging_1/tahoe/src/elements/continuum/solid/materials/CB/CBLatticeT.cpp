@@ -1,13 +1,10 @@
-/* $Id: CBLatticeT.cpp,v 1.3 2002-10-20 22:48:38 paklein Exp $ */
-/* created: paklein (12/02/1996)                                          */
-/* CBLatticeT.cpp                                                         */
-
+/* $Id: CBLatticeT.cpp,v 1.3.6.1 2003-02-19 01:12:59 paklein Exp $ */
+/* created: paklein (12/02/1996) */
 #include "CBLatticeT.h"
-
-/* Constructor */
 
 using namespace Tahoe;
 
+/* Constructor */
 CBLatticeT::CBLatticeT(int numlatticedim, int numspatialdim,
 	int numbonds): BondLatticeT(numlatticedim, numspatialdim, numbonds)
 {
