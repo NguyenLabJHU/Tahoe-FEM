@@ -1,4 +1,4 @@
-/* $Id: NLSolver_LS.cpp,v 1.12.18.1 2004-04-08 07:33:59 paklein Exp $ */
+/* $Id: NLSolver_LS.cpp,v 1.12.18.2 2004-04-28 02:56:48 paklein Exp $ */
 /* created: paklein (08/18/1999) */
 #include "NLSolver_LS.h"
 
@@ -14,33 +14,13 @@ using namespace Tahoe;
 
 /* constructor */
 NLSolver_LS::NLSolver_LS(FEManagerT& fe_manager, int group):
-	NLSolver(fe_manager, group)
+	NLSolver(fe_manager, group),
+	fSearchIterations(0),
+	fOrthogTolerance(0.0),
+	fMaxStepSize(0.0)
 {
-	ifstreamT& in = fFEManager.Input();
-	
-	/* read parameters */
-	in >> fSearchIterations;
-	in >> fOrthogTolerance;
-	in >> fMaxStepSize;
+	SetName("nonlinear_solver_LS");
 
-	/* mininum search iterations > 0 */
-	fSearchIterations = (fSearchIterations != 0 &&
-	                     fSearchIterations < 3) ? 3 : fSearchIterations;
-
-	/* print parameters */
-	ostream& out = fFEManager.Output();
-	out << " Maximum number of line search iterations. . . . = " << fSearchIterations << '\n';
-	out << " Line search orthoginality tolerance . . . . . . = " << fOrthogTolerance  << '\n';
-	out << " Maximum update step size. . . . . . . . . . . . = " << fMaxStepSize      << endl;
-	
-	/* checks */
-	if (fSearchIterations < 0)  throw ExceptionT::kBadInputValue;
-	if (fOrthogTolerance > 1.0) throw ExceptionT::kBadInputValue;
-	if (fMaxStepSize      < 0)  throw ExceptionT::kBadInputValue;
-	
-	/* allocate space for history */
-	fSearchData.Dimension(fSearchIterations, 2);
-	
 	/* set console */
 	iAddVariable("line_search_iterations", fSearchIterations);
 	iAddVariable("line_search_tolerance", fOrthogTolerance);
@@ -97,6 +77,44 @@ bool NLSolver_LS::iDoVariable(const StringT& variable, StringT& line)
 			fSearchData.Dimension(fSearchIterations, 2);
 	}
 	return result;
+}
+
+/* describe the parameters needed by the interface */
+void NLSolver_LS::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	NLSolver::DefineParameters(list);
+
+	/* line search iterations */
+	ParameterT line_search_iterations(ParameterT::Integer, "line_search_iterations");
+	line_search_iterations.SetDefault(3);
+	list.AddParameter(line_search_iterations);
+
+	/* line search orthogonality tolerance */
+	ParameterT line_search_tolerance(ParameterT::Double, "line_search_tolerance");
+	line_search_tolerance.SetDefault(0.25);
+	list.AddParameter(line_search_tolerance);
+
+	/* maximum step size */
+	ParameterT max_step(ParameterT::Double, "max_step");
+	max_step.SetDefault(2.5);
+	list.AddParameter(max_step);
+}
+
+/* accept parameter list */
+void NLSolver_LS::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	NLSolver::TakeParameterList(list);
+
+	/* extract line search parameters */
+	fSearchIterations = list.GetParameter("line_search_iterations");
+	fOrthogTolerance = list.GetParameter("line_search_tolerance");
+	fMaxStepSize = list.GetParameter("max_step");
+
+	/* allocate space for history */
+	fSearchData.Dimension(fSearchIterations, 2);
+	fSearchData = 0.0;
 }
 
 /*************************************************************************
