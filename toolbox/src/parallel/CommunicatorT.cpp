@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.cpp,v 1.16 2004-07-13 22:12:59 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.17 2004-07-27 17:48:22 paklein Exp $ */
 #include "CommunicatorT.h"
 #include "ExceptionT.h"
 #include <iostream.h>
@@ -1081,8 +1081,11 @@ void CommunicatorT::Finalize(void)
 #endif
 
 	/* close */
-	if (fCount == 0) fCount = -1;
-	Log(kModerate, "Init", "communicator count = %d", fCount);
+	Log(kModerate, "Finalize", "communicator count = %d", fCount);
+	if (fCount == 0) {
+		fCount = -1;
+		Log(kModerate, "Finalize", "communicator count = %d", fCount);
+	}
 }
 
 void CommunicatorT::doLog(const char* caller, const char* message) const
