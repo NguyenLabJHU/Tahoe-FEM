@@ -1,4 +1,4 @@
-/* $Id: NLK0Solver.cpp,v 1.9 2002-12-13 02:42:55 paklein Exp $ */
+/* $Id: NLK0Solver.cpp,v 1.10 2003-03-31 22:59:32 paklein Exp $ */
 /* created: paklein (10/01/1996) */
 #include "NLK0Solver.h"
 #include <iostream.h>
@@ -35,17 +35,15 @@ NLK0Solver::NLK0Solver(FEManagerT& fe_manager, int group):
 ***********************************************************************/
 
 /* form and solve - returns the magnitude of the residual */
-double NLK0Solver::SolveAndForm(bool junk, bool clear_LHS)
+double NLK0Solver::SolveAndForm(void)
 {		
 	const char caller[] = "NLK0Solver::SolveAndForm";
-
-#pragma unused(junk)
 
 	/* form the stiffness matrix */
 	if (fFormTangent)
 	{
 		fLHS_lock = kOpen;
-		if (clear_LHS) pCCSLHS->Clear();
+		if (fLHS_update) pCCSLHS->Clear();
 		fFEManager.FormLHS(Group(), GlobalT::kSymmetric);
 		fLHS_lock = kLocked;
 
@@ -74,6 +72,7 @@ double NLK0Solver::SolveAndForm(bool junk, bool clear_LHS)
 	fFEManager.Update(Group(), fRHS);
 								
 	/* compute new residual */
+	fNumIteration++;
 	fRHS = 0.0;
 	fFEManager.FormRHS(Group());
 

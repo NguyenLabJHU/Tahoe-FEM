@@ -1,6 +1,5 @@
-/* $Id: PCGSolver_LS.cpp,v 1.11 2002-12-13 02:42:55 paklein Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.12 2003-03-31 22:59:32 paklein Exp $ */
 /* created: paklein (08/19/1999) */
-
 #include "PCGSolver_LS.h"
 
 #include <iostream.h>
@@ -13,13 +12,13 @@
 #include "FEManagerT.h"
 #include "DiagonalMatrixT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
 	NLSolver(fe_manager, group),
-	fPreconditioner(0) //TEMP
+	fRestart_count(-1)
+//	,fPreconditioner(0) //TEMP
 {
 	/* check */
 	if (fMatrixType != kDiagonalMatrix)
@@ -80,31 +79,27 @@ PCGSolver_LS::PCGSolver_LS(FEManagerT& fe_manager, int group):
 /* (re-)configure the global equation system */
 void PCGSolver_LS::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 {
-		/* inherited */
+	/* inherited */
 	NLSolver::Initialize(tot_num_eq, loc_num_eq, start_eq);
 
 	/* allocate work space */
 	fdiff_R.Dimension(fRHS.Length());
+	
+	/* set flag */
+	fRestart_count = -1;
 }
 
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
-double PCGSolver_LS::SolveAndForm(bool newtangent, bool clear_LHS)
-{		
-#pragma unused(newtangent)
-
-	/* form the stiffness matrix */
-	if (fNumIteration == 0 || fPreconditioner)
-	{
-		if (clear_LHS) fLHS->Clear();
-		
+double PCGSolver_LS::SolveAndForm(void)
+{
+	/* form the stiffness matrix (must be cleared previously) */
+	if (fLHS_update) {
 		fLHS_lock = kOpen;
 		fFEManager.FormLHS(Group(), fLHS->MatrixType());
-		fLHS_lock = kIgnore;
-
-		fPreconditioner = 0;
+		fLHS_lock = kLocked;
 	}
 
 	/* get new search direction (in fRHS) */
@@ -114,39 +109,47 @@ double PCGSolver_LS::SolveAndForm(bool newtangent, bool clear_LHS)
 	/* apply update to system */
 	fRHS_lock = kOpen;
 	Update(fRHS, &fR);
-								
-	/* compute new residual */
-	if (fPreconditioner) {
+									
+	/* recalculate residual */
+	fNumIteration++;
+	if (fLHS_update) {
 		fLHS->Clear();
-		fLHS_lock = kOpen;
+		fLHS_lock = kOpen; /* LHS open for assembly, too! */
 	}
+	else
+		fLHS_lock = kIgnore; /* ignore assembled values */
 	fRHS = 0.0;
-	fFEManager.FormRHS(Group());
+	fFEManager.FormRHS(Group());	
 	fLHS_lock = kLocked;
 	fRHS_lock = kLocked;
 	
-	/* combine residual magnitude with update magnitude */
-	/* e = a1 |R| + a2 |delta_d|                        */
-	//not implemented!
-			
+	/* could combine residual magnitude with update magnitude
+	 * e = a1 |R| + a2 |delta_d|  --> not implemented */	
 	return Residual(fRHS);
 }
 
+SolverT::SolutionStatusT PCGSolver_LS::Solve(int max_iterations)
+{
+	fRestart_count = -1;
+	fVerbose = 0;
+
+	/* inherited */
+	return NLSolver::Solve(max_iterations);
+}
+
 /*************************************************************************
-* Private
-*************************************************************************/
+ * Private
+ *************************************************************************/
 
 void PCGSolver_LS::CGSearch(void)
 {
 	/* restart */
-	if (fmod(double(fNumIteration), fRestart) < kSmall)
-	{
+	fRestart_count++;
+	if (fRestart_count == 0 || fRestart_count == fRestart) {
 		fR_last = fRHS;
 		if (!fLHS->Solve(fRHS)) throw ExceptionT::kBadJacobianDet;
 		fu_last = fRHS;
-		
-		/* reform preconditioner */
-		if (fNumIteration > 0) fPreconditioner = 1;
+		fRestart_count = 0;
 
 		/* output control */
 		fVerbose = 1;
@@ -182,6 +185,12 @@ void PCGSolver_LS::CGSearch(void)
 		/* output control */
 		fVerbose = 0;
 	}
+
+	/* check recalculation of LHS */
+	if (fRestart_count == (fRestart - 1))
+		fLHS_update = true;
+	else
+		fLHS_update = false;
 }
 
 void PCGSolver_LS::Update(const dArrayT& update, const dArrayT* residual)
