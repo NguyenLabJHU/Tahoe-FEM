@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden2DT.cpp,v 1.5.46.1 2004-04-08 07:32:52 paklein Exp $ */
+/* $Id: QuadLogOgden2DT.cpp,v 1.5.46.2 2004-06-08 04:51:49 paklein Exp $ */
 /* created: paklein (02/18/2001) */
 #include "QuadLogOgden2DT.h"
 #include <math.h>
@@ -17,6 +17,13 @@ QuadLogOgden2DT::QuadLogOgden2DT(ifstreamT& in, const FSMatSupportT& support):
 	double E, nu;
 	in >> E >> nu;
 	IsotropicT::Set_E_nu(E, nu);
+}
+
+QuadLogOgden2DT::QuadLogOgden2DT(void):
+	ParameterInterfaceT("quad_log_Ogden_2D"),
+	flogE(2)
+{
+
 }
 
 /* print name */

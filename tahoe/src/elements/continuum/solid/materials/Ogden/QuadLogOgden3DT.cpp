@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden3DT.cpp,v 1.5.46.1 2004-04-08 07:32:52 paklein Exp $ */
+/* $Id: QuadLogOgden3DT.cpp,v 1.5.46.2 2004-06-08 04:51:49 paklein Exp $ */
 /* created: paklein (02/17/2001) */
 #include "QuadLogOgden3DT.h"
 
@@ -18,6 +18,13 @@ QuadLogOgden3DT::QuadLogOgden3DT(ifstreamT& in, const FSMatSupportT& support):
 	double E, nu;
 	in >> E >> nu;
 	IsotropicT::Set_E_nu(E, nu);
+}
+
+QuadLogOgden3DT::QuadLogOgden3DT(void):
+	ParameterInterfaceT("quad_log_Ogden_3D"),
+	flogE(3)
+{
+
 }
 
 void QuadLogOgden3DT::PrintName(ostream& out) const
