@@ -1,4 +1,4 @@
-/* $Id: CSEIsoT.cpp,v 1.21 2004-07-15 08:25:57 paklein Exp $ */
+/* $Id: CSEIsoT.cpp,v 1.22 2005-02-13 22:13:26 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEIsoT.h"
 
@@ -359,7 +359,7 @@ void CSEIsoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		}
 
 		/* compute output */
-		if (element.Flag() == kON)
+		if (element.Flag() == ElementCardT::kON)
 		{
 	  		/* surface potential */
 			C1FunctionT* surfpot = fSurfPots[CurrentElement().MaterialNumber()];

@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.cpp,v 1.12 2004-07-15 08:25:57 paklein Exp $ */
+/* $Id: ThermalSurfaceT.cpp,v 1.13 2005-02-13 22:13:26 paklein Exp $ */
 #include "ThermalSurfaceT.h"
 
 #include <math.h>
@@ -351,7 +351,7 @@ void ThermalSurfaceT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		}
 
 		/* compute output */
-		if (element.Flag() == kON)
+		if (element.Flag() == ElementCardT::kON)
 		{
 			/* get ref geometry (1st facet only) */
 			fNodes1.Collect(facet1, element.NodesX());

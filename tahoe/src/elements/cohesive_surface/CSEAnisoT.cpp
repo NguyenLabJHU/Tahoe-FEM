@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.66 2004-10-13 06:36:05 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.67 2005-02-13 22:13:26 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -536,7 +536,7 @@ void CSEAnisoT::LHSDriver(GlobalT::SystemTypeT)
 		/* current element */
 		const ElementCardT& element = CurrentElement();
 		
-		if (element.Flag() != kOFF)
+		if (element.Flag() != ElementCardT::kOFF)
 		{
 	
 		/* surface potential */
@@ -706,7 +706,7 @@ void CSEAnisoT::RHSDriver(void)
 		fNodes1.Collect(facet1, element.NodesX());
 		fLocInitCoords1.SetLocal(fNodes1);
 	  			
-		if (element.Flag() != kOFF)
+		if (element.Flag() != ElementCardT::kOFF)
 		{
 			/* surface potential */
 			SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
@@ -799,8 +799,8 @@ void CSEAnisoT::RHSDriver(void)
 			/* mark elements */
 			if (all_failed)
 			{
-				int& flag = element.Flag();
-				if (flag == kON) flag = kMarked;
+				ElementCardT::StatusT& flag = element.Flag();
+				if (flag == ElementCardT::kON) flag = ElementCardT::kMarked;
 			}
 		}
 		else if (fOutputArea)
@@ -882,7 +882,7 @@ void CSEAnisoT::ResolveOutputVariable(const StringT& variable, int& code, int& o
 }
 
 /* set the active elements */
-void CSEAnisoT::SetStatus(const ArrayT<StatusT>& status)
+void CSEAnisoT::SetStatus(const ArrayT<ElementCardT::StatusT>& status)
 {
 	/* work space */
 	dArrayT state;
@@ -894,9 +894,9 @@ void CSEAnisoT::SetStatus(const ArrayT<StatusT>& status)
 	{
 		/* current element */
 		ElementCardT& element = fElementCards[i];
-		int& flag = element.Flag();
+		ElementCardT::StatusT& flag = element.Flag();
 		flag = status[i];
-		if (flag == kMarkON)
+		if (flag == ElementCardT::kMarkON)
 		{		
 			/* surface potential */
 			SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
@@ -939,10 +939,10 @@ void CSEAnisoT::SetStatus(const ArrayT<StatusT>& status)
 					surfpot->InitStateVariables(state);
 				}
 			}
-			flag = kON;
+			flag = ElementCardT::kON;
 		}
-		else if (flag == kMarkOFF)
-			flag = kOFF;
+		else if (flag == ElementCardT::kMarkOFF)
+			flag = ElementCardT::kOFF;
 	}
 }
 
@@ -1053,7 +1053,7 @@ void CSEAnisoT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 		//      although quantities like the reference element centroid could
 		//      still be safely calculated.
 		/* compute output */
-		if (element.Flag() == kON)
+		if (element.Flag() == ElementCardT::kON)
 		{
 	  		/* surface potential */
 			SurfacePotentialT* surfpot = fSurfPots[element.MaterialNumber()];
