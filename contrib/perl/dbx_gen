@@ -1,13 +1,14 @@
 #!/usr/sbin/perl -w
 #
 # script to generate dbx instructions for loading a multiprocessor tahoe
-# job running under paklein
+# job running under the specified user 
 #
 
 if (scalar(@ARGV) != 2) {
   print STDOUT "\tusage: dbx_gen [login] [executable]\n";
   print STDOUT " generates dbx command files dbx_init and dbx_res\n";
   print STDOUT " to attach processes and resume execution\n";
+	exit;	
 }
 
 $user = $ARGV[0];
@@ -21,7 +22,7 @@ open(INIT, ">dbx_init") || die "could not open file dbx_init";
 open(RES, ">dbx_res") || die "could not open file dbx_res";
 
 $count = 0;
-while ($line = <JOBS>) {
+while (defined($line = <JOBS>)) {
   chomp($line);
   if ($line =~ s/(\s+)(\d+)(.+)/$2/) {
 	print STDOUT "adding PID ", $line, "\n";
