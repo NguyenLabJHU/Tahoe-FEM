@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.1.2.4 2002-05-29 00:22:48 cjkimme Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.1.2.5 2002-06-02 03:58:02 paklein Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -375,7 +375,7 @@ bool TiedPotentialT::InitiationQ(const double* sigma)
 {
 #pragma unused(sigma)
 if (sigma[1] >= fsigma_critical) 
-	cout << ":::InitiationQ " << sigma[0] <<" " << sigma[1] << " " << sigma[2] <<"\n";
+	cout << "TiedPotentialT::InitiationQ " << sigma[0] <<" " << sigma[1] << " " << sigma[2] <<"\n";
 	return sigma[1] >= fsigma_critical;
 }
 
