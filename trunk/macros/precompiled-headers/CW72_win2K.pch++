@@ -1,8 +1,8 @@
 /* Metrowerks Standard Library
  * Copyright © 1995-2001 Metrowerks Corporation.  All rights reserved.
  *
- *  $Date: 2003-12-13 00:07:08 $ 
- *  $Revision: 1.1 $ 
+ *  $Date: 2003-12-15 20:29:53 $ 
+ *  $Revision: 1.2 $ 
  */
 
 /*	This file contains the code that gets precompiled.	*/
@@ -74,4 +74,8 @@
 
 #ifndef __USE_CONSTANT_SUFFIX__
 #define __USE_CONSTANT_SUFFIX__
+#endif
+
+#ifndef __DEVELOPMENT__
+#define __DEVELOPMENT__
 #endif
