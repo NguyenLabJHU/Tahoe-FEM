@@ -1,4 +1,4 @@
-/* $Id: Vector2T.h,v 1.3 2003-11-21 22:41:39 paklein Exp $ */
+/* $Id: Vector2T.h,v 1.4 2005-03-12 08:36:10 paklein Exp $ */
 #ifndef _VECTOR_2_T_H_
 #define _VECTOR_2_T_H_
 
@@ -25,7 +25,7 @@ class Vector2T
 
 	/* type conversion operators */
 	operator const nTYPE*() const;
-	operator nTYPE*() const;
+	operator nTYPE*();
 	/*@}*/
 
 	/* assignment operator */
@@ -97,7 +97,7 @@ template <class nTYPE>
 inline Vector2T<nTYPE>::operator const nTYPE*() const { return (const nTYPE*) v; }
 
 template <class nTYPE>
-inline Vector2T<nTYPE>::operator nTYPE*() const { return (nTYPE*) v; }
+inline Vector2T<nTYPE>::operator nTYPE*() { return (nTYPE*) v; }
 
 /* assignment operator */
 template <class nTYPE>

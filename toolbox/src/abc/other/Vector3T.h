@@ -1,4 +1,4 @@
-/* $Id: Vector3T.h,v 1.8 2003-11-21 22:41:39 paklein Exp $ */
+/* $Id: Vector3T.h,v 1.9 2005-03-12 08:36:10 paklein Exp $ */
 /* created: paklein (02/11/2000) */
 
 #ifndef _VECTOR_3_T_H_
@@ -34,7 +34,7 @@ class Vector3T
 	operator const nTYPE*() const;
 
 	/** type conversion operator. Convert a Vector3T to a (nTYPE*) */
-	operator nTYPE*() const;
+	operator nTYPE*();
 	/*@}*/
 
 	/** \name assignment operator */
@@ -129,7 +129,7 @@ template <class nTYPE>
 inline Vector3T<nTYPE>::operator const nTYPE*() const { return (const nTYPE*) v; }
 
 template <class nTYPE>
-inline Vector3T<nTYPE>::operator nTYPE*() const { return (nTYPE*) v; }
+inline Vector3T<nTYPE>::operator nTYPE*() { return (nTYPE*) v; }
 
 /* assignment operator */
 template <class nTYPE>
