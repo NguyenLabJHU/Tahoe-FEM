@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.cpp,v 1.5 2002-04-17 17:30:19 paklein Exp $ */
+/* $Id: VTKUGridT.cpp,v 1.6 2002-04-18 00:27:49 paklein Exp $ */
 #include "VTKUGridT.h"
 
 #include "vtkPoints.h"
@@ -82,12 +82,37 @@ void VTKUGridT::SetPoints(vtkPoints* points)
 void VTKUGridT::SetConnectivities(GeometryT::CodeT code, const iArray2DT& connects)
 {
 	/* create array of VTK-style connectivities */
-	iArray2DT vtk_connects(connects.MajorDim(), connects.MinorDim()+1); //has 1 extra entry!!!
-	vtk_connects.SetColumn(0, connects.MinorDim()); //first value in each row is row size 
+	iArray2DT vtk_connects;
 
-	/* quads with mid-side nodes */
+	/* quads with mid-side nodes - don't display properly */
 	if (code == GeometryT::kQuadrilateral && connects.MinorDim() > 4)
 	{
+#if 1
+//NOTE: display quad8's as quad4's
+
+		cout << "\n VTKUGridT::SetConnectivities: quad8's reduced to quad4's\n" << endl;
+
+		/* allocate */
+		vtk_connects.Dimension(connects.MajorDim(), 4 + 1); //has 1 extra entry!!!
+		vtk_connects.SetColumn(0,4); //first value in each row is row size 
+
+		/* copy 1st 4 nodes */
+		for (int i = 0; i < connects.MajorDim(); i++)
+		{
+			int* a = connects(i);
+			int* b = vtk_connects(i) + 1; /* first value in each row is row size */
+			
+			memcpy(b, a, 4*sizeof(int));
+		}
+#endif
+
+#if 0
+//NOTE: display quad8's
+
+		/* allocate */
+		vtk_connects.Dimension(connects.MajorDim(), connects.MinorDim()+1); //has 1 extra entry!!!
+		vtk_connects.SetColumn(0, connects.MinorDim()); //first value in each row is row size 
+
 		/* reorder around the element edge */
 		int n_mid = connects.MinorDim() - 4;
 		for (int i = 0; i < connects.MajorDim(); i++)
@@ -103,11 +128,25 @@ void VTKUGridT::SetConnectivities(GeometryT::CodeT code, const iArray2DT& connec
 				if (j < n_mid)
 					*b++ = *a_mid++;
 			}
+			
+			/* rotate to make first node a mid-side. For some reason, fields over
+			 * 8-noded quads were not displayed correctly with the first node in
+			 * a corner. This makes uniform Y gradients look correct, but uniform
+			 * x gradients still weren't right */
+			a = vtk_connects(i) + 1;
+			int tmp = a[connects.MinorDim() - 1];
+			memmove(a+1, a, (connects.MinorDim() - 1)*sizeof(int));
+			a[0] = tmp;
 		}
+#endif
 	}
 	/* else just copy in */
 	else
+	{
+		vtk_connects.Dimension(connects.MajorDim(), connects.MinorDim()+1); //has 1 extra entry!!!
+		vtk_connects.SetColumn(0, connects.MinorDim()); //first value in each row is row size 
 		vtk_connects.BlockColumnCopyAt(connects, 1);
+	}
 
 	/* release memory */
 	int* p_vtk_connects;
@@ -126,7 +165,12 @@ void VTKUGridT::SetConnectivities(GeometryT::CodeT code, const iArray2DT& connec
 	fCellType.Allocate(vtk_connects.MajorDim());
 	if (code == GeometryT::kPoint) fCellType = VTK_VERTEX;  
 	else if (code == GeometryT::kLine ) fCellType =  VTK_LINE;
-	else if (code == GeometryT::kQuadrilateral) fCellType = VTK_QUAD; 
+	else if (code == GeometryT::kQuadrilateral) {
+		if (vtk_connects.MinorDim() == 5)
+			fCellType = VTK_QUAD;
+		else
+			fCellType = VTK_POLYGON;
+	}
 	else if (code == GeometryT::kTriangle) fCellType = VTK_TRIANGLE;
 	else if (code == GeometryT::kHexahedron) fCellType = VTK_HEXAHEDRON;
 	else if (code == GeometryT::kTetrahedron) fCellType = VTK_TETRA; 
