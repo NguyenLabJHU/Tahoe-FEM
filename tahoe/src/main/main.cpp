@@ -1,4 +1,4 @@
-/* $Id: main.cpp,v 1.27 2005-02-04 22:10:18 paklein Exp $ */
+/* $Id: main.cpp,v 1.28 2005-02-13 22:22:55 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include <iostream.h>
 #include <fstream.h>
@@ -120,7 +120,7 @@ static void StartUp(int* argc, char*** argv, CommunicatorT& comm)
 #endif
 
 #if __option (profile)
-	pascal OSErr err = ProfilerInit(collectDetailed, bestTimeBase, 10000, 30);
+	pascal OSErr err = ProfilerInit(collectDetailed, bestTimeBase, 10000, 50);
 	if (err != noErr) {
 		cout << "\n ProfilerInit: error " << err << endl;
 		abort();
