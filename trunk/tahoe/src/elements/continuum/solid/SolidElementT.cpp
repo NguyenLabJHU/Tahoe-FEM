@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.71 2005-03-11 20:33:27 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.72 2005-03-16 10:20:10 paklein Exp $ */
 #include "SolidElementT.h"
 
 #include <iostream.h>
@@ -26,10 +26,13 @@
 #include "CCSMatrixT.h"
 #include "NodeManagerT.h"
 
+/* needed for Poynting vector output */
+#include "FSSolidMatT.h"
+
 using namespace Tahoe;
 
 /* initialize static data */
-const int SolidElementT::NumNodalOutputCodes = 7;
+const int SolidElementT::NumNodalOutputCodes = 8;
 static const char* NodalOutputNames[] = {
 	"coordinates",
 	"displacements",
@@ -37,7 +40,8 @@ static const char* NodalOutputNames[] = {
 	"principal_stress",
 	"strain_energy_density",
 	"wave_speeds",
-	"material_output"};
+	"material_output",
+	"Poynting_vector"};
 
 const int SolidElementT::NumElementOutputCodes = 7;
 static const char* ElementOutputNames[] = {
@@ -59,7 +63,8 @@ SolidElementT::SolidElementT(const ElementSupportT& support):
 	fLocTemp_last(NULL),
 	fStoreInternalForce(false),
 	fMassType(kAutomaticMass),
-	fEigenvalueInc(0)
+	fEigenvalueInc(0),
+	fv_ss(0)
 {
 	SetName("solid_element");
 }
@@ -352,6 +357,9 @@ ParameterInterfaceT* SolidElementT::NewSub(const StringT& name) const
 		wave_direction.AddSub("Vector_2");
 		wave_direction.AddSub("Vector_3");
 		node_output->AddSub(wave_direction, ParameterListT::ZeroOrOnce);
+
+		/* steady-state speed for calculating Poynting vector */
+		node_output->AddParameter(ParameterT::Double, "v1_ss", ParameterListT::ZeroOrOnce);
 		
 		/* all false by default */
 		for (int i = 0; i < NumNodalOutputCodes; i++) {
@@ -452,7 +460,17 @@ void SolidElementT::TakeParameterList(const ParameterListT& list)
 			if (fNormal.Length() != NumSD()) ExceptionT::GeneralFail(caller, "expecting normal length %d not %d",
 				NumSD(), fNormal.Length());
 			fNormal.UnitVector();
-		}	
+		}
+		
+		/* steady state crack speed */
+		if (fNodalOutputCodes[iPoyntingVector])
+		{
+			const ParameterT* v_ss = node_output->Parameter("v1_ss");
+			if (!v_ss)
+				ExceptionT::GeneralFail(caller, "Poynting vector requires \"v1_ss\"");
+			else
+				fv_ss = *v_ss;
+		}
 	}
 
 	/* element output codes */
@@ -608,6 +626,8 @@ void SolidElementT::SetNodalOutputCodes(IOBaseT::OutputModeT mode, const iArrayT
 		counts[iWaveSpeeds] = NumSD();
 	if (flags[iMaterialData] == mode)
 		counts[iMaterialData] = (*fMaterialList)[0]->NumOutputVariables();
+	if (flags[iPoyntingVector] == mode)
+		counts[iPoyntingVector] = NumSD();
 }
 
 void SolidElementT::SetElementOutputCodes(IOBaseT::OutputModeT mode, const iArrayT& flags,
@@ -1227,135 +1247,144 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 	int n_out = n_codes.Sum();
 	int e_out = e_codes.Sum();
         
-        int n_simo, n_extrap;
-        if (qUseSimo)
-        {
-                n_simo = n_out - n_codes[iNodalDisp] - n_codes[iNodalCoord];
-                n_extrap = n_codes[iNodalDisp] + n_codes[iNodalCoord];
-        }
-        else
-        {
-                n_simo = 0;
-                n_extrap = n_out;
-        }
-                
-        /* nothing to output */
-        if (n_out == 0 && e_out == 0) return;
+	int n_simo, n_extrap;
+	if (qUseSimo) {
+		n_simo = n_out - n_codes[iNodalDisp] - n_codes[iNodalCoord];
+		n_extrap = n_codes[iNodalDisp] + n_codes[iNodalCoord];
+	} else {
+		n_simo = 0;
+		n_extrap = n_out;
+	}
+            
+	/* nothing to output */
+	if (n_out == 0 && e_out == 0) return;
 
-        /* dimensions */
-        int nsd = NumSD();
-        int ndof = NumDOF();
-        int nen = NumElementNodes();
-        int nnd = ElementSupport().NumNodes();
-        int nstrs = fB.Rows();
+	/* dimensions */
+	int nsd = NumSD();
+	int ndof = NumDOF();
+	int nen = NumElementNodes();
+	int nnd = ElementSupport().NumNodes();
+	int nstrs = fB.Rows();
 
-        /* reset averaging workspace */
-        ElementSupport().ResetAverage(n_extrap);
+	/* reset averaging workspace */
+	ElementSupport().ResetAverage(n_extrap);
 
-        /* allocate element results space */
-        e_values.Dimension(NumElements(), e_out);
+	/* allocate element results space */
+	e_values.Dimension(NumElements(), e_out);
 
-        /* nodal work arrays */
-        dArray2DT nodal_space(nen, n_extrap);
-        dArray2DT nodal_all(nen, n_extrap);
-        dArray2DT coords, disp;
-        dArray2DT nodalstress, princstress, matdat;
-        dArray2DT energy, speed;
+	/* nodal work arrays */
+	dArray2DT nodal_space(nen, n_extrap);
+	dArray2DT nodal_all(nen, n_extrap);
+	dArray2DT coords, disp;
+	dArray2DT nodalstress, princstress, matdat;
+	dArray2DT energy, speed;
+	dArray2DT Poynting;
 
-        /* ip values */
-        dSymMatrixT cauchy((nstrs != 4) ? nsd : dSymMatrixT::k3D_plane), nstr_tmp;
-        dArrayT ipmat(n_codes[iMaterialData]), ipenergy(1);
-        dArrayT ipspeed(nsd), ipprincipal(nsd);
+	/* ip values */
+	dSymMatrixT cauchy((nstrs != 4) ? nsd : dSymMatrixT::k3D_plane), nstr_tmp;
+	dArrayT ipmat(n_codes[iMaterialData]), ipenergy(1);
+	dArrayT ipspeed(nsd), ipprincipal(nsd), ipPoynting(nsd);
 
-        /* set shallow copies */
-        double* pall = nodal_space.Pointer();
-        coords.Set(nen, n_codes[iNodalCoord], pall)      ; pall += coords.Length();
-        disp.Set(nen, n_codes[iNodalDisp], pall)         ; pall += disp.Length();
+	/* set shallow copies */
+	double* pall = nodal_space.Pointer();
+	coords.Alias(nen, n_codes[iNodalCoord], pall); pall += coords.Length();
+	disp.Alias(nen, n_codes[iNodalDisp], pall)   ; pall += disp.Length();
+
+	/* work space for Poynting vector */
+	dMatrixT stress_mat, F_inv, PbyJ;
+	if (n_codes[iPoyntingVector]) {
+		stress_mat.Dimension(nsd);
+		F_inv.Dimension(nsd);
+		PbyJ.Dimension(nsd);
+	}
+
+	/* workspaces for Simo */
+	int simo_offset = coords.MinorDim() + disp.MinorDim();
+	dArray2DT simo_space(nen,qUseSimo ? n_simo : 0);
+	dArray2DT simo_all(nen,qUseSimo ? n_simo : 0);
+	dArray2DT simoNa_bar(nen,qUseSimo ? 1 : 0);
+	dArray2DT simo_force;
+	dArray2DT simo_mass;
+	iArrayT simo_counts;
         
-        /* workspaces for Simo */
-        int simo_offset = coords.MinorDim() + disp.MinorDim();
-        dArray2DT simo_space(nen,qUseSimo ? n_simo : 0);
-        dArray2DT simo_all(nen,qUseSimo ? n_simo : 0);
-        dArray2DT simoNa_bar(nen,qUseSimo ? 1 : 0);
-        dArray2DT simo_force;
-        dArray2DT simo_mass;
-        iArrayT simo_counts;
-        
-        if (!qUseSimo) 
-        {
-                nodalstress.Set(nen, n_codes[iNodalStress], pall); pall += nodalstress.Length();
-                princstress.Set(nen, n_codes[iPrincipal], pall)  ; pall += princstress.Length();
-                energy.Set(nen, n_codes[iEnergyDensity], pall)   ; pall += energy.Length();
-                speed.Set(nen, n_codes[iWaveSpeeds], pall)       ; pall += speed.Length();
-                matdat.Set(nen, n_codes[iMaterialData], pall);  
-        }
-        else
-        {
-                simo_force.Dimension(ElementSupport().NumNodes(),qUseSimo ? n_simo : 0);
-                simo_mass.Dimension(ElementSupport().NumNodes(),qUseSimo ? 1 : 0);
-                simo_counts.Dimension(ElementSupport().NumNodes());
-        
-                pall = simo_space.Pointer();
-                nodalstress.Set(nen, n_codes[iNodalStress], pall); pall += nodalstress.Length();
-                princstress.Set(nen, n_codes[iPrincipal], pall)  ; pall += princstress.Length();
-                energy.Set(nen, n_codes[iEnergyDensity], pall)   ; pall += energy.Length();
-                speed.Set(nen, n_codes[iWaveSpeeds], pall)       ; pall += speed.Length();
-                matdat.Set(nen, n_codes[iMaterialData], pall); 
-                
-                simo_mass = 0.;
-                simo_force = 0.;
-                simo_counts = 0;
-        }
-        
-        /* element work arrays */
-        dArrayT element_values(e_values.MinorDim());
-        pall = element_values.Pointer();
-        dArrayT centroid, ip_centroid, ip_mass;
-        dArrayT ip_coords(nsd);
-        if (e_codes[iCentroid])
-        {
-                centroid.Set(nsd, pall); pall += nsd;
-                ip_centroid.Dimension(nsd);
-        }
-        if (e_codes[iMass]) {
-                ip_mass.Set(NumIP(), pall); 
-                pall += NumIP();
-        }
-        double w_tmp, ke_tmp;
-        double mass;
-        double& strain_energy = (e_codes[iStrainEnergy]) ? *pall++ : w_tmp;
-        double& kinetic_energy = (e_codes[iKineticEnergy]) ? *pall++ : ke_tmp;
-        dArrayT linear_momentum, ip_velocity;
-        if (e_codes[iLinearMomentum])
-        {
-                linear_momentum.Set(ndof, pall); pall += ndof;
-                ip_velocity.Dimension(ndof);
-        }
-        else if (e_codes[iKineticEnergy]) ip_velocity.Dimension(ndof);
-        
-        dArray2DT ip_stress;
-        if (e_codes[iIPStress])
-        {
-                ip_stress.Set(NumIP(), e_codes[iIPStress]/NumIP(), pall);
-                pall += ip_stress.Length();
-        }
-        dArray2DT ip_material_data;
-        if (e_codes[iIPMaterialData])
-        {
-                ip_material_data.Set(NumIP(), e_codes[iIPMaterialData]/NumIP(), pall);
-                pall += ip_material_data.Length();
-                ipmat.Dimension(ip_material_data.MinorDim());
-        }
+	if (!qUseSimo) 
+	{
+		nodalstress.Alias(nen, n_codes[iNodalStress], pall); pall += nodalstress.Length();
+		princstress.Alias(nen, n_codes[iPrincipal], pall)  ; pall += princstress.Length();
+		energy.Alias(nen, n_codes[iEnergyDensity], pall)   ; pall += energy.Length();
+		speed.Alias(nen, n_codes[iWaveSpeeds], pall)       ; pall += speed.Length();
+		matdat.Alias(nen, n_codes[iMaterialData], pall)    ; pall += matdat.Length();
+		Poynting.Alias(nen, n_codes[iPoyntingVector], pall);
+	}
+	else
+	{
+		simo_force.Dimension(ElementSupport().NumNodes(),qUseSimo ? n_simo : 0);
+		simo_mass.Dimension(ElementSupport().NumNodes(),qUseSimo ? 1 : 0);
+		simo_counts.Dimension(ElementSupport().NumNodes());
 
-        /* check that degrees are displacements */
-        int interpolant_DOF = InterpolantDOFs();
+		pall = simo_space.Pointer();
+		nodalstress.Alias(nen, n_codes[iNodalStress], pall); pall += nodalstress.Length();
+		princstress.Alias(nen, n_codes[iPrincipal], pall)  ; pall += princstress.Length();
+		energy.Alias(nen, n_codes[iEnergyDensity], pall)   ; pall += energy.Length();
+		speed.Alias(nen, n_codes[iWaveSpeeds], pall)       ; pall += speed.Length();
+		matdat.Alias(nen, n_codes[iMaterialData], pall)    ; pall += matdat.Length();
+		Poynting.Alias(nen, n_codes[iPoyntingVector], pall);
 
-		bool is_axi = Axisymmetric();
-		double Pi2 = 2.0*acos(-1.0);
-        Top();
-        while (NextElement())
-        if (CurrentElement().Flag() != ElementCardT::kOFF)
-        {
+		simo_mass = 0.;
+		simo_force = 0.;
+		simo_counts = 0;
+	}
+        
+	/* element work arrays */
+	dArrayT element_values(e_values.MinorDim());
+	pall = element_values.Pointer();
+	dArrayT centroid, ip_centroid, ip_mass;
+	dArrayT ip_coords(nsd);
+	if (e_codes[iCentroid])
+	{
+		centroid.Alias(nsd, pall); pall += nsd;
+		ip_centroid.Dimension(nsd);
+	}
+	if (e_codes[iMass]) {
+		ip_mass.Alias(NumIP(), pall); 
+		pall += NumIP();
+	}
+	double w_tmp, ke_tmp;
+	double mass;
+	double& strain_energy = (e_codes[iStrainEnergy]) ? *pall++ : w_tmp;
+	double& kinetic_energy = (e_codes[iKineticEnergy]) ? *pall++ : ke_tmp;
+	dArrayT linear_momentum, ip_velocity;
+	if (e_codes[iLinearMomentum])
+	{
+		linear_momentum.Alias(ndof, pall); pall += ndof;
+		ip_velocity.Dimension(ndof);
+	}
+	else if (e_codes[iKineticEnergy]) ip_velocity.Dimension(ndof);
+
+	dArray2DT ip_stress;
+	if (e_codes[iIPStress])
+	{
+		ip_stress.Alias(NumIP(), e_codes[iIPStress]/NumIP(), pall);
+		pall += ip_stress.Length();
+	}
+	dArray2DT ip_material_data;
+	if (e_codes[iIPMaterialData])
+	{
+		ip_material_data.Alias(NumIP(), e_codes[iIPMaterialData]/NumIP(), pall);
+		pall += ip_material_data.Length();
+		ipmat.Dimension(ip_material_data.MinorDim());
+	}
+
+	/* check that degrees are displacements */
+	int interpolant_DOF = InterpolantDOFs();
+
+	bool is_axi = Axisymmetric();
+	double Pi2 = 2.0*acos(-1.0);
+
+	Top();
+	while (NextElement())
+		if (CurrentElement().Flag() != ElementCardT::kOFF)
+		{
 			/* initialize */
 			nodal_space = 0.0;
 			simo_space = 0.;
@@ -1365,263 +1394,289 @@ void SolidElementT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values,
 			/* global shape function values */
 			SetGlobalShape();
 
-                /* collect nodal values */
-                if (e_codes[iKineticEnergy] || e_codes[iLinearMomentum]) {
-                	if (fLocVel.IsRegistered())
-                        SetLocalU(fLocVel);
-                	else
-						fLocVel = 0.0;
-                }
-                
-                /* coordinates and displacements all at once */
-                if (n_codes[iNodalCoord]) fLocInitCoords.ReturnTranspose(coords);
-                if (n_codes[ iNodalDisp])
-                {
-                        if (interpolant_DOF)
-                                fLocDisp.ReturnTranspose(disp);
-                        else
-                                NodalDOFs(CurrentElement().NodesX(), disp);
-                }
-                
-                /* initialize element values */
-                mass = strain_energy = kinetic_energy = 0;
-                if (e_codes[iCentroid]) centroid = 0.0;
-                if (e_codes[iLinearMomentum]) linear_momentum = 0.0;
-                const double* j = fShapes->IPDets();
-                const double* w = fShapes->IPWeights();
+			/* collect nodal values */
+			if (e_codes[iKineticEnergy] || e_codes[iLinearMomentum] || n_codes[iPoyntingVector]) {
+				if (fLocVel.IsRegistered())
+					SetLocalU(fLocVel);
+				else
+					fLocVel = 0.0;
+			}
 
-                /* integrate */
-                dArray2DT Na_X_ip_w;
-                fShapes->TopIP();
-                while (fShapes->NextIP())
-                {
-                	/* density may change with integration point */
-                	double density = fCurrMaterial->Density();
+			/* coordinates and displacements all at once */
+			if (n_codes[iNodalCoord]) fLocInitCoords.ReturnTranspose(coords);
+			if (n_codes[ iNodalDisp]) {
+				if (interpolant_DOF)
+					fLocDisp.ReturnTranspose(disp);
+				else
+					NodalDOFs(CurrentElement().NodesX(), disp);
+			}
+ 
+			/* initialize element values */
+			mass = strain_energy = kinetic_energy = 0;
+			if (e_codes[iCentroid]) centroid = 0.0;
+			if (e_codes[iLinearMomentum]) linear_momentum = 0.0;
+			const double* j = fShapes->IPDets();
+			const double* w = fShapes->IPWeights();
 
-                        /* element integration weight */
-                        double ip_w = (*j++)*(*w++);
+			/* integrate */
+			dArray2DT Na_X_ip_w;
+			fShapes->TopIP();
+			while (fShapes->NextIP())
+			{
+				/* density may change with integration point */
+				double density = fCurrMaterial->Density();
+
+				/* element integration weight */
+				double ip_w = (*j++)*(*w++);
 				if (is_axi) {
 					fShapes->IPCoords(ip_coords);
 					ip_w *= Pi2*ip_coords[0]; /* radius is the x1 coordinate */
 				}
 
-                        if (qUseSimo || qNoExtrap)
-                        {
-                          Na_X_ip_w.Dimension(nen,1);
-                          if (qUseSimo)
-                            {
-                                const double* Na_X = fShapes->IPShapeX();
-                                Na_X_ip_w = ip_w;
-                                for (int k = 0; k < nen; k++)
-                                {
-                                        Na_X_ip_w(k,0) *= *Na_X++;
-                                }
-                                simoNa_bar += Na_X_ip_w;
-                            }
-                          else
-                            for (int k = 0; k < nen; k++)
-                                Na_X_ip_w(k,0) = 1.;
-                        }
-                
-			/* get Cauchy stress */
-			const dSymMatrixT& stress = fCurrMaterial->s_ij();
-			cauchy.Translate(stress);
-
-                        /* stresses */
-                        if (n_codes[iNodalStress])
-                        {        
-                                if (qNoExtrap)
-                                        for (int k = 0; k < nen; k++)
-                                                nodalstress.AddToRowScaled(k,Na_X_ip_w(k,0),cauchy);
-                                else
-                                        fShapes->Extrapolate(cauchy, nodalstress);
-                        }
-                        
-                        if (e_codes[iIPStress]) {
-                        	double* row = ip_stress(fShapes->CurrIP());
-                        	nstr_tmp.Set(nsd, row);
-                        	nstr_tmp = cauchy;
-                        	row += cauchy.Length();
-                        	nstr_tmp.Set(nsd, row);
-                        	fCurrMaterial->Strain(nstr_tmp);
-                        }
-
-                        /* wave speeds */
-                        if (n_codes[iWaveSpeeds])
-                        {
-                                /* acoustic wave speeds */
-                                fCurrMaterial->WaveSpeeds(fNormal, ipspeed);
-                                if (qNoExtrap)
-                                        for (int k = 0; k < nen; k++)
-                                                speed.AddToRowScaled(k,Na_X_ip_w(k,0),ipspeed);
-                                else
-                                        fShapes->Extrapolate(ipspeed, speed);
-                        }
-
-                        /* principal values - compute principal before smoothing */
-                        if (n_codes[iPrincipal])
-                        {
-                                /* compute eigenvalues */
-                                cauchy.PrincipalValues(ipprincipal);
-                                if (qNoExtrap)
-                                        for (int k = 0; k < nen; k++)
-                                                princstress.AddToRowScaled(k,Na_X_ip_w(k,0),ipprincipal);
-                                else
-                                        fShapes->Extrapolate(ipprincipal, princstress);        
-                        }
-
-                        /* strain energy density */
-                        if (n_codes[iEnergyDensity] || e_codes[iStrainEnergy])
-                        {
-                                double ip_strain_energy = fCurrMaterial->StrainEnergyDensity();
-                        
-                                /* nodal average */
-                                if (n_codes[iEnergyDensity])
-                                {
-                                        ipenergy[0] = ip_strain_energy;
-                                        if (qNoExtrap)
-                                          for (int k = 0; k < nen; k++)
-                                                energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy);
-                                        else
-                                                fShapes->Extrapolate(ipenergy,energy);
-                                }
-                                
-                                /* integrate over element */
-                                if (e_codes[iStrainEnergy])
-                                        strain_energy += ip_w*ip_strain_energy;
-                        }
-
-                        /* material stuff */
-                        if (n_codes[iMaterialData] || e_codes[iIPMaterialData])
-                        {
-                                /* compute material output */
-                                fCurrMaterial->ComputeOutput(ipmat);
-                                
-                                /* store nodal data */
-                                if (n_codes[iMaterialData])
-                                {
-                                        if (qNoExtrap)
-                                                for (int k = 0; k < nen; k++)
-                                                        matdat.AddToRowScaled(k,Na_X_ip_w(k,0),ipmat);
-                                        else 
-                                                fShapes->Extrapolate(ipmat, matdat);
-                                }
-                                
-                                /* store element data */
-                                if (e_codes[iIPMaterialData]) ip_material_data.SetRow(fShapes->CurrIP(), ipmat);
-                        }
-                        
-                        /* mass averaged centroid */
-                        if (e_codes[iCentroid] || e_codes[iMass])
-                        {
-                                /* mass */
-                                mass += ip_w*density;
-                                
-                                /* integration point mass */
-                                if (e_codes[iMass]) ip_mass[fShapes->CurrIP()] = ip_w*density;
-                        
-                                /* moment */
-                                if (e_codes[iCentroid])
-                                {
-                                        fShapes->IPCoords(ip_centroid);
-                                        centroid.AddScaled(ip_w*density, ip_centroid);
-                                }
-                        }
-                        
-                        /* kinetic energy/linear momentum */
-                        if (e_codes[iKineticEnergy] || e_codes[iLinearMomentum])
-                        {
-                                /* velocity at integration point */
-                                fShapes->InterpolateU(fLocVel, ip_velocity);
-                                
-                                /* kinetic energy */
-                                if (e_codes[iKineticEnergy])
-                                        kinetic_energy += 0.5*ip_w*density*dArrayT::Dot(ip_velocity, ip_velocity);
-                                        
-                                /* linear momentum */
-                                if (e_codes[iLinearMomentum])
-                                        linear_momentum.AddScaled(ip_w*density, ip_velocity);
-                        }
-                }
-
-                /* copy in the cols */
-                int colcount = 0;
-                nodal_all.BlockColumnCopyAt(disp       , colcount); colcount += disp.MinorDim();
-                nodal_all.BlockColumnCopyAt(coords     , colcount); colcount += coords.MinorDim();
-
-                if (!qUseSimo)
-                {
-                  if (qNoExtrap)
-                    {
-                      double nip(fShapes->NumIP());
-                      nodalstress /= nip;
-                      princstress /= nip;
-                      energy /= nip;
-                      speed /= nip;
-                      matdat /= nip;
-                    }
-                        nodal_all.BlockColumnCopyAt(nodalstress, colcount); colcount += nodalstress.MinorDim();
-                        nodal_all.BlockColumnCopyAt(princstress, colcount); colcount += princstress.MinorDim();
-                        nodal_all.BlockColumnCopyAt(energy     , colcount); colcount += energy.MinorDim();
-                        nodal_all.BlockColumnCopyAt(speed      , colcount); colcount += speed.MinorDim();
-                        nodal_all.BlockColumnCopyAt(matdat     , colcount); colcount += matdat.MinorDim();
-                }
-                else
-                {        
-                        colcount = 0;
-                        simo_all.BlockColumnCopyAt(nodalstress, colcount); colcount += nodalstress.MinorDim();
-                        simo_all.BlockColumnCopyAt(princstress, colcount); colcount += princstress.MinorDim();
-                        simo_all.BlockColumnCopyAt(energy     , colcount); colcount += energy.MinorDim();
-                        simo_all.BlockColumnCopyAt(speed      , colcount); colcount += speed.MinorDim();
-                        simo_all.BlockColumnCopyAt(matdat     , colcount); colcount += matdat.MinorDim();
-                        
-                        iArrayT currIndices = CurrentElement().NodesX();
-                        simo_force.Accumulate(currIndices,simo_all);
-                        simo_mass.Accumulate(currIndices,simoNa_bar);
-                        for (int i = 0; i < currIndices.Length(); i++)
-                        	simo_counts[currIndices[i]]++;
-                }
-            
-                /* accumulate - extrapolation done from ip's to corners => X nodes */
-                ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_all);
-                
-                /* element values */
-                if (e_codes[iCentroid]) centroid /= mass;
-                
-                /* store results */
-                e_values.SetRow(CurrElementNumber(), element_values);
-        }
-
-        /* get nodally averaged values */
-        dArray2DT extrap_values;
-        ElementSupport().OutputUsedAverage(extrap_values);
-
-		int tmpDim = extrap_values.MajorDim();
-        n_values.Dimension(tmpDim,n_out);
-        n_values.BlockColumnCopyAt(extrap_values,0);
-        if (qUseSimo)
-        {        
-        	int rowNum = 0;
-        	iArrayT nodes_used(tmpDim);
-        	dArray2DT tmp_simo(tmpDim, n_simo);
-			for (int i = 0; i < simo_force.MajorDim(); i++)
-				if (simo_counts[i] > 0)
+				if (qUseSimo || qNoExtrap)
 				{
-					nodes_used[rowNum] = i;
-					simo_force.ScaleRow(i, 1./simo_mass(i,0));
-					tmp_simo.SetRow(rowNum, simo_force(i));
-					rowNum++;
-		  		}
-			
-			/* collect final values */
-			n_values.BlockColumnCopyAt(tmp_simo, simo_offset);
-			
-			/* write final values back into the averaging workspace */
-			if (extrap_values.MinorDim() != n_values.MinorDim()) {
-				ElementSupport().ResetAverage(n_values.MinorDim());
-				ElementSupport().AssembleAverage(nodes_used, n_values);
+					Na_X_ip_w.Dimension(nen,1);
+					if (qUseSimo)
+					{
+						const double* Na_X = fShapes->IPShapeX();
+						Na_X_ip_w = ip_w;
+						for (int k = 0; k < nen; k++)
+        					Na_X_ip_w(k,0) *= *Na_X++;
+						simoNa_bar += Na_X_ip_w;
+					}
+					else
+						for (int k = 0; k < nen; k++)
+							Na_X_ip_w(k,0) = 1.;
+				}
+
+				/* get Cauchy stress */
+				const dSymMatrixT& stress = fCurrMaterial->s_ij();
+				cauchy.Translate(stress);
+
+				/* stresses */
+				if (n_codes[iNodalStress]) {        
+					if (qNoExtrap)
+						for (int k = 0; k < nen; k++)
+							nodalstress.AddToRowScaled(k,Na_X_ip_w(k,0),cauchy);
+					else
+						fShapes->Extrapolate(cauchy, nodalstress);
+				}
+
+				if (e_codes[iIPStress]) {
+					double* row = ip_stress(fShapes->CurrIP());
+					nstr_tmp.Set(nsd, row);
+					nstr_tmp = cauchy;
+					row += cauchy.Length();
+					nstr_tmp.Set(nsd, row);
+					fCurrMaterial->Strain(nstr_tmp);
+				}
+
+				/* wave speeds */
+				if (n_codes[iWaveSpeeds])
+				{
+					/* acoustic wave speeds */
+					fCurrMaterial->WaveSpeeds(fNormal, ipspeed);
+					if (qNoExtrap)
+						for (int k = 0; k < nen; k++)
+							speed.AddToRowScaled(k,Na_X_ip_w(k,0),ipspeed);
+						else
+							fShapes->Extrapolate(ipspeed, speed);
+				}
+
+				/* principal values - compute principal before smoothing */
+				if (n_codes[iPrincipal])
+				{
+					/* compute eigenvalues */
+					cauchy.PrincipalValues(ipprincipal);
+					if (qNoExtrap)
+						for (int k = 0; k < nen; k++)
+							princstress.AddToRowScaled(k,Na_X_ip_w(k,0),ipprincipal);
+					else
+						fShapes->Extrapolate(ipprincipal, princstress);        
+				}
+
+				/* strain energy density */
+				if (n_codes[iEnergyDensity] || e_codes[iStrainEnergy] || n_codes[iPoyntingVector])
+				{
+					double ip_strain_energy = fCurrMaterial->StrainEnergyDensity();
+
+					/* nodal average */
+					if (n_codes[iEnergyDensity])
+					{
+						ipenergy[0] = ip_strain_energy;
+						if (qNoExtrap)
+							for (int k = 0; k < nen; k++)
+								energy.AddToRowScaled(k,Na_X_ip_w(k,0),ipenergy);
+						else
+							fShapes->Extrapolate(ipenergy,energy);
+					}
+
+					/* integrate over element */
+					if (e_codes[iStrainEnergy])
+						strain_energy += ip_w*ip_strain_energy;
+						
+					/* Poynting vector */
+					if (n_codes[iPoyntingVector]) {
+						ipPoynting = 0.0;
+						ipPoynting[0] += fv_ss*ip_strain_energy;
+					}
+				}
+
+				/* material stuff */
+				if (n_codes[iMaterialData] || e_codes[iIPMaterialData])
+				{
+					/* compute material output */
+					fCurrMaterial->ComputeOutput(ipmat);
+
+					/* store nodal data */
+					if (n_codes[iMaterialData])
+					{
+						if (qNoExtrap)
+							for (int k = 0; k < nen; k++)
+								matdat.AddToRowScaled(k,Na_X_ip_w(k,0),ipmat);
+						else 
+							fShapes->Extrapolate(ipmat, matdat);
+					}
+
+					/* store element data */
+					if (e_codes[iIPMaterialData]) ip_material_data.SetRow(fShapes->CurrIP(), ipmat);
+				}
+
+				/* mass averaged centroid */
+				if (e_codes[iCentroid] || e_codes[iMass])
+				{
+					/* mass */
+					mass += ip_w*density;
+
+					/* integration point mass */
+					if (e_codes[iMass]) ip_mass[fShapes->CurrIP()] = ip_w*density;
+
+					/* moment */
+					if (e_codes[iCentroid]) {
+						fShapes->IPCoords(ip_centroid);
+						centroid.AddScaled(ip_w*density, ip_centroid);
+					}
+				}
+
+				/* kinetic energy/linear momentum */
+				if (e_codes[iKineticEnergy] || e_codes[iLinearMomentum] || n_codes[iPoyntingVector])
+				{
+					/* velocity at integration point */
+					fShapes->InterpolateU(fLocVel, ip_velocity);					
+					double ke_density = 0.5*density*dArrayT::Dot(ip_velocity, ip_velocity);
+
+					/* kinetic energy */
+					if (e_codes[iKineticEnergy])
+						kinetic_energy += ip_w*ke_density;
+        
+					/* linear momentum */
+					if (e_codes[iLinearMomentum])
+						linear_momentum.AddScaled(ip_w*density, ip_velocity);
+				
+					/* Poynting vector */
+					if (n_codes[iPoyntingVector]) {
+						ipPoynting[0] += fv_ss*ke_density;
+
+						/* is finite strain */
+						FSSolidMatT* fs_mat = TB_DYNAMIC_CAST(FSSolidMatT*, fCurrMaterial);
+						if (fs_mat)
+						{
+							/* compute PK1/J */
+							cauchy.ToMatrix(stress_mat);
+							F_inv.Inverse(fs_mat->F());
+							PbyJ.MultABT(stress_mat, F_inv);
+						
+							PbyJ.Multx(ip_velocity, ipPoynting, 1.0/F_inv.Det(), dMatrixT::kAccumulate);
+						} 
+						else { /* small strain */
+							cauchy.Multx(ip_velocity, ipPoynting, 1.0, dMatrixT::kAccumulate);
+						}
+						
+						/* extrapolate */
+						fShapes->Extrapolate(ipPoynting, Poynting);
+					}
+				}
 			}
-        }
+
+			/* copy in the cols */
+			int colcount = 0;
+			nodal_all.BlockColumnCopyAt(disp       , colcount); colcount += disp.MinorDim();
+			nodal_all.BlockColumnCopyAt(coords     , colcount); colcount += coords.MinorDim();
+
+			if (!qUseSimo)
+			{
+				if (qNoExtrap)
+				{
+					double nip(fShapes->NumIP());
+					nodalstress /= nip;
+					princstress /= nip;
+					energy /= nip;
+					speed /= nip;
+					matdat /= nip;
+				}
+				nodal_all.BlockColumnCopyAt(nodalstress, colcount); colcount += nodalstress.MinorDim();
+				nodal_all.BlockColumnCopyAt(princstress, colcount); colcount += princstress.MinorDim();
+				nodal_all.BlockColumnCopyAt(energy     , colcount); colcount += energy.MinorDim();
+				nodal_all.BlockColumnCopyAt(speed      , colcount); colcount += speed.MinorDim();
+				nodal_all.BlockColumnCopyAt(matdat     , colcount); colcount += matdat.MinorDim();
+				nodal_all.BlockColumnCopyAt(Poynting   , colcount); colcount += Poynting.MinorDim();
+			}
+			else
+			{        
+				colcount = 0;
+				simo_all.BlockColumnCopyAt(nodalstress, colcount); colcount += nodalstress.MinorDim();
+				simo_all.BlockColumnCopyAt(princstress, colcount); colcount += princstress.MinorDim();
+				simo_all.BlockColumnCopyAt(energy     , colcount); colcount += energy.MinorDim();
+				simo_all.BlockColumnCopyAt(speed      , colcount); colcount += speed.MinorDim();
+				simo_all.BlockColumnCopyAt(matdat     , colcount); colcount += matdat.MinorDim();
+				simo_all.BlockColumnCopyAt(Poynting   , colcount); colcount += Poynting.MinorDim();
+
+				iArrayT currIndices = CurrentElement().NodesX();
+				simo_force.Accumulate(currIndices,simo_all);
+				simo_mass.Accumulate(currIndices,simoNa_bar);
+				for (int i = 0; i < currIndices.Length(); i++)
+					simo_counts[currIndices[i]]++;
+			}
+
+			/* accumulate - extrapolation done from ip's to corners => X nodes */
+			ElementSupport().AssembleAverage(CurrentElement().NodesX(), nodal_all);
+
+			/* element values */
+			if (e_codes[iCentroid]) centroid /= mass;
+
+			/* store results */
+			e_values.SetRow(CurrElementNumber(), element_values);
+		}
+
+	/* get nodally averaged values */
+	dArray2DT extrap_values;
+	ElementSupport().OutputUsedAverage(extrap_values);
+
+	int tmpDim = extrap_values.MajorDim();
+	n_values.Dimension(tmpDim,n_out);
+	n_values.BlockColumnCopyAt(extrap_values,0);
+	if (qUseSimo)
+	{        
+		int rowNum = 0;
+		iArrayT nodes_used(tmpDim);
+		dArray2DT tmp_simo(tmpDim, n_simo);
+		for (int i = 0; i < simo_force.MajorDim(); i++)
+			if (simo_counts[i] > 0) {
+				nodes_used[rowNum] = i;
+				simo_force.ScaleRow(i, 1./simo_mass(i,0));
+				tmp_simo.SetRow(rowNum, simo_force(i));
+				rowNum++;
+			}
+
+		/* collect final values */
+		n_values.BlockColumnCopyAt(tmp_simo, simo_offset);
+
+		/* write final values back into the averaging workspace */
+		if (extrap_values.MinorDim() != n_values.MinorDim()) {
+			ElementSupport().ResetAverage(n_values.MinorDim());
+			ElementSupport().AssembleAverage(nodes_used, n_values);
+		}
+	}
 }
 
 /***********************************************************************
@@ -1694,13 +1749,19 @@ void SolidElementT::GenerateOutputLabels(const iArrayT& n_codes, ArrayT<StringT>
 	}
 
 	/* material output labels */
-	if (n_codes[iMaterialData])
-	{
+	if (n_codes[iMaterialData]) {
 		ArrayT<StringT> matlabels;
 		(*fMaterialList)[0]->OutputLabels(matlabels);	
 		
 		for (int i = 0; i < matlabels.Length(); i++)
 			n_labels[count++] = matlabels[i];
+	}
+	
+	/* Poynting vector */
+	if (n_codes[iPoyntingVector]) {
+		const char* fp_labels[] = {"Fp_X", "Fp_Y", "Fp_Z"};
+		for (int i = 0; i < NumSD(); i++)
+			n_labels[count++] = fp_labels[i];		
 	}
 
 	/* allocate */
