@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tahoe author="paklein" geometry_file="../geometry/test.wrap.geom"
-    output_format="Tahoe"
-	restart_output_inc="2500"
-    title="conveyor test" xmlns:x0="http://www.w3.org/2001/XMLSchema">
-    <time num_steps="3000" output_inc="50" time_step="0.01">
+<tahoe author="paklein" geometry_file="./geometry/test.wrap.geom"
+    title="quasistatic conveyor test" xmlns:x0="http://www.w3.org/2001/XMLSchema">
+    <time max_step_cuts="0" num_steps="2" output_inc="1" time_step="0.1">
         <schedule_function>
             <piecewise_linear>
                 <OrderedPair x="0.0" y="0.0"/>
@@ -12,7 +10,7 @@
         </schedule_function>
     </time>
     <nodes>
-        <field field_name="displacement" integrator="central_difference">
+        <field field_name="displacement" integrator="static">
             <dof_labels>
                 <String value="D_X"/>
                 <String value="D_Y"/>
@@ -52,7 +50,7 @@
         <anisotropic_CSE field_name="displacement">
             <line/>
             <surface_element_nodal_output displacement_jump="1"
-                material_output="1" traction="1" displacements="1"/>
+                material_output="1" traction="1"/>
             <anisotropic_CSE_element_block>
                 <block_ID_list>
                     <String value="2"/>
@@ -65,7 +63,9 @@
             </anisotropic_CSE_element_block>
         </anisotropic_CSE>
     </element_list>
-    <linear_solver>
-        <diagonal_matrix/>
-    </linear_solver>
+    <nonlinear_solver abs_tolerance="1.0e-10"
+        divergence_tolerance="1.0e+10" max_iterations="10"
+        rel_tolerance="1.0e-10">
+        <profile_matrix/>
+    </nonlinear_solver>
 </tahoe>

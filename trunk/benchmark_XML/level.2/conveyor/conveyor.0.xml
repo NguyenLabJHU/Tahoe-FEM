@@ -52,7 +52,7 @@
         <anisotropic_CSE field_name="displacement">
             <line/>
             <surface_element_nodal_output displacement_jump="1"
-                material_output="1" traction="1"/>
+                material_output="1" traction="1" displacements="1"/>
             <anisotropic_CSE_element_block>
                 <block_ID_list>
                     <String value="2"/>
