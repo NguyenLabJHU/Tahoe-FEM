@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.h,v 1.1 2001-09-11 23:43:48 paklein Exp $ */
+/* $Id: AugLagWallT.h,v 1.2 2002-04-19 17:22:21 paklein Exp $ */
 
 #ifndef _AUGLAG_WALL_T_H_
 #define _AUGLAG_WALL_T_H_
@@ -63,16 +63,19 @@ private:
 
 private:
 
-	/* nodemanager(s) */
+	/** nodemanager */
 	XDOF_ManagerT* fXDOF_Nodes;
 	
 	/* contact equation sets (shallow copy of contact node equs) */
 	iArray2DT fContactEqnos2D;
 	iArray2DT fContactTags;
 	
-	/* contact DOF tags and DOF's */
-	iArrayT fContactDOFtags;
-	dArrayT fLastDOF;
+	/** \name Augmented multiplier info */
+	/*@{*/
+	iArrayT fContactDOFtags; /**< contact DOF tags and DOF's */
+	iArrayT fFloatingDOF;    /**< 1 if multiplier is attacted to node that has KBC's */
+	dArrayT fLastDOF;        /**< multiplier history */ 
+	/*@}*/
 };
 
 #endif /* _AUGLAG_WALL_T_H_ */
