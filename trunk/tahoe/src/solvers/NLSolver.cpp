@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.17 2002-11-28 17:30:31 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.18 2002-12-13 02:42:55 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 
 #include "NLSolver.h"
@@ -94,8 +94,14 @@ SolverT::SolutionStatusT NLSolver::Solve(int num_iterations)
 	InitIterationOutput();
 
 	/* form the first residual force vector */
+	fLHS->Clear();
 	fRHS = 0.0;
+	fLHS_lock = kOpen; /* LHS open for assembly, too! */
+	fRHS_lock = kOpen;
 	fFEManager.FormRHS(Group());	
+	fLHS_lock = kLocked;
+	fRHS_lock = kLocked;
+
 	double error = Residual(fRHS);
 			
 	/* loop on error */
@@ -103,7 +109,7 @@ SolverT::SolutionStatusT NLSolver::Solve(int num_iterations)
 	while (solutionflag == kContinue &&
 		(num_iterations == -1 || fNumIteration < num_iterations))
 	{
-		error = SolveAndForm(true);
+		error = SolveAndForm(true, false);
 		solutionflag = ExitIteration(error);
 	}
 
@@ -250,8 +256,14 @@ NLSolver::SolutionStatusT NLSolver::Relax(int newtancount)
 	int count = newtancount - 1;
 
 	/* form the first residual force vector */
+	fLHS->Clear();
 	fRHS = 0.0;
+	fLHS_lock = kOpen; /* LHS open for assembly, too! */
+	fRHS_lock = kOpen;
 	fFEManager.FormRHS(Group());	
+	fLHS_lock = kLocked;
+	fRHS_lock = kLocked;
+
 	double error = Residual(fRHS);
 		
 	/* loop on error */
@@ -265,7 +277,7 @@ NLSolver::SolutionStatusT NLSolver::Relax(int newtancount)
 			count      = 0;
 		}
 			
-		error = SolveAndForm(newtangent);
+		error = SolveAndForm(newtangent, false);
 		solutionflag = ExitIteration(error);
 	}
 
@@ -360,24 +372,32 @@ NLSolver::SolutionStatusT NLSolver::ExitIteration(double error)
 }
 
 /* form and solve the equation system */
-double NLSolver::SolveAndForm(bool newtangent)
+double NLSolver::SolveAndForm(bool newtangent, bool clear_LHS)
 {		
 	/* form the stiffness matrix */
 	if (newtangent)
 	{
-		fLHS->Clear();
+		if (clear_LHS) fLHS->Clear();
+
+		fLHS_lock = kOpen;
 		fFEManager.FormLHS(Group(), GlobalT::kNonSymmetric);
+		fLHS_lock = kIgnore;
 	}
 		 		
 	/* solve equation system */
-	if (!fLHS->Solve(fRHS)) throw ExceptionT::kBadJacobianDet;
+	if (!fLHS->Solve(fRHS)) ExceptionT::BadJacobianDet("NLSolver::SolveAndForm");
 
 	/* apply update to system */
 	Update(fRHS, NULL);
 								
 	/* compute new residual */
+	fLHS->Clear();
 	fRHS = 0.0;
-	fFEManager.FormRHS(Group());
+	fLHS_lock = kOpen; /* LHS open for assembly, too! */
+	fRHS_lock = kOpen;
+	fFEManager.FormRHS(Group());	
+	fLHS_lock = kLocked;
+	fRHS_lock = kLocked;
 
 	/* combine residual magnitude with update magnitude */
 	/* e = a1 |R| + a2 |delta_d|                        */
