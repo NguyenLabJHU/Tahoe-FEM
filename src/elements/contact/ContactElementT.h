@@ -1,7 +1,4 @@
-/* $Id: ContactElementT.h,v 1.29 2002-11-21 01:13:36 paklein Exp $ */
-
-// DEVELOPMENT
-
+/* $Id: ContactElementT.h,v 1.30 2003-02-03 04:40:18 paklein Exp $ */
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
 

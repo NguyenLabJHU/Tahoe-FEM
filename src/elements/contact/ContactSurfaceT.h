@@ -1,7 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.25 2002-11-14 15:43:59 rjones Exp $ */
-
-// DEVELOPMENT
-
+/* $Id: ContactSurfaceT.h,v 1.26 2003-02-03 04:40:18 paklein Exp $ */
 #ifndef _CONTACT_SURFACE_T_H_
 #define _CONTACT_SURFACE_T_H_
 
@@ -12,7 +9,6 @@
 #include "ArrayT.h"
 #include "dArray2DT.h"
 #include "nMatrixT.h"
-
 
 namespace Tahoe {
 

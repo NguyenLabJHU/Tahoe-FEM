@@ -1,5 +1,4 @@
-//DEVELOPMENT
-
+// $Id: VMS_EnumT.h,v 1.2 2003-02-03 04:40:25 paklein Exp $
 #ifndef _VMS_ENUM_H_ 
 #define _VMS_ENUM_H_ 
 

@@ -1,5 +1,4 @@
-//DEVELOPMENT
-
+// $Id: FEA_dVectorT.h,v 1.2 2003-02-03 04:40:24 paklein Exp $
 #ifndef _FEA_DVECTORT_H_
 #define _FEA_DVECTORT_H_
 

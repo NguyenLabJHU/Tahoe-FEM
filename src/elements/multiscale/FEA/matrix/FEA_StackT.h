@@ -1,5 +1,4 @@
-//DEVELOPMENT
-
+// $Id: FEA_StackT.h,v 1.4 2003-02-03 04:40:24 paklein Exp $
 #ifndef _FEA_STACKT_H_
 #define _FEA_STACKT_H_
 

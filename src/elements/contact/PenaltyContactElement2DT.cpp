@@ -1,7 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.33 2002-11-30 16:41:27 paklein Exp $ */
-
-// DEVELOPMENT
-
+/* $Id: PenaltyContactElement2DT.cpp,v 1.34 2003-02-03 04:40:18 paklein Exp $ */
 #include "PenaltyContactElement2DT.h"
 
 #include <math.h>

@@ -1,5 +1,4 @@
-//DEVELOPMENT
-
+// $Id: FEA_IntegrationT.h,v 1.2 2003-02-03 04:40:23 paklein Exp $
 #ifndef _FEA_INTEGRATIONT_H_ 
 #define _FEA_INTEGRATIONT_H_ 
 

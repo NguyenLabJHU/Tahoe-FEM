@@ -1,7 +1,4 @@
-/* $Id: ConHypGeom.h,v 1.2 2002-11-14 15:47:09 rjones Exp $ */
-
-// DEVELOPMENT
-
+/* $Id: ConHypGeom.h,v 1.3 2003-02-03 04:40:16 paklein Exp $ */
 #ifndef _CON_HYP_GEOM_H_
 #define _CON_HYP_GEOM_H_
 

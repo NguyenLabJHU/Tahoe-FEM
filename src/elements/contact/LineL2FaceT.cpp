@@ -1,7 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.28 2002-11-14 15:43:59 rjones Exp $ */
-
-// DEVELOPMENT
-
+/* $Id: LineL2FaceT.cpp,v 1.29 2003-02-03 04:40:18 paklein Exp $ */
 #include "LineL2FaceT.h"
 
 #include "ContactElementT.h"
@@ -11,8 +8,6 @@
 
 /* vector functions */
 #include "vector2D.h"
-
-/* parameters */
 
 using namespace Tahoe;
 

@@ -1,5 +1,4 @@
-/* $Id: FEA_StackT.cpp,v 1.2 2002-12-02 07:11:03 paklein Exp $ */
-//DEVELOPMENT
+/* $Id: FEA_StackT.cpp,v 1.3 2003-02-03 04:40:24 paklein Exp $ */
 #include "FEA.h"
 
 using namespace Tahoe;

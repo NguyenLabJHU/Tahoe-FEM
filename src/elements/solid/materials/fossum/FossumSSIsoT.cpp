@@ -1,5 +1,4 @@
-/* $Id: FossumSSIsoT.cpp,v 1.8 2003-01-31 09:46:54 paklein Exp $ */
-/* DEVELOPMENT */
+/* $Id: FossumSSIsoT.cpp,v 1.9 2003-02-03 04:40:29 paklein Exp $ */
 /* 3-invariant, single-surface dilation/compaction plasticity model
  * with isotropic and kinematic hardeneing
  * Implemented 8/02 Craig Foster

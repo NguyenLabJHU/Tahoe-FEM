@@ -1,6 +1,4 @@
-//DEVELOPMENT
-
-
+// $Id: E_Pr_MatlT.h,v 1.2 2003-02-03 04:40:28 paklein Exp $
 #ifndef _E_PR_MATLT_ 
 #define _E_PR_MATLT_ 
 

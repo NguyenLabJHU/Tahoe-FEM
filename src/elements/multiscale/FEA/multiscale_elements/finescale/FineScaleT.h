@@ -1,10 +1,8 @@
-//DEVELOPMENT
-
+// $Id: FineScaleT.h,v 1.8 2003-02-03 04:40:27 paklein Exp $
 #ifndef _FINESCALE_T_H_ 
 #define _FINESCALE_T_H_ 
 
 #include "BCJ_MatlT.h"
-
 
 namespace Tahoe {
 

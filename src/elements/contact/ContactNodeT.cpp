@@ -1,13 +1,7 @@
-/*  $Id: ContactNodeT.cpp,v 1.16 2002-11-14 15:43:59 rjones Exp $ */
-
-// DEVELOPMENT
-
+/*  $Id: ContactNodeT.cpp,v 1.17 2003-02-03 04:40:18 paklein Exp $ */
 #include "ContactNodeT.h"
 
 #include "FaceT.h"
-
-/* parameters */
-
 
 using namespace Tahoe;
 

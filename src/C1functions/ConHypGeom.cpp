@@ -1,12 +1,8 @@
-/* $Id: ConHypGeom.cpp,v 1.4 2002-11-14 15:47:09 rjones Exp $ */
-
-// DEVELOPMENT
-
+/* $Id: ConHypGeom.cpp,v 1.5 2003-02-03 04:40:16 paklein Exp $ */
 // CONHYPGEOM is the confluent hypergeometric function of the 1st kind
 // (a.k.a. Kummer function) Because of the rapid growth/decay of individual
 // components, for sufficiently large domain values, an asymptotic approximation
 // is utilized (see Abramawitz/Stegun, page 511.)
-
 #include "ConHypGeom.h"
 #include <math.h>
 #include <iostream.h>
@@ -14,10 +10,9 @@
 #include "dArrayT.h"
 #include "Gamma.h"
 
-/* constants */
-
 using namespace Tahoe;
 
+/* constants */
 const double EPS = 1.0e-12;
 const double MaxAn = 10;
 const double PI = 3.141592653589793; 

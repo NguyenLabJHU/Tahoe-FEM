@@ -1,7 +1,4 @@
-/* $Id: SurfaceT.h,v 1.18 2002-11-14 15:44:00 rjones Exp $ */
-
-// DEVELOPMENT
-
+/* $Id: SurfaceT.h,v 1.19 2003-02-03 04:40:18 paklein Exp $ */
 #ifndef _SURFACE_T_H_
 #define _SURFACE_T_H_
 
@@ -14,7 +11,6 @@
 #include "RaggedArray2DT.h"
 #include "FaceT.h"
 #include "GeometryT.h"
-
 
 namespace Tahoe {
 

@@ -1,7 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.31 2003-01-10 19:10:09 paklein Exp $ */
-
-// DEVELOPMENT
-
+/*  $Id: SurfaceT.cpp,v 1.32 2003-02-03 04:40:18 paklein Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>

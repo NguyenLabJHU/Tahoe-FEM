@@ -1,5 +1,4 @@
-//DEVELOPMENT
-
+// $Id: VMF_MaterialT.h,v 1.2 2003-02-03 04:40:28 paklein Exp $
 #ifndef _VMF_MATERIALT_
 #define _VMF_MATERIALT_
 

@@ -1,8 +1,6 @@
-//DEVELOPMENT
-
+// $Id: FEA_ArraysT.h,v 1.2 2003-02-03 04:40:24 paklein Exp $
 #ifndef _FEA_ARRAY_T__ 
 #define _FEA_ARRAY_T__ 
-
 
 namespace Tahoe {
 

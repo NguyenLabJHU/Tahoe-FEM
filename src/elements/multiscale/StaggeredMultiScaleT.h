@@ -1,7 +1,6 @@
-/* $Id: StaggeredMultiScaleT.h,v 1.10 2003-01-03 03:32:14 paklein Exp $ */ 
+/* $Id: StaggeredMultiScaleT.h,v 1.11 2003-02-03 04:40:20 paklein Exp $ */ 
 #ifndef _STAGGERED_MULTISCALE_T_H_ 
 #define _STAGGERED_MULTISCALE_T_H_ 
-//DEVELOPMENT
 
 /* base classes */
 #include "ElementBaseT.h"

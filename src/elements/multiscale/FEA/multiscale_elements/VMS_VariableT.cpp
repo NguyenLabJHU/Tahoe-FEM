@@ -1,5 +1,4 @@
-//DEVELOPMENT
-
+// $Id: VMS_VariableT.cpp,v 1.3 2003-02-03 04:40:25 paklein Exp $
 #include "FEA.h"
 #include "VMS.h"
 

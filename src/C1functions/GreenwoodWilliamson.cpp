@@ -1,7 +1,4 @@
-/* $Id: GreenwoodWilliamson.cpp,v 1.19 2002-11-14 15:47:09 rjones Exp $ */
-
-// DEVELOPMENT
-
+/* $Id: GreenwoodWilliamson.cpp,v 1.20 2003-02-03 04:40:16 paklein Exp $ */
 #include "GreenwoodWilliamson.h"
 #include <math.h>
 #include <iostream.h>

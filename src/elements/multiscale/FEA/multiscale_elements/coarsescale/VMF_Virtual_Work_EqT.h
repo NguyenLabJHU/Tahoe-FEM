@@ -1,5 +1,4 @@
-//DEVELOPMENT
-
+// $Id: VMF_Virtual_Work_EqT.h,v 1.5 2003-02-03 04:40:26 paklein Exp $
 #ifndef _VMF_VWEQ_T_H_ 
 #define _VMF_VWEQ_T_H_ 
 

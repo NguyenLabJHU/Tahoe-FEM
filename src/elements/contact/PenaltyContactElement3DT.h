@@ -1,8 +1,5 @@
-/* $Id: PenaltyContactElement3DT.h,v 1.5 2002-11-30 16:41:27 paklein Exp $ */
+/* $Id: PenaltyContactElement3DT.h,v 1.6 2003-02-03 04:40:18 paklein Exp $ */
 // created by : rjones 2002
-
-// DEVELOPMENT
-
 #ifndef _PENALTY_CONTACT_ELEMENT_3D_T_H_
 #define _PENALTY_CONTACT_ELEMENT_3D_T_H_
 

@@ -1,10 +1,8 @@
-//DEVELOPMENT
-
+// $Id: FEA_Data_ProcessorT.h,v 1.3 2003-02-03 04:40:22 paklein Exp $
 #ifndef _FEA_DATAPROCESSRT_H_
 #define _FEA_DATAPROCESSRT_H_
 
 namespace Tahoe {
-
 
 class FEA_Data_ProcessorT  
 {

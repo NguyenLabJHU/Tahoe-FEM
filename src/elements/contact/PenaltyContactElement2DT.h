@@ -1,9 +1,5 @@
-/* $Id: PenaltyContactElement2DT.h,v 1.15 2002-11-30 16:41:27 paklein Exp $ */
+/* $Id: PenaltyContactElement2DT.h,v 1.16 2003-02-03 04:40:18 paklein Exp $ */
 // created by : rjones 2001
-
-// DEVELOPMENT
-
-
 #ifndef _PENALTY_CONTACT_ELEMENT_2D_T_H_
 #define _PENALTY_CONTACT_ELEMENT_2D_T_H_
 

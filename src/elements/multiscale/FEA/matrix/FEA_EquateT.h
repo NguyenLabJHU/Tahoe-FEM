@@ -1,15 +1,13 @@
-//DEVELOPMENT
-
+// $Id: FEA_EquateT.h,v 1.3 2003-02-03 04:40:24 paklein Exp $
 #ifndef _FEA_EQUATET_H_
 #define _FEA_EQUATET_H_
-
-/** This class is used to equate components of FEA_dMatrixT, FEA_dVectorT, 
- *  and FEA_dScalarT */
 
 namespace Tahoe {
 
 class FEA_dScalarT; // Forward Declaration
 
+/** This class is used to equate components of FEA_dMatrixT, FEA_dVectorT, 
+ *  and FEA_dScalarT */
 class FEA_EquateT {
 
 	public:

@@ -1,13 +1,9 @@
-/* $Id: QuadL4FaceT.h,v 1.19 2002-11-14 15:44:00 rjones Exp $ */
-
-// DEVELOPMENT
-
+/* $Id: QuadL4FaceT.h,v 1.20 2003-02-03 04:40:18 paklein Exp $ */
 #ifndef _QUADL4_FACE_T_H_
 #define _QUADL4_FACE_T_H_
 
 /* base class */
 #include "FaceT.h"
-
 
 namespace Tahoe {
 

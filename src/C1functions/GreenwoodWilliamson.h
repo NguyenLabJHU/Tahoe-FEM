@@ -1,13 +1,9 @@
-/* $Id: GreenwoodWilliamson.h,v 1.7 2002-11-14 15:47:09 rjones Exp $ */
-
-// DEVELOPMENT
-
+/* $Id: GreenwoodWilliamson.h,v 1.8 2003-02-03 04:40:16 paklein Exp $ */
 #ifndef _GREENWOOD_WILLIAMSON_H_
 #define _GREENWOOD_WILLIAMSON_H_
 
 /* base class */
 #include "C1FunctionT.h"
-
 
 namespace Tahoe {
 

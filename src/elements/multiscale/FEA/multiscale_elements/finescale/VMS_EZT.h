@@ -1,5 +1,4 @@
-//DEVELOPMENT
-
+// $Id: VMS_EZT.h,v 1.3 2003-02-03 04:40:27 paklein Exp $
 #ifndef _VMS_EZ_T_H_ 
 #define _VMS_EZ_T_H_ 
 

@@ -1,12 +1,10 @@
-//DEVELOPMENT
-
+// $Id: FEA_ShapeFunctionT.h,v 1.3 2003-02-03 04:40:27 paklein Exp $
 #ifndef _FEA_SHAPEFUNCTIONT_H_
 #define _FEA_SHAPEFUNCTIONT_H_
 
 #include "FEA.h"
 
 namespace Tahoe {
-
 
 //------------------------------------------------------------------------
 				

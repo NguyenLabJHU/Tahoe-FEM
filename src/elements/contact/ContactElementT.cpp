@@ -1,7 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.39 2002-11-21 01:13:36 paklein Exp $ */
-
-// DEVELOPMENT
-
+/* $Id: ContactElementT.cpp,v 1.40 2003-02-03 04:40:18 paklein Exp $ */
 #include "ContactElementT.h"
 
 #include <math.h>

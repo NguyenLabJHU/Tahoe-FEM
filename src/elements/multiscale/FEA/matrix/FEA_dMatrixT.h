@@ -1,5 +1,4 @@
-//DEVELOPMENT
-
+// $Id: FEA_dMatrixT.h,v 1.6 2003-02-03 04:40:24 paklein Exp $
 #ifndef _FEA_DMATRIXT_H_
 #define _FEA_DMATRIXT_H_
 

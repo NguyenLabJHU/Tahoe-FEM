@@ -1,11 +1,8 @@
-
-//DEVELOPMENT
-
+// $Id: CoarseScaleT.h,v 1.4 2003-02-03 04:40:26 paklein Exp $
 #ifndef _COARSESCALE_T_H_ 
 #define _COARSESCALE_T_H_ 
 
 #include "Iso_MatlT.h"
-
 
 namespace Tahoe {
 

@@ -1,7 +1,4 @@
-/* $Id: LineQ3FaceT.cpp,v 1.13 2002-11-14 15:43:59 rjones Exp $ */
-
-// DEVELOPMENT
-
+/* $Id: LineQ3FaceT.cpp,v 1.14 2003-02-03 04:40:18 paklein Exp $ */
 #include "LineQ3FaceT.h"
 
 #include "ContactElementT.h"

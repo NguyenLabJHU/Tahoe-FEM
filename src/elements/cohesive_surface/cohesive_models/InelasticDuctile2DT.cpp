@@ -1,5 +1,4 @@
-/* $Id: InelasticDuctile2DT.cpp,v 1.2 2003-01-25 22:07:46 paklein Exp $  */
-//DEVELOPMENT
+/* $Id: InelasticDuctile2DT.cpp,v 1.3 2003-02-03 04:40:17 paklein Exp $  */
 #include "InelasticDuctile2DT.h"
 #include "ifstreamT.h"
 #include "dArrayT.h"

@@ -1,8 +1,6 @@
-//DEVELOPMENT
-
+// $Id: VMS_BCJT.cpp,v 1.11 2003-02-03 04:40:27 paklein Exp $
 #include "FEA.h" 
 #include "VMS.h" 
-
 
 using namespace Tahoe;
 

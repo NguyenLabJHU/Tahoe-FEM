@@ -1,5 +1,4 @@
-/* $Id: FossumSSIso2DT.cpp,v 1.3 2002-11-14 17:06:19 paklein Exp $ */
-/* DEVELOPMENT */
+/* $Id: FossumSSIso2DT.cpp,v 1.4 2003-02-03 04:40:29 paklein Exp $ */
 #include "FossumSSIso2DT.h"
 #include "ElementCardT.h"
 #include "StringT.h"

@@ -1,7 +1,4 @@
-/* $Id: PenaltyContactElement3DT.cpp,v 1.9 2002-11-30 16:41:27 paklein Exp $ */
-
-// DEVELOPMENT
-
+/* $Id: PenaltyContactElement3DT.cpp,v 1.10 2003-02-03 04:40:18 paklein Exp $ */
 #include "PenaltyContactElement3DT.h"
 
 #include <math.h>

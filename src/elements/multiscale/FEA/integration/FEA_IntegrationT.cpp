@@ -1,6 +1,4 @@
-//DEVELOPMENT
-
-
+// $Id: FEA_IntegrationT.cpp,v 1.2 2003-02-03 04:40:23 paklein Exp $
 #include "FEA.h" 
 
 using namespace Tahoe;

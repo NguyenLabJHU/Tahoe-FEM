@@ -1,7 +1,4 @@
-/* $Id: ContactSearchT.cpp,v 1.23 2002-11-14 15:43:59 rjones Exp $ */
-
-// DEVELOPMENT
-
+/* $Id: ContactSearchT.cpp,v 1.24 2003-02-03 04:40:18 paklein Exp $ */
 #include "ContactSearchT.h"
 
 #include "ContactSurfaceT.h"
@@ -11,10 +8,9 @@
 #include "iNodeT.h"
 #include "ContactElementT.h"
 
-/* parameters */
-
 using namespace Tahoe;
 
+/* parameters */
 const int    kMaxNumGrid    = 50;
 const double kFaceTolerance = 1.1;
 const int    kNumPerGridCell= 10;

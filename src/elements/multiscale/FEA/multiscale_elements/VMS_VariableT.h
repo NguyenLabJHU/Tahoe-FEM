@@ -1,17 +1,13 @@
-//DEVELOPMENT
-
+// $Id: VMS_VariableT.h,v 1.2 2003-02-03 04:40:25 paklein Exp $
 #ifndef _VMS_VARIABLE_T_H_ 
 #define _VMS_VARIABLE_T_H_ 
-// DEVELOPMENT
-
 
 namespace Tahoe {
 
 /** VMS_VariableT: This class contains methods pertaining to kinematics of
  * a dual field formulation. These include deformation gradients Fe and Fp
  * and gradients such as Grad(ue) and Grad(up) as examples.
- * Sandia National Laboratory and the University of Michigan **/
-
+ * Sandia National Laboratory and the University of Michigan */
 class VMS_VariableT
 {
   public:

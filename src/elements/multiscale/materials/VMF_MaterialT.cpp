@@ -1,5 +1,4 @@
-//DEVELOPMENT
-
+// $Id: VMF_MaterialT.cpp,v 1.2 2003-02-03 04:40:28 paklein Exp $
 #include "VMF_MaterialT.h"
 
 using namespace Tahoe;

@@ -1,7 +1,6 @@
-/* $Id: FossumSSIso2DT.h,v 1.7 2003-01-31 09:46:54 paklein Exp $ */
+/* $Id: FossumSSIso2DT.h,v 1.8 2003-02-03 04:40:29 paklein Exp $ */
 #ifndef _FOSSUM_SS_ISO_2D_T_H_
 #define _FOSSUM_SS_ISO_2D_T_H_
-/* DEVELOPMENT */
 
 /* base class */
 #include "Material2DT.h"

@@ -1,5 +1,4 @@
-//DEVELOPMENT
-
+// $Id: BCJ_MatlT.h,v 1.2 2003-02-03 04:40:28 paklein Exp $
 #ifndef _BCJ_MATLT_
 #define _BCJ_MATLT_
 

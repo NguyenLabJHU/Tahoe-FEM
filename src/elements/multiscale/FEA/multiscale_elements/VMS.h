@@ -1,5 +1,4 @@
-//DEVELOPMENT
-
+// $Id: VMS.h,v 1.5 2003-02-03 04:40:25 paklein Exp $
 #ifndef _VMS_H_
 #define _VMS_H_
 

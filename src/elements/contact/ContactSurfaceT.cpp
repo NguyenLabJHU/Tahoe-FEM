@@ -1,17 +1,10 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.32 2002-11-14 15:43:59 rjones Exp $ */
-
-// DEVELOPMENT
-
+/*  $Id: ContactSurfaceT.cpp,v 1.33 2003-02-03 04:40:18 paklein Exp $ */
 #include "ContactSurfaceT.h"
 
 #include <iostream.h>
 #include "ofstreamT.h"
 
 #include "ContactNodeT.h"
-
-
-/* parameters */
-
 
 using namespace Tahoe;
 

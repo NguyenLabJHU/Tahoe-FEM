@@ -1,5 +1,4 @@
-//DEVELOPMENT
-
+// $Id: FEA_EquateT.cpp,v 1.3 2003-02-03 04:40:24 paklein Exp $
 #include "FEA.h"
 
 using namespace Tahoe;

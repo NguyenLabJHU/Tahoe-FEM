@@ -1,5 +1,4 @@
-//DEVELOPMENT
-
+// $Id: VMS_BCJT.h,v 1.8 2003-02-03 04:40:27 paklein Exp $
 #ifndef _VMS_BCJT_H_ 
 #define _VMS_BCJT_H_ 
 
