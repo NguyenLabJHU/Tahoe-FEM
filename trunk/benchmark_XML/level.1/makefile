@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2004-06-23 00:50:20 paklein Exp $
+# $Id: makefile,v 1.3 2004-06-25 01:27:57 paklein Exp $
 #
 # type "make clean" to remove test results
 #
@@ -7,6 +7,7 @@
 # NOTE: if list is empty, set SUB_DIR = NONE
 SUB_DIR = \
 material.solid \
+material.surface \
 stress.smoothing
 
 all:
