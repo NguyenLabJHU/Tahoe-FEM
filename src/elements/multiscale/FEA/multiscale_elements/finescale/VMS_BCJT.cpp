@@ -1,4 +1,4 @@
-// $Id: VMS_BCJT.cpp,v 1.15 2003-07-01 04:35:32 creigh Exp $
+// $Id: VMS_BCJT.cpp,v 1.16 2003-07-01 04:53:20 creigh Exp $
 #include "FEA.h" 
 #include "VMS.h" 
 
@@ -303,9 +303,10 @@ void VMS_BCJT::Form_A_S_Lists (VMS_VariableT &npt,VMS_VariableT &n)
 	else
 		S[kKappa_bar] = 0.0;
 
-	S[kKappa_bar] += C[kY];  //-- Y is the yield stress
-	S[kBeta] -= S[kKappa_bar]; 
-	S[kBeta] /= C[kV];
+	S[kS_Temp0]  = 	S[kKappa_bar];
+	S[kS_Temp0] += 	C[kY];  //-- Y is the yield stress
+	S[kBeta] 		-= 	S[kS_Temp0]; 
+	S[kBeta] 		/= 	C[kV];
 
 	//--- Get Sinh(Beta) 
 	S[kMacaulay_Sinh_Beta].Sinh( S[kBeta] ); 
