@@ -1,7 +1,5 @@
-/* $Id: tevp2D.cpp,v 1.25 2002-07-17 00:20:01 paklein Exp $ */
-/* Implementation file for thermo-elasto-viscoplastic material subroutine */
+/* $Id: tevp2D.cpp,v 1.26 2002-10-05 20:04:20 paklein Exp $ */
 /* Created:  Harold Park (04/04/2001) */
-
 #include "tevp2D.h"
 
 #include <iostream.h>
@@ -10,10 +8,10 @@
 #include "FiniteStrainT.h"
 #include "ElementCardT.h"
 
-/* element output data */
-
 using namespace Tahoe;
 
+/* element output data */
+const int kNumStateVariables = 4;
 const int kNumOutput = 4;   // # of internal variables
 const double kYieldTol = 1.0e-16;   // Yield stress criteria
 const int kVoigt = 4;    // 4 components in 2D voigt notation
@@ -296,6 +294,9 @@ const dSymMatrixT& tevp2D::s_ij(void)
     fTempCauchy = fStress;
     /* check for model switch criteria - visco to fluid and ductile to brittle */
     CheckCriticalCriteria(element, ip);
+    
+    /* store pressure */
+	fInternal[kPressure] = fStress3D.Trace()/3.0;
   }
   else
   {
@@ -628,7 +629,7 @@ void tevp2D::AllocateElement(ElementCardT& element)
   int d_size = 0;
   i_size += 2 * fNumIP;              // 2 flags per IP:  critical strain
                                       // and check for plasticity
-  d_size += kNumOutput * fNumIP;     // 3 internal variables to track
+  d_size += kNumStateVariables * fNumIP;     // 3 internal variables to track
   d_size += kVoigt * fNumIP;         // 4 non-zero stress components:
                                       // Sig11, Sig12=Sig21, Sig22 and Sig33
   d_size += kNSD * fNumIP;           // 3 2D symmetric components (Sig11, Sig12, Sig22)
@@ -660,7 +661,7 @@ void tevp2D::LoadData(const ElementCardT& element, int ip)
   dArrayT& d_array = element.DoubleData();
   fTempKirchoff.Set(kVoigt, &d_array[dex]);
   fTempCauchy.Set(kNSD, &d_array[offset + dex2]);
-  fInternal.Set(kNumOutput, &d_array[offset + offset2 + ip * kNumOutput]); 
+  fInternal.Set(kNumStateVariables, &d_array[offset + offset2 + ip * kNumStateVariables]); 
 }
 
 void tevp2D::Update(ElementCardT& element)

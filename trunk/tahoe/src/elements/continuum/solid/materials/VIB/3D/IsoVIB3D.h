@@ -1,4 +1,4 @@
-/* $Id: IsoVIB3D.h,v 1.4 2002-07-05 22:28:18 paklein Exp $ */
+/* $Id: IsoVIB3D.h,v 1.5 2002-10-05 20:04:15 paklein Exp $ */
 /* created: paklein (03/15/1998)                                          */
 /* 3D Isotropic VIB solver using spectral decomposition formulation       */
 
@@ -31,9 +31,19 @@ public:
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;	
 	
-	/* spatial description */
-	virtual const dMatrixT& c_ijkl(void); // spatial tangent moduli
-	virtual const dSymMatrixT& s_ij(void); // Cauchy stress
+	/** \name spatial description */
+	/*@{*/
+	/** spatial tangent modulus */
+	virtual const dMatrixT& c_ijkl(void);
+
+	/** Cauchy stress */
+	virtual const dSymMatrixT& s_ij(void);
+
+	/** return the pressure associated with the last call to 
+	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * for more information. */
+	virtual double Pressure(void) const { return fEigs.Sum()/3.0; };
+	/*@}*/
 
 	/* material description */
 	virtual const dMatrixT& C_IJKL(void); // material tangent moduli

@@ -1,4 +1,4 @@
-/* $Id: MaterialListT.h,v 1.5 2002-07-05 22:28:21 paklein Exp $ */
+/* $Id: MaterialListT.h,v 1.6 2002-10-05 20:04:16 paklein Exp $ */
 /* created: paklein (02/16/1997) */
 
 #ifndef _MATERIAL_LIST_T_H_
@@ -21,6 +21,9 @@ public:
 
 	/** constructor */
 	MaterialListT(int length);
+
+	/* destructor */
+	virtual ~MaterialListT(void) { };
 
 	/** read material data from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in) = 0;

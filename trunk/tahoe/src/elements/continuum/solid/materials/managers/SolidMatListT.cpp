@@ -1,11 +1,10 @@
-/* $Id: SolidMatListT.cpp,v 1.3 2002-07-02 19:56:05 cjkimme Exp $ */
+/* $Id: SolidMatListT.cpp,v 1.4 2002-10-05 20:04:16 paklein Exp $ */
 #include "SolidMatListT.h"
 #include "SolidMaterialT.h"
 
-/* constructors */
-
 using namespace Tahoe;
 
+/* constructors */
 SolidMatListT::SolidMatListT(int length):
 	MaterialListT(length),
 	fHasLocalizers(false),

@@ -1,13 +1,11 @@
-/* $Id: FDCubic2DT.cpp,v 1.4 2002-07-02 19:55:40 cjkimme Exp $ */
-/* created: paklein (06/11/1997)                                          */
-
+/* $Id: FDCubic2DT.cpp,v 1.5 2002-10-05 20:04:11 paklein Exp $ */
+/* created: paklein (06/11/1997) */
 #include "FDCubic2DT.h"
 #include "ThermalDilatationT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 FDCubic2DT::FDCubic2DT(ifstreamT& in, const FiniteStrainT& element):
 	FDCubicT(in, element),
 	Anisotropic2DT(in),
@@ -24,6 +22,16 @@ void FDCubic2DT::Print(ostream& out) const
 	FDCubicT::Print(out);
 	Anisotropic2DT::Print(out);
 	Material2DT::Print(out);
+}
+
+double FDCubic2DT::Pressure(void) const
+{
+	if (ConstraintOption() == kPlaneStress)
+		return FDCubicT::Pressure();
+	else {
+		cout << "\n FDCubic2DT::Pressure: not implemented for plane strain" << endl;
+		throw eGeneralFail;
+	}
 }
 
 /*************************************************************************

@@ -1,6 +1,5 @@
-/* $Id: SSCubic2DT.h,v 1.3 2002-07-02 19:55:40 cjkimme Exp $ */
-/* created: paklein (06/11/97)                                            */
-
+/* $Id: SSCubic2DT.h,v 1.4 2002-10-05 20:04:11 paklein Exp $ */
+/* created: paklein (06/11/97) */
 #ifndef _SS_CUBIC_2D_T_H_
 #define _SS_CUBIC_2D_T_H_
 
@@ -8,7 +7,6 @@
 #include "SSCubicT.h"
 #include "Anisotropic2DT.h"
 #include "Material2DT.h"
-
 
 namespace Tahoe {
 
@@ -21,6 +19,12 @@ public:
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;
+
+	/** return the pressure associated with the last call to 
+	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * for more information. \note plane strain not implemented, but 
+	 * could be using CubicT::DilatationFactor2D. */
+	virtual double Pressure(void) const;
 
 protected:
 

@@ -1,8 +1,5 @@
-/* $Id: OgdenIsotropicT.h,v 1.5 2002-10-04 20:45:17 thao Exp $ */
-/* created: paklein (10/01/2000)                                          */
-/* base class for large deformation isotropic material following          */
-/* Ogden's formulation.                                                   */
-
+/* $Id: OgdenIsotropicT.h,v 1.6 2002-10-05 20:04:12 paklein Exp $ */
+/* created: paklein (10/01/2000) */
 #ifndef _OGDEN_ISOTROPIC_T_H_
 #define _OGDEN_ISOTROPIC_T_H_
 
@@ -13,9 +10,11 @@
 /* direct members */
 #include "SpectralDecompT.h"
 
-
 namespace Tahoe {
 
+/** base class for large deformation isotropic material following
+ * Ogden's spectral formulation. Derived types need only to overload
+ * OgdenIsotropicT::dWdE and OgdenIsotropicT::dWdE. */
 class OgdenIsotropicT: public FDStructMatT, public IsotropicT
 {
 public:
@@ -30,9 +29,19 @@ public:
 	/* class specific initializations */
 	virtual void Initialize(void);
 
-	/* spatial description */
+	/** \name spatial description */
+	/*@{*/
+	/** spatial tangent modulus */
 	virtual const dMatrixT& c_ijkl(void);
+
+	/** Cauchy stress */
 	virtual const dSymMatrixT& s_ij(void);
+
+	/** return the pressure associated with the last call to 
+	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * for more information. */
+	virtual double Pressure(void) const;
+	/*@}*/
 
 	/* material description */
 	virtual const dMatrixT& C_IJKL(void); // material tangent moduli
@@ -40,8 +49,8 @@ public:
 
 protected:
 
-	/* principal values given principal values of the stretch tensors,
-	 * i.e., the principal stretches squared */
+	/* principal values of the PK2 stress given principal values of the stretch 
+	 * tensors, i.e., the principal stretches squared */
 	virtual void dWdE(const dArrayT& eigenstretch2, dArrayT& eigenstress) = 0;
 	virtual void ddWddE(const dArrayT& eigenstretch2, dArrayT& eigenstress,
 		dSymMatrixT& eigenmod) = 0;

@@ -1,7 +1,5 @@
-/* $Id: povirk2D.cpp,v 1.4 2002-07-17 00:20:00 paklein Exp $ */
-/* Implementation file for thermo-elasto-viscoplastic material subroutine */
+/* $Id: povirk2D.cpp,v 1.5 2002-10-05 20:04:20 paklein Exp $ */
 /* Created:  Harold Park (09/10/2001) */
-
 #include "povirk2D.h"
 
 #include <iostream.h>
@@ -10,10 +8,9 @@
 #include "FiniteStrainT.h"
 #include "ElementCardT.h"
 
-/* element output data */
-
 using namespace Tahoe;
 
+const int kNumStateVariables = 4;
 const int kNumOutput = 4;   // # of internal variables
 const double kYieldTol = 1.0e-16;   // Yield stress criteria
 const int kVoigt = 4;    // 4 components in 2D voigt notation
@@ -249,7 +246,10 @@ const dSymMatrixT& povirk2D::s_ij(void)
     fStress.ReduceFrom3D(fStress3D);     // Take only 2D stress components
     // STORE CAUCHY STRESS HERE (2D version)
     fTempCauchy = fStress;
-  }
+ 
+     /* store pressure */
+	fInternal[kPressure] = fStress3D.Trace()/3.0;
+ }
   else
   {
     LoadData(CurrentElement(), CurrIP());
@@ -518,7 +518,7 @@ void povirk2D::AllocateElement(ElementCardT& element)
   int d_size = 0;
   i_size += 2 * fNumIP;              // 2 flags per IP:  critical strain
                                       // and check for plasticity
-  d_size += kNumOutput * fNumIP;     // 3 internal variables to track
+  d_size += kNumStateVariables * fNumIP;     // 3 internal variables to track
   d_size += kVoigt * fNumIP;         // 4 non-zero stress components:
                                       // Sig11, Sig12=Sig21, Sig22 and Sig33
   d_size += kNSD * fNumIP;           // 3 2D symmetric components (Sig11, Sig12, Sig22)
@@ -550,7 +550,7 @@ void povirk2D::LoadData(const ElementCardT& element, int ip)
   dArrayT& d_array = element.DoubleData();
   fTempKirchoff.Set(kVoigt, &d_array[dex]);
   fTempCauchy.Set(kNSD, &d_array[offset + dex2]);
-  fInternal.Set(kNumOutput, &d_array[offset + offset2 + ip * kNumOutput]); 
+  fInternal.Set(kNumStateVariables, &d_array[offset + offset2 + ip * kNumStateVariables]); 
 }
 
 void povirk2D::Update(ElementCardT& element)

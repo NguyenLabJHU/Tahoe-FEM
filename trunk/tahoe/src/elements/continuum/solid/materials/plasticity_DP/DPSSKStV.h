@@ -1,6 +1,6 @@
-/* $Id: DPSSKStV.h,v 1.7 2002-07-02 19:56:09 cjkimme Exp $ */
+/* $Id: DPSSKStV.h,v 1.8 2002-10-05 20:04:17 paklein Exp $ */
 /* created: myip (06/01/1999)                                  */
-/* $Id: DPSSKStV.h,v 1.7 2002-07-02 19:56:09 cjkimme Exp $ */
+/* $Id: DPSSKStV.h,v 1.8 2002-10-05 20:04:17 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 
 #ifndef _DP_SS_KSTV_H_
@@ -40,13 +40,22 @@ class DPSSKStV: public SSStructMatT,
 	/* print parameters */
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
-	
-	/* modulus */
+
+	/** \name spatial description */
+	/*@{*/
+	/** spatial tangent modulus */
 	virtual const dMatrixT& c_ijkl(void);
+
 	virtual const dMatrixT& cdisc_ijkl(void);
-  	
-	/* stress */
+
+	/** Cauchy stress */
 	virtual const dSymMatrixT& s_ij(void);
+
+	/** return the pressure associated with the last call to 
+	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * for more information. */
+	virtual double Pressure(void) const { return fStress.Trace()/3.0; };
+	/*@}*/
 
 	/* returns the strain energy density for the specified strain */
 	virtual double StrainEnergyDensity(void);

@@ -1,17 +1,13 @@
-/* $Id: OgdenIsotropicT.cpp,v 1.7 2002-10-04 20:45:17 thao Exp $ */
-/* created: paklein (10/01/2000)                                          */
-/* base class for large deformation isotropic material following          */
-/* Ogden's formulation.                                                   */
-
+/* $Id: OgdenIsotropicT.cpp,v 1.8 2002-10-05 20:04:12 paklein Exp $ */
+/* created: paklein (10/01/2000) */
 #include "OgdenIsotropicT.h"
 
 #include <iostream.h>
 #include <math.h>
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 OgdenIsotropicT::OgdenIsotropicT(ifstreamT& in, const FiniteStrainT& element):
 	FDStructMatT(in, element),
 	fSpectralDecomp(NumSD()),
@@ -46,18 +42,17 @@ void OgdenIsotropicT::Initialize(void)
 {
 	/* initial modulus */
 	fEigs = 1.0;
-        ddWddE(fEigs, fdWdE, fddWddE);
-
-        double lambda = fddWddE(0,1);
-        double mu = 0.5*(fddWddE(0,0) - fddWddE(0,1));
+	ddWddE(fEigs, fdWdE, fddWddE);
+	double lambda = fddWddE(0,1);
+	double mu = 0.5*(fddWddE(0,0) - fddWddE(0,1));
 
 	if (NumSD() == 2 && PurePlaneStress())
-	               IsotropicT::Set_PurePlaneStress_mu_lambda(mu, lambda);
-        else
-          {
-                        double kappa = lambda + 2.0/3.0*mu;
-                        IsotropicT::Set_mu_kappa(mu, kappa);
-          }
+		IsotropicT::Set_PurePlaneStress_mu_lambda(mu, lambda);
+	else
+	{
+		double kappa = lambda + 2.0/3.0*mu;
+		IsotropicT::Set_mu_kappa(mu, kappa);
+	}
 }
 
 /* modulus */
@@ -162,6 +157,13 @@ const dSymMatrixT& OgdenIsotropicT::S_IJ(void)
 	dWdE(fSpectralDecomp.Eigenvalues(), fdWdE);
 
 	return fSpectralDecomp.EigsToRank2(fdWdE);
+}
+
+/* return the pressure associated with the last call to stress */
+double OgdenIsotropicT::Pressure(void) const
+{
+	return dArrayT::Dot(fSpectralDecomp.Eigenvalues(), fdWdE)/
+			sqrt(fSpectralDecomp.Eigenvalues().Product());
 }
 
 /*************************************************************************

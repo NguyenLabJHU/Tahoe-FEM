@@ -1,4 +1,4 @@
-/* $Id: SSHookeanMatT.h,v 1.3 2002-07-02 19:55:38 cjkimme Exp $ */
+/* $Id: SSHookeanMatT.h,v 1.4 2002-10-05 20:04:11 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #ifndef _SS_HOOKEAN_MAT_H_
@@ -21,9 +21,19 @@ public:
 	/* initialization */
 	virtual void Initialize(void);
 
-	/* spatial description */
-	virtual const dMatrixT& c_ijkl(void); // spatial tangent moduli
-	virtual const dSymMatrixT& s_ij(void); // Cauchy stress
+	/** \name spatial description */
+	/*@{*/
+	/** spatial tangent modulus */
+	virtual const dMatrixT& c_ijkl(void);
+
+	/** Cauchy stress */
+	virtual const dSymMatrixT& s_ij(void);
+
+	/** return the pressure associated with the last call to 
+	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * for more information. */
+	virtual double Pressure(void) const { return fStress.Trace()/3.0; };
+	/*@}*/
 
 	/* material description */
 	virtual const dMatrixT& C_IJKL(void); // material tangent moduli

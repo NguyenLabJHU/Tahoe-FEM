@@ -38,9 +38,19 @@ class povirk2D: public FDStructMatT, public IsotropicT, public Material2DT
   virtual void Print(ostream& out) const;
   virtual void PrintName(ostream& out) const;
 
-  /* spatial description - this IS implemented */
-  virtual const dMatrixT& c_ijkl(void);  // spatial tangent moduli
-  virtual const dSymMatrixT& s_ij(void);  // Cauchy stress
+	/** \name spatial description */
+	/*@{*/
+	/** spatial tangent modulus */
+	virtual const dMatrixT& c_ijkl(void);
+
+	/** Cauchy stress */
+	virtual const dSymMatrixT& s_ij(void);
+
+	/** return the pressure associated with the last call to 
+	 * StructuralMaterialT::s_ij. See StructuralMaterialT::Pressure
+	 * for more information. */
+	virtual double Pressure(void) const { return fInternal[kPressure]; };
+	/*@}*/
 
   /* material description - not implemented */
   virtual const dMatrixT& C_IJKL(void);  // material tangent moduli
@@ -73,13 +83,17 @@ class povirk2D: public FDStructMatT, public IsotropicT, public Material2DT
   // Should LoadingStatusT be protected?
   void AllocateElement(ElementCardT& element); // If element/IP goes plastic
 
-  /* Enumerated data types/definitions */
-  enum InternalVariablesT {kTemp = 0,   // Temperature
-                             kSb = 1,   // Effective Stress
-                             kEb = 2};  // Effective Strain
-  enum ModelT {kTevp = 0,          // Thermo-elasto-viscoplastic
-               kFluid = 1,        // Fluid model
-               kCrack = 2};
+	/** enum for state variable info */
+	enum InternalVariablesT {kTemp = 0, /**< Temperature */
+                               kSb = 1, /**< Effective Stress */
+                               kEb = 2, /**< Effective Strain */ 
+                         kPressure = 3  /**< Pressure */ };
+
+	/** enum for model type */
+	enum ModelT {kTevp = 0, /**< Thermo-elasto-viscoplastic */
+                kFluid = 1, /**< Fluid model */
+                kCrack = 2  /**< Crack model */};
+
   enum StessComponentsT {kSig11 = 0,
                          kSig12 = 1,
                          kSig22 = 2,   // fTempStress stored like this...

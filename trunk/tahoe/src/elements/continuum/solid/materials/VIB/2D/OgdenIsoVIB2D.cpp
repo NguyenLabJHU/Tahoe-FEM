@@ -1,7 +1,5 @@
-/* $Id: OgdenIsoVIB2D.cpp,v 1.5 2002-09-12 17:49:59 paklein Exp $ */
-/* created: paklein (11/08/1997)                                          */
-/* 2D Isotropic VIB using Ogden's spectral formulation                    */
-
+/* $Id: OgdenIsoVIB2D.cpp,v 1.6 2002-10-05 20:04:14 paklein Exp $ */
+/* created: paklein (11/08/1997) */
 #include "OgdenIsoVIB2D.h"
 
 #include <math.h>
@@ -14,10 +12,9 @@
 /* point generator */
 #include "EvenSpacePtsT.h"
 
-/* constructors */
-
 using namespace Tahoe;
 
+/* constructors */
 OgdenIsoVIB2D::OgdenIsoVIB2D(ifstreamT& in, const FiniteStrainT& element):
 	OgdenIsotropicT(in, element),
 	Material2DT(in, kPlaneStress),
