@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.28 2003-05-27 07:04:18 paklein Exp $ */
+/* $Id: CSEAnisoT.h,v 1.29 2003-05-28 23:15:23 cjkimme Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -17,7 +17,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class SurfacePotentialT;
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 class TiedPotentialBaseT;
 #endif
 
@@ -27,7 +27,7 @@ class CSEAnisoT: public CSEBaseT
 public:
 
 	/* constructors */
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate);
 #else
 	CSEAnisoT(ElementSupportT& support, bool rotate);
@@ -45,7 +45,7 @@ public:
 	/** close current time increment */
 	virtual void CloseStep(void);
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	/** write restart data to the output stream. */
 	virtual void WriteRestart(ostream& out) const;
 
@@ -59,7 +59,7 @@ public:
 	virtual void ReadRestart(double* incomingData);
 #endif	
 
-#ifdef _SIERRA_TEST_	
+#ifdef _FRACTURE_INTERFACE_LIBRARY_	
 	/* Initialize fields passed in from the outside */
 	virtual void InitStep(void);
 #endif
@@ -111,7 +111,7 @@ protected:
 	/* cohesive surface potentials */
 	iArrayT fNumStateVariables;
 	pArrayT<SurfacePotentialT*> fSurfPots;
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	ArrayT<TiedPotentialBaseT*> fTiedPots;
 //	TiedPotentialBaseT* tiedpot;
 	bool qRetieNodes;

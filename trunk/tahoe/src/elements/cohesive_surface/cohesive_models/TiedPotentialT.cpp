@@ -1,4 +1,4 @@
-/* $Id: TiedPotentialT.cpp,v 1.20 2003-05-27 07:01:58 paklein Exp $  */
+/* $Id: TiedPotentialT.cpp,v 1.21 2003-05-28 23:15:27 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "TiedPotentialT.h"
@@ -73,9 +73,9 @@ TiedPotentialT::TiedPotentialT(ifstreamT& in):
 	}
 	else
 	{
-	  	in >> q;	// phi_t/phi_n
-	  	in >> r; //delta_n* /d_n
-	  	if (q < 0.0 || r < 0.0) throw ExceptionT::kBadInputValue;
+		in >> q;	// phi_t/phi_n
+		in >> r; //delta_n* /d_n
+		if (q < 0.0 || r < 0.0) throw ExceptionT::kBadInputValue;
 	
 		in >> d_n; if (d_n <= kSmall) throw ExceptionT::kBadInputValue;
 		in >> d_t; if (d_t <= kSmall) throw ExceptionT::kBadInputValue;
@@ -301,7 +301,7 @@ SurfacePotentialT::StatusT TiedPotentialT::Status(const dArrayT& jump_u,
 
 void TiedPotentialT::PrintName(ostream& out) const
 {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	out << "    TiedPotentialT (modified Xu-Needleman) 2D \n";
 #endif
 }
@@ -309,7 +309,7 @@ void TiedPotentialT::PrintName(ostream& out) const
 /* print parameters to the output stream */
 void TiedPotentialT::Print(ostream& out) const
 {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	out <<  " Tangential Component of traction direction. . . = " << fnvec1 << '\n';
 	out <<  " Normal Component of traction direction. . . . . = " << fnvec2 << '\n';	
 	out << 	" Critical traction mag for nodal release . . . . = " << fsigma_critical << '\n';		

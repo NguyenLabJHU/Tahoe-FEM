@@ -1,4 +1,4 @@
-/* $Id: YoonAllen3DT.cpp,v 1.11 2003-05-26 01:51:46 paklein Exp $ */
+/* $Id: YoonAllen3DT.cpp,v 1.12 2003-05-28 23:15:27 cjkimme Exp $ */
 #include "YoonAllen3DT.h"
 
 #include <iostream.h>
@@ -13,7 +13,7 @@ using namespace Tahoe;
 /* class parameters */
 const int knumDOF = 3;
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 /* constructor */
 YoonAllen3DT::YoonAllen3DT(ifstreamT& in, const double& time_step): 
 	SurfacePotentialT(knumDOF),
@@ -123,7 +123,7 @@ void YoonAllen3DT::InitStateVariables(ArrayT<double>& state)
  	int num_state = NumStateVariables();
 	if (state.Length() != num_state) 
 	{
-#ifndef _SIERRA_TEST_	
+#ifndef _FRACTURE_INTERFACE_LIBRARY_	
 	  	cout << "\n SurfacePotentialT::InitStateVariables: expecting state variable array\n"
 		     <<   "     length " << num_state << ", found length " << state.Length() << endl;
 #endif
@@ -169,7 +169,7 @@ double YoonAllen3DT::Potential(const dArrayT& jump_u, const ArrayT<double>& stat
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 #endif
 
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	cout << "YoonAllen3DT::Potential is not implemented. It's viscoelastic \n";
 #endif
 	return 0.;
@@ -184,7 +184,7 @@ const dArrayT& YoonAllen3DT::Traction(const dArrayT& jump_u, ArrayT<double>& sta
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 	if (fTimeStep < 0.0) {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		ExceptionT::BadInputValue(caller, "expecting non-negative time increment: %g", fTimeStep);
 #endif		     
 		throw ExceptionT::kBadInputValue;
@@ -562,7 +562,7 @@ SurfacePotentialT::StatusT YoonAllen3DT::Status(const dArrayT& jump_u,
 
 void YoonAllen3DT::PrintName(ostream& out) const
 {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	out << " Yoon-Allen 2D \n";
 #else
 #pragma unused(out)
@@ -572,7 +572,7 @@ void YoonAllen3DT::PrintName(ostream& out) const
 /* print parameters to the output stream */
 void YoonAllen3DT::Print(ostream& out) const
 {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	out << " Cohesive stress . . . . . . . . . . . . . . . . = " << fsigma_0   << '\n';
 	out << " Normal length scale . . . . . . . . . . . . . . = " << fd_c_n     << '\n';
 	out << " Tangential length scale . . . . . . . . . . . . = " << fd_c_t     << '\n';

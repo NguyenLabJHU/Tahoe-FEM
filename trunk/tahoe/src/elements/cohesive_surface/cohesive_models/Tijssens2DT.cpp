@@ -1,4 +1,4 @@
-/* $Id: Tijssens2DT.cpp,v 1.19 2003-05-26 01:51:46 paklein Exp $  */
+/* $Id: Tijssens2DT.cpp,v 1.20 2003-05-28 23:15:27 cjkimme Exp $  */
 /* created: cjkimme (10/23/2001) */
 
 #include "Tijssens2DT.h"
@@ -86,7 +86,7 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 	if (jump_u.Length() != knumDOF) throw ExceptionT::kSizeMismatch;
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kSizeMismatch;
 	if (fTimeStep <= 0.0) {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 		cout << "\n Tijssens2DT::Traction: expecting positive time increment: "
 		     << fTimeStep << endl;
 #endif
@@ -119,43 +119,43 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 		//if (state[7] < kSmall || (state[8] <= kSmall && (1.5*state[7] - fA + fB/state[7] - state[1]) > kSmall) || (state[5] >= fDelta_n_ccr && state[9] <= kSmall))
 		if (jump_u[1] < 1.01*fsigma_c/fk_n) 
 		{
-		    state[1] += fk_n*du_n;
-		    state[0] += fk_t0*du_t;
+			state[1] += fk_n*du_n;
+			state[0] += fk_t0*du_t;
 
-		    /* interpenetration */
-		    if (jump_u[1] < kSmall)
-		   		state[1] += 2.*fk_n*du_n;
+			/* interpenetration */
+			if (jump_u[1] < kSmall)
+				state[1] += 2.*fk_n*du_n;
 		}
 		else 
-		  	if (state[5] > fDelta_n_ccr)
-		  	{
-		    	if (state[1] - fk_n/fSteps*du_n > kSmall)
-		    	{
+			if (state[5] > fDelta_n_ccr)
+			{
+				if (state[1] - fk_n/fSteps*du_n > kSmall)
+				{
 					state[1] -= fk_n/fSteps*du_n;
 					state[0] -= fk_t0*exp(-fc_1)*du_t;
-		    	}
-		    	else
-		      		state[1] = state[0] = 0.;
+				}
+				else
+					state[1] = state[0] = 0.;
 		  	}
 		  	else
 		  	{ 
 		    	/*NormalTraction*/
-		    	if (state[1] < kSmall) 
-		      		state[1] = 1.1*fsigma_c;
-		    	double Tnp1 = state[1];
-			    SecantMethodT secant(20);
-			    double du_nd = du_n/fTimeStep;
+				if (state[1] < kSmall) 
+					state[1] = 1.1*fsigma_c;
+				double Tnp1 = state[1];
+				SecantMethodT secant(20);
+				double du_nd = du_n/fTimeStep;
 
-		    	secant.Reset(fsigma_c,-state[1]-fk_n*fTimeStep*(du_nd-fDelta_0),1.5*state[1],.5*state[1]-fk_n*fTimeStep*(du_nd-fDelta_0*exp(-fastar*(fsigma_c-Tnp1))));
-		    	Tnp1 = secant.NextGuess();
-			    while (!secant.NextPoint(Tnp1,Tnp1-state[1]-(fk_n*fTimeStep*(du_nd-fDelta_0*exp(-fastar*(fsigma_c-Tnp1))))))
-			   		Tnp1 = secant.NextGuess();
+				secant.Reset(fsigma_c,-state[1]-fk_n*fTimeStep*(du_nd-fDelta_0),1.5*state[1],.5*state[1]-fk_n*fTimeStep*(du_nd-fDelta_0*exp(-fastar*(fsigma_c-Tnp1))));
+				Tnp1 = secant.NextGuess();
+				while (!secant.NextPoint(Tnp1,Tnp1-state[1]-(fk_n*fTimeStep*(du_nd-fDelta_0*exp(-fastar*(fsigma_c-Tnp1))))))
+					Tnp1 = secant.NextGuess();
 
-			    double du_c = fTimeStep*fDelta_0*exp(-fastar*(fsigma_c-Tnp1));
-			    state[1] += fk_n*(du_nd*fTimeStep-du_c);
+				double du_c = fTimeStep*fDelta_0*exp(-fastar*(fsigma_c-Tnp1));
+				state[1] += fk_n*(du_nd*fTimeStep-du_c);
 
-		    	state[5] += du_c;
-		    	state[6*knumDOF] += state[1]*du_n;
+				state[5] += du_c;
+				state[6*knumDOF] += state[1]*du_n;
 
 			    /* Tangential traction *//*
 			    Tnp1 = state[0];
@@ -170,9 +170,9 @@ const dArrayT& Tijssens2DT::Traction(const dArrayT& jump_u, ArrayT<double>& stat
 		    	/*if a craze will fail, request a smaller timestep*/
 				/*not implemented */
 			
-			 	double dw_t = fk_t0*exp(-fc_1*state[5]/fDelta_n_ccr)*du_t;
-			 	state[0] += dw_t;
-		   	 	state[6*knumDOF] += state[0]*du_t;
+				double dw_t = fk_t0*exp(-fc_1*state[5]/fDelta_n_ccr)*du_t;
+				state[0] += dw_t;
+				state[6*knumDOF] += state[0]*du_t;
 			}
 
 		fTraction[0] = state[0];
@@ -197,48 +197,49 @@ const dMatrixT& Tijssens2DT::Stiffness(const dArrayT& jump_u, const ArrayT<doubl
 	fStiffness[1] = fStiffness[2] = 0.;
 	if (jump_u[1] <= 1.01*fsigma_c/fk_n) 
 	{
-	    fStiffness[3] = fk_n;
-	    fStiffness[0] = fk_t0;
+		fStiffness[3] = fk_n;
+		fStiffness[0] = fk_t0;
 
-	    /* interpenetration */
-	    if (jump_u[1] < kSmall)
-	      fStiffness[3] += 2.*fk_n;
+		/* interpenetration */
+		if (jump_u[1] < kSmall)
+			fStiffness[3] += 2.*fk_n;
 	}
 	else 
 	{
 		double *state_old = state.Pointer(kIntShift);
-	  	if (state_old[5] > fDelta_n_ccr) 
-	  	{
-	   		if (state_old[1] - fk_n/fSteps*(jump_u[1]-state_old[3]) > kSmall)
-	      	{
-	      		fStiffness[3] = -fk_n/fSteps;
+		if (state_old[5] > fDelta_n_ccr) 
+		{
+			if (state_old[1] - fk_n/fSteps*(jump_u[1]-state_old[3]) > kSmall)
+			{
+				fStiffness[3] = -fk_n/fSteps;
 				fStiffness[0] = -fk_t0*exp(-fc_1);
-	      	}
-	      	else 
+			}
+			else 
 				fStiffness[3] = fStiffness[0] = 0.;
-	  	}
-	  	else
-	  	{
-	   		/*Normal stiffness*/
-	      	double du_n = jump_u[1]-state_old[3];
-	      	if (state_old[1] < kSmall)
+		}
+		else
+		{
+			/*Normal stiffness*/	
+			double du_n = jump_u[1]-state_old[3];
+		
+			if (state_old[1] < kSmall)
 				state_old[1] = 1.1 * fsigma_c;
 				
 			/* Grab current traction */
-		    double Tnp1 = state[1];
+			double Tnp1 = state[1];
 	    	
-	      	if (state_old[1] < 1.01*fsigma_c && du_n > kSmall)
-	      	{ 
+			if (state_old[1] < 1.01*fsigma_c && du_n > kSmall)
+			{ 
 				fStiffness[3] = (Tnp1-state_old[1])/(jump_u[1]-state_old[3]);
-	      	}
-	      	else
-	      	{
-	      		fStiffness[3] = fk_n/(1.+fk_n*fTimeStep*fastar*fDelta_0*exp(-fastar*(fsigma_c-Tnp1)));
-		    }
+			}
+			else
+			{
+				fStiffness[3] = fk_n/(1.+fk_n*fTimeStep*fastar*fDelta_0*exp(-fastar*(fsigma_c-Tnp1)));
+			}
 	      	
-	      	double fk_t = fk_t0*exp(-fc_1*state[5+kIntShift]/fDelta_n_ccr);
-	      	fStiffness[0] = fk_t;
-	  	}
+			double fk_t = fk_t0*exp(-fc_1*state[5+kIntShift]/fDelta_n_ccr);
+			fStiffness[0] = fk_t;
+		}
 	}
 	  
 	return fStiffness;
@@ -267,7 +268,7 @@ SurfacePotentialT::StatusT Tijssens2DT::Status(const dArrayT& jump_u,
 
 void Tijssens2DT::PrintName(ostream& out) const
 {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	out << "    Tijssens 2D \n";
 #endif
 }
@@ -275,7 +276,7 @@ void Tijssens2DT::PrintName(ostream& out) const
 /* print parameters to the output stream */
 void Tijssens2DT::Print(ostream& out) const
 {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	out << " Initial tangential stiffness. . . . . . . . . . = " << fk_t0 << '\n';
 	out << " Normal stiffness . . . .  . . . . . . . . . . . = " << fk_n     << '\n';
 	out << " Tangential stiffness rate constant. . . . . . . = " << fDelta_n_ccr*fc_1     << '\n';

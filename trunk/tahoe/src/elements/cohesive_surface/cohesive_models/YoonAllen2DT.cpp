@@ -1,4 +1,4 @@
-/* $Id: YoonAllen2DT.cpp,v 1.11 2003-05-26 01:51:46 paklein Exp $ */
+/* $Id: YoonAllen2DT.cpp,v 1.12 2003-05-28 23:15:27 cjkimme Exp $ */
 #include "YoonAllen2DT.h"
 
 #include <iostream.h>
@@ -466,7 +466,7 @@ SurfacePotentialT::StatusT YoonAllen2DT::Status(const dArrayT& jump_u,
 
 void YoonAllen2DT::PrintName(ostream& out) const
 {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	out << " Yoon-Allen 2D \n";
 #endif
 }
@@ -474,7 +474,7 @@ void YoonAllen2DT::PrintName(ostream& out) const
 /* print parameters to the output stream */
 void YoonAllen2DT::Print(ostream& out) const
 {
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 	out << " Cohesive stress . . . . . . . . . . . . . . . . = " << fsigma_0   << '\n';
 	out << " Normal length scale . . . . . . . . . . . . . . = " << fd_c_n     << '\n';
 	out << " Tangential length scale . . . . . . . . . . . . = " << fd_c_t     << '\n';
@@ -515,7 +515,7 @@ void YoonAllen2DT::ComputeOutput(const dArrayT& jump_u, const ArrayT<double>& st
 	dArrayT& output)
 {
 #pragma unused(jump_u)
-#ifndef _SIERRA_TEST_
+#ifndef _FRACTURE_INTERFACE_LIBRARY_
 #if __option(extended_errorcheck)
 	if (state.Length() != NumStateVariables()) throw ExceptionT::kGeneralFail;
 #endif	
