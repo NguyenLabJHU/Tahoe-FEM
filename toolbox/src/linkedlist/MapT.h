@@ -1,4 +1,4 @@
-/* $Id: MapT.h,v 1.2 2003-03-06 17:26:22 paklein Exp $ */
+/* $Id: MapT.h,v 1.3 2003-03-08 01:58:19 paklein Exp $ */
 #ifndef _MAP_T_H_
 #define _MAP_T_H_
 
@@ -78,7 +78,7 @@ value_TYPE& MapT<key_TYPE, value_TYPE>::operator[](const key_TYPE& key)
 	
 		/* no match */
 		if (!tree_node) {
-			cout << "\n MapT<key_TYPE, value_TYPE>::operator[]: key node found: " << key << endl;
+			cout << "\n MapT<key_TYPE, value_TYPE>::operator[]: key not found: " << key << endl;
 			throw ExceptionT::kOutOfRange;
 		}
 	
