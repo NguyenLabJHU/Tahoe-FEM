@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.52 2004-09-16 16:50:23 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.53 2004-10-14 20:24:17 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -779,7 +779,8 @@ void NodeManagerT::ResizeNodes(int num_nodes)
 {
 	/* reference coordinates */
 	fFEManager.ModelManager()->ResizeNodes(num_nodes);
-	
+#pragma message("resize reference coords here or require separate call?")
+
 	/* current coordinates */
 	if (fCurrentCoords) fCurrentCoords_man.SetMajorDimension(num_nodes, true);
 
@@ -796,7 +797,8 @@ void NodeManagerT::CopyNodeToNode(const ArrayT<int>& source,
 	const ArrayT<int>& target)
 {
 	/* check */
-	if (source.Length() != target.Length()) ExceptionT::SizeMismatch();
+	if (source.Length() != target.Length()) 
+		ExceptionT::SizeMismatch("NodeManagerT::CopyNodeToNode");
 
 	/* copy fields */
 	for (int i = 0; i < fFields.Length(); i++)
@@ -820,15 +822,81 @@ void NodeManagerT::CopyNodeToNode(const ArrayT<int>& source,
 		fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);	
 }
 
+/* size of the nodal package */
+int NodeManagerT::PackSize(void) const
+{
+	int size = 0;
+	for (int i = 0; i < fFields.Length(); i++) {
+		FieldT& field = *(fFields[i]);
+		size += 2*field.NumDOF()*(field.Order() + 1);
+	}
+	return size;
+}
+
+/* copy field information into the array */
+void NodeManagerT::Pack(int node, dArrayT& values) const
+{
+	int index = 0;
+	for (int i = 0; i < fFields.Length(); i++) /* loop over fields */
+	{
+		FieldT& field = *(fFields[i]);
+		int order = field.Order();
+		int ndof  = field.NumDOF();
+		if (values.Length() >= index + 2*ndof*(order + 1))
+			ExceptionT::SizeMismatch("NodeManagerT::Pack");
+	
+			/* loop over time derivatives */
+			for (int i = 0; i < order+1; i++) 
+			{
+				dArray2DT& f = field(0,i);
+				dArray2DT& f_last = field(-1,i); /* values from last step */
+
+				/* values at current time */
+				field(0,i).RowCopy(node, values.Pointer(index));
+				index += ndof;
+
+				/* values from the last time step */
+				field(-1,i).RowCopy(node, values.Pointer(index));
+				index += ndof;
+			}	
+	}
+}
+
+/* write information from the array into the fields */
+void NodeManagerT::Unpack(int node, dArrayT& values)
+{
+	int index = 0;
+	for (int i = 0; i < fFields.Length(); i++) /* loop over fields */
+	{
+		FieldT& field = *(fFields[i]);
+		int order = field.Order();
+		int ndof  = field.NumDOF();
+		if (values.Length() >= index + 2*ndof*(order + 1))
+			ExceptionT::SizeMismatch("NodeManagerT::Unpack");
+	
+			/* loop over time derivatives */
+			for (int i = 0; i < order+1; i++) 
+			{
+				dArray2DT& f = field(0,i);
+				dArray2DT& f_last = field(-1,i); /* values from last step */
+
+				/* values at current time */
+				field(0,i).SetRow(node, values.Pointer(index));
+				index += ndof;
+
+				/* values from the last time step */
+				field(-1,i).SetRow(node, values.Pointer(index));
+				index += ndof;
+			}	
+	}
+}
+
 //TEMP - trap parallel execution with XDOF
 void NodeManagerT::XDOF_Register(DOFElementT* group, const iArrayT& numDOF)
 {
 	//TEMP - parallel execution not yet supported
 	if (fFEManager.Size() > 1)
-	{
-		cout << "\n NodeManagerT::NodeManagerT: not for parallel execution" << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+		ExceptionT::GeneralFail("NodeManagerT::XDOF_Register", "not for parallel execution");
 //NOTE: to parallelize XDOF:
 // (1) analyze external nodes to see if they interact with any element-generated DOF's
 // (2) collect and send these tags/equation numbers separate from primary variables	
@@ -841,14 +909,13 @@ void NodeManagerT::XDOF_Register(DOFElementT* group, const iArrayT& numDOF)
 void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArrayT& nodes, 
 	iArray2DT& eqnos)
 {
+	const char caller[] = "NodeManagerT::XDOF_SetLocalEqnos";
+
 	/* collect fields in the group */
 	ArrayT<FieldT*> fields;
 	CollectFields(group, fields);
-	if (fields.Length() == 0) {
-		cout << "\n NodeManagerT::XDOF_SetLocalEqnos: group has not fields: " 
-		     << group << endl;
-		throw ExceptionT::kGeneralFail;
-	}
+	if (fields.Length() == 0)
+		ExceptionT::GeneralFail(caller, "group %d has no fields", group);
 
 	/* dimensions */
 	int nnd = NumNodes();
@@ -889,11 +956,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArrayT& nodes,
 				/* resolve tag into its set */
 				int tag_set;
 				if (!ResolveTagSet(tag, tag_set, tag_offset))
-				{
-					cout << "\n NodeManagerT::XDOF_SetLocalEqnos: could not resolve tag into set: " 
-					     << tag << endl;
-					throw ExceptionT::kGeneralFail;
-				}
+					ExceptionT::GeneralFail(caller, "could not resolve tag into set %d", tag);
 
 				/* equations from tag set */
 				eqnos_source = fXDOF_Eqnos[tag_set];
@@ -905,10 +968,7 @@ void NodeManagerT::XDOF_SetLocalEqnos(int group, const iArrayT& nodes,
 
 			/* check number of assigned equations */
 			if (eq_count > neq)
-			{
-				cout << "\n NodeManagerT::XDOF_SetLocalEqnos: error assigning equations" << endl;
-				throw ExceptionT::kSizeMismatch;
-			}
+				ExceptionT::SizeMismatch(caller, "error assigning equations");
 		
 			/* copy equations */
 			eqnos_source->RowCopy(tag - tag_offset, peq);

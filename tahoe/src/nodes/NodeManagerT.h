@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.24 2004-07-15 08:31:10 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.25 2004-10-14 20:24:17 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -191,6 +191,18 @@ public:
 	 * nodes to the targets. The current coordinates are updated, but the
 	 * initial coordinates are not. These are owned by the ModelManagerT. */
 	void CopyNodeToNode(const ArrayT<int>& source, const ArrayT<int>& target);
+
+	/** \name packing up all nodal information */
+	/*@{*/
+	/** size of the nodal package */
+	int PackSize(void) const;
+	
+	/** copy field information into the array */
+	void Pack(int node, dArrayT& values) const;
+
+	/** write information from the array into the fields */
+	void Unpack(int node, dArrayT& values);
+	/*@}*/
 
 	/** reset fields (and configuration to the last known solution) */
 	virtual GlobalT::RelaxCodeT ResetStep(int group);
