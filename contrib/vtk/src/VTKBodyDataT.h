@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.h,v 1.7 2001-12-14 17:37:40 paklein Exp $ */
+/* $Id: VTKBodyDataT.h,v 1.8 2002-01-02 06:38:49 paklein Exp $ */
 #ifndef _VTK_BODY_DATA_T_H_
 #define _VTK_BODY_DATA_T_H_
 
@@ -9,6 +9,7 @@
 #include "StringT.h"
 #include "Array2DT.h"
 #include "dArrayT.h"
+#include "IOBaseT.h"
 
 /* forward declarations */
 class vtkPoints;
@@ -24,7 +25,7 @@ class VTKBodyDataT: public iConsoleObjectT
 public:
 
 	/** constructor */
-	VTKBodyDataT(const StringT& file_name); 
+	VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name); 
 
 	/** destructor */
 	~VTKBodyDataT(void);
@@ -90,6 +91,9 @@ public:
 	void LoadData(int step);
 	  
  private:
+ 
+ 	/** source file format */
+ 	IOBaseT::FileTypeT fFormat;
 
 	/** source file */
 	const StringT fInFile;

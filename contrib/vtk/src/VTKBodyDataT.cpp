@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.7 2001-12-14 17:37:40 paklein Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.8 2002-01-02 06:38:49 paklein Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -13,7 +13,7 @@
 #include "vtkFloatArray.h"
 
 #include "iArray2DT.h"
-#include "ExodusT.h"
+#include "ModelManagerT.h"
 #include "dArray2DT.h"
 #include "dArrayT.h"
 #include "iArrayT.h"
@@ -25,28 +25,28 @@
 const bool ArrayT<VTKBodyDataT*>::fByteCopy = true;
 
 /* constructor */
-VTKBodyDataT::VTKBodyDataT(const StringT& file_name): 
+VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name): 
+	fFormat(format),
 	fInFile(file_name),
 	fPoints(NULL),
 	currentStepNum(0)
 {
+	/* data reader */
+	ModelManagerT model(cout);
+
 	/* read exodus file */
-	ExodusT exo(cout);
-	if (!exo.OpenRead(fInFile))
-    {
-		cout << " ERROR: could not open file: " << fInFile << endl;
-		throw eDatabaseFail;;
+	try { model.Initialize(fFormat, fInFile); }
+	catch (int error) {
+		cout << " EXCEPTION: caught exception " << error << " reading file: " << fInFile << endl;
+		throw eDatabaseFail;
 	}
-	else
-		cout << "read database file: " << fInFile << endl;
+	cout << "initialized database file: " << fInFile << endl;
   
 	/* read coordinates */
-	int num_nodes = exo.NumNodes();
-	int num_dim   = exo.NumDimensions();
-  	dArray2DT coords(num_nodes, num_dim);
-	exo.ReadCoordinates(coords); 
+	dArray2DT coords;
+	coords.Alias(model.Coordinates());
 	if (coords.MinorDim() == 2) /* fill to 3D */
-    { 
+    {
 		/* temp space */ 
 		dArray2DT tmp(coords.MajorDim(), 3); 
       
@@ -54,16 +54,19 @@ VTKBodyDataT::VTKBodyDataT(const StringT& file_name):
 		tmp.BlockColumnCopyAt(coords, 0);    
 		tmp.SetColumn(2, 0.0); 
       
-		/* swap memory */ 
+		/* swap memory */
+		coords.Free();
 		tmp.Swap(coords); 
     }
 
 #if 1
 	/* set up points */
-  	fPoints = vtkPoints::New();
+	int num_nodes = model.NumNodes();
+	fPoints = vtkPoints::New();
+  	//fPoints->SetNumberOfPoints(num_nodes + 1);
   	for (int i=0; i < num_nodes; i++) 
-		fPoints->InsertPoint(i+1, coords(i));
-//  	fPoints->InsertPoint(i, coords(i)); //SHIFT
+//		fPoints->InsertPoint(i+1, coords(i));
+  	fPoints->InsertPoint(i, coords(i)); //SHIFT
 #endif
 
 #if 0
@@ -84,72 +87,60 @@ VTKBodyDataT::VTKBodyDataT(const StringT& file_name):
 #endif
 
 	/* dimensions */
-	int num_elem_blocks = exo.NumElementBlocks();
-	int num_node_sets = exo.NumNodeSets();
+	int num_elem_blocks = model.NumElementGroups();
+	int num_node_sets = model.NumNodeSets();
 	fUGrids.Allocate(num_elem_blocks + num_node_sets);	
   
 	/* load element connectivities */
-  	iArrayT element_ID(num_elem_blocks);
-  	exo.ElementBlockID(element_ID);
-	for (int i = 0 ; i < element_ID.Length(); i++)
+	for (int i = 0 ; i < num_elem_blocks; i++)
     {
-		/* read dimensions */
-		int num_elements, num_element_nodes;
-		exo.ReadElementBlockDims(element_ID[i], num_elements, num_element_nodes);
+		/* read connectivities */
+		GeometryT::CodeT geom_code = model.ElementGroupGeometry(i);
+		const iArray2DT& connectivities = model.ElementGroup(i);
+		//connectivities[i]--; //SHIFT
 
 #if __option(extended_errorcheck)
 		cout << "VTKBodyDataT::VTKBodyDataT: reading element block: " 
-		     << num_elements << " x " << num_element_nodes << endl;
+		     << connectivities.MajorDim() << " x " << connectivities.MinorDim() << endl;
 #endif
-
-		/* read connectivities */
-		iArray2DT connectivities(num_elements, num_element_nodes);
-		GeometryT::CodeT geom_code;
-		exo.ReadConnectivities(element_ID[i], geom_code, connectivities);      
-		//connectivities[i]--; //SHIFT
-		
+	
 		/* construct VTK grid */
-		fUGrids[i] = new VTKUGridT(VTKUGridT::kElementSet, element_ID[i], num_dim);
+		fUGrids[i] = new VTKUGridT(VTKUGridT::kElementSet, i, model.NumDimensions());
 		fUGrids[i]->SetPoints(fPoints);
 		fUGrids[i]->SetConnectivities(geom_code, connectivities);
 	}    
     cout << "read element blocks" << endl;
 
 	/* load node sets */
-	iArrayT node_ID(num_node_sets);
-  	exo.NodeSetID(node_ID);
-	for (int i = 0; i < node_ID.Length(); i++)
+	for (int i = 0; i < num_node_sets; i++)
     {
-		/* read dimensions */
-		int num_nodes = exo.NumNodesInSet(node_ID[i]);
-
+		/* read nodes */
+		GeometryT::CodeT geom_code = GeometryT::kPoint;
+		const iArrayT& nodes = model.NodeSet(i);
+		iArray2DT connectivities(num_nodes, 1, nodes.Pointer());
+	
 #if __option(extended_errorcheck)
 		cout << "VTKBodyDataT::VTKBodyDataT: reading node set: " 
-		     << num_nodes << endl;
+		     << nodes.Length() << endl;
 #endif
-
-		/* read nodes */
-		iArray2DT connectivities(num_nodes, 1);
-		GeometryT::CodeT geom_code = GeometryT::kPoint;
-		exo.ReadNodeSet(node_ID[i], connectivities);
-		
+	
 		/* construct VTK grid */
 		int ii = i + num_elem_blocks;
-		fUGrids[ii] = new VTKUGridT(VTKUGridT::kNodeSet, node_ID[i], num_dim);
+		fUGrids[ii] = new VTKUGridT(VTKUGridT::kNodeSet, i, model.NumDimensions());
 		fUGrids[ii]->SetPoints(fPoints);
 		fUGrids[ii]->SetConnectivities(geom_code, connectivities);
 	}    
     cout << "read node sets" << endl;
   
 	/* number of results sets */
-	int num_time_steps = exo.NumTimeSteps();
+	int num_time_steps = model.NumTimeSteps();
 
     cout << "read time steps" << endl;
 
 	/* variables defined at the nodes */
-	int num_node_variables = exo.NumNodeVariables();
-	exo.ReadNodeLabels(fNodeLabels);
-	vec_dim = num_dim;
+	int num_node_variables = model.NumNodeVariables();
+	model.NodeLabels(fNodeLabels);
+	vec_dim = model.NumDimensions();
 	if (fNodeLabels.Length() >= vec_dim)
 	{
 		const char *d[] = {"D_X", "D_Y", "D_Z"};
@@ -160,7 +151,7 @@ VTKBodyDataT::VTKBodyDataT(const StringT& file_name):
 		//TEMP - other displacement variable names
 		if (vec_dim == 0)
 		{
-			vec_dim = num_dim;
+			vec_dim = model.NumDimensions();
 			const char *d[] = {"DISX", "DISY", "DISZ"};
 			for (int i = 0; vec_dim > 0 && i < vec_dim; i++)
 				if (fNodeLabels[i] != d[i])
@@ -170,7 +161,7 @@ VTKBodyDataT::VTKBodyDataT(const StringT& file_name):
 	else vec_dim = 0;
 	
 	/* close file */
-	exo.Close();
+	model.CloseModel();
 	
 	/* results history */
 	fScalars.Allocate(num_time_steps, num_node_variables);
@@ -214,14 +205,6 @@ VTKBodyDataT::VTKBodyDataT(const StringT& file_name):
   	if (num_node_variables > 0) UpdateData();
 
 	/* add variables to the console */
-//	iAddVariable("min_Hue_Range", hueRange1);
-//	iAddVariable("max_Hue_Range", hueRange2);
-//	iAddVariable("min_Value_Range", valRange1);
-//	iAddVariable("max_Value_Range", valRange2);
-//	iAddVariable("min_Saturation_Range", satRange1);
-//	iAddVariable("max_Saturation_Range", satRange2);
-//	iAddVariable("min_Alpha_Range", alphaRange1);
-//	iAddVariable("max_Alpha_Range", alphaRange2);
 	if (currentVarNum > 0)
 	{
 		iAddVariable("min_Scalar_Range", scalarRange1[currentVarNum]);
@@ -441,22 +424,16 @@ void VTKBodyDataT::LoadData(int step)
 		throw eOutOfRange;
 	}
 	
-	/* database file */
-	ExodusT exo(cout);
-	if (!exo.OpenRead(fInFile)) {
-		cout << "VTKBodyDataT::LoadData: unable to open file: " << fInFile << endl;
-		throw eGeneralFail;
-	}
-
 	//not used
 	//double time;
 	//exo.ReadTime(i+1, time);
 	
 	/* dimensions */
-	int num_nodes = exo.NumNodes();
 	int num_node_variables = fScalars.MinorDim();
 
 	/* load variable data in scalar */
+	dArray2DT nodal_data;
+	dArrayT ndata;
 	bool did_read = false;
 	for (int j = 0; j < num_node_variables; j++)
 	{
@@ -470,8 +447,28 @@ void VTKBodyDataT::LoadData(int step)
 			fScalars(step,j)->SetNumberOfComponents(1);
 
 			/* read variable */
-			dArrayT ndata(num_nodes);
-			exo.ReadNodalVariable(step+1, j+1, ndata);
+			if (nodal_data.MinorDim() == 0) /* data not read yet */
+			{
+				/* data reader */
+				ModelManagerT model(cout);
+
+				/* read exodus file */
+				try { model.Initialize(fFormat, fInFile); }
+				catch (int error) {
+					cout << " EXCEPTION: caught exception " << error << " reading file: " << fInFile << endl;
+					throw eDatabaseFail;;
+				}
+
+				int num_nodes = model.NumNodes();
+				nodal_data.Allocate(num_nodes, num_node_variables);
+				model.AllNodeVariables(step, nodal_data);
+				
+				/* column */
+				ndata.Allocate(num_nodes);
+			}
+			
+			/* get data */
+			nodal_data.ColumnCopy(j, ndata);
 
 			/* range over steps that have been loaded */
 			double min, max;
@@ -487,9 +484,9 @@ void VTKBodyDataT::LoadData(int step)
 					
 #if 1			
 			/* translate to float */
-			ArrayT<float> fdata(num_nodes + 1); /* zeroth tuple is ignored */
-			double_to_float(ndata, fdata.Pointer(1));
-//			double_to_float(ndata, fdata.Pointer(0)); //SHIFT
+			ArrayT<float> fdata(ndata.Length());
+//			double_to_float(ndata, fdata.Pointer(1)); //allocation must match
+			double_to_float(ndata, fdata.Pointer(0)); //SHIFT
 				
 			/* load in */
 			float* p;
@@ -519,10 +516,11 @@ void VTKBodyDataT::LoadData(int step)
 
 #if 1
 		/* temp space */
+		int num_nodes = fScalars(step,0)->GetNumberOfTuples();
 		nArray2DT<float> disp(num_nodes+1, 3);
 		disp = 0.0;
 		for (int j = 0; j < vec_dim; j++)
-			disp.SetColumn(j, fScalars(step, j)->GetPointer(0));
+			disp.SetColumn(j, fScalars(step,j)->GetPointer(0));
 					
 		/* load into vectors */
 		float* p;
