@@ -1,4 +1,4 @@
-/* $Id: GradSmallStrainT.cpp,v 1.9 2004-06-17 00:45:11 rdorgan Exp $ */ 
+/* $Id: GradSmallStrainT.cpp,v 1.10 2004-06-17 20:45:13 rdorgan Exp $ */ 
 #include "GradSmallStrainT.h"
 
 /* shape functions */
@@ -232,7 +232,8 @@ void GradSmallStrainT::SetShape(void)
 	/* inherited */
 	SmallStrainT::SetShape();
 
-	fShapes_Field = new C1ShapeTools(GeometryCode_Field(), NumIP_Field(), fLocInitCoords, NumDOF_Field());
+	fShapes_Field = new C1ShapeTools(GeometryCode_Field(), NumIP(), NumElementNodes_Field(), NumDOF_Field(),
+									 NumDOF(), fLocInitCoords);
 	if (!fShapes_Field) throw ExceptionT::kOutOfMemory;
 	fShapes_Field->Initialize();
 }
