@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.11 2001-08-20 15:09:41 rdorgan Exp $
+# $Id: makefile,v 1.12 2002-05-31 07:25:02 thao Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -41,7 +41,8 @@ SUB_DIR = \
 	nlcsolver \
 	tevp \
 	SimoVisco \
-	VISCVIB
+	VISCVIB \
+	VISCVIBold 
 
 subdir_driver: subdir_loop
 # SUB_DIR is empty
