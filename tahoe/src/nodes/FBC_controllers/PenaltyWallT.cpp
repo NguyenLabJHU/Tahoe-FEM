@@ -1,6 +1,5 @@
-/* $Id: PenaltyWallT.cpp,v 1.9 2003-01-29 07:35:22 paklein Exp $ */
-/* created: paklein (02/25/1997)                                          */
-
+/* $Id: PenaltyWallT.cpp,v 1.10 2003-08-18 03:44:36 paklein Exp $ */
+/* created: paklein (02/25/1997) */
 #include "PenaltyWallT.h"
 
 #include <math.h>
@@ -12,7 +11,7 @@
 #include "FEManagerT.h"
 #include "eIntegratorT.h"
 #include "Vector3T.h"
-
+#include "ParameterUtils.h"
 
 using namespace Tahoe;
 
@@ -35,7 +34,7 @@ PenaltyWallT::PenaltyWallT(FEManagerT& fe_manager,
 	/* work space */
 	fLHS(eqnos.MinorDim(), ElementMatrixT::kSymmetric)
 {
-
+	SetName("wall_penalty");
 }
 
 /* tangent */
@@ -210,4 +209,23 @@ void PenaltyWallT::ComputeContactForce(double kforce)
 			}
 		}
 	}
+}
+
+/* information about subordinate parameter lists */
+void PenaltyWallT::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	PenaltyRegionT::DefineSubs(sub_list);
+	
+	/* normal to the wall */
+	sub_list.AddSub("normal");
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* PenaltyWallT::NewSub(const StringT& list_name) const
+{
+	if (list_name == "normal")
+		return new DoubleListT("normal"); 
+	else /* inherited */
+		return PenaltyRegionT::NewSub(list_name);
 }

@@ -1,7 +1,10 @@
-/* $Id: FBC_ControllerT.h,v 1.9 2003-04-07 17:25:48 cjkimme Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.10 2003-08-18 03:44:36 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 #ifndef _FBC_CONTROLLER_T_H_
 #define _FBC_CONTROLLER_T_H_
+
+/* base class */
+#include "ParameterInterfaceT.h"
 
 #include "Environment.h"
 #include "GlobalT.h"
@@ -21,7 +24,7 @@ class eIntegratorT;
 class StringT;
 
 /** base class for all force BC controllers */
-class FBC_ControllerT
+class FBC_ControllerT: public ParameterInterfaceT
 {
 public:
 
