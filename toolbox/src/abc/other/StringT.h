@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.11 2002-02-21 08:53:15 paklein Exp $ */
+/* $Id: StringT.h,v 1.12 2002-04-02 22:43:36 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #ifndef _STRING_T_H_
@@ -112,7 +112,17 @@ public:
 	/** copy a section of the source string */
 	StringT& Take(const StringT& source, int start, int end);
 	
-	/** copy the first word from the source and return number of characters scanned */
+	/** copy the first word from the source and return number of characters scanned.
+	 * There are multiple rules available for determining word boundaries.
+	 * \param source string from which to extract the first word
+	 * \param count returns with the number of characters scanned from source. This
+	 *        includes any leading white space, or non-alphanumeric characters that
+	 *        were skipped. The number can be used to with StringT::Drop to remove 
+	 *        the data associated with the first word from source.
+	 * \param C_word_only if true, uses C variable naming rules, something like [a-zA-Z0-9_]+,
+	 *        to determine word boundaries. If false, uses white space to determine word
+	 *        boundaries or returns an entire quoted string, containing any collection of
+	 *        characters. */
 	StringT& FirstWord(const StringT& source, int& count, bool C_word_only);
 
 	/** drop leading white space */
