@@ -28,8 +28,7 @@ dTensor4DT::dTensor4DT(const dTensor4DT& source):
 /* Has not been tested !!!*/
 void dTensor4DT::ConvertTangentFrom4DTo2D(dTensor4DT& C, dMatrixT fc_ijkl)
 {
-	
-int i,j,k,l;
+int i,j;
 int HughesIndexArray [6] [2];
 
 if (fc_ijkl.Rows() != 6 || fc_ijkl.Cols() != 6)
