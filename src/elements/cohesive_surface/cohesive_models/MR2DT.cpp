@@ -49,7 +49,7 @@ MR2DT::MR2DT(ifstreamT& in): SurfacePotentialT(knumDOF)
 }
 
 /* return the number of state variables needed by the model */
-int MR2DT::NumStateVariables(void) const { return 6*knumDOF; }
+int MR2DT::NumStateVariables(void) const { return 7*knumDOF; }
 
 /* initialize the state variable array */
 void MR2DT::InitStateVariables(ArrayT<double>& state)
@@ -69,13 +69,14 @@ void MR2DT::InitStateVariables(ArrayT<double>& state)
 	state[6] = fchi;
 	state[7] = fc ;
     state[8] = tan(fphi);
-    state[9] = tan(fpsi);	
+    state[9] = tan(fpsi);
+    state[13] = 0.;	
 }
 
 /* Value of the Yield Function */ 
 double MR2DT::YFValue(const ArrayT<double>& state) 
 {
-	return state[12]; 
+	return state[10]; 
 }	
 
 /** dissipated energy. Total amount of energy dissipated reaching
@@ -96,10 +97,10 @@ double MR2DT::Potential(const dArrayT& jump_u, const ArrayT<double>& state)
 SurfacePotentialT::StatusT MR2DT::Status(const dArrayT& jump_u, 
 	const ArrayT<double>& state)
 {
-    if (state[12]<0.){
+    if (state[10]<0.){
        int Status = 0;
     }
-    if (state[12]>0) {
+    if (state[10]>0) {
        int StatusT = 1;
     }
     if ((jump_u[0]*jump_u[0] + jump_u[1]*jump_u[1])>100000.) {
@@ -130,7 +131,7 @@ const dArrayT& MR2DT::Traction(const dArrayT& jump_u, ArrayT<double>& state, con
 int i; int j; int kk;
 
 dMatrixT AA(6,6); dMatrixT KE(2,2); dMatrixT KE_Inv(2,2); dMatrixT I_mat(4,4); 
-dMatrixT CMAT(4,4); dMatrixT A_qq(4,4); dMatrixT A_uu(2,2); dMatrixT A_uq(2,4);
+dMatrixT CMAT(6,6); dMatrixT A_qq(4,4); dMatrixT A_uu(2,2); dMatrixT A_uq(2,4);
 dMatrixT A_qu(4,2); dMatrixT ZMAT(2,4); dMatrixT ZMATP(4,2);
 dMatrixT dQdSig2(2,2); dMatrixT dqbardq(4,4); dMatrixT dQdSigdq(2,4);
 dMatrixT dqbardSig(4,2); dMatrixT AA_inv(6,6);
@@ -147,145 +148,181 @@ double ff; double dlam; double dlam2; double normr;
 
 /* Calculate incremental jumps and initialize the neecessary vectors */
     for (i = 0; i<=1; ++i) {
-       u[i+1] = jump_u[i];
-       du[i+1] = u[i+1] - state[i+2];
-       up[i+1] = state[i+4];
-       upo[i+1] = up[i+1];
-       Sig_I[i+1] = state[i+10];
-       KE(i+1,i+1) = fE_t;
-       KE(i+2,i+2) = fE_n;
-       KE(i+1, i+2) = 0.;
-       KE(i+2,i+1) = 0.;
-       
+       u[i] = jump_u[i];
+       du[i] = u[i] - state[i+2];
+       up[i] = state[i+4];
+       upo[i] = up[i];
+       Sig_I[i] = state[i+10];
     }
+    
+       KE(0,0) = fE_t;
+       KE(1,1) = fE_n;
+       KE(0,1) = 0.;
+       KE(1,0) = 0.;
+       I_mat(0,1)=0.;I_mat(0,2)=0.;I_mat(0,3)=0.;I_mat(1,0)=0.;
+       I_mat(1,2)=0.;I_mat(1,3)=0.;I_mat(2,0)=0.;I_mat(2,1)=0.;
+       I_mat(2,3)=0.;I_mat(3,0)=0.;I_mat(3,1)=0.;I_mat(3,2)=0.;
+       ZMAT = 0.; ZMATP = 0.;
 
-      KE.Inverse(KE_Inv);
-    for (i = 1; i<=4; ++i) {
+      KE_Inv.Inverse(KE);
+    for (i = 0; i<=3; ++i) {
         qn[i] = state[i+5];
         qo[i] = qn[i];
-        I_mat[i] = 1.;
+        I_mat(i,i) = 1.;
     }
      
-    for (i = 1; i<=2; ++i) {
-       for (j = 1; j<=2; ++i) {   
-         Sig[i] = (KE(i,j))*(u[j] - up[j]) + Sig_I[i];
-       } 
-    }
+    Sig = Sig_I;
+    dArrayT ue(2), Sig_e(2);
+    ue = u;
+    ue -= up;
+    KE.MultTx(ue,Sig_e);
+    Sig +=Sig_e;
     
     int iplastic;
     dlam = 0.; dlam2 = 0.; normr = 0.;
 /* Check the yield function */
-    ff = Sig[1]*Sig[1] - (qn[2] - Sig[2]*qn[3])*(qn[2] - Sig[2]*qn[3]) + (qn[2] - qn[1]*qn[3])*(qn[2] - qn[1]*qn[3]);
+    ff = Sig[0]*Sig[0] - (qn[1] - Sig[1]*qn[2])*(qn[1] - Sig[1]*qn[2]) + (qn[1] - qn[0]*qn[2])*(qn[1] - qn[0]*qn[2]);
     if (ff <0.) {
       int iplastic = 0;
-      state[1] = ff;
+      state[10] = ff;
       normr = 0.;
-      state[2] = normr;
+      state[13] = normr;
     }  
     else {
       kk = 0;
       iplastic = 1;
-      while (ff > fTol_1 | normr > fTol_2)
+      while (ff > fTol_1 | normr > fTol_2) {
         if (kk > 500) {
         	ExceptionT::GeneralFail("MR2DT::Traction","Too Many Iterations");
         }
-        for (i = 1; i<=1; ++i) {
-          for (j = 1; j<=2; ++i) { 
-           Sig[i] = KE(i,j)*(u[j] - up[j]) + Sig_I[i];
-          }
-        }
-        ff = Sig[1]*Sig[1] - (qn[2] - Sig[2]*qn[3])*(qn[2] - Sig[2]*qn[3]) + (qn[2] - qn[1]*qn[3])*(qn[2] - qn[1]*qn[3]);
-        dQdSig[1] = 2.*Sig[1];
-        dQdSig[2] = 2.*qn[4]*qn[2] - Sig[2]*qn[4];
+        
+        Sig = Sig_I;
+        ue = u;
+        ue -= up;
+        KE.MultTx(ue,Sig_e);
+        Sig +=Sig_e;
+        
+        ff = Sig[0]*Sig[0] - (qn[0] - Sig[1]*qn[2])*(qn[1] - Sig[1]*qn[2]) + (qn[1] - qn[0]*qn[2])*(qn[1] - qn[0]*qn[2]);
+        dQdSig[0] = 2.*Sig[0];
+        dQdSig[1] = 2.*qn[3]*qn[1] - Sig[1]*qn[3];
+        
         qbar_f(Sig, qn, qbar);
-        for (i = 1; i<=2; ++i) {
-          R[i] = -up[1] + upo[i] + dlam*dQdSig[i];
+        for (i = 0; i<=1; ++i) {
+          R[i] = upo[i];
+          R[i] -=up[i];
+          R[i] +=dlam*dQdSig[i];
         }
-        for (i = 1; i<=4; ++i) {
-          R[i+2] = -qn[i] + qo[i] + dlam*qbar[i];
+        for (i = 0; i<=3; ++i) {
+          R[i+2] = qo[i];
+          R[i+2] -=qn[i];
+          R[i+2] +=dlam*qbar[i];
         }
+        R[0] = -upo[0] + up[0] + dlam*dQdSig[0];
+        R[1] = -upo[1] + up[1] + dlam*dQdSig[1];
+        R[2] = -qo[1] + qn[1] + dlam*qbar[0];
+        R[3] = -qo[1] + qn[1] + dlam*qbar[1];
+        R[4] = -qo[1] + qn[1] + dlam*qbar[2];
+        R[5] = -qo[1] + qn[1] + dlam*qbar[3];
+                
         normr = R.Magnitude();
         dQdSig2_f(qn,dQdSig2);
         dQdSigdq_f(Sig, qn, A_uq);
         dqbardSig_f(Sig, qn, A_qu);
         dqbardq_f(Sig, qn, A_qq);
-        for (i = 1; i<=6; ++i) {
-          for (j = 1; j<=6; ++i) {
-            if (i<=2 & j<=2)
-             AA_inv(i,j) = KE_Inv(i,j) + dlam*dQdSig2(i,j);
-            if (i<=2 & j>2)
-             AA_inv(i,j) = A_qu(i,j-2);
-            if(i>2 & j<=2)
-             AA_inv(i,j) = A_uq(i-2,j);
-            if(i>2 & j >2)
-             AA_inv(i,j) = -I_mat(i-2,j-2) + dlam*A_qq(i-2,j-2);
-           }
+        for (i = 0; i<=5; ++i) {
+          for (j = 0; j<=5; ++j) {
+            if (i<=1 & j<=1){
+             AA_inv(i,j)  = KE_Inv(i,j);
+             AA_inv(i,j) += dlam*dQdSig2(i,j);
+            }
+            if (i<=1 & j>1){
+             AA_inv(i,j) = A_uq(i,j-2);
+            } 
+            if(i>1 & j<=1){
+             AA_inv(i,j) = A_qu(i-2,j);
+            } 
+            if(i>1 & j >1) {
+             AA_inv(i,j)  = -I_mat(i-2,j-2); 
+             AA_inv(i,j) += dlam*A_qq(i-2,j-2);
+            } 
+          }
         }
         AA_inv.Inverse(AA);
         dfdSig_f(Sig, qn, dfdSig);
         V_sig = dfdSig;
         dfdq_f(Sig, qn, dfdq);
         V_q = dfdq;
-        for (i = 1; i<=6; ++i) {
-            if (i<=2)
+        for (i = 0; i<=5; ++i) {
+            if (i<=1){
              Rvec[i] = V_sig[i];
              Cvec[i] = dQdSig[i];
-            if (i > 2)
+            }
+            if (i > 1){
              Rvec[i] = V_q[i-2];
              Cvec[i] = qbar[i-2];
+            }
         }
         dArrayT tmpVec(6);
-        AA.MultTx(R,tmpVec);
+        AA.Multx(R,tmpVec);
         double topp = ff - Rvec.Dot(Rvec,tmpVec);        
-        AA.MultTx(Cvec,tmpVec);
+        AA.Multx(Cvec,tmpVec);
         double bott = Rvec.Dot(Rvec,tmpVec); 		
         double dlam2 = topp/bott;
-        for (i = 1; i<=6; ++i) {
-          for (j = 1; j<=6; ++i) {
-            if (i<=2 & j<=2)
+        for (i = 0; i<=5; ++i) {
+          for (j = 0; j<=5; ++j) {
+            if (i<=1 & j<=1){
              CMAT(i,j) = KE_Inv(i,j);
-            if (i<=2 & j>2)
+            }
+            if (i<=1 & j>1) {
              CMAT(i,j) = ZMAT(i,j-2);
-            if(i>2 & j<=2)
+            }
+            if(i>1 & j<=1) {
              CMAT(i,j) = ZMATP(i-2,j);
-            if(i>2 & j >2)
+            }
+            if(i>1 & j >1) {
              CMAT(i,j) = -I_mat(i-2,j-2);
+            }
            }
         }
-         for (i = 1; i<=6; ++i) {
-            if (i<=2)
+         for (i = 0; i<=5; ++i) {
+            if (i<=1){
              Rmod[i] = dQdSig[i];
-            if (i > 2)
+            }
+            if (i >1){
              Rmod[i] = qbar[i-2];
+            }
         }
         Rmod *= dlam2;
         R2 = R;
         R2 += Rmod;
-        AA.MultTx(R2,X);
-        CMAT.MultTx(X,X);
-        for (i = 1; i<=6; ++i) {
-            if (i<=2)
+        AA.Multx(R2,X);
+        CMAT.Multx(X,X);
+        for (i = 0; i<=5; ++i) {
+            if (i<=1) {
              dup[i] = X[i];
-            if (i > 2)
-             dq[i] = X[i];
+            }
+            if (i > 1) {
+             dq[i-2] = X[i];
+            }
         }
         up += dup;
         qn += dq;
         dlam = dlam + dlam2;
         kk = kk + 1;
+      }
     }
-    state[0] = Sig[1];
-    state[1] = Sig[2];     
+    state[0] = Sig[0];
+    state[1] = Sig[1];     
 	fTraction[0] = state[0];
 	fTraction[1] = state[1];
 	state[2] = jump_u[0];
 	state[3] = jump_u[1];
-	state[4] = up[1];
-	state[5] = up[2];
-	state[6] = qn[1];
-	state[7] = qn[2];
-	state[8] = qn[3];
-	state[9] = qn[4];
+	state[4] = up[0];
+	state[5] = up[1];
+	state[6] = qn[0];
+	state[7] = qn[1];
+	state[8] = qn[2];
+	state[9] = qn[3];
 	state[10] = ff;
 	state[11] = dlam;
 	state[12] = double(iplastic);
@@ -299,42 +336,42 @@ dArrayT& MR2DT::qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar)
 {
  
    dMatrixT AMAT(4,2); dMatrixT BMAT(2,2); dArrayT DQDSIG(2);
-   double A1 = -falpha_chi*(qn[1] - fchi_r);
-   double B1 = (Sig[2]+abs(Sig[2]))/2./fGf_I;
-   double B2 = Sig[1]/fGf_I;
-   double DQDN = 2.*qn[4]*(qn[2] - Sig[2]*qn[4]);
-   double DQDT = 2.*Sig[2];
-   double A2 = -falpha_c*(qn[2] - fc_r);
-   double TNA = (Sig[2]-abs(Sig[2]))/2.;
-   double B3 = (Sig[2] - abs(TNA*qn[3])*sign(Sig[1]))/fGf_II;
-   double A3 = -falpha_phi*(qn[3] - tan(fphi_r));
-   double A4 = -falpha_psi*qn[4];
-   double DB3_DTn = -qn[3]*sign(Sig[1])*sign(TNA)*(1. - sign(Sig[2]))/fGf_II/2.;
+   double A1 = -falpha_chi*(qn[0] - fchi_r);
+   double B1 = (Sig[1]+abs(Sig[1]))/2./fGf_I;
+   double B2 = Sig[0]/fGf_I;
+   double DQDN = 2.*qn[3]*(qn[1] - Sig[1]*qn[3]);
+   double DQDT = 2.*Sig[0];
+   double A2 = -falpha_c*(qn[1] - fc_r);
+   double TNA = (Sig[1]-abs(Sig[1]))/2.;
+   double B3 = (Sig[1] - abs(TNA*qn[2])*sign(Sig[0]))/fGf_II;
+   double A3 = -falpha_phi*(qn[2] - tan(fphi_r));
+   double A4 = -falpha_psi*qn[3];
+   double DB3_DTn = -qn[2]*sign(Sig[0])*sign(TNA)*(1. - sign(Sig[1]))/fGf_II/2.;
    double DB3_DTt = 1./fGf_II;
-   double DB3_DTanphi = -abs(TNA)*sign(Sig[1])/fGf_II;
-   double DQDN2 = -2.*qn[4]*qn[4];
+   double DB3_DTanphi = -abs(TNA)*sign(Sig[0])/fGf_II;
+   double DQDN2 = -2.*qn[3]*qn[3];
    double DQDT2 = 2.;
    double DQDTN = 0.;
    double DQDNT = 0.;
-   double SN = sign(Sig[2]);
+   double SN = sign(Sig[1]);
    double DB1DN = (SN +abs(SN))/2./fGf_I;
-   DQDSIG[1] = DQDT;
-   DQDSIG[2] = DQDN;
-   AMAT(1,1) = A1;
-   AMAT(1,2) = 0.;
-   AMAT(2,1) = 0.;
-   AMAT(2,2) = A2;
-   AMAT(3,1) = 0.;
-   AMAT(3,2) = A3;
-   AMAT(4,1) = 0.;
-   AMAT(4,2) = A4;
-   BMAT(1,1) = B1;
-   BMAT(1,2) = B2;
-   BMAT(2,1) = 0.;
-   BMAT(2,2) = B3;
+   DQDSIG[0] = DQDT;
+   DQDSIG[1] = DQDN;
+   AMAT(0,0) = A1;
+   AMAT(0,1) = 0.;
+   AMAT(1,0) = 0.;
+   AMAT(1,1) = A2;
+   AMAT(2,0) = 0.;
+   AMAT(2,1) = A3;
+   AMAT(3,0) = 0.;
+   AMAT(3,1) = A4;
+   BMAT(0,0) = B1;
+   BMAT(0,1) = B2;
+   BMAT(1,0) = 0.;
+   BMAT(1,1) = B3;
        
    AMAT.MultAB(AMAT, BMAT);
-   AMAT.MultTx(DQDSIG,qbar);
+   AMAT.Multx(DQDSIG,qbar);
    return qbar;
  }
 
@@ -343,10 +380,10 @@ dArrayT& MR2DT::qbar_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& qbar)
 
 dMatrixT& MR2DT::dQdSig2_f(const dArrayT& qn, dMatrixT& dQdSig2)
 {
-  dQdSig2(1,1) = 2.;
-  dQdSig2(2,2) = -2.*qn[4]*qn[4];
-  dQdSig2(1,2) = 0.;
-  dQdSig2(2,1) = 0.;
+  dQdSig2(0,0) = 2.;
+  dQdSig2(1,1) = -2.*qn[3]*qn[3];
+  dQdSig2(0,1) = 0.;
+  dQdSig2(1,0) = 0.;
   
   return dQdSig2;
 }
@@ -355,8 +392,8 @@ dMatrixT& MR2DT::dQdSig2_f(const dArrayT& qn, dMatrixT& dQdSig2)
 
 dArrayT& MR2DT::dfdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdSig)
 {
-  dfdSig[1] = 2.*Sig[2];
-  dfdSig[2] = 2.*qn[3]*qn[2] - Sig[2]*qn[3];
+  dfdSig[0] = 2.*Sig[0];
+  dfdSig[1] = 2.*qn[2]*qn[1] - Sig[1]*qn[2];
   
   return dfdSig;
 }
@@ -366,26 +403,26 @@ dArrayT& MR2DT::dfdSig_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdSig)
 
 dArrayT& MR2DT::dfdq_f(const dArrayT& Sig, const dArrayT& qn, dArrayT& dfdq)
 {
-  dfdq[1] = -2.*qn[3]*(qn[2]-qn[1]*qn[3]);
-  dfdq[2] = 2.*(Sig[2] - qn[1]*qn[3]);
-  dfdq[3] = 2.*Sig[2]*(qn[2] - Sig[2]*qn[3]) - 2.*qn[1]*(qn[2]-qn[1]*qn[3]);
-  dfdq[4] = 0.;
+  dfdq[0] = -2.*qn[2]*(qn[1]-qn[0]*qn[2]);
+  dfdq[1] = 2.*(Sig[1] - qn[0]*qn[2]);
+  dfdq[2] = 2.*Sig[1]*(qn[1] - Sig[1]*qn[2]) - 2.*qn[0]*(qn[1]-qn[0]*qn[2]);
+  dfdq[3] = 0.;
   
   return dfdq;
 }
 
-/* calculation of dqdSigdq_f */
+/* calculation of dQdSigdq_f */
 
 dMatrixT& MR2DT::dQdSigdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dQdSigdq)
 {
-  dQdSigdq(1,1) = 0.;
+  dQdSigdq(0,0) = 0.;
+  dQdSigdq(0,1) = 0.;
+  dQdSigdq(0,2) = 0.;
+  dQdSigdq(0,3) = 0.;
+  dQdSigdq(1,0) = 0.;
+  dQdSigdq(1,1) = 2.*qn[3];
   dQdSigdq(1,2) = 0.;
-  dQdSigdq(1,3) = 0.;
-  dQdSigdq(1,4) = 0.;
-  dQdSigdq(2,1) = 0.;
-  dQdSigdq(2,2) = 2.*qn[4];
-  dQdSigdq(2,3) = 0.;
-  dQdSigdq(2,4) = 2.*qn[2] - 4.*Sig[2]*qn[4];
+  dQdSigdq(1,3) = 2.*qn[1] - 4.*Sig[1]*qn[3];
   
   
   return dQdSigdq;
@@ -396,34 +433,34 @@ dMatrixT& MR2DT::dQdSigdq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dQd
 dMatrixT& MR2DT::dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardSig)
 {
 
-   double A1 = -falpha_chi*(qn[1] - fchi_r);
-   double B1 = (Sig[2]+abs(Sig[2]))/2./fGf_I;
-   double B2 = Sig[1]/fGf_I;
-   double DQDN = 2.*qn[4]*(qn[2] - Sig[2]*qn[4]);
-   double DQDT = 2.*Sig[2];
-   double A2 = -falpha_c*(qn[2] - fc_r);
-   double TNA = (Sig[2]-abs(Sig[2]))/2.;
-   double B3 = (Sig[2] - abs(TNA*qn[3])*sign(Sig[1]))/fGf_II;
-   double A3 = -falpha_phi*(qn[3] - tan(fphi_r));
-   double A4 = -falpha_psi*qn[4];
-   double DB3_DTn = -qn[3]*sign(Sig[1])*sign(TNA)*(1. - sign(Sig[2]))/fGf_II/2.;
+   double A1 = -falpha_chi*(qn[0] - fchi_r);
+   double B1 = (Sig[1]+abs(Sig[1]))/2./fGf_I;
+   double B2 = Sig[0]/fGf_I;
+   double DQDN = 2.*qn[3]*(qn[1] - Sig[1]*qn[3]);
+   double DQDT = 2.*Sig[0];
+   double A2 = -falpha_c*(qn[1] - fc_r);
+   double TNA = (Sig[1]-abs(Sig[1]))/2.;
+   double B3 = (Sig[1] - abs(TNA*qn[2])*sign(Sig[0]))/fGf_II;
+   double A3 = -falpha_phi*(qn[2] - tan(fphi_r));
+   double A4 = -falpha_psi*qn[3];
+   double DB3_DTn = -qn[2]*sign(Sig[0])*sign(TNA)*(1. - sign(Sig[1]))/fGf_II/2.;
    double DB3_DTt = 1./fGf_II;
-   double DB3_DTanphi = -abs(TNA)*sign(Sig[1])/fGf_II;
-   double DQDN2 = -2.*qn[4]*qn[4];
+   double DB3_DTanphi = -abs(TNA)*sign(Sig[0])/fGf_II;
+   double DQDN2 = -2.*qn[3]*qn[3];
    double DQDT2 = 2.;
    double DQDTN = 0.;
    double DQDNT = 0.;
-   double SN = sign(Sig[2]);
+   double SN = sign(Sig[1]);
    double DB1DN = (SN +abs(SN))/2./fGf_I;
    
-   dqbardSig(1,1) = A1*B2*DQDT2 + A1*DQDT/fGf_I;
-   dqbardSig(1,2) = A1*B1*DQDN2 + A1*DQDN*DB1DN;
-   dqbardSig(2,1) = A2*B3*DQDT2 + A2*DQDT*DB3_DTt;
-   dqbardSig(2,2) = A2*DQDT*DB3_DTn;
-   dqbardSig(3,1) = A3*B3*DQDT2 + A3*DQDT*DB3_DTt;
-   dqbardSig(3,2) = A3*DQDT*DB3_DTt;
-   dqbardSig(4,1) = A3*B3*DQDT2 + A4*DQDT*DB3_DTt;
-   dqbardSig(4,2) = A4*DQDT*DB3_DTn;
+   dqbardSig(0,1) = A1*B2*DQDT2 + A1*DQDT/fGf_I;
+   dqbardSig(0,1) = A1*B1*DQDN2 + A1*DQDN*DB1DN;
+   dqbardSig(1,0) = A2*B3*DQDT2 + A2*DQDT*DB3_DTt;
+   dqbardSig(1,1) = A2*DQDT*DB3_DTn;
+   dqbardSig(2,0) = A3*B3*DQDT2 + A3*DQDT*DB3_DTt;
+   dqbardSig(2,1) = A3*DQDT*DB3_DTt;
+   dqbardSig(3,0) = A3*B3*DQDT2 + A4*DQDT*DB3_DTt;
+   dqbardSig(3,1) = A4*DQDT*DB3_DTn;
  
     return dqbardSig;
 }
@@ -433,43 +470,42 @@ dMatrixT& MR2DT::dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dq
 dMatrixT& MR2DT::dqbardq_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT& dqbardq)
 {
 
-   double A1 = -falpha_chi*(qn[1] - fchi_r);
-   double B1 = (Sig[2]+abs(Sig[2]))/2./fGf_I;
-   double B2 = Sig[1]/fGf_I;
-   double DQDN = 2.*qn[4]*(qn[2] - Sig[2]*qn[4]);
-   double DQDT = 2.*Sig[2];
-   double A2 = -falpha_c*(qn[2] - fc_r);
-   double TNA = (Sig[2]-abs(Sig[2]))/2.;
-   double B3 = (Sig[2] - abs(TNA*qn[3])*sign(Sig[1]))/fGf_II;
-   double A3 = -falpha_phi*(qn[3] - tan(fphi_r));
-   double A4 = -falpha_psi*qn[4];
-   double DB3_DTn = -qn[3]*sign(Sig[1])*sign(TNA)*(1. - sign(Sig[2]))/fGf_II/2.;
+   double A1 = -falpha_chi*(qn[0] - fchi_r);
+   double B1 = (Sig[1]+abs(Sig[1]))/2./fGf_I;
+   double B2 = Sig[0]/fGf_I;
+   double DQDN = 2.*qn[3]*(qn[1] - Sig[1]*qn[3]);
+   double DQDT = 2.*Sig[0];
+   double A2 = -falpha_c*(qn[1] - fc_r);
+   double TNA = (Sig[1]-abs(Sig[1]))/2.;
+   double B3 = (Sig[1] - abs(TNA*qn[2])*sign(Sig[0]))/fGf_II;
+   double A3 = -falpha_phi*(qn[2] - tan(fphi_r));
+   double A4 = -falpha_psi*qn[3];
+   double DB3_DTn = -qn[2]*sign(Sig[0])*sign(TNA)*(1. - sign(Sig[1]))/fGf_II/2.;
    double DB3_DTt = 1./fGf_II;
-   double DB3_DTanphi = -abs(TNA)*sign(Sig[1])/fGf_II;
-   double DQDN2 = -2.*qn[4]*qn[4];
+   double DB3_DTanphi = -abs(TNA)*sign(Sig[0])/fGf_II;
+   double DQDN2 = -2.*qn[3]*qn[3];
    double DQDT2 = 2.;
    double DQDTN = 0.;
    double DQDNT = 0.;
-   double SN = sign(Sig[2]);
+   double SN = sign(Sig[1]);
    double DB1DN = (SN +abs(SN))/2./fGf_I;
    
-   dqbardq(1,1) = -falpha_chi*(B1*DQDN + B2*DQDT);
-   dqbardq(1,2) =  A1*B1*(2.*qn[4]);
+   dqbardq(0,0) = -falpha_chi*(B1*DQDN + B2*DQDT);
+   dqbardq(0,1) =  A1*B1*(2.*qn[3]);
+   dqbardq(0,2) = 0.;
+   dqbardq(0,3) =  A1*B1*(2.*qn[1]-4.*Sig[1]*qn[3]);   
+   dqbardq(1,0) = 0.;
+   dqbardq(1,1) = -falpha_c*B3*DQDT;
+   dqbardq(1,2) = A2*DQDT*DB3_DTanphi;
    dqbardq(1,3) = 0.;
-   dqbardq(1,4) =  A1*B1*(2.*qn[2]-4.*Sig[2]*qn[4]);
-   
+   dqbardq(2,0) = 0.;
    dqbardq(2,1) = 0.;
-   dqbardq(2,2) = -falpha_c*B3*DQDT;
-   dqbardq(2,3) = A2*DQDT*DB3_DTanphi;
-   dqbardq(2,4) = 0.;
+   dqbardq(2,2) = -falpha_phi*B3*DQDT + A3*DQDT*DB3_DTanphi;
+   dqbardq(2,3) = 0.;
+   dqbardq(3,0) = 0.;
    dqbardq(3,1) = 0.;
-   dqbardq(3,2) = 0.;
-   dqbardq(3,3) = -falpha_phi*B3*DQDT + A3*DQDT*DB3_DTanphi;
-   dqbardq(3,4) = 0.;
-   dqbardq(4,1) = 0.;
-   dqbardq(4,2) = 0.;
-   dqbardq(4,3) = A4*DQDT*DB3_DTanphi;
-   dqbardq(4,4) = -falpha_psi*B3*DQDT;
+   dqbardq(3,2) = A4*DQDT*DB3_DTanphi;
+   dqbardq(3,3) = -falpha_psi*B3*DQDT;
    
     return dqbardq;
 }
@@ -486,7 +522,7 @@ const dMatrixT& MR2DT::Stiffness(const dArrayT& jump_u, const ArrayT<double>& st
 
 int i, j;
 
-dMatrixT AA(6,6), I_mat(4,4), CMAT(4,4),AA_inv(6,6), 
+dMatrixT AA(6,6), I_mat(4,4), CMAT(6,6),AA_inv(6,6), 
          A_qq(4,4), A_uu(2,2), A_uq(2,4), A_qu(4,2), ZMAT(2,4),
          ZMATP(4,2), dQdSig2(2,2), dqdbar(4,4), KP(2,2), KEP(2,2);
 dMatrixT I_m(2,2), Rmat(2,2), R_Inv(2,2), KE(2,2), KE_Inv(2,2), 
@@ -496,25 +532,28 @@ dArrayT  u(2), up(2), du(2), dup(2), qn(4), qo(4), Rvec(6),Cvec(6),
          R2(6), X(6), V_sig(2), V_q(4), dfdSig(2), K1(2), K2(2);
 	
 	fStiffness[1] = fStiffness[2] = 0.;
-	I_m(1,1) = 1.;
-	I_m(2,2) = 2.;
-	Sig[1] = sigma[0];
-	Sig[2] = sigma[1];
-	KE(1,1) = fE_t;
-    KE(2,2) = fE_n;
+	I_m(0,0) = 1.; I_m(0,1) =0.; I_m(1,0) = 0.; I_m(1,1) = 1.;
+	I_mat(0,1)=0.;I_mat(0,2)=0.;I_mat(0,3)=0.;I_mat(1,0)=0.;
+    I_mat(1,2)=0.;I_mat(1,3)=0.;I_mat(2,0)=0.;I_mat(2,1)=0.;
+    I_mat(2,3)=0.;I_mat(3,0)=0.;I_mat(3,1)=0.;I_mat(3,2)=0.;
+	Sig[0] = state[0];
+	Sig[1] = state[1];
+	KE = 0.;
+	KE(0,0) = fE_t;
+    KE(1,1) = fE_n;
     KE_Inv.Inverse(KE);
-    for (i = 1; i<=4; ++i) {
-      qn[i] = state[i+5];
+    for (i = 0; i<=3; ++i) {
+      qn[i] = state[i+6];
       I_mat(i,i) = 1.;
     }
 
-	if (state[12] < 1) 
+	if (state[10] < 0.) 
 	{
 	    fStiffness[3] = fE_n;
 	    fStiffness[0] = fE_t;
 	}
 	else 
-	  	if (state[12] > 0) 
+	  	if (state[10] > 0.) 
 	  	{
 	  	    dQdSig2_f(qn,dQdSig2);
 	  	    Rmat = dQdSig2;
@@ -523,16 +562,20 @@ dArrayT  u(2), up(2), du(2), dup(2), qn(4), qo(4), Rvec(6),Cvec(6),
 	   		R_Inv.Inverse(Rmat);
 	   		KEA.MultAB(R_Inv, KE);
 	   		KEA_Inv.Inverse(KEA);
-            for (i = 1; i<=6; ++i) {
-             for (j = 1; j<=6; ++i) {
-               if (i<=2 & j<=2)
+            for (i = 0; i<=5; ++i) {
+             for (j = 0; j<=5; ++j) {
+               if (i<=1 & j<=1) {
                  AA_inv(i,j) = KE_Inv(i,j);
-               if (i<=2 & j>2)
+               }
+               if (i<=1 & j>1) {
                  AA_inv(i,j) = 0.;
-               if(i>2 & j<=2)
+               }
+               if(i>1 & j<=1) {
                  AA_inv(i,j) = 0.;
-               if(i>2 & j >2)
+               }
+               if(i>1 & j >1) {
                  AA_inv(i,j) = -I_mat(i-2,j-2);
+               }
              }
             }
             AA_inv.Inverse(AA);
@@ -540,33 +583,35 @@ dArrayT  u(2), up(2), du(2), dup(2), qn(4), qo(4), Rvec(6),Cvec(6),
             V_sig = dfdSig;
             dfdq_f(Sig,qn, dfdq);
             V_q = dfdq;
-            dQdSig[1] = 2.*Sig[1];
-            dQdSig[2] = 2.*qn[4]*qn[2] - Sig[2]*qn[4];
-            for (i = 1; i<=6; ++i) {
-              if (i<=2)
+            dQdSig[1] = 2.*Sig[0];
+            dQdSig[2] = 2.*qn[3]*qn[1] - Sig[1]*qn[3];
+            for (i = 0; i<=5; ++i) {
+              if (i<=1) {
                 Rvec[i] = V_sig[i];
                 Cvec[i] = dQdSig[i];
-              if (i > 2)
+              }
+              if (i > 1) {
                 Rvec[i] = V_q[i-2];
                 Cvec[i] = qbar[i-2];
+              }
             }
             dArrayT tmpVec(6);
             AA.MultTx(Cvec,tmpVec);
             double bott = Rvec.Dot(Rvec,tmpVec);
-            KEA.MultTx(dQdSig, K1);
-            KEA.MultTx(dfdSig, K2);
-            for (i = 1; i<=2; ++i) {
-	   		    for (j = 1; j<=2; ++i) {
+            KEA.Multx(dQdSig, K1);
+            KEA.Multx(dfdSig, K2);
+            for (i = 0; i<=1; ++i) {
+	   		    for (j = 0; j<=1; ++j) {
 	   		      KP(i,j) = K1[i]*K2[j];
                 }
 	        } 
             KP /=bott;
             KEP = KEA;
             KEP -= KP;
-	   		fStiffness[0] = KEP(1,1);
-	   		fStiffness[1] = KEP(1,2);
-	   		fStiffness[2] = KEP(2,1);
-	   		fStiffness[3] = KEP(2,2);
+	   		fStiffness[0] = KEP(0,0);
+	   		fStiffness[1] = KEP(0,1);
+	   		fStiffness[2] = KEP(1,0);
+	   		fStiffness[3] = KEP(1,1);
 	       }
 	      
 
