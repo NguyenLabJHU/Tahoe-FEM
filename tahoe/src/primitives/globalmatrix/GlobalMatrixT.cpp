@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.5 2001-05-09 17:31:38 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.6 2002-03-04 06:39:29 paklein Exp $ */
 /* created: paklein (03/23/1997)                                          */
 /* Virtual base class for all global matrix objects                       */
 
@@ -39,6 +39,7 @@ void GlobalMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 	fOut << "\n E q u a t i o n    S y s t e m    D a t a :\n\n";
 	fOut << " Local number of equations . . . . . . . . . . . = " << fLocNumEQ << '\n';
 	fOut << " Total number of equations . . . . . . . . . . . = " << fTotNumEQ << '\n';
+	fOut.flush();
 
 	/* consistency */
 	if (fLocNumEQ > fTotNumEQ)
