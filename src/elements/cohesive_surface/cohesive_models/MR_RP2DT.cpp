@@ -1,4 +1,4 @@
-/*$Id: MR_RP2DT.cpp,v 1.20 2003-05-27 20:42:48 cjkimme Exp $*/
+/*$Id: MR_RP2DT.cpp,v 1.21 2003-06-03 22:40:28 manzari Exp $*/
 /* created by manzari*/
 /* Rigid Plastic Cohesive Model for Geomaterials*/
 #include "MR_RP2DT.h"
@@ -536,7 +536,7 @@ dMatrixT& MR_RP2DT::dqbardSig_f(const dArrayT& Sig, const dArrayT& qn, dMatrixT&
    double SN = signof(Sig[1]);
    double DB1DN = (SN +fabs(SN))/2./fGf_I;
    
-   dqbardSig(0,1) = A1*B2*DQDT2 + A1*DQDT/fGf_I;
+   dqbardSig(0,0) = A1*B2*DQDT2 + A1*DQDT/fGf_I;
    dqbardSig(0,1) = A1*B1*DQDN2 + A1*DQDN*DB1DN;
    dqbardSig(1,0) = A2*B3*DQDT2 + A2*DQDT*DB3_DTt;
    dqbardSig(1,1) = A2*DQDT*DB3_DTn;
@@ -659,6 +659,7 @@ double bott, dlam;
 	        KE.MultAB(A_uq,KE1);
 	        KE *= state[11];
 	        KE *= state[11];
+	        /*KE = 0.;*/
 	        KE2 = dQdSig2;
 	        KE2 *=state[11];
 	        KE += KE2;

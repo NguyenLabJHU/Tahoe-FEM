@@ -178,7 +178,7 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
 /* Check the yield function */
      
     Yield_f(Sig, qn, ff);
-    if (ff <0.) {
+    if (ff <kYieldTol) {
       iplastic = 0;
       state[22] = ff;
       state[27] = ff;
@@ -262,7 +262,7 @@ const dSymMatrixT& MRSSNLHardT::StressCorrection(
         dArrayT tmpVec(10);
         AA.Multx(R,tmpVec);
         topp = ff;
-        topp -= dArrayT::Dot(Rvec,tmpVec);        
+        topp -= dArrayT::Dot(Rvec,tmpVec);
         AA.Multx(Cvec,tmpVec);
         bott = dArrayT::Dot(Rvec,tmpVec); 		
         dlam2 = topp/bott;
@@ -770,6 +770,7 @@ const dMatrixT& MRSSNLHardT::Moduli(const ElementCardT& element,
 	        KES.MultAB(A_uq,KE1);
 	        KES *= state[23];
 	        KES *= state[23];
+	        /*KES = 0.;*/
 	        KE2 = dQdSig2;
 	        KE2 *=state[23];
 	        KES += KE2;
