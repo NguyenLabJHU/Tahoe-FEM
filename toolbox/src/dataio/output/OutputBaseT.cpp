@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.16 2003-06-12 20:31:39 saubry Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.17 2003-09-10 00:14:17 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 #include "OutputBaseT.h"
 #include "OutputSetT.h"
@@ -24,11 +24,11 @@ OutputBaseT::OutputBaseT(ostream& out, const ArrayT<StringT>& out_strings):
 	fParts(NULL)
 {
 	if (out_strings.Length() > 3)
-{
-	fOutroot.Root(out_strings[0]);
-	fTitle    = out_strings[1];
-	fCodeName = out_strings[2];
-	fVersion  = out_strings[3];
+	{
+		fOutroot.Root(out_strings[0]);
+		fTitle    = out_strings[1];
+		fCodeName = out_strings[2];
+		fVersion  = out_strings[3];
 	}
 	else // general default
 	{
@@ -36,7 +36,7 @@ OutputBaseT::OutputBaseT(ostream& out, const ArrayT<StringT>& out_strings):
 		fTitle    = "not given";
 		fCodeName = "tahoe";
 		fVersion  = "unknown";
-	}
+	}	
 }
 
 /* destructor */
