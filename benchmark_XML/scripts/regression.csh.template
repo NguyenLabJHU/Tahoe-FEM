@@ -1,5 +1,5 @@
 #!/bin/csh
-# $Id: regression.csh.template,v 1.17 2004-07-22 09:52:07 paklein Exp $
+# $Id: regression.csh.template,v 1.18 2004-07-24 18:10:28 paklein Exp $
 
 # username on Tahoe server
 set TAHOE_USER =
@@ -35,6 +35,10 @@ set TAHOE = tahoe
 
 # build modules (in build order)
 set BUILD_MODULES = (toolbox tahoe)
+
+# need Rational for the build
+#set RATIONAL_DIR =
+#source ${RATIONAL_DIR}/purifyplus_setup.csh
 
 ###################### regression test ########################
 # clear log files
