@@ -84,7 +84,7 @@ void EAMT::WriteOutput(void)
 
   /* inherited */
   ParticleT::WriteOutput();
-
+  
   /* muli-processor information */
   CommManagerT& comm_manager = ElementSupport().CommManager();
   const ArrayT<int>* proc_map = comm_manager.ProcessorMap();
@@ -153,10 +153,10 @@ void EAMT::WriteOutput(void)
       int   tag_i = neighbors[0]; /* self is 1st spot */
       int  type_i = fType[tag_i];		
       int local_i = (inverse_map) ? inverse_map->Map(tag_i) : tag_i;
-		
+
       /* values for particle i */
-      n_values.RowAlias(local_i, values_i);
-		
+      n_values.RowAlias(local_i, values_i);		
+
       /* kinetic energy */
       if (velocities)
 	{
@@ -544,13 +544,18 @@ void EAMT::LHSDriver(GlobalT::SystemTypeT sys_type)
 /* form group contribution to the residual */
 void EAMT::RHSDriver(void)
 {
-  int nsd = NumSD();
-  if (nsd == 3)
-    RHSDriver3D();
-  else if (nsd == 2)
-    RHSDriver2D();
-  else
-    ExceptionT::GeneralFail("EAMT::RHSDriver");
+	int nsd = NumSD();
+	if (nsd == 3)
+		RHSDriver3D();
+	else if (nsd == 2)
+		RHSDriver2D();
+	else
+		ExceptionT::GeneralFail("EAMT::RHSDriver");
+		
+	ApplyDamping(fNeighbors);
+	
+	/* assemble */
+	ElementSupport().AssembleRHS(Group(), fForce, Field().Equations());
 }
 
 void EAMT::RHSDriver2D(void)
@@ -639,7 +644,6 @@ void EAMT::RHSDriver2D(void)
 	  Delectron_density_j[j] = ed_force(r,NULL,NULL);
 	  Delectron_density_i += Delectron_density_j[j];
 	}
-
       /* Get contribution to the force from embedding and pair forces */
       for (int j = 1; j < neighbors.Length(); j++)
 	{
@@ -694,10 +698,6 @@ void EAMT::RHSDriver2D(void)
 
   /* Sum up contribution to force */
 
-
-
-    /* assemble */
-    support.AssembleRHS(group, fForce, Field().Equations());
 }
 
 void EAMT::RHSDriver3D(void)
@@ -787,7 +787,6 @@ void EAMT::RHSDriver3D(void)
 	  Delectron_density_i += Delectron_density_j[j];
 	}
 
-
       /* Get contribution to the force from embedding and pair forces */
       for (int j = 1; j < neighbors.Length(); j++)
 	{
@@ -849,9 +848,6 @@ void EAMT::RHSDriver3D(void)
 	  f_j[2] +=-r_ij_2;
 	}
     }
-
-  /* assemble */
-  support.AssembleRHS(group, fForce, Field().Equations());
 }
 
 /* set neighborlists */

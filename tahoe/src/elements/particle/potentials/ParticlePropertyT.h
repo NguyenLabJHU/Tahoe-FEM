@@ -1,4 +1,4 @@
-/* $Id: ParticlePropertyT.h,v 1.3 2003-04-05 08:34:41 paklein Exp $ */
+/* $Id: ParticlePropertyT.h,v 1.4 2003-04-09 20:22:28 cjkimme Exp $ */
 #ifndef _PARTICLE_PROPERTY_T_H_
 #define _PARTICLE_PROPERTY_T_H_
 
@@ -19,8 +19,15 @@ public:
           kParadynEAM = 3  /**< EAM potentials in Paradyn format */
 	};
 	
-	/** stream extraction operator */
+	enum ThermostatT {
+	    kFreeParticle = 0, /**< you figure it out */
+      kDampedParticle = 1, /**< velocity-dependent damping */
+    kLangevinParticle = 2  /**< Langevin (stochastic) thermostat */
+	};
+	
+	/** stream extraction operators */
 	friend istream& operator>>(istream& in, ParticlePropertyT::TypeT& property);	
+	friend istream& operator>>(istream& in, ParticlePropertyT::ThermostatT& property);	
 
 	/** constructor */
 	ParticlePropertyT(void);

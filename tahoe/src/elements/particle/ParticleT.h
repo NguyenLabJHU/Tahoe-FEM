@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.10 2003-03-31 23:12:22 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.11 2003-04-09 20:22:26 cjkimme Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -6,6 +6,7 @@
 #include "ElementBaseT.h"
 
 /* direct members */
+#include "VariArrayT.h"
 #include "nVariArray2DT.h"
 #include "InverseMapT.h"
 
@@ -17,6 +18,7 @@ class CommManagerT;
 class ParticlePropertyT;
 class dSPMatrixT; //TEMP
 class InverseMapT;
+class RandomNumberT;
 
 /** base class for particle types */
 class ParticleT: public ElementBaseT
@@ -131,6 +133,9 @@ protected: /* for derived classes only */
 	 * stored in ParticleT::fReNeighborCoords. The maximum is over local atoms
 	 * only. */
 	double MaxDisplacement(void) const;
+	
+	/** Apply thermostatting/damping constraints to forces */
+	void ApplyDamping(const RaggedArray2DT<int>& fNeighbors);
 
 protected:
 
@@ -207,6 +212,22 @@ protected:
 	double fDmax;  /**< maximum distance between the current
 	                    coordinates and the coordinates in ParticleT::fReNeighborCoords.
 	                    This value is computed during ParticleT::RelaxSystem. */
+
+	/* Damping, thermostatting variables */
+	int fDampingType;
+	bool QisDamped;
+	double fBeta, fTemperature;
+	RandomNumberT* fRandom;
+
+	/** \name workspace for ParticlePairT::RHSDriver. Used to accumulate the force for
+	 * a single row of ParticlePairT::fNeighbors. */
+	/*@{*/
+	dArrayT fForce_list;
+	VariArrayT<double> fForce_list_man;
+
+	/** constant matrix needed to compute the stiffness */
+	dMatrixT fOneOne;
+	/*@}*/
 
 private:
 

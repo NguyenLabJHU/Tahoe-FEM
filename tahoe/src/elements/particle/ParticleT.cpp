@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.13 2003-03-31 23:12:22 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.14 2003-04-09 20:22:26 cjkimme Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -13,12 +13,16 @@
 #include "RaggedArray2DT.h"
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
+#include "RandomNumberT.h"
 
 using namespace Tahoe;
 
 /* class parameters */
+/* parameters */
 const int kAvgNodesPerCell = 20;
 const int kMaxNumCells     =- 1; /* -1: no max */
+#pragma message("kB isn't really equal to 1")
+const double fkB = 1.;
 
 /* constructors */
 ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
@@ -32,7 +36,8 @@ ParticleT::ParticleT(const ElementSupportT& support, const FieldT& field):
 	fCommManager(support.CommManager()),
 	fDmax(0),
 	fForce_man(0, fForce, field.NumDOF()),
-	fActiveParticles(NULL)
+	fActiveParticles(NULL),
+	fRandom(NULL)
 {
 	/* set matrix format */
 	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
@@ -130,6 +135,38 @@ void ParticleT::Initialize(void)
 
 	/* set the neighborlists */
 	SetConfiguration();
+	
+	/* Read in thermostatting/damping parameters */
+	in >> fDampingType;
+	switch (fDampingType)
+	{
+		case ParticlePropertyT::kFreeParticle:
+		{
+			QisDamped = false;
+			break;
+		}
+		case ParticlePropertyT::kDampedParticle:
+		{
+			QisDamped = true;
+			in >> fBeta;
+			break;
+		}
+		case ParticlePropertyT::kLangevinParticle:
+		{
+			QisDamped = true;
+			in >> fBeta;
+			in >> fTemperature; // constant T for now
+			fRandom = new RandomNumberT(RandomNumberT::kParadynGaussian); 
+			fRandom->sRand(1234567); 
+
+			break;
+		}
+		default:
+		{
+			ExceptionT::BadInputValue(caller,"Damping type does not exist");
+		}
+	}
+	
 }
 
 /* form of tangent matrix */
@@ -334,6 +371,64 @@ void ParticleT::SetConfiguration(void)
 /***********************************************************************
  * Protected
  ***********************************************************************/
+
+void ParticleT::ApplyDamping(const RaggedArray2DT<int>& fNeighbors)
+{		
+	if (QisDamped)
+	{
+		const dArray2DT* velocities = NULL; 
+     	if (Field().Order() > 0) 
+     	{
+     		velocities = &(Field()[1]);          
+			int tag_i;
+			int nsd = NumSD();
+			double* f_i;
+			double* v_i;
+
+			switch (fDampingType)
+			{
+				case ParticlePropertyT::kDampedParticle:
+				{
+					for (int i = 0; i < fNeighbors.MajorDim(); i++) 
+	    			{ 
+	    				tag_i = *fNeighbors(i);
+	    				f_i = fForce(i);
+	    				v_i = (*velocities)(tag_i);
+	    				
+	    				for (int j = 0; j < nsd; j++)
+	        				*f_i++ -= fBeta*(*v_i++); 
+	    			}
+	    			
+	    			break;
+				}
+				case ParticlePropertyT::kLangevinParticle:
+				{
+					dArrayT rArray(nsd);
+					double *rf_i;
+					double stochasticAmp = sqrt(2.*fBeta*fkB*fTemperature/
+												ElementSupport().TimeStep());
+					for (int i = 0; i < fNeighbors.MajorDim(); i++) 
+	    			{ 
+	    				tag_i = *fNeighbors(i);
+	    				f_i = fForce(i);
+	    				v_i = (*velocities)(tag_i);
+	    				fRandom->RandomArray(rArray);
+	    				rArray *= stochasticAmp;
+	    				rf_i = rArray.Pointer();
+	    				
+	        			for (int j = 0; j < nsd; j++)
+	        				*f_i++ += -fBeta*(*v_i++) + *rf_i++;
+	    			}
+	    			
+	    			break;
+				}
+				default:
+					ExceptionT::GeneralFail("ParticleT::FormRHS","Damping value has changed!");
+			}
+		}
+	}
+		
+}
 
 /* return true if connectivities are changing */
 bool ParticleT::ChangingGeometry(void) const

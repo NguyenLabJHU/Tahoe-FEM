@@ -1,4 +1,4 @@
-/* $Id: ParticlePropertyT.cpp,v 1.3 2003-04-05 08:34:41 paklein Exp $ */
+/* $Id: ParticlePropertyT.cpp,v 1.4 2003-04-09 20:22:28 cjkimme Exp $ */
 #include "ParticlePropertyT.h"
 #include "ArrayT.h"
 #include <iostream.h>
@@ -48,6 +48,29 @@ istream& operator>>(istream& in, ParticlePropertyT::TypeT& property)
 			break;
 		default:
 			ExceptionT::BadInputValue("operator>>ParticlePropertyT::TypeT", 
+				"unknown code: %d", i_property);
+	}
+	return in;
+}
+
+/* stream extraction operator */
+istream& operator>>(istream& in, ParticlePropertyT::ThermostatT& property)
+{
+	int i_property;
+	in >> i_property;
+	switch (i_property)
+	{
+		case ParticlePropertyT::kFreeParticle:
+			property = ParticlePropertyT::kFreeParticle;
+			break;
+		case ParticlePropertyT::kDampedParticle:
+			property = ParticlePropertyT::kDampedParticle;
+			break;
+		case ParticlePropertyT::kLangevinParticle:
+			property = ParticlePropertyT::kLangevinParticle;
+			break;
+		default:
+			ExceptionT::BadInputValue("operator>>ParticlePropertyT::ThermostatT", 
 				"unknown code: %d", i_property);
 	}
 	return in;

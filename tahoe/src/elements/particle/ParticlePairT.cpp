@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.cpp,v 1.15 2003-03-31 23:12:22 paklein Exp $ */
+/* $Id: ParticlePairT.cpp,v 1.16 2003-04-09 20:22:26 cjkimme Exp $ */
 #include "ParticlePairT.h"
 #include "PairPropertyT.h"
 #include "fstreamT.h"
@@ -518,6 +518,11 @@ void ParticlePairT::RHSDriver(void)
 		RHSDriver2D();
 	else
 		ExceptionT::GeneralFail("ParticlePairT::RHSDriver");
+		
+	ApplyDamping(fNeighbors);
+		
+	/* assemble */
+	ElementSupport().AssembleRHS(Group(), fForce, Field().Equations());
 }
 
 void ParticlePairT::RHSDriver2D(void)
@@ -616,8 +621,6 @@ void ParticlePairT::RHSDriver2D(void)
 		}
 	}
 
-	/* assemble */
-	support.AssembleRHS(group, fForce, Field().Equations());
 }
 
 void ParticlePairT::RHSDriver3D(void)
@@ -721,8 +724,6 @@ void ParticlePairT::RHSDriver3D(void)
 		}
 	}
 
-	/* assemble */
-	support.AssembleRHS(group, fForce, Field().Equations());
 }
 
 /* set neighborlists */
