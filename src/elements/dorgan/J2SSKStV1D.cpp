@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV1D.cpp,v 1.5 2003-11-21 22:54:37 paklein Exp $ */ 
+/* $Id: J2SSKStV1D.cpp,v 1.6 2004-01-14 19:33:16 rdorgan Exp $ */ 
 #include "J2SSKStV1D.h"
 #include "SSMatSupportT.h"
 #include "ElementCardT.h"
@@ -52,8 +52,15 @@ J2SSKStV1D::J2SSKStV1D(ifstreamT& in, const SSMatSupportT& support):
         fStress(kNSD),
         fModulus(dSymMatrixT::NumValues(kNSD))
 {
+	SetName("J2SSKStV1D");
+
         /* construct hardening function from stream */
         ConstructHardeningFunction(in);
+}
+
+J2SSKStV1D::J2SSKStV1D(void)
+{
+	SetName("J2SSKStV1D");
 }
 
 /* initialization */
@@ -123,7 +130,7 @@ const dSymMatrixT& J2SSKStV1D::s_ij(void)
         HookeanStress(e_els, fStress);
 
         /* modify Cauchy stress (return mapping) */
-        int iteration = fSSMatSupport.IterationNumber();
+        int iteration = fSSMatSupport->IterationNumber();
         if (iteration > -1) /* elastic iteration */
                 fStress += StressCorrection(e_els, element, ip);
         return fStress;	

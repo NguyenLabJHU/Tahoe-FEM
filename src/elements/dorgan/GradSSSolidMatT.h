@@ -1,4 +1,4 @@
-/* $Id: GradSSSolidMatT.h,v 1.6 2003-11-21 22:54:37 paklein Exp $ */
+/* $Id: GradSSSolidMatT.h,v 1.7 2004-01-14 19:33:16 rdorgan Exp $ */
 #ifndef _GRAD_SS_SOLID_MAT_T_H_
 #define _GRAD_SS_SOLID_MAT_T_H_
 
@@ -22,6 +22,7 @@ public:
 
         /** constructor */
         GradSSSolidMatT(ifstreamT& in, const GradSSMatSupportT& support);
+        GradSSSolidMatT(void);
 
         /** destructor */
         ~GradSSSolidMatT(void);
@@ -113,7 +114,7 @@ protected:
         int fNumIP_R;
         
         /** small strain material support */
-        const GradSSMatSupportT& fGradSSMatSupport;
+        const GradSSMatSupportT* fGradSSMatSupport;
 };
 
 /* inlines */

@@ -1,4 +1,4 @@
-/* $Id: GradSSSolidMatT.cpp,v 1.5 2003-11-21 22:54:37 paklein Exp $ */ 
+/* $Id: GradSSSolidMatT.cpp,v 1.6 2004-01-14 19:33:16 rdorgan Exp $ */ 
 #include "GradSSSolidMatT.h"
 #include <iostream.h>
 #include "GradSSMatSupportT.h"
@@ -9,14 +9,20 @@ using namespace Tahoe;
 /* constructor */
 GradSSSolidMatT::GradSSSolidMatT(ifstreamT& in, const GradSSMatSupportT& support):
         SSSolidMatT(in, support),
-        fGradSSMatSupport(support),
+        fGradSSMatSupport(&support),
 
         fNumDOF_R(support.NumDOF_R()),
         fNumDOF_Total(support.NumDOF() + fNumDOF_R),
 
         fNumIP_R(support.NumIP_R())
 {
+        SetName("gradient_small_strain_solid_material");
+}
 
+GradSSSolidMatT::GradSSSolidMatT(void):
+        fGradSSMatSupport(NULL)
+{
+        SetName("gradient_small_strain_solid_material");
 }
 
 /* destructor */
@@ -41,45 +47,45 @@ void GradSSSolidMatT::PrintName(ostream& out) const
 /* isotropic hardening */
 const double& GradSSSolidMatT::R(void) const
 {
-        return fGradSSMatSupport.LinearR(); 
+        return fGradSSMatSupport->LinearR(); 
 }
 
 const double& GradSSSolidMatT::R(int ip) const
 {
-        return fGradSSMatSupport.LinearR(ip); 
+        return fGradSSMatSupport->LinearR(ip); 
 }
 
 /* isotropic hardening from the end of the previous time step */
 const double& GradSSSolidMatT::R_last(void) const
 {
-        return fGradSSMatSupport.LinearR_last(); 
+        return fGradSSMatSupport->LinearR_last(); 
 }
 
 const double& GradSSSolidMatT::R_last(int ip) const
 {
-        return fGradSSMatSupport.LinearR_last(ip); 
+        return fGradSSMatSupport->LinearR_last(ip); 
 }
 
 /* Laplacian isotropic hardening */
 const double& GradSSSolidMatT::LaplacianR(void) const
 {
-        return fGradSSMatSupport.LinearLaplacianR(); 
+        return fGradSSMatSupport->LinearLaplacianR(); 
 }
 
 const double& GradSSSolidMatT::LaplacianR(int ip) const
 {
-        return fGradSSMatSupport.LinearLaplacianR(ip); 
+        return fGradSSMatSupport->LinearLaplacianR(ip); 
 }
 
 /* Laplacian isotropic hardening from the end of the previous time step */
 const double& GradSSSolidMatT::LaplacianR_last(void) const
 {
-        return fGradSSMatSupport.LinearLaplacianR_last(); 
+        return fGradSSMatSupport->LinearLaplacianR_last(); 
 }
 
 const double& GradSSSolidMatT::LaplacianR_last(int ip) const
 {
-        return fGradSSMatSupport.LinearLaplacianR_last(ip); 
+        return fGradSSMatSupport->LinearLaplacianR_last(ip); 
 }
 
 /* apply pre-conditions at the current time step */

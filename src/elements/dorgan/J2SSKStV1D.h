@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV1D.h,v 1.4 2003-11-21 22:54:37 paklein Exp $ */
+/* $Id: J2SSKStV1D.h,v 1.5 2004-01-14 19:33:16 rdorgan Exp $ */
 #ifndef _J2_SS_KSTV_1D_H_
 #define _J2_SS_KSTV_1D_H_
 
@@ -29,6 +29,7 @@ public:
 
         /* constructor */
         J2SSKStV1D(ifstreamT& in, const SSMatSupportT& support);
+        J2SSKStV1D(void);
 
         /* initialization */
         virtual void Initialize(void);
