@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.cpp,v 1.8 2002-06-27 00:33:56 paklein Exp $ */
+/* $Id: dMatrixT.cpp,v 1.7 2002-03-02 19:33:17 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "dMatrixT.h"
@@ -172,19 +172,16 @@ double dMatrixT::Det(void) const
 {
 /* dimension check */
 #if __option (extended_errorcheck)
-	if (fRows != fCols) throw eGeneralFail;
+	if (fRows != fCols ||
+	   (fRows != 2 && fRows != 3)) throw eGeneralFail;
 #endif
 	
 	if (fCols == 2) // (2 x 2)
 		return fArray[0]*fArray[3] - fArray[1]*fArray[2];
-	else if (fCols == 1) // (1 x 1)
-		return fArray[0];
-	else if (fCols == 3) // (3 x 3)
+	else            // (3 x 3)
 		return fArray[0]*(fArray[4]*fArray[8] - fArray[5]*fArray[7])
 			 - fArray[1]*(fArray[3]*fArray[8] - fArray[5]*fArray[6])
 			 + fArray[2]*(fArray[3]*fArray[7] - fArray[4]*fArray[6]);
-	else throw eGeneralFail;
-	return 0;
 }
 
 /* returns the Trace of the matrix.  Matrix must be square */

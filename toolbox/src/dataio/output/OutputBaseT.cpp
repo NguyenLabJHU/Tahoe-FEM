@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.10 2002-06-25 14:17:06 sawimme Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.9 2002-03-28 16:10:40 sawimme Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "OutputBaseT.h"
@@ -93,17 +93,17 @@ int OutputBaseT::NumElements(void) const
 	return count;
 }
 
-void OutputBaseT::AddNodeSet(const iArrayT& nodeset, const StringT& setID)
+void OutputBaseT::AddNodeSet(const iArrayT& nodeset, int setID)
 {
 	fNodeSets.Append(&nodeset);
-	fNodeSetNames.Append (setID);
+	fNodeSetIDs.Append (setID);
 }
 
-void OutputBaseT::AddSideSet(const iArray2DT& sideset, const StringT& setID, const StringT& group_ID)
+void OutputBaseT::AddSideSet(const iArray2DT& sideset, int setID, int group_ID)
 {
 	fSideSets.Append(&sideset);
-	fSideSetNames.Append (setID);
-	fSSGroupNames.Append(group_ID);
+	fSideSetIDs.Append (setID);
+	fSSGroupID.Append(group_ID);
 }
 
 
@@ -201,9 +201,10 @@ void OutputBaseT::WriteOutput(double time, int ID, const dArray2DT& n_values,
 		throw eOutOfRange;
 	}
 
-	/* set block ID to string names if possible 
-	   else to the global block index position */
-	CreateElementBlockIDs ();
+	/* set current set ID to the global block index position */
+	fCurrentSetID = 0;
+	for (int i=0; i < ID; i++)
+	  fCurrentSetID += fElementSets[i]->NumBlocks();
 
 	if (!fCoordinates)
 	{
@@ -287,88 +288,5 @@ void OutputBaseT::NodalBlockValues(int ID, int block, const dArray2DT& allvalues
 		/* collect block values */
 		blockvalues.Allocate(index_map.Length(), allvalues.MinorDim());
 		blockvalues.RowCollect(index_map, allvalues);	
-    }
-}
-
-void OutputBaseT::ElementGroupBlockIndex (const StringT& n, int& g, int& b) const
-{
-  for (int i=0; i < fElementSets.Length(); i++)
-    {
-      const ArrayT<StringT>& ids = fElementSets[i]->BlockID ();
-      for (int j=0; j < ids.Length(); j++)
-	if (strncmp (ids[j].Pointer(), n.Pointer(), n.StringLength()) == 0)
-	  {
-	    g = i;
-	    b = j;
-	    return;
-	  }
-    }
-}
-
-void OutputBaseT::CreateElementBlockIDs (void)
-{
-  bool unique = true;
-  int numblocks = 0;
-  fElementBlockIDs.Dimension (fElementSets.Length());
-  for (int i=0; i < fElementSets.Length(); i++)
-    {
-      const ArrayT<StringT>& bids = fElementSets[i]->BlockID();
-      iArrayT& bints = fElementBlockIDs[i];
-      bints.Dimension (bids.Length());
-      if (unique)
-	{
-	  for (int j=0; j < bids.Length() && unique; j++)
-	    {
-	      bints[j] = atoi (bids[j]);
-
-	      /* ZEROES ARE NOT ALLOWED BY SOME PROGRAMS */
-	      if (bints[j] == 0) 
-		bints[j]++;
-	      
-	      /* ensure uniqueness within the block */
-	      for (int k=0; k < j && unique; k++)
-		{
-		  if (bints[k] == bints[j])
-		    unique = false;
-		}
-
-	      /* ensure uniqueness to previous group blocks */
-	      for (int g=0; g < i && unique; g++)
-		{
-		  iArrayT& gints = fElementBlockIDs[g];
-		  for (int h=0; h < gints.Length(); h++)
-		    {
-		      if (gints[h] == bints[j]) 
-			unique = false;
-		    }
-		}
-	    }
-	}
-      
-      if (!unique)
-	{
-	  bints.SetValueToPosition();
-	  bints += 1 + numblocks;
-	}
-
-      numblocks += bids.Length();
-    }
-}
-
-void OutputBaseT::String2IntIDs (const ArrayT<StringT>& s, iArrayT& i) const
-{
-  i.Dimension (s.Length());
-  for (int j=0; j < s.Length(); j++)
-    {
-      i[j] = atoi (s[j]);
-
-      /* ensure uniqueness */
-      for (int k=0; k < j; k++)
-	if (i[k] == i[j])
-	  {
-	    i.SetValueToPosition ();
-	    i++;
-	    return;
-	  }
     }
 }

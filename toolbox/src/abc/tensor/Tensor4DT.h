@@ -1,23 +1,28 @@
-/* $Id: Tensor4DT.h,v 1.3 2002-06-26 00:59:55 paklein Exp $ */
-/* created paklein (12/19/96) */
+/*
+ * File: Tensor4DT.h - templated class for rank 4 tensors
+ *
+ */
+
+/*
+ * created      : PAK (12/19/96)
+ * last modified: PAK (07/03/98)
+ */
+
 #ifndef _TENSOR4D_T_H_
 #define _TENSOR4D_T_H_
 
 /* base class */
 #include "TensorT.h"
 
-/** templated base class for fourth order tensors */
 template <class MATHTYPE>
 class Tensor4DT: public TensorT<MATHTYPE>
 {
   public:
 
-	/** \name constructors */
-	/*@{*/
+	/* constructor */
 	Tensor4DT(void);
 	Tensor4DT(int dim0, int dim1, int dim2, int dim3);
 	Tensor4DT(const Tensor4DT& source);
-	/*@}*/
 
 	/** dimensioning */
 	void Dimension(int dim0, int dim1, int dim2, int dim3);
@@ -25,34 +30,35 @@ class Tensor4DT: public TensorT<MATHTYPE>
 	/** \deprecated replaced by Tensor4DT::Dimension on 02/13/2002 */
 	void Allocate(int dim0, int dim1, int dim2, int dim3) { Dimension(dim0, dim1, dim2, dim3); };
 
-	/** \name element and subdimension accessors */
-	/*@{*/
+	/* element and subdimension accessors */
 	MATHTYPE& operator()(int dim0, int dim1, int dim2, int dim3) const;
 	MATHTYPE* operator()(int dim0, int dim1, int dim2) const;
 	MATHTYPE* operator()(int dim0, int dim1) const;
 	MATHTYPE* operator()(int dim0) const;
-	/*@}*/
 
-  	/** \name assignment operators */
-	/*@{*/
+  	/*
+  	 * Assignment operators
+  	 */
   	Tensor4DT<MATHTYPE>& operator=(const Tensor4DT& RHS);
   	Tensor4DT<MATHTYPE>& operator=(const MATHTYPE& value);
-	/*@}*/
 		
   protected:
 
-	/** \name offsets */
-	/*@{*/
+	/* offsets */
 	int fOffset0;
 	int fOffset1;
 	int fOffset2;
-	/*@}*/
 };
 
 /*************************************************************************
+ *
  * Implementation
+ *
  *************************************************************************/
 
+/*
+ * Constructor
+ */
 template <class MATHTYPE> 
 inline Tensor4DT<MATHTYPE>::Tensor4DT(void): fOffset0(0), fOffset1(0), fOffset2(0) { }
 
@@ -70,6 +76,9 @@ inline Tensor4DT<MATHTYPE>::Tensor4DT(const Tensor4DT& source):
 
 }
 
+/*
+ * Post-constructor
+ */
 template <class MATHTYPE>
 void Tensor4DT<MATHTYPE>::Dimension(int dim0, int dim1, int dim2, int dim3)
 {
@@ -83,7 +92,7 @@ void Tensor4DT<MATHTYPE>::Dimension(int dim0, int dim1, int dim2, int dim3)
 	fDim[3] = dim3;
 
 	/* sanity check */
-	if (fDim.Min() < 1) throw eGeneralFail;
+	if ( fDim.Min() < 1 ) throw(eGeneralFail);
 
 	/* offsets */
 	fOffset0 = fDim[1]*fDim[2]*fDim[3];
@@ -91,6 +100,9 @@ void Tensor4DT<MATHTYPE>::Dimension(int dim0, int dim1, int dim2, int dim3)
 	fOffset2 = fDim[3];
 }
 
+/*
+ * element and sub-dimension accessors.
+ */
 template <class MATHTYPE>
 inline MATHTYPE& Tensor4DT<MATHTYPE>::
 	operator()(int dim0, int dim1, int dim2, int dim3) const
@@ -100,10 +112,10 @@ inline MATHTYPE& Tensor4DT<MATHTYPE>::
 	if (dim0 < 0 || dim0 >= fDim[0] ||
         dim1 < 0 || dim1 >= fDim[1] ||
         dim2 < 0 || dim2 >= fDim[2] ||
-        dim3 < 0 || dim3 >= fDim[3]) throw eGeneralFail;
+        dim3 < 0 || dim3 >= fDim[3]) throw(eGeneralFail);
 #endif
 
-	return (fArray[dim0*fOffset0 + dim1*fOffset1 + dim2*fOffset2 + dim3]);
+	return (fArray[dim0*fOffset0 + dim1*fOffset1 + dim2]);
 }
 
 template <class MATHTYPE>
@@ -114,10 +126,10 @@ inline MATHTYPE* Tensor4DT<MATHTYPE>::
 #if __option (extended_errorcheck)
 	if (dim0 < 0 || dim0 >= fDim[0] ||
         dim1 < 0 || dim1 >= fDim[1] ||
-        dim2 < 0 || dim2 >= fDim[2]) throw eGeneralFail;
+        dim2 < 0 || dim2 >= fDim[2]) throw(eGeneralFail);
 #endif
 
-	return fArray + dim0*fOffset0 + dim1*fOffset1 + dim2*fOffset2;
+	return (fArray + dim0*fOffset0 + dim1*fOffset1);
 }
 
 template<class MATHTYPE>
@@ -126,10 +138,10 @@ inline MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0, int dim1) const
 /* range checking */
 #if __option (extended_errorcheck)
 	if (dim0 < 0 || dim0 >= fDim[0] ||
-        dim1 < 0 || dim1 >= fDim[1]) throw eGeneralFail;
+        dim1 < 0 || dim1 >= fDim[1]) throw(eGeneralFail);
 #endif
 
-	return fArray + dim0*fOffset0 + dim1*fOffset1;
+	return (fArray + dim0*fOffset0);
 }
 
 template <class MATHTYPE>
@@ -137,18 +149,21 @@ inline MATHTYPE* Tensor4DT<MATHTYPE>::operator()(int dim0) const
 {
 /* range checking */
 #if __option (extended_errorcheck)
-	if (dim0 < 0 || dim0 >= fDim[0]) throw eGeneralFail;
+	if (dim0 < 0 || dim0 >= fDim[0]) throw(eGeneralFail);
 #endif
 
-	return fArray + dim0*fOffset0;
+	return (fArray + dim0*fOffset0);
 }
 
+/*
+ * Assignment operators
+ */
 template <class MATHTYPE> 
 inline Tensor4DT<MATHTYPE>& Tensor4DT<MATHTYPE>::operator=(const Tensor4DT& RHS)
 {
 	/* inherited */
 	TensorT<MATHTYPE>::operator=(RHS);
-	return *this;
+	return (*this);
 }
 
 template <class MATHTYPE> 
@@ -156,7 +171,7 @@ inline Tensor4DT<MATHTYPE>& Tensor4DT<MATHTYPE>::operator=(const MATHTYPE& value
 {
 	/* inherited */
 	TensorT<MATHTYPE>::operator=(value);
-	return *this;
+	return (*this);
 }
 
 #endif /* _TENSOR4D_T_H_ */

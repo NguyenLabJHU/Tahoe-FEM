@@ -1,5 +1,5 @@
-/* $Id: SolidT.h,v 1.17 2002-06-27 00:34:31 paklein Exp $ */
-/* created: paklein (03/10/2001) */
+/* $Id: SolidT.h,v 1.13 2002-05-31 07:09:51 thao Exp $ */
+/* created: paklein (03/10/2001)                                          */
 
 #ifndef _MATERIAL_T_H_
 #define _MATERIAL_T_H_
@@ -33,7 +33,7 @@ kmodCauchyBornDC = 15,
     kIsoVIBOgden = 18,
    kIsoVIBSimoJ2 = 19,
 kThermoViscoPlastic = 30,
-       kPovirk2D = 31,
+kPovirk2D = 31,
        kHyperEVP = 40,
         kBCJHypo = 45,
 kBCJHypoIsoDmgKE = 46,
@@ -46,10 +46,11 @@ kBCJHypoIsoDmgYC = 47,
 kLocXtalPlastFp_C = 56,
  kGrdXtalPlastFp = 57,
    kOgdenViscVIB = 60,
-     kSSStandard = 61,
-     kFDStandard = 62,
+         kSKStVT = 61,
+       kMaxwellT = 62,
      kABAQUS_BCJ = 80,
-kABAQUS_VUMAT_BCJ = 90
+kABAQUS_VUMAT_BCJ = 90,
+   kOgdenViscVIBold = 99
 		};
 	/* stream extraction operator */ 
 	friend istream& operator>>(istream& in, SolidT::SolidT& code);

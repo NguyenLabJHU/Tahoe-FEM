@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.18 2002-06-20 01:18:58 thao Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.17 2002-06-08 20:20:40 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 
 #include "SolidMatList3DT.h"
@@ -25,8 +25,7 @@
 #include "J2QLLinHardT.h"
 #include "OgdenIsoVIB3D.h"
 #include "QuadLogOgden3DT.h"
-#include "SSStandardT.h"
-#include "FDStandardT.h"
+#include "SKStVT3D.h"
 #include "HyperEVP3D.h"
 #include "BCJHypo3D.h"
 #include "BCJHypoIsoDamageKE3D.h"
@@ -256,21 +255,12 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				fHasLocalizers = true;
 				break;
 			}	
-			case kSSStandard:
+			case kSKStVT:
 			{
 				/* check */
 				if (!fSmallStrain) Error_no_small_strain(cout, matcode);
 						
-				fArray[matnum] = new SSStandardT(in, *fSmallStrain);
-				fHasHistory = true;
-				break;				
-			}
-			case kFDStandard:
-			{
-				/* check */
-				if (!fFiniteStrain) Error_no_small_strain(cout, matcode);
-						
-				fArray[matnum] = new FDStandardT(in, *fFiniteStrain);
+				fArray[matnum] = new SKStVT3D(in, *fSmallStrain);
 				fHasHistory = true;
 				break;				
 			}

@@ -1,4 +1,4 @@
-/* $Id: EnSightOutputT.cpp,v 1.9 2002-06-25 14:17:06 sawimme Exp $ */
+/* $Id: EnSightOutputT.cpp,v 1.8 2002-05-31 07:22:13 thao Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #include "EnSightOutputT.h"
@@ -28,19 +28,18 @@ void EnSightOutputT::WriteGeometry (void)
   StringT geocase = OpenGeometryFile (ens, geo, -1);
   if (geo)
     {
-      CreateElementBlockIDs ();
       int partID = 1;
       for (int i=0; i < fElementSets.Length(); i++)
 	{
 	  WritePart (geo, ens, i);
-	  if (partID < fElementBlockIDs[i][0])
-	    partID = fElementBlockIDs[i][0] + 1;
+	  if (partID < fCurrentSetID + 1)
+	    partID = fCurrentSetID + 2;
 	}
       // node sets
       for (int n=0; n < fNodeSets.Length(); n++)
 	{
 	  StringT description (fOutroot);
-	  description.Append (" NodeSet ", fNodeSetNames[n]);
+	  description.Append (" NodeSet ", fNodeSetIDs[n]);
 	  ens.WritePartInfo (geo, partID++, description);
 	  WriteCoordinates (geo, ens, *fNodeSets[n]);
 	}
@@ -85,7 +84,7 @@ void EnSightOutputT::WriteOutput (double time, int ID, const dArray2DT& n_values
   
   // write case file
   StringT label = "case";
-  StringT casefile = CreateFileName (label, kNoIncFile, fElementBlockIDs[ID][0]);
+  StringT casefile = CreateFileName (label, kNoIncFile, fCurrentSetID+1);
   ofstream out (casefile);
   ens.WriteCaseFormat (out);
   ens.WriteCaseGeometry (out, fSequence + 1, geocase);
@@ -110,12 +109,12 @@ StringT EnSightOutputT::OpenGeometryFile (EnSightT& ens, ofstream& geo, int ID) 
     if (fElementSets[j]->Changing()) change = true;
   if (change)
     {
-      geofile = CreateFileName (label, fElementSets[0]->PrintStep(), fElementBlockIDs[ID][0]);
-      geocase = CreateFileName (label, kWildFile, fElementBlockIDs[ID][0]);
+      geofile = CreateFileName (label, fElementSets[0]->PrintStep(), fCurrentSetID+1);
+      geocase = CreateFileName (label, kWildFile, fCurrentSetID+1);
     }
   else
     {
-      geofile = CreateFileName (label, kNoIncFile, fElementBlockIDs[ID][0]);
+      geofile = CreateFileName (label, kNoIncFile, fCurrentSetID+1);
       geocase = geofile;
     }
   
@@ -179,7 +178,7 @@ void EnSightOutputT::WritePart (ostream& geo, EnSightT& ens, int index) const
       StringT description = fOutroot;
       description.Append (" Grp ", fElementSets[index]->ID());
       description.Append (".", blockIDs[b]);
-      ens.WritePartInfo (geo, fElementBlockIDs[index][b], description);
+      ens.WritePartInfo (geo, fCurrentSetID + b + 1, description);
   
       const iArrayT& nodes_used = fElementSets[index]->BlockNodesUsed(blockIDs[b]);
       WriteCoordinates (geo, ens, nodes_used);
@@ -241,8 +240,8 @@ void EnSightOutputT::WriteVariable (EnSightT& ens, bool nodal, int ID,
       names.Append (extension);
       
       // create variable file name
-      StringT varfile = CreateFileName (extension, fElementSets[ID]->PrintStep(), fElementBlockIDs[ID][0]);
-      StringT varcase = CreateFileName (extension, kWildFile, fElementBlockIDs[ID][0]);
+      StringT varfile = CreateFileName (extension, fElementSets[ID]->PrintStep(), fCurrentSetID+1);
+      StringT varcase = CreateFileName (extension, kWildFile, fCurrentSetID + 1);
       
       // account for only one time step being written. 
       if (fTimeValues.Length() < 2)
@@ -268,7 +267,7 @@ void EnSightOutputT::WriteVariable (EnSightT& ens, bool nodal, int ID,
 	      int numelemnodes = connects->MinorDim();
 	      ens.GetElementName (name, numelemnodes, fElementSets[ID]->Geometry());
 	    }
-	  ens.WritePartInfo (var, fElementBlockIDs[ID][block], name);
+	  ens.WritePartInfo (var, fCurrentSetID + block + 1, name);
 
 	  // write values
 	  if (vector)

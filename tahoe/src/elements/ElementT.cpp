@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.8 2002-06-17 17:15:06 rjones Exp $ */
+/* $Id: ElementT.cpp,v 1.7 2002-06-08 20:20:13 paklein Exp $ */
 
 #include "ElementT.h"
 
@@ -87,9 +87,6 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 			break;
 		case ElementT::kPenaltyContactElement2D:
 			type = ElementT::kPenaltyContactElement2D;
-			break;
-		case ElementT::kPenaltyContactElement3D:
-			type = ElementT::kPenaltyContactElement3D;
 			break;
 		case ElementT::kTotLagrExternalField:
 			type = ElementT::kTotLagrExternalField;

@@ -1,5 +1,5 @@
-/* $Id: SolidT.cpp,v 1.16 2002-06-27 00:34:31 paklein Exp $ */
-/* created: paklein (03/10/2001) */
+/* $Id: SolidT.cpp,v 1.13 2002-05-31 07:09:51 thao Exp $ */
+/* created: paklein (03/10/2001)                                          */
 
 #include "SolidT.h"
 
@@ -109,11 +109,11 @@ istream& operator>>(istream& in, SolidT::SolidT& code)
 		case SolidT::kOgdenViscVIB:
 			code = SolidT::kOgdenViscVIB;
 			break;
-		case SolidT::kSSStandard:
-			code = SolidT::kSSStandard;
+		case SolidT::kSKStVT:
+			code = SolidT::kSKStVT;
 			break;
-		case SolidT::kFDStandard:
-			code = SolidT::kFDStandard;
+		case SolidT::kMaxwellT:
+			code = SolidT::kMaxwellT;
 			break;
 		case SolidT::kABAQUS_BCJ:
 			code = SolidT::kABAQUS_BCJ;
@@ -123,6 +123,9 @@ istream& operator>>(istream& in, SolidT::SolidT& code)
 			break;
 		case SolidT::kFCCEAM:
 			code = SolidT::kFCCEAM;
+			break;
+		case SolidT::kOgdenViscVIBold:
+			code = SolidT::kOgdenViscVIBold;
 			break;
 		default:
 			cout << "\n operator>>SolidT::SolidT: unknown code: "

@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.h,v 1.5 2002-06-25 14:17:06 sawimme Exp $ */
+/* $Id: FE_ASCIIT.h,v 1.4 2002-02-18 08:59:17 paklein Exp $ */
 /* created: sawimme (05/20/1999) */
 
 #ifndef _FE_ASCII_T_H_
@@ -64,8 +64,6 @@ private:
 	bool fExternTahoeII; /**< flag to write array data to external files */
 	AutoArrayT<bool> fInitGeom; /**< flags to determine if appending or creating a file */
 	AutoArrayT<bool> fInitRun; /**< flags to determine if appending or creating a file */
-	iArrayT fNodeSetIntIDs;
-	iArrayT fSideSetIntIDs;
 };
 
 #endif // _FE_ASCII_T_H_
