@@ -1,6 +1,5 @@
-/* $Id: J2SimoC0HardeningT.cpp,v 1.11 2003-11-21 22:46:48 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.cpp,v 1.12 2004-01-27 19:11:40 paklein Exp $ */
 /* created: paklein (05/01/2001) */
-
 #include "J2SimoC0HardeningT.h"
 
 #include <iostream.h>
@@ -13,7 +12,7 @@
 /* hardening functions */
 #include "CubicSplineT.h"
 #include "LinearExponentialT.h"
-
+#include "PowerLawT.h"
 
 using namespace Tahoe;
 
@@ -576,6 +575,17 @@ void J2SimoC0HardeningT::ConstructHardeningFunction(ifstreamT& in)
 			
 			/* construct spline */
 			fK = new CubicSplineT(points, CubicSplineT::kFreeRun);
+			break;
+		}
+		case kPowerLaw:
+		{
+			fType = kPowerLaw;
+			double a, b, n;
+			a = b = n = 0.0;
+			in >> a >> b >> n;
+			
+			/* construct function */
+			fK = new PowerLawT(a, b, n);
 			break;
 		}
 		default:

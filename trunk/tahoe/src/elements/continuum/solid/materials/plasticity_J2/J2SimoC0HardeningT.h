@@ -1,4 +1,4 @@
-/* $Id: J2SimoC0HardeningT.h,v 1.6 2002-07-05 22:28:25 paklein Exp $ */
+/* $Id: J2SimoC0HardeningT.h,v 1.7 2004-01-27 19:11:40 paklein Exp $ */
 /* created: paklein (05/01/2001) */
 
 #ifndef _J2_SIMO_C0_HARD_T_H_
@@ -60,7 +60,8 @@ protected:
 	enum HardeningFunctionT {
                kLinear = 0,
     kLinearExponential = 1,
-          kCubicSpline = 2};
+          kCubicSpline = 2,
+          kPowerLaw = 3};
 
 	/** write parameters */
 	void Print(ostream& out) const;
