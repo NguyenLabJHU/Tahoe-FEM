@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: tahoe-manager,v 1.31 2005-03-08 21:24:11 rjones Exp $
+# $Id: tahoe-manager,v 1.32 2005-03-09 09:25:55 paklein Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -132,7 +132,7 @@ exit 0;
 sub selfupdate {
 	if ($connection =~ /cvs/) {
 		print "updating...\n";
-		system("cvs update tahoe-manager");
+		system("cvs -q update tahoe-manager");
 	} else {
 		print "no selfupdate for connection $connection\n";
 	}
@@ -142,11 +142,8 @@ sub selfupdate {
 sub initialize {
 
 # classify modules
-my %tmp = %module2define;
-foreach my $key (@defaultmodules) {
-	delete $tmp{$key};
-}
-@optionalmodules = sort(keys (%tmp));
+my @allmodules = sort(keys(%module2define));
+@optionalmodules = complement(\@allmodules, \@defaultmodules);
 
 # search for system libs 
 foreach my $key (sort(keys %ENV)) {
@@ -166,33 +163,20 @@ else                  { write_default_config();}
 # remove system libraries from @modules
 foreach my $lib (@syslibs) {
 	for (my $i = 0; $i < scalar(@modules) ; $i++) {
-		if($modules[$i] =~ /$syslib2module{$lib}/) {  splice (@modules,$i,1);}
+		if($modules[$i] =~ /^$syslib2module{$lib}$/) {  splice (@modules,$i,1);}
 	}
 }
 
-# add unincluded dependency modules
-%tmp = %module2define;
-foreach my $key (@modules) {
-	delete $tmp{$key};
-}
-@unincludedmodules = sort(keys (%tmp));
-foreach my $dir (@modules) {
-	$filename = "$dir/makefile.template";
-        if (-e $filename) {
-                open(IN,"$filename");
-                my @lines = <IN>; $file = "@lines";
-                close(IN);
-		foreach my $mod (@unincludedmodules) {
-			my $define = $module2define{$mod};
-                	if (($file =~ /$define/) && ($file !~ /#$define/)) {
-				print "* $dir depends on $mod, $mod will be included\n";
-				
- 				push(@modules,$mod);
-			}
-		}
+# check for missing required modules
+my @req_missing = get_missing_modules();
+while (scalar(@req_missing) > 0) {
+	print "adding required modules: @req_missing\n";
+	foreach my $mod (@req_missing) {
+		push(@modules, $mod);
 	}
+	write_config();
+	@req_missing = get_missing_modules();
 }
-
 
 print ">   tahoe name: $tahoe_name\n";
 print ">   connection: $connection\n";
@@ -279,15 +263,13 @@ while(<CONFIG>) {
 close(CONFIG);
 
 # need to make sure the core modules exist
-foreach my $core (@defaultmodules) {
-	my $found = 0;
-	foreach $module (@modules) {
- 		if($module =~ $core) { $found = 1;}
+my @missing_core = complement(\@defaultmodules, \@modules);
+if (scalar(@missing_core) > 0) {
+	print "* adding : @missing_core to modules\n" ; 
+	foreach my $mod (@missing_core) {
+		push (@modules, $mod);
 	}
-	unless($found){
-		print "* adding : $core to modules\n";
- 		push(@modules,$core);
- 	}
+	write_config();
 }
 }
 
@@ -464,13 +446,13 @@ sub update_cvs {
 			print "\tupdating $dir...";
 			chdir($dir);
 			#system("cvs update -Pd > ../cvs.log 2>&1");
-			system("cvs update -Pd > ../cvs.log");
+			system("cvs -q update -Pd > ../cvs.log");
 			chdir("..");
 		} else {
 			print "\tchecking out $dir...";
 			my $repo = $module2repo{$dir};
 			#system("cvs -d $tahoe_name\@$tahoe:$repo checkout $dir > cvs.log 2>&1");
-			system("cvs -d $tahoe_name\@$tahoe:$repo checkout $dir > cvs.log");
+			system("cvs -d $tahoe_name\@$tahoe:$repo -q checkout $dir > cvs.log");
 		}
 		# check for failures
 		my ($errors, $patches, $updates, $merges) = (0, 0, 0, 0);
@@ -619,10 +601,6 @@ sub build {
 	DIR: foreach my $dir (@tmp_modules) {
 		if (-e "$dir/makefile" && !defined($up_to_date_modules{$dir})) {
 
-			# expat is build during init
-			next DIR if ($dir =~ "expat" && -e "$dir/.built"); 
-			system ("echo 'built' > $dir/.built") if ($dir =~ "expat");
-
 			chdir($dir);
 			print "\tmaking $dir...";
 			system("make build > build.log 2>&1");
@@ -702,10 +680,6 @@ sub init {
 				} else { unlink(".status"); } # remove flag
 			}
 		 	chdir "..";
-		 	
-			# expat module needs to be build completely before initializing
-			# other modules
-			build($dir) if ($dir =~ "expat");
 		}
 	}
 }
@@ -754,7 +728,7 @@ sub test{
 		my $repo = $module2repo{"benchmark_XML"};
 		system("cvs -d $tahoe_name\@$tahoe:$repo checkout benchmark_XML > cvs.log 2>&1");
  	} else {
-		system("cd benchmark_XML; cvs update -Pd > cvs.log 2>&1");
+		system("cd benchmark_XML; cvs -q update -Pd > cvs.log 2>&1");
 	}
 	chdir("benchmark_XML/comparator");
 	print("\tbuilding comparator...");
@@ -991,18 +965,7 @@ sub write_config {
 sub add_optional_modules {
 
 	# collect optional modules not currently included
-	my @newoptionalmodules = ();
-	foreach my $opt_module (@optionalmodules) {
-		my $found = 0;
-		foreach my $module (@modules) {
-			if ($module =~ /^$opt_module$/) {
-				$found = 1;
-			}
-		}
-		if ($found == 0) {
-			push(@newoptionalmodules, $opt_module);
-		}
-	}
+	my @newoptionalmodules = complement(\@optionalmodules, \@modules);	
 	if (scalar(@newoptionalmodules) == 0) {
 		print "\n* all optional modules already included\n\n";
 		return 0;
@@ -1023,47 +986,53 @@ sub add_optional_modules {
 	foreach my $choice (@choices) {
 		$choice = $newoptionalmodules[$choice];
 		push (@addmodules, $choice);
+		push (@modules, $choice);
 		update ($choice) if (! -d $choice);
 	}
 
+	# look for other modules that must/may be included
 	my $done = 0;
 	while ($done == 0) {
+
+		# add any additional required modules
+		my @missing_required = get_missing_modules();
+		if (scalar(@missing_required) > 0) {
+			print "adding required modules: @missing_required\n";
+			foreach my $mod (@missing_required) {
+				push(@addmodule, $mod);
+				push(@modules, $mod);
+				update($mod) if (! -d $mod); # fetch new modules to determine dependencies
+			}
+			@newoptionalmodules = complement(\@optionalmodules, \@modules);
+		}
 	
 		# optional modules not included
-		@missingmodules = ();
-		foreach $module (@newoptionalmodules) {
-			my $found = 0;
-			MOD: foreach $addmodule (@addmodules) {
-				if ($module =~ $addmodule) {
-					$found = 1;
-					last MOD;
-				}
-			}
-			
-			# missing module needed due to dependency
-			if ($found == 0) {
-				DEP: foreach $addmodule (@addmodules) {
-					if (a_depends_on_b($addmodule, $module) == 1) {
-						push (@missingmodules, $module);
-						last DEP;
-					}
+		my @missingmodules = complement(\@newoptionalmodules, \@addmodules);
+		my @dependmodules = ();
+		foreach $missingmodule (@missingmodules) { # missing module needed due to dependency
+			DEP: foreach $addmodule (@addmodules) {
+				if (a_depends_on_b($addmodule, $missingmodule) == 1) {
+					push (@dependmodules, $missingmodule);
+					last DEP;
 				}
 			}
 		}
-		
+
 		# add dependent modules
-		if (scalar(@missingmodules) > 0) {
-			print "additions depend on modules: @missingmodules\n";
-			print "add more modules (y/n) [y]: ";
+		if (scalar(@dependmodules) > 0) {
+			print "the newly added modules can be extended with optional modules: @dependmodules\n";
+			print "add optional modules (y/n) [y]: ";
 			my $ans = <STDIN>;
 			if ($ans !~ /n/i) {
-				foreach $module (@missingmodules) {
+				foreach $module (@dependmodules) {
 					push (@addmodules, $module);
+					push (@modules, $module);
 					update($module) if (! -d $module); # fetch new modules to determine dependencies
 				}
+				@newoptionalmodules = complement(\@optionalmodules, \@modules);
 			} else { $done = 1; }
 		} else { $done = 1; }
-	}
+	}	
 
 	# flag modules that need to be re-initialized
 	foreach my $module (@modules) {
@@ -1081,10 +1050,6 @@ sub add_optional_modules {
 		}
 	}
 
-	# update module list
-	foreach $module (@addmodules) { 
-		push (@modules, $module);
-	}
 	print "* modules : @modules \n";
 	return 1;
 }
@@ -1093,18 +1058,7 @@ sub add_optional_modules {
 sub remove_optional_modules {
 
 	# collect optional modules currently included
-	my @curr_optionalmodules = ();
-	foreach my $opt_module (@optionalmodules) {
-		my $found = 0;
-		foreach $module (@modules) {
-			if ($module =~ $opt_module) {
-				$found = 1;
-			}
-		}
-		if ($found == 1) {
-			push(@curr_optionalmodules, $opt_module);
-		}
-	}
+	my @curr_optionalmodules = intersection(\@optionalmodules, \@modules);
 	if (scalar(@curr_optionalmodules) == 0) {
 		print "\n* no optional modules included\n\n";
 		return 0;
@@ -1439,3 +1393,60 @@ sub same_order {
 	return 1;
 }
 
+##############################################################################
+sub get_missing_modules {
+
+	# collect omitted modules
+	my @allmodules = sort(keys(%module2define));
+	my @missing_modules = complement(\@allmodules, \@modules);
+
+	# collect missing, required
+	@req_missing = ();
+	foreach my $dir (@modules) {
+		my $filename = "$dir/makefile.template";
+		if (-e $filename) {
+			open(IN,"$filename");
+			my @lines = <IN>; $file = "@lines";
+			close(IN);
+			foreach my $mod (@missing_modules) {
+				my $define = $module2define{$mod};
+				push(@req_missing, $mod) if ($file =~ /$define/ && $file !~ /#$define/);
+			}
+		}
+	}
+	return @req_missing;
+}
+
+##############################################################################
+# return the values in the first list that do not appear in the second
+##############################################################################
+sub complement {
+	my ($all, $some) = @_;
+	my @complement = ();
+	foreach my $all_i (@$all) {
+		my $found = 0;
+		LOOK: foreach my $some_i (@$some) {
+			if ($some_i =~ /^$all_i$/) {
+				$found = 1;
+				last LOOK;
+			}
+		}
+		push(@complement, $all_i) if ($found == 0);
+	}
+	return @complement;
+}
+
+##############################################################################
+sub intersection {
+	my ($all, $some) = @_;
+	my @complement = ();
+	foreach my $all_i (@$all) {
+		LOOK: foreach my $some_i (@$some) {
+			if ($some_i =~ /^$all_i$/) {
+				push(@complement, $all_i);
+				last LOOK;
+			}
+		}
+	}
+	return @complement;
+}
