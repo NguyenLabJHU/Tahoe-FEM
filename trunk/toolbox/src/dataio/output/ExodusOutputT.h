@@ -1,4 +1,4 @@
-/* $Id: ExodusOutputT.h,v 1.2 2001-12-16 23:57:06 paklein Exp $ */
+/* $Id: ExodusOutputT.h,v 1.3 2002-03-04 06:33:36 paklein Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #ifndef _EXODUSOUTPUT_T_H_
@@ -37,7 +37,7 @@ private:
 
 	// items common to CreateResultsFile and CreateGeometryFile
 	void AssembleQA (ArrayT<StringT>& qa) const; /**< create QA records */
-	void WriteCoordinates (ExodusT& exo, iArrayT& nodes_used); /**< write coordinates */
+	void WriteCoordinates (ExodusT& exo, const iArrayT& nodes_used); /**< write coordinates */
 	void WriteConnectivity (int ID, ExodusT& exo, const iArrayT& nodes_used); /**< write connectivity blocks for this output set */
 };
 
