@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2002-02-12 02:04:07 paklein Exp $
+# $Id: makefile,v 1.2 2002-12-05 08:25:19 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -6,7 +6,9 @@ include $(MACRO_DIR)/$(ARCH).macros
 
 # objects
 OBJ = \
-	CommunicatorT.o
+	CommunicatorT.o \
+	AllGatherT.o \
+	MessageT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -16,11 +18,15 @@ DEP = $(OBJ:.o=.d)
 
 # sources
 SRC = \
-	CommunicatorT.cpp
+	CommunicatorT.cpp \
+	AllGatherT.cpp \
+	MessageT.cpp
 
 # headers
 HDR = \
-	CommunicatorT.h
+	CommunicatorT.h \
+	AllGatherT.h \
+	MessageT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
 

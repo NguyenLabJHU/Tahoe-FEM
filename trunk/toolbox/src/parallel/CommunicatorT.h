@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.h,v 1.7 2002-11-29 19:18:51 paklein Exp $ */
+/* $Id: CommunicatorT.h,v 1.8 2002-12-05 08:25:19 paklein Exp $ */
 #ifndef _COMMUNICATOR_T_H_
 #define _COMMUNICATOR_T_H_
 
@@ -101,15 +101,49 @@ class CommunicatorT
 
 	/** sum of single doubles returned to all */
 	double Sum(double a) const;
-	
-	/** gather single integer. Called by destination process. */
+
+	/** \name gather from all to one */
+	/*@{*/	
+	/** gather single integer. Called by destination process. 
+	 * \param gather destination for gathered values. Must be dimensioned
+	 *        to length CommunicatorT::Size before the call. */
 	void Gather(int a, ArrayT<int>& gather) const;
 
 	/** gather single integer. Called by sending processes. */
 	void Gather(int a, int destination) const;
+	/*@}*/	
 
-	/** gather single integer to all processes. */
+	/** gather single integer to all processes. 
+	 * \param gather destination for gathered values. Must be dimensioned
+	 *        to length CommunicatorT::Size before the call. */
 	void AllGather(int a, ArrayT<int>& gather) const;
+
+	/** \name gather multiple values from all. 
+	 * All processes sending the same amount of information to all. */
+	/*@{*/
+	/** gather double's */
+	void AllGather(const ArrayT<double>& my, ArrayT<double>& gather) const;
+
+	/** gather int's */
+	void AllGather(const ArrayT<int>& my, ArrayT<int>& gather) const;
+	/*@}*/
+
+	/** \name gather multiple values from all. 
+	 * Arbitrary data size from each process 
+	 * \param counts amount of data sent from each process
+	 * \param displacements offset in the destination array where the data
+	 *        from the corresponding rank should be written
+	 * \param my data sent from this processor
+	 * \param gather the destination for the gathered data */
+	/*@{*/
+	/** gather double's */
+	void AllGather(const ArrayT<int>& counts, const ArrayT<int>& displacements, 
+		const ArrayT<double>& my, ArrayT<double>& gather) const;
+
+	/** gather int's */
+	void AllGather(const ArrayT<int>& counts, const ArrayT<int>& displacements, 
+		const ArrayT<int>& my, ArrayT<int>& gather) const;
+	/*@}*/
 
 	/** broadcast character array */
 	void Broadcast(ArrayT<char>& data);
