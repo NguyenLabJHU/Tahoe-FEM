@@ -1,17 +1,10 @@
-/* $Id: J2SSC0HardeningT.cpp,v 1.5.20.2 2004-06-08 22:27:33 paklein Exp $ */
+/* $Id: J2SSC0HardeningT.cpp,v 1.5.20.3 2004-06-09 06:25:37 paklein Exp $ */
 #include "J2SSC0HardeningT.h"
-
-#include <iostream.h>
-#include <math.h>
 
 #include "iArrayT.h"
 #include "ElementCardT.h"
-#include "StringT.h"
-#include "ifstreamT.h"
 
-/* hardening functions */
-#include "CubicSplineT.h"
-#include "LinearExponentialT.h"
+#include <math.h>
 
 using namespace Tahoe;
 
@@ -25,11 +18,6 @@ const int kNSD = 3;
 /* constructor */
 J2SSC0HardeningT::J2SSC0HardeningT(void):
 	ParameterInterfaceT("J2_small_strain_hardening"),
-	fNumIP(-1),
-	fmu(-1.0),
-	ftheta(1.0),
-	fIsLinear(false),
-	fK(NULL),
 	fElasticStrain(kNSD),
 	fStressCorr(kNSD),
 	fModuliCorr(dSymMatrixT::NumValues(kNSD)),
@@ -40,18 +28,15 @@ J2SSC0HardeningT::J2SSC0HardeningT(void):
 
 }
 
-/* destructor */
-J2SSC0HardeningT::~J2SSC0HardeningT(void) { delete fK; };
-
 /* returns elastic strain */
 const dSymMatrixT& J2SSC0HardeningT::ElasticStrain(const dSymMatrixT& totalstrain,
-	const ElementCardT& element, int ip)
+	const ElementCardT& element, int nip, int ip)
 {	
 	/* remove plastic strain */
 	if (element.IsAllocated())
 	{
 		/* load internal variables */
-		LoadData(element, ip);
+		LoadData(element, nip, ip);
 
 		/* compute elastic strain */
 		fElasticStrain.DiffOf(totalstrain, fPlasticStrain);
@@ -66,19 +51,19 @@ const dSymMatrixT& J2SSC0HardeningT::ElasticStrain(const dSymMatrixT& totalstrai
 /* return the correction to stress vector computed by the mapping the
 * stress back to the yield surface, if needed */
 const dSymMatrixT& J2SSC0HardeningT::StressCorrection(const dSymMatrixT& trialstrain,
-	ElementCardT& element, int ip)
+	ElementCardT& element, double mu, int nip, int ip)
 {
 	const char caller[] = "J2SSC0HardeningT::StressCorrection";
 
 	/* check consistency and initialize plastic element */
-	if (PlasticLoading(trialstrain, element, ip) &&
+	if (PlasticLoading(trialstrain, element, mu, nip, ip) &&
 	    !element.IsAllocated())
 	{
 		/* new element */
-		AllocateElement(element);
+		AllocateElement(element, nip);
 					
 		/* initialize element data */
-		PlasticLoading(trialstrain, element, ip);
+		PlasticLoading(trialstrain, element, mu, nip, ip);
 	}
 
 	/* initialize */
@@ -97,7 +82,7 @@ const dSymMatrixT& J2SSC0HardeningT::StressCorrection(const dSymMatrixT& trialst
 			if (fIsLinear)
 			{
 				/* plastic increment */
-				dgamma = 0.5*ftrial/(fmu + dK(alpha)/3.0);
+				dgamma = 0.5*ftrial/(mu + dK(alpha)/3.0);
 			}
 			else /* local Newton iteration */
 			{
@@ -110,7 +95,7 @@ const dSymMatrixT& J2SSC0HardeningT::StressCorrection(const dSymMatrixT& trialst
 				while (fabs(f) > kYieldTol && ++count <= max_iteration)
 				{
 					/* stiffness */
-					double df = 2.0*(dK(alpha + sqrt23*dgamma)/3.0 + fmu);
+					double df = 2.0*(dK(alpha + sqrt23*dgamma)/3.0 + mu);
 					if (df < kSmall)
 						ExceptionT::GeneralFail(caller, "yield function is nonconvex");
 				
@@ -118,7 +103,7 @@ const dSymMatrixT& J2SSC0HardeningT::StressCorrection(const dSymMatrixT& trialst
 					dgamma -= f/df;
 					
 					/* update condition */
-					f = sqrt23*K(alpha + sqrt23*dgamma) - s_tr + 2.0*fmu*dgamma;
+					f = sqrt23*K(alpha + sqrt23*dgamma) - s_tr + 2.0*mu*dgamma;
 				}
 				
 				/* check for failure */
@@ -127,7 +112,7 @@ const dSymMatrixT& J2SSC0HardeningT::StressCorrection(const dSymMatrixT& trialst
 			}
 	
 			/* plastic increment stress correction */
-			fStressCorr.SetToScaled(-2.0*fmu*dgamma, fUnitNorm);
+			fStressCorr.SetToScaled(-2.0*mu*dgamma, fUnitNorm);
 		}
 		else
 			dgamma = 0.0;			
@@ -142,7 +127,7 @@ const dSymMatrixT& J2SSC0HardeningT::StressCorrection(const dSymMatrixT& trialst
 *       The element passed in is already assumed to carry current
 *       internal variable values */
 const dMatrixT& J2SSC0HardeningT::ModuliCorrection(const ElementCardT& element,
-	int ip)
+	double mu, int nip, int ip)
 {
 	/* initialize */
 	fModuliCorr = 0.0;
@@ -151,20 +136,20 @@ const dMatrixT& J2SSC0HardeningT::ModuliCorrection(const ElementCardT& element,
 	   (element.IntegerData())[ip] == kIsPlastic)
 	{
 		/* load internal variables */
-		LoadData(element,ip);
+		LoadData(element, nip, ip);
 		
 		/* compute constants */
 		double alpha    = fInternal[kalpha];
-		double thetahat = 2.0*fmu*fInternal[kdgamma]/
+		double thetahat = 2.0*mu*fInternal[kdgamma]/
 		                          fInternal[kstressnorm];
-		double thetabar = (3.0/(3.0 + (dK(alpha) + dH(alpha))/fmu)) - thetahat;
+		double thetabar = (3.0/(3.0 + (dK(alpha) + dH(alpha))/mu)) - thetahat;
 		
 		/* moduli corrections */
 		fTensorTemp.ReducedIndexDeviatoric();
-		fModuliCorr.AddScaled(-2.0*fmu*thetahat, fTensorTemp);
+		fModuliCorr.AddScaled(-2.0*mu*thetahat, fTensorTemp);
 					
 		fTensorTemp.Outer(fUnitNorm,fUnitNorm);
-		fModuliCorr.AddScaled(-2.0*fmu*thetabar, fTensorTemp);
+		fModuliCorr.AddScaled(-2.0*mu*thetabar, fTensorTemp);
 	}
 
 	return fModuliCorr;
@@ -172,17 +157,17 @@ const dMatrixT& J2SSC0HardeningT::ModuliCorrection(const ElementCardT& element,
 	 	
 /* return a pointer to a new plastic element object constructed with
 * the data from element */
-void J2SSC0HardeningT::AllocateElement(ElementCardT& element)
+void J2SSC0HardeningT::AllocateElement(ElementCardT& element, int nip)
 {
 	/* determine storage */
 	int i_size = 0;
-	i_size += fNumIP; //fFlags
+	i_size += nip; //fFlags
 
 	int d_size = 0;
-	d_size += dSymMatrixT::NumValues(kNSD)*fNumIP; //fPlasticStrain
-	d_size += dSymMatrixT::NumValues(kNSD)*fNumIP; //fUnitNorm
-	d_size += dSymMatrixT::NumValues(kNSD)*fNumIP; //fBeta
-	d_size += kNumInternal*fNumIP;          //fInternal
+	d_size += dSymMatrixT::NumValues(kNSD)*nip; //fPlasticStrain
+	d_size += dSymMatrixT::NumValues(kNSD)*nip; //fUnitNorm
+	d_size += dSymMatrixT::NumValues(kNSD)*nip; //fBeta
+	d_size += kNumInternal*nip;          //fInternal
 
 	/* construct new plastic element */
 	element.Dimension(i_size, d_size);
@@ -192,80 +177,12 @@ void J2SSC0HardeningT::AllocateElement(ElementCardT& element)
 	element.DoubleData()  = 0.0;
 }
 
-/* information about subordinate parameter lists */
-void J2SSC0HardeningT::DefineSubs(SubListT& sub_list) const
-{
-	/* inherited */
-	ParameterInterfaceT::DefineSubs(sub_list);
-
-	/* hardening function */
-	sub_list.AddSub("hardening_function_choice", ParameterListT::Once, true);
-}
-
-/* return the description of the given inline subordinate parameter list */
-void J2SSC0HardeningT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-	SubListT& sub_sub_list) const
-{
-	if (sub == "hardening_function_choice")
-	{
-		order = ParameterListT::Choice;
-	
-		/* function types */
-		sub_sub_list.AddSub("linear_function");
-		sub_sub_list.AddSub("cubic_spline");
-		//sub_sub_list.AddSub("linear_exponential");
-#pragma message("more function types?")
-	}
-	else /* inherited */
-		ParameterInterfaceT::DefineInlineSub(sub, order, sub_sub_list);
-}
-
-/* a pointer to the ParameterInterfaceT of the given subordinate */
-ParameterInterfaceT* J2SSC0HardeningT::NewSub(const StringT& list_name) const
-{
-	/* try to construct C1 function */
-	C1FunctionT* function = C1FunctionT::New(list_name);
-	if (function)
-		return function;
-	else /* inherited */
-		return ParameterInterfaceT::NewSub(list_name);
-}
-
-/* accept parameter list */
-void J2SSC0HardeningT::TakeParameterList(const ParameterListT& list)
-{
-	const char caller[] = "J2SSC0HardeningT::TakeParameterList";
-
-	/* inherited */
-	ParameterInterfaceT::TakeParameterList(list);
-
-	/* construct hardening function */
-	const ParameterListT* hardening = list.ResolveListChoice(*this, "hardening_function_choice");
-	if (hardening) {
-		fK = C1FunctionT::New(hardening->Name());
-		if (!fK) ExceptionT::GeneralFail(caller, "could not construct \"%s\"", hardening->Name().Pointer());
-		fK->TakeParameterList(*hardening);
-
-		/* set flag */
-		if (hardening->Name() == "linear_function") 
-			fIsLinear = true;
-	}
-	else
-		ExceptionT::GeneralFail(caller, "could not resolve \"hardening_function_choice\"");
-}
-
 /***********************************************************************
  * Protected
  ***********************************************************************/
 
-double J2SSC0HardeningT::YieldCondition(const dSymMatrixT& relstress,
-	double alpha) const
-{
-	return sqrt(relstress.ScalarProduct()) - sqrt23*K(alpha);
-}
-
 /* element level data */
-void J2SSC0HardeningT::Update(ElementCardT& element)
+void J2SSC0HardeningT::Update(ElementCardT& element, int nip)
 {
 	/* get flags */
 	iArrayT& flags = element.IntegerData();
@@ -278,7 +195,7 @@ void J2SSC0HardeningT::Update(ElementCardT& element)
 	}
 
 	/* update plastic variables */
-	for (int ip = 0; ip < fNumIP; ip++)
+	for (int ip = 0; ip < nip; ip++)
 		if (flags[ip] ==  kIsPlastic) /* plastic update */
 		{
 			/* do not repeat if called again */
@@ -288,7 +205,7 @@ void J2SSC0HardeningT::Update(ElementCardT& element)
 			 *       called before UpdateHistory */
 
 			/* fetch element data */
-			LoadData(element, ip);
+			LoadData(element, nip, ip);
 		
 			/* plastic increment */
 			double& dgamma = fInternal[kdgamma];
@@ -305,8 +222,9 @@ void J2SSC0HardeningT::Update(ElementCardT& element)
 }
 
 /* resets to the last converged solution */
-void J2SSC0HardeningT::Reset(ElementCardT& element)
+void J2SSC0HardeningT::Reset(ElementCardT& element, int nip)
 {
+#pragma unused(nip)
 	/* flag not to update again */
 	(element.IntegerData()) = kReset;
 }
@@ -316,7 +234,7 @@ void J2SSC0HardeningT::Reset(ElementCardT& element)
 ***********************************************************************/
 
 /* load element data for the specified integration point */
-void J2SSC0HardeningT::LoadData(const ElementCardT& element, int ip)
+void J2SSC0HardeningT::LoadData(const ElementCardT& element, int nip, int ip)
 {
 	/* check */
 	if (!element.IsAllocated()) throw ExceptionT::kGeneralFail;
@@ -327,7 +245,7 @@ void J2SSC0HardeningT::LoadData(const ElementCardT& element, int ip)
 	/* decode */
 	dSymMatrixT::DimensionT dim = dSymMatrixT::int2DimensionT(kNSD);
 	int stressdim = dSymMatrixT::NumValues(kNSD);
-	int offset    = stressdim*fNumIP;
+	int offset    = stressdim*nip;
 	int dex       = ip*stressdim;
 	
 	fPlasticStrain.Alias(         dim, &d_array[           dex]);
@@ -339,11 +257,11 @@ void J2SSC0HardeningT::LoadData(const ElementCardT& element, int ip)
 /* returns 1 if the trial elastic strain state lies outside of the
 * yield surface */
 int J2SSC0HardeningT::PlasticLoading(const dSymMatrixT& trialstrain,
-	ElementCardT& element, int ip)
+	ElementCardT& element, double mu, int nip, int ip)
 {
 	/* not yet plastic */
 	if (!element.IsAllocated())
-		return( YieldCondition(RelativeStress(trialstrain, element), 0.0)
+		return( YieldCondition(RelativeStress(trialstrain, element, mu), 0.0)
 					> kYieldTol );
 	/* already plastic */
 	else
@@ -352,9 +270,9 @@ int J2SSC0HardeningT::PlasticLoading(const dSymMatrixT& trialstrain,
 		iArrayT& Flags = element.IntegerData();
 			
 		/* load internal variables */
-		LoadData(element, ip);
+		LoadData(element, nip, ip);
 		
-		fInternal[kftrial] = YieldCondition(RelativeStress(trialstrain,element),
+		fInternal[kftrial] = YieldCondition(RelativeStress(trialstrain, element, mu),
 						    fInternal[kalpha]);
 
 		/* plastic */
@@ -386,7 +304,7 @@ int J2SSC0HardeningT::PlasticLoading(const dSymMatrixT& trialstrain,
 * and elastic strain.  The functions returns a reference to the
 * relative stress in fRelStress */
 dSymMatrixT& J2SSC0HardeningT::RelativeStress(const dSymMatrixT& trialstrain,
-	const ElementCardT& element)
+	const ElementCardT& element, double mu)
 {
 	/* deviatoric strain */
 	fDevStrain.Deviatoric(trialstrain);
@@ -395,13 +313,13 @@ dSymMatrixT& J2SSC0HardeningT::RelativeStress(const dSymMatrixT& trialstrain,
 	if (element.IsAllocated())
 	{
 		/* deviatoric part of elastic stress */
-		fRelStress.SetToScaled(2.0*fmu, fDevStrain);
+		fRelStress.SetToScaled(2.0*mu, fDevStrain);
 
 		/* kinematic hardening */
 		fRelStress -= fBeta;
 	}
 	else
-		fRelStress.SetToScaled(2.0*fmu, fDevStrain);
+		fRelStress.SetToScaled(2.0*mu, fDevStrain);
 
 	return fRelStress;
 }

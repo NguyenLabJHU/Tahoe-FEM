@@ -1,4 +1,4 @@
-/* $Id: J2Simo2D.h,v 1.11 2003-10-12 01:39:03 paklein Exp $ */
+/* $Id: J2Simo2D.h,v 1.11.24.1 2004-06-09 06:25:37 paklein Exp $ */
 /* created: paklein (06/22/1997) */
 #ifndef _J2_SIMO_2D_H_
 #define _J2_SIMO_2D_H_
@@ -19,6 +19,7 @@ public:
 
 	/** constructor */
 	J2Simo2D(ifstreamT& in, const FSMatSupportT& support);
+	J2Simo2D(void);
 
 	/** form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -28,10 +29,6 @@ public:
 
 	/** reset internal variables to last converged solution */
 	virtual void ResetHistory(void);
-
-	/** print parameters */
-	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
 	
 	/** modulus */
 	virtual const dMatrixT& c_ijkl(void);
@@ -59,6 +56,21 @@ public:
 
 	/** compute output variables */
 	virtual void ComputeOutput(dArrayT& output);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** information about subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
+
+	/** a pointer to the ParameterInterfaceT of the given subordinate */
+	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 private:
 

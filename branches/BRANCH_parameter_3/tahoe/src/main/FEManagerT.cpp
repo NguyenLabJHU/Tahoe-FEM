@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.71.12.3 2004-05-21 19:46:43 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.71.12.4 2004-06-09 06:25:39 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1361,7 +1361,7 @@ void FEManagerT::DefineSubs(SubListT& sub_list) const
 	sub_list.AddSub("nodes");
 
 	/* element list */
-	sub_list.AddSub("element_list", ParameterListT::Any);
+	sub_list.AddSub("element_list", ParameterListT::ZeroOrOnce);
 
 	/* solvers */
 	sub_list.AddSub("solvers", ParameterListT::OnePlus, true);
