@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.27 2002-02-18 09:28:37 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.28 2002-03-02 20:38:30 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #include "FEManagerT.h"
@@ -1196,7 +1196,8 @@ void FEManagerT::SetOutput(void)
 	if (!fIOManager) throw eOutOfMemory;
 	
 	/* set global coordinates */
-	fIOManager->SetCoordinates(fNodeManager->InitialCoordinates(), NULL);
+//	fIOManager->SetCoordinates(fNodeManager->InitialCoordinates(), NULL);
+	fIOManager->SetCoordinates(fNodeManager->InitialCoordinates());
 	
 	/* element groups register output data */
 	for (int i = 0; i < fElementGroups.Length(); i++)
