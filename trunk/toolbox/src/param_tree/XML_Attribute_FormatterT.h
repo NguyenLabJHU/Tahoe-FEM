@@ -1,4 +1,4 @@
-/* $Id: XML_Attribute_FormatterT.h,v 1.7 2004-03-28 09:53:29 paklein Exp $ */
+/* $Id: XML_Attribute_FormatterT.h,v 1.8 2004-07-20 06:13:21 paklein Exp $ */
 #ifndef _XML_ATTRIBUTE_FORMATTER_T_H_
 #define _XML_ATTRIBUTE_FORMATTER_T_H_
 
@@ -6,6 +6,7 @@
 #include "FormatterT.h"
 
 /* direct members */
+#include "BinaryTreeT.h"
 #include "StringT.h"
 
 namespace Tahoe {
@@ -113,6 +114,9 @@ private:
 	int fAttributeCount;
 	int fLimitCount;
 	/*@}*/
+	
+	/** collected list of tags which have already been described */
+	BinaryTreeT<StringT> fTags;
 };
 
 } // namespace Tahoe 
