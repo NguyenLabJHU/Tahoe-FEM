@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.28 2003-10-30 17:15:18 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.29 2003-10-31 20:52:21 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -961,6 +961,6 @@ ThermostatBaseT* ParticleT::New_Thermostat(const StringT& name, bool throw_on_fa
 	else if (throw_on_fail)
 		ExceptionT::GeneralFail("ParticleT::New_Thermostat",
 			"unrecognized thermostat \"%s\"", name.Pointer());
-	else
-		return NULL;
+	
+	return NULL;
 }
