@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.h,v 1.12 2002-06-17 20:31:40 recampb Exp $ */
+/* $Id: VTKBodyDataT.h,v 1.13 2002-06-18 21:49:00 recampb Exp $ */
 #ifndef _VTK_BODY_DATA_T_H_
 #define _VTK_BODY_DATA_T_H_
 
@@ -47,6 +47,7 @@ public:
 	/** set the current time step */
 	bool SelectTimeStep(int);
 
+	vtkFloatArray* GetVectors(void) {return fVectors[currentStepNum];};
 
 
  	/** add actors in self to the given renderer */

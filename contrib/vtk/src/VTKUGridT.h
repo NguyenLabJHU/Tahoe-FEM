@@ -1,4 +1,4 @@
-/* $Id: VTKUGridT.h,v 1.10 2002-06-17 20:31:41 recampb Exp $ */
+/* $Id: VTKUGridT.h,v 1.11 2002-06-18 21:49:00 recampb Exp $ */
 #ifndef _VTK_U_GRID_T_H_
 #define _VTK_U_GRID_T_H_
 
@@ -7,6 +7,7 @@
 #include "GeometryT.h"
 #include "iArrayT.h"
 #include "dArray2DT.h"
+#include "AutoArrayT.h"
 
 /* VTK forward declarations */
 class vtkPoints;
@@ -30,7 +31,9 @@ class vtkCutter;
 class vtkSmoothPolyDataFilter;
 class vtkDataSetToPolyDataFilter;
 class vtkGlyph3D;
-class vtkConeSource;
+class vtkArrowSource;
+class vtkSelectVisiblePoints;
+class vtkRenderer;
 
 
 /* toolbox forward declarations */
@@ -79,11 +82,11 @@ class VTKUGridT
 	/** remove contours */
 	void HideContours(vtkFloatArray* scalars);
 
-	void CuttingPlane(vtkFloatArray* scalars, double oX, double oY, double oZ, double nX, double nY, double nZ);
+	void CuttingPlane(vtkRenderer* renderer, double oX, double oY, double oZ, double nX, double nY, double nZ);
 
-	void HideCuttingPlane(void);
+	void HideCuttingPlane(vtkRenderer* renderer);
 
-	void Glyphing(void);
+	void Glyphing(vtkFloatArray* glyphs, vtkRenderer* renderer);
 
 	void HideGlyphing(void);
 
@@ -205,19 +208,20 @@ class VTKUGridT
 	vtkActor* boundBoxActor;
 
 	/** cutting plane variables */
-	vtkPlane* plane;
-	vtkCutter* cutter;
-	vtkActor* cut;
-	vtkPolyDataMapper* cutterMapper;
+	AutoArrayT<vtkPlane*> plane;
+	AutoArrayT<vtkCutter*> cutter;
+	AutoArrayT<vtkActor*> cut;
+	AutoArrayT<vtkPolyDataMapper*> cutterMapper;
 
 	/** glyphing variables */
 	vtkGlyph3D* glyph;
 	vtkPolyDataMapper* spikeMapper;
 	vtkActor* spikeActor;
-	vtkConeSource* cone;
+	vtkArrowSource* cone;
 	vtkPoints* tempPoints;
 	int warpCount;
 	int numPoints;
+	vtkSelectVisiblePoints* visPoints;
 	
 	
       

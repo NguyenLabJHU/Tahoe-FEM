@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.26 2002-06-17 20:31:40 recampb Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.27 2002-06-18 21:49:00 recampb Exp $ */
 
 #include "VTKBodyT.h"
 #include "VTKBodyDataT.h"
@@ -6,6 +6,7 @@
 #include "VTKUGridT.h"
 #include "VTKMappedIdFilterT.h"
 #include "CommandSpecT.h"
+#include "ArgSpecT.h"
 
 #include "vtkCubeAxesActor2D.h"
 #include "vtkRenderer.h"
@@ -67,8 +68,8 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	iAddCommand(CommandSpecT("HideElementNumbers"));
 	iAddCommand(CommandSpecT("ShowAxes"));
 	iAddCommand(CommandSpecT("HideAxes"));
-
-	
+	iAddCommand(CommandSpecT("ShowGlyphs"));
+	iAddCommand(CommandSpecT("HideCuttingPlane"));
 
 	/* commands from body data */
 	command = fBodyData->iCommand("Wire");
@@ -87,13 +88,41 @@ VTKBodyT::VTKBodyT(VTKFrameT* frame, VTKBodyDataT* body_data):
 	if (!command) throw eGeneralFail;
 	iAddCommand(*command);
 
-	command = fBodyData->iCommand("ShowCuttingPlane");
+// 	command = fBodyData->iCommand("ShowGlyphs");
+// 	if (!command) throw eGeneralFail;
+// 	iAddCommand(*command);
+	command = fBodyData->iCommand("HideGlyphs");
 	if (!command) throw eGeneralFail;
 	iAddCommand(*command);
 
-	command = fBodyData->iCommand("HideCuttingPlane");
-	if (!command) throw eGeneralFail;
-	iAddCommand(*command);
+	
+	CommandSpecT cut("ShowCuttingPlane", false);
+	ArgSpecT oX(ArgSpecT::double_, "oX");
+	oX.SetDefault(0.0);
+	oX.SetPrompt("x-coordinate of origin");
+	ArgSpecT oY(ArgSpecT::double_, "oY");
+	oY.SetDefault(0.0);
+	oY.SetPrompt("y-coordinate of origin");
+	ArgSpecT oZ(ArgSpecT::double_, "oZ");
+	oZ.SetDefault(0.0);
+	oZ.SetPrompt("z-coordinate of origin");
+	cut.AddArgument(oX);
+	cut.AddArgument(oY);
+	cut.AddArgument(oZ);
+
+	ArgSpecT nX(ArgSpecT::double_, "nX");
+	nX.SetDefault(0.0);
+	nX.SetPrompt("x-coordinate of normal");
+	ArgSpecT nY(ArgSpecT::double_, "nY");
+	nY.SetDefault(1.0);
+	nY.SetPrompt("y-coordinate of normal");
+	ArgSpecT nZ(ArgSpecT::double_, "nZ");
+	nZ.SetDefault(0.0);
+	nZ.SetPrompt("z-coordinate of normal");
+	cut.AddArgument(nX);
+	cut.AddArgument(nY);
+	cut.AddArgument(nZ);
+	iAddCommand(cut);
 
 }
 
@@ -179,10 +208,11 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 	else if (command.Name() == "HideContours")
 		return fBodyData->iDoCommand(command, line);
 
-	else if (command.Name() == "ShowCuttingPlane")
+// 	else if (command.Name() == "ShowGlyphs")
+// 		return fBodyData->iDoCommand(command, line);
+	else if (command.Name() == "HideGlyphs")
 		return fBodyData->iDoCommand(command, line);
-	else if (command.Name() == "HideCuttingPlane")
-		return fBodyData->iDoCommand(command, line);
+
 
 	else if (command.Name() == "ShowNodeNumbers")
 	{
@@ -551,6 +581,52 @@ bool VTKBodyT::iDoCommand(const CommandSpecT& command, StringT& line)
 	}
 
 
+	else if (command.Name() == "ShowGlyphs")
+	  {
+      
+	    ArrayT<VTKUGridT*> fUGrids = fBodyData->UGrids();
+	       for (int i = 0; i < fBodyData->UGrids().Length(); i++)
+		 {
+		   fUGrids[i]->Glyphing(fBodyData->GetVectors(), fFrame->Renderer());
+
+		 }
+	     return true;
+	    
+	  }
+
+	else if (command.Name() == "ShowCuttingPlane")
+	  {
+	    ArrayT<VTKUGridT*> fUGrids = fBodyData->UGrids();
+	    double oX, oY, oZ, nX, nY, nZ;
+	    
+	      for (int i = 0; i < fBodyData->UGrids().Length(); i++)
+		  {
+		    command.Argument("oX").GetValue(oX);
+		    command.Argument("oY").GetValue(oY);
+		    command.Argument("oZ").GetValue(oZ);
+		    command.Argument("nX").GetValue(nX);
+		    command.Argument("nY").GetValue(nY);
+		    command.Argument("nZ").GetValue(nZ);
+		    fUGrids[i]->CuttingPlane(fFrame->Renderer(), oX, oY, oZ, nX, nY, nZ );
+
+		 }
+	     return true;
+	    
+
+	  }
+
+	else if (command.Name() == "HideCuttingPlane")
+	  {
+	    ArrayT<VTKUGridT*> fUGrids = fBodyData->UGrids();
+	    for (int i = 0; i < fBodyData->UGrids().Length(); i++)
+	      {
+		
+		fUGrids[i]->HideCuttingPlane(fFrame->Renderer());
+		
+	      }
+	    return true;
+	  }
+	
 
 	else
 		/* inherited */
