@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB3DLinHardT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: J2IsoVIB3DLinHardT.cpp,v 1.1.1.1.2.1 2001-06-13 00:08:44 paklein Exp $ */
 /* created: paklein (10/12/1998)                                          */
 /* VIB plus principal stretch elasticity                                  */
 /* Interface for a elastoplastic material that is linearly                */
@@ -62,8 +62,6 @@ J2IsoVIB3DLinHardT::J2IsoVIB3DLinHardT(ifstreamT& in, const ElasticT& element):
 	IsoVIB3D(in, element),
 	J2PrimitiveT(in),
 
-	fLocLastDisp(element.LastDisplacements()),
-
 //TEMP
 	fEigs(kNSD),
 	fBeta(kNSD),
@@ -81,13 +79,7 @@ J2IsoVIB3DLinHardT::J2IsoVIB3DLinHardT(ifstreamT& in, const ElasticT& element):
 	ffrel(3),
 	fF_temp(3)
 {
-	/* check last displacements */
-	if (!fLocLastDisp.IsRegistered() ||
-		 fLocLastDisp.MinorDim() != NumDOF())
-	{
-		cout << "\n J2IsoVIB3DLinHardT::J2IsoVIB3DLinHardT: last local displacement vector is invalid" << endl;
-		throw eGeneralFail;
-	}
+
 }
 
 /* update internal variables */
@@ -493,7 +485,7 @@ void J2IsoVIB3DLinHardT::ComputeGradients(void)
 {
 	/* compute relative displacement gradient */
 	fFtot = F();
-	fF_temp.Inverse(F(fLocLastDisp));
+	fF_temp.Inverse(F_last());
 	ffrel.MultAB(fFtot,fF_temp);
 }
 

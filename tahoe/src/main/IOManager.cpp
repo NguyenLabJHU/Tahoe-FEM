@@ -1,4 +1,4 @@
-/* $Id: IOManager.cpp,v 1.3 2001-05-30 23:25:10 paklein Exp $ */
+/* $Id: IOManager.cpp,v 1.3.2.1 2001-06-13 00:08:41 paklein Exp $ */
 /* created: sawimme (10/12/1999)                                          */
 /* this class creates InputBaseT and OutputBaseT pointers                 */
 
@@ -275,7 +275,10 @@ ReadInputFile (in);
 
 // change input file name to make slightly different root
 // do not wnat to write over input database
-database.DefaultName (in.filename(), ".in", "_db.in", -1);
+//this will conflict later
+//database.DefaultName (in.filename(), ".in", "_db.in", -1);
+database.Root(in.filename());
+database.Append("_db.in");
 }
 
 // extension will be stripped off, so need one to strip

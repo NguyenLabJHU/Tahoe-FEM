@@ -1,4 +1,4 @@
-/* $Id: J2IsoVIB3DLinHardT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: J2IsoVIB3DLinHardT.h,v 1.1.1.1.2.1 2001-06-13 00:08:44 paklein Exp $ */
 /* created: paklein (10/12/1998)                                          */
 /* VIB plus principal stretch elasticity                                  */
 /* Interface for a elastoplastic material that is linearly                */
@@ -98,9 +98,6 @@ private:
 	void Computeddw(const dArrayT& eigs, dMatrixT& ddw);
 
 private:
-
-	/* displacements from the last time step */
-	const LocalArrayT& fLocLastDisp;
 
 //TEMP - overrides IsoVIB3D::fEigs
 	dArrayT    fEigs;

@@ -1,4 +1,4 @@
-/* $Id: IsoVIB3D.h,v 1.1.1.1.2.1 2001-06-06 16:32:13 paklein Exp $ */
+/* $Id: IsoVIB3D.h,v 1.1.1.1.2.2 2001-06-13 00:08:44 paklein Exp $ */
 /* created: paklein (03/15/1998)                                          */
 /* 3D Isotropic VIB solver using spectral decomposition formulation       */
 
@@ -62,6 +62,9 @@ protected:
 	dSymMatrixT	fEigmods;	//rank4 eigenvalues  	
 	
 private:
+
+	/* stretch */
+	dSymMatrixT fb;
 
 	/* integration point generator */
 	SpherePointsT*	fSphere;
