@@ -1,4 +1,4 @@
-/* $Id: AutoArrayT.h,v 1.12 2002-10-20 22:38:51 paklein Exp $ */
+/* $Id: AutoArrayT.h,v 1.13 2002-11-18 10:02:10 paklein Exp $ */
 /* created: paklein (12/05/1997) */
 #ifndef _AUTO_ARRAY_T_H_
 #define _AUTO_ARRAY_T_H_
@@ -185,11 +185,7 @@ inline AutoArrayT<TYPE>::AutoArrayT(void):
 	fHeadRoom(kAutoDefHeadRoom),
 	fCurrElement(-1)
 {
-	/* initial memory */
-	Dimension(kAutoDefSize);
 
-	/* no logical size */
-	fLength = 0;
 }
 
 template <class TYPE>
