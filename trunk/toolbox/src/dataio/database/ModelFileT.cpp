@@ -1,4 +1,4 @@
-/* $Id: ModelFileT.cpp,v 1.2 2001-04-27 10:46:58 paklein Exp $ */
+/* $Id: ModelFileT.cpp,v 1.3 2001-06-27 23:04:13 paklein Exp $ */
 /* created: paklein (12/15/1999)                                          */
 
 #include "ModelFileT.h"
@@ -737,12 +737,32 @@ ModelFileT::StatusT ModelFileT::GetInformation(void)
 		int num_node_sets;
 		in >> num_node_sets;
 		fNodeSetID.Allocate(num_node_sets, 2);
-		if (fNodeSetID.Length() > 0) in >> fNodeSetID;
+		if (fNodeSetID.MajorDim() > 0)
+		{
+			iArrayT row(fNodeSetID.MinorDim());
+
+			/* read row-by-row to allow comments on each line */
+			for (int i = 0; i < fNodeSetID.MajorDim(); i++)
+			{
+				in >> row;
+				fNodeSetID.SetRow(i, row);
+			}
+		}	
 
 		int num_side_sets;
 		in >> num_side_sets;
 		fSideSetID.Allocate(num_side_sets, 3);
-		if (fSideSetID.Length() > 0) in >> fSideSetID;
+		if (fSideSetID.MajorDim() > 0)
+		{
+			iArrayT row(fSideSetID.MinorDim());
+
+			/* read row-by-row to allow comments on each line */
+			for (int i = 0; i < fSideSetID.MajorDim(); i++)
+			{
+				in >> row;
+				fSideSetID.SetRow(i, row);
+			}
+		}
 		
 		return in.good() ? kOK : kFail;
 	}
