@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.44 2004-06-22 19:33:27 cjkimme Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.44.4.1 2005-02-24 01:10:50 thao Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 
@@ -41,7 +41,6 @@
 #ifdef VISCOELASTIC_MATERIALS_DEV
 #include "SSSV_KStV3D.h"
 #include "FDSV_KStV3D.h"
-#include "RGSplit3D.h"
 #endif
 
 #ifdef ELASTIC_OGDEN_MATERIAL_DEV
@@ -110,6 +109,10 @@
 
 #ifdef PLASTICITY_MR_MATERIAL_DEV
 #include "MRSSKStV.h"
+#endif
+
+#ifdef FINITE_ANISOTROPY
+#include "WLC.h"
 #endif
 
 using namespace Tahoe;
@@ -644,19 +647,6 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				ExceptionT::BadInputValue(caller, "model requires f2c support: %d", kABAQUS_VUMAT_BCJ);
 #endif /* __F2C__ */
 			}			
-			case kRGSplit:
-			{
-#ifdef VISCOELASTIC_MATERIALS_DEV
-				/* check */
-				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
-
-				fArray[matnum] = new RGSplit3D(in, *fFSMatSupport);
-				fHasHistory = true;
-				break;
-#else
-				ExceptionT::BadInputValue(caller, "VISCOELASTIC_MATERIALS_DEV not enabled: %d", matcode);
-#endif
-			}
 			case kFDSVKStV:
 			{
 #if VISCOELASTIC_MATERIALS_DEV
@@ -706,6 +696,19 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 				break;
 #else
 				ExceptionT::BadInputValue(caller, "J2PLASTICITY_MATERIALS_DEV not enabled: %d", matcode);
+#endif
+			}
+			case kWLC:
+			{
+#ifdef FINITE_ANISOTROPY
+				/* check */
+				if (!fFSMatSupport) Error_no_finite_strain(cout, matcode);
+
+				fArray[matnum] = new WLC(in, *fFSMatSupport);
+				fHasHistory = false;
+				break;
+#else
+				ExceptionT::BadInputValue(caller, "FINITE_ANISOTROPY not enabled: %d", matcode);
 #endif
 			}
 			case kSIERRA_Hypoelastic:
