@@ -1,4 +1,4 @@
-/* $Id: DiagonalMatrixT.h,v 1.10 2002-11-25 07:13:40 paklein Exp $ */
+/* $Id: DiagonalMatrixT.h,v 1.11 2002-11-30 16:31:03 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #ifndef _DIAGONAL_MATRIX_H_
@@ -66,6 +66,9 @@ public:
 	/* number scope and reordering */
 	virtual EquationNumberScopeT EquationNumberScope(void) const;
 	virtual bool RenumberEquations(void) const;
+
+	/** return the form of the matrix */
+	virtual GlobalT::SystemTypeT MatrixType(void) const { return GlobalT::kDiagonal; };
 
 	/** assignment operator */
 	virtual GlobalMatrixT& operator=(const DiagonalMatrixT& rhs);

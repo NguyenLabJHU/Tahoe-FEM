@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT.h,v 1.10 2002-11-25 07:13:41 paklein Exp $ */
+/* $Id: SPOOLESMatrixT.h,v 1.11 2002-11-30 16:31:04 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #ifndef _SPOOLES_MATRIX_T_H_
@@ -68,6 +68,9 @@ public:
 	/* number scope and reordering */
 	virtual EquationNumberScopeT EquationNumberScope(void) const;
 	virtual bool RenumberEquations(void) const;
+
+	/** return the form of the matrix */
+	virtual GlobalT::SystemTypeT MatrixType(void) const { return GlobalT::kNonSymmetric; };
 	
 	/** assignment operator */
 	virtual GlobalMatrixT& operator=(const SPOOLESMatrixT& rhs);
