@@ -1,6 +1,5 @@
-/* $Id: Aztec_fe.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
-/* created: paklein (08/01/1998)                                          */
-/* base class for interface for using Aztec with fe++                     */
+/* $Id: Aztec_fe.h,v 1.2 2002-03-22 19:04:18 paklein Exp $ */
+/* created: paklein (08/01/1998) */
 
 #ifndef _AZTEC_FE_H_
 #define _AZTEC_FE_H_
@@ -21,12 +20,15 @@ class iArray2DT;
 class MSRBuilderT;
 template <class TYPE> class RaggedArray2DT;
 
+/** interface to the Aztec iterative solver library */
 class Aztec_fe: public AztecBaseT
 {
 public:
 
-	/* constuctor */
-	Aztec_fe(ifstreamT& in);
+	/** constuctor 
+	 * \param in stream to read input parameters 
+	 * \param msg output stream for logging messages */
+	Aztec_fe(ifstreamT& in, ostream& msg);
 
 	/* destructor */
 	virtual ~Aztec_fe(void);

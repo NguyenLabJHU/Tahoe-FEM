@@ -1,6 +1,5 @@
-/* $Id: AztecBaseT.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
-/* created: paklein (07/28/1998)                                          */
-/* Base class for Aztec iterative solver                                  */
+/* $Id: AztecBaseT.h,v 1.2 2002-03-22 19:04:18 paklein Exp $ */
+/* created: paklein (07/28/1998) */
 
 #ifndef _AZTEC_BASE_T_H_
 #define _AZTEC_BASE_T_H_
@@ -13,12 +12,13 @@
 /* forward declarations */
 #include "ios_fwd_decl.h"
 
+/** low-level interface to the Aztec iterative solver */
 class AztecBaseT
 {
 public:
 
-	/* constuctor */
-	AztecBaseT(void);
+	/** constuctor */
+	AztecBaseT(ostream& msg);
 	
 	/* destructor */
 	virtual ~AztecBaseT(void);
@@ -74,6 +74,9 @@ private:
 
 protected:
 
+	/** output stream for messages */
+	ostream& fMessage;
+
 	/* number of update rows */
 	int Start_update; //1,...
 	int N_update;
@@ -92,9 +95,9 @@ protected:
 
 	/* dynamically allocated arrays */
 	int* data_org;       // Array to specify data layout
-int* external;       // vector elements needed by this node.
+	int* external;       // vector elements needed by this node.
 	int* update_index;   // ordering of update[] and external[]
-int* extern_index;   // locally on this processor. For example
+	int* extern_index;   // locally on this processor. For example
 // update_index[i] gives the index
 // location of the vector element which
 // has the global index 'update[i]'.
