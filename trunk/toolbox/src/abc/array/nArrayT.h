@@ -1,4 +1,4 @@
-/* $Id: nArrayT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: nArrayT.h,v 1.2 2001-02-27 00:12:36 paklein Exp $ */
 /* created: paklein (05/23/1997)                                          */
 /* Base class for arrays of TYPE for which the following mathematical     */
 /* operators have been defined:                                           */
@@ -123,10 +123,10 @@ public:
 	void WriteWrappedTight(ostream& out, int line_count) const;
 
 	/* proxies for "<<" */
-	OutputProxyT<nTYPE> no_wrap() const {
+	OutputProxyT<nTYPE> no_wrap(void) const {
 		return OutputProxyT<nTYPE>(OutputProxyT<nTYPE>::kNoWrap, *this, 0, 0); };
 
-	OutputProxyT<nTYPE> no_wrap_tight(int line_count, int tab = 0) const {
+	OutputProxyT<nTYPE> no_wrap_tight(void) const {
 		return OutputProxyT<nTYPE>(OutputProxyT<nTYPE>::kNoWrapTight, *this, 0, 0); };
 
 	OutputProxyT<nTYPE> wrap(int line_count, int tab = 0) const {
