@@ -1,4 +1,4 @@
-/* $Id: Contact3DT.cpp,v 1.9 2003-11-21 22:45:57 paklein Exp $ */
+/* $Id: Contact3DT.cpp,v 1.9.20.1 2004-04-20 17:41:46 paklein Exp $ */
 /* created: paklein (07/17/1999) */
 #include "Contact3DT.h"
 
@@ -26,8 +26,17 @@ Contact3DT::Contact3DT(const ElementSupportT& support, const FieldT& field):
 	ContactT(support, field, kNumFacetNodes),
 	fGrid3D(NULL)
 {
+	SetName("contact_3D");
+
 	/* check base class initializations */
 	if (NumSD() != 3) throw ExceptionT::kGeneralFail;
+}
+
+Contact3DT::Contact3DT(const ElementSupportT& support):
+	ContactT(support, kNumFacetNodes),
+	fGrid3D(NULL)
+{
+	SetName("contact_3D");
 }
 
 /* destructor */
@@ -37,11 +46,11 @@ Contact3DT::~Contact3DT(void) {	delete fGrid3D; }
  * Protected
  ***********************************************************************/
 
-//TEMP - convert all contact surfaces to triangles
-void Contact3DT::EchoConnectivityData(ifstreamT& in, ostream& out)
+/* Converts quadrilateral faces to triangular faces */
+void Contact3DT::ExtractContactGeometry(const ParameterListT& list)
 {
 	/* inherited */
-	ContactT::EchoConnectivityData(in, out);
+	ContactT::ExtractContactGeometry(list);
 
 	/* can only handle tri facets */
 	for (int i = 0; i < fSurfaces.Length(); i++)
@@ -50,8 +59,11 @@ void Contact3DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 		if (fNumFacetNodes == 3 && fSurfaces[i].MinorDim() == 4)
 		{
 			/* message */
-			out << "\n Contact3DT::EchoConnectivityData: subdividing 4-nodes facets on\n";
-			out <<   "     surface " << i+1 << " into (2) triangular facets" << endl;
+			if (ElementSupport().PrintInput()) {
+				ofstreamT& out = ElementSupport().Output();
+				out << "\n Contact3DT::EchoConnectivityData: subdividing 4-nodes facets on\n";
+				out <<   "     surface " << i+1 << " into (2) triangular facets" << endl;
+			}
 
 			ConvertQuadToTri(fSurfaces[i]);
 		}

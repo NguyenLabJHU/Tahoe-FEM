@@ -1,4 +1,4 @@
-/* $Id: Contact3DT.h,v 1.5 2003-03-02 18:57:31 paklein Exp $ */
+/* $Id: Contact3DT.h,v 1.5.44.1 2004-04-20 17:41:46 paklein Exp $ */
 /* created: paklein (07/17/1999) */
 #ifndef _CONTACT3D_T_H_
 #define _CONTACT3D_T_H_
@@ -22,14 +22,16 @@ public:
 
 	/* constructor */
 	Contact3DT(const ElementSupportT& support, const FieldT& field);
+	Contact3DT(const ElementSupportT& support);
 
-	/* destructor */
+	/** destructor */
 	virtual ~Contact3DT(void);
 
 protected:
 
-	/* element data */
-	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
+	/** Echo contact bodies and striker nodes. Converts quadrilateral faces
+	 * to triangular faces */
+	virtual void ExtractContactGeometry(const ParameterListT& list);
 
 	/** \name steps in setting contact configuration */
 	/*@{*/

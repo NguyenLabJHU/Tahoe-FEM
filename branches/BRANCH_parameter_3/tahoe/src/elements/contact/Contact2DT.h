@@ -1,4 +1,4 @@
-/* $Id: Contact2DT.h,v 1.5 2003-11-04 17:37:50 paklein Exp $ */
+/* $Id: Contact2DT.h,v 1.5.22.1 2004-04-20 17:41:46 paklein Exp $ */
 /* created: paklein (05/26/1999) */
 #ifndef _CONTACT2D_T_H_
 #define _CONTACT2D_T_H_
@@ -20,12 +20,16 @@ public:
 
 	/* constructor */
 	Contact2DT(const ElementSupportT& support, const FieldT& field);
+	Contact2DT(const ElementSupportT& support);
 
 	/* destructor */
 	virtual ~Contact2DT(void);
 
-	/* allocates space and reads connectivity data */
-	virtual void Initialize(void);
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/	
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 

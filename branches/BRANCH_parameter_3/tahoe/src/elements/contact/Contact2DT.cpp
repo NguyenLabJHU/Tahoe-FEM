@@ -1,4 +1,4 @@
-/* $Id: Contact2DT.cpp,v 1.8 2003-11-21 22:45:57 paklein Exp $ */
+/* $Id: Contact2DT.cpp,v 1.8.20.1 2004-04-20 17:41:46 paklein Exp $ */
 /* created: paklein (05/26/1999) */
 #include "Contact2DT.h"
 
@@ -24,18 +24,29 @@ Contact2DT::Contact2DT(const ElementSupportT& support, const FieldT& field):
 	fv1(NumSD()),
 	fv2(NumSD())
 {
+	SetName("contact_2D");
+
 	/* check base class initializations */
 	if (NumSD() != 2) throw ExceptionT::kGeneralFail;
+}
+
+Contact2DT::Contact2DT(const ElementSupportT& support):
+	ContactT(support, kNumFacetNodes),
+	fGrid2D(NULL),
+	fv1(2),
+	fv2(2)
+{
+	SetName("contact_2D");
 }
 
 /* destructor */
 Contact2DT::~Contact2DT(void) {	delete fGrid2D; }
 
 /* allocates space and reads connectivity data */
-void Contact2DT::Initialize(void)
+void Contact2DT::TakeParameterList(const ParameterListT& list)
 {
 	/* inherited */
-	ContactT::Initialize();
+	ContactT::TakeParameterList(list);
 	
 	/* dimension */
 	int neq = NumElementNodes()*NumDOF();
@@ -45,8 +56,8 @@ void Contact2DT::Initialize(void)
 }
 
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* generate contact element data */
 bool Contact2DT::SetActiveInteractions(void)

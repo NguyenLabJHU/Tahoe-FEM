@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact3DT.h,v 1.6 2003-03-02 18:56:12 paklein Exp $ */
+/* $Id: PenaltyContact3DT.h,v 1.6.44.1 2004-04-20 17:41:46 paklein Exp $ */
 /* created: paklein (02/09/2000) */
 #ifndef _PENALTY_CONTACT3D_T_H_
 #define _PENALTY_CONTACT3D_T_H_
@@ -8,12 +8,20 @@
 
 namespace Tahoe {
 
+/** 3D penalty contact element */
 class PenaltyContact3DT: public Contact3DT
 {
 public:
 
-	/* constructor */
+	/** constructor */
 	PenaltyContact3DT(const ElementSupportT& support, const FieldT& field);
+	PenaltyContact3DT(const ElementSupportT& support);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact2DT.cpp,v 1.12 2003-11-21 22:45:57 paklein Exp $ */
+/* $Id: PenaltyContact2DT.cpp,v 1.12.20.1 2004-04-20 17:41:46 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContact2DT.h"
 
@@ -9,9 +9,6 @@
 #include "fstreamT.h"
 #include "eIntegratorT.h"
 
-/* parameters (duplicated from Contact2DT) */
-const int kNumFacetNodes = 2;
-
 using namespace Tahoe;
 
 /* constructor */
@@ -20,25 +17,50 @@ PenaltyContact2DT::PenaltyContact2DT(const ElementSupportT& support, const Field
 	fElCoord(fNumFacetNodes + 1, NumSD()),
 	fElDisp(fNumFacetNodes + 1, NumDOF())	
 {
+	SetName("contact_2D_penalty");
+
 	ElementSupport().Input() >> fK;
 	if (fK < 0.0)
 		ExceptionT::BadInputValue("PenaltyContact2DT::PenaltyContact2DT", 
 			"regularization must be > 0: %g", fK);
 }
 
+PenaltyContact2DT::PenaltyContact2DT(const ElementSupportT& support):
+	Contact2DT(support),
+	fK(0.0)
+{
+	SetName("contact_2D_penalty");
+}
+
+/* describe the parameters needed by the interface */
+void PenaltyContact2DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	Contact2DT::DefineParameters(list);
+
+	/* penalty stiffness */
+	ParameterT stiffness(ParameterT::Double, "penalty_stiffness");
+	stiffness.AddLimit(0.0, LimitT::LowerInclusive);
+	list.AddParameter(stiffness);
+}
+
+/* accept parameter list */
+void PenaltyContact2DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	Contact2DT::TakeParameterList(list);
+
+	/* contact stiffness */
+	fK = list.GetParameter("penalty_stiffness");
+
+	/* dimension work space */
+	fElCoord.Dimension(fNumFacetNodes + 1, NumSD());
+	fElDisp.Dimension(fNumFacetNodes + 1, NumDOF());	
+}
+
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-/* print element group data */
-void PenaltyContact2DT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	Contact2DT::PrintControlData(out);
-
-	/* regularization */
-	out << " Regularization parameter. . . . . . . . . . . . = " << fK << '\n';	
-}
 
 /* called by FormRHS and FormLHS */
 void PenaltyContact2DT::LHSDriver(GlobalT::SystemTypeT)
