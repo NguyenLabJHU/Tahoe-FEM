@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.15 2005-01-25 23:09:05 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.16 2005-01-29 01:28:40 raregue Exp $ */
 /* created: paklein (06/09/1997) */
 #include "FSSolidMatT.h"
 #include "FSMatSupportT.h"
@@ -143,19 +143,20 @@ const dSymMatrixT& FSSolidMatT::S_IJ(void)
 * determinant of the acoustic tensor is negative and returns
 * the normal for which the determinant is minimum. Returns 0
 * of the determinant is positive. */
-int FSSolidMatT::IsLocalized(dArrayT& normal)
+bool FSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
 {
-#pragma unused(normal)
+#pragma unused(normals)
 ExceptionT::GeneralFail("FSSolidMatT::IsLocalized", "broken");
-return 0;
+return false;
 //DEV
-
+/*
 #if 0
 	if (FDContinuumT::IsLocalized(normal))
 		return 1;
 	else
 		return 0;
 #endif
+*/
 }
 
 /* initialize current step. compute thermal dilatation */

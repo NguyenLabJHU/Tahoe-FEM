@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.cpp,v 1.10 2004-08-01 20:39:34 paklein Exp $ */
+/* $Id: SSSolidMatT.cpp,v 1.11 2005-01-29 01:28:40 raregue Exp $ */
 /* created: paklein (06/09/1997) */
 #include "SSSolidMatT.h"
 #include "SSMatSupportT.h"
@@ -143,6 +143,29 @@ void SSSolidMatT::InitStep(void)
 
 	/* thermal strain */
 	fHasThermalStrain = SetThermalStrain(fThermalStrain);
+}
+
+/* assumes small strains. returns true if the strain localization condition is satisfied,
+* .ie if the acoustic tensor has zero (or negative eigenvalues),
+* for the current conditions (current integration point and strain
+* state). If localization is detected, the normals (current config)
+* to the surface and slip directions are returned */
+bool SSSolidMatT::IsLocalized(AutoArrayT <dArrayT> &normals, AutoArrayT <dArrayT> &slipdirs)
+{
+	/* stress tensor */
+	const dSymMatrixT& stress = s_ij();
+			
+	/* consistent tangent modulus */
+	const dMatrixT& modulus = c_ijkl();
+	
+	/* elastic modulus */
+	const dMatrixT& modulus_e = ce_ijkl();
+
+	/* localization condition checker */
+	DetCheckT checker(stress, modulus, modulus_e);
+	normals.Dimension(NumSD());
+	slipdirs.Dimension(NumSD());
+	return checker.IsLocalized_SS(normals,slipdirs);
 }
 
 /*************************************************************************
