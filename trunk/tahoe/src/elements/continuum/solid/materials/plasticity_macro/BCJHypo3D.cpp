@@ -1,4 +1,4 @@
-/* $Id: BCJHypo3D.cpp,v 1.17 2003-05-22 09:06:27 paklein Exp $ */
+/* $Id: BCJHypo3D.cpp,v 1.18 2004-03-02 23:50:34 raregue Exp $ */
 #include "BCJHypo3D.h"
 #include "NLCSolver.h"
 #include "ElementCardT.h"
@@ -12,7 +12,7 @@ using namespace Tahoe;
 const double sqrt32 = sqrt(3.0/2.0);
 
 /* printing for debugging */
-const bool BCJ_MESSAGES = true;
+const bool BCJ_MESSAGES = false;
 const int IPprint = -1;
 
 /* spatial dimensions of the problem */
@@ -26,8 +26,10 @@ const int kNumEQValues = 5;
 const int kNumMatProp = 6;
 
 /* element output data */
-const int kNumOutput = 4;
-static const char* Labels[kNumOutput] = {"EQP","VMISES","PRESS","KAPPA"};
+//const int kNumOutput = 4;
+//static const char* Labels[kNumOutput] = {"EQP","VMISES","PRESS","KAPPA"};
+const int kNumOutput = 5;
+static const char* Labels[kNumOutput] = {"EQP","VMISES","PRESS","KAPPA","EQPDOT"};
 
 BCJHypo3D::BCJHypo3D(ifstreamT& in, const FSMatSupportT& support) :
   EVPFDBaseT(in, support),  
@@ -195,7 +197,7 @@ void BCJHypo3D::FormRHS(const dArrayT& array, dArrayT& rhs)
 
   // 3. from evolution equation of kappa: function G3
   rhs[2] = array[kKAPP] - fInternal_n[kKAPP]  
-             - (fMatProp[4]-fMatProp[3]*array[kKAPP]*array[kKAPP])*array[kDEQP]
+             - (fMatProp[4]-fMatProp[3]*array[kKAPP])*array[kDEQP]
              + fMatProp[5]*fdt*array[kKAPP]*array[kKAPP];
 }
 
@@ -228,9 +230,9 @@ void BCJHypo3D::FormLHS(const dArrayT& array, dMatrixT& lhs)
   lhs(1,2) = 0.0;
 
   // 3. d(G3)/d(DEQP), d(G3)/d(ALPH), d(G3)/(dKAPP)
-  lhs(2,0) = -fMatProp[4] + fMatProp[3]*array[kKAPP]*array[kKAPP];
+  lhs(2,0) = -fMatProp[4] + fMatProp[3]*array[kKAPP];
   lhs(2,1) = 0.0;
-  lhs(2,2) = 1. + 2.*(fMatProp[3]*array[kDEQP] + fMatProp[5]*fdt) * array[kKAPP];
+  lhs(2,2) = 1. + fMatProp[3]*array[kDEQP] + 2.*fMatProp[5]*fdt * array[kKAPP];
 }
 
 void BCJHypo3D::UpdateHistory()
@@ -309,6 +311,9 @@ void BCJHypo3D::ComputeOutput(dArrayT& output)
 
   // isotropic hardening variable
   output[3] = fInternal[kKAPP];
+  
+  // effective overstress
+  output[4] = fInternal[kDEQP]/fdt;
 
   // effective overstress
   //output[4] = fEQValues[kEQXi];
@@ -385,14 +390,14 @@ GlobalT::SystemTypeT BCJHypo3D::TangentType() const
 void BCJHypo3D::ComputeMaterialProperties(double theta)
 {
   // kinematic hardening matl properties
-  fMatProp[0] = fC7*exp(-fC8/theta);         // rd
-  fMatProp[1] = max(0.0, fC9 - fC10*theta);  // h
-  fMatProp[2] = fC11*exp(-fC12/theta);       // rs
+  fMatProp[0] = fC7*exp(-fC8/theta);     // rd
+  fMatProp[1] = fC9 - fC10*theta;        // h
+  fMatProp[2] = fC11*exp(-fC12/theta);   // rs
 
   // isotropic hardening matl properties
-  fMatProp[3] = fC13*exp(-fC14/theta);       // Rd
-  fMatProp[4] = max(0.0, fC15 - fC16*theta); // H
-  fMatProp[5] = fC17*exp(-fC18/theta);       // Rs
+  fMatProp[3] = fC13*exp(-fC14/theta);   // Rd
+  fMatProp[4] = fC15 - fC16*theta;       // H
+  fMatProp[5] = fC17*exp(-fC18/theta);   // Rs
 
   // local fix for rd & rs
   fMatProp[0] *= 1./sqrt32;
