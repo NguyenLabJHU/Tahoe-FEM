@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.14 2001-07-11 01:02:14 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.15 2001-08-21 01:11:06 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #include "SolidElementT.h"
@@ -64,7 +64,7 @@ void SolidElementT::Initialize(void)
 	ContinuumElementT::Initialize();
 
 	/* allocate strain-displacement matrix */
-	fB.Allocate((fNumSD == 2) ? 3 : 6, fNumSD*fNumElemNodes);
+	fB.Allocate(dSymMatrixT::NumValues(fNumSD), fNumSD*fNumElemNodes);
 
 	/* override */
 	if (fController->ImplicitExplicit() == eControllerT::kExplicit &&
