@@ -7,8 +7,12 @@ OBJ = \
 	LocalCrystalPlast.o \
 	LocalCrystalPlast2D.o \
 	LocalCrystalPlast_C.o \
+	LocalCrystalPlastFp.o \
+	LocalCrystalPlastFp2D.o \
 	GradCrystalPlast.o \
 	GradCrystalPlast2D.o \
+	GradCrystalPlastFp.o \
+	GradCrystalPlastFp2D.o \
 	SlipGeometry.o \
 	LatticeOrient.o \
 	CrystalElasticity.o \
@@ -20,6 +24,7 @@ OBJ = \
 	VoceHardening.o \
 	HaasenHardening.o \
 	VoceGradHardening.o \
+	GradientTools.o \
 	Utils.o
 
 OBJ_LINK = $(OBJ)
@@ -34,8 +39,12 @@ SRC = \
 	LocalCrystalPlast.cpp \
 	LocalCrystalPlast2D.cpp \
 	LocalCrystalPlast_C.cpp \
+	LocalCrystalPlastFp.cpp \
+	LocalCrystalPlastFp2D.cpp \
 	GradCrystalPlast.cpp \
 	GradCrystalPlast2D.cpp \
+	GradCrystalPlastFp.cpp \
+	GradCrystalPlastFp2D.cpp \
 	SlipGeometry.cpp \
 	LatticeOrient.cpp \
 	CrystalElasticity.cpp \
@@ -47,6 +56,7 @@ SRC = \
 	VoceHardening.cpp \
 	HaasenHardening.cpp \
 	VoceGradHardening.cpp \
+	GradientTools.cpp \
 	Utils.cpp
 
 # headers
@@ -55,8 +65,12 @@ HDR = \
 	LocalCrystalPlast.h \
 	LocalCrystalPlast2D.h \
 	LocalCrystalPlast_C.h \
+	LocalCrystalPlastFp.h \
+	LocalCrystalPlastFp2D.h \
 	GradCrystalPlast.h \
 	GradCrystalPlast2D.h \
+	GradCrystalPlastFp.h \
+	GradCrystalPlastFp2D.h \
 	SlipGeometry.h \
 	LatticeOrient.h \
 	CrystalElasticity.h \
@@ -68,6 +82,7 @@ HDR = \
 	VoceHardening.h \
 	HaasenHardening.h \
 	VoceGradHardening.h \
+	GradientTools.h \
 	Utils.h
 
 HDR_LINK = $(HDR:.h=.h_link)
