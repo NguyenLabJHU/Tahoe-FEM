@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.h,v 1.3 2004-07-29 23:42:06 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.h,v 1.4 2004-08-04 22:00:23 cjkimme Exp $ */
 #ifndef _FS_SCNIMF_T_H_
 #define _FS_SCNIMF_T_H_
 
@@ -73,7 +73,7 @@ public:
 
 protected: /* for derived classes only */
 	
-	virtual void ReadMaterialData(void);
+	virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const;
 	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
 	
 	/** translate internal storage of bVector to Strain-Displacement matrix */	

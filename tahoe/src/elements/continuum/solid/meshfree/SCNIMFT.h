@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.h,v 1.14 2004-08-02 22:26:04 paklein Exp $ */
+/* $Id: SCNIMFT.h,v 1.15 2004-08-04 22:00:23 cjkimme Exp $ */
 #ifndef _SCNIMF_T_H_
 #define _SCNIMF_T_H_
 
@@ -147,9 +147,9 @@ protected: /* for derived classes only */
 
 	/** echo element connectivity data. Reads parameters that define
 	 * which nodes belong to this ParticleT group. */
-	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
+	virtual void DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<int>& mat_index);
 	
-	virtual void ReadMaterialData();
+	virtual void CollectMaterialInfo(const ParameterListT& all_params, ParameterListT& mat_params) const = 0;
 	virtual MaterialListT* NewMaterialList(const StringT& name, int size) = 0;
 	
 	/** generate labels for output data */
@@ -205,6 +205,7 @@ protected:
 
 	/** Voronoi facets dual to the Delone Edges */
 	iArray2DT fDualFacets; // Tag for Deletion
+	iArray2DT fSelfDualFacets; 
 
 	/** Self-dual facet information. I.E. facets that contribute only to one integral over one boundary node's cell */
 #ifdef __QHULL__
