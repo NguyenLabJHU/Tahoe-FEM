@@ -26,6 +26,13 @@ class PMLT: public ElasticT
 	const dMatrixT& GradU_last(void) const;
 	const dMatrixT& GradU_last(int ip) const;
 
+	/** returns 0 since total displacement is decomposed into nsd fields */
+	virtual int InterpolantDOFs(void) const { return 0; };
+
+	/** construct the field.
+	 * \param nodes list of nodes at which the field should be constructed
+	 * \param DOFs array of the field degrees of freedom for all nodes */
+	virtual void NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const;
 
   protected:
 	/* construct the effective mass matrix */

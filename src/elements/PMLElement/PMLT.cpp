@@ -1,4 +1,4 @@
-/* $Id: PMLT.cpp,v 1.1 2002-01-21 06:48:27 thao Exp $ */
+/* $Id: PMLT.cpp,v 1.2 2002-01-22 02:13:28 paklein Exp $ */
 
 #include "PMLT.h"
 
@@ -41,10 +41,10 @@ PMLT::PMLT(FEManagerT& fe_manager):
 #endif
 	if (fStrainDispOpt != ShapeFunctionT::kStandardB ) throw eBadInputValue;
 
-	fNumDOF = fNumSD*fNumSD;             
-	fNumElemEqnos = fNumElemNodes*fNumDOF;
-	fNEESub = fNumSD*fNumDOF;
-
+//fNumDOF set correctly from the nodes
+//	fNumDOF = fNumSD*fNumSD;             
+//	fNumElemEqnos = fNumElemNodes*fNumDOF;
+	fNEESub = fNumSD*fNumElemNodes;
 }
 
 /* called immediately after constructor */
@@ -53,7 +53,7 @@ void PMLT::Initialize(void)
 	/* inherited */
 	ElasticT::Initialize();
 	
-	fDOFvec.Allocate(fNumDOF);
+//	fDOFvec.Allocate(fNumDOF);
 		
 // Q:	fLocDisp.Allocate(fNumElemNodes, fNumDOF); Is this needed here?
 	fTotDisp.Allocate(fNumElemNodes,fNumSD);
@@ -61,16 +61,18 @@ void PMLT::Initialize(void)
 	fTotVel.Allocate(fNumElemNodes,fNumSD);
 	fTotAcc.Allocate(fNumElemNodes, fNumSD);
 
+#if 0
 	fFEManager.RegisterLocal(fTotDisp);
 	fFEManager.RegisterLocal(fTotLastDisp);
 	fFEManager.RegisterLocal(fTotVel);
 	fFEManager.RegisterLocal(fTotAcc);
+#endif
+//only need to register arrays that need to collect values for the
+//element from a global array
 
 	/* allocates decomposition of strain-displacement matrix */
 	fBa.Allocate(dSymMatrixT::NumValues(fNumSD), fNumSD*fNumElemNodes);
 	fBb.Allocate(dSymMatrixT::NumValues(fNumSD), fNumSD*fNumElemNodes);
-	
-//Q: Do fLHS and fRHS need to be reinitialize?
 
 	/* resizes LHS and RHS components*/
 	fLHSa.Allocate(fNEESub);
@@ -107,6 +109,14 @@ void PMLT::Initialize(void)
 			fGradU_last_List[i].Allocate(NumSD());
 	}
 }
+
+/* construct the field */
+void PMLT::NodalDOFs(const iArrayT& nodes, dArray2DT& DOFs) const
+{
+	cout << "\n PMLT::NodalDOFs: not implemented" << endl;
+	throw eGeneralFail;
+}
+
 /* construct the effective mass matrix */
 void PMLT::LHSDriver(void)
 {
