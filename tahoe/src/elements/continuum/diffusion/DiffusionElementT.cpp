@@ -1,4 +1,4 @@
-/* $Id: DiffusionElementT.cpp,v 1.12 2003-01-29 07:34:32 paklein Exp $ */
+/* $Id: DiffusionElementT.cpp,v 1.13 2003-05-20 10:31:51 paklein Exp $ */
 /* created: paklein (10/02/1999) */
 #include "DiffusionElementT.h"
 
@@ -318,6 +318,7 @@ void DiffusionElementT::RHSDriver(void)
 	if (block_source) ip_source.Dimension(NumIP(), 1);
 	int block_count = 0;
 
+	double dt = ElementSupport().TimeStep();
 	Top();
 	while (NextElement())
 	{
@@ -331,7 +332,10 @@ void DiffusionElementT::RHSDriver(void)
 		/* convert heat increment/volume to rate */
 		if (block_source) {
 			block_source->RowCopy(block_count, ip_source);
-			ip_source /= ElementSupport().TimeStep();
+			if (fabs(dt) > kSmall)
+				ip_source /= dt;
+			else /* for dt -> 0 */
+				ip_source = 0.0;
 		}
 		block_count++;
 		
