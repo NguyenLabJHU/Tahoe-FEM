@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging_2.cpp,v 1.1.2.9 2004-05-27 16:25:06 paklein Exp $ */
+/* $Id: FEManagerT_bridging_2.cpp,v 1.1.2.10 2004-05-28 03:14:31 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -58,7 +58,7 @@ void FEManagerT_bridging::CorrectOverlap_2(const RaggedArray2DT<int>& point_neig
 //TEMP
 ifstreamT param('#', "opti.dat");
 double bound_0 = 0.5;
-int do_line_search = 1;
+int do_line_search = 0;
 if (param.is_open()) {
 	cout << "\n Reading parameters from \"" << param.filename() << "\"" << endl;
 	param >> do_line_search;
@@ -517,8 +517,8 @@ if (param.is_open()) {
 
 				/* store the solution */
 				last_bound = bound;
-				last_solution.CopyIn(0, constraint);
-				last_solution.CopyIn(num_eq_p, p_i);
+				last_solution.CopyIn(0, p_i);
+				last_solution.CopyIn(num_eq_p, constraint);
 
 				/* increase step size */
 				if (iter > 1 && iter < 4 && num_continuation > num_continuation_0)
@@ -552,8 +552,8 @@ if (param.is_open()) {
 				{
 					/* reset the solution */
 					bound = last_bound;
-					constraint.CopyPart(0, last_solution, 0, num_eq_p);
-					p_i.CopyPart(0, last_solution, num_eq_p, num_eq_L);				
+					p_i.CopyPart(0, last_solution, 0, num_eq_p);				
+					constraint.CopyPart(0, last_solution, num_eq_p, num_eq_L);
 				
 					/* more continuation steps */
 					num_continuation *= 2;
