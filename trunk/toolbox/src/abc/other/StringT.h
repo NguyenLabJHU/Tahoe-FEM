@@ -1,4 +1,4 @@
-/* $Id: StringT.h,v 1.3 2001-02-19 23:20:06 paklein Exp $ */
+/* $Id: StringT.h,v 1.4 2001-04-10 17:57:14 paklein Exp $ */
 /* created: paklein (08/01/1996)                                          */
 
 #ifndef _STRING_T_H_
@@ -38,6 +38,9 @@ public:
 
 	/* copy what fits into the current string length. returns new string length */
 	int CopyIn(const char* string);
+
+	/* make string empty */
+	void Clear(void);
 
 	/* in/equality operators */
 	int operator==(const StringT& rhs) const;
