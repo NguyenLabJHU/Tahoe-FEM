@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.10.2.3 2002-12-18 09:48:33 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.10.2.4 2002-12-19 03:10:48 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -285,8 +285,13 @@ protected:
 	/** communication manager */
 	CommManagerT& fCommManager;
 
-	/** fields */
+	/** \name fields */
+	/*@{*/
 	ArrayT<FieldT*> fFields;
+
+	/** ID for the field exchange obtained from NodeManagerT::fCommManager */
+	iArrayT fMessageID;
+	/*@}*/
 
 	/** \name history nodes information */
 	/*@{*/

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.18.2.5 2002-12-18 21:11:22 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.18.2.6 2002-12-19 03:10:48 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -347,37 +347,13 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 			/* assemble contribution from local solver */
 			fFields[i]->AssembleUpdate(update);
 		
-			/* gather external contribution - by field???? */
+			/* gather external contribution */
 			dArray2DT& update = fFields[i]->Update();
-			//something with the comm manager
+			fCommManager.AllGather(fMessageID[i], update);
 			
 			/* apply the update */
 			fFields[i]->ApplyUpdate();
 		}
-			
-
-	/* external nodes */
-#if 0
-	if (Size() > 1)
-		for (int i = 0; i < fFields.Length(); i++)
-		{
-			FieldT& field = *(fFields[i]);
-		
-			/* field data */
-			nControllerT& integrator = field.nController();
-			dArray2DT& update = field.ExternalUpdate();
-			iArray2DT& xeqnos = field.ExternalEquations();
-		
-			/* send update for outgoing */
-			fFEManager.SendExternalData(integrator.MappedCorrectorField(field));
-	
-			/* receive update for incoming */
-			fFEManager.RecvExternalData(update);
-
-			/* apply update - external nodes to be updated are marked with 1 */
-			integrator.MappedCorrector(field, fExNodes, xeqnos, update);
-		}
-#endif
 
 	/* update current configurations */
 	if (fCoordUpdate && fCoordUpdate->Group() == group)
@@ -1164,6 +1140,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 		/* initialize list */
 		fFields.Dimension(num_fields);
 		fFields = NULL;
+		fMessageID.Dimension(num_fields);
 		
 		/* loop over fields */
 		for (int i = 0; i < fFields.Length(); i++)
@@ -1227,6 +1204,9 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 
 			/* store */
 			fFields[index] = field;
+			
+			/* set up communication of field */
+			fMessageID[index] = fCommManager.Init_AllGather(fFields[index]->NumDOF());
 		}
 	}
 	else /* legacy code - a single predefined integrator */
@@ -1234,6 +1214,7 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 		/* just one */
 		fFields.Dimension(1);
 		fFields = NULL;
+		fMessageID.Dimension(1);
 		nControllerT* controller = fFEManager.nController(0);
 		if (!controller) throw ExceptionT::kGeneralFail;
 		
@@ -1315,6 +1296,9 @@ void NodeManagerT::EchoFields(ifstreamT& in, ostream& out)
 		
 		/* store */
 		fFields[0] = field;
+
+		/* set up communication of field */
+		fMessageID[0] = fCommManager.Init_AllGather(fFields[0]->NumDOF());
 	}
 }
 
