@@ -1,4 +1,4 @@
-/* $Id: PenaltySphereT.cpp,v 1.5 2002-10-20 22:49:27 paklein Exp $ */
+/* $Id: PenaltySphereT.cpp,v 1.6 2002-11-28 16:44:20 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #include "PenaltySphereT.h"
@@ -58,8 +58,10 @@ GlobalT::SystemTypeT PenaltySphereT::TangentType(void) const
 }
 
 /* tangent term */
-void PenaltySphereT::ApplyLHS(void)
+void PenaltySphereT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 {
+#pragma unused(sys_type)
+
 	double constK = 0.0;
 	int formK = fController->FormK(constK);
 	if (!formK) return;

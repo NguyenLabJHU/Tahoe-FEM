@@ -1,5 +1,5 @@
-/* $Id: MFPenaltySphereT.h,v 1.4 2002-07-05 22:28:30 paklein Exp $ */
-/* created: paklein (04/17/2000)                                          */
+/* $Id: MFPenaltySphereT.h,v 1.5 2002-11-28 16:44:20 paklein Exp $ */
+/* created: paklein (04/17/2000) */
 
 #ifndef _MF_PENALTY_SPHERE_T_H_
 #define _MF_PENALTY_SPHERE_T_H_

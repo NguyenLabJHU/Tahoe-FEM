@@ -1,4 +1,4 @@
-/* $Id: FBC_ControllerT.h,v 1.6 2002-11-14 17:06:46 paklein Exp $ */
+/* $Id: FBC_ControllerT.h,v 1.7 2002-11-28 16:44:20 paklein Exp $ */
 /* created: paklein (11/17/1997) */
 
 #ifndef _FBC_CONTROLLER_T_H_
@@ -64,9 +64,15 @@ public:
 	virtual void ReadRestart(istream& in);
 	virtual void WriteRestart(ostream& out) const;
 
-	/* apply force and tangent contributions */
-	virtual void ApplyLHS(void) = 0;
+	/** \name apply force and tangent contributions */
+	/*@{*/
+	/** tangent
+	 * \param sys_type "maximum" tangent type needed by the solver. The GlobalT::SystemTypeT
+	 *        enum is ordered by generality. The solver should indicate the most general
+	 *        system type that is actually needed. */
+	virtual void ApplyLHS(GlobalT::SystemTypeT sys_type) = 0;
 	virtual void ApplyRHS(void) = 0;
+	/*@}*/
 
 	/* initialize/finalize step */
 	virtual void InitStep(void) = 0;

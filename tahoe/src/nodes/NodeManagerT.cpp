@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.17 2002-11-28 01:12:54 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.18 2002-11-28 16:44:19 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -287,7 +287,7 @@ void NodeManagerT::InitStep(int group)
 }
 
 /* compute the nodal contribution to the tangent */
-void NodeManagerT::FormLHS(int group)
+void NodeManagerT::FormLHS(int group, GlobalT::SystemTypeT sys_type)
 {
 	int analysiscode = fFEManager.Analysis();
 
@@ -302,7 +302,7 @@ void NodeManagerT::FormLHS(int group)
 		FieldSupportT support(fFEManager);
 		for (int i = 0; i < fFields.Length(); i++)
 			if (fFields[i]->Group() == group)
-				fFields[i]->FormLHS(support);
+				fFields[i]->FormLHS(support, sys_type);
 	}
 }
 	

@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.cpp,v 1.7 2002-10-20 22:49:27 paklein Exp $ */
+/* $Id: PenaltyWallT.cpp,v 1.8 2002-11-28 16:44:20 paklein Exp $ */
 /* created: paklein (02/25/1997)                                          */
 
 #include "PenaltyWallT.h"
@@ -39,8 +39,9 @@ PenaltyWallT::PenaltyWallT(FEManagerT& fe_manager,
 }
 
 /* tangent */
-void PenaltyWallT::ApplyLHS(void)
+void PenaltyWallT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 {	
+#pragma unused(sys_type)
 #if 0
 	//TEMP
 	if (fmu > kSmall)

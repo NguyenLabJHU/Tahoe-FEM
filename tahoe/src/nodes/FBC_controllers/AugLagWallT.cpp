@@ -1,4 +1,4 @@
-/* $Id: AugLagWallT.cpp,v 1.7 2002-10-20 22:49:27 paklein Exp $ */
+/* $Id: AugLagWallT.cpp,v 1.8 2002-11-28 16:44:20 paklein Exp $ */
 #include "AugLagWallT.h"
 
 #include <iostream.h>
@@ -152,8 +152,10 @@ void AugLagWallT::ResetDOF(dArray2DT& DOF, int tag_set) const
 }
 
 /* tangent term */
-void AugLagWallT::ApplyLHS(void)
+void AugLagWallT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 {
+#pragma unused (sys_type)
+
 	/* time integration */
 	double constK = 0.0;
 	int formK = fController->FormK(constK);

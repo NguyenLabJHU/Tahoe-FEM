@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.5 2002-11-09 18:12:13 paklein Exp $ */
+/* $Id: FieldT.h,v 1.6 2002-11-28 16:44:19 paklein Exp $ */
 
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
@@ -101,11 +101,19 @@ public:
 	/** apply predictor to all degrees of freedom */
 	void InitStep(void);
 
-	/** assemble contributions to the residual */
-	void FormRHS(const FieldSupportT& support);
+	/** \name form tangent and force contributions */
+	/*@{*/
+	/** compute LHS-side matrix and assemble to solver.
+	 * \param support host information
+	 * \param sys_type "maximum" LHS matrix type needed by the solver. The GlobalT::SystemTypeT
+	 *        enum is ordered by generality. The solver should indicate the most general
+	 *        system type that is actually needed. */
+	void FormLHS(const FieldSupportT& support, GlobalT::SystemTypeT sys_type);
 
-	/** assemble contributions to the tangent */
-	void FormLHS(const FieldSupportT& support);
+	/** compute RHS-side, residual force vector and assemble to solver
+	 * \param support host information */
+	void FormRHS(const FieldSupportT& support);
+	/*@}*/
 
 	/** update the active degrees of freedom */
 	void Update(const dArrayT& update, int eq_start, int num_eq);

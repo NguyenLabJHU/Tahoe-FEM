@@ -1,4 +1,4 @@
-/* $Id: PenaltyWallT.h,v 1.6 2002-07-02 19:56:28 cjkimme Exp $ */
+/* $Id: PenaltyWallT.h,v 1.7 2002-11-28 16:44:20 paklein Exp $ */
 /* created: paklein (02/25/1997) */
 
 #ifndef _PENATLY_WALL_T_H_
@@ -13,6 +13,7 @@
 
 namespace Tahoe {
 
+/** flat rigid barrier enforced with a penalized constraint */
 class PenaltyWallT: public PenaltyRegionT
 {
 public:
@@ -27,8 +28,11 @@ public:
 	/* initialize data */
 	virtual void Initialize(void);
 
-	/* tangent */
-	virtual void ApplyLHS(void);
+	/** tangent
+	 * \param sys_type "maximum" tangent type needed by the solver. The GlobalT::SystemTypeT
+	 *        enum is ordered by generality. The solver should indicate the most general
+	 *        system type that is actually needed. */
+	virtual void ApplyLHS(GlobalT::SystemTypeT sys_type);
 
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: AugLagSphereT.cpp,v 1.7 2002-10-20 22:49:27 paklein Exp $ */
+/* $Id: AugLagSphereT.cpp,v 1.8 2002-11-28 16:44:20 paklein Exp $ */
 /* created: paklein (03/24/1999) */
 
 #include "AugLagSphereT.h"
@@ -141,8 +141,10 @@ void AugLagSphereT::ResetDOF(dArray2DT& DOF, int tag_set) const
 }
 
 /* tangent term */
-void AugLagSphereT::ApplyLHS(void)
+void AugLagSphereT::ApplyLHS(GlobalT::SystemTypeT sys_type)
 {
+#pragma unused(sys_type)
+
 	/* time integration */
 	double constK = 0.0;
 	int formK = fController->FormK(constK);

@@ -1,4 +1,4 @@
-/* $Id: PenaltySphereT.h,v 1.3 2002-07-02 19:56:28 cjkimme Exp $ */
+/* $Id: PenaltySphereT.h,v 1.4 2002-11-28 16:44:20 paklein Exp $ */
 /* created: paklein (04/30/1998) */
 
 #ifndef _PENATLY_SPHERE_T_H_
@@ -10,9 +10,9 @@
 /* direct members */
 #include "ElementMatrixT.h"
 
-
 namespace Tahoe {
 
+/** spherical rigid barrier enforced with a penalized constraint */
 class PenaltySphereT: public PenaltyRegionT
 {
 public:
@@ -30,8 +30,11 @@ public:
 	/* form of tangent matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
 
-	/* tangent term */
-	virtual void ApplyLHS(void);
+	/** tangent
+	 * \param sys_type "maximum" tangent type needed by the solver. The GlobalT::SystemTypeT
+	 *        enum is ordered by generality. The solver should indicate the most general
+	 *        system type that is actually needed. */
+	virtual void ApplyLHS(GlobalT::SystemTypeT sys_type);
 	
 protected:
 
