@@ -1,4 +1,4 @@
-/* $Id: ParticlePropertyT.h,v 1.1 2002-11-25 07:19:46 paklein Exp $ */
+/* $Id: ParticlePropertyT.h,v 1.2 2003-03-31 23:09:14 paklein Exp $ */
 #ifndef _PARTICLE_PROPERTY_T_H_
 #define _PARTICLE_PROPERTY_T_H_
 
@@ -10,6 +10,16 @@ namespace Tahoe {
 class ParticlePropertyT
 {
 public:
+
+	/** enum for particle property types */
+	enum TypeT {
+        kHarmonicPair = 0, /**< harmonic pair potential */
+    kLennardJonesPair = 1, /**< Jennard-Jones 6/12 pair potential */
+         kParadynPair = 2  /**< pair potential in Paradyn (EAM) format */
+	};
+	
+	/** stream extraction operator */
+	friend istream& operator>>(istream& in, ParticlePropertyT::TypeT& property);	
 
 	/** constructor */
 	ParticlePropertyT(void);
