@@ -1,4 +1,4 @@
-/* $Id: FE_ASCIIT.cpp,v 1.8 2002-02-18 08:59:17 paklein Exp $ */
+/* $Id: FE_ASCIIT.cpp,v 1.9 2002-03-02 19:40:28 paklein Exp $ */
 /* created: sawimme (05/20/1999) */
 
 #include "FE_ASCIIT.h"
@@ -325,17 +325,11 @@ void FE_ASCIIT::WriteOutputData(ostream& out, int ID, const dArray2DT& n_values,
 {
 	/* write node header */
 	out << "\n Nodal data:\n";	
-//	out << " Block number . . . .  . . . . . . . . . . . . . = " << fElementSets[ID]->ID() << '\n';
 	const ArrayT<StringT>& node_labels = fElementSets[ID]->NodeOutputLabels();
 
 	/* write node vars */
 	if (n_values.MajorDim () > 0)
 	{
-//NOTE do not divide nodal data by element blocks
-//			iArrayT nodes_used;
-//			dArray2DT blockvals;
-//			NodalBlockValues (ID, b, n_values, blockvals, nodes_used);
-
 		const iArrayT& nodes_used = fElementSets[ID]->NodesUsed();
 		WriteNodeHeader(out, nodes_used.Length(), node_labels);
 		WriteNodeValues(out, nodes_used, n_values);
