@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.h,v 1.1.1.1 2001-01-29 08:20:40 paklein Exp $ */
+/* $Id: K_FieldT.h,v 1.2 2001-07-03 01:35:46 paklein Exp $ */
 /* created: paklein (09/05/2000)                                          */
 
 #ifndef _K_FIELD_T_H_
@@ -51,6 +51,9 @@ public:
 	virtual void WriteOutput(ostream& out) const;
 
 protected:
+
+	/* determine the new tip coordinates */
+	void GetNewTipCoordinates(dArrayT& tip_coords);
 
 	/* resolve element info to isotropic material */
 	void ResolveMaterialReference(int element_group, int material_num,

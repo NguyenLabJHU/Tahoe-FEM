@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.8 2001-06-23 01:33:15 thao Exp $
+# $Id: makefile,v 1.9 2001-07-03 01:34:57 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -23,7 +23,6 @@ DEP = /dev/null
 SUB_DIR = \
 	ABAQUS_UMAT \
 	CB \
-	continuum \
 	EAM \
 	Hookean \
 	managers \

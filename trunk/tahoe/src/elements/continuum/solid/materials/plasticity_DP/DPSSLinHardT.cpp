@@ -1,4 +1,4 @@
-/* $Id: DPSSLinHardT.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: DPSSLinHardT.cpp,v 1.2 2001-07-03 01:35:30 paklein Exp $ */
 /* created: myip (06/01/1999)                                             */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -7,7 +7,7 @@
 #include "DPSSLinHardT.h"
 #include <iostream.h>
 #include <math.h>
-#include "ElasticT.h"
+
 #include "iArrayT.h"
 #include "ElementCardT.h"
 #include "StringT.h"

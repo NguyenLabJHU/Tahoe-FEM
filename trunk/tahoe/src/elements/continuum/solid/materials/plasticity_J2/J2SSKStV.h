@@ -1,4 +1,4 @@
-/* $Id: J2SSKStV.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: J2SSKStV.h,v 1.2 2001-07-03 01:35:31 paklein Exp $ */
 /* created: paklein (06/18/1997)                                          */
 
 #ifndef _J2_SS_KSTV_H_
@@ -6,19 +6,22 @@
 
 /* base classes */
 #include "SSStructMatT.h"
-#include "KStV.h"
+#include "IsotropicT.h"
 #include "HookeanMatT.h"
 #include "J2SSLinHardT.h"
 
 class J2SSKStV: public SSStructMatT,
-				public KStV,
+				public IsotropicT,
 				public HookeanMatT,
 				public J2SSLinHardT
 {
 public:
 
 	/* constructor */
-	J2SSKStV(ifstreamT& in, const ElasticT& element);
+	J2SSKStV(ifstreamT& in, const SmallStrainT& element);
+
+	/* initialization */
+	virtual void Initialize(void);
 
 	/* update internal variables */
 	virtual void UpdateHistory(void);
@@ -44,15 +47,17 @@ public:
 	virtual int NumOutputVariables(void) const;
 	virtual void OutputLabels(ArrayT<StringT>& labels) const;
 	virtual void ComputeOutput(dArrayT& output);
+
+protected:
+
+	/* set modulus */
+	virtual void SetModulus(dMatrixT& modulus);
 	 	 	
 private:
 
 	/* return values */
 	dSymMatrixT	fStress;
 	dMatrixT	fModulus;
-	
-	/* elastic modulus */
-	dMatrixT    fElasticModulus;
 };
 
 #endif /* _J2_SS_KSTV_H_ */

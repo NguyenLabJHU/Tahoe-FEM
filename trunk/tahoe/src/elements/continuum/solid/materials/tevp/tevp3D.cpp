@@ -1,13 +1,11 @@
-/* $Id: tevp3D.cpp,v 1.3 2001-07-03 00:47:23 hspark Exp $ */
+/* $Id: tevp3D.cpp,v 1.4 2001-07-03 01:35:45 paklein Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (06/25/2001) */
-/* Last Updated:  Harold Park (06/25/2001) */
 
 #include "tevp3D.h"
 #include <iostream.h>
 #include <math.h>
-#include "ElasticT.h"
-#include "ShapeFunctionT.h"
+#include "FiniteStrainT.h"
 #include "FEManagerT.h"
 #include "ElementCardT.h"
 
@@ -21,7 +19,7 @@ static const char* Labels[kNumOutput] = {
   "Eff._Stress"};   // effective stress
 
 /* constructor */
-tevp3D::tevp3D(ifstreamT& in, const ElasticT& element):
+tevp3D::tevp3D(ifstreamT& in, const FiniteStrainT& element):
   FDStructMatT(in, element),
   IsotropicT(in),
   /* initialize references */
@@ -29,7 +27,6 @@ tevp3D::tevp3D(ifstreamT& in, const ElasticT& element):
   fDt(ContinuumElement().FEManager().TimeStep()),
   fStress(3),
   fModulus(kVoigt),
-  fShapes(element.ShapeFunction()),
   fLocVel(element.Velocities()),
   fLocDisp(element.Displacements()),
 
@@ -322,7 +319,7 @@ void tevp3D::ComputeD(void)
   dSymMatrixT* smalld = &fDtot;
   dSymMatrixT tempd(3);
   dMatrixT yada(3);
-  fShapes.GradU(fLocVel, fGradV);
+  FiniteStrain().ComputeGradient(fLocVel, fGradV);  
   yada.MultAB(fGradV, fF_temp, 0);
   (*smalld) = tempd.Symmetrize(yada);
 }
@@ -331,7 +328,7 @@ dMatrixT& tevp3D::ComputeSpin(void)
 {
   /* Compute the spin tensor */
   fSpin = 0.0;
-  fShapes.GradU(fLocVel, fGradV);
+  FiniteStrain().ComputeGradient(fLocVel, fGradV);
   dMatrixT yada(3);
   yada.MultAB(fGradV, fF_temp, 0);
   double temp1 = .5 * (yada(0,1) - yada(1,0));

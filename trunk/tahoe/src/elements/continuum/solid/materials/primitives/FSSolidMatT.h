@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.2 2001-07-03 01:35:41 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 /* Defines the interface large strain materials which account             */
 /* for thermal strains with the multiplicative split:                     */
@@ -10,84 +10,108 @@
 #define _FD_STRUCT_MAT_T_H_
 
 /* base class */
-#include "FDContinuumT.h"
 #include "StructuralMaterialT.h"
+#include "TensorTransformT.h"
 
 /* forward declarations */
-class ShapeFunctionT;
+class FiniteStrainT;
 
-class FSSolidMatT: protected FDContinuumT, public StructuralMaterialT
+/** base class for finite deformation constitutive models */
+class FSSolidMatT: public StructuralMaterialT, protected TensorTransformT
 {
 public:
 
-	/* constructor */
-	FSSolidMatT(ifstreamT& in, const ElasticT& element);
+	/** constructor */
+	FSSolidMatT(ifstreamT& in, const FiniteStrainT& element);
 
-	/* I/O functions */
+	/** write name to output stream */
 	virtual void PrintName(ostream& out) const;
 
-	/* required parameter flags */
-	virtual bool NeedDisp(void) const;
-
-	/* the shape functions */
-	const ShapeFunctionT& ShapeFunction(void) const;
-
-	/* initialization */
+	/** initialization. call immediately after constructor */
 	virtual void Initialize(void);
-
-	/* strains/deformation measures */
-	const dMatrixT& F(void); // deformation gradient
-	const dMatrixT& F(const LocalArrayT& disp); 	
-	const dSymMatrixT& C(void); // right stretch
-	const dSymMatrixT& b(void); // left stretch
-	const dSymMatrixT& E(void); // Green-Lagrange strain
 	
-	/* general spatial gradients */
-
-	/* Test for localization using "current" values for Cauchy
-	 * stress and the spatial tangent moduli. Returns 1 if the
-	 * determinant of the acoustic tensor is negative and returns
-	 * the normal for which the determinant is minimum. Returns 0
-	 * of the determinant is positive. */
+	/** test for localization. check for bifurvation using current
+	 * Cauchy stress and the spatial tangent moduli.
+	 * \param normal orientation of the localization if localized
+	 * \return 1 if the determinant of the acoustical tensor is negative
+	 * or 0 if the determinant is positive. */
 	virtual int IsLocalized(dArrayT& normal);
 
-	/* apply pre-conditions at the current time step: compute
-	 * thermal dilatation correction */
+	/** initialize step. compute thermal dilatation */
 	virtual void InitStep(void);
+
+	/** required parameter flags */
+	virtual bool Need_F(void) const { return true; };
+	virtual bool Need_F_last(void) const { return false; };
+
+	/** deformation gradient */
+	const dMatrixT& F(void) const; 
+
+	/** deformation gradient at the given integration point */
+	const dMatrixT& F(int ip) const; 
+
+	/** deformation gradient from end of previous step */
+	const dMatrixT& F_last(void) const; 
+
+	/** deformation gradient at the given integration point 
+	 * from end of previous step */
+	const dMatrixT& F_last(int ip) const; 
 	
 protected:
 
-	/* return the acoustical tensor and wave speeds */
+	/** left stretch tensor. \param b return value */
+	void Compute_b(dSymMatrixT& b) const;
+
+	/** right stretch tensor. \param C return value */
+	void Compute_C(dSymMatrixT& C) const;
+
+	/** Green-Lagrangian strain. \param E return value */
+	void Compute_E(dSymMatrixT& E) const;
+
+	/** acoustical tensor.
+	 * \param normal wave propagation direction
+	 * \return acoustical tensor */
 	virtual const dSymMatrixT& AcousticalTensor(const dArrayT& normal);
+
+	/** finite strain element group.
+	 * allows access to all const functions of the finite strain element
+	 * class that are not currently supported with wrappers.
+	 * \return a const reference to the supporting element group */
+	const FiniteStrainT& FiniteStrain(void) const { return fFiniteStrain; }
 
 private:
 
 	/* set inverse of thermal transformation - return true if active */
 	virtual bool SetInverseThermalTransformation(dMatrixT& F_trans_inv);
 
-	/* acoustical tensor routines */
+	/** compute acoustical tensor in 2D.
+	 * \param CIJKL material tangent modulus
+	 * \param SIJ 2nd Piola-Kirchhoff stress 
+	 * \param FkK deformation gradient
+	 * \param N wave propogation direction
+	 * \param Q resulting acoustical tensor */
 	void ComputeQ_2D(const dMatrixT& CIJKL, const dSymMatrixT& SIJ,
 		const dMatrixT& FkK, const dArrayT& N, dSymMatrixT& Q) const;
+
+	/** compute acoustical tensor in 3D.
+	 * \param CIJKL material tangent modulus
+	 * \param SIJ 2nd Piola-Kirchhoff stress 
+	 * \param FkK deformation gradient
+	 * \param N wave propogation direction
+	 * \param Q resulting acoustical tensor */
 	void ComputeQ_3D(const dMatrixT& CIJKL, const dSymMatrixT& SIJ,
 		const dMatrixT& FkK, const dArrayT& N, dSymMatrixT& Q) const;
 
 private:
 
-	/* shape functions */
-	const ShapeFunctionT& fShapes;
-	
-	/* nodal displacements */
-	const LocalArrayT& fLocDisp;
+	/** reference to finite deformation element group */
+	const FiniteStrainT& fFiniteStrain;
 
 	/* work space */
-	dSymMatrixT fQ;  // return value
-	dMatrixT fGradU; // displacement gradient matrix
+	dSymMatrixT fQ;  /**< return value */
 
 	/* multiplicative thermal dilatation F */
 	dMatrixT fFtherminverse;		
 };
-
-/* inlines */
-inline const ShapeFunctionT& FSSolidMatT::ShapeFunction(void) const { return fShapes; }
 
 #endif /* _FD_STRUCT_MAT_T_H_ */

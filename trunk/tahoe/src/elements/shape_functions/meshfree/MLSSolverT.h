@@ -1,4 +1,4 @@
-/* $Id: MLSSolverT.h,v 1.2 2001-06-19 23:22:03 paklein Exp $ */
+/* $Id: MLSSolverT.h,v 1.3 2001-07-03 01:35:49 paklein Exp $ */
 /* created: paklein (12/08/1999)                                          */
 /* base class for moving least squares, interpolants                      */
 

@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.4 2001-02-22 23:46:28 paklein Exp $
+# $Id: makefile,v 1.5 2001-07-03 01:35:11 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -7,7 +7,6 @@ include $(MACRO_DIR)/$(ARCH).macros
 # objects
 OBJ = \
 	FDKStV2D.o \
-	KStV2D.o \
 	SSKStV2D.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -18,13 +17,11 @@ DEP = $(OBJ:.o=.d)
 # sources
 SRC = \
 	FDKStV2D.cpp \
-	KStV2D.cpp \
 	SSKStV2D.cpp
 
 # headers
 HDR = \
 	FDKStV2D.h \
-	KStV2D.h \
 	SSKStV2D.h
 HDR_LINK = $(HDR:.h=.h_link)
 

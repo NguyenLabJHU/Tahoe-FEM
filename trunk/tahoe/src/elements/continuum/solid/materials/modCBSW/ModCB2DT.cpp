@@ -1,4 +1,4 @@
-/* $Id: ModCB2DT.cpp,v 1.2 2001-04-27 10:54:33 paklein Exp $ */
+/* $Id: ModCB2DT.cpp,v 1.3 2001-07-03 01:35:29 paklein Exp $ */
 /* created: paklein (05/31/1997)                                          */
 
 #include "ModCB2DT.h"
@@ -19,7 +19,7 @@ const double sqrt2 = sqrt(2.0);
 const double sqrt3 = sqrt(3.0);
 
 /* constructor */
-ModCB2DT::ModCB2DT(ifstreamT& in, const ElasticT& element, bool equilibrate, 
+ModCB2DT::ModCB2DT(ifstreamT& in, const FiniteStrainT& element, bool equilibrate, 
 	PlaneCodeT plane_code):
 	NL_E_Mat2DT(in, element, kPlaneStrain),
 	fPlaneCode(plane_code),

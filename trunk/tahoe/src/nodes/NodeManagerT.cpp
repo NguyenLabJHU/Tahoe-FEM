@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.2 2001-06-29 23:51:41 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.3 2001-07-03 01:35:46 paklein Exp $ */
 /* created: paklein (05/23/1996)                                          */
 /* Field variables plus averging                                          */
 

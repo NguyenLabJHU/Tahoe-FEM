@@ -1,32 +1,41 @@
-/* $Id: SSCubic2DT.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: SSCubic2DT.cpp,v 1.2 2001-07-03 01:35:08 paklein Exp $ */
 /* created: paklein (06/11/1997)                                          */
 
 #include "SSCubic2DT.h"
 #include "ThermalDilatationT.h"
 
 /* constructor */
-SSCubic2DT::SSCubic2DT(ifstreamT& in, const ElasticT& element):
-	SSHookeanMatT(in, element),
-	Cubic2DT(in, fModulus, fDensity)
+SSCubic2DT::SSCubic2DT(ifstreamT& in, const SmallStrainT& element):
+	SSCubicT(in, element),
+	Anisotropic2DT(in),
+	Material2DT(in)
 {
-	/* transform moduli into global coords */
-	TransformOut(fModulus);
+	/* account for thickness */
+	fDensity *= fThickness;
 }
 
 /* print parameters */
 void SSCubic2DT::Print(ostream& out) const
 {
 	/* inherited */
-	SSHookeanMatT::Print(out);
-	Cubic2DT::Print(out);
+	SSCubicT::Print(out);
+	Anisotropic2DT::Print(out);
+	Material2DT::Print(out);
 }
 
-/* print name */
-void SSCubic2DT::PrintName(ostream& out) const
+/*************************************************************************
+* Protected
+*************************************************************************/
+
+/* set (material) tangent modulus */
+void SSCubic2DT::SetModulus(dMatrixT& modulus)
 {
-	/* inherited */
-	SSHookeanMatT::PrintName(out);
-	Cubic2DT::PrintName(out);
+	/* compute modulus in crystal coordinates */
+	CubicT::ComputeModuli2D(modulus, fConstraintOption);
+	modulus *= fThickness;
+	
+	/* transform modulus into global coords */
+	TransformOut(modulus);
 }
 
 /*************************************************************************
@@ -39,7 +48,7 @@ bool SSCubic2DT::SetThermalStrain(dSymMatrixT& thermal_strain)
 	thermal_strain = 0.0;
 	if (fThermal->IsActive())
 	{
-		double factor = DilatationFactor();
+		double factor = CubicT::DilatationFactor2D(fConstraintOption);
 		thermal_strain.PlusIdentity(factor*fThermal->PercentElongation());
 		return true;
 	}

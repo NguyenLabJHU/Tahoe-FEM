@@ -1,4 +1,4 @@
-/* $Id: SSHookeanMatT.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: SSHookeanMatT.h,v 1.2 2001-07-03 01:35:05 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #ifndef _SS_HOOKEAN_MAT_H_
@@ -13,7 +13,10 @@ class SSHookeanMatT: public SSStructMatT, public HookeanMatT
 public:
 
 	/* constructor */
-	SSHookeanMatT(ifstreamT& in, const ElasticT& element);
+	SSHookeanMatT(ifstreamT& in, const SmallStrainT& element);
+
+	/* initialization */
+	virtual void Initialize(void);
 
 	/* spatial description */
 	virtual const dMatrixT& c_ijkl(void); // spatial tangent moduli
@@ -31,7 +34,6 @@ protected:
 
 	/* return values */
 	dSymMatrixT fStress;
-	dMatrixT fModulus;  	
 };
 
 #endif /* _SS_HOOKEAN_MAT_H_ */

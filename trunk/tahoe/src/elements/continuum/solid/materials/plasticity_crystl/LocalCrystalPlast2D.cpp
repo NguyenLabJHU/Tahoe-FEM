@@ -5,14 +5,12 @@
 #include "LocalCrystalPlast2D.h"
 #include "ElementCardT.h"
 #include "ifstreamT.h"
-
-#include "ElasticT.h"
 #include "FEManagerT.h"
 
 /* spatial dimensions of the problem */
 const int kNSD = 2;
 
-LocalCrystalPlast2D::LocalCrystalPlast2D(ifstreamT& in, const ElasticT& element) :
+LocalCrystalPlast2D::LocalCrystalPlast2D(ifstreamT& in, const FiniteStrainT& element) :
   LocalCrystalPlast (in, element),  
   Material2DT       (in, Material2DT::kPlaneStrain),
   f2Dsavg_ij   (kNSD),
@@ -61,13 +59,4 @@ void LocalCrystalPlast2D::PrintName(ostream& out) const
 
   // output 2D case name
   out << "    Plane Strain\n";
-}
-
-const dMatrixT& LocalCrystalPlast2D::DeformationGradient(const LocalArrayT& disp)
-{ 
-  // expand total deformation gradient: 2D -> 3D (plane strain)
-  fmatx1.Rank2ExpandFrom2D(F(disp));    // fFtot or fFtot_n
-  fmatx1(2, 2) = 1.;
-
-  return fmatx1;
 }

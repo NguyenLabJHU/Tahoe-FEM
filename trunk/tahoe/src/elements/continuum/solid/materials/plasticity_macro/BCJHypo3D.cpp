@@ -1,3 +1,4 @@
+/* $Id: BCJHypo3D.cpp,v 1.5 2001-07-03 01:35:38 paklein Exp $ */
 /*
   File: BCJHypo3D.cpp
 */
@@ -9,7 +10,7 @@
 #include "Utils.h"
 #include "BCJKineticEqn.h"
 
-#include "ElasticT.h"
+#include "ContinuumElementT.h"
 #include "FEManagerT.h"
 
 const double sqrt32 = sqrt(3.0/2.0);
@@ -32,7 +33,7 @@ const int kNumOutput = 6;
 static const char* Labels[kNumOutput] = {"EQP_strain","VMises-Xi",
   "Pressure","Iters","Sigma_33","VMises"};
 
-BCJHypo3D::BCJHypo3D(ifstreamT& in, const ElasticT& element) :
+BCJHypo3D::BCJHypo3D(ifstreamT& in, const FiniteStrainT& element) :
   EVPFDBaseT(in, element),  
 
   // array for material parameters
@@ -153,9 +154,13 @@ const dSymMatrixT& BCJHypo3D::s_ij()
       // total deformation gradients
       // fFtot_n = fContinuumElement.FEManager().LastDeformationGradient();
       // fFtot = fContinuumElement.FEManager().DeformationGradient();
-      fFtot_n = DeformationGradient(fLocLastDisp);
-      fFtot   = DeformationGradient(fLocDisp);
+      // fFtot_n = DeformationGradient(fLocLastDisp);
+      //fFtot   = DeformationGradient(fLocDisp);
       //fFtot   = F();
+      
+      //compute 3D total deformation gradient
+      Compute_Ftot_3D(fFtot);
+      Compute_Ftot_last_3D(fFtot_n);
 
       // compute state (stress and state variables)
       SolveState();
@@ -319,7 +324,7 @@ void BCJHypo3D::ComputeOutput(dArrayT& output)
   output[5] = sqrt(fsymmatx1.Deviatoric(fs_ij).ScalarProduct())*sqrt32;
 
   if (BCJ_MESSAGES && intpt == 0)
-     cerr << " step # " << fContinuumElement.FEManager().StepNumber()
+     cerr << " step # " << ContinuumElement().FEManager().StepNumber()
           << " EQP-strain  "  << output[0] 
           << " VM-stress   "  << output[1] 
           << " pressure    "  << output[2] 
@@ -492,7 +497,7 @@ void BCJHypo3D::SolveState()
     {
       // time step
       double tmp = (float)subIncr/(float)totSubIncrs;
-      fdt = fContinuumElement.FEManager().TimeStep() * tmp;
+      fdt = ContinuumElement().FEManager().TimeStep() * tmp;
 
       // relative deformation gradient for subincrement
       fFr.SetToCombination((1.-tmp), fI, tmp, fF);

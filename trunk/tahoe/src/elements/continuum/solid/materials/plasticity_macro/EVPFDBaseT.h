@@ -1,3 +1,4 @@
+/* $Id: EVPFDBaseT.h,v 1.3 2001-07-03 01:35:39 paklein Exp $ */
 /*
   File: EVPFDBaseT.h
 */
@@ -26,7 +27,7 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
 {
  public:
   // constructor
-  EVPFDBaseT(ifstreamT& in, const ElasticT& element);
+  EVPFDBaseT(ifstreamT& in, const FiniteStrainT& element);
 
   // destructor
   virtual ~EVPFDBaseT();
@@ -37,6 +38,9 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
 
   // required parameter flag
   virtual bool NeedLastDisp() const;
+  
+  	/** required parameter flags */
+	virtual bool Need_F_last(void) const { return true; };
 
   // PVFs defined in derived classes 
   virtual void SetKineticEquation() = 0;
@@ -55,6 +59,10 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
   virtual void Print(ostream& out) const;
 
  protected:
+
+	/* set (material) tangent modulus */
+	virtual void SetModulus(dMatrixT& modulus);
+
   // print name
   virtual void PrintName(ostream& out) const;
 
@@ -64,8 +72,11 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
   // allocate all elements at once
   void AllocateElements();
 
-  // deformation gradient
-  virtual const dMatrixT& DeformationGradient(const LocalArrayT& disp);
+	// function to compute 3D deformation regardless of dimensionality of the
+	// problem. For 2D, the out-of-plane direction is x3 and the deformation
+	// is assumed to be plane strain
+	void Compute_Ftot_3D(dMatrixT& F_3D) const;	
+	void Compute_Ftot_last_3D(dMatrixT& F_3D) const;	
 
  private:
   // solver for nonlinear constitutive equations
@@ -108,7 +119,7 @@ class EVPFDBaseT : public FDHookeanMatT, public IsotropicT
   // handle to NLCSolver
   NLCSolverWrapperPtr fSolverPtr;
 
-  // total deformation gradient
+  // 3D total deformation gradient
   dMatrixT fFtot;
 
   // Cauchy stress

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeSupport3DT.cpp,v 1.2 2001-06-19 23:22:03 paklein Exp $ */
+/* $Id: MeshFreeSupport3DT.cpp,v 1.3 2001-07-03 01:35:50 paklein Exp $ */
 /* created: paklein (09/13/1998)                                          */
 /* MLS shape function support for 3D                                      */
 

@@ -1,33 +1,25 @@
-/* $Id: J2Simo2D.cpp,v 1.3 2001-06-04 23:40:18 paklein Exp $ */
+/* $Id: J2Simo2D.cpp,v 1.4 2001-07-03 01:35:32 paklein Exp $ */
 /* created: paklein (06/22/1997)                                          */
 
 #include "J2Simo2D.h"
-#include "ElasticT.h"
+#include "StringT.h"
 #include "ElementCardT.h"
 
 /* constants */
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* constructor */
-J2Simo2D::J2Simo2D(ifstreamT& in, const ElasticT& element):
+J2Simo2D::J2Simo2D(ifstreamT& in, const FiniteStrainT& element):
 	SimoIso2D(in, element),
 //	J2SimoLinHardT(in, NumIP(), Mu()),
 	J2SimoC0HardeningT(in, NumIP(), Mu()),
-	fLocLastDisp(element.LastDisplacements()),
-	fRelDisp(LocalArrayT::kDisp, fLocLastDisp.NumberOfNodes(), fLocLastDisp.MinorDim()),
 	fFtot(3),
 	ffrel(3),
 	fF_temp(2),
 	fFtot_2D(2),
 	ffrel_2D(2)	
 {
-	/* check last displacements */
-	if (!fLocLastDisp.IsRegistered() ||
-		 fLocLastDisp.MinorDim() != NumDOF())
-	{
-		cout << "\n J2Simo2D::J2Simo2D: last local displacement vector is invalid" << endl;
-		throw eGeneralFail;
-	}
+
 }
 
 /* form of tangent matrix (symmetric by default) */
@@ -127,9 +119,6 @@ double J2Simo2D::StrainEnergyDensity(void)
 	return fThickness*ComputeEnergy(J, b_els);
 }
 
-/* required parameter flags */
-bool J2Simo2D::NeedLastDisp(void) const { return true; }
-
 /** returns the number of output variables */
 int J2Simo2D::NumOutputVariables(void) const { return 4; }
 
@@ -228,7 +217,7 @@ void J2Simo2D::ComputeGradients(void)
 {
 	/* compute relative deformation gradient */
 	fFtot_2D = F();
-	fF_temp.Inverse( F(fLocLastDisp) );
+	fF_temp.Inverse(F_last());
 	ffrel_2D.MultAB(fFtot_2D,fF_temp);
 
 	/* 2D -> 3D */
@@ -237,5 +226,4 @@ void J2Simo2D::ComputeGradients(void)
 
 	ffrel.Rank2ExpandFrom2D(ffrel_2D);
 	ffrel(2,2) = 1.0;
-	
 }

@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden2DT.h,v 1.1 2001-02-20 00:26:51 paklein Exp $ */
+/* $Id: QuadLogOgden2DT.h,v 1.2 2001-07-03 01:35:13 paklein Exp $ */
 /* created: paklein (02/18/2001)                                          */
 /* plane strain QuadLog with Ogden principal stretch formulation          */
 
@@ -14,7 +14,7 @@ class QuadLogOgden2DT: public OgdenIsotropicT, public Material2DT
 public:
 
 	/* constructor */
-	QuadLogOgden2DT(ifstreamT& in, const ElasticT& element);
+	QuadLogOgden2DT(ifstreamT& in, const FiniteStrainT& element);
 
 	/* print parameters */
 	virtual void PrintName(ostream& out) const;

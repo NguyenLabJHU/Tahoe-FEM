@@ -1,4 +1,4 @@
-/* $Id: J2SimoLinHardT.cpp,v 1.4 2001-06-04 23:40:18 paklein Exp $ */
+/* $Id: J2SimoLinHardT.cpp,v 1.5 2001-07-03 01:35:33 paklein Exp $ */
 /* created: paklein (06/19/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -12,8 +12,6 @@
 
 #include <iostream.h>
 #include <math.h>
-
-#include "ElasticT.h"
 #include "iArrayT.h"
 #include "ElementCardT.h"
 

@@ -1,4 +1,4 @@
-/* $Id: LJTr2D.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: LJTr2D.cpp,v 1.2 2001-07-03 01:34:59 paklein Exp $ */
 /* created: paklein (07/01/1996)                                          */
 
 #include "LJTr2D.h"
@@ -11,7 +11,7 @@
 const double sqrt3 = sqrt(3.0);
 
 /* constructor */
-LJTr2D::LJTr2D(ifstreamT& in, const ElasticT& element):
+LJTr2D::LJTr2D(ifstreamT& in, const FiniteStrainT& element):
 	NL_E_RotMat2DT(in, element, kPlaneStress),
 	fBondVectors(3,2)
 {

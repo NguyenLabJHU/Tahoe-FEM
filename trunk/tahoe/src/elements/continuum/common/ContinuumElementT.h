@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.h,v 1.3 2001-03-15 17:47:24 paklein Exp $ */
+/* $Id: ContinuumElementT.h,v 1.4 2001-07-03 01:34:49 paklein Exp $ */
 /* created: paklein (10/22/1996)                                          */
 /* Interface for a general continuum element type, meaning the presence   */
 /* of shape functions, and the implied presence of a continuum mechanics  */
@@ -21,24 +21,44 @@ class ShapeFunctionT;
 class Traction_CardT;
 class StringT;
 
+/** base class for elements using shape functions */
 class ContinuumElementT: public ElementBaseT
 {
 public:
-
-	/* constructor */
+	/** constructor.
+	 * \param fe_manager used for system parameters */
 	ContinuumElementT(FEManagerT& fe_manager);
 
-	/* destructor */
+	/** destructor */
 	virtual ~ContinuumElementT(void);
-	
-	/* accessors */
+		
+	/** number of element integration points */
 	int NumIP(void) const;
-	const int& CurrIP(void) const;
+	
+	/** reference to element shape functions */
 	const ShapeFunctionT& ShapeFunction(void) const;	
+
+	/** reference to the current integration point number */
+	const int& CurrIP(void) const;
+	
+	/** the coordinates of the current integration point */
+	void IP_Coords(dArrayT& ip_coords) const;
+
+	/** field gradients.
+	 * compute the gradient of the field at the current integration point 
+	 * \param field nodal values of the field 
+	 * \param gradient field gradient: [ndof] x [nsd] */
+	void IP_ComputeGradient(const LocalArrayT& field, dMatrixT& gradient) const;
+
+	/** element coordinates.
+	 * \return initial nodal coordinates of current element: [nen] x [nsd] */
 	const LocalArrayT& InitialCoordinates() const;
+	
+	/** element displacements.
+	 * \return nodal displacements of current element: [nen] x [ndof] */
 	const LocalArrayT& Displacements() const;
 
-	/* allocates space and reads connectivity data */
+	/** initialization. called immediately after constructor */
 	virtual void Initialize(void);
 
 	/* set element group for new global equations numbers */
@@ -174,32 +194,32 @@ protected:
 	int	fNumIP;
 	int fOutputID;
 
-	/* material data */
-	MaterialListT* fMaterialList; 	
-
+	/* materials */
+	MaterialListT* fMaterialList;  /**< list of materials */
+	
 	/* output control */
 	iArrayT	fNodalOutputCodes;
 	iArrayT	fElementOutputCodes;
 	  	
 	/* body force vector */
-	int	    fBodyForceLTf;
-	dArrayT fBody;	  	
+	int	    fBodyForceLTf; /**< body force schedule */
+	dArrayT fBody;	  	   /**< body force vector   */
 
 	/* traction data */
 	ArrayT<Traction_CardT> fTractionList;
 	int fTractionBCSet;
 
-	/* shape functions */
+	/** shape functions */
 	ShapeFunctionT* fShapes;
 	
 	/* arrays with local ordering */
-	LocalArrayT	fLocInitCoords;	// initial coords with local ordering
-	LocalArrayT fLocDisp;	    // displacements with local ordering
+	LocalArrayT	fLocInitCoords;	/**< initial coords with local ordering */
+	LocalArrayT fLocDisp;	    /**< displacements with local ordering  */ 
 	
 	/* work space */
-	dArrayT fNEEvec; // [element DOF]
-	dArrayT fDOFvec; // [nodal DOF]
-	dArrayT fNSDvec; // [nodal dim]
+	dArrayT fNEEvec; /**< work space vector: [element DOF] */
+	dArrayT fDOFvec; /**< work space vector: [nodal DOF]   */
+	dArrayT fNSDvec; /**< work space vector: [nodal dim]   */
 };
 
 /* inlines */
@@ -213,7 +233,13 @@ inline int ContinuumElementT::NumIP(void) const { return fNumIP; }
 
 inline const ShapeFunctionT& ContinuumElementT::ShapeFunction(void) const
 {
-	if (!fShapes) throw eGeneralFail;
+#if __option(extended_errorcheck)
+	if (!fShapes)
+	{
+		cout << "\n ContinuumElementT::ShapeFunction: no shape functions" << endl;
+		throw eGeneralFail;
+	}
+#endif
 	return *fShapes;
 }
 

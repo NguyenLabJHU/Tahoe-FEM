@@ -1,4 +1,4 @@
-/* $Id: QuadLog2D.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: QuadLog2D.cpp,v 1.2 2001-07-03 01:35:14 paklein Exp $ */
 /* created: paklein (06/28/1997)                                          */
 /* (2D <-> 3D) translator for the QuadLog3D.                              */
 
@@ -7,11 +7,10 @@
 #include <iostream.h>
 
 /* constructor */
-QuadLog2D::QuadLog2D(ifstreamT& in, const ElasticT& element):
+QuadLog2D::QuadLog2D(ifstreamT& in, const FiniteStrainT& element):
 	QuadLog3D(in, element),
 	Material2DT(in, kPlaneStrain),
 	fb_2D(2),
-	fb_3D(3),
 	fStress2D(2),
 	fModulus2D(dSymMatrixT::NumValues(2))
 {
@@ -21,12 +20,15 @@ QuadLog2D::QuadLog2D(ifstreamT& in, const ElasticT& element):
 /* modulus */
 const dMatrixT& QuadLog2D::c_ijkl(void)
 {
+	/* deformation */
+	Compute_b(fb_2D);
+
 	/* Compute plane strain stretch */
-	fb_3D.ExpandFrom2D(b());
-	fb_3D(2,2) = 1.0; //out-of-plane stretch
+	fb.ExpandFrom2D(fb_2D);
+	fb(2,2) = 1.0; /* plane strain */
 	
 	/* 3D calculation */
-	ComputeModuli(fb_3D, fModulus);
+	ComputeModuli(fb, fModulus);
 
 	/* 3D -> 2D */
 	fModulus2D.Rank4ReduceFrom3D(fModulus);
@@ -38,12 +40,15 @@ const dMatrixT& QuadLog2D::c_ijkl(void)
 /* stresses */
 const dSymMatrixT& QuadLog2D::s_ij(void)
 {
+	/* deformation */
+	Compute_b(fb_2D);
+
 	/* Compute plane strain stretch */
-	fb_3D.ExpandFrom2D(b());
-	fb_3D(2,2) = 1.0; //out-of-plane stretch
+	fb.ExpandFrom2D(fb_2D);
+	fb(2,2) = 1.0; /* plane strain */
 	
 	/* 3D calculation */
-	ComputeCauchy(fb_3D, fStress);
+	ComputeCauchy(fb, fStress);
 
 	/* 3D -> 2D */
 	fStress2D.ReduceFrom3D(fStress);
@@ -55,14 +60,12 @@ const dSymMatrixT& QuadLog2D::s_ij(void)
 /* strain energy density */
 double QuadLog2D::StrainEnergyDensity(void)
 {
-	/* Compute plane strain stretch */
-	fb_3D.ExpandFrom2D(b());
-	fb_3D(2,2) = 1.0; //out-of-plane stretch
+	/* deformation */
+	Compute_b(fb_2D);
 
-	/* principal values - plane strain */
-	fb_2D.ReduceFrom3D(fb_3D);
+	/* principal values */
 	fb_2D.PrincipalValues(fEigs);
-	fEigs[2] = fb_3D(2,2); //only out-of-plane value
+	fEigs[2] = 1.0; /* plane strain */
 	
 	/* logarithmic stretches */
 	LogStretches(fEigs);

@@ -1,12 +1,12 @@
-/* $Id: SSKStV.cpp,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: SSKStV.cpp,v 1.2 2001-07-03 01:35:09 paklein Exp $ */
 /* created: paklein (06/10/1997)                                          */
 
 #include "SSKStV.h"
 
 /* constructor */
-SSKStV::SSKStV(ifstreamT& in, const ElasticT& element):
+SSKStV::SSKStV(ifstreamT& in, const SmallStrainT& element):
 	SSHookeanMatT(in, element),
-	KStV(in, fModulus)
+	IsotropicT(in)
 {
 
 }
@@ -16,17 +16,23 @@ void SSKStV::Print(ostream& out) const
 {
 	/* inherited */
 	SSHookeanMatT::Print(out);
-	KStV::Print(out);
+	IsotropicT::Print(out);
 }
-
-/*************************************************************************
-* Protected
-*************************************************************************/
 
 /* print name */
 void SSKStV::PrintName(ostream& out) const
 {
 	/* inherited */
 	SSHookeanMatT::PrintName(out);
-	KStV::PrintName(out);
+	out << "    Kirchhoff-St.Venant\n";
+}
+
+/*************************************************************************
+* Protected
+*************************************************************************/
+
+/* set (material) tangent modulus */
+void SSKStV::SetModulus(dMatrixT& modulus)
+{
+	IsotropicT::ComputeModuli(modulus);
 }

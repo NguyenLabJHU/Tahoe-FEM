@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.h,v 1.2 2001-04-27 10:53:29 paklein Exp $ */
+/* $Id: SolidMatList2DT.h,v 1.3 2001-07-03 01:35:28 paklein Exp $ */
 /* created: paklein (02/14/1997)                                          */
 
 #ifndef _MATLIST_2D_T_H_
@@ -10,6 +10,8 @@
 
 /* forward declaration */
 class ElasticT;
+class SmallStrainT;
+class FiniteStrainT;
 
 class SolidMatList2DT: public SolidMatListT, public MaterialT
 {
@@ -20,10 +22,18 @@ public:
 
 	/* read material data from the input stream */
 	virtual void ReadMaterialData(ifstreamT& in);
+
+private:
 	
+	/* errror messages */
+	void Error_no_small_strain(ostream& out, int matcode) const;
+	void Error_no_finite_strain(ostream& out, int matcode) const;
+
 private:
 
-	const ElasticT& fElementGroup;
+	const ElasticT&      fElementGroup;
+	const SmallStrainT*  fSmallStrain;
+	const FiniteStrainT* fFiniteStrain;
 };
 
 #endif /* _MATLIST_2D_T_H_ */

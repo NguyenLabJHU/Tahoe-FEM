@@ -1,3 +1,4 @@
+/* $Id: GradCrystalPlast.h,v 1.2 2001-07-03 01:35:34 paklein Exp $ */
 /*
   File: GradCrystalPlast.h
 */
@@ -15,7 +16,7 @@ class GradCrystalPlast : public LocalCrystalPlast
 {
  public:
   // constructor
-  GradCrystalPlast(ifstreamT& in, const ElasticT& element);
+  GradCrystalPlast(ifstreamT& in, const FiniteStrainT& element);
 
   // destructor
   ~GradCrystalPlast();
@@ -72,9 +73,6 @@ class GradCrystalPlast : public LocalCrystalPlast
 
   // inverse of incremental plastic deformation gradient
   virtual void DeltaFPInverse(const dArrayT& dgamma);
-
-  // deformation gradient
-  virtual const dMatrixT& DeformationGradient(const LocalArrayT& disp);
 
  private:
   // fetch crystal curvature and associated stress

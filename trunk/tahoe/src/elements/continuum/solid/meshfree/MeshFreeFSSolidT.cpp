@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.3 2001-06-19 23:22:02 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.4 2001-07-03 01:34:55 paklein Exp $ */
 /* created: paklein (09/16/1998)                                          */
 /* large deformation elasticity with MLS shapefunctions for the           */
 /* field (displacement) representation                                    */
@@ -30,7 +30,7 @@ const double Pi = acos(-1.0);
 
 /* constructor */
 MeshFreeFSSolidT::MeshFreeFSSolidT(FEManagerT& fe_manager):
-	TotLag_FSSolidT(fe_manager),
+	TotalLagrangianT(fe_manager),
 	MeshFreeFractureSupportT(fFEManager.Input()),
 	fB_wrap(10, fB),
 	fGradNa_wrap(10, fGradNa),
@@ -43,7 +43,7 @@ MeshFreeFSSolidT::MeshFreeFSSolidT(FEManagerT& fe_manager):
 void MeshFreeFSSolidT::Initialize(void)
 {
 	/* inherited */
-	TotLag_FSSolidT::Initialize();
+	TotalLagrangianT::Initialize();
 
 	/* free memory associated with "other" eqnos */
 	fEqnos.Free(); // is this OK ? can't be freed earlier b/c of
@@ -53,12 +53,12 @@ void MeshFreeFSSolidT::Initialize(void)
 	fLocGroup.Register(fLocDisp);     // ContinuumElementT
 	fLocGroup.Register(fLocVel);      // ContinuumElementT
 	fLocGroup.Register(fLocAcc);      // ContinuumElementT
-	fLocGroup.Register(fLocLastDisp); // TotLag_FSSolidT
+	fLocGroup.Register(fLocLastDisp); // TotalLagrangianT
 
 	/* register other variable length workspace */
 	fNEEArray.Register(fRHS);         // ElementBaseT
 	fNEEArray.Register(fNEEvec);      // ContinuumElementT
-	fNEEArray.Register(fTemp2);       // TotLag_FSSolidT
+	fNEEArray.Register(fTemp2);       // TotalLagrangianT
 	fNEEMatrix.Register(fLHS);        // ElementBaseT
 
 	/* dimension */
@@ -209,7 +209,7 @@ void MeshFreeFSSolidT::ConnectsU(AutoArrayT<const iArray2DT*>& connects_1,
 void MeshFreeFSSolidT::WriteOutput(IOBaseT::OutputModeT mode)
 {
 	/* inherited */
-	TotLag_FSSolidT::WriteOutput(mode);
+	TotalLagrangianT::WriteOutput(mode);
 
 //TEMP - crack path
 	if (mode == IOBaseT::kAtInc)
@@ -229,7 +229,7 @@ void MeshFreeFSSolidT::WriteOutput(IOBaseT::OutputModeT mode)
 GlobalT::RelaxCodeT MeshFreeFSSolidT::RelaxSystem(void)
 {
 	/* inherited */
-	GlobalT::RelaxCodeT relax = TotLag_FSSolidT::RelaxSystem();
+	GlobalT::RelaxCodeT relax = TotalLagrangianT::RelaxSystem();
 	if (HasActiveCracks())
 	{
 		/* check for crack growth */
@@ -307,7 +307,7 @@ void MeshFreeFSSolidT::ResetStep(void)
 void MeshFreeFSSolidT::PrintControlData(ostream& out) const
 {
 	/* inherited */
-	TotLag_FSSolidT::PrintControlData(out);
+	TotalLagrangianT::PrintControlData(out);
 	MeshFreeFractureSupportT::PrintControlData(out);
 }
 
@@ -365,7 +365,7 @@ void MeshFreeFSSolidT::ComputeOutput(const iArrayT& n_codes, dArray2DT& n_values
 	if (n_codes[iNodalDisp] == fNumDOF) SetNodalField(fNodes->Displacements());
 
 	/* inherited */
-	TotLag_FSSolidT::ComputeOutput(n_codes, n_values, e_codes, e_values);
+	TotalLagrangianT::ComputeOutput(n_codes, n_values, e_codes, e_values);
 
 	/* free work space memory */
 	if (n_codes[iNodalDisp] == fNumDOF) FreeNodalField();

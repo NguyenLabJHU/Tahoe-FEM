@@ -1,4 +1,4 @@
-/* $Id: EAMFCC3DMatT.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: EAMFCC3DMatT.cpp,v 1.2 2001-07-03 01:35:01 paklein Exp $ */
 /* created: paklein (10/25/1998)                                          */
 /* Plane strain EAM material                                              */
 
@@ -20,7 +20,7 @@ const double sqrt2 = sqrt(2.0);
 const double sqrt3 = sqrt(3.0);
 
 /* constructor */
-EAMFCC3DMatT::EAMFCC3DMatT(ifstreamT& in, const ElasticT& element):
+EAMFCC3DMatT::EAMFCC3DMatT(ifstreamT& in, const FiniteStrainT& element):
 	NL_E_MatT(in, element),
 	fEAM(NULL)
 {

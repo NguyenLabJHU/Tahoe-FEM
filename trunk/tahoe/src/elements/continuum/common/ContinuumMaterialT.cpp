@@ -1,9 +1,8 @@
-/* $Id: ContinuumMaterialT.cpp,v 1.2 2001-02-20 00:23:20 paklein Exp $ */
+/* $Id: ContinuumMaterialT.cpp,v 1.3 2001-07-03 01:35:40 paklein Exp $ */
 /* created: paklein (11/20/1996)                                          */
 
 #include "ContinuumMaterialT.h"
 #include "ContinuumElementT.h"
-#include "ShapeFunctionT.h"
 #include "ArrayT.h"
 #include "StringT.h"
 
@@ -11,6 +10,7 @@
 ContinuumMaterialT::ContinuumMaterialT(const ContinuumElementT& element):
 	fContinuumElement(element),
 	fNumDOF(element.NumDOF()),
+	fNumSD(element.NumSD()),
 	fNumIP(element.NumIP()),
 	fCurrIP(element.CurrIP())
 {

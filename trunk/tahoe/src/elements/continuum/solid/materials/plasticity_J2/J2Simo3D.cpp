@@ -1,32 +1,22 @@
-/* $Id: J2Simo3D.cpp,v 1.3 2001-06-04 23:40:18 paklein Exp $ */
+/* $Id: J2Simo3D.cpp,v 1.4 2001-07-03 01:35:33 paklein Exp $ */
 /* created: paklein (06/22/1997)                                          */
 
 #include "J2Simo3D.h"
-#include "ElasticT.h"
 #include "ElementCardT.h"
+#include "StringT.h"
 
 /* constants */
 const double sqrt23 = sqrt(2.0/3.0);
 
 /* constructor */
-J2Simo3D::J2Simo3D(ifstreamT& in, const ElasticT& element):
+J2Simo3D::J2Simo3D(ifstreamT& in, const FiniteStrainT& element):
 	SimoIso3D(in, element),
 //	J2SimoLinHardT(in, NumIP(), Mu()),
 	J2SimoC0HardeningT(in, NumIP(), Mu()),
-	fLocLastDisp(element.LastDisplacements()),
-	fRelDisp(LocalArrayT::kDisp, fLocLastDisp.NumberOfNodes(), fLocLastDisp.MinorDim()),
 	fFtot(3),
 	ffrel(3),
 	fF_temp(3)
 {
-	/* check last displacements */
-	if (!fLocLastDisp.IsRegistered() ||
-		 fLocLastDisp.MinorDim() != NumDOF())
-	{
-		cout << "\n J2Simo3D::J2Simo3D: last local displacement vector is invalid" << endl;
-		throw eGeneralFail;
-	}
-
 // with J2 from J2SimoLinHardT
 #if 0
 //TEMP - Kinematic hardening is not working correctly. The
@@ -130,9 +120,6 @@ double J2Simo3D::StrainEnergyDensity(void)
 	return ComputeEnergy(J, b_els);
 }
 
-/* required parameter flags */
-bool J2Simo3D::NeedLastDisp(void) const { return true; }
-
 /** returns the number of output variables */
 int J2Simo3D::NumOutputVariables(void) const { return 4; }
 
@@ -232,6 +219,6 @@ void J2Simo3D::ComputeGradients(void)
 	fFtot = F();
 
 	/* relative deformation gradient */
-	fF_temp.Inverse(F(fLocLastDisp));
+	fF_temp.Inverse(F_last());
 	ffrel.MultAB(fFtot,fF_temp);
 }

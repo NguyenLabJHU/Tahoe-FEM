@@ -1,3 +1,4 @@
+/* $Id: BCJHypo3D.h,v 1.2 2001-07-03 01:35:38 paklein Exp $ */
 /*
   File: BCJHypo3D.h
 */
@@ -23,7 +24,7 @@ class BCJHypo3D : public EVPFDBaseT
 {
  public:
   // constructor
-  BCJHypo3D(ifstreamT& in, const ElasticT& element);
+  BCJHypo3D(ifstreamT& in, const FiniteStrainT& element);
 
   // destructor
   ~BCJHypo3D();

@@ -1,4 +1,4 @@
-/* $Id: MeshFreeShapeFunctionT.h,v 1.2 2001-06-19 23:22:03 paklein Exp $ */
+/* $Id: MeshFreeShapeFunctionT.h,v 1.3 2001-07-03 01:35:50 paklein Exp $ */
 /* created: paklein (09/10/1998)                                          */
 /* MLS shape functions for the displacement interpolation - for           */
 /* small strain or total Lagrangian finite deformation. DO NOT            */

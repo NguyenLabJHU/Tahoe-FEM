@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BCJ.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: ABAQUS_BCJ.h,v 1.2 2001-07-03 01:34:58 paklein Exp $ */
 /* created: paklein (05/09/2000)                                          */
 
 #ifndef _ABAQUS_BCJ_H_
@@ -15,7 +15,7 @@ class ABAQUS_BCJ: public ABAQUS_UMAT_BaseT
 public:
 
 	/* constructor */
-	ABAQUS_BCJ(ifstreamT& in, const ElasticT& element);
+	ABAQUS_BCJ(ifstreamT& in, const FiniteStrainT& element);
 
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: OrthoMLSSolverT.h,v 1.2 2001-06-19 23:22:04 paklein Exp $ */
+/* $Id: OrthoMLSSolverT.h,v 1.3 2001-07-03 01:35:50 paklein Exp $ */
 /* created: paklein (07/03/1998)                                          */
 /* base class for orthogonal basis, moving least squares, interpolants    */
 /* (from Lu et al, Comp Meth App Mech Eng, 126, 1995, 131-153)            */

@@ -1,4 +1,4 @@
-/* $Id: IsoVIB3D.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: IsoVIB3D.h,v 1.2 2001-07-03 01:35:19 paklein Exp $ */
 /* created: paklein (03/15/1998)                                          */
 /* 3D Isotropic VIB solver using spectral decomposition formulation       */
 
@@ -20,7 +20,7 @@ class IsoVIB3D: public FDStructMatT, public VIB
 public:
 
 	/* constructor */
-	IsoVIB3D(ifstreamT& in, const ElasticT& element);
+	IsoVIB3D(ifstreamT& in, const FiniteStrainT& element);
 
 	/* destructor */
 	virtual ~IsoVIB3D(void);
@@ -63,11 +63,15 @@ protected:
 	
 private:
 
+	/* stretch */
+	dSymMatrixT fb;
+
 	/* integration point generator */
 	SpherePointsT*	fSphere;
 	
-	/* return value */
-	dMatrixT fModulus;
+	/* return values */
+	dMatrixT    fModulus;
+	dSymMatrixT fStress;
 };
 
 #endif /* _ISO_VIB_3D_H_ */

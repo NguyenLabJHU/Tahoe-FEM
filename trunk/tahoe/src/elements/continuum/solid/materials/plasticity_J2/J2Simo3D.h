@@ -1,4 +1,4 @@
-/* $Id: J2Simo3D.h,v 1.2 2001-05-05 19:28:34 paklein Exp $ */
+/* $Id: J2Simo3D.h,v 1.3 2001-07-03 01:35:33 paklein Exp $ */
 /* created: paklein (04/30/2001)                                          */
 
 #ifndef _J2_SIMO_3D_H_
@@ -18,7 +18,7 @@ class J2Simo3D: public SimoIso3D, public J2SimoC0HardeningT
 public:
 
 	/** constructor */
-	J2Simo3D(ifstreamT& in, const ElasticT& element);
+	J2Simo3D(ifstreamT& in, const FiniteStrainT& element);
 
 	/** form of tangent matrix (symmetric by default) */
 	virtual GlobalT::SystemTypeT TangentType(void) const;
@@ -43,7 +43,7 @@ public:
 	virtual double StrainEnergyDensity(void);
 	 	 	
 	/** required parameter flags */
-	virtual bool NeedLastDisp(void) const;
+	virtual bool Need_F_last(void) const { return true; };
 
 	/** returns the number of output variables */
 	virtual int NumOutputVariables(void) const;
@@ -60,10 +60,6 @@ private:
 	void ComputeGradients(void);
 
 private:
-
-	/* last converged disp - needed for f_relative */
-	const LocalArrayT& fLocLastDisp;
-	LocalArrayT	fRelDisp;
 
 	/* deformation gradients */
 	dMatrixT fFtot;

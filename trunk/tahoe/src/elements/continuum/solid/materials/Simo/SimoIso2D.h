@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: SimoIso2D.h,v 1.2 2001-07-03 01:35:14 paklein Exp $ */
 /* created: paklein (03/04/1997)                                          */
 /* (2D <-> 3D) translator for the SimoIso3D.                              */
 
@@ -14,7 +14,7 @@ class SimoIso2D: public SimoIso3D, public Material2DT
 public:
 
 	/* constructor */
-	SimoIso2D(ifstreamT& in, const ElasticT& element);
+	SimoIso2D(ifstreamT& in, const FiniteStrainT& element);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;
@@ -34,10 +34,9 @@ protected:
 	/* return values */
 	dSymMatrixT fStress2D;
 	dMatrixT    fModulus2D;
-		 	 	
-private:
-
-	dSymMatrixT fb_3D;
+	
+	/* workspace */
+	dSymMatrixT fb_2D;		 	 	
 };
 
 #endif /* _SIMO_ISO_2D_H_ */

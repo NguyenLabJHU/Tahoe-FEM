@@ -6,12 +6,10 @@
 #include "ifstreamT.h"
 #include "Utils.h"
 
-#include "ElasticT.h"
-
 /* spatial dimension of problem */
 const int kNSD = 2;
 
-BCJHypo2D::BCJHypo2D(ifstreamT& in, const ElasticT& element) :
+BCJHypo2D::BCJHypo2D(ifstreamT& in, const FiniteStrainT& element) :
   BCJHypo3D   (in, element),  
   Material2DT (in, Material2DT::kPlaneStrain),
   f2Ds_ij   (kNSD),
@@ -62,6 +60,7 @@ void BCJHypo2D::PrintName(ostream& out) const
   out << "    Plane Strain\n";
 }
 
+#if 0
 const dMatrixT& BCJHypo2D::DeformationGradient(const LocalArrayT& disp)
 {
   // expand total deformation gradient: 2D -> 3D (plane strain)
@@ -70,3 +69,4 @@ const dMatrixT& BCJHypo2D::DeformationGradient(const LocalArrayT& disp)
 
   return fmatx1;
 }
+#endif

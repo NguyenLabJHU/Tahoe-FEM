@@ -1,23 +1,28 @@
-/* $Id: SSCubic2DT.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: SSCubic2DT.h,v 1.2 2001-07-03 01:35:08 paklein Exp $ */
 /* created: paklein (06/11/97)                                            */
 
 #ifndef _SS_CUBIC_2D_T_H_
 #define _SS_CUBIC_2D_T_H_
 
 /* base classes */
-#include "SSHookeanMatT.h"
-#include "Cubic2DT.h"
+#include "SSCubicT.h"
+#include "Anisotropic2DT.h"
+#include "Material2DT.h"
 
-class SSCubic2DT: public SSHookeanMatT, public Cubic2DT
+class SSCubic2DT: public SSCubicT, public Anisotropic2DT, public Material2DT
 {
 public:
 
 	/* constructor */
-	SSCubic2DT(ifstreamT& in, const ElasticT& element);
+	SSCubic2DT(ifstreamT& in, const SmallStrainT& element);
 
 	/* print parameters */
 	virtual void Print(ostream& out) const;
-	virtual void PrintName(ostream& out) const;
+
+protected:
+
+	/* set modulus */
+	virtual void SetModulus(dMatrixT& modulus);
 
 private:
 

@@ -1,4 +1,4 @@
-/* $Id: VIB3D.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: VIB3D.h,v 1.2 2001-07-03 01:35:20 paklein Exp $ */
 /* created: paklein (04/20/1997)                                          */
 /* 3D isotropic VIB solver.                                               */
 
@@ -18,7 +18,7 @@ class VIB3D: public NL_E_MatT, public VIB_E_MatT
 public:
 
 	/* constructor */
-	VIB3D(ifstreamT& in, const ElasticT& element);
+	VIB3D(ifstreamT& in, const FiniteStrainT& element);
 
 	/* destructor */
 	~VIB3D(void);

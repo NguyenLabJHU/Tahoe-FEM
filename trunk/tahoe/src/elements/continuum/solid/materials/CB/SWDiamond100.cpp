@@ -1,4 +1,4 @@
-/* $Id: SWDiamond100.cpp,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: SWDiamond100.cpp,v 1.2 2001-07-03 01:34:59 paklein Exp $ */
 /* created: paklein (08/25/1996)                                          */
 
 #include "SWDiamond100.h"
@@ -6,7 +6,7 @@
 #include <iostream.h>
 
 /* constructor */
-SWDiamond100::SWDiamond100(ifstreamT& in, const ElasticT& element):
+SWDiamond100::SWDiamond100(ifstreamT& in, const FiniteStrainT& element):
 	SWMaterial2D(in, element)
 {
 

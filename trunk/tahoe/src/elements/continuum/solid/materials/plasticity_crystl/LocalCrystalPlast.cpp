@@ -1,3 +1,4 @@
+/* $Id: LocalCrystalPlast.cpp,v 1.3 2001-07-03 01:35:35 paklein Exp $ */
 /*
   File: LocalCrystalPlast.cpp
 */
@@ -15,8 +16,7 @@
 #include "ElementCardT.h"
 #include "ifstreamT.h"
 #include "Utils.h"
-
-#include "ElasticT.h"
+#include "ContinuumElementT.h"
 #include "FEManagerT.h"
 #include "SpectralDecompT.h"
 
@@ -29,7 +29,7 @@ const double sqrt23 = sqrt(2.0/3.0);
 const int kNumOutput = 3;
 static const char* Labels[kNumOutput] = {"VM_stress", "IterNewton", "IterState"};
 
-LocalCrystalPlast::LocalCrystalPlast(ifstreamT& in, const ElasticT& element) :
+LocalCrystalPlast::LocalCrystalPlast(ifstreamT& in, const FiniteStrainT& element) :
   PolyCrystalMatT(in, element),  
 
   // deformation gradient (continuation method)
@@ -182,8 +182,10 @@ const dSymMatrixT& LocalCrystalPlast::s_ij()
       // total deformation gradient
       // fFtot_n = fContinuumElement.FEManager().LastDeformationGradient();
       // fFtot = fContinuumElement.FEManager().DeformationGradient();
-      fFtot_n = DeformationGradient(fLocLastDisp); 
-      fFtot = DeformationGradient(fLocDisp);
+      //fFtot_n = DeformationGradient(fLocLastDisp); 
+      //fFtot = DeformationGradient(fLocDisp);
+      Compute_Ftot_last_3D(fFtot_n);
+      Compute_Ftot_3D(fFtot);
 
       for (int igrn = 0; igrn < fNumGrain; igrn++)
 	{
@@ -398,7 +400,7 @@ void LocalCrystalPlast::ComputeOutput(dArrayT& output)
   // cout << "    fsavg_ij = " << endl << fsavg_ij << endl;
   // cout << "    fAvgStress = " << endl << fAvgStress << endl;
   if (elem == (NumElements()-1) && intpt == (NumIP()-1))
-     cerr << " step # " << fContinuumElement.FEManager().StepNumber() 
+     cerr << " step # " << ContinuumElement().FEManager().StepNumber() 
           << "    S_eq_avg = " 
           << sqrt(fsymmatx1.Deviatoric(fAvgStress).ScalarProduct())/sqrt23 << endl; 
 
@@ -407,8 +409,8 @@ void LocalCrystalPlast::ComputeOutput(dArrayT& output)
   output[2] = fIterState;
 
   // compute texture of aggregate, if requested
-  const int& step = fContinuumElement.FEManager().StepNumber();
-  const int& nsteps = fContinuumElement.FEManager().NumberOfSteps();
+  const int& step = ContinuumElement().FEManager().StepNumber();
+  const int& nsteps = ContinuumElement().FEManager().NumberOfSteps();
 
   if (fmod(step, fODFOutInc) == 0 || step == nsteps)
     {
@@ -630,7 +632,7 @@ void LocalCrystalPlast::SolveCrystalState()
   for(;;)
     {
       // time step
-      fdt = fContinuumElement.FEManager().TimeStep() * (float)subIncr / (float)totSubIncrs;
+      fdt = ContinuumElement().FEManager().TimeStep() * (float)subIncr / (float)totSubIncrs;
 
       // deformation gradients
       fmatx1.SetToCombination(1., fFtot, -1., fFtot_n);
@@ -1269,12 +1271,53 @@ void LocalCrystalPlast::PolarDecomp()
 
   // rotation tensor
   fRe.MultAB(fFe, fmatx1); 
-*/
+*/  
 }
 
-const dMatrixT& LocalCrystalPlast::DeformationGradient(const LocalArrayT& disp)
-{ 
-  return F(disp); 
+// compute 3D deformation gradient
+void LocalCrystalPlast::Compute_Ftot_3D(dMatrixT& F_3D) const
+{
+	int nsd = NumSD();
+	if (nsd == 3)
+		F_3D =  F();
+	else if (nsd == 2)
+	{
+		// expand total deformation gradient: 2D -> 3D (plane strain)
+		F_3D.Rank2ExpandFrom2D(F());    // fFtot or fFtot_n
+		F_3D(2, 2) = 1.0;
+	}
+	else 
+		throw eGeneralFail;
+}
+
+void LocalCrystalPlast::Compute_Ftot_3D(dMatrixT& F_3D, int ip) const
+{
+	int nsd = NumSD();
+	if (nsd == 3)
+		F_3D =  F(ip);
+	else if (nsd == 2)
+	{
+		// expand total deformation gradient: 2D -> 3D (plane strain)
+		F_3D.Rank2ExpandFrom2D(F(ip));    // fFtot or fFtot_n
+		F_3D(2, 2) = 1.0;
+	}
+	else 
+		throw eGeneralFail;
+}
+
+void LocalCrystalPlast::Compute_Ftot_last_3D(dMatrixT& F_3D) const
+{
+	int nsd = NumSD();
+	if (nsd == 3)
+		F_3D =  F_last();
+	else if (nsd == 2)
+	{
+		// expand total deformation gradient: 2D -> 3D (plane strain)
+		F_3D.Rank2ExpandFrom2D(F_last());    // fFtot or fFtot_n
+		F_3D(2, 2) = 1.0;
+	}
+	else 
+		throw eGeneralFail;
 }
 
 void LocalCrystalPlast::Set_I_b_Tensor(const dSymMatrixT& b, dMatrixT& c)

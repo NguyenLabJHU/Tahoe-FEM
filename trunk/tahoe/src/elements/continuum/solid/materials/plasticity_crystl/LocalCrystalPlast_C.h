@@ -23,7 +23,7 @@ class LocalCrystalPlast_C : public LocalCrystalPlast
 {
  public:
   // constructor
-  LocalCrystalPlast_C(ifstreamT& in, const ElasticT& element);
+  LocalCrystalPlast_C(ifstreamT& in, const FiniteStrainT& element);
 
   // destructor
   ~LocalCrystalPlast_C();
@@ -58,7 +58,7 @@ class LocalCrystalPlast_C : public LocalCrystalPlast
   virtual void InitializeCrystalVariables();
 
   // deformation gradient
-  virtual const dMatrixT& DeformationGradient(const LocalArrayT& disp);
+	const dMatrixT& DeformationGradient(const LocalArrayT& disp);
 
   // deformation gradient at center of element
   const dMatrixT& DefGradientAtCenter(const LocalArrayT& disp);

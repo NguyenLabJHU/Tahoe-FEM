@@ -1,4 +1,4 @@
-/* $Id: DiffusionMaterialT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: DiffusionMaterialT.cpp,v 1.2 2001-07-03 01:35:41 paklein Exp $ */
 /* created: paklein (10/02/1999)                                          */
 
 #include "DiffusionMaterialT.h"
@@ -9,18 +9,17 @@
 #include "fstreamT.h"
 #include "dArrayT.h"
 #include "dSymMatrixT.h"
-#include "ShapeFunctionT.h"
+
 #include "LocalArrayT.h"
 #include "DiffusionT.h"
 
 /* constructor */
 DiffusionMaterialT::DiffusionMaterialT(ifstreamT& in, const DiffusionT& element):
 	ContinuumMaterialT(element),
-	fShapes(element.ShapeFunction()),
 	fLocDisp(element.Displacements()),
-	fConductivity(fShapes.NumSD()),
-	fT_x(1,fShapes.NumSD()),
-	fq_i(fShapes.NumSD())
+	fConductivity(NumSD()),
+	fT_x(1, NumSD()),
+	fq_i(NumSD())
 {
 	in >> fDensity;		 if (fDensity <= 0.0) throw eBadInputValue;
 	in >> fSpecificHeat; if (fDensity <= 0.0) throw eBadInputValue;
@@ -44,7 +43,7 @@ void DiffusionMaterialT::Print(ostream& out) const
 const dArrayT& DiffusionMaterialT::q_i(void)
 {
 	/* should be 1 row */
-	fShapes.GradU(fLocDisp, fT_x);
+	ContinuumElement().IP_ComputeGradient(fLocDisp, fT_x);
 	fConductivity.Multx(fT_x, fq_i);
 	return fq_i;
 }
