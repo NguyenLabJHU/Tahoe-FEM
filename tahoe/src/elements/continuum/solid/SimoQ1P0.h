@@ -1,4 +1,4 @@
-/* $Id: SimoQ1P0.h,v 1.2 2002-09-23 06:58:25 paklein Exp $ */
+/* $Id: SimoQ1P0.h,v 1.3 2002-10-05 20:10:45 paklein Exp $ */
 #ifndef _SIMO_Q1_P0_H_
 #define _SIMO_Q1_P0_H_
 
@@ -9,7 +9,11 @@ namespace Tahoe {
 
 /** finite strain, mixed element formulation.
  * Formulation due to Simo, Taylor, and Pister, CMAME \b 51, 
- * 177-208, 1985. \note current implementation does not
+ * 177-208, 1985. The element is formulated in three
+ * dimensions; however, both hexahedral and quadrilateral
+ * element geometries are allowed. In two dimensions, plane
+ * strain is assumed, i.e., the out-of-plane stretch is assumed
+ * to be unity. \note current implementation does not
  * implement the full consistent tangent. */
 class SimoQ1P0: public UpdatedLagrangianT
 {
@@ -48,12 +52,19 @@ protected:
 
 	/** calculate the internal force contribution ("-k*d") */
 	virtual void FormKd(double constK);
+
+	/** read materials data. For two dimensional problems, checks
+	 * that all materials are plane strain. */
+	virtual void ReadMaterialData(ifstreamT& in);	
 	
 private:
 
 	/** compute mean shape function gradient, H (reference volume), and
 	 * current element volume, equation (2.20) */
 	void SetMeanGradient(dArray2DT& mean_gradient, double& H, double& v) const;
+	
+	/** */
+	void bSp_bRq_to_KSqRp(const dMatrixT& b, dMatrixT& K) const;
 	
 protected:
 
@@ -68,11 +79,19 @@ protected:
 	/** flag to indicate SimoQ1P0::fElementVolume_last has been initialized */
 	bool fLastVolumeInit;
 	/*@}*/
+	
+	/** element pressure. Calculated during SimoQ1P0::FormKd. */
+	dArrayT fPressure;
 
 	/** \name work space */
 	/*@{*/
 	dArray2DT fMeanGradient; /**< mean gradient over element */
-	dMatrixT  fF_tmp;        /**< F workspace */
+	dMatrixT fF_tmp; /**< F workspace */
+	dMatrixT fNEEmat; /**< dimension of stiffness matrix */
+	dMatrixT fdiff_b;
+	dMatrixT fb_bar;
+	dMatrixT fb_sig;
+	dMatrixT fStressStiff2;
 	/*@}*/
 };
 
