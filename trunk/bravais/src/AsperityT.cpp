@@ -1,6 +1,6 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.22 2003-06-06 16:05:02 saubry Exp $ */
-#include "BoxT.h"
+/* $Id: AsperityT.cpp,v 1.1 2003-06-06 16:05:02 saubry Exp $ */
+#include "AsperityT.h"
 #include "VolumeT.h"
 
 #include <iostream>
@@ -14,7 +14,7 @@
 #include "dArray2DT.h"
 #include "CrystalLatticeT.h"
 
-BoxT::BoxT(int dim, dArray2DT len,
+AsperityT::AsperityT(int dim, dArray2DT len,
 	   dArrayT lattice_parameter,
 	   iArrayT which_sort) : VolumeT(dim) 
 {
@@ -44,10 +44,15 @@ BoxT::BoxT(int dim, dArray2DT len,
       length(i,0) = len(i,0);
       double dist = len(i,1)-len(i,0)+1;
       length(i,1) = len(i,0) + ncells[i]*lattice_parameter[i];
-    }  
+    }
+
+  cout << length;
+  cout << "\n";
+  cout << ncells;
+  cout << "\n";
 }
 
-BoxT::BoxT(int dim, iArrayT cel,
+AsperityT::AsperityT(int dim, iArrayT cel,
 	   dArrayT lattice_parameter,
 	   iArrayT which_sort) : VolumeT(dim) 
 {
@@ -68,7 +73,7 @@ BoxT::BoxT(int dim, iArrayT cel,
     }
 }
 
-BoxT::BoxT(const BoxT& source) : VolumeT(source.nSD) 
+AsperityT::AsperityT(const AsperityT& source) : VolumeT(source.nSD) 
 {
   ncells.Dimension(source.nSD);
   ncells = source.ncells;
@@ -95,8 +100,7 @@ BoxT::BoxT(const BoxT& source) : VolumeT(source.nSD)
   atom_connectivities = source.atom_connectivities;
 }
 
-
-void BoxT::CreateLattice(CrystalLatticeT* pcl) 
+void AsperityT::CreateLattice(CrystalLatticeT* pcl) 
 {
   int nlsd = pcl->GetNLSD();
   int nuca = pcl->GetNUCA();
@@ -159,7 +163,7 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
 
 
 
-void BoxT::CalculateType()
+void AsperityT::CalculateType()
 {
   atom_types.Dimension(nATOMS);
 
@@ -168,7 +172,7 @@ void BoxT::CalculateType()
 }
 
 
-void BoxT::SortLattice(CrystalLatticeT* pcl) 
+void AsperityT::SortLattice(CrystalLatticeT* pcl) 
 {
   int nlsd = pcl->GetNLSD();
   
@@ -326,7 +330,7 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
   atom_coord = new_coord;
 }
 
-void BoxT::CalculateBounds(iArrayT per,CrystalLatticeT* pcl)
+void AsperityT::CalculateBounds(iArrayT per,CrystalLatticeT* pcl)
 {
   const dArrayT& vLP = pcl->GetLatticeParameters();
 
@@ -354,7 +358,24 @@ void BoxT::CalculateBounds(iArrayT per,CrystalLatticeT* pcl)
 
 //////////////////// PRIVATE //////////////////////////////////
 
-int BoxT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat)
+void AsperityT::ComputeCircleParameters()
+{
+  double rx,rz,h0;
+
+  center.Dimension(nSD);  
+
+  h0 = length(nSD-1,0) + (length(nSD-1,1) - length(nSD-1,0))*0.5;
+  rx = (length(0,1)-length(0,0))*0.5;
+  rz = length(nSD-1,1)-h0;
+  radius = (rx*rx+rz*rz)*0.5/rz;
+
+  center[0] = length(0,0) + (length(0,1) - length(0,0))*0.5;
+  if(nSD == 3)
+    center[1] = length(1,0) + (length(1,1) - length(1,0))*0.5;
+  center[nSD-1] = h0 + radius;
+}
+
+int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat)
 {
   int nlsd = pcl->GetNLSD();
   int nuca = pcl->GetNUCA();
@@ -365,6 +386,10 @@ int BoxT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat
 
   double x,y,z;
   double eps = 1.e-6;
+
+
+  // Call circle parameters
+  ComputeCircleParameters();
 
   int natom= 0;
 
@@ -432,9 +457,16 @@ int BoxT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat
 		      y += (c[k] + vB(k,m))*vA(k,1);
 		      z += (c[k] + vB(k,m))*vA(k,2);
 		    }
-		  
+
+		  double r0 = x - center[0]; 
+		  double r1 = y - center[1]; 
+		  double r2 = z - center[2]; 
+		  double R = r0*r0 + r1*r1 + r2*r2;
+
+		  //cout << "p=" << p << " q= " << q << " r=" << r << "\n";
+
 		  if(x >= l00 && x <= l01 && y >= l10 && y <= l11 &&
-		     z >= l20 && z <= l21)
+		     z >= l20 && z <= l21 && R <= radius*radius)
 		    {
 		      (*temp_atom)(natom)[0] = x;
 		      (*temp_atom)(natom)[1] = y;
@@ -448,7 +480,7 @@ int BoxT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat
   return natom;
 }
 
-int BoxT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat)
+int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat)
 {
   int natom= 0;
 
@@ -519,7 +551,7 @@ int BoxT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,int temp_nat
 }
 
 
-dArray2DT BoxT::ComputeMinMax()
+dArray2DT AsperityT::ComputeMinMax()
 {
   dArray2DT minmax(nSD,2);
 
