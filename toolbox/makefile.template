@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.15 2004-01-02 01:23:26 paklein Exp $
+# $Id: makefile.template,v 1.16 2004-01-02 04:45:16 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -53,12 +53,13 @@ MOD_CFLAGS_F  =
 MOD_LFLAGS    =
 
 ##### expat XML parsing library
+#EXPAT_PREFIX   = /usr/local
 #EXPAT_DEFINES  = -D__EXPAT__
-#EXPAT_INC      = -I/usr/local/include
+#EXPAT_INC      = -I$(EXPAT_PREFIX)/include
 #EXPAT_CFLAGS   = $(EXPAT_INC) $(EXPAT_DEFINES)
 #EXPAT_LIB_NAME = expat
-#EXPAT_LIB      = /usr/local/lib/lib$(EXPAT_LIB_NAME).a
-#EXPAT_LFLAGS   = -L/usr/local/lib -l$(EXPAT_LIB_NAME)
+#EXPAT_LIB      = $(EXPAT_PREFIX)/lib/lib$(EXPAT_LIB_NAME).a
+#EXPAT_LFLAGS   = -L$(EXPAT_PREFIX)/lib -l$(EXPAT_LIB_NAME)
 
 ##### F2C 1.4.3
 #F2C_DIR      = $(HOME_DIR)/../f2c
