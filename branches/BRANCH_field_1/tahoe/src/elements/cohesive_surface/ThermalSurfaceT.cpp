@@ -1,4 +1,4 @@
-/* $Id: ThermalSurfaceT.cpp,v 1.1.2.2 2002-05-05 23:35:37 paklein Exp $ */
+/* $Id: ThermalSurfaceT.cpp,v 1.1.2.3 2002-05-07 07:26:59 paklein Exp $ */
 #include "ThermalSurfaceT.h"
 
 #include <math.h>
@@ -150,11 +150,24 @@ void ThermalSurfaceT::RHSDriver(void)
 
 	/* work space */
 	dArrayT gap(fLocCurrCoords.MinorDim());
-	dArrayT jump_Na;
+	dArrayT Na;
+
+	/* block info - needed for source terms */
+	int block_dex = 0;
+	const ElementBlockDataT* block_data = fBlockData.Pointer(block_dex);
+	const dArray2DT* block_source = Field().Source(block_data->ID());
+	int block_count = 0;
 	
 	Top();
 	while (NextElement())
 	{
+		/* reset block info */
+		if (block_count++ == block_data->Dimension()) {
+			block_data = fBlockData.Pointer(++block_dex);
+			block_source = Field().Source(block_data->ID());
+			block_count = 0;
+		}
+	
 		/* current element */
 		const ElementCardT& element = CurrentElement();
 	
@@ -192,11 +205,24 @@ void ThermalSurfaceT::RHSDriver(void)
 			double j = fShapes->Jacobian();
 			double w = fShapes->IPWeight();
 
-			/* integration point shape functions */
-			fShapes->JumpShapes(jump_Na);
+			/* integration point jump shape functions */
+			fShapes->JumpShapes(Na);
 			
 			/* accumulate */
-			fRHS.AddScaled(-j*w*constKd*K*temp_jump[0], jump_Na);
+			fRHS.AddScaled(-j*w*constKd*K*temp_jump[0], Na);
+			
+			/* temperature source */
+			if (block_source) {
+
+				/* integration point shape functions */
+				fShapes->Shapes(Na);
+			
+				/* incremental line source */
+				double d_heat = (*block_source)(CurrElementNumber(), fShapes->CurrIP());
+
+				/* accumulate - split heat half onto each face */
+				fRHS.AddScaled(0.5*j*w*constKd*d_heat, Na);			
+			}
 		}
 									
 		/* assemble */
