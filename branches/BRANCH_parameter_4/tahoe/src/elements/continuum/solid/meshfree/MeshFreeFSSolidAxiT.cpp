@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidAxiT.cpp,v 1.2.2.6 2004-07-12 16:06:27 paklein Exp $ */
+/* $Id: MeshFreeFSSolidAxiT.cpp,v 1.2.2.7 2004-07-13 19:03:28 paklein Exp $ */
 #include "MeshFreeFSSolidAxiT.h"
 
 #include <iostream.h>
@@ -33,6 +33,11 @@ MeshFreeFSSolidAxiT::MeshFreeFSSolidAxiT(const ElementSupportT& support):
 	fMFFractureSupport(NULL)
 {
 	SetName("large_strain_meshfree_axi");
+}
+
+/* destructor */
+MeshFreeFSSolidAxiT::~MeshFreeFSSolidAxiT(void) {
+	delete fMFFractureSupport;
 }
 
 /* append element equations numbers to the list */
