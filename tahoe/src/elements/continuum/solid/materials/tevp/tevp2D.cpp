@@ -1,4 +1,4 @@
-/* $Id: tevp2D.cpp,v 1.3 2001-05-01 19:03:10 hspark Exp $ */
+/* $Id: tevp2D.cpp,v 1.4 2001-05-02 01:22:14 paklein Exp $ */
 /* Implementation file for thermo-elasto-viscoplastic material subroutine */
 /* Created:  Harold Park (04/04/2001) */
 /* Last Updated:  Harold Park (05/01/2001) */
@@ -217,6 +217,10 @@ const dSymMatrixT& tevp2D::s_ij(void)
    * to Cauchy when necessary */
   /* Allocate all state variable space on first timestep, ie time = 0 */
   cout << "s_ij called" << endl;
+  const GlobalT::StateT& run_state = ContinuumElement().FEManager().RunState();
+  cout << "run state = " << run_state << '\n';	
+  int current_element = CurrElementNumber();
+  cout << "***************** current element number = " <<  current_element << '\n';
   int ip = CurrIP();
   cout << "CurrIP = " << ip << endl;
   ElementCardT& element = CurrentElement();
@@ -312,7 +316,8 @@ const dSymMatrixT& tevp2D::s_ij(void)
   }
 
   fStress.ReduceFrom3D(fStress3D);     // Take only 2D stress components
-  cout << "fStress = \n" << fStress << endl;
+  //cout << "fStress = \n" << fStress << endl;
+  cout << "fTempStress = \n" << fTempStress << endl;
   /* Compute the state variables / output variables */
   fInternal[kTemp] = ComputeTemperature(element, ip);
   fInternal[kSb] = ComputeEffectiveStress();
