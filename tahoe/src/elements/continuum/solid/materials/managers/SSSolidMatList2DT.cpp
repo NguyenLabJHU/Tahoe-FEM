@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatList2DT.cpp,v 1.1.2.5 2004-03-03 16:14:58 paklein Exp $ */
+/* $Id: SSSolidMatList2DT.cpp,v 1.1.2.6 2004-03-04 20:11:54 paklein Exp $ */
 #include "SSSolidMatList2DT.h"
 #include "SSMatSupportT.h"
 
@@ -374,7 +374,7 @@ SSSolidMatT* SSSolidMatList2DT::NewSSSolidMat(const StringT& list_name) const
 		mat = new SSKStV2D;
 
 	/* set support */
-	mat->SetSSMatSupport(fSSMatSupport);
+	if (mat) mat->SetSSMatSupport(fSSMatSupport);
 
 	return mat;
 }

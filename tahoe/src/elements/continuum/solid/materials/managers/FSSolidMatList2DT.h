@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.h,v 1.1.2.2 2004-03-03 16:14:58 paklein Exp $ */
+/* $Id: FSSolidMatList2DT.h,v 1.1.2.3 2004-03-04 20:11:54 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #ifndef _MATLIST_2D_T_H_
 #define _MATLIST_2D_T_H_
@@ -44,7 +44,7 @@ public:
 	/*@}*/
 
 	/** construct the specified material or NULL if the request cannot be completed */
-	FSSolidMatT* NewFSSolidMat(const StringT& list_name) const;
+	FSSolidMatT* NewFSSolidMat(const StringT& name) const;
 
 private:
 
