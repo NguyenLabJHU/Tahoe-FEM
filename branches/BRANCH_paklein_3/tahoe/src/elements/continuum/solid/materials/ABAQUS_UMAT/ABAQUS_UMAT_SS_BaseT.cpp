@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.1.2.2 2003-11-24 17:56:37 paklein Exp $ */
+/* $Id: ABAQUS_UMAT_SS_BaseT.cpp,v 1.1.2.3 2003-11-25 05:01:14 paklein Exp $ */
 #include "ABAQUS_UMAT_SS_BaseT.h"
 
 #ifdef __F2C__
@@ -217,7 +217,18 @@ const dMatrixT& ABAQUS_UMAT_SS_BaseT::c_ijkl(void)
 	Load(CurrentElement(), CurrIP());
 
 	int nsd = NumSD();
-	if (nsd != 2 && nsd != 3) ExceptionT::GeneralFail(caller);
+
+#if __option(extended_errorcheck)
+	if (nsd == 2) {
+		if (ntens != 4)	
+			ExceptionT::SizeMismatch(caller);
+	} else if (nsd == 3) {
+		if (ntens != 6)	
+			ExceptionT::SizeMismatch(caller);
+	} else
+		ExceptionT::GeneralFail(caller);
+#endif
+
 	if (fTangentType == GlobalT::kDiagonal)
 	{
 		if (nsd == 2)
@@ -281,13 +292,23 @@ const dMatrixT& ABAQUS_UMAT_SS_BaseT::c_ijkl(void)
 	}
 	else if (fTangentType == GlobalT::kNonSymmetric)
 	{
-		if (nsd == 2)
-			ExceptionT::GeneralFail(caller, "index mapping for 2D nonsymmetric tangent is not implemented");
+		if (nsd == 2) 
+		{
+			double* mod_tahoe = fModulus.Pointer();
+			*mod_tahoe++ = fmodulus[0];
+			*mod_tahoe++ = fmodulus[1];
+			*mod_tahoe++ = fmodulus[3];
+
+			*mod_tahoe++ = fmodulus[4];
+			*mod_tahoe++ = fmodulus[5];
+			*mod_tahoe++ = fmodulus[7];
+
+			*mod_tahoe++ = fmodulus[12];
+			*mod_tahoe++ = fmodulus[13];
+			*mod_tahoe   = fmodulus[15];
+		}
 		else
 		{
-			/* dimension check */
-			if (ntens != 6) ExceptionT::SizeMismatch(caller, "ntens %d != 6", ntens);
-			
 			int tahoe2abaqus[6] = {0,1,2,5,4,3};
 			double* mod_tahoe = fModulus.Pointer();
 			for (int i = 0; i < 6; i++)
