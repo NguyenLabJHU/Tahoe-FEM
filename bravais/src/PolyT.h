@@ -28,16 +28,19 @@
       nArrayT<dArrayT> GrainCenters;
       double MaxGrainSeparation;
       dArray2DT SizeofLattice;
+      dArrayT PeriodicLength;
+      bool IsPeriodic;
+      double Tolerance;
       
    
    public:
    
    //Constructor
       PolyT(int dim, dArray2DT len, dArrayT lattice_parameter,
-       iArrayT which_sort, StringT slt, iArrayT per, int NumberofGrains);
+       iArrayT which_sort, StringT slt, iArrayT per, int NumGrains);
    
       PolyT(int dim, iArrayT cel, dArrayT lattice_parameter,
-       iArrayT which_sort, StringT slt, iArrayT per, int NumberofGrains);
+       iArrayT which_sort, StringT slt, iArrayT per, int NumGrains);
    
    //Destructor
        ~PolyT(){};
@@ -56,6 +59,7 @@
 	dArrayT ImposePBC(dArrayT currentCoord, dArrayT GrainCenter);
 	bool CheckCurrentGrain(dArrayT currentCoord, int currentGrain, double distanceToCurrentGrain);
 	bool CheckNoOverlap (dArrayT currentCoord, nArrayT <nArrayT<dArrayT> > *AtomsinGrain, int currentGrain, CrystalLatticeT *templateLattice);
+	void Initialize();
    };
 
 
