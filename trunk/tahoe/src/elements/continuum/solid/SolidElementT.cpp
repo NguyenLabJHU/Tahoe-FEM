@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.cpp,v 1.11 2001-06-18 16:49:42 paklein Exp $ */
+/* $Id: SolidElementT.cpp,v 1.12 2001-06-24 02:26:53 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #include "SolidElementT.h"
@@ -466,19 +466,13 @@ void SolidElementT::SetLocalArrays(void)
 /* set the correct shape functions */
 void SolidElementT::SetShape(void)
 {
+	/* construct shape functions */
 	fShapes = new ShapeFunctionT(fGeometryCode, fNumIP,
 		fLocInitCoords, fStrainDispOpt);
 	if (!fShapes) throw eOutOfMemory;
 
+	/* initialize */
 	fShapes->Initialize();
-
-//TEMP	
-#if 1
-	cout << "\n SolidElementT::SetShape: printing shape functions" << endl;
-	ofstreamT shape_out("shape.out");
-	fShapes->Print(shape_out);
-	//throw;
-#endif
 }
 
 /* form shape functions and derivatives */
