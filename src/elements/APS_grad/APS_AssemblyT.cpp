@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.10 2003-09-23 19:31:42 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.11 2003-09-24 21:43:15 raregue Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -178,7 +178,8 @@ void APS_AssemblyT::Initialize(void)
 	
 	/* allocate state variable storage */
 	#pragma message("APS_AssemblyT::Initialize: how determine number of ips?")
-	int num_ip = 1; //TEMP - need to decide where to set the number of integration
+	//int num_ip = 1; //TEMP - need to decide where to set the number of integration
+	int num_ip = fNumIP;
 	fdState_new.Dimension(n_el, num_ip*knum_d_state);
 	fdState.Dimension(n_el, num_ip*knum_d_state);
 	fiState_new.Dimension(n_el, num_ip*knum_i_state);
@@ -323,144 +324,6 @@ void APS_AssemblyT::Equations(AutoArrayT<const iArray2DT*>& eq_d,
 		}
 	}
 }
-
-//ignore the following code??
-#if 0
-//---------------------------------------------------------------------
-
-/* form group contribution to the stiffness matrix and RHS */
-void APS_AssemblyT::RHSDriver_staggered(void)	// LHS too!	This was original RHSDriver()
-{
- 
-	int curr_group = ElementSupport().CurrentGroup();
-
-	/* stress output work space */
-	int n_stress = dSymMatrixT::NumValues(NumSD());
-	dArray2DT   out_variable_all;
-	dSymMatrixT out_variable;
-
-	/** Time Step Increment */
-	double delta_t = ElementSupport().TimeStep();
-	double time = ElementSupport().Time();
-	int step_number = ElementSupport().StepNumber();
-
-	iArrayT plast_eq;
-
-	if ( curr_group == fDispl.Group() )
-		cout << "############### Displacement Group ###############\n";
-
-	if ( curr_group == fPlast.Group() )
-		cout << "############### Plastic Gradient Group ###############\n";
- 
-	/* loop over elements */
-	int e,v,l;
-	Top();
-	while (NextElement())
-	{
-		e = CurrElementNumber();
-
-		SetLocalU (u);
-		SetLocalU (u_n);
-		SetLocalU (gamma_p);
-		SetLocalU (gamma_p_n);
-
-		del_u.DiffOf (u, u_n);
-		del_gamma_p.DiffOf (gamma_p, gamma_p_n);
-
-	 	SetLocalX(fInitCoords); 
-	 	//current and initial coords are the same for anti-plane shear problem
-		fCurrCoords.SetToCombination (1.0, fInitCoords, 1.0, u); 
-		fShapes->SetDerivatives(); 
-		
-		// repackage data to forms compatible with FEA classes (very little cost in big picture)
-		Convert.Gradients 		( fShapes, u, u_n, fgrad_u, fgrad_u_n );
-		Convert.Gradients 		( fShapes, gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
-		Convert.Shapes			( fShapes, fFEA_Shapes );
-		Convert.Displacements	( del_u, del_u_vec  );
-		Convert.Displacements	( del_gamma_p, del_gamma_p_vec  );
-		Convert.Na				( n_en, fShapes, fFEA_Shapes );
-
-		/** Construct data used in BOTH PlastT and BalLinMomT (grad_u and gammap)
-		 * 	Presently, Tahoe cannot exploit this fact.  n and np1 are calculated for coarse field, then
-		 * 	calculated again for fine field -- this is a waste and defeats the purpose of APS_VariableT. 
-		 *  Note: n is last time step (known data), no subscript, np1 or (n+1) is the 
-		 *  next time step (what were solving for)   */
-		 
-		APS_VariableT np1(	fgrad_u, fgamma_p, fgrad_gamma_p 	 ); // Many variables at time-step n+1
-		APS_VariableT   n(	fgrad_u_n, fgamma_p_n, fgrad_gamma_p_n );	// Many variables at time-step n		 
-		
-		/* which field */
-	  //SolverGroup 1 (gets field 1) <-- u (obtained by a rearranged Equation_d)
-		if ( curr_group == fDispl.Group() )	
-		{
-			if (bStep_Complete) { 
-			// do nothing
-			}
-			else { //-- Still Iterating
-
-				/** Compute N-R matrix equations */
-				fEquation_d -> Construct (	fFEA_Shapes, fBalLinMomMaterial, np1, n, 
-											step_number, delta_t );
-				fEquation_d -> Form_LHS_Keps_Kd ( fKdeps, fKdd );
-				fEquation_d -> Form_RHS_F_int ( fFd_int );
-
-				/** Set coarse LHS */
-				fLHS = fKdd;
-
-				/** Compute coarse RHS */
-				fKdeps.Multx ( del_gamma_p_vec, fRHS );
-				fRHS += fFd_int; 
-				fRHS *= -1.0; 
-
-				/** Compute Traction B.C. and Body Forces */
-				// contribution from plastic gradient
-				#pragma message("APS_AssemblyT::RHSDriver_staggered: how apply gammap=eps?")
-				Get_Fd_ext ( fFd_ext );
-				fRHS += fFd_ext;
-			
-				/* add to global equations */
-				ElementSupport().AssembleLHS	( fDispl.Group(), fLHS, CurrentElement().Equations() );
-				ElementSupport().AssembleRHS 	( fDispl.Group(), fRHS, CurrentElement().Equations() );
-			}
-		}
-
-		// SolverGroup 2 (gets field 2) <-- gamma_p (obtained by a rearranged Equation_eps)
-		else if (curr_group == fPlast.Group() )	
-		{
-
-			if (bStep_Complete) { 
-			//do nothing
-			}
-			else { //-- Still Iterating
-
-				/** Compute N-R matrix equations */
-				fEquation_eps -> Construct ( fFEA_Shapes, fPlastMaterial, np1, n, 
-											step_number, delta_t, FEA::kBackward_Euler );
-				fEquation_eps -> Form_LHS_Keps_Kd ( fKepseps, 	fKepsd );
-				fEquation_eps -> Form_RHS_F_int ( fFeps_int );
-
-				/** Set LHS */
-				fLHS = fKepseps;	
-		
-				/** Compute fine RHS (or Fint_bar_II in FAXed notes)  */
-				fKepsd.Multx ( del_u_vec, fRHS );
-				fRHS += fFeps_int; 
-				fRHS *= -1.0; 
-		
-				/* fine scale equation numbers */
-				fEqnos_plast.RowAlias ( CurrElementNumber(), plast_eq );
-
-				/* add to global equations */
-				ElementSupport().AssembleLHS ( fPlast.Group(), fLHS, plast_eq );
-				ElementSupport().AssembleRHS ( fPlast.Group(), fRHS, plast_eq );
-			}
-
-		}
-		else throw ExceptionT::kGeneralFail;
-	}
-
-}
-#endif
 
 
 //---------------------------------------------------------------------
@@ -646,6 +509,7 @@ void APS_AssemblyT::AddNodalForce(const FieldT& field, int node, dArrayT& force)
 		/** repackage data to forms compatible with FEA classes (very little cost in big picture) */
 		Convert.Gradients 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
 		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
+		Convert.Interpolate 	( fShapes, 	gamma_p, gamma_p_n, fgamma_p, fgamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
@@ -868,14 +732,14 @@ void APS_AssemblyT::WriteOutput(void)
 	dArray2DT n_values(nodes_used.Length(), num_node_output);
 
 	/* collect nodal values */
-	const dArray2DT& fgamma_p = fPlast[0];
+	const dArray2DT& fGamma_p = fPlast[0];
 	const dArray2DT& fU = fDispl[0];
 	for (int i = 0; i < nodes_used.Length(); i++)
 	{
 		int node = nodes_used[i];
 		double* row = n_values(i);
-		for (int j = 0; j < fgamma_p.MinorDim(); j++)
-			*row++ = fgamma_p(node,j);
+		for (int j = 0; j < fGamma_p.MinorDim(); j++)
+			*row++ = fGamma_p(node,j);
 
 		for (int j = 0; j < fU.MinorDim(); j++)
 			*row++ = fU(node,j);
@@ -964,6 +828,7 @@ void APS_AssemblyT::RHSDriver_staggered(void)
 		//repackage data to forms compatible with FEA classes (very little cost in big picture)
 		Convert.Gradients 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
 		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
+		Convert.Interpolate 	( fShapes, 	gamma_p, gamma_p_n, fgamma_p, fgamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
@@ -1101,6 +966,7 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 		/* repackage data to forms compatible with FEA classes (very little cost in big picture) */
 		Convert.Gradients 		( fShapes, 	u, u_n, fgrad_u, fgrad_u_n );
 		Convert.Gradients 		( fShapes, 	gamma_p, gamma_p_n, fgrad_gamma_p, fgrad_gamma_p_n );
+		Convert.Interpolate 	( fShapes, 	gamma_p, gamma_p_n, fgamma_p, fgamma_p_n );
 		Convert.Shapes			(	fShapes, 	fFEA_Shapes );
 		Convert.Displacements	(	del_u, 	del_u_vec  );
 		Convert.Displacements	(	del_gamma_p, 	del_gamma_p_vec  );
