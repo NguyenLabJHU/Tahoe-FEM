@@ -1,4 +1,4 @@
-/* $Id: NLSolver.cpp,v 1.27 2003-09-22 15:00:19 paklein Exp $ */
+/* $Id: NLSolver.cpp,v 1.28 2003-10-31 20:54:04 paklein Exp $ */
 /* created: paklein (07/09/1996) */
 #include "NLSolver.h"
 
@@ -453,6 +453,19 @@ double NLSolver::SolveAndForm(void)
 		fLHS_lock = kOpen;
 		fFEManager.FormLHS(Group(), GlobalT::kNonSymmetric);
 		fLHS_lock = kLocked;
+		
+		/* compare with approxumate LHS */
+		if (fLHS->CheckCode() == GlobalMatrixT::kCheckLHS) {
+		
+			/* compute approximate LHS */
+			const GlobalMatrixT* approx_LHS = ApproximateLHS(*fLHS);
+			
+			/* compare */
+			CompareLHS(*fLHS, *approx_LHS);
+			
+			/* clean-up */
+			delete approx_LHS;
+		}
 	}
 
 	/* solve equation system */
