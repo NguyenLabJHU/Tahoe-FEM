@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.29 2002-10-31 22:09:35 creigh Exp $ */
+/* $Id: ElementListT.cpp,v 1.30 2002-11-14 19:25:33 creigh Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 
@@ -26,9 +26,7 @@
 #include "CSEAnisoT.h"
 #include "ThermalSurfaceT.h"
 #include "SimoFiniteStrainT.h"
-#include "MultiScaleT.h"
-#include "CoarseScaleT.h"
-#include "FineScaleT.h"
+#include "StaggeredMultiScaleT.h"
 #include "BridgingScaleT.h"
 #include "SimoQ1P0.h"
 #include "AdhesionT.h"
@@ -158,9 +156,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		out << "    eq. " << ElementT::kD2MeshFreeFDElastic << ", hyperelastic MLS (total Lagrangian)\n";
 		out << "    eq. " << ElementT::kLinearDiffusion    << ", linear diffusion element\n";
 		out << "    eq. " << ElementT::kMFCohesiveSurface  << ", meshfree cohesive surface element\n";
-		out << "    eq. " << ElementT::kMultiScale              << ", Variational Multi-Scale (VMS) Element \n";
-		out << "    eq. " << ElementT::kCoarseScale             << ", Coarse Scale Element (for VMS) \n";
-		out << "    eq. " << ElementT::kFineScale               << ", Fine Sclale Phenomenological Str. Grad\n";
+		out << "    eq. " << ElementT::kStaggeredMultiScale << ", Staggered MultiScale Element (for VMS) \n";
 		out << "    eq. " << ElementT::kACME_Contact       << ", 3D contact using ACME\n";
 		out << "    eq. " << ElementT::kMultiplierContact3D       << ", 3D contact using Lagrange multipliers\n";
 		out << "    eq. " << ElementT::kMultiplierContactElement2D       << ", 2D Lagrange multiplier contact elements\n";
@@ -216,16 +212,8 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				fArray[group] = new SimoQ1P0(fSupport, *field);
 				break;
 
-			case ElementT::kMultiScale:
-				fArray[group] = new MultiScaleT(fSupport, *field);
-				break;
-
-			case ElementT::kCoarseScale:
-				fArray[group] = new CoarseScaleT(fSupport, *field);
-				break;
-
-			case ElementT::kFineScale:
-				fArray[group] = new FineScaleT(fSupport, *field);
+			case ElementT::kStaggeredMultiScale:
+				//fArray[group] = new StaggeredMultiScaleT(fSupport, *field);
 				break;
 
 			case ElementT::kMeshFreeFDElastic:

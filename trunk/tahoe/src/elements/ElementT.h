@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.13 2002-10-31 22:09:35 creigh Exp $ */
+/* $Id: ElementT.h,v 1.14 2002-11-14 19:25:33 creigh Exp $ */
 
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
@@ -45,7 +45,7 @@ public:
 kMultiplierContactElement2D = 28,
        kSimoFiniteStrain = 29,  /**< enhanced strain element */
 kPenaltyContactElement2D = 30,
-             kMultiScale = 31,
+    kStaggeredMultiScale = 31,
 	        	kCoarseScale = 32,
 	          	kFineScale = 33,
 kPenaltyContactElement3D = 34,

@@ -1,4 +1,4 @@
-/* $Id: ElementT.cpp,v 1.13 2002-10-31 22:09:35 creigh Exp $ */
+/* $Id: ElementT.cpp,v 1.14 2002-11-14 19:25:33 creigh Exp $ */
 #include "ElementT.h"
 
 #include <iostream.h>
@@ -106,14 +106,8 @@ istream& operator>>(istream& in, ElementT::TypeT& type)
 		case ElementT::kSimoFiniteStrain:
 			type = ElementT::kSimoFiniteStrain;
 			break;
-		case ElementT::kMultiScale:
-			type = ElementT::kMultiScale;
-			break;
-		case ElementT::kCoarseScale:
-			type = ElementT::kCoarseScale;
-			break;
-		case ElementT::kFineScale:
-			type = ElementT::kFineScale;
+		case ElementT::kStaggeredMultiScale:
+			type = ElementT::kStaggeredMultiScale;
 			break;
 		case ElementT::kBridgingScale:
 			type = ElementT::kBridgingScale;
