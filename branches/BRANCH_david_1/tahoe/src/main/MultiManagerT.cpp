@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.17.2.4 2004-08-11 01:13:53 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.17.2.5 2004-08-11 01:14:57 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -14,6 +14,7 @@
 #include "FieldT.h"
 #include "ParameterContainerT.h"
 #include "ParameterUtils.h"
+#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
