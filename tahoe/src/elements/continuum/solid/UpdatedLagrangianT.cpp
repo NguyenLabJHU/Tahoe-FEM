@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.cpp,v 1.14 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.cpp,v 1.15 2005-02-13 22:18:40 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #include "UpdatedLagrangianT.h"
 
@@ -25,6 +25,16 @@ UpdatedLagrangianT::~UpdatedLagrangianT(void)
 {
 	delete fCurrShapes;
 	fCurrShapes = NULL;
+}
+
+/* describe the parameters needed by the interface */
+void UpdatedLagrangianT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	FiniteStrainT::DefineParameters(list);
+
+	/* remove option to store shape functions */
+	list.RemoveParameter("store_shapefunctions");
 }
 
 /* accept parameter list */

@@ -1,4 +1,4 @@
-/* $Id: UpdatedLagrangianT.h,v 1.9 2004-07-15 08:26:27 paklein Exp $ */
+/* $Id: UpdatedLagrangianT.h,v 1.10 2005-02-13 22:18:40 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 
 #ifndef _UPDATED_LAGRANGIAN_T_H_
@@ -25,6 +25,9 @@ public:
 
 	/** \name implementation of the ParameterInterfaceT interface */
 	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
 	/** accept parameter list */
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
