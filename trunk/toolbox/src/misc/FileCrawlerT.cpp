@@ -1,4 +1,4 @@
-/* $Id: FileCrawlerT.cpp,v 1.3 2002-06-04 00:44:05 paklein Exp $ */
+/* $Id: FileCrawlerT.cpp,v 1.4 2002-07-02 19:57:17 cjkimme Exp $ */
 
 #include "FileCrawlerT.h"
 
@@ -12,6 +12,9 @@
 #include "StringT.h"
 
 /* maximum batch file recursion depth */
+
+using namespace Tahoe;
+
 const int kMaxRecursionDepth = 10;
 
 /* Constructor */

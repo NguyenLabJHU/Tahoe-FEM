@@ -1,4 +1,4 @@
-/* $Id: nVariArray2DT.h,v 1.4 2002-02-20 23:03:28 paklein Exp $ */
+/* $Id: nVariArray2DT.h,v 1.5 2002-07-02 19:56:54 cjkimme Exp $ */
 /* created: paklein (04/18/1998)                                          */
 /* WRAPPER for nArray2DT<>'s to add dynamic re-sizing of the              */
 /* major dimension, using some headroom to cut down calls for             */
@@ -12,6 +12,9 @@
 
 /* direct members */
 #include "nArray2DT.h"
+
+
+namespace Tahoe {
 
 template <class nTYPE>
 class nVariArray2DT: public VariBaseT<nTYPE>
@@ -159,4 +162,5 @@ const nArray2DT<nTYPE>& nVariArray2DT<nTYPE>::TheWard(void) const
 	return(*fWard);
 }
 
+} // namespace Tahoe 
 #endif /* _N_VARI_ARRAY2D_T_H_ */

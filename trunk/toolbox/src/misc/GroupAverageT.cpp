@@ -1,4 +1,4 @@
-/* $Id: GroupAverageT.cpp,v 1.3 2001-06-11 02:03:38 paklein Exp $ */
+/* $Id: GroupAverageT.cpp,v 1.4 2002-07-02 19:57:17 cjkimme Exp $ */
 /* created: paklein (10/03/1996)                                          */
 
 #include "GroupAverageT.h"
@@ -13,6 +13,9 @@
 #include "iArray2DT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 GroupAverageT::GroupAverageT(void):
 	fNumRows(0),
 	fIsAveraged(0),

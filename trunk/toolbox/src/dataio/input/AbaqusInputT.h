@@ -1,4 +1,4 @@
-/* $Id: AbaqusInputT.h,v 1.12 2002-03-04 06:25:30 paklein Exp $ */
+/* $Id: AbaqusInputT.h,v 1.13 2002-07-02 19:57:03 cjkimme Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _ABAQUSINPUT_T_H_
@@ -18,6 +18,9 @@
 /** If SetLabelName does not have a case for the variable being read, 
  * a default variable name is used. As new variables are added to 
  * AbaqusT::VariableKey, they should also be added to SetLabelName */
+
+namespace Tahoe {
+
 class AbaqusInputT : public InputBaseT
 {
  public:
@@ -154,4 +157,5 @@ inline int AbaqusInputT::NumNodesInSet (const StringT& name) { return fData.NumN
 inline void AbaqusInputT::ReadGeometryCode (const StringT& name, GeometryT::CodeT& geocode) { fData.GeometryCode (name, geocode); }
 inline void AbaqusInputT::QARecords (ArrayT<StringT>& records) { fData.VersionNotes (records); }
 
+} // namespace Tahoe 
 #endif

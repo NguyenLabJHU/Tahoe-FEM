@@ -9,6 +9,9 @@
 #include "ios_fwd_decl.h"
 #include "iArray2DT.h"
 
+
+using namespace Tahoe;
+
 AVSOutputT::AVSOutputT (ostream& out, const ArrayT<StringT>& out_strings, bool binary) :
   OutputBaseT (out, out_strings),
   fBinary (binary)

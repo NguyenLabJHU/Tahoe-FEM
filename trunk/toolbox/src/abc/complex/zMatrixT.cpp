@@ -1,4 +1,4 @@
-/* $Id: zMatrixT.cpp,v 1.6 2002-02-18 08:48:40 paklein Exp $ */
+/* $Id: zMatrixT.cpp,v 1.7 2002-07-02 19:56:42 cjkimme Exp $ */
 /* created: paklein (05/19/1997)                                          */
 /* 2 dimensional matrix mathematics object.                               */
 
@@ -10,6 +10,9 @@
 /*
 * constructor
 */
+
+using namespace Tahoe;
+
 zMatrixT::zMatrixT(void) { }
 zMatrixT::zMatrixT(int numrows, int numcols): nMatrixT<ComplexT>(numrows,numcols) { }
 zMatrixT::zMatrixT(int squaredim): nMatrixT<ComplexT>(squaredim) { }
@@ -24,6 +27,9 @@ zMatrixT::zMatrixT(const zMatrixT& source):nMatrixT<ComplexT>(source) { }
 /*
 * I/O operator
 */
+
+namespace Tahoe {
+
 istream& operator>>(istream& in, zMatrixT& matrix)
 {
 	for (int j = 0; j < matrix.fRows; j++)
@@ -45,6 +51,8 @@ ostream& operator<<(ostream& out, const zMatrixT& matrix)
 	
 	return (out);
 }
+
+} // namespace Tahoe
 
 /*
 * Returning the Real and Imaginary parts

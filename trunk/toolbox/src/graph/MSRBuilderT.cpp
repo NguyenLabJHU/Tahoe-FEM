@@ -1,4 +1,4 @@
-/* $Id: MSRBuilderT.cpp,v 1.2 2001-05-09 17:24:31 paklein Exp $ */
+/* $Id: MSRBuilderT.cpp,v 1.3 2002-07-02 19:57:14 cjkimme Exp $ */
 /* created: paklein (07/30/1998)                                          */
 /* class to generate MSR matrix structure data                            */
 
@@ -10,6 +10,9 @@
 #include "RaggedArray2DT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 MSRBuilderT::MSRBuilderT(bool upper_only): fUpperOnly(upper_only) { }
 
 /* return the MSR database and pointers to the start of each row */

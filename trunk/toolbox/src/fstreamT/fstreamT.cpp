@@ -1,4 +1,4 @@
-/* $Id: fstreamT.cpp,v 1.4 2002-02-03 00:03:43 paklein Exp $ */
+/* $Id: fstreamT.cpp,v 1.5 2002-07-02 19:57:13 cjkimme Exp $ */
 
 #include "fstreamT.h"
 #include "Environment.h"
@@ -6,6 +6,9 @@
 #include "ifstreamT.h"
 
 /* temporary */
+
+using namespace Tahoe;
+
 void fstreamT::FixPath(const char* path_old, StringT& path)
 {
 	/* workaround for CW7.x bug */

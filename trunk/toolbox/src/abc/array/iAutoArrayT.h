@@ -1,4 +1,4 @@
-/* $Id: iAutoArrayT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: iAutoArrayT.h,v 1.2 2002-07-02 19:56:40 cjkimme Exp $ */
 /* created: paklein (02/08/1999)                                          */
 
 #ifndef _I_AUTO_ARRAY_T_H_
@@ -6,6 +6,9 @@
 
 /* base class */
 #include "AutoArrayT.h"
+
+
+namespace Tahoe {
 
 class iAutoArrayT: public AutoArrayT<int>
 {
@@ -67,5 +70,6 @@ inline AutoArrayT<int>& iAutoArrayT::operator=(int value)
 	AutoArrayT<int>::operator=(value);
 	return *this;
 }
-	
+
+} // namespace Tahoe 
 #endif /* _I_AUTO_ARRAY_T_H_ */

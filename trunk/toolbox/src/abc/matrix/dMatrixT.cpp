@@ -1,4 +1,4 @@
-/* $Id: dMatrixT.cpp,v 1.8 2002-06-27 00:33:56 paklein Exp $ */
+/* $Id: dMatrixT.cpp,v 1.9 2002-07-02 19:56:47 cjkimme Exp $ */
 /* created: paklein (05/24/1996) */
 
 #include "dMatrixT.h"
@@ -8,6 +8,9 @@
 #include "dSymMatrixT.h"
 
 /* copy behavior for arrays of dMatrixT's */
+
+using namespace Tahoe;
+
 const bool ArrayT<dMatrixT*>::fByteCopy = true;
 const bool ArrayT<dMatrixT>::fByteCopy = false;
 

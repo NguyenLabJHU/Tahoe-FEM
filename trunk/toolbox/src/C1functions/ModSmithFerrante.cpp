@@ -11,6 +11,9 @@
 /*
 * constructors
 */
+
+using namespace Tahoe;
+
 ModSmithFerrante::ModSmithFerrante(double A, double B):
 	fA(A), fB(B) { }
 

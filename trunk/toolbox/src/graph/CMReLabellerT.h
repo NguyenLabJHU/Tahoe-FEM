@@ -1,4 +1,4 @@
-/* $Id: CMReLabellerT.h,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: CMReLabellerT.h,v 1.2 2002-07-02 19:57:14 cjkimme Exp $ */
 /* created: paklein (08/05/1996)                                          */
 /* relabels sequences based on connectivities registered with AddGroup(). */
 /* connectivies can have an arbitrary MinorDim(), but the labels in       */
@@ -15,6 +15,9 @@
 #include "PriorityQueueT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class iArray2DT;
 
 class CMReLabellerT
@@ -102,4 +105,5 @@ private:
 	int kWeight2;
 };
 
+} // namespace Tahoe 
 #endif /* _CM_RELABELLERT_H_ */

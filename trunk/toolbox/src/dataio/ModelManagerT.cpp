@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.cpp,v 1.26 2002-06-08 19:33:38 paklein Exp $ */
+/* $Id: ModelManagerT.cpp,v 1.27 2002-07-02 19:56:59 cjkimme Exp $ */
 /* created: sawimme July 2001 */
 
 #include "ModelManagerT.h"
@@ -15,6 +15,9 @@
 #include "InputFEASCIIT.h"
 
 /* array behavior */
+
+using namespace Tahoe;
+
 const bool ArrayT<ModelManagerT::SideSetScopeT>::fByteCopy = true;
 
 ModelManagerT::ModelManagerT (ostream& message):

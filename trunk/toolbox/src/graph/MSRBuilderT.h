@@ -1,4 +1,4 @@
-/* $Id: MSRBuilderT.h,v 1.2 2002-03-25 16:39:42 paklein Exp $ */
+/* $Id: MSRBuilderT.h,v 1.3 2002-07-02 19:57:14 cjkimme Exp $ */
 /* created: paklein (07/30/1998) */
 
 #ifndef _MSR_BUILDER_T_H_
@@ -17,6 +17,9 @@
  * MSRBuilderT::SetMSRData generates the MSR structure data for the active rows
  * specified in the input. Active rows are numbered {0,...,max}. The
  * MSR data generated in also numbered with zero offset. */
+
+namespace Tahoe {
+
 class MSRBuilderT: public GraphT
 {
 public:
@@ -50,4 +53,5 @@ private:
 	bool fUpperOnly;
 };
 
+} // namespace Tahoe 
 #endif /* _MSR_BUILDER_T_H_ */

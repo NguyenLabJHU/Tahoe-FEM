@@ -1,4 +1,4 @@
-/* $Id: iConsoleObjectT.h,v 1.2 2001-11-28 22:05:44 paklein Exp $ */
+/* $Id: iConsoleObjectT.h,v 1.3 2002-07-02 19:56:57 cjkimme Exp $ */
 /* created: paklein (12/21/2000) */
 
 #ifndef _I_CONSOLE_OBJECT_T_H_
@@ -8,6 +8,9 @@
 #include "iConsoleBaseT.h"
 
 /** interface for a console object */
+
+namespace Tahoe {
+
 class iConsoleObjectT: public iConsoleBaseT
 {
 public:
@@ -51,4 +54,5 @@ inline const ArrayT<iConsoleObjectT*>& iConsoleObjectT::iSubs(void) const
 }
 inline const StringT& iConsoleObjectT::iName(void) const { return fName; }
 
+} // namespace Tahoe 
 #endif /* _I_CONSOLE_OBJECT_T_H_ */

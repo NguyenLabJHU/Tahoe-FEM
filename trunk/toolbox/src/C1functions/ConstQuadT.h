@@ -1,4 +1,4 @@
-/* $Id: ConstQuadT.h,v 1.1 2002-05-31 07:17:12 thao Exp $ */
+/* $Id: ConstQuadT.h,v 1.2 2002-07-02 19:56:31 cjkimme Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #ifndef _CONSTQUAD_T_H_
@@ -6,6 +6,9 @@
 
 /* base class */
 #include "C1FunctionT.h"
+
+
+namespace Tahoe {
 
 class ConstQuadT: public C1FunctionT
 {
@@ -72,4 +75,5 @@ inline double ConstQuadT::DDFunction(double x) const
 	return ddfun; 
 }
 
+} // namespace Tahoe 
 #endif /* BIQUAD_T_H_ */

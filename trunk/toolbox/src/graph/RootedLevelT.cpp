@@ -1,4 +1,4 @@
-/* $Id: RootedLevelT.cpp,v 1.4 2001-12-16 23:49:45 paklein Exp $ */
+/* $Id: RootedLevelT.cpp,v 1.5 2002-07-02 19:57:15 cjkimme Exp $ */
 /* created: paklein (08/05/1996) */
 
 #include "RootedLevelT.h"
@@ -6,6 +6,9 @@
 #include "iArrayT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 RootedLevelT::RootedLevelT(void):
 	fNumNodes(0),
 	fLevels(NULL),

@@ -1,4 +1,4 @@
-/* $Id: nMatrixGroupT.h,v 1.1.1.1 2001-01-25 20:56:22 paklein Exp $ */
+/* $Id: nMatrixGroupT.h,v 1.2 2002-07-02 19:56:45 cjkimme Exp $ */
 /* created: paklein (04/17/1998)                                          */
 /* Class to manage a list of equally-size nMatrixT<>'s. Storage           */
 /* is grouped and all matrices added with Register can be set to new      */
@@ -15,6 +15,9 @@
 
 /* direct members */
 #include "nMatrixT.h"
+
+
+namespace Tahoe {
 
 template <class TYPE>
 class nMatrixGroupT: public MemoryGroupT<TYPE>
@@ -84,4 +87,5 @@ void nMatrixGroupT<TYPE>::Dimension(int rows, int cols)
 	}
 }
 
+} // namespace Tahoe 
 #endif /* _MATHMATRIX_GROUP_T_H_ */

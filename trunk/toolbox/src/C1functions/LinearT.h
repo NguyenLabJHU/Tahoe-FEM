@@ -1,10 +1,13 @@
-/* $Id: LinearT.h,v 1.1 2002-05-31 07:17:13 thao Exp $ */
+/* $Id: LinearT.h,v 1.2 2002-07-02 19:56:31 cjkimme Exp $ */
 
 #ifndef _LINEAR_T_H_
 #define _LINEAR_T_H_
 
 /* base class */
 #include "C1FunctionT.h"
+
+
+namespace Tahoe {
 
 class LinearT: public C1FunctionT
 {
@@ -45,6 +48,7 @@ inline double LinearT::DFunction(double x) const
 inline double LinearT::DDFunction(double x) const
 { return (0.0); }
 
+} // namespace Tahoe 
 #endif /* _LINEAR_T_H_ */
 
 

@@ -1,4 +1,4 @@
-/* $Id: PriorityQueueT.h,v 1.2 2001-09-25 00:55:15 paklein Exp $ */
+/* $Id: PriorityQueueT.h,v 1.3 2002-07-02 19:57:14 cjkimme Exp $ */
 /* created: paklein (8/06/1996) */
 
 #ifndef _PRIORITYQUEUET_H_
@@ -8,6 +8,9 @@
 #include "AutoArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class iArrayT;
 
 /* size parameters */
@@ -61,4 +64,5 @@ private:
 	
 };
 
+} // namespace Tahoe 
 #endif /* _PRIORITYQUEUET_H_ */

@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.h,v 1.6 2002-02-18 09:10:37 paklein Exp $ */
+/* $Id: IOBaseT.h,v 1.7 2002-07-02 19:56:59 cjkimme Exp $ */
 /* created: sawimme (09/28/1999) */
 
 #ifndef _IOBASE_T_H_
@@ -8,6 +8,9 @@
 #include "ios_fwd_decl.h"
 
 /** database types and simple functions */
+
+namespace Tahoe {
+
 class IOBaseT
 {
 public:
@@ -65,4 +68,5 @@ protected:
 	ostream& fout;
 };
 
+} // namespace Tahoe 
 #endif // _IOBASE_T_H_

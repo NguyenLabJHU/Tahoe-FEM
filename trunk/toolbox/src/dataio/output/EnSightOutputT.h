@@ -1,4 +1,4 @@
-/* $Id: EnSightOutputT.h,v 1.3 2001-12-16 23:57:06 paklein Exp $ */
+/* $Id: EnSightOutputT.h,v 1.4 2002-07-02 19:57:07 cjkimme Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #ifndef _ENSIGHTOUTPUT_T_H_
@@ -8,6 +8,9 @@
 #include "AutoArrayT.h"
 #include "StringT.h"
 #include "EnSightT.h"
+
+
+namespace Tahoe {
 
 class EnSightOutputT : public OutputBaseT
 {
@@ -41,5 +44,6 @@ int  fNumDigits;
 AutoArrayT<double> fTimeValues;
 };
 
+} // namespace Tahoe 
 #endif
 

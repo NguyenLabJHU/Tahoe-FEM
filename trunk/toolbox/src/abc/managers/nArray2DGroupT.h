@@ -1,4 +1,4 @@
-/* $Id: nArray2DGroupT.h,v 1.1.1.1 2001-01-25 20:56:22 paklein Exp $ */
+/* $Id: nArray2DGroupT.h,v 1.2 2002-07-02 19:56:45 cjkimme Exp $ */
 /* created: paklein (04/16/1998)                                          */
 /* Class to manage a list of equally-size nArray2DT<>'s. Storage          */
 /* is grouped and all arrays added with Register can be set to new        */
@@ -15,6 +15,9 @@
 
 /* direct members */
 #include "nArray2DT.h"
+
+
+namespace Tahoe {
 
 template <class TYPE>
 class nArray2DGroupT: public MemoryGroupT<TYPE>
@@ -120,4 +123,5 @@ void nArray2DGroupT<TYPE>::SetMajorDimension(int majordim, bool copy_in)
 	}
 }
 
+} // namespace Tahoe 
 #endif /* _NARRAY2D_GROUP_T_H_ */

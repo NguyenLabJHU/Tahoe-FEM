@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.h,v 1.10 2002-06-25 14:17:06 sawimme Exp $ */
+/* $Id: OutputBaseT.h,v 1.11 2002-07-02 19:57:07 cjkimme Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #ifndef _OUTPUTBASE_T_H_
@@ -14,6 +14,9 @@
 #include "GeometryT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class dArray2DT;
 class iArray2DT;
 class OutputSetT;
@@ -149,4 +152,5 @@ inline const dArray2DT& OutputBaseT::Coordinates(void) const
 
 inline const iArrayT* OutputBaseT::NodeID(void) const { return fNodeID; }
 
+} // namespace Tahoe 
 #endif /* _OUTPUTMANAGER_H_ */

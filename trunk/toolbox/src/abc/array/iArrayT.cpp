@@ -1,10 +1,13 @@
-/* $Id: iArrayT.cpp,v 1.10 2002-03-06 02:04:46 paklein Exp $ */
+/* $Id: iArrayT.cpp,v 1.11 2002-07-02 19:56:39 cjkimme Exp $ */
 /* created: paklein (08/10/1996) */
 
 #include "iArrayT.h"
 #include <iostream.h>
 #include <iomanip.h>
 #include "Constants.h"
+
+
+using namespace Tahoe;
 
 /* array behavior */
 const bool ArrayT<iArrayT*>::fByteCopy = true;

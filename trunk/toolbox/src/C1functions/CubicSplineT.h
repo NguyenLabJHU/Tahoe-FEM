@@ -1,4 +1,4 @@
-/* $Id: CubicSplineT.h,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: CubicSplineT.h,v 1.2 2002-07-02 19:56:31 cjkimme Exp $ */
 /* created: paklein (12/02/1996)                                          */
 /* CubicSplineT.h -                                                       */
 /* Interface for a piecewise cubic function.  The type of end             */
@@ -18,6 +18,9 @@
 #include "dArray2DT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class dMatrixT;
 
 class CubicSplineT: public C1FunctionT
@@ -76,4 +79,5 @@ protected:
 	dArray2DT    fCoefficients;	
 };
 
+} // namespace Tahoe 
 #endif /* _CUBICSPLINE_T_H_ */

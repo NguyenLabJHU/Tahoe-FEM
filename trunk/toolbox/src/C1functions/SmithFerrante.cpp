@@ -1,4 +1,4 @@
-/* $Id: SmithFerrante.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: SmithFerrante.cpp,v 1.2 2002-07-02 19:56:32 cjkimme Exp $ */
 /* created: paklein (10/30/1997)                                          */
 
 #include "SmithFerrante.h"
@@ -10,6 +10,9 @@
 /*
 * constructors
 */
+
+using namespace Tahoe;
+
 SmithFerrante::SmithFerrante(double A, double B, double l_0):
 	fA(A), fB(B), fl_0(l_0) { }
 

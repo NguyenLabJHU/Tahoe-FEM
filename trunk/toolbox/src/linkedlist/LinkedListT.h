@@ -1,4 +1,4 @@
-/* $Id: LinkedListT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: LinkedListT.h,v 1.2 2002-07-02 19:57:17 cjkimme Exp $ */
 /* created: paklein (02/07/1996)                                          */
 /* Basic linked list template                                             */
 /* Note: the TYPE stored in the list should have an appropriate           */
@@ -15,6 +15,9 @@
 
 /* direct members */
 #include "ListNodeT.h"
+
+
+namespace Tahoe {
 
 template <class TYPE>
 class LinkedListT
@@ -284,4 +287,5 @@ LinkedListT<TYPE>& LinkedListT<TYPE>::operator=(const LinkedListT<TYPE>& source)
 	return *this;
 }
 
+} // namespace Tahoe 
 #endif /* _LINKEDLIST_T_H_ */

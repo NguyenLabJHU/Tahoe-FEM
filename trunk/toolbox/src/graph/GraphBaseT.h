@@ -1,4 +1,4 @@
-/* $Id: GraphBaseT.h,v 1.2 2001-07-19 01:01:23 paklein Exp $ */
+/* $Id: GraphBaseT.h,v 1.3 2002-07-02 19:57:14 cjkimme Exp $ */
 /* created: paklein (04/13/1999) */
 
 #ifndef _GRAPHBASE_T_H_
@@ -8,6 +8,9 @@
 #include "RaggedArray2DT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class iArrayT;
 class iArray2DT;
 
@@ -149,4 +152,5 @@ inline const RaggedArray2DT<int>& GraphBaseT::EdgeList(int& row_shift) const
 	return fEdgeList;
 }
 
+} // namespace Tahoe 
 #endif /* _GRAPHBASE_T_H_ */

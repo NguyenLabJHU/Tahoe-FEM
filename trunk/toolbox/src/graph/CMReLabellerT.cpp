@@ -1,4 +1,4 @@
-/* $Id: CMReLabellerT.cpp,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: CMReLabellerT.cpp,v 1.2 2002-07-02 19:57:14 cjkimme Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "CMReLabellerT.h"
@@ -8,6 +8,9 @@
 #include "AutoArrayT.h"
 
 /* status codes */
+
+using namespace Tahoe;
+
 const int kInActive   = 0;
 const int kPreActive  = 1;
 const int kActive     = 2;

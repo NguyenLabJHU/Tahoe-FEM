@@ -1,9 +1,12 @@
-/* $Id: CartesianGridT.cpp,v 1.3 2002-05-03 09:44:23 paklein Exp $ */
+/* $Id: CartesianGridT.cpp,v 1.4 2002-07-02 19:57:23 cjkimme Exp $ */
 /* created: paklein (11/10/2000) */
 
 #include "CartesianGridT.h"
 #include <math.h>
 #include "GraphT.h"
+
+
+using namespace Tahoe;
 
 static int to_integer(double a) { return int((2.0*a + 1.0)/2.0); };
 

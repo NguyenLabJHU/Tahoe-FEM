@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.cpp,v 1.11 2002-03-04 06:25:30 paklein Exp $ */
+/* $Id: EnSightInputT.cpp,v 1.12 2002-07-02 19:57:03 cjkimme Exp $ */
 /* created: sawimme (05/18/1998)                                          */
 
 #include "EnSightInputT.h"
@@ -9,6 +9,9 @@
 #include "AutoArrayT.h"
 #include "iArrayT.h"
 #include "iArray2DT.h"
+
+
+using namespace Tahoe;
 
 const int kDOF = 3; // all files are always written in 3D
 

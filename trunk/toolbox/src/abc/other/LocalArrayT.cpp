@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.cpp,v 1.7 2002-02-27 16:47:13 paklein Exp $ */
+/* $Id: LocalArrayT.cpp,v 1.8 2002-07-02 19:56:50 cjkimme Exp $ */
 /* created: paklein (07/10/1996) */
 
 #include "LocalArrayT.h"
@@ -6,6 +6,9 @@
 #include "iArrayT.h"
 
 /* array behavior */
+
+using namespace Tahoe;
+
 const bool ArrayT<LocalArrayT::TypeT>::fByteCopy = true;
 
 /* cconstructors */

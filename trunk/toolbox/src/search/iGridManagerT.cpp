@@ -1,4 +1,4 @@
-/* $Id: iGridManagerT.cpp,v 1.3 2002-06-29 22:07:07 hspark Exp $ */
+/* $Id: iGridManagerT.cpp,v 1.4 2002-07-02 19:57:24 cjkimme Exp $ */
 /* created: paklein (09/13/1998)                                          */
 /* iNodeT grid with unified interface for 2D/3D                           */
 
@@ -9,6 +9,9 @@
 #include "iArrayT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 iGridManagerT::iGridManagerT(const iArrayT& n_grid, const dArray2DT& coords,
 	const iArrayT* nodes_used):
         fGrid1D(NULL),

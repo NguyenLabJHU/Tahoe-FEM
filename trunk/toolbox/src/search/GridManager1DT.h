@@ -1,4 +1,4 @@
-/* $Id: GridManager1DT.h,v 1.3 2002-06-30 03:07:17 paklein Exp $ */
+/* $Id: GridManager1DT.h,v 1.4 2002-07-02 19:57:23 cjkimme Exp $ */
 #ifndef _GRIDMANAGER1D_T_H_
 #define _GRIDMANAGER1D_T_H_
 
@@ -12,6 +12,8 @@
 #include "AutoArrayT.h"
 #include "pArrayT.h"
 #include "dArray2DT.h"
+
+namespace Tahoe {
 
 /* forward declarations */
 class iArrayT;
@@ -70,6 +72,10 @@ protected:
 	AutoArrayT<sTYPE> fHits;
 
 };
+
+} // namespace Tahoe;
+
+using namespace Tahoe;
 
 /*************************************************************************
 * Implementation

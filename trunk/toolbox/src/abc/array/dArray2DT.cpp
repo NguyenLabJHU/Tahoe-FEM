@@ -1,4 +1,4 @@
-/* $Id: dArray2DT.cpp,v 1.4 2002-06-08 19:33:37 paklein Exp $ */
+/* $Id: dArray2DT.cpp,v 1.5 2002-07-02 19:56:39 cjkimme Exp $ */
 /* created: paklein (07/16/1996) */
 
 #include "dArray2DT.h"
@@ -9,6 +9,8 @@
 #include "Constants.h"
 #include "iArrayT.h"
 #include "dArrayT.h"
+
+using namespace Tahoe;
 
 /* array behavior */
 const bool ArrayT<dArray2DT*>::fByteCopy = true;

@@ -1,4 +1,4 @@
-/* $Id: EnSightInputT.h,v 1.10 2002-03-04 06:25:30 paklein Exp $ */
+/* $Id: EnSightInputT.h,v 1.11 2002-07-02 19:57:03 cjkimme Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _ENSIGHTINPUT_T_H_
@@ -16,6 +16,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 template <class TYPE> class ArrayT;
 
 class iArray2DT;
@@ -209,4 +212,5 @@ inline void EnSightInputT::ReadQuadratureVariables (int step, const StringT& nam
   qvalues.Free();
 }
 
+} // namespace Tahoe 
 #endif

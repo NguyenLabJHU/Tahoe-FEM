@@ -1,10 +1,13 @@
-/* $Id: iArray2DT.cpp,v 1.3 2002-02-27 16:47:11 paklein Exp $ */
+/* $Id: iArray2DT.cpp,v 1.4 2002-07-02 19:56:39 cjkimme Exp $ */
 /* created: paklein (09/23/1996) */
 
 #include "iArray2DT.h"
 #include <iostream.h>
 #include <iomanip.h>
 #include "Constants.h"
+
+
+using namespace Tahoe;
 
 /* array behavior */
 const bool ArrayT<iArray2DT>::fByteCopy = false;

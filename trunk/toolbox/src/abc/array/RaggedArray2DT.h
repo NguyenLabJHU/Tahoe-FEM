@@ -1,4 +1,4 @@
-/* $Id: RaggedArray2DT.h,v 1.8 2002-02-18 08:48:39 paklein Exp $ */
+/* $Id: RaggedArray2DT.h,v 1.9 2002-07-02 19:56:39 cjkimme Exp $ */
 /* created: paklein (09/10/1998) */
 
 #ifndef _RAGGED_ARRAY_2D_T_H_
@@ -12,6 +12,9 @@
 #include "nArray2DT.h"
 #include "AutoFill2DT.h"
 #include "RowAutoFill2DT.h"
+
+
+namespace Tahoe {
 
 /** 2D array with arbitrary "row" lengths. operator()'s provided
  * for data retrieval. */
@@ -717,4 +720,5 @@ void RaggedArray2DT<TYPE>::SetEvenPointers(int minordim)
 	}
 }
 
+} // namespace Tahoe 
 #endif /* _RAGGED_ARRAY_2D_T_H_ */

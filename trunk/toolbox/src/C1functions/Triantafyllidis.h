@@ -1,4 +1,4 @@
-/* $Id: Triantafyllidis.h,v 1.1 2001-06-11 01:55:49 paklein Exp $ */
+/* $Id: Triantafyllidis.h,v 1.2 2002-07-02 19:56:32 cjkimme Exp $ */
 
 #ifndef _TRIANTAFYLLIDIS_H_
 #define _TRIANTAFYLLIDIS_H_
@@ -8,6 +8,9 @@
 
 /** the potential used by Triantafyllidis and Bardenhagen in \a Journal \a of
  * \a Elasticity (1993) */
+
+namespace Tahoe {
+
 class Triantafyllidis: public C1FunctionT
 {
 public:
@@ -39,4 +42,5 @@ private:
 	double fA;
 };
 
+} // namespace Tahoe 
 #endif /* _TRIANTAFYLLIDIS_H_ */

@@ -1,4 +1,4 @@
-/* $Id: GroupAverageT.h,v 1.2 2001-06-11 02:03:38 paklein Exp $ */
+/* $Id: GroupAverageT.h,v 1.3 2002-07-02 19:57:18 cjkimme Exp $ */
 /* created: paklein (10/03/1996)                                          */
 
 #ifndef _GROUPAVERAGE_T_H_
@@ -10,6 +10,9 @@
 #include "AutoArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class dArrayT;
 class StringT;
 class iArray2DT;
@@ -81,4 +84,5 @@ inline void GroupAverageT::SetNumAverageRows(int numrows) { fNumRows = numrows; 
 /* return the values array */
 inline const dArray2DT& GroupAverageT::Values(void) const { return fValues; }
 
+} // namespace Tahoe 
 #endif

@@ -1,4 +1,4 @@
-/* $Id: InputFEASCIIT.cpp,v 1.15 2002-04-07 19:13:27 paklein Exp $ */
+/* $Id: InputFEASCIIT.cpp,v 1.16 2002-07-02 19:57:03 cjkimme Exp $ */
 
 #include "InputFEASCIIT.h"
 
@@ -12,6 +12,9 @@
 #else
 #include <strstream.h>
 #endif
+
+
+using namespace Tahoe;
 
 InputFEASCIIT::InputFEASCIIT (ostream& out) :
   InputBaseT (out),

@@ -1,4 +1,4 @@
-/* $Id: ExodusInputT.h,v 1.12 2002-03-11 20:14:45 sawimme Exp $ */
+/* $Id: ExodusInputT.h,v 1.13 2002-07-02 19:57:03 cjkimme Exp $ */
 /* created: sawimme (05/18/1998) */
 
 #ifndef _EXODUSINPUT_T_H_
@@ -14,6 +14,9 @@
 
 /* forward declarations */
 #include "ios_fwd_decl.h"
+
+namespace Tahoe {
+
 class iArray2DT;
 
 class ExodusInputT : public InputBaseT
@@ -200,4 +203,5 @@ inline void ExodusInputT::ReadQuadratureVariables (int step, const StringT& name
   vals.Free ();
 }
 
+} // namespace Tahoe 
 #endif

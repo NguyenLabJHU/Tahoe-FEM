@@ -1,4 +1,4 @@
-/* $Id: GaoVicky.h,v 1.1 2002-05-28 06:55:01 bhji Exp $                  */
+/* $Id: GaoVicky.h,v 1.2 2002-07-02 19:56:31 cjkimme Exp $                  */
 /* created: Ji (12/26/1998)                                          */
 /* Cohesive force law:                                                    */
 /* F(dr) = A dl / (1. + Exp[(-B/C + dl)/D]                                           */
@@ -10,6 +10,9 @@
 
 /* base class */
 #include "C1FunctionT.h"
+
+
+namespace Tahoe {
 
 class GaoVicky: public C1FunctionT
 {
@@ -47,4 +50,5 @@ private:
 	double fL; // unstretched length
 };
 
+} // namespace Tahoe 
 #endif /* _GAO_VICKY_H_ */

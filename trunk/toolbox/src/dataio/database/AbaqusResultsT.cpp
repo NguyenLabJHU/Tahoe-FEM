@@ -1,4 +1,4 @@
-/* $Id: AbaqusResultsT.cpp,v 1.17 2002-04-10 12:08:54 sawimme Exp $ */
+/* $Id: AbaqusResultsT.cpp,v 1.18 2002-07-02 19:57:00 cjkimme Exp $ */
 /* created: S. Wimmer 9 Nov 2000 */
 
 #include "AbaqusResultsT.h"
@@ -6,6 +6,9 @@
 #include <time.h>
 
 /* these variables are nodal and have a node number before the value list */
+
+using namespace Tahoe;
+
 AbaqusResultsT::AbaqusResultsT (ostream& message) :
   fMessage (message),
   fNumElements (0),

@@ -1,4 +1,4 @@
-/* $Id: MonitorT.cpp,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
+/* $Id: MonitorT.cpp,v 1.2 2002-07-02 19:57:18 cjkimme Exp $ */
 /* created: paklein (09/30/1996)                                          */
 
 #include "MonitorT.h"
@@ -6,6 +6,9 @@
 #include "Constants.h"
 
 /* parameters */
+
+using namespace Tahoe;
+
 const int kPercentHeadRoom = 5;
 
 /* constructor */

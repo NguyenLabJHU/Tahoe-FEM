@@ -1,4 +1,4 @@
-/* $Id: EdgeFinderT.cpp,v 1.2 2001-12-16 23:48:12 paklein Exp $ */
+/* $Id: EdgeFinderT.cpp,v 1.3 2002-07-02 19:57:20 cjkimme Exp $ */
 /* created: paklein (02/14/1998)                                          */
 /* Class to determine element neighbors based on the connectivies.        */
 /* The neighboring element numbers (taken from position in the list       */
@@ -12,6 +12,9 @@
 #include "AutoArrayT.h"
 
 /* indices for data flags */
+
+using namespace Tahoe;
+
 int kNumFlags   = 3;
 int kDims       = 0;
 int kNeighbor   = 1;

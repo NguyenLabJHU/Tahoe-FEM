@@ -1,4 +1,4 @@
-/* $Id: Rotate2DT.cpp,v 1.1.1.1 2001-01-25 20:56:25 paklein Exp $ */
+/* $Id: Rotate2DT.cpp,v 1.2 2002-07-02 19:57:18 cjkimme Exp $ */
 /* created: paklein (07/21/1996)                                          */
 /* This class provides the functionality to do 2D coordinate              */
 /* transformations.                                                       */
@@ -8,6 +8,9 @@
 #include "Constants.h"
 
 /* size parameters */
+
+using namespace Tahoe;
+
 const int kMatrixDim = 2;
 const int kRedMatDim = 3;
 

@@ -1,4 +1,4 @@
-/* $Id: GraphT.cpp,v 1.7 2001-07-19 06:46:56 paklein Exp $ */
+/* $Id: GraphT.cpp,v 1.8 2002-07-02 19:57:14 cjkimme Exp $ */
 /* created: paklein (08/05/1996)                                          */
 
 #include "GraphT.h"
@@ -16,6 +16,9 @@
 
 /* inlines */
 /* return true if node is in range and active */
+
+using namespace Tahoe;
+
 inline bool GraphT::Active(int node, const iArrayT& active) const
 {
 	return node > -1 &&

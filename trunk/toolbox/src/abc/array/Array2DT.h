@@ -1,4 +1,4 @@
-/* $Id: Array2DT.h,v 1.5 2002-03-04 01:38:09 paklein Exp $ */
+/* $Id: Array2DT.h,v 1.6 2002-07-02 19:56:39 cjkimme Exp $ */
 /* created: paklein (11/02/1998)                                          */
 
 #ifndef _ARRAY2D_T_H_
@@ -6,6 +6,9 @@
 
 /* base class */
 #include "ArrayT.h"
+
+
+namespace Tahoe {
 
 template <class TYPE>
 class Array2DT: public ArrayT<TYPE>
@@ -286,5 +289,5 @@ inline void Array2DT<TYPE>::SetRow(int row, const ArrayT<TYPE>& array)
 	/* copy */	
 	MemCopy((*this)(row), array.Pointer(), fMinorDim);	
 }
-
+}//namespace Tahoe
 #endif /* _ARRAY2D_T_H_ */

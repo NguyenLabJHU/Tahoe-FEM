@@ -1,4 +1,4 @@
-/* $Id: BandedLAdMatrixT.h,v 1.1.1.1 2001-01-25 20:56:23 paklein Exp $ */
+/* $Id: BandedLAdMatrixT.h,v 1.2 2002-07-02 19:56:46 cjkimme Exp $ */
 /* created: MLK (05/21/1997)                                              */
 /* square banded matrix operations                                        */
 /* banded matrix elements stored in columns                               */
@@ -13,6 +13,9 @@
 #include "nArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class dArrayT;
 class dMatrixT;
 
@@ -106,4 +109,5 @@ inline int BandedLAdMatrixT::Rband(void) const { return (fRband); }
 inline int BandedLAdMatrixT::Rows(void) const { return (fRows); }
 inline int BandedLAdMatrixT::Cols(void) const { return (fCols); }
 
+} // namespace Tahoe 
 #endif /* _BANDED_LADMATRIX_T_H_ */

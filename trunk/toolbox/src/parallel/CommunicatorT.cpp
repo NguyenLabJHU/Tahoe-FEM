@@ -1,4 +1,4 @@
-/* $Id: CommunicatorT.cpp,v 1.1 2002-02-12 02:04:07 paklein Exp $ */
+/* $Id: CommunicatorT.cpp,v 1.2 2002-07-02 19:57:21 cjkimme Exp $ */
 
 #include "CommunicatorT.h"
 #include "ExceptionCodes.h"
@@ -7,6 +7,9 @@
 #include "ArrayT.h"
 
 /* create communicator including all processes */
+
+using namespace Tahoe;
+
 CommunicatorT::CommunicatorT(void):
 	fLogLevel(kSilent),
 	fLog(&cout)

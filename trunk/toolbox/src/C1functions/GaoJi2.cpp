@@ -1,4 +1,4 @@
-/* $Id: GaoJi2.cpp,v 1.1 2002-05-28 06:55:01 bhji Exp $ */
+/* $Id: GaoJi2.cpp,v 1.2 2002-07-02 19:56:31 cjkimme Exp $ */
 /* created: Baohua Ji (02/25/2002)                                          */
 
 #include "GaoJi2.h"
@@ -8,6 +8,9 @@
 #include "dArrayT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 GaoJi2::GaoJi2(double A, double B, double C, double L_0):
 	fA(A),
 	fB(B),

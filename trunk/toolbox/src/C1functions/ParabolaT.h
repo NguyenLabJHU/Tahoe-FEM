@@ -1,4 +1,4 @@
-/* $Id: ParabolaT.h,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: ParabolaT.h,v 1.2 2002-07-02 19:56:32 cjkimme Exp $ */
 /* created: paklein (03/25/1999)                                          */
 
 #ifndef _PARABOLA_T_H_
@@ -6,6 +6,9 @@
 
 /* base class */
 #include "C1FunctionT.h"
+
+
+namespace Tahoe {
 
 class ParabolaT: public C1FunctionT
 {
@@ -45,4 +48,5 @@ inline double ParabolaT::DDFunction(double x) const
 	return fk;
 }
 
+} // namespace Tahoe 
 #endif /* _PARABOLA_T_H_ */

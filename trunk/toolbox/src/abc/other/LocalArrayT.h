@@ -1,4 +1,4 @@
-/* $Id: LocalArrayT.h,v 1.6 2002-06-08 19:33:37 paklein Exp $ */
+/* $Id: LocalArrayT.h,v 1.7 2002-07-02 19:56:50 cjkimme Exp $ */
 /* created: paklein (07/10/1996) */
 
 #ifndef _LOCALARRAY_T_H_
@@ -8,6 +8,9 @@
 #include "dArrayT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class dArray2DT;
 
 /** array class to facilitate working with subsets of a dArray2DT. The
@@ -216,5 +219,5 @@ inline void LocalArrayT::FromTranspose(const nArrayT<double>& transpose)
 	/* call primitive function */
 	FromTranspose(transpose.Pointer());
 }
-
+}//namespace Tahoe
 #endif /* _LOCALARRAY_T_H_ */

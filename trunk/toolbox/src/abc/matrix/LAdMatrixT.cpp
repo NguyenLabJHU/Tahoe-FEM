@@ -1,4 +1,4 @@
-/* $Id: LAdMatrixT.cpp,v 1.2 2001-05-31 19:28:47 pecore Exp $ */
+/* $Id: LAdMatrixT.cpp,v 1.3 2002-07-02 19:56:46 cjkimme Exp $ */
 /* created: paklein (12/05/1996)                                          */
 /* Matrix2D with some linear algebra functions                            */
 
@@ -8,6 +8,9 @@
 #include "dArrayT.h"
 
 /* constructor */
+
+using namespace Tahoe;
+
 LAdMatrixT::LAdMatrixT(void) { }
 LAdMatrixT::LAdMatrixT(int squaredim): dMatrixT(squaredim) { }
 LAdMatrixT::LAdMatrixT(const LAdMatrixT& source): dMatrixT(source)

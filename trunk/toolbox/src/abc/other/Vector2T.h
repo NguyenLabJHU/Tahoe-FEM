@@ -1,4 +1,4 @@
-/* $Id: Vector2T.h,v 1.1 2001-09-13 22:09:59 rjones Exp $ */
+/* $Id: Vector2T.h,v 1.2 2002-07-02 19:56:50 cjkimme Exp $ */
 /* utility class for 2D vector functions                                  */
 /* NOTE: some functions do create temporary nTYPE's                       */
 
@@ -7,6 +7,9 @@
 
 /* Environmental */
 #include "Environment.h"
+
+
+namespace Tahoe {
 
 template <class nTYPE>
 class Vector2T
@@ -234,4 +237,5 @@ inline Vector2T<nTYPE>& Vector2T<nTYPE>::
 	return *this;
 }
 
+} // namespace Tahoe 
 #endif /* _VECTOR_2_T_H_ */

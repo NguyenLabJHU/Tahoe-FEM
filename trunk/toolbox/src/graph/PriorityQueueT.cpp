@@ -1,4 +1,4 @@
-/* $Id: PriorityQueueT.cpp,v 1.2 2001-09-25 00:55:15 paklein Exp $ */
+/* $Id: PriorityQueueT.cpp,v 1.3 2002-07-02 19:57:14 cjkimme Exp $ */
 /* created: paklein (8/06/1996) */
 
 #include "PriorityQueueT.h"
@@ -8,6 +8,9 @@
 #include "iArrayT.h"
 
 /* priority modes */
+
+using namespace Tahoe;
+
 const int kDirectMapped = 0;
 const int kIndexMapped  = 1;
 

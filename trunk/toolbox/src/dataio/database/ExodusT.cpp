@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.17 2002-05-23 00:55:01 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.18 2002-07-02 19:57:00 cjkimme Exp $ */
 /* created: sawimme (12/04/1998)                                          */
 
 #include "ExodusT.h"
@@ -19,6 +19,9 @@
 #include "exodusII.h"
 
 /* constructor for opening input or output file */
+
+using namespace Tahoe;
+
 ExodusT::ExodusT(ostream& message_out, int float_size):
 	fOut(message_out),
 	exoid(-1),

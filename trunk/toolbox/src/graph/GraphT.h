@@ -1,4 +1,4 @@
-/* $Id: GraphT.h,v 1.3 2001-07-19 06:46:56 paklein Exp $ */
+/* $Id: GraphT.h,v 1.4 2002-07-02 19:57:14 cjkimme Exp $ */
 /* created: paklein (08/05/1996)                                          */
 /* generates graphs for the connectivities registered with AddGroup().    */
 /* connectivies can have an arbitrary MinorDim(), but the labels in       */
@@ -14,6 +14,9 @@
 #include "LinkedListT.h"
 
 /* forward declarations */
+
+namespace Tahoe {
+
 class iArray2DT;
 class PartitionT;
 
@@ -85,4 +88,5 @@ inline void GraphT::Partition(const iArrayT& config, const iArrayT& weight,
 	GraphBaseT::Partition(config, weight, partition, verbose);
 }
 
+} // namespace Tahoe 
 #endif /* _GRAPH_T_H_ */

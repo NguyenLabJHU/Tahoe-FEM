@@ -1,4 +1,4 @@
-/* $Id: TecPlotT.cpp,v 1.4 2002-03-04 06:22:10 paklein Exp $ */
+/* $Id: TecPlotT.cpp,v 1.5 2002-07-02 19:57:01 cjkimme Exp $ */
 /* created: saw (06.06.2000)                                              */
 /* version 7.5                                                            */
 /* rules:                                                                 */
@@ -15,6 +15,9 @@
 #include "iArray2DT.h"
 #include "iArrayT.h"
 #include "dArray2DT.h"
+
+
+using namespace Tahoe;
 
 TecPlotT::TecPlotT (ostream& out, bool point) :
 fOut (out),

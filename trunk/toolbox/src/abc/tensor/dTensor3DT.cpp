@@ -13,6 +13,9 @@
 /*
  * Constructor
  */
+
+using namespace Tahoe;
+
 dTensor3DT::dTensor3DT(void) { }
 dTensor3DT::dTensor3DT(int dim0, int dim1, int dim2):
 	Tensor3DT<double>(dim0,dim1,dim2) { }
