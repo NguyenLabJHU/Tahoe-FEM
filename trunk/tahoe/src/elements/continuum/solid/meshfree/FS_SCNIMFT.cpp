@@ -1,4 +1,4 @@
-/* $Id: FS_SCNIMFT.cpp,v 1.17 2005-02-01 20:18:37 cjkimme Exp $ */
+/* $Id: FS_SCNIMFT.cpp,v 1.18 2005-02-02 01:57:53 paklein Exp $ */
 #include "FS_SCNIMFT.h"
 
 //#define VERIFY_B
@@ -128,26 +128,28 @@ void FS_SCNIMFT::WriteOutput(void)
 
 	/* For now, just one material. Grab it */
 	ContinuumMaterialT *mat = (*fMaterialList)[0];
-	SolidMaterialT* fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
-	if (!fCurrMaterial)
+	FSSolidMatT* curr_material = TB_DYNAMIC_CAST(FSSolidMatT*,mat);
+	if (!curr_material)
 		ExceptionT::GeneralFail("FS_SCNIMFT::RHSDriver","Cannot get material\n");
 
 	const RaggedArray2DT<int>& nodeSupport = fNodalShapes->NodeNeighbors();
 	
-	ArrayT<dMatrixT> Flist(1);
-	Flist[0].Dimension(fSD);
-	dMatrixT& Fdef = Flist[0];
+	dMatrixT& Fdef = fF_list[0];
 	dMatrixT BJ(fSD*fSD, fSD), Finverse(fSD);
 	dMatrixT E(fSD), fStress(fSD), fCauchy(fSD);
 	double J;
 	
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
+	const dArray2DT& u_last = Field()(-1,0);
 
 	/* collect displacements */
 	dArrayT vec, values_i;
-	for (int i = 0; i < non; i++) {
-	
+	for (int i = 0; i < non; i++) 
+	{
+		/* set current element */
+		fElementCards.Current(i);
+
 		int tag_i = fNodes[i];
 
 		/* values for particle i */
@@ -183,10 +185,23 @@ void FS_SCNIMFT::WriteOutput(void)
 			for (int cols = 0; cols < fSD; cols++)
 				E(rows,cols) += Fdef(cols,rows);
 		Fdef.PlusIdentity();
-		fFSMatSupport->SetDeformationGradient(&Flist);
 		J = Fdef.Det();
+
+		/* compute smoothed deformation gradient from the previous time increment */
+		if (fF_last_list.Length() > 0) {
+			dMatrixT& Fdef_last = fF_last_list[0];
+			Fdef_last = 0.0;
+			dArrayT* bVec_i = bVectorArray(i);
+			int* supp_i = nodalCellSupports(i);
+			for (int j = 0; j < nodalCellSupports.MinorDim(i); j++) { 
+				bVectorToMatrix(bVec_i->Pointer(), BJ);
+				bVec_i++;
+				BJ.Multx(u_last(*supp_i++), Fdef_last.Pointer(), 1.0, dMatrixT::kAccumulate);
+			}
+			Fdef_last.PlusIdentity();
+		}
 		
-		fCurrMaterial->s_ij().ToMatrix(fCauchy);
+		curr_material->s_ij().ToMatrix(fCauchy);
 		Finverse.Inverse(Fdef);
 		Finverse *= J; // compute J F^-1
 		fStress.MultABT(fCauchy, Finverse); // compute PK1
@@ -271,26 +286,25 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	
 		/* For now, just one material. Grab it */
 		ContinuumMaterialT *mat = (*fMaterialList)[0];
-		SolidMaterialT* fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
-		if (!fCurrMaterial)
+		FSSolidMatT* curr_material = TB_DYNAMIC_CAST(FSSolidMatT*,mat);
+		if (!curr_material)
 			ExceptionT::GeneralFail("FS_SCNIMFT::LHSDriver","Cannot get material\n");
 	
-		AssembleParticleMass(fCurrMaterial->Density());
+		AssembleParticleMass(curr_material->Density());
 	}
 #pragma message("FS_SCNIMFT::LHSDriver Specialized to 2D")	
 	if (formK) {
 		/* hold the smoothed strain */
-		ArrayT<dMatrixT> Flist(1);
-		Flist[0].Dimension(fSD);
-		dMatrixT& Fdef = Flist[0];
+		dMatrixT& Fdef = fF_list[0];
 		
 		/* displacements */
 		const dArray2DT& u = Field()(0,0);
+		const dArray2DT& u_last = Field()(-1,0);
 	
 		/* For now, just one material. Grab it */
 		ContinuumMaterialT *mat = (*fMaterialList)[0];
-		SolidMaterialT* fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
-		if (!fCurrMaterial)
+		FSSolidMatT* curr_material = TB_DYNAMIC_CAST(FSSolidMatT*,mat);
+		if (!curr_material)
 			ExceptionT::GeneralFail("FS_SCNIMFT::LHSDriver","Cannot get material\n");
 
 		int nNodes = fNodes.Length();
@@ -311,7 +325,11 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		K_JK.Alias(fLHS);
 		LinkedListT<dArrayT> bVectors_j;
 		LinkedListT<int> nodeSupport_j;
-		for (int i = 0; i < nNodes; i++) {	
+		for (int i = 0; i < nNodes; i++) 
+		{	
+			/* set current element */
+			fElementCards.Current(i);
+
 			double w_i = fCellVolumes[i]*constK; // integration weights
 			
 			int n_supp = nodalCellSupports.MinorDim(i);
@@ -325,17 +343,38 @@ void FS_SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 				bVec_i++;
 			}		
 			Fdef.PlusIdentity(); // convert to F
-			fFSMatSupport->SetDeformationGradient(&Flist);
-				
-			// stress stiffness
+
+			/* need deformation gradient from the previous time increment */
+			if (fF_last_list.Length() > 0) {
+				dMatrixT& Fdef_last = fF_last_list[0];	
+				Fdef_last = 0.0;
+				dArrayT* bVec_i = bVectorArray(i);
+				int* supp_i = nodalCellSupports(i);
+				for (int j = 0; j < n_supp; j++) { 
+					bVectorToMatrix(bVec_i->Pointer(), BJ);
+					bVec_i++;
+					BJ.Multx(u_last(*supp_i++), Fdef_last.Pointer(), 1.0, dMatrixT::kAccumulate);
+				}
+				Fdef_last.PlusIdentity(); // convert to F
+			}
+		
+			const dMatrixT& cijkl = curr_material->C_IJKL();
+			curr_material->s_ij().ToMatrix(fCauchy);
+			Finverse.Inverse(Fdef);
+			Finverse *= Fdef.Det(); // compute J F^-1
+			fStress.MultABT(fCauchy, Finverse); // compute PK1
+		
+			// FTs = F^T sigma
+			FTs.MultATB(Fdef, fStress);
+
 			// T_11 = T_22 = FTs_11 T_13 = T_24 = FTs_12
 			// T_31 = T_42 = FTs_21 T_33 = T_44 = FTs_22
-			fCurrMaterial->S_IJ().ToMatrix(fStress);
+			curr_material->S_IJ().ToMatrix(fStress);
 			Tijkl.Expand(fStress, fSD, dMatrixT::kOverwrite);
 			// Tijkl = 0.; //used to debug material stiffness
 			
 			// material stiffness
-			const dMatrixT& moduli = fCurrMaterial->C_IJKL();
+			const dMatrixT& moduli = curr_material->C_IJKL();
 			Tijkl += TransformModuli(moduli, Fdef, Cijklsigma);
 			
 			// sum over pairs to get contribution to stiffness
@@ -385,8 +424,8 @@ void FS_SCNIMFT::RHSDriver(void)
 
 	/* For now, just one material. Grab it */
 	ContinuumMaterialT *mat = (*fMaterialList)[0];
-	SolidMaterialT* fCurrMaterial = TB_DYNAMIC_CAST(SolidMaterialT*,mat);
-	if (!fCurrMaterial)
+	FSSolidMatT* curr_material = TB_DYNAMIC_CAST(FSSolidMatT*,mat);
+	if (!curr_material)
 		ExceptionT::GeneralFail("FS_SCNIMFT::RHSDriver","Cannot get material\n");
 	
 	int nNodes = fNodes.Length();
@@ -407,19 +446,22 @@ void FS_SCNIMFT::RHSDriver(void)
 				*ma++ = *volume * *acc++;
 			volume++;
 		}
-		fLHS *= fCurrMaterial->Density();
+		fLHS *= curr_material->Density();
 	}
 
 	fForce = 0.0;
-	ArrayT<dMatrixT> Flist(1);
-	Flist[0].Dimension(fSD);
-	dMatrixT& Fdef = Flist[0];
+	dMatrixT& Fdef = fF_list[0];
 	dMatrixT BJ(fSD*fSD, fSD), fCauchy(fSD), Finverse(fSD), fStress(fSD);
 	double J;
 	
 	/* displacements */
 	const dArray2DT& u = Field()(0,0);
-	for (int i = 0; i < nNodes; i++) {
+	const dArray2DT& u_last = Field()(-1,0);
+	for (int i = 0; i < nNodes; i++) 
+	{
+		/* set current element */
+		fElementCards.Current(i);
+	
 		double w_i = fCellVolumes[i]; // integration weight
 		
 		int n_supp = nodalCellSupports.MinorDim(i);
@@ -433,12 +475,25 @@ void FS_SCNIMFT::RHSDriver(void)
 			bVec_i++;
 		}
 		Fdef.PlusIdentity(); // convert to F 	
-		fFSMatSupport->SetDeformationGradient(&Flist);
 		J = Fdef.Det();
 		if (J <= 0.0)
 			ExceptionT::BadJacobianDet("FS_SCNIMFT::FormKd");
+
+		/* compute deformation gradient from the previous time increment */
+		if (fF_last_list.Length() > 0) {
+			dMatrixT& Fdef_last = fF_last_list[0];
+			Fdef_last = 0.0;
+			dArrayT* bVec_i = bVectorArray(i);
+			int* supp_i = nodalCellSupports(i);
+			for (int j = 0; j < n_supp; j++) { 
+				bVectorToMatrix(bVec_i->Pointer(), BJ);
+				bVec_i++;
+				BJ.Multx(u_last(*supp_i++), Fdef_last.Pointer(), 1.0, dMatrixT::kAccumulate);
+			}
+			Fdef_last.PlusIdentity(); // convert to F 			
+		}
 		
-		fCurrMaterial->s_ij().ToMatrix(fCauchy);
+		curr_material->s_ij().ToMatrix(fCauchy);
 		Finverse.Inverse(Fdef);
 		Finverse *= J; // compute J F^-1
 		fStress.MultABT(fCauchy, Finverse); // compute PK1
@@ -585,7 +640,14 @@ MaterialListT* FS_SCNIMFT::NewMaterialList(const StringT& name, int size)
 		 	fFSMatSupport = new FSMatSupportT(nsd, 1);      
 		 	if (!fFSMatSupport)
 		 		ExceptionT::GeneralFail("FS_SCNIMFT::NewMaterialList","Could not instantiate material support\n");
-			fFSMatSupport->SetFEManager(&ElementSupport().FEManager());
+
+			/* initializations */
+			const FEManagerT& fe_man = ElementSupport().FEManager();
+			fFSMatSupport->SetFEManager(&fe_man);
+			fFSMatSupport->SetDeformationGradient(&fF_list);
+			fFSMatSupport->SetDeformationGradient_last(&fF_last_list);
+			fFSMatSupport->SetElementCards(&fElementCards);
+			fFSMatSupport->SetGroup(Group());
 		 }
 
 		if (nsd == 2)
@@ -655,4 +717,24 @@ ParameterInterfaceT* FS_SCNIMFT::NewSub(const StringT& name) const
   }
   else /* inherited */
 	return SCNIMFT::NewSub(name);
+}
+
+/* accept parameter list */
+void FS_SCNIMFT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	SCNIMFT::TakeParameterList(list);
+
+	/* deformation gradients */
+	int nsd = NumSD();
+	fF_list.Dimension(1);
+	fF_list[0].Dimension(nsd);
+
+	/* casts are safe since class contructs materials list - just one material */
+	ContinuumMaterialT* pcont_mat = (*fMaterialList)[0];
+	FSSolidMatT* mat = (FSSolidMatT*) pcont_mat;
+	if (mat->Need_F_last()) {
+		fF_last_list.Dimension(1);
+		fF_last_list[0].Dimension(nsd);
+	}
 }
