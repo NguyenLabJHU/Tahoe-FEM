@@ -29,7 +29,7 @@ const double kYieldTol = 1.0e-10;
 const int kNSD = 3;
 
 /* element output data */
-const int kNumOutput = 18;
+const int kNumOutput = 11;
 static const char* Labels[kNumOutput] = {
 	"alpha11",  // back stress
 	"alpha22",  
@@ -41,14 +41,7 @@ static const char* Labels[kNumOutput] = {
 	"meanstress",
 	"J2",
 	"J3",
-	"loccheck",
-	"loccheckd", // localization check
-	"n1", // x1 component of normal n for bifurcation
-	"n2", // x2 component of normal n for bifurcation
-	"n3", // x3 component of normal n for bifurcation
-	"nd1", // x1 component of normal n for bifurcation with perfectly plastic tangent
-	"nd2", // x2 component of normal n for bifurcation with perfectly plastic tangent
-	"nd3", // x3 component of normal n for bifurcation with perfectly plastic tangent 
+	"loccheck"
 };
 
 /*constructor*/
@@ -320,71 +313,28 @@ void FossumSSIsoT::ComputeOutput(dArrayT& output)
 		if (flags[CurrIP()] == kIsPlastic)
 		{
 			// check for localization
-
 			// compute modulus 
-			// use consistent tangent
 			//const dMatrixT& modulus = c_ijkl();
-			// use continuum tangent
-			const dMatrixT& modulus = con_ijkl();
+			//const dMatrixT& modulus = c_perfplas_ijkl();
+			//const dMatrixT& modulus = con_ijkl();
+			const dMatrixT& modulus = con_perfplas_ijkl();
 
-			// localization condition checker
+			/* localization condition checker */
 			DetCheckT checker(stress, modulus, Ce);
-			dArrayT normal(stress.Rows());
-			output[10] = checker.IsLocalized_SS(normal);  
-			output[12] = normal[0];
-			output[13] = normal[1];
-			if (normal.Length() == 3) output[14] = normal[2];
-			else output[14] = 0.0;
-			/*
-		    output[10] = 0.0;
-		    output[12] = 0.0;
-			output[13] = 0.0;
-			output[14] = 0.0;
-			*/ 
-
-			/* compute perfectly plastic modulus */
-			// use consistent tangent
-			//const dMatrixT& modulusperfplas = c_perfplas_ijkl();
-			// use continuum tangent
-			const dMatrixT& modulusperfplas = con_perfplas_ijkl();
-
-			/* perfectly plastic localization condition checker */
-			DetCheckT checkerperfplas(stress, modulusperfplas, Ce);
-			dArrayT normalperfplas(stress.Rows());
-			output[11] = checkerperfplas.IsLocalized_SS(normalperfplas);
-			output[15] = normalperfplas[0];
-			output[16] = normalperfplas[1];
-			if (normalperfplas.Length() == 3) output[17] = normalperfplas[2];
-			else output[17] = 0.0;
-			/*
-			output[11] = 0.0;
-		    output[15] = 0.0;
-			output[16] = 0.0;
-			output[17] = 0.0;
-			*/
+			AutoArrayT <dArrayT> normals;
+			AutoArrayT <dArrayT> slipdirs;
+			normals.Dimension(3);
+			slipdirs.Dimension(3);
+			output[10] = checker.IsLocalized_SS(normals,slipdirs);
 		}
 		else
 		{
 			output[10] = 0.0;
-			output[11] = 0.0;
-			output[12] = 0.0;
-			output[13] = 0.0;
-			output[14] = 0.0;
-			output[15] = 0.0;
-			output[16] = 0.0;
-			output[17] = 0.0;
 		}
 	}
 	else
 	{
 		output[10] = 0.0;
-		output[11] = 0.0;
-		output[12] = 0.0;
-		output[13] = 0.0;
-		output[14] = 0.0;
-		output[15] = 0.0;
-		output[16] = 0.0;
-		output[17] = 0.0;
 	}
 }
 
