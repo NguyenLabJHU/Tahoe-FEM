@@ -1,4 +1,4 @@
-/* $Id: ParentDomainT.h,v 1.14.16.1 2004-04-24 19:57:40 paklein Exp $ */
+/* $Id: ParentDomainT.h,v 1.14.16.2 2004-05-17 05:13:10 paklein Exp $ */
 /* created: paklein (07/03/1996) */
 #ifndef _PARENT_DOMAIN_T_H_
 #define _PARENT_DOMAIN_T_H_
@@ -201,6 +201,10 @@ class ParentDomainT
 	bool MapToParentDomain(const LocalArrayT& coords, const dArrayT& point,
 		dArrayT& mapped) const;
 
+	/** return the integration point whose domain contains the given point in the
+	 * parent domain coordinates */
+	int IPDomain(const dArrayT& coords) const;
+
 	/** calculate a characteristic domain size. Calculate the maximum distance
 	 * between the average nodal position and each of the nodes. 
 	 * \param coords coordinates of the domain nodes
@@ -326,6 +330,11 @@ inline void ParentDomainT::NodalValues(const dArrayT& IPvalues, dArrayT& nodalva
 inline bool ParentDomainT::PointInDomain(const LocalArrayT& coords, const dArrayT& point) const
 {
 	return fGeometry->PointInDomain(coords, point);
+}
+
+/* return the integration point whose domain contains the given point in the parent domain coordinates */
+inline int ParentDomainT::IPDomain(const dArrayT& coords) const {
+	return fGeometry->IPDomain(fNumIP, coords);
 }
 
 } /* namespace Tahoe */
