@@ -1,4 +1,4 @@
-/* $Id: least_square.cpp,v 1.1 2004-11-12 21:09:57 paklein Exp $ */
+/* $Id: least_square.cpp,v 1.2 2005-02-01 16:55:29 paklein Exp $ */
 #include "PiecewiseLinearT.h"
 #include "dArray2DT.h"
 #include "ifstreamT.h"
@@ -8,6 +8,10 @@ using namespace Tahoe;
 
 /* read list of ordered pairs */
 void read_points(ifstreamT& in, dArray2DT& points, double& abs_max);
+
+/* add zero function extensions to read given bounds */
+void set_lower_bound(double x_lower, dArray2DT& points);
+void set_upper_bound(double x_upper, dArray2DT& points);
 
 /* integrated the squared difference between the two functions between the limits given */
 double squared_difference(const dArray2DT& pts1, const dArray2DT& pts2);
@@ -28,7 +32,7 @@ int main(int argc, char** argv)
 
 	/* check command line arguments */
 	if (argc < 4) {
-		cout << "\n usage: " << caller << " [results 1 (ref)] [results 2] [output file]\n" << endl;
+		cout << "\n usage: " << caller << " [results 1 (ref)] [results 2] [output file] (x_min [min]) (x_max [max])\n" << endl;
 		return 1;
 	}
 
@@ -43,8 +47,6 @@ int main(int argc, char** argv)
 	double max1;
 	read_points(in, pts1, max1);
 	in.close();
-	
-//	cout << "function 1: " << max1 << '\n' << pts1 << endl;
 
 	/* read function 2 */
 	in.open(argv[2]);	
@@ -55,18 +57,31 @@ int main(int argc, char** argv)
 	double max2;
 	read_points(in, pts2, max2);
 	in.close();
-	
-//	cout << "function 2: " << max2 << '\n' << pts2 << endl;
 
-	/* construct piecewise linear functions */
-	PiecewiseLinearT func1(pts1);
-	PiecewiseLinearT func2(pts2);
-	
 	/* integration bounds */
 	double x1 = (pts1(0,0) > pts2(0,0)) ? pts1(0,0) : pts2(0,0);
 	int n1 = pts1.MajorDim();
 	int n2 = pts2.MajorDim();
 	double x2 = (pts1(n1-1,0) < pts2(n2-1,0)) ? pts1(n1-1,0) : pts2(n2-1,0);
+
+	/* user-defined bounds */
+	if (argc > 4) {
+		for (int i = 4; i < argc; i++)
+		{
+			if (strcmp(argv[i], "x_min") == 0) {
+				x1 = atof(argv[i+1]);
+				cout << "\n re-setting lower bound to " << x1 << endl;
+				set_lower_bound(x1, pts1);
+				set_lower_bound(x1, pts2);
+			}
+			else if (strcmp(argv[i], "x_max") == 0) {
+				x2 = atof(argv[i+1]);
+				cout << "\n re-setting upper bound to " << x2 << endl;
+				set_upper_bound(x2, pts1);
+				set_upper_bound(x2, pts2);
+			}
+		}
+	}
 	
 	/* analytical scheme */
 	double ref = (x2 - x1)*max1;
@@ -241,8 +256,119 @@ double squared_difference(const dArray2DT& pts1, const dArray2DT& pts2)
 				b2 = pts2(dex2,1) - m2*pts2(dex2,0);
 			}
 		}
-		
 	}
 	
 	return sum;
+}
+
+/* add zero function extensions to read given bounds */
+void set_lower_bound(double x_lower, dArray2DT& points)
+{
+	/* nothing to do */
+	if (fabs(points(0,0) - x_lower) < kSmall) 
+		return;
+	else if (x_lower < points(0,0))
+	{
+		/* prepend extension */
+		dArray2DT pts_tmp(points.MajorDim()+2, 2);
+		pts_tmp.BlockRowCopyAt(points,2);
+
+		pts_tmp(0,0) = x_lower;
+		pts_tmp(0,1) = 0.0;
+
+		pts_tmp(1,0) = points(0,0) - 1.0e-06*(points(0,0) - x_lower);
+		pts_tmp(1,1) = 0.0;
+
+		/* return */
+		points.Swap(pts_tmp);
+	}
+	else /* chop beginning */
+	{
+		/* check */
+		if (x_lower > points(points.MajorDim()-1,0))
+			ExceptionT::GeneralFail("set_lower_bound",
+				"lower bound %g exceeds upper range of data %g",
+				x_lower, points(points.MajorDim()-1,0));
+
+		/* find points to chop */
+		int keep = 0;
+		for (int i = 1; keep == i-1 && i < points.MajorDim(); i++)
+			if (points(i,0) < x_lower)
+				keep = i;
+		
+		/* resize */
+		dArray2DT pts_tmp(points.MajorDim() - keep, 2);
+		dArray2DT tmp(pts_tmp.MajorDim(), 2, points(keep));
+		pts_tmp = tmp;
+	
+		/* linearly extrapolate to the bound */
+		pts_tmp(0,0) = x_lower;
+		if (fabs(points(keep,0) - x_lower) < kSmall)
+			pts_tmp(0,1) = points(keep,1);
+		else
+		{
+			double m = (points(keep+1,1) - points(keep,1))/(points(keep+1,0) - points(keep,0));
+			double dx = x_lower - points(keep,0);
+			pts_tmp(0,1) = points(keep,1) + dx*m;
+		}
+		
+		/* return */
+		pts_tmp.Swap(points);
+	}
+}
+
+void set_upper_bound(double x_upper, dArray2DT& points)
+{
+	/* nothing to do */
+	if (fabs(points(points.MajorDim()-1,0) - x_upper) < kSmall)
+		return;
+	else if (x_upper > points(points.MajorDim()-1,0))
+	{
+		/* append extension */
+		dArray2DT pts_tmp(points.MajorDim()+2, 2);
+		pts_tmp.BlockRowCopyAt(points,0);
+
+		int index = points.MajorDim();
+		pts_tmp(index,0) = points(index-1,0) + 1.0e-06*(x_upper - points(index-1,0));
+		pts_tmp(index,1) = 0.0;
+
+		index++;
+		pts_tmp(index,0) = x_upper;
+		pts_tmp(index,1) = 0.0;
+
+		/* return */
+		points.Swap(pts_tmp);
+	}
+	else /* chop tail */
+	{
+		/* check */
+		if (x_upper < points(0,0))
+			ExceptionT::GeneralFail("set_upper_bound",
+				"upper bound %g exceeds lower range of data %g",
+				x_upper, points(0,0));
+
+		/* find points to chop */
+		int keep = points.MajorDim()-1;
+		for (int i = keep-1; keep == i+1 && i > -1; i--)
+			if (points(i,0) > x_upper)
+				keep = i;
+		
+		/* resize */
+		dArray2DT pts_tmp(keep+1, 2);
+		pts_tmp.BlockRowCopyAt(points, 0, pts_tmp.MajorDim());
+	
+		/* linearly extrapolate to the bound */
+		pts_tmp(keep,0) = x_upper;
+		if (fabs(points(keep,0) - x_upper) < kSmall)
+			pts_tmp(keep,1) = points(keep,1);
+		else
+		{
+			double m = (points(keep,1) - points(keep-1,1))/(points(keep,0) - points(keep-1,0));
+			double dx = x_upper - points(keep,0);
+			pts_tmp(keep,1) = points(keep,1) + dx*m;
+		}
+		
+		/* return */
+		pts_tmp.Swap(points);
+	}
 }
