@@ -1,4 +1,4 @@
-# $Id: tahoe.extras,v 1.16 2004-08-03 19:08:24 paklein Exp $
+# $Id: tahoe.extras,v 1.17 2004-11-19 08:28:53 paklein Exp $
 #
 # additional make commands for the tahoe module
 #
@@ -53,6 +53,7 @@ touch_MPI:
 touch_METIS:
 	@ $(PRINTF) "removing object files depending on METIS\n"
 	- $(RM) $(BLD_SRC_DIR)/main/FEExecutionManagerT.o
+	- $(RM) $(BLD_SRC_DIR)/main/DecomposeT.o
 	@ $(PRINTF) "NOTE: dependent modules must also be up to date\n"
 
 touch_NOX:
