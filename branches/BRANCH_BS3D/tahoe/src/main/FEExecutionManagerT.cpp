@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.55.2.8 2004-03-05 15:06:49 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.55.2.9 2004-03-06 23:01:26 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -466,7 +466,7 @@ void FEExecutionManagerT::RunStaticBridging_staggered(FEManagerT_bridging& conti
 	continuum.InitInterpolation(atoms.GhostNodes(), bridging_field, *atoms.NodeManager());
 	//dArrayT mdmass;
 	//atoms.LumpedMass(atoms.NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
-	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), make_inactive);
+	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), make_inactive, (atoms.GhostNodes()).Length());
 	
 #undef DO_COUPLING
 
@@ -698,7 +698,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	int order3 = 2;
 	double dissipation = 0.0;
 	dArray2DT field_at_ghosts, totalu, fubig, fu, projectedu, boundghostdisp, boundghostvel, boundghostacc;
-	dArray2DT thkforce, totaldisp;
+	dArray2DT thkforce, totaldisp, elecdens, embforce;
 	dSPMatrixT ntf;
 	iArrayT activefenodes, boundaryghostatoms;
 	StringT bridging_field = "displacement";
@@ -720,10 +720,18 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	batoms.CopyPart(0, allatoms, numgatoms, numbatoms);
 	gatoms.CopyPart(0, allatoms, 0, numgatoms);      
 	boundatoms.CopyPart(0, boundaryghostatoms, numgatoms, numbatoms);
+	elecdens.Dimension(gatoms.Length(), 1);
+	embforce.Dimension(gatoms.Length(), 1);
 	continuum.InitInterpolation(boundaryghostatoms, bridging_field, *atoms.NodeManager());
 	//dArrayT mdmass;
 	//atoms.LumpedMass(atoms.NonGhostNodes(), mdmass);	// acquire array of MD masses to pass into InitProjection, etc...
-	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive);			
+	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive, (atoms.GhostNodes()).Length());	
+	if (nsd == 3)
+	{
+		/* set pointers to embedding force/electron density in FEManagerT_bridging atoms */
+		atoms.SetExternalElecDensity(elecdens, atoms.GhostNodes());
+		atoms.SetExternalEmbedForce(embforce, atoms.GhostNodes());
+	}
 	nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
 	//nMatrixT<int> ghostonmap(5), ghostoffmap(5);  // for fracture problem
 	//nMatrixT<int> ghostonmap(4), ghostoffmap(4);    // for planar wave propagation problem
@@ -787,6 +795,11 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	
 		/* now d0, v0 and a0 are known after InitialCondition */
 		continuum.InitialCondition();
+		
+		/* Test functions to calculate EAM electron density/embedding terms using continuum information */
+		continuum.ElecDensity(gatoms.Length(), elecdens, embforce);
+		atoms.AssembleElecDensity(atoms.GhostNodes());
+		atoms.AssembleEmbedForce(atoms.GhostNodes());
 		
 		/* Interpolate FEM values to MD ghost nodes which will act as MD boundary conditions */
 		continuum.InterpolateField(bridging_field, order1, boundghostdisp);
@@ -865,7 +878,7 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 						atoms.ResetCumulativeUpdate(group);
 						error = atoms.SolveStep();
 				}
-
+				
 				/* close  md step */
 				if (1 || error == ExceptionT::kNoError) error = atoms.CloseStep();    
 			}
@@ -917,7 +930,9 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 			baacc.RowCollect(batoms, boundghostacc);
 			
 			/* Test functions to calculate EAM electron density/embedding terms using continuum information */
-			double edensity = continuum.ElecDensity(in, atoms.GhostNodes());
+			continuum.ElecDensity(gatoms.Length(), elecdens, embforce);
+			atoms.AssembleElecDensity(atoms.GhostNodes());
+			atoms.AssembleEmbedForce(atoms.GhostNodes());
 			
 			/* close fe step */
 			if (1 || error == ExceptionT::kNoError) error = continuum.CloseStep();
