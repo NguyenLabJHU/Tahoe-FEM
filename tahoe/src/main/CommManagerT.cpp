@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.5 2003-04-22 16:17:16 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.6 2003-08-23 20:10:11 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -17,6 +17,8 @@ using namespace Tahoe;
 CommManagerT::CommManagerT(CommunicatorT& comm, ModelManagerT& model_manager):
 	fComm(comm),
 	fModelManager(model_manager),
+	fSize(fComm.Size()),
+	fRank(fComm.Rank()),
 	fPartition(NULL),
 	fNodeManager(NULL),
 	fFirstConfigure(true),
