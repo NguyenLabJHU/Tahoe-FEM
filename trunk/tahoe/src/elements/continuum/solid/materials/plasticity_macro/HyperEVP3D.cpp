@@ -15,7 +15,7 @@
 const double sqrt32 = sqrt(3.0/2.0);
 
 /* printing for debugging */
-const bool Hyper_MESSAGES = true;
+const bool Hyper_MESSAGES = false;
 
 /* spatial dimensions of the problem */
 const int kNSD = 3;
@@ -122,12 +122,6 @@ const dSymMatrixT& HyperEVP3D::s_ij()
       // compute state (stress and state variables)
       IntegrateConstitutiveEqns();
     }
-
-  if (Hyper_MESSAGES && intpt == 0) {
-    //cout << "IP #" << intpt << endl;
-    //cout << "   fs_ij   : " << endl << fs_ij << endl;
-    //cout << "   fc_ijkl : " << endl << fc_ijkl << endl;
-  }
 
   // return cauchy stress
   return fs_ij;
