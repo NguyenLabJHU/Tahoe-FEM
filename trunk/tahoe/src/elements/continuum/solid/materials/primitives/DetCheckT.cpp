@@ -1,4 +1,4 @@
-/* $Id: DetCheckT.cpp,v 1.37 2005-02-08 22:42:48 cfoster Exp $ */
+/* $Id: DetCheckT.cpp,v 1.38 2005-03-01 20:10:40 cfoster Exp $ */
 /* created: paklein (09/11/1997) */
 #include "DetCheckT.h"
 #include <math.h>
@@ -124,59 +124,61 @@ bool DetCheckT::IsLocalized_SS(AutoArrayT <dArrayT> &normals,
 		//this doesn't work for 2D, comment out slip dir calc for now
 		//C.ConvertTangentFrom2DTo4D(C, fc_ijkl);
 		/* call SPINLOC routine */
-		double theta = 0.0, eigVal;
+		double eigVal;
+		AutoArrayT <double> theta;
 		int numev = 0; 
 		bool check = false; 
 		/* clear normals and slipdirs */
 		normals.Free();
 		slipdirs.Free();
-		SPINLOC_localize(fc_ijkl.Pointer(), &theta, &check);
+		theta.Free();
+		SPINLOC_localize(fc_ijkl.Pointer(), theta, &check);
 		if (check)
 		{
-			//but these are with respect to principal stress axes
-			normal[0] = cos(theta);
-			normal[1] = sin(theta);	
-			//normal[2] = 0.0;
-			normals.Append(normal);
+		  theta.Top();
+		  while (theta.Next())
+		    {
+		      normal[0] = cos(theta.Current());
+		      normal[1] = sin(theta.Current());
+		      normals.Append(normal);
+		      
+			  //form acoustic tensor
+			  A = 0.0;
+			  A(0,0) = normal[0] * fc_ijkl(0,0) * normal[0] + normal[0] * fc_ijkl(0,2) * normal[1] 
+				+ normal[1] * fc_ijkl(2,0) * normal[0] + normal[1] * fc_ijkl(2,2) * normal[1];
+			  A(0,1) = normal[0] * fc_ijkl(0,2) * normal[0] + normal[0] * fc_ijkl(0,1) * normal[1] 
+				+ normal[1] * fc_ijkl(2,2) * normal[0] + normal[1] * fc_ijkl(2,1) * normal[1];
+			   A(1,0) = normal[0] * fc_ijkl(2,0) * normal[0] + normal[0] * fc_ijkl(2,2) * normal[1] 
+				+ normal[1] * fc_ijkl(1,0) * normal[0] + normal[1] * fc_ijkl(1,2) * normal[1];
+			  A(1,1) = normal[0] * fc_ijkl(2,2) * normal[0] + normal[0] * fc_ijkl(2,1) * normal[1] 
+				+ normal[1] * fc_ijkl(1,2) * normal[0] + normal[1] * fc_ijkl(1,1) * normal[1];
+			  
+			  //find mininum eigenvalue by quadratic formula
+			  double minus_b = A(0,0) + A(1,1);
+			  detA = A(0,0) * A(1,1) - A(0,1)*A(1,0);
+			  
+			  double discriminant = minus_b*minus_b - 4 * detA;
+			  if (discriminant < 0)
+				{
+					cout << "Complex eigenvalue detected in DetCheckT::IsLocalized_SS" << flush;
+					throw ExceptionT::kGeneralFail;
+				}
+			  
+			  double lambda_min =  .5*(minus_b - sqrt(discriminant));
+			  
+			  if (lambda_min > 0)
+				{
+					cout << "Warning: Minimun eigenvalue is positive even though localization was detected. DetCheckT::IsLocalized_SS" << flush;
+				}
+				 
+			  //find slip direction
+			  A.Eigenvector(lambda_min, slipdir);
+			  slipdirs.Append(slipdir);
+		    }
 
-			//temp - account for dilation on band
-			slipdir [0] = sin(theta);
-			slipdir [1] = cos(-theta);
-			slipdirs.Append(slipdir);
-
-			/*
-			A = 0.0;
-			A.formacoustictensor(A, C, normal);
-			A.eigvalfinder(A, realev, imev);
-			eigVal = realev[0];
-			if (realev[1] < eigVal) eigVal = realev[1];
-			if (realev[2] < eigVal) eigVal = realev[2];
-			A.eigenvector3x3(A, eigVal, numev, slipdir, altnormal_i, altnormal_ii);
-			slipdirs.Append(slipdir);
-			*/
-			
-			normal[0] = cos(-theta);
-			normal[1] = sin(-theta);	
-			normals.Append(normal);
-
-			slipdir [0] = sin(-theta);
-			slipdir [1] = cos(theta);
-			slipdirs.Append(slipdir);
-			/*
-			A = 0.0;
-			A.formacoustictensor(A, C, normal);
-			A.eigvalfinder(A, realev, imev);
-			eigVal = realev[0];
-			if (realev[1] < eigVal) eigVal = realev[1];
-			if (realev[2] < eigVal) eigVal = realev[2];
-			A.eigenvector3x3(A, eigVal, numev, slipdir, altnormal_i, altnormal_ii);
-			slipdirs.Append(slipdir);
-			*/
-			detA = -1.0;
-
-		}
+		} // if(check)
 		return check;
-	}
+	}   //if(fs_jl.Row()s==2)
 	else
 		//return DetCheck3D_SS(normals,slipdirs);
 		return DetCheck3D_SS(normals,slipdirs, detA);
@@ -771,7 +773,8 @@ void DetCheckT::ComputeCoefficients(void)
 /* 2 is 22 */
 /* 3 is 12 */
 /* angle theta subtends from the x1 axis to the band normal */
-bool DetCheckT::SPINLOC_localize(const double *c__, double *thetan, bool *loccheck)
+bool DetCheckT::SPINLOC_localize(const double *c__, AutoArrayT <double>
+&thetan, bool *loccheck)
 {
 	/* Initialized data */
 	double zero = 0.;
@@ -780,13 +783,17 @@ bool DetCheckT::SPINLOC_localize(const double *c__, double *thetan, bool *locche
 	double three = 3.;
 	double four = 4.;
 	double tol = 1.0e-3;
+	double detTol = 1.0e-1; 
+	//want very loose tolernace for detTol, algorithm is not exact and can
+	// easily be sorted out at element level
 
 	/* System generated locals */
 	int i__1;
 	double d__1, d__2, d__3, d__4;
 
 	/* Local variables */
-	double capa, capb, half, fmin, temp, xmin, temp2, temp3, a, b, f;
+	double capa, capb, half, fmin, temp, temp2, temp3, a, b, f;
+	AutoArrayT <double> xmin;
 	int i__, n;
 	double p, q, r__, x[3], theta, third, a0, a1, a2, a3, a4, qq, rad;
 
@@ -880,17 +887,25 @@ bool DetCheckT::SPINLOC_localize(const double *c__, double *thetan, bool *locche
 		/* Computing 2nd power */
 		d__4 = x[i__ - 1];
 		f = a4 * (d__1 * d__1) + a3 * (d__3 * (d__2 * d__2)) + a2 * (d__4 * d__4) + a1 * x[i__ - 1] + a0;
-		if (f <= fmin) 
-		{
-			fmin = f;
-			xmin = x[i__ - 1];
+
+		if ( fabs(f - fmin) < detTol * fabs(f) || fabs(f - fmin) < detTol * fabs(fmin) )
+		  {
+		    xmin.Append(x[i__ - 1]);
+		  }
+		else if (f <= fmin) 
+		  {
+		    xmin.Free();
+		    fmin = f;
+		    xmin.Append(x[i__ - 1]);
 		}
 		/* L5: */
 	}
 
 	/* .. output */
 
-	*thetan = atan(xmin);
+	xmin.Top();
+	while(xmin.Next())
+	  thetan.Append( atan(xmin.Current()));
 
 	/*if(fmin.lt.tol) then */
 	if (fmin / c__[4] < tol) 
