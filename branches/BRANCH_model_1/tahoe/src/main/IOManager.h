@@ -1,4 +1,4 @@
-/* $Id: IOManager.h,v 1.5 2001-09-28 01:32:12 paklein Exp $ */
+/* $Id: IOManager.h,v 1.5.2.1 2001-10-16 22:13:44 sawimme Exp $ */
 /* created: sawimme (10/12/1999)                                          */
 
 #ifndef _IOMANAGER_H_
@@ -14,11 +14,9 @@
 #include "iAutoArrayT.h"
 #include "IOBaseT.h"
 #include "GeometryT.h"
-#include "ModelManagerT.h"
 
 /* forward declarations */
 class ifstreamT;
-class ModelMangerT;
 class OutputBaseT;
 class iArray2DT;
 class dArray2DT;
@@ -37,6 +35,9 @@ public:
 
 	/* destructor */
 	virtual ~IOManager(void);
+
+	/* echo format file type */
+	void EchoData (ostream& o) const;
 
 	void NextTimeSequence(int sequence_number);
 
@@ -63,11 +64,6 @@ public:
 	/* accessors */
 	const OutputSetT& OutputSet(int ID) const;
 
-	// input
-	ModelManagerT* ModelManager (void) const;
-	void SetInput (ifstreamT& in);
-	void SetInput (const IOBaseT::FileTypeT format, const StringT& database);
-
 private:
 
 	/* return new output formatter */
@@ -84,11 +80,6 @@ protected:
 	IOBaseT::FileTypeT fOutputFormat;
 	OutputBaseT* fOutput;
 
-	/* input formatter */
-	IOBaseT::FileTypeT fInputFormat;
-	ModelManagerT* fModel;
-	StringT     fInDatabase;
-
 	/* echo interactive data to input file */
 	ofstream fEchoInput;
 	bool fEcho;
@@ -104,6 +95,5 @@ private:
 
 /* inlines */
 inline void IOManager::SetOutputTime(double time) { fOutputTime = time; }
-inline ModelManagerT* IOManager::ModelManager (void) const { return fModel; }
 
 #endif
