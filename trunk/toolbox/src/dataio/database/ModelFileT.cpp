@@ -1,4 +1,4 @@
-/* $Id: ModelFileT.cpp,v 1.10 2003-03-19 19:13:38 thao Exp $ */
+/* $Id: ModelFileT.cpp,v 1.11 2003-05-29 23:08:05 paklein Exp $ */
 /* created: paklein (12/15/1999)                                          */
 
 #include "ModelFileT.h"
@@ -753,20 +753,26 @@ ModelFileT::StatusT ModelFileT::GetInformation(void)
 		int num_elem_sets;
 		in >> num_elem_sets;
 		fElementID.Dimension(num_elem_sets, 3);
-		if (fElementID.Length() > 0) in >> fElementID;
+		if (fElementID.MajorDim() > 0)
+		{
+			/* read row-by-row to allow comments on each line */
+			iArrayT row;
+			for (int i = 0; i < fElementID.MajorDim(); i++) {
+				fElementID.RowAlias(i, row);
+				in >> row;
+			}
+		}	
 
 		int num_node_sets;
 		in >> num_node_sets;
 		fNodeSetID.Dimension(num_node_sets, 2);
 		if (fNodeSetID.MajorDim() > 0)
 		{
-			iArrayT row(fNodeSetID.MinorDim());
-
 			/* read row-by-row to allow comments on each line */
-			for (int i = 0; i < fNodeSetID.MajorDim(); i++)
-			{
+			iArrayT row;
+			for (int i = 0; i < fNodeSetID.MajorDim(); i++) {
+				fNodeSetID.RowAlias(i, row);
 				in >> row;
-				fNodeSetID.SetRow(i, row);
 			}
 		}	
 
@@ -775,13 +781,11 @@ ModelFileT::StatusT ModelFileT::GetInformation(void)
 		fSideSetID.Dimension(num_side_sets, 3);
 		if (fSideSetID.MajorDim() > 0)
 		{
-			iArrayT row(fSideSetID.MinorDim());
-
 			/* read row-by-row to allow comments on each line */
-			for (int i = 0; i < fSideSetID.MajorDim(); i++)
-			{
+			iArrayT row;
+			for (int i = 0; i < fSideSetID.MajorDim(); i++) {
+				fSideSetID.RowAlias(i, row);
 				in >> row;
-				fSideSetID.SetRow(i, row);
 			}
 		}
 		
