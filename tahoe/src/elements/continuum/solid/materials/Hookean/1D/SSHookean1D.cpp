@@ -2,8 +2,8 @@
 
 /* constructor */
 SSHookean1D::SSHookean1D(ifstreamT& in, const SmallStrainT& element):
-	IsotropicT(in),
-	SSHookeanMatT(in, element)
+	SSHookeanMatT(in, element),
+	IsotropicT(in)
 {
 
 }
@@ -31,5 +31,6 @@ void SSHookean1D::PrintName(ostream& out) const
 /* set (material) tangent modulus */
 void SSHookean1D::SetModulus(dMatrixT& modulus)
 {
-        IsotropicT::ComputeModuli(modulus);
+	if (modulus.Rows() != 1 || modulus.Cols() != 1) throw eSizeMismatch;
+	modulus = Young();
 }

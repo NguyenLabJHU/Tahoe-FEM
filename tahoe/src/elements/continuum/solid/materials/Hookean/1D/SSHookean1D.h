@@ -5,7 +5,7 @@
 #include "IsotropicT.h"
 #include "SSHookeanMatT.h"
 
-class SSHookean1D: public IsotropicT, public SSHookeanMatT
+class SSHookean1D: public SSHookeanMatT, public IsotropicT
 {
 public:
 
