@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.14 2003-05-21 23:48:15 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.14.2.1 2003-05-24 17:58:37 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
@@ -24,6 +24,7 @@ class FEManagerT;
 class PartitionT;
 class ModelManagerT;
 class FEManagerT_bridging;
+class FEManagerT_THK;
 class dArray2DT;
 
 /** class to handle file driven finite element simulations */
@@ -95,7 +96,7 @@ private:
         
 	/** dynamic multi-Tahoe bridging scale */
 	void RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_bridging& atoms,
-                ofstream& log_out) const;
+		FEManagerT_THK& thk, ofstream& log_out) const;
 				
 	/** calculate MD internal force as a function of total displacement u */
 	const dArray2DT& InternalForce(dArray2DT& totalu, FEManagerT_bridging& atoms) const;
