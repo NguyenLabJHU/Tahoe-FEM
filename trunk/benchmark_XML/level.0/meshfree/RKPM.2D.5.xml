@@ -36,7 +36,7 @@
             </large_strain_element_block>
             <meshfree_support_2D>
                 <RKPM>
-                    <cubic_spline_window support_scaling="1.01"/>
+                    <cubic_spline_window support_scaling="2.02"/>
                 </RKPM>
             </meshfree_support_2D>
             <meshfree_fracture_support/>
