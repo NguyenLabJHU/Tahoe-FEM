@@ -1,4 +1,4 @@
-/* $Id: Hex2D.h,v 1.2 2003-03-31 23:14:38 paklein Exp $ */
+/* $Id: Hex2D.h,v 1.2.34.1 2004-04-03 03:16:23 paklein Exp $ */
 #ifndef _HEX_2D_H_
 #define _HEX_2D_H_
 
@@ -10,6 +10,7 @@ namespace Tahoe {
 /* forward declarations */
 class HexLattice2DT;
 class PairPropertyT;
+class BondLatticeT;
 
 /** plane stress hexagonal lattice */
 class Hex2D: public NL_E_Mat2DT
@@ -26,6 +27,15 @@ public:
 	/*@{*/
 	virtual void Print(ostream& out) const;
 	virtual void PrintName(ostream& out) const;
+	/*@}*/
+
+	/** \name Cauchy-Born parameters */
+	/*@{*/
+	/** return a reference to the bond lattice */
+	const BondLatticeT& BondLattice(void) const;
+
+	/** reference volume */
+	double CellVolume(void) const { return fCellVolume; };
 	/*@}*/
 
 protected:

@@ -1,4 +1,4 @@
-/* $Id: Hex2D.cpp,v 1.2 2003-03-31 23:14:38 paklein Exp $ */
+/* $Id: Hex2D.cpp,v 1.2.34.1 2004-04-03 03:16:23 paklein Exp $ */
 /* created: paklein (07/01/1996) */
 #include "Hex2D.h"
 #include "ElementsConfig.h"
@@ -112,6 +112,12 @@ void Hex2D::Print(ostream& out) const
 	/* write pair properties to output */
 	out << " Interaction potential parameters:\n";
 	fPairProperty->Write(out);
+}
+
+/* return a reference to the bond lattice */
+const BondLatticeT& Hex2D::BondLattice(void) const {
+	if (!fHexLattice2D) ExceptionT::GeneralFail("Hex2D::BondLattice", "pointer not set");
+	return *fHexLattice2D;
 }
 
 /*************************************************************************
