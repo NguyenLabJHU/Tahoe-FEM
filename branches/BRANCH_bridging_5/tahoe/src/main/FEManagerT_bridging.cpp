@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.cpp,v 1.16 2004-03-04 08:54:38 paklein Exp $ */
+/* $Id: FEManagerT_bridging.cpp,v 1.16.4.1 2004-03-08 17:13:19 paklein Exp $ */
 #include "FEManagerT_bridging.h"
 #ifdef BRIDGING_ELEMENT
 
@@ -563,13 +563,39 @@ void FEManagerT_bridging::BridgingFields(const StringT& field, NodeManagerT& ato
 	BridgingScale().BridgingFields(field, fDrivenCellData, atom_values, fem_values, fProjection, totalu);
 }
 
+/* transpose follower cell data */
+void FEManagerT_bridging::TransposeFollowerCellData(InterpolationDataT& transpose)
+{
+	/* map from global point id to row in interpolation data */
+	const InverseMapT& map = fFollowerCellData.GlobalToLocal();
+
+	/* interpolation weights */
+	const dArray2DT& neighbor_weights = fFollowerCellData.InterpolationWeights();
+
+	/* collect connectivities */
+	iArray2DT neighbors(neighbor_weights.MajorDim(), neighbor_weights.MinorDim());
+	const iArrayT& cell = fFollowerCellData.InterpolatingCell();
+	const SolidElementT& solid = BridgingScale().Solid();
+	for (int i = 0; i < neighbors.MajorDim(); i++) {
+
+		/* element nodes */
+		int element = cell[i];
+		const iArrayT& nodes = solid.ElementCard(element).NodesU();
+
+		/* copy */
+		neighbors.SetRow(i, nodes);
+	}
+
+	transpose.Transpose(map, neighbors, neighbor_weights);
+}
+
 /* set the reference error for the given group */
 void FEManagerT_bridging::SetReferenceError(int group, double error) const
 {
 	/* retrieve nonlinear solver */
 	NLSolver* solver = dynamic_cast<NLSolver*>(fSolvers[group]);
 
-	/* silent in failuer */
+	/* silent in failure */
 	if (solver) solver->SetReferenceError(error);
 }
 

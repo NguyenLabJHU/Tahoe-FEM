@@ -1,4 +1,4 @@
-/* $Id: FEManagerT_bridging.h,v 1.11 2004-03-04 08:54:38 paklein Exp $ */
+/* $Id: FEManagerT_bridging.h,v 1.11.4.1 2004-03-08 17:13:19 paklein Exp $ */
 #ifndef _FE_MANAGER_BRIDGING_H_
 #define _FE_MANAGER_BRIDGING_H_
 
@@ -136,6 +136,9 @@ public:
 	  * from BridgingFields in that projected FE nodal values written into displacement field */
 	void InitialProject(const StringT& field, NodeManagerT& atom_node_manager, dArray2DT& projectedu,
 		int order);
+
+	/** transpose follower cell data */
+	void TransposeFollowerCellData(InterpolationDataT& transpose);
 	/*@}*/
 
 	/** (re-)set the equation number for the given group */
