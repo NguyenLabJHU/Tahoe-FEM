@@ -1,45 +1,22 @@
-/* $Id: MaterialSupportT.cpp,v 1.2 2002-07-02 19:56:04 cjkimme Exp $ */
-/* created: paklein (06/10/1997)                                          */
-
-#include "SSHookeanMatT.h"
-
-/* constructor */
+/* $Id: MaterialSupportT.cpp,v 1.2.8.1 2002-10-26 16:24:21 paklein Exp $ */
+#include "MaterialSupportT.h"
 
 using namespace Tahoe;
 
-SSHookeanMatT::SSHookeanMatT(ifstreamT& in, const SmallStrainT& element):
-	SSStructMatT(in, element),
-	HookeanMatT(NumSD()),
-	fStress(NumSD())
-{
+/* constructor */
+MaterialSupportT::MaterialSupportT(int nsd, int ndof, int nip):
+	fNumSD(nsd),
+	fNumDOF(ndof),
+	fNumIP(nip),
+	fCurrIP(NULL),
+	fIterationNumber(NULL),
+	fContinuumElement(NULL) 
+{ 
 
 }
-
-/* initialization */
-void SSHookeanMatT::Initialize(void)
+ 
+/* destructor */
+MaterialSupportT::~MaterialSupportT(void)
 {
-	/* inherited */
-	SSStructMatT::Initialize();
-	HookeanMatT::Initialize();
-}
 
-/* spatial description */
-const dMatrixT& SSHookeanMatT::c_ijkl(void) { return Modulus(); }
-const dSymMatrixT& SSHookeanMatT::s_ij(void)
-{
-	HookeanStress(e(), fStress);
-	return fStress;
-}
-
-const dMatrixT& SSHookeanMatT::C_IJKL(void) { return Modulus(); }
-const dSymMatrixT& SSHookeanMatT::S_IJ(void)
-{
-	HookeanStress(e(), fStress);
-	return fStress;
-}
-
-/* returns the strain energy density for the specified strain */
-double SSHookeanMatT::StrainEnergyDensity(void)
-{
-	return HookeanEnergy(e());
 }
