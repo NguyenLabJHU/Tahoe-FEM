@@ -1,4 +1,4 @@
-/* $Id: iPeriodicGrid3DT.cpp,v 1.4 2002-10-20 22:39:13 paklein Exp $ */
+/* $Id: iPeriodicGrid3DT.cpp,v 1.4.2.1 2002-12-16 09:03:00 paklein Exp $ */
 /* created: paklein (12/18/1997)                                          */
 
 #include "iPeriodicGrid3DT.h"
@@ -10,7 +10,7 @@
 using namespace Tahoe;
 
 iPeriodicGrid3DT::iPeriodicGrid3DT(int nx, int ny, int nz,
-	const dArray2DT& coords, const iArrayT* nodes_used,
+	const dArray2DT& coords, const ArrayT<int>* nodes_used,
 	const dArrayT& periodicity):
 	iGridManager3DT(nx, ny, nz, coords, nodes_used),
 	fPeriodicity(periodicity)

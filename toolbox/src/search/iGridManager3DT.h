@@ -1,4 +1,4 @@
-/* $Id: iGridManager3DT.h,v 1.5 2002-11-22 01:53:12 paklein Exp $ */
+/* $Id: iGridManager3DT.h,v 1.5.2.1 2002-12-16 09:03:00 paklein Exp $ */
 /* created: paklein (12/09/1997) */
 #ifndef _I_GRIDMANAGER3D_T_H_
 #define _I_GRIDMANAGER3D_T_H_
@@ -21,7 +21,7 @@ public:
 
 	/** constructor */
 	iGridManager3DT(int nx, int ny, int nz, const dArray2DT& coords,
-		const iArrayT* nodes_used);
+		const ArrayT<int>* nodes_used);
 	
 	/** neighbors - returns neighbors coords(n) (SELF not included) */
 	void Neighbors(int n, double tol, AutoArrayT<int>& neighbors);
@@ -43,7 +43,7 @@ protected:
 protected:
 
 	const dArray2DT& fCoords;
-	const iArrayT* fNodesUsed;
+	const ArrayT<int>* fNodesUsed;
 };
 
 } // namespace Tahoe 

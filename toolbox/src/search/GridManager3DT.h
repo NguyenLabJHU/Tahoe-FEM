@@ -1,4 +1,4 @@
-/* $Id: GridManager3DT.h,v 1.7 2002-11-22 01:53:12 paklein Exp $ */
+/* $Id: GridManager3DT.h,v 1.7.2.1 2002-12-16 09:03:00 paklein Exp $ */
 /* created: paklein (12/06/1997) */
 #ifndef _GRIDMANAGER3D_T_H_
 #define _GRIDMANAGER3D_T_H_
@@ -30,14 +30,14 @@ public:
 	             double ymin, double ymax, int ny,
 	             double zmin, double zmax, int nz);
 	GridManager3DT(int nx, int ny, int nz, const dArray2DT& coords,
-		const iArrayT* nodes_used);
+		const ArrayT<int>* nodes_used);
 	
 	/* destructor */
 	~GridManager3DT(void);
 	
 	/* empty grid */
 	void Reset(void);
-	void Reset(const dArray2DT& coords, const iArrayT* nodes_used);
+	void Reset(const dArray2DT& coords, const ArrayT<int>* nodes_used);
 
 	/* insert data into the grid */
 	void Add(const sTYPE& data);
@@ -124,7 +124,7 @@ double xmin, double xmax, int nx,
 
 template <class sTYPE>
 GridManager3DT<sTYPE>::GridManager3DT(int nx, int ny, int nz,
-	const dArray2DT& coords, const iArrayT* nodes_used):
+	const dArray2DT& coords, const ArrayT<int>* nodes_used):
 	fnx(nx),
 	fny(ny),
 	fnz(nz)
@@ -152,7 +152,7 @@ void GridManager3DT<sTYPE>::Reset(void)
 
 template <class sTYPE>
 void GridManager3DT<sTYPE>::Reset(const dArray2DT& coords,
-	const iArrayT* nodes_used)
+	const ArrayT<int>* nodes_used)
 {
 	/* empty grid */
 	Reset();
