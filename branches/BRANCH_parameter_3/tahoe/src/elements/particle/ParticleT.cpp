@@ -1,4 +1,4 @@
-/* $Id: ParticleT.cpp,v 1.36.2.1 2004-04-08 07:33:29 paklein Exp $ */
+/* $Id: ParticleT.cpp,v 1.36.2.2 2004-04-09 05:26:52 paklein Exp $ */
 #include "ParticleT.h"
 
 #include "fstreamT.h"
@@ -387,7 +387,7 @@ void ParticleT::WriteRestart(ostream& out) const
 	if (fRandom != NULL)
 		out << fRandom->RandSeed() << '\n';
 	
-	for (int i = 0; i < nThermostats; i++)
+	for (int i = 0; i < fThermostats.Length(); i++)
 		fThermostats[i]->WriteRestart(out);
 }
 
@@ -404,7 +404,7 @@ void ParticleT::ReadRestart(istream& in)
 		fRandom->sRand(seed);
 	}
 	
-	for (int i = 0; i < nThermostats; i++)
+	for (int i = 0; i < fThermostats.Length(); i++)
 		fThermostats[i]->ReadRestart(in);
 }
 
@@ -529,7 +529,7 @@ void ParticleT::ApplyDamping(const RaggedArray2DT<int>& fNeighbors)
      	{
      		velocities = &(Field()[1]);
      		
-     		for (int i = 0; i < nThermostats; i++)
+     		for (int i = 0; i < fThermostats.Length(); i++)
 				fThermostats[i]->ApplyDamping(fNeighbors,velocities,fForce,
 										fType,fParticleProperties);
 		}
@@ -830,12 +830,13 @@ void ParticleT::EchoDamping(ifstreamT& in, ofstreamT& out)
 	/* flag for constructing a random number generator */
 	bool QisRandom = false;
 	
-	in >> nThermostats;
-	fThermostats.Dimension(nThermostats);
+	int num_thermostats;
+	in >> num_thermostats;
+	fThermostats.Dimension(num_thermostats);
 	fThermostats = NULL;
 	
 	CommManagerT& comm_manager = ElementSupport().CommManager();
-	for (int i = 0; i < nThermostats; i++)
+	for (int i = 0; i < num_thermostats; i++)
 	{
 		bool QisLangevin = false;
 	

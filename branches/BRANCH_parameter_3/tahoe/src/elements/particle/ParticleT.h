@@ -1,4 +1,4 @@
-/* $Id: ParticleT.h,v 1.27.2.1 2004-04-08 07:33:29 paklein Exp $ */
+/* $Id: ParticleT.h,v 1.27.2.2 2004-04-09 05:26:52 paklein Exp $ */
 #ifndef _PARTICLE_T_H_
 #define _PARTICLE_T_H_
 
@@ -319,7 +319,6 @@ protected:
 	bool QisDamped;
 	RandomNumberT* fRandom;
 	ArrayT<ThermostatBaseT*> fThermostats;
-	int nThermostats;
 
 	/** \name workspace for ParticlePairT::RHSDriver. Used to accumulate the force for
 	 * a single row of ParticlePairT::fNeighbors. */
