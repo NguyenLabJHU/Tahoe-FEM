@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.79 2004-09-14 18:17:22 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.80 2004-09-28 15:35:37 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -25,6 +25,18 @@
 #include "SolverT.h"
 #include "ParameterContainerT.h"
 
+// the includes below are from FEManagerT_mpi.cpp DEF 28 July 04
+#include <time.h> 
+#include "AutoArrayT.h"
+#include "RaggedArray2DT.h"
+#include "IOManager_mpi.h"
+#include "GraphT.h"
+#include "IOBaseT.h"
+#include "PartitionT.h"
+
+#include "ModelFileT.h"
+#include "ExodusT.h"
+
 using namespace Tahoe;
 
 /* File/Version Control */
@@ -34,8 +46,9 @@ const char kProgramName[] = "tahoe";
 /* static methods */
 const char* FEManagerT::Version(void) { return kCurrentVersion; }
 
-/* constructor */
-FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output, CommunicatorT& comm, const ArrayT<StringT>& argv):
+// constructor, does serial and parallel, has new argument task
+FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output,
+	CommunicatorT& comm, const ArrayT<StringT>& argv, TaskT task):
 	ParameterInterfaceT("tahoe"),
 	fArgv(argv),
 	fInputFile(input_file),
@@ -55,7 +68,9 @@ FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output, Communicato
 	fActiveEquationStart(0),
 	fGlobalNumEquations(0),
 	fCurrentGroup(-1),
-	fInitCode(kFull)
+	fPartition(NULL),
+	fTask(task),
+	fExternIOManager(NULL)
 {
 	/* console name */
 	iSetName("FE_manager");
@@ -77,6 +92,24 @@ FEManagerT::FEManagerT(const StringT& input_file, ofstreamT& output, Communicato
 	iAddCommand(write_rs);
 	
 	iAddCommand(CommandSpecT("WriteOutput"));
+	
+	if (Size() > 1 && fTask == kRun)
+	{
+		const char caller[] = "FEManagerT::FEManagerT";
+	
+		/* log file */			
+		StringT log_file;
+		log_file.Root(fInputFile);
+		log_file.Append(".p", Rank());
+		log_file.Append(".log");
+		flog.open(log_file);
+		
+		/* redirect log messages */
+		fComm.SetLog(flog);
+	
+		/* log */
+		TimeStamp(caller);
+	}
 }
 
 /* destructor */
@@ -94,6 +127,10 @@ FEManagerT::~FEManagerT(void)
 	delete fIOManager;
 	delete fModelManager;
 	delete fCommManager;
+
+	/* restore log messages */
+	if (Size() > 1 && fTask == kRun)
+		fComm.SetLog(cout);
 	
 	fStatus = GlobalT::kNone;	
 }
@@ -155,6 +192,12 @@ const ScheduleT* FEManagerT::Schedule(int num) const
 }
 
 bool FEManagerT::PrintInput(void) const { return fPrintInput; }
+
+IOBaseT::FileTypeT FEManagerT::ModelFormat(void) const
+{
+	return fModelManager->DatabaseFormat();
+}
+
 
 void FEManagerT::WriteEquationNumbers(int group) const
 {
@@ -474,6 +517,21 @@ ExceptionT::CodeT FEManagerT::CloseStep(void)
 
 void FEManagerT::Update(int group, const dArrayT& update)
 {
+	/* below is some code which will check to see if the other process are still alive
+	 * The question is how best to check if one should do it. Is it even neccesary? looks
+	 * like it only outputs a time value, and does some error checking */
+	if (Size() > 1) // if comm size > 1 use parallel stuff
+	{
+		// give a heart beat
+		const char caller[] = "FEManagerT::Update";
+		
+		// give heartbeat
+		TimeStamp(caller);
+		
+		// check sum
+		if (fComm.Sum(ExceptionT::kNoError) != 0) 
+			ExceptionT::BadHeartBeat(caller); // must trigger try block in FEManagerT::SolveStep
+	}
 	fNodeManager->Update(group, update);
 }
 
@@ -497,6 +555,32 @@ GlobalT::RelaxCodeT FEManagerT::RelaxSystem(int group) const
 			relax = GlobalT::MaxPrecedence(relax, (*fElementGroups)[i]->RelaxSystem());
 
 	return relax;
+	if (Size() > 1) // use parallel stuff if comm size > 1
+	{
+		/* gather codes */
+		iArrayT all_relax(Size());
+		fComm.AllGather(relax, all_relax);
+	
+		/* code precedence */
+		for (int i = 0; i < all_relax.Length(); i++)
+			relax = GlobalT::MaxPrecedence(relax, GlobalT::RelaxCodeT(all_relax[i]));
+	
+		/* report */
+		if (relax != GlobalT::kNoRelax)
+		{
+			cout << "\n Relaxation code at time = " << Time() << '\n';
+			cout << setw(kIntWidth) << "proc";	
+			cout << setw(kIntWidth) << "code" << '\n';	
+			for (int i = 0; i < all_relax.Length(); i++)
+			{
+				cout << setw(kIntWidth) << i;	
+				cout << setw(kIntWidth) << all_relax[i];
+				cout << '\n';	
+			}
+		 }
+
+		return relax;
+	 }
 }
 
 /* global equation functions */
@@ -550,13 +634,16 @@ void FEManagerT::DisassembleRHS(int group, dArrayT& elRes, const nArrayT<int>& e
 	fSolvers[group]->DisassembleRHS(elRes, eqnos);
 }
 
-/* writing results */
+/* writing results original*/
 void FEManagerT::WriteOutput(double time)
 {
 	try
 	{
 		/* state */
 		SetStatus(GlobalT::kWriteOutput);
+		
+		/* set output time for the external IO manager -> from parallel */
+		if (fExternIOManager) fExternIOManager->SetOutputTime(time);
 
 		/* set output time */
 		fIOManager->SetOutputTime(time);
@@ -656,9 +743,22 @@ void FEManagerT::WriteOutput(double time)
 	catch (ExceptionT::CodeT error) { ExceptionT::Throw(error, "FEManagerT::WriteOutput"); }
 }
 
-void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values, const dArray2DT& e_values) const
+// This below is from FEManagerT_mpi.cpp DEF 28 July 04
+// I kept them separate, since they have other options
+/* initiate the process of writing output from all output sets */
+void FEManagerT::WriteOutput(int ID, const dArray2DT& n_values,
+	const dArray2DT& e_values) const
 {
-	fIOManager->WriteOutput(ID, n_values, e_values);
+	/* output assembly mode */
+	if(fExternIOManager)
+	{
+		/* distribute/assemble/write */
+		fExternIOManager->WriteOutput(ID, n_values, e_values);		
+	}
+	else // do local IO
+	{
+		fIOManager->WriteOutput(ID, n_values, e_values);		
+	}
 }
 
 /* write a snapshot */
@@ -754,32 +854,59 @@ const OutputSetT& FEManagerT::OutputSet(int ID) const
 	if (!fIOManager) ExceptionT::GeneralFail("FEManagerT::OutputSet", "I/O manager not initialized");
 	return fIOManager->OutputSet(ID);
 }
-
-/* (temporarily) direct output away from main out */
+// worried about the recursive calls in original mpi version
+/* (temporarily) direct output away from main out, formerly in FEManagerT_mpi.cpp DEF 28 July 04 */
 void FEManagerT::DivertOutput(const StringT& outfile)
-{
-	/* check */
-	if (!fIOManager) ExceptionT::GeneralFail("FEManagerT::DivertOutput", "I/O manager not initialized");
-	fIOManager->DivertOutput(outfile);
-	
-	/* resolved group */
-	if (fCurrentGroup != -1)
-		fSO_DivertOutput[fCurrentGroup]	= true;
+{ 
+	if (fExternIOManager)
+	{
+		/* external I/O */
+		fExternIOManager->DivertOutput(outfile);	
+
+		/* system output */
+		if (fCurrentGroup != -1) /* resolved group */
+			fSO_DivertOutput[fCurrentGroup]	= true;
+		else /* all groups */
+			fSO_DivertOutput = true;
+	}
+	else if (!fIOManager) ExceptionT::GeneralFail("FEManagerT::DivertOutput", "I/O manager not initialized");
 	else
-		fSO_DivertOutput = true;
+	{
+		/* need processor designation for split output */
+		StringT outfile_p = outfile;
+		if (Size() > 1) outfile_p.Append(".p", Rank());		
+		fIOManager->DivertOutput(outfile);
+		
+		/* resolved group */
+		if (fCurrentGroup != -1)
+			fSO_DivertOutput[fCurrentGroup]	= true;
+		else
+			fSO_DivertOutput = true;
+	}
 }
 
+// same story as divert
 void FEManagerT::RestoreOutput(void)
 {
-	/* check */
-	if (!fIOManager) ExceptionT::GeneralFail("FEManagerT::RestoreOutput", "I/O manager not initialized");
-	fIOManager->RestoreOutput();
+	if (fExternIOManager)
+	{
+		/* external I/O */
+		fExternIOManager->RestoreOutput();
 
-	/* resolved group */
-	if (fCurrentGroup != -1)
-		fSO_DivertOutput[fCurrentGroup]	= false;
-	else
-		fSO_DivertOutput = false;
+		/* system output */
+		if (fCurrentGroup != -1) /* resolved group */
+			fSO_DivertOutput[fCurrentGroup]	= false;
+		else /* all groups */
+			fSO_DivertOutput = false;
+	}
+	else if (!fIOManager) ExceptionT::GeneralFail("FEManagerT::RestoreOutput", "I/O manager not initialized");
+	else // local IO
+	{
+		fIOManager->RestoreOutput();
+		/* resolved group */
+		if (fCurrentGroup != -1)
+			fSO_DivertOutput[fCurrentGroup]	= false;
+	}
 }
 
 /* cross-linking */
@@ -827,18 +954,50 @@ GlobalT::EquationNumberScopeT FEManagerT::EquationNumberScope(int group) const
 	return fSolvers[group]->EquationNumberScope();
 }
 
+/* global number of first local equation */
 int FEManagerT::GetGlobalEquationStart(int group, int start_eq_shift) const
 {
-#pragma unused(group)
+	if (Size() == 1)
+	{
+		#pragma unused(group)
+		
+		/* no other equations */
+		return 1 + start_eq_shift;
+	}
+	else
+	{
+		/* number of local equations */
+		int num_eq = fNodeManager->NumEquations(group);
 
-	/* no other equations */
-	return 1 + start_eq_shift;
+		/* collect from all */
+		int size = Size();
+		iArrayT all_num_eq(size);
+		fComm.AllGather(num_eq, all_num_eq);
+
+		/* compute offset to local equations */
+		int offset = 0;
+		for (int i = 0; i < Rank(); i++)
+			offset += all_num_eq[i];
+
+		/* equation start */
+		return offset + 1 + start_eq_shift;
+	}
 }
 
 int FEManagerT::GetGlobalNumEquations(int group) const
 {
-	/* no other equations */
-	return fNodeManager->NumEquations(group);
+	if (Size() == 1)
+	{
+		/* no other equations */
+		return fNodeManager->NumEquations(group);
+	}
+	else
+	{
+		int loc_num_eq = fNodeManager->NumEquations(group);
+		iArrayT all_num_eq(Size());
+		fComm.AllGather(loc_num_eq, all_num_eq);
+		return all_num_eq.Sum();
+	}
 }
 
 void FEManagerT::SetTimeStep(double dt) const
@@ -1043,6 +1202,14 @@ void FEManagerT::DefineParameters(ParameterListT& list) const
 	/* geometry file */
 	list.AddParameter(ParameterT(ParameterT::Word, "geometry_file"));
 
+	/* decomposition method */
+	ParameterT decomp_method(ParameterT::Enumeration, "decomposition_method");
+	decomp_method.AddEnumeration("graph", PartitionT::kGraph);
+	decomp_method.AddEnumeration("atom", PartitionT::kAtom);
+	decomp_method.AddEnumeration("spatial", PartitionT::kSpatial);
+	decomp_method.SetDefault(PartitionT::kGraph);
+	list.AddParameter(decomp_method, ParameterListT::ZeroOrOnce);
+
 	/* output format */
 	ParameterT output_format(ParameterT::Enumeration, "output_format");
 	output_format.AddEnumeration("Tahoe", IOBaseT::kTahoe);
@@ -1079,6 +1246,9 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 {
 	const char caller[] = "FEManagerT::TakeParameterList";
 
+//DEBUG
+cout << caller << ": START" << endl; 
+
 	/* state */
 	fStatus = GlobalT::kInitialization;
 
@@ -1098,12 +1268,108 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	database.ToNativePathName();      
 	database.Prepend(path);
 	if (Size() > 1) /* decomposed geometry file */ {
+
+		int token = 1;
+
+		// generate decompose instance
+		DecomposeT decompose;
+		if (decompose.NeedDecomposition(database, Size()))
+		{
+			/* 'serial' communicator */
+			int rank = fComm.Rank();
+			CommunicatorT comm(fComm, (rank == 0) ? rank : CommunicatorT::kNoColor);
+			
+			/* decompose on rank 0 */
+			if (rank == 0) {
+				try {
+				
+					/* resolve decomposition method */
+					const ParameterT* decomp_method = list.Parameter("decomposition_method");
+					int method = PartitionT::kGraph;
+					if (!decomp_method) {
+					
+						/* look for command line option */
+						int index = 0;
+						if (CommandLineOption("-decomp_method", index))
+						{
+							const char* opt = fArgv[index+1];
+							if (strlen(opt) > 1 && isdigit(opt[1]))
+							method = atoi(opt+1); /* opt[0] = '-' */
+						}
+						else
+							ExceptionT::GeneralFail(caller, "\"decomposition_method\" or \"-decomp_method -[0,1,2]\" required for multiprocessor calculations");
+					}
+					else
+						method = (*decomp_method);
+
+					/* do decomposition */
+					decompose.CheckDecompose(fInputFile, fComm.Size(), method, comm, database, format, fArgv);
+				}
+				catch (ExceptionT::CodeT error) {
+					cout << "\n " << caller << ": exception: " << ExceptionT::ToString(error) << endl;
+					token = 0;
+				}
+			}
+
+			/* synch and check */
+			if (fComm.Sum(token) != Size()) ExceptionT::GeneralFail(caller, "error decomposing geometry");
+		}	
+
+		/* open stream */
+		StringT part_file;
+		part_file.Root(database); /* drop extension */
+		part_file.Append(".n", Size());
+		part_file.Append(".part", Rank());
+		ifstreamT part_in('#', part_file);
+		if (!part_in.is_open()) {
+			cout << "\n " << caller << ": could not open file: " << part_file << endl;
+			token = 0;	
+		}
+
+		/* synch and check */
+		if (fComm.Sum(token) != Size()) ExceptionT::GeneralFail(caller, "error reading parition files");
+		
+		/* read partition information */
+		fPartition = new PartitionT;
+		part_in >> (*fPartition);
+		if (fPartition->ID() != Rank()) {
+			cout << "\n " << caller << "partition ID " << fPartition->ID() << " does not match process rank " << Rank() << endl;
+			token = 0;
+		}
+
+		/* synch and check */
+		if (fComm.Sum(token) != Size()) ExceptionT::GeneralFail(caller, "parition file error");
+
+		/* rename file */
 		StringT suffix;
 		suffix.Suffix(database);
 		database.Root();
 		database.Append(".n", Size());
 		database.Append(".p", Rank());
 		database.Append(suffix);
+		if (decompose.NeedModelFile(database, format))
+		{
+			/* original model file */
+			ModelManagerT model_ALL(cout);
+			if (!model_ALL.Initialize(format, database, true))
+				ExceptionT::GeneralFail(caller, 
+					"error opening file: %s", (const char*) database);
+		
+			cout << "\n " << caller << ": writing partial geometry file: " << database << endl;
+			decompose.EchoPartialGeometry(*fPartition, model_ALL, database, format);
+			cout << " " << caller << ": writing partial geometry file: partial_file: "
+				 << database << ": DONE" << endl;
+		}	
+
+		/* revise input file name */
+		suffix;
+		suffix.Suffix(fInputFile);
+		fInputFile.Root();
+		fInputFile.Append(".p", Rank());
+		fInputFile.Append(suffix);
+
+		/* synch */
+		fComm.Barrier();
 	}
 
 	/* output format */
@@ -1135,13 +1401,13 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 		ExceptionT::BadInputValue(caller, "error initializing model manager");
 
 	/* construct IO manager - configure in SetOutput below */
-	StringT file_name(fInputFile);
-	fIOManager = new IOManager(fMainOut, kProgramName, kCurrentVersion, fTitle, file_name, fOutputFormat);	
+	fIOManager = new IOManager(fMainOut, kProgramName, kCurrentVersion, fTitle, fInputFile, fOutputFormat);	
 	if (!fIOManager) ExceptionT::OutOfMemory(caller);
 
 	/* set communication manager */
 	fCommManager = New_CommManager();
 	if (!fCommManager) ExceptionT::OutOfMemory(caller);
+	fCommManager->SetPartition(fPartition);
 	fCommManager->Configure();
 
 	/* construct time manager */
@@ -1161,6 +1427,9 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	iAddSub(*fNodeManager);
 	fCommManager->SetNodeManager(fNodeManager);
 
+//DEBUG
+//cout << caller << ": set fields" << endl; 
+
 	/* construct element groups */
 	fElementGroups = new ElementListT(*this);
 	const ParameterListT* element_list = list.List("element_list");
@@ -1170,8 +1439,14 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 			iAddSub(*((*fElementGroups)[i])); /* set console */
 	}
 
+//DEBUG
+//cout << caller << ": set elements" << endl; 
+
 	/* set output manager */
 	SetOutput();
+
+//DEBUG
+//cout << caller << ": set output" << endl; 
 
 	/* construct solvers */
 	const ArrayT<ParameterListT>& lists = list.Lists();
@@ -1233,13 +1508,53 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	/* check that all solvers hit at least once */
 	if (solver_list.Length() != fSolvers.Length())
 		ExceptionT::BadInputValue(caller, "must have at least one phase per solver");
+// DEBUG
+//cout << caller << ": fTask = " << fTask << endl;
 
 //TEMP - don't allocate the global equation system
-if (fInitCode == kAllButSolver) return;
+if (fTask == kDecompose) return;
 
 	/* set equation systems */
 	SetSolver();
+	
+	if (Size() > 1) // if parallel
+	{
+		/* correct restart file name */
+		if (fReadRestart)
+		{
+			StringT suffix;
+			suffix.Suffix(fRestartFile);
+			fRestartFile.Root();
+			fRestartFile.Append(".p", Rank());
+			fRestartFile.Append(suffix);
+		}		
+	}
+
+//DEBUG
+//cout << caller << ": END" << endl; 
 }
+
+/** return any field connectivities generated by the node manager. Some
+	 * FBC_ControllerT and KBC_ControllerT do generate connectivities */
+void FEManagerT::ConnectsU( AutoArrayT<const iArray2DT*>& connects_1, AutoArrayT<const RaggedArray2DT<int>*>& connects_2,
+		AutoArrayT<const iArray2DT*>& equivalent_nodes) const
+	{
+		/* collect connectivies from all solver groups */
+	for (int i = 0; i < NumGroups(); i++)
+		fNodeManager->ConnectsU(i,connects_1,connects_2, equivalent_nodes);
+	
+	/* collect element groups */
+	for (int s = 0 ; s < fElementGroups->Length(); s++)
+		(*fElementGroups)[s]->ConnectsU(connects_1, connects_2);
+	}	
+
+
+void FEManagerT::ConnectsX( AutoArrayT<const iArray2DT*>& connects) const
+	{
+		/* collect element groups */
+		for (int s = 0 ; s < fElementGroups->Length(); s++)
+			(*fElementGroups)[s]->ConnectsX(connects);
+	}	
 
 /* information about subordinate parameter lists */
 void FEManagerT::DefineSubs(SubListT& sub_list) const
@@ -1477,7 +1792,7 @@ ExceptionT::CodeT FEManagerT::InitialCondition(void)
 			
 		/* solve the current time step */
 		if (error == ExceptionT::kNoError) error = SolveStep();
-			
+		
 		/* close the current time step */
 		if (error == ExceptionT::kNoError) error = CloseStep();
 
@@ -1655,6 +1970,9 @@ bool FEManagerT::WriteRestart(const StringT* file_name) const
 * (5) signal solver for final configuration */
 void FEManagerT::SetEquationSystem(int group, int start_eq_shift)
 {
+//DEBUG
+//cout << "FEManagerT::SetEquationSystem: START" << endl;
+
 	/* equation number scope */
 	GlobalT::EquationNumberScopeT equation_scope = 
 		fSolvers[group]->EquationNumberScope();
@@ -1712,6 +2030,9 @@ void FEManagerT::SetEquationSystem(int group, int start_eq_shift)
 		fGlobalNumEquations[group], 
 		fNodeManager->NumEquations(group),
 		fActiveEquationStart[group]);
+
+//DEBUG
+//cout << "FEManagerT::SetEquationSystem: END" << endl;
 }
 
 void FEManagerT::SendEqnsToSolver(int group) const
@@ -1741,5 +2062,28 @@ CommManagerT* FEManagerT::New_CommManager(void) const
 		ExceptionT::GeneralFail("FEManagerT::New_CommManager", "need ModelManagerT");
 
 	CommManagerT* comm_man = new CommManagerT(fComm, *fModelManager);
+	/* set the partition data */
+	comm_man->SetPartition(fPartition);	
 	return comm_man;
+}
+
+/*************************************************************************
+ * Private -> all below private from FEManager_mpi.cpp
+ *************************************************************************/
+
+/* collect computation effort for each node, was in FEManagerT 4 Aug 04 */
+void FEManagerT::WeightNodalCost(iArrayT& weight) const
+{
+	weight.Dimension(fNodeManager->NumNodes());
+	weight = 1;
+	fNodeManager->WeightNodalCost(weight);
+	for (int i = 0 ; i < fElementGroups->Length(); i++)
+		(*fElementGroups)[i]->WeightNodalCost(weight);
+}
+
+/* write time stamp to log file */
+void FEManagerT::TimeStamp(const char* message) const
+{
+	/* log */
+	fComm.Log(CommunicatorT::kUrgent, message);
 }

@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.17 2004-07-27 17:49:50 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.18 2004-09-28 15:35:37 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -14,13 +14,14 @@
 #include "FieldT.h"
 #include "ParameterContainerT.h"
 #include "ParameterUtils.h"
+#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
 /* constructor */
 MultiManagerT::MultiManagerT(const StringT& input_file, ofstreamT& output, CommunicatorT& comm,
-	const ArrayT<StringT>& argv):
-	FEManagerT(input_file, output, comm, argv),
+	const ArrayT<StringT>& argv, TaskT task):
+	FEManagerT(input_file, output, comm, argv, task),
 	fFineComm(&fComm),
 	fFine(NULL),
 	fCoarseComm(&fComm),
@@ -612,6 +613,7 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 	/* path to parameters file */
 	StringT path;
 	path.FilePath(fInputFile);
+	TaskT task = kRun;
 
 	/* parse/validate continuum input */
 	StringT continuum_input = list.GetParameter("continuum_input");
@@ -621,11 +623,20 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 	ParseInput(continuum_input, continuum_params, true, true, true, fArgv);
 			
 	/* construct continuum solver */
+	if (fCoarseComm->Size() != 1)
+		ExceptionT::GeneralFail(caller, "parallel execution error");
+	if (Size() > 1) /* change file name so output files are unique */  {
+		StringT suffix;
+		suffix.Suffix(continuum_input);
+		continuum_input.Root();
+		continuum_input.Append(".p", Rank());
+		continuum_input.Append(suffix);
+	}
 	StringT continuum_output_file;
 	continuum_output_file.Root(continuum_input);
 	continuum_output_file.Append(".out");
 	fCoarseOut.open(continuum_output_file);
-	fCoarse = TB_DYNAMIC_CAST(FEManagerT_bridging*, FEManagerT::New(continuum_params.Name(), continuum_input, fCoarseOut, *fCoarseComm, fArgv));
+	fCoarse = TB_DYNAMIC_CAST(FEManagerT_bridging*, FEManagerT::New(continuum_params.Name(), continuum_input, fCoarseOut, *fCoarseComm, fArgv, task));
 	if (!fCoarse) ExceptionT::GeneralFail(caller, "could not construct continuum solver");
 	fCoarse->TakeParameterList(continuum_params);
 
@@ -637,11 +648,14 @@ void MultiManagerT::TakeParameterList(const ParameterListT& list)
 	ParseInput(atom_input, atom_params, true, true, true, fArgv);
 
 	/* construct atomistic solver */
+	if (Size() != fFineComm->Size())
+		ExceptionT::GeneralFail(caller, "parallel execution error");
 	StringT atom_output_file;
 	atom_output_file.Root(atom_input);
+	if (Size() > 1) atom_output_file.Append(".p", Rank());
 	atom_output_file.Append(".out");
 	fFineOut.open(atom_output_file);
-	fFine = TB_DYNAMIC_CAST(FEManagerT_bridging*, FEManagerT::New(atom_params.Name(), atom_input, fFineOut, *fFineComm, fArgv));
+	fFine = TB_DYNAMIC_CAST(FEManagerT_bridging*, FEManagerT::New(atom_params.Name(), atom_input, fFineOut, *fFineComm, fArgv, task));
 	if (!fFine) ExceptionT::GeneralFail(caller, "could not construct atomistic solver");
 	fFine->TakeParameterList(atom_params);
 

@@ -1,4 +1,4 @@
-/* $Id: SolverT.cpp,v 1.24 2004-09-14 18:14:31 paklein Exp $ */
+/* $Id: SolverT.cpp,v 1.25 2004-09-28 15:35:44 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 #include "SolverT.h"
 
@@ -58,6 +58,9 @@ SolverT::~SolverT(void) { delete fLHS; }
 void SolverT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 {	
 	try {
+// DEBUG
+//cout << "\n" << "Total # of equations: " << tot_num_eq << "\n" << "Local # of equations: " << loc_num_eq << "\n" << "First eq on this proc: " << start_eq << endl;
+		
 		/* allocate rhs vector */
 		fRHS.Dimension(loc_num_eq);
 		fRHS = 0.0;
