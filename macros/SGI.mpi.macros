@@ -1,4 +1,4 @@
-# $Id: SGI.mpi.macros,v 1.9 2001-06-03 21:12:50 paklein Exp $
+# $Id: SGI.mpi.macros,v 1.10 2001-12-10 22:15:17 paklein Exp $
 # MPI
 MPI_CFLAGS = -D__MPI__
 MPI_LFLAGS = -lmpi
@@ -29,3 +29,7 @@ CAT         = cat
 INC_FLAGS   = -I/usr/include/CC
 # parallel builds
 # env. var. PARALLEL controls concurrency (default = 2)
+
+# command needed build library
+#BUILD_LIBRARY = BUILD_LIBRARY_RANLIB
+BUILD_LIBRARY = BUILD_LIBRARY_AR

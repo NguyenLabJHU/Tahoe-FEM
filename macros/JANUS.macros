@@ -1,4 +1,4 @@
-# $Id: JANUS.macros,v 1.7 2001-02-22 23:38:44 paklein Exp $
+# $Id: JANUS.macros,v 1.8 2001-12-10 22:15:17 paklein Exp $
 MPI_CFLAGS = -D__MPI__
 MPI_LFLAGS = -lmpi
 
@@ -25,3 +25,7 @@ LN          = ln -sf
 ECHO        = echo
 CAT         = cat
 INC_FLAGS   = -I/usr/local/intel/tflop/current/tflops/include -I/usr/local/intel/tflop/current/tflops/include/CC
+
+# command needed build library
+#BUILD_LIBRARY = BUILD_LIBRARY_RANLIB
+BUILD_LIBRARY = BUILD_LIBRARY_AR
