@@ -1,4 +1,4 @@
-/* $Id: InelasticDuctile_RP2DT.h,v 1.6 2003-11-04 17:35:11 cjkimme Exp $ */
+/* $Id: InelasticDuctile_RP2DT.h,v 1.7 2004-01-05 07:42:13 paklein Exp $ */
 #ifndef _INELASTIC_DUCTILE_RP_2D_T_H_
 #define _INELASTIC_DUCTILE_RP_2D_T_H_
 
@@ -30,13 +30,33 @@ public:
 
 	/** constructor.
 	 * \param time_step reference to the current time step */
-	InelasticDuctile_RP2DT(ifstreamT& in, const double& time_step, const double& area,
-		ofstreamT& out);
+	InelasticDuctile_RP2DT(ifstreamT& in, const double& time_step, const double& area, ofstreamT& out);
 		//TEMP - output stream for debugging information
+
+	/** set the pointer to the number of iterations */
+	void SetIterationPointer(const int* iteration) { fIteration = iteration; };
+
+	/** \name methods needed for externally enforcing constraints */
+	/*@{*/
+	/** create an alias to the traction vector within the state variable array */
+	static void GetTraction(const ArrayT<double>& state, dArrayT& traction);
+
+	/** create an alias to the flags indicating the evolution equations are activve 
+	 * from within the state variable array. Flags should be set to 1.0 to indicate
+	 * the equation is active or to 0.0 to indicate that it is inactive. */
+	static void GetActiveFlags(const ArrayT<double>& state, dArrayT& active);
+
+	/** assess whether the evolution equations will behave rigidly based on the
+	 * given state variables */
+	void RigidQ(const ArrayT<double>& state, ArrayT<bool>& rigid) const;
+
+	/** update state variables with the given bulk data */
+	void UpdateState(const dArrayT& bulk_nodal_data, ArrayT<double>& state) const;
+	/*@}*/
 
 	/** return the number of state variables needed by the model */
 	int NumStateVariables(void) const;
-
+	
 	/** initialize the state variable array. By default, initialization
 	 * involves only setting the array to zero. */
 	virtual void InitStateVariables(ArrayT<double>& state);
@@ -54,9 +74,11 @@ public:
 	/** surface traction. Internal variables are integrated over the current
 	 * time step. */	
 	virtual const dArrayT& Traction(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate);
+	virtual const dArrayT& Traction_penalty(const dArrayT& jump_u, ArrayT<double>& state, const dArrayT& sigma, bool qIntegrate);
 
 	/** tangent stiffness */
 	virtual const dMatrixT& Stiffness(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);
+	virtual const dMatrixT& Stiffness_penalty(const dArrayT& jump_u, const ArrayT<double>& state, const dArrayT& sigma);
 
 	/** form of stiffness matrix */
 	virtual GlobalT::SystemTypeT TangentType(void) const { return GlobalT::kNonSymmetric; }
@@ -141,6 +163,9 @@ private:
 	/** reference to the area of the current evaluation point */
 	const double& fArea;
 
+	/** pointer to the iteration number counter */
+	const int* fIteration;
+
 	/** \name parameters */
 	/*@{*/
 	/** initial width of the localized zone */
@@ -151,6 +176,9 @@ private:
 
 	/** void volume fraction at failure */
 	double fphi_max;
+
+	/** damage exponent */
+	double fdamage_exp;
 	
 	/** absolute tolerance of local iteration */
 	double fabs_tol;
@@ -158,14 +186,16 @@ private:
 	/** relative tolerance of local iteration */
 	double frel_tol;
 
-	/** strength multiplication */
-//	double fkappa_scale;
-
 	/** true if damage is reversible */
 	bool fReversible;
 
 	/** penalty stiffness for enforcing rigid behavior */
 	double fConstraintStiffness;
+	
+	/** number of iterations between calculating an updated traction vector. For
+	 * InelasticDuctile_RP2DT:: fUpdateIterations > 1, the tractions are assumed
+	 * to behave like fixed external forces and therefore do not return any stiffness */
+	int fUpdateIterations;
 	/*@}*/
 
 	/** \name BCJ model kinetic parameters */
@@ -173,6 +203,7 @@ private:
 	double fTemperature;
 	double fC1, fC2, fC3, fC4, fC5, fC6;
 	double fC19, fC20, fC21;
+	double fphi_0;
 	/*@}*/
 
 	/** \name BCJ model derived parameters */
@@ -184,6 +215,7 @@ private:
 
 	/** \name work space */
 	/*@{*/
+	int fFixedIterationCount;
 	dArrayT fdD;
 	
 	dArrayT fR, fR_temp;
