@@ -36,7 +36,8 @@ class HyperEVP2D : public HyperEVP3D, public Material2DT
 
  protected:
   // deformation gradient
-  virtual const dMatrixT& DeformationGradient(const LocalArrayT& disp);
+  //virtual const dMatrixT& DeformationGradient(const LocalArrayT& disp);
+//DEV - see who needs this
 
  protected:
   // Cauchy stress in 2D

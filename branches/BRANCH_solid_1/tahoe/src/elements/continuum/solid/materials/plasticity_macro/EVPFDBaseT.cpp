@@ -28,7 +28,7 @@ EVPFDBaseT::EVPFDBaseT(ifstreamT& in, const ElasticT& element) :
   fKineticEqn (NULL),
   fSolver     (NULL),
   fSolverPtr  (new SolverWrapperEVPBase(*this)),
-  fFtot       (kNSD,kNSD),
+  fFtot       (kNSD),
   fs_ij       (kNSD),
   fc_ijkl     (dSymMatrixT::NumValues(kNSD))
 {
@@ -135,6 +135,22 @@ void EVPFDBaseT::AllocateElements()
     }
 }
 
+// compute 3D deformation gradient
+void EVPFDBaseT::Compute_Ftot_3D(dMatrixT& F_3D) const
+{
+	int nsd = NumSD();
+	if (nsd == 3)
+		F_3D =  F();
+	else if (nsd == 2)
+	{
+		// expand total deformation gradient: 2D -> 3D (plane strain)
+		F_3D.Rank2ExpandFrom2D(F());    // fFtot or fFtot_n
+		F_3D(2, 2) = 1.0;
+	}
+	else 
+		throw eGeneralFail;
+}
+
 void EVPFDBaseT::SetConstitutiveSolver()
 {
   // input solver code
@@ -170,7 +186,10 @@ void EVPFDBaseT::SetConstitutiveSolver()
   fSolver->SetGradTol(gradtol);
 }
 
+//DEV - let's see who needs this
+#if 0
 const dMatrixT& EVPFDBaseT::DeformationGradient(const LocalArrayT& disp)
 { 
   return F(disp);
 }
+#endif

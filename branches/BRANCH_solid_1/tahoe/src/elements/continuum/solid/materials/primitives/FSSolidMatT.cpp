@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.cpp,v 1.1.1.1.2.2 2001-06-07 03:01:26 paklein Exp $ */
+/* $Id: FSSolidMatT.cpp,v 1.1.1.1.2.3 2001-06-14 00:34:18 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 
 #include "FSSolidMatT.h"
@@ -91,7 +91,7 @@ void FSSolidMatT::InitStep(void)
 * Protected
 ***********************************************************************/
 
-/** deformation gradient */
+/* deformation gradients */
 const dMatrixT& FSSolidMatT::F(void) const
 {
 	return ContinuumElement().F();
@@ -99,10 +99,24 @@ const dMatrixT& FSSolidMatT::F(void) const
 	//DEV - what about corrections for thermal strains?
 }
 
-/** deformation gradient from end of previous step */
+const dMatrixT& FSSolidMatT::F(int ip) const
+{
+	return ContinuumElement().F(ip);
+	
+	//DEV - what about corrections for thermal strains?
+}
+
+/* deformation gradient from end of previous step */
 const dMatrixT& FSSolidMatT::F_last(void) const
 {
 	return ContinuumElement().F_last();
+	
+	//DEV - what about corrections for thermal strains?
+}
+
+const dMatrixT& FSSolidMatT::F_last(int ip) const
+{
+	return ContinuumElement().F_last(ip);
 	
 	//DEV - what about corrections for thermal strains?
 }

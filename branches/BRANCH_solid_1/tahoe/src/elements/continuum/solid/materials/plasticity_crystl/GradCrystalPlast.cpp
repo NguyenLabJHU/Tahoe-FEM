@@ -543,7 +543,8 @@ void GradCrystalPlast::SolveCrystalState()
   for (fIP = 0; fIP < NumIP(); fIP++) 
     {
       // deformation gradient at integration point IP
-      fFtot = DeformationGradient(fLocDisp);
+      //fFtot = DeformationGradient(fLocDisp); //DEV - deprecated
+      Compute_Ftot_3D(fFtot, fIP);
 
       // fetch crystal data
       LoadCrystalData(element, fIP, igrn);
@@ -688,11 +689,14 @@ void GradCrystalPlast::DeltaFPInverse(const dArrayT& dgamma)
     }
 }
 
+//DEV - deprecated
+#if 0
 const dMatrixT& GradCrystalPlast::DeformationGradient(const LocalArrayT& disp)
 {
   ShapeFunction().GradU(disp, fGradU, fIP);
   return  FDContinuumT::F(fGradU);
 }
+#endif
 
 /* PRIVATE MEMBER FUNCTIONS */
 

@@ -62,6 +62,7 @@ void BCJHypo2D::PrintName(ostream& out) const
   out << "    Plane Strain\n";
 }
 
+#if 0
 const dMatrixT& BCJHypo2D::DeformationGradient(const LocalArrayT& disp)
 {
   // expand total deformation gradient: 2D -> 3D (plane strain)
@@ -70,3 +71,4 @@ const dMatrixT& BCJHypo2D::DeformationGradient(const LocalArrayT& disp)
 
   return fmatx1;
 }
+#endif
