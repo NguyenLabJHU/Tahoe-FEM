@@ -1,16 +1,14 @@
-/* $Id: GaoVicky.cpp,v 1.5 2003-11-21 22:41:27 paklein Exp $ */
-/* created: paklein (12/26/1998)                                          */
-
+/* $Id: GaoVicky.cpp,v 1.6 2004-06-19 23:27:18 paklein Exp $ */
+/* created: paklein (12/26/1998) */
 #include "GaoVicky.h"
 #include <math.h>
 #include <iostream.h>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 GaoVicky::GaoVicky(double A, double B, double C, double D, double L):
 	fA(A),
 	fB(B),
@@ -18,7 +16,18 @@ GaoVicky::GaoVicky(double A, double B, double C, double D, double L):
 	fD(D),
 	fL(L)
 {
+	SetName("Gao-Nguyen");
 // should insert some consistency checks on the parameters
+}
+
+GaoVicky::GaoVicky(void):
+	fA(0.0),
+	fB(0.0),
+	fC(0.0),
+	fD(0.0),
+	fL(0.0)
+{
+	SetName("Gao-Nguyen");
 }
 
 /* I/O */
@@ -35,7 +44,7 @@ void GaoVicky::Print(ostream& out) const
 
 void GaoVicky::PrintName(ostream& out) const
 {
-	out << "    Gao-Ji3\n";
+	out << "    Gao-Nguyen\n";
 }
 
 /* returning values */
@@ -110,4 +119,33 @@ dArrayT& GaoVicky::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	}
 	
 	return out;
+}
+
+/* describe the parameters needed by the interface */
+void GaoVicky::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	C1FunctionT::DefineParameters(list);
+	
+	list.SetDescription("F(dr) = A dr/(1 + exp[(-B/C + dr)/D]");
+
+	// should insert some consistency checks on the parameters
+	list.AddParameter(fA, "A");
+	list.AddParameter(fB, "B");
+	list.AddParameter(fC, "C");
+	list.AddParameter(fD, "D");
+	list.AddParameter(fL, "L");
+}
+
+/* accept parameter list */
+void GaoVicky::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	C1FunctionT::TakeParameterList(list);
+
+	fA = list.GetParameter("A");
+	fB = list.GetParameter("B");
+	fC = list.GetParameter("C");
+	fD = list.GetParameter("D");
+	fL = list.GetParameter("L");
 }

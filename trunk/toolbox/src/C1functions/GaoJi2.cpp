@@ -1,23 +1,31 @@
-/* $Id: GaoJi2.cpp,v 1.4 2003-11-21 22:41:27 paklein Exp $ */
-/* created: Baohua Ji (02/25/2002)                                          */
-
+/* $Id: GaoJi2.cpp,v 1.5 2004-06-19 23:27:18 paklein Exp $ */
+/* created: Baohua Ji (02/25/2002) */
 #include "GaoJi2.h"
 #include <math.h>
 #include <iostream.h>
 #include "ExceptionT.h"
 #include "dArrayT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 GaoJi2::GaoJi2(double A, double B, double C, double L_0):
 	fA(A),
 	fB(B),
 	fN(C),
 	fL_0(L_0)
 {
-// should insert some consistency checks on the parameters
+	SetName("Gao-Ji_2");
+	// should insert some consistency checks on the parameters
+}
+
+GaoJi2::GaoJi2(void):
+	fA(0.0),
+	fB(0.0),
+	fN(0.0),
+	fL_0(0.0)
+{
+	SetName("Gao-Ji_2");
 }
 
 /* I/O */
@@ -151,4 +159,29 @@ dArrayT& GaoJi2::MapDDFunction(const dArrayT& in, dArrayT& out) const
 	}
 	
 	return out;
+}
+
+/* describe the parameters needed by the interface */
+void GaoJi2::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	C1FunctionT::DefineParameters(list);
+
+	// should insert some consistency checks on the parameters
+	list.AddParameter(fA, "A");
+	list.AddParameter(fB, "B");
+	list.AddParameter(fN, "N");
+	list.AddParameter(fL_0, "L_0");
+}
+
+/* accept parameter list */
+void GaoJi2::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	C1FunctionT::TakeParameterList(list);
+
+	fA = list.GetParameter("A");
+	fB = list.GetParameter("B");
+	fN = list.GetParameter("N");
+	fL_0 = list.GetParameter("L_0");
 }
