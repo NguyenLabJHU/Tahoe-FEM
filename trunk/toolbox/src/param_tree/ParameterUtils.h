@@ -1,4 +1,4 @@
-/* $Id: ParameterUtils.h,v 1.2 2003-08-18 03:34:13 paklein Exp $ */
+/* $Id: ParameterUtils.h,v 1.3 2003-09-03 23:41:59 paklein Exp $ */
 #ifndef _PARAMETER_UTILS_H_
 #define _PARAMETER_UTILS_H_
 
@@ -100,13 +100,15 @@ public:
 	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
+protected:
+
+	/** value */
+	TYPE fValue;
+
 private:
 
 	/** name */
 	StringT fValueName;
-
-	/** value */
-	TYPE fValue;
 };
 
 template <class TYPE>
