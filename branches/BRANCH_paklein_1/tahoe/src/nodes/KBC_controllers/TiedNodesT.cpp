@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.12 2002-10-03 01:41:21 paklein Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.12.2.1 2002-10-17 04:42:00 paklein Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -43,84 +43,18 @@ void TiedNodesT::Initialize(ifstreamT& in)
 	fPairStatus = kFree;
 	fPairStatus_last = fPairStatus;
 
-	/* coordinates */
-	const dArray2DT& coords = fNodeManager.InitialCoordinates();
+	/* read more parameters */
+	ReadParameters(in);
 	
-	/* get processor number */
-	int np = fNodeManager.Rank();
-	const iArrayT& pMap = fNodeManager.ProcessorMap();
-
-	/* dumb search */
-	int nsd = coords.MinorDim();
-
-	/* Length may change during search if external nodes are removed */
-	int FLength = follower_nodes.Length()-1;
-	int LLength = leader_nodes.Length()-1;
-
-	/*num of followers and leaders to be removed */	
-	int Fct = 0, Lct = 0; 
-
-	for (int i = 0; i <=FLength; i++)
-	{
-		double* x_f = coords(follower_nodes[i]);
-		
-		/*If a follower is external, flag it for removal from the list*/
-		if (pMap[follower_nodes[i]] != np)
-		{
-		  fPairStatus[i] = kChangeF;
-		}
-		
-		for (int j = 0; j < leader_nodes.Length(); j++)
-		{
-			double* x_l = coords(leader_nodes[j]);
-			bool OK = true;
-			for (int k = 0; OK && k < nsd; k++)
-				OK = fabs(x_f[k] - x_l[k]) < kSmall;
-				
-			/* found */
-			if (OK) 
-			{
-				fNodePairs(i,1) = leader_nodes[j];
-				if (pMap[follower_nodes[i]] != np && 
-								    pMap[leader_nodes[j]] != np)
-	  			{
-	  				/* Flag the pair as external */
-				  fPairStatus[i] = kTiedExt;
-	  			}
-				else
-				  fPairStatus[i] = kTied;
-			}
-		}
-			
-		if (fPairStatus[i]>kTied)
-	  	{
-	  		/* If something will get removed, send it to the
-	  		 * end of the list and resize after the search
-	  		 */
-	    	follower_nodes[i] = follower_nodes[FLength];
-	    	Fct++;
-	    	fPairStatus[i] = kFree;
-	    	fNodePairs(i,0) = fNodePairs(FLength,0);
-		fNodePairs(i,1) = fNodePairs(FLength,1);
-	    	if (i != follower_nodes.Length()-1)
-	      		i--;
-	    	FLength--;
-	  	}
-	}
-	
-	if (Fct > 0)
-	{
-		fPairStatus.Resize(fPairStatus.Length()-Fct);
-		follower_nodes.Resize(follower_nodes.Length()-Fct);
-		fNodePairs.Resize(fNodePairs.MajorDim()-Fct);
-	}
+	/* initialize tied pairs */
+	InitTiedNodePairs(leader_nodes, follower_nodes);
 	
 	/* check */
 	int free_count = fPairStatus.Count(kFree);
 	if (free_count != 0) {
 		cout << "\n TiedNodesT::Initialize: " << free_count
 		     << " follower nodes without leaders" << endl;
-//		throw eGeneralFail;
+//		throw ExceptionT::kGeneralFail;
 //NOTE: for MP calculations, followers nodes that are external
 //      may not have their (external) leader nodes reproduced
 //      on this processor. Therefore, leader-less followers are
@@ -189,7 +123,7 @@ void TiedNodesT::ReadRestart(istream& in)
 		     <<   "     restart file " << num_pairs
 		     << " does not match the number of pairs "
 		     << fPairStatus.Length() << endl;
-		throw eGeneralFail;
+		throw ExceptionT::kGeneralFail;
 	}
 	in >> fPairStatus;
 	
@@ -275,7 +209,7 @@ void TiedNodesT::Connectivities(AutoArrayT<const iArray2DT*>& connects) const
 	
 	if (!connects.AppendUnique(&fNodePairs)) {
 		cout << "\n TiedNodesT::Connects: pair connects not added" << endl;
-		throw eGeneralFail;	
+		throw ExceptionT::kGeneralFail;	
 	}
 }
 
@@ -343,6 +277,83 @@ void TiedNodesT::WriteOutput(ostream& out) const
  * Protected
  **********************************************************************/
 
+/* set initial tied node pairs */
+void TiedNodesT::InitTiedNodePairs(const iArrayT& leader_nodes, 
+	iArrayT& follower_nodes)
+{
+	/* coordinates */
+	const dArray2DT& coords = fNodeManager.InitialCoordinates();
+	
+	/* get processor number */
+	int np = fNodeManager.Rank();
+	const iArrayT& pMap = fNodeManager.ProcessorMap();
+
+	/* dumb search */
+	int nsd = coords.MinorDim();
+
+	/* Length may change during search if external nodes are removed */
+	int FLength = follower_nodes.Length()-1;
+	int LLength = leader_nodes.Length()-1;
+
+	/*num of followers and leaders to be removed */	
+	int Fct = 0, Lct = 0; 
+
+	for (int i = 0; i <=FLength; i++)
+	{
+		double* x_f = coords(follower_nodes[i]);
+		
+		/*If a follower is external, flag it for removal from the list*/
+		if (pMap[follower_nodes[i]] != np)
+		{
+		  fPairStatus[i] = kChangeF;
+		}
+		
+		for (int j = 0; j < leader_nodes.Length(); j++)
+		{
+			double* x_l = coords(leader_nodes[j]);
+			bool OK = true;
+			for (int k = 0; OK && k < nsd; k++)
+				OK = fabs(x_f[k] - x_l[k]) < kSmall;
+				
+			/* found */
+			if (OK) 
+			{
+				fNodePairs(i,1) = leader_nodes[j];
+				if (pMap[follower_nodes[i]] != np && 
+								    pMap[leader_nodes[j]] != np)
+	  			{
+	  				/* Flag the pair as external */
+				  fPairStatus[i] = kTiedExt;
+	  			}
+				else
+				  fPairStatus[i] = kTied;
+			}
+		}
+			
+		if (fPairStatus[i]>kTied)
+	  	{
+	  		/* If something will get removed, send it to the
+	  		 * end of the list and resize after the search
+	  		 */
+	    	follower_nodes[i] = follower_nodes[FLength];
+	    	Fct++;
+	    	fPairStatus[i] = kFree;
+	    	fNodePairs(i,0) = fNodePairs(FLength,0);
+		fNodePairs(i,1) = fNodePairs(FLength,1);
+	    	if (i != follower_nodes.Length()-1)
+	      		i--;
+	    	FLength--;
+	  	}
+	}
+	
+	if (Fct > 0)
+	{
+		fPairStatus.Resize(fPairStatus.Length()-Fct);
+		follower_nodes.Resize(follower_nodes.Length()-Fct);
+		fNodePairs.Resize(fNodePairs.MajorDim()-Fct);
+	}
+}
+
 /* check status of pairs */
 bool TiedNodesT::ChangeStatus(void)
 {
@@ -354,7 +365,7 @@ bool TiedNodesT::ChangeStatus(void)
   	if (!surroundingGroup)
         {
       //      	cout <<" Group 0 doesn't exist \n";
-      	  throw eGeneralFail;
+      	  throw ExceptionT::kGeneralFail;
         }
   	surroundingGroup->SendOutput(3);
   	dArray2DT fNodalQs = fNodeManager.OutputAverage();
