@@ -1,4 +1,4 @@
-/* $Id: GridManager2DT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: GridManager2DT.h,v 1.2 2001-06-19 00:52:18 paklein Exp $ */
 /* created: paklein (12/06/1997)                                          */
 /* Interface for regular rectangular search and storage grid              */
 /* sTYPE requirements:                                                    */
@@ -50,6 +50,7 @@ public:
 	/* return list of data falling within the defined region */
 	const AutoArrayT<sTYPE>& HitsInRegion(double* coords, double distance);
 	const AutoArrayT<sTYPE>& HitsInRegion(double* coords, int cell_span);
+	const AutoArrayT<sTYPE>& HitsInRegion(double* coords, const ArrayT<double>& dist_xy);
 
 	/* the distance covered by the given cell span */
 	double CellSpan(int cell_span) const;
@@ -340,6 +341,47 @@ const AutoArrayT<sTYPE>& GridManager2DT<sTYPE>::
 	int iystart = int((coords[1] - fymin - distance)/fdy);
 	int ixstop  = int((coords[0] - fxmin + distance)/fdx);
 	int iystop  = int((coords[1] - fymin + distance)/fdy);
+
+	/* keep within grid */
+	ixstart = (ixstart < 0) ? 0 : ixstart;
+	iystart = (iystart < 0) ? 0 : iystart;
+	ixstop = (ixstop >= fnx) ? fnx - 1 : ixstop;
+	iystop = (iystop >= fny) ? fny - 1 : iystop;
+
+	bool out_of_range = ixstart > ixstop ||
+	                    iystart > iystop;
+	if (!out_of_range)
+	{
+		/* scan section of grid */
+		for (int ix = ixstart; ix <= ixstop; ix++)
+		{
+			/* column top */
+			AutoArrayT<sTYPE>** griddata = fGrid.Pointer(ix*fny + iystart);
+		
+			/* copy contents from cells */
+			for (int iy = iystart; iy <= iystop; iy++)
+			{
+				if (*griddata) fHits.Append(**griddata);
+				griddata++;
+			}
+		}
+	}
+	
+	return fHits;
+}	
+
+template <class sTYPE>
+const AutoArrayT<sTYPE>& GridManager2DT<sTYPE>::
+	HitsInRegion(double* coords, const ArrayT<double>& dist_xy)
+{
+	/* empty hit list */
+	fHits.Allocate(0);
+
+	/* grid indices */
+	int ixstart = int((coords[0] - fxmin - dist_xy[0])/fdx);
+	int iystart = int((coords[1] - fymin - dist_xy[1])/fdy);
+	int ixstop  = int((coords[0] - fxmin + dist_xy[0])/fdx);
+	int iystop  = int((coords[1] - fymin + dist_xy[1])/fdy);
 
 	/* keep within grid */
 	ixstart = (ixstart < 0) ? 0 : ixstart;

@@ -1,4 +1,4 @@
-/* $Id: iGridManagerT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: iGridManagerT.cpp,v 1.2 2001-06-19 00:52:18 paklein Exp $ */
 /* created: paklein (09/13/1998)                                          */
 /* iNodeT grid with unified interface for 2D/3D                           */
 
@@ -56,6 +56,15 @@ void iGridManagerT::Neighbors(int n, double tol, AutoArrayT<int>& neighbors)
 		fGrid3D->Neighbors(n, tol, neighbors);
 }
 
+/* neighbors - returns neighbors coords(n) (SELF not included) */
+void iGridManagerT::Neighbors(int n, const ArrayT<double>& tol_xyz, AutoArrayT<int>& neighbors)
+{
+	if (fGrid2D)
+		fGrid2D->Neighbors(n, tol_xyz, neighbors);
+	else
+		fGrid3D->Neighbors(n, tol_xyz, neighbors);
+}
+
 /* return list of data falling within the defined region */
 const AutoArrayT<iNodeT>& iGridManagerT::HitsInRegion(double* coords,
 	double distance)
@@ -66,7 +75,6 @@ const AutoArrayT<iNodeT>& iGridManagerT::HitsInRegion(double* coords,
 		return fGrid3D->HitsInRegion(coords, distance);
 }
 
-/* return list of data falling within the defined region */
 const AutoArrayT<iNodeT>& iGridManagerT::HitsInRegion(double* coords,
 	int cell_span)
 {
@@ -74,6 +82,15 @@ const AutoArrayT<iNodeT>& iGridManagerT::HitsInRegion(double* coords,
 		return fGrid2D->HitsInRegion(coords, cell_span);
 	else
 		return fGrid3D->HitsInRegion(coords, cell_span);
+}
+
+const AutoArrayT<iNodeT>& iGridManagerT::HitsInRegion(double* coords,
+	const ArrayT<double>& tol_xyz)
+{
+	if (fGrid2D)
+		return fGrid2D->HitsInRegion(coords, tol_xyz);
+	else
+		return fGrid3D->HitsInRegion(coords, tol_xyz);
 }
 
 /* the distance covered by the given cell span */

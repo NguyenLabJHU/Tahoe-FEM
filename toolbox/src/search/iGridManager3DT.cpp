@@ -1,9 +1,10 @@
-/* $Id: iGridManager3DT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: iGridManager3DT.cpp,v 1.2 2001-06-19 00:52:18 paklein Exp $ */
 /* created: paklein (12/09/1997)                                          */
 /* iNodeT grid                                                            */
 
 #include "iGridManager3DT.h"
 #include "iArrayT.h"
+#include "dArrayT.h"
 
 /* constructor */
 iGridManager3DT::iGridManager3DT(int nx, int ny, int nz,
@@ -40,6 +41,36 @@ void iGridManager3DT::Neighbors(int n, double tol, AutoArrayT<int>& neighbors)
 			
 			/* add to neighbor list */
 			if (dsqr <= tolsqr) neighbors.Append(hits[i].Tag());
+		}
+}
+
+void iGridManager3DT::Neighbors(int n, const ArrayT<double>& tol_xyz, AutoArrayT<int>& neighbors)
+{
+	/* initialize */
+	neighbors.Allocate(0);
+	
+	/* fetch prospective neighbors */
+	double* target = fCoords(n);
+	const AutoArrayT<iNodeT>& hits =  HitsInRegion(target, tol_xyz);
+
+	/* search through list */
+	double tol_x = tol_xyz[0];
+	double tol_y = tol_xyz[1];
+	double tol_z = tol_xyz[2];
+	int   thistag = n;
+	for (int i = 0; i < hits.Length(); i++)
+		if (hits[i].Tag() != thistag)
+		{
+			double* coords = hits[i].Coords();
+			
+			double dx = fabs(target[0] - coords[0]);
+			double dy = fabs(target[1] - coords[1]);
+			double dz = fabs(target[2] - coords[2]);
+			
+			/* add to neighbor list */
+			if (dx <= tol_x && 
+			    dy <= tol_y &&
+			    dz <= tol_z) neighbors.Append(hits[i].Tag());
 		}
 }
 

@@ -1,4 +1,4 @@
-/* $Id: GridManager3DT.h,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: GridManager3DT.h,v 1.2 2001-06-19 00:52:18 paklein Exp $ */
 /* created: paklein (12/06/1997)                                          */
 /* Interface for regular rectangular search and storage grid              */
 /* sTYPE requirements:                                                    */
@@ -51,6 +51,7 @@ public:
 	/* return list of data falling within the defined region */
 	const AutoArrayT<sTYPE>& HitsInRegion(double* coords, double distance);
 	const AutoArrayT<sTYPE>& HitsInRegion(double* coords, int cellspan);
+	const AutoArrayT<sTYPE>& HitsInRegion(double* coords, const ArrayT<double>& dist_xyz);
 
 	/* the distance covered by the given cell span */
 	double CellSpan(int cell_span) const;
@@ -454,6 +455,55 @@ const AutoArrayT<sTYPE>& GridManager3DT<sTYPE>::
 
 	return fHits;
 }	
+
+template <class sTYPE>
+const AutoArrayT<sTYPE>& GridManager3DT<sTYPE>::HitsInRegion(double* coords, 
+	const ArrayT<double>& dist_xyz)
+{
+	/* empty hit list */
+	fHits.Allocate(0);
+
+	/* grid indices */
+	int ixstart = int((coords[0] - fxmin - dist_xyz[0])/fdx);
+	int iystart = int((coords[1] - fymin - dist_xyz[1])/fdy);
+	int izstart = int((coords[2] - fzmin - dist_xyz[2])/fdz);
+	int ixstop  = int((coords[0] - fxmin + dist_xyz[0])/fdx);
+	int iystop  = int((coords[1] - fymin + dist_xyz[1])/fdy);
+	int izstop  = int((coords[2] - fzmin + dist_xyz[2])/fdz);
+
+	/* keep within grid */
+	ixstart = (ixstart < 0) ? 0 : ixstart;
+	iystart = (iystart < 0) ? 0 : iystart;
+	izstart = (izstart < 0) ? 0 : izstart;
+	
+	ixstop = (ixstop >= fnx) ? fnx - 1 : ixstop;
+	iystop = (iystop >= fny) ? fny - 1 : iystop;
+	izstop = (izstop >= fnz) ? fnz - 1 : izstop;
+
+	bool out_of_range = ixstart > ixstop ||
+	                    iystart > iystop ||
+	                    izstart > izstop;
+	if (!out_of_range)
+	{
+		/* scan section of grid */
+		for (int ix = ixstart; ix <= ixstop; ix++)
+			for (int iy = iystart; iy <= iystop; iy++)
+			{
+				/* column top */
+				AutoArrayT<sTYPE>** griddata = fGrid.Pointer(ix*fxjump + iy*fyjump + izstart);
+			
+				/* copy contents from cells */
+				for (int iz = izstart; iz <= izstop; iz++)
+				{
+					if (*griddata) fHits.Append(**griddata);
+					griddata++;
+				}
+			}
+	}
+
+	return fHits;
+}	
+
 
 /* write grid statistics */
 template <class sTYPE>

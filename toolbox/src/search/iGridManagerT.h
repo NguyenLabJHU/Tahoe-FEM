@@ -1,4 +1,4 @@
-/* $Id: iGridManagerT.h,v 1.2 2001-04-30 21:29:50 paklein Exp $ */
+/* $Id: iGridManagerT.h,v 1.3 2001-06-19 00:52:19 paklein Exp $ */
 /* created: paklein (09/13/1998)                                          */
 /* iNodeT grid with unified interface for 2D/3D and lightweight           */
 /* file dependencies                                                      */
@@ -12,6 +12,7 @@
 /* forward declarations */
 #include "ios_fwd_decl.h"
 class iArrayT;
+template <class TYPE> class ArrayT;
 class dArray2DT;
 class iNodeT;
 class iGridManager2DT;
@@ -37,10 +38,12 @@ public:
 
 	/* neighbors - returns neighbors coords(n) (SELF not included) */
 	void Neighbors(int n, double tol, AutoArrayT<int>& neighbors);
+	void Neighbors(int n, const ArrayT<double>& tol_xyz, AutoArrayT<int>& neighbors);
 
 	/* return list of data falling within the defined region */
 	const AutoArrayT<iNodeT>& HitsInRegion(double* coords, double distance);
 	const AutoArrayT<iNodeT>& HitsInRegion(double* coords, int cell_span);
+	const AutoArrayT<iNodeT>& HitsInRegion(double* coords, const ArrayT<double>& tol_xyz);
 
 	/* the distance covered by the given cell span */
 	double CellSpan(int cell_span) const;
