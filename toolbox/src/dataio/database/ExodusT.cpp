@@ -1,4 +1,4 @@
-/* $Id: ExodusT.cpp,v 1.26 2004-06-17 06:38:21 paklein Exp $ */
+/* $Id: ExodusT.cpp,v 1.27 2004-11-16 00:57:24 paklein Exp $ */
 /* created: sawimme (12/04/1998) */
 #include "ExodusT.h"
 
@@ -118,10 +118,7 @@ bool ExodusT::Create(const StringT& filename, const StringT& title,
 
 	/* create Exodus file */
 	io_ws = comp_ws;
-	if (strlen(filename) >= MAX_LINE_LENGTH)
-		file_name.Take(filename, MAX_LINE_LENGTH - 1);
-	else
-		file_name = filename;
+	file_name = filename;
 	exoid = ex_create(file_name, EX_CLOBBER, &comp_ws, &io_ws);
 	if (exoid < 0)
 		return false;
