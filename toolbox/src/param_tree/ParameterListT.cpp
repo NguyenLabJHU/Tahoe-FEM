@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.cpp,v 1.14 2004-02-12 17:18:21 paklein Exp $ */
+/* $Id: ParameterListT.cpp,v 1.15 2004-03-02 17:32:50 paklein Exp $ */
 #include "ParameterListT.h"
 #include "ParameterInterfaceT.h"
 
@@ -274,6 +274,16 @@ void ParameterListT::GetParameter(const char* name, bool& a) const
 const ParameterT& ParameterListT::GetParameter(const char* name) const
 {
 	const ParameterT* parameter = Parameter(name);
+	if (!parameter)
+		ExceptionT::GeneralFail("ParameterListT::GetParameter", 
+			"parameter \"%s\" not found in \"%s\"", 
+			name, Name().Pointer());
+	return *parameter;
+}
+
+ParameterT& ParameterListT::GetParameter(const char* name)
+{
+	ParameterT* parameter = Parameter(name);
 	if (!parameter)
 		ExceptionT::GeneralFail("ParameterListT::GetParameter", 
 			"parameter \"%s\" not found in \"%s\"", 

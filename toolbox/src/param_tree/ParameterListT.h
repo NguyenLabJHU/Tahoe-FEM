@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.18 2004-02-18 16:28:50 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.19 2004-03-02 17:32:50 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -179,6 +179,9 @@ public:
 
 	/** return the given parameter. Throws an exception of the parameter is not present */
 	const ParameterT& GetParameter(const char* name) const;
+
+	/** return the given parameter. Throws an exception of the parameter is not present */
+	ParameterT& GetParameter(const char* name);
 	/*@}*/	
 
 	/** \name description */
