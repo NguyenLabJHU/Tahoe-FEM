@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: FCCT.cpp,v 1.11 2003-07-02 23:02:14 saubry Exp $ */
+/* $Id: FCCT.cpp,v 1.12 2003-07-14 17:52:01 jzimmer Exp $ */
 #include "FCCT.h"
 #include "CrystalLatticeT.h"
 
@@ -22,25 +22,9 @@ FCCT::FCCT(int nlsd,int nuca,dArrayT alat,
 
   if (nlsd==2)
     {
-      if(nuca != 2) {cout << "Wrong nuca\n"; throw eSizeMismatch;}
-
-      // Define atoms in cell
-      vBasis(0,0) = 0.0;
-      vBasis(1,0) = 0.0;
-
-      vBasis(0,1) = 0.5;
-      vBasis(1,1) = 0.5;
-
-      // Define basis vectors
-      vAxis(0,0) = vLatticeParameters[0];
-      vAxis(1,0) = 0.0;
-      
-      vAxis(0,1) = 0.0;
-      vAxis(1,1) = vLatticeParameters[1];
-
-      // Rotate axis
-      if (fabs(angle_rotation) >=1.e-5) 
-	vAxis = AxisRotation(vAxis);
+      cout << "Cannot create a 2-dimensional FCC lattice!" << "\n";
+      cout << "Try a 2-d HEX lattice instead." << "\n";
+      throw eBadInputValue;
     }
   
   if (nlsd==3) 
