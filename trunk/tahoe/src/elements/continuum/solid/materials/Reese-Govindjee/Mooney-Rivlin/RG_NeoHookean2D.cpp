@@ -1,4 +1,4 @@
-/* $Id: RG_NeoHookean2D.cpp,v 1.1 2002-10-04 23:59:01 thao Exp $ */
+/* $Id: RG_NeoHookean2D.cpp,v 1.2 2002-10-05 18:09:51 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 /* Phi(I1,J) = mu/2*(I1-3)+kappa/4*(J^2-1-2*ln(J)) */
 /* I1 = trace(C); J=sqrt(det(C)) */
@@ -117,6 +117,9 @@ double RG_NeoHookean2D::DmeanTauDepsilon(const double& J,const int SpringType)
 
 void RG_NeoHookean2D::OutOfPlaneStretch(const dArrayT& eigenstretch_bar, const double& J, const int SpringType)
 {
+#pragma unused(eigenstretch_bar)
+#pragma unused(SpringType)
+
 	double& l2_bar = fl2_bar;
 	double l2 = 1.0;
 	double m = pow(J,2.0*fthird);
