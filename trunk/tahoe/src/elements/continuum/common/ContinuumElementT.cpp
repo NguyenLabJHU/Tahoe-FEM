@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.41 2004-07-15 08:26:13 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.42 2004-07-22 08:20:55 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -353,18 +353,6 @@ istream& operator>>(istream& in, ContinuumElementT::MassTypeT& mtype)
 	return in;
 }
 
-}
-
-/* echo element connectivity data */
-void ContinuumElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
-{
-	/* inherited */
-	ElementBaseT::EchoConnectivityData(in, out);
-
-	/* construct group communicator */
-	const CommunicatorT& comm = ElementSupport().Communicator();
-	int color = (NumElements() > 0) ? 1 : CommunicatorT::kNoColor;
-	fGroupCommunicator = new CommunicatorT(comm, color, comm.Rank());
 }
 
 /* initialize local arrays */

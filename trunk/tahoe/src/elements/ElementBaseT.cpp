@@ -1,4 +1,4 @@
-/* $Id: ElementBaseT.cpp,v 1.47 2004-07-15 08:25:44 paklein Exp $ */
+/* $Id: ElementBaseT.cpp,v 1.48 2004-07-22 08:18:02 paklein Exp $ */
 /* created: paklein (05/24/1996) */
 #include "ElementBaseT.h"
 
@@ -564,24 +564,11 @@ void ElementBaseT::DefineElements(const ArrayT<StringT>& block_ID, const ArrayT<
 	SetElementCards(fBlockData, fConnectivities, fEqnos, fElementCards);
 }
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-/* echo element connectivity data, resolve material pointers
-* and set the local equation numbers */
-void ElementBaseT::EchoConnectivityData(ifstreamT& in, ostream& out)
-{	
-	out << "\n Element Connectivity:\n";
-
-	/* read */
-	ReadConnectivity(in, out);
-
-#else
-
+#ifdef _FRACTURE_INTERFACE_LIBRARY_
 void ElementBaseT::EchoConnectivityData(void)
 {	
 	/* read */
 	ReadConnectivity();
-
-#endif
 
 	/* derived dimensions */
 	int neq = NumElementNodes()*NumDOF();
@@ -595,37 +582,22 @@ void ElementBaseT::EchoConnectivityData(void)
 
 	/* set pointers in element cards */
 	SetElementCards(fBlockData, fConnectivities, fEqnos, fElementCards);
-
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	/* write */
-	WriteConnectivity(out);
-#endif
 }
 
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-/* resolve input format types */
-void ElementBaseT::ReadConnectivity(ifstreamT& in, ostream& out)
-{
-#pragma unused(out)
-#else
 void ElementBaseT::ReadConnectivity(void)
 {
-#endif
-
 	/* read from parameter file */
 	ArrayT<StringT> elem_ID;
 	iArrayT matnums;
 	ModelManagerT& model = fSupport.ModelManager();
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	model.ElementBlockList(in, elem_ID, matnums);
-#else
+
 	/* For Sierra, can't use input stream */
 	elem_ID.Dimension(1);
 	matnums.Dimension(1);
 	elem_ID[0] = fSupport.BlockID();
+
 	/*Might have to generalize this later*/
 	matnums = 1; 
-#endif
 
 	/* allocate block map */
 	int num_blocks = elem_ID.Length();
@@ -639,12 +611,8 @@ void ElementBaseT::ReadConnectivity(void)
 	{
 	    /* check number of nodes */
 	    int num_elems, num_nodes;
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	    model.ElementGroupDimensions(elem_ID[b], num_elems, num_nodes);
-#else
 		num_elems = fSupport.NumElements();
 		num_nodes = model.NumNodes(); 
-#endif
 
 	    /* set if unset */
 	    if (nen == 0) nen = num_nodes;
@@ -659,11 +627,6 @@ void ElementBaseT::ReadConnectivity(void)
 
 	    /* increment element count */
 	    elem_count += num_elems;
-
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-	    /* load connectivity from database into model manager */
-	    model.ReadConnectivity(elem_ID[b]);
-#endif
 
 	    /* set pointer to connectivity list */
 	    fConnectivities[b] = model.ElementGroupPointer(elem_ID[b]);
@@ -681,55 +644,6 @@ void ElementBaseT::ReadConnectivity(void)
 	  
 	/* set dimensions */
 	fElementCards.Dimension(elem_count);
-}
-
-#ifndef _FRACTURE_INTERFACE_LIBRARY_
-/* resolve output formats */
-void ElementBaseT::WriteConnectivity(ostream& out) const
-{	
-	out << " Number of elements. . . . . . . . . . . . . . . = " << NumElements() << '\n';
-
-	/* write dimensions of blocks */
-	out << " Block dimensions:\n";
-	out << setw(kIntWidth) << "ID"
-	    << setw(kIntWidth) << "size" << '\n';
-	for (int i = 0; i < fBlockData.Length(); i++)
-		out << setw(kIntWidth) << fBlockData[i].ID()
-		    << setw(kIntWidth) << fBlockData[i].Dimension() << '\n';
-	out << endl;
-
-	/* verbose output */
-	if (fSupport.PrintInput())
-	{
-		/* write header */
-		out << setw(kIntWidth) << "no.";
-		out << setw(kIntWidth) << "mat.";
-		int nen = NumElementNodes();
-		for (int j = 1; j <= ((nen < 9) ? nen : 8); j++)
-		{
-			int numwidth = (j < 10) ? 1 : ((j < 100) ? 2 : 3);		
-			out << setw(kIntWidth - (numwidth + 1)) << "n[";
-			out << j << "]";
-		}
-		out << endl;
-				
-		/* write material number and connectivity */
-		iArrayT nodesX(nen);
-		for (int i = 0; i < NumElements(); i++)
-		{
-			const ElementCardT& elcard = fElementCards[i];
-		
-			out << setw(kIntWidth) << i + 1;
-			out << setw(kIntWidth) << elcard.MaterialNumber() + 1;		
-		
-			/* nodes defining the geometry */
-			nodesX = elcard.NodesX();
-			nodesX++;
-			out << nodesX.wrap(8, kIntWidth) << '\n';
-			nodesX--;
-		}
-		out << endl;
-	}
 }
 #endif
 
