@@ -1,4 +1,4 @@
-/* $Id: PointPlots.cpp,v 1.13 2003-02-25 15:05:37 sawimme Exp $ */
+/* $Id: PointPlots.cpp,v 1.14 2004-11-19 22:59:12 paklein Exp $ */
 #include "PointPlots.h"
 #include "ExceptionT.h"
 #include "TecPlotT.h"
@@ -14,7 +14,21 @@ PointPlots::PointPlots (ostream& out, istream& in, bool write) :
 
 void PointPlots::Translate (const StringT& program, const StringT& version, const StringT& title)
 {
-  fModel.Initialize ();
+	/* initialize model file */
+	StringT name;
+	IOBaseT::FileTypeT format;
+  	IOBaseT::InputFormats(cout);
+	cout << "\n Enter the Model Format Type: ";
+	cin >> format;
+	cout << "\n Enter the Model File Name: ";
+	cin >> name;
+	name.ToNativePathName();
+	if (!fModel.Initialize (format, name, true))
+		ExceptionT::GeneralFail("PointPlots::Translate",
+			"could not initialize file \"%s\"", name.Pointer());
+	fstreamT::ClearLine(cin); /* clear to end of line */
+
+//  fModel.Initialize ();
   SetOutput (program, version, title);
 
   bool again = true;
