@@ -1,4 +1,4 @@
-/* $Id: ParameterContainerT.h,v 1.7 2004-06-23 00:51:04 paklein Exp $ */
+/* $Id: ParameterContainerT.h,v 1.8 2004-07-12 21:49:59 paklein Exp $ */
 #ifndef _PARAMETER_CONTAINER_T_H_
 #define _PARAMETER_CONTAINER_T_H_
 
@@ -62,13 +62,13 @@ public:
 	/** a pointer to the ParameterInterfaceT of the given subordinate. If the container
 	 * does not define the given sub, it will attempt to get it from ParameterContainerT::fSubSource,
 	 * if the source has been defined. */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 
 	/** return the description of the given inline subordinate parameter list.
      * If the container does not define the given sub, it will attempt to get 
      * it from ParameterContainerT::fSubSource, if the source has been defined. */
-     virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-		SubListT& sub_sub_list) const;
+     virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
 
 	/** \name set/get list attributes */
 	/*@{*/

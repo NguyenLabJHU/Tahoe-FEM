@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.cpp,v 1.18 2004-06-16 07:10:54 paklein Exp $ */
+/* $Id: ParameterInterfaceT.cpp,v 1.19 2004-07-12 21:49:59 paklein Exp $ */
 #include "ParameterInterfaceT.h"
 #include "ParameterListT.h"
 #include "ParameterUtils.h"
@@ -183,11 +183,11 @@ void ParameterInterfaceT::DefineSubs(SubListT& sub_list) const
 //      to have an incomplete list of subs.
 }
 
-void ParameterInterfaceT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order,
-	SubListT& sub_sub_list) const
+void ParameterInterfaceT::DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order,
+	SubListT& sub_lists) const
 {
 	/* check for definition in NewSub */
-	ParameterInterfaceT* inline_sub = NewSub(sub);
+	ParameterInterfaceT* inline_sub = NewSub(name);
 	if (inline_sub) /* define inline sub */ {
 	
 		/* set sequence or choice */
@@ -198,44 +198,44 @@ void ParameterInterfaceT::DefineInlineSub(const StringT& sub, ParameterListT::Li
 		inline_sub->DefineParameters(params);
 		if (params.NumParameters() > 0)
 			ExceptionT::GeneralFail("ParameterInterfaceT::DefineInlineSub", 
-				"%d parameters not allowed in inline sub \"%s\"", params.NumParameters(), sub.Pointer());
+				"%d parameters not allowed in inline sub \"%s\"", params.NumParameters(), name.Pointer());
 		
 		/* get subs */
-		inline_sub->DefineSubs(sub_sub_list);
+		inline_sub->DefineSubs(sub_lists);
 		
 		/* clean up */
 		delete inline_sub;
 	}
 	else /* class must override DefineInlineSub to define the sub */ {
 		order = ParameterListT::Sequence;
-		sub_sub_list.Dimension(0);
+		sub_lists.Dimension(0);
 	}
 }
 
 /* return a pointer to the ParameterInterfaceT */
-ParameterInterfaceT* ParameterInterfaceT::NewSub(const StringT& list_name) const
+ParameterInterfaceT* ParameterInterfaceT::NewSub(const StringT& name) const
 {
 	const char caller[] = "ParameterInterfaceT::NewSub";
 
 	/* look for names ending in "_ID_list" */
-	const char* find = strstr(list_name, "_ID_list");
+	const char* find = strstr(name, "_ID_list");
 	if (find && strlen(find) == 8) {
-		StringListT* id_list = new StringListT(list_name);
+		StringListT* id_list = new StringListT(name);
 		id_list->SetMinLength(1);
 		return id_list;
 	}
 
-	if (list_name == "Integer")
+	if (name == "Integer")
 		return new IntegerParameterT;
-	else if (list_name == "IntegerList")
+	else if (name == "IntegerList")
 		return new IntegerListT;
-	else if (list_name == "Double")
+	else if (name == "Double")
 		return new DoubleParameterT;
-	else if (list_name == "DoubleList")
+	else if (name == "DoubleList")
 		return new DoubleListT;
-	else if (list_name == "String")
+	else if (name == "String")
 		return new StringParameterT;
-	else if (list_name == "OrderedPair")
+	else if (name == "OrderedPair")
 	{
 		ParameterContainerT* pair = new ParameterContainerT("OrderedPair");
 		ParameterT x(ParameterT::Double, "x");
@@ -244,10 +244,10 @@ ParameterInterfaceT* ParameterInterfaceT::NewSub(const StringT& list_name) const
 		pair->AddParameter(y);
 		return pair;
 	}
-	else if (strncmp("Vector_", list_name, 7) == 0) /* Vector_N */
-		return new VectorParameterT(list_name);
-	else if (strncmp("Matrix_", list_name, 7) == 0) /* Matrix_MxN */
-		return new MatrixParameterT(list_name);
+	else if (strncmp("Vector_", name, 7) == 0) /* Vector_N */
+		return new VectorParameterT(name);
+	else if (strncmp("Matrix_", name, 7) == 0) /* Matrix_MxN */
+		return new MatrixParameterT(name);
 	else
 		return NULL;
 }

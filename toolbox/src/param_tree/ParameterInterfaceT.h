@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.h,v 1.11 2004-04-04 03:01:41 paklein Exp $ */
+/* $Id: ParameterInterfaceT.h,v 1.12 2004-07-12 21:49:59 paklein Exp $ */
 #ifndef _PARAMETER_INTERFACE_T_H_
 #define _PARAMETER_INTERFACE_T_H_
 
@@ -72,14 +72,14 @@ public:
 	 * or defined recursively by ParameterInterfaceT::DefineInlineSub. 
 	 * \param sub name of the inlined subordinate list
 	 * \param order defines whether list is a sequence or choice.
-	 * \param sub_sub_lists description of contents of this sub list */
-	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
-		SubListT& sub_sub_list) const;
+	 * \param sub_lists description of contents of this sub list */
+	virtual void DefineInlineSub(const StringT& name, ParameterListT::ListOrderT& order, 
+		SubListT& sub_lists) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate
 	 * or NULL if the name is invalid. Responsibility for deleteting instantiations
 	 * resides with the client who requested them. */
-	virtual ParameterInterfaceT* NewSub(const StringT& list_name) const;
+	virtual ParameterInterfaceT* NewSub(const StringT& name) const;
 	/*@}*/
 
 private:
