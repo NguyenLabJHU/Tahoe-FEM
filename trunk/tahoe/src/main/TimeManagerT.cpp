@@ -1,5 +1,5 @@
-/* $Id: TimeManagerT.cpp,v 1.6 2002-01-27 18:45:12 paklein Exp $ */
-/* created: paklein (05/23/1996)                                          */
+/* $Id: TimeManagerT.cpp,v 1.7 2002-04-21 07:16:32 paklein Exp $ */
+/* created: paklein (05/23/1996) */
 
 #include "TimeManagerT.h"
 
@@ -14,6 +14,14 @@
 #include "TimeSequence.h"
 #include "dArrayT.h"
 #include "NodeManagerT.h"
+
+/* controllers */
+#include "StaticController.h"
+#include "LinearStaticController.h"
+#include "TrapezoidController.h"
+#include "LinearHHTalpha.h"
+#include "NLHHTalpha.h"
+#include "ExplicitCDController.h"
 
 /* step cut status flags */
 const int kDecreaseStep =-1;
@@ -290,6 +298,66 @@ void TimeManagerT::CloseStep(void) //TEMP? - let FEManager control/monitor outpu
 		/* reset count */
 		fOutputCount = 0;
 	}
+}
+
+/* return a pointer to a integrator of the specified type */
+ControllerT* TimeManagerT::New_Controller(CodeT type) const
+{
+	ControllerT* controller = NULL;
+	try {
+	switch (type)
+	{
+		case kLinearStatic:
+		{
+			controller = new LinearStaticController(theBoss.Output());
+			break;		
+		}
+		case kStatic:
+		{
+			controller = new StaticController(theBoss.Output());
+			break;		
+		}
+		case kTrapezoid:
+		{
+			controller = new TrapezoidController(theBoss.Output());
+			break;		
+		}
+		case kLinearHHT:
+		{
+			TimeManagerT* tm = const_cast<TimeManagerT*>(this);
+			controller = new LinearHHTalpha(*tm, theBoss.Input(), theBoss.Output(), true);
+			break;				
+		}
+		case kNonlinearHHT:
+		{
+			TimeManagerT* tm = const_cast<TimeManagerT*>(this);
+			controller = new NLHHTalpha(*tm, theBoss.Input(), theBoss.Output(), true);
+			break;
+		}
+		case kExplicitCD:
+		{
+			controller = new ExplicitCDController(theBoss.Output());
+			break;		
+		}
+		default:
+		{
+			cout << "\n TimeManagerT::New_Controller: unrecognized type: " << type << endl;
+			throw eGeneralFail;
+		}
+	} }
+#ifdef __NEW_THROWS__
+	catch (bad_alloc) { controller = NULL; }
+#else
+	catch (int) { controller = NULL; }
+#endif	
+	
+	/* fail */
+	if (!controller) {
+		cout << "\n TimeManagerT::New_Controller: failed" << endl;
+		throw eGeneralFail;	
+	}
+
+	return controller;
 }
 
 /************************************************************************

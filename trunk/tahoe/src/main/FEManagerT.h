@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.h,v 1.12 2002-04-02 23:34:06 paklein Exp $ */
+/* $Id: FEManagerT.h,v 1.13 2002-04-21 07:16:32 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 
 #ifndef _FE_MANAGER_H_
@@ -272,7 +272,7 @@ private:
 	/* no copies/assignment */
 	FEManagerT(FEManagerT&);
 	FEManagerT& operator=(FEManagerT&) const;
-
+	
 protected:
 
 	/* I/O streams */
