@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.71 2003-11-10 18:54:46 thao Exp $ */
+/* $Id: ElementListT.cpp,v 1.72 2003-11-19 20:36:51 rdorgan Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -95,8 +95,8 @@
 #include "APS_AssemblyT.h"
 #endif
 
-#ifdef DORGAN_VOYIADJIS_MARIN_DEV
-#include "DorganVoyiadjisMarin.h"
+#ifdef GRAD_SMALL_STRAIN_DEV
+#include "GradSmallStrainT.h"
 #endif
 
 #ifdef SOLID_ELEMENT_DEV
@@ -753,7 +753,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		  fArray[group] = new SSQ1P0MF(fSupport, *field);
 		  break;
 #else
-			ExceptionT::BadInputValue(caller, "DORGAN_VOYIADJIS_MARIN_DEV not enabled: %d", code);
+			ExceptionT::BadInputValue(caller, "GRAD_SMALL_STRAIN_DEV not enabled: %d", code);
 #endif			
 		}
 		case ElementT::kTotLagSplitIntegration:
@@ -765,9 +765,9 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 			ExceptionT::BadInputValue(caller, "SOLID_ELEMENT_DEV or SPLIT_INTEGRATION_DEV not enabled: %d", code);
 #endif				
 		}			
-		case ElementT::kDorganVoyiadjisMarin:
+		case ElementT::kGradSmallStrain:
 		{
-#ifdef DORGAN_VOYIADJIS_MARIN_DEV
+#ifdef GRAD_SMALL_STRAIN_DEV
 		  /* displacement field read above */
 		  const FieldT* disp = field;
 		  
@@ -778,10 +778,10 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out)
 		  if (!disp || !hardness)
 		    ExceptionT::BadInputValue(caller, "error resolving field names");
 		  
-		  fArray[group] = new DorganVoyiadjisMarin(fSupport, *disp, *hardness);
+		  fArray[group] = new GradSmallStrainT(fSupport, *disp, *hardness);
 		  break;
 #else
-		  ExceptionT::BadInputValue(caller, "DORGAN_VOYIADJIS_MARIN_DEV not enabled: %d", code);
+		  ExceptionT::BadInputValue(caller, "GRAD_SMALL_STRAIN_DEV not enabled: %d", code);
 #endif			
 		}
 
