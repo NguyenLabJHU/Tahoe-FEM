@@ -1,4 +1,5 @@
 #!/usr/bin/perl -w
+# $Id: tahoe-manager,v 1.20 2005-03-04 10:25:16 paklein Exp $
 #------------------------------------------------------------------------------
 # tahoe-manager: 
 #    a PERL script to checkout, configure, build and run regression tests
@@ -6,8 +7,7 @@
 # written by: 
 #    Reese Jones (rjones@sandia.gov) and Patrick Klein (paklein@sandia.gov)
 #------------------------------------------------------------------------------
-# to do: parallel builds, deal with static libs e.g. access,
-#
+
 use Cwd; # $home = cwd();
 
 # prefix on macros in the makefiles
@@ -73,6 +73,10 @@ spoolesMT 1
 ACCESS	access
 );
 
+%module2syslib = qw(
+access ACCESS
+);
+
 %connect2command = qw(
 cvs     cvs
 http	curl
@@ -100,7 +104,7 @@ ARG: while (@ARGV) {
 		if (/^b|build/i)           { build(); next ARG; }
 		if (/^cl|clean/i)          { clean(); next ARG; }
 		if (/^t|test/i)            { test(); next ARG; }
-		if (/^a|all/i)             { update(); init(); build(); next ARG; }
+#		if (/^a|all/i)             { update(); init(); build(); next ARG; }
 		if (/^u|usage|help|^h/i)   { usage();}
 		print "ERROR: unknown option: $_ \n"; usage();
 	}
@@ -112,18 +116,17 @@ exit 0;
 sub initialize{
 
 # classify modules
-%tmp = %module2define;
-foreach $key (@defaultmodules) {
+my %tmp = %module2define;
+foreach my $key (@defaultmodules) {
 	delete $tmp{$key};
 }
 @optionalmodules = keys (%tmp);
-undef %tmp;
 
 # search for system libs 
-foreach $key (sort(keys %ENV)) {
-	foreach $lib (keys %syslib2module) {
+foreach my $key (sort(keys %ENV)) {
+	foreach my $lib (keys %syslib2module) {
 		if ($key =~ /$lib/ ) { 
-			$loc = $ENV{$key};
+			my $loc = $ENV{$key};
 			print "* found system library $lib \@ $loc \n"; 
 			push(@syslibs,$lib);
 		}
@@ -134,7 +137,7 @@ foreach $key (sort(keys %ENV)) {
 if(-e "$config_file") { read_config();}
 else                  { write_default_config();}
 
-print ">   tahoe name: $tahoe_login\n";
+print ">   tahoe name: $tahoe_name\n";
 print ">   connection: $connection\n";
 if ($proxy !~ /NONE/) {
 	print ">        proxy: $proxy\n";
@@ -153,8 +156,8 @@ if (my_which($connect2command{$connection}) =~ "") {
 
 # check cvs settings
 if ($connection =~ /cvs/) {
-	$cvs_OK = 0;
-	foreach $key (sort(keys %ENV)) {
+	my $cvs_OK = 0;
+	foreach my $key (sort(keys %ENV)) {
 		if ($key =~ /CVS_RSH/ && $ENV{$key} =~ /ssh/) { $cvs_OK = 1; }
 	}
 	if ($cvs_OK != 1) {
@@ -164,27 +167,25 @@ if ($connection =~ /cvs/) {
 }
 }
 
+##############################################################################
 sub config {
 	@config_options = ("add optional modules", "remove optional modules", "configure options within modules");
 	print "\nconfiguration options:\n";
-	$i = 0;
-	foreach $option (@config_options) {
+	my $i = 0;
+	foreach my $option (@config_options) {
 		print "$i $option\n"; 
 		$i++
 	}
-	print "choice ? ";
-	$choice = <STDIN>;
+	print "\nchoice: ";
+	my $choice = <STDIN>;
 	if ($choice =~ /0/) {
 		add_optional_modules();
 		write_config();
-		print "\n* \"init\" needs to be re-run after adding optional modules\n\n";
 	} elsif ($choice =~ /1/) {
 		remove_optional_modules();
 		write_config();
-		print "\n* \"init\" needs to be re-run after removing optional modules\n\n";
 	} else {
 		module_config();
-		print "\n* \"init\" needs to be re-run changing module options\n\n";
 	}
 	
 	# rewrite configuration file
@@ -195,13 +196,13 @@ sub config {
 sub read_config{
 print "* reading config file $config_file\n";
 open(CONFIG,$config_file) || die "cannot open file $config_file for reading : $!";
-$type = "UNKNOWN";
+my $type = "UNKNOWN";
 while(<CONFIG>) {
 	s/^\s+//; s/\s+$//; @list = split(/ +/);
  	if (defined($list[0])){
         	if (/^\#/ ){ 
 			if ($type  =~ /CONNECTION/) {$connection = $tmp_list[0];}
-			elsif ($type =~ /TAHOE_LOGIN/) { $tahoe_login = $tmp_list[0]; }
+			elsif ($type =~ /TAHOE_LOGIN/) { $tahoe_name = $tmp_list[0]; }
 			elsif  ($type  =~ /PROXY/){$proxy = $tmp_list[0];}
 			elsif  ($type  =~ /ARCH/){$arch = $tmp_list[0];}
  			elsif  ($type  =~ /MODU/){@modules = @tmp_list;}
@@ -213,8 +214,8 @@ while(<CONFIG>) {
 close(CONFIG);
 
 # need to make sure the core modules exist
-foreach $core (@defaultmodules) {
-	$found = 0;
+foreach my $core (@defaultmodules) {
+	my $found = 0;
 	foreach $module (@modules) {
  		if($module =~ $core) { $found = 1;}
 	}
@@ -230,8 +231,9 @@ sub write_default_config{
 print "* creating default config file $config_file\n";
 
 # look for environmental settings
-foreach $key (sort(keys %ENV)) {
-	$value =  $ENV{$key};
+$tahoe_name = "nobody";
+foreach my $key (sort(keys %ENV)) {
+	my $value =  $ENV{$key};
 	if ($key =~ /TAHOE_CONNECT/ ) {
 		print "* found environmental var : $key = $value\n";
 		$connection = $value;}
@@ -241,37 +243,40 @@ foreach $key (sort(keys %ENV)) {
 	if ($key =~ /CVS_RSH/) { 
 		print "* found CVS_RSH env var, using cvs connection\n"; 
 		$connection = "cvs"; }
-}
-
-# Tahoe server login name
-$tahoe_login = getlogin();
-print "Tahoe server username? [$tahoe_login]: ";
-$name = <STDIN>; chomp($name);
-if (length($name) > 0) {
-	$tahoe_login = $name;
+	
+	# get user name on local machine
+	if ($key =~ /^USER$/) {
+		$tahoe_name = $value;
+		# the builtin function getlogin() sometimes returns the wrong name
+	}
 }
 
 # connection type
 $proxy = "NONE";
-unless(defined($connection)){ 
-@connections = ("cvs", "http");
-$i=0;foreach $choice (@connections) { print "$i $choice\n"; $i++; }
-print "connection type? [0]: ";
-$i = <STDIN>; chomp($i);
-if (length($i) == 0) { # default
-	$i = 0;
-}
-$connection = $connections[$i];
-if ($connection =~ /http/) { # ask for proxy
-	print "http proxy (proxyhost:port) [NONE]:";
-	$proxy = <STDIN>;
-	chomp($proxy);
-	if (length($proxy) == 0) { # default
-		$proxy = "NONE";
+unless(defined($connection)) { 
+	@connections = ("cvs", "http");
+	my $i=0;
+	foreach my $choice (@connections) { 
+		print "$i $choice\n"; 
+		$i++; 
 	}
-}
-else {
-        $cvs_OK = 0;
+	print "connection type [0]: ";
+	$i = <STDIN>; 
+	chomp($i);
+	if (length($i) == 0) { # default
+		$i = 0;
+	}
+	$connection = $connections[$i];
+	if ($connection =~ /http/) { # ask for proxy
+		print "http proxy (proxyhost:port) [NONE]:";
+		$proxy = <STDIN>;
+		chomp($proxy);
+		if (length($proxy) == 0) { # default
+			$proxy = "NONE";
+		}
+	}
+	else {
+        my $cvs_OK = 0;
         foreach $key (sort(keys %ENV)) {
                 if ($key =~ /CVS_RSH/ && $ENV{$key} =~ /ssh/) { $cvs_OK = 1; }
         }
@@ -279,20 +284,30 @@ else {
                 print "ERROR: CVS_RSH must be set to ssh\n";
                 exit;
         }
+	}
 }
+
+# Tahoe server login name
+if ($connection =~ /cvs/) {
+	print "Tahoe server username [$tahoe_name]: ";
+	my $name = <STDIN>; chomp($name);
+	if (length($name) > 0) {
+		$tahoe_name = $name;
+	}
 }
 
 # get macros module
 unless(-d "macros") {
 	if ($connection =~ /cvs/) {
-		print "checking out macros\n";
+		print "checking out macros...";
 		unlink("cvs.log");
-		$repo = $module2repo{"macros"};
-		system("cvs -d $tahoe_login\@$tahoe:$repo checkout macros > cvs.log 2>&1");
+		my $repo = $module2repo{"macros"};
+		system("cvs -d $tahoe_name\@$tahoe:$repo checkout macros > cvs.log 2>&1");
+		print " ok\n";
 	} elsif ($connection =~ /http/) {
 	
 		# grab new copy
-		$curl_cmd = "curl http://tahoe.ca.sandia.gov/download/nightly/macros.tar.gz --remote-name --connect-timeout 10";
+		my $curl_cmd = "curl http://tahoe.ca.sandia.gov/download/nightly/macros.tar.gz --remote-name --connect-timeout 10";
 		if ($proxy !~ /NONE/) {
 			$curl_cmd = $curl_cmd." --proxy $proxy";
 		}
@@ -313,16 +328,16 @@ unless(-d "macros") {
 # architecture
 unless(defined($arch))	{
 	chdir "macros"; 
-	@macros = glob("*.macros"); 
-	foreach $choice (@macros) { 
+	my @macros = glob("*.macros"); 
+	foreach my $choice (@macros) { 
 		$choice =~ s/\.macros//; 
 		push(@choices,$choice);
 	}
 	chdir "..";
-	print "no default build architecture, choices:\n";
-	$i=0;
-	foreach $choice (@choices) { print "$i $choice\n"; $i++;}
-	print "macro ? "; 
+	print "no default build architecture, choices (".scalar(@choices)."):\n";
+	my $i=0;	
+	print_in_columns(3, @choices);
+	print "\nmacro number: "; 
 	$i = <STDIN>; 
 	$arch = $choices[$i]; 
 	print "* you chose : $arch\n";
@@ -330,15 +345,15 @@ unless(defined($arch))	{
 
 # modules
 @modules = @defaultmodules;
-$choice = 0;
-foreach $key (sort(keys %ENV)) {
+my $choice = 0;
+foreach my $key (sort(keys %ENV)) {
 	if ($key =~ /TAHOE_BUILD/ && $ENV{$key} =~ /default/) { $choice = 1; }
 }
 if ($choice != 1) {
 	print "* default modules : @defaultmodules\n";
 
 	# add optional modules
-	print "do want to add optional modules ? (y/n) [n] :"; 
+	print "do want to add optional modules (y/n) [n]: "; 
 	$choice = <STDIN>;
 	if ( $choice =~ /y/ ) {
 		add_optional_modules();
@@ -352,10 +367,18 @@ write_config();
 
 ##############################################################################
 sub update{
+
+	# run all unless specified
+	my @run_modules = @_;
+	if (scalar(@run_modules) == 0) {
+		@run_modules = @modules;
+	}
+
+	# connection type
 	if ($connection =~ /cvs/) {
-		update_cvs();
+		update_cvs(@run_modules);
 	} elsif ($connection =~ /http/) {
-		update_http();	
+		update_http(@run_modules);	
 	}
 	else {
 		print "ERROR: unrecognized connection '$connection'\n";	
@@ -364,34 +387,69 @@ sub update{
 }
 
 ##############################################################################
-sub update_cvs{
+sub update_cvs {
+
+	# run all unless specified
+	my @run_modules = @_;
+	if (scalar(@run_modules) == 0) {
+		@run_modules = @modules;
+	}
+
 	$time = localtime();
 	print "($count) updating: @modules, at $time\n";
 	unlink("cvs.log");
-	foreach $dir (@modules) {
+	foreach my $dir (@run_modules) {
+
+		next if defined($module2syslib{$dir});
+
 		if(-d $dir) {
 			print "\tupdating $dir...";
-			system("cd $dir; cvs update -Pd > ../cvs.log 2>&1");
-			print "done\n";
+			chdir($dir);
+			system("cvs update -Pd > ../cvs.log 2>&1");
+			chdir("..");
 		} else {
 			print "\tchecking out $dir...";
-			$repo = $module2repo{$dir};
-			system("cvs -d $tahoe_login\@$tahoe:$repo checkout $dir > cvs.log 2>&1");
-			print "done\n";
+			my $repo = $module2repo{$dir};
+			system("cvs -d $tahoe_name\@$tahoe:$repo checkout $dir > cvs.log 2>&1");
 		}
 		# check for failures
+		my ($errors, $patches, $updates, $merges) = (0, 0, 0, 0);
 		open(IN,"cvs.log");
-		@lines = <IN>; $file = "@lines"; close(IN); 
-		$errors = ($file =~ /^C /);
-                if($errors > 0) {$script_status++;}
+		while (defined(my $line = <IN>)) {
+			$errors++ if ($line =~ /^C /);
+			$patches++ if ($line =~ /^P /);
+			$updates++ if ($line =~ /^U /);
+			$merges++ if ($line =~ /^M /);
+		}
+		print " {U($updates), M($merges), P($patches), C($errors)}";
+		if($errors > 0) {
+			$script_status++;
+			print " conflicts found\n";
+		} else {
+			print " ok\n";
+		}
+		
+		# mark for init
+		if (-d $dir && 
+			$errors + $patches + $updates + $merges > 0 && 
+			$module2define{$dir} !~ /NODEFINE/) {
+			system("echo 'init' > $dir/.status");
+		}
 	}
 }
 
 ##############################################################################
-sub update_http{
+sub update_http {
+
+	# run all unless specified
+	my @run_modules = @_;
+	if (scalar(@run_modules) == 0) {
+		@run_modules = @modules;
+	}
+
 	$time = localtime();
 	print "($count) updating: @modules, at $time\n";
-	foreach $dir (@modules) {
+	foreach $dir (@run_modules) {
 	
 		# check
 		if (!defined($http_modules{$dir})) {
@@ -402,7 +460,7 @@ sub update_http{
 		print "\tupdating $dir...\n";
 		
 		# grab new copy
-		$curl_cmd = "curl http://tahoe.ca.sandia.gov/download/nightly/$dir.tar.gz --remote-name --connect-timeout 10";
+		my $curl_cmd = "curl http://tahoe.ca.sandia.gov/download/nightly/$dir.tar.gz --remote-name --connect-timeout 10";
 		if ($proxy !~ /NONE/) {
 			$curl_cmd = $curl_cmd." --proxy $proxy";
 		}
@@ -410,11 +468,11 @@ sub update_http{
 			or die "ERROR: curl failed. Check connection or proxy ($proxy)";
 
 		# move existing directory aside
-		if(-d $dir) {
+		if (-d $dir) {
 
 			# parse the date
-			($sec, $min, $hour, $mday, $mon, $year, , , ) = localtime;
-			$the_date = sprintf("%02d%02d%04d-%02d:%02d:%02d", $mon+1, $mday, $year+1900, $hour, $min, $sec);
+			my ($sec, $min, $hour, $mday, $mon, $year, , , ) = localtime;
+			my $the_date = sprintf("%02d%02d%04d-%02d:%02d:%02d", $mon+1, $mday, $year+1900, $hour, $min, $sec);
 
 			# rename
 			if (! -d "saved") {
@@ -426,59 +484,85 @@ sub update_http{
 		# unpack
 		system("gunzip $dir.tar.gz");
 		system("tar xf $dir.tar");
+		if ($module2define{$dir} !~ /NODEFINE/) {
+			system("echo 'init' > $dir/.status");
+		}
 		
 		# clean up
 		system("rm $dir.tar");
-		print "done\n";
+		print " ok\n";
 	}
 }
 
 ##############################################################################
-sub build{
+sub build {
+
+	# run all unless specified
+	my @run_modules = @_;
+	if (scalar(@run_modules) == 0) {
+		@run_modules = @modules;
+	}
+
 	$time = localtime();
+
+	# confirm all modules are checked out
+	foreach my $dir (@run_modules) {
+		if (! -e $dir) { update($dir); }
+	}
+
 	# need to sort modules based on dependencies
-	@tmp_modules = @modules;
-	@modules = sort by_depend @tmp_modules;
-	print "($count) building: @modules, at $time\n";
-	foreach $dir (@modules) {
-		if (-e $dir) {
-			chdir $dir;
-			if (!(-e "makefile") && (-e "makefile.template")) {
-				print "\tinitializing $dir...";
-				fillin_makefile();
-				if (!defined($up_to_date_modules{$dir})) {
-					system("make init > build.log 2>&1");
-				}
-				print "done\n";
-			}
-			if (-e "makefile" && !defined($up_to_date_modules{$dir})) {
-				print "\tmaking $dir...";
-				unlink("build.log");
-				system("make build > build.log 2>&1");
-				# check for errors	
-				open(IN,"build.log");
-				@lines = <IN>; $file = "@lines"; close(IN); 
-				$errors = ($file =~ / error /i);
-                		if($errors > 0) 
-					{print "ERROR\n";$script_status++;}
-				else	{print "done\n";}
-			}
+	my @tmp_modules = sort by_depend @run_modules;
+	print "($count) building: @tmp_modules, at $time\n";
+
+	foreach my $dir (@tmp_modules) {
+
+		unlink("$dir/build.log");
+
+		# needs initialization
+		if (-e "$dir/.status") { init($dir); }
+
+		# build
+		if (-e "$dir/makefile" && !defined($up_to_date_modules{$dir})) {
+			print "\tmaking $dir...";
+			chdir($dir);
+			system("make build > build.log 2>&1");
+			#system("make > build.log 2>&1");
+			
+			# check for errors	
+			open(IN,"build.log");
+			my @lines = <IN>; $file = "@lines"; close(IN); 
+			my $errors = ($file =~ / error /i);
+               if($errors > 0) {
+               	print "ERROR\n";
+               	$script_status++;
+               }
+			else { print " ok\n"; }
 			chdir "..";
-		} else {
-			print "ERROR : need checkout for $dir\n"; exit;
 		}
 	}
 }
 
 ##############################################################################
-sub init{
+sub init {
+
+	# run all unless specified
+	my @run_modules = @_;
+	if (scalar(@run_modules) == 0) {
+		@run_modules = @modules;
+	}
+
 	$time = localtime();
+
+	# confirm all modules are checked out
+	foreach my $dir (@run_modules) {
+		if (! -e $dir) { update($dir); }
+	}
 	
 	# need to sort modules based on dependencies
-	@tmp_modules = sort by_depend @modules;
+	my @tmp_modules = sort by_depend @run_modules;
 	
 	print "($count) initializing: @tmp_modules, at $time\n";
-	foreach $dir (@tmp_modules) {
+	foreach my $dir (@tmp_modules) {
 		if (-e $dir) { 
 			chdir $dir; 
 			if (-e "makefile.template") {
@@ -486,14 +570,17 @@ sub init{
 				# generate makefile
 				print "\tcreating makefile in $dir...";
 				fillin_makefile();
-				print "done\n";
+				print " ok\n";
 				
 				# run "make init"
 				if (!defined($up_to_date_modules{$dir})) {
 					print "\tinitializing $dir...";
 					system("make init > build.log 2>&1");
-					print "done\n";
+					print " ok\n";
 				}
+				
+				# remove flag
+				unlink(".status");
 			}
 		 	chdir "..";
 		}
@@ -502,15 +589,25 @@ sub init{
 }
 ##############################################################################
 sub clean{
+
+	# run all unless specified
+	my @run_modules = @_;
+	if (scalar(@run_modules) == 0) {
+		@run_modules = @modules;
+	}
+
 	$time = localtime();
 	print "($count) cleaning: @modules, at $time\n";
-	foreach $dir (@modules) {
+	foreach $dir (@run_modules) {
 		if (-e $dir) { 
 			chdir $dir; 
 			if (-e "makefile") {
 				print "\tcleaning $dir...";
-				system("make clean >&! clean.log");
-				print "done\n";
+				system("make clean >& clean.log");
+				print " ok\n";
+				
+				# flag
+				system("echo 'init' > .status");
 			}
 		 	chdir "..";
 		}
@@ -524,26 +621,26 @@ sub test{
  	unless(-d "benchmark_XML"){
 		print "checking out benchmark\n";
 		unlink("cvs.log");
-		$repo = $module2repo{"benchmark_XML"};
-		system("cvs -d $tahoe_login\@$tahoe:$repo checkout benchmark_XML > cvs.log 2>&1");
+		my $repo = $module2repo{"benchmark_XML"};
+		system("cvs -d $tahoe_name\@$tahoe:$repo checkout benchmark_XML > cvs.log 2>&1");
  	} else {
 		system("cd benchmark_XML; cvs update -Pd > cvs.log 2>&1");
 	}
 	chdir("benchmark_XML/comparator");
 	print("\tbuilding comparator...");
 	fillin_makefile(); system("make init build > build.log 2>&1");
-	print("done\n");
+	print(" ok\n");
 	chdir("..");
 	print("\trunning benchmarks");
 	print("\tremoving previous results...");
 	system("make clean > build.log 2>&1");
-	print("done\n");
+	print(" ok\n");
 	print("\trunning benchmark cases...");
 	system("../tahoe/tahoe -f run.batch > run.out 2>&1");
-	print("done\n");
+	print(" ok\n");
 	print("\tcomparing benchmarks...");
 	system("./comparator/compare -f run.batch > compare.out 2>&1");
-	print("done\n");
+	print(" ok\n");
 	open(IN,"compare.summary");
 	<IN>; 
 	$_ = <IN>; chomp(); s/^\s+//; s/\s+$//; $pass = $_;   
@@ -565,33 +662,55 @@ sub usage {
 	print "       build   : builds modules\n";
 	print "       test    : runs regression tests\n";
 	print "       clean   : cleans modules\n";
-	print "       all     : updates, init's and builds \n";
-	print "\n ... to build tahoe the first time type \" tahoe-manager all \"\n";
+#	print "       all     : updates, init's and builds \n";
+	print "\n";
 	exit 1;
+}
+
+##############################################################################
+sub a_depends_on_b {
+
+	# needs two arguments
+	if (scalar(@_) != 2) {
+		print "a_depends_on_b: expecting 2 arguments\n";
+	}
+	my ($a, $b) = @_;
+
+	# look for dependency in makefile
+	my $source = "$a/makefile.template";
+	if (-e $source) {
+		open(IN, "$source");
+		my @lines = <IN>; $afile = "@lines"; 
+		close(IN);
+		my $bdefine = $module2define{$b}; 
+ 		my $a_on_b = ($afile =~ /$bdefine/);
+		if ($a_on_b > 0) { return 1; }
+	}
+	return 0;
 }
 
 ##############################################################################
 sub by_depend {
 
-	$filename = "$a/makefile.template";
-	$a_on_b = -1;
+	my $filename = "$a/makefile.template";
+	my $a_on_b = -1;
 	if (-e $filename) {
 		open(IN,"$filename");
-		@lines = <IN>; $afile = "@lines"; 
+		my @lines = <IN>; $afile = "@lines"; 
 		close(IN);
-		$bdefine = $module2define{$b}; 
+		my $bdefine = $module2define{$b}; 
  		$a_on_b = ($afile =~ /$bdefine/);
 		unless($a_on_b > 0) {$a_on_b = 0;}
 	}
 
 	$filename = "$b/makefile.template";
-	$b_on_a = -1;
+	my $b_on_a = -1;
 	if (-e $filename) {
 		open(IN,"$filename");
-		@lines = <IN>; $bfile = "@lines"; 
+		my @lines = <IN>; $bfile = "@lines"; 
 		close(IN);
-		$adefine = $module2define{$a};
-	        $b_on_a = ($bfile =~ /$adefine/);
+		my $adefine = $module2define{$a};
+		$b_on_a = ($bfile =~ /$adefine/);
 		unless($b_on_a > 0) {$b_on_a = 0;}
 	}
 
@@ -613,18 +732,18 @@ sub by_depend {
 sub fillin_makefile{
 
 	# if makefile exists, preserve MOD_ macros in makefile
-	%mod_macros = qw(
+	my %mod_macros = qw(
 		MOD_CFLAGS_C 0
 		MOD_CFLAGS_CC 0
 		MOD_CFLAGS_F 0
 		MOD_LFLAGS 0
 	);
-	@mod_macros_keys = ();
+	my @mod_macros_keys = ();
 	if (-e "makefile") {
 		open(IN, "makefile");
 		@mod_macros_keys = keys(%mod_macros);
 		while (defined($line = <IN>)) {
-			foreach $key (@mod_macros_keys) {
+			foreach my $key (@mod_macros_keys) {
 				if ($line =~ /$key\s*=/) {
 					$mod_macros{$key} = $line;
 				}
@@ -634,29 +753,34 @@ sub fillin_makefile{
 	}
 
 	unlink("makefile");
-	$path = cwd();
+	my $path = cwd();
 	open(IN,"makefile.template");
 	open(OUT,">makefile");
-	while (defined($line = <IN>)){
+	print OUT "################################################################################\n";
+	print OUT "#### NOTE: This makefile is automatically generated from makefile.template. ####\n";
+	print OUT "####       Changes to the MOD_ macros are preserved. All other changes will ####\n";
+	print OUT "####       be lost.                                                         ####\n";
+	print OUT "################################################################################\n\n";
+	while (defined(my $line = <IN>)){
 	
 		# configuration
 		$line =~ s/HOME_DIR =/HOME_DIR = $path/;
 		$line =~ s/ARCH =/ARCH = $arch/;
 		
 		# restore MOD_ macros
-		foreach $key (@mod_macros_keys) {
+		foreach my $key (@mod_macros_keys) {
 			if ($line =~ /$key\s*=/) {
 				$line = $mod_macros{$key};
 			}
 		}
 		
 		# optional modules
-		foreach $module (@modules) {
-			$define = $module2define{$module};
+		foreach my $module (@modules) {
+			my $define = $module2define{$module};
 			$line =~ s/\#$define/$define/;
 		}
-		foreach $syslib (@syslibs) {
-			$define = $module2define{$syslib2module{$syslib}};
+		foreach my $syslib (@syslibs) {
+			my $define = $module2define{$syslib2module{$syslib}};
 			$line =~ s/\#$define/$define/;
 		}
 		
@@ -682,10 +806,10 @@ sub fillin_makefile{
 ##############################################################################
 sub my_which{
 	my $cmd = shift(@_); 
-        $location = "";
-        @paths= split(":",$ENV{"PATH"});
-        foreach $path (@paths) {
-                if(-x "$path/$cmd") { $location = $path; last;}
+        my $location = "";
+        my @paths= split(":",$ENV{"PATH"});
+        foreach my $path (@paths) {
+                if (-x "$path/$cmd") { $location = $path; last;}
         }
         return $location;
 }
@@ -693,7 +817,7 @@ sub my_which{
 ##############################################################################
 sub write_config {
 	open(CONFIG,">$config_file") || die "cannot open file $config_file for writing : $!";
-	print CONFIG  "# TAHOE_LOGIN\n$tahoe_login\n\n";
+	print CONFIG  "# TAHOE_LOGIN\n$tahoe_name\n\n";
 	print CONFIG  "# CONNECTION\n$connection\n\n";
 	print CONFIG  "# PROXY\n$proxy\n\n";
 	print CONFIG  "# ARCHITECTURE\n$arch\n\n";
@@ -707,9 +831,9 @@ sub add_optional_modules {
 
 	# collect optional modules not currently included
 	my @newoptionalmodules = ();
-	foreach $opt_module (@optionalmodules) {
+	foreach my $opt_module (@optionalmodules) {
 		my $found = 0;
-		foreach $module (@modules) {
+		foreach my $module (@modules) {
 			if ($module =~ /$opt_module/) {
 				$found = 1;
 			}
@@ -719,18 +843,28 @@ sub add_optional_modules {
 		}
 	}
 
+	# select modules to add
 	print "\noptional modules:\n";
 	my $i=0;
-	foreach $choice (@newoptionalmodules) { 
+	foreach my $choice (@newoptionalmodules) { 
 		print "$i $choice\n"; 
 		$i++;
 	}
-	print "module numbers to add ? "; 
-	my $choice = <STDIN>; 
+	print "\nmodule numbers to add: "; 
+	$choice = <STDIN>; 
 	chomp($choice);
 	my @choices = split(/ +|,/,$choice);
+
+	# flag modules that need to be re-initialized
+	foreach my $module (@modules) {
+		if (a_depends_on_b($module, $newoptionalmodules[$choice]) == 1) {
+			system("echo 'init' > $module/.status");
+		}
+	}
+
+	# rebuild module list
 	foreach $choice (@choices) { 
-		push (@modules,$newoptionalmodules[$choice]);
+		push (@modules, $newoptionalmodules[$choice]);
 	}
 	print "* modules : @modules \n";
 }
@@ -740,7 +874,7 @@ sub remove_optional_modules {
 
 	# collect optional modules currently included
 	my @curr_optionalmodules = ();
-	foreach $opt_module (@optionalmodules) {
+	foreach my $opt_module (@optionalmodules) {
 		my $found = 0;
 		foreach $module (@modules) {
 			if ($module =~ /$opt_module/) {
@@ -752,20 +886,30 @@ sub remove_optional_modules {
 		}
 	}
 	
+	# select modules to remove
 	print "\noptional modules:\n";
 	my $i=0;
-	foreach $choice (@curr_optionalmodules) { 
+	foreach my $choice (@curr_optionalmodules) { 
 		print "$i $choice\n"; 
 		$i++;
 	}
-	print "module numbers to remove ? "; 
+	print "\nmodule numbers to remove: "; 
 	my $choice = <STDIN>; 
 	chomp($choice);
 	my @choices = split(/ +|,/,$choice);
+
+	# flag modules that need to be re-initialized
+	foreach my $module (@modules) {
+		if (a_depends_on_b($module, $curr_optionalmodules[$choice]) == 1) {
+			system("echo 'init' > $module/.status");
+		}
+	}
+
+	# rebuild modules list
 	foreach $choice (@choices) {
 		my @modules_tmp = @modules;
 		@modules = ();
-		foreach $module (@modules_tmp) {
+		foreach my $module (@modules_tmp) {
 			if ($module !~ /$curr_optionalmodules[$choice]/) {
 				push(@modules, $module);
 			}
@@ -779,7 +923,7 @@ sub module_config {
 
 	# collect list of configurable modules
 	my @config_modules = ();
-	foreach $module (@modules) {
+	foreach my $module (@modules) {
 		if (-d "$module/config") {
 			open(CHECK, "ls -1 $module/config | grep -c \.conf |");
 			my $count = <CHECK>;
@@ -797,11 +941,11 @@ sub module_config {
 	else {
 		print "\nconfigurable modules:\n";
 		my $i=0;
-		foreach $choice (@config_modules) { 
+		foreach my $choice (@config_modules) { 
 			print "$i $choice\n"; 
 			$i++;
 		}
-		print "modules to configure? ";
+		print "\nmodules to configure: ";
 		my $choice = <STDIN>; 
 		chomp($choice);				
 		my @choices = split(/ +|,/,$choice);
@@ -835,15 +979,17 @@ sub configure_module {
 	} else {
 		print "\nconfigurable headers in module $module:\n";
 		$i=0;
-		foreach $choice (@config_headers) { 
+		foreach my $choice (@config_headers) { 
 			print "$i $choice\n"; 
 			$i++;
-		}	print "headers to configure ? ";
-		$choice = <STDIN>; 
+		}	print "\nheaders to configure: ";
+		my $choice = <STDIN>; 
 		chomp($choice);
-		@choices = split(/ +|,/,$choice);
+		my @choices = split(/ +|,/,$choice);
 		foreach $choice (@choices) {	
-			configure_header($config_headers[$choice]);
+			if (configure_header($config_headers[$choice]) != 0) {
+				system("echo 'init' > .status");
+			}
 		}
 	}
 
@@ -855,4 +1001,38 @@ sub configure_module {
 sub configure_header {
 	my $header = shift(@_);
 	print "configuring header $header\n";
+	return 0;
+}
+
+##############################################################################
+sub print_in_columns {
+	my $cols = shift(@_);
+	my @choices = @_;
+	
+	# find longest name
+	my $max_len = 0;
+	my $choice;
+	foreach $choice (@choices) {
+		if (length($choice) > $max_len) { $max_len = length($choice); }
+	}
+	my $col_width = $max_len + 3 + 10; # 3 for item number and gap
+	my $num_values = scalar(@choices);
+	my $jump = int($num_values/($cols))+1;
+	my $i = 0;
+	while ($i < $jump) {
+		my $line = "";
+		my $col = 0;
+		my $ii = $i;
+		while ($col < $cols) {
+			my $col_i = "";
+			if ($ii < 10) { $col_i = $col_i." "; }
+			if ($ii < $num_values) { $col_i = $col_i.$ii." $choices[$ii]"; }
+			while ($col != $cols-1 && length($col_i) < $col_width) { $col_i = $col_i." "; }
+			$col++;
+			$ii += $jump;
+			$line = $line.$col_i;
+		}
+		print "$line\n";
+		$i++;
+	}
 }
