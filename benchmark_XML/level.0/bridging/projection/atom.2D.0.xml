@@ -30,6 +30,9 @@
             <pair_particle_interaction label_1="A" label_2="A">
                 <harmonic mass="1.0" rest_length="1.0" stiffness="1.0"/>
             </pair_particle_interaction>
+            <particle_pair_output centrosymmetry="1" displacement="1"
+                kinetic_energy="1" potential_energy="1" slip_vector="1"
+                strain="1" stress="1"/>
         </particle_pair>
     </element_list>
     <PCG_solver abs_tolerance="1.0e-12" divergence_tolerance="1.0e+15"

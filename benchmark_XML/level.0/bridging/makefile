@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2004-07-22 00:46:18 paklein Exp $
+# $Id: makefile,v 1.2 2004-12-09 20:04:50 paklein Exp $
 #
 # type "make clean" to remove test results
 #
@@ -10,7 +10,6 @@ interpolate \
 interpolate.meshfree.1 \
 interpolate.meshfree.2 \
 projection \
-edge \
 meshfree \
 meshfree.1 \
 meshfree.2
