@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.20 2004-07-30 15:14:12 paklein Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.21 2004-07-30 15:17:08 paklein Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -54,7 +54,8 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support):
 	//fFakeGeometry(NULL),
 	fVoronoi(NULL),
 	fMaterialList(NULL),
-	fNodalShapes(NULL)
+	fNodalShapes(NULL),
+	qComputeVoronoiCell(false)
 {
 	SetName("mfparticle");
 
@@ -1128,7 +1129,7 @@ void SCNIMFT::DefineParameters(ParameterListT& list) const
 	ElementBaseT::DefineParameters(list);
 
 	ParameterT compute_voronoi(qComputeVoronoiCell, "compute_voronoi");
-	compute_voronoi.SetDefault(false);
+	compute_voronoi.SetDefault(qComputeVoronoiCell);
 	list.AddParameter(compute_voronoi);
 	
 	ParameterT voronoi_file(vCellFile, "voronoi_file");
