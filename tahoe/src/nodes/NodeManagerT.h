@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.h,v 1.15 2003-04-08 23:04:04 paklein Exp $ */
+/* $Id: NodeManagerT.h,v 1.16 2003-04-16 18:09:05 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 #ifndef _NODEMANAGER_T_H_
 #define _NODEMANAGER_T_H_
@@ -363,6 +363,7 @@ private:
 	dArray2DT* fCurrentCoords;
 	nVariArray2DT<double> fCurrentCoords_man;
 	/*@}*/
+
 };
 
 /* inlines */

@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.26 2003-04-08 23:04:04 paklein Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.27 2003-04-16 18:09:05 cjkimme Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -502,6 +502,9 @@ void NodeManagerT::WriteOutput(void)
 			}
 		}
 	}
+
+#pragma message("NodeManagerT -- Necessary kludge here")
+	UpdateCurrentCoordinates();
 
 	/* nodal histories */
 //NOTE - moved here from CloseStep	

@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.h,v 1.17 2003-04-07 23:39:41 cjkimme Exp $ */
+/* $Id: TiedNodesT.h,v 1.18 2003-04-16 18:09:07 cjkimme Exp $ */
 
 #ifndef _TIED_NODES_T_H_
 #define _TIED_NODES_T_H_
@@ -122,6 +122,9 @@ protected:
 	/** generate boundary condition card for each degree of freedom
 	 * of follower nodes with TiedNodesT::kTied status */
 	void SetBCCards(void);
+	
+	/** apply the update to the solution. Does nothing by default. */
+	virtual void Update(const dArrayT& update);
 
 	/** copy kinematic information from the leader nodes to the follower nodes */
 	virtual void CopyKinematics(void);

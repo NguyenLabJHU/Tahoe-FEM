@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.13 2003-04-07 17:25:46 cjkimme Exp $ */
+/* $Id: FieldT.cpp,v 1.14 2003-04-16 18:09:05 cjkimme Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nIntegratorT.h"
@@ -257,6 +257,11 @@ void FieldT::AssembleUpdate(const dArrayT& update)
 		/* next */
 		p++;
 	}
+#pragma message("FieldT -- Needs FBC controllers too?")	
+	/* KBC controllers */
+	for (int i = 0; i < fKBC_Controllers.Length(); i++)
+		fKBC_Controllers[i]->Update(update);
+
 }
 
 /* update the active degrees of freedom */
@@ -684,3 +689,5 @@ void FieldT::SetFBCEquations(void)
 		     << bad_count << " prescribed forces\n"
 		     <<   "     on equations with prescribed values" << endl;
 }
+
+	

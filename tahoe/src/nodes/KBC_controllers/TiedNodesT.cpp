@@ -1,4 +1,4 @@
-/* $Id: TiedNodesT.cpp,v 1.22 2003-04-07 23:39:41 cjkimme Exp $ */
+/* $Id: TiedNodesT.cpp,v 1.23 2003-04-16 18:09:07 cjkimme Exp $ */
 #include "TiedNodesT.h"
 #include "AutoArrayT.h"
 #include "NodeManagerT.h"
@@ -185,8 +185,11 @@ void TiedNodesT::FormRHS(void)
 /* initialize the current step */
 void TiedNodesT::InitStep(void)
 {
+
 	/* inherited */
 	KBC_ControllerT::InitStep();
+
+	CopyKinematics();
 	
 	/* save history */
 	fPairStatus_last = fPairStatus;
@@ -228,7 +231,7 @@ GlobalT::RelaxCodeT TiedNodesT::RelaxSystem(void)
 	if (ChangeStatus())
 	{
 		/* reset BC cards */
-		SetBCCards();
+		SetBCCards();	
 		
 		return GlobalT::MaxPrecedence(code, GlobalT::kReEQ);
 	}
@@ -306,7 +309,7 @@ void TiedNodesT::WriteOutput(ostream& out) const
 	TiedNodesT* non_const_this = const_cast<TiedNodesT*>(this);
 	non_const_this->CopyKinematics();
 
-       	out <<"\n T i e d  N o d e s  O u t p u t  D a t a : \n\n";
+	out <<"\n T i e d  N o d e s  O u t p u t  D a t a : \n\n";
 	out  <<"   " << fPairStatus.Count(kTied) << " tied nodes\n";
 	out <<" Index , Leader ID , Follower ID, Pair Status ( 0 = Free, 1 = Tied, 4 = External Pair) \n";
 	for (int i = 0; i < fNodePairs.MajorDim(); i++) 
@@ -454,11 +457,10 @@ void TiedNodesT::SetBCCards(void)
 		{
 		    if (fPairStatus[i] == kTied)
 		    {
-		    //			  cout<<"Pair "<<i<<" is tied "<<fNodePairs(i,0)<<" "<<fNodePairs(i,1)<<"\n";
-				for (int j = 0; j < ndof; j++)
+		    	for (int j = 0; j < ndof; j++)
 				{
 					/* set values */
-				  pcard->SetValues(fNodePairs(i,0), j, KBC_CardT::kDsp, 0,0.);
+				  pcard->SetValues(fNodePairs(i,0), j, KBC_CardT::kNull, 0,0.);
 	
 					/* dummy schedule */
 				  pcard->SetSchedule(&fDummySchedule);
@@ -488,4 +490,10 @@ void TiedNodesT::CopyKinematics(void)
 				u.CopyRowFromRow(follower, leader);
 			}
 		}
+}
+
+void TiedNodesT::Update(const dArrayT& update)
+{
+#pragma unused(update)
+	CopyKinematics();
 }
