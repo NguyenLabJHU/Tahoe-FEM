@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: FSSolidMatT.h,v 1.1.1.1.2.1 2001-06-06 16:31:17 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 /* Defines the interface large strain materials which account             */
 /* for thermal strains with the multiplicative split:                     */
@@ -10,13 +10,15 @@
 #define _FD_STRUCT_MAT_T_H_
 
 /* base class */
-#include "FDContinuumT.h"
+//#include "FDContinuumT.h"
 #include "StructuralMaterialT.h"
+#include "TensorTransformT.h"
 
 /* forward declarations */
 class ShapeFunctionT;
 
-class FSSolidMatT: protected FDContinuumT, public StructuralMaterialT
+class FSSolidMatT: /* DEV - protected FDContinuumT */
+public StructuralMaterialT, protected TensorTransformT
 {
 public:
 
@@ -30,7 +32,8 @@ public:
 	virtual bool NeedDisp(void) const;
 
 	/* the shape functions */
-	const ShapeFunctionT& ShapeFunction(void) const;
+//	const ShapeFunctionT& ShapeFunction(void) const;
+//DEV
 
 	/* initialization */
 	virtual void Initialize(void);
@@ -38,9 +41,10 @@ public:
 	/* strains/deformation measures */
 	const dMatrixT& F(void); // deformation gradient
 	const dMatrixT& F(const LocalArrayT& disp); 	
-	const dSymMatrixT& C(void); // right stretch
-	const dSymMatrixT& b(void); // left stretch
-	const dSymMatrixT& E(void); // Green-Lagrange strain
+//	const dSymMatrixT& C(void); // right stretch
+//	const dSymMatrixT& b(void); // left stretch
+//	const dSymMatrixT& E(void); // Green-Lagrange strain
+//DEV
 	
 	/* general spatial gradients */
 
@@ -74,7 +78,8 @@ private:
 private:
 
 	/* shape functions */
-	const ShapeFunctionT& fShapes;
+	//const ShapeFunctionT& fShapes;
+	//DEV
 	
 	/* nodal displacements */
 	const LocalArrayT& fLocDisp;
@@ -88,6 +93,7 @@ private:
 };
 
 /* inlines */
-inline const ShapeFunctionT& FSSolidMatT::ShapeFunction(void) const { return fShapes; }
+//inline const ShapeFunctionT& FSSolidMatT::ShapeFunction(void) const { return fShapes; }
+//DEV
 
 #endif /* _FD_STRUCT_MAT_T_H_ */

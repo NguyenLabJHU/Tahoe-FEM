@@ -1,4 +1,4 @@
-/* $Id: NL_E_RotMat2DT.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: NL_E_RotMat2DT.cpp,v 1.1.1.1.2.1 2001-06-06 16:31:17 paklein Exp $ */
 /* created: paklein (06/13/1997)                                          */
 /* Base class for materials with 2D nonlinear elastic behavior            */
 /* with in-plane orientation with respect to global coordinate            */
@@ -38,7 +38,9 @@ const dMatrixT& NL_E_RotMat2DT::c_ijkl(void)
 	fModuli *= fThickness;
 	
 	/* natural -> spatial -> material */
-	return C_to_c(fModuli, Q());
+	//return C_to_c(fModuli, Q());
+	throw eGeneralFail;
+	return fModuli;
 }
 	
 /* stresses */
@@ -54,7 +56,9 @@ const dSymMatrixT& NL_E_RotMat2DT::s_ij(void)
 	fPK2 *= fThickness;
 
 	/* natural -> spatial -> material */
-	 return S_to_s(fPK2, Q());
+	//return S_to_s(fPK2, Q());
+	throw eGeneralFail;
+	return fPK2;
 }
 
 /* strain energy density */

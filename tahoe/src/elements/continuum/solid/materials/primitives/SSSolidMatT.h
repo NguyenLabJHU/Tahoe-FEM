@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: SSSolidMatT.h,v 1.1.1.1.2.1 2001-06-06 16:31:18 paklein Exp $ */
 /* created: paklein (06/09/1997)                                          */
 /* Defines the interface for elastic continuum materials.                 */
 
@@ -12,7 +12,8 @@
 /* forward declarations */
 class ShapeFunctionT;
 
-class SSSolidMatT: protected ContinuumT, public StructuralMaterialT
+class SSSolidMatT: /* DEV - protected ContinuumT, */
+public StructuralMaterialT
 {
 public:
 
@@ -26,7 +27,8 @@ public:
 	virtual bool NeedDisp(void) const;
 
 	/* the shape functions */
-	const ShapeFunctionT& ShapeFunction(void) const;
+//	const ShapeFunctionT& ShapeFunction(void) const;
+//DEV
 		
 	/* elastic strain */
 	const dSymMatrixT& e(void);
@@ -60,7 +62,8 @@ private:
 private:
 
 	/* shape functions */
-	const ShapeFunctionT& fShapes;
+//	const ShapeFunctionT& fShapes;
+//DEV
 	
 	/* nodal displacements */
 	const LocalArrayT& fLocDisp;
@@ -77,6 +80,7 @@ private:
 };
 
 /* inlines */
-inline const ShapeFunctionT& SSSolidMatT::ShapeFunction(void) const { return fShapes; }
+//inline const ShapeFunctionT& SSSolidMatT::ShapeFunction(void) const { return fShapes; }
+//DEV
 
 #endif /* _SS_STRUCT_MAT_T_H_ */
