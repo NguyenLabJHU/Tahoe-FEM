@@ -1,4 +1,4 @@
-# $Id: makefile.template,v 1.11 2001-09-15 01:03:26 paklein Exp $
+# $Id: makefile.template,v 1.12 2001-09-19 19:04:54 paklein Exp $
 # INSTALLATION INSTRUCTIONS
 #
 # (0) copy makefile.template to a local makefile.
@@ -105,6 +105,12 @@ MACRO_DIR = $(HOME_DIR)/../macros
 #ACME_LIB_NAME = acme
 #ACME_LIB      = $(ACME_DIR)/lib$(ACME_LIB_NAME).a
 #ACME_LFLAGS   = -L$(ACME_DIR) -l$(ACME_LIB_NAME)
+
+#### VTK graphics library
+#VTK_DIR    =
+#VTK_INC    = -I$(VTK_DIR)/common -I$(VTK_DIR) -I$(VTK_DIR)/graphics -I$(VTK_DIR)/imaging -I$(VTK_DIR)/contrib
+#VTK_CFLAGS = $(VTK_INC) -D__VTK__
+#VTK_LFLAGS = $(VTK_DIR)/patented/libVTKPatented.a $(VTK_DIR)/imaging/libVTKImaging.a $(VTK_DIR)/graphics/libVTKGraphics.a $(VTK_DIR)/common/libVTKCommon.a $(VTK_DIR)/patented/libVTKPatented${VTK_LIB_EXT} ${VTK_HOME}/imaging/libVTKImaging.a $(VTK_DIR)/graphics/libVTKGraphics.a $(VTK_DIR)/common/libVTKCommon.a
 
 ##### SEACAS/ACCESS software
 #AX_INC    = -I$(ACCESS)/inc
