@@ -1,5 +1,7 @@
-// $Id: FEA_FormatT.cpp,v 1.6 2003-03-17 22:05:26 creigh Exp $
+// $Id: FEA_FormatT.cpp,v 1.7 2003-05-05 00:58:06 paklein Exp $
 #include "FEA_FormatT.h"
+
+using namespace Tahoe;
 
 //---------------------------------------------------------------------
 

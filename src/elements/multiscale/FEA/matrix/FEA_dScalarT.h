@@ -1,4 +1,4 @@
-// $Id: FEA_dScalarT.h,v 1.5 2003-04-23 23:34:22 creigh Exp $
+// $Id: FEA_dScalarT.h,v 1.6 2003-05-05 00:58:07 paklein Exp $
 #ifndef _FEA_DSCALART_H_
 #define _FEA_DSCALART_H_
 
@@ -93,7 +93,6 @@ class FEA_dScalarT: public dArrayT // For the name sake only
 
 };
     // RECALL: operator = already overloaded by base class 
-}
 
 //----------------------------------------------------
 
@@ -104,6 +103,8 @@ inline void FEA_dScalarT::Print(char *c) { // overload << later
     cout <<"\n "<< c <<" @ ip "<<i<<" = "<< (*this)[i] << "\n";
 
 }
+
+} /* namespace Tahoe */
 
 
 #endif

@@ -1,4 +1,4 @@
-
+/* $Id: ModelT.h,v 1.2 2003-05-05 00:58:08 paklein Exp $ */
 #ifndef _MODELT_H_  
 #define _MODELT_H_ 
 
@@ -6,6 +6,8 @@
 #include "nArrayT.h"
 #include "sArrayT.h"
 #include "StringT.h"
+
+using namespace Tahoe;
 
 //--------------------------------------------------
 
