@@ -43,6 +43,31 @@ void ParaDynT::WriteCoordinates (ostream& fgeo,
       for (int i=0; i < coords.MajorDim(); i++)
 	fgeo << i+1  << "  "  << types[i] << "  " 
 	     << float(coords(i)[0]) << "  " 
+             << float(coords(i)[1]) << "\n";
+    }
+  else if(coords.MinorDim()==3)
+    { 
+      for (int i=0; i < coords.MajorDim(); i++)
+	fgeo << i+1  << "  " << types[i] << "  " 
+	     << float(coords(i)[0]) << "  " 
+	     << float(coords(i)[1]) << "  "
+	     << float(coords(i)[2]) << "\n";
+    }
+  else
+    throw eBadInputValue;
+ 
+}
+
+/* -> For Sylvie's version of ParaDyn.....
+void ParaDynT::WriteCoordinates (ostream& fgeo, 
+				 const dArray2DT& coords,
+				 const iArrayT& types) const
+{
+  if(coords.MinorDim()==2)
+    { 
+      for (int i=0; i < coords.MajorDim(); i++)
+	fgeo << i+1  << "  "  << types[i] << "  " 
+	     << float(coords(i)[0]) << "  " 
              << float(coords(i)[1]) << "  " 
 	     << types[i] << "\n";
     }
@@ -59,6 +84,7 @@ void ParaDynT::WriteCoordinates (ostream& fgeo,
     throw eBadInputValue;
  
 }
+*/
 
 void ParaDynT::WriteTime (ostream& fvar) const
 {
