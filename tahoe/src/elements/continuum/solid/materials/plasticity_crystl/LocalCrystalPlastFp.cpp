@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.cpp,v 1.20 2004-10-14 20:24:51 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp.cpp,v 1.21 2005-01-21 16:51:22 paklein Exp $ */
 #include "LocalCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -32,85 +32,15 @@ static const char* Labels[kNumOutput] = {"VM_stress", "IterNewton", "IterState"}
 const bool XTAL_MESSAGES = true;
 const int IPprnt = 1;
 
-LocalCrystalPlastFp::LocalCrystalPlastFp(ifstreamT& in, const FSMatSupportT& support) :
+LocalCrystalPlastFp::LocalCrystalPlastFp(void):
 	ParameterInterfaceT("local_crystal_plasticity_Fp"),
 //  PolyCrystalMatT(in, support),  
 
   // penalty parameter for detFp
   fPenalty (1.0e+0),
-
-  // elastic deformation gradient
-  fFe_n (kNSD,kNSD),
-  fFe   (kNSD,kNSD),
-
-  // plastic deformation gradients 
-  fFp_n    (kNSD,kNSD),
-  fFp      (kNSD,kNSD),
-  fFpi     (kNSD,kNSD),
-  fFp_save (kNSD,kNSD),
-
-  // right Cauchy-Green tensor
-  fC       (kNSD), 
-
-  // symmetric tensors in interm config	
-  fCeBar   (kNSD),
-  fEeBar   (kNSD),
-  fSBar    (kNSD),
-
-  // crystal consistent tangent in Bbar configuration
-  fcBar_ijkl (dSymMatrixT::NumValues(kNSD)),
-
-  // tensors/objects in polar decomp
-  fEigs  (kNSD),
-  fRe    (kNSD,kNSD),
-  fUe    (kNSD),
-  fSpecD (kNSD),
-
-  // 2nd order identity tensor
-  fISym  (kNSD),
-  fIMatx (kNSD,kNSD),
-
-  // work spaces: 3x3 (sym & unsym) and 6x6 matrices
-  fSymMatx1 (kNSD),
-  fSymMatx2 (kNSD),
-  fSymMatx3 (kNSD),
-  fMatxCe   (kNSD,kNSD),
-  fMatxSb   (kNSD,kNSD),
-  fMatx1    (kNSD,kNSD),
-  fMatx2    (kNSD,kNSD),
-  fMatx3    (kNSD,kNSD),
-  fRank4    (dSymMatrixT::NumValues(kNSD)),
-
-  // work spaces: 9x1 arrays, 
-  fFpArray (kNSD*kNSD),
-  fArray1  (kNSD*kNSD),
-  fArray2  (kNSD*kNSD),
-
-  // work spaces: 9x9 matrices
-  fRankIV_1 (kNSD*kNSD, kNSD*kNSD),
-  fRankIV_2 (kNSD*kNSD, kNSD*kNSD),
-  fRankIV_3 (kNSD*kNSD, kNSD*kNSD),
-  fLHS      (kNSD*kNSD, kNSD*kNSD),
-
-  // work spaces: arrays of 3x3 matrices
-  fA           (fNumSlip),
-  fB           (fNumSlip),
-  fArrayOfMatx (fNumSlip),
-
-  // average stress
-  fAvgStress (kNSD)
+   fSpecD(kNSD)
 {
-  // allocate additional space for arrays of matrices
-  for (int i = 0; i < fNumSlip; i++)
-    {
-      fA[i].Dimension(kNSD);
-      fB[i].Dimension(kNSD);
-      fArrayOfMatx[i].Dimension(kNSD,kNSD);
-    }
 
-  // set 2nd order unit tensors
-  fIMatx.Identity();
-  fISym.Identity();
 }
 
 LocalCrystalPlastFp::~LocalCrystalPlastFp() {} 
@@ -519,6 +449,87 @@ void LocalCrystalPlastFp::ComputeOutput(dArrayT& output)
 GlobalT::SystemTypeT LocalCrystalPlastFp::TangentType() const
 {
   return GlobalT::kNonSymmetric;
+}
+
+/* take input parameters */
+void LocalCrystalPlastFp::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	PolyCrystalMatT::TakeParameterList(list);
+
+	/* dimension work space */
+
+  // elastic deformation gradient
+  fFe_n .Dimension(kNSD,kNSD);
+  fFe   .Dimension(kNSD,kNSD);
+
+  // plastic deformation gradients 
+  fFp_n    .Dimension(kNSD,kNSD);
+  fFp      .Dimension(kNSD,kNSD);
+  fFpi     .Dimension(kNSD,kNSD);
+  fFp_save .Dimension(kNSD,kNSD);
+
+  // right Cauchy-Green tensor
+  fC       .Dimension(kNSD); 
+
+  // symmetric tensors in interm config	
+  fCeBar   .Dimension(kNSD);
+  fEeBar   .Dimension(kNSD);
+  fSBar    .Dimension(kNSD);
+
+  // crystal consistent tangent in Bbar configuration
+  fcBar_ijkl .Dimension(dSymMatrixT::NumValues(kNSD));
+
+  // tensors/objects in polar decomp
+  fEigs  .Dimension(kNSD);
+  fRe    .Dimension(kNSD,kNSD);
+  fUe    .Dimension(kNSD);
+
+  // 2nd order identity tensor
+  fISym  .Dimension(kNSD);
+  fIMatx .Dimension(kNSD,kNSD);
+
+  // work spaces: 3x3 (sym & unsym) and 6x6 matrices
+  fSymMatx1 .Dimension(kNSD);
+  fSymMatx2 .Dimension(kNSD);
+  fSymMatx3 .Dimension(kNSD);
+  fMatxCe   .Dimension(kNSD,kNSD);
+  fMatxSb   .Dimension(kNSD,kNSD);
+  fMatx1    .Dimension(kNSD,kNSD);
+  fMatx2    .Dimension(kNSD,kNSD);
+  fMatx3    .Dimension(kNSD,kNSD);
+  fRank4    .Dimension(dSymMatrixT::NumValues(kNSD));
+
+  // work spaces: 9x1 arrays, 
+  fFpArray .Dimension(kNSD*kNSD);
+  fArray1  .Dimension(kNSD*kNSD);
+  fArray2  .Dimension(kNSD*kNSD);
+
+  // work spaces: 9x9 matrices
+  fRankIV_1 .Dimension(kNSD*kNSD, kNSD*kNSD);
+  fRankIV_2 .Dimension(kNSD*kNSD, kNSD*kNSD);
+  fRankIV_3 .Dimension(kNSD*kNSD, kNSD*kNSD);
+  fLHS      .Dimension(kNSD*kNSD, kNSD*kNSD);
+
+  // work spaces: arrays of 3x3 matrices
+  fA           .Dimension(fNumSlip);
+  fB           .Dimension(fNumSlip);
+  fArrayOfMatx .Dimension(fNumSlip);
+
+  // average stress
+  fAvgStress .Dimension(kNSD);
+
+  // allocate additional space for arrays of matrices
+  for (int i = 0; i < fNumSlip; i++)
+    {
+      fA[i].Dimension(kNSD);
+      fB[i].Dimension(kNSD);
+      fArrayOfMatx[i].Dimension(kNSD,kNSD);
+    }
+
+  // set 2nd order unit tensors
+  fIMatx.Identity();
+  fISym.Identity();
 }
 
 /* PROTECTED MEMBER FUNCTIONS */

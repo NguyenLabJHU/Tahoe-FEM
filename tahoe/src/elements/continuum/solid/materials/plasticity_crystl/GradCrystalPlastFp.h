@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp.h,v 1.7 2004-07-15 08:29:07 paklein Exp $ */
+/* $Id: GradCrystalPlastFp.h,v 1.8 2005-01-21 16:51:21 paklein Exp $ */
 #ifndef _GRAD_CRYSTAL_PLAST_FP_H_
 #define _GRAD_CRYSTAL_PLAST_FP_H_
 
@@ -17,7 +17,7 @@ class GradCrystalPlastFp : public LocalCrystalPlastFp
 {
  public:
   // constructor
-  GradCrystalPlastFp(ifstreamT& in, const FSMatSupportT& support);
+  GradCrystalPlastFp(void);
 
   // destructor
   ~GradCrystalPlastFp();
@@ -36,6 +36,12 @@ class GradCrystalPlastFp : public LocalCrystalPlastFp
   virtual int NumOutputVariables() const;
   virtual void OutputLabels(ArrayT<StringT>& labels) const;
   virtual void ComputeOutput(dArrayT& output);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
  protected:
   // slip kinetics
@@ -81,7 +87,7 @@ class GradCrystalPlastFp : public LocalCrystalPlastFp
 
  protected:
   // refs to nodal initial coords of element
-  const LocalArrayT& fLocInitX;
+  const LocalArrayT* fLocInitX;
 
   // nodal coords at current configuration
   LocalArrayT fLocCurrX;

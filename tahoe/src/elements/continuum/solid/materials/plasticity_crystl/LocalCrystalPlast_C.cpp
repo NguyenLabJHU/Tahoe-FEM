@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast_C.cpp,v 1.12 2004-10-14 20:24:51 paklein Exp $ */
+/* $Id: LocalCrystalPlast_C.cpp,v 1.13 2005-01-21 16:51:22 paklein Exp $ */
 #include "LocalCrystalPlast_C.h"
 #include "LatticeOrient.h"
 #include "VoceHardening.h"
@@ -17,30 +17,14 @@ const double sqrt23 = sqrt(2.0/3.0);
 const int kNumOutput = 2;
 static const char* Labels[kNumOutput] = {"VM_stress", "Hardness"};
 
-LocalCrystalPlast_C::LocalCrystalPlast_C(ifstreamT& in, const FSMatSupportT& support) :
+LocalCrystalPlast_C::LocalCrystalPlast_C(void):
 	ParameterInterfaceT("local_crystal_plasticity_C"),
-  LocalCrystalPlast(in, support),
-  fLocInitX (ContinuumElement().InitialCoordinates()),
-  //fNNodes   (element.NumElemNodes()),
-  fNNodes   (fLocInitX.NumberOfNodes()),
-  fLNa      (1, fNNodes),
-  fLDNa     (NumSD(), fNNodes),
-  fGDNa     (NumSD(), fNNodes),
-  fGradU    (NumSD())
+	fLocInitX(NULL)
 {
 
 }
 
 LocalCrystalPlast_C::~LocalCrystalPlast_C() {} 
-
-void LocalCrystalPlast_C::Initialize()
-{
-  // inherited
-  LocalCrystalPlast::Initialize();
-  
-  // shape functions and derivatives at center
-  SetLocalShape_C(fLNa, fLDNa);
-}
 
 int LocalCrystalPlast_C::NumVariablesPerElement()
 {
@@ -87,7 +71,7 @@ const dSymMatrixT& LocalCrystalPlast_C::s_ij()
       fcavg_ijkl = 0.0;
 
       // deformation gradient at center of element
-      fFtot = DeformationGradient(fLocDisp);
+      fFtot = DeformationGradient(*fLocDisp);
       // fFtot = fContinuumElement.FEManager().DeformationGradient();
 
       // crystal state/stress
@@ -239,6 +223,25 @@ void LocalCrystalPlast_C::ComputeOutput(dArrayT& output)
     }
 }
 
+/* accept parameter list */
+void LocalCrystalPlast_C::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	LocalCrystalPlast::TakeParameterList(list);
+
+	fLocInitX = &(ContinuumElement().InitialCoordinates());
+
+	/* dimension work space */
+	fNNodes = fLocInitX->NumberOfNodes();
+	fLNa.Dimension(1, fNNodes);
+	fLDNa.Dimension(NumSD(), fNNodes);
+	fGDNa.Dimension(NumSD(), fNNodes);
+	fGradU.Dimension(NumSD());
+
+	// shape functions and derivatives at center
+	SetLocalShape_C(fLNa, fLDNa);
+}
+
 /* PROTECTED MEMBER FUNCTIONS */
 
 void LocalCrystalPlast_C::InitializeCrystalVariables(ElementCardT& element)
@@ -297,7 +300,7 @@ throw;
 const dMatrixT& LocalCrystalPlast_C::DefGradientAtCenter(const LocalArrayT& disp)
 {
   // derivatives dNa/dX 
-  ComputeGDNa_C(fLocInitX, fLDNa, fGDNa);
+  ComputeGDNa_C(*fLocInitX, fLDNa, fGDNa);
 
   // displacement gradient dU/dX
   Jacobian(disp, fGDNa, fGradU);

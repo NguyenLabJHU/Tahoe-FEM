@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp_C.cpp,v 1.10 2004-10-14 20:24:51 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp_C.cpp,v 1.11 2005-01-21 16:51:22 paklein Exp $ */
 #include "LocalCrystalPlastFp_C.h"
 #include "LatticeOrient.h"
 #include "CrystalElasticity.h"
@@ -18,26 +18,12 @@ const double sqrt23 = sqrt(2.0/3.0);
 const int kNumOutput = 3;
 static const char* Labels[kNumOutput] = {"VM_stress", "IterNewton", "IterState"};
 
-LocalCrystalPlastFp_C::LocalCrystalPlastFp_C(ifstreamT& in, const FSMatSupportT& support) :
+LocalCrystalPlastFp_C::LocalCrystalPlastFp_C(void):
 	ParameterInterfaceT("local_crystal_plasticity_Fp_C"),
-  LocalCrystalPlastFp(in, support),
-  fLocInitX (ContinuumElement().InitialCoordinates()),
-  //fNNodes   (fLocInitX.NumberOfNodes()),  /* what is it wrong here? */
-  //fLNa      (1, fNNodes),
-  //fLDNa     (NumSD(), fNNodes),
-  //fGDNa     (NumSD(), fNNodes),
-  fGradU    (NumSD())
+	fNNodes(0),
+	fLocInitX(NULL)
 {
-  // number of nodes per element
-  fNNodes = fLocInitX.NumberOfNodes();
 
-  // allocate arrays
-  fLNa.Dimension(1, fNNodes);
-  fLDNa.Dimension(NumSD(), fNNodes);
-  fGDNa.Dimension(NumSD(), fNNodes);
-
-  // set shape functions and their derivatives in parent domain (at center)
-  SetLocalShape_C(fLNa, fLDNa);
 }
 
 LocalCrystalPlastFp_C::~LocalCrystalPlastFp_C() { } 
@@ -87,11 +73,11 @@ const dSymMatrixT& LocalCrystalPlastFp_C::s_ij()
       fsavg_ij = 0.0;
 
       // shape function derivatives dNa/dX in physical domain (at center) 
-      ComputeGDNa_C(fLocInitX, fLDNa, fGDNa);
+      ComputeGDNa_C(*fLocInitX, fLDNa, fGDNa);
 
       // deformation gradient at center of element
-      DeformationGradient_C(fLocDisp, fFtot);
-      DeformationGradient_C(fLocLastDisp, fFtot_n);
+      DeformationGradient_C(*fLocDisp, fFtot);
+      DeformationGradient_C(*fLocLastDisp, fFtot_n);
 
       // crystal state/stress
       for (int igrn = 0; igrn < fNumGrain; igrn++)
@@ -316,6 +302,27 @@ void LocalCrystalPlastFp_C::ComputeOutput(dArrayT& output)
 	  fLatticeOrient->WriteTexture(group, elem, intpt, fNumGrain, step, fangles);
 	}
     }
+}
+
+/* accept parameter list */
+void LocalCrystalPlastFp_C::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	LocalCrystalPlastFp::TakeParameterList(list);
+
+	fLocInitX = &(ContinuumElement().InitialCoordinates());
+	fNNodes = fLocInitX->NumberOfNodes();
+
+	/* dimension work space */
+	fGradU.Dimension(NumSD());
+
+	// allocate arrays
+	fLNa.Dimension(1, fNNodes);
+	fLDNa.Dimension(NumSD(), fNNodes);
+	fGDNa.Dimension(NumSD(), fNNodes);
+
+	// set shape functions and their derivatives in parent domain (at center)
+	SetLocalShape_C(fLNa, fLDNa);
 }
 
 /* PROTECTED MEMBER FUNCTIONS */

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp.h,v 1.6 2004-07-15 08:29:07 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp.h,v 1.7 2005-01-21 16:51:22 paklein Exp $ */
 #ifndef _LOCAL_CRYSTAL_PLAST_FP_H_
 #define _LOCAL_CRYSTAL_PLAST_FP_H_
 
@@ -22,7 +22,7 @@ class LocalCrystalPlastFp : public PolyCrystalMatT
 {
  public:
   // constructor
-  LocalCrystalPlastFp(ifstreamT& in, const FSMatSupportT& support);
+  LocalCrystalPlastFp(void);
 
   // destructor
   ~LocalCrystalPlastFp();
@@ -53,6 +53,9 @@ class LocalCrystalPlastFp : public PolyCrystalMatT
 
   // form of tangent matrix
   virtual GlobalT::SystemTypeT TangentType(void) const;
+
+	/** take input parameters */
+	virtual void TakeParameterList(const ParameterListT& list);
 
  protected:
   // slip kinetics

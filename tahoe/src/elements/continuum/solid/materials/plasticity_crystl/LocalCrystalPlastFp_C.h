@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp_C.h,v 1.5 2004-07-15 08:29:07 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp_C.h,v 1.6 2005-01-21 16:51:22 paklein Exp $ */
 #ifndef _LOCAL_CRYSTAL_PLAST_FP_C_H_
 #define _LOCAL_CRYSTAL_PLAST_FP_C_H_
 
@@ -22,7 +22,7 @@ class LocalCrystalPlastFp_C : public LocalCrystalPlastFp
 {
  public:
   // constructor
-  LocalCrystalPlastFp_C(ifstreamT& in, const FSMatSupportT& support);
+  LocalCrystalPlastFp_C(void);
 
   // destructor
   ~LocalCrystalPlastFp_C();
@@ -41,6 +41,12 @@ class LocalCrystalPlastFp_C : public LocalCrystalPlastFp
   virtual int NumOutputVariables() const;
   virtual void OutputLabels(ArrayT<StringT>& labels) const;
   virtual void ComputeOutput(dArrayT& output);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
  protected:
  
@@ -62,7 +68,7 @@ class LocalCrystalPlastFp_C : public LocalCrystalPlastFp
   int fNNodes;
 
   // references to initial coords
-  const LocalArrayT& fLocInitX;
+  const LocalArrayT* fLocInitX;
 
   // arrays for shape funtion derivatives at center
   dArray2DT fLNa;

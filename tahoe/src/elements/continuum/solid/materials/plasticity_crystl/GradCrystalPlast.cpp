@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlast.cpp,v 1.13 2004-10-14 20:24:51 paklein Exp $ */
+/* $Id: GradCrystalPlast.cpp,v 1.14 2005-01-21 16:51:21 paklein Exp $ */
 #include "GradCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -26,70 +26,13 @@ static const char* Labels[kNumOutput] = {"VM_stress", "IterNewton", "IterState"}
 const bool XTAL_MESSAGES = false;
 const int ELprnt = 0;
 
-GradCrystalPlast::GradCrystalPlast(ifstreamT& in, const FSMatSupportT& support) :
+GradCrystalPlast::GradCrystalPlast(void):
 	ParameterInterfaceT("gradient_crystal_plasticity"),
-  LocalCrystalPlast(in, support),  
-  fLocInitX (ContinuumElement().InitialCoordinates()),
+  fLocInitX (NULL),
   fLocCurrX (LocalArrayT::kCurrCoords),
-  fGradTool (NULL),
-  fFeIP     (NumIP()),    
-  fFeTrIP   (NumIP()),    
-  fGradFe   (kNSD),
-  fGradFeTr (kNSD),
-  fKe_n     (kNSD,kNSD),  
-  fKe       (kNSD,kNSD),  
-  fXe       (kNSD,kNSD),  
-  fnormDGam0(NumIP()),
-  fnormHard0(NumIP()),
-  fnormDGam (NumIP()),
-  fnormHard (NumIP())
+  fGradTool (NULL)
 {
-  // check number of grains
-  if (fNumGrain != 1) 
-    throwRunTimeError("GradCrystalPlast::GradCrystalPlast: NumGrain != 1");
 
-  // number of element vertex nodes for gradient evaluation
-  if (NumSD() == 2) 
-    fNumNodes = 4;
-  else if (NumSD() == 3) 
-    fNumNodes = 8;
-  else 
-    throwRunTimeError("GradCrystalPlast::GradCrystalPlast: NumSD != 2 or 3");
-
-  // create Gradient Tool object
-  fGradTool = new GradientTools(NumIP(), fNumNodes, NumSD());
-
-  // allocate space for ...
-  // ... Fe values at integration points
-  for (int i = 0; i < NumIP(); i++) {
-    fFeIP[i].Dimension(kNSD,kNSD);
-    fFeTrIP[i].Dimension(kNSD,kNSD);
-  }
-
-  // ... Fe values at nodal points
-  fFeNodes.Dimension(fNumNodes);
-  fFeTrNodes.Dimension(fNumNodes);
-  for (int i = 0; i < fNumNodes; i++) {
-    fFeNodes[i].Dimension(kNSD,kNSD);
-    fFeTrNodes[i].Dimension(kNSD,kNSD);
-  }
-
-  // ... spatial gradients of Fe (note: kNSD instead of NumSD())
-  for (int i = 0; i < kNSD; i++) {
-    fGradFe[i].Dimension(kNSD,kNSD);
-    fGradFeTr[i].Dimension(kNSD,kNSD);
-  }
-
-  // ... current coordinates
-  fLocCurrX.Dimension(fLocInitX.NumberOfNodes(), NumSD());
-
-  // ... d(Curvature)/d(DGamma) (Moduli computation)
-  fdKe.Dimension(NumIP());
-  for (int i = 0; i < NumIP(); i++) {
-    fdKe[i].Dimension(fNumSlip);
-    for (int j = 0; j < fNumSlip; j++)
-      fdKe[i][j].Dimension(kNSD,kNSD);
-  }
 }
 
 GradCrystalPlast::~GradCrystalPlast() {} 
@@ -316,6 +259,77 @@ void GradCrystalPlast::ComputeOutput(dArrayT& output)
     // write euler angles at IP/ELE
     fLatticeOrient->WriteTexture(group, elem, intpt, fNumGrain, step, fangles);
   }
+}
+
+/* accept parameter list */
+void GradCrystalPlast::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "GradCrystalPlast::TakeParameterList";
+
+	/* inherited */
+	LocalCrystalPlast::TakeParameterList(list);
+
+	/* dimension work space */
+	fFeIP     .Dimension(NumIP());
+	fFeTrIP   .Dimension(NumIP());    
+	fGradFe   .Dimension(kNSD);
+	fGradFeTr .Dimension(kNSD);
+	fKe_n     .Dimension(kNSD,kNSD);
+	fKe       .Dimension(kNSD,kNSD);  
+	fXe       .Dimension(kNSD,kNSD);  
+	fnormDGam0.Dimension(NumIP());
+	fnormHard0.Dimension(NumIP());
+	fnormDGam .Dimension(NumIP());
+	fnormHard .Dimension(NumIP());
+
+	fLocInitX = &(ContinuumElement().InitialCoordinates());
+
+	// check number of grains
+	if (fNumGrain != 1)
+		ExceptionT::GeneralFail(caller, "NumGrain != 1");
+
+	// number of element vertex nodes for gradient evaluation
+	if (NumSD() == 2) 
+    	fNumNodes = 4;
+	else if (NumSD() == 3) 
+		fNumNodes = 8;
+	else
+		ExceptionT::GeneralFail(caller, "NumSD != 2 or 3");
+
+	// create Gradient Tool object
+	fGradTool = new GradientTools(NumIP(), fNumNodes, NumSD());
+
+	// allocate space for ...
+	// ... Fe values at integration points
+	for (int i = 0; i < NumIP(); i++) {
+		fFeIP[i].Dimension(kNSD,kNSD);
+		fFeTrIP[i].Dimension(kNSD,kNSD);
+	}
+
+	// ... Fe values at nodal points
+	fFeNodes.Dimension(fNumNodes);
+	fFeTrNodes.Dimension(fNumNodes);
+	for (int i = 0; i < fNumNodes; i++) {
+		fFeNodes[i].Dimension(kNSD,kNSD);
+		fFeTrNodes[i].Dimension(kNSD,kNSD);
+	}
+
+	// ... spatial gradients of Fe (note: kNSD instead of NumSD())
+	for (int i = 0; i < kNSD; i++) {
+		fGradFe[i].Dimension(kNSD,kNSD);
+		fGradFeTr[i].Dimension(kNSD,kNSD);
+	}
+
+	// ... current coordinates
+	fLocCurrX.Dimension(fLocInitX->NumberOfNodes(), NumSD());
+
+	// ... d(Curvature)/d(DGamma) (Moduli computation)
+	fdKe.Dimension(NumIP());
+	for (int i = 0; i < NumIP(); i++) {
+		fdKe[i].Dimension(fNumSlip);
+		for (int j = 0; j < fNumSlip; j++)
+			fdKe[i][j].Dimension(kNSD,kNSD);
+	}
 }
 
 /* PROTECTED MEMBER FUNCTIONS */
@@ -724,7 +738,7 @@ void GradCrystalPlast::LoadCrystalCurvature(ElementCardT& element,
 void GradCrystalPlast::ShapeFunctionDeriv()
 {
  // current coordinates of element nodes
-  fLocCurrX.SetToCombination(1., fLocInitX, 1., fLocDisp);
+  fLocCurrX.SumOf(*fLocInitX, *fLocDisp);
 
   // derivarives dNa/dXcurr at integration points
   fGradTool->ComputeGDNa(fLocCurrX);
