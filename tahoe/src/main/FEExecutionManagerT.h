@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.h,v 1.10 2002-12-02 09:50:13 paklein Exp $ */
+/* $Id: FEExecutionManagerT.h,v 1.11 2002-12-05 08:30:46 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #ifndef _FE_EXECMAN_T_H_
@@ -25,16 +25,6 @@ class ModelManagerT;
 class FEExecutionManagerT: public ExecutionManagerT
 {
 public:
-
-	/** decomposition methods */
-	enum DecompTypeT {
-        kGraph = 0, /**< partition based on connectivities. See FEExecutionManagerT::Decompose_graph. */
-         kAtom = 1, /**< partition based on index. See FEExecutionManagerT::Decompose_atom. */
-      kSpatial = 2  /**< partition based on position. See FEExecutionManagerT::Decompose_spatial. */
-	};
-
-	/** stream extraction operator */ 
-	friend istream& operator>>(istream& in, FEExecutionManagerT::DecompTypeT& t);
 
 	/** constructor */
 	FEExecutionManagerT(int argc, char* argv[], char job_char, char batch_char,
@@ -114,8 +104,7 @@ private:
 	/*@}*/
 
 	/** returns true if a new decomposition is needed */
-	bool NeedDecomposition(ifstreamT& in, const StringT& model_file,
-		int size) const;
+	bool NeedDecomposition(const StringT& model_file, int size) const;
 
 	/** returns true if the global output model file is not found */
 	bool NeedModelFile(const StringT& model_file, IOBaseT::FileTypeT format) const;
