@@ -14,7 +14,8 @@ OBJ = \
 	CSEConstants.o \
 	InteractiveIOManagerT.o \
 	main.o \
-	ParameterFileManagerT.o
+	ParameterFileManagerT.o \
+	MakeCSE_ExecutionT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -35,7 +36,8 @@ SRC = \
 	CSEConstants.cpp \
 	InteractiveIOManagerT.cpp \
 	ParameterFileManagerT.cpp \
-	main.cpp
+	main.cpp \
+	MakeCSE_ExecutionT.cpp
 
 # headers
 HDR = \
@@ -50,6 +52,7 @@ HDR = \
 	CSEConstants.h \
 	InteractiveIOManagerT.h \
 	ParameterFileManagerT.h \
+	MakeCSE_ExecutionT.h \
 	ClockT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
