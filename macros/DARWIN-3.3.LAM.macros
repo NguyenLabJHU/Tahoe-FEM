@@ -1,4 +1,4 @@
-# $Id: DARWIN-3.3.LAM.macros,v 1.6 2003-03-15 16:54:30 paklein Exp $
+# $Id: DARWIN-3.3.LAM.macros,v 1.7 2003-03-20 19:21:57 paklein Exp $
 #
 # macros for Mac OS X using the GNU distribution provided with
 # the Apple Developer tools in addition to the LAM implementation
@@ -32,7 +32,7 @@ MAKE_OPTS   =
 RM          = rm
 RM_FILES    = *.o *.i *.*~ *.bak ii_* *.d all.depend
 LN          = ln -sf
-ECHO        = /usr/local/bin/echo -e
+ECHO        = echo
 CAT         = cat
 PERL        = perl -w
 PRINTF      = printf
