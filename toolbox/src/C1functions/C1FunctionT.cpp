@@ -1,10 +1,16 @@
-/* $Id: C1FunctionT.cpp,v 1.5 2004-01-27 19:07:23 paklein Exp $ */
+/* $Id: C1FunctionT.cpp,v 1.6 2004-03-17 17:55:24 paklein Exp $ */
 /* created: paklein (12/04/1996) */
 #include "C1FunctionT.h"
 #include "dArrayT.h"
 #include <float.h>
 
 using namespace Tahoe;
+
+/* copy behavior for arrays of C1FunctionT's */
+namespace Tahoe {
+DEFINE_TEMPLATE_STATIC const bool ArrayT<C1FunctionT*>::fByteCopy = true;
+DEFINE_TEMPLATE_STATIC const bool ArrayT<C1FunctionT>::fByteCopy = false;
+} /* namespace Tahoe */
 
 /* constructor */
 C1FunctionT::C1FunctionT(void):
