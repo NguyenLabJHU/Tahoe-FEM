@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_DB.h,v 1.3 2003-03-09 20:40:40 paklein Exp $ */
+/* $Id: SIERRA_Material_DB.h,v 1.4 2003-03-09 21:58:50 paklein Exp $ */
 #ifndef _SIERRA_MAT_DB_H_
 #define _SIERRA_MAT_DB_H_
 
@@ -34,22 +34,10 @@ public:
 
 	/** return a pointer to the material data associated with the given name */
 	static SIERRA_Material_Data* Material(const StringT& name);
+
+	/** return a pointer to the material data associated with the given ID */
+	static SIERRA_Material_Data* Material(int id);
 	/*@}*/
-
-	/** \name indicies of real values */
-	/*@{*/
-	/** register a real constant */
-	static void AddRealIndex(const StringT& name, int index);
-
-	/** return the given real value */
-	static int RealIndex(const StringT& name);
-	/*@}*/
-
-	/** comparison function to use for finding real constant. Need to override
-	 * the default StringT::operator> and StringT::operator< because the strings
-	 * passed from Fortran do no have C/C++ line endings */
-	static int Compare(const MapNodeT<StringT, int>& tree_node, 
-	                   const MapNodeT<StringT, int>& test_node);
 
 private:
 
@@ -68,8 +56,8 @@ private:
 	 * pointers to material data cards. */
 	MapT<StringT, SIERRA_Material_Data*> fMaterialData;
 
-	/** indicies of real values */
-	MapT<StringT, int> fRealConstants;
+	/** map of material ID to data card */
+	MapT<int, SIERRA_Material_Data*> fMaterialDataByID;
 
 	/** singleton to store parameters for Sierra materials */
 	static SIERRA_Material_DB* the_SIERRA_Material_DB;
@@ -80,6 +68,12 @@ inline SIERRA_Material_Data* SIERRA_Material_DB::Material(const StringT& name)
 {
 	/* get from DB */
 	return the_DB().fMaterialData[name];
+}
+
+inline SIERRA_Material_Data* SIERRA_Material_DB::Material(int id)
+{
+	/* get from DB */
+	return the_DB().fMaterialDataByID[id];
 }
 
 /* return a reference to the singleton */

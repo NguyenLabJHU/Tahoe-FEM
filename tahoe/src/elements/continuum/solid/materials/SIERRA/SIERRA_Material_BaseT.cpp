@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_BaseT.cpp,v 1.5 2003-03-09 17:09:51 paklein Exp $ */
+/* $Id: SIERRA_Material_BaseT.cpp,v 1.6 2003-03-09 21:58:50 paklein Exp $ */
 #include "SIERRA_Material_BaseT.h"
 #include "SIERRA_Material_DB.h"
 #include "SIERRA_Material_Data.h"
@@ -102,18 +102,17 @@ void SIERRA_Material_BaseT::Initialize(void)
 	fSIERRA_Material_Data = Process_SIERRA_Input(param_list);
 
 	/* check parameters */
-	const ArrayT<double>& properties = fSIERRA_Material_Data->PropertyValues();
-	Sierra_function_param_check check = fSIERRA_Material_Data->CheckFunction();
-	check(properties.Pointer());
+	Sierra_function_param_check param_check = fSIERRA_Material_Data->CheckFunction();
+	int material_ID = fSIERRA_Material_Data->ID();
+	param_check(&material_ID);
 
 	/* set density */
-	int rho_dex = SIERRA_Material_DB::RealIndex("DENSITY");	
-	fDensity = properties[rho_dex];
+	fDensity = fSIERRA_Material_Data->Property("DENSITY");
 
 	/* set the modulus */
-	int k_dex = SIERRA_Material_DB::RealIndex("BULK_MODULUS");
-	int two_mu_dex = SIERRA_Material_DB::RealIndex("TWO_MU");
-	IsotropicT::Set_mu_kappa(properties[two_mu_dex]/2.0, properties[k_dex]);
+	double kappa  = fSIERRA_Material_Data->Property("BULK_MODULUS");
+	double mu = fSIERRA_Material_Data->Property("TWO_MU")/2.0;
+	IsotropicT::Set_mu_kappa(mu, kappa);
 	IsotropicT::ComputeModuli(fModulus);
 
 	/* checks */
@@ -169,11 +168,11 @@ void SIERRA_Material_BaseT::PointInitialize(void)
 	double dt = 0.0; //OK?
 	int nsv = fstate_old.Length();
 	int ncd = 0;
-	double* matvals = fSIERRA_Material_Data->PropertyValues().Pointer();
+	int matvals = fSIERRA_Material_Data->ID();
 
 	/* call the initialization function */
 	Sierra_function_material_init init_func = fSIERRA_Material_Data->InitFunction();
-	init_func(&nelem, &dt, &nsv, fstate_old.Pointer(), fstate_new.Pointer(), matvals, &ncd);
+	init_func(&nelem, &dt, &nsv, fstate_old.Pointer(), fstate_new.Pointer(), &matvals, &ncd);
 
 	/* write to storage */
 	Store(CurrentElement(), CurrIP());
@@ -245,7 +244,7 @@ const dSymMatrixT& SIERRA_Material_BaseT::s_ij(void)
 		double dt = fFSMatSupport.TimeStep();
 		int nsv = fstate_old.Length();
 		int ncd = 0;
-		double* matvals = fSIERRA_Material_Data->PropertyValues().Pointer();
+		int matvals = fSIERRA_Material_Data->ID();
 		int ivars_size = fdstran.Length();
 
 		/* call the calc function */
@@ -253,7 +252,7 @@ const dSymMatrixT& SIERRA_Material_BaseT::s_ij(void)
 		calc_func(&nelem, &dt, fdstran.Pointer(), &ivars_size,
 			fstress_old.Pointer(), fstress_new.Pointer(), 
 			&nsv, fstate_old.Pointer(), fstate_new.Pointer(), 
-			matvals, &ncd);
+			&matvals, &ncd);
 
 		/* write to storage */
 		Store(CurrentElement(), CurrIP());
@@ -491,24 +490,12 @@ SIERRA_Material_Data* SIERRA_Material_BaseT::Process_SIERRA_Input(ParameterListT
 	/* first add top level parameters */
 	const ArrayT<ParameterT>& params = param_list.Parameters();
 	for (int i = 0; i < params.Length(); i++)
-	{
-		/* add to material's parameter list */
-		int index = mat_data->AddProperty(params[i].Name(), params[i]);
-	
-		/* add to material dictionary */
-		SIERRA_Material_DB::AddRealIndex(params[i].Name(), index);
-	}
+		mat_data->AddProperty(params[i].Name(), params[i]);
 
 	/* add model parameters */
 	const ArrayT<ParameterT>& model_params = model_param_list.Parameters();
 	for (int i = 0; i < model_params.Length(); i++)
-	{
-		/* add to material's parameter list */
-		int index = mat_data->AddProperty(model_params[i].Name(), model_params[i]);
-	
-		/* add to material dictionary */
-		SIERRA_Material_DB::AddRealIndex(model_params[i].Name(), index);
-	}
+		mat_data->AddProperty(model_params[i].Name(), model_params[i]);
 
 	return mat_data;
 }

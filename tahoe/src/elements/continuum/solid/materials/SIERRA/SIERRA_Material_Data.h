@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_Data.h,v 1.3 2003-03-08 01:56:20 paklein Exp $ */
+/* $Id: SIERRA_Material_Data.h,v 1.4 2003-03-09 21:58:50 paklein Exp $ */
 #ifndef _SIERRA_MAT_DATA_H_
 #define _SIERRA_MAT_DATA_H_
 
@@ -7,6 +7,7 @@
 /* direct members */
 #include "StringT.h"
 #include "AutoArrayT.h"
+#include "MapT.h"
 
 namespace Tahoe {
 
@@ -43,6 +44,9 @@ public:
 
 	/** \name accessors */
 	/*@{*/
+	/** unique material identifier */
+	int ID(void) const { return fID; };
+	
 	/** material name */
 	const StringT& Name(void) const { return fName; };
 	
@@ -72,9 +76,21 @@ public:
 
 	/** array property values */
 	const ArrayT<double>&  PropertyValues(void) const { return fPropertyValues; };
+
+	/** return property by name */
+	double Property(const StringT& name) const { return fPropertyMap[name]; }
 	/*@}*/
+
+	/** comparison function to use for finding real constant. Need to override
+	 * the default StringT::operator> and StringT::operator< because the strings
+	 * passed from Fortran do no have C/C++ line endings */
+	static int Compare(const MapNodeT<StringT, double>& tree_node, 
+	                   const MapNodeT<StringT, double>& test_node);
 	
 private:
+
+	/** unique identifier for material data */
+	int fID;
 
 	/** material name */
 	StringT fName;
@@ -110,8 +126,14 @@ private:
 	/** \name material properties */
 	/*@{*/
 	AutoArrayT<StringT> fPropertyNames;
-	AutoArrayT<double>  fPropertyValues;
+	AutoArrayT<double> fPropertyValues;
+	MapT<StringT, double> fPropertyMap;
 	/*@}*/
+
+private:
+
+	/** keep track of unique ID's */
+	static int sNextID;
 };
 
 /* add a material property */
@@ -120,6 +142,7 @@ inline int SIERRA_Material_Data::AddProperty(const StringT& name, double value)
 	if (fPropertyNames.AppendUnique(name))
 	{
 		fPropertyValues.Append(value);
+		fPropertyMap.Insert(name, value);
 		return fPropertyValues.Length() - 1;
 	}
 	else 

@@ -1,4 +1,4 @@
-/* $Id: SIERRA_Material_Interface.h,v 1.3 2003-03-09 04:42:31 paklein Exp $ */
+/* $Id: SIERRA_Material_Interface.h,v 1.4 2003-03-09 21:58:50 paklein Exp $ */
 #ifndef __SIERRA_MAT_INTERFACE_H__
 #define __SIERRA_MAT_INTERFACE_H__
 
@@ -12,7 +12,7 @@ extern "C" {
 /** \name retrieving parameter information */
 /*@{*/ 
 /** retrieve a named value */
-extern void FORTRAN_NAME(get_real_constant)(double* destination, const double* all_values, 
+extern void FORTRAN_NAME(get_real_constant)(double* destination, const int* mat_vals, 
 	const char* value_name);
 
 /** retrieve the index for the value for the given material */
@@ -26,7 +26,7 @@ extern void FORTRAN_NAME(get_var_index)(int* index, int* num_workset_elem, const
  * is registered with a call to register_material.
  * \param parameters array of material parameters
  */
-typedef void (*Sierra_function_param_check)(double* parameters);
+typedef void (*Sierra_function_param_check)(int* mat_vals);
 
 /** function to do material computations
  * \param nelem number of elements in the workset
@@ -44,7 +44,7 @@ typedef void (*Sierra_function_param_check)(double* parameters);
  */
 typedef void (*Sierra_function_material_calc)(int* nelem, double* dt,
 	double* vars_input, int* ivars_size, double* stress_old, double* stress_new, 
-	int* nsv, double* state_old, double* state_new, double* matvals, int* ncd);
+	int* nsv, double* state_old, double* state_new, int* matvals, int* ncd);
 
 /** function to do material initialization
  * \param nelem number of elements in the workset
@@ -56,7 +56,7 @@ typedef void (*Sierra_function_material_calc)(int* nelem, double* dt,
  * \param ncd
  */
 typedef void (*Sierra_function_material_init)(int* nelem, double* dt, int* nsv, 
-	double* state_old, double* state_new, double* matvals, int* ncd);
+	double* state_old, double* state_new, int* matvals, int* ncd);
 /*@}*/
 
 /** \name registration functions */
