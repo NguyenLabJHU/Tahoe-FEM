@@ -1,4 +1,4 @@
-/* $Id: PSPASESMatrixT.cpp,v 1.12 2004-11-19 06:11:51 paklein Exp $ */
+/* $Id: PSPASESMatrixT.cpp,v 1.13 2004-11-19 08:30:12 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "PSPASESMatrixT.h"
 
@@ -32,16 +32,6 @@ PSPASESMatrixT::PSPASESMatrixT(ostream& out, int check_code, CommunicatorT& comm
 	fIsNumFactorized(false)
 {
 	const char caller[] = "PSPASESMatrixT::PSPASESMatrixT";
-
-	/* verify that number of processes is power of 2 */
-	int size = fComm.Size();
-	int power2 = 2;
-	while (size != power2) {
-		if (power2 > size)
-			ExceptionT::GeneralFail(caller, "PSPACES requires nproc as 2^n with n >= 1");
-		power2 *= 2;
-	}
-
 	fBuilder = new MSRBuilderT(false);
 	if (!fBuilder) ExceptionT::OutOfMemory(caller);
 }
@@ -75,6 +65,15 @@ void PSPASESMatrixT::Initialize(int tot_num_eq, int loc_num_eq, int start_eq)
 {
 	/* inherited - initialize MSR data */
 	GlobalMatrixT::Initialize(tot_num_eq, loc_num_eq, start_eq);
+
+	/* verify that number of processes is power of 2 */
+	int size = fComm.Size();
+	int power2 = 2;
+	while (size != power2) {
+		if (power2 > size)
+			ExceptionT::GeneralFail("PSPASESMatrixT::Initialize", "PSPACES requires nproc as 2^n with n >= 1");
+		power2 *= 2;
+	}
 
 	/* free space */
 	int option_0 = 0;
