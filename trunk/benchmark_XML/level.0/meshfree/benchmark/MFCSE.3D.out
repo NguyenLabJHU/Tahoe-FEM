@@ -14,6 +14,7 @@
     eq. 6, linear explicit dynamic
     eq. 7, nonlinear explicit dynamic
     eq. 30, perfectly matched layer (PML)
+    eq. 99, general multiple field problem
  Input format. . . . . . . . . . . . . . . . . . = 1
     eq.  0. Tahoe
     eq.  1. Tahoe II
@@ -24,7 +25,7 @@
     eq.  7. ABAQUS Binary (.fil)
     eq. 10. PATRAN Neutral
     eq. 11. Tahoe Results (.geo/.run)
- Geometry file . . . . . . . . . . . . . . . . . = level.0/meshfree/../geometry/cube.2.geom
+ Geometry file . . . . . . . . . . . . . . . . . = ../geometry/cube.2.geom
  Output format . . . . . . . . . . . . . . . . . = 0
     eq.  1. Tahoe II
     eq.  2. TecPlot 7.5
@@ -34,6 +35,8 @@
     eq.  6. ABAQUS ASCII (.fin)
     eq.  7. ABAQUS Binary (.fil)
     eq.  8. AVS UCD ASCII
+    eq. 10. PATRAN Neutral
+    eq. 12. PARADYN
  Read restart file code  . . . . . . . . . . . . = 0
     eq. 0, do not read restart file
     eq. 1, read restart file
@@ -41,6 +44,7 @@
  Input data print code . . . . . . . . . . . . . = 0
     eq. 0, non verbose echo of input data
     eq. 1, echo all input data
+ Number of solver groups . . . . . . . . . . . . = 1
 
 
  T i m e   S e q u e n c e   D a t a :
@@ -64,7 +68,7 @@
    1.000000e+00   5.000000e+01
 
 
- T i m e   I n t e g r a t i o n   C o n t r o l l e r:
+ T i m e   I n t e g r a t o r s:
 
  Static controller parameters: NONE
 
@@ -72,15 +76,13 @@
 
  Number of nodal points. . . . . . . . . . . . . = 216
  Number of spatial dimensions. . . . . . . . . . = 3
- Number of nodal degrees of freedom. . . . . . . = 3
 
-
- I n i t i a l   C o n d i t i o n s :
+ Initial conditions:
 
  Number of initial condition cards . . . . . . . = 0
 
 
- K i n e m a t i c   B o u n d a r y   C o n d i t i o n s :
+ Kinematic boundary conditions:
 
  Number of node sets . . . . . . . . . . . . . . = 6
 
@@ -105,7 +107,7 @@
  Number of controllers . . . . . . . . . . . . . = 0
 
 
- F o r c e   B o u n d a r y   C o n d i t i o n s :
+ Force boundary conditions:
 
  Number of nodal force cards . . . . . . . . . . = 0
 
@@ -137,6 +139,7 @@
     eq. 9, self-connecting rods with periodic BC's
     eq. 10, diamond cubic lattice with periodic BC's
     eq. 11, cohesive surface element
+    eq. 12, thermal surface element
     eq. 14, penalty contact
     eq. 16, augmented Lagrangian contact
     eq. 17, hyperelastic (total Lagrangian)
@@ -145,11 +148,23 @@
     eq. 20, hyperelastic MLS (total Lagrangian)
     eq. 21, linear diffusion element
     eq. 22, meshfree cohesive surface element
+    eq. 31, Staggered MultiScale Element (for VMS) 
+    eq. 68, Strict Anti-plane Shear gradient plasticity 
+    eq. 85, Meshfree gradient plasticity 
+    eq. 90, Enhanced strain embedded discontinuity 
+    eq. 70, Small Strain Stabilized, Conforming Nodally-Integrated Galerkin Mesh-free 
+    eq. 71, Finite Strain Stabilized Conforming Nodally-Integrated Galerkin Mesh-free 
     eq. 23, 3D contact using ACME
     eq. 24, 3D contact using Lagrange multipliers
-    eq. 25, 2D adhesion contact elements
+    eq. 28, 2D Lagrange multiplier contact elements
     eq. 30, 2D penalty contact elements
-    eq. 28, 2D contact using Lagrange multipliers
+    eq. 34, 3D penalty contact elements
+    eq. 35, Bridging Scale
+    eq. 36, Q1P0 mixed element
+    eq. 37, surface adhesion
+    eq. 38, Pair Potential
+    eq. 39, EAM Potential
+ Associated field. . . . . . . . . . . . . . . . = "displacement"
  Element geometry code . . . . . . . . . . . . . = 3
     eq.-1, point
     eq.0, line
@@ -172,6 +187,10 @@
                    material number: 1
                 element block name: 1
  Number of elements. . . . . . . . . . . . . . . = 125
+ Block dimensions:
+      ID    size
+       1     125
+
 
  Meshfree support parameters:
  Store shape functions . . . . . . . . . . . . . = TRUE
@@ -200,7 +219,7 @@
     [0]: strain energy
     [0]: kinetic energy
     [0]: linear momentum
-    [0]: ip stresses
+    [0]: ip stresses and strains
     [0]: ip material output parameters
 
  Body force vector:
@@ -230,6 +249,7 @@
  Poisson's ratio . . . . . . . . . . . . . . . . = 2.500000e-01
  Shear modulus . . . . . . . . . . . . . . . . . = 4.000000e+01
  Bulk modulus. . . . . . . . . . . . . . . . . . = 6.666667e+01
+ Lame modulus  . . . . . . . . . . . . . . . . . = 4.000000e+01
 
  Number of nodes off the integration grid. . . . = 0
  Number of interpolant shape function nodes. . . = 0
@@ -261,9 +281,9 @@
  Number of sampling surfaces . . . . . . . . . . = 0
 
  MLS shape function data:
- Minimum number of nodal neighbors . . . . . . . = 10
- Maximum number of nodal neighbors . . . . . . . = 21
- Average number of nodal neighbors . . . . . . . = 15
+ Minimum number of nodal neighbors . . . . . . . = 46
+ Maximum number of nodal neighbors . . . . . . . = 120
+ Average number of nodal neighbors . . . . . . . = 78
  Nodal neighbor number distribution:
   number   count
        0       0
@@ -276,29 +296,128 @@
        7       0
        8       0
        9       0
-      10      24
-      11       8
+      10       0
+      11       0
       12       0
       13       0
-      14      72
-      15      24
+      14       0
+      15       0
       16       0
       17       0
       18       0
-      19      64
+      19       0
       20       0
-      21      24
+      21       0
+      22       0
+      23       0
+      24       0
+      25       0
+      26       0
+      27       0
+      28       0
+      29       0
+      30       0
+      31       0
+      32       0
+      33       0
+      34       0
+      35       0
+      36       0
+      37       0
+      38       0
+      39       0
+      40       0
+      41       0
+      42       0
+      43       0
+      44       0
+      45       0
+      46      24
+      47       0
+      48       0
+      49       0
+      50       0
+      51       0
+      52       0
+      53       0
+      54       0
+      55       0
+      56       0
+      57       0
+      58       0
+      59       0
+      60       0
+      61      48
+      62       0
+      63       0
+      64       0
+      65       0
+      66       8
+      67       0
+      68       0
+      69       8
+      70       0
+      71       0
+      72       0
+      73       0
+      74      24
+      75       0
+      76       0
+      77       0
+      78       0
+      79       0
+      80       0
+      81      24
+      82       0
+      83       0
+      84       0
+      85       0
+      86       0
+      87       0
+      88      24
+      89       0
+      90       0
+      91       0
+      92       0
+      93       0
+      94       0
+      95       0
+      96       0
+      97       0
+      98       0
+      99      24
+     100       0
+     101       0
+     102       0
+     103       0
+     104       0
+     105       0
+     106       0
+     107       0
+     108       0
+     109       0
+     110       0
+     111       0
+     112      24
+     113       0
+     114       0
+     115       0
+     116       0
+     117       0
+     118       0
+     119       0
+     120       8
  Support size distribution:
             min            max            avg
-   1.515000e+00   2.142534e+00   1.677694e+00
+   1.010000e+00   1.428356e+00   1.118463e+00
 
  MLS storage requirements:
- Total number of nodal neighbors . . . . . . . . = 3416
- Nodal shape function storage. . . . . . . . . . = 27328 bytes
- Nodal shape function derivatives storage. . . . = 81984 bytes
- Total number of integration point neighbors . . = 5440
- i.p. shape function storage . . . . . . . . . . = 348160 bytes
- i.p. shape function derivatives storage . . . . = 1044480 bytes
+ Total number of nodal neighbors . . . . . . . . = 16968
+ Nodal shape function storage. . . . . . . . . . = 135744 bytes
+ Nodal shape function derivatives storage. . . . = 407232 bytes
+ Total number of integration point neighbors . . = 12912
+ i.p. shape function storage . . . . . . . . . . = 826368 bytes
+ i.p. shape function derivatives storage . . . . = 2479104 bytes
 
  Search grid statistics:
  Number of grid cells. . . . . . . . . . . . . . = 27
@@ -322,6 +441,7 @@
     eq. 9, self-connecting rods with periodic BC's
     eq. 10, diamond cubic lattice with periodic BC's
     eq. 11, cohesive surface element
+    eq. 12, thermal surface element
     eq. 14, penalty contact
     eq. 16, augmented Lagrangian contact
     eq. 17, hyperelastic (total Lagrangian)
@@ -330,11 +450,22 @@
     eq. 20, hyperelastic MLS (total Lagrangian)
     eq. 21, linear diffusion element
     eq. 22, meshfree cohesive surface element
+    eq. 31, Staggered MultiScale Element (for VMS) 
+    eq. 68, Strict Anti-plane Shear gradient plasticity 
+    eq. 85, Meshfree gradient plasticity 
+    eq. 90, Enhanced strain embedded discontinuity 
+    eq. 70, Small Strain Stabilized, Conforming Nodally-Integrated Galerkin Mesh-free 
+    eq. 71, Finite Strain Stabilized Conforming Nodally-Integrated Galerkin Mesh-free 
     eq. 23, 3D contact using ACME
     eq. 24, 3D contact using Lagrange multipliers
-    eq. 25, 2D adhesion contact elements
+    eq. 28, 2D Lagrange multiplier contact elements
     eq. 30, 2D penalty contact elements
-    eq. 28, 2D contact using Lagrange multipliers
+    eq. 34, 3D penalty contact elements
+    eq. 35, Bridging Scale
+    eq. 36, Q1P0 mixed element
+    eq. 37, surface adhesion
+    eq. 38, Pair Potential
+    eq. 39, EAM Potential
  Element geometry code . . . . . . . . . . . . . = 1
     eq.0, line
     eq.1, quadrilateral
@@ -355,31 +486,39 @@
 
  S o l v e r   p a r a m e t e r s:
 
+ Group . . . . . . . . . . . . . . . . . . . . . = 0
  Global equation type. . . . . . . . . . . . . . = 1
     eq. 0, diagonal matrix
     eq. 1, profile solver (symmetric and nonsymmetric)
     eq. 2, full matrix (most general)
-    eq. 3, Aztec-based, sparse matrix with iterative solvers
+    eq. 3, NOT AVAILABLE
     eq. 4, NOT AVAILABLE
     eq. 5, sparse matrix with direct solver: SPOOLES
  Output global equation numbers. . . . . . . . . = 0
  Check code. . . . . . . . . . . . . . . . . . . = 1
-    eq. 0, do not perform rank check
-    eq. 1, zero/negative pivots
-    eq. 2, all pivots
-    eq. 3, entire LHS matrix
-    eq. 4, entire RHS vector
-    eq. 5, solution vector
+    eq. 0, no check
+    eq. 1, print zero/negative pivots
+    eq. 2, print all pivots
+    eq. 3, print LHS matrix
+    eq. 4, print RHS vector
+    eq. 5, print vector
+    eq. 6, check LHS matrix
 
  O p t i m i z a t i o n   P a r a m e t e r s :
 
  Maximum number of iterations. . . . . . . . . . = 10
+ Minimum number of iterations. . . . . . . . . . = 0
  Absolute convergence tolerance. . . . . . . . . = 1.000000e-10
  Relative convergence tolerance. . . . . . . . . = 1.000000e-12
  Divergence tolerance. . . . . . . . . . . . . . = 1.000000e+01
  Quick solution iteration count. (-1 to disable) = 6
  Number of quick solutions before step increase. = 3
  Iteration output print increment. . . . . . . . = 0
+
+ Multi-solver parameters: 1
+    rank   group       loop its.       pass its.
+       1       0              -1              -1
+ Maximum number of solver loops. . . . . . . . . = 1
 
  E q u a t i o n    S y s t e m    D a t a :
 
@@ -388,43 +527,52 @@
  Number of terms in global matrix. . . . . . . . = 186624
  Mean half bandwidth . . . . . . . . . . . . . . = 432
  Bandwidth . . . . . . . . . . . . . . . . . . . = 432
- Storage efficiency (% non-zero) . . . . . . . . = 9.969136e+01
+ Storage efficiency (% non-zero) . . . . . . . . = 1.000000e+02
 
 
  T i m e   S e q u e n c e : 1
 
+ NLSolver::Solve:
+      group = 1
+ iterations = -1
+ NLSolver::Solve:
+      group = 1
+ iterations = -1
 
  Matrix pivots:
-     min =    2.944449619066e+01
-     max =    6.205563615111e+02
-   |min| =    2.944449619066e+01
-   |max| =    6.205563615111e+02
+     min =    2.926748900127e+01
+     max =    6.220261393690e+02
+   |min| =    2.926748900127e+01
+   |max| =    6.220261393690e+02
 
  Matrix pivots:
-     min =    2.498636231665e+01
-     max =    6.220496049791e+02
-   |min| =    2.498636231665e+01
-   |max| =    6.220496049791e+02
+     min =    2.480424865190e+01
+     max =    6.241292561699e+02
+   |min| =    2.480424865190e+01
+   |max| =    6.241292561699e+02
 
  Matrix pivots:
-     min =    2.444150916438e+01
-     max =    6.217616601896e+02
-   |min| =    2.444150916438e+01
-   |max| =    6.217616601896e+02
+     min =    2.425467818136e+01
+     max =    6.239192237580e+02
+   |min| =    2.425467818136e+01
+   |max| =    6.239192237580e+02
 
  Matrix pivots:
-     min =    2.442451041404e+01
-     max =    6.217520474643e+02
-   |min| =    2.442451041404e+01
-   |max| =    6.217520474643e+02
+     min =    2.423745811917e+01
+     max =    6.239131845669e+02
+   |min| =    2.423745811917e+01
+   |max| =    6.239131845669e+02
 
  Matrix pivots:
-     min =    2.442448980653e+01
-     max =    6.217520293022e+02
-   |min| =    2.442448980653e+01
-   |max| =    6.217520293022e+02
+     min =    2.423743703165e+01
+     max =    6.239131701068e+02
+   |min| =    2.423743703165e+01
+   |max| =    6.239131701068e+02
 
  Converged at time = 1.000000e-01
+
+ Time = 1.000000e-01
+ Step 1 of 2
 
  time = 1.000000e-01
  Crack path data:
@@ -432,38 +580,44 @@
        2   0.000000e+00   0.000000e+00   0.000000e+00   0.000000e+00   2.510000e+00   0.000000e+00  -2.510000e+00   2.510000e+00   0.000000e+00  -2.510000e+00   0.000000e+00   0.000000e+00
        3   0.000000e+00   0.000000e+00   0.000000e+00  -2.510000e+00   0.000000e+00   0.000000e+00  -2.510000e+00  -2.510000e+00   0.000000e+00   0.000000e+00  -2.510000e+00   0.000000e+00
        4   0.000000e+00   0.000000e+00   0.000000e+00   0.000000e+00  -2.510000e+00   0.000000e+00   2.510000e+00  -2.510000e+00   0.000000e+00   2.510000e+00   0.000000e+00   0.000000e+00
+ NLSolver::Solve:
+      group = 1
+ iterations = -1
 
  Matrix pivots:
-     min =    2.990834176262e+01
-     max =    6.218881617251e+02
-   |min| =    2.990834176262e+01
-   |max| =    6.218881617251e+02
+     min =    2.974064280786e+01
+     max =    6.240734366924e+02
+   |min| =    2.974064280786e+01
+   |max| =    6.240734366924e+02
 
  Matrix pivots:
-     min =    2.538004105605e+01
-     max =    6.226462097041e+02
-   |min| =    2.538004105605e+01
-   |max| =    6.226462097041e+02
+     min =    2.521246075718e+01
+     max =    6.253528076677e+02
+   |min| =    2.521246075718e+01
+   |max| =    6.253528076677e+02
 
  Matrix pivots:
-     min =    2.483010518360e+01
-     max =    6.221026800370e+02
-   |min| =    2.483010518360e+01
-   |max| =    6.221026800370e+02
+     min =    2.466042722804e+01
+     max =    6.248738318488e+02
+   |min| =    2.466042722804e+01
+   |max| =    6.248738318488e+02
 
  Matrix pivots:
-     min =    2.481401665905e+01
-     max =    6.220809423716e+02
-   |min| =    2.481401665905e+01
-   |max| =    6.220809423716e+02
+     min =    2.464425891740e+01
+     max =    6.248549793210e+02
+   |min| =    2.464425891740e+01
+   |max| =    6.248549793210e+02
 
  Matrix pivots:
-     min =    2.481399969429e+01
-     max =    6.220809087659e+02
-   |min| =    2.481399969429e+01
-   |max| =    6.220809087659e+02
+     min =    2.464424177183e+01
+     max =    6.248549484638e+02
+   |min| =    2.464424177183e+01
+   |max| =    6.248549484638e+02
 
  Converged at time = 2.000000e-01
+
+ Time = 2.000000e-01
+ Step 2 of 2
 
  time = 2.000000e-01
  Crack path data:
@@ -472,10 +626,10 @@
        3   0.000000e+00   0.000000e+00   0.000000e+00  -2.510000e+00   0.000000e+00   0.000000e+00  -2.510000e+00  -2.510000e+00   0.000000e+00   0.000000e+00  -2.510000e+00   0.000000e+00
        4   0.000000e+00   0.000000e+00   0.000000e+00   0.000000e+00  -2.510000e+00   0.000000e+00   2.510000e+00  -2.510000e+00   0.000000e+00   2.510000e+00   0.000000e+00   0.000000e+00
 
-   Start time: Sun Mar  3 14:30:49 2002
- Construction: 2.200000e+00 sec.
-     Solution: 2.208900e+02 sec.
-    Stop time: Sun Mar  3 14:36:14 2002
+   Start time: Fri Jun 25 19:44:51 2004
+ Construction: 2.410000e+00 sec.
+     Solution: 9.594000e+01 sec.
+    Stop time: Fri Jun 25 19:47:03 2004
 
  End Execution
 

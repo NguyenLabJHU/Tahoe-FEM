@@ -143,7 +143,10 @@
     eq. 22, meshfree cohesive surface element
     eq. 31, Staggered MultiScale Element (for VMS) 
     eq. 68, Strict Anti-plane Shear gradient plasticity 
-    eq. 70, Stabilized, Conforming Nodally-Integrated Galerkin Mesh-free 
+    eq. 85, Meshfree gradient plasticity 
+    eq. 90, Enhanced strain embedded discontinuity 
+    eq. 70, Small Strain Stabilized, Conforming Nodally-Integrated Galerkin Mesh-free 
+    eq. 71, Finite Strain Stabilized Conforming Nodally-Integrated Galerkin Mesh-free 
     eq. 23, 3D contact using ACME
     eq. 24, 3D contact using Lagrange multipliers
     eq. 28, 2D Lagrange multiplier contact elements
@@ -250,32 +253,39 @@
  Number of sampling surfaces . . . . . . . . . . = 0
 
  MLS shape function data:
- Minimum number of nodal neighbors . . . . . . . = 4
- Maximum number of nodal neighbors . . . . . . . = 9
- Average number of nodal neighbors . . . . . . . = 5
+ Minimum number of nodal neighbors . . . . . . . = 9
+ Maximum number of nodal neighbors . . . . . . . = 16
+ Average number of nodal neighbors . . . . . . . = 11
  Nodal neighbor number distribution:
   number   count
        0       0
        1       0
        2       0
        3       0
-       4      12
-       5      12
-       6       8
+       4       0
+       5       0
+       6       0
        7       0
        8       0
-       9       4
+       9      12
+      10       0
+      11       0
+      12      16
+      13       4
+      14       0
+      15       0
+      16       4
  Support size distribution:
             min            max            avg
-   1.020100e+00   1.442639e+00   1.207895e+00
+   1.010000e+00   1.428356e+00   1.195936e+00
 
  MLS storage requirements:
- Total number of nodal neighbors . . . . . . . . = 192
- Nodal shape function storage. . . . . . . . . . = 1536 bytes
- Nodal shape function derivatives storage. . . . = 3072 bytes
- Total number of integration point neighbors . . = 276
- i.p. shape function storage . . . . . . . . . . = 35328 bytes
- i.p. shape function derivatives storage . . . . = 70656 bytes
+ Total number of nodal neighbors . . . . . . . . = 416
+ Nodal shape function storage. . . . . . . . . . = 3328 bytes
+ Nodal shape function derivatives storage. . . . = 6656 bytes
+ Total number of integration point neighbors . . = 372
+ i.p. shape function storage . . . . . . . . . . = 47616 bytes
+ i.p. shape function derivatives storage . . . . = 95232 bytes
 
  Search grid statistics:
  Number of grid cells. . . . . . . . . . . . . . = 4
@@ -295,7 +305,7 @@
     eq. 2, full matrix (most general)
     eq. 3, NOT AVAILABLE
     eq. 4, NOT AVAILABLE
-    eq. 5, NOT AVAILABLE
+    eq. 5, sparse matrix with direct solver: SPOOLES
  Output global equation numbers. . . . . . . . . = 0
  Check code. . . . . . . . . . . . . . . . . . . = 0
     eq. 0, no check
@@ -326,11 +336,11 @@
 
  Local number of equations . . . . . . . . . . . = 58
  Total number of equations . . . . . . . . . . . = 58
- Number of terms in global matrix. . . . . . . . = 1473
- Mean half bandwidth . . . . . . . . . . . . . . = 26
- Bandwidth . . . . . . . . . . . . . . . . . . . = 49
- Number of non-zero values (pre-factorization) . = 1176
- Storage efficiency (% non-zero) . . . . . . . . = 7.983707e+01
+ Number of terms in global matrix. . . . . . . . = 1648
+ Mean half bandwidth . . . . . . . . . . . . . . = 29
+ Bandwidth . . . . . . . . . . . . . . . . . . . = 50
+ Number of non-zero values (pre-factorization) . = 1515
+ Storage efficiency (% non-zero) . . . . . . . . = 9.192961e+01
 
 
  T i m e   S e q u e n c e : 1
@@ -352,10 +362,10 @@
  time = 1.000000e+00
  Crack path data:
 
-   Start time: Sun Feb 29 18:52:36 2004
- Construction: 1.000000e-02 sec.
-     Solution: 2.100000e-01 sec.
-    Stop time: Sun Feb 29 18:52:37 2004
+   Start time: Fri Jun 25 19:49:21 2004
+ Construction: 2.000000e-02 sec.
+     Solution: 2.000000e-01 sec.
+    Stop time: Fri Jun 25 19:49:22 2004
 
  End Execution
 
