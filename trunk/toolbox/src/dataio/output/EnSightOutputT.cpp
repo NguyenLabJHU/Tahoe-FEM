@@ -1,5 +1,5 @@
-/* $Id: EnSightOutputT.cpp,v 1.4 2001-10-17 19:07:15 sawimme Exp $ */
-/* created: sawimme (05/18/1999)                                          */
+/* $Id: EnSightOutputT.cpp,v 1.5 2001-12-16 23:57:06 paklein Exp $ */
+/* created: sawimme (05/18/1999) */
 
 #include "EnSightOutputT.h"
 
@@ -22,7 +22,7 @@ void EnSightOutputT::WriteGeometry (void)
 {
   int dof = fCoordinates->MinorDim();
   EnSightT ens (fout, fBinary, dof);
-
+  
   // write geometry file
   ofstream geo;
   StringT geocase = OpenGeometryFile (ens, geo, -1);
@@ -55,9 +55,8 @@ void EnSightOutputT::WriteGeometry (void)
 
 void EnSightOutputT::WriteOutput (double time, int ID, const dArray2DT& n_values, const dArray2DT& e_values)
 {
+  //cout << "***** writing " << ID << endl;
   OutputBaseT::WriteOutput (time, ID, n_values, e_values);
-  
-  //cout << "\n\n***********  Writing Output " << ID << " " << time << endl << endl; 
   
   // save time value
   if (fElementSets[ID]->PrintStep() == fTimeValues.Length())
@@ -76,7 +75,9 @@ void EnSightOutputT::WriteOutput (double time, int ID, const dArray2DT& n_values
   AutoArrayT<EnSightT::VariableTypeT> vtypes;
   const ArrayT<StringT>& n_labels = fElementSets[ID]->NodeOutputLabels();
   const ArrayT<StringT>& e_labels = fElementSets[ID]->NodeOutputLabels();
-  WriteVariable (ens, true, ID, n_values, n_labels, names, files, vtypes);
+  if (n_values.MajorDim() > 0)
+    WriteVariable (ens, true, ID, n_values, n_labels, names, files, vtypes);
+  if (e_values.MajorDim() > 0)
   WriteVariable (ens, false, ID, e_values, e_labels, names, files, vtypes);
   
   // write case file
@@ -137,7 +138,7 @@ StringT EnSightOutputT::OpenGeometryFile (EnSightT& ens, ofstream& geo, int ID) 
   header[h++] = "element id assign";
   ens.WriteHeader (geo, header);
   
-  return geocase;
+return geocase;
 }
 
 StringT EnSightOutputT::CreateFileName (const StringT& Label, int increment, int groupnumber) const
@@ -146,7 +147,7 @@ StringT EnSightOutputT::CreateFileName (const StringT& Label, int increment, int
   
   /* tack on sequence number */
   if (fSequence > 0) var.Append(".sq", fSequence + 1);
-
+  
   /* tack on group number */
   if (groupnumber > 0)
     var.Append (".gp", groupnumber);
@@ -169,14 +170,18 @@ StringT EnSightOutputT::CreateFileName (const StringT& Label, int increment, int
 
 void EnSightOutputT::WritePart (ostream& geo, EnSightT& ens, int index) const
 {
-  StringT description = fOutroot;
-  description.Append (" Grp ", fElementSets[index]->ID());
-  ens.WritePartInfo (geo, fElementSets[index]->ID(), description);
+  const iArrayT& blockIDs = fElementSets[index]->BlockID();
+  for (int b=0; b < fElementSets[index]->NumBlocks(); b++)
+    {
+      StringT description = fOutroot;
+      description.Append (" Grp ", fElementSets[index]->ID());
+      description.Append (".", blockIDs[b]);
+      ens.WritePartInfo (geo, blockIDs[b], description);
   
-  iArrayT nodes_used;
-  nodes_used.Alias (fElementSets[index]->NodesUsed());
-  WriteCoordinates (geo, ens, nodes_used);
-  WriteConnectivity (geo, ens, nodes_used, index);
+      const iArrayT& nodes_used = fElementSets[index]->BlockNodesUsed(b);
+      WriteCoordinates (geo, ens, nodes_used);
+      WriteConnectivity (geo, ens, nodes_used, index, b);
+    }
 }
 
 void EnSightOutputT::WriteCoordinates (ostream& geo, EnSightT& ens, const iArrayT& nodes) const
@@ -188,15 +193,14 @@ void EnSightOutputT::WriteCoordinates (ostream& geo, EnSightT& ens, const iArray
   ens.WriteCoordinates (geo, local);
 }
 
-void EnSightOutputT::WriteConnectivity (ostream& geo, EnSightT& ens, const iArrayT& nodes_used, int i) const
+void EnSightOutputT::WriteConnectivity (ostream& geo, EnSightT& ens, const iArrayT& nodes_used, int i, int block) const
 {
-  const iArray2DT& connects = fElementSets[i]->Connectivities();
-  int numelems = connects.MajorDim();
-  int numelemnodes = connects.MinorDim();
-  int outputnodes = ens.WriteConnectivityHeader (geo, fElementSets[i]->Geometry(), numelems, numelemnodes);
+  const iArray2DT* connects = fElementSets[i]->Connectivities(block);
+  int outputnodes = ens.WriteConnectivityHeader (geo, fElementSets[i]->Geometry(), 
+						 connects->MajorDim(), connects->MinorDim());
   
-  iArray2DT localconn (numelems, numelemnodes);
-  LocalConnectivity (nodes_used, connects, localconn);
+  iArray2DT localconn (connects->MajorDim(), connects->MinorDim());
+  LocalConnectivity (nodes_used, *connects, localconn);
   localconn++;
   ens.WriteConnectivity (geo, outputnodes, localconn);
 }
@@ -206,15 +210,34 @@ void EnSightOutputT::WriteVariable (EnSightT& ens, bool nodal, int ID,
 				    AutoArrayT<StringT>& names, AutoArrayT<StringT>& files,
 				    AutoArrayT<EnSightT::VariableTypeT>& vtypes) const
 {
+  // extract block values from output set
+  ArrayT<dArray2DT> blockvalues(fElementSets[ID]->NumBlocks());
+  for (int block=0; block < fElementSets[ID]->NumBlocks(); block++)
+    {
+      if (nodal)
+	{
+	  iArrayT nodes_used;
+	  NodalBlockValues (ID, block, values, blockvalues[block], nodes_used);
+	}
+      else
+	{
+	  blockvalues[block].Allocate (fElementSets[ID]->NumBlockElements(block), values.MinorDim());
+	  ElementBlockValues (ID, block, values, blockvalues[block]);
+	}
+    }
+  const iArrayT& blockIDs = fElementSets[ID]->BlockID();
+
+  // print each variable to a separate file
   int dof = fCoordinates->MinorDim();
   for (int n=0; n < values.MinorDim(); n++)
     {
+
       // determine variable name
       StringT extension;
       bool vector = IsVector (labels, n, extension, dof);
       names.Append (extension);
       
-      // open variable file 
+      // create variable file name
       StringT varfile = CreateFileName (extension, fElementSets[ID]->PrintStep(), fElementSets[ID]->ID());
       StringT varcase = CreateFileName (extension, kWildFile, fElementSets[ID]->ID());
       
@@ -223,7 +246,6 @@ void EnSightOutputT::WriteVariable (EnSightT& ens, bool nodal, int ID,
 	files.Append (varfile);
       else
 	files.Append (varcase);
-      //cout << "********" << varfile << endl;
       
       // open file
       ofstream var (varfile);
@@ -232,20 +254,29 @@ void EnSightOutputT::WriteVariable (EnSightT& ens, bool nodal, int ID,
       header[0].Append (" ", fElementSets[ID]->PrintStep());
       ens.WriteHeader (var, header);
       
-      // write part information
-      StringT name = "coordinates";
-      if (!nodal)
+      // write this variable's values for each block to the same file
+      for (int block=0; block < fElementSets[ID]->NumBlocks(); block++)
 	{
-	  const iArray2DT& connects = fElementSets[ID]->Connectivities();
-	  int numelemnodes = connects.MinorDim();
-	  ens.GetElementName (name, numelemnodes, fElementSets[ID]->Geometry());
+	  // write part information
+	  StringT name = "coordinates";
+	  if (!nodal)
+	    {
+	      const iArray2DT* connects = fElementSets[ID]->Connectivities(block);
+	      int numelemnodes = connects->MinorDim();
+	      ens.GetElementName (name, numelemnodes, fElementSets[ID]->Geometry());
+	    }
+	  ens.WritePartInfo (var, blockIDs[block], name);
+
+	  // write values
+	  if (vector)
+	    ens.WriteVector (var, blockvalues[block], n);
+	  else
+	    ens.WriteScalar (var, blockvalues[block], n);
 	}
-      ens.WritePartInfo (var, fElementSets[ID]->ID(), name);
-      
-      // write values
+
+      /* save variable types for case file and increment n if vector */
       if (vector)
 	{
-	  ens.WriteVector (var, values, n);
 	  n += dof - 1;
 	  if (nodal)
 	    vtypes.Append (EnSightT::kVectorNodal);
@@ -254,25 +285,24 @@ void EnSightOutputT::WriteVariable (EnSightT& ens, bool nodal, int ID,
 	}
       else
 	{
-	  ens.WriteScalar (var, values, n);
 	  if (nodal)
 	    vtypes.Append (EnSightT::kScalarNodal);
 	  else
 	    vtypes.Append (EnSightT::kScalarElemental);
 	}
-}
+    }
 }
 
 bool EnSightOutputT::IsVector (const ArrayT<StringT>& inlabels, int index, StringT& extension, int dof) const
 {
 	extension = inlabels[index];
 
+	// weed out scalar variables
 	if ((strstr ((const char*) inlabels[index], "_x")) == NULL &&
-        (strstr ((const char*) inlabels[index], "_X")) == NULL)
-		return false;
-	else
-		extension.Drop(-2);
+	    (strstr ((const char*) inlabels[index], "_X")) == NULL)
+	  return false;
 
+	// ensure that 2D and 3D variables have a Y component
 	if (dof >= 2)
 	  {
 	    if (inlabels.Length() < index+1)
@@ -281,6 +311,8 @@ bool EnSightOutputT::IsVector (const ArrayT<StringT>& inlabels, int index, Strin
 		 (strstr ((const char*) inlabels[index+1], "_Y")) == NULL)
 	      return false;
 	  }
+
+	// ensure that 3D variables have a Z component
 	if (dof == 3)
 	  {
 	    if (inlabels.Length() < index+2)
@@ -289,16 +321,9 @@ bool EnSightOutputT::IsVector (const ArrayT<StringT>& inlabels, int index, Strin
 		 (strstr ((const char*) inlabels[index+2], "_Z")) == NULL)
 	      return false;
 	  }
-	
-	//DEPRECATRED
-#if 0
-	// create vector extension
-	if ( (strstr ((const char*) inlabels[index], "_x")) != NULL)
-	  extension.DefaultName (inlabels[index], "_x", "", -1);
-	else
-	  extension.DefaultName (inlabels[index], "_X", "", -1);
-#endif
-	
+
+	// we have a vector, now create the proper extension
+	extension.Drop(-2);
 	return true;
 }
 
