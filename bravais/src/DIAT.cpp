@@ -19,23 +19,8 @@ DIAT::DIAT(int nlsd,int nuca,dArrayT alat,
 
   if (nlsd==2)
     {
-      if(nuca != 2) {cout << "Wrong nuca\n"; throw eSizeMismatch;}
-      vBasis(0,0) = 0.0;
-      vBasis(1,0) = 0.0;
-
-      vBasis(0,1) = 0.25;
-      vBasis(1,1) = 0.25;
-
-      // Define basis vectors
-      vAxis(0,0) = vLatticeParameters[0];
-      vAxis(1,0) = 0.0;
-      
-      vAxis(0,1) = 0.0;
-      vAxis(1,1) = vLatticeParameters[1];
-
-      // Rotate axis if necessary
-      if (fabs(angle_rotation) >=1.e-5) 
-      	vAxis = AxisRotation(vAxis);
+      cout << "Cannot create a 2-dimensional DIA lattice!" << "\n";
+      throw eBadInputValue;
     }
   
   if (nlsd==3) 
