@@ -1,4 +1,4 @@
-/* $Id: XuNeedleman2DT.h,v 1.10 2003-05-26 01:51:46 paklein Exp $ */
+/* $Id: XuNeedleman2DT.h,v 1.10.18.1 2004-03-18 17:51:46 paklein Exp $ */
 /* created: paklein (11/14/1997) */
 
 #ifndef _XU_NEEDLE_2D_T_H_
@@ -19,6 +19,7 @@ public:
 
 	/** constructor */
 	XuNeedleman2DT(ifstreamT& in);
+	XuNeedleman2DT(void);
 
 	/** return the number of state variables needed by the model */
 	int NumStateVariables(void) const { return 0; };
@@ -44,22 +45,35 @@ public:
 
 	/** write model parameters */
 	virtual void Print(ostream& out) const;
-	
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters  */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
+
 private:
 
-	/* traction potential parameters */
-	double q;     // phi_t/phi_n
-	double r;     // delta_n* /d_n
+	/** \name traction potential parameters */
+	/*@{*/
+	double q;     /**< \f$ \phi_t/\phi_n \f$ */
+	double r;     /**< \f$ \delta_n^* /\delta_n \f$ */
 	
-	double d_n;   // characteristic normal opening
-	double d_t;   // characteristic tangent opening  	
-	double phi_n; // mode I work to fracture
+	double d_n;   /**< characteristic normal opening \f$ \delta_n \f$ */
+	double d_t;   /**< characteristic tangent opening \f$ \delta_t \f$ */	
+	double phi_n; /**< mode I work to fracture \f$ \phi_n \f$ */
 
-	double r_fail; // d/d_(n/t) for which surface is considered failed
+	double r_fail; /**< \f$ \Delta/\delta_{n,t} \f$ for which surface is considered failed */
+	/*@}*/
 
-/* additional penetration stiffness */
-double fKratio; // stiffening ratio
-double fK;
+	/** \name additional penetration stiffness */
+	/*@{*/
+	double fKratio; /**< stiffening ratio */
+	double fK;
+	/*@}*/
 };
 
 } // namespace Tahoe 

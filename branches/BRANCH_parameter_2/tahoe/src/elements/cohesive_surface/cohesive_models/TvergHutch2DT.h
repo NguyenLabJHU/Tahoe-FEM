@@ -1,4 +1,4 @@
-/* $Id: TvergHutch2DT.h,v 1.10 2003-05-26 01:51:46 paklein Exp $ */
+/* $Id: TvergHutch2DT.h,v 1.10.18.1 2004-03-18 17:51:46 paklein Exp $ */
 /* created: paklein (02/05/2000) */
 
 #ifndef _TVERG_HUTCH_2D_T_H_
@@ -21,6 +21,7 @@ public:
 
 	/** constructor */
 	TvergHutch2DT(ifstreamT& in);
+	TvergHutch2DT(void);
 
 	/** return the number of state variables needed by the model */
 	int NumStateVariables(void) const { return 0; };
@@ -59,6 +60,15 @@ public:
 	 * \param destination of output values. Allocated by the host code */
 	virtual void ComputeOutput(const dArrayT& jump, const ArrayT<double>& state, 
 		dArrayT& output);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters  */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
