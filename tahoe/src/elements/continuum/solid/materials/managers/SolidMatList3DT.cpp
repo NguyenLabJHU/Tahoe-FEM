@@ -1,4 +1,4 @@
-/* $Id: SolidMatList3DT.cpp,v 1.24.2.1 2002-12-08 23:47:36 paklein Exp $ */
+/* $Id: SolidMatList3DT.cpp,v 1.24.2.2 2002-12-10 17:06:59 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList3DT.h"
 #include "MaterialsConfig.h"
@@ -11,20 +11,16 @@
 #include "FDCubicT.h"
 #include "QuadLog3D.h"
 #include "SimoIso3D.h"
-#include "J2Simo3D.h"
 #include "DPSSKStV.h"
-#include "J2SSKStV.h"
-#include "J2QLLinHardT.h"
 #include "QuadLogOgden3DT.h"
 #include "FossumSSIsoT.h"
-#include "FDCrystalElast.h"
 #include "tevp3D.h"
 #include "LocalJ2SSNonlinHard.h"
 #include "GradJ2SSNonlinHard.h"
 #include "ABAQUS_BCJ.h"
 #include "ABAQUS_VUMAT_BCJ.h"
 
-#ifdef EAM_MATERIAL
+#ifdef CAUCHY_BORN_MATERIAL
 #include "EAMFCC3DMatT.h"
 #endif
 
@@ -63,6 +59,16 @@
 #include "BCJHypo3D.h"
 #include "BCJHypoIsoDamageKE3D.h"
 #include "BCJHypoIsoDamageYC3D.h"
+#endif
+
+#ifdef PLASTICITY_J2_MATERIAL
+#include "J2Simo3D.h"
+#include "J2SSKStV.h"
+#include "J2QLLinHardT.h"
+#endif
+
+#ifdef ELASTICITY_CRYSTAL_MATERIAL
+#include "FDCrystalElast.h"
 #endif
 
 using namespace Tahoe;
@@ -162,30 +168,42 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 			}
 			case kJ2SSKStV:
 			{
+#ifdef PLASTICITY_J2_MATERIAL
 				/* check */
 				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 	
 				fArray[matnum] = new J2SSKStV(in, *fSSMatSupport);
 				fHasHistory = true;														
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "PLASTICITY_J2_MATERIAL not enabled: %d", matcode);
+#endif
 			}
 			case kJ2Simo:
 			{
+#ifdef PLASTICITY_J2_MATERIAL
 				/* check */
 				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
 				fArray[matnum] = new J2Simo3D(in, *fFDMatSupport);
 				fHasHistory = true;														
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "PLASTICITY_J2_MATERIAL not enabled: %d", matcode);
+#endif
 			}
 			case kJ2QL:
 			{
+#ifdef PLASTICITY_J2_MATERIAL
 				/* check */
 				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
 				fArray[matnum] = new J2QLLinHardT(in, *fFDMatSupport);
 				fHasHistory = true;														
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "PLASTICITY_J2_MATERIAL not enabled: %d", matcode);
+#endif
 			}
 			case kDPSSKStV:
 			{
@@ -198,14 +216,14 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 			}
 			case kFCCEAM:
 			{
-#ifdef EAM_MATERIAL
+#ifdef CAUCHY_BORN_MATERIAL
 				/* check */
 				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
 				fArray[matnum] = new EAMFCC3DMatT(in, *fFDMatSupport);
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "EAM_MATERIAL not enabled: %d", matcode);
+				ExceptionT::BadInputValue(caller, "CAUCHY_BORN_MATERIAL not enabled: %d", matcode);
 #endif
 			}
 			case kmodCauchyBornDC:
@@ -345,11 +363,15 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 			}
 			case kFDXtalElast:
 			{
+#ifdef ELASTICITY_CRYSTAL_MATERIAL
 				/* check */
 				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
 				fArray[matnum] = new FDCrystalElast(in, *fFDMatSupport);
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "ELASTICITY_CRYSTAL_MATERIAL not enabled: %d", matcode);
+#endif
 			}
 			case kLocXtalPlast:
 			{
@@ -475,39 +497,55 @@ void SolidMatList3DT::ReadMaterialData(ifstreamT& in)
 			}			
 			case kRGNeoHookean:
 			{
+#ifdef REESE_GOVINDJEE_MATERIAL
 				/* check */
 				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
 				fArray[matnum] = new RG_NeoHookean3D(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "REESE_GOVINDJEE_MATERIAL not enabled: %d", matcode);
+#endif
 			}
 			case kSVNeoHookean:
 			{
+#if SIMO_HOLZAPFEL_MATERIAL
 				/* check */
 				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
 				fArray[matnum] = new SV_NeoHookean3D(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "SIMO_HOLZAPFEL_MATERIAL not enabled: %d", matcode);
+#endif
 			}
 			case kFDSVKStV:
 			{
+#if SIMO_HOLZAPFEL_MATERIAL
 				/* check */
 				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
 				fArray[matnum] = new FDSV_KStV3D(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "SIMO_HOLZAPFEL_MATERIAL not enabled: %d", matcode);
+#endif
 			}
 			case kSSSVKStV:
 			{
+#if SIMO_HOLZAPFEL_MATERIAL
 				/* check */
 				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 
 				fArray[matnum] = new SSSV_KStV3D(in, *fSSMatSupport);
 				fHasHistory = true;
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "SIMO_HOLZAPFEL_MATERIAL not enabled: %d", matcode);
+#endif
 			}
 //TEMP
 #if 0

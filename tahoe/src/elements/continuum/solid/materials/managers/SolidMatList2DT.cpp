@@ -1,4 +1,4 @@
-/* $Id: SolidMatList2DT.cpp,v 1.26.2.1 2002-12-08 23:47:36 paklein Exp $ */
+/* $Id: SolidMatList2DT.cpp,v 1.26.2.2 2002-12-10 17:06:59 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "SolidMatList2DT.h"
 #include "MaterialsConfig.h"
@@ -9,16 +9,10 @@
 #include "FDKStV2D.h"
 #include "SSCubic2DT.h"
 #include "FDCubic2DT.h"
-#include "LJTr2D.h"
-#include "LJFCC111.h"
 #include "SimoIso2D.h"
-#include "J2SSKStV2D.h"
-#include "J2Simo2D.h"
 #include "QuadLog2D.h"
 #include "FossumSSIso2DT.h"
-#include "J2QL2DLinHardT.h"
 #include "DPSSKStV2D.h"
-#include "D2VIB2D_a.h"
 #include "LocalJ2SSNonlinHard2D.h"
 #include "GradJ2SSNonlinHard2D.h"
 #include "ABAQUS_BCJ.h"
@@ -27,8 +21,10 @@
 #include "tevp2D.h"
 #include "povirk2D.h"
 
-#ifdef EAM_MATERIAL
+#ifdef CAUCHY_BORN_MATERIAL
 #include "EAMFCC2D.h"
+#include "LJTr2D.h"
+#include "LJFCC111.h"
 #endif
 
 #ifdef MODCBSW_MATERIAL
@@ -41,6 +37,7 @@
 #include "IsoVIB2D.h"
 #include "J2IsoVIB2DLinHardT.h"
 #include "VIB2D.h"
+#include "D2VIB2D_a.h"
 #include "OgdenIsoVIB2D.h"
 #endif
 
@@ -56,6 +53,12 @@
 #include "GradCrystalPlast2D.h"
 #include "LocalCrystalPlastFp2D.h"
 #include "GradCrystalPlastFp2D.h"
+#endif
+
+#ifdef PLASTICITY_J2_MATERIAL
+#include "J2SSKStV2D.h"
+#include "J2Simo2D.h"
+#include "J2QL2DLinHardT.h"
 #endif
 
 #ifdef REESE_GOVINDJEE_MATERIAL
@@ -160,30 +163,42 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			}
 			case kJ2SSKStV:
 			{
+#ifdef PLASTICITY_J2_MATERIAL
 				/* check */
 				if (!fSSMatSupport) Error_no_small_strain(cout, matcode);
 			
 				fArray[matnum] = new J2SSKStV2D(in, *fSSMatSupport);
 				fHasHistory = true;															
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "PLASTICITY_J2_MATERIAL not enabled: %d", matcode);
+#endif
 			}
 			case kJ2Simo:
 			{
+#ifdef PLASTICITY_J2_MATERIAL
 				/* check */
 				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 			
 				fArray[matnum] = new J2Simo2D(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "PLASTICITY_J2_MATERIAL not enabled: %d", matcode);
+#endif
 			}
 			case kJ2QL:
 			{
+#ifdef PLASTICITY_J2_MATERIAL
 				/* check */
 				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 			
 				fArray[matnum] = new J2QL2DLinHardT(in, *fFDMatSupport);
 				fHasHistory = true;
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "PLASTICITY_J2_MATERIAL not enabled: %d", matcode);
+#endif
 			}
 			case kDPSSKStV:
 			{
@@ -196,23 +211,31 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 			}
 			case kLJTr2D:
 			{
+#ifdef CAUCHY_BORN_MATERIAL
 				/* check */
 				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
 				fArray[matnum] = new LJTr2D(in, *fFDMatSupport);
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "CAUCHY_BORN_MATERIAL not enabled: %d", matcode);
+#endif
 			}
 			case kLJFCC111:
 			{
+#ifdef CAUCHY_BORN_MATERIAL
 				/* check */
 				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 
 				fArray[matnum] = new LJFCC111(in, *fFDMatSupport);
 				break;
+#else
+				ExceptionT::BadInputValue(caller, "CAUCHY_BORN_MATERIAL not enabled: %d", matcode);
+#endif
 			}
 			case kFCCEAM:
 			{
-#ifdef EAM_MATERIAL
+#ifdef CAUCHY_BORN_MATERIAL
 				/* check */
 				if (!fFDMatSupport) Error_no_finite_strain(cout, matcode);
 			
@@ -229,7 +252,7 @@ void SolidMatList2DT::ReadMaterialData(ifstreamT& in)
 				fArray[matnum] = new EAMFCC2D(in, *fFDMatSupport, plane_code);			
 				break;
 #else
-				ExceptionT::BadInputValue(caller, "EAM_MATERIAL not enabled: %d", matcode);
+				ExceptionT::BadInputValue(caller, "CAUCHY_BORN_MATERIAL not enabled: %d", matcode);
 #endif
 			}
 			case kmodCauchyBornDC:

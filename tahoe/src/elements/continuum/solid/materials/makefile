@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.17.2.1 2002-12-08 23:47:33 paklein Exp $
+# $Id: makefile,v 1.17.2.2 2002-12-10 17:06:58 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -29,13 +29,10 @@ SUB_DIR = \
 	interfaces \
 	ABAQUS_UMAT \
 	ABAQUS_VUMAT \
-	CB \
-	elasticity_crystl \
 	fossum \
 	Hookean \
 	Ogden \
 	plasticity_DP \
-	plasticity_J2 \
 	plasticity_J2NlHard \
 	rod \
 	Simo \
