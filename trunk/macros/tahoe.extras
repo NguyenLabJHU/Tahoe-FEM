@@ -1,4 +1,4 @@
-# $Id: tahoe.extras,v 1.15 2004-07-27 16:58:55 paklein Exp $
+# $Id: tahoe.extras,v 1.16 2004-08-03 19:08:24 paklein Exp $
 #
 # additional make commands for the tahoe module
 #
@@ -41,6 +41,7 @@ touch_f2c:
 touch_SEACAS:
 	@ $(PRINTF) "removing object files depending on SEACAS\n"
 	- $(RM) $(BLD_SRC_DIR)/main/IO*.o
+	- $(RM) $(BLD_SRC_DIR)/main/FEManagerT.o	
 	@ $(PRINTF) "NOTE: toolbox must also be up to date\n"
 
 touch_MPI:
