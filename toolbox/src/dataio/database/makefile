@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.7 2001-09-04 14:39:47 sawimme Exp $
+# $Id: makefile,v 1.7.2.1 2001-11-06 14:20:39 sawimme Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -36,6 +36,7 @@ HDR = \
 	AVST.h \
 	AbaqusT.h \
 	AbaqusResultsT.h \
+	AbaqusVariablesT.h \
 	EnSightT.h \
 	ExodusT.h \
 	ModelFileT.h \
