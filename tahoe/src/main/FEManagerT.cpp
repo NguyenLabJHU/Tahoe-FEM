@@ -1,4 +1,4 @@
-/* $Id: FEManagerT.cpp,v 1.70.2.8 2004-02-26 08:59:32 paklein Exp $ */
+/* $Id: FEManagerT.cpp,v 1.70.2.9 2004-03-22 18:38:46 paklein Exp $ */
 /* created: paklein (05/22/1996) */
 #include "FEManagerT.h"
 
@@ -1221,6 +1221,8 @@ void FEManagerT::TakeParameterList(const ParameterListT& list)
 	    
 	    fReadRestart = true; //TEMP - still need this?
 	}
+	else
+		fReadRestart = false; //TEMP - still need this?
 	fWriteRestart = list.GetParameter("restart_output_inc");
 
 	/* verbose echo */
