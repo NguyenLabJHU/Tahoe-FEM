@@ -1,4 +1,4 @@
-/* $Id: ifstreamT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: ifstreamT.cpp,v 1.2 2001-02-20 00:07:27 paklein Exp $ */
 /* created: paklein (03/03/1999)                                          */
 /* interface                                                              */
 
@@ -283,8 +283,8 @@ int ifstreamT::OpenWithPrompt(const char* prompt, const char* skipname,
 		if (defaultname != NULL && strlen(defaultname) > 0)
 		{
 			cout << ", <RETURN> for \"" << defaultname << "\"): ";
-#if (defined __SGI__ && defined __MPI__)
-			cout << '\n';
+#ifdef __SGI__
+			cout.flush();
 #endif
 			
 			/* new filename */
@@ -303,8 +303,8 @@ int ifstreamT::OpenWithPrompt(const char* prompt, const char* skipname,
 		else
 		{
 			cout << "): ";
-#if (defined __SGI__ && defined __MPI__)
-			cout << '\n';
+#ifdef __SGI__
+			cout.flush();
 #endif					
 			cin >> newfilename;
 		}
