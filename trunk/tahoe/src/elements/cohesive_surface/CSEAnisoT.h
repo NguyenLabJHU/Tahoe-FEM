@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.h,v 1.30 2003-08-08 01:01:24 paklein Exp $ */
+/* $Id: CSEAnisoT.h,v 1.31 2003-08-14 05:51:27 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #ifndef _CSE_ANISO_T_H_
 #define _CSE_ANISO_T_H_
@@ -29,6 +29,7 @@ public:
 	/* constructors */
 #ifndef _FRACTURE_INTERFACE_LIBRARY_
 	CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool rotate);
+	CSEAnisoT(const ElementSupportT& support);
 #else
 	CSEAnisoT(ElementSupportT& support, bool rotate);
 #endif
@@ -74,6 +75,12 @@ public:
 	/** set the active elements.
 	 * \param array of status flags for all elements in the group */
 	virtual void SetStatus(const ArrayT<StatusT>& status);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
 
 protected:
 

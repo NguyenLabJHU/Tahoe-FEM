@@ -1,4 +1,4 @@
-/* $Id: CSEBaseT.cpp,v 1.24 2003-05-28 23:15:23 cjkimme Exp $ */
+/* $Id: CSEBaseT.cpp,v 1.25 2003-08-14 05:51:27 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 
 #include "CSEBaseT.h"
@@ -30,6 +30,8 @@ CSEBaseT::CSEBaseT(const ElementSupportT& support, const FieldT& field):
 	fFractureArea(0.0),
 	fShapes(NULL)
 {
+	SetName("CSE_base");
+	
 	/* read control parameters */
 	ifstreamT& in = ElementSupport().Input();
 
@@ -60,6 +62,16 @@ CSEBaseT::CSEBaseT(const ElementSupportT& support, const FieldT& field):
 	if (fOutputArea != 0 &&
 	    fOutputArea != 1) throw ExceptionT::kBadInputValue;
 }
+
+CSEBaseT::CSEBaseT(const ElementSupportT& support):
+	ElementBaseT(support),
+	fLocInitCoords1(LocalArrayT::kInitCoords),
+	fLocCurrCoords(LocalArrayT::kCurrCoords),
+	fFractureArea(0.0),
+	fShapes(NULL)
+{
+	SetName("CSE_base");	
+}
 #else
 /* constructor */
 CSEBaseT::CSEBaseT(ElementSupportT& support):
@@ -69,6 +81,8 @@ CSEBaseT::CSEBaseT(ElementSupportT& support):
 	fFractureArea(0.0),
 	fShapes(NULL)
 {
+	SetName("CSE_base");
+
 	int i_code = ElementSupport().ReturnInputInt(ElementSupportT::kGeometryCode);
 	switch (i_code)
 	{
@@ -450,9 +464,33 @@ void CSEBaseT::SendOutput(int kincode)
 	ComputeOutput(n_counts, n_values, e_counts, e_values);
 }
 
+/* describe the parameters needed by the interface */
+void CSEBaseT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	ElementBaseT::DefineParameters(list);
+
+	/* geometry code */
+	ParameterT geometry(ParameterT::Enumeration, "geometry");
+	geometry.AddEnumeration("line", GeometryT::kLine);
+	geometry.AddEnumeration("quadrilateral", GeometryT::kQuadrilateral);
+	geometry.AddEnumeration("triangle", GeometryT::kTriangle);
+	list.AddParameter(geometry);
+
+	list.AddParameter(fNumIntPts, "integration_points");
+	
+	ParameterT close_surfaces(ParameterT::Boolean, "close_surfaces");
+	close_surfaces.SetDefault(false);
+	list.AddParameter(close_surfaces);
+	
+	ParameterT output_area(ParameterT::Boolean, "output_area");
+	output_area.SetDefault(false);
+	list.AddParameter(output_area);
+}
+
 /***********************************************************************
-* Protected
-***********************************************************************/
+ * Protected
+ ***********************************************************************/
 
 /* print element group data */
 void CSEBaseT::PrintControlData(ostream& out) const

@@ -1,4 +1,4 @@
-/* $Id: CSEAnisoT.cpp,v 1.51 2003-08-08 01:02:20 paklein Exp $ */
+/* $Id: CSEAnisoT.cpp,v 1.52 2003-08-14 05:51:27 paklein Exp $ */
 /* created: paklein (11/19/1997) */
 #include "CSEAnisoT.h"
 
@@ -60,8 +60,20 @@ CSEAnisoT::CSEAnisoT(const ElementSupportT& support, const FieldT& field, bool r
 	fddU(NumSD()),
 	fRunState(support.RunState())
 {
+	SetName("anisotropic_CSE");
+
 	/* reset format for the element stiffness matrix */
 	if (fRotate) fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
+}
+
+/* constructor */
+CSEAnisoT::CSEAnisoT(const ElementSupportT& support):
+	CSEBaseT(support),
+	fRotate(true),
+	fCurrShapes(NULL),
+	fRunState(support.RunState())
+{
+	SetName("anisotropic_CSE");
 }
 #else
 CSEAnisoT::CSEAnisoT(ElementSupportT& support, bool rotate):
@@ -73,6 +85,8 @@ CSEAnisoT::CSEAnisoT(ElementSupportT& support, bool rotate):
 	fT(NumSD()),
 	fddU(NumSD())
 {
+	SetName("anisotropic_CSE");
+
 	/* reset format for the element stiffness matrix */
 	if (fRotate) fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
 }
@@ -600,6 +614,17 @@ void CSEAnisoT::ReadRestart(double* incomingData)
 //		freeNodeQ_last = freeNodeQ;
 }
 #endif
+
+/* describe the parameters needed by the interface */
+void CSEAnisoT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	CSEBaseT::DefineParameters(list);
+
+	ParameterT rotate_frame(ParameterT::Boolean, "rotate_frame");
+	rotate_frame.SetDefault(true);
+	list.AddParameter(rotate_frame);
+}
 
 /***********************************************************************
  * Protected
