@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.44.4.1 2003-07-15 16:18:11 hspark Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.44.4.2 2003-08-13 19:44:49 hspark Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -572,7 +572,6 @@ void FEExecutionManagerT::RunStaticBridging(FEManagerT_bridging& continuum, FEMa
 void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEManagerT_THK& atoms, ofstream& log_out) const
 {
 	const char caller[] = "FEExecutionManagerT::RunDynamicBridging";
-
 	/* configure ghost nodes */
 	int group = 0;
 	int order1 = 0;	// For InterpolateField, 3 calls to obtain displacement/velocity/acceleration
@@ -585,7 +584,6 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	StringT bridging_field = "displacement";
 	atoms.InitGhostNodes();
 	bool makeinactive = false;	
-	
 	/* figure out boundary atoms for use with THK boundary conditions, 
 	   ghost atoms for usage with MD force calculations */
 	const iArrayT& boundaryghostatoms = atoms.InterpolationNodes();
@@ -595,19 +593,24 @@ void FEExecutionManagerT::RunDynamicBridging(FEManagerT_bridging& continuum, FEM
 	dArray2DT badisp(numbatoms,2), bavel(numbatoms,2), baacc(numbatoms,2);
 	iArrayT allatoms(boundaryghostatoms.Length()), gatoms(numgatoms), batoms(numbatoms), boundatoms(numbatoms);
 	allatoms.SetValueToPosition();
-	batoms.CopyPart(0, allatoms, numgatoms, numbatoms);  
-	gatoms.CopyPart(0, allatoms, 0, numgatoms);          
+	batoms.CopyPart(0, allatoms, numgatoms, numbatoms);
+	gatoms.CopyPart(0, allatoms, 0, numgatoms);        
 	boundatoms.CopyPart(0, boundaryghostatoms, numgatoms, numbatoms);
 	continuum.InitInterpolation(boundaryghostatoms, bridging_field, *atoms.NodeManager());
 	continuum.InitProjection(atoms.NonGhostNodes(), bridging_field, *atoms.NodeManager(), makeinactive);
 	//nMatrixT<int> ghostonmap(2), ghostoffmap(2);  // define property maps to turn ghost atoms on/off
-	nMatrixT<int> ghostonmap(4), ghostoffmap(4);  // for fracture problem
+	nMatrixT<int> ghostonmap(5), ghostoffmap(5);  // for fracture problem
+	//nMatrixT<int> ghostonmap(4), ghostoffmap(4);    // for planar wave propagation problem
 	ghostonmap = 0;
 	ghostoffmap = 0;
 	//ghostoffmap(1,0) = ghostoffmap(0,1) = 1;  // for wave propagation problem
-	ghostoffmap(1,0) = ghostoffmap(0,1) = ghostoffmap(3,0) = ghostoffmap(0,3) = 1;  // below is for fracture problem
-	ghostoffmap(1,3) = ghostoffmap(3,1) = ghostoffmap(3,2) = ghostoffmap(2,3) = 1;
-	ghostonmap(1,0) = ghostonmap(0,1) = 1;
+	ghostoffmap(4,0) = ghostoffmap(0,4) = ghostoffmap(4,1) = ghostoffmap(1,4) = 1;  // center MD crack
+	ghostoffmap(4,2) = ghostoffmap(2,4) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
+	ghostoffmap(4,3) = ghostoffmap(3,4) = 1;
+	ghostonmap(2,3) = ghostonmap(3,2) = 1;
+	//ghostoffmap(1,0) = ghostoffmap(0,1) = ghostoffmap(3,0) = ghostoffmap(0,3) = 1; // left edge MD crack
+	//ghostoffmap(1,3) = ghostoffmap(3,1) = ghostoffmap(2,3) = ghostoffmap(3,2) = 1;
+	//ghostonmap(1,0) = ghostonmap(0,1) = 1;
 
 	/* time managers */
 	TimeManagerT* atom_time = atoms.TimeManager();
