@@ -1,4 +1,4 @@
-/* $Id: PenaltyCylinderT.cpp,v 1.2.12.1 2004-04-01 08:35:05 paklein Exp $ */
+/* $Id: PenaltyCylinderT.cpp,v 1.2.12.2 2004-04-05 00:35:25 paklein Exp $ */
 #include "PenaltyCylinderT.h"
 #include "FieldT.h"
 #include "eIntegratorT.h"
@@ -122,6 +122,7 @@ void PenaltyCylinderT::TakeParameterList(const ParameterListT& list)
 	fDirection.Dimension(nsd);
 	fR.Dimension(nsd);
 	fv_OP.Dimension(nsd);
+	fLHS.Dimension(nsd);
 }
 
 /**********************************************************************
