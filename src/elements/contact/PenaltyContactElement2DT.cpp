@@ -1,4 +1,4 @@
-/* $Id: PenaltyContactElement2DT.cpp,v 1.21 2002-05-10 19:00:46 dzeigle Exp $ */
+/* $Id: PenaltyContactElement2DT.cpp,v 1.22 2002-05-15 18:09:18 dzeigle Exp $ */
 // created by : rjones 2001
 
 #include "PenaltyContactElement2DT.h"
@@ -69,7 +69,7 @@ void PenaltyContactElement2DT::Initialize(void)
           		double area_coeff = PI*gw_dens*gw_rad*gw_s;
 				parameters[kPenalty] *= material_coeff; // overwrite pen value
 				fPenaltyFunctions[LookUp(i,j,num_surfaces)]
-                                        = new GreenwoodWilliamson(1.5,gw_m,1.0);
+                                        = new GreenwoodWilliamson(1.5,gw_m/gw_s,1.0);
 				}
 				break;
 			default:
@@ -230,7 +230,7 @@ void PenaltyContactElement2DT::RHSDriver(void)
 			double gw_mod = parameters[kHertzianModulus];
 			double gw_rad = parameters[kAsperityTipRadius];
 
-			GreenwoodWilliamson GWArea(1.0,gw_m,1.0); 	
+			GreenwoodWilliamson GWArea(1.0,gw_m/gw_s,1.0); 	
   		  	double area_coeff = PI*gw_dens*gw_rad*gw_s;
 		  	fRealArea[s] += (area_coeff*GWArea.Function(gap)*weights[i]);
 		  }
