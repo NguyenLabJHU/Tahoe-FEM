@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.8 2003-01-29 09:10:52 paklein Exp $
+# $Id: makefile,v 1.9 2003-01-30 00:43:39 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -10,7 +10,6 @@ OBJ = \
 	SolidMatList1DT.o \
 	SolidMatList2DT.o \
 	SolidMatList3DT.o \
-	SolidMatListT.o \
 	SolidT.o
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -24,7 +23,6 @@ SRC = \
 	SolidMatList1DT.cpp \
 	SolidMatList2DT.cpp \
 	SolidMatList3DT.cpp \
-	SolidMatListT.cpp \
 	SolidT.cpp
 
 # headers
@@ -33,7 +31,6 @@ HDR = \
 	SolidMatList1DT.h \
 	SolidMatList2DT.h \
 	SolidMatList3DT.h \
-	SolidMatListT.h \
 	SolidT.h
 
 HDR_LINK = $(HDR:.h=.h_link)

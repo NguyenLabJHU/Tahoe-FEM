@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.13 2003-01-29 09:10:44 paklein Exp $
+# $Id: makefile,v 1.14 2003-01-30 00:43:36 paklein Exp $
 # object directory makefile - compilation instructions
 
 include $(MACRO_DIR)/suffix
@@ -41,9 +41,6 @@ include $(SRC_DIR)/config/ElementsConfig.make
 
 # subdirectories
 SUB_DIR = \
-	BEM_element \
-	adhesion \
-	spring \
 	shape_functions \
 	$(ELEMENTS_CONFIG_DIRECTORIES)
 

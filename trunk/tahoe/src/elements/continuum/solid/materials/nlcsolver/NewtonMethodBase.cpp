@@ -1,6 +1,6 @@
-/* $Id: NewtonMethodBase.cpp,v 1.5 2003-01-27 07:00:28 paklein Exp $ */
+/* $Id: NewtonMethodBase.cpp,v 1.6 2003-01-30 00:43:40 paklein Exp $ */
 #include "NewtonMethodBase.h"
-#include "MaterialsConfig.h"
+#include "SolidMaterialsConfig.h"
 
 #include "NLCSolver.h"
 #include "dArrayT.h"
