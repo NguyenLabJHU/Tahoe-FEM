@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp2D.h,v 1.6 2004-09-10 22:39:43 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp2D.h,v 1.7 2005-01-21 16:51:22 paklein Exp $ */
 #ifndef _LOCAL_CRYSTAL_PLAST_FP_2D_H_
 #define _LOCAL_CRYSTAL_PLAST_FP_2D_H_
 
@@ -17,13 +17,19 @@ class LocalCrystalPlastFp2D : public LocalCrystalPlastFp
 {
  public:
   // constructor
-  LocalCrystalPlastFp2D(ifstreamT& in, const FSMatSupportT& support);
+  LocalCrystalPlastFp2D(void);
 
   // Cauchy stress - Taylor average    
   virtual const dSymMatrixT& s_ij();   
 
   // modulus - Taylor average 
   virtual const dMatrixT& c_ijkl();
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
  protected:
  

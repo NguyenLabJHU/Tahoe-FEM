@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlastFp.cpp,v 1.18 2004-10-14 20:24:51 paklein Exp $ */
+/* $Id: GradCrystalPlastFp.cpp,v 1.19 2005-01-21 16:51:21 paklein Exp $ */
 #include "GradCrystalPlastFp.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -28,63 +28,18 @@ static const char* Labels[kNumOutput] = {"VM_stress", "IterNewton", "IterState"}
 const bool XTAL_MESSAGES = false;
 const int ELprnt = 0;
 
-GradCrystalPlastFp::GradCrystalPlastFp(ifstreamT& in, const FSMatSupportT& support) :
+GradCrystalPlastFp::GradCrystalPlastFp(void) :
 	ParameterInterfaceT("gradient_crystal_plasticity_Fp"),
-  LocalCrystalPlastFp(in, support),  
-  fLocInitX   (ContinuumElement().InitialCoordinates()),
-  fLocCurrX   (LocalArrayT::kCurrCoords),
-//  fLocInitXIP (NumIP(), NumSD()),
-//  fLocCurrXIP (NumIP(), NumSD()),
-  fGradTool   (new GradientTools_C(NumIP(), NumSD())),
-  fFpIP       (NumIP()),    
-  fFpC        (kNSD),
-  fGradFp     (kNSD),
-  fCurlFpT    (kNSD),
-  fKe_n       (kNSD,kNSD),  
-  fKe         (kNSD,kNSD),  
-  fXe         (kNSD,kNSD),  
-  fnormFp0    (NumIP()),
-  fnormHard0  (NumIP()),
-  fnormFp     (NumIP()),
-  fnormHard   (NumIP()),
-  fMatx4      (kNSD,kNSD),
-  fX_IP       (NumSD())
+  fLocInitX(NULL),
+  fLocCurrX(LocalArrayT::kCurrCoords),
+  fGradTool(NULL)
 {
-  // check number of grains
-  if (fNumGrain != 1) 
-    throwRunTimeError("GradCrystalPlastFp::GradCrystalPlastFp: NumGrain != 1");
 
-  // may need to check element node number(?)
-  int nodes = fLocInitX.NumberOfNodes();
-
-  // check number of IPs used (if #sd=2 -> #ip=4; if #sd=3 -> #ip=8)
-  if (NumSD() == 2)
-    if (NumIP() != 4) 
-      throwRunTimeError("GradCrystalPlastFp::GradCrystalPlastFp: NumSD=2 && NumIP!=4");
-  else if (NumSD() == 3)
-    if (NumIP() != 8) 
-      throwRunTimeError("GradCrystalPlastFp::GradCrystalPlastFp: NumSD=3 && NumIP!=8");
-  else
-      throwRunTimeError("GradCrystalPlastFp::GradCrystalPlastFp: NumSD!=2 or 3");
-
-  // allocate space for ...
-  // ... Fp values at integration points
-  for (int i = 0; i < NumIP(); i++)
-    fFpIP[i].Dimension(kNSD,kNSD);
-
-  // ... spatial gradients of Fp (note: kNSD instead of NumSD())
-  for (int i = 0; i < kNSD; i++)
-    fGradFp[i].Dimension(kNSD,kNSD);
-
-  // ... current coordinates
-  fLocCurrX.Dimension(fLocInitX.NumberOfNodes(), NumSD());
-
-  // ... ip coordinates
-  fLocInitXIP.Dimension(NumIP(), NumSD());
-  fLocCurrXIP.Dimension(NumIP(), NumSD());
 }
 
-GradCrystalPlastFp::~GradCrystalPlastFp() {} 
+GradCrystalPlastFp::~GradCrystalPlastFp() {
+	delete fGradTool;
+} 
 
 int GradCrystalPlastFp::NumVariablesPerElement()
 {
@@ -338,6 +293,66 @@ void GradCrystalPlastFp::ComputeOutput(dArrayT& output)
   }
 }
 
+/* accept parameter list */
+void GradCrystalPlastFp::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "GradCrystalPlastFp::TakeParameterList";
+
+	/* inherited */
+	LocalCrystalPlastFp::TakeParameterList(list);
+
+	fLocInitX = &(ContinuumElement().InitialCoordinates());
+	
+	/* dimension work space */
+	fFpIP       .Dimension(NumIP());
+	fFpC        .Dimension(kNSD);
+	fGradFp     .Dimension(kNSD);
+	fCurlFpT    .Dimension(kNSD);
+	fKe_n       .Dimension(kNSD,kNSD);
+	fKe         .Dimension(kNSD,kNSD);  
+	fXe         .Dimension(kNSD,kNSD);  
+	fnormFp0    .Dimension(NumIP());
+	fnormHard0  .Dimension(NumIP());
+	fnormFp     .Dimension(NumIP());
+	fnormHard   .Dimension(NumIP());
+	fMatx4      .Dimension(kNSD,kNSD);
+	fX_IP       .Dimension(NumSD());
+
+	fGradTool = new GradientTools_C(NumIP(), NumSD());
+
+	// check number of grains
+	if (fNumGrain != 1)
+		ExceptionT::GeneralFail(caller, "NumGrain != 1");
+
+	// may need to check element node number(?)
+	int nodes = fLocInitX->NumberOfNodes();
+
+	// check number of IPs used (if #sd=2 -> #ip=4; if #sd=3 -> #ip=8)
+	if (NumSD() == 2) {
+		if (NumIP() != 4) ExceptionT::GeneralFail(caller, "NumSD=2 && NumIP!=4");
+	}
+	else if (NumSD() == 3) {
+		if (NumIP() != 8) ExceptionT::GeneralFail(caller, "NumSD=3 && NumIP!=8");
+	}
+	else ExceptionT::GeneralFail(caller, "NumSD!=2 or 3");
+
+	// allocate space for ...
+	// ... Fp values at integration points
+	for (int i = 0; i < NumIP(); i++)
+		fFpIP[i].Dimension(kNSD,kNSD);
+
+	// ... spatial gradients of Fp (note: kNSD instead of NumSD())
+	for (int i = 0; i < kNSD; i++)
+		fGradFp[i].Dimension(kNSD,kNSD);
+
+	// ... current coordinates
+	fLocCurrX.Dimension(fLocInitX->NumberOfNodes(), NumSD());
+
+	// ... ip coordinates
+	fLocInitXIP.Dimension(NumIP(), NumSD());
+	fLocCurrXIP.Dimension(NumIP(), NumSD());
+}
+
 /* PROTECTED MEMBER FUNCTIONS */
 
 void GradCrystalPlastFp::SetSlipKinetics()
@@ -467,7 +482,7 @@ void GradCrystalPlastFp::SolveCrystalState()
   for (int intpt = 0; intpt < NumIP(); intpt++)
     { 
 //      dummy = fFSMatSupport.Interpolate(fLocInitX, fX_IP, intpt);
-      ContinuumElement().IP_Interpolate(fLocInitX, fX_IP, intpt);
+      ContinuumElement().IP_Interpolate(*fLocInitX, fX_IP, intpt);
       for (int j = 0; j < NumSD(); j++) fLocInitXIP(intpt,j) = fX_IP[j];
     }
 

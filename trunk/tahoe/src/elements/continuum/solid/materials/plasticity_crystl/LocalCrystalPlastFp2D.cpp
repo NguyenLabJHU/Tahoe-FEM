@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlastFp2D.cpp,v 1.7 2004-09-10 22:39:43 paklein Exp $ */
+/* $Id: LocalCrystalPlastFp2D.cpp,v 1.8 2005-01-21 16:51:22 paklein Exp $ */
 #include "LocalCrystalPlastFp2D.h"
 #include "ElementCardT.h"
 
@@ -7,11 +7,8 @@ using namespace Tahoe;
 /* spatial dimensions of the problem */
 const int kNSD = 2;
 
-LocalCrystalPlastFp2D::LocalCrystalPlastFp2D(ifstreamT& in, const FSMatSupportT& support) :
-	ParameterInterfaceT("local_crystal_plasticity_Fp_2D"),
-  LocalCrystalPlastFp (in, support),  
-  f2Dsavg_ij   (kNSD),
-  f2Dcavg_ijkl (dSymMatrixT::NumValues(kNSD))
+LocalCrystalPlastFp2D::LocalCrystalPlastFp2D(void):
+	ParameterInterfaceT("local_crystal_plasticity_Fp_2D")
 {
 	/* reset default value */
 	fConstraint = kPlaneStrain;
@@ -37,4 +34,15 @@ const dMatrixT& LocalCrystalPlastFp2D::c_ijkl()
   f2Dcavg_ijkl.Rank4ReduceFrom3D(cavg_ijkl);
 
   return f2Dcavg_ijkl;
+}
+
+/* accept parameter list */
+void LocalCrystalPlastFp2D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	LocalCrystalPlastFp::TakeParameterList(list);
+
+	/* dimension work space */
+	f2Dsavg_ij.Dimension(kNSD);
+	f2Dcavg_ijkl.Dimension(dSymMatrixT::NumValues(kNSD));
 }

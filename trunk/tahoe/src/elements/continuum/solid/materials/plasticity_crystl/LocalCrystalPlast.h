@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.h,v 1.9 2004-07-15 08:29:07 paklein Exp $ */
+/* $Id: LocalCrystalPlast.h,v 1.10 2005-01-21 16:51:21 paklein Exp $ */
 #ifndef _LOCAL_CRYSTAL_PLAST_H_
 #define _LOCAL_CRYSTAL_PLAST_H_
 
@@ -21,7 +21,7 @@ class LocalCrystalPlast : public PolyCrystalMatT
 {
  public:
   // constructor
-  LocalCrystalPlast(ifstreamT& in, const FSMatSupportT& support);
+  LocalCrystalPlast(void);
 
   // destructor
   ~LocalCrystalPlast();
@@ -52,6 +52,12 @@ class LocalCrystalPlast : public PolyCrystalMatT
 
   // form of tangent matrix
   virtual GlobalT::SystemTypeT TangentType(void) const;
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
  protected:
 

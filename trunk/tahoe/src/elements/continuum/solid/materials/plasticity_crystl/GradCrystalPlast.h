@@ -1,4 +1,4 @@
-/* $Id: GradCrystalPlast.h,v 1.8 2004-07-15 08:29:06 paklein Exp $ */
+/* $Id: GradCrystalPlast.h,v 1.9 2005-01-21 16:51:21 paklein Exp $ */
 #ifndef _GRAD_CRYSTAL_PLAST_H_
 #define _GRAD_CRYSTAL_PLAST_H_
 
@@ -16,7 +16,7 @@ class GradCrystalPlast : public LocalCrystalPlast
 {
  public:
   // constructor
-  GradCrystalPlast(ifstreamT& in, const FSMatSupportT& support);
+  GradCrystalPlast(void);
 
   // destructor
   ~GradCrystalPlast();
@@ -35,6 +35,12 @@ class GradCrystalPlast : public LocalCrystalPlast
   virtual int NumOutputVariables() const;
   virtual void OutputLabels(ArrayT<StringT>& labels) const;
   virtual void ComputeOutput(dArrayT& output);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
  protected:
 
@@ -89,7 +95,7 @@ class GradCrystalPlast : public LocalCrystalPlast
   int fNumNodes;
 
   // refs to nodal initial coords of element
-  const LocalArrayT& fLocInitX;
+  const LocalArrayT* fLocInitX;
 
   // nodal coords at current configuration
   LocalArrayT fLocCurrX;

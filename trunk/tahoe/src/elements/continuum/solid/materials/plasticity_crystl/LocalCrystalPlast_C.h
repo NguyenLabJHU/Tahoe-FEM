@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast_C.h,v 1.7 2004-07-15 08:29:07 paklein Exp $ */
+/* $Id: LocalCrystalPlast_C.h,v 1.8 2005-01-21 16:51:22 paklein Exp $ */
 #ifndef _LOCAL_CRYSTAL_PLAST_C_H_
 #define _LOCAL_CRYSTAL_PLAST_C_H_
 
@@ -22,13 +22,10 @@ class LocalCrystalPlast_C : public LocalCrystalPlast
 {
  public:
   // constructor
-  LocalCrystalPlast_C(ifstreamT& in, const FSMatSupportT& support);
+  LocalCrystalPlast_C(void);
 
   // destructor
   ~LocalCrystalPlast_C();
-
-  // initialize arrays
-  virtual void Initialize();
 
   // Cauchy stress - Taylor average    
   virtual const dSymMatrixT& s_ij();   
@@ -44,6 +41,12 @@ class LocalCrystalPlast_C : public LocalCrystalPlast
   virtual int NumOutputVariables() const;
   virtual void OutputLabels(ArrayT<StringT>& labels) const;
   virtual void ComputeOutput(dArrayT& output);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
  protected:
  
@@ -62,11 +65,12 @@ class LocalCrystalPlast_C : public LocalCrystalPlast
   virtual void InitializeCrystalVariables(ElementCardT&);
 
  protected:
-  // number of nodes/element: 4-node Quad (2D) and 8-node Hexa (3D)
-  const int fNNodes;
+
+	// number of nodes/element: 4-node Quad (2D) and 8-node Hexa (3D)
+	int fNNodes;
 
   // references to initial coords
-  const LocalArrayT& fLocInitX;
+  const LocalArrayT* fLocInitX;
 
   // arrays for shape funtion derivatives at center
   dArray2DT fLNa;

@@ -1,4 +1,4 @@
-/* $Id: LocalCrystalPlast.cpp,v 1.22 2004-10-14 20:24:51 paklein Exp $ */
+/* $Id: LocalCrystalPlast.cpp,v 1.23 2005-01-21 16:51:21 paklein Exp $ */
 #include "LocalCrystalPlast.h"
 #include "SlipGeometry.h"
 #include "LatticeOrient.h"
@@ -29,82 +29,13 @@ static const char* Labels[kNumOutput] = {"VM_stress", "IterNewton", "IterState"}
 const bool XTAL_MESSAGES = false;
 const int IPprnt = 1;
 
-LocalCrystalPlast::LocalCrystalPlast(ifstreamT& in, const FSMatSupportT& support) :
+LocalCrystalPlast::LocalCrystalPlast(void):
 	ParameterInterfaceT("local_crystal_plasticity"),
-//	PolyCrystalMatT(in, support),  
 
-  // elastic deformation gradients
-  fFeTr (kNSD,kNSD),
-  fFe   (kNSD,kNSD),
-
-  // plastic deformation gradients 
-  fFpi_n (kNSD,kNSD),
-  fFpi   (kNSD,kNSD),
-  fDFp   (kNSD,kNSD),
-  fDFpi  (kNSD,kNSD),
-
-  // symmetric tensors in interm config	
-  fCeBarTr (kNSD),
-  fCeBar   (kNSD),
-  fEeBar   (kNSD),
-  fSBar    (kNSD),
-
-  // crystal consistent tangent (Bbar config)
-  fcBar_ijkl (dSymMatrixT::NumValues(kNSD)),
-
-  // Schmidt tensors in sample coords
-  fP (fNumSlip),
-
-  // increm shearing rate
-  fDGamma_n (fNumSlip),
-  fdgam_save(fNumSlip),
-
-  // 2nd order identity tensor
-  fISym (kNSD),
-
-  // tensors in polar decomp
-  fEigs (kNSD),
-  fRe   (kNSD,kNSD),
-  fUe   (kNSD),
-
-  // work spaces
-  fmatx1    (kNSD,kNSD),
-  fmatx2    (kNSD,kNSD),
-  fmatx3    (kNSD,kNSD),
-  fmatx4    (kNSD,kNSD),
-  fRank4    (dSymMatrixT::NumValues(kNSD)),
-  fsymmatx1 (kNSD),
-  fsymmatx2 (kNSD),
-  fsymmatx3 (kNSD),
-
-  // temp arrays
-  fLHS   (fNumSlip),
-  fA     (fNumSlip),
-  fB     (fNumSlip),
-  farray (fNumSlip),
-
-  // parameter in mid-point rule
-  fTheta (1.0),
-
-  // average stress
-  fAvgStress (kNSD)
+	// parameter in mid-point rule
+	fTheta (1.0)
 {
-  // allocate additional space for Schmidt tensors
-  for (int i = 0; i < fNumSlip; i++)
-    {
-      fP[i].Dimension(3);
-    }
 
-  // allocate additional space for temp arrays
-  for (int i = 0; i < fNumSlip; i++)
-    {
-      fA[i].Dimension(kNSD);
-      fB[i].Dimension(kNSD);
-      farray[i].Dimension(kNSD,kNSD);
-    }
-
-  // set 2nd order unit tensor (sym matrix)
-  fISym.Identity();
 }
 
 LocalCrystalPlast::~LocalCrystalPlast() {} 
@@ -477,6 +408,82 @@ void LocalCrystalPlast::ComputeOutput(dArrayT& output)
 GlobalT::SystemTypeT LocalCrystalPlast::TangentType() const
 {
   return GlobalT::kNonSymmetric;
+}
+
+/* accept parameter list */
+void LocalCrystalPlast::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	PolyCrystalMatT::TakeParameterList(list);
+	
+	/* dimension work space */
+
+	// elastic deformation gradients
+	fFeTr .Dimension(kNSD,kNSD);
+	fFe   .Dimension(kNSD,kNSD);
+
+	// plastic deformation gradients 
+	fFpi_n .Dimension(kNSD,kNSD);
+	fFpi   .Dimension(kNSD,kNSD);
+	fDFp   .Dimension(kNSD,kNSD);
+	fDFpi  .Dimension(kNSD,kNSD);
+
+	// symmetric tensors in interm config	
+	fCeBarTr .Dimension(kNSD);
+	fCeBar   .Dimension(kNSD);
+	fEeBar   .Dimension(kNSD);
+	fSBar    .Dimension(kNSD);
+
+	// crystal consistent tangent (Bbar config)
+	fcBar_ijkl .Dimension(dSymMatrixT::NumValues(kNSD));
+
+	// Schmidt tensors in sample coords
+	fP .Dimension(fNumSlip);
+
+	// increm shearing rate
+	fDGamma_n .Dimension(fNumSlip);
+	fdgam_save.Dimension(fNumSlip);
+
+	// 2nd order identity tensor
+	fISym .Dimension(kNSD);
+
+	// tensors in polar decomp
+	fEigs .Dimension(kNSD);
+	fRe   .Dimension(kNSD,kNSD);
+	fUe   .Dimension(kNSD);
+
+	// work spaces
+	fmatx1    .Dimension(kNSD,kNSD);
+	fmatx2    .Dimension(kNSD,kNSD);
+	fmatx3    .Dimension(kNSD,kNSD);
+	fmatx4    .Dimension(kNSD,kNSD);
+	fRank4    .Dimension(dSymMatrixT::NumValues(kNSD));
+	fsymmatx1 .Dimension(kNSD);
+	fsymmatx2 .Dimension(kNSD);
+	fsymmatx3 .Dimension(kNSD);
+
+	// temp arrays
+	fLHS   .Dimension(fNumSlip);
+	fA     .Dimension(fNumSlip);
+	fB     .Dimension(fNumSlip);
+	farray .Dimension(fNumSlip);
+		
+	// average stress
+	fAvgStress .Dimension(kNSD);
+
+	// allocate additional space for Schmidt tensors
+	for (int i = 0; i < fNumSlip; i++)
+		fP[i].Dimension(3);
+
+	// allocate additional space for temp arrays
+	for (int i = 0; i < fNumSlip; i++) {
+		fA[i].Dimension(kNSD);
+		fB[i].Dimension(kNSD);
+		farray[i].Dimension(kNSD,kNSD);
+	}
+
+	// set 2nd order unit tensor (sym matrix)
+	fISym.Identity();
 }
 
 /* PROTECTED MEMBER FUNCTIONS */

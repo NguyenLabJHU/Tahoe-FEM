@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.cpp,v 1.16 2004-07-15 08:29:07 paklein Exp $ */
+/* $Id: PolyCrystalMatT.cpp,v 1.17 2005-01-21 16:51:22 paklein Exp $ */
 #include "PolyCrystalMatT.h"
 #include "CrystalElasticity.h"
 #include "SlipGeometry.h"
@@ -27,58 +27,18 @@ const int kNSD = 3;
 PolyCrystalMatT::PolyCrystalMatT(void) :
 	ParameterInterfaceT("polycrystal_material"),
 //  FDHookeanMatT(in, support),
-  fdt           (FSMatSupport().TimeStep()),
-  //ftime       (FSMatSupport().Time()),
-  fLocLastDisp  (FSMatSupport().FiniteStrain()->LastDisplacements()),
-  fLocDisp      (FSMatSupport().FiniteStrain()->Displacements()),
+  fdt           (0.0),
+  fLocLastDisp  (NULL),
+  fLocDisp      (NULL),
   fSlipGeometry (NULL),
   fLatticeOrient(NULL),
   fElasticity   (NULL),
   fKinetics     (NULL),
   fHardening    (NULL),
   fSolver       (NULL),
-  fSolverPtr    (new SolverWrapperPoly(*this)),
-  fMatProp      (kNumMatProp),
-  fFtot_n       (kNSD,kNSD),
-  fFtot         (kNSD,kNSD),
-  fFt           (kNSD,kNSD),
-  fRotMat       (kNSD,kNSD),
-  fs_ij         (kNSD),
-  fsavg_ij      (kNSD),
-  fc_ijkl       (dSymMatrixT::NumValues(kNSD)),
-  fcavg_ijkl    (dSymMatrixT::NumValues(kNSD))
+  fSolverPtr    (new SolverWrapperPoly(*this))
 {
-ExceptionT::GeneralFail("PolyCrystalMatT::PolyCrystalMatT", "out of date");
-#if 0
-  // input file
-  StringT filename;
-  in >> filename;
-  
-  // generate relative path in native format
-  filename.ToNativePathName();
-  StringT path;
-  path.FilePath(in.filename());
-  filename.Prepend(path);
 
-  OpenExternal(fInput, filename, "PolyCrystalMatT data");
-  if (in.skip_comments())
-    fInput.set_marker(in.comment_marker());
-
-  // read number of crystals per integration point 
-  fInput >> fNumGrain;
-
-  // set slip system quantities
-  SetSlipSystems();
-
-  // read crystal orientations
-  SetLatticeOrientation();
-
-  // set crystal elasticity type
-  SetCrystalElasticity();
-
-  // SetConstitutiveSolver moved to Initialize()
-  // it allows to initialize NLCSolver with adequate # variables
-#endif
 }
 
 PolyCrystalMatT::~PolyCrystalMatT()
@@ -89,25 +49,6 @@ PolyCrystalMatT::~PolyCrystalMatT()
   delete fKinetics;
   delete fHardening;
   delete fSolver;
-}
-
-void PolyCrystalMatT::Initialize()
-{
-  // set nonlinear constitutive solver 
-  SetConstitutiveSolver();
-
-  // read data for state iteration
-  fInput >> fMaxIterState;
-  fInput >> fTolerState;
-
-  // set slip system hardening law (set before slip kinetics!!!)
-  SetSlipHardening();
-
-  // set kinetics of slip
-  SetSlipKinetics();
-
-  // close crystal input file
-  fInput.close();
 }
 
 bool PolyCrystalMatT::NeedsPointInitialization() const { return true; }
@@ -135,7 +76,74 @@ void PolyCrystalMatT::PointInitialize(void)
 
 bool PolyCrystalMatT::NeedLastDisp() const { return true; }
 
+/* describe the parameters needed by the interface */
+void PolyCrystalMatT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	FDHookeanMatT::DefineParameters(list);
+	
+	/* external parameters file */
+	list.AddParameter(ParameterT::String, "parameter_file");
+}
+
+/* accept parameter list */
+void PolyCrystalMatT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	FDHookeanMatT::TakeParameterList(list);
+
+	fLocLastDisp = &(FSMatSupport().FiniteStrain()->LastDisplacements());
+	fLocDisp = &(FSMatSupport().FiniteStrain()->Displacements());
+
+	/* dimension work space */
+	fMatProp.Dimension(kNumMatProp);
+	fFtot_n.Dimension(kNSD,kNSD);
+	fFtot.Dimension(kNSD,kNSD);
+	fFt.Dimension(kNSD,kNSD);
+	fRotMat.Dimension(kNSD,kNSD);
+	fs_ij.Dimension(kNSD);
+	fsavg_ij.Dimension(kNSD);
+	fc_ijkl.Dimension(dSymMatrixT::NumValues(kNSD));
+	fcavg_ijkl.Dimension(dSymMatrixT::NumValues(kNSD));
+
+	/* external file name */
+	StringT filename = list.GetParameter("parameter_file");
+	filename.Prepend(fstreamT::Root());
+	fInput.set_marker('#');
+	OpenExternal(fInput, filename, "PolyCrystalMatT data");
+
+	// read number of crystals per integration point 
+	fInput >> fNumGrain;
+
+	// set slip system quantities
+	SetSlipSystems();
+
+	// read crystal orientations
+	SetLatticeOrientation();
+
+	// set crystal elasticity type
+	SetCrystalElasticity();
+
+	// set nonlinear constitutive solver 
+	SetConstitutiveSolver();
+
+	// read data for state iteration
+	fInput >> fMaxIterState;
+	fInput >> fTolerState;
+
+	// set slip system hardening law (set before slip kinetics!!!)
+	SetSlipHardening();
+
+	// set kinetics of slip
+	SetSlipKinetics();
+	
+	// close file
+	fInput.close();
+
 #if 0
+	// output stream
+	ofstreamT& out = MaterialSupport().Output();
+
   // print input values
   out << " Polycrystal data:\n";
   out << "    Number of grains   . . . . . . . . . . . . . = " << fNumGrain    << "\n";
@@ -157,6 +165,7 @@ bool PolyCrystalMatT::NeedLastDisp() const { return true; }
   out << "       Max# iterations . . . . . . . . . . . . . = " << fMaxIterState << "\n";
   out << "       Tolerance convergence . . . . . . . . . . = " << fTolerState   << "\n";
 #endif
+}
 
 /* set (material) tangent modulus */
 void PolyCrystalMatT::SetModulus(dMatrixT& modulus)

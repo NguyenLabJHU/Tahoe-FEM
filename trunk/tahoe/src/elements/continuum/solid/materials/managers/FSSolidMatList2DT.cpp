@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList2DT.cpp,v 1.6 2004-08-08 02:06:32 paklein Exp $ */
+/* $Id: FSSolidMatList2DT.cpp,v 1.7 2005-01-21 16:51:14 paklein Exp $ */
 #include "FSSolidMatList2DT.h"
 #include "FSMatSupportT.h"
 
@@ -141,9 +141,16 @@ void FSSolidMatList2DT::DefineInlineSub(const StringT& name, ParameterListT::Lis
 		sub_lists.AddSub("Simo_isotropic_2D");
 		sub_lists.AddSub("quad_log_2D");
 		sub_lists.AddSub("quad_log_Ogden_2D");
+
 #ifdef PLASTICITY_J2_MATERIAL
 		sub_lists.AddSub("Simo_J2_2D");
 		sub_lists.AddSub("quad_log_J2_2D");
+#endif
+
+#ifdef PLASTICITY_CRYSTAL_MATERIAL
+		sub_lists.AddSub("local_crystal_plasticity_Fp_2D");
+		sub_lists.AddSub("gradient_crystal_plasticity_Fp_2D");
+		sub_lists.AddSub("local_crystal_plasticity_Fp_2D");
 #endif
 
 #ifdef CAUCHY_BORN_MATERIAL
@@ -244,6 +251,15 @@ FSSolidMatT* FSSolidMatList2DT::NewFSSolidMat(const StringT& name) const
 		mat = new J2Simo2D;
 	else if (name == "quad_log_J2_2D")
 		mat = new J2QL2DLinHardT;
+#endif
+
+#ifdef PLASTICITY_CRYSTAL_MATERIAL
+	else if (name == "local_crystal_plasticity_2D")
+		mat = new LocalCrystalPlast2D;
+	else if (name == "gradient_crystal_plasticity_Fp_2D")
+		mat = new GradCrystalPlastFp2D;
+	else if (name == "local_crystal_plasticity_Fp_2D")
+		mat = new LocalCrystalPlastFp2D;
 #endif
 
 #ifdef CAUCHY_BORN_MATERIAL

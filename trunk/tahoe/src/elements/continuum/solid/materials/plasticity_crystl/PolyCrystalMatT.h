@@ -1,4 +1,4 @@
-/* $Id: PolyCrystalMatT.h,v 1.11 2004-07-15 08:29:07 paklein Exp $ */
+/* $Id: PolyCrystalMatT.h,v 1.12 2005-01-21 16:51:22 paklein Exp $ */
 #ifndef _POLY_CRYSTAL_MAT_T_H_
 #define _POLY_CRYSTAL_MAT_T_H_
 
@@ -12,8 +12,8 @@
 #include "Array2DT.h"
 #include "dMatrixT.h"
 #include "dSymMatrixT.h"
-#include "ifstreamT.h" 
 #include "LocalArrayT.h"
+#include "ifstreamT.h"
 
 namespace Tahoe {
 
@@ -44,9 +44,6 @@ class PolyCrystalMatT : public FDHookeanMatT
 	 * allocate the element storage, and then calls PolyCrystalMatT::InitializeVariables
 	 * to initialize the state variable space. */
 	void PointInitialize(void);
-
-  // allocate space/initialize crystal arrays (all)
-  virtual void Initialize();
 
   // required parameter flag
   virtual bool NeedLastDisp() const;
@@ -85,6 +82,15 @@ class PolyCrystalMatT : public FDHookeanMatT
 
   int Size(void) { return FSMatSupport().Size(); }
   int Rank(void) { return FSMatSupport().Rank(); }
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
  protected:
   /* set (material) tangent modulus */
@@ -131,16 +137,16 @@ class PolyCrystalMatT : public FDHookeanMatT
   void SetConstitutiveSolver();
 
  protected:
-  // current time & time step
-//  const double& ftime;
-  double fdt;
 
-  // references to displacements 
-  const LocalArrayT& fLocLastDisp;
-  const LocalArrayT& fLocDisp;
+	// time step
+	double fdt;
 
-  // stream for crystal input data
-  ifstreamT fInput;
+	// references to displacements 
+	const LocalArrayT* fLocLastDisp;
+	const LocalArrayT* fLocDisp;
+
+	// stream for crystal input data
+	ifstreamT fInput;
 
   // number crystals at each IP
   int fNumGrain;
@@ -220,6 +226,7 @@ class PolyCrystalMatT : public FDHookeanMatT
 
 // general needed accesors 
 inline const double& PolyCrystalMatT::TimeStep() const { return fdt; }
+
 inline ifstreamT& PolyCrystalMatT::Input_x() { return fInput; }
 inline const int PolyCrystalMatT::NumGrain() const { return fNumGrain; }
 inline const int PolyCrystalMatT::NumSlip() const { return fNumSlip; }
