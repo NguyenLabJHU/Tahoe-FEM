@@ -1,4 +1,4 @@
-/* $Id: MeshFreeFSSolidT.cpp,v 1.20 2004-07-15 08:29:39 paklein Exp $ */
+/* $Id: MeshFreeFSSolidT.cpp,v 1.21 2005-02-27 00:02:25 paklein Exp $ */
 /* created: paklein (09/16/1998) */
 #include "MeshFreeFSSolidT.h"
 
@@ -206,6 +206,9 @@ void MeshFreeFSSolidT::DefineParameters(ParameterListT& list) const
 {
 	/* inherited */
 	TotalLagrangianT::DefineParameters(list);
+
+	/* shape function storage handled by meshless classes */
+	list.RemoveParameter("store_shapefunctions");
 	
 	ParameterT auto_border(fAutoBorder, "auto_border");
 	auto_border.SetDefault(false);
