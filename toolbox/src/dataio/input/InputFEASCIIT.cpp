@@ -1,4 +1,4 @@
-/* $Id: InputFEASCIIT.cpp,v 1.10 2002-02-18 08:54:45 paklein Exp $ */
+/* $Id: InputFEASCIIT.cpp,v 1.11 2002-03-04 06:29:09 paklein Exp $ */
 
 #include "InputFEASCIIT.h"
 
@@ -153,23 +153,23 @@ void InputFEASCIIT::ElementGroupNames (ArrayT<StringT>& groupnames) const
     }
 }
 
-void InputFEASCIIT::ReadNodeMap (iArrayT& nodemap)
+void InputFEASCIIT::ReadNodeID(iArrayT& node_id)
 {
-  nodemap.SetValueToPosition();
-  nodemap++;
+	dArray2DT coords(fNumNodes, fNumDOF);
+	ReadCoordinates(coords, node_id);
 }
 
 void InputFEASCIIT::ReadCoordinates (dArray2DT& coords)
 {
-  iArrayT nodemap (fNumNodes);
-  ReadCoordinates (coords, nodemap);
+	iArrayT node_id(fNumNodes);
+	ReadCoordinates(coords, node_id);
 }
 
-void InputFEASCIIT::ReadCoordinates (dArray2DT& coords, iArrayT& nodemap)
+void InputFEASCIIT::ReadCoordinates (dArray2DT& coords, iArrayT& node_id)
 {
-	if (nodemap.Length() != fNumNodes ||
-        coords.MajorDim() != fNumNodes ||
-        coords.MinorDim() != fNumDOF ) throw eSizeMismatch;
+	if (node_id.Length() != fNumNodes ||
+       coords.MajorDim() != fNumNodes ||
+       coords.MinorDim() != fNumDOF ) throw eSizeMismatch;
 
 	ifstreamT geo;
 	OpenFile(geo, ".geo");
@@ -181,7 +181,7 @@ void InputFEASCIIT::ReadCoordinates (dArray2DT& coords, iArrayT& nodemap)
 
 	/* read data */
 	iArrayT used;
-	DataBlock(geo, used, nodemap, coords, true);
+	DataBlock(geo, used, node_id, coords, true);
 	//NOTE: assumes you'll have at least as many nodal output variables
 	//      as there are spatial dimensions
 }
@@ -292,7 +292,7 @@ void InputFEASCIIT::ReadConnectivity (const StringT& name, iArray2DT& connects)
   if (!AdvanceToBlock (geo, name, "Connectivities")) throw eDatabaseFail;
 
   StringT s;
-  int numelms, numelnodes, elmid;
+  int numelms, numelnodes;
   iArrayT elms (connects.MinorDim());
   if (!geo.FindString ("Number of elements", s) ||
       !s.Tail ('=', numelms) ||
@@ -302,13 +302,13 @@ void InputFEASCIIT::ReadConnectivity (const StringT& name, iArray2DT& connects)
 
   if (numelnodes != connects.MinorDim()) throw eSizeMismatch;
 
-  for (int i=0; i < numelms; i++)
-    {
-      geo >> elmid >> elms;
-      connects.SetRow (i, elms);
-    }
-  
-  connects--;
+	for (int i=0; i < numelms; i++)
+	{
+		int elm_dex, elm_id; 
+		geo >> elm_dex>> elm_id >> elms;
+		connects.SetRow (i, elms);
+	}
+	connects--;
 }
 
 void InputFEASCIIT::ReadGeometryCode (const StringT& name, GeometryT::CodeT& geocode)
@@ -472,28 +472,58 @@ void InputFEASCIIT::ReadElementVariable (int step, const StringT& name, int vari
 
 void InputFEASCIIT::ReadAllElementVariables (int step, dArray2DT& evalues)
 {
-#pragma unused(step)
+	if (evalues.MajorDim() != fNumElements) throw eSizeMismatch;
+	if (step < 0) throw eDatabaseFail;
 
-  if (evalues.MajorDim() != fNumElements) throw eSizeMismatch;
+	/* input stream */
+	ifstreamT run;
+	OpenFile(run, ".run");
+	StringT s;
+	if (!run.FindString("O U T P U T", s)) throw eDatabaseFail;
 
-  ifstreamT run;
-  OpenFile (run, ".run");
-  
-  StringT s;
-  iArrayT used (fElementVariable.Length()), ids;
-  dArray2DT vals;
-  evalues = 0;
-  for (int i=0; i < fBlockID.Length(); i++)
-    {
-      if (!run.FindString ("Element data", s)) throw eDatabaseFail;
+	/* advance to step */	
+	int count = 0;
+	bool OK = run.FindString ("Group number", s);
+	while (count < step && OK) {
+		OK = run.FindString ("Group number", s);
+		count++;
+	}
 
-      DataBlock (run, used, ids, vals, true);
+	/* check */
+	if (!OK) {
+		cout << "\n InputFEASCIIT::ReadAllElementVariables: could not find step index " 
+		     << step << endl;
+		throw eDatabaseFail;
+	}
 
-      ids--;
-      for (int i=0; i < ids.Length(); i++)
-	for (int v=0, j=0; v < used.Length(); v++)
-	  if (used[v] > 0)
-	    evalues (ids[i], v) = vals (i, j++);
+	/* advance to the edge of the nodal data block */
+	if (!run.FindString ("Nodal data", s)) throw eDatabaseFail;
+
+	iArrayT used (fElementVariable.Length()), ids;
+	dArray2DT vals;
+	evalues = 0;
+	int dex = 0;
+	for (int i=0; i < fBlockID.Length(); i++)
+	{
+		/* advance to start of block */
+		if (!run.FindString ("Element data", s)) throw eDatabaseFail;
+
+		/* read block */
+		DataBlock (run, used, ids, vals, false);
+
+		/* fill from top to bottom */
+		for (int i = 0; i < ids.Length(); i++)
+		{
+			for (int v = 0, j = 0; v < used.Length(); v++)
+	  			if (used[v] > 0) evalues(dex, v) = vals(i, j++);
+	  		dex++;
+	    }
+    }
+    
+    /* check */
+    if (evalues.MinorDim() > 0 && dex != fNumElements) {
+    	cout << "\n InputFEASCIIT::ReadAllElementVariables: error joining values in blocks" << endl;
+    	throw eDatabaseFail;
     }
 }
 
@@ -514,7 +544,8 @@ void InputFEASCIIT::ReadElementVariables(int step, const StringT& name, dArray2D
 	OpenFile(run, ".run");
 	StringT s;
 	if (!run.FindString("O U T P U T", s)) throw eDatabaseFail;
-	
+
+	/* advance to step */	
 	int count = 0;
 	bool OK = run.FindString ("Group number", s);
 	while (count < step && OK) {
@@ -640,13 +671,14 @@ bool InputFEASCIIT::ScanResultsFile (ifstreamT& in)
 	if (!in.FindString ("Nodal data", s) ||
         !in.FindString ("Number of values", s) ||
         !s.Tail ('=', vals)) return false;
-	if (vals > 0)
-		for (int v = 0; v < vals + 1; v++)
+	if (vals > 0) {
+		in >> s >> s; // "index" and "node"
+		for (int v = 0; v < vals; v++)
 		{
 			in >> s;
-			if (strncmp (s.Pointer(), "node", 4) != 0)
-				fNodeVariable.Append(s);
+			fNodeVariable.Append(s);
 		}
+	}
 
 	/* scan element output labels (from first block) */
 	int id;
@@ -656,13 +688,14 @@ bool InputFEASCIIT::ScanResultsFile (ifstreamT& in)
 	    !fBlockID.HasValue (id) ||
 	    !in.FindString ("Number of values", s) ||
 	    !s.Tail ('=', vals)) return false;
-	if (vals > 0)
-		for (int v = 0; v < vals + 1; v++)
+	if (vals > 0) {
+		in >> s >> s; // "index" and "element"
+		for (int v = 0; v < vals; v++)
 		{
 			in >> s;
-			if (strncmp (s.Pointer(), "element", 7) != 0)
-		  	fElementVariable.Append(s);
-	     }
+			fElementVariable.Append(s);
+		}
+	}
 
 	/* determine the remaining time steps */
 	while (in.FindString ("Group number", s)) {
@@ -683,7 +716,7 @@ bool InputFEASCIIT::AdvanceToBlock (ifstreamT& in, const StringT& name, const ch
   while (found != ID)
     {
       if (!in.FindString (tname, s) ||
-	  !in.FindString ("Block number", s) ||
+	  !in.FindString ("Block ID", s) ||
 	  !s.Tail ('=', found)) return false;
     }
 	return true;
@@ -719,35 +752,41 @@ void InputFEASCIIT::DataBlock (ifstreamT& in, iArrayT& used, iArrayT& ids, dArra
       !in.FindString ("Number of values", s) ||
       !s.Tail ('=', numvals)) throw eDatabaseFail;
 
-  /* read labels */
-  used = 0;
-  if (numvals > 0)
-    {
-      in >>s; // read "element" or "node"
-      for (int v=0; v < numvals; v++)
+	/* read labels */
+	used = 0;
+	if (numvals > 0)
 	{
-	  in >> s;
-	  bool found = false;
-	  for (int iv=0; iv < vars.Length() && !found; iv++)
-	    {
-	      int l = (vars[iv].Length() < s.Length()) ? vars[iv].Length() : s.Length();
-	      if (strncmp (vars[iv].Pointer(), s.Pointer(), l-1) == 0)
+		in >> s >> s; // read "index" and "element" | "node"
+		for (int v = 0; v < numvals; v++)
 		{
-		  found = true;
-		  used [iv] = 1;
+			in >> s;
+			bool found = false;
+			for (int iv=0; iv < vars.Length() && !found; iv++)
+			{
+				int l = (vars[iv].Length() < s.Length()) ? vars[iv].Length() : s.Length();
+				if (strncmp (vars[iv].Pointer(), s.Pointer(), l-1) == 0)
+				{
+					found = true;
+					used [iv] = 1;
+				}
+			}
 		}
-	    }
-	}
     }
 
-  vals.Allocate (num, numvals);
-  ids.Allocate (num);
-  int *pi = ids.Pointer();
-  double *pv = vals.Pointer();
-  for (int i=0; i < num; i++)
-    {
-      in >> *pi++;
-      for (int j=0; j < numvals; j++)
-	in >> *pv++;
-    }
+	/* read values */
+	vals.Allocate (num, numvals);
+	if (numvals > 0)
+	{
+		ids.Allocate (num);
+		int *pi = ids.Pointer();
+		double *pv = vals.Pointer();
+		for (int i=0; i < num; i++)
+		{
+			int index;
+			in >> index >> *pi++;
+			for (int j=0; j < numvals; j++)
+			in >> *pv++;
+		}
+	}
+	else ids.Allocate(0);
 }
