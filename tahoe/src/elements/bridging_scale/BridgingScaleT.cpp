@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.9 2002-07-21 00:19:14 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.10 2002-07-30 01:35:24 hspark Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -26,7 +26,8 @@ BridgingScaleT::BridgingScaleT(const ElementSupportT& support,
 	fSolid(solid),
 	fLocInitCoords(LocalArrayT::kInitCoords),
 	fLocDisp(LocalArrayT::kDisp),
-	fDOFvec(NumDOF())
+	fDOFvec(NumDOF()),
+	fMass(ShapeFunction().ParentDomain().NumNodes())
 {
 
 }
@@ -139,6 +140,9 @@ void BridgingScaleT::Initialize(void)
 	    << setw(kDoubleWidth) << "no." << '\n';
 	fInverseMapInCell.WriteNumbered(out);
 	out.flush();	
+
+	/* compute coarse scale mass matrix */
+	ComputeMass();
 }
 
 void BridgingScaleT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
@@ -278,6 +282,29 @@ void BridgingScaleT::CurrElementInfo(ostream& out) const
 /***********************************************************************
 * Private
 ***********************************************************************/
+
+void BridgingScaleT::ComputeMass(void)
+{
+  /* computes the coarse scale mass matrix once inverse map has
+   * been performed */
+  const ParentDomainT& parent = ShapeFunction().ParentDomain();
+  dArrayT map, shape(parent.NumNodes());
+  dArrayT temp(NumSD());
+  dMatrixT tempmass(parent.NumNodes());
+  fMass = 0.0;            ;
+  for (int i = 0; i < fParticlesInCell.MajorDim(); i++)
+    {
+      fInverseMapInCell.RowAlias(i,map);
+      for (int j = 0; j < fParticlesInCell.MinorDim(i); j++)
+	{
+	  temp = map[j];
+	  parent.EvaluateShapeFunctions(temp,shape);
+	  tempmass.Outer(shape,shape);
+	  fMass += tempmass;
+	}
+    }
+  cout << "Mass matrix = " << fMass << endl;
+}
 
 void BridgingScaleT::ComputeError(void)
 {

@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.h,v 1.6 2002-07-21 00:19:14 hspark Exp $ */
+/* $Id: BridgingScaleT.h,v 1.7 2002-07-30 01:35:24 hspark Exp $ */
 #ifndef _BRIDGING_SCALE_T_H_
 #define _BRIDGING_SCALE_T_H_
 
@@ -96,6 +96,8 @@ private:
 	/** computes error caused by projecting solution onto FEM basis space */
 	void ComputeError(void);
 
+	/** compute coarse scale mass matrix */
+	void ComputeMass(void);
 	/** computes "fine scale" displacement, ie MD - overlap due to FEM */
 	void ComputeFineScaleU(void);
 	/*@}*/
@@ -114,6 +116,9 @@ protected:
 	/** take fParticlesInCell, now have list of inverse mappings per element:
 	 *  [n_cell] x [n_inversemap_i] */
 	RaggedArray2DT<double> fInverseMapInCell;
+
+	/** coarse scale mass matrix */
+	dMatrixT fMass;
 
 	/* output control */
 	iArrayT	fNodalOutputCodes;
