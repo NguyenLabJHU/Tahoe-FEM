@@ -1,4 +1,4 @@
-/* $Id: KBC_ControllerT.h,v 1.15 2003-04-07 17:25:50 cjkimme Exp $ */
+/* $Id: KBC_ControllerT.h,v 1.16 2003-04-24 20:40:24 cjkimme Exp $ */
 /* created: paklein (09/05/2000) */
 
 #ifndef _KBC_CONTROLLER_T_H_
@@ -38,7 +38,8 @@ public:
               kTiedNodes = 3,
          kSymmetricNodes = 4,
           kPeriodicNodes = 5,
-             kPrescribed = 6};
+             kPrescribed = 6,
+    kScaledVelocityNodes = 7};
 
 	/** constructor */
 	KBC_ControllerT(NodeManagerT& node_manager);
@@ -109,6 +110,9 @@ public:
 
 	virtual void SetEquations(void);
 	
+	/** inform the Field if acting only as an IC_controller -- do not prescribe */
+	virtual bool IsICController(void) { return false; }
+	
 protected:
 
 	/** read nodes from stream.
@@ -161,12 +165,6 @@ inline void KBC_ControllerT::Equations(AutoArrayT<const iArray2DT*>& equations) 
 
 inline void KBC_ControllerT::SetEquations(void)
 {
-}
-
-inline void KBC_ControllerT::InitialCondition(void) { }
-inline void KBC_ControllerT::Initialize(ifstreamT& in) 
-{
-#pragma unused(in)
 }
 
 inline void KBC_ControllerT::SetExternalNodes(const iArrayT& ex_nodes) const
