@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.h,v 1.2 2001-02-07 23:56:25 ebmarin Exp $ */
+/* $Id: iConsoleT.h,v 1.3 2001-02-13 17:48:35 paklein Exp $ */
 /* created: paklein (12/21/2000)                                          */
 /* iConsoleT.h                                                            */
 
@@ -31,7 +31,7 @@ public:
 
 	/* console flags */
 	enum CommandScope {kNone = 0,
-		 kConsoleCommand = 1,
+		     kConsoleCommand = 1,
 	        kConsoleVariable = 2,
 	           kScopeCommand = 3,
 	          kScopeVariable = 4,

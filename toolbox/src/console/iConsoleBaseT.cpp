@@ -1,4 +1,4 @@
-/* $Id: iConsoleBaseT.cpp,v 1.1.1.1 2001-01-25 20:56:28 paklein Exp $ */
+/* $Id: iConsoleBaseT.cpp,v 1.2 2001-02-13 17:48:34 paklein Exp $ */
 /* created: paklein (12/21/2000)                                          */
 /* iConsoleBaseT.cpp                                                      */
 
@@ -12,11 +12,11 @@ const bool ArrayT<iConsoleBaseT::VariableType>::fByteCopy = true;
 
 /* constructor */
 iConsoleBaseT::iConsoleBaseT(void):
-	fCommands(0, false),
-	fVariables(0, false),
-	fVariableTypes(0, true),
-	fVariableValues(0, true),
-	fVariableIsConst(0, true)
+	fCommands(0),
+	fVariables(0),
+	fVariableTypes(0),
+	fVariableValues(0),
+	fVariableIsConst(0)
 {
 
 }
