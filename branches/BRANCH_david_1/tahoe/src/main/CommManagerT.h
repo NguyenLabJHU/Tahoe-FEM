@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.h,v 1.5 2004-07-15 08:31:03 paklein Exp $ */
+/* $Id: CommManagerT.h,v 1.5.2.1 2004-08-09 20:54:48 paklein Exp $ */
 #ifndef _COMM_MANAGER_T_H_
 #define _COMM_MANAGER_T_H_
 
@@ -42,7 +42,8 @@ public:
 	/** rank of this process */
 	int Rank(void) const { return fRank; };
 
-	/** set or clear partition information */
+	/** set or clear partition information. Needs to be set before calling 
+	 * CommManagerT::Configure. */
 	void SetPartition(PartitionT* partition);
 
 	/** set or clear node manager information */
@@ -71,7 +72,9 @@ public:
 
 	/** configure the current local coordinate list and register it with the
 	 * model manager. The first time this method is called, it will call
-	 * CommManagerT::FirstConfigure before performing the usual operations. */
+	 * CommManagerT::FirstConfigure before performing the usual operations. 
+	 * Partition information, if it exists should be (un-)set with
+	 * CommManagerT::SetPartition before calling this. */
 	void Configure(void);
 
 	/** \name numbering maps */
