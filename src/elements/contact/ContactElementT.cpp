@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.cpp,v 1.13 2001-06-04 17:03:12 rjones Exp $ */
+/* $Id: ContactElementT.cpp,v 1.14 2001-06-12 22:14:32 rjones Exp $ */
 
 #include "ContactElementT.h"
 
@@ -135,6 +135,7 @@ void ContactElementT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
 	/* Connectivities generated in SetConfiguration */
         ElementBaseT::fNodes->
 		SetLocalEqnos(connectivities, equation_numbers);
+#if 0
 cout << "\n connectivities \n" ;//<< connectivities <<"\n";
 for (int k = 0; k < connectivities.MajorDim(); k++) {
 cout << "(" << k << ")";
@@ -154,6 +155,7 @@ if ((j+1) == fNumSD) cout << ",";
 }
 cout << "\n";
 }
+#endif
         /* add to list */
         eq_2.Append(&equation_numbers);
   }
@@ -235,26 +237,34 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	}
 
 	fSearchParameters.Allocate(num_surfaces);
+	fEnforcementParameters.Allocate(num_surfaces);
 
 	int num_pairs;
 	in >> num_pairs;
 	out << " Number of surface pairs with data . . . . . . . . = "
 	    << num_pairs << '\n';
 	int s1, s2;
-	int num_param = kNumParameters;
 	for (int i = 0; i < num_pairs ; i++) 
 	{
 		in >> s1 >> s2;
 		s1--; s2--;
 		dArrayT& search_parameters = fSearchParameters(s1,s2);
-		search_parameters.Allocate(num_param);
-		for (int j = 0 ; j < num_param ; j++)
+		search_parameters.Allocate (kSearchNumParameters);
+		dArrayT& enf_parameters    = fEnforcementParameters(s1,s2);
+		// add parameters specific to enforcement
+		enf_parameters.Allocate (kEnfNumParameters);
+		for (int j = 0 ; j < kSearchNumParameters ; j++)
 		{
 			in >> search_parameters[j]; 
+		}
+		for (int j = 0 ; j < kEnfNumParameters ; j++)
+		{
+			in >> enf_parameters[j]; 
 		}
 	}
 	
 	fSearchParameters.CopySymmetric();
+	fEnforcementParameters.CopySymmetric();
 
 	/* write out search parameter matrix */
 	for (int i = 0; i < num_surfaces ; i++) 
@@ -262,11 +272,15 @@ void ContactElementT::EchoConnectivityData(ifstreamT& in, ostream& out)
                 for (int j = 0 ; j < num_surfaces ; j++)
                 {
 			dArrayT& search_parameters = fSearchParameters(i,j);
+			dArrayT& enf_parameters = fEnforcementParameters(i,j);
 			out << "(" << i << "," << j << ")" ;
-			if (search_parameters.Length() == num_param) {
-			  for (int k = 0 ; k < num_param ; k++)
+			if (search_parameters.Length() 
+				== kSearchNumParameters) {
+			  for (int k = 0 ; k < kSearchNumParameters ; k++)
 			  {
 				out << search_parameters[k];
+				out << '\n';
+				out << enf_parameters[k];
 			  }
 			}
 			out << '\n';

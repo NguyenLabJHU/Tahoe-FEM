@@ -1,4 +1,4 @@
-/* $Id: ContactSurfaceT.h,v 1.6 2001-04-27 00:55:25 rjones Exp $ */
+/* $Id: ContactSurfaceT.h,v 1.7 2001-06-12 22:14:32 rjones Exp $ */
 
 
 #ifndef _CONTACT_SURFACE_T_H_
@@ -11,6 +11,7 @@
 #include "ArrayT.h"
 #include "SurfaceT.h"
 #include "ContactNodeT.h"
+
 
 /* forward declarations */
 class ofstreamT;
@@ -51,7 +52,12 @@ class ContactSurfaceT : public SurfaceT
 	inline ArrayT<ContactNodeT*>& PreviousContactNodes(void) 
 		{return fPreviousContactNodes;}
 #endif
-
+#if 0
+	void PrintContactArea(ofstream& out) const;
+#endif
+	void PrintContactArea(ostream& out) const;
+	void PrintGap(ostream& out) const;
+	void PrintGap(ofstream& out) const;
 
   protected:
         /* nodal arrays */

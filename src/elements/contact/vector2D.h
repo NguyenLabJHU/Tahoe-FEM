@@ -1,4 +1,4 @@
-/* $Id: vector2D.h,v 1.3 2001-05-21 21:50:36 rjones Exp $ */
+/* $Id: vector2D.h,v 1.4 2001-06-12 22:14:33 rjones Exp $ */
 
 #ifndef _VECTOR_2D_H_
 #define _VECTOR_2D_H_
@@ -61,12 +61,27 @@ inline static void Normalize(double* v)
         v[1] *= scale ;
 };
 
+inline static void Scale(double scale, double* v)
+{
+        v[0] *= scale ;
+        v[1] *= scale ;
+};
+
+
 inline static void Proj(double* v, double* n, double* proj_v)
 {
 	double dot = v[0]*n[0] + v[1]*n[1];
         proj_v[0] = proj_v[0] - dot * n[0] ;
         proj_v[1] = proj_v[1] - dot * n[1] ;
 };
+
+#if 0
+inline static void Permutation(dMatrixT& p_mat)
+{
+	p_mat[0][0] = 0.0; p_mat[0][1] =-1.0;
+	p_mat[1][0] = 1.0; p_mat[1][1] = 0.0;
+};
+#endif
 
 
 #endif /* _VECTOR_2D_H_ */

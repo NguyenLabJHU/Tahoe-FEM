@@ -1,4 +1,4 @@
-/* $Id: ContactSearchT.cpp,v 1.11 2001-05-31 00:37:26 rjones Exp $ */
+/* $Id: ContactSearchT.cpp,v 1.12 2001-06-12 22:14:32 rjones Exp $ */
 
 #include "ContactSearchT.h"
 
@@ -61,7 +61,9 @@ bool ContactSearchT::SetInteractions(void)
 		ContactSurfaceT& surface2  = fSurfaces[j]; // "face" surface
 		dArrayT& parameters = fSearchParameters(i,j);
 		/* set node-face data */
+#if 0
 if (parameters.Length() != 0) cout << " searching surface " << i << " with " << j << '\n';
+#endif
 		if (parameters.Length() != 0) 
 			NodeFaceSearch(surface1,surface2,parameters);
  	}
@@ -158,7 +160,9 @@ bool ContactSearchT::UpdateProjection (void)
   /* track previous node-face pairs and reset others */
   int tag;
   for (i = 0; i < fSurfaces.Length(); i++) {
+#if 0
         cout << " updating surface " << i << '\n';
+#endif
         ContactSurfaceT& surface = fSurfaces[i];
         ArrayT<ContactNodeT*>& nodes = surface.ContactNodes();
         for (j = 0; j < nodes.Length(); j++) {

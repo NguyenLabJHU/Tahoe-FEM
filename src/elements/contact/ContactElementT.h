@@ -1,4 +1,4 @@
-/* $Id: ContactElementT.h,v 1.6 2001-04-27 00:55:25 rjones Exp $ */
+/* $Id: ContactElementT.h,v 1.7 2001-06-12 22:14:32 rjones Exp $ */
 
 #ifndef _CONTACT_ELEMENT_T_H_
 #define _CONTACT_ELEMENT_T_H_
@@ -60,7 +60,12 @@ public:
         /* surface specification modes */
         enum SearchParametersT { kGapTol = 0,
 				kXiTol ,
-				kNumParameters};
+				kSearchNumParameters};
+        enum EnforcementParametersT { kPass = 0, // these are enf. specific!!
+				kPenalty ,
+				kConsistentTangent ,
+				kEnfNumParameters};
+	
 
 protected:
 	/* contact surfaces */
@@ -70,7 +75,7 @@ protected:
         nMatrixT<dArrayT> fSearchParameters ;
 
 	// this will have kPass, kPenalty etc
-//nMatrixT<dArrayT> fEnforcementParameters ;
+	nMatrixT<dArrayT> fEnforcementParameters ;
 
 	/* print element group data */
 	virtual void PrintControlData(ostream& out) const;

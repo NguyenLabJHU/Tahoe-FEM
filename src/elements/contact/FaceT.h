@@ -1,4 +1,4 @@
-/* $Id: FaceT.h,v 1.15 2001-05-23 14:45:05 rjones Exp $ */
+/* $Id: FaceT.h,v 1.16 2001-06-12 22:14:32 rjones Exp $ */
 
 #ifndef _FACE_T_H_
 #define _FACE_T_H_
@@ -77,6 +77,7 @@ public:
 	inline ArrayT<FaceT*>& AssignNeighbors(void) {return fNeighborFaces;}
 
 	/* look-up functions */
+	inline const SurfaceT& Surface(void) const {return fSurface;}
 	inline const int NumNodes(void) const 
 		{return fConnectivity.Length();}
 	inline const ArrayT<FaceT*>& Neighbors(void) const 

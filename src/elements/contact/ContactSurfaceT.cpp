@@ -1,8 +1,10 @@
-/*  $Id: ContactSurfaceT.cpp,v 1.7 2001-06-05 18:29:20 rjones Exp $ */
+/*  $Id: ContactSurfaceT.cpp,v 1.8 2001-06-12 22:14:32 rjones Exp $ */
 #include "ContactSurfaceT.h"
 
 #include "SurfaceT.h"
 #include "ContactNodeT.h"
+#include <ostream.h>
+#include "ofstreamT.h"
 
 /* parameters */
 
@@ -117,3 +119,53 @@ ContactSurfaceT::SetPotentialConnectivity(void)
 	  }
         }
 }
+
+void
+ContactSurfaceT::PrintContactArea(ostream& out) const
+{
+  	dArrayT weights(this->NumNodesPerFace());	
+	dArray2DT points(this->NumNodesPerFace(),fNumSD);
+
+	double total_area = 0.0, contact_area = 0.0;
+        for (int f = 0;  f < fFaces.Length(); f++) {
+          const FaceT* face = fFaces[f];
+          face->Quadrature(points,weights);
+          for (int i = 0 ; i < weights.Length() ; i++) {
+             total_area += weights[i];
+	     // should be toleranced
+             if (fContactNodes[face->Node(i)]->Gap() < 0) { 
+                contact_area += weights[i];
+             }
+          } 
+	}
+	out << "Surface " << this->Tag() << ":" ;
+	out << " total area "<< total_area 
+	    << " contact area " << contact_area << '\n';
+}
+
+void
+ContactSurfaceT::PrintGap(ostream& out) const
+{
+	out << "Surface " << this->Tag() << '\n';
+
+	for (int n = 0 ; n < fContactNodes.Length(); n++) {
+		for (int i = 0; i < fNumSD; i++) {
+			out << fContactNodes[n]->Position()[i] << " ";
+		}
+		out << fContactNodes[n]->Gap() << '\n';
+	}
+}
+
+void
+ContactSurfaceT::PrintGap(ofstream& out) const
+{
+        out << "Surface " << this->Tag() << '\n';
+
+        for (int n = 0 ; n < fContactNodes.Length(); n++) {
+                for (int i = 0; i < fNumSD; i++) {
+                        out << fContactNodes[n]->Position()[i] << " ";
+                }
+                out << fContactNodes[n]->Gap() << '\n';
+        }
+}
+

@@ -1,4 +1,4 @@
-/* $Id: LineL2FaceT.cpp,v 1.16 2001-05-31 00:37:26 rjones Exp $ */
+/* $Id: LineL2FaceT.cpp,v 1.17 2001-06-12 22:14:32 rjones Exp $ */
 
 #include "LineL2FaceT.h"
 #include "FaceT.h"
@@ -95,8 +95,8 @@ void
 LineL2FaceT::ComputeTangent1
 (const double* local_coordinates,double* tangent1) const
 {
-cout << "not implemented";
-throw;
+	Diff(fx[0],fx[1],tangent1);
+	Scale(0.5,tangent1);
 }
 
 void
@@ -132,14 +132,25 @@ LineL2FaceT::ComputeShapeFunctions
 
 void
 LineL2FaceT::ComputeShapeFunctionDerivatives
-(const double* local_coordinates, dArrayT& shape_functions) const
+(const double* local_coordinates, dArrayT& shape_derivatives) const
 {
+	double xi  = local_coordinates[0];
+	shape_derivatives[0] = 0.5 ;
+	shape_derivatives[1] = 0.5 ;
+
 }
 
 void
 LineL2FaceT::ComputeShapeFunctionDerivatives
-(const double* local_coordinates, dMatrixT& shape_functions) const
+(const double* local_coordinates, dMatrixT& shape_derivatives) const
 {
+	shape_derivatives = 0.0;
+	dArrayT shape_d(2);
+	ComputeShapeFunctions(local_coordinates, shape_d);
+        shape_derivatives(0,0) = shape_d[0];
+        shape_derivatives(1,1) = shape_d[0];
+        shape_derivatives(2,0) = shape_d[1];
+        shape_derivatives(3,1) = shape_d[1];
 }
 
 

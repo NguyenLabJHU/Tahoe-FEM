@@ -1,4 +1,4 @@
-/*  $Id: SurfaceT.cpp,v 1.15 2001-05-31 00:37:27 rjones Exp $ */
+/*  $Id: SurfaceT.cpp,v 1.16 2001-06-12 22:14:32 rjones Exp $ */
 #include "SurfaceT.h"
 
 #include <math.h>
@@ -390,7 +390,9 @@ void SurfaceT::UpdateConfiguration ()
   for (int j = 0; j < fFaces.Length(); j++) { fFaces[j]->CalcFaceNormal(); }
 
 
+#if 0
   PrintKinematicData(cout);
+#endif
 }
 
 void SurfaceT::ComputeNeighbors(void)

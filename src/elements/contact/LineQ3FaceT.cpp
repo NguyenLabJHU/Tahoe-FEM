@@ -1,4 +1,4 @@
-/* $Id: LineQ3FaceT.cpp,v 1.2 2001-05-31 00:37:26 rjones Exp $ */
+/* $Id: LineQ3FaceT.cpp,v 1.3 2001-06-12 22:14:32 rjones Exp $ */
 
 #include "LineQ3FaceT.h"
 #include "FaceT.h"
@@ -115,8 +115,12 @@ void
 LineQ3FaceT::ComputeTangent1
 (const double* local_coordinates,double* tangent1) const
 {
-cout << "not implemented";
-throw;
+	double xi  = local_coordinates[0];
+	tangent1[0] = 0.0;	// need a '=' operator
+	tangent1[1] = 0.0;	
+	Add(tangent1,(xi-0.5),fx[0]);
+	Add(tangent1,(xi+0.5),fx[1]);
+	Add(tangent1,-2.0*xi, fx[2]);
 }
 
 void
@@ -155,14 +159,27 @@ LineQ3FaceT::ComputeShapeFunctions
 
 void
 LineQ3FaceT::ComputeShapeFunctionDerivatives
-(const double* local_coordinates, dArrayT& shape_functions) const
+(const double* local_coordinates, dArrayT& shape_derivatives) const
 {
+	double xi  = local_coordinates[0];
+	shape_derivatives[0] =  xi - 0.5 ;
+	shape_derivatives[1] =  xi + 0.5 ;
+	shape_derivatives[2] = - 2.0 * xi ;
 }
 
 void
 LineQ3FaceT::ComputeShapeFunctionDerivatives
-(const double* local_coordinates, dMatrixT& shape_functions) const
+(const double* local_coordinates, dMatrixT& shape_derivatives) const
 {
+	shape_derivatives = 0.0;
+	dArrayT shape_d(3);
+	ComputeShapeFunctions(local_coordinates, shape_d);
+	shape_derivatives(0,0) = shape_d[0];
+	shape_derivatives(1,1) = shape_d[0];
+	shape_derivatives(2,0) = shape_d[1];
+	shape_derivatives(3,1) = shape_d[1];
+	shape_derivatives(4,0) = shape_d[2];
+	shape_derivatives(5,1) = shape_d[2];
 }
 
 
