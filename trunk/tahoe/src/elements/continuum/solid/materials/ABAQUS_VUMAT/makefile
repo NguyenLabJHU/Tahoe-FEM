@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2003-03-04 07:37:08 paklein Exp $
+# $Id: makefile,v 1.3 2003-09-06 06:55:03 paklein Exp $
 #
 # This makefile is divided into four sections:
 #    (1) objects
@@ -20,9 +20,7 @@ include $(MACRO_DIR)/$(ARCH).macros
 #        section (1.1).
 #
 OBJ = \
-	ABAQUS_VUMAT_BCJ.o \
-	ABAQUS_VUMAT_BaseT.o \
-	vumatadiab.o
+	ABAQUS_VUMAT_BaseT.o
 
 OBJ_LINK = $(OBJ)
 DEP = $(OBJ:.o=.d)
@@ -42,9 +40,7 @@ DEP = $(OBJ:.o=.d)
 #     SRC macro; otherwise, comment the SRC macro.
 #
 SRC = \
-	ABAQUS_VUMAT_BCJ.cpp \
-	ABAQUS_VUMAT_BaseT.cpp \
-	vumatadiab.c
+	ABAQUS_VUMAT_BaseT.cpp
 
 ##################### (3) headers
 #
@@ -56,7 +52,6 @@ SRC = \
 # HDR and HDR_LINK macro   
 #
 HDR = \
-	ABAQUS_VUMAT_BCJ.h \
 	ABAQUS_VUMAT_BaseT.h
 
 HDR_LINK = $(HDR:.h=.h_link)
