@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.cpp,v 1.8.46.3 2004-06-16 00:31:52 paklein Exp $ */
+/* $Id: EAMFCC2D.cpp,v 1.8.46.4 2004-06-16 07:13:35 paklein Exp $ */
 /* created: paklein (12/09/1996) */
 #include "EAMFCC2D.h"
 
@@ -29,6 +29,7 @@ EAMFCC2D::EAMFCC2D(ifstreamT& in, const FSMatSupportT& support, PlaneCodeT plane
 	fPlaneCode(plane_code),
 	fEAM(NULL)
 {
+#if 0
 	/* construct Cauchy-Born EAM solver */
 	in >> fEAMCode;
 	fEAM = new EAMFCC3DSym(in, fEAMCode, knsd);
@@ -91,6 +92,7 @@ EAMFCC2D::EAMFCC2D(ifstreamT& in, const FSMatSupportT& support, PlaneCodeT plane
 	
 	/* construct bond lattice */	
 	fEAM->Initialize(&Q);	
+#endif
 }
 
 /* destructor */

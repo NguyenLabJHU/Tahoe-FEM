@@ -1,4 +1,4 @@
-/* $Id: FCCLatticeT.cpp,v 1.2.42.1 2004-06-16 00:31:50 paklein Exp $ */
+/* $Id: FCCLatticeT.cpp,v 1.2.42.2 2004-06-16 07:13:38 paklein Exp $ */
 #include "FCCLatticeT.h"
 #include "ParameterContainerT.h"
 
@@ -48,8 +48,8 @@ ParameterInterfaceT* FCCLatticeT::NewSub(const StringT& list_name) const
 
 		ParameterContainerT FCC111("FCC_111");
 		ParameterT FCC111_type(ParameterT::Enumeration, "sense");
-		FCC111_type.AddEnumeration("<-1 1 0> <-1-1 2> < 1 1 1>", 0);
-		FCC111_type.AddEnumeration("< 1-1 0> < 1 1-2> < 1 1 1>", 1);
+		FCC111_type.AddEnumeration("[-1 1 0][-1-1 2][ 1 1 1]", 0);
+		FCC111_type.AddEnumeration("[ 1-1 0][ 1 1-2][ 1 1 1]", 1);
 		FCC111_type.SetDefault(0);
 		FCC111.AddParameter(FCC111_type);
 		orientation->AddSub(FCC111);
@@ -76,25 +76,24 @@ void FCCLatticeT::TakeParameterList(const ParameterListT& list)
 
 	/* extract orientation */
 	const char orientation_choice[] = "FCC_lattice_orientation";
-	const ParameterListT* orientation = list.ResolveListChoice(*this, orientation_choice);
-	if (!orientation) ExceptionT::GeneralFail(caller, "could not resolve \"%s\"", orientation_choice);
+	const ParameterListT& orientation = list.GetListChoice(*this, orientation_choice);
 	OrientationCodeT code = kFCC3Dnatural;
-	if (orientation->Name() == "FCC_110")
+	if (orientation.Name() == "FCC_110")
 		code = kFCC3D110;
-	else if (orientation->Name() == "FCC_111") {
-		int sense = orientation->GetParameter("sense");
+	else if (orientation.Name() == "FCC_111") {
+		int sense = orientation.GetParameter("sense");
 		code = (sense == 1) ? kFCC3D111_b : kFCC3D111_a;
 	}
-	else if (orientation->Name() == "FCC_Euler_angles")
+	else if (orientation.Name() == "FCC_Euler_angles")
 	{
-		double theta = orientation->GetParameter("theta");
-		double phi = orientation->GetParameter("phi");
-		double psi = orientation->GetParameter("psi");
+		double theta = orientation.GetParameter("theta");
+		double phi = orientation.GetParameter("phi");
+		double psi = orientation.GetParameter("psi");
 		code = kEulerAngles;
-		ExceptionT::GeneralFail(caller, "orientation \"%s\" not implemented", orientation->Name().Pointer());
+		ExceptionT::GeneralFail(caller, "orientation \"%s\" not implemented", orientation.Name().Pointer());
 	}
 	else
-		ExceptionT::GeneralFail(caller, "unrecognized orientation \"%s\"", orientation->Name().Pointer());
+		ExceptionT::GeneralFail(caller, "unrecognized orientation \"%s\"", orientation.Name().Pointer());
 	
 	/* set Q */
 	dMatrixT Q(3);

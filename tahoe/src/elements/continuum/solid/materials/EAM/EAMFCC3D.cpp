@@ -1,10 +1,8 @@
-/* $Id: EAMFCC3D.cpp,v 1.4.50.1 2004-06-16 00:31:52 paklein Exp $ */
+/* $Id: EAMFCC3D.cpp,v 1.4.50.2 2004-06-16 07:13:35 paklein Exp $ */
 /* created: paklein (12/02/1996) */
 #include "EAMFCC3D.h"
 
-#include <iostream.h>
-
-#include "fstreamT.h"
+#include "ParameterContainerT.h"
 #include "dMatrixT.h"
 #include "StringT.h"
 
@@ -25,16 +23,30 @@ const int kEAMFCC3DNumAtomsPerCell	=  4;
 #pragma message("rename me to indicate this is a Cauchy-Born solver")
 
 /* constructor */
+EAMFCC3D::EAMFCC3D(void):
+	FCCLatticeT(0), /* number of shells is not used by this class */
+	fEAM(NULL),
+	fLatticeParameter(0.0),
+	fCellVolume(0.0)	
+{
+
+}
+
+#if 0
 EAMFCC3D::EAMFCC3D(ifstreamT& in, int EAMcode, int nsd):
-	fEAM(NULL)
+	FCCLatticeT(0), /* number of shells is not used by this class */
+	fEAM(NULL),
+	fLatticeParameter(0.0),
+	fCellVolume(0.0)
 {
 	/* set EAM solver functions */
 	SetGlueFunctions(in, EAMcode, nsd);
 	
 	/* lattice parameter and cell volume */
 	fLatticeParameter = fEAM->LatticeParameter();
-	fCellVolume       = fLatticeParameter*fLatticeParameter*fLatticeParameter;
+	fCellVolume = fLatticeParameter*fLatticeParameter*fLatticeParameter;
 }
+#endif
 
 #if 0
 EAMFCC3D::EAMFCC3D(ifstreamT& in, const dMatrixT& Q, int EAMcode, int nsd):
@@ -176,12 +188,112 @@ void EAMFCC3D::LoadBondTable(void)
 	fBonds *= fLatticeParameter;
 }
 
-/**********************************************************************
-* Private
-**********************************************************************/
+/* describe the parameters needed by the interface */
+void EAMFCC3D::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	FCCLatticeT::DefineParameters(list);
 
+	/* number of spatial dimensions */
+	ParameterT nsd(ParameterT::Integer, "dimensions");
+	nsd.AddLimit(2, LimitT::Only);
+	nsd.AddLimit(3, LimitT::Only);
+	nsd.SetDefault(3);
+	list.AddParameter(nsd);
+}
+
+/* information about subordinate parameter lists */
+void EAMFCC3D::DefineSubs(SubListT& sub_list) const
+{
+	/* inherited */
+	FCCLatticeT::DefineSubs(sub_list);
+	
+	/* choice of EAM Cauchy-Born glue functions */
+	sub_list.AddSub("EAM_FCC_glue_choice", ParameterListT::Once, true);
+}
+
+/* a pointer to the ParameterInterfaceT of the given subordinate */
+ParameterInterfaceT* EAMFCC3D::NewSub(const StringT& list_name) const
+{
+	if (list_name == "EAM_FCC_glue_choice")
+	{
+		ParameterContainerT* choice = new ParameterContainerT(list_name);
+		choice->SetListOrder(ParameterListT::Choice);
+		
+		/* choices */
+		ParameterContainerT EA_Al("Ercolessi-Adams_Al");
+		ParameterContainerT VC_Al("Voter-Chen_Al");
+		ParameterContainerT VC_Cu("Voter-Chen_Cu");
+		ParameterContainerT FBD("Paradyn_EAM");
+		FBD.AddParameter(ParameterT::Word, "parameter_file");
+
+		choice->AddSub(EA_Al);
+		choice->AddSub(VC_Al);
+		choice->AddSub(VC_Cu);
+		choice->AddSub(FBD);
+		
+		return choice;
+	}
+	else /* inherited */
+		return FCCLatticeT::NewSub(list_name);
+}
+
+/* accept parameter list */
+void EAMFCC3D::TakeParameterList(const ParameterListT& list)
+{
+	const char caller[] = "EAMFCC3D::TakeParameterList";
+
+	/* inherited */
+	FCCLatticeT::TakeParameterList(list);
+
+	/* construct glue */
+	int nsd = list.GetParameter("dimensions");
+	const char glue_name[] = "EAM_FCC_glue_choice";
+	const ParameterListT& glue = list.GetListChoice(*this, glue_name);
+	if (glue.Name() == "Ercolessi-Adams_Al")
+		fEAM = new ErcolessiAdamsAl(*this, nsd);
+	else if (glue.Name() == "Voter-Chen_Al")
+		fEAM = new VoterChenAl(*this, nsd);
+	else if (glue.Name() == "Voter-Chen_Cu")
+		fEAM = new VoterChenCu(*this, nsd);
+	else if (glue.Name() == "Paradyn_EAM")
+	{
+		/* data file */
+		StringT data_file = glue.GetParameter("parameter_file");
+		data_file.ToNativePathName();
+
+#if 0
+		/* path to source file */
+		StringT path;
+		path.FilePath(in.filename());
+		data_file.Prepend(path);
+#endif
+
+		ifstreamT data(data_file);
+		if (!data.is_open())
+			ExceptionT::GeneralFail(caller, "could not open file \"%s\"", data_file.Pointer());
+
+		fEAM = new FBD_EAMGlue(*this, nsd, data);
+	}
+	else
+		ExceptionT::GeneralFail(caller, "unrecognized glue function \"%s\"",
+			glue.Name().Pointer());
+
+	/* initialize glue functions */
+	fEAM->SetGlueFunctions();
+
+	/* lattice parameter and cell volume */
+	fLatticeParameter = fEAM->LatticeParameter();
+	fCellVolume = fLatticeParameter*fLatticeParameter*fLatticeParameter;
+}
+
+/**********************************************************************
+ * Private
+ **********************************************************************/
+
+#if 0
 /* Set glue functions */
-void EAMFCC3D::SetGlueFunctions(ifstreamT& in, int EAMcode, int nsd)
+void EAMFCC3D::SetGlueFunctions(const ParameterListT& params)
 {
 	switch (EAMcode)
 	{
@@ -228,3 +340,4 @@ void EAMFCC3D::SetGlueFunctions(ifstreamT& in, int EAMcode, int nsd)
 	if (!fEAM) throw ExceptionT::kOutOfMemory;
 	fEAM->SetGlueFunctions();
 }
+#endif
