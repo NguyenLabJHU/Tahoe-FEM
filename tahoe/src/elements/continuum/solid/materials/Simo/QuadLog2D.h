@@ -1,4 +1,4 @@
-/* $Id: QuadLog2D.h,v 1.5.46.1 2004-04-08 07:32:55 paklein Exp $ */
+/* $Id: QuadLog2D.h,v 1.5.46.2 2004-06-07 13:48:15 paklein Exp $ */
 /* created: paklein (06/28/1997) */
 #ifndef _QUAD_LOG_2D_
 #define _QUAD_LOG_2D_
@@ -15,6 +15,7 @@ public:
 
 	/* constructor */
 	QuadLog2D(ifstreamT& in, const FSMatSupportT& support);
+	QuadLog2D(void);
 
 	/* print parameters */
 	virtual void PrintName(ostream& out) const;
@@ -32,6 +33,12 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+	/*@}*/
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:

@@ -1,4 +1,4 @@
-/* $Id: CubicT.cpp,v 1.4.50.1 2004-04-08 07:32:46 paklein Exp $ */
+/* $Id: CubicT.cpp,v 1.4.50.2 2004-06-07 13:48:13 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #include "CubicT.h"
 
@@ -44,9 +44,20 @@ void CubicT::DefineParameters(ParameterListT& list) const
 	list.AddParameter(fC44, "C44");
 }
 
+/* accept parameter list */
+void CubicT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	ParameterInterfaceT::TakeParameterList(list);
+
+	fC11 = list.GetParameter("C11");
+	fC12 = list.GetParameter("C12");
+	fC44 = list.GetParameter("C44");
+}
+
 /*************************************************************************
-* Protected
-*************************************************************************/
+ * Protected
+ *************************************************************************/
 
 /* print name */
 void CubicT::PrintName(ostream& out) const

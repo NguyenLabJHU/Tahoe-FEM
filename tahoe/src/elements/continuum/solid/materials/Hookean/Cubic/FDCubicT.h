@@ -1,4 +1,4 @@
-/* $Id: FDCubicT.h,v 1.5.46.1 2004-04-08 07:32:46 paklein Exp $ */
+/* $Id: FDCubicT.h,v 1.5.46.2 2004-06-07 13:48:13 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #ifndef _FD_CUBIC_T_H_
 #define _FD_CUBIC_T_H_
@@ -25,6 +25,9 @@ public:
 	/*@{*/
 	/** information about subordinate parameter lists */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:

@@ -1,4 +1,4 @@
-/* $Id: SolidMaterialT.cpp,v 1.10.18.1 2004-04-08 07:33:18 paklein Exp $ */
+/* $Id: SolidMaterialT.cpp,v 1.10.18.2 2004-06-07 13:48:17 paklein Exp $ */
 /* created: paklein (11/20/1996) */
 #include "SolidMaterialT.h"
 
@@ -193,6 +193,8 @@ ParameterInterfaceT* SolidMaterialT::NewSub(const StringT& list_name) const
 /* accept parameter list */
 void SolidMaterialT::TakeParameterList(const ParameterListT& list)
 {
+	const char caller[] = "SolidMaterialT::TakeParameterList";
+
 	/* inherited */
 	ContinuumMaterialT::TakeParameterList(list);
 
@@ -214,10 +216,13 @@ void SolidMaterialT::TakeParameterList(const ParameterListT& list)
 	const ParameterListT* thermal = list.List("thermal_dilatation");
 	if (thermal) {
 		double elongation = thermal->GetParameter("percent_elongation");
-		int schedule = thermal->GetParameter("schedule_number");
-		schedule--;
+		int schedule_num = thermal->GetParameter("schedule_number");
+		schedule_num--;
 		
 		fThermal->SetPercentElongation(elongation);
-		fThermal->SetScheduleNum(schedule);
+		fThermal->SetScheduleNum(schedule_num);
+		const ScheduleT* schedule = MaterialSupport().Schedule(schedule_num);
+		if (!schedule) ExceptionT::GeneralFail(caller, "could not resolve schedule %d", schedule_num+1);		
+		fThermal->SetSchedule(schedule);
 	}
 }

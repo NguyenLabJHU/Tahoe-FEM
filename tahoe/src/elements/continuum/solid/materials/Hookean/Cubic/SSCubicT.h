@@ -1,4 +1,4 @@
-/* $Id: SSCubicT.h,v 1.4.48.1 2004-04-08 07:32:46 paklein Exp $ */
+/* $Id: SSCubicT.h,v 1.4.48.2 2004-06-07 13:48:13 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #ifndef _SS_CUBIC_T_H_
 #define _SS_CUBIC_T_H_
@@ -26,6 +26,9 @@ public:
 	/*@{*/
 	/** describe the parameters needed by the interface */
 	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
 	/*@}*/
 
 protected:

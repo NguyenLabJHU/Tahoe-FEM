@@ -1,4 +1,4 @@
-/* $Id: QuadLogOgden3DT.h,v 1.5 2003-01-29 07:34:43 paklein Exp $ */
+/* $Id: QuadLogOgden3DT.h,v 1.5.46.1 2004-06-07 13:48:14 paklein Exp $ */
 /* created: paklein (02/17/2001) */
 #ifndef _QUAD_LOG_ISO_3D_T_H_
 #define _QUAD_LOG_ISO_3D_T_H_
@@ -15,6 +15,7 @@ public:
 
 	/* constructor */
 	QuadLogOgden3DT(ifstreamT& in, const FSMatSupportT& support);
+	QuadLogOgden3DT(void);
 	
 	/* print parameters */
 	virtual void PrintName(ostream& out) const;

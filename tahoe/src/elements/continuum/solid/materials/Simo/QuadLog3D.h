@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.h,v 1.9.46.1 2004-04-08 07:32:55 paklein Exp $ */
+/* $Id: QuadLog3D.h,v 1.9.46.2 2004-06-07 13:48:15 paklein Exp $ */
 /* created: paklein (06/27/1997) */
 #ifndef _QUAD_LOG_3D_H_
 #define _QUAD_LOG_3D_H_
@@ -16,6 +16,7 @@ public:
 
 	/* constructor */
 	QuadLog3D(ifstreamT& in, const FSMatSupportT& support);
+	QuadLog3D(void);
 	
 	/* print parameters */
 	virtual void Print(ostream& out) const;
@@ -43,6 +44,12 @@ public:
 
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 

@@ -1,4 +1,4 @@
-/* $Id: FSSolidMatList3DT.cpp,v 1.1.4.1 2004-04-08 07:33:04 paklein Exp $ */
+/* $Id: FSSolidMatList3DT.cpp,v 1.1.4.2 2004-06-07 13:48:16 paklein Exp $ */
 /* created: paklein (02/14/1997) */
 #include "FSSolidMatList3DT.h"
 
@@ -569,6 +569,7 @@ void FSSolidMatList3DT::DefineInlineSub(const StringT& sub, ParameterListT::List
 		sub_sub_list.AddSub("large_strain_cubic");
 		sub_sub_list.AddSub("large_strain_StVenant");
 		sub_sub_list.AddSub("Simo_isotropic");
+		sub_sub_list.AddSub("quad_log");
 	}
 	else /* inherited */
 		SolidMatListT::DefineInlineSub(sub, order, sub_sub_list);
@@ -621,6 +622,8 @@ FSSolidMatT* FSSolidMatList3DT::NewFSSolidMat(const StringT& name) const
 		mat = new FDKStV;
 	else if (name == "Simo_isotropic")
 		mat = new SimoIso3D;
+	else if (name == "quad_log")
+		mat = new QuadLog3D;
 
 	/* set support */
 	if (mat) mat->SetFSMatSupport(fFSMatSupport);

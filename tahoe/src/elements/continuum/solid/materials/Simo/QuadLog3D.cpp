@@ -1,4 +1,4 @@
-/* $Id: QuadLog3D.cpp,v 1.8.46.1 2004-04-08 07:32:55 paklein Exp $ */
+/* $Id: QuadLog3D.cpp,v 1.8.46.2 2004-06-07 13:48:15 paklein Exp $ */
 /* created: paklein (06/27/1997) */
 #include "QuadLog3D.h"
 
@@ -9,7 +9,7 @@ using namespace Tahoe;
 
 /* constructor */
 QuadLog3D::QuadLog3D(ifstreamT& in, const FSMatSupportT& support):
-	ParameterInterfaceT("quad_log_3D"),
+	ParameterInterfaceT("quad_log"),
 	fSpectral(3),
 	fb(3),
 	fStress(3),
@@ -27,6 +27,13 @@ QuadLog3D::QuadLog3D(ifstreamT& in, const FSMatSupportT& support):
 	fDevOp3.PlusIdentity();
 	fEigMod = Kappa();
 	fEigMod.AddScaled(2.0*Mu(), fDevOp3);
+}
+
+QuadLog3D::QuadLog3D(void): 
+	ParameterInterfaceT("quad_log"),
+	fSpectral(3)
+{
+
 }
 
 /* print parameters */
@@ -90,6 +97,30 @@ double QuadLog3D::StrainEnergyDensity(void)
 	LogStretches(fEigs);
 
 	return ComputeEnergy(floge);
+}
+
+/* accept parameter list */
+void QuadLog3D::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	FSIsotropicMatT::TakeParameterList(list);
+
+	fb.Dimension(3);
+	fStress.Dimension(3);
+	fModulus.Dimension(dSymMatrixT::NumValues(3));
+	fDevOp3.Dimension(3);
+		
+	/* spectral decomposition */
+	fEigs.Dimension(3);
+	floge.Dimension(3);
+	fBeta.Dimension(3);
+	fEigMod.Dimension(3);
+
+	/* elastic modulis in principal stress space */
+	fDevOp3 = -1.0/3.0;
+	fDevOp3.PlusIdentity();
+	fEigMod = Kappa();
+	fEigMod.AddScaled(2.0*Mu(), fDevOp3);
 }
 
 /*************************************************************************

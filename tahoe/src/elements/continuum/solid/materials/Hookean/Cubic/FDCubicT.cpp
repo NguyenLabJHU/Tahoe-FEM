@@ -1,4 +1,4 @@
-/* $Id: FDCubicT.cpp,v 1.5.46.1 2004-04-08 07:32:46 paklein Exp $ */
+/* $Id: FDCubicT.cpp,v 1.5.46.2 2004-06-07 13:48:13 paklein Exp $ */
 /* created: paklein (06/11/1997) */
 #include "FDCubicT.h"
 
@@ -41,6 +41,14 @@ void FDCubicT:: DefineParameters(ParameterListT& list) const
 	/* inherited */
 	FDHookeanMatT::DefineParameters(list);
 	CubicT::DefineParameters(list);
+}
+
+/* information about subordinate parameter lists */
+void FDCubicT:: TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	CubicT::TakeParameterList(list); /* cubic parameters must be extracted first */
+	FDHookeanMatT::TakeParameterList(list);
 }
 
 /*************************************************************************
