@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.24 2002-07-02 19:55:12 cjkimme Exp $ */
+/* $Id: ElementListT.cpp,v 1.25 2002-07-18 21:58:21 hspark Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
@@ -30,6 +30,7 @@
 #include "MultiScaleT.h"
 #include "CoarseScaleT.h"
 #include "FinePhestT.h"
+#include "BridgingScaleT.h"
 
 /* contact */
 #include "PenaltyContact2DT.h"
@@ -160,13 +161,12 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 		out << "    eq. " << ElementT::kMultiScale              << ", Variational Multi-Scale (VMS) Element \n";
 		out << "    eq. " << ElementT::kCoarseScale             << ", Coarse Scale Element (for VMS) \n";
 		out << "    eq. " << ElementT::kFinePhest               << ", Fine Sclale Phenomenological Str. Grad\n";
-
 		out << "    eq. " << ElementT::kACME_Contact       << ", 3D contact using ACME\n";
 		out << "    eq. " << ElementT::kMultiplierContact3D       << ", 3D contact using Lagrange multipliers\n";
 		out << "    eq. " << ElementT::kMultiplierContactElement2D       << ", 2D Lagrange multiplier contact elements\n";
 		out << "    eq. " << ElementT::kPenaltyContactElement2D       << ", 2D penalty contact elements\n";
 		out << "    eq. " << ElementT::kPenaltyContactElement3D       << ", 3D penalty contact elements\n";
-		
+		out << "    eq. " << ElementT::kBridgingScale      << ", Bridging Scale\n";
 		/* check */
 		if (group < 0 || group >= Length())
 		{
@@ -334,22 +334,25 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 				fArray[group] = new MultiplierContactElement2DT(fSupport, *field);
 				break;
 			}
-            case ElementT::kPenaltyContactElement2D:
-            {
-                fArray[group] = new PenaltyContactElement2DT(fSupport, *field);
-                break;
-            }
-            case ElementT::kPenaltyContactElement3D:
-			{
-                fArray[group] = new PenaltyContactElement3DT(fSupport, *field);
-                break;
-
-
-			}
-			default:
-			
-				cout << "\n ElementListT::EchoElementData: unknown element type:" << code << endl;
-				throw eBadInputValue;
+		case ElementT::kPenaltyContactElement2D:
+		  {
+		    fArray[group] = new PenaltyContactElement2DT(fSupport, *field);
+		    break;
+		  }
+		case ElementT::kPenaltyContactElement3D:
+		  {
+		    fArray[group] = new PenaltyContactElement3DT(fSupport, *field);
+		    break;
+		  }
+		case ElementT::kBridgingScale:
+		  {
+		    //fArray[group] = new BridgingScale(fSupport, *field);
+		    break;
+		  }
+		default:
+		  
+		  cout << "\n ElementListT::EchoElementData: unknown element type:" << code << endl;
+		  throw eBadInputValue;
 		}
 		
 		if (!fArray[group]) throw eOutOfMemory;
