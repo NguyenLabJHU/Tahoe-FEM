@@ -1,12 +1,12 @@
-/* $Id: J2QL2DLinHardT.h,v 1.1.1.1 2001-01-29 08:20:30 paklein Exp $ */
+/* $Id: J2QL2DLinHardT.h,v 1.2 2001-04-27 10:54:35 paklein Exp $ */
 /* created: paklein (06/29/1997)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
 /* condition as fYield with kinematic/isotropic hardening laws            */
 /* given by:                                                              */
-/* 		H(a) = (1 - ftheta) fH_bar a                                         */
-/* K(a) = fYield + ftheta fH_bar a                                        */
-/* 		where a is the internal hardening variable                           */
+/* 		H(a) = (1 - ftheta) fH_bar a                                      */
+/*      K(a) = fYield + ftheta fH_bar a                                   */
+/* 		where a is the internal hardening variable                        */
 /* 	Note: all calculations are peformed in 3D.                            */
 
 #ifndef _J2_QL_LIN_HARD_2D_T_H_

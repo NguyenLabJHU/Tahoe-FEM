@@ -1,4 +1,4 @@
-/* $Id: IsoVIB3D.cpp,v 1.1.1.1 2001-01-29 08:20:25 paklein Exp $ */
+/* $Id: IsoVIB3D.cpp,v 1.2 2001-04-27 10:54:33 paklein Exp $ */
 /* created: paklein (03/15/1998)                                          */
 /* 3D Isotropic VIB solver using spectral decomposition formulation       */
 
@@ -144,7 +144,7 @@ const dMatrixT& IsoVIB3D::c_ijkl(void)
 
 	/* (material) -> (spatial) */
 	double J = sqrt(fEigs.Product());
-	if (J < kSmall) throw eBadJacobianDet;
+	if (J <= 0.0) throw eBadJacobianDet;
 	
 	c11 *= (fEigs[0]*fEigs[0]/J);
 	c22 *= (fEigs[1]*fEigs[1]/J);
@@ -245,7 +245,7 @@ const dSymMatrixT& IsoVIB3D::s_ij(void)
 
 	/* PK2 -> Cauchy (with thickness) */
 	double J = sqrt(fEigs.Product());
-	if (J < kSmall) throw eBadJacobianDet;
+	if (J <= kSmall) throw eBadJacobianDet;
 	
 	fEigs[0] *= (s1/J);
 	fEigs[1] *= (s2/J);

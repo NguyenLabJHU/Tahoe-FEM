@@ -1,4 +1,4 @@
-/* $Id: EAMFCC2D.h,v 1.1.1.1 2001-01-29 08:20:23 paklein Exp $ */
+/* $Id: EAMFCC2D.h,v 1.2 2001-04-27 10:54:31 paklein Exp $ */
 /* created: paklein (12/09/1996)                                          */
 /* Plane strain EAM material                                              */
 
@@ -16,13 +16,13 @@ class EAMFCC2D: public NL_E_Mat2DT
 {
 public:
 
-	/* plane codes - for crystal axes rotated wrt global axes*/
-	enum PlaneCodeT {kFCC2Dnatural = 0,
-                         kFCC2D110 = 1,
-                         kFCC2D111 = 2};
+	/* plane codes - for crystal axes rotated wrt global axes */
+	enum PlaneCodeT {kFCC001 = 0,
+                     kFCC101 = 1,
+                     kFCC111 = 2};
 
 	/* constructor */
-	EAMFCC2D(ifstreamT& in, const ElasticT& element, int planecode);
+	EAMFCC2D(ifstreamT& in, const ElasticT& element, PlaneCodeT plane_code);
 
 	/* destructor */
 	virtual ~EAMFCC2D(void);
@@ -44,7 +44,7 @@ protected:
 	
 protected:
 	
-	int fPlaneCode;
+	PlaneCodeT fPlaneCode;
 	int	fEAMCode;
 	
 	/* EAM solver */

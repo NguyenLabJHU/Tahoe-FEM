@@ -1,4 +1,4 @@
-/* $Id: J2QLLinHardT.cpp,v 1.2 2001-02-20 00:28:23 paklein Exp $ */
+/* $Id: J2QLLinHardT.cpp,v 1.3 2001-04-27 10:54:35 paklein Exp $ */
 /* created: paklein (10/26/2000)                                          */
 /* Interface for a elastoplastic material that is linearly                */
 /* isotropically elastic subject to the Huber-von Mises yield             */
@@ -53,11 +53,11 @@ const int kNSD = 3;
 /* element output data */
 const int kNumOutput = 5;
 static const char* Labels[kNumOutput] = {
-"alpha",  // equivalent plastic strain
+        "alpha",  // equivalent plastic strain
 	 "VM_Kirch",  // Kirchhoff Von Mises stress
-	        "p",  // pressure
-	    "s_max",  // max in-plane principal stress
-	    "s_min"}; // min in-plane principal stress
+	    "press",  // pressure
+	    "s_max",  // max principal stress
+	    "s_min"}; // min principal stress
 
 /* constructor */
 J2QLLinHardT::J2QLLinHardT(ifstreamT& in, const ElasticT& element):

@@ -1,4 +1,4 @@
-/* $Id: SimoIso2D.cpp,v 1.2 2001-02-26 17:37:00 paklein Exp $ */
+/* $Id: SimoIso2D.cpp,v 1.3 2001-04-27 10:54:32 paklein Exp $ */
 /* created: paklein (03/04/1997)                                          */
 /* (2D <-> 3D) translator for the SimoIso3D.                              */
 
@@ -26,7 +26,7 @@ const dMatrixT& SimoIso2D::c_ijkl(void)
 	
 	/* 3D calculation */
 	double J = fb_3D.Det();
-	if (J < kSmall) throw eBadJacobianDet;
+	if (J <= 0.0) throw eBadJacobianDet;
 	J = sqrt(J);
 	fb_3D *= pow(J,-2.0/3.0);
 
@@ -48,7 +48,7 @@ const dSymMatrixT& SimoIso2D::s_ij(void)
 	
 	/* 3D calculation */
 	double J = fb_3D.Det();
-	if (J < kSmall) throw eBadJacobianDet;
+	if (J <= 0.0) throw eBadJacobianDet;
 	J = sqrt(J);
 	fb_3D *= pow(J,-2.0/3.0);
 
@@ -70,7 +70,7 @@ double SimoIso2D::StrainEnergyDensity(void)
 	
 	/* 3D calculation */
 	double J = fb_3D.Det();
-	if (J < kSmall) throw eBadJacobianDet;
+	if (J <= 0.0) throw eBadJacobianDet;
 	J = sqrt(J);
 	fb_3D *= pow(J,-2.0/3.0);
 
