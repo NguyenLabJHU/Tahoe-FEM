@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV.cpp,v 1.25 2004-07-22 21:10:09 paklein Exp $ */
+/* $Id: DPSSKStV.cpp,v 1.26 2005-02-25 18:41:18 cfoster Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV.h"
 #include "SSMatSupportT.h"
@@ -61,6 +61,13 @@ const dMatrixT& DPSSKStV::c_ijkl(void)
 	fDP->ModuliCorrection(CurrentElement(), CurrIP()));	
 	return fModulus;
 }
+
+/* elastic modulus */
+const dMatrixT& DPSSKStV::ce_ijkl(void)
+{
+  return HookeanMatT::Modulus();
+}
+
 
 /* stress */
 const dSymMatrixT& DPSSKStV::s_ij(void)

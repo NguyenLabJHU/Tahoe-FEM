@@ -1,4 +1,4 @@
-/* $Id: DPSSKStV2D.cpp,v 1.11 2004-09-10 22:39:27 paklein Exp $ */
+/* $Id: DPSSKStV2D.cpp,v 1.12 2005-02-25 18:41:18 cfoster Exp $ */
 /* created: myip (06/01/1999) */
 #include "DPSSKStV2D.h"
 #include "ElementCardT.h"
@@ -31,6 +31,14 @@ const dMatrixT& DPSSKStV2D::c_ijkl(void)
 {
 	/* 3D -> 2D */
 	fModulus2D.Rank4ReduceFrom3D(DPSSKStV::c_ijkl());
+	return fModulus2D;
+}
+
+/* moduli */
+const dMatrixT& DPSSKStV2D::ce_ijkl(void)
+{
+	/* 3D -> 2D */
+	fModulus2D.Rank4ReduceFrom3D(DPSSKStV::ce_ijkl());
 	return fModulus2D;
 }
 
