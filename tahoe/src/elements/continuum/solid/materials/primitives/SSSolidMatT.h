@@ -1,4 +1,4 @@
-/* $Id: SSSolidMatT.h,v 1.8 2003-04-05 20:09:26 thao Exp $ */
+/* $Id: SSSolidMatT.h,v 1.9 2003-05-15 05:11:24 thao Exp $ */
 /* created: paklein (06/09/1997) */
 #ifndef _SS_STRUCT_MAT_T_H_
 #define _SS_STRUCT_MAT_T_H_
@@ -58,7 +58,16 @@ public:
 	virtual void Strain(dSymMatrixT& strain) { strain = e(); };
 
 	/*inquire if dissipation variables used in material force calculation are needed*/
-	virtual bool HasDissipVar(void) const {return false;}
+	virtual bool HasDissipVar(void) const {return false;};
+	virtual const iArrayT& InternalDOF(void) {
+		cout << "\n SSSolidMatT::InternalDOF: Inappropriate function call.";
+		return  ijunk;};
+	virtual const dArrayT& InternalStressVars(void) {
+		cout << "\n SSSolidMatT::InternalStressVars: Inappropriate function call.";
+		return  djunk;};
+	virtual const dArrayT& InternalStrainVars(void) {
+		cout << "\n SSSolidMatT::InternalStressVars: Inappropriate function call.";
+		return  djunk;};
 
 protected:
 
@@ -88,6 +97,10 @@ private:
 	/* thermal strain: e_elastic = e_total - e_thermal */
 	bool        fHasThermalStrain;
 	dSymMatrixT fThermalStrain;
+
+	/*junk arrays*/
+	iArrayT ijunk;
+	dArrayT djunk;
 };
 
 } // namespace Tahoe 
