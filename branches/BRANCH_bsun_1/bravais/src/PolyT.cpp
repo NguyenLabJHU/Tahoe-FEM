@@ -25,16 +25,11 @@
     PolyT::PolyT(int dim, dArray2DT len, 
     dArrayT lattice_parameter,
     iArrayT which_sort, StringT slt,
-    iArrayT per, int NumberofGrains) : BoxT(dim,len, lattice_parameter, which_sort, slt, per) 
+    iArrayT per, int NumGrains) : BoxT(dim,len, lattice_parameter, which_sort, slt, per) 
    {
    //set up global variables
-      this->NumberofGrains = NumberofGrains;
-      GrainCenters.Dimension(NumberofGrains);
-      VolType = "POLY";
-      SizeofLattice=length;
-      if (per == 0) SizeofLattice/=2;
-   //create random grain centers
-      MaxGrainSeparation=0.0;
+      NumberofGrains = NumGrains;
+      Initialize();
       MakeGrains(lattice_parameter);
        
    }//endconstructor
@@ -42,18 +37,13 @@
     PolyT::PolyT(int dim, iArrayT cel, 
     dArrayT lattice_parameter,
     iArrayT which_sort, StringT slt,
-    iArrayT per, int NumberofGrains) : BoxT(dim, cel, lattice_parameter, which_sort, slt, per) 
+    iArrayT per, int NumGrains) : BoxT(dim, cel, lattice_parameter, which_sort, slt, per) 
    {
    //set up global variables
-      this->NumberofGrains = NumberofGrains;
-      GrainCenters.Dimension(NumberofGrains);
-      SizeofLattice=length;
-      if(per ==0) SizeofLattice/=2;
-      VolType = "POLY";
-      MaxGrainSeparation=0.0;
+      NumberofGrains = NumGrains;
+      Initialize();
       MakeGrains(lattice_parameter);
-      cout<<"nATOMS= " << nATOMS <<"\n";
-      cout<<"SizeofLattice: "<<SizeofLattice<<"\n";
+
    
    }//endconstructor
 
@@ -69,21 +59,28 @@
       SizeofLattice = source.SizeofLattice;
    }
 
+	void PolyT::Initialize() {
+		GrainCenters.Dimension(NumberofGrains);
+		SizeofLattice=length;
+		IsPeriodic = (pbc!=0);
+		if(!IsPeriodic) SizeofLattice/=2;
+		VolType = "POLY";
+		PeriodicLength.Dimension(nSD);
+		for(int i =0; i<nSD;i++) 
+			PeriodicLength[i]=SizeofLattice(i,1)-SizeofLattice(i,0);
+		MaxGrainSeparation=0.0;
+		cout<<"SizeofLattice: "<<SizeofLattice<<"\n";
 
+	    
+	}
+   
     void PolyT::CreateLattice(CrystalLatticeT* templateLattice) 
    {
    
-//      dArray2DT virtualGrainBounds(nSD,2);
-//   
-//      for (int i = 0; i < nSD; i++) {
-//         virtualGrainBounds(i, 0)= -MaxGrainSeparation/2.0;
-//         virtualGrainBounds(i, 1)= MaxGrainSeparation/2.0;
-//      }
-//     //make a virtual grain
-//      BoxT::BoxT(nSD, virtualGrainBounds, templateLattice->GetLatticeParameters(), WhichSort, sLATTYPE, pbc);
+
 
       BoxT::CreateLattice(templateLattice);
-     
+      Tolerance = .6* templateLattice->GetLatticeParameters().Max();
      //initialize an array to store the atom coordinates associated with each grain   
       nArrayT <nArrayT<dArrayT> > AtomsinGrain(NumberofGrains);
    
@@ -108,7 +105,7 @@
 
 			//get the distance to the current grain center and impose PeriodicBCs
 			double distanceToCurrentGrain = dArrayT::Distance(currentCoord, GrainCenters[currentGrain]);
-			if(pbc!=0) currentCoord=ImposePBC(currentCoord, GrainCenters[currentGrain]);
+			if(IsPeriodic) currentCoord=ImposePBC(currentCoord, GrainCenters[currentGrain]);
 			//check to see if atom is outside the bounds of the lattice region
             bool atomIsInside = true;
             for (int tempDim=0; tempDim < nSD && atomIsInside; tempDim++) {
@@ -257,11 +254,11 @@
       for (int i=0;i<nSD;i++) {
          atomCoord[i]=atom_coord(AtomNumber, i);
       }
-      dArrayT newCoord(nSD);
-      newCoord=rotationMatrix.RotateVectorIn(atomCoord);
+//      dArrayT newCoord(nSD);
+      atomCoord=rotationMatrix.RotateVectorIn(atomCoord);
    
-      newCoord+=grainCenter;
-      return newCoord;
+      atomCoord+=grainCenter;
+      return atomCoord;
    }
 	
     dArrayT PolyT::GetAtom(Rotate2DT rotationMatrix, dArrayT grainCenter, int AtomNumber) {
@@ -306,31 +303,29 @@
                MaxGrainSeparation = dArrayT::Distance(GrainCenters[i],GrainCenters[tempGrain]);
          	
          }
-         for(int dim=0;dim<nSD;dim++) {
-            if (GrainCenters[i][dim]-SizeofLattice(dim,0) > MaxGrainSeparation ) MaxGrainSeparation = GrainCenters[i][dim]-SizeofLattice(dim,0);
-            if (SizeofLattice(dim,1)-GrainCenters[i][dim] > MaxGrainSeparation ) MaxGrainSeparation = SizeofLattice(dim,1)-GrainCenters[i][dim];
-         }
+        
       }//endfor
       cout<<"Max Grain Separation: "<<MaxGrainSeparation<<"\n";
    }
    
 dArrayT PolyT::ImposePBC(dArrayT currentCoord, dArrayT GrainCenter){
-	for (int dim=0; dim<nSD ; dim++){
-		if (currentCoord[dim]<SizeofLattice(dim,0) && pbc[dim]==1) currentCoord[dim]+= SizeofLattice(dim,1)*2.0;
-		else if (currentCoord[dim]>SizeofLattice(dim,1) && pbc[dim]==1) currentCoord[dim]-=SizeofLattice(dim,1)*2.0;
+	for (int dim=0; dim<nSD && pbc[dim]==1; dim++){
+		if (currentCoord[dim]<SizeofLattice(dim,0) ) currentCoord[dim]+= PeriodicLength[dim];
+		else if (currentCoord[dim]>SizeofLattice(dim,1) ) currentCoord[dim]-=PeriodicLength[dim];
 	}
 	return currentCoord;
 }
 
 bool PolyT::CheckCurrentGrain(dArrayT currentCoord, int currentGrain, double distanceToCurrentGrain){
 	bool atomIsCloserToCurrentGrain=true;
+	dArrayT distance(nSD);
+
 	for (int tempGrain=0; tempGrain < NumberofGrains && atomIsCloserToCurrentGrain; tempGrain++) {
 		if (tempGrain != currentGrain) {
-			dArrayT distance(nSD);
 			distance.DiffOf(currentCoord , GrainCenters[tempGrain]);
-			for (int dim=0; dim<nSD &&pbc!=0; dim++) {
-				if (distance[dim]< SizeofLattice(dim,0) && pbc[dim]==1 )distance[dim]+= SizeofLattice(dim,1)*2.0;
-				else if (distance[dim] > SizeofLattice(dim,1) && pbc[dim]==1) distance[dim]-=SizeofLattice(dim,1)*2.0;
+			for (int dim=0; dim<nSD && pbc[dim]==1; dim++) {
+				if (distance[dim]< SizeofLattice(dim,0)  )distance[dim]+= PeriodicLength[dim];
+				else if (distance[dim] > SizeofLattice(dim,1)) distance[dim]-=PeriodicLength[dim];
 			}
 			atomIsCloserToCurrentGrain = distanceToCurrentGrain < distance.Magnitude();
 		}
@@ -339,17 +334,19 @@ bool PolyT::CheckCurrentGrain(dArrayT currentCoord, int currentGrain, double dis
 }
 
 bool PolyT::CheckNoOverlap (dArrayT currentCoord, nArrayT <nArrayT<dArrayT> > *AtomsinGrain, int currentGrain, CrystalLatticeT *templateLattice) {
-    double tolerance = .6* templateLattice->GetLatticeParameters().Max();
+
     bool noOverlap=true;
+    dArrayT distance(nSD);
+    
     for (int tempGrain=0; tempGrain<=currentGrain && noOverlap; tempGrain++) {
-		for (int tempAtom=0; tempAtom < (*AtomsinGrain)[tempGrain].Length() && noOverlap; tempAtom++ ) {
-			dArrayT distance(nSD);
+    	int numberOfAtomsInGrain = (*AtomsinGrain)[tempGrain].Length();
+		for (int tempAtom=0; tempAtom < numberOfAtomsInGrain && noOverlap; tempAtom++ ) {
 			distance.DiffOf(currentCoord,(*AtomsinGrain)[tempGrain][tempAtom]);
-			for (int dim=0; dim<nSD && pbc!=0; dim++) {
-				if (distance[dim]< SizeofLattice(dim,0) && pbc[dim]==1 )distance[dim]+= SizeofLattice(dim,1)*2.0;
-				else if (distance[dim] > SizeofLattice(dim,1) && pbc[dim]==1) distance[dim]-=SizeofLattice(dim,1)*2.0;
+			for (int dim=0; dim<nSD && pbc[dim]==1; dim++) {
+				if (distance[dim]< SizeofLattice(dim,0) )distance[dim]+= PeriodicLength[dim];
+				else if (distance[dim] > SizeofLattice(dim,1) ) distance[dim]-=PeriodicLength[dim];
 			}
-			noOverlap = distance.Magnitude() >= tolerance;
+			noOverlap = distance.Magnitude() >= Tolerance;
        }
     }
     return noOverlap;
