@@ -1,4 +1,4 @@
-/* $Id: nTrapezoid.cpp,v 1.2 2001-08-27 17:12:17 paklein Exp $ */
+/* $Id: nTrapezoid.cpp,v 1.2.4.1 2002-04-23 01:24:18 paklein Exp $ */
 /* created: paklein (10/03/1999)                                          */
 
 #include "nTrapezoid.h"
@@ -75,7 +75,7 @@ void nTrapezoid::Predictor(void)
 
 /* correctors - map ACTIVE */
 void nTrapezoid::Corrector(const iArray2DT& eqnos, const dArrayT& update,
-	int eq_start, int eq_stop)
+	int eq_start, int num_eq)
 {
 #if __option (extended_errorcheck)
 	if (fU[0] == NULL ||
@@ -97,7 +97,7 @@ void nTrapezoid::Corrector(const iArray2DT& eqnos, const dArrayT& update,
 	{
 		int eq = *peq++ - eq_start;
 		/* active dof */
-		if (eq > -1 && eq < eq_stop)
+		if (eq > -1 && eq < num_eq)
 		{
 			double v = update[eq];
 			*pd += dcorr_v*v;

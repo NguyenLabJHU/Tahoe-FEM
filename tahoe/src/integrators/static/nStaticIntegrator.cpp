@@ -1,4 +1,4 @@
-/* $Id: nStaticIntegrator.cpp,v 1.2 2001-08-27 17:12:15 paklein Exp $ */
+/* $Id: nStaticIntegrator.cpp,v 1.2.4.1 2002-04-23 01:24:17 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #include "nStaticIntegrator.h"
@@ -61,7 +61,7 @@ void nStaticIntegrator::Predictor(void)
 
 /* correctors - map ACTIVE */
 void nStaticIntegrator::Corrector(const iArray2DT& eqnos, const dArrayT& update,
-	int eq_start, int eq_stop)
+	int eq_start, int num_eq)
 {
 #if __option (extended_errorcheck)
 	if (fU[0] == NULL)
@@ -81,7 +81,7 @@ void nStaticIntegrator::Corrector(const iArray2DT& eqnos, const dArrayT& update,
 		int eq = *peq++ - eq_start;
 	
 		/* active dof */
-		if (eq > -1 && eq < eq_stop) *pd += update[eq];
+		if (eq > -1 && eq < num_eq) *pd += update[eq];
 
 		/* next */
 		pd++;

@@ -1,4 +1,4 @@
-/* $Id: nExplicitCD.cpp,v 1.2 2001-08-27 17:12:13 paklein Exp $ */
+/* $Id: nExplicitCD.cpp,v 1.2.4.1 2002-04-23 01:24:16 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #include "nExplicitCD.h"
@@ -94,7 +94,7 @@ void nExplicitCD::Predictor(void)
 
 /* correctors - map ACTIVE */
 void nExplicitCD::Corrector(const iArray2DT& eqnos, const dArrayT& update,
-	int eq_start, int eq_stop)
+	int eq_start, int num_eq)
 {
 #if __option (extended_errorcheck)
 	if (fU[0] == NULL ||
@@ -119,7 +119,7 @@ void nExplicitCD::Corrector(const iArray2DT& eqnos, const dArrayT& update,
 		int eq = *peq++ - eq_start;
 		
 		/* active dof */
-		if (eq > -1 && eq < eq_stop)
+		if (eq > -1 && eq < num_eq)
 		{
 			double a = update[eq];
 			*pv += vcorr_a*a;

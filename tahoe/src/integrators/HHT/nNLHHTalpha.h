@@ -1,4 +1,4 @@
-/* $Id: nNLHHTalpha.h,v 1.4 2002-04-02 23:19:20 paklein Exp $ */
+/* $Id: nNLHHTalpha.h,v 1.4.2.1 2002-04-23 01:24:15 paklein Exp $ */
 /* created: paklein (10/17/1996) */
 
 #ifndef _N_NL_HHT_A_H_
@@ -25,7 +25,7 @@ public:
 	/** corrector - map ACTIVE. See nControllerT::Corrector for more
 	 * documentation */
 	virtual void Corrector(const iArray2DT& eqnos, const dArrayT& update,
-		int eq_start, int eq_stop);
+		int eq_start, int num_eq);
 
 	/** corrector with node number map - map ACTIVE. See 
 	 * nControllerT::MappedCorrector for more documentation */

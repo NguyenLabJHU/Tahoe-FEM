@@ -1,4 +1,4 @@
-/* $Id: nIntegratorT.h,v 1.3 2002-04-02 23:19:22 paklein Exp $ */
+/* $Id: nIntegratorT.h,v 1.3.2.1 2002-04-23 01:24:16 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _N_CONTROLLERT_H_
@@ -54,10 +54,10 @@ public:
 	/** corrector. Maps only the ACTIVE degrees of freedom forward.
 	 * \param eqnos equations for the degrees of freedom of every node
 	 * \param update vector of updates to the active degrees of freedom 
-	 * \param eq_start lowest equation number to consider \a active.
-	 * \param eq_stop highest equation number to consider \a active. */
+	 * \param eq_start lowest equation number to consider \a active
+	 * \param num_eq number of \a active equations beginning with eq_start */
 	virtual void Corrector(const iArray2DT& eqnos, const dArrayT& update,
-		int eq_start, int eq_stop) = 0;
+		int eq_start, int num_eq) = 0;
 
 	/** apply corrector to active equations with a node number map.
 	 * \param map list of nodes corresponding to the rows of eqnos and update 

@@ -1,4 +1,4 @@
-/* $Id: nStaticIntegrator.h,v 1.3 2002-04-02 23:19:24 paklein Exp $ */
+/* $Id: nStaticIntegrator.h,v 1.3.2.1 2002-04-23 01:24:17 paklein Exp $ */
 /* created: paklein (10/14/1996) */
 
 #ifndef _N_STATIC_CONTROLLER_H_
@@ -28,7 +28,7 @@ public:
 	/** corrector - map ACTIVE. See nIntegratorT::Corrector for more
 	 * documentation */
 	virtual void Corrector(const iArray2DT& eqnos, const dArrayT& update,
-		int eq_start, int eq_stop);
+		int eq_start, int num_eq);
 
 	/** corrector with node number map - map ACTIVE. See 
 	 * nIntegratorT::MappedCorrector for more documentation */
