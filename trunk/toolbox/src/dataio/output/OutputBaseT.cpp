@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.5 2002-02-12 02:12:54 paklein Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.6 2002-02-18 09:02:49 paklein Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #include "OutputBaseT.h"
@@ -46,6 +46,12 @@ OutputBaseT::~OutputBaseT(void)
 const OutputSetT& OutputBaseT::OutputSet(int ID) const
 {
 	return *(fElementSets[ID]);
+}
+
+/* return the array of nodes used */
+const iArrayT& OutputBaseT::NodesUsed(int ID) const
+{
+	return fElementSets[ID]->NodesUsed();
 }
 
 void OutputBaseT::NextTimeSequence(int sequence_number)

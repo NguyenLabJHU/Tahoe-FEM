@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.h,v 1.5 2002-02-12 02:12:54 paklein Exp $ */
+/* $Id: OutputBaseT.h,v 1.6 2002-02-18 09:02:49 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #ifndef _OUTPUTBASE_T_H_
@@ -38,6 +38,10 @@ public:
 	const StringT& Version(void) const;
 	const StringT& OutputRoot(void) const;
 	const OutputSetT& OutputSet(int ID) const;
+	
+	/** return the array of nodes used by the specified output set
+	 * \param ID set ID returned from the call to OutputBaseT::AddElementSet */
+	 const iArrayT& NodesUsed(int ID) const;
 
 	/* increment sequence, create new output file series */
 	virtual void NextTimeSequence(int sequence_number);
