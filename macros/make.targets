@@ -1,4 +1,4 @@
-# $Id: make.targets,v 1.46 2004-08-10 15:59:20 paklein Exp $
+# $Id: make.targets,v 1.47 2004-11-09 21:28:31 paklein Exp $
 #
 # platform specific instructions
 include $(MACRO_DIR)/$(ARCH).macros
@@ -232,14 +232,14 @@ object_list: FORCE
 # set symbolic links to all header files
 headers: $(MAKE_HEADERS_XTRAS) $(MOD_MAKE_HEADERS_XTRAS)
 	-@ cd $(INC_DIR); $(PERL) $(MACRO_DIR)/rm.pl "*.h"
-	@ $(PRINTF) "cd $(SRC_DIR)\n"
-	cd $(SRC_DIR); \
+	@ $(PRINTF) "cd $(BLD_SRC_DIR)\n"
+	cd $(BLD_SRC_DIR); \
 	$(MAKE) $(MAKE_OPTS) headers \
 	"ARCH = $(ARCH)" \
 	"MACRO_DIR = $(MACRO_DIR)" \
 	"INC_DIR = $(INC_DIR)" \
-	"SRC_DIR = $(SRC_DIR)" \
-	"CURR_DIR = $(SRC_DIR)"
+	"SRC_DIR = $(BLD_SRC_DIR)" \
+	"CURR_DIR = $(BLD_SRC_DIR)"
 
 # initialize dependency files
 depend_init: $(MAKE_DEPEND_INIT_XTRAS) $(MOD_MAKE_DEPEND_INIT_XTRAS)
