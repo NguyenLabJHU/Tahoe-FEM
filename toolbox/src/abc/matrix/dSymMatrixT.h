@@ -1,6 +1,5 @@
-/* $Id: dSymMatrixT.h,v 1.14 2003-11-07 20:14:08 paklein Exp $ */
+/* $Id: dSymMatrixT.h,v 1.15 2003-11-07 20:17:50 paklein Exp $ */
 /* created: paklein (05/24/1996) */
-
 #ifndef _DSYM_MATRIX_T_H_
 #define _DSYM_MATRIX_T_H_
 
@@ -12,7 +11,7 @@ namespace Tahoe {
 /* forward declarations */
 class dMatrixT;
 
-/* interface for a 1D/2D/3D reduced index symmetric matrix stored as 
+/** interface for a 1D/2D/3D reduced index symmetric matrix stored as 
  * a reduced index vector */
 class dSymMatrixT: public dArrayT
 {
@@ -50,8 +49,10 @@ public:
 	 * of the array is not preserved. */
 	void Dimension(DimensionT nsd);
 
-	/** set fields */
-	void Set(DimensionT nsd, double* array);
+	/** create shallow matrix. Explicitly set the memory used the matrix.
+	 * \param nsd matrix dimension
+	 * \param array pointer to memory at least length dSymMatrixT::NumValues(nsd) */
+	void Alias(DimensionT nsd, double* array);
 
 	/** \name assignment operators */
 	/*@{*/
@@ -172,6 +173,7 @@ public:
 	void Dimension(int nsd) { Dimension(int2DimensionT(nsd)); };
 	void Allocate(int nsd) { Dimension(nsd); };
 	void Set(int nsd, double* array);
+	void Set(DimensionT nsd, double* array);
 	static int NumValues(int nsd) { return NumValues(int2DimensionT(nsd)); };
 	static void ExpandIndex(int nsd, int dex, int& dex_1, int& dex_2) { 
 	  ExpandIndex(int2DimensionT(nsd), dex, dex_1, dex_2); };
@@ -238,6 +240,17 @@ inline void dSymMatrixT::ScaleOffDiagonal(double factor)
 }
 
 /* set fields */
+inline void dSymMatrixT::Alias(DimensionT nsd, double* array)
+{
+	fNumSD = int2DimensionT(nsd);
+#if __option(extended_errorcheck)
+	if (fNumSD < 1 || fNumSD > 4) 
+		ExceptionT::GeneralFail("dSymMatrixT::Alias", "invalid dimension %d", nsd);
+#endif
+	/* inherited */
+	dArrayT::Set(NumValues(fNumSD), array);
+}
+
 inline void dSymMatrixT::Set(DimensionT nsd, double* array)
 {
 	fNumSD = int2DimensionT(nsd);
