@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.52.2.7 2004-11-25 00:53:14 d-farrell2 Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.52.2.8 2004-12-26 06:23:16 d-farrell2 Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -433,7 +433,7 @@ void NodeManagerT::Update(int group, const dArrayT& update)
 		UpdateCurrentCoordinates();
 	
 	/* inherited - update external DOF */
-//	XDOF_ManagerT::Update(group, update);
+	XDOF_ManagerT::Update(group, update);
 }
 
 /* update the current configuration. This is called by NodeManagerT::Update
