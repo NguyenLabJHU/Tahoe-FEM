@@ -6,8 +6,8 @@
 
 using namespace Tahoe;
 
-VMS_BCJT::VMS_BCJT	( FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, VMS_VariableT &np1, VMS_VariableT &n, 
-											double fdelta_t=0.0, int Integration_Scheme) 
+VMS_BCJT::VMS_BCJT	(FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, VMS_VariableT &np1, VMS_VariableT &n, 
+						double fdelta_t,int Integration_Scheme) 
 {
 	Construct (Shapes,BCJ_Matl,np1,n,fdelta_t,Integration_Scheme);
 }
@@ -19,8 +19,8 @@ VMS_BCJT::VMS_BCJT	( FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, VMS_Var
 
 //---------------------------------------------------------------------
 
-void VMS_BCJT::Construct ( 	FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, VMS_VariableT &np1, VMS_VariableT &n, 
-																double fdelta_t=0.0, int Integration_Scheme) 
+void VMS_BCJT::Construct (FEA_ShapeFunctionT &Shapes,VMF_MaterialT *BCJ_Matl, VMS_VariableT &np1, VMS_VariableT &n, 
+							double fdelta_t, int Integration_Scheme) 
 {
 	int NUM_TEMP_TERMS = 6;
 	delta_t = fdelta_t;
