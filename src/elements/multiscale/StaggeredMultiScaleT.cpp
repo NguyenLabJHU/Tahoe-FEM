@@ -1,4 +1,4 @@
-/* $Id: StaggeredMultiScaleT.cpp,v 1.2 2002-11-23 01:11:32 creigh Exp $ */
+/* $Id: StaggeredMultiScaleT.cpp,v 1.3 2002-11-23 16:09:43 paklein Exp $ */
 //DEVELOPMENT
 #include "StaggeredMultiScaleT.h"
 
@@ -185,7 +185,7 @@ void StaggeredMultiScaleT::LHSDriver(void)	// RHS too!
 		if (curr_group == fCoarse.Group())  // <-- ub (obtained by a rearranged Equation I)
 		{
 			/** Compute N-R matrix equations */
-			fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, kBackward_Euler );
+			fEquation_I -> Construct ( fFEA_Shapes, fCoarseMaterial, np1, n, FEA::kBackward_Euler );
 			fEquation_I -> Form_LHS_Ka_Kb ( fKa_I, fKb_I );
 			fEquation_I -> Form_RHS_F_int ( fFint_I );
 
@@ -204,7 +204,7 @@ void StaggeredMultiScaleT::LHSDriver(void)	// RHS too!
 		else if (curr_group == fFine.Group())	// <-- ua (obtained by a rearranged Equation II)
 		{
 			/** Compute N-R matrix equations */
-			fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, kBackward_Euler );
+			fEquation_II -> Construct ( fFEA_Shapes, fFineMaterial, np1, n, FEA::kBackward_Euler );
 			fEquation_II -> Form_LHS_Ka_Kb ( fKa_II, 	fKb_II, delta_t );
 			fEquation_II -> Form_RHS_F_int ( fFint_II, delta_t );
 
