@@ -1,4 +1,4 @@
-/* $Id: ABAQUS_BaseT.cpp,v 1.1.2.1 2003-11-22 22:23:51 paklein Exp $ */
+/* $Id: ABAQUS_BaseT.cpp,v 1.1.2.2 2003-11-24 17:54:08 paklein Exp $ */
 #include "ABAQUS_BaseT.h"
 
 #ifdef __F2C__
@@ -113,7 +113,7 @@ void ABAQUS_BaseT::dSymMatrixT_to_ABAQUS(const dSymMatrixT& A,
 *    *DEPVAR
 */
 void ABAQUS_BaseT::Read_ABAQUS_Input(ifstreamT& in, StringT& name, nArrayT<doublereal>& properties,
-	integer& nstatv) const
+	integer& nstatv, bool& nonsym) const
 {
 	const char caller[] = "ABAQUS_BaseT::Read_ABAQUS_Input";
 
@@ -172,6 +172,8 @@ void ABAQUS_BaseT::Read_ABAQUS_Input(ifstreamT& in, StringT& name, nArrayT<doubl
 		/* other keywords */
 		else if (next_word == "USER")
 		{
+			nonsym = false;
+			int nprops = 0;
 			Read_ABAQUS_Word(in, next_word);
 			if (next_word == "MATERIAL")
 			{
@@ -186,32 +188,33 @@ void ABAQUS_BaseT::Read_ABAQUS_Input(ifstreamT& in, StringT& name, nArrayT<doubl
 						/* skip '=' */
 						if (!Skip_ABAQUS_Symbol(in, '=')) ExceptionT::BadInputValue(caller);
 
-						int nprops = -1;
+						nprops = -1;
 						in >> nprops;
 						if (nprops < 0)
 							ExceptionT::BadInputValue(caller, "error reading %s: %d",
 								next_parameter.Pointer(), nprops);
-						
-						/* read properties */
-						properties.Dimension(nprops);
-						in.clear_line();
-						Skip_ABAQUS_Comments(in);
-						for (int i = 0; i < nprops && in.good(); i++)
-						{	
-							in >> properties[i];
-							Skip_ABAQUS_Symbol(in, ',');
-							Skip_ABAQUS_Comments(in);
-						}
-						
-						/* stream error */
-						if (!in.good())
-							ExceptionT::BadInputValue(caller, "error readind %s", next_parameter.Pointer());
 					}
+					else if (next_parameter == "UNSYMM")
+						nonsym = true;
 					else
 						cout << "\n ABAQUS_BaseT::Read_ABAQUS_Input: skipping parameter:"
 						     << next_parameter << endl;
 				}
-			
+				
+				/* read properties */
+				properties.Dimension(nprops);
+				in.clear_line();
+				Skip_ABAQUS_Comments(in);
+				for (int i = 0; i < nprops && in.good(); i++)
+				{	
+					in >> properties[i];
+					Skip_ABAQUS_Symbol(in, ',');
+					Skip_ABAQUS_Comments(in);
+				}
+
+				/* stream error */
+				if (!in.good())
+					ExceptionT::BadInputValue(caller, "error readind properties");
 			}			
 			else
 				ExceptionT::BadInputValue(caller, "expecting MATERIAL after keyword *USER not %s",
