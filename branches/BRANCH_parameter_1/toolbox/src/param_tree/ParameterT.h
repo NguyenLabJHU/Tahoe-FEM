@@ -1,4 +1,4 @@
-/* $Id: ParameterT.h,v 1.8.2.3 2003-05-03 09:06:52 paklein Exp $ */
+/* $Id: ParameterT.h,v 1.8.2.4 2003-05-03 18:48:51 paklein Exp $ */
 #ifndef _PARAMETER_T_H_
 #define _PARAMETER_T_H_
 
@@ -73,6 +73,7 @@ public:
 	ParameterT& operator=(int a);
 	ParameterT& operator=(double x);
 	ParameterT& operator=(const char* s);
+	ParameterT& operator=(const StringT& s);
 	ParameterT& operator=(bool b);
 	ParameterT& operator=(const ValueT& rhs);
 	ParameterT& operator=(const ParameterT& rhs);
@@ -89,6 +90,7 @@ public:
 	void SetDefault(int a);
 	void SetDefault(double x);
 	void SetDefault(const char* s);
+	void SetDefault(const StringT& s);
 	void SetDefault(bool b);
 
 	/** return a pointer to the default value or NULL if there isn't one */
@@ -151,6 +153,13 @@ inline ParameterT& ParameterT::operator=(bool b) {
 inline ParameterT& ParameterT::operator=(const ValueT& rhs) { 
 	ValueT::operator=(rhs); 
 	return *this;
+}
+inline ParameterT& ParameterT::operator=(const StringT& s) {
+	return operator=(s.Pointer());
+}
+
+inline void ParameterT::SetDefault(const StringT& s) {
+	SetDefault(s.Pointer());
 }
 
 } // namespace Tahoe 
