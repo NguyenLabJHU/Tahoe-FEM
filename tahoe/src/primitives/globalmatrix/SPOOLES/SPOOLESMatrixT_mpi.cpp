@@ -1,4 +1,4 @@
-/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.3 2002-02-10 00:52:33 paklein Exp $ */
+/* $Id: SPOOLESMatrixT_mpi.cpp,v 1.4 2002-02-11 01:24:47 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 
 #include "SPOOLESMatrixT_mpi.h"
@@ -41,14 +41,6 @@ void SPOOLESMatrixT_mpi::BackSubstitute(dArrayT& result)
 	/* flag should not be set */
 	if (fIsFactorized) throw eGeneralFail;
 
-#if 0
-ofstream out("rcv.out");
-out << "graph:\n";
-fMSRBuilder->Write(out);
-out << "\nMSR data:\n";
-fMSRBuilder->WriteMSRData(out, fupdate, fbindx);
-#endif
-
 	/* convert matrix to RCV */
 	iArrayT r, c;
 	dArrayT v;
@@ -60,6 +52,7 @@ fMSRBuilder->WriteMSRData(out, fupdate, fbindx);
 		fOut.precision(12);
 		int d_width = fOut.precision() + kDoubleExtra;
 		fOut << "\n LHS matrix in {r,c,v} format:\n";
+		fOut << " Number of values = " << r.Length() << '\n';
 		for (int i = 0; i < r.Length(); i++)
 			fOut << setw(kIntWidth) << r[i] + 1
 			     << setw(kIntWidth) << c[i] + 1
@@ -103,6 +96,11 @@ fMSRBuilder->WriteMSRData(out, fupdate, fbindx);
 		StringT spooles_file(SPOOLES_FILE_ROOT);
 		spooles_file.Append(".p", rank);
 		spooles_file.Append(SPOOLES_FILE_EXT);
+		
+		//TEMP - SPOOLES v2.2 does not seem to solve non-symmetric matricies with pivoting disabled
+		if (!fSymmetric && !fPivoting)
+			cout << "\n SPOOLESMatrixT_mpi::BackSubstitute: WARNING: SPOOLES v2.2 does not solve\n"
+			     <<   "     non-symmetric systems correctly with pivoting disabled."<< endl;
 
 		/* driver */
 #ifndef __MWERKS__
