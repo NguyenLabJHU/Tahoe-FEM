@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: regression_trigger.pl.template,v 1.6 2003-04-01 23:41:11 paklein Exp $
+# $Id: regression_trigger.pl.template,v 1.7 2003-04-02 00:22:59 paklein Exp $
 
 # configurations that must be defines
 $TAHOE_USER = "ENTER_YOUR_TAHOE_USER_NAME_HERE";
@@ -94,7 +94,7 @@ if (-e $TRIGGER_FILE)
 		system("$SCP status.tmp $TAHOE_USER\@$TAHOE_HOST:$STATUS_PATH/$HOST");
 
 		print MESG "running tests...\n";
-		system("$BENCHMARK_SCRIPT");
+		system("$BENCHMARK_SCRIPT $TAHOE_USER");
 		print MESG "tests done\n";
 
 		# send status to server
