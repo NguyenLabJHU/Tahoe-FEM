@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.41 2003-02-05 02:38:26 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.41.2.1 2003-02-10 02:20:34 paklein Exp $ */
 /* created: paklein (04/20/1998) */
 #include "ElementListT.h"
 #include "ElementsConfig.h"
@@ -508,18 +508,11 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out, FEManagerT& fe)
 			int solid_group = -99;
 			in >> particle_group >> solid_group;
 
-#ifdef SPRING_ELEMENT
-			const RodT* particle = dynamic_cast<const RodT*>(&(fSupport.ElementGroup(--particle_group)));
-#else
-			const RodT* particle = NULL;
-#endif
-			if (!particle)
-				ExceptionT::BadInputValue(caller, "unable to cast pointer to group %d to type RodT", particle_group+1);
 			const SolidElementT* solid = dynamic_cast<const SolidElementT*>(&(fSupport.ElementGroup(--solid_group)));
 			if (!solid)
 				ExceptionT::BadInputValue(caller, "unable to cast pointer to group %d to type SolidElementT", solid_group+1);
 
-			fArray[group] = new BridgingScaleT(fSupport, *field, *particle, *solid);
+			fArray[group] = new BridgingScaleT(fSupport, *field, *solid);
 		    break;
 #else
 				ExceptionT::BadInputValue(caller, "CONTINUUM_ELEMENT not enabled: %d", code);
