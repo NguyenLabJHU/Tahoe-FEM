@@ -1,4 +1,4 @@
-/* $Id: LU_MPI_driver_solve.c,v 1.1 2004-09-07 06:41:58 paklein Exp $ */
+/* $Id: LU_MPI_driver_solve.c,v 1.2 2004-11-21 07:04:36 paklein Exp $ */
 #include "LU_MPI_driver_int.h"
 
 #if 0
@@ -46,7 +46,7 @@ LU_MPI_driver_data* pLU_dat = (LU_MPI_driver_data*)(*ppLU_dat);
 char            buffer[128] ;
 /* Chv             *rootchv ; */
 /* ChvManager      *chvmanager ; */
-DenseMtx        *mtxX, *mtxY, *newY;
+DenseMtx        *mtxX, *mtxY, *newY, *mtxX_tmp;
 SubMtxManager   /* *mtxmanager, */ *solvemanager;
 FrontMtx        *frontmtx ;
 /* InpMtx          *mtxA, *newA ; */
@@ -639,8 +639,10 @@ free(row_map);
 /* redistribute */
 /* IV_fill(vtxmapIV, 0) ; */
 firsttag++ ;
-mtxX = DenseMtx_MPI_splitByRows(mtxX, vtxmapIV, stats, msglvl, msgFile,
-	                                firsttag, *comm) ;
+mtxX_tmp = mtxX;
+mtxX = DenseMtx_MPI_splitByRows(mtxX_tmp, vtxmapIV, stats, msglvl, msgFile,
+	                                firsttag, *comm);
+DenseMtx_free(mtxX_tmp);
 if (msglvl > 0) {
    fprintf(msgFile, "\n\n complete solution in old ordering") ;
    DenseMtx_writeForHumanEye(mtxX, msgFile) ;
