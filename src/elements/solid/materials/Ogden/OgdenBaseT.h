@@ -1,4 +1,4 @@
-/* $Id: OgdenBaseT.h,v 1.1 2003-03-21 06:29:09 thao Exp $ */
+/* $Id: OgdenBaseT.h,v 1.2 2003-03-26 22:57:43 thao Exp $ */
 /* created: paklein (10/01/2000) */
 #ifndef _OGDEN_BASE_T_H_
 #define _OGDEN_BASE_T_H_
@@ -52,8 +52,8 @@ protected:
 	/* principal values of the PK2 stress given principal values of the stretch 
 	 * tensors, i.e., the principal stretches squared */
 	virtual void dWdE(const dArrayT& eigenstretch2, dArrayT& eigenstress) = 0;
-	virtual void ddWddE(const dArrayT& eigenstretch2, dArrayT& eigenstress,
-		dSymMatrixT& eigenmod) = 0;
+	virtual void ddWddE(const dArrayT& eigenstretch2, dArrayT& eigenstress, 
+	    dSymMatrixT& eigenmod) = 0;
 
 	/* return true of model is purely 2D, plain stress */
 	virtual bool PurePlaneStress(void) const { return false; };

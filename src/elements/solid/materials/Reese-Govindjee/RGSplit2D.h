@@ -4,14 +4,14 @@
 #define _RGSplit_2D_
 
 /* base classes */
-#include "RGBaseT.h"
+#include "RGSplit3D.h"
 
 namespace Tahoe {
 
 /* forward declarations */
 class PotentialT;
 
-class RGSplit2D: public RGBaseT
+class RGSplit2D: public RGSplit3D
 {
    public:
   
@@ -35,36 +35,14 @@ class RGSplit2D: public RGBaseT
 	virtual void OutputLabels(ArrayT<StringT>& labels) const; 
     virtual void ComputeOutput(dArrayT& output);
 
-    private:
-	void ComputeEigs_e(const dArrayT& eigenstretch, dArrayT& eigenstretch_e, 
-	        dArrayT& eigenstress, dSymMatrixT& eigenmodulus);
-	void ComputeiKAB(dSymMatrixT& eigenmodulus, double& bulkmodulus);
-
    protected:
 	/* return values */
-	dMatrixT	fModulus;
-	dSymMatrixT     fStress;
+	dMatrixT	fModulus2D;
+	dSymMatrixT fStress2D;
 
-	/* free energy potential */
-	PotentialT* fPhi_EQ;
-	PotentialT* fPhi_NEQ;
-
-	const double fthird;
    private:  
 	/*work space*/
-	dSymMatrixT fb;
-	dArrayT     fEigs;
-	dArrayT     fEigs_e;
-	dArrayT	    ftau_EQ;
-	dSymMatrixT fDtauDe_EQ;
-	dArrayT     ftau_NEQ;
-	dSymMatrixT fDtauDe_NEQ;
-	dMatrixT    fModMat;
-  	dMatrixT    fiKAB;
-	
-  	/*viscosities*/
-	double fietaS;
-	double fietaB;
+	dSymMatrixT fb2D;
 };
 }
 #endif /* _RGSplit_2D_ */

@@ -1,4 +1,4 @@
-/* $Id: RGSplit2D.cpp,v 1.2 2003-03-22 00:40:52 thao Exp $ */
+/* $Id: RGSplit2D.cpp,v 1.3 2003-03-26 22:57:44 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplit2D.h"
@@ -22,73 +22,24 @@ static const char* Labels[kNumOutputVar] = {"dW_visc"};
 
 /* constructors */
 RGSplit2D::RGSplit2D(ifstreamT& in, const FSMatSupportT& support):
-  RGBaseT(in, support),
-  fb(NumSD()),
-  fEigs(NumSD()),
-  fEigs_e(NumSD()),
-  ftau_EQ(NumSD()),
-  ftau_NEQ(NumSD()),
-  fDtauDe_EQ(NumSD()),
-  fDtauDe_NEQ(NumSD()),
-  fModMat(dSymMatrixT::NumValues(NumSD())),
-  fModulus(dSymMatrixT::NumValues(NumSD())),
-  fStress(NumSD()),
-  fiKAB(NumSD()),
-  fthird(1.0/3.0)
-{
-  /*read in potential code*/
-  int code;
-  in >> code;
-  switch(code)
-  {
-     case PotentialT::kNeoHookean: 
-     {
-       fPhi_EQ = new NeoHookean(in);
-       fPhi_NEQ = new NeoHookean(in);
-       break;
-     }
-     default:
-     {
-       throw ExceptionT::kBadInputValue;
-     }
-  }
-  /*read in viscosities*/
-  double etaS, etaB;
-  in >> etaS;
-  fietaS = 1.0/etaS;
-  in >> etaB;
-  fietaB = 1.0/etaB;
-}
+  RGSplit3D(in, support),
+  fb2D(NumSD()),
+  fModulus2D(dSymMatrixT::NumValues(NumSD())),
+  fStress2D(NumSD())
+{}
 
-RGSplit2D::~RGSplit2D(void)
-{
-  delete fPhi_EQ;
-  delete fPhi_NEQ;
-}
 /* print parameters */
 void RGSplit2D::Print(ostream& out) const
 {
-  RGBaseT::Print(out);
-  out<<"Equilibrium free energy potential\n";
-  fPhi_EQ->Print(out);
-  out<<"Non Equilibrium free energy potential\n";
-  fPhi_NEQ->Print(out);
-  
-  out<<"Constant Viscosity \n";
-  out<<"     Shear Viscosity: "<<1.0/fietaS<<'\n';
-  out<<"     Bulk Viscosity: "<<1.0/fietaB<<'\n';
+  RGSplit3D::Print(out);
 }
 
 /* print name */
 void RGSplit2D::PrintName(ostream& out) const
 {
   /* inherited */
-  RGBaseT::PrintName(out);
+  RGSplit3D::PrintName(out);
   out<<"       2D PlaneStrain\n";
-  out<<"Equilibrium free energy potential\n";
-  fPhi_EQ->PrintName(out);
-  out<<"Non Equilibrium free energy potential\n";
-  fPhi_NEQ->PrintName(out);
 }
 
 int RGSplit2D::NumOutputVariables() const {return kNumOutputVar;} 

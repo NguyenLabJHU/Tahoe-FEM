@@ -1,4 +1,4 @@
-/* $Id: RGBaseT.cpp,v 1.2 2003-03-20 22:41:25 thao Exp $ */
+/* $Id: RGBaseT.cpp,v 1.3 2003-03-26 22:57:44 thao Exp $ */
 /* created: TDN (01/22/2000) */
 #include "RGBaseT.h"
 
@@ -6,29 +6,36 @@ using namespace Tahoe;
 
 /* constructor */
 RGBaseT::RGBaseT(ifstreamT& in, const FSMatSupportT& support):
-	FSSolidMatT(in, support),
-	fSpectralDecompSpat(NumSD()),
-	fSpectralDecompRef(NumSD())
+	FSSolidMatT(in, support)
+{}
+
+void RGBaseT::Initialize(void)
 {
-        int nsd = NumSD();
-	int numstress = (nsd*(nsd+1))/2;
+    /*inheritance*/
+    FSSolidMatT::Initialize();
+ 
+    if (PurePlaneStress()) fndof = 2;
+    else fndof = 3;
+        
+	int numstress = dSymMatrixT::NumValues(fndof);
 
 	fnstatev = 0;
 	fnstatev += numstress;   /*current C_v*/
 	fnstatev += numstress;   /*last C_vn*/
-	/*reserve space for extended extended state variables*/
-        if (HasDissipVar())
+
+    /*reserve space for inelastic stress state variables*/
+    if (HasDissipVar())
 	{
-	  fnstatev += numstress; /*inelastic stress variable*/
+	  fnstatev += numstress; /*material inelastic stress measure*/
 	}
+
 	fstatev.Dimension(fnstatev);
 	double* pstatev = fstatev.Pointer();
 	
-	/* assign pointers to current and last blocks of 
-	   state variable array */
-	fC_v.Set(nsd, pstatev);        
+	/* assign pointers to current and last blocks of state variable array */
+	fC_v.Set(fndof, pstatev);        
 	pstatev += numstress;
-	fC_vn.Set(nsd, pstatev);
+	fC_vn.Set(fndof, pstatev);
 }
 
 void RGBaseT::Print(ostream& out) const

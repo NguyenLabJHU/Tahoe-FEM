@@ -1,4 +1,4 @@
-/* $Id: RGSplit3D.cpp,v 1.2 2003-03-22 00:40:52 thao Exp $ */
+/* $Id: RGSplit3D.cpp,v 1.3 2003-03-26 22:57:44 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include "RGSplit3D.h"
@@ -23,17 +23,20 @@ static const char* Labels[kNumOutputVar] = {"dW_visc"};
 /* constructors */
 RGSplit3D::RGSplit3D(ifstreamT& in, const FSMatSupportT& support):
   RGBaseT(in, support),
+  fSpectralDecompSpat(3),
+  fSpectralDecompRef(3),
   fb(NumSD()),
-  fEigs(NumSD()),
-  fEigs_e(NumSD()),
-  ftau_EQ(NumSD()),
-  ftau_NEQ(NumSD()),
-  fDtauDe_EQ(NumSD()),
-  fDtauDe_NEQ(NumSD()),
-  fModMat(dSymMatrixT::NumValues(NumSD())),
+  fb3D(3),
+  fEigs(3),
+  fEigs_e(3),
+  ftau_EQ(3),
+  ftau_NEQ(3),
+  fDtauDe_EQ(3),
+  fDtauDe_NEQ(3),
+  fModMat(6),
   fModulus(dSymMatrixT::NumValues(NumSD())),
   fStress(NumSD()),
-  fiKAB(NumSD(),NumSD()),
+  fiKAB(3),
   fthird(1.0/3.0)
 {
   /*read in potential code*/
@@ -64,6 +67,19 @@ RGSplit3D::~RGSplit3D(void)
 {
   delete fPot_EQ;
   delete fPot_NEQ;
+}
+
+void RGSplit3D::Initialize(void)
+{
+    /*inheritance*/
+    RGBaseT::Initialize();
+    
+    /*fndof initialized in RGBaseT*/
+    int numstress = dSymMatrixT::NumValues(fndof);
+    double* pstatev = fstatev.Pointer();  
+    pstatev +=numstress;  //fC_v
+    pstatev +=numstress;  //fC_vn
+    fMatInStress.Set(fndof,pstatev);
 }
 
 /* print parameters */
@@ -107,12 +123,25 @@ double RGSplit3D::StrainEnergyDensity(void)
 {
   /*calculates deviatoric and volumetric part of the total stretch */
   Compute_b(fb);
-  fb.PrincipalValues(fEigs);
+  if (NumSD() == 2)
+  {
+    fb3D[0] = fb[0];
+    fb3D[1] = fb[1];
+    fb3D[2] = 1.0;
+    
+    fb3D[3] = 0.0;
+    fb3D[4] = 0.0;
+    fb3D[5] = fb[2];
+  }
+  else fb3D = fb;
+  fSpectralDecompSpat.SpectralDecomp_Jacobi(fb3D, false);	
+  fEigs = fSpectralDecompSpat.Eigenvalues();
+  
   double J = sqrt(fEigs.Product());
   dArrayT eigenstretch_bar = fEigs;
   eigenstretch_bar *= pow(J, -2.0*fthird);
   
-  double energy =0.0;
+  double energy = 0.0;
   energy = fPot_EQ->Energy(eigenstretch_bar, J);
   
   /*calculates deviatoric and volumetric part of the elastic stretch */
@@ -120,16 +149,16 @@ double RGSplit3D::StrainEnergyDensity(void)
   Load(element, CurrIP());
   
   fSpectralDecompRef.SpectralDecomp_Jacobi(fC_v, false);	
-  dArrayT Eigs_v(3);
-  fC_v.PrincipalValues(Eigs_v);
+  dArrayT Eigs_v = fSpectralDecompRef.Eigenvalues();
   
   fEigs_e = fEigs;
   fEigs_e /= Eigs_v;
   
-  J = sqrt(fEigs_e.Product());
-  eigenstretch_bar.SetToScaled(pow(J,-2.0*fthird), fEigs_e);
+  double Je = sqrt(fEigs_e.Product());
+  dArrayT eigenstretche_bar = fEigs_e;
+  eigenstretche_bar *= pow(Je,-2.0*fthird);
   
-  energy += fPot_NEQ->Energy(eigenstretch_bar, J);
+  energy += fPot_NEQ->Energy(eigenstretche_bar, Je);
   
   return(energy);
 }
@@ -138,11 +167,20 @@ double RGSplit3D::StrainEnergyDensity(void)
 const dMatrixT& RGSplit3D::c_ijkl(void)
 {
 	/*spectral decomposition of stretch tensor*/
-	Compute_b(fb);
-	fSpectralDecompSpat.SpectralDecomp_Jacobi(fb, false);	
-
-	/*calculates principal stretches and directions*/
-	fEigs = fSpectralDecompSpat.Eigenvalues();
+    Compute_b(fb);
+    if (NumSD() == 2)
+    {
+      fb3D[0] = fb[0];
+      fb3D[1] = fb[1];
+      fb3D[2] = 1.0;
+    
+      fb3D[3] = 0.0;
+      fb3D[4] = 0.0;
+      fb3D[5] = fb[2];
+    }
+    else fb3D = fb;
+    fSpectralDecompSpat.SpectralDecomp_Jacobi(fb3D, false);	
+    fEigs = fSpectralDecompSpat.Eigenvalues();
 	const ArrayT<dArrayT>& eigenvectors=fSpectralDecompSpat.Eigenvectors();
 
 	/*jacobian determinants*/
@@ -183,13 +221,13 @@ const dMatrixT& RGSplit3D::c_ijkl(void)
 	fPot_NEQ->DevStress(eigenstretche_bar, ftau_NEQ);
 	ftau_NEQ += fPot_NEQ->MeanStress(Je);
 
-        fPot_NEQ->DevMod(eigenstretche_bar, fDtauDe_NEQ);
+    fPot_NEQ->DevMod(eigenstretche_bar, fDtauDe_NEQ);
 	double cm = fPot_NEQ->MeanMod(Je);
 	ComputeiKAB(fDtauDe_NEQ, cm);
 	dSymMatrixT DAB = fDtauDe_NEQ;
 	DAB += cm; 
 
-	dMatrixT Calg(NumSD());
+	dMatrixT Calg(3);
 	Calg(0,0) = DAB(0,0)*fiKAB(0,0) + DAB(0,1)*fiKAB(1,0) + DAB(0,2)*fiKAB(2,0) - 2.0*ftau_NEQ[0];
 	Calg(1,0) = DAB(1,0)*fiKAB(0,0) + DAB(1,1)*fiKAB(1,0) + DAB(1,2)*fiKAB(2,0);
 	Calg(2,0) = DAB(2,0)*fiKAB(0,0) + DAB(2,1)*fiKAB(1,0) + DAB(2,2)*fiKAB(2,0);
@@ -200,59 +238,74 @@ const dMatrixT& RGSplit3D::c_ijkl(void)
 	Calg(1,2) = DAB(1,0)*fiKAB(0,2) + DAB(1,1)*fiKAB(1,2) + DAB(1,2)*fiKAB(2,2);
 	Calg(2,2) = DAB(2,0)*fiKAB(0,2) + DAB(2,1)*fiKAB(1,2) + DAB(2,2)*fiKAB(2,2) - 2.0*ftau_NEQ[2];
 
-	double dlamb, coeff;
-	double small = 1e-8;
+	double dl, coeff;
 	/*Assemble moduli*/
 	/*axial*/
 	
-	fModulus = fSpectralDecompSpat.EigsToRank4(Gamma);	
-	fModulus += fSpectralDecompSpat.NonSymEigsToRank4(Calg);
+	dMatrixT Modulus3D(6);
+	Modulus3D = fSpectralDecompSpat.EigsToRank4(Gamma);	
+	Modulus3D += fSpectralDecompSpat.NonSymEigsToRank4(Calg);
 	
-	double sig1 = ftau_EQ[0]+ftau_NEQ[0];
-	double sig2 = ftau_EQ[1]+ftau_NEQ[1];
-	double sig3 = ftau_EQ[2]+ftau_NEQ[2];
+	double s0 = ftau_EQ[0]+ftau_NEQ[0];
+	double s1 = ftau_EQ[1]+ftau_NEQ[1];
+	double s2 = ftau_EQ[2]+ftau_NEQ[2];
 	
-	double& lamb1 = fEigs[0];
-	double& lamb2 = fEigs[1];
-	double& lamb3 = fEigs[2];
+	double& l0 = fEigs[0];
+	double& l1 = fEigs[1];
+	double& l2 = fEigs[2];
 	
 	/* 1,2 */
-	dlamb = lamb1 - lamb2;
+	dl = l0 - l1;
 	/* modulus coefficient */
-	if (fabs(dlamb) > small)
-	  coeff = (sig1*lamb2 - sig2*lamb1)/dlamb;
+	if (fabs(dl) > kSmall)
+	  coeff = (s0*l1 - s1*l0)/dl;
 	else
-	  coeff = 0.5*(Gamma(0,0)-Gamma(0,1)+Calg(0,0)-Calg(0,1))-sig1;
+	  coeff = 0.5*(Gamma(0,0)-Gamma(0,1)+Calg(0,0)-Calg(0,1))-s0;
 	MixedRank4_3D(eigenvectors[0], eigenvectors[1], fModMat);
-	fModulus.AddScaled(2.0*coeff, fModMat);
+	Modulus3D.AddScaled(2.0*coeff, fModMat);
 	
 	/* 1,3 */
-	dlamb = lamb1 - lamb3;
+	dl = l0 - l2;
 	/* modulus coefficient */
-	if (fabs(dlamb) > small)
-	  coeff = (sig1*lamb3 - sig3*lamb1)/dlamb;
+	if (fabs(dl) > kSmall)
+	  coeff = (s0*l2 - s2*l0)/dl;
 	else
-	  coeff = 0.5*(Gamma(0,0)-Gamma(0,2)+Calg(0,0)-Calg(0,2))-sig3;	
+	  coeff = 0.5*(Gamma(0,0)-Gamma(0,2)+Calg(0,0)-Calg(0,2))-s2;	
 	MixedRank4_3D(eigenvectors[0], eigenvectors[2], fModMat);
-	fModulus.AddScaled(2.0*coeff, fModMat);
+	Modulus3D.AddScaled(2.0*coeff, fModMat);
 	
 	/* 2,3 */
-	dlamb = lamb2 - lamb3;
+	dl = l1 - l2;
 	/* modulus coefficient */
-	if (fabs(dlamb) > small)
-	  coeff = (sig2*lamb3 - sig3*lamb2)/dlamb;
+	if (fabs(dl) > kSmall)
+	  coeff = (s1*l2 - s2*l1)/dl;
 	else
-	  coeff = 0.5*(Gamma(1,1)-Gamma(1,2)+Calg(1,1)-Calg(1,2))-sig2;	
+	  coeff = 0.5*(Gamma(1,1)-Gamma(1,2)+Calg(1,1)-Calg(1,2))-s1;	
 	MixedRank4_3D(eigenvectors[1], eigenvectors[2], fModMat);
-	fModulus.AddScaled(2.0*coeff, fModMat);
+	Modulus3D.AddScaled(2.0*coeff, fModMat);
 
-	fModulus *= 1.0/J;
+	if (NumSD() == 2)
+    {
+      fModulus[0] = Modulus3D[0];
+      fModulus[1] = Modulus3D[1];
+      fModulus[2] = Modulus3D[5];
+
+      fModulus[3] = Modulus3D[6];
+      fModulus[4] = Modulus3D[7];
+      fModulus[5] = Modulus3D[11];
+
+      fModulus[6] = Modulus3D[30];
+      fModulus[7] = Modulus3D[31];
+      fModulus[8] = Modulus3D[35];
+    }
+	else fModulus = Modulus3D;
 	/*	cout << "\n stretch: "<<fEigs;
 	cout << "\n estretch: "<<fEigs_e;
 	cout << "\n stress eq: "<<ftau_EQ;
 	cout << "\n stress neq: "<<ftau_NEQ;
 	cout << "\n mod eq: "<<Gamma;
 	cout << "\n mod neq: "<<Calg; */
+	fModulus *= 1.0/J;
 	return fModulus;
 }
 
@@ -260,13 +313,20 @@ const dMatrixT& RGSplit3D::c_ijkl(void)
 const dSymMatrixT& RGSplit3D::s_ij(void)
 {
 	/* stretch tensor */
-	Compute_b(fb);
-
-	/* spectral decomposition */
-	fSpectralDecompSpat.SpectralDecomp_Jacobi(fb, false);	
-	/*calculates principal stretch*/
-	
-	fEigs = fSpectralDecompSpat.Eigenvalues();
+    Compute_b(fb);
+    if (NumSD() == 2)
+    {
+      fb3D[0] = fb[0];
+      fb3D[1] = fb[1];
+      fb3D[2] = 1.0;
+    
+      fb3D[3] = 0.0;
+      fb3D[4] = 0.0;
+      fb3D[5] = fb[2];
+    }
+    else fb3D = fb;
+    fSpectralDecompSpat.SpectralDecomp_Jacobi(fb3D, false);	
+    fEigs = fSpectralDecompSpat.Eigenvalues();
 
 	/*jacobian determinant*/
 	double J = sqrt(fEigs.Product());
@@ -287,12 +347,28 @@ const dSymMatrixT& RGSplit3D::s_ij(void)
 		iCvn.Inverse();
 
 		/*calculate trial state;*/
-		SpectralDecompT SpectralDecompTrial(NumSD());
-		dSymMatrixT b_tr(NumSD());
+		SpectralDecompT SpectralDecompTrial(3);
+		dSymMatrixT b_tr(3);
 
 		const dMatrixT& F = F_mechanical();
-		b_tr.MultQBQT(F,iCvn);
+		dMatrixT F3D(3);
+		if (NumSD() == 2)
+		{
+		  F3D[0] = F[0];
+		  F3D[1] = F[1];
+		  F3D[2] = 0.0;
+		  
+		  F3D[3] = F[2];
+		  F3D[4] = F[3];
+		  F3D[5] = 0.0;
+		  
+		  F3D[6] = 0.0;
+		  F3D[7] = 0.0;
+		  F3D[8] = 1.0;
+		}
+		else F3D = F;
 		
+		b_tr.MultQBQT(F3D,iCvn);
 		SpectralDecompTrial.SpectralDecomp_Jacobi(b_tr, false);	
 		fEigs_e = SpectralDecompTrial.Eigenvalues();
 
@@ -308,17 +384,12 @@ const dSymMatrixT& RGSplit3D::s_ij(void)
 		/*store material stress in state variable array*/
 		if (HasDissipVar())
 		{
-		  double* pstatev = fstatev.Pointer();
-		  pstatev += (fC_v.Length()+fC_vn.Length());
-		  dSymMatrixT mat_stress(NumSD(),pstatev);
-		  fSpectralDecompSpat.SpectralDecomp_Jacobi(fb, false);	
-		  mat_stress = fSpectralDecompSpat.EigsToRank2(ftau_NEQ);
-		  dSymMatrixT b_e = fSpectralDecompSpat.EigsToRank2(fEigs_e);
-		  b_e.Inverse();
-		  dSymMatrixT B(b_e.Rows());
-		  B.MultAB(mat_stress,b_e);
-		  const dMatrixT& F = F_mechanical();
-		  mat_stress.MultQTBQ(F,B);
+		  fMatInStress = fSpectralDecompSpat.EigsToRank2(ftau_NEQ);
+		  dSymMatrixT ib_e = fSpectralDecompSpat.EigsToRank2(fEigs_e);
+		  ib_e.Inverse();
+		  dSymMatrixT temp(3);
+		  temp.MultAB(fMatInStress,ib_e);
+		  fMatInStress.MultQTBQ(F3D,temp);
 		}
 
 		/*update viscuous stretch tensor*/
@@ -333,7 +404,7 @@ const dSymMatrixT& RGSplit3D::s_ij(void)
 	else 
 	{
 		fSpectralDecompRef.SpectralDecomp_Jacobi(fC_v, false);
-	        dArrayT Eigs_v = fSpectralDecompRef.Eigenvalues();
+	    dArrayT Eigs_v = fSpectralDecompRef.Eigenvalues();
 
 		fEigs_e = fEigs;
 		fEigs_e /= Eigs_v;
@@ -346,11 +417,17 @@ const dSymMatrixT& RGSplit3D::s_ij(void)
 	}
 
 	/*evaluate cauchy stress*/
-	fStress = fSpectralDecompSpat.EigsToRank2(ftau_EQ);
-       	fStress += fSpectralDecompSpat.EigsToRank2(ftau_NEQ);
-
+	dSymMatrixT Stress3D = fSpectralDecompSpat.EigsToRank2(ftau_EQ);
+    Stress3D += fSpectralDecompSpat.EigsToRank2(ftau_NEQ);
+    
+    if (NumSD() == 2)
+    {
+        fStress[0] = Stress3D[0];
+        fStress[1] = Stress3D[1];
+        fStress[2] = Stress3D[5];
+    }
+    else fStress = Stress3D;
 	fStress *= 1.0/J;
-
 	return fStress;
 }
 
@@ -379,9 +456,19 @@ void RGSplit3D::ComputeOutput(dArrayT& output)
 {
 	/* spectral decomposition */
 	Compute_b(fb);
-	fSpectralDecompSpat.SpectralDecomp_Jacobi(fb, false);	
-	/*calculates principal stretch*/
-	fEigs = fSpectralDecompSpat.Eigenvalues();
+    if (NumSD() == 2)
+    {
+      fb3D[0] = fb[0];
+      fb3D[1] = fb[1];
+      fb3D[2] = 1.0;
+    
+      fb3D[3] = 0.0;
+      fb3D[4] = 0.0;
+      fb3D[5] = fb[2];
+    }
+    else fb3D = fb;
+    fSpectralDecompSpat.SpectralDecomp_Jacobi(fb3D, false);	
+    fEigs = fSpectralDecompSpat.Eigenvalues();
 	double J = sqrt(fEigs.Product());
 
 	/*load the viscoelastic principal stretches from state variable arrays*/
@@ -398,21 +485,20 @@ void RGSplit3D::ComputeOutput(dArrayT& output)
 	dArrayT eigenstretche_bar = fEigs_e;
 	eigenstretche_bar *= pow(Je,-2.0*fthird);
 
-	dArrayT sig_NEQ(NumSD());
-	fPot_NEQ->DevStress(eigenstretche_bar, sig_NEQ);
-	sig_NEQ /= J;
+	dArrayT tau_NEQ(3);
+	fPot_NEQ->DevStress(eigenstretche_bar, tau_NEQ);
 
-	dSymMatrixT sdev = fSpectralDecompSpat.EigsToRank2(sig_NEQ);
-      	double sm = 1.0/J*(fPot_NEQ->MeanStress(Je));
+	dSymMatrixT sdev = fSpectralDecompSpat.EigsToRank2(tau_NEQ);
+	sdev /= J;
+    double sm = 1.0/J*(fPot_NEQ->MeanStress(Je));
 
-	double rate_visc_disp = 0.5*(sdev.ScalarProduct()*0.5*fietaS+
-				     sm*sm*fietaB);
+	double rate_visc_disp = 0.5*(sdev.ScalarProduct()*0.5*fietaS+sm*sm*fietaB);
 
 	/*put in planestress option*/
 
 	output[0] = rate_visc_disp;
-	/*	output[1] = fEigs_e[2];*/
 }
+
 /***********************************************************************
  * Private
  ***********************************************************************/
@@ -445,8 +531,7 @@ void RGSplit3D::ComputeEigs_e(const dArrayT& eigenstretch,
 	/*initializes principle viscous stretch*/
 	do 
 	{
-
-	        double Je=sqrt(le0*le1*le2);
+	    double Je=sqrt(le0*le1*le2);
 		dArrayT eigenstretche_bar = eigenstretch_e;
 		eigenstretche_bar *= pow(Je,-2.0*fthird);
 

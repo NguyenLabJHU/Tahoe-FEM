@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.cpp,v 1.3 2003-03-25 06:30:24 thao Exp $ */
+/* $Id: RGVIB2D.cpp,v 1.4 2003-03-26 22:57:45 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include <math.h>
@@ -31,17 +31,19 @@ static const char* Labels[kNumOutputVar] = {"Jv","Je","dW_disp"};
 RGVIB2D::RGVIB2D(ifstreamT& in, const FSMatSupportT& support): 
 	RGBaseT(in, support),
 	ViscVIB(in, 2, 2, 3),
+    fSpectralDecompSpat(2),
+    fSpectralDecompRef(2),
 	fCircle(NULL),
-        fb(2), 
-        fEigs(2), 
-        fEigs_e(2), 
-        ftau_E(2), 
-        fDtauDep_E(2), 
-        ftau_I(2), 
-        fDtauDep_I(2), 
-        fModMat(3), 
-        fModulus(3), 
-        fStress(2), 
+    fb(2), 
+    fEigs(2), 
+    fEigs_e(2), 
+    ftau_E(2), 
+    fDtauDep_E(2), 
+    ftau_I(2), 
+    fDtauDep_I(2), 
+    fModMat(3), 
+    fModulus(3), 
+    fStress(2), 
 	fiKAB(2,2),
 	fconst(0.5)
 {
@@ -339,6 +341,7 @@ void RGVIB2D::ComputeOutput(dArrayT& output)
          
         output[2] = rate_visc_disp*fFSMatSupport.TimeStep(); 
 }  
+
 /***********************************************************************
  * Protected
  ***********************************************************************/

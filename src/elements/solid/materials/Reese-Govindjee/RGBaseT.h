@@ -1,4 +1,4 @@
-/* $Id: RGBaseT.h,v 1.2 2003-03-22 00:40:52 thao Exp $ */
+/* $Id: RGBaseT.h,v 1.3 2003-03-26 22:57:44 thao Exp $ */
 /* created : TDN (1/22/2001) */
 #ifndef _RG_BASE_T_H_
 #define _RG_BASE_T_H_
@@ -33,6 +33,10 @@ class RGBaseT: public FSSolidMatT, public IsotropicT
 	virtual	void Print(ostream& out) const;	
 	virtual void PrintName(ostream& out) const;
 	
+	/** initialization called immediately after constructor. This function
+	 * dimensions and set source for viscous history variables */
+	virtual void Initialize(void);
+	
 	/*Initialize history variable*/
 	virtual bool NeedsPointInitialization(void) const {return true;}; 
 	virtual void PointInitialize(void);              
@@ -51,31 +55,31 @@ class RGBaseT: public FSSolidMatT, public IsotropicT
 
 	/* return true of model is purely 2D, plain stress */
 	virtual bool PurePlaneStress(void) const { return false;};
-	
+
+     /*material inelastic stress measure*/
 	virtual bool HasDissipVar(void) const {return false;};
-  protected:
-  
+
+ protected:
 	/* construct symmetric rank-4 mixed-direction tensor (6.1.44) */
   	void MixedRank4_2D(const dArrayT& a, const dArrayT& b, 
   		dMatrixT& rank4_ab) const;
   	void MixedRank4_3D(const dArrayT& a, const dArrayT& b, 
   		dMatrixT& rank4_ab) const;
+  		
 
   protected:
-
-	/* spectral operations */
-	SpectralDecompT fSpectralDecompSpat;
-	SpectralDecompT fSpectralDecompRef;
-
-	/*Internal state variables*/
+	/*internal state variables*/
 	dSymMatrixT     fC_v;
 	dSymMatrixT     fC_vn;
-	
+		
 	/*number of state variables*/
 	int fnstatev;
 	
 	/* internal state variables array*/
 	dArrayT fstatev;
+	
+	/*dof of internal variables*/
+	int fndof;
 };
 }
 

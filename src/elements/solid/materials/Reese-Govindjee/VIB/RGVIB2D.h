@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.h,v 1.2 2003-03-25 06:30:24 thao Exp $ */
+/* $Id: RGVIB2D.h,v 1.3 2003-03-26 22:57:45 thao Exp $ */
 /* created: TDN (01/22/2001) */
 
 #ifndef _RG_VIB_2D_H_
@@ -29,27 +29,29 @@ class RGVIB2D: public RGBaseT, public ViscVIB
 	virtual void PrintName(ostream& out) const;
 
 	/* class specific initializations */ 
-        virtual void Initialize(void); 
+    virtual void Initialize(void); 
 
-        /*compute output variables*/ 
-        virtual int NumOutputVariables() const; 
-        virtual void OutputLabels(ArrayT<StringT>& labels) const; 
-        virtual void ComputeOutput(dArrayT& output); 
+    /*compute output variables*/ 
+    virtual int NumOutputVariables() const; 
+    virtual void OutputLabels(ArrayT<StringT>& labels) const; 
+    virtual void ComputeOutput(dArrayT& output); 
  
 	/* strain energy density */
 	virtual double StrainEnergyDensity(void);
 
-        /* spatial description */ 
-        virtual const dMatrixT& c_ijkl(void); 
-        virtual const dSymMatrixT& s_ij(void); 
+    /* spatial description */ 
+    virtual const dMatrixT& c_ijkl(void); 
+    virtual const dSymMatrixT& s_ij(void); 
  
-        /* material description */ 
-        virtual const dMatrixT& C_IJKL(void); // material tangent moduli 
-        virtual const dSymMatrixT& S_IJ(void); // PK2 stress 
+    /* material description */ 
+    virtual const dMatrixT& C_IJKL(void); // material tangent moduli 
+    virtual const dSymMatrixT& S_IJ(void); // PK2 stress 
+
+    /*material inelastic stress measure*/
+	virtual bool HasDissipVar(void) const {return false;};
 
   protected:
-  
-        enum EnergyType {Inelastic=0, Elastic=1}; 
+    enum EnergyType {Inelastic=0, Elastic=1}; 
 
 	/*principal elastic stretches*/
 	void ComputeEigs_e(const dArrayT& eigenstretch,dArrayT& eigenstretch_e, 
@@ -59,10 +61,10 @@ class RGVIB2D: public RGBaseT, public ViscVIB
   	void dWdE(const dArrayT& eigenstretch, dArrayT& eigenstress,int etype);
 
   	void ddWddE(const dArrayT& eigenstretch, 
-		    dArrayT& eigenstress, dSymMatrixT& eigenmodulus,int etype);
+		        dArrayT& eigenstress, dSymMatrixT& eigenmodulus,int etype);
 
   	void Calgorithm(const dArrayT& eigenstretch, const dArrayT& eigenstretch_e,
-			dArrayT& eigenstress, dSymMatrixT& eigenmodulus,dMatrixT& Calg);
+			        dArrayT& eigenstress, dSymMatrixT& eigenmodulus,dMatrixT& Calg);
 
 	/* return true of model is purely 2D, plain stress */
 	virtual bool PurePlaneStress(void) const { return true; };
@@ -84,6 +86,10 @@ class RGVIB2D: public RGBaseT, public ViscVIB
   	CirclePointsT*	fCircle;  
  
   private:  
+	    /* spectral operations */
+	    SpectralDecompT fSpectralDecompSpat;
+	    SpectralDecompT fSpectralDecompRef;
+
         /* work space */ 
         dSymMatrixT fb; 
         dArrayT     fEigs; 
