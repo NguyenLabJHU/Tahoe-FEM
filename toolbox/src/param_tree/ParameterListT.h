@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.14 2004-01-31 07:15:57 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.15 2004-02-05 18:41:59 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -123,7 +123,11 @@ public:
 	const ArrayT<ParameterListT::OccurrenceT>& ListOccurrences(void) const { return fParameterListsOccur; };
 	const ArrayT<StringT>&                     References(void) const { return fReferences; };
 	const ArrayT<ParameterListT::OccurrenceT>& ReferenceOccurrences(void) const { return fReferencesOccur; };
+	/*@}*/
 
+	/** \name query access to parameters and sublists. Methods return NULL if the request
+	 * cannot be completed. */
+	/*@{*/		
 	/** return the pointer to the given list. Returns a points to the nth instance of the
 	 * given list or NULL if the list is not found or the instance is out of range. */
 	const ParameterListT* List(const char* name, int instance = 0) const;
@@ -139,6 +143,10 @@ public:
 	/** return the non-const pointer to the given parameter or NULL if the list is not found */
 	ParameterT* Parameter(const char* name);
 	/*@}*/
+
+	/** access to a specific occurrence of a list. Method throws an exception of the
+	 * request cannot be completed */
+	const ParameterListT& GetList(const char* name, int instance = 0) const;
 
 	/** \name retrieving parameter values 
 	 * Methods throw ExceptionT::kGeneralFail if the parameter is not found. */
@@ -224,6 +232,14 @@ inline ParameterListT* ParameterListT::List(const char* name, int instance)
 	const ParameterListT* this_ = (const ParameterListT*) this;
 	const ParameterListT* list = this_->List(name, instance);
 	return (ParameterListT*) list;
+}
+
+inline const ParameterListT& ParameterListT::GetList(const char* name, int instance) const
+{
+	const ParameterListT* list = List(name, instance);
+	if (!list) ExceptionT::GeneralFail("ParameterListT::GetList", "occurrence %d of list \"%s\" not found in \"%s\"",
+		instance + 1, name, Name().Pointer());
+	return *list;
 }
 
 inline ParameterT* ParameterListT::Parameter(const char* name)
