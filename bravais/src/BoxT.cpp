@@ -1,4 +1,4 @@
-/* $Id: BoxT.cpp,v 1.10 2002-11-01 00:09:52 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.11 2002-11-04 18:34:09 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -154,29 +154,29 @@ void BoxT::CreateLattice(CrystalLatticeT* pcl)
 
 void BoxT::SortLattice(CrystalLatticeT* pcl) 
 {
-  /*
   int nlsd = pcl->GetNLSD();
+  
+  dArray2DT new_atom(atom_coord.MajorDim(),atom_coord.MinorDim());
 
-  dArrayT atoms_mod(atom_coord.MajorDim()*atom_coord.MinorDim());
-  atoms_mod = 0.;
-  
-  for(int m=0; m < nATOMS ; m++) 
-    for(int j=0; j < nlsd ; j++) 
-      atoms_mod[j + nlsd*m] = atom_coord(m)[j];
-  
   int new_m = 0;
-  for(int m=0; m < nATOMS ; m++) 
-    {
-      atom_coord(new_m)[1] = atoms_mod[1 + nlsd*m];
-      new_m++;
-    }
+   
+  // Try the routine SortAscending of class dArrayT?
+  dArrayT u(4),v(4);
 
-  for(int m=0; m < nATOMS ; m++) 
-    {
-      atom_coord(new_m)[2] = atoms_mod[2 + nlsd*m];
-      new_m++;
-    }
-  */
+  u[0]=5.;
+  u[1]=2.;
+  u[2]=10.;
+  u[3]=5.5;
+
+  u.SortAscending();
+
+  cout << u[0] << "\n";
+  cout << u[1] << "\n";
+  cout << u[2] << "\n";
+  cout << u[3] << "\n";
+
+
+  atom_coord = new_atom;
 }
 
 
