@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.6 2001-10-31 21:50:35 recampb Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.7 2001-11-01 19:16:44 recampb Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -42,7 +42,8 @@ VTKFrameT::VTKFrameT(void):
   /* set up display classes */
   renderer = vtkRenderer::New();
   renSrc = vtkRendererSource::New();
-
+  writer = vtkTIFFWriter::New();
+ 
   /* set up console modifiable variables */
 //   iAddVariable("age", fAge);
 //   iAddVariable("str_len", (const int) fLength);
@@ -79,7 +80,7 @@ VTKFrameT::VTKFrameT(void):
   iAddCommand("Z_axis_rotation");
   iAddCommand("Flip_book");
   iAddCommand("Change_background_color");
-  iAddCommand("Select_frame_number");
+  iAddCommand("Select_time_step");
   iAddCommand("Show_axes");
   iAddCommand("Hide_axes");
   iAddCommand("Choose_variable");
@@ -346,29 +347,24 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
 //       return true;
 //     }
 
-//   else if (command== "Save_flip_book_images")
-//     {
-//       StringT fbName;
-//       cout << "Enter name for flipbook to be saved (without .tif extension): ";
-//       cin >> fbName;
-//       char line[255];
-//       cin.getline(line,254);
-//       cout << "Save images at: \n 1: current view\n 2: default view: ";
-//       cin >> sfbTest;
-//       cin.getline(line, 254);
-//       /* if default camera desired */
-//       if (sfbTest == 2) {
-// 	cam->SetFocalPoint(0,0,0);
-// 	cam->SetPosition(0,0,1);
-// 	cam->ComputeViewPlaneNormal();
-// 	cam->SetViewUp(0,1,0);
-// 	cam->OrthogonalizeViewUp();
-// 	renderer->SetActiveCamera(cam);
-// 	renderer->ResetCamera();
-// 	renWin->Render();
-//       }	
+  else if (command== "Save_flip_book_images")
+    {
+      StringT fbName;
+      cout << "Enter name for flipbook to be saved (without .tif extension): ";
+      cin >> fbName;
+      char line[255];
+      cin.getline(line,254);
+      cout << "Save images at: \n 1: current view\n 2: default view: ";
+      cin >> sfbTest;
+      cin.getline(line, 254);
+      /* if default camera desired */
+      if (sfbTest == 2) {
+	ResetView();
+	renderer->ResetCamera();
+	fRenWin->Render();
+      }	
       
-//       for (int j = 0; j<num_time_steps; j++){
+      for (int j = 0; j<bodies[0]->num_time_steps; j++){
 
 // 	sbTitle.Drop(-3);
 // 	sbTitle.Append(j,3);
@@ -377,24 +373,25 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
 	
 // 	if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
 // 	  ugrid->GetPointData()->SetVectors(vectors[j][currentVarNum]);
-	
-// 	renWin->Render();  
-// 	renSrc->SetInput(renderer);
-// 	renSrc->WholeWindowOn();
-// 	writer->SetInput(renSrc->GetOutput());
-// 	outFileName = fbName;
-// 	outFileName.Append(j,3); // pad to a width of 3 digits
-// 	outFileName.Append(".tif");
-// 	writer->SetFileName(outFileName);
-// 	writer->Write();
-// 	cout << outFileName << " has been saved" << endl;
-// 	renWin->Render();
-//       }
-//       cout << "Flip book images have been saved." << endl;
-//       renWin->Render();
-//       //    iren->Start();
-//       return true;
-//     }
+	bodies[0]->SelectTimeStep(j);
+
+	fRenWin->Render();  
+	renSrc->SetInput(renderer);
+	renSrc->WholeWindowOn();
+	writer->SetInput(renSrc->GetOutput());
+	bodies[0]->outFileName = fbName;
+	bodies[0]->outFileName.Append(j,3); // pad to a width of 3 digits
+	bodies[0]->outFileName.Append(".tif");
+	writer->SetFileName(bodies[0]->outFileName);
+	writer->Write();
+	cout << bodies[0]->outFileName << " has been saved" << endl;
+	fRenWin->Render();
+      }
+      cout << "Flip book images have been saved." << endl;
+      fRenWin->Render();
+      //    iren->Start();
+      return true;
+    }
 	 
 //   else if (command=="Change_background_color")
 //     {
@@ -429,31 +426,22 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
 //       return true;
 //     }
 
-//   else if (command == "Select_frame_number")
-//     {
+  else if (command == "Select_time_step")
+    {
+      int step;
+      cout << "choose frame number from 0 to " << bodies[0]->num_time_steps-1 <<" to be displayed: ";
+      cin >> step;
+      bodies[0]->SelectTimeStep(step);
+      char line[255];
+      cin.getline(line, 254);
 
-//       cout << "choose frame number from 0 to " << num_time_steps-1 <<" to be displayed: ";
-//       cin >> frameNum;
-//       char line[255];
-//       cin.getline(line, 254);
-//       // sbTitle = "Temperature for frame ";
-//       // sbTitle = "";
-//       // sbTitle.Append(node_labels(0)); 
-//       // sbTitle.Append(" for frame ");
-//       sbTitle.Drop(-3);
-//       sbTitle.Append(frameNum,3);
-//       // sbTitle.Append(j,3);
-//       scalarBar->SetTitle(sbTitle);
-//       // ugrid->GetPointData()->SetScalars(scalars[frameNum]);
-//       ugrid->GetPointData()->SetScalars(scalars[frameNum][currentVarNum]);
-//       if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
-// 	ugrid->GetPointData()->SetVectors(vectors[frameNum][currentVarNum]);
-//       renWin->Render();
-//       cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-//       iren->Start();
-//       return true;
+     
+      fRenWin->Render();
+      cout << "type 'e' in the graphics window to exit interactive mode" << endl;
+      fIren->Start();
+      return true;
       
-//     }
+    }
 
 //    else if (command == "Hide_Node_Numbers")
 
@@ -501,40 +489,17 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
 //       return true;
 //     }
 
-//   else if (command == "Choose_variable")
-//     {
-//  //      char line[255];
-// //       if (numRen == 1){
-// // 	cout << "choose variable number from 0 to " << num_node_variables-1 <<" to be displayed\n" << varList;      
-// // 	cin >> currentVarNum;
-// // 	cin.getline(line, 254);
-// 	//  }
-//  //      else if (numRen == 4){
-// // 	for (int i = 0; i<4; i++){
-// // 	  cout << "choose variable number from 0 to " << num_node_variables-1 <<" to be displayed for renderer " << i << endl << varList; 
-// // 	cin >> currentVarNum;
-// // 	cin.getline(line, 254);
-	
-// // 	}
-// //       }
+  else if (command == "Choose_variable")
+    {
+      cout << "choose variable number from 0 to " << bodies[0]->num_node_variables-1 <<" to be displayed\n" << bodies[0]->varList;      
+      cin >> varNum;
+      char line[255];
+      cin.getline(line, 254);
+      bodies[0]->ChangeVars(varNum);
+      fRenWin->Render();
+      return true;
 
-//       char line[255];
-//       cout << "choose variable number from 0 to " << num_node_variables-1 <<" to be displayed\n" << varList;      
-//       cin >> currentVarNum;
-//       cin.getline(line, 254);
-//       ugrid->GetPointData()->SetScalars(scalars[frameNum][currentVarNum]);
-//       ugridMapper->SetScalarRange(scalarRange1[currentVarNum],scalarRange2[currentVarNum]);
-//       if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
-// 	ugrid->GetPointData()->SetVectors(vectors[frameNum][currentVarNum]);
-//       sbTitle = "";
-//       sbTitle.Append(node_labels[currentVarNum]); 
-//       sbTitle.Append(" for frame ");
-//       sbTitle.Append(frameNum,3);
-//       scalarBar->SetTitle(sbTitle);
-//       renWin->Render();
-//       return true;
-
-//     }
+    }
 
   else
     /* drop through to inherited */

@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.h,v 1.3 2001-10-31 21:50:35 recampb Exp $ */
+/* $Id: VTKBodyT.h,v 1.4 2001-11-01 19:16:43 recampb Exp $ */
 
 #ifndef _VTK_BODY_T_H_
 #define _VTK_BODY_T_H_
@@ -39,6 +39,8 @@ class VTKBodyT
   void SetLookupTable(void);
   void UpdateData(void);
   void DefaultValues(void);
+  void ChangeVars(const int);
+  void SelectTimeStep(const int);
 
   /** return pointer to actor for the body */
   vtkActor* Actor(void) { return ugridActor; };
@@ -49,8 +51,13 @@ class VTKBodyT
 /*   StringT SBTitle(void) {return sbTitle;}; */
 /*   int CurrentVar (void) {return currentVarNum;}; */
 /*   StringT NodeLabels(const int i) {return node_labels[i];}; */
- int num_node_variables;
-    const StringT inFile;
+  int num_node_variables;
+ const StringT inFile;
+  StringT varList;
+int num_time_steps;
+  int currentVarNum;
+  int currentStepNum;
+ StringT outFileName;
  private:
   
   /* source file */
@@ -71,14 +78,13 @@ class VTKBodyT
   double scale_factor;
   double time;
   int numColors;
-  int num_time_steps;
+  
   ArrayT<StringT> node_labels;
-  int currentVarNum;
-  int frameNum;
+
   StringT output_file;
-  StringT outFileName;
+  
   StringT sbTitle;
-  StringT varList;
+
   vtkScalarBarActor *scalarBar;
   vtkLookupTable *lut;
   vtkDataSetMapper *ugridMapper;

@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.cpp,v 1.4 2001-10-31 21:50:34 recampb Exp $ */
+/* $Id: VTKBodyT.cpp,v 1.5 2001-11-01 19:16:43 recampb Exp $ */
 
 #include "VTKBodyT.h"
 
@@ -55,6 +55,7 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
   num_nodes = exo.NumNodes();
   num_dim   = exo.NumDimensions();
   dArray2DT coordinates(num_nodes, num_dim);
+
   
 //   // ArrayT<dArray2DT> coordinates(num_time_steps);
   exo.ReadCoordinates(coordinates); //******???
@@ -118,7 +119,7 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
   /* read nodal data */
   dArray2DT nodal_data(num_nodes, num_node_variables);
   dArrayT ndata(num_nodes);
-  num_time_steps =1; //num_node_variables =1; // used to test data
+  //num_time_steps =1; //num_node_variables =1; // used to test data
   if (num_time_steps > 0)
     {
       for (int i = 0; i < num_time_steps; i++)
@@ -162,7 +163,7 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
       
     }
   
-  
+
   /* allocate points */
   points = vtkPoints::New();
   for (int i=0; i<num_nodes; i++) points->InsertPoint(i+1,coordinates(i));
@@ -216,24 +217,27 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
   else if (geometry == GeometryT::kPentahedron) cell_types = VTK_WEDGE;
   else cout << "Bad geometry";
   
+
   /* set default variable to be displayed */ 
   currentVarNum = num_node_variables-1;
-
+  
+  
   //read model data
   //set up grid
   ugrid = vtkUnstructuredGrid::New();
+  currentStepNum = 0;
   /* insert cells in the grid */
   ugrid->SetCells(cell_types.Pointer(), vtk_cell_array);
   ugrid->SetPoints(points);
-  ugrid->GetPointData()->SetScalars(scalars[frameNum][currentVarNum]);
+  ugrid->GetPointData()->SetScalars(scalars[currentStepNum][currentVarNum]); 
   if (node_labels[0] == "D_X" || node_labels[0] == "D_Y" || node_labels[0] == "D_Z")
-    ugrid->GetPointData()->SetVectors(vectors[frameNum][currentVarNum]);
+    ugrid->GetPointData()->SetVectors(vectors[currentStepNum][currentVarNum]);
   
-
+ 
   scalarBar = vtkScalarBarActor::New();
   warp = vtkWarpVector::New();
   warp->SetInput(ugrid);
-  scale_factor = 5;
+  scale_factor = 1;
 
   //set up mapper
   ugridMapper = vtkDataSetMapper::New();
@@ -256,6 +260,7 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
   /* color mapping stuff */  
   lut = vtkLookupTable::New();
   UpdateData();
+  lut->Build();
   SetLookupTable();
 
   /* assemble a string that is a list of all the variables */
@@ -267,6 +272,7 @@ VTKBodyT::VTKBodyT(const StringT& file_name):
     varList.Append(node_labels[i]);
     varList.Append("\n");
   }
+
   
 }
 
@@ -307,9 +313,8 @@ void VTKBodyT::UpdateData(void)
   lut->SetValueRange(valRange1, valRange2);
   lut->SetAlphaRange(alphaRange1, alphaRange2);
   lut->SetNumberOfColors(numColors);
-  lut->Build();
   warp->SetScaleFactor(scale_factor);
-  ugridMapper->SetScalarRange(scalarRange1[0], scalarRange2[0]);
+  ugridMapper->SetScalarRange(scalarRange1[currentVarNum], scalarRange2[currentVarNum]);
   ugridMapper->SetLookupTable(lut);
 }
 
@@ -320,4 +325,31 @@ void VTKBodyT::DefaultValues(void)
   valRange1 = 1; valRange2 = 1;
   satRange1 = 1; satRange2 = 1;
   alphaRange1 = 1; alphaRange2 = 1;
+}
+
+void VTKBodyT::ChangeVars(const int varNum)
+{
+      ugrid->GetPointData()->SetScalars(scalars[currentStepNum][varNum]);
+      ugridMapper->SetScalarRange(scalarRange1[varNum],scalarRange2[varNum]);
+      if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
+	ugrid->GetPointData()->SetVectors(vectors[currentStepNum][varNum]);
+      sbTitle = "";
+      sbTitle.Append(node_labels[varNum]); 
+      sbTitle.Append(" for frame 000 ");
+      //sbTitle.Append(currentStepNum,3);
+      scalarBar->SetTitle(sbTitle);
+      currentVarNum = varNum;
+
+}
+
+void VTKBodyT::SelectTimeStep(const int stepNum)
+{
+  sbTitle.Drop(-3);
+  sbTitle.Append(stepNum,3);
+  scalarBar->SetTitle(sbTitle);
+  // ugrid->GetPointData()->SetScalars(scalars[currentStepNum]);
+  ugrid->GetPointData()->SetScalars(scalars[stepNum][currentVarNum]);
+  if (node_labels[0] == "D_X" || node_labels[1] == "D_Y" || node_labels[2] == "D_Z")
+    ugrid->GetPointData()->SetVectors(vectors[stepNum][currentVarNum]);
+  currentStepNum= stepNum;
 }
