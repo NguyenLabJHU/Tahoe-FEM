@@ -1,4 +1,4 @@
-/* $Id: VTKFrameT.cpp,v 1.8 2001-11-06 02:39:51 recampb Exp $ */
+/* $Id: VTKFrameT.cpp,v 1.9 2001-11-07 02:34:45 paklein Exp $ */
 
 #include "VTKFrameT.h"
 #include "VTKConsoleT.h"
@@ -42,33 +42,12 @@ VTKFrameT::VTKFrameT(void):
   /* set up display classes */
   renderer = vtkRenderer::New();
  
-  /* set up console modifiable variables */
-//   iAddVariable("age", fAge);
-//   iAddVariable("str_len", (const int) fLength);
-//   iAddVariable("string", (const char*) fArray);
- /* add variables to the console */
-//   iAddVariable("min_Hue_Range", hueRange1);
-//   iAddVariable("max_Hue_Range", hueRange2);
-//   iAddVariable("min_Value_Range", valRange1);
-//   iAddVariable("max_Value_Range", valRange2);
-//   iAddVariable("min_Saturation_Range", satRange1);
-//   iAddVariable("max_Saturation_Range", satRange2);
-//   iAddVariable("min_Alpha_Range", alphaRange1);
-//   iAddVariable("max_Alpha_Range", alphaRange2);
-//   iAddVariable("numColors", numColors);
-//   //iAddVariable("source_file", source_file);
-//   iAddVariable("min_Scalar_Range", scalarRange1);
-//   iAddVariable("max_Scalar_Range", scalarRange2);
-//   iAddVariable("scale_factor", scale_factor);
-
   /* add console commands */
-  iAddCommand("Start_Rendering");
-  iAddCommand("Update_Rendering");
+  iAddCommand("Interactive");
+  iAddCommand("Update");
   iAddCommand("Reset_to_Default_Values");
   iAddCommand("Reset_view");
   iAddCommand("Save");
-  //iAddCommand("Save_flip_book_images");
-
   iAddCommand("Show_Node_Numbers");
   iAddCommand("Hide_Node_Numbers");
   iAddCommand("Color_bar_on");
@@ -76,15 +55,14 @@ VTKFrameT::VTKFrameT(void):
   iAddCommand("X_axis_rotation");
   iAddCommand("Y_axis_rotation");
   iAddCommand("Z_axis_rotation");
-  //iAddCommand("Flip_book");
   iAddCommand("Change_background_color");
   iAddCommand("Select_time_step");
   iAddCommand("Show_axes");
   iAddCommand("Hide_axes");
   iAddCommand("Choose_variable");
 
-  iAddCommand("Add_body");
-  iAddCommand("Remove_body");
+  iAddCommand("AddBody");
+  iAddCommand("RemoveBody");
 }
 
 /* destructor */
@@ -101,6 +79,7 @@ void VTKFrameT::ResetView(void)
   renderer->GetActiveCamera()->ComputeViewPlaneNormal();
   renderer->GetActiveCamera()->SetViewUp(0,1,0);
   renderer->GetActiveCamera()->OrthogonalizeViewUp();
+  renderer->GetActiveCamera()->Zoom(0.85);
   renderer->ResetCamera();
 }
 
@@ -148,18 +127,14 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
   double xRot, yRot, zRot;
   double timeStep;
 
-  if (command == "Start_Rendering")
+  if (command == "Update")
     {
       for (int i = 0; i < bodies.Length(); i++)
-	bodies[i]->UpdateData();
+		bodies[i]->UpdateData();
       fRenWin->Render();
-      cout << getName() << endl;
-      cout << "type 'e' in the graphics window to exit interactive mode" << endl;
-      fIren->Start();
       return true;
     }
-
-  else if (command == "Update_Rendering")
+  else if (command == "Interactive")
   {
     for (int i = 0; i < bodies.Length(); i++)
       bodies[i]->UpdateData();
@@ -168,7 +143,7 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
     fIren->Start();
     return true;
   }
-  else if (command == "Add_body")
+  else if (command == "AddBody")
     {
       /* list of bodies */
       const ArrayT<VTKBodyT*>& bodies = fConsole->Bodies();
@@ -198,7 +173,7 @@ bool VTKFrameT::iDoCommand(const StringT& command, StringT& line)
 	  return false;
 	}
     }
-  else if (command == "Remove_body")
+  else if (command == "RemoveBody")
     {
       cout << "body to remove (0," << bodies.Length()-1 << "): ";
       int body = -99;
