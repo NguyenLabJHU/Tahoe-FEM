@@ -1,4 +1,4 @@
-/* $Id: PSPASESMatrixT.cpp,v 1.11 2004-10-04 18:40:57 paklein Exp $ */
+/* $Id: PSPASESMatrixT.cpp,v 1.12 2004-11-19 06:11:51 paklein Exp $ */
 /* created: paklein (09/13/2000) */
 #include "PSPASESMatrixT.h"
 
@@ -230,7 +230,7 @@ GlobalMatrixT& PSPASESMatrixT::operator=(const GlobalMatrixT& rhs)
 
 	const PSPASESMatrixT* sp = TB_DYNAMIC_CAST(const PSPASESMatrixT*, &rhs);
 	if (!sp)  ExceptionT::GeneralFail(caller, "cast const PSPASESMatrixT* failed");
-	return operator=(*sp);
+	return *this;
 }
 
 /** return a clone of self */
