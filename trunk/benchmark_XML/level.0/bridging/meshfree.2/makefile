@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2004-07-22 00:46:40 paklein Exp $
+# $Id: makefile,v 1.2 2005-02-03 17:06:42 paklein Exp $
 #
 # type "make clean" to remove test results
 #
@@ -21,12 +21,4 @@ clean:
 			echo "*** WARNING: missing directory: $(CURR_DIR)/$$n"; \
 			fi; \
 	done
-	-@rm *.io*.ps* *.out *.geo *.run *.ID *.io.map *.log *.echo.xml *.valid.xml
-
-setup:
-	-@ cd decomp; rm *.n3.*
-	@ cp split/*.run .
-	@ cp split/*.geo .
-	@ cp split/*.ID .
-
-
+	-@rm *.io*.ps* *.out *.geo *.run *.ID *.io.map *.log *.echo.xml *.valid.xml *.overlap
