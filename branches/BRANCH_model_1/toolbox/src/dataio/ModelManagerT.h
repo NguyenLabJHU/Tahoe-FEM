@@ -1,4 +1,4 @@
-/* $Id: ModelManagerT.h,v 1.4.2.1 2001-10-02 19:43:50 sawimme Exp $ */
+/* $Id: ModelManagerT.h,v 1.4.2.2 2001-10-04 20:40:40 sawimme Exp $ */
 /* created: sawimme July 2001 */
 
 #ifndef _MODELMANAGER_T_H_
@@ -48,7 +48,9 @@ class ModelManagerT
 
   /* access */
   void CoordinateDimensions (int& length, int& dof) const;
-  const dArray2DT& Coordinates (void);
+  const dArray2DT& CoordinateReference (void) const; /* return coords */
+  const dArray2DT& Coordinates (void); /* reads coordinates if not yet read and returns coords */
+  void ReadCoordinates (void); /* reads coordinates, assumes coords reference is set separately */
 
   int NumElementGroups (void) const;
   void ElementGroupNames (ArrayT<StringT>& names) const;
@@ -84,13 +86,14 @@ class ModelManagerT
   void CloseModel (void);
   
  private:
-  void ScanModel (const IOBaseT::FileTypeT format, const StringT& database);
+  void ScanModel (const StringT& database);
   bool ScanElements (void);
   bool ScanNodeSets (void);
   bool ScanSideSets (void);
 
  protected:
   ostream& fMessage;
+  IOBaseT::FileTypeT fFormat;
   InputBaseT *fInput;
   StringT fInputName;
 
