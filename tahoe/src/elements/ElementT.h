@@ -1,4 +1,4 @@
-/* $Id: ElementT.h,v 1.42 2004-03-02 23:50:28 raregue Exp $ */
+/* $Id: ElementT.h,v 1.42.10.1 2004-05-05 18:42:28 paklein Exp $ */
 #ifndef _ELEMENT_T_H_
 #define _ELEMENT_T_H_
 
@@ -76,6 +76,8 @@ kPenaltyContactElement3D = 34,
 	kPenaltyContactDrag = 114, /**< contact with constant drag traction */
 kMeshfreePenaltyContact = 115, /**< contact with meshfree strikers */
 kTotLagSplitIntegration = 117,
+           kSimoQ1P0Inv = 136, /**< Q1P0, finite strain, mixed element with inverse dilation */
+        kSimoQ1P0InvAxi = 137, /**< axisymmetric Q1P0, finite strain, mixed element with inverse dilation */
             kTotLagFlat = 217  /**< simplified total Lagragian solid */
  };
 
