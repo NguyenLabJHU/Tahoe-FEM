@@ -1,4 +1,4 @@
-/* $Id: RGVIB2D.cpp,v 1.8 2003-08-27 03:47:17 thao Exp $ */
+/* $Id: RGVIB2D.cpp,v 1.9 2003-08-27 23:43:45 paklein Exp $ */
 /* created: TDN (01/22/2001) */
 
 #include <math.h>
@@ -365,7 +365,7 @@ void RGVIB2D::ComputeOutput(dArrayT& output)
         double phi_visc = 0.5*(fStress.ScalarProduct()*0.5*fietaS+ 
 			       sm*sm*fconst*fconst*fietaB); 
          
-        output[2] = phi_visc; 
+        output[1] = phi_visc; 
          
 }  
 /***********************************************************************
