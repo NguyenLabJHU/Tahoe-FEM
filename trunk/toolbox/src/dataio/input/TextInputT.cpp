@@ -1,4 +1,4 @@
-/* $Id: TextInputT.cpp,v 1.2 2003-11-10 22:14:22 cjkimme Exp $ */
+/* $Id: TextInputT.cpp,v 1.3 2004-07-19 20:32:14 paklein Exp $ */
 #include "TextInputT.h"
 
 #include "iArrayT.h"
@@ -8,6 +8,8 @@
 #include "dArrayT.h"
 #ifdef _MSC_VER
 #include <strstrea.h>
+#elif defined(__GCC_3__)
+#include <strstream>
 #else
 #include <strstream.h>
 #endif
