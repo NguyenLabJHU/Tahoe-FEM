@@ -1,4 +1,4 @@
-/* $Id: parelimv1i.c,v 1.1 2005-01-05 07:37:08 paklein Exp $ */
+/* $Id: parelimv1i.c,v 1.2 2005-01-05 16:51:31 paklein Exp $ */
 /* parelimv1i.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -65,7 +65,7 @@ static integer c__72 = 72;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: parelimv1i.c,v 1.1 2005-01-05 07:37:08 paklein Exp $ +/ */
+/* /+ $Id: parelimv1i.c,v 1.2 2005-01-05 16:51:31 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -288,7 +288,7 @@ L10:
 	    MPI_Recv(&locinds[1], indxbufsize, MPI_INT, *myup, msgtype, *comm, mpistat);
 
 /*<           call mpi_get_count(mpistat,MPI_INTEGER,nbytes,ierr) >*/
-	    MPI_Get_count(mpistat, MPI_INT, &nbytes);
+	    myMPI_Get_count(mpistat, MPI_INT, &nbytes);
 	    
 /*<           msgtype = mpistat(MPI_TAG) >*/
 	    msgtype = mpistat->MPI_TAG;
@@ -541,7 +541,7 @@ L135:
 	    }
 /*<    >*/
 	    i__1 = rank * (*nrows - rank) << 3;
-	    MPI_Isend(&hbuf_s__[1], i__1, MPI_BYTE, *myright, *myid, *comm, req);
+	    myMPI_Isend(&hbuf_s__[1], i__1, MPI_BYTE, *myright, *myid, *comm, req);
 
 /*<           i = i + csuptr >*/
 	    i__ += *csuptr;
@@ -583,7 +583,7 @@ L135:
 		dpack_(&wmem[uptr], &vbuf_s__[1], nrows, ldf, &rank);
 /*<    >*/
 		i__1 = rank * *nrows << 3;
-		MPI_Isend(&vbuf_s__[1], i__1, MPI_BYTE, *mydown, *myid, *comm, &req[1]);
+		myMPI_Isend(&vbuf_s__[1], i__1, MPI_BYTE, *mydown, *myid, *comm, &req[1]);
 /*<           end if >*/
 	    }
 /*<           call mpi_waitall(4,req,statall,ierr) >*/
@@ -656,7 +656,7 @@ L70:
 /*<    >*/
 	    MPI_Recv(&vbuf_r__[1], buflen, MPI_BYTE, *myup, msgtype, *comm, mpistat);
 /*<           call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr) >*/
-	    MPI_Get_count(mpistat, MPI_BYTE, &nbytes);
+	    myMPI_Get_count(mpistat, MPI_BYTE, &nbytes);
 /*<           msgtype = mpistat(MPI_TAG) >*/
 	    msgtype = mpistat->MPI_TAG;
 /*<           if (msgtype .ne. mydown) then >*/
@@ -677,7 +677,7 @@ L70:
 	    dpack_(&wmem[*fptr], &hbuf_s__[1], nrows, ldf, &rank);
 /*<    >*/
 	    i__1 = *nrows * rank << 3;
-	    MPI_Isend(&hbuf_s__[1], i__1, MPI_BYTE, *myright, *myid, *comm, req);
+	    myMPI_Isend(&hbuf_s__[1], i__1, MPI_BYTE, *myright, *myid, *comm, req);
 /*<           msgtype1 = MPI_ANY_TAG >*/
 	    msgtype1 = MPI_ANY_TAG;
 /*<    >*/
@@ -691,7 +691,7 @@ L70:
 /*<             call mpi_waitany(4,req,msgid,mpistat,ierr) >*/
 		MPI_Waitany(4, req, &msgid, mpistat);
 /*<             call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr) >*/
-		MPI_Get_count(mpistat, MPI_BYTE, &nbytes);
+		myMPI_Get_count(mpistat, MPI_BYTE, &nbytes);
 /*<             if (msgid .eq. 2 .and. nsent1 .eq. 0) then >*/
 		if (msgid == 2 && nsent1 == 0) {
 /*<               msgtype1 = mpistat(MPI_TAG) >*/
@@ -701,7 +701,7 @@ L70:
 /*<               if (msgtype1 .ne. mydown) then >*/
 		    if (msgtype1 != *mydown) {
 /*<    >*/
-			MPI_Isend(&vbuf_r__[1], nbytes, MPI_BYTE, *mydown, msgtype1, *comm, &req[2]);
+			myMPI_Isend(&vbuf_r__[1], nbytes, MPI_BYTE, *mydown, msgtype1, *comm, &req[2]);
 /*<                 npending = npending + 1 >*/
 			++npending;
 /*<               end if >*/
@@ -869,7 +869,7 @@ L90:
 /*<    >*/
 	    MPI_Recv(&hbuf_r__[1], buflen, MPI_BYTE, *myleft, msgtype, *comm, mpistat);
 /*<           call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr) >*/
-	    MPI_Get_count(mpistat, MPI_BYTE, &nbytes);
+	    myMPI_Get_count(mpistat, MPI_BYTE, &nbytes);
 /*<           msgtype = mpistat(MPI_TAG) >*/
 	    msgtype = mpistat->MPI_TAG;
 /*<           ldb = ishft(nbytes/rank,-3) >*/
@@ -881,14 +881,14 @@ L90:
 /*<             if (ldb .eq. nrows) then >*/
 		if (ldb == *nrows) {
 /*<    >*/
-		    MPI_Isend(&hbuf_r__[1], nbytes, MPI_BYTE, *mydown, *myid, *comm, req);
+		    myMPI_Isend(&hbuf_r__[1], nbytes, MPI_BYTE, *mydown, *myid, *comm, req);
 /*<             else >*/
 		} else {
 /*<               call dpack(hbuf_r(uptr),vbuf_s,nrows,ldb,rank) >*/
 		    dpack_(&hbuf_r__[uptr], &vbuf_s__[1], nrows, &ldb, &rank);
 /*<    >*/
 		    i__1 = *nrows * rank << 3;
-		    MPI_Isend(&vbuf_s__[1], i__1, MPI_BYTE, *mydown, *myid, *comm, req);
+		    myMPI_Isend(&vbuf_s__[1], i__1, MPI_BYTE, *mydown, *myid, *comm, req);
 /*<             end if >*/
 		}
 /*<           end if >*/
@@ -896,7 +896,7 @@ L90:
 /*<           if (myright .ne. msgtype) then >*/
 	    if (*myright != msgtype) {
 /*<    >*/
-		MPI_Isend(&hbuf_r__[1], nbytes, MPI_BYTE, *myright, msgtype, *comm, &req[1]);
+		myMPI_Isend(&hbuf_r__[1], nbytes, MPI_BYTE, *myright, msgtype, *comm, &req[1]);
 /*<           end if >*/
 	    }
 /*<           call mpi_waitall(4,req,statall,ierr) >*/
@@ -947,7 +947,7 @@ L90:
 /*<             call mpi_waitany(4,req,msgid,mpistat,ierr) >*/
 		MPI_Waitany(4, req, &msgid, mpistat);
 /*<             call mpi_get_count(mpistat,MPI_BYTE,nbytes,ierr) >*/
-		MPI_Get_count(mpistat, MPI_BYTE, &nbytes);
+		myMPI_Get_count(mpistat, MPI_BYTE, &nbytes);
 /*<             npending = npending - 1 >*/
 		--npending;
 /*<             if (msgid .eq. 1 .and. nsent1 .eq. 0) then >*/
@@ -959,7 +959,7 @@ L90:
 /*<               if (msgtype1 .ne. myright) then >*/
 		    if (msgtype1 != *myright) {
 /*<    >*/
-			MPI_Isend(&hbuf_r__[1], nbytes, MPI_BYTE, *myright, msgtype1, *comm, &req[2]);
+			myMPI_Isend(&hbuf_r__[1], nbytes, MPI_BYTE, *myright, msgtype1, *comm, &req[2]);
 /*<                 npending = npending + 1 >*/
 			++npending;
 /*<               end if >*/
@@ -977,7 +977,7 @@ L90:
 /*<               if (msgtype2 .ne. mydown) then >*/
 		    if (msgtype2 != *mydown) {
 /*<    >*/
-			MPI_Isend(&vbuf_r__[1], nbytes, MPI_BYTE, *mydown, msgtype2, *comm, &req[3]);
+			myMPI_Isend(&vbuf_r__[1], nbytes, MPI_BYTE, *mydown, msgtype2, *comm, &req[3]);
 /*<                 npending = npending + 1 >*/
 			++npending;
 /*<               end if >*/

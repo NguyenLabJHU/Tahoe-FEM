@@ -1,4 +1,4 @@
-/* $Id: pbsolve1.c,v 1.3 2005-01-04 18:19:34 paklein Exp $ */
+/* $Id: pbsolve1.c,v 1.4 2005-01-05 16:51:31 paklein Exp $ */
 /* pbsolve1.f -- translated by f2c (version 20030320).
    You must link the resulting object file with the libraries:
 	-lf2c -lm   (in that order)
@@ -60,7 +60,7 @@ static integer c__11 = 11;
 /* /+ conditions are subject to change at any time without prior notice.        +/ */
 /* /+                                                                           +/ */
 /* /+***************************************************************************+/ */
-/* /+ $Id: pbsolve1.c,v 1.3 2005-01-04 18:19:34 paklein Exp $ +/ */
+/* /+ $Id: pbsolve1.c,v 1.4 2005-01-05 16:51:31 paklein Exp $ +/ */
 /* /+***************************************************************************+/ */
 
 static integer lbit_shift(integer a, integer b) {
@@ -367,7 +367,7 @@ static integer max(integer a, integer b) {
 				    i__3 = bvsize << 3;
 
 /*	call mpi_isend(rhs(rhsst),bvsize*lendp,MPI_BYTE,myleft,itag,comm,req(1),ierr) */
-				    MPI_Isend(&rhs[rhsst], i__3, MPI_BYTE, myleft, itag, *comm, req);
+				    myMPI_Isend(&rhs[rhsst], i__3, MPI_BYTE, myleft, itag, *comm, req);
 
 /*<               call putrhs1(N,hvbndry(bip),bvsize,rhs(rhsst),rhsc) >*/
 				    putrhs1_(n, &hvbndry[bip], &bvsize, &rhs[rhsst], rhsc);
@@ -389,7 +389,7 @@ static integer max(integer a, integer b) {
 				    if (itag != myleft) {
 /*<    >*/
 					i__3 = bvsize << 3;
-					MPI_Isend(&rhs[rhsst], i__3, MPI_BYTE, myleft, itag, *comm, req);
+					myMPI_Isend(&rhs[rhsst], i__3, MPI_BYTE, myleft, itag, *comm, req);
 /*<                   npendings = 1 >*/
 					npendings = 1;
 /*<                 end if >*/
@@ -403,7 +403,7 @@ static integer max(integer a, integer b) {
 				    if (myup != *myid) {
 /*<    >*/
 					i__3 = bhsize << 3;
-					MPI_Isend(&recvec[1], i__3, MPI_BYTE, myup, 1, *comm, &req[1]);
+					myMPI_Isend(&recvec[1], i__3, MPI_BYTE, myup, 1, *comm, &req[1]);
 /*<                            npendings = npendings + 1 >*/
 					++npendings;
 /*<                 end if >*/
@@ -456,7 +456,7 @@ static integer max(integer a, integer b) {
 				    itag = *myid;
 /*<    >*/
 				    i__3 = bvsize << 3;
-				    MPI_Isend(&rhs[rhsst], i__3, MPI_BYTE, myleft, itag, *comm, req);
+				    myMPI_Isend(&rhs[rhsst], i__3, MPI_BYTE, myleft, itag, *comm, req);
 
 /*<                 call putrhs1(N,hvbndry(bip),bvsize,rhs(rhsst),rhsc) >*/
 				    putrhs1_(n, &hvbndry[bip], &bvsize, &rhs[
@@ -497,7 +497,7 @@ static integer max(integer a, integer b) {
 			  if (itag != myleft) {
 /*<    >*/
 			      i__3 = bvsize << 3;
-			      MPI_Isend(&rhs[rhsst], i__3, MPI_BYTE, myleft, itag, *comm, req);
+			      myMPI_Isend(&rhs[rhsst], i__3, MPI_BYTE, myleft, itag, *comm, req);
 /*<                         npending = npending+1 >*/
 			      ++npending;
 /*<                       end if >*/
@@ -519,7 +519,7 @@ static integer max(integer a, integer b) {
 					if (myup != *myid) {
 /*<    >*/
 					    i__3 = bhsize << 3;
-					    MPI_Isend(&recvec[1], i__3, MPI_BYTE, myup, 1, *comm, &req[1]);
+					    myMPI_Isend(&recvec[1], i__3, MPI_BYTE, myup, 1, *comm, &req[1]);
 /*<                     call mpi_wait(req(2),mpistat,ierr) >*/
 					    MPI_Wait(&req[1], &mpistat);
 /*<                   end if >*/
@@ -537,7 +537,7 @@ static integer max(integer a, integer b) {
 					if (itag != myleft) {
 /*<    >*/
 					    i__3 = bvsize << 3;
-					    MPI_Isend(&rhs[rhsst], i__3, MPI_BYTE, myleft, itag, *comm, req);
+					    myMPI_Isend(&rhs[rhsst], i__3, MPI_BYTE, myleft, itag, *comm, req);
 /*<                     call mpi_wait(req(1),mpistat,ierr) >*/
 					    MPI_Wait(req, &mpistat);
 /*<                   end if >*/
@@ -567,7 +567,7 @@ static integer max(integer a, integer b) {
 				}
 /*<    >*/
 				i__3 = bhsize << 3;
-				MPI_Isend(&recvec[1], i__3, MPI_BYTE, myup, 1, *comm, &req[1]);
+				myMPI_Isend(&recvec[1], i__3, MPI_BYTE, myup, 1, *comm, &req[1]);
 /*<                 call mpi_wait(req(2),mpistat,ierr) >*/
 				MPI_Wait(&req[1], &mpistat);
 /*<               end if >*/
@@ -608,7 +608,7 @@ static integer max(integer a, integer b) {
 			    if (itag != myleft) {
 /*<    >*/
 				i__3 = bvsize << 3;
-				MPI_Isend(&rhs[rhsst], i__3, MPI_BYTE, myleft, itag, *comm, req);
+				myMPI_Isend(&rhs[rhsst], i__3, MPI_BYTE, myleft, itag, *comm, req);
 /*<                   call mpi_wait(req(1),mpistat,ierr) >*/
 				MPI_Wait(req, &mpistat);
 /*<                 end if >*/
@@ -650,7 +650,7 @@ static integer max(integer a, integer b) {
 		    if (itag != myleft) {
 /*<    >*/
 			i__2 = bvsize << 3;
-			MPI_Isend(&rhs[rhsst], i__2, MPI_BYTE, myleft, itag, *comm, req);
+			myMPI_Isend(&rhs[rhsst], i__2, MPI_BYTE, myleft, itag, *comm, req);
 /*<               call mpi_wait(req(1),mpistat,ierr) >*/
 			MPI_Wait(req, &mpistat);
 /*<             end if >*/
@@ -734,7 +734,7 @@ static integer max(integer a, integer b) {
 		    if (itag != myleft) {
 /*<    >*/
 			i__2 = bvsize << 3;
-			MPI_Isend(&rhs[rhsst], i__2, MPI_BYTE, myleft, itag, *comm, req);
+			myMPI_Isend(&rhs[rhsst], i__2, MPI_BYTE, myleft, itag, *comm, req);
 /*<                 call mpi_wait(req(1),mpistat,ierr) >*/
 			MPI_Wait(req, &mpistat);
 /*<               end if >*/
@@ -824,7 +824,7 @@ static integer max(integer a, integer b) {
 /*<             end if >*/
 		}
 /*<             call mpi_get_count(mpistat,MPI_INTEGER,nuinds,ierr) >*/
-		MPI_Get_count(&mpistat, MPI_INT, &nuinds);
+		myMPI_Get_count(&mpistat, MPI_INT, &nuinds);
 /*<             if(partner.gt.myid) then >*/
 		if (partner > *myid) {
 /*<    >*/
