@@ -1,4 +1,4 @@
-/* $Id: PenaltyContact2DT.cpp,v 1.13.2.2 2004-07-07 15:28:00 paklein Exp $ */
+/* $Id: PenaltyContact2DT.cpp,v 1.13.2.3 2004-07-09 01:10:10 paklein Exp $ */
 /* created: paklein (12/11/1997) */
 #include "PenaltyContact2DT.h"
 
@@ -19,10 +19,12 @@ PenaltyContact2DT::PenaltyContact2DT(const ElementSupportT& support, const Field
 {
 	SetName("contact_2D_penalty");
 
+#if 0
 	ElementSupport().Input() >> fK;
 	if (fK < 0.0)
 		ExceptionT::BadInputValue("PenaltyContact2DT::PenaltyContact2DT", 
 			"regularization must be > 0: %g", fK);
+#endif
 }
 
 PenaltyContact2DT::PenaltyContact2DT(const ElementSupportT& support):

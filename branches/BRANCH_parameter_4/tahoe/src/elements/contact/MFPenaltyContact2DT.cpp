@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.cpp,v 1.9.2.1 2004-07-06 06:53:13 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.cpp,v 1.9.2.2 2004-07-09 01:10:10 paklein Exp $ */
 #include "MFPenaltyContact2DT.h"
 
 #include <math.h>
@@ -33,6 +33,9 @@ MFPenaltyContact2DT::MFPenaltyContact2DT(const ElementSupportT& support, const F
 	fdvT_man(0, true),
 	fRHS_man(0, fRHS)
 {
+	SetName("meshfree_contact_2D_penalty");
+
+#if 0
 	ElementSupport().Input() >> fGroupNumber;
 	fGroupNumber--;
 	ElementBaseT& element = ElementSupport().ElementGroup(fGroupNumber);
@@ -58,20 +61,67 @@ MFPenaltyContact2DT::MFPenaltyContact2DT(const ElementSupportT& support, const F
 
 	/* set map of node ID to meshfree point index */
 	fNodeToMeshFreePoint.SetMap(fMeshFreeSupport->NodesUsed());
+#endif
+}
+
+MFPenaltyContact2DT::MFPenaltyContact2DT(const ElementSupportT& support):
+	PenaltyContact2DT(support),
+	fElementGroup(NULL),
+	fMeshFreeSupport(NULL),
+	fdvT_man(0, true),
+	fRHS_man(0, fRHS)
+{
+	SetName("meshfree_contact_2D_penalty");	
+}
+
+/* describe the parameters needed by the interface */
+void MFPenaltyContact2DT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	PenaltyContact2DT::DefineParameters(list);
+
+	/* the meshless element group */
+	list.AddParameter(ParameterT::Integer, "meshless_group");
+}
+
+/* accept parameter list */
+void MFPenaltyContact2DT::TakeParameterList(const ParameterListT& list)
+{
+	/* inherited */
+	PenaltyContact2DT::TakeParameterList(list);
+
+	/* resolve meshless element group */
+	int group = list.GetParameter("meshless_group");
+	group--;
+	ElementBaseT& element = ElementSupport().ElementGroup(group);
+	fElementGroup = &element;
+
+	/* cast to meshfree element types */
+	const MeshFreeSSSolidT* mf_ss_solid = dynamic_cast<const MeshFreeSSSolidT*>(fElementGroup);
+	const MeshFreeFSSolidT* mf_fs_solid = dynamic_cast<const MeshFreeFSSolidT*>(fElementGroup);
+	const MeshFreeFSSolidAxiT* mf_fs_axi_solid = dynamic_cast<const MeshFreeFSSolidAxiT*>(fElementGroup);
+	if (mf_ss_solid)
+		fMeshFreeSupport = &(mf_ss_solid->MeshFreeSupport());	
+	else if (mf_fs_solid)
+		fMeshFreeSupport = &(mf_fs_solid->MeshFreeSupport());	
+	else if (mf_fs_axi_solid)
+		fMeshFreeSupport = &(mf_fs_axi_solid->MeshFreeSupport());	
+	else
+		ExceptionT::GeneralFail("MFPenaltyContact2DT::TakeParameterList",
+			"element group %d is not meshfree", group+1);
+
+	/* register arrays with memory manager */
+	fStrikerCoords_man.SetWard(0, fStrikerCoords, NumSD());
+	fdvT_man.Register(fdv1T);
+	fdvT_man.Register(fdv2T);
+
+	/* set map of node ID to meshfree point index */
+	fNodeToMeshFreePoint.SetMap(fMeshFreeSupport->NodesUsed());
 }
 
 /***********************************************************************
  * Protected
  ***********************************************************************/
-
-/* print element group data */
-void MFPenaltyContact2DT::PrintControlData(ostream& out) const
-{
-	/* inherited */
-	PenaltyContact2DT::PrintControlData(out);
-
-	out << " Meshfree element group. . . . . . . . . . . . . = " << fGroupNumber+1 << '\n';	
-}
 
 /* called by FormRHS and FormLHS */
 void MFPenaltyContact2DT::LHSDriver(GlobalT::SystemTypeT)
@@ -198,10 +248,10 @@ void MFPenaltyContact2DT::RHSDriver(void)
 	SetTrackingData(num_contact, h_max);
 }
 
+#if 0
 /* set contact surfaces and strikers */
 void MFPenaltyContact2DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 {
-#if 0
 	const char caller[] = "MFPenaltyContact2DT::EchoConnectivityData";
 
 	int num_surfaces;
@@ -350,8 +400,8 @@ void MFPenaltyContact2DT::EchoConnectivityData(ifstreamT& in, ostream& out)
 	/* set managed equation numbers array */
 	fEqnos.Dimension(1);
 	fEqnos_man.SetWard(0, fEqnos[0], nen*NumDOF());
-#endif
 }
+#endif
 
 /* generate contact element data */
 bool MFPenaltyContact2DT::SetActiveInteractions(void)

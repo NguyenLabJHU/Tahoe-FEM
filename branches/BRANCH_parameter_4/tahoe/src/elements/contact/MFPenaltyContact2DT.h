@@ -1,4 +1,4 @@
-/* $Id: MFPenaltyContact2DT.h,v 1.2 2003-11-04 17:37:50 paklein Exp $ */
+/* $Id: MFPenaltyContact2DT.h,v 1.2.32.1 2004-07-09 01:10:10 paklein Exp $ */
 #ifndef _MF_PENALTY_CONTACT2D_T_H_
 #define _MF_PENALTY_CONTACT2D_T_H_
 
@@ -22,12 +22,19 @@ public:
 
 	/** constructor */
 	MFPenaltyContact2DT(const ElementSupportT& support, const FieldT& field);
+	MFPenaltyContact2DT(const ElementSupportT& support);
+
+	/** \name implementation of the ParameterInterfaceT interface */
+	/*@{*/
+	/** describe the parameters needed by the interface */
+	virtual void DefineParameters(ParameterListT& list) const;
+
+	/** accept parameter list */
+	virtual void TakeParameterList(const ParameterListT& list);
+	/*@}*/
 
 protected:
 
-	/** print element group data */
-	virtual void PrintControlData(ostream& out) const;
-		 	
 	/** construct the effective mass matrix. Not implemeneted. */
 	virtual void LHSDriver(GlobalT::SystemTypeT);
 
@@ -41,7 +48,7 @@ protected:
 	 * list of meshfree nodes, so that all meshfree nodes can be potential
 	 * strikers. Also, since the connectivities will be oddly-shaped,
 	 * they will not be registered with the ModelManagerT. */
-	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
+//	virtual void EchoConnectivityData(ifstreamT& in, ostream& out);
 
 	/** set "internal" data. This implementation is bsed on Contact2DT::SetActiveInteractions,
 	 * but modified to account for compute the current coordinates using the
@@ -61,7 +68,6 @@ protected:
 
 	/** \name meshfree element group */
 	/*@{*/
-	int fGroupNumber;
 	const ElementBaseT* fElementGroup;
 
 	/** meshfree support from MFPenaltyContact2DT::fElementGroup */
