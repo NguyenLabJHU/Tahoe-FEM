@@ -1,4 +1,4 @@
-/* $Id: EdgeFinderT.h,v 1.1.1.1 2001-01-25 20:56:27 paklein Exp $ */
+/* $Id: EdgeFinderT.h,v 1.2 2001-12-16 23:48:12 paklein Exp $ */
 /* created: paklein (02/14/1998)                                          */
 /* Class to determine element neighbors based on the connectivies.        */
 
@@ -15,7 +15,7 @@ class EdgeFinderT
 public:
 
 	/* constructor */
-	EdgeFinderT(const iArray2DT& connects, const iArray2DT& nodefacetmap);
+	EdgeFinderT(const ArrayT<const iArray2DT*>& connects, const iArray2DT& nodefacetmap);
 
 	/* clear (and free) all data */
 	void Clear(void);
@@ -39,11 +39,15 @@ private:
 	/* find facet of elem_j that matches facet i of elem_i */
 	int FindMatchingFacet(int facet, const int* elem_i,
 		const int* elem_j) const;
+
+	int* ElementNodes (int index) const;
 		
 protected:
 
 	/* connectivities */
-	const iArray2DT& fConnects;
+	ArrayT<const iArray2DT*> fConnects;
+	iArrayT fStartNumber;
+	int fNumElements;
 	int fNumFacets;
 	int fKeyNodes;
 
