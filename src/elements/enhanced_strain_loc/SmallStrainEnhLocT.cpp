@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.cpp,v 1.14 2005-03-12 00:12:00 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.cpp,v 1.15 2005-03-17 22:35:56 raregue Exp $ */
 #include "SmallStrainEnhLocT.h"
 #include "ShapeFunctionT.h"
 #include "SSSolidMatT.h"
@@ -183,6 +183,9 @@ GlobalT::RelaxCodeT SmallStrainEnhLocT::RelaxSystem(void)
 		/* shape function derivatives, jacobians, local coords */
 		SetGlobalShape();
 		
+		/* get displacements */
+        SetLocalU(fLocDisp);
+		
 		elem_num = CurrElementNumber();
 		nen = NumElementNodes();
 		loc_flag = fElementLocScalars[kNUM_SCALAR_TERMS*elem_num + kLocFlag];
@@ -206,7 +209,7 @@ GlobalT::RelaxCodeT SmallStrainEnhLocT::RelaxSystem(void)
 			fElementLocTangent.SetRow(elem_num, tangent_chosen);
 
 			/* check for localization */
-			CheckLocalization(elem_num);
+			CheckLocalization(elem_num, fLocDisp);
 		}
 	
 	} // while next element
@@ -591,8 +594,13 @@ MaterialListT* SmallStrainEnhLocT::NewMaterialList(const StringT& name, int size
 
 
 /* check for localization */
-void SmallStrainEnhLocT::CheckLocalization(int& elem)
+void SmallStrainEnhLocT::CheckLocalization(int& elem, LocalArrayT& displ_elem)
 {
+	dMatrixT grad_displ;
+	grad_displ.Dimension(NumSD(),NumSD());
+	grad_displ = 0.0;
+	double grad_displ_mn_scalar = 0.0;
+	
 	fShapes->TopIP();
 	while ( fShapes->NextIP() )
 	{
@@ -655,6 +663,7 @@ void SmallStrainEnhLocT::CheckLocalization(int& elem)
 				slipdirs.Top();
 				tangents.Free();
 				psis.Free();
+				grad_displ_mns.Free();
 				detAs.Top();
 				dissipations_fact.Top();
 				int num_normals = normals.Length();
@@ -681,14 +690,22 @@ void SmallStrainEnhLocT::CheckLocalization(int& elem)
 						tangent_tmp -= dummyt;
 					}
 					tangents.Append(tangent_tmp);
+					
+					// calculate inner product \bnablabu : \bm \otimes \bn at current IP
+					IP_ComputeGradient(displ_elem, grad_displ);
+					grad_displ_mn_scalar = grad_displ.MultmBn(slipdir_tmp, normal_tmp);
+					grad_displ_mns.Append(grad_displ_mn_scalar);
+	
 					if (fDeBug)
 					{
 						detAs.Next();
 						detA_tmp = detAs.Current();
 						dissipations_fact.Next();
 						dissip_tmp = dissipations_fact.Current();
-						ss_enh_out	<< endl << "detA_min" << setw(outputFileWidth) << "dissip_max"  <<  setw(outputFileWidth) << "psi (rad)";
-						ss_enh_out	<< endl << detA_tmp << setw(outputFileWidth) << dissip_tmp << setw(outputFileWidth) << psi_tmp; 			
+						ss_enh_out	<< endl << "detA_min" << setw(outputFileWidth) << "dissip_max"  << setw(outputFileWidth) << "psi (rad)"
+									<< setw(outputFileWidth) << "grad_displ_mn";
+						ss_enh_out	<< endl << detA_tmp << setw(outputFileWidth) << dissip_tmp << setw(outputFileWidth) << psi_tmp
+									<< setw(outputFileWidth) << grad_displ_mn_scalar; 			
 						ss_enh_out	<< endl << "normal: " << setw(outputFileWidth) << normal_tmp[0] 
 									<< setw(outputFileWidth) << normal_tmp[1] <<  setw(outputFileWidth) << normal_tmp[2]
 									<< setw(outputFileWidth) << "slipdir: " << setw(outputFileWidth) << slipdir_tmp[0] 
@@ -712,6 +729,7 @@ void SmallStrainEnhLocT::CheckLocalization(int& elem)
 				psis_min = psis;
 				detAs_min = detAs;
 				dissipations_fact_min = dissipations_fact;
+				grad_displ_mns_min = grad_displ_mns;
 			
 			} // if (detAmin < fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdetAmin])
 
@@ -756,6 +774,7 @@ void SmallStrainEnhLocT::ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int& el
 	*/
 
 	/* determine normal based on maximum dissipation calculation */
+	/*
 	normals_min.Top();
 	slipdirs_min.Top();
 	tangents_min.Top();
@@ -778,12 +797,12 @@ void SmallStrainEnhLocT::ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int& el
 			psi_chosen = psis_min.Current();
 		}
 	}
-
+	*/
 
 	/* determines normal for shear loading,
 	 * which is not applicable for cracking under pure tension, 
 	 * or compaction banding under compression */
-	
+	/*
 	//initialize sums
 	sums.Free();
 	normals_min.Top();
@@ -855,6 +874,34 @@ void SmallStrainEnhLocT::ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int& el
 			psi_chosen = psis_min.Current();
 		}
 	}
+	*/
+	
+	
+	/* determine normal based on maximum \bnablabu : \bm \otimes \bn */
+	normals_min.Top();
+	slipdirs_min.Top();
+	tangents_min.Top();
+	psis_min.Top();
+	grad_displ_mns_min.Top();
+	double grad_displ_mn_max = 0.0, grad_displ_mn_tmp;
+	while (normals_min.Next())
+	{
+		grad_displ_mns_min.Next();
+		grad_displ_mn_tmp = grad_displ_mns_min.Current();
+		if (grad_displ_mn_tmp > grad_displ_mn_max)
+		{
+			grad_displ_mn_max = grad_displ_mn_tmp;
+			normal_chosen = normals_min.Current();
+			slipdirs_min.Next();
+			slipdir_chosen = slipdirs_min.Current();
+			tangents_min.Next();
+			tangent_chosen = tangents_min.Current();
+			psis_min.Next();
+			psi_chosen = psis_min.Current();
+		}
+	}
+	
+	
 	
 	/* store chosen normal and slip direction vectors */
 	fElementLocNormal.SetRow(elem, normal_chosen);
@@ -1046,7 +1093,7 @@ void SmallStrainEnhLocT::FormStiffness(double constK)
 						
 			ss_enh_out	<< endl << endl << "element volume:" << setw(outputFileWidth) << vol; 
 						
-			ss_enh_out	<< endl << endl << "detA_min" << setw(outputFileWidth) << "dissip_max"  <<  setw(outputFileWidth) << "psi (rad)";
+			ss_enh_out	<< endl << endl << "detA_min" << setw(outputFileWidth) << "dissip_max"  << setw(outputFileWidth) << "psi (rad)";
 			ss_enh_out	<< endl << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdetAmin] << setw(outputFileWidth) << fElementLocScalars[kNUM_SCALAR_TERMS*elem + kdissip_max]
 						<< setw(outputFileWidth) << fElementLocPsi[elem]; 
 			ss_enh_out	<< endl << " normal_chosen: " << setw(outputFileWidth) << normal_chosen[0] 

@@ -1,4 +1,4 @@
-/* $Id: SmallStrainEnhLocT.h,v 1.13 2005-03-12 00:12:01 raregue Exp $ */
+/* $Id: SmallStrainEnhLocT.h,v 1.14 2005-03-17 22:35:56 raregue Exp $ */
 #ifndef _SMALL_STRAIN_ENH_LOC_T_H_
 #define _SMALL_STRAIN_ENH_LOC_T_H_
 
@@ -130,7 +130,7 @@ protected:
 	virtual MaterialListT* NewMaterialList(const StringT& name, int size);
 
 	/* check for localization */
-	void CheckLocalization(int& elem);
+	void CheckLocalization(int& elem, LocalArrayT& displ_elem);
 	
 	/* choose the normal and slipdir given normals and slipdirs from bifurcation condition */
 	void ChooseNormalAndSlipDir(LocalArrayT& displ_elem, int& elem, int& nen);
@@ -233,12 +233,14 @@ protected:
 	AutoArrayT <double> psis;
 	AutoArrayT <double> detAs;
 	AutoArrayT <double> dissipations_fact;
+	AutoArrayT <double> grad_displ_mns;
 	AutoArrayT <dArrayT> normals_min;
 	AutoArrayT <dArrayT> slipdirs_min;
 	AutoArrayT <dArrayT> tangents_min;
 	AutoArrayT <double> psis_min;
 	AutoArrayT <double> detAs_min;
 	AutoArrayT <double> dissipations_fact_min;
+	AutoArrayT <double> grad_displ_mns_min;
 	
 	dArrayT grad_enh, mu_dir;
 		
