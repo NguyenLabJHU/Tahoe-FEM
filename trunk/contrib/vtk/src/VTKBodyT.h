@@ -1,4 +1,4 @@
-/* $Id: VTKBodyT.h,v 1.14 2001-12-13 09:56:21 paklein Exp $ */
+/* $Id: VTKBodyT.h,v 1.15 2002-02-01 18:11:40 paklein Exp $ */
 
 #ifndef _VTK_BODY_T_H_
 #define _VTK_BODY_T_H_
@@ -15,8 +15,8 @@
 class VTKBodyDataT;
 class VTKFrameT;
 class vtkCubeAxesActor2D;
-
-class vtkIdFilter;
+class vtkCellCenters;
+class vtkMappedIdFilterT;
 class vtkSelectVisiblePoints;
 class vtkLabeledDataMapper;
 class vtkActor2D;
@@ -53,6 +53,11 @@ class VTKBodyT: public iConsoleObjectT
 	bool ChangeVars(const StringT& var);
 
  private:
+ 
+ 	/** (re-) set the list of ID filters */
+ 	void SetIDFilters(void);
+
+ private:
 
 	/** frame where body is displayed */
 	VTKFrameT* fFrame;
@@ -63,11 +68,19 @@ class VTKBodyT: public iConsoleObjectT
 	/** coordinate axes */
 	ArrayT<vtkCubeAxesActor2D*> fAxes;
 	
-	/* node numbers */
-	ArrayT<vtkIdFilter*> fIDFilter;
+	/** point and cell numbers. used for both node and cell labels */
+	ArrayT<vtkMappedIdFilterT*> fIDFilter;
+
+	/* point number labels */
 	ArrayT<vtkSelectVisiblePoints*> fVisPoints;
 	ArrayT<vtkLabeledDataMapper*> fNodeLabelMapper;
 	ArrayT<vtkActor2D*> fNodeLabelActor;	
+
+	/* cell number labels */
+	ArrayT<vtkCellCenters*> fCellCenters;
+	ArrayT<vtkSelectVisiblePoints*> fVisCells;
+	ArrayT<vtkLabeledDataMapper*> fCellLabelMapper;
+	ArrayT<vtkActor2D*> fCellLabelActor;	
 };
 
 #endif

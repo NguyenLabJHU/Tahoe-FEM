@@ -1,10 +1,11 @@
-/* $Id: VTKUGridT.h,v 1.3 2001-12-14 17:37:40 paklein Exp $ */
+/* $Id: VTKUGridT.h,v 1.4 2002-02-01 18:11:41 paklein Exp $ */
 #ifndef _VTK_U_GRID_T_H_
 #define _VTK_U_GRID_T_H_
 
 /* direct members */
 #include "ArrayT.h"
 #include "GeometryT.h"
+#include "iArrayT.h"
 
 /* VTK forward declarations */
 class vtkPoints;
@@ -94,6 +95,12 @@ class VTKUGridT
  	 * \param opacity ranges from 0 to 1 for transparent to opaque */
 	void SetOpacity(double opacity);
  
+ 	/** return a reference to the cell numbering map */
+	const iArrayT& CellNumberMap(void) const { return fCellNumberMap; };
+	
+	/** set the cell number map */
+	void SetCellNumberMap(const iArrayT& map) { fCellNumberMap = map; };
+
  private:
 
  	/** type of the unstructured grid set */
@@ -104,6 +111,9 @@ class VTKUGridT
 
 	/** dimensionality of the cells */
 	int fNumSD; 
+
+	/** cell numbering map */
+	iArrayT fCellNumberMap;
 	
 	/** connectivities in VTK format */
   	vtkCellArray* fCellArray;
