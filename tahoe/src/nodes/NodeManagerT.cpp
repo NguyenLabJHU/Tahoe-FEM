@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.52.2.5 2004-11-15 04:15:03 d-farrell2 Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.52.2.6 2004-11-24 15:06:36 d-farrell2 Exp $ */
 /* created: paklein (05/23/1996) */
 #include "NodeManagerT.h"
 
@@ -512,15 +512,15 @@ void NodeManagerT::InitialCondition(void)
 	else // set the start/end to the default values of 0, - 1 (full array)
 	{
 //DEBUG
-cout << "NodeManagerT::InitialCondition: no partition information" << endl;
+//cout << "NodeManagerT::InitialCondition: no partition information" << endl;
 
 		fPartFieldStart = 0;
 		fPartFieldEnd = - 1;
 	}
 	
 //DEBUG
-cout << "fPartFieldStart = " << fPartFieldStart << endl;
-cout << "fPartFieldEnd = " << fPartFieldEnd << endl;
+//cout << "fPartFieldStart = " << fPartFieldStart << endl;
+//cout << "fPartFieldEnd = " << fPartFieldEnd << endl;
 
 	/* update current configurations */
 	if (fCoordUpdate)
@@ -529,20 +529,17 @@ cout << "fPartFieldEnd = " << fPartFieldEnd << endl;
 		{
 			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0], fPartFieldStart, fPartFieldEnd);
 //DEBUG
-cout << "NodeManagerT::InitialCondition, preparing to do AllGather" << endl;			
+//cout << "NodeManagerT::InitialCondition, preparing to do AllGather" << endl;			
 			// communicate the updated coords
 			fCommManager.AllGather(fMessageCurrCoordsID, *fCurrentCoords); // I see a problem here, should only send part of the array, that which was updated		
 //DEBUG
-cout << "NodeManagerT::InitialCondition, after AllGather" << endl;		
+//cout << "NodeManagerT::InitialCondition, after AllGather" << endl;		
 		}
 		else
 		{
 			fCurrentCoords->SumOf(InitialCoordinates(), (*fCoordUpdate)[0]);
 		}
 	}
-	
-	// Need to comunicate the update to ensure uniformity
-#pragma message("NodeManagerT::InitialCondition, need to put in all gather on updated coords")
 }
 
 void NodeManagerT::ReadRestart(ifstreamT& in)
