@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# $Id: MakeConfigHeaderFile.pl,v 1.6 2003-08-07 18:08:14 paklein Exp $
+# $Id: MakeConfigHeaderFile.pl,v 1.7 2003-08-07 18:18:09 paklein Exp $
 #
 # Generates a C/C++ header file from a configuration file which is
 # passed as the command-line argument.
@@ -98,7 +98,7 @@ FIN
 $scan_line = 1;
 $opt_root = "";
 $enabled = 1;
-while ($line = <IN>) {
+while (defined($line = <IN>)) {
 	chomp($line);
 	
 	# non-comment, non-blank line
