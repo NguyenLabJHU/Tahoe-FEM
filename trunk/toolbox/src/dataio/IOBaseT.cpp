@@ -1,4 +1,4 @@
-/* $Id: IOBaseT.cpp,v 1.15 2003-11-25 19:45:30 paklein Exp $ */
+/* $Id: IOBaseT.cpp,v 1.16 2004-11-19 22:55:25 paklein Exp $ */
 /* created: sawimme (09/28/1999) */
 #include "IOBaseT.h"
 
@@ -138,7 +138,7 @@ IOBaseT::FileTypeT IOBaseT::name_to_FileTypeT(const char* file_name)
 	StringT ext;
 	ext.Suffix(file_name);
 	
-	if (ext == ".exo" || ext == ".e")
+	if (ext == ".exo" || ext == ".e" || ext == ".g" || ext == ".gen")
 		return kExodusII;
 	else if (ext == ".geom")
 		return kTahoeII;
