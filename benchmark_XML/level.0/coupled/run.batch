@@ -1,7 +1,0 @@
-@
-# $Id: run.batch,v 1.2 2004-08-14 20:41:54 paklein Exp $
-expand.tm.xml
-fracture.tm.xml
-taylor.tm.xml
-workheat.xml
-
