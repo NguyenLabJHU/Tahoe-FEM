@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleManagerT.cpp,v 1.2 2004-07-26 09:40:12 paklein Exp $ */
+/* $Id: BridgingScaleManagerT.cpp,v 1.3 2004-07-27 17:58:23 paklein Exp $ */
 #include "BridgingScaleManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -11,6 +11,7 @@
 #include "ParticlePairT.h"
 #include "FieldT.h"
 #include "dSPMatrixT.h"
+#include "CommunicatorT.h"
 
 using namespace Tahoe;
 
@@ -21,8 +22,18 @@ BridgingScaleManagerT::BridgingScaleManagerT(const StringT& input_file, ofstream
 	fFine_THK(NULL)
 {
 	SetName("tahoe_bridging_scale");
+	
+	/* split communicator for the coarse scale into N single processor communicators */
+	fCoarseComm = new CommunicatorT(fComm, fComm.Rank());
 }
 
+BridgingScaleManagerT::~BridgingScaleManagerT(void)
+{
+	/* clean up communicators */
+	if (fCoarseComm != &fComm) delete fCoarseComm;
+	if (fFineComm != &fComm) delete fFineComm;
+}
+	
 /* (re-)set system to initial conditions */
 ExceptionT::CodeT BridgingScaleManagerT::InitialCondition(void)
 {
