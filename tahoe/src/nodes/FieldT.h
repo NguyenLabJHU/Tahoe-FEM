@@ -1,4 +1,4 @@
-/* $Id: FieldT.h,v 1.1.2.6 2002-04-30 08:22:03 paklein Exp $ */
+/* $Id: FieldT.h,v 1.1.2.7 2002-05-07 07:20:30 paklein Exp $ */
 
 #ifndef _FIELD_T_H_
 #define _FIELD_T_H_
@@ -14,6 +14,7 @@
 #include "FBC_CardT.h"
 #include "pArrayT.h"
 #include "GlobalT.h"
+#include "AutoArrayT.h"
 
 /* forward declarations */
 class LocalArrayT;
@@ -21,7 +22,6 @@ class nControllerT;
 class KBC_ControllerT;
 class FBC_ControllerT;
 template <class TYPE> class RaggedArray2DT;
-template <class TYPE> class AutoArrayT;
 class ifstreamT;
 class ofstreamT;
 class FieldSupportT;
@@ -182,6 +182,17 @@ public:
 	dArray2DT& ExternalUpdate(void) { return fExUpdate; };
 	/*@}*/
 
+	/** \name source terms */
+	/*@{*/
+	/** accumulate source terms */
+	void AccumulateSource(const StringT& ID, const dArray2DT& source) const;
+
+	/** element source terms. return a pointer to the source terms for the 
+	 * given element block ID, or NULL if no source terms exist for that
+	 * block */
+	const dArray2DT* Source(const StringT& ID) const;
+	/*@}*/
+
 private:
 
 	/** apply the IC_CardT to the field */
@@ -192,6 +203,13 @@ private:
 
 	/** determine the destinations for the force boundary conditions */
 	void SetFBCEquations(void);
+
+	/** return the index for the source of the given ID. Returns -1 if
+	 * if no source exists for given ID */
+	int SourceIndex(const StringT& ID) const;
+
+	/** clear the source terms for the given block */
+	void ClearSource(void); 
 
 private:
 
@@ -243,6 +261,15 @@ private:
 
 	/** communication buffer */
 	dArray2DT fExUpdate;
+	/*@}*/
+	
+	/** \name source terms */
+	/*@{*/
+	/** ID's for the elements blocks in source */
+	AutoArrayT<StringT> fID;
+
+	/** block source terms. Each entry is: [nen] x [nip*nval] */
+	AutoArrayT<dArray2DT*> fSource;
 	/*@}*/
 };
 

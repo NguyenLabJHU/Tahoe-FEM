@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.1.2.7 2002-05-03 07:13:34 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.1.2.8 2002-05-07 07:20:30 paklein Exp $ */
 #include "FieldT.h"
 #include "fstreamT.h"
 #include "nControllerT.h"
@@ -19,7 +19,11 @@ FieldT::FieldT(const StringT& name, int ndof, nControllerT& controller):
 }
 
 /* destructor */
-FieldT::~FieldT(void) { }
+FieldT::~FieldT(void)
+{ 
+	for (int i = 0; i < fSource.Length(); i++)
+		delete fSource[i];
+}
 
 /* set number of nodes */
 void FieldT::Dimension(int nnd)
@@ -181,6 +185,9 @@ void FieldT::InitStep(void)
 		for (int i = 0; i < cards.Length(); i++)
 			fnController.ConsistentKBC(*this, cards[i]);
 	}
+	
+	/* clear source terms */
+	ClearSource();
 }
 
 /* assemble contributions to the residual */
@@ -488,9 +495,66 @@ void FieldT::WriteParameters(ostream& out) const
 	out.flush();
 }
 
+/* accumulate source terms */
+void FieldT::AccumulateSource(const StringT& ID, const dArray2DT& source) const
+{
+	/* search */
+	int dex = SourceIndex(ID);
+
+	/* NOTE: need this function to be const else ElementBaseT cannot call it */
+	FieldT* non_const_this = const_cast<FieldT*>(this);
+
+	/* accumulate */
+	if (dex > -1) {
+		*(non_const_this->fSource[dex]) += source;
+	}
+	else /* add new */
+	{
+		/* add ID to list */
+		non_const_this->fID.Append(ID);
+	
+		/* source */
+		dArray2DT* new_source = new dArray2DT(source);
+		non_const_this->fSource.Append(new_source);
+	}
+}
+
+/* element source terms */
+const dArray2DT* FieldT::Source(const StringT& ID) const
+{
+	/* search */
+	int dex = SourceIndex(ID);
+
+	/* return */
+	if (dex > -1) 
+		return fSource[dex];
+	else
+		return NULL;
+}
+
 /**********************************************************************
  * Private
  **********************************************************************/
+
+/* return the index for the source of the given ID */
+int FieldT::SourceIndex(const StringT& ID) const
+{
+	/* search */
+	for (int i = 0; i < fID.Length(); i++)
+		if (fID[i] == ID)
+			return i;
+
+	/* fail */
+	return -1;
+}
+
+/* clear the source terms */
+void FieldT::ClearSource(void)
+{
+	/* clear all */
+	for (int i = 0; i < fSource.Length(); i++)
+		*(fSource[i]) = 0.0;
+}
 
 void FieldT::Apply_IC(const IC_CardT& card)
 {
