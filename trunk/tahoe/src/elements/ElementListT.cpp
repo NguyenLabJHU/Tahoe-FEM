@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.8 2001-07-17 00:18:12 paklein Exp $ */
+/* $Id: ElementListT.cpp,v 1.9 2001-08-06 20:55:11 rjones Exp $ */
 /* created: paklein (04/20/1998) */
 
 #include "ElementListT.h"
@@ -33,6 +33,7 @@
 #include "ACME_Contact3DT.h"
 #include "MultiplierContact3DT.h"
 #include "MultiplierContact2DT.h"
+#include "AdhesionContact2DT.h"
 
 //TEMP
 #include "MeshFreeElasticT.h"
@@ -79,10 +80,12 @@ const int kMFCohesiveSurface  = 22;
 
 const int kACME_Contact       = 23;
 const int kMultiplierContact3D= 24;
-const int kMultiplierContact2D= 25;
+const int kAdhesionContact2D  = 25;
+const int kMultiplierContact2D= 28;
 
 const int kTotLagrExternalField = 26; //experimental and temporary
 const int kNonsingularContinuum = 27; //nonsingular continuum element
+
 
 /* constructors */
 ElementListT::ElementListT(FEManagerT& fe_manager):
@@ -130,8 +133,9 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 
 		out << "    eq. " << kACME_Contact       << ", 3D contact using ACME\n";
 		out << "    eq. " << kMultiplierContact3D       << ", 3D contact using quadrature-based elements\n";
-		out << "    eq. " << kMultiplierContact2D       << ", 2D contact using quadrature-based elements\n";
+		out << "    eq. " << kAdhesionContact2D       << ", 2D adhesion contact elements\n";
 		
+		out << "    eq. " << kMultiplierContact2D       << ", 2D contact using quadrature-based elements w friction\n";
 		
 		/* check */
 		if (group < 0 || group >= Length())
@@ -296,6 +300,10 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
                                     = new MultiplierContact2DT(fFEManager);
                                 break;
 
+                        case kAdhesionContact2D:
+                                fArray[group]
+                                    = new AdhesionContact2DT(fFEManager);
+                                break;
 
 			default:
 			
