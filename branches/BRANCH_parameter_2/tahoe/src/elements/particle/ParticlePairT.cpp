@@ -215,7 +215,7 @@ void ParticlePairT::WriteOutput(void)
  		CParamStart->Next=NULL;
  		CParamStart->value=0.0;
 
-		SlipVector=0;
+		SlipVector=0.0;
 		
 		/* kinetic energy */
 		if (velocities)
