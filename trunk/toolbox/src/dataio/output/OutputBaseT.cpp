@@ -1,5 +1,5 @@
-/* $Id: OutputBaseT.cpp,v 1.6 2002-02-18 09:02:49 paklein Exp $ */
-/* created: sawimme (05/18/1999)                                          */
+/* $Id: OutputBaseT.cpp,v 1.7 2002-03-02 20:11:29 paklein Exp $ */
+/* created: sawimme (05/18/1999) */
 
 #include "OutputBaseT.h"
 
@@ -16,7 +16,7 @@
 OutputBaseT::OutputBaseT(ostream& out, const ArrayT<StringT>& out_strings):
 	IOBaseT(out),
 	fCoordinates(NULL),
-	fNodeMap(NULL),
+//	fNodeMap(NULL),
 	fSequence(0)
 {
 	if (out_strings.Length() > 3)
@@ -62,11 +62,11 @@ void OutputBaseT::NextTimeSequence(int sequence_number)
 }
 
 /* set nodal coordinates */
-void OutputBaseT::SetCoordinates(const dArray2DT& coordinates,
-	const iArrayT* node_map)
+//void OutputBaseT::SetCoordinates(const dArray2DT& coordinates, const iArrayT* node_map)
+void OutputBaseT::SetCoordinates(const dArray2DT& coordinates)
 {
 	fCoordinates = &coordinates;
-	fNodeMap = node_map;
+//	fNodeMap = node_map;
 }
 
 int OutputBaseT::AddElementSet(const OutputSetT& output_set)
