@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.cpp,v 1.28 2003-10-06 19:21:48 raregue Exp $ */
+/* $Id: APS_AssemblyT.cpp,v 1.29 2003-10-07 06:57:38 paklein Exp $ */
 #include "APS_AssemblyT.h"
 
 #include "ShapeFunctionT.h"
@@ -97,6 +97,7 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 	in >> num_sidesets;
 	fSideSetID.Dimension(num_sidesets);
 	fSideSetElements.Dimension(num_sidesets);
+	fSideSetFaces.Dimension(num_sidesets);
 	fPlasticGradientWght.Dimension(num_sidesets);
 	fPlasticGradientFaces.Dimension(num_sidesets);
 	fPlasticGradientFaceEqnos.Dimension(num_sidesets);
@@ -115,8 +116,15 @@ APS_AssemblyT::APS_AssemblyT(const ElementSupportT& support, const FieldT& displ
 		//??how partition between facets to define fSurfShapes??
 		model.SideSet(fSideSetID[i], facet_geom, facet_nodes, fPlasticGradientFaces[i]);
 		
-		// get side set elements??
-		model.??(fSideSetID[i], ?? fSideSetElements[i]);
+		// get the side set information {element, face number} for each
+		// face in the set
+		const iArray2DT& side_set = model.SideSet(fSideSetID[i]);
+		
+		// get side set elements - element numbers in zeroth column
+		fSideSetElements[i].Dimension(side_set.MajorDim());
+		fSideSetFaces[i].Dimension(side_set.MajorDim());
+		side_set.ColumnCopy(0, fSideSetElements[i]);
+		side_set.ColumnCopy(1, fSideSetFaces[i]);
 	}
 	
 	Echo_Input_Data();
@@ -218,9 +226,9 @@ void APS_AssemblyT::Initialize(void)
 	fShapes = new ShapeFunctionT(fGeometryCode, fNumIP, fCurrCoords);
 	fShapes->Initialize();
 	//fCurrSurfCoords??
-	fCurrCoordsSurf.Dimension(n_en/2, n_sd);
-	fSurfShapes = new ShapeFunctionT(fGeometryCodeSurf, fNumIPSurf, fCurrCoordsSurf);
-	fSurfShapes->Initialize();
+//	fCurrCoordsSurf.Dimension(n_en/2, n_sd);
+//	fSurfShapes = new ShapeFunctionT(fGeometryCodeSurf, fNumIPSurf, fCurrCoordsSurf);
+//	fSurfShapes->Initialize();
 	
 	fNormal.Dimension ( n_sd );
 	
@@ -1048,6 +1056,13 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 	step_number = ElementSupport().StepNumber();
 	iArrayT displ_eq, plast_eq;
 
+	/* work space for integration over faces */
+	LocalArrayT face_coords(LocalArrayT::kInitCoords);
+	ElementSupport().RegisterCoordinates(face_coords);
+	iArrayT face_nodes, face_equations;
+	dMatrixT face_jacobian(NumSD(), NumSD()-1);
+	dMatrixT face_Q(NumSD());
+
  	/* has (coarse scale) body forces */
 	int formBody = 0;
 	if (fBodySchedule && fBody.Magnitude() > kSmall)
@@ -1118,16 +1133,16 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 			// add on contribution from sidesets
 			
 			//determine element facet nodes??
-			GeometryT::CodeT& geometry_code;
-			iArray2DT& surface_facets;
-			iArrayT& surface_nodes;
-			iArrayT& facet_numbers;
-			iArrayT& elem_numbers;
-			const GeometryBaseT* geometry;
-			model.SurfaceFacets(fSideSetID, geometry_code,
-								surface_facets, surface_nodes,
-								facet_numbers, elem_numbers,
-								geometry = NULL);					
+//			GeometryT::CodeT geometry_code;
+//			iArray2DT& surface_facets;
+//			iArrayT& surface_nodes;
+//			iArrayT& facet_numbers;
+//			iArrayT& elem_numbers;
+//			const GeometryBaseT* geometry;
+//			model.SurfaceFacets(fSideSetID, geometry_code,
+//								surface_facets, surface_nodes,
+//								facet_numbers, elem_numbers,
+//								geometry = NULL);					
 												
 			for (int i = 0; i < num_sidesets; i++)
 			{
@@ -1135,10 +1150,42 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 				{
 					if (e == fSideSetElements[i][j])
 					{
+						/* shape functions over the given face */
+						int face = fSideSetElements[i][j];
+						const ParentDomainT& surf_shape = fShapes.FacetShapeFunction(face);
+						int nip = surf_shape.NumIP();
+						
+						/* collect coordinates over the face */
+						fPlasticGradientFaces[i].RowAlias(j, face_nodes);
+						face_coords.SetLocal(face_nodes);
+
+						/* loop over integration points */
+						const double* w = surf_shape.Weight();
+						for (int ip = 0; ip < nip; ip++)
+						{
+							/* coordinate mapping */
+							surf_shape.DomainJacobian(face_coords, ip, face_jacobian);
+							double det_ip = surf_shape.SurfaceJacobian(face_jacobian, face_Q);
+							
+							/* last column is the normal (I think) */
+							face_Q.ColumnAlias(face_Q.Cols()-1, fNormal);
+						
+							/* integration weight */
+							double jw = w[ip]*det_ip;
+							
+							//integrate the force and stiffness for the nodes on the face
+						}
+
+						/* equations for the nodes on the face */
+						fPlasticGradientFaceEqnos[i].RowAlias(j, face_equations);
+
+						//assemble the force and stiffness using face_equations
+						
+
 							//set SurfShapes and derivatives for this facet
 							//??set nodes and nodal coords for fSurfShapes??
-							fCurrCoordsSurf = "coords of this e's facet nodes";
-							fSurfShapes->SetDerivatives(); 
+							//fCurrCoordsSurf = "coords of this e's facet nodes";
+							//fSurfShapes->SetDerivatives(); 
 							//fCoords = fCurrCoordsSurf;
 						
 							//taken from SurfaceShapeT to find fNormal
@@ -1146,15 +1193,15 @@ void APS_AssemblyT::RHSDriver_monolithic(void)
 							//int fNumFacetNodes = 2;
 							//if (fCoords.NumberOfNodes() != fNumFacetNodes) ComputeFacetCoords();
 							/* Jacobian matrix of the surface transformation */
-							const LocalArrayT& fFacetCoords = fCurrCoordsSurf;
-							int fCurrIP = 0;
-							dMatrixT& fJacobian;
-							fDomain->DomainJacobian(fFacetCoords, fCurrIP, fJacobian);
-							dMatrixT& Q;
-							double jac = fDomain->SurfaceJacobian(fJacobian, Q);
-							fNormal = Q(1);
+							//const LocalArrayT& fFacetCoords = fCurrCoordsSurf;
+							//int fCurrIP = 0;
+							//dMatrixT& fJacobian;
+							//fDomain->DomainJacobian(fFacetCoords, fCurrIP, fJacobian);
+							//dMatrixT& Q;
+							//double jac = fDomain->SurfaceJacobian(fJacobian, Q);
+							//fNormal = Q(1);
 							
-							iArrayT fFacetNodes = ?;
+							//iArrayT fFacetNodes = ?;
 							
 							Convert.SurfShapes	( fSurfShapes, fFEA_SurfShapes );
 							Convert.Gradients 	( fSurfShapes, 	u, u_n, fgrad_u_surf, fgrad_u_surf_n );

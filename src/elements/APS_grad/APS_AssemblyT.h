@@ -1,4 +1,4 @@
-/* $Id: APS_AssemblyT.h,v 1.15 2003-10-06 18:34:33 raregue Exp $ */ 
+/* $Id: APS_AssemblyT.h,v 1.16 2003-10-07 06:57:38 paklein Exp $ */ 
 //DEVELOPMENT
 #ifndef _APS_ASSEMBLY_T_H_ 
 #define _APS_ASSEMBLY_T_H_ 
@@ -204,7 +204,7 @@ private:
 	 * coordinates in APS_AssemblyT::fCurrCoords, which are the
 	 * current coordinates */
 	ShapeFunctionT* fShapes;
-	ShapeFunctionT* fSurfShapes;
+//	ShapeFunctionT* fSurfShapes;
 	
 	dArrayT fNormal;
 	
@@ -284,8 +284,11 @@ private:
 	/** equation numbers for the nodes on each face */ 
 	ArrayT<iArray2DT> fPlasticGradientFaceEqnos;
 	
-	/** equation numbers for the nodes on each face */ 
+	/** side set elements */ 
 	ArrayT<iArrayT> fSideSetElements;
+
+	/** side set faces */ 
+	ArrayT<iArrayT> fSideSetFaces;
 	/*@}*/
 
 	//##########################################################################################
