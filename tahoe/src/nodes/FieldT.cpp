@@ -1,4 +1,4 @@
-/* $Id: FieldT.cpp,v 1.34 2004-09-09 16:21:02 paklein Exp $ */
+/* $Id: FieldT.cpp,v 1.35 2004-09-14 18:19:06 paklein Exp $ */
 #include "FieldT.h"
 
 #include "ifstreamT.h"
@@ -348,6 +348,8 @@ void FieldT::CopyNodeToNode(const ArrayT<int>& source, const ArrayT<int>& target
 GlobalT::RelaxCodeT FieldT::RelaxSystem(void)
 {
 	GlobalT::RelaxCodeT relax = GlobalT::kNoRelax;
+
+	/* kinematics BC controllers */
 	for (int i = 0; i < fKBC_Controllers.Length(); i++)
 	{
 		/* check controller */
@@ -368,6 +370,11 @@ GlobalT::RelaxCodeT FieldT::RelaxSystem(void)
 		}
 		relax = GlobalT::MaxPrecedence(relax, code);
 	}
+	
+	/* force BC controllers */
+	for (int i = 0; i < fFBC_Controllers.Length(); i++)
+		relax = GlobalT::MaxPrecedence(relax, fFBC_Controllers[i]->RelaxSystem());
+	
 	return relax;
 }
 
