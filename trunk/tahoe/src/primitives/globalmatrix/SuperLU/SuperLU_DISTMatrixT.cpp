@@ -1,4 +1,4 @@
-/* $Id: SuperLU_DISTMatrixT.cpp,v 1.2 2004-03-21 05:19:18 paklein Exp $ */
+/* $Id: SuperLU_DISTMatrixT.cpp,v 1.3 2004-03-21 17:03:37 paklein Exp $ */
 #include "SuperLU_DISTMatrixT.h"
 
 /* library support options */
@@ -338,7 +338,7 @@ void SuperLU_DISTMatrixT::BackSubstitute(dArrayT& result)
     PStatFree(&stat);
 
 	/* always fully factorized on exit */
-	foptions.SolveInitialized = YES;
+	foptions.SolveInitialized = yes_no_t(YES);
 	fIsSymFactorized = true;
 	fIsNumFactorized = true;
 }
