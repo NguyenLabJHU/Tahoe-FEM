@@ -1,4 +1,4 @@
-/* $Id: VTKBodyDataT.cpp,v 1.21 2002-06-17 20:31:40 recampb Exp $ */
+/* $Id: VTKBodyDataT.cpp,v 1.22 2002-06-18 21:49:00 recampb Exp $ */
 #include "VTKBodyDataT.h"
 
 #include "VTKUGridT.h"
@@ -238,34 +238,7 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
 	iAddVariable("opacity", opacity);
 	iAddVariable("numContours", numContours);
 	iAddVariable("boundingOpacity", boundingOpacity);
-  	
-	CommandSpecT cut("ShowCuttingPlane", false);
-	ArgSpecT oX(ArgSpecT::double_, "oX");
-	oX.SetDefault(0.0);
-	oX.SetPrompt("x-coordinate of origin");
-	ArgSpecT oY(ArgSpecT::double_, "oY");
-	oY.SetDefault(0.0);
-	oY.SetPrompt("y-coordinate of origin");
-	ArgSpecT oZ(ArgSpecT::double_, "oZ");
-	oZ.SetDefault(0.0);
-	oZ.SetPrompt("z-coordinate of origin");
-	cut.AddArgument(oX);
-	cut.AddArgument(oY);
-	cut.AddArgument(oZ);
-
-	ArgSpecT nX(ArgSpecT::double_, "nX");
-	nX.SetDefault(0.0);
-	nX.SetPrompt("x-coordinate of normal");
-	ArgSpecT nY(ArgSpecT::double_, "nY");
-	nY.SetDefault(1.0);
-	nY.SetPrompt("y-coordinate of normal");
-	ArgSpecT nZ(ArgSpecT::double_, "nZ");
-	nZ.SetDefault(0.0);
-	nZ.SetPrompt("z-coordinate of normal");
-	cut.AddArgument(nX);
-	cut.AddArgument(nY);
-	cut.AddArgument(nZ);
-	iAddCommand(cut);
+  
 	
 
   	/* commands */
@@ -274,7 +247,10 @@ VTKBodyDataT::VTKBodyDataT(IOBaseT::FileTypeT format, const StringT& file_name):
   	iAddCommand(CommandSpecT("Point"));
 	iAddCommand(CommandSpecT("ShowContours"));
 	iAddCommand(CommandSpecT("HideContours"));
-	iAddCommand(CommandSpecT("HideCuttingPlane"));
+// 	iAddCommand(CommandSpecT("ShowGlyphs"));
+	iAddCommand(CommandSpecT("HideGlyphs"));
+
+
 }
 
 /* destructor */
@@ -481,42 +457,32 @@ bool VTKBodyDataT::iDoCommand(const CommandSpecT& command, StringT& line)
 	     }
 	     return true;
 	  }
+
+// 	else if (command.Name() == "ShowGlyphs")
+// 	  {
+// 	     if (fScalars.MinorDim() > 0){
+// 	       for (int i = 0; i < fUGrids.Length(); i++)
+// 		 {
+// 		   fUGrids[i]->Glyphing(fVectors[currentStepNum]);
+
+// 		 }
+// 	     }
+// 	     return true;
+// 	  }
+
+
+	else if (command.Name() == "HideGlyphs")
+	  {
+	     if (fScalars.MinorDim() > 0){
+	       for (int i = 0; i < fUGrids.Length(); i++)
+		 {
+		   fUGrids[i]->HideGlyphing();
+
+		 }
+	     }
+	     return true;
+	  }
 	
-
-	else if (command.Name() == "ShowCuttingPlane")
-	  {
-	    if (fScalars.MinorDim() > 0){
-	       for (int i = 0; i < fUGrids.Length(); i++)
-		 {
-		   double oX, oY, oZ, nX, nY, nZ;
-		   command.Argument("oX").GetValue(oX);
-		   command.Argument("oY").GetValue(oY);
-		   command.Argument("oZ").GetValue(oZ);
-		   command.Argument("nX").GetValue(nX);
-		   command.Argument("nY").GetValue(nY);
-		   command.Argument("nZ").GetValue(nZ);
-		   
-
-		fUGrids[i]->CuttingPlane(fScalars(currentStepNum, currentVarNum), oX, oY, oZ, nX, nY, nZ );
-
-		 }
-	     }
-	     return true;
-	  }
-
-	else if (command.Name() == "HideCuttingPlane")
-	  {
-	    if (fScalars.MinorDim() > 0){
-	       for (int i = 0; i < fUGrids.Length(); i++)
-		 {
-		   iArrayT origin;
-		   iArrayT normal;
-		   fUGrids[i]->HideCuttingPlane();
-
-		 }
-	     }
-	     return true;
-	  }
 
 	else /* inherited */
 		return iConsoleObjectT::iDoCommand(command, line);
