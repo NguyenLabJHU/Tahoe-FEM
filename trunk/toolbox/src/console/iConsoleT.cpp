@@ -1,4 +1,4 @@
-/* $Id: iConsoleT.cpp,v 1.6 2001-12-13 02:58:38 paklein Exp $ */
+/* $Id: iConsoleT.cpp,v 1.7 2001-12-14 19:51:01 paklein Exp $ */
 /* created: paklein (12/21/2000) */
 
 #include "iConsoleT.h"
@@ -417,7 +417,7 @@ void iConsoleT::DoInteractive(void)
 					SetScope(*scope);
 				
 					/* log (but not if read from external) */
-					if (do_log) flog << ':' << scope->iName() << '\n';
+					if (do_log) flog << fScope << '\n';
 				}
 				else
 					line_OK = false;
