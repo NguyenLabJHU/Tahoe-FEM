@@ -1,4 +1,4 @@
-/* $Id: NodeManagerT.cpp,v 1.10 2002-07-02 19:56:27 cjkimme Exp $ */
+/* $Id: NodeManagerT.cpp,v 1.11 2002-09-10 13:46:20 paklein Exp $ */
 /* created: paklein (05/23/1996) */
 
 #include "NodeManagerT.h"
@@ -106,11 +106,11 @@ void NodeManagerT::Initialize(void)
 	/* echo nodal coordinate data */
 	EchoCoordinates(in, out);
 
-	/* set fields */
-	EchoFields(in, out);
-
 	/* external nodes (parallel execution) */
 	EchoExternalNodes(out);
+
+	/* set fields */
+	EchoFields(in, out);
 
 	/* history nodes */
 	EchoHistoryNodes(in, out);
@@ -1093,6 +1093,12 @@ void NodeManagerT::EchoCoordinates(ifstreamT& in, ostream& out)
 	/* set pointer */	
 	fInitCoords = &(model->Coordinates());
 
+	/* set node to processor map */
+	iArrayT full_range(NumNodes());
+	full_range.SetValueToPosition();
+	fFEManager.NodeToProcessorMap(full_range, fProcessor);
+	full_range.Free();
+
 	/* check element groups to see if node data should be 
 	   adjusted to be 2D, some element groups require
 	   fNumSD == fNumDOF */
@@ -1114,14 +1120,26 @@ void NodeManagerT::EchoCoordinates(ifstreamT& in, ostream& out)
 		int d_width = out.precision() + kDoubleExtra;
 	
 		/* write header */
-		out << setw(kIntWidth) << "node";
+		out << setw(kIntWidth) << "node"
+		    << setw(kIntWidth) << "gl.node"
+		    << setw(kIntWidth) << "proc";		
 		for (int i = 0; i < NumSD(); i++)
 			out << setw(d_width - 2) << "x[" << i + 1 << "]";
 		out << '\n';
-				
-		/* write coords */
-		InitialCoordinates().WriteNumbered(out);
-		out << endl;
+
+		/* arrays */
+		const dArray2DT& init_coords = InitialCoordinates();
+		const iArrayT* node_map = fFEManager.NodeMap();
+		for (int i = 0; i < init_coords.MajorDim(); i++)
+		{
+			out << setw(kIntWidth) << i+1
+			    << setw(kIntWidth) << ((node_map) ? (*node_map)[i]+1 : i+1)
+			    << setw(kIntWidth) << fProcessor[i];		
+			for (int j = 0; j < NumSD(); j++)
+				out << setw(d_width) << init_coords(i,j);
+			out << '\n';
+		}
+		out.flush();
 	}
 
 	/* set start tag for external DOF */
