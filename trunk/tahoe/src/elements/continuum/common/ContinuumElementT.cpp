@@ -1,4 +1,4 @@
-/* $Id: ContinuumElementT.cpp,v 1.46 2005-01-05 01:24:01 paklein Exp $ */
+/* $Id: ContinuumElementT.cpp,v 1.47 2005-02-13 22:17:21 paklein Exp $ */
 /* created: paklein (10/22/1996) */
 #include "ContinuumElementT.h"
 
@@ -38,6 +38,7 @@ ContinuumElementT::ContinuumElementT(const ElementSupportT& support):
 	fBodySchedule(NULL),
 	fTractionBCSet(0),
 	fShapes(NULL),
+	fStoreShape(false),
 	fLocInitCoords(LocalArrayT::kInitCoords),
 	fLocDisp(LocalArrayT::kDisp),
 	fNumIP(0),
@@ -338,7 +339,7 @@ void ContinuumElementT::FacetGeometry(ArrayT<GeometryT::CodeT>& facet_geometry,
 	ShapeFunction().FacetGeometry(facet_geometry, num_facet_nodes);
 }
 
-void ContinuumElementT::SetStatus(const ArrayT<StatusT>& status)
+void ContinuumElementT::SetStatus(const ArrayT<ElementCardT::StatusT>& status)
 {
   /* work space */
   dArrayT state;
@@ -350,12 +351,12 @@ void ContinuumElementT::SetStatus(const ArrayT<StatusT>& status)
   while (NextElement())
     {
       /* current element */
-      int& flag = CurrentElement().Flag();
+      ElementCardT::StatusT& flag = CurrentElement().Flag();
       flag = status[elem_num++];
       /* material pointer */
       ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
 
-      if (flag == kMarkON){
+      if (flag == ElementCardT::kMarkON){
 	if (pmat->NeedsPointInitialization()){
 	  /* global shape function values */
 	  SetGlobalShape();
@@ -364,50 +365,58 @@ void ContinuumElementT::SetStatus(const ArrayT<StatusT>& status)
 	  while (fShapes->NextIP())
 	    pmat->PointInitialize();
 	}
-	flag = kON;
+	flag = ElementCardT::kON;
       }
-      else if (flag == kMarkOFF)
-	flag = kOFF;
+      else if (flag == ElementCardT::kMarkOFF)
+	flag = ElementCardT::kOFF;
     }
 }
-
-
 
 /* initial condition/restart functions (per time sequence) */
 void ContinuumElementT::InitialCondition(void)
 {
 	/* inherited */
 	ElementBaseT::InitialCondition();
-	
+
+	/* check for initialization materials */
+	bool need_init = false;
 	if (fMaterialList)
-	{
-		/* check for initialization materials */
-		bool need_init = false;
 		for (int i = 0; i < fMaterialList->Length() && !need_init; i++)
 			need_init = (*fMaterialList)[i]->NeedsPointInitialization();
 
-		/* initialize materials */
-		if (need_init)
+	/* need to run through elements */
+	if (fStoreShape || need_init)
+	{
+		/* initialize storage */
+		if (fStoreShape) fShapes->InitStore(NumElements(), &(fElementCards.Position()));
+
+		/* loop over elements */
+		Top();
+		while (NextElement())
 		{
-			/* loop over elements */
-			Top();
-			while (NextElement())
+			/* compute shape function derivarives */
+			SetGlobalShape();
+
+			/* store */
+			if (fStoreShape) fShapes->Store();
+		
+			/* initialize material */
+			if (need_init) 
 			{
 				/* material pointer */
 				ContinuumMaterialT* pmat = (*fMaterialList)[CurrentElement().MaterialNumber()];
-		
 				if (pmat->NeedsPointInitialization())
 				{
-					/* global shape function values */
-					SetGlobalShape();
-			
-				/* loop over integration points */
+					/* loop over integration points */
 					fShapes->TopIP();
 					while (fShapes->NextIP())
 						pmat->PointInitialize();
 				}
 			}
 		}
+		
+		/* finalize storage */
+		if (fStoreShape) fShapes->CloseStore();
 	}
 }
 
@@ -1184,6 +1193,18 @@ bool ContinuumElementT::CheckMaterialOutput(void) const
 	return true;
 }
 
+/* describe the parameters needed by the interface */
+void ContinuumElementT::DefineParameters(ParameterListT& list) const
+{
+	/* inherited */
+	ElementBaseT::DefineParameters(list);
+
+	/* flag to store shape functions and derivatives */
+	ParameterT store_shape(fStoreShape, "store_shapefunctions");
+	store_shape.SetDefault(fStoreShape);
+	list.AddParameter(store_shape, ParameterListT::ZeroOrOnce);
+}
+
 /* information about subordinate parameter lists */
 void ContinuumElementT::DefineSubs(SubListT& sub_list) const
 {
@@ -1299,6 +1320,10 @@ void ContinuumElementT::TakeParameterList(const ParameterListT& list)
 	/* construct shape functions */
 	fNumIP = integration_domain.GetParameter("num_ip");
 	SetShape();
+
+	/* flag to compute and store shape function derivatives */
+	const ParameterT* store_shape = list.Parameter("store_shapefunctions");
+	fStoreShape = (store_shape) ? *store_shape : fStoreShape;
 
 	/* construct material list */
 	ParameterListT mat_params;
