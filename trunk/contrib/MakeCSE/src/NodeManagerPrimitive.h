@@ -10,16 +10,17 @@
 #include "iAutoArrayT.h"
 
 class FEManager;
-class IOManager;
-class StringT;
 class GlobalEdgeFinderT;
+class MakeCSEIOManager;
+
+using namespace Tahoe;
 
 class NodeManagerPrimitive
 {
  public:
   NodeManagerPrimitive (ostream& out, int comments, FEManager& FEM);
 
-  void Initialize (IOManager& input);
+  void Initialize (MakeCSEIOManager& input);
 
   /* returns new node number */
   int AddCoord (const dArrayT& p);
@@ -41,7 +42,7 @@ class NodeManagerPrimitive
   iArrayT& NodeSet (int set) const;
   int NodeSetID (int set) const;
 
-  void RegisterOutput (IOManager& theIO);
+  void RegisterOutput (MakeCSEIOManager& theIO);
   
   enum TransferMethods { kSurface1 = 0,
 			 kSurface2,
@@ -49,8 +50,8 @@ class NodeManagerPrimitive
 			 kSplit };
 
  private:
-  void EchoCoordinates (IOManager& theInput);
-  void EchoNodeSets (IOManager& theInput);
+  void EchoCoordinates (MakeCSEIOManager& theInput);
+  void EchoNodeSets (MakeCSEIOManager& theInput);
 
   void SurfaceNodeSet (iArrayT& set, bool surface1, const ArrayT<int>& surface1facets, GlobalEdgeFinderT &E);
   void MapNodeSet (iArrayT& set, const ArrayT<int>& surface1facets, GlobalEdgeFinderT &E);

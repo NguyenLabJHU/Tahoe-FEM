@@ -3,12 +3,11 @@
 // created: SAW 10/07/99
 
 #include "NodeManagerPrimitive.h"
-
-#include "FEManager.h"
 #include "MakeCSEIOManager.h"
-#include "GlobalEdgeFinderT.h"
-#include "dArray2DT.h"
+#include "FEManager.h"
 #include "dArrayT.h"
+
+using namespace Tahoe;
 
 NodeManagerPrimitive::NodeManagerPrimitive (ostream& fMainOut, int comments, FEManager& FEM) :
   out (fMainOut),
@@ -17,7 +16,7 @@ NodeManagerPrimitive::NodeManagerPrimitive (ostream& fMainOut, int comments, FEM
 {
 }
 
-void NodeManagerPrimitive::Initialize (IOManager& theInput)
+void NodeManagerPrimitive::Initialize (MakeCSEIOManager& theInput)
 {
   EchoCoordinates (theInput);
   EchoNodeSets (theInput);
@@ -32,10 +31,10 @@ int NodeManagerPrimitive::AddCoord (const dArrayT& p)
 {
   int newnode = fCoordinates.MajorDim();
   double fill = 0;
-  fCoordinates.Resize (newnode + 1, fill, true);
-  fCoordinates.WriteRow(newnode, p);
+  fCoordinates.Resize (newnode + 1, fill);
+  fCoordinates.SetRow(newnode, p);
   
-  fNew2Old.Resize (newnode + 1, FEManager::kNotSet, true, false);
+  fNew2Old.Resize (newnode + 1, FEManager::kNotSet);
   fNew2Old[newnode] = newnode;
 
   return newnode;
@@ -45,16 +44,16 @@ int NodeManagerPrimitive::AddDuplicateCoord (const int oldnode)
 {
   int newnode = fCoordinates.MajorDim();
   double fill = 0;
-  fCoordinates.Resize (newnode + 1, fill, true);
+  fCoordinates.Resize (newnode + 1);
   fCoordinates.CopyRowFromRow (newnode, oldnode);
 
-  fNew2Old.Resize (newnode + 1, FEManager::kNotSet, true, false);
+  fNew2Old.Resize (newnode + 1, FEManager::kNotSet);
   fNew2Old[newnode] = oldnode;
 
   if (fSplitNodes.AppendUnique (oldnode))
     {
       int length = fSplitNodes.Length();
-      fOld2New.Resize (fSplitNodes.Length(), true, false);
+      fOld2New.Resize (fSplitNodes.Length());
       fOld2New[length-1].AppendUnique (newnode);
     }
   else 
@@ -74,7 +73,7 @@ void NodeManagerPrimitive::AddNodeSet (int setID, const ArrayT<int>& nodes, int 
     {
       int num = nodes.Length();
       int length = fNodeSetData[dex].Length();
-      fNodeSetData[dex].Resize (length + num, FEManager::kNotSet, true, false);
+      fNodeSetData[dex].Resize (length + num, FEManager::kNotSet);
       fNodeSetData[dex].CopyPart (length, nodes, 0, num);
       RemoveRepeats (fNodeSetData[dex]);
       out << "            Added to Node Set. . . . . . . . . . = " 
@@ -85,14 +84,14 @@ void NodeManagerPrimitive::AddNodeSet (int setID, const ArrayT<int>& nodes, int 
   else
     {
       int length = fNodeSetID.Length();
-      fNodeSetData.Resize (length + 1, true, false);
-      fNodeSetID.Resize (length + 1, FEManager::kNotSet, true, false);
+      fNodeSetData.Resize (length + 1);
+      fNodeSetID.Resize (length + 1, FEManager::kNotSet);
       fNodeSetData[length].Allocate (nodes.Length());
       fNodeSetData[length].CopyPart (0, nodes, 0, nodes.Length());
       fNodeSetID[length] = setID;
 
       int ml = fTransMethods.Length();
-      fTransMethods.Resize (ml + 1, transfermethod, true, false);
+      fTransMethods.Resize (ml + 1, transfermethod);
 
       out << "            Added Node Set . . . . . . . . . . . = " 
 	  << setID << '\n' << endl;
@@ -201,7 +200,7 @@ void NodeManagerPrimitive::Renumber (int option, iArrayT& map)
   old.Swap (fCoordinates);
   dArrayT p (dof);
   for (int m=0; m < num; m++)
-    fCoordinates.WriteRow(m, old(newlist[m]));
+    fCoordinates.SetRow(m, old(newlist[m]));
 
   map.Allocate (num);
   for (int h=0; h < num; h++)
@@ -218,10 +217,10 @@ void NodeManagerPrimitive::Renumber (int option, iArrayT& map)
     }
 }
 
-void NodeManagerPrimitive::RegisterOutput (IOManager& theIO)
+void NodeManagerPrimitive::RegisterOutput (MakeCSEIOManager& theIO)
 {
   iArrayT nodemap (0);
-  theIO.SetCoordinates (fCoordinates, &nodemap);
+  //theIO.SetCoordinates (fCoordinates, &nodemap);
 
   iArrayT blocktonodesets;
   theIO.InputData (blocktonodesets, MakeCSEIOManager::kBlockToNode);
@@ -236,19 +235,20 @@ void NodeManagerPrimitive::RegisterOutput (IOManager& theIO)
       cout  << "\n Creating Node Set from Element Group ID . . . . = "
 	    << blocktonodesets[i] << '\n';
       theBoss->NodesUsed (blocktonodesets[i], nodes);
-      AddNodeSet (setID++, nodes, kSplit);
+      //AddNodeSet (setID++, nodes, kSplit);
     }
 
-  for (int n=0; n < fNodeSetData.Length(); n++)
-    theIO.AddNodeSet (fNodeSetData[n], fNodeSetID[n]);
+  //for (int n=0; n < fNodeSetData.Length(); n++)
+  //theIO.AddNodeSet (fNodeSetData[n], fNodeSetID[n]);
 }
 
 /********** private *****************/
 
-void NodeManagerPrimitive::EchoCoordinates (IOManager& theInput)
+void NodeManagerPrimitive::EchoCoordinates (MakeCSEIOManager& theInput)
 {
   iArrayT map;
-  theInput.ReadCoordinates (fCoordinates, map);
+  fCoordinates = theInput.Coordinates ();
+  theInput.AllNodeIDs (map);
   fNumInitCoordinates = fCoordinates.MajorDim();
 
   out << " Number of nodal points. . . . . . . . . . . . . = " 
@@ -257,7 +257,7 @@ void NodeManagerPrimitive::EchoCoordinates (IOManager& theInput)
       << fCoordinates.MinorDim() << endl << endl;
 }
 
-void NodeManagerPrimitive::EchoNodeSets (IOManager& theInput)
+void NodeManagerPrimitive::EchoNodeSets (MakeCSEIOManager& theInput)
 {
   /* read in nodes set that are to be transferred */
   iArrayT ids;
@@ -275,7 +275,9 @@ void NodeManagerPrimitive::EchoNodeSets (IOManager& theInput)
   for (int i=0, j=0; i < fNodeSetData.Length(); i++, j += 2)
     {
       fTransMethods[i] = ids[j+1];
-      theInput.ReadNodeSet (ids[j], fNodeSetData[i]);
+      StringT sids;
+      sids.Append (ids[j]);
+      fNodeSetData[i] = theInput.NodeSet (sids);
       out << "  Node Set . . . . . . . . . . . . . . . . . . . = " 
 	  << ids[j] << '\n';
       out << "   Number of Nodes in Set. . . . . . . . . . . . = "
@@ -287,7 +289,7 @@ void NodeManagerPrimitive::EchoNodeSets (IOManager& theInput)
 
   out << " Node Set Transfer Methods . . . . . . . . . . . = "
       << fTransMethods.Length() << '\n';
-  ids.PrintWithFormat (out, 8, 0, 2);
+  ids.WriteWrapped (out, 2);
 
   /* checks */
   if (fTransMethods.Length() > 0 && 
@@ -390,7 +392,7 @@ void NodeManagerPrimitive::Split (iArrayT& set)
 
   if (add.Length() > 0)
     {
-      set.Resize (num + add.Length(), -1, true, false);
+      set.Resize (num + add.Length(), -1);
       set.CopyPart (num, add, 0, add.Length());
       set.SortAscending ();
     }

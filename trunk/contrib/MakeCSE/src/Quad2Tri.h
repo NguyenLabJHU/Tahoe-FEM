@@ -8,6 +8,9 @@
 #include "ElementBaseT.h"
 
 class NodeManagerPrimitive;
+class MakeCSEIOManager;
+
+using namespace Tahoe;
 
 class Quad2Tri : public ElementBaseT
 {
@@ -21,8 +24,8 @@ class Quad2Tri : public ElementBaseT
   Quad2Tri (ostream& fMainOut, NodeManagerPrimitive& NMP, int method, int ID);
 
  protected:
-  virtual void EchoConnectivity (IOManager& theInput);
-  virtual void EchoSideSets (IOManager& theInput);
+  virtual void EchoConnectivity (MakeCSEIOManager& theInput);
+  virtual void EchoSideSets (MakeCSEIOManager& theInput);
 
  private:
 

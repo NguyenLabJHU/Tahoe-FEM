@@ -3,17 +3,15 @@
 // created: SAW 12/21/99
 
 #include "Quad2Tri.h"
-
 #include "dArrayT.h"
-#include "dArray2DT.h"
-#include "NodeManagerPrimitive.h"
 #include "FEManager.h"
-#include "GeometryT.h"
 
 const char* fMethodName [] = { "X-Method",
 			      "Slash Method",
 			      "Back Slash Method",
 			      "Star Method" };
+
+using namespace Tahoe;
 
 Quad2Tri::Quad2Tri (ostream& fMainOut, NodeManagerPrimitive& NMP, int method, int ID) :
   ElementBaseT (fMainOut, ID),
@@ -24,10 +22,10 @@ Quad2Tri::Quad2Tri (ostream& fMainOut, NodeManagerPrimitive& NMP, int method, in
 
 // *********** PROTECTED *************
 
-void Quad2Tri::EchoConnectivity (IOManager& theInput)
+void Quad2Tri::EchoConnectivity (MakeCSEIOManager& theInput)
 {
   // read quadrilateral data
-  GeometryT::GeometryCode geocode;
+  GeometryT::CodeT geocode;
   ReadConnectivity (theInput, geocode, fConn);
 
   // translate fConn into fNodeNums, by splitting quadrilaterals
@@ -41,7 +39,7 @@ void Quad2Tri::EchoConnectivity (IOManager& theInput)
   InitializeConnectivity ();
 }
 
-void Quad2Tri::EchoSideSets (IOManager& theInput)
+void Quad2Tri::EchoSideSets (MakeCSEIOManager& theInput)
 {
   ArrayT<iArray2DT> sidesets;
   ReadSideSetData (theInput, sidesets);
