@@ -1,4 +1,4 @@
-/* $Id: ThermalDilatationT.h,v 1.2.4.1 2002-04-25 01:30:12 paklein Exp $ */
+/* $Id: ThermalDilatationT.h,v 1.2.4.2 2002-05-03 09:46:00 paklein Exp $ */
 /* created: paklein (08/25/1996) */
 
 #ifndef _THERMALDILAT_H_
@@ -45,6 +45,11 @@ inline bool ThermalDilatationT::IsActive(void) const { return fPercentElongation
 
 /* set LTf pointer */
 inline int ThermalDilatationT::ScheduleNum(void) const { return LTfnum; }
-inline void ThermalDilatationT::SetSchedule(const ScheduleT* LTf) { LTfPtr = LTf; }
+inline void ThermalDilatationT::SetSchedule(const ScheduleT* LTf)
+{ 
+	LTfPtr = LTf; 
+	if (!LTfPtr) 
+		fPercentElongation = 0.0;
+}
 
 #endif /* _THERMALDILAT_H_ */
