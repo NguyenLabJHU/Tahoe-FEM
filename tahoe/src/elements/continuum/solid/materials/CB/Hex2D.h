@@ -1,4 +1,4 @@
-/* $Id: Hex2D.h,v 1.2.34.3 2004-04-15 21:10:19 paklein Exp $ */
+/* $Id: Hex2D.h,v 1.2.34.4 2004-04-16 03:21:12 paklein Exp $ */
 #ifndef _HEX_2D_H_
 #define _HEX_2D_H_
 
@@ -77,7 +77,7 @@ private:
 	/** reference volume */
 	double fCellVolume;
 	
-	/** dummy bond density array */
+	/** dummy full bond density array */
 	dArrayT fFullDensity;
 };
 
