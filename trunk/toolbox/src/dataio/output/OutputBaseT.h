@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.h,v 1.4 2002-02-09 19:19:00 paklein Exp $ */
+/* $Id: OutputBaseT.h,v 1.5 2002-02-12 02:12:54 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #ifndef _OUTPUTBASE_T_H_
@@ -54,7 +54,7 @@ public:
 	int NumElements(void) const;
 
 	void AddNodeSet(const iArrayT& nodeset, int setID);
-	void AddSideSet(const iArray2DT& sideset, int setID, int group_ID); // ID from AddElementSet
+	void AddSideSet(const iArray2DT& sideset, int setID, int group_ID);
 
 	/* output functions */
 	virtual void WriteGeometry(void) = 0;
