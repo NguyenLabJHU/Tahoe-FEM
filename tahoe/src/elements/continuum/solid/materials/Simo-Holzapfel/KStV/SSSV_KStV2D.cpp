@@ -1,4 +1,4 @@
-/* $Id: SSSV_KStV2D.cpp,v 1.1 2002-10-05 00:49:21 thao Exp $ */
+/* $Id: SSSV_KStV2D.cpp,v 1.2 2002-10-05 03:44:33 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "SSSV_KStV2D.h"
@@ -33,8 +33,8 @@ SSSV_KStV2D::SSSV_KStV2D(ifstreamT& in, const SmallStrainT& element):
 
 	falphaS = exp(-0.5*taudtS);
 	falphaB = exp(-0.5*taudtB);
-	fbetaS = exp(-taudtS);
-	fbetaB = exp(-taudtB);
+	fbetaS = exp(-double(taudtS));
+	fbetaB = exp(-double(taudtB));
 
 	in >> mu_EQ;
 	in >> kappa_EQ;

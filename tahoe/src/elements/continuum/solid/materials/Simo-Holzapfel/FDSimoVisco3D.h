@@ -1,14 +1,14 @@
-/* $Id: FDSimoVisco3D.h,v 1.1 2002-10-05 00:49:20 thao Exp $ */
+/* $Id: FDSimoVisco3D.h,v 1.2 2002-10-05 03:44:32 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
-
 #ifndef _FD_SIMO_VISCO3D_H_
 #define _FD_SIMO_VISCO3D_H_
  
 #include "FDSimoViscoBaseT.h"
 
-class ifstreamT;
-
 namespace Tahoe {
+
+/* forward declarations */
+class ifstreamT;
 
 class FDSimoVisco3D: public FDSimoViscoBaseT
 {

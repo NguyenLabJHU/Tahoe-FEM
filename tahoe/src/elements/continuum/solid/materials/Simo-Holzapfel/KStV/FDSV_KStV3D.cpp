@@ -1,4 +1,4 @@
-/* $Id: FDSV_KStV3D.cpp,v 1.1 2002-10-05 00:49:21 thao Exp $ */
+/* $Id: FDSV_KStV3D.cpp,v 1.2 2002-10-05 03:44:33 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "FDSV_KStV3D.h"
@@ -27,8 +27,8 @@ FDSV_KStV3D::FDSV_KStV3D(ifstreamT& in, const FiniteStrainT& element):
 
 	falphaS = exp(-0.5*taudtS);
 	falphaB = exp(-0.5*taudtB);
-	fbetaS = exp(-taudtS);
-	fbetaB = exp(-taudtB);
+	fbetaS = exp(-double(taudtS));
+	fbetaB = exp(-double(taudtB));
 
         double& mu_EQ = fMu[kEquilibrium];
 	double& mu_NEQ = fMu[kNonEquilibrium]; 

@@ -1,4 +1,4 @@
-/* $Id: FDSimoVisco2D.cpp,v 1.1 2002-10-05 00:49:19 thao Exp $ */
+/* $Id: FDSimoVisco2D.cpp,v 1.2 2002-10-05 03:44:31 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #include "FDSimoVisco2D.h"
@@ -28,8 +28,8 @@ FDSimoVisco2D::FDSimoVisco2D(ifstreamT& in, const FiniteStrainT& element):
 
 	falphaS = exp(-0.5*taudtS);
 	falphaB = exp(-0.5*taudtB);
-	fbetaS = exp(-taudtS);
-	fbetaB = exp(-taudtB);
+	fbetaS = exp(-double(taudtS));
+	fbetaB = exp(-double(taudtB));
 }	
 
 void FDSimoVisco2D::Print(ostream& out) const

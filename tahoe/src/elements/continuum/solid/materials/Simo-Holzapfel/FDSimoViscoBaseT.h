@@ -1,4 +1,4 @@
-/* $Id: FDSimoViscoBaseT.h,v 1.1 2002-10-05 00:49:20 thao Exp $ */
+/* $Id: FDSimoViscoBaseT.h,v 1.2 2002-10-05 03:44:32 paklein Exp $ */
 /* created:   TDN (5/31/2001) */
 
 #ifndef _FD_SIMO_VISCO_BASE_H_
@@ -7,9 +7,10 @@
 #include "FDStructMatT.h"
 #include "dSymMatrixT.h"
 
-class ifstreamT;
-
 namespace Tahoe {
+
+/* forward declarations */
+class ifstreamT;
 
 /*small strain linear viscoelastic constitutive law */
 class FDSimoViscoBaseT: public FDStructMatT
@@ -18,6 +19,14 @@ class FDSimoViscoBaseT: public FDStructMatT
 
 	/*constructor*/
 	FDSimoViscoBaseT(ifstreamT& in, const FiniteStrainT& element);
+
+	/** return the pressure associated with the last call to 
+	 * StructuralMaterialT::s_ij. \note NOT IMPLEMENTED */
+	virtual double Pressure(void) const {
+		cout << "\n FDSimoViscoBaseT::Pressure: not implemented" << endl;
+		throw eGeneralFail;
+		return 0.0;
+	};
 
 	/*print parameters*/
 	void Print(ostream& out) const;
