@@ -1,4 +1,4 @@
-/* $Id: ParameterListT.h,v 1.9 2003-05-04 22:59:53 paklein Exp $ */
+/* $Id: ParameterListT.h,v 1.10 2003-08-14 01:22:03 paklein Exp $ */
 #ifndef _PARAMETER_LIST_T_H_
 #define _PARAMETER_LIST_T_H_
 
@@ -126,6 +126,7 @@ public:
 
 	/** return the non-const pointer to the given parameter or NULL if the list is not found */
 	ParameterT* Parameter(const char* name);
+
 	/*@}*/
 
 	/** \name retrieving parameter values 
@@ -135,6 +136,9 @@ public:
 	void GetParameter(const char* name, double& a) const;
 	void GetParameter(const char* name, StringT& a) const;
 	void GetParameter(const char* name, bool& a) const;
+
+	/** return the given parameter. Throws an exception of the parameter is not present */
+	const ParameterT& GetParameter(const char* name) const;
 	/*@}*/	
 
 	/** \name description */

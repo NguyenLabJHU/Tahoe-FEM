@@ -1,4 +1,4 @@
-/* $Id: ParameterTreeT.cpp,v 1.2 2003-05-04 22:59:53 paklein Exp $ */
+/* $Id: ParameterTreeT.cpp,v 1.3 2003-08-14 01:22:03 paklein Exp $ */
 #include "ParameterTreeT.h"
 #include "ParameterInterfaceT.h"
 
@@ -44,10 +44,8 @@ void ParameterTreeT::Validate(const ParameterInterfaceT& source, const Parameter
 	/* clear destination */
 	valid_list.Clear();
 
-	/* contents of subordinate lists */
-	ArrayT<StringT> sub;
-	ArrayT<ParameterListT::OccurrenceT> sub_occur;
-	ArrayT<bool> sub_is_inline;
+	/* contents of subordinates */
+	SubListT sub_list;
 
 	/* validating self */
 	if (source.Name() == raw_list.Name())
@@ -63,14 +61,14 @@ void ParameterTreeT::Validate(const ParameterInterfaceT& source, const Parameter
 		fDictionary.Insert(source.Name(), &source);
 
 		/* collect information on subordinate lists */
-		source.SubNames(sub, sub_occur, sub_is_inline);
+		source.DefineSubs(sub_list);
 
 		/* list order */
 		ParameterListT::ListOrderT order = source.ListOrder();
 		if (order == ParameterListT::Sequence)
-			ValidateSequence(source, raw_list.Lists(), valid_list, sub, sub_occur, sub_is_inline, true);
+			ValidateSequence(source, raw_list.Lists(), valid_list, sub_list, true);
 		else if (order == ParameterListT::Choice)
-			ValidateChoice(source, raw_list.Lists(), valid_list, sub, sub_occur, sub_is_inline, true);
+			ValidateChoice(source, raw_list.Lists(), valid_list, sub_list, true);
 		else
 			ExceptionT::GeneralFail(caller, "unrecognized list order %d", order);
 	}
@@ -119,15 +117,18 @@ bool ParameterTreeT::ValidateChoice(
 	const ParameterInterfaceT& source, 
 	const ArrayT<ParameterListT>& raw_sub_list, 
 	ParameterListT& valid_list,
-	const ArrayT<StringT>& sub_name,
-	const ArrayT<ParameterListT::OccurrenceT>& sub_occur,
-	const ArrayT<bool>& sub_is_inline,
+	const AutoArrayT<SubListDescriptionT>& sub_lists,
+#if 0
+	const AutoArrayT<StringT>& sub_name,
+	const AutoArrayT<ParameterListT::OccurrenceT>& sub_occur,
+	const AutoArrayT<bool>& sub_is_inline,
+#endif
 	bool throw_on_error)
 {
 	const char caller[] = "ParameterTreeT::ValidateChoice";
 
 	/* can't match an empty list */
-	if (raw_sub_list.Length() == 0 && sub_name.Length() > 0)
+	if (raw_sub_list.Length() == 0 && sub_lists.Length() > 0)
 	{
 		if (throw_on_error)
 			ExceptionT::BadInputValue(caller, "empty source unable to match choice at position %d in \"%s\"",
@@ -140,19 +141,22 @@ bool ParameterTreeT::ValidateChoice(
 	const StringT& name_0 = raw_sub_0.Name();
 
 	/* search possible sub names */
-	for (int i = 0; i < sub_name.Length(); i++)
+	for (int i = 0; i < sub_lists.Length(); i++)
 	{
+		/* sub list info */
+		const SubListDescriptionT& sub_list = sub_lists[i];
+	
 		//TEMP
-		if (sub_is_inline[i])
+		if (sub_list.IsInline())
 			ExceptionT::GeneralFail(caller, "inlined list \"%s\" not supported as choice in \"%s\"",
-				sub_name[i].Pointer(), valid_list.Name().Pointer());
+				sub_list.Name().Pointer(), valid_list.Name().Pointer());
 	
 		/* check */
-		if (sub_occur[i] != ParameterListT::Once)
+		if (sub_list.Occurrence() != ParameterListT::Once)
 			ExceptionT::GeneralFail(caller, "occurrence of items in choice must be Once");
 	
 		/* found match */
-		if (sub_name[i] == name_0)
+		if (sub_list.Name() == name_0)
 		{
 			/* get parameter source */
 			const ParameterInterfaceT* sub = NULL;
@@ -183,9 +187,12 @@ bool ParameterTreeT::ValidateSequence(
 	const ParameterInterfaceT& source, 
 	const ArrayT<ParameterListT>& raw_sub_list, 
 	ParameterListT& valid_list,
-	const ArrayT<StringT>& sub_name,
-	const ArrayT<ParameterListT::OccurrenceT>& sub_occur,
-	const ArrayT<bool>& sub_is_inline,
+	const AutoArrayT<SubListDescriptionT>& sub_lists,
+#if 0
+	const AutoArrayT<StringT>& sub_name,
+	const AutoArrayT<ParameterListT::OccurrenceT>& sub_occur,
+	const AutoArrayT<bool>& sub_is_inline,
+#endif
 	bool throw_on_error)
 {
 	const char caller[] = "ParameterTreeT::ValidateSequence";
@@ -193,22 +200,20 @@ bool ParameterTreeT::ValidateSequence(
 	bool check_OK = true;
 	int raw_dex = 0;
 	int sub_dex = 0;
-	for (sub_dex = 0; check_OK && sub_dex < sub_name.Length() && raw_dex < raw_sub_list.Length(); sub_dex++)
+	for (sub_dex = 0; check_OK && sub_dex < sub_lists.Length() && raw_dex < raw_sub_list.Length(); sub_dex++)
 	{
 		/* next list entry */
-		bool is_inline = sub_is_inline[sub_dex];
-		const StringT& name = sub_name[sub_dex];
-		ParameterListT::OccurrenceT occur = sub_occur[sub_dex];
+		bool is_inline = sub_lists[sub_dex].IsInline();
+		const StringT& name = sub_lists[sub_dex].Name();
+		ParameterListT::OccurrenceT occur = sub_lists[sub_dex].Occurrence();
 		
 		/* inlined sub list */
 		if (is_inline)
 		{
 			/* get sub-list description */
 			ParameterListT::ListOrderT in_order;
-			ArrayT<StringT> in_sub_name;
-			ArrayT<ParameterListT::OccurrenceT> in_sub_occur;
-			ArrayT<bool> in_sub_is_inline;
-			source.DefineInlineSub(name, in_order, in_sub_name, in_sub_occur, in_sub_is_inline);
+			SubListT in_sub;
+			source.DefineInlineSub(name, in_order, in_sub);
 
 			switch (occur)
 			{
@@ -224,9 +229,9 @@ bool ParameterTreeT::ValidateSequence(
 					/* must have one */
 					int last_list_count = valid_list.NumLists();
 					if (in_order == ParameterListT::Sequence)
-						check_OK = ValidateSequence(source, raw_sub_list_tail, valid_list, in_sub_name, in_sub_occur, in_sub_is_inline, in_throw_on_error);
+						check_OK = ValidateSequence(source, raw_sub_list_tail, valid_list, in_sub, in_throw_on_error);
 					else if (in_order == ParameterListT::Choice)
-						check_OK = ValidateChoice(source, raw_sub_list_tail, valid_list, in_sub_name, in_sub_occur, in_sub_is_inline, in_throw_on_error);
+						check_OK = ValidateChoice(source, raw_sub_list_tail, valid_list, in_sub, in_throw_on_error);
 					else
 						ExceptionT::GeneralFail(caller, "unrecognized list order %d", in_order);
 
@@ -255,9 +260,9 @@ bool ParameterTreeT::ValidateSequence(
 						/* search */
 						int last_list_count = valid_list.NumLists();
 						if (in_order == ParameterListT::Sequence)
-							check_OK = ValidateSequence(source, raw_sub_list_tail, valid_list, in_sub_name, in_sub_occur, in_sub_is_inline, in_throw_on_error);
+							check_OK = ValidateSequence(source, raw_sub_list_tail, valid_list, in_sub, in_throw_on_error);
 						else if (in_order == ParameterListT::Choice)
-							check_OK = ValidateChoice(source, raw_sub_list_tail, valid_list, in_sub_name, in_sub_occur, in_sub_is_inline, in_throw_on_error);
+							check_OK = ValidateChoice(source, raw_sub_list_tail, valid_list, in_sub, in_throw_on_error);
 						else
 							ExceptionT::GeneralFail(caller, "unrecognized list order %d", in_order);
 
@@ -368,13 +373,14 @@ bool ParameterTreeT::ValidateSequence(
 	}
 			
 	/* check any remaining */
-	for (;check_OK && sub_dex < sub_name.Length(); sub_dex++)
-		if (sub_occur[sub_dex] != ParameterListT::ZeroOrOnce && sub_occur[sub_dex] != ParameterListT::Any)
+	for (;check_OK && sub_dex < sub_lists.Length(); sub_dex++)
+		if (sub_lists[sub_dex].Occurrence() != ParameterListT::ZeroOrOnce && 
+			sub_lists[sub_dex].Occurrence() != ParameterListT::Any)
 		{
 			check_OK = false;
 			if (throw_on_error)
 				ExceptionT::GeneralFail(caller, "\"%s\" required at position %d in \"%s\"",
-					sub_name[sub_dex].Pointer(), valid_list.NumLists()+1, valid_list.Name().Pointer());
+					sub_lists[sub_dex].Name().Pointer(), valid_list.NumLists()+1, valid_list.Name().Pointer());
 		}
 
 	return check_OK;
@@ -385,10 +391,8 @@ void ParameterTreeT::BuildBranch(const ParameterInterfaceT& source, ParameterLis
 {
 	const char caller[] = "ParameterTreeT::BuildBranch";
 	
-	/* contents of subordinate lists */
-	ArrayT<StringT> sub_lists;
-	ArrayT<ParameterListT::OccurrenceT> occur;
-	ArrayT<bool> is_inline;
+	/* contents of subordinates */
+	SubListT sub_list;
 
 	/* defining self */
 	if (source.Name() == params.Name()) 
@@ -402,7 +406,7 @@ void ParameterTreeT::BuildBranch(const ParameterInterfaceT& source, ParameterLis
 				source.Name().Pointer());
 
 		/* collect information on subordinate lists */
-		source.SubNames(sub_lists, occur, is_inline);
+		source.DefineSubs(sub_list);
 	}
 	else /* defining inlined list */
 	{
@@ -413,54 +417,57 @@ void ParameterTreeT::BuildBranch(const ParameterInterfaceT& source, ParameterLis
 		
 		/* collect information on inlined list */
 		ParameterListT::ListOrderT order;
-		source.DefineInlineSub(params.Name(), order, sub_lists, occur, is_inline);
+		source.DefineInlineSub(params.Name(), order, sub_list);
 		params.SetListOrder(order);
 	}
 
 	/* define sublists */
-	for (int i = 0; i < sub_lists.Length(); i++) {
+	for (int i = 0; i < sub_list.Length(); i++) {
+	
+		/* sub list info */
+		const SubListDescriptionT& sub = sub_list[i];
 
 		/* list is inline */
-		if (is_inline[i])
+		if (sub.IsInline())
 		{
 			/* source builds inline list */
-			ParameterListT inline_params(sub_lists[i]);
+			ParameterListT inline_params(sub.Name());
 			inline_params.SetInline(true);
 			BuildBranch(source, inline_params);
 			
 			/* add list */
-			if (!params.AddList(inline_params, occur[i]))
+			if (!params.AddList(inline_params, sub.Occurrence()))
 				ExceptionT::GeneralFail(caller, "could not add inline \"%s\" to list \"%s\"",
 					inline_params.Name().Pointer(), params.Name().Pointer());
 		}
 		/* already in the tree */
-		else if (fDictionary.HasKey(sub_lists[i]))
+		else if (fDictionary.HasKey(sub.Name()))
 		{
 			/* add a blank list as a placeholder */
-			ParameterListT sub_params(sub_lists[i]);
-			if (!params.AddList(sub_params, occur[i]))
+			ParameterListT sub_params(sub.Name());
+			if (!params.AddList(sub_params, sub.Occurrence()))
 				ExceptionT::GeneralFail(caller, "could not add sublist \"%s\" to list \"%s\"",
 					sub_params.Name().Pointer(), params.Name().Pointer());
 		}
 		else /* new tree entry */
 		{
 			/* sublist */
-			ParameterInterfaceT* sub = source.NewSub(sub_lists[i]);
-			if (!sub)
+			ParameterInterfaceT* sub_interface = source.NewSub(sub.Name());
+			if (!sub_interface)
 				ExceptionT::GeneralFail(caller, "source \"%s\" did not return sublist \"%s\"",
-					params.Name().Pointer(), sub_lists[i].Pointer());
+					params.Name().Pointer(), sub.Name().Pointer());
 					
 			/* build the sublist */
-			ParameterListT sub_params(sub->Name());
-			BuildBranch(*sub, sub_params);
+			ParameterListT sub_params(sub_interface->Name());
+			BuildBranch(*sub_interface, sub_params);
 			
 			/* add list */
-			if (!params.AddList(sub_params, occur[i]))
+			if (!params.AddList(sub_params, sub.Occurrence()))
 				ExceptionT::GeneralFail(caller, "could not add sublist \"%s\" to list \"%s\"",
 					sub_params.Name().Pointer(), params.Name().Pointer());
 	
 			/* add to list of items to delete */
-			fDeleteMe.Append(sub);
+			fDeleteMe.Append(sub_interface);
 		}
 	}	
 }

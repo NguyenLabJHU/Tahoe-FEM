@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.h,v 1.4 2003-05-04 22:59:53 paklein Exp $ */
+/* $Id: ParameterInterfaceT.h,v 1.5 2003-08-14 01:22:03 paklein Exp $ */
 #ifndef _PARAMETER_INTERFACE_T_H_
 #define _PARAMETER_INTERFACE_T_H_
 
@@ -9,6 +9,7 @@ namespace Tahoe {
 
 /* forward declarations */
 class StringT;
+class SubListT;
 
 /** abstract interface for classes which define and use parameters. There are
  * two types of parameters accessible through the interface:
@@ -29,10 +30,13 @@ public:
 	/** destructor */
 	virtual ~ParameterInterfaceT(void) {};
 
-	/** identifier */
+	/** \name identifier */
+	/*@{*/
 	const StringT& Name(void) const { return fName; };
+	void SetName(const StringT& name);
+	/*@}*/
 
-	/** description the parameters needed by the interface.
+	/** describe the parameters needed by the interface.
 	 * \param list destination for the parameter descriptions. The list should have the
 	 *        name corresponding to ParameterInterfaceT::Name. */
 	virtual void DefineParameters(ParameterListT& list) const;
@@ -60,24 +64,17 @@ public:
 	virtual ParameterListT::ListOrderT ListOrder(void) const;
 	
 	/** information about subordinate parameter lists
-	 * \param order defines whether list is a sequence or choice
-	 * \param names list of subordinate list names
-	 * \param occur occurrence specifier of subordinate list names 
-	 * \param is_inline flag indicating if list is inline */
-	virtual void SubNames(ArrayT<StringT>& names, ArrayT<ParameterListT::OccurrenceT>& occur,
-		ArrayT<bool>& is_inline) const;
+	 * \param sub_lists description of subordinate parameter lists */
+	virtual void DefineSubs(SubListT& sub_list) const;
 
 	/** return the description of the given inline subordinate parameter list.
 	 * Method will be called for each subordinate defined as inline by ParameterInterfaceT::SubNames
-	 * or defined recursively by ParameterInterfaceT::DefineInlineSub. Nested inlines are
-	 * not supported.
+	 * or defined recursively by ParameterInterfaceT::DefineInlineSub. 
 	 * \param sub name of the inlined subordinate list
 	 * \param order defines whether list is a sequence or choice.
-	 * \param names list of subordinate list names
-	 * \param occur occurrence specifier of subordinate list names 
-	 * \param is_inline flag indicating if list is inline */
-	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, ArrayT<StringT>& names, 
-		ArrayT<ParameterListT::OccurrenceT>& occur, ArrayT<bool>& is_inline) const;
+	 * \param sub_sub_lists description of contents of this sub list */
+	virtual void DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order, 
+		SubListT& sub_sub_list) const;
 
 	/** a pointer to the ParameterInterfaceT of the given subordinate
 	 * or NULL if the name is invalid. Responsibility for deleteting instantiations
@@ -90,6 +87,85 @@ private:
 	/** identifier */
 	StringT fName;
 };
+
+/* forward declarations */
+class SubListDescriptionT;
+
+/** sub list descriptions */
+class SubListT: public AutoArrayT<SubListDescriptionT>
+{
+public:
+
+	/** constructor */
+	SubListT(void) {};
+
+	//TEMP
+	~SubListT(void);
+
+	/** \name add a sublist */
+	/*@{*/
+	void AddSub(const StringT& name, 
+		ParameterListT::OccurrenceT occur = ParameterListT::Once, 
+		bool is_inline = false); 
+	void AddSub(const SubListDescriptionT& sub);
+	/*@}*/
+};
+
+/** container for information about sublists */
+class SubListDescriptionT
+{
+public:
+
+	/** \name constructors */
+	/*@{*/
+	SubListDescriptionT(void) {};
+	SubListDescriptionT(const StringT& name, ParameterListT::OccurrenceT occur = ParameterListT::Once, 
+		bool is_inline = false);
+	SubListDescriptionT(const SubListDescriptionT& source);
+	/*@}*/
+
+	//TEMP
+	~SubListDescriptionT(void);
+
+	/** \name read/write accessors */
+	/*@{*/
+	const StringT& Name(void) const { return fName; };
+	const ParameterListT::OccurrenceT& Occurrence(void) const { return fOccurrence; };
+	const bool& IsInline(void) const { return fIsInline; };
+	/*@}*/
+
+	/** assignment operator */
+	SubListDescriptionT& operator=(const SubListDescriptionT& rhs);
+
+private:
+
+	/** \name list description */
+	/*@{*/
+	StringT fName;
+	ParameterListT::OccurrenceT fOccurrence;
+	bool fIsInline;
+	/*@}*/
+};
+
+inline SubListDescriptionT::SubListDescriptionT(const StringT& name, 
+	ParameterListT::OccurrenceT occur, bool is_inline):
+	fName(name),
+	fOccurrence(occur),
+	fIsInline(is_inline)
+{
+
+}
+
+/* add a sublist */
+inline void SubListT::AddSub(const StringT& name, ParameterListT::OccurrenceT occur, bool is_inline)
+{
+	Append(SubListDescriptionT(name, occur, is_inline));
+}
+
+inline void SubListT::AddSub(const SubListDescriptionT& sub)
+{
+	Append(sub);
+}
 
 } /* namespace Tahoe */
 

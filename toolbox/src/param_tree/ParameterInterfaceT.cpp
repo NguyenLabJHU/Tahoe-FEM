@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.cpp,v 1.3 2003-05-04 22:59:53 paklein Exp $ */
+/* $Id: ParameterInterfaceT.cpp,v 1.4 2003-08-14 01:22:03 paklein Exp $ */
 #include "ParameterInterfaceT.h"
 #include "ParameterListT.h"
 
@@ -8,13 +8,18 @@ using namespace Tahoe;
 namespace Tahoe {
 const bool ArrayT<ParameterInterfaceT*>::fByteCopy = true;
 const bool ArrayT<const ParameterInterfaceT*>::fByteCopy = true;
+const bool ArrayT<SubListDescriptionT>::fByteCopy = false;
 }
 
 /* constructor */
-ParameterInterfaceT::ParameterInterfaceT(const StringT& name):
-	fName(name)
+ParameterInterfaceT::ParameterInterfaceT(const StringT& name)
 {
+	SetName(name);
+}
 
+void ParameterInterfaceT::SetName(const StringT& name)
+{
+	fName = name;
 }
 
 /* accept completed parameter list */
@@ -152,22 +157,17 @@ ParameterListT::ListOrderT ParameterInterfaceT::ListOrder(void) const
 }
 
 /* return the list of subordinate names */
-void ParameterInterfaceT::SubNames(ArrayT<StringT>& names, ArrayT<ParameterListT::OccurrenceT>& occur, 
-	ArrayT<bool>& is_inline) const
+void ParameterInterfaceT::DefineSubs(SubListT& sub_list) const
 {
-	names.Dimension(0);
-	occur.Dimension(0);
-	is_inline.Dimension(0);
+	sub_list.Dimension(0);
 }
 
 void ParameterInterfaceT::DefineInlineSub(const StringT& sub, ParameterListT::ListOrderT& order,
-	ArrayT<StringT>& names, ArrayT<ParameterListT::OccurrenceT>& occur, ArrayT<bool>& is_inline) const
+	SubListT& sub_sub_list) const
 {
 #pragma unused(sub)
 	order = ParameterListT::Sequence;
-	names.Dimension(0);
-	occur.Dimension(0);
-	is_inline.Dimension(0);
+	sub_sub_list.Dimension(0);
 }
 
 /* return a pointer to the ParameterInterfaceT */
@@ -175,4 +175,35 @@ ParameterInterfaceT* ParameterInterfaceT::NewSub(const StringT& list_name) const
 {
 #pragma unused(list_name)
 	return NULL;
+}
+
+//TEMP
+SubListT::~SubListT(void)
+{
+	cout << "~SubListT: " << Pointer() << endl;
+}
+
+//TEMP
+SubListDescriptionT::~SubListDescriptionT(void)
+{
+	cout << "~SubListDescriptionT: " << this << '\n';
+	cout << "                Name: " << &fName << '\n';
+	cout << "        Name.Pointer: " << fName.Pointer() << '\n';
+}
+
+SubListDescriptionT::SubListDescriptionT(const SubListDescriptionT& source):
+	fName(source.fName),
+	fOccurrence(source.fOccurrence),
+	fIsInline(source.fIsInline)
+{
+
+}
+
+/* assignment operator */
+SubListDescriptionT& SubListDescriptionT::operator=(const SubListDescriptionT& rhs)
+{
+	fName = rhs.fName;
+	fOccurrence = rhs.fOccurrence;
+	fIsInline = rhs.fIsInline;
+	return *this;
 }
