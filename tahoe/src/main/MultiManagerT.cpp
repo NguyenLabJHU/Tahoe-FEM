@@ -1,4 +1,4 @@
-/* $Id: MultiManagerT.cpp,v 1.9 2004-03-04 08:54:38 paklein Exp $ */
+/* $Id: MultiManagerT.cpp,v 1.9.4.1 2004-03-08 17:10:22 paklein Exp $ */
 #include "MultiManagerT.h"
 
 #ifdef BRIDGING_ELEMENT
@@ -49,11 +49,14 @@ void MultiManagerT::Initialize(InitCodeT)
 	int order1 = 0;
 	StringT bridging_field = "displacement";
 	bool make_inactive = true;
-	//dArrayT mdmass;
 	fFine->InitGhostNodes(fCoarse->ProjectImagePoints());
 	fCoarse->InitInterpolation(fFine->GhostNodes(), bridging_field, *(fFine->NodeManager()));
-	//fFine->LumpedMass(fFine->NonGhostNodes(), mdmass);
 	fCoarse->InitProjection(*(fFine->CommManager()), fFine->NonGhostNodes(), bridging_field, *(fFine->NodeManager()), make_inactive);
+
+	/* transposed shape function arrays needed for cross terms */
+	InterpolationDataT follower_cell_transpose;
+	fCoarse->TransposeFollowerCellData(follower_cell_transpose);
+	
 
 	/* send coarse/fine output through the fFine output */
 	int ndof = fFine->NodeManager()->NumDOF(group);
@@ -198,7 +201,7 @@ void MultiManagerT::FormRHS(int group) const
 	fine_solver->UnlockRHS();
 	fFine->FormRHS(group);
 	fine_solver->LockRHS();
-	fSolvers[group]->AssembleRHS(fine_rhs, fEqnos1);
+	fSolvers[group]->AssembleRHS(fine_rhs, fEqnos1);	
 
 	/* coarse scale */
 	SolverT* coarse_solver = fCoarse->Solver(group);
@@ -208,6 +211,17 @@ void MultiManagerT::FormRHS(int group) const
 	fCoarse->FormRHS(group);
 	coarse_solver->LockRHS();
 	fSolvers[group]->AssembleRHS(coarse_rhs, fEqnos2);
+
+	/* total internal force vectors */
+	int atoms_group = 0;
+	const dArray2DT& resid_fine = fFine->InternalForce(group);
+	int continuum_group = 0;
+	const dArray2DT& resid_coarse = fCoarse->InternalForce(continuum_group);
+
+	/* fine scale contribution to the coarse scale residual */
+
+
+	/* mixed contribution to the coarse scale residual */
 }
 
 /* send update of the solution to the NodeManagerT */
