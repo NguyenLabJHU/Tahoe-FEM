@@ -1,4 +1,4 @@
-/* $Id: VTKConsoleT.cpp,v 1.24 2001-11-07 02:34:45 paklein Exp $ */
+/* $Id: VTKConsoleT.cpp,v 1.25 2001-11-07 19:51:29 recampb Exp $ */
 
 #include "VTKConsoleT.h"
 #include "VTKFrameT.h"
@@ -32,6 +32,7 @@ VTKConsoleT::VTKConsoleT(const ArrayT<StringT>& arguments):
   iAddCommand("RemoveBody");
   iAddCommand("ResetView");
   iAddCommand("Layout");
+  iAddCommand("Show_Frame_Numbers");
  
   iAddCommand("Save_flip_book_images");
   iAddCommand("Flip_book");
@@ -171,55 +172,73 @@ bool VTKConsoleT::iDoCommand(const StringT& command, StringT& line)
       return true;
     }
   else if (command== "Save_flip_book_images")
-	{
+    {
       StringT fbName;
       cout << "Enter name for flipbook to be saved (without .tif extension): ";
       cin >> fbName;
-	  Clean(cin);
+      Clean(cin);
       cout << "Save images at: \n 1: current view\n 2: default view: ";
       int sfbTest;
       cin >> sfbTest;
-	  Clean(cin);
-	  
+      Clean(cin);
+      
       /* if default camera desired */
       if (sfbTest == 2) {
-		for (int i = 0; i < fFrames.Length(); i++)
-		  fFrames[i]->ResetView();
-		renWin->Render();
+	for (int i = 0; i < fFrames.Length(); i++)
+	  fFrames[i]->ResetView();
+	renWin->Render();
       }	
-
+      
       /* window to image filter */
       vtkWindowToImageFilter* image = vtkWindowToImageFilter::New();
-      image->SetInput(renWin);
-
+      //image->SetInput(renWin);
+      
       /* construct TIFF writer */
       vtkTIFFWriter* writer = vtkTIFFWriter::New();
-      writer->SetInput(image->GetOutput());
-
+      //writer->SetInput(image->GetOutput());
+      
       /* assume all the bodies have the same number of steps as body 0 */
       for (int j = 0; j<fBodies[0]->num_time_steps; j++){
-		for (int i = 0; i < fBodies.Length(); i++)
-		  fBodies[i]->SelectTimeStep(j);
-		renWin->Render();  
-
-		StringT name = fbName;
-		name.Append(j,3); // pad to a width of 3 digits
-		name.Append(".tif");
-		writer->SetFileName(name);
-		writer->Write();
+	for (int i = 0; i < fBodies.Length(); i++)
+	  fBodies[i]->SelectTimeStep(j);
+	renWin->Render();  
 	
-		cout << fbName << " has been saved" << endl;
-		renWin->Render();
+	StringT name = fbName;
+	name.Append(j,3); // pad to a width of 3 digits
+	name.Append(".tif");
+	writer->SetFileName(name);
+	image->SetInput(renWin);
+	writer->SetInput(image->GetOutput());
+	writer->Write();
+	
+	cout << name << " has been saved" << endl;
+	renWin->Render();
       }
       
       /* clean up */
       writer->Delete();
       image->Delete();
-
+      
       cout << "Flip book images have been saved." << endl;
       renWin->Render();
       return true;
+    }
+  
+  else if (command == "Show_Frame_Numbers")
+  {
+
+    for (int i = 0; i < fFrames.MajorDim(); i++)
+      for (int j = 0; j < fFrames.MinorDim(); j++)
+	{
+		/* name */
+		StringT name = "frame";
+		name.Append(".",i);
+		name.Append(".",j);
+		
+		fFrames(i,j)->ShowFrameNum(name);
 	}
+    return true;
+  }
   //  else if (command == "Reset_to_Default_Values")
   //{
   //  fBodies[0]->DefaultValues();
