@@ -8,6 +8,11 @@ OBJ = \
 	HyperEVP2D.o \
 	BCJHypo3D.o  \
 	BCJHypo2D.o  \
+	BCJHypoIsoDamageKE3D.o \
+	BCJHypoIsoDamageYC3D.o \
+	BCJHypoIsoDamageKE2D.o \
+	BCJHypoIsoDamageYC2D.o \
+	VoidGrowthModelImp.o \
 	BCJKineticEqn.o \
 	SimplePowerLaw.o
 
@@ -24,6 +29,11 @@ SRC = \
 	HyperEVP2D.cpp \
 	BCJHypo3D.cpp  \
 	BCJHypo2D.cpp  \
+	BCJHypoIsoDamageKE3D.cpp \
+	BCJHypoIsoDamageYC3D.cpp \
+	BCJHypoIsoDamageKE2D.cpp \
+	BCJHypoIsoDamageYC2D.cpp \
+	VoidGrowthModelImp.cpp \
 	BCJKineticEqn.cpp \
 	SimplePowerLaw.cpp
 
@@ -34,6 +44,11 @@ HDR = \
 	HyperEVP2D.h \
 	BCJHypo3D.h  \
 	BCJHypo2D.h  \
+	BCJHypoIsoDamageKE3D.h \
+	BCJHypoIsoDamageYC3D.h \
+	BCJHypoIsoDamageKE2D.h \
+	BCJHypoIsoDamageYC2D.h \
+	VoidGrowthModelImp.h \
 	KineticEqnBase.h \
 	BCJKineticEqn.h \
 	SimplePowerLaw.h
