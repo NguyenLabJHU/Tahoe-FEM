@@ -1,5 +1,5 @@
-/* $Id: MeshFreeShapeFunctionT.cpp,v 1.6 2002-09-12 17:50:09 paklein Exp $ */
-/* created: paklein (09/10/1998)                                          */
+/* $Id: MeshFreeShapeFunctionT.cpp,v 1.6.2.1 2002-09-21 09:02:01 paklein Exp $ */
+/* created: paklein (09/10/1998) */
 
 #include "MeshFreeShapeFunctionT.h"
 #include "toolboxConstants.h"
@@ -7,15 +7,14 @@
 #include "MeshFreeSupport3DT.h"
 #include "LocalArrayT.h"
 
-/* constructor */
-
 using namespace Tahoe;
 
+/* constructor */
 MeshFreeShapeFunctionT::MeshFreeShapeFunctionT(GeometryT::CodeT geometry_code, int numIP,
 	const LocalArrayT& coords, const dArray2DT& all_coords,
 	const iArray2DT& connects, const iArrayT& nongridnodes,
 	const int& currelement, ifstreamT& in):
-	ShapeFunctionT(geometry_code, numIP, coords, kStandardB),
+	ShapeFunctionT(geometry_code, numIP, coords),
 	fMFSupport(NULL),
 	fCurrElement(currelement),
 	fDNaU(numIP),
