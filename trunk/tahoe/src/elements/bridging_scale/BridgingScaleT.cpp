@@ -1,14 +1,18 @@
-/* $Id: BridgingScaleT.cpp,v 1.7 2002-07-20 00:33:19 hspark Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.8 2002-07-20 08:03:42 paklein Exp $ */
 #include "BridgingScaleT.h"
-#include "ShapeFunctionT.h"
-#include "RodT.h"
 
 #include <iostream.h>
 #include <iomanip.h>
 
+#include "ShapeFunctionT.h"
+#include "RodT.h"
 #include "fstreamT.h"
 #include "iAutoArrayT.h"
 #include "OutputSetT.h"
+#include "AutoFill2DT.h"
+#include "RaggedArray2DT.h"
+#include "iGridManagerT.h"
+#include "iNodeT.h"
 
 using namespace Tahoe;
 
@@ -38,46 +42,76 @@ void BridgingScaleT::Initialize(void)
 {
 	/* inherited */
 	ElementBaseT::Initialize();
+
+	/* stream */
+	ostream& out = ElementSupport().Output();
 	
-	// (1) sort all particles into elements
-	const ParentDomainT& parent=ShapeFunction().ParentDomain();
-	/* current nodal coordinates of the element */
-	const dArray2DT& curr_coords=ElementSupport().CurrentCoordinates();
-	// will the above ALWAYS give the current coordinates for both atoms and nodes?
+	/* current coordinates of all nodes/points in the calculation */
+	const dArray2DT& curr_coords = ElementSupport().CurrentCoordinates();
+
 	/* distinguish FEM nodes vs. atoms to separate their respective coordinates */
 	iArrayT atoms_used, nodes_used;
 	fParticle.NodesUsed(atoms_used);
 	fSolid.NodesUsed(nodes_used);
+#if 0
 	dArray2DT atom_coords, node_coords;
-	//curr_coords.RowCollect(atoms_used,atom_coords);
-	//curr_coords.RowCollect(nodes_used,node_coords);
-	cout << "Atoms used = " << atoms_used << endl;
-	cout << "Nodes used = " << nodes_used << endl;
+	atom_coords.RowCollect(atoms_used, curr_coords);
+	node_coords.RowCollect(nodes_used, curr_coords);
+#endif
+	atoms_used++;
+	out << " Particles used:\n" << atoms_used.wrap(5) << '\n';
+	atoms_used--;
+	nodes_used++;
+	out << " Nodes used:\n" << nodes_used.wrap(5) << '\n';
+	nodes_used--;
+
 	/* now take an atom, check against every element */
-	//int totalatoms = atom_coords.MajorDim();
-	//int totalnodes = node_coords.MajorDim();
-	//for (int i = 0; i < totalnodes-1; i++) {
-	//int count = 0;
-	//dArrayT cell;
-	//node_coords.RowCopy(i,cell);
-	//for (int j = 0; j < totalatoms; i++) {
-	//  dArrayT point,cell;
-	//  atom_coords.RowCopy(j,coords);
-	//  bool in = parent.PointInDomain(cell,coords);
-	//  if(in) {
-	//      fParticlesInCell[i,count]=atomsused[j];
-	//        count++;
-	//  }
-	//}
-	//}
+	const ParentDomainT& parent = ShapeFunction().ParentDomain();
+	int totalatoms = atoms_used.Length();
+	int totalnodes = nodes_used.Length();
+	AutoFill2DT<int> auto_fill(fSolid.NumElements(), 10, 10);
+	dArrayT x_atom, centroid;
+	LocalArrayT cell_coords(LocalArrayT::kCurrCoords, fSolid.NumElementNodes(), NumSD());
+	cell_coords.SetGlobal(curr_coords);
+
+	iGridManagerT grid(10, 100, curr_coords, &atoms_used);
+	grid.Reset();
+	for (int i = 0; i < fSolid.NumElements(); i++) {
+	
+			/* domain coordinates */
+			cell_coords.SetLocal(fSolid.ElementCard(i).NodesX());
+	
+			/* centroid and radius */
+			double radius = parent.AverageRadius(cell_coords, centroid);
+			
+			/* candidate particles */
+			const AutoArrayT<iNodeT>& hits = grid.HitsInRegion(centroid.Pointer(), 1.01*radius);
+			for (int j = 0; j < hits.Length(); j++)
+			{
+				x_atom.Set(NumSD(), hits[j].Coords());
+				if (parent.PointInDomain(cell_coords, x_atom))
+					auto_fill.Append(i, hits[j].Tag());
+			}
+	}
+
+	/* copy/compress contents */
+	fParticlesInCell.Copy(auto_fill);
+	iArrayT tmp(fParticlesInCell.Length(), fParticlesInCell.Pointer());
+	out << " Particles in cells:\n"
+	    << setw(kIntWidth) << "no." << '\n';
+	tmp++;
+	fParticlesInCell.WriteNumbered(out);
+	tmp--;
+	out.flush();
+
+	if (fParticlesInCell.Length() > atoms_used.Length()) {
+		cout << "\n BridgingScaleT::Initialize: WARNING: number of particles in cells " 
+		     << fParticlesInCell.Length() << " exceeds\n" 
+		     <<   "     the total number of particles " << atoms_used.Length() << endl;
+	}
+
 	// (2) compute the inverse map (shape functions)
 	//bool try = parent.MapToParentDomain(coords,point,mapped);
-
-	/* streams */
-	ifstreamT& in = ElementSupport().Input();
-	ostream&  out = ElementSupport().Output();
-
-	/* output print specifications */
 }
 
 void BridgingScaleT::Equations(AutoArrayT<const iArray2DT*>& eq_1,
