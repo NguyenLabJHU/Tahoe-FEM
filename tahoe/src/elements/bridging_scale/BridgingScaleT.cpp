@@ -1,4 +1,4 @@
-/* $Id: BridgingScaleT.cpp,v 1.36 2003-10-28 07:30:35 paklein Exp $ */
+/* $Id: BridgingScaleT.cpp,v 1.37 2003-10-31 20:49:23 paklein Exp $ */
 #include "BridgingScaleT.h"
 
 #include <iostream.h>
@@ -467,6 +467,10 @@ out << "\n residual =\n" << projection << endl;
 /* compute the coarse scale part of the source field */
 void BridgingScaleT::CoarseField(const PointInCellDataT& cell_data, const dArray2DT& field, dArray2DT& coarse) const
 {
+#pragma unused(cell_data)
+#pragma unused(field)
+#pragma unused(coarse)
+
 	const char caller[] = "BridgingScaleT::CoarseField";
 	ExceptionT::GeneralFail(caller, "not implemented");
 }
