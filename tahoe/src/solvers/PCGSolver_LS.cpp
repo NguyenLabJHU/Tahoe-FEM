@@ -1,4 +1,4 @@
-/* $Id: PCGSolver_LS.cpp,v 1.16 2003-11-12 00:24:17 jzimmer Exp $ */
+/* $Id: PCGSolver_LS.cpp,v 1.17 2003-11-19 23:29:32 paklein Exp $ */
 /* created: paklein (08/19/1999) */
 #include "PCGSolver_LS.h"
 
@@ -237,7 +237,7 @@ void PCGSolver_LS::CGSearch(void)
 		fu_last = fRHS;
 
 		/* output control */
-		fVerbose = 1; /* changed 0 to 1 */
+		fVerbose = 0;
 	}
 
 	/* check recalculation of LHS */
