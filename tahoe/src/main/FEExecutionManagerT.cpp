@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.18 2002-02-18 09:25:55 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.19 2002-03-02 20:19:59 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 
 #include "FEExecutionManagerT.h"
@@ -41,17 +41,9 @@ FEExecutionManagerT::FEExecutionManagerT(int argc, char* argv[], char job_char,
 	char batch_char):
 	ExecutionManagerT(argc, argv, job_char, batch_char, 0)
 {
-#ifdef __CPLANT__ // not grouped output due to limited memory
-	AddCommandLineOption("-split_io");
-#endif
-
-//TEMP - decomp testing
-#ifdef __MACOS__
-	bool do_decomp = false;
-	if (do_decomp) AddCommandLineOption("-decomp");
-
-	bool do_split_io = false;
-	if (do_split_io) AddCommandLineOption("-split_io");
+#ifdef __CPLANT__
+	/* if not prescribed as joined, write separate files */
+	if (!CommandLineOption("-join_io")) AddCommandLineOption("-split_io");
 #endif
 }
 
@@ -156,6 +148,10 @@ bool FEExecutionManagerT::AddCommandLineOption(const char* str)
 		RemoveCommandLineOption("-decomp");		
 		RemoveCommandLineOption("-run");
 	}
+	else if (option == "-join_io")
+		RemoveCommandLineOption("-split_io");
+	else if (option == "-split_io")
+		RemoveCommandLineOption("-join_io");
 	
 	/* inherited */
 	return ExecutionManagerT::AddCommandLineOption(option);
