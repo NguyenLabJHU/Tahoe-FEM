@@ -1,4 +1,4 @@
-/* $Id: D2MeshFreeSupportT.cpp,v 1.3 2001-07-03 01:35:52 paklein Exp $ */
+/* $Id: D2MeshFreeSupportT.cpp,v 1.4 2001-07-12 22:29:31 paklein Exp $ */
 /* created: paklein (10/23/1999)                                          */
 
 #include "D2MeshFreeSupportT.h"
@@ -220,12 +220,12 @@ int D2MeshFreeSupportT::SetFieldAt(const dArrayT& x, AutoArrayT<int>& nodes)
 	else
 	{
 		/* dimension */
-		fcoords_man.SetMajorDimension(fneighbors.Length(), false);	
-		fnodal_param_man.SetMajorDimension(fneighbors.Length(), false);
+		fcoords_man.SetMajorDimension(nodes.Length(), false);	
+		fnodal_param_man.SetMajorDimension(nodes.Length(), false);
 	
 		/* collect local lists */
 		fcoords.RowCollect(nodes, fCoords);
-		fnodal_param.RowCollect(fneighbors, fNodalParameters);
+		fnodal_param.RowCollect(nodes, fNodalParameters);
 	
 		/* compute MLS field */
 		if (fD2EFG)
@@ -233,8 +233,8 @@ int D2MeshFreeSupportT::SetFieldAt(const dArrayT& x, AutoArrayT<int>& nodes)
 		else
 		{
 			/* nodal volumes */
-			fvolume_man.SetLength(fneighbors.Length(), false);
-			fvolume.Collect(fneighbors, fVolume);
+			fvolume_man.SetLength(nodes.Length(), false);
+			fvolume.Collect(nodes, fVolume);
 
 			/* compute field */
 			fRKPM->SetField(fcoords, fnodal_param, fvolume, x, 2);
