@@ -78,9 +78,8 @@ unless(-d "macros"){
 	unlink("cvs.log");
 	system("cvs -d $username\@$cvsrep checkout macros > cvs.log 2>&1");
 }
-$system = "GNU"; # HACK
 chdir "macros"; 
-@macros = glob("$system*.macros"); 
+@macros = glob("*.macros"); 
 foreach $choice (@macros) { $choice =~ s/\.macros//; push(@choices,$choice);}
 chdir "..";
 print "no default build architecture, choices:\n";
@@ -90,7 +89,6 @@ print "$arch\n";
 # modules
 @modules = ("macros","expat","toolbox","tahoe");
 open(CONFIG,">$config_file") || die "cannot open file $config_file for writing : $!";
-$arch = "GNU.linux";
 print CONFIG  "# ARCHITECTURE\n$arch\n\n";
 print CONFIG  "# MODULES\n@modules\n\n";
 print CONFIG  "# EOF";
