@@ -1,4 +1,4 @@
-/* $Id: ElementListT.cpp,v 1.5 2001-05-31 00:37:25 rjones Exp $ */
+/* $Id: ElementListT.cpp,v 1.5.2.1 2001-06-22 14:16:16 paklein Exp $ */
 /* created: paklein (04/20/1998)                                          */
 
 #include "ElementListT.h"
@@ -11,8 +11,9 @@
 /* elements */
 #include "ElementBaseT.h"
 #include "RodT.h"
-#include "ElasticT.h"
-#include "UpLag_FDElasticT.h"
+#include "SmallStrainT.h"
+#include "UpdatedLagrangianT.h"
+#include "TotalLagrangianT.h"
 #include "LocalizerT.h"
 #include "SWDiamondT.h"
 #include "MixedSWDiamondT.h"
@@ -21,7 +22,6 @@
 #include "VirtualSWDC.h"
 #include "BEMelement.h"
 #include "VariTriT.h" //TEMP
-#include "TotLag_FDElasticT.h"
 #include "CSEIsoT.h"
 #include "CSEAnisoT.h"
 #include "GeometryT.h"
@@ -142,7 +142,7 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 				break;
 
 			case kElastic:
-				fArray[group] = new ElasticT(fFEManager);
+				fArray[group] = new SmallStrainT(fFEManager);
 				break;
 
 			case kMeshFreeElastic:
@@ -150,11 +150,11 @@ void ElementListT::EchoElementData(ifstreamT& in, ostream& out,
 				break;
 
 			case kHyperElastic:
-				fArray[group] = new UpLag_FDElasticT(fFEManager);
+				fArray[group] = new UpdatedLagrangianT(fFEManager);
 				break;
 
 			case kTotLagHyperElastic:
-				fArray[group] = new TotLag_FDElasticT(fFEManager);
+				fArray[group] = new TotalLagrangianT(fFEManager);
 				break;
 
 			case kMeshFreeFDElastic:

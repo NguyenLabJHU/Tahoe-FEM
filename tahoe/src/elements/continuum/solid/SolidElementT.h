@@ -1,4 +1,4 @@
-/* $Id: SolidElementT.h,v 1.4 2001-06-03 21:03:50 paklein Exp $ */
+/* $Id: SolidElementT.h,v 1.4.2.1 2001-06-22 14:14:26 paklein Exp $ */
 /* created: paklein (05/28/1996)                                          */
 
 #ifndef _ELASTIC_T_H_
@@ -65,7 +65,7 @@ public:
 
 	/* compute specified output parameter and send for smoothing */
 	virtual void SendOutput(int kincode);
-
+	
 protected:
 
 	/* print element group data */
