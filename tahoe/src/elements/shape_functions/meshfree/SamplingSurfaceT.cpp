@@ -1,4 +1,4 @@
-/* $Id: SamplingSurfaceT.cpp,v 1.4 2002-10-20 22:49:41 paklein Exp $ */
+/* $Id: SamplingSurfaceT.cpp,v 1.5 2003-10-20 23:32:54 cjkimme Exp $ */
 /* created: paklein (10/19/2000)                                          */
 
 #include "SamplingSurfaceT.h"
@@ -20,7 +20,7 @@ SamplingSurfaceT::SamplingSurfaceT(GeometryT::CodeT code, int num_facet_nodes,
 {
 	/* set surface geometry */
 	fSurfaceShape = new SurfaceShapeT(fCode, fNumSamples, 2*fNumFacetNodes,
-		fLocFacetCoords.MinorDim(), fLocFacetCoords);
+		fNumFacetNodes, fLocFacetCoords.MinorDim(), fLocFacetCoords);
 	if (!fSurfaceShape) throw ExceptionT::kOutOfMemory;
 	fSurfaceShape->Initialize();
 	
