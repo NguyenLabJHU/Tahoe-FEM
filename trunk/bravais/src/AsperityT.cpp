@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: AsperityT.cpp,v 1.15 2003-08-14 23:57:53 saubry Exp $ */
+/* $Id: AsperityT.cpp,v 1.16 2003-08-15 01:22:20 saubry Exp $ */
 #include "AsperityT.h"
 #include "VolumeT.h"
 
@@ -76,10 +76,18 @@ AsperityT::AsperityT(int dim, dArray2DT len,
     {
       for(int i=0;i<nSD;i++)
         {
-	  int ncl = static_cast<int>(len(i,0)/lattice_parameter[i]);
+	  /*
+          int ncl = static_cast<int>(len(i,0)/lattice_parameter[i]);
 	  int ncu = static_cast<int>(len(i,1)/lattice_parameter[i]);
           length(i,0) = ncl * lattice_parameter[i];
           length(i,1) = ncu * lattice_parameter[i];
+
+	  ncells[i] = ncu - 1 - ncl;
+	  */
+
+	  double dist = ncells[i]*lattice_parameter[i]*0.5;       
+	  length(i,0) = -dist;       
+	  length(i,1) = length(i,0) + (dist - length(i,0));
         }
     }
 }
@@ -479,8 +487,9 @@ void AsperityT::SortLattice(CrystalLatticeT* pcl)
   atom_parts = part;
 }
 
-void AsperityT::CalculateBounds()
+void AsperityT::CalculateBounds(CrystalLatticeT* pcl)
 {
+  const dArrayT& vLP = pcl->GetLatticeParameters();
   atom_bounds.Dimension(nSD,2);
 
   for (int i=0; i < nSD; i++)
@@ -496,8 +505,9 @@ void AsperityT::CalculateBounds()
       else if (pbc[i]==1)
 	{
 	  // periodic conditions
-          atom_bounds(i,0) = length(i,0);
-          atom_bounds(i,1) = length(i,1);
+          atom_bounds(i,0) = length(i,0) + 0.75 * vLP[i]; 
+	  // takes the shift into account.
+          atom_bounds(i,1) = length(i,1) + 0.75 * vLP[i];
 	}
       else
 	throw eBadInputValue;
@@ -548,8 +558,8 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 
   // Call circle parameters
   double h0 = ComputeCircleParameters();
-  cout << "Height of the asperity is " << h0 << "\n";
-  cout << "Radius of the asperity is " << fRadius << "\n";
+  cout << "(RAB) Height of the asperity is " << h0 << "\n";
+  cout << "(RAB) Radius of the asperity is " << fRadius << "\n";
 
   int natom= 0;
   int type= 0;
@@ -692,11 +702,6 @@ int AsperityT::RotateAtomInBox(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 	    {
 	      (*temp_atom)(k)[0] += vLP[0]*0.25;
 	      (*temp_atom)(k)[1] += vLP[1]*0.25;
-
-	      //x = (*temp_atom)(k)[0];
-	      //y = (*temp_atom)(k)[1];
-	      //(*temp_atom)(k)[0] = 0.5*sqrt(2.0)*(x - y);
-	      //(*temp_atom)(k)[1] = 0.5*sqrt(2.0)*(x + y);
 	    }
 	}
 
@@ -722,8 +727,8 @@ int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 
   // Call circle parameters
   double h0 = ComputeCircleParameters();
-  cout << "Height of the asperity is " << h0 << "\n";
-  cout << "Radius of the asperity is " << fRadius << "\n";
+  cout << "(RBA) Height of the asperity is " << h0 << "\n";
+  cout << "(RBA) Radius of the asperity is " << fRadius << "\n";
 
   dArrayT rotated_fCenterPlus(nlsd);
   rotated_fCenterPlus = pcl->VectorRotation(fCenterPlus);
@@ -846,11 +851,6 @@ int AsperityT::RotateBoxOfAtom(CrystalLatticeT* pcl,dArray2DT* temp_atom,
 	    {
 	      (*temp_atom)(k)[0] += vLP[0]*0.25;
 	      (*temp_atom)(k)[1] += vLP[1]*0.25;
-
-	      //x = (*temp_atom)(k)[0];
-	      //y = (*temp_atom)(k)[1];
-	      //(*temp_atom)(k)[0] = 0.5*sqrt(2.0)*(x - y);
-	      //(*temp_atom)(k)[1] = 0.5*sqrt(2.0)*(x + y);
 	    }
 	}
 

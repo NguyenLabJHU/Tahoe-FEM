@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: BoxT.cpp,v 1.39 2003-08-14 23:57:53 saubry Exp $ */
+/* $Id: BoxT.cpp,v 1.40 2003-08-15 01:22:20 saubry Exp $ */
 #include "BoxT.h"
 #include "VolumeT.h"
 
@@ -462,7 +462,7 @@ void BoxT::SortLattice(CrystalLatticeT* pcl)
   
 }
 
-void BoxT::CalculateBounds()
+void BoxT::CalculateBounds(CrystalLatticeT* pcl)
 {
   atom_bounds.Dimension(nSD,2);
 

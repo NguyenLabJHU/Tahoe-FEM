@@ -1,5 +1,5 @@
 // DEVELOPMENT
-/* $Id: AsperityT.h,v 1.9 2003-08-14 23:57:53 saubry Exp $ */
+/* $Id: AsperityT.h,v 1.10 2003-08-15 01:22:20 saubry Exp $ */
 
 #ifndef _ASPERITY_T_H_
 #define _ASPERITY_T_H_
@@ -48,7 +48,7 @@ class AsperityT : public VolumeT
   void CreateLattice(CrystalLatticeT* pcl); 
   void SortLattice(CrystalLatticeT* pcl);
 
-  void CalculateBounds();
+  void CalculateBounds(CrystalLatticeT* pcl);
 
   iArrayT GetNCells();
   dArray2DT GetLength();
