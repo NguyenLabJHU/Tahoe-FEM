@@ -1,9 +1,10 @@
-/* $Id: FiniteStrainT.cpp,v 1.2 2001-07-03 01:34:50 paklein Exp $ */
+/* $Id: FiniteStrainT.cpp,v 1.3 2001-07-10 07:29:54 paklein Exp $ */
 
 #include "FiniteStrainT.h"
 #include "ShapeFunctionT.h"
 #include "FDStructMatT.h"
-#include "MaterialListT.h"
+#include "MaterialList2DT.h"
+#include "MaterialList3DT.h"
 
 /* constructor */
 FiniteStrainT::FiniteStrainT(FEManagerT& fe_manager):
@@ -85,6 +86,17 @@ void FiniteStrainT::ComputeGradient_reference(const LocalArrayT& u, dMatrixT& gr
 * Protected
 ***********************************************************************/
 
+/* construct materials manager and read data */
+MaterialListT* FiniteStrainT::NewMaterialList(int size) const
+{
+	if (fNumSD == 2)
+		return new MaterialList2DT(size, *this);
+	else if (fNumSD == 3)
+		return new MaterialList3DT(size, *this);
+	else
+		return NULL;			
+}
+
 /* construct list of materials from the input stream */
 void FiniteStrainT::ReadMaterialData(ifstreamT& in)
 {
@@ -155,3 +167,33 @@ void FiniteStrainT::SetGlobalShape(void)
 		}
 	}
 }
+
+/* calculate the damping force contribution ("-c*v") */
+void FiniteStrainT::FormCv(double constC)
+{
+#pragma unused(constC)
+//NOTE: this "linear" damping was needed only to support
+//      Rayleigh damping for linear problems. Will be removed 
+//      soon.
+
+#if 0
+//approximate?
+	/* clear workspace */
+	fLHS = 0.0;
+	fStressStiff = 0.0;
+
+	/* form tangent stiffness */
+	FormStiffness(constC);
+	fLHS.CopySymmetric();
+
+	/* reorder */
+	fLocVel.ReturnTranspose(fTemp2);
+	
+	/* C*v */
+	fLHS.MultTx(fTemp2, fNEEvec);
+	
+	/* Accumulate */
+	fRHS += fNEEvec;
+#endif
+}
+
