@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.3 2001-02-27 00:01:35 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.4 2001-03-20 23:55:36 paklein Exp $ */
 /* created: paklein (09/21/1997)                                          */
 
 #include "FEExecutionManagerT.h"
@@ -785,6 +785,9 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 				exo.WriteCoordinates(coords);
 				
 				/* data in decomp file */
+				int n_internal = 0;
+				int n_border = 0;
+				int n_external = 0;
 				dArrayT part(nnd); part = -1;
 				dArrayT inex(nnd); inex = 0;
 				for (int i = 0; i < size; i++)
@@ -795,6 +798,11 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 					iArray2DT connects(nd_i.Length() + nd_b.Length(), 1);
 					connects.CopyPart(0, nd_i, 0, nd_i.Length());
 					connects.CopyPart(nd_i.Length(), nd_b, 0, nd_b.Length());
+					
+					/* increment counts */
+					n_internal += nd_i.Length();
+					n_border += nd_b.Length();
+					n_external += partition[i].Nodes_External().Length();
 					
 					/* convert to global numbering */
 					if (partition[i].NumberScope() != PartitionT::kGlobal)
@@ -838,7 +846,15 @@ void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
 				exo.WriteNodalVariable(1, 1, part);
 				exo.WriteNodalVariable(1, 2, inex);
 				exo.WriteNodalVariable(1, 3, degree);
+				
+				/* write statistics */
+				cout << " Statistics:\n" 
+				     << "     total number of nodes = " << coords.MajorDim() << '\n'
+				     << "            internal nodes = " << n_internal << '\n'
+				     << "              border nodes = " << n_border << '\n'
+				     << "            external nodes = " << n_external << '\n';
 
+				/* done */
 				cout << " Node map file: " << map_file << ": DONE"<< endl;
 			}
 		}
