@@ -1,4 +1,4 @@
-/* $Id: GlobalMatrixT.cpp,v 1.9 2002-03-28 16:42:45 paklein Exp $ */
+/* $Id: GlobalMatrixT.cpp,v 1.10 2002-04-02 23:38:43 paklein Exp $ */
 /* created: paklein (03/23/1997) */
 
 #include "GlobalMatrixT.h"
@@ -80,46 +80,46 @@ void GlobalMatrixT::Clear(void) { fIsFactorized = 0; }
 * Solve the system for the vector given, returning the result
 * in the same array
 */
-void GlobalMatrixT::Solve(dArrayT& result)
+bool GlobalMatrixT::Solve(dArrayT& result)
 {
-	if (!fIsFactorized)
+	/* catch any exceptions */
+	try 
 	{
-		/* store original precision */
-		int old_precision = fOut.precision();
+		if (!fIsFactorized)
+		{
+			/* store original precision */
+			int old_precision = fOut.precision();
 	
-		/* rank checks before factorization */
-		fOut.precision(12);
-		PrintLHS();
-		fOut.precision(old_precision);
+			/* rank checks before factorization */
+			fOut.precision(12);
+			PrintLHS();
+			fOut.precision(old_precision);
 	
-		/* factorize */
-		fIsFactorized = 1;
-		Factorize();
-		
-		/* rank checks after factorization */
-		fOut.precision(12);
-		PrintZeroPivots();
-		PrintAllPivots();
-		fOut.precision(old_precision);
+			/* factorize */
+			fIsFactorized = 1;
+			Factorize();
+	
+			/* rank checks after factorization */
+			fOut.precision(12);
+			PrintZeroPivots();
+			PrintAllPivots();
+			fOut.precision(old_precision);
+		}
+
+		/* output before solution */
+		PrintRHS(result);
+
+		/* find new search direction */
+		BackSubstitute(result);
+
+		/* output after solution */
+		PrintSolution(result);
 	}
-
-	/* output before solution */
-	PrintRHS(result);
-
-	/* find new search direction */
-	BackSubstitute(result);
-
-	/* output after solution */
-	PrintSolution(result);
-	
-//TEMP: right result of linear solve	
-//cout << "\n Writing update to output file: update.data" << endl;
-//ofstream out("update.data");
-//out.precision(12);
-//out.setf(ios::showpoint);
-//out.setf(ios::right, ios::adjustfield);
-//out.setf(ios::scientific, ios::floatfield);
-//out << result << endl;
+	catch (int error) {
+		cout << "\n GlobalMatrixT::Solve: caught exception: " << error << endl;
+		return false;
+	}
+	return true;
 }
 
 /* strong manipulation functions 
@@ -161,18 +161,27 @@ GlobalMatrixT& GlobalMatrixT::operator=(const GlobalMatrixT& RHS)
 	return *this;
 }
 
- //TEMP - should be pure virtual w/o implementation
-void GlobalMatrixT::Multx(const dArrayT& x, dArrayT& b) const
-{
-	cout << "\n GlobalMatrixT::Multx: not implemented" << endl;
-	throw eGeneralFail;
+/* matrix-vector product */
+bool GlobalMatrixT::Multx(const dArrayT& x, dArrayT& b) const 
+{ 
+#pragma unused(x)
+#pragma unused(b)
+	return false; 
 }
 
- //TEMP - should be pure virtual w/o implementation
-void GlobalMatrixT::MultTx(const dArrayT& x, dArrayT& b) const
+/* Tranpose[matrix]-vector product */
+bool GlobalMatrixT::MultTx(const dArrayT& x, dArrayT& b) const 
 {
-	cout << "\n GlobalMatrixT::MultTx: not implemented" << endl;
-	throw eGeneralFail;
+#pragma unused(x)
+#pragma unused(b)
+	return false; 
+}
+
+/* return the values along the diagonal of the matrix */
+bool GlobalMatrixT::CopyDiagonal(dArrayT& diags) const
+{
+#pragma unused(diags)
+	return false;
 }
 
 /**************************************************************************
