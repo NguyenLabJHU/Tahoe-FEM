@@ -8,7 +8,7 @@ square lattice 12 x 12
 1   # number of element sets
 # [ID] [nel] [nen]
 1 144 4
-18 # number of node sets
+19 # number of node sets
 # [ID] [nnd]
 1 169 # all nodes
 2 13 # left hand side
@@ -27,7 +27,8 @@ square lattice 12 x 12
 15 13 # x = 10
 16 13 # x = 11
 17 13 # y = 7
-18 1 # Lower left-hand corner
+18 1 #
+19 1
 4  # number of side sets
 1 1 12 # LHS
 2 1 12 # RHS
@@ -88,7 +89,10 @@ square lattice 12 x 12
 7 20 33 46 59 72 85 98 111 124 137 150 163  
 *set
 1
+30
+*set
 1
+139
 # end node sets
 *sidesets
 *set
