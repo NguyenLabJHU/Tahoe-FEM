@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.h,v 1.9 2003-06-30 22:07:28 rjones Exp $ */
+/* $Id: MultiplierContactElement2DT.h,v 1.10 2003-09-22 21:20:49 paklein Exp $ */
 // created by : rjones 2001
 #ifndef _MULTIPLIER_CONTACT_ELEMENT_2D_T_H_
 #define _MULTIPLIER_CONTACT_ELEMENT_2D_T_H_
@@ -34,7 +34,7 @@ class MultiplierContactElement2DT: public ContactElementT
 	virtual void PrintControlData(ostream& out) const;
 		 	
 	/* set contact status*/
-	virtual void SetStatus(void);
+	virtual void SetContactStatus(void);
 	
 	/* construct the residual force vector, called before LHS */
 	virtual void RHSDriver(void);

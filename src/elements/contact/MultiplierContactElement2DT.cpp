@@ -1,4 +1,4 @@
-/* $Id: MultiplierContactElement2DT.cpp,v 1.16 2003-02-03 04:40:18 paklein Exp $ */
+/* $Id: MultiplierContactElement2DT.cpp,v 1.17 2003-09-22 21:20:49 paklein Exp $ */
 // created by : rjones 2001
 #include "MultiplierContactElement2DT.h"
 
@@ -74,7 +74,7 @@ void MultiplierContactElement2DT::PrintControlData(ostream& out) const
 }
 
 /* called before LHSDriver during iteration process */
-void MultiplierContactElement2DT::SetStatus(void)
+void MultiplierContactElement2DT::SetContactStatus(void)
 { 
   int opp_surf_tag;
   for(int surf_tag = 0; surf_tag < fSurfaces.Length(); surf_tag++) {
@@ -124,7 +124,7 @@ void MultiplierContactElement2DT::RHSDriver(void)
   UpdateContactConfiguration();
 
   /* set status of all surface nodes */
-  SetStatus();
+  SetContactStatus();
 
   bool elem_in_contact = 0;
   int opp_surf_tag=-1, status=-1;
