@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.cpp,v 1.1.1.1 2001-01-25 20:56:26 paklein Exp $ */
+/* $Id: OutputBaseT.cpp,v 1.2 2001-12-16 23:56:27 paklein Exp $ */
 /* created: sawimme (05/18/1999)                                          */
 
 #include "OutputBaseT.h"
@@ -124,11 +124,17 @@ void OutputBaseT::WriteGeometryFile(const StringT& file_name,
 		/* element set data */
 		for (int i = 0; i < fElementSets.Length(); i++)
 		{
-			const iArray2DT& connects = fElementSets[i]->Connectivities();
-			iArrayT tmp(connects.Length(), connects.Pointer());
-			tmp++;
-			tahoeII.PutElementSet(i, connects);
-			tmp--;
+		  const iArrayT& blockIDs = fElementSets[i]->BlockID();
+		  for (int b=0; b < fElementSets[i]->NumBlocks(); b++)
+		    {
+		      const iArray2DT* c = fElementSets[i]->Connectivities(b);
+		      iArray2DT conn = *c;
+		      
+		      iArrayT tmp(conn.Length(), conn.Pointer());
+		      tmp++;
+		      tahoeII.PutElementSet (blockIDs[b], conn);
+		      tmp--;
+		    }
 		}
 	}
 	else if (format == IOBaseT::kExodusII)
@@ -146,11 +152,18 @@ void OutputBaseT::WriteGeometryFile(const StringT& file_name,
 		for (int i = 0; i < fElementSets.Length(); i++)
 		{
 			/* write connectivities */
-			const iArray2DT& connects = fElementSets[i]->Connectivities();
-			iArrayT tmp(connects.Length(), connects.Pointer());
-			tmp++;
-			exo.WriteConnectivities(i+1, fElementSets[i]->Geometry(), connects); // ID cannot be 0
-			tmp--;
+		  const iArrayT& blockIDs = fElementSets[i]->BlockID ();
+		  for (int b=0; b < fElementSets[i]->NumBlocks (); b++)
+		    {
+		      const iArray2DT* c = fElementSets[i]->Connectivities(b);
+		      iArray2DT local_connects(c->MajorDim(), c->MinorDim());
+		      iArray2DT conn = *c;
+	
+		      conn++;
+		      exo.WriteConnectivities(blockIDs[b], fElementSets[i]->Geometry(), conn);
+		      conn--;
+		    }
+
 		}
 	}
 	else
@@ -221,3 +234,53 @@ void OutputBaseT::LocalConnectivity(const iArrayT& node_map,
 		*p_loc++ = inv_node_map[*p_glb++ - shift];
 }
 
+void OutputBaseT::ElementBlockValues (int ID, int block, const dArray2DT& allvalues, dArray2DT& blockvalues) const
+{
+  int length = fElementSets[ID]->NumBlockElements(block);
+  if (blockvalues.MajorDim() != length ||
+      blockvalues.MinorDim() != allvalues.MinorDim()) throw eSizeMismatch;
+
+  /* find start point */
+  int start = 0;
+  for (int s=0; s < block; s++)
+    start += fElementSets[ID]->NumBlockElements(s);
+
+  /* set row tags */
+  iArrayT rows (length);
+  rows.SetValueToPosition ();
+  rows += start;
+
+  /* copy certain rows */
+  blockvalues.RowCollect (rows, allvalues);
+}
+
+void OutputBaseT::NodalBlockValues(int ID, int block, const dArray2DT& allvalues, dArray2DT& blockvalues, iArrayT& block_nodes) const
+{
+	const iArrayT& group_nodes = fElementSets[ID]->NodesUsed();
+	block_nodes.Alias(fElementSets[ID]->BlockNodesUsed(block));
+	if (block_nodes.Length() == group_nodes.Length()) /* nodes set nodes used by block */
+	{
+		blockvalues.Alias(allvalues);
+	}
+	else
+	{
+		/* block index to set index map */
+		const iArrayT& index_map = fElementSets[ID]->BlockIndexToSetIndexMap(block);
+		
+		/* collect block values */
+		blockvalues.Allocate(index_map.Length(), allvalues.MinorDim());
+		blockvalues.RowCollect(index_map, allvalues);	
+
+#if 0	
+		// determine which rows of group nodal values are in the block
+		for (int i=0; i < block_nodes.Length(); i++)
+		{
+			int dex;
+			group_nodes.HasValue(block_nodes[i], dex);
+			if (dex < 0 || dex > group_nodes.Length()) throw eOutOfRange;
+			rows[i] = dex;
+		}
+		//NOTE: this is n^2. Ouch.
+#endif
+    }
+}

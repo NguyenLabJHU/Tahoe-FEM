@@ -1,4 +1,4 @@
-/* $Id: OutputBaseT.h,v 1.2 2001-08-07 23:11:56 paklein Exp $ */
+/* $Id: OutputBaseT.h,v 1.3 2001-12-16 23:56:27 paklein Exp $ */
 /* created: sawimme (05/18/1999) */
 
 #ifndef _OUTPUTBASE_T_H_
@@ -68,6 +68,8 @@ protected:
 	             kElement = 1};
 
 	void LocalConnectivity(const iArrayT& node_map, const iArray2DT& connects, iArray2DT& local_connects) const;
+	void ElementBlockValues (int ID, int block, const dArray2DT& allvalues, dArray2DT& blockvalues) const;
+	void NodalBlockValues (int ID, int block, const dArray2DT& allvalues, dArray2DT& blockvalues, iArrayT& block_nodes) const;
 
 protected:
 
