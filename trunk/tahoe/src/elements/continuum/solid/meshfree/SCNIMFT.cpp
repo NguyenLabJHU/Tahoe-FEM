@@ -1,4 +1,4 @@
-/* $Id: SCNIMFT.cpp,v 1.6 2004-02-11 01:05:03 cjkimme Exp $ */
+/* $Id: SCNIMFT.cpp,v 1.7 2004-02-11 17:34:28 cjkimme Exp $ */
 #include "SCNIMFT.h"
 
 //#define VERIFY_B
@@ -47,7 +47,7 @@ SCNIMFT::SCNIMFT(const ElementSupportT& support, const FieldT& field):
 	SetName("mfparticle");
 
 	/* set matrix format */
-	fLHS.SetFormat(ElementMatrixT::kSymmetricUpper);
+	fLHS.SetFormat(ElementMatrixT::kNonSymmetric);
 }
 
 SCNIMFT::SCNIMFT(const ElementSupportT& support):
@@ -637,13 +637,7 @@ void SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 	
 	if (formK)
 	{
-	
-		/* matrix format */
-		dMatrixT::SymmetryFlagT format =
-			(fLHS.Format() == ElementMatrixT::kNonSymmetric) ?
-			dMatrixT::kWhole :
-			dMatrixT::kUpperOnly;
-	
+		/* hold the smoothed strain */
 		ArrayT<dSymMatrixT> strainList(1);
 		strainList[0].Dimension(fSD);
 		dSymMatrixT& strain = strainList[0];
@@ -665,12 +659,12 @@ void SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 		/* assembly information */
 		int group = Group();
 		int ndof = NumDOF();
-		fLHS.Dimension(2*ndof);
+		fLHS.Dimension(ndof);
 		const ElementSupportT& support = ElementSupport();
 		
-		iArrayT pair(2);
 		const iArray2DT& field_eqnos = Field().Equations();
-		iArray2DT pair_eqnos(2, ndof); 
+		iArrayT row_eqnos(ndof); 
+		iArrayT col_eqnos(ndof);
 		dMatrixT BJ, BK, K_JK;
 		BJ.Dimension(fSD == 2 ? 3 : 6, ndof);
 		BK.Dimension(fSD == 2 ? 3 : 6, ndof);
@@ -694,10 +688,9 @@ void SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 			for (int j = 0; j < nodeSupport.MinorDim(i); j++)
 			{
 				bVectorToMatrix(bVectors[i](j), BJ);
-				pair[0] = nodeSupport(i,j);
+				col_eqnos.Copy(field_eqnos(nodeSupport(i,j)));
 				for (int k = j; k < nodeSupport.MinorDim(i); k++)
 				{
-					pair[1] = nodeSupport(i,k);
 					bVectorToMatrix(bVectors[i](k), BK);
 					
 					BK(2,0) *= 2.; // I either have to do this here or on the RHS 
@@ -710,14 +703,11 @@ void SCNIMFT::LHSDriver(GlobalT::SystemTypeT sys_type)
 					
 					K_JK *= w_i*constK;
 					
-					if (j == k) // not sure if this correctly general for all GlobalMatrices
-						K_JK /= 2.;
-					
-					fLHS.SetBlock(0,fSD,K_JK);
+					fLHS.SetBlock(0,0,K_JK);
 					
 					/* assemble */
-					pair_eqnos.RowCollect(pair, field_eqnos);
-					support.AssembleLHS(group, fLHS, pair_eqnos);
+					row_eqnos.Copy(field_eqnos(nodeSupport(i,k)));
+					support.AssembleLHS(group, fLHS, row_eqnos, col_eqnos);
 				}
 			}	
 		}
