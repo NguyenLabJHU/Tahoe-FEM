@@ -1,4 +1,4 @@
-/* $Id: ConveyorT.cpp,v 1.3.30.4 2004-11-09 18:29:07 thao Exp $ */
+/* $Id: ConveyorT.cpp,v 1.3.30.5 2004-11-09 18:34:22 thao Exp $ */
 #include "NodeManagerT.h"
 #include "FEManagerT.h"
 #include "ModelManagerT.h"
@@ -623,9 +623,9 @@ void ConveyorT::MarkElements(void)
 		
 		/* reset element status */
 
-		ContinuumElementT* cont_elem = TB_DYNAMIC_CAST(const ContinuumElementT*, element_group);
+		ContinuumElementT* cont_elem = TB_DYNAMIC_CAST(ContinuumElementT*, element_group);
 		if (!cont_elem) {
-			CSEAnisoT* cse_aniso_elem = TB_DYNAMIC_CAST(const CSEAnisoT*, element_group);
+			CSEAnisoT* cse_aniso_elem = TB_DYNAMIC_CAST(CSEAnisoT*, element_group);
 			if (!cse_aniso_elem)
 				ExceptionT::GeneralFail("ConveyorT::MarkElements", "could not cast element group %d to ContinuumElementT", element_group+1);
 			else cse_aniso_elem->SetStatus(status);
