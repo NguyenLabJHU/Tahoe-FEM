@@ -1,4 +1,4 @@
-/* $Id: FEExecutionManagerT.cpp,v 1.52 2003-10-28 07:42:16 paklein Exp $ */
+/* $Id: FEExecutionManagerT.cpp,v 1.53 2004-01-10 17:13:11 paklein Exp $ */
 /* created: paklein (09/21/1997) */
 #include "FEExecutionManagerT.h"
 
@@ -108,8 +108,8 @@ void FEExecutionManagerT::RunJob(ifstreamT& in, ostream& status)
 		}
 	}
 
-//TEMP - look for command line option indicating THK calculation
-if (CommandLineOption("-thk")) mode = kTHK;
+	//TEMP - look for command line option indicating THK calculation
+	if (CommandLineOption("-thk")) mode = kTHK;
 
 	switch (mode)
 	{
@@ -128,9 +128,13 @@ if (CommandLineOption("-thk")) mode = kTHK;
 		{
 			cout << "\n RunDecomp_serial: " << in.filename() << endl;
 			if (fComm.Size() > 1) cout << " RunDecomp_serial: SERIAL ONLY" << endl;
-				
-			/* decompose using rank 0 */
-			if (fComm.Rank() == 0) RunDecomp_serial(in, status);
+
+			/* 'serial' communicator */
+			int rank = fComm.Rank();
+			CommunicatorT comm(fComm, (rank == 0) ? rank : CommunicatorT::kNoColor);
+			
+			/* decompose on rank 0 */
+			if (rank == 0) RunDecomp_serial(in, status, comm);
 
 			/* synch */
 			fComm.Barrier();
@@ -141,8 +145,12 @@ if (CommandLineOption("-thk")) mode = kTHK;
 			cout << "\n RunJoin_serial: " << in.filename() << endl;
 			if (fComm.Size() > 1) cout << " RunJoin_serial: SERIAL ONLY" << endl;
 			
+			/* 'serial' communicator */
+			int rank = fComm.Rank();
+			CommunicatorT comm(fComm, (rank == 0) ? rank : CommunicatorT::kNoColor);
+
 			/* join using rank 0 */
-			if (fComm.Rank() == 0) RunJoin_serial(in, status);
+			if (rank == 0) RunJoin_serial(in, status, comm);
 
 			/* synch */
 			fComm.Barrier();
@@ -1247,21 +1255,14 @@ void FEExecutionManagerT::RunJob_serial(ifstreamT& in,
 }	
 
 /* generate decomposition files */
-void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status) const
+void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status, CommunicatorT& comm, int size) const
 {
-	int size = 0;
+	/* look for size */
 	int index;
-	if (!CommandLineOption("-decomp", index)) 
-		ExceptionT::GeneralFail();
-	else {
-	
-		/* look for size */
-		if (fCommandLineOptions.Length() > index+1)
-		{
-			const char* opt = fCommandLineOptions[index+1];
-			if (strlen(opt) > 1 && isdigit(opt[1]))
-				size = atoi(opt+1); /* opt[0] = '-' */
-		}
+	if (CommandLineOption("-decomp", index) && fCommandLineOptions.Length() > index+1) {
+		const char* opt = fCommandLineOptions[index+1];
+		if (strlen(opt) > 1 && isdigit(opt[1]))
+			size = atoi(opt+1); /* opt[0] = '-' */
 	}
 
 	/* look for method */
@@ -1277,7 +1278,7 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status) const
 	}
 	
 	/* prompt for size */
-	if (size == 0) 
+	if (size == -1) 
 	{
 		/* prompt for decomp size */
 		int count = 0;
@@ -1335,14 +1336,8 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status) const
 		IOBaseT::FileTypeT format;
 		GetModelFile(in, model_file, format);
 
-		/* output map file */
-		StringT map_file;
-		map_file.Root(in.filename());
-		map_file.Append(".n", size);
-		map_file.Append(".io.map");
-
 		/* set output map and and generate decomposition */
-		Decompose(in, size, method, model_file, format);
+		Decompose(in, size, method, comm, model_file, format);
 		t1 = clock();
 	}
 
@@ -1362,11 +1357,10 @@ void FEExecutionManagerT::RunDecomp_serial(ifstreamT& in, ostream& status) const
 	status <<   "   Start time: " << ctime(&starttime);
 	status <<   "Decomposition: " << double(t1 - t0)/CLOCKS_PER_SEC << " sec.\n";
 	status <<   "    Stop time: " << ctime(&stoptime);	
-	status << "\n End Execution\n" << endl;
 }
 
 /* join parallel results files */
-void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
+void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status, CommunicatorT& comm, int size) const
 {
 	/* set stream comment marker */
 	in.set_marker('#');
@@ -1383,7 +1377,7 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 
 		/* to read file parameters */
 		ofstreamT out;
-		FEManagerT fe_man(in, out, fComm);
+		FEManagerT fe_man(in, out, comm);
 		fe_man.Initialize(FEManagerT::kParametersOnly);
 		
 		/* model file parameters */
@@ -1394,21 +1388,15 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 		    results_format == IOBaseT::kTahoeII)
 			results_format = IOBaseT::kTahoeResults;
 
-		int size = fComm.Size();
 		int index;
-		if (!CommandLineOption("-join", index)) 
-			ExceptionT::GeneralFail();
-		else {
-			if (fCommandLineOptions.Length() > index+1)
-			{
-				const char* opt = fCommandLineOptions[index+1];
-				if (strlen(opt) > 1 && isdigit(opt[1]))
-					size = atoi(opt+1);
-			}
+		if (CommandLineOption("-join", index) && fCommandLineOptions.Length() > index+1) {
+			const char* opt = fCommandLineOptions[index+1];
+			if (strlen(opt) > 1 && isdigit(opt[1]))
+				size = atoi(opt+1);
 		}
 
 		/* prompt for decomp size */
-		if (size == 1)
+		if (size == -1)
 		{
 			cout << "\n Enter number of partitions > 1 (0 to quit): ";
 #if (defined __SGI__ && defined __TAHOE_MPI__)
@@ -1429,11 +1417,11 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 		StringT input   = in.filename();
 		OutputBaseT* output = IOBaseT::NewOutput(program, version, title, input, 
 			results_format, cout);
-		
+
 		/* construct joiner */
 		JoinOutputT output_joiner(in.filename(), model_file, model_format, 
 			results_format, output, size);
-		
+
 		/* join files */
 		output_joiner.Join();
 		
@@ -1459,7 +1447,6 @@ void FEExecutionManagerT::RunJoin_serial(ifstreamT& in, ostream& status) const
 	status <<   "   Start time: " << ctime(&starttime);
 	status <<   "         Join: " << double(t1 - t0)/CLOCKS_PER_SEC << " sec.\n";
 	status <<   "    Stop time: " << ctime(&stoptime);	
-	status << "\n End Execution\n" << endl;
 }
 
 /* testing for distributed execution */
@@ -1498,50 +1485,19 @@ void FEExecutionManagerT::RunJob_parallel(ifstreamT& in, ostream& status) const
 	IOBaseT::FileTypeT format;
 	GetModelFile(in, model_file, format);
 
-	/* set output map and generate decomposition */
+	/* generate decomposition if needed */
 	token = 1;
-	if (rank == 0)
+	if (NeedDecomposition(model_file, size) || !CommandLineOption("-split_io"))
 	{
-		/* look for method */
-		int index = 0;
-		int method = -1;
-		if (CommandLineOption("-decomp_method", index))
-		{	
-			if (fCommandLineOptions.Length() > index+1)
-			{
-				const char* opt = fCommandLineOptions[index+1];
-				if (strlen(opt) > 1 && isdigit(opt[1]))
-					method = atoi(opt+1); /* opt[0] = '-' */
-			}
-		}
+		/* 'serial' communicator */
+		int rank = fComm.Rank();
+		CommunicatorT comm(fComm, (rank == 0) ? rank : CommunicatorT::kNoColor);
 
-		if (NeedDecomposition(model_file, size) || !CommandLineOption("-split_io"))
-		  {
-		/* prompt if not found */
-		if (method == -1)
-		{	
-			cout << "\n Select partitioning method:\n"
-			     << '\t' << PartitionT::kGraph   << ": graph\n"
-			     << '\t' << PartitionT::kAtom    << ": atom\n"
-			     << '\t' << PartitionT::kSpatial << ": spatial\n";
-			cout << "\n method: "; 
-#if (defined __SGI__ && defined __TAHOE_MPI__)
-			cout << '\n';
-#endif					
-			cin >> method;
+		/* decompose on rank 0 */
+		if (rank == 0) RunDecomp_serial(in, status, comm, fComm.Size());
 	
-			/* clear to end of line */
-			fstreamT::ClearLine(cin);
-		}
-	
-		/* run decomp */
-		try { Decompose(in, size, method, model_file, format); }
-		catch (ExceptionT::CodeT code)
-		{
-			cout << "\n " << caller << ": exception on decomposition: " << code << endl;
-			token = 0;
-		}
-		  }
+		/* synch */
+		fComm.Barrier();	
 	}
 
 	/* synch and check status */
@@ -1787,14 +1743,14 @@ void FEExecutionManagerT::GetModelFile(ifstreamT& in, StringT& model_file,
 	model_file = model->DatabaseName();
 }
 
-void FEExecutionManagerT::Decompose(ifstreamT& in, int size,
-	int decomp_type, const StringT& model_file, IOBaseT::FileTypeT format) const
+void FEExecutionManagerT::Decompose(ifstreamT& in, int size, int decomp_type, CommunicatorT& comm,
+	const StringT& model_file, IOBaseT::FileTypeT format) const
 {	
 	/* dispatch */
 	switch (decomp_type)
 	{
 		case PartitionT::kGraph:
-			Decompose_graph(in, size, model_file, format);
+			Decompose_graph(in, size, comm, model_file, format);
 			break;
 
 		case PartitionT::kAtom:
@@ -1924,7 +1880,7 @@ void FEExecutionManagerT::Decompose_spatial(ifstreamT& in, int size,
 
 /* graph-based decomposition */
 void FEExecutionManagerT::Decompose_graph(ifstreamT& in, int size,
-	const StringT& model_file, IOBaseT::FileTypeT format) const
+	CommunicatorT& comm, const StringT& model_file, IOBaseT::FileTypeT format) const
 {
 	bool need_decomp = NeedDecomposition(model_file, size);
 	if (need_decomp)
@@ -1944,7 +1900,7 @@ void FEExecutionManagerT::Decompose_graph(ifstreamT& in, int size,
 		}
 
 		/* construct global problem */
-		FEManagerT_mpi global_FEman(in_decomp, decomp_out, fComm, NULL, FEManagerT_mpi::kDecompose);
+		FEManagerT_mpi global_FEman(in_decomp, decomp_out, comm, NULL, FEManagerT_mpi::kDecompose);
 		try { global_FEman.Initialize(FEManagerT::kAllButSolver); }
 		catch (ExceptionT::CodeT code)
 		{
