@@ -1,4 +1,4 @@
-/* $Id: K_FieldT.cpp,v 1.4 2002-01-27 18:51:12 paklein Exp $ */
+/* $Id: K_FieldT.cpp,v 1.5 2002-02-11 18:48:20 paklein Exp $ */
 /* created: paklein (09/05/2000) */
 
 #include "K_FieldT.h"
@@ -98,6 +98,12 @@ void K_FieldT::Initialize(ifstreamT& in)
 	/* allocate displacement field factors */
 	fK1Disp.Allocate(fNodes.Length(), nsd);
 	fK2Disp.Allocate(fNodes.Length(), nsd);
+	
+//TEMP - tip tracking not supporting for parallel execution
+	if (fNearTipGroupNum != -1 && fNodeManager.Size() > 1) {
+		cout << "\n K_FieldT::Initialize: tip tracking not implemented in parallel" << endl;
+		throw eBadInputValue;
+	}	
 }
 
 void K_FieldT::WriteParameters(ostream& out) const
