@@ -1,4 +1,4 @@
-/* $Id: CommManagerT.cpp,v 1.1.2.6 2002-12-27 23:12:08 paklein Exp $ */
+/* $Id: CommManagerT.cpp,v 1.1.2.7 2003-01-05 23:46:28 paklein Exp $ */
 #include "CommManagerT.h"
 #include "CommunicatorT.h"
 #include "ModelManagerT.h"
@@ -48,7 +48,9 @@ void CommManagerT::SetPartition(PartitionT* partition)
 		fNodeMap.Alias(fPartition->NodeMap());
 		
 		/* nodes owned by this processor */
-		CollectPartitionNodes(fNodeMap, fComm.Rank(), fPartitionNodes);
+		fProcessor.Dimension(fNodeMap.Length());
+		fPartition->ReturnProcessorMap(fProcessor);
+		CollectPartitionNodes(fProcessor, fComm.Rank(), fPartitionNodes);
 		
 		/* external nodes */
 		fExternalNodes.Alias(fPartition->Nodes_External());
