@@ -1,4 +1,4 @@
-/* $Id: ParticlePairT.h,v 1.3 2002-11-22 01:49:45 paklein Exp $ */
+/* $Id: ParticlePairT.h,v 1.4 2002-11-25 07:19:45 paklein Exp $ */
 #ifndef _PARTICLE_PAIR_T_H_
 #define _PARTICLE_PAIR_T_H_
 
@@ -10,6 +10,9 @@
 
 namespace Tahoe {
 
+/* forward declarations */
+class PairPropertyT;
+
 /** base class for particle types */
 class ParticlePairT: public ParticleT
 {
@@ -17,6 +20,9 @@ public:
 
 	/** constructor */
 	ParticlePairT(const ElementSupportT& support, const FieldT& field);
+
+	/** destructor */
+	~ParticlePairT(void);
 
 	/** initialization */
 	virtual void Initialize(void);
@@ -37,13 +43,6 @@ public:
 	             AutoArrayT<const RaggedArray2DT<int>*>& connects_2) const;
 	/*@}*/
 
-	/** trigger reconfiguration */
-	virtual GlobalT::RelaxCodeT RelaxSystem(void);
-
-	/** close current time increment. Since this is called only once per
-	 * time step, this is used to increment counters. */
-	virtual void CloseStep(void);
-
 protected:
 
 	/** \name drivers called by ElementBaseT::FormRHS and ElementBaseT::FormLHS */
@@ -55,20 +54,21 @@ protected:
 	virtual void RHSDriver(void);
 	/*@}*/
 	
-	/** set neighborlists. Recalculates the neighborlists at intervals defined
-	 * by ParticlePairT::fReNeighborIncr.
-	 * \param force if true, forces recalculation of neighbors regardless of
-	 *        of the state of the counters
-	 * \return true if the configuration has changed */
-	bool SetConfiguration(bool force = false);
-	
+	/** set neighborlists and any other system configuration information
+	 * based on the current information. Uses ParticleT::GenerateNeighborList
+	 * to determine the neighborlists. */
+	virtual void SetConfiguration(void);
+
+	/** construct the list of properties from the given input stream */
+	virtual void EchoProperties(ifstreamT& in, ofstreamT& out);
+
 private:
 
 	/** neighbor cut-off distance */
 	double fNeighborDistance;
 
-	/** number of steps between reseting neighbor lists */
-	int fReNeighborIncr;
+	/** particle properties list */
+	ArrayT<PairPropertyT*> fProperties;
 
 	/** neighbor lists */
 	RaggedArray2DT<int> fNeighbors;
@@ -76,10 +76,9 @@ private:
 	/** equation numbers */
 	RaggedArray2DT<int> fEqnos;
 
-	/** \name run time information. Incremented in */
-	/*@{*/
-	int fReNeighborCounter;
-	/*@}*/
+	/** workspace for ParticlePairT::RHSDriver. Used to accumulate the force for
+	 * a single row of ParticlePairT::fNeighbors. */
+	AutoArrayT<double> fForce;
 };
 
 } /* namespace Tahoe */
