@@ -1,4 +1,4 @@
-/* $Id: ParameterInterfaceT.cpp,v 1.14 2004-03-24 17:21:51 paklein Exp $ */
+/* $Id: ParameterInterfaceT.cpp,v 1.15 2004-03-27 04:06:46 paklein Exp $ */
 #include "ParameterInterfaceT.h"
 #include "ParameterListT.h"
 #include "ParameterUtils.h"
@@ -88,7 +88,7 @@ void ParameterInterfaceT::ValidateParameterList(const ParameterListT& raw_list, 
 				new_parameter.SetDescription(parameter.Description());
 				if (raw_parameter.Type() == parameter.Type())
 					new_parameter = raw_parameter;
-				else if (raw_parameter.Type() == ParameterT::String)
+				else if (raw_parameter.Type() == ParameterT::String || raw_parameter.Type() == ParameterT::Word)
 				{
 					/* convert to string */
 					const StringT& value_str = raw_parameter;
@@ -97,8 +97,8 @@ void ParameterInterfaceT::ValidateParameterList(const ParameterListT& raw_list, 
 					new_parameter.FromString(value_str);	
 				}
 				else
-					ExceptionT::BadInputValue(caller, "source for \"%s\" must have type %d or %d: %d", 
-						parameter.Name().Pointer(), ParameterT::String, parameter.Type());
+					ExceptionT::BadInputValue(caller, "source for \"%s\" must have type %d, %d, or %d: %d", 
+						parameter.Name().Pointer(), ParameterT::String, ParameterT::Word, parameter.Type());
 
 				/* increment count */
 				count++;
@@ -212,6 +212,8 @@ void ParameterInterfaceT::DefineInlineSub(const StringT& sub, ParameterListT::Li
 /* return a pointer to the ParameterInterfaceT */
 ParameterInterfaceT* ParameterInterfaceT::NewSub(const StringT& list_name) const
 {
+	const char caller[] = "ParameterInterfaceT::NewSub";
+
 	if (list_name == "Integer")
 		return new IntegerParameterT;
 	else if (list_name == "IntegerList")
@@ -231,6 +233,10 @@ ParameterInterfaceT* ParameterInterfaceT::NewSub(const StringT& list_name) const
 		pair->AddParameter(y);
 		return pair;
 	}
+	else if (strncmp("Vector_", list_name, 7) == 0) /* Vector_N */
+		return new VectorParameterT(list_name);
+	else if (strncmp("Matrix_", list_name, 7) == 0) /* Matrix_MxN */
+		return new MatrixParameterT(list_name);
 	else
 		return NULL;
 }
